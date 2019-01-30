@@ -38,6 +38,8 @@ typedef struct ScoreTree {
   int              locn;
 } ScoreTree;
 
+#ifndef __PARSE_PARAM_H
+
 #define MARGS   (3)
 #define MAX_INCLUDE_DEPTH 100
 struct MACRO;
@@ -67,6 +69,8 @@ typedef struct IFDEFSTACK_ {
                                 /*   #ifdef, 2: skipping due to parent      */
 } IFDEFSTACK;
 
+
+#endif
 
 typedef struct prs_parm_s {
     void            *yyscanner;
@@ -122,7 +126,7 @@ typedef struct score_parm_s {
     SCOTOKEN        *arglist;
 } SCORE_PARM;
 
-uint64_t make_location(PRS_PARM *);
+uint64_t make_slocation(PRS_PARM *);
 extern uint8_t file_to_int(CSOUND*, const char*);
 
 #endif

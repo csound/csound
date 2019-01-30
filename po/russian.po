@@ -434,7 +434,7 @@ msgstr ""
 msgid "error: boolean expression '%s' with arg types %s not found, line %d\n"
 msgstr ""
 
-#: Engine/csound_orc_semantics.c:548 Engine/csound_orc_semantics.c:1252
+#: Engine/csound_orc_semantics.c:548 Engine/csound_orc_semantics.c:1259
 #, c-format
 msgid ""
 "Variable '%s' used before defined\n"
@@ -446,87 +446,92 @@ msgstr ""
 msgid "Unknown arg type: %d\n"
 msgstr ""
 
-#: Engine/csound_orc_semantics.c:1207
+#: Engine/csound_orc_semantics.c:990
+#, c-format
+msgid "Found %d inputs for %s which is more than the %d allowed\n"
+msgstr ""
+
+#: Engine/csound_orc_semantics.c:1214
 #, c-format
 msgid "Variable type for %s could not be determined.\n"
 msgstr ""
 
-#: Engine/csound_orc_semantics.c:1229
+#: Engine/csound_orc_semantics.c:1236
 #, c-format
 msgid ""
 "Variable '%s' used before defined\n"
 "line %d"
 msgstr ""
 
-#: Engine/csound_orc_semantics.c:1457
+#: Engine/csound_orc_semantics.c:1464
 #, c-format
 msgid "Unable to find opcode with name: %s\n"
 msgstr ""
 
-#: Engine/csound_orc_semantics.c:1475
+#: Engine/csound_orc_semantics.c:1482
 #, c-format
 msgid "Unable to find opcode entry for '%s' with matching argument types:\n"
 msgstr ""
 
-#: Engine/csound_orc_semantics.c:1478
+#: Engine/csound_orc_semantics.c:1485
 #, c-format
 msgid "Found: %s %s %s\n"
 msgstr ""
 
-#: Engine/csound_orc_semantics.c:1481
+#: Engine/csound_orc_semantics.c:1488
 #, c-format
 msgid "       %s %s %s ...\n"
 msgstr ""
 
-#: Engine/csound_orc_semantics.c:1484
+#: Engine/csound_orc_semantics.c:1491
 #, c-format
 msgid "Line: %d\n"
 msgstr ""
 
-#: Engine/csound_orc_semantics.c:1639
+#: Engine/csound_orc_semantics.c:1646
 #, c-format
 msgid ""
 "expression for until/while statement not a boolean expression, line %d\n"
 msgstr ""
 
-#: Engine/csound_orc_semantics.c:1682
+#: Engine/csound_orc_semantics.c:1689
 msgid "Multiple xin statements found. Only one is allowed."
 msgstr ""
 
-#: Engine/csound_orc_semantics.c:1691
+#: Engine/csound_orc_semantics.c:1698
 msgid "Multiple xout statements found. Only one is allowed."
 msgstr ""
 
-#: Engine/csound_orc_semantics.c:1708
+#: Engine/csound_orc_semantics.c:1715
 #, c-format
 msgid "invalid xin statement for UDO: defined '%s', found '%s'\n"
 msgstr ""
 
-#: Engine/csound_orc_semantics.c:1717
+#: Engine/csound_orc_semantics.c:1724
 #, c-format
 msgid "invalid xout statement for UDO: defined '%s', found '%s'\n"
 msgstr ""
 
-#: Engine/csound_orc_semantics.c:1931
+#: Engine/csound_orc_semantics.c:1938
 #, c-format
 msgid ""
 "\n"
 "error: %s  (token \"%s\")"
 msgstr ""
 
-#: Engine/csound_orc_semantics.c:1934
+#: Engine/csound_orc_semantics.c:1941
 #, c-format
 msgid ""
 " line %d:\n"
 ">>>"
 msgstr ""
 
-#: Engine/csound_orc_semantics.c:1953
+#: Engine/csound_orc_semantics.c:1960
 #, c-format
 msgid " from file %s (%d)\n"
 msgstr ""
 
-#: Engine/csound_orc_semantics.c:2537
+#: Engine/csound_orc_semantics.c:2544
 #, fuzzy, c-format
 msgid "insufficient required arguments for opcode %s on line %d:\n"
 msgstr "недостаточные аргументы"
@@ -1026,7 +1031,7 @@ msgstr ""
 
 #: Engine/fgens.c:2402 Engine/fgens.c:2518 Engine/fgens.c:2546
 #: Engine/fgens.c:2553 Opcodes/gab/gab.c:576 Opcodes/gab/gab.c:633
-#: Opcodes/midiops2.c:235 Opcodes/midiops2.c:391 Opcodes/midiops2.c:473
+#: Opcodes/midiops2.c:226 Opcodes/midiops2.c:378 Opcodes/midiops2.c:468
 #: Opcodes/uggab.c:1666 Opcodes/uggab.c:1702 Opcodes/uggab.c:1724
 #: Opcodes/uggab.c:1778
 #, c-format
@@ -1583,8 +1588,8 @@ msgstr ""
 msgid "File"
 msgstr ""
 
-#: Engine/memfiles.c:681 OOps/diskin2.c:479 OOps/diskin2.c:495
-#: OOps/diskin2.c:1763 OOps/diskin2.c:1779
+#: Engine/memfiles.c:681 OOps/diskin2.c:482 OOps/diskin2.c:498
+#: OOps/diskin2.c:1769 OOps/diskin2.c:1785
 msgid "channel(s)"
 msgstr ""
 
@@ -4282,117 +4287,117 @@ msgstr ""
 msgid "diskin2: invalid number of channels"
 msgstr ""
 
-#: OOps/diskin2.c:327 OOps/diskin2.c:1581
+#: OOps/diskin2.c:329 OOps/diskin2.c:1586
 msgid "diskin2: unknown sample format"
 msgstr ""
 
-#: OOps/diskin2.c:342
+#: OOps/diskin2.c:345
 #, c-format
 msgid "diskin2: %s: failed to open file (%s)"
 msgstr ""
 
-#: OOps/diskin2.c:353
+#: OOps/diskin2.c:356
 msgid ""
 "diskin2: number of output args inconsistent with number of file channels"
 msgstr ""
 
-#: OOps/diskin2.c:385 OOps/diskin2.c:1658
+#: OOps/diskin2.c:388 OOps/diskin2.c:1664
 #, c-format
 msgid "diskin2: warning: file sample rate (%d) != orchestra sr (%d)\n"
 msgstr ""
 
-#: OOps/diskin2.c:476 OOps/diskin2.c:1760
+#: OOps/diskin2.c:479 OOps/diskin2.c:1766
 msgid "diskin2: opened (asynchronously)"
 msgstr ""
 
-#: OOps/diskin2.c:481 OOps/diskin2.c:497 OOps/diskin2.c:1765
-#: OOps/diskin2.c:1781
+#: OOps/diskin2.c:484 OOps/diskin2.c:500 OOps/diskin2.c:1771
+#: OOps/diskin2.c:1787
 msgid "sample frames\n"
 msgstr ""
 
-#: OOps/diskin2.c:492 OOps/diskin2.c:1776
+#: OOps/diskin2.c:495 OOps/diskin2.c:1782
 msgid "diskin2: opened"
 msgstr ""
 
-#: OOps/diskin2.c:573 OOps/diskin2.c:759 OOps/diskin2.c:955 OOps/diskin2.c:1361
-#: OOps/diskin2.c:1808 OOps/diskin2.c:2001
+#: OOps/diskin2.c:576 OOps/diskin2.c:762 OOps/diskin2.c:958 OOps/diskin2.c:1364
+#: OOps/diskin2.c:1814 OOps/diskin2.c:2007
 msgid "diskin2: not initialised"
 msgstr ""
 
-#: OOps/diskin2.c:739 OOps/diskin2.c:930 OOps/diskin2.c:1532
-#: OOps/diskin2.c:1974
+#: OOps/diskin2.c:742 OOps/diskin2.c:933 OOps/diskin2.c:1535
+#: OOps/diskin2.c:1980
 msgid "diskin2: file descriptor closed or invalid\n"
 msgstr ""
 
-#: OOps/diskin2.c:1040
+#: OOps/diskin2.c:1043
 #, c-format
 msgid "%s is deprecated; use fout instead\n"
 msgstr ""
 
-#: OOps/diskin2.c:1078
+#: OOps/diskin2.c:1081
 #, c-format
 msgid "%s: invalid sample format: %d"
 msgstr ""
 
-#: OOps/diskin2.c:1083
+#: OOps/diskin2.c:1086
 #, c-format
 msgid "%s cannot open %s"
 msgstr ""
 
-#: OOps/diskin2.c:1095
+#: OOps/diskin2.c:1098
 #, c-format
 msgid "%s: opening RAW outfile %s\n"
 msgstr ""
 
-#: OOps/diskin2.c:1120
+#: OOps/diskin2.c:1123
 msgid "soundout: not initialised"
 msgstr ""
 
-#: OOps/diskin2.c:1142
+#: OOps/diskin2.c:1145
 msgid "soundouts: not initialised"
 msgstr ""
 
-#: OOps/diskin2.c:1596
+#: OOps/diskin2.c:1602
 #, fuzzy, c-format
 msgid "diskin2: %s: failed to open file: %s"
 msgstr "%s: не выступлено с иничиативой"
 
-#: OOps/diskin2.c:2126
+#: OOps/diskin2.c:2132
 msgid "soundin: invalid number of channels"
 msgstr ""
 
-#: OOps/diskin2.c:2148
+#: OOps/diskin2.c:2156
 msgid "soundin: unknown sample format"
 msgstr ""
 
-#: OOps/diskin2.c:2170
+#: OOps/diskin2.c:2179
 #, fuzzy, c-format
 msgid "soundin: %s: failed to open file: %s"
 msgstr "%s: не выступлено с иничиативой"
 
-#: OOps/diskin2.c:2174
+#: OOps/diskin2.c:2183
 #, c-format
 msgid "soundin: %s: failed to open file"
 msgstr ""
 
-#: OOps/diskin2.c:2182
+#: OOps/diskin2.c:2191
 #, c-format
 msgid ""
 "soundin: opened '%s':\n"
 "         %d Hz, %d channel(s), %ld sample frames\n"
 msgstr ""
 
-#: OOps/diskin2.c:2192
+#: OOps/diskin2.c:2201
 msgid ""
 "soundin: number of output args inconsistent with number of file channels"
 msgstr ""
 
-#: OOps/diskin2.c:2201
+#: OOps/diskin2.c:2210
 #, c-format
 msgid "soundin: file sample rate (%d) != orchestra sr (%d)\n"
 msgstr ""
 
-#: OOps/diskin2.c:2252
+#: OOps/diskin2.c:2261
 msgid "soundin: not initialised"
 msgstr ""
 
@@ -4557,10 +4562,10 @@ msgstr ""
 
 #: OOps/midiops.c:327 OOps/midiops.c:337 OOps/midiops.c:358 OOps/midiops.c:368
 #: OOps/midiops.c:454 OOps/midiops.c:468 Opcodes/gab/sliderTable.c:568
-#: Opcodes/midiops2.c:59 Opcodes/midiops2.c:76 Opcodes/midiops2.c:121
-#: Opcodes/midiops2.c:155 Opcodes/midiops2.c:223 Opcodes/midiops2.c:254
-#: Opcodes/midiops2.c:319 Opcodes/midiops2.c:338 Opcodes/midiops2.c:378
-#: Opcodes/midiops2.c:409 Opcodes/midiops2.c:459 Opcodes/midiops2.c:493
+#: Opcodes/midiops2.c:59 Opcodes/midiops2.c:78 Opcodes/midiops2.c:124
+#: Opcodes/midiops2.c:160 Opcodes/midiops2.c:215 Opcodes/midiops2.c:250
+#: Opcodes/midiops2.c:303 Opcodes/midiops2.c:324 Opcodes/midiops2.c:365
+#: Opcodes/midiops2.c:400 Opcodes/midiops2.c:455 Opcodes/midiops2.c:492
 msgid "illegal controller number"
 msgstr ""
 
@@ -6212,221 +6217,221 @@ msgstr "%s: не выступлено с иничиативой"
 msgid "second input array is too short\n"
 msgstr "%s: не выступлено с иничиативой"
 
-#: Opcodes/arrays.c:111
+#: Opcodes/arrays.c:118
 msgid "Error: no sizes set for array initialization"
 msgstr ""
 
-#: Opcodes/arrays.c:117
+#: Opcodes/arrays.c:124
 msgid "Error: sizes must be > 0 for array initialization"
 msgstr ""
 
-#: Opcodes/arrays.c:161
-msgid "fillarrray: arrays with dim > 2 not currently supported\n"
-msgstr ""
+#: Opcodes/arrays.c:225
+#, fuzzy, c-format
+msgid "error opening ASCII file %s\n"
+msgstr "%s: не выступлено с иничиативой"
 
-#: Opcodes/arrays.c:176
+#: Opcodes/arrays.c:308
 msgid "Cannot set i-array at k-rate\n"
 msgstr ""
 
-#: Opcodes/arrays.c:189
+#: Opcodes/arrays.c:324
 msgid "Error: no indexes set for array set\n"
 msgstr ""
 
-#: Opcodes/arrays.c:194
-#, c-format
-msgid "Array dimension %d out of range for dimensions %d\n"
-msgstr ""
+#: Opcodes/arrays.c:329
+#, fuzzy, c-format
+msgid "Array dimension %d does not match for dimensions %d\n"
+msgstr "%s: не выступлено с иничиативой"
 
-#: Opcodes/arrays.c:203 Opcodes/arrays.c:214 Opcodes/arrays.c:256
-#: Opcodes/arrays.c:267
+#: Opcodes/arrays.c:339 Opcodes/arrays.c:380
 #, c-format
 msgid "Array index %d out of range (0,%d) for dimension %d"
 msgstr ""
 
-#: Opcodes/arrays.c:244
+#: Opcodes/arrays.c:367
 msgid "Error: no indexes set for array get"
 msgstr ""
 
-#: Opcodes/arrays.c:247
+#: Opcodes/arrays.c:370
 #, c-format
 msgid "Array dimension %d out of range for dimensions %d"
 msgstr ""
 
-#: Opcodes/arrays.c:334
+#: Opcodes/arrays.c:445
 msgid "Dimensions do not match in array arithmetic"
 msgstr ""
 
-#: Opcodes/arrays.c:343 Opcodes/arrays.c:372 Opcodes/arrays.c:391
-#: Opcodes/arrays.c:404 Opcodes/arrays.c:423 Opcodes/arrays.c:459
-#: Opcodes/arrays.c:479 Opcodes/arrays.c:503 Opcodes/arrays.c:523
-#: Opcodes/arrays.c:560 Opcodes/arrays.c:598 Opcodes/arrays.c:618
-#: Opcodes/arrays.c:636 Opcodes/arrays.c:677 Opcodes/arrays.c:697
-#: Opcodes/arrays.c:724 Opcodes/arrays.c:744 Opcodes/arrays.c:772
-#: Opcodes/arrays.c:799 Opcodes/arrays.c:856 Opcodes/arrays.c:892
-#: Opcodes/arrays.c:925 Opcodes/arrays.c:958 Opcodes/arrays.c:996
-#: Opcodes/arrays.c:1028 Opcodes/arrays.c:1060 Opcodes/arrays.c:1092
-#: Opcodes/arrays.c:1124 Opcodes/arrays.c:1156 Opcodes/arrays.c:1188
-#: Opcodes/arrays.c:1225 Opcodes/arrays.c:1260 Opcodes/arrays.c:1295
-#: Opcodes/arrays.c:1327 Opcodes/arrays.c:1362 Opcodes/arrays.c:1397
-#: Opcodes/arrays.c:1432 Opcodes/arrays.c:1467 Opcodes/arrays.c:1502
-#: Opcodes/arrays.c:1537 Opcodes/arrays.c:1572 Opcodes/arrays.c:1608
-#: Opcodes/arrays.c:1644 Opcodes/arrays.c:1680 Opcodes/arrays.c:1716
-#: Opcodes/arrays.c:1752 Opcodes/arrays.c:1788 Opcodes/arrays.c:1824
-#: Opcodes/arrays.c:1860 Opcodes/arrays.c:1896 Opcodes/arrays.c:1932
-#: Opcodes/arrays.c:1968 Opcodes/arrays.c:2001 Opcodes/arrays.c:2007
-#: Opcodes/arrays.c:2018 Opcodes/arrays.c:2049 Opcodes/arrays.c:2080
-#: Opcodes/arrays.c:2101 Opcodes/arrays.c:2175 Opcodes/arrays.c:2222
+#: Opcodes/arrays.c:454 Opcodes/arrays.c:483 Opcodes/arrays.c:502
+#: Opcodes/arrays.c:515 Opcodes/arrays.c:534 Opcodes/arrays.c:570
+#: Opcodes/arrays.c:590 Opcodes/arrays.c:614 Opcodes/arrays.c:634
+#: Opcodes/arrays.c:671 Opcodes/arrays.c:709 Opcodes/arrays.c:729
+#: Opcodes/arrays.c:747 Opcodes/arrays.c:788 Opcodes/arrays.c:808
+#: Opcodes/arrays.c:835 Opcodes/arrays.c:855 Opcodes/arrays.c:883
+#: Opcodes/arrays.c:910 Opcodes/arrays.c:967 Opcodes/arrays.c:1003
+#: Opcodes/arrays.c:1036 Opcodes/arrays.c:1069 Opcodes/arrays.c:1107
+#: Opcodes/arrays.c:1139 Opcodes/arrays.c:1171 Opcodes/arrays.c:1203
+#: Opcodes/arrays.c:1235 Opcodes/arrays.c:1267 Opcodes/arrays.c:1299
+#: Opcodes/arrays.c:1336 Opcodes/arrays.c:1371 Opcodes/arrays.c:1406
+#: Opcodes/arrays.c:1438 Opcodes/arrays.c:1473 Opcodes/arrays.c:1508
+#: Opcodes/arrays.c:1543 Opcodes/arrays.c:1578 Opcodes/arrays.c:1613
+#: Opcodes/arrays.c:1648 Opcodes/arrays.c:1683 Opcodes/arrays.c:1719
+#: Opcodes/arrays.c:1755 Opcodes/arrays.c:1791 Opcodes/arrays.c:1827
+#: Opcodes/arrays.c:1863 Opcodes/arrays.c:1899 Opcodes/arrays.c:1935
+#: Opcodes/arrays.c:1971 Opcodes/arrays.c:2007 Opcodes/arrays.c:2043
+#: Opcodes/arrays.c:2079 Opcodes/arrays.c:2112 Opcodes/arrays.c:2118
+#: Opcodes/arrays.c:2129 Opcodes/arrays.c:2160 Opcodes/arrays.c:2191
+#: Opcodes/arrays.c:2212 Opcodes/arrays.c:2286 Opcodes/arrays.c:2333
 #: Opcodes/pvsbasic.c:2441 Opcodes/pvsbasic.c:2472 Opcodes/pvsbasic.c:2521
 #, fuzzy
 msgid "array-variable not initialised"
 msgstr "%s: не выступлено с иничиативой"
 
-#: Opcodes/arrays.c:356 Opcodes/arrays.c:384
+#: Opcodes/arrays.c:467 Opcodes/arrays.c:495
 msgid "Dimension does not match in array arithmetic"
 msgstr ""
 
-#: Opcodes/arrays.c:489 Opcodes/arrays.c:752
+#: Opcodes/arrays.c:600 Opcodes/arrays.c:863
 #, c-format
 msgid "division by zero in array-var at index %d"
 msgstr ""
 
-#: Opcodes/arrays.c:532 Opcodes/arrays.c:781 Opcodes/arrays.c:808
+#: Opcodes/arrays.c:643 Opcodes/arrays.c:892 Opcodes/arrays.c:919
 #, c-format
 msgid "undefined power in array-var at index %d"
 msgstr ""
 
-#: Opcodes/arrays.c:674 Opcodes/arrays.c:704 Opcodes/arrays.c:721
-#: Opcodes/arrays.c:1228 Opcodes/arrays.c:1263
+#: Opcodes/arrays.c:785 Opcodes/arrays.c:815 Opcodes/arrays.c:832
+#: Opcodes/arrays.c:1339 Opcodes/arrays.c:1374
 msgid "division by zero in array-var"
 msgstr ""
 
-#: Opcodes/arrays.c:974 Opcodes/arrays.c:1203
+#: Opcodes/arrays.c:1085 Opcodes/arrays.c:1314
 #, c-format
 msgid "division by zero in array-var at index %d/%d"
 msgstr ""
 
-#: Opcodes/arrays.c:2083
+#: Opcodes/arrays.c:2194
 #, fuzzy
 msgid "array-variable not a vector"
 msgstr "%s: не выступлено с иничиативой"
 
-#: Opcodes/arrays.c:2179 Opcodes/arrays.c:2225
+#: Opcodes/arrays.c:2290 Opcodes/arrays.c:2336
 #, fuzzy
 msgid "array-variable dimensions do not match"
 msgstr "%s: не выступлено с иничиативой"
 
-#: Opcodes/arrays.c:2182
+#: Opcodes/arrays.c:2293
 #, fuzzy
 msgid "array-variable types do not match"
 msgstr "%s: не выступлено с иничиативой"
 
-#: Opcodes/arrays.c:2275 Opcodes/arrays.c:2296 Opcodes/arrays.c:2491
-#: Opcodes/arrays.c:2527 Opcodes/arrays.c:2530
+#: Opcodes/arrays.c:2386 Opcodes/arrays.c:2407 Opcodes/arrays.c:2602
+#: Opcodes/arrays.c:2638 Opcodes/arrays.c:2641
 #, fuzzy
 msgid "array-var not initialised"
 msgstr "%s: не выступлено с иничиативой"
 
-#: Opcodes/arrays.c:2278 Opcodes/arrays.c:2298 Opcodes/arrays.c:2356
-#: Opcodes/arrays.c:2378
+#: Opcodes/arrays.c:2389 Opcodes/arrays.c:2409 Opcodes/arrays.c:2467
+#: Opcodes/arrays.c:2489
 msgid "No table for copy2ftab"
 msgstr ""
 
-#: Opcodes/arrays.c:2328
+#: Opcodes/arrays.c:2439
 msgid "inconsistent start, end and increment parameters"
 msgstr ""
 
-#: Opcodes/arrays.c:2426
+#: Opcodes/arrays.c:2537
 msgid "inconsistent start, end parameters"
 msgstr ""
 
-#: Opcodes/arrays.c:2430
+#: Opcodes/arrays.c:2541
 msgid "slice larger than original size"
 msgstr ""
 
-#: Opcodes/arrays.c:2434
+#: Opcodes/arrays.c:2545
 msgid "slice increment must be positive"
 msgstr ""
 
-#: Opcodes/arrays.c:2504
+#: Opcodes/arrays.c:2615
 #, c-format
 msgid "%s not found"
 msgstr ""
 
-#: Opcodes/arrays.c:2535
+#: Opcodes/arrays.c:2646
 msgid "map fn not found at k rate"
 msgstr ""
 
-#: Opcodes/arrays.c:2714
+#: Opcodes/arrays.c:2825
 msgid "rfft: only one-dimensional arrays allowed"
 msgstr ""
 
-#: Opcodes/arrays.c:2747
+#: Opcodes/arrays.c:2858
 msgid "rifft: only one-dimensional arrays allowed"
 msgstr ""
 
-#: Opcodes/arrays.c:2778
+#: Opcodes/arrays.c:2889
 #, fuzzy
 msgid "array sizes do not match\n"
 msgstr "%s: не выступлено с иничиативой"
 
-#: Opcodes/arrays.c:2802
+#: Opcodes/arrays.c:2913
 msgid "fft: only one-dimensional arrays allowed"
 msgstr ""
 
-#: Opcodes/arrays.c:2829
+#: Opcodes/arrays.c:2940
 msgid "fftinv: only one-dimensional arrays allowed"
 msgstr ""
 
-#: Opcodes/arrays.c:2892
+#: Opcodes/arrays.c:3003
 #, c-format
 msgid "in array sizes do not match: %d and %d\n"
 msgstr ""
 
-#: Opcodes/arrays.c:3074 Opcodes/arrays.c:3114 Opcodes/arrays.c:3146
+#: Opcodes/arrays.c:3185 Opcodes/arrays.c:3225 Opcodes/arrays.c:3257
 msgid "non-pow-of-two case not implemented yet\n"
 msgstr ""
 
-#: Opcodes/arrays.c:3107
+#: Opcodes/arrays.c:3218
 msgid "FFT size too small (min 64 samples)\n"
 msgstr ""
 
-#: Opcodes/arrays.c:3174 Opcodes/arrays.c:3213
+#: Opcodes/arrays.c:3285 Opcodes/arrays.c:3324
 msgid "in array not 2-dimensional\n"
 msgstr ""
 
-#: Opcodes/arrays.c:3186 Opcodes/arrays.c:3199
+#: Opcodes/arrays.c:3297 Opcodes/arrays.c:3310
 #, fuzzy
 msgid "requested row is out of range\n"
 msgstr "неправильный число аргументов"
 
-#: Opcodes/arrays.c:3227 Opcodes/arrays.c:3241
+#: Opcodes/arrays.c:3338 Opcodes/arrays.c:3352
 #, fuzzy
 msgid "requested col is out of range\n"
 msgstr "неправильный число аргументов"
 
-#: Opcodes/arrays.c:3279 Opcodes/arrays.c:3291 Opcodes/arrays.c:3313
-#: Opcodes/arrays.c:3327
+#: Opcodes/arrays.c:3390 Opcodes/arrays.c:3402 Opcodes/arrays.c:3424
+#: Opcodes/arrays.c:3438
 #, fuzzy
 msgid "Error: index out of range\n"
 msgstr "неправильный число аргументов"
 
-#: Opcodes/arrays.c:3362
+#: Opcodes/arrays.c:3473
 msgid "input array too small\n"
 msgstr ""
 
-#: Opcodes/arrays.c:3415
+#: Opcodes/arrays.c:3526
 msgid "dct: only one-dimensional arrays allowed"
 msgstr ""
 
-#: Opcodes/arrays.c:3422
+#: Opcodes/arrays.c:3533
 msgid "dct: non-pow-of-two sizes not yet implemented"
 msgstr ""
 
-#: Opcodes/arrays.c:3444
+#: Opcodes/arrays.c:3555
 msgid "dctinv: only one-dimensional arrays allowed"
 msgstr ""
 
-#: Opcodes/arrays.c:3452
+#: Opcodes/arrays.c:3563
 msgid "dctinv: non-pow-of-two sizes not yet implemented"
 msgstr ""
 
@@ -6744,128 +6749,128 @@ msgstr ""
 msgid "Unable to find label \"%s\" in plugin library file \"%s\"."
 msgstr ""
 
-#: Opcodes/emugens/beosc.c:624
+#: Opcodes/emugens/beosc.c:622
 msgid "beadsynt: phasetable not found"
 msgstr ""
 
-#: Opcodes/emugens/beosc.c:666
+#: Opcodes/emugens/beosc.c:664
 msgid "beadsynt: wavetable not found"
 msgstr ""
 
-#: Opcodes/emugens/beosc.c:677
+#: Opcodes/emugens/beosc.c:675
 msgid "beadsynt: partial count > amptable size"
 msgstr ""
 
-#: Opcodes/emugens/beosc.c:683
+#: Opcodes/emugens/beosc.c:681
 msgid "beadsynt: freqtable not found!"
 msgstr ""
 
-#: Opcodes/emugens/beosc.c:686
+#: Opcodes/emugens/beosc.c:684
 msgid "beadsynt: partial count > freqtable size"
 msgstr ""
 
-#: Opcodes/emugens/beosc.c:692
+#: Opcodes/emugens/beosc.c:690
 msgid "beadsynt: bandwidth table not found"
 msgstr ""
 
-#: Opcodes/emugens/beosc.c:695
+#: Opcodes/emugens/beosc.c:693
 msgid "beadsynt: partial count > bandwidth size"
 msgstr ""
 
-#: Opcodes/emugens/beosc.c:711
+#: Opcodes/emugens/beosc.c:709
 msgid "beadsynt: wavetable not found!"
 msgstr ""
 
-#: Opcodes/emugens/beosc.c:720
+#: Opcodes/emugens/beosc.c:718
 msgid "The arrays should have 1 dimension"
 msgstr ""
 
-#: Opcodes/emugens/beosc.c:731
+#: Opcodes/emugens/beosc.c:729
 #, fuzzy
 msgid "Amplitudes array is too small"
 msgstr "%s: не выступлено с иничиативой"
 
-#: Opcodes/emugens/beosc.c:734
+#: Opcodes/emugens/beosc.c:732
 #, fuzzy
 msgid "Frequencies array is too small"
 msgstr "%s: не выступлено с иничиативой"
 
-#: Opcodes/emugens/beosc.c:737
+#: Opcodes/emugens/beosc.c:735
 #, fuzzy
 msgid "bandwidths array is too small"
 msgstr "%s: не выступлено с иничиативой"
 
-#: Opcodes/emugens/beosc.c:770
+#: Opcodes/emugens/beosc.c:768
 #, fuzzy
 msgid "beadsynt: not initialised"
 msgstr "%s: не выступлено с иничиативой"
 
-#: Opcodes/emugens/beosc.c:1100 Opcodes/emugens/beosc.c:1104
+#: Opcodes/emugens/beosc.c:1098 Opcodes/emugens/beosc.c:1102
 #, fuzzy
 msgid "tabrowcopy: incorrect table number"
 msgstr "неправильный число аргументов"
 
-#: Opcodes/emugens/beosc.c:1110
+#: Opcodes/emugens/beosc.c:1108
 #, fuzzy
 msgid "tabrowcopy: iend cannot be bigger than numcols"
 msgstr "неправильный число аргументов"
 
-#: Opcodes/emugens/beosc.c:1119
+#: Opcodes/emugens/beosc.c:1117
 msgid "tabrowcopy: Destination table too small"
 msgstr ""
 
-#: Opcodes/emugens/beosc.c:1131
+#: Opcodes/emugens/beosc.c:1129
 #, c-format
 msgid ">>>> tabrowlin: row %.4f > maxrow %d! It will be clipped\n"
 msgstr ""
 
-#: Opcodes/emugens/beosc.c:1154
+#: Opcodes/emugens/beosc.c:1152
 #, fuzzy
 msgid "tabrowcopy: krow cannot be negative"
 msgstr "неправильный число аргументов"
 
-#: Opcodes/emugens/beosc.c:1162 Opcodes/emugens/beosc.c:1171
+#: Opcodes/emugens/beosc.c:1160 Opcodes/emugens/beosc.c:1169
 msgid "tabrowcopy: tab off end"
 msgstr ""
 
-#: Opcodes/emugens/beosc.c:1194
+#: Opcodes/emugens/beosc.c:1192
 #, fuzzy
 msgid "tabrowlin: incorrect table number"
 msgstr "неправильный число аргументов"
 
-#: Opcodes/emugens/beosc.c:1201
+#: Opcodes/emugens/beosc.c:1199
 msgid "tabrowlin: iend cannot be bigger than numcols"
 msgstr ""
 
-#: Opcodes/emugens/beosc.c:1205
+#: Opcodes/emugens/beosc.c:1203
 msgid "tabrowlin: end must be bigger than start"
 msgstr ""
 
-#: Opcodes/emugens/beosc.c:1210
+#: Opcodes/emugens/beosc.c:1208
 msgid "tabrowlin: no items to copy"
 msgstr ""
 
-#: Opcodes/emugens/beosc.c:1235
+#: Opcodes/emugens/beosc.c:1233
 msgid "krow cannot be negative"
 msgstr ""
 
-#: Opcodes/emugens/beosc.c:1243 Opcodes/emugens/beosc.c:1251
+#: Opcodes/emugens/beosc.c:1241 Opcodes/emugens/beosc.c:1249
 msgid "tab off end"
 msgstr ""
 
-#: Opcodes/emugens/beosc.c:1297
+#: Opcodes/emugens/beosc.c:1295
 msgid "The input array should be a 2D array"
 msgstr ""
 
-#: Opcodes/emugens/beosc.c:1307
+#: Opcodes/emugens/beosc.c:1305
 msgid "Asked to read too many items from a row"
 msgstr ""
 
-#: Opcodes/emugens/beosc.c:1315
+#: Opcodes/emugens/beosc.c:1313
 msgid "getrowlin: krow cannot be negative"
 msgstr ""
 
-#: Opcodes/emugens/beosc.c:1317
+#: Opcodes/emugens/beosc.c:1315
 #, c-format
 msgid "getrowlin: row %.4f > maxrow %d, clipping\n"
 msgstr ""
@@ -6883,42 +6888,42 @@ msgid "lincos: Division by zero"
 msgstr ""
 
 #: Opcodes/emugens/emugens.c:388 Opcodes/emugens/emugens.c:424
-#: Opcodes/emugens/emugens.c:469 Opcodes/emugens/emugens.c:514
+#: Opcodes/emugens/emugens.c:601 Opcodes/emugens/emugens.c:646
 msgid "bpf: data length should be even (pairs of x, y)"
 msgstr ""
 
 #: Opcodes/emugens/emugens.c:391 Opcodes/emugens/emugens.c:426
-#: Opcodes/emugens/emugens.c:471 Opcodes/emugens/emugens.c:516
+#: Opcodes/emugens/emugens.c:603 Opcodes/emugens/emugens.c:648
 msgid "bpf: too many pargs (max=256)"
 msgstr ""
 
-#: Opcodes/emugens/emugens.c:584
+#: Opcodes/emugens/emugens.c:716
 #, c-format
 msgid "expecting a char between A and G, but got %c\n"
 msgstr ""
 
-#: Opcodes/emugens/emugens.c:610
+#: Opcodes/emugens/emugens.c:742
 msgid "format not understood\n"
 msgstr ""
 
-#: Opcodes/emugens/emugens.c:774 Opcodes/emugens/emugens.c:786
-#: Opcodes/emugens/emugens.c:803
+#: Opcodes/emugens/emugens.c:906 Opcodes/emugens/emugens.c:918
+#: Opcodes/emugens/emugens.c:935
 msgid "cmp: unknown operator. Expecting <, <=, >, >=, ==, !="
 msgstr ""
 
-#: Opcodes/emugens/emugens.c:825
+#: Opcodes/emugens/emugens.c:957
 msgid "cmp (ternary comparator): operator 2 expected <"
 msgstr ""
 
-#: Opcodes/emugens/emugens.c:828
+#: Opcodes/emugens/emugens.c:960
 msgid "cmp (ternary comparator): operator 1 expected <"
 msgstr ""
 
-#: Opcodes/emugens/emugens.c:1167 Opcodes/emugens/emugens.c:1184
+#: Opcodes/emugens/emugens.c:1299 Opcodes/emugens/emugens.c:1316
 msgid "tab2array: can't copy a negative number of items"
 msgstr ""
 
-#: Opcodes/emugens/emugens.c:1266
+#: Opcodes/emugens/emugens.c:1398
 msgid "reshapearray: can't reshape"
 msgstr ""
 
@@ -7054,14 +7059,14 @@ msgstr ""
 msgid "fluid: unable to load %s"
 msgstr ""
 
-#: Opcodes/fluidOpcodes/fluidOpcodes.cpp:614
+#: Opcodes/fluidOpcodes/fluidOpcodes.cpp:615
 #, c-format
 msgid ""
 "result: %d\n"
 " Note off: c:%3d k:%3d\n"
 msgstr ""
 
-#: Opcodes/fluidOpcodes/fluidOpcodes.cpp:693
+#: Opcodes/fluidOpcodes/fluidOpcodes.cpp:694
 msgid "Illegal Interpolation Method: Must be either 0, 1, 4, or 7.\n"
 msgstr ""
 
@@ -7454,9 +7459,9 @@ msgid ""
 "the init range is 0 to 1"
 msgstr ""
 
-#: Opcodes/gab/sliderTable.c:570 Opcodes/midiops2.c:342 Opcodes/midiops2.c:380
-#: Opcodes/midiops2.c:412 Opcodes/midiops2.c:461 Opcodes/midiops2.c:496
-#: Opcodes/midiops2.c:538 Opcodes/midiops2.c:553 Opcodes/midiops2.c:572
+#: Opcodes/gab/sliderTable.c:570 Opcodes/midiops2.c:328 Opcodes/midiops2.c:367
+#: Opcodes/midiops2.c:403 Opcodes/midiops2.c:457 Opcodes/midiops2.c:495
+#: Opcodes/midiops2.c:541 Opcodes/midiops2.c:556 Opcodes/midiops2.c:575
 msgid "illegal midi channel"
 msgstr ""
 
@@ -8403,11 +8408,11 @@ msgstr ""
 msgid "splitrig: incorrect table number"
 msgstr ""
 
-#: Opcodes/midiops2.c:535 Opcodes/midiops2.c:550 Opcodes/midiops2.c:569
+#: Opcodes/midiops2.c:538 Opcodes/midiops2.c:553 Opcodes/midiops2.c:572
 msgid "value out of range"
 msgstr ""
 
-#: Opcodes/midiops2.c:601
+#: Opcodes/midiops2.c:604
 #, c-format
 msgid "invalid channel number: %d"
 msgstr ""
@@ -10209,8 +10214,8 @@ msgid "No table for dconv"
 msgstr ""
 
 #: Opcodes/ugmoss.c:524 Opcodes/vbap1.c:189 Opcodes/vbap1.c:258
-#: Opcodes/vbap1.c:543 Opcodes/vbap1.c:618 Opcodes/vbap_n.c:280
-#: Opcodes/vbap_n.c:345 Opcodes/vbap_n.c:658 Opcodes/vbap_n.c:795
+#: Opcodes/vbap1.c:543 Opcodes/vbap1.c:618 Opcodes/vbap_n.c:281
+#: Opcodes/vbap_n.c:348 Opcodes/vbap_n.c:661 Opcodes/vbap_n.c:798
 #: Opcodes/vbap_zak.c:233 Opcodes/vbap_zak.c:547
 msgid "could not allocate memory"
 msgstr ""
@@ -10511,43 +10516,43 @@ msgid "Pair %d Loudspeakers: "
 msgstr ""
 
 #: Opcodes/vbap1.c:67 Opcodes/vbap1.c:209 Opcodes/vbap1.c:276
-#: Opcodes/vbap1.c:340 Opcodes/vbap_n.c:154 Opcodes/vbap_n.c:300
-#: Opcodes/vbap_n.c:365 Opcodes/vbap_n.c:446 Opcodes/vbap_zak.c:101
+#: Opcodes/vbap1.c:340 Opcodes/vbap_n.c:155 Opcodes/vbap_n.c:301
+#: Opcodes/vbap_n.c:368 Opcodes/vbap_n.c:449 Opcodes/vbap_zak.c:101
 #: Opcodes/vbap_zak.c:252 Opcodes/vbap_zak.c:330
 msgid "Warning: truncating elevation to 2-D plane\n"
 msgstr ""
 
-#: Opcodes/vbap1.c:177 Opcodes/vbap1.c:246 Opcodes/vbap_n.c:267
+#: Opcodes/vbap1.c:177 Opcodes/vbap1.c:246 Opcodes/vbap_n.c:268
 #: Opcodes/vbap_n.c:332
 #, fuzzy, c-format
 msgid "could not find layout table no.%d"
 msgstr "%s: не выступлено с иничиативой"
 
 #: Opcodes/vbap1.c:185 Opcodes/vbap1.c:254 Opcodes/vbap1.c:538
-#: Opcodes/vbap1.c:613 Opcodes/vbap_n.c:276 Opcodes/vbap_n.c:341
-#: Opcodes/vbap_n.c:654 Opcodes/vbap_n.c:791
+#: Opcodes/vbap1.c:613 Opcodes/vbap_n.c:277 Opcodes/vbap_n.c:341
+#: Opcodes/vbap_n.c:657 Opcodes/vbap_n.c:794
 msgid ""
 "vbap system NOT configured.\n"
 "Missing vbaplsinit opcode in orchestra?"
 msgstr ""
 
-#: Opcodes/vbap1.c:367 Opcodes/vbap1.c:413 Opcodes/vbap_n.c:473
-#: Opcodes/vbap_n.c:518
+#: Opcodes/vbap1.c:367 Opcodes/vbap1.c:413 Opcodes/vbap_n.c:476
+#: Opcodes/vbap_n.c:521
 msgid "Missing fields in vbapmove\n"
 msgstr ""
 
-#: Opcodes/vbap1.c:372 Opcodes/vbap_n.c:478 Opcodes/vbap_zak.c:363
+#: Opcodes/vbap1.c:372 Opcodes/vbap_n.c:481 Opcodes/vbap_zak.c:363
 msgid "Warning: Ambiguous transition 180 degrees.\n"
 msgstr ""
 
-#: Opcodes/vbap1.c:563 Opcodes/vbap1.c:638 Opcodes/vbap_n.c:678
-#: Opcodes/vbap_n.c:816
+#: Opcodes/vbap1.c:563 Opcodes/vbap1.c:638 Opcodes/vbap_n.c:681
+#: Opcodes/vbap_n.c:819
 #, c-format
 msgid "Have to have at least %d directions in vbapmove"
 msgstr ""
 
-#: Opcodes/vbap1.c:573 Opcodes/vbap1.c:648 Opcodes/vbap_n.c:688
-#: Opcodes/vbap_n.c:826 Opcodes/vbap_zak.c:578
+#: Opcodes/vbap1.c:573 Opcodes/vbap1.c:648 Opcodes/vbap_n.c:691
+#: Opcodes/vbap_n.c:829 Opcodes/vbap_zak.c:578
 msgid "Wrong dimension"
 msgstr ""
 
@@ -10556,12 +10561,12 @@ msgstr ""
 msgid "Output array not initialised"
 msgstr "%s: не выступлено с иничиативой"
 
-#: Opcodes/vbap_n.c:646 Opcodes/vbap_n.c:782
+#: Opcodes/vbap_n.c:649 Opcodes/vbap_n.c:785
 #, fuzzy
 msgid "could not find layout table no.0"
 msgstr "%s: не выступлено с иничиативой"
 
-#: Opcodes/vbap_n.c:775
+#: Opcodes/vbap_n.c:778
 #, fuzzy
 msgid "Output array in vpabmove not initalised"
 msgstr "%s: не выступлено с иничиативой"

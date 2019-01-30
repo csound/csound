@@ -387,7 +387,7 @@ NM              [nm][ \t]+
                     csound->Message(csound, Str("unexpected EOF!!\n"));
                     csound->LongJmp(csound, 1);
                   }
-                  PARM->llocn = PARM->locn; PARM->locn = make_location(PARM);
+                  PARM->llocn = PARM->locn; PARM->locn = make_slocation(PARM);
                   csound->DebugMsg(csound,"csound-prs(%d): loc=%u; lastloc=%u\n",
                                    __LINE__, PARM->llocn, PARM->locn);
                   if ( !YY_CURRENT_BUFFER ) yyterminate();
@@ -694,7 +694,7 @@ NM              [nm][ \t]+
           //printf("#loop found\n");
           yypop_buffer_state(yyscanner);
           PARM->depth--;
-          PARM->llocn = PARM->locn; PARM->locn = make_location(PARM);
+          PARM->llocn = PARM->locn; PARM->locn = make_slocation(PARM);
           /* printf("Loop structures: count = %d, name = %s, indx = %d\n", */
           /*        PARM->repeat_cnt_n[PARM->repeat_index], */
           /*        PARM->repeat_name_n[PARM->repeat_index], */
@@ -826,7 +826,7 @@ NM              [nm][ \t]+
               }
               corfile_putc(csound, '\n', PARM->cf);
               yypop_buffer_state(yyscanner);
-              PARM->llocn = PARM->locn; PARM->locn = make_location(PARM);
+              PARM->llocn = PARM->locn; PARM->locn = make_slocation(PARM);
               //printf("repeat section %d %d\n",
               //       PARM->repeat_sect_index,PARM->repeat_sect_cnt);
               PARM->repeat_sect_index++;
@@ -951,7 +951,7 @@ static void do_include(CSOUND *csound, int term, yyscan_t yyscanner)
       uint8_t n = file_to_int(csound, buffer);
       //char bb[128];
       PARM->lstack[PARM->depth] = n;
-      //sprintf(bb, "#source %llu\n", PARM->locn = make_location(PARM));
+      //sprintf(bb, "#source %llu\n", PARM->locn = make_slocation(PARM));
       PARM->llocn = PARM->locn;
 #ifdef SCORE_PARSER
       //corfile_puts(csound, bb, PARM->cf);
@@ -1031,7 +1031,7 @@ void  do_new_include(CSOUND *csound, yyscan_t yyscanner)
       uint8_t n = file_to_int(csound, buffer);
       //char bb[128];
       PARM->lstack[PARM->depth] = n;
-      //sprintf(bb, "#source %"PRIu64"\n", PARM->locn = make_location(PARM));
+      //sprintf(bb, "#source %"PRIu64"\n", PARM->locn = make_slocation(PARM));
       PARM->llocn = PARM->locn;
       //corfile_puts(csound, bb, PARM->cf);
     }
