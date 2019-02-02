@@ -475,7 +475,7 @@ msgstr "Type d'arg inconnu : %d\n"
 #: Engine/csound_orc_semantics.c:990
 #, c-format
 msgid "Found %d inputs for %s which is more than the %d allowed\n"
-msgstr ""
+msgstr "%d entrées trouvées pour %s ce qui dépasse les %d autorisées\n"
 
 #: Engine/csound_orc_semantics.c:1214
 #, c-format
@@ -6435,9 +6435,9 @@ msgid "Error: sizes must be > 0 for array initialization"
 msgstr "Erreur : les tailles doivent être > 0 à l'initialisation d'un tableau"
 
 #: Opcodes/arrays.c:225
-#, fuzzy, c-format
+#, c-format
 msgid "error opening ASCII file %s\n"
-msgstr "erreur à l'ouverture du fichier ASCII"
+msgstr "erreur à l'ouverture du fichier ASCII %s\n"
 
 #: Opcodes/arrays.c:308
 msgid "Cannot set i-array at k-rate\n"
@@ -6448,9 +6448,9 @@ msgid "Error: no indexes set for array set\n"
 msgstr "Erreur : aucun indice fixé pour écrire dans le tableau\n"
 
 #: Opcodes/arrays.c:329
-#, fuzzy, c-format
+#, c-format
 msgid "Array dimension %d does not match for dimensions %d\n"
-msgstr "La dimension %d du tableau est hors limites pour les dimensions %d\n"
+msgstr "La dimension %d du tableau ne correspond pas aux dimensions %d\n"
 
 #: Opcodes/arrays.c:339 Opcodes/arrays.c:380
 #, c-format
