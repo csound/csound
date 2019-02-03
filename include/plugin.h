@@ -1031,7 +1031,7 @@ int plugin(Csound *csound, const char *name, uint32_t thr,
   return cs->AppendOpcode(cs, (char *)name, sizeof(T), flags, thr,
                           (char *)T::otypes, (char *)T::itypes, (SUBR)init<T>,
                           (SUBR)kperf<T>, NULL);
-    
+
 }
 
 /** utility constructor function template for member classes: \n
