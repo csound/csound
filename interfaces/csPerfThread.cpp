@@ -676,14 +676,14 @@ int CsoundPerformanceThread::Join()
     int retval;
     retval = status;
 
-    if (perfThread) {
-      retval = csoundJoinThread(perfThread);
-      perfThread = (void*) 0;
-    }
     if (recordData.running) {
         recordData.running = false;
         csoundCondSignal(recordData.condvar);
         csoundJoinThread(recordData.thread);
+    }
+    if (perfThread) {
+      retval = csoundJoinThread(perfThread);
+      perfThread = (void*) 0;
     }
 
     // delete any pending messages
