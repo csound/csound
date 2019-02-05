@@ -874,7 +874,7 @@ static int32_t loscilxa_opcode_perf(CSOUND *csound, LOSCILXA_OPCODE *p)
     int32   ndx;
     int32_t     winSmps;
     float   winBuf[LOSCILX_MAX_INTERP_SIZE];
-    
+
     if (UNLIKELY(p->dataPtr == NULL)) goto err1;
 
     if (*(p->kcps) != p->prvKcps) {
