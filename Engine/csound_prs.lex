@@ -61,7 +61,7 @@ static inline int isNameChar(int cc, int pos)
 
 #define YY_USER_INIT {csound_prs_scan_string(csound->scorestr->body, yyscanner); \
     csound_prsset_lineno(csound->scoLineOffset, yyscanner);             \
-    yyg->yy_flex_debug_r=1;PARM->macro_stack_size = 0;                  \
+    /* yyg->yy_flex_debug_r=1;*/PARM->macro_stack_size = 0;             \
     PARM->alt_stack = NULL; PARM->macro_stack_ptr = 0;                  \
     PARM->path = ".";                                                   \
     PARM->cf = csound->expanded_sco;                                    \
