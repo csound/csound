@@ -61,7 +61,7 @@ static inline int isNameChar(int cc, int pos)
 
 #define YY_USER_INIT {csound_prs_scan_string(csound->scorestr->body, yyscanner); \
     csound_prsset_lineno(csound->scoLineOffset, yyscanner);             \
-    /*yyg->yy_flex_debug_r=1;*/ PARM->macro_stack_size = 0;             \
+    yyg->yy_flex_debug_r=1;PARM->macro_stack_size = 0;                  \
     PARM->alt_stack = NULL; PARM->macro_stack_ptr = 0;                  \
     PARM->path = ".";                                                   \
     PARM->cf = csound->expanded_sco;                                    \
@@ -395,7 +395,8 @@ NM              [nm][ \t]+
                           YY_CURRENT_BUFFER);
                   csound_prs_line(PARM->cf, yyscanner);
                   n = PARM->alt_stack[--PARM->macro_stack_ptr].n;
-                  if (PARM->alt_stack[PARM->macro_stack_ptr].path) {
+                  //printf("*** PARM->macro_stack_ptr = %d\n", PARM->macro_stack_ptr);
+                  if (PARM->alt_stack[PARM->macro_stack_ptr].path) { /* UNINITIALISED HERE */
                     //printf("restoring path from %s to %s\n",
                     //    PARM->path, PARM->alt_stack[PARM->macro_stack_ptr].path);
                     free(PARM->path);
@@ -775,8 +776,8 @@ NM              [nm][ \t]+
                PARM->repeat_sect_mm->acnt = -1; /* inhibit */
                PARM->repeat_sect_mm->body = csound->Calloc(csound, 16);
                PARM->repeat_sect_mm->body[0] = '0';
-               //csound->DebugMsg(csound,"repeat %s zero %s\n",
-               //                 buff, PARM->repeat_sect_mm->body);
+               csound->DebugMsg(csound,"repeat %s zero %s\n",
+                                buff, PARM->repeat_sect_mm->body);
                PARM->repeat_sect_mm->next = PARM->macros; /* add to chain */
                PARM->macros = PARM->repeat_sect_mm;
              }
@@ -792,18 +793,20 @@ NM              [nm][ \t]+
 {SEND}  {
           if (!PARM->isString) {
             int op = yytext[strlen(yytext)-1];
-            //printf("section end %d %c\n>>%s<<\n",
-            //       PARM->in_repeat_sect, op, PARM->cf->body);
-            if (PARM->in_repeat_sect==1) {
+            if (PARM->in_repeat_sect==1) { // Record mode
+              //printf("recording section end %d %c\n>>%s<<\n",
+              //       PARM->in_repeat_sect, op, PARM->cf->body);
               corfile_putc(csound, 's', PARM->cf);
+              corfile_putc(csound, '\n', PARM->cf);
               while (1) {
                 int c = input(yyscanner);
-                if (c=='\n') break;
-                if (!isspace(c)&&!isdigit(c)&&!strchr(".e+-",c)) { unput(c); break;}
+                //printf("copying >>%c<<(%.2x)", c, c);
+                if (c=='\n' ||c=='\0') break;
+                if (!isblank(c)&&!isdigit(c)&&!strchr(".e+-",c)) { unput(c); break;}
                 corfile_putc(csound, c, PARM->cf);
               }
               corfile_putc(csound, '\n', PARM->cf);
-              unput(op);
+              //unput('\n'); unput(op);unput('\n'); 
               struct yyguts_t *yyg =(struct yyguts_t*)yyscanner;
               PARM->in_repeat_sect=2;
               //printf("****Repeat body\n>>>%s<<<\n", PARM->cf->body);
@@ -817,12 +820,12 @@ NM              [nm][ \t]+
               }
               PARM->line = PARM->repeat_sect_line;
             }
-            else if (PARM->in_repeat_sect==2) {
+            else if (PARM->in_repeat_sect==2) { // expand loop
               corfile_putc(csound, 's', PARM->cf);
               while (1) {
                 int c = input(yyscanner);
-                if (c=='\n') break;
                 corfile_putc(csound, c, PARM->cf);
+                if (c=='\n') break;
               }
               corfile_putc(csound, '\n', PARM->cf);
               yypop_buffer_state(yyscanner);
@@ -841,10 +844,11 @@ NM              [nm][ \t]+
                 csound_prs_scan_string(PARM->repeat_sect_cf->body, yyscanner);
                 PARM->line = PARM->repeat_sect_line;
               }
-              else {
+              else { // finished loop
                 //corfile_puts(csound, 'r', PARM->cf);
                 /* corfile_putc(csound, '\n', PARM->cf); */
                 //printf("end of loop\n");
+                //printf("****>>%s<<****\n", PARM->cf->body);
                 PARM->in_repeat_sect=0;
                 corfile_rm(csound, &PARM->repeat_sect_cf);
                 //csound->Free(csound, PARM->repeat_sect_mm->body);
@@ -853,12 +857,18 @@ NM              [nm][ \t]+
             }
             else {
               corfile_putc(csound, op, PARM->cf);
-              while (1) {
-                int c = input(yyscanner);
-                //printf("**copy %.2x(%c)\n", c, c);
-                corfile_putc(csound, c, PARM->cf);
-                if (c=='\n') break;
-                if (c=='\0') break;
+              int c = input(yyscanner);
+              if (isblank(c)) {
+                while (1) {
+                  //printf("**copy %.2x(%c)\n", c, c);
+                  corfile_putc(csound, c, PARM->cf);
+                  if (c=='\n') break;
+                  if (c=='\0') {
+                    corfile_putc(csound, '\n', PARM->cf);
+                    break;
+                  }
+                  c = input(yyscanner);
+                }
               }
             }
           }
