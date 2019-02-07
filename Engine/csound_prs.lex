@@ -55,13 +55,14 @@ static inline int isNameChar(int cc, int pos)
 #include "score_param.h"
 
 //static void trace_alt_stack(CSOUND*, PRS_PARM*, int);
-
+ 
 #define YY_EXTRA_TYPE  PRS_PARM *
 #define PARM    yyget_extra(yyscanner)
 
 #define YY_USER_INIT {csound_prs_scan_string(csound->scorestr->body, yyscanner); \
     csound_prsset_lineno(csound->scoLineOffset, yyscanner);             \
-    /* yyg->yy_flex_debug_r=1;*/PARM->macro_stack_size = 0;             \
+    /* yyg->yy_flex_debug_r=1;*/                                        \
+    PARM->macro_stack_size = 0;                                         \
     PARM->alt_stack = NULL; PARM->macro_stack_ptr = 0;                  \
     PARM->path = ".";                                                   \
     PARM->cf = csound->expanded_sco;                                    \
@@ -380,6 +381,7 @@ NM              [nm][ \t]+
                   int n;
                   csound->DebugMsg(csound,"*********Leaving buffer %p\n",
                                    YY_CURRENT_BUFFER);
+                  //printf("stack pointer = %d\n", PARM->macro_stack_ptr);
                   yypop_buffer_state(yyscanner);
                   PARM->depth--;
                   if (UNLIKELY(PARM->depth > 1024)) {
@@ -395,8 +397,7 @@ NM              [nm][ \t]+
                           YY_CURRENT_BUFFER);
                   csound_prs_line(PARM->cf, yyscanner);
                   n = PARM->alt_stack[--PARM->macro_stack_ptr].n;
-                  //printf("*** PARM->macro_stack_ptr = %d\n", PARM->macro_stack_ptr);
-                  if (PARM->alt_stack[PARM->macro_stack_ptr].path) { /* UNINITIALISED HERE */
+                  if (PARM->alt_stack[PARM->macro_stack_ptr].path) {
                     //printf("restoring path from %s to %s\n",
                     //    PARM->path, PARM->alt_stack[PARM->macro_stack_ptr].path);
                     free(PARM->path);
@@ -406,7 +407,8 @@ NM              [nm][ \t]+
                   /*        PARM->alt_stack[PARM->macro_stack_ptr].line); */
                   csound->DebugMsg(csound,"n=%d\n", n);
                   if (n!=0) {
-                    /* We need to delete n macros starting with y */
+                    //printf("We need to delete %d macros starting with %d\n",
+                    //       n, PARM->macro_stack_ptr);
                     y = PARM->alt_stack[PARM->macro_stack_ptr].s;
                     x = PARM->macros;
                     if (x==y) {
@@ -429,10 +431,10 @@ NM              [nm][ \t]+
                   }
                   csound_prsset_lineno(PARM->alt_stack[PARM->macro_stack_ptr].line,
                                        yyscanner);
-                  csound->DebugMsg(csound, "csound_prs(%d): line now %d at %d\n",
-                                   __LINE__,
-                                   csound_prsget_lineno(yyscanner),
-                                   PARM->macro_stack_ptr);
+                  /* csound->DebugMsg(csound, "csound_prs(%d): line now %d at %d\n", */
+                  /*                  __LINE__, */
+                  /*                  csound_prsget_lineno(yyscanner), */
+                  /*                  PARM->macro_stack_ptr); */
                   csound->DebugMsg(csound,
                                    "End of input segment: macro pop %p -> %p\n",
                                    y, PARM->macros);
@@ -715,6 +717,7 @@ NM              [nm][ \t]+
             //printf(">>%s<<\n", PARM->cf->body);
             corfile_rm(csound, &PARM->cf_stack[PARM->repeat_index]);
             PARM->repeat_index--;
+            PARM->macro_stack_ptr--;
           }
        }
 {ROP}  {
@@ -967,9 +970,11 @@ static void do_include(CSOUND *csound, int term, yyscan_t yyscanner)
       //corfile_puts(csound, bb, PARM->cf);
 #endif
     }
+    // printf("reading included file \"%s\"\n", buffer);
     csound->DebugMsg(csound,"reading included file \"%s\"\n", buffer);
     if (UNLIKELY(isDir(buffer)))
       csound->Warning(csound, Str("%s is a directory; not including"), buffer);
+    printf("path = %s\n", PARM->path);
     if (PARM->path && buffer[0]!= '/') { // if nested included directories
       char tmp[1024];
       printf("using path %s\n", PARM->path);
@@ -983,6 +988,7 @@ static void do_include(CSOUND *csound, int term, yyscan_t yyscanner)
     if (UNLIKELY(cf == NULL))
       csound->Die(csound,
                   Str("Cannot open #include'd file %s\n"), buffer);
+    printf("stack pointer = %d\n", PARM->macro_stack_ptr);
     if (UNLIKELY(PARM->macro_stack_ptr +1 >= PARM->macro_stack_size )) {
       //trace_alt_stack(csound, PARM, __LINE__);
       PARM->alt_stack =
@@ -992,8 +998,8 @@ static void do_include(CSOUND *csound, int term, yyscan_t yyscanner)
         csound->Message(csound, Str("Memory exhausted"));
         csound->LongJmp(csound, 1);
       }
-      /* csound->DebugMsg(csound, "alt_stack now %d long,\n", */
-      /*                  PARM->macro_stack_size); */
+      csound->DebugMsg(csound, "alt_stack now %d long,\n",
+                       PARM->macro_stack_size);
     }
     csound->DebugMsg(csound,"csound_prs(%d): stacking line %d at %d\n", __LINE__,
            csound_prsget_lineno(yyscanner),PARM->macro_stack_ptr);
@@ -1001,10 +1007,10 @@ static void do_include(CSOUND *csound, int term, yyscan_t yyscanner)
     PARM->alt_stack[PARM->macro_stack_ptr].line = csound_prsget_lineno(yyscanner);
     if (strrchr(buffer,'/')) {
       PARM->alt_stack[PARM->macro_stack_ptr].path = PARM->path;
-      printf("setting path from %s to ", PARM->path);
+      //printf("setting path from %s to ", PARM->path);
       PARM->path = strdup(buffer); /* wasteful! */
       *(strrchr(PARM->path,'/')) = '\0';
-      printf("%s\n",PARM->path);
+      //printf("%s\n",PARM->path);
     }
     else PARM->alt_stack[PARM->macro_stack_ptr].path = NULL;
     PARM->alt_stack[PARM->macro_stack_ptr++].s = NULL;
