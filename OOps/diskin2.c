@@ -39,7 +39,7 @@ static CS_NOINLINE void diskin2_read_buffer(CSOUND *csound,
 {
     MYFLT *tmp;
     int32_t nsmps;
-    int32_t   i;
+    int32_t i;
     IGN(csound);
     /* swap buffer pointers */
     tmp = p->buf;
@@ -562,12 +562,12 @@ int32_t diskin2_perf_synchronous(CSOUND *csound, DISKIN2 *p)
 {
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
-    int nsmps = CS_KSMPS;
-    int chn, i, nn;
-    double  d, frac_d, x, c, v, pidwarp_d;
-    MYFLT   frac, a0, a1, a2, a3, onedwarp, winFact;
-    int32_t   ndx;
-    int32_t     wsized2, warp;
+    int      nsmps = CS_KSMPS;
+    int      chn, i, nn;
+    double   d, frac_d, x, c, v, pidwarp_d;
+    MYFLT    frac, a0, a1, a2, a3, onedwarp, winFact;
+    int32_t  ndx;
+    int32_t  wsized2, warp;
 
 
     if (UNLIKELY(p->fdch.fd == NULL) ) goto file_error;
@@ -752,9 +752,9 @@ int32_t diskin_file_read(CSOUND *csound, DISKIN2 *p)
     int32_t chn, chans = p->nChannels;
     double  d, frac_d, x, c, v, pidwarp_d;
     MYFLT   frac, a0, a1, a2, a3, onedwarp, winFact;
-    int32_t   ndx;
-    int32_t     wsized2, warp;
-    MYFLT  *aOut = (MYFLT *)p->aOut_buf; /* needs to be allocated */
+    int32_t ndx;
+    int32_t wsized2, warp;
+    MYFLT   *aOut = (MYFLT *)p->aOut_buf; /* needs to be allocated */
 
     if (UNLIKELY(p->fdch.fd == NULL) ) goto file_error;
     if (!p->initDone && !p->SkipInit) {
@@ -1035,7 +1035,7 @@ static int32_t sndo1set_(CSOUND *csound, void *pp, int32_t stringname)
     char    *sfname, *opname, name[1024];
     SNDCOM  *q;
     MYFLT   *ifilcod, *iformat;
-    int32_t     filetyp = TYP_RAW, format = csound->oparms_.outformat, nchns = 1;
+    int32_t filetyp = TYP_RAW, format = csound->oparms_.outformat, nchns = 1;
     SF_INFO sfinfo;
     //SNDOUTS *p = (SNDOUTS*) pp;
 
@@ -1160,9 +1160,9 @@ static CS_NOINLINE void diskin2_read_buffer_array(CSOUND *csound,
                                                   DISKIN2_ARRAY *p,
                                                   int32_t bufReadPos)
 {
-    MYFLT *tmp;
+    MYFLT   *tmp;
     int32_t nsmps;
-    int32_t   i;
+    int32_t i;
     IGN(csound);
     /* swap buffer pointers */
     tmp = p->buf;

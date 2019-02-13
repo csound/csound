@@ -345,6 +345,21 @@ PUBLIC void cs_hash_table_free_complete(CSOUND* csound, CS_HASH_TABLE* hashTable
     csound->Free(csound, hashTable);
 }
 
+char *cs_inverse_hash_get(CSOUND* csound, CS_HASH_TABLE* hashTable, int n)
+{
+    int k;
+    IGN(csound);
+    for (k=0; k<HASH_SIZE;k++) {
+      CS_HASH_TABLE_ITEM* item = hashTable->buckets[k];
+      while (item) {
+        if (n==*(int*)item->value) return item->key;
+        item = item->next;
+      }
+    }
+    return NULL;
+}
+
+
 
 
 #ifdef __cplusplus

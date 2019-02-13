@@ -907,6 +907,8 @@ OENTRY opcodlst_1[] = {
   { "subinstrinit.i", S(SUBINST),0, 1, "",    "iN",   subinstrset, NULL, NULL     },
   { "nstrnum", S(NSTRNUM),0, 1,     "i",    "S",    nstrnumset_S, NULL, NULL      },
   { "nstrnum.i", S(NSTRNUM),0, 1,     "i",    "i",    nstrnumset, NULL, NULL      },
+  { "nstrstr", S(NSTRSTR),0, 1,       "S",    "i",    nstrstr, NULL, NULL      },
+  { "nstrstr.k", S(NSTRSTR),0, 2,     "S",    "k",    NULL, nstrstr, NULL      },
   { "turnoff2",   0xFFFB,   _CW,    0, NULL,   NULL,   NULL, NULL, NULL          },
   { "turnoff2.S",S(TURNOFF2),0,2,     "",     "Skk",  NULL, turnoff2S, NULL     },
   { "turnoff2.c",S(TURNOFF2),0,2,     "",     "ikk",  NULL, turnoff2k, NULL     },

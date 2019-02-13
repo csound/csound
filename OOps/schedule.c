@@ -213,10 +213,10 @@ int32_t lfoset(CSOUND *csound, LFO *p)
 
 int32_t lfok(CSOUND *csound, LFO *p)
 {
-    int32_t        phs;
+    int32_t     phs;
     MYFLT       fract;
     MYFLT       res;
-    int32_t        iphs;
+    int32_t     iphs;
 
     phs = p->phs;
     switch (p->lasttype) {
@@ -267,10 +267,10 @@ int32_t lfoa(CSOUND *csound, LFO *p)
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t n, nsmps = CS_KSMPS;
-    int32_t       phs;
+    int32_t     phs;
     MYFLT       fract;
     MYFLT       res;
-    int32_t       iphs, inc;
+    int32_t     iphs, inc;
     MYFLT       *ar, amp;
 
     phs = p->phs;

@@ -150,8 +150,16 @@ NM              [nm][ \t]+
                   else {
                     corfile_puts(csound, yytext, PARM->cf);
                   }
-                  //corfile_putline(csound_prsget_lineno(yyscanner),
-                  //                PARM->cf);
+                }
+"c"             {
+                  if (PARM->isString != 1) {
+                    comment(yyscanner);
+                    corfile_putc(csound, '\n', PARM->cf);
+                    csound_prs_line(PARM->cf, yyscanner);
+                  }
+                  else {
+                    corfile_puts(csound, yytext, PARM->cf);
+                  }
                 }
 {STCOM}         {
                   if (PARM->isString != 1)
