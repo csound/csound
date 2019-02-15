@@ -2184,10 +2184,11 @@ static int32_t tabsuma(CSOUND *csound, TABQUERY1 *p)
 {
     ARRAYDAT *t = p->tab;
     int32_t i, size = 0;
-    MYFLT *ans = p->ans;
+    MYFLT *ans = p->ans, *in;
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     int32_t nsmps = CS_KSMPS;
+    int32_t span = (t->arrayMemberSize)/sizeof(MYFLT);
 
     if (UNLIKELY(t->data == NULL))
       return csound->PerfError(csound, &(p->h),
@@ -2201,14 +2202,15 @@ static int32_t tabsuma(CSOUND *csound, TABQUERY1 *p)
         memset(&ans[nsmps], '\0', early*sizeof(MYFLT));
     }
     
-    memcpy(ans,(&t->data[0] + offset),
+    memcpy(ans,&(t->data[0]) + offset,
            sizeof(MYFLT)*nsmps); 
     for (i=0; i<t->dimensions; i++) size += t->sizes[i];
     for (i=1; i<size; i++) {
-      int j;
+      int j, k = i*span;
+      in = &(t->data[k]);
       for(j=offset; j < nsmps; j++) 
-        ans[j] += *(&t->data[i] + j);
-     } 
+        ans[j] += in[j];
+        } 
     return OK;
 }
 
