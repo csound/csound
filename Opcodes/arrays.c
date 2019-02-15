@@ -2180,6 +2180,38 @@ static int32_t tabmin1(CSOUND *csound, TABQUERY *p)
     else return NOTOK;
 }
 
+static int32_t tabsuma(CSOUND *csound, TABQUERY1 *p)
+{
+    ARRAYDAT *t = p->tab;
+    int32_t i, size = 0;
+    MYFLT *ans = p->ans;
+    uint32_t offset = p->h.insdshead->ksmps_offset;
+    uint32_t early  = p->h.insdshead->ksmps_no_end;
+    int32_t nsmps = CS_KSMPS;
+
+    if (UNLIKELY(t->data == NULL))
+      return csound->PerfError(csound, &(p->h),
+                               Str("array-variable not initialised"));
+    if (UNLIKELY(t->dimensions!=1))
+      return csound->PerfError(csound, &(p->h),
+                               Str("array-variable not a vector"));
+
+    if (UNLIKELY(offset)) memset(ans, '\0', offset*sizeof(MYFLT));
+    if (UNLIKELY(early)) {
+        memset(&ans[nsmps], '\0', early*sizeof(MYFLT));
+    }
+    
+    memcpy(ans,(&t->data[0] + offset),
+           sizeof(MYFLT)*nsmps); 
+    for (i=0; i<t->dimensions; i++) size += t->sizes[i];
+    for (i=1; i<size; i++) {
+      int j;
+      for(j=offset; j < nsmps; j++) 
+        ans[j] += *(&t->data[i] + j);
+     } 
+    return OK;
+}
+
 static int32_t tabsum(CSOUND *csound, TABQUERY1 *p)
 {
     ARRAYDAT *t = p->tab;
@@ -2198,6 +2230,12 @@ static int32_t tabsum(CSOUND *csound, TABQUERY1 *p)
       ans += t->data[i];
     *p->ans = ans;
     return OK;
+}
+
+static int32_t tabsuma1(CSOUND *csound, TABQUERY1 *p)
+{
+    if (LIKELY(tabqset1(csound, p) == OK)) return tabsuma(csound, p);
+    else return NOTOK;
 }
 
 static int32_t tabsum1(CSOUND *csound, TABQUERY1 *p)
@@ -3959,6 +3997,8 @@ static OENTRY arrayvars_localops[] =
       (SUBR) tabqset1, (SUBR) tabsum },
     { "sumarray.k", sizeof(TABQUERY1),0, 3, "k", "k[]",
       (SUBR) tabqset1, (SUBR) tabsum },
+    { "sumarray.a", sizeof(TABQUERY1),0, 3, "a", "a[]",
+      (SUBR) tabqset1, (SUBR) tabsuma1 },
     { "sumarray.i", sizeof(TABQUERY1),0, 1, "i", "i[]", (SUBR) tabsum1   },
     { "scalet", sizeof(TABSCALE), _QQ|WI, 3, "",  "k[]kkOJ",
       (SUBR) tabscaleset,(SUBR) tabscale },
