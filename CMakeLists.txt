@@ -1284,6 +1284,13 @@ if(LINUX)
       list(APPEND libcsound_LIBS ${LIBRT_LIBRARY})
       message(STATUS "  ADDING LIBRT LIBRARY: ${LIBRT_LIBRARY}.")
     endif()
+
+    find_library(LIBEXECINFO_LIBRARY execinfo)
+
+    if(LIBEXECINFO_LIBRARY)
+       list(APPEND libcsound_LIBS ${LIBEXECINFO_LIBRARY})
+       message(STATUS "  ADDING LIBEXECINFO LIBRARY: ${LIBEXECINFO_LIBRARY}.")
+    endif()
 endif()
 
 if(APPLE AND NOT IOS)

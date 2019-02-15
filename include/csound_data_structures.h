@@ -125,6 +125,7 @@ PUBLIC void cs_hash_table_mfree_complete(CSOUND* csound, CS_HASH_TABLE* hashTabl
     ->value pointer. */
 PUBLIC void cs_hash_table_free_complete(CSOUND* csound, CS_HASH_TABLE* hashTable);
 
+char * cs_inverse_hash_get(CSOUND* csound, CS_HASH_TABLE* hashTable, int n);
 #ifdef __cplusplus
 }
 #endif

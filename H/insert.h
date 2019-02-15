@@ -137,6 +137,12 @@ typedef struct {                        /* IV - Oct 20 2002 */
     MYFLT   *i_insno, *iname;
 } NSTRNUM;
 
+typedef struct {                        /* JPff Feb 2019 */
+    OPDS    h;
+    STRINGDAT *ans;
+    MYFLT     *num;
+} NSTRSTR;
+
 typedef struct {
     OPDS    h;
     MYFLT   *kInsNo, *kFlags, *kRelease;

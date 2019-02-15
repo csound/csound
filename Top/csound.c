@@ -405,7 +405,7 @@ static const CSOUND cenviron_ = {
     rewriteheader,
     csoundLoadSoundFile,
     fdrecord,
-    fdclose,
+    fd_close,
     csoundCreateFileHandle,
     csoundGetFileName,
     csoundFileClose,

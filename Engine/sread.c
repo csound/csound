@@ -191,45 +191,6 @@ static MYFLT operate(CSOUND *csound, MYFLT a, MYFLT b, char c)
     return ans;
 }
 
-/* static int undefine_score_macro(CSOUND *csound, const char *name) */
-/* { */
-/*     S_MACRO *mm, *nn; */
-/*     int   i; */
-
-/*     if (strcmp(name, STA(macros)->name) == 0) { */
-/*       mm = STA(macros)->next; */
-/*       if (strcmp(STA(macros)->name, "[") != 0) */
-/*         corfile_rm(csound, &(STA(macros)->body)); */
-/*       csound->Free(csound, STA(macros)->name); */
-/*  #ifdef MACDEBUG */
-/*       csound->DebugMsg(csound,"%s(%d): corfile is %p\n", */
-/*                        __FILE__, __LINE__, STA(macros)->body); */
-/*  #endif */
-/*       for (i = 0; i < STA(macros)->acnt; i++) */
-/*         csound->Free(csound, STA(macros)->arg[i]); */
-/*       csound->Free(csound, STA(macros)); */
-/*       STA(macros) = mm; */
-/*     } */
-/*     else { */
-/*       mm = STA(macros); */
-/*       nn = mm->next; */
-/*       while (strcmp(name, nn->name) != 0) { */
-/*         mm = nn; nn = nn->next; */
-/*         if (UNLIKELY(nn == NULL)) { */
-/*           scorerr(csound, Str("Undefining undefined macro")); */
-/*           return -1; */
-/*         } */
-/*       } */
-/*       csound->Free(csound, nn->name); */
-/*       corfile_rm(csound, &nn->body); */
-/*       for (i = 0; i < nn->acnt; i++) */
-/*         csound->Free(csound, nn->arg[i]); */
-/*       mm->next = nn->next; */
-/*       csound->Free(csound, nn); */
-/*     } */
-/*     return 0; */
-/* } */
-
 static inline int isNameChar(int c, int pos)
 {
     //c = (int) ((unsigned char) c);
@@ -928,16 +889,17 @@ static int sget1(CSOUND *csound)    /* get first non-white, non-comment char */
 {
     int c;
 
- srch:
+    //srch:
     while (isblank(c = getscochar(csound, 1)) || c == LF)
       if (c == LF) {
         STA(lincnt)++;
         STA(linpos) = 0;
       }
-    if (c == ';' || c == 'c') {
-      flushlin(csound);
-      goto srch;
-    }
+    /* Can never be ; from lexer, could do c in lexer *\/ */
+    /* if (c == ';' || c == 'c') { */
+    /*   flushlin(csound); */
+    /*   goto srch; */
+    /* } */
     return c;
 }
 

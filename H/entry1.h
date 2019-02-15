@@ -393,7 +393,7 @@ int32_t xinset(CSOUND *, void *), xoutset(CSOUND *, void *);
 int32_t ingoto(CSOUND *, void *), kngoto(CSOUND *, void *);
 int32_t iingoto(CSOUND *, void *), kingoto(CSOUND *, void *);
 int32_t nstrnumset(CSOUND *, void *), turnoff2k(CSOUND *, void *);
-int32_t nstrnumset_S(CSOUND *, void *);
+int32_t nstrnumset_S(CSOUND *, void *), nstrstr(CSOUND *, void *);
 int32_t turnoff2S(CSOUND *, void *) ;
 int32_t loop_l_i(CSOUND *, void *), loop_le_i(CSOUND *, void *);
 int32_t loop_g_i(CSOUND *, void *), loop_ge_i(CSOUND *, void *);
