@@ -2201,16 +2201,16 @@ static int32_t tabsuma(CSOUND *csound, TABQUERY1 *p)
     if (UNLIKELY(early)) {
         memset(&ans[nsmps], '\0', early*sizeof(MYFLT));
     }
-    
+
     memcpy(ans,&(t->data[0]) + offset,
-           sizeof(MYFLT)*nsmps); 
+           sizeof(MYFLT)*nsmps);
     for (i=0; i<t->dimensions; i++) size += t->sizes[i];
     for (i=1; i<size; i++) {
       int j, k = i*span;
       in = &(t->data[k]);
-      for(j=offset; j < nsmps; j++) 
+      for(j=offset; j < nsmps; j++)
         ans[j] += in[j];
-        } 
+        }
     return OK;
 }
 
@@ -3542,8 +3542,8 @@ int32_t scalarset(CSOUND *csound, TABCOPY *p) {
     return OK;
 }
 
-int32_t arrayass(CSOUND *csound, TABCOPY *p) 
-{   
+int32_t arrayass(CSOUND *csound, TABCOPY *p)
+{
     IGN(csound);
     uint32_t siz = 0 , dim = p->tab->dimensions, i;
     uint32_t offset = p->h.insdshead->ksmps_offset;
@@ -3551,18 +3551,19 @@ int32_t arrayass(CSOUND *csound, TABCOPY *p)
     uint32_t n, nsmps = CS_KSMPS;
     int32_t span = (p->tab->arrayMemberSize)/sizeof(MYFLT);
     MYFLT *val = p->kfn;
-    
+
     for (i=0; i < dim; i++)
       siz += p->tab->sizes[i];
     for (i=0; i < siz; i++) {
       int32_t pp = i*span;
-      for (n=0; n<offset; n++) p->tab->data[pp+n] = FL(0.0);
-      for (n=offset; i<nsmps-early; n++)
+      for (n=0; n<offset; n++)
+        p->tab->data[pp+n] = FL(0.0);
+      for (n=offset; n<nsmps-early; n++)
         p->tab->data[pp+n] = val[n];
-      for (n=early; n<nsmps; n++) p->tab->data[pp+n] = FL(0.0);
+      for (n=nsmps-early; n<nsmps; n++)
+        p->tab->data[pp+n] = FL(0.0);
     }
     return OK;
-
 }
 
 int32_t unwrap(CSOUND *csound, FFT *p) {
@@ -4151,8 +4152,8 @@ static OENTRY arrayvars_localops[] =
      (SUBR) shiftout_init, (SUBR) shiftout_perf},
     {"unwrap", sizeof(FFT), 0, 3, "k[]","k[]",
      (SUBR) init_recttopol, (SUBR) unwrap},
-    {"=.X", sizeof(FFT), 0, 3, "k[]","k", (SUBR) scalarset, (SUBR) scalarset},
-    {"=.Z", sizeof(FFT), 0 , 3, "a[]", "a", NULL, (SUBR) arrayass},
+    {"=.X", sizeof(TABCOPY), 0, 3, "k[]","k", (SUBR) scalarset, (SUBR) scalarset},
+    {"=.Z", sizeof(TABCOPY), 0 , 2, "a[]", "a", NULL, (SUBR) arrayass},
     {"dct", sizeof(FFT), 0, 3, "k[]","k[]",
      (SUBR) init_dct, (SUBR) kdct, NULL},
     {"dct", sizeof(FFT), 0, 1, "i[]","i[]",
