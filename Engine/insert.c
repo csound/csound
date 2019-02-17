@@ -1694,7 +1694,7 @@ int nstrstr(CSOUND *csound, NSTRSTR *p)
                                    csound->engineState.instrumentNames, (int)*p->num);
     mfree(csound,p->ans->data);
     p->ans->data = cs_strdup(csound, ss);
-    p->ans->size = (ss ? strlen(ss) : 0);
+    p->ans->size = strlen(ss);
     return OK;
 }
 
