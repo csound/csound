@@ -19,9 +19,9 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 
 #: Engine/auxfd.c:144
-#, fuzzy, c-format
+#, c-format
 msgid "fd_close: no record of fd %p"
-msgstr "fdclose : pas d'enregistrement pour fd %p"
+msgstr "fdclose : pas d'enregistrement de fd %p"
 
 #: Engine/auxfd.c:193
 #, c-format
@@ -8666,9 +8666,8 @@ msgid "loscilx: not initialised"
 msgstr "loscilx : non initialisé"
 
 #: Opcodes/loscilx.c:1131
-#, fuzzy
 msgid "loscilxa: not initialised"
-msgstr "loscilx : non initialisé"
+msgstr "loscilxa : non initialisé"
 
 #: Opcodes/lowpassr.c:57 Opcodes/lowpassr.c:101 Opcodes/lowpassr.c:123
 #: Opcodes/lowpassr.c:157 Opcodes/lowpassr.c:178 Opcodes/lowpassr.c:212
