@@ -25,6 +25,16 @@ from ctypes import *
 import numpy as np
 import sys
 
+# This is a workaround to yield the PEP 3118 problem which appeared with
+# numpy 1.15.0
+if np.__version__ < '1.15':
+	arrFromPointer = lambda p : np.ctypeslib.as_array(p)
+elif np.__version__ < '1.16':
+	sys.exit("ctcsound won't work with numpy 1.15.x. Please revert numpy" +
+		" to an older version or update numpy to a version >= 1.16")
+else:
+	arrFromPointer = lambda p : p.contents
+
 if sys.platform.startswith('linux'):
     libcsound = CDLL("libcsound64.so")
 elif sys.platform.startswith('win'):
@@ -1147,7 +1157,7 @@ class Csound:
         size = libcsound.csoundGetInputBufferSize(self.cs)
         arrayType = np.ctypeslib.ndpointer(MYFLT, 1, (size,), 'C_CONTIGUOUS')
         p = cast(buf, arrayType)
-        return np.ctypeslib.as_array(p)
+        return arrFromPointer(p)
     
     def outputBuffer(self):
         """Return the Csound audio output buffer as a numpy array.
@@ -1159,7 +1169,7 @@ class Csound:
         size = libcsound.csoundGetOutputBufferSize(self.cs)
         arrayType = np.ctypeslib.ndpointer(MYFLT, 1, (size,), 'C_CONTIGUOUS')
         p = cast(buf, arrayType)
-        return np.ctypeslib.as_array(p)
+        return arrFromPointer(p)
     
     def spin(self):
         """Return the Csound audio input working buffer (spin) as a numpy array.
@@ -1171,7 +1181,7 @@ class Csound:
         size = self.ksmps() * self.nchnlsInput()
         arrayType = np.ctypeslib.ndpointer(MYFLT, 1, (size,), 'C_CONTIGUOUS')
         p = cast(buf, arrayType)
-        return np.ctypeslib.as_array(p)
+        return arrFromPointer(p)
     
     def clearSpin(self):
         """Clear the input buffer (spin)."""
@@ -1205,7 +1215,7 @@ class Csound:
         size = self.ksmps() * self.nchnls()
         arrayType = np.ctypeslib.ndpointer(MYFLT, 1, (size,), 'C_CONTIGUOUS')
         p = cast(buf, arrayType)
-        return np.ctypeslib.as_array(p)
+        return arrFromPointer(p)
     
     def spoutSample(self, frame, channel):
         """Return one sample from the Csound audio output working buf (spout).
@@ -1591,7 +1601,7 @@ class Csound:
             else:
                 arrayType = np.ctypeslib.ndpointer(MYFLT, 1, (length,), 'C_CONTIGUOUS')
                 p = cast(ptr, arrayType)
-                return np.ctypeslib.as_array(p), err
+                return arrFromPointer(p), err
         elif ret == CSOUND_MEMORY:
             err = 'Not enough memory for allocating channel'
         elif ret == CSOUND_ERROR:
@@ -1951,7 +1961,7 @@ class Csound:
             return None
         arrayType = np.ctypeslib.ndpointer(MYFLT, 1, (size,), 'C_CONTIGUOUS')
         p = cast(ptr, arrayType)
-        return np.ctypeslib.as_array(p)
+        return arrFromPointer(p)
         
     def tableArgs(self, tableNum):
         """Return a pointer to the args used to generate a function table.
@@ -1968,7 +1978,7 @@ class Csound:
             return None
         arrayType = np.ctypeslib.ndpointer(MYFLT, 1, (size,), 'C_CONTIGUOUS')
         p = cast(ptr, arrayType)
-        return np.ctypeslib.as_array(p)
+        return arrFromPointer(p)
     
     def isNamedGEN(self, num):
         """Check if a given GEN number num is a named GEN.
