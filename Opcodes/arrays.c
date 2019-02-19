@@ -2811,7 +2811,7 @@ static int32_t monitora_perf(CSOUND *csound, OUTA *p)
             if (i<offset)
               data[i+j*nsmps] = FL(0.0);
             else
-              data[i+j*nsmps] = sp[j];
+              data[i+j*nsmps] = sp[i+j*nsmps];
           }
         }
       }
