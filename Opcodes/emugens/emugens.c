@@ -377,7 +377,7 @@ typedef struct {
 static int32_t
 ftom_arr(CSOUND *csound, PITCHCONV_ARR *p) {
     MYFLT x, *indata, *outdata;
-    uint32_t i;
+    int32_t i;
     if(p->skip) {
         p->skip = 0;
         return OK;
@@ -412,7 +412,7 @@ ftom_arr_init(CSOUND *csound, PITCHCONV_ARR *p) {
 static int32_t
 mtof_arr(CSOUND *csound, PITCHCONV_ARR *p) {
     MYFLT x, *indata, *outdata;
-    uint32_t i;
+    int32_t i;
     if(p->skip) {
         p->skip = 0;
         return OK;
@@ -814,7 +814,8 @@ static MYFLT ntomfunc(CSOUND *csound, char *note) {
         } else if (rest == 3) {
             cents = 10 * (n[cursor + 1] - '0') + (n[cursor + 2] - '0');
         } else {
-            csound->Message(csound,Str("format not understood, note: %s, notelen: %d\n"), n, notelen);
+            csound->Message(csound,Str("format not understood, note: "
+                                       "%s, notelen: %d\n"), n, notelen);
             return FAIL;
         }
         cents *= sign;
@@ -1013,7 +1014,8 @@ static int32_t
 cmp_init(CSOUND *csound, Cmp *p) {
     int32_t mode = op2mode(p->op->data, p->op->size-1);
     if(mode == -1) {
-        return INITERR(Str("cmp: unknown operator. Expecting <, <=, >, >=, ==, !="));
+        return INITERR(Str("cmp: unknown operator. "
+                           "Expecting <, <=, >, >=, ==, !="));
     }
     p->mode = mode;
     return OK;
@@ -1025,7 +1027,8 @@ cmparray1_init(CSOUND *csound, Cmp_array1 *p) {
     tabensure(csound, p->out, N);
     int32_t mode = op2mode(p->op->data, p->op->size-1);
     if(mode == -1) {
-        return INITERR(Str("cmp: unknown operator. Expecting <, <=, >, >=, ==, !="));
+        return INITERR(Str("cmp: unknown operator. "
+                           "Expecting <, <=, >, >=, ==, !="));
     }
     p->mode = mode;
     return OK;
@@ -1042,7 +1045,8 @@ cmparray2_init(CSOUND *csound, Cmp_array2 *p) {
     tabensure(csound, p->out, N);
     int32_t mode = op2mode(p->op->data, p->op->size-1);
     if(mode == -1) {
-        return INITERR(Str("cmp: unknown operator. Expecting <, <=, >, >=, ==, !="));
+        return INITERR(Str("cmp: unknown operator. "
+                           "Expecting <, <=, >, >=, ==, !="));
     }
     p->mode = mode;
     return OK;
@@ -1800,7 +1804,7 @@ array_and(CSOUND *csound, BINOP_AAA *p) {
 /*
 
    Input types:
-   
+
  - a, k, s, i, w, f,
  - o (optional i-rate, default to 0), O optional krate=0
  - p (opt, default to 1), P optional krate=1
@@ -1815,7 +1819,7 @@ array_and(CSOUND *csound, BINOP_AAA *p) {
  - M (multiple inputs, any type)
  - n (multiple inputs, odd number of inputs, i-type).
  - . anytype
- - ? optional 
+ - ? optional
  - * any type, any number of inputs
  */
 
@@ -1840,14 +1844,17 @@ static OENTRY localops[] = {
 
     { "mtof", S(PITCHCONV), 0, 3, "k", "k", (SUBR)mtof_init, (SUBR)mtof },
     { "mtof", S(PITCHCONV), 0, 1, "i", "i", (SUBR)mtof_init },
-    { "mtof", S(PITCHCONV_ARR), 0, 3, "k[]", "k[]", (SUBR)mtof_arr_init, (SUBR)mtof_arr },
+    { "mtof", S(PITCHCONV_ARR), 0, 3, "k[]", "k[]",
+      (SUBR)mtof_arr_init, (SUBR)mtof_arr },
     { "mtof", S(PITCHCONV_ARR), 0, 1, "i[]", "i[]", (SUBR)mtof_arr_init },
 
     { "ftom", S(PITCHCONV), 0, 3,  "k", "ko", (SUBR)ftom_init, (SUBR)ftom},
     { "ftom", S(PITCHCONV), 0, 1,  "i", "io", (SUBR)ftom_init},
-    { "ftom", S(PITCHCONV_ARR), 0, 3,  "k[]", "k[]o", (SUBR)ftom_arr_init, (SUBR)ftom_arr},
-    { "ftom", S(PITCHCONV_ARR), 0, 1,  "i[]", "i[]o", (SUBR)ftom_arr_init, (SUBR)ftom_arr},
-    
+    { "ftom", S(PITCHCONV_ARR), 0, 3,  "k[]", "k[]o",
+      (SUBR)ftom_arr_init, (SUBR)ftom_arr},
+    { "ftom", S(PITCHCONV_ARR), 0, 1,  "i[]", "i[]o",
+      (SUBR)ftom_arr_init, (SUBR)ftom_arr},
+
 
     { "pchtom", S(PITCHCONV), 0, 1, "i", "i", (SUBR)pchtom },
     { "pchtom", S(PITCHCONV), 0, 2, "k", "k", NULL, (SUBR)pchtom },
@@ -1860,16 +1867,20 @@ static OENTRY localops[] = {
     { "bpf", S(BPFARRPOINTS), 0, 2, "k", "ki[]i[]", NULL, (SUBR)bpfarrpoints },
     { "bpf", S(BPFARRPOINTS), 0, 1, "i", "ii[]i[]", (SUBR)bpfarrpoints },
 
-    { "bpf", S(BPFARRPOINTS2), 0, 2, "kk", "kk[]k[]k[]", NULL, (SUBR)bpfarrpoints2 },
-    { "bpf", S(BPFARRPOINTS2), 0, 2, "kk", "ki[]i[]i[]", NULL, (SUBR)bpfarrpoints2 },
+    { "bpf", S(BPFARRPOINTS2), 0, 2, "kk", "kk[]k[]k[]",
+      NULL, (SUBR)bpfarrpoints2 },
+    { "bpf", S(BPFARRPOINTS2), 0, 2, "kk", "ki[]i[]i[]",
+      NULL, (SUBR)bpfarrpoints2 },
     { "bpf", S(BPFARRPOINTS2), 0, 1, "ii", "ii[]i[]i[]", (SUBR)bpfarrpoints2 },
 
     { "bpfcos", S(BPFX), 0, 2, "k", "kM", NULL, (SUBR)bpfxcos },
     { "bpfcos", S(BPFX), 0, 1, "i", "im", (SUBR)bpfxcos },
     { "bpfcos", S(BPFARR), 0, 2, "k[]", "k[]M", NULL, (SUBR)bpfarrcos },
 
-    { "bpfcos", S(BPFARRPOINTS), 0, 2, "k", "kk[]k[]", NULL, (SUBR)bpfcosarrpoints },
-    { "bpfcos", S(BPFARRPOINTS), 0, 2, "k", "ki[]i[]", NULL, (SUBR)bpfcosarrpoints },
+    { "bpfcos", S(BPFARRPOINTS), 0, 2, "k", "kk[]k[]",
+      NULL, (SUBR)bpfcosarrpoints },
+    { "bpfcos", S(BPFARRPOINTS), 0, 2, "k", "ki[]i[]",
+      NULL, (SUBR)bpfcosarrpoints },
     { "bpfcos", S(BPFARRPOINTS), 0, 1, "i", "ii[]i[]", (SUBR)bpfcosarrpoints },
 
     { "ntom", S(NTOM), 0, 3, "k", "S", (SUBR)ntom, (SUBR)ntom },
@@ -1881,7 +1892,7 @@ static OENTRY localops[] = {
     { "ntof", S(NTOM), 0, 3, "k", "S", (SUBR)ntof, (SUBR)ntof },
     { "ntof", S(NTOM), 0, 1, "i", "S", (SUBR)ntof },
 
-    
+
     { "cmp", S(Cmp), 0, 3, "a", "aSa", (SUBR)cmp_init, (SUBR)cmp_aa,},
     { "cmp", S(Cmp), 0, 3, "a", "aSk", (SUBR)cmp_init, (SUBR)cmp_ak },
     { "cmp", S(Cmp_array1), 0, 3, "k[]", "k[]Sk",
