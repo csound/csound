@@ -22,8 +22,8 @@
     02110-1301 USA
 */
 
-// #include <csdl.h>
-#include "/usr/local/include/csound/csdl.h"
+#include <csdl.h>
+// #include "/usr/local/include/csound/csdl.h"
 
 #define SAMPLE_ACCURATE \
     uint32_t n, nsmps = CS_KSMPS;                                    \
