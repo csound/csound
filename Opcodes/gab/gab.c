@@ -37,7 +37,7 @@
 #define FLT_MAX ((MYFLT)0x7fffffff)
 
 static int32_t krsnsetx(CSOUND *csound, KRESONX *p)
-  /* Gabriel Maldonado, modifies for arb order  */
+  /* Gabriel Maldonado, modified for arb order  */
 {
     int32_t scale;
     p->scale = scale = (int32_t) *p->iscl;
@@ -673,7 +673,7 @@ static int32_t isChanged_set(CSOUND *csound,ISCHANGED *p)
 
 static int32_t isChanged(CSOUND *csound,ISCHANGED *p)
 {
-     IGN(csound);
+    IGN(csound);
     MYFLT **inargs = p->inargs;
     MYFLT *old_inargs = p->old_inargs;
     int32_t numargs = p->numargs, ktrig = 0, j;
