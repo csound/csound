@@ -29,9 +29,10 @@ typedef struct {
         OPDS    h;
         MYFLT   *ans;
         MYFLT   *x;
-        MYFLT   *order;
-        MYFLT   *decay;
         MYFLT   *freq;
+        MYFLT   *decay;
+        MYFLT   *order;
+        MYFLT   *phase;
         int32_t n;
         MYFLT   expmbt;
         MYFLT   cosft;
@@ -46,8 +47,9 @@ typedef struct {
 static int32_t gammatone_init(CSOUND *csound, GAMMA *p)
 {
     p->n = MYFLT2LRND(*p->order);
-    if (p->n<=0 || p->n>10)
+    if (p->n<0 || p->n>10)
       return csound->InitError(csound, Str("Invalid order %d\n"), p->n);
+    else if (p->n==0) p->n = 4;
     p->expmbt = EXP(-2.0*PI_F* *p->decay/*/csound->GetSr(csound)*/);
     p->cosft = FL(1.0);
     p->sinft = FL(0.0);
@@ -106,7 +108,14 @@ static int32_t gammatone_perf(CSOUND *csound, GAMMA *p)
       }
       p->yr[k] = yrm1;  p->yi[k] = yim1;
     }
-    for (i = offset; i<nsmps; i++) p->ans[i] =FL(2.0)*xxr[i];
+    if (*p->phase == FL(0.0))
+      for (i = offset; i<nsmps; i++)
+        p->ans[i] =FL(2.0)*xxr[i];
+    else {
+      MYFLT cc = COS(*p->phase), ss = SIN(*p->phase);
+      for (i=offset; i<nsmps; i++)
+        p->ans[i] = FL(2.0)*(xxr[i]*cc - xxi[i]*ss);
+    }
     return OK;
 }
 
@@ -114,7 +123,7 @@ static int32_t gammatone_perf(CSOUND *csound, GAMMA *p)
 #define S(x) sizeof(x)
 
 static OENTRY localops[] = {
-{ "gtf", S(GAMMA), 0, 3, "a", "aiik", (SUBR)gammatone_init, (SUBR)gammatone_perf }
+{ "gtf", S(GAMMA), 0, 3, "a", "akioo", (SUBR)gammatone_init, (SUBR)gammatone_perf }
 };
 
 LINKAGE
