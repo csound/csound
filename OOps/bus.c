@@ -1412,8 +1412,9 @@ int32_t sensekey_perf(CSOUND *csound, KSENSE *p)
         tmp = (keyCode < 0 ? tmp : (-1 - keyCode));
         p->evtbuf = (tmp != 0 ? tmp : -1);
       }
-      else if (p->OUTOCOUNT>1 && p->keyDown != NULL)
-        p->evtbuf = -1 - keyCode;
+      // *** Cannot see point of next 2 lines *** JPff
+      /* else if (p->OUTOCOUNT>1 && p->keyDown != NULL) */
+      /*   p->evtbuf = -1 - keyCode; */
       if (keyCode < 0)
         keyCode = 65535 - keyCode;
     }

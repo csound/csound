@@ -22,8 +22,8 @@
     02110-1301 USA
 */
 
-// #include <csdl.h>
-#include "/usr/local/include/csound/csdl.h"
+#include "csdl.h"
+//#include "/usr/local/include/csound/csdl.h"
 #include "arrays.h"
 
 
@@ -1101,7 +1101,7 @@ static int32_t
 cmp_ak(CSOUND *csound, Cmp *p) {
     IGN(csound);
 
-    SAMPLE_ACCURATE
+    SAMPLE_ACCURATE 
 
     MYFLT *a0 = p->a0;
     MYFLT a1 = *(p->a1);
@@ -1643,7 +1643,8 @@ static int32_t arrprint(CSOUND *csound, ARRAYDAT *arr,
                 }
                 else {
                     currline[charswritten+1] = '\0';
-                    csound->MessageS(csound, CSOUNDMSG_ORCH, "%s\n", (char*)currline);
+                    csound->MessageS(csound, CSOUNDMSG_ORCH,
+                                     "%s\n", (char*)currline);
                     charswritten = 0;
                 }
                 in++;

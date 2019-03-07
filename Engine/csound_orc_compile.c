@@ -605,7 +605,8 @@ INSTRTXT *create_instrument0(CSOUND *csound, TREE *root,
     else if (UNLIKELY(ksmps < FL(0.75) ||
                       FLOAT_COMPARE(ksmps, MYFLT2LRND(ksmps)))) {
       /* VL 14/11/18: won't fail but correct values to make ksmps integral */
-      csound->Warning(p, Str("%s invalid ksmps value, needs to be integral."), err_msg);
+      csound->Warning(p, Str("%s invalid ksmps value, needs to be integral."),
+                      err_msg);
       ksmps = floor(ksmps);
       kr = sr/ksmps;
       csound->Warning(p, "resetting orc parameters to: "
