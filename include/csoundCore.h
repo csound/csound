@@ -984,6 +984,8 @@ typedef struct _message_queue_t_ {
 } message_string_queue_t;
 
 
+#include "find_opcode.h"
+  
   /**
    * Contains all function pointers, data, and data pointers required
    * to run one instance of Csound.
@@ -1373,12 +1375,15 @@ typedef struct _message_queue_t_ {
     void *(*GetHostData)(CSOUND *);
     char *(*strNcpy)(char *dst, const char *src, size_t siz);
     int (*GetZaBounds)(CSOUND *, MYFLT **);
-
+    OENTRY* (*find_opcode_new)(CSOUND*, char*,
+                               char* , char*);
+    OENTRY* (*find_opcode_exact)(CSOUND*, char*,
+                               char* , char*);
        /**@}*/
     /** @name Placeholders
         To allow the API to grow while maintining backward binary compatibility. */
     /**@{ */
-    SUBR dummyfn_2[36];
+    SUBR dummyfn_2[34];
     /**@}*/
 #ifdef __BUILDING_LIBCSOUND
     /* ------- private data (not to be used by hosts or externals) ------- */
