@@ -55,7 +55,7 @@ static inline int isNameChar(int cc, int pos)
 #include "score_param.h"
 
 //static void trace_alt_stack(CSOUND*, PRS_PARM*, int);
- 
+
 #define YY_EXTRA_TYPE  PRS_PARM *
 #define PARM    yyget_extra(yyscanner)
 
@@ -817,7 +817,7 @@ NM              [nm][ \t]+
                 corfile_putc(csound, c, PARM->cf);
               }
               corfile_putc(csound, '\n', PARM->cf);
-              //unput('\n'); unput(op);unput('\n'); 
+              //unput('\n'); unput(op);unput('\n');
               struct yyguts_t *yyg =(struct yyguts_t*)yyscanner;
               PARM->in_repeat_sect=2;
               //printf("****Repeat body\n>>>%s<<<\n", PARM->cf->body);

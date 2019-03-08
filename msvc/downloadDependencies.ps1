@@ -294,8 +294,8 @@ mkdir liblo\cmakebuild -ErrorAction SilentlyContinue
 cd liblo\cmakebuild
 cmake ..\cmake -G $vsGenerator -T $vsToolset -DCMAKE_BUILD_TYPE="Release" -DTHREADING=1
 cmake --build . --config Release
-copy .\Release\lo.dll -Destination $depsBinDir -Force
-copy .\Release\lo.lib -Destination $depsLibDir -Force
+copy .\Release\liblo.dll -Destination $depsBinDir -Force
+copy .\Release\liblo.lib -Destination $depsLibDir -Force
 copy .\lo -Destination $depsIncDir -Force -Recurse
 copy ..\lo\* -Destination $depsIncDir\lo -Force -Include "*.h"
 robocopy ..\lo $depsIncDir\lo *.h /s /NJH /NJS

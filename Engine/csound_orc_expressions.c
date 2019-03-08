@@ -905,15 +905,19 @@ static void collapse_last_assigment(CSOUND* csound, TREE* anchor,
     }
     char *tmp1 = get_arg_type2(csound, b->left, typeTable);
     char *tmp2 = get_arg_type2(csound, b->right, typeTable);
+    //print_tree(csound, "b", b);
+    //print_tree(csound, "a", a);
+    //printf("b->type = %d, tmp`1 %s tmp2 %s\n", b->type, tmp1, tmp2);
     if ((b->type == '=') &&
-        !strcmp(a->left->value->lexeme, b->right->value->lexeme) &&
-         tmp1 == tmp2) {
+        (!strcmp(a->left->value->lexeme, b->right->value->lexeme)) &&
+        (!strcmp(tmp1, tmp2))) {
         a->left = b->left;
         a->next = NULL;
         csound->Free(csound, b);
     }
     csound->Free(csound, tmp1);
     csound->Free(csound, tmp2);
+    //print_tree(csound, "reurns\n", a);
 }
 
 /* returns the head of a list of TREE* nodes, expanding all RHS

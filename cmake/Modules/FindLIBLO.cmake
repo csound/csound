@@ -7,9 +7,9 @@
 find_path(LIBLO_INCLUDE_DIR lo.h PATH_SUFFIXES lo)
 
 if(LINUX)
-find_library(LIBLO_LIBRARY NAMES lo)
+ find_library(LIBLO_LIBRARY NAMES lo)
 else()
-find_library(LIBLO_LIBRARY NAMES liblo.a lo)
+ find_library(LIBLO_LIBRARY NAMES liblo.a liblo)
 endif()
 
 set(LIBLO_INCLUDE_DIRS ${LIBLO_INCLUDE_DIR})

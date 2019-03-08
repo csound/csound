@@ -22,8 +22,7 @@
     02110-1301 USA
 */
 
-#include <csdl.h>
-// #include "/usr/local/include/csound/csdl.h"
+#include "csdl.h"
 
 #define SAMPLE_ACCURATE \
     uint32_t n, nsmps = CS_KSMPS;                                    \
@@ -319,9 +318,14 @@ typedef struct {
   int rnd;
 } PITCHCONV;
 
+static inline MYFLT
+mtof_func(MYFLT midi, MYFLT a4) {
+    return POWER(FL(2.0), (midi - FL(69.0)) / FL(12.0)) * a4;
+}
+
 static int32_t mtof(CSOUND *csound, PITCHCONV *p) {
     IGN(csound);
-    *p->r = POWER(FL(2.0), (*p->k - FL(69.0)) / FL(12.0)) * p->freqA4;
+    *p->r = mtof_func(*p->k, p->freqA4);
     return OK;
 }
 
@@ -344,7 +348,7 @@ static int32_t ftom(CSOUND *csound, PITCHCONV *p) {
 static int32_t
 ftom_init(CSOUND *csound, PITCHCONV *p) {
     p->freqA4 = csound->GetA4(csound);
-    p->rnd = (int)*p->irnd;
+    p->rnd = (int)(*p->irnd);
     ftom(csound, p);
     return OK;
 }
@@ -358,6 +362,80 @@ static int32_t pchtom(CSOUND *csound, PITCHCONV *p) {
     return OK;
 }
 
+
+typedef struct {
+    OPDS h;
+    ARRAYDAT *outarr, *inarr;
+    MYFLT *irnd;
+    MYFLT freqA4;
+    int rnd;
+    int skip;
+} PITCHCONV_ARR;
+
+
+static int32_t
+ftom_arr(CSOUND *csound, PITCHCONV_ARR *p) {
+    MYFLT x, *indata, *outdata;
+    int32_t i;
+    if(p->skip) {
+        p->skip = 0;
+        return OK;
+    }
+    MYFLT a4 = p->freqA4;
+    IGN(csound);
+    indata = p->inarr->data;
+    outdata = p->outarr->data;
+    for(i=0; i < p->inarr->sizes[0]; i++) {
+        x = indata[i];
+        outdata[i] = FL(12.0) * LOG2(x / a4) + FL(69.0);
+    }
+    if(UNLIKELY(p->rnd)) {
+        for(i=0; i < p->inarr->sizes[0]; i++) {
+            outdata[i] = (MYFLT)MYFLT2LRND(outdata[i]);
+        }
+    }
+    return OK;
+}
+
+static int32_t
+ftom_arr_init(CSOUND *csound, PITCHCONV_ARR *p) {
+    p->freqA4 = csound->GetA4(csound);
+    p->rnd = (int)*p->irnd;
+    tabensure(csound, p->outarr, p->inarr->sizes[0]);
+    p->skip = 0;
+    ftom_arr(csound, p);
+    p->skip = 1;
+    return OK;
+}
+
+static int32_t
+mtof_arr(CSOUND *csound, PITCHCONV_ARR *p) {
+    MYFLT x, *indata, *outdata;
+    int32_t i;
+    if(p->skip) {
+        p->skip = 0;
+        return OK;
+    }
+    MYFLT a4 = p->freqA4;
+    IGN(csound);
+    indata = p->inarr->data;
+    outdata = p->outarr->data;
+    for(i=0; i < p->inarr->sizes[0]; i++) {
+        x = indata[i];
+        outdata[i] = POWER(FL(2.0), (x - FL(69.0)) / FL(12.0)) * a4;
+    }
+    return OK;
+}
+
+static int32_t
+mtof_arr_init(CSOUND *csound, PITCHCONV_ARR *p) {
+    p->freqA4 = csound->GetA4(csound);
+    tabensure(csound, p->outarr, p->inarr->sizes[0]);
+    p->skip = 0;
+    mtof_arr(csound, p);
+    p->skip = 1;
+    return OK;
+}
 
 /*
    bpf  --> break point function with linear interpolation
@@ -700,22 +778,18 @@ typedef struct {
 
 int32_t _pcs[] = {9, 11, 0, 2, 4, 5, 7};
 
-static int32_t
-ntom(CSOUND *csound, NTOM *p) {
-    /*
-       formats accepted: 8D+ (equals to +50 cents), 4C#, 8A-31 7Bb+30
-       - no lowercase
-       - octave is necessary and comes always first
-       - no negative octaves, no octaves higher than 9
-     */
-    char *n = (char *) p->notename->data;
+#define FAIL -999
+
+static MYFLT ntomfunc(CSOUND *csound, char *note) {
+    char *n = note;
+    uint32_t notelen = strlen(note);
     int32_t octave = n[0] - '0';
     int32_t pcidx = n[1] - 'A';
     if (pcidx < 0 || pcidx >= 7) {
         csound->Message(csound,
                         Str("expecting a char between A and G, but got %c\n"),
                         n[1]);
-        return NOTOK;
+        return FAIL;
     }
     int32_t pc = _pcs[pcidx];
     int32_t cents = 0;
@@ -729,7 +803,7 @@ ntom(CSOUND *csound, NTOM *p) {
     } else {
         cursor = 2;
     }
-    int32_t rest = p->notename->size - 1 - cursor;
+    int32_t rest = notelen - 1 - cursor;
     if (rest > 0) {
         int32_t sign = n[cursor] == '+' ? 1 : -1;
         if (rest == 1) {
@@ -739,12 +813,28 @@ ntom(CSOUND *csound, NTOM *p) {
         } else if (rest == 3) {
             cents = 10 * (n[cursor + 1] - '0') + (n[cursor + 2] - '0');
         } else {
-            csound->Message(csound,"%s", Str("format not understood\n"));
-            return NOTOK;
+            csound->Message(csound,Str("format not understood, note: "
+                                       "%s, notelen: %d\n"), n, notelen);
+            return FAIL;
         }
         cents *= sign;
     }
-    *p->r = ((octave + 1) * 12 + pc) + cents / FL(100.0);
+    return ((octave + 1) * 12 + pc) + cents / FL(100.0);
+}
+
+
+static int32_t
+ntom(CSOUND *csound, NTOM *p) {
+    /*
+       formats accepted: 8D+ (equals to +50 cents), 4C#, 8A-31 7Bb+30
+       - no lowercase
+       - octave is necessary and comes always first
+       - no negative octaves, no octaves higher than 9
+    */
+    MYFLT midi = ntomfunc(csound, p->notename->data);
+    if(midi == FAIL)
+        return NOTOK;
+    *p->r = midi;
     return OK;
 }
 
@@ -831,6 +921,26 @@ mton(CSOUND *csound, MTON *p) {
     return OK;
 }
 
+/*
+
+   ntof -- notename to frequency
+
+   kfreq ntof Snotename
+
+   kfreq = ntof("4A")  -> 440 (depending on the value of a4 variable)
+
+ */
+
+static int32_t
+ntof(CSOUND *csound, NTOM *p) {
+    MYFLT midi = ntomfunc(csound, p->notename->data);
+    if(midi == FAIL)
+        return NOTOK;
+    MYFLT a4 = csound->GetA4(csound);
+    *p->r = mtof_func(midi, a4);
+    return OK;
+}
+
 
 /*
 
@@ -903,7 +1013,8 @@ static int32_t
 cmp_init(CSOUND *csound, Cmp *p) {
     int32_t mode = op2mode(p->op->data, p->op->size-1);
     if(mode == -1) {
-        return INITERR(Str("cmp: unknown operator. Expecting <, <=, >, >=, ==, !="));
+        return INITERR(Str("cmp: unknown operator. "
+                           "Expecting <, <=, >, >=, ==, !="));
     }
     p->mode = mode;
     return OK;
@@ -915,7 +1026,8 @@ cmparray1_init(CSOUND *csound, Cmp_array1 *p) {
     tabensure(csound, p->out, N);
     int32_t mode = op2mode(p->op->data, p->op->size-1);
     if(mode == -1) {
-        return INITERR(Str("cmp: unknown operator. Expecting <, <=, >, >=, ==, !="));
+        return INITERR(Str("cmp: unknown operator. "
+                           "Expecting <, <=, >, >=, ==, !="));
     }
     p->mode = mode;
     return OK;
@@ -932,7 +1044,8 @@ cmparray2_init(CSOUND *csound, Cmp_array2 *p) {
     tabensure(csound, p->out, N);
     int32_t mode = op2mode(p->op->data, p->op->size-1);
     if(mode == -1) {
-        return INITERR(Str("cmp: unknown operator. Expecting <, <=, >, >=, ==, !="));
+        return INITERR(Str("cmp: unknown operator. "
+                           "Expecting <, <=, >, >=, ==, !="));
     }
     p->mode = mode;
     return OK;
@@ -1011,7 +1124,7 @@ static int32_t
 cmp_ak(CSOUND *csound, Cmp *p) {
     IGN(csound);
 
-    SAMPLE_ACCURATE
+    SAMPLE_ACCURATE 
 
     MYFLT *a0 = p->a0;
     MYFLT a1 = *(p->a1);
@@ -1513,7 +1626,8 @@ static inline void arrprint(CSOUND *csound, const char *fmt, int dims, MYFLT *da
                 }
                 else {
                     currline[charswritten+1] = '\0';
-                    csound->MessageS(csound, CSOUNDMSG_ORCH, "%s\n", (char*)currline);
+                    csound->MessageS(csound, CSOUNDMSG_ORCH,
+                                     "%s\n", (char*)currline);
                     charswritten = 0;
                 }
                 in++;
@@ -1690,21 +1804,23 @@ array_and(CSOUND *csound, BINOP_AAA *p) {
 /*
 
    Input types:
- * a, k, s, i, w, f,
- * o (optional i-rate, default to 0), O optional krate=0
- * p (opt, default to 1), P optional krate=1
- * q (opt, 10),
- * v(opt, 0.5),
- * j(opt, ?1), J optional krate=-1
- * h(opt, 127),
- * y (multiple inputs, a-type),
- * z (multiple inputs, k-type),
- * Z (multiple inputs, alternating k- and a-types),
- * m (multiple inputs, i-type),
- * M (multiple inputs, any type)
- * n (multiple inputs, odd number of inputs, i-type).
- * . anytype
- * ? optional
+
+ - a, k, s, i, w, f,
+ - o (optional i-rate, default to 0), O optional krate=0
+ - p (opt, default to 1), P optional krate=1
+ - q (opt, 10),
+ - v(opt, 0.5),
+ - j(opt, ?1), J optional krate=-1
+ - h(opt, 127),
+ - y (multiple inputs, a-type),
+ - z (multiple inputs, k-type),
+ - Z (multiple inputs, alternating k- and a-types),
+ - m (multiple inputs, i-type),
+ - M (multiple inputs, any type)
+ - n (multiple inputs, odd number of inputs, i-type).
+ - . anytype
+ - ? optional
+ - * any type, any number of inputs
  */
 
 #define S(x) sizeof(x)
@@ -1728,9 +1844,17 @@ static OENTRY localops[] = {
 
     { "mtof", S(PITCHCONV), 0, 3, "k", "k", (SUBR)mtof_init, (SUBR)mtof },
     { "mtof", S(PITCHCONV), 0, 1, "i", "i", (SUBR)mtof_init },
+    { "mtof", S(PITCHCONV_ARR), 0, 3, "k[]", "k[]",
+      (SUBR)mtof_arr_init, (SUBR)mtof_arr },
+    { "mtof", S(PITCHCONV_ARR), 0, 1, "i[]", "i[]", (SUBR)mtof_arr_init },
 
     { "ftom", S(PITCHCONV), 0, 3,  "k", "ko", (SUBR)ftom_init, (SUBR)ftom},
     { "ftom", S(PITCHCONV), 0, 1,  "i", "io", (SUBR)ftom_init},
+    { "ftom", S(PITCHCONV_ARR), 0, 3,  "k[]", "k[]o",
+      (SUBR)ftom_arr_init, (SUBR)ftom_arr},
+    { "ftom", S(PITCHCONV_ARR), 0, 1,  "i[]", "i[]o",
+      (SUBR)ftom_arr_init, (SUBR)ftom_arr},
+
 
     { "pchtom", S(PITCHCONV), 0, 1, "i", "i", (SUBR)pchtom },
     { "pchtom", S(PITCHCONV), 0, 2, "k", "k", NULL, (SUBR)pchtom },
@@ -1743,16 +1867,20 @@ static OENTRY localops[] = {
     { "bpf", S(BPFARRPOINTS), 0, 2, "k", "ki[]i[]", NULL, (SUBR)bpfarrpoints },
     { "bpf", S(BPFARRPOINTS), 0, 1, "i", "ii[]i[]", (SUBR)bpfarrpoints },
 
-    { "bpf", S(BPFARRPOINTS2), 0, 2, "kk", "kk[]k[]k[]", NULL, (SUBR)bpfarrpoints2 },
-    { "bpf", S(BPFARRPOINTS2), 0, 2, "kk", "ki[]i[]i[]", NULL, (SUBR)bpfarrpoints2 },
+    { "bpf", S(BPFARRPOINTS2), 0, 2, "kk", "kk[]k[]k[]",
+      NULL, (SUBR)bpfarrpoints2 },
+    { "bpf", S(BPFARRPOINTS2), 0, 2, "kk", "ki[]i[]i[]",
+      NULL, (SUBR)bpfarrpoints2 },
     { "bpf", S(BPFARRPOINTS2), 0, 1, "ii", "ii[]i[]i[]", (SUBR)bpfarrpoints2 },
 
     { "bpfcos", S(BPFX), 0, 2, "k", "kM", NULL, (SUBR)bpfxcos },
     { "bpfcos", S(BPFX), 0, 1, "i", "im", (SUBR)bpfxcos },
     { "bpfcos", S(BPFARR), 0, 2, "k[]", "k[]M", NULL, (SUBR)bpfarrcos },
 
-    { "bpfcos", S(BPFARRPOINTS), 0, 2, "k", "kk[]k[]", NULL, (SUBR)bpfcosarrpoints },
-    { "bpfcos", S(BPFARRPOINTS), 0, 2, "k", "ki[]i[]", NULL, (SUBR)bpfcosarrpoints },
+    { "bpfcos", S(BPFARRPOINTS), 0, 2, "k", "kk[]k[]",
+      NULL, (SUBR)bpfcosarrpoints },
+    { "bpfcos", S(BPFARRPOINTS), 0, 2, "k", "ki[]i[]",
+      NULL, (SUBR)bpfcosarrpoints },
     { "bpfcos", S(BPFARRPOINTS), 0, 1, "i", "ii[]i[]", (SUBR)bpfcosarrpoints },
 
     { "ntom", S(NTOM), 0, 3, "k", "S", (SUBR)ntom, (SUBR)ntom },
@@ -1760,6 +1888,10 @@ static OENTRY localops[] = {
 
     { "mton", S(MTON), 0, 3, "S", "k", (SUBR)mton, (SUBR)mton },
     { "mton", S(MTON), 0, 1, "S", "i", (SUBR)mton },
+
+    { "ntof", S(NTOM), 0, 3, "k", "S", (SUBR)ntof, (SUBR)ntof },
+    { "ntof", S(NTOM), 0, 1, "i", "S", (SUBR)ntof },
+
 
     { "cmp", S(Cmp), 0, 3, "a", "aSa", (SUBR)cmp_init, (SUBR)cmp_aa,},
     { "cmp", S(Cmp), 0, 3, "a", "aSk", (SUBR)cmp_init, (SUBR)cmp_ak },

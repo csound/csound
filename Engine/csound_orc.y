@@ -814,7 +814,7 @@ ifac      : ident               { $$ = $1; }
                 $1->left = NULL;
                 $1->right = $2;
                 $1->type = T_FUNCTION;
-
+                csp_orc_sa_interlocks(csound, $1->value);
                 $$ = $1;
             }
           | opcode ':' opcodeb exprlist ')'   /* needed because a & k are opcodes */
@@ -832,7 +832,7 @@ ifac      : ident               { $$ = $1; }
                 $1->right = $2;
                 $1->type = T_FUNCTION;
                 $1->value->optype = NULL;
-
+                csp_orc_sa_interlocks(csound, $1->value);
                 $$ = $1;
                 //print_tree(csound, "FUNCTION CALL", $$);
             }

@@ -2201,16 +2201,16 @@ static int32_t tabsuma(CSOUND *csound, TABQUERY1 *p)
     if (UNLIKELY(early)) {
         memset(&ans[nsmps], '\0', early*sizeof(MYFLT));
     }
-    
+
     memcpy(ans,&(t->data[0]) + offset,
-           sizeof(MYFLT)*nsmps); 
+           sizeof(MYFLT)*nsmps);
     for (i=0; i<t->dimensions; i++) size += t->sizes[i];
     for (i=1; i<size; i++) {
       int j, k = i*span;
       in = &(t->data[k]);
-      for(j=offset; j < nsmps; j++) 
+      for(j=offset; j < nsmps; j++)
         ans[j] += in[j];
-        } 
+        }
     return OK;
 }
 
@@ -2811,7 +2811,7 @@ static int32_t monitora_perf(CSOUND *csound, OUTA *p)
             if (i<offset)
               data[i+j*nsmps] = FL(0.0);
             else
-              data[i+j*nsmps] = sp[j];
+              data[i+j*nsmps] = sp[i+j*nsmps];
           }
         }
       }
@@ -3531,14 +3531,38 @@ int32_t shiftout_perf(CSOUND *csound, FFT *p) {
     return OK;
 }
 
-int32_t scalarset(CSOUND *csound, FFT *p) {
+int32_t scalarset(CSOUND *csound, TABCOPY *p) {
     IGN(csound);
-    uint32_t siz = 0 , dim = p->out->dimensions, i;
-    MYFLT val = *((MYFLT *)p->in);
+    uint32_t siz = 0 , dim = p->tab->dimensions, i;
+    MYFLT val = *p->kfn;
     for (i=0; i < dim; i++)
-      siz += p->out->sizes[i];
+      siz += p->tab->sizes[i];
     for (i=0; i < siz; i++)
-      p->out->data[i] = val;
+      p->tab->data[i] = val;
+    return OK;
+}
+
+int32_t arrayass(CSOUND *csound, TABCOPY *p)
+{
+    IGN(csound);
+    uint32_t siz = 0 , dim = p->tab->dimensions, i;
+    uint32_t offset = p->h.insdshead->ksmps_offset;
+    uint32_t early  = p->h.insdshead->ksmps_no_end;
+    uint32_t n, nsmps = CS_KSMPS;
+    int32_t span = (p->tab->arrayMemberSize)/sizeof(MYFLT);
+    MYFLT *val = p->kfn;
+
+    for (i=0; i < dim; i++)
+      siz += p->tab->sizes[i];
+    for (i=0; i < siz; i++) {
+      int32_t pp = i*span;
+      for (n=0; n<offset; n++)
+        p->tab->data[pp+n] = FL(0.0);
+      for (n=offset; n<nsmps-early; n++)
+        p->tab->data[pp+n] = val[n];
+      for (n=nsmps-early; n<nsmps; n++)
+        p->tab->data[pp+n] = FL(0.0);
+    }
     return OK;
 }
 
@@ -3913,8 +3937,12 @@ static OENTRY arrayvars_localops[] =
      (SUBR)tabarithset, (SUBR)tabarkrmd },
     {"##re.k[a[", sizeof(TABARITH), 0, 3, "a[]", "k[]a[]",
      (SUBR)tabarithset, (SUBR)tabkrarmd },
+    {"##add.[k", sizeof(TABARITH1), 0, 3, "k[]", "i[]k",
+     (SUBR)tabarithset1, (SUBR)tabaiadd },
     {"##add.[k", sizeof(TABARITH1), 0, 3, "k[]", "k[]k",
      (SUBR)tabarithset1, (SUBR)tabaiadd },
+    {"##add.k[", sizeof(TABARITH2), 0, 3, "k[]", "ik[]",
+     (SUBR)tabarithset2, (SUBR)tabiaadd },
     {"##add.k[", sizeof(TABARITH2), 0, 3, "k[]", "kk[]",
      (SUBR)tabarithset2, (SUBR)tabiaadd },
     {"##add.[ak", sizeof(TABARITH1), 0, 3, "a[]", "a[]k",
@@ -3925,9 +3953,13 @@ static OENTRY arrayvars_localops[] =
      (SUBR)tabarithset1, (SUBR)tabaardd },
     {"##add.a[a", sizeof(TABARITH2), 0, 3, "a[]", "a[]a",
      (SUBR)tabarithset2, (SUBR)tabaradd },
+    {"##sub.[k", sizeof(TABARITH1), 0, 3, "k[]", "i[]k",
+     (SUBR)tabarithset1, (SUBR)tabaisub },
     {"##sub.[k", sizeof(TABARITH1), 0, 3, "k[]", "k[]k",
      (SUBR)tabarithset1, (SUBR)tabaisub },
     {"##sub.k[", sizeof(TABARITH2), 0, 3, "k[]", "kk[]",
+     (SUBR)tabarithset2, (SUBR)tabiasub },
+    {"##sub.k[", sizeof(TABARITH2), 0, 3, "k[]", "ki[]",
      (SUBR)tabarithset2, (SUBR)tabiasub },
     {"##sub.[ak", sizeof(TABARITH1), 0, 3, "a[]", "a[]k",
      (SUBR)tabarithset1, (SUBR)tabaksub },
@@ -3939,7 +3971,11 @@ static OENTRY arrayvars_localops[] =
      (SUBR)tabarithset1, (SUBR)tabarasb },
     {"##mul.[k", sizeof(TABARITH1), 0, 3, "k[]", "k[]k",
      (SUBR)tabarithset1, (SUBR)tabaimult },
+    {"##mul.[k", sizeof(TABARITH1), 0, 3, "k[]", "i[]k",
+     (SUBR)tabarithset1, (SUBR)tabaimult },
     {"##mul.k[", sizeof(TABARITH2), 0, 3, "k[]", "kk[]",
+     (SUBR)tabarithset2, (SUBR)tabiamult },
+    {"##mul.k[", sizeof(TABARITH2), 0, 3, "k[]", "ki[]",
      (SUBR)tabarithset2, (SUBR)tabiamult },
     {"##mul.[ak", sizeof(TABARITH1), 0, 3, "a[]", "a[]k",
      (SUBR)tabarithset1, (SUBR)tabakmult },
@@ -3950,6 +3986,10 @@ static OENTRY arrayvars_localops[] =
     {"##mul.aa[", sizeof(TABARITH2), 0, 3, "a[]", "aa[]",
      (SUBR)tabarithset2, (SUBR)tabaarml },
     {"##div.[k",  sizeof(TABARITH1), 0, 3, "k[]", "k[]k",
+     (SUBR)tabarithset1, (SUBR)tabaidiv },
+    {"##div.k[",  sizeof(TABARITH2), 0, 3, "k[]", "ki[]",
+     (SUBR)tabarithset2, (SUBR)tabiadiv },
+    {"##div.[k",  sizeof(TABARITH1), 0, 3, "k[]", "i[]k",
      (SUBR)tabarithset1, (SUBR)tabaidiv },
     {"##div.k[",  sizeof(TABARITH2), 0, 3, "k[]", "kk[]",
      (SUBR)tabarithset2, (SUBR)tabiadiv },
@@ -4054,9 +4094,9 @@ static OENTRY arrayvars_localops[] =
     { "lentab.k", sizeof(TABQUERY1), _QQ, 1, "k", "k[]p", NULL, (SUBR) tablength },
     { "lenarray.ix", sizeof(TABQUERY1), 0, 1, "i", ".[]p", (SUBR) tablength },
     { "lenarray.kx", sizeof(TABQUERY1), 0, 2, "k", ".[]p", NULL, (SUBR)tablength },
-    { "out.A", sizeof(OUTA), 0, 3,"", "a[]", (SUBR)outa_set, (SUBR)outa},
+    { "out.A", sizeof(OUTA), IR, 3,"", "a[]", (SUBR)outa_set, (SUBR)outa},
     { "in.A", sizeof(OUTA), 0, 3, "a[]", "", (SUBR)ina_set, (SUBR)ina},
-    { "monitor.A", sizeof(OUTA), 0, 3, "a[]", "",
+    { "monitor.A", sizeof(OUTA), IB, 3, "a[]", "",
       (SUBR)monitora_init, (SUBR)monitora_perf},
     { "rfft", sizeof(FFT), 0, 3, "k[]","k[]",
       (SUBR) init_rfft, (SUBR) perf_rfft, NULL},
@@ -4128,8 +4168,9 @@ static OENTRY arrayvars_localops[] =
      (SUBR) shiftout_init, (SUBR) shiftout_perf},
     {"unwrap", sizeof(FFT), 0, 3, "k[]","k[]",
      (SUBR) init_recttopol, (SUBR) unwrap},
-    {"=.k", sizeof(FFT), 0, 3, "k[]","k", (SUBR) scalarset, (SUBR) scalarset},
-     {"dct", sizeof(FFT), 0, 3, "k[]","k[]",
+    {"=.X", sizeof(TABCOPY), 0, 3, "k[]","k", (SUBR) scalarset, (SUBR) scalarset},
+    {"=.Z", sizeof(TABCOPY), 0 , 2, "a[]", "a", NULL, (SUBR) arrayass},
+    {"dct", sizeof(FFT), 0, 3, "k[]","k[]",
      (SUBR) init_dct, (SUBR) kdct, NULL},
     {"dct", sizeof(FFT), 0, 1, "i[]","i[]",
      (SUBR) dct, NULL, NULL},
