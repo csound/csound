@@ -41,6 +41,9 @@
 
 /* #define ZXP(z) (*(z)++) */
 
+#define register_deinit(csound, p, func) \
+    csound->RegisterDeinitCallback(csound, p, (int32_t(*)(CSOUND*, void*))(func))
+
 static inline MYFLT
 zapgremlins(MYFLT x) {
     MYFLT absx = fabs(x);
@@ -80,79 +83,113 @@ sc_wrap(MYFLT in, MYFLT lo, MYFLT hi) {
   This is the time required for the filter to converge to within 0.01%
   of a value. This is useful for smoothing out control signals.
 
-  ksmooth = lag(kx, klagtime, [initialvalue=0])
-  asmooth = lag(ain, klagtime, [initialvalue=0])
+  ksmooth = lag(kx, klagtime, [initialvalue])
+  asmooth = lag(ain, klagtime, [initialvalue])
 
+  NB: if no initialvalue is given, the first value of the input signal
+      is used. To reproduce the previous behaviour, use 0 as initialvalue
+  
 */
 
 typedef struct {
     OPDS  h;
-    MYFLT *out, *in, *lagtime, *first;
+    MYFLT *out, *in, *lagtime, *initial_value;
+    int started;
     MYFLT lag, b1, y1;
     MYFLT sr;
-} LAG;
+} LAG0;
 
-static int32_t lagk_next(CSOUND *csound, LAG *p) {
+static int32_t lag0_init_no_initial_value(CSOUND *csound, LAG0 *p) {
     IGN(csound);
+    p->lag = -1;
+    p->started = 0;
+    p->b1 = FL(0.0);
+    p->sr = csound->GetKr(csound);
+    p->y1 = 0;
+    return OK;
+}
+
+static int32_t lag0_init_initial_value(CSOUND *csound, LAG0 *p) {
+    IGN(csound);
+    p->lag = -1;
+    p->started = 1;
+    p->y1 = *(p->initial_value);
+    p->b1 = FL(0.0);
+    p->sr = csound->GetKr(csound);
+    return OK;
+}
+
+static int32_t lag0k_next(CSOUND *csound, LAG0 *p) {
+    IGN(csound);
+    MYFLT y1, b1;
+    MYFLT y0 = *p->in;
     MYFLT lag = *p->lagtime;
-    MYFLT y0  = *p->in;
-    MYFLT y1  = p->y1;
-    MYFLT b1;
+    
+    if(LIKELY(p->started))
+        y1 = p->y1;
+    else {
+        p->started = 1;
+        y1 = y0;
+    }
+    
     if (lag == p->lag) {
         b1 = p->b1;
         p->y1   = y1 = y0 + b1 * (y1 - y0);
         *p->out = y1;
-        return OK;
     } else {
         // faust uses tau2pole = exp(-1 / (lag*sr))
         b1 = lag == FL(0.0) ? FL(0.0) : exp(LOG001 / (lag * p->sr));
         *p->out = y0 + b1 * (y1 - y0);
         p->lag = lag;
+        p->y1 = y1;
         p->b1 = b1;
-        return OK;
     }
+    return OK;
 }
 
-static int32_t lag_init0(CSOUND *csound, LAG *p) {
+static int32_t laga_init_no_initial_value(CSOUND *csound, LAG0 *p) {
     IGN(csound);
     p->lag = -1;
     p->b1 = FL(0.0);
-    p->y1 = *p->first;
-    return OK;
-}
-
-static int32_t lagk_init(CSOUND *csound, LAG *p) {
-    lag_init0(csound, p);
-    p->sr = csound->GetKr(csound);
-    return lagk_next(csound, p);
-}
-
-static int32_t laga_init(CSOUND *csound, LAG *p) {
-    lag_init0(csound, p);
     p->sr = csound->GetSr(csound);
+    p->started = 0;
+    p->y1 = -INF;
     return OK;
 }
 
-static int32_t
-laga_next(CSOUND *csound, LAG *p) {
+static int32_t laga_init_initial_value(CSOUND *csound, LAG0 *p) {
+    IGN(csound);
+    p->lag = -1;
+    p->b1 = FL(1.0);
+    p->sr = csound->GetSr(csound);
+    p->started = 1;
+    p->y1 = *p->initial_value;
+    return OK;
+}
+
+static int32_t laga_next(CSOUND *csound, LAG0 *p) {
     IGN(csound);
 
     SAMPLE_ACCURATE
 
     MYFLT *in = p->in;
     MYFLT lag = *p->lagtime;
-    MYFLT y1 = p->y1;
+    MYFLT y0, y1;
     MYFLT b1 = p->b1;
-    MYFLT y0;
 
+    if(LIKELY(p->started))
+        y1 = p->y1;
+    else {
+        p->started = 1;
+        y1 = in[0];
+    }
+    
     if (lag == p->lag) {
         for (n=offset; n<nsmps; n++) {
             y0 = in[n];
             y1 = y0 + b1 * (y1 - y0);
             out[n] = y1;
         }
-        p->y1 = y1;
-        return OK;
     } else {
         // faust uses tau2pole = exp(-1 / (lag*sr))
         p->b1 = lag == FL(0.0) ? FL(0.0) : exp(LOG001 / (lag * p->sr));
@@ -164,18 +201,21 @@ laga_next(CSOUND *csound, LAG *p) {
             y1  = y0 + b1 * (y1 - y0);
             out[n] = y1;
         }
-        p->y1 = y1;
-        return OK;
     }
+    p->y1 = y1;
+    return OK;
 }
 
 // ------------------------- LagUD ---------------------------
 
 /*
 
-  klagged lagud ksrc, klagtime_up, klagtime_down, initialvalue=0
-  alagged lagud asrc, klagtime_up, klagtime_down, initialvalue=0
+  klagged lagud ksrc, klagtime_up, klagtime_down [, initialvalue]
+  alagged lagud asrc, klagtime_up, klagtime_down [, initialvalue]
 
+  NB: if not initialvalue is given, the first value of the src (ksrc or asrc)
+      is used.
+  
 */
 
 
@@ -183,7 +223,48 @@ typedef struct {
     OPDS h;
     MYFLT *out, *in, *lagtimeU, *lagtimeD, *first;
     MYFLT  lagu, lagd, b1u, b1d, y1;
+    int started;
 } LagUD;
+
+
+static int
+lagud_k(CSOUND *csound, LagUD *p) {
+    MYFLT *in  = p->in;
+    MYFLT lagu = *p->lagtimeU;
+    MYFLT lagd = *p->lagtimeD;
+    MYFLT y1;
+
+    if(LIKELY(p->started))
+        y1 = p->y1;
+    else {
+        p->started = 1;
+        y1 = *in;
+    }
+    
+    if ((lagu == p->lagu) && (lagd == p->lagd)) {
+        MYFLT y0 = *in;
+        if (y0 > y1)
+            p->y1 = y1 = y0 + p->b1u * (y1 - y0);
+        else
+            p->y1 = y1 = y0 + p->b1d * (y1 - y0);
+        *(p->out) = y1;
+    } else {
+        MYFLT sr = csound->GetKr(csound);
+        // faust uses tau2pole = exp(-1 / (lag*sr)), sc uses log(0.01)
+        p->b1u  = lagu == FL(0.0) ? FL(0.0) : exp(LOG001 / (lagu * sr));
+        p->lagu = lagu;
+        p->b1d  = lagd == FL(0.0) ? FL(0.0) : exp(LOG001 / (lagd * sr));
+        p->lagd = lagd;
+        MYFLT y0 = *in;
+        if (y0 > y1)
+            y1 = y0 + p->b1u * (y1 - y0);
+        else
+            y1 = y0 + p->b1d * (y1 - y0);
+        *(p->out) = y1;
+    }
+    p->y1 = y1;
+    return OK;
+}
 
 
 static int32_t
@@ -195,7 +276,8 @@ lagud_a(CSOUND *csound, LagUD *p) {
     MYFLT *in  = p->in;
     MYFLT lagu = *p->lagtimeU;
     MYFLT lagd = *p->lagtimeD;
-    MYFLT y1   = p->y1;
+    // MYFLT y1   = p->y1;
+    MYFLT y1;
     MYFLT b1u  = p->b1u;
     MYFLT b1d  = p->b1d;
 
@@ -204,6 +286,14 @@ lagud_a(CSOUND *csound, LagUD *p) {
       nsmps -= early;
       memset(&p->out[nsmps], '\0', early*sizeof(MYFLT));
     }
+    if(LIKELY(p->started))
+        y1 = p->y1;
+    else {
+        p->started = 1;
+        y1 = in[0];
+    }
+    
+    
     if ((lagu == p->lagu) && (lagd == p->lagd)) {
         for (n=offset; n<nsmps; n++) {
             MYFLT y0 = in[n];
@@ -237,45 +327,26 @@ lagud_a(CSOUND *csound, LagUD *p) {
     return OK;
 }
 
-static int
-lagud_k(CSOUND *csound, LagUD *p) {
-    MYFLT *in  = p->in;
-    MYFLT lagu = *p->lagtimeU;
-    MYFLT lagd = *p->lagtimeD;
-    MYFLT y1   = p->y1;
 
-    if ((lagu == p->lagu) && (lagd == p->lagd)) {
-        MYFLT y0 = *in;
-        if (y0 > y1)
-            p->y1 = y1 = y0 + p->b1u * (y1 - y0);
-        else
-            p->y1 = y1 = y0 + p->b1d * (y1 - y0);
-        *(p->out) = y1;
-    } else {
-        MYFLT sr = csound->GetKr(csound);
-        // faust uses tau2pole = exp(-1 / (lag*sr)), sc uses log(0.01)
-        p->b1u  = lagu == FL(0.0) ? FL(0.0) : exp(LOG001 / (lagu * sr));
-        p->lagu = lagu;
-        p->b1d  = lagd == FL(0.0) ? FL(0.0) : exp(LOG001 / (lagd * sr));
-        p->lagd = lagd;
-        MYFLT y0 = *in;
-        if (y0 > y1)
-            y1 = y0 + p->b1u * (y1 - y0);
-        else
-            y1 = y0 + p->b1d * (y1 - y0);
-        *(p->out) = y1;
-    }
-    p->y1 = y1;
+static int32_t lagud_init_initial_value(CSOUND *csound, LagUD *p) {
+    IGN(csound);
+    p->lagu = -1;
+    p->lagd = -1;
+    p->b1u  = FL(1.0);
+    p->b1d  = FL(1.0);
+    p->y1   = *p->first;
+    p->started = 1;
     return OK;
 }
 
-static int32_t lagud_init(CSOUND *csound, LagUD *p) {
+static int32_t lagud_init_no_initial_value(CSOUND *csound, LagUD *p) {
     IGN(csound);
     p->lagu = -1;
     p->lagd = -1;
     p->b1u  = FL(0.0);
     p->b1d  = FL(0.0);
-    p->y1   = *p->first;
+    p->y1   = FL(0.0);
+    p->started = 0;
     return OK;
 }
 
@@ -528,10 +599,19 @@ phasor_k_kk(CSOUND *csound, Phasor *p) {
 #define S(x)    sizeof(x)
 
 static OENTRY localops[] = {
-    {"sc_lag",    S(LAG),    0, 3, "k", "kko",   (SUBR)lagk_init, (SUBR)lagk_next},
-    {"sc_lag",    S(LAG),    0, 3, "a", "ako",   (SUBR)laga_init, (SUBR)laga_next},
-    {"sc_lagud",  S(LagUD),  0, 3, "k", "kkko",  (SUBR)lagud_init, (SUBR)lagud_k },
-    {"sc_lagud",  S(LagUD),  0, 3, "a", "akko",  (SUBR)lagud_init, (SUBR)lagud_a },
+    {"sc_lag",    S(LAG0),   0, 3, "k", "kk",  (SUBR)lag0_init_no_initial_value, (SUBR)lag0k_next},
+    {"sc_lag",    S(LAG0),   0, 3, "k", "kki", (SUBR)lag0_init_initial_value, (SUBR)lag0k_next},
+
+    {"sc_lag",    S(LAG0),    0, 3, "a", "aki",  (SUBR)laga_init_initial_value, (SUBR)laga_next},
+    {"sc_lag",    S(LAG0),    0, 3, "a", "ak",   (SUBR)laga_init_no_initial_value, (SUBR)laga_next},
+    
+    {"sc_lagud",  S(LagUD),  0, 3, "k", "kkki",  (SUBR)lagud_init_initial_value, (SUBR)lagud_k },
+    {"sc_lagud",  S(LagUD),  0, 3, "a", "akki",  (SUBR)lagud_init_initial_value, (SUBR)lagud_a },
+
+    {"sc_lagud",  S(LagUD),  0, 3, "k", "kkk",  (SUBR)lagud_init_no_initial_value, (SUBR)lagud_k },
+    {"sc_lagud",  S(LagUD),  0, 3, "a", "akk",  (SUBR)lagud_init_no_initial_value, (SUBR)lagud_a },
+    
+
     {"sc_trig",   S(Trig),   0, 3, "k", "kk",    (SUBR)trig_init, (SUBR)trig_k },
     {"sc_trig",   S(Trig),   0, 3, "a", "ak",    (SUBR)trig_init, (SUBR)trig_a },
     {"sc_phasor", S(Phasor), 0, 3, "k", "kkkkO",
