@@ -455,7 +455,7 @@ static int32_t filegrain_init(CSOUND *csound, filegrain *p)
     p->pscale = p->sr/CS_ESR;
 
     if (*p->ioff >= 0)
-      sf_seek(p->sf,*p->ioff * CS_ESR, SEEK_SET);
+      sf_seek(p->sf,*p->ioff * p->sr, SEEK_SET);
 
     if (LIKELY(sf_read_MYFLT(p->sf,buffer,p->dataframes*p->nChannels/2) != 0)) {
       p->read1 = 1;
@@ -518,7 +518,7 @@ static int32_t filegrain_process(CSOUND *csound, filegrain *p)
     if (UNLIKELY(grsize<1)) goto err1;
     if (grsize > hdataframes) grsize = hdataframes;
     envincr = envtablesize/grsize;
-    prate = *p->prate;
+    prate = *p->prate * p->pscale;
 
     if (UNLIKELY(offset)) memset(output, '\0', offset*sizeof(MYFLT));
     if (UNLIKELY(early)) {
