@@ -96,15 +96,16 @@ static int32_t syncgrain_process(CSOUND *csound, syncgrain *p)
     int32_t     numstreams = p->numstreams, olaps = p->olaps;
     int32_t     count = p->count, j, newstream;
     int32_t     datasize = p->datasize, envtablesize = p->envtablesize;
+    MYFLT      pscale =  p->sfunc->gen01args.sample_rate/CS_ESR;
 
-    pitch  = *p->pitch * p->sfunc->gen01args.sample_rate/CS_ESR;
+    pitch  = *p->pitch * pscale;
     fperiod = FABS(p->sfunc->gen01args.sample_rate/(*p->fr));
     //if (UNLIKELY(fperiod  < 0)) fperiod = -fperiod;
     amp =    *p->amp;
     grsize = p->sfunc->gen01args.sample_rate * *p->grsize;
     if (UNLIKELY(grsize<1)) goto err1;
     envincr = envtablesize/grsize;
-    prate = *p->prate;
+    prate = *p->prate * pscale;
 
     if (UNLIKELY(offset)) memset(output, '\0', offset*sizeof(MYFLT));
     if (UNLIKELY(early)) {
@@ -249,7 +250,7 @@ static int32_t syncgrainloop_process(CSOUND *csound, syncgrainloop *p)
     int32_t     loopsize;
     int32_t     firsttime = p->firsttime;
     MYFLT   sr = p->sfunc->gen01args.sample_rate;
-
+    MYFLT pscale = sr/CS_ESR;
     /* loop points & checks */
     loop_start = (int32_t) (*p->loop_start*sr);
     loop_end = (int32_t) (*p->loop_end*sr);
@@ -260,7 +261,7 @@ static int32_t syncgrainloop_process(CSOUND *csound, syncgrainloop *p)
     /*csound->Message(csound, "st:%d, end:%d, loopsize=%d\n",
                               loop_start, loop_end, loopsize);     */
 
-    pitch  = *p->pitch * sr/CS_ESR;;
+    pitch  = *p->pitch * pscale;
     fperiod = FABS(sr/(*p->fr));
     //if (UNLIKELY(fperiod  < 0)) fperiod = -fperiod;
     amp =    *p->amp;
@@ -268,7 +269,7 @@ static int32_t syncgrainloop_process(CSOUND *csound, syncgrainloop *p)
     if (UNLIKELY(grsize<1)) goto err1;
     if (loopsize <= 0) loopsize = grsize;
     envincr = envtablesize/grsize;
-    prate = *p->prate;
+    prate = *p->prate * pscale;
 
     if (UNLIKELY(offset)) memset(output, '\0', offset*sizeof(MYFLT));
     if (UNLIKELY(early)) {
