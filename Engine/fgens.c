@@ -2649,10 +2649,12 @@ static int gen01raw(FGDATA *ff, FUNC *ftp)
         /* printf("****line %d\n" , __LINE__); */
         snprintf(p->sfname, 512, "soundin.%d", filno);   /* soundin.filno */
       }
-      /* printf("****line %d: sfname=%s\n" , __LINE__, p->sfname); */
+      //printf("****line %d: sfname=%s\n" , __LINE__, p->sfname);
       if (UNLIKELY(fmt < -9 || fmt > 9))
         return fterror(ff, Str("invalid sample format: %d"), fmt);
-      p->format = gen01_format_table[fmt];
+      if (fmt<0)
+        p->format = -gen01_format_table[-fmt];
+      else p->format = 0;
     }
     p->skiptime = ff->e.p[6];
     p->channel  = (int) MYFLT2LRND(ff->e.p[8]);
