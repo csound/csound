@@ -985,7 +985,7 @@ typedef struct _message_queue_t_ {
 
 
 #include "find_opcode.h"
-  
+
   /**
    * Contains all function pointers, data, and data pointers required
    * to run one instance of Csound.

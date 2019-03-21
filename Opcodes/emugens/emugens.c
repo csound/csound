@@ -440,10 +440,10 @@ static int32_t bpfx(CSOUND *csound, BPFX *p) {
     MYFLT **data = p->data;
     int32_t datalen = p->INOCOUNT - 1;
     if(datalen % 2) {
-        return INITERR(Str("bpf: data length should be even (pairs of x, y)"));
+      return INITERR(Str("bpf: data length should be even (pairs of x, y)"));
     }
     if(datalen >= BPF_MAXPOINTS) {
-        return INITERR(Str("bpf: too many pargs (max=256)"));
+      return INITERR(Str("bpf: too many pargs (max=256)"));
     }
     int32_t i;
     MYFLT x0, x1, y0, y1;
@@ -451,22 +451,22 @@ static int32_t bpfx(CSOUND *csound, BPFX *p) {
     y0 = *data[1];
 
     if (x <= x0) {
-        *p->r = y0;
-        return OK;
+      *p->r = y0;
+      return OK;
     }
     if (x>=*data[datalen-2]) {
-        *p->r = *data[datalen-1];
-        return OK;
+      *p->r = *data[datalen-1];
+      return OK;
     }
     for(i=2; i<datalen; i+=2) {
-        x1 = *data[i];
-        y1 = *data[i+1];
-        if( x <= x1 ) {
-            *p->r = (x-x0)/(x1-x0)*(y1-y0)+y0;
-            return OK;
-        }
-        x0 = x1;
-        y0 = y1;
+      x1 = *data[i];
+      y1 = *data[i+1];
+      if( x <= x1 ) {
+        *p->r = (x-x0)/(x1-x0)*(y1-y0)+y0;
+        return OK;
+      }
+      x0 = x1;
+      y0 = y1;
     }
     return NOTOK;
 }
@@ -1101,7 +1101,7 @@ static int32_t
 cmp_ak(CSOUND *csound, Cmp *p) {
     IGN(csound);
 
-    SAMPLE_ACCURATE 
+    SAMPLE_ACCURATE
 
     MYFLT *a0 = p->a0;
     MYFLT a1 = *(p->a1);
@@ -1495,7 +1495,7 @@ arrayreshape(CSOUND *csound, ARRAYRESHAPE *p) {
   printarray karray[], [ktrig], [Sfmt], [Slabel]
   printarray iarray[], [Sfmt], [Slabel]
   printarray Sarray[], [ktrig], [Sfmt], [Slabel]
-  
+
   Prints all the elements of the array (1- and 2- dymensions).
 
   ktrig=1   in the k-version, controls when to print
@@ -1515,7 +1515,7 @@ typedef struct {
     MYFLT *trig;
     STRINGDAT *Sfmt;
     STRINGDAT *Slabel;
-    
+
     int32_t lasttrig;
     const char *printfmt;
     const char *label;
@@ -1526,7 +1526,7 @@ typedef struct {
     ARRAYDAT *in;
     STRINGDAT *Sfmt;
     STRINGDAT *Slabel;
-    
+
     int32_t lasttrig;
 } ARRAYPRINT;
 
@@ -1548,8 +1548,10 @@ arrayprint_init(CSOUND *csound, ARRAYPRINTK *p) {
                         p->in->dimensions);
     p->lasttrig = 0;
     char arraytype = p->in->arrayType->varTypeName[0];
-    const char *default_fmt = arraytype == 'S' ? default_printfmt_str : default_printfmt;
-    p->printfmt = (p->Sfmt == NULL || strlen(p->Sfmt->data) < 2) ? default_fmt : p->Sfmt->data;
+    const char *default_fmt =
+      arraytype == 'S' ? default_printfmt_str : default_printfmt;
+    p->printfmt =
+      (p->Sfmt == NULL || strlen(p->Sfmt->data) < 2) ? default_fmt : p->Sfmt->data;
     p->label = p->Slabel != NULL ? p->Slabel->data : NULL;
     return OK;
 }
@@ -1949,7 +1951,7 @@ static OENTRY localops[] = {
       (SUBR)arrayprint_init, (SUBR)arrayprint_perf},
     { "printarray", S(ARRAYPRINTK), 0, 3, "", "k[]kSS",
       (SUBR)arrayprint_init, (SUBR)arrayprint_perf},
-    
+
 
     { "printarray", S(ARRAYPRINT), 0, 1, "", "i[]", (SUBR)arrayprint_i},
     { "printarray", S(ARRAYPRINT), 0, 1, "", "i[]S", (SUBR)arrayprintf_i},
@@ -1961,7 +1963,7 @@ static OENTRY localops[] = {
       (SUBR)arrayprint_init, (SUBR)arrayprint_perf},
     { "printarray", S(ARRAYPRINTK), 0, 3, "", "S[]kSS",
       (SUBR)arrayprint_init, (SUBR)arrayprint_perf},
-    
+
     { "ftprint", S(FTPRINT), TR, 3, "", "iPOOPo",
       (SUBR)ftprint_init, (SUBR)ftprint_perf },
 

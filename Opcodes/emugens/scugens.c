@@ -88,7 +88,7 @@ sc_wrap(MYFLT in, MYFLT lo, MYFLT hi) {
 
   NB: if no initialvalue is given, the first value of the input signal
       is used. To reproduce the previous behaviour, use 0 as initialvalue
-  
+
 */
 
 typedef struct {
@@ -124,14 +124,14 @@ static int32_t lag0k_next(CSOUND *csound, LAG0 *p) {
     MYFLT y1, b1;
     MYFLT y0 = *p->in;
     MYFLT lag = *p->lagtime;
-    
+
     if(LIKELY(p->started))
         y1 = p->y1;
     else {
         p->started = 1;
         y1 = y0;
     }
-    
+
     if (lag == p->lag) {
         b1 = p->b1;
         p->y1   = y1 = y0 + b1 * (y1 - y0);
@@ -183,7 +183,7 @@ static int32_t laga_next(CSOUND *csound, LAG0 *p) {
         p->started = 1;
         y1 = in[0];
     }
-    
+
     if (lag == p->lag) {
         for (n=offset; n<nsmps; n++) {
             y0 = in[n];
@@ -215,7 +215,7 @@ static int32_t laga_next(CSOUND *csound, LAG0 *p) {
 
   NB: if not initialvalue is given, the first value of the src (ksrc or asrc)
       is used.
-  
+
 */
 
 
@@ -240,7 +240,7 @@ lagud_k(CSOUND *csound, LagUD *p) {
         p->started = 1;
         y1 = *in;
     }
-    
+
     if ((lagu == p->lagu) && (lagd == p->lagd)) {
         MYFLT y0 = *in;
         if (y0 > y1)
@@ -292,8 +292,8 @@ lagud_a(CSOUND *csound, LagUD *p) {
         p->started = 1;
         y1 = in[0];
     }
-    
-    
+
+
     if ((lagu == p->lagu) && (lagd == p->lagd)) {
         for (n=offset; n<nsmps; n++) {
             MYFLT y0 = in[n];
@@ -599,18 +599,26 @@ phasor_k_kk(CSOUND *csound, Phasor *p) {
 #define S(x)    sizeof(x)
 
 static OENTRY localops[] = {
-    {"sc_lag",    S(LAG0),   0, 3, "k", "kk",  (SUBR)lag0_init_no_initial_value, (SUBR)lag0k_next},
-    {"sc_lag",    S(LAG0),   0, 3, "k", "kki", (SUBR)lag0_init_initial_value, (SUBR)lag0k_next},
+    {"sc_lag",    S(LAG0),   0, 3, "k", "kk",
+     (SUBR)lag0_init_no_initial_value, (SUBR)lag0k_next},
+    {"sc_lag",    S(LAG0),   0, 3, "k", "kki",
+     (SUBR)lag0_init_initial_value, (SUBR)lag0k_next},
 
-    {"sc_lag",    S(LAG0),    0, 3, "a", "aki",  (SUBR)laga_init_initial_value, (SUBR)laga_next},
-    {"sc_lag",    S(LAG0),    0, 3, "a", "ak",   (SUBR)laga_init_no_initial_value, (SUBR)laga_next},
-    
-    {"sc_lagud",  S(LagUD),  0, 3, "k", "kkki",  (SUBR)lagud_init_initial_value, (SUBR)lagud_k },
-    {"sc_lagud",  S(LagUD),  0, 3, "a", "akki",  (SUBR)lagud_init_initial_value, (SUBR)lagud_a },
+    {"sc_lag",    S(LAG0),    0, 3, "a", "aki",
+     (SUBR)laga_init_initial_value, (SUBR)laga_next},
+    {"sc_lag",    S(LAG0),    0, 3, "a", "ak",
+     (SUBR)laga_init_no_initial_value, (SUBR)laga_next},
 
-    {"sc_lagud",  S(LagUD),  0, 3, "k", "kkk",  (SUBR)lagud_init_no_initial_value, (SUBR)lagud_k },
-    {"sc_lagud",  S(LagUD),  0, 3, "a", "akk",  (SUBR)lagud_init_no_initial_value, (SUBR)lagud_a },
-    
+    {"sc_lagud",  S(LagUD),  0, 3, "k", "kkki",
+     (SUBR)lagud_init_initial_value, (SUBR)lagud_k },
+    {"sc_lagud",  S(LagUD),  0, 3, "a", "akki",
+     (SUBR)lagud_init_initial_value, (SUBR)lagud_a },
+
+    {"sc_lagud",  S(LagUD),  0, 3, "k", "kkk",
+     (SUBR)lagud_init_no_initial_value, (SUBR)lagud_k },
+    {"sc_lagud",  S(LagUD),  0, 3, "a", "akk",
+     (SUBR)lagud_init_no_initial_value, (SUBR)lagud_a },
+
 
     {"sc_trig",   S(Trig),   0, 3, "k", "kk",    (SUBR)trig_init, (SUBR)trig_k },
     {"sc_trig",   S(Trig),   0, 3, "a", "ak",    (SUBR)trig_init, (SUBR)trig_a },
