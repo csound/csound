@@ -1401,7 +1401,7 @@ tab2array_k(CSOUND *csound, TAB2ARRAY *p) {
     int step  = (int)*p->kstep;
     if (end < 1)
         end = ftp->flen;
-    int numitems = (int)ceil((end - start) / (float)step);
+    int numitems = (int) (ceil((end - start) / (double)step));
     if(numitems < 0)
         return PERFERR(Str("tab2array: can't copy a negative number of items"));
     if(numitems > p->numitems) {
@@ -1819,12 +1819,13 @@ static int handle_negative_idx(uint32_t *out, int32_t idx, uint32_t length) {
 static int32_t
 ftprint_perf(CSOUND *csound, FTPRINT *p) {
     int32_t trig = (int32_t)*p->ktrig;
-    if(trig <= 0 || (trig == p->lasttrig))
+    if(trig == 0 || (trig == p->lasttrig))
         return OK;
     p->lasttrig = trig;
     FUNC *ftp = p->ftp;
     const MYFLT *ftable = ftp->ftable;
     const uint32_t ftplen = ftp->flen;
+    const uint32_t numcols = (uint32_t)p->numcols;
     const uint32_t step = (uint32_t)*p->kstep;
     uint32_t end, start;
     int error = handle_negative_idx(&start, (int32_t)*p->kstart, ftplen);
@@ -1838,13 +1839,12 @@ ftprint_perf(CSOUND *csound, FTPRINT *p) {
         if(error)
             return PERFERRF(Str("Could not handle end index: %d"), _end);
     }
-    const uint32_t numcols = (uint32_t)p->numcols;
     const char *fmt = default_printfmt;
-    uint32_t elemsprinted = 0;
-    uint32_t charswritten = 0;
     char currline[ARRPRINT_MAXLINE];
-    uint32_t startidx = start;
-    uint32_t i;
+    uint32_t i,
+             elemsprinted = 0,
+             charswritten = 0,
+             startidx = start;
     csound->MessageS(csound, CSOUNDMSG_ORCH,
                      "ftable %d:\n", (int32_t)*p->ifn);
     for(i=start; i < end; i+=step) {
