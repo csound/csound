@@ -23,7 +23,6 @@
 */
 
 #include "csdl.h"
-//#include "/usr/local/include/csound/csdl.h"
 #include "arrays.h"
 
 
@@ -45,6 +44,7 @@
 #define PERFERR(m) (csound->PerfError(csound, &(p->h), "%s", m))
 #define PERFERRF(fmt, ...) (csound->PerfError(csound, &(p->h), fmt, __VA_ARGS__))
 
+#define UI32MAX 0x7FFFFFFF
 
 /*
 
@@ -91,11 +91,11 @@ typedef struct {
     // kY[] linlin kX[], ky0, ky1, kx0=0, kx1=1
     ARRAYDAT *ys, *xs;
     MYFLT *ky0, *ky1, *kx0, *kx1;
-    int32_t numitems;
+    int numitems;
 } LINLINARR1;
 
 static int32_t linlinarr1_init(CSOUND *csound, LINLINARR1 *p) {
-    size_t numitems = p->xs->sizes[0];
+    int numitems = p->xs->sizes[0];
     tabensure(csound, p->ys, numitems);
     p->numitems = numitems;
     return OK;
@@ -114,7 +114,7 @@ linlinarr1_perf(CSOUND *csound, LINLINARR1 *p) {
     }
     MYFLT fact = 1/(x1 - x0) * (y1 - y0);
 
-    int32_t numitems = p->xs->sizes[0];
+    int numitems = p->xs->sizes[0];
     if(numitems > p->numitems) {
         tabensure(csound, p->ys, numitems);
         p->numitems = numitems;
@@ -753,7 +753,7 @@ typedef struct {
     STRINGDAT *notename;
 } NTOM;
 
-int32_t _pcs[] = {9, 11, 0, 2, 4, 5, 7};
+static int32_t _pcs[] = {9, 11, 0, 2, 4, 5, 7};
 
 #define FAIL -999
 
@@ -830,10 +830,10 @@ typedef struct {
     MYFLT *kmidi;
 } MTON;
 
-//                   C  C# D D#  E  F  F# G G# A Bb B
-int32_t _pc2idx[] = {2, 2, 3, 3, 4, 5, 5, 6, 6, 0, 1, 1};
-int32_t _pc2alt[] = {0, 1, 0, 1, 0, 0, 1, 0, 1, 0, 2, 0};
-char _alts[] = " #b";
+//                                C  C# D D#  E  F  F# G G# A Bb B
+static const int32_t _pc2idx[] = {2, 2, 3, 3, 4, 5, 5, 6, 6, 0, 1, 1};
+static const int32_t _pc2alt[] = {0, 1, 0, 1, 0, 0, 1, 0, 1, 0, 2, 0};
+static const char _alts[] = " #b";
 
 static int32_t
 mton(CSOUND *csound, MTON *p) {
@@ -845,7 +845,7 @@ mton(CSOUND *csound, MTON *p) {
         p->Sdst->size = maxsize;
     }
     dst = (char*) p->Sdst->data;
-    int32_t octave = m / 12 - 1;
+    int32_t octave = (int32_t) (m / 12 - 1);
     int32_t pc = (int32_t)m % 12;
     int32_t cents = round((m - floor(m)) * 100.0);
     int32_t sign, cursor;
@@ -1332,13 +1332,13 @@ tabslice_k(CSOUND *csound, TABSLICE *p) {
     int32_t step = (int32_t)*p->kstep;
     if(end < 1)
         end = ftpsrc->flen;
-    uint32_t numitems = (uint32_t)ceil((end - start) / (float)step);
+    int32_t numitems = (int32_t) (ceil((end - start) / (float)step));
     if (numitems > ftpdst->flen)
         numitems = ftpdst->flen;
     MYFLT *src = ftpsrc->ftable;
     MYFLT *dst = ftpdst->ftable;
 
-    uint32_t i, j=start;
+    int32_t i, j=start;
     for(i=0; i<numitems; i++) {
         dst[i] = src[j];
         j += step;
@@ -1384,7 +1384,7 @@ tab2array_init(CSOUND *csound, TAB2ARRAY *p) {
     int step  = (int)*p->kstep;
     if (end < 1)
         end = ftp->flen;
-    int numitems = (int)ceil((end - start) / (float)step);
+    int numitems = (int) (ceil((end - start) / (float)step));
     if(numitems < 0) {
         return PERFERR(Str("tab2array: can't copy a negative number of items"));
     }
@@ -1518,6 +1518,7 @@ typedef struct {
 
     int32_t lasttrig;
     const char *printfmt;
+    char fmtdata[128];
     const char *label;
 } ARRAYPRINTK;
 
@@ -1526,7 +1527,6 @@ typedef struct {
     ARRAYDAT *in;
     STRINGDAT *Sfmt;
     STRINGDAT *Slabel;
-
     int32_t lasttrig;
 } ARRAYPRINT;
 
@@ -1538,6 +1538,45 @@ typedef struct {
 static const uint32_t print_linelength = 80;
 static const char default_printfmt[] = "%.4f";
 static const char default_printfmt_str[] = "\"%s\"";
+
+/** replace all occurrences of needle within src by replacement
+ * and put the result in target, which should have enough memory to
+ * hold the result
+*/
+
+void str_replace(char *dest, const char *src, const char *needle, const char *replacement)
+{
+    char buffer[512] = { 0 };
+    char *insert_point = &buffer[0];
+    const char *tmp = src;
+    size_t needle_len = strlen(needle);
+    size_t repl_len = strlen(replacement);
+
+    while (1) {
+        const char *p = strstr(tmp, needle);
+
+        // walked past last occurrence of needle; copy remaining part
+        if (p == NULL) {
+            strcpy(insert_point, tmp);
+            break;
+        }
+
+        // copy part before needle
+        memcpy(insert_point, tmp, p - tmp);
+        insert_point += p - tmp;
+
+        // copy replacement string
+        memcpy(insert_point, replacement, repl_len);
+        insert_point += repl_len;
+
+        // adjust pointers, move on
+        tmp = p + needle_len;
+    }
+
+    // write altered string back to target
+    strcpy(dest, buffer);
+}
+
 
 static int32_t
 arrayprint_init(CSOUND *csound, ARRAYPRINTK *p) {
@@ -1551,7 +1590,13 @@ arrayprint_init(CSOUND *csound, ARRAYPRINTK *p) {
     const char *default_fmt =
       arraytype == 'S' ? default_printfmt_str : default_printfmt;
     p->printfmt =
-      (p->Sfmt == NULL || strlen(p->Sfmt->data) < 2) ? default_fmt : p->Sfmt->data;
+            (p->Sfmt == NULL || strlen(p->Sfmt->data) < 2) ? default_fmt : p->Sfmt->data;
+
+    if(strstr(p->printfmt, "%d") != NULL) {
+        str_replace(p->fmtdata, p->printfmt, "%d", "%.0f"); fflush(stdout);
+        p->printfmt = p->fmtdata;
+    }
+
     p->label = p->Slabel != NULL ? p->Slabel->data : NULL;
     return OK;
 }
@@ -1566,7 +1611,7 @@ static int32_t arrprint_str(CSOUND *csound, ARRAYDAT *arr,
     char currline[ARRPRINT_MAXLINE];
     const uint32_t linelength = print_linelength;
     if(label != NULL)
-        csound->MessageS(csound, CSOUNDMSG_ORCH, "%s\n", (char*)label);
+        csound->MessageS(csound, CSOUNDMSG_ORCH, "%s\n", label);
     // fmt = "%s";  // TODO, set default fmt according to type of array
     for(i = 0; i < arr->sizes[0]; ++i) {
         if(charswritten > 0) {
@@ -1599,7 +1644,7 @@ static int32_t arrprint(CSOUND *csound, ARRAYDAT *arr,
     uint32_t charswritten = 0;
     int32_t showidx = 0;
     if(label != NULL) {
-        csound->MessageS(csound, CSOUNDMSG_ORCH, "%s\n", (char *)label);
+        csound->MessageS(csound, CSOUNDMSG_ORCH, "%s\n", label);
     }
     switch(dims) {
     case 1:
@@ -1688,7 +1733,6 @@ arrayprint_perf(CSOUND *csound, ARRAYPRINTK *p) {
 }
 
 
-
 static int32_t
 arrayprint_i(CSOUND *csound, ARRAYPRINT *p) {
     const char *label = p->Slabel != NULL ? p->Slabel->data : NULL;
@@ -1697,7 +1741,19 @@ arrayprint_i(CSOUND *csound, ARRAYPRINT *p) {
 
 static int32_t
 arrayprintf_i(CSOUND *csound, ARRAYPRINT *p) {
-    const char *fmt = p->Sfmt->size > 1 ? p->Sfmt->data : default_printfmt;
+    char tmpfmt[256];
+    const char *fmt;
+    if(strlen(p->Sfmt->data) == 0) {
+
+        fmt = default_printfmt;
+    } else {
+        if(strstr(p->Sfmt->data, "%d") == NULL) {
+            fmt = p->Sfmt->data;
+        } else {
+            str_replace(tmpfmt, p->Sfmt->data, "%d", "%.0f");
+            fmt = tmpfmt;
+        }
+    }
     const char *label = p->Slabel != NULL ? p->Slabel->data : NULL;
     return arrprint(csound, p->in, fmt, label);
 }
@@ -1710,7 +1766,8 @@ ftprint  - print the contents of a table (useful for debugging)
 ftprint ifn, ktrig=1, kstart=0, kend=0, kstep=1, inumcols=0
 
 ifn: the table to print
-ktrig: table will be printed whenever this changes from non-positive to positive
+ktrig: table will be printed whenever this changes from non-positive
+       to positive and is different to last trigger
 kstart: start index
 kend: end index (non inclusive)
 kstep: number of elements to skip
@@ -1728,6 +1785,7 @@ typedef struct {
     FUNC *ftp;
 } FTPRINT;
 
+static int32_t ftprint_perf(CSOUND *csound, FTPRINT *p);
 
 static int32_t
 ftprint_init(CSOUND *csound, FTPRINT *p) {
@@ -1736,34 +1794,79 @@ ftprint_init(CSOUND *csound, FTPRINT *p) {
     if(p->numcols == 0)
         p->numcols = 10;
     p->ftp = csound->FTnp2Find(csound, p->ifn);
+    int32_t trig = (int32_t)*p->ktrig;
+    if (trig > 0) {
+        ftprint_perf(csound, p);
+    }
     return OK;
+}
+
+/** allow negative indices to count from the end
+ */
+uint32_t handle_negative_idx(int32_t idx, uint32_t length, int *error) {
+    if(idx >= 0) {
+        *error = 0;
+        return (uint32_t) idx;
+    }
+    int64_t res = (int64_t)length + idx + 1;
+    if(res < 0) {
+        *error = 1;
+    }
+    *error = 0;
+    return (uint32_t) res;
 }
 
 static int32_t
 ftprint_perf(CSOUND *csound, FTPRINT *p) {
+    int32_t trig = (int32_t)*p->ktrig;
+    if(trig <= 0 || (trig == p->lasttrig))
+        return OK;
+    p->lasttrig = trig;
     FUNC *ftp = p->ftp;
-    int32_t start = (int32_t)*p->kstart;
-    uint32_t end = (uint32_t)*p->kend;
-    int32_t step = (int32_t)*p->kstep;
-    uint32_t ftplen = ftp->flen;
-    if(end < 1 || end > ftplen)
+    const MYFLT *ftable = ftp->ftable;
+    const uint32_t ftplen = ftp->flen;
+    const uint32_t step = (uint32_t)*p->kstep;
+    uint32_t end, start;
+    int error;
+    start = handle_negative_idx((int32_t)*p->kstart, ftplen, &error);
+    if(error)
+        return PERFERRF(Str("Could not handle start index: %d"), (int32_t)*p->kstart);
+    int32_t _end = (int32_t)*p->kend;
+    if(_end == 0)
         end = ftplen;
-    MYFLT *ftable = ftp->ftable;
+    else {
+        end = handle_negative_idx(_end, ftplen, &error);
+        if(error)
+            return PERFERRF(Str("Could not handle end index: %d"), _end);
+    }
+    const uint32_t numcols = (uint32_t)p->numcols;
+    const char *fmt = default_printfmt;
+    uint32_t elemsprinted = 0;
+    uint32_t charswritten = 0;
+    char currline[ARRPRINT_MAXLINE];
+    uint32_t startidx = start;
     uint32_t i;
-    int32_t numcols = (int32_t)p->numcols;
-    int32_t elemsprinted = 0;
-    printf("ftable %d:\n%3d: ", (int32_t)*p->ifn, start);
-    for(i=start; i<end; i+=step) {
-      printf(default_printfmt, ftable[i]);// + 1;
+    csound->MessageS(csound, CSOUNDMSG_ORCH,
+                     "ftable %d:\n", (int32_t)*p->ifn);
+    for(i=start; i < end; i+=step) {
+        charswritten += sprintf(currline+charswritten, fmt, ftable[i]);
         elemsprinted++;
         if(elemsprinted < numcols) {
-            printf(" ");
+            currline[charswritten++] = ' ';
         } else {
-            printf("\n%3d: ", i+1);
+            currline[charswritten++] = '\0';
+            csound->MessageS(csound, CSOUNDMSG_ORCH,
+                             " %3d: %s\n", startidx, currline);
+            startidx = i;
             elemsprinted = 0;
+            charswritten = 0;
         }
     }
-    printf("\n");
+    if(charswritten > 0) {
+        currline[charswritten] = '\0';
+        csound->MessageS(csound, CSOUNDMSG_ORCH,
+                         " %3d: %s\n", startidx, currline);
+    }
     return OK;
 }
 
@@ -1953,9 +2056,9 @@ static OENTRY localops[] = {
       (SUBR)arrayprint_init, (SUBR)arrayprint_perf},
 
 
-    { "printarray", S(ARRAYPRINT), 0, 1, "", "i[]", (SUBR)arrayprint_i},
-    { "printarray", S(ARRAYPRINT), 0, 1, "", "i[]S", (SUBR)arrayprintf_i},
-    { "printarray", S(ARRAYPRINT), 0, 1, "", "i[]SS", (SUBR)arrayprintf_i},
+    { "printarray.i", S(ARRAYPRINT), 0, 1, "", "i[]", (SUBR)arrayprint_i},
+    { "printarray.fmt_i", S(ARRAYPRINT), 0, 1, "", "i[]S", (SUBR)arrayprintf_i},
+    { "printarray.fmt_label_i", S(ARRAYPRINT), 0, 1, "", "i[]SS", (SUBR)arrayprintf_i},
 
     { "printarray", S(ARRAYPRINTK), 0, 3, "", "S[]P",
       (SUBR)arrayprint_init, (SUBR)arrayprint_perf},
