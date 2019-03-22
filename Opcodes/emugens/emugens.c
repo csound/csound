@@ -1803,17 +1803,17 @@ ftprint_init(CSOUND *csound, FTPRINT *p) {
 
 /** allow negative indices to count from the end
  */
-uint32_t handle_negative_idx(int32_t idx, uint32_t length, int *error) {
+static int handle_negative_idx(uint32_t *out, int32_t idx, uint32_t length) {
     if(idx >= 0) {
-        *error = 0;
-        return (uint32_t) idx;
+        *out = (uint32_t) idx;
+        return OK;
     }
     int64_t res = (int64_t)length + idx + 1;
     if(res < 0) {
-        *error = 1;
+        return NOTOK;
     }
-    *error = 0;
-    return (uint32_t) res;
+    *out = (uint32_t) res;
+    return NOTOK;
 }
 
 static int32_t
@@ -1827,15 +1827,14 @@ ftprint_perf(CSOUND *csound, FTPRINT *p) {
     const uint32_t ftplen = ftp->flen;
     const uint32_t step = (uint32_t)*p->kstep;
     uint32_t end, start;
-    int error;
-    start = handle_negative_idx((int32_t)*p->kstart, ftplen, &error);
+    int error = handle_negative_idx(&start, (int32_t)*p->kstart, ftplen);
     if(error)
         return PERFERRF(Str("Could not handle start index: %d"), (int32_t)*p->kstart);
     int32_t _end = (int32_t)*p->kend;
     if(_end == 0)
         end = ftplen;
     else {
-        end = handle_negative_idx(_end, ftplen, &error);
+        error = handle_negative_idx(&end, _end, ftplen);
         if(error)
             return PERFERRF(Str("Could not handle end index: %d"), _end);
     }
