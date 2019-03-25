@@ -33,7 +33,6 @@ typedef struct {
     MYFLT   *itab;
     STRINGDAT *file;
     MYFLT   *format;
-    MYFLT   *sync;
     /* Local */
 } TABAUDIO;
 
@@ -251,7 +250,7 @@ static int32_t tabaudioi(CSOUND *csound, TABAUDIO *p)
 
 static OENTRY tabaudio_localops[] =
   {
-   { "ftaudio.i",     S(TABAUDIO),  TR, 1, "i", "iSki",   (SUBR)tabaudioi, NULL },
+   { "ftaudio.i",     S(TABAUDIO),  TR, 1, "i", "iSi",   (SUBR)tabaudioi, NULL },
    { "ftaudio.k",     S(TABAUDIOK), TR, 2, "k", "kkSkp",  NULL, (SUBR)tabaudiok },
   };
 
