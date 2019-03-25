@@ -1333,8 +1333,8 @@ tabslice_k(CSOUND *csound, TABSLICE *p) {
     if(end < 1)
         end = ftpsrc->flen;
     int32_t numitems = (int32_t) (ceil((end - start) / (float)step));
-    if (numitems > ftpdst->flen)
-        numitems = ftpdst->flen;
+    if (numitems > (int32_t)ftpdst->flen)
+        numitems = (int32_t)ftpdst->flen;
     MYFLT *src = ftpsrc->ftable;
     MYFLT *dst = ftpdst->ftable;
 
@@ -1544,7 +1544,8 @@ static const char default_printfmt_str[] = "\"%s\"";
  * hold the result
 */
 
-void str_replace(char *dest, const char *src, const char *needle, const char *replacement)
+void str_replace(char *dest, const char *src, const char *needle,
+                 const char *replacement)
 {
     char buffer[512] = { 0 };
     char *insert_point = &buffer[0];
@@ -1590,7 +1591,7 @@ arrayprint_init(CSOUND *csound, ARRAYPRINTK *p) {
     const char *default_fmt =
       arraytype == 'S' ? default_printfmt_str : default_printfmt;
     p->printfmt =
-            (p->Sfmt == NULL || strlen(p->Sfmt->data) < 2) ? default_fmt : p->Sfmt->data;
+      (p->Sfmt == NULL || strlen(p->Sfmt->data) < 2) ? default_fmt : p->Sfmt->data;
 
     if(strstr(p->printfmt, "%d") != NULL) {
         str_replace(p->fmtdata, p->printfmt, "%d", "%.0f"); fflush(stdout);
@@ -1830,7 +1831,8 @@ ftprint_perf(CSOUND *csound, FTPRINT *p) {
     uint32_t end, start;
     int error = handle_negative_idx(&start, (int32_t)*p->kstart, ftplen);
     if(error)
-        return PERFERRF(Str("Could not handle start index: %d"), (int32_t)*p->kstart);
+        return PERFERRF(Str("Could not handle start index: %d"),
+                        (int32_t)*p->kstart);
     int32_t _end = (int32_t)*p->kend;
     if(_end == 0)
         end = ftplen;
@@ -2057,7 +2059,8 @@ static OENTRY localops[] = {
 
     { "printarray.i", S(ARRAYPRINT), 0, 1, "", "i[]", (SUBR)arrayprint_i},
     { "printarray.fmt_i", S(ARRAYPRINT), 0, 1, "", "i[]S", (SUBR)arrayprintf_i},
-    { "printarray.fmt_label_i", S(ARRAYPRINT), 0, 1, "", "i[]SS", (SUBR)arrayprintf_i},
+    { "printarray.fmt_label_i", S(ARRAYPRINT), 0, 1, "", "i[]SS",
+      (SUBR)arrayprintf_i},
 
     { "printarray", S(ARRAYPRINTK), 0, 3, "", "S[]P",
       (SUBR)arrayprint_init, (SUBR)arrayprint_perf},
