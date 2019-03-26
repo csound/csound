@@ -24,6 +24,10 @@
 #include "csdl.h"
 //#include <ieee754.h>
 
+#ifdef __HAIKU__
+#include <fcntl.h>
+#endif
+
 #ifdef MACOSX
 #include <unistd.h>
 #endif

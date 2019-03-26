@@ -127,13 +127,21 @@ if(BUILD_SERIAL_OPCODES)
 endif()
 
 if(BUILD_PLATEREV_OPCODES)
+ if(HAIKU)
+   make_plugin(platerev platerev.c)
+ else()
    make_plugin(platerev platerev.c m)
+ endif()
 endif()
 
 if(BUILD_SCANSYN_OPCODES)
     set(scansyn_SRCS
         scansyn.c scansynx.c)
+ if(HAIKU)
+    make_plugin(scansyn "${scansyn_SRCS}")
+ else()
     make_plugin(scansyn "${scansyn_SRCS}" m)
+ endif()
 endif()
 
 if(UNIX)

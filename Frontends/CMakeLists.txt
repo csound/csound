@@ -51,6 +51,8 @@ if(BUILD_CSBEATS)
         set_source_files_properties(${FLEX_csbeats_SCANNER_OUTPUTS} PROPERTIES
         COMPILE_FLAGS -DYY_NO_UNISTD_H)
       make_executable(csbeats "${csbeats_SRCS}" "")
+    elseif(HAIKU)
+      make_executable(csbeats "${csbeats_SRCS}" "")
     else()
       make_executable(csbeats "${csbeats_SRCS}" "m")
     endif()

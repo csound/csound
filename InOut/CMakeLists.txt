@@ -236,6 +236,15 @@ if(USE_FLTK)
     #add_dependency_to_framework(widgets ${FLTK_IMAGES_LIBRARY})
 endif()
 
+if(HAIKU)
+	find_library(HAIKU_MEDIA_LIBRARY media)
+	find_library(HAIKU_MIDI_LIBRARY midi2)
+	set(haiku_SRCS rthaiku.cpp HaikuAudio.cpp HaikuMidi.cpp)
+	make_plugin(rthaiku "${haiku_SRCS}")
+    target_link_libraries(rthaiku ${HAIKU_MEDIA_LIBRARY})
+    target_link_libraries(rthaiku ${HAIKU_MIDI_LIBRARY})
+endif()
+
 check_deps(BUILD_VIRTUAL_KEYBOARD FLTK_FOUND)
 if(BUILD_VIRTUAL_KEYBOARD)
     set(virtual_SRCS virtual_keyboard/FLTKKeyboard.cpp

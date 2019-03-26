@@ -34,7 +34,7 @@
 # if defined(SGI) || defined(LINUX) || defined(NeXT) || defined(__MACH__)
 #  define _popen popen
 #  define _pclose pclose
-# elif defined(__BEOS__) || defined(__MACH__)
+# elif defined(__BEOS__) ||  defined(__HAIKU__) || defined(__MACH__)
 #  include <stdio.h>
 #  define _popen popen
 #  define _pclose pclose

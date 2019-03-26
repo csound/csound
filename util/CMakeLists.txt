@@ -14,6 +14,8 @@ if(MSVC)
 elseif(WIN32)
   make_plugin(stdutil "${stdutil_SRCS}" m
     ${LIBSNDFILE_LIBRARY} ${LIBSNDFILE_SUPPORT_LIBS})
+elseif(HAIKU)
+  make_plugin(stdutil "${stdutil_SRCS}" ${LIBSNDFILE_LIBRARY})
 else()
   make_plugin(stdutil "${stdutil_SRCS}" m ${LIBSNDFILE_LIBRARY})
 endif()
