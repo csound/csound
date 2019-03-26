@@ -32,10 +32,6 @@ users.  There have been many fixes to the core code as well as opcodes.
 
 ### New opcodes
 
-- 
-
-### New Gen and Macros
-
 - string2array is a variant of fillarray with he data coming from a
   string of with space separated values.
 
@@ -43,6 +39,8 @@ users.  There have been many fixes to the core code as well as opcodes.
   string if the number does not refer to a named instrument.
   
 - ntof converts notename to frequency at i- and k-time.
+
+### New Gen and Macros
 
 ### Orchestra
 
@@ -77,9 +75,9 @@ users.  There have been many fixes to the core code as well as opcodes.
 
 - Sending failure in OSC is now a warning rather than an error.
 
-- passign can now have an array as the target
+- passign can now have an array as the target.
 
-- version of bpf/bpfcos added to allow points defined via arrays
+- version of bpf/bpfcos added to allow points defined via arrays.
 
 - grain can now use tables of any size, which was only a power of 2.
 
@@ -140,7 +138,7 @@ users.  There have been many fixes to the core code as well as opcodes.
 
 ## Bugs Fixed
 
-- flgetsnap fixed
+- FLgetsnap fixed.
 
 - directory fixed regarding file extensions.
 
