@@ -33,7 +33,8 @@ typedef struct {
     MYFLT   *itab;
     STRINGDAT *file;
     MYFLT   *format;
-    MYFLT   *sync;
+    MYFLT   *beg;
+    MYFLT   *end;
     /* Local */
 } TABAUDIO;
 
@@ -45,6 +46,8 @@ typedef struct {
     STRINGDAT *file;
     MYFLT   *format;
     MYFLT   *sync;
+    MYFLT   *beg;
+    MYFLT   *end;
     /* Local */
 } TABAUDIOK;
 
@@ -125,17 +128,23 @@ static int32_t tabaudiok(CSOUND *csound, TABAUDIOK *p)
     if (*p->trig) {
       FUNC  *ftp;
       MYFLT *t;
-      uint32_t size, n;
+      int32_t size, n;
       SNDFILE *ff;
       SF_INFO sfinfo;
       int32_t  format = MYFLT2LRND(*p->format);
-  
+      int32_t  skip = MYFLT2LRND(*p->beg);
+      int32_t  end = MYFLT2LRND(*p->end);
+
       if (UNLIKELY((ftp = csound->FTnp2Find(csound, p->itab)) == NULL)) {
         return csound->PerfError(csound, &(p->h), Str("tabaudio: No table %g"), *p->itab);
       }
       *p->kans = FL(0.0);
-      t = ftp->ftable;
+      t = ftp->ftable + skip;
       size = ftp->flenfrms;
+      if (end<=0) size -= skip;
+      else size = end - skip;
+      if (UNLIKELY(size<0 || size>ftp->flenfrms))
+        return csound->PerfError(csound, &(p->h), Str("ftudio: ilegal size"));
       memset(&sfinfo, 0, sizeof(SF_INFO));
       if (format >= 51)
         sfinfo.format = SF_FORMAT_PCM_16 | SF_FORMAT_RAW;
@@ -206,17 +215,23 @@ static int32_t tabaudioi(CSOUND *csound, TABAUDIO *p)
 {
     FUNC  *ftp;
     MYFLT *t;
-    uint32_t size, n;
+    int32_t size, n;
     SNDFILE *ff;
     SF_INFO sfinfo;
     int32_t  format = MYFLT2LRND(*p->format);
-      
+    int32_t  skip = MYFLT2LRND(*p->beg);
+    int32_t  end = MYFLT2LRND(*p->end);
+
     if (UNLIKELY((ftp = csound->FTnp2Find(csound, p->itab)) == NULL)) {
       return csound->InitError(csound, Str("tabaudio: No table"));
     }
     *p->kans = FL(0.0);
-    t = ftp->ftable;
+    t = ftp->ftable + skip;
     size = ftp->flenfrms;
+    if (end<=0) size -= skip;
+    else size = end - skip;
+    if (UNLIKELY(size<0 || size>ftp->flenfrms))
+      return csound->InitError(csound, Str("ftudio: ilegal size"));
     memset(&sfinfo, 0, sizeof(SF_INFO));
     if (format >= 51)
       sfinfo.format = SF_FORMAT_PCM_16 | SF_FORMAT_RAW;
@@ -231,7 +246,7 @@ static int32_t tabaudioi(CSOUND *csound, TABAUDIO *p)
       sfinfo.format |= TYPE2SF(csound->oparms->filetyp);
     sfinfo.samplerate = (int32_t) MYFLT2LRND(CS_ESR);
     sfinfo.channels = ftp->nchanls;
-      
+
     ff = sf_open(p->file->data, SFM_WRITE, &sfinfo);
     if (ff==NULL)
       return csound->InitError(csound, Str("tabaudio: failed to open file %s"),
@@ -251,8 +266,8 @@ static int32_t tabaudioi(CSOUND *csound, TABAUDIO *p)
 
 static OENTRY tabaudio_localops[] =
   {
-   { "ftaudio.i",     S(TABAUDIO),  TR, 1, "i", "iSki",   (SUBR)tabaudioi, NULL },
-   { "ftaudio.k",     S(TABAUDIOK), TR, 2, "k", "kkSkp",  NULL, (SUBR)tabaudiok },
+   { "ftaudio.i",     S(TABAUDIO),  TR, 1, "i", "iSioo",   (SUBR)tabaudioi, NULL },
+   { "ftaudio.k",     S(TABAUDIOK), TR, 2, "k", "kkSkpOO",  NULL, (SUBR)tabaudiok },
   };
 
 LINKAGE_BUILTIN(tabaudio_localops)
