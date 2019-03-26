@@ -37,7 +37,7 @@ users.  There have been many fixes to the core code as well as opcodes.
 
 - nstrstr returns the name string of an instrument number or an empty
   string if the number does not refer to a named instrument.
-  
+
 - ntof converts notename to frequency at i- and k-time.
 
 ### New Gen and Macros
@@ -46,14 +46,14 @@ users.  There have been many fixes to the core code as well as opcodes.
 
 - The consistency of kr, sr and ksmps reworked especially when there
   is overriding.
-  
+
 - corrected default 0bdfs usage.
 
 - Resolving the path for #include files reworked to be more liberal.
 
 - reading and writing to multidimensional arrays was very wrong.  This
   is now correct.
-  
+
 ### Score
 
 - The characters n and m could erroneously get ignored in scores.
@@ -62,7 +62,7 @@ users.  There have been many fixes to the core code as well as opcodes.
 
 - After an error the backtrace of files and macros incorrectly read
   the information for orchestra rather than scores; fixed.
-  
+
 - The end of an r (repeated) section was not always correct.
 
 - Nested {} parts of a score could lead to errors.
@@ -82,11 +82,11 @@ users.  There have been many fixes to the core code as well as opcodes.
 - grain can now use tables of any size, which was only a power of 2.
 
 - Changing colours in FL widgets now works (it previously did nor redraw
-  the colour). 
-  
+  the colour).
+
 - fillarray can read from a file of values overcoming the argument
   limit.
-  
+
 - sumarray now works for audio arrays as well as for scalar values.
 
 - assignment of an audio value to an audio array now works.
@@ -99,7 +99,7 @@ users.  There have been many fixes to the core code as well as opcodes.
 
 - sc_lag and sc_lagud now use the first k- or a-rate input when no
   initial value is given.
-  
+
 - printarray now works for string arrays.
 
 - changed2 now works for strings.
@@ -110,7 +110,7 @@ users.  There have been many fixes to the core code as well as opcodes.
 
 - ftaudio can now take two additional optional argument`s for the start
   and end of the table data being written to file.
-  
+
 - sensekey recoded in the 'key down' mode.
 
 - loscilx can return an audio array.
@@ -129,12 +129,12 @@ users.  There have been many fixes to the core code as well as opcodes.
 ### General Usage
 
 - There have been a number of improvements in the semantics for multicore;
-  most of these are corrections with a few efficiency gains. 
+  most of these are corrections with a few efficiency gains.
 
 - There is a maximum number of arguments for an opcode which was
   neither explicit nor policed.  Attempts to use too many arguments
   now gives a syntax error.
-  
+
 
 ## Bugs Fixed
 
@@ -150,11 +150,11 @@ users.  There have been many fixes to the core code as well as opcodes.
 
 # SYSTEM LEVEL CHANGES
 
-- 
+-
 
 ### System Changes
 
-- 
+-
 
 ### Translations
 
@@ -197,10 +197,10 @@ Author: Felipe Sateler <fsateler@gmail.com>
 Date:   Sun Feb 3 18:54:08 2019 -0300
 
     perfThread: wait the recording thread before waiting for the performance thread
-    
+
     If we don't tell the recording thread to stop, we might enter a deadlock as the perf thread waits for the record
     thread but it has not been stopped yet.
-    
+
     Fixes #1103
 
 Author: veplaini <victor.lazzarini@nuim.ie>
@@ -225,4 +225,3 @@ Author: veplaini <victor.lazzarini@nuim.ie>
 Date:   Wed Oct 24 22:46:10 2018 +0100
 
     fixing MIDI methods
-
