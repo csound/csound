@@ -12,7 +12,7 @@ To maintain this document use the following markdown:
 
 `inline code`
 
-``` preformatted text etc.  ```
+``` pre-formatted text etc.  ```
 
 [hyperlink](url for the hyperlink)
 
@@ -23,6 +23,9 @@ Any valid HTML can also be used.
 ========== DRAFT ========== DRAFT ========== DRAFT ========== DRAFT ========
 # CSOUND VERSION 6.13 RELEASE NOTES
 
+Not many new opcodes but there are a significant number of opcodes being
+extended to use arrays in a variety of ways, widening the options for
+users.  There have been many fixes to the core code as well as opcodes.
 -- The Developers
 
 ## USER-LEVEL CHANGES
@@ -37,7 +40,7 @@ Any valid HTML can also be used.
   string of with space separated values.
 
 - nstrstr returns the name string of an instrument number or an empty
-  string if the nuber does not refer to a named instrument.
+  string if the number does not refer to a named instrument.
   
 - ntof converts notename to frequency at i- and k-time.
 
@@ -50,7 +53,7 @@ Any valid HTML can also be used.
 
 - Resolving the path for #include files reworked to be more liberal.
 
-- reading ad writing to multidimensional arrays was very wrong.  Tis
+- reading and writing to multidimensional arrays was very wrong.  This
   is now correct.
   
 ### Score
@@ -60,11 +63,11 @@ Any valid HTML can also be used.
 - Resolving the path for #include files reworked to be more liberal.
 
 - After an error the backtrace of files and macros incorrectly read
-  the information for orchestra rather thanscores; fixed.
+  the information for orchestra rather than scores; fixed.
   
 - The end of an r (repeated) section was not always correct.
 
-- Nested {} oarts of a score could lead to errors.
+- Nested {} parts of a score could lead to errors.
 
 ### Options
 
@@ -72,42 +75,42 @@ Any valid HTML can also be used.
 
 ### Modified Opcodes and Gens
 
-- Sending failure in OSC is now a warming rather than an error.
+- Sending failure in OSC is now a warning rather than an error.
 
 - passign can now have an array as the target
 
-- version of bpf/bpfcos addd to allow points defined via arrays
+- version of bpf/bpfcos added to allow points defined via arrays
 
 - grain can now use tables of any size, which was only a power of 2.
 
-- Changing colurs in FL widgets now works (it previosly did nor redraw
+- Changing colours in FL widgets now works (it previously did nor redraw
   the colour). 
   
 - fillarray can read from a file of values overcoming the argument
   limit.
   
-- sumarray now works for audio arrays as well as forr scalar values.
+- sumarray now works for audio arrays as well as for scalar values.
 
 - assignment of an audio value to an audio array now works.
 
 - monitor was broken in the array form.
 
-- gendyc now repects sample-accurate mode.
+- gendyc now respects sample-accurate mode.
 
-- mtof and ftom nowhave array versions.
+- mtof and ftom now have array versions.
 
 - sc_lag and sc_lagud now use the first k- or a-rate input when no
   initial value is given.
   
 - printarray now works for string arrays.
 
-- changed2 noew works for strings.
+- changed2 now works for strings.
 
 - diskgrain, syncgrain and syncloop now can do sample rate scaling.
 
 - GEN01 correctly reads raw audio files when requested.
 
-- ftaudio can now rtake twp atdotional optional argumens for the start
+- ftaudio can now take two additional optional argument`s for the start
   and end of the table data being written to file.
   
 - sensekey recoded in the 'key down' mode.
