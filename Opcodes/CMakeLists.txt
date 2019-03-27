@@ -127,21 +127,13 @@ if(BUILD_SERIAL_OPCODES)
 endif()
 
 if(BUILD_PLATEREV_OPCODES)
- if(HAIKU)
-   make_plugin(platerev platerev.c)
- else()
-   make_plugin(platerev platerev.c m)
- endif()
+  make_plugin(platerev platerev.c ${MATH_LIBRARY})
 endif()
 
 if(BUILD_SCANSYN_OPCODES)
     set(scansyn_SRCS
         scansyn.c scansynx.c)
- if(HAIKU)
-    make_plugin(scansyn "${scansyn_SRCS}")
- else()
-    make_plugin(scansyn "${scansyn_SRCS}" m)
- endif()
+    make_plugin(scansyn "${scansyn_SRCS}" ${MATH_LIBRARY})
 endif()
 
 if(UNIX)
@@ -226,7 +218,7 @@ if(USE_DOUBLE)
  message(STATUS "Not building linear algebra opcodes: gmm not found")
 endif()
 endif()
-  
+
 
 
 check_deps(BUILD_OSC_OPCODES LIBLO_LIBRARY OSC_HEADER)
@@ -335,7 +327,7 @@ endif()
     target_link_libraries(faustcsound ${FAUST_LIBRARIES} -ldl -L$ENV{HOME}/lib -L/usr/local/lib ${LLVM_LIBS})
   else()
       target_compile_options(faustcsound PRIVATE "-stdlib=libc++")
-     
+
      target_link_libraries(faustcsound ${FAUST_LIBRARIES} -stdlib=libc++ -ldl -L$ENV{HOME}/lib -L/usr/local/lib ${LLVM_LIBS})
   endif()
   else()

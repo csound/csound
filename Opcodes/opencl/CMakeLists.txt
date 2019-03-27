@@ -15,9 +15,7 @@ function(make_opencl_plugin libname srcs)
 
     set(i 2)
     while( ${i} LESS ${ARGC} )
-        if(NOT MSVC OR NOT("${ARGV${i}}" MATCHES "m"))
-            target_link_libraries(${libname} ${ARGV${i}})
-        endif()
+        target_link_libraries(${libname} ${ARGV${i}})
         math(EXPR i "${i}+1")
     endwhile()
 
@@ -28,12 +26,12 @@ function(make_opencl_plugin libname srcs)
 
     install(TARGETS ${libname}
 	LIBRARY DESTINATION "${PLUGIN_INSTALL_DIR}" )
-   
+
 endfunction(make_opencl_plugin)
- 
- include_directories(${CMAKE_HOME_DIRECTORY}/include) 
+
+ include_directories(${CMAKE_HOME_DIRECTORY}/include)
  include_directories(/usr/local/include)
- 
+
  make_opencl_plugin(clop cladsynth.c)
  target_link_libraries(clop ${OpenCL_library})
 

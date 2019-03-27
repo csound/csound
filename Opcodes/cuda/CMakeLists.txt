@@ -11,9 +11,7 @@ if(BUILD_CUDA_OPCODES)
 
     set(i 2)
     while( ${i} LESS ${ARGC} )
-        if(NOT MSVC OR NOT("${ARGV${i}}" MATCHES "m"))
-            target_link_libraries(${libname} ${ARGV${i}})
-        endif()
+        target_link_libraries(${libname} ${ARGV${i}})
         math(EXPR i "${i}+1")
     endwhile()
 
@@ -26,9 +24,9 @@ if(BUILD_CUDA_OPCODES)
 	LIBRARY DESTINATION "${PLUGIN_INSTALL_DIR}" )
 
 endfunction(make_cuda_plugin)
- 
+
  #find_library(CUFFT cufft HINTS "/Developer/NVIDIA/CUDA-6.0/lib")
- include_directories(${CMAKE_HOME_DIRECTORY}/include) 
+ include_directories(${CMAKE_HOME_DIRECTORY}/include)
  include_directories(/usr/local/include)
 
  if(APPLE)
@@ -44,7 +42,7 @@ endfunction(make_cuda_plugin)
  # target_link_libraries(cudaop2 ${CUFFT})
  #target_link_libraries(cudaop5 ${CUFFT})
  else()
-SET(CUDA_NVCC_FLAGS  "-ccbin /usr/bin/clang -arch=sm_30 
+SET(CUDA_NVCC_FLAGS  "-ccbin /usr/bin/clang -arch=sm_30
  -Xcompiler  -stdlib=libstdc++ -use_fast_math" CACHE STRING "nvcc flags" FORCE)
   make_cuda_plugin(cudaop1 adsyn.cu)
   make_cuda_plugin(cudaop2 pvsops.cu)
