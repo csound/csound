@@ -8,17 +8,7 @@ set(stdutil_SRCS
     sndinfo.c       srconv.c        std_util.c  xtrct.c
     SDIF/sdif.c)
 
-if(MSVC)
-  make_plugin(stdutil "${stdutil_SRCS}" )
-  target_link_libraries(stdutil ${LIBSNDFILE_LIBRARY} ${LIBSNDFILE_SUPPORT_LIBS})
-elseif(WIN32)
-  make_plugin(stdutil "${stdutil_SRCS}" ${MATH_LIBRARY}
-    ${LIBSNDFILE_LIBRARY} ${LIBSNDFILE_SUPPORT_LIBS})
-elseif(HAIKU)
-  make_plugin(stdutil "${stdutil_SRCS}" ${LIBSNDFILE_LIBRARY})
-else()
-  make_plugin(stdutil "${stdutil_SRCS}" ${MATH_LIBRARY} ${LIBSNDFILE_LIBRARY})
-endif()
+make_plugin(stdutil "${stdutil_SRCS}" ${MATH_LIBRARY} ${LIBSNDFILE_LIBRARY} ${LIBSNDFILE_SUPPORT_LIBS})
 
 add_dependency_to_framework(stdutil ${LIBSNDFILE_LIBRARY})
 

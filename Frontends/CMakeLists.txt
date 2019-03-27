@@ -17,8 +17,7 @@ if(CMAKE_SYSTEM_NAME MATCHES "Linux")
 endif()
 
 # We need a different name to avoid clashes with float libcsound
-make_executable(csound-bin "${CS_MAIN_SRCS}" "${CSOUNDLIB}" csound)
-target_link_libraries(csound-bin ${MATH_LIBRARY})
+make_executable(csound-bin "${CS_MAIN_SRCS}" "${CSOUNDLIB};${MATH_LIBRARY}" csound)
 
 # Post build dependencies copy for MSVC
 if(MSVC)
@@ -49,7 +48,7 @@ if(BUILD_CSBEATS)
         set_source_files_properties(${FLEX_csbeats_SCANNER_OUTPUTS} PROPERTIES
         COMPILE_FLAGS -DYY_NO_UNISTD_H)
     endif()
-    make_executable(csbeats "${csbeats_SRCS}" ${MATH_LIBRARY})
+    make_executable(csbeats "${csbeats_SRCS}" "${MATH_LIBRARY}")
 
     target_include_directories(csbeats PRIVATE ${CMAKE_CURRENT_BINARY_DIR})
     target_include_directories(csbeats PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/beats)
