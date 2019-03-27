@@ -73,14 +73,16 @@ endfunction(make_executable)
 #
 # name - name of executable to produce
 # srcs - list of src files
+# libraries - OPTIONAL extra libraries to link
 
 function(make_utility name srcs)
     make_executable(${name} "${srcs}" "${CSOUNDLIB}")
     add_dependencies(${name} ${CSOUNDLIB})
-
-    if(LINUX)
-        target_link_libraries(${name} ${MATH_LIBRARY})
-    endif()
+    set(i 2)
+    while( ${i} LESS ${ARGC} )
+        target_link_libraries(${name} ${ARGV${i}})
+        math(EXPR i "${i}+1")
+    endwhile()
 endfunction()
 
 # Checks if dependencies for an enabled target are fulfilled.
