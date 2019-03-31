@@ -45,6 +45,7 @@
 */
 
 #include "csdl.h"
+#include "emugens_common.h"
 
 // -------------------------------------------------------------------------
 
@@ -180,35 +181,6 @@ gaussians_init(uint32_t seed) {
 
 #define GAUSSIANS_GET(seed) \
   (gaussians[(uint32_t)(FastRandFloat(seed)*(GAUSSIANS_SIZE-1))])
-
-
-// from Opcodes/arrays.c, original name: tabensure.
-// This should be part of the API.
-
-#if 0
-static inline void
-arrayensure(CSOUND *csound, ARRAYDAT *p, int size) {
-    if (p->data==NULL || p->dimensions == 0 ||
-        (p->dimensions==1 && p->sizes[0] < size)) {
-      size_t ss;
-      if (p->data == NULL) {
-        CS_VARIABLE* var = p->arrayType->createVariable(csound, NULL);
-        p->arrayMemberSize = var->memBlockSize;
-      }
-      ss = p->arrayMemberSize*size;
-      if (p->data==NULL)
-        p->data = (MYFLT*)csound->Calloc(csound, ss);
-      else
-        p->data = (MYFLT*) csound->ReAlloc(csound, p->data, ss);
-      p->dimensions = 1;
-      p->sizes    = (int*)csound->Malloc(csound, sizeof(int));
-      p->sizes[0] = size;
-    }
-}
-#else
-#include "arrays.h"
-#define arrayensure tabensure
-#endif
 
 
 /*
@@ -1207,7 +1179,7 @@ tabrowcopyarr_init(CSOUND *csound, TABROWCOPYARR *p) {
     if(numitems <= 0) {
       return INITERR(Str("tabrowlin: no items to copy"));
     }
-    arrayensure(csound, p->outarr, numitems);
+    tabensure_init(csound, p->outarr, numitems);
     p->numitems = numitems;
     p->maxrow = (p->tabsourcelen - *p->ioffset) / *p->inumcols - FL(2);
     return OK;
@@ -1225,8 +1197,6 @@ tabrowcopyarr_k(CSOUND *csound, TABROWCOPYARR *p) {
     uint32_t row0 = (uint32_t)row;
     MYFLT delta = row - row0;
     uint32_t tabsourcelen = p->tabsourcelen;
-    MYFLT *out = p->outarr->data;
-    MYFLT *tabsource = p->tabsource;
     MYFLT x0, x1;
 
     if(UNLIKELY(row < 0)) {
@@ -1235,6 +1205,12 @@ tabrowcopyarr_k(CSOUND *csound, TABROWCOPYARR *p) {
     // TODO : check maxrow
     uint32_t idx0 = offset + numcols * row0 + start;
     uint32_t idx1 = idx0 + (end-start);
+    uint32_t numitems = idx1 - idx0;
+    tabensure_perf(csound, p->outarr, numitems);
+
+    MYFLT *out = p->outarr->data;
+    MYFLT *tabsource = p->tabsource;
+
     uint32_t i, j = 0;
     if (LIKELY(delta != 0)) {
       if (UNLIKELY(idx1+numcols >= tabsourcelen))
@@ -1284,7 +1260,7 @@ getrowlin_init(CSOUND *csound, GETROWLIN *p) {
       end = p->inarr->sizes[1];
     int numitems = (int)ceil((end - start) / (float)step);
 
-    arrayensure(csound, p->outarr, numitems);
+    tabensure_init(csound, p->outarr, numitems);
     p->numitems = numitems;
     return OK;
 }
@@ -1303,8 +1279,8 @@ getrowlin_k(CSOUND *csound, GETROWLIN *p) {
     int numcols  = p->inarr->sizes[1];
     if(numitems > numcols)
       return PERFERROR(Str("Asked to read too many items from a row"));
-    if(numitems > p->numitems) {
-      arrayensure(csound, p->outarr, numitems);
+    if(numitems != p->numitems) {
+      tabensure_perf(csound, p->outarr, numitems);
       p->numitems = numitems;
     }
     MYFLT row = *p->krow;

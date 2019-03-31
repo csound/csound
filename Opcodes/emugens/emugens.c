@@ -24,6 +24,7 @@
 
 #include "csdl.h"
 #include "arrays.h"
+#include "emugens_common.h"
 
 
 #define SAMPLE_ACCURATE \
@@ -45,6 +46,7 @@
 #define PERFERRF(fmt, ...) (csound->PerfError(csound, &(p->h), fmt, __VA_ARGS__))
 
 #define UI32MAX 0x7FFFFFFF
+
 
 /*
 
@@ -91,13 +93,14 @@ typedef struct {
     // kY[] linlin kX[], ky0, ky1, kx0=0, kx1=1
     ARRAYDAT *ys, *xs;
     MYFLT *ky0, *ky1, *kx0, *kx1;
-    int numitems;
 } LINLINARR1;
+
 
 static int32_t linlinarr1_init(CSOUND *csound, LINLINARR1 *p) {
     int numitems = p->xs->sizes[0];
-    tabensure(csound, p->ys, numitems);
-    p->numitems = numitems;
+    tabensure_init(csound, p->ys, numitems);
+    CHECKARR1D(p->xs);
+    CHECKARR1D(p->ys);
     return OK;
 }
 
@@ -114,11 +117,8 @@ linlinarr1_perf(CSOUND *csound, LINLINARR1 *p) {
     }
     MYFLT fact = 1/(x1 - x0) * (y1 - y0);
 
-    int numitems = p->xs->sizes[0];
-    if(numitems > p->numitems) {
-        tabensure(csound, p->ys, numitems);
-        p->numitems = numitems;
-    }
+    int32_t numitems = p->xs->sizes[0];
+    tabensure_perf(csound, p->ys, numitems);
     MYFLT *out = p->ys->data;
     MYFLT *in  = p->xs->data;
     int32_t i;
@@ -149,7 +149,7 @@ blendarray_init(CSOUND *csound, BLENDARRAY *p) {
     int32_t numitemsA = p->A->sizes[0];
     int32_t numitemsB = p->B->sizes[0];
     int32_t numitems = numitemsA < numitemsB ? numitemsA : numitemsB;
-    tabensure(csound, p->out, numitems);
+    tabensure_init(csound, p->out, numitems);
     p->numitems = numitems;
     return OK;
 }
@@ -167,10 +167,7 @@ blendarray_perf(CSOUND *csound, BLENDARRAY *p)
     int32_t numitemsA = p->A->sizes[0];
     int32_t numitemsB = p->B->sizes[0];
     int32_t numitems = numitemsA < numitemsB ? numitemsA : numitemsB;
-    if(numitems > p->numitems) {
-        tabensure(csound, p->out, numitems);
-        p->numitems = numitems;
-    }
+    tabensure_perf(csound, p->out, numitems);
 
     MYFLT *out = p->out->data;
     MYFLT *A = p->A->data;
@@ -378,7 +375,7 @@ static int32_t
 ftom_arr_init(CSOUND *csound, PITCHCONV_ARR *p) {
     p->freqA4 = csound->GetA4(csound);
     p->rnd = (int)*p->irnd;
-    tabensure(csound, p->outarr, p->inarr->sizes[0]);
+    tabensure_init(csound, p->outarr, p->inarr->sizes[0]);
     p->skip = 0;
     ftom_arr(csound, p);
     p->skip = 1;
@@ -397,7 +394,9 @@ mtof_arr(CSOUND *csound, PITCHCONV_ARR *p) {
     IGN(csound);
     indata = p->inarr->data;
     outdata = p->outarr->data;
-    for(i=0; i < p->inarr->sizes[0]; i++) {
+    int32_t numitems = p->inarr->sizes[0];
+    tabensure_perf(csound, p->outarr, numitems);
+    for(i=0; i < numitems; i++) {
         x = indata[i];
         outdata[i] = POWER(FL(2.0), (x - FL(69.0)) / FL(12.0)) * a4;
     }
@@ -407,7 +406,7 @@ mtof_arr(CSOUND *csound, PITCHCONV_ARR *p) {
 static int32_t
 mtof_arr_init(CSOUND *csound, PITCHCONV_ARR *p) {
     p->freqA4 = csound->GetA4(csound);
-    tabensure(csound, p->outarr, p->inarr->sizes[0]);
+    tabensure_init(csound, p->outarr, p->inarr->sizes[0]);
     p->skip = 0;
     mtof_arr(csound, p);
     p->skip = 1;
@@ -1000,7 +999,7 @@ cmp_init(CSOUND *csound, Cmp *p) {
 static int32_t
 cmparray1_init(CSOUND *csound, Cmp_array1 *p) {
     int32_t N = p->in->sizes[0];
-    tabensure(csound, p->out, N);
+    tabensure_init(csound, p->out, N);
     int32_t mode = op2mode(p->op->data, p->op->size-1);
     if(mode == -1) {
         return INITERR(Str("cmp: unknown operator. "
@@ -1018,7 +1017,7 @@ cmparray2_init(CSOUND *csound, Cmp_array2 *p) {
 
     // make sure that we can put the result in `out`,
     // grow the array if necessary
-    tabensure(csound, p->out, N);
+    tabensure_init(csound, p->out, N);
     int32_t mode = op2mode(p->op->data, p->op->size-1);
     if(mode == -1) {
         return INITERR(Str("cmp: unknown operator. "
@@ -1031,7 +1030,7 @@ cmparray2_init(CSOUND *csound, Cmp_array2 *p) {
 static int32_t
 cmp2array1_init(CSOUND *csound, Cmp2_array1 *p) {
     int32_t N = p->in->sizes[0];
-    tabensure(csound, p->out, N);
+    tabensure_init(csound, p->out, N);
 
     char *op1 = (char*)p->op1->data;
     int32_t op1size = p->op1->size - 1;
@@ -1143,10 +1142,12 @@ cmp_ak(CSOUND *csound, Cmp *p) {
 
 static int32_t
 cmparray1_k(CSOUND *csound, Cmp_array1 *p) {
+    int32_t L = p->in->sizes[0];
+    tabensure_perf(csound, p->out, L);
+
     MYFLT *out = p->out->data;
     MYFLT *in  = p->in->data;
     MYFLT k1 = *p->k1;
-    int32_t L = p->out->sizes[0];
     int32_t i;
 
     switch(p->mode) {
@@ -1193,11 +1194,13 @@ cmparray1_i(CSOUND *csound, Cmp_array1 *p) {
 
 static int32_t
 cmp2array1_k(CSOUND *csound, Cmp2_array1 *p) {
+    int32_t L = p->in->sizes[0];
+    tabensure_perf(csound, p->out, L);
+
     MYFLT *out = p->out->data;
     MYFLT *in  = p->in->data;
     MYFLT a = *p->a;
     MYFLT b = *p->b;
-    int32_t L = p->out->sizes[0];
     int32_t i;
     MYFLT x;
 
@@ -1238,12 +1241,13 @@ cmp2array1_i(CSOUND *csound, Cmp2_array1 *p) {
 
 static int32_t
 cmparray2_k(CSOUND *csound, Cmp_array2 *p) {
+    int32_t L = p->in1->sizes[0];
+    tabensure_perf(csound, p->out, L);
+
     MYFLT *out = p->out->data;
     MYFLT *in1  = p->in1->data;
     MYFLT *in2  = p->in2->data;
-    int32_t L = p->out->sizes[0];
     int32_t i;
-
     switch(p->mode) {
     case 0:
         for(i=0; i<L; i++) {
@@ -1388,7 +1392,7 @@ tab2array_init(CSOUND *csound, TAB2ARRAY *p) {
     if(numitems < 0) {
         return PERFERR(Str("tab2array: can't copy a negative number of items"));
     }
-    tabensure(csound, p->out, numitems);
+    tabensure_init(csound, p->out, numitems);
     p->numitems = numitems;
     return OK;
 }
@@ -1404,8 +1408,9 @@ tab2array_k(CSOUND *csound, TAB2ARRAY *p) {
     int numitems = (int) (ceil((end - start) / (double)step));
     if(numitems < 0)
         return PERFERR(Str("tab2array: can't copy a negative number of items"));
-    if(numitems > p->numitems) {
-        tabensure(csound, p->out, numitems);
+
+    if(numitems != p->numitems) {
+        tabensure_perf(csound, p->out, numitems);
         p->numitems = numitems;
     }
     MYFLT *out   = p->out->data;
@@ -1890,7 +1895,7 @@ array_binop_init(CSOUND *csound, BINOP_AAA *p) {
     for(i=0; i<p->in1->dimensions; i++) {
         numitems *= p->in1->sizes[i];
     }
-    tabensure(csound, p->out, numitems);
+    tabensure_init(csound, p->out, numitems);
     p->numitems = numitems;
     return OK;
 }
@@ -1898,6 +1903,7 @@ array_binop_init(CSOUND *csound, BINOP_AAA *p) {
 static int32_t
 array_or(CSOUND *csound, BINOP_AAA *p) {
     int32_t numitems = p->numitems;
+    tabensure_perf(csound, p->out, numitems);
     int32_t i;
     MYFLT *out = p->out->data;
     MYFLT *in1 = p->in1->data;
@@ -1913,6 +1919,8 @@ array_or(CSOUND *csound, BINOP_AAA *p) {
 static int32_t
 array_and(CSOUND *csound, BINOP_AAA *p) {
     int32_t numitems = p->numitems;
+    tabensure_perf(csound, p->out, numitems);
+
     int32_t i;
     MYFLT *out = p->out->data;
     MYFLT *in1 = p->in1->data;
