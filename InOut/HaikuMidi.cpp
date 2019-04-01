@@ -251,7 +251,7 @@ static BMidiProducer *FindProducer(const char *name)
 	
 
 MidiIn::MidiIn(const char *name) :
-nodename(name), extSource(NULL)
+nodename(name), extSource(NULL), handler(NULL)
 {
 	if (!name || !*name) return;	// empty name -- don't publish
 	extSource = FindProducer(name);
@@ -294,6 +294,7 @@ MidiIn::~MidiIn()
 
 uint32 MidiIn::GetEvent() {
 	uint32 ev = handler->nextevent;
+	if (!handler) return 0;
 	if (ev != 0) {
 		handler->nextevent = 0;
 		release_sem(handler->midi_in_sem);

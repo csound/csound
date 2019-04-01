@@ -163,7 +163,8 @@ static int midi_in_open(CSOUND *csound, void **userData, const char *devName)
 {
 	MidiIn *hmidi = new MidiIn(devName);
 	if (*devName == '?') {	// was a query -- don't proceed
-		return -1;
+		delete hmidi;
+		exit(1);
 	}
 	*userData = hmidi;
 	setSigMidi(csound);
@@ -183,7 +184,6 @@ static int midi_in_read(CSOUND *csound,
 		for (int i=0; i<ev.Size(); i++) buf[bufpos++] = *evp++;
 	}
 	return bufpos;
-	return 0;
 }
 
 
