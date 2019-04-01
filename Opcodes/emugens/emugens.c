@@ -1386,7 +1386,7 @@ tab2array_init(CSOUND *csound, TAB2ARRAY *p) {
         end = ftp->flen;
     int numitems = (int) (ceil((end - start) / (float)step));
     if(numitems < 0) {
-        return PERFERR(Str("tab2array: can't copy a negative number of items"));
+        return PERFERR(Str("tab2array: cannot copy a negative number of items"));
     }
     tabensure(csound, p->out, numitems);
     p->numitems = numitems;
@@ -1403,7 +1403,7 @@ tab2array_k(CSOUND *csound, TAB2ARRAY *p) {
         end = ftp->flen;
     int numitems = (int) (ceil((end - start) / (double)step));
     if(numitems < 0)
-        return PERFERR(Str("tab2array: can't copy a negative number of items"));
+        return PERFERR(Str("tab2array: cannot copy a negative number of items"));
     if(numitems > p->numitems) {
         tabensure(csound, p->out, numitems);
         p->numitems = numitems;
@@ -1485,7 +1485,7 @@ arrayreshape(CSOUND *csound, ARRAYRESHAPE *p) {
         a->sizes[1] = numcols;
         return OK;
     }
-    return PERFERR(Str("reshapearray: can't reshape"));
+    return PERFERR(Str("reshapearray: cannot reshape"));
 }
 
 
@@ -1582,7 +1582,7 @@ void str_replace(char *dest, const char *src, const char *needle,
 static int32_t
 arrayprint_init(CSOUND *csound, ARRAYPRINTK *p) {
     if(p->in->arrayType->varTypeName[0] == 'S' && p->in->dimensions > 1)
-        return INITERR(Str("can't print multidimensional string arrays"));
+        return INITERR(Str("cannot print multidimensional string arrays"));
     if(p->in->dimensions > 2)
         return INITERRF(Str("only 1-D and 2-D arrays supported, got %d dimensions"),
                         p->in->dimensions);

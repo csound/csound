@@ -558,7 +558,7 @@ char* get_arg_type2(CSOUND* csound, TREE* tree, TYPE_TABLE* typeTable)
 
       if (var->varType == &CS_VAR_TYPE_ARRAY) {
         char *res = create_array_arg_type(csound, var);
-        if (res==NULL) {        /* REVIEW this double syntax error */
+        if (res==NULL) {        /* **REVIEW** this double syntax error */
           synterr(csound, Str("Array of unknown type\n"));
           csoundMessage(csound, Str("Line: %d\n"), tree->line);
           do_baktrace(csound, tree->locn);
