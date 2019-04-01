@@ -164,7 +164,7 @@ users.  There have been many fixes to the core code as well as opcodes.
 
 ### Platform Specific
 
-- WebAudio:
+- WebAudio: libsndfile now compiled with FLAC and Ogg Vorbis support.
 
 - iOS
 
