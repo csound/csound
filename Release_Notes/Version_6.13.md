@@ -54,6 +54,8 @@ users.  There have been many fixes to the core code as well as opcodes.
 - reading and writing to multidimensional arrays was very wrong.  This
   is now correct.
 
+- Better checking for unknown arrray types (issue #1124)
+
 ### Score
 
 - The characters n and m could erroneously get ignored in scores.
@@ -181,9 +183,10 @@ users.  There have been many fixes to the core code as well as opcodes.
 
 ==END==
 ------------------------------------------------------------------------
-commit 1b8a1a7cc3c89a44d193d93b873482dc2e5807d2
+commit 645a278131e0f913b6dc95e17d09106b04754a27 (HEAD -> develop, origin/develop, origin/HEAD)
 Author: John ffitch <jpff@codemist.co.uk>
-Date:   Mon Mar 25 15:07:13 2019 +0000
+Date:   Mon Apr 1 16:02:15 2019 +0100
+
 
 commit 8276f5097ff8847617eec4e48d6191b829e42763
 Author: Eduardo Moguillansky <eduardo.moguillansky@gmail.com>
