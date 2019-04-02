@@ -184,14 +184,18 @@ char* get_array_sub_type(CSOUND* csound, char* arrayName) {
 char* create_array_arg_type(CSOUND* csound, CS_VARIABLE* arrayVar) {
 
     int i, len = arrayVar->dimensions + 3;
-    char* retVal = csound->Malloc(csound, len);
-    retVal[len - 1] = '\0';
-    retVal[len - 2] = ']';
-    retVal[len - 3] = *arrayVar->subType->varTypeName;
-    for (i = len - 4; i >= 0; i--) {
+    if (arrayVar->subType!=NULL) {
+      char* retVal = csound->Malloc(csound, len);
+      retVal[len - 1] = '\0';
+      retVal[len - 2] = ']';
+      retVal[len - 3] = *arrayVar->subType->varTypeName;
+      for (i = len - 4; i >= 0; i--) {
         retVal[i] = '[';
+      }
+      return retVal;
     }
-    return retVal;
+    else
+      return NULL;
 }
 
 /* this checks if the annotated type exists */
@@ -553,7 +557,13 @@ char* get_arg_type2(CSOUND* csound, TREE* tree, TYPE_TABLE* typeTable)
       }
 
       if (var->varType == &CS_VAR_TYPE_ARRAY) {
-        return create_array_arg_type(csound, var);
+        char *res = create_array_arg_type(csound, var);
+        if (res==NULL) {        /* **REVIEW** this double syntax error */
+          synterr(csound, Str("Array of unknown type\n"));
+          csoundMessage(csound, Str("Line: %d\n"), tree->line);
+          do_baktrace(csound, tree->locn);
+        }
+        return res;
       } else {
         return cs_strdup(csound, var->varType->varTypeName);
       }

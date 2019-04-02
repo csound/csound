@@ -61,7 +61,6 @@
 ./H/extract.h
 ./H/fftlib.h
 ./H/fgens.h
-./H/find_opcode.h
 ./H/insert.h
 ./H/linevent.h
 ./H/lpc.h
@@ -499,6 +498,7 @@
 ./include/csound_standard_types.h
 ./include/csound_type_system.h
 ./include/cwindow.h
+./include/find_opcode.h
 ./include/float-version.h
 ./include/interlocks.h
 ./include/msg_attr.h

@@ -50,8 +50,8 @@ tabensure_perf(CSOUND *csound, ARRAYDAT *p, int size)
             p->data = (MYFLT*) csound->ReAlloc(csound, p->data, ss);
             p->allocated = ss;
         }
+        p->sizes[0] = size;
     }
-    p->sizes[0] = size;
 }
 
 #endif
