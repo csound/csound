@@ -1909,7 +1909,6 @@ array_or(CSOUND *csound, BINOP_AAA *p) {
     MYFLT *in1 = p->in1->data;
     MYFLT *in2 = p->in2->data;
 
-    // TODO: ensure size AND shape
     for(i=0; i<numitems; i++) {
         *(out++) = (MYFLT)((int32_t)*(in1++) | (int32_t)*(in2++));
     }
