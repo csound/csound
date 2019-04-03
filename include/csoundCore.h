@@ -79,7 +79,7 @@ extern "C" {
 #include <xlocale.h>
 #endif
 
-#if (defined(__MACH__) || defined(ANDROID) || defined(NACL) || defined(__CYGWIN__))
+#if (defined(__MACH__) || defined(ANDROID) || defined(NACL) || defined(__CYGWIN__) || defined(__HAIKU__))
 #include <pthread.h>
 #define BARRIER_SERIAL_THREAD (-1)
 typedef struct {

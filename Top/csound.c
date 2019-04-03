@@ -3445,7 +3445,11 @@ PUBLIC void csoundReset(CSOUND *csound)
     csoundCreateGlobalVariable(csound, "_RTAUDIO", (size_t) max_len);
     s = csoundQueryGlobalVariable(csound, "_RTAUDIO");
 #ifndef LINUX
-    strcpy(s, "PortAudio");
+ #ifdef __HAIKU__
+      strcpy(s, "haiku");
+ #else
+      strcpy(s, "PortAudio");
+ #endif
 #else
     strcpy(s, "alsa");
 #endif
@@ -3468,7 +3472,11 @@ PUBLIC void csoundReset(CSOUND *csound)
     strcpy(s, "null");
     if (csound->enableHostImplementedMIDIIO == 0)
 #ifndef LINUX
-    strcpy(s, "portmidi");
+ #ifdef __HAIKU__
+      strcpy(s, "haiku");
+ #else
+      strcpy(s, "portmidi");
+ #endif
 #else
     strcpy(s, "alsa");
 #endif
