@@ -617,7 +617,7 @@ set(HEADERS_TO_CHECK
     unistd.h io.h fcntl.h stdint.h
     sys/time.h sys/types.h termios.h
     values.h winsock.h sys/socket.h
-    dirent.h inttypes.h)
+    dirent.h inttypes.h execinfo.h)
 
 foreach(header ${HEADERS_TO_CHECK})
     # Convert to uppercase and replace [./] with _
@@ -631,6 +631,9 @@ if (NOT HAVE_INTTYPES_H)
     message(FATAL_ERROR "Csound requires inttypes.h")
 endif()
 
+if (HAVE_EXECINFO_H)
+    add_definitions("-DHAVE_EXECINFO")
+endif()
 
 check_deps(USE_LRINT HAVE_LRINT)
 if(USE_LRINT)
