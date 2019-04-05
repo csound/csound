@@ -139,16 +139,16 @@ static  const   char    *plugindir64_envvar = "OPCODE6DIR64";
 #ifdef __HAIKU__
 # ifndef USE_DOUBLE
    static char haikudirs[] = "/boot/system/lib/csound6/plugins:"
-	"/boot/home/config/lib/csound6/plugins:"
-	"/boot/system/non-packaged/lib/csound6/plugins:"
-	"/boot/home/config/non-packaged/lib/csound6/plugins";
+        "/boot/home/config/lib/csound6/plugins:"
+        "/boot/system/non-packaged/lib/csound6/plugins:"
+        "/boot/home/config/non-packaged/lib/csound6/plugins";
 # else
    static char haikudirs[] = "/boot/system/lib/csound6/plugins64:"
-	"/boot/home/config/lib/csound6/plugins64:"
-	"/boot/system/non-packaged/lib/csound6/plugins64:"
-	"/boot/home/config/non-packaged/lib/csound6/plugins64";
+        "/boot/home/config/lib/csound6/plugins64:"
+        "/boot/system/non-packaged/lib/csound6/plugins64:"
+        "/boot/home/config/non-packaged/lib/csound6/plugins64";
 # endif
-# define CS_DEFAULT_PLUGINDIR  haikudirs 
+# define CS_DEFAULT_PLUGINDIR  haikudirs
 #elif !(defined(_CSOUND_RELEASE_) && (defined(LINUX) || defined(__MACH__)))
 #  define ENABLE_OPCODEDIR_WARNINGS 1
 #  ifdef CS_DEFAULT_PLUGINDIR
@@ -425,7 +425,7 @@ int csoundLoadModules(CSOUND *csound)
     ':';
 #endif
 #ifdef __HAIKU__
-	int dfltdir = 0;
+        int dfltdir = 0;
 #endif
 
     if (UNLIKELY(csound->csmodule_db != NULL))
@@ -445,7 +445,7 @@ int csoundLoadModules(CSOUND *csound)
 #ifdef  CS_DEFAULT_PLUGINDIR
         dname = CS_DEFAULT_PLUGINDIR;
  #ifdef __HAIKU__
-		dfltdir = 1;
+                dfltdir = 1;
  #endif
 #else
       dname = "";
@@ -476,8 +476,8 @@ int csoundLoadModules(CSOUND *csound)
 
     dir = opendir(dname1);
     if (UNLIKELY(dir == (DIR*) NULL)) {
- #if defined(__HAIKU__) 
-	if(!dfltdir)
+ #if defined(__HAIKU__)
+        if(!dfltdir)
  #endif
       csound->Warning(csound, Str("Error opening plugin directory '%s': %s"),
                                dname1, strerror(errno));
