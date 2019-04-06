@@ -247,6 +247,7 @@
 ./Opcodes/emugens/beosc.c
 ./Opcodes/emugens/emugens.c
 ./Opcodes/emugens/scugens.c
+./Opcodes/emugens/emugens_common.h
 ./Opcodes/eqfil.c
 ./Opcodes/exciter.c
 ./Opcodes/fareygen.c

@@ -13,7 +13,7 @@
 // Ensure the existence and size of the array at i-time ONLY if
 // array has not been initialized, so we don't need to check intialization
 // at k-time
-static inline void 
+static inline void
 tabensure_init(CSOUND *csound, ARRAYDAT *p, int size)
 {
     if (p->data == NULL || p->dimensions == 0) {
