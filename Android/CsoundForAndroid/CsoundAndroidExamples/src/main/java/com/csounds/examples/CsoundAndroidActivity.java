@@ -45,13 +45,14 @@ import com.csounds.examples.tests.PingPongDelayActivity;
 import com.csounds.examples.tests.SimpleTest1Activity;
 import com.csounds.examples.tests.SimpleTest2Activity;
 import com.csounds.examples.tests.WaveviewTestActivity;
+import com.csounds.examples.tests.beathealth.CSoundEngineActivity;
 
 public class CsoundAndroidActivity extends BaseCsoundActivity {
 
-	String[] testNames = new String[] { "Simple Test 1", "Simple Test 2", "Button Test", 
+	String[] testNames = new String[] {"CSound mp3 player test",  "Simple Test 1", "Simple Test 2", "Button Test",
 			"Ping Pong Delay", "Harmonizer", "Accelerometer", "Csound Haiku IV", "MultiTouch XY", "Waveview"};
 	@SuppressWarnings("rawtypes")
-	Class[] activities = new Class[] { SimpleTest1Activity.class, SimpleTest2Activity.class, 
+	Class[] activities = new Class[] {  CSoundEngineActivity.class,SimpleTest1Activity.class, SimpleTest2Activity.class,
 			ButtonTestActivity.class, PingPongDelayActivity.class, HarmonizerActivity.class, 
 			AccelerometerActivity.class, CsoundHaikuIVActivity.class, MultiTouchXYActivity.class,
 			WaveviewTestActivity.class};
