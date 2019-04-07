@@ -215,7 +215,5 @@ compile_commands.json
 CMakeLists.txt.user
 
 *.autosave
-Android/CsoundForAndroid/CsoundForAndroid.iml
-Android/CsoundForAndroid/CsoundAndroidExamples/CsoundAndroidExamples.iml
 Android/CsoundForAndroid/.idea/caches/build_file_checksums.ser
 Android/CsoundForAndroid/.idea/caches/gradle_models.ser
