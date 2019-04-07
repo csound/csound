@@ -18,15 +18,15 @@
 <CsoundSynthesizer>
 <CsOptions>
 ; --- Settings for MotoG 3rd ---
-; -odac -dm0 -b960            ;Sync Csound
+;-odac -dm0 -b960            ;Sync Csound
 -odac -dm0 -b480            ;Sync Csound MotoG3 Android 6.0.1, 5.1.1
-;-odac -b1920 -B3840	;ASync Csound + MotoG //FP190303
 ;-odac -dm0 -b960 -B1920    ;Async Csound
 </CsOptions>
 <CsInstruments>
 
+;sr = 54000
 sr = 48000  ;HTC One M7 , Moto G 3
-; sr=44100    ;MotoG
+;sr=44100    ;MotoG
 ksmps = 96
 ; ksmps = 120
 0dbfs = 1
@@ -314,12 +314,43 @@ endin
 
 </CsInstruments>
 <CsScore>
-
-; the line below activates track control channel messages
-
+;f 0 36000
+/* the line below 
+   activates track control 
+   channel messages
+*/
 i100 0 36000
+/*
+or they can be load directly
+e.g.
+*/
 
+/*
+i2.2 1 -1 "/Users/victor/src/csound6/debug/sine.mp3" 500
+i1.2 1.1 5
+*/
+
+/*
+and finished with
+i-1.1 0 1 0 0
+*/
 
 </CsScore>
 </CsoundSynthesizer>
-
+<bsbPanel>
+ <label>Widgets</label>
+ <objectName/>
+ <x>100</x>
+ <y>100</y>
+ <width>320</width>
+ <height>240</height>
+ <visible>true</visible>
+ <uuid/>
+ <bgcolor mode="nobackground">
+  <r>255</r>
+  <g>255</g>
+  <b>255</b>
+ </bgcolor>
+</bsbPanel>
+<bsbPresets>
+</bsbPresets>

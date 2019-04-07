@@ -312,11 +312,6 @@ public class CSoundEngineActivity extends Activity implements
 
 
     @Override
-    public void audioRemaining(long trackRemainingPosMs, long beatsRemainingPosMs) {
-        // clog("audioRemaining=" + trackRemainingPosMs + " " + beatsRemainingPosMs);
-    }
-
-    @Override
     public void audioProgress(int playPos, int trackRemainingPos, int beatsRemainingPos, float playbackTempo) {
 //alog("position " + Integer.toString(position), false);
     }
