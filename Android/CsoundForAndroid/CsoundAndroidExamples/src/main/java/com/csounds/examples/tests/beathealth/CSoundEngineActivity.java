@@ -41,7 +41,7 @@ import ap.players.CsoundAudioEngine;
 
 public class CSoundEngineActivity extends Activity implements
     CsoundObjListener, IAudioFinishedCallback, View.OnClickListener {
-//will be splitted in a activity + a service
+//to be tested MP3 player with pitch control: CSoundEngineActivity
 
     private static final String TAG = "bhtest1";// PlayerActivityclass.getSimpleName();
     private static final boolean LOG = true;
