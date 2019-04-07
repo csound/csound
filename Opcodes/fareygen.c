@@ -122,6 +122,7 @@ static int32_t fareytable (FGDATA *ff, FUNC *ftp)
     mode = (int32_t) *pp2;
     farey_length = FareyLength(fareyseq);
     flist = (RATIO*) csound->Calloc(csound, farey_length*sizeof(RATIO));
+    if (ff->flen <= 0) return csound->ftError(ff, Str("Illegal table size"));
 
     GenerateFarey (fareyseq, flist, farey_length);
 
