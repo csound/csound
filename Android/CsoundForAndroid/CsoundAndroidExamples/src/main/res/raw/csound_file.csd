@@ -24,9 +24,10 @@
 </CsOptions>
 <CsInstruments>
 
-;sr = 54000
+
 sr = 48000  ;HTC One M7 , Moto G 3
 ;sr=44100    ;MotoG
+
 ksmps = 96
 ; ksmps = 120
 0dbfs = 1

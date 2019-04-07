@@ -15,8 +15,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 import ap.api.IAudioEngine;
+
 import ap.api.IAudioFinishedCallback;
-import ap.data.AnnotationFile;
 import ap.data.Constants;
 import ap.data.Song;
 
@@ -88,85 +88,11 @@ public class MediaHelper {
         return song;
     }
 
-    /**
-     * Get array of beat locations in millis from annotation file
-     *
-     * @return
-     */
-    private AnnotationFile getDataFromAnnotationFile(String mp3FilePath) {
-        File csvFile = new File(mp3FilePath.replace(".mp3", ".txt"));
-        ArrayList<Integer> beats = new ArrayList<Integer>();
-        float bpm = 0;
-        clog("Trying to open beat file...");
-        try{
-            // the default correction to apply to mp3 files based on the
-            // csound mp3 decoder (and goldwave, audacity also)
-            BufferedReader reader = new BufferedReader(new FileReader(csvFile));
-            reader.readLine(); //BEATHEALTH_ANNOTATION
-            bpm = Float.parseFloat(reader.readLine()); //BPM
-            reader.readLine(); //ACTIVATION [0.0-1.0]
-
-            String beatPos = null;
-            do {
-                beatPos = reader.readLine(); //read a beat
-                if (beatPos != null) {
-                    int beat = (int)(Float.parseFloat(beatPos)*1000);
-                    // convert to from seconds to milliseconds
-                    // and account for mp3 decoder delay which shifts sounds
-                    // later than original annotations
-                    beats.add(beat + Constants.beatAnnotationMp3DelayMs); //FP190227
-                }
-            }
-            while (beatPos != null);
-            reader.close();
-            clog(String.format("Successfully read %d beats from file %s",
-                    beats.size(), csvFile));
-        } catch(Exception e){
-
-            clog("Beat file not found: "+e.getMessage());
-            return null;
-        }
-        return new AnnotationFile(bpm, 0, toIntArray(beats));
-    }
-
-    /**
-     * Get BPM of song from annotation file
-     *
-     * @return
-     */
-    private AnnotationFile getBPMFromAnnotationFile(String mp3FilePath) {
-        File csvFile = new File(mp3FilePath.replace(".mp3", ".txt"));
-        float bpm = 0;
-        clog("Trying to open beat file for BPM reading...");
-        try{
-            BufferedReader reader = new BufferedReader(new FileReader(csvFile));
-            reader.readLine(); //BEATHEALTH_ANNOTATION
-            bpm = Float.parseFloat(reader.readLine()); //BPM
-            reader.close();
-            clog("Read Beats file: "+csvFile);
-        } catch(Exception e){
-            clog("Beat file not found or garbled: " + e.getMessage());
-            return null;
-        }
-        return new AnnotationFile(bpm, 0, null);
-    }
-
-
 
 
     private Song songAtCursor(Cursor cursor, boolean readBeatsEnabled) {
         final String path = cursor.getString(cursor.getColumnIndex(Constants.PATH));
-        AnnotationFile anofile;
-        if (readBeatsEnabled) {
-            anofile = getDataFromAnnotationFile(path);
-        } else {
-            anofile = getBPMFromAnnotationFile(path);
-        }
 
-        if (anofile == null) { // no annotation means this is not a valid file for us
-           // clog(String.format("Song has no annotation: %s", path));
-           // return null;
-        }
         int dummybpm = 100;
         int[] dummybeats={1,2,3,4,5,6,7,8,9};
 
