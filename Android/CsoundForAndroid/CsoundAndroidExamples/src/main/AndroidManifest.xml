@@ -27,7 +27,11 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        
+        <activity
+            android:name=".tests.beathealth.CSoundEngineActivity"
+            android:configChanges="orientation"
+            android:label="CSound mp3 player Test"
+            android:screenOrientation="portrait" />
         <activity
             android:label="@string/simple_test_name"
             android:name=".tests.SimpleTest1Activity"
