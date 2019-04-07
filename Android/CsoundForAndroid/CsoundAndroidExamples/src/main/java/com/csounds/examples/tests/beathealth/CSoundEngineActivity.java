@@ -7,7 +7,6 @@ import android.os.Bundle;
 import android.os.Environment;
 import android.os.Handler;
 import android.os.SystemClock;
-
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.widget.LinearLayoutManager;
@@ -21,37 +20,27 @@ import android.widget.SearchView.OnQueryTextListener;
 import android.widget.SeekBar;
 import android.widget.SeekBar.OnSeekBarChangeListener;
 import android.widget.TextView;
-
 import com.csounds.CsoundObj;
 import com.csounds.CsoundObjListener;
 import com.csounds.examples.R;
-
 import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
-import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.io.OutputStream;
-import java.nio.channels.FileChannel;
 import java.util.ArrayList;
 import java.util.List;
-
 import ap.api.IAudioEngine;
 import ap.api.IAudioFinishedCallback;
-import ap.data.Constants;
 import ap.data.Song;
 import ap.helpers.MediaHelper;
-
 import ap.helpers.SongAdapter;
 import ap.players.CsoundAudioEngine;
 
 
 public class CSoundEngineActivity extends Activity implements
-        CsoundObjListener, IAudioFinishedCallback, View.OnClickListener {
+    CsoundObjListener, IAudioFinishedCallback, View.OnClickListener {
 //will be splitted in a activity + a service
 
     private static final String TAG = "bhtest1";// PlayerActivityclass.getSimpleName();
@@ -59,13 +48,13 @@ public class CSoundEngineActivity extends Activity implements
     private static final String BEATRUN_SONGS = "beatrunsongs.csv";
     private int logline;
     final static int POLLING_DELAY_MS = 100;
-    private  Float tempo = Constants.TEMPO_MOD_BASE;
+    private Float tempo = 1.f;
 
 
     protected CsoundObj csoundObj = new CsoundObj(false, false);
     protected Handler handler = new Handler();
-    private List<Song> songz_ = new ArrayList<Song>();
-    private TextView pitchView_;
+    private List<Song> songz = new ArrayList<Song>();
+    private TextView pitchView;
 
     private void clog(String m) {
         if (LOG)
@@ -78,37 +67,13 @@ public class CSoundEngineActivity extends Activity implements
 
     private static final long initCurrentTimeMs = System.currentTimeMillis();
 
-    /**
-     * Fuses wall time at app startup with real time (monotonic) clock
-     *
-     * @return time in millis
-     */
+
     public static long getAccurateTimeMs() {
-//        return (initTime + ((System.nanoTime() - initNano)/1000000)); //timestamp
         return (initCurrentTimeMs + SystemClock.elapsedRealtime() - initElapsedRealtimeMs); //timestamp
     }
 
-    //High resolution, accurate to nanos but relative to phone power on
-//	private static final long initNano = System.nanoTime();
     private static final long initElapsedRealtimeMs = SystemClock.elapsedRealtime();
-
-
-    private int beatAnnotationMp3DelayMs = 25;
-    private int moducnt;
-
-
     private IAudioEngine audioengine;
-
-
-    private int songid_ = 0;
-/*
-    private String[] test = {"REM;It_s the End of the World"
-            , "The Cast of Cheers;Trucks at Night"
-            , "Daft Punk;Lose Yourself to Dance"
-            , "Danko Jones;Gonna Be a Fight Tonight"};
-*/
-
-    // private List<String> songLines = new ArrayList<>();
     private List<Song> songList = new ArrayList<>();
 
     private RecyclerView songView;
@@ -128,12 +93,12 @@ public class CSoundEngineActivity extends Activity implements
         //searchView.clearFocus();
         searchView.onActionViewCollapsed();
         titlev.setTextSize(15);
-        setText_(titlev, "touch a title to play it !");
+        setText(titlev, "touch a title to play it !");
     }
 
     @Override
     public void setStatus(String s) {
-        setText_(titlev, s);
+        setText(titlev, s);
     }
 
     @Override
@@ -159,7 +124,6 @@ public class CSoundEngineActivity extends Activity implements
     };
 
 
-
     private SeekBar seekBar;
 
     @Override
@@ -174,8 +138,8 @@ public class CSoundEngineActivity extends Activity implements
         seekBar = (SeekBar) findViewById(R.id.seekBar);
         seekBar.setOnSeekBarChangeListener(seekBarChangeListener);
         logview = (TextView) findViewById(R.id.logView);
-        pitchView_ = (TextView) findViewById(R.id.pitchView);
-        pitchView_.setText("pitch=0.0 bpm=0");
+        pitchView = (TextView) findViewById(R.id.pitchView);
+        pitchView.setText("pitch=0.0 bpm=0");
 
         Button newb = (Button) findViewById(R.id.btn_next);
         Button playb = (Button) findViewById(R.id.btn_play);
@@ -192,41 +156,29 @@ public class CSoundEngineActivity extends Activity implements
     }
 
 
-    @Override
-    public int getUsableLength(Song song) {
-        for(Song s:songz_){
-            if (s.id==song.id)
-                return (int)s.usableMs;
-        }
-        return -1;
-    }
-
 
 
     void startPolling() {
-
         handler.postDelayed(pollCsoundForUpdates, POLLING_DELAY_MS);
     }
 
     void cancelPolling() {
-
         handler.removeCallbacks(pollCsoundForUpdates);
     }
-
-
 
 
     @Override
     public void selectSong(final Song song) {
         handler.post(new Runnable() {
             public void run() {
-                if (MediaHelper.getInstance(CSoundEngineActivity.this).startPlaybackWithTempo(song,tempo,getAccurateTimeMs())) {
+                if (MediaHelper.getInstance(CSoundEngineActivity.this).startPlaybackWithTempo(song, tempo, getAccurateTimeMs())) {
                     currentSong = song;
                     startPolling();
                 }
             }
         });
     }
+
     @Override
     public void csoundObjStarted(CsoundObj csoundObj) {
         handler.post(new Runnable() {
@@ -294,9 +246,7 @@ public class CSoundEngineActivity extends Activity implements
     }
 
 
-
-
-    private void setText_(final TextView tv_, final String msg) {
+    private void setText(final TextView tv_, final String msg) {
         runOnUiThread(new Runnable() {
             @Override
             public void run() {
@@ -310,13 +260,10 @@ public class CSoundEngineActivity extends Activity implements
     }
 
 
-
     @Override
     public void audioProgress(int playPos, int trackRemainingPos, int beatsRemainingPos, float playbackTempo) {
 //alog("position " + Integer.toString(position), false);
     }
-
-
 
 
     @Override
@@ -339,8 +286,6 @@ public class CSoundEngineActivity extends Activity implements
             else*/
             startNextSong(tempo);
         }
-
-
     }
 
 
@@ -356,7 +301,6 @@ public class CSoundEngineActivity extends Activity implements
             }
         });
     }
-
 
 
     @Override
@@ -434,24 +378,21 @@ public class CSoundEngineActivity extends Activity implements
     };
 
 
-
     @Override
     public void updateTempo(final float tempo, final float bpm) {
         runOnUiThread(new Runnable() {
             @Override
             public void run() {
-                float progr = tempo-1.0f;
-                progr *=100.f;
-                seekBar.setProgress((int)progr);
-                pitchView_.setText(String.format("pitch=%.2f bpm=%.3f",tempo, bpm));
+                float progr = tempo - 1.0f;
+                progr *= 100.f;
+                seekBar.setProgress((int) progr);
+                pitchView.setText(String.format("pitch=%.2f bpm=%.3f", tempo, bpm));
             }
         });
     }
 
-
     protected String getResourceFileAsString(int resId) {
         StringBuilder str = new StringBuilder();
-
         InputStream is = getResources().openRawResource(resId);
         BufferedReader r = new BufferedReader(new InputStreamReader(is));
         String line;
@@ -463,13 +404,11 @@ public class CSoundEngineActivity extends Activity implements
         } catch (IOException ios) {
 
         }
-
         return str.toString();
     }
 
     protected File createTempFile(String csd) {
         File f = null;
-
         try {
             f = File.createTempFile("temp", ".csd", this.getCacheDir());
             FileOutputStream fos = new FileOutputStream(f);
@@ -483,81 +422,27 @@ public class CSoundEngineActivity extends Activity implements
         return f;
     }
 
-
-    private static void copyFileUsingStream(File source, File dest) throws IOException {
-        InputStream is = null;
-        OutputStream os = null;
-        try {
-            is = new FileInputStream(source);
-            os = new FileOutputStream(dest);
-            byte[] buffer = new byte[1024];
-            int length;
-            while ((length = is.read(buffer)) > 0) {
-                os.write(buffer, 0, length);
-            }
-        } finally {
-            is.close();
-            os.close();
-        }
-    }
-
-    private static void copyFileUsingChannel(File source, File dest) throws IOException {
-        FileChannel sourceChannel = null;
-        FileChannel destChannel = null;
-        try {
-            sourceChannel = new FileInputStream(source).getChannel();
-            destChannel = new FileOutputStream(dest).getChannel();
-            destChannel.transferFrom(sourceChannel, 0, sourceChannel.size());
-        }finally{
-            sourceChannel.close();
-            destChannel.close();
-        }
-    }
-
-    private void copyMp3(File source){
-       // File dir = new File(Environment.getExternalStorageDirectory() + "/Music");
-        File dir =new File(Environment.getExternalStorageDirectory() + "/Music/BeatRun");
-        if (!dir.exists())
-             dir.mkdirs();
-        File dest = new File(dir.getAbsolutePath()+"/"+source.getName());
-        if (! dest.exists()) {
-            try {
-                copyFileUsingStream(source, dest);
-                clog(dest.getAbsolutePath());
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-        }
-    }
-
-
     private void startup() {
-        File dir =new File(Environment.getExternalStorageDirectory() + "/Download");
-        //File dir = this.getApplicationContext().getExternalFilesDir(Environment.DIRECTORY_DOWNLOADS);
+        File dir = new File(Environment.getExternalStorageDirectory() + "/Download");
         File filesInDirectory[] = dir.listFiles();
         if (filesInDirectory != null) {
             for (int i = 0; i < filesInDirectory.length; i++) {
                 File f = filesInDirectory[i];
                 clog(f.getAbsolutePath());
                 if (f.getAbsolutePath().endsWith("mp3"))
-                  ;//  copyMp3(f);
+                    ;//  copyMp3(f);
                 //clog(f.getAbsolutePath());
             }
         }
         init();
     }
 
-
     private void init() {
         songList = MediaHelper.getInstance(this).readAllSongs();
-        //saveSongCsv();
-        //readSongCsvFile();
         layoutManager = new LinearLayoutManager(getApplicationContext());
         songView.setLayoutManager(layoutManager);
-        // songView.setItemAnimator(new DefaultItemAnimator());
         mAdapter = new SongAdapter(this, songList);//null;//new MyAdapter(myDataset);
         songView.setAdapter(mAdapter);
-        //mAdapter.notifyDataSetChanged();
         initCSoundEngine();
         audioengine.setCompletionListener(this); // song finished callback
 
@@ -590,61 +475,6 @@ public class CSoundEngineActivity extends Activity implements
         }
     }
 
-    protected String readSongCsvFile() {
-        String name = BEATRUN_SONGS;
-        String result = "";
-        try {
-            File dir = new File(Environment.getExternalStorageDirectory() + "/Download");
-            FileReader reader = new FileReader(dir + "/" + name);
-            BufferedReader bufferedReader = new BufferedReader(reader);
-            String line;
-            while ((line = bufferedReader.readLine()) != null) {
-                result += line;
-                String[] ws=line.split(";");
-                String row="";
-                int i=0;
-                for(String w:ws){
-                    row+=w+" ";
-                }
-                clog(row);
-                Song s = new Song();
-                s.usableFromCsv(line);
-                songz_.add(s);
-            }
-            reader.close();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        return result;
-    }
-
-
-    private void saveSongCsv() {
-        String r = "";
-        for (Song s : songList) {
-            r += s.toCsv() + "\n";
-        }
-        write(BEATRUN_SONGS,r);
-    }
-
-
-
-    private void write(String fileName,String fileContents){
-        File dir = new File(Environment.getExternalStorageDirectory() + "/Download");
-        File file = new File(dir, fileName);
-        try {
-            FileOutputStream fos = new FileOutputStream(file);
-            fos.write(fileContents.getBytes());
-            clog("write1 "+file.getAbsolutePath());
-        } catch (FileNotFoundException e) {
-            e.printStackTrace();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-    }
-
-
-
     private void startNextRandomSong() {
         currentSong = MediaHelper.getInstance(this).startRandomSong(tempo);
         startPolling();
@@ -653,14 +483,14 @@ public class CSoundEngineActivity extends Activity implements
     private void startNextSong(float tempo) {
         currentSong = MediaHelper.getInstance(this).loadNextSong(currentSong);
         if (currentSong != null) {
-            if (!MediaHelper.getInstance(this).startSongImmediatelyWithTempo(currentSong, tempo, false,getAccurateTimeMs())) {
+            if (!MediaHelper.getInstance(this).startSongImmediatelyWithTempo(currentSong, tempo, false, getAccurateTimeMs())) {
                 alog("unable to start song " + currentSong.title, true);
-                setText_(titlev, "unable to start song " + currentSong.title);
+                setText(titlev, "unable to start song " + currentSong.title);
             } else
                 startPolling();
         } else {
             alog("no song available", true);
-            setText_(titlev, "no song available");
+            setText(titlev, "no song available");
         }
     }
 
@@ -670,7 +500,7 @@ public class CSoundEngineActivity extends Activity implements
         @Override
         public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
             tempo = 1.0f + (progress / 100.0f);
-            audioengine.setTempo_(tempo);
+            audioengine.setTempo(tempo);
             String v = Float.toString(tempo);
             alog(v, false);
         }

@@ -12,6 +12,5 @@ public interface IAudioFinishedCallback {
 	void setStatus(String s);
 	IAudioEngine getAudioEngine();
 	void setTitle(String t);
-    int getUsableLength(Song song);
 	void updateTempo(float newplaybackTempo, float newPlaybackBPM);
 }

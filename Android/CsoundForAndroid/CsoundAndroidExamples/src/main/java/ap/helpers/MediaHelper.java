@@ -4,23 +4,14 @@ import android.content.ContentResolver;
 import android.content.Context;
 import android.database.Cursor;
 import android.net.Uri;
-import android.os.Environment;
 import android.provider.MediaStore;
 import android.util.Log;
-
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileReader;
 import java.util.ArrayList;
 import java.util.List;
-
 import ap.api.IAudioEngine;
-
 import ap.api.IAudioFinishedCallback;
-import ap.data.Constants;
 import ap.data.Song;
 
-//import static com.csounds.examples.tests.beathealth.CSoundEngineActivity.getAccurateTimeMs;
 
 /**
  * @author fpfister
@@ -29,8 +20,7 @@ public class MediaHelper {
     private static final String TAG = "bhtest5";
     private static final boolean LOG = true;
 
-    private float DUMMY_BPM = 100.0f;
-    private int[] DUMMY_BEATS = {1, 2, 3, 4};
+
     private Context context;
     private IAudioEngine audioEngine;
 
@@ -63,60 +53,30 @@ public class MediaHelper {
         return instance;
     }
 
-    private Song songAtCursor_old(Cursor cursor, boolean readBeatsEnabled) {
-        final String path = cursor.getString(cursor.getColumnIndex(Constants.PATH));
-
-     /*
-        AnnotationFile afile_;
-        if (readBeatsEnabled)
-            afile_ = getDataFromAnnotationFile(path);
-        else
-            afile_ = getBPMFromAnnotationFile(path);
-
-        if (afile_ == null) { // no annotation means this is not a valid file for us
-            if (LOG) clog(String.format("Song has no annotation: %s", path));
-            return null;
-        }
-        */
-        Song song = new Song(cursor.getString(cursor.getColumnIndex(Constants.ARTIST)),
-                cursor.getString(cursor.getColumnIndex(Constants.TRACK_NAME)),
-                DUMMY_BPM,
-                cursor.getLong(cursor.getColumnIndex(Constants.DURATION)),
-                path,
-                DUMMY_BEATS,
-                cursor.getInt(cursor.getColumnIndex(Constants.TRACK_ID)));
-        return song;
-    }
-
-
-
     private Song songAtCursor(Cursor cursor, boolean readBeatsEnabled) {
-        final String path = cursor.getString(cursor.getColumnIndex(Constants.PATH));
+        final String path = cursor.getString(cursor.getColumnIndex(MediaStore.Audio.Media.DATA));
 
         int dummybpm = 100;
         int[] dummybeats={1,2,3,4,5,6,7,8,9};
 
-        Song song = new Song(cursor.getString(cursor.getColumnIndex(Constants.ARTIST)),
-                cursor.getString(cursor.getColumnIndex(Constants.TRACK_NAME)),
+        Song song = new Song(cursor.getString(cursor.getColumnIndex(MediaStore.Audio.Media.ARTIST)),
+                cursor.getString(cursor.getColumnIndex(MediaStore.Audio.Media.TITLE)),
                 dummybpm,// afile.bpm,
-                cursor.getLong(cursor.getColumnIndex(Constants.DURATION)),
+                cursor.getLong(cursor.getColumnIndex(MediaStore.Audio.Media.DURATION)),
                 path,
                 dummybeats,
-                cursor.getInt(cursor.getColumnIndex(Constants.TRACK_ID)));
-
-
+                cursor.getInt(cursor.getColumnIndex(MediaStore.Audio.Media._ID)));
         clog(song.getFullString());
         return song;
     }
 
 
-
-    //loadSong"REM" ,"It_s the End of the World")
     public Song loadSong(String artist, String title) {
         Song result = null;
         ContentResolver contentResolver = context.getContentResolver();
         Uri uri = android.provider.MediaStore.Audio.Media.EXTERNAL_CONTENT_URI;
-        String[] projection = {Constants.TRACK_ID, Constants.TRACK_NAME, Constants.ARTIST, Constants.DURATION, Constants.PATH};
+        String[] projection = {MediaStore.Audio.Media._ID, MediaStore.Audio.Media.TITLE,
+            MediaStore.Audio.Media.ARTIST, MediaStore.Audio.Media.DURATION, MediaStore.Audio.Media.DATA};
         String selection = MediaStore.Audio.Media.IS_MUSIC + " != 0";
         Cursor cursor = null;
         try {
@@ -145,7 +105,8 @@ public class MediaHelper {
     public List<Song> readAllSongs() {
         List<Song> results = new ArrayList<>();
         Uri uri = android.provider.MediaStore.Audio.Media.EXTERNAL_CONTENT_URI;
-        String[] projection = {Constants.TRACK_ID, Constants.TRACK_NAME, Constants.ARTIST, Constants.DURATION, Constants.PATH};
+        String[] projection = {MediaStore.Audio.Media._ID, MediaStore.Audio.Media.TITLE,
+            MediaStore.Audio.Media.ARTIST, MediaStore.Audio.Media.DURATION, MediaStore.Audio.Media.DATA};
         String selection = MediaStore.Audio.Media.IS_MUSIC + " != 0";
         Cursor cursor = null;
         try {
@@ -164,28 +125,12 @@ public class MediaHelper {
                     clog(s_.getFullString());
                     results.add(s_);
                 } else
-                    clog("no song available" + cursor.getString(cursor.getColumnIndex(Constants.PATH)));
+                    clog("no song available" + cursor.getString(cursor.getColumnIndex(MediaStore.Audio.Media.DATA)));
             } while (cursor.moveToNext());
         }
         if (cursor != null)
             cursor.close();
         return results;
-    }
-
-
-
-    public  boolean startPlaybackWithBpm(Song song, float bpm,long timeNowMs) {
-        if (song != null) {
-            if (!startSongImmediately(song, bpm, false,timeNowMs)) {
-                log("unable to start song " + song.title);
-                setStatus("unable to start song " + song.title);
-            } else
-                return true;
-        } else {
-            log("no song available");
-            setStatus("no song available");
-        }
-        return false;
     }
 
     public  boolean startPlaybackWithTempo(Song song, float tempo,long timeNowMs) {
@@ -223,14 +168,14 @@ public class MediaHelper {
         //long timeNowMs = getAccurateTimeMs();
         // set start position if requested and enough info available
         int startPosMs = startAtFirstBeat ? song.getFirstBeatMs() : 0;
-        float newTempoMod = Constants.TEMPO_MOD_BASE;
+        float newTempoMod = 1.f;
         // set tempo mod if enough info available
         /* //FP190407
         if ((bpm > 0) && (song.bpm_ > 0)) {
             newTempoMod = bpm / song.bpm_;
         }*/
         return startPlayback(song, newTempoMod, startPosMs,
-                timeNowMs + Constants.CSOUND_LATENCY, false);
+                timeNowMs + 60, false);
     }
 
 
@@ -241,7 +186,7 @@ public class MediaHelper {
         // set start position if requested and enough info available
         int startPosMs = startAtFirstBeat ? song.getFirstBeatMs() : 0;
         return startPlayback(song, tempo, startPosMs,
-                timeNowMs + Constants.CSOUND_LATENCY, false);
+                timeNowMs + 60, false);
     }
 
 
@@ -285,7 +230,8 @@ public class MediaHelper {
        // dfg  MediaHelper.getInstance(this).
         Song result = null;
         Uri uri = android.provider.MediaStore.Audio.Media.EXTERNAL_CONTENT_URI;
-        String[] projection = {Constants.TRACK_ID, Constants.TRACK_NAME, Constants.ARTIST, Constants.DURATION, Constants.PATH};
+        String[] projection = {MediaStore.Audio.Media._ID,  MediaStore.Audio.Media.TITLE,
+            MediaStore.Audio.Media.ARTIST, MediaStore.Audio.Media.DURATION, MediaStore.Audio.Media.DATA};
         String selection = MediaStore.Audio.Media.IS_MUSIC + " != 0";
         Cursor cursor = null;
         try {
@@ -324,7 +270,8 @@ public class MediaHelper {
         Song result = null;
         ContentResolver contentResolver = context.getContentResolver();
         Uri uri = android.provider.MediaStore.Audio.Media.EXTERNAL_CONTENT_URI;
-        String[] projection = {Constants.TRACK_ID, Constants.TRACK_NAME, Constants.ARTIST, Constants.DURATION, Constants.PATH};
+        String[] projection = {MediaStore.Audio.Media._ID, MediaStore.Audio.Media.TITLE,
+            MediaStore.Audio.Media.ARTIST, MediaStore.Audio.Media.DURATION, MediaStore.Audio.Media.DATA};
         String selection = MediaStore.Audio.Media.IS_MUSIC + " != 0";
         Cursor cursor = null;
         try {

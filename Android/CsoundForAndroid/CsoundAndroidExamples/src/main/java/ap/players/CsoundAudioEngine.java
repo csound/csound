@@ -28,7 +28,7 @@ import com.csounds.CsoundObj;
 
 import ap.api.IAudioEngine;
 import ap.api.IAudioFinishedCallback;
-import ap.data.Constants;
+
 import ap.data.Song;
 import csnd6.Csound;
 
@@ -39,8 +39,6 @@ import csnd6.Csound;
  *
  * @author econway
  * Created: Feb 21, 2014 12:15:48 PM
- * @author fpfister
- * 19-03-07
  */
 public class CsoundAudioEngine implements IAudioEngine<IAudioFinishedCallback> {
     private static final String TAG_ = "bhtestb";
@@ -62,24 +60,15 @@ public class CsoundAudioEngine implements IAudioEngine<IAudioFinishedCallback> {
     private static final String CS_TEMPO1 = "tempo1.";
     private static final String CS_TIME1 = "time1.";
     private static final String CS_TIME_TOEND1 = "timeToEnd1.";
-
-
     private IAudioFinishedCallback client;
-
-
     private int audioMixPercent = 50;
     private int audioFadeInMs = 0;
     private int audioFadeOutMs = 250;
 
-    private int usableLength;
+
 
     private static CsoundAudioEngine instance;
     private boolean songLoaded;
-
-
-    private boolean isSongReady() {
-        return getCurrentSong() != null;
-    }
 
     public static CsoundAudioEngine getInstance(Context context) {
         if (instance == null)
@@ -93,8 +82,8 @@ public class CsoundAudioEngine implements IAudioEngine<IAudioFinishedCallback> {
     }
 
     private Context context = null;
-    float playbackBPM = Constants.RATE_UNKNOWN_;
-    float playbackTempoMod = Constants.TEMPO_MOD_BASE; // initially no tempo change
+    float playbackBPM = -1;
+    float playbackTempoMod = 1.f; // initially no tempo change
     private TrackInfo tracks[]; // see ctor
     private TrackInfo currentTrack;
     private TrackInfo queueTrack;
@@ -115,15 +104,6 @@ public class CsoundAudioEngine implements IAudioEngine<IAudioFinishedCallback> {
 
     private int getTrackRemainingPos() {
         return (int) csound.GetChannel(CS_TIME_TOEND1 + currentTrack.trackNumber);
-    }
-    private int getBeatsRemainingPos(int currentplay) { //TODO read the bpmz
-        int remaining = -1;//Constants.POS_UNKNOWN__;
-        int[] beats = currentTrack.song.beatsMs;
-        if (beats == null || beats.length < 2)
-            remaining = Constants.POS_UNKNOWN__;
-        else
-            remaining = (int) (beats[beats.length - 1] - currentplay);
-        return remaining;
     }
 
 
@@ -239,7 +219,6 @@ public class CsoundAudioEngine implements IAudioEngine<IAudioFinishedCallback> {
 
     @Override
     public void enqueue(Song song, int offsetMs) {
-
         doEnqueue(song, offsetMs);
     }
 
@@ -288,24 +267,6 @@ public class CsoundAudioEngine implements IAudioEngine<IAudioFinishedCallback> {
     }
 
 
-  /*
-    private void start() {
-        if (LOG)
-            clog("start()");
-        // we assume that queueTrack always contains queued song
-        if (!isSongReady()) {
-            clog("start: no song ready");
-            return;
-        } else if (isPlaying()) {
-            clog("start: a song is already playing");
-            return;
-        } else if (isPaused())
-            startFromPause();
-        else if (isStopped())
-            startFromStopped();
-    }
-*/
-
     @Override
     public void pause() {
         csound.SetChannel(CS_PLAY, 2); // pause it
@@ -350,13 +311,13 @@ public class CsoundAudioEngine implements IAudioEngine<IAudioFinishedCallback> {
     }
 
     public float getAndUpdateCurrentTrackPlaybackTempo() {
-        if ((playbackTempoMod == Constants.TEMPO_MOD_UNKNOWN_)
+        if ((playbackTempoMod == -1)
                 && currentTrack.isSongUsable()) {
           playbackTempoMod = csound.GetChannel(CS_TEMPO1 + currentTrack.trackNumber);
-            if (currentTrack.song.bpm_ != Constants.RATE_UNKNOWN_)
+            if (currentTrack.song.bpm_ != -1)
                 playbackBPM = playbackTempoMod * currentTrack.song.bpm_;
             else
-                playbackBPM = Constants.RATE_UNKNOWN_;
+                playbackBPM = -1;
             onCompletionListener.updateTempo(playbackTempoMod,playbackBPM);//have changed so have been re_read from csound
         }
         return playbackTempoMod;
@@ -364,7 +325,7 @@ public class CsoundAudioEngine implements IAudioEngine<IAudioFinishedCallback> {
 
 
 
-    public void setAndPrepareUpdateCurrentTrackPlaybackTempo_(float tempo) {
+    public void setAndPrepareUpdateCurrentTrackPlaybackTempo(float tempo) {
         clog(String.format("setPlaybackTempo: tempo %.4f", tempo));
         if (tempo <= 0)
             throw new IllegalArgumentException("tempo must be a positive float, was: " + tempo);
@@ -372,8 +333,8 @@ public class CsoundAudioEngine implements IAudioEngine<IAudioFinishedCallback> {
         // FIXME: what about correctly setting tempo of other track if it is still playing
         clog(String.format("setChannel: tempo1.%d %.4f", currentTrack.trackNumber, tempo));
         // update the playbackTempoMod the next time that getPlaybackTempo is called
-        playbackTempoMod = Constants.TEMPO_MOD_UNKNOWN_;
-        playbackBPM = Constants.RATE_UNKNOWN_;
+        playbackTempoMod = -1;
+        playbackBPM = -1;
     }
 
 
@@ -382,16 +343,15 @@ public class CsoundAudioEngine implements IAudioEngine<IAudioFinishedCallback> {
         enqueue(song, startPosMs);
         if (songLoaded) {
             crossfadeToQueuedTrack(startPosMs);
-            setAndPrepareUpdateCurrentTrackPlaybackTempo_(tempo);
-            usableLength = onCompletionListener.getUsableLength(song); //experimental
-        }
+            setAndPrepareUpdateCurrentTrackPlaybackTempo(tempo);
+             }
         return songLoaded;
     }
 
 
     @Override
-    public void setTempo_(final Float f) {
-        setAndPrepareUpdateCurrentTrackPlaybackTempo_(f);
+    public void setTempo(final Float f) {
+        setAndPrepareUpdateCurrentTrackPlaybackTempo(f);
     }
 
     private void startFromStopped() { //FP180305 the bug

@@ -21,10 +21,12 @@
 ;-odac -dm0 -b960            ;Sync Csound
 -odac -dm0 -b480            ;Sync Csound MotoG3 Android 6.0.1, 5.1.1
 ;-odac -dm0 -b960 -B1920    ;Async Csound
+;-odac
 </CsOptions>
 <CsInstruments>
 
-
+;sr = 44100
+;ksmps = 32
 sr = 48000  ;HTC One M7 , Moto G 3
 ;sr=44100    ;MotoG
 

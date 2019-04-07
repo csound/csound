@@ -19,7 +19,7 @@ public interface IAudioEngine<T> {
     boolean startPlayback(Song song, float tempo,int startPosMs, long startTimeMs,boolean compensateAudioLatency);
       void setCSoundObj(CsoundObj csoundObj);
     void csoundStart();
-    void setTempo_(final Float f);
+    void setTempo(final Float f);
     void csoundStop();
     void update();
 }
