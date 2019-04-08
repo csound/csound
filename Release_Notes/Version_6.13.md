@@ -33,7 +33,7 @@ users.  There have been many fixes to the core code as well as opcodes.
 ### New opcodes
 
 - string2array is a variant of fillarray with he data coming from a
-  string of with space separated values.
+  string of space separated values.
 
 - nstrstr returns the name string of an instrument number or an empty
   string if the number does not refer to a named instrument.
@@ -177,6 +177,8 @@ users.  There have been many fixes to the core code as well as opcodes.
 - MacOS
 
 - GNU/Linux
+
+- Haiku port now available.
 
 - Bela
  - allow analog in and out with different channel numbers.

@@ -111,7 +111,9 @@ static void rtplay_(CSOUND *csound, const MYFLT *outbuf, int nbytes)
 	Generator * gen = (Generator *)*csound->GetRtPlayUserData(csound);
 	if (!gen) return;
 	if (gen->mBufSize*(sizeof(MYFLT)/sizeof(float)) < (size_t)nbytes) {	// we assume MYFLT === double for now...
-		csound->ErrorMsg(csound, "buffer mismatch! source %d <>  dest %ld\n", nbytes, gen->mBufSize);
+          csound->ErrorMsg(csound,
+                           Str("buffer mismatch! source %d <>  dest %ld\n"),
+                           nbytes, gen->mBufSize);
 		return;
 	}
 	gen->mXferSize = nbytes;
