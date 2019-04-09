@@ -170,7 +170,7 @@ public:
 
   /** midi pitchbend for this channel
    */
-  MYFLT midi_chn_pitchbend() {
+  MYFLT midi_chn_pitchbend(OPDS *p) {
     return GetMidiChannel(p)->pchbend;
   }
 
@@ -179,7 +179,7 @@ public:
       MIDI note number. Inactive instances are marked NULL.
    */
   const INSDS *midi_chn_list(OPDS *p) {
-    return GetMidiChannel(p)->kinsptr;
+    return (const INSDS *) GetMidiChannel(p)->kinsptr;
   }
 
   /** deinit registration for a given plugin class
