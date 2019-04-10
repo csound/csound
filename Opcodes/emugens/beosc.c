@@ -1170,12 +1170,12 @@ tabrowcopyarr_init(CSOUND *csound, TABROWCOPYARR *p) {
     if(end > *p->inumcols)
       return INITERR(Str("tabrowlin: iend cannot be bigger than numcols"));
     if(end == 0)
-      end = *p->inumcols;
+      end = (uint32_t) *p->inumcols;
     if(end <= start) {
       return INITERR(Str("tabrowlin: end must be bigger than start"));
     }
     p->end = end;
-    uint32_t numitems = (uint32_t)ceil((end - start) / (float)step);
+    uint32_t numitems = (uint32_t) (ceil((end - start) / (MYFLT)step));
     if(numitems <= 0) {
       return INITERR(Str("tabrowlin: no items to copy"));
     }
@@ -1258,7 +1258,7 @@ getrowlin_init(CSOUND *csound, GETROWLIN *p) {
     int step  = (int)*p->kstep;
     if (end < 1)
       end = p->inarr->sizes[1];
-    int numitems = (int)ceil((end - start) / (float)step);
+    int numitems = (int) (ceil((end - start) / (MYFLT)step));
 
     tabensure_init(csound, p->outarr, numitems);
     p->numitems = numitems;
@@ -1275,7 +1275,7 @@ getrowlin_k(CSOUND *csound, GETROWLIN *p) {
     if (end <= 0) {
       end = p->inarr->sizes[1];
     }
-    int numitems = (int)ceil((end - start) / (float)step);
+    int numitems = (int) (ceil((end - start) / (MYFLT)step));
     int numcols  = p->inarr->sizes[1];
     if(numitems > numcols)
       return PERFERROR(Str("Asked to read too many items from a row"));
@@ -1357,8 +1357,9 @@ static OENTRY localops[] = {
 
     // aout beadsynt kFreq[], kAmp[], kBw[],
     //               inumosc=-1, iflags=1, kfreq=1, kbw=1, ifn=-1, iphs=-1
-    {"beadsynt", S(BEADSYNT), TR, 3, "a", "k[]k[]k[]jpPPjj",
+    {"beadsynt", S(BEADSYNT), TR, 3, "a", ".[].[].[]jpPPjj",
      (SUBR)beadsynt_init_array, (SUBR)beadsynt_perf },
+
 
     // tabrowlin krow, ifnsrc, ifndest, inumcols,
     //                 ioffset=0, istart=0, iend=0, istep=1
