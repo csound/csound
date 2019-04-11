@@ -3362,7 +3362,9 @@ PUBLIC void csoundReset(CSOUND *csound)
     }
 
     if (msgcallback_ != NULL) {
-      csoundSetMessageCallback(csound, msgcallback_);
+     csoundSetMessageCallback(csound, msgcallback_);
+    } else {
+     csoundSetMessageCallback(csound, csoundDefaultMessageCallback);
     }
     csound->printerrormessagesflag = (void*)1234;
     /* copysystem environment variables */
