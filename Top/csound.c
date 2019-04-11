@@ -3346,25 +3346,25 @@ PUBLIC void csoundReset(CSOUND *csound)
     int     i, max_len;
     OPARMS  *O = csound->oparms;
     if (csound->engineStatus & CS_STATE_COMP ||
-       csound->engineStatus & CS_STATE_PRE) {
+        csound->engineStatus & CS_STATE_PRE) {
      /* and reset */
       csound->Message(csound, "resetting Csound instance\n");
       reset(csound);
       /* clear compiled flag */
       csound->engineStatus |= ~(CS_STATE_COMP);
     } else {
-     csoundSpinLockInit(&csound->spoutlock);
-     csoundSpinLockInit(&csound->spinlock);
-     csoundSpinLockInit(&csound->memlock);
-     csoundSpinLockInit(&csound->spinlock1);
-     if (UNLIKELY(O->odebug))
+      csoundSpinLockInit(&csound->spoutlock);
+      csoundSpinLockInit(&csound->spinlock);
+      csoundSpinLockInit(&csound->memlock);
+      csoundSpinLockInit(&csound->spinlock1);
+      if (UNLIKELY(O->odebug))
         csound->Message(csound,"init spinlocks\n");
     }
 
     if (msgcallback_ != NULL) {
-     csoundSetMessageCallback(csound, msgcallback_);
+      csoundSetMessageCallback(csound, msgcallback_);
     } else {
-     csoundSetMessageCallback(csound, csoundDefaultMessageCallback);
+      csoundSetMessageCallback(csound, csoundDefaultMessageCallback);
     }
     csound->printerrormessagesflag = (void*)1234;
     /* copysystem environment variables */
@@ -3374,8 +3374,6 @@ PUBLIC void csoundReset(CSOUND *csound)
       csound->Die(csound, Str("Failed during csoundInitEnv"));
     }
     csound_init_rand(csound);
-
-
 
     csound->engineState.stringPool = cs_hash_table_create(csound);
     csound->engineState.constantsPool = cs_hash_table_create(csound);
