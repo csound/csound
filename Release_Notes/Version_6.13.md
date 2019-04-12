@@ -156,13 +156,16 @@ users.  There have been many fixes to the core code as well as opcodes.
 
 ### System Changes
 
--
+- plugin GEN functions can have a zero length, but the code must check
+  for this and act accordingly.  This alows for deferred allocations.
 
 ### Translations
 
 ### API
 
 - find_opcode_new and find_opcode_exact now exposed in API.
+
+- After a the default Reset a default message string callback handle is configured
 
 ### Platform Specific
 
@@ -185,9 +188,15 @@ users.  There have been many fixes to the core code as well as opcodes.
 
 ==END==
 ------------------------------------------------------------------------
-commit 645a278131e0f913b6dc95e17d09106b04754a27 (HEAD -> develop, origin/develop, origin/HEAD)
+commit 2b9aa03727c732021a840098fe23bd88e51d7bf3 (HEAD -> develop, origin/develop, origin/HEAD)
 Author: John ffitch <jpff@codemist.co.uk>
-Date:   Mon Apr 1 16:02:15 2019 +0100
+Date:   Thu Apr 11 16:32:30 2019 +0100
+
+commit 3be0e5eed52785b80b9bf7fac7909245a28dd192
+Author: veplaini <victor.lazzarini@nuim.ie>
+Date:   Tue Apr 9 08:43:18 2019 +0100
+
+    fixed CPOF midi functions
 
 
 commit 8276f5097ff8847617eec4e48d6191b829e42763
