@@ -1513,7 +1513,7 @@ int verify_opcode(CSOUND* csound, TREE* root, TYPE_TABLE* typeTable) {
       //fprintf(stderr, "left=%p\n", left);
       //fprintf(stderr, "left->value=%p\n", left->value);
       //fprintf(stderr, "left->value->lexeme=%p\n", left->value->lexeme);
-      fprintf(stderr, "opname = %s\n", oentry->opname);
+      //fprintf(stderr, "opname = %s\n", oentry->opname);
       if (csound->oparms->sampleAccurate &&
           (strcmp(oentry->opname, "=.a")==0) &&
           (left!=NULL) && (left->value!=NULL) &&
