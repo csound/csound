@@ -1525,22 +1525,18 @@ int verify_opcode(CSOUND* csound, TREE* root, TYPE_TABLE* typeTable) {
         }
         oentry = entries->entries[i];
       }
-#ifdef JPFF
       else {
         if (csound->oparms->sampleAccurate &&
             (strcmp(oentry->opname, "=._")==0) &&
             (left->value->lexeme[0]=='a'))
           {
-            printf("array suspicion\n");
-            print_tree(csound, "suspect", left);  
-        int i = 0;
-        while (strcmp(entries->entries[i]->opname, "=.L")) {
-          //printf("not %d %s\n",i, entries->entries[i]->opname);
-          i++;
-        }
-        oentry = entries->entries[i];
+            int i = 0;
+            while (strcmp(entries->entries[i]->opname, "=.L")) {
+              //printf("not %d %s\n",i, entries->entries[i]->opname);
+              i++;
+            }
+            oentry = entries->entries[i];
           }
-#endif
       }
       root->markup = oentry;
     }
