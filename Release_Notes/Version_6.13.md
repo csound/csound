@@ -152,7 +152,8 @@ users.  There have been many fixes to the core code as well as opcodes.
 
 # SYSTEM LEVEL CHANGES
 
--
+- Hash Table implementation modified to expand on load for better performance
+  when map contains large number of entries
 
 ### System Changes
 
@@ -169,7 +170,7 @@ users.  There have been many fixes to the core code as well as opcodes.
 
 ### Platform Specific
 
-- WebAudio: libsndfile now compiled with FLAC and Ogg Vorbis support.
+- WebAudio: libsndfile now compiled with FLAC and OGG support.
 
 - iOS
 
