@@ -144,7 +144,7 @@ static void free_opcode_table(CSOUND* csound) {
     CS_HASH_TABLE_ITEM* bucket;
     CONS_CELL* head;
 
-    for (i = 0; i < HASH_SIZE; i++) {
+    for (i = 0; i < csound->opcodes->table_size; i++) {
       bucket = csound->opcodes->buckets[i];
 
       while (bucket != NULL) {
