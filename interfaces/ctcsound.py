@@ -1525,6 +1525,8 @@ class Csound:
     
     #def setMessageCallback():
     
+    #def setMessageStringCallback()
+    
     def messageLevel(self):
         """Returns the Csound message level (from 0 to 231)."""
         return libcsound.csoundGetMessageLevel(self.cs)
