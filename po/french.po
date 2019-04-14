@@ -477,9 +477,8 @@ msgstr ""
 "Lige %d\n"
 
 #: Engine/csound_orc_semantics.c:562
-#, fuzzy
 msgid "Array of unknown type\n"
-msgstr "type nommé inconnu"
+msgstr "Tableau de type inconnu\n"
 
 #: Engine/csound_orc_semantics.c:563 Engine/csound_orc_semantics.c:1502
 #, c-format
@@ -880,9 +879,8 @@ msgid "illegal gen number"
 msgstr "numéro de GEN interdit"
 
 #: Engine/fgens.c:232
-#, fuzzy
 msgid "deferred size for GENs 1, 2, 23, 28 or 49 only"
-msgstr "taille différée seulement pour GEN1, GEN2, GEN23, GEN28 et GEN49"
+msgstr "taille différée seulement pour GENs 1, 2, 23, 28 et 49"
 
 #: Engine/fgens.c:235 Engine/fgens.c:289
 #, c-format
@@ -3359,23 +3357,20 @@ msgstr "rtaudio : module AuHAL activé\n"
 #: InOut/rthaiku.cpp:119
 #, c-format
 msgid "buffer mismatch! source %d <>  dest %ld\n"
-msgstr ""
+msgstr "tampons non assortis ! source %d <> dest %ld\n"
 
 #: InOut/rthaiku.cpp:242
-#, fuzzy
 msgid "Haiku real-time audio and MIDI module for Csound by Pete Goodeve\n"
 msgstr ""
-"Modules ALSA audio en temps réel et MIDI pour Csound par Istvan Varga\n"
+"Module Haiku audio en temps réel et MIDI pour Csound par Pete Goodeve\n"
 
 #: InOut/rthaiku.cpp:264
-#, fuzzy
 msgid "rtaudio: Haiku module enabled\n"
-msgstr "rtaudio : module WinMM activé\n"
+msgstr "rtaudio : module Haiku activé\n"
 
 #: InOut/rthaiku.cpp:279
-#, fuzzy
 msgid "rtmidi: Haiku module enabled\n"
-msgstr "rtmidi : module WinMM activé\n"
+msgstr "rtmidi : module Haiku activé\n"
 
 #: InOut/rtjack.c:214
 msgid " *** WARNING: disabling --sched in freewheel mode\n"
@@ -7017,9 +7012,9 @@ msgid "expecting a char between A and G, but got %c\n"
 msgstr "caractère a attendu entre A et G, mais %c obtenu\n"
 
 #: Opcodes/emugens/emugens.c:792
-#, fuzzy, c-format
+#, c-format
 msgid "format not understood, note: %s, notelen: %d\n"
-msgstr "format non compris\n"
+msgstr "format non compris, note : %s, longNote : %d\n"
 
 #: Opcodes/emugens/emugens.c:992 Opcodes/emugens/emugens.c:1005
 #: Opcodes/emugens/emugens.c:1023
@@ -7035,57 +7030,54 @@ msgid "cmp (ternary comparator): operator 1 expected <"
 msgstr "cmp (comparateur ternaire) : opérateur 1 attendu <"
 
 #: Opcodes/emugens/emugens.c:1393
-#, fuzzy
 msgid "tab2array: cannot copy a negative number of items"
 msgstr "tab2array : impossible de copier un nombre négatif d'items"
 
 #: Opcodes/emugens/emugens.c:1410
-#, fuzzy
 msgid "tab2array: can't copy a negative number of items"
 msgstr "tab2array : impossible de copier un nombre négatif d'items"
 
 #: Opcodes/emugens/emugens.c:1493
-#, fuzzy
 msgid "reshapearray: cannot reshape"
 msgstr "reshapearray : reformatage impossible"
 
 #: Opcodes/emugens/emugens.c:1590
 msgid "cannot print multidimensional string arrays"
 msgstr ""
+"impossible d'afficher des tableaux de chaînes de caractères multidimensionnels"
 
 #: Opcodes/emugens/emugens.c:1592
 #, c-format
 msgid "only 1-D and 2-D arrays supported, got %d dimensions"
-msgstr ""
+msgstr "seuls les tableaux 1D et 2D sont supportés, %d dimensiions reçues"
 
 #: Opcodes/emugens/emugens.c:1727
-#, fuzzy, c-format
+#, c-format
 msgid "type not supported for printing: %s"
-msgstr "pas supporté sur ce terminal"
+msgstr "type non supporté à l'affichage : %s"
 
 #: Opcodes/emugens/emugens.c:1839
-#, fuzzy, c-format
+#, c-format
 msgid "Could not handle start index: %d"
-msgstr "la table %d est introuvable\n"
+msgstr "Impossible de traiter l'index de départ : %d"
 
 #: Opcodes/emugens/emugens.c:1847
-#, fuzzy, c-format
+#, c-format
 msgid "Could not handle end index: %d"
-msgstr "la table %d est introuvable\n"
+msgstr "Impossible de traiter l'index de fin : %d"
 
 #: Opcodes/emugens/emugens_common.h:9
-#, fuzzy, c-format
+#, c-format
 msgid "Array should be of 1D, but has %d dimensions"
-msgstr "Les tableaux doivent être unidimensionnels"
+msgstr "Le tableau devrait être 1D, mais il a %d dimensions"
 
 #: Opcodes/fareygen.c:116
 msgid "insufficient arguments for fareytable"
 msgstr "arguments insuffisants pour une table de Farey"
 
 #: Opcodes/fareygen.c:125
-#, fuzzy
 msgid "Illegal table size"
-msgstr "longueur de table illégale"
+msgstr "Longueur de table illégale"
 
 #: Opcodes/fareyseq.c:254 Opcodes/fareyseq.c:304
 #, c-format
@@ -7388,14 +7380,13 @@ msgid "ftconv: not initialised"
 msgstr "ftconv : non initialisé"
 
 #: Opcodes/ftest.c:36 Opcodes/ftest.c:55 Opcodes/ftest.c:77
-#, fuzzy
 msgid "Illegal zero table size"
-msgstr "longueur de table illégale"
+msgstr "Longueur de table nulle illégale"
 
 #: Opcodes/ftest.c:135
-#, fuzzy, c-format
+#, c-format
 msgid "Illegal zero table size %d"
-msgstr "longueur de table illégale"
+msgstr "Longueur de table nulle illégale %d"
 
 #: Opcodes/ftest.c:137
 msgid "ftable number does not exist\n"
@@ -8876,9 +8867,9 @@ msgid "No open glove"
 msgstr "Pas de gant ouvert"
 
 #: Opcodes/padsynth_gen.cpp:465
-#, fuzzy, c-format
+#, c-format
 msgid "Illegal table size %d"
-msgstr "longueur de table illégale"
+msgstr "Longueur de table illégale %d"
 
 #: Opcodes/pan2.c:45
 msgid "Unknown panning type"
