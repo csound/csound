@@ -83,7 +83,7 @@ users.  There have been many fixes to the core code as well as opcodes.
 
 - grain can now use tables of any size, which was only a power of 2.
 
-- Changing colours in FL widgets now works (it previously did nor redraw
+- Changing colours in FL widgets now works (it previously did not redraw
   the colour).
 
 - fillarray can read from a file of values overcoming the argument
@@ -150,6 +150,8 @@ users.  There have been many fixes to the core code as well as opcodes.
 
 - ftaudio at i-rate was totally broken.
 
+- following a reinit printks could be skipped; fixed
+
 # SYSTEM LEVEL CHANGES
 
 - Hash Table implementation modified to expand on load for better performance
@@ -158,7 +160,7 @@ users.  There have been many fixes to the core code as well as opcodes.
 ### System Changes
 
 - plugin GEN functions can have a zero length, but the code must check
-  for this and act accordingly.  This alows for deferred allocations.
+  for this and act accordingly.  This allows for deferred allocations.
 
 ### Translations
 
@@ -166,7 +168,7 @@ users.  There have been many fixes to the core code as well as opcodes.
 
 - find_opcode_new and find_opcode_exact now exposed in API.
 
-- After a the default Reset a default message string callback handle is configured
+- After a reset a default message string callback handle is configured.
 
 ### Platform Specific
 
@@ -189,9 +191,15 @@ users.  There have been many fixes to the core code as well as opcodes.
 
 ==END==
 ------------------------------------------------------------------------
-commit 2b9aa03727c732021a840098fe23bd88e51d7bf3 (HEAD -> develop, origin/develop, origin/HEAD)
+commit ac824f002e7f0e28c664600ac4d7d700ce9113a8 (HEAD -> develop, origin/develop, origin/HEAD)
+Author: Francois PINOT <fggpinot@gmail.com>
+Date:   Sun Apr 14 06:23:26 2019 +0200
+
+commit 9004981506b4639c4e58b6bd59f5e654bcca42ba
 Author: John ffitch <jpff@codemist.co.uk>
-Date:   Thu Apr 11 16:32:30 2019 +0100
+Date:   Fri Apr 12 21:40:30 2019 +0100
+
+    sample-accurate for array arithmetic and assignments
 
 commit 3be0e5eed52785b80b9bf7fac7909245a28dd192
 Author: veplaini <victor.lazzarini@nuim.ie>
