@@ -103,7 +103,7 @@ endif()
 check_deps(USE_ALSA ALSA_HEADER ALSA_LIBRARY PTHREAD_LIBRARY)
 if(USE_ALSA)
     set(rtalsa_LIBS
-        ${ALSA_LIBRARY} ${PTHREAD_LIBRARY} m)
+        ${ALSA_LIBRARY} ${PTHREAD_LIBRARY} ${MATH_LIBRARY})
     make_plugin(rtalsa rtalsa.c ${rtalsa_LIBS})
 endif()
 

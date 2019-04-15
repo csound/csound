@@ -213,7 +213,8 @@ int32_t printksset_(CSOUND *csound, PRINTKS *p, char *sarg)
       p->ctime = CS_ONEDKR;
     else
       p->ctime = *p->ptime * csound->ekr;
-    p->printat = CS_KCNT;
+    if(!p->h.insdshead->reinitflag)
+       p->printat = CS_KCNT;
     memset(p->txtstring, 0, 8192);   /* This line from matt ingalls */
     sdest = p->txtstring;
     /* Copy the string to the storage place in PRINTKS.
@@ -320,7 +321,8 @@ int32_t printksset_(CSOUND *csound, PRINTKS *p, char *sarg)
       /* Increment pointer and process next character until end of string.  */
       ++sarg;
     }
-    p->printat = CS_KCNT;
+    if(!p->h.insdshead->reinitflag)
+       p->printat = CS_KCNT;
     p->initialised = -1;
     return OK;
 }

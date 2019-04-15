@@ -184,14 +184,18 @@ char* get_array_sub_type(CSOUND* csound, char* arrayName) {
 char* create_array_arg_type(CSOUND* csound, CS_VARIABLE* arrayVar) {
 
     int i, len = arrayVar->dimensions + 3;
-    char* retVal = csound->Malloc(csound, len);
-    retVal[len - 1] = '\0';
-    retVal[len - 2] = ']';
-    retVal[len - 3] = *arrayVar->subType->varTypeName;
-    for (i = len - 4; i >= 0; i--) {
+    if (arrayVar->subType!=NULL) {
+      char* retVal = csound->Malloc(csound, len);
+      retVal[len - 1] = '\0';
+      retVal[len - 2] = ']';
+      retVal[len - 3] = *arrayVar->subType->varTypeName;
+      for (i = len - 4; i >= 0; i--) {
         retVal[i] = '[';
+      }
+      return retVal;
     }
-    return retVal;
+    else
+      return NULL;
 }
 
 /* this checks if the annotated type exists */
@@ -553,7 +557,13 @@ char* get_arg_type2(CSOUND* csound, TREE* tree, TYPE_TABLE* typeTable)
       }
 
       if (var->varType == &CS_VAR_TYPE_ARRAY) {
-        return create_array_arg_type(csound, var);
+        char *res = create_array_arg_type(csound, var);
+        if (res==NULL) {        /* **REVIEW** this double syntax error */
+          synterr(csound, Str("Array of unknown type\n"));
+          csoundMessage(csound, Str("Line: %d\n"), tree->line);
+          do_baktrace(csound, tree->locn);
+        }
+        return res;
       } else {
         return cs_strdup(csound, var->varType->varTypeName);
       }
@@ -1500,15 +1510,33 @@ int verify_opcode(CSOUND* csound, TREE* root, TYPE_TABLE* typeTable) {
       return 0;
     }
     else {
+      //fprintf(stderr, "left=%p\n", left);
+      //fprintf(stderr, "left->value=%p\n", left->value);
+      //fprintf(stderr, "left->value->lexeme=%p\n", left->value->lexeme);
+      //fprintf(stderr, "opname = %s\n", oentry->opname);
       if (csound->oparms->sampleAccurate &&
           (strcmp(oentry->opname, "=.a")==0) &&
-          left->value->lexeme[0]=='a') { /* Deal with sample accurate assigns */
+          (left!=NULL) && (left->value!=NULL) &&
+          (left->value->lexeme[0]=='a')) { /* Deal with sample accurate assigns */
         int i = 0;
         while (strcmp(entries->entries[i]->opname, "=.l")) {
           //printf("not %d %s\n",i, entries->entries[i]->opname);
           i++;
         }
         oentry = entries->entries[i];
+      }
+      else {
+        if (csound->oparms->sampleAccurate &&
+            (strcmp(oentry->opname, "=._")==0) &&
+            (left->value->lexeme[0]=='a'))
+          {
+            int i = 0;
+            while (strcmp(entries->entries[i]->opname, "=.L")) {
+              //printf("not %d %s\n",i, entries->entries[i]->opname);
+              i++;
+            }
+            oentry = entries->entries[i];
+          }
       }
       root->markup = oentry;
     }

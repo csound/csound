@@ -63,12 +63,12 @@ int32_t s_opcode_k(CSOUND *csound, STRGET_OP *p){
 
 static void str_set(CSOUND *csound, int32_t ndx, const char *s)
 {
-    if (csound->strsets == NULL) {
+    if (UNLIKELY(csound->strsets == NULL)) {
       csound->strsmax = STRSMAX;
       csound->strsets = (char **) csound->Calloc(csound, (csound->strsmax + 1)
                                                          * sizeof(char*));
     }
-    if (ndx > (int32_t) csound->strsmax) {
+    if (UNLIKELY(ndx > (int32_t) csound->strsmax)) {
       int32_t   i, newmax;
       /* assumes power of two STRSMAX */
       newmax = (ndx | (STRSMAX - 1)) + 1;
@@ -86,7 +86,7 @@ static void str_set(CSOUND *csound, int32_t ndx, const char *s)
     if (csound->strsets[ndx] != NULL) {
       if (strcmp(s, csound->strsets[ndx]) == 0)
         return;
-      if (csound->oparms->msglevel & WARNMSG) {
+      if (UNLIKELY(csound->oparms->msglevel & WARNMSG)) {
         csound->Warning(csound, Str("strset index conflict at %d"), ndx);
         csound->Warning(csound, Str("previous value: '%s', replaced with '%s'"),
                                 csound->strsets[ndx], s);
@@ -227,10 +227,9 @@ int32_t strassign_opcode_Sk(CSOUND *csound, STRCPY_OP *p)
 
 int32_t str_changed(CSOUND *csound, STRCHGD *p)
 {
-    if (p->mem == NULL) {
+    if (p->mem != NULL)
       csound->Free(csound, p->mem);
-      p->mem = cs_strdup(csound, p->str->data);
-    }
+    p->mem = cs_strdup(csound, p->str->data);
     *p->r = 0;
     return OK;
 }

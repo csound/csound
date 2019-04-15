@@ -228,7 +228,7 @@ int hfgens(CSOUND *csound, FUNC **ftpp, const EVTBLK *evtblkp, int mode)
       /* defer alloc to gen01|gen23|gen28 */
       ff.guardreq = 1;
       if (UNLIKELY(genum != 1 && genum != 2 && genum != 23 &&
-                   genum != 28 && genum != 49)) {
+                   genum != 28 && genum != 49 && genum<=GENMAX)) {
         return fterror(&ff, Str("deferred size for GENs 1, 2, 23, 28 or 49 only"));
       }
       if (UNLIKELY(msg_enabled))
