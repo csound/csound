@@ -128,7 +128,7 @@ void PS_MakeGraph(CSOUND *csound, WINDAT *wdptr, const char *name)
     strNcpy(pathnam, filenam, 1024); //pathnam[1023] = '\0';
     t = strrchr(pathnam, '.');
     if (t != NULL) *t = '\0';
-    strlcat(pathnam, ".eps", 1024);
+    cs_strlcat(pathnam, 1024, ".eps");
     pp->psfd = csound->FileOpen2(csound, &(pp->psFile), CSFILE_STD, pathnam,
                                    "w", "SFDIR", CSFTYPE_POSTSCRIPT, 0);
     if (UNLIKELY(pp->psfd == NULL)) {
@@ -458,4 +458,3 @@ int PS_ExitGraph(CSOUND *csound)
     }
     return 0;
 }
-

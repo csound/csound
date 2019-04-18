@@ -290,19 +290,19 @@ static void nkdump(CSOUND *csound, MYFLT *kp, FILE *ofd, int32_t format,
       outbuf[0] = '\0';
       while (--nk) {
         snprintf(buf1, 256, "%" PRId64 "\t", (int64_t)*kp++);
-        strlcat(outbuf, buf1, 256);
+        cs_strlcat(outbuf, 256, buf1);
       }
       snprintf(buf1, 256, "%" PRId64 "\n", (int64_t)*kp);
-      strlcat(outbuf, buf1, 256);
+      cs_strlcat(outbuf, 256, buf1);
       len = strlen(outbuf);
       break;
     case 8: *outbuf = '\0';
       while (--nk) {
         CS_SPRINTF(buf1, "%6.4f\t", *kp++);
-        strlcat(outbuf, buf1, 256);
+        cs_strlcat(outbuf, 256, buf1);
       }
       CS_SPRINTF(buf1, "%6.4f\n", *kp);
-      strlcat(outbuf, buf1, 256);
+      cs_strlcat(outbuf, 256, buf1);
       len = strlen(outbuf);
       break;
     default:

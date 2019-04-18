@@ -307,5 +307,14 @@ PUBLIC int cs_sscanf(char *str, const char *format, ...)
     return retVal;
 }
 
+PUBLIC void cs_strlcat (char *dest, size_t n, const char *src)
+{	strncat (dest, src, n - strlen (dest) - 1) ;
+	dest [n - 1] = 0 ;
+}
+
+PUBLIC void cs_strlcpy (char *dest, size_t n, const char *src)
+{	strncpy (dest, src, n - 1) ;
+	dest [n - 1] = 0 ;
+}
 #endif
 #endif

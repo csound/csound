@@ -91,7 +91,7 @@ CS_NOINLINE char *csoundTmpFileName(CSOUND *csound, const char *ext)
         s = _tempnam(s, "cs");
         if (UNLIKELY(s == NULL))
           csound->Die(csound, Str(" *** cannot create temporary file"));
-        strNcpy(lbuf, s, nBytes);
+        strNcpy(lbuf, nBytes, s);
         free(s);
       }
 #endif
@@ -103,7 +103,7 @@ CS_NOINLINE char *csoundTmpFileName(CSOUND *csound, const char *ext)
         if ((p = strrchr(lbuf, '.')) != NULL)
           *p = '\0';
 #endif
-        strlcat(lbuf, ext, nBytes);
+        cs_strlcat(lbuf, nBytes, ext);
       }
 #ifdef __MACH__
       /* on MacOS X, store temporary files in /tmp instead of /var/tmp */
@@ -1075,7 +1075,7 @@ static int checkLicence(CSOUND *csound, CORFIL *cf)
       csoundMessage(csound, "%s", p);
       len += strlen(p);
       licence = csound->ReAlloc(csound, licence, len);
-      strlcat(licence, p, len);
+      cs_strlcat(licence, len, p);
     }
     csound->Free(csound, licence);
     csoundErrorMsg(csound, Str("Missing end tag </CsLicence>"));

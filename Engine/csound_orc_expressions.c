@@ -367,7 +367,7 @@ static char* create_out_arg_for_expression(CSOUND* csound, char* op, TREE* left,
     char* argString = csound->Calloc(csound, 80);
 
     strNcpy(argString, leftArgType, 80);
-    strlcat(argString, rightArgType, 80);
+    cs_strlcat(argString, 80, rightArgType);
     outType = resolve_opcode_get_outarg(csound, opentries, argString);
 
     csound->Free(csound, argString);

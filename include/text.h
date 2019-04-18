@@ -118,6 +118,8 @@ extern "C" {
   PUBLIC double cs_strtod(char* nptr, char** endptr);
   PUBLIC int cs_sprintf(char *str, const char *format, ...);
   PUBLIC int cs_sscanf(char *str, const char *format, ...);
+  PUBLIC void cs_strlcat (char *dest, size_t n, const char *src);
+  PUBLIC void cs_strlcpy (char *dest, size_t n, const char *src);
 #ifdef __cplusplus
 }
 #endif
