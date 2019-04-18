@@ -32,17 +32,18 @@
 
 class Generator {
  public:
-        Generator(float sampleRate, int nchans, size_t bufferSize, int32 sampleSize);
+        Generator(float sampleRate, int nchans, size_t bufferSize,
+                  int32 sampleSize);
 ;       ~Generator();
         int RunAudio();
 
-        size_t mBufSize;                // in bytes (= samples * chans * floatsize)
+        size_t mBufSize;      // in bytes (= samples * chans * floatsize)
         float mFrameRate;
         int mChans;
         int32 mSampleSize;
-        double *mDataBuf;               // filled by rtplay_, cleared afer copy
-        size_t mXferSize;               // actual source size in bytes (may be less than full)
-        sem_id cs_sem;          // to be waited on by Csound
+        double *mDataBuf;     // filled by rtplay_, cleared afer copy
+        size_t mXferSize;     // actual source size in bytes (may be less than full)
+        sem_id cs_sem;        // to be waited on by Csound
 
 private:
         struct Generator_Private * state;

@@ -117,6 +117,8 @@ users.  There have been many fixes to the core code as well as opcodes.
 
 - loscilx can return an audio array.
 
+- schdule opcode reports undefined instruments in all cases.
+
 ### Utilities
 
 - hetro had a number of fixes and improvements.
@@ -190,9 +192,11 @@ users.  There have been many fixes to the core code as well as opcodes.
  - allow analog in and out with different channel numbers.
 
 ==END==
+
+-----------------------------------------------------------------------
+The following may need an entry above
 ------------------------------------------------------------------------
 commit ac824f002e7f0e28c664600ac4d7d700ce9113a8 (HEAD -> develop, origin/develop, origin/HEAD)
-Author: Francois PINOT <fggpinot@gmail.com>
 Date:   Sun Apr 14 06:23:26 2019 +0200
 
 commit 9004981506b4639c4e58b6bd59f5e654bcca42ba

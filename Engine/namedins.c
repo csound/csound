@@ -74,7 +74,7 @@ int32 strarg2insno(CSOUND *csound, void *p, int is_string)
 
     if (is_string) {
       if (UNLIKELY((insno = named_instr_find(csound, (char*) p)) <= 0)) {
-        csound->Warning(csound, Str("instr %s not found"), (char*) p);
+        csound->Message(csound, Str("WARNING: instr %s not found\n"), (char*) p);
         return NOT_AN_INSTRUMENT;
       }
     }
