@@ -1571,7 +1571,8 @@ extern "C" {
   /**
    * Sets an alternative function to be called by Csound to print an
    * informational message, using a less granular signature.
-   *  This callback can be set for --realtime mode
+   *  This callback can be set for --realtime mode.
+   *  This callback is cleared after csoundReset
    */
   PUBLIC void csoundSetMessageStringCallback(CSOUND *csound,
               void (*csoundMessageStrCallback)(CSOUND *csound,

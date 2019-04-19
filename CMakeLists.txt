@@ -25,7 +25,7 @@ set(EXECUTABLE_INSTALL_DIR "bin")
 set(LOCALE_INSTALL_DIR "share/locale")
 set(HEADER_INSTALL_DIR "include/csound")
 
-set(CS_FRAMEWORK_DEST "~/Library/Frameworks")
+set(CS_FRAMEWORK_DEST "~/Library/Frameworks" CACHE PATH "Csound framework path")
 include(TestBigEndian)
 include(CheckFunctionExists)
 include(CheckIncludeFile)

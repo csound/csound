@@ -47,7 +47,7 @@ static int32_t tanhtable(FGDATA *ff, FUNC *ftp)
 
 static int32_t exptable(FGDATA *ff, FUNC *ftp)
 {
-    CSOUND  *csound = ff->csound; 
+    CSOUND  *csound = ff->csound;
     MYFLT   *fp   = ftp->ftable;
     MYFLT   start = ff->e.p[5];
     MYFLT   end   = ff->e.p[6];
@@ -131,7 +131,7 @@ static int32_t wavetable(FGDATA *ff, FUNC *ftp)
     MYFLT   *mirr;
     WAVELET wave, *pwaveS;
 
-    if (ftp->flen <= 0) 
+    if (ftp->flen <= 0)
       return csound->ftError(ff, Str("Illegal zero table size %d"));
     if (ffilno >csound->maxfnum || csound->flist[ffilno]==NULL)
       return csound->InitError(csound, Str("ftable number does not exist\n"));

@@ -274,7 +274,7 @@ AudioProducer::SetBufferGroup(const media_source& for_source,
         else
         {
                 size_t size = mOutput.format.u.raw_audio.buffer_size;
-                int32 count = 
+                int32 count =
                   int32(mLatency / BufferDuration() + 1 + 1 + gXtraBuffers);
                 mBufferGroup = new BBufferGroup(size, count);
         }
@@ -495,8 +495,11 @@ AudioProducer::HandleEvent(const media_timed_event* event,
 
                       bigtime_t nextEvent = mStartTime +
                         bigtime_t(double(mSamplesSent) /
-                                  double(mOutput.format.u.raw_audio.frame_rate) * 1000000.0);
-                      media_timed_event nextBufferEvent(nextEvent, BTimedEventQueue::B_HANDLE_BUFFER);
+                                  double(mOutput.format.u.raw_audio.frame_rate)
+                                  * 1000000.0);
+                      media_timed_event
+                        nextBufferEvent(nextEvent,
+                                        BTimedEventQueue::B_HANDLE_BUFFER);
                       EventQueue()->AddEvent(nextBufferEvent);
                     }
                 }
