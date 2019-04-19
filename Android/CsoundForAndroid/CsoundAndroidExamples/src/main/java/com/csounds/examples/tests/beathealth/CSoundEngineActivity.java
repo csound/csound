@@ -42,6 +42,7 @@ import ap.players.CsoundAudioEngine;
 public class CSoundEngineActivity extends Activity implements
     CsoundObjListener, IAudioFinishedCallback, View.OnClickListener {
 //to be tested MP3 player with pitch control: CSoundEngineActivity
+//TODO simplify
 
     private static final String TAG = "bhtest1";// PlayerActivityclass.getSimpleName();
     private static final boolean LOG = true;
@@ -292,7 +293,12 @@ public class CSoundEngineActivity extends Activity implements
     @Override
     public void audioFinished() {
         clog("song finished");
-        //??
+        nextSong();
+    }
+
+
+    public void nextSong() {
+        clog("next song");
         handler.post(new Runnable() {
             public void run() {
                 cancelPolling();
@@ -303,20 +309,14 @@ public class CSoundEngineActivity extends Activity implements
     }
 
 
+
     @Override
     public void onClick(View v) {
         switch (v.getId()) {
             case R.id.btn_next:
-                handler.post(new Runnable() {
-                    public void run() {
-                        cancelPolling();
-                        audioengine.stop();
-                        startNext(false);
-                    }
-                });
+                nextSong();
                 break;
             case R.id.btn_play:
-
                 handler.post(new Runnable() {
                     public void run() {
                         audioengine.play();
@@ -435,6 +435,7 @@ public class CSoundEngineActivity extends Activity implements
             }
         }
         init();
+        nextSong();
     }
 
     private void init() {
