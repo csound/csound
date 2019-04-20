@@ -16,7 +16,7 @@
  * If you wish to use any of this code for commercial purposes then 
  * please email commercialisation@mu.ie
  */
-package ap.data;
+package beathealth.data;
 
 import java.util.Locale;
 

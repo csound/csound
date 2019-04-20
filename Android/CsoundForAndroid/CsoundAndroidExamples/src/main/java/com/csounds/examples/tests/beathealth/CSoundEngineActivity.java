@@ -31,18 +31,18 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.List;
-import ap.api.IAudioEngine;
-import ap.api.IAudioFinishedCallback;
-import ap.data.Song;
-import ap.helpers.MediaHelper;
-import ap.helpers.SongAdapter;
-import ap.players.CsoundAudioEngine;
+import beathealth.api.IAudioEngine;
+import beathealth.api.IAudioFinishedCallback;
+import beathealth.data.Song;
+import beathealth.helpers.MediaHelper;
+import beathealth.helpers.SongAdapter;
+import beathealth.players.CsoundAudioEngine;
 
 
 public class CSoundEngineActivity extends Activity implements
     CsoundObjListener, IAudioFinishedCallback, View.OnClickListener {
 //to be tested MP3 player with pitch control: CSoundEngineActivity
-//TODO simplify
+
 
     private static final String TAG = "bhtest1";// PlayerActivityclass.getSimpleName();
     private static final boolean LOG = true;
@@ -140,7 +140,7 @@ public class CSoundEngineActivity extends Activity implements
         seekBar.setOnSeekBarChangeListener(seekBarChangeListener);
         logview = (TextView) findViewById(R.id.logView);
         pitchView = (TextView) findViewById(R.id.pitchView);
-        pitchView.setText("pitch=0.0 bpm=0");
+        pitchView.setText("pitch=0.0");
 
         Button newb = (Button) findViewById(R.id.btn_next);
         Button playb = (Button) findViewById(R.id.btn_play);
@@ -279,14 +279,10 @@ public class CSoundEngineActivity extends Activity implements
     }
 
     public void startNext(boolean rand) {
-        if (RANDOM || rand) {
+        if (RANDOM || rand)
             startNextRandomSong();
-        } else {
-           /* if (currentSong == null)
-                startSong();
-            else*/
+         else
             startNextSong(tempo);
-        }
     }
 
 
@@ -307,7 +303,6 @@ public class CSoundEngineActivity extends Activity implements
             }
         });
     }
-
 
 
     @Override
@@ -361,9 +356,7 @@ public class CSoundEngineActivity extends Activity implements
     private OnQueryTextListener onQueryTextListener = new OnQueryTextListener() {
         @Override
         public boolean onQueryTextSubmit(String query) {
-
             if (TextUtils.isEmpty(query)) {  //Show all data
-                // mAdapter.animateTo(numbers);
                 mAdapter.notifyDataSetChanged();
                 return false;
             }
@@ -386,7 +379,7 @@ public class CSoundEngineActivity extends Activity implements
                 float progr = tempo - 1.0f;
                 progr *= 100.f;
                 seekBar.setProgress((int) progr);
-                pitchView.setText(String.format("pitch=%.2f bpm=%.3f", tempo, bpm));
+                pitchView.setText(String.format("pitch=%.3f", tempo));
             }
         });
     }
@@ -396,13 +389,12 @@ public class CSoundEngineActivity extends Activity implements
         InputStream is = getResources().openRawResource(resId);
         BufferedReader r = new BufferedReader(new InputStreamReader(is));
         String line;
-
         try {
             while ((line = r.readLine()) != null) {
                 str.append(line).append("\n");
             }
-        } catch (IOException ios) {
-
+        } catch (IOException e) {
+            e.printStackTrace();
         }
         return str.toString();
     }
@@ -415,7 +407,6 @@ public class CSoundEngineActivity extends Activity implements
             fos.write(csd.getBytes());
             fos.close();
         } catch (IOException e) {
-            // TODO Auto-generated catch block
             e.printStackTrace();
         }
 
@@ -430,8 +421,7 @@ public class CSoundEngineActivity extends Activity implements
                 File f = filesInDirectory[i];
                 clog(f.getAbsolutePath());
                 if (f.getAbsolutePath().endsWith("mp3"))
-                    ;//  copyMp3(f);
-                //clog(f.getAbsolutePath());
+                    ;
             }
         }
         init();
@@ -446,7 +436,6 @@ public class CSoundEngineActivity extends Activity implements
         songView.setAdapter(mAdapter);
         initCSoundEngine();
         audioengine.setCompletionListener(this); // song finished callback
-
         String csooudfile = getResourceFileAsString(R.raw.csound_file);
         File csdFile = createTempFile(csooudfile);
         csoundObj.addListener(com.csounds.examples.tests.beathealth.CSoundEngineActivity.this);
@@ -497,13 +486,19 @@ public class CSoundEngineActivity extends Activity implements
 
 
     private OnSeekBarChangeListener seekBarChangeListener = new OnSeekBarChangeListener() {
-
         @Override
         public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
             tempo = 1.0f + (progress / 100.0f);
-            audioengine.setTempo(tempo);
+
             String v = Float.toString(tempo);
             alog(v, false);
+
+            handler.post(new Runnable() {
+                public void run() {
+                    audioengine.setTempo(tempo);
+                }
+            });
+
         }
 
         @Override

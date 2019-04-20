@@ -1,6 +1,5 @@
-package ap.helpers;
+package beathealth.helpers;
 
-import android.app.AlertDialog;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -14,9 +13,13 @@ import com.csounds.examples.R;
 import java.util.ArrayList;
 import java.util.List;
 
-import ap.api.IAudioFinishedCallback;
-import ap.data.Song;
+import beathealth.api.IAudioFinishedCallback;
+import beathealth.data.Song;
 
+/**
+ * @author pfister@connecthive.com
+ * for sattaxlr - Montpellier
+ */
 public class SongAdapter extends RecyclerView.Adapter<SongAdapter.MyViewHolder> implements Filterable {
     private static IAudioFinishedCallback owner = null;
     private List<Song> mSongs_;
@@ -65,41 +68,30 @@ public class SongAdapter extends RecyclerView.Adapter<SongAdapter.MyViewHolder> 
     }
 
     public static class MyViewHolder extends RecyclerView.ViewHolder {
-
-        //private final TextView tvsongid;
         private final TextView tvsongtitle;
         private final TextView tvsongartist;
-        //private final TextView tvsongpath;
+
 
         private Song currentSong;
 
         public MyViewHolder(final View itemView) {
             super(itemView);
-
-           // tvsongid = ((TextView) itemView.findViewById(R.id.songid));
             tvsongtitle = ((TextView) itemView.findViewById(R.id.songtitle));
             tvsongartist = ((TextView) itemView.findViewById(R.id.songartist));
-            //tvsongpath = ((TextView) itemView.findViewById(R.id.songpath));
-
             itemView.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View view) {
                     owner.selectSong(currentSong);
-                    /*
-                    new AlertDialog.Builder(itemView.getContext())
-                            .setTitle(currentSong.getArtistz())
-                            .setMessage(currentSong.getTitlez())
-                            .show();*/
                 }
             });
         }
 
         public void display(Song song) {
             currentSong = song;
-           // tvsongid.setText(song.artist);
+
             tvsongtitle.setText(song.getTitlez());
             tvsongartist.setText(song.getArtistz());
-         //   tvsongpath.setText(song.getPathz());
+
         }
     }
 
@@ -108,7 +100,6 @@ public class SongAdapter extends RecyclerView.Adapter<SongAdapter.MyViewHolder> 
         mSongs_ = songs;
         mFilter_ = new ArrayList<>();
         mFilter_.addAll(songs);
-      //  mFilter_ = songs;
     }
 
     @Override

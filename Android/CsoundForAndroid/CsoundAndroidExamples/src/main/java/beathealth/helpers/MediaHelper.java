@@ -1,4 +1,4 @@
-package ap.helpers;
+package beathealth.helpers;
 
 import android.content.ContentResolver;
 import android.content.Context;
@@ -8,13 +8,14 @@ import android.provider.MediaStore;
 import android.util.Log;
 import java.util.ArrayList;
 import java.util.List;
-import ap.api.IAudioEngine;
-import ap.api.IAudioFinishedCallback;
-import ap.data.Song;
+import beathealth.api.IAudioEngine;
+import beathealth.api.IAudioFinishedCallback;
+import beathealth.data.Song;
 
 
 /**
- * @author fpfister
+ * @author pfister@connecthive.com
+ * for sattaxlr - Montpellier
  */
 public class MediaHelper {
     private static final String TAG = "bhtest5";
@@ -199,7 +200,6 @@ public class MediaHelper {
                 return false;
             } else {
                 setTitle(song.title);
-                // titlev.setTextSize(25);
                 return true;
             }
         } else
@@ -227,7 +227,6 @@ public class MediaHelper {
     }
 
     public Song loadNextSong(Song song) {
-       // dfg  MediaHelper.getInstance(this).
         Song result = null;
         Uri uri = android.provider.MediaStore.Audio.Media.EXTERNAL_CONTENT_URI;
         String[] projection = {MediaStore.Audio.Media._ID,  MediaStore.Audio.Media.TITLE,

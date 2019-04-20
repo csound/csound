@@ -16,7 +16,7 @@
  * If you wish to use any of this code for commercial purposes then
  * please email commercialisation@mu.ie
  */
-package ap.players;
+package beathealth.players;
 
 
 import android.content.Context;
@@ -26,10 +26,10 @@ import android.util.Log;
 
 import com.csounds.CsoundObj;
 
-import ap.api.IAudioEngine;
-import ap.api.IAudioFinishedCallback;
+import beathealth.api.IAudioEngine;
+import beathealth.api.IAudioFinishedCallback;
 
-import ap.data.Song;
+import beathealth.data.Song;
 import csnd6.Csound;
 
 
