@@ -556,7 +556,8 @@ int eventOpcodeI_(CSOUND *csound, LINEVENT *p, int insname, char p1)
         else {                  /* Should check for valid instr num here */
           int32_t insno = *p->args[1];
           evt.p[1] = insno;
-          if (UNLIKELY(insno < 1 || insno > csound->engineState.maxinsno ||
+          if (UNLIKELY(insno < - csound->engineState.maxinsno ||
+                       insno > csound->engineState.maxinsno ||
                        !csound->engineState.instrtxtp[insno])) {
             csound->Message(csound, Str("WARNING: Cannot Find Instrument %d\n"),
                            (int) insno);
