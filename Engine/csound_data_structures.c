@@ -23,6 +23,12 @@
 #include "csoundCore.h"
 #include "csound_data_structures.h"
 
+#define HASH_LOAD_FACTOR 0.75
+
+char* cs_hash_table_put_no_key_copy(CSOUND* csound,
+    CS_HASH_TABLE* hashTable,
+    char* key, void* value);
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -94,16 +100,46 @@ PUBLIC void cs_cons_free_complete(CSOUND* csound, CONS_CELL* head) {
 /* FUNCTION FOR HASH SET */
 
 PUBLIC CS_HASH_TABLE* cs_hash_table_create(CSOUND* csound) {
-    return (CS_HASH_TABLE*) csound->Calloc(csound, sizeof(CS_HASH_TABLE));
+    CS_HASH_TABLE* table = (CS_HASH_TABLE*) csound->Calloc(csound, sizeof(CS_HASH_TABLE));
+    table->count = 0;
+    table->table_size = 8192;
+    table->buckets = csound->Calloc(csound, sizeof(CS_HASH_TABLE_ITEM*) * 8192);
+
+    return table;
 }
 
-static unsigned int cs_name_hash(char *s)
+static int cs_hash_table_check_resize(CSOUND* csound, CS_HASH_TABLE* table) {
+    if (table->count + 1 > table->table_size * HASH_LOAD_FACTOR) {
+        int oldSize = table->table_size;
+        int newSize = oldSize * 2;
+        CS_HASH_TABLE_ITEM** oldTable = table->buckets;
+        CS_HASH_TABLE_ITEM** newTable = csound->Calloc(csound, newSize * sizeof(CS_HASH_TABLE_ITEM*));
+
+        table->buckets = newTable;
+        table->table_size = newSize;
+
+        for (int i = 0; i < oldSize; i++) {
+            CS_HASH_TABLE_ITEM* item = oldTable[i];
+            while (item != NULL) {
+                cs_hash_table_put_no_key_copy(csound, table, item->key, item->value);
+                item->key = NULL;
+                CS_HASH_TABLE_ITEM* next = item->next;
+                csound->Free(csound, item);
+                item = next;
+            }
+        }
+        return 1;
+    }
+    return 0;
+}
+
+static unsigned int cs_name_hash(CS_HASH_TABLE* table, char *s)
 {
     unsigned int h = 0;
     while (*s != '\0') {
       h = (h<<4) ^ *s++;
     }
-    return (h%HASH_SIZE);
+    return (h % table->table_size);
 }
 
 PUBLIC void* cs_hash_table_get(CSOUND* csound,
@@ -116,7 +152,7 @@ PUBLIC void* cs_hash_table_get(CSOUND* csound,
       return NULL;
     }
 
-    index = cs_name_hash(key);
+    index = cs_name_hash(hashTable, key);
     item = hashTable->buckets[index];
 
     while (item != NULL) {
@@ -139,7 +175,7 @@ PUBLIC char* cs_hash_table_get_key(CSOUND* csound,
       return NULL;
     }
 
-    index = cs_name_hash(key);
+    index = cs_name_hash(hashTable, key);
     item = hashTable->buckets[index];
 
     while (item != NULL) {
@@ -152,6 +188,10 @@ PUBLIC char* cs_hash_table_get_key(CSOUND* csound,
     return NULL;
 }
 
+/*
+ * If item exists, replace.
+ * Else, check for resize, then do insert.
+*/
 char* cs_hash_table_put_no_key_copy(CSOUND* csound,
                                    CS_HASH_TABLE* hashTable,
                                     char* key, void* value) {
@@ -159,36 +199,43 @@ char* cs_hash_table_put_no_key_copy(CSOUND* csound,
       return NULL;
     }
 
-    unsigned int index = cs_name_hash(key);
+    unsigned int index = cs_name_hash(hashTable, key);
 
     CS_HASH_TABLE_ITEM* item = hashTable->buckets[index];
 
-    if (item == NULL) {
-      CS_HASH_TABLE_ITEM* newItem = csound->Malloc(csound,
-                                                   sizeof(CS_HASH_TABLE_ITEM));
-      newItem->key = key;
-      newItem->value = value;
-      newItem->next = NULL;
-      hashTable->buckets[index] = newItem;
-      return newItem->key;
-    } else {
-      while (item != NULL) {
+    while (item != NULL) {
         if (strcmp(key, item->key) == 0) {
-          item->value = value;
-          return item->key;
-        } else if (item->next == NULL) {
-          CS_HASH_TABLE_ITEM* newItem = csound->Malloc(csound,
-                                                       sizeof(CS_HASH_TABLE_ITEM));
-          newItem->key = key;
-          newItem->value = value;
-          newItem->next = NULL;
-          item->next = newItem;
-          return newItem->key;
+            item->value = value;
+            return item->key;
         }
         item = item->next;
-      }
     }
-    return NULL;
+
+    int modified = cs_hash_table_check_resize(csound, hashTable);
+
+    if (modified) {
+        index = cs_name_hash(hashTable, key);
+    }
+    CS_HASH_TABLE_ITEM* newItem = csound->Malloc(csound,
+                                                   sizeof(CS_HASH_TABLE_ITEM));
+    newItem->key = key;
+    newItem->value = value;
+    newItem->next = NULL;
+
+    item = hashTable->buckets[index];
+    hashTable->count++;
+
+    if (item) {
+        while (item->next != NULL) {
+            item = item->next;
+        }
+
+        item->next = newItem;
+    } else {
+        hashTable->buckets[index] = newItem;
+    }
+
+    return key;
 }
 
 PUBLIC void cs_hash_table_put(CSOUND* csound,
@@ -212,7 +259,7 @@ PUBLIC void cs_hash_table_remove(CSOUND* csound,
       return;
     }
 
-    index = cs_name_hash(key);
+    index = cs_name_hash(hashTable, key);
 
     previous = NULL;
     item = hashTable->buckets[index];
@@ -225,6 +272,7 @@ PUBLIC void cs_hash_table_remove(CSOUND* csound,
           previous->next = item->next;
         }
         csound->Free(csound, item);
+        hashTable->count--;
         return;
       }
       previous = item;
@@ -237,7 +285,7 @@ PUBLIC CONS_CELL* cs_hash_table_keys(CSOUND* csound, CS_HASH_TABLE* hashTable) {
 
     int i = 0;
 
-    for (i = 0; i < HASH_SIZE; i++) {
+    for (i = 0; i < hashTable->table_size; i++) {
       CS_HASH_TABLE_ITEM* item = hashTable->buckets[i];
 
       while (item != NULL) {
@@ -253,7 +301,7 @@ PUBLIC CONS_CELL* cs_hash_table_values(CSOUND* csound, CS_HASH_TABLE* hashTable)
 
     int i = 0;
 
-    for (i = 0; i < HASH_SIZE; i++) {
+    for (i = 0; i < hashTable->table_size; i++) {
       CS_HASH_TABLE_ITEM* item = hashTable->buckets[i];
 
       while (item != NULL) {
@@ -269,7 +317,7 @@ PUBLIC void cs_hash_table_merge(CSOUND* csound,
     // TODO - check if this is the best strategy for merging
     int i = 0;
 
-    for (i = 0; i < HASH_SIZE; i++) {
+    for (i = 0; i < source->table_size; i++) {
       CS_HASH_TABLE_ITEM* item = source->buckets[i];
 
       while (item != NULL) {
@@ -292,7 +340,7 @@ PUBLIC void cs_hash_table_merge(CSOUND* csound,
 PUBLIC void cs_hash_table_free(CSOUND* csound, CS_HASH_TABLE* hashTable) {
     int i;
 
-    for (i = 0; i < HASH_SIZE; i++) {
+    for (i = 0; i < hashTable->table_size; i++) {
       CS_HASH_TABLE_ITEM* item = hashTable->buckets[i];
 
       while(item != NULL) {
@@ -309,7 +357,7 @@ PUBLIC void cs_hash_table_mfree_complete(CSOUND* csound, CS_HASH_TABLE* hashTabl
 
     int i;
 
-    for (i = 0; i < HASH_SIZE; i++) {
+    for (i = 0; i < hashTable->table_size; i++) {
       CS_HASH_TABLE_ITEM* item = hashTable->buckets[i];
 
       while(item != NULL) {
@@ -327,7 +375,7 @@ PUBLIC void cs_hash_table_free_complete(CSOUND* csound, CS_HASH_TABLE* hashTable
 
     int i;
 
-    for (i = 0; i < HASH_SIZE; i++) {
+    for (i = 0; i < hashTable->table_size; i++) {
       CS_HASH_TABLE_ITEM* item = hashTable->buckets[i];
 
       while(item != NULL) {
@@ -349,7 +397,7 @@ char *cs_inverse_hash_get(CSOUND* csound, CS_HASH_TABLE* hashTable, int n)
 {
     int k;
     IGN(csound);
-    for (k=0; k<HASH_SIZE;k++) {
+    for (k=0; k<hashTable->table_size;k++) {
       CS_HASH_TABLE_ITEM* item = hashTable->buckets[k];
       while (item) {
         if (n==*(int*)item->value) return item->key;

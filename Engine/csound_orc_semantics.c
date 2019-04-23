@@ -1510,15 +1510,33 @@ int verify_opcode(CSOUND* csound, TREE* root, TYPE_TABLE* typeTable) {
       return 0;
     }
     else {
+      //fprintf(stderr, "left=%p\n", left);
+      //fprintf(stderr, "left->value=%p\n", left->value);
+      //fprintf(stderr, "left->value->lexeme=%p\n", left->value->lexeme);
+      //fprintf(stderr, "opname = %s\n", oentry->opname);
       if (csound->oparms->sampleAccurate &&
           (strcmp(oentry->opname, "=.a")==0) &&
-          left->value->lexeme[0]=='a') { /* Deal with sample accurate assigns */
+          (left!=NULL) && (left->value!=NULL) &&
+          (left->value->lexeme[0]=='a')) { /* Deal with sample accurate assigns */
         int i = 0;
         while (strcmp(entries->entries[i]->opname, "=.l")) {
           //printf("not %d %s\n",i, entries->entries[i]->opname);
           i++;
         }
         oentry = entries->entries[i];
+      }
+      else {
+        if (csound->oparms->sampleAccurate &&
+            (strcmp(oentry->opname, "=._")==0) &&
+            (left->value->lexeme[0]=='a'))
+          {
+            int i = 0;
+            while (strcmp(entries->entries[i]->opname, "=.L")) {
+              //printf("not %d %s\n",i, entries->entries[i]->opname);
+              i++;
+            }
+            oentry = entries->entries[i];
+          }
       }
       root->markup = oentry;
     }
