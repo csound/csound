@@ -1525,9 +1525,9 @@ msgid "event: error creating '%c' event"
 msgstr "event : erreur en créant l'évènement '%c'"
 
 #: Engine/linevent.c:561
-#, fuzzy, c-format
+#, c-format
 msgid "WARNING: Cannot Find Instrument %d\n"
-msgstr "Impossible de trouver l'instrument %d"
+msgstr "AVERTISSEMENT : impossible de trouver l'instrument %d\n"
 
 #: Engine/linevent.c:582
 #, c-format
@@ -1862,9 +1862,9 @@ msgid "cannot rewind score: no score in memory\n"
 msgstr "impossible de remonter la partition : pas de partition en mémoire\n"
 
 #: Engine/namedins.c:77
-#, fuzzy, c-format
+#, c-format
 msgid "WARNING: instr %s not found\n"
-msgstr "instr %s non trouvé"
+msgstr "AVERTISSEMENT : instr %s non trouvé\n"
 
 #: Engine/namedins.c:85 Engine/namedins.c:123
 #, c-format
