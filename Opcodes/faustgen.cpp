@@ -194,6 +194,7 @@ struct faustcompile {
   STRINGDAT *args;
   MYFLT *async;
   MYFLT *stacksize;
+  MYFLT *extra;
   llvm_dsp_factory *factory;
   uintptr_t thread;
   pthread_mutex_t *lock;
@@ -279,6 +280,8 @@ void *init_faustcompile_thread(void *pp) {
   std::string err_msg;
   char *cmd = (char *) csound->Calloc(csound, p->args->size + 9);
   char *ccode = csound->Strdup(csound, p->code->data);
+  char *extra;
+  MYFLT test = *p->extra;
   int32_t ret;
   strcpy(cmd, p->args->data);
 #ifdef USE_DOUBLE
@@ -287,12 +290,16 @@ void *init_faustcompile_thread(void *pp) {
   const char **argv = (const char **) parse_cmd(csound, cmd, &argc);
   const char *varname = "::factory";
 
+  if(test)
+    extra = ((STRINGDAT *) p->extra)->data;
+  else
+    extra = (char *) "";
+  
   // Need to protect this
-
   csound->LockMutex(p->lock);
   // csound->Message(csound, "lock %p\n", p->lock);
   factory = createDSPFactoryFromString("faustop", (const char *) ccode,
-                                       argc, argv, "", err_msg, 3);
+                                       argc, argv, extra, err_msg, 3);
   // csound->Message(csound, "unlock %p\n", p->lock);
   csound->UnlockMutex(p->lock);
 
@@ -1154,7 +1161,7 @@ static OENTRY localops[] = {
   {(char *)"faustgen", S(faustgen), 0, 3,
    (char *)"immmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmm", (char *)"SM",
    (SUBR)init_faustgen, (SUBR)perf_faust},
-  {(char *)"faustcompile", S(faustcompile), 0, 1, (char *)"i", (char *)"SSpp",
+  {(char *)"faustcompile", S(faustcompile), 0, 1, (char *)"i", (char *)"SSppo",
    (SUBR)init_faustcompile, NULL, NULL},
   {(char *)"faustaudio", S(faustgen), 0, 3,
    (char *)"immmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmm", (char *)"iM",
