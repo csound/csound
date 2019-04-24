@@ -128,6 +128,7 @@ Source: "..\..\msvc\csound-vs\RelWithDebInfo\*jcsound6.dll"; DestDir: "{#APP_BIN
 Source: "..\..\msvc\csound-vs\RelWithDebInfo\ampmidid.dll"; DestDir: "{#APP_PLUGINS64}"; Flags: ignoreversion; Components: core;
 Source: "..\..\msvc\csound-vs\RelWithDebInfo\arrayops.dll"; DestDir: "{#APP_PLUGINS64}"; Flags: ignoreversion; Components: core;
 Source: "..\..\msvc\csound-vs\RelWithDebInfo\atsa.exe"; DestDir: "{#APP_BIN}"; Flags: ignoreversion; Components: core;
+Source: "..\..\msvc\csound-vs\RelWithDebInfo\beosc.dll"; DestDir: "{#APP_PLUGINS64}"; Flags: ignoreversion; Components: core;
 Source: "..\..\msvc\csound-vs\RelWithDebInfo\buchla.dll"; DestDir: "{#APP_PLUGINS64}"; Flags: ignoreversion; Components: core;
 Source: "..\..\msvc\csound-vs\RelWithDebInfo\cellular.dll"; DestDir: "{#APP_PLUGINS64}"; Flags: ignoreversion; Components: core;
 Source: "..\..\msvc\csound-vs\RelWithDebInfo\chua.dll"; DestDir: "{#APP_PLUGINS64}"; Flags: ignoreversion; Components: core;
