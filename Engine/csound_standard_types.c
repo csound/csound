@@ -26,6 +26,7 @@
 #include "pstream.h"
 #include <stdlib.h>
 
+#define MAX_ARRAY_DIMENSIONS 6 
 
 /* MEMORY COPYING FUNCTIONS */
 
@@ -165,6 +166,16 @@ void varInitMemory(void *csound, CS_VARIABLE* var, MYFLT* memblock) {
 void arrayInitMemory(void *csound, CS_VARIABLE* var, MYFLT* memblock) {
     IGN(csound);
     ARRAYDAT* dat = (ARRAYDAT*)memblock;
+    if (dat->sizes == NULL) {
+        CSOUND* cs = (CSOUND*)csound;
+        // hardcode to max 6 dimensions
+        dat->sizes = cs->Calloc(csound, sizeof(int) * MAX_ARRAY_DIMENSIONS);
+    }
+    else {
+        memset(dat->sizes, 0, 6);
+    }
+    dat->dimensions = 0;
+
     dat->arrayType = var->subType;
 }
 

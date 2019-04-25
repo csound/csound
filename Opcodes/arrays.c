@@ -126,7 +126,7 @@ static int32_t array_init(CSOUND *csound, ARRAYINIT *p)
     }
 
     arrayDat->dimensions = inArgCount;
-    arrayDat->sizes = csound->Calloc(csound, sizeof(int32_t) * inArgCount);
+    //arrayDat->sizes = csound->Calloc(csound, sizeof(int32_t) * inArgCount);
     for (i = 0; i < inArgCount; i++) {
       arrayDat->sizes[i] = MYFLT2LRND(*p->isizes[i]);
     }
