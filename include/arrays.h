@@ -24,26 +24,25 @@
 #ifndef __ARRAY_H__
 #define __ARRAY_H__
 
+/**
+   Sets array to one-dimension of given size. Grows allocated array data space if
+   currently allocated space is too small for new size.
+ */
 static inline void tabensure(CSOUND *csound, ARRAYDAT *p, int size)
 {
-  size_t ss;
+  size_t ss = p->arrayMemberSize*size;
   if (p->data == NULL) {
     CS_VARIABLE* var = p->arrayType->createVariable(csound, NULL);
     p->arrayMemberSize = var->memBlockSize;
-  }
-  ss = p->arrayMemberSize*size;
-  if (p->data==NULL) {
     p->data = (MYFLT*)csound->Calloc(csound, ss);
     p->allocated = ss;
   }
   else if (ss > p->allocated) {
-    p->data = (MYFLT*) csound->ReAlloc(csound, p->data, ss);
+    p->data = (MYFLT*)csound->ReAlloc(csound, p->data, ss);
     p->allocated = ss;
   }
-  if (p->dimensions==0) {
-    p->dimensions = 1;
-  }
   p->sizes[0] = size;
+  p->dimensions = 1;
 }
 
 
