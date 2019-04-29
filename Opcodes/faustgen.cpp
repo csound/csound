@@ -294,7 +294,7 @@ void *init_faustcompile_thread(void *pp) {
     extra = ((STRINGDAT *) p->extra)->data;
   else
     extra = (char *) "";
-  
+
   // Need to protect this
   csound->LockMutex(p->lock);
   // csound->Message(csound, "lock %p\n", p->lock);
