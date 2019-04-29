@@ -225,18 +225,20 @@ static int32_t BBCutMono(CSOUND *csound, BBCUTMONO *p)
         /* envelope in */
         if (p->repeatsampdone<p->envsize) {
           /* used sinusoid- prefer exponential */
-/* envmult= sin(PI*0.5*(((MYFLT)(p->repeatsampdone))/(MYFLT)p->envsize)); */
+        /* envmult= sin(PI*0.5*(((MYFLT)(p->repeatsampdone))/(MYFLT)p->envsize)); */
           envmult = (EXP((p->repeatsampdone)/(p->envsize))-FL(1.0))/
             FL(1.7182818284590);
         }
 
         /* envelope out if necessary */
         if (p->repeatsampdone>=(p->repeatlengthsamp-p->envsize)) {
+          MYFLT xx = p->envsize; /* JPff patch 2019 Apr 28 */
+          if (xx==0.0) xx = 00.1;
           /* envmult = sin(PI*0.5*
              (((MYFLT)(p->repeatlengthsamp-p->repeatsampdone))/
              (MYFLT)p->envsize)); */
           envmult = (EXP(((p->repeatlengthsamp-p->repeatsampdone))/
-                                (p->envsize))-FL(1.0))/
+                         (xx))-FL(1.0))/
             FL(1.7182818284590);
         }
 
@@ -482,9 +484,11 @@ static int32_t BBCutStereo(CSOUND *csound, BBCUTSTEREO *p)
         if (p->repeatsampdone>=(p->repeatlengthsamp-p->envsize)) {
    /* envmult = sin(PI*0.5*(((MYFLT)(p->repeatlengthsamp-p->repeatsampdone))/
       (MYFLT)p->envsize)); */
+          MYFLT xx = p->envsize;
+          if (xx==FL(0.0)) xx = 0.001; /* JPff patch 2019 Apr 28 */
           envmult = (EXP(((p->repeatlengthsamp-
                                           p->repeatsampdone))/
-                                (p->envsize))-FL(1.0))/
+                                (xx))-FL(1.0))/
             FL(1.7182818284590);
         }
 
