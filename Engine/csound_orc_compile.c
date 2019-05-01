@@ -661,6 +661,8 @@ INSTRTXT *create_instrument0(CSOUND *csound, TREE *root,
   // to do this. Only applies to audio device output
   if(O->sr_override == -1.0 &&
      !strncmp(O->outfilename, "dac",3)) {
+    MYFLT tmp_sr = csound->esr;
+    csound->esr = -1.0;
     O->sr_override = csoundInitialiseIO(csound);
     if(O->sr_override > 0) 
      csound->Message(csound, "Using system sampling rate %.1f\n", O->sr_override);
@@ -668,6 +670,7 @@ INSTRTXT *create_instrument0(CSOUND *csound, TREE *root,
       csound->Message(csound, "System sr not available\n");
       O->sr_override = FL(0.0);
     }
+    csound->esr = tmp_sr;
   }
 
   if (UNLIKELY(O->odebug))
