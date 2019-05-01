@@ -1162,8 +1162,7 @@ static int decode_long(CSOUND *csound, char *s, int argc, char **argv)
       csound->info_message_request = 1;
       return 1;
       }
-    else if (!(strncmp(s, "get-system-sr",13)) ||
-             !(strncmp(s, "use-system-sr",13))){
+    else if (!(strncmp(s, "get-system-sr",13)) ){
       if (O->outfilename &&
           !(strncmp(O->outfilename, "dac",3))) {
         /* these are default values to get the
@@ -1175,15 +1174,16 @@ static int decode_long(CSOUND *csound, char *s, int argc, char **argv)
         if (csoundInitModules(csound) != 0)
           csound->LongJmp(csound, 1);
         sfopenout(csound);
-        csound->Message(csound, "system sr:\n");
         csound->MessageS(csound,CSOUNDMSG_STDOUT,
                          "system sr: %f\n", csound->system_sr(csound,0));
         sfcloseout(csound);
-        if(!strncmp(s, "use-system-sr",13))
-          O->sr_override = csound->system_sr(csound,0);
       }
-      csound->info_message_request = 1;
+      csound->info_message_request = 1;  
       return 1;
+    }
+    else if(!strncmp(s, "use-system-sr",13)){
+          O->sr_override = -1.0;
+          return 1;
     }
     else if (!(strcmp(s, "aft-zero"))){
       csound->aftouch = 0;

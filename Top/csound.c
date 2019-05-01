@@ -980,8 +980,9 @@ static const CSOUND cenviron_ = {
     NULL,           /* message_string */
     0,              /* message_string_queue_items */
     0,              /* message_string_queue_wp */
-    NULL            /* message_string_queue */
-    /*, NULL */           /* self-reference */
+    NULL,            /* message_string_queue */
+    0                /* io_initialised */
+    /*, NULL */      /* self-reference */
 };
 
 void csound_aops_init_tables(CSOUND *cs);

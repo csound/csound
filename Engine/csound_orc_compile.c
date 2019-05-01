@@ -38,6 +38,8 @@
 #include "csound_orc_semantics.h"
 #include "csound_standard_types.h"
 
+MYFLT csoundInitialiseIO(CSOUND *csound);
+void    iotranset(CSOUND *), sfclosein(CSOUND*), sfcloseout(CSOUND*);  
 static const char *INSTR_NAME_FIRST = "::^inm_first^::";
 static ARG *createArg(CSOUND *csound, INSTRTXT *ip, char *s,
                       ENGINE_STATE *engineState);
@@ -471,7 +473,6 @@ void *find_or_add_constant(CSOUND *csound, CS_HASH_TABLE *constantsPool,
  * Create an Instrument (INSTRTXT) from the AST node given for use as
  * Instrument0. Called from csound_orc_compile.
  */
-
 INSTRTXT *create_instrument0(CSOUND *csound, TREE *root,
                              ENGINE_STATE *engineState, CS_VAR_POOL *varPool) {
   INSTRTXT *ip;
@@ -482,6 +483,7 @@ INSTRTXT *create_instrument0(CSOUND *csound, TREE *root,
   int krdef = 0; //, ksmpsdef = 0, srdef = 0;
   double A4 = 0.0;
   CS_TYPE *rType = (CS_TYPE *)&CS_VAR_TYPE_R;
+  
 
   addGlobalVariable(csound, engineState, rType, "sr", NULL);
   addGlobalVariable(csound, engineState, rType, "kr", NULL);
@@ -651,6 +653,17 @@ INSTRTXT *create_instrument0(CSOUND *csound, TREE *root,
     csound->inchnls = O->nchnls_i_override;
   if (O->e0dbfs_override > 0)
     csound->e0dbfs = O->e0dbfs_override;
+
+  // VL 01-05-2019
+  // if --use-system-sr is applied, then we need to
+  // initialise IO early to get the sampling rate
+  // at this stage we have enough data on channels
+  // to do this. Only applies to audio device output
+  if(O->sr_override == -1.0 &&
+     !strncmp(O->outfilename, "dac",3)) {
+    O->sr_override = csoundInitialiseIO(csound);
+    csound->Message(csound, "Using system sampling rate %.1f\n", O->sr_override);
+  }
 
   if (UNLIKELY(O->odebug))
     csound->Message(csound, "esr = %7.1f, ekr = %7.1f, ksmps = %d, nchnls = %d "
