@@ -39,7 +39,7 @@
 #include "csound_standard_types.h"
 
 MYFLT csoundInitialiseIO(CSOUND *csound);
-void    iotranset(CSOUND *), sfclosein(CSOUND*), sfcloseout(CSOUND*);  
+void    iotranset(CSOUND *), sfclosein(CSOUND*), sfcloseout(CSOUND*);
 static const char *INSTR_NAME_FIRST = "::^inm_first^::";
 static ARG *createArg(CSOUND *csound, INSTRTXT *ip, char *s,
                       ENGINE_STATE *engineState);
@@ -483,7 +483,6 @@ INSTRTXT *create_instrument0(CSOUND *csound, TREE *root,
   int krdef = 0; //, ksmpsdef = 0, srdef = 0;
   double A4 = 0.0;
   CS_TYPE *rType = (CS_TYPE *)&CS_VAR_TYPE_R;
-  
 
   addGlobalVariable(csound, engineState, rType, "sr", NULL);
   addGlobalVariable(csound, engineState, rType, "kr", NULL);
@@ -661,13 +660,16 @@ INSTRTXT *create_instrument0(CSOUND *csound, TREE *root,
   // to do this. Only applies to audio device output
   if(O->sr_override == -1.0 &&
      !strncmp(O->outfilename, "dac",3)) {
+    MYFLT tmp_sr = csound->esr;
+    csound->esr = -1.0;
     O->sr_override = csoundInitialiseIO(csound);
-    if(O->sr_override > 0) 
+    if(O->sr_override > 0)
      csound->Message(csound, "Using system sampling rate %.1f\n", O->sr_override);
     else {
       csound->Message(csound, "System sr not available\n");
       O->sr_override = FL(0.0);
     }
+    csound->esr = tmp_sr;
   }
 
   if (UNLIKELY(O->odebug))

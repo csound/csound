@@ -363,6 +363,8 @@ int AuHAL_open(CSOUND *csound, const csRtAudioParams * parm,
     AudioObjectSetPropertyData(dev, &prop, 0, NULL, psize, &srate);
     AudioObjectGetPropertyData(dev, &prop, 0, NULL, &psize, &sr);
 
+    if(srate < 0)
+      srate  =  csound->system_sr(csound, sr);
     if(UNLIKELY(sr != srate)) {
       csound->Warning(csound,
                       Str("Attempted to set device SR, tried %.1f, got %.1f\n"),

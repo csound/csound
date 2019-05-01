@@ -1067,7 +1067,7 @@ extern "C" {
    * If val > 0, sets the internal variable holding the system HW sr.
    * Returns the stored value containing the system HW sr.
    */
-  PUBLIC MYFLT csoundSystemSr(CSOUND *csound, MYFLT val); 
+  PUBLIC MYFLT csoundSystemSr(CSOUND *csound, MYFLT val);
 
 
   /** @}*/

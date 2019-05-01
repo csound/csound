@@ -79,8 +79,8 @@ typedef struct evt_cb_func {
 
 #define STA(x)   (csound->musmonStatics.x)
 
-/** 
-  Open and Initialises the input/output 
+/**
+  Open and Initialises the input/output
   returns the HW sampling rate if it has been
   set, -1.0 otherwise.
 */
@@ -343,7 +343,7 @@ int musmon(CSOUND *csound)
     // the sampling rate. Otherwise it gets called here.
     if(!csound->io_initialised)
          csoundInitialiseIO(csound);
-    
+
     if (O->playscore!=NULL) corfile_flush(csound, O->playscore);
     //csound->scfp
     if (UNLIKELY(O->usingcscore)) {
