@@ -1063,6 +1063,12 @@ extern "C" {
    */
   PUBLIC void csoundSetDebug(CSOUND *, int debug);
 
+  /**
+   * If val > 0, sets the internal variable holding the system HW sr.
+   * Returns the stored value containing the system HW sr.
+   */
+  PUBLIC MYFLT csoundSystemSr(CSOUND *csound, MYFLT val); 
+
 
   /** @}*/
   /** @defgroup FILEIO General Input/Output

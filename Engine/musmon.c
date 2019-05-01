@@ -79,6 +79,65 @@ typedef struct evt_cb_func {
 
 #define STA(x)   (csound->musmonStatics.x)
 
+/** 
+  Open and Initialises the input/output 
+  returns the HW sampling rate if it has been
+  set, -1.0 otherwise.
+*/
+MYFLT csoundInitialiseIO(CSOUND *csound) {
+    OPARMS *O = csound->oparms;
+    if (csound->enableHostImplementedAudioIO &&
+        csound->hostRequestedBufferSize) {
+      int bufsize    = (int) csound->hostRequestedBufferSize;
+      int ksmps      = (int) csound->ksmps;
+      bufsize        = (bufsize + (ksmps >> 1)) / ksmps;
+      bufsize        = (bufsize ? bufsize * ksmps : ksmps);
+      O->outbufsamps = O->inbufsamps = bufsize;
+    }
+    else {
+      if (!O->oMaxLag)
+        O->oMaxLag = IODACSAMPS;
+      if (!O->outbufsamps)
+        O->outbufsamps = IOBUFSAMPS;
+      else if (UNLIKELY(O->outbufsamps < 0)) { /* if k-aligned iobufs requested  */
+        /* set from absolute value */
+        O->outbufsamps *= -((int64_t)csound->ksmps);
+        csound->Message(csound, Str("k-period aligned audio buffering\n"));
+        if (O->oMaxLag <= O->outbufsamps)
+          O->oMaxLag = O->outbufsamps << 1;
+      }
+      /* else keep the user values */
+      /* IV - Feb 04 2005: make sure that buffer sizes for real time audio */
+      /* are usable */
+      if (check_rtaudio_name(O->infilename, NULL, 0) >= 0 ||
+          check_rtaudio_name(O->outfilename, NULL, 1) >= 0) {
+        O->oMaxLag = ((O->oMaxLag + O->outbufsamps - 1) / O->outbufsamps)
+          * O->outbufsamps;
+        if (O->oMaxLag <= O->outbufsamps && O->outbufsamps > 1)
+          O->outbufsamps >>= 1;
+      }
+      O->inbufsamps = O->outbufsamps;
+    }
+    csound->Message(csound, Str("audio buffered in %d sample-frame blocks\n"),
+                    (int) O->outbufsamps);
+    O->inbufsamps  *= csound->inchnls;    /* now adjusted for n channels  */
+    O->outbufsamps *= csound->nchnls;
+    iotranset(csound);          /* point recv & tran to audio formatter */
+    /* open audio file or device for input first, and then for output */
+    if (!csound->enableHostImplementedAudioIO) {
+      if (O->sfread)
+        sfopenin(csound);
+      if (O->sfwrite && !csound->initonly)
+        sfopenout(csound);
+      else
+       sfnopenout(csound);
+    }
+    csound->io_initialised = 1;
+    return csound->system_sr(csound, 0);
+ }
+
+
+
 /* IV - Jan 28 2005 */
 void print_benchmark_info(CSOUND *csound, const char *s)
 {
@@ -279,52 +338,12 @@ int musmon(CSOUND *csound)
     if (O->Linein)
       RTLineset(csound);                /* if realtime input expected   */
 
-    if (csound->enableHostImplementedAudioIO &&
-        csound->hostRequestedBufferSize) {
-      int bufsize    = (int) csound->hostRequestedBufferSize;
-      int ksmps      = (int) csound->ksmps;
-      bufsize        = (bufsize + (ksmps >> 1)) / ksmps;
-      bufsize        = (bufsize ? bufsize * ksmps : ksmps);
-      O->outbufsamps = O->inbufsamps = bufsize;
-    }
-    else {
-      if (!O->oMaxLag)
-        O->oMaxLag = IODACSAMPS;
-      if (!O->outbufsamps)
-        O->outbufsamps = IOBUFSAMPS;
-      else if (UNLIKELY(O->outbufsamps < 0)) { /* if k-aligned iobufs requested  */
-        /* set from absolute value */
-        O->outbufsamps *= -((int64_t)csound->ksmps);
-        csound->Message(csound, Str("k-period aligned audio buffering\n"));
-        if (O->oMaxLag <= O->outbufsamps)
-          O->oMaxLag = O->outbufsamps << 1;
-      }
-      /* else keep the user values */
-      /* IV - Feb 04 2005: make sure that buffer sizes for real time audio */
-      /* are usable */
-      if (check_rtaudio_name(O->infilename, NULL, 0) >= 0 ||
-          check_rtaudio_name(O->outfilename, NULL, 1) >= 0) {
-        O->oMaxLag = ((O->oMaxLag + O->outbufsamps - 1) / O->outbufsamps)
-          * O->outbufsamps;
-        if (O->oMaxLag <= O->outbufsamps && O->outbufsamps > 1)
-          O->outbufsamps >>= 1;
-      }
-      O->inbufsamps = O->outbufsamps;
-    }
-    csound->Message(csound, Str("audio buffered in %d sample-frame blocks\n"),
-                    (int) O->outbufsamps);
-    O->inbufsamps  *= csound->inchnls;    /* now adjusted for n channels  */
-    O->outbufsamps *= csound->nchnls;
-    iotranset(csound);          /* point recv & tran to audio formatter */
-    /* open audio file or device for input first, and then for output */
-    if (!csound->enableHostImplementedAudioIO) {
-      if (O->sfread)
-        sfopenin(csound);
-      if (O->sfwrite && !csound->initonly)
-        sfopenout(csound);
-      else
-        sfnopenout(csound);
-    }
+    // VL 01-05-2019
+    // if --use-system-sr, this gets called earlier to override
+    // the sampling rate. Otherwise it gets called here.
+    if(!csound->io_initialised)
+         csoundInitialiseIO(csound);
+    
     if (O->playscore!=NULL) corfile_flush(csound, O->playscore);
     //csound->scfp
     if (UNLIKELY(O->usingcscore)) {
