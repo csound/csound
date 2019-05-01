@@ -244,7 +244,7 @@ static int csoundGetTieFlag(CSOUND *csound){
     return csound->tieflag;
 }
 
-static MYFLT csoundSystemSr(CSOUND *csound, MYFLT val) {
+MYFLT csoundSystemSr(CSOUND *csound, MYFLT val) {
   if (val > 0) csound->_system_sr = val;
   return csound->_system_sr;
 }
