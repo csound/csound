@@ -39,49 +39,20 @@ tabensure_init(CSOUND *csound, ARRAYDAT *p, int size)
         p->allocated = ss;
     }
     p->sizes[0] = size;
+    p->dimensions = 1;
 }
 
 
-/*
-static inline void
-_tabensure_init(CSOUND *csound, ARRAYDAT *p, int size)
-{
-    if (p->data == NULL || p->dimensions == 0) {
-        size_t ss;
-        if (p->data == NULL) {
-            CS_VARIABLE* var = p->arrayType->createVariable(csound, NULL);
-            p->arrayMemberSize = var->memBlockSize;
-        }
-        ss = p->arrayMemberSize*size;
-        if (p->data==NULL) {
-            p->data = (MYFLT*)csound->Calloc(csound, ss);
-            p->allocated = ss;
-        }
-        else if (ss > p->allocated) {
-            p->data = (MYFLT*) csound->ReAlloc(csound, p->data, ss);
-            p->allocated = ss;
-        }
-        if (p->dimensions==0) {
-            p->dimensions = 1;
-            p->sizes = (int32_t*)csound->Malloc(csound, sizeof(int32_t));
-        }
-        p->sizes[0] = size;
-    }
-}
-*/
-
-// Use this to ensure the size of the array at k-time
-static inline void
-tabensure_perf(CSOUND *csound, ARRAYDAT *p, int size)
-{
-    if(UNLIKELY(p->sizes[0] != size)) {
-        size_t ss = p->arrayMemberSize*size;
-        if (ss > p->allocated) {
-            p->data = (MYFLT*) csound->ReAlloc(csound, p->data, ss);
-            p->allocated = ss;
-        }
-        p->sizes[0] = size;
-    }
-}
+#define TABENSURE_PERF(csound, arr, size) { \
+    if(UNLIKELY(arr->sizes[0] != size)) {                                                  \
+        size_t _ss = arr->arrayMemberSize*size;                                            \
+        if (_ss > arr->allocated) {                                                        \
+            return PERFERRF(Str("Array is too small (allocated %lu < needed %lu), but can't" \
+                            "allocate during performance pass. Allocate a bigger array"    \
+                            "at init time"),                                               \
+                            arr->allocated, _ss);                                          \
+        }                                                                                  \
+        arr->sizes[0] = size;                                                              \
+    }}
 
 #endif

@@ -1074,16 +1074,16 @@ tabrowcopy_init(CSOUND* csound, TABROWCOPY* p){
 
     int end = *p->iend;
     if(end > *p->inumcols)
-      return INITERR(Str("tabrowcopy: iend cannot be bigger than numcols"));
+        return INITERR(Str("tabrowcopy: iend cannot be bigger than numcols"));
 
     if(end == 0)
-      end = *p->inumcols;
+        end = *p->inumcols;
 
     p->end = end;
 
     int numcols_to_copy = (int)((end - *p->istart) / *p->istep);
     if (numcols_to_copy > p->tabdestlen)
-      return INITERR(Str("tabrowcopy: Destination table too small"));
+        return INITERR(Str("tabrowcopy: Destination table too small"));
 
     p->maxrow = (int)((p->tabsourcelen - *p->ioffset) / *p->inumcols) - 1;
     return OK;
@@ -1118,7 +1118,7 @@ tabrowcopyk(CSOUND* csound, TABROWCOPY* p) {
     int j    = 0;
 
     if(UNLIKELY(row < 0))
-      return PERFERROR(Str("tabrowcopy: krow cannot be negative"));
+      return PERFERR(Str("tabrowcopy: krow cannot be negative"));
 
     if (LIKELY(delta != 0)) {
       if (UNLIKELY(idx1+numcols > tabsourcelen)) {
@@ -1126,7 +1126,7 @@ tabrowcopyk(CSOUND* csound, TABROWCOPY* p) {
                        "krow: %f   row0: %d  idx1: %d  numcols: %d   "
                         "tabsourcelen: %d\n",
                         row, row0, idx1, numcols, tabsourcelen);
-        return PERFERROR(Str("tabrowcopy: tab off end"));
+        return PERFERR(Str("tabrowcopy: tab off end"));
       }
       for (i=idx0; i<idx1; i+=step) {
         x0 = tabsource[i];
@@ -1135,7 +1135,7 @@ tabrowcopyk(CSOUND* csound, TABROWCOPY* p) {
       }
     } else {
       if (UNLIKELY(idx1 > tabsourcelen))
-        return PERFERROR(Str("tabrowcopy: tab off end"));
+        return PERFERR(Str("tabrowcopy: tab off end"));
       for (i=idx0; i<idx1; i+=step) {
         tabdest[j++] = tabsource[i];
       }
@@ -1165,16 +1165,16 @@ tabrowcopyarr_init(CSOUND *csound, TABROWCOPYARR *p) {
     uint32_t end   = (uint32_t)*p->iend;
     uint32_t step  = (uint32_t)*p->istep;
     if(end > *p->inumcols)
-      return INITERR(Str("tabrowlin: iend cannot be bigger than numcols"));
+        return INITERR(Str("tabrowlin: iend cannot be bigger than numcols"));
     if(end == 0)
-      end = (uint32_t) *p->inumcols;
+        end = (uint32_t) *p->inumcols;
     if(end <= start) {
-      return INITERR(Str("tabrowlin: end must be bigger than start"));
+        return INITERR(Str("tabrowlin: end must be bigger than start"));
     }
     p->end = end;
     uint32_t numitems = (uint32_t) (ceil((end - start) / (MYFLT)step));
     if(numitems <= 0) {
-      return INITERR(Str("tabrowlin: no items to copy"));
+        return INITERR(Str("tabrowlin: no items to copy"));
     }
     tabensure_init(csound, p->outarr, numitems);
     p->numitems = numitems;
@@ -1197,21 +1197,22 @@ tabrowcopyarr_k(CSOUND *csound, TABROWCOPYARR *p) {
     MYFLT x0, x1;
 
     if(UNLIKELY(row < 0)) {
-      return PERFERROR(Str("krow cannot be negative"));
+      return PERFERR(Str("krow cannot be negative"));
     }
     // TODO : check maxrow
     uint32_t idx0 = offset + numcols * row0 + start;
     uint32_t idx1 = idx0 + (end-start);
     uint32_t numitems = idx1 - idx0;
-    tabensure_perf(csound, p->outarr, numitems);
+    TABENSURE_PERF(csound, p->outarr, numitems);
+    // tabensure_perf(csound, p->outarr, numitems);
 
     MYFLT *out = p->outarr->data;
     MYFLT *tabsource = p->tabsource;
 
     uint32_t i, j = 0;
     if (LIKELY(delta != 0)) {
-      if (UNLIKELY(idx1+numcols >= tabsourcelen))
-        return PERFERROR(Str("tab off end"));
+    if (UNLIKELY(idx1+numcols >= tabsourcelen))
+        return PERFERR(Str("tab off end"));
       for (i=idx0; i<idx1; i+=step) {
         x0 = tabsource[i];
         x1 = tabsource[i + numcols];
@@ -1219,7 +1220,7 @@ tabrowcopyarr_k(CSOUND *csound, TABROWCOPYARR *p) {
       }
     } else {
       if (UNLIKELY(idx1 >= tabsourcelen))
-        return PERFERROR(Str("tab off end"));
+        return PERFERR(Str("tab off end"));
       for (i=idx0; i<idx1; i+=step) {
         out[j++] = tabsource[i];
       }
@@ -1265,30 +1266,29 @@ getrowlin_init(CSOUND *csound, GETROWLIN *p) {
 static int32_t
 getrowlin_k(CSOUND *csound, GETROWLIN *p) {
     if(p->inarr->dimensions != 2)
-      return PERFERROR(Str("The input array should be a 2D array"));
+        return PERFERR(Str("The input array should be a 2D array"));
     int start = (int)*p->kstart;
     int end   = (int)*p->kend;
     int step  = (int)*p->kstep;
     if (end <= 0) {
-      end = p->inarr->sizes[1];
+        end = p->inarr->sizes[1];
     }
     int numitems = (int) (ceil((end - start) / (MYFLT)step));
     int numcols  = p->inarr->sizes[1];
     if(numitems > numcols)
-      return PERFERROR(Str("Asked to read too many items from a row"));
-    if(numitems != p->numitems) {
-      tabensure_perf(csound, p->outarr, numitems);
-      p->numitems = numitems;
-    }
+        return PERFERR(Str("Asked to read too many items from a row"));
+    //tabensure_perf(csound, p->outarr, numitems, &(p->h));
+    TABENSURE_PERF(csound, p->outarr, numitems);
+    p->numitems = numitems;
     MYFLT row = *p->krow;
     int maxrow = p->inarr->sizes[0] - 1;
     if(UNLIKELY(row < 0))
-      return PERFERROR(Str("getrowlin: krow cannot be negative"));
+        return PERFERR(Str("getrowlin: krow cannot be negative"));
     if(UNLIKELY(row > maxrow)) {
-      csound->Message(csound, Str("getrowlin: row %.4f > maxrow %d, clipping\n"),
-                      row, maxrow);
-      row = maxrow;
-      // return PERFERROR(Str("getrowlin: exceeded maximum row"));
+        csound->Message(csound, Str("getrowlin: row %.4f > maxrow %d, clipping\n"),
+                        row, maxrow);
+        row = maxrow;
+        // return PERFERR(Str("getrowlin: exceeded maximum row"));
     }
     int row0    = (int)row;
     MYFLT delta = row - row0;
@@ -1301,16 +1301,16 @@ getrowlin_k(CSOUND *csound, GETROWLIN *p) {
     MYFLT x0, x1;
     int i, j = 0;
     if (LIKELY(delta != 0)) {
-      for (i=idx0; i<idx1; i+=step) {
-        x0 = in[i];
-        x1 = in[i + numcols];
-        out[j++] = x0 + (x1-x0)*delta;
-      }
+        for (i=idx0; i<idx1; i+=step) {
+            x0 = in[i];
+            x1 = in[i + numcols];
+            out[j++] = x0 + (x1-x0)*delta;
+        }
     }
     else {
-      for (i=idx0; i<idx1; i+=step) {
-        out[j++] = in[i];
-      }
+        for (i=idx0; i<idx1; i+=step) {
+            out[j++] = in[i];
+        }
     }
     return OK;
 }
