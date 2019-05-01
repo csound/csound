@@ -1178,7 +1178,7 @@ static int decode_long(CSOUND *csound, char *s, int argc, char **argv)
                          "system sr: %f\n", csound->system_sr(csound,0));
         sfcloseout(csound);
       }
-      csound->info_message_request = 1;  
+      csound->info_message_request = 1;
       return 1;
     }
     else if(!strncmp(s, "use-system-sr",13)){

@@ -172,6 +172,8 @@ users.  There have been many fixes to the core code as well as opcodes.
 
 - After a reset a default message string callback handle is configured.
 
+- New function csoundSystemSr addd to the API to read hardware-imposed samplr rate.
+
 ### Platform Specific
 
 - WebAudio: libsndfile now compiled with FLAC and OGG support.
