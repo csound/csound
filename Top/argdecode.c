@@ -1182,7 +1182,8 @@ static int decode_long(CSOUND *csound, char *s, int argc, char **argv)
       return 1;
     }
     else if(!strncmp(s, "use-system-sr",13)){
-          O->sr_override = -1.0;
+      if(O->sr_override == FL(0.0))
+          O->sr_override = FL(-1.0);
           return 1;
     }
     else if (!(strcmp(s, "aft-zero"))){
