@@ -462,6 +462,7 @@ static int set_device_params(CSOUND *csound, DEVPARAMS *dev, int play)
     {
       unsigned int target;
       if(dev->srate == 0) {
+	// VL 2-4-2019 this code gets HW sr for use in Csound.
       unsigned int hwsr;
       snd_pcm_hw_params_t *pms;
       snd_pcm_hw_params_alloca(&pms);
