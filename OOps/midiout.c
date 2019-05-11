@@ -322,7 +322,7 @@ int32_t out_controller (CSOUND *csound, OUT_CONTR *p)
         p->last_value = value;
         p->lastchn = *p->chn;
         p->lastctrl = *p->num;
-        }
+      }
     }
     return OK;
 }
@@ -359,8 +359,7 @@ int32_t out_poly_aftertouch (CSOUND *csound, OUT_POLYATOUCH *p)
       p->last_value = value;
       p->lastchn = *p->chn;
       p->lastctrl = *p->num;
-}
-
+    }
     return OK;
 }
 
@@ -404,7 +403,7 @@ int32_t out_controller14 (CSOUND *csound, OUT_CONTR14 *p)
         p->last_value = value;
         p->lastchn = *p->chn;
         p->lastctrl = *p->msb_num;
-         }
+      }
     }
     return OK;
 }

@@ -71,7 +71,7 @@ extern "C" {
         struct csvariable* next;
         CS_TYPE* subType;
         void (*updateMemBlockSize)(void*, struct csvariable*);
-      void (*initializeVariableMemory)(void*,struct csvariable*, MYFLT*);
+        void (*initializeVariableMemory)(void*,struct csvariable*, MYFLT*);
         CS_VAR_MEM *memBlock;
     } CS_VARIABLE;
 

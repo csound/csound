@@ -161,7 +161,33 @@ static int32_t tabfill(CSOUND *csound, TABFILL *p)
     int32_t i, size;
     size_t memMyfltSize;
     MYFLT  **valp = p->iargs;
-    tabensure(csound, p->ans, nargs);
+    tabinit(csound, p->ans, nargs);
+/*     if (UNLIKELY(p->ans->dimensions > 2)) { */
+/*       return */
+/*         csound->InitError(csound, "%s", */
+/*                           Str("fillarrray: arrays with dim > 2 not " */
+/*                               "currently supported\n")); */
+/*     } */
+    size = p->ans->sizes[0];
+    for (i=1; i<p->ans->dimensions; i++) size *= p->ans->sizes[i];
+    if (size<nargs) nargs = size;
+    memMyfltSize = p->ans->arrayMemberSize / sizeof(MYFLT);
+    for (i=0; i<nargs; i++) {
+      p->ans->arrayType->copyValue(csound,
+                                   p->ans->data + (i * memMyfltSize),
+                                   valp[i]);
+    }
+    return OK;
+}
+
+static int32_t tabkfill(CSOUND *csound, TABFILL *p)
+{
+    int32_t    nargs = p->INOCOUNT;
+    int32_t i, size;
+    size_t memMyfltSize;
+    MYFLT  **valp = p->iargs;
+    int n = tabcheck(csound, p->ans, nargs, &(p->h));
+    if (UNLIKELY(n!=OK)) return n;
 /*     if (UNLIKELY(p->ans->dimensions > 2)) { */
 /*       return */
 /*         csound->InitError(csound, "%s", */
@@ -3834,7 +3860,7 @@ static OENTRY arrayvars_localops[] =
     { "fillarray.k", sizeof(TABFILL), 0, 1, "k[]", "m", (SUBR)tabfill },
     { "fillarray.i", sizeof(TABFILL), 0, 1, "i[]", "m", (SUBR)tabfill },
     { "fillarray.s", sizeof(TABFILL), 0, 1, "S[]", "W", (SUBR)tabfill },
-    { "fillarray.K", sizeof(TABFILL), 0, 2, "k[]", "z", NULL, (SUBR)tabfill },
+    { "fillarray.K", sizeof(TABFILL), 0, 2, "k[]", "z", NULL, (SUBR)tabkfill },
     { "fillarray.f", sizeof(TABFILLF), 0, 1, "k[]", "S", (SUBR)tabfillf },
     { "fillarray.F", sizeof(TABFILLF), 0, 1, "i[]", "S", (SUBR)tabfillf },
     { "string2array.S", sizeof(TABFILLF), 0, 1, "i[]", "S", (SUBR)tabsfill },
