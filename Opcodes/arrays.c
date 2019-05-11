@@ -2530,7 +2530,7 @@ static int32_t ftab2tabi(CSOUND *csound, TABCOPY *p)
       return csound->InitError(csound, "%s", Str("No table for copy2ftab"));
     fsize = ftp->flen;
     if (UNLIKELY(p->tab->data==NULL)) {
-      tabensure(csound, p->tab, fsize);
+      tabinit(csound, p->tab, fsize);
       p->tab->sizes[0] = fsize;
     }
     tlen = p->tab->sizes[0];
@@ -2552,7 +2552,7 @@ static int32_t ftab2tab(CSOUND *csound, TABCOPY *p)
                                &(p->h), Str("No table for copy2ftab"));
     fsize = ftp->flen;
     if (UNLIKELY(p->tab->data==NULL)) {
-      tabensure(csound, p->tab, fsize);
+      tabinit(csound, p->tab, fsize);
       p->tab->sizes[0] = fsize;
     }
     tlen = p->tab->sizes[0];
@@ -2606,7 +2606,7 @@ static int32_t tabslice(CSOUND *csound, TABSLICE *p) {
     if (UNLIKELY(inc<=0))
       return csound->InitError(csound, "%s",
                                Str("slice increment must be positive"));
-    tabensure(csound, p->tab, size);
+    tabinit(csound, p->tab, size);
 
     for (i = start, destIndex = 0; i < end + 1; i+=inc, destIndex++) {
       p->tab->arrayType->copyValue(csound,
