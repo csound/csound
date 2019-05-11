@@ -255,7 +255,7 @@ static int32_t tabfillf(CSOUND* csound, TABFILLF* p)
       nextval(infile);
     } while (!feof(infile));
     flen--; // overshoots by 1
-    tabensure(csound, p->ans, flen);
+    tabinit(csound, p->ans, flen);
     size = p->ans->sizes[0];
     for (i=1; i<p->ans->dimensions; i++) size *= p->ans->sizes[i];
     if (size<flen) flen = size;
@@ -312,7 +312,7 @@ static int32_t tabsfill(CSOUND *csound, TABFILLF *p)
       flen++;
     } while (*string!='\0');
     //flen--; // overshoots by 1
-    tabensure(csound, p->ans, flen);
+    tabinit(csound, p->ans, flen);
     size = p->ans->sizes[0];
     for (i=1; i<p->ans->dimensions; i++) size *= p->ans->sizes[i];
     if (size<flen) flen = size;
@@ -472,7 +472,7 @@ static int32_t tabarithset(CSOUND *csound, TABARITH *p)
       /* size is the smallest of the two */
       size = p->left->sizes[0] < p->right->sizes[0] ?
         p->left->sizes[0] : p->right->sizes[0];
-      tabensure(csound, p->ans, size);
+      tabinit(csound, p->ans, size);
       p->ans->sizes[0] = size;
       return OK;
     }
@@ -501,7 +501,7 @@ static int32_t tabarithset1(CSOUND *csound, TABARITH1 *p)
     if (LIKELY(left->data)) {
       int32_t size;
       size = left->sizes[0];
-      tabensure(csound, p->ans, size);
+      tabinit(csound, p->ans, size);
       p->ans->sizes[0] = size;
       return OK;
     }
@@ -520,7 +520,7 @@ static int32_t tabarithset2(CSOUND *csound, TABARITH2 *p)
           csound->InitError(csound, "%s",
                             Str("Dimension does not match in array arithmetic"));
       size = right->sizes[0];
-      tabensure(csound, p->ans, size);
+      tabinit(csound, p->ans, size);
       p->ans->sizes[0] = size;
       return OK;
     }
@@ -2500,11 +2500,11 @@ static int32_t tabgen(CSOUND *csound, TABGEN *p)
       return
         csound->InitError(csound, "%s",
                           Str("inconsistent start, end and increment parameters"));
-    tabensure(csound, p->tab, size);
-    if (UNLIKELY(p->tab->data==NULL)) {
-      tabensure(csound, p->tab, size);
-      p->tab->sizes[0] = size;
-    }
+    tabinit(csound, p->tab, size);
+    /* if (UNLIKELY(p->tab->data==NULL)) { */
+    /*   tabensure(csound, p->tab, size); */
+    /*   p->tab->sizes[0] = size; */
+    /* } */
     //else /* This is wrong if array exists only write to specified part */
     //size = p->tab->sizes[0];
     data =  p->tab->data;
