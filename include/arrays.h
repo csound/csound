@@ -52,7 +52,7 @@ static inline void tabensure(CSOUND *csound, ARRAYDAT *p, int size)
 }
 
 
-static inline void tabinit(CSOUND *csound, ARRAYDAT *p, int size)
+static inline int tabinit(CSOUND *csound, ARRAYDAT *p, int size)
 {
     if (p->data==NULL || p->dimensions == 0) {
       size_t ss;
@@ -75,6 +75,10 @@ static inline void tabinit(CSOUND *csound, ARRAYDAT *p, int size)
       }
       //p->sizes[0] = size;
     }
+    if (p->dimensions==1 && p->sizes[0] < size) {
+      return csound->InitError(csound, Str("Array not sufficiently large"));
+    }
+    return OK;
     //p->sizes[0] = size;
 }
 

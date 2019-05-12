@@ -273,7 +273,8 @@ int32_t painit(CSOUND *csound, PAINIT *p)
     if (*p->end!=FL(0.0)) {
       if (k<pargs) pargs = k;
     }
-    tabensure(csound, p->inits, pargs-start+1);
+    n = tabinit(csound, p->inits, pargs-start+1);
+    if (n) return n;
     for (n=0; n<=pargs-start; n++) {
       ((MYFLT*)p->inits->data)[n] = csound->init_event->p[n+start];
     }

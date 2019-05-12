@@ -1019,41 +1019,12 @@ static int32_t OSC_ahandler(const char *path, const char *types,
 }
 
 #include "arrays.h"
-#if 0
-static inline void tabensure(CSOUND *csound, ARRAYDAT *p, int32_t size)
-{
-    if (p->data==NULL || p->dimensions == 0 ||
-        (p->dimensions==1 && p->sizes[0] < size)) {
-      size_t ss;
-      if (p->data == NULL) {
-        CS_VARIABLE* var = p->arrayType->createVariable(csound, NULL);
-        p->arrayMemberSize = var->memBlockSize;
-      }
-      ss = p->arrayMemberSize*size;
-      if (p->data==NULL) {
-        p->data = (MYFLT*)csound->Calloc(csound, ss);
-        p->allocated = ss;
-      }
-      else if (ss > p->allocated) {
-        p->data = (MYFLT*) csound->ReAlloc(csound, p->data, ss);
-        p->allocated = ss;
-      }
-      if (p->dimensions==0) {
-        p->dimensions = 1;
-        p->sizes = (int32_t*)csound->Malloc(csound, sizeof(int32_t));
-      }
-      p->sizes[0] = size;
-    }
-    else {
-      p->sizes[0] = size;
-    }
-}
-#endif
 
 static int32_t OSC_alist_init(CSOUND *csound, OSCLISTENA *p)
 {
     //void  *x;
     int32_t   i, n;
+    int m;
 
     OSC_GLOBALS *pp =
       (OSC_GLOBALS*) csound->QueryGlobalVariable(csound, "_OSC_globals");
@@ -1068,7 +1039,8 @@ static int32_t OSC_alist_init(CSOUND *csound, OSCLISTENA *p)
                                            strlen((char*) p->dest->data) + 1);
     strcpy(p->c.saved_path, (char*) p->dest->data);
     /* check for a valid argument list */
-    tabensure(csound, p->args, n=strlen((char*) p->type->data));
+    m = tabinit(csound, p->args, n=strlen((char*) p->type->data));
+    if (m) return m;
     strcpy(p->c.saved_types, (char*) p->type->data);
     for (i = 0; i < n; i++) {
       switch (p->c.saved_types[i]) {

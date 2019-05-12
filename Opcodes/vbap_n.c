@@ -323,6 +323,7 @@ int32_t vbap_init_a(CSOUND *csound, VBAPA *p)
     LS_SET  *ls_set_ptr;
     int32_t cnt;
     char name[24];
+    int n;
 
     snprintf(name, 24, "vbap_ls_table_%d", (int32_t)*p->layout);
     ls_table = (MYFLT*) (csound->QueryGlobalVariable(csound, name));
@@ -341,7 +342,8 @@ int32_t vbap_init_a(CSOUND *csound, VBAPA *p)
                                Str("vbap system NOT configured.\nMissing"
                                    " vbaplsinit opcode in orchestra?"));
     //printf("**** size = %d\n", p->q.ls_set_am);
-    tabensure(csound,  p->tabout, p->q.ls_set_am);
+    n = tabinit(csound,  p->tabout, p->q.ls_set_am);
+    if (n) return n;
     cnt = p->q.number = p->tabout->sizes[0];
     csound->AuxAlloc(csound, p->q.ls_set_am * sizeof(LS_SET), &p->q.aux);
     if (UNLIKELY(p->q.aux.auxp == NULL)) {
