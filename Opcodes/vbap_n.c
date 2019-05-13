@@ -12,7 +12,7 @@
 
     Csound is distributed in the hope that it will be useful,
     but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    MERCHANTABLITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
     GNU Lesser General Public License for more details.
 
     You should have received a copy of the GNU Lesser General Public
@@ -24,7 +24,6 @@
 /* vbap_n.c
 
 functions specific to four loudspeaker VBAP
-
 Ville Pulkki heavily modified by John ffitch 2012
 */
 
@@ -341,9 +340,10 @@ int32_t vbap_init_a(CSOUND *csound, VBAPA *p)
       return csound->InitError(csound,
                                Str("vbap system NOT configured.\nMissing"
                                    " vbaplsinit opcode in orchestra?"));
-    //printf("**** size = %d\n", p->q.ls_set_am);
+    printf("**** size = %d\n", p->q.ls_set_am);
     n = tabinit(csound,  p->tabout, p->q.ls_set_am);
     if (n) return n;
+    tabensure(csound,  p->tabout, p->q.ls_set_am);
     cnt = p->q.number = p->tabout->sizes[0];
     csound->AuxAlloc(csound, p->q.ls_set_am * sizeof(LS_SET), &p->q.aux);
     if (UNLIKELY(p->q.aux.auxp == NULL)) {

@@ -65,15 +65,11 @@ static inline int tabinit(CSOUND *csound, ARRAYDAT *p, int size)
         p->data = (MYFLT*)csound->Calloc(csound, ss);
         p->allocated = ss;
       }
-      else if (ss > p->allocated) {
-        p->data = (MYFLT*) csound->ReAlloc(csound, p->data, ss);
-        p->allocated = ss;
-      }
       if (p->dimensions==0) {
         p->dimensions = 1;
         p->sizes = (int32_t*)csound->Malloc(csound, sizeof(int32_t));
       }
-      //p->sizes[0] = size;
+      p->sizes[0] = size;
     }
     if (p->dimensions==1 && p->sizes[0] < size) {
       return csound->InitError(csound, Str("Array not sufficiently large"));
