@@ -215,7 +215,7 @@ int32_t printksset_(CSOUND *csound, PRINTKS *p, char *sarg)
       p->ctime = *p->ptime * csound->ekr;
     if(!p->h.insdshead->reinitflag)
        p->printat = CS_KCNT;
-    memset(p->txtstring, 0, 8192);   /* This line from matt ingalls */
+    memset(p->txtstring, '\0', 8192);   /* This line from matt ingalls */
     sdest = p->txtstring;
     /* Copy the string to the storage place in PRINTKS.
      *

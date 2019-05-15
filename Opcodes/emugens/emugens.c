@@ -687,10 +687,14 @@ static int32_t bpfarr(CSOUND *csound, BPFARR *p) {
     return OK;
 }
 
+static int32_t bpfarrcos_init(CSOUND *csound, BPFARR *p) {
+    tabinit(csound, p->out, p->in->sizes[0]);
+    return OK;
+}
 
 static int32_t bpfarrcos(CSOUND *csound, BPFARR *p) {
     int32_t N = p->in->sizes[0];
-    tabensure(csound, p->out, N);
+    tabcheck(csound, p->out, N, &(p->h));
     MYFLT **data = p->data;
     MYFLT *out = p->out->data;
     MYFLT *in  = p->in->data;
@@ -2009,7 +2013,8 @@ static OENTRY localops[] = {
 
     { "bpfcos", S(BPFX), 0, 2, "k", "kM", NULL, (SUBR)bpfxcos },
     { "bpfcos", S(BPFX), 0, 1, "i", "im", (SUBR)bpfxcos },
-    { "bpfcos", S(BPFARR), 0, 2, "k[]", "k[]M", NULL, (SUBR)bpfarrcos },
+    { "bpfcos", S(BPFARR), 0, 3, "k[]", "k[]M",
+      (SUBR)bpfarrcos_init, (SUBR)bpfarrcos },
 
     { "bpfcos", S(BPFARRPOINTS), 0, 2, "k", "kk[]k[]",
       NULL, (SUBR)bpfcosarrpoints },
