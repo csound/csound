@@ -215,6 +215,7 @@ int32_t printksset_(CSOUND *csound, PRINTKS *p, char *sarg)
       p->ctime = *p->ptime * csound->ekr;
     if(!p->h.insdshead->reinitflag)
        p->printat = CS_KCNT;
+    printf("*** ptime=%lf ctime=%lf printat=%f\n", *p->ptime, p->ctime, p->printat);
     memset(p->txtstring, '\0', 8192);   /* This line from matt ingalls */
     sdest = p->txtstring;
     /* Copy the string to the storage place in PRINTKS.
@@ -543,7 +544,7 @@ int32_t printks(CSOUND *csound, PRINTKS *p)
       csound->PerfError(csound, &(p->h), Str("printks not initialised"));
     if (p->printat <= CS_KCNT-1) {
       //string[0]='\0';           /* incase of empty string */
-      memset(string,0,8192);
+      memset(string,'\0',8192);
       if (sprints(string, p->txtstring, p->kvals, p->INOCOUNT-2)==NOTOK)
         return
           csound->PerfError(csound,  &(p->h),
