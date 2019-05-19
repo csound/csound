@@ -244,7 +244,7 @@ static int csoundGetTieFlag(CSOUND *csound){
     return csound->tieflag;
 }
 
-static MYFLT csoundSystemSr(CSOUND *csound, MYFLT val) {
+MYFLT csoundSystemSr(CSOUND *csound, MYFLT val) {
   if (val > 0) csound->_system_sr = val;
   return csound->_system_sr;
 }
@@ -980,8 +980,9 @@ static const CSOUND cenviron_ = {
     NULL,           /* message_string */
     0,              /* message_string_queue_items */
     0,              /* message_string_queue_wp */
-    NULL            /* message_string_queue */
-    /*, NULL */           /* self-reference */
+    NULL,            /* message_string_queue */
+    0                /* io_initialised */
+    /*, NULL */      /* self-reference */
 };
 
 void csound_aops_init_tables(CSOUND *cs);

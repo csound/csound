@@ -243,6 +243,8 @@ libcsound.csoundSetParams.argtypes = [c_void_p, POINTER(CsoundParams)]
 libcsound.csoundGetParams.argtypes = [c_void_p, POINTER(CsoundParams)]
 libcsound.csoundGetDebug.argtypes = [c_void_p]
 libcsound.csoundSetDebug.argtypes = [c_void_p, c_int]
+libcsound.csoundSystemSr.restype = MYFLT
+libcsound.csoundSystemSr.argtypes = [c_void_p, MYFLT]
 
 libcsound.csoundGetOutputName.restype = c_char_p
 libcsound.csoundGetOutputName.argtypes = [c_void_p]
@@ -1052,6 +1054,12 @@ class Csound:
         Those messages come from the :code:`DebugMsg()` internal API function.
         """
         libcsound.csoundSetDebug(self.cs, c_int(debug))
+
+    def systemSr(self, val):
+    	"""If val > 0, sets the internal variable holding the system HW sr.
+    	
+    	Returns the stored value containing the system HW sr."""
+    	return libcsound.csoundSystemSr(self.cs, val)
 
     #General Input/Output
     def outputName(self):

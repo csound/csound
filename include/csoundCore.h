@@ -1800,6 +1800,7 @@ typedef struct _message_queue_t_ {
     volatile unsigned long message_string_queue_items;
     unsigned long message_string_queue_wp;
     message_string_queue_t *message_string_queue;
+    int io_initialised;
     /*struct CSOUND_ **self;*/
     /**@}*/
 #endif  /* __BUILDING_LIBCSOUND */

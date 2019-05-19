@@ -967,7 +967,7 @@ static OENTRY socksend_localops[] =
      (SUBR) send_sendS },
    { "stsend", S(SOCKSEND), 0, 3, "", "aSi", (SUBR) init_ssend,
      (SUBR) send_ssend },
-   { "OSCsend", S(OSCSEND2), 0, 3, "", "kSk*", (SUBR)osc_send2_init,
+   { "OSCsend", S(OSCSEND2), 0, 3, "", "kSkSS*", (SUBR)osc_send2_init,
      (SUBR)osc_send2 },
    { "OSCbundle", S(OSCBUNDLE), 0, 3, "", "kSkS[]S[]k[][]o", (SUBR)oscbundle_init,
      (SUBR)oscbundle_perf },
