@@ -412,6 +412,17 @@ typedef struct {
   int init_done;
 } OSCSEND2;
 
+static int32_t oscsend_deinit(CSOUND *csound, OSCSEND2 *p)
+{
+    p->init_done = 0;
+#if defined(WIN32)
+    int closesocket(p->sock);
+#else
+    close(p->sock);
+#endif
+    return OK;
+}
+
 
 static int32_t osc_send2_init(CSOUND *csound, OSCSEND2 *p)
 {
@@ -448,6 +459,9 @@ static int32_t osc_send2_init(CSOUND *csound, OSCSEND2 *p)
               &p->server_addr.sin_addr);    /* the server IP address */
 #endif
     p->server_addr.sin_port = htons((int32_t) *p->port);    /* the port */
+
+    csound->RegisterDeinitCallback(csound, p,
+                                   (int32_t (*)(CSOUND *, void *)) oscsend_deinit);
 
     if(p->INCOUNT > 4) {
               if (p->types.auxp == NULL || strlen(p->type->data) > p->types.size)
@@ -576,7 +590,7 @@ static inline int32_t aux_realloc(CSOUND *csound, size_t size, AUXCH *aux) {
 
 static int32_t osc_send2(CSOUND *csound, OSCSEND2 *p)
 {
-    p->init_done = 0;
+
     if(*p->kwhen != p->last) {
       const struct sockaddr *to = (const struct sockaddr *) (&p->server_addr);
 
