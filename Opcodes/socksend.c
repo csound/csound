@@ -416,7 +416,7 @@ static int32_t oscsend_deinit(CSOUND *csound, OSCSEND2 *p)
 {
     p->init_done = 0;
 #if defined(WIN32)
-    int closesocket(p->sock);
+    //int closesocket(p->sock);
 #else
     close(p->sock);
 #endif
