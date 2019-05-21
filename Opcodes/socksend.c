@@ -409,13 +409,19 @@ typedef struct {
   MYFLT   last;
   struct sockaddr_in server_addr;
   int err_state;
+  int init_done;
 } OSCSEND2;
 
 
 static int32_t osc_send2_init(CSOUND *csound, OSCSEND2 *p)
 {
     uint32_t     bsize;
-
+    
+    if(p->init_done) {
+      csound->Warning(csound, "already initialised");
+      return OK;
+    }
+     
     if (UNLIKELY(p->INOCOUNT > 4 && p->INOCOUNT < (uint32_t) p->type->size + 4))
        return csound->InitError(csound,
                              Str("insufficient number of arguments for "
@@ -535,6 +541,7 @@ static int32_t osc_send2_init(CSOUND *csound, OSCSEND2 *p)
 
     p->last = FL(0.0);
     p->err_state = 0;
+    p->init_done = 1;
     return OK;
 }
 
@@ -569,6 +576,7 @@ static inline int32_t aux_realloc(CSOUND *csound, size_t size, AUXCH *aux) {
 
 static int32_t osc_send2(CSOUND *csound, OSCSEND2 *p)
 {
+    p->init_done = 0;
     if(*p->kwhen != p->last) {
       const struct sockaddr *to = (const struct sockaddr *) (&p->server_addr);
 
