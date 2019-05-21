@@ -190,7 +190,7 @@ int32_t printk(CSOUND *csound, PRINTK *p)
                          p->h.optext->t.inlist->arg[1], *p->val);
       else
         csound->MessageS(csound, CSOUNDMSG_ORCH, "%11.5f\n", *p->val);
-      p->printat += p->ctime;
+      p->printat = CS_KCNT + p->ctime - 1;
     }
     return OK;
 }
@@ -549,7 +549,7 @@ int32_t printks(CSOUND *csound, PRINTKS *p)
           csound->PerfError(csound,  &(p->h),
                             Str("Insufficient arguments in formatted printing"));
       csound->MessageS(csound, CSOUNDMSG_ORCH, "%s", string);
-      p->printat += p->ctime;
+      p->printat = CS_KCNT + p->ctime -1;
     }
     return OK;
 }
