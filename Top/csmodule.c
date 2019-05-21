@@ -459,6 +459,7 @@ int csoundLoadModules(CSOUND *csound)
       *end = '\0';
       /* copy directory name */
       dname1 = cs_strdup(csound, (char *) dname);
+      *end = sep;  /* restore for re-execution */
       /* move to next directory name */
       dname = end + 1;
     } else {

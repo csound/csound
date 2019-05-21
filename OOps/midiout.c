@@ -307,7 +307,7 @@ int32_t kvar_out_on(CSOUND *csound, KOUT_ON *p)
 
 int32_t out_controller (CSOUND *csound, OUT_CONTR *p)
 {
-    if (!(p->h.insdshead->prvinstance)) {
+    /* if (!(p->h.insdshead->prvinstance)) JPff/VL */ {
       /* if prev instance already allocated in the same MIDI chan */
       int32_t value;
       MYFLT min = *p->min;
@@ -329,7 +329,7 @@ int32_t out_controller (CSOUND *csound, OUT_CONTR *p)
 
 int32_t out_aftertouch (CSOUND *csound, OUT_ATOUCH *p)
 {
-    if (!(p->h.insdshead->prvinstance)) {
+    /* if (!(p->h.insdshead->prvinstance)) JPff/VL */ {
       /* if prev instance already allocated in the same MIDI chan */
       int32_t value;
       MYFLT min = *p->min;
@@ -366,7 +366,7 @@ int32_t out_poly_aftertouch (CSOUND *csound, OUT_POLYATOUCH *p)
 
 int32_t out_progchange (CSOUND *csound, OUT_PCHG *p)
 {
-    if (!(p->h.insdshead->prvinstance)) {
+    /* if (!(p->h.insdshead->prvinstance)) JPff/VL */ {
       /* if prev instance already allocated in the same MIDI chan */
       int32_t prog_num;
       MYFLT min = *p->min;
@@ -384,7 +384,7 @@ int32_t out_progchange (CSOUND *csound, OUT_PCHG *p)
 
 int32_t out_controller14 (CSOUND *csound, OUT_CONTR14 *p)
 {
-    if (!(p->h.insdshead->prvinstance)) {
+    /* if (!(p->h.insdshead->prvinstance)) JPff/VL */ {
       /* if prev instance already allocated in the same MIDI chan */
       int32_t value;
       MYFLT min = *p->min;
@@ -411,11 +411,11 @@ int32_t out_controller14 (CSOUND *csound, OUT_CONTR14 *p)
 
 int32_t out_pitch_bend(CSOUND *csound, OUT_PB *p)
 {
-    if (p->h.insdshead->prvinstance) {
-      /* if prev instance already allocated in the same MIDI chan */
-      return OK;
-    }
-    else {
+    /* if (p->h.insdshead->prvinstance) { */
+    /*   /\* if prev instance already allocated in the same MIDI chan *\/ */
+    /*   return OK; */
+    /* } */
+    /* JPff/VL else */ {
       int32_t   value;
       MYFLT min = *p->min;
 
