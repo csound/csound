@@ -1202,7 +1202,7 @@ tabrowcopyarr_k(CSOUND *csound, TABROWCOPYARR *p) {
     // TODO : check maxrow
     uint32_t idx0 = offset + numcols * row0 + start;
     uint32_t idx1 = idx0 + (end-start);
-    uint32_t numitems = idx1 - idx0;
+    uint32_t numitems = (uint32_t) (ceil((end - start) / (MYFLT)step));
     TABENSURE_PERF(csound, p->outarr, numitems);
     // tabensure_perf(csound, p->outarr, numitems);
 
@@ -1257,7 +1257,6 @@ getrowlin_init(CSOUND *csound, GETROWLIN *p) {
     if (end < 1)
       end = p->inarr->sizes[1];
     int numitems = (int) (ceil((end - start) / (MYFLT)step));
-
     tabensure_init(csound, p->outarr, numitems);
     p->numitems = numitems;
     return OK;
