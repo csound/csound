@@ -43,6 +43,7 @@ static void do_ifdef_skip_code(CSOUND *, yyscan_t);
 //static void print_csound_prsdata(CSOUND *,char *,yyscan_t);
 static void csound_prs_line(CORFIL*, yyscan_t);
 static void delete_macros(CSOUND*, yyscan_t);
+ static int extract_int(CSOUND*, yyscan_t, int*);
 #define MACDEBUG 1
 
 #define S_INC (10)
@@ -568,7 +569,7 @@ NM              [nm][ \t]+
                 }
 
 "{"             {
-                  int c, i;
+                  int c=' ', i;
                   PARM->repeat_index++;
                   if (UNLIKELY(PARM->repeat_index >= RPTDEPTH))
                     csound->Die(csound, Str("Loops are nested too deeply"));
@@ -578,40 +579,41 @@ NM              [nm][ \t]+
                     csound->Message(csound, Str("Memory exhausted"));
                     csound->LongJmp(csound, 1);
                   }
-                  PARM->repeat_cnt_n[PARM->repeat_index] = 0;
-                  do {
-                    c = input(yyscanner);
-                  } while (isblank(c));
-                  if (c=='$') { // macro to yield count
-                    char buf[256];
-                    int i=0;
-                    MACRO* mm;
-                    //printf("*** macro count\n");
-                    while (!isblank(c=input(yyscanner)) && c!='.') {
-                      buf[i++] = c;
-                    }
-                    if (c=='.') c = input(yyscanner);
-                    buf[i] = '\0';
-                    //printf("*** lookup macro %s\n", buf);
-                    if ((mm = find_definition(PARM->macros, buf))==NULL) {
-                      csound->Message(csound,Str("Undefined macro: '%s'"), yytext);
-                     //csound->LongJmp(csound, 1);
-                     corfile_puts(csound, "$error", PARM->cf);
-                     PARM->repeat_cnt_n[PARM->repeat_index] = 0;
-                    }
-                   else
-                    PARM->repeat_cnt_n[PARM->repeat_index] =
-                      atoi(mm->body);
-                  }
-                  else {
-                    while (isdigit(c)) {
-                      PARM->repeat_cnt_n[PARM->repeat_index] =
-                      10 * PARM->repeat_cnt_n[PARM->repeat_index] + c - '0';
-                      c = input(yyscanner);
-                    }
-                  }
-                  if (UNLIKELY(PARM->repeat_cnt_n[PARM->repeat_index] <= 0
-                               || !isspace(c)))
+                  PARM->repeat_cnt_n[PARM->repeat_index] =
+                    extract_int(csound, yyscanner, &c);
+                  /* do { */
+                  /*   c = input(yyscanner); */
+                  /* } while (isblank(c)); */
+                  /* if (c=='$') { // macro to yield count */
+                  /*   char buf[256]; */
+                  /*   int i=0; */
+                  /*   MACRO* mm; */
+                  /*   //printf("*** macro count\n"); */
+                  /*   while (!isblank(c=input(yyscanner)) && c!='.') { */
+                  /*     buf[i++] = c; */
+                  /*   } */
+                  /*   if (c=='.') c = input(yyscanner); */
+                  /*   buf[i] = '\0'; */
+                  /*   //printf("*** lookup macro %s\n", buf); */
+                  /*   if ((mm = find_definition(PARM->macros, buf))==NULL) { */
+                  /*     csound->Message(csound,Str("Undefined macro: '%s'"), yytext); */
+                  /*    //csound->LongJmp(csound, 1); */
+                  /*    corfile_puts(csound, "$error", PARM->cf); */
+                  /*    PARM->repeat_cnt_n[PARM->repeat_index] = 0; */
+                  /*   } */
+                  /*  else */
+                  /*   PARM->repeat_cnt_n[PARM->repeat_index] = */
+                  /*     atoi(mm->body); */
+                  /* } */
+                  /* //Sould we allow "[ expression ]" here?? */
+                  /* else { */
+                  /*   while (isdigit(c)) { */
+                  /*     PARM->repeat_cnt_n[PARM->repeat_index] = */
+                  /*     10 * PARM->repeat_cnt_n[PARM->repeat_index] + c - '0'; */
+                  /*     c = input(yyscanner); */
+                  /*   } */
+                  /* } */
+                  if (UNLIKELY(PARM->repeat_cnt_n[PARM->repeat_index] <= 0))
                     csound->Die(csound, Str("{: invalid repeat count"));
                   if (PARM->repeat_index > 1) {
                     char st[41];
@@ -1597,6 +1599,223 @@ static MACRO *find_definition(MACRO *mmo, char *s)
     }
     //if (mm) printf("found body #%s#%c\n****\n", mm->body, mm->acnt?'X':' ');
     return mm;
+}
+
+//#if 0
+static int operate(CSOUND *csound, int a, int b, char c)
+{
+    int ans;
+    extern int MOD(int,int);
+
+    switch (c) {
+    case '+': ans = a + b; break;
+    case '-': ans = a - b; break;
+    case '*': ans = a * b; break;
+    case '/': ans = a / b; break;
+    case '%': ans = a % b; break;
+      //case '^': ans = POWER(a, b); break;
+    case '&': ans = a & b; break;
+    case '|': ans = a | b; break;
+    case '#': ans = a ^ b; break;
+    default:
+      //csoundDie(csound, Str("Internal error op=%c"), c);
+      ans = 0;
+    }
+    return ans;
+}
+
+static int bodmas(CSOUND *csound, yyscan_t yyscanner, int* term)
+{
+      char  stack[30];
+      int   vv[30];
+      char  *op = stack - 1;
+      int   *pv = vv - 1;
+      int   c = *term;
+      int   type = 0;  /* 1 -> expecting binary operator,')', or ']'; else 0 */
+      *++op = '[';
+      do {
+      parseNumber:
+        *++pv = extract_int(csound, yyscanner, &c);
+        type = 1;
+        while (isblank(c)) c = input(yyscanner);
+        switch (c) {
+        case '+': case '-':
+          if (!type)
+            goto parseNumber;
+          if (*op != '[' && *op != '(') {
+            int v = operate(csound, *(pv-1), *pv, *op);
+            op--; pv--;
+            *pv = v;
+          }
+          type = 0;
+          *++op = c;
+          continue;
+        case '*':
+        case '/':
+        case '%':
+          if (UNLIKELY(!type)) {
+            csound->Message(csound, Str("illegal placement of operator %c in [] "
+                                        "expression"), c);
+            return 0;
+          }
+          if (*op == '*' || *op == '/' || *op == '%') {
+            MYFLT v = operate(csound, *(pv-1), *pv, *op);
+            op--; pv--;
+            *pv = v;
+          }
+          type = 0;
+          *++op = c;
+          continue;
+        case '&':
+        case '|':
+        case '#':
+          if (UNLIKELY(!type)) {
+            csound->Message(csound, Str("illegal placement of operator %c in [] "
+                                        "expression"), c);
+            return 0;
+          }
+          if (*op == '|' || *op == '&' || *op == '#') {
+            MYFLT v = operate(csound, *(pv-1), *pv, *op);
+            op--; pv--;
+            *pv = v;
+          }
+          type = 0;
+          *++op = c;
+          continue;
+        case '(':
+          if (UNLIKELY(type)) {
+            csound->Message(csound, Str("illegal placement of '(' in [] expression"));
+            return 0;
+          }
+          type = 0;
+          *++op = c;
+          while (isblank(*term)) *term = input(yyscanner);
+          switch (*term) {
+          case '+': case '-':
+            if (!type)
+              goto parseNumber;
+            if (*op != '[' && *op != '(') {
+              int v = operate(csound, *(pv-1), *pv, *op);
+              op--; pv--;
+              *pv = v;
+            }
+            type = 0;
+            *++op = c;
+            continue;
+          case ')':
+            if (UNLIKELY(!type)) {
+              csound->Message(csound, Str("missing operand before ')' in [] expression"));
+              return 0;
+            }
+            while (*op != '(') {
+              MYFLT v = operate(csound, *(pv-1), *pv, *op);
+              op--; pv--;
+              *pv = v;
+            }
+            type = 1;
+            op--;
+            continue;
+          }
+          //        case '^':
+          //type = 0;
+          //*++op = c; c = getscochar(csound, 1); break;
+        case '[':
+          if (UNLIKELY(type)) {
+            csound->Message(csound, Str("illegal placement of '[' in [] expression"));
+            return 0;
+          }
+          type = 1;
+          {
+            //int i;
+            MYFLT x;
+            //for (i=0;i<=pv-vv;i++) printf(" %lf ", vv[i]);
+            //printf("| %d\n", pv-vv);
+            x = bodmas(csound, yyscanner, term);
+            *++pv = x;
+            //printf("recursion gives %lf (%lf)\n", x,*(pv-1));
+            //for (i=0;i<pv-vv;i++) printf(" %lf ", vv[i]); printf("| %d\n", pv-vv);
+            c = input(yyscanner); break;
+          }
+        case ']':
+          if (UNLIKELY(!type)) {
+            csound->Message(csound, Str("missing operand before closing bracket in []"));
+            return 0;
+          }
+          while (*op != '[') {
+            MYFLT v = operate(csound, *(pv-1), *pv, *op);
+            op--; pv--;
+            *pv = v;
+          }
+          //printf("done ]*** *op=%c v=%lg (%c)\n", *op, *pv, c);
+          //getscochar(csound, 1);
+          *term = '~'; return *pv;
+        case '~':
+          break;
+        case ' ':               /* Ignore spaces */
+          c = input(yyscanner);
+          continue;
+        default:
+          csound->Message(csound, Str("illegal character %c(%.2x) in [] expression"),
+                          c, c);
+          return 0;
+        }
+      } while (c != '~');
+      return *pv;
+}
+//#endif
+
+static int extract_int(CSOUND *csound, yyscan_t yyscanner, int* term)
+{
+    int c;
+    do {
+      c = input(yyscanner);
+    } while (isblank(c));
+    if (c=='$') { // macro to yield count
+      char buf[256];
+      int i=0;
+      MACRO* mm;
+      //printf("*** macro count\n");
+      while (isalnum(c=input(yyscanner)) || c=='_') {
+        buf[i++] = c;
+      }
+      if (c=='.') c = input(yyscanner);
+      buf[i] = '\0';
+      //printf("*** lookup macro %s\n", buf);
+      if ((mm = find_definition(PARM->macros, buf))==NULL) {
+        csound->Message(csound,Str("Undefined macro: '%s'"), buf);
+        //csound->LongJmp(csound, 1);
+        corfile_puts(csound, "$error", PARM->cf);
+        *term = c;
+        return 0;
+      }
+      else {
+        *term = c;
+        return atoi(mm->body);
+      }
+    }
+    else if (c=='[') {
+      printf("** ] case\n");
+      int n =  bodmas(csound, yyscanner,term);
+      return n;
+#if 0
+      //Should we allow "[ expression ]" here??
+      n = extract_int(csound, yyscanner, term);
+      if (*term ==']') return n;
+      printf("**nxt char = %c(%.2x)\n", *term, *term);
+      return 0;
+#endif
+    }
+    else {
+      int i = 0;
+      while (isdigit(c)) {
+        i = 10 * i + c - '0';
+        c = input(yyscanner);
+      }
+      *term = c;
+      return i;
+    }
+    *term = c;
+    return 0;
 }
 
 /* static void trace_alt_stack(CSOUND* csound, PRS_PARM* p, int line) */
