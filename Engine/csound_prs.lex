@@ -1618,7 +1618,6 @@ static int powintint(int x, int n)
 static int operate(CSOUND *csound, int a, int b, char c)
 {
     int ans;
-    extern int MOD(int,int);
 
     switch (c) {
     case '+': ans = a + b; break;
@@ -1634,6 +1633,7 @@ static int operate(CSOUND *csound, int a, int b, char c)
       //csoundDie(csound, Str("Internal error op=%c"), c);
       ans = 0;
     }
+    //printf("operate: %d %c %d => %d\n", a, c, b, ans);
     return ans;
 }
 
@@ -1643,16 +1643,27 @@ static int bodmas(CSOUND *csound, yyscan_t yyscanner, int* term)
       int   vv[30];
       char  *op = stack - 1;
       int   *pv = vv - 1;
-      int   c = *term;
+      int   c;
+      struct yyguts_t *yyg = (struct yyguts_t*)yyscanner;
       int   type = 0;  /* 1 -> expecting binary operator,')', or ']'; else 0 */
       *++op = '[';
       do {
       parseNumber:
-        *++pv = extract_int(csound, yyscanner, &c);
-        type = 1;
+        c = input(yyscanner);
         while (isblank(c)) c = input(yyscanner);
+        //printf("bodmas: c='%c'\n", c);
         switch (c) {
+        case '0': case '1': case '2': case '3': case '4':
+        case '5': case '6': case '7': case '8': case '9':
+        case '$':
+          //printf("bodmas:number\n");
+          unput(c);
+          *++pv = extract_int(csound, yyscanner, &c);
+          type = 1;
+          unput(c);
+          continue;
         case '+': case '-':
+          //printf("bodmas:arith %d type %d\n", c, type);
           if (!type)
             goto parseNumber;
           if (*op != '[' && *op != '(') {
@@ -1696,42 +1707,31 @@ static int bodmas(CSOUND *csound, yyscan_t yyscanner, int* term)
           *++op = c;
           continue;
         case '(':
+          //printf("bodmas: bra\n");
           if (UNLIKELY(type)) {
             csound->Message(csound, Str("illegal placement of '(' in [] expression"));
             return 0;
           }
           type = 0;
           *++op = c;
-          while (isblank(*term)) *term = input(yyscanner);
-          switch (*term) {
-          case '+': case '-':
-            if (!type)
-              goto parseNumber;
-            if (*op != '[' && *op != '(') {
-              int v = operate(csound, *(pv-1), *pv, *op);
-              op--; pv--;
-              *pv = v;
-            }
-            type = 0;
-            *++op = c;
-            continue;
-          case ')':
-            if (UNLIKELY(!type)) {
-              csound->Message(csound, Str("missing operand before ')' in [] expression"));
-              return 0;
-            }
-            while (*op != '(') {
-              MYFLT v = operate(csound, *(pv-1), *pv, *op);
-              op--; pv--;
-              *pv = v;
-            }
-            type = 1;
-            op--;
-            continue;
+          continue;
+        case ')':
+          //printf("bodmas:bra switch close\n");
+          if (UNLIKELY(!type)) {
+            csound->Message(csound, Str("missing operand before ')' in [] expression"));
+            return 0;
           }
-          //        case '^':
-          //type = 0;
-          //*++op = c; c = getscochar(csound, 1); break;
+          while (*op != '(') {
+            MYFLT v = operate(csound, *(pv-1), *pv, *op);
+            op--; pv--;
+            *pv = v;
+          }
+          type = 1;
+          op--;
+          continue;
+        //        case '^':
+        //type = 0;
+        //*++op = c; c = getscochar(csound, 1); break;
         case '[':
           if (UNLIKELY(type)) {
             csound->Message(csound, Str("illegal placement of '[' in [] expression"));
