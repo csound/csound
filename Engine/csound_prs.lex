@@ -883,6 +883,7 @@ NM              [nm][ \t]+
                   c = input(yyscanner);
                 }
               }
+              corfile_putc(csound, '\n', PARM->cf);
             }
           }
           else corfile_puts(csound, yytext, PARM->cf);
