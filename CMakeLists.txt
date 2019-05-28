@@ -534,7 +534,6 @@ find_package(FAUST)
 find_package(Java)
 find_package(JNI)
 find_package(LIBLO)
-find_package(LUAJIT)
 find_package(MUSICXML)
 
 #if(MUSICXML_FOUND)
