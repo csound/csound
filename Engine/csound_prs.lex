@@ -56,6 +56,7 @@ static inline int isNameChar(int cc, int pos)
 
 #include "score_param.h"
 
+static void expand_macro(CSOUND*, MACRO*, yyscan_t);
 //static void trace_alt_stack(CSOUND*, PRS_PARM*, int);
 
 #define YY_EXTRA_TYPE  PRS_PARM *
@@ -188,6 +189,8 @@ NM              [nm][ \t]+
                      corfile_puts(csound, "$error", PARM->cf);
                    }
                    else {
+                     expand_macro(csound, mm, yyscanner);
+#if 0                     
                      /* Need to read from macro definition */
                      if (mm->acnt<0) { /* Macro inhibitted */
                        corfile_puts(csound, yytext, PARM->cf);
@@ -225,6 +228,7 @@ NM              [nm][ \t]+
                        yy_scan_string(mm->body, yyscanner);
                        /* csound->DebugMsg(csound,"%p\n", YY_CURRENT_BUFFER); */
                    }
+#endif
                    }
                 }
 {MACRONAMEA}|{MACRONAMEDA}    {
@@ -1549,6 +1553,48 @@ void cs_init_smacros(CSOUND *csound, PRS_PARM *qq, NAMES *nn)
     }
 }
 
+static void expand_macro(CSOUND* csound, MACRO* mm, yyscan_t yyscanner)
+{
+    struct yyguts_t *yyg = (struct yyguts_t*)yyscanner;
+    /* Need to read from macro definition */
+    if (mm->acnt<0) { /* Macro inhibitted */
+      corfile_puts(csound, yytext, PARM->cf);
+    }
+    else {
+      if (UNLIKELY(PARM->macro_stack_ptr+1 >=
+                   PARM->macro_stack_size)) {
+        //trace_alt_stack(csound, PARM, __LINE__);
+        //printf("***extending macro stack %p\n", PARM->alt_stack);
+        PARM->alt_stack =
+          (MACRON*)
+          csound->ReAlloc(csound, PARM->alt_stack,
+                          sizeof(MACRON)*(PARM->macro_stack_size+=S_INC));
+        if (UNLIKELY(PARM->alt_stack == NULL)) {
+          csound->Message(csound, Str("Memory exhausted"));
+          csound->LongJmp(csound, 1);
+        }
+        /* csound->DebugMsg(csound, "alt_stack now %d long\n", */
+        /*                  PARM->macro_stack_size); */
+      }
+      PARM->alt_stack[PARM->macro_stack_ptr].n = 0;
+      PARM->alt_stack[PARM->macro_stack_ptr].line =
+        csound_prsget_lineno(yyscanner);
+      PARM->alt_stack[PARM->macro_stack_ptr].path = NULL;
+      PARM->alt_stack[PARM->macro_stack_ptr++].s = NULL;
+      yypush_buffer_state(YY_CURRENT_BUFFER, yyscanner);
+      csound_prsset_lineno(1, yyscanner);
+      if (UNLIKELY(PARM->depth>1022)) {
+        csound->Message(csound,
+                        Str("macros/include nested too deep: "));
+        csound->LongJmp(csound, 1);
+      }
+      PARM->lstack[++PARM->depth] =
+        (strchr(mm->body,'\n') ?file_to_int(csound, yytext) : 63);
+      yy_scan_string(mm->body, yyscanner);
+      /* csound->DebugMsg(csound,"%p\n", YY_CURRENT_BUFFER); */
+    }
+}
+
 static void csound_prs_line(CORFIL* cf, void *yyscanner)
 {
     int n = csound_prsget_lineno(yyscanner);
@@ -1662,14 +1708,43 @@ static int bodmas(CSOUND *csound, yyscan_t yyscanner, int* term)
           if (on_EOF(csound,yyscanner)==0) return 0;
           continue;
         case '0': case '1': case '2': case '3': case '4':
-        case '5': case '6': case '7': case '8': case '9':
-        case '$':
-          //printf("bodmas:number\n");
-          unput(c);
-          *++pv = extract_int(csound, yyscanner, &c);
+        case '5': case '6': case '7': case '8': case '9': {
+                     //printf("bodmas:number\n");
+          int i = 0;
+          while (isdigit(c)) {
+            i = 10 * i + c - '0';
+            c = input(yyscanner);
+          }
+          printf("Number: %d terminated by %c(%.2x)\n", i, c, c);
+          *++pv = i;
           type = 1;
-          unput(c);
+          if (c=='\0') {
+            if (on_EOF(csound,yyscanner)==0) return 0;
+          }
+          else
+            unput(c);
           continue;
+        }
+        case '$': {
+          MACRO *mm = PARM->macros;
+          char buf[256];
+          int p=0;
+          int first = 1;
+          while ((c=input(yyscanner))) {
+            if (isalpha(c) || c=='_' || (!first && isdigit(c)))
+              buf[p++] = c;
+            else break;
+            first = 0;
+          }
+          if (c!='.') unput(c);
+          buf[p] = '\0';
+          printf("macro: %s\n", buf);
+          mm = find_definition(mm, buf);
+          if (mm==NULL) return 0;
+          printf("body: >>%s<<\n", mm->body);
+          expand_macro(csound, mm, yyscanner);
+          continue;
+        }
         case '+': case '-':
           //printf("bodmas:arith %d type %d\n", c, type);
           if (!type)
