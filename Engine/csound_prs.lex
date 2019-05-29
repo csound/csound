@@ -43,7 +43,8 @@ static void do_ifdef_skip_code(CSOUND *, yyscan_t);
 //static void print_csound_prsdata(CSOUND *,char *,yyscan_t);
 static void csound_prs_line(CORFIL*, yyscan_t);
 static void delete_macros(CSOUND*, yyscan_t);
- static int extract_int(CSOUND*, yyscan_t, int*);
+static int extract_int(CSOUND*, yyscan_t, int*);
+static int on_EOF(CSOUND*, yyscan_t);
 #define MACDEBUG 1
 
 #define S_INC (10)
@@ -386,73 +387,76 @@ NM              [nm][ \t]+
                   return 0;
                 }
 <<EOF>>         {
-                  MACRO *x, *y=NULL;
-                  int n;
-                  csound->DebugMsg(csound,"*********Leaving buffer %p\n",
-                                   YY_CURRENT_BUFFER);
-                  //printf("stack pointer = %d\n", PARM->macro_stack_ptr);
-                  yypop_buffer_state(yyscanner);
-                  PARM->depth--;
-                  if (UNLIKELY(PARM->depth > 1024)) {
-                    //csound->Die(csound, Str("unexpected EOF!!"));
-                    csound->Message(csound, Str("unexpected EOF!!\n"));
-                    csound->LongJmp(csound, 1);
-                  }
-                  PARM->llocn = PARM->locn; PARM->locn = make_slocation(PARM);
-                  csound->DebugMsg(csound,"csound-prs(%d): loc=%u; lastloc=%u\n",
-                                   __LINE__, PARM->llocn, PARM->locn);
-                  if ( !YY_CURRENT_BUFFER ) yyterminate();
-                  csound->DebugMsg(csound,"End of input; popping to %p\n",
-                          YY_CURRENT_BUFFER);
-                  csound_prs_line(PARM->cf, yyscanner);
-                  n = PARM->alt_stack[--PARM->macro_stack_ptr].n;
-                  if (PARM->alt_stack[PARM->macro_stack_ptr].path) {
-                    //printf("restoring path from %s to %s\n",
-                    //    PARM->path, PARM->alt_stack[PARM->macro_stack_ptr].path);
-                    free(PARM->path);
-                    PARM->path = PARM->alt_stack[PARM->macro_stack_ptr].path;
-                  }
-                  /* printf("lineno on stack is %llu\n", */
-                  /*        PARM->alt_stack[PARM->macro_stack_ptr].line); */
-                  csound->DebugMsg(csound,"n=%d\n", n);
-                  if (n!=0) {
-                    //printf("We need to delete %d macros starting with %d\n",
-                    //       n, PARM->macro_stack_ptr);
-                    y = PARM->alt_stack[PARM->macro_stack_ptr].s;
-                    x = PARM->macros;
-                    if (x==y) {
-                      while (n>0) {
-                        mfree(csound, y->name); x=y->next;
-                        mfree(csound, y); y=x; n--;
-                      }
-                      PARM->macros = x;
-                    }
-                    else {
-                      MACRO *nxt = y->next;
-                      while (x->next != y) x = x->next;
-                      while (n>0) {
-                        nxt = y->next;
-                        mfree(csound, y->name); mfree(csound, y); y=nxt; n--;
-                      }
-                      x->next = nxt;
-                    }
-                    y->next = x;
-                  }
-                  csound_prsset_lineno(PARM->alt_stack[PARM->macro_stack_ptr].line,
-                                       yyscanner);
-                  /* csound->DebugMsg(csound, "csound_prs(%d): line now %d at %d\n", */
-                  /*                  __LINE__, */
-                  /*                  csound_prsget_lineno(yyscanner), */
-                  /*                  PARM->macro_stack_ptr); */
-                  csound->DebugMsg(csound,
-                                   "End of input segment: macro pop %p -> %p\n",
-                                   y, PARM->macros);
-                  csound_prsset_lineno(PARM->alt_stack[PARM->macro_stack_ptr].line,
-                                       yyscanner);
-                  //print_csound_prsdata(csound,"Before prs_line", yyscanner);
-                  csound_prs_line(PARM->cf, yyscanner);
-                  //print_csound_prsdata(csound,"After prs_line", yyscanner);
+                  if (on_EOF(csound, yyscanner)==0) yyterminate();
                 }
+  /* { */
+                /*   MACRO *x, *y=NULL; */
+                /*   int n; */
+                /*   csound->DebugMsg(csound,"*********Leaving buffer %p\n", */
+                /*                    YY_CURRENT_BUFFER); */
+                /*   //printf("stack pointer = %d\n", PARM->macro_stack_ptr); */
+                /*   yypop_buffer_state(yyscanner); */
+                /*   PARM->depth--; */
+                /*   if (UNLIKELY(PARM->depth > 1024)) { */
+                /*     //csound->Die(csound, Str("unexpected EOF!!")); */
+                /*     csound->Message(csound, Str("unexpected EOF!!\n")); */
+                /*     csound->LongJmp(csound, 1); */
+                /*   } */
+                /*   PARM->llocn = PARM->locn; PARM->locn = make_slocation(PARM); */
+                /*   csound->DebugMsg(csound,"csound-prs(%d): loc=%u; lastloc=%u\n", */
+                /*                    __LINE__, PARM->llocn, PARM->locn); */
+                /*   if ( !YY_CURRENT_BUFFER ) yyterminate(); */
+                /*   csound->DebugMsg(csound,"End of input; popping to %p\n", */
+                /*           YY_CURRENT_BUFFER); */
+                /*   csound_prs_line(PARM->cf, yyscanner); */
+                /*   n = PARM->alt_stack[--PARM->macro_stack_ptr].n; */
+                /*   if (PARM->alt_stack[PARM->macro_stack_ptr].path) { */
+                /*     //printf("restoring path from %s to %s\n", */
+                /*     //    PARM->path, PARM->alt_stack[PARM->macro_stack_ptr].path); */
+                /*     free(PARM->path); */
+                /*     PARM->path = PARM->alt_stack[PARM->macro_stack_ptr].path; */
+                /*   } */
+                /*   /\* printf("lineno on stack is %llu\n", *\/ */
+                /*   /\*        PARM->alt_stack[PARM->macro_stack_ptr].line); *\/ */
+                /*   csound->DebugMsg(csound,"n=%d\n", n); */
+                /*   if (n!=0) { */
+                /*     //printf("We need to delete %d macros starting with %d\n", */
+                /*     //       n, PARM->macro_stack_ptr); */
+                /*     y = PARM->alt_stack[PARM->macro_stack_ptr].s; */
+                /*     x = PARM->macros; */
+                /*     if (x==y) { */
+                /*       while (n>0) { */
+                /*         mfree(csound, y->name); x=y->next; */
+                /*         mfree(csound, y); y=x; n--; */
+                /*       } */
+                /*       PARM->macros = x; */
+                /*     } */
+                /*     else { */
+                /*       MACRO *nxt = y->next; */
+                /*       while (x->next != y) x = x->next; */
+                /*       while (n>0) { */
+                /*         nxt = y->next; */
+                /*         mfree(csound, y->name); mfree(csound, y); y=nxt; n--; */
+                /*       } */
+                /*       x->next = nxt; */
+                /*     } */
+                /*     y->next = x; */
+                /*   } */
+                /*   csound_prsset_lineno(PARM->alt_stack[PARM->macro_stack_ptr].line, */
+                /*                        yyscanner); */
+                /*   /\* csound->DebugMsg(csound, "csound_prs(%d): line now %d at %d\n", *\/ */
+                /*   /\*                  __LINE__, *\/ */
+                /*   /\*                  csound_prsget_lineno(yyscanner), *\/ */
+                /*   /\*                  PARM->macro_stack_ptr); *\/ */
+                /*   csound->DebugMsg(csound, */
+                /*                    "End of input segment: macro pop %p -> %p\n", */
+                /*                    y, PARM->macros); */
+                /*   csound_prsset_lineno(PARM->alt_stack[PARM->macro_stack_ptr].line, */
+                /*                        yyscanner); */
+                /*   //print_csound_prsdata(csound,"Before prs_line", yyscanner); */
+                /*   csound_prs_line(PARM->cf, yyscanner); */
+                /*   //print_csound_prsdata(csound,"After prs_line", yyscanner); */
+                /* } */
 {DEFINE}        {
                   if (PARM->isString != 1)
                     BEGIN(macro);
@@ -1654,6 +1658,9 @@ static int bodmas(CSOUND *csound, yyscan_t yyscanner, int* term)
         while (isblank(c)) c = input(yyscanner);
         //printf("bodmas: c='%c'\n", c);
         switch (c) {
+        case EOF:
+          if (on_EOF(csound,yyscanner)==0) return 0;
+          continue;
         case '0': case '1': case '2': case '3': case '4':
         case '5': case '6': case '7': case '8': case '9':
         case '$':
@@ -1811,13 +1818,6 @@ static int extract_int(CSOUND *csound, yyscan_t yyscanner, int* term)
       //printf("** ] case\n");
       int n =  bodmas(csound, yyscanner,term);
       return n;
-#if 0
-      //Should we allow "[ expression ]" here??
-      n = extract_int(csound, yyscanner, term);
-      if (*term ==']') return n;
-      printf("**nxt char = %c(%.2x)\n", *term, *term);
-      return 0;
-#endif
     }
     else {
       int i = 0;
@@ -1830,6 +1830,78 @@ static int extract_int(CSOUND *csound, yyscan_t yyscanner, int* term)
     }
     *term = c;
     return 0;
+}
+
+static int on_EOF(CSOUND* csound, void* yyscanner)
+{
+    MACRO *x, *y=NULL;
+    int n;
+    struct yyguts_t *yyg =(struct yyguts_t*)yyscanner;
+    csound->DebugMsg(csound,"*********Leaving buffer %p\n",
+                     YY_CURRENT_BUFFER);
+    //printf("stack pointer = %d\n", PARM->macro_stack_ptr);
+    yypop_buffer_state(yyscanner);
+    PARM->depth--;
+    if (UNLIKELY(PARM->depth > 1024)) {
+      //csound->Die(csound, Str("unexpected EOF!!"));
+      csound->Message(csound, Str("unexpected EOF!!\n"));
+      csound->LongJmp(csound, 1);
+    }
+    PARM->llocn = PARM->locn; PARM->locn = make_slocation(PARM);
+    csound->DebugMsg(csound,"csound-prs(%d): loc=%u; lastloc=%u\n",
+                     __LINE__, PARM->llocn, PARM->locn);
+    if ( !YY_CURRENT_BUFFER ) return 0;
+    csound->DebugMsg(csound,"End of input; popping to %p\n",
+                     YY_CURRENT_BUFFER);
+    csound_prs_line(PARM->cf, yyscanner);
+    n = PARM->alt_stack[--PARM->macro_stack_ptr].n;
+    if (PARM->alt_stack[PARM->macro_stack_ptr].path) {
+      //printf("restoring path from %s to %s\n",
+      //    PARM->path, PARM->alt_stack[PARM->macro_stack_ptr].path);
+      free(PARM->path);
+      PARM->path = PARM->alt_stack[PARM->macro_stack_ptr].path;
+    }
+    /* printf("lineno on stack is %llu\n", */
+    /*        PARM->alt_stack[PARM->macro_stack_ptr].line); */
+    csound->DebugMsg(csound,"n=%d\n", n);
+    if (n!=0) {
+      //printf("We need to delete %d macros starting with %d\n",
+      //       n, PARM->macro_stack_ptr);
+      y = PARM->alt_stack[PARM->macro_stack_ptr].s;
+      x = PARM->macros;
+      if (x==y) {
+        while (n>0) {
+          mfree(csound, y->name); x=y->next;
+          mfree(csound, y); y=x; n--;
+        }
+        PARM->macros = x;
+      }
+      else {
+        MACRO *nxt = y->next;
+        while (x->next != y) x = x->next;
+        while (n>0) {
+          nxt = y->next;
+          mfree(csound, y->name); mfree(csound, y); y=nxt; n--;
+        }
+        x->next = nxt;
+      }
+      y->next = x;
+    }
+    csound_prsset_lineno(PARM->alt_stack[PARM->macro_stack_ptr].line,
+                         yyscanner);
+    /* csound->DebugMsg(csound, "csound_prs(%d): line now %d at %d\n", */
+    /*                  __LINE__, */
+    /*                  csound_prsget_lineno(yyscanner), */
+    /*                  PARM->macro_stack_ptr); */
+    csound->DebugMsg(csound,
+                     "End of input segment: macro pop %p -> %p\n",
+                     y, PARM->macros);
+    csound_prsset_lineno(PARM->alt_stack[PARM->macro_stack_ptr].line,
+                         yyscanner);
+    //print_csound_prsdata(csound,"Before prs_line", yyscanner);
+    csound_prs_line(PARM->cf, yyscanner);
+    //print_csound_prsdata(csound,"After prs_line", yyscanner);
+    return 1;
 }
 
 /* static void trace_alt_stack(CSOUND* csound, PRS_PARM* p, int line) */
