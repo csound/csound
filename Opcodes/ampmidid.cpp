@@ -79,7 +79,7 @@ public:
     int kontrol(CSOUND *csound) {
         IGN(csound);
         *kamplitude =
-            dbfs * std::pow((im * (*kvelocity + ib)), MYFLT(2.0)) * onedrms;
+            dbfs * std::pow((*kvelocity * im) + ib, MYFLT(2.0)) * onedrms;
         return OK;
     }
 };
@@ -117,7 +117,7 @@ public:
             dbfs = *iuse0dbfs;
         }
         *iamplitude =
-            dbfs * std::pow((im * (*ivelocity + ib)), MYFLT(2.0)) * onedrms;
+            dbfs * std::pow((*ivelocity * im) + ib, MYFLT(2.0)) * onedrms;
         return OK;
     }
     int noteoff(CSOUND *) {
