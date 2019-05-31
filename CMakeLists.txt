@@ -534,7 +534,6 @@ find_package(FAUST)
 find_package(Java)
 find_package(JNI)
 find_package(LIBLO)
-find_package(LUAJIT)
 find_package(MUSICXML)
 
 #if(MUSICXML_FOUND)
@@ -1183,7 +1182,8 @@ function(make_plugin libname srcs)
         ARCHIVE_OUTPUT_DIRECTORY ${BUILD_PLUGINS_DIR})
 
     install(TARGETS ${libname}
-	LIBRARY DESTINATION "${PLUGIN_INSTALL_DIR}" )
+        LIBRARY DESTINATION "${PLUGIN_INSTALL_DIR}" 
+        ARCHIVE DESTINATION "${PLUGIN_INSTALL_DIR}" )
 
 endfunction(make_plugin)
 
