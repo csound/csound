@@ -57,6 +57,7 @@ static inline int isNameChar(int cc, int pos)
 #include "score_param.h"
 
 static void expand_macro(CSOUND*, MACRO*, yyscan_t);
+static void expand_macroa(CSOUND*, MACRO*, yyscan_t);
 //static void trace_alt_stack(CSOUND*, PRS_PARM*, int);
 
 #define YY_EXTRA_TYPE  PRS_PARM *
@@ -233,9 +234,9 @@ NM              [nm][ \t]+
                 }
 {MACRONAMEA}|{MACRONAMEDA}    {
                    MACRO     *mm = PARM->macros;
-                   int err =0;
-                   char      *mname;
-                   int c, i, j, cnt=0;
+                   //int err =0;
+                   //char      *mname;
+                   //int c, i, j, cnt=0;
                    //csound->DebugMsg(csound,"Macro with arguments call %s\n",
                    //                 yytext);
                    yytext[yyleng-1] = '\0';
@@ -246,123 +247,127 @@ NM              [nm][ \t]+
                      //csound->LongJmp(csound, 1);
                    }
                    else {
-                     mname = yytext;
-                     /* Need to read from macro definition */
-                     //csound->DebugMsg(csound,"Looking for %d args\n", mm->acnt);
-                     for (j = 0; j < mm->acnt; j++) {
-                       char  term = (j == mm->acnt - 1 ? ')' : '\'');
-                       /* Compatability */
-                       char  trm1 = (j == mm->acnt - 1 ? ')' : '#');
-                       MACRO *nn = (MACRO*) csound->Malloc(csound, sizeof(MACRO));
-                       //int   size = 100;
-                       if (UNLIKELY(nn == NULL)) {
-                         csound->Message(csound, Str("Memory exhausted"));
-                         csound->LongJmp(csound, 1);
-                       }
-                       nn->name = csound->Malloc(csound, strlen(mm->arg[j]) + 1);
-                       if (UNLIKELY(nn->name == NULL)) {
-                         csound->Message(csound, Str("Memory exhausted"));
-                         csound->LongJmp(csound, 1);
-                       }
-                       //csound->DebugMsg(csound,"Arg %d: %s\n", j+1, mm->arg[j]);
-                       strcpy(nn->name, mm->arg[j]);
-                       csound->Message(csound, "defining argument %s ",
-                                        nn->name);
-                       i = 0;
-                       nn->body = (char*) csound->Malloc(csound, 100);
-                       if (UNLIKELY(nn->body == NULL)) {
-                         csound->Message(csound, Str("Memory exhausted"));
-                         csound->LongJmp(csound, 1);
-                       }
-                       while (1) {
-                         c = input(yyscanner);
-                         if (cnt==0 && ( c==term || c==trm1)) break;
-                         if (UNLIKELY(cnt==0 && c == ')')) {
-                           csound->Message(csound,
-                                           Str("Too few arguments to macro\n"));
-                           corfile_puts(csound, "$error", PARM->cf);
-                           err = 1; break;
-                         }
-                         if (c=='(') cnt++;
-                         if (c==')') cnt--;
-                         if (c == '\\') {
-                           int newc = input(yyscanner);
-                           if (newc != ')') nn ->body[i++] = c;
-                           c = newc;
-                         }
-                         if (UNLIKELY(i > 98)) {
-                           csound->Message(csound,
-                                           Str("Missing argument terminator\n%.98s"),
-                                           nn->body);
-                           corfile_puts(csound, "$error", PARM->cf);
-                           err = 1; break;
-                         }
-                         nn->body[i++] = c;
-                         /* if (UNLIKELY(i >= size)) { */
-                         /*   nn->body = csound->ReAlloc(csound, nn->body, */
-                         /*   size += 100); */
-                         /*   if (UNLIKELY(nn->body == NULL)) { */
-                         /*     csound->Message(csound, Str("Memory exhausted")); */
-                         /*     csound->LongJmp(csound, 1); */
-                         /*   } */
-                         /* } */
-                       }
-                       nn->body[i] = '\0';
-                       csound->Message(csound, "as...#%s#\n", nn->body);
-                       nn->acnt = 0;       /* No arguments for arguments */
-                       nn->next = PARM->macros;
-                       PARM->macros = nn;
-                     }
-                     if (!err) {
-                       //csound->DebugMsg(csound,"New body: ...#%s#\n", mm->body);
-                       if (UNLIKELY(PARM->macro_stack_ptr +1 >=
-                                    PARM->macro_stack_size )) {
-                         //trace_alt_stack(csound, PARM, __LINE__);
-                         PARM->alt_stack =
-                           (MACRON*)
-                           csound->ReAlloc(csound, PARM->alt_stack,
-                                   sizeof(MACRON)*(PARM->macro_stack_size+=S_INC));
-                         if (UNLIKELY(PARM->alt_stack == NULL)) {
-                           csound->Message(csound, Str("Memory exhausted"));
-                           csound->LongJmp(csound, 1);
-                         }
-                         /* csound->DebugMsg(csound, */
-                         /*        "macro_stack extends alt_stack to %d long\n", */
-                         /*                  PARM->macro_stack_size); */
-                       }
-                       PARM->alt_stack[PARM->macro_stack_ptr].n =
-                         PARM->macros->acnt;
-                       PARM->alt_stack[PARM->macro_stack_ptr].line =
-                         csound_prsget_lineno(yyscanner);
-                       PARM->alt_stack[PARM->macro_stack_ptr].path = NULL;
-                       PARM->alt_stack[PARM->macro_stack_ptr++].s = PARM->macros;
-                       PARM->alt_stack[PARM->macro_stack_ptr].n = 0;
-                       PARM->alt_stack[PARM->macro_stack_ptr].line =
-                         csound_prsget_lineno(yyscanner);
-                       PARM->alt_stack[PARM->macro_stack_ptr].path = NULL;
-                       /* printf("stacked line = %llu at %d\n", */
-                       /*  csound_prsget_lineno(yyscanner), */
-                       /*                       PARM->macro_stack_ptr-1); */
-                       PARM->alt_stack[PARM->macro_stack_ptr].s = NULL;
-                       //csound->DebugMsg(csound,"Push %p macro stack\n",
-                       //                 PARM->macros);
-                       yypush_buffer_state(YY_CURRENT_BUFFER, yyscanner);
-                       csound_prsset_lineno(1, yyscanner);
-                       if (UNLIKELY(PARM->depth>1022)) {
-                         csound->Message(csound,
-                                         Str("macros/include nested too deep: "));
-                         //csound->LongJmp(csound, 1);
-                         corfile_puts(csound, "$error", PARM->cf);
-                         err = 1;
-                       }
-                     }
-                     if (!err) {
-                       PARM->lstack[++PARM->depth] =
-                         (strchr(mm->body,'\n') ?file_to_int(csound, mname) : 63);
-                       yy_scan_string(mm->body, yyscanner);
-                     }
+                     expand_macroa(csound, mm, yyscanner);
                    }
-                 }
+                     
+/*                      mname = yytext; */
+/*                      /\* Need to read from macro definition *\/ */
+/*                      //csound->DebugMsg(csound,"Looking for %d args\n", mm->acnt); */
+/*                      for (j = 0; j < mm->acnt; j++) { */
+/*                        char  term = (j == mm->acnt - 1 ? ')' : '\''); */
+/*                        /\* Compatability *\/ */
+/*                        char  trm1 = (j == mm->acnt - 1 ? ')' : '#'); */
+/*                        MACRO *nn = (MACRO*) csound->Malloc(csound, sizeof(MACRO)); */
+/*                        //int   size = 100; */
+/*                        if (UNLIKELY(nn == NULL)) { */
+/*                          csound->Message(csound, Str("Memory exhausted")); */
+/*                          csound->LongJmp(csound, 1); */
+/*                        } */
+/*                        nn->name = csound->Malloc(csound, strlen(mm->arg[j]) + 1); */
+/*                        if (UNLIKELY(nn->name == NULL)) { */
+/*                          csound->Message(csound, Str("Memory exhausted")); */
+/*                          csound->LongJmp(csound, 1); */
+/*                        } */
+/*                        //csound->DebugMsg(csound,"Arg %d: %s\n", j+1, mm->arg[j]); */
+/*                        strcpy(nn->name, mm->arg[j]); */
+/*                        csound->Message(csound, "defining argument %s ", */
+/*                                         nn->name); */
+/*                        i = 0; */
+/*                        nn->body = (char*) csound->Malloc(csound, 100); */
+/*                        if (UNLIKELY(nn->body == NULL)) { */
+/*                          csound->Message(csound, Str("Memory exhausted")); */
+/*                          csound->LongJmp(csound, 1); */
+/*                        } */
+/*                        while (1) { */
+/*                          c = input(yyscanner); */
+/*                          if (cnt==0 && ( c==term || c==trm1)) break; */
+/*                          if (UNLIKELY(cnt==0 && c == ')')) { */
+/*                            csound->Message(csound, */
+/*                                            Str("Too few arguments to macro\n")); */
+/*                            corfile_puts(csound, "$error", PARM->cf); */
+/*                            err = 1; break; */
+/*                          } */
+/*                          if (c=='(') cnt++; */
+/*                          if (c==')') cnt--; */
+/*                          if (c == '\\') { */
+/*                            int newc = input(yyscanner); */
+/*                            if (newc != ')') nn ->body[i++] = c; */
+/*                            c = newc; */
+/*                          } */
+/*                          if (UNLIKELY(i > 98)) { */
+/*                            csound->Message(csound, */
+/*                                            Str("Missing argument terminator\n%.98s"), */
+/*                                            nn->body); */
+/*                            corfile_puts(csound, "$error", PARM->cf); */
+/*                            err = 1; break; */
+/*                          } */
+/*                          nn->body[i++] = c; */
+/*                          /\* if (UNLIKELY(i >= size)) { *\/ */
+/*                          /\*   nn->body = csound->ReAlloc(csound, nn->body, *\/ */
+/*                          /\*   size += 100); *\/ */
+/*                          /\*   if (UNLIKELY(nn->body == NULL)) { *\/ */
+/*                          /\*     csound->Message(csound, Str("Memory exhausted")); *\/ */
+/*                          /\*     csound->LongJmp(csound, 1); *\/ */
+/*                          /\*   } *\/ */
+/*                          /\* } *\/ */
+/*                        } */
+/*                        nn->body[i] = '\0'; */
+/*                        csound->Message(csound, "as...#%s#\n", nn->body); */
+/*                        nn->acnt = 0;       /\* No arguments for arguments *\/ */
+/*                        nn->next = PARM->macros; */
+/*                        PARM->macros = nn; */
+/*                      } */
+/*                      if (!err) { */
+/*                        //csound->DebugMsg(csound,"New body: ...#%s#\n", mm->body); */
+/*                        if (UNLIKELY(PARM->macro_stack_ptr +1 >= */
+/*                                     PARM->macro_stack_size )) { */
+/*                          //trace_alt_stack(csound, PARM, __LINE__); */
+/*                          PARM->alt_stack = */
+/*                            (MACRON*) */
+/*                            csound->ReAlloc(csound, PARM->alt_stack, */
+/*                                    sizeof(MACRON)*(PARM->macro_stack_size+=S_INC)); */
+/*                          if (UNLIKELY(PARM->alt_stack == NULL)) { */
+/*                            csound->Message(csound, Str("Memory exhausted")); */
+/*                            csound->LongJmp(csound, 1); */
+/*                          } */
+/*                          /\* csound->DebugMsg(csound, *\/ */
+/*                          /\*        "macro_stack extends alt_stack to %d long\n", *\/ */
+/*                          /\*                  PARM->macro_stack_size); *\/ */
+/*                        } */
+/*                        PARM->alt_stack[PARM->macro_stack_ptr].n = */
+/*                          PARM->macros->acnt; */
+/*                        PARM->alt_stack[PARM->macro_stack_ptr].line = */
+/*                          csound_prsget_lineno(yyscanner); */
+/*                        PARM->alt_stack[PARM->macro_stack_ptr].path = NULL; */
+/*                        PARM->alt_stack[PARM->macro_stack_ptr++].s = PARM->macros; */
+/*                        PARM->alt_stack[PARM->macro_stack_ptr].n = 0; */
+/*                        PARM->alt_stack[PARM->macro_stack_ptr].line = */
+/*                          csound_prsget_lineno(yyscanner); */
+/*                        PARM->alt_stack[PARM->macro_stack_ptr].path = NULL; */
+/*                        /\* printf("stacked line = %llu at %d\n", *\/ */
+/*                        /\*  csound_prsget_lineno(yyscanner), *\/ */
+/*                        /\*                       PARM->macro_stack_ptr-1); *\/ */
+/*                        PARM->alt_stack[PARM->macro_stack_ptr].s = NULL; */
+/*                        //csound->DebugMsg(csound,"Push %p macro stack\n", */
+/*                        //                 PARM->macros); */
+/*                        yypush_buffer_state(YY_CURRENT_BUFFER, yyscanner); */
+/*                        csound_prsset_lineno(1, yyscanner); */
+/*                        if (UNLIKELY(PARM->depth>1022)) { */
+/*                          csound->Message(csound, */
+/*                                          Str("macros/include nested too deep: ")); */
+/*                          //csound->LongJmp(csound, 1); */
+/*                          corfile_puts(csound, "$error", PARM->cf); */
+/*                          err = 1; */
+/*                        } */
+/*                      } */
+/*                      if (!err) { */
+/*                        PARM->lstack[++PARM->depth] = */
+/*                          (strchr(mm->body,'\n') ?file_to_int(csound, mname) : 63); */
+/*                        yy_scan_string(mm->body, yyscanner); */
+/*                      } */
+/*                    } */
+/* #endif */
+             }
 {INCLUDESTR}    {
                   if (PARM->isString != 1)
                     PARM->isinclude = 1;
@@ -1595,6 +1600,129 @@ static void expand_macro(CSOUND* csound, MACRO* mm, yyscan_t yyscanner)
     }
 }
 
+static void expand_macroa(CSOUND *csound, MACRO* mm, yyscan_t yyscanner)
+{
+    struct yyguts_t *yyg = (struct yyguts_t*)yyscanner;
+    int err =0;
+    //char      *mname;
+    int c, i, j, cnt=0;
+    //mname = buf;
+    /* Need to read from macro definition */
+    csound->DebugMsg(csound,"Looking for %d args\n", mm->acnt);
+    for (j = 0; j < mm->acnt; j++) {
+      char  term = (j == mm->acnt - 1 ? ')' : '\'');
+      /* Compatability */
+      char  trm1 = (j == mm->acnt - 1 ? ')' : '#');
+      MACRO *nn = (MACRO*) csound->Malloc(csound, sizeof(MACRO));
+      //int   size = 100;
+      if (UNLIKELY(nn == NULL)) {
+        csound->Message(csound, Str("Memory exhausted"));
+        csound->LongJmp(csound, 1);
+      }
+      nn->name = csound->Malloc(csound, strlen(mm->arg[j]) + 1);
+      if (UNLIKELY(nn->name == NULL)) {
+        csound->Message(csound, Str("Memory exhausted"));
+        csound->LongJmp(csound, 1);
+      }
+      csound->DebugMsg(csound,"Arg %d: %s\n", j+1, mm->arg[j]);
+      strcpy(nn->name, mm->arg[j]);
+      csound->Message(csound, "defining argument %s ",
+                      nn->name);
+      i = 0;
+      nn->body = (char*) csound->Malloc(csound, 100);
+      if (UNLIKELY(nn->body == NULL)) {
+        csound->Message(csound, Str("Memory exhausted"));
+        csound->LongJmp(csound, 1);
+      }
+      while (1) {
+        c = input(yyscanner);
+        if (cnt==0 && ( c==term || c==trm1)) break;
+        if (UNLIKELY(cnt==0 && c == ')')) {
+          csound->Message(csound,
+                          Str("Too few arguments to macro\n"));
+          corfile_puts(csound, "$error", PARM->cf);
+          err = 1; break;
+        }
+        if (c=='(') cnt++;
+        if (c==')') cnt--;
+        if (c == '\\') {
+          int newc = input(yyscanner);
+          if (newc != ')') nn ->body[i++] = c;
+          c = newc;
+        }
+        if (UNLIKELY(i > 98)) {
+          csound->Message(csound,
+                          Str("Missing argument terminator\n%.98s"),
+                          nn->body);
+          corfile_puts(csound, "$error", PARM->cf);
+          err = 1; break;
+        }
+        nn->body[i++] = c;
+        /* if (UNLIKELY(i >= size)) { */
+        /*   nn->body = csound->ReAlloc(csound, nn->body, */
+        /*   size += 100); */
+        /*   if (UNLIKELY(nn->body == NULL)) { */
+        /*     csound->Message(csound, Str("Memory exhausted")); */
+        /*     csound->LongJmp(csound, 1); */
+        /*   } */
+        /* } */
+      }
+      nn->body[i] = '\0';
+      csound->Message(csound, "as...#%s#\n", nn->body);
+      nn->acnt = 0;       /* No arguments for arguments */
+      nn->next = PARM->macros;
+      PARM->macros = nn;
+    }
+    if (!err) {
+      //csound->DebugMsg(csound,"New body: ...#%s#\n", mm->body);
+      if (UNLIKELY(PARM->macro_stack_ptr +1 >=
+                   PARM->macro_stack_size )) {
+        //trace_alt_stack(csound, PARM, __LINE__);
+        PARM->alt_stack =
+          (MACRON*)
+          csound->ReAlloc(csound, PARM->alt_stack,
+                          sizeof(MACRON)*(PARM->macro_stack_size+=S_INC));
+        if (UNLIKELY(PARM->alt_stack == NULL)) {
+          csound->Message(csound, Str("Memory exhausted"));
+          csound->LongJmp(csound, 1);
+        }
+        /* csound->DebugMsg(csound, */
+        /*        "macro_stack extends alt_stack to %d long\n", */
+        /*                  PARM->macro_stack_size); */
+      }
+      PARM->alt_stack[PARM->macro_stack_ptr].n =
+        PARM->macros->acnt;
+      PARM->alt_stack[PARM->macro_stack_ptr].line =
+        csound_prsget_lineno(yyscanner);
+      PARM->alt_stack[PARM->macro_stack_ptr].path = NULL;
+      PARM->alt_stack[PARM->macro_stack_ptr++].s = PARM->macros;
+      PARM->alt_stack[PARM->macro_stack_ptr].n = 0;
+      PARM->alt_stack[PARM->macro_stack_ptr].line =
+        csound_prsget_lineno(yyscanner);
+      PARM->alt_stack[PARM->macro_stack_ptr].path = NULL;
+      /* printf("stacked line = %llu at %d\n", */
+      /*  csound_prsget_lineno(yyscanner), */
+      /*                       PARM->macro_stack_ptr-1); */
+      PARM->alt_stack[PARM->macro_stack_ptr].s = NULL;
+      //csound->DebugMsg(csound,"Push %p macro stack\n",
+      //                 PARM->macros);
+      yypush_buffer_state(YY_CURRENT_BUFFER, yyscanner);
+      csound_prsset_lineno(1, yyscanner);
+      if (UNLIKELY(PARM->depth>1022)) {
+        csound->Message(csound,
+                        Str("macros/include nested too deep: "));
+        //csound->LongJmp(csound, 1);
+        corfile_puts(csound, "$error", PARM->cf);
+        err = 1;
+      }
+    }
+    if (!err) {
+      PARM->lstack[++PARM->depth] =
+        (strchr(mm->body,'\n') ?file_to_int(csound, mm->name) : 63);
+      yy_scan_string(mm->body, yyscanner);
+    }
+}
+
 static void csound_prs_line(CORFIL* cf, void *yyscanner)
 {
     int n = csound_prsget_lineno(yyscanner);
@@ -1701,29 +1829,26 @@ static int bodmas(CSOUND *csound, yyscan_t yyscanner, int* term)
       do {
       parseNumber:
         c = input(yyscanner);
+      top:
         while (isblank(c)) c = input(yyscanner);
         //printf("bodmas: c='%c'\n", c);
         switch (c) {
-        case EOF:
-          if (on_EOF(csound,yyscanner)==0) return 0;
-          continue;
         case '0': case '1': case '2': case '3': case '4':
         case '5': case '6': case '7': case '8': case '9': {
-                     //printf("bodmas:number\n");
+          //printf("bodmas:number\n");
           int i = 0;
           while (isdigit(c)) {
             i = 10 * i + c - '0';
             c = input(yyscanner);
           }
-          printf("Number: %d terminated by %c(%.2x)\n", i, c, c);
+          //printf("Number: %d terminated by %c(%.2x)\n", i, c, c);
           *++pv = i;
           type = 1;
           if (c=='\0') {
             if (on_EOF(csound,yyscanner)==0) return 0;
+            c = input(yyscanner);
           }
-          else
-            unput(c);
-          continue;
+          goto top;
         }
         case '$': {
           MACRO *mm = PARM->macros;
@@ -1731,19 +1856,27 @@ static int bodmas(CSOUND *csound, yyscan_t yyscanner, int* term)
           int p=0;
           int first = 1;
           while ((c=input(yyscanner))) {
-            if (isalpha(c) || c=='_' || (!first && isdigit(c)))
+            if (isalpha(c) || c=='_' || c=='`' || (!first && isdigit(c)))
               buf[p++] = c;
             else break;
             first = 0;
           }
-          if (c!='.') unput(c);
+          if (c=='.') c = input(yyscanner);
           buf[p] = '\0';
-          printf("macro: %s\n", buf);
+          //printf("macro: %s\n", buf);
           mm = find_definition(mm, buf);
           if (mm==NULL) return 0;
-          printf("body: >>%s<<\n", mm->body);
-          expand_macro(csound, mm, yyscanner);
-          continue;
+          if (c=='(') {
+            expand_macroa(csound, mm, yyscanner);
+            goto parseNumber;
+          }
+          else {
+            //printf("body: >>%s<<\n", mm->body);
+            unput(c);
+            expand_macro(csound, mm, yyscanner);
+            c = input(yyscanner);
+          }
+          goto top;
         }
         case '+': case '-':
           //printf("bodmas:arith %d type %d\n", c, type);
@@ -1756,7 +1889,7 @@ static int bodmas(CSOUND *csound, yyscan_t yyscanner, int* term)
           }
           type = 0;
           *++op = c;
-          continue;
+          goto parseNumber;
         case '*':
         case '/':
         case '%':
@@ -1766,13 +1899,13 @@ static int bodmas(CSOUND *csound, yyscan_t yyscanner, int* term)
             return 0;
           }
           if (*op == '*' || *op == '/' || *op == '%') {
-            MYFLT v = operate(csound, *(pv-1), *pv, *op);
+            int v = operate(csound, *(pv-1), *pv, *op);
             op--; pv--;
             *pv = v;
           }
           type = 0;
           *++op = c;
-          continue;
+          goto parseNumber;
         case '&':
         case '|':
         case '#':
@@ -1782,13 +1915,13 @@ static int bodmas(CSOUND *csound, yyscan_t yyscanner, int* term)
             return 0;
           }
           if (*op == '|' || *op == '&' || *op == '#') {
-            MYFLT v = operate(csound, *(pv-1), *pv, *op);
+            int v = operate(csound, *(pv-1), *pv, *op);
             op--; pv--;
             *pv = v;
           }
           type = 0;
           *++op = c;
-          continue;
+          goto parseNumber;
         case '(':
           //printf("bodmas: bra\n");
           if (UNLIKELY(type)) {
@@ -1797,7 +1930,7 @@ static int bodmas(CSOUND *csound, yyscan_t yyscanner, int* term)
           }
           type = 0;
           *++op = c;
-          continue;
+          goto parseNumber;
         case ')':
           //printf("bodmas:bra switch close\n");
           if (UNLIKELY(!type)) {
@@ -1805,13 +1938,13 @@ static int bodmas(CSOUND *csound, yyscan_t yyscanner, int* term)
             return 0;
           }
           while (*op != '(') {
-            MYFLT v = operate(csound, *(pv-1), *pv, *op);
+            int v = operate(csound, *(pv-1), *pv, *op);
             op--; pv--;
             *pv = v;
           }
           type = 1;
           op--;
-          continue;
+          goto parseNumber;
         //        case '^':
         //type = 0;
         //*++op = c; c = getscochar(csound, 1); break;
@@ -1823,35 +1956,44 @@ static int bodmas(CSOUND *csound, yyscan_t yyscanner, int* term)
           type = 1;
           {
             //int i;
-            MYFLT x;
-            //for (i=0;i<=pv-vv;i++) printf(" %lf ", vv[i]);
-            //printf("| %d\n", pv-vv);
-            x = bodmas(csound, yyscanner, term);
-            *++pv = x;
-            //printf("recursion gives %lf (%lf)\n", x,*(pv-1));
-            //for (i=0;i<pv-vv;i++) printf(" %lf ", vv[i]); printf("| %d\n", pv-vv);
-            c = input(yyscanner); break;
+            //MYFLT x;
+            //for (i=0;i<=pv-vv;i++) printf(" %d ", vv[i]);
+            //printf("| %ld\n", pv-vv);
+            *++pv = bodmas(csound, yyscanner, term);
+            //printf("recursion gives %lf (%d)\n", x,*(pv-1));
+            //for (i=0;i<pv-vv;i++) printf(" %d ", vv[i]); printf("| %ld\n", pv-vv);
+            c = input(yyscanner);
+            break;
           }
         case ']':
+          //printf("] case: type = %d *op=%c\n", type, *op);
           if (UNLIKELY(!type)) {
-            csound->Message(csound, Str("missing operand before closing bracket in []"));
+            csound->Message(csound,
+                            Str("missing operand before closing bracket in []"));
             return 0;
           }
           while (*op != '[') {
-            MYFLT v = operate(csound, *(pv-1), *pv, *op);
+            int v = operate(csound, *(pv-1), *pv, *op);
             op--; pv--;
             *pv = v;
           }
-          //printf("done ]*** *op=%c v=%lg (%c)\n", *op, *pv, c);
-          //getscochar(csound, 1);
+          //printf("done ]*** *op=%c v=%d (%c)\n", *op, *pv, c);
           *term = '~'; return *pv;
         case '~':
           break;
         case ' ':               /* Ignore spaces */
           c = input(yyscanner);
           continue;
+        case EOF:
+        case '\0':
+          if (on_EOF(csound, yyscanner)==0) {
+            yyterminate(); return 0;
+          }
+          c = input(yyscanner);
+          goto top;
         default:
-          csound->Message(csound, Str("illegal character %c(%.2x) in [] expression"),
+          csound->Message(csound,
+                          Str("illegal character %c(%.2x) in [] expression"),
                           c, c);
           return 0;
         }
@@ -1863,6 +2005,7 @@ static int bodmas(CSOUND *csound, yyscan_t yyscanner, int* term)
 static int extract_int(CSOUND *csound, yyscan_t yyscanner, int* term)
 {
     int c;
+ top:
     do {
       c = input(yyscanner);
     } while (isblank(c));
@@ -1884,6 +2027,12 @@ static int extract_int(CSOUND *csound, yyscan_t yyscanner, int* term)
         *term = c;
         return 0;
       }
+      else if (c=='(') {
+        struct yyguts_t *yyg =(struct yyguts_t*)yyscanner;
+        unput(c);
+        expand_macroa(csound, mm, yyscanner);
+        goto top;
+      }
       else {
         *term = c;
         return atoi(mm->body);
@@ -1893,6 +2042,10 @@ static int extract_int(CSOUND *csound, yyscan_t yyscanner, int* term)
       //printf("** ] case\n");
       int n =  bodmas(csound, yyscanner,term);
       return n;
+    }
+    else if (c=='\0') {
+      if (on_EOF(csound, yyscanner)==0) return 0;
+      goto top;
     }
     else {
       int i = 0;
