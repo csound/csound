@@ -21,7 +21,7 @@
     02110-1301 USA
 */
 
-#define MAX_NAME_LEN    32      /* for client and port name */
+#define MAX_NAME_LEN    256      /* for client and port name */
 
 typedef struct RtJackBuffer_ {
 #ifdef LINUX
