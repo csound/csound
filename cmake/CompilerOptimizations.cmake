@@ -9,6 +9,11 @@ if (HAS_CXX_TREE_VECTORISE)
 endif()
 
 
+
+
+
+if(NOT "${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
+
 check_c_compiler_flag(-ffast-math HAS_FAST_MATH)
 check_cxx_compiler_flag(-ffast-math HAS_CXX_FAST_MATH)
 if (HAS_FAST_MATH AND NOT MINGW)
@@ -17,9 +22,6 @@ endif()
 if (HAS_CXX_FAST_MATH AND NOT MINGW)
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -ffast-math")
 endif()
-
-
-if(NOT "${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
 
 check_c_compiler_flag(-mfpmath=sse HAS_FPMATH_SSE)
 check_cxx_compiler_flag(-mfpmath=sse HAS_CXX_FPMATH_SSE)
