@@ -1167,7 +1167,11 @@ static int32_t early_process(CSOUND *csound, early *p)
                     coselev = ((SQUARE(bc) +
                                 SQUARE(ab) -
                                 SQUARE(ac)) / (2.0 * ab * bc));
-                    elev = (ACOS(coselev)* 180.0 / PI_F);
+                    /* VL: need to clamp it to avoid NaN */
+                      elev = (ACOS(coselev > 1.0 ?
+                                   1.0 : (coselev < -1.0 ? -1.0 :
+                                          coselev))* 180.0 / PI_F);
+                   
                   }
 
                   /* if z coefficient of source < listener:
@@ -1204,6 +1208,7 @@ static int32_t early_process(CSOUND *csound, early *p)
                   /* as above,lookup index, used to check
                      for crossfade */
                   elevindex = (int32_t)(elevindexstore + 0.5);
+                  
 
                   angleindex = (int32_t)(angle /
                                      (360.0 /
@@ -1240,10 +1245,6 @@ static int32_t early_process(CSOUND *csound, early *p)
                      values */
                   if (oldelevindex[M] != elevindex ||
                       oldangleindex[M] != angleindex) {
-                    /* with --ffast-math the above numbers are wrong and
-                       we are entering this section at the wrong time
-                       probably all position calculation is also wrong
-                    */
                     if (initialfade > irlength) {
                       /* warning on overlapping fades */
                       if (cross[M]) {
