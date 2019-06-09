@@ -25,6 +25,10 @@
 #include "csoundCore.h"
 #include "interlocks.h"
 
+#ifdef __FAST_MATH__
+#undef __FAST_MATH__
+#endif
+
 #define SQUARE(X) ((X)*(X))
 
 /* definitions, from mit */
@@ -1236,14 +1240,18 @@ static int32_t early_process(CSOUND *csound, early *p)
                      values */
                   if (oldelevindex[M] != elevindex ||
                       oldangleindex[M] != angleindex) {
+                    /* with --ffast-math the above numbers are wrong and
+                       we are entering this section at the wrong time
+                       probably all position calculation is also wrong
+                    */
                     if (initialfade > irlength) {
                       /* warning on overlapping fades */
                       if (cross[M]) {
-                        printf(Str("\nWARNING: fades are "
+                        csound->Message(csound, Str("\nWARNING: fades are "
                                    "overlapping: this could "
                                    "lead to noise: reduce "
                                    "fade size or change "
-                                   "trajectory\n\n"));
+                                   "trajectory, fade = %d, cross=%d\n\n"), fade, cross[M]);
                         cross[M] = 0;
                       }
                       /* reset l */
@@ -1730,7 +1738,7 @@ static int32_t early_process(CSOUND *csound, early *p)
                 }
 
                 cross[M]++;
-                cross[M] = cross[M] % fade;
+                cross[M] %= fade;
               }
 
               if (crossout)
