@@ -428,12 +428,12 @@ static int32_t oscsend_deinit(CSOUND *csound, OSCSEND2 *p)
 static int32_t osc_send2_init(CSOUND *csound, OSCSEND2 *p)
 {
     uint32_t     bsize;
-    
-    if(p->init_done) {
+
+    if (p->init_done) {
       csound->Warning(csound, "already initialised");
       return OK;
     }
-     
+
     if (UNLIKELY(p->INOCOUNT > 4 && p->INOCOUNT < (uint32_t) p->type->size + 4))
        return csound->InitError(csound,
                              Str("insufficient number of arguments for "

@@ -68,13 +68,13 @@ MYFLT filter(MYFLT* sig, MYFLT highcoeff, MYFLT lowcoeff,
 
     /* setup filter */
     MYFLT T = FL(1.0) / sr;
-    MYFLT twopioversr = FL(2.0 * PI * T);
+    MYFLT twopioversr = FL(2.0) * PI_F * T;
     MYFLT freq;
     MYFLT check;
     MYFLT scale, nyqresponse, irttwo, highresponse, lowresponse, cosw,
       a, b, c, x, y;
 
-    irttwo = FL(1.0) / SQRT(FL(2.0));
+    irttwo = FL(1.0) / ROOT2;
 
     /* simple filter deals with difference in low and high */
     highresponse = FL(1.0) - highcoeff;
@@ -108,12 +108,12 @@ MYFLT filter(MYFLT* sig, MYFLT highcoeff, MYFLT lowcoeff,
 
     /* filter */
     costh = FL(2.0) - COS(freq * twopioversr);
-    coef = SQRT(costh * costh - 1.0) - costh;
+    coef = SQRT(costh * costh - FL(1.0)) - costh;
 
     for(i = 0; i < vecsize; i++)
       {
         /* filter */
-        sig[i] = (sig[i] * (1 + coef) - *del * coef);
+        sig[i] = (sig[i] * (FL(1) + coef) - *del * coef);
         /* scale */
         sig[i] *= scale;
         /* store */
@@ -129,7 +129,7 @@ MYFLT band(MYFLT* sig, MYFLT cfreq, MYFLT bw, MYFLT g, MYFLT *del,
 {
     MYFLT T = FL(1.0) / sr;
     MYFLT pioversr = FL(PI) * T;
-    MYFLT a = (COS(cfreq * pioversr * 2.0));
+    MYFLT a = (COS(cfreq * pioversr * FL(2.0)));
     MYFLT b = (TAN(bw * pioversr));
     MYFLT c = (FL(1.0) - b) / (FL(1.0) + b);
     MYFLT w, y;
@@ -727,10 +727,11 @@ static int32_t early_init(CSOUND *csound, early *p)
     /* calculate max delay according to max dist from order */
     /* use hypotenuse rule to get max dist */
     /* could calculate per order, but designed for low order use */
-    maxdist = (SQRT(SQUARE(rmx) + SQUARE(rmy)));
+    maxdist = HYPOT(rmx, rmy);
+    //maxdist = (SQRT(SQUARE(rmx) + SQUARE(rmy)));
     if (threed)
-      maxdist = (SQRT(SQUARE(maxdist)+SQUARE(rmz)));
-    maxdist = maxdist * (order + 1);
+      maxdist = HYPOT(maxdist, rmz);//maxdist = (SQRT(SQUARE(maxdist)+SQUARE(rmz)));
+    maxdist = maxdist * (order + FL(1.0));
 
     maxdtime = maxdist / p->c;
     maxdelsamps = (int32_t)(maxdtime * sr);
@@ -1125,9 +1126,9 @@ static int32_t early_process(CSOUND *csound, early *p)
                     angle = 0;
                   else {
                     /* - to invert anticlockwise to clockwise */
-                    angle = (-(ATAN2(tempy, tempx)) * 180.0 / PI_F);
+                    angle = (-(ATAN2(tempy, tempx)) * FL(180.0) / PI_F);
                     /* add 90 to go from y axis (front) */
-                    angle = angle + 90.0;
+                    angle = angle + FL(90.0);
                   }
 
                   /* xy point will be same as source, z same as
@@ -1171,7 +1172,6 @@ static int32_t early_process(CSOUND *csound, early *p)
                       elev = (ACOS(coselev > 1.0 ?
                                    1.0 : (coselev < -1.0 ? -1.0 :
                                           coselev))* 180.0 / PI_F);
-                   
                   }
 
                   /* if z coefficient of source < listener:
@@ -1207,13 +1207,12 @@ static int32_t early_process(CSOUND *csound, early *p)
 
                   /* as above,lookup index, used to check
                      for crossfade */
-                  elevindex = (int32_t)(elevindexstore + 0.5);
-                  
+                  elevindex = (int32_t)(elevindexstore + FL(0.5));
 
                   angleindex = (int32_t)(angle /
-                                     (360.0 /
+                                         (FL(360.0) /
                                       elevationarray[elevindex]) +
-                                     0.5);
+                                         FL(0.5));
                   angleindex = angleindex % elevationarray[elevindex];
 
                   /* avoid recalculation */
@@ -1485,15 +1484,15 @@ static int32_t early_process(CSOUND *csound, early *p)
                     phasel = currentphasel[M * irlength + i + 1];
 
                     /* polar to rectangular */
-                    hrtflinterp[i] = magl * FL(cos(phasel));
-                    hrtflinterp[i + 1] = magl * FL(sin(phasel));
+                    hrtflinterp[i] = magl * COS(phasel);
+                    hrtflinterp[i + 1] = magl * SIN(phasel);
 
                     magr = magrlow + (magrhigh - magrlow) *
                       elevindexhighper;
                     phaser = currentphaser[M * irlength + i + 1];
 
-                    hrtfrinterp[i] = magr * FL(cos(phaser));
-                    hrtfrinterp[i + 1] = magr * FL(sin(phaser));
+                    hrtfrinterp[i] = magr * COS(phaser);
+                    hrtfrinterp[i + 1] = magr * SIN(phaser);
                   }
 
                   csound->InverseRealFFT(csound, hrtflinterp,
