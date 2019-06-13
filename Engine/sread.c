@@ -85,16 +85,16 @@ static intptr_t expand_nxp(CSOUND *csound)
     /* correct all pointers for the change */
     offs = (intptr_t) ((uintptr_t)(csound->sread.curmem) - (uintptr_t) oldp);
     if ((csound->sread.bp) != NULL)
-      (csound->sread.bp) = 
+      (csound->sread.bp) =
         (SRTBLK*) ((uintptr_t) (csound->sread.bp) + (intptr_t) offs);
     if ((csound->sread.prvibp) != NULL)
-      (csound->sread.prvibp) = 
+      (csound->sread.prvibp) =
         (SRTBLK*) ((uintptr_t) (csound->sread.prvibp) + (intptr_t) offs);
     if ((csound->sread.sp) != NULL)
-      (csound->sread.sp) = 
+      (csound->sread.sp) =
         (char*) ((uintptr_t) (csound->sread.sp) + (intptr_t) offs);
     if ((csound->sread.nxp) != NULL)
-      (csound->sread.nxp) = 
+      (csound->sread.nxp) =
         (char*) ((uintptr_t) (csound->sread.nxp) + (intptr_t) offs);
     if (csound->frstbp == NULL)
       return offs;
@@ -451,7 +451,7 @@ int sread(CSOUND *csound)       /*  called from main,  reads from SCOREIN   */
             csound->Message(csound,Str("m Named section >>>%s<<<\n"), buff);
             //printf("*** last_name = %d\n", (csound->sread.last_name));
           for (j=0; j<(csound->sread.last_name); j++) {
-            //printf("m: %s %s(%d)\n", 
+            //printf("m: %s %s(%d)\n",
             //       buff, (csound->sread.names)[j].name, j);
             if (strcmp(buff, (csound->sread.names)[j].name)==0) break;
           }
@@ -630,10 +630,10 @@ static void ifa(CSOUND *csound)
       /*   continue; */
       /* } */
       if (*(csound->sread.sp) == '^' &&
-          (csound->sread.op) == 'i' && 
+          (csound->sread.op) == 'i' &&
           (csound->sread.bp)->pcnt == 2) {
         int foundplus = 0;
-        if (*((csound->sread.sp)+1)=='+') { 
+        if (*((csound->sread.sp)+1)=='+') {
           (csound->sread.sp)++; foundplus = 1;
         }
         if (UNLIKELY((csound->sread.prvp2)<0)) {
@@ -713,7 +713,7 @@ static void ifa(CSOUND *csound)
       else switch ((csound->sread.bp)->pcnt) { /*  watch for p1,p2,p3, */
         case 1:                           /*   & MYFLT, setinsno..*/
           if (((csound->sread.op) == 'i' ||
-               (csound->sread.op) == 'd' || 
+               (csound->sread.op) == 'd' ||
                (csound->sread.op) == 'q') &&
               *(csound->sread.sp) == '"') {
             /* csound->DebugMsg(csound,"***Entering second dubious code scnt=%d\n",
@@ -745,7 +745,7 @@ static void ifa(CSOUND *csound)
       case 2: if ((csound->sread.warpin)) {         /* for warpin,     */
           getpfld(csound,0);                   /*   newp2 follows */
           (csound->sread.bp)->newp2 =
-            (csound->sread.warp_factor) * 
+            (csound->sread.warp_factor) *
             stof(csound, (csound->sread.sp)) +
             (csound->sread.clock_base);
           (csound->sread.nxp) = (csound->sread.sp); /* (skip text)  */
@@ -754,7 +754,7 @@ static void ifa(CSOUND *csound)
                (csound->sread.bp)->p2val;   /* else use p2val  */
         break;
       case 3: if ((csound->sread.warpin) &&
-                  ((csound->sread.op) == 'i' || 
+                  ((csound->sread.op) == 'i' ||
                    (csound->sread.op) == 'f')) {
           getpfld(csound,0);                    /* same for newp3  */
           (csound->sread.bp)->newp3 =
