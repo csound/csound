@@ -75,6 +75,9 @@ class CsoundNode extends AudioWorkletNode {
                 if (typeof this.channelCallbacks[data[1]] != 'undefined')
                       this.channelCallbacks[data[1]](); 
                 break;
+            case "setOutputChannelCallback": 
+                this.channelCallbacks[data[1]](data[2]);
+                break;
             case "stringChannel":
                 this.stringChannels[data[1]] = data[2];
                 if (typeof this.stringChannelCallbacks[data[1]] != 'undefined')
@@ -179,6 +182,18 @@ class CsoundNode extends AudioWorkletNode {
                                channelName]);
         if (callback !== null)
           this.channelCallbacks[channelName] = callback;
+    }
+
+     /** Provide a callback to receive the output data from a control channel 
+     *
+     * @param {string} channelName A string containing the channel name.
+     * @param {function} callback A callback to be called when
+     *  the output data is available. This can be set once for all
+     *  subsequent requests.
+     */ 
+    setOutputChannelCallback(channelName, callback) {
+        this.port.postMessage(["setOutputChannelCallback", channelName]);
+        this.channelCallbacks[channelName] = callback;
     }
 
     /** Request the data from a String channel 

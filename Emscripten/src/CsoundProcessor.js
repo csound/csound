@@ -78,7 +78,7 @@ const Csound = {
     setTable: CSMOD.cwrap('CsoundObj_setTable', null, ['number', 'number', 'number', 'number']),
     pushMidiMessage: CSMOD.cwrap('CsoundObj_pushMidiMessage', null, ['number', 'number', 'number', 'number']),
     setMidiCallbacks: CSMOD.cwrap('CsoundObj_setMidiCallbacks', null, ['number']),
-
+    setOutputChannelCallback: CSMOD.cwrap('CsoundObj_setOutputChannelCallback', null, ['number', 'number'])
 }
 
 class CsoundProcessor extends AudioWorkletProcessor {
@@ -217,6 +217,18 @@ class CsoundProcessor extends AudioWorkletProcessor {
             Csound.setControlChannel(this.csObj,
                                      data[1], data[2]);
             break;
+        case "setOutputChannelCallback":
+            function csoundCallback(csoundPtr, stringPtr, valuePtr, typePtr) {
+                const string = CSMOD.UTF8ToString(stringPtr);
+                const value  = CSMOD.getValue(valuePtr, 'float');
+                p.postMessage(["setOutputChannelCallback", string, value]);
+            };
+            const functionPointer = CSMOD.addFunction(
+                csoundCallback,
+                "viiii"
+            );
+            Csound.setOutputChannelCallback(this.csObj, functionPointer);
+            break
         case "setStringChannel":
             Csound.setStringChannel(this.csObj,
                                     data[1], data[2]);

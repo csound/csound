@@ -176,6 +176,21 @@ class CsoundObj {
         this.node.requestControlChannel(channelName, callback);
     }
 
+     /** Provide a callback to receive the output data from a control channel 
+     *
+     * @param {string} channelName A string containing the channel name.
+     * @param {function} callback A callback to be called when
+     *  the output data is available. This can be set once for all
+     *  subsequent requests.
+     */ 
+    setOutputChannelCallback(channelName, callback) {
+        if (typeof this.node.setOutputChannelCallback === "function") {
+            this.node.setOutputChannelCallback(channelName, callback);
+        }
+        else {
+            console.error("CsoundObj.setOutputChannelCallback: Not implemented for Script Processor Node.");
+        }
+    }
     /** Request the string data from a control channel 
      *
      * @param {string} channelName A string containing the channel name.
