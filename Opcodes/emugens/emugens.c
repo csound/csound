@@ -645,7 +645,7 @@ typedef struct {
 
 static int32_t bpfarr(CSOUND *csound, BPFARR *p) {
     int32_t N = p->in->sizes[0];
-    tabensure(csound, p->out, N);
+    tabensure_init(csound, p->out, N);
     MYFLT **data = p->data;
     MYFLT *out = p->out->data;
     MYFLT *in  = p->in->data;
@@ -690,7 +690,7 @@ static int32_t bpfarr(CSOUND *csound, BPFARR *p) {
 
 static int32_t bpfarrcos(CSOUND *csound, BPFARR *p) {
     int32_t N = p->in->sizes[0];
-    tabensure(csound, p->out, N);
+    tabensure_init(csound, p->out, N);
     MYFLT **data = p->data;
     MYFLT *out = p->out->data;
     MYFLT *in  = p->in->data;

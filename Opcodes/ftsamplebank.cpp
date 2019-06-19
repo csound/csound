@@ -261,7 +261,7 @@ static int directory(CSOUND *csound, DIR_STRUCT *p) {
   }
 
   int numberOfFiles = fileNames.size();
-  tabensure(csound, p->outArr, numberOfFiles);
+  tabinit(csound, p->outArr, numberOfFiles);
   STRINGDAT *strings = (STRINGDAT *)p->outArr->data;
 
   for (int i = 0; i < numberOfFiles; i++) {

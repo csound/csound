@@ -341,7 +341,7 @@ int32_t vbap_init_a(CSOUND *csound, VBAPA *p)
                                Str("vbap system NOT configured.\nMissing"
                                    " vbaplsinit opcode in orchestra?"));
     //printf("**** size = %d\n", p->q.ls_set_am);
-    tabensure(csound,  p->tabout, p->q.ls_set_am);
+    tabinit(csound,  p->tabout, p->q.ls_set_am);
     cnt = p->q.number = p->tabout->sizes[0];
     csound->AuxAlloc(csound, p->q.ls_set_am * sizeof(LS_SET), &p->q.aux);
     if (UNLIKELY(p->q.aux.auxp == NULL)) {
