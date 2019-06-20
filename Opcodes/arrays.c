@@ -3665,6 +3665,7 @@ int32_t init_dct(CSOUND *csound, FFT *p) {
 }
 
 int32_t kdct(CSOUND *csound, FFT *p) {
+    // FIXME: IF N changes value do we need a check
     int32_t N = p->out->sizes[0];
     memcpy(p->out->data,p->in->data,N*sizeof(MYFLT));
     csoundDCT(csound,p->setup,p->out->data);
@@ -3748,7 +3749,8 @@ int32_t mfb_init(CSOUND *csound, MFB *p) {
 }
 
 int32_t mfb(CSOUND *csound, MFB *p) {
-  int32_t i,j;
+    /* FIXME: Init cals tabinit but not checked in erf? */
+    int32_t i,j;
   int32_t *bin = (int32_t *) p->bins.auxp;
   MYFLT start,max,end;
   MYFLT g = FL(0.0), incr, decr;
@@ -3859,6 +3861,7 @@ int32_t interleave_i (CSOUND *csound, INTERL *p) {
 
 int32_t interleave_perf (CSOUND *csound, INTERL *p) {
     int32_t len = p->b->sizes[0], i,j;
+    tabcheck(csound, p->a, len*2, &(p->h));
     for(i = 0, j = 0; i < len; i++,j+=2) {
       p->a->data[j] =  p->b->data[i];
       p->a->data[j+1] = p->c->data[i];
@@ -3882,6 +3885,8 @@ int32_t deinterleave_i (CSOUND *csound, INTERL *p) {
 
 int32_t deinterleave_perf (CSOUND *csound, INTERL *p) {
     int32_t len = p->c->sizes[0]/2, i,j;
+    tabcheck(csound, p->a, len, &(p->h));
+    tabcheck(csound, p->b, len, &(p->h));
     for(i = 0, j = 0; i < len; i++,j+=2) {
       p->a->data[i] =  p->c->data[j];
       p->b->data[i] = p->c->data[j+1];
