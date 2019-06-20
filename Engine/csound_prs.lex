@@ -191,45 +191,6 @@ NM              [nm][ \t]+
                    }
                    else {
                      expand_macro(csound, mm, yyscanner);
-#if 0                     
-                     /* Need to read from macro definition */
-                     if (mm->acnt<0) { /* Macro inhibitted */
-                       corfile_puts(csound, yytext, PARM->cf);
-                     }
-                     else {
-                       if (UNLIKELY(PARM->macro_stack_ptr+1 >=
-                                    PARM->macro_stack_size)) {
-                         //trace_alt_stack(csound, PARM, __LINE__);
-                         //printf("***extending macro stack %p\n", PARM->alt_stack);
-                         PARM->alt_stack =
-                           (MACRON*)
-                           csound->ReAlloc(csound, PARM->alt_stack,
-                                   sizeof(MACRON)*(PARM->macro_stack_size+=S_INC));
-                         if (UNLIKELY(PARM->alt_stack == NULL)) {
-                           csound->Message(csound, Str("Memory exhausted"));
-                           csound->LongJmp(csound, 1);
-                         }
-                         /* csound->DebugMsg(csound, "alt_stack now %d long\n", */
-                         /*                  PARM->macro_stack_size); */
-                       }
-                       PARM->alt_stack[PARM->macro_stack_ptr].n = 0;
-                       PARM->alt_stack[PARM->macro_stack_ptr].line =
-                         csound_prsget_lineno(yyscanner);
-                       PARM->alt_stack[PARM->macro_stack_ptr].path = NULL;
-                       PARM->alt_stack[PARM->macro_stack_ptr++].s = NULL;
-                       yypush_buffer_state(YY_CURRENT_BUFFER, yyscanner);
-                       csound_prsset_lineno(1, yyscanner);
-                       if (UNLIKELY(PARM->depth>1022)) {
-                         csound->Message(csound,
-                                         Str("macros/include nested too deep: "));
-                         csound->LongJmp(csound, 1);
-                       }
-                       PARM->lstack[++PARM->depth] =
-                         (strchr(mm->body,'\n') ?file_to_int(csound, yytext) : 63);
-                       yy_scan_string(mm->body, yyscanner);
-                       /* csound->DebugMsg(csound,"%p\n", YY_CURRENT_BUFFER); */
-                   }
-#endif
                    }
                 }
 {MACRONAMEA}|{MACRONAMEDA}    {
@@ -249,125 +210,7 @@ NM              [nm][ \t]+
                    else {
                      expand_macroa(csound, mm, yyscanner);
                    }
-                     
-/*                      mname = yytext; */
-/*                      /\* Need to read from macro definition *\/ */
-/*                      //csound->DebugMsg(csound,"Looking for %d args\n", mm->acnt); */
-/*                      for (j = 0; j < mm->acnt; j++) { */
-/*                        char  term = (j == mm->acnt - 1 ? ')' : '\''); */
-/*                        /\* Compatability *\/ */
-/*                        char  trm1 = (j == mm->acnt - 1 ? ')' : '#'); */
-/*                        MACRO *nn = (MACRO*) csound->Malloc(csound, sizeof(MACRO)); */
-/*                        //int   size = 100; */
-/*                        if (UNLIKELY(nn == NULL)) { */
-/*                          csound->Message(csound, Str("Memory exhausted")); */
-/*                          csound->LongJmp(csound, 1); */
-/*                        } */
-/*                        nn->name = csound->Malloc(csound, strlen(mm->arg[j]) + 1); */
-/*                        if (UNLIKELY(nn->name == NULL)) { */
-/*                          csound->Message(csound, Str("Memory exhausted")); */
-/*                          csound->LongJmp(csound, 1); */
-/*                        } */
-/*                        //csound->DebugMsg(csound,"Arg %d: %s\n", j+1, mm->arg[j]); */
-/*                        strcpy(nn->name, mm->arg[j]); */
-/*                        csound->Message(csound, "defining argument %s ", */
-/*                                         nn->name); */
-/*                        i = 0; */
-/*                        nn->body = (char*) csound->Malloc(csound, 100); */
-/*                        if (UNLIKELY(nn->body == NULL)) { */
-/*                          csound->Message(csound, Str("Memory exhausted")); */
-/*                          csound->LongJmp(csound, 1); */
-/*                        } */
-/*                        while (1) { */
-/*                          c = input(yyscanner); */
-/*                          if (cnt==0 && ( c==term || c==trm1)) break; */
-/*                          if (UNLIKELY(cnt==0 && c == ')')) { */
-/*                            csound->Message(csound, */
-/*                                            Str("Too few arguments to macro\n")); */
-/*                            corfile_puts(csound, "$error", PARM->cf); */
-/*                            err = 1; break; */
-/*                          } */
-/*                          if (c=='(') cnt++; */
-/*                          if (c==')') cnt--; */
-/*                          if (c == '\\') { */
-/*                            int newc = input(yyscanner); */
-/*                            if (newc != ')') nn ->body[i++] = c; */
-/*                            c = newc; */
-/*                          } */
-/*                          if (UNLIKELY(i > 98)) { */
-/*                            csound->Message(csound, */
-/*                                            Str("Missing argument terminator\n%.98s"), */
-/*                                            nn->body); */
-/*                            corfile_puts(csound, "$error", PARM->cf); */
-/*                            err = 1; break; */
-/*                          } */
-/*                          nn->body[i++] = c; */
-/*                          /\* if (UNLIKELY(i >= size)) { *\/ */
-/*                          /\*   nn->body = csound->ReAlloc(csound, nn->body, *\/ */
-/*                          /\*   size += 100); *\/ */
-/*                          /\*   if (UNLIKELY(nn->body == NULL)) { *\/ */
-/*                          /\*     csound->Message(csound, Str("Memory exhausted")); *\/ */
-/*                          /\*     csound->LongJmp(csound, 1); *\/ */
-/*                          /\*   } *\/ */
-/*                          /\* } *\/ */
-/*                        } */
-/*                        nn->body[i] = '\0'; */
-/*                        csound->Message(csound, "as...#%s#\n", nn->body); */
-/*                        nn->acnt = 0;       /\* No arguments for arguments *\/ */
-/*                        nn->next = PARM->macros; */
-/*                        PARM->macros = nn; */
-/*                      } */
-/*                      if (!err) { */
-/*                        //csound->DebugMsg(csound,"New body: ...#%s#\n", mm->body); */
-/*                        if (UNLIKELY(PARM->macro_stack_ptr +1 >= */
-/*                                     PARM->macro_stack_size )) { */
-/*                          //trace_alt_stack(csound, PARM, __LINE__); */
-/*                          PARM->alt_stack = */
-/*                            (MACRON*) */
-/*                            csound->ReAlloc(csound, PARM->alt_stack, */
-/*                                    sizeof(MACRON)*(PARM->macro_stack_size+=S_INC)); */
-/*                          if (UNLIKELY(PARM->alt_stack == NULL)) { */
-/*                            csound->Message(csound, Str("Memory exhausted")); */
-/*                            csound->LongJmp(csound, 1); */
-/*                          } */
-/*                          /\* csound->DebugMsg(csound, *\/ */
-/*                          /\*        "macro_stack extends alt_stack to %d long\n", *\/ */
-/*                          /\*                  PARM->macro_stack_size); *\/ */
-/*                        } */
-/*                        PARM->alt_stack[PARM->macro_stack_ptr].n = */
-/*                          PARM->macros->acnt; */
-/*                        PARM->alt_stack[PARM->macro_stack_ptr].line = */
-/*                          csound_prsget_lineno(yyscanner); */
-/*                        PARM->alt_stack[PARM->macro_stack_ptr].path = NULL; */
-/*                        PARM->alt_stack[PARM->macro_stack_ptr++].s = PARM->macros; */
-/*                        PARM->alt_stack[PARM->macro_stack_ptr].n = 0; */
-/*                        PARM->alt_stack[PARM->macro_stack_ptr].line = */
-/*                          csound_prsget_lineno(yyscanner); */
-/*                        PARM->alt_stack[PARM->macro_stack_ptr].path = NULL; */
-/*                        /\* printf("stacked line = %llu at %d\n", *\/ */
-/*                        /\*  csound_prsget_lineno(yyscanner), *\/ */
-/*                        /\*                       PARM->macro_stack_ptr-1); *\/ */
-/*                        PARM->alt_stack[PARM->macro_stack_ptr].s = NULL; */
-/*                        //csound->DebugMsg(csound,"Push %p macro stack\n", */
-/*                        //                 PARM->macros); */
-/*                        yypush_buffer_state(YY_CURRENT_BUFFER, yyscanner); */
-/*                        csound_prsset_lineno(1, yyscanner); */
-/*                        if (UNLIKELY(PARM->depth>1022)) { */
-/*                          csound->Message(csound, */
-/*                                          Str("macros/include nested too deep: ")); */
-/*                          //csound->LongJmp(csound, 1); */
-/*                          corfile_puts(csound, "$error", PARM->cf); */
-/*                          err = 1; */
-/*                        } */
-/*                      } */
-/*                      if (!err) { */
-/*                        PARM->lstack[++PARM->depth] = */
-/*                          (strchr(mm->body,'\n') ?file_to_int(csound, mname) : 63); */
-/*                        yy_scan_string(mm->body, yyscanner); */
-/*                      } */
-/*                    } */
-/* #endif */
-             }
+                }
 {INCLUDESTR}    {
                   if (PARM->isString != 1)
                     PARM->isinclude = 1;
@@ -999,7 +842,7 @@ static void do_include(CSOUND *csound, int term, yyscan_t yyscanner)
     if (UNLIKELY(isDir(buffer)))
       csound->Warning(csound, Str("%s is a directory; not including"), buffer);
     printf("path = %s\n", PARM->path);
-    if (PARM->path && buffer[0]!= '/') { // if nested included directories
+    if (PARM->path && buffer[0]!= DIRSEP) { // if nested included directories
       char tmp[1024];
       printf("using path %s\n", PARM->path);
       strncpy(tmp, PARM->path, 1023);
@@ -1029,11 +872,11 @@ static void do_include(CSOUND *csound, int term, yyscan_t yyscanner)
            csound_prsget_lineno(yyscanner),PARM->macro_stack_ptr);
     PARM->alt_stack[PARM->macro_stack_ptr].n = 0;
     PARM->alt_stack[PARM->macro_stack_ptr].line = csound_prsget_lineno(yyscanner);
-    if (strrchr(buffer,'/')) {
+    if (strrchr(buffer,DIRSEP)) {
       PARM->alt_stack[PARM->macro_stack_ptr].path = PARM->path;
       //printf("setting path from %s to ", PARM->path);
       PARM->path = strdup(buffer); /* wasteful! */
-      *(strrchr(PARM->path,'/')) = '\0';
+      *(strrchr(PARM->path,DIRSEP)) = '\0';
       //printf("%s\n",PARM->path);
     }
     else PARM->alt_stack[PARM->macro_stack_ptr].path = NULL;
@@ -1078,7 +921,7 @@ void  do_new_include(CSOUND *csound, yyscan_t yyscanner)
     csound->DebugMsg(csound,"reading included file \"%s\"\n", buffer);
     if (UNLIKELY(isDir(buffer)))
       csound->Warning(csound, Str("%s is a directory; not including"), buffer);
-    if (PARM->path && buffer[0]!='/') {
+    if (PARM->path && buffer[0]!=DIRSEP) {
       char tmp[1024];
       strncpy(tmp, PARM->path, 1023);
       strcat(tmp, "/");
@@ -1105,10 +948,10 @@ void  do_new_include(CSOUND *csound, yyscan_t yyscanner)
            csound_prsget_lineno(yyscanner),PARM->macro_stack_ptr);
     PARM->alt_stack[PARM->macro_stack_ptr].n = 0;
     PARM->alt_stack[PARM->macro_stack_ptr].line = csound_prsget_lineno(yyscanner);
-    if (strrchr(buffer,'/')) {
+    if (strrchr(buffer,DIRSEP)) {
       PARM->alt_stack[PARM->macro_stack_ptr].path = PARM->path;
       PARM->path = strdup(buffer); /* wasteful! */
-      *(strrchr(PARM->path,'/')) = '\0';
+      *(strrchr(PARM->path,DIRSEP)) = '\0';
     }
     else PARM->alt_stack[PARM->macro_stack_ptr].path = NULL;
     PARM->alt_stack[PARM->macro_stack_ptr++].s = NULL;

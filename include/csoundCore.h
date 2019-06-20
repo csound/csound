@@ -1574,7 +1574,7 @@ typedef struct _message_queue_t_ {
     spin_lock_t   memlock, spinlock1;
     char          *delayederrormessages;
     void          *printerrormessagesflag;
-    struct sreadStatics__ {
+    struct sread__ {
       SRTBLK  *bp, *prvibp;           /* current srtblk,  prev w/same int(p1) */
       char    *sp, *nxp;              /* string pntrs into srtblk text        */
       int     op;                     /* opcode of current event              */
@@ -1609,7 +1609,7 @@ typedef struct _message_queue_t_ {
       int     unused_intA;
       S_MACRO   *unused_ptr1;
       int     nocarry;
-    } sreadStatics;
+    } sread;
     struct onefileStatics__ {
       NAMELST *toremove;
       char    *orcname;
