@@ -11870,13 +11870,16 @@ msgid ""
 "--get-system-sr         print system sr and exit, requires realtime audio "
 "output (e.g. -odac) to be defined first)"
 msgstr ""
+"--get-system-sr         affiche le sr du système et termine, la sortie audio "
+"en temps réel doit être d'abord définie (par ex. -odac)"
 
 #: Top/argdecode.c:304
-#, fuzzy
 msgid ""
 "--use-system-sr         print system sr and use realtime audio output (e.g. -"
 "odac) to be defined first"
-msgstr "--get-system-sr         affiche le sr du système et termine"
+msgstr ""
+"--use-system-sr         affiche le sr du système, la sortie audio en temps "
+"réel doit être d'abord définie (par ex. -odac)"
 
 #: Top/argdecode.c:305
 msgid "--ksmps=N               override ksmps"
