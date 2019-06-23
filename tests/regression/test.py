@@ -73,7 +73,11 @@ def runTest():
         ["arit.csd", "arithmetic bretween array anf scalar"],
         ["bugsice.csd", "testing slicearray and array length"],
         ["bugsize.csd", "Showing size change in arrays"],
-        ["bugmon.csd", "test arrray form of monitor"]
+        ["bugmon.csd", "test arrray form of monitor"],
+        ["bugname.csd", "recompilation of instr"],
+        ["vbapa.csd", "array case of vbap"],
+        ["bugi.csd", "i() and array access"],
+        ["gerr.csd", "array syntax error", 1]
     ]
 
     output = ""
