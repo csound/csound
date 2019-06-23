@@ -443,7 +443,7 @@ static int32_t tabarithset1(CSOUND *csound, TABARITH1 *p)
 static int32_t tabarithset2(CSOUND *csound, TABARITH2 *p)
 {
     ARRAYDAT *right = p->right;
-    
+
     if (p->ans->data == right->data) {
       // printf("same ptr\n");
       return OK;
