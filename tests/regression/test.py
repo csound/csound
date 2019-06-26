@@ -71,7 +71,7 @@ def runTest():
         ["arrayout.csd", "array dimension greater than nchls"],
         ["bugstr1.csd", "escapes in score strings"],
         ["arit.csd", "arithmetic bretween array anf scalar"],
-#        ["bugsice.csd", "testing slicearray and array length"],
+        ["bugsice.csd", "testing slicearray and array length"],
         ["bugj.csd", "testing varios array operations"],
         ["bugsize.csd", "Showing size change in arrays"],
         ["bugmon.csd", "test arrray form of monitor"],

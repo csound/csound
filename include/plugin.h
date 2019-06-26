@@ -356,7 +356,7 @@ public:
   /** Initialise the container
    */
   void init(Csound *csound, int size) {
-    tabensure(csound, this, size);
+    tabinit(csound, this, size);
   }
 
   /** iterator type
