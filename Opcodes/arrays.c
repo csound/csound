@@ -411,10 +411,17 @@ typedef struct {
 static int32_t tabarithset(CSOUND *csound, TABARITH *p)
 {
     if (LIKELY(p->left->data && p->right->data)) {
-      if (UNLIKELY(p->left->allocated != p->right->allocated))
+      int i;
+      if (UNLIKELY(p->left->dimensions != p->right->dimensions))
         return
           csound->InitError(csound, "%s",
                             Str("Dimensions do not match in array arithmetic"));
+      for (i=0; i<p->left->dimensions; i++) {
+        if (UNLIKELY(p->left->sizes[i] != p->right->sizes[i]))
+          return 
+            csound->InitError(csound, "%s",
+                              Str("Dimensions do not match in array arithmetic"));
+      }
       tabinit_like(csound, p->ans, p->left);
       return OK;
     }
