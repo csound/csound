@@ -778,29 +778,29 @@ msgstr "caractère %c(0x%.2x) inattendu dans define de macro à la place de #\n"
 msgid "Invalid macro name for --smacro"
 msgstr "Nom de macro non valide pour --smacro"
 
-#: Engine/csound_prs.lex:1740 Engine/csound_prs.lex:1756 Engine/sread.c:1033
-#: Engine/sread.c:1047
+#: Engine/csound_prs.lex:1740 Engine/csound_prs.lex:1756 Engine/sread.c:1110
+#: Engine/sread.c:1124
 #, c-format
 msgid "illegal placement of operator %c in [] expression"
 msgstr "placement illégal de l'opérateur %c dans l'expression []"
 
-#: Engine/csound_prs.lex:1771 Engine/sread.c:1059
+#: Engine/csound_prs.lex:1771 Engine/sread.c:1136
 msgid "illegal placement of '(' in [] expression"
 msgstr "placement illégal de '(' dans l'expression []"
 
-#: Engine/csound_prs.lex:1780 Engine/sread.c:1065
+#: Engine/csound_prs.lex:1780 Engine/sread.c:1142
 msgid "missing operand before ')' in [] expression"
 msgstr "il manque un opérande avant ')' dans l'expression []"
 
-#: Engine/csound_prs.lex:1796 Engine/sread.c:1079
+#: Engine/csound_prs.lex:1796 Engine/sread.c:1156
 msgid "illegal placement of '[' in [] expression"
 msgstr "placement illégal de '[' dans l'expression []"
 
-#: Engine/csound_prs.lex:1815 Engine/sread.c:1095
+#: Engine/csound_prs.lex:1815 Engine/sread.c:1172
 msgid "missing operand before closing bracket in []"
 msgstr "il manque un opérande avant le crochet fermant dans []"
 
-#: Engine/csound_prs.lex:1839 Engine/sread.c:1111
+#: Engine/csound_prs.lex:1839 Engine/sread.c:1188
 #, c-format
 msgid "illegal character %c(%.2x) in [] expression"
 msgstr "caractère %c(%.2x) illégal dans l'expression []"
@@ -1551,17 +1551,17 @@ msgstr ""
 msgid "event: error creating '%c' event"
 msgstr "event : erreur en créant l'évènement '%c'"
 
-#: Engine/linevent.c:562
+#: Engine/linevent.c:563
 #, c-format
 msgid "WARNING: Cannot Find Instrument %d\n"
 msgstr "AVERTISSEMENT : impossible de trouver l'instrument %d\n"
 
-#: Engine/linevent.c:583
+#: Engine/linevent.c:586
 #, c-format
 msgid "event_i: error creating '%c' event"
 msgstr "event_i: erreur en créant l'évènement '%c'"
 
-#: Engine/linevent.c:634
+#: Engine/linevent.c:637
 msgid "instance: error creating event"
 msgstr "instance : erreur en créant l'évènement"
 
@@ -1977,149 +1977,149 @@ msgstr "ERREUR : trop de p-champs"
 msgid "sort: illegal opcode %c(%.2x)\n"
 msgstr "sort : opcode illégal %c(%.2x)\n"
 
-#: Engine/sread.c:66
+#: Engine/sread.c:67
 msgid "sread:  text space overrun, increase MARGIN"
 msgstr "sread : dépassement de l'espace de texte, augmenter MARGIN"
 
-#: Engine/sread.c:111
+#: Engine/sread.c:119
 msgid "sread: "
 msgstr "sread: "
 
-#: Engine/sread.c:126
+#: Engine/sread.c:134
 msgid "score error:  "
 msgstr "erreur de partition :  "
 
-#: Engine/sread.c:140
+#: Engine/sread.c:148
 #, c-format
 msgid "  section %d:  at position %d%s"
 msgstr "  section %d : position %d%s"
 
-#: Engine/sread.c:146
+#: Engine/sread.c:154
 msgid "Internal error in print_input_backtrace()"
 msgstr "Erreur interne dans print_input_backtrace()"
 
-#: Engine/sread.c:150
+#: Engine/sread.c:158
 #, c-format
 msgid "  included from line %d of macro %s%s"
 msgstr "  inclus depuis la ligne %d de la macro %s%s"
 
-#: Engine/sread.c:151
+#: Engine/sread.c:159
 #, c-format
 msgid "  called from line %d of macro %s%s"
 msgstr "  appelé depuis la ligne %d de la macro %s%s"
 
-#: Engine/sread.c:153
+#: Engine/sread.c:161
 #, c-format
 msgid "  in line %d of macro %s%s"
 msgstr "  dans la ligne %d de la macro %s%s"
 
-#: Engine/sread.c:188
+#: Engine/sread.c:196
 #, c-format
 msgid "Internal error op=%c"
 msgstr "Erreur interne op=%c"
 
-#: Engine/sread.c:348
+#: Engine/sread.c:360
 #, c-format
 msgid "Clockbase = %f\n"
 msgstr "Base de l'horloge = %f\n"
 
-#: Engine/sread.c:430
+#: Engine/sread.c:451
 #, c-format
 msgid "m Named section >>>%s<<<\n"
 msgstr "m section nommée >>>%s<<<\n"
 
-#: Engine/sread.c:445
+#: Engine/sread.c:468
 #, c-format
 msgid "%d: %s position %<PRIi32>\n"
 msgstr "%d : %s position %<PRIi32>\n"
 
-#: Engine/sread.c:475
+#: Engine/sread.c:500
 #, c-format
 msgid "Name %s not found"
 msgstr "Nom %s non trouvé"
 
-#: Engine/sread.c:507
+#: Engine/sread.c:538
 #, c-format
 msgid "Warp_factor = %f\n"
 msgstr "Facteur de déformation = %f\n"
 
-#: Engine/sread.c:539
+#: Engine/sread.c:572
 #, c-format
 msgid "sread is confused on legal opcodes %c(%.2x)\n"
 msgstr "sread hésite sur des opcodes légaux %c(%.2x)\n"
 
-#: Engine/sread.c:602
+#: Engine/sread.c:640
 msgid "No previous event for ^"
 msgstr "Pas d'évènement précédent pour ^"
 
-#: Engine/sread.c:607
+#: Engine/sread.c:648
 #, c-format
 msgid "illegal space following %s, zero substituted"
 msgstr "espace illégal après %s, remplacé par zéro"
 
-#: Engine/sread.c:637
+#: Engine/sread.c:688
 #, c-format
 msgid "ignoring '%s' in '%c' event"
 msgstr "'%s' a été ignoré dans l'évènement '%c'"
 
-#: Engine/sread.c:640
+#: Engine/sread.c:692
 msgid "! invalid in p1, p2, or p3"
 msgstr "! non valide dans p1, p2 ou p3"
 
-#: Engine/sread.c:641 Engine/sread.c:646 Engine/sread.c:937 Engine/sread.c:1143
-#: Engine/sread.c:1157
+#: Engine/sread.c:693 Engine/sread.c:699 Engine/sread.c:1014
+#: Engine/sread.c:1220 Engine/sread.c:1235
 msgid "      remainder of line flushed\n"
 msgstr "      le reste de la ligne a été ignoré\n"
 
-#: Engine/sread.c:645
+#: Engine/sread.c:697
 #, c-format
 msgid "illegal character after !: '%c'"
 msgstr "caractère illégal après !: '%c'"
 
-#: Engine/sread.c:740
+#: Engine/sread.c:812
 #, c-format
 msgid "WARNING: instr %s not found, assuming insno = -1\n"
 msgstr "AVERTISSEMENT : instr %s non trouvé, on suppose que insno = -1\n"
 
-#: Engine/sread.c:761
+#: Engine/sread.c:833
 msgid "sread: illegal use of carry,   0 substituted\n"
 msgstr "sread : utilisation illégale du report,   remplacé par 0\n"
 
-#: Engine/sread.c:936
+#: Engine/sread.c:1013
 #, c-format
 msgid "illegal opcode %c"
 msgstr "opcode %c illégal"
 
-#: Engine/sread.c:963
+#: Engine/sread.c:1040
 msgid "illegal placement of number in [] expression"
 msgstr "placement illégal d'un nombre dans l'expression []"
 
-#: Engine/sread.c:991
+#: Engine/sread.c:1068
 msgid "illegal placement of operator ~ in [] expression"
 msgstr "placement illégal de l'opérateur ~ dans l'expression []"
 
-#: Engine/sread.c:1001
+#: Engine/sread.c:1078
 msgid "illegal placement of operator @ or @@ in [] expression"
 msgstr "placement illégal des opérateurs @ ou @@ dans l'expression []"
 
-#: Engine/sread.c:1142
+#: Engine/sread.c:1219
 #, c-format
 msgid "unexpected char %c"
 msgstr "caractère %c inattendu"
 
-#: Engine/sread.c:1156
+#: Engine/sread.c:1234
 msgid "illegally placed string"
 msgstr "sread : chaîne placée illégalement"
 
-#: Engine/sread.c:1163
+#: Engine/sread.c:1241
 msgid "unmatched quote"
 msgstr "guillemet non apparié"
 
-#: Engine/sread.c:1210
+#: Engine/sread.c:1288
 msgid "sread: illegal number format:  "
 msgstr "sread : format de nombre illégal :"
 
-#: Engine/sread.c:1216
+#: Engine/sread.c:1294
 msgid "   zero substituted.\n"
 msgstr "   remplacé par zéro.\n"
 
@@ -5371,7 +5371,7 @@ msgid "setting socket option to reuse the address\n"
 msgstr "réglage de l'option du socket pour réutiliser l'adresse\n"
 
 #: OOps/remote.c:370 Opcodes/sockrecv.c:202 Opcodes/sockrecv.c:258
-#: Opcodes/sockrecv.c:373 Opcodes/sockrecv.c:468 Opcodes/sockrecv.c:588
+#: Opcodes/sockrecv.c:373 Opcodes/sockrecv.c:468 Opcodes/sockrecv.c:558
 #: Top/server.c:268
 msgid "bind failed"
 msgstr "la liaison a échoué"
@@ -6225,11 +6225,11 @@ msgstr "Ecouteur OSC #%d démarré sur le port %s\n"
 msgid "OSC multicast listener #%d started on port %s\n"
 msgstr "Ecouteur multidiffusion OSC #%d démarré sur le port %s\n"
 
-#: Opcodes/OSC.c:726 Opcodes/OSC.c:1061
+#: Opcodes/OSC.c:726 Opcodes/OSC.c:1031
 msgid "OSC not running"
 msgstr "OSC n'est pas actif"
 
-#: Opcodes/OSC.c:730 Opcodes/OSC.c:1065
+#: Opcodes/OSC.c:730 Opcodes/OSC.c:1035
 msgid "invalid handle"
 msgstr "descripteur non valide"
 
@@ -6241,7 +6241,7 @@ msgstr "nombre d'arguments non valide"
 msgid "argument list inconsistent with format string"
 msgstr "liste d'arguments inconsistante avec le format chaîne"
 
-#: Opcodes/OSC.c:772 Opcodes/OSC.c:1082
+#: Opcodes/OSC.c:772 Opcodes/OSC.c:1052
 msgid "invalid type"
 msgstr "type non valide"
 
@@ -6335,213 +6335,208 @@ msgstr "tableau de sortie de bformdec1 non initialisé"
 msgid "second input array is too short\n"
 msgstr "second tableau d'entrée trop petit\n"
 
-#: Opcodes/arrays.c:118
+#: Opcodes/arrays.c:91
 msgid "Error: no sizes set for array initialization"
 msgstr "Erreur : aucune dimension donnée à l'initialisation du tableau"
 
-#: Opcodes/arrays.c:124
+#: Opcodes/arrays.c:97
 msgid "Error: sizes must be > 0 for array initialization"
 msgstr "Erreur : les tailles doivent être > 0 à l'initialisation d'un tableau"
 
-#: Opcodes/arrays.c:225
+#: Opcodes/arrays.c:198
 #, c-format
 msgid "error opening ASCII file %s\n"
 msgstr "erreur à l'ouverture du fichier ASCII %s\n"
 
-#: Opcodes/arrays.c:308
+#: Opcodes/arrays.c:281
 msgid "Cannot set i-array at k-rate\n"
 msgstr "Impossible de fixer un tableau-i au taux-k\n"
 
-#: Opcodes/arrays.c:324
+#: Opcodes/arrays.c:297
 msgid "Error: no indexes set for array set\n"
 msgstr "Erreur : aucun indice fixé pour écrire dans le tableau\n"
 
-#: Opcodes/arrays.c:329
+#: Opcodes/arrays.c:302
 #, c-format
 msgid "Array dimension %d does not match for dimensions %d\n"
 msgstr "La dimension %d du tableau ne correspond pas aux dimensions %d\n"
 
-#: Opcodes/arrays.c:339 Opcodes/arrays.c:380
+#: Opcodes/arrays.c:312 Opcodes/arrays.c:353
 #, c-format
 msgid "Array index %d out of range (0,%d) for dimension %d"
 msgstr "Indice %d du tableau hors limites (0, %d) pour la dimension %d"
 
-#: Opcodes/arrays.c:367
+#: Opcodes/arrays.c:340
 msgid "Error: no indexes set for array get"
 msgstr "Erreur : aucun indice fixé pour lire dans le tableau"
 
-#: Opcodes/arrays.c:370
+#: Opcodes/arrays.c:343
 #, c-format
 msgid "Array dimension %d out of range for dimensions %d"
 msgstr "La dimension %d du tableau est hors limites pour les dimensions %d"
 
-#: Opcodes/arrays.c:445
+#: Opcodes/arrays.c:418 Opcodes/arrays.c:423
 msgid "Dimensions do not match in array arithmetic"
 msgstr "Les dimensions ne correspondent pas dans l'arithmétique des tableaux"
 
-#: Opcodes/arrays.c:454 Opcodes/arrays.c:483 Opcodes/arrays.c:502
-#: Opcodes/arrays.c:515 Opcodes/arrays.c:534 Opcodes/arrays.c:570
-#: Opcodes/arrays.c:590 Opcodes/arrays.c:614 Opcodes/arrays.c:634
-#: Opcodes/arrays.c:671 Opcodes/arrays.c:709 Opcodes/arrays.c:729
-#: Opcodes/arrays.c:747 Opcodes/arrays.c:788 Opcodes/arrays.c:808
-#: Opcodes/arrays.c:835 Opcodes/arrays.c:855 Opcodes/arrays.c:883
-#: Opcodes/arrays.c:910 Opcodes/arrays.c:967 Opcodes/arrays.c:1003
-#: Opcodes/arrays.c:1036 Opcodes/arrays.c:1069 Opcodes/arrays.c:1107
-#: Opcodes/arrays.c:1139 Opcodes/arrays.c:1171 Opcodes/arrays.c:1203
-#: Opcodes/arrays.c:1235 Opcodes/arrays.c:1267 Opcodes/arrays.c:1299
-#: Opcodes/arrays.c:1336 Opcodes/arrays.c:1371 Opcodes/arrays.c:1406
-#: Opcodes/arrays.c:1438 Opcodes/arrays.c:1470 Opcodes/arrays.c:1502
-#: Opcodes/arrays.c:1534 Opcodes/arrays.c:1566 Opcodes/arrays.c:1598
-#: Opcodes/arrays.c:1630 Opcodes/arrays.c:1662 Opcodes/arrays.c:1695
-#: Opcodes/arrays.c:1728 Opcodes/arrays.c:1761 Opcodes/arrays.c:1794
-#: Opcodes/arrays.c:1827 Opcodes/arrays.c:1860 Opcodes/arrays.c:1893
-#: Opcodes/arrays.c:1926 Opcodes/arrays.c:1959 Opcodes/arrays.c:1992
-#: Opcodes/arrays.c:2025 Opcodes/arrays.c:2055 Opcodes/arrays.c:2061
-#: Opcodes/arrays.c:2072 Opcodes/arrays.c:2103 Opcodes/arrays.c:2138
-#: Opcodes/arrays.c:2168 Opcodes/arrays.c:2195 Opcodes/arrays.c:2269
-#: Opcodes/arrays.c:2316 Opcodes/arrays.c:2367 Opcodes/pvsbasic.c:2441
-#: Opcodes/pvsbasic.c:2472 Opcodes/pvsbasic.c:2521
+#: Opcodes/arrays.c:429 Opcodes/arrays.c:474 Opcodes/arrays.c:497
+#: Opcodes/arrays.c:520 Opcodes/arrays.c:543 Opcodes/arrays.c:571
+#: Opcodes/arrays.c:601 Opcodes/arrays.c:641 Opcodes/arrays.c:681
+#: Opcodes/arrays.c:702 Opcodes/arrays.c:721 Opcodes/arrays.c:763
+#: Opcodes/arrays.c:784 Opcodes/arrays.c:812 Opcodes/arrays.c:833
+#: Opcodes/arrays.c:862 Opcodes/arrays.c:891 Opcodes/arrays.c:950
+#: Opcodes/arrays.c:990 Opcodes/arrays.c:1030 Opcodes/arrays.c:1070
+#: Opcodes/arrays.c:1114 Opcodes/arrays.c:1147 Opcodes/arrays.c:1180
+#: Opcodes/arrays.c:1213 Opcodes/arrays.c:1246 Opcodes/arrays.c:1279
+#: Opcodes/arrays.c:1312 Opcodes/arrays.c:1350 Opcodes/arrays.c:1386
+#: Opcodes/arrays.c:1422 Opcodes/arrays.c:1455 Opcodes/arrays.c:1488
+#: Opcodes/arrays.c:1521 Opcodes/arrays.c:1554 Opcodes/arrays.c:1587
+#: Opcodes/arrays.c:1620 Opcodes/arrays.c:1653 Opcodes/arrays.c:1686
+#: Opcodes/arrays.c:1721 Opcodes/arrays.c:1758 Opcodes/arrays.c:1795
+#: Opcodes/arrays.c:1832 Opcodes/arrays.c:1869 Opcodes/arrays.c:1906
+#: Opcodes/arrays.c:1943 Opcodes/arrays.c:1980 Opcodes/arrays.c:2017
+#: Opcodes/arrays.c:2054 Opcodes/arrays.c:2091 Opcodes/arrays.c:2124
+#: Opcodes/arrays.c:2130 Opcodes/arrays.c:2141 Opcodes/arrays.c:2172
+#: Opcodes/arrays.c:2207 Opcodes/arrays.c:2237 Opcodes/arrays.c:2264
+#: Opcodes/arrays.c:2338 Opcodes/arrays.c:2385 Opcodes/arrays.c:2436
+#: Opcodes/pvsbasic.c:2441 Opcodes/pvsbasic.c:2472 Opcodes/pvsbasic.c:2521
 msgid "array-variable not initialised"
 msgstr "tableau : non initialisé"
 
-#: Opcodes/arrays.c:467 Opcodes/arrays.c:495
-msgid "Dimension does not match in array arithmetic"
-msgstr "La dimension ne correspond pas dans l'arithmétique des tableaux"
-
-#: Opcodes/arrays.c:600 Opcodes/arrays.c:863
+#: Opcodes/arrays.c:556 Opcodes/arrays.c:584 Opcodes/arrays.c:842
 #, c-format
 msgid "division by zero in array-var at index %d"
 msgstr "division par zéro dans le tableau à l'indice %d"
 
-#: Opcodes/arrays.c:643 Opcodes/arrays.c:892 Opcodes/arrays.c:919
+#: Opcodes/arrays.c:613 Opcodes/arrays.c:872 Opcodes/arrays.c:901
 #, c-format
 msgid "undefined power in array-var at index %d"
 msgstr "puissance indéfinie dans le tableau à l'indice %d"
 
-#: Opcodes/arrays.c:785 Opcodes/arrays.c:815 Opcodes/arrays.c:832
-#: Opcodes/arrays.c:1339 Opcodes/arrays.c:1374
+#: Opcodes/arrays.c:760 Opcodes/arrays.c:792 Opcodes/arrays.c:809
+#: Opcodes/arrays.c:1353 Opcodes/arrays.c:1389
 msgid "division by zero in array-var"
 msgstr "division par zéro dans le tableau"
 
-#: Opcodes/arrays.c:1085 Opcodes/arrays.c:1314
+#: Opcodes/arrays.c:1092 Opcodes/arrays.c:1328
 #, c-format
 msgid "division by zero in array-var at index %d/%d"
 msgstr "division par zéro dans le tableau à l'indice %d/%d"
 
-#: Opcodes/arrays.c:2141 Opcodes/arrays.c:2171
+#: Opcodes/arrays.c:2210 Opcodes/arrays.c:2240
 msgid "array-variable not a vector"
 msgstr "tableau pas un vecteur"
 
-#: Opcodes/arrays.c:2273 Opcodes/arrays.c:2319 Opcodes/arrays.c:2371
+#: Opcodes/arrays.c:2342 Opcodes/arrays.c:2388 Opcodes/arrays.c:2440
 msgid "array-variable dimensions do not match"
 msgstr "les dimensions du tableau ne correspondent pas"
 
-#: Opcodes/arrays.c:2276 Opcodes/arrays.c:2374
+#: Opcodes/arrays.c:2345 Opcodes/arrays.c:2443
 msgid "array-variable types do not match"
 msgstr "les types du tableau ne correspondent pas"
 
-#: Opcodes/arrays.c:2423 Opcodes/arrays.c:2444 Opcodes/arrays.c:2639
-#: Opcodes/arrays.c:2675 Opcodes/arrays.c:2678
+#: Opcodes/arrays.c:2492 Opcodes/arrays.c:2513 Opcodes/arrays.c:2715
+#: Opcodes/arrays.c:2752 Opcodes/arrays.c:2755
 msgid "array-var not initialised"
 msgstr "tableau non initialisée"
 
-#: Opcodes/arrays.c:2426 Opcodes/arrays.c:2446 Opcodes/arrays.c:2504
-#: Opcodes/arrays.c:2526
+#: Opcodes/arrays.c:2495 Opcodes/arrays.c:2515 Opcodes/arrays.c:2573
+#: Opcodes/arrays.c:2595
 msgid "No table for copy2ftab"
 msgstr "Pas de table pour copy2ftab"
 
-#: Opcodes/arrays.c:2476
+#: Opcodes/arrays.c:2545
 msgid "inconsistent start, end and increment parameters"
 msgstr "paramètres début, fin et incrément inconstistants"
 
-#: Opcodes/arrays.c:2574
+#: Opcodes/arrays.c:2650
 msgid "inconsistent start, end parameters"
 msgstr "paramètres début, fin inconsistants"
 
-#: Opcodes/arrays.c:2578
+#: Opcodes/arrays.c:2654
 msgid "slice larger than original size"
 msgstr "intervalle plus grand que la taille d'origine"
 
-#: Opcodes/arrays.c:2582
+#: Opcodes/arrays.c:2658
 msgid "slice increment must be positive"
 msgstr "le paramètre de coupure doit être positif"
 
-#: Opcodes/arrays.c:2652
+#: Opcodes/arrays.c:2728
 #, c-format
 msgid "%s not found"
 msgstr "%s non trouvé"
 
-#: Opcodes/arrays.c:2683
+#: Opcodes/arrays.c:2760
 msgid "map fn not found at k rate"
 msgstr "fn de map introuvable au taux-k"
 
-#: Opcodes/arrays.c:2862
+#: Opcodes/arrays.c:2939
 msgid "rfft: only one-dimensional arrays allowed"
 msgstr "rfft : seuls les tableaux unidimensionnels sont permis"
 
-#: Opcodes/arrays.c:2895
+#: Opcodes/arrays.c:2972
 msgid "rifft: only one-dimensional arrays allowed"
 msgstr "rifft : seuls les tableaux unidimensionnels sont permis"
 
-#: Opcodes/arrays.c:2926
+#: Opcodes/arrays.c:3003
 msgid "array sizes do not match\n"
 msgstr "les tailles de tableau ne correspondent pas\n"
 
-#: Opcodes/arrays.c:2950
+#: Opcodes/arrays.c:3027
 msgid "fft: only one-dimensional arrays allowed"
 msgstr "fft : seuls les tableaux unidimensionnels sont permis"
 
-#: Opcodes/arrays.c:2977
+#: Opcodes/arrays.c:3054
 msgid "fftinv: only one-dimensional arrays allowed"
 msgstr "fftinv : seuls les tableaux unidimensionnels sont permis"
 
-#: Opcodes/arrays.c:3040
+#: Opcodes/arrays.c:3117
 #, c-format
 msgid "in array sizes do not match: %d and %d\n"
 msgstr "dans array les tailles ne correspondent pas : %d et %d\n"
 
-#: Opcodes/arrays.c:3222 Opcodes/arrays.c:3262 Opcodes/arrays.c:3294
+#: Opcodes/arrays.c:3299 Opcodes/arrays.c:3339 Opcodes/arrays.c:3371
 msgid "non-pow-of-two case not implemented yet\n"
 msgstr "non puissance de deux pas encore implémentée\n"
 
-#: Opcodes/arrays.c:3255
+#: Opcodes/arrays.c:3332
 msgid "FFT size too small (min 64 samples)\n"
 msgstr "Taille de TFR trop petite (min 64 échantillons)\n"
 
-#: Opcodes/arrays.c:3322 Opcodes/arrays.c:3361
+#: Opcodes/arrays.c:3399 Opcodes/arrays.c:3438
 msgid "in array not 2-dimensional\n"
 msgstr "dans array pas de 2-dimension\n"
 
-#: Opcodes/arrays.c:3334 Opcodes/arrays.c:3347
+#: Opcodes/arrays.c:3411 Opcodes/arrays.c:3424
 msgid "requested row is out of range\n"
 msgstr "ligne demandée hors limites\n"
 
-#: Opcodes/arrays.c:3375 Opcodes/arrays.c:3389
+#: Opcodes/arrays.c:3452 Opcodes/arrays.c:3466
 msgid "requested col is out of range\n"
 msgstr "colonne demandée hors limites\n"
 
-#: Opcodes/arrays.c:3427 Opcodes/arrays.c:3439 Opcodes/arrays.c:3461
-#: Opcodes/arrays.c:3475
+#: Opcodes/arrays.c:3504 Opcodes/arrays.c:3516 Opcodes/arrays.c:3538
+#: Opcodes/arrays.c:3552
 msgid "Error: index out of range\n"
 msgstr "Erreur : index hors limites\n"
 
-#: Opcodes/arrays.c:3510
+#: Opcodes/arrays.c:3587
 msgid "input array too small\n"
 msgstr "tableau d'entrée trop petit\n"
 
-#: Opcodes/arrays.c:3587
+#: Opcodes/arrays.c:3664
 msgid "dct: only one-dimensional arrays allowed"
 msgstr "dct : seuls les tableaux unidimensionnels sont permis"
 
-#: Opcodes/arrays.c:3594
+#: Opcodes/arrays.c:3671
 msgid "dct: non-pow-of-two sizes not yet implemented"
 msgstr "dct : tailles non puissance de deux pas encore implémentées"
 
-#: Opcodes/arrays.c:3616
+#: Opcodes/arrays.c:3694
 msgid "dctinv: only one-dimensional arrays allowed"
 msgstr "dctinv : seul les tableaux unidimensionnels sont permis"
 
-#: Opcodes/arrays.c:3624
+#: Opcodes/arrays.c:3702
 msgid "dctinv: non-pow-of-two sizes not yet implemented"
 msgstr "dctinv : tailles non puissance de deux pas encore implémentées"
 
@@ -7225,7 +7220,7 @@ msgstr "erreur à l'allocation du moteur fluid\n"
 msgid "fluid: unable to load %s"
 msgstr "fluid : impossible d'ouvrir le fichier %s"
 
-#: Opcodes/fluidOpcodes/fluidOpcodes.cpp:615
+#: Opcodes/fluidOpcodes/fluidOpcodes.cpp:582
 #, c-format
 msgid ""
 "result: %d\n"
@@ -7234,7 +7229,7 @@ msgstr ""
 "résultat : %d\n"
 " Note off : c:%3d k:%3d\n"
 
-#: Opcodes/fluidOpcodes/fluidOpcodes.cpp:694
+#: Opcodes/fluidOpcodes/fluidOpcodes.cpp:661
 msgid "Illegal Interpolation Method: Must be either 0, 1, 4, or 7.\n"
 msgstr "Méthode d'interpolation illégale : doit valoir 0, 1, 4 ou 7.\n"
 
@@ -8278,7 +8273,7 @@ msgstr ""
 "hdf5read : erreur, impossible de lire le type de l'ensemble de données, "
 "abandon"
 
-#: Opcodes/hrtfearly.c:301 Opcodes/hrtfopcodes.c:262 Opcodes/hrtfopcodes.c:1449
+#: Opcodes/hrtfearly.c:305 Opcodes/hrtfopcodes.c:262 Opcodes/hrtfopcodes.c:1449
 #: Opcodes/hrtfreverb.c:283
 #, c-format
 msgid ""
@@ -8294,7 +8289,7 @@ msgstr ""
 "SR de l'orchestre incompatible avec le SR du traitement HRTF de : %.0f\n"
 "\n"
 
-#: Opcodes/hrtfearly.c:326 Opcodes/hrtfopcodes.c:289 Opcodes/hrtfopcodes.c:1476
+#: Opcodes/hrtfearly.c:330 Opcodes/hrtfopcodes.c:289 Opcodes/hrtfopcodes.c:1476
 #: Opcodes/hrtfopcodes.c:2098 Opcodes/hrtfreverb.c:326
 msgid ""
 "\n"
@@ -8309,7 +8304,7 @@ msgstr ""
 "impossible de charger le fichier des données de gauche, abandon\n"
 "\n"
 
-#: Opcodes/hrtfearly.c:333 Opcodes/hrtfopcodes.c:296 Opcodes/hrtfopcodes.c:1483
+#: Opcodes/hrtfearly.c:337 Opcodes/hrtfopcodes.c:296 Opcodes/hrtfopcodes.c:1483
 #: Opcodes/hrtfopcodes.c:2105 Opcodes/hrtfreverb.c:332
 msgid ""
 "\n"
@@ -8324,11 +8319,12 @@ msgstr ""
 "impossible de charger le fichier des données de droite, abandon\n"
 "\n"
 
-#: Opcodes/hrtfearly.c:1242 Opcodes/hrtfopcodes.c:703
+#: Opcodes/hrtfearly.c:1250
+#, fuzzy, c-format
 msgid ""
 "\n"
 "WARNING: fades are overlapping: this could lead to noise: reduce fade size "
-"or change trajectory\n"
+"or change trajectory, fade = %d, cross=%d\n"
 "\n"
 msgstr ""
 "\n"
@@ -8356,6 +8352,18 @@ msgstr ""
 #: Opcodes/hrtferX.c:442
 msgid "hrtfer: not initialised"
 msgstr "hrtfer : non initialisé"
+
+#: Opcodes/hrtfopcodes.c:703
+msgid ""
+"\n"
+"WARNING: fades are overlapping: this could lead to noise: reduce fade size "
+"or change trajectory\n"
+"\n"
+msgstr ""
+"\n"
+"AVERTISSEMENT : les fondus se chevauchent : ceci peut provoquer du bruit : "
+"réduisez la taille des fondus ou changez la trajectoire\n"
+"\n"
 
 #: Opcodes/hrtfopcodes.c:2079
 #, c-format
@@ -10018,13 +10026,13 @@ msgstr "Nombre de sorties incorrect dans sndwarpst ; doit valoir 2 ou 4"
 msgid "sndwarpst: not initialised"
 msgstr "sndwarpst : non initialisé"
 
-#: Opcodes/sockrecv.c:140 Opcodes/sockrecv.c:143 Opcodes/sockrecv.c:549
-#: Opcodes/sockrecv.c:552
+#: Opcodes/sockrecv.c:140 Opcodes/sockrecv.c:143 Opcodes/sockrecv.c:519
+#: Opcodes/sockrecv.c:522
 msgid "OSCraw: Closing socket\n"
 msgstr "OSCraw : fermeture du socket\n"
 
 #: Opcodes/sockrecv.c:176 Opcodes/sockrecv.c:238 Opcodes/sockrecv.c:353
-#: Opcodes/sockrecv.c:437 Opcodes/sockrecv.c:566 Opcodes/socksend.c:91
+#: Opcodes/sockrecv.c:437 Opcodes/sockrecv.c:536 Opcodes/socksend.c:91
 #: Opcodes/socksend.c:240 Opcodes/socksend.c:339 Opcodes/socksend.c:446
 #: Opcodes/socksend.c:865 Top/server.c:233
 #, c-format
@@ -10032,12 +10040,12 @@ msgid "Winsock2 failed to start: %d"
 msgstr "Le démarrage de winsock2 a échoué : %d"
 
 #: Opcodes/sockrecv.c:182 Opcodes/sockrecv.c:188 Opcodes/sockrecv.c:245
-#: Opcodes/sockrecv.c:360 Opcodes/sockrecv.c:571 Opcodes/sockrecv.c:575
+#: Opcodes/sockrecv.c:360 Opcodes/sockrecv.c:541 Opcodes/sockrecv.c:545
 msgid "Cannot set nonblock"
 msgstr "Impossible de positionner nonblock"
 
 #: Opcodes/sockrecv.c:192 Opcodes/sockrecv.c:248 Opcodes/sockrecv.c:363
-#: Opcodes/sockrecv.c:443 Opcodes/sockrecv.c:578 Opcodes/socksend.c:105
+#: Opcodes/sockrecv.c:443 Opcodes/sockrecv.c:548 Opcodes/socksend.c:105
 #: Opcodes/socksend.c:255 Opcodes/socksend.c:346 Opcodes/socksend.c:450
 #: Opcodes/socksend.c:869
 msgid "creating socket"
@@ -10047,7 +10055,7 @@ msgstr "création du socket"
 msgid "read from socket failed"
 msgstr "la lecture depuis le socket a échoué"
 
-#: Opcodes/sockrecv.c:631
+#: Opcodes/sockrecv.c:601
 msgid "output array too small\n"
 msgstr "tableau de sortie trop petit\n"
 
@@ -13022,6 +13030,18 @@ msgstr "Erreur : utilitaire non trouvé"
 msgid "The available utilities are:\n"
 msgstr "Les utilitaires disponibles sont :\n"
 
+#: include/arrays.h:75
+#, fuzzy
+msgid "Array not initialised"
+msgstr "tableau non initialisée"
+
+#: include/arrays.h:80
+#, c-format
+msgid ""
+"Array too small (allocated %lu < needed %lu), but can't allocate during "
+"performance pass. Allocate a bigger array at init time"
+msgstr ""
+
 #: po/sndfile_str.c:3
 msgid "Format not recognised."
 msgstr "Format non reconnu."
@@ -15963,6 +15983,9 @@ msgstr "traitement scot terminé\n"
 #, c-format
 msgid "scot: %d errors.\n"
 msgstr "scot : %d erreurs.\n"
+
+#~ msgid "Dimension does not match in array arithmetic"
+#~ msgstr "La dimension ne correspond pas dans l'arithmétique des tableaux"
 
 #~ msgid "fillarrray: arrays with dim > 2 not currently supported\n"
 #~ msgstr "fillarray : les tableaux de dim > 2 ne sont pas encore supportés\n"

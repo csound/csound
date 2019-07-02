@@ -418,7 +418,7 @@ static int32_t tabarithset(CSOUND *csound, TABARITH *p)
                             Str("Dimensions do not match in array arithmetic"));
       for (i=0; i<p->left->dimensions; i++) {
         if (UNLIKELY(p->left->sizes[i] != p->right->sizes[i]))
-          return 
+          return
             csound->InitError(csound, "%s",
                               Str("Dimensions do not match in array arithmetic"));
       }
