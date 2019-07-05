@@ -7,7 +7,7 @@
 #define INITERR(m) (csound->InitError(csound, "%s", m))
 #define INITERRF(fmt, ...) (csound->InitError(csound, fmt, __VA_ARGS__))
 #define MSG(m) (csound->Message(csound, m))
-#define MSGF(fmt, ...) (csound->Message(csound, fmt, __VA_ARGS__)) */
+#define MSGF(fmt, ...) (csound->Message(csound, fmt, __VA_ARGS__))
 #define PERFERR(m) (csound->PerfError(csound, &(p->h), "%s", m))
 #define PERFERRF(fmt, ...) (csound->PerfError(csound, &(p->h), fmt, __VA_ARGS__))
 
@@ -16,6 +16,14 @@
     if((arr)->dimensions != 1)    \
         return INITERRF(Str("Array should be of 1D, but has %d dimensions"), \
                         (arr)->dimensions);
+
+// This must be called for each array at each perf pass
+// (at init call tabinit)
+#define ARRAY_ENSURESIZE(csound, arr, size) tabcheck(csound, arr, size, &(p->h))
+
+
+// This is deprecated, we use the new methods (6.13) tabinit and tabcheck 
+// as defined in arrays.h
 
 // Ensure the existence and size of the array at i-time ONLY if
 // array has not been initialized, so we don't need to check intialization
@@ -43,7 +51,9 @@ tabensure_init(CSOUND *csound, ARRAYDAT *p, int size)
 }
 
 
-#define TABENSURE_PERF(csound, arr, size) { \
+
+/*
+#define TABENSURE_PERF(csound, arr, size) { 
     if(UNLIKELY(arr->sizes[0] != size)) {                                                  \
         size_t _ss = arr->arrayMemberSize*size;                                            \
         if (_ss > arr->allocated) {                                                        \
@@ -54,5 +64,7 @@ tabensure_init(CSOUND *csound, ARRAYDAT *p, int size)
         }                                                                                  \
         arr->sizes[0] = size;                                                              \
     }}
+
+*/
 
 #endif

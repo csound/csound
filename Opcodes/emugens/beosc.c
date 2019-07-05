@@ -45,6 +45,7 @@
 */
 
 #include "csdl.h"
+#include "arrays.h"
 #include "emugens_common.h"
 
 // -------------------------------------------------------------------------
@@ -1176,7 +1177,7 @@ tabrowcopyarr_init(CSOUND *csound, TABROWCOPYARR *p) {
     if(numitems <= 0) {
         return INITERR(Str("tabrowlin: no items to copy"));
     }
-    tabensure_init(csound, p->outarr, numitems);
+    tabinit(csound, p->outarr, numitems);
     p->numitems = numitems;
     p->maxrow = (p->tabsourcelen - *p->ioffset) / *p->inumcols - FL(2);
     return OK;
@@ -1203,9 +1204,8 @@ tabrowcopyarr_k(CSOUND *csound, TABROWCOPYARR *p) {
     uint32_t idx0 = offset + numcols * row0 + start;
     uint32_t idx1 = idx0 + (end-start);
     uint32_t numitems = (uint32_t) (ceil((end - start) / (MYFLT)step));
-    TABENSURE_PERF(csound, p->outarr, numitems);
-    // tabensure_perf(csound, p->outarr, numitems);
-
+    ARRAY_ENSURESIZE(csound, p->outarr, numitems);
+    
     MYFLT *out = p->outarr->data;
     MYFLT *tabsource = p->tabsource;
 
@@ -1257,7 +1257,7 @@ getrowlin_init(CSOUND *csound, GETROWLIN *p) {
     if (end < 1)
       end = p->inarr->sizes[1];
     int numitems = (int) (ceil((end - start) / (MYFLT)step));
-    tabensure_init(csound, p->outarr, numitems);
+    tabinit(csound, p->outarr, numitems);
     p->numitems = numitems;
     return OK;
 }
@@ -1276,8 +1276,8 @@ getrowlin_k(CSOUND *csound, GETROWLIN *p) {
     int numcols  = p->inarr->sizes[1];
     if(numitems > numcols)
         return PERFERR(Str("Asked to read too many items from a row"));
-    //tabensure_perf(csound, p->outarr, numitems, &(p->h));
-    TABENSURE_PERF(csound, p->outarr, numitems);
+    ARRAY_ENSURESIZE(csound, p->outarr, numitems);
+
     p->numitems = numitems;
     MYFLT row = *p->krow;
     int maxrow = p->inarr->sizes[0] - 1;
