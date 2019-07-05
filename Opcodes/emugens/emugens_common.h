@@ -22,7 +22,7 @@
 #define ARRAY_ENSURESIZE(csound, arr, size) tabcheck(csound, arr, size, &(p->h))
 
 
-// This is deprecated, we use the new methods (6.13) tabinit and tabcheck 
+// This is deprecated, we use the new methods (6.13) tabinit and tabcheck
 // as defined in arrays.h
 
 // Ensure the existence and size of the array at i-time ONLY if
@@ -53,7 +53,7 @@ tabensure_init(CSOUND *csound, ARRAYDAT *p, int size)
 
 
 /*
-#define TABENSURE_PERF(csound, arr, size) { 
+#define TABENSURE_PERF(csound, arr, size) {
     if(UNLIKELY(arr->sizes[0] != size)) {                                                  \
         size_t _ss = arr->arrayMemberSize*size;                                            \
         if (_ss > arr->allocated) {                                                        \

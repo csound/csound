@@ -638,6 +638,7 @@ typedef struct {
 
 static int32_t bpfarr_init(CSOUND *csound, BPFARR *p) {
     tabinit(csound, p->out, p->in->sizes[0]);
+    return OK;
 }
 
 static int32_t bpfarr(CSOUND *csound, BPFARR *p) {
