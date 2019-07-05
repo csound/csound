@@ -554,11 +554,12 @@ int eventOpcodeI_(CSOUND *csound, LINEVENT *p, int insname, char p1)
           evt.p[1] = (MYFLT)res;
         }
         else {                  /* Should check for valid instr num here */
-          int32_t insno = abs((int32_t)*p->args[1]);
+          MYFLT insno = FABS(*p->args[1]);
           evt.p[1] = insno;
-          if (UNLIKELY(insno ==0 ||
+          if (UNLIKELY((opcod == 'i' || opcod == 'd') && (insno ==0 ||
                        insno > csound->engineState.maxinsno ||
-                       !csound->engineState.instrtxtp[insno])) {
+                       !csound->engineState.instrtxtp[(int)insno]))) {
+
             csound->Message(csound, Str("WARNING: Cannot Find Instrument %d\n"),
                            (int) insno);
             return NOTOK;
@@ -567,11 +568,13 @@ int eventOpcodeI_(CSOUND *csound, LINEVENT *p, int insname, char p1)
         for (i = 2; i <= evt.pcnt; i++)
           evt.p[i] = *p->args[i];
       }
+
     }
     if(opcod == 'd') {
       evt.opcod = 'i';
       evt.p[1] *= -1;
     }
+
 
     if (opcod == 'f' && (int) evt.pcnt >= 2 && evt.p[2] <= FL(0.0)) {
       FUNC  *dummyftp;
