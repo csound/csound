@@ -137,6 +137,8 @@ users.  There have been many fixes to the core code as well as opcodes.
 
 - printarray treats %d correctly.
 
+- beadsynt now works with i arrays (not documented)
+
 ### Utilities
 
 - hetro had a number of fixes and improvements.
@@ -173,6 +175,8 @@ users.  There have been many fixes to the core code as well as opcodes.
 - following a reinit printks could be skipped; fixed
 
 - printks fixed sot prints at correct times.
+
+- tabrowlin and getrowlin would calculate wrong size under certain conditions.
 
 # SYSTEM LEVEL CHANGES
 
