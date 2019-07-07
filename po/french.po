@@ -8320,7 +8320,7 @@ msgstr ""
 "\n"
 
 #: Opcodes/hrtfearly.c:1250
-#, fuzzy, c-format
+#, c-format
 msgid ""
 "\n"
 "WARNING: fades are overlapping: this could lead to noise: reduce fade size "
@@ -8329,7 +8329,7 @@ msgid ""
 msgstr ""
 "\n"
 "AVERTISSEMENT : les fondus se chevauchent : ceci peut provoquer du bruit : "
-"réduisez la taille des fondus ou changez la trajectoire\n"
+"réduisez la taille des fondus ou changez la trajectoire, fade = %d, cross=%d\n"
 "\n"
 
 #: Opcodes/hrtferX.c:81
@@ -13031,9 +13031,8 @@ msgid "The available utilities are:\n"
 msgstr "Les utilitaires disponibles sont :\n"
 
 #: include/arrays.h:75
-#, fuzzy
 msgid "Array not initialised"
-msgstr "tableau non initialisée"
+msgstr "Tableau non initialisé"
 
 #: include/arrays.h:80
 #, c-format
@@ -13041,6 +13040,8 @@ msgid ""
 "Array too small (allocated %lu < needed %lu), but can't allocate during "
 "performance pass. Allocate a bigger array at init time"
 msgstr ""
+"Tableau trop petit (%lu alloués < %lu nécessaires), mais allocation impossible"
+"durant l'exécution. Allouer un tableau plus grand à l'initialisation"
 
 #: po/sndfile_str.c:3
 msgid "Format not recognised."
