@@ -32,7 +32,7 @@
 #define AppURL "http://csound.github.io/"
 #define LibStkSourceDir "..\..\msvc\deps\stk-master\"
 #define ManualSourceDir "c:\html\"
-#define CsoundQTDir "c:\CsdounQt-0.9.6-rc1-Win64\bin\"
+#define CsoundQTDir "c:\CsdounQt-0.9.6-rc1-Win64\"
 #define CsoundQTIcon "c:\qtcs.ico"
 
 [Components]
