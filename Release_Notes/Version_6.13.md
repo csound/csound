@@ -20,7 +20,6 @@ Any valid HTML can also be used.
 
  --->
 
-========== DRAFT ========== DRAFT ========== DRAFT ========== DRAFT ========
 # CSOUND VERSION 6.13 RELEASE NOTES
 
 Not many new opcodes but there are a significant number of opcodes being
@@ -32,7 +31,7 @@ users.  There have been many fixes to the core code as well as opcodes.
 
 ### New opcodes
 
-- string2array is a variant of fillarray with he data coming from a
+- string2array is a variant of fillarray with the data coming from a
   string of space separated values.
 
 - nstrstr returns the name string of an instrument number or an empty
@@ -137,7 +136,7 @@ users.  There have been many fixes to the core code as well as opcodes.
 
 - printarray treats %d correctly.
 
-- beadsynt now works with i arrays (not documented)
+- beadsynt now works with i arrays as well as k arrays as in the manual.
 
 ### Utilities
 
