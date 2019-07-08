@@ -39,11 +39,11 @@ users.  There have been many fixes to the core code as well as opcodes.
 
 - ntof converts notename to frequency at i- and k-time.
 
-### New Gen and Macros
-
 - ampmidicurve is a new opcode that maps an input MIDI velocity number to an
   output gain factor with a maximum value of 1, modifying the output gain by
   a dynamic range and a shaping exponent.
+
+### New Gen and Macros
 
 ### Orchestra
 
@@ -84,7 +84,7 @@ users.  There have been many fixes to the core code as well as opcodes.
   
 ### Options
 
-- The new option --use-system-sr st the sample rate to the hardware/system value.
+- The new option --use-system-sr set the sample rate to the hardware/system value.
 
 ### Modified Opcodes and Gens
 
@@ -173,7 +173,7 @@ users.  There have been many fixes to the core code as well as opcodes.
 
 - following a reinit printks could be skipped; fixed
 
-- printks fixed sot prints at correct times.
+- printks fixed so it prints at correct times.
 
 - tabrowlin and getrowlin would calculate wrong size under certain conditions.
 
@@ -187,7 +187,7 @@ users.  There have been many fixes to the core code as well as opcodes.
 - plugin GEN functions can have a zero length, but the code must check
   for this and act accordingly.  This allows for deferred allocations.
 
-- schedule reports undefined instr numbers/names and continues, rater than 
+- schedule reports undefined instr numbers/names and continues, rather than 
   causing an error.
   
 - allow multiple calls to midi out controls.
@@ -211,7 +211,7 @@ users.  There have been many fixes to the core code as well as opcodes.
 - Android
 
 - Windows
- - in both orchestra and score the path tracking of #include expects a \ separator.
+ - In both orchestra and score the path tracking of #include expects a \ separator.
 
 - MacOS
 
