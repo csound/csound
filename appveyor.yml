@@ -36,8 +36,8 @@ install:
   - cd ..
   #download an unzip manual and CsoundQT for inclusion with the installer
   - cd c:/
-  - ps: Start-FileDownload 'https://github.com/csound/csound/releases/download/6.12.2/Csound6.12.2_manual_html.zip'
-  - cmd: 7z.exe x Csound6.12.2_manual_html.zip
+  - ps: Start-FileDownload 'https://github.com/csound/csound/releases/download/untagged-b09bf28d53721d328abd/Csound6.13.0_manual_html.zip'
+  - cmd: 7z.exe x Csound6.13.0_manual_html.zip
   - ps: Start-FileDownload 'https://github.com/CsoundQt/CsoundQt/releases/download/0.9.6-rc1/CsdounQt-0.9.6-rc1-Win64.zip'
   - cmd: 7z.exe x CsdounQt-0.9.6-rc1-Win64.zip
   - ps: Start-FileDownload 'https://raw.githubusercontent.com/CsoundQt/CsoundQt/develop/images/qtcs.ico'
