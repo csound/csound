@@ -77,7 +77,7 @@ static inline int tabcheck(CSOUND *csound, ARRAYDAT *p, int size, OPDS *q)
     size_t s = p->arrayMemberSize*size;
     if (s > p->allocated) { /* was arr->allocate */
       return csound->PerfError(csound, q,
-        Str("Array too small (allocated %lu < needed %lu), but can't "
+        Str("Array too small (allocated %zu < needed %zu), but can't "
             "allocate during performance pass. Allocate a bigger array at init time"),
         p->allocated, s);
     }
