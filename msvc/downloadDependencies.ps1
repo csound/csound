@@ -88,12 +88,11 @@ New-Item -type file $vcpkgDir\downloads\AlwaysAllowDownloads -errorAction Silent
 
 # Download all vcpkg packages available
 echo "Downloading VC packages..."
+
 # Target can be arm-uwp, x64-uwp, x64-windows-static, x64-windows, x86-uwp, x86-windows-static, x86-windows
-$targetTriplet = "x64-windows"
-$targetTripletStatic = "x64-windows-static"
-#vcpkg --triplet $targetTriplet install eigen3 fltk zlib 
-#vcpkg --triplet $targetTripletStatic install libflac libogg libvorbis libsndfile
-vcpkg --triplet $targetTripletStatic install eigen3 fltk zlib libflac libogg libvorbis libsndfile libsamplerate
+$targetTriplet = "x64-windows-static"
+vcpkg --triplet $targetTriplet install eigen3 fltk zlib libflac libogg libvorbis libsndfile libsamplerate portmidi portaudio liblo hdf5
+
 $vcpkgTiming = (Get-Date).TimeOfDay
 
 # Comment for testing to avoid extracting if already done so
