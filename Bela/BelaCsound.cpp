@@ -286,7 +286,7 @@ void render(BelaContext *context, void *Data)
         channel[i].samples[frmcount] = analogRead(context,k,i);
 	analogWriteOnce(context,k,i,ochannel[i].samples[frmcount]);
       }
-      scope.log(schannel.samples[frmcount]);
+      scope.log(&schannel.samples[frmcount]);
     }
     gCsData.res = res;
     gCsData.count = count;
