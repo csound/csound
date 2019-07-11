@@ -17,9 +17,9 @@ else
 fi
 echo "Version: $CS_VERSION"
 export MANUAL_DIR=`pwd`/../../../manual
-export PACKAGE_NAME=csound${CS_VERSION}-OSX-universal.pkg
+export PACKAGE_NAME=csound${CS_VERSION}-MacOS_x86_64.pkg
 export DMG_DIR="Csound${CS_VERSION}"
-export DMG_NAME="csound${CS_VERSION}-MacOS_universal.dmg"
+export DMG_NAME="csound${CS_VERSION}-MacOS_x86_64.dmg"
 
 export SDK=/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.12.sdk/
 export TARGET=10.7
@@ -55,9 +55,10 @@ cp ../../Custom_10.9.cmake Custom.cmake
 mkdir build
 cd build
 export BUILD_DIR=`pwd`
-# RUN CMAKE TWICE TO GET AROUND ISSUE WITH UNIVERSAL BUILD
+# i386 is now deprecated, so we're not building it anymore
 cmake .. -DBUILD_INSTALLER=1 -DCMAKE_INSTALL_PREFIX=dist -DCMAKE_BUILD_TYPE=Release -DBUILD_TESTS=0 -DBUILD_FAUST_OPCODES=1 -DFAUST_LIBRARY=$DEPS_BASE/lib/libfaust.a  -DCMAKE_OSX_DEPLOYMENT_TARGET=$TARGET -DCMAKE_OSX_SYSROOT=$SDK -DBUILD_STK_OPCODES=1 -DBUILD_LUA_OPCODES=0 -DBUILD_LUA_INTERFACE=0 -DUSE_GETTEXT=0
-cmake .. -DBUILD_INSTALLER=1 -DCMAKE_INSTALL_PREFIX=dist -DCMAKE_BUILD_TYPE=Release -DCMAKE_OSX_ARCHITECTURES="i386;x86_64" -DBUILD_TESTS=0 -DBUILD_FAUST_OPCODES=1 -DFAUST_LIBRARY=$DEPS_BASE/lib/libfaust.a -DCMAKE_OSX_DEPLOYMENT_TARGET=$TARGET -DCMAKE_OSX_SYSROOT=$SDK -DBUILD_STK_OPCODES=1 -DBUILD_LUA_OPCODES=0 -DBUILD_LUA_INTERFACE=0 -DUSE_GETTEXT=0
+# RUN CMAKE TWICE TO GET AROUND ISSUE WITH UNIVERSAL BUILD
+#cmake .. -DBUILD_INSTALLER=1 -DCMAKE_INSTALL_PREFIX=dist -DCMAKE_BUILD_TYPE=Release -DCMAKE_OSX_ARCHITECTURES="i386;x86_64" -DBUILD_TESTS=0 -DBUILD_FAUST_OPCODES=1 -DFAUST_LIBRARY=$DEPS_BASE/lib/libfaust.a -DCMAKE_OSX_DEPLOYMENT_TARGET=$TARGET -DCMAKE_OSX_SYSROOT=$SDK -DBUILD_STK_OPCODES=1 -DBUILD_LUA_OPCODES=0 -DBUILD_LUA_INTERFACE=0 -DUSE_GETTEXT=0
 make -j6 install
 
 cd ../..
@@ -255,8 +256,8 @@ echo "assembling DMG..."
 mkdir "$DMG_DIR" 
 cd "$DMG_DIR"
 cp ../$PACKAGE_NAME .
-cp  ../../../readme.pdf .
-cp  ../../../DmgResources/CsoundQt-0.9.5.1-MacOs.dmg .
+#cp  ../../../readme.pdf .
+cp  ../../../DmgResources/CsoundQt-0.9.6-MacOs.dmg .
 #hdiutil create CsoundQT.dmg -srcfolder ../../../DmgResources/
 
 cd ..
