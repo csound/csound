@@ -20,6 +20,8 @@
     Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
     02110-1301 USA
 */
+#ifndef _FIND_OPCODE_H_
+#define _FIND_OPCODE_H_
 
 char* get_opcode_short_name(CSOUND* csound, char* opname);
 
@@ -30,3 +32,4 @@ PUBLIC OENTRY* find_opcode_exact(CSOUND* csound, char* opname,
 /* find OENTRY with the specified name in opcode list */
 
 OENTRY* find_opcode(CSOUND *, char *);
+#endif

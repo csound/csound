@@ -53,12 +53,12 @@ typedef struct {
     int     nChannels;
     int     bufSize;            /* in sample frames, power of two */
     int     wrapMode;
-    int32    fileLength;         /* in sample frames */
-    int32    bufStartPos;
+    int32   fileLength;         /* in sample frames */
+    int32   bufStartPos;
     int64_t pos_frac;           /* type should be defined in sysdep.h */
     int64_t pos_frac_inc;
-    int32    prvBufStartPos;
-    int32    winSize;
+    int32   prvBufStartPos;
+    int32   winSize;
     MYFLT   *buf;
     MYFLT   *prvBuf;
     MYFLT   prv_kTranspose;
@@ -68,10 +68,10 @@ typedef struct {
     FDCH    fdch;
     AUXCH   auxData;            /* for dynamically allocated buffers */
     AUXCH   auxData2;
-  MYFLT *aOut_buf;
-  MYFLT aOut_bufsize;
-  void *cb;
-  int  async;
+    MYFLT   *aOut_buf;
+    MYFLT   aOut_bufsize;
+    void    *cb;
+    int     async;
 } DISKIN2;
 
 typedef struct {

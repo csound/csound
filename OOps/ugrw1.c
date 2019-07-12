@@ -190,7 +190,7 @@ int32_t printk(CSOUND *csound, PRINTK *p)
                          p->h.optext->t.inlist->arg[1], *p->val);
       else
         csound->MessageS(csound, CSOUNDMSG_ORCH, "%11.5f\n", *p->val);
-      p->printat += p->ctime;
+      p->printat = CS_KCNT + p->ctime - 1;
     }
     return OK;
 }
@@ -213,7 +213,8 @@ int32_t printksset_(CSOUND *csound, PRINTKS *p, char *sarg)
       p->ctime = CS_ONEDKR;
     else
       p->ctime = *p->ptime * csound->ekr;
-    p->printat = CS_KCNT;
+    if(!p->h.insdshead->reinitflag)
+       p->printat = CS_KCNT;
     memset(p->txtstring, 0, 8192);   /* This line from matt ingalls */
     sdest = p->txtstring;
     /* Copy the string to the storage place in PRINTKS.
@@ -320,7 +321,8 @@ int32_t printksset_(CSOUND *csound, PRINTKS *p, char *sarg)
       /* Increment pointer and process next character until end of string.  */
       ++sarg;
     }
-    p->printat = CS_KCNT;
+    if(!p->h.insdshead->reinitflag)
+       p->printat = CS_KCNT;
     p->initialised = -1;
     return OK;
 }
@@ -547,7 +549,7 @@ int32_t printks(CSOUND *csound, PRINTKS *p)
           csound->PerfError(csound,  &(p->h),
                             Str("Insufficient arguments in formatted printing"));
       csound->MessageS(csound, CSOUNDMSG_ORCH, "%s", string);
-      p->printat += p->ctime;
+      p->printat = CS_KCNT + p->ctime -1;
     }
     return OK;
 }

@@ -297,7 +297,7 @@ int32_t init_pp(CSOUND *csound, CSPP *p)
 
       for (n=0; n<NS; n++) {
         double y = c[n]*c[n]*dt*dt+2.0*b*dt;
-        double x = sqrt(y+hypot(y,4.0*K*dt))/sqrt(2);
+        double x = sqrt(y+hypot(y,4.0*K*dt))/ROOT2;
         if (x>dxmin) dxmin = x;
       }
       N = p->N = (uint32_t)(1.0/dxmin);

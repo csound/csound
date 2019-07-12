@@ -906,36 +906,6 @@ static int32_t infile_set_S(CSOUND *csound, INFILE *p){
 }
 
 #include "arrays.h"
-#if 0
-static inline void tabensure(CSOUND *csound, ARRAYDAT *p, int32_t size)
-{
-    if (p->data==NULL || p->dimensions == 0 ||
-        (p->dimensions==1 && p->sizes[0] < size)) {
-      size_t ss;
-      if (p->data == NULL) {
-        CS_VARIABLE* var = p->arrayType->createVariable(csound, NULL);
-        p->arrayMemberSize = var->memBlockSize;
-      }
-      ss = p->arrayMemberSize*size;
-      if (p->data==NULL) {
-        p->data = (MYFLT*)csound->Calloc(csound, ss);
-        p->allocated = ss;
-      }
-      else if (ss > p->allocated) {
-        p->data = (MYFLT*) csound->ReAlloc(csound, p->data, ss);
-        p->allocated = ss;
-      }
-      if (p->dimensions==0) {
-        p->dimensions = 1;
-        p->sizes = (int32_t*)csound->Malloc(csound, sizeof(int32_t));
-      }
-      p->sizes[0] = size;
-    }
-    else {
-      p->sizes[0] = size;
-    }
-}
-#endif
 
 static int32_t infile_set_A(CSOUND *csound, INFILEA *p)
 {
@@ -979,7 +949,7 @@ static int32_t infile_set_A(CSOUND *csound, INFILEA *p)
     if (p->f.async == 1)
     csound->FSeekAsync(csound,p->f.fd, p->currpos*p->f.nchnls, SEEK_SET);
 
-    tabensure(csound, p->tabout, p->chn);
+    tabinit(csound, p->tabout, p->chn);
     return OK;
 }
 
@@ -1574,9 +1544,9 @@ static OENTRY localops[] = {
         (SUBR) fprintf_set_S,     (SUBR) fprintf_k,   (SUBR) NULL, NULL,},
     { "fprintks.i",   S(FPRINTF),    WR, 3,  "",     "iSM",
         (SUBR) fprintf_set,     (SUBR) fprintf_k,   (SUBR) NULL, NULL},
-     { "vincr",      S(INCR),        0, 2,  "",     "aa",
+     { "vincr",      S(INCR),       WI, 2,  "",     "aa",
         (SUBR) NULL,            (SUBR) incr, NULL         },
-    { "clear",      S(CLEARS),      0, 2,  "",     "y",
+    { "clear",      S(CLEARS),      WI, 2,  "",     "y",
         (SUBR) NULL,            (SUBR) clear, NULL},
     { "fout",       S(OUTFILE),     0, 3,  "",     "Siy",
         (SUBR) outfile_set_S,     (SUBR) outfile, NULL},
@@ -1600,19 +1570,19 @@ static OENTRY localops[] = {
         (SUBR) ficlose_opcode_S,  (SUBR) NULL,        (SUBR) NULL, NULL},
     { "ficlose.S",  S(FICLOSE),     0, 1,  "",     "i",
         (SUBR) ficlose_opcode,  (SUBR) NULL,        (SUBR) NULL, NULL },
-    { "fin.a",      S(INFILE),      0, 3,  "",      "Siiy",
+    { "fin.a",      S(INFILE),     WI, 3,  "",      "Siiy",
         (SUBR) infile_set_S,    (SUBR) infile_act, NULL},
-    { "fin.A",      S(INFILEA),      0, 3,  "",     "Siia[]",
+    { "fin.A",      S(INFILEA),    WI, 3,  "",     "Siia[]",
         (SUBR) infile_set_A,    (SUBR) infile_arr, NULL},
-    { "fin.i",      S(INFILE),       0, 3,  "",     "iiiy",
+    { "fin.i",      S(INFILE),     WI, 3,  "",     "iiiy",
         (SUBR) infile_set,      (SUBR) infile_act, NULL},
-    { "fink",       S(KINFILE),      0, 3,  "",     "Siiz",
+    { "fink",       S(KINFILE),    WI, 3,  "",     "Siiz",
         (SUBR) kinfile_set_S,     (SUBR) kinfile,     (SUBR) NULL, NULL},
-    { "fink.i",       S(KINFILE),    0, 3,  "",     "iiiz",
+    { "fink.i",       S(KINFILE),  WI, 3,  "",     "iiiz",
         (SUBR) kinfile_set,     (SUBR) kinfile,     (SUBR) NULL, NULL},
-    { "fini",       S(I_INFILE),    0, 1,  "",     "Siim",
+    { "fini",       S(I_INFILE),   WI, 1,  "",     "Siim",
       (SUBR) i_infile_S,        (SUBR) NULL,        (SUBR) NULL, NULL },
-    { "fini.i",       S(I_INFILE),    0, 1,  "",     "iiim",
+    { "fini.i",       S(I_INFILE), WI, 1,  "",     "iiim",
         (SUBR) i_infile,        (SUBR) NULL,        (SUBR) NULL, NULL}
 };
 

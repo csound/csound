@@ -408,12 +408,31 @@ typedef struct {
   int32_t sock, iargs;
   MYFLT   last;
   struct sockaddr_in server_addr;
+  int err_state;
+  int init_done;
 } OSCSEND2;
+
+static int32_t oscsend_deinit(CSOUND *csound, OSCSEND2 *p)
+{
+    p->init_done = 0;
+#if defined(WIN32)
+    closesocket((SOCKET)p->sock);
+    WSACleanup();
+#else
+    close(p->sock);
+#endif
+    return OK;
+}
 
 
 static int32_t osc_send2_init(CSOUND *csound, OSCSEND2 *p)
 {
     uint32_t     bsize;
+
+    if (p->init_done) {
+      csound->Warning(csound, "already initialised");
+      return OK;
+    }
 
     if (UNLIKELY(p->INOCOUNT > 4 && p->INOCOUNT < (uint32_t) p->type->size + 4))
        return csound->InitError(csound,
@@ -441,6 +460,9 @@ static int32_t osc_send2_init(CSOUND *csound, OSCSEND2 *p)
               &p->server_addr.sin_addr);    /* the server IP address */
 #endif
     p->server_addr.sin_port = htons((int32_t) *p->port);    /* the port */
+
+    csound->RegisterDeinitCallback(csound, p,
+                                   (int32_t (*)(CSOUND *, void *)) oscsend_deinit);
 
     if(p->INCOUNT > 4) {
               if (p->types.auxp == NULL || strlen(p->type->data) > p->types.size)
@@ -533,6 +555,8 @@ static int32_t osc_send2_init(CSOUND *csound, OSCSEND2 *p)
     }
 
     p->last = FL(0.0);
+    p->err_state = 0;
+    p->init_done = 1;
     return OK;
 }
 
@@ -567,6 +591,7 @@ static inline int32_t aux_realloc(CSOUND *csound, size_t size, AUXCH *aux) {
 
 static int32_t osc_send2(CSOUND *csound, OSCSEND2 *p)
 {
+
     if(*p->kwhen != p->last) {
       const struct sockaddr *to = (const struct sockaddr *) (&p->server_addr);
 
@@ -776,10 +801,17 @@ static int32_t osc_send2(CSOUND *csound, OSCSEND2 *p)
       }
       if (UNLIKELY(sendto(p->sock, (void*)out, buffersize, 0, to,
                           sizeof(p->server_addr)) < 0)) {
-        return csound->PerfError(csound, &(p->h), Str("OSCsend2 failed"));
+        if(p->err_state == 0)
+          csound->Warning(csound, Str("OSCsend failed to send "
+                                      "message with destination %s to %s:%d\n"),
+                                      p->dest->data, p->ipaddress->data,
+                          (int) *p->port);
+        p->err_state = 1;
+        return OK;
       }
       p->last = *p->kwhen;
     }
+    p->err_state = 0;
     return OK;
 }
 
@@ -958,7 +990,7 @@ static OENTRY socksend_localops[] =
      (SUBR) send_sendS },
    { "stsend", S(SOCKSEND), 0, 3, "", "aSi", (SUBR) init_ssend,
      (SUBR) send_ssend },
-   { "OSCsend", S(OSCSEND2), 0, 3, "", "kSk*", (SUBR)osc_send2_init,
+   { "OSCsend", S(OSCSEND2), 0, 3, "", "kSkSS*", (SUBR)osc_send2_init,
      (SUBR)osc_send2 },
    { "OSCbundle", S(OSCBUNDLE), 0, 3, "", "kSkS[]S[]k[][]o", (SUBR)oscbundle_init,
      (SUBR)oscbundle_perf },

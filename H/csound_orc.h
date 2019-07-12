@@ -28,6 +28,7 @@
 #define YYDEBUG 1
 
 #include "parse_param.h"
+#include "score_param.h"
 #include "tok.h"
 #include "csound_orcparse.h"
 #include "csoundCore.h"
@@ -67,6 +68,7 @@ ORCTOKEN *make_token(CSOUND *csound, char *s);
 extern int ksmps, nchnls; */
 
 void query_deprecated_opcode(CSOUND *, ORCTOKEN *);
+int  query_reversewrite_opcode(CSOUND *, ORCTOKEN *);
 
     // holds matching oentries from opcodeList
     // has space for 16 matches and next pointer in case more are found

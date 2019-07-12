@@ -1063,6 +1063,12 @@ extern "C" {
    */
   PUBLIC void csoundSetDebug(CSOUND *, int debug);
 
+  /**
+   * If val > 0, sets the internal variable holding the system HW sr.
+   * Returns the stored value containing the system HW sr.
+   */
+  PUBLIC MYFLT csoundSystemSr(CSOUND *csound, MYFLT val);
+
 
   /** @}*/
   /** @defgroup FILEIO General Input/Output
@@ -1571,7 +1577,8 @@ extern "C" {
   /**
    * Sets an alternative function to be called by Csound to print an
    * informational message, using a less granular signature.
-   *  This callback can be set for --realtime mode
+   *  This callback can be set for --realtime mode.
+   *  This callback is cleared after csoundReset
    */
   PUBLIC void csoundSetMessageStringCallback(CSOUND *csound,
               void (*csoundMessageStrCallback)(CSOUND *csound,

@@ -5,7 +5,7 @@
 #  MUSICXML_LIBRARIES - The libraries needed to use MusicXML.
 
 find_path(MUSICXML_INCLUDE_DIR libmusicxml.h PATH_SUFFIXES libmusicxml)
-find_library(MUSICXML_LIBRARY NAMES libmusicxml2.dll musicxml2)
+find_library(MUSICXML_LIBRARY NAMES libmusicxml2.dll musicxml2 libmusicxml2.so)
 
 set(MUSICXML_INCLUDE_DIRS ${MUSICXML_INCLUDE_DIR} )
 set(MUSICXML_LIBRARIES ${MUSICXML_LIBRARY} )

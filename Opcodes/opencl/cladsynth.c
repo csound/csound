@@ -300,7 +300,7 @@ static int init_cladsyn(CSOUND *csound, CLADSYN *p){
   clGetKernelWorkGroupInfo(p->kernel1,
        device_id, CL_KERNEL_WORK_GROUP_SIZE, sizeof(p->wgs1), &p->wgs1, NULL);
   clGetKernelWorkGroupInfo(p->kernel2,
-       device_id, CL_KERNEL_WORK_GROUP_SIZE, sizeof(p->wgs1), &p->wgs2, NULL);
+       device_id, CL_KERNEL_WORK_GROUP_SIZE, sizeof(p->wgs2), &p->wgs2, NULL);
 
   p->sr = csound->GetSr(csound);
   clSetKernelArg(p->kernel1, 0, sizeof(cl_mem), &p->out);

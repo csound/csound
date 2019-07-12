@@ -28,8 +28,6 @@
 extern "C" {
 #endif
 
-#define HASH_SIZE 4099
-
 typedef struct _cons {
     void* value; // should be car, but using value
     struct _cons* next; // should be cdr, but to follow csound
@@ -43,7 +41,9 @@ typedef struct _cs_hash_bucket_item {
 } CS_HASH_TABLE_ITEM;
 
 typedef struct _cs_hash_table {
-    CS_HASH_TABLE_ITEM* buckets[HASH_SIZE];
+    int table_size;
+    int count;
+    CS_HASH_TABLE_ITEM** buckets;
 } CS_HASH_TABLE;
 
 /* FUNCTIONS FOR CONS CELL */
@@ -125,6 +125,7 @@ PUBLIC void cs_hash_table_mfree_complete(CSOUND* csound, CS_HASH_TABLE* hashTabl
     ->value pointer. */
 PUBLIC void cs_hash_table_free_complete(CSOUND* csound, CS_HASH_TABLE* hashTable);
 
+char * cs_inverse_hash_get(CSOUND* csound, CS_HASH_TABLE* hashTable, int n);
 #ifdef __cplusplus
 }
 #endif

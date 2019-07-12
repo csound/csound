@@ -125,6 +125,8 @@ char* get_expression_opcode_type(CSOUND* csound, TREE* tree) {
       return "##not";
     case T_ARRAY:
       return "##array_get";
+    case S_ADDIN:
+      return "##addin";
     }
     csound->Warning(csound, Str("Unknown function type found: %d [%c]\n"),
                     tree->type, tree->type);
@@ -182,14 +184,18 @@ char* get_array_sub_type(CSOUND* csound, char* arrayName) {
 char* create_array_arg_type(CSOUND* csound, CS_VARIABLE* arrayVar) {
 
     int i, len = arrayVar->dimensions + 3;
-    char* retVal = csound->Malloc(csound, len);
-    retVal[len - 1] = '\0';
-    retVal[len - 2] = ']';
-    retVal[len - 3] = *arrayVar->subType->varTypeName;
-    for (i = len - 4; i >= 0; i--) {
+    if (arrayVar->subType!=NULL) {
+      char* retVal = csound->Malloc(csound, len);
+      retVal[len - 1] = '\0';
+      retVal[len - 2] = ']';
+      retVal[len - 3] = *arrayVar->subType->varTypeName;
+      for (i = len - 4; i >= 0; i--) {
         retVal[i] = '[';
+      }
+      return retVal;
     }
-    return retVal;
+    else
+      return NULL;
 }
 
 /* this checks if the annotated type exists */
@@ -551,7 +557,13 @@ char* get_arg_type2(CSOUND* csound, TREE* tree, TYPE_TABLE* typeTable)
       }
 
       if (var->varType == &CS_VAR_TYPE_ARRAY) {
-        return create_array_arg_type(csound, var);
+        char *res = create_array_arg_type(csound, var);
+        if (res==NULL) {        /* **REVIEW** this double syntax error */
+          synterr(csound, Str("Array of unknown type\n"));
+          csoundMessage(csound, Str("Line: %d\n"), tree->line);
+          do_baktrace(csound, tree->locn);
+        }
+        return res;
       } else {
         return cs_strdup(csound, var->varType->varTypeName);
       }
@@ -762,6 +774,9 @@ int check_in_args(CSOUND* csound, char* inArgsFound, char* opInArgs) {
       if (argsRequired == NULL) {
         return 0;
       }
+      if (argsFoundCount>=VARGMAX) {
+        return -1;
+      }
 
       if ((argsFoundCount > argsRequiredCount) &&
           !(is_in_var_arg(*argsRequired[argsRequiredCount - 1]))) {
@@ -964,8 +979,7 @@ OENTRY* resolve_opcode(CSOUND* csound, OENTRIES* entries,
                        char* outArgTypes, char* inArgTypes) {
 
 //    OENTRY* retVal = NULL;
-    int i;
-
+  int i, check;
 
     for (i = 0; i < entries->count; i++) {
         OENTRY* temp = entries->entries[i];
@@ -975,12 +989,18 @@ OENTRY* resolve_opcode(CSOUND* csound, OENTRIES* entries,
 //            }
 //            continue;
 //        }
-        if (check_in_args(csound, inArgTypes, temp->intypes) &&
+        if ((check = check_in_args(csound, inArgTypes, temp->intypes)) &&
             check_out_args(csound, outArgTypes, temp->outypes)) {
 //            if (retVal != NULL) {
 //                return NULL;
 //            }
 //            retVal = temp;
+          if (check == -1)
+              synterr(csound,
+                      Str("Found %d inputs for %s which is more than "
+                          "the %d allowed\n"),
+                      argsRequired(inArgTypes), temp->opname, VARGMAX);
+
             return temp;
         }
     }
@@ -1490,15 +1510,33 @@ int verify_opcode(CSOUND* csound, TREE* root, TYPE_TABLE* typeTable) {
       return 0;
     }
     else {
+      //fprintf(stderr, "left=%p\n", left);
+      //fprintf(stderr, "left->value=%p\n", left->value);
+      //fprintf(stderr, "left->value->lexeme=%p\n", left->value->lexeme);
+      //fprintf(stderr, "opname = %s\n", oentry->opname);
       if (csound->oparms->sampleAccurate &&
           (strcmp(oentry->opname, "=.a")==0) &&
-          left->value->lexeme[0]=='a') { /* Deal with sample accurate assigns */
+          (left!=NULL) && (left->value!=NULL) &&
+          (left->value->lexeme[0]=='a')) { /* Deal with sample accurate assigns */
         int i = 0;
         while (strcmp(entries->entries[i]->opname, "=.l")) {
           //printf("not %d %s\n",i, entries->entries[i]->opname);
           i++;
         }
         oentry = entries->entries[i];
+      }
+      else {
+        if (csound->oparms->sampleAccurate &&
+            (strcmp(oentry->opname, "=._")==0) &&
+            (left->value->lexeme[0]=='a'))
+          {
+            int i = 0;
+            while (strcmp(entries->entries[i]->opname, "=.L")) {
+              //printf("not %d %s\n",i, entries->entries[i]->opname);
+              i++;
+            }
+            oentry = entries->entries[i];
+          }
       }
       root->markup = oentry;
     }
@@ -1917,8 +1955,8 @@ extern char *csound_orcget_current_pointer(void *);
 void csound_orcerror(PARSE_PARM *pp, void *yyscanner,
                      CSOUND *csound, TREE **astTree, const char *str)
 {
-     IGN(pp);
-      IGN(astTree);
+    IGN(pp);
+    IGN(astTree);
     char ch;
     char *p = csound_orcget_current_pointer(yyscanner)-1;
     int line = csound_orcget_lineno(yyscanner);
@@ -2399,6 +2437,8 @@ static void print_tree_xml(CSOUND *csound, TREE *l, int n, int which)
                       l->value->lexeme); break;
     case S_ELIPSIS:
       csound->Message(csound,"name=\"S_ELIPSIS\""); break;
+    case S_ADDIN:
+      csound->Message(csound,"name=\"##addin\""); break;
 //    case T_MAPI:
 //      csound->Message(csound,"name=\"T_MAPI\""); break;
 //    case T_MAPK:

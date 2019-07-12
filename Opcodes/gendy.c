@@ -521,7 +521,8 @@ static int32_t agendyc(CSOUND *csound, GENDYC *p)
       remain   -= nsmps;
       p->phase -= nsmps;
       for (n=offset; n<nsmps; n++) {
-        *(out++) = *p->kamp * p->midpnt;
+        out[n] = *p->kamp * p->midpnt; /* JPff-- was *out++ but that ignores
+                                          sample accurate */
         p->slope  += p->curve;
         p->midpnt += p->slope;
       }

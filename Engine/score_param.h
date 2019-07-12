@@ -38,6 +38,8 @@ typedef struct ScoreTree {
   int              locn;
 } ScoreTree;
 
+#ifndef __PARSE_PARAM_H
+
 #define MARGS   (3)
 #define MAX_INCLUDE_DEPTH 100
 struct MACRO;
@@ -68,6 +70,8 @@ typedef struct IFDEFSTACK_ {
 } IFDEFSTACK;
 
 
+#endif
+
 typedef struct prs_parm_s {
     void            *yyscanner;
     CORFIL          *cf;
@@ -92,7 +96,7 @@ typedef struct prs_parm_s {
     int     repeat_cnt_n[RPTDEPTH];
     int     repeat_indx[RPTDEPTH];
     CORFIL  *cf_stack[RPTDEPTH];
-    int     repeat_inc_n /* = 1 */;
+  //int     repeat_inc_n /* = 1 */;
     MACRO   *repeat_mm_n[RPTDEPTH];
     int     repeat_index;
          /* Variables for section repeat */
@@ -122,7 +126,7 @@ typedef struct score_parm_s {
     SCOTOKEN        *arglist;
 } SCORE_PARM;
 
-uint64_t make_location(PRS_PARM *);
+uint64_t make_slocation(PRS_PARM *);
 extern uint8_t file_to_int(CSOUND*, const char*);
 
 #endif

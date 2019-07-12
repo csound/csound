@@ -212,7 +212,7 @@ static int32_t cent_k(CSOUND *csound, CENT *p)
       for (i=2; i < fsize; i+=2, cf += binsize) {
         windowed[i] /= fsize;
         windowed[i+1] /= fsize;
-        mag = sqrt(windowed[i]*windowed[i] + windowed[i+1]*windowed[i+1]);
+        mag = hypot(windowed[i], windowed[i+1]);
         c += mag*cf;
         d += mag;
       }

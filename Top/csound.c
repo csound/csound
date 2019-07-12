@@ -144,7 +144,7 @@ static void free_opcode_table(CSOUND* csound) {
     CS_HASH_TABLE_ITEM* bucket;
     CONS_CELL* head;
 
-    for (i = 0; i < HASH_SIZE; i++) {
+    for (i = 0; i < csound->opcodes->table_size; i++) {
       bucket = csound->opcodes->buckets[i];
 
       while (bucket != NULL) {
@@ -244,7 +244,7 @@ static int csoundGetTieFlag(CSOUND *csound){
     return csound->tieflag;
 }
 
-static MYFLT csoundSystemSr(CSOUND *csound, MYFLT val) {
+MYFLT csoundSystemSr(CSOUND *csound, MYFLT val) {
   if (val > 0) csound->_system_sr = val;
   return csound->_system_sr;
 }
@@ -405,7 +405,7 @@ static const CSOUND cenviron_ = {
     rewriteheader,
     csoundLoadSoundFile,
     fdrecord,
-    fdclose,
+    fd_close,
     csoundCreateFileHandle,
     csoundGetFileName,
     csoundFileClose,
@@ -500,11 +500,13 @@ static const CSOUND cenviron_ = {
     csoundGetHostData,
     strNcpy,
     csoundGetZaBounds,
+    find_opcode_new,
+    find_opcode_exact,
     {
       NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
       NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
       NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
-      NULL, NULL, NULL, NULL
+      NULL, NULL
     },
     /* ------- private data (not to be used by hosts or externals) ------- */
     /* callback function pointers */
@@ -738,7 +740,7 @@ static const CSOUND cenviron_ = {
     0,              /*  FFT_max_size        */
     NULL,           /*  FFT_table_1         */
     NULL,           /*  FFT_table_2         */
-    NULL, NULL, NULL, /* tseg, tpsave, tplim */
+    NULL, NULL, NULL, /* tseg, tpsave, unused */
     (MYFLT*) NULL,  /*  gbloffbas           */
     NULL,           /* file_io_thread    */
     0,              /* file_io_start   */
@@ -960,7 +962,7 @@ static const CSOUND cenviron_ = {
     kperf_nodebug,  /* current kperf function - nodebug by default */
     0,              /* which score parser */
     NULL,           /* symbtab */
-    0,              /* tseglen */
+    0,              /* unusedint */
     1,              /* inZero */
     NULL,           /* msg_queue */
     0,              /* msg_queue_wget */
@@ -971,15 +973,16 @@ static const CSOUND cenviron_ = {
     NULL,           /* directory for corfiles */
     NULL,           /* alloc_queue */
     0,              /* alloc_queue_items */
-    0,               /* alloc_queue_wp */
-    SPINLOCK_INIT,    /* alloc_spinlock */
-    NULL,            /* init_event */
-    NULL,            /* message string callback */
-    NULL,             /* message_string */
-    0,               /* message_string_queue_items */
-    0,               /* message_string_queue_wp */
-    NULL              /* message_string_queue */
-    /*, NULL */           /* self-reference */
+    0,              /* alloc_queue_wp */
+    SPINLOCK_INIT,  /* alloc_spinlock */
+    NULL,           /* init_event */
+    NULL,           /* message string callback */
+    NULL,           /* message_string */
+    0,              /* message_string_queue_items */
+    0,              /* message_string_queue_wp */
+    NULL,            /* message_string_queue */
+    0                /* io_initialised */
+    /*, NULL */      /* self-reference */
 };
 
 void csound_aops_init_tables(CSOUND *cs);
@@ -1157,7 +1160,7 @@ static void psignal_(int sig, char *str)
 }
 #else
 # if !defined(__CYGWIN__)
-static void psignal(int sig, char *str)
+static void psignal(int sig, const char *str)
 {
     fprintf(stderr, "%s: %s\n", str, signal_to_string(sig));
 }
@@ -1172,7 +1175,7 @@ static void psignal_(int sig, char *str)
 
 static void signal_handler(int sig)
 {
-#if defined(LINUX) && !defined(ANDROID) && !defined(NACL)
+#if defined(HAVE_EXECINFO) && !defined(ANDROID) && !defined(NACL)
     #include <execinfo.h>
 
     {
@@ -3344,23 +3347,25 @@ PUBLIC void csoundReset(CSOUND *csound)
     int     i, max_len;
     OPARMS  *O = csound->oparms;
     if (csound->engineStatus & CS_STATE_COMP ||
-       csound->engineStatus & CS_STATE_PRE) {
+        csound->engineStatus & CS_STATE_PRE) {
      /* and reset */
       csound->Message(csound, "resetting Csound instance\n");
       reset(csound);
       /* clear compiled flag */
       csound->engineStatus |= ~(CS_STATE_COMP);
     } else {
-     csoundSpinLockInit(&csound->spoutlock);
-     csoundSpinLockInit(&csound->spinlock);
-     csoundSpinLockInit(&csound->memlock);
-     csoundSpinLockInit(&csound->spinlock1);
-     if (UNLIKELY(O->odebug))
+      csoundSpinLockInit(&csound->spoutlock);
+      csoundSpinLockInit(&csound->spinlock);
+      csoundSpinLockInit(&csound->memlock);
+      csoundSpinLockInit(&csound->spinlock1);
+      if (UNLIKELY(O->odebug))
         csound->Message(csound,"init spinlocks\n");
     }
 
     if (msgcallback_ != NULL) {
       csoundSetMessageCallback(csound, msgcallback_);
+    } else {
+      csoundSetMessageCallback(csound, csoundDefaultMessageCallback);
     }
     csound->printerrormessagesflag = (void*)1234;
     /* copysystem environment variables */
@@ -3370,8 +3375,6 @@ PUBLIC void csoundReset(CSOUND *csound)
       csound->Die(csound, Str("Failed during csoundInitEnv"));
     }
     csound_init_rand(csound);
-
-
 
     csound->engineState.stringPool = cs_hash_table_create(csound);
     csound->engineState.constantsPool = cs_hash_table_create(csound);
@@ -3443,7 +3446,11 @@ PUBLIC void csoundReset(CSOUND *csound)
     csoundCreateGlobalVariable(csound, "_RTAUDIO", (size_t) max_len);
     s = csoundQueryGlobalVariable(csound, "_RTAUDIO");
 #ifndef LINUX
-    strcpy(s, "PortAudio");
+ #ifdef __HAIKU__
+      strcpy(s, "haiku");
+ #else
+      strcpy(s, "PortAudio");
+ #endif
 #else
     strcpy(s, "alsa");
 #endif
@@ -3466,7 +3473,11 @@ PUBLIC void csoundReset(CSOUND *csound)
     strcpy(s, "null");
     if (csound->enableHostImplementedMIDIIO == 0)
 #ifndef LINUX
-    strcpy(s, "portmidi");
+ #ifdef __HAIKU__
+      strcpy(s, "haiku");
+ #else
+      strcpy(s, "portmidi");
+ #endif
 #else
     strcpy(s, "alsa");
 #endif

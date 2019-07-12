@@ -208,16 +208,31 @@ public:
     } else if (listPresets) {
       fluid_sfont_t *fluidSoundfont =
           fluid_synth_get_sfont_by_id(fluidSynth, soundFontId);
+#if FLUIDSYNTH_VERSION_MAJOR < 2
       fluid_preset_t fluidPreset;
       fluidSoundfont->iteration_start(fluidSoundfont);
       OPARMS oparms;
       csound->GetOParms(csound, &oparms);
       if (oparms.msglevel & 0x7)
-        while (fluidSoundfont->iteration_next(fluidSoundfont, &fluidPreset)) {
+        while (fluidSoundfont->iteration_next(fluidSoundfont, &fluidPreset))
+        {
           log(csound, "SoundFont: %3d  Bank: %3d  Preset: %3d  %s\n",
               soundFontId, fluidPreset.get_banknum(&fluidPreset),
               fluidPreset.get_num(&fluidPreset),
               fluidPreset.get_name(&fluidPreset));
+#else
+      fluid_preset_t *fluidPreset;
+      fluid_sfont_iteration_start(fluidSoundfont);
+      OPARMS oparms;
+      csound->GetOParms(csound, &oparms);
+      if (oparms.msglevel & 0x7)
+        while (fluidPreset = fluid_sfont_iteration_next(fluidSoundfont))
+        {
+          log(csound, "SoundFont: %3d  Bank: %3d  Preset: %3d  %s\n",
+              soundFontId, fluid_preset_get_banknum(fluidPreset),
+              fluid_preset_get_num(fluidPreset),
+              fluid_preset_get_name(fluidPreset));
+#endif
         }
     }
     return result;
@@ -225,39 +240,6 @@ public:
 };
 
 #include "arrays.h"
-#if 0
-/* from Opcodes/arrays.c */
-static inline void arrayensure(CSOUND *csound, ARRAYDAT *p, int size) {
-    tabensure(csound, p, size);
-    if (p->data==NULL || p->dimensions == 0 ||
-        (p->dimensions==1 && p->sizes[0] < size)) {
-      size_t ss;
-      if (p->data == NULL) {
-        CS_VARIABLE* var = p->arrayType->createVariable(csound, NULL);
-        p->arrayMemberSize = var->memBlockSize;
-      }
-      ss = p->arrayMemberSize*size;
-      if (p->data==NULL) {
-        p->data = (MYFLT*)csound->Calloc(csound, ss);
-        p->allocated = ss;
-      }
-      else if (ss > p->allocated) {
-        p->data = (MYFLT*) csound->ReAlloc(csound, p->data, ss);
-        p->allocated = ss;
-      }
-      if (p->dimensions==0) {
-        p->dimensions = 1;
-        p->sizes = (int32_t*)csound->Malloc(csound, sizeof(int32_t));
-      }
-      p->sizes[0] = size;
-    }
-    else {
-      p->sizes[0] = size;
-    }
-}
-#endif
-
-
 
 //Rory Walsh 2018
 class FluidInfo : public OpcodeBase<FluidInfo> {
@@ -277,23 +259,36 @@ public:
       LockGuard guard(csound, mutex);
       int32_t result = OK;
       toa(iFluidSynth, fluidSynth);
-      fluid_sfont_t *fluidSoundfont =
-        fluid_synth_get_sfont(fluidSynth, 0);
+      fluid_sfont_t *fluidSoundfont = fluid_synth_get_sfont(fluidSynth, 0);
+#if FLUIDSYNTH_VERSION_MAJOR < 2
       fluid_preset_t fluidPreset;
       fluidSoundfont->iteration_start(fluidSoundfont);
       OPARMS oparms;
       csound->GetOParms(csound, &oparms);
       if (oparms.msglevel & 0x7)
         while (fluidSoundfont->iteration_next(fluidSoundfont, &fluidPreset))
-          {
+        {
             std::stringstream ss;
             ss << "Bank: " << fluidPreset.get_banknum(&fluidPreset) <<
               " Preset: " << fluidPreset.get_num(&fluidPreset) <<
                 " Name: " << fluidPreset.get_name(&fluidPreset);
+#else
+      fluid_preset_t *fluidPreset;
+      fluid_sfont_iteration_start(fluidSoundfont);
+      OPARMS oparms;
+      csound->GetOParms(csound, &oparms);
+      if (oparms.msglevel & 0x7)
+        while (fluidPreset = fluid_sfont_iteration_next(fluidSoundfont))
+        {
+            std::stringstream ss;
+            ss << "Bank: " << fluid_preset_get_banknum(fluidPreset) <<
+              " Preset: " << fluid_preset_get_num(fluidPreset) <<
+                " Name: " << fluid_preset_get_name(fluidPreset);
+#endif
           programs.push_back(ss.str());
         }
 
-      tabensure(csound, outArr, programs.size());
+      tabinit(csound, outArr, programs.size());
       STRINGDAT *strings = (STRINGDAT *)outArr->data;
 
     for (unsigned int i = 0; i < programs.size(); i++) {

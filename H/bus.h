@@ -53,27 +53,27 @@ typedef struct {
     OPDS    h;
     MYFLT   *ans;
     MYFLT   *keyDown;
-    int32_t     evtbuf;
+    int32_t evtbuf;
 } KSENSE;
 
 typedef struct channelEntry_s {
     struct channelEntry_s *nxt;
     controlChannelHints_t hints;
-    MYFLT   *data;
-    spin_lock_t  lock;               /* Multi-thread protection */
+    MYFLT       *data;
+    spin_lock_t lock;               /* Multi-thread protection */
     int32_t     type;
     int32_t     datasize;  /* size of allocated chn data */
-    char    name[1];
+    char        name[1];
 } CHNENTRY;
 
 typedef struct {
-    OPDS    h;
-    MYFLT   *arg;
+    OPDS        h;
+    MYFLT       *arg;
     STRINGDAT   *iname;
-    MYFLT   *fp;
-    spin_lock_t  *lock;
-    int32_t      pos;
-    char     chname[MAX_CHAN_NAME+1];
+    MYFLT       *fp;
+    spin_lock_t *lock;
+    int32_t     pos;
+    char        chname[MAX_CHAN_NAME+1];
 } CHNGET;
 
 typedef struct {

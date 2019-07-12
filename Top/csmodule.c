@@ -89,7 +89,7 @@
 #endif
 
 #if !(defined (NACL))
-#if defined(LINUX) || defined(NEW_MACH_CODE)
+#if defined(LINUX) || defined(NEW_MACH_CODE) || defined(__HAIKU__)
 #include <dlfcn.h>
 #elif defined(WIN32)
 #include <windows.h>
@@ -136,7 +136,20 @@ static  const   char    *plugindir64_envvar = "OPCODE6DIR64";
 
 /* default directory to load plugins from if environment variable is not set */
 #if !(defined (NACL))
-#if !(defined(_CSOUND_RELEASE_) && (defined(LINUX) || defined(__MACH__)))
+#ifdef __HAIKU__
+# ifndef USE_DOUBLE
+   static char haikudirs[] = "/boot/system/lib/csound6/plugins:"
+        "/boot/home/config/lib/csound6/plugins:"
+        "/boot/system/non-packaged/lib/csound6/plugins:"
+        "/boot/home/config/non-packaged/lib/csound6/plugins";
+# else
+   static char haikudirs[] = "/boot/system/lib/csound6/plugins64:"
+        "/boot/home/config/lib/csound6/plugins64:"
+        "/boot/system/non-packaged/lib/csound6/plugins64:"
+        "/boot/home/config/non-packaged/lib/csound6/plugins64";
+# endif
+# define CS_DEFAULT_PLUGINDIR  haikudirs
+#elif !(defined(_CSOUND_RELEASE_) && (defined(LINUX) || defined(__MACH__)))
 #  define ENABLE_OPCODEDIR_WARNINGS 1
 #  ifdef CS_DEFAULT_PLUGINDIR
 #    undef CS_DEFAULT_PLUGINDIR
@@ -251,7 +264,7 @@ static CS_NOINLINE int csoundLoadExternal(CSOUND *csound,
     err = csoundOpenLibrary(&h, libraryPath);
     if (UNLIKELY(err)) {
       char ERRSTR[256];
- #if !(defined(NACL)) && defined(LINUX)
+ #if !(defined(NACL)) && (defined(LINUX) || defined(__HAIKU__))
       snprintf(ERRSTR, 256, Str("could not open library '%s' (%s)"),
                libraryPath, dlerror());
  #else
@@ -411,6 +424,9 @@ int csoundLoadModules(CSOUND *csound)
 #else
     ':';
 #endif
+#ifdef __HAIKU__
+        int dfltdir = 0;
+#endif
 
     if (UNLIKELY(csound->csmodule_db != NULL))
       return CSOUND_ERROR;
@@ -428,6 +444,9 @@ int csoundLoadModules(CSOUND *csound)
 #endif
 #ifdef  CS_DEFAULT_PLUGINDIR
         dname = CS_DEFAULT_PLUGINDIR;
+ #ifdef __HAIKU__
+                dfltdir = 1;
+ #endif
 #else
       dname = "";
 #endif
@@ -440,6 +459,7 @@ int csoundLoadModules(CSOUND *csound)
       *end = '\0';
       /* copy directory name */
       dname1 = cs_strdup(csound, (char *) dname);
+      *end = sep;  /* restore for re-execution */
       /* move to next directory name */
       dname = end + 1;
     } else {
@@ -457,6 +477,9 @@ int csoundLoadModules(CSOUND *csound)
 
     dir = opendir(dname1);
     if (UNLIKELY(dir == (DIR*) NULL)) {
+ #if defined(__HAIKU__)
+        if(!dfltdir)
+ #endif
       csound->Warning(csound, Str("Error opening plugin directory '%s': %s"),
                                dname1, strerror(errno));
       csound->Free(csound, dname1);
@@ -728,7 +751,7 @@ PUBLIC void *csoundGetLibrarySymbol(void *library, const char *procedureName)
     return (void*) GetProcAddress((HMODULE) library, procedureName);
 }
 
-#elif !(defined(NACL)) && (defined(LINUX) || defined (NEW_MACH_CODE))
+#elif !(defined(NACL)) && (defined(LINUX) || defined(NEW_MACH_CODE) || defined(__HAIKU__))
 
 PUBLIC int csoundOpenLibrary(void **library, const char *libraryPath)
 {

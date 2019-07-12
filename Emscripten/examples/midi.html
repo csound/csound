@@ -38,6 +38,41 @@
   </style>
   <script type="text/javascript" src="js/csound.js"></script>
   <script type="text/javascript">
+
+
+
+  function WebMIDI_init(midi_handle) {
+    var haveDevs = false;
+    var devs = midi_handle.inputs.values();
+    for ( var m = devs.next(); m && !m.done; m = devs.next()) {
+      m.value.onmidimessage = onMIDIEvent;
+      haveDevs = true;
+    }
+    if (!haveDevs)
+      console.log("No MIDIDevs");
+    else {
+      console.log("WebMIDI support enabled");
+    }
+  }
+
+  function WebMIDI_err(err) {
+      console.log("Error starting WebMIDI");
+  }
+
+  function onMIDIEvent(event) {
+      switch (event.data[0] & 0xf0) {
+        case 0x90:
+          if (event.data[2]!=0) {
+            csound.NoteOn(1, event.data[1], event.data[2]);
+            return;
+          }
+        case 0x80:
+          csound.NoteOff(1, event.data[1], event.data[2]);
+          return;
+      }
+    }
+
+
     // called by csound.js
     function moduleDidLoad() {
       csound.Play();
@@ -50,6 +85,12 @@
   a1 oscili k1, icps
   outs a1,a1
   endin`);
+
+  if (navigator.requestMIDIAccess)
+        navigator.requestMIDIAccess().then(WebMIDI_init,
+          WebMIDI_err);
+      else
+        console.log("No WebMIDI support");
 
     }
 

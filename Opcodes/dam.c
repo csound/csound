@@ -25,7 +25,6 @@
 #include "dam.h"
 #include <math.h>
 
-#define SQRT2 ROOT2
 
 /*
  *   Dynamic Amplitude Modifier.
@@ -110,7 +109,7 @@ static int32_t dam(CSOUND *csound, DAM *p)
 
         /* Estimates the current power level */
 
-      *powerPos = FABS(ain[i])/(MYFLT)(POWER_BUFSIZE*SQRT2);
+      *powerPos = FABS(ain[i])/(MYFLT)(POWER_BUFSIZE*ROOT2);
       power    += (*powerPos++);
       if ((powerPos-powerBuffer)==POWER_BUFSIZE) {
         powerPos = p->powerBuffer;

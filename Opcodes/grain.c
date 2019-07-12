@@ -43,11 +43,11 @@ static int32_t agsset(CSOUND *csound, PGRA *p)  /*      Granular U.G. set-up    
     int32        bufsize;
     MYFLT       *d;
 
-    if (LIKELY((gftp = csound->FTFind(csound, p->igfn)) != NULL))
+    if (LIKELY((gftp = csound->FTnp2Find(csound, p->igfn)) != NULL))
       p->gftp = gftp;
     else return NOTOK;
 
-    if (LIKELY((eftp = csound->FTFind(csound, p->iefn)) != NULL))
+    if (LIKELY((eftp = csound->FTnp2Find(csound, p->iefn)) != NULL))
       p->eftp = eftp;
     else return NOTOK;
 
@@ -74,6 +74,10 @@ static int32_t agsset(CSOUND *csound, PGRA *p)  /*      Granular U.G. set-up    
     return OK;
 }
 
+static inline unsigned int ISPOW2(unsigned int x) {
+  return (x > 0) && !(x & (x - 1)) ? 1 : 0;
+}
+
 static int32_t ags(CSOUND *csound, PGRA *p) /*  Granular U.G. a-rate main routine */
 {
     FUNC        *gtp, *etp;
@@ -87,7 +91,9 @@ static int32_t ags(CSOUND *csound, PGRA *p) /*  Granular U.G. a-rate main routin
     uint32_t    i, nsmps = CS_KSMPS;
     MYFLT       kglen = *p->kglen;
     MYFLT       gcount = p->gcount;
-
+    uint32_t elen, glen;
+    MYFLT gcvt, ecvt, einc;
+    int pow2tab;
                                 /* Pick up common values to locals for speed */
     if (UNLIKELY(p->aux.auxp==NULL)) goto err1;
     if (UNLIKELY(kglen<=FL(0.0)))
@@ -95,9 +101,16 @@ static int32_t ags(CSOUND *csound, PGRA *p) /*  Granular U.G. a-rate main routin
                                Str("grain: grain length zero"));
     gtp  = p->gftp;
     gtbl = gtp->ftable;
+    glen = gtp->flen;
+    gcvt = glen/csound->GetSr(csound);
+
+    pow2tab = ISPOW2(glen);
 
     etp  = p->eftp;
     etbl = etp->ftable;
+    elen = etp->flen;
+    ecvt = elen/csound->GetSr(csound);
+
     lb   = gtp->lobits;
     lb2  = etp->lobits;
 
@@ -110,6 +123,7 @@ static int32_t ags(CSOUND *csound, PGRA *p) /*  Granular U.G. a-rate main routin
 
     ekglen  = (int32)(CS_ESR * kglen);   /* Useful constant */
     inc2    = (int32)(csound->sicvt / kglen); /* Constant for each cycle */
+    einc =  (1./kglen) * ecvt;
     bufsize = CS_KSMPS + ekglen;
     xdns    = p->xdns;
     xamp    = p->xamp;
@@ -125,20 +139,38 @@ static int32_t ags(CSOUND *csound, PGRA *p) /*  Granular U.G. a-rate main routin
       if (gcount >= FL(1.0)) { /* I wonder..... */
         gcount = FL(0.0);
         amp = *xamp + Unirand(csound, *p->kabnd);
-        isc = (int32) Unirand(csound, p->pr);
-        isc2 = 0;
-        inc = (int32) ((*xlfr + Unirand(csound, *p->kbnd)) * csound->sicvt);
 
         temp = buf + i;
         n = ekglen;
+        isc = (int32) Unirand(csound, p->pr);
+        isc2 = 0;
+        if(pow2tab) {
+          /* VL 21/11/18 original code, fixed-point indexing */
+        inc = (int32) ((*xlfr + Unirand(csound, *p->kbnd)) * csound->sicvt);
         do {
           *temp++ += amp  * *(gtbl + (isc >> lb)) *
                      *(etbl + (isc2 >> lb2));
           isc  = (isc +inc )&PHMASK;
           isc2 = (isc2+inc2)&PHMASK;
         } while (--n);
+        }
+        else {
+          /* VL 21/11/18 new code, floating-point indexing */
+          MYFLT gph = (MYFLT) isc;
+          MYFLT eph = FL(0.0);
+          MYFLT ginc = (*xlfr + Unirand(csound, *p->kbnd)) * gcvt;
+        do {
+          *temp++ += amp * gtbl[(int)gph] * etbl[(int)eph];
+          gph += ginc;
+          eph += einc;
+          while(gph < 0) gph += glen;
+          while(gph >= glen) gph -= glen;
+          /* *** Can eph ever be negative?  only if einc negative *** * */
+          while(eph < 0) eph += elen;
+          while(eph >= elen) eph -= elen;
+        } while (--n);
+        }
       }
-
       xdns += p->dnsadv;
       gcount += *xdns * csound->onedsr;
       xamp += p->ampadv;
@@ -173,4 +205,3 @@ int32_t grain_init_(CSOUND *csound)
                                  (int32_t
                                   ) (sizeof(localops) / sizeof(OENTRY)));
 }
-

@@ -50,7 +50,7 @@
  *      Header file containing data structures for UGRW1.C.
  */
 
-/* TABLEW data structure used by all the tablew subroutines. */
+ /* TABLEW data structure used by all the tablew subroutines. */
 
 typedef struct {
         OPDS    h;
@@ -190,7 +190,7 @@ typedef struct {
         OPDS    h;
         MYFLT   *ifilcod;       /* File name */
         MYFLT   *ptime;         /* How much time to leave between each print */
-        MYFLT   *kvals[VARGMAX];/* values to print */
+        MYFLT   *kvals[VARGMAX-2];/* values to print */
         MYFLT   printat, ctime; /* Time when initialised; Cycle time */
         int     initialised;
         char    txtstring[8192]; /* Place to store the string printed */
@@ -201,7 +201,7 @@ typedef struct {
 typedef struct {
         OPDS    h;
         MYFLT   *ifilcod;       /* File name */
-        MYFLT   *kvals[VARGMAX];/* values to print */
+        MYFLT   *kvals[VARGMAX-1];/* values to print */
 } PRINTS;
 /*****************************************************************************/
 

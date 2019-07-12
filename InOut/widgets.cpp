@@ -1104,7 +1104,7 @@ SNAPSHOT::SNAPSHOT (vector<ADDR_SET_VALUE>& valuators, int snapGroup)
 { // the constructor captures current values of all widgets
   // by copying all current values from "valuators" vector (AddrSetValue)
   // to the "fields" vector
-    is_empty = 1;
+    is_empty = 0;
     FLlock(); //<=================
     int i,k;
     int vsize  = valuators.size();
@@ -1343,8 +1343,11 @@ SNAPSHOT::SNAPSHOT (vector<ADDR_SET_VALUE>& valuators, int snapGroup)
         fld->widg_name = p->itext->data;
       }
     }
+     FLunlock();
+     return;
  err:
     FLunlock(); //<=================
+    is_empty = 1;
 }
 
 int SNAPSHOT::get(vector<ADDR_SET_VALUE>& valuators, int snapGroup)
@@ -1352,6 +1355,7 @@ int SNAPSHOT::get(vector<ADDR_SET_VALUE>& valuators, int snapGroup)
     if (UNLIKELY(is_empty == 1)) {
       /*  FIXME: should have CSOUND* pointer here */
       /*  return csound->InitError(csound, "%s", Str("empty snapshot")); */
+      //printf("SNAPSHOT IS EMPTY\n");
       return -1;
     }
     FLlock(); //<=================
@@ -1601,8 +1605,11 @@ extern "C" {
           index = widgetGlobals->snapshots[group].size()-1;
         else if (index < 0) index=0;
         if (widgetGlobals->snapshots[group][index].get(widgetGlobals->AddrSetValue,
-                                                       (int) *p->group)!=OK)
-          return NOTOK;
+                                                       (int) *p->group)!=OK) {
+          csound->Warning(csound, "could not get snapshot from group %d index %d \n",
+                          group, index);
+          return OK;
+        }
       }
       *p->inum_el = widgetGlobals->snapshots[group].size();
       return OK;
@@ -3142,6 +3149,7 @@ extern "C" {
                                (int) *p->green,
                                (int) *p->blue);
       o->color(color);
+      o->redraw();
       return OK;
   }
 
@@ -3153,6 +3161,7 @@ extern "C" {
       Fl_Widget *o = (Fl_Widget *) v.WidgAddress;
       int color = fl_rgb_color((int) *p->red, (int) *p->green, (int) *p->blue);
       o->selection_color(color);
+      o->redraw();
       return OK;
   }
 
@@ -3164,6 +3173,7 @@ extern "C" {
       Fl_Widget *o = (Fl_Widget *) v.WidgAddress;
       int color = fl_rgb_color((int) *p->red, (int) *p->green, (int) *p->blue);
       o->labelcolor(color);
+      o->window()->redraw();
       return OK;
   }
 
@@ -3240,7 +3250,7 @@ extern "C" {
   {
       //char *text = p->itext->data;
       Fl_Box *o =  new Fl_Box((int)*p->ix, (int)*p->iy,
-                              (int)*p->iwidth, (int)*p->iheight, text);
+                              (int)*p->iwidth, (int)*p->iheight, strdup(text));
       widget_attributes(csound, o);
       Fl_Boxtype type;
       int itype = (int) *p->itype;
@@ -3321,9 +3331,10 @@ extern "C" {
   {
       WIDGET_GLOBALS *widgetGlobals =
         (WIDGET_GLOBALS *)csound->QueryGlobalVariable(csound, "WIDGET_GLOBALS");
-      char *text = p->itext->data;
+      char *text = strdup(p->itext->data);
       ADDR_SET_VALUE v = widgetGlobals->AddrSetValue[(int) *p->ihandle];
       Fl_Widget *o = (Fl_Widget *) v.WidgAddress;
+      free((void*)o->label());
       o->label(text);
       return OK;
   }
@@ -3338,7 +3349,8 @@ extern "C" {
       Fl_Widget *o = (Fl_Widget *) v.WidgAddress;
       if (i<0 || i>csound->GetStrsmax(csound)) text = (char *) "???";
       else if ((text=csound->GetStrsets(csound,i))==NULL) text = (char *) "???";
-      o->label(text);
+      free((void*)o->label());
+      o->label(strdup(text));
       return OK;
   }
 

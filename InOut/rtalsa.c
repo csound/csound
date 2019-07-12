@@ -432,6 +432,7 @@ static int set_device_params(CSOUND *csound, DEVPARAMS *dev, int play)
     }
     /* sample format, */
     alsaFmt = SND_PCM_FORMAT_UNKNOWN;
+    if(dev->srate  == 0) dev->format = AE_FLOAT;
     dev->sampleSize = (int) sizeof(MYFLT) * dev->nchns;
     {
       void  (*fp)(void) = NULL;
@@ -439,11 +440,13 @@ static int set_device_params(CSOUND *csound, DEVPARAMS *dev, int play)
       if (play) dev->playconv = (void (*)(int, MYFLT*, void*, int*)) fp;
       else      dev->rec_conv = (void (*)(int, void*, MYFLT*)) fp;
     }
+
     if (UNLIKELY(alsaFmt == SND_PCM_FORMAT_UNKNOWN)) {
       strNcpy(msg, Str("Unknown sample format.\n *** Only 16-bit and 32-bit "
-                       "integers, and 32-bit floats are supported."), MSGLEN);
+                     "integers, and 32-bit floats are supported."), MSGLEN);
       goto err_return_msg;
     }
+
     if (UNLIKELY(snd_pcm_hw_params_set_format(dev->handle, hw_params, alsaFmt)<0)) {
       strNcpy(msg,
               Str("Unable to set requested sample format on soundcard"),MSGLEN);
@@ -457,7 +460,21 @@ static int set_device_params(CSOUND *csound, DEVPARAMS *dev, int play)
     }
     /* sample rate, (patched for sound cards that object to fixed rate) */
     {
-      unsigned int target = dev->srate;
+      unsigned int target;
+      if(dev->srate == 0) {
+        // VL 2-4-2019 this code gets HW sr for use in Csound.
+        unsigned int hwsr;
+        snd_pcm_hw_params_t *pms;
+        snd_pcm_hw_params_alloca(&pms);
+        snd_pcm_hw_params_any(dev->handle, pms);
+        snd_pcm_hw_params_get_rate(pms, &hwsr, 0);
+        if(hwsr == 0) hwsr = 44100;
+        csound->system_sr(csound, hwsr);
+        target = dev->srate = hwsr;
+        p->Message(p, "alsa hw sampling rate: %d\n", hwsr);
+      }
+      else target = (unsigned int) dev->srate;
+
       if (UNLIKELY(snd_pcm_hw_params_set_rate_near(dev->handle,
                                                    hw_params,
                                                    (unsigned int *) &dev->srate, 0)
@@ -467,6 +484,7 @@ static int set_device_params(CSOUND *csound, DEVPARAMS *dev, int play)
       }
       if (dev->srate!=target)
         p->MessageS(p, CSOUNDMSG_WARNING, Str(" *** rate set to %d\n"), dev->srate);
+      csound->system_sr(csound, dev->srate);
     }
 
     /* buffer size, */
@@ -672,9 +690,9 @@ static int open_device(CSOUND *csound, const csRtAudioParams *parm, int play)
     dev->device = parm->devName;
     dev->format = parm->sampleFormat;
     dev->sampleSize = 1;
-    dev->srate = (int) (parm->sampleRate + 0.5f);
+    dev->srate = (int) (parm->sampleRate > 0 ? parm->sampleRate  + 0.5f : 0);
     dev->nchns = parm->nChannels;
-    dev->buffer_smps = parm->bufSamp_HW;
+
     dev->period_smps = parm->bufSamp_SW;
     dev->playconv = (void (*)(int, MYFLT*, void*, int*)) NULL;
     dev->rec_conv = (void (*)(int, void*, MYFLT*)) NULL;

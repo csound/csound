@@ -17,10 +17,7 @@ if(CMAKE_SYSTEM_NAME MATCHES "Linux")
 endif()
 
 # We need a different name to avoid clashes with float libcsound
-make_executable(csound-bin "${CS_MAIN_SRCS}" "${CSOUNDLIB}" csound)
-if(LINUX)
-  target_link_libraries(csound-bin m)
-endif()
+make_executable(csound-bin "${CS_MAIN_SRCS}" "${CSOUNDLIB};${MATH_LIBRARY}" csound)
 
 # Post build dependencies copy for MSVC
 if(MSVC)
@@ -50,10 +47,8 @@ if(BUILD_CSBEATS)
     if(MSVC)
         set_source_files_properties(${FLEX_csbeats_SCANNER_OUTPUTS} PROPERTIES
         COMPILE_FLAGS -DYY_NO_UNISTD_H)
-      make_executable(csbeats "${csbeats_SRCS}" "")
-    else()
-      make_executable(csbeats "${csbeats_SRCS}" "m")
     endif()
+    make_executable(csbeats "${csbeats_SRCS}" "${MATH_LIBRARY}")
 
     target_include_directories(csbeats PRIVATE ${CMAKE_CURRENT_BINARY_DIR})
     target_include_directories(csbeats PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/beats)
@@ -79,7 +74,7 @@ if(BUILD_WINSOUND)
 
     make_executable(winsound "${WINSOUND_SRCS}" "${FLTK_LIBRARIES}")
     if(NOT MSVC)
-       set_target_properties(winsound 
+       set_target_properties(winsound
             PROPERTIES COMPILE_FLAGS "-Wno-nonportable-include-path")
        target_link_libraries(winsound -ldl)
     endif()

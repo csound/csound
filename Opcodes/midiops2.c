@@ -62,7 +62,9 @@ static int32_t imidic7(CSOUND *csound, MIDICTL2 *p)
       if (*p->ifn > 0) {
         if (UNLIKELY((ftp = csound->FTnp2Find(csound, p->ifn)) == NULL))
           return NOTOK; /* if valid ftable, use value as index   */
-        value = *(ftp->ftable + (int32)(value*ftp->flen)); /* no interpolation */
+        /* clamp it */
+        value = value >= FL(0.0) ? (value <= 1.0 ? value : FL(1.0)) : FL(0.0);
+        value = ftp->ftable[(int32)(value*(ftp->flen-1))]; /* no interpolation */
       }
       *p->r = value * (*p->imax - *p->imin) + *p->imin; /* scales the output*/
     }
@@ -96,8 +98,9 @@ static int32_t midic7(CSOUND *csound, MIDICTL2 *p)
     }
     value = (MYFLT) (lcurip->m_chnbp->ctl_val[p->ctlno] * oneTOf7bit);
     if (p->flag)  {             /* if valid ftable,use value as index   */
-      value = *(p->ftp->ftable +
-                (int32)(value*p->ftp->flen));            /* no interpolation */
+         /* clamp it */
+        value = value >= FL(0.0) ? (value <= 1.0 ? value : FL(1.0)) : FL(0.0);
+        value = p->ftp->ftable[(int32)(value*(p->ftp->flen-1))]; /* no interpolation */
     }
     *p->r = value * (*p->imax - *p->imin) + *p->imin;   /* scales the output */
     return OK;
@@ -126,20 +129,22 @@ static int32_t imidic14(CSOUND *csound, MIDICTL3 *p)
       if (*p->ifn > 0) {
         /* linear interpolation routine */
         MYFLT phase;
-        MYFLT *base_address;
-        MYFLT *base;
-        MYFLT *top;
+        MYFLT base;
+        MYFLT top;
         MYFLT diff;
-        int32 length;
 
         if (UNLIKELY((ftp = csound->FTnp2Find(csound, p->ifn)) == NULL))
           return NOTOK; /* if valid ftable,use value as index   */
-        phase = value * (length = ftp->flen);
+
+        /* clamp it */
+        value = value >= FL(0.0) ? (value <= 1.0 ? value : FL(1.0)) : FL(0.0);
+        phase = value * (ftp->flen - 1);
         diff = phase - (int32) phase;
-        base = (base_address = ftp->ftable) + (int32)(phase);
-        top  = base + 1 ;
-        top = (top - base_address > length) ?  base_address : top;
-        value = *base + (*top - *base) * diff;
+        base = ftp->ftable[(int32) phase];
+        top  = ftp->ftable[(int32) phase + 1];
+        /* oddity - it doesn't use the table guard point */
+        value = phase < ftp->flen ?
+          base + (top - base) * diff : base;
       }
       *p->r = value * (*p->imax - *p->imin) + *p->imin;  /* scales the output*/
     }
@@ -179,26 +184,13 @@ static int32_t midic14(CSOUND *csound, MIDICTL3 *p)
                           lcurip->m_chnbp->ctl_val[p->ctlno2] )
                          * oneTOf14bit);
     if (p->flag)  {     /* if valid ftable,use value as index   */
-      MYFLT phase = value * p->ftp->flen; /* gab-A1 */
-      MYFLT *base = p->ftp->ftable + (int32)(phase);
-      value = *base + (*(base+1) - *base) * (phase - (int32) phase);
-
-      /* linear interpolation routine */
-      /*
-        MYFLT phase;
-        MYFLT *base_address;
-        MYFLT *base;
-        MYFLT *top;
-        MYFLT diff;
-        int32 length;
-
-        phase =  value * (length = p->ftp->flen);
-        diff = phase - (int32) phase;
-        base = (base_address = p->ftp->ftable) + (int32)(phase);
-        top  = base + 1 ;
-        top = (top - base_address > length) ?  base_address : top;
-        value = *base + (*top - *base) * diff;
-      */
+      MYFLT phase, tmp, *tab =  p->ftp->ftable;
+      /* clamp it */
+      value = value >= FL(0.0) ? (value <= 1.0 ? value : FL(1.0)) : FL(0.0);
+      phase = value * (p->ftp->flen - 1); /* gab-A1 */
+      /* but here it does use the guard point */
+      tmp = tab[(int32)phase];
+      value = tmp + (tab[(int32)phase+1] - tmp) * (phase - (int32) phase);
     }
     *p->r = value * (*p->imax - *p->imin) + *p->imin;   /* scales the output */
     return OK;
@@ -229,14 +221,18 @@ static int32_t imidic21(CSOUND *csound, MIDICTL4 *p)
       if (*p->ifn > 0) {
         /* linear interpolation routine */
         FUNC *ftp = csound->FTnp2Find(csound, p->ifn); /* gab-A1 */
-        MYFLT phase;
-        MYFLT *base;
-        if (UNLIKELY(ftp == NULL))
+        MYFLT phase, tmp, *tab;
+         if (UNLIKELY(ftp == NULL))
           return csound->InitError(csound, Str("Invalid ftable no. %f"),
-                                           *p->ifn);
-        phase = value * ftp->flen;
-        base = ftp->ftable + (int32)(phase);
-        value = *base + (*(base+1) - *base) * (phase - (int32)phase);
+                                   *p->ifn);
+         tab = ftp->ftable;
+      /* clamp it */
+      value = value >= FL(0.0) ? (value <= 1.0 ? value : FL(1.0)) : FL(0.0);
+      phase = value * (p->ftp->flen - 1); /* gab-A1 */
+      /* but here it also does use the guard point */
+      tmp = tab[(int32)phase];
+      value = tmp + (tab[(int32)phase+1] - tmp) * (phase - (int32) phase);
+
       }
       *p->r = value * (*p->imax - *p->imin) + *p->imin;  /* scales the output*/
     }
@@ -281,25 +277,13 @@ static int32_t midic21(CSOUND *csound, MIDICTL4 *p)
                      lcurip->m_chnbp->ctl_val[p->ctlno3] )  * oneTOf21bit);
     if (p->flag)  {     /* if valid ftable,use value as index   */
       /* linear interpolation routine */
-      MYFLT phase = value * p->ftp->flen;
-      MYFLT *base = p->ftp->ftable + (int32)(phase);
-      value = *base + (*(base+1) - *base) * (phase - (int32) phase);
-
-      /*
-        MYFLT phase;
-        MYFLT *base_address;
-        MYFLT *base;
-        MYFLT *top;
-        MYFLT diff;
-        int32 length;
-
-        phase = value * (length = p->ftp->flen);
-        diff = phase - (int32) phase;
-        base = (base_address = p->ftp->ftable) + (int32)(phase);
-        top  = base + 1 ;
-        top = (top - base_address > length) ?  base_address : top;
-        value = *base + (*top - *base) * diff;
-      */
+        MYFLT phase, tmp, *tab = p->ftp->ftable;
+      /* clamp it */
+      value = value >= FL(0.0) ? (value <= 1.0 ? value : FL(1.0)) : FL(0.0);
+      phase = value * (p->ftp->flen - 1); /* gab-A1 */
+      /* but here it also does use the guard point */
+      tmp = tab[(int32)phase];
+      value = tmp + (tab[(int32)phase+1] - tmp) * (phase - (int32) phase);
     }
     *p->r = value * (*p->imax - *p->imin) + *p->imin;   /* scales the output */
     return OK;
@@ -323,7 +307,9 @@ static int32_t ictrl7(CSOUND *csound, CTRL7 *p)
       if (*p->ifn > 0) {
         if (UNLIKELY((ftp = csound->FTnp2Find(csound, p->ifn)) == NULL))
           return NOTOK;               /* if valid ftable,use value as index   */
-        value = *(ftp->ftable + (int32)(value*ftp->flen)); /* no interpolation */
+                /* clamp it */
+        value = value >= FL(0.0) ? (value <= 1.0 ? value : FL(1.0)) : FL(0.0);
+        value = ftp->ftable[(int32)(value*(ftp->flen-1))]; /* no interpolation */
       }
       *p->r = value * (*p->imax - *p->imin) + *p->imin;  /* scales the output*/
     }
@@ -357,8 +343,9 @@ static int32_t ctrl7(CSOUND *csound, CTRL7 *p)
     MYFLT value = (MYFLT) (csound->m_chnbp[(int32_t) *p->ichan-1]->ctl_val[p->ctlno]
                            * oneTOf7bit);
     if (p->flag)  {             /* if valid ftable,use value as index   */
-      value =
-        *(p->ftp->ftable + (int32)(value*p->ftp->flen)); /* no interpolation */
+              /* clamp it */
+        value = value >= FL(0.0) ? (value <= 1.0 ? value : FL(1.0)) : FL(0.0);
+        value = p->ftp->ftable[(int32)(value*(p->ftp->flen-1))]; /* no interpolation */
     }
     *p->r = value * (*p->imax - *p->imin) + *p->imin;   /* scales the output */
     return OK;
@@ -384,15 +371,19 @@ static int32_t ictrl14(CSOUND *csound, CTRL14 *p)
 
       if (*p->ifn > 0) {
         /* linear interpolation routine */
-        FUNC *ftp = csound->FTnp2Find(csound, p->ifn);
-        MYFLT phase;
-        MYFLT *base;
-        if (UNLIKELY(ftp == NULL))
+        /* linear interpolation routine */
+        FUNC *ftp = csound->FTnp2Find(csound, p->ifn); /* gab-A1 */
+        MYFLT phase, tmp, *tab;
+         if (UNLIKELY(ftp == NULL))
           return csound->InitError(csound, Str("Invalid ftable no. %f"),
-                                           *p->ifn);
-        phase = value * ftp->flen;
-        base = ftp->ftable + (int32)(phase);
-        value = *base + (*(base+1) - *base) * (phase - (int32)phase);
+                                   *p->ifn);
+         tab = ftp->ftable;
+      /* clamp it */
+      value = value >= FL(0.0) ? (value <= 1.0 ? value : FL(1.0)) : FL(0.0);
+      phase = value * (p->ftp->flen - 1); /* gab-A1 */
+      /* but here it also does use the guard point */
+      tmp = tab[(int32)phase];
+      value = tmp + (tab[(int32)phase+1] - tmp) * (phase - (int32) phase);
       }
       *p->r = value * (*p->imax - *p->imin) + *p->imin;  /* scales the output*/
     }
@@ -433,9 +424,14 @@ static int32_t ctrl14(CSOUND *csound, CTRL14 *p)
 
     if (p->flag)  {             /* if valid ftable,use value as index   */
                                 /* linear interpolation routine */
-       MYFLT phase = value * p->ftp->flen;
-       MYFLT *base = p->ftp->ftable + (int32)(phase);
-       value = *base + (*(base+1) - *base) * (phase - (int32) phase);
+       /* linear interpolation routine */
+        MYFLT phase, tmp, *tab = p->ftp->ftable;
+      /* clamp it */
+      value = value >= FL(0.0) ? (value <= 1.0 ? value : FL(1.0)) : FL(0.0);
+      phase = value * (p->ftp->flen - 1); /* gab-A1 */
+      /* but here it also does use the guard point */
+      tmp = tab[(int32)phase];
+      value = tmp + (tab[(int32)phase+1] - tmp) * (phase - (int32) phase);
 
     }
     *p->r = value * (*p->imax - *p->imin) + *p->imin;   /* scales the output */
@@ -466,15 +462,18 @@ static int32_t ictrl21(CSOUND *csound, CTRL21 *p)
 
       if (*p->ifn > 0) {
         /* linear interpolation routine */
-        FUNC *ftp = csound->FTnp2Find(csound, p->ifn);
-        MYFLT phase;
-        MYFLT *base;
-        if (UNLIKELY(ftp == NULL))
+        FUNC *ftp = csound->FTnp2Find(csound, p->ifn); /* gab-A1 */
+        MYFLT phase, tmp, *tab;
+         if (UNLIKELY(ftp == NULL))
           return csound->InitError(csound, Str("Invalid ftable no. %f"),
-                                           *p->ifn);
-        phase = value * ftp->flen;
-        base = ftp->ftable + (int32)(phase);
-        value = *base + (*(base+1) - *base) * (phase - (int32)phase);
+                                   *p->ifn);
+         tab = ftp->ftable;
+      /* clamp it */
+      value = value >= FL(0.0) ? (value <= 1.0 ? value : FL(1.0)) : FL(0.0);
+      phase = value * (p->ftp->flen - 1); /* gab-A1 */
+      /* but here it also does use the guard point */
+      tmp = tab[(int32)phase];
+      value = tmp + (tab[(int32)phase+1] - tmp) * (phase - (int32) phase);
       }
       *p->r = value * (*p->imax - *p->imin) + *p->imin;  /* scales the output*/
     }
@@ -518,9 +517,13 @@ static int32_t ctrl21(CSOUND *csound, CTRL21 *p)
 
     if (p->flag)  {     /* if valid ftable,use value as index   */
         /* linear interpolation routine */
-       MYFLT phase = value * p->ftp->flen;
-       MYFLT *base = p->ftp->ftable + (int32)(phase);
-       value = *base + (*(base+1) - *base) * (phase - (int32) phase);
+        MYFLT phase, tmp, *tab = p->ftp->ftable;
+      /* clamp it */
+      value = value >= FL(0.0) ? (value <= 1.0 ? value : FL(1.0)) : FL(0.0);
+      phase = value * (p->ftp->flen - 1); /* gab-A1 */
+      /* but here it also does use the guard point */
+      tmp = tab[(int32)phase];
+      value = tmp + (tab[(int32)phase+1] - tmp) * (phase - (int32) phase);
     }
     *p->r = value * (*p->imax - *p->imin) + *p->imin;   /* scales the output */
     return OK;
@@ -644,4 +647,3 @@ int32_t midiops2_init_(CSOUND *csound)
                                  (int32_t
                                   ) (sizeof(localops) / sizeof(OENTRY)));
 }
-

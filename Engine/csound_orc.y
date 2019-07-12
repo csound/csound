@@ -153,6 +153,7 @@
 #define csp_orc_sa_global_read_write_add_list1(a,b,c)
 #define csp_orc_sa_interlocks(a, b)
 #define csp_orc_sa_global_read_add_list(a,b)
+#define csp_orc_sa_global_write_add_list(a,b);
 #endif
 
 #define udoflag csound->parserUdoflag
@@ -338,37 +339,70 @@ statement : ans '=' exprlist NEWLINE
                 }
           | ident S_ADDIN expr NEWLINE
                 {
-                  TREE *ans = make_leaf(csound,LINE,LOCN, '=',
-                                        make_token(csound, "="));
-                  ORCTOKEN *repeat = make_token(csound, $1->value->lexeme);
-                  ans->left = (TREE *)$1;
-                  ans->right = make_node(csound,LINE,LOCN, '+',
-                                         make_leaf(csound,LINE,LOCN,
-                                                   $1->value->type, repeat),
+                    if ($1->value->lexeme[0]=='g') {
+                      TREE *ans = $$ = make_leaf(csound,LINE,LOCN, T_OPCODE,
+                                                 lookup_token(csound, "##addin", NULL));
+                       ans->right = $3;
+                       ans->left = $1;
+                       ans->value->optype = NULL;
+                       if (namedInstrFlag!=2) {
+                         csp_orc_sa_global_read_add_list(csound,
+                                    csp_orc_sa_globals_find(csound, ans->right));
+                         csp_orc_sa_global_read_write_add_list1(csound,
+                                    csp_orc_sa_globals_find(csound, ans->left),
+                                    csp_orc_sa_globals_find(csound, ans->left));
+                       }
+                       $$ = ans;
+                    }
+                    else {
+                      TREE *ans = make_leaf(csound,LINE,LOCN, '=',
+                                            make_token(csound, "="));
+                      ORCTOKEN *repeat = make_token(csound, $1->value->lexeme);
+                      ans->left = (TREE *)$1;
+                      ans->right = make_node(csound,LINE,LOCN, '+',
+                                             make_leaf(csound,LINE,LOCN,
+                                                       $1->value->type, repeat),
                                          (TREE *)$3);
-                  //print_tree(csound, "+=", ans);
-                  $$ = ans;
-                  if (namedInstrFlag!=2)
-                      csp_orc_sa_global_read_write_add_list1(csound,
+                      $$ = ans;
+                      if (namedInstrFlag!=2)
+                        csp_orc_sa_global_read_write_add_list(csound,
                                     csp_orc_sa_globals_find(csound, ans->left),
                                     csp_orc_sa_globals_find(csound, ans->right));
+                    }
                 }
           | ident S_SUBIN expr NEWLINE
                 {
-                  TREE *ans = make_leaf(csound,LINE,LOCN, '=',
-                                        make_token(csound, "="));
-                  ORCTOKEN *repeat = make_token(csound, $1->value->lexeme);
-                  ans->left = (TREE *)$1;
-                  ans->right = make_node(csound,LINE,LOCN, '-',
-                                         make_leaf(csound,LINE,LOCN,
-                                                   $1->value->type, repeat),
-                                         (TREE *)$3);
-                  //print_tree(csound, "-=", ans);
-                  $$ = ans;
-                  if (namedInstrFlag!=2)
-                    csp_orc_sa_global_read_write_add_list1(csound,
+                    if ($1->value->lexeme[0]=='g') {
+                      TREE *ans = $$ = make_leaf(csound,LINE,LOCN, T_OPCODE,
+                                                 lookup_token(csound, "##subin", NULL));
+                      ans->right = $3;
+                      ans->left = $1;
+                      ans->value->optype = NULL;
+                      if (namedInstrFlag!=2) {
+                         csp_orc_sa_global_read_add_list(csound,
+                                    csp_orc_sa_globals_find(csound, ans->right));
+                        csp_orc_sa_global_read_write_add_list1(csound,
+                                    csp_orc_sa_globals_find(csound, ans->left),
+                                    csp_orc_sa_globals_find(csound, ans->left));
+                      }
+                      $$ = ans;
+                    }
+                    else {
+                      TREE *ans = make_leaf(csound,LINE,LOCN, '=',
+                                            make_token(csound, "="));
+                      ORCTOKEN *repeat = make_token(csound, $1->value->lexeme);
+                      ans->left = (TREE *)$1;
+                      ans->right = make_node(csound,LINE,LOCN, '-',
+                                             make_leaf(csound,LINE,LOCN,
+                                                       $1->value->type, repeat),
+                                             (TREE *)$3);
+                      //print_tree(csound, "-=", ans);
+                      $$ = ans;
+                      if (namedInstrFlag!=2)
+                        csp_orc_sa_global_read_write_add_list(csound,
                                     csp_orc_sa_globals_find(csound, ans->left),
                                     csp_orc_sa_globals_find(csound, ans->right));
+                    }
                 }
           | ident S_MULIN expr NEWLINE
                 {
@@ -435,6 +469,7 @@ statement : ans '=' exprlist NEWLINE
                     csp_orc_sa_interlocks(csound, $2->value);
                   }
                   query_deprecated_opcode(csound, $2->value);
+                  //print_tree(csound, "opcode", $$);
                 }
 
            | opcode0  exprlist NEWLINE
@@ -447,9 +482,13 @@ statement : ans '=' exprlist NEWLINE
                     csp_orc_sa_global_read_add_list(csound,
                                   csp_orc_sa_globals_find(csound,
                                                           $1->right));
+                    if (UNLIKELY(query_reversewrite_opcode(csound, $1->value))) {
+                      csp_orc_sa_global_write_add_list(csound,
+                                   csp_orc_sa_globals_find(csound, $1->right));
+                    }
                     csp_orc_sa_interlocks(csound, $1->value);
+                    query_deprecated_opcode(csound, $1->value);
                   }
-                  query_deprecated_opcode(csound, $1->value);
                 }
             | opcode0b exprlist ')' NEWLINE
                 {   /* VL: to allow general func ops with no answers */
@@ -692,7 +731,7 @@ bexpr     : '(' bexpr ')'       { $$ = $2; }
           | expr S_LE error     { $$ = NULL; }
           | expr S_GE expr      { $$ = make_node(csound, LINE,LOCN, S_GE, $1, $3); }
           | expr S_GE error     { $$ = NULL; }
-          | expr S_NEQ expr    { $$ = make_node(csound, LINE,LOCN, S_NEQ, $1, $3); }
+          | expr S_NEQ expr     { $$ = make_node(csound, LINE,LOCN, S_NEQ, $1, $3); }
           | expr S_NEQ error    { $$ = NULL; }
           | expr S_EQ expr      { $$ = make_node(csound, LINE,LOCN, S_EQ, $1, $3); }
           | expr S_EQ error     { $$ = NULL; }
@@ -702,7 +741,7 @@ bexpr     : '(' bexpr ')'       { $$ = $2; }
           | expr S_GT error     { $$ = NULL; }
           | expr S_LT expr      { $$ = make_node(csound, LINE,LOCN, S_LT, $1, $3); }
           | expr S_LT error     { $$ = NULL; }
-          | bexpr S_AND bexpr  { $$ = make_node(csound, LINE,LOCN, S_AND, $1, $3); }
+          | bexpr S_AND bexpr   { $$ = make_node(csound, LINE,LOCN, S_AND, $1, $3);}
           | bexpr S_AND error   { $$ = NULL; }
           | bexpr S_OR bexpr    { $$ = make_node(csound, LINE,LOCN, S_OR, $1, $3); }
           | bexpr S_OR error    { $$ = NULL; }
@@ -775,7 +814,7 @@ ifac      : ident               { $$ = $1; }
                 $1->left = NULL;
                 $1->right = $2;
                 $1->type = T_FUNCTION;
-
+                csp_orc_sa_interlocks(csound, $1->value);
                 $$ = $1;
             }
           | opcode ':' opcodeb exprlist ')'   /* needed because a & k are opcodes */
@@ -793,7 +832,7 @@ ifac      : ident               { $$ = $1; }
                 $1->right = $2;
                 $1->type = T_FUNCTION;
                 $1->value->optype = NULL;
-
+                csp_orc_sa_interlocks(csound, $1->value);
                 $$ = $1;
                 //print_tree(csound, "FUNCTION CALL", $$);
             }

@@ -36,7 +36,7 @@
 */
 
 #include "linuxjoystick.h"
-#include <sys/errno.h>
+#include <errno.h>
 
 static int32_t linuxjoystick (CSOUND *csound, LINUXJOYSTICK *stick)
 {

@@ -34,7 +34,7 @@
 # if defined(SGI) || defined(LINUX) || defined(NeXT) || defined(__MACH__)
 #  define _popen popen
 #  define _pclose pclose
-# elif defined(__BEOS__) || defined(__MACH__)
+# elif defined(__BEOS__) ||  defined(__HAIKU__) || defined(__MACH__)
 #  include <stdio.h>
 #  define _popen popen
 #  define _pclose pclose
@@ -552,15 +552,29 @@ int eventOpcodeI_(CSOUND *csound, LINEVENT *p, int insname, char p1)
                                          get_arg_string(csound, *p->args[1]), 1);
           if (UNLIKELY(evt.p[1] == NOT_AN_INSTRUMENT)) return NOTOK;
           evt.p[1] = (MYFLT)res;
-        } else evt.p[1] = *p->args[1];
+        }
+        else {                  /* Should check for valid instr num here */
+          MYFLT insno = FABS(*p->args[1]);
+          evt.p[1] = insno;
+          if (UNLIKELY((opcod == 'i' || opcod == 'd') && (insno ==0 ||
+                       insno > csound->engineState.maxinsno ||
+                       !csound->engineState.instrtxtp[(int)insno]))) {
+
+            csound->Message(csound, Str("WARNING: Cannot Find Instrument %d\n"),
+                           (int) insno);
+            return NOTOK;
+          }
+        }
         for (i = 2; i <= evt.pcnt; i++)
           evt.p[i] = *p->args[i];
       }
+
     }
     if(opcod == 'd') {
       evt.opcod = 'i';
       evt.p[1] *= -1;
     }
+
 
     if (opcod == 'f' && (int) evt.pcnt >= 2 && evt.p[2] <= FL(0.0)) {
       FUNC  *dummyftp;

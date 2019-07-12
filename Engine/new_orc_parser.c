@@ -26,6 +26,7 @@
 #include "csoundCore.h"
 #include "csound_orc.h"
 #include "corfile.h"
+#include "score_param.h"
 
 #if defined(HAVE_DIRENT_H)
 #  include <dirent.h>
@@ -79,6 +80,17 @@ static void csound_print_preextra(CSOUND *csound, PRE_PARM  *x)
 #endif
 
 uint64_t make_location(PRE_PARM *qq)
+{
+    int d = qq->depth;
+    uint64_t loc = 0;
+    int n = (d>8?d-7:0);
+    for (; n<=d; n++) {
+      loc = (loc<<8)+(qq->lstack[n]);
+    }
+    return loc;
+}
+
+uint64_t make_slocation(PRS_PARM *qq)
 {
     int d = qq->depth;
     uint64_t loc = 0;

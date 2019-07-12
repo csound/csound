@@ -19,8 +19,8 @@ if (HAS_CXX_FAST_MATH AND NOT MINGW)
 endif()
 
 
-if(NOT "${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
 
+if(NOT "${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
 check_c_compiler_flag(-mfpmath=sse HAS_FPMATH_SSE)
 check_cxx_compiler_flag(-mfpmath=sse HAS_CXX_FPMATH_SSE)
   if (HAS_FPMATH_SSE)

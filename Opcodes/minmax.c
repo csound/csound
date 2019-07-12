@@ -42,7 +42,7 @@ typedef struct {
 
 typedef struct {
     OPDS    h;
-    MYFLT   *xout, *xin1, *xin2toN[VARGMAX];
+    MYFLT   *xout, *xin1, *xin2toN[VARGMAX-1];
 } MINMAX;
 
 /* Which implementation is faster ?? */
@@ -360,11 +360,11 @@ static int32_t MinAbs_krate(CSOUND *csound, MINMAX *p)
 #define S(x)    sizeof(x)
 
 static OENTRY minmax_localops[] = {
-    {"maxaccum", S(MINMAXACCUM), 0, 2, "", "aa", NULL, (SUBR) MaxAccumulate},
-    {"minaccum", S(MINMAXACCUM), 0, 2, "", "aa", NULL, (SUBR) MinAccumulate},
-    {"maxabsaccum", S(MINMAXACCUM), 0, 2, "", "aa", NULL,
+    {"maxaccum", S(MINMAXACCUM), WI, 2, "", "aa", NULL, (SUBR) MaxAccumulate},
+    {"minaccum", S(MINMAXACCUM), WI, 2, "", "aa", NULL, (SUBR) MinAccumulate},
+    {"maxabsaccum", S(MINMAXACCUM), WI, 2, "", "aa", NULL,
      (SUBR) MaxAbsAccumulate},
-    {"minabsaccum", S(MINMAXACCUM), 0, 2, "", "aa", NULL,
+    {"minabsaccum", S(MINMAXACCUM), WI, 2, "", "aa", NULL,
      (SUBR) MinAbsAccumulate},
     {"max.a", S(MINMAX), 0, 2, "a", "ay", NULL, (SUBR) Max_arate},
     {"min.a", S(MINMAX), 0, 2, "a", "ay", NULL, (SUBR) Min_arate},

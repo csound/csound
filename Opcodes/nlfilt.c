@@ -43,7 +43,15 @@ typedef struct {
         OPDS    h;
         MYFLT   *inits[24];
         MYFLT   *start;
+        MYFLT   *end;
 } PINIT;
+
+typedef struct {
+        OPDS    h;
+        ARRAYDAT *inits;
+        MYFLT   *start;
+        MYFLT   *end;
+} PAINIT;
 
 #define MAX_DELAY   (1024)
 #define MAXAMP      (FL(64000.0))
@@ -232,13 +240,17 @@ int32_t pvalue(CSOUND *csound, PFIELD *p)
 int32_t pinit(CSOUND *csound, PINIT *p)
 {
     int32_t n;
-    int32_t x = 1;
     int32_t    nargs = p->OUTOCOUNT;
     int32_t    pargs = csound->init_event->pcnt;
     int32_t    start = (int32_t)(*p->start);
     /* Should check that inits exist> */
+    int32_t    k = (int32_t)(*p->end);
+    if (*p->end!=FL(0.0)) {
+      if (k<pargs) pargs = k;
+    }
     if (UNLIKELY(nargs>pargs))
       csound->Warning(csound, Str("More arguments than p fields"));
+    pargs -= (int)*p->end;
     for (n=0; (n<nargs) && (n<=pargs-start); n++) {
       if (csound->ISSTRCOD(csound->init_event->p[n+start])) {
         ((STRINGDAT *)p->inits[n])->data =
@@ -247,7 +259,23 @@ int32_t pinit(CSOUND *csound, PINIT *p)
           strlen(((STRINGDAT *)p->inits[n])->data)+1;
       }
       else  *p->inits[n] = csound->init_event->p[n+start];
-      x <<= 1;
+    }
+    return OK;
+}
+
+#include "arrays.h"
+int32_t painit(CSOUND *csound, PAINIT *p)
+{
+    int32_t n;
+    int32_t    pargs = csound->init_event->pcnt;
+    int32_t    start = (int32_t)(*p->start);
+    int32_t    k = (int32_t)(*p->end);
+    if (*p->end!=FL(0.0)) {
+      if (k<pargs) pargs = k;
+    }
+    tabinit(csound, p->inits, pargs-start+1);
+    for (n=0; n<=pargs-start; n++) {
+      ((MYFLT*)p->inits->data)[n] = csound->init_event->p[n+start];
     }
     return OK;
 }
@@ -257,8 +285,10 @@ int32_t pinit(CSOUND *csound, PINIT *p)
 static OENTRY localops[] = {
 { "pcount", S(PFIELD),  0, 1, "i", "",       (SUBR)pcount,    NULL, NULL },
 { "pindex", S(PFIELD),  0, 1, "i", "i",      (SUBR)pvalue,    NULL, NULL },
-{ "passign", S(PINIT),  0, 1, "IIIIIIIIIIIIIIIIIIIIIIII", "p",
+{ "passign", S(PINIT),  0, 1, "IIIIIIIIIIIIIIIIIIIIIIII", "po",
                                              (SUBR)pinit,     NULL, NULL },
+{ "passign.i", S(PAINIT), 0, 1, "i[]", "po",  (SUBR)painit,    NULL, NULL },
+{ "passign.k", S(PAINIT), 0, 1, "k[]", "po",  (SUBR)painit,    NULL, NULL },
 { "nlfilt",  S(NLFILT), 0, 3, "a", "akkkkk", (SUBR)nlfiltset, (SUBR)nlfilt },
 { "nlfilt2",  S(NLFILT), 0, 3, "a", "akkkkk", (SUBR)nlfiltset, (SUBR)nlfilt2 }
 };

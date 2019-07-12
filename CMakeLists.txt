@@ -25,7 +25,7 @@ set(EXECUTABLE_INSTALL_DIR "bin")
 set(LOCALE_INSTALL_DIR "share/locale")
 set(HEADER_INSTALL_DIR "include/csound")
 
-set(CS_FRAMEWORK_DEST "~/Library/Frameworks")
+set(CS_FRAMEWORK_DEST "~/Library/Frameworks" CACHE PATH "Csound framework path")
 include(TestBigEndian)
 include(CheckFunctionExists)
 include(CheckIncludeFile)
@@ -34,6 +34,7 @@ include(CheckLibraryExists)
 include(CMakeParseArguments)
 include(CheckCCompilerFlag)
 include(CheckCXXCompilerFlag)
+include(CMakePushCheckState)
 
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake/Modules/")
 
@@ -73,14 +74,16 @@ endfunction(make_executable)
 #
 # name - name of executable to produce
 # srcs - list of src files
+# libraries - OPTIONAL extra libraries to link
 
 function(make_utility name srcs)
     make_executable(${name} "${srcs}" "${CSOUNDLIB}")
     add_dependencies(${name} ${CSOUNDLIB})
-
-    if(LINUX)
-        target_link_libraries(${name} m)
-    endif()
+    set(i 2)
+    while( ${i} LESS ${ARGC} )
+        target_link_libraries(${name} ${ARGV${i}})
+        math(EXPR i "${i}+1")
+    endwhile()
 endfunction()
 
 # Checks if dependencies for an enabled target are fulfilled.
@@ -531,8 +534,12 @@ find_package(FAUST)
 find_package(Java)
 find_package(JNI)
 find_package(LIBLO)
-find_package(LUAJIT)
 find_package(MUSICXML)
+
+#if(MUSICXML_FOUND)
+#set(CMAKE_CXX_FLAGS "-DHAVE_MUSICXML2 ${CMAKE_CXX_FLAGS}")
+#endif()
+
 find_package(PORTSMF)
 find_package(PythonLibs 2.7)
 if(NOT STK_LOCAL)
@@ -540,6 +547,7 @@ if(NOT STK_LOCAL)
 endif()
 find_package(SWIG)
 find_package(VSTSDK2X)
+
 
 # TODO should this work for MSVC also?
 if(WIN32)
@@ -605,13 +613,21 @@ find_path(EIGEN3_INCLUDE_PATH eigen3/Eigen/Dense)
 find_package(GMM)
 find_library(LIBINTL_LIBRARY intl)
 find_package(Gettext)
-check_library_exists(m lrint "" HAVE_LRINT)
+find_library(MATH_LIBRARY m)
+if (NOT MATH_LIBRARY)
+    set(MATH_LIBRARY "")
+endif()
+
+cmake_push_check_state()
+list(APPEND CMAKE_REQUIRED_LIBRARIES ${MATH_LIBRARY})
+check_function_exists(lrint HAVE_LRINT)
+cmake_pop_check_state()
 
 set(HEADERS_TO_CHECK
     unistd.h io.h fcntl.h stdint.h
     sys/time.h sys/types.h termios.h
     values.h winsock.h sys/socket.h
-    dirent.h inttypes.h)
+    dirent.h inttypes.h execinfo.h)
 
 foreach(header ${HEADERS_TO_CHECK})
     # Convert to uppercase and replace [./] with _
@@ -625,6 +641,9 @@ if (NOT HAVE_INTTYPES_H)
     message(FATAL_ERROR "Csound requires inttypes.h")
 endif()
 
+if (HAVE_EXECINFO_H)
+    add_definitions("-DHAVE_EXECINFO")
+endif()
 
 check_deps(USE_LRINT HAVE_LRINT)
 if(USE_LRINT)
@@ -1153,9 +1172,7 @@ function(make_plugin libname srcs)
 
     set(i 2)
     while( ${i} LESS ${ARGC} )
-        if(NOT MSVC OR NOT("${ARGV${i}}" MATCHES "m"))
-            target_link_libraries(${libname} ${ARGV${i}})
-        endif()
+        target_link_libraries(${libname} ${ARGV${i}})
         math(EXPR i "${i}+1")
     endwhile()
 
@@ -1165,7 +1182,8 @@ function(make_plugin libname srcs)
         ARCHIVE_OUTPUT_DIRECTORY ${BUILD_PLUGINS_DIR})
 
     install(TARGETS ${libname}
-	LIBRARY DESTINATION "${PLUGIN_INSTALL_DIR}" )
+        LIBRARY DESTINATION "${PLUGIN_INSTALL_DIR}" 
+        ARCHIVE DESTINATION "${PLUGIN_INSTALL_DIR}" )
 
 endfunction(make_plugin)
 
@@ -1232,7 +1250,7 @@ if(WIN32)
 else()
 endif()
 
-if(CURL_FOUND)
+if(USE_CURL AND CURL_FOUND)
   list(APPEND libcsound_LIBS ${CURL_LIBRARIES})
   if(WIN32 AND NOT MSVC)
     # not quite working yet with msys2/mingw64
@@ -1270,13 +1288,20 @@ endif()
 if(LINUX)
     message(STATUS "Building on Linux.")
     add_definitions(-DLINUX -DPIPES -DNO_FLTK_THREADS -D_GNU_SOURCE -DHAVE_SOCKETS)
-    list(APPEND libcsound_LIBS m dl)
+    list(APPEND libcsound_LIBS ${MATH_LIBRARY} dl)
 
     find_library(LIBRT_LIBRARY rt)
 
     if(LIBRT_LIBRARY)
       list(APPEND libcsound_LIBS ${LIBRT_LIBRARY})
       message(STATUS "  ADDING LIBRT LIBRARY: ${LIBRT_LIBRARY}.")
+    endif()
+
+    find_library(LIBEXECINFO_LIBRARY execinfo)
+
+    if(LIBEXECINFO_LIBRARY)
+       list(APPEND libcsound_LIBS ${LIBEXECINFO_LIBRARY})
+       message(STATUS "  ADDING LIBEXECINFO LIBRARY: ${LIBEXECINFO_LIBRARY}.")
     endif()
 endif()
 
@@ -1286,7 +1311,7 @@ if(APPLE AND NOT IOS)
     find_library(ACCELERATE_LIBRARY Accelerate)
     find_path(VECLIB_PATH "Accelerate/Accelerate.h")
     include_directories(${VECLIB_PATH})
-    list(APPEND libcsound_LIBS m dl ${ACCELERATE_LIBRARY})
+    list(APPEND libcsound_LIBS ${MATH_LIBRARY} dl ${ACCELERATE_LIBRARY})
 endif()
 
 if(WIN32)

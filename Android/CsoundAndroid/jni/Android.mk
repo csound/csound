@@ -14,12 +14,12 @@ LOCAL_CFLAGS := -std=c99 -O3 -DENABLE_OPCODEDIR_WARNINGS -D__BUILDING_LIBCSOUND 
 endif
 
 LOCAL_CPPFLAGS += -std=c++11 -pthread -frtti -fexceptions
-LOCAL_LDFLAGS += -Wl,--export-dynamic -L$(NDK_MODULE_PATH)/luajit-2.0/src -L$(LIBSNDFILE_SRC_DIR)
+LOCAL_LDFLAGS += -Wl,--export-dynamic -L$(LIBSNDFILE_SRC_DIR)
 
-ifeq ($(TARGET_ARCH_ABI),$(filter $(TARGET_ARCH_ABI), armeabi-v7a x86))
+ifeq ($(TARGET_ARCH_ABI),$(filter $(TARGET_ARCH_ABI), armeabi-v7a arm64-v8a x86))
 LOCAL_ARM_NEON  := true
 LOCAL_CFLAGS += -DHAVE_NEON
-endif # TARGET_ARCH_ABI == armeabi-v7a || x86
+endif # TARGET_ARCH_ABI == armeabi-v7a |arm64-v8a | x86
 
 ifeq ($(TARGET_ARCH_ABI),$(filter $(TARGET_ARCH_ABI), armeabi))
 LOCAL_CFLAGS += -DPFFFT_SIMD_DISABLE
@@ -264,7 +264,7 @@ $(CSOUND_SRC_ROOT)/Opcodes/paulstretch.c
 
 #CsoundObj.cpp
 
-LOCAL_LDLIBS += -llog -lOpenSLES -ldl -lm -lc -latomic
+LOCAL_LDLIBS += -llog -lOpenSLES -ldl -lm -lc 
 
 # For building with all plugins use:
 
@@ -272,7 +272,7 @@ LOCAL_LDLIBS += -llog -lOpenSLES -ldl -lm -lc -latomic
 
 # For building without plugins, but with support for plugins that may depend on GNU STL, use:
 
-LOCAL_SHARED_LIBRARIES += c++_shared sndfile
+LOCAL_SHARED_LIBRARIES += c++_shared sndfile 
 #LOCAL_STATIC_LIBRARIES += sndfile
 
 # Prevents stripping needed exports from the shared library.
@@ -284,7 +284,6 @@ $(call import-module,libsndfile-android/jni)
 #$(call import-module,libstdutil/jni)
 #$(call import-module,libfluidsynth/jni)
 #$(call import-module,signalflowgraph/jni)
-#$(call import-module,luajit-2.0/jni)
 #$(call import-module,LuaCsound/jni)
 
 

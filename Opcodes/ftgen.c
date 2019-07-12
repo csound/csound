@@ -32,7 +32,7 @@
 
 typedef struct {
     OPDS    h;
-    MYFLT   *ifno, *p1, *p2, *p3, *p4, *p5, *argums[VARGMAX];
+    MYFLT   *ifno, *p1, *p2, *p3, *p4, *p5, *argums[VARGMAX-5];
 } FTGEN;
 
 typedef struct {
@@ -42,7 +42,7 @@ typedef struct {
 
 typedef struct {
     OPDS    h;
-    MYFLT   *ifilno, *ktrig, *iflag, *argums[VARGMAX];
+    MYFLT   *ifilno, *ktrig, *iflag, *argums[VARGMAX-2];
     FTLOAD  p;
 } FTLOAD_K; /* gab 30 jul 2002 */
 
@@ -719,8 +719,8 @@ static OENTRY localops[] = {
   { "ftfree",   S(FTFREE),    TW, 1,  "",   "ii",     (SUBR) ftfree, NULL, NULL   },
   { "ftsave",   S(FTLOAD),    TR, 1,  "",   "iim",    (SUBR) ftsave, NULL, NULL   },
   { "ftsave.S",   S(FTLOAD),  TR, 1,  "",   "Sim",    (SUBR) ftsave_S, NULL, NULL },
-  { "ftload",   S(FTLOAD),    TR, 1,  "",   "iim",    (SUBR) ftload, NULL, NULL   },
-    { "ftload.S",  S(FTLOAD), TR, 1,  "",   "Sim",    (SUBR) ftload_S, NULL, NULL },
+  { "ftload",   S(FTLOAD),    TW, 1,  "",   "iim",    (SUBR) ftload, NULL, NULL   },
+  { "ftload.S",  S(FTLOAD), TW, 1,  "",   "Sim",    (SUBR) ftload_S, NULL, NULL },
   { "ftsavek",  S(FTLOAD_K),  TW, 3,  "",   "ikim",   (SUBR) ftsave_k_set,
                                                   (SUBR) ftsave_k, NULL       },
   { "ftsavek.S",  S(FTLOAD_K),  TW, 3,  "",   "Skim",   (SUBR) ftsave_k_set,

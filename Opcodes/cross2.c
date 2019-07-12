@@ -197,8 +197,8 @@ static void pfht(MYFLT *fz, int32 n)
         g0 = c1 + c2;
         f3 = s3 - s4;
         f2 = s3 + s4;
-        g3 = SQRT2 * c4;
-        g2 = SQRT2 * c3;
+        g3 = ROOT2 * c4;
+        g2 = ROOT2 * c3;
         fi[4] = f0 - f2;
         fi[0] = f0 + f2;
         fi[6] = f1 - f3;
@@ -241,8 +241,8 @@ static void pfht(MYFLT *fz, int32 n)
 
         g1 = gi[0] - gi[k1];
         g0 = gi[0] + gi[k1];
-        g3 = SQRT2 * gi[k3];
-        g2 = SQRT2 * gi[k2];
+        g3 = ROOT2 * gi[k3];
+        g2 = ROOT2 * gi[k2];
 
         gi[k2] = g0 - g2;
         gi[0] = g0 + g2;

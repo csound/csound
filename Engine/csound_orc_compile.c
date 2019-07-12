@@ -38,6 +38,8 @@
 #include "csound_orc_semantics.h"
 #include "csound_standard_types.h"
 
+MYFLT csoundInitialiseIO(CSOUND *csound);
+void    iotranset(CSOUND *), sfclosein(CSOUND*), sfcloseout(CSOUND*);
 static const char *INSTR_NAME_FIRST = "::^inm_first^::";
 static ARG *createArg(CSOUND *csound, INSTRTXT *ip, char *s,
                       ENGINE_STATE *engineState);
@@ -471,7 +473,6 @@ void *find_or_add_constant(CSOUND *csound, CS_HASH_TABLE *constantsPool,
  * Create an Instrument (INSTRTXT) from the AST node given for use as
  * Instrument0. Called from csound_orc_compile.
  */
-
 INSTRTXT *create_instrument0(CSOUND *csound, TREE *root,
                              ENGINE_STATE *engineState, CS_VAR_POOL *varPool) {
   INSTRTXT *ip;
@@ -603,8 +604,16 @@ INSTRTXT *create_instrument0(CSOUND *csound, TREE *root,
     if (UNLIKELY(ksmps <= FL(0.0)))
       synterr(p, Str("%s invalid number of samples"), err_msg);
     else if (UNLIKELY(ksmps < FL(0.75) ||
-                      FLOAT_COMPARE(ksmps, MYFLT2LRND(ksmps))))
-      synterr(p, Str("%s invalid ksmps value"), err_msg);
+                      FLOAT_COMPARE(ksmps, MYFLT2LRND(ksmps)))) {
+      /* VL 14/11/18: won't fail but correct values to make ksmps integral */
+      csound->Warning(p, Str("%s invalid ksmps value, needs to be integral."),
+                      err_msg);
+      ksmps = floor(ksmps);
+      kr = sr/ksmps;
+      csound->Warning(p, "resetting orc parameters to: "
+                 "sr = %.7g, kr = %.7g, ksmps = %.7g", sr, kr,
+                 ksmps);
+    }
     else if (UNLIKELY(FLOAT_COMPARE(sr, (double)kr * ksmps)))
       synterr(p, Str("%s inconsistent sr, kr, ksmps\n"), err_msg);
     else if (UNLIKELY(ksmps > sr))
@@ -612,7 +621,6 @@ INSTRTXT *create_instrument0(CSOUND *csound, TREE *root,
   }
 
   csound->ksmps = ksmps;
-
   csound->nchnls = nchnls;
   if (inchnls == 0)
     csound->inchnls = nchnls;
@@ -644,6 +652,25 @@ INSTRTXT *create_instrument0(CSOUND *csound, TREE *root,
     csound->inchnls = O->nchnls_i_override;
   if (O->e0dbfs_override > 0)
     csound->e0dbfs = O->e0dbfs_override;
+
+  // VL 01-05-2019
+  // if --use-system-sr is applied, then we need to
+  // initialise IO early to get the sampling rate
+  // at this stage we have enough data on channels
+  // to do this. Only applies to audio device output
+  if(O->sr_override == -1.0 &&
+     !strncmp(O->outfilename, "dac",3)) {
+    MYFLT tmp_sr = csound->esr;
+    csound->esr = -1.0;
+    O->sr_override = csoundInitialiseIO(csound);
+    if(O->sr_override > 0)
+     csound->Message(csound, "Using system sampling rate %.1f\n", O->sr_override);
+    else {
+      csound->Message(csound, "System sr not available\n");
+      O->sr_override = FL(0.0);
+    }
+    csound->esr = tmp_sr;
+  }
 
   if (UNLIKELY(O->odebug))
     csound->Message(csound, "esr = %7.1f, ekr = %7.1f, ksmps = %d, nchnls = %d "
@@ -682,10 +709,18 @@ INSTRTXT *create_instrument0(CSOUND *csound, TREE *root,
     /* chk consistency one more time */
     {
       char s[256];
-      CS_SPRINTF(s, Str("sr = %.7g, kr = %.7g, ksmps = %.7g\nerror:"),
+      CS_SPRINTF(s, Str("sr = %.7g, kr = %.7g, ksmps = %.7g\n"),
                  csound->esr, csound->ekr, ensmps);
-      if (UNLIKELY(csound->ksmps < 1 || FLOAT_COMPARE(ensmps, csound->ksmps)))
-        csoundDie(csound, Str("%s invalid ksmps value"), s);
+      if (UNLIKELY(csound->ksmps < 1 || FLOAT_COMPARE(ensmps, csound->ksmps))) {
+        /* VL 14/11/18: won't fail but correct values to make ksmps integral */
+        csound->Warning(csound,
+                        Str("%s invalid ksmps value, needs to be integral."), s);
+        ensmps = csound->ksmps = floor(ensmps);
+        csound->ekr  = csound->esr/csound->ksmps;
+        csound->Warning(csound, Str("resetting orc parameters to: "
+                                    "sr = %.7g, kr = %.7g, ksmps = %u"),
+                        csound->esr, csound->ekr, csound->ksmps);
+      }
       if (UNLIKELY(csound->esr <= FL(0.0)))
         csoundDie(csound, Str("%s invalid sample rate"), s);
       if (UNLIKELY(csound->ekr <= FL(0.0)))
@@ -1677,7 +1712,8 @@ int csoundCompileTreeInternal(CSOUND *csound, TREE *root, int async) {
           if (p->left) {
 
             if (p->left->type == INTEGER_TOKEN) {
-              //csound->Message(csound, "instrument %d \n", (int) p->left->value->value);
+              //csound->Message(csound, "instrument %d \n",
+              //                (int) p->left->value->value);
               insert_instrtxt(csound, instrtxt, p->left->value->value,
                               engineState, 0);
             } else if (p->left->type == T_IDENT) {
@@ -2290,4 +2326,10 @@ void query_deprecated_opcode(CSOUND *csound, ORCTOKEN *o) {
   OENTRY *ep = find_opcode(csound, name);
   if (UNLIKELY(ep->flags & _QQ))
     csound->Warning(csound, Str("Opcode \"%s\" is deprecated\n"), name);
+}
+
+int query_reversewrite_opcode(CSOUND *csound, ORCTOKEN *o) {
+  char *name = o->lexeme;
+  OENTRY *ep = find_opcode(csound, name);
+  return (ep->flags & WI);
 }

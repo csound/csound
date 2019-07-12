@@ -129,6 +129,9 @@ PUBLIC int csoundNewOpcodeList(CSOUND *csound, opcodeListEntry **lstp)
             strcpy(s, ep->outypes);
             ((opcodeListEntry*) lst)[cnt].outypes = s;
             s += ((int) strlen(ep->outypes) + 1);
+#ifdef JPFF
+            if (strlen(ep->outypes)==0) printf("***potential WI opcode %s\n", ep->opname);
+#endif
             strcpy(s, ep->intypes);
             ((opcodeListEntry*) lst)[cnt].intypes = s;
             s += ((int) strlen(ep->intypes) + 1);

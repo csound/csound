@@ -2046,6 +2046,85 @@ int32_t outch(CSOUND *csound, OUTCH *p)
     return OK;
 }
 
+/* For parallel mixin template */
+int32_t addina(CSOUND *csound, ASSIGN *p)
+{
+    MYFLT* val = p->a;
+    MYFLT* ans = p->r;
+    uint32_t    offset = p->h.insdshead->ksmps_offset;
+    uint32_t    nsmps = CS_KSMPS, n;
+    uint32_t    early = nsmps-p->h.insdshead->ksmps_no_end;
+
+    CSOUND_SPOUT_SPINLOCK
+    for (n=offset; n<early; n++)
+      ans[n] += val[n];
+    CSOUND_SPOUT_SPINUNLOCK
+    return OK;
+}
+
+int32_t addinak(CSOUND *csound, ASSIGN *p)
+{
+    MYFLT val;
+    MYFLT* ans = p->r;
+    uint32_t    offset = p->h.insdshead->ksmps_offset;
+    uint32_t    nsmps = CS_KSMPS, n;
+    uint32_t    early = nsmps-p->h.insdshead->ksmps_no_end;
+
+    CSOUND_SPOUT_SPINLOCK
+    val = *p->a;
+    for (n=offset; n<early; n++)
+      ans[n] += val;
+    CSOUND_SPOUT_SPINUNLOCK
+    return OK;
+}
+
+int32_t addin(CSOUND *csound, ASSIGN *p)
+{
+    CSOUND_SPOUT_SPINLOCK
+    *p->r += *p->a;
+    CSOUND_SPOUT_SPINUNLOCK
+    return OK;
+}
+
+int32_t subin(CSOUND *csound, ASSIGN *p)
+{
+    CSOUND_SPOUT_SPINLOCK
+    *p->r -= *p->a;
+    CSOUND_SPOUT_SPINUNLOCK
+    return OK;
+}
+
+int32_t subina(CSOUND *csound, ASSIGN *p)
+{
+    MYFLT* val = p->a;
+    MYFLT* ans = p->r;
+    uint32_t    offset = p->h.insdshead->ksmps_offset;
+    uint32_t    nsmps = CS_KSMPS, n;
+    uint32_t    early = nsmps-p->h.insdshead->ksmps_no_end;
+
+    CSOUND_SPOUT_SPINLOCK
+    for (n=offset; n<early; n++)
+      ans[n] -= val[n];
+    CSOUND_SPOUT_SPINUNLOCK
+    return OK;
+}
+
+int32_t subinak(CSOUND *csound, ASSIGN *p)
+{
+    MYFLT val;
+    MYFLT* ans = p->r;
+    uint32_t    offset = p->h.insdshead->ksmps_offset;
+    uint32_t    nsmps = CS_KSMPS, n;
+    uint32_t    early = nsmps-p->h.insdshead->ksmps_no_end;
+
+    CSOUND_SPOUT_SPINLOCK
+    val = *p->a;
+    for (n=offset; n<early; n++)
+      ans[n] -= val;
+    CSOUND_SPOUT_SPINUNLOCK
+    return OK;
+}
+
 int32_t is_NaN(CSOUND *csound, ASSIGN *p)
 {
     IGN(csound);

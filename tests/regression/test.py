@@ -69,7 +69,16 @@ def runTest():
         ["bugg.csd", "grain3"],
         ["bugline.csd", "comments in score"],
         ["arrayout.csd", "array dimension greater than nchls"],
-        ["bugstr1.csd", "escaes in score strings"]
+        ["bugstr1.csd", "escapes in score strings"],
+        ["arit.csd", "arithmetic bretween array anf scalar"],
+        ["bugsice.csd", "testing slicearray and array length"],
+        ["bugj.csd", "testing varios array operations"],
+        ["bugsize.csd", "Showing size change in arrays"],
+        ["bugmon.csd", "test arrray form of monitor"],
+        ["bugname.csd", "recompilation of instr"],
+        ["vbapa.csd", "array case of vbap"],
+        ["bugi.csd", "i() and array access"],
+        ["gerr.csd", "array syntax error", 1]
     ]
 
     output = ""

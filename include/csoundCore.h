@@ -75,11 +75,11 @@
 extern "C" {
 #endif /*  __cplusplus */
 
-#ifdef __MACH__
+#if defined(__MACH__) || defined(__FreeBSD__) || defined(__DragonFly__)
 #include <xlocale.h>
 #endif
 
-#if (defined(__MACH__) || defined(ANDROID) || defined(NACL) || defined(__CYGWIN__))
+#if (defined(__MACH__) || defined(ANDROID) || defined(NACL) || defined(__CYGWIN__) || defined(__HAIKU__))
 #include <pthread.h>
 #define BARRIER_SERIAL_THREAD (-1)
 typedef struct {
@@ -984,6 +984,8 @@ typedef struct _message_queue_t_ {
 } message_string_queue_t;
 
 
+#include "find_opcode.h"
+
   /**
    * Contains all function pointers, data, and data pointers required
    * to run one instance of Csound.
@@ -1373,12 +1375,15 @@ typedef struct _message_queue_t_ {
     void *(*GetHostData)(CSOUND *);
     char *(*strNcpy)(char *dst, const char *src, size_t siz);
     int (*GetZaBounds)(CSOUND *, MYFLT **);
-
+    OENTRY* (*find_opcode_new)(CSOUND*, char*,
+                               char* , char*);
+    OENTRY* (*find_opcode_exact)(CSOUND*, char*,
+                               char* , char*);
        /**@}*/
     /** @name Placeholders
         To allow the API to grow while maintining backward binary compatibility. */
     /**@{ */
-    SUBR dummyfn_2[36];
+    SUBR dummyfn_2[34];
     /**@}*/
 #ifdef __BUILDING_LIBCSOUND
     /* ------- private data (not to be used by hosts or externals) ------- */
@@ -1554,22 +1559,22 @@ typedef struct _message_queue_t_ {
     void          *FFT_table_1;
     void          *FFT_table_2;
     /* statics from twarp.c should be TSEG* */
-    void          *tseg, *tpsave, *tplim;
+    void          *tseg, *tpsave, *unused_int0;
     /* Statics from express.c */
     MYFLT         *gbloffbas;       /* was static in oload.c */
-    void         *file_io_thread;
-    int          file_io_start;
-    void         *file_io_threadlock;
-    int          realtime_audio_flag;
-    void         *event_insert_thread;
-    int          event_insert_loop;
-    void         *init_pass_threadlock;
-    void         *API_lock;
-    spin_lock_t spoutlock, spinlock;
-    spin_lock_t memlock, spinlock1;
+    void          *file_io_thread;
+    int           file_io_start;
+    void          *file_io_threadlock;
+    int           realtime_audio_flag;
+    void          *event_insert_thread;
+    int           event_insert_loop;
+    void          *init_pass_threadlock;
+    void          *API_lock;
+    spin_lock_t   spoutlock, spinlock;
+    spin_lock_t   memlock, spinlock1;
     char          *delayederrormessages;
     void          *printerrormessagesflag;
-    struct sreadStatics__ {
+    struct sread__ {
       SRTBLK  *bp, *prvibp;           /* current srtblk,  prev w/same int(p1) */
       char    *sp, *nxp;              /* string pntrs into srtblk text        */
       int     op;                     /* opcode of current event              */
@@ -1581,30 +1586,30 @@ typedef struct _message_queue_t_ {
       MYFLT   warp_factor /* = FL(1.0) */;
       char    *curmem;
       char    *memend;                /* end of cur memblk                    */
-      S_MACRO   *macros;
+      S_MACRO *unused_ptr2;
       int     last_name /* = -1 */;
       IN_STACK  *inputs, *str;
       int     input_size, input_cnt;
-      int     pop;                    /* Number of macros to pop              */
-      int     ingappop /* = 1 */;     /* Are we in a popable gap?             */
+      int     unused_int3;
+      int     unused_int2;
       int     linepos /* = -1 */;
       MARKED_SECTIONS names[30];
 #define NAMELEN 40              /* array size of repeat macro names */
 #define RPTDEPTH 40             /* size of repeat_n arrays (39 loop levels) */
-      char    repeat_name_n[RPTDEPTH][NAMELEN];
-      int     repeat_cnt_n[RPTDEPTH];
-      int32   repeat_point_n[RPTDEPTH];
-      int     repeat_inc_n /* = 1 */;
-      S_MACRO   *repeat_mm_n[RPTDEPTH];
-      int     repeat_index;
+      char    unused_char0[RPTDEPTH][NAMELEN];
+      int     unused_int4[RPTDEPTH];
+      int32   unused_int7[RPTDEPTH];
+      int     unused_int5;
+      S_MACRO   *unused_ptr0[RPTDEPTH];
+      int     unused_int6;
      /* Variable for repeat sections */
-      char    repeat_name[NAMELEN];
-      int     repeat_cnt;
-      int32   repeat_point;
-      int     repeat_inc /* = 1 */;
-      S_MACRO   *repeat_mm;
+      char    unused_char1[NAMELEN];
+      int     unused_int8;
+      int32   unused_int9;
+      int     unused_intA;
+      S_MACRO   *unused_ptr1;
       int     nocarry;
-    } sreadStatics;
+    } sread;
     struct onefileStatics__ {
       NAMELST *toremove;
       char    *orcname;
@@ -1774,7 +1779,7 @@ typedef struct _message_queue_t_ {
                                and nodebug function */
     int           score_parser;
     CS_HASH_TABLE* symbtab;
-    int           tseglen;
+    int           unused_int1;
     int           inZero;       /* flag compilation of instr0 */
     struct _message_queue **msg_queue;
     volatile long msg_queue_wget; /* Writer - Get index */
@@ -1795,6 +1800,7 @@ typedef struct _message_queue_t_ {
     volatile unsigned long message_string_queue_items;
     unsigned long message_string_queue_wp;
     message_string_queue_t *message_string_queue;
+    int io_initialised;
     /*struct CSOUND_ **self;*/
     /**@}*/
 #endif  /* __BUILDING_LIBCSOUND */

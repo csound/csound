@@ -136,7 +136,7 @@ typedef struct {
   OPDS      h;                  /* required header */
   MYFLT         *out_array[CHANNELS];
   MYFLT         *dur, *spread, *field_am,
-                *fld[VARGMAX]; /* field_am positive: point to point
+                *fld[VARGMAX-3]; /* field_am positive: point to point
                                            negative: angle velocities */
   VBAP1_MOVE_DATA q;
 } VBAP1_MOVING;
@@ -145,7 +145,7 @@ typedef struct {
   OPDS           h;                  /* required header */
   ARRAYDAT      *tabout;
   MYFLT         *dur, *spread, *field_am,
-                *fld[VARGMAX]; /* field_am positive: point to point
+                *fld[VARGMAX-3]; /* field_am positive: point to point
                                            negative: angle velocities */
   VBAP1_MOVE_DATA q;
 } VBAPA1_MOVING;
@@ -174,7 +174,7 @@ typedef struct {
   OPDS      h;                  /* required header */
   MYFLT         *out_array[CHANNELS];
   MYFLT         *audio, *dur, *spread, *field_am,
-                *fld[VARGMAX]; /* field_am positive: point to point
+                *fld[VARGMAX-4]; /* field_am positive: point to point
                                            negative: angle velocities */
   VBAP_MOVE_DATA q;
 } VBAP_MOVING;
@@ -184,7 +184,7 @@ typedef struct {
   OPDS          h;                  /* required header */
   ARRAYDAT      *tabout;
   MYFLT         *audio, *dur, *spread, *field_am,
-                *fld[VARGMAX]; /* field_am positive: point to point
+                *fld[VARGMAX-4]; /* field_am positive: point to point
                                            negative: angle velocities */
   VBAP_MOVE_DATA q;
 } VBAPA_MOVING;
@@ -273,7 +273,7 @@ typedef struct {
 typedef struct {
   OPDS      h;                  /* required header */
   MYFLT     *numb, *ndx, *audio, *dur, *spread, *field_am,
-            *fld[VARGMAX]; /* field_am positive: point to point
+            *fld[VARGMAX-6]; /* field_am positive: point to point
                                        negative: angle velocities */
   int32_t   n;
   MYFLT     *out_array;

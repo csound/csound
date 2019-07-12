@@ -43,7 +43,7 @@ static  void    ifa(CSOUND *), setprv(CSOUND *);
 static  void    carryerror(CSOUND *), pcopy(CSOUND *, int, int, SRTBLK*);
 static  void    salcinit(CSOUND *);
 static  void    salcblk(CSOUND *), flushlin(CSOUND *);
-static  int     getop(CSOUND *), getpfld(CSOUND *);
+static  int     getop(CSOUND *), getpfld(CSOUND *, int);
         MYFLT   stof(CSOUND *, char *);
 extern  void    *fopen_path(CSOUND *, FILE **, char *, char *, char *, int);
 extern int csound_prslex_init(void *);
@@ -53,7 +53,7 @@ extern int csound_prslex(CSOUND*, void*);
 extern int csound_prslex_destroy(void *);
 extern void cs_init_smacros(CSOUND*, PRS_PARM*, NAMES*);
 
-#define STA(x)  (csound->sreadStatics.x)
+#define STA(x)  (csound->sread.x)
 
 static intptr_t expand_nxp(CSOUND *csound)
 {
@@ -62,32 +62,40 @@ static intptr_t expand_nxp(CSOUND *csound)
     intptr_t  offs;
     size_t    nbytes;
 
-    if (UNLIKELY(STA(nxp) >= (STA(memend) + MARGIN))) {
+    if (UNLIKELY((csound->sread.nxp) >=
+                 ((csound->sread.memend) + MARGIN))) {
       csound->Die(csound, Str("sread:  text space overrun, increase MARGIN"));
       return 0;     /* not reached */
     }
     /* calculate the number of bytes to allocate */
-    nbytes = (size_t) (STA(memend) - STA(curmem));
+    nbytes = (size_t) ((csound->sread.memend) -
+                       (csound->sread.curmem));
     nbytes = nbytes + (nbytes >> 3) + (size_t) (MEMSIZ - 1);
     nbytes &= ~((size_t) (MEMSIZ - 1));
     /* extend allocated memory */
-    oldp = STA(curmem);
-    STA(curmem) = (char*) csound->ReAlloc(csound, STA(curmem),
-                                                 nbytes + (size_t) MARGIN);
-    STA(memend) = (char*) STA(curmem) + (int32) nbytes;
+    oldp = (csound->sread.curmem);
+    (csound->sread.curmem) =
+      (char*) csound->ReAlloc(csound, (csound->sread.curmem),
+                              nbytes + (size_t) MARGIN);
+    (csound->sread.memend) =
+      (char*) (csound->sread.curmem) + (int32) nbytes;
     /* did the pointer change ? */
-    if (STA(curmem) == oldp)
+    if ((csound->sread.curmem) == oldp)
       return (intptr_t) 0;      /* no, nothing to do */
     /* correct all pointers for the change */
-    offs = (intptr_t) ((uintptr_t) STA(curmem) - (uintptr_t) oldp);
-    if (STA(bp) != NULL)
-      STA(bp) = (SRTBLK*) ((uintptr_t) STA(bp) + (intptr_t) offs);
-    if (STA(prvibp) != NULL)
-      STA(prvibp) = (SRTBLK*) ((uintptr_t) STA(prvibp) + (intptr_t) offs);
-    if (STA(sp) != NULL)
-      STA(sp) = (char*) ((uintptr_t) STA(sp) + (intptr_t) offs);
-    if (STA(nxp) != NULL)
-      STA(nxp) = (char*) ((uintptr_t) STA(nxp) + (intptr_t) offs);
+    offs = (intptr_t) ((uintptr_t)(csound->sread.curmem) - (uintptr_t) oldp);
+    if ((csound->sread.bp) != NULL)
+      (csound->sread.bp) =
+        (SRTBLK*) ((uintptr_t) (csound->sread.bp) + (intptr_t) offs);
+    if ((csound->sread.prvibp) != NULL)
+      (csound->sread.prvibp) =
+        (SRTBLK*) ((uintptr_t) (csound->sread.prvibp) + (intptr_t) offs);
+    if ((csound->sread.sp) != NULL)
+      (csound->sread.sp) =
+        (char*) ((uintptr_t) (csound->sread.sp) + (intptr_t) offs);
+    if ((csound->sread.nxp) != NULL)
+      (csound->sread.nxp) =
+        (char*) ((uintptr_t) (csound->sread.nxp) + (intptr_t) offs);
     if (csound->frstbp == NULL)
       return offs;
     p = csound->frstbp;
@@ -132,16 +140,16 @@ static void scorerr(CSOUND *csound, const char *s, ...)
 static void print_input_backtrace(CSOUND *csound, int needLFs,
                                   void (*msgfunc)(CSOUND*, const char*, ...))
 {
-    IN_STACK  *curr = STA(str);
+    IN_STACK  *curr = (csound->sread.str);
     char      *m, *lf = (needLFs ? "\n" : "");
     int       lastinput = 0;
     int       lastsource = 2; /* 2=current file, 1=macro, 0=#include */
 
     msgfunc(csound, Str("  section %d:  at position %d%s"), csound->sectcnt,
-                    STA(linepos), lf);
+                    (csound->sread.linepos), lf);
 
     do {
-      if (curr == STA(inputs)) lastinput = 1;
+      if (curr == (csound->sread.inputs)) lastinput = 1;
       if (UNLIKELY(!curr->mac || !curr->mac->name)){
         csound->Warning(csound, Str("Internal error in print_input_backtrace()"));
         return;
@@ -191,45 +199,6 @@ static MYFLT operate(CSOUND *csound, MYFLT a, MYFLT b, char c)
     return ans;
 }
 
-static int undefine_score_macro(CSOUND *csound, const char *name)
-{
-    S_MACRO *mm, *nn;
-    int   i;
-
-    if (strcmp(name, STA(macros)->name) == 0) {
-      mm = STA(macros)->next;
-      if (strcmp(STA(macros)->name, "[") != 0)
-        corfile_rm(csound, &(STA(macros)->body));
-      csound->Free(csound, STA(macros)->name);
- #ifdef MACDEBUG
-      csound->DebugMsg(csound,"%s(%d): corfile is %p\n",
-                       __FILE__, __LINE__, STA(macros)->body);
- #endif
-      for (i = 0; i < STA(macros)->acnt; i++)
-        csound->Free(csound, STA(macros)->arg[i]);
-      csound->Free(csound, STA(macros));
-      STA(macros) = mm;
-    }
-    else {
-      mm = STA(macros);
-      nn = mm->next;
-      while (strcmp(name, nn->name) != 0) {
-        mm = nn; nn = nn->next;
-        if (UNLIKELY(nn == NULL)) {
-          scorerr(csound, Str("Undefining undefined macro"));
-          return -1;
-        }
-      }
-      csound->Free(csound, nn->name);
-      corfile_rm(csound, &nn->body);
-      for (i = 0; i < nn->acnt; i++)
-        csound->Free(csound, nn->arg[i]);
-      mm->next = nn->next;
-      csound->Free(csound, nn);
-    }
-    return 0;
-}
-
 static inline int isNameChar(int c, int pos)
 {
     //c = (int) ((unsigned char) c);
@@ -251,336 +220,10 @@ static int getscochar(CSOUND *csound, int expand)
 /* Read a score character, expanding macros if flag set */
     int     c;
     IGN(expand);
-#ifdef never
-/* top: */
-/*   c = corfile_getc(STA(str)->cf); */
-/*   if (c == EOF) { */
-/*     if (STA(str) == &STA(inputs)[0]) { */
-/*       corfile_putc('\n', STA(str)->cf);  /\* to ensure repeated EOF *\/ */
-/*       return EOF; */
-/*     } */
-/*     if (STA(str)->mac == 0) { */
-/*       corfile_rm(&(STA(str)->cf)); /\* No longer needed *\/ */
-/*     } */
-/*     else { */
-/*       corfile_rewind(STA(str)->cf); */
-/*     } */
-/*     STA(pop) += STA(str)->args; */
-/*     STA(str)--; STA(input_cnt)--; */
-/*     goto top; */
-/*   } */
-/* #ifdef MACDEBUG */
-/*   csound->DebugMsg(csound,"%s(%d): character = %c(%.2d)\n", */
-/*                    __FILE__, __LINE__, c, c); */
-/* #endif */
-/*   if (c == '\r') {    /\* can only occur in files, and not in macros *\/ */
-/*     if ((c = corfile_getc(STA(str)->cf)) != '\n') { */
-/*       if (c == EOF) */
-/*         goto top; */
-/*       corfile_ungetc(STA(str)->cf); */
-/*     } */
-/*     c = '\n'; */
-/*   } */
-/*   if (c == '\n') { */
-/*     STA(str)->line++; STA(linepos) = -1; */
-/*   } */
-/*   else STA(linepos)++; */
-/*   if (STA(ingappop) && STA(pop)) { */
-/*     do { */
-/*       if (STA(macros) != NULL) { */
-/* #ifdef MACDEBUG */
-/*         csound->Message(csound,"popping %s\n", STA(macros)->name); */
-/* #endif */
-/*         undefine_score_macro(csound, STA(macros)->name); */
-/*       } */
-/*       STA(pop)--; */
-/*     } while (STA(pop)); */
-/*   } */
-/*   if (c == '$' && expand) { */
-/*     char      name[100]; */
-/*     unsigned int i = 0; */
-/*     int       j; */
-/*     S_MACRO     *mm, *mm_save = NULL; */
-/*     STA(ingappop) = 0; */
-/*     while (isNameChar((c = getscochar(csound, 1)), (int) i)) { */
-/*       name[i++] = c; name[i] = '\0'; */
-/*       mm = STA(macros); */
-/*       while (mm != NULL) {    /\* Find the definition *\/ */
-/*         if (!(strcmp(name, mm->name))) { */
-/*           mm_save = mm;       /\* found a match, save it *\/ */
-/*           break; */
-/*         } */
-/*         mm = mm->next; */
-/*       } */
-/*     } */
-/*     mm = mm_save; */
-/*     if (UNLIKELY(mm == NULL)) { */
-/*       if (!i) */
-/*         scorerr(csound, Str("Macro expansion symbol ($) without macro name")); */
-/*       else */
-/*         scorerr(csound, Str("Undefined macro: '%s'"), name); */
-/*     } */
-/*     if (strlen(mm->name) != i) { */
-/*       int cnt = (int) i - (int) strlen(mm->name); */
-/*       csound->Warning(csound, Str("$%s matches macro name $%s"), */
-/*                               name, mm->name); */
-/*       do { */
-/*         ungetscochar(csound, c); */
-/*         c = name[--i]; */
-/*       } while (cnt--); */
-/*     } */
-/*     else if (c != '.') */
-/*       ungetscochar(csound, c); */
-/* #ifdef MACDEBUG */
-/*     csound->Message(csound, "Found macro %s required %d arguments\n", */
-/*                             mm->name, mm->acnt); */
-/* #endif */
-/*                               /\* Should bind arguments here *\/ */
-/*                               /\* How do I recognise entities?? *\/ */
-/*     if (mm->acnt) { */
-/*       if (UNLIKELY((c=getscochar(csound, 1)) != '(')) */
-/*         scorerr(csound, Str("Syntax error in macro call")); */
-/*       for (j = 0; j < mm->acnt; j++) { */
-/*         char term = (j == mm->acnt - 1 ? ')' : '\''); */
-/*         char trm1 = (j == mm->acnt - 1 ? ')' : '#'); */
-/*         S_MACRO* nn = (S_MACRO*) csound->Malloc(csound, sizeof(S_MACRO)); */
-/*         nn->name = csound->Malloc(csound, strlen(mm->arg[j])+1); */
-/*         strcpy(nn->name, mm->arg[j]); */
-/* #ifdef MACDEBUG */
-/*         csound->Message(csound,"defining argument %s ", nn->name); */
-/* #endif */
-/*         nn->body = corfile_create_w(); */
-/* #ifdef MACDEBUG */
-/*         csound->DebugMsg(csound,"%s(%d): creating\n", */
-/*                          __FILE__, __LINE__, nn->body); */
-/* #endif */
-/*         while ((c = getscochar(csound, 1))!= term && c != trm1) { */
-/*           if (UNLIKELY(c==EOF)) */
-/*             scorerr(csound, Str("Syntax error in macro call")); */
-/*           corfile_putc(c, nn->body); */
-/*         } */
-/*         corfile_rewind(nn->body); */
-/* #ifdef MACDEBUG */
-/*         csound->Message(csound,"as...#%s#\n", corfile_body(nn->body)); */
-/* #endif */
-/*         nn->acnt = 0; /\* No arguments for arguments *\/ */
-/*         nn->next = STA(macros); */
-/*         STA(macros) = nn; */
-/*       } */
-/*     } */
-/*     STA(input_cnt)++; */
-/*     if (UNLIKELY(STA(input_cnt)>=STA(input_size))) { */
-/*       int old = STA(str)-STA(inputs); */
-/*       STA(input_size) += 20; */
-/*       STA(inputs) = csound->ReAlloc(csound, STA(inputs), STA(input_size) */
-/*                                                 * sizeof(IN_STACK)); */
-/*       STA(str) = &STA(inputs)[old];     /\* In case it moves *\/ */
-/*     } */
-/*     STA(str)++; */
-/*     STA(str)->cf = mm->body; STA(str)->args = mm->acnt; */
-/*     STA(str)->is_marked_repeat = 0; */
-/*     STA(str)->mac = mm; STA(str)->line = 1; */
-/* #ifdef MACDEBUG */
-/*     csound->Message(csound, */
-/*                     "Macro %s definded as >>%s<<\n", */
-/*                     mm->name, corfile_body(mm->body)); */
-/* #endif */
-/*     STA(ingappop) = 1; */
-/*     goto top; */
-/*   } */
-/* /\* End of macro expander *\/ */
-/*   if (expand && c == '[') {           /\* Evaluable section *\/ */
-/*     char  stack[30]; */
-/*     MYFLT vv[30]; */
-/*     char  *op = stack - 1; */
-/*     MYFLT *pv = vv - 1; */
-/*     char  buffer[100]; */
-/*     int   i; */
-/*     int   type = 0; // 1 -> expecting binary operator,')', or ']'; else 0 */
-/*     *++op = '['; */
-/*     c = getscochar(csound, 1); */
-/*     do { */
-/*       switch (c) { */
-/*       case '0': case '1': case '2': case '3': case '4': */
-/*       case '5': case '6': case '7': case '8': case '9': */
-/*       case '.': */
-/*         if (UNLIKELY(type)) { */
-/*           scorerr(csound, Str("illegal placement of number in [] " */
-/*                               "expression")); */
-/*         } */
-/*  parseNumber: */
-/*         i = 0; */
-/*         do { */
-/*           buffer[i++] = c; */
-/*           c = getscochar(csound, 1); */
-/*         } while (isdigit(c) || c == '.'); */
-/*         if (c == 'e' || c == 'E') { */
-/*           buffer[i++] = c; */
-/*           c = getscochar(csound, 1); */
-/*           if (c == '+' || c == '-') { */
-/*             buffer[i++] = c; */
-/*             c = getscochar(csound, 1); */
-/*           } */
-/*           while (isdigit(c)) { */
-/*             buffer[i++] = c; */
-/*             c = getscochar(csound, 1); */
-/*           } */
-/*         } */
-/*         buffer[i] = '\0'; */
-/*         *++pv = stof(csound, buffer); */
-/*         type = 1; */
-/*         break; */
-/*       case '~': */
-/*         if (UNLIKELY(type)) { */
-/*           scorerr(csound, Str("illegal placement of operator ~ in [] " */
-/*                               "expression")); */
-/*         } */
-/*         *++pv = (MYFLT) (csound->Rand31(&(csound->randSeed1)) - 1) */
-/*                 / FL(2147483645); */
-/*         type = 1; */
-/*         c = getscochar(csound, 1); */
-/*         break; */
-/*       case '@': */
-/*         if (UNLIKELY(type)) { */
-/*           scorerr(csound, Str("illegal placement of operator @ or @@ in" */
-/*                               " [] expression")); */
-/*         } */
-/*         { */
-/*           int n = 0; */
-/*           int k = 0;          /\* 0 or 1 depending on guard bit *\/ */
-/*           c = getscochar(csound, 1); */
-/*           if (c=='@') { k = 1; c = getscochar(csound, 1);} */
-/*           while (isdigit(c)) { */
-/*             n = 10*n + c - '0'; */
-/*             c = getscochar(csound, 1); */
-/*           } */
-/*           i = 1; */
-/*           while (i<=n-k && i< 0x4000000) i <<= 1; */
-/*           *++pv = (MYFLT)(i+k); */
-/*           type = 1; */
-/*         } */
-/*         break; */
-/*       case '+': case '-': */
-/*         if (!type) */
-/*           goto parseNumber; */
-/*         if (*op != '[' && *op != '(') { */
-/*           MYFLT v = operate(csound, *(pv-1), *pv, *op); */
-/*           op--; pv--; */
-/*           *pv = v; */
-/*         } */
-/*         type = 0; */
-/*         *++op = c; c = getscochar(csound, 1); break; */
-/*       case '*': */
-/*       case '/': */
-/*       case '%': */
-/*         if (UNLIKELY(!type)) { */
-/*           scorerr(csound, Str("illegal placement of operator %c in [] " */
-/*                               "expression"), c); */
-/*         } */
-/*         if (*op == '*' || *op == '/' || *op == '%') { */
-/*           MYFLT v = operate(csound, *(pv-1), *pv, *op); */
-/*           op--; pv--; */
-/*           *pv = v; */
-/*         } */
-/*         type = 0; */
-/*         *++op = c; c = getscochar(csound, 1); break; */
-/*       case '&': */
-/*       case '|': */
-/*       case '#': */
-/*         if (UNLIKELY(!type)) { */
-/*           scorerr(csound, Str("illegal placement of operator %c in [] " */
-/*                               "expression"), c); */
-/*         } */
-/*         if (*op == '|' || *op == '&' || *op == '#') { */
-/*           MYFLT v = operate(csound, *(pv-1), *pv, *op); */
-/*           op--; pv--; */
-/*           *pv = v; */
-/*         } */
-/*         type = 0; */
-/*         *++op = c; c = getscochar(csound, 1); break; */
-/*       case '(': */
-/*         if (UNLIKELY(type)) { */
-/*           scorerr(csound, Str("illegal placement of '(' in [] expression")); */
-/*         } */
-/*         type = 0; */
-/*         *++op = c; c = getscochar(csound, 1); break; */
-/*       case ')': */
-/*         if (UNLIKELY(!type)) { */
-/*           scorerr(csound, Str("missing operand before ')' in [] expression")); */
-/*         } */
-/*         while (*op != '(') { */
-/*           MYFLT v = operate(csound, *(pv-1), *pv, *op); */
-/*           op--; pv--; */
-/*           *pv = v; */
-/*         } */
-/*         type = 1; */
-/*         op--; c = getscochar(csound, 1); break; */
-/*       case '^': */
-/*         type = 0; */
-/*         *++op = c; c = getscochar(csound, 1); break; */
-/*       case ']': */
-/*         if (UNLIKELY(!type)) { */
-/*           scorerr(csound, */
-/*                   Str("missing operand before closing bracket in []")); */
-/*         } */
-/*         while (*op != '[') { */
-/*           MYFLT v = operate(csound, *(pv-1), *pv, *op); */
-/*           op--; pv--; */
-/*           *pv = v; */
-/*         } */
-/*         c = '$'; */
-/*         break; */
-/*       case '$': */
-/*         break; */
-/*       case ' ':               /\* Ignore spaces *\/ */
-/*         c = getscochar(csound, 1); */
-/*         continue; */
-/*       default: */
-/*         scorerr(csound, Str("illegal character %c(%.2x) in [] expression"), */
-/*                 c, c); */
-/*       } */
-/*     } while (c != '$'); */
-/*     /\* Make string macro or value *\/ */
-/*     CS_SPRINTF(buffer, "%f", *pv); */
-/*     { */
-/*       S_MACRO *nn = (S_MACRO*) csound->Malloc(csound, sizeof(S_MACRO)); */
-/*       nn->name = csound->Malloc(csound, 2); */
-/*       strcpy(nn->name, "["); */
-/*       nn->body = corfile_create_r(buffer); */
-/* #ifdef MACDEBUG */
-/*       csound->DebugMsg(csound,"%s(%d): creating arg %p\n", */
-/*                        __FILE__, __LINE__, nn->body); */
-/* #endif */
-/*       nn->acnt = 0;   /\* No arguments for arguments *\/ */
-/*       nn->next = STA(macros); */
-/*       STA(macros) = nn; */
-/*       STA(input_cnt)++; */
-/*       if (UNLIKELY(STA(input_cnt)>=STA(input_size))) { */
-/*         int old = STA(str)-STA(inputs); */
-/*         STA(input_size) += 20; */
-/*         STA(inputs) = csound->ReAlloc(csound, STA(inputs), STA(input_size) */
-/*                                                   * sizeof(IN_STACK)); */
-/*         STA(str) = &STA(inputs)[old];     /\* In case it moves *\/ */
-/*       } */
-/*       STA(str)++; */
-/*       STA(str)->cf = nn->body; STA(str)->args = 0; */
-/*       STA(str)->is_marked_repeat = 0; */
-/*       STA(str)->mac = NULL; STA(str)->line = 1; */
-/* #ifdef MACDEBUG */
-/*       csound->Message(csound,"[] defined as >>%s<<\n", */
-/*                       corfile_body(nn->body)); */
-/* #endif */
-/*       STA(ingappop) = 1; */
-/*       goto top; */
-/*     } */
-/*  } */
-/*   return c; */
-#else
 /* Read a score character, expanding macros expanded */
     c = corfile_getc(csound->expanded_sco);
     if (c == EOF) {
-      if (STA(str) == &STA(inputs)[0]) {
-        //corfile_putc('\n', STA(str)->cf); /* to ensure repeated EOF */
+      if ((csound->sread.str) == &(csound->sread.inputs)[0]) {
         return EOF;
       }
     }
@@ -589,144 +232,23 @@ static int getscochar(CSOUND *csound, int expand)
                      __FILE__, __LINE__, c, c);
 #endif
     if (c == '\n') {
-      STA(str)->line++; STA(linepos) = -1;
+      (csound->sread.str)->line++; (csound->sread.linepos) = -1;
     }
-    else STA(linepos)++;
+    else (csound->sread.linepos)++;
     return c;
-#endif
 }
-
-/* #ifdef never */
-/* static int nested_repeat(CSOUND *csound)                /\* gab A9*\/ */
-/* { */
-/*   STA(repeat_cnt_n)[STA(repeat_index)]--; */
-/*   if (STA(repeat_cnt_n)[STA(repeat_index)] == 0) {      /\* Expired *\/ */
-/*     if (STA(repeat_index) > 1) { */
-/*       char c[41]; */
-/*       int j; */
-/*       memset(c, '\0', 41); */
-/*       for (j = 0; j<STA(repeat_index); j++) { */
-/*         c[j]=' '; */
-/*         c[j+1]='\0'; */
-/*       } */
-/*       if (csound->oparms->odebug/\*csound->oparms->msglevel & TIMEMSG*\/) */
-/*         csound->Message(csound,Str("%s Nested LOOP terminated, level:%d\n"), */
-/*                         c,STA(repeat_index)); */
-
-/*     } */
-/*     else { */
-/*       if (csound->oparms->odebug/\*csound->oparms->msglevel & TIMEMSG*\/) */
-/*         csound->Message(csound,Str("External LOOP terminated, level:%d\n"), */
-/*                         STA(repeat_index)); */
-/*     } */
-/*     undefine_score_macro(csound, STA(repeat_name_n)[STA(repeat_index)]); */
-/*     STA(repeat_index)--; */
-/*   } */
-/*   else { */
-/*     int i; */
-/*     corfile_set(STA(str)->cf,STA(repeat_point_n)[STA(repeat_index)]); */
-/*     sscanf(corfile_current(STA(repeat_mm_n)[STA(repeat_index)]->body), */
-/*            "%d", &i); */
-/* #ifdef MACDEBUG */
-/*     csound->DebugMsg(csound,"%s(%d) reset point to %d\n", __FILE__, __LINE__, */
-/*            STA(repeat_point_n)[STA(repeat_index)], i); */
-/*     csound->DebugMsg(csound,"%s(%d) corefile: %s %d %d\n", __FILE__, __LINE__, */
-/*            STA(repeat_mm_n)[STA(repeat_index)]->body->body, */
-/*            STA(repeat_mm_n)[STA(repeat_index)]->body->p, */
-/*            STA(repeat_mm_n)[STA(repeat_index)]->body->len); */
-/* #endif */
-/*     i = i + STA(repeat_inc_n); */
-/*     { */
-/*       char buffer[128]; */
-/*       memset(buffer, '\0', 128); */
-/*       snprintf(buffer, 128, "%d", i); */
-/* #ifdef MACDEBUG */
-/*       csound->DebugMsg(csound,"%s(%d) new i = %s\n", */
-/*                        __FILE__, __LINE__,  buffer); */
-/* #endif */
-/*       corfile_reset(STA(repeat_mm_n)[STA(repeat_index)]->body); */
-/*       corfile_puts(buffer, STA(repeat_mm_n)[STA(repeat_index)]->body); */
-/*       corfile_rewind(STA(repeat_mm_n)[STA(repeat_index)]->body); */
-/* #ifdef MACDEBUG */
-/*       csound->DebugMsg(csound,"%s(%d) corefile: %s %d %d\n", */
-/*                        __FILE__, __LINE__, */
-/*              STA(repeat_mm_n)[STA(repeat_index)]->body->body, */
-/*              STA(repeat_mm_n)[STA(repeat_index)]->body->p, */
-/*              STA(repeat_mm_n)[STA(repeat_index)]->body->len); */
-/* #endif */
-/*     } */
-/*     if (STA(repeat_index) > 1) { */
-/*       char c[41]; */
-/*       int j; */
-/*        memset(c, '\0', 41); */
-/*       for (j = 0; j<STA(repeat_index); j++) { */
-/*         c[j]=' '; */
-/*         c[j+1]='\0'; */
-/*       } */
-/*       if (csound->oparms->odebug/\*csound->oparms->msglevel & TIMEMSG*\/) */
-/*         csound->Message(csound,Str("%s  Nested LOOP section (%d) Level:%d\n"), */
-/*                         c, i, STA(repeat_index)); */
-/*     } */
-/*     else { */
-/*       if (csound->oparms->odebug/\*csound->oparms->msglevel & TIMEMSG*\/) */
-/*         csound->Message(csound,Str(" External LOOP section (%d) Level:%d\n"), */
-/*                         i, STA(repeat_index)); */
-/*     } */
-/*     return 1; */
-/*   } */
-/*   return 0; */
-/* } */
-/* #endif */
-/* static int do_repeat(CSOUND *csound) */
-/* {                               /\* At end of section repeat if necessary *\/ */
-/*   STA(repeat_cnt)--; */
-/*   if (STA(repeat_cnt) == 0) {  /\* Expired *\/ */
-/*     /\* Delete macro (assuming there is any) *\/ */
-/*     if (csound->oparms->msglevel & TIMEMSG) */
-/*       csound->Message(csound, Str("Loop terminated\n")); */
-/*     if (STA(repeat_name)[0] != '\0') */
-/*       undefine_score_macro(csound, STA(repeat_name)); */
-/*     STA(repeat_name)[0] = '\0'; */
-/*   } */
-/*   else { */
-/*     int i, n; */
-/*     corfile_set(csound->expanded_sco, STA(repeat_point)); */
-/*     if (STA(repeat_name)[0] != '\0') { */
-/*       sscanf(corfile_current(STA(repeat_mm)->body), "%d%n", &i, &n); */
-/*       i = i + STA(repeat_inc); */
-/*       corfile_seek(STA(repeat_mm)->body, n, SEEK_CUR); */
-/*       { */
-/*         char buffer[128]; */
-/*         snprintf(buffer, 128, "%d", i); */
-/*         corfile_reset(STA(repeat_mm)->body); */
-/*         corfile_puts(buffer, STA(repeat_mm)->body); */
-/*         corfile_rewind(STA(repeat_mm)->body); */
-/*       } */
-/*       if (csound->oparms->msglevel & TIMEMSG) */
-/*         csound->Message(csound, Str("Repeat section (%d)\n"), i); */
-/*     } */
-/*     else */
-/*       csound->Message(csound, Str("Repeat section\n")); */
-/*     /\* replace 'e' or 'r' with 's' and end section *\/ */
-/*     STA(bp)->text[0] = 's'; */
-/*     STA(clock_base) = FL(0.0); */
-/*     STA(warp_factor) = FL(1.0); */
-/*     STA(prvp2) = -FL(1.0); */
-/*     return 1; */
-/*   } */
-/*   return 0; */
-/* } */
 
 void sread_initstr(CSOUND *csound, CORFIL *sco)
 {
     /* sread_alloc_globals(csound); */
     IGN(sco);
-    STA(inputs) = (IN_STACK*) csound->Malloc(csound, 20 * sizeof(IN_STACK));
-    STA(input_size) = 20;
-    STA(input_cnt) = 0;
-    STA(str) = STA(inputs);
-    STA(str)->is_marked_repeat = 0;
-    STA(str)->line = 1; STA(str)->mac = NULL;
+    (csound->sread.inputs) =
+      (IN_STACK*) csound->Malloc(csound, 20 * sizeof(IN_STACK));
+    (csound->sread.input_size) = 20;
+    (csound->sread.input_cnt) = 0;
+    (csound->sread.str) = (csound->sread.inputs);
+    (csound->sread.str)->is_marked_repeat = 0;
+    (csound->sread.str)->line = 1; (csound->sread.str)->mac = NULL;
     //init_smacros(csound, csound->smacros);
     {
       PRS_PARM  qq;
@@ -736,7 +258,7 @@ void sread_initstr(CSOUND *csound, CORFIL *sco)
       csound_prsset_extra(&qq, qq.yyscanner);
       csound->expanded_sco = corfile_create_w(csound);
       /* printf("Input:\n%s<<<\n", */
-      /*        corfile_body(csound->sreadStatics.str->cf)); */
+      /*        corfile_body(csound->sread.str->cf)); */
       csound_prslex(csound, qq.yyscanner);
       csound->DebugMsg(csound, "yielding >>%s<<\n",
                        corfile_body(csound->expanded_sco));
@@ -752,10 +274,11 @@ int sread(CSOUND *csound)       /*  called from main,  reads from SCOREIN   */
                                 /*   1 = section read                   */
                                 /*   0 = end of file                    */
     /* sread_alloc_globals(csound); */
-    STA(bp) = STA(prvibp) = csound->frstbp = NULL;
-    STA(nxp) = NULL;
-    STA(warpin) = 0;
-    STA(lincnt) = 1;
+    (csound->sread.bp) =
+      (csound->sread.prvibp) = csound->frstbp = NULL;
+    (csound->sread.nxp) = NULL;
+    (csound->sread.warpin) = 0;
+    (csound->sread.lincnt) = 1;
     csound->sectcnt++;
     rtncod = 0;
     salcinit(csound);           /* init the mem space for this section  */
@@ -770,25 +293,27 @@ int sread(CSOUND *csound)       /*  called from main,  reads from SCOREIN   */
     }
 #endif
     //printf("sread starts with >>%s<<\n", csound->expanded_sco->body);
-    while ((STA(op) = getop(csound)) != EOF) { /* read next op from scorefile */
+    while (((csound->sread.op) = getop(csound)) != EOF) {
+      /* read next op from scorefile */
       rtncod = 1;
       salcblk(csound);          /* build a line structure; init bp,nxp  */
     again:
-      //printf("reading: %c (%.2x)\n", STA(op), STA(op));
-      switch (STA(op)) {         /*  and dispatch on opcodes             */
+      //printf("*** reading: %c (%.2x)\n",
+      //       (csound->sread.op), (csound->sread.op));
+      switch ((csound->sread.op)) { /*  and dispatch on opcodes  */
       case 'y':
         {
-          char  *p = &(STA(bp)->text[1]);
+          char  *p = &((csound->sread.bp)->text[1]);
           char q;
-          //char *old_nxp = STA(nxp)-2;
-          //printf("text=%s<<\n", STA(bp)->text);
+          //char *old_nxp = (csound->sread.nxp)-2;
+          //printf("text=%s<<\n", (csound->sread.bp)->text);
           /* Measurement shows isdigit and 3 cases is about 30% */
           /* faster than use of strchr (measured on Suse9.3)    */
           /*         if (strchr("+-.0123456789", *p) != NULL) { */
           while ((q=getscochar(csound,1))!='\n') *p++ = q;
           *p = '\0';
-          //printf("text=%s<<\n", STA(bp)->text);
-          p = &(STA(bp)->text[1]);
+          //printf("text=%s<<\n", (csound->sread.bp)->text);
+          p = &((csound->sread.bp)->text[1]);
           while (isblank(q=*p)) p++;
           if (isdigit(q) || q=='+' || q=='-' || q=='.') {
             double  tt;
@@ -807,7 +332,7 @@ int sread(CSOUND *csound)       /*  called from main,  reads from SCOREIN   */
           }
           //printf("cleaning up\n");
           break;
-          //q = STA(op) = getop(csound);
+          //q = (csound->sread.op) = getop(csound);
           //printf("next op = %c(%.2x)\n", q, q);
           //goto again;
         }
@@ -819,7 +344,7 @@ int sread(CSOUND *csound)       /*  called from main,  reads from SCOREIN   */
         ifa(csound);
         break;
       case 'w':
-        STA(warpin)++;
+        (csound->sread.warpin)++;
         copypflds(csound);
         break;
       case 't':
@@ -827,29 +352,34 @@ int sread(CSOUND *csound)       /*  called from main,  reads from SCOREIN   */
         break;
       case 'b': /* Set a clock base */
         {
-          char *old_nxp = STA(nxp)-2;
-          getpfld(csound);
-          STA(clock_base) = stof(csound, STA(sp));
+          char *old_nxp = (csound->sread.nxp)-2;
+          getpfld(csound,0);
+          (csound->sread.clock_base) =
+            stof(csound, (csound->sread.sp));
           if (csound->oparms->msglevel & TIMEMSG)
-            csound->Message(csound,Str("Clockbase = %f\n"), STA(clock_base));
+            csound->Message(csound,Str("Clockbase = %f\n"),
+                            csound->sread.clock_base);
           flushlin(csound);
-          STA(op) = getop(csound);
-          STA(nxp) = old_nxp;
-          *STA(nxp)++ = STA(op); /* Undo this line */
-          STA(nxp)++;
+          (csound->sread.op) = getop(csound);
+          (csound->sread.nxp) = old_nxp;
+          *(csound->sread.nxp)++ =
+            (csound->sread.op); /* Undo this line */
+          (csound->sread.nxp)++;
           goto again;
         }
       case 'C':                 /* toggle carry */
         {
-          char *old_nxp = STA(nxp)-2;
-          getpfld(csound);
-          STA(nocarry) = stof(csound, STA(sp))==0.0?1:0;
-          //printf("nocarry = %d\n", STA(nocarry));
+          char *old_nxp = (csound->sread.nxp)-2;
+          getpfld(csound,0);
+          (csound->sread.nocarry) =
+            stof(csound, (csound->sread.sp))==0.0?1:0;
+          //printf("nocarry = %d\n", (csound->sread.nocarry));
           flushlin(csound);
-          STA(op) = getop(csound);
-          STA(nxp) = old_nxp;
-          *STA(nxp)++ = STA(op); /* Undo this line */
-          STA(nxp)++;
+          (csound->sread.op) = getop(csound);
+          (csound->sread.nxp) = old_nxp;
+          *(csound->sread.nxp)++ =
+            (csound->sread.op); /* Undo this line */
+          (csound->sread.nxp)++;
           goto again;
         }
       case 's':
@@ -857,7 +387,7 @@ int sread(CSOUND *csound)       /*  called from main,  reads from SCOREIN   */
         /* check for optional p1 before doing repeats */
         copylin(csound);
         {
-          char  *p = &(STA(bp)->text[1]);
+          char  *p = &((csound->sread.bp)->text[1]);
           char q;
           while (isblank(*p))
             p++;
@@ -870,206 +400,43 @@ int sread(CSOUND *csound)       /*  called from main,  reads from SCOREIN   */
             char    *tmp = p;
             tt = cs_strtod(p, &tmp);
             if (tmp != p && (*tmp == '\0' || isspace(*tmp))) {
-              STA(bp)->pcnt = 1;
-              STA(bp)->p1val = STA(bp)->p2val = STA(bp)->newp2 = (MYFLT) tt;
+              (csound->sread.bp)->pcnt = 1;
+              (csound->sread.bp)->p1val =
+                (csound->sread.bp)->p2val =
+                (csound->sread.bp)->newp2 = (MYFLT) tt;
             }
           }
-          else STA(bp)->p1val = STA(bp)->p2val = STA(bp)->newp2 = FL(0.0);
+          else (csound->sread.bp)->p1val =
+                 (csound->sread.bp)->p2val =
+                 (csound->sread.bp)->newp2 = FL(0.0);
         }
         /* If we are in a repeat of a marked section ('n' statement),
            we must pop those inputs before doing an 'r' repeat. */
-        if (STA(str)->is_marked_repeat) {
-          //printf("end of n; return to %d\n", STA(str)->oposit);
-          corfile_set(csound->expanded_sco, STA(str)->oposit);
-          STA(str)--;
+        if ((csound->sread.str)->is_marked_repeat) {
+          //printf("end of n; return to %d\n", (csound->sread.str)->oposit);
+          corfile_set(csound->expanded_sco, (csound->sread.str)->oposit);
+          (csound->sread.str)--;
           return rtncod;
         }
-        /* while (STA(str)->is_marked_repeat && STA(input_cnt) > 0) { */
+        /* while ((csound->sread.str)->is_marked_repeat && */
+        /*        (csound->sread.input_cnt) > 0) { */
         /*   /\* close all marked repeat inputs *\/ */
-        /*   //corfile_rm(&(STA(str)->cf)); */
-        /*   STA(str)--; STA(input_cnt)--; */
+        /*   //corfile_rm(&((csound->sread.str)->cf)); */
+        /*   (csound->sread.str)--; (csound->sread.input_cnt)--; */
         /* } */
-        /* if (STA(repeat_cnt) != 0) { */
+        /* if ((csound->sread.repeat_cnt) != 0) { */
         /*   if (do_repeat(csound)) */
         /*     return rtncod; */
         /* } */
-        if (STA(op) != 'e') {
-          STA(clock_base) = FL(0.0);
-          STA(warp_factor) = FL(1.0);
-          STA(prvp2) = -FL(1.0);
+        if ((csound->sread.op) != 'e') {
+          (csound->sread.clock_base) = FL(0.0);
+          (csound->sread.warp_factor) = FL(1.0);
+          (csound->sread.prvp2) = -FL(1.0);
         }
         return rtncod;
-/* #ifdef never */
-/*     case '}': */
-/*       { */
-/*         int temp; */
-/*         char *old_nxp = STA(nxp)-2; */
-/*         if ((temp=STA(repeat_cnt_n)[STA(repeat_index)])!=0) */
-/*           nested_repeat(csound); */
-/*         STA(op) = getop(csound); */
-/*         STA(nxp) = old_nxp; */
-/*         *STA(nxp)++ = STA(op); */
-/*         STA(nxp)++; */
-/*         goto again; */
-/*       } */
-/*     case '{': */
-/*       { */
-/*         char *old_nxp = STA(nxp)-2; */
-/*         int c, i; */
-/*         STA(repeat_index)++; */
-/*         if (UNLIKELY(STA(repeat_index) >= RPTDEPTH)) */
-/*           scorerr(csound, Str("Loops are nested too deeply")); */
-/*         STA(repeat_mm_n)[STA(repeat_index)] = */
-/*           (S_MACRO*)csound->Malloc(csound, sizeof(S_MACRO)); */
-/*         STA(repeat_cnt_n)[STA(repeat_index)] = 0; */
-/*         do { */
-/*           c = getscochar(csound, 1); */
-/*         } while (isblank(c)); */
-/*         while (isdigit(c)) { */
-/*           STA(repeat_cnt_n)[STA(repeat_index)] = */
-/*             10 * STA(repeat_cnt_n)[STA(repeat_index)] + c - '0'; */
-/*           c = getscochar(csound, 1); */
-/*         } */
-/*         if (UNLIKELY(STA(repeat_cnt_n)[STA(repeat_index)] <= 0 */
-/*                      || !isspace(c))) // != ' ' && c != '\t' && c != '\n'))) */
-/*           scorerr(csound, Str("{: invalid repeat count")); */
-/*         if (STA(repeat_index) > 1) { */
-/*           char st[41]; */
-/*           int j; */
-/*           for (j = 0; j < STA(repeat_index); j++) { */
-/*             st[j] = ' '; */
-/*             st[j+1] = '\0'; */
-/*           } */
-/*           if (csound->oparms->odebug/\*csound->oparms->msglevel & TIMEMSG*\/) */
-/*             csound->Message(csound, Str("%s Nested LOOP=%d Level:%d\n"), */
-/*                             st, STA(repeat_cnt_n)[STA(repeat_index)], */
-/*                             STA(repeat_index)); */
-/*         } */
-/*         else { */
-/*           if (csound->oparms->odebug/\*csound->oparms->msglevel & TIMEMSG*\/) */
-/*             csound->Message(csound, Str("External LOOP=%d Level:%d\n"), */
-/*                             STA(repeat_cnt_n)[STA(repeat_index)], */
-/*                             STA(repeat_index)); */
-/*         } */
-/*         while (isblank(c)) { */
-/*           c = getscochar(csound, 1); */
-/*         } */
-/*         for (i = 0; isNameChar(c, i) && i < (NAMELEN-1); i++) { */
-/*           STA(repeat_name_n)[STA(repeat_index)][i] = c; */
-/*           c = getscochar(csound, 1); */
-/*         } */
-/*         STA(repeat_name_n)[STA(repeat_index)][i] = '\0'; */
-/*         ungetscochar(csound, c); */
-/*         /\* Define macro for counter *\/ */
-/*         STA(repeat_mm_n)[STA(repeat_index)]->name = */
-/*           csound->Malloc(csound, */
-/*                          strlen(STA(repeat_name_n)[STA(repeat_index)])+1); */
-/*         strcpy(STA(repeat_mm_n)[STA(repeat_index)]->name, */
-/*                STA(repeat_name_n)[STA(repeat_index)]); */
-/*         STA(repeat_mm_n)[STA(repeat_index)]->acnt = 0; */
-/*         STA(repeat_mm_n)[STA(repeat_index)]->body = corfile_create_r("0"); */
-/* #ifdef MACDEBUG */
-/*         csound->DebugMsg(csound,"%s(%d): repeat %s zero %p\n", */
-/*                           __FILE__, __LINE__, */
-/*                STA(repeat_name_n)[STA(repeat_index)], */
-/*                STA(repeat_mm_n)[STA(repeat_index)]->body); */
-/* #endif */
-/*         STA(repeat_mm_n)[STA(repeat_index)]->next = STA(macros); */
-/*         STA(macros) = STA(repeat_mm_n)[STA(repeat_index)]; */
-/*         flushlin(csound);     /\* Ignore rest of line *\/ */
-/*         STA(repeat_point_n)[STA(repeat_index)] = */
-/*           corfile_tell(STA(str)->cf); */
-
-/*         /\* { does not start a new section - akozar *\/ */
-/*         /\* STA(clock_base) = FL(0.0); */
-/*         STA(warp_factor) = FL(1.0); */
-/*         STA(prvp2) = -FL(1.0); *\/ */
-/*         STA(op) = getop(csound); */
-/*         STA(nxp) = old_nxp; */
-/*         *STA(nxp)++ = STA(op); */
-/*         STA(nxp)++; */
-/*         goto again; */
-/*       } */
-/* #endif */
-/*     case 'r':                 /\* For now treat as s *\/ */
-/*                               /\* First deal with previous section *\/ */
-/*       /\* If we are in a repeat of a marked section ('n' statement), */
-/*          we must pop those inputs before doing an 'r' repeat. *\/ */
-/*       if (STA(str)->is_marked_repeat) { */
-/*         while (STA(str)->is_marked_repeat && STA(input_cnt) > 0) { */
-/*           /\* close all marked repeat inputs *\/ */
-/*           //corfile_rm(&(STA(str)->cf)); */
-/*           STA(str)--; STA(input_cnt)--; */
-/*         } */
-/*         /\* last time thru an 'r', cleanup up 'r' before finishing 'n' *\/ */
-/*         if (STA(repeat_cnt) == 1)  do_repeat(csound); */
-/*         if (STA(repeat_cnt) == 0) { */
-/*           /\* replace with 's' and end section if no previous 'r' */
-/*              or just finished an 'r' loop *\/ */
-/*           STA(bp)->text[0] = 's'; */
-/*           STA(clock_base) = FL(0.0); */
-/*           STA(warp_factor) = FL(1.0); */
-/*           STA(prvp2) = -FL(1.0); */
-/*           return rtncod; */
-/*         } */
-/*       } */
-/*       if (STA(repeat_cnt) != 0) { */
-/*         if (do_repeat(csound)) */
-/*           return rtncod; */
-/*       } */
-/*       /\* Then remember this state *\/ */
-/*       *(STA(nxp)-2) = 's'; *STA(nxp)++ = LF; */
-/*       if (STA(nxp) >= STA(memend))     /\* if this memblk exhausted *\/ */
-/*         expand_nxp(csound); */
-/*       { */
-/*         int   c, i; */
-/*         STA(repeat_cnt) = 0; */
-/*         do { */
-/*           c = getscochar(csound, 1); */
-/*         } while (isblank(c)); */
-/*         while (isdigit(c)) { */
-/*           STA(repeat_cnt) = 10 * STA(repeat_cnt) + c - '0'; */
-/*           c = getscochar(csound, 1); */
-/*         } */
-/*         if (UNLIKELY(STA(repeat_cnt) <= 0 || !isspace(c))) */
-/*           //(c != ' ' && c != '\t' && c != '\n') */
-/*           scorerr(csound, Str("r: invalid repeat count")); */
-/*         if (csound->oparms->msglevel & TIMEMSG) */
-/*           csound->Message(csound, Str("Repeats=%d\n"), STA(repeat_cnt)); */
-/*         while (isblank(c)) { */
-/*           c = getscochar(csound, 1); */
-/*         } */
-/*         for (i = 0; isNameChar(c, i) && i < (NAMELEN-1); i++) { */
-/*           STA(repeat_name)[i] = c; */
-/*           c = getscochar(csound, 1); */
-/*         } */
-/*         STA(repeat_name)[i] = '\0'; */
-/*         ungetscochar(csound, c); */
-/*         flushlin(csound);     /\* Ignore rest of line *\/ */
-/*         if (i) { */
-/*           /\* Only if there is a name: define macro for counter *\/ */
-/*           STA(repeat_mm) = (S_MACRO*) csound->Malloc(csound, sizeof(S_MACRO)); */
-/*           STA(repeat_mm)->name = csound->Malloc(csound, */
-/*                                                 strlen(STA(repeat_name)) + 1); */
-/*           strcpy(STA(repeat_mm)->name, STA(repeat_name)); */
-/*           STA(repeat_mm)->acnt = 0; */
-/*           STA(repeat_mm)->body = corfile_create_r("1"); */
-/* #ifdef MACDEBUG */
-/*           csound->DebugMsg(csound,"%s(%d): 1 %p\n", */
-/*                            __FILE__, __LINE__,STA(repeat_mm)->body); */
-/* #endif */
-/*           STA(repeat_mm)->next = STA(macros); */
-/*           STA(macros) = STA(repeat_mm); */
-/*         } */
-/*         STA(repeat_point) = corfile_tell(csound->expanded_sco); */
-/*       } */
-/*       STA(clock_base) = FL(0.0); */
-/*       STA(warp_factor) = FL(1.0); */
-/*       STA(prvp2) = -FL(1.0); */
-/*       return rtncod; */
       case 'm': /* Remember this place */
         {
-          char  *old_nxp = STA(nxp)-2;
+          char  *old_nxp = (csound->sread.nxp)-2;
           char  buff[200];
           int   c;
           int   i = 0, j;
@@ -1082,32 +449,35 @@ int sread(CSOUND *csound)       /*  called from main,  reads from SCOREIN   */
           if (c != EOF && c != '\n') flushlin(csound);
           if (csound->oparms->msglevel & TIMEMSG)
             csound->Message(csound,Str("m Named section >>>%s<<<\n"), buff);
-            //printf("*** last_name = %d\n", STA(last_name));
-          for (j=0; j<STA(last_name); j++) {
-            //printf("m: %s %s(%d)\n", buff, STA(names)[j].name, j);
-            if (strcmp(buff, STA(names)[j].name)==0) break;
+            //printf("*** last_name = %d\n", (csound->sread.last_name));
+          for (j=0; j<(csound->sread.last_name); j++) {
+            //printf("m: %s %s(%d)\n",
+            //       buff, (csound->sread.names)[j].name, j);
+            if (strcmp(buff, (csound->sread.names)[j].name)==0) break;
           }
-          if (j>=STA(last_name)) {
-            j = ++STA(last_name);
-            STA(names)[j].name =cs_strdup(csound, buff);
+          if (j>=(csound->sread.last_name)) {
+            j = ++(csound->sread.last_name);
+            (csound->sread.names)[j].name =cs_strdup(csound, buff);
           }
-          STA(names)[j].posit = corfile_tell(csound->expanded_sco);
-          //printf("posit=%d\n", STA(names)[j].posit);
-          STA(names)[j].line = STA(str)->line;
-          //printf("line-%d\n",STA(names)[j].line);
+          (csound->sread.names)[j].posit =
+            corfile_tell(csound->expanded_sco);
+          //printf("posit=%d\n", (csound->sread.names)[j].posit);
+          (csound->sread.names)[j].line = (csound->sread.str)->line;
+          //printf("line-%d\n",(csound->sread.names)[j].line);
           if (csound->oparms->msglevel & TIMEMSG)
             csound->Message(csound,Str("%d: %s position %"PRIi32"\n"),
-                            j, STA(names)[j].name,
-                            STA(names)[j].posit);
-          STA(op) = getop(csound);
-          STA(nxp) = old_nxp;
-          *STA(nxp)++ = STA(op); /* Undo this line */
-          STA(nxp)++;
+                            j, (csound->sread.names)[j].name,
+                            (csound->sread.names)[j].posit);
+          (csound->sread.op) = getop(csound);
+          (csound->sread.nxp) = old_nxp;
+          *(csound->sread.nxp)++ =
+            (csound->sread.op); /* Undo this line */
+          (csound->sread.nxp)++;
           goto again;           /* suggested this loses a line?? */
         }
       case 'n':
         {
-          char *old_nxp = STA(nxp)-2;
+          char *old_nxp = (csound->sread.nxp)-2;
           char buff[200];
           int c;
           int i = 0;
@@ -1119,69 +489,78 @@ int sread(CSOUND *csound)       /*  called from main,  reads from SCOREIN   */
           buff[i] = '\0';
           printf("n Named section %s\n", buff);
           if (c != '\n' && c != EOF) flushlin(csound);
-          //printf("last_name %d\n", STA(last_name));
-          for (i = 0; i<=STA(last_name); i++) {
-            //printf("n: %s %s(%d)\n", buff, STA(names)[i].name, i);
-            if (strcmp(buff, STA(names)[i].name)==0) break;
+          //printf("last_name %d\n", (csound->sread.last_name));
+          for (i = 0; i<=(csound->sread.last_name); i++) {
+            //printf("n: %s %s(%d)\n",
+            //       buff, (csound->sread.names)[i].name, i);
+            if (strcmp(buff, (csound->sread.names)[i].name)==0) break;
           }
           //printf("i=%d\n", i);
-          if (UNLIKELY(i > STA(last_name)))
+          if (UNLIKELY(i > (csound->sread.last_name)))
             sreaderr(csound, Str("Name %s not found"), buff);
           else {
             //csound->Message(csound, Str("%d: %s (%ld)\n"),
-            //                i, buff, STA(names)[i].posit);
-            STA(input_cnt)++;
-            if (STA(input_cnt)>=STA(input_size)) {
-              int old = STA(str)-STA(inputs);
-              STA(input_size) += 20;
-              STA(inputs) = csound->ReAlloc(csound, STA(inputs),
-                                            STA(input_size) * sizeof(IN_STACK));
-              STA(str) = &STA(inputs)[old];     /* In case it moves */
+            //                i, buff, (csound->sread.names)[i].posit);
+            (csound->sread.input_cnt)++;
+            if (csound->sread.input_cnt>=csound->sread.input_size) {
+              int old = (csound->sread.str)-(csound->sread.inputs);
+              (csound->sread.input_size) += 20;
+              (csound->sread.inputs) =
+                csound->ReAlloc(csound, (csound->sread.inputs),
+                                csound->sread.input_size * sizeof(IN_STACK));
+              (csound->sread.str) =
+                &(csound->sread.inputs)[old];     /* In case it moves */
             }
-            STA(str)++;
-            STA(str)->is_marked_repeat = 1;
-            STA(str)->line = STA(names)[i].line;
-            STA(str)->oposit = corfile_tell(csound->expanded_sco);
-            corfile_set(csound->expanded_sco, STA(names)[i].posit);
+            (csound->sread.str)++;
+            (csound->sread.str)->is_marked_repeat = 1;
+            (csound->sread.str)->line = (csound->sread.names)[i].line;
+            (csound->sread.str)->oposit = corfile_tell(csound->expanded_sco);
+            corfile_set(csound->expanded_sco,
+                        (csound->sread.names)[i].posit);
             //printf("posit was %d moved to %d\n",
-            //       STA(str)->oposit, STA(names)[i].posit);
+            //       (csound->sread.str)->oposit,
+            //       (csound->sread.names)[i].posit);
           }
-              STA(op) = getop(csound);
-          STA(nxp) = old_nxp;
-          *STA(nxp)++ = STA(op); /* Undo this line */
-          STA(nxp)++;
+              (csound->sread.op) = getop(csound);
+          (csound->sread.nxp) = old_nxp;
+          *(csound->sread.nxp)++ =
+            (csound->sread.op); /* Undo this line */
+          (csound->sread.nxp)++;
           goto again;
         }
       case 'v': /* Suggestion of Bryan Bales */
         {       /* Set local variability of time */
-          char *old_nxp = STA(nxp)-2;
-          getpfld(csound);
-          STA(warp_factor) = stof(csound, STA(sp));
+          char *old_nxp = (csound->sread.nxp)-2;
+          getpfld(csound,0);
+          (csound->sread.warp_factor) =
+            stof(csound, (csound->sread.sp));
           if (csound->oparms->msglevel & TIMEMSG)
-            csound->Message(csound, Str("Warp_factor = %f\n"), STA(warp_factor));
+            csound->Message(csound, Str("Warp_factor = %f\n"),
+                            (csound->sread.warp_factor));
           flushlin(csound);
-          STA(op) = getop(csound);
-          STA(nxp) = old_nxp;
-          *STA(nxp)++ = STA(op);          /* Undo this line */
-          STA(nxp)++;
+          (csound->sread.op) = getop(csound);
+          (csound->sread.nxp) = old_nxp;
+          *(csound->sread.nxp)++ =
+            (csound->sread.op);          /* Undo this line */
+          (csound->sread.nxp)++;
           goto again;
         }
       case 'x':                         /* Skip section */
         //printf("***skipping section\n");
         flushlin(csound);
         while (1) {
-          switch (STA(op) = getop(csound)) {
+          switch ((csound->sread.op) = getop(csound)) {
           case 's':
           case 'r':
           case 'm':
           case 'e':
-            //printf("***skip ending with %c\n", STA(op));
+            //printf("***skip ending with %c\n", (csound->sread.op));
             salcblk(csound);            /* place op, blank into text    */
             goto again;
           case EOF:
             goto ending;
           default:
-            //printf("***ignoring %c\n", STA(op));
+            //printf("***ignoring %c\n", (csound->sread.op));
             flushlin(csound);
           }
         }
@@ -1191,47 +570,48 @@ int sread(CSOUND *csound)       /*  called from main,  reads from SCOREIN   */
       default:
         csound->Message(csound,
                         Str("sread is confused on legal opcodes %c(%.2x)\n"),
-                        STA(op), STA(op));
+                        (csound->sread.op), (csound->sread.op));
         break;
       }
     }
  ending:
-    if (STA(repeat_cnt) > 0) {
-      STA(op) = 'e';
-      salcblk(csound);
-      /* if (do_repeat(csound)) */
-      /*   return rtncod; */
-      *STA(nxp)++ = LF;
-    }
-    if (!rtncod) {                      /* Ending so clear macros */
-      while (STA(macros) != NULL) {
-        undefine_score_macro(csound, STA(macros)->name);
-      }
-    }
+    /* if ((csound->sread.repeat_cnt) > 0) { */
+    /*   (csound->sread.op) = 'e'; */
+    /*   salcblk(csound); */
+    /*   /\* if (do_repeat(csound)) *\/ */
+    /*   /\*   return rtncod; *\/ */
+    /*   *(csound->sread.nxp)++ = LF; */
+    /* } */
+    /* if (!rtncod) {                      /\* Ending so clear macros *\/ */
+    /*   while ((csound->sread.macros) != NULL) { */
+    /*     undefine_score_macro(csound, (csound->sread.macros)->name); */
+    /*   } */
+    /* } */
     return rtncod;
 }
 
 static void copylin(CSOUND *csound)     /* copy source line to srtblk   */
 {
     int c;
-    STA(nxp)--;
-    if (STA(nxp) >= STA(memend))          /* if this memblk exhausted */
+    (csound->sread.nxp)--;
+    if (csound->sread.nxp >= csound->sread.memend)
+      /* if this memblk exhausted */
       expand_nxp(csound);
     do {
       c = getscochar(csound, 1);
-      *STA(nxp)++ = c;
+      *(csound->sread.nxp)++ = c;
     } while (c != LF && c != EOF);
-    if (c == EOF) *(STA(nxp)-1) = '\n';  /* Avoid EOF characters */
-    STA(lincnt)++;
-    STA(linpos) = 0;
+    if (c == EOF) *((csound->sread.nxp)-1) = '\n'; /* Avoid EOF characters */
+    (csound->sread.lincnt)++;
+    (csound->sread.linpos) = 0;
 }
 
 static void copypflds(CSOUND *csound)
 {
-    STA(bp)->pcnt = 0;
-    while (getpfld(csound))     /* copy each pfield,    */
-      STA(bp)->pcnt++;           /* count them,          */
-    *(STA(nxp)-1) = LF;          /* terminate with newline */
+    (csound->sread.bp)->pcnt = 0;
+    while (getpfld(csound,1))                    /* copy each pfield,    */
+      (csound->sread.bp)->pcnt++;         /* count them,          */
+    *(csound->sread.nxp-1) = LF;          /* terminate with newline */
 }
 
 static void ifa(CSOUND *csound)
@@ -1239,64 +619,83 @@ static void ifa(CSOUND *csound)
     SRTBLK *prvbp;
     int n, nocarry = 0;
 
-    STA(bp)->pcnt = 0;
-    while (getpfld(csound)) {   /* while there's another pfield,  */
+    (csound->sread.bp)->pcnt = 0;
+    while (getpfld(csound,0)) {   /* while there's another pfield,  */
       nocarry = 0;
-      ++STA(bp)->pcnt;
-      /* if (UNLIKELY(++STA(bp)->pcnt == PMAX)) { */
+      ++(csound->sread.bp)->pcnt;
+      /* if (UNLIKELY(++(csound->sread.bp)->pcnt == PMAX)) { */
       /*   sreaderr(csound, Str("instr pcount exceeds PMAX")); */
       /*   csound->Message(csound, Str("      remainder of line flushed\n")); */
       /*   flushlin(csound); */
       /*   continue; */
       /* } */
-      if (*STA(sp) == '^' && STA(op) == 'i' && STA(bp)->pcnt == 2) {
+      if (*(csound->sread.sp) == '^' &&
+          (csound->sread.op) == 'i' &&
+          (csound->sread.bp)->pcnt == 2) {
         int foundplus = 0;
-        if (*(STA(sp)+1)=='+') { STA(sp)++; foundplus = 1; }
-        if (UNLIKELY(STA(prvp2)<0)) {
-          sreaderr(csound,Str("No previous event for ^"));
-          STA(prvp2) = STA(bp)->p2val = STA(warp_factor) * stof(csound, STA(sp)+1);
+        if (*((csound->sread.sp)+1)=='+') {
+          (csound->sread.sp)++; foundplus = 1;
         }
-        else if (UNLIKELY(isspace(*(STA(sp)+1)))) {
+        if (UNLIKELY((csound->sread.prvp2)<0)) {
+          sreaderr(csound,Str("No previous event for ^"));
+          (csound->sread.prvp2) =
+            (csound->sread.bp)->p2val =
+              (csound->sread.warp_factor) *
+               stof(csound, (csound->sread.sp)+1);
+        }
+        else if (UNLIKELY(isspace(*((csound->sread.sp)+1)))) {
           /* stof() assumes no leading whitespace -- 070204, akozar */
           sreaderr(csound, Str("illegal space following %s, zero substituted"),
                            (foundplus ? "^+" : "^"));
-          STA(prvp2) = STA(bp)->p2val = STA(prvp2);
+          (csound->sread.prvp2) =
+            (csound->sread.bp)->p2val =
+               (csound->sread.prvp2);
         }
-        else STA(prvp2) = STA(bp)->p2val =
-                         STA(prvp2) + STA(warp_factor) * stof(csound, STA(sp) + 1);
+        else (csound->sread.prvp2) =
+               (csound->sread.bp)->p2val =
+                 (csound->sread.prvp2) + csound->sread.warp_factor *
+               stof(csound, (csound->sread.sp) + 1);
       }
-      else if (STA(nxp)-STA(sp) == 2 && (*STA(sp) == '.' || *STA(sp) == '+')) {
-        if (STA(op) == 'i'
-            && (*STA(sp) == '.' || STA(bp)->pcnt == 2)
-            && ((STA(bp)->pcnt >= 2 && (prvbp = STA(prvibp)) != NULL
-                 && STA(bp)->pcnt <= prvbp->pcnt)
-                || (STA(bp)->pcnt == 1 && (prvbp = STA(bp)->prvblk) != NULL
+      else if ((csound->sread.nxp)-(csound->sread.sp) == 2 &&
+               (*(csound->sread.sp) == '.' ||
+                *(csound->sread.sp) == '+')) {
+        if ((csound->sread.op) == 'i'
+            && (*(csound->sread.sp) == '.' ||
+                (csound->sread.bp)->pcnt == 2)
+            && (((csound->sread.bp)->pcnt >= 2
+                 && (prvbp = (csound->sread.prvibp)) != NULL
+                 && (csound->sread.bp)->pcnt <= prvbp->pcnt)
+                || ((csound->sread.bp)->pcnt == 1 &&
+                    (prvbp = (csound->sread.bp)->prvblk) != NULL
                     && prvbp->text[0] == 'i'))) {
-          if (*STA(sp) == '.') {
-            STA(nxp) = STA(sp);
-            pcopy(csound, (int) STA(bp)->pcnt, 1, prvbp);
-            if (STA(bp)->pcnt >= 2) STA(prvp2) = STA(bp)->p2val;
+          if (*(csound->sread.sp) == '.') {
+            (csound->sread.nxp) = (csound->sread.sp);
+            pcopy(csound, (int) (csound->sread.bp)->pcnt, 1, prvbp);
+            if ((csound->sread.bp)->pcnt >= 2)
+              (csound->sread.prvp2) = (csound->sread.bp)->p2val;
           }
           else /* need the fabs() in case of neg p3 */
-            STA(prvp2) = STA(bp)->p2val =
+            (csound->sread.prvp2) = (csound->sread.bp)->p2val =
                         prvbp->p2val + FABS(prvbp->p3val);
         }
         else carryerror(csound);
       }
-      else if (*STA(sp) == '!') {
+      else if (*(csound->sread.sp) == '!') {
         int getmore = 0;
-        if (UNLIKELY(STA(op) != 'i')) {
-          *(STA(nxp)-1) = '\0';
+        if (UNLIKELY((csound->sread.op) != 'i')) {
+          *((csound->sread.nxp)-1) = '\0';
           getmore = 1;
-          sreaderr(csound, Str("ignoring '%s' in '%c' event"), STA(sp), STA(op));
+          sreaderr(csound, Str("ignoring '%s' in '%c' event"),
+                   (csound->sread.sp), (csound->sread.op));
         }
-        else if (UNLIKELY(STA(bp)->pcnt < 4)) {
+        else if (UNLIKELY((csound->sread.bp)->pcnt < 4)) {
           sreaderr(csound, Str("! invalid in p1, p2, or p3"));
           csound->Message(csound, Str("      remainder of line flushed\n"));
           flushlin(csound);
         }
-        else if (UNLIKELY(STA(nxp)-STA(sp) != 2)) {
-          sreaderr(csound, Str("illegal character after !: '%c'"), *(STA(sp)+1));
+        else if (UNLIKELY(csound->sread.nxp-csound->sread.sp != 2)) {
+          sreaderr(csound, Str("illegal character after !: '%c'"),
+                   *((csound->sread.sp)+1));
           csound->Message(csound, Str("      remainder of line flushed\n"));
           flushlin(csound);
         }
@@ -1305,85 +704,104 @@ static void ifa(CSOUND *csound)
           flushlin(csound);
         }
         /* but always delete the pfield beginning with '!' */
-        STA(nxp) = STA(sp);
-        STA(bp)->pcnt--;
+        (csound->sread.nxp) = (csound->sread.sp);
+        (csound->sread.bp)->pcnt--;
         if (getmore) continue; /* not the best, but not easy to delete event */
                                /* since ifa() doesn't return anything */
         else break;
       }
-      else switch (STA(bp)->pcnt) {      /*  watch for p1,p2,p3, */
+      else switch ((csound->sread.bp)->pcnt) { /*  watch for p1,p2,p3, */
         case 1:                           /*   & MYFLT, setinsno..*/
-          if ((STA(op) == 'i' || STA(op) == 'd' || STA(op) == 'q') &&
-              *STA(sp) == '"') {
+          if (((csound->sread.op) == 'i' ||
+               (csound->sread.op) == 'd' ||
+               (csound->sread.op) == 'q') &&
+              *(csound->sread.sp) == '"') {
             /* csound->DebugMsg(csound,"***Entering second dubious code scnt=%d\n",
                csound->scnt0); */
-            STA(bp)->p1val = SSTRCOD;      /* allow string name */
+            (csound->sread.bp)->p1val = SSTRCOD;      /* allow string name */
           }
           else {
-            STA(bp)->p1val = stof(csound, STA(sp));
+            (csound->sread.bp)->p1val =
+              stof(csound, (csound->sread.sp));
           }
-          if (STA(op) == 'i' || STA(op) == 'd')
+          if ((csound->sread.op) == 'i' || (csound->sread.op) == 'd')
             setprv(csound);
-          else STA(prvibp) = NULL;
+          else (csound->sread.prvibp) = NULL;
           break;
-        case 2: STA(prvp2) = STA(bp)->p2val =
-            STA(warp_factor)*stof(csound, STA(sp)) + STA(clock_base);
+        case 2: (csound->sread.prvp2) = (csound->sread.bp)->p2val =
+            (csound->sread.warp_factor)*
+            stof(csound, csound->sread.sp) + csound->sread.clock_base;
           break;
-        case 3: if (STA(op) == 'i')
-            STA(bp)->p3val = STA(warp_factor) * stof(csound, STA(sp));
-          else STA(bp)->p3val = stof(csound, STA(sp));
+        case 3: if ((csound->sread.op) == 'i')
+            (csound->sread.bp)->p3val =
+              (csound->sread.warp_factor) *
+              stof(csound, (csound->sread.sp));
+          else (csound->sread.bp)->p3val =
+                 stof(csound, (csound->sread.sp));
           break;
         default:break;
       }
-      switch (STA(bp)->pcnt) {               /* newp2, newp3:   */
-      case 2: if (STA(warpin)) {             /* for warpin,     */
-          getpfld(csound);                   /*   newp2 follows */
-          STA(bp)->newp2 = STA(warp_factor) * stof(csound, STA(sp)) +
-            STA(clock_base);
-          STA(nxp) = STA(sp);                   /*    (skip text)  */
+      switch ((csound->sread.bp)->pcnt) {           /* newp2, newp3:   */
+      case 2: if ((csound->sread.warpin)) {         /* for warpin,     */
+          getpfld(csound,0);                   /*   newp2 follows */
+          (csound->sread.bp)->newp2 =
+            (csound->sread.warp_factor) *
+            stof(csound, (csound->sread.sp)) +
+            (csound->sread.clock_base);
+          (csound->sread.nxp) = (csound->sread.sp); /* (skip text)  */
         }
-        else STA(bp)->newp2 = STA(bp)->p2val;   /* else use p2val  */
+        else (csound->sread.bp)->newp2 =
+               (csound->sread.bp)->p2val;   /* else use p2val  */
         break;
-      case 3: if (STA(warpin) && (STA(op) == 'i' || STA(op) == 'f')) {
-          getpfld(csound);                    /* same for newp3  */
-          STA(bp)->newp3 = STA(warp_factor) * stof(csound, STA(sp));
-          STA(nxp) = STA(sp);
+      case 3: if ((csound->sread.warpin) &&
+                  ((csound->sread.op) == 'i' ||
+                   (csound->sread.op) == 'f')) {
+          getpfld(csound,0);                    /* same for newp3  */
+          (csound->sread.bp)->newp3 =
+            (csound->sread.warp_factor) *
+            stof(csound, (csound->sread.sp));
+          (csound->sread.nxp) = (csound->sread.sp);
         }
-        else STA(bp)->newp3 = STA(bp)->p3val;
+        else (csound->sread.bp)->newp3 = (csound->sread.bp)->p3val;
         break;
       }
     }
-    if (STA(nocarry) && (STA(bp)->pcnt<3) && STA(op) == 'i' &&
-        ((prvbp = STA(prvibp)) != NULL ||
-         (!STA(bp)->pcnt && (prvbp = STA(bp)->prvblk) != NULL &&
+    if ((csound->sread.nocarry) &&
+        ((csound->sread.bp)->pcnt<3) &&
+        (csound->sread.op) == 'i' &&
+        ((prvbp = (csound->sread.prvibp)) != NULL ||
+         (!(csound->sread.bp)->pcnt &&
+          (prvbp = (csound->sread.bp)->prvblk) != NULL &&
           prvbp->text[0] == 'i'))){ /* carry p1-p3 */
-      int pcnt = STA(bp)->pcnt;
+      int pcnt = (csound->sread.bp)->pcnt;
       n = 3-pcnt;
       pcopy(csound, pcnt + 1, n, prvbp);
-      STA(bp)->pcnt = 3;
+      (csound->sread.bp)->pcnt = 3;
     }
-    if (STA(op) == 'i' && !nocarry &&        /* then carry any rem pflds */
-        !STA(nocarry) &&
-        ((prvbp = STA(prvibp)) != NULL ||
-         (!STA(bp)->pcnt && (prvbp = STA(bp)->prvblk) != NULL &&
+    if ((csound->sread.op) == 'i' && !nocarry && /* then carry any rem pflds */
+        !(csound->sread.nocarry) &&
+        ((prvbp = (csound->sread.prvibp)) != NULL ||
+         (!(csound->sread.bp)->pcnt &&
+          (prvbp = (csound->sread.bp)->prvblk) != NULL &&
           prvbp->text[0] == 'i')) &&
-        (n = prvbp->pcnt - STA(bp)->pcnt) > 0) {
+        (n = prvbp->pcnt - (csound->sread.bp)->pcnt) > 0) {
       //printf("carrying p-fields\n");
-      pcopy(csound, (int) STA(bp)->pcnt + 1, n, prvbp);
-      STA(bp)->pcnt += n;
+      pcopy(csound, (int) (csound->sread.bp)->pcnt + 1, n, prvbp);
+      (csound->sread.bp)->pcnt += n;
     }
-    *(STA(nxp)-1) = LF;                  /* terminate this stmnt with newline */
+    *((csound->sread.nxp)-1) = LF;   /* terminate this stmnt with newline */
 }
 
 static void setprv(CSOUND *csound)      /*  set insno = (int) p1val         */
 {                                       /*  prvibp = prv note, same insno   */
-    SRTBLK *p = STA(bp);
+    SRTBLK *p = (csound->sread.bp);
     int16 n;
 
-    if (csound->ISSTRCOD(STA(bp)->p1val) && *STA(sp) == '"') {
+    if (csound->ISSTRCOD((csound->sread.bp)->p1val) &&
+        *(csound->sread.sp) == '"') {
       /* IV - Oct 31 2002 */
       int sign = 0;
-      char name[MAXNAME], *c, *s = STA(sp);
+      char name[MAXNAME], *c, *s = (csound->sread.sp);
       /* unquote instrument name */
       c = name; while (*++s != '"') *c++ = *s; *c = '\0';
       if (*name=='-') {
@@ -1397,15 +815,15 @@ static void setprv(CSOUND *csound)      /*  set insno = (int) p1val         */
       }
       if (sign) n = -n;
     }
-    else n = (int16) STA(bp)->p1val;         /* set current insno */
-    STA(bp)->insno = n;
+    else n = (int16) (csound->sread.bp)->p1val;         /* set current insno */
+    (csound->sread.bp)->insno = n;
 
     while ((p = p->prvblk) != NULL)
       if (p->insno == n) {
-        STA(prvibp) = p;                     /* find prev same */
+        (csound->sread.prvibp) = p;                     /* find prev same */
         return;
       }
-    STA(prvibp) = NULL;                      /*  if there is one */
+    (csound->sread.prvibp) = NULL;                      /*  if there is one */
 }
 
 static void carryerror(CSOUND *csound)      /* print offending text line  */
@@ -1414,13 +832,13 @@ static void carryerror(CSOUND *csound)      /* print offending text line  */
 
     csound->Message(csound, Str("sread: illegal use of carry, "
                                 "  0 substituted\n"));
-    *(STA(nxp) - 3) = SP;
-    p = STA(bp)->text;
-    while (p <= STA(nxp) - 2)
+    *((csound->sread.nxp) - 3) = SP;
+    p = (csound->sread.bp)->text;
+    while (p <= (csound->sread.nxp) - 2)
       csound->Message(csound, "%c", *p++);
     csound->Message(csound, "<=\n");
     print_input_backtrace(csound, 1, csoundMessage);
-    *(STA(nxp) - 2) = '0';
+    *((csound->sread.nxp) - 2) = '0';
 }
 
 static void pcopy(CSOUND *csound, int pfno, int ncopy, SRTBLK *prvbp)
@@ -1437,7 +855,7 @@ static void pcopy(CSOUND *csound, int pfno, int ncopy, SRTBLK *prvbp)
       while (*pp++ != SP)                   /*    locate starting pfld  */
         ;
     n = ncopy;
-    p = STA(nxp);
+    p = (csound->sread.nxp);
     while (n--) {                           /*      and copy n pflds    */
       if (*pp != '"')
         while ((*p++ = c = *pp++) != SP && c != LF)
@@ -1449,69 +867,73 @@ static void pcopy(CSOUND *csound, int pfno, int ncopy, SRTBLK *prvbp)
         *p++ = *pp++;
       }
       switch (pfno) {
-      case 1: STA(bp)->p1val = prvbp->p1val;       /*  with p1-p3 vals */
+      case 1: (csound->sread.bp)->p1val = prvbp->p1val;       /*  with p1-p3 vals */
         setprv(csound);
         break;
       case 2:
         if (*(p-2) == '+')              /* (interpr . of +) */
-          STA(prvp2) = STA(bp)->p2val = prvbp->p2val + FABS(prvbp->p3val);
-        else STA(prvp2) = STA(bp)->p2val = prvbp->p2val;
-        STA(bp)->newp2 = STA(bp)->p2val;
+          (csound->sread.prvp2) =
+            (csound->sread.bp)->p2val = prvbp->p2val + FABS(prvbp->p3val);
+        else (csound->sread.prvp2) = (csound->sread.bp)->p2val = prvbp->p2val;
+        (csound->sread.bp)->newp2 = (csound->sread.bp)->p2val;
         break;
-      case 3: STA(bp)->newp3 = STA(bp)->p3val = prvbp->p3val;
+      case 3: (csound->sread.bp)->newp3 = (csound->sread.bp)->p3val = prvbp->p3val;
         break;
       default:
         break;
       }
-      STA(bp)->lineno = prvbp->lineno;
+      (csound->sread.bp)->lineno = prvbp->lineno;
       pfno++;
     }
-    STA(nxp) = p;                                /* adjust globl nxp pntr */
+    (csound->sread.nxp) = p;            /*          adjust globl nxp pntr */
 }
 
 static void salcinit(CSOUND *csound)
 {                             /* init the sorter mem space for a new section */
-    if (STA(curmem) == NULL) { /*  alloc 1st memblk if nec; init *nxp to this */
-      STA(curmem) = (char*) csound->Calloc(csound, (size_t) (MEMSIZ + MARGIN));
-      STA(memend) = (char*) STA(curmem) + MEMSIZ;
+    if (csound->sread.curmem == NULL) { /*  alloc 1st memblk if nec;
+                                            init *nxp to this */
+      (csound->sread.curmem) =
+        (char*) csound->Calloc(csound, (size_t) (MEMSIZ + MARGIN));
+      (csound->sread.memend) = (char*) (csound->sread.curmem) + MEMSIZ;
     }
-    STA(nxp) = (char*) STA(curmem);
+    (csound->sread.nxp) = (char*) (csound->sread.curmem);
 }
 
 static void salcblk(CSOUND *csound)
 {                               /* alloc a srtblk from current mem space:   */
     SRTBLK  *prvbp;             /*   align following *nxp, set new bp, nxp  */
                                 /*   set srtblk lnks, put op+blank in text  */
-    if (STA(nxp) >= STA(memend))          /* if this memblk exhausted */
+    if (csound->sread.nxp >= csound->sread.memend) /* if this memblk exhausted */
       expand_nxp(csound);
     /* now allocate a srtblk from this space: */
-    prvbp = STA(bp);
-    STA(bp) = (SRTBLK*) (((uintptr_t) STA(nxp) + (uintptr_t)7) & ~((uintptr_t)7));
+    prvbp = (csound->sread.bp);
+    (csound->sread.bp) =
+      (SRTBLK*) (((uintptr_t) csound->sread.nxp + (uintptr_t)7) & ~((uintptr_t)7));
     if (csound->frstbp == NULL)
-      csound->frstbp = STA(bp);
+      csound->frstbp = (csound->sread.bp);
     if (prvbp != NULL)
-      prvbp->nxtblk = STA(bp);           /* link with prev srtblk        */
-    STA(bp)->nxtblk = NULL;
-    STA(bp)->prvblk = prvbp;
-    STA(bp)->insno = 0;
-    STA(bp)->pcnt = 0;
-    STA(bp)->lineno = STA(lincnt);
-    STA(nxp) = &(STA(bp)->text[0]);
-    *STA(nxp)++ = STA(op);                /* place op, blank into text    */
-    *STA(nxp)++ = SP;
-    *STA(nxp) = '\0';
+      prvbp->nxtblk = (csound->sread.bp); /* link with prev srtblk        */
+    (csound->sread.bp)->nxtblk = NULL;
+    (csound->sread.bp)->prvblk = prvbp;
+    (csound->sread.bp)->insno = 0;
+    (csound->sread.bp)->pcnt = 0;
+    (csound->sread.bp)->lineno = (csound->sread.lincnt);
+    (csound->sread.nxp) = &((csound->sread.bp)->text[0]);
+    *(csound->sread.nxp)++ = (csound->sread.op); /* place op, blank into text    */
+    *(csound->sread.nxp)++ = SP;
+    *(csound->sread.nxp) = '\0';
 }
 
 void sfree(CSOUND *csound)       /* free all sorter allocated space */
 {                                /*    called at completion of sort */
     /* sread_alloc_globals(csound); */
-    if (STA(curmem) != NULL) {
-      csound->Free(csound, STA(curmem));
-      STA(curmem) = NULL;
+    if ((csound->sread.curmem) != NULL) {
+      csound->Free(csound, (csound->sread.curmem));
+      (csound->sread.curmem) = NULL;
     }
-    while (STA(str) != &STA(inputs)[0]) {
-      //corfile_rm(&(STA(str)->cf));
-      STA(str)--;
+    while ((csound->sread.str) != &(csound->sread.inputs)[0]) {
+      //corfile_rm(&((csound->sread.str)->cf));
+      (csound->sread.str)--;
     }
     corfile_rm(csound, &(csound->scorestr));
 }
@@ -1521,8 +943,8 @@ static void flushlin(CSOUND *csound)
     int c;
     while ((c = getscochar(csound, 0)) != LF && c != EOF)
       ;
-    STA(linpos) = 0;
-    STA(lincnt)++;
+    (csound->sread.linpos) = 0;
+    (csound->sread.lincnt)++;
 }
 
 /* unused at the moment
@@ -1543,257 +965,18 @@ static int sget1(CSOUND *csound)    /* get first non-white, non-comment char */
 {
     int c;
 
- srch:
+    //srch:
     while (isblank(c = getscochar(csound, 1)) || c == LF)
       if (c == LF) {
-        STA(lincnt)++;
-        STA(linpos) = 0;
+        (csound->sread.lincnt)++;
+        (csound->sread.linpos) = 0;
       }
-    if (c == ';' || c == 'c') {
-      flushlin(csound);
-      goto srch;
-    }
-#ifdef never
-/*   if (c == '\\') {            /\* Deal with continuations and specials *\/ */
-/*  again: */
-/*     c = getscochar(csound, 1); */
-/*     if (c==';') { */
-/*       while ((c=getscochar(csound, 1)!='\n') && c!=EOF); */
-/*       goto srch; */
-/*     } */
-/*     if (isblank(c)) goto again; */
-/*     if (c!='\n' && c!=EOF) { */
-/*       csound->Message(csound, Str("Improper \\")); */
-/*       while (c!='\n' && c!=EOF) c = getscochar(csound, 1); */
-/*     } */
-/*     goto srch; */
-/*   } */
-/*   if (c == '/') {             /\* Could be a C-comment *\/ */
-/*     c = getscochar(csound, 1); */
-/*     if (c != '*') { */
-/*       ungetscochar(csound, c); */
-/*       c = '/'; */
-/*     } */
-/*     else {                    /\* It is a comment *\/ */
-/*     top:  /\* ignore comment chars *\/ */
-/*       c = getscochar(csound, 0); */
-/*       switch (c) { */
-/*       case '*': */
-/*       stars:  /\* is next char / ? *\/ */
-/*         c = getscochar(csound, 0); */
-/*         switch (c) { */
-/*         case '*': goto stars; */
-/*         default: goto top; */
-/*         case '/': goto srch; */
-/*         case EOF: return EOF; */
-/*         } */
-/*       case EOF: return EOF; */
-/*       default: goto top; */
-/*       } */
-/*     } */
-/*   } */
-/*   if (c == '#') { */
-/*     int mlen = 40; */
-/*     char  *mname  = csound->Malloc(csound, 40); /\* Start Macro definition *\/ */
-/*     int   i = 0; */
-/*     while (isspace((c = getscochar(csound, 1)))); */
-/*     if (c == 'd') { */
-/*       int   arg = 0; */
-/*       S_MACRO *mm = (S_MACRO*) csound->Malloc(csound, sizeof(S_MACRO)); */
-/*       mm->margs = MARGS; */
-/*       if (UNLIKELY(!check_preproc_name(csound, "define"))) { */
-/*         csound->Message(csound, Str("Not #define")); */
-/*         csound->Free(csound, mm); */
-/*         csound->Free(csound, mname); */
-/*         flushlin(csound); */
-/*         goto srch; */
-/*       } */
-/*       while (isspace((c = getscochar(csound, 1)))); */
-/*       while (isNameChar(c, i)) { */
-/*         char  *new; */
-/*         mname[i++] = c; */
-/*         if (i==mlen) { */
-/*           new = (char *) csound->ReAlloc(csound, mname, mlen+=40); */
-/*           if (new==NULL) { */
-/*             fprintf(stderr, "Out of Memory\n"); */
-/*             exit(7); */
-/*           } */
-/*           mname = new; */
-/*         } */
-/*         c = getscochar(csound, 1); */
-/*       } */
-/*       mname[i] = '\0'; */
-/*       if (csound->oparms->msglevel & TIMEMSG) */
-/*         csound->Message(csound, Str("Macro definition for %s\n"), mname); */
-/*       mm->name = csound->Malloc(csound, i + 1); */
-/*       strcpy(mm->name, mname); */
-/*       if (c == '(') { /\* arguments *\/ */
-/*         do { */
-/*           while (isspace((c = getscochar(csound, 1)))); */
-/*           i = 0; */
-/*           while (isNameChar(c, i)) { */
-/*             char *new; */
-/*             mname[i++] = c; */
-/*             if (i==mlen) { */
-/*               new = (char *)csound->ReAlloc(csound, mname, mlen+=40); */
-/*               if (new==NULL) { */
-/*                 fprintf(stderr, "Out of Memory\n"); */
-/*                 exit(7); */
-/*               } */
-/*               mname = new; */
-/*             } */
-/*             c = getscochar(csound, 1); */
-/*           } */
-/*           mname[i] = '\0'; */
-/*           mm->arg[arg] = csound->Malloc(csound, i+1); */
-/*           strcpy(mm->arg[arg++], mname); */
-/*           if (arg>=mm->margs) { */
-/*             mm = (S_MACRO*)csound->ReAlloc(csound, mm, */
-/*                                   sizeof(S_MACRO)+mm->margs*sizeof(char*)); */
-/*             mm->margs += MARGS; */
-/*           } */
-/*           while (isspace(c)) c = getscochar(csound, 1); */
-/*         } while (c=='\'' || c=='#'); */
-/*         if (UNLIKELY(c!=')')) { */
-/*           csound->Message(csound, Str("macro error\n")); */
-/*           flushlin(csound); */
-/*           csound->Free(csound, mname); */
-/*           goto srch; */
-/*         } */
-/*       } */
-/*       mm->acnt = arg; */
-/*       while ((c = getscochar(csound, 1)) != '#') {   /\* Skip to next # *\/ */
-/*         if (UNLIKELY(c==EOF)) */
-/*           scorerr(csound, Str("Syntax error in macro definition")); */
-/*       } */
-/*       mm->body = corfile_create_w(); */
-/* #ifdef MACDEBUG */
-/*       csound->DebugMsg(csound,"%s(%d): macro %s %p\n", */
-/*                        __FILE__, __LINE__, mname, mm->body); */
-/* #endif */
-/*       while ((c = getscochar(csound, 0)) != '#') { // Do not expand here!! */
-/*         if (UNLIKELY(c==EOF)) */
-/*           scorerr(csound, Str("Syntax error in macro definition")); */
-/*         corfile_putc(c, mm->body); */
-/*         if (c=='\\') { */
-/*           corfile_putc(getscochar(csound, 0), mm->body); // Allow escaped # */
-/*         } */
-/*         if (c=='\n') STA(lincnt)++; */
-/*       } */
-/*       corfile_rewind(mm->body); */
-/*       mm->next = STA(macros); */
-/*       STA(macros) = mm; */
-/* #ifdef MACDEBUG */
-/*       csound->Message(csound, Str("Macro %s with %d arguments defined\n"), */
-/*                               mm->name, mm->acnt); */
-/*       csound->Message(csound, "with body %s\n", corfile_body(mm->body)); */
-/* #endif */
-/*       c = ' '; */
-/*       flushlin(csound); */
-/*       csound->Free(csound, mname); */
-/*       goto srch; */
-/*     } */
-/*     else if (c == 'i') { */
-/*       int delim; */
-/*       if (UNLIKELY(!check_preproc_name(csound, "include"))) { */
-/*         csound->Message(csound, Str("Not #include")); */
-/*         flushlin(csound); */
-/*         csound->Free(csound, mname); */
-/*         goto srch; */
-/*       } */
-/*       while (isspace((c = getscochar(csound, 1)))); */
-/*       delim = c; */
-/*       i = 0; */
-/*       while ((c=getscochar(csound, 1))!=delim) { */
-/*         char *new; */
-/*         mname[i++] = c; */
-/*         if (i==mlen) { */
-/*           new = (char *)realloc(mname, mlen+=40); */
-/*           if (new==NULL) { */
-/*             fprintf(stderr, "Out of Memory\n"); */
-/*             exit(7); */
-/*           } */
-/*           mname = new; */
-/*         } */
-/*       } */
-/*       mname[i]='\0'; */
-/*       while ((c=getscochar(csound, 1))!='\n'); */
-/*       STA(input_cnt)++; */
-/*       if (STA(input_cnt)>=STA(input_size)) { */
-/*         int old = STA(str)-STA(inputs); */
-/*         STA(input_size) += 20; */
-/*         STA(inputs) = csound->ReAlloc(csound, STA(inputs), STA(input_size) */
-/*                                                   * sizeof(IN_STACK)); */
-/*         STA(str) = &STA(inputs)[old];     /\* In case it moves *\/ */
-/*       } */
-/*       STA(str)++; */
-/*       STA(str)->is_marked_repeat = 0; */
-/* #ifdef HAVE_CURL */
-/*       if (strstr(mname, "://")) */
-/*         STA(str)->cf = copy_url_corefile(csound, mname, 1); */
-/*       else */
-/* #endif */
-/*         STA(str)->cf = copy_to_corefile(csound, mname, "INCDIR", 1); */
-/*       if (STA(str)->cf == NULL) { */
-/*         STA(str)--; */
-/*         STA(str)->line--; /\* include was one line earlier *\/ */
-/*         STA(linepos) = 0; */
-/*         scorerr(csound, Str("Cannot open #include'd file %s"), mname); */
-/*       } */
-/*       else { */
-/*         STA(str)->line = 1; */
-/*         csound->Free(csound, mname); */
-/*         goto srch; */
-/*       } */
-/*     } */
-/*     else if (c == 'u') { */
-/*       if (UNLIKELY(!check_preproc_name(csound, "undef"))) { */
-/*         csound->Message(csound, Str("Not #undef")); */
-/*         flushlin(csound); */
-/*         csound->Free(csound, mname); */
-/*         goto srch; */
-/*       } */
-/*       while (isspace((c = getscochar(csound, 1)))); */
-/*       while (isNameChar(c, i)) { */
-/*         char *new; */
-/*         mname[i++] = c; */
-/*         if (i==mlen) { */
-/*           new = (char *)realloc(mname, mlen+=40); */
-/*           if (new==NULL) { */
-/*             fprintf(stderr, "Out of Memory\n"); */
-/*             exit(7); */
-/*           } */
-/*           mname = new; */
-/*         } */
-/*         c = getscochar(csound, 1); */
-/*       } */
-/*       mname[i] = '\0'; */
-/*       if (csound->oparms->msglevel & TIMEMSG) */
-/*         csound->Message(csound, Str("macro %s undefined\n"), mname); */
-/*       undefine_score_macro(csound, mname); */
-/*       while (c != '\n' && c != EOF) */
-/*         c = getscochar(csound, 1); /\* ignore rest of line *\/ */
-/*     } */
-/* #ifdef never */
-/*     else if (c=='e') { */
-/*       if (UNLIKELY(!check_preproc_name(csound, "exit"))) { */
-/*         csound->Message(csound, "Not #exit"); */
-/*         flushlin(csound); */
-/*         csound->Free(csound, mname); */
-/*         goto srch; */
-/*       } */
-/*       while (c != '\n' && c != EOF) */
-/*         c = getscochar(csound, 1); /\* ignore rest of line *\/ */
-/*     } */
-/* #endif */
-/*     else { */
-/*       sreaderr(csound, Str("unknown # option")); */
-/*       flushlin(csound); */
-/*     } */
-/*     csound->Free(csound, mname); */
-/*       goto srch; */
-/*     } */
-#endif
+    /* Can never be ; from lexer, could do c in lexer *\/ */
+    /* if (c == ';' || c == 'c') { */
+    /*   flushlin(csound); */
+    /*   goto srch; */
+    /* } */
+    //printf("***Next non white: %c(%.2x)\n", c, c);
     return c;
 }
 
@@ -1832,7 +1015,7 @@ static int getop(CSOUND *csound)        /* get next legal opcode */
       flushlin(csound);
       goto nextc;
     }
-    STA(linpos)++;
+    (csound->sread.linpos)++;
     return(c);
 }
 
@@ -2010,8 +1193,8 @@ static MYFLT read_expression(CSOUND *csound)
 }
 
 
-static int getpfld(CSOUND *csound)      /* get pfield val from SCOREIN file */
-{                                       /*      set sp, nxp                 */
+static int getpfld(CSOUND *csound, int type) /* get pfield val from SCOREIN file */
+{                                            /*      set sp, nxp                 */
     int  c;
     char *p;
 
@@ -2020,33 +1203,34 @@ static int getpfld(CSOUND *csound)      /* get pfield val from SCOREIN file */
     if (c=='[') {
       MYFLT xx = read_expression(csound);
       //printf("****xx=%a\n", xx);
-      //printf("nxp = %p\n", STA(nxp));
-      snprintf(STA(sp) = STA(nxp), 28, "%a$", xx);
-      p = strchr(STA(sp),'$');
+      //printf("nxp = %p\n", (csound->sread.nxp));
+      snprintf((csound->sread.sp) = (csound->sread.nxp), 28, "%a$", xx);
+      p = strchr((csound->sread.sp),'$');
       goto blank;
     }
 
                     /* if non-numeric, and non-carry, and non-special-char: */
     /*    if (strchr("0123456789.+-^np<>()\"~!", c) == NULL) { */
-    if (!isdigit(c) && c!='.' && c!='+' && c!='-' && c!='^' && c!='n'
-        && c!='p' && c!='<' && c!='>' && c!='(' && c!=')'
-        && c!='"' && c!='~' && c!='!' && c!='z') {
+    if (!isdigit(c) && (type || (c!='.' && c!='+' && c!='-' && c!='^' && c!='n'
+                                 && c!='p' && c!='<' && c!='>' && c!='(' && c!=')'
+                                 && c!='"' && c!='~' && c!='!' && c!='z'))) {
       ungetscochar(csound, c);                /* then no more pfields    */
-      if (UNLIKELY(STA(linpos))) {
+      if (UNLIKELY((csound->sread.linpos))) {
         sreaderr(csound, Str("unexpected char %c"), c);
         csound->Message(csound, Str("      remainder of line flushed\n"));
         flushlin(csound);
       }
       return(0);                              /*    so return            */
     }
-    p = STA(sp) = STA(nxp);                     /* else start copying to text */
+    p = (csound->sread.sp) = (csound->sread.nxp); /* else start copying to text */
     *p++ = c;
-    STA(linpos)++;
+    (csound->sread.linpos)++;
     if (c == '"') {                           /* if have quoted string,  */
       /* IV - Oct 31 2002: allow string instr name for i and q events */
-      if (UNLIKELY(STA(bp)->pcnt < 3 &&
-          !((STA(op) == 'i' || STA(op) == 'd' || STA(op) == 'q') &&
-            !STA(bp)->pcnt))) {
+      if (UNLIKELY((csound->sread.bp)->pcnt < 3 &&
+          !(((csound->sread.op) == 'i' ||
+             (csound->sread.op) == 'd' || (csound->sread.op) == 'q') &&
+            !(csound->sread.bp)->pcnt))) {
         sreaderr(csound, Str("illegally placed string"));
         csound->Message(csound, Str("      remainder of line flushed\n"));
         flushlin(csound);
@@ -2063,7 +1247,7 @@ static int getpfld(CSOUND *csound)      /* get pfield val from SCOREIN file */
           //          printf("escaped %c\n", *(p-1));
         }
         /* **** CHECK **** */
-        if (p >= STA(memend))
+        if (p >= (csound->sread.memend))
           p = (char*) ((uintptr_t) p + expand_nxp(csound));
         /* **** END CHECK **** */
       }
@@ -2079,7 +1263,7 @@ static int getpfld(CSOUND *csound)      /* get pfield val from SCOREIN file */
           c==')' || c=='~' || c=='z') {
         *p++ = c;
         /* **** CHECK **** */
-        if (p >= STA(memend))
+        if (p >= (csound->sread.memend))
           p = (char*) ((uintptr_t) p + expand_nxp(csound));
         /* **** END CHECK **** */
       }
@@ -2090,7 +1274,7 @@ static int getpfld(CSOUND *csound)      /* get pfield val from SCOREIN file */
     }
  blank:
     *p++ = SP;
-    STA(nxp) = p;                            /*  add blank      */
+    (csound->sread.nxp) = p;                            /*  add blank      */
     return(1);                              /*  and report ok  */
 }
 

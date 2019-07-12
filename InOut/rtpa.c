@@ -239,13 +239,15 @@ static int pa_SetStreamParameters(CSOUND *csound, PaStreamParameters *sp,
                                                   int is_playback)
 {
     int dev;
-
     memset(sp, 0, sizeof(PaStreamParameters));
     if (UNLIKELY(parm->devName != NULL && parm->devName[0] != '\0')) {
       return pa_PrintErrMsg(csound,
                             Str("Must specify a device number, not a name"));
     }
     dev = selectPortAudioDevice(csound, parm->devNum, is_playback);
+    if(parm->sampleRate < 0) {
+      parm->sampleRate = csound->system_sr(csound, 0);
+    }
     if (dev < 0)
       return -1;
     sp->device = (PaDeviceIndex) dev;

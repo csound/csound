@@ -33,7 +33,7 @@ __global__ void convol(float *out, float *del, float *coefs, int irsize, int rp,
   rp += n + h; /* read point, oldest -> newest */
   out[t] = del[rp < end ? rp : rp%end]*coefs[irsize-1-h];  /* single tap */
   if(t >= vsize) return;
-  syncthreads();
+  __syncthreads();
   float a = 0.0;
   for(int i=1, j=vsize; i < irsize; i++, j+=vsize)
     a +=  out[n + j]; /* mix all taps */   

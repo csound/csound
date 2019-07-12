@@ -29,6 +29,7 @@
 #include "csdl.h"
 #include "pstream.h"
 #include "arrays.h"
+#include <array>
 #include <algorithm>
 #include <complex>
 #include <cstring>
@@ -41,7 +42,7 @@ const double twopi = TWOPI;
 
 /** opcode threads: i-time, k-perf and/or a-perf
 */
-enum thread { i = 1, k = 2, ik = 3, a = 4, ia = 5, ika = 7 };
+enum thread { i = 1, k = 2, ik = 3, a = 2, ia = 3 /*, ika = 3*/ };
 
 /** fsig formats: phase vocoder, stft polar, stft complex, or
     sinusoidal tracks
@@ -138,46 +139,49 @@ public:
     return !std::strcmp(GetTypeForArg(arg)->varTypeName, "a");
   }
 
-      /** midi channel number for this instrument
+  /** midi channel number for this instrument
    */
-  int midi_channel() { return GetMidiChannelNumber(this); }
+  int midi_channel(OPDS *p) { return GetMidiChannelNumber(p); }
 
   /** midi note number for this instrument
    */
-  int midi_note_num() { return GetMidiNoteNumber(this); }
+  int midi_note_num(OPDS *p) { return GetMidiNoteNumber(p); }
 
   /** midi note velocity for this instrument
    */
-  int midi_note_vel() { return GetMidiVelocity(this); }
+  int midi_note_vel(OPDS *p) { return GetMidiVelocity(p); }
 
   /** midi aftertouch for this channel
    */
-  MYFLT midi_chn_aftertouch() { return GetMidiChannel(this)->aftouch; }
+  MYFLT midi_chn_aftertouch(OPDS *p) {
+    return GetMidiChannel(p)->aftouch; }
 
   /** midi poly aftertouch for this channel
    */
-  MYFLT midi_chn_polytouch(uint32_t note) {
-    return GetMidiChannel(this)->polyaft[note];
+  MYFLT midi_chn_polytouch(OPDS *p, uint32_t note) {
+    return GetMidiChannel(p)->polyaft[note];
   }
 
   /** midi ctl change for this channel
    */
-  MYFLT midi_chn_ctl(uint32_t ctl) {
-    return GetMidiChannel(this)->ctl_val[ctl];
+  MYFLT midi_chn_ctl(OPDS *p, uint32_t ctl) {
+    return GetMidiChannel(p)->ctl_val[ctl];
   }
 
   /** midi pitchbend for this channel
    */
-  MYFLT midi_chn_pitchbend() { return GetMidiChannel(this)->pchbend; }
+  MYFLT midi_chn_pitchbend(OPDS *p) {
+    return GetMidiChannel(p)->pchbend;
+  }
 
   /** list of active instrument instances for this channel \n
       returns an INSDS array with 128 items, one per
       MIDI note number. Inactive instances are marked NULL.
    */
-  const INSDS *midi_chn_list() {
-    return (const INSDS *)GetMidiChannel(this)->kinsptr;
+  const INSDS *midi_chn_list(OPDS *p) {
+    return (const INSDS *) GetMidiChannel(p)->kinsptr;
   }
-  
+
   /** deinit registration for a given plugin class
    */
   template <typename T> void plugin_deinit(T *p) {
@@ -352,7 +356,7 @@ public:
   /** Initialise the container
    */
   void init(Csound *csound, int size) {
-    tabensure(csound, this, size);
+    tabinit(csound, this, size);
   }
 
   /** iterator type
@@ -773,10 +777,12 @@ public:
   uint32_t len() { return size / sizeof(T); }
 };
 
+
+
 /** Parameters template class
  */
-template <uint32_t N> class Param {
-  MYFLT *ptrs[N];
+ template <std::size_t N> class Param {
+  std::array<MYFLT *, N> ptrs;
 
 public:
   /** parameter access via array subscript (write)
@@ -797,27 +803,27 @@ public:
 
   /** vector beginning
    */
-  iterator begin() { return ptrs; }
+  iterator begin() { return &ptrs[0]; }
 
   /** vector end
    */
-  iterator end() { return ptrs + N; }
+  iterator end() { return  &ptrs[N]; }
 
   /** vector beginning
    */
-  const_iterator begin() const { return ptrs; }
+  const_iterator begin() const { return (const MYFLT **)&ptrs[0]; }
 
   /** vector end
    */
-  const_iterator end() const { return ptrs + N; }
+  const_iterator end() const { return (const MYFLT **)&ptrs[N]; }
 
   /** vector beginning
    */
-  const_iterator cbegin() const { return ptrs; }
+  const_iterator cbegin() const { return (const MYFLT **)&ptrs[0]; }
 
   /** vector end
    */
-  const_iterator cend() const { return ptrs + N; }
+  const_iterator cend() const { return (const MYFLT **)&ptrs[N]; }
 
   /** parameter data (MYFLT pointer) at index n
    */
@@ -850,7 +856,7 @@ public:
 /** Plugin template base class:
     N outputs and M inputs
  */
-template <uint32_t N, uint32_t M> struct Plugin : OPDS {
+template <std::size_t N, std::size_t M> struct Plugin : OPDS {
   /** output arguments */
   Param<N> outargs;
   /** input arguments */
@@ -915,12 +921,55 @@ template <uint32_t N, uint32_t M> struct Plugin : OPDS {
    */
   MYFLT kr() { return insdshead->ekr; }
 
+  /** midi channel number for this instrument
+   */
+  int midi_channel() { return ((CSOUND *)csound)->GetMidiChannelNumber(this); }
+
+  /** midi note number for this instrument
+   */
+  int midi_note_num() { return ((CSOUND *)csound)->GetMidiNoteNumber(this); }
+
+  /** midi note velocity for this instrument
+   */
+  int midi_note_vel() { return ((CSOUND *)csound)->GetMidiVelocity(this); }
+
+  /** midi aftertouch for this channel
+   */
+  MYFLT midi_chn_aftertouch() {
+    return ((CSOUND *)csound)->GetMidiChannel(this)->aftouch; }
+
+  /** midi poly aftertouch for this channel
+   */
+  MYFLT midi_chn_polytouch(uint32_t note) {
+    return ((CSOUND *)csound)->GetMidiChannel(this)->polyaft[note];
+  }
+
+  /** midi ctl change for this channel
+   */
+  MYFLT midi_chn_ctl(uint32_t ctl) {
+    return ((CSOUND *)csound)->GetMidiChannel(this)->ctl_val[ctl];
+  }
+
+  /** midi pitchbend for this channel
+   */
+  MYFLT midi_chn_pitchbend() {
+    return ((CSOUND *)csound)->GetMidiChannel(this)->pchbend; }
+
+  /** list of active instrument instances for this channel \n
+      returns an INSDS array with 128 items, one per
+      MIDI note number. Inactive instances are marked NULL.
+   */
+  const INSDS *midi_chn_list() {
+    return (const INSDS *) ((CSOUND *)csound)->GetMidiChannel(this)->kinsptr;
+  }
+
 };
+
 
 /** Fsig plugin template base class:
     N outputs and M inputs
  */
-template <uint32_t N, uint32_t M> struct FPlugin : Plugin<N, M> {
+template <std::size_t N, std::size_t M> struct FPlugin : Plugin<N, M> {
   /** current frame time index */
   uint32_t framecount;
 };
@@ -958,23 +1007,34 @@ template <typename T> int aperf(CSOUND *csound, T *p) {
  */
 template <typename T>
 int plugin(Csound *csound, const char *name, const char *oargs,
-           const char *iargs, uint32_t thread, uint32_t flags = 0) {
+           const char *iargs, uint32_t thr, uint32_t flags = 0) {
   CSOUND *cs = (CSOUND *)csound;
-  return cs->AppendOpcode(cs, (char *)name, sizeof(T), flags, thread,
+  if(thr == thread::ia || thr == thread::a)
+  return cs->AppendOpcode(cs, (char *)name, sizeof(T), flags, thr,
                           (char *)oargs, (char *)iargs, (SUBR)init<T>,
-                          (SUBR)kperf<T>, (SUBR)aperf<T>);
+                          (SUBR)aperf<T>, NULL);
+  else
+  return cs->AppendOpcode(cs, (char *)name, sizeof(T), flags, thr,
+                          (char *)oargs, (char *)iargs, (SUBR)init<T>,
+                          (SUBR)kperf<T>, NULL);
 }
 
 /** plugin registration function template
     for classes with self-defined opcode argument types
  */
 template <typename T>
-int plugin(Csound *csound, const char *name, uint32_t thread,
+int plugin(Csound *csound, const char *name, uint32_t thr,
            uint32_t flags = 0) {
   CSOUND *cs = (CSOUND *)csound;
-  return cs->AppendOpcode(cs, (char *)name, sizeof(T), flags, thread,
+  if(thr == thread::ia || thr == thread::a)
+  return cs->AppendOpcode(cs, (char *)name, sizeof(T), flags, thr,
                           (char *)T::otypes, (char *)T::itypes, (SUBR)init<T>,
-                          (SUBR)kperf<T>, (SUBR)aperf<T>);
+                          (SUBR)aperf<T>, NULL);
+  else
+  return cs->AppendOpcode(cs, (char *)name, sizeof(T), flags, thr,
+                          (char *)T::otypes, (char *)T::itypes, (SUBR)init<T>,
+                          (SUBR)kperf<T>, NULL);
+
 }
 
 /** utility constructor function template for member classes: \n
