@@ -101,6 +101,52 @@ static void checkOptions(CSOUND *csound)
     }
 }
 
+static void put_sorted_score(CSOUND *csound, char *ss, FILE* ff)
+{
+    char *p = ss;
+    int num, cnt;
+    double p2o, p2, p3o,p3, inst;
+    while (*p!='\0') {
+      switch (*p) {
+      case 'f':
+        fputc(*p,ff);
+        sscanf(p+1, "%d %la %la%n", &num, &p2o, &p2, &cnt);
+        fprintf(ff, " %d %lg %lg ", num, p2o, p2);
+        p+=cnt+1;
+        break;
+      case 'i':
+      case 'd':
+        fputc(*p,ff);
+        if (*(p+2)=='"') {
+          fputc(' ', ff);
+          fputc('"', ff);
+          p+=3;
+          while (*p!='"') {
+            fputc(*p++, ff);
+          }
+          sscanf(p+1, "%la %la %la %la%n", &p2o, &p2, &p3o, &p3, &cnt);
+          fprintf(ff, "\" %lg %lg %lg %lg ", p2o, p2, p3o, p3);
+          p+=cnt+1;
+        }
+        else {
+          sscanf(p+1, "%la %la %la %la %la%n", &inst, &p2o, &p2, &p3o, &p3, &cnt);
+          fprintf(ff, " %lg %lg %lg %lg %lg ", inst, p2o, p2, p3o, p3);
+          p+=cnt+1;
+        }
+        break;
+      default:
+        csound->Message(csound, Str("Unknown score opcode %c(%.2x)\n"), *p, *p);
+      case 's':
+      case 'e':
+      case 'w':
+        break;
+      }
+      while (1) {
+        fputc(*p, ff);
+        if (*p++==LF) break;
+      }
+    }
+}
 
 PUBLIC int csoundCompileArgs(CSOUND *csound, int argc, const char **argv)
 {
@@ -305,7 +351,10 @@ PUBLIC int csoundCompileArgs(CSOUND *csound, int argc, const char **argv)
       scsortstr(csound, csound->scorestr);
       if (csound->keep_tmp) {
         FILE *ff = fopen("score.srt", "w");
-        fputs(corfile_body(csound->scstr), ff);
+        if (csound->keep_tmp==1)
+          fputs(corfile_body(csound->scstr), ff);
+        else
+          put_sorted_score(csound, corfile_body(csound->scstr), ff);
         fclose(ff);
       }
     }

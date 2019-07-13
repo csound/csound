@@ -878,6 +878,10 @@ static int decode_long(CSOUND *csound, char *s, int argc, char **argv)
       csound->keep_tmp = 1;
       return 1;
     }
+    else if (!(strcmp (s, "simple-sorted-score"))) {
+      csound->keep_tmp = 2;
+      return 1;
+    }
     /* IV - Jan 27 2005: --expression-opt */
     /* NOTE these do nothing */
     else if (!(strcmp (s, "expression-opt"))) {
