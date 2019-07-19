@@ -224,22 +224,3 @@ users.  There have been many fixes to the core code as well as opcodes.
 
 ==END==
 
------------------------------------------------------------------------
-The following may need an entry above
-------------------------------------------------------------------------
-commit a0d0caf2f642a788a47b5dc138380d086fac058a
-Merge: 35873dd434 175a790712
-Author: John ffitch <jpff@codemist.co.uk>
-Date:   Wed Jun 26 15:05:03 2019 +0100
-
-commit 0b4c6edb9f8631b2a1d207b25432326802518a04
-Author: Felipe Sateler <fsateler@gmail.com>
-Date:   Sun Feb 3 18:54:08 2019 -0300
-
-    perfThread: wait the recording thread before waiting for the performance thread
-
-    If we don't tell the recording thread to stop, we might enter a deadlock as the perf thread waits for the record
-    thread but it has not been stopped yet.
-
-    Fixes #1103
-

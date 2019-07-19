@@ -110,7 +110,7 @@ static void II_decode_samples(mpadec_t mpadec, uint8_t *bit_alloc,
     unsigned i, j, k, step, sblimit = mpa->frame.sblimit;
     unsigned jsbound = mpa->frame.jsbound;
 
-    for (i = 0; i < jsbound; i++, alloc += ((int64_t)(1 << step))) {
+    for (i = 0; i < jsbound; i++, alloc += ((int64_t)1) << step) {
       step = alloc->bits;
       for (j = 0; j < (unsigned)mpa->frame.channels; j++) {
         unsigned b = *ba++; int d;
