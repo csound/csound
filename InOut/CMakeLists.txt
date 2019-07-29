@@ -54,6 +54,11 @@ if(USE_JACK)
     find_library(JACK_LIBRARY jack)
     find_library(JACKDMP_LIBRARY jackdmp)
     check_include_file(jack/jack.h JACK_HEADER)
+    if(APPLE)
+    # VL: could not find a way to make check_include_file() work so
+    # I am hardcoding it for MacOS
+    set(JACK_HEADER  "jack/jack.h")
+    endif()
 endif()
 if(USE_PULSEAUDIO)
     find_library(PULSEAUDIO_LIBRARY pulse)

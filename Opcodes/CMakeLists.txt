@@ -31,6 +31,12 @@ find_library(JACK_LIBRARY jack)
 find_library(JACKDMP_LIBRARY jackdmp)
 check_include_file(jack/jack.h JACK_HEADER)
 check_include_file(lo/lo.h OSC_HEADER)
+if(APPLE)
+# VL: could not find a way to make check_include_file() work so
+# I am hardcoding it for MacOS
+set(OSC_HEADER "lo/lo.h")
+set(JACK_HEADER  "jack/jack.h")
+endif()
 find_path(OSC_HEADER_INC "lo/lo.h")
 find_library(LIBLO_LIBRARY lo)
 find_package(ZLIB)
