@@ -1404,7 +1404,7 @@ tab2array_k(CSOUND *csound, TAB2ARRAY *p) {
         end = ftp->flen;
     int numitems = (int) (ceil((end - start) / (double)step));
     if(numitems < 0)
-        return PERFERR(Str("tab2array: can't copy a negative number of items"));
+        return PERFERR(Str("tab2array: cannot copy a negative number of items"));
 
     ARRAY_ENSURESIZE(csound, p->out, numitems);
     p->numitems = numitems;

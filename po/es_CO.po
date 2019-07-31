@@ -186,11 +186,12 @@ msgstr ""
 msgid "Invalid NULL parameter set to add to a global read_list\n"
 msgstr ""
 
-#: Engine/cs_par_orc_semantic_analysis.c:259
-msgid "opcode deprecated"
+#: Engine/cs_par_orc_semantic_analysis.c:260
+#, c-format
+msgid "opcode %s deprecated"
 msgstr ""
 
-#: Engine/cs_par_orc_semantic_analysis.c:315
+#: Engine/cs_par_orc_semantic_analysis.c:316
 msgid "Not a proper list of ints"
 msgstr ""
 
@@ -931,7 +932,7 @@ msgstr "intervalo x ilegal"
 #: Engine/fgens.c:467 Engine/fgens.c:616 Engine/fgens.c:697 Engine/fgens.c:942
 #: Engine/fgens.c:1443 Engine/fgens.c:2568 Engine/fgens.c:2903
 #: Engine/fgens.c:3044 Opcodes/ftest.c:140 Opcodes/quadbezier.c:64
-#: Top/main.c:128 util/cvanal.c:67 util/lpanal.c:406 util/pvanal.c:170
+#: Top/main.c:174 util/cvanal.c:67 util/lpanal.c:406 util/pvanal.c:170
 msgid "insufficient arguments"
 msgstr "argumentos insuficientes"
 
@@ -1725,7 +1726,7 @@ msgstr "no es posible reabrir cscore.srt"
 msgid "sorting cscore.out ..\n"
 msgstr "ordenando cscore.out ...\n"
 
-#: Engine/musmon.c:394 Top/main.c:322
+#: Engine/musmon.c:394 Top/main.c:371
 msgid "\t... done\n"
 msgstr "\t... listo\n"
 
@@ -5388,7 +5389,7 @@ msgstr ""
 msgid "a-rate argument not allowed"
 msgstr ""
 
-#: OOps/str_ops.c:375 Top/argdecode.c:1523 util/envext.c:99 util/scale.c:249
+#: OOps/str_ops.c:375 Top/argdecode.c:1527 util/envext.c:99 util/scale.c:249
 msgid "too many arguments"
 msgstr ""
 
@@ -6744,225 +6745,221 @@ msgstr ""
 msgid "Unable to find label \"%s\" in plugin library file \"%s\"."
 msgstr ""
 
-#: Opcodes/emugens/beosc.c:594
+#: Opcodes/emugens/beosc.c:592
 #, fuzzy
 msgid "beadsynt: phasetable not found"
 msgstr "GEN32: tabla-f (ftable) fuente %d no encontrada"
 
-#: Opcodes/emugens/beosc.c:636
+#: Opcodes/emugens/beosc.c:634
 #, fuzzy
 msgid "beadsynt: wavetable not found"
 msgstr "GEN32: tabla-f (ftable) fuente %d no encontrada"
 
-#: Opcodes/emugens/beosc.c:647
+#: Opcodes/emugens/beosc.c:645
 msgid "beadsynt: partial count > amptable size"
 msgstr ""
 
-#: Opcodes/emugens/beosc.c:653
+#: Opcodes/emugens/beosc.c:651
 #, fuzzy
 msgid "beadsynt: freqtable not found!"
 msgstr "GEN32: tabla-f (ftable) fuente %d no encontrada"
 
-#: Opcodes/emugens/beosc.c:656
+#: Opcodes/emugens/beosc.c:654
 msgid "beadsynt: partial count > freqtable size"
 msgstr ""
 
-#: Opcodes/emugens/beosc.c:662
+#: Opcodes/emugens/beosc.c:660
 #, fuzzy
 msgid "beadsynt: bandwidth table not found"
 msgstr "Tabla %f no encontrada"
 
-#: Opcodes/emugens/beosc.c:665
+#: Opcodes/emugens/beosc.c:663
 msgid "beadsynt: partial count > bandwidth size"
 msgstr ""
 
-#: Opcodes/emugens/beosc.c:681
+#: Opcodes/emugens/beosc.c:679
 #, fuzzy
 msgid "beadsynt: wavetable not found!"
 msgstr "GEN32: tabla-f (ftable) fuente %d no encontrada"
 
-#: Opcodes/emugens/beosc.c:690
+#: Opcodes/emugens/beosc.c:688
 msgid "The arrays should have 1 dimension"
 msgstr ""
 
-#: Opcodes/emugens/beosc.c:701
+#: Opcodes/emugens/beosc.c:699
 #, fuzzy
 msgid "Amplitudes array is too small"
 msgstr "t-var no ha sido inicializado"
 
-#: Opcodes/emugens/beosc.c:704
+#: Opcodes/emugens/beosc.c:702
 #, fuzzy
 msgid "Frequencies array is too small"
 msgstr "t-var no ha sido inicializado"
 
-#: Opcodes/emugens/beosc.c:707
+#: Opcodes/emugens/beosc.c:705
 #, fuzzy
 msgid "bandwidths array is too small"
 msgstr "t-var no ha sido inicializado"
 
-#: Opcodes/emugens/beosc.c:740
+#: Opcodes/emugens/beosc.c:738
 #, fuzzy
 msgid "beadsynt: not initialised"
 msgstr "adsynt: no ha sido inicializado"
 
-#: Opcodes/emugens/beosc.c:1070 Opcodes/emugens/beosc.c:1074
+#: Opcodes/emugens/beosc.c:1068 Opcodes/emugens/beosc.c:1072
 #, fuzzy
 msgid "tabrowcopy: incorrect table number"
 msgstr "copyTabElems: número inválido de tabla fuente"
 
-#: Opcodes/emugens/beosc.c:1080
+#: Opcodes/emugens/beosc.c:1078
 #, fuzzy
 msgid "tabrowcopy: iend cannot be bigger than numcols"
 msgstr "copyTabElems: número inválido de tabla fuente"
 
-#: Opcodes/emugens/beosc.c:1089
+#: Opcodes/emugens/beosc.c:1087
 #, fuzzy
 msgid "tabrowcopy: Destination table too small"
 msgstr "copyTabElems: número inválido de tabla fuente"
 
-#: Opcodes/emugens/beosc.c:1101
+#: Opcodes/emugens/beosc.c:1099
 #, c-format
 msgid ">>>> tabrowlin: row %.4f > maxrow %d! It will be clipped\n"
 msgstr ""
 
-#: Opcodes/emugens/beosc.c:1124
+#: Opcodes/emugens/beosc.c:1122
 #, fuzzy
 msgid "tabrowcopy: krow cannot be negative"
 msgstr "pvsfread: ichan no puede ser negativo.\n"
 
-#: Opcodes/emugens/beosc.c:1132 Opcodes/emugens/beosc.c:1141
+#: Opcodes/emugens/beosc.c:1130 Opcodes/emugens/beosc.c:1139
 msgid "tabrowcopy: tab off end"
 msgstr ""
 
-#: Opcodes/emugens/beosc.c:1164
+#: Opcodes/emugens/beosc.c:1162
 #, fuzzy
 msgid "tabrowlin: incorrect table number"
 msgstr "copyTabElems: número inválido de tabla fuente"
 
-#: Opcodes/emugens/beosc.c:1171
+#: Opcodes/emugens/beosc.c:1169
 msgid "tabrowlin: iend cannot be bigger than numcols"
 msgstr ""
 
-#: Opcodes/emugens/beosc.c:1175
+#: Opcodes/emugens/beosc.c:1173
 msgid "tabrowlin: end must be bigger than start"
 msgstr ""
 
-#: Opcodes/emugens/beosc.c:1180
+#: Opcodes/emugens/beosc.c:1178
 msgid "tabrowlin: no items to copy"
 msgstr ""
 
-#: Opcodes/emugens/beosc.c:1203
+#: Opcodes/emugens/beosc.c:1201
 #, fuzzy
 msgid "krow cannot be negative"
 msgstr "pvsfread: ichan no puede ser negativo.\n"
 
-#: Opcodes/emugens/beosc.c:1217 Opcodes/emugens/beosc.c:1225
+#: Opcodes/emugens/beosc.c:1215 Opcodes/emugens/beosc.c:1223
 #, fuzzy
 msgid "tab off end"
 msgstr "número de tabla fuente (srctable) desconocido"
 
-#: Opcodes/emugens/beosc.c:1271
+#: Opcodes/emugens/beosc.c:1268
 msgid "The input array should be a 2D array"
 msgstr ""
 
-#: Opcodes/emugens/beosc.c:1281
+#: Opcodes/emugens/beosc.c:1278
 msgid "Asked to read too many items from a row"
 msgstr ""
 
-#: Opcodes/emugens/beosc.c:1289
+#: Opcodes/emugens/beosc.c:1285
 #, fuzzy
 msgid "getrowlin: krow cannot be negative"
 msgstr "pvsfread: ichan no puede ser negativo.\n"
 
-#: Opcodes/emugens/beosc.c:1291
+#: Opcodes/emugens/beosc.c:1287
 #, c-format
 msgid "getrowlin: row %.4f > maxrow %d, clipping\n"
 msgstr ""
 
-#: Opcodes/emugens/emugens.c:85 Opcodes/emugens/emugens.c:116
+#: Opcodes/emugens/emugens.c:78 Opcodes/emugens/emugens.c:109
 msgid "linlin.k: Division by zero"
 msgstr ""
 
-#: Opcodes/emugens/emugens.c:165
+#: Opcodes/emugens/emugens.c:158
 msgid "linlin: Division by zero"
 msgstr ""
 
-#: Opcodes/emugens/emugens.c:213
+#: Opcodes/emugens/emugens.c:206
 msgid "lincos: Division by zero"
 msgstr ""
 
-#: Opcodes/emugens/emugens.c:442 Opcodes/emugens/emugens.c:478
-#: Opcodes/emugens/emugens.c:655 Opcodes/emugens/emugens.c:700
+#: Opcodes/emugens/emugens.c:435 Opcodes/emugens/emugens.c:471
+#: Opcodes/emugens/emugens.c:653 Opcodes/emugens/emugens.c:697
 msgid "bpf: data length should be even (pairs of x, y)"
 msgstr ""
 
-#: Opcodes/emugens/emugens.c:445 Opcodes/emugens/emugens.c:480
-#: Opcodes/emugens/emugens.c:657 Opcodes/emugens/emugens.c:702
+#: Opcodes/emugens/emugens.c:438 Opcodes/emugens/emugens.c:473
+#: Opcodes/emugens/emugens.c:655 Opcodes/emugens/emugens.c:699
 msgid "bpf: too many pargs (max=256)"
 msgstr ""
 
-#: Opcodes/emugens/emugens.c:766
+#: Opcodes/emugens/emugens.c:763
 #, c-format
 msgid "expecting a char between A and G, but got %c\n"
 msgstr ""
 
-#: Opcodes/emugens/emugens.c:792
+#: Opcodes/emugens/emugens.c:789
 #, fuzzy, c-format
 msgid "format not understood, note: %s, notelen: %d\n"
 msgstr "Nombre %s no encontrado"
 
-#: Opcodes/emugens/emugens.c:992 Opcodes/emugens/emugens.c:1005
-#: Opcodes/emugens/emugens.c:1023
+#: Opcodes/emugens/emugens.c:989 Opcodes/emugens/emugens.c:1002
+#: Opcodes/emugens/emugens.c:1020
 msgid "cmp: unknown operator. Expecting <, <=, >, >=, ==, !="
 msgstr ""
 
-#: Opcodes/emugens/emugens.c:1046
+#: Opcodes/emugens/emugens.c:1043
 msgid "cmp (ternary comparator): operator 2 expected <"
 msgstr ""
 
-#: Opcodes/emugens/emugens.c:1049
+#: Opcodes/emugens/emugens.c:1046
 msgid "cmp (ternary comparator): operator 1 expected <"
 msgstr ""
 
-#: Opcodes/emugens/emugens.c:1393
+#: Opcodes/emugens/emugens.c:1390 Opcodes/emugens/emugens.c:1407
 msgid "tab2array: cannot copy a negative number of items"
 msgstr ""
 
-#: Opcodes/emugens/emugens.c:1410
-msgid "tab2array: can't copy a negative number of items"
-msgstr ""
-
-#: Opcodes/emugens/emugens.c:1493
+#: Opcodes/emugens/emugens.c:1489
 msgid "reshapearray: cannot reshape"
 msgstr ""
 
-#: Opcodes/emugens/emugens.c:1590
+#: Opcodes/emugens/emugens.c:1586
 msgid "cannot print multidimensional string arrays"
 msgstr ""
 
-#: Opcodes/emugens/emugens.c:1592
+#: Opcodes/emugens/emugens.c:1588
 #, c-format
 msgid "only 1-D and 2-D arrays supported, got %d dimensions"
 msgstr ""
 
-#: Opcodes/emugens/emugens.c:1727
+#: Opcodes/emugens/emugens.c:1723
 #, fuzzy, c-format
 msgid "type not supported for printing: %s"
 msgstr "no está soportado en esta terminal"
 
-#: Opcodes/emugens/emugens.c:1839
+#: Opcodes/emugens/emugens.c:1835
 #, fuzzy, c-format
 msgid "Could not handle start index: %d"
 msgstr "número de tabla fuente (srctable) desconocido"
 
-#: Opcodes/emugens/emugens.c:1847
+#: Opcodes/emugens/emugens.c:1843
 #, fuzzy, c-format
 msgid "Could not handle end index: %d"
 msgstr "número de tabla fuente (srctable) desconocido"
 
-#: Opcodes/emugens/emugens_common.h:9
+#: Opcodes/emugens/emugens_common.h:17
 #, c-format
-msgid "Array should be of 1D, but has %d dimensions"
+msgid "Array should be of 1D, but has d% dimensions"
 msgstr ""
 
 #: Opcodes/fareygen.c:116
@@ -8594,16 +8591,21 @@ msgstr " *** encabezado inválido del archivo MIDI\n"
 msgid "not init\n"
 msgstr ""
 
-#: Opcodes/nlfilt.c:138
+#: Opcodes/nlfilt.c:144
 msgid "nlfilt: not initialised"
 msgstr "nlfilt: no ha sido inicializado"
 
-#: Opcodes/nlfilt.c:214
+#: Opcodes/nlfilt.c:220
 #, fuzzy
 msgid "nlfilt2: not initialised"
 msgstr "nlfilt: no ha sido inicializado"
 
-#: Opcodes/nlfilt.c:252
+#: Opcodes/nlfilt.c:239 Opcodes/nlfilt.c:249
+#, fuzzy
+msgid "invalid p field index"
+msgstr " *** encabezado inválido del archivo MIDI\n"
+
+#: Opcodes/nlfilt.c:274
 msgid "More arguments than p fields"
 msgstr ""
 
@@ -11626,19 +11628,19 @@ msgstr ""
 msgid "unknown output format: '%s'"
 msgstr ""
 
-#: Top/argdecode.c:559 Top/argdecode.c:1283
+#: Top/argdecode.c:559 Top/argdecode.c:1287
 msgid "no iobufsamps"
 msgstr ""
 
-#: Top/argdecode.c:566 Top/argdecode.c:1290
+#: Top/argdecode.c:566 Top/argdecode.c:1294
 msgid "no hardware bufsamps"
 msgstr ""
 
-#: Top/argdecode.c:594 Top/argdecode.c:1391
+#: Top/argdecode.c:594 Top/argdecode.c:1395
 msgid "no midifile name"
 msgstr ""
 
-#: Top/argdecode.c:598 Top/argdecode.c:1396
+#: Top/argdecode.c:598 Top/argdecode.c:1400
 msgid "-F: stdin not supported on this platform"
 msgstr ""
 
@@ -11650,19 +11652,19 @@ msgstr ""
 msgid "invalid python variable definition syntax"
 msgstr ""
 
-#: Top/argdecode.c:648 Top/argdecode.c:1251
+#: Top/argdecode.c:648 Top/argdecode.c:1255
 msgid "no infilename"
 msgstr ""
 
-#: Top/argdecode.c:651 Top/argdecode.c:1255
+#: Top/argdecode.c:651 Top/argdecode.c:1259
 msgid "input cannot be stdout"
 msgstr ""
 
-#: Top/argdecode.c:655 Top/argdecode.c:1259
+#: Top/argdecode.c:655 Top/argdecode.c:1263
 msgid "stdin audio not supported"
 msgstr ""
 
-#: Top/argdecode.c:686 Top/argdecode.c:1323
+#: Top/argdecode.c:686 Top/argdecode.c:1327
 msgid "no control rate"
 msgstr ""
 
@@ -11670,11 +11672,11 @@ msgstr ""
 msgid "no ksmps"
 msgstr ""
 
-#: Top/argdecode.c:707 Top/argdecode.c:1365
+#: Top/argdecode.c:707 Top/argdecode.c:1369
 msgid "no Linein score device_name"
 msgstr ""
 
-#: Top/argdecode.c:723 Top/argdecode.c:729 Top/argdecode.c:1331
+#: Top/argdecode.c:723 Top/argdecode.c:729 Top/argdecode.c:1335
 msgid "no message level"
 msgstr ""
 
@@ -11710,122 +11712,122 @@ msgstr ""
 msgid "no value for --csd-line-nums"
 msgstr ""
 
-#: Top/argdecode.c:808 Top/argdecode.c:1376
+#: Top/argdecode.c:808 Top/argdecode.c:1380
 msgid "no midi device_name"
 msgstr ""
 
-#: Top/argdecode.c:813 Top/argdecode.c:1381
+#: Top/argdecode.c:813 Top/argdecode.c:1385
 msgid "-M: stdin not supported on this platform"
 msgstr ""
 
-#: Top/argdecode.c:834 Top/argdecode.c:1267 util/envext.c:84 util/mixer.c:207
+#: Top/argdecode.c:834 Top/argdecode.c:1271 util/envext.c:84 util/mixer.c:207
 #: util/new_srconv.c:221 util/scale.c:174 util/srconv.c:253 util/xtrct.c:123
 msgid "no outfilename"
 msgstr ""
 
-#: Top/argdecode.c:837 Top/argdecode.c:1271 util/new_srconv.c:225
+#: Top/argdecode.c:837 Top/argdecode.c:1275 util/new_srconv.c:225
 #: util/scale.c:178 util/srconv.c:257 util/xtrct.c:127
 msgid "-o cannot be stdin"
 msgstr ""
 
-#: Top/argdecode.c:841 Top/argdecode.c:1275 util/scale.c:181 util/srconv.c:262
+#: Top/argdecode.c:841 Top/argdecode.c:1279 util/scale.c:181 util/srconv.c:262
 msgid "stdout audio not supported"
 msgstr ""
 
-#: Top/argdecode.c:851 Top/argdecode.c:1474 util/hetro.c:238
+#: Top/argdecode.c:851 Top/argdecode.c:1478 util/hetro.c:238
 msgid "no log file"
 msgstr ""
 
-#: Top/argdecode.c:885
+#: Top/argdecode.c:889
 msgid "option expresson-opt has no affect\n"
 msgstr ""
 
-#: Top/argdecode.c:890
+#: Top/argdecode.c:894
 msgid "option no-expresson-opt has no affect\n"
 msgstr ""
 
-#: Top/argdecode.c:912 Top/argdecode.c:1229
+#: Top/argdecode.c:916 Top/argdecode.c:1233
 msgid "no utility name"
 msgstr ""
 
-#: Top/argdecode.c:931 Top/argdecode.c:1345
+#: Top/argdecode.c:935 Top/argdecode.c:1349
 msgid "no xfilename"
 msgstr ""
 
-#: Top/argdecode.c:1046
+#: Top/argdecode.c:1050
 msgid "realtime mode enabled\n"
 msgstr ""
 
-#: Top/argdecode.c:1194
+#: Top/argdecode.c:1198
 #, c-format
 msgid "unknown long option: '--%s'"
 msgstr ""
 
-#: Top/argdecode.c:1318
+#: Top/argdecode.c:1322
 msgid "no sample rate"
 msgstr ""
 
-#: Top/argdecode.c:1350
+#: Top/argdecode.c:1354
 msgid "no tempo value"
 msgstr ""
 
-#: Top/argdecode.c:1355
+#: Top/argdecode.c:1359
 msgid "illegal tempo"
 msgstr ""
 
-#: Top/argdecode.c:1406
+#: Top/argdecode.c:1410
 msgid "no MIDI output device"
 msgstr ""
 
-#: Top/argdecode.c:1454
+#: Top/argdecode.c:1458
 msgid "No indirection file"
 msgstr ""
 
-#: Top/argdecode.c:1461
+#: Top/argdecode.c:1465
 #, c-format
 msgid "Cannot open indirection file %s\n"
 msgstr ""
 
-#: Top/argdecode.c:1495
+#: Top/argdecode.c:1499
 msgid "no number of threads"
 msgstr ""
 
-#: Top/argdecode.c:1506 util/envext.c:94 util/mixer.c:318 util/scale.c:242
+#: Top/argdecode.c:1510 util/envext.c:94 util/mixer.c:318 util/scale.c:242
 #: util/xtrct.c:242
 #, c-format
 msgid "unknown flag -%c"
 msgstr ""
 
-#: Top/argdecode.c:1513
+#: Top/argdecode.c:1517
 msgid "error: orchestra and score name not allowed in .csound6rc"
 msgstr ""
 
-#: Top/argdecode.c:1671
+#: Top/argdecode.c:1675
 #, fuzzy
 msgid "stdout not supported on this platform"
 msgstr "no está soportado en esta terminal"
 
-#: Top/argdecode.c:1732 Top/argdecode.c:1752 Top/argdecode.c:1772
+#: Top/argdecode.c:1736 Top/argdecode.c:1756 Top/argdecode.c:1776
 #, fuzzy
 msgid "stdin not supported on this platform"
 msgstr "no está soportado en esta terminal"
 
-#: Top/argdecode.c:1809
+#: Top/argdecode.c:1813
 #, fuzzy, c-format
 msgid "%d audio output devices\n"
 msgstr "Los dispositivos de salida disponibles son:\n"
 
-#: Top/argdecode.c:1812
+#: Top/argdecode.c:1816
 #, fuzzy, c-format
 msgid "%d audio input devices\n"
 msgstr "Los dispositivos de entrada son:\n"
 
-#: Top/argdecode.c:1827
+#: Top/argdecode.c:1831
 #, fuzzy, c-format
 msgid "%d MIDI output devices\n"
 msgstr "Dispositivo de salida MIDI '%s' abierto\n"
 
-#: Top/argdecode.c:1830
+#: Top/argdecode.c:1834
 #, fuzzy, c-format
 msgid "%d MIDI input devices\n"
 msgstr "Dispositivo de entrada MIDI '%s' abierto\n"
@@ -12095,7 +12097,7 @@ msgstr ""
 msgid "Failed to allocate opcode entry for %s."
 msgstr ""
 
-#: Top/csound.c:3297 Top/main.c:371
+#: Top/csound.c:3297 Top/main.c:420
 msgid "setting dummy interface\n"
 msgstr ""
 
@@ -12203,100 +12205,105 @@ msgstr ""
 msgid "Reading options from local directory .csound6rc\n"
 msgstr ""
 
-#: Top/main.c:122 Top/main.c:361
+#: Top/main.c:138
+#, fuzzy, c-format
+msgid "Unknown score opcode %c(%.2x)\n"
+msgstr "sort: opcode ilegal %c(%.2x)\n"
+
+#: Top/main.c:168 Top/main.c:410
 msgid ""
 "Csound is already started, call csoundReset()\n"
 "before starting again.\n"
 msgstr ""
 
-#: Top/main.c:151
+#: Top/main.c:197
 msgid "no orchestra name"
 msgstr ""
 
-#: Top/main.c:177 Top/main.c:182
+#: Top/main.c:223 Top/main.c:228
 #, fuzzy, c-format
 msgid "Reading CSD failed (%s)... stopping"
 msgstr "Falla de lectura del archivo csd... deteniendo"
 
-#: Top/main.c:199
+#: Top/main.c:245
 msgid "error: multiple uses of stdin"
 msgstr ""
 
-#: Top/main.c:203
+#: Top/main.c:249
 msgid "error: multiple uses of stdout"
 msgstr ""
 
-#: Top/main.c:216
+#: Top/main.c:262
 msgid "realtime performance using dummy numeric scorefile\n"
 msgstr ""
 
-#: Top/main.c:239
+#: Top/main.c:285
 #, c-format
 msgid "orchname:  %s\n"
 msgstr "nombre de la orquesta:  %s\n"
 
-#: Top/main.c:244
+#: Top/main.c:290
 #, fuzzy, c-format
 msgid "main: failed to open input file - %s\n"
 msgstr "No fue posible abrir el archivo de salida %s"
 
-#: Top/main.c:261
+#: Top/main.c:307
 #, fuzzy
 msgid "cannot compile orchestra"
 msgstr "No es posible abrir el archivo de orquesta %s"
 
-#: Top/main.c:267
+#: Top/main.c:313
 msgid ""
 "cannot compile orchestra.\n"
 "Csound will start with no instruments"
 msgstr ""
 
-#: Top/main.c:282
+#: Top/main.c:328
 msgid "end of orchestra compile"
 msgstr "fin de compilación de la orquesta"
 
-#: Top/main.c:291
+#: Top/main.c:337
 #, c-format
 msgid "using previous %s\n"
 msgstr ""
 
-#: Top/main.c:301
+#: Top/main.c:347
 #, c-format
 msgid "cannot open scorefile %s"
 msgstr "no es posible abrir el archivo de score %s"
 
-#: Top/main.c:303
+#: Top/main.c:349
 msgid "sorting score ...\n"
 msgstr ""
 
-#: Top/main.c:314
+#: Top/main.c:363
 #, c-format
 msgid "cannot open extract file %s"
 msgstr ""
 
-#: Top/main.c:317
+#: Top/main.c:366
 msgid "  ... extracting ...\n"
 msgstr "  ... extrayendo ...\n"
 
-#: Top/main.c:326
+#: Top/main.c:375
 msgid "end of score sort"
 msgstr ""
 
-#: Top/main.c:328
+#: Top/main.c:377
 msgid "Syntax check completed.\n"
 msgstr "Revisión de sintaxis completa.\n"
 
-#: Top/main.c:438 util/dnoise.c:282
+#: Top/main.c:487 util/dnoise.c:282
 #, c-format
 msgid "%s not a recognised SFOUTYP env setting"
 msgstr ""
 
-#: Top/main.c:534
+#: Top/main.c:583
 #, c-format
 msgid "Real-time score events (engineStatus: %d).\n"
 msgstr ""
 
-#: Top/main.c:542
+#: Top/main.c:591
 #, c-format
 msgid "Compiled score (engineStatus: %d).\n"
 msgstr ""
@@ -12676,7 +12683,7 @@ msgstr "t-var no ha sido inicializado"
 #: include/arrays.h:80
 #, c-format
 msgid ""
-"Array too small (allocated %lu < needed %lu), but can't allocate during "
+"Array too small (allocated %zu < needed %zu), but cannot allocate during "
 "performance pass. Allocate a bigger array at init time"
 msgstr ""
 
