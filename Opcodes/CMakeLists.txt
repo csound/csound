@@ -192,7 +192,11 @@ if(BUILD_FLUID_OPCODES)
      add_dependency_to_framework(fluidOpcodes ${FLUIDSYNTH_LIBRARY})
 endif()
 
-set(JACK_LIB (JACK_LIBRARY OR JACKDMP_LIBRARY))
+set(JACK_LIB ${JACK_LIBRARY})
+if(NOT JACK_LIB) 
+  set(JACK_LIB ${JACKDMP_LIBRARY})
+endif()
+
 check_deps(BUILD_JACK_OPCODES JACK_HEADER JACK_LIB)
 if(BUILD_JACK_OPCODES)
     set(jack_LIBS ${PTHREAD_LIBRARY})
