@@ -14,7 +14,7 @@
 
 #define CHECKARR1D(arr)           \
     if((arr)->dimensions != 1)    \
-        return INITERRF(Str("Array should be of 1D, but has d% dimensions"), \
+        return INITERRF(Str("Array should be of 1D, but has %d dimensions"), \
                         (arr)->dimensions);
 
 // This must be called for each array at each perf pass

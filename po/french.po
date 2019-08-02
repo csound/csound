@@ -182,9 +182,9 @@ msgstr ""
 "Paramètre NULL non valide pour ajouter à une liste de lecture globale\n"
 
 #: Engine/cs_par_orc_semantic_analysis.c:260
-#, fuzzy, c-format
+#, c-format
 msgid "opcode %s deprecated"
-msgstr "L'opcode est obsolète"
+msgstr "L'opcode %s est obsolète"
 
 #: Engine/cs_par_orc_semantic_analysis.c:316
 msgid "Not a proper list of ints"
@@ -7071,8 +7071,8 @@ msgid "Could not handle end index: %d"
 msgstr "Impossible de traiter l'index de fin : %d"
 
 #: Opcodes/emugens/emugens_common.h:17
-#, fuzzy, c-format
-msgid "Array should be of 1D, but has d% dimensions"
+#, c-format
+msgid "Array should be of 1D, but has %d dimensions"
 msgstr "Le tableau devrait être 1D, mais il a %d dimensions"
 
 #: Opcodes/fareygen.c:116
@@ -8760,9 +8760,8 @@ msgid "nlfilt2: not initialised"
 msgstr "nlfilt2 : non initialisé"
 
 #: Opcodes/nlfilt.c:239 Opcodes/nlfilt.c:249
-#, fuzzy
 msgid "invalid p field index"
-msgstr "descripteur de fichier non valide"
+msgstr "index de p-champ non valide"
 
 #: Opcodes/nlfilt.c:274
 msgid "More arguments than p fields"
@@ -12565,9 +12564,9 @@ msgid "Reading options from local directory .csound6rc\n"
 msgstr "Lecture des options depuis le .csound6rc du répertoire local\n"
 
 #: Top/main.c:138
-#, fuzzy, c-format
+#, c-format
 msgid "Unknown score opcode %c(%.2x)\n"
-msgstr "sort : opcode illégal %c(%.2x)\n"
+msgstr "Opcode de partition inconnu %c(%.2x)\n"
 
 #: Top/main.c:168 Top/main.c:410
 msgid ""
@@ -13043,13 +13042,13 @@ msgid "Array not initialised"
 msgstr "Tableau non initialisé"
 
 #: include/arrays.h:80
-#, fuzzy, c-format
+#, c-format
 msgid ""
 "Array too small (allocated %zu < needed %zu), but cannot allocate during "
 "performance pass. Allocate a bigger array at init time"
 msgstr ""
-"Tableau trop petit (%lu alloués < %lu nécessaires), mais allocation "
-"impossibledurant l'exécution. Allouer un tableau plus grand à "
+"Tableau trop petit (%zu alloués < %zu nécessaires), mais allocation "
+"impossible durant l'exécution. Allouer un tableau plus grand à "
 "l'initialisation"
 
 #: po/sndfile_str.c:3
