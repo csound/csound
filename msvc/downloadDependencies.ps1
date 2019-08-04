@@ -38,7 +38,7 @@ $env:Path += $depsDir
 $systemVCPKG = $(Get-Command vcpkg -ErrorAction SilentlyContinue).Source
 
 # Test if VCPKG is already installed on system
-# Download locally to csound msvc folder if not
+# Download locally to outside the repo
 if ($systemVCPKG)
 {
     echo "vcpkg already installed on system, updating"
@@ -78,7 +78,7 @@ else
     $vcpkgDir = $(Get-Location)
     [Environment]::SetEnvironmentVariable("VCPKGDir", $env:vcpkgDir,
         [EnvironmentVariableTarget]::User)
-    powershell -exec bypass scripts\bootstrap.ps1
+    bootstrap-vcpkg.bat
     vcpkg integrate install
     cd $currentDir
 }
@@ -205,11 +205,13 @@ Start-Process msiexec -Wait -ArgumentList '/I hdf\HDF5-1.8.19-win64.msi /quiet /
 echo "Installed HDF5..."    
 
 
+# STK
 cd $depsDir
 
 Copy-Item ($destDir + "stk-master\*") ($csoundDir + "\Opcodes\stk") -recurse -force
 echo "STK: Copied sources to Csound opcodes directory."
 
+# GMM
 cd $cacheDir
 7z e -y "gmm-5.1.tar.gz"
 7z x -y "gmm-5.1.tar"
@@ -218,6 +220,7 @@ copy ($cacheDir + "gmm-5.1\include\gmm\") -Destination ($depsIncDir + "gmm\") -F
 echo "Copied v5.1 gmm headers to deps include directory. Please note, verson 5.1 is REQUIRED, "
 echo "later versions do not function as stand-alone, header-file-only libraries."
 
+# Portaudio
 cd $stageDir
 copy ..\deps\ASIOSDK2.3 -Destination . -Recurse -ErrorAction SilentlyContinue -Force
 echo "ASIOSDK2.3: Copied sources to deps."
