@@ -116,11 +116,7 @@ $uriList="https://downloads.sourceforge.net/project/winflexbison/win_flex_bison-
 "http://ftp.acc.umu.se/pub/gnome/binaries/win64/glib/2.26/glib-dev_2.26.1-1_win64.zip",
 "http://ftp.acc.umu.se/pub/gnome/binaries/win64/glib/2.26/glib_2.26.1-1_win64.zip",
 "http://download-mirror.savannah.gnu.org/releases/getfem/stable/gmm-5.1.tar.gz",
-"https://support.hdfgroup.org/ftp/HDF5/releases/hdf5-1.8/hdf5-1.8.19/bin/windows/hdf5-1.8.19-Std-win10_64-vs2015.zip",
 "https://github.com/thestk/stk/archive/master.zip"
-
-# commenting out 1.8.20 for now
-#"https://support.hdfgroup.org/ftp/HDF5/current18/bin/windows/hdf5-1.8.20-Std-win7_64-vs14.zip",
 
 # Appends this folder location to the 'deps' uri
 $destList="win_flex_bison",
@@ -191,19 +187,6 @@ mkdir build
 cd build
 cmake .. -G $vsGenerator -T $vsToolset -DCMAKE_BUILD_TYPE="Release"
 cmake --build .
-
-# disable 1.8.20 for time being
-# cd $depsDir    
-# cd hdf5-1.8.20-Std-win7_64-vs14
-# dir hdf   
-# Start-Process msiexec -Wait -ArgumentList '/I hdf\HDF5-1.8.20-win64.msi /quiet /qn /li /norestart'   
-# echo "Installed HDF5..."    
-
-cd $depsDir    
-dir hdf   
-Start-Process msiexec -Wait -ArgumentList '/I hdf\HDF5-1.8.19-win64.msi /quiet /qn /li /norestart'   
-echo "Installed HDF5..."    
-
 
 # STK
 cd $depsDir
