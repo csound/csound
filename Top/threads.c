@@ -182,7 +182,7 @@ PUBLIC void *csoundCreateThread(uintptr_t (*threadRoutine)(void *),
 {
     pthread_t *pthread = (pthread_t *) malloc(sizeof(pthread_t));
     if (!pthread_create(pthread, (pthread_attr_t*) NULL,
-                        (void *(*)(void *)) threadRoutine, userdata)) {
+                        (void *(*)(void *))(void*)threadRoutine, userdata)) {
       return (void*) pthread;
     }
     free(pthread);
