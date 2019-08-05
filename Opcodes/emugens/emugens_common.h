@@ -57,7 +57,7 @@ tabensure_init(CSOUND *csound, ARRAYDAT *p, int size)
     if(UNLIKELY(arr->sizes[0] != size)) {                                                  \
         size_t _ss = arr->arrayMemberSize*size;                                            \
         if (_ss > arr->allocated) {                                                        \
-            return PERFERRF(Str("Array is too small (allocated %lu < needed %lu), but cannot " \
+            return PERFERRF(Str("Array is too small (allocated %zu < needed %zu), but cannot " \
                             "allocate during performance pass. Allocate a bigger array "   \
                             "at init time"),                                               \
                             arr->allocated, _ss);                                          \

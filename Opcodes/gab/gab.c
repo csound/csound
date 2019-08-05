@@ -935,7 +935,7 @@ OENTRY gab_localops[] = {
                             (SUBR) tabrec_set, (SUBR) tabrec_k, NULL },
   { "tabplay",  S(TABPLAY), TR, 3,     "",      "kkkz",
                             (SUBR) tabplay_set, (SUBR) tabplay_k, NULL },
-  { "changed.k", S(ISCHANGED), _QQ, 3,     "k",     "z",
+  { "changed.k", S(ISCHANGED),  0, 3,     "k",     "z",
                             (SUBR) isChanged_set, (SUBR)isChanged, NULL },
   { "changed2.k", S(ISCHANGED), 0, 3,     "k",     "z",
                             (SUBR) isChanged2_set, (SUBR)isChanged, NULL },

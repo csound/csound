@@ -182,7 +182,7 @@ PUBLIC void *csoundCreateThread(uintptr_t (*threadRoutine)(void *),
 {
     pthread_t *pthread = (pthread_t *) malloc(sizeof(pthread_t));
     if (!pthread_create(pthread, (pthread_attr_t*) NULL,
-                        (void *(*)(void *)) threadRoutine, userdata)) {
+                        (void *(*)(void *))(void*)threadRoutine, userdata)) {
       return (void*) pthread;
     }
     free(pthread);
@@ -948,25 +948,25 @@ PUBLIC int csoundWaitBarrier(void *barrier)
 
 PUBLIC void* csoundCreateCondVar()
 {
-  //notImplementedWarning_("csoundCreateCondVar");
-  return NULL;
+    //notImplementedWarning_("csoundCreateCondVar");
+    return NULL;
 }
 
 PUBLIC void csoundCondWait(void* condVar, void* mutex) {
-  //notImplementedWarning_("csoundCreateCondWait");
+    //notImplementedWarning_("csoundCreateCondWait");
 }
 
 PUBLIC void csoundCondSignal(void* condVar) {
- // notImplementedWarning_("csoundCreateCondSignal");
+    // notImplementedWarning_("csoundCreateCondSignal");
 }
 
 PUBLIC long csoundRunCommand(const char * const *argv, int noWait) {
-  //notImplementedWarning_("csoundRunCommand");
+    //notImplementedWarning_("csoundRunCommand");
     return 0;
 }
 
 PUBLIC void csoundSleep(size_t milliseconds) {
-  //notImplementedWarning_("csoundSleep");
+    //notImplementedWarning_("csoundSleep");
 }
 
 
@@ -977,20 +977,20 @@ PUBLIC void csoundSleep(size_t milliseconds) {
 /* This pragma must come before all public function declarations */
 # pragma intrinsic(_InterlockedExchange)
 void csoundSpinLock(spin_lock_t *spinlock) {
-  while (_InterlockedExchange(spinlock, 1) == 1){};
+    while (_InterlockedExchange(spinlock, 1) == 1){};
 }
 
 void csoundSpinUnLock(spin_lock_t *spinlock){
-      _InterlockedExchange(spinlock, 0);
+    _InterlockedExchange(spinlock, 0);
 }
 
 int csoundSpinTryLock(spin_lock_t *spinlock) {
-  return _InterlockedExchange(spinlock, 1) == 0 ? CSOUND_SUCCESS : CSOUND_ERROR;
+    return _InterlockedExchange(spinlock, 1) == 0 ? CSOUND_SUCCESS : CSOUND_ERROR;
 }
 
 int csoundSpinLockInit(spin_lock_t *spinlock) {
-  *spinlock = SPINLOCK_INIT;
-  return 0;
+    *spinlock = SPINLOCK_INIT;
+    return 0;
 }
 
 #elif defined(MACOSX) // MacOS native locks
@@ -999,39 +999,40 @@ int csoundSpinLockInit(spin_lock_t *spinlock) {
 // New spinlock interface
 
 void csoundSpinLock(spin_lock_t *spinlock){
-      os_unfair_lock_lock(spinlock);
+    os_unfair_lock_lock(spinlock);
 }
 
 void csoundSpinUnLock(spin_lock_t *spinlock){
-      os_unfair_lock_unlock(spinlock);
+    os_unfair_lock_unlock(spinlock);
 }
 
 int csoundSpinTryLock(spin_lock_t *spinlock) {
-  return os_unfair_lock_trylock(spinlock) == true ? CSOUND_SUCCESS : CSOUND_ERROR;
+    return os_unfair_lock_trylock(spinlock) == true ? CSOUND_SUCCESS : CSOUND_ERROR;
 }
 
 int csoundSpinLockInit(spin_lock_t *spinlock) {
-  IGN(spinlock);
-  return 0;
+    IGN(spinlock);
+    return 0;
 }
 
 #else // Old spinlock interface
 
 void csoundSpinLock(spin_lock_t *spinlock) {
-  OSSpinLockLock((volatile OSSpinLock *) spinlock);
+    OSSpinLockLock((volatile OSSpinLock *) spinlock);
 }
 
 void csoundSpinUnLock(spin_lock_t *spinlock) {
-OSSpinLockUnlock((volatile OSSpinLock *) spinlock);
+    OSSpinLockUnlock((volatile OSSpinLock *) spinlock);
 }
 
 int csoundSpinTryLock(spin_lock_t *spinlock) {
-return OSSpinLockTry((volatile OSSpinLock *) spinlock) == true ? CSOUND_SUCCESS : CSOUND_ERROR;
+    return OSSpinLockTry((volatile OSSpinLock *) spinlock) == true ?
+      CSOUND_SUCCESS : CSOUND_ERROR;
 }
 
 int csoundSpinLockInit(spin_lock_t *spinlock) {
-  *spinlock = SPINLOCK_INIT;
-  return 0;
+    *spinlock = SPINLOCK_INIT;
+    return 0;
 }
 
 #endif // MAC_OS_X_VERSION_MIN_REQUIRED
@@ -1040,19 +1041,19 @@ int csoundSpinLockInit(spin_lock_t *spinlock) {
 // POSIX spin locks
 
 void csoundSpinLock(spin_lock_t *spinlock) {
-  pthread_spin_lock(spinlock);
+    pthread_spin_lock(spinlock);
 }
 
 void csoundSpinUnLock(spin_lock_t *spinlock){
-  pthread_spin_unlock(spinlock);
+    pthread_spin_unlock(spinlock);
 }
 
 int csoundSpinTryLock(spin_lock_t *spinlock) {
-  return pthread_spin_trylock(spinlock);
+    return pthread_spin_trylock(spinlock);
 }
 
 int csoundSpinLockInit(spin_lock_t *spinlock) {
-  return pthread_spin_init(spinlock, PTHREAD_PROCESS_PRIVATE);
+    return pthread_spin_init(spinlock, PTHREAD_PROCESS_PRIVATE);
 }
 
 
@@ -1061,42 +1062,45 @@ int csoundSpinLockInit(spin_lock_t *spinlock) {
 #include <stdbool.h>
 
 void csoundSpinLock(spin_lock_t *spinlock){
-  spin_lock_t unset = 0;
-  spin_lock_t set = 1;
-  while (!__atomic_compare_exchange_n(spinlock, &unset, set, false, __ATOMIC_SEQ_CST, __ATOMIC_SEQ_CST)) { };
+    spin_lock_t unset = 0;
+    spin_lock_t set = 1;
+    while (!__atomic_compare_exchange_n(spinlock, &unset, set, false,
+                                        __ATOMIC_SEQ_CST, __ATOMIC_SEQ_CST)) { };
 }
 
 void csoundSpinUnLock(spin_lock_t *spinlock){
-      __atomic_clear(spinlock, __ATOMIC_SEQ_CST);
+    __atomic_clear(spinlock, __ATOMIC_SEQ_CST);
 }
 
 int csoundSpinTryLock(spin_lock_t *spinlock) {
-  spin_lock_t unset = 0;
-  spin_lock_t set = 1;
-  return __atomic_compare_exchange_n(spinlock, &unset, set, false, __ATOMIC_SEQ_CST, __ATOMIC_SEQ_CST) ? CSOUND_SUCCESS : CSOUND_ERROR;
+    spin_lock_t unset = 0;
+    spin_lock_t set = 1;
+    return __atomic_compare_exchange_n(spinlock, &unset, set, false,
+                                       __ATOMIC_SEQ_CST, __ATOMIC_SEQ_CST) ?
+      CSOUND_SUCCESS : CSOUND_ERROR;
 }
 
 int csoundSpinLockInit(spin_lock_t *spinlock) {
-  *spinlock = SPINLOCK_INIT;
-  return 0;
+    *spinlock = SPINLOCK_INIT;
+    return 0;
 }
 
 #else // No spinlocks
 void csoundSpinLock(spin_lock_t *spinlock) {
-      IGN(spinlock);
+    IGN(spinlock);
 }
 void csoundSpinUnLock(spin_lock_t *spinlock) {
-      IGN(spinlock);
+    IGN(spinlock);
 }
 
 int csoundSpinTryLock(spin_lock_t *spinlock) {
-  IGN(spinlock);
-  return 1;
+    IGN(spinlock);
+    return 1;
 }
 
 int csoundSpinLockInit(spin_lock_t *spinlock) {
-  IGN(spinlock);
-  return 0;
+    IGN(spinlock);
+    return 0;
 }
 
 #endif

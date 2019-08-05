@@ -1027,7 +1027,7 @@ int plugin(Csound *csound, const char *name, const char *oargs,
 template <typename T>
 int plugin(Csound *csound, const char *name, uint32_t thr,
            uint32_t flags = 0) {
-  CSOUND *cs = (CSOUND *)csound;  
+  CSOUND *cs = (CSOUND *)csound;
   if(thr == thread::ia || thr == thread::a) {
   thr = thr == thread::ia ? 3 : 2;
   return cs->AppendOpcode(cs, (char *)name, sizeof(T), flags, thr,
@@ -1035,7 +1035,7 @@ int plugin(Csound *csound, const char *name, uint32_t thr,
                           (SUBR)aperf<T>, NULL);
 
   }
-  else 
+  else
   return cs->AppendOpcode(cs, (char *)name, sizeof(T), flags, thr,
                           (char *)T::otypes, (char *)T::itypes, (SUBR)init<T>,
                           (SUBR)kperf<T>, NULL);

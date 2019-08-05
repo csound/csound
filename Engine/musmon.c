@@ -403,7 +403,7 @@ int musmon(CSOUND *csound)
 
 #ifndef __EMSCRIPTEN__
     if (csound->oparms->realtime && csound->event_insert_loop == 0){
-      extern void *event_insert_thread(void *);
+      extern uintptr_t event_insert_thread(void *);
       csound->init_pass_threadlock = csoundCreateMutex(0);
       csound->Message(csound, "Initialising spinlock...\n");
       csoundSpinLockInit(&csound->alloc_spinlock);
@@ -411,7 +411,7 @@ int musmon(CSOUND *csound)
       csound->alloc_queue = (ALLOC_DATA *)
         csound->Calloc(csound, sizeof(ALLOC_DATA)*MAX_ALLOC_QUEUE);
       csound->event_insert_thread =
-        csound->CreateThread((uintptr_t (*)(void*)) event_insert_thread,
+        csound->CreateThread(event_insert_thread,
                              (void*)csound);
       csound->Message(csound, "Starting realtime mode queue: %p thread: %p\n",
                       csound->alloc_queue, csound->event_insert_thread );

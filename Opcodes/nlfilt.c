@@ -239,7 +239,7 @@ int32_t pvalue(CSOUND *csound, PFIELD *p)
       return csound->InitError(csound, Str("invalid p field index"));
     }
     *p->ians = csound->init_event->p[n];
-    return OK; 
+    return OK;
 }
 
 int32_t pvaluestr(CSOUND *csound, PFIELDSTR *p)
@@ -248,11 +248,11 @@ int32_t pvaluestr(CSOUND *csound, PFIELDSTR *p)
     if (UNLIKELY(csound->init_event==NULL || n<1 || n>csound->init_event->pcnt)) {
       return csound->InitError(csound, Str("invalid p field index"));
     }
-    
+
     if (p->ians->data!=NULL) csound->Free(csound, p->ians->data);
-    
+
     if (LIKELY(csound->ISSTRCOD(csound->init_event->p[n]))) {
-        p->ians->data = cs_strdup(csound, 
+        p->ians->data = cs_strdup(csound,
                 get_arg_string(csound, csound->init_event->p[n]));
         p->ians->size = strlen(p->ians->data) + 1;
     }
