@@ -72,7 +72,7 @@ static inline void tabinit_like(CSOUND *csound, ARRAYDAT *p, ARRAYDAT *tp)
 static inline int tabcheck(CSOUND *csound, ARRAYDAT *p, int size, OPDS *q)
 {
     if (p->data==NULL || p->dimensions == 0) {
-      return csound->PerfError(csound, q, Str("Array not initialised"));
+      return csound->PerfError(csound, q, "%s", Str("Array not initialised"));
     }
     size_t s = p->arrayMemberSize*size;
     if (s > p->allocated) { /* was arr->allocate */
