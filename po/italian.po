@@ -8,7 +8,7 @@ msgstr ""
 "Project-Id-Version: CSOUND 6.xx\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2008-07-26 19:39+0100\n"
-"PO-Revision-Date: 2018-09-25 21:04+0100\n"
+"PO-Revision-Date: 2019-08-04 21:26+0100\n"
 "Last-Translator: francesco <francescoarmandoporta@gmail.com>\n"
 "Language-Team: csound6\n"
 "Language: it\n"
@@ -183,9 +183,9 @@ msgstr ""
 "impostato parametro NULL non valido da aggiungere alla read_list globale\n"
 
 #: Engine/cs_par_orc_semantic_analysis.c:260
-#, fuzzy, c-format
+#, c-format
 msgid "opcode %s deprecated"
-msgstr "opcode deprecato"
+msgstr "opcode %s deprecato"
 
 #: Engine/cs_par_orc_semantic_analysis.c:316
 msgid "Not a proper list of ints"
@@ -240,11 +240,9 @@ msgid "bad value for 0dbfs: must be positive. Setting default value."
 msgstr "valore sbagliato per 0dbfs: deve essere positivo."
 
 #: Engine/csound_orc_compile.c:712
-#, fuzzy, c-format
+#, c-format
 msgid "sr = %.7g, kr = %.7g, ksmps = %.7g\n"
-msgstr ""
-"sr = %.7g, kr = %.7g, ksmps = %.7g\n"
-"errore:"
+msgstr "sr = %.7g, kr = %.7g, ksmps = %.7g\n"
 
 #: Engine/csound_orc_compile.c:720
 #, fuzzy, c-format
@@ -910,7 +908,6 @@ msgid "illegal gen number"
 msgstr "numero di gen non consentito"
 
 #: Engine/fgens.c:232
-#, fuzzy
 msgid "deferred size for GENs 1, 2, 23, 28 or 49 only"
 msgstr "dimensione differita solo per GENs 1, 2, 23, 28 o 49"
 
