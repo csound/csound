@@ -45,5 +45,3 @@ cmake ..\.. -G $vsGenerator -T $vsToolset  `
  -DCMAKE_INSTALL_PREFIX=dist `
  -DCUSTOM_CMAKE="..\Custom-vs.cmake" `
  -DCMAKE_REQUIRED_INCLUDES="..\deps\include" `
- -DBUILD_PADSYNTH_OPCODES:BOOL=ON `
- -DBUILD_LINEAR_ALGEBRA_OPCODES:BOOL=ON `
