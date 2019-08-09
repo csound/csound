@@ -2369,15 +2369,16 @@ static int32_t sflooper_process(CSOUND *csound, sflooper *p)
 
       if (*firsttime) {
         int32_t loopsize;
+   
         loop_start[k] = (int32_t) (*p->loop_start*sr) + p->sstart[k];
         loop_end[k] =   (int32_t) (*p->loop_end*sr) + p->sstart[k];
         loop_start[k] = loop_start[k] < 0 ? 0 : loop_start[k];
-        loop_end[k] =   loop_end[k] > len ? len :
-          (loop_end[k] < loop_start[k] ? loop_start[k] : loop_end[k]);
+        loop_end[k] =   loop_end[k] > len ? len : loop_end[k];
+        loop_end[k] =   loop_end[k] < loop_start[k] ? loop_start[k] : loop_end[k];
         loopsize = loop_end[k] - loop_start[k];
-        crossfade = (int32_t) (*p->crossfade*sr);
+        crossfade = (int32_t) (*p->crossfade*sr)
 
-        if (mode == 1) {
+       if (mode == 1) {
           ndx[0] = (double) loop_end[k];
           ndx[1] = (double) loop_end[k];
           count = (MYFLT) crossfade;
@@ -2385,7 +2386,9 @@ static int32_t sflooper_process(CSOUND *csound, sflooper *p)
         }
         else if (mode == 2) {
           ndx[1] = (double) loop_start[k] - 1.0;
-          p->cfade = crossfade = crossfade > loopsize/2 ? loopsize/2-1 : crossfade;
+          p->cfade = crossfade = crossfade > loopsize/2 ? loopsize/2 - 1 : crossfade;
+          
+          
         }
         else {
           ndx[1] = (double) loop_start[k];
@@ -2483,7 +2486,7 @@ static int32_t sflooper_process(CSOUND *csound, sflooper *p)
             out += amp*fadein*(tab[tndx1] + frac1*(tab[tndx1+1] - tab[tndx1]));
             ndx[1] -= pitch;
           }
-          else if (ndx[1] > loop_start[k] + crossfade) {
+          else if (ndx[1] > loop_start[k] + crossfade) {           
             tndx1 = (int32_t) ndx[1];
             frac1 = ndx[1] - tndx1;
             out = amp*(tab[tndx1] + frac1*(tab[tndx1+1] - tab[tndx1]));
