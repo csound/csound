@@ -10,10 +10,6 @@ echo "vsToolset:   $vsToolset"
 
 $startTime = (Get-Date).TimeOfDay
 
-# Add different protocols to get download working for HDF5 site
-# ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls | SecurityProtocolType.Tls11 | SecurityProtocolType.Tls12 | SecurityProtocolType.Ssl3;
-[System.Net.ServicePointManager]::SecurityProtocol =  [System.Net.SecurityProtocolType]::Tls12;
-
 $webclient = New-Object System.Net.WebClient
 $currentDir = Split-Path $MyInvocation.MyCommand.Path
 $cacheDir = $currentDir + "\cache\"
@@ -76,8 +72,7 @@ else
     cd vcpkg
     $env:Path += ";" + $(Get-Location)
     $vcpkgDir = $(Get-Location)
-    [Environment]::SetEnvironmentVariable("VCPKGDir", $env:vcpkgDir,
-        [EnvironmentVariableTarget]::User)
+    [Environment]::SetEnvironmentVariable("VCPKGDir", $env:vcpkgDir, [EnvironmentVariableTarget]::User)
     bootstrap-vcpkg.bat
     vcpkg integrate install
     cd $currentDir
@@ -88,8 +83,6 @@ New-Item -type file $vcpkgDir\downloads\AlwaysAllowDownloads -errorAction Silent
 
 # Download all vcpkg packages available
 echo "Downloading VC packages..."
-
-# Target can be arm-uwp, x64-uwp, x64-windows-static, x64-windows, x86-uwp, x86-windows-static, x86-windows
 $targetTriplet = "x64-windows-static"
 vcpkg --triplet $targetTriplet install eigen3 fltk zlib libflac libogg libvorbis libsndfile libsamplerate portmidi portaudio liblo hdf5 dirent
 
@@ -113,9 +106,7 @@ choco install winflexbison -y
 choco upgrade winflexbison -y
 
 # List of URIs to download and install
-$uriList="https://downloads.sourceforge.net/project/winflexbison/win_flex_bison-latest.zip",
-"http://www.steinberg.net/sdk_downloads/asiosdk2.3.zip",
-"https://downloads.sourceforge.net/project/swig/swigwin/swigwin-3.0.12/swigwin-3.0.12.zip",
+$uriList=
 "http://ftp.acc.umu.se/pub/gnome/binaries/win64/dependencies/gettext-runtime_0.18.1.1-2_win64.zip",
 "http://ftp.acc.umu.se/pub/gnome/binaries/win64/dependencies/pkg-config_0.23-2_win64.zip",
 "http://ftp.acc.umu.se/pub/gnome/binaries/win64/dependencies/proxy-libintl-dev_20100902_win64.zip",
@@ -125,15 +116,12 @@ $uriList="https://downloads.sourceforge.net/project/winflexbison/win_flex_bison-
 "https://github.com/thestk/stk/archive/master.zip"
 
 # Appends this folder location to the 'deps' uri
-$destList="win_flex_bison",
-"",
-"",
+$destList=
 "fluidsynthdeps",
 "fluidsynthdeps",
 "fluidsynthdeps",
 "fluidsynthdeps",
 "fluidsynthdeps",
-"",
 "",
 ""
 
@@ -171,29 +159,6 @@ for($i=0; $i -lt $uriList.Length; $i++)
     echo "Extracted $fileName to $destDir"
 }
 
-# Ableton
-cd $depsDir
-echo "Ableton Link..."
-if (Test-Path "link")
-{
-   cd link
-   git pull
-   git submodule update --recursive
-   echo "Ableton Link already downloaded, updated."
-}
-else
-{
-   git clone --branch Link-3.0.0 https://github.com/Ableton/link.git
-   cd link
-   git submodule update --init --recursive
-   echo "Ableton Link downloaded."
-}
-
-mkdir build
-cd build
-cmake .. -G $vsGenerator -T $vsToolset -DCMAKE_BUILD_TYPE="Release"
-cmake --build .
-
 # STK
 cd $depsDir
 
@@ -210,86 +175,86 @@ echo "Copied v5.1 gmm headers to deps include directory. Please note, verson 5.1
 echo "later versions do not function as stand-alone, header-file-only libraries."
 
 # Portaudio
-cd $stageDir
-copy ..\deps\ASIOSDK2.3 -Destination . -Recurse -ErrorAction SilentlyContinue -Force
-echo "ASIOSDK2.3: Copied sources to deps."
+# cd $stageDir
+# copy ..\deps\ASIOSDK2.3 -Destination . -Recurse -ErrorAction SilentlyContinue -Force
+# echo "ASIOSDK2.3: Copied sources to deps."
 
-echo "PortAudio..."
-if (Test-Path "portaudio")
-{
-    cd portaudio
-    git pull
-    cd ..
-    echo "Portaudio already downloaded, updated."
-}
-else
-{
-    git clone --depth=1 "https://git.assembla.com/portaudio.git"
-}
+# echo "PortAudio..."
+# if (Test-Path "portaudio")
+# {
+#     cd portaudio
+#     git pull
+#     cd ..
+#     echo "Portaudio already downloaded, updated."
+# }
+# else
+# {
+#     git clone --depth=1 "https://git.assembla.com/portaudio.git"
+# }
 
-copy portaudio\include\portaudio.h -Destination $depsIncDir -Force
-rm -Path portaudioBuild -Force -Recurse -ErrorAction SilentlyContinue
-mkdir portaudioBuild -ErrorAction SilentlyContinue
-cd portaudioBuild
-cmake ..\portaudio -G $vsGenerator -T $vsToolset -DCMAKE_BUILD_TYPE="Release" -DPA_USE_ASIO=1
-cmake --build . --config Release
-copy .\Release\portaudio_x64.dll -Destination $depsBinDir -Force
-copy .\Release\portaudio_x64.lib -Destination $depsLibDir -Force
+# copy portaudio\include\portaudio.h -Destination $depsIncDir -Force
+# rm -Path portaudioBuild -Force -Recurse -ErrorAction SilentlyContinue
+# mkdir portaudioBuild -ErrorAction SilentlyContinue
+# cd portaudioBuild
+# cmake ..\portaudio -G $vsGenerator -T $vsToolset -DCMAKE_BUILD_TYPE="Release" -DPA_USE_ASIO=1
+# cmake --build . --config Release
+# copy .\Release\portaudio_x64.dll -Destination $depsBinDir -Force
+# copy .\Release\portaudio_x64.lib -Destination $depsLibDir -Force
 
-echo "PortMidi..."
-cd $stageDir
+# echo "PortMidi..."
+# cd $stageDir
 
-if (Test-Path "portmidi")
-{
-  cd portmidi
-  svn update  
-  cd ..
-  echo "Portmidi already downloaded, updated"
-}
-else
-{
-  svn checkout "https://svn.code.sf.net/p/portmedia/code" portmidi
-}
+# if (Test-Path "portmidi")
+# {
+#   cd portmidi
+#   svn update  
+#   cd ..
+#   echo "Portmidi already downloaded, updated"
+# }
+# else
+# {
+#   svn checkout "https://svn.code.sf.net/p/portmedia/code" portmidi
+# }
 
-cd portmidi\portmidi\trunk
-rm -Path build -Force -Recurse -ErrorAction SilentlyContinue
-mkdir build -ErrorAction SilentlyContinue
-cd build
-cmake .. -G $vsGenerator -T $vsToolset -DCMAKE_BUILD_TYPE="Release"
-cmake --build . --config Release
-copy .\Release\portmidi.dll -Destination $depsBinDir -Force
-copy .\Release\portmidi.lib -Destination $depsLibDir -Force
-copy .\Release\portmidi_s.lib -Destination $depsLibDir -Force
-copy .\Release\pmjni.dll -Destination $depsBinDir -Force
-copy .\Release\pmjni.lib -Destination $depsLibDir -Force
-copy ..\pm_common\portmidi.h -Destination $depsIncDir -Force
-copy ..\porttime\porttime.h -Destination $depsIncDir -Force
+# cd portmidi\portmidi\trunk
+# rm -Path build -Force -Recurse -ErrorAction SilentlyContinue
+# mkdir build -ErrorAction SilentlyContinue
+# cd build
+# cmake .. -G $vsGenerator -T $vsToolset -DCMAKE_BUILD_TYPE="Release"
+# cmake --build . --config Release
+# copy .\Release\portmidi.dll -Destination $depsBinDir -Force
+# copy .\Release\portmidi.lib -Destination $depsLibDir -Force
+# copy .\Release\portmidi_s.lib -Destination $depsLibDir -Force
+# copy .\Release\pmjni.dll -Destination $depsBinDir -Force
+# copy .\Release\pmjni.lib -Destination $depsLibDir -Force
+# copy ..\pm_common\portmidi.h -Destination $depsIncDir -Force
+# copy ..\porttime\porttime.h -Destination $depsIncDir -Force
 
-echo "LibLo..."
-cd $stageDir
+# echo "LibLo..."
+# cd $stageDir
 
-if (Test-Path "liblo")
-{
-    cd liblo
-    git pull
-    cd ..
-    echo "Libo already downloaded, updated"
-}
-else
-{
-    git clone --depth=1 "https://github.com/radarsat1/liblo.git"
-}
+# if (Test-Path "liblo")
+# {
+#     cd liblo
+#     git pull
+#     cd ..
+#     echo "Libo already downloaded, updated"
+# }
+# else
+# {
+#     git clone --depth=1 "https://github.com/radarsat1/liblo.git"
+# }
 
-rm -Path liblo\cmakebuild -Force -Recurse -ErrorAction SilentlyContinue
-mkdir liblo\cmakebuild -ErrorAction SilentlyContinue
-cd liblo\cmakebuild
-cmake ..\cmake -G $vsGenerator -T $vsToolset -DCMAKE_BUILD_TYPE="Release" -DTHREADING=1
-cmake --build . --config Release
-copy .\Release\liblo.dll -Destination $depsBinDir -Force
-copy .\Release\liblo.lib -Destination $depsLibDir -Force
-copy .\lo -Destination $depsIncDir -Force -Recurse
-copy ..\lo\* -Destination $depsIncDir\lo -Force -Include "*.h"
-robocopy ..\lo $depsIncDir\lo *.h /s /NJH /NJS
+# rm -Path liblo\cmakebuild -Force -Recurse -ErrorAction SilentlyContinue
+# mkdir liblo\cmakebuild -ErrorAction SilentlyContinue
+# cd liblo\cmakebuild
+# cmake ..\cmake -G $vsGenerator -T $vsToolset -DCMAKE_BUILD_TYPE="Release" -DTHREADING=1
+# cmake --build . --config Release
+# copy .\Release\liblo.dll -Destination $depsBinDir -Force
+# copy .\Release\liblo.lib -Destination $depsLibDir -Force
+# copy .\lo -Destination $depsIncDir -Force -Recurse
+# copy ..\lo\* -Destination $depsIncDir\lo -Force -Include "*.h"
+# robocopy ..\lo $depsIncDir\lo *.h /s /NJH /NJS
 
 echo "FluidSynth..."
 cd $stageDir
@@ -332,9 +297,7 @@ else
     $env:Path += ";" + $depsBinDir
 
     # Permanently add to system path
-    [Environment]::SetEnvironmentVariable("Path", $env:Path,
-        [EnvironmentVariableTarget]::User)
-
+    [Environment]::SetEnvironmentVariable("Path", $env:Path, [EnvironmentVariableTarget]::User)
     echo "Added dependency bin dir to path: $depsBinDir"
 }
 

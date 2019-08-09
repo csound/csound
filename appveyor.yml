@@ -1,16 +1,13 @@
 image: Visual Studio 2017
 
 environment:
-  ABLETON_LINK_HOME: C:\projects\csound\msvc\deps\link
   APPVEYOR_SAVE_CACHE_ON_ERROR: "true"
   APPVEYOR_RDP_PASSWORD: Vercoe123
   CsoundDepsDir: C:\projects\csound\msvc\deps\bin
   CSOUND_VERSION: 6.13.0
-  HDF5_HOME: C:\Program Files\HDF_Group\HDF5\1.8.19
   VCPKGDir: C:\Tools\vcpkg
   VSGENERATOR: Visual Studio 15 2017 Win64
   VSTOOLSET: v141
-#  VST_SDK2_HOME:  C:\projects\csound\msvc\deps\VST_SDK\VST2_SDK
 
 platform: x64
 configuration: RelWithDebInfo
@@ -32,9 +29,7 @@ install:
   - dir
   - powershell -ExecutionPolicy ByPass -File downloadDependencies.ps1 -vsGenerator "%VSGENERATOR%" -vsToolset "%VSTOOLSET%"
   - powershell -ExecutionPolicy ByPass -File generateProject.ps1 -vsGenerator "%VSGENERATOR%" -vsToolset "%VSTOOLSET%"
-#-vstSdkHome "%VST_SDK2_HOME%
-  - cd ..
-  #download an unzip manual and CsoundQT for inclusion with the installer
+  # Download and unzip manual and CsoundQT for inclusion with the installer
   - cd c:/
   - ps: Start-FileDownload 'https://github.com/csound/manual/releases/download/6.13.0/Csound6.13.0_manual_html.zip'
   - cmd: 7z.exe x Csound6.13.0_manual_html.zip
@@ -53,8 +48,6 @@ after_build:
   - 7z a csound-windows_x86_64-%CSOUND_VERSION%-%APPVEYOR_BUILD_NUMBER%.zip %APPVEYOR_BUILD_FOLDER%\msvc\csound-vs\RelWithDebInfo\*.exe %APPVEYOR_BUILD_FOLDER%\msvc\csound-vs\RelWithDebInfo\csound64.lib %APPVEYOR_BUILD_FOLDER%\include\ %APPVEYOR_BUILD_FOLDER%\msvc\csound-vs\RelWithDebInfo\*.dll %APPVEYOR_BUILD_FOLDER%\msvc\csound-vs\RelWithDebInfo\*.pyd %APPVEYOR_BUILD_FOLDER%\msvc\csound-vs\*.jar %APPVEYOR_BUILD_FOLDER%\msvc\csound-vs\*.py 
   - 7z l csound-windows_x86_64-%CSOUND_VERSION%-%APPVEYOR_BUILD_NUMBER%.zip
 
-# Tests
-
 test_script:
   - cmake --build msvc\csound-vs --config RelWithDebInfo --target csdtests
 
@@ -67,7 +60,7 @@ artifacts:
     type: exe
 
 cache:
- - C:\Tools\vcpkg\ -> C:\projects\csound\msvc\downloadDependencies.ps1
+ - C:\Tools\vcpkg\installed -> C:\projects\csound\msvc\downloadDependencies.ps1
  - C:\projects\csound\msvc\cache
  - C:\ProgramData\chocolatey\bin -> appveyor.yml 
  - C:\ProgramData\chocolatey\lib -> appveyor.yml

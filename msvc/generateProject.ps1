@@ -23,8 +23,6 @@ elseif (Test-Path "..\..\vcpkg")
 	echo "using local VCPKG cmake file"
 	$vcpkgCmake = "..\..\vcpkg\scripts\buildsystems\vcpkg.cmake"
 	$vcpkgCmake = [System.IO.Path]::GetFullPath($vcpkgCmake)
-    $env:PATH = "$vcpkgDir" + "\buildtrees\fltk\x64-windows-rel\bin;" + "$vcpkgDir" + "\buildtrees\fltk\x64-windows-rel\fluid;" + "$vcpkgDir" + "\installed\x64-windows\bin;" + $env:PATH
-    echo $env:PATH
 }
 else
 {
@@ -37,12 +35,9 @@ echo "VCPKG script: '$vcpkgCmake'"
 
 mkdir csound-vs -ErrorAction SilentlyContinue
 cd csound-vs -ErrorAction SilentlyContinue
-dir ..\deps
-$linkPath = Resolve-Path -Path "..\deps\link"
+
 cmake ..\.. -G $vsGenerator -T $vsToolset  `
  -Wno-dev -Wdeprecated `
- -DABLETON_LINK_HOME="$linkPath" `
- -DBUILD_ABLETON_LINK_OPCODES:BOOL=On `
  -DSTK_LOCAL:BOOL="ON" `
  -DCMAKE_BUILD_TYPE="RelWithDebInfo" `
  -DVCPKG_TARGET_TRIPLET=x64-windows-static `
@@ -50,6 +45,5 @@ cmake ..\.. -G $vsGenerator -T $vsToolset  `
  -DCMAKE_INSTALL_PREFIX=dist `
  -DCUSTOM_CMAKE="..\Custom-vs.cmake" `
  -DCMAKE_REQUIRED_INCLUDES="..\deps\include" `
- -DEIGEN3_INCLUDE_PATH:PATH="$vcpkgDir\packages\eigen3_x64-windows-static\include" `
  -DBUILD_PADSYNTH_OPCODES:BOOL=ON `
  -DBUILD_LINEAR_ALGEBRA_OPCODES:BOOL=ON `
