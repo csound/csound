@@ -2374,13 +2374,13 @@ static int32_t sflooper_process(CSOUND *csound, sflooper *p)
         loop_end[k] =   (int32_t) (*p->loop_end*sr) + p->sstart[k];
         loop_start[k] = loop_start[k] < 0 ? 0 : loop_start[k];
         if(loop_end[k] > len) { 
-          csound->Warning(csound, "loop end %d beyond sample length %d, clamping.",
-                          loop_end[k], len);
+          csound->Warning(csound, "loop end %f beyond sample length %f, clamping.",
+                          loop_end[k]/sr, len/sr);
           loop_end[k] = len;
         }
         if(loop_end[k] <  loop_start[k]) { 
-          csound->Warning(csound, "loop end %d < loop start %d, setting zero length loop.",
-                          loop_end[k], len);
+          csound->Warning(csound, "loop end %f < loop start %f, setting zero length loop.",
+                          loop_end[k]/sr, len/sr);
           loop_end[k] = loop_start[k];
         }
 
