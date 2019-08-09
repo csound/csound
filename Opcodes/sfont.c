@@ -2241,7 +2241,7 @@ typedef struct _sflooper {
   int32_t lstart[MAXSPLT], lend[MAXSPLT], cfade, mode;
   double  ndx[MAXSPLT][2];    /* table lookup ndx */
   double  freq[MAXSPLT];
-  int32_t firsttime, init, end[MAXSPLT], sstart[MAXSPLT];
+  int32_t firsttime[MAXSPLT], init, end[MAXSPLT], sstart[MAXSPLT];
   MYFLT   leftlevel[MAXSPLT], rightlevel[MAXSPLT];
 } sflooper;
 
@@ -2319,9 +2319,10 @@ static int32_t sflooper_init(CSOUND *csound, sflooper *p)
           p->ndx[j][0] = (double) p->end[j] - 1.0;
         p->count = 0;
       }
+      p->firsttime[j] = 1;
     }
     p->init = 1;
-    p->firsttime = 1;
+    
   }
   return OK;
 }
@@ -2340,7 +2341,7 @@ static int32_t sflooper_process(CSOUND *csound, sflooper *p)
     int32_t *nend = p->end, *loop_end = p->lend, *loop_start = p->lstart,
         crossfade = p->cfade, len, spltNum = p->spltNum;
     MYFLT count = p->count,fadein, fadeout, pitch;
-    int32_t *firsttime = &p->firsttime, elen, mode=p->mode, init = p->init;
+    int32_t *firsttime = p->firsttime, elen, mode=p->mode, init = p->init;
     uint32 tndx0, tndx1;
 
     if (p->efunc != NULL) {
@@ -2367,46 +2368,35 @@ static int32_t sflooper_process(CSOUND *csound, sflooper *p)
       right = p->rightlevel[k];
       pitch = pit*p->freq[k];
 
-      if (*firsttime) {
+      if (firsttime[k]) {
         int32_t loopsize;
-   
         loop_start[k] = (int32_t) (*p->loop_start*sr) + p->sstart[k];
         loop_end[k] =   (int32_t) (*p->loop_end*sr) + p->sstart[k];
         loop_start[k] = loop_start[k] < 0 ? 0 : loop_start[k];
-        if(loop_end[k] > len) { 
-          csound->Warning(csound, "loop end %f beyond sample length %f, clamping.",
-                          loop_end[k]/sr, len/sr);
-          loop_end[k] = len;
-        }
-        if(loop_end[k] <  loop_start[k]) { 
-          csound->Warning(csound, "loop end %f < loop start %f, setting zero length loop.",
-                          loop_end[k]/sr, len/sr);
-          loop_end[k] = loop_start[k];
-        }
-
-        
+        /* TODO : CHECKS */    
         loopsize = loop_end[k] - loop_start[k];
         crossfade = (int32_t) (*p->crossfade*sr);
-
        if (mode == 1) {
           ndx[0] = (double) loop_end[k];
           ndx[1] = (double) loop_end[k];
           count = (MYFLT) crossfade;
           p->cfade = crossfade = crossfade > loopsize ? loopsize : crossfade;
+         
         }
         else if (mode == 2) {
           ndx[1] = (double) loop_start[k] - 1.0;
           p->cfade = crossfade = crossfade > loopsize/2 ? loopsize/2 - 1 : crossfade;
           
-          
         }
         else {
           ndx[1] = (double) loop_start[k];
           p->cfade = crossfade = crossfade > loopsize ? loopsize : crossfade;
+          
         }
-        *firsttime = 0;
+        firsttime[k] = 0;
       }
       for (i=offset; i < nsmps; i++) {
+        
         if (mode == 1){ /* backwards */
           tndx0 = (int32_t) ndx[0];
           frac0 = ndx[0] - tndx0;
@@ -2437,8 +2427,7 @@ static int32_t sflooper_process(CSOUND *csound, sflooper *p)
             loop_start[k] = (int32_t) (*p->loop_start*sr) + p->sstart[k];
             loop_end[k] =   (int32_t) (*p->loop_end*sr) + p->sstart[k];
             loop_start[k] = loop_start[k] < 0 ? 0 : loop_start[k];
-            loop_end[k] =   loop_end[k] > len ? len :
-              (loop_end[k] < loop_start[k] ? loop_start[k] : loop_end[k]);
+            /* TODO : CHECKS */ 
             loopsize = loop_end[k] - loop_start[k];
             crossfade = (int32_t) (*p->crossfade*sr);
             p->cfade = crossfade = crossfade > loopsize ? loopsize : crossfade;
@@ -2517,9 +2506,8 @@ static int32_t sflooper_process(CSOUND *csound, sflooper *p)
               int32_t loopsize;
               loop_start[k] = (int32_t) (*p->loop_start*sr) + p->sstart[k];
               loop_end[k] =   (int32_t) (*p->loop_end*sr) + p->sstart[k];
-              loop_start[k] = loop_start[k] < 0 ? 0 : loop_start[k];
-              loop_end[k] =   loop_end[k] > len ? len :
-                (loop_end[k] < loop_start[k] ? loop_start[k] : loop_end[k]);
+              /* TODO : CHECKS */ 
+              
               loopsize = loop_end[k] - loop_start[k];
               crossfade = (int32_t) (*p->crossfade*sr);
               p->cfade = crossfade =
