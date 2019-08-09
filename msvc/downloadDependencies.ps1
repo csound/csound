@@ -106,6 +106,12 @@ mkdir staging -ErrorAction SilentlyContinue
 
 echo "Downloading and installing non-VCPKG packages..."
 
+choco install swig -y
+choco upgrade swig -y
+
+choco install winflexbison -y
+choco upgrade winflexbison -y
+
 # List of URIs to download and install
 $uriList="https://downloads.sourceforge.net/project/winflexbison/win_flex_bison-latest.zip",
 "http://www.steinberg.net/sdk_downloads/asiosdk2.3.zip",

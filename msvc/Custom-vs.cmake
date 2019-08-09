@@ -71,13 +71,8 @@ set(HAVE_BIG_ENDIAN 0)
 set(CMAKE_VERBOSE_MAKEFILE ON)
 set(CMAKE_16BIT_TYPE "unsigned short")
 set(FAIL_MISSING OFF) # Enable when packaging
-list(APPEND CMAKE_PREFIX_PATH "${PROJECT_SOURCE_DIR}\\msvc\\deps;${PROJECT_SOURCE_DIR}\\msvc\\deps\\swigwin-3.0.12;${PROJECT_SOURCE_DIR}\\msvc\\deps\\win_flex_bison;${PROJECT_SOURCE_DIR}\\msvc\\deps\\fluidsynthdeps")
+list(APPEND CMAKE_PREFIX_PATH "${PROJECT_SOURCE_DIR}\\msvc\\deps;${PROJECT_SOURCE_DIR}\\msvc\\deps\\fluidsynthdeps")
 set(CMAKE_REQUIRED_INCLUDES ${PROJECT_SOURCE_DIR}\\msvc\\deps\\include)
-
-# Explicit settings for locally downloaded dependencies
-# TODO ideally find all of these on path
-set(FLEX_EXECUTABLE "${PROJECT_SOURCE_DIR}\\msvc\\deps\\win_flex_bison\\win_flex.exe")
-set(BISON_EXECUTABLE "${PROJECT_SOURCE_DIR}\\msvc\\deps\\win_flex_bison\\win_bison.exe")
 
 # Disable the following warnings in msvc
 # - C4244 loss of data in conversion

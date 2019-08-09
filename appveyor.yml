@@ -69,6 +69,8 @@ artifacts:
 cache:
  - C:\Tools\vcpkg\ -> C:\projects\csound\msvc\downloadDependencies.ps1
  - C:\projects\csound\msvc\cache
+ - C:\ProgramData\chocolatey\bin -> appveyor.yml 
+ - C:\ProgramData\chocolatey\lib -> appveyor.yml
 
 deploy:
   release: csound-$(csound_version)
