@@ -15,9 +15,6 @@ $currentDir = Split-Path $MyInvocation.MyCommand.Path
 $cacheDir = $currentDir + "\cache\"
 $depsDir = $currentDir + "\deps\"
 $stageDir = $currentDir + "\staging\"
-$depsBinDir = $depsDir + "bin\"
-$depsLibDir = $depsDir + "lib\"
-$depsIncDir = $depsDir + "include\"
 $csoundDir = $currentDir + "\.."
 $vcpkgDir = ""
 
@@ -25,9 +22,6 @@ $vcpkgDir = ""
 $vcpkgTiming = 0
 $buildTiming = 0
 $cmakeTiming = 0
-
-# Add to path to call tools
-$env:Path += $depsDir
 
 # Find VCPKG from path if it already exists
 # Otherwise use the local Csound version that will be installed
