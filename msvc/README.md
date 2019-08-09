@@ -100,15 +100,3 @@ You can pass in default arguments to the csound instance by right-clicking on "c
 
 ### Profiling
 Using the build configuration "Release" or "Release with debug info" will allow profilling of the project. By going to "Analyze" and "Performance Profiler", you will get a choice of profilling tools (cpu usage, memory etc).
-
-## Work in progress / work to do
- - [Partial] Atomic builtins not being found, test program isn't working as expected but should
-   * Fixed the cmake test but csound source assumes linux based atomics, needs more work
- - PureData, source download and extract
- - Faust opcodes, need to investigate
- - HDF5, need to investigate
- - Websockets, need to investigate
- - Csound~, needs max sdk
- - Unit testing for build tests. CUnit needs SVN checkout and build. Maybe switch to another up to date framework? Google test?
- - Doxygen for documentation
- - Installer, currently being re-written
