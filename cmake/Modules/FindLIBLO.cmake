@@ -15,10 +15,10 @@
 # Redistribution and use is allowed according to the terms of the New BSD license.
 # For details see the accompanying COPYING-CMAKE-SCRIPTS file.
 #
-if (LIBLO_LIBRARIES AND LIBLO_INCLUDE_DIRS)
+if(LIBLO_LIBRARIES AND LIBLO_INCLUDE_DIRS)
   # in cache already
   set(LIBLO_FOUND TRUE)
-else ()
+else()
   find_path(LIBLO_INCLUDE_DIR
     NAMES
       lo/lo.h
