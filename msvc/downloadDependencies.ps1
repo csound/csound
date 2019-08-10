@@ -15,6 +15,9 @@ $currentDir = Split-Path $MyInvocation.MyCommand.Path
 $cacheDir = $currentDir + "\cache\"
 $depsDir = $currentDir + "\deps\"
 $stageDir = $currentDir + "\staging\"
+$depsBinDir = $depsDir + "bin\"
+$depsLibDir = $depsDir + "lib\"
+$depsIncDir = $depsDir + "include\"
 $csoundDir = $currentDir + "\.."
 $vcpkgDir = ""
 
