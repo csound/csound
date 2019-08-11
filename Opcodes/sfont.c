@@ -280,11 +280,13 @@ static int32_t SfPreset(CSOUND *csound, SFPRESET *p)
     globals = (sfontg *) (csound->QueryGlobalVariable(csound, "::sfontg"));
     sf = &globals->sfArray[(DWORD) *p->isfhandle];
 
-    if (presetHandle >= MAX_SFPRESET) {
+    if (UNLIKELY(presetHandle >= MAX_SFPRESET || presetHandle<0)) {
       return csound->InitError(csound,
                                Str("sfpreset: preset handle too big (%d), max: %d"),
                                presetHandle, (int32_t) MAX_SFPRESET - 1);
     }
+    if (UNLIKELY(globals->soundFont==NULL))
+      return csound->InitError(csound, Str("invalid sound font"));
 
     for (j=0; j< sf->presets_num; j++) {
       if (sf->preset[j].prog == (WORD) *p->iprog &&
@@ -319,6 +321,9 @@ static int32_t SfPlay_set(CSOUND *csound, SFPLAY *p)
     globals = (sfontg *) (csound->QueryGlobalVariable(csound, "::sfontg"));
     preset = globals->presetp[index];
     sBase = globals->sampleBase[index];
+
+    if (UNLIKELY(globals->soundFont==NULL))
+      return csound->InitError(csound, Str("invalid sound font"));
 
     if (!UNLIKELY(preset!=NULL)) {
       return csound->InitError(csound, Str("sfplay: invalid or "
@@ -2609,11 +2614,11 @@ int32_t sfont_ModuleCreate(CSOUND *csound)
       return csound->InitError(csound,
                                Str("error... could not create sfont globals\n"));
 
-    globals->sfArray = (SFBANK *) csound->Malloc(csound, MAX_SFONT*sizeof(SFBANK));
+    globals->sfArray = (SFBANK *) csound->Calloc(csound, MAX_SFONT*sizeof(SFBANK));
     globals->presetp =
-      (presetType **) csound->Malloc(csound, MAX_SFPRESET *sizeof(presetType *));
+      (presetType **) csound->Calloc(csound, MAX_SFPRESET *sizeof(presetType *));
     globals->sampleBase =
-      (SHORT **) csound->Malloc(csound, MAX_SFPRESET*sizeof(SHORT *));
+      (SHORT **) csound->Calloc(csound, MAX_SFPRESET*sizeof(SHORT *));
     globals->currSFndx = 0;
     globals->maxSFndx = MAX_SFONT;
     for (j=0; j<128; j++) {
