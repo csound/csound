@@ -2344,7 +2344,7 @@ static int32_t sflooper_process(CSOUND *csound, sflooper *p)
     double *ndx;
     MYFLT frac0, frac1, *etab, left, right;
     int32_t *nend = p->end, *loop_end = p->lend, *loop_start = p->lstart,
-        crossfade = p->cfade, len, spltNum = p->spltNum;
+      crossfade = p->cfade, send, sstart, spltNum = p->spltNum;
     MYFLT count = p->count,fadein, fadeout, pitch;
     int32_t *firsttime = p->firsttime, elen, mode=p->mode, init = p->init;
     uint32 tndx0, tndx1;
@@ -2367,7 +2367,8 @@ static int32_t sflooper_process(CSOUND *csound, sflooper *p)
     for (k=0; k < spltNum; k++) {
 
       tab   = base[k];
-      len   = nend[k];
+      sstart = p->sstart[k];
+      send   = nend[k] + sstart;
       ndx   = p->ndx[k];
       left  = p->leftlevel[k];
       right = p->rightlevel[k];
@@ -2375,10 +2376,22 @@ static int32_t sflooper_process(CSOUND *csound, sflooper *p)
 
       if (firsttime[k]) {
         int32_t loopsize;
-        loop_start[k] = (int32_t) (*p->loop_start*sr) + p->sstart[k];
-        loop_end[k] =   (int32_t) (*p->loop_end*sr) + p->sstart[k];
-        loop_start[k] = loop_start[k] < 0 ? 0 : loop_start[k];
-        /* TODO : CHECKS */    
+        loop_start[k] = (int32_t) (*p->loop_start*sr) + sstart;
+        loop_end[k] =   (int32_t) (*p->loop_end*sr) + sstart;
+        loop_start[k] = loop_start[k] < sstart ? sstart : loop_start[k];
+        /* TODO : CHECKS */
+        if(loop_start[k] > send) {
+          csound->Warning(csound, "loop start %f beyond sample end %f, clamping.\n",
+                          (loop_start[k] - sstart)/sr,
+                          (send - sstart)/sr);
+          loop_start[k] = send;
+        }
+        if(loop_end[k] > send) {
+          csound->Warning(csound, "loop end %f beyond sample end %f, clamping.\n",
+                          (loop_end[k] - sstart)/sr,
+                          (send - sstart)/sr);
+          loop_end[k] = send;
+        }
         loopsize = loop_end[k] - loop_start[k];
         crossfade = (int32_t) (*p->crossfade*sr);
        if (mode == 1) {
@@ -2429,10 +2442,22 @@ static int32_t sflooper_process(CSOUND *csound, sflooper *p)
 
           if (ndx[0] <= loop_start[k]) {
             int32_t loopsize;
-            loop_start[k] = (int32_t) (*p->loop_start*sr) + p->sstart[k];
-            loop_end[k] =   (int32_t) (*p->loop_end*sr) + p->sstart[k];
-            loop_start[k] = loop_start[k] < 0 ? 0 : loop_start[k];
-            /* TODO : CHECKS */ 
+            loop_start[k] = (int32_t) (*p->loop_start*sr) + sstart;
+            loop_end[k] =   (int32_t) (*p->loop_end*sr) + sstart;
+            loop_start[k] = loop_start[k] < sstart ? sstart: loop_start[k];
+            /* CHECKS */
+            if(loop_start[k] > send) {
+             csound->Warning(csound, "loop start %f beyond sample end %f, clamping.\n",
+                          (loop_start[k] - sstart)/sr,
+                          (send - sstart)/sr);
+              loop_start[k] = send;
+            }
+            if(loop_end[k] > send) {
+              csound->Warning(csound, "loop end %f beyond sample end %f, clamping.\n",
+                          (loop_end[k] - sstart)/sr,
+                          (send - sstart)/sr);
+              loop_end[k] = send;
+            }
             loopsize = loop_end[k] - loop_start[k];
             crossfade = (int32_t) (*p->crossfade*sr);
             p->cfade = crossfade = crossfade > loopsize ? loopsize : crossfade;
@@ -2511,7 +2536,20 @@ static int32_t sflooper_process(CSOUND *csound, sflooper *p)
               int32_t loopsize;
               loop_start[k] = (int32_t) (*p->loop_start*sr) + p->sstart[k];
               loop_end[k] =   (int32_t) (*p->loop_end*sr) + p->sstart[k];
-              /* TODO : CHECKS */ 
+              loop_start[k] = loop_start[k] < sstart ? sstart: loop_start[k];
+                          /* CHECKS */
+              if(loop_start[k] > send) {
+               csound->Warning(csound, "loop start %f beyond sample end %f, clamping.\n",
+                          (loop_start[k] - sstart)/sr,
+                          (send - sstart)/sr);
+              loop_start[k] = send;
+            }
+            if(loop_end[k] > send) {
+              csound->Warning(csound, "loop end %f beyond sample end %f, clamping.\n",
+                          (loop_end[k] - sstart)/sr,
+                          (send - sstart)/sr);
+              loop_end[k] = send;
+            } 
               
               loopsize = loop_end[k] - loop_start[k];
               crossfade = (int32_t) (*p->crossfade*sr);
@@ -2550,9 +2588,20 @@ static int32_t sflooper_process(CSOUND *csound, sflooper *p)
             int32_t loopsize;
             loop_start[k] = (int32_t) (*p->loop_start*sr) + p->sstart[k];
             loop_end[k] =   (int32_t) (*p->loop_end*sr) + p->sstart[k];
-            loop_start[k] = loop_start[k] < 0 ? 0 : loop_start[k];
-            loop_end[k] =   loop_end[k] > len ? len :
-              (loop_end[k] < loop_start[k] ? loop_start[k] : loop_end[k]);
+            loop_start[k] = loop_start[k] < sstart ? sstart: loop_start[k];
+            /* TODO : CHECKS */
+            if(loop_start[k] > send) {
+             csound->Warning(csound, "loop start %f beyond sample end %f, clamping.\n",
+                          (loop_start[k] - sstart)/sr,
+                          (send - sstart)/sr);
+              loop_start[k] = send;
+            }
+            if(loop_end[k] > send) {
+              csound->Warning(csound, "loop end %f beyond sample end %f, clamping.\n",
+                          (loop_end[k] - sstart)/sr,
+                          (send - sstart)/sr);
+              loop_end[k] = send;
+            }
             loopsize = loop_end[k] - loop_start[k];
             crossfade = (int32_t) (*p->crossfade*sr);
             p->cfade = crossfade = crossfade > loopsize ? loopsize-1 : crossfade;
