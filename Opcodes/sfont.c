@@ -301,8 +301,6 @@ static int32_t SfPreset(CSOUND *csound, SFPRESET *p)
                                Str("sfpreset: preset handle too big (%d), max: %d"),
                                presetHandle, (int32_t) MAX_SFPRESET - 1);
     }
-    /* if (UNLIKELY(globals->soundFont==NULL)) */
-    /*   return csound->InitError(csound, Str("invalid sound font")); */
 
     for (j=0; j< sf->presets_num; j++) {
       if (sf->preset[j].prog == (WORD) *p->iprog &&
@@ -339,9 +337,6 @@ static int32_t SfPlay_set(CSOUND *csound, SFPLAY *p)
       return csound->InitError(csound, Str("invalid soundfont"));
     preset = globals->presetp[index];
     sBase = globals->sampleBase[index];
-
-    /* if (UNLIKELY(globals->soundFont==NULL)) */
-    /*   return csound->InitError(csound, Str("invalid sound font")); */
 
     if (!UNLIKELY(preset!=NULL)) {
       return csound->InitError(csound, Str("sfplay: invalid or "
@@ -677,8 +672,6 @@ static int32_t SfPlayMono_set(CSOUND *csound, SFPLAYMONO *p)
     globals = (sfontg *) (csound->QueryGlobalVariable(csound, "::sfontg"));
     if (UNLIKELY(index>=(DWORD)globals->currSFndx))
       return csound->InitError(csound, Str("invalid soundfont"));
-    /* if (UNLIKELY(globals->soundFont==NULL)) */
-    /*   return csound->InitError(csound, Str("invalid sound font")); */
 
     preset = globals->presetp[index];
     sBase = globals->sampleBase[index];
@@ -946,11 +939,9 @@ static int32_t SfInstrPlay_set(CSOUND *csound, SFIPLAY *p)
     globals = (sfontg *) (csound->QueryGlobalVariable(csound, "::sfontg"));
     if (UNLIKELY(index<0 || index>=globals->currSFndx))
       return csound->InitError(csound, Str("invalid soundfont"));
-    /* if (UNLIKELY(globals->soundFont==NULL)) */
-    /*   return csound->InitError(csound, Str("invalid sound font")); */
-
     sf = &globals->sfArray[index];
-    if (UNLIKELY(index > globals->currSFndx || *p->instrNum >  sf->instrs_num)) {
+
+    if (UNLIKELY(*p->instrNum >  sf->instrs_num)) {
       return csound->InitError(csound, Str("sfinstr: instrument out of range"));
     }
     else {
@@ -1221,11 +1212,9 @@ static int32_t SfInstrPlayMono_set(CSOUND *csound, SFIPLAYMONO *p)
     globals = (sfontg *) (csound->QueryGlobalVariable(csound, "::sfontg"));
     if (UNLIKELY(index<0 || index>=globals->currSFndx))
       return csound->InitError(csound, Str("invalid soundfont"));
-    /* if (UNLIKELY(globals->soundFont==NULL)) */
-    /*   return csound->InitError(csound, Str("invalid sound font")); */
 
     sf = &globals->sfArray[index];
-    if (UNLIKELY(index > globals->currSFndx || *p->instrNum >  sf->instrs_num)) {
+    if (UNLIKELY( *p->instrNum >  sf->instrs_num)) {
       return csound->InitError(csound, Str("sfinstr: instrument out of range"));
     }
     else {
@@ -2291,10 +2280,6 @@ static int32_t sflooper_init(CSOUND *csound, sflooper *p)
     int32_t layersNum, j, spltNum = 0;
     sfontg *globals;
     globals = (sfontg *) (csound->QueryGlobalVariable(csound, "::sfontg"));
-    if (UNLIKELY(index  >=(DWORD)globals->currSFndx))
-      return csound->InitError(csound, Str("invalid soundfont"));
-    /* if (UNLIKELY(globals->soundFont==NULL)) */
-    /*   return csound->InitError(csound, Str("invalid sound font")); */
 
     preset = globals->presetp[index];
     sBase = globals->sampleBase[index];
@@ -2365,7 +2350,7 @@ static int32_t sflooper_init(CSOUND *csound, sflooper *p)
       p->firsttime[j] = 1;
     }
     p->init = 1;
-    
+
   }
   return OK;
 }
@@ -2437,22 +2422,18 @@ static int32_t sflooper_process(CSOUND *csound, sflooper *p)
           ndx[1] = (double) loop_end[k];
           count = (MYFLT) crossfade;
           p->cfade = crossfade = crossfade > loopsize ? loopsize : crossfade;
-         
         }
         else if (mode == 2) {
           ndx[1] = (double) loop_start[k] - 1.0;
           p->cfade = crossfade = crossfade > loopsize/2 ? loopsize/2 - 1 : crossfade;
-          
         }
         else {
           ndx[1] = (double) loop_start[k];
           p->cfade = crossfade = crossfade > loopsize ? loopsize : crossfade;
-          
         }
         firsttime[k] = 0;
       }
       for (i=offset; i < nsmps; i++) {
-        
         if (mode == 1){ /* backwards */
           tndx0 = (int32_t) ndx[0];
           frac0 = ndx[0] - tndx0;
@@ -2553,7 +2534,7 @@ static int32_t sflooper_process(CSOUND *csound, sflooper *p)
             out += amp*fadein*(tab[tndx1] + frac1*(tab[tndx1+1] - tab[tndx1]));
             ndx[1] -= pitch;
           }
-          else if (ndx[1] > loop_start[k] + crossfade) {           
+          else if (ndx[1] > loop_start[k] + crossfade) {
             tndx1 = (int32_t) ndx[1];
             frac1 = ndx[1] - tndx1;
             out = amp*(tab[tndx1] + frac1*(tab[tndx1+1] - tab[tndx1]));
@@ -2587,8 +2568,8 @@ static int32_t sflooper_process(CSOUND *csound, sflooper *p)
                           (loop_end[k] - sstart)/sr,
                           (send - sstart)/sr);
               loop_end[k] = send;
-            } 
-              
+            }
+
               loopsize = loop_end[k] - loop_start[k];
               crossfade = (int32_t) (*p->crossfade*sr);
               p->cfade = crossfade =
