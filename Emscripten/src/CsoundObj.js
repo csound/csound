@@ -184,12 +184,7 @@ class CsoundObj {
      *  subsequent requests.
      */ 
     setOutputChannelCallback(channelName, callback) {
-        if (typeof this.node.setOutputChannelCallback === "function") {
-            this.node.setOutputChannelCallback(channelName, callback);
-        }
-        else {
-            console.error("CsoundObj.setOutputChannelCallback: Not implemented for Script Processor Node.");
-        }
+        this.node.setOutputChannelCallback(channelName, callback);
     }
     /** Request the string data from a control channel 
      *

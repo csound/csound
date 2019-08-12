@@ -375,6 +375,28 @@ CsoundScriptProcessorNode  = function(context, options) {
                 CSOUND.setTable(this.csound, number, i, table[i]);
         },
         
+        /** Provide a callback to receive the output data from a control channel 
+         *
+         * @param {string} channelName A string containing the channel name.
+         * @param {function} callback A callback to be called when
+         *  the output data is available. This can be set once for all
+         *  subsequent requests.
+         */ 
+        setOutputChannelCallback(channelName, callback) {
+
+            this.channelCallbacks[channelName] = callback;
+            function csoundCallback(csoundPtr, stringPtr, valuePtr, typePtr) {
+                const string = CSMOD.UTF8ToString(stringPtr);
+                const value  = CSMOD.getValue(valuePtr, 'float');
+                this.channelCallbacks[string](value);
+            };
+            const functionPointer = CSMOD.addFunction(
+                csoundCallback,
+                "viiii"
+            );
+            CSOUND.setOutputChannelCallback(this.csound, functionPointer);
+        },
+        
         /** Starts processing in this node
          *  @memberof CsoundMixin
          */ 
