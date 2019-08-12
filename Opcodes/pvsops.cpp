@@ -30,7 +30,6 @@ struct PVTrace : csnd::FPlugin<1, 2> {
   int init() {
     if (inargs.fsig_data(0).isSliding())
       return csound->init_error("sliding not supported");
-
     if (inargs.fsig_data(0).fsig_format() != csnd::fsig_format::pvs &&
         inargs.fsig_data(0).fsig_format() != csnd::fsig_format::polar)
       return csound->init_error("fsig format not supported");
@@ -45,7 +44,6 @@ struct PVTrace : csnd::FPlugin<1, 2> {
   int kperf() {
     csnd::pv_frame &fin = inargs.fsig_data(0);
     csnd::pv_frame &fout = outargs.fsig_data(0);
-
     if (framecount < fin.count()) {
       int n = fin.len() - (int)inargs[1];
       float thrsh;
@@ -374,7 +372,7 @@ struct TPrint : csnd::Plugin<0, 1> {
 
 #include <modload.h>
 void csnd::on_load(Csound *csound) {
-  csnd::plugin<PVTrace>(csound, "pvstrace", csnd::thread::ik);
+  csnd::plugin<PVTrace>(csound, "pvstrace",  csnd::thread::ik);
   csnd::plugin<PVTrace2>(csound, "pvstrace", csnd::thread::ik);
   csnd::plugin<TVConv>(csound, "tvconv", "a", "aaxxii", csnd::thread::ia);
 }

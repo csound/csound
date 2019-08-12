@@ -42,7 +42,7 @@ const double twopi = TWOPI;
 
 /** opcode threads: i-time, k-perf and/or a-perf
 */
-enum thread { i = 1, k = 2, ik = 3, a = 2, ia = 3 /*, ika = 3*/ };
+enum thread { i = 1, k = 2, ik = 3, a = 4, ia = 5 /*, ika = 3*/ };
 
 /** fsig formats: phase vocoder, stft polar, stft complex, or
     sinusoidal tracks
@@ -1009,10 +1009,12 @@ template <typename T>
 int plugin(Csound *csound, const char *name, const char *oargs,
            const char *iargs, uint32_t thr, uint32_t flags = 0) {
   CSOUND *cs = (CSOUND *)csound;
-  if(thr == thread::ia || thr == thread::a)
+  if(thr == thread::ia || thr == thread::a) {
+  thr = thr == thread::ia ? 3 : 2;
   return cs->AppendOpcode(cs, (char *)name, sizeof(T), flags, thr,
                           (char *)oargs, (char *)iargs, (SUBR)init<T>,
                           (SUBR)aperf<T>, NULL);
+  }
   else
   return cs->AppendOpcode(cs, (char *)name, sizeof(T), flags, thr,
                           (char *)oargs, (char *)iargs, (SUBR)init<T>,
@@ -1026,10 +1028,13 @@ template <typename T>
 int plugin(Csound *csound, const char *name, uint32_t thr,
            uint32_t flags = 0) {
   CSOUND *cs = (CSOUND *)csound;
-  if(thr == thread::ia || thr == thread::a)
+  if(thr == thread::ia || thr == thread::a) {
+  thr = thr == thread::ia ? 3 : 2;
   return cs->AppendOpcode(cs, (char *)name, sizeof(T), flags, thr,
                           (char *)T::otypes, (char *)T::itypes, (SUBR)init<T>,
                           (SUBR)aperf<T>, NULL);
+
+  }
   else
   return cs->AppendOpcode(cs, (char *)name, sizeof(T), flags, thr,
                           (char *)T::otypes, (char *)T::itypes, (SUBR)init<T>,

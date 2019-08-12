@@ -54,8 +54,7 @@ patch libsndfile-1.0.25/src/sndfile.c < ../patches/sndfile.c.patch
 
 cd libsndfile-1.0.25
 #emconfigure ./configure --enable-static --disable-shared --disable-libtool-lock --disable-cpu-clip --disable-sqlite --disable-alsa --enable-external-libs --disable-full-suite 
-emconfigure ./configure --enable-static --disable-shared --prefix=$DEPS_DIR --disable-libtool-lock --disable-cpu-clip --disable-sqlite --disable-alsa --enable-external-libs --includedir=$DEPS_DIR/include LD_FLAGS="-L${DEPS_DIR}/lib" --libdir="${DEPS_DIR}/lib"
-  OGG_LIBS="-lm -logg" OGG_CFLAGS="-I${DEPS_DIR}/include"  VORBIS_LIBS="-lm -lvorbis" VORBIS_CFLAGS="-I${DEPS_DIR}/include" VORBISENC_LIBS="-lvorbisenc" VORBISENC_CFLAGS="-I${DEPS_DIR}/include" FLAC_LIBS="-lFLAC" FLAC_CFLAGS="-I${DEPS_DIR}/include" 
+emconfigure ./configure --enable-static --disable-shared --prefix=$DEPS_DIR --disable-libtool-lock --disable-cpu-clip --disable-sqlite --disable-alsa --enable-external-libs --includedir=$DEPS_DIR/include LD_FLAGS="-L${DEPS_DIR}/lib" --libdir="${DEPS_DIR}/lib" OGG_LIBS="-lm -logg" OGG_CFLAGS="-I${DEPS_DIR}/include"  VORBIS_LIBS="-lm -lvorbis" VORBIS_CFLAGS="-I${DEPS_DIR}/include" VORBISENC_LIBS="-lvorbisenc" VORBISENC_CFLAGS="-I${DEPS_DIR}/include" FLAC_LIBS="-lFLAC" FLAC_CFLAGS="-I${DEPS_DIR}/include" 
 
 emmake make install
 

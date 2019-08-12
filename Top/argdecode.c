@@ -300,8 +300,10 @@ static const char *longUsageList[] = {
   Str_noop("--vbr-quality=Ft        set quality of variable bit-rate compression"),
   Str_noop("--devices[=in|out]      list available audio devices and exit"),
   Str_noop("--midi-devices[=in|out] list available MIDI devices and exit"),
-  Str_noop("--get-system-sr         print system sr and exit, requires realtime audio output (e.g. -odac) to be defined first)"),
-  Str_noop("--use-system-sr         print system sr and use realtime audio output (e.g. -odac) to be defined first"),
+  Str_noop("--get-system-sr         print system sr and exit, requires realtime\n"
+       "                        audio output (e.g. -odac) to be defined first)"),
+  Str_noop("--use-system-sr         print system sr and use realtime audio\n"
+           "                        output (e.g. -odac) to be defined first"),
   Str_noop("--ksmps=N               override ksmps"),
   Str_noop("--fftlib=N              actual FFT lib to use (FFTLIB=0, "
                                    "PFFFT = 1, vDSP =2)"),

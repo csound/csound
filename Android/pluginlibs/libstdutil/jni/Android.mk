@@ -34,7 +34,7 @@ $(CSOUND_SRC_ROOT)/util/sndinfo.c \
 $(CSOUND_SRC_ROOT)/util/srconv.c \
 $(CSOUND_SRC_ROOT)/util/std_util.c \
 $(CSOUND_SRC_ROOT)/util/xtrct.c \
-$(CSOUND_SRC_ROOT)/SDIF/sdif.c
+$(CSOUND_SRC_ROOT)/util/SDIF/sdif.c
 
 LOCAL_LDLIBS += -ldl
 

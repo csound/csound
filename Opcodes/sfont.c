@@ -213,7 +213,11 @@ static int32_t Sfplist(CSOUND *csound, SFPLIST *p)
     char temp_string[24];
     int32_t j;
     globals = (sfontg *) (csound->QueryGlobalVariable(csound, "::sfontg"));
+    if (UNLIKELY( *p->ihandle<0 || *p->ihandle>=globals->currSFndx))
+      return csound->InitError(csound, Str("invalid soundfont"));
     sf = &globals->sfArray[(int32_t) *p->ihandle];
+    /* if (UNLIKELY(sf==NULL)) */
+    /*   return csound->InitError(csound, Str("invalid soundfont")); */
     csound->Message(csound, Str("\nPreset list of \"%s\"\n"), sf->name);
     for (j =0; j < sf->presets_num; j++) {
       presetType *prs = &sf->preset[j];
@@ -233,7 +237,12 @@ static int32_t SfAssignAllPresets(CSOUND *csound, SFPASSIGN *p)
     int32_t j, enableMsgs;
 
     globals = (sfontg *) (csound->QueryGlobalVariable(csound, "::sfontg"));
+    if (UNLIKELY( *p->ihandle<0 || *p->ihandle>=globals->currSFndx))
+      return csound->InitError(csound, Str("invalid soundfont"));
     sf = &globals->sfArray[(int32_t) *p->ihandle];
+    /* if (UNLIKELY(globals->soundFont==NULL)) */
+    /*   return csound->InitError(csound, Str("invalid sound font")); */
+
     pHandle = (int32_t) *p->startNum;
     pnum = sf->presets_num;
     enableMsgs = (*p->msgs==FL(0.0));
@@ -263,6 +272,11 @@ static int32_t Sfilist(CSOUND *csound, SFPLIST *p)
     SFBANK *sf;
     int32_t j;
     globals = (sfontg *) (csound->QueryGlobalVariable(csound, "::sfontg"));
+    if (UNLIKELY( *p->ihandle<0 || *p->ihandle>=globals->currSFndx))
+      return csound->InitError(csound, Str("invalid soundfont"));
+    /* if (UNLIKELY(globals->soundFont==NULL)) */
+    /*   return csound->InitError(csound, Str("invalid sound font")); */
+
     sf = &globals->sfArray[(int32_t) *p->ihandle];
     csound->Message(csound, Str("\nInstrument list of \"%s\"\n"), sf->name);
     for (j =0; j < sf->instrs_num; j++) {
@@ -279,8 +293,10 @@ static int32_t SfPreset(CSOUND *csound, SFPRESET *p)
     int32_t j, presetHandle = (int32_t) *p->iPresetHandle;
     globals = (sfontg *) (csound->QueryGlobalVariable(csound, "::sfontg"));
     sf = &globals->sfArray[(DWORD) *p->isfhandle];
+    if (UNLIKELY( *p->isfhandle<0 || *p->isfhandle>=globals->currSFndx))
+      return csound->InitError(csound, Str("invalid soundfont"));
 
-    if (presetHandle >= MAX_SFPRESET) {
+    if (UNLIKELY(presetHandle >= MAX_SFPRESET || presetHandle<0)) {
       return csound->InitError(csound,
                                Str("sfpreset: preset handle too big (%d), max: %d"),
                                presetHandle, (int32_t) MAX_SFPRESET - 1);
@@ -317,6 +333,8 @@ static int32_t SfPlay_set(CSOUND *csound, SFPLAY *p)
     int32_t layersNum, j, spltNum = 0, flag = (int32_t) *p->iflag;
     sfontg *globals;
     globals = (sfontg *) (csound->QueryGlobalVariable(csound, "::sfontg"));
+    if (UNLIKELY(index>=(DWORD)globals->currSFndx))
+      return csound->InitError(csound, Str("invalid soundfont"));
     preset = globals->presetp[index];
     sBase = globals->sampleBase[index];
 
@@ -652,6 +670,9 @@ static int32_t SfPlayMono_set(CSOUND *csound, SFPLAYMONO *p)
     int32_t layersNum, j, spltNum = 0, flag=(int32_t) *p->iflag;
     sfontg *globals;
     globals = (sfontg *) (csound->QueryGlobalVariable(csound, "::sfontg"));
+    if (UNLIKELY(index>=(DWORD)globals->currSFndx))
+      return csound->InitError(csound, Str("invalid soundfont"));
+
     preset = globals->presetp[index];
     sBase = globals->sampleBase[index];
 
@@ -916,8 +937,11 @@ static int32_t SfInstrPlay_set(CSOUND *csound, SFIPLAY *p)
     SFBANK *sf;
     int32_t index = (int32_t) *p->sfBank;
     globals = (sfontg *) (csound->QueryGlobalVariable(csound, "::sfontg"));
+    if (UNLIKELY(index<0 || index>=globals->currSFndx))
+      return csound->InitError(csound, Str("invalid soundfont"));
     sf = &globals->sfArray[index];
-    if (UNLIKELY(index > globals->currSFndx || *p->instrNum >  sf->instrs_num)) {
+
+    if (UNLIKELY(*p->instrNum >  sf->instrs_num)) {
       return csound->InitError(csound, Str("sfinstr: instrument out of range"));
     }
     else {
@@ -1186,8 +1210,11 @@ static int32_t SfInstrPlayMono_set(CSOUND *csound, SFIPLAYMONO *p)
     sfontg *globals;
     SFBANK *sf;
     globals = (sfontg *) (csound->QueryGlobalVariable(csound, "::sfontg"));
+    if (UNLIKELY(index<0 || index>=globals->currSFndx))
+      return csound->InitError(csound, Str("invalid soundfont"));
+
     sf = &globals->sfArray[index];
-    if (UNLIKELY(index > globals->currSFndx || *p->instrNum >  sf->instrs_num)) {
+    if (UNLIKELY( *p->instrNum >  sf->instrs_num)) {
       return csound->InitError(csound, Str("sfinstr: instrument out of range"));
     }
     else {
@@ -2241,7 +2268,7 @@ typedef struct _sflooper {
   int32_t lstart[MAXSPLT], lend[MAXSPLT], cfade, mode;
   double  ndx[MAXSPLT][2];    /* table lookup ndx */
   double  freq[MAXSPLT];
-  int32_t firsttime, init, end[MAXSPLT], sstart[MAXSPLT];
+  int32_t firsttime[MAXSPLT], init, end[MAXSPLT], sstart[MAXSPLT];
   MYFLT   leftlevel[MAXSPLT], rightlevel[MAXSPLT];
 } sflooper;
 
@@ -2253,6 +2280,7 @@ static int32_t sflooper_init(CSOUND *csound, sflooper *p)
     int32_t layersNum, j, spltNum = 0;
     sfontg *globals;
     globals = (sfontg *) (csound->QueryGlobalVariable(csound, "::sfontg"));
+
     preset = globals->presetp[index];
     sBase = globals->sampleBase[index];
     if (!preset) {
@@ -2319,9 +2347,10 @@ static int32_t sflooper_init(CSOUND *csound, sflooper *p)
           p->ndx[j][0] = (double) p->end[j] - 1.0;
         p->count = 0;
       }
+      p->firsttime[j] = 1;
     }
     p->init = 1;
-    p->firsttime = 1;
+
   }
   return OK;
 }
@@ -2338,9 +2367,9 @@ static int32_t sflooper_process(CSOUND *csound, sflooper *p)
     double *ndx;
     MYFLT frac0, frac1, *etab, left, right;
     int32_t *nend = p->end, *loop_end = p->lend, *loop_start = p->lstart,
-        crossfade = p->cfade, len, spltNum = p->spltNum;
+      crossfade = p->cfade, send, sstart, spltNum = p->spltNum;
     MYFLT count = p->count,fadein, fadeout, pitch;
-    int32_t *firsttime = &p->firsttime, elen, mode=p->mode, init = p->init;
+    int32_t *firsttime = p->firsttime, elen, mode=p->mode, init = p->init;
     uint32 tndx0, tndx1;
 
     if (p->efunc != NULL) {
@@ -2361,23 +2390,34 @@ static int32_t sflooper_process(CSOUND *csound, sflooper *p)
     for (k=0; k < spltNum; k++) {
 
       tab   = base[k];
-      len   = nend[k];
+      sstart = p->sstart[k];
+      send   = nend[k] + sstart;
       ndx   = p->ndx[k];
       left  = p->leftlevel[k];
       right = p->rightlevel[k];
       pitch = pit*p->freq[k];
 
-      if (*firsttime) {
+      if (firsttime[k]) {
         int32_t loopsize;
-        loop_start[k] = (int32_t) (*p->loop_start*sr) + p->sstart[k];
-        loop_end[k] =   (int32_t) (*p->loop_end*sr) + p->sstart[k];
-        loop_start[k] = loop_start[k] < 0 ? 0 : loop_start[k];
-        loop_end[k] =   loop_end[k] > len ? len :
-          (loop_end[k] < loop_start[k] ? loop_start[k] : loop_end[k]);
+        loop_start[k] = (int32_t) (*p->loop_start*sr) + sstart;
+        loop_end[k] =   (int32_t) (*p->loop_end*sr) + sstart;
+        loop_start[k] = loop_start[k] < sstart ? sstart : loop_start[k];
+        /* TODO : CHECKS */
+        if(loop_start[k] > send) {
+          csound->Warning(csound, "loop start %f beyond sample end %f, clamping.\n",
+                          (loop_start[k] - sstart)/sr,
+                          (send - sstart)/sr);
+          loop_start[k] = send;
+        }
+        if(loop_end[k] > send) {
+          csound->Warning(csound, "loop end %f beyond sample end %f, clamping.\n",
+                          (loop_end[k] - sstart)/sr,
+                          (send - sstart)/sr);
+          loop_end[k] = send;
+        }
         loopsize = loop_end[k] - loop_start[k];
         crossfade = (int32_t) (*p->crossfade*sr);
-
-        if (mode == 1) {
+       if (mode == 1) {
           ndx[0] = (double) loop_end[k];
           ndx[1] = (double) loop_end[k];
           count = (MYFLT) crossfade;
@@ -2385,13 +2425,13 @@ static int32_t sflooper_process(CSOUND *csound, sflooper *p)
         }
         else if (mode == 2) {
           ndx[1] = (double) loop_start[k] - 1.0;
-          p->cfade = crossfade = crossfade > loopsize/2 ? loopsize/2-1 : crossfade;
+          p->cfade = crossfade = crossfade > loopsize/2 ? loopsize/2 - 1 : crossfade;
         }
         else {
           ndx[1] = (double) loop_start[k];
           p->cfade = crossfade = crossfade > loopsize ? loopsize : crossfade;
         }
-        *firsttime = 0;
+        firsttime[k] = 0;
       }
       for (i=offset; i < nsmps; i++) {
         if (mode == 1){ /* backwards */
@@ -2421,11 +2461,22 @@ static int32_t sflooper_process(CSOUND *csound, sflooper *p)
 
           if (ndx[0] <= loop_start[k]) {
             int32_t loopsize;
-            loop_start[k] = (int32_t) (*p->loop_start*sr) + p->sstart[k];
-            loop_end[k] =   (int32_t) (*p->loop_end*sr) + p->sstart[k];
-            loop_start[k] = loop_start[k] < 0 ? 0 : loop_start[k];
-            loop_end[k] =   loop_end[k] > len ? len :
-              (loop_end[k] < loop_start[k] ? loop_start[k] : loop_end[k]);
+            loop_start[k] = (int32_t) (*p->loop_start*sr) + sstart;
+            loop_end[k] =   (int32_t) (*p->loop_end*sr) + sstart;
+            loop_start[k] = loop_start[k] < sstart ? sstart: loop_start[k];
+            /* CHECKS */
+            if(loop_start[k] > send) {
+             csound->Warning(csound, "loop start %f beyond sample end %f, clamping.\n",
+                          (loop_start[k] - sstart)/sr,
+                          (send - sstart)/sr);
+              loop_start[k] = send;
+            }
+            if(loop_end[k] > send) {
+              csound->Warning(csound, "loop end %f beyond sample end %f, clamping.\n",
+                          (loop_end[k] - sstart)/sr,
+                          (send - sstart)/sr);
+              loop_end[k] = send;
+            }
             loopsize = loop_end[k] - loop_start[k];
             crossfade = (int32_t) (*p->crossfade*sr);
             p->cfade = crossfade = crossfade > loopsize ? loopsize : crossfade;
@@ -2504,9 +2555,21 @@ static int32_t sflooper_process(CSOUND *csound, sflooper *p)
               int32_t loopsize;
               loop_start[k] = (int32_t) (*p->loop_start*sr) + p->sstart[k];
               loop_end[k] =   (int32_t) (*p->loop_end*sr) + p->sstart[k];
-              loop_start[k] = loop_start[k] < 0 ? 0 : loop_start[k];
-              loop_end[k] =   loop_end[k] > len ? len :
-                (loop_end[k] < loop_start[k] ? loop_start[k] : loop_end[k]);
+              loop_start[k] = loop_start[k] < sstart ? sstart: loop_start[k];
+                          /* CHECKS */
+              if(loop_start[k] > send) {
+               csound->Warning(csound, "loop start %f beyond sample end %f, clamping.\n",
+                          (loop_start[k] - sstart)/sr,
+                          (send - sstart)/sr);
+              loop_start[k] = send;
+            }
+            if(loop_end[k] > send) {
+              csound->Warning(csound, "loop end %f beyond sample end %f, clamping.\n",
+                          (loop_end[k] - sstart)/sr,
+                          (send - sstart)/sr);
+              loop_end[k] = send;
+            }
+
               loopsize = loop_end[k] - loop_start[k];
               crossfade = (int32_t) (*p->crossfade*sr);
               p->cfade = crossfade =
@@ -2544,9 +2607,20 @@ static int32_t sflooper_process(CSOUND *csound, sflooper *p)
             int32_t loopsize;
             loop_start[k] = (int32_t) (*p->loop_start*sr) + p->sstart[k];
             loop_end[k] =   (int32_t) (*p->loop_end*sr) + p->sstart[k];
-            loop_start[k] = loop_start[k] < 0 ? 0 : loop_start[k];
-            loop_end[k] =   loop_end[k] > len ? len :
-              (loop_end[k] < loop_start[k] ? loop_start[k] : loop_end[k]);
+            loop_start[k] = loop_start[k] < sstart ? sstart: loop_start[k];
+            /* TODO : CHECKS */
+            if(loop_start[k] > send) {
+             csound->Warning(csound, "loop start %f beyond sample end %f, clamping.\n",
+                          (loop_start[k] - sstart)/sr,
+                          (send - sstart)/sr);
+              loop_start[k] = send;
+            }
+            if(loop_end[k] > send) {
+              csound->Warning(csound, "loop end %f beyond sample end %f, clamping.\n",
+                          (loop_end[k] - sstart)/sr,
+                          (send - sstart)/sr);
+              loop_end[k] = send;
+            }
             loopsize = loop_end[k] - loop_start[k];
             crossfade = (int32_t) (*p->crossfade*sr);
             p->cfade = crossfade = crossfade > loopsize ? loopsize-1 : crossfade;
@@ -2608,11 +2682,11 @@ int32_t sfont_ModuleCreate(CSOUND *csound)
       return csound->InitError(csound,
                                Str("error... could not create sfont globals\n"));
 
-    globals->sfArray = (SFBANK *) csound->Malloc(csound, MAX_SFONT*sizeof(SFBANK));
+    globals->sfArray = (SFBANK *) csound->Calloc(csound, MAX_SFONT*sizeof(SFBANK));
     globals->presetp =
-      (presetType **) csound->Malloc(csound, MAX_SFPRESET *sizeof(presetType *));
+      (presetType **) csound->Calloc(csound, MAX_SFPRESET *sizeof(presetType *));
     globals->sampleBase =
-      (SHORT **) csound->Malloc(csound, MAX_SFPRESET*sizeof(SHORT *));
+      (SHORT **) csound->Calloc(csound, MAX_SFPRESET*sizeof(SHORT *));
     globals->currSFndx = 0;
     globals->maxSFndx = MAX_SFONT;
     for (j=0; j<128; j++) {
