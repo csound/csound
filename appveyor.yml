@@ -60,7 +60,7 @@ artifacts:
     type: exe
 
 cache:
- - C:\Tools\vcpkg\installed -> C:\projects\csound\msvc\downloadDependencies.ps1
+ - C:\Tools\vcpkg\ -> C:\projects\csound\msvc\downloadDependencies.ps1
  - C:\projects\csound\msvc\cache
  - C:\ProgramData\chocolatey\bin -> appveyor.yml 
  - C:\ProgramData\chocolatey\lib -> appveyor.yml
