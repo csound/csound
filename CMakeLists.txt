@@ -240,7 +240,7 @@ endif()
 
 if(MSVC)
   include_directories(${PROJECT_SOURCE_DIR}/msvc/include)
-  list(APPEND CMAKE_REQUIRED_INCLUDES "${PROJECT_SOURCE_DIR}/msvc/include;${PROJECT_SOURCE_DIR}/msvc/deps/include")
+  list(APPEND CMAKE_REQUIRED_INCLUDES "${PROJECT_SOURCE_DIR}/msvc/deps/include")
 endif()
 
 if(WIN32)
