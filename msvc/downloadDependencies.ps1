@@ -26,6 +26,9 @@ $vcpkgTiming = 0
 $buildTiming = 0
 $cmakeTiming = 0
 
+# Add to path to call tools
+$env:Path += $depsDir
+
 # Find VCPKG from path if it already exists
 # Otherwise use the local Csound version that will be installed
 $systemVCPKG = $(Get-Command vcpkg -ErrorAction SilentlyContinue).Source
