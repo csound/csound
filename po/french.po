@@ -182,9 +182,9 @@ msgstr ""
 "Paramètre NULL non valide pour ajouter à une liste de lecture globale\n"
 
 #: Engine/cs_par_orc_semantic_analysis.c:260
-#, fuzzy, c-format
+#, c-format
 msgid "opcode %s deprecated\n"
-msgstr "L'opcode %s est obsolète"
+msgstr "l'opcode %s est obsolète\n"
 
 #: Engine/cs_par_orc_semantic_analysis.c:317
 msgid "Not a proper list of ints"
@@ -9731,9 +9731,8 @@ msgstr "Extension de soundfonts"
 #: Opcodes/sfont.c:217 Opcodes/sfont.c:241 Opcodes/sfont.c:276
 #: Opcodes/sfont.c:297 Opcodes/sfont.c:337 Opcodes/sfont.c:674
 #: Opcodes/sfont.c:941 Opcodes/sfont.c:1214
-#, fuzzy
 msgid "invalid soundfont"
-msgstr "fonction non valide"
+msgstr "soundfont non valide"
 
 #: Opcodes/sfont.c:221
 #, c-format
@@ -11883,7 +11882,6 @@ msgstr ""
 "--midi-devices[=in|out] liste les périphériques MIDI disponibles et termine"
 
 #: Top/argdecode.c:303
-#, fuzzy
 msgid ""
 "--get-system-sr         print system sr and exit, requires realtime\n"
 "                        audio output (e.g. -odac) to be defined first)"
@@ -11892,13 +11890,12 @@ msgstr ""
 "en temps réel doit être d'abord définie (par ex. -odac)"
 
 #: Top/argdecode.c:305
-#, fuzzy
 msgid ""
 "--use-system-sr         print system sr and use realtime audio\n"
 "                        output (e.g. -odac) to be defined first"
 msgstr ""
-"--use-system-sr         affiche le sr du système, la sortie audio en temps "
-"réel doit être d'abord définie (par ex. -odac)"
+"--use-system-sr         affiche le sr du système et utilise  la sortie audio "
+"en temps réel qui doit être d'abord définie (par ex. -odac)"
 
 #: Top/argdecode.c:307
 msgid "--ksmps=N               override ksmps"
