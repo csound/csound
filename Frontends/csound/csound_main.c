@@ -221,7 +221,7 @@ static void signal_handler(int sig)
 #endif
     psignal(sig, "\ncsound command");
     if ((sig == (int) SIGINT || sig == (int) SIGTERM)) {
-      if(_csound) {
+      if (_csound) {
         csoundStop(_csound);
         csoundDestroy(_csound);
       }
@@ -332,7 +332,7 @@ int main(int argc, char **argv)
     if (logFile != NULL)
       fclose(logFile);
 
-    if(result == 0 && _result != 0) result = _result;
+    if (result == 0 && _result != 0) result = _result;
     //printf("csound returned with value: %d \n", result);
 #if 0
     /* remove global configuration variables, if there are any */

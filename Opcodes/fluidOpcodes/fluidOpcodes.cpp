@@ -41,7 +41,7 @@
 #include "OpcodeBase.hpp"
 #include "csdl.h"
 #include <fluidsynth.h>
- 
+
 static std::vector<fluid_synth_t *> &fluidsynths_for_ids() {
     static std::vector<fluid_synth_t *> fluidsynths_for_ids_;
     return fluidsynths_for_ids_;
@@ -520,6 +520,7 @@ class FluidControl : public csound::OpcodeBase<FluidControl> {
   MYFLT *kMidiChannel;
   MYFLT *kMidiData1;
   MYFLT *kMidiData2;
+  MYFLT *imsgs;
   // State.
   fluid_synth_t *fluidSynth;
   int32_t midiStatus;
@@ -544,11 +545,11 @@ public:
     priorMidiData2 = -1;
     OPARMS oparms;
     csound->GetOParms(csound, &oparms);
-    printMsgs = ((oparms.msglevel & 7) == 7 ? 1 : 0);
+    printMsgs = (*imsgs == 0 ? 0 : 1);
     return OK;
   }
   int32_t kontrol(CSOUND *csound) {
-    csound::LockGuard guard(csound, mutex);
+   csound::LockGuard guard(csound, mutex);
     midiStatus = 0xF0 & (int32_t)*kMidiStatus;
     midiChannel = (int32_t)*kMidiChannel;
     midiData1 = (int32_t)*kMidiData1;
@@ -670,7 +671,7 @@ static OENTRY localops[] = {
     {(char *)"fluidAllOut", sizeof(FluidAllOut), 0, 3, (char *)"aa", (char *)"",
      (SUBR)&FluidAllOut::init_, (SUBR)&FluidAllOut::audio_},
     {(char *)"fluidControl", sizeof(FluidControl), 0, 3, (char *)"",
-     (char *)"ikkkk", (SUBR)FluidControl::init_, (SUBR)FluidControl::kontrol_,
+     (char *)"ikkkkp", (SUBR)FluidControl::init_, (SUBR)FluidControl::kontrol_,
      (SUBR)0},
     {(char *)"fluidSetInterpMethod", sizeof(FluidSetInterpMethod), 0, 1,
      (char *)"", (char *)"iii", (SUBR)&FluidSetInterpMethod::init_, (SUBR)0,
