@@ -635,6 +635,7 @@ class FluidSetInterpMethod : public csound::OpcodeBase<FluidSetInterpMethod> {
 
 public:
   int32_t init(CSOUND *csound) {
+    mutex = csound->Create_Mutex(0);
     csound::LockGuard guard(csound, mutex);
     toa(iFluidSynth, fluidSynth);
     channel = (int32_t)*iChannelNumber;
