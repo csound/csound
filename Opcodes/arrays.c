@@ -3558,7 +3558,8 @@ int32_t set_cols_i(CSOUND *csound, FFT *p) {
 
 int32_t shiftin_init(CSOUND *csound, FFT *p) {
     int32_t sizs = CS_KSMPS;
-    tabinit(csound, p->out, sizs);
+    if(p->out->sizes[0] < sizs)
+       tabinit(csound, p->out, sizs);
     p->n = 0;
     return OK;
 }
@@ -3743,7 +3744,7 @@ static inline int32_t mel2bin(MYFLT m, int32_t N, MYFLT sr) {
 
 int32_t mfb_init(CSOUND *csound, MFB *p) {
   int32_t   L = *p->len;
-  int32_t N = p->in->sizes[0];
+  int32_t N = p->in->sizes[0];  
   if (LIKELY(L < N)) {
    tabinit(csound, p->out, L);
   }
@@ -3767,13 +3768,16 @@ int32_t mfb(CSOUND *csound, MFB *p) {
   MYFLT *out = p->out->data;
   MYFLT *in = p->in->data;
   MYFLT sr = csound->GetSr(csound);
-
+ 
   start = f2mel(*p->low);
   end = f2mel(*p->up);
   incr = (end-start)/(L+1);
 
+  
+
   for (i=0;i<L+2;i++) {
     bin[i] = (int32_t) mel2bin(start,N-1,sr);
+    
     if (bin[i] > N) bin[i] = N;
     start += incr;
   }
@@ -3794,6 +3798,7 @@ int32_t mfb(CSOUND *csound, MFB *p) {
       g -= decr;
     }
     out[i] = sum/(end - start);
+ 
     g = FL(0.0);
     sum = FL(0.0);
   }
