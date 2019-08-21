@@ -569,6 +569,10 @@ public:
    */
   int fsig_format() { return format; }
 
+  /** get data frame as floats
+   */
+  float *data() { return (float *) frame.auxp; }
+    
   /** convert to pv_frame ref
    */
   operator pv_frame &() { return reinterpret_cast<pv_frame &>(*this); }
@@ -578,6 +582,7 @@ public:
    */
   operator spv_frame &() { return reinterpret_cast<spv_frame &>(*this); }
 #endif
+
 };
 
 /**  Container class for a Phase Vocoder
