@@ -244,6 +244,30 @@ public:
     return reinterpret_cast<std::complex<MYFLT> *>(fdata);
   }
 
+  /** Creates a global variable in the current Csound object 
+  */
+  int create_global_variable(const char *name, size_t nbytes) {
+    return CreateGlobalVariable(this, name, nbytes);
+  }
+
+  /** Retrieves a ptr for an existing named global variable
+   */
+  void *query_global_variable(const char* name) {
+    return QueryGlobalVariable(this, name);
+  }
+
+  /** Destroy an existing named global variable
+   */
+  int destroy_global_variable(const char* name) {
+     return DestroyGlobalVariable(this, name);
+  }
+
+  /** Access to the base CSOUND object
+   */ 
+  CSOUND *get_csound() {
+    return this;
+  }
+
   /** Sleep
    */
   void sleep(int ms) { Sleep(ms); }
