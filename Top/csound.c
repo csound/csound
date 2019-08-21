@@ -2626,6 +2626,7 @@ void csoundLongJmp(CSOUND *csound, int retval)
     int   n = CSOUND_EXITJMP_SUCCESS;
 
     n = (retval < 0 ? n + retval : n - retval) & (CSOUND_EXITJMP_SUCCESS - 1);
+    //printf("**** n = %d\n", n);
     if (!n)
       n = CSOUND_EXITJMP_SUCCESS;
 
@@ -2636,7 +2637,7 @@ void csoundLongJmp(CSOUND *csound, int retval)
     csound->perferrcnt += csound->inerrcnt;
     csound->inerrcnt = 0;
     csound->engineStatus |= CS_STATE_JMP;
-
+    //printf("**** longjmp with %d\n", n);
     longjmp(csound->exitjmp, n);
 }
 
