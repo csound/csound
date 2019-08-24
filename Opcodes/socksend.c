@@ -330,6 +330,13 @@ static int32_t send_sendS(CSOUND *csound, SOCKSENDS *p)
 }
 
 /* TCP version */
+
+static int32_t stsend_deinit(CSOUND *csound, SOCKSEND *p)
+{
+    close(p->sock);
+    return OK;
+}
+
 static int32_t init_ssend(CSOUND *csound, SOCKSEND *p)
 {
 #if defined(WIN32) && !defined(__CYGWIN__)
@@ -374,6 +381,8 @@ static int32_t init_ssend(CSOUND *csound, SOCKSEND *p)
 #endif
       return csound->InitError(csound, Str("connect failed (%d)"), errno);
     }
+    csound->RegisterDeinitCallback(csound, p,
+                                   (int32_t (*)(CSOUND *, void *)) stsend_deinit);
 
     return OK;
 }
@@ -390,7 +399,6 @@ static int32_t send_ssend(CSOUND *csound, SOCKSEND *p)
       return csound->PerfError(csound, &(p->h),
                                Str("write to socket failed"));
     }
-
     return OK;
 }
 

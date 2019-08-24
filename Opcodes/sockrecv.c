@@ -49,6 +49,7 @@ static  int32_t     deinit_udpRecv(CSOUND *csound, void *pdata);
 typedef struct {
   OPDS    h;
   MYFLT   *asig;
+  MYFLT   *res;
   STRINGDAT *ipaddress;
   MYFLT *port;
   AUXCH   aux, tmp;
@@ -483,11 +484,17 @@ static int32_t init_srecv(CSOUND *csound, SOCKRECVT *p)
 
 static int32_t send_srecv(CSOUND *csound, SOCKRECVT *p)
 {
-    int32_t     n = sizeof(MYFLT) * CS_KSMPS;
-
-    if (UNLIKELY(n != read(p->conn, p->asig, sizeof(MYFLT) * CS_KSMPS))) {
-      return csound->PerfError(csound, &(p->h),
-                               Str("read from socket failed"));
+    int32_t     n, k = sizeof(MYFLT) * CS_KSMPS;
+    n = read(p->conn, p->asig, k);
+    if (UNLIKELY(n != k)) {
+      //printf("k=%d n=%d errno=%d\n", k, n, errno);
+      if (errno==ENOTSOCK) {
+        memset(p->asig, '\0', k);
+        return OK;
+      }
+      else
+        return csound->PerfError(csound, &(p->h),
+                                 Str("read from socket failed"));
     }
     return OK;
 }
@@ -722,7 +729,7 @@ static OENTRY sockrecv_localops[] = {
   { "sockrecvs", S(SOCKRECV), 0, 3, "aa", "ii",
     (SUBR) init_recvS,
     (SUBR) send_recvS, NULL },
-  { "strecv", S(SOCKRECVT), 0, 3, "a", "Si",
+  { "strecv", S(SOCKRECVT), 0, 3, "az", "Si",
     (SUBR) init_srecv,
     (SUBR) send_srecv, NULL },
   { "OSCraw", S(RAWOSC), 0, 3, "S[]k", "i",

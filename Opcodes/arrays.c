@@ -3734,82 +3734,82 @@ typedef struct _MFB {
 } MFB;
 
 static inline MYFLT f2mel(MYFLT f) {
-  return 1125.*log(1.+f/700.);
+    return 1125.*log(1.+f/700.);
 }
 
 static inline int32_t mel2bin(MYFLT m, int32_t N, MYFLT sr) {
-  MYFLT f = 700.*(exp(m/1125.) - 1.);
-  return  (int32_t)(f/(sr/(2*N)));
+    MYFLT f = 700.*(exp(m/1125.) - 1.);
+    return  (int32_t)(f/(sr/(2*N)));
 }
 
 int32_t mfb_init(CSOUND *csound, MFB *p) {
-  int32_t   L = *p->len;
-  int32_t N = p->in->sizes[0];  
-  if (LIKELY(L < N)) {
-   tabinit(csound, p->out, L);
-  }
-  else
-   return csound->InitError(csound, "%s",
-       "mfb: filter bank size exceeds input array length");
-  if (p->bins.auxp == NULL || p->bins.size < (L+2)*sizeof(int32_t))
+    int32_t   L = *p->len;
+    int32_t N = p->in->sizes[0];
+    if (LIKELY(L < N)) {
+      tabinit(csound, p->out, L);
+    }
+    else
+      return csound->InitError(csound, "%s",
+                       Str("mfb: filter bank size exceeds input array length"));
+    if (p->bins.auxp == NULL || p->bins.size < (L+2)*sizeof(int32_t))
       csound->AuxAlloc(csound, (L+2)*sizeof(MYFLT), &p->bins);
-  return OK;
+    return OK;
 }
 
 int32_t mfb(CSOUND *csound, MFB *p) {
     /* FIXME: Init cals tabinit but not checked in erf? */
     int32_t i,j;
-  int32_t *bin = (int32_t *) p->bins.auxp;
-  MYFLT start,max,end;
-  MYFLT g = FL(0.0), incr, decr;
-  int32_t L = p->out->sizes[0];
-  int32_t N = p->in->sizes[0];
-  MYFLT sum = FL(0.0);
-  MYFLT *out = p->out->data;
-  MYFLT *in = p->in->data;
-  MYFLT sr = csound->GetSr(csound);
- 
-  start = f2mel(*p->low);
-  end = f2mel(*p->up);
-  incr = (end-start)/(L+1);
+    int32_t *bin = (int32_t *) p->bins.auxp;
+    MYFLT start,max,end;
+    MYFLT g = FL(0.0), incr, decr;
+    int32_t L = p->out->sizes[0];
+    int32_t N = p->in->sizes[0];
+    MYFLT sum = FL(0.0);
+    MYFLT *out = p->out->data;
+    MYFLT *in = p->in->data;
+    MYFLT sr = csound->GetSr(csound);
 
-  
+    start = f2mel(*p->low);
+    end = f2mel(*p->up);
+    incr = (end-start)/(L+1);
 
-  for (i=0;i<L+2;i++) {
-    bin[i] = (int32_t) mel2bin(start,N-1,sr);
-    
-    if (bin[i] > N) bin[i] = N;
-    start += incr;
-  }
 
-  for (i=0; i < L; i++) {
-    start = bin[i];
-    max = bin[i+1];
-    end = bin[i+2];
-    incr =  1.0/(max - start);
-    decr =  1.0/(end - max);
-    for (j=start; j < max; j++) {
-      sum += in[j]*g;
-      g += incr;
+
+    for (i=0;i<L+2;i++) {
+      bin[i] = (int32_t) mel2bin(start,N-1,sr);
+
+      if (bin[i] > N) bin[i] = N;
+      start += incr;
     }
-    g = FL(1.0);
-    for (j=max; j < end; j++) {
-      sum += in[j]*g;
-      g -= decr;
-    }
-    out[i] = sum/(end - start);
- 
-    g = FL(0.0);
-    sum = FL(0.0);
-  }
 
-  return OK;
+    for (i=0; i < L; i++) {
+      start = bin[i];
+      max = bin[i+1];
+      end = bin[i+2];
+      incr =  1.0/(max - start);
+      decr =  1.0/(end - max);
+      for (j=start; j < max; j++) {
+        sum += in[j]*g;
+        g += incr;
+      }
+      g = FL(1.0);
+      for (j=max; j < end; j++) {
+        sum += in[j]*g;
+        g -= decr;
+      }
+      out[i] = sum/(end - start);
+
+      g = FL(0.0);
+      sum = FL(0.0);
+    }
+
+    return OK;
 }
 
 int32_t mfbi(CSOUND *csound, MFB *p) {
     if (LIKELY(mfb_init(csound,p) == OK))
     return mfb(csound,p);
-  else return NOTOK;
+    else return NOTOK;
 }
 
 typedef struct _centr{
@@ -3820,17 +3820,17 @@ typedef struct _centr{
 
 int32_t array_centroid(CSOUND *csound, CENTR *p) {
 
-  MYFLT *in = p->in->data,a=FL(0.0),b=FL(0.0);
-  int32_t NP1 = p->in->sizes[0];
-  MYFLT f = csound->GetSr(csound)/(2*(NP1 - 1)),cf;
-  int32_t i;
-  cf = f*FL(0.5);
-  for (i=0; i < NP1-1; i++, cf+=f) {
-    a += in[i];
-    b += in[i]*cf;
-  }
-  *p->out = a > FL(0.0) ? b/a : FL(0.0);
-  return OK;
+    MYFLT *in = p->in->data,a=FL(0.0),b=FL(0.0);
+    int32_t NP1 = p->in->sizes[0];
+    MYFLT f = csound->GetSr(csound)/(2*(NP1 - 1)),cf;
+    int32_t i;
+    cf = f*FL(0.5);
+    for (i=0; i < NP1-1; i++, cf+=f) {
+      a += in[i];
+      b += in[i]*cf;
+    }
+    *p->out = a > FL(0.0) ? b/a : FL(0.0);
+    return OK;
 }
 
 typedef struct _inout {
@@ -3857,18 +3857,18 @@ typedef struct interl{
 
 
 int32_t interleave_i (CSOUND *csound, INTERL *p) {
-  if(p->b->dimensions == 1 &&
-     p->c->dimensions == 1 &&
-     p->b->sizes[0] == p->c->sizes[0]) {
-    int32_t len = p->b->sizes[0], i,j;
-    tabinit(csound, p->a, len*2);
-    for(i = 0, j = 0; i < len; i++,j+=2) {
-      p->a->data[j] =  p->b->data[i];
-      p->a->data[j+1] = p->c->data[i];
+    if(p->b->dimensions == 1 &&
+       p->c->dimensions == 1 &&
+       p->b->sizes[0] == p->c->sizes[0]) {
+      int32_t len = p->b->sizes[0], i,j;
+      tabinit(csound, p->a, len*2);
+      for(i = 0, j = 0; i < len; i++,j+=2) {
+        p->a->data[j] =  p->b->data[i];
+        p->a->data[j+1] = p->c->data[i];
+      }
+      return OK;
     }
-    return OK;
-  }
-  return csound->InitError(csound, "array inputs not in correct format\n");
+    return csound->InitError(csound, Str("array inputs not in correct format\n"));
 }
 
 int32_t interleave_perf (CSOUND *csound, INTERL *p) {
@@ -3892,7 +3892,7 @@ int32_t deinterleave_i (CSOUND *csound, INTERL *p) {
     }
     return OK;
   }
-  return csound->InitError(csound, "array inputs not in correct format\n");
+  return csound->InitError(csound, Str("array inputs not in correct format\n"));
 }
 
 int32_t deinterleave_perf (CSOUND *csound, INTERL *p) {
