@@ -333,7 +333,10 @@ static int32_t send_sendS(CSOUND *csound, SOCKSENDS *p)
 
 static int32_t stsend_deinit(CSOUND *csound, SOCKSEND *p)
 {
-    close(p->sock);
+    printf("closing stream\n");
+    int n = close(p->sock);
+    if (n<0) printf("close = %d errno=%d\n", n, errno);
+    //shutdown(p->sock, SHUT_RDWR);
     return OK;
 }
 

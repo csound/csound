@@ -475,7 +475,7 @@ static int32_t init_srecv(CSOUND *csound, SOCKRECVT *p)
     }
     clilen = sizeof(p->server_addr);
     p->conn = accept(p->sock, (struct sockaddr *) &p->server_addr, &clilen);
-
+    
     if (UNLIKELY(p->conn < 0)) {
       return csound->InitError(csound, Str("accept failed"));
     }
@@ -485,20 +485,34 @@ static int32_t init_srecv(CSOUND *csound, SOCKRECVT *p)
 static int32_t send_srecv(CSOUND *csound, SOCKRECVT *p)
 {
     int32_t     n, k = sizeof(MYFLT) * CS_KSMPS;
-    n = read(p->conn, p->asig, k);
-    if (UNLIKELY(n != k)) {
-      //printf("k=%d n=%d errno=%d\n", k, n, errno);
-      if (errno==ENOTSOCK) {
-        memset(p->asig, '\0', k);
-        return OK;
-      }
-      else
-        return csound->PerfError(csound, &(p->h),
-                                 Str("read from socket failed"));
+    MYFLT       *q = p->asig;
+    if (p->sock<0) {
+      if (p->res) *p->res = -1;
+      return OK;
     }
-    return OK;
+    memset(q, '\0', k);
+ again:
+    errno = 0;
+    n = read(p->conn, q, k);
+    if (n==0) {      /* Connection broken */
+      if (p->res) *p->res = -1;
+      close(p->sock);
+      p->sock = -1;
+      return OK;
+    }
+    if (UNLIKELY(n<0||errno!=0))
+      return csound->PerfError(csound, &(p->h),
+                               Str("read from socket failed"));
+    if (k==n) {
+      if (p->res) *p->res = sizeof(MYFLT) * CS_KSMPS;
+      return OK;
+    }
+    /* Only partialread so loop for the rest */
+    //printf("k=%d n=%d\n", k, n);
+    k = k-n;
+    q+= n;
+    goto again;
 }
-
 
 typedef struct _rawosc {
   OPDS h;
