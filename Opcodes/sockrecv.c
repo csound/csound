@@ -493,7 +493,7 @@ static int32_t send_srecv(CSOUND *csound, SOCKRECVT *p)
     memset(q, '\0', k);
  again:
     errno = 0;
-    n = read(p->conn, q, k);
+    n = recv(p->conn, q, k, 0);
     if (n==0) {      /* Connection broken */
       if (p->res) *p->res = -1;
       close(p->sock);

@@ -396,7 +396,7 @@ static int32_t send_ssend(CSOUND *csound, SOCKSEND *p)
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     int32_t n = sizeof(MYFLT) * (CS_KSMPS-offset-early);
 
-    if (UNLIKELY(n != write(p->sock, &p->asig[offset], n))) {
+    if (UNLIKELY(n != send(p->sock, &p->asig[offset], n, 0))) {
       csound->Message(csound, Str("Expected %d got %d\n"),
                       (int32_t) (sizeof(MYFLT) * CS_KSMPS), n);
       return csound->PerfError(csound, &(p->h),
