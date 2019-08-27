@@ -385,7 +385,7 @@ static int32_t init_ssend(CSOUND *csound, SOCKSEND *p)
     err = connect(p->sock, (struct sockaddr *) &p->server_addr,
                   sizeof(p->server_addr));
 #if defined(WIN32) && !defined(__CYGWIN__)
-    if (UNLIKELY(err==SOCKET_ERROR) {
+    if (UNLIKELY(err==SOCKET_ERROR)) {
         errno = WSAGetLastError();
         if (err == WSAECONNREFUSED) goto again;
 #else
