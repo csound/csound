@@ -342,9 +342,9 @@ static int32_t stsend_deinit(CSOUND *csound, SOCKSEND *p)
 
 static int32_t init_ssend(CSOUND *csound, SOCKSEND *p)
 {
+    int32_t err;
 #if defined(WIN32) && !defined(__CYGWIN__)
     WSADATA wsaData = {0};
-    int32_t err;
     if (UNLIKELY((err=WSAStartup(MAKEWORD(2,2), &wsaData))!= 0))
       return csound->InitError(csound, Str("Winsock2 failed to start: %d"), err);
 #endif
@@ -352,10 +352,16 @@ static int32_t init_ssend(CSOUND *csound, SOCKSEND *p)
     /* create a STREAM (TCP) socket in the INET (IP) protocol */
     p->sock = socket(PF_INET, SOCK_STREAM, 0);
 
+#if defined(WIN32) && !defined(__CYGWIN__)
+    if (p->sock == SOCKET_ERROR) {
+      err = WSAGetLastError();
+      csound->InitError(csound, Str("socket failed with error: %ld\n"), err);
+    }
+#else
     if (UNLIKELY(p->sock < 0)) {
       return csound->InitError(csound, Str("creating socket"));
     }
-
+#endif
     /* create server address: where we want to connect to */
 
     /* clear it out */
@@ -376,13 +382,21 @@ static int32_t init_ssend(CSOUND *csound, SOCKSEND *p)
     p->server_addr.sin_port = htons((int32_t) *p->port);
 
  again:
-    if (UNLIKELY(connect(p->sock, (struct sockaddr *) &p->server_addr,
-                         sizeof(p->server_addr)) < 0)) {
-#ifdef ECONNREFUSED
-      if (errno == ECONNREFUSED)
+    err = connect(p->sock, (struct sockaddr *) &p->server_addr,
+                  sizeof(p->server_addr));
+#if defined(WIN32) && !defined(__CYGWIN__)
+    if (UNLIKELY(err==SOCKET_ERROR) {
+        errno = WSAGetLastError();
+        if (err == WSAECONNREFUSED) goto again;
+#else
+        if (UNLIKELY(err<0)) {
+          err= errno;
+  #ifdef ECONNREFUSED
+      if (err == ECONNREFUSED)
         goto again;
+  #endif
 #endif
-      return csound->InitError(csound, Str("connect failed (%d)"), errno);
+      return csound->InitError(csound, Str("connect failed (%d)"), err);
     }
     csound->RegisterDeinitCallback(csound, p,
                                    (int32_t (*)(CSOUND *, void *)) stsend_deinit);
