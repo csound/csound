@@ -431,18 +431,25 @@ static int32_t send_recvS(CSOUND *csound, SOCKRECV *p)
 static int32_t init_srecv(CSOUND *csound, SOCKRECVT *p)
 {
     socklen_t clilen;
+    int32_t err;
 #if defined(WIN32) && !defined(__CYGWIN__)
     WSADATA wsaData = {0};
-    int32_t err;
     if ((err=WSAStartup(MAKEWORD(2,2), &wsaData))!= 0)
       return csound->InitError(csound, Str("Winsock2 failed to start: %d"), err);
 #endif
     /* create a STREAM (TCP) socket in the INET (IP) protocol */
     p->sock = socket(PF_INET, SOCK_STREAM, 0);
 
+#if defined(WIN32) && !defined(__CYGWIN__)
+    if (p->sock == SOCKET_ERROR) {
+      err = WSAGetLastError();
+      csound->InitError(csound, Str("socket failed with error: %ld\n"), err);
+    }
+#else
     if (UNLIKELY(p->sock < 0)) {
       return csound->InitError(csound, Str("creating socket"));
     }
+#endif
 
     /* create server address: where we want to connect to */
 
@@ -463,21 +470,39 @@ static int32_t init_srecv(CSOUND *csound, SOCKRECVT *p)
     p->server_addr.sin_port = htons((int32_t) *p->port);
 
     /* associate the socket with the address and port */
-    if (UNLIKELY(bind
-                 (p->sock, (struct sockaddr *) &p->server_addr,
-                  sizeof(p->server_addr)) < 0)) {
-      return csound->InitError(csound, Str("bind failed"));
+    err = bind(p->sock, (struct sockaddr *) &p->server_addr,
+               sizeof(p->server_addr));
+#if defined(WIN32) && !defined(__CYGWIN__)
+    if (UNLIKELY(err == SOCKET_ERROR)) {
+      err = WSAGetLastError();
+#else
+    if (UNLIKELY(err<0)) {
+      err= errno;
+#endif
+      return csound->InitError(csound, Str("bind failed (%d)"), err);
     }
 
     /* start the socket listening for new connections -- may wait */
-    if (UNLIKELY(listen(p->sock, 5) < 0)) {
-      return csound->InitError(csound, Str("listen failed"));
+    err = listen(p->sock, 5);
+#if defined(WIN32) && !defined(__CYGWIN__)
+    if (UNLIKELY(err == SOCKET_ERROR)) {
+      err = WSAGetLastError();
+#else
+    if (UNLIKELY(err<0)) {
+      err= errno;
+#endif
+      return csound->InitError(csound, Str("listen failed (%d)"), err);
     }
     clilen = sizeof(p->server_addr);
     p->conn = accept(p->sock, (struct sockaddr *) &p->server_addr, &clilen);
-    
-    if (UNLIKELY(p->conn < 0)) {
-      return csound->InitError(csound, Str("accept failed"));
+#if defined(WIN32) && !defined(__CYGWIN__)
+    if (UNLIKELY(err == SOCKET_ERROR)) {
+      err = WSAGetLastError();
+#else
+    if (UNLIKELY(err<0)) {
+      err= errno;
+#endif
+      return csound->InitError(csound, Str("accept failed (%d)"), err);
     }
     return OK;
 }

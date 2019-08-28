@@ -101,9 +101,16 @@ static int32_t init_send(CSOUND *csound, SOCKSEND *p)
     p->wp = 0;
 
     p->sock = socket(AF_INET, SOCK_DGRAM, 0);
+#if defined(WIN32) && !defined(__CYGWIN__)
+    if (p->sock == SOCKET_ERROR) {
+      err = WSAGetLastError();
+      csound->InitError(csound, Str("socket failed with error: %ld\n"), err);
+    }
+#else
     if (UNLIKELY(p->sock < 0)) {
       return csound->InitError(csound, Str("creating socket"));
     }
+#endif
     /* create server address: where we want to send to and clear it out */
     memset(&p->server_addr, 0, sizeof(p->server_addr));
     p->server_addr.sin_family = AF_INET;    /* it is an INET address */
@@ -386,7 +393,7 @@ static int32_t init_ssend(CSOUND *csound, SOCKSEND *p)
                   sizeof(p->server_addr));
 #if defined(WIN32) && !defined(__CYGWIN__)
     if (UNLIKELY(err==SOCKET_ERROR)) {
-        errno = WSAGetLastError();
+        err = WSAGetLastError();
         if (err == WSAECONNREFUSED) goto again;
 #else
         if (UNLIKELY(err<0)) {
