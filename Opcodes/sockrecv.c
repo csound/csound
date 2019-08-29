@@ -32,6 +32,7 @@
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
+#define SOCKET_ERROR (-1)
 #endif
 #include <string.h>
 #include <errno.h>
@@ -189,7 +190,7 @@ static int32_t init_recv(CSOUND *csound, SOCKRECV *p)
         return csound->InitError(csound, Str("Cannot set nonblock"));
     }
 #endif
-    if (UNLIKELY(p->sock < 0)) {
+    if (UNLIKELY(p->sock == SOCKET_ERROR)) {
       return csound->InitError(csound, Str("creating socket"));
     }
     /* create server address: where we want to send to and clear it out */
@@ -199,7 +200,7 @@ static int32_t init_recv(CSOUND *csound, SOCKRECV *p)
     p->server_addr.sin_port = htons((int32_t) *p->ptr2);    /* the port */
     /* associate the socket with the address and port */
     if (UNLIKELY(bind(p->sock, (struct sockaddr *) &p->server_addr,
-                      sizeof(p->server_addr)) < 0))
+                      sizeof(p->server_addr)) == SOCKET_ERROR))
       return csound->InitError(csound, Str("bind failed"));
 
     if (p->buffer.auxp == NULL || (uint64_t) (MTU) > p->buffer.size)
@@ -245,7 +246,7 @@ static int32_t init_recv_S(CSOUND *csound, SOCKRECVSTR *p)
     if (UNLIKELY(fcntl(p->sock, F_SETFL, O_NONBLOCK)<0))
       return csound->InitError(csound, Str("Cannot set nonblock"));
 #endif
-    if (UNLIKELY(p->sock < 0)) {
+    if (UNLIKELY(p->sock == SOCKET_ERROR)) {
       return csound->InitError(csound, Str("creating socket"));
     }
     /* create server address: where we want to send to and clear it out */
@@ -255,7 +256,7 @@ static int32_t init_recv_S(CSOUND *csound, SOCKRECVSTR *p)
     p->server_addr.sin_port = htons((int32_t) *p->ptr2);    /* the port */
     /* associate the socket with the address and port */
     if (UNLIKELY(bind(p->sock, (struct sockaddr *) &p->server_addr,
-                      sizeof(p->server_addr)) < 0))
+                      sizeof(p->server_addr)) == SOCKET_ERROR))
       return csound->InitError(csound, Str("bind failed"));
 
     if (p->buffer.auxp == NULL || (uint64_t) (MTU) > p->buffer.size)
@@ -360,7 +361,7 @@ static int32_t init_recvS(CSOUND *csound, SOCKRECV *p)
     if (UNLIKELY(fcntl(p->sock, F_SETFL, O_NONBLOCK)<0))
       return csound->InitError(csound, Str("Cannot set nonblock"));
 #endif
-    if (UNLIKELY(p->sock < 0)) {
+    if (UNLIKELY(p->sock == SOCKET_ERROR)) {
       return csound->InitError(csound, Str("creating socket"));
     }
     /* create server address: where we want to send to and clear it out */
@@ -370,7 +371,7 @@ static int32_t init_recvS(CSOUND *csound, SOCKRECV *p)
     p->server_addr.sin_port = htons((int32_t) *p->ptr3);    /* the port */
     /* associate the socket with the address and port */
     if (UNLIKELY(bind(p->sock, (struct sockaddr *) &p->server_addr,
-                      sizeof(p->server_addr)) < 0))
+                      sizeof(p->server_addr)) == SOCKET_ERROR))
       return csound->InitError(csound, Str("bind failed"));
 
     if (p->buffer.auxp == NULL || (uint64_t) (MTU) > p->buffer.size)
@@ -600,7 +601,7 @@ static int32_t init_raw_osc(CSOUND *csound, RAWOSC *p)
     p->server_addr.sin_port = htons((int32_t) *p->port);    /* the port */
     /* associate the socket with the address and port */
     if (UNLIKELY(bind(p->sock, (struct sockaddr *) &p->server_addr,
-                      sizeof(p->server_addr)) < 0))
+                      sizeof(p->server_addr)) == SOCKET_ERROR))
       return csound->InitError(csound, Str("bind failed"));
 
     if (p->buffer.auxp == NULL || (uint64_t) (MTU) > p->buffer.size)

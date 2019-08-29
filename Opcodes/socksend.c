@@ -31,6 +31,7 @@
 #include <netinet/in.h>
 #include <arpa/inet.h>
 #include <unistd.h>
+#define SOCKET_ERROR (-1)
 #endif
 #include <stdlib.h>
 #include <string.h>
@@ -153,7 +154,7 @@ static int32_t send_send(CSOUND *csound, SOCKSEND *p)
       if (wp == buffersize) {
         /* send the package when we have a full buffer */
         if (UNLIKELY(sendto(p->sock, (void*)out, buffersize  * p->bwidth, 0, to,
-                            sizeof(p->server_addr)) < 0)) {
+                            sizeof(p->server_addr)) == SOCKET_ERROR)) {
           return csound->PerfError(csound, &(p->h), Str("sendto failed"));
         }
         wp = 0;
@@ -190,7 +191,7 @@ static int32_t send_send_k(CSOUND *csound, SOCKSEND *p)
     if (p->wp == buffersize) {
       /* send the package when we have a full buffer */
       if (UNLIKELY(sendto(p->sock, (void*)out, buffersize  * p->bwidth, 0, to,
-                          sizeof(p->server_addr)) < 0)) {
+                          sizeof(p->server_addr)) == SOCKET_ERROR)) {
         return csound->PerfError(csound, &(p->h), Str("sendto failed"));
       }
       p->wp = 0;
@@ -227,7 +228,7 @@ static int32_t send_send_Str(CSOUND *csound, SOCKSENDT *p)
     memset(out+len, 0, buffersize-len);
     /* send the package with the string each time */
     if (UNLIKELY(sendto(p->sock, (void*)out, buffersize, 0, to,
-                        sizeof(p->server_addr)) < 0)) {
+                        sizeof(p->server_addr)) ==SOCKET_ERROR)) {
       return csound->PerfError(csound, &(p->h), Str("sendto failed"));
     }
     return OK;
@@ -258,7 +259,7 @@ static int32_t init_sendS(CSOUND *csound, SOCKSENDS *p)
     p->wp = 0;
 
     p->sock = socket(AF_INET, SOCK_DGRAM, 0);
-    if (UNLIKELY(p->sock < 0)) {
+    if (UNLIKELY(p->sock == SOCKET_ERROR)) {
       return csound->InitError(csound, Str("creating socket"));
     }
     /* create server address: where we want to send to and clear it out */
@@ -306,7 +307,7 @@ static int32_t send_sendS(CSOUND *csound, SOCKSENDS *p)
       if (wp == buffersize) {
         /* send the package when we have a full buffer */
         if (UNLIKELY(sendto(p->sock, (void*)out, buffersize * p->bwidth, 0, to,
-                            sizeof(p->server_addr)) < 0)) {
+                            sizeof(p->server_addr)) ==SOCKET_ERROR)) {
           return csound->PerfError(csound, &(p->h), Str("sendto failed"));
         }
         wp = 0;
@@ -478,7 +479,7 @@ static int32_t osc_send2_init(CSOUND *csound, OSCSEND2 *p)
       return csound->InitError(csound, Str("Winsock2 failed to start: %d"), err);
 #endif
     p->sock = socket(AF_INET, SOCK_DGRAM, 0);
-    if (UNLIKELY(p->sock < 0)) {
+    if (UNLIKELY(p->sock == SOCKET_ERROR)) {
       return csound->InitError(csound, Str("creating socket"));
     }
     /* create server address: where we want to send to and clear it out */
