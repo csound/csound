@@ -955,7 +955,8 @@ static int oscbundle_perf(CSOUND *csound, OSCBUNDLE *p){
         dstrs = strlen(dstr)+1;
         size += ceil((dstrs)/4.)*4;
         tstr[0] = ',';
-        strncpy(tstr+1, type[i].data, 63);
+        strncpy(tstr+1, type[i].data, 62);
+        tstr[63]='\0';
         tstrs = strlen(tstr)+1;
         size += ceil((tstrs)/4.)*4;
         msize = tstrs - 2; /* tstrs-2 is the number of ints or floats in msg */

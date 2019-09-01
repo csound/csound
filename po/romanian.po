@@ -5114,7 +5114,7 @@ msgstr ""
 msgid "--->  Connected.\n"
 msgstr ""
 
-#: OOps/remote.c:318 Opcodes/socksend.c:391
+#: OOps/remote.c:318 Opcodes/socksend.c:425
 msgid "write to socket failed"
 msgstr ""
 
@@ -5130,17 +5130,16 @@ msgstr ""
 msgid "setting socket option to reuse the address\n"
 msgstr ""
 
-#: OOps/remote.c:370 Opcodes/sockrecv.c:203 Opcodes/sockrecv.c:259
-#: Opcodes/sockrecv.c:374 Opcodes/sockrecv.c:469 Opcodes/sockrecv.c:559
-#: Top/server.c:268
+#: OOps/remote.c:370 Opcodes/sockrecv.c:204 Opcodes/sockrecv.c:260
+#: Opcodes/sockrecv.c:375 Opcodes/sockrecv.c:605 Top/server.c:268
 msgid "bind failed"
 msgstr ""
 
-#: OOps/remote.c:375 Opcodes/sockrecv.c:474
+#: OOps/remote.c:375
 msgid "listen failed"
 msgstr ""
 
-#: OOps/remote.c:381 Opcodes/sockrecv.c:480
+#: OOps/remote.c:381
 msgid "accept failed"
 msgstr ""
 
@@ -9601,101 +9600,121 @@ msgstr ""
 msgid "sndwarpst: not initialised"
 msgstr ""
 
-#: Opcodes/sockrecv.c:141 Opcodes/sockrecv.c:144 Opcodes/sockrecv.c:520
-#: Opcodes/sockrecv.c:523
+#: Opcodes/sockrecv.c:142 Opcodes/sockrecv.c:145 Opcodes/sockrecv.c:566
+#: Opcodes/sockrecv.c:569
 msgid "OSCraw: Closing socket\n"
 msgstr ""
 
-#: Opcodes/sockrecv.c:177 Opcodes/sockrecv.c:239 Opcodes/sockrecv.c:354
-#: Opcodes/sockrecv.c:438 Opcodes/sockrecv.c:537 Opcodes/socksend.c:91
-#: Opcodes/socksend.c:240 Opcodes/socksend.c:339 Opcodes/socksend.c:446
-#: Opcodes/socksend.c:865 Top/server.c:233
+#: Opcodes/sockrecv.c:178 Opcodes/sockrecv.c:240 Opcodes/sockrecv.c:355
+#: Opcodes/sockrecv.c:439 Opcodes/sockrecv.c:583 Opcodes/socksend.c:92
+#: Opcodes/socksend.c:248 Opcodes/socksend.c:357 Opcodes/socksend.c:479
+#: Opcodes/socksend.c:898 Top/server.c:233
 #, c-format
 msgid "Winsock2 failed to start: %d"
 msgstr ""
 
-#: Opcodes/sockrecv.c:183 Opcodes/sockrecv.c:189 Opcodes/sockrecv.c:246
-#: Opcodes/sockrecv.c:361 Opcodes/sockrecv.c:542 Opcodes/sockrecv.c:546
+#: Opcodes/sockrecv.c:184 Opcodes/sockrecv.c:190 Opcodes/sockrecv.c:247
+#: Opcodes/sockrecv.c:362 Opcodes/sockrecv.c:588 Opcodes/sockrecv.c:592
 msgid "Cannot set nonblock"
 msgstr ""
 
-#: Opcodes/sockrecv.c:193 Opcodes/sockrecv.c:249 Opcodes/sockrecv.c:364
-#: Opcodes/sockrecv.c:444 Opcodes/sockrecv.c:549 Opcodes/socksend.c:105
-#: Opcodes/socksend.c:255 Opcodes/socksend.c:346 Opcodes/socksend.c:450
-#: Opcodes/socksend.c:869
+#: Opcodes/sockrecv.c:194 Opcodes/sockrecv.c:250 Opcodes/sockrecv.c:365
+#: Opcodes/sockrecv.c:451 Opcodes/sockrecv.c:595 Opcodes/socksend.c:112
+#: Opcodes/socksend.c:263 Opcodes/socksend.c:370 Opcodes/socksend.c:483
+#: Opcodes/socksend.c:902
 msgid "creating socket"
 msgstr ""
 
-#: Opcodes/sockrecv.c:491
+#: Opcodes/sockrecv.c:447 Opcodes/socksend.c:108 Opcodes/socksend.c:366
+#, c-format
+msgid "socket failed with error: %ld\n"
+msgstr ""
+
+#: Opcodes/sockrecv.c:483
+#, c-format
+msgid "bind failed (%d)"
+msgstr ""
+
+#: Opcodes/sockrecv.c:495
+#, c-format
+msgid "listen failed (%d)"
+msgstr ""
+
+#: Opcodes/sockrecv.c:506
+#, c-format
+msgid "accept failed (%d)"
+msgstr ""
+
+#: Opcodes/sockrecv.c:531
 msgid "read from socket failed"
 msgstr ""
 
-#: Opcodes/sockrecv.c:602
+#: Opcodes/sockrecv.c:648
 msgid "output array too small\n"
 msgstr ""
 
-#: Opcodes/socksend.c:150 Opcodes/socksend.c:187 Opcodes/socksend.c:224
-#: Opcodes/socksend.c:303
+#: Opcodes/socksend.c:158 Opcodes/socksend.c:195 Opcodes/socksend.c:232
+#: Opcodes/socksend.c:311
 msgid "sendto failed"
 msgstr ""
 
-#: Opcodes/socksend.c:216
+#: Opcodes/socksend.c:224
 msgid "string truncated in socksend"
 msgstr ""
 
-#: Opcodes/socksend.c:375
+#: Opcodes/socksend.c:407
 #, c-format
 msgid "connect failed (%d)"
 msgstr ""
 
-#: Opcodes/socksend.c:388
+#: Opcodes/socksend.c:422
 #, c-format
 msgid "Expected %d got %d\n"
 msgstr ""
 
-#: Opcodes/socksend.c:439
+#: Opcodes/socksend.c:472
 msgid "insufficient number of arguments for OSC message types\n"
 msgstr ""
 
-#: Opcodes/socksend.c:497
+#: Opcodes/socksend.c:530
 msgid "expecting a string argument\n"
 msgstr ""
 
-#: Opcodes/socksend.c:531
+#: Opcodes/socksend.c:564
 #, c-format
 msgid "%c: data type not supported\n"
 msgstr ""
 
-#: Opcodes/socksend.c:805
+#: Opcodes/socksend.c:838
 #, c-format
 msgid "OSCsend failed to send message with destination %s to %s:%d\n"
 msgstr ""
 
-#: Opcodes/socksend.c:846
+#: Opcodes/socksend.c:879
 msgid "arg array needs to be two dimensional\n"
 msgstr ""
 
-#: Opcodes/socksend.c:850
+#: Opcodes/socksend.c:883
 msgid "type and dest arrays need to be unidimensional\n"
 msgstr ""
 
-#: Opcodes/socksend.c:854
+#: Opcodes/socksend.c:887
 msgid "type and dest arrays need to have the same size\n"
 msgstr ""
 
-#: Opcodes/socksend.c:857
+#: Opcodes/socksend.c:890
 msgid "arg array not big enough\n"
 msgstr ""
 
-#: Opcodes/socksend.c:896
+#: Opcodes/socksend.c:929
 msgid "Bundle msg exceeded max packet size, not sent\n"
 msgstr ""
 
-#: Opcodes/socksend.c:965
+#: Opcodes/socksend.c:999
 msgid "only bundles with i and f types are supported \n"
 msgstr ""
 
-#: Opcodes/socksend.c:972
+#: Opcodes/socksend.c:1006
 msgid "OSCbundle failed"
 msgstr ""
 
