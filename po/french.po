@@ -6541,14 +6541,13 @@ msgid "dctinv: non-pow-of-two sizes not yet implemented"
 msgstr "dctinv : tailles non puissance de deux pas encore implémentées"
 
 #: Opcodes/arrays.c:3753
-#, fuzzy
 msgid "mfb: filter bank size exceeds input array length"
-msgstr "un intervalle donné excède la longueur de la table"
+msgstr ""
+"mfb : la taille du banc de filtres excède la longueur du tableau en entrée"
 
 #: Opcodes/arrays.c:3871 Opcodes/arrays.c:3895
-#, fuzzy
 msgid "array inputs not in correct format\n"
-msgstr "trfil : l'entrée n'est pas au format TRACKS\n"
+msgstr "tableau en entrée dans un format incorrect\n"
 
 #: Opcodes/babo.c:744
 #, c-format
@@ -10071,24 +10070,24 @@ msgid "creating socket"
 msgstr "création du socket"
 
 #: Opcodes/sockrecv.c:447 Opcodes/socksend.c:108 Opcodes/socksend.c:366
-#, fuzzy, c-format
+#, c-format
 msgid "socket failed with error: %ld\n"
-msgstr "Le démarrage de winsock2 a échoué : %d"
+msgstr "échec de socket avec l'erreur : %ld\n"
 
 #: Opcodes/sockrecv.c:483
-#, fuzzy, c-format
+#, c-format
 msgid "bind failed (%d)"
-msgstr "la liaison a échoué"
+msgstr "la liaison a échoué (%d)"
 
 #: Opcodes/sockrecv.c:495
-#, fuzzy, c-format
+#, c-format
 msgid "listen failed (%d)"
-msgstr "l'écoute a échoué"
+msgstr "l'écoute a échoué (%d)"
 
 #: Opcodes/sockrecv.c:506
-#, fuzzy, c-format
+#, c-format
 msgid "accept failed (%d)"
-msgstr "l'acceptation a échoué"
+msgstr "l'acceptation a échoué (%d)"
 
 #: Opcodes/sockrecv.c:531
 msgid "read from socket failed"
