@@ -585,7 +585,6 @@ CsoundScriptProcessorNode = function(context, options) {
          */
 
         setMessageCallback(msgCallback) {
-            console.log(msgCallback);
             messageCallback = msgCallback;
         },
 
