@@ -318,9 +318,7 @@ CsoundScriptProcessorNode = function(context, options) {
          */
 
         compileCSD(csd) {
-            CSOUND.prepareRT(this.csound);
-            CSOUND.compileCSD(this.csound, csd);
-            this.compiled = true;
+            this.res = CSOUND.compileCSD(this.csound, csd);
         },
 
         /** Compiles Csound orchestra code.
@@ -330,9 +328,7 @@ CsoundScriptProcessorNode = function(context, options) {
          */
 
         compileOrc(orcString) {
-            CSOUND.prepareRT(this.csound);
             CSOUND.compileOrc(this.csound, orcString);
-            this.compiled = true;
         },
 
         /** Sets a Csound engine option (flag)
@@ -357,7 +353,6 @@ CsoundScriptProcessorNode = function(context, options) {
         render(csd) {
             CSOUND.compileCSD(this.csound, csd);
             CSOUND.render(this.csound);
-            this.compiled = false;
         },
 
         /** Evaluates Csound orchestra code.
@@ -540,6 +535,8 @@ CsoundScriptProcessorNode = function(context, options) {
          */
 
         reset() {
+            this.started = false;
+            this.running = false;
             CSOUND.reset(this.csound);
             CSOUND.setMidiCallbacks(this.csound);
             CSOUND.setOption(this.csound, "-odac");
@@ -547,13 +544,14 @@ CsoundScriptProcessorNode = function(context, options) {
             CSOUND.setOption(this.csound, "-M0");
             CSOUND.setOption(this.csound, "-+rtaudio=null");
             CSOUND.setOption(this.csound, "-+rtmidi=null");
-            CSOUND.prepareRT(this.csound);
             var sampleRate = CSOUND_AUDIO_CONTEXT.sampleRate;
             CSOUND.setOption(this.csound, "--sample-rate=" + sampleRate);
+            CSOUND.prepareRT(this.csound);
             CSOUND.setOption(this.csound, "--nchnls=" + this.nchnls);
             CSOUND.setOption(this.csound, "--nchnls_i=" + this.nchnls_i);
-            this.started = false;
-            this.compiled = false;
+            this.csoundOutputBuffer = null;
+            this.ksmps = null;
+            this.zerodBFS = null;
         },
 
         destroy() {
@@ -634,7 +632,7 @@ CsoundScriptProcessorNode = function(context, options) {
             let res = this.res;
 
             for (let i = 0; i < bufferLen; i++, cnt++) {
-                if (cnt >= ksmps && res == 0) {
+                if (cnt == ksmps && res == 0) {
                     // if we need more samples from Csound
                     res = CSOUND.performKsmps(this.csound);
                     cnt = 0;
