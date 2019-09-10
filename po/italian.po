@@ -5353,7 +5353,7 @@ msgstr "---> Falliti tutti i tentativi di connessione.\n"
 msgid "--->  Connected.\n"
 msgstr "--->  Connesso.\n"
 
-#: OOps/remote.c:318 Opcodes/socksend.c:391
+#: OOps/remote.c:318 Opcodes/socksend.c:425
 msgid "write to socket failed"
 msgstr "scrittura su socket fallita"
 
@@ -5369,17 +5369,16 @@ msgstr "socket creato\n"
 msgid "setting socket option to reuse the address\n"
 msgstr "impostazione dell'opzione del socket per riutilizzo dell'indirizzo\n"
 
-#: OOps/remote.c:370 Opcodes/sockrecv.c:202 Opcodes/sockrecv.c:258
-#: Opcodes/sockrecv.c:373 Opcodes/sockrecv.c:468 Opcodes/sockrecv.c:558
-#: Top/server.c:268
+#: OOps/remote.c:370 Opcodes/sockrecv.c:204 Opcodes/sockrecv.c:260
+#: Opcodes/sockrecv.c:375 Opcodes/sockrecv.c:605 Top/server.c:268
 msgid "bind failed"
 msgstr "collegamento fallito"
 
-#: OOps/remote.c:375 Opcodes/sockrecv.c:473
+#: OOps/remote.c:375
 msgid "listen failed"
 msgstr "ascolto fallito"
 
-#: OOps/remote.c:381 Opcodes/sockrecv.c:479
+#: OOps/remote.c:381
 msgid "accept failed"
 msgstr "accetazione fallita"
 
@@ -6516,25 +6515,35 @@ msgstr "la colonna richiesta ?? fuori intervallo\n"
 msgid "Error: index out of range\n"
 msgstr "Errore: indice fuori intervallo\n"
 
-#: Opcodes/arrays.c:3587
+#: Opcodes/arrays.c:3588
 msgid "input array too small\n"
 msgstr "array d'input troppo piccolo\n"
 
-#: Opcodes/arrays.c:3664
+#: Opcodes/arrays.c:3665
 msgid "dct: only one-dimensional arrays allowed"
 msgstr "dct: sono permessi solo array unidimensionali"
 
-#: Opcodes/arrays.c:3671
+#: Opcodes/arrays.c:3672
 msgid "dct: non-pow-of-two sizes not yet implemented"
 msgstr "dct: dimensioni non potenza di due non ancora implementate"
 
-#: Opcodes/arrays.c:3694
+#: Opcodes/arrays.c:3695
 msgid "dctinv: only one-dimensional arrays allowed"
 msgstr "dctinv: sono permessi solo array unidimensionali"
 
-#: Opcodes/arrays.c:3702
+#: Opcodes/arrays.c:3703
 msgid "dctinv: non-pow-of-two sizes not yet implemented"
 msgstr "dctinv: dimensioni non potenza di due non ancora implementate"
+
+#: Opcodes/arrays.c:3753
+#, fuzzy
+msgid "mfb: filter bank size exceeds input array length"
+msgstr "un intervallo dato supera la lunghezza della tavola"
+
+#: Opcodes/arrays.c:3871 Opcodes/arrays.c:3895
+#, fuzzy
+msgid "array inputs not in correct format\n"
+msgstr "trfil: input non in formato TRACKS\n"
 
 #: Opcodes/babo.c:744
 #, c-format
@@ -6862,224 +6871,226 @@ msgstr ""
 "Non riesco a trovare la label \"%s\" nel file della libreria del plugin \"%s"
 "\"."
 
-#: Opcodes/emugens/beosc.c:592
+#: Opcodes/emugens/beosc.c:599
 #, fuzzy
 msgid "beadsynt: phasetable not found"
 msgstr "adsynt: wavetable non trovata!"
 
-#: Opcodes/emugens/beosc.c:634
+#: Opcodes/emugens/beosc.c:641
 #, fuzzy
 msgid "beadsynt: wavetable not found"
 msgstr "adsynt: wavetable non trovata!"
 
-#: Opcodes/emugens/beosc.c:645
+#: Opcodes/emugens/beosc.c:652
 #, fuzzy
 msgid "beadsynt: partial count > amptable size"
 msgstr ""
 "adsynt: il conto delle parziali ?? maggiore della dimensione di amptable!"
 
-#: Opcodes/emugens/beosc.c:651
+#: Opcodes/emugens/beosc.c:658
 #, fuzzy
 msgid "beadsynt: freqtable not found!"
 msgstr "adsynt: freqtable non trovata!"
 
-#: Opcodes/emugens/beosc.c:654
+#: Opcodes/emugens/beosc.c:661
 #, fuzzy
 msgid "beadsynt: partial count > freqtable size"
 msgstr ""
 "adsynt: il conto delle parziali ?? maggiore della dimensione di freqtable!"
 
-#: Opcodes/emugens/beosc.c:660
+#: Opcodes/emugens/beosc.c:667
 #, fuzzy
 msgid "beadsynt: bandwidth table not found"
 msgstr "adsynt: amptable non trovata!"
 
-#: Opcodes/emugens/beosc.c:663
+#: Opcodes/emugens/beosc.c:670
 #, fuzzy
 msgid "beadsynt: partial count > bandwidth size"
 msgstr ""
 "adsynt: il conto delle parziali ?? maggiore della dimensione di amptable!"
 
-#: Opcodes/emugens/beosc.c:679
+#: Opcodes/emugens/beosc.c:686
 #, fuzzy
 msgid "beadsynt: wavetable not found!"
 msgstr "adsynt: wavetable non trovata!"
 
-#: Opcodes/emugens/beosc.c:688
+#: Opcodes/emugens/beosc.c:695
 #, fuzzy
 msgid "The arrays should have 1 dimension"
 msgstr "l'array in non ?? bidimensionale\n"
 
-#: Opcodes/emugens/beosc.c:699
+#: Opcodes/emugens/beosc.c:706
 #, fuzzy
 msgid "Amplitudes array is too small"
 msgstr "array d'input troppo piccolo\n"
 
-#: Opcodes/emugens/beosc.c:702
+#: Opcodes/emugens/beosc.c:709
 #, fuzzy
 msgid "Frequencies array is too small"
 msgstr "array d'input troppo piccolo\n"
 
-#: Opcodes/emugens/beosc.c:705
+#: Opcodes/emugens/beosc.c:712
 #, fuzzy
 msgid "bandwidths array is too small"
 msgstr "array d'input troppo piccolo\n"
 
-#: Opcodes/emugens/beosc.c:738
+#: Opcodes/emugens/beosc.c:745
 #, fuzzy
 msgid "beadsynt: not initialised"
 msgstr "adsynt: non inizializzato"
 
-#: Opcodes/emugens/beosc.c:1068 Opcodes/emugens/beosc.c:1072
+#: Opcodes/emugens/beosc.c:1075 Opcodes/emugens/beosc.c:1079
 #, fuzzy
 msgid "tabrowcopy: incorrect table number"
 msgstr "tabw_i: numero di tavola non corretto"
 
-#: Opcodes/emugens/beosc.c:1078
+#: Opcodes/emugens/beosc.c:1085
 #, fuzzy
 msgid "tabrowcopy: iend cannot be bigger than numcols"
 msgstr "tabw_i: numero di tavola non corretto"
 
-#: Opcodes/emugens/beosc.c:1087
+#: Opcodes/emugens/beosc.c:1094
 #, fuzzy
 msgid "tabrowcopy: Destination table too small"
 msgstr "copyTabElems: tavola di destinazione troppo corta"
 
-#: Opcodes/emugens/beosc.c:1099
+#: Opcodes/emugens/beosc.c:1106
 #, c-format
 msgid ">>>> tabrowlin: row %.4f > maxrow %d! It will be clipped\n"
 msgstr ""
 
-#: Opcodes/emugens/beosc.c:1122
+#: Opcodes/emugens/beosc.c:1129
 #, fuzzy
 msgid "tabrowcopy: krow cannot be negative"
 msgstr "Sezioni del loop non possono essere innestati"
 
-#: Opcodes/emugens/beosc.c:1130 Opcodes/emugens/beosc.c:1139
+#: Opcodes/emugens/beosc.c:1137 Opcodes/emugens/beosc.c:1146
 msgid "tabrowcopy: tab off end"
 msgstr ""
 
-#: Opcodes/emugens/beosc.c:1162
+#: Opcodes/emugens/beosc.c:1169
 #, fuzzy
 msgid "tabrowlin: incorrect table number"
 msgstr "tabw_i: numero di tavola non corretto"
 
-#: Opcodes/emugens/beosc.c:1169
+#: Opcodes/emugens/beosc.c:1176
 msgid "tabrowlin: iend cannot be bigger than numcols"
 msgstr ""
 
-#: Opcodes/emugens/beosc.c:1173
+#: Opcodes/emugens/beosc.c:1180
 msgid "tabrowlin: end must be bigger than start"
 msgstr ""
 
-#: Opcodes/emugens/beosc.c:1178
+#: Opcodes/emugens/beosc.c:1185
 msgid "tabrowlin: no items to copy"
 msgstr ""
 
-#: Opcodes/emugens/beosc.c:1201
+#: Opcodes/emugens/beosc.c:1208
 #, fuzzy
 msgid "krow cannot be negative"
 msgstr "pvsfread: ichan non pu?? essere negativo.\n"
 
-#: Opcodes/emugens/beosc.c:1215 Opcodes/emugens/beosc.c:1223
+#: Opcodes/emugens/beosc.c:1222 Opcodes/emugens/beosc.c:1230
 #, fuzzy
 msgid "tab off end"
 msgstr "tab off end %i"
 
-#: Opcodes/emugens/beosc.c:1268
+#: Opcodes/emugens/beosc.c:1275
 msgid "The input array should be a 2D array"
 msgstr ""
 
-#: Opcodes/emugens/beosc.c:1278
+#: Opcodes/emugens/beosc.c:1285
 msgid "Asked to read too many items from a row"
 msgstr ""
 
-#: Opcodes/emugens/beosc.c:1285
+#: Opcodes/emugens/beosc.c:1292
 #, fuzzy
 msgid "getrowlin: krow cannot be negative"
 msgstr "Sezioni del loop non possono essere innestati"
 
-#: Opcodes/emugens/beosc.c:1287
+#: Opcodes/emugens/beosc.c:1294
 #, c-format
 msgid "getrowlin: row %.4f > maxrow %d, clipping\n"
 msgstr ""
 
-#: Opcodes/emugens/emugens.c:78 Opcodes/emugens/emugens.c:109
+#: Opcodes/emugens/emugens.c:93 Opcodes/emugens/emugens.c:124
 msgid "linlin.k: Division by zero"
 msgstr "linlin.k: Divisione per zero"
 
-#: Opcodes/emugens/emugens.c:158
+#: Opcodes/emugens/emugens.c:173
 #, fuzzy
 msgid "linlin: Division by zero"
 msgstr "linlin.k: Divisione per zero"
 
-#: Opcodes/emugens/emugens.c:206
+#: Opcodes/emugens/emugens.c:221
 #, fuzzy
 msgid "lincos: Division by zero"
 msgstr "linlin.k: Divisione per zero"
 
-#: Opcodes/emugens/emugens.c:435 Opcodes/emugens/emugens.c:471
-#: Opcodes/emugens/emugens.c:653 Opcodes/emugens/emugens.c:697
+#: Opcodes/emugens/emugens.c:450 Opcodes/emugens/emugens.c:486
+#: Opcodes/emugens/emugens.c:671 Opcodes/emugens/emugens.c:718
+#: Opcodes/emugens/emugens.c:777
 msgid "bpf: data length should be even (pairs of x, y)"
 msgstr ""
 
-#: Opcodes/emugens/emugens.c:438 Opcodes/emugens/emugens.c:473
-#: Opcodes/emugens/emugens.c:655 Opcodes/emugens/emugens.c:699
+#: Opcodes/emugens/emugens.c:453 Opcodes/emugens/emugens.c:488
+#: Opcodes/emugens/emugens.c:673 Opcodes/emugens/emugens.c:720
+#: Opcodes/emugens/emugens.c:779
 msgid "bpf: too many pargs (max=256)"
 msgstr ""
 
-#: Opcodes/emugens/emugens.c:763
+#: Opcodes/emugens/emugens.c:843
 #, c-format
 msgid "expecting a char between A and G, but got %c\n"
 msgstr "ci si aspetta un carattere tra A e G, ma ottengo %c\n"
 
-#: Opcodes/emugens/emugens.c:789
+#: Opcodes/emugens/emugens.c:869
 #, fuzzy, c-format
 msgid "format not understood, note: %s, notelen: %d\n"
 msgstr "formato incomprensibile\n"
 
-#: Opcodes/emugens/emugens.c:989 Opcodes/emugens/emugens.c:1002
-#: Opcodes/emugens/emugens.c:1020
+#: Opcodes/emugens/emugens.c:1069 Opcodes/emugens/emugens.c:1082
+#: Opcodes/emugens/emugens.c:1100
 #, fuzzy
 msgid "cmp: unknown operator. Expecting <, <=, >, >=, ==, !="
 msgstr "cmp: non capisco l'operatore. Atteso <, <=, >, >=, ==\n"
 
-#: Opcodes/emugens/emugens.c:1043
+#: Opcodes/emugens/emugens.c:1123
 msgid "cmp (ternary comparator): operator 2 expected <"
 msgstr ""
 
-#: Opcodes/emugens/emugens.c:1046
+#: Opcodes/emugens/emugens.c:1126
 msgid "cmp (ternary comparator): operator 1 expected <"
 msgstr ""
 
-#: Opcodes/emugens/emugens.c:1390 Opcodes/emugens/emugens.c:1407
+#: Opcodes/emugens/emugens.c:1470 Opcodes/emugens/emugens.c:1487
 msgid "tab2array: cannot copy a negative number of items"
 msgstr ""
 
-#: Opcodes/emugens/emugens.c:1489
+#: Opcodes/emugens/emugens.c:1569
 msgid "reshapearray: cannot reshape"
 msgstr ""
 
-#: Opcodes/emugens/emugens.c:1586
+#: Opcodes/emugens/emugens.c:1666
 msgid "cannot print multidimensional string arrays"
 msgstr ""
 
-#: Opcodes/emugens/emugens.c:1588
+#: Opcodes/emugens/emugens.c:1668
 #, c-format
 msgid "only 1-D and 2-D arrays supported, got %d dimensions"
 msgstr ""
 
-#: Opcodes/emugens/emugens.c:1723
+#: Opcodes/emugens/emugens.c:1803
 #, fuzzy, c-format
 msgid "type not supported for printing: %s"
 msgstr "non supportato su questo terminale"
 
-#: Opcodes/emugens/emugens.c:1835
+#: Opcodes/emugens/emugens.c:1915
 #, fuzzy, c-format
 msgid "Could not handle start index: %d"
 msgstr "non riesco a trovare la tavola numero %d\n"
 
-#: Opcodes/emugens/emugens.c:1843
+#: Opcodes/emugens/emugens.c:1923
 #, fuzzy, c-format
 msgid "Could not handle end index: %d"
 msgstr "non riesco a trovare la tavola numero %d\n"
@@ -7221,16 +7232,16 @@ msgstr ""
 "wguide2 gli argomenti xfreq1 e xfreq2 devono essere entrambe a a-rate o k e "
 "i-rate"
 
-#: Opcodes/fluidOpcodes/fluidOpcodes.cpp:136
+#: Opcodes/fluidOpcodes/fluidOpcodes.cpp:119
 msgid "error allocating fluid engine\n"
 msgstr "errore allocazione fluid engine\n"
 
-#: Opcodes/fluidOpcodes/fluidOpcodes.cpp:202
+#: Opcodes/fluidOpcodes/fluidOpcodes.cpp:185
 #, c-format
 msgid "fluid: unable to load %s"
 msgstr "fluid: non riesco a caricare %s"
 
-#: Opcodes/fluidOpcodes/fluidOpcodes.cpp:582
+#: Opcodes/fluidOpcodes/fluidOpcodes.cpp:566
 #, c-format
 msgid ""
 "result: %d\n"
@@ -7239,7 +7250,7 @@ msgstr ""
 "risultato: %d\n"
 " Note off: c:%3d k:%3d\n"
 
-#: Opcodes/fluidOpcodes/fluidOpcodes.cpp:661
+#: Opcodes/fluidOpcodes/fluidOpcodes.cpp:646
 msgid "Illegal Interpolation Method: Must be either 0, 1, 4, or 7.\n"
 msgstr "Metodo d'interpolazione illegale: Deve essere 0, 1, 4, o 7.\n"
 
@@ -10012,107 +10023,127 @@ msgstr "Numero sbagliato di output in sndwarpst; deve essere 2 o 4"
 msgid "sndwarpst: not initialised"
 msgstr "sndwarpst: non inizializzato"
 
-#: Opcodes/sockrecv.c:140 Opcodes/sockrecv.c:143 Opcodes/sockrecv.c:519
-#: Opcodes/sockrecv.c:522
+#: Opcodes/sockrecv.c:142 Opcodes/sockrecv.c:145 Opcodes/sockrecv.c:566
+#: Opcodes/sockrecv.c:569
 msgid "OSCraw: Closing socket\n"
 msgstr "OSCraw: Chiusura socket\n"
 
-#: Opcodes/sockrecv.c:176 Opcodes/sockrecv.c:238 Opcodes/sockrecv.c:353
-#: Opcodes/sockrecv.c:437 Opcodes/sockrecv.c:536 Opcodes/socksend.c:91
-#: Opcodes/socksend.c:240 Opcodes/socksend.c:339 Opcodes/socksend.c:446
-#: Opcodes/socksend.c:865 Top/server.c:233
+#: Opcodes/sockrecv.c:178 Opcodes/sockrecv.c:240 Opcodes/sockrecv.c:355
+#: Opcodes/sockrecv.c:439 Opcodes/sockrecv.c:583 Opcodes/socksend.c:92
+#: Opcodes/socksend.c:248 Opcodes/socksend.c:357 Opcodes/socksend.c:479
+#: Opcodes/socksend.c:898 Top/server.c:233
 #, c-format
 msgid "Winsock2 failed to start: %d"
 msgstr "Fallito avvio di Winsock2: %d"
 
-#: Opcodes/sockrecv.c:182 Opcodes/sockrecv.c:188 Opcodes/sockrecv.c:245
-#: Opcodes/sockrecv.c:360 Opcodes/sockrecv.c:541 Opcodes/sockrecv.c:545
+#: Opcodes/sockrecv.c:184 Opcodes/sockrecv.c:190 Opcodes/sockrecv.c:247
+#: Opcodes/sockrecv.c:362 Opcodes/sockrecv.c:588 Opcodes/sockrecv.c:592
 msgid "Cannot set nonblock"
 msgstr "Non posso impostare nonblock"
 
-#: Opcodes/sockrecv.c:192 Opcodes/sockrecv.c:248 Opcodes/sockrecv.c:363
-#: Opcodes/sockrecv.c:443 Opcodes/sockrecv.c:548 Opcodes/socksend.c:105
-#: Opcodes/socksend.c:255 Opcodes/socksend.c:346 Opcodes/socksend.c:450
-#: Opcodes/socksend.c:869
+#: Opcodes/sockrecv.c:194 Opcodes/sockrecv.c:250 Opcodes/sockrecv.c:365
+#: Opcodes/sockrecv.c:451 Opcodes/sockrecv.c:595 Opcodes/socksend.c:112
+#: Opcodes/socksend.c:263 Opcodes/socksend.c:370 Opcodes/socksend.c:483
+#: Opcodes/socksend.c:902
 msgid "creating socket"
 msgstr "creazione socket"
 
-#: Opcodes/sockrecv.c:490
+#: Opcodes/sockrecv.c:447 Opcodes/socksend.c:108 Opcodes/socksend.c:366
+#, fuzzy, c-format
+msgid "socket failed with error: %ld\n"
+msgstr "Fallito avvio di Winsock2: %d"
+
+#: Opcodes/sockrecv.c:483
+#, fuzzy, c-format
+msgid "bind failed (%d)"
+msgstr "collegamento fallito"
+
+#: Opcodes/sockrecv.c:495
+#, fuzzy, c-format
+msgid "listen failed (%d)"
+msgstr "ascolto fallito"
+
+#: Opcodes/sockrecv.c:506
+#, fuzzy, c-format
+msgid "accept failed (%d)"
+msgstr "accetazione fallita"
+
+#: Opcodes/sockrecv.c:531
 msgid "read from socket failed"
 msgstr "lettura dal socket fallita"
 
-#: Opcodes/sockrecv.c:601
+#: Opcodes/sockrecv.c:648
 msgid "output array too small\n"
 msgstr "array d'output troppo piccolo\n"
 
-#: Opcodes/socksend.c:150 Opcodes/socksend.c:187 Opcodes/socksend.c:224
-#: Opcodes/socksend.c:303
+#: Opcodes/socksend.c:158 Opcodes/socksend.c:195 Opcodes/socksend.c:232
+#: Opcodes/socksend.c:311
 msgid "sendto failed"
 msgstr "sendto fallito"
 
-#: Opcodes/socksend.c:216
+#: Opcodes/socksend.c:224
 msgid "string truncated in socksend"
 msgstr "stringa troncata in socksend"
 
-#: Opcodes/socksend.c:375
+#: Opcodes/socksend.c:407
 #, c-format
 msgid "connect failed (%d)"
 msgstr "connect fallito (%d)"
 
-#: Opcodes/socksend.c:388
+#: Opcodes/socksend.c:422
 #, c-format
 msgid "Expected %d got %d\n"
 msgstr "Atteso %d ottengo %d\n"
 
-#: Opcodes/socksend.c:439
+#: Opcodes/socksend.c:472
 msgid "insufficient number of arguments for OSC message types\n"
 msgstr "numero di argomenti insufficienti per il tipo di messaggio OSC\n"
 
-#: Opcodes/socksend.c:497
+#: Opcodes/socksend.c:530
 msgid "expecting a string argument\n"
 msgstr "ci si aspetta un argomento stringa\n"
 
-#: Opcodes/socksend.c:531
+#: Opcodes/socksend.c:564
 #, c-format
 msgid "%c: data type not supported\n"
 msgstr "%c: tipo di dato non supportato\n"
 
-#: Opcodes/socksend.c:805
+#: Opcodes/socksend.c:838
 #, c-format
 msgid "OSCsend failed to send message with destination %s to %s:%d\n"
 msgstr ""
 
-#: Opcodes/socksend.c:846
+#: Opcodes/socksend.c:879
 #, fuzzy
 msgid "arg array needs to be two dimensional\n"
 msgstr "l'array in non ?? bidimensionale\n"
 
-#: Opcodes/socksend.c:850
+#: Opcodes/socksend.c:883
 #, fuzzy
 msgid "type and dest arrays need to be unidimensional\n"
 msgstr "l'array in non ?? bidimensionale\n"
 
-#: Opcodes/socksend.c:854
+#: Opcodes/socksend.c:887
 #, fuzzy
 msgid "type and dest arrays need to have the same size\n"
 msgstr ""
 "array per magnitude e frequency non inizializzati, oppure non sono della "
 "stessa dimensione"
 
-#: Opcodes/socksend.c:857
+#: Opcodes/socksend.c:890
 #, fuzzy
 msgid "arg array not big enough\n"
 msgstr "l'array in non ?? bidimensionale\n"
 
-#: Opcodes/socksend.c:896
+#: Opcodes/socksend.c:929
 msgid "Bundle msg exceeded max packet size, not sent\n"
 msgstr ""
 
-#: Opcodes/socksend.c:965
+#: Opcodes/socksend.c:999
 msgid "only bundles with i and f types are supported \n"
 msgstr ""
 
-#: Opcodes/socksend.c:972
+#: Opcodes/socksend.c:1006
 #, fuzzy
 msgid "OSCbundle failed"
 msgstr "OSCsend2 fallito"
@@ -12183,7 +12214,7 @@ msgid "Bad ThreadId"
 msgstr ""
 
 #: Top/csound.c:2113 Top/csound.c:2150 Top/csound.c:2179 Top/csound.c:2220
-#: Top/csound.c:4445
+#: Top/csound.c:4446
 msgid "Csound not ready for performance: csoundStart() has not been called\n"
 msgstr ""
 
@@ -12192,7 +12223,7 @@ msgstr ""
 msgid "Score finished in csoundPerformKsmps() with %d.\n"
 msgstr ""
 
-#: Top/csound.c:2157 Top/csound.c:4452
+#: Top/csound.c:2157 Top/csound.c:4453
 msgid "Early return from csoundPerformKsmps().\n"
 msgstr ""
 
@@ -12220,138 +12251,138 @@ msgstr ""
 msgid "WARNING: "
 msgstr "ATTENZIONE: "
 
-#: Top/csound.c:2725
+#: Top/csound.c:2726
 msgid "rtdummy: failed to allocate globals"
 msgstr ""
 
-#: Top/csound.c:2726
+#: Top/csound.c:2727
 msgid "rtaudio: dummy module enabled\n"
 msgstr ""
 
-#: Top/csound.c:2755 Top/csound.c:2792
+#: Top/csound.c:2756 Top/csound.c:2793
 msgid " *** error: rtaudio module set to empty string"
 msgstr ""
 
-#: Top/csound.c:2759 Top/csound.c:2796
+#: Top/csound.c:2760 Top/csound.c:2797
 #, c-format
 msgid " unknown rtaudio module: '%s', using dummy module"
 msgstr ""
 
-#: Top/csound.c:2913
+#: Top/csound.c:2914
 msgid "!!WARNING: real time midi input disabled, using dummy functions\n"
 msgstr ""
 
-#: Top/csound.c:2918 Top/csound.c:2952
+#: Top/csound.c:2919 Top/csound.c:2953
 msgid "error: -+rtmidi set to empty string"
 msgstr ""
 
-#: Top/csound.c:2921 Top/csound.c:2955
+#: Top/csound.c:2922 Top/csound.c:2956
 #, c-format
 msgid "error: -+rtmidi='%s': unknown module"
 msgstr ""
 
-#: Top/csound.c:2947
+#: Top/csound.c:2948
 msgid "WARNING: real time midi output disabled, using dummy functions\n"
 msgstr ""
 
-#: Top/csound.c:2969
+#: Top/csound.c:2970
 msgid "Unknown MIDI error"
 msgstr ""
 
-#: Top/csound.c:3133
+#: Top/csound.c:3134
 msgid "Failed to allocate new opcode entry."
 msgstr ""
 
-#: Top/csound.c:3155
+#: Top/csound.c:3156
 #, c-format
 msgid "Failed to allocate opcode entry for %s."
 msgstr ""
 
-#: Top/csound.c:3297 Top/main.c:420
+#: Top/csound.c:3298 Top/main.c:420
 msgid "setting dummy interface\n"
 msgstr "impostazione interfaccia dummy\n"
 
-#: Top/csound.c:3375
+#: Top/csound.c:3376
 msgid "Failed during csoundInitEnv"
 msgstr ""
 
-#: Top/csound.c:3398
+#: Top/csound.c:3399
 msgid "Failed during csoundInitStaticModules"
 msgstr ""
 
-#: Top/csound.c:3414
+#: Top/csound.c:3415
 msgid "Failed during csoundLoadModules"
 msgstr ""
 
-#: Top/csound.c:3459
+#: Top/csound.c:3460
 msgid "Real time audio module name"
 msgstr "Nome modulo audio per tempo reale"
 
-#: Top/csound.c:3488
+#: Top/csound.c:3489
 msgid "Real time MIDI module name"
 msgstr "Nome modulo MIDI per tempo reale"
 
-#: Top/csound.c:3493
+#: Top/csound.c:3494
 msgid "Ignore events (other than tempo changes) in tracks defined by pattern"
 msgstr ""
 
-#: Top/csound.c:3499
+#: Top/csound.c:3500
 msgid "Do not handle special MIDI controllers (sustain pedal etc.)"
 msgstr ""
 
-#: Top/csound.c:3507
+#: Top/csound.c:3508
 msgid "Title tag in output soundfile (no spaces)"
 msgstr ""
 
-#: Top/csound.c:3513
+#: Top/csound.c:3514
 msgid "Copyright tag in output soundfile (no spaces)"
 msgstr ""
 
-#: Top/csound.c:3518
+#: Top/csound.c:3519
 msgid "Short Copyright tag in output soundfile"
 msgstr ""
 
-#: Top/csound.c:3524
+#: Top/csound.c:3525
 msgid "Software tag in output soundfile (no spaces)"
 msgstr ""
 
-#: Top/csound.c:3529
+#: Top/csound.c:3530
 msgid "Artist tag in output soundfile (no spaces)"
 msgstr ""
 
-#: Top/csound.c:3536
+#: Top/csound.c:3537
 msgid "Comment tag in output soundfile (no spaces)"
 msgstr ""
 
-#: Top/csound.c:3541
+#: Top/csound.c:3542
 msgid "Date tag in output soundfile (no spaces)"
 msgstr ""
 
-#: Top/csound.c:3551
+#: Top/csound.c:3552
 msgid "Enable message attributes (colors etc.)"
 msgstr ""
 
-#: Top/csound.c:3557
+#: Top/csound.c:3558
 msgid "Start score playback at the specified time, skipping earlier events"
 msgstr ""
 
-#: Top/csound.c:3564
+#: Top/csound.c:3565
 msgid "Ignore <CsOptions> in CSD files (default: no)"
 msgstr ""
 
-#: Top/csound.c:3788
+#: Top/csound.c:3789
 msgid "Cannot open /proc/cpuinfo. Support for RDTSC is not available.\n"
 msgstr ""
 
-#: Top/csound.c:3818
+#: Top/csound.c:3819
 msgid "No valid CPU frequency entry was found in /proc/cpuinfo.\n"
 msgstr ""
 
-#: Top/csound.c:4340
+#: Top/csound.c:4341
 msgid "csoundDestroyMessageBuffer: Message buffer not allocated."
 msgstr ""
 
-#: Top/csound.c:4372
+#: Top/csound.c:4373
 msgid "csound: internal error: message buffer overflow\n"
 msgstr ""
 

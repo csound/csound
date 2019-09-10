@@ -99,10 +99,11 @@ int32_t sfont_ModuleDestroy(CSOUND *csound)
     return 0;
 }
 
-static void SoundFontLoad(CSOUND *csound, char *fname)
+static int SoundFontLoad(CSOUND *csound, char *fname)
 {
     FILE *fil;
     void *fd;
+    int i;
     SFBANK *soundFont;
     sfontg *globals;
     globals = (sfontg *) (csound->QueryGlobalVariable(csound, "::sfontg"));
@@ -113,8 +114,13 @@ static void SoundFontLoad(CSOUND *csound, char *fname)
       csound->ErrorMsg(csound,
                   Str("sfload: cannot open SoundFont file \"%s\" (error %s)"),
                   fname, strerror(errno));
-      return;
+      return -1;
     }
+    for (i=0; i<globals->currSFndx-1; i++)
+      if (strcmp(fname, globals->sfArray[i].name)==0) {
+        csound->Warning(csound, "%s already loaded\n", fname);
+        return i;
+      }
     soundFont = &globals->sfArray[globals->currSFndx];
     /* if (UNLIKELY(soundFont==NULL)){ */
     /*   csound->ErrorMsg(csound, Str("Sfload: cannot use globals")); */
@@ -128,6 +134,7 @@ static void SoundFontLoad(CSOUND *csound, char *fname)
     globals->soundFont = soundFont;
     fill_SfPointers(csound);
     fill_SfStruct(csound);
+    return -1;
 }
 
 static int32_t compare(presetType * elem1, presetType *elem2)
@@ -148,6 +155,7 @@ static int32_t SfLoad_(CSOUND *csound, SFLOAD *p, int32_t istring)
                                        /* open a file and return its handle */
 {                                      /* the handle is simply a stack index */
     char *fname;
+    int hand;
     SFBANK *sf;
     sfontg *globals;
     globals = (sfontg *) (csound->QueryGlobalVariable(csound, "::sfontg"));
@@ -164,19 +172,22 @@ static int32_t SfLoad_(CSOUND *csound, SFLOAD *p, int32_t istring)
     }
     /*    strcpy(fname, (char*) p->fname); */
     Gfname = fname;
-    SoundFontLoad(csound, fname);
-    *p->ihandle = (float) globals->currSFndx;
-    sf = &globals->sfArray[globals->currSFndx];
-    qsort(sf->preset, sf->presets_num, sizeof(presetType),
-        (int32_t (*)(const void *, const void * )) compare);
-    csound->Free(csound,fname);
-    if (UNLIKELY(++globals->currSFndx>=globals->maxSFndx)) {
-      globals->maxSFndx += 5;
-      globals->sfArray = (SFBANK *)csound->ReAlloc(csound, globals->sfArray,
-                    /* JPff fix */        globals->maxSFndx*sizeof(SFBANK));
-      csound->Warning(csound, Str("Extending soundfonts"));
-      if (globals->sfArray  == NULL) return NOTOK;
+    hand = SoundFontLoad(csound, fname);
+    if (hand<0) {
+      *p->ihandle = (MYFLT) globals->currSFndx;
+      sf = &globals->sfArray[globals->currSFndx];
+      qsort(sf->preset, sf->presets_num, sizeof(presetType),
+            (int32_t (*)(const void *, const void * )) compare);
+      csound->Free(csound,fname);
+      if (UNLIKELY(++globals->currSFndx>=globals->maxSFndx)) {
+        globals->maxSFndx += 5;
+        globals->sfArray = (SFBANK *)csound->ReAlloc(csound, globals->sfArray,
+                  /* JPff fix */        globals->maxSFndx*sizeof(SFBANK));
+        csound->Warning(csound, Str("Extending soundfonts"));
+        if (globals->sfArray  == NULL) return NOTOK;
+      }
     }
+    else *p->ihandle=hand;
     return OK;
 }
 

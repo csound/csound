@@ -385,7 +385,7 @@ int main(int argc, char **argv)
     while (--j) {
       i++;
       if (argv[i][0] != '-' && i < 3 && tmp[0] == '\0') {
-        strncpy(tmp, argv[i],256);
+        strncpy(tmp, argv[i],255);
         /* strip extension */
         if (is_orc(tmp) || is_sco(tmp) || is_mid(tmp) || is_csd(tmp))
           tmp[strlen(tmp) - 4] = '\0';
@@ -428,12 +428,12 @@ int main(int argc, char **argv)
     /*   (the last option has the highest precedence) */
     s = getenv("CSOUND");
     if (s != NULL)      /* get default setting from CSOUND, if available */
-      strncpy(tmp, s, 256);
+      strncpy(tmp, s, 255);
     for (i = (int) strlen(optlst); --i >= 0; ) {
       sprintf(tmp2, "CSOUND_%c", optlst[i]);
       s = getenv(tmp2);
       if (s != NULL) {
-        strncpy(tmp, s, 256);
+        strncpy(tmp, s, 255);
         if (tmp[0] != '\0') break;
       }
     }

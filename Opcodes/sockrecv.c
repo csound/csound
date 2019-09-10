@@ -32,6 +32,7 @@
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
+#define SOCKET_ERROR (-1)
 #endif
 #include <string.h>
 #include <errno.h>
@@ -49,6 +50,7 @@ static  int32_t     deinit_udpRecv(CSOUND *csound, void *pdata);
 typedef struct {
   OPDS    h;
   MYFLT   *asig;
+  MYFLT   *res;
   STRINGDAT *ipaddress;
   MYFLT *port;
   AUXCH   aux, tmp;
@@ -188,7 +190,7 @@ static int32_t init_recv(CSOUND *csound, SOCKRECV *p)
         return csound->InitError(csound, Str("Cannot set nonblock"));
     }
 #endif
-    if (UNLIKELY(p->sock < 0)) {
+    if (UNLIKELY(p->sock == SOCKET_ERROR)) {
       return csound->InitError(csound, Str("creating socket"));
     }
     /* create server address: where we want to send to and clear it out */
@@ -198,7 +200,7 @@ static int32_t init_recv(CSOUND *csound, SOCKRECV *p)
     p->server_addr.sin_port = htons((int32_t) *p->ptr2);    /* the port */
     /* associate the socket with the address and port */
     if (UNLIKELY(bind(p->sock, (struct sockaddr *) &p->server_addr,
-                      sizeof(p->server_addr)) < 0))
+                      sizeof(p->server_addr)) == SOCKET_ERROR))
       return csound->InitError(csound, Str("bind failed"));
 
     if (p->buffer.auxp == NULL || (uint64_t) (MTU) > p->buffer.size)
@@ -244,7 +246,7 @@ static int32_t init_recv_S(CSOUND *csound, SOCKRECVSTR *p)
     if (UNLIKELY(fcntl(p->sock, F_SETFL, O_NONBLOCK)<0))
       return csound->InitError(csound, Str("Cannot set nonblock"));
 #endif
-    if (UNLIKELY(p->sock < 0)) {
+    if (UNLIKELY(p->sock == SOCKET_ERROR)) {
       return csound->InitError(csound, Str("creating socket"));
     }
     /* create server address: where we want to send to and clear it out */
@@ -254,7 +256,7 @@ static int32_t init_recv_S(CSOUND *csound, SOCKRECVSTR *p)
     p->server_addr.sin_port = htons((int32_t) *p->ptr2);    /* the port */
     /* associate the socket with the address and port */
     if (UNLIKELY(bind(p->sock, (struct sockaddr *) &p->server_addr,
-                      sizeof(p->server_addr)) < 0))
+                      sizeof(p->server_addr)) == SOCKET_ERROR))
       return csound->InitError(csound, Str("bind failed"));
 
     if (p->buffer.auxp == NULL || (uint64_t) (MTU) > p->buffer.size)
@@ -359,7 +361,7 @@ static int32_t init_recvS(CSOUND *csound, SOCKRECV *p)
     if (UNLIKELY(fcntl(p->sock, F_SETFL, O_NONBLOCK)<0))
       return csound->InitError(csound, Str("Cannot set nonblock"));
 #endif
-    if (UNLIKELY(p->sock < 0)) {
+    if (UNLIKELY(p->sock == SOCKET_ERROR)) {
       return csound->InitError(csound, Str("creating socket"));
     }
     /* create server address: where we want to send to and clear it out */
@@ -369,7 +371,7 @@ static int32_t init_recvS(CSOUND *csound, SOCKRECV *p)
     p->server_addr.sin_port = htons((int32_t) *p->ptr3);    /* the port */
     /* associate the socket with the address and port */
     if (UNLIKELY(bind(p->sock, (struct sockaddr *) &p->server_addr,
-                      sizeof(p->server_addr)) < 0))
+                      sizeof(p->server_addr)) == SOCKET_ERROR))
       return csound->InitError(csound, Str("bind failed"));
 
     if (p->buffer.auxp == NULL || (uint64_t) (MTU) > p->buffer.size)
@@ -430,18 +432,25 @@ static int32_t send_recvS(CSOUND *csound, SOCKRECV *p)
 static int32_t init_srecv(CSOUND *csound, SOCKRECVT *p)
 {
     socklen_t clilen;
+    int32_t err;
 #if defined(WIN32) && !defined(__CYGWIN__)
     WSADATA wsaData = {0};
-    int32_t err;
     if ((err=WSAStartup(MAKEWORD(2,2), &wsaData))!= 0)
       return csound->InitError(csound, Str("Winsock2 failed to start: %d"), err);
 #endif
     /* create a STREAM (TCP) socket in the INET (IP) protocol */
     p->sock = socket(PF_INET, SOCK_STREAM, 0);
 
+#if defined(WIN32) && !defined(__CYGWIN__)
+    if (p->sock == SOCKET_ERROR) {
+      err = WSAGetLastError();
+      csound->InitError(csound, Str("socket failed with error: %ld\n"), err);
+    }
+#else
     if (UNLIKELY(p->sock < 0)) {
       return csound->InitError(csound, Str("creating socket"));
     }
+#endif
 
     /* create server address: where we want to connect to */
 
@@ -462,36 +471,74 @@ static int32_t init_srecv(CSOUND *csound, SOCKRECVT *p)
     p->server_addr.sin_port = htons((int32_t) *p->port);
 
     /* associate the socket with the address and port */
-    if (UNLIKELY(bind
-                 (p->sock, (struct sockaddr *) &p->server_addr,
-                  sizeof(p->server_addr)) < 0)) {
-      return csound->InitError(csound, Str("bind failed"));
+    err = bind(p->sock, (struct sockaddr *) &p->server_addr,
+               sizeof(p->server_addr));
+#if defined(WIN32) && !defined(__CYGWIN__)
+    if (UNLIKELY(err == SOCKET_ERROR)) {
+      err = WSAGetLastError();
+#else
+    if (UNLIKELY(err<0)) {
+      err= errno;
+#endif
+      return csound->InitError(csound, Str("bind failed (%d)"), err);
     }
 
     /* start the socket listening for new connections -- may wait */
-    if (UNLIKELY(listen(p->sock, 5) < 0)) {
-      return csound->InitError(csound, Str("listen failed"));
+    err = listen(p->sock, 5);
+#if defined(WIN32) && !defined(__CYGWIN__)
+    if (UNLIKELY(err == SOCKET_ERROR)) {
+      err = WSAGetLastError();
+#else
+    if (UNLIKELY(err<0)) {
+      err= errno;
+#endif
+      return csound->InitError(csound, Str("listen failed (%d)"), err);
     }
     clilen = sizeof(p->server_addr);
     p->conn = accept(p->sock, (struct sockaddr *) &p->server_addr, &clilen);
-
-    if (UNLIKELY(p->conn < 0)) {
-      return csound->InitError(csound, Str("accept failed"));
+#if defined(WIN32) && !defined(__CYGWIN__)
+    if (UNLIKELY(err == SOCKET_ERROR)) {
+      err = WSAGetLastError();
+#else
+    if (UNLIKELY(err<0)) {
+      err= errno;
+#endif
+      return csound->InitError(csound, Str("accept failed (%d)"), err);
     }
     return OK;
 }
 
 static int32_t send_srecv(CSOUND *csound, SOCKRECVT *p)
 {
-    int32_t     n = sizeof(MYFLT) * CS_KSMPS;
-
-    if (UNLIKELY(n != read(p->conn, p->asig, sizeof(MYFLT) * CS_KSMPS))) {
+    int32_t     n, k = sizeof(MYFLT) * CS_KSMPS;
+    MYFLT       *q = p->asig;
+    if (p->sock<0) {
+      if (p->res) *p->res = -1;
+      return OK;
+    }
+    memset(q, '\0', k);
+ again:
+    errno = 0;
+    n = recv(p->conn, q, k, 0);
+    if (n==0) {      /* Connection broken */
+      if (p->res) *p->res = -1;
+      close(p->sock);
+      p->sock = -1;
+      return OK;
+    }
+    if (UNLIKELY(n<0||errno!=0))
       return csound->PerfError(csound, &(p->h),
                                Str("read from socket failed"));
+    if (k==n) {
+      if (p->res) *p->res = sizeof(MYFLT) * CS_KSMPS;
+      return OK;
     }
-    return OK;
+    /* Only partialread so loop for the rest */
+    //printf("k=%d n=%d\n", k, n);
+    k = k-n;
+    q+= n;
+    goto again;
 }
-
 
 typedef struct _rawosc {
   OPDS h;
@@ -554,7 +601,7 @@ static int32_t init_raw_osc(CSOUND *csound, RAWOSC *p)
     p->server_addr.sin_port = htons((int32_t) *p->port);    /* the port */
     /* associate the socket with the address and port */
     if (UNLIKELY(bind(p->sock, (struct sockaddr *) &p->server_addr,
-                      sizeof(p->server_addr)) < 0))
+                      sizeof(p->server_addr)) == SOCKET_ERROR))
       return csound->InitError(csound, Str("bind failed"));
 
     if (p->buffer.auxp == NULL || (uint64_t) (MTU) > p->buffer.size)
@@ -722,7 +769,7 @@ static OENTRY sockrecv_localops[] = {
   { "sockrecvs", S(SOCKRECV), 0, 3, "aa", "ii",
     (SUBR) init_recvS,
     (SUBR) send_recvS, NULL },
-  { "strecv", S(SOCKRECVT), 0, 3, "a", "Si",
+  { "strecv", S(SOCKRECVT), 0, 3, "az", "Si",
     (SUBR) init_srecv,
     (SUBR) send_srecv, NULL },
   { "OSCraw", S(RAWOSC), 0, 3, "S[]k", "i",

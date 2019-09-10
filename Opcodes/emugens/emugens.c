@@ -38,6 +38,21 @@
         memset(&out[nsmps], '\0', early*sizeof(MYFLT));              \
     }                                                                \
 
+
+#define AUDIO_OPCODE(csound, p) \
+    IGN(csound); \
+    uint32_t n, nsmps = CS_KSMPS;                                    \
+    uint32_t offset = p->h.insdshead->ksmps_offset;                  \
+    uint32_t early = p->h.insdshead->ksmps_no_end;                   \
+
+#define AUDIO_OUTPUT(out) \
+    if (UNLIKELY(offset)) memset(out, '\0', offset*sizeof(MYFLT));   \
+    if (UNLIKELY(early)) {                                           \
+        nsmps -= early;                                              \
+        memset(&out[nsmps], '\0', early*sizeof(MYFLT));              \
+    }                                                                \
+
+
 #define UI32MAX 0x7FFFFFFF
 
 
@@ -636,6 +651,9 @@ typedef struct {
     MYFLT *data[BPF_MAXPOINTS];
 } BPFARR;
 
+
+
+
 static int32_t bpfarr_init(CSOUND *csound, BPFARR *p) {
     tabinit(csound, p->out, p->in->sizes[0]);
     return OK;
@@ -675,6 +693,68 @@ static int32_t bpfarr(CSOUND *csound, BPFARR *p) {
                 y1 = *data[i+1];
                 if( x <= x1 ) {
                     out[idx] = (x-x0)/(x1-x0)*(y1-y0)+y0;
+                    break;
+                }
+                x0 = x1;
+                y0 = y1;
+            }
+        }
+    }
+    return OK;
+}
+
+
+typedef struct {
+    OPDS h;
+    MYFLT *out, *in;
+    MYFLT *data[BPF_MAXPOINTS];
+    uint32_t datalen;
+} BPFARR_A;
+
+
+static int32_t bpfarr_a_init(CSOUND *csound, BPFARR_A *p) {
+    uint32_t datalen = p->INOCOUNT - 1;
+    if(datalen % 2)
+        return INITERR(Str("bpf: data length should be even (pairs of x, y)"));
+    if(datalen >= BPF_MAXPOINTS)
+        return INITERR(Str("bpf: too many pargs (max=256)"));
+    p->datalen = datalen;
+    return OK;
+}
+
+
+static int32_t bpfarr_a(CSOUND *csound, BPFARR_A *p) {
+    MYFLT *out = p->out;
+    MYFLT *in = p->in;
+
+    AUDIO_OPCODE(csound, p);
+    AUDIO_OUTPUT(out);
+
+    MYFLT **data = p->data;
+
+    uint32_t i, datalen = p->datalen;
+
+    MYFLT x, x0, x1, y0, y1, firstx, firsty, lastx, lasty;
+    firstx = *data[0];
+    firsty = *data[1];
+    lastx = *data[datalen-2];
+    lasty = *data[datalen-1];
+
+    for(n=offset; n<nsmps; n++) {
+        x = in[n];
+        x0 = firstx;
+        y0 = firsty;
+
+        if (x <= x0)
+            out[n] = y0;
+        else if (x>=lastx)
+            out[n] = lasty;
+        else {
+            for(i=2; i<datalen; i+=2) {
+                x1 = *data[i];
+                y1 = *data[i+1];
+                if( x <= x1 ) {
+                    out[n] = (x-x0)/(x1-x0)*(y1-y0)+y0;
                     break;
                 }
                 x0 = x1;
@@ -1991,7 +2071,9 @@ static OENTRY localops[] = {
 
     { "bpf", S(BPFX), 0, 2, "k", "kM", NULL, (SUBR)bpfx },
     { "bpf", S(BPFX), 0, 1, "i", "im", (SUBR)bpfx },
-    { "bpf", S(BPFARR), 0, 2, "k[]", "k[]M", (SUBR)bpfarr_init, (SUBR)bpfarr },
+    { "bpf", S(BPFARR), 0, 3, "k[]", "k[]M", (SUBR)bpfarr_init, (SUBR)bpfarr },
+
+    { "bpf.a", S(BPFARR_A), 0, 3, "a", "aM", (SUBR)bpfarr_a_init, (SUBR)bpfarr_a },
 
     { "bpf", S(BPFARRPOINTS), 0, 2, "k", "kk[]k[]", NULL, (SUBR)bpfarrpoints },
     { "bpf", S(BPFARRPOINTS), 0, 2, "k", "ki[]i[]", NULL, (SUBR)bpfarrpoints },
@@ -2005,7 +2087,8 @@ static OENTRY localops[] = {
 
     { "bpfcos", S(BPFX), 0, 2, "k", "kM", NULL, (SUBR)bpfxcos },
     { "bpfcos", S(BPFX), 0, 1, "i", "im", (SUBR)bpfxcos },
-    { "bpfcos", S(BPFARR), 0, 2, "k[]", "k[]M", (SUBR)bpfarr_init, (SUBR)bpfarrcos },
+    { "bpfcos", S(BPFARR), 0, 2, "k[]", "k[]M",
+                                          (SUBR)bpfarr_init, (SUBR)bpfarrcos },
 
     { "bpfcos", S(BPFARRPOINTS), 0, 2, "k", "kk[]k[]",
       NULL, (SUBR)bpfcosarrpoints },

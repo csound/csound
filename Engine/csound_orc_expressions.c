@@ -773,7 +773,7 @@ static TREE *create_boolean_expression(CSOUND *csound, TREE *root,
       break;
     case S_NEQ:
       strNcpy(op, "!=", 80);
-      break;
+     break;
     case S_GE:
       strNcpy(op, ">=", 80);
       break;
@@ -840,10 +840,10 @@ static TREE *create_boolean_expression(CSOUND *csound, TREE *root,
 
 static TREE *create_synthetic_ident(CSOUND *csound, int32 count)
 {
-    char *label = (char *)csound->Calloc(csound, 20);
+    char *label = (char *)csound->Calloc(csound, 32);
     ORCTOKEN *token;
 
-    snprintf(label, 20, "__synthetic_%"PRIi32, count);
+    snprintf(label, 32, "__synthetic_%"PRIi32, count);
     if (UNLIKELY(PARSER_DEBUG))
       csound->Message(csound, "Creating Synthetic T_IDENT: %s\n", label);
     token = make_token(csound, label);
@@ -854,9 +854,9 @@ static TREE *create_synthetic_ident(CSOUND *csound, int32 count)
 
 static TREE *create_synthetic_label(CSOUND *csound, int32 count)
 {
-    char *label = (char *)csound->Calloc(csound, 20);
+    char *label = (char *)csound->Calloc(csound, 32);
     ORCTOKEN *token;
-    snprintf(label, 20, "__synthetic_%"PRIi32":", count);
+    snprintf(label, 32, "__synthetic_%"PRIi32":", count);
     if (UNLIKELY(PARSER_DEBUG))
       csound->Message(csound, "Creating Synthetic label: %s\n", label);
     token = make_label(csound, label);
