@@ -341,7 +341,8 @@ statement : ans '=' exprlist NEWLINE
                 {
                     if ($1->value->lexeme[0]=='g') {
                       TREE *ans = $$ = make_leaf(csound,LINE,LOCN, T_OPCODE,
-                                                 lookup_token(csound, "##addin", NULL));
+                                                 lookup_token(csound,
+                                                              "##addin", NULL));
                        ans->right = $3;
                        ans->left = $1;
                        ans->value->optype = NULL;
@@ -374,7 +375,8 @@ statement : ans '=' exprlist NEWLINE
                 {
                     if ($1->value->lexeme[0]=='g') {
                       TREE *ans = $$ = make_leaf(csound,LINE,LOCN, T_OPCODE,
-                                                 lookup_token(csound, "##subin", NULL));
+                                                 lookup_token(csound,
+                                                              "##subin", NULL));
                       ans->right = $3;
                       ans->left = $1;
                       ans->value->optype = NULL;
