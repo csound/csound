@@ -265,7 +265,7 @@ int readOptions(CSOUND *csound, CORFIL *cf, int readingCsOptions)
         argc++;
       }
       while (*p != '\0') {
-        if (isblank(*p)) {
+        if (isblank(*p) && *(p-1)!='\\') {
           *p++ = '\0';
 #ifdef _DEBUG
           csoundMessage(csound, "argc=%d argv[%d]=%s\n",
@@ -317,7 +317,7 @@ int readOptions(CSOUND *csound, CORFIL *cf, int readingCsOptions)
           *p = '\0';
           break;
         }
-        else if (*p=='"') {
+        else if (*p=='"' && *(p-1) != '\\') {
           int is_escape = 0;
           char *old = NULL;
           *p=3; /* ETX char used to mark the limits of a string */

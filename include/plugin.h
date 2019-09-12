@@ -932,7 +932,7 @@ template <std::size_t N, std::size_t M> struct Plugin : OPDS {
       set nsmps and offset value for kperf()
    */
   void nsmps_set() {
-    nsmps = insdshead->ksmps - insdshead->ksmps_no_end;;
+    nsmps = insdshead->ksmps - insdshead->ksmps_no_end;
     offset = insdshead->ksmps_offset;
   }
 
