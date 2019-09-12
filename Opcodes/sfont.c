@@ -325,7 +325,8 @@ static int32_t SfPreset(CSOUND *csound, SFPRESET *p)
     *p->ipresethandle = (MYFLT) presetHandle;
 
     if (UNLIKELY(globals->presetp[presetHandle] == NULL)) {
-      return csound->InitError(csound,
+      //      return csound->InitError(csound,
+      csound->Warning(csound,
                                Str("sfpreset: cannot find any preset having prog "
                                    "number %d and bank number %d in SoundFont file"
                                    " \"%s\""),
