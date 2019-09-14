@@ -100,6 +100,14 @@ class CsoundObj {
     writeToFS(filePath, blobData) {
         this.node.writeToFS(filePath, blobData);
     }
+
+    /** Unlink file from WASM filesystem (i.e. remove). 
+     * 
+     * @param {string} filePath A string containing the path to unlink. 
+    */
+    unlinkFromFS(filePath) {
+        this.node.unlinkFromFS(filePath);
+    }
     
     /** Compiles a CSD, which may be given as a filename in the
      *  WASM filesystem or a string containing the code

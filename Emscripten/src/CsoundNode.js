@@ -101,6 +101,17 @@ class CsoundNode extends AudioWorkletNode {
         this.port.postMessage(["writeToFS", filePath, blobData]);
     }
 
+    /** 
+     * 
+     * Unlink file from WASM filesystem (i.e. remove). 
+     *
+     * @param {string} filePath A string containing the path to write to.
+     * @memberof CsoundMixin
+     */
+    unlinkFromFS(filePath) {
+        this.port.postMessage(["unlinkFromFS", filePath]);
+    }
+
     /** Compiles a CSD, which may be given as a filename in the
      *  WASM filesystem or a string containing the code
      *
@@ -339,7 +350,5 @@ class CsoundNodeFactory {
         return new CsoundNode(CSOUND_AUDIO_CONTEXT, options);
     }
 }
-
-
 
 

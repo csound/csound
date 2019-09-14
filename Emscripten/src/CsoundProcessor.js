@@ -263,6 +263,10 @@ class CsoundProcessor extends AudioWorkletProcessor {
             FS.close(stream);
 
             break;
+        case "unlinkFromFS":
+            let filePath = data[1];
+            FS.unlink(filePath);
+            break;
         case "midiMessage":
             let byte1 = data[1];
             let byte2 = data[2];
