@@ -2237,7 +2237,7 @@ static inline void displ(MYFLT val, MYFLT index, CSOUND *csound)
 
 static void fl_callbackButton1(Fl_Button* w, void *a)
 {
-  IGN(w);
+    IGN(w);
     FLBUTTON *p = (FLBUTTON *) a;
     *((FLBUTTON*) a)->kout =  *p->ion;
     if (*p->args[0] >= 0) ButtonSched(p->h.insdshead->csound,
@@ -2246,14 +2246,14 @@ static void fl_callbackButton1(Fl_Button* w, void *a)
 
 static void fl_callbackCloseButton(Fl_Button* w, void *a)
 {
-  IGN(w);
+    IGN(w);
     Fl_Window *p = (Fl_Window *) a;
     p->hide();
 }
 
 static void fl_callbackExecButton(Fl_Button* w, void *a)
 {
-  IGN(w);
+    IGN(w);
     FLEXECBUTTON *p = (FLEXECBUTTON *)a;
     CSOUND *csound = p->csound;
     char *command = (char *)csound->Malloc(csound, strlen(p->commandString) + 1);

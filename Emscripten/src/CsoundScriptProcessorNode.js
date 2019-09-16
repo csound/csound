@@ -310,6 +310,18 @@ CsoundScriptProcessorNode = function(context, options) {
             FS.close(stream);
         },
 
+        /** 
+         * 
+         * Unlink file from WASM filesystem (i.e. remove). 
+         *
+         * @param {string} filePath A string containing the path to write to.
+         * @memberof CsoundMixin
+         */
+        unlinkFromFS(filePath) {
+            let FS = CSMOD["FS"];
+            FS.unlink(filePath);
+        },
+
         /** Compiles a CSD, which may be given as a filename in the
          *  WASM filesystem or a string containing the code
          *
@@ -670,3 +682,4 @@ CsoundScriptProcessorNode = function(context, options) {
 
     return Object.assign(spn, CsoundMixin);
 };
+

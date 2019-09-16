@@ -325,7 +325,8 @@ static int32_t SfPreset(CSOUND *csound, SFPRESET *p)
     *p->ipresethandle = (MYFLT) presetHandle;
 
     if (UNLIKELY(globals->presetp[presetHandle] == NULL)) {
-      return csound->InitError(csound,
+      //      return csound->InitError(csound,
+      csound->Warning(csound,
                                Str("sfpreset: cannot find any preset having prog "
                                    "number %d and bank number %d in SoundFont file"
                                    " \"%s\""),
@@ -340,9 +341,9 @@ static int32_t SfPlay_set(CSOUND *csound, SFPLAY *p)
     DWORD index = (DWORD) *p->ipresethandle;
     presetType *preset;
     SHORT *sBase;
-
     int32_t layersNum, j, spltNum = 0, flag = (int32_t) *p->iflag;
     sfontg *globals;
+
     globals = (sfontg *) (csound->QueryGlobalVariable(csound, "::sfontg"));
     if (UNLIKELY(index>=(DWORD)globals->currSFndx))
       return csound->InitError(csound, Str("invalid soundfont"));
