@@ -613,7 +613,8 @@ static int32_t init_raw_osc(CSOUND *csound, RAWOSC *p)
     }
 
     csound->RegisterDeinitCallback(csound, (void *) p, destroy_raw_osc);
-    tabinit(csound, p->sout,2);
+    if(p->sout->data == NULL)
+      tabinit(csound, p->sout, 2);
 
   return OK;
 }
