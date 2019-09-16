@@ -144,10 +144,10 @@ else()
             DESTINATION ${PYTHON_MODULE_INSTALL_DIR})
         execute_process (
              COMMAND python3 -c
-             "import site, sys; sys.stdout.write(site.getusersitepackages())"
-             OUTPUT_VARIABLE PYTHON3_USER_SITE_PACKAGES
+             "import site, sys; sys.stdout.write(site.getsitepackages()[0])"
+             OUTPUT_VARIABLE PYTHON3_SITE_PACKAGES
            )
-        SET(PYTHON3_MODULE_INSTALL_DIR ${PYTHON3_USER_SITE_PACKAGES} CACHE PATH "Python3 module install dir")
+        SET(PYTHON3_MODULE_INSTALL_DIR ${PYTHON3_SITE_PACKAGES} CACHE PATH "Python3 module install dir")
         if (PYTHON3_MODULE_INSTALL_DIR)
           install(FILES ${CMAKE_CURRENT_SOURCE_DIR}/ctcsound.py
               DESTINATION ${PYTHON3_MODULE_INSTALL_DIR})
