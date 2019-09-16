@@ -160,7 +160,7 @@ endif()
 if(${CMAKE_BUILD_TYPE} MATCHES "Release")
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DNDEBUG")
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -DNDEBUG")
-else()
+elseif(${CMAKE_BUILD_TYPE} MATCHES "Debug")
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DBETA")
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -DBETA")
 endif()
@@ -205,11 +205,11 @@ endif()
 
 execute_process (
      COMMAND python -c
-     "import site, sys; sys.stdout.write(site.getusersitepackages())"
-     OUTPUT_VARIABLE PYTHON_USER_SITE_PACKAGES
+     "import site, sys; sys.stdout.write(site.getsitepackages()[0])"
+     OUTPUT_VARIABLE PYTHON_SITE_PACKAGES
    )
 
-SET(PYTHON_MODULE_INSTALL_DIR ${PYTHON_USER_SITE_PACKAGES} CACHE PATH "Python module install dir")
+SET(PYTHON_MODULE_INSTALL_DIR ${PYTHON_SITE_PACKAGES} CACHE PATH "Python module install dir")
 
 set(JAVA_MODULE_INSTALL_DIR ${LIBRARY_INSTALL_DIR} CACHE PATH "Java module install dir")
 set(LUA_MODULE_INSTALL_DIR ${LIBRARY_INSTALL_DIR} CACHE PATH "Lua module install dir")
@@ -534,7 +534,6 @@ find_package(FAUST)
 find_package(Java)
 find_package(JNI)
 find_package(LIBLO)
-find_package(LUAJIT)
 find_package(MUSICXML)
 
 #if(MUSICXML_FOUND)
@@ -1183,7 +1182,8 @@ function(make_plugin libname srcs)
         ARCHIVE_OUTPUT_DIRECTORY ${BUILD_PLUGINS_DIR})
 
     install(TARGETS ${libname}
-	LIBRARY DESTINATION "${PLUGIN_INSTALL_DIR}" )
+        LIBRARY DESTINATION "${PLUGIN_INSTALL_DIR}" 
+        ARCHIVE DESTINATION "${PLUGIN_INSTALL_DIR}" )
 
 endfunction(make_plugin)
 

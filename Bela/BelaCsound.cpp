@@ -236,6 +236,7 @@ void render(BelaContext *context, void *Data)
     MYFLT scal = csound->Get0dBFS();
     MYFLT* audioIn = csound->GetSpin();
     MYFLT* audioOut = csound->GetSpout();
+    float scopeOut;
     int nchnls = csound->GetNchnls();
     int chns = nchnls < context->audioOutChannels ?
       nchnls : context->audioOutChannels;
@@ -270,6 +271,7 @@ void render(BelaContext *context, void *Data)
         /* get the scope data */
         csound->GetAudioChannel(schannel.name.str().c_str(),
 				  schannel.samples.data());
+        
       }
       /* read/write audio data */
       for(i = 0; i < chns; i++){
@@ -286,7 +288,8 @@ void render(BelaContext *context, void *Data)
         channel[i].samples[frmcount] = analogRead(context,k,i);
 	analogWriteOnce(context,k,i,ochannel[i].samples[frmcount]);
       }
-      scope.log(schannel.samples[frmcount]);
+      scopeOut = schannel.samples[frmcount];
+      scope.log(&scopeOut);
     }
     gCsData.res = res;
     gCsData.count = count;

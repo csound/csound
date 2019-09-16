@@ -52,8 +52,8 @@ __global__ void pconvol(float *out,float *in,
  
 }  
 
-/* sample-by-sample overlap-save operation */
-__global__ void olapsave(float *buf, float *in, int parts){
+/* sample-by-sample overlap-add operation */
+__global__ void olapadd(float *buf, float *in, int parts){
    int n = (threadIdx.x + blockIdx.x*blockDim.x);
    buf[n] = in[n] + buf[parts+n];
    buf[parts+n] = in[parts+n];
@@ -226,8 +226,8 @@ int pconv_perf(CSOUND *csound, PCONV *p){
        if(cufftExecC2R(p->iplan,(cufftComplex*)out,out) 
           != CUFFT_SUCCESS) csound->Message(csound, "cuda fft error\n");
 
-       /* overlap-save */
-       olapsave<<<p->oblocks,p->othreads>>>(buf,out,parts); 
+       /* overlap-add */
+       olapadd<<<p->oblocks,p->othreads>>>(buf,out,parts); 
  
        /* copy buffer out */
        cudaMemcpy(bufout,buf, sizeof(float)*parts,cudaMemcpyDeviceToHost);

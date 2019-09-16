@@ -1393,7 +1393,7 @@ void *fopen_path(CSOUND *csound, FILE **fp, char *name, char *basename,
     return fd;
 }
 
-void *file_iothread(void *p);
+uintptr_t file_iothread(void *p);
 
 void *csoundFileOpenWithType_Async(CSOUND *csound, void *fd, int type,
                                    const char *name, void *param, const char *env,
@@ -1410,7 +1410,7 @@ void *csoundFileOpenWithType_Async(CSOUND *csound, void *fd, int type,
       csound->file_io_threadlock = csound->CreateThreadLock();
       csound->NotifyThreadLock(csound->file_io_threadlock);
       csound->file_io_thread =
-        csound->CreateThread((uintptr_t (*)(void *))file_iothread, (void *) csound);
+        csound->CreateThread(file_iothread, (void *) csound);
     }
     csound->WaitThreadLockNoTimeout(csound->file_io_threadlock);
     p->async_flag = ASYNC_GLOBAL;
@@ -1516,7 +1516,7 @@ static int read_files(CSOUND *csound){
 
 
 
-void *file_iothread(void *p){
+uintptr_t file_iothread(void *p){
     int res = 1;
     CSOUND *csound = p;
     int wakeup = (int) (1000*csound->ksmps/csound->esr);
@@ -1529,5 +1529,5 @@ void *file_iothread(void *p){
       csound->NotifyThreadLock(csound->file_io_threadlock);
     }
     csound->file_io_start = 0;
-    return NULL;
+    return (uintptr_t)NULL;
 }

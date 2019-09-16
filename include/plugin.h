@@ -42,7 +42,7 @@ const double twopi = TWOPI;
 
 /** opcode threads: i-time, k-perf and/or a-perf
 */
-enum thread { i = 1, k = 2, ik = 3, a = 2, ia = 3 /*, ika = 3*/ };
+enum thread { i = 1, k = 2, ik = 3, a = 4, ia = 5 /*, ika = 3*/ };
 
 /** fsig formats: phase vocoder, stft polar, stft complex, or
     sinusoidal tracks
@@ -244,6 +244,30 @@ public:
     return reinterpret_cast<std::complex<MYFLT> *>(fdata);
   }
 
+  /** Creates a global variable in the current Csound object 
+  */
+  int create_global_variable(const char *name, size_t nbytes) {
+    return CreateGlobalVariable(this, name, nbytes);
+  }
+
+  /** Retrieves a ptr for an existing named global variable
+   */
+  void *query_global_variable(const char* name) {
+    return QueryGlobalVariable(this, name);
+  }
+
+  /** Destroy an existing named global variable
+   */
+  int destroy_global_variable(const char* name) {
+     return DestroyGlobalVariable(this, name);
+  }
+
+  /** Access to the base CSOUND object
+   */ 
+  CSOUND *get_csound() {
+    return this;
+  }
+
   /** Sleep
    */
   void sleep(int ms) { Sleep(ms); }
@@ -356,7 +380,7 @@ public:
   /** Initialise the container
    */
   void init(Csound *csound, int size) {
-    tabensure(csound, this, size);
+    tabinit(csound, this, size);
   }
 
   /** iterator type
@@ -569,6 +593,10 @@ public:
    */
   int fsig_format() { return format; }
 
+  /** get data frame as floats
+   */
+  float *data() { return (float *) frame.auxp; }
+    
   /** convert to pv_frame ref
    */
   operator pv_frame &() { return reinterpret_cast<pv_frame &>(*this); }
@@ -578,6 +606,7 @@ public:
    */
   operator spv_frame &() { return reinterpret_cast<spv_frame &>(*this); }
 #endif
+
 };
 
 /**  Container class for a Phase Vocoder
@@ -903,7 +932,7 @@ template <std::size_t N, std::size_t M> struct Plugin : OPDS {
       set nsmps and offset value for kperf()
    */
   void nsmps_set() {
-    nsmps = insdshead->ksmps - insdshead->ksmps_no_end;;
+    nsmps = insdshead->ksmps - insdshead->ksmps_no_end;
     offset = insdshead->ksmps_offset;
   }
 
@@ -1009,10 +1038,12 @@ template <typename T>
 int plugin(Csound *csound, const char *name, const char *oargs,
            const char *iargs, uint32_t thr, uint32_t flags = 0) {
   CSOUND *cs = (CSOUND *)csound;
-  if(thr == thread::ia || thr == thread::a)
+  if(thr == thread::ia || thr == thread::a) {
+  thr = thr == thread::ia ? 3 : 2;
   return cs->AppendOpcode(cs, (char *)name, sizeof(T), flags, thr,
                           (char *)oargs, (char *)iargs, (SUBR)init<T>,
                           (SUBR)aperf<T>, NULL);
+  }
   else
   return cs->AppendOpcode(cs, (char *)name, sizeof(T), flags, thr,
                           (char *)oargs, (char *)iargs, (SUBR)init<T>,
@@ -1026,10 +1057,13 @@ template <typename T>
 int plugin(Csound *csound, const char *name, uint32_t thr,
            uint32_t flags = 0) {
   CSOUND *cs = (CSOUND *)csound;
-  if(thr == thread::ia || thr == thread::a)
+  if(thr == thread::ia || thr == thread::a) {
+  thr = thr == thread::ia ? 3 : 2;
   return cs->AppendOpcode(cs, (char *)name, sizeof(T), flags, thr,
                           (char *)T::otypes, (char *)T::itypes, (SUBR)init<T>,
                           (SUBR)aperf<T>, NULL);
+
+  }
   else
   return cs->AppendOpcode(cs, (char *)name, sizeof(T), flags, thr,
                           (char *)T::otypes, (char *)T::itypes, (SUBR)init<T>,

@@ -12,7 +12,12 @@
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
  */
-
+ 
+// Bug in Emscripten? 
+// See https://github.com/emscripten-core/emscripten/issues/7649.
+// These definitions must appear at the top of libcsound-worklet.js.
+var tempDouble = 0.;
+var tempI64 = 0;
 
 var FileList = function(path) {
 

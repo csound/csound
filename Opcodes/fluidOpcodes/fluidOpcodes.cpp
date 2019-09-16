@@ -42,41 +42,24 @@
 #include "csdl.h"
 #include <fluidsynth.h>
 
-using namespace csound;
+static std::vector<fluid_synth_t *> &fluidsynths_for_ids() {
+    static std::vector<fluid_synth_t *> fluidsynths_for_ids_;
+    return fluidsynths_for_ids_;
+}
 
-/**
- * Template union for safely and efficiently
- * typecasting the value of a MYFLT variable
- * to the address of an array, and vice versa.
- */
-template <typename A, typename F> struct AddressCaster {
-  union {
-    A *a;
-    F f;
-  };
+static void tof(fluid_synth_t *f, MYFLT *a) {
+    auto &instances = fluidsynths_for_ids();
+    instances.push_back(f);
+    *a = instances.size() - 1;
 };
 
-/**
- * Safely and efficiently typecast an address
- * to the value of a MYFLT variable.
- */
-template <typename A, typename F> void tof(A *a, F *f) {
-  AddressCaster<A, F> addressCaster;
-  addressCaster.a = a;
-  *f = addressCaster.f;
+static void toa(MYFLT *f, fluid_synth_t *&a) {
+    auto &instances = fluidsynths_for_ids();
+    int index = *f;
+    a = instances[index];
 };
 
-/**
- * Safely and efficiently typecast the value
- * of a MYFLT variable to an address.
- */
-template <typename A, typename F> void toa(F *f, A *&a) {
-  AddressCaster<A, F> addressCaster;
-  addressCaster.f = *f;
-  a = addressCaster.a;
-};
-
-class FluidEngine : public OpcodeBase<FluidEngine> {
+class FluidEngine : public csound::OpcodeBase<FluidEngine> {
   // Outputs.
   MYFLT *iFluidSynth;
   // Inputs.
@@ -96,7 +79,7 @@ class FluidEngine : public OpcodeBase<FluidEngine> {
 public:
   int32_t init(CSOUND *csound) {
     mutex = csound->Create_Mutex(0);
-    LockGuard guard(csound, mutex);
+    csound::LockGuard guard(csound, mutex);
     int32_t result = OK;
     fluid_synth_t *fluidSynth = 0;
     fluid_settings_t *fluidSettings = 0;
@@ -147,7 +130,7 @@ public:
         void *fluid_synths_mutex = 0;
         csound::QueryGlobalPointer(csound, "fluid_synths_mutex",
                                    fluid_synths_mutex);
-        LockGuard synthsGuard(csound, fluid_synths_mutex);
+        csound::LockGuard synthsGuard(csound, fluid_synths_mutex);
         std::vector<fluid_synth_t *> *fluid_synths = 0;
         csound::QueryGlobalPointer(csound, "fluid_synths", fluid_synths);
         fluid_synths->push_back(fluidSynth);
@@ -157,7 +140,7 @@ public:
   }
 };
 
-class FluidLoad : public OpcodeBase<FluidLoad> {
+class FluidLoad : public csound::OpcodeBase<FluidLoad> {
   // Outputs.
   MYFLT *iInstrumentNumber;
   // Inputs.
@@ -175,7 +158,7 @@ class FluidLoad : public OpcodeBase<FluidLoad> {
 public:
   int32_t init(CSOUND *csound) {
     mutex = csound->Create_Mutex(0);
-    LockGuard guard(csound, mutex);
+    csound::LockGuard guard(csound, mutex);
     int32_t result = OK;
     soundFontId = -1;
     toa(iFluidSynth, fluidSynth);
@@ -192,7 +175,7 @@ public:
 
     filepath = csound->FindInputFile(csound, filename, "SFDIR;SSDIR");
     if (filepath && fluid_is_soundfont(filepath)) {
-      log(csound, "Loading SoundFont : %s.\n", filepath);
+      log(csound, "Loading SoundFont: %s.\n", filepath);
       soundFontId = fluid_synth_sfload(fluidSynth, filepath, 0);
       log(csound, "fluidSynth: 0x%p  soundFontId: %d.\n", fluidSynth,
           soundFontId);
@@ -240,42 +223,9 @@ public:
 };
 
 #include "arrays.h"
-#if 0
-/* from Opcodes/arrays.c */
-static inline void arrayensure(CSOUND *csound, ARRAYDAT *p, int size) {
-    tabensure(csound, p, size);
-    if (p->data==NULL || p->dimensions == 0 ||
-        (p->dimensions==1 && p->sizes[0] < size)) {
-      size_t ss;
-      if (p->data == NULL) {
-        CS_VARIABLE* var = p->arrayType->createVariable(csound, NULL);
-        p->arrayMemberSize = var->memBlockSize;
-      }
-      ss = p->arrayMemberSize*size;
-      if (p->data==NULL) {
-        p->data = (MYFLT*)csound->Calloc(csound, ss);
-        p->allocated = ss;
-      }
-      else if (ss > p->allocated) {
-        p->data = (MYFLT*) csound->ReAlloc(csound, p->data, ss);
-        p->allocated = ss;
-      }
-      if (p->dimensions==0) {
-        p->dimensions = 1;
-        p->sizes = (int32_t*)csound->Malloc(csound, sizeof(int32_t));
-      }
-      p->sizes[0] = size;
-    }
-    else {
-      p->sizes[0] = size;
-    }
-}
-#endif
-
-
 
 //Rory Walsh 2018
-class FluidInfo : public OpcodeBase<FluidInfo> {
+class FluidInfo : public csound::OpcodeBase<FluidInfo> {
   // Outputs.
   ARRAYDAT *outArr;
   // Inputs.
@@ -289,7 +239,7 @@ public:
       std::vector<std::string> programs;
       char *program;
       mutex = csound->Create_Mutex(0);
-      LockGuard guard(csound, mutex);
+      csound::LockGuard guard(csound, mutex);
       int32_t result = OK;
       toa(iFluidSynth, fluidSynth);
       fluid_sfont_t *fluidSoundfont = fluid_synth_get_sfont(fluidSynth, 0);
@@ -321,7 +271,7 @@ public:
           programs.push_back(ss.str());
         }
 
-      tabensure(csound, outArr, programs.size());
+      tabinit(csound, outArr, programs.size());
       STRINGDAT *strings = (STRINGDAT *)outArr->data;
 
     for (unsigned int i = 0; i < programs.size(); i++) {
@@ -336,7 +286,7 @@ public:
   }
 };
 
-class FluidProgramSelect : public OpcodeBase<FluidProgramSelect>
+class FluidProgramSelect : public csound::OpcodeBase<FluidProgramSelect>
 {
         // Inputs.
         MYFLT *iFluidSynth;
@@ -355,7 +305,7 @@ public:
         int32_t init(CSOUND *csound)
         {
                 mutex = csound->Create_Mutex(0);
-                LockGuard guard(csound, mutex);
+                csound::LockGuard guard(csound, mutex);
                 toa(iFluidSynth, fluidSynth);
                 channel = (int32_t) *iChannelNumber;
                 instrument = (uint32_t) *iInstrumentNumber;
@@ -370,7 +320,7 @@ public:
         }
 };
 
-class FluidCCI : public OpcodeBase<FluidCCI> {
+class FluidCCI : public csound::OpcodeBase<FluidCCI> {
   // Inputs.
   MYFLT *iFluidSynth;
   MYFLT *iChannelNumber;
@@ -386,7 +336,7 @@ class FluidCCI : public OpcodeBase<FluidCCI> {
 public:
   int32_t init(CSOUND *csound) {
     mutex = csound->Create_Mutex(0);
-    LockGuard guard(csound, mutex);
+    csound::LockGuard guard(csound, mutex);
     toa(iFluidSynth, fluidSynth);
     channel = (int32_t)*iChannelNumber;
     controller = (int32_t)*iControllerNumber;
@@ -396,7 +346,7 @@ public:
   }
 };
 
-class FluidCCK : public OpcodeBase<FluidCCK> {
+class FluidCCK : public csound::OpcodeBase<FluidCCK> {
   // Inputs.
   MYFLT *iFluidSynth;
   MYFLT *iChannelNumber;
@@ -413,13 +363,13 @@ class FluidCCK : public OpcodeBase<FluidCCK> {
 public:
   int32_t init(CSOUND *csound) {
     mutex = csound->Create_Mutex(0);
-    LockGuard guard(csound, mutex);
+    csound::LockGuard guard(csound, mutex);
     toa(iFluidSynth, fluidSynth);
     priorValue = -1;
     return OK;
   }
   int32_t kontrol(CSOUND *csound) {
-    LockGuard guard(csound, mutex);
+    csound::LockGuard guard(csound, mutex);
     value = (int32_t)*kVal;
     if (value != priorValue) {
       priorValue = value;
@@ -431,7 +381,7 @@ public:
   }
 };
 
-class FluidNote : public OpcodeNoteoffBase<FluidNote> {
+class FluidNote : public csound::OpcodeNoteoffBase<FluidNote> {
   // Inputs.
   MYFLT *iFluidSynth;
   MYFLT *iChannelNumber;
@@ -447,7 +397,7 @@ class FluidNote : public OpcodeNoteoffBase<FluidNote> {
 public:
   int32_t init(CSOUND *csound) {
     mutex = csound->Create_Mutex(0);
-    LockGuard guard(csound, mutex);
+    csound::LockGuard guard(csound, mutex);
     toa(iFluidSynth, fluidSynth);
     channel = (int32_t)*iChannelNumber;
     key = (int32_t)*iMidiKeyNumber;
@@ -456,13 +406,13 @@ public:
     return OK;
   }
   int32_t noteoff(CSOUND *csound) {
-    LockGuard guard(csound, mutex);
+    csound::LockGuard guard(csound, mutex);
     fluid_synth_noteoff(fluidSynth, channel, key);
     return OK;
   }
 };
 
-class FluidOut : public OpcodeBase<FluidOut> {
+class FluidOut : public csound::OpcodeBase<FluidOut> {
   // Outputs.
   MYFLT *aLeftOut;
   MYFLT *aRightOut;
@@ -479,13 +429,13 @@ class FluidOut : public OpcodeBase<FluidOut> {
 public:
   int32_t init(CSOUND *csound) {
     mutex = csound->Create_Mutex(0);
-    LockGuard guard(csound, mutex);
+    csound::LockGuard guard(csound, mutex);
     toa(iFluidSynth, fluidSynth);
     ksmps = opds.insdshead->ksmps;
     return OK;
   }
   int32_t audio(CSOUND *csound) {
-    LockGuard guard(csound, mutex);
+    csound::LockGuard guard(csound, mutex);
     uint32_t offset = opds.insdshead->ksmps_offset;
     uint32_t early = opds.insdshead->ksmps_no_end;
     if (UNLIKELY(offset)) {
@@ -509,7 +459,7 @@ public:
   }
 };
 
-class FluidAllOut : public OpcodeBase<FluidAllOut> {
+class FluidAllOut : public csound::OpcodeBase<FluidAllOut> {
   // Outputs.
   MYFLT *aLeftOut;
   MYFLT *aRightOut;
@@ -523,12 +473,12 @@ class FluidAllOut : public OpcodeBase<FluidAllOut> {
 public:
   int32_t init(CSOUND *csound) {
     mutex = csound->Create_Mutex(0);
-    LockGuard guard(csound, mutex);
+    csound::LockGuard guard(csound, mutex);
     ksmps = opds.insdshead->ksmps;
     return OK;
   }
   int32_t audio(CSOUND *csound) {
-    LockGuard guard(csound, mutex);
+    csound::LockGuard guard(csound, mutex);
     uint32_t offset = opds.insdshead->ksmps_offset;
     uint32_t early = opds.insdshead->ksmps_no_end;
     if (UNLIKELY(offset)) {
@@ -545,7 +495,7 @@ public:
     void *fluid_synths_mutex = 0;
     csound::QueryGlobalPointer(csound, "fluid_synths_mutex",
                                fluid_synths_mutex);
-    LockGuard synthsGuard(csound, fluid_synths_mutex);
+    csound::LockGuard synthsGuard(csound, fluid_synths_mutex);
     for (frame = offset; frame < ksmps; frame++) {
       aLeftOut[frame] = FL(0.0);
       aRightOut[frame] = FL(0.0);
@@ -563,13 +513,14 @@ public:
   }
 };
 
-class FluidControl : public OpcodeBase<FluidControl> {
+class FluidControl : public csound::OpcodeBase<FluidControl> {
   // Inputs.
   MYFLT *iFluidSynth;
   MYFLT *kMidiStatus;
   MYFLT *kMidiChannel;
   MYFLT *kMidiData1;
   MYFLT *kMidiData2;
+  MYFLT *imsgs;
   // State.
   fluid_synth_t *fluidSynth;
   int32_t midiStatus;
@@ -586,7 +537,7 @@ class FluidControl : public OpcodeBase<FluidControl> {
 public:
   int32_t init(CSOUND *csound) {
     mutex = csound->Create_Mutex(0);
-    LockGuard guard(csound, mutex);
+    csound::LockGuard guard(csound, mutex);
     toa(iFluidSynth, fluidSynth);
     priorMidiStatus = -1;
     priorMidiChannel = -1;
@@ -594,11 +545,11 @@ public:
     priorMidiData2 = -1;
     OPARMS oparms;
     csound->GetOParms(csound, &oparms);
-    printMsgs = ((oparms.msglevel & 7) == 7 ? 1 : 0);
+    printMsgs = (*imsgs == 0 ? 0 : 1);
     return OK;
   }
   int32_t kontrol(CSOUND *csound) {
-    LockGuard guard(csound, mutex);
+   csound::LockGuard guard(csound, mutex);
     midiStatus = 0xF0 & (int32_t)*kMidiStatus;
     midiChannel = (int32_t)*kMidiChannel;
     midiData1 = (int32_t)*kMidiData1;
@@ -671,7 +622,7 @@ public:
   }
 };
 
-class FluidSetInterpMethod : public OpcodeBase<FluidSetInterpMethod> {
+class FluidSetInterpMethod : public csound::OpcodeBase<FluidSetInterpMethod> {
   // Inputs.
   MYFLT *iFluidSynth;
   MYFLT *iChannelNumber;
@@ -684,7 +635,8 @@ class FluidSetInterpMethod : public OpcodeBase<FluidSetInterpMethod> {
 
 public:
   int32_t init(CSOUND *csound) {
-    LockGuard guard(csound, mutex);
+    mutex = csound->Create_Mutex(0);
+    csound::LockGuard guard(csound, mutex);
     toa(iFluidSynth, fluidSynth);
     channel = (int32_t)*iChannelNumber;
     interpolationMethod = (int32_t)*iInterpMethod;
@@ -720,7 +672,7 @@ static OENTRY localops[] = {
     {(char *)"fluidAllOut", sizeof(FluidAllOut), 0, 3, (char *)"aa", (char *)"",
      (SUBR)&FluidAllOut::init_, (SUBR)&FluidAllOut::audio_},
     {(char *)"fluidControl", sizeof(FluidControl), 0, 3, (char *)"",
-     (char *)"ikkkk", (SUBR)FluidControl::init_, (SUBR)FluidControl::kontrol_,
+     (char *)"ikkkkp", (SUBR)FluidControl::init_, (SUBR)FluidControl::kontrol_,
      (SUBR)0},
     {(char *)"fluidSetInterpMethod", sizeof(FluidSetInterpMethod), 0, 1,
      (char *)"", (char *)"iii", (SUBR)&FluidSetInterpMethod::init_, (SUBR)0,

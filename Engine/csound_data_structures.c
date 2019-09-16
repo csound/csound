@@ -100,7 +100,8 @@ PUBLIC void cs_cons_free_complete(CSOUND* csound, CONS_CELL* head) {
 /* FUNCTION FOR HASH SET */
 
 PUBLIC CS_HASH_TABLE* cs_hash_table_create(CSOUND* csound) {
-    CS_HASH_TABLE* table = (CS_HASH_TABLE*) csound->Calloc(csound, sizeof(CS_HASH_TABLE));
+    CS_HASH_TABLE* table =
+      (CS_HASH_TABLE*) csound->Calloc(csound, sizeof(CS_HASH_TABLE));
     table->count = 0;
     table->table_size = 8192;
     table->buckets = csound->Calloc(csound, sizeof(CS_HASH_TABLE_ITEM*) * 8192);
@@ -113,7 +114,8 @@ static int cs_hash_table_check_resize(CSOUND* csound, CS_HASH_TABLE* table) {
         int oldSize = table->table_size;
         int newSize = oldSize * 2;
         CS_HASH_TABLE_ITEM** oldTable = table->buckets;
-        CS_HASH_TABLE_ITEM** newTable = csound->Calloc(csound, newSize * sizeof(CS_HASH_TABLE_ITEM*));
+        CS_HASH_TABLE_ITEM** newTable =
+          csound->Calloc(csound, newSize * sizeof(CS_HASH_TABLE_ITEM*));
 
         table->buckets = newTable;
         table->table_size = newSize;
@@ -121,7 +123,8 @@ static int cs_hash_table_check_resize(CSOUND* csound, CS_HASH_TABLE* table) {
         for (int i = 0; i < oldSize; i++) {
             CS_HASH_TABLE_ITEM* item = oldTable[i];
             while (item != NULL) {
-                cs_hash_table_put_no_key_copy(csound, table, item->key, item->value);
+                cs_hash_table_put_no_key_copy(csound, table, item->key,
+                                              item->value);
                 item->key = NULL;
                 CS_HASH_TABLE_ITEM* next = item->next;
                 csound->Free(csound, item);
@@ -154,7 +157,6 @@ PUBLIC void* cs_hash_table_get(CSOUND* csound,
 
     index = cs_name_hash(hashTable, key);
     item = hashTable->buckets[index];
-
     while (item != NULL) {
       if (strcmp(key, item->key) == 0) {
         return item->value;

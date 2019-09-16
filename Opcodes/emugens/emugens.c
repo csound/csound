@@ -38,12 +38,20 @@
         memset(&out[nsmps], '\0', early*sizeof(MYFLT));              \
     }                                                                \
 
-#define INITERR(m) (csound->InitError(csound, "%s", m))
-#define INITERRF(fmt, ...) (csound->InitError(csound, fmt, __VA_ARGS__))
-#define MSG(m) (csound->Message(csound, m))
-#define MSGF(fmt, ...) (csound->Message(csound, fmt, __VA_ARGS__)) */
-#define PERFERR(m) (csound->PerfError(csound, &(p->h), "%s", m))
-#define PERFERRF(fmt, ...) (csound->PerfError(csound, &(p->h), fmt, __VA_ARGS__))
+
+#define AUDIO_OPCODE(csound, p) \
+    IGN(csound); \
+    uint32_t n, nsmps = CS_KSMPS;                                    \
+    uint32_t offset = p->h.insdshead->ksmps_offset;                  \
+    uint32_t early = p->h.insdshead->ksmps_no_end;                   \
+
+#define AUDIO_OUTPUT(out) \
+    if (UNLIKELY(offset)) memset(out, '\0', offset*sizeof(MYFLT));   \
+    if (UNLIKELY(early)) {                                           \
+        nsmps -= early;                                              \
+        memset(&out[nsmps], '\0', early*sizeof(MYFLT));              \
+    }                                                                \
+
 
 #define UI32MAX 0x7FFFFFFF
 
@@ -98,7 +106,7 @@ typedef struct {
 
 static int32_t linlinarr1_init(CSOUND *csound, LINLINARR1 *p) {
     int numitems = p->xs->sizes[0];
-    tabensure_init(csound, p->ys, numitems);
+    tabinit(csound, p->ys, numitems);
     CHECKARR1D(p->xs);
     CHECKARR1D(p->ys);
     return OK;
@@ -118,7 +126,7 @@ linlinarr1_perf(CSOUND *csound, LINLINARR1 *p) {
     MYFLT fact = 1/(x1 - x0) * (y1 - y0);
 
     int32_t numitems = p->xs->sizes[0];
-    tabensure_perf(csound, p->ys, numitems);
+    ARRAY_ENSURESIZE(csound, p->ys, numitems);
     MYFLT *out = p->ys->data;
     MYFLT *in  = p->xs->data;
     int32_t i;
@@ -149,7 +157,7 @@ blendarray_init(CSOUND *csound, BLENDARRAY *p) {
     int32_t numitemsA = p->A->sizes[0];
     int32_t numitemsB = p->B->sizes[0];
     int32_t numitems = numitemsA < numitemsB ? numitemsA : numitemsB;
-    tabensure_init(csound, p->out, numitems);
+    tabinit(csound, p->out, numitems);
     p->numitems = numitems;
     return OK;
 }
@@ -167,7 +175,7 @@ blendarray_perf(CSOUND *csound, BLENDARRAY *p)
     int32_t numitemsA = p->A->sizes[0];
     int32_t numitemsB = p->B->sizes[0];
     int32_t numitems = numitemsA < numitemsB ? numitemsA : numitemsB;
-    tabensure_perf(csound, p->out, numitems);
+    ARRAY_ENSURESIZE(csound, p->out, numitems);
 
     MYFLT *out = p->out->data;
     MYFLT *A = p->A->data;
@@ -375,7 +383,7 @@ static int32_t
 ftom_arr_init(CSOUND *csound, PITCHCONV_ARR *p) {
     p->freqA4 = csound->GetA4(csound);
     p->rnd = (int)*p->irnd;
-    tabensure_init(csound, p->outarr, p->inarr->sizes[0]);
+    tabinit(csound, p->outarr, p->inarr->sizes[0]);
     p->skip = 0;
     ftom_arr(csound, p);
     p->skip = 1;
@@ -395,7 +403,7 @@ mtof_arr(CSOUND *csound, PITCHCONV_ARR *p) {
     indata = p->inarr->data;
     outdata = p->outarr->data;
     int32_t numitems = p->inarr->sizes[0];
-    tabensure_perf(csound, p->outarr, numitems);
+    ARRAY_ENSURESIZE(csound, p->outarr, numitems);
     for(i=0; i < numitems; i++) {
         x = indata[i];
         outdata[i] = POWER(FL(2.0), (x - FL(69.0)) / FL(12.0)) * a4;
@@ -406,7 +414,7 @@ mtof_arr(CSOUND *csound, PITCHCONV_ARR *p) {
 static int32_t
 mtof_arr_init(CSOUND *csound, PITCHCONV_ARR *p) {
     p->freqA4 = csound->GetA4(csound);
-    tabensure_init(csound, p->outarr, p->inarr->sizes[0]);
+    tabinit(csound, p->outarr, p->inarr->sizes[0]);
     p->skip = 0;
     mtof_arr(csound, p);
     p->skip = 1;
@@ -643,9 +651,17 @@ typedef struct {
     MYFLT *data[BPF_MAXPOINTS];
 } BPFARR;
 
+
+
+
+static int32_t bpfarr_init(CSOUND *csound, BPFARR *p) {
+    tabinit(csound, p->out, p->in->sizes[0]);
+    return OK;
+}
+
 static int32_t bpfarr(CSOUND *csound, BPFARR *p) {
     int32_t N = p->in->sizes[0];
-    tabensure(csound, p->out, N);
+    ARRAY_ENSURESIZE(csound, p->out, N);
     MYFLT **data = p->data;
     MYFLT *out = p->out->data;
     MYFLT *in  = p->in->data;
@@ -688,9 +704,70 @@ static int32_t bpfarr(CSOUND *csound, BPFARR *p) {
 }
 
 
+typedef struct {
+    OPDS h;
+    MYFLT *out, *in;
+    MYFLT *data[BPF_MAXPOINTS];
+    uint32_t datalen;
+} BPFARR_A;
+
+
+static int32_t bpfarr_a_init(CSOUND *csound, BPFARR_A *p) {
+    uint32_t datalen = p->INOCOUNT - 1;
+    if(datalen % 2)
+        return INITERR(Str("bpf: data length should be even (pairs of x, y)"));
+    if(datalen >= BPF_MAXPOINTS)
+        return INITERR(Str("bpf: too many pargs (max=256)"));
+    p->datalen = datalen;
+    return OK;
+}
+
+
+static int32_t bpfarr_a(CSOUND *csound, BPFARR_A *p) {
+    MYFLT *out = p->out;
+    MYFLT *in = p->in;
+
+    AUDIO_OPCODE(csound, p);
+    AUDIO_OUTPUT(out);
+
+    MYFLT **data = p->data;
+
+    uint32_t i, datalen = p->datalen;
+
+    MYFLT x, x0, x1, y0, y1, firstx, firsty, lastx, lasty;
+    firstx = *data[0];
+    firsty = *data[1];
+    lastx = *data[datalen-2];
+    lasty = *data[datalen-1];
+
+    for(n=offset; n<nsmps; n++) {
+        x = in[n];
+        x0 = firstx;
+        y0 = firsty;
+
+        if (x <= x0)
+            out[n] = y0;
+        else if (x>=lastx)
+            out[n] = lasty;
+        else {
+            for(i=2; i<datalen; i+=2) {
+                x1 = *data[i];
+                y1 = *data[i+1];
+                if( x <= x1 ) {
+                    out[n] = (x-x0)/(x1-x0)*(y1-y0)+y0;
+                    break;
+                }
+                x0 = x1;
+                y0 = y1;
+            }
+        }
+    }
+    return OK;
+}
+
 static int32_t bpfarrcos(CSOUND *csound, BPFARR *p) {
     int32_t N = p->in->sizes[0];
-    tabensure(csound, p->out, N);
+    ARRAY_ENSURESIZE(csound, p->out, N);
     MYFLT **data = p->data;
     MYFLT *out = p->out->data;
     MYFLT *in  = p->in->data;
@@ -779,7 +856,7 @@ static MYFLT ntomfunc(CSOUND *csound, char *note) {
     } else {
         cursor = 2;
     }
-    int32_t rest = notelen - 1 - cursor;
+    int32_t rest = notelen - cursor;
     if (rest > 0) {
         int32_t sign = n[cursor] == '+' ? 1 : -1;
         if (rest == 1) {
@@ -999,7 +1076,7 @@ cmp_init(CSOUND *csound, Cmp *p) {
 static int32_t
 cmparray1_init(CSOUND *csound, Cmp_array1 *p) {
     int32_t N = p->in->sizes[0];
-    tabensure_init(csound, p->out, N);
+    tabinit(csound, p->out, N);
     int32_t mode = op2mode(p->op->data, p->op->size-1);
     if(mode == -1) {
         return INITERR(Str("cmp: unknown operator. "
@@ -1017,7 +1094,7 @@ cmparray2_init(CSOUND *csound, Cmp_array2 *p) {
 
     // make sure that we can put the result in `out`,
     // grow the array if necessary
-    tabensure_init(csound, p->out, N);
+    tabinit(csound, p->out, N);
     int32_t mode = op2mode(p->op->data, p->op->size-1);
     if(mode == -1) {
         return INITERR(Str("cmp: unknown operator. "
@@ -1030,7 +1107,7 @@ cmparray2_init(CSOUND *csound, Cmp_array2 *p) {
 static int32_t
 cmp2array1_init(CSOUND *csound, Cmp2_array1 *p) {
     int32_t N = p->in->sizes[0];
-    tabensure_init(csound, p->out, N);
+    tabinit(csound, p->out, N);
 
     char *op1 = (char*)p->op1->data;
     int32_t op1size = p->op1->size - 1;
@@ -1143,7 +1220,7 @@ cmp_ak(CSOUND *csound, Cmp *p) {
 static int32_t
 cmparray1_k(CSOUND *csound, Cmp_array1 *p) {
     int32_t L = p->in->sizes[0];
-    tabensure_perf(csound, p->out, L);
+    ARRAY_ENSURESIZE(csound, p->out, L);
 
     MYFLT *out = p->out->data;
     MYFLT *in  = p->in->data;
@@ -1195,7 +1272,7 @@ cmparray1_i(CSOUND *csound, Cmp_array1 *p) {
 static int32_t
 cmp2array1_k(CSOUND *csound, Cmp2_array1 *p) {
     int32_t L = p->in->sizes[0];
-    tabensure_perf(csound, p->out, L);
+    ARRAY_ENSURESIZE(csound, p->out, L);
 
     MYFLT *out = p->out->data;
     MYFLT *in  = p->in->data;
@@ -1242,7 +1319,7 @@ cmp2array1_i(CSOUND *csound, Cmp2_array1 *p) {
 static int32_t
 cmparray2_k(CSOUND *csound, Cmp_array2 *p) {
     int32_t L = p->in1->sizes[0];
-    tabensure_perf(csound, p->out, L);
+    ARRAY_ENSURESIZE(csound, p->out, L);
 
     MYFLT *out = p->out->data;
     MYFLT *in1  = p->in1->data;
@@ -1392,7 +1469,7 @@ tab2array_init(CSOUND *csound, TAB2ARRAY *p) {
     if(numitems < 0) {
         return PERFERR(Str("tab2array: cannot copy a negative number of items"));
     }
-    tabensure_init(csound, p->out, numitems);
+    tabinit(csound, p->out, numitems);
     p->numitems = numitems;
     return OK;
 }
@@ -1407,12 +1484,11 @@ tab2array_k(CSOUND *csound, TAB2ARRAY *p) {
         end = ftp->flen;
     int numitems = (int) (ceil((end - start) / (double)step));
     if(numitems < 0)
-        return PERFERR(Str("tab2array: can't copy a negative number of items"));
+        return PERFERR(Str("tab2array: cannot copy a negative number of items"));
 
-    if(numitems != p->numitems) {
-        tabensure_perf(csound, p->out, numitems);
-        p->numitems = numitems;
-    }
+    ARRAY_ENSURESIZE(csound, p->out, numitems);
+    p->numitems = numitems;
+
     MYFLT *out   = p->out->data;
     MYFLT *table = ftp->ftable;
 
@@ -1897,7 +1973,7 @@ array_binop_init(CSOUND *csound, BINOP_AAA *p) {
     for(i=0; i<p->in1->dimensions; i++) {
         numitems *= p->in1->sizes[i];
     }
-    tabensure_init(csound, p->out, numitems);
+    tabinit(csound, p->out, numitems);
     p->numitems = numitems;
     return OK;
 }
@@ -1905,7 +1981,7 @@ array_binop_init(CSOUND *csound, BINOP_AAA *p) {
 static int32_t
 array_or(CSOUND *csound, BINOP_AAA *p) {
     int32_t numitems = p->numitems;
-    tabensure_perf(csound, p->out, numitems);
+    ARRAY_ENSURESIZE(csound, p->out, numitems);
     int32_t i;
     MYFLT *out = p->out->data;
     MYFLT *in1 = p->in1->data;
@@ -1920,7 +1996,7 @@ array_or(CSOUND *csound, BINOP_AAA *p) {
 static int32_t
 array_and(CSOUND *csound, BINOP_AAA *p) {
     int32_t numitems = p->numitems;
-    tabensure_perf(csound, p->out, numitems);
+    ARRAY_ENSURESIZE(csound, p->out, numitems);
 
     int32_t i;
     MYFLT *out = p->out->data;
@@ -1995,7 +2071,9 @@ static OENTRY localops[] = {
 
     { "bpf", S(BPFX), 0, 2, "k", "kM", NULL, (SUBR)bpfx },
     { "bpf", S(BPFX), 0, 1, "i", "im", (SUBR)bpfx },
-    { "bpf", S(BPFARR), 0, 2, "k[]", "k[]M", NULL, (SUBR)bpfarr },
+    { "bpf", S(BPFARR), 0, 3, "k[]", "k[]M", (SUBR)bpfarr_init, (SUBR)bpfarr },
+
+    { "bpf.a", S(BPFARR_A), 0, 3, "a", "aM", (SUBR)bpfarr_a_init, (SUBR)bpfarr_a },
 
     { "bpf", S(BPFARRPOINTS), 0, 2, "k", "kk[]k[]", NULL, (SUBR)bpfarrpoints },
     { "bpf", S(BPFARRPOINTS), 0, 2, "k", "ki[]i[]", NULL, (SUBR)bpfarrpoints },
@@ -2009,7 +2087,8 @@ static OENTRY localops[] = {
 
     { "bpfcos", S(BPFX), 0, 2, "k", "kM", NULL, (SUBR)bpfxcos },
     { "bpfcos", S(BPFX), 0, 1, "i", "im", (SUBR)bpfxcos },
-    { "bpfcos", S(BPFARR), 0, 2, "k[]", "k[]M", NULL, (SUBR)bpfarrcos },
+    { "bpfcos", S(BPFARR), 0, 2, "k[]", "k[]M",
+                                          (SUBR)bpfarr_init, (SUBR)bpfarrcos },
 
     { "bpfcos", S(BPFARRPOINTS), 0, 2, "k", "kk[]k[]",
       NULL, (SUBR)bpfcosarrpoints },

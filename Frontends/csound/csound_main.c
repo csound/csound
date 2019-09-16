@@ -1,7 +1,7 @@
 /*
     csound_main.c:
 
-    Copyrght 2004 The Csounfd Core Developers
+    Copyrght 2004 The Csound Core Developers
 
     This file is part of Csound.
 
@@ -221,7 +221,7 @@ static void signal_handler(int sig)
 #endif
     psignal(sig, "\ncsound command");
     if ((sig == (int) SIGINT || sig == (int) SIGTERM)) {
-      if(_csound) {
+      if (_csound) {
         csoundStop(_csound);
         csoundDestroy(_csound);
       }
@@ -323,8 +323,8 @@ int main(int argc, char **argv)
     /*  One complete performance cycle. */
     result = csoundCompile(csound, argc, (const char **)argv);
 
-     if(!result) csoundPerform(csound);
-
+     if (!result) result = csoundPerform(csound);
+     //printf("**** result = %d\n", result);
     /* delete Csound instance */
      csoundDestroy(csound);
      _csound = NULL;
@@ -332,11 +332,12 @@ int main(int argc, char **argv)
     if (logFile != NULL)
       fclose(logFile);
 
-    if(result == 0 && _result != 0) result = _result;
-    // printf("csound returned with value: %d \n", result);
+    if (result == 0 && _result != 0) result = _result;
+    //printf("csound returned with value: %d \n", result);
 #if 0
     /* remove global configuration variables, if there are any */
     csoundDeleteAllGlobalConfigurationVariables();
 #endif
-    return (result >= 0 ? 0 : result);
+    //printf("**** return %d\n",  (result >= 0 ? 0 : -result));
+    return (result >= 0 ? 0 : -result);
 }

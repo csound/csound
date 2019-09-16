@@ -34,8 +34,7 @@ git clone git://git.code.sf.net/p/csound/csound6-git csound-csound6-git
 
 In the android directory, execute ./downloadDependencies.sh. This will
 use git to clone or pull source code for libsndfile, which is required by
-Csound, and for other optional third party libraries such as Fluidsynth
-and LuaJIT.
+Csound, and for other optional third party libraries such as Fluidsynth.
 
 In your operating system shell, you should use the following shell script or other
 facility to set the environment variables that are used by the Android build:
@@ -62,7 +61,7 @@ Once the above environment variables are set, you can use the following
 scripts to build the Csound library as well as plugin libraries:
 
 1. downloadDependencies.sh: Running this script will download the libraries
-that libcsound and the plugin libs depend on (LuaJIT, Fluidsynth, and
+that libcsound and the plugin libs depend on (Fluidsynth and
 libsndfile). It will also patch projects so that they can be used together
 with the plugin libraries.
 
@@ -104,23 +103,6 @@ Change to $(CSOUND_SRC_ROOT)/android/pluginlibs/libfluidsynth/jni and execute:
     $NDK/ndk-build
 
 You may need to touch config.h first.
-
-BUILD THE LUAJIT MODULE (OPTIONAL, REQUIRED BY LUACSOUND OPCODES)
-
-LuaJIT is a version of the excellent lightweight dynamic language Lua,
-extended with a just-in-time (JIT) compiler that runs Lua code as fast as
-compiled C code, and with a highly useful foreigh function interface (FFI).
-
-Change to $(NDK_MODULE_PATH) and use Git to clone the LuaJIT head there.
-Change to the LuaJIT directory and execute:
-
-    make HOST_CC="gcc -m32" CROSS=$NDKP TARGET_FLAGS="$NDKF $NDKARCH" TARGET_SYS=linux DEFAULT_CC=gcc
-
-BUILD AND INSTALL LUA OPCODES (OPTIONAL, USEFUL FOR ALGORITHMIC COMPOSITION IN CSOUND)
-
-Change to $(CSOUND_SRC_ROOT)/android/pluginlibs/LuaCsound/jni and execute:
-
-    $NDK/ndk-build
 
 BUILD THE CSOUND NATIVE LIBRARY FOR ANDROID
 

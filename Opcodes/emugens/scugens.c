@@ -25,6 +25,8 @@
 #include <math.h>
 #include "csdl.h"
 
+#include "emugens_common.h"
+
 #define LOG001 FL(-6.907755278982137)
 #define CALCSLOPE(next,prev,nsmps) ((next - prev)/nsmps)
 
@@ -74,6 +76,8 @@ sc_wrap(MYFLT in, MYFLT lo, MYFLT hi) {
 }
 
 
+
+
 /*
 
   lag
@@ -119,10 +123,16 @@ static int32_t lag0_init_initial_value(CSOUND *csound, LAG0 *p) {
     return OK;
 }
 
+
 static int32_t lag0k_next(CSOUND *csound, LAG0 *p) {
     IGN(csound);
     MYFLT y1, b1;
     MYFLT y0 = *p->in;
+
+    if(UNLIKELY(em_isinfornan(y0))) {
+        return PERFERRF("Non-finite or nan value detected: %f", y0);
+    }
+
     MYFLT lag = *p->lagtime;
 
     if(LIKELY(p->started))
@@ -143,6 +153,10 @@ static int32_t lag0k_next(CSOUND *csound, LAG0 *p) {
         p->lag = lag;
         p->y1 = y1;
         p->b1 = b1;
+    }
+    MYFLT out = *(p->out);
+    if (UNLIKELY(em_isnan(out))) {
+        return PERFERR("Output should not be nan!");
     }
     return OK;
 }
@@ -223,39 +237,65 @@ typedef struct {
     OPDS h;
     MYFLT *out, *in, *lagtimeU, *lagtimeD, *first;
     MYFLT  lagu, lagd, b1u, b1d, y1;
+    MYFLT sr;
     int started;
 } LagUD;
 
 
+static int32_t _lagud_init(CSOUND *csound, LagUD *p, int started) {
+    IGN(csound);
+    p->lagu = -1;
+    p->lagd = -1;
+    p->y1 = started ? *p->first : FL(0.0);
+    p->b1u = started ? FL(1.0) : FL(0.0);
+    p->b1d = p->b1u;
+    p->started = started;
+    p->sr = csound->GetKr(csound);
+    return OK;
+}
+
+
+static int32_t lagud_init_initial_value(CSOUND *csound, LagUD *p) {
+    return _lagud_init(csound, p, 1);
+}
+
+
+static int32_t lagud_init_no_initial_value(CSOUND *csound, LagUD *p) {
+    return _lagud_init(csound, p, 0);
+}
+
+
 static int
 lagud_k(CSOUND *csound, LagUD *p) {
-    MYFLT *in  = p->in;
+    MYFLT y0  = *p->in;
     MYFLT lagu = *p->lagtimeU;
     MYFLT lagd = *p->lagtimeD;
     MYFLT y1;
+
+    if(UNLIKELY(em_isinfornan(y0))) {
+        return PERFERRF("Non-finite value detected: %f", y0);
+    }
 
     if(LIKELY(p->started))
         y1 = p->y1;
     else {
         p->started = 1;
-        y1 = *in;
+        y1 = y0;
     }
 
     if ((lagu == p->lagu) && (lagd == p->lagd)) {
-        MYFLT y0 = *in;
         if (y0 > y1)
             p->y1 = y1 = y0 + p->b1u * (y1 - y0);
         else
             p->y1 = y1 = y0 + p->b1d * (y1 - y0);
         *(p->out) = y1;
     } else {
-        MYFLT sr = csound->GetKr(csound);
+        MYFLT sr = p->sr;
         // faust uses tau2pole = exp(-1 / (lag*sr)), sc uses log(0.01)
         p->b1u  = lagu == FL(0.0) ? FL(0.0) : exp(LOG001 / (lagu * sr));
         p->lagu = lagu;
         p->b1d  = lagd == FL(0.0) ? FL(0.0) : exp(LOG001 / (lagd * sr));
         p->lagd = lagd;
-        MYFLT y0 = *in;
         if (y0 > y1)
             y1 = y0 + p->b1u * (y1 - y0);
         else
@@ -314,6 +354,7 @@ lagud_a(CSOUND *csound, LagUD *p) {
         p->lagd = lagd;
         for (n=offset; n<nsmps; n++) {
             MYFLT y0 = in[n];
+
             b1u += b1u_slope;
             b1d += b1d_slope;
             if (y0 > y1)
@@ -328,27 +369,6 @@ lagud_a(CSOUND *csound, LagUD *p) {
 }
 
 
-static int32_t lagud_init_initial_value(CSOUND *csound, LagUD *p) {
-    IGN(csound);
-    p->lagu = -1;
-    p->lagd = -1;
-    p->b1u  = FL(1.0);
-    p->b1d  = FL(1.0);
-    p->y1   = *p->first;
-    p->started = 1;
-    return OK;
-}
-
-static int32_t lagud_init_no_initial_value(CSOUND *csound, LagUD *p) {
-    IGN(csound);
-    p->lagu = -1;
-    p->lagd = -1;
-    p->b1u  = FL(0.0);
-    p->b1d  = FL(0.0);
-    p->y1   = FL(0.0);
-    p->started = 0;
-    return OK;
-}
 
 /* ------------------ Trig -------------------------
 
@@ -577,6 +597,7 @@ phasor_a_kk(CSOUND *csound, Phasor *p) {
 
 static int
 phasor_k_kk(CSOUND *csound, Phasor *p) {
+    IGN(csound);
     MYFLT curin    = *p->trig;
     MYFLT rate     = *p->rate;
     MYFLT start    = *p->start;

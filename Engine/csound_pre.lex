@@ -773,7 +773,7 @@ void do_include(CSOUND *csound, int term, yyscan_t yyscanner)
     csound->DebugMsg(csound,"reading included file \"%s\"\n", buffer);
     if (UNLIKELY(isDir(buffer)))
       csound->Warning(csound, Str("%s is a directory; not including"), buffer);
-    if (PARM->path && buffer[0]!= '/') { // if nested included directories
+    if (PARM->path && buffer[0]!= DIRSEP) { // if nested included directories
       char tmp[1024];
       printf("using path %s\n", PARM->path);
       strncpy(tmp, PARM->path, 1023);
@@ -801,11 +801,11 @@ void do_include(CSOUND *csound, int term, yyscan_t yyscanner)
            csound_preget_lineno(yyscanner),PARM->macro_stack_ptr);
     PARM->alt_stack[PARM->macro_stack_ptr].n = 0;
     PARM->alt_stack[PARM->macro_stack_ptr].line = csound_preget_lineno(yyscanner);
-    if (strrchr(buffer,'/')) {
+    if (strrchr(buffer,DIRSEP)) {
       PARM->alt_stack[PARM->macro_stack_ptr].path = PARM->path;
       printf("setting path from %s to ", PARM->path);
       PARM->path = strdup(buffer); /* wasteful! */
-      *(strrchr(PARM->path,'/')) = '\0';
+      *(strrchr(PARM->path,DIRSEP)) = '\0';
       printf("%s\n",PARM->path);
     }
     else PARM->alt_stack[PARM->macro_stack_ptr].path = NULL;
@@ -850,7 +850,7 @@ void  do_new_include(CSOUND *csound, yyscan_t yyscanner)
     csound->DebugMsg(csound,"reading mincluded file \"%s\"\n", buffer);
     if (UNLIKELY(isDir(buffer)))
       csound->Warning(csound, Str("%s is a directory; not including"), buffer);
-    if (PARM->path && buffer[0]!='/') {
+    if (PARM->path && buffer[0]!=DIRSEP) {
       char tmp[1024];
       strncpy(tmp, PARM->path, 1023);
       strcat(tmp, "/");
@@ -876,10 +876,10 @@ void  do_new_include(CSOUND *csound, yyscan_t yyscanner)
            csound_preget_lineno(yyscanner),PARM->macro_stack_ptr);
     PARM->alt_stack[PARM->macro_stack_ptr].n = 0;
     PARM->alt_stack[PARM->macro_stack_ptr].line = csound_preget_lineno(yyscanner);
-    if (strrchr(buffer,'/')) {
+    if (strrchr(buffer,DIRSEP)) {
       PARM->alt_stack[PARM->macro_stack_ptr].path = PARM->path;
       PARM->path = strdup(buffer); /* wasteful! */
-      *(strrchr(PARM->path,'/')) = '\0';
+      *(strrchr(PARM->path,DIRSEP)) = '\0';
     }
     else PARM->alt_stack[PARM->macro_stack_ptr].path = NULL;
     PARM->alt_stack[PARM->macro_stack_ptr++].s = NULL;
