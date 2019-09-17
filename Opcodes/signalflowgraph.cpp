@@ -194,8 +194,8 @@ bool operator<(const EventBlock &a, const EventBlock &b) {
   int n = std::max(a.evtblk.pcnt, b.evtblk.pcnt);
   for (int i = 0; i < n; ++i) {
     // std::fprintf(stderr, "%p[%3d/%3d]: %9.4f  %p[%3d/%3d]: %9.4f\n", &a,
-    // i, a.evtblk.pcnt, a.evtblk.p[i], &b, i, b.evtblk.pcnt, b.evtblk.p[i]);\
-    std::fprintf(stderr, "a: %g b: %g\n", a.evtblk.p[i], b.evtblk.p[i]);
+    // i, a.evtblk.pcnt, a.evtblk.p[i], &b, i, b.evtblk.pcnt, b.evtblk.p[i]);
+    //std::fprintf(stderr, "a: %g b: %g\n", a.evtblk.p[i], b.evtblk.p[i]);
     if (isstrcod(a.evtblk.p[i]) || isstrcod(b.evtblk.p[i])) {
       if ((isstrcod(a.evtblk.p[i]) == true) &&
           (isstrcod(b.evtblk.p[i]) == false)) {
