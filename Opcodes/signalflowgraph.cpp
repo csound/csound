@@ -154,6 +154,8 @@ struct Inletv;
 struct Connect;
 struct AlwaysOn;
 struct FtGenOnce;
+    
+static int (*isstrcod)(MYFLT) = nullptr;
 
 std::ostream &operator<<(std::ostream &stream, const EVTBLK &a) {
   stream << a.opcod;
@@ -187,25 +189,26 @@ struct EventBlock {
   }
 };
 
+
 bool operator<(const EventBlock &a, const EventBlock &b) {
   int n = std::max(a.evtblk.pcnt, b.evtblk.pcnt);
   for (int i = 0; i < n; ++i) {
-    // std::fprintf(stderr, "0x%p[%3d/%3d]: %9.4f  0x%p[%3d/%3d]: %9.4f\n", &a,
-    // i, a.evtblk.pcnt, a.evtblk.p[i], &b, i, b.evtblk.pcnt, b.evtblk.p[i]);
-    if ((std::isnan(a.evtblk.p[i]) == true) ||
-        (std::isnan(b.evtblk.p[i]) == true)) {
-      if ((std::isnan(a.evtblk.p[i]) == true) &&
-          (std::isnan(b.evtblk.p[i]) == false)) {
+    // std::fprintf(stderr, "%p[%3d/%3d]: %9.4f  %p[%3d/%3d]: %9.4f\n", &a,
+    // i, a.evtblk.pcnt, a.evtblk.p[i], &b, i, b.evtblk.pcnt, b.evtblk.p[i]);\
+    std::fprintf(stderr, "a: %g b: %g\n", a.evtblk.p[i], b.evtblk.p[i]);
+    if (isstrcod(a.evtblk.p[i]) || isstrcod(b.evtblk.p[i])) {
+      if ((isstrcod(a.evtblk.p[i]) == true) &&
+          (isstrcod(b.evtblk.p[i]) == false)) {
         // std::fprintf(stderr, "<\n\n");
         return true;
       }
-      if ((std::isnan(a.evtblk.p[i]) == false) &&
-          (std::isnan(b.evtblk.p[i]) == true)) {
+      if ((isstrcod(a.evtblk.p[i]) == false) &&
+          (isstrcod(b.evtblk.p[i]) == true)) {
         // std::fprintf(stderr, ">=\n\n");
         return false;
       }
-      if ((std::isnan(a.evtblk.p[i]) == true) &&
-          (std::isnan(b.evtblk.p[i]) == true)) {
+      if ((isstrcod(a.evtblk.p[i]) == true) &&
+          (isstrcod(b.evtblk.p[i]) == true)) {
         if (std::strcmp(a.evtblk.strarg, b.evtblk.strarg) < 0) {
           // std::fprintf(stderr, "<\n\n");
           return true;
@@ -1085,17 +1088,17 @@ struct Connect : public OpcodeBase<Connect> {
     LockGuard guard(csound, sfg_globals->signal_flow_ports_lock);
     std::string sourceOutletId = csound->strarg2name(
         csound, (char *)0,
-        ((std::isnan(*Source)) ? csound->GetString(csound, *Source)
+        ((isstrcod(*Source)) ? csound->GetString(csound, *Source)
                                : (char *)Source),
-        (char *)"", std::isnan(*Source));
+        (char *)"", isstrcod(*Source));
     sourceOutletId += ":";
     sourceOutletId +=
         csound->strarg2name(csound, (char *)0, Soutlet->data, (char *)"", 1);
 
     std::string sinkInletId = csound->strarg2name(
         csound, (char *)0,
-        ((std::isnan(*Sink)) ? csound->GetString(csound, *Sink) : (char *)Sink),
-        (char *)"", std::isnan(*Sink));
+        ((isstrcod(*Sink)) ? csound->GetString(csound, *Sink) : (char *)Sink),
+        (char *)"", isstrcod(*Sink));
     sinkInletId += ":";
     sinkInletId +=
         csound->strarg2name(csound, (char *)0, Sinlet->data, (char *)"", 1);
@@ -1121,9 +1124,9 @@ struct Connecti : public OpcodeBase<Connecti> {
     LockGuard guard(csound, sfg_globals->signal_flow_ports_lock);
     std::string sourceOutletId = csound->strarg2name(
         csound, (char *)0,
-        ((std::isnan(*Source)) ? csound->GetString(csound, *Source)
+        ((isstrcod(*Source)) ? csound->GetString(csound, *Source)
                                : (char *)Source),
-        (char *)"", std::isnan(*Source));
+        (char *)"", isstrcod(*Source));
     sourceOutletId += ":";
     sourceOutletId +=
         csound->strarg2name(csound, (char *)0, Soutlet->data, (char *)"", 1);
@@ -1159,8 +1162,8 @@ struct Connectii : public OpcodeBase<Connectii> {
         csound->strarg2name(csound, (char *)0, Soutlet->data, (char *)"", 1);
     std::string sinkInletId = csound->strarg2name(
         csound, (char *)0,
-        ((std::isnan(*Sink)) ? csound->GetString(csound, *Sink) : (char *)Sink),
-        (char *)"", std::isnan(*Sink));
+        ((isstrcod(*Sink)) ? csound->GetString(csound, *Sink) : (char *)Sink),
+        (char *)"", isstrcod(*Sink));
     ;
     sinkInletId += ":";
     sinkInletId +=
@@ -1487,6 +1490,7 @@ PUBLIC int csoundModuleCreate_signalflowgraph(CSOUND *csound) {
     csound->Message(csound, "signalflowgraph: csoundModuleCreate(%p)\n",
                     csound);
   }
+  isstrcod = csound->ISSTRCOD;
   SignalFlowGraphState *sfg_globals = new SignalFlowGraphState(csound);
   csound::CreateGlobalPointer(csound, "sfg_globals", sfg_globals);
   return 0;
