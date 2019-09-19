@@ -205,11 +205,11 @@ endif()
 
 execute_process (
      COMMAND python -c
-     "import site, sys; sys.stdout.write(site.getusersitepackages())"
-     OUTPUT_VARIABLE PYTHON_USER_SITE_PACKAGES
+     "import site, sys; sys.stdout.write(site.getsitepackages()[0])"
+     OUTPUT_VARIABLE PYTHON_SITE_PACKAGES
    )
 
-SET(PYTHON_MODULE_INSTALL_DIR ${PYTHON_USER_SITE_PACKAGES} CACHE PATH "Python module install dir")
+SET(PYTHON_MODULE_INSTALL_DIR ${PYTHON_SITE_PACKAGES} CACHE PATH "Python module install dir")
 
 set(JAVA_MODULE_INSTALL_DIR ${LIBRARY_INSTALL_DIR} CACHE PATH "Java module install dir")
 set(LUA_MODULE_INSTALL_DIR ${LIBRARY_INSTALL_DIR} CACHE PATH "Lua module install dir")
