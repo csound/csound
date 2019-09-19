@@ -97,7 +97,7 @@ class CsoundProcessor extends AudioWorkletProcessor {
         let csObj = Csound.new();
         this.csObj = csObj;
         // engine status
-        this.status = 0;
+        this.result = 0;
         this.running = false;
         this.started = false;
         this.sampleRate = sampleRate;  
@@ -147,13 +147,19 @@ class CsoundProcessor extends AudioWorkletProcessor {
         let cnt = this.cnt;
         let nchnls = this.nchnls;
         let nchnls_i = this.nchnls_i;
-        let status = this.status;
+        let result = this.result;
 
         for (let i = 0; i < bufferLen; i++, cnt++) {
-            if(cnt == ksmps && status == 0) {
+            if(cnt == ksmps && result == 0) {
                 // if we need more samples from Csound
-                status = Csound.performKsmps(this.csObj);
+                result = Csound.performKsmps(this.csObj);
                 cnt = 0;
+
+                if(result != 0) {
+                    this.running = false;
+                    this.started = false;
+                    this.firePlayStateChange();
+                }
             }
 
             for (let channel = 0; channel < input.length; channel++) {
@@ -162,7 +168,7 @@ class CsoundProcessor extends AudioWorkletProcessor {
             }
             for (let channel = 0; channel < output.length; channel++) {
                 let outputChannel = output[channel];
-                if(status == 0)
+                if(result == 0)
                     outputChannel[i] = csOut[cnt*nchnls + channel] / zerodBFS;
                 else
                     outputChannel[i] = 0;
@@ -170,7 +176,7 @@ class CsoundProcessor extends AudioWorkletProcessor {
         }
 
         this.cnt = cnt;
-        this.status = status;
+        this.result = result;
 
         return true;
     }
@@ -190,11 +196,26 @@ class CsoundProcessor extends AudioWorkletProcessor {
             this.started = true;
         }
         this.running = true;
+        this.firePlayStateChange();
     }
 
     compileOrc(orcString) {
         Csound.compileOrc(this.csObj, orcString);
     }
+
+    getPlayState() {
+        if(this.running) {
+            return "playing";
+        } else if(this.started) {
+            return "paused"
+        }
+        return "stopped"; 
+    }
+
+    firePlayStateChange() {
+        this.port.postMessage(["playState", this.getPlayState()]);
+    }
+
 
     handleMessage(event) {
         let data = event.data;
@@ -202,7 +223,7 @@ class CsoundProcessor extends AudioWorkletProcessor {
 
         switch (data[0]) {
         case "compileCSD":
-            this.status = Csound.compileCSD(this.csObj, data[1]);
+            this.result = Csound.compileCSD(this.csObj, data[1]);
             break;
         case "compileOrc":
             Csound.compileOrc(this.csObj, data[1]);
@@ -226,6 +247,7 @@ class CsoundProcessor extends AudioWorkletProcessor {
             break;
         case "stop":
             this.running = false;
+            this.firePlayStateChange();
             break;
         case "play":
             this.start();
@@ -253,6 +275,7 @@ class CsoundProcessor extends AudioWorkletProcessor {
             this.csoundOutputBuffer = null; 
             this.ksmps = null; 
             this.zerodBFS = null; 
+            this.firePlayStateChange(); 
             break;
         case "writeToFS":
             let name = data[1];
