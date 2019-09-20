@@ -11,6 +11,7 @@ endif()
 set(atomic_code "
 #include <stdio.h>
 #include <stdlib.h>
+#include <stdint.h>
 
 int main() {
   static volatile ${type} val = 0;
