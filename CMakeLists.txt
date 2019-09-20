@@ -580,13 +580,16 @@ if(NOT MSVC AND REQUIRE_PTHREADS)
     find_library(PTHREAD_LIBRARY pthreadGC2)
   endif()
 
-  if(NOT PTHREAD_LIBRARY)
+  if(NOT (PTHREAD_LIBRARY OR HAIKU))
+      # pthreads are built in to Haiku
       message(STATUS "Csound requires the pthread library")
   endif()
 
   #FIXME this variable is for required include directories, possible bug
   set(CMAKE_REQUIRED_INCLUDES pthread.h)
-  set(CMAKE_REQUIRED_LIBRARIES pthread)
+  if (NOT HAIKU)
+    set(CMAKE_REQUIRED_LIBRARIES pthread)
+  endif()
 endif()
 
 
@@ -689,7 +692,7 @@ include_directories(./util)
 include_directories(./)
 
 #checking pthread functions
-if(REQUIRE_PTHREADS AND PTHREAD_LIBRARY)
+if(REQUIRE_PTHREADS AND (PTHREAD_LIBRARY OR HAIKU))
 
   #list(APPEND libcsound_CFLAGS -DHAVE_PTHREAD)
   set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -DHAVE_PTHREAD")
