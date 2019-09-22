@@ -345,7 +345,7 @@ static int32_t SfPlay_set(CSOUND *csound, SFPLAY *p)
     sfontg *globals;
 
     globals = (sfontg *) (csound->QueryGlobalVariable(csound, "::sfontg"));
-    if (UNLIKELY(index>=(DWORD)globals->currSFndx))
+    if (UNLIKELY(index>=MAX_SFPRESET))
       return csound->InitError(csound, Str("invalid soundfont"));
     preset = globals->presetp[index];
     sBase = globals->sampleBase[index];

@@ -154,7 +154,7 @@ struct Inletv;
 struct Connect;
 struct AlwaysOn;
 struct FtGenOnce;
-    
+
 static int (*isstrcod)(MYFLT) = nullptr;
 
 std::ostream &operator<<(std::ostream &stream, const EVTBLK &a) {

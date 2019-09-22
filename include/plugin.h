@@ -244,7 +244,7 @@ public:
     return reinterpret_cast<std::complex<MYFLT> *>(fdata);
   }
 
-  /** Creates a global variable in the current Csound object 
+  /** Creates a global variable in the current Csound object
   */
   int create_global_variable(const char *name, size_t nbytes) {
     return CreateGlobalVariable(this, name, nbytes);
@@ -263,7 +263,7 @@ public:
   }
 
   /** Access to the base CSOUND object
-   */ 
+   */
   CSOUND *get_csound() {
     return this;
   }
@@ -596,7 +596,7 @@ public:
   /** get data frame as floats
    */
   float *data() { return (float *) frame.auxp; }
-    
+
   /** convert to pv_frame ref
    */
   operator pv_frame &() { return reinterpret_cast<pv_frame &>(*this); }
