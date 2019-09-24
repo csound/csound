@@ -273,7 +273,6 @@ CsoundScriptProcessorNode = function(context, options) {
     let CsoundMixin = {
         csound: cs,
         compiled: false,
-        csoundRunning: false,
         csoundOutputBuffer: null,
         csoundInputBuffer: null,
         zerodBFS: 1.0,
@@ -282,7 +281,7 @@ CsoundScriptProcessorNode = function(context, options) {
         running: false,
         started: false,
         cnt: 0,
-        res: 0,
+        result: 0,
         nchnls_i: options.numberOfInputs,
         nchnls: options.numberOfOutputs,
         channel: {},
@@ -291,6 +290,8 @@ CsoundScriptProcessorNode = function(context, options) {
         stringChannelCallbacks: {},
         table: {},
         tableCallback: {},
+        playState: "stopped",
+        playStateListeners: new Set(),
 
         /**
          *
@@ -330,7 +331,7 @@ CsoundScriptProcessorNode = function(context, options) {
          */
 
         compileCSD(csd) {
-            this.res = CSOUND.compileCSD(this.csound, csd);
+            this.result = CSOUND.compileCSD(this.csound, csd);
         },
 
         /** Compiles Csound orchestra code.
@@ -540,6 +541,7 @@ CsoundScriptProcessorNode = function(context, options) {
                 this.started = true;
             }
             this.running = true;
+            this.firePlayStateChange();
         },
 
         /** Resets the Csound engine.
@@ -564,6 +566,8 @@ CsoundScriptProcessorNode = function(context, options) {
             this.csoundOutputBuffer = null;
             this.ksmps = null;
             this.zerodBFS = null;
+
+            this.firePlayStateChange();
         },
 
         destroy() {
@@ -584,6 +588,7 @@ CsoundScriptProcessorNode = function(context, options) {
 
         stop() {
             this.running = false;
+            this.firePlayStateChange();
         },
 
         /** Sets a callback to process Csound console messages.
@@ -609,6 +614,38 @@ CsoundScriptProcessorNode = function(context, options) {
 
         midiMessage(byte1, byte2, byte3) {
             CSOUND.pushMidiMessage(this.csound, byte1, byte2, byte3);
+        },
+
+        /** Returns the current play state of Csound. Results are either
+         * "playing", "paused", or "stopped". 
+         */ 
+        getPlayState() {
+            if(this.running) {
+                return "playing";
+            } else if(this.started) {
+                return "paused"
+            }
+            return "stopped"; 
+        },
+
+
+        /** Add a listener callback for play state listening. Must be a function 
+         * of type (csoundObj:CsoundObj):void. 
+         */ 
+        addPlayStateListener(listener) {
+            this.playStateListeners.add(listener);
+        },
+
+        /** Remove a listener callback for play state listening. Must be the same
+         * function as passed in with addPlayStateListener. 
+         */ 
+        removePlayStateListener(listener) {
+            this.playStateListeners.delete(listener);
+        },
+
+        firePlayStateChange() {
+            // uses CsoundObj's wrapper function
+            this.playStateListeners.forEach(v => v());
         },
 
         onaudioprocess(e) {
@@ -641,13 +678,18 @@ CsoundScriptProcessorNode = function(context, options) {
             let cnt = this.cnt;
             let nchnls = this.nchnls;
             let nchnls_i = this.nchnls_i;
-            let res = this.res;
+            let result = this.result;
 
             for (let i = 0; i < bufferLen; i++, cnt++) {
-                if (cnt == ksmps && res == 0) {
+                if (cnt == ksmps && result == 0) {
                     // if we need more samples from Csound
-                    res = CSOUND.performKsmps(this.csound);
+                    result = CSOUND.performKsmps(this.csound);
                     cnt = 0;
+                    if(result != 0) {
+                        this.running = false;
+                        this.started = false;
+                        this.firePlayStateChange();
+                    }
                 }
 
                 for (
@@ -664,7 +706,7 @@ CsoundScriptProcessorNode = function(context, options) {
                     channel++
                 ) {
                     let outputChannel = output.getChannelData(channel);
-                    if (res == 0)
+                    if (result == 0)
                         outputChannel[i] =
                             csOut[cnt * nchnls + channel] / zerodBFS;
                     else outputChannel[i] = 0;
@@ -672,7 +714,7 @@ CsoundScriptProcessorNode = function(context, options) {
             }
 
             this.cnt = cnt;
-            this.res = res;
+            this.result = result;
         }
     };
 
