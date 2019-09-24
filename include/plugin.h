@@ -884,10 +884,11 @@ public:
 
 /** InPlug template base class:
     for 0 outputs and N inputs
+    also for multiple outputs and/or inputs
  */
 template <std::size_t N> struct InPlug : OPDS {
-  /** input arguments */
-  Param<N> inargs;
+  /** arguments */
+  Param<N> args;
   /** Csound engine */
   Csound *csound;
   /** sample-accurate offset */
@@ -940,6 +941,14 @@ template <std::size_t N> struct InPlug : OPDS {
   /** local control rate
    */
   MYFLT kr() { return insdshead->ekr; }
+
+  /** local ksmps
+   */
+  MYFLT ksmps() { return insdshead->ksmps; }
+
+   /** sampling rate
+   */
+  MYFLT sr() { return csound->sr(); }
 
   /** midi channel number for this instrument
    */
@@ -1052,6 +1061,14 @@ template <std::size_t N, std::size_t M> struct Plugin : OPDS {
   /** local control rate
    */
   MYFLT kr() { return insdshead->ekr; }
+
+ /** local ksmps
+   */
+  MYFLT ksmps() { return insdshead->ksmps; }
+
+   /** sampling rate
+   */
+  MYFLT sr() { return csound->sr(); }
 
   /** midi channel number for this instrument
    */
