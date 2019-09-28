@@ -882,8 +882,7 @@ int32_t rcset(CSOUND *csound, RANDC *p)
     }
     p->ampcod = IS_ASIG_ARG(p->xamp) ? 1 : 0;      /* (not used by krandi) */
     p->cpscod = IS_ASIG_ARG(p->xcps) ? 1 : 0;
-    p->count = 0;
-    p->period = 0;
+    p->phs = 0;
     return OK;
 }
 
@@ -891,16 +890,15 @@ int32_t rcset(CSOUND *csound, RANDC *p)
 int32_t krandc(CSOUND *csound, RANDC *p)
 {                                       /* rslt = (num1 + diff*phs) * amp */
     IGN(csound);
-    int64_t     period = csound->esr / *p->xcps;
     MYFLT a0         =   p->num4 - p->num3 - p->num1 + p->num2;
     MYFLT a1         =   p->num1 - p->num2 - a0;
     MYFLT a2         =   p->num3 - p->num1;
     MYFLT a3         =   p->num2;
-    MYFLT mu         =   p->count / period;
+    MYFLT mu         =   (MYFLT)p->phs / (MYFLT)MAXLEN;
     *p->ar = *p->base + (((a0 * mu +a1) * mu+a2) * mu + a3) * *p->xamp;
-    p->count += (int64_t)(*p->xcps * CS_KICVT); /* phs += inc           */
-    if (p->count >= period) {                     /* when phs overflows,  */
-      p->count = 0;                         /*      mod the phs     */
+    p->phs += (int64_t)(*p->xcps * CS_KICVT); /* phs += inc           */
+    if (p->phs >= MAXLEN) {                     /* when phs overflows,  */
+      p->phs &= PHMASK;                         /*      mod the phs     */
       if (!p->new) {
         int16 rand = p->rand;
         rand *= RNDMUL;                         /*      recalc random   */
@@ -925,21 +923,20 @@ int32_t krandc(CSOUND *csound, RANDC *p)
 
 int32_t randc(CSOUND *csound, RANDC *p)
 {
-    int64_t       count = p->count, inc;
+    int64_t       phs = p->phs, inc;
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t n, nsmps = CS_KSMPS;
     MYFLT       *ar, *ampp, *cpsp;
     MYFLT       mu;
     MYFLT       base = *p->base;
-    int64_t     period = csound->esr / *p->xcps;
-    cpsp = p->xcps;
-    ampp = p->xamp;
     MYFLT a0         =   p->num4 - p->num3 - p->num1 + p->num2;
     MYFLT a1         =   p->num1 - p->num2 - a0;
     MYFLT a2         =   p->num3 - p->num1;
     MYFLT a3         =   p->num2;
-    inc = (int64_t)(*cpsp * csound->sicvt);
+    cpsp = p->xcps;
+    ampp = p->xamp;
+    inc = (int64_t)(*cpsp++ * csound->sicvt);
     ar = p->ar;
     if (UNLIKELY(offset)) memset(ar, '\0', offset*sizeof(MYFLT));
     if (UNLIKELY(early)) {
@@ -949,17 +946,18 @@ int32_t randc(CSOUND *csound, RANDC *p)
 
     for (n=offset;n<nsmps;n++) {
 
-      mu         =   count / period;
+      mu         =   (MYFLT)phs/(MYFLT)MAXLEN;
 
       ar[n]  =   base + (((a0 * mu +a1) * mu+a2) * mu + a3) * *ampp;
 
       if (p->ampcod)
         ampp++;
-      count += inc;
+      phs += inc;
+      printf("mu = %g  phs, inc, MAXLEN = %ld, %ld, %d\n", mu, phs, inc, MAXLEN);
       if (p->cpscod)
         inc = (int64_t)(*cpsp++ * csound->sicvt);  /*   (nxt inc)      */
-      if (count >= period) {                      /* when phs o'flows, */
-        count = 0;
+      if (phs >= MAXLEN) {                      /* when phs o'flows, */
+        phs &= PHMASK;
         if (!p->new) {
           int16 rand = p->rand;
           rand *= RNDMUL;                       /*   calc new numbers*/
@@ -981,7 +979,7 @@ int32_t randc(CSOUND *csound, RANDC *p)
 
       }
     }
-    p->count = count;
+    p->phs = phs;
     return OK;
 }
 
