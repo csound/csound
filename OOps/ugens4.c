@@ -765,7 +765,7 @@ int32_t krandi(CSOUND *csound, RANDI *p)
 int32_t randi(CSOUND *csound, RANDI *p)
 {
     int64_t       phs = p->phs, inc;
-b    uint32_t offset = p->h.insdshead->ksmps_offset;
+    uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t n, nsmps = CS_KSMPS;
     MYFLT       *ar, *ampp, *cpsp;
