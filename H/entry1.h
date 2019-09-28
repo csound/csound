@@ -195,6 +195,8 @@ int32_t rndset(CSOUND *, void *), krand(CSOUND *, void *);
 int32_t arand(CSOUND *, void *), rhset(CSOUND *, void *);
 int32_t krandh(CSOUND *, void *), randh(CSOUND *, void *);
 int32_t riset(CSOUND *, void *), krandi(CSOUND *, void *);
+int32_t rcset(CSOUND *, void *), randc(CSOUND *, void *);
+int32_t krandc(CSOUND *, void *);
 int32_t randi(CSOUND *, void *), rndset2(CSOUND *, void *);
 int32_t krand2(CSOUND *, void *), arand2(CSOUND *, void *);
 int32_t rhset2(CSOUND *, void *), krandh2(CSOUND *, void *);
