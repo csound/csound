@@ -953,7 +953,7 @@ int32_t randc(CSOUND *csound, RANDC *p)
       if (p->ampcod)
         ampp++;
       phs += inc;
-      printf("mu = %g  phs, inc, MAXLEN = %ld, %ld, %d\n", mu, phs, inc, MAXLEN);
+      //printf("mu = %g  phs, inc, MAXLEN = %ld, %ld, %d\n", mu, phs, inc, MAXLEN);
       if (p->cpscod)
         inc = (int64_t)(*cpsp++ * csound->sicvt);  /*   (nxt inc)      */
       if (phs >= MAXLEN) {                      /* when phs o'flows, */
@@ -962,7 +962,11 @@ int32_t randc(CSOUND *csound, RANDC *p)
           int16 rand = p->rand;
           rand *= RNDMUL;                       /*   calc new numbers*/
           rand += 1;
-          p->num1 = p->num2;
+          p->num1 = p->num2;                      /*      & new num vals  */
+          p->num2 = p->num3;
+          p->num3 = p->num4;
+          p->num4 = (MYFLT)rand * DV32768;
+          p->rand = rand;
         }
         else {
           int32_t r = randint31(p->rand);          /*   calc new numbers*/
