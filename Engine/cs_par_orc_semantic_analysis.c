@@ -256,7 +256,9 @@ static void csp_orc_sa_interlocksf(CSOUND *csound, int code, char *name)
       if (code&IR) csp_set_add(csound, rr, "##int");
       if (code&IW) csp_set_add(csound, ww, "##int");
       csp_orc_sa_global_read_write_add_list(csound, ww, rr);
-      if (UNLIKELY(code&_QQ)) {
+      /* printf("code&qq=%4x msglevel = %4x bit=%4x\n", */
+      /*        code&_QQ, csound->oparms_.msglevel, csound->oparms_.msglevel&NOQQ ); */
+      if (UNLIKELY((code&_QQ) && (csound->oparms_.msglevel&NOQQ))) {
         csound->Message(csound, Str("opcode %s deprecated\n"), name);
       }
     }

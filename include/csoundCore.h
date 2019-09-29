@@ -201,6 +201,7 @@ extern int ISSTRCOD(MYFLT);
 #define WARNMSG 04
 #define RAWMSG  0x40
 #define TIMEMSG 0x80
+#define NOQQ    0x40
 #define IGN(X)  (void) X
 
 #define ARG_CONSTANT 0
