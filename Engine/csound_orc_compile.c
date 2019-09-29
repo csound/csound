@@ -2324,7 +2324,7 @@ void debugPrintCsound(CSOUND *csound) {
 void query_deprecated_opcode(CSOUND *csound, ORCTOKEN *o) {
   char *name = o->lexeme;
   OENTRY *ep = find_opcode(csound, name);
-  if (UNLIKELY((code&_QQ) && (csound->oparms_.msglevel&NOQQ)))
+  if (UNLIKELY((ep->flags &_QQ) && !(csound->oparms_.msglevel&NOQQ)))
     csound->Warning(csound, Str("Opcode \"%s\" is deprecated\n"), name);
 }
 
