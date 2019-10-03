@@ -345,9 +345,8 @@ static int32_t SfPlay_set(CSOUND *csound, SFPLAY *p)
     sfontg *globals;
 
     globals = (sfontg *) (csound->QueryGlobalVariable(csound, "::sfontg"));
-//    printf("globals=%p currSFndx=%d index=%d\n", globals, globals->currSFndx, index);
-//   if (UNLIKELY(index>=(DWORD)globals->currSFndx))
-//     return csound->InitError(csound, Str("invalid soundfont E"));
+   if (UNLIKELY(index>=(DWORD)globals->MAX_SFPRESET))
+     return csound->InitError(csound, Str("invalid soundfont E"));
     preset = globals->presetp[index];
     sBase = globals->sampleBase[index];
 
