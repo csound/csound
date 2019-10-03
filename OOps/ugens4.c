@@ -686,7 +686,7 @@ int32_t riset(CSOUND *csound, RANDI *p)
 {
     p->new = (*p->sel!=FL(0.0));
     if (*p->iseed >= FL(0.0)) {                    /* new seed:            */
-      if (*p->iseed > FL(1.0)) { /* As manual suggest sseed in range [0,1] */
+      if (*p->iseed > FL(1.0)) { /* As manual suggest seed in range [0,1] */
         uint32 seed;             /* I reinterpret >1 as a time seed */
         seed = csound->GetRandomSeedFromTime();
         csound->Warning(csound, Str("Seeding from current time %"PRIu32"\n"), seed);
@@ -828,15 +828,13 @@ int32_t rcset(CSOUND *csound, RANDC *p)
           p->num1 = (MYFLT)(rand) * DV32768; /* store num1,2 */
           rand *= RNDMUL;         /*      recalc random   */
           rand += 1;
-          p->num2 = (MYFLT)(p->rand=rand) * DV32768;
+          p->num2 = (MYFLT)(rand) * DV32768;
           rand *= RNDMUL;         /*      recalc random   */
           rand += 1;
-          p->num3 = (MYFLT)(p->rand=rand) * DV32768;
+          p->num3 = (MYFLT)(rand) * DV32768;
           rand *= RNDMUL;         /*      recalc random   */
           rand += 1;
           p->num4 = (MYFLT)(p->rand=rand) * DV32768;
-/*           printf("seed, rand, num1, num2 = %d(%x), %d*%x), %f, %f\n", */
-/*                  ss,ss,p->rand, p->rand, p->num1, p->num2); */
         }
         else {
           p->rand = randint31((int32_t) (seed % 0x7FFFFFFEUL) + 1L);
@@ -878,7 +876,6 @@ int32_t rcset(CSOUND *csound, RANDC *p)
         p->rand = randint31(p->rand);
         p->num4 = (MYFLT)(p->rand<<1) * dv2_31;
       }
-      //p->dfdmax = (p->num2 - p->num1) / FMAXLEN;  /* & diff     */
     }
     p->ampcod = IS_ASIG_ARG(p->xamp) ? 1 : 0;      /* (not used by krandi) */
     p->cpscod = IS_ASIG_ARG(p->xcps) ? 1 : 0;

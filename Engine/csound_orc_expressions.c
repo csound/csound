@@ -287,6 +287,45 @@ int is_boolean_expression_node(TREE *node)
     return 0;
 }
 
+#ifdef JPFF
+
+static TREE *create_synthetic_label(CSOUND *csound, int32 count);
+
+static TREE *create_cond_expression(CSOUND *csound,
+                                    TREE *root, int line, int locn,
+                                    TYPE_TABLE* typeTable)
+{
+    TREE *last = NULL;
+    int32 ln1 = genlabs++, ln2 = genlabs++;
+    TREE *L1 = create_synthetic_label(csound, ln1);
+    TREE *L2 = create_synthetic_label(csound, ln2);
+    TREE *c = root->right->left, *d = root->right->right;
+    char *ans, *bool;
+    print_tree(csound, "***C\n", c); print_tree(csound,"***D\n", d);
+    //char condInTypes[64];
+    print_tree(csound, "**** ?found\n", root);
+    root->type = IF_TOKEN;
+    root->right->type = GOTO_TOKEN;
+    root->right->left = NULL;
+    root->right->right = L1;
+    print_tree(csound, "***IF node\n", root);
+   //while (last->next != NULL) {
+    //  last = last->next;
+    //}
+    c = create_expression(csound, c, root->line, root->locn, typeTable);
+    d = create_expression(csound, d, root->line, root->locn, typeTable);
+
+    print_tree(csound, "c\n", c);
+    print_tree(csound, "d\n", d);
+    // Need to get type of expression for newvariable
+    ans = get_arg_type2(csound, c, typeTable);
+    bool  = get_arg_type2(csound, d, typeTable);
+    printf("types %s %s\n", ans, bool);
+    return root;
+}
+
+#else
+
 static TREE *create_cond_expression(CSOUND *csound,
                                     TREE *root, int line, int locn,
                                     TYPE_TABLE* typeTable)
@@ -355,6 +394,7 @@ static TREE *create_cond_expression(CSOUND *csound,
     csound->Free(csound, entries);
     return anchor;
 }
+#endif
 
 static char* create_out_arg_for_expression(CSOUND* csound, char* op, TREE* left,
                                            TREE* right, TYPE_TABLE* typeTable) {

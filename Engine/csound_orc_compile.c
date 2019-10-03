@@ -2322,14 +2322,14 @@ void debugPrintCsound(CSOUND *csound) {
 
 #include "interlocks.h"
 void query_deprecated_opcode(CSOUND *csound, ORCTOKEN *o) {
-  char *name = o->lexeme;
-  OENTRY *ep = find_opcode(csound, name);
-  if (UNLIKELY((ep->flags &_QQ) && !(csound->oparms_.msglevel&NOQQ)))
-    csound->Warning(csound, Str("Opcode \"%s\" is deprecated\n"), name);
+    char *name = o->lexeme;
+    OENTRY *ep = find_opcode(csound, name);
+    if (UNLIKELY((ep->flags &_QQ) && !(csound->oparms_.msglevel&NOQQ)))
+      csound->Warning(csound, Str("Opcode \"%s\" is deprecated\n"), name);
 }
 
 int query_reversewrite_opcode(CSOUND *csound, ORCTOKEN *o) {
-  char *name = o->lexeme;
-  OENTRY *ep = find_opcode(csound, name);
-  return (ep->flags & WI);
+    char *name = o->lexeme;
+    OENTRY *ep = find_opcode(csound, name);
+    return (ep->flags & WI);
 }
