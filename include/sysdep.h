@@ -89,8 +89,10 @@ typedef unsigned __int32 uint32;
 typedef unsigned __int16 uint16;
 #else
 #include <stdint.h>
-#ifndef __HAIKU_CONFLICT
-/* Haiku has different typedefs -- only relevant to rthaiku */
+#if defined(__HAIKU__) && defined(__HAIKU_CONFLICT)
+ /* Haiku has different typedefs -- relevant to rthaiku and network*/
+ #include <SupportDefs.h>
+#else
 typedef int_least32_t int32;
 typedef int_least16_t int16;
 typedef uint_least32_t uint32;

@@ -23,6 +23,9 @@
 
 /* Realtime MIDI using ipmidi library */
 
+/* Haiku 'int32' etc definitions in net headers conflict with sysdep.h */
+#define __HAIKU_CONFLICT
+
 #include <sys/types.h>
 #ifdef WIN32
 #include <winsock2.h>

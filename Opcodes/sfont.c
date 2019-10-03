@@ -225,7 +225,7 @@ static int32_t Sfplist(CSOUND *csound, SFPLIST *p)
     int32_t j;
     globals = (sfontg *) (csound->QueryGlobalVariable(csound, "::sfontg"));
     if (UNLIKELY( *p->ihandle<0 || *p->ihandle>=globals->currSFndx))
-      return csound->InitError(csound, Str("invalid soundfont"));
+      return csound->InitError(csound, Str("invalid soundfont A"));
     sf = &globals->sfArray[(int32_t) *p->ihandle];
     /* if (UNLIKELY(sf==NULL)) */
     /*   return csound->InitError(csound, Str("invalid soundfont")); */
@@ -249,7 +249,7 @@ static int32_t SfAssignAllPresets(CSOUND *csound, SFPASSIGN *p)
 
     globals = (sfontg *) (csound->QueryGlobalVariable(csound, "::sfontg"));
     if (UNLIKELY( *p->ihandle<0 || *p->ihandle>=globals->currSFndx))
-      return csound->InitError(csound, Str("invalid soundfont"));
+      return csound->InitError(csound, Str("invalid soundfont B"));
     sf = &globals->sfArray[(int32_t) *p->ihandle];
     /* if (UNLIKELY(globals->soundFont==NULL)) */
     /*   return csound->InitError(csound, Str("invalid sound font")); */
@@ -284,7 +284,7 @@ static int32_t Sfilist(CSOUND *csound, SFPLIST *p)
     int32_t j;
     globals = (sfontg *) (csound->QueryGlobalVariable(csound, "::sfontg"));
     if (UNLIKELY( *p->ihandle<0 || *p->ihandle>=globals->currSFndx))
-      return csound->InitError(csound, Str("invalid soundfont"));
+      return csound->InitError(csound, Str("invalid soundfont C"));
     /* if (UNLIKELY(globals->soundFont==NULL)) */
     /*   return csound->InitError(csound, Str("invalid sound font")); */
 
@@ -305,7 +305,7 @@ static int32_t SfPreset(CSOUND *csound, SFPRESET *p)
     globals = (sfontg *) (csound->QueryGlobalVariable(csound, "::sfontg"));
     sf = &globals->sfArray[(DWORD) *p->isfhandle];
     if (UNLIKELY( *p->isfhandle<0 || *p->isfhandle>=globals->currSFndx))
-      return csound->InitError(csound, Str("invalid soundfont"));
+      return csound->InitError(csound, Str("invalid soundfont D"));
 
     if (UNLIKELY(presetHandle >= MAX_SFPRESET || presetHandle<0)) {
       return csound->InitError(csound,
@@ -345,8 +345,9 @@ static int32_t SfPlay_set(CSOUND *csound, SFPLAY *p)
     sfontg *globals;
 
     globals = (sfontg *) (csound->QueryGlobalVariable(csound, "::sfontg"));
-    if (UNLIKELY(index>=(DWORD)globals->currSFndx))
-      return csound->InitError(csound, Str("invalid soundfont"));
+//    printf("globals=%p currSFndx=%d index=%d\n", globals, globals->currSFndx, index);
+//   if (UNLIKELY(index>=(DWORD)globals->currSFndx))
+//     return csound->InitError(csound, Str("invalid soundfont E"));
     preset = globals->presetp[index];
     sBase = globals->sampleBase[index];
 
@@ -683,7 +684,7 @@ static int32_t SfPlayMono_set(CSOUND *csound, SFPLAYMONO *p)
     sfontg *globals;
     globals = (sfontg *) (csound->QueryGlobalVariable(csound, "::sfontg"));
     if (UNLIKELY(index>=(DWORD)globals->currSFndx))
-      return csound->InitError(csound, Str("invalid soundfont"));
+      return csound->InitError(csound, Str("invalid soundfont F"));
 
     preset = globals->presetp[index];
     sBase = globals->sampleBase[index];
@@ -950,7 +951,7 @@ static int32_t SfInstrPlay_set(CSOUND *csound, SFIPLAY *p)
     int32_t index = (int32_t) *p->sfBank;
     globals = (sfontg *) (csound->QueryGlobalVariable(csound, "::sfontg"));
     if (UNLIKELY(index<0 || index>=globals->currSFndx))
-      return csound->InitError(csound, Str("invalid soundfont"));
+      return csound->InitError(csound, Str("invalid soundfont G"));
     sf = &globals->sfArray[index];
 
     if (UNLIKELY(*p->instrNum >  sf->instrs_num)) {
@@ -1223,7 +1224,7 @@ static int32_t SfInstrPlayMono_set(CSOUND *csound, SFIPLAYMONO *p)
     SFBANK *sf;
     globals = (sfontg *) (csound->QueryGlobalVariable(csound, "::sfontg"));
     if (UNLIKELY(index<0 || index>=globals->currSFndx))
-      return csound->InitError(csound, Str("invalid soundfont"));
+      return csound->InitError(csound, Str("invalid soundfont H"));
 
     sf = &globals->sfArray[index];
     if (UNLIKELY( *p->instrNum >  sf->instrs_num)) {
