@@ -346,17 +346,18 @@ static TREE *create_cond_expression(CSOUND *csound,
     if (is_expression_node(c)) {
       TREE *C = create_opcode_token(csound, cs_strdup(csound, "="));
       C->left = create_ans_token(csound, right); C->right = c;
-      c = create_expression(csound, C, root->line, root->locn, typeTable);
+      c = C;
     }
     else {
      TREE *C =  create_opcode_token(csound, cs_strdup(csound, "="));
      C->left = create_ans_token(csound, right); C->right = c;
      c = C;
     }
+    print_tree(csound, "\n\nc\n", c);
     if (is_expression_node(d)) {
       TREE *D = create_opcode_token(csound, cs_strdup(csound, "="));
       D->left = create_ans_token(csound, right); D->right = d;
-      d = create_expression(csound, D, root->line, root->locn, typeTable);
+      d = D;
     }
     else {
       TREE *D =  create_opcode_token(csound, cs_strdup(csound, "="));
