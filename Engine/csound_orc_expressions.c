@@ -290,6 +290,9 @@ int is_boolean_expression_node(TREE *node)
 #ifdef JPFF
 
 static TREE *create_synthetic_label(CSOUND *csound, int32 count);
+static char* create_out_arg_for_expression(CSOUND* csound, char* op, TREE* left,
+                                           TREE* right, TYPE_TABLE* typeTable);
+extern void do_baktrace(CSOUND *csound, uint64_t files);
 
 static TREE *create_cond_expression(CSOUND *csound,
                                     TREE *root, int line, int locn,
@@ -299,28 +302,98 @@ static TREE *create_cond_expression(CSOUND *csound,
     int32 ln1 = genlabs++, ln2 = genlabs++;
     TREE *L1 = create_synthetic_label(csound, ln1);
     TREE *L2 = create_synthetic_label(csound, ln2);
+    TREE *b = create_boolean_expression(csound, root->left, line, locn,
+                                        typeTable);
     TREE *c = root->right->left, *d = root->right->right;
-    char *ans, *bool;
-    print_tree(csound, "***C\n", c); print_tree(csound,"***D\n", d);
-    //char condInTypes[64];
-    print_tree(csound, "**** ?found\n", root);
-    root->type = IF_TOKEN;
-    root->right->type = GOTO_TOKEN;
-    root->right->left = NULL;
-    root->right->right = L1;
-    print_tree(csound, "***IF node\n", root);
-   //while (last->next != NULL) {
-    //  last = last->next;
-    //}
-    c = create_expression(csound, c, root->line, root->locn, typeTable);
-    d = create_expression(csound, d, root->line, root->locn, typeTable);
-
-    print_tree(csound, "c\n", c);
-    print_tree(csound, "d\n", d);
+    char *left, *right;
+    int type;
+    TREE *xx;
+    //print_tree(csound, "***B\n", b);
+    //print_tree(csound, "***C\n", c); print_tree(csound,"***D\n", d);
+    left = get_arg_type2(csound, c, typeTable);
+    right  = get_arg_type2(csound, d, typeTable);
+    //printf("types %s %s\n", left, right);
+    if (left[0]=='c') left[0] = 'i';
+    if (right[0]=='c') right[0] = 'i';
+    if (strcmp(left, right)) {
+      synterr(csound, Str("condition expression types do not match\n"));
+      do_baktrace(csound, root->locn);
+      return NULL;
+    }
+    type = (left[0]=='i') ? 1: 2;
+    last = b;
+    while (last->next != NULL) {
+      last = last->next;
+    }
+    printf("boolvalr = %s, type=%d\n", last->left->value->lexeme, type);
+    print_tree(csound, "\nL1\n", L1);
+    
+    last->next = create_opcode_token(csound, type==1?"cigoto":"ckgoto");
+    xx = create_empty_token(csound);
+    xx->type = T_IDENT;
+    xx->value = make_token(csound, last->left->value->lexeme);
+    xx->value->type = T_IDENT;
+    last = last->next;
+    last->left = NULL;
+    last->right = xx;
+    last->right->next = L1;
+    last->line = line; root->locn = locn;
+    print_tree(csound, "***IF node\n", b);
     // Need to get type of expression for newvariable
-    ans = get_arg_type2(csound, c, typeTable);
-    bool  = get_arg_type2(csound, d, typeTable);
-    printf("types %s %s\n", ans, bool);
+    right = create_out_arg(csound,left,
+                           typeTable->localPool->synthArgCount++, typeTable);
+    //printf("right = %s\n", right);
+    if (is_expression_node(c)) {
+      TREE *C = create_opcode_token(csound, cs_strdup(csound, "="));
+      C->left = create_ans_token(csound, right); C->right = c;
+      c = create_expression(csound, C, root->line, root->locn, typeTable);
+    }
+    else {
+     TREE *C =  create_opcode_token(csound, cs_strdup(csound, "="));
+     C->left = create_ans_token(csound, right); C->right = c;
+     c = C;
+    }
+    if (is_expression_node(d)) {
+      TREE *D = create_opcode_token(csound, cs_strdup(csound, "="));
+      D->left = create_ans_token(csound, right); D->right = d;
+      d = create_expression(csound, D, root->line, root->locn, typeTable);
+    }
+    else {
+      TREE *D =  create_opcode_token(csound, cs_strdup(csound, "="));
+      D->left = create_ans_token(csound, right); D->right = d;
+      d = D;
+    }
+    //print_tree(csound, "\n\nc\n", c);
+    //print_tree(csound, "\n\nd\n", d);
+    last = b;
+    while (last->next != NULL) {
+      last = last->next;
+    }
+    last->next = d;
+    while (last->next != NULL) last = last->next;
+    //Last is now last assignment
+    //print_tree(csound, "\n\nlast assignment\n", last);
+
+    last->next = create_simple_goto_token(csound, L2, type);
+    //print_tree(csound, "\n\nafter goto\n", b);
+    while (last->next != NULL) last = last->next;
+    last->next = create_synthetic_label(csound,ln1);
+    while (last->next != NULL) last = last->next;
+    //print_tree(csound, "\n\nafter label\n", b);
+    last->next = c;
+    while (last->next != NULL) last = last->next;
+    //print_tree(csound, "n\nAfter c\n", b);
+    while (last->next != NULL) last = last->next;
+    last->next = create_synthetic_label(csound,ln2);
+    //print_tree(csound, "\n\nafter secondlabel\n", b);
+    while (last->next != NULL) last = last->next;
+    last->next = create_opcode_token(csound, cs_strdup(csound,"="));
+    //print_tree(csound, "\n\nafter secondlabel\n", b);
+    last->next->left = create_ans_token(csound, right);
+    last->next->right = create_ans_token(csound, right);
+
+    printf("\n\n*** create_cond_expression ends\n");
+    print_tree(csound, "ANSWER\n", b);
     return root;
 }
 
@@ -390,7 +463,7 @@ static TREE *create_cond_expression(CSOUND *csound,
     /* should recycle memory for root->right */
     //csound->Free(csound, root->right); root->right = NULL;
     last->next = opTree;
-    //    print_tree(csound, "Answer:\n", anchor);
+    print_tree(csound, "Answer:\n", anchor);
     csound->Free(csound, entries);
     return anchor;
 }
@@ -957,7 +1030,7 @@ static void collapse_last_assigment(CSOUND* csound, TREE* anchor,
     }
     csound->Free(csound, tmp1);
     csound->Free(csound, tmp2);
-    //print_tree(csound, "reurns\n", a);
+    //print_tree(csound, "returns\n", a);
 }
 
 /* returns the head of a list of TREE* nodes, expanding all RHS
@@ -1010,7 +1083,6 @@ TREE* expand_statement(CSOUND* csound, TREE* current, TYPE_TABLE* typeTable)
 
             /* reconnect into chain */
             last = tree_tail(expressionNodes);
-
             newArg = last->left->value->lexeme;
 
             if (UNLIKELY(PARSER_DEBUG))
