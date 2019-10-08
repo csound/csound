@@ -1,4 +1,3 @@
-
 /*
     csound_orc_expressions.c:
 
@@ -287,7 +286,7 @@ int is_boolean_expression_node(TREE *node)
     return 0;
 }
 
-#ifdef JPFF
+//#ifdef JPFF
 
 static TREE *create_synthetic_label(CSOUND *csound, int32 count);
 static char* create_out_arg_for_expression(CSOUND* csound, char* op, TREE* left,
@@ -308,6 +307,13 @@ static TREE *create_cond_expression(CSOUND *csound,
     char *left, *right;
     int type;
     TREE *xx;
+
+    typeTable->labelList =
+            cs_cons(csound,
+                    cs_strdup(csound, L1->value->lexeme), typeTable->labelList);
+    typeTable->labelList =
+            cs_cons(csound,
+                    cs_strdup(csound, L2->value->lexeme), typeTable->labelList);
     //print_tree(csound, "***B\n", b);
     //print_tree(csound, "***C\n", c); print_tree(csound,"***D\n", d);
     left = get_arg_type2(csound, c, typeTable);
@@ -325,8 +331,8 @@ static TREE *create_cond_expression(CSOUND *csound,
     while (last->next != NULL) {
       last = last->next;
     }
-    printf("boolvalr = %s, type=%d\n", last->left->value->lexeme, type);
-    print_tree(csound, "\nL1\n", L1);
+    //printf("boolvalr = %s, type=%d\n", last->left->value->lexeme, type);
+    //print_tree(csound, "\nL1\n", L1);
     
     last->next = create_opcode_token(csound, type==1?"cigoto":"ckgoto");
     xx = create_empty_token(csound);
@@ -338,7 +344,7 @@ static TREE *create_cond_expression(CSOUND *csound,
     last->right = xx;
     last->right->next = L1;
     last->line = line; root->locn = locn;
-    print_tree(csound, "***IF node\n", b);
+    //print_tree(csound, "***IF node\n", b);
     // Need to get type of expression for newvariable
     right = create_out_arg(csound,left,
                            typeTable->localPool->synthArgCount++, typeTable);
@@ -353,7 +359,7 @@ static TREE *create_cond_expression(CSOUND *csound,
      C->left = create_ans_token(csound, right); C->right = c;
      c = C;
     }
-    print_tree(csound, "\n\nc\n", c);
+    //print_tree(csound, "\n\nc\n", c);
     if (is_expression_node(d)) {
       TREE *D = create_opcode_token(csound, cs_strdup(csound, "="));
       D->left = create_ans_token(csound, right); D->right = d;
@@ -393,82 +399,78 @@ static TREE *create_cond_expression(CSOUND *csound,
     last->next->left = create_ans_token(csound, right);
     last->next->right = create_ans_token(csound, right);
 
-    printf("\n\n*** create_cond_expression ends\n");
-    print_tree(csound, "ANSWER\n", b);
-    return root;
+    //printf("\n\n*** create_cond_expression ends\n");
+    //print_tree(csound, "ANSWER\n", b);
+    return b;
 }
 
-#else
+/* static TREE *create_cond_expression(CSOUND *csound, */
+/*                                     TREE *root, int line, int locn, */
+/*                                     TYPE_TABLE* typeTable) */
+/* { */
+/*     char *arg1, *arg2, *ans, *outarg = NULL; */
+/*     char* outype; */
+/*     TREE *anchor = create_boolean_expression(csound, root->left, line, locn, */
+/*                                              typeTable); */
+/*     TREE *last; */
+/*     TREE * opTree; */
+/*     TREE *b; */
+/*     TREE *c = root->right->left, *d = root->right->right; */
+/*     last = anchor; */
+/*     char condInTypes[64]; */
 
-static TREE *create_cond_expression(CSOUND *csound,
-                                    TREE *root, int line, int locn,
-                                    TYPE_TABLE* typeTable)
-{
-    char *arg1, *arg2, *ans, *outarg = NULL;
-    char* outype;
-    TREE *anchor = create_boolean_expression(csound, root->left, line, locn,
-                                             typeTable);
-    TREE *last;
-    TREE * opTree;
-    TREE *b;
-    TREE *c = root->right->left, *d = root->right->right;
-    last = anchor;
-    char condInTypes[64];
+/*     while (last->next != NULL) { */
+/*       last = last->next; */
+/*     } */
+/*     b= create_ans_token(csound, last->left->value->lexeme); */
+/*     if (is_expression_node(c)) { */
+/*       last->next = create_expression(csound, c, line, locn, typeTable); */
+/*       /\* TODO - Free memory of old left node */
+/*          freetree *\/ */
+/*       last = last->next; */
+/*       while (last->next != NULL) { */
+/*         last = last->next; */
+/*       } */
+/*       c = create_ans_token(csound, last->left->value->lexeme); */
+/*     } */
+/*     if (is_expression_node(d)) { */
+/*       last->next = create_expression(csound, d, line, locn, typeTable); */
+/*       /\* TODO - Free memory of old left node */
+/*          freetree *\/ */
+/*       last = last->next; */
+/*       while (last->next != NULL) { */
+/*         last = last->next; */
+/*       } */
+/*       d = create_ans_token(csound, last->left->value->lexeme); */
+/*     } */
 
-    while (last->next != NULL) {
-      last = last->next;
-    }
-    b= create_ans_token(csound, last->left->value->lexeme);
-    if (is_expression_node(c)) {
-      last->next = create_expression(csound, c, line, locn, typeTable);
-      /* TODO - Free memory of old left node
-         freetree */
-      last = last->next;
-      while (last->next != NULL) {
-        last = last->next;
-      }
-      c = create_ans_token(csound, last->left->value->lexeme);
-    }
-    if (is_expression_node(d)) {
-      last->next = create_expression(csound, d, line, locn, typeTable);
-      /* TODO - Free memory of old left node
-         freetree */
-      last = last->next;
-      while (last->next != NULL) {
-        last = last->next;
-      }
-      d = create_ans_token(csound, last->left->value->lexeme);
-    }
+/*     arg1 = get_arg_type2(csound, c, typeTable); */
+/*     arg2 = get_arg_type2(csound, d, typeTable); */
+/*     ans  = get_arg_type2(csound, b, typeTable); */
 
-    arg1 = get_arg_type2(csound, c, typeTable);
-    arg2 = get_arg_type2(csound, d, typeTable);
-    ans  = get_arg_type2(csound, b, typeTable);
+/*     snprintf(condInTypes, 64, "%s%s%s", ans, arg1, arg2); */
 
-    snprintf(condInTypes, 64, "%s%s%s", ans, arg1, arg2);
+/*     OENTRIES* entries = find_opcode2(csound, ":cond"); */
+/*     outype = resolve_opcode_get_outarg(csound, entries, condInTypes); */
 
-    OENTRIES* entries = find_opcode2(csound, ":cond");
-    outype = resolve_opcode_get_outarg(csound, entries, condInTypes);
+/*     if (outype == NULL) { */
+/*       csound->Free(csound, entries); */
+/*       return NULL; */
+/*     } */
 
-    if (outype == NULL) {
-      csound->Free(csound, entries);
-      return NULL;
-    }
-
-    outarg = create_out_arg(csound, outype,
-                            typeTable->localPool->synthArgCount++, typeTable);
-    opTree = create_opcode_token(csound, cs_strdup(csound, ":cond"));
-    opTree->left = create_ans_token(csound, outarg);
-    opTree->right = b;
-    opTree->right->next = c;
-    opTree->right->next->next = d;
-    /* should recycle memory for root->right */
-    //csound->Free(csound, root->right); root->right = NULL;
-    last->next = opTree;
-    print_tree(csound, "Answer:\n", anchor);
-    csound->Free(csound, entries);
-    return anchor;
-}
-#endif
+/*     outarg = create_out_arg(csound, outype, */
+/*                             typeTable->localPool->synthArgCount++, typeTable); */
+/*     opTree = create_opcode_token(csound, cs_strdup(csound, ":cond")); */
+/*     opTree->left = create_ans_token(csound, outarg); */
+/*     opTree->right = b; */
+/*     opTree->right->next = c; */
+/*     opTree->right->next->next = d; */
+/*     /\* should recycle memory for root->right *\/ */
+/*     //csound->Free(csound, root->right); root->right = NULL; */
+/*     last->next = opTree; */
+/*     csound->Free(csound, entries); */
+/*     return anchor; */
+/* } */
 
 static char* create_out_arg_for_expression(CSOUND* csound, char* op, TREE* left,
                                            TREE* right, TYPE_TABLE* typeTable) {
