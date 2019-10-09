@@ -78,7 +78,8 @@ def runTest():
         ["bugname.csd", "recompilation of instr"],
         ["vbapa.csd", "array case of vbap"],
         ["bugi.csd", "i() and array access"],
-        ["gerr.csd", "array syntax error", 1]
+        ["gerr.csd", "array syntax error", 1],
+        ["conditional", "conditional expression"]
     ]
 
     output = ""

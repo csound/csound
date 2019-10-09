@@ -52,6 +52,9 @@ static TREE *create_boolean_expression(CSOUND*, TREE*, int, int, TYPE_TABLE*);
 static TREE *create_expression(CSOUND *, TREE *, int, int, TYPE_TABLE*);
 char *check_annotated_type(CSOUND* csound, OENTRIES* entries,
                            char* outArgTypes);
+static TREE *create_synthetic_label(CSOUND *csound, int32 count);
+extern void do_baktrace(CSOUND *csound, uint64_t files);
+
 
 
 static int genlabs = 300;
@@ -288,11 +291,6 @@ int is_boolean_expression_node(TREE *node)
 
 //#ifdef JPFF
 
-static TREE *create_synthetic_label(CSOUND *csound, int32 count);
-static char* create_out_arg_for_expression(CSOUND* csound, char* op, TREE* left,
-                                           TREE* right, TYPE_TABLE* typeTable);
-extern void do_baktrace(CSOUND *csound, uint64_t files);
-
 static TREE *create_cond_expression(CSOUND *csound,
                                     TREE *root, int line, int locn,
                                     TYPE_TABLE* typeTable)
@@ -333,7 +331,7 @@ static TREE *create_cond_expression(CSOUND *csound,
     }
     //printf("boolvalr = %s, type=%d\n", last->left->value->lexeme, type);
     //print_tree(csound, "\nL1\n", L1);
-    
+
     last->next = create_opcode_token(csound, type==1?"cigoto":"ckgoto");
     xx = create_empty_token(csound);
     xx->type = T_IDENT;
