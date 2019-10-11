@@ -19,6 +19,7 @@ option(BUILD_SELECT_OPCODE "Build the select opcode" ON)
 option(BUILD_STACK_OPCODES "Build the stack opcodes" ON)
 option(BUILD_LINEAR_ALGEBRA_OPCODES "Build the linear algebra opcodes" OFF)
 option(BUILD_PVSGENDY_OPCODE "Build the pvsgendy opcode" OFF)
+option(BUILD_MP3OUT_OPCODE "Build the mp3out opcode" OFF)
 
 message(STATUS "## Building Opcodes ##")
 #find_package (Eigen3 3.3 REQUIRED NO_MODULE)
@@ -300,6 +301,11 @@ endif()
 
 if(BUILD_PVSGENDY_OPCODES)
     make_plugin(pvsgendy pvsgendy.c)
+endif()
+
+if(BUILD_MP3OUT_OPCODE)
+    make_plugin(mp3out lame.c)
+    target_link_libraries(mp3out -lmp3lame)
 endif()
 
 

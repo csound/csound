@@ -36,9 +36,9 @@ Any valid HTML can also be used.
 ### Orchestra
 
 - The conditional expresson syntax a?b:c incorrectly always
-  calculated b and c before selecting which to return.  Ths coulfd
-  give incorrect devision by zero errors or cause unexpecte multiple
-  evaluations of opcodes.  It now impemens te sommon C-like semantics.
+  calculated b and c before selecting which to return.  This could
+  give incorrect devision by zero errors or cause unexpected multiple
+  evaluations of opcodes.  It now impements the common C-like semantics.
 
 ### Score
 
