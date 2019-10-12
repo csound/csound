@@ -1,5 +1,5 @@
 /*
-  mp3in.c:
+  mp3out.c:
 
   Copyright (C) 2019 by John ffitch
 
@@ -29,15 +29,19 @@ typedef struct _mp3out {
   MYFLT             *al;
   MYFLT             *ar;
   STRINGDAT         *filename;
+  MYFLT             *bitrate;
+  MYFLT             *quality;
+  MYFLT             *mode;
   lame_global_flags *gfp;
   FILE              *fout;
   AUXCH             auxch;
   void              *mp3buffer;
   int               mp3buffer_size;
-
   MYFLT             *leftpcm;
   MYFLT             *rightpcm;
 } MP3OUT;
+
+#define DEFAULT_RATE (256)
 
 #ifdef USE_DOUBLE
 #define lame_encode_buffer_ieee_MYFLT lame_encode_buffer_ieee_double
@@ -62,16 +66,22 @@ int mp3out_cleanup(CSOUND *csound, MP3OUT *p)
 int mp3out_init(CSOUND *csound, MP3OUT* p)
 {
     int ret_code;
+    int bitrate, quality, mode;
     unsigned int nsmps = csound->GetKsmps(csound);
     lame_global_flags *gfp;
     gfp = lame_init();
     p->gfp = gfp;
-    
+
+    bitrate = (*p->bitrate<0) ? DEFAULT_RATE : (int)MYFLT2LRND(*p->bitrate);
+    quality = (*p->quality<0) ? 2 : (int)MYFLT2LRND(*p->quality);
+    if (quality>9) quality = 9;
+    mode = MYFLT2LRND(*p->mode);
+    if (mode>3||mode<0) mode = 1;
     lame_set_num_channels(gfp,2);
     lame_set_in_samplerate(gfp,csound->GetSr(csound));
-    lame_set_brate(gfp,128);
-    lame_set_mode(gfp,1);
-    lame_set_quality(gfp,2);   /* 2=high  5 = medium  7=low */ 
+    lame_set_brate(gfp,bitrate);
+    lame_set_mode(gfp,mode);
+    lame_set_quality(gfp,quality);   /* 2=high  5 = medium  7=low */ 
     if (UNLIKELY(ret_code = lame_init_params(gfp)) <0)
       return csound->InitError(csound,
                                Str("Failed to initialise LAME %d\n"), ret_code);
@@ -113,7 +123,7 @@ int mp3out_perf(CSOUND *csound, MP3OUT *p)
 #define S(x)    sizeof(x)
 
 static OENTRY localops[] = {
-  { "mp3out", S(MP3OUT), 0, 3, "", "aaS", (SUBR)mp3out_init, (SUBR)mp3out_perf}
+  { "mp3out", S(MP3OUT), 0, 3, "", "aaSjjp", (SUBR)mp3out_init, (SUBR)mp3out_perf}
 };
 
 LINKAGE
