@@ -107,7 +107,7 @@ struct PVTrace2 : csnd::FPlugin<2, 5> {
       int end = (int) inargs[4];
       std::transform(fin.begin() + start,
                      end ? fin.begin() +
-                     (end <= fin.len() ? end : fin.len()) :
+                     ((unsigned int)end <= fin.len() ? end : fin.len()) :
                      fin.end(), amps.begin(),
                      [](csnd::pv_bin f) { return f.amp(); });
       std::nth_element(amps.begin(), amps.begin() + n, amps.end());
