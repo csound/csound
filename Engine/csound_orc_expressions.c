@@ -319,12 +319,13 @@ static TREE *create_cond_expression(CSOUND *csound,
     //printf("types %s %s\n", left, right);
     if (left[0]=='c') left[0] = 'i';
     if (right[0]=='c') right[0] = 'i';
-    if (strcmp(left, right)) {
-      synterr(csound, Str("condition expression types do not match\n"));
-      do_baktrace(csound, root->locn);
-      return NULL;
-    }
-    type = (left[0]=='i') ? 1: 2;
+    type = (left[0]=='k' || right[0]=='k') ?2 : 1;
+    /* if (strcmp(left, right)) { */
+    /*   synterr(csound, Str("condition expression types do not match\n")); */
+    /*   do_baktrace(csound, root->locn); */
+    /*   return NULL; */
+    /* } */
+    /* type = (left[0]=='i') ? 1: 2; */
     last = b;
     while (last->next != NULL) {
       last = last->next;
