@@ -326,6 +326,8 @@ static TREE *create_cond_expression(CSOUND *csound,
     /*   return NULL; */
     /* } */
     /* type = (left[0]=='i') ? 1: 2; */
+    if (type==2) left[0] = right[0] = 'k';
+    //printf("type = %d\n", type);
     last = b;
     while (last->next != NULL) {
       last = last->next;
