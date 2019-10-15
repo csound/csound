@@ -58,6 +58,11 @@ if(USE_JACK)
     # I am hardcoding it for MacOS
     set(JACK_HEADER  "jack/jack.h")
     endif()
+    if(WIN32)
+    # HLO: including the jack2 common source dir
+    # prevents "cannot open include file" errors
+    find_path(JACK_INCLUDE_PATH jack/jack.h)
+    endif()
 endif()
 if(USE_PULSEAUDIO)
     find_library(PULSEAUDIO_LIBRARY pulse)
@@ -214,6 +219,8 @@ if(USE_JACK)
         list(APPEND rtjack_LIBS
             ${JACK_LIBRARY} ${PTHREAD_LIBRARY})
     elseif(WIN32)
+        check_deps(JACK_INCLUDE_PATH)
+        include_directories("${JACK_INCLUDE_PATH}")
         list(APPEND rtjack_LIBS
             ${JACK_LIBRARY} ${PTHREAD_LIBRARY})
     else()
