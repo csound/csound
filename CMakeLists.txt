@@ -549,8 +549,8 @@ find_package(SWIG)
 find_package(VSTSDK2X)
 
 
-# TODO should this work for MSVC also?
-if(WIN32)
+# LIBSNDFILE_LIBRARY and SNDFILE_H_PATH flags are enough for MSVC
+if(WIN32 AND NOT MSVC)
   find_library(FLAC_LIB NAMES FLAC flac)
   find_library(OGG_LIB ogg)
   find_library(SPEEX_LIB speex)
