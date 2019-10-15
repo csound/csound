@@ -52,7 +52,6 @@ if(USE_PORTMIDI)
 endif()
 if(USE_JACK)
     find_library(JACK_LIBRARY jack)
-    find_library(JACKDMP_LIBRARY jackdmp)
     check_include_file(jack/jack.h JACK_HEADER)
     if(APPLE)
     # VL: could not find a way to make check_include_file() work so
@@ -216,7 +215,7 @@ if(USE_JACK)
             ${JACK_LIBRARY} ${PTHREAD_LIBRARY})
     elseif(WIN32)
         list(APPEND rtjack_LIBS
-            ${JACKDMP_LIBRARY} ${PTHREAD_LIBRARY})
+            ${JACK_LIBRARY} ${PTHREAD_LIBRARY})
     else()
         list(APPEND rtjack_LIBS
             ${JACK_LIBRARY} ${PTHREAD_LIBRARY})
