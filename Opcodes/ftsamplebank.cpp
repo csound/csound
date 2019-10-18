@@ -151,8 +151,6 @@ int loadSamplesToTables(CSOUND *csound, int index, char *directory,
           if(fname.find_last_of(".") != std::string::npos)
             extension = fname.substr(fname.find_last_of("."));
 
-          csound->Message(csound, "Extension: %s", extension.c_str());
-
           if(extension == fileExtensions[i])
             {
               if (strlen(directory) > 2) {
