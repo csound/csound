@@ -101,10 +101,9 @@ public:
   // init-pass
   int init(CSOUND *csound) {
     IGN(csound);
-    *numberOfFiles = 0;
-    // loadSamplesToTables(csound, *index, fileNames,
-    // (char* )sDirectory->data, *skiptime, *format, *channel);
-    // csound->Message(csound, (char* )sDirectory->data);
+    *numberOfFiles =
+          loadSamplesToTables(csound, *index, (char *)sDirectory->data,
+                              *skiptime, *format, *channel);
     *trigger = 0;
     return OK;
   }
@@ -150,7 +149,9 @@ int loadSamplesToTables(CSOUND *csound, int index, char *directory,
           std::string fname = ent->d_name;
           std::string extension;
           if(fname.find_last_of(".") != std::string::npos)
-            extension = fname.substr(fname.find_last_of(".")+1);
+            extension = fname.substr(fname.find_last_of("."));
+
+          csound->Message(csound, "Extension: %s", extension.c_str());
 
           if(extension == fileExtensions[i])
             {
@@ -165,6 +166,7 @@ int loadSamplesToTables(CSOUND *csound, int index, char *directory,
               fullFileName << ent->d_name;
 
             noOfFiles++;
+            
             fileNames.push_back(fullFileName.str());
           }
         }
