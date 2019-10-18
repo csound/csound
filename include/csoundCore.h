@@ -1380,11 +1380,14 @@ typedef struct _message_queue_t_ {
                                char* , char*);
     OENTRY* (*find_opcode_exact)(CSOUND*, char*,
                                char* , char*);
+    int (*GetChannelPtr)(CSOUND *,MYFLT **, const char *, int);
+    int (*ListChannels)(CSOUND *, controlChannelInfo_t **);
+    
        /**@}*/
     /** @name Placeholders
         To allow the API to grow while maintining backward binary compatibility. */
     /**@{ */
-    SUBR dummyfn_2[34];
+    SUBR dummyfn_2[32];
     /**@}*/
 #ifdef __BUILDING_LIBCSOUND
     /* ------- private data (not to be used by hosts or externals) ------- */
