@@ -50,6 +50,8 @@ check_include_file(wiiuse.h WIIUSE_H)
 find_library(WIIUSE_LIB wiiuse)
 check_include_file(p5glove.h P5GLOVE_H)
 find_library(P5GLOVE_LIB p5glove)
+check_include_file(lame.h LAME_HEADER)
+find_library(LAME_LIB mp3lame)
 
 ## OPCODE LIBS WITH NO EXTERNAL DEPENDENCIES ##
 
@@ -303,9 +305,9 @@ if(BUILD_PVSGENDY_OPCODES)
     make_plugin(pvsgendy pvsgendy.c)
 endif()
 
+check_deps(BUILD_MP3OUT_OPCODE LAME_H)
 if(BUILD_MP3OUT_OPCODE)
-    make_plugin(mp3out lame.c)
-    target_link_libraries(mp3out -lmp3lame)
+    make_plugin(mp3out lame.c $LAME_LIB})
 endif()
 
 
