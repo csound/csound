@@ -1,0 +1,17 @@
+tmp
+generate.js
+__pycache__
+*.pyc
+*.ftsave
+!include/*
+include/*.pvx
+include/*.het
+include/*.lpc
+opcodes/pvsfwrite/mypvs.pvx
+opcodes/monitor/fout_aif.aiff
+MIDI2cs.sco
+fout_aif.aiff
+my.sco
+mypvs.pvx
+test1.txt
+test.txt

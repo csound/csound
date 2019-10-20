@@ -1,0 +1,38 @@
+<CsoundSynthesizer>
+<CsInstruments>
+
+; Initialize the global variables.
+sr = 44100
+kr = 4410
+ksmps = 10
+nchnls = 1
+
+; Instrument #1.
+instr 1
+  icps = 220
+  iamp = 20000
+  kpick = 0.5
+  iplk = 0
+  idamp = 10
+  ifilt = 1000
+
+  axcite oscil 1, 1, 1
+  apluck wgpluck icps, iamp, kpick, iplk, idamp, ifilt, axcite
+
+  out apluck
+endin
+
+
+</CsInstruments>
+<CsScore>
+
+; Table #1, a sine wave.
+f 1 0 16384 10 1
+
+; Play Instrument #1 for two seconds.
+i 1 0 2
+e
+
+
+</CsScore>
+</CsoundSynthesizer>

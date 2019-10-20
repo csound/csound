@@ -1,0 +1,28 @@
+<CsoundSynthesizer>
+<CsInstruments>
+
+sr = 44100
+ksmps = 32
+nchnls = 2
+
+instr 1
+
+iamp = p4
+idb  = dbamp(iamp)
+     print idb
+asig vco2 iamp, 110	;sawtooth
+     outs asig, asig
+
+endin
+
+</CsInstruments>
+<CsScore>
+
+i 1 0 1 100
+i 1 + 1 1000
+i 1 + 1 10000
+i 1 + 1 20000
+e
+
+</CsScore>
+</CsoundSynthesizer>
