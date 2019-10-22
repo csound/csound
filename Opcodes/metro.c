@@ -1,7 +1,7 @@
 /*
     metro.c:
 
-    Copyright (C) 2000 Gabriel Maldonado
+    Copyright (C) 2000 Gabriel Maldonado, (C) 2019 Gleb Rogozinsky
 
     This file is part of Csound.
 
@@ -30,6 +30,15 @@ typedef struct {
         double  curphs;
         int32_t flag;
 } METRO;
+
+// METRO2 ADDED BY GLEB ROGOZINSKY Oct 2019
+typedef struct {
+        OPDS    h;
+        MYFLT   *sr, *xcps, *kswng, *iamp, *iphs;
+        double  amp2, curphs, curphs2, swng_init;
+        int32_t flag, flag2;
+} METRO2;
+//
 
 typedef struct  {
         OPDS    h;
@@ -64,8 +73,8 @@ static int32_t metro_set(CSOUND *csound, METRO *p)
 
 static int32_t metro(CSOUND *csound, METRO *p)
 {
-     IGN(csound);
     double      phs= p->curphs;
+    IGN(csound);
     if (phs == 0.0 && p->flag) {
       *p->sr = FL(1.0);
       p->flag = 0;
@@ -80,6 +89,67 @@ static int32_t metro(CSOUND *csound, METRO *p)
     p->curphs = phs;
     return OK;
 }
+
+/* GLEB ROGOZINSKY Oct 2019
+   Opcode metro2 in addition to 'classic' metro opcode,
+   allows swinging with possibiliy of setting its own amplitude value
+*/
+static int32_t metro2_set(CSOUND *csound, METRO2 *p)
+{
+    double phs = *p->iphs;
+    double swng = *p->kswng;
+    int32  longphs;
+    p->amp2 = *p->iamp;
+
+    if (phs >= 0.0) {
+      if (UNLIKELY((longphs = (int32)phs)))
+        csound->Warning(csound, Str("metro2:init phase truncation"));
+      p->curphs = (MYFLT)phs - (MYFLT)longphs;
+      p->curphs2 = (MYFLT)phs - (MYFLT)longphs + 1.0 - (MYFLT)swng;
+    }
+    p->flag = 1;
+    p->flag2 = 1;
+    p->swng_init = (MYFLT)swng;
+    return OK;
+}
+
+static int32_t metro2(CSOUND *csound, METRO2 *p)
+{
+    double      phs= p->curphs;
+    double      phs2= p->curphs2;
+    double      phs2_init = p->swng_init;
+    double      amp2= p->amp2;
+    double      swng= *p->kswng;
+    IGN(csound);
+// MAIN TICK
+    if (phs == 0.0 && p->flag) {
+      *p->sr = FL(1.0);
+      p->flag = 0;
+    }
+    else if ((phs += *p->xcps * CS_ONEDKR * 0.5) >= 1.0 ) {
+      *p->sr = FL(1.0);
+      phs -= 1.0;
+      p->flag = 0;
+    }
+    else
+      *p->sr = FL(0.0);
+    p->curphs = phs;
+
+// SWINGING TICK
+    if (phs2 == 0.0 && p->flag2) {
+      *p->sr = FL(amp2);
+      p->flag2 = 0;
+    }
+    else if ((phs2 += *p->xcps * CS_ONEDKR * 0.5) >= (1.0 + swng - phs2_init) ) {
+      *p->sr = FL(amp2);
+      phs2 -= 1.0;
+      p->flag2 = 0;
+    }
+    p->curphs2 = phs2;
+
+    return OK;
+}
+//
 
 static int32_t split_trig_set(CSOUND *csound,   SPLIT_TRIG *p)
 {
@@ -255,6 +325,7 @@ static int32_t timeseq(CSOUND *csound, TIMEDSEQ *p)
 
 static OENTRY localops[] = {
   { "metro",  S(METRO),  0,  3,      "k", "ko",  (SUBR)metro_set, (SUBR)metro     },
+  { "metro2", S(METRO2), 0,  3,      "k", "kkpo", (SUBR)metro2_set, (SUBR)metro2  },
   { "splitrig", S(SPLIT_TRIG), 0, 3, "",  "kkiiz",
                                         (SUBR)split_trig_set, (SUBR)split_trig },
   { "timedseq",S(TIMEDSEQ), TR, 3, "k", "kiz", (SUBR)timeseq_set, (SUBR)timeseq }
@@ -266,4 +337,3 @@ int32_t metro_init_(CSOUND *csound)
                                  (int32_t
                                   ) (sizeof(localops) / sizeof(OENTRY)));
 }
-
