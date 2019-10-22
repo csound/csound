@@ -1523,7 +1523,7 @@ PUBLIC int csoundModuleInit(CSOUND *csound) {
 
 PUBLIC int csoundModuleDestroy(CSOUND *csound) {
   if (csound->GetDebug(csound)) {
-    csound->Message(csound, "signalflowgraph: csoundModuleDestroy(%p)\n",
+    csound->Message(csound, "signalflowgraph: csoundModuleDestroy(%p)...\n",
                     csound);
   }
   SignalFlowGraphState *sfg_globals = 0;
@@ -1531,7 +1531,7 @@ PUBLIC int csoundModuleDestroy(CSOUND *csound) {
   if (sfg_globals != 0) {
     sfg_globals->clear();
     if (sfg_globals->signal_flow_ports_lock != 0) {
-      csound->UnlockMutex(sfg_globals->signal_flow_ports_lock);
+      // Unlocked in clear(): csound->UnlockMutex(sfg_globals->signal_flow_ports_lock);
       csound->DestroyMutex(sfg_globals->signal_flow_ports_lock);
     }
     if (sfg_globals->signal_flow_ftables_lock != 0) {
@@ -1543,6 +1543,10 @@ PUBLIC int csoundModuleDestroy(CSOUND *csound) {
     csound->DestroyGlobalVariable(csound, "sfg_globals");
     delete sfg_globals;
     sfg_globals = nullptr;
+  }
+  if (csound->GetDebug(csound)) {
+    csound->Message(csound, "signalflowgraph: csoundModuleDestroy(%p).\n",
+                    csound);
   }
   return 0;
 }
