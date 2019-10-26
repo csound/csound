@@ -115,7 +115,7 @@ if(BUILD_PYTHON_INTERFACE OR BUILD_JAVA_INTERFACE OR BUILD_LUA_INTERFACE)
 		 LANGUAGE python 
 		 SOURCES python_interface.i)
  	else()
-	    SWIG_ADD_MODULE(csnd6 python python_interface.i)
+	    SWIG_ADD_LIBRARY(csnd6 LANGUAGE python SOURCES python_interface.i)
 	endif()
         swig_link_libraries(csnd6 ${swigpython_LIBS})
         target_include_directories(${SWIG_MODULE_csnd6_REAL_NAME} PRIVATE ${PYTHON_INCLUDE_PATH})
@@ -185,7 +185,7 @@ endif()
                          LANGUAGE java 
                          SOURCES java_interface.i)
  	else()
-	    SWIG_ADD_MODULE(_jcsound6 java java_interface.i)
+	    SWIG_ADD_LIBRARY(_jcsound6 LANGUAGE java SOURCES java_interface.i)
 	endif()
         SWIG_LINK_LIBRARIES(_jcsound6 ${swigjava_LIBS})
         target_include_directories(${SWIG_MODULE__jcsound6_REAL_NAME}
