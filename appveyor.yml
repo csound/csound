@@ -27,6 +27,7 @@ init:
 install:
   - cd msvc
   - dir
+  - choco config set --name="'webRequestTimeoutSeconds'" --value="'500'"
   - powershell -ExecutionPolicy ByPass -File downloadDependencies.ps1 -vsGenerator "%VSGENERATOR%" -vsToolset "%VSTOOLSET%"
   - powershell -ExecutionPolicy ByPass -File generateProject.ps1 -vsGenerator "%VSGENERATOR%" -vsToolset "%VSTOOLSET%"
   # Download and unzip manual and CsoundQT for inclusion with the installer
