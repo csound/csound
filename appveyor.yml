@@ -1,4 +1,4 @@
-image: Visual Studio 2017
+image: Visual Studio 2019
 
 environment:
   APPVEYOR_SAVE_CACHE_ON_ERROR: "true"
@@ -6,8 +6,8 @@ environment:
   CsoundDepsDir: C:\projects\csound\msvc\deps\bin
   CSOUND_VERSION: 6.13.0
   VCPKGDir: C:\Tools\vcpkg
-  VSGENERATOR: Visual Studio 15 2017 Win64
-  VSTOOLSET: v141
+  VSGENERATOR: Visual Studio 16 2019
+  VSTOOLSET: v142
 
 platform: x64
 configuration: RelWithDebInfo

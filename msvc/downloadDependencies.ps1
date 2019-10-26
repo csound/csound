@@ -1,7 +1,7 @@
 param
 (
-    [string]$vsGenerator="Visual Studio 15 2017 Win64",
-    [string]$vsToolset="v141"
+    [string]$vsGenerator="Visual Studio 16 2019",
+    [string]$vsToolset="v142"
 )
 
 echo "Downloading Csound dependencies..."
