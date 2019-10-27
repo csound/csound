@@ -431,7 +431,7 @@ static int32_t lpanal(CSOUND *csound, int32_t argc, char **argv)
         case 'p':       FIND(Str("no poles"))
                         sscanf(s,"%d",&lpc.poleCount);
                         if (lpc.poleCount<=0) {
-                          csound->Message(csound,
+                          csound->Message(csound, "%s",
                                           Str("Invalid pole count; set to 1\n"));
                           lpc.poleCount = 1;
                         }

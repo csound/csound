@@ -616,8 +616,9 @@ struct JackoState {
   }
   int JackProcessCallback(jack_nframes_t frames) {
     IGN(frames);
+    int result = 0;
     if (jacko_is_driving == false) {
-      return 0;
+      return result;
     }
     // We must call PerformKsmps here ONLY after the original
     // Csound jacko_is_driving thread is waiting on its condition.
@@ -656,11 +657,11 @@ struct JackoState {
         jacko_is_driving = false;
         csound->Message(csound, "%s", Str("Jacko performance finished.\n"));
         // Create a thread to run the close routine.
-        int result = pthread_create(&closeThread, 0, 
+        result = pthread_create(&closeThread, 0, 
           &JackoState::closeThreadRoutine_, this);
       }
     }
-    return 0;
+    return result;
   }
   int close() {
     csound->Message(csound, "%s", Str("JackoState::close...\n"));
@@ -1430,7 +1431,7 @@ PUBLIC int csoundModuleInit(CSOUND *csound) {
 }
 
 PUBLIC int csoundModuleDestroy(CSOUND *csound) {
-  csound->Message(csound, "%s", Str("Jacko: csoundModuleDestroy...\n"));
+  // csound->Message(csound, "%s", Str("Jacko: csoundModuleDestroy...\n"));
   int result = OK;
   JackoState *jackoState = 0;
   csound::QueryGlobalPointer(csound, "jackoState", jackoState);
@@ -1441,7 +1442,7 @@ PUBLIC int csoundModuleDestroy(CSOUND *csound) {
     delete jackoState;
     jackoState = 0;
   }
-  csound->Message(csound, "%s", Str("Jacko: csoundModuleDestroy.\n"));
+  //csound->Message(csound, "%s", Str("Jacko: csoundModuleDestroy.\n"));
   return result;
 }
 }
