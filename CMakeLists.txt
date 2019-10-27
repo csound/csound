@@ -7,7 +7,7 @@ project(Csound)
 
 ENABLE_TESTING()
 
-if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
+if (${CMAKE_CXX_COMPILER_ID} STREQUAL "Clang")
 set(CMAKE_COMPILER_IS_CLANG 1)
 endif()
 
@@ -176,7 +176,7 @@ endif()
 endif()
 
 if(APPLE)
-set(CMAKE_REQUIRED_INCLUDES time.h)
+list(APPEND CMAKE_REQUIRED_INCLUDES "time.h")
 CHECK_FUNCTION_EXISTS(clock_gettime CLOCK_GETTIME)
 if(${CLOCK_GETTIME})
  message(STATUS  "clock_gettime() found")
@@ -236,11 +236,6 @@ if(WIN32 AND NOT MSVC)
     endif()
 
     set(CMAKE_MODULE_LINKER_FLAGS "${CMAKE_MODULE_LINKER_FLAGS} -Wl,--add-stdcall-alias")
-endif()
-
-if(MSVC)
-  include_directories(${PROJECT_SOURCE_DIR}/msvc/include)
-  list(APPEND CMAKE_REQUIRED_INCLUDES "${PROJECT_SOURCE_DIR}/msvc/deps/include")
 endif()
 
 if(WIN32)
@@ -589,7 +584,7 @@ if(NOT MSVC AND REQUIRE_PTHREADS)
   endif()
 
   #FIXME this variable is for required include directories, possible bug
-  set(CMAKE_REQUIRED_INCLUDES pthread.h)
+  list(APPEND CMAKE_REQUIRED_INCLUDES pthread.h)
   if (NOT HAIKU)
     set(CMAKE_REQUIRED_LIBRARIES pthread)
   endif()
@@ -615,7 +610,7 @@ endif()
 
 find_library(VORBISFILE_LIBRARY vorbisfile)
 check_include_file(libintl.h LIBINTL_HEADER)
-find_path(EIGEN3_INCLUDE_PATH eigen3/Eigen/Dense)
+find_package(Eigen3)
 find_package(GMM)
 find_library(LIBINTL_LIBRARY intl)
 find_package(Gettext)
