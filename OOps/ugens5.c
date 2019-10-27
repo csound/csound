@@ -1128,18 +1128,24 @@ int32_t lpfrsnset(CSOUND *csound, LPFRESON *p)
 {
 
    /* Connect to previously loaded analysis file */
-
+   
     if (((LPREAD**) csound->lprdaddr)[csound->currentLPCSlot]->storePoles) {
       return csound->InitError(csound, Str("Pole file not supported "
                                            "for this opcode !"));
     }
+    
+    
     p->lpread = ((LPREAD**) csound->lprdaddr)[csound->currentLPCSlot];
+    if(p->lpread->npoles < 2) {
+      return csound->InitError(csound, Str("Two few poles (> 2)"));
+    }
+    
     p->prvratio = FL(1.0);
     p->d = FL(0.0);
     p->prvout = FL(0.0);
     csound->AuxAlloc(csound, (int32)(p->lpread->npoles*sizeof(MYFLT)), &p->aux);
     p->past = (MYFLT*)p->aux.auxp;
-
+   
     return OK;
 }
 
