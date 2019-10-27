@@ -72,7 +72,7 @@ set(CMAKE_VERBOSE_MAKEFILE ON)
 set(CMAKE_16BIT_TYPE "unsigned short")
 set(FAIL_MISSING OFF) # Enable when packaging
 list(APPEND CMAKE_PREFIX_PATH "${PROJECT_SOURCE_DIR}\\msvc\\deps;${PROJECT_SOURCE_DIR}\\msvc\\deps\\fluidsynthdeps")
-set(CMAKE_REQUIRED_INCLUDES ${PROJECT_SOURCE_DIR}\\msvc\\deps\\include)
+list(APPEND CMAKE_REQUIRED_INCLUDES "${PROJECT_SOURCE_DIR}\\msvc\\deps\\include")
 
 # Disable the following warnings in msvc
 # - C4244 loss of data in conversion
