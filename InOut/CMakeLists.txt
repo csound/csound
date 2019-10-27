@@ -16,7 +16,9 @@ option(USE_FLTK "Use FLTK for graphs and widget opcodes" ON)
 option(BUILD_VIRTUAL_KEYBOARD "Build Virtual MIDI keyboard" ON)
 option(NEED_PORTTIME "porttime library separate from portmidi" ON)
 
-set(CMAKE_REQUIRED_INCLUDES /usr/local/include)
+list(APPEND CMAKE_REQUIRED_INCLUDES "/usr/local/include")
+
+include(FindPortMidi)
 
 # FIND LIBRARIES AND HEADERS
 
