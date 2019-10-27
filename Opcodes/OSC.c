@@ -584,7 +584,7 @@ static int32_t OSC_deinit(CSOUND *csound, OSCINIT *p)
     lo_server_thread_stop(ports[n].thread);
     lo_server_thread_free(ports[n].thread);
     ports[n].thread =  NULL;
-    csound->Message(csound, "%s", Str("OSC deinitiatised\n"));
+    csound->Message(csound, "%s", Str("OSC deinitialised\n"));
     return OK;
 }
 
