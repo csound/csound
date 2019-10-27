@@ -22,7 +22,6 @@ option(BUILD_PVSGENDY_OPCODE "Build the pvsgendy opcode" OFF)
 option(BUILD_MP3OUT_OPCODE "Build the mp3out opcode" OFF)
 
 message(STATUS "## Building Opcodes ##")
-#find_package (Eigen3 3.3 REQUIRED NO_MODULE)
 include(CheckIncludeFiles)
 check_include_file(ladspa.h LADSPA_H)
 check_include_file(fluidsynth.h FLUIDSYNTH_H)
@@ -148,10 +147,10 @@ endif()
 
 ## OPCODES WITH EXTERNAL DEPENDENCIES ##
 
-check_deps(BUILD_CHUA_OPCODES EIGEN3_INCLUDE_PATH)
+check_deps(BUILD_CHUA_OPCODES EIGEN3_FOUND)
 if(BUILD_CHUA_OPCODES)
     make_plugin(chua chua/ChuaOscillator.cpp)
-    target_include_directories(chua PRIVATE)
+    target_link_libraries(chua PRIVATE Eigen3::Eigen)
  if(APPLE)
    set_target_properties(chua PROPERTIES COMPILE_FLAGS "-Wno-unused-local-typedef")
  endif()
