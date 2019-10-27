@@ -164,7 +164,7 @@ int loadSamplesToTables(CSOUND *csound, int index, char *directory,
               fullFileName << ent->d_name;
 
             noOfFiles++;
-            
+
             fileNames.push_back(fullFileName.str());
           }
         }

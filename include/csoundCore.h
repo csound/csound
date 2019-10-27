@@ -1382,7 +1382,7 @@ typedef struct _message_queue_t_ {
                                char* , char*);
     int (*GetChannelPtr)(CSOUND *,MYFLT **, const char *, int);
     int (*ListChannels)(CSOUND *, controlChannelInfo_t **);
-    
+
        /**@}*/
     /** @name Placeholders
         To allow the API to grow while maintining backward binary compatibility. */
