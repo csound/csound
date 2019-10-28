@@ -11,7 +11,7 @@ if (${CMAKE_CXX_COMPILER_ID} STREQUAL "Clang")
 set(CMAKE_COMPILER_IS_CLANG 1)
 endif()
 
-message(STATUS "${CMAKE_HOME_DIRECTORY}")
+message(STATUS "Csound directory: ${CMAKE_HOME_DIRECTORY}")
 
 # C++11 needed
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
@@ -612,7 +612,7 @@ endif()
 find_library(VORBISFILE_LIBRARY vorbisfile)
 check_include_file(libintl.h LIBINTL_HEADER)
 if(MSVC)
-    find_package(Eigen3)
+    find_package(Eigen3 3.3 NO_MODULE)
 else()
     find_path(EIGEN3_INCLUDE_PATH eigen3/Eigen/Dense)
 endif()
