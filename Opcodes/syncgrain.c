@@ -212,18 +212,18 @@ static int32_t syncgrainloop_init(CSOUND *csound, syncgrainloop *p)
     if (*p->iskip == 0) {
       int32_t size =  (p->olaps) * sizeof(double);
       if (p->index.auxp == NULL || p->index.size < (uint32_t)size)
-         csound->AuxAlloc(csound, size, &p->index);
+        csound->AuxAlloc(csound, size, &p->index);
       if (p->envindex.auxp == NULL || p->envindex.size < (uint32_t)size)
-          csound->AuxAlloc(csound, size, &p->envindex);
+        csound->AuxAlloc(csound, size, &p->envindex);
       size = (p->olaps) * sizeof(int32_t);
-       if (p->streamon.auxp == NULL || p->streamon.size > (uint32_t)size)
-          csound->AuxAlloc(csound, size, &p->streamon);
-    p->count = 0;                  /* sampling period counter */
-    p->numstreams = 0;                  /* curr num of streams */
-    p->firststream = 0;                 /* streams index (first stream)  */
-    p->start = *p->startpos*(p->sfunc->gen01args.sample_rate);
-    p->frac = 0.0f;
-    p->firsttime = 1;
+      if (p->streamon.auxp == NULL || p->streamon.size < (uint32_t)size)
+        csound->AuxAlloc(csound, size, &p->streamon);
+      p->count = 0;                  /* sampling period counter */
+      p->numstreams = 0;                  /* curr num of streams */
+      p->firststream = 0;                 /* streams index (first stream)  */
+      p->start = *p->startpos*(p->sfunc->gen01args.sample_rate);
+      p->frac = 0.0f;
+      p->firsttime = 1;
     }
     return OK;
 }
