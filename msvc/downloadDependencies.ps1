@@ -84,7 +84,8 @@ New-Item -type file $vcpkgDir\downloads\AlwaysAllowDownloads -errorAction Silent
 # Download all vcpkg packages available
 echo "Downloading VC packages..."
 $targetTriplet = "x64-windows-static"
-vcpkg --triplet $targetTriplet install eigen3 fltk zlib libflac libogg libvorbis libsndfile libsamplerate portmidi portaudio liblo hdf5 dirent
+# TODO must download asiosdk and extract before doing portaudio installation
+#vcpkg --triplet $targetTriplet install eigen3 fltk zlib libflac libogg libvorbis libsndfile libsamplerate portmidi portaudio liblo hdf5 dirent
 
 $vcpkgTiming = (Get-Date).TimeOfDay
 
