@@ -236,7 +236,7 @@ endif()
                          LANGUAGE lua 
                          SOURCES lua_interface.i)
  	else()
-	    SWIG_ADD_LIBRARY(luaCsnd6 LANGUAGE lua SOURCES lua_interface.i)
+	    SWIG_ADD_MODULE(luaCsnd6 lua lua_interface.i)
 	endif()
         SWIG_LINK_LIBRARIES(luaCsnd6 ${swiglua_LIBS})
 
