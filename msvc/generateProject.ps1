@@ -38,7 +38,6 @@ cd csound-vs -ErrorAction SilentlyContinue
 
 cmake ..\.. -G $vsGenerator -T $vsToolset  `
  -Wno-dev -Wdeprecated `
- -DCMAKE_FIND_DEBUG_MODE=ON `
  -DSTK_LOCAL:BOOL="ON" `
  -DCMAKE_BUILD_TYPE="RelWithDebInfo" `
  -DVCPKG_TARGET_TRIPLET=x64-windows-static `
