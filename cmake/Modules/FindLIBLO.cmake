@@ -60,7 +60,6 @@ else()
     if(liblo_FIND_REQUIRED)
       message(FATAL_ERROR "Could not find liblo")
     endif()
-    set(LIBLO_FOUND TRUE)
   endif()
 
   # show the LIBLO_INCLUDE_DIRS and LIBLO_LIBRARIES variables only in the advanced view
