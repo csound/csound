@@ -18,8 +18,6 @@ option(NEED_PORTTIME "porttime library separate from portmidi" ON)
 
 list(APPEND CMAKE_REQUIRED_INCLUDES "/usr/local/include")
 
-include(FindPortMidi)
-
 # FIND LIBRARIES AND HEADERS
 
 if(USE_ALSA)
@@ -161,7 +159,7 @@ else()
   message(STATUS "Portaudio v19 Found: ${PORTAUDIO_V19}.")
 endif()
 
-if(USE_PORTMIDI)
+if(USE_PORTMIDI AND PORTMIDI_FOUND)
     make_plugin(pmidi pmidi.c)
     target_include_directories(pmidi PRIVATE ${PORTMIDI_INCLUDE_DIRS})
     target_link_libraries(pmidi ${PORTMIDI_LIBRARIES})

@@ -49,11 +49,11 @@ else ()
 
   if (PORTMIDI_FOUND)
     if (NOT Portmidi_FIND_QUIETLY)
-      message(STATUS "Found libportmidi: ${PORTMIDI_LIBRARIES}")
+      message(STATUS "Found PortMidi: ${PORTMIDI_LIBRARIES}")
     endif ()
   else ()
     if (Portmidi_FIND_REQUIRED)
-      message(FATAL_ERROR "Could not find libportmidi")
+      message(FATAL_ERROR "Could not find PortMidi")
     endif ()
   endif()
 
