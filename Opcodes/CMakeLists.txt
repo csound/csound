@@ -216,7 +216,6 @@ if(BUILD_LINEAR_ALGEBRA_OPCODES AND GMM_FOUND)
     message(STATUS "Building linear algebra opcodes")
 endif()
 
-message(STATUS ("LIBLO: ${LIBLO_FOUND} - ${LIBLO_LIBRARIES}"))
 if(BUILD_OSC_OPCODES AND LIBLO_FOUND)
     make_plugin(osc OSC.c)
     if(WIN32)
