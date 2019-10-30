@@ -36,7 +36,7 @@ include(CheckCCompilerFlag)
 include(CheckCXXCompilerFlag)
 include(CMakePushCheckState)
 
-list(APPEND CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake/Modules/")
+list(APPEND CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/cmake/Modules/)
 message(STATUS "CMake module path: ${CMAKE_MODULE_PATH}")
 
 # Utility to munge with items in a list.
