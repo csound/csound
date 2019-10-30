@@ -21,7 +21,7 @@ class Test:
 def showUI(results):
     root = Tk()
     app = TestApplication(master=root)
-    app.setResults(results)
+    app.setResults(results.test_output_list)
     app.mainloop()
     root.destroy()
 
@@ -78,17 +78,15 @@ def runTest():
         ["bugname.csd", "recompilation of instr"],
         ["vbapa.csd", "array case of vbap"],
         ["bugi.csd", "i() and array access"],
-        ["gerr.csd", "array syntax error", 1]
+        ["gerr.csd", "array syntax error", 1],
+        ["conditional.csd", "conditional expression"]
     ]
 
     output = ""
     tempfile = "/tmp/csound_test_output.txt"
     counter = 1
 
-    retVals = []
-
-    testPass = 0
-    testFail = 0
+    retVals = TestResults()
 
     for t in tests:
         filename = t[0]
@@ -105,13 +103,13 @@ def runTest():
             command = "%s %s %s 2> %s"%(executable, runArgs, filename, tempfile)
             print command
             retVal = os.system(command)
-  
+
         out = ""
         if (retVal == 0) == (expectedResult == 0):
-            testPass += 1
+            retVals.tests_passsed += 1
             out = "[pass] - "
         else:
-            testFail += 1
+            retVals.tests_failed += 1
             out = "[FAIL] - "
 
         out += "Test %i: %s (%s)\n\tReturn Code: %i\tExpected: %d\n"%(counter, desc, filename, retVal, expectedResult
@@ -131,7 +129,7 @@ def runTest():
 
         f.close()
 
-        retVals.append(t + [retVal, csOutput])
+        retVals.add_result(t + [retVal, csOutput])
 
         output += "\n\n"
         counter += 1
@@ -139,7 +137,7 @@ def runTest():
 #    print output
 
     print "%s\n\n"%("=" * 80)
-    print "Tests Passed: %i\nTests Failed: %i\n"%(testPass, testFail)
+    print "Tests Passed: %i\nTests Failed: %i\n"%(retVals.tests_passsed, retVals.tests_failed)
 
 
     f = open("results.txt", "w")
@@ -148,6 +146,15 @@ def runTest():
     f.close()
 
     return retVals
+
+class TestResults:
+    def __init__(self):
+        self.test_output_list = []
+        self.tests_failed = 0
+        self.tests_passsed = 0
+
+    def add_result(self, result):
+        self.test_output_list.append(result)
 
 if __name__ == "__main__":
     if(len(sys.argv) > 1):
@@ -162,7 +169,11 @@ if __name__ == "__main__":
                 print csoundExecutable
             elif arg.startswith("--opcode6dir64="):
                 os.environ['OPCODE6DIR64'] = arg[15:]
-                print os.environ['OPCODE6DIR64'] 
+                print os.environ['OPCODE6DIR64']
     results = runTest()
     if (showUIatClose):
         showUI(results)
+    if results.tests_failed:
+        exit(1)
+    else:
+        exit(0)

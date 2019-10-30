@@ -2697,7 +2697,7 @@ static int gen01raw(FGDATA *ff, FUNC *ftp)
       ftp->nchanls  = p->nchanls;
     }
     else ftp->nchanls  = 1;
-    ftp->flenfrms = ff->flen / p->nchanls;  /* ?????????? */
+    ftp->flenfrms = ff->flen / ftp->nchanls;  /* VL fixed 8/10/19: using table nchnls */
     ftp->gen01args.sample_rate = (MYFLT) p->sr;
     ftp->cvtbas = LOFACT * p->sr * csound->onedsr;
     {

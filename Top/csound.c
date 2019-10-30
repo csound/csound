@@ -502,6 +502,8 @@ static const CSOUND cenviron_ = {
     csoundGetZaBounds,
     find_opcode_new,
     find_opcode_exact,
+    csoundGetChannelPtr,
+    csoundListChannels,
     {
       NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
       NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,

@@ -64,6 +64,8 @@ class CsoundNode extends AudioWorkletNode {
         this.stringChannelCallbacks = {};
         this.table = {};
         this.tableCallbacks = {};
+        this.playState = "stopped";
+        this.playStateListeners = new Set();
         this.port.onmessage = (event) => {
             let data = event.data;
             switch(data[0]) {
@@ -85,6 +87,10 @@ class CsoundNode extends AudioWorkletNode {
                 if (typeof this.tableCallbacks[data[1]] != 'undefined')
                       this.tableCallbacks[data[1]](); 
                break;
+            case "playState":
+                this.playState = data[1];
+                this.firePlayStateChange();
+                break;
             default:
                 console.log('[CsoundNode] Invalid Message: "' + event.data);
             }
@@ -314,6 +320,32 @@ class CsoundNode extends AudioWorkletNode {
         this.port.postMessage(["midiMessage", byte1, byte2, byte3]);
     }
 
+    /** Returns the current play state of Csound. Results are either
+     * "playing", "paused", or "stopped". 
+     */ 
+    getPlayState() {
+       return this.playState; 
+    }
+
+
+    /** Add a listener callback for play state listening. Must be a function 
+     * of type (csoundObj:CsoundObj):void. 
+     */ 
+    addPlayStateListener(listener) {
+        this.playStateListeners.add(listener);
+    }
+
+    /** Remove a listener callback for play state listening. Must be the same
+     * function as passed in with addPlayStateListener. 
+     */ 
+    removePlayStateListener(listener) {
+        this.playStateListeners.delete(listener);
+    }
+
+    firePlayStateChange() {
+        // uses CsoundObj's wrapper function
+        this.playStateListeners.forEach(v => v());
+    }
 }
 
 /** This E6 class is used to setup scripts and
@@ -350,5 +382,4 @@ class CsoundNodeFactory {
         return new CsoundNode(CSOUND_AUDIO_CONTEXT, options);
     }
 }
-
 

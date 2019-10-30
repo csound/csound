@@ -19,6 +19,7 @@ option(BUILD_SELECT_OPCODE "Build the select opcode" ON)
 option(BUILD_STACK_OPCODES "Build the stack opcodes" ON)
 option(BUILD_LINEAR_ALGEBRA_OPCODES "Build the linear algebra opcodes" OFF)
 option(BUILD_PVSGENDY_OPCODE "Build the pvsgendy opcode" OFF)
+option(BUILD_MP3OUT_OPCODE "Build the mp3out opcode" OFF)
 
 message(STATUS "## Building Opcodes ##")
 #find_package (Eigen3 3.3 REQUIRED NO_MODULE)
@@ -49,6 +50,8 @@ check_include_file(wiiuse.h WIIUSE_H)
 find_library(WIIUSE_LIB wiiuse)
 check_include_file(p5glove.h P5GLOVE_H)
 find_library(P5GLOVE_LIB p5glove)
+check_include_file(lame.h LAME_HEADER)
+find_library(LAME_LIB mp3lame)
 
 ## OPCODE LIBS WITH NO EXTERNAL DEPENDENCIES ##
 
@@ -300,6 +303,11 @@ endif()
 
 if(BUILD_PVSGENDY_OPCODES)
     make_plugin(pvsgendy pvsgendy.c)
+endif()
+
+check_deps(BUILD_MP3OUT_OPCODE LAME_H)
+if(BUILD_MP3OUT_OPCODE)
+    make_plugin(mp3out lame.c $LAME_LIB})
 endif()
 
 

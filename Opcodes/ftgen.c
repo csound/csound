@@ -1,3 +1,4 @@
+
 /*
     ftgen.c:
 
@@ -37,7 +38,7 @@ typedef struct {
 
 typedef struct {
     OPDS    h;
-    MYFLT   *ifilno, *iflag, *argums[VARGMAX];
+    MYFLT   *ifilno, *iflag, *argums[VARGMAX-2];
 } FTLOAD;  /* gab 30 jul 2002 */
 
 typedef struct {
@@ -261,7 +262,7 @@ static int32_t ftload_(CSOUND *csound, FTLOAD *p, int32_t istring)
     FUNC  *(*ft_func)(CSOUND *, MYFLT *);
     void  *fd;
 
-    if (strncmp(csound->GetOpcodeName(p), "ftload", 6) != 0) {
+    if (strncmp(csound->GetOpcodeName(p), "ftloadk", 7) == 0) {
       nargs--;
       ft_func = csound->FTFindP;
       err_func = csound->PerfError;
@@ -727,7 +728,7 @@ static OENTRY localops[] = {
                                                   (SUBR) ftsave_kS, NULL       },
   { "ftloadk",  S(FTLOAD_K),  TW, 3,  "",   "ikim",   (SUBR) ftsave_k_set,
     (SUBR) ftload_k, NULL       },
- { "ftloadk.S",  S(FTLOAD_K),  TW, 3,  "",   "Skim",   (SUBR) ftsave_k_set,
+  { "ftloadk.S",  S(FTLOAD_K),  TW, 3,  "",   "Skim",   (SUBR) ftsave_k_set,
                                                   (SUBR) ftload_kS, NULL       }
 };
 

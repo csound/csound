@@ -201,6 +201,7 @@ extern int ISSTRCOD(MYFLT);
 #define WARNMSG 04
 #define RAWMSG  0x40
 #define TIMEMSG 0x80
+#define NOQQ    0x400
 #define IGN(X)  (void) X
 
 #define ARG_CONSTANT 0
@@ -1379,11 +1380,14 @@ typedef struct _message_queue_t_ {
                                char* , char*);
     OENTRY* (*find_opcode_exact)(CSOUND*, char*,
                                char* , char*);
+    int (*GetChannelPtr)(CSOUND *,MYFLT **, const char *, int);
+    int (*ListChannels)(CSOUND *, controlChannelInfo_t **);
+
        /**@}*/
     /** @name Placeholders
         To allow the API to grow while maintining backward binary compatibility. */
     /**@{ */
-    SUBR dummyfn_2[34];
+    SUBR dummyfn_2[32];
     /**@}*/
 #ifdef __BUILDING_LIBCSOUND
     /* ------- private data (not to be used by hosts or externals) ------- */

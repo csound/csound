@@ -66,11 +66,11 @@ struct binamp {
   float amp;
 };
 
-struct PVTrace2 : csnd::FPlugin<2, 3> {
+struct PVTrace2 : csnd::FPlugin<2, 5> {
   csnd::AuxMem<float> amps;
   csnd::AuxMem<binamp> binlist;
   static constexpr char const *otypes = "fk[]";
-  static constexpr char const *itypes = "fko";
+  static constexpr char const *itypes = "fkopp";
 
   int init() {
     csnd::Vector<MYFLT> &bins = outargs.vector_data<MYFLT>(1);
@@ -103,7 +103,12 @@ struct PVTrace2 : csnd::FPlugin<2, 3> {
       float thrsh;
       int cnt = 0;
       int bin = 0;
-      std::transform(fin.begin(), fin.end(), amps.begin(),
+      int start = (int) inargs[3];
+      int end = (int) inargs[4];
+      std::transform(fin.begin() + start,
+                     end ? fin.begin() +
+                     ((unsigned int)end <= fin.len() ? end : fin.len()) :
+                     fin.end(), amps.begin(),
                      [](csnd::pv_bin f) { return f.amp(); });
       std::nth_element(amps.begin(), amps.begin() + n, amps.end());
       thrsh = amps[n];
