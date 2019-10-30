@@ -1431,7 +1431,10 @@ PUBLIC int csoundModuleInit(CSOUND *csound) {
 }
 
 PUBLIC int csoundModuleDestroy(CSOUND *csound) {
-  // csound->Message(csound, "%s", Str("Jacko: csoundModuleDestroy...\n"));
+  if (csound->GetDebug(csound)) {
+    csound->Message(csound, "jacko: csoundModuleDestroy(%p)...\n",
+                    csound);
+  }
   int result = OK;
   JackoState *jackoState = 0;
   csound::QueryGlobalPointer(csound, "jackoState", jackoState);
@@ -1442,7 +1445,10 @@ PUBLIC int csoundModuleDestroy(CSOUND *csound) {
     delete jackoState;
     jackoState = 0;
   }
-  //csound->Message(csound, "%s", Str("Jacko: csoundModuleDestroy.\n"));
+  if (csound->GetDebug(csound)) {
+    csound->Message(csound, "jacko: csoundModuleDestroy(%p).\n",
+                    csound);
+  }
   return result;
 }
 }
