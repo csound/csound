@@ -30,6 +30,7 @@ $env:Path += ";"+ $depsDir + ";"
 # Find VCPKG from path if it already exists
 # Otherwise use the local Csound version that will be installed
 $systemVCPKG = $(Get-Command vcpkg -ErrorAction SilentlyContinue).Source
+$vcpkgDir = ""
 
 # Test if VCPKG is already installed on system
 # Download locally to outside the repo
@@ -51,8 +52,7 @@ elseif (Test-Path "..\..\vcpkg")
     cd ..\..\vcpkg
     $env:Path += ";" + $(Get-Location)
     $vcpkgDir = $(Get-Location)
-    [Environment]::SetEnvironmentVariable("VCPKGDir", $env:vcpkgDir,
-        [EnvironmentVariableTarget]::User)
+    [Environment]::SetEnvironmentVariable("VCPKGDir", $env:vcpkgDir, [EnvironmentVariableTarget]::User)
     echo "vcpkg already installed locally, updating"
     # Update and rebuild vcpkg
     git pull
@@ -82,7 +82,18 @@ New-Item -type file $vcpkgDir\downloads\AlwaysAllowDownloads -errorAction Silent
 # Download all vcpkg packages available
 echo "Downloading VC packages..."
 $targetTriplet = "x64-windows-static"
-# TODO must download asiosdk and extract before doing portaudio installation
+
+# Download asiosdk and extract before doing portaudio installation
+if (-not (Test-Path $vcpkgDir/buildtrees/portaudio/asiosdk)) {
+    echo "ASIOSDK not installed into VCPKG"
+    Invoke-WebRequest https://www.steinberg.net/asiosdk -OutFile cache/asiosdk.zip
+    Expand-Archive -Path cache/asiosdk.zip -DestinationPath $vcpkgDir/buildtrees/portaudio/src
+    Move-Item -Path $vcpkgDir/buildtrees/portaudio/src/asiosdk_* -Destination $vcpkgDir/buildtrees/portaudio/src/asiosdk
+    # Remove portaudio and it will get rebuilt with asio support in the next step
+    vcpkg --triplet $targetTriplet remove portaudio
+    
+}
+
 vcpkg --triplet $targetTriplet install eigen3 fltk zlib libflac libogg libvorbis libsndfile libsamplerate portmidi portaudio liblo hdf5 dirent
 
 $vcpkgTiming = (Get-Date).TimeOfDay
