@@ -13,7 +13,7 @@ jobs:
     steps:
     - uses: actions/checkout@v1
     - name: Build the Docker image
-      run: docker build . --file DockerFiles/Emscripten/ --tag csound_emscripten_run
+      run: docker build . --file DockerFiles/Android/ --tag csound_emscripten_run
       
     - name: run the Docker image
       run: docker run --name cosund_test_run -i csound_emscripten_run
