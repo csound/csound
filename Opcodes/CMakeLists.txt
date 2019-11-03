@@ -31,7 +31,7 @@ find_library(JACK_LIBRARY jack)
 find_library(JACKDMP_LIBRARY jackdmp)
 check_include_file(jack/jack.h JACK_HEADER)
 
-find_package(liblo)
+find_package(LIBLO)
 find_package(ZLIB)
 find_package(PNG)
 set(PYTHON_INCLUDE_DIRS "/usr/include/Python2.7")
