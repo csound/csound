@@ -91,10 +91,9 @@ if (-not (Test-Path $vcpkgDir/buildtrees/portaudio/asiosdk)) {
     Move-Item -Path $vcpkgDir/buildtrees/portaudio/src/asiosdk_* -Destination $vcpkgDir/buildtrees/portaudio/src/asiosdk
     # Remove portaudio and it will get rebuilt with asio support in the next step
     vcpkg --triplet $targetTriplet remove portaudio
-    
 }
 
-vcpkg --triplet $targetTriplet install eigen3 fltk zlib libflac libogg libvorbis libsndfile libsamplerate portmidi portaudio liblo hdf5 dirent
+vcpkg --triplet $targetTriplet install eigen3 fltk zlib libflac libogg libvorbis libsndfile libsamplerate portmidi portaudio liblo hdf5 dirent libstk
 
 $vcpkgTiming = (Get-Date).TimeOfDay
 
@@ -122,8 +121,7 @@ $uriList=
 "http://ftp.acc.umu.se/pub/gnome/binaries/win64/dependencies/proxy-libintl-dev_20100902_win64.zip",
 "http://ftp.acc.umu.se/pub/gnome/binaries/win64/glib/2.26/glib-dev_2.26.1-1_win64.zip",
 "http://ftp.acc.umu.se/pub/gnome/binaries/win64/glib/2.26/glib_2.26.1-1_win64.zip",
-"http://download-mirror.savannah.gnu.org/releases/getfem/stable/gmm-5.1.tar.gz",
-"https://github.com/thestk/stk/archive/master.zip"
+"http://download-mirror.savannah.gnu.org/releases/getfem/stable/gmm-5.1.tar.gz"
 
 # Appends this folder location to the 'deps' uri
 $destList=
@@ -132,7 +130,6 @@ $destList=
 "fluidsynthdeps",
 "fluidsynthdeps",
 "fluidsynthdeps",
-"",
 ""
 
 # Download list of files to cache folder
@@ -168,12 +165,6 @@ for($i=0; $i -lt $uriList.Length; $i++)
     }
     echo "Extracted $fileName to $destDir"
 }
-
-# STK
-cd $depsDir
-
-Copy-Item ($destDir + "stk-master\*") ($csoundDir + "\Opcodes\stk") -recurse -force
-echo "STK: Copied sources to Csound opcodes directory."
 
 # GMM
 cd $cacheDir

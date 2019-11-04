@@ -48,7 +48,37 @@
  * See the STK class documentation to determine the controller numbers
  * used by each instrument.
  */
-#ifndef JPFF
+#if defined(_MSC_VER)
+#include "stk\BandedWG.h"
+#include "stk\BeeThree.h"
+#include "stk\BlowBotl.h"
+#include "stk\BlowHole.h"
+#include "stk\Bowed.h"
+#include "stk\Brass.h"
+#include "stk\Clarinet.h"
+#include "stk\Drummer.h"
+#include "stk\FMVoices.h"
+#include "stk\Flute.h"
+#include "stk\HevyMetl.h"
+#include "stk\Mandolin.h"
+#include "stk\Stk.h"
+ //#include "stk\Mesh2D.h"
+#include "stk\ModalBar.h"
+#include "stk\Moog.h"
+#include "stk\PercFlut.h"
+#include "stk\Plucked.h"
+#include "stk\Resonate.h"
+#include "stk\Rhodey.h"
+#include "stk\Saxofony.h"
+#include "stk\Shakers.h"
+#include "stk\Simple.h"
+#include "stk\Sitar.h"
+#include "stk\StifKarp.h"
+#include "stk\TubeBell.h"
+#include "stk\VoicForm.h"
+#include "stk\Whistle.h"
+#include "stk\Wurley.h"
+#elif defined (JPFF)
 #include <BandedWG.h>
 #include <BeeThree.h>
 #include <BlowBotl.h>
