@@ -14,7 +14,9 @@ endif()
 message(STATUS "Csound directory: ${CMAKE_HOME_DIRECTORY}")
 
 # C++11 needed
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
+if(NOT MSVC)
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
+endif()
 
 # Project definitions
 set(APIVERSION "6.0")
