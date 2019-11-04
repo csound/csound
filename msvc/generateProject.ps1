@@ -1,12 +1,9 @@
 param
 (
-    [string]$vsGenerator="Visual Studio 16 2019",
-    [string]$vsToolset="v142"
+    [string]$vsGenerator="Visual Studio 16 2019"
 )
 echo "Generating Csound Visual Studio solution..."
-
 echo "vsGenerator: $vsGenerator"
-echo "vsToolset:   $vsToolset"
 
 $vcpkgCmake = ""
 
@@ -36,9 +33,8 @@ echo "VCPKG script: '$vcpkgCmake'"
 mkdir csound-vs -ErrorAction SilentlyContinue
 cd csound-vs -ErrorAction SilentlyContinue
 
-cmake ..\.. -G $vsGenerator -T $vsToolset  `
+cmake ..\.. -G $vsGenerator `
  -Wno-dev -Wdeprecated `
- -DSTK_LOCAL:BOOL="ON" `
  -DCMAKE_BUILD_TYPE="RelWithDebInfo" `
  -DVCPKG_TARGET_TRIPLET=x64-windows-static `
  -DCMAKE_TOOLCHAIN_FILE="$vcpkgCmake" `
