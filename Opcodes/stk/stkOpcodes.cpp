@@ -48,37 +48,7 @@
  * See the STK class documentation to determine the controller numbers
  * used by each instrument.
  */
-#if defined (JPFF)
-#include <BandedWG.h>
-#include <BeeThree.h>
-#include <BlowBotl.h>
-#include <BlowHole.h>
-#include <Bowed.h>
-#include <Brass.h>
-#include <Clarinet.h>
-#include <Drummer.h>
-#include <FMVoices.h>
-#include <Flute.h>
-#include <HevyMetl.h>
-#include <Mandolin.h>
-#include <Stk.h>
-//#include <Mesh2D.h>
-#include <ModalBar.h>
-#include <Moog.h>
-#include <PercFlut.h>
-#include <Plucked.h>
-#include <Resonate.h>
-#include <Rhodey.h>
-#include <Saxofony.h>
-#include <Shakers.h>
-#include <Simple.h>
-#include <Sitar.h>
-#include <StifKarp.h>
-#include <TubeBell.h>
-#include <VoicForm.h>
-#include <Whistle.h>
-#include <Wurley.h>
-#else
+#if defined(_MSC_VER)
 #include "stk\BandedWG.h"
 #include "stk\BeeThree.h"
 #include "stk\BlowBotl.h"
@@ -108,6 +78,36 @@
 #include "stk\VoicForm.h"
 #include "stk\Whistle.h"
 #include "stk\Wurley.h"
+#else
+#include "BandedWG.h"
+#include "BeeThree.h"
+#include "BlowBotl.h"
+#include "BlowHole.h"
+#include "Bowed.h"
+#include "Brass.h"
+#include "Clarinet.h"
+#include "Drummer.h"
+#include "FMVoices.h"
+#include "Flute.h"
+#include "HevyMetl.h"
+#include "Mandolin.h"
+#include "Stk.h"
+//#include "Mesh2D.h"
+#include "ModalBar.h"
+#include "Moog.h"
+#include "PercFlut.h"
+#include "Plucked.h"
+#include "Resonate.h"
+#include "Rhodey.h"
+#include "Saxofony.h"
+#include "Shakers.h"
+#include "Simple.h"
+#include "Sitar.h"
+#include "StifKarp.h"
+#include "TubeBell.h"
+#include "VoicForm.h"
+#include "Whistle.h"
+#include "Wurley.h"
 #endif
 using namespace stk;
 
