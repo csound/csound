@@ -517,7 +517,7 @@ endif()
 
 find_package(CURL)
 set(FLTK_SKIP_OPENGL true)
-find_package(FLTK )
+find_package(FLTK)
 #if (FLTK_FOUND AND MSVC)
 #    # If "SHARED" variants of FLTK libraries exist, use them.
 #    find_library(FLTK_SHARED_VARIANT "fltk_SHARED")
@@ -529,24 +529,15 @@ find_package(FLTK )
 #        LIST_REPLACE(FLTK_LIBRARIES 2 "fltk_images_SHARED")
 #    endif()
 #endif()
-find_package(FAUST)
+find_package(faust)
 find_package(Java)
 find_package(JNI)
-find_package(LIBLO)
 find_package(MUSICXML)
+find_package(VSTSDK2X)
 
 #if(MUSICXML_FOUND)
 #set(CMAKE_CXX_FLAGS "-DHAVE_MUSICXML2 ${CMAKE_CXX_FLAGS}")
 #endif()
-
-find_package(PORTSMF)
-find_package(PythonLibs 2.7)
-if(NOT STK_LOCAL)
-    find_package(STK)
-endif()
-find_package(SWIG)
-find_package(VSTSDK2X)
-
 
 # TODO should this work for MSVC also?
 if(WIN32)
