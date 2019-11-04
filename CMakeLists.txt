@@ -272,30 +272,26 @@ if(WIN32)
             mincore
             ${CSOUND_COMMON_WINDOWS_LIBS})
     endif()
-endif()
 
-if(MSVC)
-  # Experimented with flags but did not make change performance results
-  #set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} /Oi /fp:fast /arch:AVX2")
-  #set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /Oi /fp:fast /arch:AVX2")
-  #set(CompilerFlags
-  #  CMAKE_CXX_FLAGS
-  #  CMAKE_CXX_FLAGS_DEBUG
-  #  CMAKE_CXX_FLAGS_RELEASE
-  #  CMAKE_C_FLAGS
-  #  CMAKE_C_FLAGS_DEBUG
-  #  CMAKE_C_FLAGS_RELEASE
-  #  )
-  #foreach(CompilerFlag ${CompilerFlags})
-  #  string(REPLACE "/MD" "/MT" ${CompilerFlag} "${${CompilerFlag}}")
-  #endforeach()
-else()
-  set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -mstackrealign -static-libgcc -static")
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -mstackrealign -static-libstdc++ -static-libgcc -static")
-  set_target_properties(${CSOUNDLIB} PROPERTIES LINK_FLAGS "-static-libstdc++ -static-libgcc -static")
-  set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} -static-libstdc++ -static-libgcc -static")
-endif()
+    if(MSVC)
+      # Experimented with flags but did not make change performance results
+      #set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} /Oi /fp:fast /arch:AVX2")
+      #set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /Oi /fp:fast /arch:AVX2")
 
+      # Replace the default CRT linkage from dynamic (MD) to static (MT)
+      foreach(flag_var
+        CMAKE_CXX_FLAGS CMAKE_CXX_FLAGS_DEBUG CMAKE_CXX_FLAGS_RELEASE
+        CMAKE_CXX_FLAGS_MINSIZEREL CMAKE_CXX_FLAGS_RELWITHDEBINFO)
+        if(${flag_var} MATCHES "/MD")
+          string(REGEX REPLACE "/MD" "/MT" ${flag_var} "${${flag_var}}")
+        endif()
+      endforeach()
+    else()
+      set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -mstackrealign -static-libgcc -static")
+      set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -mstackrealign -static-libstdc++ -static-libgcc -static")
+      set_target_properties(${CSOUNDLIB} PROPERTIES LINK_FLAGS "-static-libstdc++ -static-libgcc -static")
+      set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} -static-libstdc++ -static-libgcc -static")
+    endif()
 endif(WIN32)
 
 if(APPLE)
