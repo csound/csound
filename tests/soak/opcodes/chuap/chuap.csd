@@ -9,30 +9,35 @@ nchnls = 2
 gibuzztable ftgen 1, 0, 16384, 10, 1
 
 instr 1
-; sys_variables = system_vars(5:12); % L,R0,C2,G,Ga,Gb,E,C1 or p8:p15
-; integ_variables = [system_vars(14:16),system_vars(1:2)]; % x0,y0,z0,dataset_size,step_size or p17:p19, p4:p5
-istep_size    =       p5
-iL            =       p8
-iR0           =       p9
-iC2           =       p10
-iG            =       p11
-iGa           =       p12
-iGb           =       p13
-iE            =       p14
-iC1           =       p15
-iI3           =       p17
-iV2           =       p18
-iV1           =       p19
-iattack       =       0.02
-isustain      =       p3
-irelease      =       0.02
-p3            =       iattack + isustain + irelease
-iscale        =       1.0
-adamping      linseg  0.0, iattack, iscale, isustain, iscale, irelease, 0.0
-aguide        buzz    0.5, 440, sr/440, gibuzztable
-aI3, aV2, aV1 chuap   iL, iR0, iC2, iG, iGa, iGb, iE, iC1, iI3, iV2, iV1, istep_size
-asignal       balance aV2, aguide
-              outs    adamping * asignal, adamping * asignal
+  ; sys_variables = system_vars(5:12); % L,R0,C2,G,Ga,Gb,E,C1 or p8:p15
+  ; integ_variables = [system_vars(14:16),system_vars(1:2)]; % x0,y0,z0,dataset_size,step_size or p17:p19, p4:p5
+  istep_size    =       p5
+  iL            =       p8
+  iR0           =       p9
+  iC2           =       p10
+  iG            =       p11
+  iGa           =       p12
+  iGb           =       p13
+  iE            =       p14
+  iC1           =       p15
+  iI3           =       p17
+  iV2           =       p18
+  iV1           =       p19
+  ignore        =       p21
+  ignore        =       p22
+  ignore        =       p23
+  ignore        =       p24
+  ignore        =       p25
+  iattack       =       0.02
+  isustain      =       p3
+  irelease      =       0.02
+  p3            =       iattack + isustain + irelease
+  iscale        =       1.0
+  adamping      linseg  0.0, iattack, iscale, isustain, iscale, irelease, 0.0
+  aguide        buzz    0.5, 440, sr/440, gibuzztable
+  aI3, aV2, aV1 chuap   iL, iR0, iC2, iG, iGa, iGb, iE, iC1, iI3, iV2, iV1, istep_size
+  asignal       balance aV2, aguide
+  outs    adamping * asignal, adamping * asignal
 endin
 </CsInstruments>
 <CsScore>

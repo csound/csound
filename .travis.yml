@@ -4,6 +4,7 @@ env:
     - secure: "pOICMBtfwljj450Vht1D2/XvtUm07edkbiUI0+PCnfuwiwBFJyqY919whZu+CrplQvkVS+RzvxT3wpgkVccflo0uvNJ7NwfKksRqrUKwTp59nGIwjUsnDjI3YkxOQyxIdIPsSm3bUxXVy/Jge0v6vzvbbPXKxyAxKsupnUBYOwM="
     - OMP_NUM_THREADS=4
     - VERBOSE=1
+    - EIGEN3_INCLUDE_DIR="/usr/include"
 before_script:
   - mkdir -p build
   - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then (git clone git://github.com/erikd/libsndfile.git && cd libsndfile && mkdir -p build && cd build && cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=$HOME .. && make && make install); fi
