@@ -179,8 +179,8 @@ if(APPLE)
 set(CMAKE_REQUIRED_INCLUDES time.h)
 CHECK_FUNCTION_EXISTS(clock_gettime CLOCK_GETTIME)
 if(${CLOCK_GETTIME})
- message(STATUS  "clock_gettime() found")
- set(CMAKE_C_FLAGS "-DHAVE_CLOCK_GETTIME ${CMAKE_C_FLAGS}")
+  message(STATUS  "clock_gettime() found")
+  set(CMAKE_C_FLAGS "-DHAVE_CLOCK_GETTIME ${CMAKE_C_FLAGS}")
 else()
  message(STATUS  "clock_gettime() not found")
 endif()
@@ -618,22 +618,23 @@ find_library(LIBINTL_LIBRARY intl)
 find_package(Gettext)
 find_library(MATH_LIBRARY m)
 if (NOT MATH_LIBRARY)
-    set(MATH_LIBRARY "")
+  set(MATH_LIBRARY "")
+else()
+  set(HAVE_LRINT 1)
 endif()
 
 cmake_push_check_state()
 list(APPEND CMAKE_REQUIRED_LIBRARIES ${MATH_LIBRARY})
-check_function_exists(lrint HAVE_LRINT)
 cmake_pop_check_state()
 
 set(HEADERS_TO_CHECK
-    unistd.h io.h fcntl.h stdint.h
-    sys/time.h sys/types.h termios.h
-    values.h winsock.h sys/socket.h
-    dirent.h inttypes.h execinfo.h)
+  unistd.h io.h fcntl.h stdint.h
+  sys/time.h sys/types.h termios.h
+  values.h winsock.h sys/socket.h
+  dirent.h inttypes.h execinfo.h)
 
 foreach(header ${HEADERS_TO_CHECK})
-    # Convert to uppercase and replace [./] with _
+  # Convert to uppercase and replace [./] with _
     string(TOUPPER ${header} tmp)
 
     string(REGEX REPLACE [./] "_" upper_header ${tmp})
@@ -1185,7 +1186,7 @@ function(make_plugin libname srcs)
         ARCHIVE_OUTPUT_DIRECTORY ${BUILD_PLUGINS_DIR})
 
     install(TARGETS ${libname}
-        LIBRARY DESTINATION "${PLUGIN_INSTALL_DIR}" 
+        LIBRARY DESTINATION "${PLUGIN_INSTALL_DIR}"
         ARCHIVE DESTINATION "${PLUGIN_INSTALL_DIR}" )
 
 endfunction(make_plugin)
