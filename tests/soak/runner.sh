@@ -15,9 +15,9 @@ if [ -n "$TRAVIS_BUILD_DIR" ]; then
 
     cd ../
 
-    python3.7 -m venv "$TRAVIS_BUILD_DIR/venv"
+    python3 -m venv "$TRAVIS_BUILD_DIR/venv"
 
-    "$TRAVIS_BUILD_DIR/venv"/bin/pip3.7 install ./parameterized
+    "$TRAVIS_BUILD_DIR/venv"/bin/pip3 install ./parameterized
 
     cd "$TRAVIS_BUILD_DIR/tests/soak"
 

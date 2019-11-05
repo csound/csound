@@ -5,10 +5,10 @@ env:
     - OMP_NUM_THREADS=4
     - VERBOSE=1
 before_script:
-  - mkdir -p "$TRAVIS_BUILD_DIR"/build
+  - mkdir -p build
   - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then (git clone git://github.com/erikd/libsndfile.git && cd libsndfile && mkdir -p build && cd build && cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=$HOME .. && make && make install); fi
 script:
-  - "[ ${COVERITY_SCAN_BRANCH} == 1 ] || (cd $TRAVIS_BUILD_DIR/build && cmake .. -DCMAKE_INCLUDE_PATH=$HOME/include -DCMAKE_LIBRARY_PATH=$HOME/lib -DCMAKE_BUILD_TYPE=Release -DBUILD_STATIC_LIBRARY=ON -DBUILD_TESTS=ON -DCMAKE_INSTALL_PREFIX=$HOME make && make $COMMAND)"
+  - "[ ${COVERITY_SCAN_BRANCH} == 1 ] || (cd $TRAVIS_BUILD_DIR/build && cmake .. -DCMAKE_INCLUDE_PATH=$HOME/include -DCMAKE_LIBRARY_PATH=$HOME/lib -DCMAKE_BUILD_TYPE=Release -DBUILD_STATIC_LIBRARY=ON -DBUILD_TESTS=ON -DCMAKE_INSTALL_PREFIX=$HOME && make && make $COMMAND)"
 
 jobs:
   include:
@@ -49,8 +49,6 @@ addons:
     build_command: "make -C $TRAVIS_BUILD_DIR/build"
     branch_pattern: coverity_scan
   apt:
-    sources:
-      - deadsnakes
     packages:
       - cmake
       - libssl-dev
@@ -64,7 +62,8 @@ addons:
       - swig
       - liblua5.1-0-dev
       - python-dev
-      - python3.7-venv
+      - python3-all
+      - python3-venv
       - puredata-dev
       - default-jdk
       - libfltk1.1-dev
