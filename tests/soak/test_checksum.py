@@ -24,7 +24,7 @@ for test_json_path in opcodes_test_data:
         data["path"] = test_json_path
         test_data.append(data)
 
-cli_options = ["-d", "-W", "-m0", "-b256", "-B512", ""]
+cli_options = ["-d", "-W", "-m0", "-b256", "-B512"]
 
 # csbeats will be found this way
 os.environ["PATH"] += os.pathsep + opcode6dir64
