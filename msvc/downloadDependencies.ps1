@@ -107,16 +107,18 @@ New-Item -type file $vcpkgDir\downloads\AlwaysAllowDownloads -errorAction Silent
 echo "Downloading VC packages..."
 
 # Download asiosdk and extract before doing portaudio installation
-if (-not (Test-Path $vcpkgDir/buildtrees/portaudio/asiosdk)) {
+if (-not (Test-Path $vcpkgDir/buildtrees/portaudio/src/asiosdk)) {
     echo "ASIOSDK not installed into VCPKG"
-    Invoke-WebRequest https://www.steinberg.net/asiosdk -OutFile cache/asiosdk.zip
-    Expand-Archive -Path cache/asiosdk.zip -DestinationPath $vcpkgDir/buildtrees/portaudio/src
-    Move-Item -Path $vcpkgDir/buildtrees/portaudio/src/asiosdk_* -Destination $vcpkgDir/buildtrees/portaudio/src/asiosdk
+    if (-not (Test-Path .\cache\asiosdk.zip)) {
+        Invoke-WebRequest https://www.steinberg.net/asiosdk -OutFile cache/asiosdk.zip
+    }
+    Expand-Archive -Path cache/asiosdk.zip -DestinationPath $vcpkgDir/buildtrees/portaudio/src -Force
+    Move-Item -Path $vcpkgDir/buildtrees/portaudio/src/asiosdk_* -Destination $vcpkgDir/buildtrees/portaudio/src/asiosdk -ErrorAction SilentlyContinue
     # Remove portaudio and it will get rebuilt with asio support in the next step
-    vcpkg --triplet $targetTriplet remove portaudio
+    vcpkg --triplet $targetTriplet remove portaudio --overlay-triplets=.
 }
 
-vcpkg --triplet $targetTriplet install eigen3 fltk zlib libflac libogg libvorbis libsndfile libsamplerate portmidi portaudio liblo hdf5 dirent libstk
+vcpkg --triplet $targetTriplet install eigen3 fltk zlib libflac libogg libvorbis libsndfile libsamplerate portmidi portaudio liblo hdf5 dirent libstk --overlay-triplets=.
 
 $vcpkgTiming = (Get-Date).TimeOfDay
 
