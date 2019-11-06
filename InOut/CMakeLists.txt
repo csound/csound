@@ -144,11 +144,8 @@ if(PORTAUDIO_FOUND)
     make_plugin(rtpa rtpa.c)
 
     if(MSVC)
-        if(BUILD_STATIC_LIBRARY)
-            #target_link_libraries(rtpa PRIVATE portaudio_static)
-        else()
-            #target_link_libraries(rtpa PRIVATE portaudio)
-        endif()
+        # FIXME should be able to use VCPKG export but not working currently
+        #target_link_libraries(rtpa PRIVATE portaudio portaudio_static)
         target_link_libraries(rtpa PRIVATE ${PORTAUDIO_LIBRARIES})
     else()
         target_include_directories(rtpa PRIVATE ${PORTAUDIO_INCLUDE_DIRS})
