@@ -55,6 +55,7 @@ addons:
       - libssl-dev
       - ca-certificates
       - libsndfile1-dev
+      - libsamplerate0-dev
       - libasound2-dev
       - libjack-dev
       - portaudio19-dev
