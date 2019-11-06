@@ -28,7 +28,6 @@ install:
   - dir
   - choco config set --name="'webRequestTimeoutSeconds'" --value="'500'"
   - powershell -ExecutionPolicy ByPass -File downloadDependencies.ps1 -vsGenerator "%VSGENERATOR%"
-  - powershell -ExecutionPolicy ByPass -File generateProject.ps1 -vsGenerator "%VSGENERATOR%"
   # Download and unzip manual and CsoundQT for inclusion with the installer
   - cd c:/
   - ps: Start-FileDownload 'https://github.com/csound/manual/releases/download/6.13.0/Csound6.13.0_manual_html.zip'
