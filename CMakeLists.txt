@@ -161,32 +161,32 @@ endif()
 
 # in Release configuration, set NDEBUG
 if(${CMAKE_BUILD_TYPE} MATCHES "Release")
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DNDEBUG")
-set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -DNDEBUG")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DNDEBUG")
+    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -DNDEBUG")
 elseif(${CMAKE_BUILD_TYPE} MATCHES "Debug")
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DBETA")
-set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -DBETA")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DBETA")
+    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -DBETA")
 endif()
 
 # set -Werror if in Debug configuration
 if(NOT MSVC AND NOT WASM)
-set(CMAKE_CXX_FLAGS_RELEASE "-O3 ")
-set(CMAKE_C_FLAGS_RELEASE "-O3 ")
-if(${CMAKE_BUILD_TYPE} MATCHES "Debug")
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}  -Wall -Werror -Wno-missing-field-initializers")
-set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wall -Werror -Wno-missing-field-initializers")
-endif()
+    set(CMAKE_CXX_FLAGS_RELEASE "-O3 ")
+    set(CMAKE_C_FLAGS_RELEASE "-O3 ")
+    if(${CMAKE_BUILD_TYPE} MATCHES "Debug")
+        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}  -Wall -Werror -Wno-missing-field-initializers")
+        set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wall -Werror -Wno-missing-field-initializers")
+    endif()
 endif()
 
 if(APPLE)
-list(APPEND CMAKE_REQUIRED_INCLUDES "time.h")
-CHECK_FUNCTION_EXISTS(clock_gettime CLOCK_GETTIME)
-if(${CLOCK_GETTIME})
- message(STATUS  "clock_gettime() found")
- set(CMAKE_C_FLAGS "-DHAVE_CLOCK_GETTIME ${CMAKE_C_FLAGS}")
-else()
- message(STATUS  "clock_gettime() not found")
-endif()
+    list(APPEND CMAKE_REQUIRED_INCLUDES "time.h")
+    CHECK_FUNCTION_EXISTS(clock_gettime CLOCK_GETTIME)
+    if(${CLOCK_GETTIME})
+        message(STATUS  "clock_gettime() found")
+        set(CMAKE_C_FLAGS "-DHAVE_CLOCK_GETTIME ${CMAKE_C_FLAGS}")
+    else()
+        message(STATUS  "clock_gettime() not found")
+    endif()
 endif()
 
 option(USE_LIB64 "Set to on to set installation directory for libraries to lib64" OFF)
@@ -199,18 +199,18 @@ endif()
 message(STATUS "LIBRARY INSTALL DIR: ${LIBRARY_INSTALL_DIR}")
 
 if(USE_DOUBLE)
-   message(STATUS "Building with 64-bit floats")
+    message(STATUS "Building with 64-bit floats")
     set(PLUGIN_INSTALL_DIR "${LIBRARY_INSTALL_DIR}/csound/plugins64-${APIVERSION}")
 else()
-  message(STATUS "Building with 32-bit floats")
+    message(STATUS "Building with 32-bit floats")
     set(PLUGIN_INSTALL_DIR "${LIBRARY_INSTALL_DIR}/csound/plugins-${APIVERSION}")
 endif()
 
 execute_process (
-     COMMAND python -c
-     "import site, sys; sys.stdout.write(site.getsitepackages()[0])"
-     OUTPUT_VARIABLE PYTHON_SITE_PACKAGES
-   )
+    COMMAND python -c
+    "import site, sys; sys.stdout.write(site.getsitepackages()[0])"
+    OUTPUT_VARIABLE PYTHON_SITE_PACKAGES
+)
 
 SET(PYTHON_MODULE_INSTALL_DIR ${PYTHON_SITE_PACKAGES} CACHE PATH "Python module install dir")
 
@@ -289,16 +289,16 @@ if(WIN32)
         endif()
       endforeach()
     else()
-      set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -mstackrealign -static-libgcc -static")
-      set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -mstackrealign -static-libstdc++ -static-libgcc -static")
-      set_target_properties(${CSOUNDLIB} PROPERTIES LINK_FLAGS "-static-libstdc++ -static-libgcc -static")
-      set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} -static-libstdc++ -static-libgcc -static")
+        set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -mstackrealign -static-libgcc -static")
+        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -mstackrealign -static-libstdc++ -static-libgcc -static")
+        set_target_properties(${CSOUNDLIB} PROPERTIES LINK_FLAGS "-static-libstdc++ -static-libgcc -static")
+        set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} -static-libstdc++ -static-libgcc -static")
     endif()
 endif(WIN32)
 
 if(APPLE)
-set(CMAKE_CXX_FLAGS  "${CMAKE_CXX_FLAGS} -stdlib=libc++")
-set_target_properties(${CSOUNDLIB} PROPERTIES CXX_COMPILE_FLAGS  "-std=c++11")
+    set(CMAKE_CXX_FLAGS  "${CMAKE_CXX_FLAGS} -stdlib=libc++")
+    set_target_properties(${CSOUNDLIB} PROPERTIES CXX_COMPILE_FLAGS  "-std=c++11")
 endif()
 
 if(CMAKE_SYSTEM_NAME MATCHES "Linux")
