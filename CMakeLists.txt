@@ -245,7 +245,7 @@ if(WIN32)
     set(CMAKE_SHARED_LIBRARY_PREFIX "")
     set(CMAKE_SHARED_MODULE_PREFIX "")
 
-    set(CSOUND_COMMON_WINDOWS_LIBS 
+    set(CSOUND_WINDOWS_LIBRARIES 
         advapi32
         comctl32
         comdlg32
@@ -262,18 +262,6 @@ if(WIN32)
         winspool
         ws2_32
         wsock32)
-
-    if(NOT MSVC)
-        set(CSOUND_WINDOWS_LIBRARIES
-            msvcrt
-            ${CSOUND_COMMON_WINDOWS_LIBS})
-    else()
-        set(CSOUND_WINDOWS_LIBRARIES
-            ucrt
-            vcruntime
-            mincore
-            ${CSOUND_COMMON_WINDOWS_LIBS})
-    endif()
 
     if(MSVC)
         # Experimented with flags but did not make change performance results
