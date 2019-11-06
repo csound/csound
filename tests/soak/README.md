@@ -12,6 +12,10 @@ The tests are based on the manual examples, but many have been modified for repr
 
 To add or modify a test, make sure to include a foo.csd file and a matching foo.csd.json, where foo.csd.json is a json map containing 3 keys `"sha256"` for the expected checksum, `"os"` for the operating system the expected sha was generated from and `"git_commit"` for the git revision of the csound build used to produce the audio binary.
 
+When creating or modifying a test case, make sure you are running csound without USE\_COMPILER\_OPTIMIZATIONS (use -DUSE\_COMPILER\_OPTIMIZATIONS=0 cmake flag).
+
+Also make sure that csound isn't using any global options (ex. from .csound6rc) which may interfere with the sha-sum. Note that on Travis, there are no global options defined but renders the file to .wav with the configuration and options defined in each .csd file.
+
 ## dryruns [wip]
 
 Dryruns is a collection of opcodes organized in the same way as the opcodes directory but containing opcodes and operators that are better tested in other ways than the audio they may or may nor manipulate. A good example of these are array and disk i/o operators.
