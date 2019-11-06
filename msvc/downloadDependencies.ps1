@@ -1,10 +1,31 @@
 param
 (
-    [string]$vsGenerator="Visual Studio 16 2019"
+    [string]$vsGenerator="Visual Studio 16 2019",
+    [switch]$buildStatic=$false,
+    [switch]$staticCRT=$false
 )
+
+# The default build is to generate dynamic libs that use the CRT dynamically 
+if ($buildStatic) {
+    $targetTriplet = "x64-windows-static"
+
+    if ($staticCRT == $false) {
+        echo "Cannot have dynamic CRT linkage with static Csound build"
+        $staticCRT = $true
+    }
+} 
+else {
+    if ($staticCRT) {
+        $targetTriplet = "x64-windows-crt-mt"
+    }
+    else {
+        $targetTriplet = "x64-windows"
+    }
+}
 
 echo "Downloading Csound dependencies..."
 echo "vsGenerator: $vsGenerator"
+echo "Build type: $targetTriplet"
 
 $startTime = (Get-Date).TimeOfDay
 
@@ -84,7 +105,6 @@ New-Item -type file $vcpkgDir\downloads\AlwaysAllowDownloads -errorAction Silent
 
 # Download all vcpkg packages available
 echo "Downloading VC packages..."
-$targetTriplet = "x64-windows-static"
 
 # Download asiosdk and extract before doing portaudio installation
 if (-not (Test-Path $vcpkgDir/buildtrees/portaudio/asiosdk)) {
@@ -238,3 +258,27 @@ echo " "
 echo "VCPKG duration: $($vcpkgTiming.TotalMinutes) minutes"
 echo "Build duration: $($buildTiming.TotalMinutes) minutes"
 echo "Total duration: $($duration.TotalMinutes) minutes"
+echo "-------------------------------------------------"
+echo "Generating Csound Visual Studio solution..."
+echo "vsGenerator: $vsGenerator"
+
+$vcpkgCmake = "$vcpkgDir\scripts\buildsystems\vcpkg.cmake"
+echo "VCPKG script: '$vcpkgCmake'"
+
+cd $currentDir
+mkdir csound-vs -ErrorAction SilentlyContinue
+cd csound-vs -ErrorAction SilentlyContinue
+
+$buildSharedLibs = $(if ($buildStatic) { "OFF" } else { "ON" })
+$useStaticCRT = $(if ($staticCRT) { "ON" } else { "OFF" })
+
+# Default to Release build type. Note: ReleaseWithDebInfo is broken as VCPKG does not currently support this mode properly
+cmake ..\.. -G $vsGenerator `
+ -Wno-dev -Wdeprecated `
+ -DCMAKE_BUILD_TYPE="Release" `
+ -DVCPKG_TARGET_TRIPLET="$targetTriplet" `
+ -DCMAKE_TOOLCHAIN_FILE="$vcpkgCmake" `
+ -DCMAKE_INSTALL_PREFIX=dist `
+ -DCUSTOM_CMAKE="..\Custom-vs.cmake" `
+ -DBUILD_SHARED_LIBS=$buildSharedLibs `
+ -DSTATIC_CRT=$useStaticCRT
