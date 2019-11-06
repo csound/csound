@@ -2,6 +2,7 @@
 
 The soak tests are a series of reproduceable tests for a continuous integration coverting (hopefully) of all core opcodes and operators.
 
+For the soak tests to have any meaning the cmake flag USE\_COMPILER\_OPTIMIZATIONS must be 0 or OFF, which should disable -ffast-math and keep floating point math (-mfpmath) deterministic, as well as setting the optimization level to 0 (-O0).
 
 ## opcodes
 

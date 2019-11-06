@@ -80,12 +80,6 @@ if operating_system == "Linux":
 class SoakOpcodes(unittest.TestCase):
     @parameterized.expand(test_data_parameterized , name_func=custom_name_func)
     def test(self, path, expected):
-        # for cases where c compilers version may differ
-        if type(expected) is dict:
-            if c_compiler in expected:
-                expected = expected[c_compiler]
-            else:
-                expected = list(expected.values())
         os.makedirs("tmp", exist_ok=True)
         name = os.path.basename(path).replace(".csd.json", "")
         csd = path.replace(".json", "")
@@ -107,9 +101,4 @@ class SoakOpcodes(unittest.TestCase):
         hasher = sha256()
         hasher.update(binary_data)
         actual_hashsum = hasher.hexdigest()
-        if type(expected) is list:
-            self.assertIn(actual_hashsum, expected)
-        else:
-            self.assertEqual(actual_hashsum, expected)
-        # Make sure that audio was produced (dev)
-        # self.assertFalse("overall amps:  0.00000" in output)
+        self.assertEqual(actual_hashsum, expected)

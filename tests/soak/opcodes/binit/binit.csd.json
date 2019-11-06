@@ -1,9 +1,5 @@
 {
-  "sha256": {
-    "gcc8": "8cd76f610dd4aff8448e33c80aa26e90fe900beff0e32ab46d9e8d8195f28658",
-    "gcc7": "8cd76f610dd4aff8448e33c80aa26e90fe900beff0e32ab46d9e8d8195f28658",
-    "gcc6": "667094d892c8fc950ecb682a81f84f64e20467ccc29b2895b5c4d83a7c996d06"
-  },
+  "sha256": "8cd76f610dd4aff8448e33c80aa26e90fe900beff0e32ab46d9e8d8195f28658",
   "git_commit": "353bf7c44c41e8615154d407de4a5138a7e572ab",
   "os": "linux"
 }

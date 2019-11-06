@@ -1,3 +1,7 @@
+if(NOT MSVC AND NOT WASM)
+  set(CMAKE_CXX_FLAGS_RELEASE "-O3 ")
+  set(CMAKE_C_FLAGS_RELEASE "-O3 ")
+endif()
 
 check_c_compiler_flag(-ftree-vectorize HAS_TREE_VECTORIZE)
 check_cxx_compiler_flag(-ftree-vectorize HAS_CXX_TREE_VECTORIZE)
