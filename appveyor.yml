@@ -9,7 +9,7 @@ environment:
   VSGENERATOR: Visual Studio 16 2019
 
 platform: x64
-configuration: RelWithDebInfo
+configuration: Release
 
 init:
   - set CSOUND_HOME=%APPVEYOR_BUILD_FOLDER%
@@ -44,11 +44,11 @@ build:
 after_build:
   - set PATH=%PATH%;"C:\\Program Files (x86)\\Inno Setup 6"
   - iscc /dVcpkgInstalledBinDir=%VCPKGDir%\\installed\\x64-windows\\bin\\ /omsvc installer\\windows\\csound6_x64_appveyor.iss
-  - 7z a csound-windows_x86_64-%CSOUND_VERSION%-%APPVEYOR_BUILD_NUMBER%.zip %APPVEYOR_BUILD_FOLDER%\msvc\csound-vs\RelWithDebInfo\*.exe %APPVEYOR_BUILD_FOLDER%\msvc\csound-vs\RelWithDebInfo\csound64.lib %APPVEYOR_BUILD_FOLDER%\include\ %APPVEYOR_BUILD_FOLDER%\msvc\csound-vs\RelWithDebInfo\*.dll %APPVEYOR_BUILD_FOLDER%\msvc\csound-vs\RelWithDebInfo\*.pyd %APPVEYOR_BUILD_FOLDER%\msvc\csound-vs\*.jar %APPVEYOR_BUILD_FOLDER%\msvc\csound-vs\*.py 
+  - 7z a csound-windows_x86_64-%CSOUND_VERSION%-%APPVEYOR_BUILD_NUMBER%.zip %APPVEYOR_BUILD_FOLDER%\msvc\csound-vs\Release\*.exe %APPVEYOR_BUILD_FOLDER%\msvc\csound-vs\Release\csound64.lib %APPVEYOR_BUILD_FOLDER%\include\ %APPVEYOR_BUILD_FOLDER%\msvc\csound-vs\Release\*.dll %APPVEYOR_BUILD_FOLDER%\msvc\csound-vs\Release\*.pyd %APPVEYOR_BUILD_FOLDER%\msvc\csound-vs\*.jar %APPVEYOR_BUILD_FOLDER%\msvc\csound-vs\*.py 
   - 7z l csound-windows_x86_64-%CSOUND_VERSION%-%APPVEYOR_BUILD_NUMBER%.zip
 
 test_script:
-  - cmake --build msvc\csound-vs --config RelWithDebInfo --target csdtests
+  - cmake --build msvc\csound-vs --target csdtests
 
 artifacts:
   - path: csound-windows_x86_64-*.zip
