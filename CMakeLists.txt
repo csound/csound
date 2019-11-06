@@ -1462,7 +1462,7 @@ if(BUILD_STATIC_LIBRARY)
 endif()
 
 if (EMSCRIPTEN)
-
+list(APPEND libcsound_SRCS ${CMAKE_CURRENT_SOURCE_DIR}/Emscripten/src/CsoundObj.c ${CMAKE_CURRENT_SOURCE_DIR}/Emscripten/src/FileList.c)
 set(CSOUNDLIB_STATIC_EMSCRIPTEN "${CSOUNDLIB}-static-emscripten")
 add_executable(${CSOUNDLIB_STATIC_EMSCRIPTEN} ${libcsound_SRCS})
 set_target_properties(${CSOUNDLIB_STATIC_EMSCRIPTEN} PROPERTIES OUTPUT_NAME ${CSOUNDLIB})
