@@ -8,18 +8,18 @@ before_script:
   - mkdir -p build
   - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then (git clone git://github.com/erikd/libsndfile.git && cd libsndfile && mkdir -p build && cd build && cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=$HOME .. && make && make install); fi
 script:
-  - "[ ${COVERITY_SCAN_BRANCH} == 1 ] || (cd $TRAVIS_BUILD_DIR/build && cmake .. -DCMAKE_INCLUDE_PATH=$HOME/include -DCMAKE_LIBRARY_PATH=$HOME/lib -DCMAKE_BUILD_TYPE=Release -DBUILD_STATIC_LIBRARY=ON -DBUILD_TESTS=ON -DCMAKE_INSTALL_PREFIX=$HOME -DUSE_COMPILER_OPTIMIZATIONS=0 && make && make $COMMAND)"
+  - "[ ${COVERITY_SCAN_BRANCH} == 1 ] || (cd $TRAVIS_BUILD_DIR/build && cmake .. -DCMAKE_INCLUDE_PATH=$HOME/include -DCMAKE_LIBRARY_PATH=$HOME/lib -DCMAKE_BUILD_TYPE=Release -DBUILD_STATIC_LIBRARY=ON -DBUILD_TESTS=ON -DCMAKE_INSTALL_PREFIX=$HOME -DUSE_COMPILER_OPTIMIZATIONS=$OPTIMIZE && make && make $COMMAND)"
 
 jobs:
   include:
     - stage: test
       name: C Tests
-      env: COMMAND=test
+      env: COMMAND=test OPTIMIZE=1
     - env: COMMAND=regression
       name: Regression Tests
-    - env: COMMAND=csdtests
+    - env: COMMAND=csdtests OPTIMIZE=1
       name: CSD tests
-    - env: COMMAND=soak
+    - env: COMMAND=soak OPTIMIZE=0
       dist: bionic
       name: Soak tests
       compiler: gcc
@@ -28,16 +28,16 @@ jobs:
       compiler: gcc
       os: linux
       name: Linux GCC
-      env: COMMAND=test
+      env: COMMAND=test OPTIMIZE=1
     - os: linux
       name: Linux clang
       dist: xenial
       compiler: clang
-      env: COMMAND=test
+      env: COMMAND=test OPTIMIZE=1
     - os: osx
       name: OSX clang
       compiler: clang
-      env: COMMAND=test
+      env: COMMAND=test OPTIMIZE=1
 
 addons:
   coverity_scan:
