@@ -28,7 +28,6 @@ echo "vsGenerator: $vsGenerator"
 echo "Build type: $targetTriplet"
 
 $startTime = (Get-Date).TimeOfDay
-
 $webclient = New-Object System.Net.WebClient
 $currentDir = Split-Path $MyInvocation.MyCommand.Path
 $cacheDir = $currentDir + "\cache\"
@@ -44,9 +43,6 @@ $vcpkgDir = ""
 $vcpkgTiming = 0
 $buildTiming = 0
 $cmakeTiming = 0
-
-# Add to path to call tools
-$env:Path += ";"+ $depsDir + ";"
 
 # Find VCPKG from path if it already exists
 # Otherwise use the local Csound version that will be installed
@@ -218,7 +214,11 @@ else
 rm -Path fluidsynthbuild -Force -Recurse -ErrorAction SilentlyContinue
 mkdir fluidsynthbuild -ErrorAction SilentlyContinue
 cd fluidsynthbuild
-cmake ..\fluidsynth -G $vsGenerator -DCMAKE_PREFIX_PATH="$depsDir\fluidsynthdeps" -DCMAKE_INCLUDE_PATH="$depsDir\fluidsynthdeps\include\glib-2.0;$depsDir\fluidsynthdeps\lib\glib-2.0\include"
+
+cmake ..\fluidsynth -G $vsGenerator `
+    -DCMAKE_PREFIX_PATH="$depsDir\fluidsynthdeps" `
+    -DCMAKE_INCLUDE_PATH="$depsDir\fluidsynthdeps\include\glib-2.0;$depsDir\fluidsynthdeps\lib\glib-2.0\include"
+
 cmake --build . --config Release
 copy .\src\Release\fluidsynth.exe -Destination $depsBinDir -Force
 copy .\src\Release\fluidsynth.lib -Destination $depsLibDir -Force
@@ -228,32 +228,10 @@ robocopy ..\fluidsynth\include\fluidsynth $depsIncDir\fluidsynth *.h /s /NJH /NJ
 copy .\include\fluidsynth\version.h -Destination $depsIncDir\fluidsynth\version.h -Force
 
 $buildTiming = (Get-Date).TimeOfDay
-
-# Add deps bin directory to the system path if not already there
-# FIXME this is duplicating part of the path for some reason
-if ($env:Path.Contains($depsBinDir))
-{
-    echo "Already added dependency bin dir to path"
-}
-else
-{
-    # For this session add to path var
-    $env:Path += ";" + $depsBinDir
-
-    # Permanently add to system path
-    [Environment]::SetEnvironmentVariable("Path", $env:Path, [EnvironmentVariableTarget]::User)
-    echo "Added dependency bin dir to path: $depsBinDir"
-}
-
 $endTime = (Get-Date).TimeOfDay
 $buildTiming = $buildTiming - $vcpkgTiming
 $vcpkgTiming = $vcpkgTiming - $startTime
 $duration = $endTime - $startTime
-
-# Strip any unneeded files from the bin directory, this will be
-# copied directly into the Csound solution output directory
-cd $depsBinDir
-rm *.exe
 
 echo "Removed unnecessary files from dependency bin directory"
 echo " "
