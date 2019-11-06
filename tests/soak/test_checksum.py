@@ -28,6 +28,7 @@ for test_json_path in opcodes_test_data:
             test_data.append(data)
         except:
             warnings.warn("JSON-PARSER ERROR: " + test_json_path)
+            exit(1)
 
 cli_options = ["-d", "-W", "-m0", "-b256", "-B512"]
 

@@ -1,5 +1,9 @@
 {
-  "sha256": "12910486a5bdc542cd31422aaf430fdd2e8dcd514768fb911eccef102829d0f4",
-  "git_commit": "1a1d155f465adf88a03968e13392bd44c6b31e91",
-  "os": "darwin"
+  "sha256": {
+    "gcc8": "12910486a5bdc542cd31422aaf430fdd2e8dcd514768fb911eccef102829d0f4",
+    "gcc7": "12910486a5bdc542cd31422aaf430fdd2e8dcd514768fb911eccef102829d0f4",
+    "gcc6": "603c8fc429881f68d0036ceb1de6101e84857b6aca3cf9ce8ae7e9011915309c"
+  },
+  "git_commit": "353bf7c44c41e8615154d407de4a5138a7e572ab",
+  "os": "linux"
 }
