@@ -124,8 +124,7 @@ if(USE_COMPILER_OPTIMIZATIONS)
   include(cmake/CompilerOptimizations.cmake)
 else()
   if(NOT MSVC AND NOT WASM)
-    set(CMAKE_CXX_FLAGS_RELEASE "-O0")
-    set(CMAKE_C_FLAGS_RELEASE "-O0")
+    add_compile_options("-O0")
   endif()
 endif()
 
@@ -171,7 +170,7 @@ set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -DBETA")
 endif()
 
 # set -Werror if in Debug configuration
-if(NOT MSVC AND NOT WASM AND ${CMAKE_BUILD_TYPE} MATCHES "Debug")
+if((NOT MSVC) AND (NOT WASM) AND (${CMAKE_BUILD_TYPE} MATCHES "Debug"))
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}  -Wall -Werror -Wno-missing-field-initializers")
   set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wall -Werror -Wno-missing-field-initializers")
   endif()
