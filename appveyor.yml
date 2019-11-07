@@ -3,7 +3,6 @@ image: Visual Studio 2019
 environment:
   APPVEYOR_SAVE_CACHE_ON_ERROR: "true"
   APPVEYOR_RDP_PASSWORD: Vercoe123
-  CsoundDepsDir: C:\projects\csound\msvc\deps\bin
   CSOUND_VERSION: 6.13.0
   VCPKGDir: C:\Tools\vcpkg
   VSGENERATOR: Visual Studio 16 2019
@@ -21,7 +20,6 @@ init:
   - set VCREDIST_OPENMP_DIR=C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\VC\Redist\MSVC\%RedistVersion%\x64\Microsoft.VC142.OpenMP
   - if "%APPVEYOR_BUILD_WORKER_IMAGE%" == "Visual Studio 2019" call "C:\\Program Files (x86)\\Microsoft Visual Studio\\2019\\Community\\VC\\Auxiliary\\Build\\vcvars64.bat"
   - if "%APPVEYOR_BUILD_WORKER_IMAGE%" == "Visual Studio 2017" call "C:\\Program Files (x86)\\Microsoft Visual Studio\\2017\\Community\\VC\\Auxiliary\\Build\\vcvars64.bat"
-  - set PATH=%PATH%;%CsoundDepsDir%;
 
 install:
   - cd msvc
