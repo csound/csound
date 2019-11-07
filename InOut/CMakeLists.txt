@@ -27,7 +27,7 @@ endif()
 if(USE_PORTAUDIO)
     # FIXME the msvc branch should use the VCPKG config file for portaudio but it's currently broken
     # if(MSVC)
-    #     find_package(PORTAUDIO CONFIG REQUIRED)
+        # find_package(PORTAUDIO CONFIG REQUIRED)
     # else()
         find_package(PORTAUDIO)
     # endif()
@@ -145,7 +145,7 @@ if(PORTAUDIO_FOUND)
 
     if(MSVC)
         # FIXME should be able to use VCPKG export but not working currently
-        #target_link_libraries(rtpa PRIVATE portaudio portaudio_static)
+        # target_link_libraries(rtpa PRIVATE portaudio portaudio_static)
         target_link_libraries(rtpa PRIVATE ${PORTAUDIO_LIBRARIES})
     else()
         target_include_directories(rtpa PRIVATE ${PORTAUDIO_INCLUDE_DIRS})
