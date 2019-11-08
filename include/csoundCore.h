@@ -301,16 +301,16 @@ typedef struct CORFIL {
   typedef struct text {
     uint16_t        linenum;        /* Line num in orch file (currently buggy!)  */
     uint64_t        locn;           /* and location */
-    OENTRY* oentry;
-    char    *opcod;         /* Pointer to opcode name in global pool */
-    ARGLST  *inlist;        /* Input args (pointer to item in name list) */
-    ARGLST  *outlist;
-    ARG     *inArgs;        /* Input args (index into list of values) */
-    unsigned int inArgCount;
-    ARG     *outArgs;
-    unsigned int outArgCount;
-    //    char    intype;         /* Type of first input argument (g,k,a,w etc) */
-    char    pftype;         /* Type of output argument (k,a etc) */
+    OENTRY          *oentry;
+    char            *opcod;         /* Pointer to opcode name in global pool */
+    ARGLST          *inlist;        /* Input args (pointer to item in name list) */
+    ARGLST          *outlist;
+    ARG             *inArgs;        /* Input args (index into list of values) */
+    uint32_t        inArgCount;
+    ARG             *outArgs;
+    uint32_t        outArgCount;
+    char            intype;         /* Type of first input argument (g,k,a,w etc) */
+    char            pftype;         /* Type of output argument (k,a etc) */
   } TEXT;
 
 
@@ -318,12 +318,12 @@ typedef struct CORFIL {
    * This struct is filled out by otran() at orch parse time.
    * It is used as a template for instrument events.
    */
-  typedef struct instr {
+    typedef struct instr {
     struct op * nxtop;              /* Linked list of instr opcodes */
     TEXT    t;                      /* Text of instrument (same in nxtop) */
     int     pmax, vmax, pextrab;    /* Arg count, size of data for all
                                        opcodes in instr */
-    //int     mdepends;               /* Opcode type (i/k/a) */
+    int     mdepends;               /* Opcode type (i/k/a) */
     CS_VAR_POOL* varPool;
 
     //    int     optxtcount;
@@ -935,15 +935,14 @@ typedef struct NAME__ {
    */
   typedef struct engine_state {
     CS_VAR_POOL    *varPool;  /* global variable pool */
-    CS_HASH_TABLE  *constantsPool;
-    CS_HASH_TABLE  *stringPool;
+    MYFLT_POOL*   constantsPool;
+    CS_HASH_TABLE*  stringPool;
     int            maxopcno;
     INSTRTXT      **instrtxtp; /* instrument list      */
     INSTRTXT      instxtanchor;
     CS_HASH_TABLE *instrumentNames; /* instrument names */
     int           maxinsno;
   } ENGINE_STATE;
-
 
   /**
    * Nen FFT interface

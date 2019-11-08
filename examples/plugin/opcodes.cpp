@@ -228,7 +228,7 @@ class PrintThread : public csnd::Thread {
   std::atomic_bool spinlock;
   std::atomic_bool on;
   std::string message;
-  
+
 public:
   PrintThread(csnd::Csound *csound)
     : Thread(csound), spinlock(false), on(true), message("") {};
@@ -239,8 +239,8 @@ public:
       if(old.compare(message)) {
        csound->message(message.c_str());
        old = message;
-      } 
-      unlock(); 
+      }
+      unlock();
     }
     return 0;
   }

@@ -1010,6 +1010,7 @@ int sensevents(CSOUND *csound)
      to stop Csound */
     while (csound->cyclesRemaining <= 0 &&
            (e->opcod != 'e' || !csound->oparms->daemon)){
+
       /* read each score event:     */
     if (e->opcod != '\0') {
       /* if there is a pending score event, handle it now */

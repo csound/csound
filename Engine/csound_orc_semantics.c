@@ -279,6 +279,7 @@ char* get_arg_type2(CSOUND* csound, TREE* tree, TYPE_TABLE* typeTable)
       if (tree->type == T_ARRAY) {
 
         varBaseName = tree->left->value->lexeme;
+
         var = find_var_from_pools(csound, varBaseName, varBaseName, typeTable);
 
         if (var == NULL) {
@@ -997,6 +998,7 @@ int check_out_args(CSOUND* csound, char* outArgsFound, char* opOutArgs)
         //printf("delete %p\n", argsRequired[n]);
         csound->Free(csound, argsRequired[n]);
       }
+
       csound->Free(csound, argsRequired);
 
       return returnVal;
@@ -1182,7 +1184,7 @@ char* get_arg_string_from_tree(CSOUND* csound, TREE* tree,
     while (current != NULL) {
         char* argType = get_arg_type2(csound, current, typeTable);
         //FIXME - fix if argType is NULL and remove the below hack
-        if(argType == NULL) {
+        if (argType == NULL) {
             argsLen += 1;
             argTypes[index++] = "@";
         } else {
@@ -1208,6 +1210,7 @@ char* get_arg_string_from_tree(CSOUND* csound, TREE* tree,
 
 
     argString[argsLen] = '\0';
+
     return argString;
 
 
@@ -1417,7 +1420,7 @@ void add_arg(CSOUND* csound, char* varName, char* annotation, TYPE_TABLE* typeTa
     char argLetter[2];
     ARRAY_VAR_INIT varInit;
     void* typeArg = NULL;
-    char *brkt; /* used with strtok_r */
+    // char *brkt; /* used with strtok_r */ // was causing -Werror=unused-variable @hlolli
 
     t = varName;
     if (*t == '#') t++;
@@ -1938,7 +1941,7 @@ CONS_CELL* get_label_list(CSOUND* csound, TREE* root) {
     return head;
 }
 
-static int is_label(char* ident, CONS_CELL* labelList) {
+int is_label(char* ident, CONS_CELL* labelList) {
     CONS_CELL* current;
 
     if (labelList == NULL) return 0;
@@ -2113,12 +2116,6 @@ void copyStructVar(CSOUND* csound, CS_TYPE* structType, void* dest, void* src) {
     CS_STRUCT_VAR* varSrc = (CS_STRUCT_VAR*)src;
     int i, count;
 
-    if (typeDest != typeSrc) {
-        csound->Warning(csound, "ERROR: different types given for copy struct var: %s : %s\n",
-                        typeDest->varTypeName, typeSrc->varTypeName);
-        return;
-    }
-
     count = cs_cons_length(structType->members);
     for (i = 0; i < count; i++) {
         CS_VAR_MEM* d = varDest->members[i];
@@ -2126,7 +2123,6 @@ void copyStructVar(CSOUND* csound, CS_TYPE* structType, void* dest, void* src) {
         d->varType->copyValue(csound, d->varType, &d->value, &s->value);
     }
 }
-
 
 int add_struct_definition(CSOUND* csound, TREE* structDefTree) {
     CS_TYPE* type = csound->Calloc(csound, sizeof(CS_TYPE));
@@ -2156,8 +2152,6 @@ int add_struct_definition(CSOUND* csound, TREE* structDefTree) {
         CS_VARIABLE* var = memberType->createVariable(csound, type);
         var->varName = cs_strdup(csound, memberName);
         var->varType = memberType;
-
-        // csound->Message(csound, "Member Found: %s : %s\n", memBase, typedIdentArg);
 
         CONS_CELL* member = csound->Calloc(csound, sizeof(CONS_CELL));
         member->value = var;
@@ -2206,6 +2200,83 @@ int add_struct_definition(CSOUND* csound, TREE* structDefTree) {
     oentry.intypes = cs_strdup(csound, temp);
 
     csoundAppendOpcodes(csound, &oentry, 1);
+    return 1;
+}
+
+/** Verifies if xin and xout statements are correct for UDO
+   needs to check:
+     xin/xout number of args matches UDO input/output arg specifications
+     xin/xout statements exist if UDO in and out args are not 0 */
+int verify_xin_xout(CSOUND *csound, TREE *udoTree, TYPE_TABLE *typeTable) {
+    if (udoTree->right == NULL) {
+      return 1;
+    }
+    TREE* outArgsTree = udoTree->left->left;
+    TREE* inArgsTree = udoTree->left->right;
+    TREE* current = udoTree->right;
+    TREE* xinArgs = NULL;
+    TREE* xoutArgs = NULL;
+    char* inArgs = inArgsTree->value->lexeme;
+    char* outArgs = outArgsTree->value->lexeme;
+    unsigned int i;
+
+    for (i = 0; i < strlen(inArgs);i++) {
+      if (inArgs[i] == 'K') {
+        inArgs[i] = 'k';
+      }
+    }
+
+    for (i = 0; i < strlen(outArgs);i++) {
+      if (outArgs[i] == 'K') {
+        outArgs[i] = 'k';
+      }
+    }
+
+    while (current != NULL) {
+      if (current->value != NULL) {
+        if (strcmp("xin", current->value->lexeme) == 0) {
+          if (xinArgs != NULL) {
+            synterr(csound,
+                    Str("Multiple xin statements found. "
+                        "Only one is allowed."));
+            return 0;
+          }
+          xinArgs = current->left;
+        }
+        if (strcmp("xout", current->value->lexeme) == 0) {
+          if (xoutArgs != NULL) {
+            synterr(csound,
+                    Str("Multiple xout statements found. "
+                        "Only one is allowed."));
+            return 0;
+          }
+          xoutArgs = current->right;
+        }
+      }
+      current = current->next;
+    }
+
+    char* inArgsFound = get_arg_string_from_tree(csound, xinArgs, typeTable);
+    char* outArgsFound = get_arg_string_from_tree(csound, xoutArgs, typeTable);
+
+
+    if (!check_in_args(csound, inArgsFound, inArgs)) {
+      if (!(strcmp("0", inArgs) == 0 && xinArgs == NULL)) {
+        synterr(csound,
+                Str("invalid xin statement for UDO: defined '%s', found '%s'\n"),
+                inArgs, inArgsFound);
+        return 0;
+      }
+    }
+
+    if (!check_in_args(csound, outArgsFound, outArgs)) {
+      if (!(strcmp("0", outArgs) == 0 && xoutArgs == NULL)) {
+        synterr(csound,
+                Str("invalid xout statement for UDO: defined '%s', found '%s'\n"),
+                outArgs, outArgsFound);
+        return 0;
+      }
+    }
 
     return 1;
 }
@@ -2222,9 +2293,6 @@ TREE* verify_tree(CSOUND * csound, TREE *root, TYPE_TABLE* typeTable)
 
     CONS_CELL* parentLabelList = typeTable->labelList;
     typeTable->labelList = get_label_list(csound, root);
-
-    //if (root->value)
-    //printf("###verify %p %p (%s)\n", root, root->value, root->value->lexeme);
 
     if (UNLIKELY(PARSER_DEBUG)) csound->Message(csound, "Verifying AST\n");
 
@@ -2361,7 +2429,6 @@ TREE* verify_tree(CSOUND * csound, TREE *root, TYPE_TABLE* typeTable)
 
       case LABEL_TOKEN:
         break;
-
       case '+':
       case '-':
       case '*':
@@ -2421,6 +2488,7 @@ TREE* verify_tree(CSOUND * csound, TREE *root, TYPE_TABLE* typeTable)
         }
 
         if(!verify_opcode(csound, current, typeTable)) {
+
           return 0;
         }
         //print_tree(csound, "verify_tree", current);
@@ -3073,7 +3141,6 @@ void handle_optional_args(CSOUND *csound, TREE *l)
       if (inArgParts != NULL) {
         int n;
         for (n=0; inArgParts[n] != NULL; n++) {
-          //printf("delete %p\n", inArgParts[n]);
           csound->Free(csound, inArgParts[n]);
         }
         csound->Free(csound, inArgParts);

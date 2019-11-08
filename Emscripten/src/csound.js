@@ -22,10 +22,10 @@
 
 
 
-/** 
+/**
 * @classdesc Csound frontend class, wrapping CsoundObj
 *
-* @constructor 
+* @constructor
 */
 Csound = function() {
     var Csound = null;
@@ -58,7 +58,7 @@ Csound = function() {
                     console.log("loaded WASM runtime");
                     csound.Csound = new CsoundObj();
                     csound.module = true;
-                    if (typeof window.handleMessage !== 'undefined') { 
+                    if (typeof window.handleMessage !== 'undefined') {
                         console.log = console.warn = function(mess) {
                             mess += "\n";
                             window.handleMessage(mess);
@@ -67,7 +67,7 @@ Csound = function() {
                     }
                     if (typeof window.moduleDidLoad !== 'undefined')
                         window.moduleDidLoad();
-                    if (typeof window.attachListeners !== 'undefined') 
+                    if (typeof window.attachListeners !== 'undefined')
                         window.attachListeners();
                     csound.UpdateStatus('Ready.');
                 });
@@ -101,7 +101,7 @@ Csound = function() {
             }
         }
     }
-    
+
     /**
      * Starts audio playback.
      */
@@ -146,9 +146,8 @@ Csound = function() {
         csound.Csound.evaluateCode(s);
     }
 
-
     /**
-     * Starts real-time audio playback with a CSD. The variable can contain 
+     * Starts real-time audio playback with a CSD. The variable can contain
      * a filepath or the literal text of a CSD.
      *
      * @param {string} s A string containing the pathname to the CSD.
@@ -167,14 +166,14 @@ Csound = function() {
      * @param {string} s A string containing the complete text of the CSD.
      */
     function CompileCsdText(s) {
-        // This function internally discriminates between CSD text 
+        // This function internally discriminates between CSD text
         // and CSD pathnames.
         csound.Csound.compileCSD(s);
         started = true;
     }
 
     /**
-     * Starts file rendering with a CSD (no real-time audio). The variable can contain 
+     * Starts file rendering with a CSD (no real-time audio). The variable can contain
      * a filepath or the literal text of a CSD.
      *
      * @param {string} s A string containing the pathname to the CSD.
@@ -340,7 +339,7 @@ Csound = function() {
      */
     function RequestChannel(name) {
       csound.Csound.requestControlChannel(name);
-      return csound.Csound.getControlChannel(name);  
+      return csound.Csound.getControlChannel(name);
     }
 
     /**
@@ -457,6 +456,6 @@ document.addEventListener('DOMContentLoaded', function() {
 
 /**
  *  The global singleton csound frontend object
- * 
+ *
  */
 var csound = new Csound();

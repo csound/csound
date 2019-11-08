@@ -545,19 +545,19 @@ static const CSOUND cenviron_ = {
     NULL, NULL,     /*  orchstr, *scorestr  */
     (OPDS*) NULL,   /*  ids                 */
     { (CS_VAR_POOL*)NULL,
-      (CS_HASH_TABLE *) NULL,
+      (MYFLT_POOL *) NULL,
       (CS_HASH_TABLE *) NULL,
       -1,
       (INSTRTXT**)NULL,
       { NULL,
         {
-          0,0,
-          NULL, NULL, NULL, NULL,
-          0,0,
-          NULL,
-          0,0},
+         0,0,
+         NULL, NULL, NULL, NULL,
+         0,0,
+         NULL,
+         0,0,0},
         0,0,0,
-        //0,
+        0,
         NULL,
         0,
         0,
@@ -572,7 +572,6 @@ static const CSOUND cenviron_ = {
         FL(0.0),
         NULL,
         NULL,
-        0,
         0,
         0
       },
@@ -962,9 +961,9 @@ static const CSOUND cenviron_ = {
     0,              /* csdebug_data */
     kperf_nodebug,  /* current kperf function - nodebug by default */
     0,              /* which score parser */
-    NULL,           /* symbtab */
-    0,              /* unusedint */
+    0,              /* tseglen */
     1,              /* inZero */
+    0,              /* unusedint */
     NULL,           /* msg_queue */
     0,              /* msg_queue_wget */
     0,              /* msg_queue_wput */
@@ -983,7 +982,7 @@ static const CSOUND cenviron_ = {
     0,              /* message_string_queue_wp */
     NULL,            /* message_string_queue */
     0                /* io_initialised */
-    /*, NULL */      /* self-reference */
+    /*, NULL */     /* self-reference */
 };
 
 void csound_aops_init_tables(CSOUND *cs);
@@ -3379,10 +3378,7 @@ PUBLIC void csoundReset(CSOUND *csound)
     csound_init_rand(csound);
 
     csound->engineState.stringPool = cs_hash_table_create(csound);
-    csound->engineState.constantsPool = cs_hash_table_create(csound);
-    if (csound->symbtab != NULL)
-      cs_hash_table_mfree_complete(csound, csound->symbtab);
-    csound->symbtab = NULL;
+    csound->engineState.constantsPool = myflt_pool_create(csound);
     csound->engineStatus |= CS_STATE_PRE;
     csound_aops_init_tables(csound);
     create_opcode_table(csound);

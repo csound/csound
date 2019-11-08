@@ -73,32 +73,26 @@ TREE* tree_tail(TREE* node) {
 char *create_out_arg(CSOUND *csound, char* outype, int argCount,
                      TYPE_TABLE* typeTable)
 {
-
-    char* s = (char *)csound->Malloc(csound, 16);
-
-    switch(*outype) {
-    case 'a': snprintf(s, 16, "#a%d", argCount); break;
-    case 'K':
-    case 'k': snprintf(s, 16, "#k%d", argCount); break;
-    case 'B': snprintf(s, 16, "#B%d", argCount); break;
-    case 'b': snprintf(s, 16, "#b%d", argCount); break;
-    case 'f': snprintf(s, 16, "#f%d", argCount); break;
-    case 't': snprintf(s, 16, "#k%d", argCount); break;
-    case 'S': snprintf(s, 16, "#S%d", argCount); break;
-    case '[': snprintf(s, 16, "#%c%d[]", outype[1], argCount);
-              break;
-    default:  snprintf(s, 16, "#i%d", argCount); break;
-    }
-
-    if (*outype == '[') {
-        add_array_arg(csound, s, NULL, 1, typeTable);
-    } else {
+    char* s = (char *)csound->Malloc(csound, 256);
+    if (strlen(outype) == 1) {
+        switch(*outype) {
+            case 'a': snprintf(s, 16, "#a%d", argCount); break;
+            case 'K':
+            case 'k': snprintf(s, 16, "#k%d", argCount); break;
+            case 'B': snprintf(s, 16, "#B%d", argCount); break;
+            case 'b': snprintf(s, 16, "#b%d", argCount); break;
+            case 'f': snprintf(s, 16, "#f%d", argCount); break;
+            case 't': snprintf(s, 16, "#k%d", argCount); break;
+            case 'S': snprintf(s, 16, "#S%d", argCount); break;
+            case '[': snprintf(s, 16, "#%c%d[]", outype[1], argCount);
+                      break;
+            default:  snprintf(s, 16, "#i%d", argCount); break;
+        }
         add_arg(csound, s, NULL, typeTable);
     } else {
         // FIXME - struct arrays
         if (*outype == '[') {
-            // piggyback on tcount
-            snprintf(s, 16, "#%c%d[]", outype[1], csound->tcount++);
+            snprintf(s, 16, "#%c%d[]", outype[1], argCount);
             add_array_arg(csound, s, NULL, 1, typeTable);
         } else {
 //            char* argType = cs_strndup(csound, outype + 1, strlen(outype) - 2);
@@ -131,7 +125,7 @@ char * get_boolean_arg(CSOUND *csound, TYPE_TABLE* typeTable, int type)
     return s;
 }
 
-static TREE *create_empty_token(CSOUND *csound)
+TREE *create_empty_token(CSOUND *csound)
 {
     TREE *ans;
     ans = (TREE*)csound->Malloc(csound, sizeof(TREE));
@@ -152,7 +146,7 @@ static TREE *create_empty_token(CSOUND *csound)
     return ans;
 }
 
-static TREE *create_minus_token(CSOUND *csound)
+TREE *create_minus_token(CSOUND *csound)
 {
     TREE *ans;
     ans = (TREE*)csound->Malloc(csound, sizeof(TREE));
@@ -171,7 +165,7 @@ static TREE *create_minus_token(CSOUND *csound)
     return ans;
 }
 
-static TREE * create_opcode_token(CSOUND *csound, char* op)
+TREE * create_opcode_token(CSOUND *csound, char* op)
 {
     TREE *ans = create_empty_token(csound);
 
@@ -182,7 +176,7 @@ static TREE * create_opcode_token(CSOUND *csound, char* op)
     return ans;
 }
 
-static TREE * create_ans_token(CSOUND *csound, char* var)
+TREE * create_ans_token(CSOUND *csound, char* var)
 {
     TREE *ans = create_empty_token(csound);
 
@@ -194,7 +188,7 @@ static TREE * create_ans_token(CSOUND *csound, char* var)
 
 }
 
-static TREE * create_goto_token(CSOUND *csound, char * booleanVar,
+TREE * create_goto_token(CSOUND *csound, char * booleanVar,
                          TREE * gotoNode, int type)
 {
     /*     TREE *ans = create_empty_token(csound); */
@@ -203,28 +197,27 @@ static TREE * create_goto_token(CSOUND *csound, char * booleanVar,
 
     switch(gotoNode->type) {
     case KGOTO_TOKEN:
-      strNcpy(op, "ckgoto", 8);
+      strncpy(op, "ckgoto", 8);
       break;
     case IGOTO_TOKEN:
-      strNcpy(op, "cigoto", 8);
+      strncpy(op, "cigoto", 8);
       break;
     case ITHEN_TOKEN:
     icase:
-      strNcpy(op, "cingoto", 8);
+      strncpy(op, "cingoto", 8);
       break;
     case THEN_TOKEN:
       if (csound->inZero) goto icase;
-      /* fall through */
     case KTHEN_TOKEN:
-      strNcpy(op, "cngoto", 8);
+      strncpy(op, "cngoto", 8);
       break;
     default:
       switch (type) {
-      case 1: strNcpy(op, "ckgoto", 8); break;
-      case 0x8001: strNcpy(op, "cnkgoto", 8); break;
-      case 0: strNcpy(op, "cggoto", 8); break;
+      case 1: strncpy(op, "ckgoto", 8); break;
+      case 0x8001: strncpy(op, "cnkgoto", 8); break;
+      case 0: strncpy(op, "cggoto", 8); break;
       case 0x8000:
-        strNcpy(op,csound->inZero?"cingoto":"cngoto", 8); break;
+        strncpy(op,csound->inZero?"cingoto":"cngoto", 8); break;
       default: printf("Whooops %d\n", type);
       }
     }
@@ -244,13 +237,13 @@ static TREE * create_goto_token(CSOUND *csound, char * booleanVar,
 
 /* THIS PROBABLY NEEDS TO CHANGE TO RETURN DIFFERENT GOTO
    TYPES LIKE IGOTO, ETC */
-static TREE *create_simple_goto_token(CSOUND *csound, TREE *label, int type)
+TREE *create_simple_goto_token(CSOUND *csound, TREE *label, int type)
 {
     char* op = (char *)csound->Calloc(csound, 6);
     TREE * opTree;
     char *gt[3] = {"kgoto", "igoto", "goto"};
     if (csound->inZero && type==2) type = 1;
-    strNcpy(op, gt[type],6);       /* kgoto, igoto, goto ?? */
+    strncpy(op, gt[type],6);       /* kgoto, igoto, goto ?? */
     opTree = create_opcode_token(csound, op);
     opTree->left = NULL;
     opTree->right = label;
@@ -530,7 +523,7 @@ static TREE *create_expression(CSOUND *csound, TREE *root, int line, int locn,
     TREE *anchor = NULL, *last;
     TREE * opTree, *current, *newArgList;
     OENTRIES* opentries;
-    char *brkt;
+    // char *brkt; // was causing -Werror=unused-variable @hlolli
     CS_VARIABLE* var;
 
     /* HANDLE SUB EXPRESSIONS */
@@ -1051,8 +1044,7 @@ static void collapse_last_assigment(CSOUND* csound, TREE* anchor,
    expressions into statements prior to the original statement line,
    and LHS expressions (array sets) after the original statement
    line */
-TREE* expand_statement(CSOUND* csound, TREE* current, TYPE_TABLE* typeTable)
-{
+TREE* expand_statement(CSOUND* csound, TREE* current, TYPE_TABLE* typeTable) {
      /* This is WRONG in optional argsq */
     TREE* anchor = NULL;
     TREE* originalNext = current->next;
@@ -1063,16 +1055,16 @@ TREE* expand_statement(CSOUND* csound, TREE* current, TYPE_TABLE* typeTable)
     current->next = NULL;
 
     if (UNLIKELY(PARSER_DEBUG))
-      csound->Message(csound, "Found Statement.\n");
+        csound->Message(csound, "Found Statement.\n");
     while (currentArg != NULL) {
-      TREE* last;
-      TREE *nextArg;
-      TREE *newArgTree;
-      TREE *expressionNodes;
-      int is_bool = 0;
-      handle_negative_number(csound, currentArg);
-      if (is_expression_node(currentArg) ||
-          (is_bool = is_boolean_expression_node(currentArg))) {
+        TREE* last;
+        TREE *nextArg;
+        TREE *newArgTree;
+        TREE *expressionNodes;
+        int is_bool = 0;
+        handle_negative_number(csound, currentArg);
+        if (is_expression_node(currentArg) ||
+            (is_bool = is_boolean_expression_node(currentArg))) {
             char * newArg;
             if (UNLIKELY(PARSER_DEBUG))
               csound->Message(csound, "Found Expression.\n");
@@ -1097,6 +1089,7 @@ TREE* expand_statement(CSOUND* csound, TREE* current, TYPE_TABLE* typeTable)
 
             /* reconnect into chain */
             last = tree_tail(expressionNodes);
+
             newArg = last->left->value->lexeme;
 
             if (UNLIKELY(PARSER_DEBUG))
@@ -1133,14 +1126,13 @@ TREE* expand_statement(CSOUND* csound, TREE* current, TYPE_TABLE* typeTable)
     if (strcmp("init", current->value->lexeme)==0) {
       //print_tree(csound, "init",current);
       init = 1;
-    }
+      }
     while (currentArg != NULL) {
       TREE* temp;
 
       if (currentArg->type == T_ARRAY) {
-
-          char *outType, *brkt;
-          CS_VARIABLE* var;
+        char *outType; // , *brkt; // was causing -Werror=unused-variable @hlolli
+        CS_VARIABLE* var;
 
           char *varBaseName = currentArg->left->value->lexeme;
 
@@ -1198,7 +1190,6 @@ TREE* expand_statement(CSOUND* csound, TREE* current, TYPE_TABLE* typeTable)
         anchor = appendToTree(csound, anchor, arraySet);
         //print_tree(csound, "anchor", anchor);
         currentArg = temp;
-        csound->Free(csound, leftArgType);
       }
       previousArg = currentArg;
       currentArg = currentArg->next;

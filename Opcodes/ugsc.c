@@ -741,4 +741,3 @@ int32_t ugsc_init_(CSOUND *csound)
                                  (int32_t
                                   ) (sizeof(localops) / sizeof(OENTRY)));
 }
-

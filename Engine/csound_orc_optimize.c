@@ -82,13 +82,14 @@ static TREE * optimize_ifun(CSOUND *csound, TREE *root)
     return root;
 }
 
-/** Verifies opcodes and args are correct*/
-/* The wrong place to fold constants so done in parser -- JPff */
+/** Verifies and optimise; constant fold and opcodes and args are correct*/
 static TREE * verify_tree1(CSOUND *csound, TREE *root)
 {
-    TREE *last;
+    TREE *ans, *last;
+    double lval, rval;
+    //csound->Message(csound, "Verifying AST (NEED TO IMPLEMENT)\n");
     //print_tree(csound, "Verify", root);
-    // if (root->right && root->right->type != T_INSTLIST) {
+//    if (root->right && root->right->type != T_INSTLIST) {
     if (root->right) {
         if (root->type == T_OPCALL || root->type == T_OPCALL) {
             last = root->right;
@@ -109,33 +110,113 @@ static TREE * verify_tree1(CSOUND *csound, TREE *root)
         }
         last = root->right;
         while (last->next) {
-          /* we optimize the i() functions in the opcode */
-          if (last->next->type == T_FUNCTION &&
-              (strcmp(last->next->value->lexeme, "i") == 0)) {
-            TREE *temp = optimize_ifun(csound, last->next);
-            temp->next = last->next->next;
-            last->next = temp;
-          }
-          last = last->next;
+            last->next = verify_tree1(csound, last->next);
+            last = last->next;
         }
-      }
-      if (root->right->type == T_FUNCTION &&
-          (strcmp(root->right->value->lexeme, "i") == 0)) {  /* i() function */
-        root->right = optimize_ifun(csound, root->right);
-      }
-      last = root->right;
-      while (last->next) {
-        last->next = verify_tree1(csound, last->next);
-        last = last->next;
-      }
-      root->right = verify_tree1(csound, root->right);
-      if (root->left) {
-        if (root->left->type == T_FUNCTION &&
-            (strcmp(root->left->value->lexeme, "i") == 0)) {  /* i() function */
-          root->left = optimize_ifun(csound, root->left);
+        root->right = verify_tree1(csound, root->right);
+        if (root->left) {
+            if (root->left->type == T_FUNCTION &&
+                (strcmp(root->left->value->lexeme, "i") == 0)) {  /* i() function */
+                root->left = optimize_ifun(csound, root->left);
+            }
+            root->left= verify_tree1(csound, root->left);
+            if ((root->left->type  == INTEGER_TOKEN ||
+                 root->left->type  == NUMBER_TOKEN) &&
+                (root->right->type == INTEGER_TOKEN ||
+                 root->right->type == NUMBER_TOKEN)) {
+                    //print_tree(csound, "numerical case\n", root);
+                    lval = (root->left->type == INTEGER_TOKEN ?
+                            (double)root->left->value->value :
+                            root->left->value->fvalue);
+                    rval = (root->right->type == INTEGER_TOKEN ?
+                            (double)root->right->value->value :
+                            root->right->value->fvalue);
+                    ans = root->left;
+                    /* **** Something wrong here --
+                       subtraction confuses memory **** */
+                    switch (root->type) {
+                        case '+':
+                            ans->type = ans->value->type = NUMBER_TOKEN;
+                            ans->value->fvalue = lval+rval;
+                            ans->value->lexeme =
+                              (char*)csound->
+                              ReAlloc(csound, ans->value->lexeme, 24);
+                            CS_SPRINTF(ans->value->lexeme, "%f", ans->value->fvalue);
+                            ans->next = root->next;
+                            //Memory leak!!
+                            //csound->Free(csound, root); mfree(csound root->right);
+                            return ans;
+                        case '-':
+                            ans->type = ans->value->type = NUMBER_TOKEN;
+                            ans->value->fvalue = lval-rval;
+                            ans->value->lexeme =
+                              (char*)csound->
+                              ReAlloc(csound, ans->value->lexeme, 24);
+                            CS_SPRINTF(ans->value->lexeme, "%f", ans->value->fvalue);
+                            ans->next = root->next;
+                            //Memory leak!!
+                            //csound->Free(csound, root); mfree(csound, root->right);
+                            return ans;
+                        case '*':
+                            ans->type = ans->value->type = NUMBER_TOKEN;
+                            ans->value->fvalue = lval*rval;
+                            ans->value->lexeme =
+                            (char*)csound->ReAlloc(csound, ans->value->lexeme, 24);
+                            CS_SPRINTF(ans->value->lexeme, "%f", ans->value->fvalue);
+                            ans->next = root->next;
+                            //Memory leak!!
+                            //csound->Free(csound, root); mfree(csound, root->right);
+                            return ans;
+                        case '/':
+                            ans->type = ans->value->type = NUMBER_TOKEN;
+                            ans->value->fvalue = lval/rval;
+                            ans->value->lexeme =
+                            (char*)csound->ReAlloc(csound, ans->value->lexeme, 24);
+                            CS_SPRINTF(ans->value->lexeme, "%f", ans->value->fvalue);
+                            ans->next = root->next;
+                            //Memory leak!!
+                            //csound->Free(csound, root); mfree(csound, root->right);
+                            return ans;
+                            /* case S_NEQ: */
+                            /*   break; */
+                            /* case S_AND: */
+                            /*   break; */
+                            /* case S_OR: */
+                            /*   break; */
+                            /* case S_LT: */
+                            /*   break; */
+                            /* case S_LE: */
+                            /*   break; */
+                            /* case S_EQ: */
+                            /*   break; */
+                            /* case S_GT: */
+                            /*   break; */
+                            /* case S_GE: */
+                            /*   break; */
+                        default: break;
+                    }
+                }
         }
-        root->left= verify_tree1(csound, root->left);
-      }
+        else if (root->right->type == INTEGER_TOKEN ||
+                 root->right->type == NUMBER_TOKEN) {
+            switch (root->type) {
+                case S_UMINUS:
+                    /*print_tree(csound, "root", root);*/
+                    ans = root->right;
+                    ans->value->fvalue =
+                    -(ans->type==INTEGER_TOKEN ? (double)ans->value->value
+                      : ans->value->fvalue);
+                    ans->value->lexeme =
+                    (char*)csound->ReAlloc(csound, ans->value->lexeme, 24);
+                    CS_SPRINTF(ans->value->lexeme, "%f", ans->value->fvalue);
+                    ans->type = ans->value->type = NUMBER_TOKEN;
+                    //print_tree(csound, "ans", ans);
+                    ans->next = root->next;
+                    return ans;
+                default:
+                    break;
+            }
+        }
     }
     return root;
 }
@@ -152,7 +233,7 @@ static TREE* remove_excess_assigns(CSOUND *csound, TREE* root)
     TREE* current = root;
     while (current) {
       //if (PARSER_DEBUG) printf("in loop: current->type = %d\n", current->type);
-      if ((current->type == T_OPCODE || current->type == '=') &&
+      if ((current->type == T_ASSIGNMENT || current->type == '=') &&
           current->left != NULL &&
           //current->right != NULL &&  no one looks at current->right
           current->left->value->lexeme[0]=='#') {

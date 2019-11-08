@@ -98,7 +98,6 @@ static int OpenMidiInDevice_(CSOUND *csound, void **userData, const char *dev)
 #else
       char buff[128];
       ignore_value(strerror_r(errno, buff, 128));
-
       csound->ErrorMsg(csound, Str("Error adding membership to interface: %s"),
                        buff);
       return NOTOK;

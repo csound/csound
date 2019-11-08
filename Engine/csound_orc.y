@@ -176,9 +176,10 @@
 orcfile : root_statement_list
           {
               if ($1 != NULL)
-                *astTree = *((TREE *)$1);
+                *astTree = ((TREE *)$1);
               csound->synterrcnt = csound_orcnerrs;
-              //print_tree(csound, "ALL", $1);
+              if (csound->oparms->odebug)
+                print_tree(csound, "ALL", $1);
           }
           ;
 

@@ -1159,7 +1159,6 @@ OENTRY opcodlst_1[] = {
   { "readscore",  S(COMPILE), 0, 1, "i", "S",  (SUBR) read_score_i, NULL, NULL },
   { "return",  S(RETVAL), 0, 1, "", "i",  (SUBR) retval_i, NULL, NULL },
   /* ----------------------------------------------------------------------- */
-<<<<<<< HEAD
   { "monitor",  sizeof(MONITOR_OPCODE), IB, 3,  "mmmmmmmmmmmmmmmmmmmmmmmm", "",
     (SUBR) monitor_opcode_init, (SUBR) notinit_opcode_stub,  NULL },
   { "outrg", S(OUTRANGE), IR,3, "", "ky",
@@ -1168,13 +1167,6 @@ OENTRY opcodlst_1[] = {
     (SUBR)hw_channels},
    { "midiarp",   S(MIDIARP),0,  3,    "kk", "kO",
      midiarp_set, midiarp, NULL },
-=======
-  { "monitor",  sizeof(MONITOR_OPCODE), 0, 3,  "mmmmmmmmmmmmmmmmmmmmmmmm", "",
-    (SUBR) monitor_opcode_init, (SUBR) notinit_opcode_stub,  (SUBR) NULL },
-  { "outrg", S(OUTRANGE), 0,5, "", "ky",
-    (SUBR)outRange_i, (SUBR)NULL, (SUBR)outRange},
-  { "=.generic", S(ASSIGN), 0,1, ".", ".", (SUBR)copyVarGeneric, (SUBR)NULL, (SUBR)NULL},
->>>>>>> b55b422b3... implemented structs working with UDO's, added =.generic OENTRY to catch = for structs and any var types (uses runtime type to copy values)
   /* terminate list */
   {  NULL, 0, 0, 0, NULL, NULL, NULL, NULL, NULL       }
 };

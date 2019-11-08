@@ -267,6 +267,7 @@ void reallocateVarPoolMemory(CSOUND* csound, CS_VAR_POOL* pool) {
 
 void deleteVarPoolMemory(CSOUND* csound, CS_VAR_POOL* pool) {
     CS_VARIABLE* current = pool->head, *tmp;
+    CS_TYPE* type;
 
     while (current != NULL) {
       tmp = current;
@@ -314,14 +315,14 @@ int copyVarGeneric(CSOUND *csound, void *p) {
     ASSIGN* assign = (ASSIGN*)p;
     CS_TYPE* typeR = csoundGetTypeForArg(assign->r);
     CS_TYPE* typeA = csoundGetTypeForArg(assign->a);
-    
+
     if(typeR != typeA) {
         csound->Warning(csound,
                         Str("error: = opcode given variables with two different types: %s : %s\n"),
                         typeR->varTypeName, typeA->varTypeName);
         return NOTOK;
     }
-    
+
     typeR->copyValue(csound, typeR, assign->r, assign->a);
     return OK;
 }

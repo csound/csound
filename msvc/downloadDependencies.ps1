@@ -91,7 +91,7 @@ echo "Downloading VC packages..."
 # Target can be arm-uwp, x64-uwp, x64-windows-static, x64-windows, x86-uwp, x86-windows-static, x86-windows
 $targetTriplet = "x64-windows"
 $targetTripletStatic = "x64-windows-static"
-#vcpkg --triplet $targetTriplet install eigen3 fltk zlib 
+#vcpkg --triplet $targetTriplet install eigen3 fltk zlib
 #vcpkg --triplet $targetTripletStatic install libflac libogg libvorbis libsndfile
 vcpkg --triplet $targetTripletStatic install eigen3 fltk zlib libflac libogg libvorbis libsndfile libsamplerate
 $vcpkgTiming = (Get-Date).TimeOfDay
@@ -194,16 +194,16 @@ cmake .. -G $vsGenerator -T $vsToolset -DCMAKE_BUILD_TYPE="Release"
 cmake --build .
 
 # disable 1.8.20 for time being
-# cd $depsDir    
+# cd $depsDir
 # cd hdf5-1.8.20-Std-win7_64-vs14
-# dir hdf   
-# Start-Process msiexec -Wait -ArgumentList '/I hdf\HDF5-1.8.20-win64.msi /quiet /qn /li /norestart'   
-# echo "Installed HDF5..."    
+# dir hdf
+# Start-Process msiexec -Wait -ArgumentList '/I hdf\HDF5-1.8.20-win64.msi /quiet /qn /li /norestart'
+# echo "Installed HDF5..."
 
-cd $depsDir    
-dir hdf   
-Start-Process msiexec -Wait -ArgumentList '/I hdf\HDF5-1.8.19-win64.msi /quiet /qn /li /norestart'   
-echo "Installed HDF5..."    
+cd $depsDir
+dir hdf
+Start-Process msiexec -Wait -ArgumentList '/I hdf\HDF5-1.8.19-win64.msi /quiet /qn /li /norestart'
+echo "Installed HDF5..."
 
 
 cd $depsDir
@@ -251,7 +251,7 @@ cd $stageDir
 if (Test-Path "portmidi")
 {
   cd portmidi
-  svn update  
+  svn update
   cd ..
   echo "Portmidi already downloaded, updated"
 }

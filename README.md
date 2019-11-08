@@ -35,7 +35,7 @@ made with it, and many other things can be found.
 
 The Csound Reference Manual can be found online at http://docs.csound.com.
 
-The Csound API application programming interface reference 
+The Csound API application programming interface reference
 may be found online at http://csound.github.io/docs/api/index.html.
 
 Information on how to build Csound on various platforms is given in

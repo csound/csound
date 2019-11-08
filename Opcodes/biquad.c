@@ -1561,6 +1561,7 @@ static int32_t mode(CSOUND *csound, MODE *p)
         }
       }
       if (asgq) kq = p->kq[n];
+
       if (lfq != kfq || lq != kq) {
         double kfreq  = kfq*TWOPI;
         double kalpha = (CS_ESR/kfreq);

@@ -107,51 +107,52 @@ static inline void tabensure(CSOUND *csound, ARRAYDAT *p, int size)
 
 static int32_t array_init(CSOUND *csound, ARRAYINIT *p)
 {
-    ARRAYDAT* arrayDat = p->arrayDat;
-    int32_t i, size;
+  ARRAYDAT* arrayDat = p->arrayDat;
+  int32_t i, size;
 
-    int32_t inArgCount = p->INOCOUNT;
+  int32_t inArgCount = p->INOCOUNT;
 
-    if (UNLIKELY(inArgCount == 0))
+  if (UNLIKELY(inArgCount == 0))
+    return
+      csound->InitError(csound, "%s",
+                        Str("Error: no sizes set for array initialization"));
+
+  for (i = 0; i < inArgCount; i++) {
+    if (UNLIKELY(MYFLT2LRND(*p->isizes[i]) <= 0)) {
       return
         csound->InitError(csound, "%s",
-                          Str("Error: no sizes set for array initialization"));
-
-    for (i = 0; i < inArgCount; i++) {
-      if (UNLIKELY(MYFLT2LRND(*p->isizes[i]) <= 0)) {
-        return
-          csound->InitError(csound, "%s",
-                      Str("Error: sizes must be > 0 for array initialization"));
-      }
+                          Str("Error: sizes must be > 0 for array initialization"));
     }
+  }
 
-    arrayDat->dimensions = inArgCount;
-    arrayDat->sizes = csound->Calloc(csound, sizeof(int32_t) * inArgCount);
-    for (i = 0; i < inArgCount; i++) {
-      arrayDat->sizes[i] = MYFLT2LRND(*p->isizes[i]);
+  arrayDat->dimensions = inArgCount;
+  arrayDat->sizes = csound->Calloc(csound, sizeof(int32_t) * inArgCount);
+  for (i = 0; i < inArgCount; i++) {
+    arrayDat->sizes[i] = MYFLT2LRND(*p->isizes[i]);
+  }
+
+  size = arrayDat->sizes[0];
+  if (inArgCount > 1) {
+    for (i = 1; i < inArgCount; i++) {
+      size *= arrayDat->sizes[i];
     }
+    //size = MYFLT2LRND(size); // size is an int32_t not float
+  }
 
-    size = arrayDat->sizes[0];
-    if (inArgCount > 1) {
-      for (i = 1; i < inArgCount; i++) {
-        size *= arrayDat->sizes[i];
-      }
-      //size = MYFLT2LRND(size); // size is an int32_t not float
-    }
-
+  {
+    CS_VARIABLE* var = arrayDat->arrayType->createVariable(csound,NULL);
     char *mem;
-    CS_VARIABLE* var = arrayDat->arrayType->createVariable(csound, arrayDat->arrayType);
     arrayDat->arrayMemberSize = var->memBlockSize;
-    arrayDat->data = csound->Calloc(csound, arrayDat->allocated=var->memBlockSize*size);
-
-    if (var->initializeVariableMemory != NULL) {
-      int i, mem_incr = arrayDat->arrayMemberSize / sizeof(MYFLT);
-      for(i = 0; i < size; i++) {
-        var->initializeVariableMemory(csound, var, (MYFLT*)(mem+i*var->memBlockSize));
-      }
+    arrayDat->data = csound->Calloc(csound,
+                                    arrayDat->allocated=var->memBlockSize*size);
+    mem = (char *) arrayDat->data;
+    for (i=0; i < size; i++) {
+      var->initializeVariableMemory(csound, var,
+                                    (MYFLT*)(mem+i*var->memBlockSize));
     }
+  }
 
-    return OK;
+  return OK;
 }
 
 static int32_t tabfill(CSOUND *csound, TABFILL *p)
@@ -2397,7 +2398,7 @@ static int32_t tabcopy(CSOUND *csound, TABCPY *p)
 
     for (i = 0; i < arrayTotalSize; i++) {
       int32_t index = (i * memMyfltSize);
-      p->dst->arrayType->copyValue(csound,
+      p->dst->arrayType->copyValue(csound, p->dst->arrayType,
                                    (void*)(p->dst->data + index),
                                    (void*)(p->src->data + index));
     }
@@ -2443,7 +2444,7 @@ static int32_t tabcopy1(CSOUND *csound, TABCPY *p)
 
     for (i = 0; i < arrayTotalSize; i++) {
       int32_t index = (i * memMyfltSize);
-      p->dst->arrayType->copyValue(csound,
+      p->dst->arrayType->copyValue(csound, p->dst->arrayType,
                                    (void*)(p->dst->data + index),
                                    (void*)(p->src->data + index));
     }
@@ -2486,7 +2487,7 @@ static int32_t tabcopy2(CSOUND *csound, TABCPY *p)
                                       p->src->arrayMemberSize * arrayTotalSize);
       } else {
         p->dst->data = csound->ReAlloc(csound, p->dst->data,
-                        p->src->arrayMemberSize * arrayTotalSize);
+                                       p->src->arrayMemberSize * arrayTotalSize);
         memset(p->dst->data, 0, p->src->arrayMemberSize * arrayTotalSize);
       }
     }
@@ -2663,38 +2664,36 @@ typedef struct {
   int32_t   len;
 } TABSLICE;
 
-
 static int32_t tabslice(CSOUND *csound, TABSLICE *p) {
 
-    MYFLT *tabin = p->tabin->data;
-    int32_t start = (int32_t) *p->start;
-    int32_t end   = (int32_t) *p->end;
-    int32_t inc   = (int32_t) *p->inc;
-    int32_t size = (end - start)/inc + 1;
-    int32_t i, destIndex;
-    int32_t memMyfltSize = p->tabin->arrayMemberSize / sizeof(MYFLT);
+  MYFLT *tabin = p->tabin->data;
+  int32_t start = (int32_t) *p->start;
+  int32_t end   = (int32_t) *p->end;
+  int32_t inc   = (int32_t) *p->inc;
+  int32_t size = (end - start)/inc + 1;
+  int32_t i, destIndex;
+  int32_t memMyfltSize = p->tabin->arrayMemberSize / sizeof(MYFLT);
 
-    if (UNLIKELY(size < 0))
-      return csound->InitError(csound, "%s",
-                               Str("inconsistent start, end parameters"));
-    if (UNLIKELY(p->tabin->dimensions!=1 || end >= p->tabin->sizes[0])) {
-      //printf("size=%d old tab size = %d\n", size, p->tabin->sizes[0]);
-      return csound->InitError(csound, "%s",
-                               Str("slice larger than original size"));
-    }
-    if (UNLIKELY(inc<=0))
-      return csound->InitError(csound, "%s",
-                               Str("slice increment must be positive"));
-    tabinit(csound, p->tab, size);
+  if (UNLIKELY(size < 0))
+    return csound->InitError(csound, "%s",
+                             Str("inconsistent start, end parameters"));
+  if (UNLIKELY(p->tabin->dimensions!=1 || end >= p->tabin->sizes[0])) {
+    //printf("size=%d old tab size = %d\n", size, p->tabin->sizes[0]);
+    return csound->InitError(csound, "%s",
+                             Str("slice larger than original size"));
+  }
+  if (UNLIKELY(inc<=0))
+    return csound->InitError(csound, "%s",
+                             Str("slice increment must be positive"));
+  tabinit(csound, p->tab, size);
 
-    for (i = start; i < end + 1; i++) {
-      int destIndex = i - start;
-      p->tab->arrayType->copyValue(csound, p->tab->arrayType,
-                                   p->tab->data + (destIndex * memMyfltSize),
-                                   tabin + (memMyfltSize * i));
-    }
+  for (i = start, destIndex = 0; i < end + 1; i+=inc, destIndex++) {
+    p->tab->arrayType->copyValue(csound, p->tab->arrayType,
+                                 p->tab->data + (destIndex * memMyfltSize),
+                                 tabin + (memMyfltSize * i));
+  }
 
-    return OK;
+  return OK;
 }
 
 //#include "str_ops.h"

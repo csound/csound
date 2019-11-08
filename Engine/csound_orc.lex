@@ -69,6 +69,7 @@ int get_next_char(char *, int, struct yyguts_t*);
 %option outfile="Engine/csound_orclex.c"
 %option stdout
 %option 8bit
+%option nounput
 
 STRCONST        \"(\\.|[^\"])*\"
 STRCONSTe       \"(\\.|[^\"])*$

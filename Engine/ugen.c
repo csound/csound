@@ -1,4 +1,4 @@
-/** API Functions for creating instances of Csound Opcodes as 
+/** API Functions for creating instances of Csound Opcodes as
  * individual unit generators. UGEN's should also be extensible
  * by host languages at runtime.
  *
@@ -6,7 +6,7 @@
  *
  * - User creates a CSOUND instance
  * - User creates a UGEN_FACTORY
- * - User lists OENTRYs 
+ * - User lists OENTRYs
  * - User uses OENTRY with UGEN_FACTORY to create UGEN instance.
  * - User connects arguments together using ugen_set_input and ugen_set_output.
  *   This is the process to dynamically create a graph.
@@ -17,13 +17,14 @@
  * */
 
 #include "ugen.h"
+#include "csound_orc.h"
 #include "csound_standard_types.h"
 
 extern OENTRIES* find_opcode2(CSOUND* csound, char* opname);
 extern char** splitArgs(CSOUND* csound, char* argString);
 
 // this value is chosen arbitrarily, feel free to modify
-static const int MAX_VAR_ARGS = 8;
+// static const int MAX_VAR_ARGS = 8; // was causing -Werror=unused-const-variable= @hlolli
 
 typedef struct {
   const CS_TYPE* type;
@@ -32,7 +33,7 @@ typedef struct {
 
 /** Creates a UGEN_FACTORY, used to list available UGENs (Csound Opcodes),
  * as well as create instances of UGENs. User should configure the CSOUND
- * instance for sr and ksmps before creating a factory. */ 
+ * instance for sr and ksmps before creating a factory. */
 PUBLIC UGEN_FACTORY* ugen_factory_new(CSOUND* csound) {
   UGEN_FACTORY* factory = csound->Calloc(csound, sizeof(UGEN_FACTORY));
   INSDS* insds = csound->Calloc(csound, sizeof(INSDS));
@@ -71,16 +72,16 @@ PUBLIC UGEN_CONTEXT* ugen_context_delete(UGEN_FACTORY* factory) {
 
 OENTRY* ugen_resolve_opcode(OENTRIES* entries, char* outargTypes, char* inargTypes) {
     int i;
-    
+
     for (i = 0; i < entries->count; i++) {
         OENTRY* temp = entries->entries[i];
-        
+
         if (strcmp(outargTypes, temp->outypes) == 0 &&
             strcmp(inargTypes, temp->intypes) == 0) {
             return temp;
         }
     }
-   
+
     return NULL;
 }
 
@@ -89,27 +90,27 @@ static CONS_CELL* get_assignable_in_types(CSOUND* csound, char* intypes) {
     CONS_CELL* current = NULL;
     const CS_TYPE* varType = NULL;
     char *temp = intypes;
-    
+
     while (*temp != 0) {
         char c = *temp;
         UGEN_ARG* arg = csound->Calloc(csound, sizeof(UGEN_ARG));
-       
+
         // if var-arg found, break and complete
         if (strchr("My", c)) {
           arg->type = &CS_VAR_TYPE_A;
           arg->varArg = true;
 
-          current = cs_cons(csound, arg, current); 
+          current = cs_cons(csound, arg, current);
           break;
         } else if(strchr("mnz", c)) {
           arg->type = &CS_VAR_TYPE_K;
           arg->varArg = true;
 
-          current = cs_cons(csound, arg, current); 
+          current = cs_cons(csound, arg, current);
           break;
 
         } else {
-        
+
           if (strchr("opqvjh", c) != NULL) {
               c = 'i';
           } else if (strchr("OJVP", c) != NULL) {
@@ -117,20 +118,20 @@ static CONS_CELL* get_assignable_in_types(CSOUND* csound, char* intypes) {
           } else if (strchr("M", c) != NULL) {
               c = 'a';
           }
-         
+
           switch (c) {
               case 'i':
                   varType = &CS_VAR_TYPE_I;
                   break;
-                  
+
               case 'k':
                   varType = &CS_VAR_TYPE_K;
                   break;
-                  
+
               case 'a':
                   varType = &CS_VAR_TYPE_A;
                   break;
-                  
+
               default:
                   varType = NULL;
           }
@@ -139,11 +140,11 @@ static CONS_CELL* get_assignable_in_types(CSOUND* csound, char* intypes) {
         arg->type = varType;
         arg->varArg = false;
 
-        current = cs_cons(csound, arg, current); 
+        current = cs_cons(csound, arg, current);
 
         temp++;
     }
-    
+
     return current;
 }
 
@@ -153,7 +154,7 @@ static CONS_CELL* get_assignable_out_types(CSOUND* csound, char* intypes) {
     CONS_CELL* current = NULL;
     const CS_TYPE* varType = NULL;
     char *temp = intypes;
-    
+
     while (*temp != 0) {
         char c = *temp;
         UGEN_ARG* arg = csound->Calloc(csound, sizeof(UGEN_ARG));
@@ -166,20 +167,20 @@ static CONS_CELL* get_assignable_out_types(CSOUND* csound, char* intypes) {
         if (strchr("s", c) != NULL) {
             c = 'a';
         }
-        
+
         switch (c) {
             case 'i':
                 varType = &CS_VAR_TYPE_I;
                 break;
-                
+
             case 'k':
                 varType = &CS_VAR_TYPE_K;
                 break;
-                
+
             case 'a':
                 varType = &CS_VAR_TYPE_A;
                 break;
-                
+
             default:
                 varType = NULL;
         }
@@ -187,11 +188,11 @@ static CONS_CELL* get_assignable_out_types(CSOUND* csound, char* intypes) {
         arg->type = varType;
         arg->varArg = false;
 
-        current = cs_cons(csound, arg, current); 
+        current = cs_cons(csound, arg, current);
 
         temp++;
     }
-    
+
     return current;
 }
 
@@ -201,7 +202,7 @@ PUBLIC UGEN* ugen_new(UGEN_FACTORY* factory, char* opName, char* outargTypes, ch
     UGEN* ugen;
     OPDS* opds;
     OPTXT* optxt;
-    char name[10];
+    // char name[10]; // was causing -Werror=unused-variable @hlolli
     CSOUND* csound = factory->csound;
     INSDS* insds = factory->insds;
     OENTRIES* entries = find_opcode2(csound, opName);
@@ -209,15 +210,15 @@ PUBLIC UGEN* ugen_new(UGEN_FACTORY* factory, char* opName, char* outargTypes, ch
     if(entries == NULL) {
         return NULL;
     }
-    
+
     OENTRY* oentry = ugen_resolve_opcode(entries, outargTypes, inargTypes);
-   
+
     // need to filter here...
-    
+
     if (oentry == NULL) {
         return NULL;
     }
-   
+
 
     //CSOpcode* opcode = new CSOpcode(csound, insds, entry);
     ugen = csound->Calloc(csound, sizeof(UGEN));
@@ -225,8 +226,8 @@ PUBLIC UGEN* ugen_new(UGEN_FACTORY* factory, char* opName, char* outargTypes, ch
 
     ugen->csound = csound;
     ugen->insds = insds;
-    ugen->oentry = oentry; 
-    ugen->opcodeMem = csound->Calloc(csound, sizeof(oentry->dsblksiz)); 
+    ugen->oentry = oentry;
+    ugen->opcodeMem = csound->Calloc(csound, sizeof(oentry->dsblksiz));
 
     opds = ugen->opcodeMem;
     opds->insdshead = insds;
@@ -234,10 +235,10 @@ PUBLIC UGEN* ugen_new(UGEN_FACTORY* factory, char* opName, char* outargTypes, ch
     opds->opadr = oentry->kopadr;
     opds->optext = optxt;
 
-    
+
     CONS_CELL* inTypes = get_assignable_in_types(csound, oentry->intypes);
     CONS_CELL* outTypes = get_assignable_out_types(csound, oentry->outypes);
-    
+
     ugen->outPool = (CS_VAR_POOL*)csound->Calloc(csound, sizeof(CS_VAR_POOL));
     ugen->inPool = (CS_VAR_POOL*)csound->Calloc(csound, sizeof(CS_VAR_POOL));
     ugen->inPoolCount = cs_cons_length(inTypes);
@@ -245,14 +246,14 @@ PUBLIC UGEN* ugen_new(UGEN_FACTORY* factory, char* opName, char* outargTypes, ch
 
     optxt->t.outArgCount = ugen->outPoolCount;
     optxt->t.inArgCount = ugen->inPoolCount;
-    
+
     /*for(int i = 0; i < outTypes.size(); i++) {*/
         /*sprintf(name, "out%d", i);*/
         /*CS_VARIABLE* var = csoundCreateVariable(csound, csound->typePool, (CS_TYPE*)outTypes[i], name, NULL);*/
         /*csoundAddVariable(outPool, var);*/
     /*}*/
     /*for(int i = 0; i < inTypes.size(); i++) {*/
-        
+
         /*if(inTypes[i] == &CS_VAR_ARG_TYPE_A) {*/
             /*inPoolCount += MAX_VAR_ARGS - 1;*/
             /*for (int j = 0; j < MAX_VAR_ARGS; j++) {*/
@@ -275,36 +276,36 @@ PUBLIC UGEN* ugen_new(UGEN_FACTORY* factory, char* opName, char* outargTypes, ch
             /*csoundAddVariable(inPool, var);*/
         /*}*/
     /*}*/
-    
+
     recalculateVarPoolMemory(csound, ugen->inPool);
     recalculateVarPoolMemory(csound, ugen->outPool);
-  
+
     // FIXME - this needs to be adjusted for CS_VAR and
     // CS_VAR_TYPE's
     ugen->data = (MYFLT*)csound->Calloc(csound, ugen->outPool->poolSize + ugen->inPool->poolSize);
-    
+
     /*MYFLT* temp = (MYFLT*)this->opcodeMem +(sizeof(OPDS) / sizeof(MYFLT));*/
     /*MYFLT** p = (MYFLT**) temp;*/
     /*int outOffset = outPool->poolSize / sizeof(MYFLT);*/
     /*int count = 0;*/
     /*CS_VARIABLE* var = outPool->head;*/
-    
+
     /*while(var != NULL) {*/
         /*p[count] = data + var->memBlockIndex; //curMemBlockLocation;*/
 /*//        curMemBlockLocation += 1;*/
         /*count++;*/
         /*var = var->next;*/
     /*}*/
-  
+
     /*var = inPool->head;*/
-    
+
     /*while(var != NULL) {*/
         /*p[count] = data + outOffset + var->memBlockIndex; //curMemBlockLocation;*/
 /*//        curMemBlockLocation += 1;*/
         /*count++;*/
         /*var = var->next;*/
     /*}*/
-    
+
     return ugen;
 }
 
@@ -342,7 +343,7 @@ PUBLIC int ugen_perform(UGEN* ugen) {
             return (*oentry->aopadr)(csound, opcodeMem);
         }
     }
-    
+
     return CSOUND_SUCCESS;
 }
 
@@ -355,6 +356,3 @@ PUBLIC bool ugen_delete(UGEN* ugen) {
   csound->Free(csound, ugen);
   return true;
 }
-
-
-

@@ -697,5 +697,3 @@ static OENTRY afilts_localops[] =
 };
 
 LINKAGE_BUILTIN(afilts_localops)
-
-
