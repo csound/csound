@@ -1,6 +1,6 @@
 # Building Csound with MSVC on Windows
 
-Csound can be built on Windows in either a Linux like MSYS environment or using Visual Studio via CMake. This document describes the latter, which gives a more native result and development experience. Seeing as Windows currently does not have a native package manager like apt-get for Linux, it is a bit more complicated to get dependencies. There are two powershell scripts which do all the work to get a development environment running. The scripts are located in "csound/msvc". The "downloadDependencies" script will acquire all 3rd party code using VCPKG, Chocolatey or manually downloading. VCPKG is a package manager of sorts except it only acquires source code and requires the user to locally build each dependency. They can be shared globally on the system afterwards however. Chocolatey is a package manager for installable dependencies e.g. QT, SWIG or Python. The final script "generateProject" will invoke CMake to produce the right VS solution file.
+Csound can be built on Windows using Visual Studio via CMake. Windows currently does not have a native package manager like apt-get for Linux, so it is a bit more complicated to get dependencies. There is a powershell script which will download dependencies and generate the Visual Studio solution. The script is located in "csound/msvc". The "downloadDependencies" script will acquire all 3rd party code using VCPKG, Chocolatey or manually downloading. VCPKG is a package manager of sorts except it only acquires source code and requires the user to locally build each dependency. They can be shared globally on the system rather than per project. Chocolatey is a package manager for (usually large) installable dependencies e.g. QT, SWIG or Python. 
 
 Once the solution file is produced, CMake will automatically rebuild the project if required (i.e. if the CMakeLists are edited).
 
@@ -54,7 +54,6 @@ The official instructions are here: <https://github.com/Microsoft/vcpkg>. The lo
     * This will download all the required dependencies into the msvc folder ("cache" folder holds the downloaded files, "deps" folder is the extracted files, "staging" folder is for any manually built projects)
     * VCPKG will build and install it's packages in it's own folder elsewhere but it's CMAKE file will find them later
     * The first time downloading the packages with VCPKG can be very slow due to the number of packages and amount of building that occurs.
-3. After this script has executed, execute the "generateProject.bat" script, which will invoke cmake with the proper settings to generate the solution.
 4. Once this script has finished, the Visual Studio solution file will be produced and located in "Csound\msvc\csound-vs" folder.
 5. Open this solution file in Visual Studio and build as normal. Execute "Build Solution" or "Build" the "ALLBUILD" project to build everything.
 

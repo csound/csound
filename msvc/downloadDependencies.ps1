@@ -123,9 +123,9 @@ echo "Total duration: $($duration.TotalMinutes) minutes"
 echo "-------------------------------------------------"
 echo "Generating Csound Visual Studio solution..."
 echo "vsGenerator: $vsGenerator"
+echo "VCPKG script: '$vcpkgCmake'"
 
 $vcpkgCmake = "$vcpkgDir\scripts\buildsystems\vcpkg.cmake"
-echo "VCPKG script: '$vcpkgCmake'"
 
 cd $currentDir
 mkdir csound-vs -ErrorAction SilentlyContinue
