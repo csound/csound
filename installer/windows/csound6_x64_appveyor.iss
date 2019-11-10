@@ -117,9 +117,9 @@ Source: "..\..\installer\windows\INSTALLER.md"; DestDir: "{app}"; Flags: ignorev
 #define VCREDIST_CXXAMP_DIR GetEnv("VCREDIST_CXXAMP_DIR")
 #define VCREDIST_OPENMP_DIR GetEnv("VCREDIST_OPENMP_DIR")
 
-;Source: "{#VCREDIST_CRT_DIR}\*"; DestDir: "{#APP_BIN}"; Flags: recursesubdirs; Components: core;
-;Source: "{#VCREDIST_CXXAMP_DIR}\*"; DestDir: "{#APP_BIN}"; Flags: recursesubdirs; Components: core;
-;Source: "{#VCREDIST_OPENMP_DIR}\*"; DestDir: "{#APP_BIN}"; Flags: recursesubdirs; Components: core;
+Source: "{#VCREDIST_CRT_DIR}\*"; DestDir: "{#APP_BIN}"; Flags: recursesubdirs; Components: core;
+Source: "{#VCREDIST_CXXAMP_DIR}\*"; DestDir: "{#APP_BIN}"; Flags: recursesubdirs; Components: core;
+Source: "{#VCREDIST_OPENMP_DIR}\*"; DestDir: "{#APP_BIN}"; Flags: recursesubdirs; Components: core;
 
 Source: "..\..\interfaces\ctcsound.py"; DestDir: "{#APP_BIN}"; Flags: ignoreversion; Components: core;
 Source: "..\..\msvc\csound-vs\Release\*csnd6.pyd"; DestDir: "{#APP_BIN}"; Flags: ignoreversion; Components: python;
