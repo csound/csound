@@ -458,7 +458,6 @@ if(APPLE)
     if(BUILD_INSTALLER)
        	set(CS_FRAMEWORK_FULL_PATH "/Library/Frameworks/${CSOUNDLIB}.framework/Versions/${APIVERSION}/Resources/Opcodes64")
     else()
-        get_filename_component(JAVA_MODULE_INSTALL_DIR "~/Library/Java/Extensions" ABSOLUTE)
         get_filename_component(CS_FRAMEWORK_FULL_PATH ${PLUGIN_INSTALL_DIR} ABSOLUTE)
     endif()
 
