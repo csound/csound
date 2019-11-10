@@ -255,7 +255,8 @@ int readOptions(CSOUND *csound, CORFIL *cf, int readingCsOptions)
        * the command line arguments can be exactly the same in unified files
        * as for regular command line invocation.
        */
-      if (*p==';' || *p=='#' || *p=='\n') continue; /* empty or comment line? */
+      if (*p==';' || *p=='#' || *p=='\n' || (*p=='/' && *(p+1)=='/'))
+        continue; /* empty or comment line? */
       argc = 0;
       argv[0] = p;
       while (isblank(*p)) p++;  /* Ignore leading space */
