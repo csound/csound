@@ -319,19 +319,14 @@ static TREE *create_cond_expression(CSOUND *csound,
     //printf("types %s %s\n", left, right);
     if (left[0]=='c') left[0] = 'i';
     if (right[0]=='c') right[0] = 'i';
-    type = (left[0]=='k' || right[0]=='k') ?2 : 1;
-    /* if (strcmp(left, right)) { */
-    /*   synterr(csound, Str("condition expression types do not match\n")); */
-    /*   do_baktrace(csound, root->locn); */
-    /*   return NULL; */
-    /* } */
-    /* type = (left[0]=='i') ? 1: 2; */
-    if (type==2) left[0] = right[0] = 'k';
     //printf("type = %d\n", type);
     last = b;
     while (last->next != NULL) {
       last = last->next;
     }
+    type =
+      (left[0]=='k' || right[0]=='k' || last->left->value->lexeme[1]=='B') ?2 : 1;
+    if (type==2) left[0] = right[0] = 'k';
     //printf("boolvalr = %s, type=%d\n", last->left->value->lexeme, type);
     //print_tree(csound, "\nL1\n", L1);
 
@@ -350,24 +345,14 @@ static TREE *create_cond_expression(CSOUND *csound,
     right = create_out_arg(csound,left,
                            typeTable->localPool->synthArgCount++, typeTable);
     //printf("right = %s\n", right);
-    if (is_expression_node(c)) {
+    {
       TREE *C = create_opcode_token(csound, cs_strdup(csound, "="));
       C->left = create_ans_token(csound, right); C->right = c;
       c = C;
     }
-    else {
-     TREE *C =  create_opcode_token(csound, cs_strdup(csound, "="));
-     C->left = create_ans_token(csound, right); C->right = c;
-     c = C;
-    }
     //print_tree(csound, "\n\nc\n", c);
-    if (is_expression_node(d)) {
+    {
       TREE *D = create_opcode_token(csound, cs_strdup(csound, "="));
-      D->left = create_ans_token(csound, right); D->right = d;
-      d = D;
-    }
-    else {
-      TREE *D =  create_opcode_token(csound, cs_strdup(csound, "="));
       D->left = create_ans_token(csound, right); D->right = d;
       d = D;
     }
