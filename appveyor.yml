@@ -18,8 +18,7 @@ init:
   - set VCREDIST_CRT_DIR=C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\VC\Redist\MSVC\%RedistVersion%\x64\Microsoft.VC142.CRT
   - set VCREDIST_CXXAMP_DIR=C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\VC\Redist\MSVC\%RedistVersion%\x64\Microsoft.VC142.CXXAMP
   - set VCREDIST_OPENMP_DIR=C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\VC\Redist\MSVC\%RedistVersion%\x64\Microsoft.VC142.OpenMP
-  - if "%APPVEYOR_BUILD_WORKER_IMAGE%" == "Visual Studio 2019" call "C:\\Program Files (x86)\\Microsoft Visual Studio\\2019\\Community\\VC\\Auxiliary\\Build\\vcvars64.bat"
-  - if "%APPVEYOR_BUILD_WORKER_IMAGE%" == "Visual Studio 2017" call "C:\\Program Files (x86)\\Microsoft Visual Studio\\2017\\Community\\VC\\Auxiliary\\Build\\vcvars64.bat"
+  - call "C:\\Program Files (x86)\\Microsoft Visual Studio\\2019\\Community\\VC\\Auxiliary\\Build\\vcvars64.bat"
 
 install:
   - cd msvc
@@ -57,7 +56,7 @@ artifacts:
     type: exe
 
 cache:
- - C:\Tools\vcpkg\ -> C:\projects\csound\msvc\downloadDependencies.ps1
+ - C:\Tools\vcpkg\installed -> C:\projects\csound\msvc\downloadDependencies.ps1
  - C:\projects\csound\msvc\cache
  - C:\ProgramData\chocolatey\bin -> appveyor.yml 
  - C:\ProgramData\chocolatey\lib -> appveyor.yml
