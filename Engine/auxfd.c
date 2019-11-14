@@ -117,7 +117,7 @@ void fdrecord(CSOUND *csound, FDCH *fdchp)
 /* close a file and remove from fd chain */
 /*  call only from inits, after fdrecord */
 
-void fd_close(CSOUND *csound, FDCH *fdchp)
+void csound_fd_close(CSOUND *csound, FDCH *fdchp)
 {
     FDCH    *prvchp = NULL, *nxtchp;
 
@@ -141,7 +141,7 @@ void fd_close(CSOUND *csound, FDCH *fdchp)
       nxtchp = nxtchp->nxtchp;
     }
     fdchprint(csound, csound->curip);
-    csound->Die(csound, Str("fd_close: no record of fd %p"), fdchp->fd);
+    csound->Die(csound, Str("csound_fd_close: no record of fd %p"), fdchp->fd);
 }
 
 /* release all xds in instr auxp chain */
