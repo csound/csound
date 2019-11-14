@@ -1,4 +1,4 @@
-name: Emscripten_build
+name: csound_builds
 
 on: 
   pull_request:
