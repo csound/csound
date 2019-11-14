@@ -43,7 +43,7 @@ char    *cs_strndup(CSOUND*, char*, size_t);
 void    csoundAuxAlloc(CSOUND *, size_t, AUXCH *), auxchfree(CSOUND *, INSDS *);
 int     csoundAuxAllocAsync(CSOUND *, size_t , AUXCH *,
                             AUXASYNC *, aux_cb , void *);
-void    fdrecord(CSOUND *, FDCH *), fd_close(CSOUND *, FDCH *);
+void    fdrecord(CSOUND *, FDCH *), csound_fd_close(CSOUND *, FDCH *);
 void    fdchclose(CSOUND *, INSDS *);
 CS_PRINTF2  void    synterr(CSOUND *, const char *, ...);
 CS_NORETURN CS_PRINTF2  void    csoundDie(CSOUND *, const char *, ...);
