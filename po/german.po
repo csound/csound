@@ -18,7 +18,7 @@ msgstr ""
 
 #: Engine/auxfd.c:144
 #, fuzzy, c-format
-msgid "fd_close: no record of fd %p"
+msgid "csound_fd_close: no record of fd %p"
 msgstr "fdclose: kein Eintrag für fd %p"
 
 #: Engine/auxfd.c:193

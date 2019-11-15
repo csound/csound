@@ -315,7 +315,7 @@ static int32_t diskin2_init_(CSOUND *csound, DISKIN2 *p, int32_t stringname)
       /* skip initialisation if requested */
       if (p->SkipInit != FL(0.0))
         return OK;
-      fd_close(csound, &(p->fdch));
+      csound_fd_close(csound, &(p->fdch));
     }
     /* set default format parameters */
     memset(&sfinfo, 0, sizeof(SF_INFO));
@@ -1570,7 +1570,7 @@ static int32_t diskin2_init_array(CSOUND *csound, DISKIN2_ARRAY *p,
       /* skip initialisation if requested */
       if (p->SkipInit != FL(0.0))
         return OK;
-      fd_close(csound, &(p->fdch));
+      csound_fd_close(csound, &(p->fdch));
     }
     // to handle raw files number of channels
     if (t->data) p->nChannels = t->sizes[0];
@@ -2137,7 +2137,7 @@ static int32_t sndinset_(CSOUND *csound, SOUNDIN_ *p, int32_t stringname)
       /* skip initialisation if requested */
       if (*(p->iSkipInit) != FL(0.0))
         return OK;
-      fd_close(csound, &(p->fdch));
+      csound_fd_close(csound, &(p->fdch));
     }
     /* set default format parameters */
     memset(&sfinfo, 0, sizeof(SF_INFO));
