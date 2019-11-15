@@ -22,6 +22,9 @@
     02110-1301 USA
 */
 
+/* Haiku 'int32' etc definitions in net headers conflict with sysdep.h */
+#define __HAIKU_CONFLICT
+
 #include "csdl.h"
 #include <stdio.h>
 #include <stdlib.h>
