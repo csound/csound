@@ -261,7 +261,7 @@ static int32_t lowpr_setx(CSOUND *csound, LOWPRX *p)
 
 static int32_t lowprx(CSOUND *csound, LOWPRX *p)
 {
-     IGN(csound);
+    IGN(csound);
     MYFLT    b, k = p->k;
     MYFLT   *ar, *asig, yn,*ynm1, *ynm2 ;
     MYFLT    coef1 = p->coef1, coef2 = p->coef2;
@@ -373,25 +373,19 @@ static int32_t lowpr_w_sep(CSOUND *csound, LOWPR_SEP *p)
 
 #define S(x)    sizeof(x)
 
-static OENTRY localops[] = {
-                            { "lowres.kk",   S(LOWPR),   0, 3, "a", "akko",
-                          (SUBR)lowpr_set,   (SUBR)lowpr   },
-                            { "lowres.aa",   S(LOWPR),   0, 3, "a", "aaao",
-                          (SUBR)lowpr_set,   (SUBR)lowpraa },
-                            { "lowres.ak",   S(LOWPR),   0, 3, "a", "aako",
-                          (SUBR)lowpr_set,   (SUBR)lowprak },
-                            { "lowres.ka",   S(LOWPR),   0, 3, "a", "akao",
-                          (SUBR)lowpr_set,   (SUBR)lowprka },
-                            { "lowresx.kk",  S(LOWPRX),  0, 3, "a", "akkoo",
-                          (SUBR)lowpr_set,   (SUBR)lowprka },
-                            { "lowresx.ak",  S(LOWPRX),  0, 3, "a", "aakoo",
-                          (SUBR)lowpr_set,   (SUBR)lowprka },
-                            { "lowresx.ka",  S(LOWPRX),  0, 3, "a", "akaoo",
-                          (SUBR)lowpr_set,   (SUBR)lowprka },
-                            { "lowresx.aa",  S(LOWPRX),  0, 3, "a", "aaaoo",
-                          (SUBR)lowpr_setx, (SUBR)lowprx   },
-                            { "vlowres", S(LOWPR_SEP),0, 3, "a", "akkik",
-                          (SUBR)lowpr_w_sep_set, (SUBR)lowpr_w_sep }
+static OENTRY localops[] =
+  {
+    { "lowres.kk",   S(LOWPR), 0, 3, "a", "akko",  (SUBR)lowpr_set,  (SUBR)lowpr   },
+    { "lowres.aa",   S(LOWPR), 0, 3, "a", "aaao",  (SUBR)lowpr_set,  (SUBR)lowpraa },
+    { "lowres.ak",   S(LOWPR), 0, 3, "a", "aako",  (SUBR)lowpr_set,  (SUBR)lowprak },
+    { "lowres.ka",   S(LOWPR), 0, 3, "a", "akao",  (SUBR)lowpr_set,  (SUBR)lowprka },
+
+    { "lowresx.kk",  S(LOWPRX),0, 3, "a", "akkoo", (SUBR)lowpr_setx, (SUBR)lowprx },
+    { "lowresx.ak",  S(LOWPRX),0, 3, "a", "aakoo", (SUBR)lowpr_setx, (SUBR)lowprx },
+    { "lowresx.ka",  S(LOWPRX),0, 3, "a", "akaoo", (SUBR)lowpr_setx, (SUBR)lowprx },
+    { "lowresx.aa",  S(LOWPRX),0, 3, "a", "aaaoo", (SUBR)lowpr_setx, (SUBR)lowprx },
+
+    { "vlowres", S(LOWPR_SEP),0, 3, "a", "akkik",  (SUBR)lowpr_w_sep_set, (SUBR)lowpr_w_sep }
 };
 
 int32_t lowpassr_init_(CSOUND *csound)
