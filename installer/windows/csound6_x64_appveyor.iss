@@ -30,7 +30,6 @@
 #define AppveyorBuildNumber GetEnv("APPVEYOR_BUILD_NUMBER")
 #define AppPublisher "Csound"
 #define AppURL "http://csound.github.io/"
-;#define LibStkRawWaves "{#VcpkgInstallDir}"
 #define ManualSourceDir "c:\html\"
 #define CsoundQTDir "c:\CsoundQt-0.9.6-Win64\"
 #define CsoundQTIcon "c:\qtcs.ico"
@@ -116,12 +115,16 @@ Source: "..\..\installer\windows\INSTALLER.md"; DestDir: "{app}"; Flags: ignorev
 #define VCREDIST_CRT_DIR GetEnv("VCREDIST_CRT_DIR")
 #define VCREDIST_CXXAMP_DIR GetEnv("VCREDIST_CXXAMP_DIR")
 #define VCREDIST_OPENMP_DIR GetEnv("VCREDIST_OPENMP_DIR")
+#define ReleaseDir "..\..\msvc\csound-vs\Release\"
 
 Source: "{#VCREDIST_CRT_DIR}\*"; DestDir: "{#APP_BIN}"; Flags: recursesubdirs; Components: core;
 Source: "{#VCREDIST_CXXAMP_DIR}\*"; DestDir: "{#APP_BIN}"; Flags: recursesubdirs; Components: core;
 Source: "{#VCREDIST_OPENMP_DIR}\*"; DestDir: "{#APP_BIN}"; Flags: recursesubdirs; Components: core;
 
 Source: "..\..\interfaces\ctcsound.py"; DestDir: "{#APP_BIN}"; Flags: ignoreversion; Components: core;
+Source: "..\..\msvc\csound-vs\csnd6.jar"; DestDir: "{#APP_BIN}"; Flags: ignoreversion; Components: core;
+Source: "..\..\msvc\csound-vs\csnd6.py"; DestDir: "{#APP_BIN}"; Flags: ignoreversion; Components: python;
+
 Source: "..\..\msvc\csound-vs\Release\*csnd6.pyd"; DestDir: "{#APP_BIN}"; Flags: ignoreversion; Components: python;
 Source: "..\..\msvc\csound-vs\Release\*jcsound6.dll"; DestDir: "{#APP_BIN}"; Flags: ignoreversion; Components: core;
 ;; Source: "..\..\msvc\csound-vs\Release\ableton_link_opcodes.dll"; DestDir: "{#APP_PLUGINS64}"; Flags: ignoreversion; Components: core;
@@ -139,8 +142,6 @@ Source: "..\..\msvc\csound-vs\Release\csb64enc.exe"; DestDir: "{#APP_BIN}"; Flag
 Source: "..\..\msvc\csound-vs\Release\csbeats.exe"; DestDir: "{#APP_BIN}"; Flags: ignoreversion skipifsourcedoesntexist; Components: core;
 Source: "..\..\msvc\csound-vs\Release\csdebugger.exe"; DestDir: "{#APP_BIN}"; Flags: ignoreversion; Components: core;
 Source: "..\..\msvc\csound-vs\Release\csnd6.dll"; DestDir: "{#APP_BIN}"; Flags: ignoreversion; Components: core;
-Source: "..\..\msvc\csound-vs\csnd6.jar"; DestDir: "{#APP_BIN}"; Flags: ignoreversion; Components: core;
-Source: "..\..\msvc\csound-vs\csnd6.py"; DestDir: "{#APP_BIN}"; Flags: ignoreversion; Components: python;
 Source: "..\..\msvc\csound-vs\Release\csound.exe"; DestDir: "{#APP_BIN}"; Flags: ignoreversion; Components: core;
 Source: "..\..\msvc\csound-vs\Release\csound64.dll"; DestDir: "{#APP_BIN}"; Flags: ignoreversion; Components: core;
 Source: "..\..\msvc\csound-vs\Release\csound64.lib"; DestDir: "{#APP_LIB}"; Flags: ignoreversion; Components: core;
@@ -205,13 +206,30 @@ Source: "..\..\msvc\csound-vs\Release\stkops.dll"; DestDir: "{#APP_PLUGINS64}"; 
 Source: "..\..\msvc\csound-vs\Release\system_call.dll"; DestDir: "{#APP_PLUGINS64}"; Flags: ignoreversion; Components: core;
 Source: "..\..\msvc\csound-vs\Release\virtual.dll"; DestDir: "{#APP_PLUGINS64}"; Flags: ignoreversion; Components: core;
 Source: "..\..\msvc\csound-vs\Release\widgets.dll"; DestDir: "{#APP_PLUGINS64}"; Flags: ignoreversion; Components: core;
-;Source: "..\..\msvc\deps\bin\*.dll"; DestDir: "{#APP_BIN}"; Flags: ignoreversion; Components: core;
-;Source: "..\..\msvc\deps\fluidsynthdeps\bin\*.dll"; DestDir: "{#APP_BIN}"; Flags: ignoreversion; Components: core;
 
-;; Source: "{#VcpkgInstalledBinDir}*.dll"; DestDir: "{#APP_BIN}"; Flags: ignoreversion recursesubdirs;  Components: core;
-
-;; Source: "..\..\msvc\csound-vs\Release\libsndfile-1.dll"; DestDir: "{#APP_BIN}"; Flags: ignoreversion; Components: core;
-;; Source: {#LibSndfileSourceDir}\include\*.*; DestDir: "{#APP_INCLUDE}\sndfile"; Flags: ignoreversion skipifsourcedoesntexist; Components: core;
+Source: "{#ReleaseDir}\FLAC.dll"; DestDir: "{#APP_PLUGINS64}"; Flags: ignoreversion; Components: core;
+Source: "{#ReleaseDir}\glib-2.dll"; DestDir: "{#APP_PLUGINS64}"; Flags: ignoreversion; Components: core;
+Source: "{#ReleaseDir}\gtf.dll"; DestDir: "{#APP_PLUGINS64}"; Flags: ignoreversion; Components: core;
+Source: "{#ReleaseDir}\hdf5.dll"; DestDir: "{#APP_PLUGINS64}"; Flags: ignoreversion; Components: core;
+Source: "{#ReleaseDir}\jpeg62.dll"; DestDir: "{#APP_PLUGINS64}"; Flags: ignoreversion; Components: core;
+Source: "{#ReleaseDir}\libcharset.dll"; DestDir: "{#APP_PLUGINS64}"; Flags: ignoreversion; Components: core;
+Source: "{#ReleaseDir}\libfltk_forms_SHARED.dll"; DestDir: "{#APP_PLUGINS64}"; Flags: ignoreversion; Components: core;
+Source: "{#ReleaseDir}\libfltk_images_SHARED.dll"; DestDir: "{#APP_PLUGINS64}"; Flags: ignoreversion; Components: core;
+Source: "{#ReleaseDir}\libfltk_SHARED.dll"; DestDir: "{#APP_PLUGINS64}"; Flags: ignoreversion; Components: core;
+Source: "{#ReleaseDir}\libfluidsynth-2.dll"; DestDir: "{#APP_PLUGINS64}"; Flags: ignoreversion; Components: core;
+Source: "{#ReleaseDir}\libiconv.dll"; DestDir: "{#APP_PLUGINS64}"; Flags: ignoreversion; Components: core;
+Source: "{#ReleaseDir}\libintl.dll"; DestDir: "{#APP_PLUGINS64}"; Flags: ignoreversion; Components: core;
+Source: "{#ReleaseDir}\liblo.dll"; DestDir: "{#APP_PLUGINS64}"; Flags: ignoreversion; Components: core;
+Source: "{#ReleaseDir}\libpng16.dll"; DestDir: "{#APP_PLUGINS64}"; Flags: ignoreversion; Components: core;
+Source: "{#ReleaseDir}\libsamplerate-0.dll"; DestDir: "{#APP_PLUGINS64}"; Flags: ignoreversion; Components: core;
+Source: "{#ReleaseDir}\libsndfile-1.dll"; DestDir: "{#APP_PLUGINS64}"; Flags: ignoreversion; Components: core;
+Source: "{#ReleaseDir}\ogg.dll"; DestDir: "{#APP_PLUGINS64}"; Flags: ignoreversion; Components: core;
+Source: "{#ReleaseDir}\pcre.dll"; DestDir: "{#APP_PLUGINS64}"; Flags: ignoreversion; Components: core;
+Source: "{#ReleaseDir}\portaudio_x64.dll"; DestDir: "{#APP_PLUGINS64}"; Flags: ignoreversion; Components: core;
+Source: "{#ReleaseDir}\portmidi.dll"; DestDir: "{#APP_PLUGINS64}"; Flags: ignoreversion; Components: core;
+Source: "{#ReleaseDir}\vorbis.dll"; DestDir: "{#APP_PLUGINS64}"; Flags: ignoreversion; Components: core;
+Source: "{#ReleaseDir}\vorbisenc.dll"; DestDir: "{#APP_PLUGINS64}"; Flags: ignoreversion; Components: core;
+Source: "{#ReleaseDir}\zlib1.dll"; DestDir: "{#APP_PLUGINS64}"; Flags: ignoreversion; Components: core;
 
 Source: ../../include/*.h; DestDir: "{#APP_INCLUDE}\csound"; Flags: ignoreversion;  Components: core
 Source: ../../include/*.hpp; DestDir: "{#APP_INCLUDE}\csound"; Flags: ignoreversion;  Components: core
