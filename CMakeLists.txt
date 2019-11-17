@@ -521,6 +521,20 @@ list(APPEND CMAKE_REQUIRED_LIBRARIES ${MATH_LIBRARY})
 check_function_exists(lrint HAVE_LRINT)
 cmake_pop_check_state()
 
+# MSVC / VCPKG won't find dirent.h by default. Need to add the path explicitly
+find_file(DIRENT_H "dirent.h")
+
+if(DIRENT_H)
+    get_filename_component(DIRENT_FOLDER ${DIRENT_H} DIRECTORY)
+    list(APPEND CMAKE_REQUIRED_INCLUDES ${DIRENT_FOLDER})
+else()
+    if(MSVC)
+        message(FATAL_ERROR "Dirent.h not found, Csound will not be able to load dynamic plugins. Cannot continue with project generation")
+    else()
+        message(WARNING "Dirent.h not found, Csound will not be able to load dynamic plugins such as real-time audio")
+    endif()
+endif()
+
 set(HEADERS_TO_CHECK
     unistd.h io.h fcntl.h stdint.h
     sys/time.h sys/types.h termios.h
