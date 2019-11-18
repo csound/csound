@@ -16,6 +16,7 @@
         {
             "name": "libsndfile",
             "features": ["external-libs"]
-        }
+        },
+        "gtest"
     ]
 }
