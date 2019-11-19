@@ -2,7 +2,11 @@ cmake_minimum_required(VERSION 3.5)
 
 if(BUILD_TESTS)
     # Tests that depend on GTEST
-    find_package(GTest CONFIG REQUIRED)
+    if(MSVC)
+        find_package(GTest CONFIG REQUIRED)
+    else ()
+        find_package(GTest REQUIRED)
+    endif()
 
     add_executable(unittests
         channel_tests.cpp
