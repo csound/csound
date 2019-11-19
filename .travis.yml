@@ -65,6 +65,7 @@ addons:
               - libcunit1-dev
               - python-tk
               - libgtest-dev
+              - googletest
 
 notifications:
       email:
