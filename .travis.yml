@@ -15,6 +15,11 @@ env:
 before_script:
   - mkdir -p  build
   - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then (git clone git://github.com/erikd/libsndfile.git && cd libsndfile && mkdir -p build && cd build && cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=$HOME .. && make && make install); fi
+  - sudo apt install libgtest-dev
+  - cd /usr/src/gtest/
+  - sudo cmake -DBUILD_SHARED_LIBS=ON
+  - sudo make
+  - sudo cp *.so /usr/lib
 script:
   - "[ ${COVERITY_SCAN_BRANCH} == 1 ] || (cd $TRAVIS_BUILD_DIR/build && cmake .. -DCMAKE_INCLUDE_PATH=$HOME/include -DCMAKE_LIBRARY_PATH=$HOME/lib -DBUILD_STATIC_LIBRARY=ON -DBUILD_TESTS=ON -DCMAKE_INSTALL_PREFIX=$HOME && make && make test && make csdtests && make regression )"
 #   
@@ -64,7 +69,6 @@ addons:
               - libeigen3-dev
               - libcunit1-dev
               - python-tk
-              - libgtest-dev
 
 notifications:
       email:
