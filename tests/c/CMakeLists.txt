@@ -29,6 +29,9 @@ if(BUILD_TESTS)
     else ()
         find_package(GTest REQUIRED)
 
+        target_include_directories(unittests PRIVATE
+            ${GTEST_INCLUDE_DIRS})
+
         target_link_libraries(unittests PRIVATE
             GTest::GTest GTest::Main ${CSOUNDLIB_STATIC})
     endif()
