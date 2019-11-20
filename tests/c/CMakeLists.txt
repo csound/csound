@@ -1,12 +1,6 @@
 cmake_minimum_required(VERSION 3.5)
 
 if(BUILD_TESTS)
-    # Tests that depend on GTEST
-    if(MSVC)
-        find_package(GTest CONFIG REQUIRED)
-    else ()
-        find_package(GTest REQUIRED)
-    endif()
 
     add_executable(unittests
         channel_tests.cpp
@@ -23,12 +17,21 @@ if(BUILD_TESTS)
         server_test.cpp
     )
 
-    target_link_libraries(unittests PRIVATE
-        GTest::gtest_main ${CSOUNDLIB_STATIC})
-
     target_include_directories(unittests PRIVATE
         ${CMAKE_CURRENT_BINARY_DIR}/../../H
         ${CMAKE_SOURCE_DIR}/interfaces)
+
+    if(MSVC)
+        find_package(GTest CONFIG REQUIRED)
+
+        target_link_libraries(unittests PRIVATE
+            GTest::gtest_main ${CSOUNDLIB_STATIC})
+    else ()
+        find_package(GTest REQUIRED)
+
+        target_link_libraries(unittests PRIVATE
+            GTest::Main ${CSOUNDLIB_STATIC})
+    endif()
 
     add_test(NAME AllTests COMMAND unittests)
 
