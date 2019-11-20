@@ -15,9 +15,10 @@ env:
 before_script:
   - mkdir -p  build
   - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then (git clone git://github.com/erikd/libsndfile.git && cd libsndfile && mkdir -p build && cd build && cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=$HOME .. && make && make install); fi
+  # Manually install Google Test
   - sudo apt install libgtest-dev
   - cd /usr/src/gtest/
-  - sudo cmake -DBUILD_SHARED_LIBS=ON
+  - sudo cmake
   - sudo make
   - sudo cp *.so /usr/lib
 script:
