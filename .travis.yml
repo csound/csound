@@ -18,9 +18,9 @@ before_script:
   # Manually install Google Test
   - sudo apt install libgtest-dev
   - cd /usr/src/gtest/
-  - sudo cmake
+  - sudo cmake CMakeLists.txt
   - sudo make
-  - sudo cp *.so /usr/lib
+  - sudo cp *.a /usr/lib
 script:
   - "[ ${COVERITY_SCAN_BRANCH} == 1 ] || (cd $TRAVIS_BUILD_DIR/build && cmake .. -DCMAKE_INCLUDE_PATH=$HOME/include -DCMAKE_LIBRARY_PATH=$HOME/lib -DBUILD_STATIC_LIBRARY=ON -DBUILD_TESTS=ON -DCMAKE_INSTALL_PREFIX=$HOME && make && make test && make csdtests && make regression )"
 #   
