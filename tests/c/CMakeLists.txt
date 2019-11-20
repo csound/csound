@@ -30,7 +30,7 @@ if(BUILD_TESTS)
         find_package(GTest REQUIRED)
 
         target_link_libraries(unittests PRIVATE
-            GTest::Main ${CSOUNDLIB_STATIC})
+            GTest::GTest GTest::Main ${CSOUNDLIB_STATIC})
     endif()
 
     add_test(NAME AllTests COMMAND unittests)
