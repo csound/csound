@@ -10,7 +10,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include "csoundCore.h"
-#include "gtest\gtest.h"
+#include "gtest/gtest.h"
 
 class CsoundDataStructuresTests : public ::testing::Test {
 public:
