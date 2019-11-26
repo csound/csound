@@ -101,7 +101,6 @@ TEST_F (OrcSemanticsTest, FindOpcodeNewTest)
 {
     ASSERT_TRUE (find_opcode_new(csound, "##error", "i", "i") != NULL);
     ASSERT_TRUE (find_opcode_new(csound, "##error", NULL, "i") == NULL);
-    ASSERT_TRUE (find_opcode_new(csound, "##xin64", "i", NULL) != NULL);
     ASSERT_TRUE (find_opcode_new(csound, "##xin256", "i", NULL) != NULL);
     ASSERT_TRUE (find_opcode_new(csound, "##userOpcode", NULL, NULL) != NULL);
     ASSERT_TRUE (find_opcode_new(csound, "##array_set", NULL, "k[]k") != NULL);
