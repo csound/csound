@@ -285,6 +285,7 @@
 ./Opcodes/gab/tabmorph.c
 ./Opcodes/gab/vectorial.c
 ./Opcodes/gab/vectorial.h
+./Opcodes/gammatone.c
 ./Opcodes/gendy.c
 ./Opcodes/getftargs.c
 ./Opcodes/grain.c

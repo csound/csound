@@ -259,7 +259,8 @@ int main(int argc, char **argv)
 {
     CSOUND  *csound;
     char    *fname = NULL;
-    int     i, result, nomessages=0;
+    int     i, result, errs, nomessages=0;
+    extern int csoundErrCnt(CSOUND*);
 #ifdef GNU_GETTEXT
     const char* lang;
 #endif
@@ -325,6 +326,7 @@ int main(int argc, char **argv)
 
      if (!result) result = csoundPerform(csound);
      //printf("**** result = %d\n", result);
+     errs = csoundErrCnt(csound);
     /* delete Csound instance */
      csoundDestroy(csound);
      _csound = NULL;
@@ -338,6 +340,6 @@ int main(int argc, char **argv)
     /* remove global configuration variables, if there are any */
     csoundDeleteAllGlobalConfigurationVariables();
 #endif
-    //printf("**** return %d\n",  (result >= 0 ? 0 : -result));
-    return (result >= 0 ? 0 : -result);
+    //printf("**** return %d\n",  (result >= 0 ? errs : -result));
+    return (result >= 0 ? errs : -result);
 }

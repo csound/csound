@@ -1137,7 +1137,7 @@ int32_t lpfrsnset(CSOUND *csound, LPFRESON *p)
     
     p->lpread = ((LPREAD**) csound->lprdaddr)[csound->currentLPCSlot];
     if(p->lpread->npoles < 2) {
-      return csound->InitError(csound, Str("Two few poles (> 2)"));
+      return csound->InitError(csound, Str("Too few poles (> 2)"));
     }
     
     p->prvratio = FL(1.0);
