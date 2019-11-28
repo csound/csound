@@ -39,6 +39,8 @@
 extern int set_rt_priority(int argc, const char **argv);
 #endif
 
+extern int csoundErrCnt(CSOUND*);
+
 static FILE *logFile = NULL;
 
 static void msg_callback(CSOUND *csound,
@@ -260,7 +262,6 @@ int main(int argc, char **argv)
     CSOUND  *csound;
     char    *fname = NULL;
     int     i, result, errs, nomessages=0;
-    extern int csoundErrCnt(CSOUND*);
 #ifdef GNU_GETTEXT
     const char* lang;
 #endif

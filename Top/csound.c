@@ -98,7 +98,7 @@ extern void close_all_files(CSOUND *);
 extern void csoundInputMessageInternal(CSOUND *csound, const char *message);
 extern int isstrcod(MYFLT );
 extern int fterror(const FGDATA *ff, const char *s, ...);
-extern int csoundErrCnt(CSOUND *);
+int csoundErrCnt(CSOUND *);
 void (*msgcallback_)(CSOUND *, int, const char *, va_list) = NULL;
 
 void csoundDebuggerBreakpointReached(CSOUND *csound);
@@ -4437,7 +4437,7 @@ static void set_util_nchnls(CSOUND *csound, int nchnls){ csound->nchnls = nchnls
 
 MYFLT csoundGetA4(CSOUND *csound) { return (MYFLT) csound->A4; }
 
-int PUBLIC csoundErrCnt(CSOUND *csound) { return csound->perferrcnt; }
+PUBLIC int csoundErrCnt(CSOUND *csound) { return csound->perferrcnt; }
 
 #if 0
 PUBLIC int csoundPerformKsmpsAbsolute(CSOUND *csound)
