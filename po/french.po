@@ -5943,9 +5943,8 @@ msgid "Pole file not supported for this opcode !"
 msgstr "Fichier de pôles non supporté par cet opcode !"
 
 #: OOps/ugens5.c:1140
-#, fuzzy
 msgid "Too few poles (> 2)"
-msgstr "pas assez de p-champs (%d)"
+msgstr "Pas assez de pôles (>2)"
 
 #: OOps/ugens5.c:1169
 #, c-format
@@ -6212,7 +6211,6 @@ msgid "OSC: failed to allocate globals"
 msgstr "OSC : échec de l'allocation des variables globales"
 
 #: Opcodes/OSC.c:590
-#, fuzzy
 msgid "OSC deinitialised\n"
 msgstr "OSC dé-initialisé\n"
 
@@ -8518,9 +8516,8 @@ msgid "Jacko performance finished.\n"
 msgstr "Exécution de jacko terminée.\n"
 
 #: Opcodes/jacko.cpp:667
-#, fuzzy
 msgid "JackoState::close...\n"
-msgstr "DEBUT de JackoState::close()...\n"
+msgstr "JackoState::close...\n"
 
 #: Opcodes/jacko.cpp:672
 msgid "Jack client deactivated.\n"
@@ -8531,14 +8528,12 @@ msgid "Jack ports unregistered.\n"
 msgstr "Ports jack désenregistrés.\n"
 
 #: Opcodes/jacko.cpp:696
-#, fuzzy
 msgid "Jack client closed.\n"
-msgstr "Client Jack désactivé.\n"
+msgstr "Client Jack fermé.\n"
 
 #: Opcodes/jacko.cpp:706
-#, fuzzy
 msgid "JackoState::close.\n"
-msgstr "FIN de JackoState::close().\n"
+msgstr "JackoState::close.\n"
 
 #: Opcodes/jacko.cpp:865
 #, c-format
@@ -8678,9 +8673,8 @@ msgid "metro:init phase truncation"
 msgstr "metro : la phase initiale est tronquée"
 
 #: Opcodes/metro.c:106
-#, fuzzy
 msgid "metro2:init phase truncation"
-msgstr "metro : la phase initiale est tronquée"
+msgstr "metro2 : la phase initiale est tronquée"
 
 #: Opcodes/metro.c:176
 msgid "splitrig: incorrect table number"
@@ -14764,9 +14758,8 @@ msgid "no poles"
 msgstr "pas de pôles"
 
 #: util/lpanal.c:435
-#, fuzzy
 msgid "Invalid pole count; set to 1\n"
-msgstr "Infile fixé à %s\n"
+msgstr "Compte de pôles incorrect : fixé à 1\n"
 
 #: util/lpanal.c:439 util/pvanal.c:222
 msgid "no hopsize"
