@@ -4437,7 +4437,7 @@ static void set_util_nchnls(CSOUND *csound, int nchnls){ csound->nchnls = nchnls
 
 MYFLT csoundGetA4(CSOUND *csound) { return (MYFLT) csound->A4; }
 
-PUBLIC int csoundErrCnt(CSOUND *csound) { return csound->perferrcnt; }
+int csoundErrCnt(CSOUND *csound) { return csound->perferrcnt; }
 
 #if 0
 PUBLIC int csoundPerformKsmpsAbsolute(CSOUND *csound)
