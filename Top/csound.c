@@ -98,7 +98,7 @@ extern void close_all_files(CSOUND *);
 extern void csoundInputMessageInternal(CSOUND *csound, const char *message);
 extern int isstrcod(MYFLT );
 extern int fterror(const FGDATA *ff, const char *s, ...);
-int csoundErrCnt(CSOUND *);
+PUBLIC int csoundErrCnt(CSOUND *);
 void (*msgcallback_)(CSOUND *, int, const char *, va_list) = NULL;
 
 void csoundDebuggerBreakpointReached(CSOUND *csound);
