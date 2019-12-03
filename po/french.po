@@ -7016,70 +7016,70 @@ msgid "lincos: Division by zero"
 msgstr "lincos : division par zéro"
 
 #: Opcodes/emugens/emugens.c:450 Opcodes/emugens/emugens.c:486
-#: Opcodes/emugens/emugens.c:671 Opcodes/emugens/emugens.c:718
-#: Opcodes/emugens/emugens.c:777
+#: Opcodes/emugens/emugens.c:712 Opcodes/emugens/emugens.c:759
+#: Opcodes/emugens/emugens.c:818
 msgid "bpf: data length should be even (pairs of x, y)"
 msgstr "bpf : la longueur des données doit être paire (couples de x, y)"
 
 #: Opcodes/emugens/emugens.c:453 Opcodes/emugens/emugens.c:488
-#: Opcodes/emugens/emugens.c:673 Opcodes/emugens/emugens.c:720
-#: Opcodes/emugens/emugens.c:779
+#: Opcodes/emugens/emugens.c:714 Opcodes/emugens/emugens.c:761
+#: Opcodes/emugens/emugens.c:820
 msgid "bpf: too many pargs (max=256)"
 msgstr "bpf : trop de pargs (max=256)"
 
-#: Opcodes/emugens/emugens.c:843
+#: Opcodes/emugens/emugens.c:884
 #, c-format
 msgid "expecting a char between A and G, but got %c\n"
 msgstr "caractère a attendu entre A et G, mais %c obtenu\n"
 
-#: Opcodes/emugens/emugens.c:869
+#: Opcodes/emugens/emugens.c:910
 #, c-format
 msgid "format not understood, note: %s, notelen: %d\n"
 msgstr "format non compris, note : %s, longNote : %d\n"
 
-#: Opcodes/emugens/emugens.c:1069 Opcodes/emugens/emugens.c:1082
-#: Opcodes/emugens/emugens.c:1100
+#: Opcodes/emugens/emugens.c:1110 Opcodes/emugens/emugens.c:1123
+#: Opcodes/emugens/emugens.c:1141
 msgid "cmp: unknown operator. Expecting <, <=, >, >=, ==, !="
 msgstr "cmp : opérateur incompris. <, <=, >, >=, == ou != attendu"
 
-#: Opcodes/emugens/emugens.c:1123
+#: Opcodes/emugens/emugens.c:1164
 msgid "cmp (ternary comparator): operator 2 expected <"
 msgstr "cmp (comparateur ternaire) : opérateur 2 attendu <"
 
-#: Opcodes/emugens/emugens.c:1126
+#: Opcodes/emugens/emugens.c:1167
 msgid "cmp (ternary comparator): operator 1 expected <"
 msgstr "cmp (comparateur ternaire) : opérateur 1 attendu <"
 
-#: Opcodes/emugens/emugens.c:1470 Opcodes/emugens/emugens.c:1487
+#: Opcodes/emugens/emugens.c:1511 Opcodes/emugens/emugens.c:1528
 msgid "tab2array: cannot copy a negative number of items"
 msgstr "tab2array : impossible de copier un nombre négatif d'items"
 
-#: Opcodes/emugens/emugens.c:1569
+#: Opcodes/emugens/emugens.c:1610
 msgid "reshapearray: cannot reshape"
 msgstr "reshapearray : reformatage impossible"
 
-#: Opcodes/emugens/emugens.c:1666
+#: Opcodes/emugens/emugens.c:1707
 msgid "cannot print multidimensional string arrays"
 msgstr ""
 "impossible d'afficher des tableaux de chaînes de caractères "
 "multidimensionnels"
 
-#: Opcodes/emugens/emugens.c:1668
+#: Opcodes/emugens/emugens.c:1709
 #, c-format
 msgid "only 1-D and 2-D arrays supported, got %d dimensions"
 msgstr "seuls les tableaux 1D et 2D sont supportés, %d dimensiions reçues"
 
-#: Opcodes/emugens/emugens.c:1803
+#: Opcodes/emugens/emugens.c:1844
 #, c-format
 msgid "type not supported for printing: %s"
 msgstr "type non supporté à l'affichage : %s"
 
-#: Opcodes/emugens/emugens.c:1915
+#: Opcodes/emugens/emugens.c:1956
 #, c-format
 msgid "Could not handle start index: %d"
 msgstr "Impossible de traiter l'index de départ : %d"
 
-#: Opcodes/emugens/emugens.c:1923
+#: Opcodes/emugens/emugens.c:1964
 #, c-format
 msgid "Could not handle end index: %d"
 msgstr "Impossible de traiter l'index de fin : %d"
@@ -8099,6 +8099,11 @@ msgstr "cella : table d'état initial non valide"
 #: Opcodes/gab/vectorial.c:2500
 msgid "cella: invalid rule table"
 msgstr "cella : table de règle non valide"
+
+#: Opcodes/gammatone.c:51
+#, fuzzy, c-format
+msgid "Invalid order %d\n"
+msgstr "mode de boucle non valide : %d"
 
 #: Opcodes/grain.c:101
 msgid "grain: grain length zero"
@@ -12402,194 +12407,194 @@ msgstr ""
 msgid "Error allocating opcode list"
 msgstr "Erreur lors de l'allocation de la liste d'opcodes"
 
-#: Top/csound.c:1620
+#: Top/csound.c:1621
 #, c-format
 msgid "Multithread performance:thread %d of %d starting.\n"
 msgstr "Exécution multithread : démarrage du thread %d sur %d.\n"
 
-#: Top/csound.c:1626
+#: Top/csound.c:1627
 msgid "Bad ThreadId"
 msgstr "Mauvais ThreadId"
 
-#: Top/csound.c:2115 Top/csound.c:2152 Top/csound.c:2181 Top/csound.c:2222
-#: Top/csound.c:4448
+#: Top/csound.c:2116 Top/csound.c:2153 Top/csound.c:2182 Top/csound.c:2223
+#: Top/csound.c:4451
 msgid "Csound not ready for performance: csoundStart() has not been called\n"
 msgstr ""
 "Csound n'est pas prêt pour l'exécution : csoundStart() n'a pas été appelée\n"
 
-#: Top/csound.c:2134
+#: Top/csound.c:2135
 #, c-format
 msgid "Score finished in csoundPerformKsmps() with %d.\n"
 msgstr "La partition est finie dans csoundPerformKsmps() avec %d.\n"
 
-#: Top/csound.c:2159 Top/csound.c:4455
+#: Top/csound.c:2160 Top/csound.c:4458
 msgid "Early return from csoundPerformKsmps().\n"
 msgstr "Retour prématuré de csoundPerformKsmps().\n"
 
-#: Top/csound.c:2166
+#: Top/csound.c:2167
 msgid "Score finished in csoundPerformKsmpsInternal().\n"
 msgstr "La partition est finie dans csoundPerformKsmpsInternal().\n"
 
-#: Top/csound.c:2188
+#: Top/csound.c:2189
 msgid "Early return from csoundPerformBuffer().\n"
 msgstr "Retour prématuré de csoundPerformBuffer().\n"
 
-#: Top/csound.c:2231
+#: Top/csound.c:2232
 msgid "Early return from csoundPerform().\n"
 msgstr "Retour prématuré de csoundPerform().\n"
 
-#: Top/csound.c:2240
+#: Top/csound.c:2241
 msgid "Score finished in csoundPerform().\n"
 msgstr "La partition est finie dans csoundPerform().\n"
 
-#: Top/csound.c:2253
+#: Top/csound.c:2254
 msgid "csoundPerform(): stopped.\n"
 msgstr "csoundPerform() : arrêté.\n"
 
-#: Top/csound.c:2590
+#: Top/csound.c:2591
 msgid "WARNING: "
 msgstr "AVERTISSEMENT : "
 
-#: Top/csound.c:2728
+#: Top/csound.c:2729
 msgid "rtdummy: failed to allocate globals"
 msgstr "rtdummy : l'allocation des variables globales a échoué"
 
-#: Top/csound.c:2729
+#: Top/csound.c:2730
 msgid "rtaudio: dummy module enabled\n"
 msgstr "rtaudio : module factice activé\n"
 
-#: Top/csound.c:2758 Top/csound.c:2795
+#: Top/csound.c:2759 Top/csound.c:2796
 msgid " *** error: rtaudio module set to empty string"
 msgstr " *** erreur : le module rtaudio est fixé par une chaîne vide"
 
-#: Top/csound.c:2762 Top/csound.c:2799
+#: Top/csound.c:2763 Top/csound.c:2800
 #, c-format
 msgid " unknown rtaudio module: '%s', using dummy module"
 msgstr " module rtaudio inconnu : '%s', utilisation d'un module factice"
 
-#: Top/csound.c:2916
+#: Top/csound.c:2917
 msgid "!!WARNING: real time midi input disabled, using dummy functions\n"
 msgstr ""
 "!!AVERTISSEMENT : l'entrée midi en temps réel est désactivée, utilisation de "
 "fonctions factices\n"
 
-#: Top/csound.c:2921 Top/csound.c:2955
+#: Top/csound.c:2922 Top/csound.c:2956
 msgid "error: -+rtmidi set to empty string"
 msgstr "erreur : -+rtmidi contient une chaîne vide"
 
-#: Top/csound.c:2924 Top/csound.c:2958
+#: Top/csound.c:2925 Top/csound.c:2959
 #, c-format
 msgid "error: -+rtmidi='%s': unknown module"
 msgstr "erreur : -+rtmidi='%s' : module inconnu"
 
-#: Top/csound.c:2950
+#: Top/csound.c:2951
 msgid "WARNING: real time midi output disabled, using dummy functions\n"
 msgstr ""
 "AVERTISSEMENT : la sortie midi en temps réel est désactivée, utilisation de "
 "fonctions factices\n"
 
-#: Top/csound.c:2972
+#: Top/csound.c:2973
 msgid "Unknown MIDI error"
 msgstr "Erreur MIDI inconnue"
 
-#: Top/csound.c:3136
+#: Top/csound.c:3137
 msgid "Failed to allocate new opcode entry."
 msgstr "Echec de l'allocation d'une nouvelle entrée d'opcode."
 
-#: Top/csound.c:3158
+#: Top/csound.c:3159
 #, c-format
 msgid "Failed to allocate opcode entry for %s."
 msgstr "Echec de l'allocation d'une entrée d'opcode pour %s."
 
-#: Top/csound.c:3300 Top/main.c:420
+#: Top/csound.c:3301 Top/main.c:420
 msgid "setting dummy interface\n"
 msgstr "mise en place d'une interface factice\n"
 
-#: Top/csound.c:3378
+#: Top/csound.c:3379
 msgid "Failed during csoundInitEnv"
 msgstr "Echec dans csoundInitEnv"
 
-#: Top/csound.c:3401
+#: Top/csound.c:3402
 msgid "Failed during csoundInitStaticModules"
 msgstr "Echec dans csoundInitStaticModules"
 
-#: Top/csound.c:3417
+#: Top/csound.c:3418
 msgid "Failed during csoundLoadModules"
 msgstr "Echec dans csoundLoadModules"
 
-#: Top/csound.c:3462
+#: Top/csound.c:3463
 msgid "Real time audio module name"
 msgstr "Nom du module audio en temps réel"
 
-#: Top/csound.c:3491
+#: Top/csound.c:3492
 msgid "Real time MIDI module name"
 msgstr "Nom du module MIDI en temps réel"
 
-#: Top/csound.c:3496
+#: Top/csound.c:3497
 msgid "Ignore events (other than tempo changes) in tracks defined by pattern"
 msgstr ""
 "Ignorer les évènements (autres que les changements de tempo) dans les pistes "
 "définies par le modèle"
 
-#: Top/csound.c:3502
+#: Top/csound.c:3503
 msgid "Do not handle special MIDI controllers (sustain pedal etc.)"
 msgstr "Ne pas traiter les contrôleurs MIDI spéciaux (pédale sustain, etc)"
 
-#: Top/csound.c:3510
+#: Top/csound.c:3511
 msgid "Title tag in output soundfile (no spaces)"
 msgstr "Champ titre dans le fichier son de sortie (pas d'espaces)"
 
-#: Top/csound.c:3516
+#: Top/csound.c:3517
 msgid "Copyright tag in output soundfile (no spaces)"
 msgstr "Champ copyright dans le fichier son de sortie (pas d'espaces)"
 
-#: Top/csound.c:3521
+#: Top/csound.c:3522
 msgid "Short Copyright tag in output soundfile"
 msgstr "Champ copyright court dans le fichier son de sortie"
 
-#: Top/csound.c:3527
+#: Top/csound.c:3528
 msgid "Software tag in output soundfile (no spaces)"
 msgstr "Champ du logiciel dans le fichier son de sortie (pas d'espaces)"
 
-#: Top/csound.c:3532
+#: Top/csound.c:3533
 msgid "Artist tag in output soundfile (no spaces)"
 msgstr "Champ artiste dans le fichier son de sortie (pas d'espaces)"
 
-#: Top/csound.c:3539
+#: Top/csound.c:3540
 msgid "Comment tag in output soundfile (no spaces)"
 msgstr "Champ commentaire dans le fichier son de sortie (pas d'espaces)"
 
-#: Top/csound.c:3544
+#: Top/csound.c:3545
 msgid "Date tag in output soundfile (no spaces)"
 msgstr "Champ date dans le fichier son de sortie (pas d'espaces)"
 
-#: Top/csound.c:3554
+#: Top/csound.c:3555
 msgid "Enable message attributes (colors etc.)"
 msgstr "Activer les attributs de message (couleurs, etc)"
 
-#: Top/csound.c:3560
+#: Top/csound.c:3561
 msgid "Start score playback at the specified time, skipping earlier events"
 msgstr ""
 "Démarrer la restitution de la partition au temps spécifié, en ignorant les "
 "évènements antérieurs"
 
-#: Top/csound.c:3567
+#: Top/csound.c:3568
 msgid "Ignore <CsOptions> in CSD files (default: no)"
 msgstr "Ignorer <CsOptions> dans les fichiers CSD (non par défaut)"
 
-#: Top/csound.c:3791
+#: Top/csound.c:3792
 msgid "Cannot open /proc/cpuinfo. Support for RDTSC is not available.\n"
 msgstr "Impossible d'ouvrir /proc/cpuinfo. RDTSC n'est pas supporté.\n"
 
-#: Top/csound.c:3821
+#: Top/csound.c:3822
 msgid "No valid CPU frequency entry was found in /proc/cpuinfo.\n"
 msgstr "Aucune entrée de fréq CPU valide n'a été trouvée dans /proc/cpuinfo.\n"
 
-#: Top/csound.c:4343
+#: Top/csound.c:4344
 msgid "csoundDestroyMessageBuffer: Message buffer not allocated."
 msgstr "csoundDestroyMessageBuffer : tampon de message non alloué."
 
-#: Top/csound.c:4375
+#: Top/csound.c:4376
 msgid "csound: internal error: message buffer overflow\n"
 msgstr "csound : erreur interne : dépassement du tampon de messages\n"
 

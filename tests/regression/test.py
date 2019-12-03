@@ -77,7 +77,7 @@ def runTest():
         ["bugmon.csd", "test arrray form of monitor"],
         ["bugname.csd", "recompilation of instr"],
         ["vbapa.csd", "array case of vbap"],
-        ["bugi.csd", "i() and array access"],
+        ["bugi.csd", "i() and array access",1],
         ["gerr.csd", "array syntax error", 1],
         ["conditional.csd", "conditional expression"]
     ]
