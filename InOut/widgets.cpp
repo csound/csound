@@ -1569,7 +1569,7 @@ extern "C" {
       *p->inum_val = numfields; // number of snapshots
       if (*p->ifn >= 1) { // if the table number is valid
         FUNC    *ftp;   // store the snapshot into the table
-        if (LIKELY((ftp = csound->FTnp2Find(csound, p->ifn)) != NULL)) {
+        if (LIKELY((ftp = csound->FTnp2Finde(csound, p->ifn)) != NULL)) {
           MYFLT *table = ftp->ftable;
           for (int j = 0; j < numfields; j++) {
             table[index*numfields+j] = snap.fields[j].value;
@@ -3585,7 +3585,7 @@ extern "C" {
         {
           FUNC *ftp;
           MYFLT fnum = abs(iexp);
-          if ((ftp = csound->FTnp2Find(csound, &fnum)) != NULL) {
+          if ((ftp = csound->FTnp2Finde(csound, &fnum)) != NULL) {
             p->table = ftp->ftable;
             p->tablen = ftp->flen;
           }
@@ -3640,23 +3640,23 @@ extern "C" {
         }
       }
       else {
-        if (LIKELY((ftp = csound->FTnp2Find(csound, p->ioutable)) != NULL))
+        if (LIKELY((ftp = csound->FTnp2Finde(csound, p->ioutable)) != NULL))
           outable = ftp->ftable + (long) *p->ioutablestart_ndx;
         else
           return NOTOK;
       }
       if ((int) *p->iminmaxtable > 0) {
-        if (LIKELY((ftp = csound->FTnp2Find(csound, p->iminmaxtable)) != NULL))
+        if (LIKELY((ftp = csound->FTnp2Finde(csound, p->iminmaxtable)) != NULL))
           minmaxtable = ftp->ftable;
         else return NOTOK;
       }
       if ((int) *p->iexptable > 0) {
-        if (LIKELY((ftp = csound->FTnp2Find(csound, p->iexptable)) != NULL))
+        if (LIKELY((ftp = csound->FTnp2Finde(csound, p->iexptable)) != NULL))
           exptable = ftp->ftable;
         else return NOTOK;
       }
       if ((int) *p->itypetable > 0) {
-        if (LIKELY((ftp = csound->FTnp2Find(csound, p->itypetable)) != NULL))
+        if (LIKELY((ftp = csound->FTnp2Finde(csound, p->itypetable)) != NULL))
           typetable = ftp->ftable;
         else return NOTOK;
       }
@@ -3777,7 +3777,7 @@ extern "C" {
           {
             FUNC *ftp;
             MYFLT fnum = abs(iexp);
-            if ((ftp = csound->FTnp2Find(csound, &fnum)) != NULL)
+            if ((ftp = csound->FTnp2Finde(csound, &fnum)) != NULL)
               p->slider_data[j].table = ftp->ftable;
             else return NOTOK;
             p->slider_data[j].tablen = ftp->flen;
@@ -3874,7 +3874,7 @@ extern "C" {
         {
           FUNC *ftp;
           MYFLT fnum = abs(iexpx);
-          if ((ftp = csound->FTnp2Find(csound, &fnum)) != NULL) {
+          if ((ftp = csound->FTnp2Finde(csound, &fnum)) != NULL) {
             p->tablex = ftp->ftable;
             p->tablenx = ftp->flen;
           }
@@ -3908,7 +3908,7 @@ extern "C" {
         {
           FUNC *ftp;
           MYFLT fnum = abs(iexpy);
-          if (LIKELY((ftp = csound->FTnp2Find(csound, &fnum)) != NULL)) {
+          if (LIKELY((ftp = csound->FTnp2Finde(csound, &fnum)) != NULL)) {
             p->tabley = ftp->ftable;
             p->tableny = ftp->flen;
           }
@@ -4023,7 +4023,7 @@ extern "C" {
           FUNC *ftp;
           p->min = *p->imin;
           MYFLT fnum = abs(iexp);
-          if ((ftp = csound->FTnp2Find(csound, &fnum)) != NULL) {
+          if ((ftp = csound->FTnp2Finde(csound, &fnum)) != NULL) {
             p->table = ftp->ftable;
             p->tablen = ftp->flen;
           }
@@ -4431,7 +4431,7 @@ extern "C" {
         {
           FUNC *ftp;
           MYFLT fnum = abs(iexp);
-          if ((ftp = csound->FTnp2Find(csound, &fnum)) != NULL) {
+          if ((ftp = csound->FTnp2Finde(csound, &fnum)) != NULL) {
             p->table = ftp->ftable;
             p->tablen = ftp->flen;
           }
@@ -4663,7 +4663,7 @@ extern "C" {
       if (*p->ifn > 0) { // mapping values
         p->flag = 1;
 
-        if (LIKELY((ftp = csound->FTnp2Find(csound,p->ifn)) != NULL))
+        if (LIKELY((ftp = csound->FTnp2Finde(csound,p->ifn)) != NULL))
           p->table = ftp->ftable;
         else {
           return csound->InitError(csound,
@@ -4781,23 +4781,23 @@ extern "C" {
         }
       }
       else {
-        if (LIKELY((ftp = csound->FTnp2Find(csound, p->ioutable)) != NULL))
+        if (LIKELY((ftp = csound->FTnp2Finde(csound, p->ioutable)) != NULL))
           outable = ftp->ftable + (long) *p->ioutablestart_ndx;
         else
           return NOTOK;
       }
       if ((int) *p->iminmaxtable > 0) {
-        if (LIKELY((ftp = csound->FTnp2Find(csound, p->iminmaxtable)) != NULL))
+        if (LIKELY((ftp = csound->FTnp2Finde(csound, p->iminmaxtable)) != NULL))
           minmaxtable = ftp->ftable;
         else return NOTOK;
       }
       if ((int) *p->iexptable > 0) {
-        if (LIKELY((ftp = csound->FTnp2Find(csound, p->iexptable)) != NULL))
+        if (LIKELY((ftp = csound->FTnp2Finde(csound, p->iexptable)) != NULL))
           exptable = ftp->ftable;
         else return NOTOK;
       }
       if ((int) *p->itypetable > 0) {
-        if (LIKELY((ftp = csound->FTnp2Find(csound, p->itypetable)) != NULL))
+        if (LIKELY((ftp = csound->FTnp2Finde(csound, p->itypetable)) != NULL))
           typetable = ftp->ftable;
         else return NOTOK;
       }
@@ -4927,7 +4927,7 @@ extern "C" {
           {
             FUNC *ftp;
             MYFLT fnum = abs(iexp);
-            if (LIKELY((ftp = csound->FTnp2Find(csound, &fnum)) != NULL))
+            if (LIKELY((ftp = csound->FTnp2Finde(csound, &fnum)) != NULL))
               p->slider_data[j].table = ftp->ftable;
             else return NOTOK;
             p->slider_data[j].tablen = ftp->flen;
@@ -5007,12 +5007,12 @@ extern "C" {
         }
       }
       else {
-        if ((ftp = csound->FTnp2Find(csound, p->ioutable)) != NULL)
+        if ((ftp = csound->FTnp2Finde(csound, p->ioutable)) != NULL)
           outable = ftp->ftable + (long) *p->ioutablestart_ndx;
         else
           return NOTOK;
       }
-      if((ftp = csound->FTnp2Find(csound, p->iconfigtable)) != NULL)
+      if((ftp = csound->FTnp2Finde(csound, p->iconfigtable)) != NULL)
         configtable = ftp->ftable;
       else return NOTOK;
 
@@ -5118,7 +5118,7 @@ extern "C" {
           {
             FUNC *ftp;
             MYFLT fnum = abs(iexp);
-            if ((ftp = csound->FTnp2Find(csound, &fnum)) != NULL)
+            if ((ftp = csound->FTnp2Finde(csound, &fnum)) != NULL)
               p->slider_data[j].table = ftp->ftable;
             else return NOTOK;
             p->slider_data[j].tablen = ftp->flen;
@@ -5199,12 +5199,12 @@ extern "C" {
         }
       }
       else {
-        if ((ftp = csound->FTnp2Find(csound, p->ioutable)) != NULL)
+        if ((ftp = csound->FTnp2Finde(csound, p->ioutable)) != NULL)
           outable = ftp->ftable + (long) *p->ioutablestart_ndx;
         else
           return NOTOK;
       }
-      if((ftp = csound->FTnp2Find(csound, p->iconfigtable)) != NULL)
+      if((ftp = csound->FTnp2Finde(csound, p->iconfigtable)) != NULL)
         configtable = ftp->ftable;
       else
         return NOTOK;
@@ -5311,7 +5311,7 @@ extern "C" {
           {
             FUNC *ftp;
             MYFLT fnum = abs(iexp);
-            if ((ftp = csound->FTnp2Find(csound, &fnum)) != NULL)
+            if ((ftp = csound->FTnp2Finde(csound, &fnum)) != NULL)
               p->slider_data[j].table = ftp->ftable;
             else return NOTOK;
             p->slider_data[j].tablen = ftp->flen;
@@ -5377,7 +5377,7 @@ extern "C" {
       WIDGET_GLOBALS *widgetGlobals =
         (WIDGET_GLOBALS *)csound->QueryGlobalVariable(csound, "WIDGET_GLOBALS");
 
-      if (LIKELY((ftp = csound->FTnp2Find(csound, p->ifn)) != NULL))
+      if (LIKELY((ftp = csound->FTnp2Finde(csound, p->ifn)) != NULL))
         table = ftp->ftable;
       else {
         return csound->InitError(csound,
@@ -5391,7 +5391,7 @@ extern "C" {
       FLSLIDERBANK *q =
         (FLSLIDERBANK *)widgetGlobals->AddrSetValue[ (int) *p->ihandle].opcode;
 
-      if (LIKELY((ftp = csound->FTnp2Find(csound, q->ioutable)) != NULL))
+      if (LIKELY((ftp = csound->FTnp2Finde(csound, q->ioutable)) != NULL))
         outable = ftp->ftable;
       else {
         return csound->InitError(csound,
@@ -5446,7 +5446,7 @@ extern "C" {
       WIDGET_GLOBALS *widgetGlobals =
         (WIDGET_GLOBALS *)csound->QueryGlobalVariable(csound, "WIDGET_GLOBALS");
 
-      if (LIKELY((ftp = csound->FTnp2Find(csound, p->ifn)) != NULL))
+      if (LIKELY((ftp = csound->FTnp2Finde(csound, p->ifn)) != NULL))
         table = ftp->ftable;
       else {
         return csound->InitError(csound,
@@ -5460,7 +5460,7 @@ extern "C" {
       FLSLIDERBANK2 *q =
         (FLSLIDERBANK2 *)widgetGlobals->AddrSetValue[ (int) *p->ihandle].opcode;
 
-      if (LIKELY((ftp = csound->FTnp2Find(csound, q->ioutable)) != NULL))
+      if (LIKELY((ftp = csound->FTnp2Finde(csound, q->ioutable)) != NULL))
         outable = ftp->ftable;
       else {
         return csound->InitError(csound,
@@ -5526,7 +5526,7 @@ extern "C" {
       WIDGET_GLOBALS *widgetGlobals =
         (WIDGET_GLOBALS *)csound->QueryGlobalVariable(csound, "WIDGET_GLOBALS");
 
-      if (LIKELY((ftp = csound->FTnp2Find(csound, p->ifn)) != NULL))
+      if (LIKELY((ftp = csound->FTnp2Finde(csound, p->ifn)) != NULL))
         p->table = ftp->ftable;
       else {
         return csound->InitError(csound,
@@ -5540,7 +5540,7 @@ extern "C" {
       p->q = (FLSLIDERBANK2 *)
         widgetGlobals->AddrSetValue[ (int) *p->ihandle].opcode;
 
-      if (LIKELY((ftp = csound->FTnp2Find(csound, p->q->ioutable)) != NULL))
+      if (LIKELY((ftp = csound->FTnp2Finde(csound, p->q->ioutable)) != NULL))
         p->outable = ftp->ftable;
       else {
         return csound->InitError(csound, "%s",
@@ -5619,7 +5619,7 @@ extern "C" {
       p->startind = (int)*p->startInd;
       p->startslid = (int)*p->startSlid;
 
-      if (LIKELY((ftp = csound->FTnp2Find(csound, p->ifn)) != NULL))
+      if (LIKELY((ftp = csound->FTnp2Finde(csound, p->ifn)) != NULL))
         p->table = ftp->ftable;
       else {
         return csound->InitError(csound,
@@ -5633,7 +5633,7 @@ extern "C" {
       p->q =
         (FLSLIDERBANK *) widgetGlobals->AddrSetValue[ (int) *p->ihandle].opcode;
 
-      if (LIKELY((ftp = csound->FTnp2Find(csound, p->q->ioutable)) != NULL))
+      if (LIKELY((ftp = csound->FTnp2Finde(csound, p->q->ioutable)) != NULL))
         p->outable = ftp->ftable;
       else {
         return csound->InitError(csound, "%s",
@@ -5726,7 +5726,7 @@ extern "C" {
         {
           FUNC *ftp;
           MYFLT fnum = abs(p->expx);
-          if ((ftp = csound->FTnp2Find(csound, &fnum)) != NULL) {
+          if ((ftp = csound->FTnp2Finde(csound, &fnum)) != NULL) {
             p->tablex = ftp->ftable;
             p->tablenx = ftp->flen;
           }
@@ -5752,7 +5752,7 @@ extern "C" {
         {
           FUNC *ftp;
           MYFLT fnum = abs(p->expy);
-          if ((ftp = csound->FTnp2Find(csound, &fnum)) != NULL) {
+          if ((ftp = csound->FTnp2Finde(csound, &fnum)) != NULL) {
             p->tabley = ftp->ftable;
             p->tableny = ftp->flen;
           }

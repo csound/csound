@@ -593,7 +593,7 @@ beadsynt_init_common(CSOUND *csound, BEADSYNT *p) {
         lphs[c] = ((int32_t)(iphs * FMAXLEN)) & PHMASK;
       }
     } else {  // iphs is the number of a table containing the phases
-      FUNC *phasetp = csound->FTnp2Find(csound, p->iphs);
+      FUNC *phasetp = csound->FTnp2Finde(csound, p->iphs);
       if (phasetp == NULL) {
         p->inerr = 1;
         return INITERR(Str("beadsynt: phasetable not found"));

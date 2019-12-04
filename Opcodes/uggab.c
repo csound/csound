@@ -677,7 +677,7 @@ static int32_t lposc_set(CSOUND *csound, LPOSC *p)
     FUNC   *ftp;
     MYFLT  loop, end, looplength;
 
-    if (UNLIKELY((ftp = csound->FTnp2Find(csound, p->ift)) == NULL))
+    if (UNLIKELY((ftp = csound->FTnp2Finde(csound, p->ift)) == NULL))
       return NOTOK;
     if (UNLIKELY(!(p->fsr=ftp->gen01args.sample_rate))) {
       csound->Warning(csound, Str("losc: no sample rate stored in function "
@@ -1313,7 +1313,7 @@ static int32_t vibrato_set(CSOUND *csound, VIBRATO *p)
 {
     FUNC        *ftp;
 
-    if (LIKELY((ftp = csound->FTnp2Find(csound, p->ifn)) != NULL)) {
+    if (LIKELY((ftp = csound->FTnp2Finde(csound, p->ifn)) != NULL)) {
       p->ftp = ftp;
       if (*p->iphs >= 0 && *p->iphs<1.0)
         p->lphs = (((int64_t)(*p->iphs * FMAXLEN)) & PHMASK) >> ftp->lobits;
@@ -1394,7 +1394,7 @@ static int32_t vibr_set(CSOUND *csound, VIBR *p)
 #define cpsMaxRate      FL(2.28100)
 #define iphs            FL(0.0)
 
-    if (LIKELY((ftp = csound->FTnp2Find(csound, p->ifn)) != NULL)) {
+    if (LIKELY((ftp = csound->FTnp2Finde(csound, p->ifn)) != NULL)) {
       p->ftp = ftp;
       p->lphs = (((int32)(iphs * FMAXLEN)) & PHMASK) >> ftp->lobits;
     }

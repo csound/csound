@@ -2345,7 +2345,7 @@ static int32_t sflooper_init(CSOUND *csound, sflooper *p)
       }
     }
   p->spltNum = spltNum;
-  if (*p->ifn2 != 0) p->efunc = csound->FTnp2Find(csound, p->ifn2);
+  if (*p->ifn2 != 0) p->efunc = csound->FTnp2Finde(csound, p->ifn2);
   else p->efunc = NULL;
 
   if (*p->iskip == 0){

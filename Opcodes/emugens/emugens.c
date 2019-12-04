@@ -1434,11 +1434,11 @@ typedef struct {
 static int32_t
 tabslice_init(CSOUND *csound, TABSLICE *p) {
     FUNC *ftpsrc, *ftpdst;
-    ftpsrc = csound->FTnp2Find(csound, p->fnsrc);
+    ftpsrc = csound->FTnp2Finde(csound, p->fnsrc);
     if(UNLIKELY(ftpsrc == NULL))
         return NOTOK;
     p->ftpsrc = ftpsrc;
-    ftpdst = csound->FTnp2Find(csound, p->fndst);
+    ftpdst = csound->FTnp2Finde(csound, p->fndst);
     if(UNLIKELY(ftpdst == NULL))
         return NOTOK;
     p->ftpdst = ftpdst;
@@ -1497,7 +1497,7 @@ typedef struct {
 static int
 tab2array_init(CSOUND *csound, TAB2ARRAY *p) {
     FUNC *ftp;
-    ftp = csound->FTnp2Find(csound, p->ifn);
+    ftp = csound->FTnp2Finde(csound, p->ifn);
     if (UNLIKELY(ftp == NULL))
         return NOTOK;
     p->ftp = ftp;
@@ -1916,7 +1916,7 @@ ftprint_init(CSOUND *csound, FTPRINT *p) {
     p->numcols = (int32_t)*p->inumcols;
     if(p->numcols == 0)
         p->numcols = 10;
-    p->ftp = csound->FTnp2Find(csound, p->ifn);
+    p->ftp = csound->FTnp2Finde(csound, p->ifn);
     int32_t trig = (int32_t)*p->ktrig;
     if (trig > 0) {
         ftprint_perf(csound, p);

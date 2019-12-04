@@ -275,7 +275,7 @@ int32_t ampmidi(CSOUND *csound, MIDIAMP *p)   /* convert midi veloc to amplitude
 
     amp = csound->curip->m_veloc / FL(128.0);     /* amp = normalised veloc */
     if ((fno = (int32_t)*p->ifn) > 0) {              /* if valid ftable,       */
-      if (UNLIKELY((ftp = csound->FTnp2Find(csound, p->ifn)) == NULL))
+      if (UNLIKELY((ftp = csound->FTnp2Finde(csound, p->ifn)) == NULL))
         return NOTOK;                             /*     use amp as index   */
       amp = *(ftp->ftable + (int32_t)(amp * ftp->flen));
     }

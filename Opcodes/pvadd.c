@@ -76,7 +76,7 @@ int32_t pvaddset_(CSOUND *csound, PVADD *p, int32_t stringname)
     p->ftp = ftp;
 
     if (*p->igatefun > FL(0.0))
-      if (UNLIKELY((AmpGateFunc = csound->FTnp2Find(csound, p->igatefun)) == NULL))
+      if (UNLIKELY((AmpGateFunc = csound->FTnp2Finde(csound, p->igatefun)) == NULL))
         return NOTOK;
     p->AmpGateFunc = AmpGateFunc;
 

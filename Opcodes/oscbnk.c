@@ -1454,7 +1454,7 @@ static int32_t osckts(CSOUND *csound, OSCKTS *p)
     /* check if table number was changed */
     if (*(p->kfn) != p->oldfn || p->ft == NULL) {
       p->oldfn = *(p->kfn);
-      ftp = csound->FTnp2Find(csound, p->kfn);    /* new table parameters */
+      ftp = csound->FTnp2Finde(csound, p->kfn);    /* new table parameters */
       if (UNLIKELY((ftp == NULL) || ((p->ft = ftp->ftable) == NULL))) return NOTOK;
       oscbnk_flen_setup(ftp->flen, &(p->mask), &(p->lobits), &(p->pfrac));
     }

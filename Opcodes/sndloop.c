@@ -305,7 +305,7 @@ static int32_t flooper_init(CSOUND *csound, flooper *p)
     int32 durs;
     int32 len, i, nchnls;
 
-    p->sfunc = csound->FTnp2Find(csound, p->ifn) ;  /* function table */
+    p->sfunc = csound->FTnp2Finde(csound, p->ifn) ;  /* function table */
     cfds = (int32) (*(p->cfd)*p->sfunc->gen01args.sample_rate);
     starts = (int32) (*(p->start)*p->sfunc->gen01args.sample_rate);
     durs = (int32)  (*(p->dur)*p->sfunc->gen01args.sample_rate);
@@ -447,7 +447,7 @@ static int32_t flooper2_init(CSOUND *csound, flooper2 *p)
     if (UNLIKELY(p->sfunc==NULL)) {
       return csound->InitError(csound,Str("function table not found\n"));
     }
-    if (*p->ifn2 != 0) p->efunc = csound->FTnp2Find(csound, p->ifn2);
+    if (*p->ifn2 != 0) p->efunc = csound->FTnp2Finde(csound, p->ifn2);
     else p->efunc = NULL;
 
     if (*p->iskip == 0) {
@@ -490,7 +490,7 @@ static int32_t flooper2_process(CSOUND *csound, flooper2 *p)
     uint32 tndx0, tndx1, nchnls, onchnls = p->nchnls;
     FUNC *func;
 
-    func = csound->FTnp2Find(csound, p->ifn);
+    func = csound->FTnp2Finde(csound, p->ifn);
     sr = p->sfunc->gen01args.sample_rate;
 
     if(p->sfunc != func) {

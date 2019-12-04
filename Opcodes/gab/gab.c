@@ -127,7 +127,7 @@ static int32_t fastabw(CSOUND *csound, FASTAB *p)
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t n, nsmps = CS_KSMPS;
-    FUNC *ftp = csound->FTnp2Find(csound, p->xfn);
+    FUNC *ftp = csound->FTnp2Finde(csound, p->xfn);
     p->table = ftp->ftable;
     MYFLT *tab = p->table;
     MYFLT *rslt = p->rslt, *ndx = p->xndx;
@@ -231,7 +231,7 @@ static int32_t fastab(CSOUND *csound, FASTAB *p)
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t i, nsmps = CS_KSMPS;
-    FUNC *ftp = csound->FTnp2Find(csound, p->xfn);
+    FUNC *ftp = csound->FTnp2Finde(csound, p->xfn);
     p->table = ftp->ftable;
     MYFLT *tab = p->table;
     MYFLT *rslt = p->rslt, *ndx = p->xndx;
