@@ -2149,7 +2149,7 @@ static OENTRY localops[] = {
     { "bpfcos", S(BPFARRPOINTS), 0, 2, "k", "ki[]i[]",
       NULL, (SUBR)bpfcosarrpoints },
     { "bpfcos", S(BPFARRPOINTS), 0, 1, "i", "ii[]i[]", (SUBR)bpfcosarrpoints },
-    
+
     { "bpfcos", S(BPFARRPOINTS2), 0, 2, "kk", "kk[]k[]k[]",
       NULL, (SUBR)bpfcos_arrpoints2 },
     { "bpfcos", S(BPFARRPOINTS2), 0, 2, "kk", "ki[]i[]i[]",

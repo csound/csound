@@ -30,7 +30,7 @@
 static int32_t lowpr_set(CSOUND *csound, LOWPR *p)
 {
 
-     IGN(csound);
+    IGN(csound);
     if (*p->istor==FL(0.0))
       p->ynm1 = p->ynm2 = 0.0;
     p->okf = 0.0;
@@ -375,10 +375,10 @@ static int32_t lowpr_w_sep(CSOUND *csound, LOWPR_SEP *p)
 
 static OENTRY localops[] =
   {
-    { "lowres.kk",   S(LOWPR), 0, 3, "a", "akko",  (SUBR)lowpr_set,  (SUBR)lowpr   },
-    { "lowres.aa",   S(LOWPR), 0, 3, "a", "aaao",  (SUBR)lowpr_set,  (SUBR)lowpraa },
-    { "lowres.ak",   S(LOWPR), 0, 3, "a", "aako",  (SUBR)lowpr_set,  (SUBR)lowprak },
-    { "lowres.ka",   S(LOWPR), 0, 3, "a", "akao",  (SUBR)lowpr_set,  (SUBR)lowprka },
+    { "lowres.kk",   S(LOWPR), 0, 3, "a", "akko",  (SUBR)lowpr_set, (SUBR)lowpr   },
+    { "lowres.aa",   S(LOWPR), 0, 3, "a", "aaao",  (SUBR)lowpr_set, (SUBR)lowpraa },
+    { "lowres.ak",   S(LOWPR), 0, 3, "a", "aako",  (SUBR)lowpr_set, (SUBR)lowprak },
+    { "lowres.ka",   S(LOWPR), 0, 3, "a", "akao",  (SUBR)lowpr_set, (SUBR)lowprka },
 
     { "lowresx.kk",  S(LOWPRX),0, 3, "a", "akkoo", (SUBR)lowpr_setx, (SUBR)lowprx },
     { "lowresx.ak",  S(LOWPRX),0, 3, "a", "aakoo", (SUBR)lowpr_setx, (SUBR)lowprx },

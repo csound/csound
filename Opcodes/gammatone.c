@@ -61,7 +61,7 @@ static int32_t gammatone_init(CSOUND *csound, GAMMA *p)
     p->xxi  = & p->xxr[CS_KSMPS];
     return OK;
 }
- 
+
 static int32_t gammatone_perf(CSOUND *csound, GAMMA *p)
 {
     MYFLT freq = p->oldf;
@@ -127,4 +127,3 @@ static OENTRY localops[] = {
 };
 
 LINKAGE
- 

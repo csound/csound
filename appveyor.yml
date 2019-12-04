@@ -1,40 +1,31 @@
-image: Visual Studio 2017
+image: Visual Studio 2019
 
 environment:
-  ABLETON_LINK_HOME: C:\projects\csound\msvc\deps\link
   APPVEYOR_SAVE_CACHE_ON_ERROR: "true"
   APPVEYOR_RDP_PASSWORD: Vercoe123
-  CsoundDepsDir: C:\projects\csound\msvc\deps\bin
   CSOUND_VERSION: 6.13.0
-  HDF5_HOME: C:\Program Files\HDF_Group\HDF5\1.8.19
   VCPKGDir: C:\Tools\vcpkg
-  VSGENERATOR: Visual Studio 15 2017 Win64
-  VSTOOLSET: v141
-#  VST_SDK2_HOME:  C:\projects\csound\msvc\deps\VST_SDK\VST2_SDK
+  VSGENERATOR: Visual Studio 16 2019
 
 platform: x64
-configuration: RelWithDebInfo
+configuration: Release
 
 init:
   - set CSOUND_HOME=%APPVEYOR_BUILD_FOLDER%
   - set PYTHON=C:\Python27-x64\python.exe
   - ps: iex ((new-object net.webclient).DownloadString('https://raw.githubusercontent.com/appveyor/ci/master/scripts/enable-rdp.ps1'))
-  - set /p RedistVersion=<"C:\Program Files (x86)\Microsoft Visual Studio\2017\Community\VC\Auxiliary\Build\Microsoft.VCRedistVersion.default.txt"
-  - set VCREDIST_CRT_DIR=C:\Program Files (x86)\Microsoft Visual Studio\2017\Community\VC\Redist\MSVC\%RedistVersion%\x64\Microsoft.VC141.CRT
-  - set VCREDIST_CXXAMP_DIR=C:\Program Files (x86)\Microsoft Visual Studio\2017\Community\VC\Redist\MSVC\%RedistVersion%\x64\Microsoft.VC141.CXXAMP
-  - set VCREDIST_OPENMP_DIR=C:\Program Files (x86)\Microsoft Visual Studio\2017\Community\VC\Redist\MSVC\%RedistVersion%\x64\Microsoft.VC141.OpenMP
-  - if "%APPVEYOR_BUILD_WORKER_IMAGE%" == "Visual Studio 2017" call "C:\\Program Files (x86)\\Microsoft Visual Studio\\2017\\Community\\VC\\Auxiliary\\Build\\vcvars64.bat"
-  - if "%APPVEYOR_BUILD_WORKER_IMAGE%" == "Visual Studio 2015" call "C:\\Program Files (x86)\\Microsoft Visual Studio 14.0\\VC\\bin\\amd64\\vcvars64.bat"
-  - set PATH=%PATH%;%CsoundDepsDir%;
+  - set /p RedistVersion=<"C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\VC\Auxiliary\Build\Microsoft.VCRedistVersion.default.txt"
+  - set VCREDIST_CRT_DIR=C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\VC\Redist\MSVC\%RedistVersion%\x64\Microsoft.VC142.CRT
+  - set VCREDIST_CXXAMP_DIR=C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\VC\Redist\MSVC\%RedistVersion%\x64\Microsoft.VC142.CXXAMP
+  - set VCREDIST_OPENMP_DIR=C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\VC\Redist\MSVC\%RedistVersion%\x64\Microsoft.VC142.OpenMP
+  - call "C:\\Program Files (x86)\\Microsoft Visual Studio\\2019\\Community\\VC\\Auxiliary\\Build\\vcvars64.bat"
 
 install:
   - cd msvc
   - dir
-  - powershell -ExecutionPolicy ByPass -File downloadDependencies.ps1 -vsGenerator "%VSGENERATOR%" -vsToolset "%VSTOOLSET%"
-  - powershell -ExecutionPolicy ByPass -File generateProject.ps1 -vsGenerator "%VSGENERATOR%" -vsToolset "%VSTOOLSET%"
-#-vstSdkHome "%VST_SDK2_HOME%
-  - cd ..
-  #download an unzip manual and CsoundQT for inclusion with the installer
+  - choco config set --name="'webRequestTimeoutSeconds'" --value="'500'"
+  - powershell -ExecutionPolicy ByPass -File downloadDependencies.ps1 -vsGenerator "%VSGENERATOR%"
+  # Download and unzip manual and CsoundQT for inclusion with the installer
   - cd c:/
   - ps: Start-FileDownload 'https://github.com/csound/manual/releases/download/6.13.0/Csound6.13.0_manual_html.zip'
   - cmd: 7z.exe x Csound6.13.0_manual_html.zip
@@ -48,15 +39,13 @@ build:
   project: msvc\csound-vs\Csound.sln
 
 after_build:
-  - set PATH=%PATH%;"C:\\Program Files (x86)\\Inno Setup 5"
-  - iscc /dVcpkgInstalledBinDir=%VCPKGDir%\\installed\\x64-windows\\bin\\ /omsvc installer\\windows\\csound6_x64_appveyor.iss
-  - 7z a csound-windows_x86_64-%CSOUND_VERSION%-%APPVEYOR_BUILD_NUMBER%.zip %APPVEYOR_BUILD_FOLDER%\msvc\csound-vs\RelWithDebInfo\*.exe %APPVEYOR_BUILD_FOLDER%\msvc\csound-vs\RelWithDebInfo\csound64.lib %APPVEYOR_BUILD_FOLDER%\include\ %APPVEYOR_BUILD_FOLDER%\msvc\csound-vs\RelWithDebInfo\*.dll %APPVEYOR_BUILD_FOLDER%\msvc\csound-vs\RelWithDebInfo\*.pyd %APPVEYOR_BUILD_FOLDER%\msvc\csound-vs\*.jar %APPVEYOR_BUILD_FOLDER%\msvc\csound-vs\*.py 
+  - set PATH=%PATH%;"C:\\Program Files (x86)\\Inno Setup 6"
+  - iscc /dVcpkgInstallDir=%VCPKGDir%\\installed\\x64-windows /omsvc installer\\windows\\csound6_x64_appveyor.iss
+  - 7z a csound-windows_x86_64-%CSOUND_VERSION%-%APPVEYOR_BUILD_NUMBER%.zip %APPVEYOR_BUILD_FOLDER%\msvc\csound-vs\Release\*.exe %APPVEYOR_BUILD_FOLDER%\msvc\csound-vs\Release\csound64.lib %APPVEYOR_BUILD_FOLDER%\include\ %APPVEYOR_BUILD_FOLDER%\msvc\csound-vs\Release\*.dll %APPVEYOR_BUILD_FOLDER%\msvc\csound-vs\Release\*.pyd %APPVEYOR_BUILD_FOLDER%\msvc\csound-vs\*.jar %APPVEYOR_BUILD_FOLDER%\msvc\csound-vs\*.py 
   - 7z l csound-windows_x86_64-%CSOUND_VERSION%-%APPVEYOR_BUILD_NUMBER%.zip
 
-# Tests
-
 test_script:
-  - cmake --build msvc\csound-vs --config RelWithDebInfo --target csdtests
+  - cmake --build msvc\csound-vs --target csdtests
 
 artifacts:
   - path: csound-windows_x86_64-*.zip
@@ -67,8 +56,10 @@ artifacts:
     type: exe
 
 cache:
- - C:\Tools\vcpkg\ -> C:\projects\csound\msvc\downloadDependencies.ps1
+ - C:\Tools\vcpkg\installed -> C:\projects\csound\msvc\downloadDependencies.ps1
  - C:\projects\csound\msvc\cache
+ - C:\ProgramData\chocolatey\bin -> appveyor.yml 
+ - C:\ProgramData\chocolatey\lib -> appveyor.yml
 
 deploy:
   release: csound-$(csound_version)

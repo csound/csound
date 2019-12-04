@@ -41,6 +41,9 @@ may be found online at http://csound.github.io/docs/api/index.html.
 Information on how to build Csound on various platforms is given in
 the BUILD.md file at the top level directory of this repository.
 
+Information about build pipelines with Azure and Github actions is given in
+[DockerFiles/Readme.md](DockerFiles/ReadMe.md).
+
 # CONTRIBUTORS
 
 Csound contains contributions from musicians, scientists, and programmers
