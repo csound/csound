@@ -8101,9 +8101,9 @@ msgid "cella: invalid rule table"
 msgstr "cella : table de règle non valide"
 
 #: Opcodes/gammatone.c:51
-#, fuzzy, c-format
+#, c-format
 msgid "Invalid order %d\n"
-msgstr "mode de boucle non valide : %d"
+msgstr "Ordre non valide %d\n"
 
 #: Opcodes/grain.c:101
 msgid "grain: grain length zero"
