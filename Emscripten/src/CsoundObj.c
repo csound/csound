@@ -62,6 +62,7 @@ typedef struct _CsoundObj
 EMSCRIPTEN_KEEPALIVE 
 CsoundObj *CsoundObj_new()
 {
+  csoundInitialize(CSOUNDINIT_NO_ATEXIT & CSOUNDINIT_NO_SIGNAL_HANDLER);
   CsoundObj *self = calloc(1, sizeof(CsoundObj));
   self->csound = csoundCreate(self);
   self->status = CS_RESET_STATUS;
@@ -81,6 +82,34 @@ EMSCRIPTEN_KEEPALIVE
 void CsoundObj_setOption(CsoundObj *self, const char *option)
 {
   csoundSetOption(self->csound, option);
+}
+
+EMSCRIPTEN_KEEPALIVE 
+int32_t CsoundObj_compile(CsoundObj *self, char *csd, char *odac_override)
+{
+    csoundMessage(self->csound, "CsoundObj_compile...\n");
+    int result = 0;
+    if (csd == 0) {
+        csoundMessage(self->csound, "Error: Null CSD.\n");
+        return -1;
+    }
+
+#ifdef INIT_STATIC_MODULES
+    result = init_static_modules(self->csound);
+#endif
+    csoundMessage(self->csound, "csoundCompile...\n");
+    const char *argv[3] = {
+        "csound",
+        csd, 
+        odac_override
+    };
+    result = csoundCompile(self->csound, 3, argv);
+    if (result != 0) {
+         csoundMessage(self->csound, "Failed to compile CSD file.\n");
+    } else {
+        self->status = CS_STARTED_STATUS;
+    }
+    return result;
 }
 
 EMSCRIPTEN_KEEPALIVE 

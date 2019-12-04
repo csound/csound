@@ -24,6 +24,9 @@
 typedef unsigned int u_int32_t;
 #endif
 
+/* Haiku 'int32' etc definitions in net headers conflict with sysdep.h */
+#define __HAIKU_CONFLICT
+
 #include "csoundCore.h"
 #if defined(WIN32) && !defined(__CYGWIN__)
 #include <winsock2.h>

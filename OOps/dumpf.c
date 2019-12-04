@@ -50,7 +50,7 @@ int32_t kdmpset_S(CSOUND *csound, KDUMP *p) {
     }
     strNcpy(soundoname,  ((STRINGDAT *)p->ifilcod)->data, 1023);
     if (p->fdch.fd != NULL)
-      fd_close(csound, &(p->fdch));
+      csound_fd_close(csound, &(p->fdch));
     p->fdch.fd = csound->FileOpen2(csound, &(p->f), CSFILE_STD, soundoname,
                                    "wb", "", dumpf_format_table[p->format], 0);
     if (UNLIKELY(p->fdch.fd == NULL))
@@ -79,7 +79,7 @@ int32_t kdmpset_p(CSOUND *csound, KDUMP *p)
       strNcpy(soundoname, get_arg_string(csound, *p->ifilcod), 1023);
     else csound->strarg2name(csound, soundoname, p->ifilcod, "dumpk.", 0);
     if (p->fdch.fd != NULL)
-      fd_close(csound, &(p->fdch));
+      csound_fd_close(csound, &(p->fdch));
     p->fdch.fd = csound->FileOpen2(csound, &(p->f), CSFILE_STD, soundoname,
                                    "wb", "", dumpf_format_table[p->format], 0);
     if (UNLIKELY(p->fdch.fd == NULL))
@@ -104,7 +104,7 @@ int32_t kdmp2set_S(CSOUND *csound, KDUMP2 *p)
     }
     strNcpy(soundoname,  ((STRINGDAT *)p->ifilcod)->data, 1023);
     if (p->fdch.fd != NULL)
-      fd_close(csound, &(p->fdch));
+      csound_fd_close(csound, &(p->fdch));
     p->fdch.fd = csound->FileOpen2(csound, &(p->f), CSFILE_STD, soundoname,
                                    "wb", "", dumpf_format_table[p->format], 0);
     if (UNLIKELY(p->fdch.fd == NULL))
@@ -132,7 +132,7 @@ int32_t kdmp2set_p(CSOUND *csound, KDUMP2 *p)
       strNcpy(soundoname, get_arg_string(csound, *p->ifilcod), 1023);
     else csound->strarg2name(csound, soundoname, p->ifilcod, "dumpk.", 0);
     if (p->fdch.fd != NULL)
-      fd_close(csound, &(p->fdch));
+      csound_fd_close(csound, &(p->fdch));
     p->fdch.fd = csound->FileOpen2(csound, &(p->f), CSFILE_STD, soundoname,
                                    "wb", "", dumpf_format_table[p->format], 0);
     if (UNLIKELY(p->fdch.fd == NULL))
@@ -158,7 +158,7 @@ int32_t kdmp3set_S(CSOUND *csound, KDUMP3 *p)
     }
     strNcpy(soundoname,  ((STRINGDAT *)p->ifilcod)->data, 1023);
     if (p->fdch.fd != NULL)
-      fd_close(csound, &(p->fdch));
+      csound_fd_close(csound, &(p->fdch));
     p->fdch.fd = csound->FileOpen2(csound, &(p->f), CSFILE_STD, soundoname,
                                    "wb", "", dumpf_format_table[p->format], 0);
     if (UNLIKELY(p->fdch.fd == NULL))
@@ -187,7 +187,7 @@ int32_t kdmp3set_p(CSOUND *csound, KDUMP3 *p)
       strNcpy(soundoname, get_arg_string(csound, *p->ifilcod), 1023);
     else csound->strarg2name(csound, soundoname, p->ifilcod, "dumpk.", 0);
     if (p->fdch.fd != NULL)
-      fd_close(csound, &(p->fdch));
+      csound_fd_close(csound, &(p->fdch));
     p->fdch.fd = csound->FileOpen2(csound, &(p->f), CSFILE_STD, soundoname,
                                    "wb", "", dumpf_format_table[p->format], 0);
     if (UNLIKELY(p->fdch.fd == NULL))
@@ -212,7 +212,7 @@ int32_t kdmp4set_S(CSOUND *csound, KDUMP4 *p)
     }
    strNcpy(soundoname,  ((STRINGDAT *)p->ifilcod)->data, 1023);
     if (p->fdch.fd != NULL)
-      fd_close(csound, &(p->fdch));
+      csound_fd_close(csound, &(p->fdch));
     p->fdch.fd = csound->FileOpen2(csound, &(p->f), CSFILE_STD, soundoname,
                                    "wb", "", dumpf_format_table[p->format], 0);
     if (p->fdch.fd == NULL)
@@ -239,7 +239,7 @@ int32_t kdmp4set_p(CSOUND *csound, KDUMP4 *p)
       strNcpy(soundoname, get_arg_string(csound, *p->ifilcod), 1023);
     else csound->strarg2name(csound, soundoname, p->ifilcod, "dumpk.", 0);
     if (p->fdch.fd != NULL)
-      fd_close(csound, &(p->fdch));
+      csound_fd_close(csound, &(p->fdch));
     p->fdch.fd = csound->FileOpen2(csound, &(p->f), CSFILE_STD, soundoname,
                                    "wb", "", dumpf_format_table[p->format], 0);
     if (p->fdch.fd == NULL)
@@ -388,7 +388,7 @@ int32_t krdset_p(CSOUND *csound, KREAD *p)
        strNcpy(soundiname, get_arg_string(csound, *p->ifilcod), 1023);
     else csound->strarg2name(csound, soundiname, p->ifilcod, "readk.", 0);
     if (p->fdch.fd != NULL)
-      fd_close(csound, &(p->fdch));
+      csound_fd_close(csound, &(p->fdch));
     p->fdch.fd = csound->FileOpen2(csound, &(p->f), CSFILE_STD, soundiname, "rb",
                                    "SFDIR;SSDIR", dumpf_format_table[p->format], 0);
     if (UNLIKELY(p->fdch.fd == NULL))
@@ -414,7 +414,7 @@ int32_t krdset_S(CSOUND *csound, KREAD *p)
     }
     strNcpy(soundiname,  ((STRINGDAT *)p->ifilcod)->data, 1023);
     if (p->fdch.fd != NULL)
-      fd_close(csound, &(p->fdch));
+      csound_fd_close(csound, &(p->fdch));
     p->fdch.fd = csound->FileOpen2(csound, &(p->f), CSFILE_STD, soundiname, "rb",
                                    "SFDIR;SSDIR", dumpf_format_table[p->format], 0);
     if (UNLIKELY(p->fdch.fd == NULL))
@@ -440,7 +440,7 @@ int32_t krd2set_S(CSOUND *csound, KREAD2 *p)
     }
    strNcpy(soundiname,  ((STRINGDAT *)p->ifilcod)->data, 1023);
     if (p->fdch.fd != NULL)
-      fd_close(csound, &(p->fdch));
+      csound_fd_close(csound, &(p->fdch));
     p->fdch.fd = csound->FileOpen2(csound, &(p->f), CSFILE_STD, soundiname, "rb",
                                    "SFDIR;SSDIR", dumpf_format_table[p->format], 0);
     if (UNLIKELY(p->fdch.fd == NULL))
@@ -468,7 +468,7 @@ int32_t krd2set_p(CSOUND *csound, KREAD2 *p)
       strNcpy(soundiname, get_arg_string(csound, *p->ifilcod), 1023);
     else csound->strarg2name(csound, soundiname, p->ifilcod, "readk.", 0);
     if (p->fdch.fd != NULL)
-      fd_close(csound, &(p->fdch));
+      csound_fd_close(csound, &(p->fdch));
     p->fdch.fd = csound->FileOpen2(csound, &(p->f), CSFILE_STD, soundiname, "rb",
                                    "SFDIR;SSDIR", dumpf_format_table[p->format], 0);
     if (UNLIKELY(p->fdch.fd == NULL))
@@ -494,7 +494,7 @@ int32_t krd3set_S(CSOUND *csound, KREAD3 *p)
     }
     strNcpy(soundiname,  ((STRINGDAT *)p->ifilcod)->data, 1023);
     if (p->fdch.fd != NULL)
-      fd_close(csound, &(p->fdch));
+      csound_fd_close(csound, &(p->fdch));
     p->fdch.fd = csound->FileOpen2(csound, &(p->f), CSFILE_STD, soundiname, "rb",
                                    "SFDIR;SSDIR", dumpf_format_table[p->format], 0);
     if (UNLIKELY(p->fdch.fd == NULL))
@@ -522,7 +522,7 @@ int32_t krd3set_p(CSOUND *csound, KREAD3 *p)
       strNcpy(soundiname, get_arg_string(csound, *p->ifilcod), 1023);
     else csound->strarg2name(csound, soundiname, p->ifilcod, "readk.", 0);
     if (p->fdch.fd != NULL)
-      fd_close(csound, &(p->fdch));
+      csound_fd_close(csound, &(p->fdch));
     p->fdch.fd = csound->FileOpen2(csound, &(p->f), CSFILE_STD, soundiname, "rb",
                                    "SFDIR;SSDIR", dumpf_format_table[p->format], 0);
     if (UNLIKELY(p->fdch.fd == NULL))
@@ -548,7 +548,7 @@ int32_t krd4set_S(CSOUND *csound, KREAD4 *p)
     }
     strNcpy(soundiname,  ((STRINGDAT *)p->ifilcod)->data, 1023);
     if (p->fdch.fd != NULL)
-      fd_close(csound, &(p->fdch));
+      csound_fd_close(csound, &(p->fdch));
     p->fdch.fd = csound->FileOpen2(csound, &(p->f), CSFILE_STD, soundiname, "rb",
                                    "SFDIR;SSDIR", dumpf_format_table[p->format], 0);
     if (UNLIKELY(p->fdch.fd == NULL))
@@ -576,7 +576,7 @@ int32_t krd4set_p(CSOUND *csound, KREAD4 *p)
       strNcpy(soundiname, get_arg_string(csound, *p->ifilcod), 1023);
     else csound->strarg2name(csound, soundiname, p->ifilcod, "readk.", 0);
     if (p->fdch.fd != NULL)
-      fd_close(csound, &(p->fdch));
+      csound_fd_close(csound, &(p->fdch));
     p->fdch.fd = csound->FileOpen2(csound, &(p->f), CSFILE_STD, soundiname, "rb",
                                    "SFDIR;SSDIR", dumpf_format_table[p->format], 0);
     if (UNLIKELY(p->fdch.fd == NULL))
@@ -749,7 +749,7 @@ int32_t krdsset_S(CSOUND *csound, KREADS *p)
     char soundiname[1024];
     strNcpy(soundiname, ((STRINGDAT *)p->ifilcod)->data, 1023);
     if (p->fdch.fd != NULL)
-      fd_close(csound, &(p->fdch));
+      csound_fd_close(csound, &(p->fdch));
     p->fdch.fd = csound->FileOpen2(csound, &(p->f), CSFILE_STD, soundiname, "rb",
                                    "SFDIR;SSDIR", 0, 0);
     if (UNLIKELY(p->fdch.fd == NULL))
@@ -776,7 +776,7 @@ int32_t krdsset_p(CSOUND *csound, KREADS *p)
       strNcpy(soundiname, get_arg_string(csound, *p->ifilcod), 1023);
     else csound->strarg2name(csound, soundiname, p->ifilcod, "readk.", 0);
     if (p->fdch.fd != NULL)
-      fd_close(csound, &(p->fdch));
+      csound_fd_close(csound, &(p->fdch));
     p->fdch.fd = csound->FileOpen2(csound, &(p->f), CSFILE_STD, soundiname, "rb",
                                    "SFDIR;SSDIR", 0, 0);
     if (UNLIKELY(p->fdch.fd == NULL))

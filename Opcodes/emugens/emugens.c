@@ -645,13 +645,54 @@ static int32_t bpfarrpoints2(CSOUND *csound, BPFARRPOINTS2 *p) {
     return NOTOK;
 }
 
+static int32_t bpfcos_arrpoints2(CSOUND *csound, BPFARRPOINTS2 *p) {
+    int32_t numxs = p->xs->sizes[0];
+    int32_t numys = p->ys->sizes[0];
+    int32_t numzs = p->zs->sizes[0];
+    int32_t N = numxs < numys ? numxs : numys;
+    N = N < numzs ? N : numzs;
+
+    MYFLT *xs = p->xs->data;
+    MYFLT *ys = p->ys->data;
+    MYFLT *zs = p->zs->data;
+    MYFLT x = *p->x;
+    int32_t i;
+    MYFLT x0, x1, y0, z0, dx, y1, z1, delta;
+    if(x <= xs[0]) {
+        *p->y = ys[0];
+        *p->z = zs[0];
+        return OK;
+    }
+    if(x >= xs[N-1]) {
+        *p->y = ys[N-1];
+        *p->z = zs[N-1];
+        return OK;
+    }
+    x0 = xs[0];
+    for(i=0; i<N-1; i++) {
+        x1 = xs[i+1];
+        if(x0 <= x && x <= x1) {
+            y0 = ys[i];
+            z0 = zs[i];
+            y1 = ys[i+1];
+            z1 = zs[i+1];
+            dx = ((x-x0) / (x1-x0)) * PI + PI;
+            // y = y0 + (y1-y0) * (1+cos(dx)) / 2.0
+            delta = (COS(dx) + 1) / 2.0;
+            *p->y = y0 + (y1 - y0) * delta;
+            *p->z = z0 + (z1 - z0) * delta;
+            return OK;
+        }
+        x0 = x1;
+    }
+    return NOTOK;
+}
+
 typedef struct {
     OPDS h;
     ARRAYDAT *out, *in;
     MYFLT *data[BPF_MAXPOINTS];
 } BPFARR;
-
-
 
 
 static int32_t bpfarr_init(CSOUND *csound, BPFARR *p) {
@@ -2087,7 +2128,7 @@ static OENTRY localops[] = {
 
     { "bpfcos", S(BPFX), 0, 2, "k", "kM", NULL, (SUBR)bpfxcos },
     { "bpfcos", S(BPFX), 0, 1, "i", "im", (SUBR)bpfxcos },
-    { "bpfcos", S(BPFARR), 0, 2, "k[]", "k[]M",
+    { "bpfcos", S(BPFARR), 0, 3, "k[]", "k[]M",
                                           (SUBR)bpfarr_init, (SUBR)bpfarrcos },
 
     { "bpfcos", S(BPFARRPOINTS), 0, 2, "k", "kk[]k[]",
@@ -2095,6 +2136,13 @@ static OENTRY localops[] = {
     { "bpfcos", S(BPFARRPOINTS), 0, 2, "k", "ki[]i[]",
       NULL, (SUBR)bpfcosarrpoints },
     { "bpfcos", S(BPFARRPOINTS), 0, 1, "i", "ii[]i[]", (SUBR)bpfcosarrpoints },
+
+    { "bpfcos", S(BPFARRPOINTS2), 0, 2, "kk", "kk[]k[]k[]",
+      NULL, (SUBR)bpfcos_arrpoints2 },
+    { "bpfcos", S(BPFARRPOINTS2), 0, 2, "kk", "ki[]i[]i[]",
+      NULL, (SUBR)bpfcos_arrpoints2 },
+    { "bpfcos", S(BPFARRPOINTS2), 0, 1, "ii", "ii[]i[]i[]", (SUBR)bpfcos_arrpoints2 },
+
 
     { "ntom", S(NTOM), 0, 3, "k", "S", (SUBR)ntom, (SUBR)ntom },
     { "ntom", S(NTOM), 0, 1, "i", "S", (SUBR)ntom },

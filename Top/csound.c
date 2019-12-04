@@ -98,7 +98,7 @@ extern void close_all_files(CSOUND *);
 extern void csoundInputMessageInternal(CSOUND *csound, const char *message);
 extern int isstrcod(MYFLT );
 extern int fterror(const FGDATA *ff, const char *s, ...);
-
+PUBLIC int csoundErrCnt(CSOUND *);
 void (*msgcallback_)(CSOUND *, int, const char *, va_list) = NULL;
 
 void csoundDebuggerBreakpointReached(CSOUND *csound);
@@ -405,7 +405,7 @@ static const CSOUND cenviron_ = {
     rewriteheader,
     csoundLoadSoundFile,
     fdrecord,
-    fd_close,
+    csound_fd_close,
     csoundCreateFileHandle,
     csoundGetFileName,
     csoundFileClose,
@@ -504,11 +504,12 @@ static const CSOUND cenviron_ = {
     find_opcode_exact,
     csoundGetChannelPtr,
     csoundListChannels,
+    csoundErrCnt,
     {
       NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
       NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
       NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
-      NULL, NULL
+      NULL
     },
     /* ------- private data (not to be used by hosts or externals) ------- */
     /* callback function pointers */
@@ -4435,6 +4436,8 @@ static void set_util_sr(CSOUND *csound, MYFLT sr){ csound->esr = sr; }
 static void set_util_nchnls(CSOUND *csound, int nchnls){ csound->nchnls = nchnls; }
 
 MYFLT csoundGetA4(CSOUND *csound) { return (MYFLT) csound->A4; }
+
+int csoundErrCnt(CSOUND *csound) { return csound->perferrcnt; }
 
 #if 0
 PUBLIC int csoundPerformKsmpsAbsolute(CSOUND *csound)

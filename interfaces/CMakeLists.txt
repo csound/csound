@@ -6,8 +6,6 @@ option(BUILD_CXX_INTERFACE "Build the C++ interface library" ON)
 option(BUILD_PYTHON_INTERFACE "Build the Python interface (needs BUILD_CXX_INTERFACE)" ON)
 option(BUILD_JAVA_INTERFACE "Build the Java interface (needs BUILD_CXX_INTERFACE)" ON)
 option(BUILD_LUA_INTERFACE "Build the Lua interface (needs BUILD_CXX_INTERFACE)" ON)
-find_package(SWIG)
-
 
 if(BUILD_CXX_INTERFACE)
     message(STATUS "Building C++ interface library.")
@@ -109,14 +107,14 @@ if(BUILD_PYTHON_INTERFACE OR BUILD_JAVA_INTERFACE OR BUILD_LUA_INTERFACE)
              ../include/csound.h ../include/cfgvar.h ../include/csound.hpp
              cs_glue.hpp csPerfThread.hpp CsoundFile.hpp
              CppSound.hpp filebuilding.h Soundfile.hpp)
-        if(SWIG_ADD_LIBRARY)
-	    SWIG_ADD_LIBRARY(csnd6 
-		 TYPE MODULE 
-		 LANGUAGE python 
-		 SOURCES python_interface.i)
- 	else()
-	    SWIG_ADD_MODULE(csnd6 python python_interface.i)
-	endif()
+        if(COMMAND SWIG_ADD_LIBRARY)
+	        SWIG_ADD_LIBRARY(csnd6 
+		     TYPE MODULE 
+		     LANGUAGE python 
+		     SOURCES python_interface.i)
+ 	    else()
+	        SWIG_ADD_MODULE(csnd6 python python_interface.i)
+	    endif()
         swig_link_libraries(csnd6 ${swigpython_LIBS})
         target_include_directories(${SWIG_MODULE_csnd6_REAL_NAME} PRIVATE ${PYTHON_INCLUDE_PATH})
         set_target_properties(${SWIG_MODULE_csnd6_REAL_NAME} PROPERTIES
@@ -179,14 +177,14 @@ endif()
                                         cs_glue.hpp csPerfThread.hpp CsoundFile.hpp
                                         CppSound.hpp filebuilding.h Soundfile.hpp)
 
-        if(SWIG_ADD_LIBRARY)
+        if(COMMAND SWIG_ADD_LIBRARY)
             SWIG_ADD_LIBRARY(_jcsound6 
-                         TYPE MODULE 
-                         LANGUAGE java 
-                         SOURCES java_interface.i)
- 	else()
-	    SWIG_ADD_MODULE(_jcsound6 java java_interface.i)
-	endif()
+                TYPE MODULE 
+                LANGUAGE java 
+                SOURCES java_interface.i)
+ 	    else()
+	        SWIG_ADD_MODULE(_jcsound6 java java_interface.i)
+	    endif()
         SWIG_LINK_LIBRARIES(_jcsound6 ${swigjava_LIBS})
         target_include_directories(${SWIG_MODULE__jcsound6_REAL_NAME}
         PRIVATE ${JNI_INCLUDE_DIRS})
@@ -230,14 +228,14 @@ endif()
                                         cs_glue.hpp csPerfThread.hpp CsoundFile.hpp
                                         CppSound.hpp filebuilding.h Soundfile.hpp)
 
-        if(SWIG_ADD_LIBRARY)
+        if(COMMAND SWIG_ADD_LIBRARY)
             SWIG_ADD_LIBRARY(luaCsnd6 
-                         TYPE MODULE 
-                         LANGUAGE lua 
-                         SOURCES lua_interface.i)
- 	else()
-	    SWIG_ADD_MODULE(luaCsnd6 lua lua_interface.i)
-	endif()
+                TYPE MODULE 
+                LANGUAGE lua 
+                SOURCES lua_interface.i)
+ 	    else()
+	        SWIG_ADD_MODULE(luaCsnd6 lua lua_interface.i)
+	    endif()
         SWIG_LINK_LIBRARIES(luaCsnd6 ${swiglua_LIBS})
 
         target_include_directories(${SWIG_MODULE_luaCsnd6_REAL_NAME} PRIVATE ${LUA_H_PATH})

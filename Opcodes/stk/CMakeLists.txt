@@ -13,7 +13,12 @@ if(BUILD_STK_OPCODES)
         set(rawwave_path "-DDEFAULT_RAWWAVE_PATH=\"${DEFAULT_STK_RAWWAVE_PATH}\"")
     endif()
     #find_library(STK_LIBRARY stk)
-    if(STK_LIBRARY)
+    if(MSVC)
+        make_plugin(stkops stkOpcodes.cpp)
+        find_package(unofficial-libstk CONFIG REQUIRED)
+        target_link_libraries(stkops PRIVATE unofficial::libstk::libstk)
+        message(STATUS "Building STK opcodes for MSVC")
+    elseif(STK_LIBRARY)
         find_path(STK_INCLUDE_DIR Stk.h
             /usr/include/stk
             /usr/local/include/stk)

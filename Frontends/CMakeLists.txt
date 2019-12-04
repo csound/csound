@@ -19,16 +19,6 @@ endif()
 # We need a different name to avoid clashes with float libcsound
 make_executable(csound-bin "${CS_MAIN_SRCS}" "${CSOUNDLIB};${MATH_LIBRARY}" csound)
 
-# Post build dependencies copy for MSVC
-if(MSVC)
-	add_custom_command(TARGET csound-bin
-					   POST_BUILD
-					   COMMAND ${CMAKE_COMMAND} -E copy_directory ${CMAKE_SOURCE_DIR}/msvc/deps/bin
-						$<TARGET_FILE_DIR:csound-bin>
-					   COMMENT "Running copy dependencies script...")
-endif()
-
-
 # CsBeats
 check_deps(BUILD_CSBEATS FLEX_EXECUTABLE BISON_EXECUTABLE)
 
