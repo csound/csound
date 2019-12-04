@@ -2059,8 +2059,8 @@ typedef struct {
 } FTEXISTS;
 
 static int32_t
-ftexits_init(CSOUND *csound, FTEXISTS *p) {
-    FUNC *ftp = csound->FTnp2Find(csound, *p->ifn);
+ftexists_init(CSOUND *csound, FTEXISTS *p) {
+    FUNC *ftp = csound->FTnp2Find(csound, p->ifn);
     *p->iout = (ftp != NULL) ? 1.0 : 0.0;
     return OK;
 }
