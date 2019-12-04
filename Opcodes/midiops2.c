@@ -60,7 +60,7 @@ static int32_t imidic7(CSOUND *csound, MIDICTL2 *p)
     else {
       value = (MYFLT)(csound->curip->m_chnbp->ctl_val[ctlno] * oneTOf7bit);
       if (*p->ifn > 0) {
-        if (UNLIKELY((ftp = csound->FTnp2Find(csound, p->ifn)) == NULL))
+        if (UNLIKELY((ftp = csound->FTnp2Finde(csound, p->ifn)) == NULL))
           return NOTOK; /* if valid ftable, use value as index   */
         /* clamp it */
         value = value >= FL(0.0) ? (value <= 1.0 ? value : FL(1.0)) : FL(0.0);
@@ -79,7 +79,7 @@ static int32_t midic7set(CSOUND *csound, MIDICTL2 *p)
     }
     else p->ctlno = ctlno;
     if (*p->ifn > 0) {
-      if (((p->ftp = csound->FTnp2Find(csound, p->ifn)) == NULL))
+      if (((p->ftp = csound->FTnp2Finde(csound, p->ifn)) == NULL))
         p->flag = FALSE;  /* invalid ftable */
       else p->flag= TRUE;
     }
@@ -133,7 +133,7 @@ static int32_t imidic14(CSOUND *csound, MIDICTL3 *p)
         MYFLT top;
         MYFLT diff;
 
-        if (UNLIKELY((ftp = csound->FTnp2Find(csound, p->ifn)) == NULL))
+        if (UNLIKELY((ftp = csound->FTnp2Finde(csound, p->ifn)) == NULL))
           return NOTOK; /* if valid ftable,use value as index   */
 
         /* clamp it */
@@ -162,7 +162,7 @@ static int32_t midic14set(CSOUND *csound, MIDICTL3 *p)
     p->ctlno1 = ctlno1;
     p->ctlno2 = ctlno2;
     if (*p->ifn > 0) {
-      if (UNLIKELY(((p->ftp = csound->FTnp2Find(csound, p->ifn)) == NULL)))
+      if (UNLIKELY(((p->ftp = csound->FTnp2Finde(csound, p->ifn)) == NULL)))
         p->flag = FALSE;  /* invalid ftable */
       else p->flag= TRUE;
     }
@@ -253,7 +253,7 @@ static int32_t midic21set(CSOUND *csound, MIDICTL4 *p)
     p->ctlno2 = ctlno2;
     p->ctlno3 = ctlno3;
     if (*p->ifn > 0) {
-      if (UNLIKELY(((p->ftp = csound->FTnp2Find(csound, p->ifn)) == NULL)))
+      if (UNLIKELY(((p->ftp = csound->FTnp2Finde(csound, p->ifn)) == NULL)))
         p->flag = FALSE;  /* invalid ftable */
       else
         p->flag= TRUE;
@@ -305,7 +305,7 @@ static int32_t ictrl7(CSOUND *csound, CTRL7 *p)
       value = (MYFLT) (csound->m_chnbp[(int32_t) *p->ichan-1]->ctl_val[ctlno]
                        * oneTOf7bit);
       if (*p->ifn > 0) {
-        if (UNLIKELY((ftp = csound->FTnp2Find(csound, p->ifn)) == NULL))
+        if (UNLIKELY((ftp = csound->FTnp2Finde(csound, p->ifn)) == NULL))
           return NOTOK;               /* if valid ftable,use value as index   */
                 /* clamp it */
         value = value >= FL(0.0) ? (value <= 1.0 ? value : FL(1.0)) : FL(0.0);
@@ -330,7 +330,7 @@ static int32_t ctrl7set(CSOUND *csound, CTRL7 *p)
     /*else if (midi_in_p_num < 0) midi_in_error("ctrl7");*/
     else p->ctlno = ctlno;
     if (*p->ifn > 0) {
-      if (UNLIKELY(((p->ftp = csound->FTnp2Find(csound, p->ifn)) == NULL)))
+      if (UNLIKELY(((p->ftp = csound->FTnp2Finde(csound, p->ifn)) == NULL)))
         p->flag = FALSE;  /* invalid ftable */
       else p->flag= TRUE;
     }
@@ -405,7 +405,7 @@ static int32_t ctrl14set(CSOUND *csound, CTRL14 *p)
     p->ctlno1 = ctlno1;
     p->ctlno2 = ctlno2;
     if (*p->ifn > 0) {
-      if (UNLIKELY(((p->ftp = csound->FTnp2Find(csound, p->ifn)) == NULL)))
+      if (UNLIKELY(((p->ftp = csound->FTnp2Finde(csound, p->ifn)) == NULL)))
         p->flag = FALSE;  /* invalid ftable */
       else p->flag= TRUE;
     }
@@ -498,7 +498,7 @@ static int32_t ctrl21set(CSOUND *csound, CTRL21 *p)
     p->ctlno2 = ctlno2;
     p->ctlno3 = ctlno3;
     if (*p->ifn > 0) {
-      if (UNLIKELY(((p->ftp = csound->FTnp2Find(csound, p->ifn)) == NULL)))
+      if (UNLIKELY(((p->ftp = csound->FTnp2Finde(csound, p->ifn)) == NULL)))
         p->flag = FALSE;  /* invalid ftable */
       else
         p->flag= TRUE;

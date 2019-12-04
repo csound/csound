@@ -2190,7 +2190,7 @@ static int32_t pvstencilset(CSOUND *csound, PVSTENCIL *p)
         return csound->InitError(csound, Str("pvstencil: signal format "
                                              "must be amp-phase or amp-freq."));
     }
-  p->func = csound->FTnp2Find(csound, p->ifn);
+  p->func = csound->FTnp2Finde(csound, p->ifn);
   if (p->func == NULL)
     return OK;
 

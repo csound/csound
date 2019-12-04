@@ -465,7 +465,7 @@ static int32_t vectorOp_set(CSOUND *csound, VECTOROP *p)
 {
     FUNC    *ftp;
 
-    ftp = csound->FTnp2Find(csound, p->ifn);
+    ftp = csound->FTnp2Finde(csound, p->ifn);
     if (UNLIKELY(ftp == NULL))
       return NOTOK;
     p->vector = ftp->ftable;
@@ -1725,7 +1725,7 @@ static int32_t vmap_i(CSOUND *csound,VECTORSOPI *p)
 static int32_t vlimit_set(CSOUND *csound,VLIMIT *p)
 {
     FUNC        *ftp;
-    if (UNLIKELY((ftp = csound->FTnp2Find(csound,p->ifn)) != NULL)) {
+    if (UNLIKELY((ftp = csound->FTnp2Finde(csound,p->ifn)) != NULL)) {
       p->vector = ftp->ftable;
       p->elements = (int32_t) *p->ielements;
     }
@@ -2244,7 +2244,7 @@ static int32_t vseg_set(CSOUND *csound,VSEG *p)
       segp++;           /* init each seg ..  */
       curfunc = nxtfunc;
       dur = **argp++;
-      if (UNLIKELY((nxtfunc = csound->FTnp2Find(csound,*argp++)) == NULL))
+      if (UNLIKELY((nxtfunc = csound->FTnp2Finde(csound,*argp++)) == NULL))
         return NOTOK;
       if (dur > FL(0.0)) {
         segp->d = dur * CS_EKR;
@@ -2338,9 +2338,9 @@ static int32_t vphaseseg_set(CSOUND *csound,VPSEG *p)
       /* (segp+nsegs)->cnt = MAXPOS;  */
     }
     argp = p->argums;
-    if ((nxtfunc = csound->FTnp2Find(csound,*argp++)) == NULL)
+    if ((nxtfunc = csound->FTnp2Finde(csound,*argp++)) == NULL)
       return NOTOK;
-    if ((ftp = csound->FTnp2Find(csound,p->ioutfunc)) != NULL) {
+    if ((ftp = csound->FTnp2Finde(csound,p->ioutfunc)) != NULL) {
       p->vector = ftp->ftable;
       p->elements = (int32_t) *p->ielements;
     }
@@ -2362,7 +2362,7 @@ static int32_t vphaseseg_set(CSOUND *csound,VPSEG *p)
       segp++;           /* init each seg ..  */
       curfunc = nxtfunc;
       dur = **argp++;
-      if ((nxtfunc = csound->FTnp2Find(csound,*argp++)) == NULL) return NOTOK;
+      if ((nxtfunc = csound->FTnp2Finde(csound,*argp++)) == NULL) return NOTOK;
       if (dur > FL(0.0)) {
         durtot+=dur;
         segp->d = dur; /* * CS_EKR; */

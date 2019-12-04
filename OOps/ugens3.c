@@ -210,7 +210,7 @@ int32_t foscili(CSOUND *csound, FOSC *p)
 int32_t losset(CSOUND *csound, LOSC *p)
 {
     FUNC    *ftp;
-    if ((ftp = csound->FTnp2Find(csound,p->ifn)) != NULL) {
+    if ((ftp = csound->FTnp2Finde(csound,p->ifn)) != NULL) {
       uint32 maxphs = ftp->flenfrms;
       //printf("****maxphs = %d (%x)\n", maxphs, maxphs);
       //printf("****ftp cvtbas = %g ibas = %g\n", ftp->cvtbas, *p->ibas);
@@ -307,7 +307,7 @@ int32_t losset(CSOUND *csound, LOSC *p)
 int32_t losset_phs(CSOUND *csound, LOSCPHS *p)
 {
     FUNC    *ftp;
-    if ((ftp = csound->FTnp2Find(csound,p->ifn)) != NULL) {
+    if ((ftp = csound->FTnp2Finde(csound,p->ifn)) != NULL) {
       uint32 maxphs = ftp->flenfrms;
       //printf("****maxphs = %d (%x)\n", maxphs, maxphs);
       p->ftp = ftp;

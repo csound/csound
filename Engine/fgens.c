@@ -56,8 +56,7 @@ int isstrcod(MYFLT xx)
 }
 
 extern double besseli(double);
-
-static int gen01raw(FGDATA *, FUNC *);
+FUNC *csoundFTnp2Findint(CSOUND *csound, MYFLT *argp, int verbose);static int gen01raw(FGDATA *, FUNC *);
 static int gen01(FGDATA *, FUNC *), gen02(FGDATA *, FUNC *);
 static int gen03(FGDATA *, FUNC *), gen04(FGDATA *, FUNC *);
 static int gen05(FGDATA *, FUNC *), gen06(FGDATA *, FUNC *);
@@ -2077,7 +2076,7 @@ static int gen34(FGDATA *ff, FUNC *ftp)
     /* table length and data */
     ft = ftp->ftable; flen = (int32) ftp->flen;
     /* source table */
-    if (UNLIKELY((src = csoundFTnp2Find(csound, &(ff->e.p[5]))) == NULL))
+    if (UNLIKELY((src = csoundFTnp2Findint(csound, &(ff->e.p[5]), 1)) == NULL))
       return NOTOK;
     srcft = src->ftable; srclen = (int32) src->flen;
     /* number of partials */
@@ -2531,7 +2530,7 @@ FUNC *csoundFTFindP(CSOUND *csound, MYFLT *argp)
 /* find ptr to a deferred-size ftable structure */
 /*   called by loscil at init time, and ftlen   */
 
-FUNC *csoundFTnp2Find(CSOUND *csound, MYFLT *argp)
+FUNC *csoundFTnp2Findint(CSOUND *csound, MYFLT *argp, int verbose)
 {
     FUNC    *ftp;
     int     fno = MYFLT2LONG(*argp);
@@ -2543,20 +2542,29 @@ FUNC *csoundFTnp2Find(CSOUND *csound, MYFLT *argp)
     if (UNLIKELY(fno <= 0 ||
                  fno > csound->maxfnum    ||
                  (ftp = csound->flist[fno]) == NULL)) {
-      csound->ErrorMsg(csound, Str("Invalid ftable no. %f"), *argp);
+      if (verbose) csound->ErrorMsg(csound, Str("Invalid ftable no. %f"), *argp);
       return NULL;
     }
     if (ftp->flen == 0) {
      if (LIKELY(csound->oparms->gen01defer))
        ftp = gen01_defer_load(csound, fno);
        else {
-        csound->ErrorMsg(csound, Str("Invalid ftable no. %f"), *argp);
+         if (verbose) csound->ErrorMsg(csound, Str("Invalid ftable no. %f"), *argp);
         return NULL;
     }
       if (UNLIKELY(ftp == NULL))
       csound->inerrcnt++;
     }
     return ftp;
+}
+
+FUNC *csoundFTnp2Find(CSOUND *csound, MYFLT *argp)
+{
+    return csoundFTnp2Findint(csound, argp, 0);
+}
+FUNC *csoundFTnp2Finde(CSOUND *csound, MYFLT *argp)
+{
+    return csoundFTnp2Findint(csound, argp, 1);
 }
 
 /* read ftable values from a sound file */

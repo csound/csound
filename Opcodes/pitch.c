@@ -731,7 +731,7 @@ int32_t hsboscset(CSOUND *csound, HSBOSC *p)
     FUNC        *ftp;
     int32_t         octcnt, i;
 
-    if (LIKELY((ftp = csound->FTnp2Find(csound, p->ifn)) != NULL)) {
+    if (LIKELY((ftp = csound->FTnp2Finde(csound, p->ifn)) != NULL)) {
       p->ftp = ftp;
       if (UNLIKELY(*p->ioctcnt < 2))
         octcnt = 3;
@@ -746,7 +746,7 @@ int32_t hsboscset(CSOUND *csound, HSBOSC *p)
       }
     }
     else p->ftp = NULL;
-    if (LIKELY((ftp = csound->FTnp2Find(csound, p->imixtbl)) != NULL)) {
+    if (LIKELY((ftp = csound->FTnp2Finde(csound, p->imixtbl)) != NULL)) {
       p->mixtp = ftp;
     }
     else p->mixtp = NULL;

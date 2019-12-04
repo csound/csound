@@ -67,6 +67,7 @@ void    RTLineset(CSOUND *);
 FUNC    *csoundFTFind(CSOUND *, MYFLT *);
 FUNC    *csoundFTFindP(CSOUND *, MYFLT *);
 FUNC    *csoundFTnp2Find(CSOUND *, MYFLT *);
+FUNC    *csoundFTnp2Finde(CSOUND *, MYFLT *);
 MYFLT   intpow(MYFLT, int32);
 void    list_opcodes(CSOUND *, int);
 char    *getstrformat(int format);

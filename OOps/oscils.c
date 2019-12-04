@@ -239,7 +239,7 @@ int32_t tablexkt(CSOUND *csound, TABLEXKT *p)
     wsized2 = wsize >> 1;
 
     /* check ftable */
-    if (UNLIKELY((ftp = csound->FTnp2Find(csound, p->kfn)) == NULL))
+    if (UNLIKELY((ftp = csound->FTnp2Finde(csound, p->kfn)) == NULL))
       return NOTOK;     /* invalid table */
     if (UNLIKELY((ftable = ftp->ftable) == NULL)) return NOTOK;
     flen = ftp->flen;               /* table length */

@@ -678,7 +678,7 @@ public:
   /** Initialise this object from an opcode
       argument arg */
   int init(Csound *csound, MYFLT *arg) {
-    Table *f = (Table *)csound->FTnp2Find(csound, arg);
+    Table *f = (Table *)csound->FTnp2Finde(csound, arg);
     if (f != nullptr) {
       std::copy(f, f + 1, this);
       return OK;

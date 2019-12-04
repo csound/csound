@@ -43,11 +43,11 @@ static int32_t agsset(CSOUND *csound, PGRA *p)  /*      Granular U.G. set-up    
     int32        bufsize;
     MYFLT       *d;
 
-    if (LIKELY((gftp = csound->FTnp2Find(csound, p->igfn)) != NULL))
+    if (LIKELY((gftp = csound->FTnp2Finde(csound, p->igfn)) != NULL))
       p->gftp = gftp;
     else return NOTOK;
 
-    if (LIKELY((eftp = csound->FTnp2Find(csound, p->iefn)) != NULL))
+    if (LIKELY((eftp = csound->FTnp2Finde(csound, p->iefn)) != NULL))
       p->eftp = eftp;
     else return NOTOK;
 

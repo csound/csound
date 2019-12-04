@@ -268,7 +268,7 @@ static int32_t ftload_(CSOUND *csound, FTLOAD *p, int32_t istring)
       err_func = csound->PerfError;
     }
     else {
-      ft_func = csound->FTnp2Find;
+      ft_func = csound->FTnp2Finde;
       err_func = myInitError;
     }
 
@@ -504,7 +504,7 @@ static int32_t ftsave_(CSOUND *csound, FTLOAD *p, int32_t istring)
     }
     else {
       nargs = csound->GetInputArgCnt(p) - 2;
-      ft_func = csound->FTnp2Find;
+      ft_func = csound->FTnp2Finde;
       err_func = myInitError;
     }
 
