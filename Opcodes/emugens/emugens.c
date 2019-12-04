@@ -2052,6 +2052,19 @@ array_and(CSOUND *csound, BINOP_AAA *p) {
 }
 
 
+typedef struct {
+    OPDS h;
+    MYFLT *iout, *ifn;
+    // FUNC *ftp;
+} FTEXISTS;
+
+static int32_t
+ftexits_init(CSOUND *csound, FTEXISTS *p) {
+    FUNC *ftp = csound->FTnp2Find(csound, *p->ifn);
+    *p->iout = (ftp != NULL) ? 1.0 : 0.0;
+    return OK;
+}
+
 /*
 
    Input types:
@@ -2205,6 +2218,12 @@ static OENTRY localops[] = {
 
     { "ftprint", S(FTPRINT), TR, 3, "", "iPOOPo",
       (SUBR)ftprint_init, (SUBR)ftprint_perf },
+
+    { "ftexists", S(FTEXISTS), TR, 1, "i", "i",
+      (SUBR)ftexists_init},
+    { "ftexists", S(FTEXISTS), TR, 3, "k", "k",
+      (SUBR)ftexists_init, (SUBR)ftexists_init},
+    
 
 };
 
