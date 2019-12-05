@@ -1745,13 +1745,13 @@ int32_t outvalset(CSOUND *csound, OUTVAL *p)
 int32_t outvalsetgo(CSOUND *csound, OUTVAL *p)
 {
     int32_t ans = outvalset(csound,p);
-    if (ans==OK) ans = koutval(csound,p);
+    // if (ans==OK) ans = koutval(csound,p);
     return ans;
 }
 
 int32_t outvalsetSgo(CSOUND *csound, OUTVAL *p)
 {
     int32_t ans = outvalset_S(csound,p);
-    if (ans==OK) ans = koutval(csound,p);
+    // if (ans==OK) ans = koutval(csound,p);
     return ans;
 }
