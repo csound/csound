@@ -21,7 +21,7 @@
 #   02110-1301 USA
 #
 
-from ctypes import *
+import ctypes as ct
 import numpy as np
 import sys
 
@@ -36,137 +36,141 @@ else:
 	arrFromPointer = lambda p : p.contents
 
 if sys.platform.startswith('linux'):
-    libcsound = CDLL("libcsound64.so")
+    libcsound = ct.CDLL("libcsound64.so")
 elif sys.platform.startswith('win'):
-    libcsound = cdll.csound64
+    if sys.version_info.major <=3 and sys.version_info.minor < 8:
+        libcsound = ct.cdll.csound64
+    else:
+        import ctypes.util
+        libcsound = ct.CDLL(ctypes.util.find_library("csound64"))
 elif sys.platform.startswith('darwin'):
-    libcsound = CDLL("CsoundLib64.framework/CsoundLib64")
+    libcsound = ct.CDLL("CsoundLib64.framework/CsoundLib64")
 else:
     sys.exit("Don't know your system! Exiting...")
 
-MYFLT = c_double
+MYFLT = ct.c_double
 
-class CsoundParams(Structure):
-    _fields_ = [("debug_mode", c_int),        # debug mode, 0 or 1
-                ("buffer_frames", c_int),     # number of frames in in/out buffers
-                ("hardware_buffer_frames", c_int), # ibid. hardware
-                ("displays", c_int),          # graph displays, 0 or 1
-                ("ascii_graphs", c_int),      # use ASCII graphs, 0 or 1
-                ("postscript_graphs", c_int), # use postscript graphs, 0 or 1
-                ("message_level", c_int),     # message printout control
-                ("tempo", c_int),             # tempo ("sets Beatmode) 
-                ("ring_bell", c_int),         # bell, 0 or 1
-                ("use_cscore", c_int),        # use cscore for processing
-                ("terminate_on_midi", c_int), # terminate performance at the end
+class CsoundParams(ct.Structure):
+    _fields_ = [("debug_mode", ct.c_int),        # debug mode, 0 or 1
+                ("buffer_frames", ct.c_int),     # number of frames in in/out buffers
+                ("hardware_buffer_frames", ct.c_int), # ibid. hardware
+                ("displays", ct.c_int),          # graph displays, 0 or 1
+                ("ascii_graphs", ct.c_int),      # use ASCII graphs, 0 or 1
+                ("postscript_graphs", ct.c_int), # use postscript graphs, 0 or 1
+                ("message_level", ct.c_int),     # message printout control
+                ("tempo", ct.c_int),             # tempo ("sets Beatmode) 
+                ("ring_bell", ct.c_int),         # bell, 0 or 1
+                ("use_cscore", ct.c_int),        # use cscore for processing
+                ("terminate_on_midi", ct.c_int), # terminate performance at the end
                                               #   of midifile, 0 or 1
-                ("heartbeat", c_int),         # print heart beat, 0 or 1
-                ("defer_gen01_load", c_int),  # defer GEN01 load, 0 or 1
-                ("midi_key", c_int),          # pfield to map midi key no
-                ("midi_key_cps", c_int),      # pfield to map midi key no as cps
-                ("midi_key_oct", c_int),      # pfield to map midi key no as oct
-                ("midi_key_pch", c_int),      # pfield to map midi key no as pch
-                ("midi_velocity", c_int),     # pfield to map midi velocity
-                ("midi_velocity_amp", c_int), # pfield to map midi velocity as amplitude
-                ("no_default_paths", c_int),  # disable relative paths from files, 0 or 1
-                ("number_of_threads", c_int), # number of threads for multicore performance
-                ("syntax_check_only", c_int), # do not compile, only check syntax
-                ("csd_line_counts", c_int),   # csd line error reporting
-                ("compute_weights", c_int),   # deprecated, kept for backwards comp. 
-                ("realtime_mode", c_int),     # use realtime priority mode, 0 or 1
-                ("sample_accurate", c_int),   # use sample-level score event accuracy
+                ("heartbeat", ct.c_int),         # print heart beat, 0 or 1
+                ("defer_gen01_load", ct.c_int),  # defer GEN01 load, 0 or 1
+                ("midi_key", ct.c_int),          # pfield to map midi key no
+                ("midi_key_cps", ct.c_int),      # pfield to map midi key no as cps
+                ("midi_key_oct", ct.c_int),      # pfield to map midi key no as oct
+                ("midi_key_pch", ct.c_int),      # pfield to map midi key no as pch
+                ("midi_velocity", ct.c_int),     # pfield to map midi velocity
+                ("midi_velocity_amp", ct.c_int), # pfield to map midi velocity as amplitude
+                ("no_default_paths", ct.c_int),  # disable relative paths from files, 0 or 1
+                ("number_of_threads", ct.c_int), # number of threads for multicore performance
+                ("syntax_check_only", ct.c_int), # do not compile, only check syntax
+                ("csd_line_counts", ct.c_int),   # csd line error reporting
+                ("compute_weights", ct.c_int),   # deprecated, kept for backwards comp. 
+                ("realtime_mode", ct.c_int),     # use realtime priority mode, 0 or 1
+                ("sample_accurate", ct.c_int),   # use sample-level score event accuracy
                 ("sample_rate_override", MYFLT),  # overriding sample rate
                 ("control_rate_override", MYFLT), # overriding control rate
-                ("nchnls_override", c_int),   # overriding number of out channels
-                ("nchnls_i_override", c_int), # overriding number of in channels
+                ("nchnls_override", ct.c_int),   # overriding number of out channels
+                ("nchnls_i_override", ct.c_int), # overriding number of in channels
                 ("e0dbfs_override", MYFLT),   # overriding 0dbfs
-                ("daemon", c_int),            # daemon mode
-                ("ksmps_override", c_int),    # ksmps override
-                ("FFT_library", c_int)]       # fft_lib
+                ("daemon", ct.c_int),            # daemon mode
+                ("ksmps_override", ct.c_int),    # ksmps override
+                ("FFT_library", ct.c_int)]       # fft_lib
 
-string64 = c_char * 64
+string64 = ct.c_char * 64
 
-class CsoundAudioDevice(Structure):
+class CsoundAudioDevice(ct.Structure):
     _fields_ = [("device_name", string64),
                 ("device_id", string64),
                 ("rt_module", string64),
-                ("max_nchnls", c_int),
-                ("isOutput", c_int)]
+                ("max_nchnls", ct.c_int),
+                ("isOutput", ct.c_int)]
 
-class CsoundMidiDevice(Structure):
+class CsoundMidiDevice(ct.Structure):
     _fields_ = [("device_name", string64),
                 ("interface_name", string64),
                 ("device_id", string64),
                 ("midi_module", string64),
-                ("isOutput", c_int)]
+                ("isOutput", ct.c_int)]
 
-class CsoundRtAudioParams(Structure):
-    _fields_ = [("devName", c_char_p),   # device name (NULL/empty: default)
-                ("devNum", c_int),       # device number (0-1023), 1024: default
-                ("bufSamp_SW", c_uint),  # buffer fragment size (-b) in sample frames
-                ("bufSamp_HW", c_int),   # total buffer size (-B) in sample frames
-                ("nChannels", c_int),    # number of channels
-                ("sampleFormat", c_int), # sample format (AE_SHORT etc.)
-                ("sampleRate", c_float)] # sample rate in Hz
+class CsoundRtAudioParams(ct.Structure):
+    _fields_ = [("devName", ct.c_char_p),   # device name (NULL/empty: default)
+                ("devNum", ct.c_int),       # device number (0-1023), 1024: default
+                ("bufSamp_SW", ct.c_uint),  # buffer fragment size (-b) in sample frames
+                ("bufSamp_HW", ct.c_int),   # total buffer size (-B) in sample frames
+                ("nChannels", ct.c_int),    # number of channels
+                ("sampleFormat", ct.c_int), # sample format (AE_SHORT etc.)
+                ("sampleRate", ct.c_float)] # sample rate in Hz
 
-class RtClock(Structure):
-    _fields_ = [("starttime_real", c_int64),
-                ("starttime_CPU", c_int64)]
+class RtClock(ct.Structure):
+    _fields_ = [("starttime_real", ct.c_int64),
+                ("starttime_CPU", ct.c_int64)]
 
-class OpcodeListEntry(Structure):
-    _fields_ = [("opname", c_char_p),
-                ("outypes", c_char_p),
-                ("intypes", c_char_p),
-                ("flags", c_int)]
+class OpcodeListEntry(ct.Structure):
+    _fields_ = [("opname", ct.c_char_p),
+                ("outypes", ct.c_char_p),
+                ("intypes", ct.c_char_p),
+                ("flags", ct.c_int)]
 
-class CsoundRandMTState(Structure):
-    _fields_ = [("mti", c_int),
-                ("mt", c_uint32*624)]
+class CsoundRandMTState(ct.Structure):
+    _fields_ = [("mti", ct.c_int),
+                ("mt", ct.c_uint32*624)]
 
 # PVSDATEXT is a variation on PVSDAT used in the pvs bus interface
-class PvsdatExt(Structure):
-    _fields_ = [("N", c_int32),
-                ("sliding", c_int),      # Flag to indicate sliding case
-                ("NB", c_int32),
-                ("overlap", c_int32),
-                ("winsize", c_int32),
-                ("wintype", c_int),
-                ("format", c_int32),
-                ("framecount", c_uint32),
-                ("frame", POINTER(c_float))]
+class PvsdatExt(ct.Structure):
+    _fields_ = [("N", ct.c_int32),
+                ("sliding", ct.c_int),      # Flag to indicate sliding case
+                ("NB", ct.c_int32),
+                ("overlap", ct.c_int32),
+                ("winsize", ct.c_int32),
+                ("wintype", ct.c_int),
+                ("format", ct.c_int32),
+                ("framecount", ct.c_uint32),
+                ("frame", ct.POINTER(ct.c_float))]
 
 # This structure holds the parameter hints for control channels
-class ControlChannelHints(Structure):
-    _fields_ = [("behav", c_int),
+class ControlChannelHints(ct.Structure):
+    _fields_ = [("behav", ct.c_int),
                 ("dflt", MYFLT),
                 ("min", MYFLT),
                 ("max", MYFLT),
-                ("x", c_int),
-                ("y", c_int),
-                ("width", c_int),
-                ("height", c_int),
+                ("x", ct.c_int),
+                ("y", ct.c_int),
+                ("width", ct.c_int),
+                ("height", ct.c_int),
                 # This member must be set explicitly to None if not used
-                ("attributes", c_char_p)]
+                ("attributes", ct.c_char_p)]
 
-class ControlChannelInfo(Structure):
-    _fields_ = [("name", c_char_p),
-                ("type", c_int),
+class ControlChannelInfo(ct.Structure):
+    _fields_ = [("name", ct.c_char_p),
+                ("type", ct.c_int),
                 ("hints", ControlChannelHints)]
 
 CAPSIZE  = 60
 
-class Windat(Structure):
-    _fields_ = [("windid", POINTER(c_uint)),    # set by makeGraph()
-                ("fdata", POINTER(MYFLT)),      # data passed to drawGraph()
-                ("npts", c_int32),              # size of above array
-                ("caption", c_char * CAPSIZE),  # caption string for graph
-                ("waitflg", c_int16 ),          # set =1 to wait for ms after Draw
-                ("polarity", c_int16),          # controls positioning of X axis
+class Windat(ct.Structure):
+    _fields_ = [("windid", ct.POINTER(ct.c_uint)),    # set by makeGraph()
+                ("fdata", ct.POINTER(MYFLT)),      # data passed to drawGraph()
+                ("npts", ct.c_int32),              # size of above array
+                ("caption", ct.c_char * CAPSIZE),  # caption string for graph
+                ("waitflg", ct.c_int16 ),          # set =1 to wait for ms after Draw
+                ("polarity", ct.c_int16),          # controls positioning of X axis
                 ("max", MYFLT),                 # workspace .. extrema this frame
                 ("min", MYFLT),
                 ("absmax", MYFLT),              # workspace .. largest of above
                 ("oabsmax", MYFLT),             # Y axis scaling factor
-                ("danflag", c_int),             # set to 1 for extra Yaxis mid span
-                ("absflag", c_int)]             # set to 1 to skip abs check
+                ("danflag", ct.c_int),             # set to 1 for extra Yaxis mid span
+                ("absflag", ct.c_int)]             # set to 1 to skip abs check
 
 # Symbols for Windat.polarity field
 NOPOL = 0
@@ -174,313 +178,313 @@ NEGPOL = 1
 POSPOL = 2
 BIPOL = 3
 
-class NamedGen(Structure):
+class NamedGen(ct.Structure):
     pass
 
 NamedGen._fields_ = [
-    ("name", c_char_p),
-    ("genum", c_int),
-    ("next", POINTER(NamedGen))]
+    ("name", ct.c_char_p),
+    ("genum", ct.c_int),
+    ("next", ct.POINTER(NamedGen))]
 
 
-libcsound.csoundCreate.restype = c_void_p
-libcsound.csoundCreate.argtypes = [py_object]
+libcsound.csoundCreate.restype = ct.c_void_p
+libcsound.csoundCreate.argtypes = [ct.py_object]
 
-libcsound.csoundDestroy.argtypes = [c_void_p]
+libcsound.csoundDestroy.argtypes = [ct.c_void_p]
 
-libcsound.csoundParseOrc.restype = c_void_p
-libcsound.csoundParseOrc.argtypes = [c_void_p, c_char_p]
+libcsound.csoundParseOrc.restype = ct.c_void_p
+libcsound.csoundParseOrc.argtypes = [ct.c_void_p, ct.c_char_p]
 
-libcsound.csoundCompileTree.argtypes = [c_void_p, c_void_p]
-libcsound.csoundCompileTreeAsync.argtypes = [c_void_p, c_void_p]
-libcsound.csoundDeleteTree.argtypes = [c_void_p, c_void_p]
-libcsound.csoundCompileOrc.argtypes = [c_void_p, c_char_p]
-libcsound.csoundCompileOrcAsync.argtypes = [c_void_p, c_char_p]
+libcsound.csoundCompileTree.argtypes = [ct.c_void_p, ct.c_void_p]
+libcsound.csoundCompileTreeAsync.argtypes = [ct.c_void_p, ct.c_void_p]
+libcsound.csoundDeleteTree.argtypes = [ct.c_void_p, ct.c_void_p]
+libcsound.csoundCompileOrc.argtypes = [ct.c_void_p, ct.c_char_p]
+libcsound.csoundCompileOrcAsync.argtypes = [ct.c_void_p, ct.c_char_p]
 
 libcsound.csoundEvalCode.restype = MYFLT
-libcsound.csoundEvalCode.argtypes = [c_void_p, c_char_p]
+libcsound.csoundEvalCode.argtypes = [ct.c_void_p, ct.c_char_p]
 
-libcsound.csoundCompileArgs.argtypes = [c_void_p, c_int, POINTER(c_char_p)]
-libcsound.csoundStart.argtypes = [c_void_p]
-libcsound.csoundCompile.argtypes = [c_void_p, c_int, POINTER(c_char_p)]
-libcsound.csoundCompileCsd.argtypes = [c_void_p, c_char_p]
-libcsound.csoundCompileCsdText.argtypes = [c_void_p, c_char_p]
+libcsound.csoundCompileArgs.argtypes = [ct.c_void_p, ct.c_int, ct.POINTER(ct.c_char_p)]
+libcsound.csoundStart.argtypes = [ct.c_void_p]
+libcsound.csoundCompile.argtypes = [ct.c_void_p, ct.c_int, ct.POINTER(ct.c_char_p)]
+libcsound.csoundCompileCsd.argtypes = [ct.c_void_p, ct.c_char_p]
+libcsound.csoundCompileCsdText.argtypes = [ct.c_void_p, ct.c_char_p]
 
-libcsound.csoundPerform.argtypes = [c_void_p]
-libcsound.csoundPerformKsmps.argtypes = [c_void_p]
-libcsound.csoundPerformBuffer.argtypes = [c_void_p]
-libcsound.csoundStop.argtypes = [c_void_p]
-libcsound.csoundCleanup.argtypes = [c_void_p]
-libcsound.csoundReset.argtypes = [c_void_p]
+libcsound.csoundPerform.argtypes = [ct.c_void_p]
+libcsound.csoundPerformKsmps.argtypes = [ct.c_void_p]
+libcsound.csoundPerformBuffer.argtypes = [ct.c_void_p]
+libcsound.csoundStop.argtypes = [ct.c_void_p]
+libcsound.csoundCleanup.argtypes = [ct.c_void_p]
+libcsound.csoundReset.argtypes = [ct.c_void_p]
 
-libcsound.csoundUDPServerStart.argtypes = [c_void_p, c_uint]
-libcsound.csoundUDPServerStatus.argtypes = [c_void_p]
-libcsound.csoundUDPServerClose.argtypes = [c_void_p]
-libcsound.csoundUDPConsole.argtypes = [c_void_p, c_char_p, c_uint, c_uint]
-libcsound.csoundStopUDPConsole.argtypes = [c_void_p]
+libcsound.csoundUDPServerStart.argtypes = [ct.c_void_p, ct.c_uint]
+libcsound.csoundUDPServerStatus.argtypes = [ct.c_void_p]
+libcsound.csoundUDPServerClose.argtypes = [ct.c_void_p]
+libcsound.csoundUDPConsole.argtypes = [ct.c_void_p, ct.c_char_p, ct.c_uint, ct.c_uint]
+libcsound.csoundStopUDPConsole.argtypes = [ct.c_void_p]
 
 libcsound.csoundGetSr.restype = MYFLT
-libcsound.csoundGetSr.argtypes = [c_void_p]
+libcsound.csoundGetSr.argtypes = [ct.c_void_p]
 libcsound.csoundGetKr.restype = MYFLT
-libcsound.csoundGetKr.argtypes = [c_void_p]
-libcsound.csoundGetKsmps.restype = c_uint32
-libcsound.csoundGetKsmps.argtypes = [c_void_p]
-libcsound.csoundGetNchnls.restype = c_uint32
-libcsound.csoundGetNchnls.argtypes = [c_void_p]
-libcsound.csoundGetNchnlsInput.restype = c_uint32
-libcsound.csoundGetNchnlsInput.argtypes = [c_void_p]
+libcsound.csoundGetKr.argtypes = [ct.c_void_p]
+libcsound.csoundGetKsmps.restype = ct.c_uint32
+libcsound.csoundGetKsmps.argtypes = [ct.c_void_p]
+libcsound.csoundGetNchnls.restype = ct.c_uint32
+libcsound.csoundGetNchnls.argtypes = [ct.c_void_p]
+libcsound.csoundGetNchnlsInput.restype = ct.c_uint32
+libcsound.csoundGetNchnlsInput.argtypes = [ct.c_void_p]
 libcsound.csoundGet0dBFS.restype = MYFLT
-libcsound.csoundGet0dBFS.argtypes = [c_void_p]
+libcsound.csoundGet0dBFS.argtypes = [ct.c_void_p]
 libcsound.csoundGetA4.restype = MYFLT
-libcsound.csoundGetA4.argtypes = [c_void_p]
-libcsound.csoundGetCurrentTimeSamples.restype = c_int64
-libcsound.csoundGetCurrentTimeSamples.argtypes = [c_void_p]
-libcsound.csoundGetHostData.restype = py_object
-libcsound.csoundGetHostData.argtypes = [c_void_p]
-libcsound.csoundSetHostData.argtypes = [c_void_p, py_object]
-libcsound.csoundSetOption.argtypes = [c_void_p, c_char_p]
-libcsound.csoundSetParams.argtypes = [c_void_p, POINTER(CsoundParams)]
-libcsound.csoundGetParams.argtypes = [c_void_p, POINTER(CsoundParams)]
-libcsound.csoundGetDebug.argtypes = [c_void_p]
-libcsound.csoundSetDebug.argtypes = [c_void_p, c_int]
+libcsound.csoundGetA4.argtypes = [ct.c_void_p]
+libcsound.csoundGetCurrentTimeSamples.restype = ct.c_int64
+libcsound.csoundGetCurrentTimeSamples.argtypes = [ct.c_void_p]
+libcsound.csoundGetHostData.restype = ct.py_object
+libcsound.csoundGetHostData.argtypes = [ct.c_void_p]
+libcsound.csoundSetHostData.argtypes = [ct.c_void_p, ct.py_object]
+libcsound.csoundSetOption.argtypes = [ct.c_void_p, ct.c_char_p]
+libcsound.csoundSetParams.argtypes = [ct.c_void_p, ct.POINTER(CsoundParams)]
+libcsound.csoundGetParams.argtypes = [ct.c_void_p, ct.POINTER(CsoundParams)]
+libcsound.csoundGetDebug.argtypes = [ct.c_void_p]
+libcsound.csoundSetDebug.argtypes = [ct.c_void_p, ct.c_int]
 libcsound.csoundSystemSr.restype = MYFLT
-libcsound.csoundSystemSr.argtypes = [c_void_p, MYFLT]
+libcsound.csoundSystemSr.argtypes = [ct.c_void_p, MYFLT]
 
-libcsound.csoundGetOutputName.restype = c_char_p
-libcsound.csoundGetOutputName.argtypes = [c_void_p]
-libcsound.csoundGetInputName.restype = c_char_p
-libcsound.csoundGetInputName.argtypes = [c_void_p]
-libcsound.csoundSetOutput.argtypes = [c_void_p, c_char_p, c_char_p, c_char_p]
-libcsound.csoundGetOutputFormat.argtypes = [c_void_p, c_char_p, c_char_p]
-libcsound.csoundSetInput.argtypes = [c_void_p, c_char_p]
-libcsound.csoundSetMIDIInput.argtypes = [c_void_p, c_char_p]
-libcsound.csoundSetMIDIFileInput.argtypes = [c_void_p, c_char_p]
-libcsound.csoundSetMIDIOutput.argtypes = [c_void_p, c_char_p]
-libcsound.csoundSetMIDIFileOutput.argtypes = [c_void_p, c_char_p]
-FILEOPENFUNC = CFUNCTYPE(None, c_void_p, c_char_p, c_int, c_int, c_int)
-libcsound.csoundSetFileOpenCallback.argtypes = [c_void_p, FILEOPENFUNC]
+libcsound.csoundGetOutputName.restype = ct.c_char_p
+libcsound.csoundGetOutputName.argtypes = [ct.c_void_p]
+libcsound.csoundGetInputName.restype = ct.c_char_p
+libcsound.csoundGetInputName.argtypes = [ct.c_void_p]
+libcsound.csoundSetOutput.argtypes = [ct.c_void_p, ct.c_char_p, ct.c_char_p, ct.c_char_p]
+libcsound.csoundGetOutputFormat.argtypes = [ct.c_void_p, ct.c_char_p, ct.c_char_p]
+libcsound.csoundSetInput.argtypes = [ct.c_void_p, ct.c_char_p]
+libcsound.csoundSetMIDIInput.argtypes = [ct.c_void_p, ct.c_char_p]
+libcsound.csoundSetMIDIFileInput.argtypes = [ct.c_void_p, ct.c_char_p]
+libcsound.csoundSetMIDIOutput.argtypes = [ct.c_void_p, ct.c_char_p]
+libcsound.csoundSetMIDIFileOutput.argtypes = [ct.c_void_p, ct.c_char_p]
+FILEOPENFUNC = ct.CFUNCTYPE(None, ct.c_void_p, ct.c_char_p, ct.c_int, ct.c_int, ct.c_int)
+libcsound.csoundSetFileOpenCallback.argtypes = [ct.c_void_p, FILEOPENFUNC]
 
-libcsound.csoundSetRTAudioModule.argtypes = [c_void_p, c_char_p]
-libcsound.csoundGetModule.argtypes = [c_void_p, c_int, POINTER(c_char_p), POINTER(c_char_p)]
-libcsound.csoundGetInputBufferSize.restype = c_long
-libcsound.csoundGetInputBufferSize.argtypes = [c_void_p]
-libcsound.csoundGetOutputBufferSize.restype = c_long
-libcsound.csoundGetOutputBufferSize.argtypes = [c_void_p]
-libcsound.csoundGetInputBuffer.restype = POINTER(MYFLT)
-libcsound.csoundGetInputBuffer.argtypes = [c_void_p]
-libcsound.csoundGetOutputBuffer.restype = POINTER(MYFLT)
-libcsound.csoundGetOutputBuffer.argtypes = [c_void_p]
-libcsound.csoundGetSpin.restype = POINTER(MYFLT)
-libcsound.csoundGetSpin.argtypes = [c_void_p]
-libcsound.csoundClearSpin.argtypes = [c_void_p]
-libcsound.csoundAddSpinSample.argtypes = [c_void_p, c_int, c_int, MYFLT]
-libcsound.csoundSetSpinSample.argtypes = [c_void_p, c_int, c_int, MYFLT]
-libcsound.csoundGetSpout.restype = POINTER(MYFLT)
-libcsound.csoundGetSpout.argtypes = [c_void_p]
+libcsound.csoundSetRTAudioModule.argtypes = [ct.c_void_p, ct.c_char_p]
+libcsound.csoundGetModule.argtypes = [ct.c_void_p, ct.c_int, ct.POINTER(ct.c_char_p), ct.POINTER(ct.c_char_p)]
+libcsound.csoundGetInputBufferSize.restype = ct.c_long
+libcsound.csoundGetInputBufferSize.argtypes = [ct.c_void_p]
+libcsound.csoundGetOutputBufferSize.restype = ct.c_long
+libcsound.csoundGetOutputBufferSize.argtypes = [ct.c_void_p]
+libcsound.csoundGetInputBuffer.restype = ct.POINTER(MYFLT)
+libcsound.csoundGetInputBuffer.argtypes = [ct.c_void_p]
+libcsound.csoundGetOutputBuffer.restype = ct.POINTER(MYFLT)
+libcsound.csoundGetOutputBuffer.argtypes = [ct.c_void_p]
+libcsound.csoundGetSpin.restype = ct.POINTER(MYFLT)
+libcsound.csoundGetSpin.argtypes = [ct.c_void_p]
+libcsound.csoundClearSpin.argtypes = [ct.c_void_p]
+libcsound.csoundAddSpinSample.argtypes = [ct.c_void_p, ct.c_int, ct.c_int, MYFLT]
+libcsound.csoundSetSpinSample.argtypes = [ct.c_void_p, ct.c_int, ct.c_int, MYFLT]
+libcsound.csoundGetSpout.restype = ct.POINTER(MYFLT)
+libcsound.csoundGetSpout.argtypes = [ct.c_void_p]
 libcsound.csoundGetSpoutSample.restype = MYFLT
-libcsound.csoundGetSpoutSample.argtypes = [c_void_p, c_int, c_int]
-libcsound.csoundGetRtRecordUserData.restype = POINTER(c_void_p)
-libcsound.csoundGetRtRecordUserData.argtypes = [c_void_p]
-libcsound.csoundGetRtPlayUserData.restype = POINTER(c_void_p)
-libcsound.csoundGetRtPlayUserData.argtypes = [c_void_p]
-libcsound.csoundSetHostImplementedAudioIO.argtypes = [c_void_p, c_int, c_int]
-libcsound.csoundGetAudioDevList.argtypes = [c_void_p, c_void_p, c_int]
-PLAYOPENFUNC = CFUNCTYPE(c_int, c_void_p, POINTER(CsoundRtAudioParams))
-libcsound.csoundSetPlayopenCallback.argtypes = [c_void_p, PLAYOPENFUNC]
-RTPLAYFUNC = CFUNCTYPE(None, c_void_p, POINTER(MYFLT), c_int)
-libcsound.csoundSetRtplayCallback.argtypes = [c_void_p, RTPLAYFUNC]
-RECORDOPENFUNC = CFUNCTYPE(c_int, c_void_p, POINTER(CsoundRtAudioParams))
-libcsound.csoundSetRecopenCallback.argtypes = [c_void_p, RECORDOPENFUNC]
-RTRECORDFUNC = CFUNCTYPE(c_int, c_void_p, POINTER(MYFLT), c_int)
-libcsound.csoundSetRtrecordCallback.argtypes = [c_void_p, RTRECORDFUNC]
-RTCLOSEFUNC = CFUNCTYPE(None, c_void_p)
-libcsound.csoundSetRtcloseCallback.argtypes = [c_void_p, RTCLOSEFUNC]
-AUDIODEVLISTFUNC = CFUNCTYPE(c_int, c_void_p, POINTER(CsoundAudioDevice), c_int)
-libcsound.csoundSetAudioDeviceListCallback.argtypes = [c_void_p, AUDIODEVLISTFUNC]
+libcsound.csoundGetSpoutSample.argtypes = [ct.c_void_p, ct.c_int, ct.c_int]
+libcsound.csoundGetRtRecordUserData.restype = ct.POINTER(ct.c_void_p)
+libcsound.csoundGetRtRecordUserData.argtypes = [ct.c_void_p]
+libcsound.csoundGetRtPlayUserData.restype = ct.POINTER(ct.c_void_p)
+libcsound.csoundGetRtPlayUserData.argtypes = [ct.c_void_p]
+libcsound.csoundSetHostImplementedAudioIO.argtypes = [ct.c_void_p, ct.c_int, ct.c_int]
+libcsound.csoundGetAudioDevList.argtypes = [ct.c_void_p, ct.c_void_p, ct.c_int]
+PLAYOPENFUNC = ct.CFUNCTYPE(ct.c_int, ct.c_void_p, ct.POINTER(CsoundRtAudioParams))
+libcsound.csoundSetPlayopenCallback.argtypes = [ct.c_void_p, PLAYOPENFUNC]
+RTPLAYFUNC = ct.CFUNCTYPE(None, ct.c_void_p, ct.POINTER(MYFLT), ct.c_int)
+libcsound.csoundSetRtplayCallback.argtypes = [ct.c_void_p, RTPLAYFUNC]
+RECORDOPENFUNC = ct.CFUNCTYPE(ct.c_int, ct.c_void_p, ct.POINTER(CsoundRtAudioParams))
+libcsound.csoundSetRecopenCallback.argtypes = [ct.c_void_p, RECORDOPENFUNC]
+RTRECORDFUNC = ct.CFUNCTYPE(ct.c_int, ct.c_void_p, ct.POINTER(MYFLT), ct.c_int)
+libcsound.csoundSetRtrecordCallback.argtypes = [ct.c_void_p, RTRECORDFUNC]
+RTCLOSEFUNC = ct.CFUNCTYPE(None, ct.c_void_p)
+libcsound.csoundSetRtcloseCallback.argtypes = [ct.c_void_p, RTCLOSEFUNC]
+AUDIODEVLISTFUNC = ct.CFUNCTYPE(ct.c_int, ct.c_void_p, ct.POINTER(CsoundAudioDevice), ct.c_int)
+libcsound.csoundSetAudioDeviceListCallback.argtypes = [ct.c_void_p, AUDIODEVLISTFUNC]
 
-libcsound.csoundSetMIDIModule.argtypes = [c_void_p, c_char_p]
-libcsound.csoundSetHostImplementedMIDIIO.argtypes = [c_void_p, c_int]
-libcsound.csoundGetMIDIDevList.argtypes = [c_void_p, c_void_p, c_int]
-MIDIINOPENFUNC = CFUNCTYPE(c_int, c_void_p, POINTER(c_void_p), c_char_p)
-libcsound.csoundSetExternalMidiInOpenCallback.argtypes = [c_void_p, MIDIINOPENFUNC]
-MIDIREADFUNC = CFUNCTYPE(c_int, c_void_p, c_void_p, c_char_p, c_int)
-libcsound.csoundSetExternalMidiReadCallback.argtypes = [c_void_p, MIDIREADFUNC]
-MIDIINCLOSEFUNC = CFUNCTYPE(c_int, c_void_p, c_void_p)
-libcsound.csoundSetExternalMidiInCloseCallback.argtypes = [c_void_p, MIDIINCLOSEFUNC]
-MIDIOUTOPENFUNC = CFUNCTYPE(c_int, c_void_p, POINTER(c_void_p), c_char_p)
-libcsound.csoundSetExternalMidiOutOpenCallback.argtypes = [c_void_p, MIDIOUTOPENFUNC]
-MIDIWRITEFUNC = CFUNCTYPE(c_int, c_void_p, c_void_p, c_char_p, c_int)
-libcsound.csoundSetExternalMidiWriteCallback.argtypes = [c_void_p, MIDIWRITEFUNC]
-MIDIOUTCLOSEFUNC = CFUNCTYPE(c_int, c_void_p, c_void_p)
-libcsound.csoundSetExternalMidiOutCloseCallback.argtypes = [c_void_p, MIDIOUTCLOSEFUNC]
-MIDIERRORFUNC = CFUNCTYPE(c_char_p, c_int)
-libcsound.csoundSetExternalMidiErrorStringCallback.argtypes = [c_void_p, MIDIERRORFUNC]
-MIDIDEVLISTFUNC = CFUNCTYPE(c_int, c_void_p, POINTER(CsoundMidiDevice), c_int)
-libcsound.csoundSetMIDIDeviceListCallback.argtypes = [c_void_p, MIDIDEVLISTFUNC]
+libcsound.csoundSetMIDIModule.argtypes = [ct.c_void_p, ct.c_char_p]
+libcsound.csoundSetHostImplementedMIDIIO.argtypes = [ct.c_void_p, ct.c_int]
+libcsound.csoundGetMIDIDevList.argtypes = [ct.c_void_p, ct.c_void_p, ct.c_int]
+MIDIINOPENFUNC = ct.CFUNCTYPE(ct.c_int, ct.c_void_p, ct.POINTER(ct.c_void_p), ct.c_char_p)
+libcsound.csoundSetExternalMidiInOpenCallback.argtypes = [ct.c_void_p, MIDIINOPENFUNC]
+MIDIREADFUNC = ct.CFUNCTYPE(ct.c_int, ct.c_void_p, ct.c_void_p, ct.c_char_p, ct.c_int)
+libcsound.csoundSetExternalMidiReadCallback.argtypes = [ct.c_void_p, MIDIREADFUNC]
+MIDIINCLOSEFUNC = ct.CFUNCTYPE(ct.c_int, ct.c_void_p, ct.c_void_p)
+libcsound.csoundSetExternalMidiInCloseCallback.argtypes = [ct.c_void_p, MIDIINCLOSEFUNC]
+MIDIOUTOPENFUNC = ct.CFUNCTYPE(ct.c_int, ct.c_void_p, ct.POINTER(ct.c_void_p), ct.c_char_p)
+libcsound.csoundSetExternalMidiOutOpenCallback.argtypes = [ct.c_void_p, MIDIOUTOPENFUNC]
+MIDIWRITEFUNC = ct.CFUNCTYPE(ct.c_int, ct.c_void_p, ct.c_void_p, ct.c_char_p, ct.c_int)
+libcsound.csoundSetExternalMidiWriteCallback.argtypes = [ct.c_void_p, MIDIWRITEFUNC]
+MIDIOUTCLOSEFUNC = ct.CFUNCTYPE(ct.c_int, ct.c_void_p, ct.c_void_p)
+libcsound.csoundSetExternalMidiOutCloseCallback.argtypes = [ct.c_void_p, MIDIOUTCLOSEFUNC]
+MIDIERRORFUNC = ct.CFUNCTYPE(ct.c_char_p, ct.c_int)
+libcsound.csoundSetExternalMidiErrorStringCallback.argtypes = [ct.c_void_p, MIDIERRORFUNC]
+MIDIDEVLISTFUNC = ct.CFUNCTYPE(ct.c_int, ct.c_void_p, ct.POINTER(CsoundMidiDevice), ct.c_int)
+libcsound.csoundSetMIDIDeviceListCallback.argtypes = [ct.c_void_p, MIDIDEVLISTFUNC]
 
-libcsound.csoundReadScore.argtypes = [c_void_p, c_char_p]
-libcsound.csoundReadScoreAsync.argtypes = [c_void_p, c_char_p]
-libcsound.csoundGetScoreTime.restype = c_double
-libcsound.csoundGetScoreTime.argtypes = [c_void_p]
-libcsound.csoundIsScorePending.argtypes = [c_void_p]
-libcsound.csoundSetScorePending.argtypes = [c_void_p, c_int]
+libcsound.csoundReadScore.argtypes = [ct.c_void_p, ct.c_char_p]
+libcsound.csoundReadScoreAsync.argtypes = [ct.c_void_p, ct.c_char_p]
+libcsound.csoundGetScoreTime.restype = ct.c_double
+libcsound.csoundGetScoreTime.argtypes = [ct.c_void_p]
+libcsound.csoundIsScorePending.argtypes = [ct.c_void_p]
+libcsound.csoundSetScorePending.argtypes = [ct.c_void_p, ct.c_int]
 libcsound.csoundGetScoreOffsetSeconds.restype = MYFLT
-libcsound.csoundGetScoreOffsetSeconds.argtypes = [c_void_p]
-libcsound.csoundSetScoreOffsetSeconds.argtypes = [c_void_p, MYFLT]
-libcsound.csoundRewindScore.argtypes = [c_void_p]
-CSCOREFUNC = CFUNCTYPE(None, c_void_p)
-libcsound.csoundSetCscoreCallback.argtypes = [c_void_p, CSCOREFUNC]
+libcsound.csoundGetScoreOffsetSeconds.argtypes = [ct.c_void_p]
+libcsound.csoundSetScoreOffsetSeconds.argtypes = [ct.c_void_p, MYFLT]
+libcsound.csoundRewindScore.argtypes = [ct.c_void_p]
+CSCOREFUNC = ct.CFUNCTYPE(None, ct.c_void_p)
+libcsound.csoundSetCscoreCallback.argtypes = [ct.c_void_p, CSCOREFUNC]
 
-libcsound.csoundMessage.argtypes = [c_void_p, c_char_p, c_char_p]
-libcsound.csoundMessageS.argtypes = [c_void_p, c_int, c_char_p, c_char_p]
-libcsound.csoundGetMessageLevel.argtypes = [c_void_p]
-libcsound.csoundSetMessageLevel.argtypes = [c_void_p, c_int]
-libcsound.csoundCreateMessageBuffer.argtypes = [c_void_p, c_int]
-libcsound.csoundGetFirstMessage.restype = c_char_p
-libcsound.csoundGetFirstMessage.argtypes = [c_void_p]
-libcsound.csoundGetFirstMessageAttr.argtypes = [c_void_p]
-libcsound.csoundPopFirstMessage.argtypes = [c_void_p]
-libcsound.csoundGetMessageCnt.argtypes = [c_void_p]
-libcsound.csoundDestroyMessageBuffer.argtypes = [c_void_p]
+libcsound.csoundMessage.argtypes = [ct.c_void_p, ct.c_char_p, ct.c_char_p]
+libcsound.csoundMessageS.argtypes = [ct.c_void_p, ct.c_int, ct.c_char_p, ct.c_char_p]
+libcsound.csoundGetMessageLevel.argtypes = [ct.c_void_p]
+libcsound.csoundSetMessageLevel.argtypes = [ct.c_void_p, ct.c_int]
+libcsound.csoundCreateMessageBuffer.argtypes = [ct.c_void_p, ct.c_int]
+libcsound.csoundGetFirstMessage.restype = ct.c_char_p
+libcsound.csoundGetFirstMessage.argtypes = [ct.c_void_p]
+libcsound.csoundGetFirstMessageAttr.argtypes = [ct.c_void_p]
+libcsound.csoundPopFirstMessage.argtypes = [ct.c_void_p]
+libcsound.csoundGetMessageCnt.argtypes = [ct.c_void_p]
+libcsound.csoundDestroyMessageBuffer.argtypes = [ct.c_void_p]
 
-libcsound.csoundGetChannelPtr.argtypes = [c_void_p, POINTER(POINTER(MYFLT)), c_char_p, c_int]
-libcsound.csoundListChannels.argtypes = [c_void_p, POINTER(POINTER(ControlChannelInfo))]
-libcsound.csoundDeleteChannelList.argtypes = [c_void_p, POINTER(ControlChannelInfo)]
-libcsound.csoundSetControlChannelHints.argtypes = [c_void_p, c_char_p, ControlChannelHints]
-libcsound.csoundGetControlChannelHints.argtypes = [c_void_p, c_char_p, POINTER(ControlChannelHints)]
-libcsound.csoundGetChannelLock.restype = POINTER(c_int)
-libcsound.csoundGetChannelLock.argtypes = [c_void_p, c_char_p]
+libcsound.csoundGetChannelPtr.argtypes = [ct.c_void_p, ct.POINTER(ct.POINTER(MYFLT)), ct.c_char_p, ct.c_int]
+libcsound.csoundListChannels.argtypes = [ct.c_void_p, ct.POINTER(ct.POINTER(ControlChannelInfo))]
+libcsound.csoundDeleteChannelList.argtypes = [ct.c_void_p, ct.POINTER(ControlChannelInfo)]
+libcsound.csoundSetControlChannelHints.argtypes = [ct.c_void_p, ct.c_char_p, ControlChannelHints]
+libcsound.csoundGetControlChannelHints.argtypes = [ct.c_void_p, ct.c_char_p, ct.POINTER(ControlChannelHints)]
+libcsound.csoundGetChannelLock.restype = ct.POINTER(ct.c_int)
+libcsound.csoundGetChannelLock.argtypes = [ct.c_void_p, ct.c_char_p]
 libcsound.csoundGetControlChannel.restype = MYFLT
-libcsound.csoundGetControlChannel.argtypes = [c_void_p, c_char_p, POINTER(c_int)]
-libcsound.csoundSetControlChannel.argtypes = [c_void_p, c_char_p, MYFLT]
-libcsound.csoundGetAudioChannel.argtypes = [c_void_p, c_char_p, POINTER(c_int)]
-libcsound.csoundSetAudioChannel.argtypes = [c_void_p, c_char_p, POINTER(c_int)]
-libcsound.csoundGetStringChannel.argtypes = [c_void_p, c_char_p, c_char_p]
-libcsound.csoundSetStringChannel.argtypes = [c_void_p, c_char_p, c_char_p]
-libcsound.csoundGetChannelDatasize.argtypes = [c_void_p, c_char_p]
-CHANNELFUNC = CFUNCTYPE(None, c_void_p, c_char_p, c_void_p, c_void_p)
-libcsound.csoundSetInputChannelCallback.argtypes = [c_void_p, CHANNELFUNC]
-libcsound.csoundSetOutputChannelCallback.argtypes = [c_void_p, CHANNELFUNC]
-libcsound.csoundSetPvsChannel.argtypes = [c_void_p, POINTER(PvsdatExt), c_char_p]
-libcsound.csoundGetPvsChannel.argtypes = [c_void_p, POINTER(PvsdatExt), c_char_p]
-libcsound.csoundScoreEvent.argtypes = [c_void_p, c_char, POINTER(MYFLT), c_long]
-libcsound.csoundScoreEventAsync.argtypes = [c_void_p, c_char, POINTER(MYFLT), c_long]
-libcsound.csoundScoreEventAbsolute.argtypes = [c_void_p, c_char, POINTER(MYFLT), c_long, c_double]
-libcsound.csoundScoreEventAbsoluteAsync.argtypes = [c_void_p, c_char, POINTER(MYFLT), c_long, c_double]
-libcsound.csoundInputMessage.argtypes = [c_void_p, c_char_p]
-libcsound.csoundInputMessageAsync.argtypes = [c_void_p, c_char_p]
-libcsound.csoundKillInstance.argtypes = [c_void_p, MYFLT, c_char_p, c_int, c_int]
-SENSEFUNC = CFUNCTYPE(None, c_void_p, py_object)
-libcsound.csoundRegisterSenseEventCallback.argtypes = [c_void_p, SENSEFUNC, py_object]
-libcsound.csoundKeyPress.argtypes = [c_void_p, c_char]
-KEYBOARDFUNC = CFUNCTYPE(c_int, py_object, c_void_p, c_uint)
-libcsound.csoundRegisterKeyboardCallback.argtypes = [c_void_p, KEYBOARDFUNC, py_object, c_uint]
-libcsound.csoundRemoveKeyboardCallback.argtypes = [c_void_p, KEYBOARDFUNC]
+libcsound.csoundGetControlChannel.argtypes = [ct.c_void_p, ct.c_char_p, ct.POINTER(ct.c_int)]
+libcsound.csoundSetControlChannel.argtypes = [ct.c_void_p, ct.c_char_p, MYFLT]
+libcsound.csoundGetAudioChannel.argtypes = [ct.c_void_p, ct.c_char_p, ct.POINTER(ct.c_int)]
+libcsound.csoundSetAudioChannel.argtypes = [ct.c_void_p, ct.c_char_p, ct.POINTER(ct.c_int)]
+libcsound.csoundGetStringChannel.argtypes = [ct.c_void_p, ct.c_char_p, ct.c_char_p]
+libcsound.csoundSetStringChannel.argtypes = [ct.c_void_p, ct.c_char_p, ct.c_char_p]
+libcsound.csoundGetChannelDatasize.argtypes = [ct.c_void_p, ct.c_char_p]
+CHANNELFUNC = ct.CFUNCTYPE(None, ct.c_void_p, ct.c_char_p, ct.c_void_p, ct.c_void_p)
+libcsound.csoundSetInputChannelCallback.argtypes = [ct.c_void_p, CHANNELFUNC]
+libcsound.csoundSetOutputChannelCallback.argtypes = [ct.c_void_p, CHANNELFUNC]
+libcsound.csoundSetPvsChannel.argtypes = [ct.c_void_p, ct.POINTER(PvsdatExt), ct.c_char_p]
+libcsound.csoundGetPvsChannel.argtypes = [ct.c_void_p, ct.POINTER(PvsdatExt), ct.c_char_p]
+libcsound.csoundScoreEvent.argtypes = [ct.c_void_p, ct.c_char, ct.POINTER(MYFLT), ct.c_long]
+libcsound.csoundScoreEventAsync.argtypes = [ct.c_void_p, ct.c_char, ct.POINTER(MYFLT), ct.c_long]
+libcsound.csoundScoreEventAbsolute.argtypes = [ct.c_void_p, ct.c_char, ct.POINTER(MYFLT), ct.c_long, ct.c_double]
+libcsound.csoundScoreEventAbsoluteAsync.argtypes = [ct.c_void_p, ct.c_char, ct.POINTER(MYFLT), ct.c_long, ct.c_double]
+libcsound.csoundInputMessage.argtypes = [ct.c_void_p, ct.c_char_p]
+libcsound.csoundInputMessageAsync.argtypes = [ct.c_void_p, ct.c_char_p]
+libcsound.csoundKillInstance.argtypes = [ct.c_void_p, MYFLT, ct.c_char_p, ct.c_int, ct.c_int]
+SENSEFUNC = ct.CFUNCTYPE(None, ct.c_void_p, ct.py_object)
+libcsound.csoundRegisterSenseEventCallback.argtypes = [ct.c_void_p, SENSEFUNC, ct.py_object]
+libcsound.csoundKeyPress.argtypes = [ct.c_void_p, ct.c_char]
+KEYBOARDFUNC = ct.CFUNCTYPE(ct.c_int, ct.py_object, ct.c_void_p, ct.c_uint)
+libcsound.csoundRegisterKeyboardCallback.argtypes = [ct.c_void_p, KEYBOARDFUNC, ct.py_object, ct.c_uint]
+libcsound.csoundRemoveKeyboardCallback.argtypes = [ct.c_void_p, KEYBOARDFUNC]
 
-libcsound.csoundTableLength.argtypes = [c_void_p, c_int]
+libcsound.csoundTableLength.argtypes = [ct.c_void_p, ct.c_int]
 libcsound.csoundTableGet.restype = MYFLT
-libcsound.csoundTableGet.argtypes = [c_void_p, c_int, c_int]
-libcsound.csoundTableSet.argtypes = [c_void_p, c_int, c_int, MYFLT]
-libcsound.csoundTableCopyOut.argtypes = [c_void_p, c_int, POINTER(MYFLT)]
-libcsound.csoundTableCopyOutAsync.argtypes = [c_void_p, c_int, POINTER(MYFLT)]
-libcsound.csoundTableCopyIn.argtypes = [c_void_p, c_int, POINTER(MYFLT)]
-libcsound.csoundTableCopyInAsync.argtypes = [c_void_p, c_int, POINTER(MYFLT)]
-libcsound.csoundGetTable.argtypes = [c_void_p, POINTER(POINTER(MYFLT)), c_int]
-libcsound.csoundGetTableArgs.argtypes = [c_void_p, POINTER(POINTER(MYFLT)), c_int]
-libcsound.csoundIsNamedGEN.argtypes = [c_void_p, c_int]
-libcsound.csoundGetNamedGEN.argtypes = [c_void_p, c_int, c_char_p, c_int]
+libcsound.csoundTableGet.argtypes = [ct.c_void_p, ct.c_int, ct.c_int]
+libcsound.csoundTableSet.argtypes = [ct.c_void_p, ct.c_int, ct.c_int, MYFLT]
+libcsound.csoundTableCopyOut.argtypes = [ct.c_void_p, ct.c_int, ct.POINTER(MYFLT)]
+libcsound.csoundTableCopyOutAsync.argtypes = [ct.c_void_p, ct.c_int, ct.POINTER(MYFLT)]
+libcsound.csoundTableCopyIn.argtypes = [ct.c_void_p, ct.c_int, ct.POINTER(MYFLT)]
+libcsound.csoundTableCopyInAsync.argtypes = [ct.c_void_p, ct.c_int, ct.POINTER(MYFLT)]
+libcsound.csoundGetTable.argtypes = [ct.c_void_p, ct.POINTER(ct.POINTER(MYFLT)), ct.c_int]
+libcsound.csoundGetTableArgs.argtypes = [ct.c_void_p, ct.POINTER(ct.POINTER(MYFLT)), ct.c_int]
+libcsound.csoundIsNamedGEN.argtypes = [ct.c_void_p, ct.c_int]
+libcsound.csoundGetNamedGEN.argtypes = [ct.c_void_p, ct.c_int, ct.c_char_p, ct.c_int]
 
-libcsound.csoundSetIsGraphable.argtypes = [c_void_p, c_int]
-MAKEGRAPHFUNC = CFUNCTYPE(None, c_void_p, POINTER(Windat), c_char_p)
-libcsound.csoundSetMakeGraphCallback.argtypes = [c_void_p, MAKEGRAPHFUNC]
-DRAWGRAPHFUNC = CFUNCTYPE(None, c_void_p, POINTER(Windat))
-libcsound.csoundSetDrawGraphCallback.argtypes = [c_void_p, DRAWGRAPHFUNC]
-KILLGRAPHFUNC = CFUNCTYPE(None, c_void_p, POINTER(Windat))
-libcsound.csoundSetKillGraphCallback.argtypes = [c_void_p, KILLGRAPHFUNC]
-EXITGRAPHFUNC = CFUNCTYPE(c_int, c_void_p)
-libcsound.csoundSetExitGraphCallback.argtypes = [c_void_p, EXITGRAPHFUNC]
+libcsound.csoundSetIsGraphable.argtypes = [ct.c_void_p, ct.c_int]
+MAKEGRAPHFUNC = ct.CFUNCTYPE(None, ct.c_void_p, ct.POINTER(Windat), ct.c_char_p)
+libcsound.csoundSetMakeGraphCallback.argtypes = [ct.c_void_p, MAKEGRAPHFUNC]
+DRAWGRAPHFUNC = ct.CFUNCTYPE(None, ct.c_void_p, ct.POINTER(Windat))
+libcsound.csoundSetDrawGraphCallback.argtypes = [ct.c_void_p, DRAWGRAPHFUNC]
+KILLGRAPHFUNC = ct.CFUNCTYPE(None, ct.c_void_p, ct.POINTER(Windat))
+libcsound.csoundSetKillGraphCallback.argtypes = [ct.c_void_p, KILLGRAPHFUNC]
+EXITGRAPHFUNC = ct.CFUNCTYPE(ct.c_int, ct.c_void_p)
+libcsound.csoundSetExitGraphCallback.argtypes = [ct.c_void_p, EXITGRAPHFUNC]
 
-libcsound.csoundGetNamedGens.restype = c_void_p
-libcsound.csoundGetNamedGens.argtypes = [c_void_p]
-libcsound.csoundNewOpcodeList.argtypes = [c_void_p, POINTER(POINTER(OpcodeListEntry))]
-libcsound.csoundDisposeOpcodeList.argtypes = [c_void_p, POINTER(OpcodeListEntry)]
-OPCODEFUNC = CFUNCTYPE(c_int, c_void_p, c_void_p)
-libcsound.csoundAppendOpcode.argtypes = [c_void_p, c_char_p, c_int, c_int, c_int, \
-                                         c_char_p, c_char_p, OPCODEFUNC, OPCODEFUNC, OPCODEFUNC]
+libcsound.csoundGetNamedGens.restype = ct.c_void_p
+libcsound.csoundGetNamedGens.argtypes = [ct.c_void_p]
+libcsound.csoundNewOpcodeList.argtypes = [ct.c_void_p, ct.POINTER(ct.POINTER(OpcodeListEntry))]
+libcsound.csoundDisposeOpcodeList.argtypes = [ct.c_void_p, ct.POINTER(OpcodeListEntry)]
+OPCODEFUNC = ct.CFUNCTYPE(ct.c_int, ct.c_void_p, ct.c_void_p)
+libcsound.csoundAppendOpcode.argtypes = [ct.c_void_p, ct.c_char_p, ct.c_int, ct.c_int, ct.c_int, \
+                                         ct.c_char_p, ct.c_char_p, OPCODEFUNC, OPCODEFUNC, OPCODEFUNC]
 
-YIELDFUNC = CFUNCTYPE(c_int, c_void_p)
-libcsound.csoundSetYieldCallback.argtypes = [c_void_p, YIELDFUNC]
-THREADFUNC = CFUNCTYPE(POINTER(c_uint), py_object)
-libcsound.csoundCreateThread.restype = c_void_p
-libcsound.csoundCreateThread.argtypes = [THREADFUNC, py_object]
-libcsound.csoundGetCurrentThreadId.restype = c_void_p
-libcsound.csoundJoinThread.restype = POINTER(c_uint)
-libcsound.csoundJoinThread.argtypes = [c_void_p]
-libcsound.csoundCreateThreadLock.restype = c_void_p
-libcsound.csoundWaitThreadLock.argtypes = [c_void_p, c_uint]
-libcsound.csoundWaitThreadLockNoTimeout.argtypes = [c_void_p]
-libcsound.csoundNotifyThreadLock.argtypes = [c_void_p]
-libcsound.csoundDestroyThreadLock.argtypes = [c_void_p]
-libcsound.csoundCreateMutex.restype = c_void_p
-libcsound.csoundCreateMutex.argtypes = [c_int]
-libcsound.csoundLockMutex.argtypes = [c_void_p]
-libcsound.csoundLockMutexNoWait.argtypes = [c_void_p]
-libcsound.csoundUnlockMutex.argtypes = [c_void_p]
-libcsound.csoundDestroyMutex.argtypes = [c_void_p]
-libcsound.csoundCreateBarrier.restype = c_void_p
-libcsound.csoundCreateBarrier.argtypes = [c_uint]
-libcsound.csoundDestroyBarrier.argtypes = [c_void_p]
-libcsound.csoundWaitBarrier.argtypes = [c_void_p]
-libcsound.csoundSleep.argtypes = [c_uint]
-libcsound.csoundSpinLockInit.argtypes = [POINTER(c_int32)]
-libcsound.csoundSpinLock.argtypes = [POINTER(c_int32)]
-libcsound.csoundSpinTryLock.argtypes = [POINTER(c_int32)]
-libcsound.csoundSpinUnLock.argtypes = [POINTER(c_int32)]
+YIELDFUNC = ct.CFUNCTYPE(ct.c_int, ct.c_void_p)
+libcsound.csoundSetYieldCallback.argtypes = [ct.c_void_p, YIELDFUNC]
+THREADFUNC = ct.CFUNCTYPE(ct.POINTER(ct.c_uint), ct.py_object)
+libcsound.csoundCreateThread.restype = ct.c_void_p
+libcsound.csoundCreateThread.argtypes = [THREADFUNC, ct.py_object]
+libcsound.csoundGetCurrentThreadId.restype = ct.c_void_p
+libcsound.csoundJoinThread.restype = ct.POINTER(ct.c_uint)
+libcsound.csoundJoinThread.argtypes = [ct.c_void_p]
+libcsound.csoundCreateThreadLock.restype = ct.c_void_p
+libcsound.csoundWaitThreadLock.argtypes = [ct.c_void_p, ct.c_uint]
+libcsound.csoundWaitThreadLockNoTimeout.argtypes = [ct.c_void_p]
+libcsound.csoundNotifyThreadLock.argtypes = [ct.c_void_p]
+libcsound.csoundDestroyThreadLock.argtypes = [ct.c_void_p]
+libcsound.csoundCreateMutex.restype = ct.c_void_p
+libcsound.csoundCreateMutex.argtypes = [ct.c_int]
+libcsound.csoundLockMutex.argtypes = [ct.c_void_p]
+libcsound.csoundLockMutexNoWait.argtypes = [ct.c_void_p]
+libcsound.csoundUnlockMutex.argtypes = [ct.c_void_p]
+libcsound.csoundDestroyMutex.argtypes = [ct.c_void_p]
+libcsound.csoundCreateBarrier.restype = ct.c_void_p
+libcsound.csoundCreateBarrier.argtypes = [ct.c_uint]
+libcsound.csoundDestroyBarrier.argtypes = [ct.c_void_p]
+libcsound.csoundWaitBarrier.argtypes = [ct.c_void_p]
+libcsound.csoundSleep.argtypes = [ct.c_uint]
+libcsound.csoundSpinLockInit.argtypes = [ct.POINTER(ct.c_int32)]
+libcsound.csoundSpinLock.argtypes = [ct.POINTER(ct.c_int32)]
+libcsound.csoundSpinTryLock.argtypes = [ct.POINTER(ct.c_int32)]
+libcsound.csoundSpinUnLock.argtypes = [ct.POINTER(ct.c_int32)]
 
-libcsound.csoundRunCommand.restype = c_long 
-libcsound.csoundRunCommand.argtypes = [POINTER(c_char_p), c_int]
-libcsound.csoundInitTimerStruct.argtypes = [POINTER(RtClock)]
-libcsound.csoundGetRealTime.restype = c_double
-libcsound.csoundGetRealTime.argtypes = [POINTER(RtClock)]
-libcsound.csoundGetCPUTime.restype = c_double
-libcsound.csoundGetCPUTime.argtypes = [POINTER(RtClock)]
-libcsound.csoundGetRandomSeedFromTime.restype = c_uint32
-libcsound.csoundGetEnv.restype = c_char_p
-libcsound.csoundGetEnv.argtypes = [c_void_p, c_char_p]
-libcsound.csoundSetGlobalEnv.argtypes = [c_char_p, c_char_p]
-libcsound.csoundCreateGlobalVariable.argtypes = [c_void_p, c_char_p, c_uint]
-libcsound.csoundQueryGlobalVariable.restype = c_void_p
-libcsound.csoundQueryGlobalVariable.argtypes = [c_void_p, c_char_p]
-libcsound.csoundQueryGlobalVariableNoCheck.restype = c_void_p
-libcsound.csoundQueryGlobalVariableNoCheck.argtypes = [c_void_p, c_char_p]
-libcsound.csoundDestroyGlobalVariable.argtypes = [c_void_p, c_char_p]
-libcsound.csoundRunUtility.argtypes = [c_void_p, c_char_p, c_int, POINTER(c_char_p)]
-libcsound.csoundListUtilities.restype = POINTER(c_char_p)
-libcsound.csoundListUtilities.argtypes = [c_void_p]
-libcsound.csoundDeleteUtilityList.argtypes = [c_void_p, POINTER(c_char_p)]
-libcsound.csoundGetUtilityDescription.restype = c_char_p
-libcsound.csoundGetUtilityDescription.argtypes = [c_void_p, c_char_p]
-libcsound.csoundRand31.argtypes = [POINTER(c_int)]
-libcsound.csoundSeedRandMT.argtypes = [POINTER(CsoundRandMTState), POINTER(c_uint32), c_uint32]
-libcsound.csoundRandMT.restype = c_uint32
-libcsound.csoundRandMT.argtypes = [POINTER(CsoundRandMTState)]
-libcsound.csoundCreateCircularBuffer.restype = c_void_p
-libcsound.csoundCreateCircularBuffer.argtypes = [c_void_p, c_int, c_int]
-libcsound.csoundReadCircularBuffer.argtypes = [c_void_p, c_void_p, c_void_p, c_int]
-libcsound.csoundPeekCircularBuffer.argtypes = [c_void_p, c_void_p, c_void_p, c_int]
-libcsound.csoundWriteCircularBuffer.argtypes = [c_void_p, c_void_p, c_void_p, c_int]
-libcsound.csoundFlushCircularBuffer.argtypes = [c_void_p, c_void_p]
-libcsound.csoundDestroyCircularBuffer.argtypes = [c_void_p, c_void_p]
-libcsound.csoundOpenLibrary.argtypes = [POINTER(c_void_p), c_char_p]
-libcsound.csoundCloseLibrary.argtypes = [c_void_p]
-libcsound.csoundGetLibrarySymbol.retype = c_void_p
-libcsound.csoundGetLibrarySymbol.argtypes = [c_void_p, c_char_p]
+libcsound.csoundRunCommand.restype = ct.c_long 
+libcsound.csoundRunCommand.argtypes = [ct.POINTER(ct.c_char_p), ct.c_int]
+libcsound.csoundInitTimerStruct.argtypes = [ct.POINTER(RtClock)]
+libcsound.csoundGetRealTime.restype = ct.c_double
+libcsound.csoundGetRealTime.argtypes = [ct.POINTER(RtClock)]
+libcsound.csoundGetCPUTime.restype = ct.c_double
+libcsound.csoundGetCPUTime.argtypes = [ct.POINTER(RtClock)]
+libcsound.csoundGetRandomSeedFromTime.restype = ct.c_uint32
+libcsound.csoundGetEnv.restype = ct.c_char_p
+libcsound.csoundGetEnv.argtypes = [ct.c_void_p, ct.c_char_p]
+libcsound.csoundSetGlobalEnv.argtypes = [ct.c_char_p, ct.c_char_p]
+libcsound.csoundCreateGlobalVariable.argtypes = [ct.c_void_p, ct.c_char_p, ct.c_uint]
+libcsound.csoundQueryGlobalVariable.restype = ct.c_void_p
+libcsound.csoundQueryGlobalVariable.argtypes = [ct.c_void_p, ct.c_char_p]
+libcsound.csoundQueryGlobalVariableNoCheck.restype = ct.c_void_p
+libcsound.csoundQueryGlobalVariableNoCheck.argtypes = [ct.c_void_p, ct.c_char_p]
+libcsound.csoundDestroyGlobalVariable.argtypes = [ct.c_void_p, ct.c_char_p]
+libcsound.csoundRunUtility.argtypes = [ct.c_void_p, ct.c_char_p, ct.c_int, ct.POINTER(ct.c_char_p)]
+libcsound.csoundListUtilities.restype = ct.POINTER(ct.c_char_p)
+libcsound.csoundListUtilities.argtypes = [ct.c_void_p]
+libcsound.csoundDeleteUtilityList.argtypes = [ct.c_void_p, ct.POINTER(ct.c_char_p)]
+libcsound.csoundGetUtilityDescription.restype = ct.c_char_p
+libcsound.csoundGetUtilityDescription.argtypes = [ct.c_void_p, ct.c_char_p]
+libcsound.csoundRand31.argtypes = [ct.POINTER(ct.c_int)]
+libcsound.csoundSeedRandMT.argtypes = [ct.POINTER(CsoundRandMTState), ct.POINTER(ct.c_uint32), ct.c_uint32]
+libcsound.csoundRandMT.restype = ct.c_uint32
+libcsound.csoundRandMT.argtypes = [ct.POINTER(CsoundRandMTState)]
+libcsound.csoundCreateCircularBuffer.restype = ct.c_void_p
+libcsound.csoundCreateCircularBuffer.argtypes = [ct.c_void_p, ct.c_int, ct.c_int]
+libcsound.csoundReadCircularBuffer.argtypes = [ct.c_void_p, ct.c_void_p, ct.c_void_p, ct.c_int]
+libcsound.csoundPeekCircularBuffer.argtypes = [ct.c_void_p, ct.c_void_p, ct.c_void_p, ct.c_int]
+libcsound.csoundWriteCircularBuffer.argtypes = [ct.c_void_p, ct.c_void_p, ct.c_void_p, ct.c_int]
+libcsound.csoundFlushCircularBuffer.argtypes = [ct.c_void_p, ct.c_void_p]
+libcsound.csoundDestroyCircularBuffer.argtypes = [ct.c_void_p, ct.c_void_p]
+libcsound.csoundOpenLibrary.argtypes = [ct.POINTER(ct.c_void_p), ct.c_char_p]
+libcsound.csoundCloseLibrary.argtypes = [ct.c_void_p]
+libcsound.csoundGetLibrarySymbol.retype = ct.c_void_p
+libcsound.csoundGetLibrarySymbol.argtypes = [ct.c_void_p, ct.c_char_p]
 
 
 def cchar(s):
     if sys.version_info[0] >= 3:
-        return c_char(ord(s[0]))
-    return c_char(s[0])
+        return ct.c_char(ord(s[0]))
+    return ct.c_char(s[0])
 
 def cstring(s):
     if sys.version_info[0] >= 3 and s != None:
@@ -496,11 +500,11 @@ def csoundArgList(lst):
     if len(lst) == 1 and type(lst[0]) is list:
         lst = lst[0]
     argc = len(lst)
-    argv = (POINTER(c_char_p) * argc)()
+    argv = (ct.POINTER(ct.c_char_p) * argc)()
     for i in range(argc):
         v = cstring(lst[i])
-        argv[i] = cast(pointer(create_string_buffer(v)), POINTER(c_char_p))
-    return c_int(argc), cast(argv, POINTER(c_char_p))
+        argv[i] = ct.cast(ct.pointer(ct.create_string_buffer(v)), ct.POINTER(ct.c_char_p))
+    return ct.c_int(argc), ct.cast(argv, ct.POINTER(ct.c_char_p))
 
 
 # message types (only one can be specified)
@@ -675,7 +679,7 @@ class Csound:
             self.cs = pointer_
             self.fromPointer = True
         else:
-            self.cs = libcsound.csoundCreate(py_object(hostData))
+            self.cs = libcsound.csoundCreate(ct.py_object(hostData))
             self.fromPointer = False
     
     def __del__(self):
@@ -926,7 +930,7 @@ class Csound:
         Returns CSOUND_SUCCESS if server has been started successfully,
         otherwise, CSOUND_ERROR.
         """
-        return libcsound.csoundUDPServerStart(self.cs, c_uint(port))
+        return libcsound.csoundUDPServerStart(self.cs, ct.c_uint(port))
 
     def UDPServerStatus(self):
         """Returns the port number on which the server is running.
@@ -951,7 +955,7 @@ class Csound:
         Returns CSOUND_SUCCESS or CSOUND_ERROR if the UDP transmission
         could not be set up.
         """
-        return libcsound.csoundUDPConsole(self.cs, cstring(addr), c_uint(port), c_uint(mirror))
+        return libcsound.csoundUDPConsole(self.cs, cstring(addr), ct.c_uint(port), ct.c_uint(mirror))
 
     def stopUDPConsole(self):
         """Stops transmitting console messages via UDP."""
@@ -1007,7 +1011,7 @@ class Csound:
     
     def setHostData(self, data):
         """Sets host data."""
-        libcsound.csoundSetHostData(self.cs, py_object(data))
+        libcsound.csoundSetHostData(self.cs, ct.py_object(data))
     
     def setOption(self, option):
         """Sets a single csound option (flag).
@@ -1026,7 +1030,7 @@ class Csound:
         The CsoundParams structure can be obtained using :py:meth:`params()`.
         These options should only be changed before performance has started.
         """
-        libcsound.csoundSetParams(self.cs, byref(params))
+        libcsound.csoundSetParams(self.cs, ct.byref(params))
     
     def params(self, params):
         """Gets the current set of parameters from a CSOUND instance.
@@ -1037,7 +1041,7 @@ class Csound:
             p = CsoundParams()
             cs.params(p)
         """
-        libcsound.csoundGetParams(self.cs, byref(params))
+        libcsound.csoundGetParams(self.cs, ct.byref(params))
     
     def debug(self):
         """Returns whether Csound is set to print debug messages.
@@ -1053,7 +1057,7 @@ class Csound:
         The debug argument must have value :code:`True` or :code:`False`.
         Those messages come from the :code:`DebugMsg()` internal API function.
         """
-        libcsound.csoundSetDebug(self.cs, c_int(debug))
+        libcsound.csoundSetDebug(self.cs, ct.c_int(debug))
 
     def systemSr(self, val):
     	"""If val > 0, sets the internal variable holding the system HW sr.
@@ -1093,8 +1097,8 @@ class Csound:
     
     def outputFormat(self):
         """Gets output type and format."""
-        type_ = create_string_buffer(6)
-        format = create_string_buffer(8)
+        type_ = ct.create_string_buffer(6)
+        format = ct.create_string_buffer(8)
         libcsound.csoundGetOutputFormat(self.cs, type_, format)
         return pstring(string_at(type_)), pstring(string_at(format))
 
@@ -1159,8 +1163,8 @@ class Csound:
                 print("Module %d:%s (%s)\\n" % (n, name, type_))
                 n = n + 1
         """
-        name = pointer(c_char_p(cstring("dummy")))
-        type_ = pointer(c_char_p(cstring("dummy")))
+        name = ct.pointer(ct.c_char_p(cstring("dummy")))
+        type_ = ct.pointer(ct.c_char_p(cstring("dummy")))
         err = libcsound.csoundGetModule(self.cs, number, name, type_)
         if err == CSOUND_ERROR:
             return None, None, err
@@ -1185,7 +1189,7 @@ class Csound:
         buf = libcsound.csoundGetInputBuffer(self.cs)
         size = libcsound.csoundGetInputBufferSize(self.cs)
         arrayType = np.ctypeslib.ndpointer(MYFLT, 1, (size,), 'C_CONTIGUOUS')
-        p = cast(buf, arrayType)
+        p = ct.cast(buf, arrayType)
         return arrFromPointer(p)
     
     def outputBuffer(self):
@@ -1197,7 +1201,7 @@ class Csound:
         buf = libcsound.csoundGetOutputBuffer(self.cs)
         size = libcsound.csoundGetOutputBufferSize(self.cs)
         arrayType = np.ctypeslib.ndpointer(MYFLT, 1, (size,), 'C_CONTIGUOUS')
-        p = cast(buf, arrayType)
+        p = ct.cast(buf, arrayType)
         return arrFromPointer(p)
     
     def spin(self):
@@ -1209,7 +1213,7 @@ class Csound:
         buf = libcsound.csoundGetSpin(self.cs)
         size = self.ksmps() * self.nchnlsInput()
         arrayType = np.ctypeslib.ndpointer(MYFLT, 1, (size,), 'C_CONTIGUOUS')
-        p = cast(buf, arrayType)
+        p = ct.cast(buf, arrayType)
         return arrFromPointer(p)
     
     def clearSpin(self):
@@ -1246,7 +1250,7 @@ class Csound:
         buf = libcsound.csoundGetSpout(self.cs)
         size = self.ksmps() * self.nchnls()
         arrayType = np.ctypeslib.ndpointer(MYFLT, 1, (size,), 'C_CONTIGUOUS')
-        p = cast(buf, arrayType)
+        p = ct.cast(buf, arrayType)
         return arrFromPointer(p)
     
     def spoutSample(self, frame, channel):
@@ -1279,7 +1283,7 @@ class Csound:
         set to the integer multiple of :py:meth:`ksmps()` that is nearest to the
         value specified.
         """
-        libcsound.csoundSetHostImplementedAudioIO(self.cs, c_int(state), bufSize)
+        libcsound.csoundSetHostImplementedAudioIO(self.cs, ct.c_int(state), bufSize)
 
     def audioDevList(self, isOutput):
         """Returns a list of available input or output audio devices.
@@ -1292,9 +1296,9 @@ class Csound:
         Must be called after an orchestra has been compiled
         to get meaningful information.
         """
-        n = libcsound.csoundGetAudioDevList(self.cs, None, c_int(isOutput))
+        n = libcsound.csoundGetAudioDevList(self.cs, None, ct.c_int(isOutput))
         devs = (CsoundAudioDevice * n)()
-        libcsound.csoundGetAudioDevList(self.cs, byref(devs), c_int(isOutput))
+        libcsound.csoundGetAudioDevList(self.cs, ct.byref(devs), ct.c_int(isOutput))
         lst = []
         for dev in devs:
             d = {}
@@ -1347,7 +1351,7 @@ class Csound:
     
     def setHostImplementedMIDIIO(self, state):
         """Called with *state* :code:`True` if the host is implementing via callbacks."""
-        libcsound.csoundSetHostImplementedMIDIIO(self.cs, c_int(state))
+        libcsound.csoundSetHostImplementedMIDIIO(self.cs, ct.c_int(state))
     
     def midiDevList(self, isOutput):
         """Returns a list of available input or output midi devices.
@@ -1359,9 +1363,9 @@ class Csound:
         Must be called after an orchestra has been compiled
         to get meaningful information.
         """
-        n = libcsound.csoundGetMIDIDevList(self.cs, None, c_int(isOutput))
+        n = libcsound.csoundGetMIDIDevList(self.cs, None, ct.c_int(isOutput))
         devs = (csoundMidiDevice * n)()
-        libcsound.csoundGetMIDIDevList(self.cs, byref(devs), c_int(isOutput))
+        libcsound.csoundGetMIDIDevList(self.cs, ct.byref(devs), ct.c_int(isOutput))
         lst = []
         for dev in devs:
             d = {}
@@ -1454,7 +1458,7 @@ class Csound:
         a Csound score while working on other tracks of a piece, or to play
         the Csound instruments live.
         """
-        libcsound.csoundSetScorePending(self.cs, c_int(pending))
+        libcsound.csoundSetScorePending(self.cs, ct.c_int(pending))
     
     def scoreOffsetSeconds(self):
         """Returns the score time beginning midway through a Csound score.
@@ -1560,7 +1564,7 @@ class Csound:
         :py:meth:`setMessageCallback()` should not be called after creating the
         message buffer.
         """
-        libcsound.csoundCreateMessageBuffer(self.cs,  c_int(toStdOut))
+        libcsound.csoundCreateMessageBuffer(self.cs,  ct.c_int(toStdOut))
     
     def firstMessage(self):
         """Returns the first message from the buffer."""
@@ -1589,7 +1593,7 @@ class Csound:
         
         If the channel is a control or an audio channel, the pointer is
         translated to an ndarray of MYFLT. If the channel is a string channel,
-        the pointer is casted to :code:`c_char_p`. The error message is either
+        the pointer is casted to :code:`ct.c_char_p`. The error message is either
         an empty string or a string describing the error that occured.
         
         The channel is created first if it does not exist yet.
@@ -1646,15 +1650,15 @@ class Csound:
             length = 1
         elif chanType == CSOUND_AUDIO_CHANNEL:
             length = libcsound.csoundGetKsmps(self.cs)
-        ptr = POINTER(MYFLT)()
+        ptr = ct.POINTER(MYFLT)()
         err = ''
-        ret = libcsound.csoundGetChannelPtr(self.cs, byref(ptr), cstring(name), type_)
+        ret = libcsound.csoundGetChannelPtr(self.cs, ct.byref(ptr), cstring(name), type_)
         if ret == CSOUND_SUCCESS:
             if chanType == CSOUND_STRING_CHANNEL:
-                return cast(ptr, c_char_p), err
+                return ct.cast(ptr, ct.c_char_p), err
             else:
                 arrayType = np.ctypeslib.ndpointer(MYFLT, 1, (length,), 'C_CONTIGUOUS')
-                p = cast(ptr, arrayType)
+                p = ct.cast(ptr, arrayType)
                 return arrFromPointer(p), err
         elif ret == CSOUND_MEMORY:
             err = 'Not enough memory for allocating channel'
@@ -1686,17 +1690,17 @@ class Csound:
         """
         cInfos = None
         err = ''
-        ptr = cast(POINTER(c_int)(), POINTER(ControlChannelInfo))
-        n = libcsound.csoundListChannels(self.cs, byref(ptr))
+        ptr = ct.cast(ct.POINTER(ct.c_int)(), ct.POINTER(ControlChannelInfo))
+        n = libcsound.csoundListChannels(self.cs, ct.byref(ptr))
         if n == CSOUND_MEMORY :
             err = 'There is not enough memory for allocating the list'
         if n > 0:
-            cInfos = cast(ptr, POINTER(ControlChannelInfo * n)).contents
+            cInfos = ct.cast(ptr, ct.POINTER(ControlChannelInfo * n)).contents
         return cInfos, err
 
     def deleteChannelList(self, lst):
         """Releases a channel list previously returned by :py:meth:`listChannels()`."""
-        ptr = cast(lst, POINTER(ControlChannelInfo))
+        ptr = ct.cast(lst, ct.POINTER(ControlChannelInfo))
         libcsound.csoundDeleteChannelList(self.cs, ptr)
     
     def setControlChannelHints(self, name, hints):
@@ -1726,7 +1730,7 @@ class Csound:
         otherwise, :code:`None` and an error code are returned.
         """
         hints = ControlChannelHints()
-        ret = libcsound.csoundGetControlChannelHints(self.cs, cstring(name), byref(hints))
+        ret = libcsound.csoundGetControlChannelHints(self.cs, cstring(name), ct.byref(hints))
         if ret != CSOUND_SUCCESS:
             hints = None
         return hints, ret
@@ -1746,8 +1750,8 @@ class Csound:
         A second value is returned, which is the error (or success) code
         finding or accessing the channel.
         """
-        err = c_int(0)
-        ret = libcsound.csoundGetControlChannel(self.cs, cstring(name), byref(err))
+        err = ct.c_int(0)
+        ret = libcsound.csoundGetControlChannel(self.cs, cstring(name), ct.byref(err))
         return ret, err
     
     def setControlChannel(self, name, val):
@@ -1759,7 +1763,7 @@ class Csound:
         
         *samples* should contain enough memory for :py:meth:`ksmps()` MYFLTs.
         """
-        ptr = samples.ctypes.data_as(POINTER(MYFLT))
+        ptr = samples.ctypes.data_as(ct.POINTER(MYFLT))
         libcsound.csoundGetAudioChannel(self.cs, cstring(name), ptr)
     
     def setAudioChannel(self, name, samples):
@@ -1767,7 +1771,7 @@ class Csound:
         
         *samples* should contain at least :py:meth:`ksmps()` MYFLTs.
         """
-        ptr = samples.ctypes.data_as(POINTER(MYFLT))
+        ptr = samples.ctypes.data_as(ct.POINTER(MYFLT))
         libcsound.csoundSetAudioChannel(self.cs, cstring(name), ptr)
     
     def stringChannel(self, name, string):
@@ -1809,7 +1813,7 @@ class Csound:
           fsig framesizes are incompatible.
         | CSOUND_MEMORY if there is not enough memory to extend the bus.
         """
-        return libcsound.csoundSetPvsChannel(self.cs, byref(fin), cstring(name))
+        return libcsound.csoundSetPvsChannel(self.cs, ct.byref(fin), cstring(name))
     
     def pvsChannel(self, fout, name):
         """Receives a PvsdatExt *fout* from the :code:`pvsout` opcode (f-rate) at channel *name*.
@@ -1818,7 +1822,7 @@ class Csound:
           if fsig framesizes are incompatible.
         | CSOUND_MEMORY if there is not enough memory to extend the bus.
         """
-        return libcsound.csoundGetPvsChannel(self.cs, byref(fout), cstring(name))
+        return libcsound.csoundGetPvsChannel(self.cs, ct.byref(fout), cstring(name))
     
     def scoreEvent(self, type_, pFields):
         """Sends a new score event.
@@ -1829,15 +1833,15 @@ class Csound:
           pFields[0].
         """
         p = np.array(pFields).astype(MYFLT)
-        ptr = p.ctypes.data_as(POINTER(MYFLT))
-        numFields = c_long(p.size)
+        ptr = p.ctypes.data_as(ct.POINTER(MYFLT))
+        numFields = ct.c_long(p.size)
         return libcsound.csoundScoreEvent(self.cs, cchar(type_), ptr, numFields)
     
     def scoreEventAsync(self, type_, pFields):
         """Asynchronous version of :py:meth:`scoreEvent()`."""
         p = np.array(pFields).astype(MYFLT)
-        ptr = p.ctypes.data_as(POINTER(MYFLT))
-        numFields = c_long(p.size)
+        ptr = p.ctypes.data_as(ct.POINTER(MYFLT))
+        numFields = ct.c_long(p.size)
         libcsound.csoundScoreEventAsync(self.cs, cchar(type_), ptr, numFields)
     
     def scoreEventAbsolute(self, type_, pFields, timeOffset):
@@ -1847,16 +1851,16 @@ class Csound:
         performance, or from an offset set with timeOffset.
         """
         p = np.array(pFields).astype(MYFLT)
-        ptr = p.ctypes.data_as(POINTER(MYFLT))
-        numFields = c_long(p.size)
-        return libcsound.csoundScoreEventAbsolute(self.cs, cchar(type_), ptr, numFields, c_double(timeOffset))
+        ptr = p.ctypes.data_as(ct.POINTER(MYFLT))
+        numFields = ct.c_long(p.size)
+        return libcsound.csoundScoreEventAbsolute(self.cs, cchar(type_), ptr, numFields, ct.c_double(timeOffset))
     
     def scoreEventAbsoluteAsync(self, type_, pFields, timeOffset):
         """Asynchronous version of :py:meth:`scoreEventAbsolute()`."""
         p = np.array(pFields).astype(MYFLT)
-        ptr = p.ctypes.data_as(POINTER(MYFLT))
-        numFields = c_long(p.size)
-        libcsound.csoundScoreEventAbsoluteAsync(self.cs, cchar(type_), ptr, numFields, c_double(timeOffset))
+        ptr = p.ctypes.data_as(ct.POINTER(MYFLT))
+        numFields = ct.c_long(p.size)
+        libcsound.csoundScoreEventAbsoluteAsync(self.cs, cchar(type_), ptr, numFields, ct.c_double(timeOffset))
     
     def inputMessage(self, message):
         """Inputs a NULL-terminated string (as if from a console).
@@ -1883,7 +1887,7 @@ class Csound:
         If *allowRelease* is :code:`True`, the killed instances are allowed to
         release.
         """
-        return libcsound.csoundKillInstance(self.cs, MYFLT(instr), cstring(instrName), mode, c_int(allowRelease))
+        return libcsound.csoundKillInstance(self.cs, MYFLT(instr), cstring(instrName), mode, ct.c_int(allowRelease))
     
     def registerSenseEventCallback(self, function, userData):
         """Registers a function to be called by :code:`sensevents()`.
@@ -1903,7 +1907,7 @@ class Csound:
         Returns zero on success.
         """
         self.senseEventCbRef = SENSEFUNC(function)
-        return libcsound.csoundRegisterSenseEventCallback(self.cs, self.senseEventCbRef, py_object(userData))
+        return libcsound.csoundRegisterSenseEventCallback(self.cs, self.senseEventCbRef, ct.py_object(userData))
     
     def keyPress(self, c):
         """Sets the ASCII code of the most recent key pressed.
@@ -1964,7 +1968,7 @@ class Csound:
             self.keyboardCbEventRef = KEYBOARDFUNC(function)
         else:
             self.keyboardCbTextRef = KEYBOARDFUNC(function)
-        return libcsound.csoundRegisterKeyboardCallback(self.cs, KEYBOARDFUNC(function), py_object(userData), c_uint(type_))
+        return libcsound.csoundRegisterKeyboardCallback(self.cs, KEYBOARDFUNC(function), ct.py_object(userData), ct.c_uint(type_))
     
     def removeKeyboardCallback(self, function):
         """Removes a callback previously set with :py:meth:`registerKeyboardCallback()`."""
@@ -1999,12 +2003,12 @@ class Csound:
         The *table* number is assumed to be valid, and the destination needs to
         have sufficient space to receive all the function table contents.
         """
-        ptr = dest.ctypes.data_as(POINTER(MYFLT))
+        ptr = dest.ctypes.data_as(ct.POINTER(MYFLT))
         libcsound.csoundTableCopyOut(self.cs, table, ptr)
     
     def tableCopyOutAsync(self, table, dest):
         """Asynchronous version of :py:meth:`tableCopyOut()`."""
-        ptr = dest.ctypes.data_as(POINTER(MYFLT))
+        ptr = dest.ctypes.data_as(ct.POINTER(MYFLT))
         libcsound.csoundTableCopyOutAsync(self.cs, table, ptr)
     
     def tableCopyIn(self, table, src):
@@ -2013,12 +2017,12 @@ class Csound:
         The *table* number is assumed to be valid, and the table needs to
         have sufficient space to receive all the array contents.
         """
-        ptr = src.ctypes.data_as(POINTER(MYFLT))
+        ptr = src.ctypes.data_as(ct.POINTER(MYFLT))
         libcsound.csoundTableCopyIn(self.cs, table, ptr)
     
     def tableCopyInAsync(self, table, src):
         """Asynchronous version of :py:meth:`tableCopyIn()`."""
-        ptr = src.ctypes.data_as(POINTER(MYFLT))
+        ptr = src.ctypes.data_as(ct.POINTER(MYFLT))
         libcsound.csoundTableCopyInAsync(self.cs, table, ptr)
     
     def table(self, tableNum):
@@ -2027,12 +2031,12 @@ class Csound:
         The ndarray does not include the guard point. If the table does not
         exist, :code:`None` is returned.
         """
-        ptr = POINTER(MYFLT)()
-        size = libcsound.csoundGetTable(self.cs, byref(ptr), tableNum)
+        ptr = ct.POINTER(MYFLT)()
+        size = libcsound.csoundGetTable(self.cs, ct.byref(ptr), tableNum)
         if size < 0:
             return None
         arrayType = np.ctypeslib.ndpointer(MYFLT, 1, (size,), 'C_CONTIGUOUS')
-        p = cast(ptr, arrayType)
+        p = ct.cast(ptr, arrayType)
         return arrFromPointer(p)
         
     def tableArgs(self, tableNum):
@@ -2045,12 +2049,12 @@ class Csound:
         its parameters. eg. f 1 0 1024 10 1 0.5  yields the list
         {10.0, 1.0, 0.5}
         """
-        ptr = POINTER(MYFLT)()
-        size = libcsound.csoundGetTableArgs(self.cs, byref(ptr), tableNum)
+        ptr = ct.POINTER(MYFLT)()
+        size = libcsound.csoundGetTableArgs(self.cs, ct.byref(ptr), tableNum)
         if size < 0:
             return None
         arrayType = np.ctypeslib.ndpointer(MYFLT, 1, (size,), 'C_CONTIGUOUS')
-        p = cast(ptr, arrayType)
+        p = ct.cast(ptr, arrayType)
         return arrFromPointer(p)
     
     def isNamedGEN(self, num):
@@ -2065,7 +2069,7 @@ class Csound:
         
         The final parameter is the max len of the string.
         """
-        s = create_string_buffer(nameLen)
+        s = ct.create_string_buffer(nameLen)
         libcsound.csoundGetNamedGEN(self.cs, num, s, nameLen)
         return pstring(string_at(s, nameLen))
     
@@ -2075,7 +2079,7 @@ class Csound:
         
         Return the previously set value (initially False).
         """
-        ret = libcsound.csoundSetIsGraphable(self.cs, c_int(isGraphable))
+        ret = libcsound.csoundSetIsGraphable(self.cs, ct.c_int(isGraphable))
         return (ret != 0)
     
     def setMakeGraphCallback(self, function):
@@ -2103,7 +2107,7 @@ class Csound:
         """Finds the list of named gens."""
         lst = []
         ptr = libcsound.csoundGetNamedGens(self.cs)
-        ptr = cast(ptr, POINTER(NamedGen))
+        ptr = ct.cast(ptr, ct.POINTER(NamedGen))
         while (ptr):
             ng = ptr.contents
             lst.append((pstring(ng.name), int(ng.genum)))
@@ -2120,15 +2124,15 @@ class Csound:
         list.
         """
         opcodes = None
-        ptr = cast(POINTER(c_int)(), POINTER(OpcodeListEntry))
-        n = libcsound.csoundNewOpcodeList(self.cs, byref(ptr))
+        ptr = ct.cast(ct.POINTER(ct.c_int)(), ct.POINTER(OpcodeListEntry))
+        n = libcsound.csoundNewOpcodeList(self.cs, ct.byref(ptr))
         if n > 0:
-            opcodes = cast(ptr, POINTER(OpcodeListEntry * n)).contents
+            opcodes = ct.cast(ptr, ct.POINTER(OpcodeListEntry * n)).contents
         return opcodes, n
     
     def disposeOpcodeList(self, lst):
         """Releases an opcode list."""
-        ptr = cast(lst, POINTER(OpcodeListEntry))
+        ptr = ct.cast(lst, ct.POINTER(OpcodeListEntry))
         libcsound.csoundDisposeOpcodeList(self.cs, ptr)
 
     def appendOpcode(self, opname, dsblksiz, flags, thread, outypes, intypes, iopfunc, kopfunc, aopfunc):
@@ -2171,7 +2175,7 @@ class Csound:
         or :code:`None` for failure.
         The *userdata* pointer is passed to the thread routine.
         """
-        ret = libcsound.csoundCreateThread(THREADFUNC(function), py_object(userdata))
+        ret = libcsound.csoundCreateThread(THREADFUNC(function), ct.py_object(userdata))
         if (ret):
             return ret
         return None
@@ -2217,7 +2221,7 @@ class Csound:
         If *milliseconds* is zero and the object is not notified, the function
         will return immediately with a non-zero status.
         """
-        return libcsound.csoundWaitThreadLock(lock, c_uint(milliseconds))
+        return libcsound.csoundWaitThreadLock(lock, ct.c_uint(milliseconds))
     
     def waitThreadLockNoTimeout(self, lock):
         """Waits on the indicated monitor object until it is notified.
@@ -2251,7 +2255,7 @@ class Csound:
         Note: the handles returned by :py:meth:`createThreadLock()` and
         :py:meth:`createMutex()` are not compatible.
         """
-        ret = libcsound.csoundCreateMutex(c_int(isRecursive))
+        ret = libcsound.csoundCreateMutex(ct.c_int(isRecursive))
         if ret:
             return ret
         return None
@@ -2298,7 +2302,7 @@ class Csound:
         Max value parameter should be equal to the number of child threads
         using the barrier plus one for the master thread.
         """
-        ret = libcsound.csoundCreateBarrier(c_uint(max_))
+        ret = libcsound.csoundCreateBarrier(ct.c_uint(max_))
         if (ret):
             return ret
         return None
@@ -2320,7 +2324,7 @@ class Csound:
         
         It yields the CPU to other threads.
         """
-        libcsound.csoundSleep(c_uint(milliseconds))
+        libcsound.csoundSleep(ct.c_uint(milliseconds))
 
     def spinLockInit(self, spinlock):
         """Inits the spinlock.
@@ -2334,7 +2338,7 @@ class Csound:
         Use spinlocks to protect access to shared data, especially in functions
         that do little more than read or write such data, for example::
         
-            lock = ctypes.c_int32(0)
+            lock = ctypes.ct.c_int32(0)
             cs.spinLockInit(lock)
             def write(cs, frames, signal):
                 cs.spinLock(lock)
@@ -2342,11 +2346,11 @@ class Csound:
                     global_buffer[frame] += signal[frame];
                 cs.spinUnlock(lock)
         """
-        return libcsound.csoundSpinLockInit(byref(spinlock))
+        return libcsound.csoundSpinLockInit(ct.byref(spinlock))
 
     def spinLock(self, spinlock):
         """Locks the spinlock."""
-        libcsound.csoundSpinLock(byref(spinlock))
+        libcsound.csoundSpinLock(ct.byref(spinlock))
 
     def spinTryLock(self,spinlock):
         """Tries the spinlock.
@@ -2354,11 +2358,11 @@ class Csound:
         returns CSOUND_SUCCESS if lock could be acquired,
         CSOUND_ERROR, otherwise.
         """
-        return libcsound.csoundSpinLock(byref(spinlock))
+        return libcsound.csoundSpinLock(ct.byref(spinlock))
 
     def spinUnlock(self, spinlock):
         """Unlocks the spinlock."""
-        libcsound.csoundSpinUnLock(byref(spinlock))
+        libcsound.csoundSpinUnLock(ct.byref(spinlock))
     
     #Miscellaneous Functions
     def runCommand(self, args, noWait):
@@ -2375,30 +2379,30 @@ class Csound:
         On error, a negative value is returned.
         """
         n = len(args)
-        argv = (POINTER(c_char_p) * (n+1))()
+        argv = (ct.POINTER(ct.c_char_p) * (n+1))()
         for i in range(n):
             v = cstring(args[i])
-            argv[i] = cast(pointer(create_string_buffer(v)), POINTER(c_char_p))
+            argv[i] = ct.cast(ct.pointer(ct.create_string_buffer(v)), ct.POINTER(ct.c_char_p))
         argv[n] = None
-        return libcsound.csoundRunCommand(cast(argv, POINTER(c_char_p)), c_int(noWait))
+        return libcsound.csoundRunCommand(ct.cast(argv, ct.POINTER(ct.c_char_p)), ct.c_int(noWait))
     
     def initTimerStruct(self, timerStruct):
         """Initializes a timer structure."""
-        libcsound.csoundInitTimerStruct(byref(timerStruct))
+        libcsound.csoundInitTimerStruct(ct.byref(timerStruct))
     
     def realTime(self, timerStruct):
         """Returns the elapsed real time (in seconds).
         
         The time is measured since the specified timer structure was initialised.
         """
-        return libcsound.csoundGetRealTime(byref(timerStruct))
+        return libcsound.csoundGetRealTime(ct.byref(timerStruct))
     
     def CPUTime(self, timerStruct):
         """Returns the elapsed CPU time (in seconds).
         
         The time is measured since the specified timer structure was initialised.
         """
-        return libcsound.csoundGetCPUTime(byref(timerStruct))
+        return libcsound.csoundGetCPUTime(ct.byref(timerStruct))
     
     def randomSeedFromTime(self):
         """Returns a 32-bit unsigned integer to be used as seed from current time."""
@@ -2459,7 +2463,7 @@ class Csound:
         parameters (zero *nbytes*, invalid or already used *name*), or
         CSOUND_MEMORY if there is not enough memory.
         """
-        return libcsound.csoundCreateGlobalVariable(self.cs, cstring(name), c_uint(nbytes))
+        return libcsound.csoundCreateGlobalVariable(self.cs, cstring(name), ct.c_uint(nbytes))
     
     def queryGlobalVariable(self, name):
         """Gets pointer to space allocated with the name *name*.
@@ -2534,8 +2538,8 @@ class Csound:
         Returns the next number from the pseudo-random sequence, in the range
         1 to 2147483646.
         """
-        n = c_int(seed)
-        return libcsound.csoundRand31(byref(n))
+        n = ct.c_int(seed)
+        return libcsound.csoundRand31(ct.byref(n))
     
     def seedRandMT(self, initKey):
         """Initializes Mersenne Twister (MT19937) random number generator.
@@ -2550,18 +2554,18 @@ class Csound:
         if type(initKey) == int:
             if initKey < 0:
                 initKey = -initKey
-            libcsound.csoundSeedRandMT(byref(state), None, c_uint32(initKey))
+            libcsound.csoundSeedRandMT(ct.byref(state), None, ct.c_uint32(initKey))
         elif type(initKey) == list or type(initKey) == np.ndarray:
             n = len(initKey)
-            lst = (c_uint32 * n)()
+            lst = (ct.c_uint32 * n)()
             for i in range(n):
                 k = initKey[i]
                 if k < 0 :
                     k = -k
-                lst[i] = c_uint32(k)
-            p = pointer(lst)
-            p = cast(p, POINTER(c_uint32))
-            libcsound.csoundSeedRandMT(byref(state), p, c_uint32(len(lst)))
+                lst[i] = ct.c_uint32(k)
+            p = ct.pointer(lst)
+            p = ct.cast(p, ct.POINTER(ct.c_uint32))
+            libcsound.csoundSeedRandMT(ct.byref(state), p, ct.c_uint32(len(lst)))
         return state
     
     def randMT(self, state):
@@ -2569,7 +2573,7 @@ class Csound:
         
         The PRNG must be initialized first by calling :py:meth`csoundSeedRandMT()`.
         """
-        return libcsound.csoundRandMT(byref(state))
+        return libcsound.csoundRandMT(ct.byref(state))
     
     def createCircularBuffer(self, numelem, elemsize):
         """Creates a circular buffer with *numelem* number of elements.
@@ -2595,7 +2599,7 @@ class Csound:
         """
         if len(out) < items:
             return 0
-        ptr = out.ctypes.data_as(c_void_p)
+        ptr = out.ctypes.data_as(ct.c_void_p)
         return libcsound.csoundReadCircularBuffer(self.cs, circularBuffer, ptr, items)
     
     def peekCircularBuffer(self, circularBuffer, out, items):
@@ -2613,7 +2617,7 @@ class Csound:
         """
         if len(out) < items:
             return 0
-        ptr = out.ctypes.data_as(c_void_p)
+        ptr = out.ctypes.data_as(ct.c_void_p)
         return libcsound.csoundPeekCircularBuffer(self.cs, circularBuffer, ptr, items)
     
     def writeCircularBuffer(self, circularBuffer, in_, items):
@@ -2631,7 +2635,7 @@ class Csound:
         """
         if len(in_) < items:
             return 0
-        ptr = in_.ctypes.data_as(c_void_p)
+        ptr = in_.ctypes.data_as(ct.c_void_p)
         return libcsound.csoundWriteCircularBuffer(self.cs, circularBuffer, ptr, items)
     
     def flushCircularBuffer(self, circularBuffer):
@@ -2651,9 +2655,9 @@ class Csound:
 
     def openLibrary(self, libraryPath):
         """Platform-independent function to load a shared library."""
-        ptr = POINTER(c_int)()
-        library = cast(ptr, c_void_p)
-        ret = libcsound.csoundOpenLibrary(byref(library), cstring(libraryPath))
+        ptr = ct.POINTER(ct.c_int)()
+        library = ct.cast(ptr, ct.c_void_p)
+        ret = libcsound.csoundOpenLibrary(ct.byref(library), cstring(libraryPath))
         return ret, library
     
     def closeLibrary(self, library):
@@ -2666,36 +2670,39 @@ class Csound:
 
 
 if sys.platform.startswith('linux'):
-    libcspt = CDLL("libcsnd6.so")
+    libcspt = ct.CDLL("libcsnd6.so")
 elif sys.platform.startswith('win'):
-    libcspt = cdll.csnd6
+    if sys.version_info.major <=3 and sys.version_info.minor < 8:
+        libcspt = ct.cdll.csnd6
+    else:
+        libcspt = ct.CDLL(ctypes.util.find_library("csnd6"))
 elif sys.platform.startswith('darwin'):
-    libcspt = CDLL("libcsnd6.6.0.dylib")
+    libcspt = ct.CDLL("libcsnd6.6.0.dylib")
 else:
     sys.exit("Don't know your system! Exiting...")
 
-libcspt.NewCsoundPT.restype = c_void_p
-libcspt.NewCsoundPT.argtypes = [c_void_p]
-libcspt.DeleteCsoundPT.argtypes = [c_void_p]
-libcspt.CsoundPTisRunning.argtypes = [c_void_p]
-PROCESSFUNC = CFUNCTYPE(None, c_void_p)
-libcspt.CsoundPTgetProcessCB.restype = c_void_p
-libcspt.CsoundPTgetProcessCB.argtypes = [c_void_p]
-libcspt.CsoundPTsetProcessCB.argtypes = [c_void_p, PROCESSFUNC, c_void_p]
-libcspt.CsoundPTgetCsound.restype = c_void_p
-libcspt.CsoundPTgetCsound.argtypes = [c_void_p]
-libcspt.CsoundPTgetStatus.argtypes = [c_void_p]
-libcspt.CsoundPTplay.argtypes = [c_void_p]
-libcspt.CsoundPTpause.argtypes = [c_void_p]
-libcspt.CsoundPTtogglePause.argtypes = [c_void_p]
-libcspt.CsoundPTstop.argtypes = [c_void_p]
-libcspt.CsoundPTrecord.argtypes = [c_void_p, c_char_p, c_int, c_int]
-libcspt.CsoundPTstopRecord.argtypes = [c_void_p]
-libcspt.CsoundPTscoreEvent.argtypes = [c_void_p, c_int, c_char, c_int, POINTER(MYFLT)]
-libcspt.CsoundPTinputMessage.argtypes = [c_void_p, c_char_p]
-libcspt.CsoundPTsetScoreOffsetSeconds.argtypes = [c_void_p, c_double]
-libcspt.CsoundPTjoin.argtypes = [c_void_p]
-libcspt.CsoundPTflushMessageQueue.argtypes = [c_void_p]
+libcspt.NewCsoundPT.restype = ct.c_void_p
+libcspt.NewCsoundPT.argtypes = [ct.c_void_p]
+libcspt.DeleteCsoundPT.argtypes = [ct.c_void_p]
+libcspt.CsoundPTisRunning.argtypes = [ct.c_void_p]
+PROCESSFUNC = ct.CFUNCTYPE(None, ct.c_void_p)
+libcspt.CsoundPTgetProcessCB.restype = ct.c_void_p
+libcspt.CsoundPTgetProcessCB.argtypes = [ct.c_void_p]
+libcspt.CsoundPTsetProcessCB.argtypes = [ct.c_void_p, PROCESSFUNC, ct.c_void_p]
+libcspt.CsoundPTgetCsound.restype = ct.c_void_p
+libcspt.CsoundPTgetCsound.argtypes = [ct.c_void_p]
+libcspt.CsoundPTgetStatus.argtypes = [ct.c_void_p]
+libcspt.CsoundPTplay.argtypes = [ct.c_void_p]
+libcspt.CsoundPTpause.argtypes = [ct.c_void_p]
+libcspt.CsoundPTtogglePause.argtypes = [ct.c_void_p]
+libcspt.CsoundPTstop.argtypes = [ct.c_void_p]
+libcspt.CsoundPTrecord.argtypes = [ct.c_void_p, ct.c_char_p, ct.c_int, ct.c_int]
+libcspt.CsoundPTstopRecord.argtypes = [ct.c_void_p]
+libcspt.CsoundPTscoreEvent.argtypes = [ct.c_void_p, ct.c_int, ct.c_char, ct.c_int, ct.POINTER(MYFLT)]
+libcspt.CsoundPTinputMessage.argtypes = [ct.c_void_p, ct.c_char_p]
+libcspt.CsoundPTsetScoreOffsetSeconds.argtypes = [ct.c_void_p, ct.c_double]
+libcspt.CsoundPTjoin.argtypes = [ct.c_void_p]
+libcspt.CsoundPTflushMessageQueue.argtypes = [ct.c_void_p]
 
 
 class CsoundPerformanceThread:
@@ -2725,7 +2732,7 @@ class CsoundPerformanceThread:
     
     def setProcessCB(self, function, data):
         """Sets the process callback."""
-        libcspt.CsoundPTsetProcessCB(self.cpt, PROCESSFUNC(function), byref(data))
+        libcspt.CsoundPTsetProcessCB(self.cpt, PROCESSFUNC(function), ct.byref(data))
     
     def csound(self):
         """Returns the Csound instance pointer."""
@@ -2778,9 +2785,9 @@ class CsoundPerformanceThread:
         to the current time.
         """
         p = np.array(pFields).astype(MYFLT)
-        ptr = p.ctypes.data_as(POINTER(MYFLT))
+        ptr = p.ctypes.data_as(ct.POINTER(MYFLT))
         numFields = p.size
-        libcspt.CsoundPTscoreEvent(self.cpt, c_int(absp2mode), cchar(opcod), numFields, ptr)
+        libcspt.CsoundPTscoreEvent(self.cpt, ct.c_int(absp2mode), cchar(opcod), numFields, ptr)
     
     def inputMessage(self, s):
         """Sends a score event as a string, similarly to line events (-L)."""
@@ -2788,7 +2795,7 @@ class CsoundPerformanceThread:
     
     def setScoreOffsetSeconds(self, timeVal):
         """Sets the playback time pointer to the specified value (in seconds)."""
-        libcspt.CsoundPTsetScoreOffsetSeconds(self.cpt, c_double(timeVal))
+        libcspt.CsoundPTsetScoreOffsetSeconds(self.cpt, ct.c_double(timeVal))
     
     def join(self):
         """Waits until the performance is finished or fails.
