@@ -57,6 +57,7 @@
 #include "fftlib.h"
 #include "cs_par_base.h"
 #include "cs_par_orc_semantics.h"
+#include "namedins.h"
 //#include "cs_par_dispatch.h"
 #include "find_opcode.h"
 
@@ -100,6 +101,7 @@ extern int isstrcod(MYFLT );
 extern int fterror(const FGDATA *ff, const char *s, ...);
 PUBLIC int csoundErrCnt(CSOUND *);
 void (*msgcallback_)(CSOUND *, int, const char *, va_list) = NULL;
+INSTRTXT *csoundGetInstrument(CSOUND *csound, int insno, const char *name); 
 
 void csoundDebuggerBreakpointReached(CSOUND *csound);
 void message_dequeue(CSOUND *csound);
@@ -506,10 +508,11 @@ static const CSOUND cenviron_ = {
     csoundListChannels,
     csoundErrCnt,
     csoundFTnp2Finde,
+    csoundGetInstrument,
     {
       NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
       NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
-      NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL
+      NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL 
     },
     /* ------- private data (not to be used by hosts or externals) ------- */
     /* callback function pointers */
@@ -4438,6 +4441,12 @@ static void set_util_nchnls(CSOUND *csound, int nchnls){ csound->nchnls = nchnls
 MYFLT csoundGetA4(CSOUND *csound) { return (MYFLT) csound->A4; }
 
 int csoundErrCnt(CSOUND *csound) { return csound->perferrcnt; }
+
+INSTRTXT *csoundGetInstrument(CSOUND *csound, int insno, const char *name) {
+  if (name != NULL)
+    insno = named_instr_find(csound, (char *)name);
+  return csound->engineState.instrtxtp[insno];
+}
 
 #if 0
 PUBLIC int csoundPerformKsmpsAbsolute(CSOUND *csound)
