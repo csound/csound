@@ -1384,11 +1384,12 @@ typedef struct _message_queue_t_ {
     int (*ListChannels)(CSOUND *, controlChannelInfo_t **);
     int (*GetErrorCnt)(CSOUND *);
     FUNC* (*FTnp2Finde)(CSOUND*, MYFLT *);
+    INSTRTXT *(*GetInstrument)(CSOUND*, int, const char *);
     /**@}*/
     /** @name Placeholders
         To allow the API to grow while maintining backward binary compatibility. */
     /**@{ */
-    SUBR dummyfn_2[30];
+    SUBR dummyfn_2[29];
     /**@}*/
 #ifdef __BUILDING_LIBCSOUND
     /* ------- private data (not to be used by hosts or externals) ------- */
