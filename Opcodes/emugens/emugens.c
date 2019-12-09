@@ -2065,6 +2065,7 @@ ftexists_init(CSOUND *csound, FTEXISTS *p) {
     return OK;
 }
 
+
 /*
 
    Input types:
@@ -2160,12 +2161,11 @@ static OENTRY localops[] = {
     { "ntom", S(NTOM), 0, 3, "k", "S", (SUBR)ntom, (SUBR)ntom },
     { "ntom", S(NTOM), 0, 1, "i", "S", (SUBR)ntom },
 
-    { "mton", S(MTON), 0, 3, "S", "k", (SUBR)mton, (SUBR)mton },
-    { "mton", S(MTON), 0, 1, "S", "i", (SUBR)mton },
+    { "mton.k", S(MTON), 0, 3, "S", "k", (SUBR)mton, (SUBR)mton },
+    { "mton.i", S(MTON), 0, 1, "S", "i", (SUBR)mton },
 
-    { "ntof", S(NTOM), 0, 3, "k", "S", (SUBR)ntof, (SUBR)ntof },
-    { "ntof", S(NTOM), 0, 1, "i", "S", (SUBR)ntof },
-
+    { "ntof.i", S(NTOM), 0, 1, "i", "S", (SUBR)ntof },
+    { "ntof.k", S(NTOM), 0, 3, "k", "S", (SUBR)ntof, (SUBR)ntof },
 
     { "cmp", S(Cmp), 0, 3, "a", "aSa", (SUBR)cmp_init, (SUBR)cmp_aa,},
     { "cmp", S(Cmp), 0, 3, "a", "aSk", (SUBR)cmp_init, (SUBR)cmp_ak },
