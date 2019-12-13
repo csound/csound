@@ -171,7 +171,6 @@ int32_t     sensekey_perf(CSOUND *, KSENSE *);
 
 //Rory 2020
 int32_t     chnget_array_opcode_init_i(CSOUND *, CHNGETARRAY *);
-int32_t     chnget_array_opcode_init_S(CSOUND *, CHNGETARRAY *);
 int32_t     chnget_array_opcode_init(CSOUND *, CHNGETARRAY *);
 int32_t     chnget_array_opcode_perf_k(CSOUND *, CHNGETARRAY *);
 int32_t     chnget_array_opcode_perf_a(CSOUND *, CHNGETARRAY *);
