@@ -29,6 +29,7 @@
 #define CSOUND_BUS_H
 
 #include "pstream.h"
+#include "arrays.h"
 #include "csound_standard_types.h"
 
 #define MAX_CHAN_NAME 1024
@@ -75,6 +76,19 @@ typedef struct {
     int32_t     pos;
     char        chname[MAX_CHAN_NAME+1];
 } CHNGET;
+
+typedef struct {
+    OPDS        h;
+    ARRAYDAT    *arrayDat;
+    STRINGDAT   *iname;
+    MYFLT       *fp;
+    spin_lock_t *lock;
+    int32_t     pos;
+    int32_t     arraySize;
+    MYFLT**     channelPtrs;
+    STRINGDAT   *channels;
+    char        chname[MAX_CHAN_NAME+1];
+} CHNGETARRAY;
 
 typedef struct {
     OPDS    h;
@@ -154,6 +168,19 @@ int32_t     pvsout_init(CSOUND *, FCHAN *);
 int32_t     pvsout_perf(CSOUND *, FCHAN *);
 
 int32_t     sensekey_perf(CSOUND *, KSENSE *);
+
+//Rory 2020
+int32_t     chnget_array_opcode_init_i(CSOUND *, CHNGETARRAY *);
+int32_t     chnget_array_opcode_init_S(CSOUND *, CHNGETARRAY *);
+int32_t     chnget_array_opcode_init(CSOUND *, CHNGETARRAY *);
+int32_t     chnget_array_opcode_perf_k(CSOUND *, CHNGETARRAY *);
+int32_t     chnget_array_opcode_perf_a(CSOUND *, CHNGETARRAY *);
+int32_t     chnget_array_opcode_perf_S(CSOUND* csound, CHNGETARRAY* p);
+int32_t     chnset_array_opcode_init_i(CSOUND *, CHNGETARRAY *);
+int32_t     chnset_array_opcode_init(CSOUND *, CHNGETARRAY *);
+int32_t     chnset_array_opcode_perf_k(CSOUND *csound, CHNGETARRAY *p);
+int32_t     chnset_array_opcode_perf_a(CSOUND *csound, CHNGETARRAY *p);
+int32_t     chnset_array_opcode_perf_S(CSOUND *csound, CHNGETARRAY *p);
 
 int32_t     notinit_opcode_stub(CSOUND *, void *);
 int32_t     chnget_opcode_init_i(CSOUND *, CHNGET *);
