@@ -800,7 +800,7 @@ int32_t chnget_array_opcode_init_i(CSOUND* csound, CHNGETARRAY* p)
             p->arrayDat->data[index] = x.d;
         }
 #else
-        p->outArray->data[index] = *(fp);
+        p->arrayDat->data[index] = *(fp);
 #endif
     }
     return OK;
@@ -875,7 +875,7 @@ int32_t chnget_array_opcode_perf_k(CSOUND* csound, CHNGETARRAY* p)
         MYFLT_INT_TYPE i;
         } x;
         x.i = InterlockedExchangeAdd64((MYFLT_INT_TYPE *) p->channelPtrs, 0);
-        p->outArray->data[index] = x.d;
+        p->arrayDat->data[index] = x.d;
 #elif defined(HAVE_ATOMIC_BUILTIN)
         volatile union {
             MYFLT d;
@@ -904,7 +904,6 @@ int32_t chnget_array_opcode_perf_a(CSOUND *csound, CHNGETARRAY *p)
     MYFLT* outPtr;
     for (index = 0; index<p->arraySize; index++) {
         blockIndex = csound->ksmps*index;
-        //outPtr = &p->outArray->data[index];
         if (CS_KSMPS == (uint32_t) csound->ksmps) {
             csoundSpinLock(p->lock);
             if (UNLIKELY(offset)) memset(&p->arrayDat->data[blockIndex], '\0', offset);
