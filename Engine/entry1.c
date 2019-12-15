@@ -795,6 +795,16 @@ OENTRY opcodlst_1[] = {
     schedule_S, NULL, NULL },
   { "schedule.SN", S(SCHED),0,  1,     "",     "SiiN",
     schedule_SN, NULL, NULL },
+  /* **** Experimental schedulek opcodes **** */
+  { "schedulek",   S(SCHED),0,  2,     "",     "kkkM",
+    NULL, schedule, NULL },
+  { "schedulek.N", S(SCHED),0,  2,     "",     "kkkN",
+    NULL, schedule_N, NULL },
+  { "schedulek.S", S(SCHED),0,  2,     "",     "SkkM",
+    NULL, schedule_S, NULL },
+  { "schedulek.SN", S(SCHED),0, 2,     "",     "SkkN",
+    NULL, schedule_SN, NULL },
+  /* **** End of schedulek **** */
   { "schedwhen", S(WSCHED),0,3,     "",     "kkkkm",ifschedule, kschedule, NULL },
   { "schedwhen", S(WSCHED),0,3,     "",     "kSkkm",ifschedule, kschedule, NULL },
   { "schedkwhen", S(TRIGINSTR),0, 3,"",     "kkkkkz",triginset, ktriginstr, NULL },
