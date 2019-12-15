@@ -2,7 +2,6 @@ cmake_minimum_required(VERSION 3.5)
 
 # FIXME currently require static lib, this should include build static csound condition
 if(BUILD_TESTS)
-
     add_executable(unittests
         channel_tests.cpp
         cscore_tests.cpp
@@ -40,5 +39,4 @@ if(BUILD_TESTS)
     endif()
 
     add_test(NAME AllTests COMMAND unittests)
-
 endif()
