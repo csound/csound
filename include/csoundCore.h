@@ -1576,6 +1576,7 @@ typedef struct _message_queue_t_ {
     void          *FFT_table_2;
     /* statics from twarp.c should be TSEG* */
     void          *tseg, *tpsave;
+    /* persistent macros */
     MACRO         *orc_macros;
     /* Statics from express.c */
     MYFLT         *gbloffbas;       /* was static in oload.c */
