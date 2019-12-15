@@ -880,21 +880,31 @@ typedef struct CORFIL {
 #endif  /* __BUILDING_LIBCSOUND */
 
 #define MARGS   (3)
-typedef struct S_MACRO {          /* To store active macros */
-    char        *name;          /* Use is by name */
-    int         acnt;           /* Count of arguments */
-    CORFIL      *body;          /* The text of the macro */
-    struct S_MACRO *next;         /* Chain of active macros */
-    int         margs;          /* ammount of space for args */
-    char        *arg[MARGS];    /* With these arguments */
-} S_MACRO;
+#define MAX_INCLUDE_DEPTH 100
+struct MACRO;
+
+typedef struct MACRON {
+  int             n;
+  unsigned int    line;
+  struct MACRO    *s;
+  char            *path;
+} MACRON;
+
+typedef struct MACRO {          /* To store active macros */
+    char          *name;        /* Use is by name */
+    int           acnt;         /* Count of arguments */
+    char          *body;        /* The text of the macro */
+    struct MACRO  *next;        /* Chain of active macros */
+    int           margs;        /* amount of space for args */
+    char          *arg[MARGS];  /* With these arguments */
+} MACRO;
 
 typedef struct in_stack_s {     /* Stack of active inputs */
     int16       is_marked_repeat;     /* 1 if this input created by 'n' stmnt */
     int16       args;                 /* Argument count for macro */
   //CORFIL      *cf;                  /* In core file */
   //void        *fd;                  /* for closing stream */
-    S_MACRO       *mac;
+    MACRO       *mac;
     int         line;
     int32       oposit;
 } IN_STACK;
@@ -1565,7 +1575,8 @@ typedef struct _message_queue_t_ {
     void          *FFT_table_1;
     void          *FFT_table_2;
     /* statics from twarp.c should be TSEG* */
-    void          *tseg, *tpsave, *unused_int0;
+    void          *tseg, *tpsave;
+    MACRO         *orc_macros;
     /* Statics from express.c */
     MYFLT         *gbloffbas;       /* was static in oload.c */
     void          *file_io_thread;
@@ -1592,7 +1603,7 @@ typedef struct _message_queue_t_ {
       MYFLT   warp_factor /* = FL(1.0) */;
       char    *curmem;
       char    *memend;                /* end of cur memblk                    */
-      S_MACRO *unused_ptr2;
+      MACRO   *unused_ptr2;
       int     last_name /* = -1 */;
       IN_STACK  *inputs, *str;
       int     input_size, input_cnt;
@@ -1606,14 +1617,14 @@ typedef struct _message_queue_t_ {
       int     unused_int4[RPTDEPTH];
       int32   unused_int7[RPTDEPTH];
       int     unused_int5;
-      S_MACRO   *unused_ptr0[RPTDEPTH];
+      MACRO   *unused_ptr0[RPTDEPTH];
       int     unused_int6;
      /* Variable for repeat sections */
       char    unused_char1[NAMELEN];
       int     unused_int8;
       int32   unused_int9;
       int     unused_intA;
-      S_MACRO   *unused_ptr1;
+      MACRO   *unused_ptr1;
       int     nocarry;
     } sread;
     struct onefileStatics__ {

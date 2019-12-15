@@ -40,25 +40,7 @@ typedef struct ScoreTree {
 
 #ifndef __PARSE_PARAM_H
 
-#define MARGS   (3)
 #define MAX_INCLUDE_DEPTH 100
-struct MACRO;
-
-typedef struct MACRON {
-  int             n;
-  unsigned int    line;
-  struct MACRO    *s;
-  char            *path;
-} MACRON;
-
-typedef struct MACRO {          /* To store active macros */
-    char          *name;        /* Use is by name */
-    int           acnt;         /* Count of arguments */
-    char          *body;        /* The text of the macro */
-    struct MACRO  *next;        /* Chain of active macros */
-    int           margs;        /* amount of space for args */
-    char          *arg[MARGS];  /* With these arguments */
-} MACRO;
 
 typedef struct IFDEFSTACK_ {
     struct IFDEFSTACK_  *prv;
