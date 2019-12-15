@@ -269,7 +269,7 @@ if(WIN32)
         #set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /Oi /fp:fast /arch:AVX2")
 
         # Replace the default CRT linkage from dynamic (MD) to static (MT)
-        if (STATIC_CRT STREQUAL "ON")
+        if(STATIC_CRT STREQUAL "ON")
             foreach(flag_var
                 CMAKE_C_FLAGS CMAKE_C_FLAGS_RELEASE CMAKE_C_FLAGS_DEBUG
                 CMAKE_CXX_FLAGS CMAKE_CXX_FLAGS_DEBUG CMAKE_CXX_FLAGS_RELEASE
@@ -414,10 +414,14 @@ SET(BUILD_SHARED_LIBS ON)
 ## HEADER/LIBRARY/OTHER CHECKS ##
 
 # First, required stuff
-find_library(LIBSNDFILE_LIBRARY NAMES sndfile libsndfile-1 libsndfile)
+if(MSVC)
+    find_package(LibSndFile CONFIG REQUIRED)
+else()
+    find_library(LIBSNDFILE_LIBRARY NAMES sndfile libsndfile-1 libsndfile)
 
-if(NOT LIBSNDFILE_LIBRARY)
-    message(FATAL_ERROR "Csound requires the sndfile library")
+    if(NOT LIBSNDFILE_LIBRARY)
+        message(FATAL_ERROR "Csound requires the sndfile library")
+    endif()
 endif()
 
 find_package(CURL)
@@ -1151,9 +1155,11 @@ if(EMSCRIPTEN)
 endif()
 
 set(libcsound_LIBS ${LIBSNDFILE_LIBRARY})
+
 if(REQUIRE_PTHREADS AND PTHREAD_LIBRARY)
   list(APPEND libcsound_LIBS ${PTHREAD_LIBRARY})
 endif()
+
 if (HAVE_ATOMIC_BUILTIN)
   list(APPEND libcsound_LIBS ${ATOMIC_LIB})
 endif()
@@ -1161,7 +1167,6 @@ endif()
 if(WIN32)
     list(APPEND libcsound_LIBS "${CSOUND_WINDOWS_LIBRARIES}")
     list(APPEND libcsound_LIBS "${LIBSNDFILE_SUPPORT_LIBS}")
-else()
 endif()
 
 if(USE_CURL AND CURL_FOUND)
@@ -1306,7 +1311,11 @@ endif()
 
 
 target_compile_options(${CSOUNDLIB} PRIVATE ${libcsound_CFLAGS})
-target_link_libraries(${CSOUNDLIB} PRIVATE ${libcsound_LIBS})
+if(MSVC)
+    target_link_libraries(${CSOUNDLIB} PRIVATE sndfile-static)
+else()
+    target_link_libraries(${CSOUNDLIB} PRIVATE ${libcsound_LIBS})
+endif()
 
 set_target_properties(${CSOUNDLIB} PROPERTIES
     RUNTIME_OUTPUT_DIRECTORY ${BUILD_BIN_DIR}
@@ -1319,7 +1328,11 @@ if(BUILD_STATIC_LIBRARY)
     SET_TARGET_PROPERTIES(${CSOUNDLIB_STATIC} PROPERTIES PREFIX "lib")
     target_compile_options(${CSOUNDLIB_STATIC} PRIVATE ${libcsound_CFLAGS})
 
-    target_link_libraries(${CSOUNDLIB_STATIC} ${libcsound_LIBS})
+    if(MSVC)
+        target_link_libraries(${CSOUNDLIB_STATIC} PRIVATE sndfile-static ${CSOUND_WINDOWS_LIBRARIES})
+    else()
+        target_link_libraries(${CSOUNDLIB_STATIC} ${libcsound_LIBS})
+    endif()
 
     set_target_properties(${CSOUNDLIB_STATIC} PROPERTIES
         RUNTIME_OUTPUT_DIRECTORY ${BUILD_BIN_DIR}

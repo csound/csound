@@ -8,8 +8,11 @@ set(stdutil_SRCS
     sndinfo.c       srconv.c        std_util.c  xtrct.c
     SDIF/sdif.c)
 
-make_plugin(stdutil "${stdutil_SRCS}" ${MATH_LIBRARY} ${LIBSNDFILE_LIBRARY} ${LIBSNDFILE_SUPPORT_LIBS})
+if(MSVC)
+    set(LIBSNDFILE_LIBRARY sndfile-static)
+endif()
 
+make_plugin(stdutil "${stdutil_SRCS}" ${MATH_LIBRARY} ${LIBSNDFILE_LIBRARY} ${LIBSNDFILE_SUPPORT_LIBS})
 add_dependency_to_framework(stdutil ${LIBSNDFILE_LIBRARY})
 
 if(BUILD_UTILITIES)
