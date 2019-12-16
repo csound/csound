@@ -222,7 +222,7 @@ Source: "{#ReleaseDir}\libintl.dll"; DestDir: "{#APP_PLUGINS64}"; Flags: ignorev
 Source: "{#ReleaseDir}\liblo.dll"; DestDir: "{#APP_PLUGINS64}"; Flags: ignoreversion; Components: core;
 Source: "{#ReleaseDir}\libpng16.dll"; DestDir: "{#APP_PLUGINS64}"; Flags: ignoreversion; Components: core;
 Source: "{#ReleaseDir}\libsamplerate-0.dll"; DestDir: "{#APP_PLUGINS64}"; Flags: ignoreversion; Components: core;
-Source: "{#ReleaseDir}\libsndfile-1.dll"; DestDir: "{#APP_PLUGINS64}"; Flags: ignoreversion; Components: core;
+;Source: "{#ReleaseDir}\libsndfile-1.dll"; DestDir: "{#APP_PLUGINS64}"; Flags: ignoreversion; Components: core;
 Source: "{#ReleaseDir}\ogg.dll"; DestDir: "{#APP_PLUGINS64}"; Flags: ignoreversion; Components: core;
 Source: "{#ReleaseDir}\pcre.dll"; DestDir: "{#APP_PLUGINS64}"; Flags: ignoreversion; Components: core;
 Source: "{#ReleaseDir}\portaudio_x64.dll"; DestDir: "{#APP_PLUGINS64}"; Flags: ignoreversion; Components: core;
