@@ -42,8 +42,8 @@ static void do_ifdef(CSOUND *, char *, yyscan_t);
 static void do_ifdef_skip_code(CSOUND *, yyscan_t);
 static void do_function(CSOUND*, char *, CORFIL*);
 //static void print_csound_predata(CSOUND *,char *,yyscan_t);
- static void csound_pre_line(CSOUND *, CORFIL*, yyscan_t);
- static void delete_macros(CSOUND*, yyscan_t);
+static void csound_pre_line(CSOUND *, CORFIL*, yyscan_t);
+//static void delete_macros(CSOUND*, yyscan_t);
 #include "parse_param.h"
 
 #define YY_EXTRA_TYPE  PRE_PARM *
@@ -239,7 +239,7 @@ QNAN            "qnan"[ \t]*\(
                   corfile_puts(csound, yytext, csound->expanded_orc);
                 }
 {MACRONAME}|{MACRONAMED}     {
-                   MACRO     *mm = PARM->macros;
+                   MACRO     *mm = csound->orc_macros;
                    //printf("macro name >>%s<<\n", yytext);
                    mm = find_definition(mm, yytext+1);
                    if (UNLIKELY(mm == NULL)) {
@@ -280,14 +280,14 @@ QNAN            "qnan"[ \t]*\(
                    }
                 }
 {MACRONAMEA}|{MACRONAMEDA}    {
-                   MACRO     *mm = PARM->macros;
+                   MACRO     *mm = csound->orc_macros;
                    int err = 0;
                    char      *mname;
                    int c, i, j, cnt=0;
                    //csound->DebugMsg(csound,"Macro with arguments call %s\n",
                    //                 yytext);
                    yytext[yyleng-1] = '\0';
-                   mm = find_definition(PARM->macros, yytext+1);
+                   mm = find_definition(csound->orc_macros, yytext+1);
                    if (UNLIKELY(mm == NULL)) {
                      csound->Message(csound,Str("Undefined macro: '%s'"), yytext);
                      corfile_puts(csound, "$error", csound->expanded_orc);
@@ -359,8 +359,8 @@ QNAN            "qnan"[ \t]*\(
                        nn->body[i] = '\0';
                        csound->Message(csound, "as...#%s#\n", nn->body);
                        nn->acnt = 0;       /* No arguments for arguments */
-                       nn->next = PARM->macros;
-                       PARM->macros = nn;
+                       nn->next = csound->orc_macros;
+                       csound->orc_macros = nn;
                      }
                      if (!err) {
                        //csound->DebugMsg(csound,"New body: ...#%s#\n", mm->body);
@@ -380,11 +380,11 @@ QNAN            "qnan"[ \t]*\(
                          /*                  PARM->macro_stack_size); */
                        }
                        PARM->alt_stack[PARM->macro_stack_ptr].n =
-                         PARM->macros->acnt;
+                         csound->orc_macros->acnt;
                        PARM->alt_stack[PARM->macro_stack_ptr].line =
                          csound_preget_lineno(yyscanner);
                        PARM->alt_stack[PARM->macro_stack_ptr].path = NULL;
-                       PARM->alt_stack[PARM->macro_stack_ptr++].s = PARM->macros;
+                       PARM->alt_stack[PARM->macro_stack_ptr++].s = csound->orc_macros;
                        PARM->alt_stack[PARM->macro_stack_ptr].n = 0;
                        PARM->alt_stack[PARM->macro_stack_ptr].line =
                          csound_preget_lineno(yyscanner);
@@ -394,7 +394,7 @@ QNAN            "qnan"[ \t]*\(
                        /* PARM->macro_stack_ptr-1); */
                        PARM->alt_stack[PARM->macro_stack_ptr].s = NULL;
                        //csound->DebugMsg(csound,"Push %p macro stack\n",
-                       //                 PARM->macros);
+                       //                 csound->orc_macros);
                        yypush_buffer_state(YY_CURRENT_BUFFER, yyscanner);
                        csound_preset_lineno(1, yyscanner);
                        if (UNLIKELY(PARM->depth>1022)) {
@@ -430,7 +430,7 @@ QNAN            "qnan"[ \t]*\(
                 }
 #exit           { corfile_putc(csound, '\0', csound->expanded_orc);
                   corfile_putc(csound, '\0', csound->expanded_orc);
-                  delete_macros(csound, yyscanner);
+                  //delete_macros(csound, yyscanner);
                   return 0;}
 <<EOF>>         {
                   MACRO *x, *y=NULL;
@@ -462,13 +462,13 @@ QNAN            "qnan"[ \t]*\(
                   if (n!=0) {
                     /* We need to delete n macros starting with y */
                     y = PARM->alt_stack[PARM->macro_stack_ptr].s;
-                    x = PARM->macros;
+                    x = csound->orc_macros;
                     if (x==y) {
                       while (n>0) {
                         mfree(csound, y->name); x=y->next;
                         mfree(csound, y); y=x; n--;
                       }
-                      PARM->macros = x;
+                      csound->orc_macros = x;
                     }
                     else {
                       MACRO *nxt = y->next;
@@ -489,7 +489,7 @@ QNAN            "qnan"[ \t]*\(
                                    PARM->macro_stack_ptr);
                   csound->DebugMsg(csound,
                                    "End of input segment: macro pop %p -> %p\n",
-                                   y, PARM->macros);
+                                   y, csound->orc_macros);
                   //csound_preset_lineno(PARM->alt_stack[PARM->macro_stack_ptr].line,
                   //                     yyscanner);
                   //print_csound_predata(csound,"Before pre_line", yyscanner);
@@ -1062,8 +1062,8 @@ static void do_macro_arg(CSOUND *csound, char *name0, yyscan_t yyscanner)
       }
     }
     mm->body[i] = '\0';
-    mm->next = PARM->macros;
-    PARM->macros = mm;
+    mm->next = csound->orc_macros;
+    csound->orc_macros = mm;
 }
 
 static void do_macro(CSOUND *csound, char *name0, yyscan_t yyscanner)
@@ -1149,8 +1149,8 @@ static void do_macro(CSOUND *csound, char *name0, yyscan_t yyscanner)
     }
     mm->body[i] = '\0';
     csound->DebugMsg(csound,"Body #%s#\n", mm->body);
-    mm->next = PARM->macros;
-    PARM->macros = mm;
+    mm->next = csound->orc_macros;
+    csound->orc_macros = mm;
 }
 
 static void do_umacro(CSOUND *csound, char *name0, yyscan_t yyscanner)
@@ -1159,15 +1159,15 @@ static void do_umacro(CSOUND *csound, char *name0, yyscan_t yyscanner)
     if (UNLIKELY(csound->oparms->msglevel))
       csound->Message(csound,Str("macro %s undefined\n"), name0);
     csound->DebugMsg(csound, "macro %s undefined\n", name0);
-    if (strcmp(name0, PARM->macros->name)==0) {
-      MACRO *mm=PARM->macros->next;
-      mfree(csound, PARM->macros->name); mfree(csound, PARM->macros->body);
-      for (i=0; i<PARM->macros->acnt; i++)
-        mfree(csound, PARM->macros->arg[i]);
-      mfree(csound, PARM->macros); PARM->macros = mm;
+    if (strcmp(name0, csound->orc_macros->name)==0) {
+      MACRO *mm=csound->orc_macros->next;
+      mfree(csound, csound->orc_macros->name); mfree(csound, csound->orc_macros->body);
+      for (i=0; i<csound->orc_macros->acnt; i++)
+        mfree(csound, csound->orc_macros->arg[i]);
+      mfree(csound, csound->orc_macros); csound->orc_macros = mm;
     }
     else {
-      MACRO *mm = PARM->macros;
+      MACRO *mm = csound->orc_macros;
       MACRO *nn = mm->next;
       while (strcmp(name0, nn->name) != 0) {
         mm = nn; nn = nn->next;
@@ -1198,7 +1198,7 @@ static void do_ifdef(CSOUND *csound, char *name0, yyscan_t yyscanner)
     }
     pp->prv = PARM->ifdefStack;
     pp->isDef = PARM->isIfndef;
-    for (mm = PARM->macros; mm != NULL; mm = mm->next) {
+    for (mm = csound->orc_macros; mm != NULL; mm = mm->next) {
       if (strcmp(name0, mm->name) == 0) {
         pp->isDef ^= (unsigned char) 1;
         break;
@@ -1265,9 +1265,10 @@ static void do_ifdef_skip_code(CSOUND *csound, yyscan_t yyscanner)
     while (c != '\n' && c != EOF && c != '\r') c = input(yyscanner);
 }
 
+#if 0
 static void delete_macros(CSOUND *csound, yyscan_t yyscanner)
 {
-    MACRO * qq = PARM->macros;
+    MACRO * qq = csound->orc_macros;
     if (qq) {
       MACRO *mm = qq;
       while (mm) {
@@ -1279,6 +1280,7 @@ static void delete_macros(CSOUND *csound, yyscan_t yyscanner)
        }
     }
 }
+#endif
 
 static void add_math_const_macro(CSOUND *csound, PRE_PARM* qq,
                                  char * name, char *body)
@@ -1297,25 +1299,26 @@ static void add_math_const_macro(CSOUND *csound, PRE_PARM* qq,
 }
 
 /**
- * Add math constants from math.h as orc PARM->macros
+ * Add math constants from math.h as orc csound->orc_macros
  */
 void cs_init_math_constants_macros(CSOUND *csound, PRE_PARM* qq)
 {
-    qq->macros = NULL;
-    add_math_const_macro(csound, qq, "E",     "2.71828182845904523536");
-    add_math_const_macro(csound, qq, "LOG2E", "1.44269504088896340736");
-    add_math_const_macro(csound, qq, "LOG10E","0.43429448190325182765");
-    add_math_const_macro(csound, qq, "LN2",   "0.69314718055994530942");
-    add_math_const_macro(csound, qq, "LN10",  "2.30258509299404568402");
-    add_math_const_macro(csound, qq, "PI",    "3.14159265358979323846");
-    add_math_const_macro(csound, qq, "PI_2",  "1.57079632679489661923");
-    add_math_const_macro(csound, qq, "PI_4",  "0.78539816339744830962");
-    add_math_const_macro(csound, qq, "1_PI",  "0.31830988618379067154");
-    add_math_const_macro(csound, qq, "2_PI",  "0.63661977236758134308");
-    add_math_const_macro(csound, qq,"2_SQRTPI", "1.12837916709551257390");
-    add_math_const_macro(csound, qq, "SQRT2", "1.41421356237309504880");
-    add_math_const_macro(csound, qq,"SQRT1_2","0.70710678118654752440");
-    add_math_const_macro(csound, qq, "INF",   "800000000000.0");/* ~25367 years */
+    if (csound->orc_macros == NULL) {
+      add_math_const_macro(csound, qq, "E",     "2.71828182845904523536");
+      add_math_const_macro(csound, qq, "LOG2E", "1.44269504088896340736");
+      add_math_const_macro(csound, qq, "LOG10E","0.43429448190325182765");
+      add_math_const_macro(csound, qq, "LN2",   "0.69314718055994530942");
+      add_math_const_macro(csound, qq, "LN10",  "2.30258509299404568402");
+      add_math_const_macro(csound, qq, "PI",    "3.14159265358979323846");
+      add_math_const_macro(csound, qq, "PI_2",  "1.57079632679489661923");
+      add_math_const_macro(csound, qq, "PI_4",  "0.78539816339744830962");
+      add_math_const_macro(csound, qq, "1_PI",  "0.31830988618379067154");
+      add_math_const_macro(csound, qq, "2_PI",  "0.63661977236758134308");
+      add_math_const_macro(csound, qq,"2_SQRTPI", "1.12837916709551257390");
+      add_math_const_macro(csound, qq, "SQRT2", "1.41421356237309504880");
+      add_math_const_macro(csound, qq,"SQRT1_2","0.70710678118654752440");
+      add_math_const_macro(csound, qq, "INF",   "800000000000.0");/* ~25367 years */
+    }
 }
 
 void cs_init_omacros(CSOUND *csound, PRE_PARM *qq, NAMES *nn)
@@ -1353,8 +1356,8 @@ void cs_init_omacros(CSOUND *csound, PRE_PARM *qq, NAMES *nn)
           csound->LongJmp(csound, 1);
         }
         mm->name = mname;
-        mm->next = qq->macros;
-        qq->macros = mm;
+        mm->next = csound->orc_macros;
+        csound->orc_macros = mm;
       }
       else
         mfree(csound, mname);

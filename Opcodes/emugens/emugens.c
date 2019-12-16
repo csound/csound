@@ -2223,7 +2223,7 @@ static OENTRY localops[] = {
       (SUBR)ftexists_init},
     { "ftexists", S(FTEXISTS), TR, 3, "k", "k",
       (SUBR)ftexists_init, (SUBR)ftexists_init},
-    
+
 
 };
 

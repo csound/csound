@@ -1,34 +1,17 @@
 param
 (
-    [string]$vsGenerator="Visual Studio 16 2019",
-    [switch]$buildStatic=$false,
-    [switch]$staticCRT=$false
+    [string]$vsGenerator="Visual Studio 16 2019"
 )
 
-# The default build is to generate dynamic libs that use the CRT dynamically 
-if ($buildStatic) {
-    $targetTriplet = "x64-windows-static"
-
-    if ($staticCRT == $false) {
-        echo "Cannot have dynamic CRT linkage with static Csound build"
-        $staticCRT = $true
-    }
-} 
-else {
-    if ($staticCRT) {
-        $targetTriplet = "x64-windows-crt-mt"
-    }
-    else {
-        $targetTriplet = "x64-windows"
-    }
-}
+# Using a custom triplet due to mixed static and dynamic dependencies
+# Only libsndfile is static, all others are dynamically linked
+$targetTriplet = "x64-windows-csound"
 
 echo "Downloading Csound dependencies..."
 echo "vsGenerator: $vsGenerator"
 echo "Build type: $targetTriplet"
 
 $startTime = (Get-Date).TimeOfDay
-# $webclient = New-Object System.Net.WebClient
 $currentDir = Split-Path $MyInvocation.MyCommand.Path
 $cacheDir = $currentDir + "\cache\"
 $csoundDir = $currentDir + "\.."
@@ -95,6 +78,7 @@ echo "Downloading VC packages..."
 # Download asiosdk and extract before doing portaudio installation
 if (-not (Test-Path $vcpkgDir/buildtrees/portaudio/src/asiosdk)) {
     echo "ASIOSDK not installed into VCPKG"
+    New-Item -ItemType Directory -Force -Path $cacheDir
     if (-not (Test-Path .\cache\asiosdk.zip)) {
         Invoke-WebRequest https://www.steinberg.net/asiosdk -OutFile cache/asiosdk.zip
     }
@@ -131,9 +115,6 @@ cd $currentDir
 mkdir csound-vs -ErrorAction SilentlyContinue
 cd csound-vs -ErrorAction SilentlyContinue
 
-$buildSharedLibs = $(if ($buildStatic) { "OFF" } else { "ON" })
-$useStaticCRT = $(if ($staticCRT) { "ON" } else { "OFF" })
-
 # Default to Release build type. Note: ReleaseWithDebInfo is broken as VCPKG does not currently support this mode properly
 cmake ..\.. -G $vsGenerator `
  -Wno-dev -Wdeprecated `
@@ -142,5 +123,4 @@ cmake ..\.. -G $vsGenerator `
  -DCMAKE_TOOLCHAIN_FILE="$vcpkgCmake" `
  -DCMAKE_INSTALL_PREFIX=dist `
  -DCUSTOM_CMAKE="..\Custom-vs.cmake" `
- -DBUILD_SHARED_LIBS=$buildSharedLibs `
- -DSTATIC_CRT=$useStaticCRT
+ # -DSTATIC_CRT="ON"

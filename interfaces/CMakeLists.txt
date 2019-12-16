@@ -18,7 +18,12 @@ if(BUILD_CXX_INTERFACE)
         filebuilding.cpp)
 
     add_library(libcsnd6 SHARED ${libcsnd6_SRCS})
-    set(libcsnd6_LIBS ${LIBSNDFILE_LIBRARY} )
+
+    if(MSVC)
+        set(libcsnd6_LIBS sndfile-static)
+    else()
+        set(libcsnd6_LIBS ${LIBSNDFILE_LIBRARY})
+    endif()
 
     if(WIN32)
       list(APPEND libcsnd6_LIBS "${LIBSNDFILE_SUPPORT_LIBS}")

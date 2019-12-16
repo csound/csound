@@ -154,6 +154,8 @@ available to do somting similar in other varants.
 found, but just returns NULL.  Previous behavour is available  as
 FTnp2Finde.
 
+- csoundGetInstrument() added
+
 ### Platform Specific
 
 - WebAudio: 
@@ -178,9 +180,10 @@ FTnp2Finde.
 -----------------------------------------------------------------------
 ------------------------------------------------------------------------
 
-commit ea8fa4a703bf0f657d3fc720a58a7ef18a3671d0
-Merge: 6924337f4b 526b0ca658
-Author: vlazzarini <victor.lazzarini@nuim.ie>
+commit 559f215f4273a8e585583be57db776c1dfa1ae29 (HEAD -> develop, origin/develop
+, origin/HEAD)
+Author: François PINOT <fggpinot@gmail.com>
+Date:   Mon Dec 9 18:12:51 2019 +0100
 
 commit 526b0ca658da993e55c467629d01d3d8092ffb9a
 Author: Eduardo Moguillansky <eduardo.moguillansky@gmail.com>
