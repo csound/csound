@@ -830,11 +830,11 @@ int32_t chnget_array_opcode_init(CSOUND* csound, CHNGETARRAY* p)
     for (index = 0; index<p->arraySize; index++)
     {
         if(strcmp(p->channels[index].data, "")) {
-            err = csoundGetChannelPtr(csound, &p->channelPtrs[index], (char *) p->channels[index].data,
+            err = csoundGetChannelPtr(csound, &p->channelPtrs[index], p->channels[index].data,
                                       channelType);
 
             if (LIKELY(!err)) {
-                p->lock = (spin_lock_t *) csoundGetChannelLock(csound, (char *) p->channels[index].data);
+                p->lock = (spin_lock_t *) csoundGetChannelLock(csound, p->channels[index].data);
                 strNcpy(p->chname, p->channels[index].data, MAX_CHAN_NAME);
 
                 if(channelType == (CSOUND_STRING_CHANNEL | CSOUND_INPUT_CHANNEL)){
@@ -874,7 +874,7 @@ int32_t chnget_array_opcode_perf_k(CSOUND* csound, CHNGETARRAY* p)
         MYFLT d;
         MYFLT_INT_TYPE i;
         } x;
-        x.i = InterlockedExchangeAdd64((MYFLT_INT_TYPE *) p->channelPtrs, 0);
+        x.i = InterlockedExchangeAdd64((MYFLT_INT_TYPE *) p->channelPtrs[index], 0);
         p->arrayDat->data[index] = x.d;
 #elif defined(HAVE_ATOMIC_BUILTIN)
         volatile union {
@@ -885,7 +885,7 @@ int32_t chnget_array_opcode_perf_k(CSOUND* csound, CHNGETARRAY* p)
         p->arrayDat->data[index] = x.d;
 //        csound->Message(csound, Str("%f"), p->channelPtrs[index]);
 #else
-        p->arrayDat->data[index] = p->channelPtrs;
+        *p->arrayDat->data[index] = *(p->channelPtrs);
 #endif
 
     }
@@ -904,6 +904,7 @@ int32_t chnget_array_opcode_perf_a(CSOUND *csound, CHNGETARRAY *p)
     MYFLT* outPtr;
     for (index = 0; index<p->arraySize; index++) {
         blockIndex = csound->ksmps*index;
+
         if (CS_KSMPS == (uint32_t) csound->ksmps) {
             csoundSpinLock(p->lock);
             if (UNLIKELY(offset)) memset(&p->arrayDat->data[blockIndex], '\0', offset);
@@ -965,7 +966,7 @@ int32_t chnset_array_opcode_init_i(CSOUND *csound, CHNGETARRAY *p)
     p->channelPtrs = malloc(p->arraySize*sizeof(MYFLT));
 
     for (index = 0; index<p->arraySize; index++) {
-        err = csoundGetChannelPtr(csound, &(p->channelPtrs[index]), (char *) p->channels[index].data,
+        err = csoundGetChannelPtr(csound, &p->channelPtrs[index], (char *) p->channels[index].data,
                                   CSOUND_CONTROL_CHANNEL | CSOUND_OUTPUT_CHANNEL);
         if (UNLIKELY(err))
             return print_chn_err(p, err);
@@ -2128,13 +2129,13 @@ int32_t outvalset(CSOUND *csound, OUTVAL *p)
 int32_t outvalsetgo(CSOUND *csound, OUTVAL *p)
 {
     int32_t ans = outvalset(csound,p);
-    if (ans==OK) ans = koutval(csound,p);
+    // if (ans==OK) ans = koutval(csound,p);
     return ans;
 }
 
 int32_t outvalsetSgo(CSOUND *csound, OUTVAL *p)
 {
     int32_t ans = outvalset_S(csound,p);
-    if (ans==OK) ans = koutval(csound,p);
+    // if (ans==OK) ans = koutval(csound,p);
     return ans;
 }
