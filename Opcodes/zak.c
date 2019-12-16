@@ -685,6 +685,9 @@ int32_t zacl(CSOUND *csound, ZACL *p)
 
     first = (int32_t) *p->first;
     last  = (int32_t) *p->last;
+    if(last == -1)
+        last = first;
+
     /* Check to see both kfirst and klast are within the limits of za space
      * and that last is >= first.    */
     if (UNLIKELY((first > zak->zalast) || (last > zak->zalast)))
@@ -728,7 +731,7 @@ static OENTRY zak_localops[] = {
   { "zaw",    S(ZAW),    ZW, 3,   "",  "ak",   (SUBR)zaset,  (SUBR)zaw  },
   { "zawm",   S(ZAWM),   ZB, 3,   "",  "akp",  (SUBR)zaset,  (SUBR)zawm },
   { "zamod",  S(ZAMOD),  ZB, 3,   "a", "ak",   (SUBR)zaset,  (SUBR)zamod},
-  { "zacl",   S(ZACL),   ZW, 3,   "",  "kk",   (SUBR)zaset,  (SUBR)zacl}
+  { "zacl",   S(ZACL),   ZW, 3,   "",  "kJ",   (SUBR)zaset,  (SUBR)zacl}
 };
 
 LINKAGE_BUILTIN(zak_localops)
