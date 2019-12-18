@@ -39,6 +39,10 @@ Any valid HTML can also be used.
 
 - ftexists reports whether a numbered ftable exists.
 
+- schedulek is a k-time opcode ust ike schedule.
+
+
+
 ### New Gen and Macros
 
 ### Orchestra
@@ -47,6 +51,12 @@ Any valid HTML can also be used.
   calculated b and c before selecting which to return.  This could
   give incorrect devision by zero errors or cause unexpected multiple
   evaluations of opcodes.  It now impements the common C-like semantics.
+
+- Orchestra macros are now persistent, so they apply in every
+  compilation after thet are definded unti they are undefined.  It has
+  been changed because of the need of live coding in particular.  A
+  correct orchestra should no be affected.
+
 
 ### Score
 
@@ -90,6 +100,7 @@ using deprecated opcodes.  This option is itself deprecated.
 
 - bpfcs has new array versions.
 
+- zacl can omit second argument, defaults to clearing only the given channel.
 
 ### Utilities
 
@@ -180,10 +191,8 @@ FTnp2Finde.
 -----------------------------------------------------------------------
 ------------------------------------------------------------------------
 
-commit 559f215f4273a8e585583be57db776c1dfa1ae29 (HEAD -> develop, origin/develop
-, origin/HEAD)
-Author: François PINOT <fggpinot@gmail.com>
-Date:   Mon Dec 9 18:12:51 2019 +0100
+Author: John ffitch <jpff@codemist.co.uk>
+Date:   Mon Dec 16 15:51:49 2019 +0000
 
 commit 526b0ca658da993e55c467629d01d3d8092ffb9a
 Author: Eduardo Moguillansky <eduardo.moguillansky@gmail.com>
