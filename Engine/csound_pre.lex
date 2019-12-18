@@ -38,6 +38,7 @@ static void do_new_include(CSOUND *, yyscan_t);
 static void do_macro_arg(CSOUND *, char *, yyscan_t);
 static void do_macro(CSOUND *, char *, yyscan_t);
 static void do_umacro(CSOUND *, char *, yyscan_t);
+static void do_umacroq(CSOUND *, char *, yyscan_t);
 static void do_ifdef(CSOUND *, char *, yyscan_t);
 static void do_ifdef_skip_code(CSOUND *, yyscan_t);
 static void do_function(CSOUND*, char *, CORFIL*);
@@ -509,6 +510,7 @@ QNAN            "qnan"[ \t]*\(
                                       yytext);
                   /* print_csound_predata(csound, "Before do_macro_arg",
                                           yyscanner); */
+                  do_umacroq(csound, yytext, yyscanner);
                   do_macro_arg(csound, yytext, yyscanner);
                   //print_csound_predata(csound,"After do_macro_arg", yyscanner);
                   BEGIN(INITIAL);
@@ -516,6 +518,7 @@ QNAN            "qnan"[ \t]*\(
 <macro>{MACRO} {
                   csound->DebugMsg(csound,"Define macro %s\n", yytext);
                   /* print_csound_predata(csound,"Before do_macro", yyscanner); */
+                  do_umacroq(csound, yytext, yyscanner);
                   do_macro(csound, yytext, yyscanner);
                   //print_csound_predata(csound,"After do_macro", yyscanner);
                   BEGIN(INITIAL);
@@ -1184,6 +1187,26 @@ static void do_umacro(CSOUND *csound, char *name0, yyscan_t yyscanner)
     while ((c=input(yyscanner)) != '\n' &&
            c != EOF && c != '\r'); /* ignore rest of line */
     csound_preset_lineno(1+csound_preget_lineno(yyscanner),yyscanner);
+}
+
+static void do_umacroq(CSOUND *csound, char *name0, yyscan_t yyscanner)
+{
+    int i;
+    MACRO *mm = csound->orc_macros, *last = NULL;
+    while (mm) {
+      if (strcmp(name0, mm->name)==0) {
+        MACRO *nn=mm->next;
+        mfree(csound, mm->name); mfree(csound, mm->body);
+        for (i=0; i<mm->acnt; i++)
+          mfree(csound, mm->arg[i]);
+        mfree(csound, mm);
+        if (last) last->next = nn;
+        else csound->orc_macros = nn;
+        return;
+      }
+      last = mm; mm = last->next;
+    }
+    return;
 }
 
 static void do_ifdef(CSOUND *csound, char *name0, yyscan_t yyscanner)
