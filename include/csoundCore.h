@@ -790,7 +790,7 @@ typedef struct CORFIL {
 #define MIDIINBUFMAX    (1024)
 #define MIDIINBUFMSK    (MIDIINBUFMAX-1)
 
-
+#define MIDIMAXPORTS    (64)
 
   typedef union {
     uint32 dwData;
@@ -1525,8 +1525,8 @@ typedef struct _message_queue_t_ {
     int           nspout;
     MYFLT         *auxspin;
     OPARMS        *oparms;
-    /** reserve space for up to 4 MIDI devices */
-    MCHNBLK       *m_chnbp[64];
+    /** reserve space for up to MIDIMAXPORTS MIDI devices */
+    MCHNBLK       *m_chnbp[MIDIMAXPORTS*16];
     int           dither_output;
     MYFLT         onedsr, sicvt;
     MYFLT         tpidsr, pidsr, mpidsr, mtpdsr;

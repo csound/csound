@@ -517,8 +517,8 @@ int32_t midiin(CSOUND *csound, MIDIIN *p)
     if (p->local_buf_index != MGLOB(MIDIINbufIndex)) {
       temp = &(MGLOB(MIDIINbuffer2)[p->local_buf_index++].bData[0]);
       p->local_buf_index &= MIDIINBUFMSK;
-      *p->status = (MYFLT) (*temp & (unsigned char) 0xf0);
-      *p->chan   = (MYFLT) ((*temp & 0x0f) + 1);
+      *p->status = (MYFLT) *temp; //(*temp & (unsigned char) 0xf0);
+      *p->chan   = (MYFLT) *++temp; //((*temp & 0x0f) + 1);
       *p->data1  = (MYFLT) *++temp;
       *p->data2  = (MYFLT) *++temp;
     }

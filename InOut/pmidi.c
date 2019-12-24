@@ -45,6 +45,7 @@ void _wassert(wchar_t *condition)
 
 typedef struct _pmall_data {
   PortMidiStream *midistream;
+  int multiport_flag;
   struct _pmall_data *next;
 } pmall_data;
 
@@ -233,13 +234,13 @@ static int OpenMidiInDevice_(CSOUND *csound, void **userData, const char *dev)
     if (dev == NULL || dev[0] == '\0')
       devnum =
         portMidi_getPackedDeviceID((int)Pm_GetDefaultInputDeviceID(), 0);
-    else if (UNLIKELY((dev[0] < '0' || dev[0] > '9') && dev[0] != 'a')) {
+    else if (UNLIKELY((dev[0] < '0' || dev[0] > '9') && dev[0] != 'a' && dev[0] != 'm')) {
       portMidiErrMsg(csound,
-                     Str("error: must specify a device number (>=0) or"
-                         " 'a' for all, not a name"));
+                     Str("error: must specify a device number (>=0),"
+                         " 'a' for all (merged), or 'm' for port mapped, not a name"));
       return -1;
     }
-    else if (dev[0] != 'a') {
+    else if (dev[0] != 'a' && dev[0] != 'm') {
       devnum = (int)atoi(dev);
       if (UNLIKELY(devnum < 0 || devnum >= cntdev)) {
         portMidiErrMsg(csound, Str("error: device number is out of range"));
@@ -250,8 +251,9 @@ static int OpenMidiInDevice_(CSOUND *csound, void **userData, const char *dev)
     // allow to proceed if 'a' is given even if there are no MIDI devices
       devnum = -1;
     }
+    
 
-    if (UNLIKELY(cntdev < 1 && (dev==NULL || dev[0] != 'a'))) {
+    if (UNLIKELY(cntdev < 1 && (dev==NULL || dev[0] != 'a' || dev[0] != 'm'))) {
       return portMidiErrMsg(csound, Str("no input devices are available"));
     }
     opendevs = 0;
@@ -278,6 +280,9 @@ static int OpenMidiInDevice_(CSOUND *csound, void **userData, const char *dev)
           csound->Message(csound,
                           Str("PortMIDI: Activated input device %d: '%s'\n"),
                           i, info->name);
+        /* set multiport mapping if asked */
+        if(dev[0] == 'm') next->multiport_flag = 1;
+        else next->multiport_flag = 0;
         retval = Pm_OpenInput(&next->midistream,
                  (PmDeviceID) portMidi_getRealDeviceID(i, 0),
                          NULL, 512L, (PmTimeProcPtr) NULL, NULL);
@@ -291,7 +296,6 @@ static int OpenMidiInDevice_(CSOUND *csound, void **userData, const char *dev)
                                           i, Pm_GetErrorText(retval));
         }
         /* only interested in channel messages (note on, control change, etc.) */
-        /* GAB: fixed for portmidi v.23Aug06 */
         Pm_SetFilter(next->midistream, (PM_FILT_ACTIVE | PM_FILT_SYSEX));
         /* empty the buffer after setting filter */
         while (Pm_Poll(next->midistream) == TRUE) {
@@ -359,7 +363,8 @@ static int OpenMidiOutDevice_(CSOUND *csound, void **userData, const char *dev)
 static int ReadMidiData_(CSOUND *csound, void *userData,
                          unsigned char *mbuf, int nbytes)
 {
-    int             n, retval, st, d1, d2;
+  int             n, retval, st, d1, d2;
+  unsigned char port = 0, map = 0;
     PmEvent         mev;
     pmall_data *data;
     /*
@@ -367,8 +372,11 @@ static int ReadMidiData_(CSOUND *csound, void *userData,
      */
     n = 0;
     data = (pmall_data *)userData;
+    
     while (data) {
       retval = Pm_Poll(data->midistream);
+      if(data->multiport_flag) map = 1;
+        
       if (retval != FALSE) {
         if (UNLIKELY(retval < 0))
           return portMidiErrMsg(csound, Str("error polling input device"));
@@ -384,23 +392,28 @@ static int ReadMidiData_(CSOUND *csound, void *userData,
                        !(st == 0xF8 || st == 0xFA || st == 0xFB ||
                          st == 0xFC || st == 0xFF)))
             continue;
-          nbytes -= (datbyts[(st - 0x80) >> 4] + 1);
+          nbytes -= (datbyts[(st - 0x80) >> 4] + 1 + map); 
           if (UNLIKELY(nbytes < 0)) {
             portMidiErrMsg(csound, Str("buffer overflow in MIDI input"));
             break;
           }
           /* channel messages */
-          n += (datbyts[(st - 0x80) >> 4] + 1);
+          n += (datbyts[(st - 0x80) >> 4] + 1 + map);   
           switch (datbyts[(st - 0x80) >> 4]) {
             case 0:
               *mbuf++ = (unsigned char) st;
+              /* don't add port if there is no data byte to follow */
               break;
             case 1:
               *mbuf++ = (unsigned char) st;
+              /* if mapping add port to byte after status */
+              if(map) *mbuf++ = (unsigned char) (0x80 | port);
               *mbuf++ = (unsigned char) d1;
               break;
             case 2:
               *mbuf++ = (unsigned char) st;
+              /* if mapping add port to byte after status */
+              if(map) *mbuf++ = (unsigned char) (0x80 | port);
               *mbuf++ = (unsigned char) d1;
               *mbuf++ = (unsigned char) d2;
               break;
@@ -413,6 +426,7 @@ static int ReadMidiData_(CSOUND *csound, void *userData,
         }
       }
       data = data->next;
+      port++; /* increment port number for mapping */
     }
     /* return the number of bytes read */
     return n;

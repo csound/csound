@@ -4110,7 +4110,7 @@ int csoundGetMidiChannelNumber(void *p)
     int     i;
     if (chn == NULL)
       return -1;
-    for (i = 0; i < 16; i++) {
+    for (i = 0; i < 256; i++) {
       if (chn == ((OPDS*) p)->insdshead->csound->m_chnbp[i])
         return i;
     }
