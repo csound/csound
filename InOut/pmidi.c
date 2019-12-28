@@ -347,7 +347,7 @@ static int OpenMidiOutDevice_(CSOUND *csound, void **userData, const char *dev)
       return -1;
     }
     info = portMidi_getDeviceInfo(devnum, 1);
-    if (info->interf != NULL) 
+    if (info->interf != NULL)
       csound->Message(csound,
                       Str("PortMIDI: selected output device %d: '%s' (%s)\n"),
                       devnum, info->name, info->interf);
@@ -356,7 +356,7 @@ static int OpenMidiOutDevice_(CSOUND *csound, void **userData, const char *dev)
                       Str("PortMIDI: selected output device %d: '%s'\n"),
                       devnum, info->name);
 
-    
+
     retval = Pm_OpenOutput(&midistream,
                            (PmDeviceID) portMidi_getRealDeviceID(devnum, 1),
                            NULL, 512L, (PmTimeProcPtr) NULL, NULL, 0L);
@@ -382,11 +382,11 @@ static int ReadMidiData_(CSOUND *csound, void *userData,
      */
     n = 0;
     data = (pmall_data *)userData;
-    
+
     while (data) {
       retval = Pm_Poll(data->midistream);
       if(data->multiport_flag) map = 1;
-        
+
       if (retval != FALSE) {
         if (UNLIKELY(retval < 0))
           return portMidiErrMsg(csound, Str("error polling input device"));
@@ -402,13 +402,13 @@ static int ReadMidiData_(CSOUND *csound, void *userData,
                        !(st == 0xF8 || st == 0xFA || st == 0xFB ||
                          st == 0xFC || st == 0xFF)))
             continue;
-          nbytes -= (datbyts[(st - 0x80) >> 4] + 1 + map); 
+          nbytes -= (datbyts[(st - 0x80) >> 4] + 1 + map);
           if (UNLIKELY(nbytes < 0)) {
             portMidiErrMsg(csound, Str("buffer overflow in MIDI input"));
             break;
           }
           /* channel messages */
-          n += (datbyts[(st - 0x80) >> 4] + 1 + map);   
+          n += (datbyts[(st - 0x80) >> 4] + 1 + map);
           switch (datbyts[(st - 0x80) >> 4]) {
             case 0:
               *mbuf++ = (unsigned char) st;

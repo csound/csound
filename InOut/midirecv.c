@@ -555,9 +555,9 @@ int sensMidi(CSOUND *csound)
         mep->chan = chan;
         p->datreq = datbyts[(type>>4) & 0x7];
         if(*p->bufp & 0x80  && p->datreq > 0)
-        {/* 
-            if there is another status byte inserted after 
-            a chan msg status byte, this implies a port number 
+        {/*
+            if there is another status byte inserted after
+            a chan msg status byte, this implies a port number
             has been stored before the data bytes
             *ONLY* if there are data bytes following
             (not sure if there are times when this is not the case)
@@ -566,8 +566,8 @@ int sensMidi(CSOUND *csound)
           */
           int port = *(p->bufp++) & 0x0F;
           if(port >= MIDIMAXPORTS) {
-             csoundWarning(csound, "port: %d exceeds max number of ports %d"
-                           ", mapping to port 0", port, MIDIMAXPORTS);
+            csoundWarning(csound, Str("port: %d exceeds max number of ports %d"
+                                      ", mapping to port 0"), port, MIDIMAXPORTS);
           } else mep->chan += 16*port;
         }
         p->datcnt = 0;
@@ -610,7 +610,7 @@ void MidiClose(CSOUND *csound)
     int     retval;
 
     if (p==NULL) {
-      printf("No MIDI\n");
+      printf(Str("No MIDI\n"));
       return;
     }
     if (p->MidiInCloseCallback != NULL) {
