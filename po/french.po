@@ -2815,11 +2815,11 @@ msgstr "msg sys_common %x non défini\n"
 #: InOut/midirecv.c:569
 #, c-format
 msgid "port: %d exceeds max number of ports %d, mapping to port 0"
-msgstr ""
+msgstr "port : %d dépasse le nombre max de ports %d, mappé au port 0"
 
 #: InOut/midirecv.c:613
 msgid "No MIDI\n"
-msgstr ""
+msgstr "Pas de MIDI\n"
 
 #: InOut/midirecv.c:619
 #, c-format
@@ -2866,13 +2866,12 @@ msgid " *** error initialising PortTime"
 msgstr " *** erreur à l'initialisation de PortTime"
 
 #: InOut/pmidi.c:239
-#, fuzzy
 msgid ""
 "error: must specify a device number (>=0), 'a' for all (merged), or 'm' for "
 "port mapped, not a name"
 msgstr ""
-"erreur : il faut un numéro de périphérique (>=0) ou 'a' pour all (tous), pas "
-"un nom"
+"erreur : il faut un numéro de périphérique (>=0) ou 'a' pour tous (fusion), "
+"ou 'm' pour un port mappé, pas un nom"
 
 #: InOut/pmidi.c:246 InOut/pmidi.c:346
 msgid "error: device number is out of range"
@@ -2888,9 +2887,9 @@ msgid "PortMIDI: Activated input device %d: '%s' (%s)\n"
 msgstr "PortMIDI : périphérique d'entrée sélectionné %d : '%s' (%s)\n"
 
 #: InOut/pmidi.c:279 InOut/pmidi.c:287
-#, fuzzy, c-format
+#, c-format
 msgid "Device mapped to channels %d to %d \n"
-msgstr "connexion du canal %d à %s\n"
+msgstr "Périphérique mappé aux canaux %d à %d\n"
 
 #: InOut/pmidi.c:284
 #, c-format
