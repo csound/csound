@@ -2023,6 +2023,10 @@ int32_t outch(CSOUND *csound, OUTCH *p)
     MYFLT       **args = p->args;
     uint32_t    nchnls = csound->nchnls;
     MYFLT *spout = CS_SPOUT;
+    if (UNLIKELY((count&1)!=0))
+      return
+        csound->PerfError(csound, &(p->h),
+                          Str("outch must have an even number of arguments"));
     CSOUND_SPOUT_SPINLOCK
     for (j = 0; j < count; j += 2) {
       ch = MYFLT2LRND(*args[j]);
