@@ -4348,23 +4348,28 @@ msgstr "Canali in eccesso ignorati\n"
 msgid "out: number of channels truncated from %d to %d"
 msgstr "out: numero di canali troncato da %d a %d"
 
-#: OOps/aops.c:2178
+#: OOps/aops.c:2029
+#, fuzzy
+msgid "outch must have an even number of arguments"
+msgstr "Deve avere un numero pari di argomenti in mac\n"
+
+#: OOps/aops.c:2182
 msgid "Unknown function called"
 msgstr "Chiamata una funzione sconosciuta"
 
-#: OOps/aops.c:2211
+#: OOps/aops.c:2215
 msgid "number of arguments != nchnls"
 msgstr "numero di argomenti != nchnls"
 
-#: OOps/aops.c:2240
+#: OOps/aops.c:2244
 msgid "outrg: channel number cannot be < 1 (1 is the first channel)"
 msgstr "outrg: il numero di canale non pu?? essere < 1 (1 ?? il primo canale)"
 
-#: OOps/aops.c:2274
+#: OOps/aops.c:2278
 msgid "number of hardware output channels not currently available"
 msgstr "il numero di canali hardware d'output non ?? attualmente disponibile"
 
-#: OOps/aops.c:2280
+#: OOps/aops.c:2284
 msgid "number of hardware input channels not currently available"
 msgstr "il numero di canali hardware d'input non ?? attualmente disponibile"
 

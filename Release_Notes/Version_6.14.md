@@ -23,10 +23,12 @@ Any valid HTML can also be used.
 
 # CSOUND VERSION 6.14 RELEASE NOTES
 
-A number of bug fixesand enhancements, but also potentially
+A number of bug fixes and enhancements, but also potentially
 significant changes are included.  For live coders the orchesra macros
 are now remembered between calls to comilerstr.  This should not change
-thebehaviour of current valid orchestras but coukld be useful in live coding.
+the behaviour of current valid orchestras but coukld be useful in live
+coding.
+
 -- The Developers
 
 ## USER-LEVEL CHANGES
@@ -106,7 +108,12 @@ using deprecated opcodes.  This option is itself deprecated.
 
 - bpfcs has new array versions.
 
-- zacl can omit second argument, defaults to clearing only the given channel.
+- zacl can omit second argument, defaults to clearing only the given
+  channel.
+
+- outvalue attempted to use a k-rate value which coud be invalid at
+  the time.  This is mainly a small performance proglem, and its now
+  eliminated.
 
 ### Utilities
 
@@ -209,15 +216,6 @@ Author: vlazzarini <victor.lazzarini@mu.ie>
 Date:   Tue Dec 24 12:42:24 2019 +0000
 
     implemented port mapping mechanism in Csound and portmidi m device id to use it
-
-commit 526b0ca658da993e55c467629d01d3d8092ffb9a
-Author: Eduardo Moguillansky <eduardo.moguillansky@gmail.com>
-Date:   Wed Dec 4 16:42:00 2019 +0100
-
-    outvalue: koutval is called only once during the init phase. Also the order of
-    the declaration of the opcode variants in Engine/entry1.c was changed to allow
-    outvalue.Si to take precedence over outvalue.k for when used "outvalue Schan, ivalue"
-    (outvalue.k is still used for outvalue Schan, kvar)
 
 commit ad5e171bb1e9c0a5e4d5419531344db0b32352dd
 Author: Steven Yi <stevenyi@gmail.com>
