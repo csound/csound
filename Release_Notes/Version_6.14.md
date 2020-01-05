@@ -23,6 +23,10 @@ Any valid HTML can also be used.
 
 # CSOUND VERSION 6.14 RELEASE NOTES
 
+A number of bug fixesand enhancements, but also potentially
+significant changes are included.  For live coders the orchesra macros
+are now remembered between calls to comilerstr.  This should not change
+thebehaviour of current valid orchestras but coukld be useful in live coding.
 -- The Developers
 
 ## USER-LEVEL CHANGES
@@ -31,11 +35,11 @@ Any valid HTML can also be used.
 
 - randc is like randi but uses a cubic interpolation.
 
-- mp3out is an experimental mplementation of writing an mp3 file.  It
+- mp3out is an experimental implementation of writing an mp3 file.  It
   may be replaced  by the current work in libsndfile to deal with MPEG
   files.
 
-- metro2 is likre metro but with added controllable swing.
+- metro2 is like metro but with added controllable swing.
 
 - ftexists reports whether a numbered ftable exists.
 
@@ -49,14 +53,16 @@ Any valid HTML can also be used.
 
 - The conditional expresson syntax a?b:c incorrectly always
   calculated b and c before selecting which to return.  This could
-  give incorrect devision by zero errors or cause unexpected multiple
-  evaluations of opcodes.  It now impements the common C-like semantics.
+  give incorrect division by zero errors or cause unexpected multiple
+  evaluations of opcodes.  It now implements the common C-like semantics.
 
 - Orchestra macros are now persistent, so they apply in every
   compilation after thet are definded unti they are undefined.  It has
   been changed because of the need of live coding in particular.  A
-  correct orchestra should no be affected.
+  correct orchestra should not be affected.
 
+- Following a syntax error there were cases when Csound gave a
+  segmentation error.  This is now fixed.
 
 ### Score
 
@@ -76,11 +82,11 @@ using deprecated opcodes.  This option is itself deprecated.
 
 - squinewave now handles optional a or k rate argument.
 
-- pindex opcode handls string fields as well as numeric ones.
+- pindex opcode handles string fields as well as numeric ones.
 
 - sflooper reworked to avoid a crash and provide warnings.
 
-- event_i and schedule can rake fractional p1.
+- event_i and schedule can take fractional p1.
 
 - in sound font opcodes better checking.   Also no longer will load
   multiple copies of a sound font, but reuses existing load.
@@ -114,7 +120,7 @@ using deprecated opcodes.  This option is itself deprecated.
 
 ### General Usage
 
-- // comments at rthe start of a line now accepted in CsOptions
+- // comments at the start of a line now accepted in CsOptions
   section of a csd file. 
 
 ## Bugs Fixed
@@ -128,9 +134,9 @@ using deprecated opcodes.  This option is itself deprecated.
 
 - OSCraw fixed.
 
-- ftkloadk could select incorrect interal code causing a crash.
+- ftkloadk could select incorrect internal code causing a crash.
 
-- GEN01 when used to read a single channel of a mlti-channel file got
+- GEN01 when used to read a single channel of a multi-channel file got
   the length incorrect.
 
 - ftgenonce had a fencepost problem so it could overwrite a table in
@@ -140,7 +146,10 @@ using deprecated opcodes.  This option is itself deprecated.
 
 - syncloop had a small typing error that caused crashes.
 
-- lowresx was incomplete and did not work as intended; rewritte (issue #1199)
+- lowresx was incomplete and did not work as intended; rewritten (issue #1199)
+
+- if outch was incorrectly given an odd number parameters it would give
+  a segmentation error.  This now gives an error message.
 
 # SYSTEM LEVEL CHANGES
 
@@ -149,9 +158,9 @@ using deprecated opcodes.  This option is itself deprecated.
 ### System Changes
 
 - New plugin class for opcodes with no outputs written.
-erform time errors and int errors are also reorte in te retur code of
+perform time errors and init errors are also reported in the return code of
 the command line system.  The new API function GetErrorCnt is
-available to do somting similar in other varants.
+available to do something similar in other variants.
 - 
 
 ### Translations
@@ -161,8 +170,8 @@ available to do somting similar in other varants.
 - Function GetErrorCnt gives the number of perf-time errors, and adds
   in the init-time errors at the end of a rendering.
 
-- Function FTnp2Find no longer print smessages if the table is not
-found, but just returns NULL.  Previous behavour is available  as
+- Function FTnp2Find no longer prints messages if the table is not
+found, but just returns NULL.  Previous behaviour is available  as
 FTnp2Finde.
 
 - csoundGetInstrument() added
@@ -191,11 +200,9 @@ FTnp2Finde.
 -----------------------------------------------------------------------
 ------------------------------------------------------------------------
 
-commit d4980cd2fe6dd1106e4b72d31f106f7361739df8 (HEAD -> develop, origin/develop, origin/HEAD)
-Author: vlazzarini <victor.lazzarini@mu.ie>
-Date:   Tue Dec 24 13:08:59 2019 +0000
-
-    port mapping messages
+commit bf1f61f7df4ec8b98e4e62116991b5555a539ee1 (HEAD -> develop, origin/develop, origin/HEAD)
+Author: John ffitch <jpff@codemist.co.uk>
+Date:   Fri Jan 3 21:04:57 2020 +0000
 
 commit 65670eb0c378ad8a8b42881d099928688395de81
 Author: vlazzarini <victor.lazzarini@mu.ie>
