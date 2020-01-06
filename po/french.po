@@ -4342,9 +4342,8 @@ msgid "out: number of channels truncated from %d to %d"
 msgstr "out: nombre de canaux tronqué de %d à %d"
 
 #: OOps/aops.c:2029
-#, fuzzy
 msgid "outch must have an even number of arguments"
-msgstr "Il doit y avoir un nombre pair d'arguments dans mac\n"
+msgstr "outch doit avoir un nombre pair d'arguments"
 
 #: OOps/aops.c:2182
 msgid "Unknown function called"
