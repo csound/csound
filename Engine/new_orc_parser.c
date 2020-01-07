@@ -191,8 +191,8 @@ TREE *csoundParseOrc(CSOUND *csound, const char *str)
               corfile_body(csound->orchstr));
       //csound->DebugMsg(csound,"FILE: %s\n", csound->orchstr->body);
       //    csound_print_preextra(&qq);
-      cs_init_math_constants_macros(csound, &qq);
-      cs_init_omacros(csound, &qq, csound->omacros);
+      cs_init_math_constants_macros(csound);
+      cs_init_omacros(csound, csound->omacros);
       //    csound_print_preextra(&qq);
       csound_prelex(csound, qq.yyscanner);
       if (UNLIKELY(qq.ifdefStack != NULL)) {

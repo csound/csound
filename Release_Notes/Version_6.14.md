@@ -24,10 +24,14 @@ Any valid HTML can also be used.
 # CSOUND VERSION 6.14 RELEASE NOTES
 
 A number of bug fixes and enhancements, but also potentially
-significant changes are included.  For live coders the orchesra macros
-are now remembered between calls to comilerstr.  This should not change
-the behaviour of current valid orchestras but coukld be useful in live
-coding.
+significant changes are included.
+
+For live coders the orchestra macros are now remembered between calls
+to comilerstr.  This should not change the behaviour of current valid
+orchestras but could be useful in live coding.
+
+MIDI devices now include mapping multiple devices to higher channels.
+The details are in the manual MIDI section.  
 
 -- The Developers
 
@@ -38,7 +42,7 @@ coding.
 - randc is like randi but uses a cubic interpolation.
 
 - mp3out is an experimental implementation of writing an mp3 file.  It
-  may be replaced  by the current work in libsndfile to deal with MPEG
+  may be replaced by the current work in libsndfile to deal with MPEG
   files.
 
 - metro2 is like metro but with added controllable swing.
@@ -210,12 +214,6 @@ FTnp2Finde.
 commit bf1f61f7df4ec8b98e4e62116991b5555a539ee1 (HEAD -> develop, origin/develop, origin/HEAD)
 Author: John ffitch <jpff@codemist.co.uk>
 Date:   Fri Jan 3 21:04:57 2020 +0000
-
-commit 65670eb0c378ad8a8b42881d099928688395de81
-Author: vlazzarini <victor.lazzarini@mu.ie>
-Date:   Tue Dec 24 12:42:24 2019 +0000
-
-    implemented port mapping mechanism in Csound and portmidi m device id to use it
 
 commit ad5e171bb1e9c0a5e4d5419531344db0b32352dd
 Author: Steven Yi <stevenyi@gmail.com>

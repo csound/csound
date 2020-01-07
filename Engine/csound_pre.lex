@@ -1305,16 +1305,15 @@ static void delete_macros(CSOUND *csound, yyscan_t yyscanner)
 }
 #endif
 
-static void add_math_const_macro(CSOUND *csound, PRE_PARM* qq,
-                                 char * name, char *body)
+static void add_math_const_macro(CSOUND *csound, char * name, char *body)
 {
     MACRO *mm;
 
     mm = (MACRO*) csound->Calloc(csound, sizeof(MACRO));
     mm->name = (char*) csound->Calloc(csound, strlen(name) + 3);
     sprintf(mm->name, "M_%s", name);
-    mm->next = qq->macros;
-    qq->macros = mm;
+    mm->next = csound->orc_macros;
+    csound->orc_macros = mm;
     mm->margs = MARGS;    /* Initial size */
     mm->acnt = 0;
     mm->body = (char*) csound->Calloc(csound, strlen(body) + 1);
@@ -1324,27 +1323,27 @@ static void add_math_const_macro(CSOUND *csound, PRE_PARM* qq,
 /**
  * Add math constants from math.h as orc csound->orc_macros
  */
-void cs_init_math_constants_macros(CSOUND *csound, PRE_PARM* qq)
+void cs_init_math_constants_macros(CSOUND *csound)
 {
     if (csound->orc_macros == NULL) {
-      add_math_const_macro(csound, qq, "E",     "2.71828182845904523536");
-      add_math_const_macro(csound, qq, "LOG2E", "1.44269504088896340736");
-      add_math_const_macro(csound, qq, "LOG10E","0.43429448190325182765");
-      add_math_const_macro(csound, qq, "LN2",   "0.69314718055994530942");
-      add_math_const_macro(csound, qq, "LN10",  "2.30258509299404568402");
-      add_math_const_macro(csound, qq, "PI",    "3.14159265358979323846");
-      add_math_const_macro(csound, qq, "PI_2",  "1.57079632679489661923");
-      add_math_const_macro(csound, qq, "PI_4",  "0.78539816339744830962");
-      add_math_const_macro(csound, qq, "1_PI",  "0.31830988618379067154");
-      add_math_const_macro(csound, qq, "2_PI",  "0.63661977236758134308");
-      add_math_const_macro(csound, qq,"2_SQRTPI", "1.12837916709551257390");
-      add_math_const_macro(csound, qq, "SQRT2", "1.41421356237309504880");
-      add_math_const_macro(csound, qq,"SQRT1_2","0.70710678118654752440");
-      add_math_const_macro(csound, qq, "INF",   "800000000000.0");/* ~25367 years */
+      add_math_const_macro(csound, "E",     "2.71828182845904523536");
+      add_math_const_macro(csound, "LOG2E", "1.44269504088896340736");
+      add_math_const_macro(csound, "LOG10E","0.43429448190325182765");
+      add_math_const_macro(csound, "LN2",   "0.69314718055994530942");
+      add_math_const_macro(csound, "LN10",  "2.30258509299404568402");
+      add_math_const_macro(csound, "PI",    "3.14159265358979323846");
+      add_math_const_macro(csound, "PI_2",  "1.57079632679489661923");
+      add_math_const_macro(csound, "PI_4",  "0.78539816339744830962");
+      add_math_const_macro(csound, "1_PI",  "0.31830988618379067154");
+      add_math_const_macro(csound, "2_PI",  "0.63661977236758134308");
+      add_math_const_macro(csound, "2_SQRTPI", "1.12837916709551257390");
+      add_math_const_macro(csound, "SQRT2", "1.41421356237309504880");
+      add_math_const_macro(csound, "SQRT1_2","0.70710678118654752440");
+      add_math_const_macro(csound, "INF",   "800000000000.0");/* ~25367 years */
     }
 }
 
-void cs_init_omacros(CSOUND *csound, PRE_PARM *qq, NAMES *nn)
+void cs_init_omacros(CSOUND *csound, NAMES *nn)
 {
     while (nn) {
       char  *s = nn->mac;
@@ -1368,7 +1367,7 @@ void cs_init_omacros(CSOUND *csound, PRE_PARM *qq, NAMES *nn)
       strncpy(mname, s, p - s);
       mname[p - s] = '\0';
       /* check if macro is already defined */
-      for (mm = qq->macros; mm != NULL; mm = mm->next) {
+      for (mm = csound->orc_macros; mm != NULL; mm = mm->next) {
         if (strcmp(mm->name, mname) == 0)
           break;
       }

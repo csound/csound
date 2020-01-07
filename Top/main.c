@@ -43,8 +43,8 @@ CS_NORETURN void    dieu(CSOUND *, char *, ...);
   int     read_unified_file2(CSOUND *csound, char *csd);
   int     read_unified_file4(CSOUND *csound, CORFIL *csd);
   uintptr_t  kperfThread(void * cs);
- void cs_init_math_constants_macros(CSOUND *csound, PRE_PARM *yyscanner);
- void cs_init_omacros(CSOUND *csound, PRE_PARM*, NAMES *nn);
+//void cs_init_math_constants_macros(CSOUND *csound, PRE_PARM *yyscanner);
+//void cs_init_omacros(CSOUND *csound, PRE_PARM*, NAMES *nn);
  void csoundInputMessageInternal(CSOUND *csound, const char *message);
  int csoundCompileOrcInternal(CSOUND *csound, const char *str, int async);
 
