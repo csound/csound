@@ -101,7 +101,7 @@ extern int isstrcod(MYFLT );
 extern int fterror(const FGDATA *ff, const char *s, ...);
 PUBLIC int csoundErrCnt(CSOUND *);
 void (*msgcallback_)(CSOUND *, int, const char *, va_list) = NULL;
-INSTRTXT *csoundGetInstrument(CSOUND *csound, int insno, const char *name); 
+INSTRTXT *csoundGetInstrument(CSOUND *csound, int insno, const char *name);
 
 void csoundDebuggerBreakpointReached(CSOUND *csound);
 void message_dequeue(CSOUND *csound);
@@ -512,7 +512,7 @@ static const CSOUND cenviron_ = {
     {
       NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
       NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
-      NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL 
+      NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL
     },
     /* ------- private data (not to be used by hosts or externals) ------- */
     /* callback function pointers */
@@ -4110,7 +4110,7 @@ int csoundGetMidiChannelNumber(void *p)
     int     i;
     if (chn == NULL)
       return -1;
-    for (i = 0; i < 16; i++) {
+    for (i = 0; i < 256; i++) {
       if (chn == ((OPDS*) p)->insdshead->csound->m_chnbp[i])
         return i;
     }
