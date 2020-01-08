@@ -27,7 +27,7 @@ A number of bug fixes and enhancements, but also potentially
 significant changes are included.
 
 For live coders the orchestra macros are now remembered between calls
-to comilerstr.  This should not change the behaviour of current valid
+to compilerstr.  This should not change the behaviour of current valid
 orchestras but could be useful in live coding.
 
 MIDI devices now include mapping multiple devices to higher channels.
@@ -49,7 +49,7 @@ The details are in the manual MIDI section.
 
 - ftexists reports whether a numbered ftable exists.
 
-- schedulek is a k-time opcode ust ike schedule.
+- schedulek is a k-time opcode just like schedule.
 
 
 
@@ -57,13 +57,13 @@ The details are in the manual MIDI section.
 
 ### Orchestra
 
-- The conditional expresson syntax a?b:c incorrectly always
+- The conditional expression syntax a?b:c incorrectly always
   calculated b and c before selecting which to return.  This could
   give incorrect division by zero errors or cause unexpected multiple
   evaluations of opcodes.  It now implements the common C-like semantics.
 
 - Orchestra macros are now persistent, so they apply in every
-  compilation after thet are definded unti they are undefined.  It has
+  compilation after they are defined until they are undefined.  It has
   been changed because of the need of live coding in particular.  A
   correct orchestra should not be affected.
 
@@ -115,13 +115,13 @@ using deprecated opcodes.  This option is itself deprecated.
 - zacl can omit second argument, defaults to clearing only the given
   channel.
 
-- outvalue attempted to use a k-rate value which coud be invalid at
-  the time.  This is mainly a small performance proglem, and its now
+- outvalue attempted to use a k-rate value which could be invalid at
+  the time.  This is mainly a small performance problem, and its now
   eliminated.
 
 ### Utilities
 
-- lpanal now checks that suficient poles are requested.
+- lpanal now checks that sufficient poles are requested.
 
 ### Frontends
 

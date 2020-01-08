@@ -35,7 +35,7 @@ typedef struct IFDEFSTACK_ {
 
 typedef struct pre_parm_s {
     void            *yyscanner;
-    MACRO           *macros;
+  //MACRO           *macros;
     MACRON          *alt_stack; //[MAX_INCLUDE_DEPTH];
     unsigned int macro_stack_ptr;
     unsigned int macro_stack_size;
