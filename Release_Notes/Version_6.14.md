@@ -51,6 +51,10 @@ The details are in the manual MIDI section.
 
 - schedulek is a k-time opcode just like schedule.
 
+- new array based channel opcodes: chngeti, chngetk, chngeta, chngets,
+  chnseti, chnsetk, chnseta, chnsets.
+
+
 
 
 ### New Gen and Macros
@@ -118,6 +122,9 @@ using deprecated opcodes.  This option is itself deprecated.
 - outvalue attempted to use a k-rate value which could be invalid at
   the time.  This is mainly a small performance problem, and its now
   eliminated.
+
+- Channel names for chnget and chnset opcodes can now be updated at k-rate so
+  they can be called within a loop.
 
 ### Utilities
 
@@ -220,12 +227,6 @@ Author: Steven Yi <stevenyi@gmail.com>
 Date:   Tue Dec 3 11:02:15 2019 +0100
 
     expose csoundCompile with extra commandline arg to allow overriding -o if it is in CsOptions
-
-commit 88c1f746891cbb121691b8ebbccda48b4862daac
-Author: roryywalsh <rorywalsh@ear.ie>
-Date:   Wed Nov 13 10:33:07 2019 +0000
-
-    adding k-time checking for channel strings in chnget and chnset opcodes
 
 commit a4706809398daf2eddb0b778bfe4e2c57d3dce64
 Merge: c04f371afd dbd36d56e2

@@ -243,7 +243,7 @@ TREE *csoundParseOrc(CSOUND *csound, const char *str)
       else {
         if (err == 1){
           csound->Message(csound, Str("Parsing failed due to invalid input!\n"));
-        }
+o        }
         else if (err == 2){
           csound->Message(csound,
                           Str("Parsing failed due to memory exhaustion!\n"));
@@ -273,7 +273,6 @@ TREE *csoundParseOrc(CSOUND *csound, const char *str)
 //      csound->Free(csound, typeTable);
       //print_tree(csound, "AST - FOLDED\n", astTree);
 
-      //FIXME - synterrcnt should not be global
       if (UNLIKELY(astTree == NULL || csound->synterrcnt)) {
         err = 3;
         if (astTree)

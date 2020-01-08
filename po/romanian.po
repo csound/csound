@@ -571,8 +571,8 @@ msgstr ""
 #: Engine/csound_pre.lex:1078 Engine/csound_pre.lex:1086
 #: Engine/csound_pre.lex:1123 Engine/csound_pre.lex:1133
 #: Engine/csound_pre.lex:1142 Engine/csound_pre.lex:1219
-#: Engine/csound_pre.lex:1365 Engine/csound_pre.lex:1378
-#: Engine/csound_pre.lex:1393 Engine/csound_prs.lex:367
+#: Engine/csound_pre.lex:1364 Engine/csound_pre.lex:1377
+#: Engine/csound_pre.lex:1392 Engine/csound_prs.lex:367
 #: Engine/csound_prs.lex:406 Engine/csound_prs.lex:445
 #: Engine/csound_prs.lex:538 Engine/csound_prs.lex:765
 #: Engine/csound_prs.lex:841 Engine/csound_prs.lex:875
@@ -694,12 +694,12 @@ msgstr ""
 msgid "Unmatched #if%sdef\n"
 msgstr ""
 
-#: Engine/csound_pre.lex:1358 Engine/csound_prs.lex:1261
+#: Engine/csound_pre.lex:1357 Engine/csound_prs.lex:1261
 #, c-format
 msgid "Macro definition for %*s\n"
 msgstr ""
 
-#: Engine/csound_pre.lex:1361
+#: Engine/csound_pre.lex:1360
 msgid "Invalid macro name for --omacro"
 msgstr ""
 
@@ -1879,20 +1879,20 @@ msgstr ""
 msgid "Parsing failed due to %d syntax error%s!\n"
 msgstr ""
 
-#: Engine/new_orc_parser.c:281
+#: Engine/new_orc_parser.c:280
 #, c-format
 msgid "Parsing failed due to %d semantic error%s!\n"
 msgstr ""
 
-#: Engine/new_orc_parser.c:284
+#: Engine/new_orc_parser.c:283
 msgid "Parsing failed due to syntax errors\n"
 msgstr ""
 
-#: Engine/new_orc_parser.c:286
+#: Engine/new_orc_parser.c:285
 msgid "Parsing failed due to no input!\n"
 msgstr ""
 
-#: Engine/new_orc_parser.c:302
+#: Engine/new_orc_parser.c:301
 msgid "Stopping on parser failure"
 msgstr ""
 
@@ -4256,35 +4256,43 @@ msgstr ""
 msgid "pvsout error %d:channel not found or not right type"
 msgstr ""
 
-#: OOps/bus.c:1154 OOps/bus.c:1203 OOps/bus.c:1224 OOps/bus.c:1271
+#: OOps/bus.c:849
+msgid "invalid channel name:"
+msgstr ""
+
+#: OOps/bus.c:850
+msgid "\"empty\""
+msgstr ""
+
+#: OOps/bus.c:1538 OOps/bus.c:1587 OOps/bus.c:1608 OOps/bus.c:1655
 msgid "invalid mode parameter"
 msgstr ""
 
-#: OOps/bus.c:1191 OOps/bus.c:1313
+#: OOps/bus.c:1575 OOps/bus.c:1697
 msgid "invalid channel parameters"
 msgstr ""
 
-#: OOps/bus.c:1279
+#: OOps/bus.c:1663
 msgid "channel already exists"
 msgstr ""
 
-#: OOps/bus.c:1316
+#: OOps/bus.c:1700
 msgid "invalid export variable"
 msgstr ""
 
-#: OOps/bus.c:1402
+#: OOps/bus.c:1786
 msgid "read failure in sensekey\n"
 msgstr ""
 
-#: OOps/bus.c:1410
+#: OOps/bus.c:1794
 msgid "sensekey error:"
 msgstr ""
 
-#: OOps/bus.c:1514 OOps/bus.c:1540 OOps/bus.c:1581 OOps/bus.c:1608
+#: OOps/bus.c:1898 OOps/bus.c:1924 OOps/bus.c:1965 OOps/bus.c:1992
 msgid "InputChannelCallback not set."
 msgstr ""
 
-#: OOps/bus.c:1659 OOps/bus.c:1685 OOps/bus.c:1713 OOps/bus.c:1739
+#: OOps/bus.c:2043 OOps/bus.c:2069 OOps/bus.c:2097 OOps/bus.c:2123
 msgid "OutputChannelCallback not set."
 msgstr ""
 
