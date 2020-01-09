@@ -2542,11 +2542,11 @@ static int32_t tab2ftab_offset(CSOUND *csound, TABCOPY2 *p)
     return csound->PerfError(csound, &(p->h), Str("array-var not initialised"));
   if (UNLIKELY((ftp = csound->FTFindP(csound, p->kfn)) == NULL))
     return csound->PerfError(csound, &(p->h), Str("No table for copy2ftab"));
+  fsize = ftp->flen;
   if (UNLIKELY(offset >= fsize || offset < 0))
       return csound->PerfError(csound, &(p->h), Str("Offset is out of bounds"));
   for (i=0; i<t->dimensions; i++)
       tlen += t->sizes[i];
-  fsize = ftp->flen;
   fdata = ftp->ftable;
   maxitems = fsize - offset;
   if (maxitems < tlen)

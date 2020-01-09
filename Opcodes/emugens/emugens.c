@@ -25,7 +25,7 @@
 #include "csdl.h"
 #include "arrays.h"
 #include "emugens_common.h"
-
+#include <ctype.h>
 
 #define SAMPLE_ACCURATE \
     uint32_t n, nsmps = CS_KSMPS;                                    \
