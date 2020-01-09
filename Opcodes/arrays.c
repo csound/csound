@@ -2542,15 +2542,15 @@ static int32_t tab2ftab_offset(CSOUND *csound, TABCOPY2 *p)
     return csound->PerfError(csound, &(p->h), Str("array-var not initialised"));
   if (UNLIKELY((ftp = csound->FTFindP(csound, p->kfn)) == NULL))
     return csound->PerfError(csound, &(p->h), Str("No table for copy2ftab"));
-  if (UNLIKELY(offset >= fsize))
-    return csound->PerfError(csound, &(p->h), Str("Offset is out of bounds"));
+  if (UNLIKELY(offset >= fsize || offset < 0))
+      return csound->PerfError(csound, &(p->h), Str("Offset is out of bounds"));
   for (i=0; i<t->dimensions; i++)
-    tlen += t->sizes[i];
+      tlen += t->sizes[i];
   fsize = ftp->flen;
   fdata = ftp->ftable;
   maxitems = fsize - offset;
   if (maxitems < tlen)
-    tlen = maxitems;
+      tlen = maxitems;
   memcpy(&(fdata[offset]), t->data, sizeof(MYFLT)*tlen);
   return OK;
 }
@@ -2570,13 +2570,13 @@ static int32_t tab2ftab_offset_i(CSOUND *csound, TABCOPY2 *p)
       return csound->InitError(csound, "%s", Str("No table for copy2ftab"));
     fsize = ftp->flen;
     fdata = ftp->ftable;
-    if (UNLIKELY(offset >= fsize))
-      return csound->InitError(csound, "%s", Str("Offset is out of bounds"));
+    if (UNLIKELY(offset >= fsize || offset < 0))
+        return csound->InitError(csound, "%s", Str("Offset is out of bounds"));
     for (i=0; i<t->dimensions; i++)
-      tlen += t->sizes[i];
+        tlen += t->sizes[i];
     maxitems = fsize - offset;
     if (maxitems < tlen)
-      tlen = maxitems;
+        tlen = maxitems;
     memcpy(&(fdata[offset]), t->data, sizeof(MYFLT)*tlen);
     return OK;
 }
@@ -4234,9 +4234,9 @@ static OENTRY arrayvars_localops[] =
       (SUBR) ftab2tabi, (SUBR) ftab2tab },
     { "copyf2array.kk", sizeof(TABCOPY), TR, 3, "", "k[]kk",
       (SUBR) ftab2tabi, (SUBR) ftab2tab },
-    { "copya2ftab.i", sizeof(TABCOPY), TW, 1, "", "i[]i", (SUBR) tab2ftabi },
-    { "copya2ftab.ii", sizeof(TABCOPY2), TW, 1, "", "i[]ii", (SUBR) tab2ftab_offset_i },
-    { "copya2ftab.kk", sizeof(TABCOPY2), TW, 2, "", "k[]kk", NULL , (SUBR) tab2ftab_offset },
+    // { "copya2ftab.i", sizeof(TABCOPY), TW, 1, "", "i[]i", (SUBR) tab2ftabi },
+    { "copya2ftab.ii", sizeof(TABCOPY2), TW, 1, "", "i[]io", (SUBR) tab2ftab_offset_i },
+    { "copya2ftab.kk", sizeof(TABCOPY2), TW, 2, "", "k[]kO", NULL , (SUBR) tab2ftab_offset },
     { "copyf2array.i", sizeof(TABCOPY), TR, 1, "", "i[]i", (SUBR) ftab2tabi },
     /* { "lentab", 0xffff}, */
     { "lentab.i", sizeof(TABQUERY1), _QQ, 1, "i", "k[]p", (SUBR) tablength },
