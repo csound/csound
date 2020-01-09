@@ -4399,13 +4399,12 @@ msgid "pvsout error %d:channel not found or not right type"
 msgstr "pvsout erreur %d : canal intouvable ou type non conforme"
 
 #: OOps/bus.c:849
-#, fuzzy
 msgid "invalid channel name:"
-msgstr "numéro de canal non valide : %d"
+msgstr "nom de canal non valide : %d"
 
 #: OOps/bus.c:850
 msgid "\"empty\""
-msgstr ""
+msgstr "\"vide\""
 
 #: OOps/bus.c:1538 OOps/bus.c:1587 OOps/bus.c:1608 OOps/bus.c:1655
 msgid "invalid mode parameter"
