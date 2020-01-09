@@ -186,8 +186,8 @@ static int32_t readf_init_S(CSOUND *csound, READF *p){
 static int32_t readf(CSOUND *csound, READF *p)
 {
     p->Sline->data[0] = '\0';
-    if (UNLIKELY(fgets(p->Sline->data,
-                       p->Sline->size-1, p->fd)==NULL)) {
+    if (UNLIKELY(p->fd && (fgets(p->Sline->data,
+                                 p->Sline->size-1, p->fd)==NULL))) {
       int32_t ff = feof(p->fd);
       fclose(p->fd);
       p->fd = NULL;
