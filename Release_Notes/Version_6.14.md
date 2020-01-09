@@ -54,7 +54,9 @@ The details are in the manual MIDI section.
 - new array based channel opcodes: chngeti, chngetk, chngeta, chngets,
   chnseti, chnsetk, chnseta, chnsets.
 
+- lastcycle ientifies the last k-cycle of an instrument instance.
 
+- strstrip removeswhitespace from both ends of a string.
 
 
 ### New Gen and Macros
@@ -125,6 +127,10 @@ using deprecated opcodes.  This option is itself deprecated.
 
 - Channel names for chnget and chnset opcodes can now be updated at k-rate so
   they can be called within a loop.
+
+- copya2ftab now has an optional additional argument which is an
+  offset into the ftable for where to copy the array.
+
 
 ### Utilities
 
