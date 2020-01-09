@@ -404,6 +404,14 @@ typedef struct {
 typedef struct {
   OPDS h;
   ARRAYDAT *tab;
+  MYFLT  *kfn;
+  MYFLT  *offset;
+} TABCOPY2;
+
+
+typedef struct {
+  OPDS h;
+  ARRAYDAT *tab;
   MYFLT  *kmin, *kmax;
   MYFLT  *kstart, *kend;
 } TABSCALE;
@@ -2521,10 +2529,62 @@ static int32_t tab2ftabi(CSOUND *csound, TABCOPY *p)
     return OK;
 }
 
+// copya2ftab k[], iftable, [, koffset=0]
+static int32_t tab2ftab_offset(CSOUND *csound, TABCOPY2 *p)
+{
+  FUNC *ftp;
+  int32_t fsize;
+  MYFLT *fdata;
+  ARRAYDAT *t = p->tab;
+  int32_t offset = (int)(*p->offset);
+  int32_t i, tlen = 0, maxitems;
+  if (UNLIKELY(t->data==NULL))
+    return csound->PerfError(csound, &(p->h), Str("array-var not initialised"));
+  if (UNLIKELY((ftp = csound->FTFindP(csound, p->kfn)) == NULL))
+    return csound->PerfError(csound, &(p->h), Str("No table for copy2ftab"));
+  if (UNLIKELY(offset >= fsize || offset < 0))
+      return csound->PerfError(csound, &(p->h), Str("Offset is out of bounds"));
+  for (i=0; i<t->dimensions; i++)
+      tlen += t->sizes[i];
+  fsize = ftp->flen;
+  fdata = ftp->ftable;
+  maxitems = fsize - offset;
+  if (maxitems < tlen)
+      tlen = maxitems;
+  memcpy(&(fdata[offset]), t->data, sizeof(MYFLT)*tlen);
+  return OK;
+}
+
+// copya2ftab i[], iftable, [, ioffset=0]
+static int32_t tab2ftab_offset_i(CSOUND *csound, TABCOPY2 *p)
+{
+    FUNC *ftp;
+    int32_t fsize;
+    MYFLT *fdata;
+    ARRAYDAT *t = p->tab;
+    int32_t offset = (int)*p->offset;;
+    int32_t i, tlen = 0, maxitems;
+    if (UNLIKELY(t->data==NULL))
+      return csound->InitError(csound, "%s", Str("array-var not initialised"));
+    if (UNLIKELY((ftp = csound->FTFindP(csound, p->kfn)) == NULL))
+      return csound->InitError(csound, "%s", Str("No table for copy2ftab"));
+    fsize = ftp->flen;
+    fdata = ftp->ftable;
+    if (UNLIKELY(offset >= fsize || offset < 0))
+        return csound->InitError(csound, "%s", Str("Offset is out of bounds"));
+    for (i=0; i<t->dimensions; i++)
+        tlen += t->sizes[i];
+    maxitems = fsize - offset;
+    if (maxitems < tlen)
+        tlen = maxitems;
+    memcpy(&(fdata[offset]), t->data, sizeof(MYFLT)*tlen);
+    return OK;
+}
+
 
 typedef struct {
-  OPDS h;
-  ARRAYDAT *tab;
+    OPDS h;
+    ARRAYDAT *tab;
   MYFLT *start, *end, *incr;
   int32_t    len;
 } TABGEN;
@@ -4169,9 +4229,14 @@ static OENTRY arrayvars_localops[] =
     { "copy2ttab", sizeof(TABCOPY), TR|_QQ, 2, "", "k[]k", NULL, (SUBR) ftab2tab },
     { "copya2ftab.k", sizeof(TABCOPY), TW, 3, "", "k[]k",
       (SUBR) tab2ftabi, (SUBR) tab2ftab },
+
     { "copyf2array.k", sizeof(TABCOPY), TR, 3, "", "k[]k",
       (SUBR) ftab2tabi, (SUBR) ftab2tab },
-    { "copya2ftab.i", sizeof(TABCOPY), TW, 1, "", "i[]i", (SUBR) tab2ftabi },
+    { "copyf2array.kk", sizeof(TABCOPY), TR, 3, "", "k[]kk",
+      (SUBR) ftab2tabi, (SUBR) ftab2tab },
+    // { "copya2ftab.i", sizeof(TABCOPY), TW, 1, "", "i[]i", (SUBR) tab2ftabi },
+    { "copya2ftab.ii", sizeof(TABCOPY2), TW, 1, "", "i[]io", (SUBR) tab2ftab_offset_i },
+    { "copya2ftab.kk", sizeof(TABCOPY2), TW, 2, "", "k[]kO", NULL , (SUBR) tab2ftab_offset },
     { "copyf2array.i", sizeof(TABCOPY), TR, 1, "", "i[]i", (SUBR) ftab2tabi },
     /* { "lentab", 0xffff}, */
     { "lentab.i", sizeof(TABQUERY1), _QQ, 1, "i", "k[]p", (SUBR) tablength },

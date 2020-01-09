@@ -2065,6 +2065,183 @@ ftexists_init(CSOUND *csound, FTEXISTS *p) {
     return OK;
 }
 
+/*
+
+ lastcycle: 1 if this is the last performance cycle for this event
+
+ kislast lastcycle
+
+ if lastcycle() then
+ ; do something
+ endif
+
+*/
+
+typedef struct {
+    OPDS h;
+    MYFLT *out;
+    int extracycles;
+    int numcycles;
+    // 0: has extra time, 1: no extrat time, use numcycles
+    int mode;
+} LASTCYCLE;
+
+static int32_t
+lastcycle_init(CSOUND *csound, LASTCYCLE *p) {
+    p->extracycles = p->h.insdshead->xtratim;
+    MYFLT p3 = p->h.insdshead->p3.value;
+    p->numcycles = p3 > 0 ? (int)(p->h.insdshead->offtim * csound->GetKr(csound) + 0.5) : 0;
+    if(p->extracycles == 0) {
+        p->numcycles += p->extracycles;
+    }
+    if(p->extracycles > 0 || p3 < 0)
+        p->mode = 0;
+    else
+        p->mode = 1;
+    *p->out = 0;
+    return OK;
+}
+
+static int32_t
+lastcycle(CSOUND *csound, LASTCYCLE *p) {
+    IGN(csound);
+    if(p->mode == 1) {
+        p->numcycles--;
+        if(p->numcycles == 0)
+            *p->out = 1;
+    } else if (p->h.insdshead->relesing) {
+        p->extracycles -= 1;
+        if(p->extracycles == 0)
+            *p->out = 1;
+    }
+    return OK;
+}
+
+
+/**
+ * strstrip
+ *
+ * remove whitespace from left, right or both sides
+ *
+ * Sout strstrip Sin
+ * Sout strstrip Sin, "l"
+ * Sout strstrip Sin, "r"
+ *
+ */
+
+// make sure that the out string has enough allocated space
+// This can be run only at init time
+static int32_t _string_ensure(CSOUND *csound, STRINGDAT *s, int size) {
+    if (s->size >= size)
+        return OK;
+    csound->ReAlloc(csound, s->data, size);
+    s->size = size;
+    return OK;
+}
+
+typedef struct {
+    OPDS h;
+    STRINGDAT *out;
+    STRINGDAT *in;
+    STRINGDAT *which;
+} STR1_1;
+
+static int32_t
+stripl(CSOUND *csound, STR1_1 *p) {
+    char *str = p->in->data;
+    int idx0;
+    for(idx0=0; idx0 < p->in->size; idx0++) {
+        if(!isspace(str[idx0]))
+            break;
+    }
+    // now idx points to start of content
+    if(str[idx0] == 0) {
+        // empty string
+        _string_ensure(csound, p->out, 1);
+        p->out->data[0] = 0;
+        return OK;
+    }
+    str += idx0;
+    size_t insize = strlen(str);
+    _string_ensure(csound, p->out, insize);
+    memcpy(p->out->data, str, insize);
+    return OK;
+}
+
+static int32_t
+stripr(CSOUND *csound, STR1_1 *p) {
+    // Trim trailing space
+    char *str = p->in->data;
+    int size = strlen(str) - 1;
+    const char *end = str + size;
+    while(size && isspace(*end)) {
+        end--;
+        size--;
+    }
+    size += 1;
+    if(size > 0) {
+        _string_ensure(csound, p->out, size);
+        memcpy(p->out->data, str, size);
+    } else {
+        _string_ensure(csound, p->out, 1);
+        p->out->data[0] = 0;
+    }
+     return OK;
+
+}
+
+static int32_t
+stripside(CSOUND *csound, STR1_1 *p) {
+    if(p->which->size < 2)
+        return INITERR("which should not be empty");
+    char which = p->which->data[0];
+    if(which == 'l')
+        return stripl(csound, p);
+    else if (which == 'r')
+        return stripr(csound, p);
+    return INITERRF("which should be one of 'l' or 'r', got %s", p->which->data);
+}
+
+// returns length
+int _str_find_edges(const char *str, int *startidx) {
+    // left
+    int idx0 = 0;
+    while(isspace((unsigned char)*str)) {
+        str++;
+        idx0++;
+    }
+
+    if(*str == 0) {
+        // Only whitespace
+        return 0;
+    }
+
+    // right
+    int size = strlen(str) - 1;
+    const char *end = str + size;
+    while(size && isspace(*end)) {
+        end--;
+        size--;
+    }
+    *startidx = idx0;
+    return size+1;
+}
+
+
+static int32_t
+strstrip(CSOUND *csound, STR1_1 *p) {
+    int startidx;
+    int size = _str_find_edges(p->in->data, &startidx);
+    if(size > 0) {
+        _string_ensure(csound, p->out, size);
+        memcpy(p->out->data, p->in->data + startidx, size);
+    } else {
+        _string_ensure(csound, p->out, 1);
+        p->out->data[0] = 0;
+    }
+    return OK;
+}
+
 
 /*
 
@@ -2223,7 +2400,10 @@ static OENTRY localops[] = {
       (SUBR)ftexists_init},
     { "ftexists", S(FTEXISTS), TR, 3, "k", "k",
       (SUBR)ftexists_init, (SUBR)ftexists_init},
-
+    { "lastcycle", S(LASTCYCLE), 0, 3, "k", "",
+      (SUBR)lastcycle_init, (SUBR)lastcycle},
+    { "strstrip.i_side", S(STR1_1), 0, 1, "S", "SS", (SUBR)stripside},
+    { "strstrip.i", S(STR1_1), 0, 1, "S", "S", (SUBR)strstrip}
 
 };
 
