@@ -6258,185 +6258,190 @@ msgstr ""
 msgid "Array dimension %d out of range for dimensions %d"
 msgstr ""
 
-#: Opcodes/arrays.c:418 Opcodes/arrays.c:423
+#: Opcodes/arrays.c:426 Opcodes/arrays.c:431
 msgid "Dimensions do not match in array arithmetic"
 msgstr ""
 
-#: Opcodes/arrays.c:429 Opcodes/arrays.c:474 Opcodes/arrays.c:497
-#: Opcodes/arrays.c:520 Opcodes/arrays.c:543 Opcodes/arrays.c:571
-#: Opcodes/arrays.c:601 Opcodes/arrays.c:641 Opcodes/arrays.c:681
-#: Opcodes/arrays.c:702 Opcodes/arrays.c:721 Opcodes/arrays.c:763
-#: Opcodes/arrays.c:784 Opcodes/arrays.c:812 Opcodes/arrays.c:833
-#: Opcodes/arrays.c:862 Opcodes/arrays.c:891 Opcodes/arrays.c:950
-#: Opcodes/arrays.c:990 Opcodes/arrays.c:1030 Opcodes/arrays.c:1070
-#: Opcodes/arrays.c:1114 Opcodes/arrays.c:1147 Opcodes/arrays.c:1180
-#: Opcodes/arrays.c:1213 Opcodes/arrays.c:1246 Opcodes/arrays.c:1279
-#: Opcodes/arrays.c:1312 Opcodes/arrays.c:1350 Opcodes/arrays.c:1386
-#: Opcodes/arrays.c:1422 Opcodes/arrays.c:1455 Opcodes/arrays.c:1488
-#: Opcodes/arrays.c:1521 Opcodes/arrays.c:1554 Opcodes/arrays.c:1587
-#: Opcodes/arrays.c:1620 Opcodes/arrays.c:1653 Opcodes/arrays.c:1686
-#: Opcodes/arrays.c:1721 Opcodes/arrays.c:1758 Opcodes/arrays.c:1795
-#: Opcodes/arrays.c:1832 Opcodes/arrays.c:1869 Opcodes/arrays.c:1906
-#: Opcodes/arrays.c:1943 Opcodes/arrays.c:1980 Opcodes/arrays.c:2017
-#: Opcodes/arrays.c:2054 Opcodes/arrays.c:2091 Opcodes/arrays.c:2124
-#: Opcodes/arrays.c:2130 Opcodes/arrays.c:2141 Opcodes/arrays.c:2172
-#: Opcodes/arrays.c:2207 Opcodes/arrays.c:2237 Opcodes/arrays.c:2264
-#: Opcodes/arrays.c:2338 Opcodes/arrays.c:2385 Opcodes/arrays.c:2436
+#: Opcodes/arrays.c:437 Opcodes/arrays.c:482 Opcodes/arrays.c:505
+#: Opcodes/arrays.c:528 Opcodes/arrays.c:551 Opcodes/arrays.c:579
+#: Opcodes/arrays.c:609 Opcodes/arrays.c:649 Opcodes/arrays.c:689
+#: Opcodes/arrays.c:710 Opcodes/arrays.c:729 Opcodes/arrays.c:771
+#: Opcodes/arrays.c:792 Opcodes/arrays.c:820 Opcodes/arrays.c:841
+#: Opcodes/arrays.c:870 Opcodes/arrays.c:899 Opcodes/arrays.c:958
+#: Opcodes/arrays.c:998 Opcodes/arrays.c:1038 Opcodes/arrays.c:1078
+#: Opcodes/arrays.c:1122 Opcodes/arrays.c:1155 Opcodes/arrays.c:1188
+#: Opcodes/arrays.c:1221 Opcodes/arrays.c:1254 Opcodes/arrays.c:1287
+#: Opcodes/arrays.c:1320 Opcodes/arrays.c:1358 Opcodes/arrays.c:1394
+#: Opcodes/arrays.c:1430 Opcodes/arrays.c:1463 Opcodes/arrays.c:1496
+#: Opcodes/arrays.c:1529 Opcodes/arrays.c:1562 Opcodes/arrays.c:1595
+#: Opcodes/arrays.c:1628 Opcodes/arrays.c:1661 Opcodes/arrays.c:1694
+#: Opcodes/arrays.c:1729 Opcodes/arrays.c:1766 Opcodes/arrays.c:1803
+#: Opcodes/arrays.c:1840 Opcodes/arrays.c:1877 Opcodes/arrays.c:1914
+#: Opcodes/arrays.c:1951 Opcodes/arrays.c:1988 Opcodes/arrays.c:2025
+#: Opcodes/arrays.c:2062 Opcodes/arrays.c:2099 Opcodes/arrays.c:2132
+#: Opcodes/arrays.c:2138 Opcodes/arrays.c:2149 Opcodes/arrays.c:2180
+#: Opcodes/arrays.c:2215 Opcodes/arrays.c:2245 Opcodes/arrays.c:2272
+#: Opcodes/arrays.c:2346 Opcodes/arrays.c:2393 Opcodes/arrays.c:2444
 #: Opcodes/pvsbasic.c:2441 Opcodes/pvsbasic.c:2472 Opcodes/pvsbasic.c:2521
 #, fuzzy
 msgid "array-variable not initialised"
 msgstr "table: nicht initialisiert"
 
-#: Opcodes/arrays.c:556 Opcodes/arrays.c:584 Opcodes/arrays.c:842
+#: Opcodes/arrays.c:564 Opcodes/arrays.c:592 Opcodes/arrays.c:850
 #, fuzzy, c-format
 msgid "division by zero in array-var at index %d"
 msgstr "Abteilung durch null"
 
-#: Opcodes/arrays.c:613 Opcodes/arrays.c:872 Opcodes/arrays.c:901
+#: Opcodes/arrays.c:621 Opcodes/arrays.c:880 Opcodes/arrays.c:909
 #, c-format
 msgid "undefined power in array-var at index %d"
 msgstr ""
 
-#: Opcodes/arrays.c:760 Opcodes/arrays.c:792 Opcodes/arrays.c:809
-#: Opcodes/arrays.c:1353 Opcodes/arrays.c:1389
+#: Opcodes/arrays.c:768 Opcodes/arrays.c:800 Opcodes/arrays.c:817
+#: Opcodes/arrays.c:1361 Opcodes/arrays.c:1397
 #, fuzzy
 msgid "division by zero in array-var"
 msgstr "Abteilung durch null"
 
-#: Opcodes/arrays.c:1092 Opcodes/arrays.c:1328
+#: Opcodes/arrays.c:1100 Opcodes/arrays.c:1336
 #, fuzzy, c-format
 msgid "division by zero in array-var at index %d/%d"
 msgstr "Abteilung durch null"
 
-#: Opcodes/arrays.c:2210 Opcodes/arrays.c:2240
+#: Opcodes/arrays.c:2218 Opcodes/arrays.c:2248
 #, fuzzy
 msgid "array-variable not a vector"
 msgstr "table: nicht initialisiert"
 
-#: Opcodes/arrays.c:2342 Opcodes/arrays.c:2388 Opcodes/arrays.c:2440
+#: Opcodes/arrays.c:2350 Opcodes/arrays.c:2396 Opcodes/arrays.c:2448
 #, fuzzy
 msgid "array-variable dimensions do not match"
 msgstr "table: nicht initialisiert"
 
-#: Opcodes/arrays.c:2345 Opcodes/arrays.c:2443
+#: Opcodes/arrays.c:2353 Opcodes/arrays.c:2451
 #, fuzzy
 msgid "array-variable types do not match"
 msgstr "table: nicht initialisiert"
 
-#: Opcodes/arrays.c:2492 Opcodes/arrays.c:2513 Opcodes/arrays.c:2715
-#: Opcodes/arrays.c:2752 Opcodes/arrays.c:2755
+#: Opcodes/arrays.c:2500 Opcodes/arrays.c:2521 Opcodes/arrays.c:2542
+#: Opcodes/arrays.c:2568 Opcodes/arrays.c:2775 Opcodes/arrays.c:2812
+#: Opcodes/arrays.c:2815
 #, fuzzy
 msgid "array-var not initialised"
 msgstr "t-var: nicht initialisiert"
 
-#: Opcodes/arrays.c:2495 Opcodes/arrays.c:2515 Opcodes/arrays.c:2573
-#: Opcodes/arrays.c:2595
+#: Opcodes/arrays.c:2503 Opcodes/arrays.c:2523 Opcodes/arrays.c:2544
+#: Opcodes/arrays.c:2570 Opcodes/arrays.c:2633 Opcodes/arrays.c:2655
 msgid "No table for copy2ftab"
 msgstr "Keine Tabelle für copy2ftab"
 
-#: Opcodes/arrays.c:2545
+#: Opcodes/arrays.c:2547 Opcodes/arrays.c:2574
+msgid "Offset is out of bounds"
+msgstr ""
+
+#: Opcodes/arrays.c:2605
 msgid "inconsistent start, end and increment parameters"
 msgstr ""
 
-#: Opcodes/arrays.c:2650
+#: Opcodes/arrays.c:2710
 msgid "inconsistent start, end parameters"
 msgstr ""
 
-#: Opcodes/arrays.c:2654
+#: Opcodes/arrays.c:2714
 msgid "slice larger than original size"
 msgstr ""
 
-#: Opcodes/arrays.c:2658
+#: Opcodes/arrays.c:2718
 msgid "slice increment must be positive"
 msgstr ""
 
-#: Opcodes/arrays.c:2728
+#: Opcodes/arrays.c:2788
 #, c-format
 msgid "%s not found"
 msgstr ""
 
-#: Opcodes/arrays.c:2760
+#: Opcodes/arrays.c:2820
 msgid "map fn not found at k rate"
 msgstr ""
 
-#: Opcodes/arrays.c:2939
+#: Opcodes/arrays.c:2999
 msgid "rfft: only one-dimensional arrays allowed"
 msgstr ""
 
-#: Opcodes/arrays.c:2972
+#: Opcodes/arrays.c:3032
 msgid "rifft: only one-dimensional arrays allowed"
 msgstr ""
 
-#: Opcodes/arrays.c:3003
+#: Opcodes/arrays.c:3063
 #, fuzzy
 msgid "array sizes do not match\n"
 msgstr "table: nicht initialisiert"
 
-#: Opcodes/arrays.c:3027
+#: Opcodes/arrays.c:3087
 msgid "fft: only one-dimensional arrays allowed"
 msgstr ""
 
-#: Opcodes/arrays.c:3054
+#: Opcodes/arrays.c:3114
 msgid "fftinv: only one-dimensional arrays allowed"
 msgstr ""
 
-#: Opcodes/arrays.c:3117
+#: Opcodes/arrays.c:3177
 #, c-format
 msgid "in array sizes do not match: %d and %d\n"
 msgstr ""
 
-#: Opcodes/arrays.c:3299 Opcodes/arrays.c:3339 Opcodes/arrays.c:3371
+#: Opcodes/arrays.c:3359 Opcodes/arrays.c:3399 Opcodes/arrays.c:3431
 msgid "non-pow-of-two case not implemented yet\n"
 msgstr ""
 
-#: Opcodes/arrays.c:3332
+#: Opcodes/arrays.c:3392
 msgid "FFT size too small (min 64 samples)\n"
 msgstr ""
 
-#: Opcodes/arrays.c:3399 Opcodes/arrays.c:3438
+#: Opcodes/arrays.c:3459 Opcodes/arrays.c:3498
 msgid "in array not 2-dimensional\n"
 msgstr ""
 
-#: Opcodes/arrays.c:3411 Opcodes/arrays.c:3424
+#: Opcodes/arrays.c:3471 Opcodes/arrays.c:3484
 msgid "requested row is out of range\n"
 msgstr ""
 
-#: Opcodes/arrays.c:3452 Opcodes/arrays.c:3466
+#: Opcodes/arrays.c:3512 Opcodes/arrays.c:3526
 msgid "requested col is out of range\n"
 msgstr ""
 
-#: Opcodes/arrays.c:3504 Opcodes/arrays.c:3516 Opcodes/arrays.c:3538
-#: Opcodes/arrays.c:3552
+#: Opcodes/arrays.c:3564 Opcodes/arrays.c:3576 Opcodes/arrays.c:3598
+#: Opcodes/arrays.c:3612
 #, fuzzy
 msgid "Error: index out of range\n"
 msgstr "Nummer des Instruments außerhalb der Reichweite"
 
-#: Opcodes/arrays.c:3588
+#: Opcodes/arrays.c:3648
 msgid "input array too small\n"
 msgstr ""
 
-#: Opcodes/arrays.c:3665
+#: Opcodes/arrays.c:3725
 msgid "dct: only one-dimensional arrays allowed"
 msgstr ""
 
-#: Opcodes/arrays.c:3672
+#: Opcodes/arrays.c:3732
 msgid "dct: non-pow-of-two sizes not yet implemented"
 msgstr ""
 
-#: Opcodes/arrays.c:3695
+#: Opcodes/arrays.c:3755
 msgid "dctinv: only one-dimensional arrays allowed"
 msgstr ""
 
-#: Opcodes/arrays.c:3703
+#: Opcodes/arrays.c:3763
 msgid "dctinv: non-pow-of-two sizes not yet implemented"
 msgstr ""
 
-#: Opcodes/arrays.c:3753
+#: Opcodes/arrays.c:3813
 #, fuzzy
 msgid "mfb: filter bank size exceeds input array length"
 msgstr "Eine angegebene Reichweite überschreitete die Tabellen Länge"
 
-#: Opcodes/arrays.c:3871 Opcodes/arrays.c:3895
+#: Opcodes/arrays.c:3931 Opcodes/arrays.c:3955
 #, fuzzy
 msgid "array inputs not in correct format\n"
 msgstr "table: nicht initialisiert"
