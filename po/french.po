@@ -6479,9 +6479,9 @@ msgid "No table for copy2ftab"
 msgstr "Pas de table pour copy2ftab"
 
 #: Opcodes/arrays.c:2547 Opcodes/arrays.c:2574
-#, fuzzy
+
 msgid "Offset is out of bounds"
-msgstr "instr %s non trouvé"
+msgstr "Décalage hors limites"
 
 #: Opcodes/arrays.c:2605
 msgid "inconsistent start, end and increment parameters"
