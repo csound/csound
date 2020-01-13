@@ -255,6 +255,7 @@ static const char *longUsageList[] = {
                                    "ORC/SCO-relative line #s"),
   Str_noop("--extract-score=FNAME   extract from score.srt using extract file"),
   Str_noop("--keep-sorted-score"),
+  Str_noop("--simple_sorted_score"),
   Str_noop("--env:NAME=VALUE        set environment variable NAME to VALUE"),
   Str_noop("--env:NAME+=VALUE       append VALUE to environment variable NAME"),
   Str_noop("--strsetN=VALUE         set strset table at index N to VALUE"),
