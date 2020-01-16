@@ -141,6 +141,9 @@ using deprecated opcodes.  This option is itself deprecated.
 - Belacsound:
 
 - CsoundQt:
+  Released to coincide wit Csound 6.14 there us CsoundQt 0.9.7
+  See Release notes [https://github.com/CsoundQt/CsoundQt/blob/master/release_notes/Release%20notes%200.9.7.md]
+
 
 ### General Usage
 
