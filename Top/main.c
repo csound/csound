@@ -256,7 +256,8 @@ PUBLIC int csoundCompileArgs(CSOUND *csound, int argc, const char **argv)
       // csound->scorestr = corfile_create_r("f0 800000000000.0\n");
       // VL 21-09-2016: it looks like #exit is needed for the
       // new score parser to work.
-      csound->scorestr = corfile_create_r(csound, "\n#exit\n");
+      // was "\n#exit\n" but seemed to have zero affect;
+      csound->scorestr = corfile_create_r(csound, "\n\n\ne\n#exit\n");
       corfile_flush(csound, csound->scorestr);
       if (O->RTevents)
         csound->Message(csound, Str("realtime performance using dummy "
