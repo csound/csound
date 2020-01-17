@@ -1,7 +1,7 @@
 <!---
 
 To maintain this document use the following markdown:
-
+n
 # First level heading
 ## Second level heading
 ### Third level heading
@@ -19,7 +19,6 @@ To maintain this document use the following markdown:
 Any valid HTML can also be used.
 
  --->
-======== DRAFT ======== DRAFT ======== DRAFT ======== DRAFT ======== DRAFT ========
 
 # CSOUND VERSION 6.14 RELEASE NOTES
 
@@ -226,23 +225,3 @@ FTnp2Finde.
 - Bela
 
 ==END==
-
------------------------------------------------------------------------
-------------------------------------------------------------------------
-
-commit bf1f61f7df4ec8b98e4e62116991b5555a539ee1 (HEAD -> develop, origin/develop, origin/HEAD)
-Author: John ffitch <jpff@codemist.co.uk>
-Date:   Fri Jan 3 21:04:57 2020 +0000
-
-commit ad5e171bb1e9c0a5e4d5419531344db0b32352dd
-Author: Steven Yi <stevenyi@gmail.com>
-Date:   Tue Dec 3 11:02:15 2019 +0100
-
-    expose csoundCompile with extra commandline arg to allow overriding -o if it is in CsOptions
-
-commit 797f3098efdc06e587fe8d45a4b9b6b4fc4daec0
-Author: Steven Yi <stevenyi@gmail.com>
-Date:   Thu Sep 19 13:53:55 2019 -0400
-
-    added getPlayState(), addPlayStateListener(), and other methods for querying and listening to the playing state of Csound
-
