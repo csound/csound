@@ -148,7 +148,10 @@ using deprecated opcodes.  This option is itself deprecated.
 ### General Usage
 
 - // comments at the start of a line now accepted in CsOptions
-  section of a csd file. 
+  section of a csd file.
+
+- Option --orc has been corrected so it runs witout a score; that is for ever until an exit condition.
+
 
 ## Bugs Fixed
 
@@ -236,19 +239,6 @@ Author: Steven Yi <stevenyi@gmail.com>
 Date:   Tue Dec 3 11:02:15 2019 +0100
 
     expose csoundCompile with extra commandline arg to allow overriding -o if it is in CsOptions
-
-commit a4706809398daf2eddb0b778bfe4e2c57d3dce64
-Merge: c04f371afd dbd36d56e2
-Author: Pete Goodeve <pete.goodeve@computer.org>
-Date:   Tue Oct 29 17:16:21 2019 -0700
-
-    resolve sfont.c confusion
-
-commit 683eeb5a6605e6b179894a2438e496d6b4a9f3dc
-Author: veplaini <victor.lazzarini@nuim.ie>
-Date:   Tue Sep 24 20:38:20 2019 +0100
-
-    added some more functionality to CPOF
 
 commit 797f3098efdc06e587fe8d45a4b9b6b4fc4daec0
 Author: Steven Yi <stevenyi@gmail.com>
