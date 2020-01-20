@@ -208,6 +208,10 @@ FTnp2Finde.
 ### Platform Specific
 
 - WebAudio: 
+ - added csoundCompile to CsoundObj that adds commandline args so that one can
+   override CsOptions values in CSDs 
+ - added getPlayState(), addPlayStateListener(), and other methods to CsoundObj
+   for querying and listening to changes of play state
 
 - iOS
 
