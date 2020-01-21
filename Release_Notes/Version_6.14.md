@@ -121,7 +121,7 @@ using deprecated opcodes.  This option is itself deprecated.
   channel.
 
 - outvalue attempted to use a k-rate value which could be invalid at
-  the time.  This is mainly a small performance problem, and it's now
+  the time.  This is mainly a small performance problem, and it is now
   eliminated.
 
 - Channel names for chnget and chnset opcodes can now be updated at k-rate so
