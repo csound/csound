@@ -121,7 +121,7 @@ using deprecated opcodes.  This option is itself deprecated.
   channel.
 
 - outvalue attempted to use a k-rate value which could be invalid at
-  the time.  This is mainly a small performance problem, and its now
+  the time.  This is mainly a small performance problem, and it's now
   eliminated.
 
 - Channel names for chnget and chnset opcodes can now be updated at k-rate so
@@ -140,7 +140,7 @@ using deprecated opcodes.  This option is itself deprecated.
 - Belacsound:
 
 - CsoundQt:
-  Released to coincide wit Csound 6.14 there us CsoundQt 0.9.7
+  Released to coincide wit Csound 6.14 there is CsoundQt 0.9.7
   See Release notes [https://github.com/CsoundQt/CsoundQt/blob/master/release_notes/Release%20notes%200.9.7.md]
 
 
@@ -149,7 +149,7 @@ using deprecated opcodes.  This option is itself deprecated.
 - // comments at the start of a line now accepted in CsOptions
   section of a csd file.
 
-- Option --orc has been corrected so it runs witout a score; that is for ever until an exit condition.
+- Option --orc has been corrected so it runs without a score; that is for ever until an exit condition.
 
 
 ## Bugs Fixed
