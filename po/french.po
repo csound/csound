@@ -10,7 +10,7 @@ msgstr ""
 "Project-Id-Version: CSOUND 5.xx\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2008-07-26 19:39+0100\n"
-"PO-Revision-Date: 2018-10-20 19:36+0100\n"
+"PO-Revision-Date: 2020-01-22 21:33+0000\n"
 "Last-Translator: François Pinot <fggpinot@gmail.com>\n"
 "Language-Team: French\n"
 "Language: fr\n"
@@ -8606,9 +8606,9 @@ msgid "Failed to initialise LAME %d\n"
 msgstr "readi, l'initialisation a échoué"
 
 #: Opcodes/lame.c:91
-#, fuzzy, c-format
+#, c-format
 msgid "mp3out %s: failed to open file"
-msgstr "mp3in : %s : l'ouverture du fichier a échoué"
+msgstr "mp3out : %s : l'ouverture du fichier a échoué"
 
 #: Opcodes/lame.c:119
 #, fuzzy, c-format

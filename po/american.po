@@ -9,7 +9,7 @@ msgstr ""
 "Project-Id-Version: CSOUND 6.xx\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2008-07-30 08:53+0100\n"
-"PO-Revision-Date: 2019-09-01 17:22+0100\n"
+"PO-Revision-Date: 2020-01-22 21:32+0000\n"
 "Last-Translator: John ffitch <jpff@sourceforge.net>\n"
 "Language-Team: English (US)\n"
 "Language: en-GB\n"
@@ -8247,12 +8247,12 @@ msgstr "Couldn't create Jack connection from \"%s\" to \"%s\": status %d.\n"
 #: Opcodes/lame.c:87
 #, fuzzy, c-format
 msgid "Failed to initialise LAME %d\n"
-msgstr "readi failed to initialize"
+msgstr "Failed to initialize LAME %d\n"
 
 #: Opcodes/lame.c:91
 #, fuzzy, c-format
 msgid "mp3out %s: failed to open file"
-msgstr "mp3scale: %s: failed to open file"
+msgstr "mp3out %s: failed to open file"
 
 #: Opcodes/lame.c:119
 #, c-format
