@@ -42,7 +42,7 @@ The details are in the manual MIDI section.
 
 - mp3out is an experimental implementation of writing an mp3 file.  It
   may be replaced by the current work in libsndfile to deal with MPEG
-  files.
+  files. See appendix.
 
 - metro2 is like metro but with added controllable swing.
 
@@ -227,5 +227,31 @@ FTnp2Finde.
 - Haiku port
 
 - Bela
+
+### Appendix: Experimental mp3out
+
+Simple example:
+```
+<CsoundSynthesizer>
+
+<CsInstruments>
+ksmps = 1000
+
+instr 1
+  aa diskin "fox.wav", 1
+  mp3out  aa,aa,"test.mp3"
+  endin
+</CsInstruments>
+
+<CsScore>
+i1 0 3
+e
+</CsScore>
+
+</CsoundSynthesizer>
+```
+
+The syntax is `mp3out aleft,aright, Sfilename` with three optional arguments `mode` (0=stero, 1=Jointstereo (default), 3=Mono),  `bitrate` defaulting to 256, and `quality` (in range 1 to 7) defaulting to 2 (high quality).
+
 
 ==END==
