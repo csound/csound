@@ -8244,6 +8244,21 @@ msgstr "Couldn't create Jack port \"%s\".\n"
 msgid "Could not create Jack connection from \"%s\" to \"%s\": status %d.\n"
 msgstr "Couldn't create Jack connection from \"%s\" to \"%s\": status %d.\n"
 
+#: Opcodes/lame.c:87
+#, fuzzy, c-format
+msgid "Failed to initialise LAME %d\n"
+msgstr "readi failed to initialize"
+
+#: Opcodes/lame.c:91
+#, fuzzy, c-format
+msgid "mp3out %s: failed to open file"
+msgstr "mp3scale: %s: failed to open file"
+
+#: Opcodes/lame.c:119
+#, c-format
+msgid "mp3out: write error %d\n"
+msgstr ""
+
 #: Opcodes/linuxjoystick.c:59
 #, c-format
 msgid "linuxjoystick: No such table %f"

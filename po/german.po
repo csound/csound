@@ -8405,6 +8405,21 @@ msgstr ""
 msgid "Could not create Jack connection from \"%s\" to \"%s\": status %d.\n"
 msgstr ""
 
+#: Opcodes/lame.c:87
+#, fuzzy, c-format
+msgid "Failed to initialise LAME %d\n"
+msgstr "lpread: nicht initialisiert"
+
+#: Opcodes/lame.c:91
+#, fuzzy, c-format
+msgid "mp3out %s: failed to open file"
+msgstr "Störung Öffnung ASCII Akte"
+
+#: Opcodes/lame.c:119
+#, fuzzy, c-format
+msgid "mp3out: write error %d\n"
+msgstr "Schreibfehler"
+
 #: Opcodes/linuxjoystick.c:59
 #, c-format
 msgid "linuxjoystick: No such table %f"

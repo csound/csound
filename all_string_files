@@ -305,6 +305,7 @@
 ./Opcodes/imageOpcodes.h
 ./Opcodes/jackTransport.c
 ./Opcodes/jacko.cpp
+./Opcodes/lame.c
 ./Opcodes/linear_algebra.cpp
 ./Opcodes/linuxjoystick.c
 ./Opcodes/linuxjoystick.h
