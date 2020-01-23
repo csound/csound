@@ -31,7 +31,7 @@
 #define AppPublisher "Csound"
 #define AppURL "http://csound.github.io/"
 #define ManualSourceDir "c:\html\"
-#define CsoundQTDir "c:\CsoundQt-0.9.6-Win64\"
+#define CsoundQTDir "c:\CsoundQt-0.9.7-Win64\"
 #define CsoundQTIcon "c:\qtcs.ico"
 
 [Components]
