@@ -251,7 +251,7 @@ e
 </CsoundSynthesizer>
 ```
 
-The syntax is `mp3out aleft,aright, Sfilename` with three optional arguments `mode` (0=stero, 1=Jointstereo (default), 3=Mono),  `bitrate` defaulting to 256, and `quality` (in range 1 to 7) defaulting to 2 (high quality).
+The syntax is `mp3out aleft,aright, Sfilename` with three optional arguments `mode` (0=stereo, 1=Jointstereo (default), 3=Mono),  `bitrate` defaulting to 256, and `quality` (in range 1 to 7) defaulting to 2 (high quality).
 
 
 ==END==
