@@ -242,14 +242,15 @@ Source: "../../examples\*.*"; DestDir: "{#APP_EXAMPLES}"; Excludes: "*.wav *.htm
 Source: "../../samples\*.*"; DestDir: "{#APP_SAMPLES}"; Flags: ignoreversion recursesubdirs;  Components: core
 Source: {#VcpkgInstallDir}\share\libstk\rawwaves\*.*; DestDir: "{#APP_SAMPLES}"; Flags: ignoreversion recursesubdirs;  Components: core
 Source: {#ManualSourceDir}*.*; DestDir: "{#APP_MANUAL}"; Flags: ignoreversion recursesubdirs; Components: core
-Source: {#CsoundQTDir}*.*; DestDir: "{app}\bin"; Flags: ignoreversion recursesubdirs; Components: csoundqt
+Source: {#CsoundQTDir}*.*; DestDir: "{app}\CsoundQt"; Flags: ignoreversion recursesubdirs; Components: csoundqt
+Source: {#CsoundQTIcon}; DestDir: "{app}\CsoundQt"; Flags: ignoreversion; Components: csoundqt
 
 
 [Icons]
 Name: "{group}\{cm:ProgramOnTheWeb,Csound}"; Filename: "{#AppURL}";  Components: core;
 Name: "{group}\{cm:UninstallProgram,{#AppName}}"; Filename: "{uninstallexe}"
 Name: "{group}\Csound"; Filename: "cmd.exe"; Parameters: "/K csound.exe"; WorkingDir: "{#APP_BIN}"; Flags: dontcloseonexit;  Components: core
-Name: "{group}\CsoundQt"; Filename: "{#APP_BIN}CsoundQt-d-html-cs6.exe"; WorkingDir: "{#APP_BIN}";  IconFilename:"{app}\{#CsoundQTIcon}" ;Components: csoundqt
+Name: "{group}\CsoundQt"; Filename: "{app}\CsoundQt\bin\CsoundQt-d-html-cs6.exe"; WorkingDir: "{app}\CsoundQt\bin\";  IconFilename:"{app}\CsoundQt\qtcs.ico" ;Components: csoundqt
 Name: "{group}\Csound Reference Manual"; Filename: "http://csound.github.io/docs/manual/indexframes.html";  Components: core
 Name: "{group}\Csound API Reference Manual"; Filename: "http://csound.github.io/docs/api/index.html";  Components: core
 
