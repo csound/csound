@@ -885,7 +885,7 @@ int32_t chnget_array_opcode_perf_k(CSOUND* csound, CHNGETARRAY* p)
         p->arrayDat->data[index] = x.d;
 //        csound->Message(csound, Str("%f"), p->channelPtrs[index]);
 #else
-        *p->arrayDat->data[index] = *(p->channelPtrs);
+        p->arrayDat->data[index] = *(p->channelPtrs);
 #endif
 
     }
