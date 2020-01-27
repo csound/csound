@@ -683,7 +683,7 @@ static int32_t ftgen_list(CSOUND *csound, FTGEN *p, int32_t istring)
       n = array->sizes[0];
       ftevt->pcnt = (int16) n+4;
       int32_t i = 0;
-      memcpy(&fp[5], array->data, n*sizeof(MYFLT));
+      memcpy(&fp[5], &array->data[0], n*sizeof(MYFLT));
       while (i < n) {
         i++;
       }

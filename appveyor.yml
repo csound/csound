@@ -3,7 +3,7 @@ image: Visual Studio 2019
 environment:
   APPVEYOR_SAVE_CACHE_ON_ERROR: "true"
   APPVEYOR_RDP_PASSWORD: Vercoe123
-  CSOUND_VERSION: 6.13.0
+  CSOUND_VERSION: 6.14.0
   VCPKGDir: C:\Tools\vcpkg
   VSGENERATOR: Visual Studio 16 2019
 
@@ -27,10 +27,10 @@ install:
   - powershell -ExecutionPolicy ByPass -File downloadDependencies.ps1 -vsGenerator "%VSGENERATOR%"
   # Download and unzip manual and CsoundQT for inclusion with the installer
   - cd c:/
-  - ps: Start-FileDownload 'https://github.com/csound/manual/releases/download/6.13.0/Csound6.13.0_manual_html.zip'
-  - cmd: 7z.exe x Csound6.13.0_manual_html.zip
-  - ps: Start-FileDownload 'https://github.com/CsoundQt/CsoundQt/releases/download/0.9.6/CsoundQt-0.9.6-Win64.zip'
-  - cmd: 7z.exe x CsoundQt-0.9.6-Win64.zip
+  - ps: Start-FileDownload 'https://github.com/csound/manual/releases/download/6.14.0/Csound6.14.0_manual_html.zip'
+  - cmd: 7z.exe x Csound6.14.0_manual_html.zip
+  - ps: Start-FileDownload 'https://github.com/CsoundQt/CsoundQt/releases/download/0.9.7/CsoundQt-0.9.7-Win64.zip'
+  - cmd: 7z.exe x CsoundQt-0.9.7-Win64.zip -oCsoundQt-0.9.7-Win64
   - ps: Start-FileDownload 'https://raw.githubusercontent.com/CsoundQt/CsoundQt/develop/images/qtcs.ico'
   - cd C:\projects\csound\
 
