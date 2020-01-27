@@ -255,6 +255,7 @@ static const char *longUsageList[] = {
                                    "ORC/SCO-relative line #s"),
   Str_noop("--extract-score=FNAME   extract from score.srt using extract file"),
   Str_noop("--keep-sorted-score"),
+  Str_noop("--simple_sorted_score"),
   Str_noop("--env:NAME=VALUE        set environment variable NAME to VALUE"),
   Str_noop("--env:NAME+=VALUE       append VALUE to environment variable NAME"),
   Str_noop("--strsetN=VALUE         set strset table at index N to VALUE"),
@@ -300,8 +301,10 @@ static const char *longUsageList[] = {
   Str_noop("--vbr-quality=Ft        set quality of variable bit-rate compression"),
   Str_noop("--devices[=in|out]      list available audio devices and exit"),
   Str_noop("--midi-devices[=in|out] list available MIDI devices and exit"),
-  Str_noop("--get-system-sr         print system sr and exit, requires realtime audio output (e.g. -odac) to be defined first)"),
-  Str_noop("--use-system-sr         print system sr and use realtime audio output (e.g. -odac) to be defined first"),
+  Str_noop("--get-system-sr         print system sr and exit, requires realtime\n"
+       "                        audio output (e.g. -odac) to be defined first)"),
+  Str_noop("--use-system-sr         print system sr and use realtime audio\n"
+           "                        output (e.g. -odac) to be defined first"),
   Str_noop("--ksmps=N               override ksmps"),
   Str_noop("--fftlib=N              actual FFT lib to use (FFTLIB=0, "
                                    "PFFFT = 1, vDSP =2)"),
@@ -876,6 +879,10 @@ static int decode_long(CSOUND *csound, char *s, int argc, char **argv)
     /* -t0 */
     else if (!(strcmp (s, "keep-sorted-score"))) {
       csound->keep_tmp = 1;
+      return 1;
+    }
+    else if (!(strcmp (s, "simple-sorted-score"))) {
+      csound->keep_tmp = 2;
       return 1;
     }
     /* IV - Jan 27 2005: --expression-opt */

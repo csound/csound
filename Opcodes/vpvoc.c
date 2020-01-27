@@ -56,7 +56,7 @@ int32_t tblesegset(CSOUND *csound, TABLESEG *p)
       (segp+nsegs)->cnt = MAXPOS;
     }
     argp = p->argums;
-    if (UNLIKELY((nxtfunc = csound->FTnp2Find(csound, *argp++)) == NULL))
+    if (UNLIKELY((nxtfunc = csound->FTnp2Finde(csound, *argp++)) == NULL))
         return NOTOK;
     flength = nxtfunc->flen;
     p->outfunc =
@@ -76,7 +76,7 @@ int32_t tblesegset(CSOUND *csound, TABLESEG *p)
         segp++;                 /* init each seg ..  */
         curfunc = nxtfunc;
         dur = **argp++;
-        if (UNLIKELY((nxtfunc = csound->FTnp2Find(csound, *argp++)) == NULL))
+        if (UNLIKELY((nxtfunc = csound->FTnp2Finde(csound, *argp++)) == NULL))
           return OK;
         if (LIKELY(dur > FL(0.0))) {
                 segp->d = dur * CS_EKR;

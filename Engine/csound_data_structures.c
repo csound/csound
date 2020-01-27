@@ -157,7 +157,6 @@ PUBLIC void* cs_hash_table_get(CSOUND* csound,
 
     index = cs_name_hash(hashTable, key);
     item = hashTable->buckets[index];
-
     while (item != NULL) {
       if (strcmp(key, item->key) == 0) {
         return item->value;

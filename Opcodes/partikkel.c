@@ -557,7 +557,7 @@ static int32_t schedule_grains(CSOUND *csound, PARTIKKEL *p)
     /* krate table lookup, first look up waveform ftables */
     for (n = 0; n < 4; ++n) {
         p->wavetabs[n] = *waveformparams[n] >= FL(0.0)
-                         ? csound->FTnp2Find(csound, waveformparams[n])
+                         ? csound->FTnp2Finde(csound, waveformparams[n])
                          : p->globals->zzz_tab;
         if (UNLIKELY(p->wavetabs[n] == NULL))
             return PERFERROR("unable to load waveform table");

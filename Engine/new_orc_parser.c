@@ -54,7 +54,7 @@ extern void csound_preset_extra(void *, void *);
 extern int csound_prelex(CSOUND*, void*);
 extern int csound_prelex_destroy(void *);
 
-extern void csound_orc_scan_buffer (const char *, size_t, void*);
+extern int csound_orc_scan_buffer (const char *, size_t, void*);
 extern int csound_orcparse(PARSE_PARM *, void *, CSOUND*, TREE**);
 extern int csound_orclex_init(void *);
 extern void csound_orcset_extra(void *, void *);
@@ -191,8 +191,8 @@ TREE *csoundParseOrc(CSOUND *csound, const char *str)
               corfile_body(csound->orchstr));
       //csound->DebugMsg(csound,"FILE: %s\n", csound->orchstr->body);
       //    csound_print_preextra(&qq);
-      cs_init_math_constants_macros(csound, &qq);
-      cs_init_omacros(csound, &qq, csound->omacros);
+      cs_init_math_constants_macros(csound);
+      cs_init_omacros(csound, csound->omacros);
       //    csound_print_preextra(&qq);
       csound_prelex(csound, qq.yyscanner);
       if (UNLIKELY(qq.ifdefStack != NULL)) {
@@ -273,7 +273,6 @@ TREE *csoundParseOrc(CSOUND *csound, const char *str)
 //      csound->Free(csound, typeTable);
       //print_tree(csound, "AST - FOLDED\n", astTree);
 
-      //FIXME - synterrcnt should not be global
       if (UNLIKELY(astTree == NULL || csound->synterrcnt)) {
         err = 3;
         if (astTree)

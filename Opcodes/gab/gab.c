@@ -127,7 +127,7 @@ static int32_t fastabw(CSOUND *csound, FASTAB *p)
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t n, nsmps = CS_KSMPS;
-    FUNC *ftp = csound->FTnp2Find(csound, p->xfn);
+    FUNC *ftp = csound->FTnp2Finde(csound, p->xfn);
     p->table = ftp->ftable;
     MYFLT *tab = p->table;
     MYFLT *rslt = p->rslt, *ndx = p->xndx;
@@ -231,7 +231,7 @@ static int32_t fastab(CSOUND *csound, FASTAB *p)
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t i, nsmps = CS_KSMPS;
-    FUNC *ftp = csound->FTnp2Find(csound, p->xfn);
+    FUNC *ftp = csound->FTnp2Finde(csound, p->xfn);
     p->table = ftp->ftable;
     MYFLT *tab = p->table;
     MYFLT *rslt = p->rslt, *ndx = p->xndx;
@@ -935,7 +935,7 @@ OENTRY gab_localops[] = {
                             (SUBR) tabrec_set, (SUBR) tabrec_k, NULL },
   { "tabplay",  S(TABPLAY), TR, 3,     "",      "kkkz",
                             (SUBR) tabplay_set, (SUBR) tabplay_k, NULL },
-  { "changed.k", S(ISCHANGED), _QQ, 3,     "k",     "z",
+  { "changed.k", S(ISCHANGED),  0, 3,     "k",     "z",
                             (SUBR) isChanged_set, (SUBR)isChanged, NULL },
   { "changed2.k", S(ISCHANGED), 0, 3,     "k",     "z",
                             (SUBR) isChanged2_set, (SUBR)isChanged, NULL },

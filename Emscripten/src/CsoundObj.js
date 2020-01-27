@@ -100,6 +100,14 @@ class CsoundObj {
     writeToFS(filePath, blobData) {
         this.node.writeToFS(filePath, blobData);
     }
+
+    /** Unlink file from WASM filesystem (i.e. remove). 
+     * 
+     * @param {string} filePath A string containing the path to unlink. 
+    */
+    unlinkFromFS(filePath) {
+        this.node.unlinkFromFS(filePath);
+    }
     
     /** Compiles a CSD, which may be given as a filename in the
      *  WASM filesystem or a string containing the code
@@ -360,6 +368,30 @@ class CsoundObj {
                 midiInputCallback(false);
             }
         }
+    }
+
+    /** Returns the current play state of Csound. Results are either
+     * "playing", "paused", or "stopped". 
+     */ 
+    getPlayState() {
+        return this.node.getPlayState();
+    }
+
+
+    /** Add a listener callback for play state listening. Must be a function 
+     * of type (csoundObj:CsoundObj):void. 
+     */ 
+    addPlayStateListener(listener) {
+        // CsoundObj will wrap the listener so that it will use itself as the 
+        // as the listener's argument
+        this.node.addPlayStateListener((cs) => listener(this));
+    }
+
+    /** Remove a listener callback for play state listening. Must be the same
+     * function as passed in with addPlayStateListener. 
+     */ 
+    removePlayStateListener(listener) {
+        this.node.removePlayStateListener(listener);
     }
     
     /** 

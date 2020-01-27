@@ -323,7 +323,7 @@ static void DumpPoles(CSOUND *csound,
 {
     int32_t i;
 
-    csound->Message(csound, "%s\n", where);
+   csound->Message(csound, "%s\n", where);
     for (i=0; i<poleCount; i++) {
       if (isMagn)
         csound->Message(csound, Str("magnitude: %f   Phase: %f\n"),
@@ -429,7 +429,13 @@ static int32_t lpanal(CSOUND *csound, int32_t argc, char **argv)
                         csound->sscanf(s,"%f",&input_dur); break;
 #endif
         case 'p':       FIND(Str("no poles"))
-                        sscanf(s,"%d",&lpc.poleCount); break;
+                        sscanf(s,"%d",&lpc.poleCount);
+                        if (lpc.poleCount<=0) {
+                          csound->Message(csound, "%s",
+                                          Str("Invalid pole count; set to 1\n"));
+                          lpc.poleCount = 1;
+                        }
+                        break;
         case 'h':       FIND(Str("no hopsize"))
                         sscanf(s,"%d",&slice); break;
         case 'C':       FIND(Str("no comment string"))

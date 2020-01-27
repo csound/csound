@@ -70,7 +70,7 @@ char* cs_strdup(CSOUND* csound, char* str) {
     retVal = csound->Malloc(csound, len + 1);
 
     if (len > 0) {
-      strncpy(retVal, str, len);
+      memcpy(retVal, str, len);
     }
     retVal[len] = '\0';
 
@@ -395,8 +395,8 @@ char* get_arg_type2(CSOUND* csound, TREE* tree, TYPE_TABLE* typeTable)
         len2 = strlen(argTypeRight);
         inArgTypes = csound->Malloc(csound, len1 + len2 + 1);
 
-        strncpy(inArgTypes, argTypeLeft, len1);
-        strncpy(inArgTypes + len1, argTypeRight, len2);
+        memcpy(inArgTypes, argTypeLeft, len1);
+        memcpy(inArgTypes + len1, argTypeRight, len2);
 
         inArgTypes[len1 + len2] = '\0';
 
@@ -453,8 +453,8 @@ char* get_arg_type2(CSOUND* csound, TREE* tree, TYPE_TABLE* typeTable)
         len2 = strlen(argTypeRight);
         inArgTypes = csound->Malloc(csound, len1 + len2 + 1);
 
-        strncpy(inArgTypes, argTypeLeft, len1);
-        strncpy(inArgTypes + len1, argTypeRight, len2);
+        memcpy(inArgTypes, argTypeLeft, len1);
+        memcpy(inArgTypes + len1, argTypeRight, len2);
 
         inArgTypes[len1 + len2] = '\0';
 

@@ -1,12 +1,12 @@
 # CSOUND
-Version 6.13.0
+Version 6.14.0
 
 [![Build Status](https://travis-ci.org/csound/csound.svg?branch=develop)](https://travis-ci.org/csound/csound)
 [![Build status](https://ci.appveyor.com/api/projects/status/1qamc986774rsbjq/branch/develop?svg=true)](https://ci.appveyor.com/project/csound/csound/branch/develop)
 <!--- ![Coverity Status](https://scan.coverity.com/projects/1822/badge.svg) --->
 A sound and music computing system.
 
-Csound is copyright (c) 1991-2018 The Csound Developers, see CONTRIBUTORS
+Csound is copyright (c) 1991-2020 The Csound Developers, see CONTRIBUTORS
 
 Csound is free software; you can redistribute them
 and/or modify them under the terms of the GNU Lesser General Public
@@ -40,6 +40,9 @@ may be found online at http://csound.github.io/docs/api/index.html.
 
 Information on how to build Csound on various platforms is given in
 the BUILD.md file at the top level directory of this repository.
+
+Information about build pipelines with Azure and Github actions is given in
+[DockerFiles/Readme.md](DockerFiles/ReadMe.md).
 
 # CONTRIBUTORS
 

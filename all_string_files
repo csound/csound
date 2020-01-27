@@ -285,6 +285,7 @@
 ./Opcodes/gab/tabmorph.c
 ./Opcodes/gab/vectorial.c
 ./Opcodes/gab/vectorial.h
+./Opcodes/gammatone.c
 ./Opcodes/gendy.c
 ./Opcodes/getftargs.c
 ./Opcodes/grain.c
@@ -304,6 +305,7 @@
 ./Opcodes/imageOpcodes.h
 ./Opcodes/jackTransport.c
 ./Opcodes/jacko.cpp
+./Opcodes/lame.c
 ./Opcodes/linear_algebra.cpp
 ./Opcodes/linuxjoystick.c
 ./Opcodes/linuxjoystick.h

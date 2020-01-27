@@ -192,6 +192,8 @@ TREE* constant_fold(CSOUND *csound, TREE* root)
       case '#':
       case S_BITSHIFT_LEFT:
       case S_BITSHIFT_RIGHT:
+        /* First check for syntax errors */
+        if (current->left==NULL || current->right==NULL) return root;
         current->left = constant_fold(csound, current->left);
         current->right = constant_fold(csound, current->right);
         //print_tree(csound, "Folding case??\n", current);

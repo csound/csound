@@ -712,8 +712,8 @@ static int32_t ftmorf(CSOUND *csound, FTMORF *p)
     f = *p->kftndx - i;
     if (p->ftndx != *p->kftndx) {
       p->ftndx = *p->kftndx;
-      ftp1 = csound->FTnp2Find(csound, p->ftfn->ftable + i++);
-      ftp2 = csound->FTnp2Find(csound, p->ftfn->ftable + i--);
+      ftp1 = csound->FTnp2Finde(csound, p->ftfn->ftable + i++);
+      ftp2 = csound->FTnp2Finde(csound, p->ftfn->ftable + i--);
       do {
         *(p->resfn->ftable + j) = (*(ftp1->ftable + j) * (1-f)) +
           (*(ftp2->ftable + j) * f);

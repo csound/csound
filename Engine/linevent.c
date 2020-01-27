@@ -480,7 +480,17 @@ int eventOpcode_(CSOUND *csound, LINEVENT *p, int insname, char p1)
                                      get_arg_string(csound, *p->args[1]), 1);
           if (UNLIKELY(res == NOT_AN_INSTRUMENT)) return NOTOK;
           evt.p[1] = (MYFLT)res;
-        } else evt.p[1] = *p->args[1];
+        } else {                  /* Should check for valid instr num here */
+          MYFLT insno = FABS(*p->args[1]);
+          evt.p[1] = *p->args[1];
+          if (UNLIKELY((opcod == 'i' || opcod == 'd') && (insno ==0 ||
+                       insno > csound->engineState.maxinsno ||
+                       !csound->engineState.instrtxtp[(int)insno]))) {
+            csound->Message(csound, Str("WARNING: Cannot Find Instrument %d\n"),
+                           (int) insno);
+            return NOTOK;
+          }
+        }
         evt.strarg = NULL; evt.scnt = 0;
       }
       for (i = 2; i <= evt.pcnt; i++)
@@ -555,15 +565,15 @@ int eventOpcodeI_(CSOUND *csound, LINEVENT *p, int insname, char p1)
         }
         else {                  /* Should check for valid instr num here */
           MYFLT insno = FABS(*p->args[1]);
-          evt.p[1] = insno;
+          evt.p[1] = *p->args[1];
           if (UNLIKELY((opcod == 'i' || opcod == 'd') && (insno ==0 ||
                        insno > csound->engineState.maxinsno ||
                        !csound->engineState.instrtxtp[(int)insno]))) {
-
             csound->Message(csound, Str("WARNING: Cannot Find Instrument %d\n"),
                            (int) insno);
             return NOTOK;
           }
+          evt.strarg = NULL; evt.scnt = 0;
         }
         for (i = 2; i <= evt.pcnt; i++)
           evt.p[i] = *p->args[i];

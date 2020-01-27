@@ -273,14 +273,13 @@ static int init_cladsyn(CSOUND *csound, CLADSYN *p){
   p->mthreads = (p->bins > p->vsamps ? p->bins : p->vsamps);
 
   asize =  p->vsamps*sizeof(cl_float);
-  ipsize = (p->bins > p->vsamps ? p->bins : p->vsamps)*sizeof(cl_long);
+  ipsize = p->mthreads*sizeof(cl_long);
   fpsize = p->fsig->N*sizeof(cl_float);
 
   p->out = clCreateBuffer(context,0, asize, NULL, NULL);
   p->frame =   clCreateBuffer(context, CL_MEM_READ_ONLY, fpsize, NULL, NULL);
   p->ph =  clCreateBuffer(context,0, ipsize, NULL, NULL);
-  p->amps =  clCreateBuffer(context,0,(p->bins > p->vsamps ? p->bins :
-                                       p->vsamps)*sizeof(cl_float), NULL, NULL);
+  p->amps =  clCreateBuffer(context,0,p->mthreads*sizeof(cl_float), NULL, NULL);
 
   // memset needed?
 
@@ -318,6 +317,7 @@ static int init_cladsyn(CSOUND *csound, CLADSYN *p){
   clSetKernelArg(p->kernel2, 5, sizeof(cl_int), &p->bins);
   clSetKernelArg(p->kernel2, 6, sizeof(cl_int), &p->vsamps);
   clSetKernelArg(p->kernel2, 7, sizeof(cl_float),  &p->sr);
+  
   return OK;
 }
 
@@ -330,13 +330,13 @@ static int perf_cladsyn(CSOUND *csound, CLADSYN *p){
   MYFLT      *asig = p->asig;
   int count = p->count,  vsamps = p->vsamps;
   p->fp = (float *) (p->fsig->frame.auxp);
-
+  
   if (UNLIKELY(offset)) memset(asig, '\0', offset*sizeof(MYFLT));
   if (UNLIKELY(early)) {
     nsmps -= early;
     memset(&asig[nsmps], '\0', early*sizeof(MYFLT));
    }
-
+  
   for(n=offset; n < nsmps; n++){
     if(count == 0) {
      int err;
@@ -386,7 +386,7 @@ static int destroy_cladsyn(CSOUND *csound, void *pp){
 }
 
 static OENTRY localops[] = {
-  {"cladsynth", sizeof(CLADSYN),0, 5, "a", "fkkoo", (SUBR) init_cladsyn, NULL,
+  {"cladsyn", sizeof(CLADSYN),0, 3, "a", "fkkoo", (SUBR) init_cladsyn,
    (SUBR) perf_cladsyn}
 };
 

@@ -41,6 +41,12 @@ typedef struct {
 
 typedef struct {
         OPDS    h;
+        STRINGDAT   *ians;
+        MYFLT   *index;
+} PFIELDSTR;
+
+typedef struct {
+        OPDS    h;
         MYFLT   *inits[24];
         MYFLT   *start;
         MYFLT   *end;
@@ -230,10 +236,26 @@ int32_t pvalue(CSOUND *csound, PFIELD *p)
 {
     int32_t n = (int32_t)(*p->index);
     if (UNLIKELY(csound->init_event==NULL || n<1 || n>csound->init_event->pcnt)) {
-      *p->ians = FL(0.0);       /* For tidyness */
-      return NOTOK;             /* Should this be an error?? */
+      return csound->InitError(csound, Str("invalid p field index"));
     }
     *p->ians = csound->init_event->p[n];
+    return OK;
+}
+
+int32_t pvaluestr(CSOUND *csound, PFIELDSTR *p)
+{
+    int32_t n = (int32_t)(*p->index);
+    if (UNLIKELY(csound->init_event==NULL || n<1 || n>csound->init_event->pcnt)) {
+      return csound->InitError(csound, Str("invalid p field index"));
+    }
+
+    if (p->ians->data!=NULL) csound->Free(csound, p->ians->data);
+
+    if (LIKELY(csound->ISSTRCOD(csound->init_event->p[n]))) {
+        p->ians->data = cs_strdup(csound,
+                get_arg_string(csound, csound->init_event->p[n]));
+        p->ians->size = strlen(p->ians->data) + 1;
+    }
     return OK;
 }
 
@@ -285,6 +307,7 @@ int32_t painit(CSOUND *csound, PAINIT *p)
 static OENTRY localops[] = {
 { "pcount", S(PFIELD),  0, 1, "i", "",       (SUBR)pcount,    NULL, NULL },
 { "pindex", S(PFIELD),  0, 1, "i", "i",      (SUBR)pvalue,    NULL, NULL },
+{ "pindex.S", S(PFIELDSTR), 0, 1, "S", "i",  (SUBR)pvaluestr, NULL, NULL },
 { "passign", S(PINIT),  0, 1, "IIIIIIIIIIIIIIIIIIIIIIII", "po",
                                              (SUBR)pinit,     NULL, NULL },
 { "passign.i", S(PAINIT), 0, 1, "i[]", "po",  (SUBR)painit,    NULL, NULL },

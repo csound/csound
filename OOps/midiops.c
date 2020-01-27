@@ -275,7 +275,7 @@ int32_t ampmidi(CSOUND *csound, MIDIAMP *p)   /* convert midi veloc to amplitude
 
     amp = csound->curip->m_veloc / FL(128.0);     /* amp = normalised veloc */
     if ((fno = (int32_t)*p->ifn) > 0) {              /* if valid ftable,       */
-      if (UNLIKELY((ftp = csound->FTnp2Find(csound, p->ifn)) == NULL))
+      if (UNLIKELY((ftp = csound->FTnp2Finde(csound, p->ifn)) == NULL))
         return NOTOK;                             /*     use amp as index   */
       amp = *(ftp->ftable + (int32_t)(amp * ftp->flen));
     }
@@ -517,8 +517,8 @@ int32_t midiin(CSOUND *csound, MIDIIN *p)
     if (p->local_buf_index != MGLOB(MIDIINbufIndex)) {
       temp = &(MGLOB(MIDIINbuffer2)[p->local_buf_index++].bData[0]);
       p->local_buf_index &= MIDIINBUFMSK;
-      *p->status = (MYFLT) (*temp & (unsigned char) 0xf0);
-      *p->chan   = (MYFLT) ((*temp & 0x0f) + 1);
+      *p->status = (MYFLT) *temp; //(*temp & (unsigned char) 0xf0);
+      *p->chan   = (MYFLT) *++temp; //((*temp & 0x0f) + 1);
       *p->data1  = (MYFLT) *++temp;
       *p->data2  = (MYFLT) *++temp;
     }

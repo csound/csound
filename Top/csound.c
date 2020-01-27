@@ -57,6 +57,7 @@
 #include "fftlib.h"
 #include "cs_par_base.h"
 #include "cs_par_orc_semantics.h"
+#include "namedins.h"
 //#include "cs_par_dispatch.h"
 #include "find_opcode.h"
 
@@ -98,8 +99,9 @@ extern void close_all_files(CSOUND *);
 extern void csoundInputMessageInternal(CSOUND *csound, const char *message);
 extern int isstrcod(MYFLT );
 extern int fterror(const FGDATA *ff, const char *s, ...);
-
+PUBLIC int csoundErrCnt(CSOUND *);
 void (*msgcallback_)(CSOUND *, int, const char *, va_list) = NULL;
+INSTRTXT *csoundGetInstrument(CSOUND *csound, int insno, const char *name);
 
 void csoundDebuggerBreakpointReached(CSOUND *csound);
 void message_dequeue(CSOUND *csound);
@@ -405,7 +407,7 @@ static const CSOUND cenviron_ = {
     rewriteheader,
     csoundLoadSoundFile,
     fdrecord,
-    fd_close,
+    csound_fd_close,
     csoundCreateFileHandle,
     csoundGetFileName,
     csoundFileClose,
@@ -502,11 +504,15 @@ static const CSOUND cenviron_ = {
     csoundGetZaBounds,
     find_opcode_new,
     find_opcode_exact,
+    csoundGetChannelPtr,
+    csoundListChannels,
+    csoundErrCnt,
+    csoundFTnp2Finde,
+    csoundGetInstrument,
     {
       NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
       NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
-      NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
-      NULL, NULL
+      NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL
     },
     /* ------- private data (not to be used by hosts or externals) ------- */
     /* callback function pointers */
@@ -2626,6 +2632,7 @@ void csoundLongJmp(CSOUND *csound, int retval)
     int   n = CSOUND_EXITJMP_SUCCESS;
 
     n = (retval < 0 ? n + retval : n - retval) & (CSOUND_EXITJMP_SUCCESS - 1);
+    //printf("**** n = %d\n", n);
     if (!n)
       n = CSOUND_EXITJMP_SUCCESS;
 
@@ -2636,7 +2643,7 @@ void csoundLongJmp(CSOUND *csound, int retval)
     csound->perferrcnt += csound->inerrcnt;
     csound->inerrcnt = 0;
     csound->engineStatus |= CS_STATE_JMP;
-
+    //printf("**** longjmp with %d\n", n);
     longjmp(csound->exitjmp, n);
 }
 
@@ -4103,7 +4110,7 @@ int csoundGetMidiChannelNumber(void *p)
     int     i;
     if (chn == NULL)
       return -1;
-    for (i = 0; i < 16; i++) {
+    for (i = 0; i < 256; i++) {
       if (chn == ((OPDS*) p)->insdshead->csound->m_chnbp[i])
         return i;
     }
@@ -4432,6 +4439,14 @@ static void set_util_sr(CSOUND *csound, MYFLT sr){ csound->esr = sr; }
 static void set_util_nchnls(CSOUND *csound, int nchnls){ csound->nchnls = nchnls; }
 
 MYFLT csoundGetA4(CSOUND *csound) { return (MYFLT) csound->A4; }
+
+int csoundErrCnt(CSOUND *csound) { return csound->perferrcnt; }
+
+INSTRTXT *csoundGetInstrument(CSOUND *csound, int insno, const char *name) {
+  if (name != NULL)
+    insno = named_instr_find(csound, (char *)name);
+  return csound->engineState.instrtxtp[insno];
+}
 
 #if 0
 PUBLIC int csoundPerformKsmpsAbsolute(CSOUND *csound)

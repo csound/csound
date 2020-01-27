@@ -404,6 +404,14 @@ typedef struct {
 typedef struct {
   OPDS h;
   ARRAYDAT *tab;
+  MYFLT  *kfn;
+  MYFLT  *offset;
+} TABCOPY2;
+
+
+typedef struct {
+  OPDS h;
+  ARRAYDAT *tab;
   MYFLT  *kmin, *kmax;
   MYFLT  *kstart, *kend;
 } TABSCALE;
@@ -2521,10 +2529,62 @@ static int32_t tab2ftabi(CSOUND *csound, TABCOPY *p)
     return OK;
 }
 
+// copya2ftab k[], iftable, [, koffset=0]
+static int32_t tab2ftab_offset(CSOUND *csound, TABCOPY2 *p)
+{
+  FUNC *ftp;
+  int32_t fsize;
+  MYFLT *fdata;
+  ARRAYDAT *t = p->tab;
+  int32_t offset = (int)(*p->offset);
+  int32_t i, tlen = 0, maxitems;
+  if (UNLIKELY(t->data==NULL))
+    return csound->PerfError(csound, &(p->h), Str("array-var not initialised"));
+  if (UNLIKELY((ftp = csound->FTFindP(csound, p->kfn)) == NULL))
+    return csound->PerfError(csound, &(p->h), Str("No table for copy2ftab"));
+  fsize = ftp->flen;
+  if (UNLIKELY(offset >= fsize || offset < 0))
+      return csound->PerfError(csound, &(p->h), Str("Offset is out of bounds"));
+  for (i=0; i<t->dimensions; i++)
+      tlen += t->sizes[i];
+  fdata = ftp->ftable;
+  maxitems = fsize - offset;
+  if (maxitems < tlen)
+      tlen = maxitems;
+  memcpy(&(fdata[offset]), t->data, sizeof(MYFLT)*tlen);
+  return OK;
+}
+
+// copya2ftab i[], iftable, [, ioffset=0]
+static int32_t tab2ftab_offset_i(CSOUND *csound, TABCOPY2 *p)
+{
+    FUNC *ftp;
+    int32_t fsize;
+    MYFLT *fdata;
+    ARRAYDAT *t = p->tab;
+    int32_t offset = (int)*p->offset;;
+    int32_t i, tlen = 0, maxitems;
+    if (UNLIKELY(t->data==NULL))
+      return csound->InitError(csound, "%s", Str("array-var not initialised"));
+    if (UNLIKELY((ftp = csound->FTFindP(csound, p->kfn)) == NULL))
+      return csound->InitError(csound, "%s", Str("No table for copy2ftab"));
+    fsize = ftp->flen;
+    fdata = ftp->ftable;
+    if (UNLIKELY(offset >= fsize || offset < 0))
+        return csound->InitError(csound, "%s", Str("Offset is out of bounds"));
+    for (i=0; i<t->dimensions; i++)
+        tlen += t->sizes[i];
+    maxitems = fsize - offset;
+    if (maxitems < tlen)
+        tlen = maxitems;
+    memcpy(&(fdata[offset]), t->data, sizeof(MYFLT)*tlen);
+    return OK;
+}
+
 
 typedef struct {
-  OPDS h;
-  ARRAYDAT *tab;
+    OPDS h;
+    ARRAYDAT *tab;
   MYFLT *start, *end, *incr;
   int32_t    len;
 } TABGEN;
@@ -3558,7 +3618,8 @@ int32_t set_cols_i(CSOUND *csound, FFT *p) {
 
 int32_t shiftin_init(CSOUND *csound, FFT *p) {
     int32_t sizs = CS_KSMPS;
-    tabinit(csound, p->out, sizs);
+    if(p->out->sizes[0] < sizs)
+       tabinit(csound, p->out, sizs);
     p->n = 0;
     return OK;
 }
@@ -3733,78 +3794,82 @@ typedef struct _MFB {
 } MFB;
 
 static inline MYFLT f2mel(MYFLT f) {
-  return 1125.*log(1.+f/700.);
+    return 1125.*log(1.+f/700.);
 }
 
 static inline int32_t mel2bin(MYFLT m, int32_t N, MYFLT sr) {
-  MYFLT f = 700.*(exp(m/1125.) - 1.);
-  return  (int32_t)(f/(sr/(2*N)));
+    MYFLT f = 700.*(exp(m/1125.) - 1.);
+    return  (int32_t)(f/(sr/(2*N)));
 }
 
 int32_t mfb_init(CSOUND *csound, MFB *p) {
-  int32_t   L = *p->len;
-  int32_t N = p->in->sizes[0];
-  if (LIKELY(L < N)) {
-   tabinit(csound, p->out, L);
-  }
-  else
-   return csound->InitError(csound, "%s",
-       "mfb: filter bank size exceeds input array length");
-  if (p->bins.auxp == NULL || p->bins.size < (L+2)*sizeof(int32_t))
+    int32_t   L = *p->len;
+    int32_t N = p->in->sizes[0];
+    if (LIKELY(L < N)) {
+      tabinit(csound, p->out, L);
+    }
+    else
+      return csound->InitError(csound, "%s",
+                       Str("mfb: filter bank size exceeds input array length"));
+    if (p->bins.auxp == NULL || p->bins.size < (L+2)*sizeof(int32_t))
       csound->AuxAlloc(csound, (L+2)*sizeof(MYFLT), &p->bins);
-  return OK;
+    return OK;
 }
 
 int32_t mfb(CSOUND *csound, MFB *p) {
     /* FIXME: Init cals tabinit but not checked in erf? */
     int32_t i,j;
-  int32_t *bin = (int32_t *) p->bins.auxp;
-  MYFLT start,max,end;
-  MYFLT g = FL(0.0), incr, decr;
-  int32_t L = p->out->sizes[0];
-  int32_t N = p->in->sizes[0];
-  MYFLT sum = FL(0.0);
-  MYFLT *out = p->out->data;
-  MYFLT *in = p->in->data;
-  MYFLT sr = csound->GetSr(csound);
+    int32_t *bin = (int32_t *) p->bins.auxp;
+    MYFLT start,max,end;
+    MYFLT g = FL(0.0), incr, decr;
+    int32_t L = p->out->sizes[0];
+    int32_t N = p->in->sizes[0];
+    MYFLT sum = FL(0.0);
+    MYFLT *out = p->out->data;
+    MYFLT *in = p->in->data;
+    MYFLT sr = csound->GetSr(csound);
 
-  start = f2mel(*p->low);
-  end = f2mel(*p->up);
-  incr = (end-start)/(L+1);
+    start = f2mel(*p->low);
+    end = f2mel(*p->up);
+    incr = (end-start)/(L+1);
 
-  for (i=0;i<L+2;i++) {
-    bin[i] = (int32_t) mel2bin(start,N-1,sr);
-    if (bin[i] > N) bin[i] = N;
-    start += incr;
-  }
 
-  for (i=0; i < L; i++) {
-    start = bin[i];
-    max = bin[i+1];
-    end = bin[i+2];
-    incr =  1.0/(max - start);
-    decr =  1.0/(end - max);
-    for (j=start; j < max; j++) {
-      sum += in[j]*g;
-      g += incr;
+
+    for (i=0;i<L+2;i++) {
+      bin[i] = (int32_t) mel2bin(start,N-1,sr);
+
+      if (bin[i] > N) bin[i] = N;
+      start += incr;
     }
-    g = FL(1.0);
-    for (j=max; j < end; j++) {
-      sum += in[j]*g;
-      g -= decr;
-    }
-    out[i] = sum/(end - start);
-    g = FL(0.0);
-    sum = FL(0.0);
-  }
 
-  return OK;
+    for (i=0; i < L; i++) {
+      start = bin[i];
+      max = bin[i+1];
+      end = bin[i+2];
+      incr =  1.0/(max - start);
+      decr =  1.0/(end - max);
+      for (j=start; j < max; j++) {
+        sum += in[j]*g;
+        g += incr;
+      }
+      g = FL(1.0);
+      for (j=max; j < end; j++) {
+        sum += in[j]*g;
+        g -= decr;
+      }
+      out[i] = sum/(end - start);
+
+      g = FL(0.0);
+      sum = FL(0.0);
+    }
+
+    return OK;
 }
 
 int32_t mfbi(CSOUND *csound, MFB *p) {
     if (LIKELY(mfb_init(csound,p) == OK))
     return mfb(csound,p);
-  else return NOTOK;
+    else return NOTOK;
 }
 
 typedef struct _centr{
@@ -3815,17 +3880,17 @@ typedef struct _centr{
 
 int32_t array_centroid(CSOUND *csound, CENTR *p) {
 
-  MYFLT *in = p->in->data,a=FL(0.0),b=FL(0.0);
-  int32_t NP1 = p->in->sizes[0];
-  MYFLT f = csound->GetSr(csound)/(2*(NP1 - 1)),cf;
-  int32_t i;
-  cf = f*FL(0.5);
-  for (i=0; i < NP1-1; i++, cf+=f) {
-    a += in[i];
-    b += in[i]*cf;
-  }
-  *p->out = a > FL(0.0) ? b/a : FL(0.0);
-  return OK;
+    MYFLT *in = p->in->data,a=FL(0.0),b=FL(0.0);
+    int32_t NP1 = p->in->sizes[0];
+    MYFLT f = csound->GetSr(csound)/(2*(NP1 - 1)),cf;
+    int32_t i;
+    cf = f*FL(0.5);
+    for (i=0; i < NP1-1; i++, cf+=f) {
+      a += in[i];
+      b += in[i]*cf;
+    }
+    *p->out = a > FL(0.0) ? b/a : FL(0.0);
+    return OK;
 }
 
 typedef struct _inout {
@@ -3852,18 +3917,18 @@ typedef struct interl{
 
 
 int32_t interleave_i (CSOUND *csound, INTERL *p) {
-  if(p->b->dimensions == 1 &&
-     p->c->dimensions == 1 &&
-     p->b->sizes[0] == p->c->sizes[0]) {
-    int32_t len = p->b->sizes[0], i,j;
-    tabinit(csound, p->a, len*2);
-    for(i = 0, j = 0; i < len; i++,j+=2) {
-      p->a->data[j] =  p->b->data[i];
-      p->a->data[j+1] = p->c->data[i];
+    if(p->b->dimensions == 1 &&
+       p->c->dimensions == 1 &&
+       p->b->sizes[0] == p->c->sizes[0]) {
+      int32_t len = p->b->sizes[0], i,j;
+      tabinit(csound, p->a, len*2);
+      for(i = 0, j = 0; i < len; i++,j+=2) {
+        p->a->data[j] =  p->b->data[i];
+        p->a->data[j+1] = p->c->data[i];
+      }
+      return OK;
     }
-    return OK;
-  }
-  return csound->InitError(csound, "array inputs not in correct format\n");
+    return csound->InitError(csound, Str("array inputs not in correct format\n"));
 }
 
 int32_t interleave_perf (CSOUND *csound, INTERL *p) {
@@ -3887,7 +3952,7 @@ int32_t deinterleave_i (CSOUND *csound, INTERL *p) {
     }
     return OK;
   }
-  return csound->InitError(csound, "array inputs not in correct format\n");
+  return csound->InitError(csound, Str("array inputs not in correct format\n"));
 }
 
 int32_t deinterleave_perf (CSOUND *csound, INTERL *p) {
@@ -4164,9 +4229,14 @@ static OENTRY arrayvars_localops[] =
     { "copy2ttab", sizeof(TABCOPY), TR|_QQ, 2, "", "k[]k", NULL, (SUBR) ftab2tab },
     { "copya2ftab.k", sizeof(TABCOPY), TW, 3, "", "k[]k",
       (SUBR) tab2ftabi, (SUBR) tab2ftab },
+
     { "copyf2array.k", sizeof(TABCOPY), TR, 3, "", "k[]k",
       (SUBR) ftab2tabi, (SUBR) ftab2tab },
-    { "copya2ftab.i", sizeof(TABCOPY), TW, 1, "", "i[]i", (SUBR) tab2ftabi },
+    { "copyf2array.kk", sizeof(TABCOPY), TR, 3, "", "k[]kk",
+      (SUBR) ftab2tabi, (SUBR) ftab2tab },
+    // { "copya2ftab.i", sizeof(TABCOPY), TW, 1, "", "i[]i", (SUBR) tab2ftabi },
+    { "copya2ftab.ii", sizeof(TABCOPY2), TW, 1, "", "i[]io", (SUBR) tab2ftab_offset_i },
+    { "copya2ftab.kk", sizeof(TABCOPY2), TW, 2, "", "k[]kO", NULL , (SUBR) tab2ftab_offset },
     { "copyf2array.i", sizeof(TABCOPY), TR, 1, "", "i[]i", (SUBR) ftab2tabi },
     /* { "lentab", 0xffff}, */
     { "lentab.i", sizeof(TABQUERY1), _QQ, 1, "i", "k[]p", (SUBR) tablength },

@@ -40,11 +40,11 @@
 static int32_t syncgrain_init(CSOUND *csound, syncgrain *p)
 {
     int32_t size;
-    p->efunc = csound->FTnp2Find(csound, p->ifn2);
+    p->efunc = csound->FTnp2Finde(csound, p->ifn2);
     if (UNLIKELY(p->efunc == NULL))
       return NOTOK;
 
-    p->sfunc = csound->FTnp2Find(csound, p->ifn1);
+    p->sfunc = csound->FTnp2Finde(csound, p->ifn1);
     if (UNLIKELY(p->sfunc == NULL))
       return NOTOK;
 
@@ -194,11 +194,11 @@ static int32_t syncgrain_process(CSOUND *csound, syncgrain *p)
 
 static int32_t syncgrainloop_init(CSOUND *csound, syncgrainloop *p)
 {
-    p->efunc = csound->FTnp2Find(csound, p->ifn2);
+    p->efunc = csound->FTnp2Finde(csound, p->ifn2);
     if (UNLIKELY(p->efunc == NULL))
       return NOTOK;
 
-    p->sfunc = csound->FTnp2Find(csound, p->ifn1);
+    p->sfunc = csound->FTnp2Finde(csound, p->ifn1);
     if (UNLIKELY(p->sfunc == NULL))
       return NOTOK;
 
@@ -212,18 +212,18 @@ static int32_t syncgrainloop_init(CSOUND *csound, syncgrainloop *p)
     if (*p->iskip == 0) {
       int32_t size =  (p->olaps) * sizeof(double);
       if (p->index.auxp == NULL || p->index.size < (uint32_t)size)
-         csound->AuxAlloc(csound, size, &p->index);
+        csound->AuxAlloc(csound, size, &p->index);
       if (p->envindex.auxp == NULL || p->envindex.size < (uint32_t)size)
-          csound->AuxAlloc(csound, size, &p->envindex);
+        csound->AuxAlloc(csound, size, &p->envindex);
       size = (p->olaps) * sizeof(int32_t);
-       if (p->streamon.auxp == NULL || p->streamon.size > (uint32_t)size)
-          csound->AuxAlloc(csound, size, &p->streamon);
-    p->count = 0;                  /* sampling period counter */
-    p->numstreams = 0;                  /* curr num of streams */
-    p->firststream = 0;                 /* streams index (first stream)  */
-    p->start = *p->startpos*(p->sfunc->gen01args.sample_rate);
-    p->frac = 0.0f;
-    p->firsttime = 1;
+      if (p->streamon.auxp == NULL || p->streamon.size < (uint32_t)size)
+        csound->AuxAlloc(csound, size, &p->streamon);
+      p->count = 0;                  /* sampling period counter */
+      p->numstreams = 0;                  /* curr num of streams */
+      p->firststream = 0;                 /* streams index (first stream)  */
+      p->start = *p->startpos*(p->sfunc->gen01args.sample_rate);
+      p->frac = 0.0f;
+      p->firsttime = 1;
     }
     return OK;
 }
@@ -413,7 +413,7 @@ static int32_t filegrain_init(CSOUND *csound, filegrain *p)
       return csound->InitError(csound,
                                Str("diskgrain: invalid number of channels"));
     }
-    p->efunc = csound->FTnp2Find(csound, p->ifn2);
+    p->efunc = csound->FTnp2Finde(csound, p->ifn2);
     if (UNLIKELY(p->efunc == NULL))
       return NOTOK;
 

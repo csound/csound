@@ -22,6 +22,9 @@
   02110-1301 USA
 */
 
+/* Haiku 'int32' etc definitions in net headers conflict with sysdep.h */
+#define __HAIKU_CONFLICT
+
 #include "csoundCore.h"
 #include <sys/types.h>
 #if defined(WIN32) && !defined(__CYGWIN__)
@@ -31,6 +34,7 @@
 #include <netinet/in.h>
 #include <arpa/inet.h>
 #include <unistd.h>
+#define SOCKET_ERROR (-1)
 #endif
 #include <stdlib.h>
 #include <string.h>
@@ -101,9 +105,16 @@ static int32_t init_send(CSOUND *csound, SOCKSEND *p)
     p->wp = 0;
 
     p->sock = socket(AF_INET, SOCK_DGRAM, 0);
+#if defined(WIN32) && !defined(__CYGWIN__)
+    if (p->sock == SOCKET_ERROR) {
+      err = WSAGetLastError();
+      csound->InitError(csound, Str("socket failed with error: %ld\n"), err);
+    }
+#else
     if (UNLIKELY(p->sock < 0)) {
       return csound->InitError(csound, Str("creating socket"));
     }
+#endif
     /* create server address: where we want to send to and clear it out */
     memset(&p->server_addr, 0, sizeof(p->server_addr));
     p->server_addr.sin_family = AF_INET;    /* it is an INET address */
@@ -146,7 +157,7 @@ static int32_t send_send(CSOUND *csound, SOCKSEND *p)
       if (wp == buffersize) {
         /* send the package when we have a full buffer */
         if (UNLIKELY(sendto(p->sock, (void*)out, buffersize  * p->bwidth, 0, to,
-                            sizeof(p->server_addr)) < 0)) {
+                            sizeof(p->server_addr)) == SOCKET_ERROR)) {
           return csound->PerfError(csound, &(p->h), Str("sendto failed"));
         }
         wp = 0;
@@ -183,7 +194,7 @@ static int32_t send_send_k(CSOUND *csound, SOCKSEND *p)
     if (p->wp == buffersize) {
       /* send the package when we have a full buffer */
       if (UNLIKELY(sendto(p->sock, (void*)out, buffersize  * p->bwidth, 0, to,
-                          sizeof(p->server_addr)) < 0)) {
+                          sizeof(p->server_addr)) == SOCKET_ERROR)) {
         return csound->PerfError(csound, &(p->h), Str("sendto failed"));
       }
       p->wp = 0;
@@ -220,7 +231,7 @@ static int32_t send_send_Str(CSOUND *csound, SOCKSENDT *p)
     memset(out+len, 0, buffersize-len);
     /* send the package with the string each time */
     if (UNLIKELY(sendto(p->sock, (void*)out, buffersize, 0, to,
-                        sizeof(p->server_addr)) < 0)) {
+                        sizeof(p->server_addr)) ==SOCKET_ERROR)) {
       return csound->PerfError(csound, &(p->h), Str("sendto failed"));
     }
     return OK;
@@ -251,7 +262,7 @@ static int32_t init_sendS(CSOUND *csound, SOCKSENDS *p)
     p->wp = 0;
 
     p->sock = socket(AF_INET, SOCK_DGRAM, 0);
-    if (UNLIKELY(p->sock < 0)) {
+    if (UNLIKELY(p->sock == SOCKET_ERROR)) {
       return csound->InitError(csound, Str("creating socket"));
     }
     /* create server address: where we want to send to and clear it out */
@@ -299,7 +310,7 @@ static int32_t send_sendS(CSOUND *csound, SOCKSENDS *p)
       if (wp == buffersize) {
         /* send the package when we have a full buffer */
         if (UNLIKELY(sendto(p->sock, (void*)out, buffersize * p->bwidth, 0, to,
-                            sizeof(p->server_addr)) < 0)) {
+                            sizeof(p->server_addr)) ==SOCKET_ERROR)) {
           return csound->PerfError(csound, &(p->h), Str("sendto failed"));
         }
         wp = 0;
@@ -330,11 +341,21 @@ static int32_t send_sendS(CSOUND *csound, SOCKSENDS *p)
 }
 
 /* TCP version */
+
+static int32_t stsend_deinit(CSOUND *csound, SOCKSEND *p)
+{
+    printf("closing stream\n");
+    int n = close(p->sock);
+    if (n<0) printf("close = %d errno=%d\n", n, errno);
+    //shutdown(p->sock, SHUT_RDWR);
+    return OK;
+}
+
 static int32_t init_ssend(CSOUND *csound, SOCKSEND *p)
 {
+    int32_t err;
 #if defined(WIN32) && !defined(__CYGWIN__)
     WSADATA wsaData = {0};
-    int32_t err;
     if (UNLIKELY((err=WSAStartup(MAKEWORD(2,2), &wsaData))!= 0))
       return csound->InitError(csound, Str("Winsock2 failed to start: %d"), err);
 #endif
@@ -342,10 +363,16 @@ static int32_t init_ssend(CSOUND *csound, SOCKSEND *p)
     /* create a STREAM (TCP) socket in the INET (IP) protocol */
     p->sock = socket(PF_INET, SOCK_STREAM, 0);
 
+#if defined(WIN32) && !defined(__CYGWIN__)
+    if (p->sock == SOCKET_ERROR) {
+      err = WSAGetLastError();
+      csound->InitError(csound, Str("socket failed with error: %ld\n"), err);
+    }
+#else
     if (UNLIKELY(p->sock < 0)) {
       return csound->InitError(csound, Str("creating socket"));
     }
-
+#endif
     /* create server address: where we want to connect to */
 
     /* clear it out */
@@ -366,14 +393,24 @@ static int32_t init_ssend(CSOUND *csound, SOCKSEND *p)
     p->server_addr.sin_port = htons((int32_t) *p->port);
 
  again:
-    if (UNLIKELY(connect(p->sock, (struct sockaddr *) &p->server_addr,
-                         sizeof(p->server_addr)) < 0)) {
-#ifdef ECONNREFUSED
-      if (errno == ECONNREFUSED)
+    err = connect(p->sock, (struct sockaddr *) &p->server_addr,
+                  sizeof(p->server_addr));
+#if defined(WIN32) && !defined(__CYGWIN__)
+    if (UNLIKELY(err==SOCKET_ERROR)) {
+        err = WSAGetLastError();
+        if (err == WSAECONNREFUSED) goto again;
+#else
+        if (UNLIKELY(err<0)) {
+          err= errno;
+  #ifdef ECONNREFUSED
+      if (err == ECONNREFUSED)
         goto again;
+  #endif
 #endif
-      return csound->InitError(csound, Str("connect failed (%d)"), errno);
+      return csound->InitError(csound, Str("connect failed (%d)"), err);
     }
+    csound->RegisterDeinitCallback(csound, p,
+                                   (int32_t (*)(CSOUND *, void *)) stsend_deinit);
 
     return OK;
 }
@@ -384,13 +421,12 @@ static int32_t send_ssend(CSOUND *csound, SOCKSEND *p)
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     int32_t n = sizeof(MYFLT) * (CS_KSMPS-offset-early);
 
-    if (UNLIKELY(n != write(p->sock, &p->asig[offset], n))) {
+    if (UNLIKELY(n != send(p->sock, &p->asig[offset], n, 0))) {
       csound->Message(csound, Str("Expected %d got %d\n"),
                       (int32_t) (sizeof(MYFLT) * CS_KSMPS), n);
       return csound->PerfError(csound, &(p->h),
                                Str("write to socket failed"));
     }
-
     return OK;
 }
 
@@ -446,7 +482,7 @@ static int32_t osc_send2_init(CSOUND *csound, OSCSEND2 *p)
       return csound->InitError(csound, Str("Winsock2 failed to start: %d"), err);
 #endif
     p->sock = socket(AF_INET, SOCK_DGRAM, 0);
-    if (UNLIKELY(p->sock < 0)) {
+    if (UNLIKELY(p->sock == SOCKET_ERROR)) {
       return csound->InitError(csound, Str("creating socket"));
     }
     /* create server address: where we want to send to and clear it out */
@@ -515,7 +551,7 @@ static int32_t osc_send2_init(CSOUND *csound, OSCSEND2 *p)
         iarg++;
         break;
       case 'G':
-        ft = csound->FTnp2Find(csound, p->arg[i]);
+        ft = csound->FTnp2Finde(csound, p->arg[i]);
         bsize += (sizeof(MYFLT)*ft->flen);
         iarg++;
         break;
@@ -716,7 +752,7 @@ static int32_t osc_send2(CSOUND *csound, OSCSEND2 *p)
           buffersize += size;
           break;
         case 'G':
-          ft = csound->FTnp2Find(csound, p->arg[i]);
+          ft = csound->FTnp2Finde(csound, p->arg[i]);
           size = (int32_t)(sizeof(MYFLT)*ft->flen);
           if(buffersize + size + 4 > bsize) {
             aux_realloc(csound, buffersize + size + 128, &p->aux);
@@ -922,7 +958,8 @@ static int oscbundle_perf(CSOUND *csound, OSCBUNDLE *p){
         dstrs = strlen(dstr)+1;
         size += ceil((dstrs)/4.)*4;
         tstr[0] = ',';
-        strncpy(tstr+1, type[i].data, 63);
+        strncpy(tstr+1, type[i].data, 62);
+        tstr[63]='\0';
         tstrs = strlen(tstr)+1;
         size += ceil((tstrs)/4.)*4;
         msize = tstrs - 2; /* tstrs-2 is the number of ints or floats in msg */

@@ -86,7 +86,6 @@ struct instr_semantics_t
 
 /* interlocks */
 void csp_orc_sa_interlocks(CSOUND *, ORCTOKEN *);
-void csp_orc_sa_interlocksf(CSOUND *, int);
 
 void csp_orc_analyze_tree(CSOUND *, TREE*);
 

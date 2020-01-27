@@ -255,7 +255,8 @@ int readOptions(CSOUND *csound, CORFIL *cf, int readingCsOptions)
        * the command line arguments can be exactly the same in unified files
        * as for regular command line invocation.
        */
-      if (*p==';' || *p=='#' || *p=='\n') continue; /* empty or comment line? */
+      if (*p==';' || *p=='#' || *p=='\n' || (*p=='/' && *(p+1)=='/'))
+        continue; /* empty or comment line? */
       argc = 0;
       argv[0] = p;
       while (isblank(*p)) p++;  /* Ignore leading space */
@@ -265,7 +266,7 @@ int readOptions(CSOUND *csound, CORFIL *cf, int readingCsOptions)
         argc++;
       }
       while (*p != '\0') {
-        if (isblank(*p)) {
+        if (isblank(*p) && *(p-1)!='\\') {
           *p++ = '\0';
 #ifdef _DEBUG
           csoundMessage(csound, "argc=%d argv[%d]=%s\n",
@@ -317,7 +318,7 @@ int readOptions(CSOUND *csound, CORFIL *cf, int readingCsOptions)
           *p = '\0';
           break;
         }
-        else if (*p=='"') {
+        else if (*p=='"' && *(p-1) != '\\') {
           int is_escape = 0;
           char *old = NULL;
           *p=3; /* ETX char used to mark the limits of a string */

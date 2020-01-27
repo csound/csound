@@ -131,13 +131,13 @@ def runTest():
 	["test_fsig_udo.csd", "UDO with f-sig arg"],
 	["test_karrays_udo.csd", "UDO with k[] arg"],
 	["test_arrays_addition.csd", "test array arithmetic (i.e. k[] + k[]"],
-	["test_arrays_fns.csd", "test functions on arrays (i.e. tabgen)"],
+	["test_arrays_fns.csd", "test functions on arrays (i.e. tabgen)", 1],
 	["test_polymorphic_udo.csd", "test polymorphic udo"],
 	["test_udo_a_array.csd", "test udo with a-array"],
 	["test_udo_2d_array.csd", "test udo with 2d-array"],
         ["test_udo_string_array_join.csd", "test udo with S[] arg returning S"],
         ["test_array_function_call.csd", "test synthesizing an array arg from a function-call"],
-        ["prints_number_no_crash.csd", "test prints does not crash when given a number arguments"],
+        ["prints_number_no_crash.csd", "test prints does not crash when given a number arguments", 1],
     ]
 
     arrayTests = [["arrays/arrays_i_local.csd", "local i[]"],

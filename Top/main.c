@@ -43,8 +43,8 @@ CS_NORETURN void    dieu(CSOUND *, char *, ...);
   int     read_unified_file2(CSOUND *csound, char *csd);
   int     read_unified_file4(CSOUND *csound, CORFIL *csd);
   uintptr_t  kperfThread(void * cs);
- void cs_init_math_constants_macros(CSOUND *csound, PRE_PARM *yyscanner);
- void cs_init_omacros(CSOUND *csound, PRE_PARM*, NAMES *nn);
+//void cs_init_math_constants_macros(CSOUND *csound, PRE_PARM *yyscanner);
+//void cs_init_omacros(CSOUND *csound, PRE_PARM*, NAMES *nn);
  void csoundInputMessageInternal(CSOUND *csound, const char *message);
  int csoundCompileOrcInternal(CSOUND *csound, const char *str, int async);
 
@@ -101,6 +101,52 @@ static void checkOptions(CSOUND *csound)
     }
 }
 
+static void put_sorted_score(CSOUND *csound, char *ss, FILE* ff)
+{
+    char *p = ss;
+    int num, cnt;
+    double p2o, p2, p3o,p3, inst;
+    while (*p!='\0') {
+      switch (*p) {
+      case 'f':
+        fputc(*p,ff);
+        sscanf(p+1, "%d %la %la%n", &num, &p2o, &p2, &cnt);
+        fprintf(ff, " %d %lg %lg ", num, p2o, p2);
+        p+=cnt+1;
+        break;
+      case 'i':
+      case 'd':
+        fputc(*p,ff);
+        if (*(p+2)=='"') {
+          fputc(' ', ff);
+          fputc('"', ff);
+          p+=3;
+          while (*p!='"') {
+            fputc(*p++, ff);
+          }
+          sscanf(p+1, "%la %la %la %la%n", &p2o, &p2, &p3o, &p3, &cnt);
+          fprintf(ff, "\" %lg %lg %lg %lg ", p2o, p2, p3o, p3);
+          p+=cnt+1;
+        }
+        else {
+          sscanf(p+1, "%la %la %la %la %la%n", &inst, &p2o, &p2, &p3o, &p3, &cnt);
+          fprintf(ff, " %lg %lg %lg %lg %lg ", inst, p2o, p2, p3o, p3);
+          p+=cnt+1;
+        }
+        break;
+      default:
+        csound->Message(csound, Str("Unknown score opcode %c(%.2x)\n"), *p, *p);
+      case 's':
+      case 'e':
+      case 'w':
+        break;
+      }
+      while (1) {
+        fputc(*p, ff);
+        if (*p++==LF) break;
+      }
+    }
+}
 
 PUBLIC int csoundCompileArgs(CSOUND *csound, int argc, const char **argv)
 {
@@ -210,7 +256,8 @@ PUBLIC int csoundCompileArgs(CSOUND *csound, int argc, const char **argv)
       // csound->scorestr = corfile_create_r("f0 800000000000.0\n");
       // VL 21-09-2016: it looks like #exit is needed for the
       // new score parser to work.
-      csound->scorestr = corfile_create_r(csound, "\n#exit\n");
+      // was "\n#exit\n" but seemed to have zero affect;
+      csound->scorestr = corfile_create_r(csound, "\n\n\ne\n#exit\n");
       corfile_flush(csound, csound->scorestr);
       if (O->RTevents)
         csound->Message(csound, Str("realtime performance using dummy "
@@ -305,7 +352,10 @@ PUBLIC int csoundCompileArgs(CSOUND *csound, int argc, const char **argv)
       scsortstr(csound, csound->scorestr);
       if (csound->keep_tmp) {
         FILE *ff = fopen("score.srt", "w");
-        fputs(corfile_body(csound->scstr), ff);
+        if (csound->keep_tmp==1)
+          fputs(corfile_body(csound->scstr), ff);
+        else
+          put_sorted_score(csound, corfile_body(csound->scstr), ff);
         fclose(ff);
       }
     }

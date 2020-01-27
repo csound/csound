@@ -6,8 +6,6 @@ option(BUILD_CXX_INTERFACE "Build the C++ interface library" ON)
 option(BUILD_PYTHON_INTERFACE "Build the Python interface (needs BUILD_CXX_INTERFACE)" ON)
 option(BUILD_JAVA_INTERFACE "Build the Java interface (needs BUILD_CXX_INTERFACE)" ON)
 option(BUILD_LUA_INTERFACE "Build the Lua interface (needs BUILD_CXX_INTERFACE)" ON)
-find_package(SWIG)
-
 
 if(BUILD_CXX_INTERFACE)
     message(STATUS "Building C++ interface library.")
@@ -20,7 +18,12 @@ if(BUILD_CXX_INTERFACE)
         filebuilding.cpp)
 
     add_library(libcsnd6 SHARED ${libcsnd6_SRCS})
-    set(libcsnd6_LIBS ${LIBSNDFILE_LIBRARY} )
+
+    if(MSVC)
+        set(libcsnd6_LIBS sndfile-static)
+    else()
+        set(libcsnd6_LIBS ${LIBSNDFILE_LIBRARY})
+    endif()
 
     if(WIN32)
       list(APPEND libcsnd6_LIBS "${LIBSNDFILE_SUPPORT_LIBS}")
@@ -109,14 +112,14 @@ if(BUILD_PYTHON_INTERFACE OR BUILD_JAVA_INTERFACE OR BUILD_LUA_INTERFACE)
              ../include/csound.h ../include/cfgvar.h ../include/csound.hpp
              cs_glue.hpp csPerfThread.hpp CsoundFile.hpp
              CppSound.hpp filebuilding.h Soundfile.hpp)
-        if(SWIG_ADD_LIBRARY)
-	    SWIG_ADD_LIBRARY(csnd6 
-		 TYPE MODULE 
-		 LANGUAGE python 
-		 SOURCES python_interface.i)
- 	else()
-	    SWIG_ADD_MODULE(csnd6 python python_interface.i)
-	endif()
+        if(COMMAND SWIG_ADD_LIBRARY)
+	        SWIG_ADD_LIBRARY(csnd6 
+		     TYPE MODULE 
+		     LANGUAGE python 
+		     SOURCES python_interface.i)
+ 	    else()
+	        SWIG_ADD_MODULE(csnd6 python python_interface.i)
+	    endif()
         swig_link_libraries(csnd6 ${swigpython_LIBS})
         target_include_directories(${SWIG_MODULE_csnd6_REAL_NAME} PRIVATE ${PYTHON_INCLUDE_PATH})
         set_target_properties(${SWIG_MODULE_csnd6_REAL_NAME} PROPERTIES
@@ -142,6 +145,16 @@ else()
             DESTINATION ${PYTHON_MODULE_INSTALL_DIR})
         install(FILES ${CMAKE_CURRENT_SOURCE_DIR}/ctcsound.py
             DESTINATION ${PYTHON_MODULE_INSTALL_DIR})
+        execute_process (
+             COMMAND python3 -c
+             "import site, sys; sys.stdout.write(site.getsitepackages()[0])"
+             OUTPUT_VARIABLE PYTHON3_SITE_PACKAGES
+           )
+        SET(PYTHON3_MODULE_INSTALL_DIR ${PYTHON3_SITE_PACKAGES} CACHE PATH "Python3 module install dir")
+        if (PYTHON3_MODULE_INSTALL_DIR)
+          install(FILES ${CMAKE_CURRENT_SOURCE_DIR}/ctcsound.py
+              DESTINATION ${PYTHON3_MODULE_INSTALL_DIR})
+        endif()
 endif()
     endif()
 
@@ -169,14 +182,14 @@ endif()
                                         cs_glue.hpp csPerfThread.hpp CsoundFile.hpp
                                         CppSound.hpp filebuilding.h Soundfile.hpp)
 
-        if(SWIG_ADD_LIBRARY)
+        if(COMMAND SWIG_ADD_LIBRARY)
             SWIG_ADD_LIBRARY(_jcsound6 
-                         TYPE MODULE 
-                         LANGUAGE java 
-                         SOURCES java_interface.i)
- 	else()
-	    SWIG_ADD_MODULE(_jcsound6 java java_interface.i)
-	endif()
+                TYPE MODULE 
+                LANGUAGE java 
+                SOURCES java_interface.i)
+ 	    else()
+	        SWIG_ADD_MODULE(_jcsound6 java java_interface.i)
+	    endif()
         SWIG_LINK_LIBRARIES(_jcsound6 ${swigjava_LIBS})
         target_include_directories(${SWIG_MODULE__jcsound6_REAL_NAME}
         PRIVATE ${JNI_INCLUDE_DIRS})
@@ -220,14 +233,14 @@ endif()
                                         cs_glue.hpp csPerfThread.hpp CsoundFile.hpp
                                         CppSound.hpp filebuilding.h Soundfile.hpp)
 
-        if(SWIG_ADD_LIBRARY)
+        if(COMMAND SWIG_ADD_LIBRARY)
             SWIG_ADD_LIBRARY(luaCsnd6 
-                         TYPE MODULE 
-                         LANGUAGE lua 
-                         SOURCES lua_interface.i)
- 	else()
-	    SWIG_ADD_MODULE(luaCsnd6 lua lua_interface.i)
-	endif()
+                TYPE MODULE 
+                LANGUAGE lua 
+                SOURCES lua_interface.i)
+ 	    else()
+	        SWIG_ADD_MODULE(luaCsnd6 lua lua_interface.i)
+	    endif()
         SWIG_LINK_LIBRARIES(luaCsnd6 ${swiglua_LIBS})
 
         target_include_directories(${SWIG_MODULE_luaCsnd6_REAL_NAME} PRIVATE ${LUA_H_PATH})

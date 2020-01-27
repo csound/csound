@@ -531,7 +531,7 @@ int32_t printks(CSOUND *csound, PRINTKS *p)
       sarg = ((STRINGDAT*)p->ifilcod)->data;
       if (sarg == NULL)
         return csoundPerfError(csound, &(p->h), Str("null string\n"));
-      if (strcmp(sarg, p->old) != 0) {
+      if (p->old==NULL || strcmp(sarg, p->old) != 0) {
         printksset_(csound, p, sarg);
         csound->Free(csound, p->old);
         p->old = cs_strdup(csound, sarg);

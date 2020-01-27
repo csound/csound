@@ -201,6 +201,7 @@ extern int ISSTRCOD(MYFLT);
 #define WARNMSG 04
 #define RAWMSG  0x40
 #define TIMEMSG 0x80
+#define NOQQ    0x400
 #define IGN(X)  (void) X
 
 #define ARG_CONSTANT 0
@@ -789,7 +790,7 @@ typedef struct CORFIL {
 #define MIDIINBUFMAX    (1024)
 #define MIDIINBUFMSK    (MIDIINBUFMAX-1)
 
-
+#define MIDIMAXPORTS    (64)
 
   typedef union {
     uint32 dwData;
@@ -879,21 +880,31 @@ typedef struct CORFIL {
 #endif  /* __BUILDING_LIBCSOUND */
 
 #define MARGS   (3)
-typedef struct S_MACRO {          /* To store active macros */
-    char        *name;          /* Use is by name */
-    int         acnt;           /* Count of arguments */
-    CORFIL      *body;          /* The text of the macro */
-    struct S_MACRO *next;         /* Chain of active macros */
-    int         margs;          /* ammount of space for args */
-    char        *arg[MARGS];    /* With these arguments */
-} S_MACRO;
+#define MAX_INCLUDE_DEPTH 100
+struct MACRO;
+
+typedef struct MACRON {
+  int             n;
+  unsigned int    line;
+  struct MACRO    *s;
+  char            *path;
+} MACRON;
+
+typedef struct MACRO {          /* To store active macros */
+    char          *name;        /* Use is by name */
+    int           acnt;         /* Count of arguments */
+    char          *body;        /* The text of the macro */
+    struct MACRO  *next;        /* Chain of active macros */
+    int           margs;        /* amount of space for args */
+    char          *arg[MARGS];  /* With these arguments */
+} MACRO;
 
 typedef struct in_stack_s {     /* Stack of active inputs */
     int16       is_marked_repeat;     /* 1 if this input created by 'n' stmnt */
     int16       args;                 /* Argument count for macro */
   //CORFIL      *cf;                  /* In core file */
   //void        *fd;                  /* for closing stream */
-    S_MACRO       *mac;
+    MACRO       *mac;
     int         line;
     int32       oposit;
 } IN_STACK;
@@ -1379,11 +1390,16 @@ typedef struct _message_queue_t_ {
                                char* , char*);
     OENTRY* (*find_opcode_exact)(CSOUND*, char*,
                                char* , char*);
-       /**@}*/
+    int (*GetChannelPtr)(CSOUND *,MYFLT **, const char *, int);
+    int (*ListChannels)(CSOUND *, controlChannelInfo_t **);
+    int (*GetErrorCnt)(CSOUND *);
+    FUNC* (*FTnp2Finde)(CSOUND*, MYFLT *);
+    INSTRTXT *(*GetInstrument)(CSOUND*, int, const char *);
+    /**@}*/
     /** @name Placeholders
         To allow the API to grow while maintining backward binary compatibility. */
     /**@{ */
-    SUBR dummyfn_2[34];
+    SUBR dummyfn_2[29];
     /**@}*/
 #ifdef __BUILDING_LIBCSOUND
     /* ------- private data (not to be used by hosts or externals) ------- */
@@ -1509,8 +1525,8 @@ typedef struct _message_queue_t_ {
     int           nspout;
     MYFLT         *auxspin;
     OPARMS        *oparms;
-    /** reserve space for up to 4 MIDI devices */
-    MCHNBLK       *m_chnbp[64];
+    /** reserve space for up to MIDIMAXPORTS MIDI devices */
+    MCHNBLK       *m_chnbp[MIDIMAXPORTS*16];
     int           dither_output;
     MYFLT         onedsr, sicvt;
     MYFLT         tpidsr, pidsr, mpidsr, mtpdsr;
@@ -1559,7 +1575,9 @@ typedef struct _message_queue_t_ {
     void          *FFT_table_1;
     void          *FFT_table_2;
     /* statics from twarp.c should be TSEG* */
-    void          *tseg, *tpsave, *unused_int0;
+    void          *tseg, *tpsave;
+    /* persistent macros */
+    MACRO         *orc_macros;
     /* Statics from express.c */
     MYFLT         *gbloffbas;       /* was static in oload.c */
     void          *file_io_thread;
@@ -1586,7 +1604,7 @@ typedef struct _message_queue_t_ {
       MYFLT   warp_factor /* = FL(1.0) */;
       char    *curmem;
       char    *memend;                /* end of cur memblk                    */
-      S_MACRO *unused_ptr2;
+      MACRO   *unused_ptr2;
       int     last_name /* = -1 */;
       IN_STACK  *inputs, *str;
       int     input_size, input_cnt;
@@ -1600,14 +1618,14 @@ typedef struct _message_queue_t_ {
       int     unused_int4[RPTDEPTH];
       int32   unused_int7[RPTDEPTH];
       int     unused_int5;
-      S_MACRO   *unused_ptr0[RPTDEPTH];
+      MACRO   *unused_ptr0[RPTDEPTH];
       int     unused_int6;
      /* Variable for repeat sections */
       char    unused_char1[NAMELEN];
       int     unused_int8;
       int32   unused_int9;
       int     unused_intA;
-      S_MACRO   *unused_ptr1;
+      MACRO   *unused_ptr1;
       int     nocarry;
     } sread;
     struct onefileStatics__ {

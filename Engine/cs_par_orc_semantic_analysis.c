@@ -238,7 +238,7 @@ void csp_orc_sa_global_read_add_list(CSOUND *csound, struct set_t *set)
     }
 }
 
-void csp_orc_sa_interlocksf(CSOUND *csound, int code)
+static void csp_orc_sa_interlocksf(CSOUND *csound, int code, char *name)
 {
     if (code&0xfff8) {
       /* zak etc */
@@ -256,7 +256,11 @@ void csp_orc_sa_interlocksf(CSOUND *csound, int code)
       if (code&IR) csp_set_add(csound, rr, "##int");
       if (code&IW) csp_set_add(csound, ww, "##int");
       csp_orc_sa_global_read_write_add_list(csound, ww, rr);
-      if (UNLIKELY(code&_QQ)) csound->Message(csound, Str("opcode deprecated"));
+      //      printf("code&qq=%4x msglevel = %4x bit=%4x\n",
+      //   code&_QQ, csound->oparms_.msglevel, csound->oparms_.msglevel&NOQQ );
+      if (UNLIKELY((code&_QQ) && !(csound->oparms_.msglevel&NOQQ))) {
+        csound->Message(csound, Str("opcode %s deprecated\n"), name);
+      }
     }
 }
 
@@ -264,7 +268,7 @@ void csp_orc_sa_interlocks(CSOUND *csound, ORCTOKEN *opcode)
 {
     char *name = opcode->lexeme;
     OENTRY *ep = find_opcode(csound, name);
-    csp_orc_sa_interlocksf(csound, ep->flags);
+    csp_orc_sa_interlocksf(csound, ep->flags, name);
 }
 
 //static int inInstr = 0;

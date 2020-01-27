@@ -270,6 +270,7 @@ typedef struct {
     MYFLT  y1, y2, y3; // AR
     int flags;
     GaussianState gs;
+    uint32_t seed;
 } BEOSC;
 
 static int
@@ -287,13 +288,16 @@ beosc_init(CSOUND *csound, BEOSC *p) {
     p->phase    = fabs(fmod(*p->iphs, TWOPI)) * p->radtoinc;
     p->flags    = (int)(*p->iflags);
     p->lastfreq = *p->xfreq;
-    p->gs.seed  = csound->GetRandomSeedFromTime();
+    p->gs.seed  = p->seed = csound->GetRandomSeedFromTime();
     p->gs.iset  = 0;
+    gaussians_init(csound->GetRandomSeedFromTime());
     return OK;
 }
 
 static int
 beosc_kkiii(CSOUND *csound, BEOSC *p) {
+    IGN(csound);
+
     SAMPLE_ACCURATE
 
     FUNC *ftp     = p->ftp;
@@ -320,7 +324,8 @@ beosc_kkiii(CSOUND *csound, BEOSC *p) {
     MYFLT bw1 = sqrt( FL(1.0) - bwin );
     MYFLT bw2 = sqrt( FL(2.0) * bwin );
 
-    uint32_t seed = p->gs.seed;
+    // uint32_t seed = p->gs.seed;
+    uint32_t seed = p->seed;
 
     switch (p->flags) {
     case 0:    // uniform noise, no interp.
@@ -378,7 +383,8 @@ beosc_kkiii(CSOUND *csound, BEOSC *p) {
       }
       break;
     }
-    p->gs.seed = seed;
+    // p->gs.seed = seed;
+    p->seed = seed;
     p->phase = phase;
     p->x1    = x1; p->x2 = x2; p->x3 = x3;
     p->y1    = y1; p->y2 = y2; p->y3 = y3;
@@ -437,6 +443,7 @@ beosc_akiii(CSOUND *csound, BEOSC *p) {
       break;
     case 1:
       for (n=offset; n<nsmps; n++) {
+
         x0 = x1; x1 = x2; x2 = x3;
         // x3 = gaussian_normal(gsptr);
         x3  = GAUSSIANS_GET(&seed);
@@ -586,7 +593,7 @@ beadsynt_init_common(CSOUND *csound, BEADSYNT *p) {
         lphs[c] = ((int32_t)(iphs * FMAXLEN)) & PHMASK;
       }
     } else {  // iphs is the number of a table containing the phases
-      FUNC *phasetp = csound->FTnp2Find(csound, p->iphs);
+      FUNC *phasetp = csound->FTnp2Finde(csound, p->iphs);
       if (phasetp == NULL) {
         p->inerr = 1;
         return INITERR(Str("beadsynt: phasetable not found"));

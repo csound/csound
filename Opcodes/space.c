@@ -39,7 +39,7 @@ static int32_t spaceset(CSOUND *csound, SPACE *p)
     FUNC              *ftp = NULL;
 
     if (*p->ifn > 0) {
-      if (UNLIKELY((ftp = csound->FTnp2Find(csound, p->ifn)) == NULL))
+      if (UNLIKELY((ftp = csound->FTnp2Finde(csound, p->ifn)) == NULL))
         return NOTOK;
       p->ftp = ftp;
     }
@@ -207,7 +207,7 @@ static int32_t spdistset(CSOUND *csound, SPDIST *p)
    FUNC *ftp;
 
    if (*p->ifn > 0) {
-     if (UNLIKELY((ftp = csound->FTnp2Find(csound, p->ifn)) == NULL))
+     if (UNLIKELY((ftp = csound->FTnp2Finde(csound, p->ifn)) == NULL))
        return NOTOK;
      p->ftp = ftp;
    }

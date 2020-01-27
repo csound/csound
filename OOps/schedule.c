@@ -167,13 +167,13 @@ int32_t kschedule(CSOUND *csound, WSCHED *p)
       }
       p->todo =0;
       pp.flag = 1;
-       if (IS_STR_ARG(p->which)){
-         return eventOpcode_(csound, &pp, 1, 'i');
-       }
-       else {
-         pp.flag = 0;
-         return eventOpcode_(csound, &pp, 0, 'i');
-       }
+      if (IS_STR_ARG(p->which)){
+        return eventOpcode_(csound, &pp, 1, 'i');
+      }
+      else {
+        pp.flag = 0;
+        return eventOpcode_(csound, &pp, 0, 'i');
+      }
     }
     else return OK;
 }

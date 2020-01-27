@@ -77,3 +77,13 @@ typedef struct {
         long    phs;
         MYFLT   num1, num2, dfdmax;
 } RANDI;
+
+typedef struct {
+        OPDS    h;
+        MYFLT   *ar, *xamp, *xcps, *iseed, *sel, *base;
+        int16   ampcod, cpscod, new;
+        int     rand;
+        int64_t phs;
+        MYFLT   period, num1, num2;
+        MYFLT   num3, num4;
+} RANDC;

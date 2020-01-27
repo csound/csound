@@ -4,7 +4,7 @@
 </CsOptions>
 <CsInstruments>
 
-ksmps = 64
+ksmps = 1
 0dbfs = 1
 
 
@@ -12,12 +12,12 @@ instr 1
 ifftsize = 2048
 ihopsize = 512
 ibins = 1024
-idev =  0 ; /* device number */
-asig1 vco2 0.5, 440
+idev =  1; /* device number */
+asig1 vco2 0.5, 300
 fsig = pvsanal(asig1, ifftsize,ihopsize, ifftsize, 1)
-asig = cladsynth(fsig,1,1,ibins,idev)
+asig = cladsyn(fsig,1,1,ibins,idev)
 asig = linenr(asig,0.001,0.01,0.01)
-    out(asig*0.5)
+   out(asig*0.5)
 
 endin
 
@@ -32,6 +32,10 @@ asig = linenr(asig,0.001,0.01,0.01)
     out(asig*0.5)
 
 endin
+
+
+
+
 
 </CsInstruments>
 <CsScore>

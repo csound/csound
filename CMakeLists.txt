@@ -7,14 +7,16 @@ project(Csound)
 
 ENABLE_TESTING()
 
-if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
+if (${CMAKE_CXX_COMPILER_ID} STREQUAL "Clang")
 set(CMAKE_COMPILER_IS_CLANG 1)
 endif()
 
-message(STATUS "${CMAKE_HOME_DIRECTORY}")
+message(STATUS "Csound directory: ${CMAKE_HOME_DIRECTORY}")
 
 # C++11 needed
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
+if(NOT MSVC)
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
+endif()
 
 # Project definitions
 set(APIVERSION "6.0")
@@ -36,7 +38,8 @@ include(CheckCCompilerFlag)
 include(CheckCXXCompilerFlag)
 include(CMakePushCheckState)
 
-set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake/Modules/")
+list(APPEND CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/cmake/Modules/)
+message(STATUS "CMake module path: ${CMAKE_MODULE_PATH}")
 
 # Utility to munge with items in a list.
 #
@@ -158,32 +161,32 @@ endif()
 
 # in Release configuration, set NDEBUG
 if(${CMAKE_BUILD_TYPE} MATCHES "Release")
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DNDEBUG")
-set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -DNDEBUG")
-else()
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DBETA")
-set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -DBETA")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DNDEBUG")
+    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -DNDEBUG")
+elseif(${CMAKE_BUILD_TYPE} MATCHES "Debug")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DBETA")
+    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -DBETA")
 endif()
 
 # set -Werror if in Debug configuration
 if(NOT MSVC AND NOT WASM)
-set(CMAKE_CXX_FLAGS_RELEASE "-O3 ")
-set(CMAKE_C_FLAGS_RELEASE "-O3 ")
-if(${CMAKE_BUILD_TYPE} MATCHES "Debug")
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}  -Wall -Werror -Wno-missing-field-initializers")
-set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wall -Werror -Wno-missing-field-initializers")
-endif()
+    set(CMAKE_CXX_FLAGS_RELEASE "-O3 ")
+    set(CMAKE_C_FLAGS_RELEASE "-O3 ")
+    if(${CMAKE_BUILD_TYPE} MATCHES "Debug")
+        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}  -Wall -Werror -Wno-missing-field-initializers")
+        set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wall -Werror -Wno-missing-field-initializers")
+    endif()
 endif()
 
 if(APPLE)
-set(CMAKE_REQUIRED_INCLUDES time.h)
-CHECK_FUNCTION_EXISTS(clock_gettime CLOCK_GETTIME)
-if(${CLOCK_GETTIME})
- message(STATUS  "clock_gettime() found")
- set(CMAKE_C_FLAGS "-DHAVE_CLOCK_GETTIME ${CMAKE_C_FLAGS}")
-else()
- message(STATUS  "clock_gettime() not found")
-endif()
+    list(APPEND CMAKE_REQUIRED_INCLUDES "time.h")
+    CHECK_FUNCTION_EXISTS(clock_gettime CLOCK_GETTIME)
+    if(${CLOCK_GETTIME})
+        message(STATUS  "clock_gettime() found")
+        set(CMAKE_C_FLAGS "-DHAVE_CLOCK_GETTIME ${CMAKE_C_FLAGS}")
+    else()
+        message(STATUS  "clock_gettime() not found")
+    endif()
 endif()
 
 option(USE_LIB64 "Set to on to set installation directory for libraries to lib64" OFF)
@@ -196,22 +199,31 @@ endif()
 message(STATUS "LIBRARY INSTALL DIR: ${LIBRARY_INSTALL_DIR}")
 
 if(USE_DOUBLE)
-   message(STATUS "Building with 64-bit floats")
+    message(STATUS "Building with 64-bit floats")
     set(PLUGIN_INSTALL_DIR "${LIBRARY_INSTALL_DIR}/csound/plugins64-${APIVERSION}")
 else()
-  message(STATUS "Building with 32-bit floats")
+    message(STATUS "Building with 32-bit floats")
     set(PLUGIN_INSTALL_DIR "${LIBRARY_INSTALL_DIR}/csound/plugins-${APIVERSION}")
 endif()
 
 execute_process (
-     COMMAND python -c
-     "import site, sys; sys.stdout.write(site.getusersitepackages())"
-     OUTPUT_VARIABLE PYTHON_USER_SITE_PACKAGES
-   )
+    COMMAND python -c
+    "import site, sys; sys.stdout.write(site.getsitepackages()[0])"
+    OUTPUT_VARIABLE PYTHON_SITE_PACKAGES
+)
 
-SET(PYTHON_MODULE_INSTALL_DIR ${PYTHON_USER_SITE_PACKAGES} CACHE PATH "Python module install dir")
+SET(PYTHON_MODULE_INSTALL_DIR ${PYTHON_SITE_PACKAGES} CACHE PATH "Python module install dir")
 
-set(JAVA_MODULE_INSTALL_DIR ${LIBRARY_INSTALL_DIR} CACHE PATH "Java module install dir")
+
+if(APPLE) 
+  get_filename_component(JAVA_MODULE_INSTALL_DIR_DEFAULT "~/Library/Java/Extensions" ABSOLUTE)
+else()
+  set(JAVA_MODULE_INSTALL_DIR_DEFAULT ${LIBRARY_INSTALL_DIR})
+endif()
+
+set(JAVA_MODULE_INSTALL_DIR ${JAVA_MODULE_INSTALL_DIR_DEFAULT} CACHE PATH "Java module install dir")
+message(STATUS "JAVA_MODULE_INSTALL_DIR: ${JAVA_MODULE_INSTALL_DIR}")
+
 set(LUA_MODULE_INSTALL_DIR ${LIBRARY_INSTALL_DIR} CACHE PATH "Lua module install dir")
 
 # VL this is breaking CUDA compilation. It's not necessary
@@ -229,156 +241,54 @@ if(WIN32 AND NOT MSVC)
     set(CMAKE_MODULE_LINKER_FLAGS "${CMAKE_MODULE_LINKER_FLAGS} -Wl,--add-stdcall-alias")
 endif()
 
-if(MSVC)
-  include_directories(${PROJECT_SOURCE_DIR}/msvc/include)
-  list(APPEND CMAKE_REQUIRED_INCLUDES "${PROJECT_SOURCE_DIR}/msvc/include;${PROJECT_SOURCE_DIR}/msvc/deps/include")
-endif()
-
 if(WIN32)
     set(CMAKE_SHARED_LIBRARY_PREFIX "")
     set(CMAKE_SHARED_MODULE_PREFIX "")
 
+    set(CSOUND_WINDOWS_LIBRARIES 
+        advapi32
+        comctl32
+        comdlg32
+        glu32
+        kernel32
+        odbc32
+        odbccp32
+        ole32
+        oleaut32
+        shell32
+        user32
+        uuid
+        winmm
+        winspool
+        ws2_32
+        wsock32)
 
-if(NOT MSVC)
-    set(CSOUND_WINDOWS_LIBRARIES
-        msvcrt
-        advapi32
-        comctl32
-        comdlg32
-        glu32
-        kernel32
-        odbc32
-        odbccp32
-        ole32
-        oleaut32
-        shell32
-        user32
-        uuid
-        winmm
-        winspool
-        ws2_32
-        wsock32
-        advapi32
-        comctl32
-        comdlg32
-        glu32
-        msvcrt
-        kernel32
-        odbc32
-        odbccp32
-        ole32
-        oleaut32
-        shell32
-        user32
-        uuid
-        winmm
-        winspool
-        ws2_32
-        wsock32)
-else()
-    if(MSVC_VERSION LESS 1900)
-    set(CSOUND_WINDOWS_LIBRARIES
-        msvcrt
-        advapi32
-        comctl32
-        comdlg32
-        glu32
-        kernel32
-        odbc32
-        odbccp32
-        ole32
-        oleaut32
-        shell32
-        user32
-        uuid
-        winmm
-        winspool
-        ws2_32
-        wsock32
-        advapi32
-        comctl32
-        comdlg32
-        glu32
-        msvcrt
-        kernel32
-        odbc32
-        odbccp32
-        ole32
-        oleaut32
-        shell32
-        user32
-        uuid
-        winmm
-        winspool
-        ws2_32
-        wsock32)
+    if(MSVC)
+        # Experimented with flags but did not make change performance results
+        #set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} /Oi /fp:fast /arch:AVX2")
+        #set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /Oi /fp:fast /arch:AVX2")
+
+        # Replace the default CRT linkage from dynamic (MD) to static (MT)
+        if(STATIC_CRT STREQUAL "ON")
+            foreach(flag_var
+                CMAKE_C_FLAGS CMAKE_C_FLAGS_RELEASE CMAKE_C_FLAGS_DEBUG
+                CMAKE_CXX_FLAGS CMAKE_CXX_FLAGS_DEBUG CMAKE_CXX_FLAGS_RELEASE
+                CMAKE_CXX_FLAGS_MINSIZEREL CMAKE_CXX_FLAGS_RELWITHDEBINFO)
+                string(REPLACE "/MD" "-MT" ${flag_var} "${${flag_var}}")
+            endforeach()
+            message(STATUS "Using static CRT linkage /MT")
+        endif()
     else()
-    set(CSOUND_WINDOWS_LIBRARIES
-        ucrt
-        vcruntime
-        advapi32
-        comctl32
-        comdlg32
-        glu32
-        kernel32
-        mincore
-        odbc32
-        odbccp32
-        ole32
-        oleaut32
-        shell32
-        user32
-        uuid
-        winmm
-        winspool
-        ws2_32
-        wsock32
-        advapi32
-        comctl32
-        comdlg32
-        glu32
-        kernel32
-        odbc32
-        odbccp32
-        ole32
-        oleaut32
-        shell32
-        user32
-        uuid
-        winmm
-        winspool
-        ws2_32
-        wsock32)
+        set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -mstackrealign -static-libgcc -static")
+        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -mstackrealign -static-libstdc++ -static-libgcc -static")
+        set_target_properties(${CSOUNDLIB} PROPERTIES LINK_FLAGS "-static-libstdc++ -static-libgcc -static")
+        set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} -static-libstdc++ -static-libgcc -static")
     endif()
 endif()
 
-if(MSVC)
-  # Experimented with flags but did not make change performance results
-  #set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} /Oi /fp:fast /arch:AVX2")
-  #set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /Oi /fp:fast /arch:AVX2")
-  #set(CompilerFlags
-  #  CMAKE_CXX_FLAGS
-  #  CMAKE_CXX_FLAGS_DEBUG
-  #  CMAKE_CXX_FLAGS_RELEASE
-  #  CMAKE_C_FLAGS
-  #  CMAKE_C_FLAGS_DEBUG
-  #  CMAKE_C_FLAGS_RELEASE
-  #  )
-  #foreach(CompilerFlag ${CompilerFlags})
-  #  string(REPLACE "/MD" "/MT" ${CompilerFlag} "${${CompilerFlag}}")
-  #endforeach()
-else()
-  set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -mstackrealign -static-libgcc -static")
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -mstackrealign -static-libstdc++ -static-libgcc -static")
-  set_target_properties(${CSOUNDLIB} PROPERTIES LINK_FLAGS "-static-libstdc++ -static-libgcc -static")
-  set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} -static-libstdc++ -static-libgcc -static")
-endif()
-
-endif(WIN32)
-
 if(APPLE)
-set(CMAKE_CXX_FLAGS  "${CMAKE_CXX_FLAGS} -stdlib=libc++")
-set_target_properties(${CSOUNDLIB} PROPERTIES CXX_COMPILE_FLAGS  "-std=c++11")
+    set(CMAKE_CXX_FLAGS  "${CMAKE_CXX_FLAGS} -stdlib=libc++")
+    set_target_properties(${CSOUNDLIB} PROPERTIES CXX_COMPILE_FLAGS  "-std=c++11")
 endif()
 
 if(CMAKE_SYSTEM_NAME MATCHES "Linux")
@@ -458,7 +368,6 @@ if(APPLE)
     if(BUILD_INSTALLER)
        	set(CS_FRAMEWORK_FULL_PATH "/Library/Frameworks/${CSOUNDLIB}.framework/Versions/${APIVERSION}/Resources/Opcodes64")
     else()
-        get_filename_component(JAVA_MODULE_INSTALL_DIR "~/Library/Java/Extensions" ABSOLUTE)
         get_filename_component(CS_FRAMEWORK_FULL_PATH ${PLUGIN_INSTALL_DIR} ABSOLUTE)
     endif()
 
@@ -505,20 +414,19 @@ SET(BUILD_SHARED_LIBS ON)
 ## HEADER/LIBRARY/OTHER CHECKS ##
 
 # First, required stuff
-if (MSVC)
-  find_library(LIBSNDFILE_LIBRARY NAMES sndfile libsndfile-1 libsndfile)
+if(MSVC)
+    find_package(LibSndFile CONFIG REQUIRED)
 else()
-  find_library(LIBSNDFILE_LIBRARY sndfile libsndfile-1)
-endif()
+    find_library(LIBSNDFILE_LIBRARY NAMES sndfile libsndfile-1 libsndfile)
 
-
-if(NOT LIBSNDFILE_LIBRARY)
-    message(FATAL_ERROR "Csound requires the sndfile library")
+    if(NOT LIBSNDFILE_LIBRARY)
+        message(FATAL_ERROR "Csound requires the sndfile library")
+    endif()
 endif()
 
 find_package(CURL)
 set(FLTK_SKIP_OPENGL true)
-find_package(FLTK )
+find_package(FLTK)
 #if (FLTK_FOUND AND MSVC)
 #    # If "SHARED" variants of FLTK libraries exist, use them.
 #    find_library(FLTK_SHARED_VARIANT "fltk_SHARED")
@@ -533,21 +441,12 @@ find_package(FLTK )
 find_package(FAUST)
 find_package(Java)
 find_package(JNI)
-find_package(LIBLO)
 find_package(MUSICXML)
+find_package(VSTSDK2X)
 
 #if(MUSICXML_FOUND)
 #set(CMAKE_CXX_FLAGS "-DHAVE_MUSICXML2 ${CMAKE_CXX_FLAGS}")
 #endif()
-
-find_package(PORTSMF)
-find_package(PythonLibs 2.7)
-if(NOT STK_LOCAL)
-    find_package(STK)
-endif()
-find_package(SWIG)
-find_package(VSTSDK2X)
-
 
 # TODO should this work for MSVC also?
 if(WIN32)
@@ -580,13 +479,16 @@ if(NOT MSVC AND REQUIRE_PTHREADS)
     find_library(PTHREAD_LIBRARY pthreadGC2)
   endif()
 
-  if(NOT PTHREAD_LIBRARY)
+  if(NOT (PTHREAD_LIBRARY OR HAIKU))
+      # pthreads are built in to Haiku
       message(STATUS "Csound requires the pthread library")
   endif()
 
   #FIXME this variable is for required include directories, possible bug
-  set(CMAKE_REQUIRED_INCLUDES pthread.h)
-  set(CMAKE_REQUIRED_LIBRARIES pthread)
+  list(APPEND CMAKE_REQUIRED_INCLUDES pthread.h)
+  if (NOT HAIKU)
+    set(CMAKE_REQUIRED_LIBRARIES pthread)
+  endif()
 endif()
 
 
@@ -609,7 +511,7 @@ endif()
 
 find_library(VORBISFILE_LIBRARY vorbisfile)
 check_include_file(libintl.h LIBINTL_HEADER)
-find_path(EIGEN3_INCLUDE_PATH eigen3/Eigen/Dense)
+find_package(Eigen3 3.3 NO_MODULE)
 find_package(GMM)
 find_library(LIBINTL_LIBRARY intl)
 find_package(Gettext)
@@ -622,6 +524,22 @@ cmake_push_check_state()
 list(APPEND CMAKE_REQUIRED_LIBRARIES ${MATH_LIBRARY})
 check_function_exists(lrint HAVE_LRINT)
 cmake_pop_check_state()
+
+# MSVC / VCPKG won't find dirent.h by default. Need to add the path explicitly
+find_file(DIRENT_H "dirent.h")
+
+if(DIRENT_H)
+    if(MSVC)
+      get_filename_component(DIRENT_FOLDER ${DIRENT_H} DIRECTORY)
+      list(APPEND CMAKE_REQUIRED_INCLUDES ${DIRENT_FOLDER})
+    endif()
+else()
+    if(MSVC)
+        message(FATAL_ERROR "Dirent.h not found, Csound will not be able to load dynamic plugins. Cannot continue with project generation")
+    else()
+        message(WARNING "Dirent.h not found, Csound will not be able to load dynamic plugins such as real-time audio")
+    endif()
+endif()
 
 set(HEADERS_TO_CHECK
     unistd.h io.h fcntl.h stdint.h
@@ -689,7 +607,7 @@ include_directories(./util)
 include_directories(./)
 
 #checking pthread functions
-if(REQUIRE_PTHREADS AND PTHREAD_LIBRARY)
+if(REQUIRE_PTHREADS AND (PTHREAD_LIBRARY OR HAIKU))
 
   #list(APPEND libcsound_CFLAGS -DHAVE_PTHREAD)
   set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -DHAVE_PTHREAD")
@@ -1237,9 +1155,11 @@ if(EMSCRIPTEN)
 endif()
 
 set(libcsound_LIBS ${LIBSNDFILE_LIBRARY})
+
 if(REQUIRE_PTHREADS AND PTHREAD_LIBRARY)
   list(APPEND libcsound_LIBS ${PTHREAD_LIBRARY})
 endif()
+
 if (HAVE_ATOMIC_BUILTIN)
   list(APPEND libcsound_LIBS ${ATOMIC_LIB})
 endif()
@@ -1247,7 +1167,6 @@ endif()
 if(WIN32)
     list(APPEND libcsound_LIBS "${CSOUND_WINDOWS_LIBRARIES}")
     list(APPEND libcsound_LIBS "${LIBSNDFILE_SUPPORT_LIBS}")
-else()
 endif()
 
 if(USE_CURL AND CURL_FOUND)
@@ -1392,7 +1311,11 @@ endif()
 
 
 target_compile_options(${CSOUNDLIB} PRIVATE ${libcsound_CFLAGS})
-target_link_libraries(${CSOUNDLIB} PRIVATE ${libcsound_LIBS})
+if(MSVC)
+    target_link_libraries(${CSOUNDLIB} PRIVATE sndfile-static)
+else()
+    target_link_libraries(${CSOUNDLIB} PRIVATE ${libcsound_LIBS})
+endif()
 
 set_target_properties(${CSOUNDLIB} PROPERTIES
     RUNTIME_OUTPUT_DIRECTORY ${BUILD_BIN_DIR}
@@ -1405,7 +1328,11 @@ if(BUILD_STATIC_LIBRARY)
     SET_TARGET_PROPERTIES(${CSOUNDLIB_STATIC} PROPERTIES PREFIX "lib")
     target_compile_options(${CSOUNDLIB_STATIC} PRIVATE ${libcsound_CFLAGS})
 
-    target_link_libraries(${CSOUNDLIB_STATIC} ${libcsound_LIBS})
+    if(MSVC)
+        target_link_libraries(${CSOUNDLIB_STATIC} PRIVATE sndfile-static ${CSOUND_WINDOWS_LIBRARIES})
+    else()
+        target_link_libraries(${CSOUNDLIB_STATIC} ${libcsound_LIBS})
+    endif()
 
     set_target_properties(${CSOUNDLIB_STATIC} PROPERTIES
         RUNTIME_OUTPUT_DIRECTORY ${BUILD_BIN_DIR}

@@ -280,13 +280,13 @@ static int32_t pvsbufreadproc2(CSOUND *csound, PVSBUFFERREAD *p)
     if (p->scnt >= overlap) {
       float *frame1, *frame2;
       frames = handle->frames-1;
-      ftab = csound->FTnp2Find(csound, p->strt);
+      ftab = csound->FTnp2Finde(csound, p->strt);
       if (UNLIKELY((int32_t)ftab->flen < N/2+1))
         csound->PerfError(csound, &(p->h),
                           Str("table length too small: needed %d, got %d\n"),
                           N/2+1, ftab->flen);
       tab = tab1 = ftab->ftable;
-      ftab = csound->FTnp2Find(csound, p->end);
+      ftab = csound->FTnp2Finde(csound, p->end);
       if (UNLIKELY((int32_t)ftab->flen < N/2+1))
         csound->PerfError(csound, &(p->h),
                           Str("table length too small: needed %d, got %d\n"),

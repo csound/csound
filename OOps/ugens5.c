@@ -1133,7 +1133,13 @@ int32_t lpfrsnset(CSOUND *csound, LPFRESON *p)
       return csound->InitError(csound, Str("Pole file not supported "
                                            "for this opcode !"));
     }
+
+
     p->lpread = ((LPREAD**) csound->lprdaddr)[csound->currentLPCSlot];
+    if(p->lpread->npoles < 2) {
+      return csound->InitError(csound, Str("Too few poles (> 2)"));
+    }
+
     p->prvratio = FL(1.0);
     p->d = FL(0.0);
     p->prvout = FL(0.0);

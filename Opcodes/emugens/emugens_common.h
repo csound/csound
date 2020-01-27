@@ -54,17 +54,55 @@ tabensure_init(CSOUND *csound, ARRAYDAT *p, int size)
 
 /*
 #define TABENSURE_PERF(csound, arr, size) {
-    if(UNLIKELY(arr->sizes[0] != size)) {                                                  \
-        size_t _ss = arr->arrayMemberSize*size;                                            \
-        if (_ss > arr->allocated) {                                                        \
-            return PERFERRF(Str("Array is too small (allocated %lu < needed %lu), but cannot " \
-                            "allocate during performance pass. Allocate a bigger array "   \
-                            "at init time"),                                               \
-                            arr->allocated, _ss);                                          \
-        }                                                                                  \
-        arr->sizes[0] = size;                                                              \
+  if(UNLIKELY(arr->sizes[0] != size)) {                                 \
+        size_t _ss = arr->arrayMemberSize*size;                           \
+        if (_ss > arr->allocated) {                                       \
+            return PERFERRF(Str("Array is too small (allocated %zu "      \
+                                "< needed %zu), but cannot allocate  "    \
+                                "during performance pass. Allocate a "    \
+                                "bigger array "at init time"),            \
+                            arr->allocated, _ss);                         \
+        }                                                                 \
+        arr->sizes[0] = size;                                             \
     }}
 
 */
+
+
+static inline
+int em_isnan(MYFLT d) {
+  union {
+    unsigned long long l;
+    double d;
+  } u;
+  u.d=d;
+  return (u.l==0x7FF8000000000000ll ||
+          u.l==0x7FF0000000000000ll ||
+          u.l==0xfff8000000000000ll);
+}
+
+static inline
+int em_isinf(MYFLT d) {
+  union {
+    unsigned long long l;
+    double d;
+  } u;
+  u.d=d;
+  return (u.l==0x7FF0000000000000ll?1:u.l==0xFFF0000000000000ll?-1:0);
+}
+
+static inline
+int em_isinfornan(MYFLT d) {
+    union {
+      unsigned long long l;
+      double d;
+    } u;
+    u.d=d;
+    return (u.l==0x7FF8000000000000ll ||
+            u.l==0x7FF0000000000000ll ||
+            u.l==0xfff8000000000000ll ||
+            u.l==0xFFF0000000000000ll);
+}
+
 
 #endif

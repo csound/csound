@@ -165,7 +165,7 @@ static int32_t ftconv_init(CSOUND *csound, FTCONV *p)
       return csound->InitError(csound, Str("ftconv: invalid impulse response "
                                            "partition length"));
     }
-    ftp = csound->FTnp2Find(csound, p->iFTNum);
+    ftp = csound->FTnp2Finde(csound, p->iFTNum);
     if (UNLIKELY(ftp == NULL))
       return NOTOK; /* ftfind should already have printed the error message */
     /* calculate total length / number of partitions */

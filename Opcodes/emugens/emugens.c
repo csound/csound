@@ -25,7 +25,7 @@
 #include "csdl.h"
 #include "arrays.h"
 #include "emugens_common.h"
-
+#include <ctype.h>
 
 #define SAMPLE_ACCURATE \
     uint32_t n, nsmps = CS_KSMPS;                                    \
@@ -37,6 +37,21 @@
         nsmps -= early;                                              \
         memset(&out[nsmps], '\0', early*sizeof(MYFLT));              \
     }                                                                \
+
+
+#define AUDIO_OPCODE(csound, p) \
+    IGN(csound); \
+    uint32_t n, nsmps = CS_KSMPS;                                    \
+    uint32_t offset = p->h.insdshead->ksmps_offset;                  \
+    uint32_t early = p->h.insdshead->ksmps_no_end;                   \
+
+#define AUDIO_OUTPUT(out) \
+    if (UNLIKELY(offset)) memset(out, '\0', offset*sizeof(MYFLT));   \
+    if (UNLIKELY(early)) {                                           \
+        nsmps -= early;                                              \
+        memset(&out[nsmps], '\0', early*sizeof(MYFLT));              \
+    }                                                                \
+
 
 #define UI32MAX 0x7FFFFFFF
 
@@ -630,11 +645,55 @@ static int32_t bpfarrpoints2(CSOUND *csound, BPFARRPOINTS2 *p) {
     return NOTOK;
 }
 
+static int32_t bpfcos_arrpoints2(CSOUND *csound, BPFARRPOINTS2 *p) {
+    int32_t numxs = p->xs->sizes[0];
+    int32_t numys = p->ys->sizes[0];
+    int32_t numzs = p->zs->sizes[0];
+    int32_t N = numxs < numys ? numxs : numys;
+    N = N < numzs ? N : numzs;
+
+    MYFLT *xs = p->xs->data;
+    MYFLT *ys = p->ys->data;
+    MYFLT *zs = p->zs->data;
+    MYFLT x = *p->x;
+    int32_t i;
+    MYFLT x0, x1, y0, z0, dx, y1, z1, delta;
+    if(x <= xs[0]) {
+        *p->y = ys[0];
+        *p->z = zs[0];
+        return OK;
+    }
+    if(x >= xs[N-1]) {
+        *p->y = ys[N-1];
+        *p->z = zs[N-1];
+        return OK;
+    }
+    x0 = xs[0];
+    for(i=0; i<N-1; i++) {
+        x1 = xs[i+1];
+        if(x0 <= x && x <= x1) {
+            y0 = ys[i];
+            z0 = zs[i];
+            y1 = ys[i+1];
+            z1 = zs[i+1];
+            dx = ((x-x0) / (x1-x0)) * PI + PI;
+            // y = y0 + (y1-y0) * (1+cos(dx)) / 2.0
+            delta = (COS(dx) + 1) / 2.0;
+            *p->y = y0 + (y1 - y0) * delta;
+            *p->z = z0 + (z1 - z0) * delta;
+            return OK;
+        }
+        x0 = x1;
+    }
+    return NOTOK;
+}
+
 typedef struct {
     OPDS h;
     ARRAYDAT *out, *in;
     MYFLT *data[BPF_MAXPOINTS];
 } BPFARR;
+
 
 static int32_t bpfarr_init(CSOUND *csound, BPFARR *p) {
     tabinit(csound, p->out, p->in->sizes[0]);
@@ -675,6 +734,68 @@ static int32_t bpfarr(CSOUND *csound, BPFARR *p) {
                 y1 = *data[i+1];
                 if( x <= x1 ) {
                     out[idx] = (x-x0)/(x1-x0)*(y1-y0)+y0;
+                    break;
+                }
+                x0 = x1;
+                y0 = y1;
+            }
+        }
+    }
+    return OK;
+}
+
+
+typedef struct {
+    OPDS h;
+    MYFLT *out, *in;
+    MYFLT *data[BPF_MAXPOINTS];
+    uint32_t datalen;
+} BPFARR_A;
+
+
+static int32_t bpfarr_a_init(CSOUND *csound, BPFARR_A *p) {
+    uint32_t datalen = p->INOCOUNT - 1;
+    if(datalen % 2)
+        return INITERR(Str("bpf: data length should be even (pairs of x, y)"));
+    if(datalen >= BPF_MAXPOINTS)
+        return INITERR(Str("bpf: too many pargs (max=256)"));
+    p->datalen = datalen;
+    return OK;
+}
+
+
+static int32_t bpfarr_a(CSOUND *csound, BPFARR_A *p) {
+    MYFLT *out = p->out;
+    MYFLT *in = p->in;
+
+    AUDIO_OPCODE(csound, p);
+    AUDIO_OUTPUT(out);
+
+    MYFLT **data = p->data;
+
+    uint32_t i, datalen = p->datalen;
+
+    MYFLT x, x0, x1, y0, y1, firstx, firsty, lastx, lasty;
+    firstx = *data[0];
+    firsty = *data[1];
+    lastx = *data[datalen-2];
+    lasty = *data[datalen-1];
+
+    for(n=offset; n<nsmps; n++) {
+        x = in[n];
+        x0 = firstx;
+        y0 = firsty;
+
+        if (x <= x0)
+            out[n] = y0;
+        else if (x>=lastx)
+            out[n] = lasty;
+        else {
+            for(i=2; i<datalen; i+=2) {
+                x1 = *data[i];
+                y1 = *data[i+1];
+                if( x <= x1 ) {
+                    out[n] = (x-x0)/(x1-x0)*(y1-y0)+y0;
                     break;
                 }
                 x0 = x1;
@@ -1313,11 +1434,11 @@ typedef struct {
 static int32_t
 tabslice_init(CSOUND *csound, TABSLICE *p) {
     FUNC *ftpsrc, *ftpdst;
-    ftpsrc = csound->FTnp2Find(csound, p->fnsrc);
+    ftpsrc = csound->FTnp2Finde(csound, p->fnsrc);
     if(UNLIKELY(ftpsrc == NULL))
         return NOTOK;
     p->ftpsrc = ftpsrc;
-    ftpdst = csound->FTnp2Find(csound, p->fndst);
+    ftpdst = csound->FTnp2Finde(csound, p->fndst);
     if(UNLIKELY(ftpdst == NULL))
         return NOTOK;
     p->ftpdst = ftpdst;
@@ -1376,7 +1497,7 @@ typedef struct {
 static int
 tab2array_init(CSOUND *csound, TAB2ARRAY *p) {
     FUNC *ftp;
-    ftp = csound->FTnp2Find(csound, p->ifn);
+    ftp = csound->FTnp2Finde(csound, p->ifn);
     if (UNLIKELY(ftp == NULL))
         return NOTOK;
     p->ftp = ftp;
@@ -1404,7 +1525,7 @@ tab2array_k(CSOUND *csound, TAB2ARRAY *p) {
         end = ftp->flen;
     int numitems = (int) (ceil((end - start) / (double)step));
     if(numitems < 0)
-        return PERFERR(Str("tab2array: can't copy a negative number of items"));
+        return PERFERR(Str("tab2array: cannot copy a negative number of items"));
 
     ARRAY_ENSURESIZE(csound, p->out, numitems);
     p->numitems = numitems;
@@ -1795,7 +1916,7 @@ ftprint_init(CSOUND *csound, FTPRINT *p) {
     p->numcols = (int32_t)*p->inumcols;
     if(p->numcols == 0)
         p->numcols = 10;
-    p->ftp = csound->FTnp2Find(csound, p->ifn);
+    p->ftp = csound->FTnp2Finde(csound, p->ifn);
     int32_t trig = (int32_t)*p->ktrig;
     if (trig > 0) {
         ftprint_perf(csound, p);
@@ -1931,6 +2052,197 @@ array_and(CSOUND *csound, BINOP_AAA *p) {
 }
 
 
+typedef struct {
+    OPDS h;
+    MYFLT *iout, *ifn;
+    // FUNC *ftp;
+} FTEXISTS;
+
+static int32_t
+ftexists_init(CSOUND *csound, FTEXISTS *p) {
+    FUNC *ftp = csound->FTnp2Find(csound, p->ifn);
+    *p->iout = (ftp != NULL) ? 1.0 : 0.0;
+    return OK;
+}
+
+/*
+
+ lastcycle: 1 if this is the last performance cycle for this event
+
+ kislast lastcycle
+
+ if lastcycle() then
+ ; do something
+ endif
+
+*/
+
+typedef struct {
+    OPDS h;
+    MYFLT *out;
+    int extracycles;
+    int numcycles;
+    // 0: has extra time, 1: no extrat time, use numcycles
+    int mode;
+} LASTCYCLE;
+
+static int32_t
+lastcycle_init(CSOUND *csound, LASTCYCLE *p) {
+    p->extracycles = p->h.insdshead->xtratim;
+    MYFLT p3 = p->h.insdshead->p3.value;
+    p->numcycles = p3 > 0 ? (int)(p->h.insdshead->offtim * csound->GetKr(csound) + 0.5) : 0;
+    if(p->extracycles == 0) {
+        p->numcycles += p->extracycles;
+    }
+    if(p->extracycles > 0 || p3 < 0)
+        p->mode = 0;
+    else
+        p->mode = 1;
+    *p->out = 0;
+    return OK;
+}
+
+static int32_t
+lastcycle(CSOUND *csound, LASTCYCLE *p) {
+    IGN(csound);
+    if(p->mode == 1) {
+        p->numcycles--;
+        if(p->numcycles == 0)
+            *p->out = 1;
+    } else if (p->h.insdshead->relesing) {
+        p->extracycles -= 1;
+        if(p->extracycles == 0)
+            *p->out = 1;
+    }
+    return OK;
+}
+
+
+/**
+ * strstrip
+ *
+ * remove whitespace from left, right or both sides
+ *
+ * Sout strstrip Sin
+ * Sout strstrip Sin, "l"
+ * Sout strstrip Sin, "r"
+ *
+ */
+
+// make sure that the out string has enough allocated space
+// This can be run only at init time
+static int32_t _string_ensure(CSOUND *csound, STRINGDAT *s, int size) {
+    if (s->size >= size)
+        return OK;
+    csound->ReAlloc(csound, s->data, size);
+    s->size = size;
+    return OK;
+}
+
+typedef struct {
+    OPDS h;
+    STRINGDAT *out;
+    STRINGDAT *in;
+    STRINGDAT *which;
+} STR1_1;
+
+static int32_t
+stripl(CSOUND *csound, STR1_1 *p) {
+    char *str = p->in->data;
+    int idx0;
+    for(idx0=0; idx0 < p->in->size; idx0++) {
+        if(!isspace(str[idx0]))
+            break;
+    }
+    // now idx points to start of content
+    if(str[idx0] == 0) {
+        // empty string
+        _string_ensure(csound, p->out, 1);
+        p->out->data[0] = 0;
+        return OK;
+    }
+    str += idx0;
+    size_t insize = strlen(str);
+    _string_ensure(csound, p->out, insize);
+    memcpy(p->out->data, str, insize);
+    return OK;
+}
+
+static int32_t
+stripr(CSOUND *csound, STR1_1 *p) {
+    // Trim trailing space
+    char *str = p->in->data;
+    int size = strlen(str) - 1;
+    const char *end = str + size;
+    while(size && isspace(*end)) {
+        end--;
+        size--;
+    }
+    size += 1;
+    if(size > 0) {
+        _string_ensure(csound, p->out, size);
+        memcpy(p->out->data, str, size);
+    } else {
+        _string_ensure(csound, p->out, 1);
+        p->out->data[0] = 0;
+    }
+     return OK;
+
+}
+
+static int32_t
+stripside(CSOUND *csound, STR1_1 *p) {
+    if(p->which->size < 2)
+        return INITERR("which should not be empty");
+    char which = p->which->data[0];
+    if(which == 'l')
+        return stripl(csound, p);
+    else if (which == 'r')
+        return stripr(csound, p);
+    return INITERRF("which should be one of 'l' or 'r', got %s", p->which->data);
+}
+
+// returns length
+int _str_find_edges(const char *str, int *startidx) {
+    // left
+    int idx0 = 0;
+    while(isspace((unsigned char)*str)) {
+        str++;
+        idx0++;
+    }
+
+    if(*str == 0) {
+        // Only whitespace
+        return 0;
+    }
+
+    // right
+    int size = strlen(str) - 1;
+    const char *end = str + size;
+    while(size && isspace(*end)) {
+        end--;
+        size--;
+    }
+    *startidx = idx0;
+    return size+1;
+}
+
+
+static int32_t
+strstrip(CSOUND *csound, STR1_1 *p) {
+    int startidx;
+    int size = _str_find_edges(p->in->data, &startidx);
+    if(size > 0) {
+        _string_ensure(csound, p->out, size);
+        memcpy(p->out->data, p->in->data + startidx, size);
+    } else {
+        _string_ensure(csound, p->out, 1);
+        p->out->data[0] = 0;
+    }
+    return OK;
+}
+
+
 /*
 
    Input types:
@@ -1991,7 +2303,9 @@ static OENTRY localops[] = {
 
     { "bpf", S(BPFX), 0, 2, "k", "kM", NULL, (SUBR)bpfx },
     { "bpf", S(BPFX), 0, 1, "i", "im", (SUBR)bpfx },
-    { "bpf", S(BPFARR), 0, 2, "k[]", "k[]M", (SUBR)bpfarr_init, (SUBR)bpfarr },
+    { "bpf", S(BPFARR), 0, 3, "k[]", "k[]M", (SUBR)bpfarr_init, (SUBR)bpfarr },
+
+    { "bpf.a", S(BPFARR_A), 0, 3, "a", "aM", (SUBR)bpfarr_a_init, (SUBR)bpfarr_a },
 
     { "bpf", S(BPFARRPOINTS), 0, 2, "k", "kk[]k[]", NULL, (SUBR)bpfarrpoints },
     { "bpf", S(BPFARRPOINTS), 0, 2, "k", "ki[]i[]", NULL, (SUBR)bpfarrpoints },
@@ -2005,7 +2319,8 @@ static OENTRY localops[] = {
 
     { "bpfcos", S(BPFX), 0, 2, "k", "kM", NULL, (SUBR)bpfxcos },
     { "bpfcos", S(BPFX), 0, 1, "i", "im", (SUBR)bpfxcos },
-    { "bpfcos", S(BPFARR), 0, 2, "k[]", "k[]M", (SUBR)bpfarr_init, (SUBR)bpfarrcos },
+    { "bpfcos", S(BPFARR), 0, 3, "k[]", "k[]M",
+                                          (SUBR)bpfarr_init, (SUBR)bpfarrcos },
 
     { "bpfcos", S(BPFARRPOINTS), 0, 2, "k", "kk[]k[]",
       NULL, (SUBR)bpfcosarrpoints },
@@ -2013,15 +2328,21 @@ static OENTRY localops[] = {
       NULL, (SUBR)bpfcosarrpoints },
     { "bpfcos", S(BPFARRPOINTS), 0, 1, "i", "ii[]i[]", (SUBR)bpfcosarrpoints },
 
+    { "bpfcos", S(BPFARRPOINTS2), 0, 2, "kk", "kk[]k[]k[]",
+      NULL, (SUBR)bpfcos_arrpoints2 },
+    { "bpfcos", S(BPFARRPOINTS2), 0, 2, "kk", "ki[]i[]i[]",
+      NULL, (SUBR)bpfcos_arrpoints2 },
+    { "bpfcos", S(BPFARRPOINTS2), 0, 1, "ii", "ii[]i[]i[]", (SUBR)bpfcos_arrpoints2 },
+
+
     { "ntom", S(NTOM), 0, 3, "k", "S", (SUBR)ntom, (SUBR)ntom },
     { "ntom", S(NTOM), 0, 1, "i", "S", (SUBR)ntom },
 
-    { "mton", S(MTON), 0, 3, "S", "k", (SUBR)mton, (SUBR)mton },
-    { "mton", S(MTON), 0, 1, "S", "i", (SUBR)mton },
+    { "mton.k", S(MTON), 0, 3, "S", "k", (SUBR)mton, (SUBR)mton },
+    { "mton.i", S(MTON), 0, 1, "S", "i", (SUBR)mton },
 
-    { "ntof", S(NTOM), 0, 3, "k", "S", (SUBR)ntof, (SUBR)ntof },
-    { "ntof", S(NTOM), 0, 1, "i", "S", (SUBR)ntof },
-
+    { "ntof.i", S(NTOM), 0, 1, "i", "S", (SUBR)ntof },
+    { "ntof.k", S(NTOM), 0, 3, "k", "S", (SUBR)ntof, (SUBR)ntof },
 
     { "cmp", S(Cmp), 0, 3, "a", "aSa", (SUBR)cmp_init, (SUBR)cmp_aa,},
     { "cmp", S(Cmp), 0, 3, "a", "aSk", (SUBR)cmp_init, (SUBR)cmp_ak },
@@ -2074,6 +2395,15 @@ static OENTRY localops[] = {
 
     { "ftprint", S(FTPRINT), TR, 3, "", "iPOOPo",
       (SUBR)ftprint_init, (SUBR)ftprint_perf },
+
+    { "ftexists", S(FTEXISTS), TR, 1, "i", "i",
+      (SUBR)ftexists_init},
+    { "ftexists", S(FTEXISTS), TR, 3, "k", "k",
+      (SUBR)ftexists_init, (SUBR)ftexists_init},
+    { "lastcycle", S(LASTCYCLE), 0, 3, "k", "",
+      (SUBR)lastcycle_init, (SUBR)lastcycle},
+    { "strstrip.i_side", S(STR1_1), 0, 1, "S", "SS", (SUBR)stripside},
+    { "strstrip.i", S(STR1_1), 0, 1, "S", "S", (SUBR)strstrip}
 
 };
 
