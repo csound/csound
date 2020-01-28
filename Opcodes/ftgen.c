@@ -660,39 +660,39 @@ static int32_t ftgen_list(CSOUND *csound, FTGEN *p, int32_t istring)
     fp[4] = *p->p4;
 
 
-      if (istring) {              /* Named gen */
-        NAMEDGEN *named = (NAMEDGEN*) csound->GetNamedGens(csound);
-        while (named) {
-          if (strcmp(named->name, ((STRINGDAT *) p->p4)->data) == 0) {
-            /* Look up by name */
-            fp[4] = named->genum;
-           break;
-          }
-          named = named->next;                            /*  and round again   */
+    if (istring) {              /* Named gen */
+      NAMEDGEN *named = (NAMEDGEN*) csound->GetNamedGens(csound);
+      while (named) {
+        if (strcmp(named->name, ((STRINGDAT *) p->p4)->data) == 0) {
+          /* Look up by name */
+          fp[4] = named->genum;
+          break;
         }
-        if (UNLIKELY(named == NULL)) {
-          csound->Free(csound,ftevt);
-          return csound->InitError(csound,
-                                   Str("Named gen \"%s\" not defined"),
-                                   (char *)p->p4);
-        }
-        else fp[4] = named->genum;
+        named = named->next;                            /*  and round again   */
       }
+      if (UNLIKELY(named == NULL)) {
+        csound->Free(csound,ftevt);
+        return csound->InitError(csound,
+                                 Str("Named gen \"%s\" not defined"),
+                                 (char *)p->p4);
+      }
+      else fp[4] = named->genum;
+    }
 
-      ARRAYDAT *array = (ARRAYDAT*) (p->p5);
-      n = array->sizes[0];
-      ftevt->pcnt = (int16) n+4;
-      int32_t i = 0;
-      memcpy(&fp[5], array->data, n*sizeof(MYFLT));
-      while (i < n) {
-        i++;
-      }
-      n = csound->hfgens(csound, &ftp, ftevt, 1);         /* call the fgen */
-     csound->Free(csound,ftevt);
-     if (UNLIKELY(n != 0))
-       return csound->InitError(csound, Str("ftgen error"));
-     if (ftp != NULL)
-       *p->ifno = (MYFLT) ftp->fno;                      /* record the fno */
+    ARRAYDAT *array = (ARRAYDAT*) (p->p5);
+    n = array->sizes[0];
+    ftevt->pcnt = (int16) n+4;
+    /* int32_t i = 0; */
+    memcpy(&fp[5], array->data, n*sizeof(MYFLT));
+    /* while (i < n) { */
+    /*   i++; */
+    /* } */
+    n = csound->hfgens(csound, &ftp, ftevt, 1);         /* call the fgen */
+    csound->Free(csound,ftevt);
+    if (UNLIKELY(n != 0))
+      return csound->InitError(csound, Str("ftgen error"));
+    if (ftp != NULL)
+      *p->ifno = (MYFLT) ftp->fno;                      /* record the fno */
     return OK;
 }
 
