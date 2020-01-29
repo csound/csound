@@ -50,7 +50,7 @@ int32_t icgoto(CSOUND *csound, CGOTO *p)
 
 int32_t kcgoto(CSOUND *csound, CGOTO *p)
 {
-   IGN(csound);
+    IGN(csound);
     if (*p->cond)
       CS_PDS = p->lblblk->prvp;
 
@@ -73,24 +73,6 @@ int32_t kngoto(CSOUND *csound, CGOTO *p)
       CS_PDS = p->lblblk->prvp;
     return OK;
 }
-
-#ifdef VARGS
-/* an i-rate version that ALWAYS jumps at p-time */
-
-int32_t iingoto(CSOUND *csound, CGOTO *p)
-{
-    if (!*p->cond)
-      csound->ids = p->lblblk->prvi;
-    return OK;
-}
-
-int32_t kingoto(CSOUND *csound, CGOTO *p)
-{
-    IGN(csound);
-    CS_PDS = p->lblblk->prvp;
-    return OK;
-}
-#endif
 
 int32_t timset(CSOUND *csound, TIMOUT *p)
 {
