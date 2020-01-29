@@ -57,6 +57,8 @@ Name: "{app}\include"
 ; All Csound examples go here.
 Name: "{app}\examples"; Permissions: users-modify
 #define APP_EXAMPLES "{app}\examples\"
+; CsoundQt
+Name: "{app}\CsoundQt"; Permissions: users-modify
 
 ; Csound manual
 Name: "{app}\doc\manual"
