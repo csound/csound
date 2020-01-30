@@ -124,4 +124,3 @@ cmake ..\.. -G $vsGenerator `
  -DCMAKE_INSTALL_PREFIX=dist `
  -DCUSTOM_CMAKE="..\Custom-vs.cmake" `
  # -DSTATIC_CRT="ON"
-
