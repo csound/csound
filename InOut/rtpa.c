@@ -837,6 +837,7 @@ static void rtclose_blocking(CSOUND *csound)
     }
 }
 
+#ifdef WIN32
 #ifdef __cplusplus
 extern "C"
 {
@@ -849,13 +850,16 @@ extern  void PaUtil_SetDebugPrintFunction(PaUtilLogCallback  cb);
 
 static void PaNoOpDebugPrint(const char* msg) {
 }
+#endif
 
 /* module interface functions */
 
 PUBLIC int csoundModuleCreate(CSOUND *csound)
 {
   IGN(csound);
+#ifdef WIN32
   PaUtil_SetDebugPrintFunction(PaNoOpDebugPrint);
+#endif
     /* nothing to do, report success */
   //csound->Message(csound,
   // "%s", Str("PortAudio real-time audio module for Csound\n"));
