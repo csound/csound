@@ -17,8 +17,8 @@
 
     You should have received a copy of the GNU Lesser General Public
     License along with Csound; if not, write to the Free Software
-    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
-    02111-1307 USA
+    Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
+    02110-1301 USA
 */
 
 /* Spectral Extraction and Amplitude Gating functions */
@@ -27,7 +27,9 @@
 
 /* Predeclare Functions */
 
-void    SpectralExtract(float *, float *, int32, int32, int, MYFLT);
+
+
+void    SpectralExtract(float *, float *, int32_t, int32, int32_t, MYFLT);
 MYFLT   PvocMaxAmp(float *, int32, int32);
 void    PvAmpGate(MYFLT *, int32, FUNC *, MYFLT);
 

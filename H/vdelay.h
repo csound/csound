@@ -17,8 +17,8 @@
 
     You should have received a copy of the GNU Lesser General Public
     License along with Csound; if not, write to the Free Software
-    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
-    02111-1307 USA
+    Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
+    02110-1301 USA
 */
 
 /*      vdelay, multitap, reverb2 coded by Paris Smaragdis              */
@@ -28,6 +28,7 @@
 typedef struct {
         OPDS    h;
         MYFLT   *sr, *ain, *adel, *imaxd, *istod;
+        uint32 maxd;
         AUXCH   aux;
         int32   left;
 } VDEL;
@@ -37,6 +38,7 @@ typedef struct {
         MYFLT   *sr1, *sr2, *sr3, *sr4;
         MYFLT   *ain1, *ain2, *ain3, *ain4, *adel, *imaxd, *iquality, *istod;
         AUXCH   aux1, aux2, aux3, aux4;
+        uint32 maxd;
         int     interp_size;
         int32   left;
 } VDELXQ;
@@ -45,6 +47,7 @@ typedef struct {
         OPDS    h;
         MYFLT   *sr1, *sr2, *ain1, *ain2, *adel, *imaxd, *iquality, *istod;
         AUXCH   aux1, aux2;
+        uint32 maxd;
         int     interp_size;
         int32   left;
 } VDELXS;
@@ -53,13 +56,14 @@ typedef struct {
         OPDS    h;
         MYFLT   *sr1, *ain1, *adel, *imaxd, *iquality, *istod;
         AUXCH   aux1;
+        uint32 maxd;
         int     interp_size;
         int32   left;
 } VDELX;
 
 typedef struct {
         OPDS    h;
-        MYFLT   *sr, *ain, *ndel[VARGMAX];
+        MYFLT   *sr, *ain, *ndel[VARGMAX-1];
         AUXCH   aux;
         int32   left, max;
 } MDEL;

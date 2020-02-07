@@ -1,3 +1,26 @@
+/*
+    cs_par_base.h:
+
+    Copyright (C) 2011, 2017 John ffitch and Stephen Kyne
+
+    This file is part of Csound.
+
+    The Csound Library is free software; you can redistribute it
+    and/or modify it under the terms of the GNU Lesser General Public
+    License as published by the Free Software Foundation; either
+    version 2.1 of the License, or (at your option) any later version.
+
+    Csound is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU Lesser General Public License for more details.
+
+    You should have received a copy of the GNU Lesser General Public
+    License along with Csound; if not, write to the Free Software
+    Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
+    02110-1301 USA
+*/
+
 #ifndef __CS_PAR_BASE_H__
 #define __CS_PAR_BASE_H__
 
@@ -107,34 +130,32 @@ void csp_set_element_string_print(CSOUND *csound, struct set_element_t *ele);
 void csp_set_element_ptr_print(CSOUND *csound, struct set_element_t *ele);
 
 /* allocating sets with specification of element equality and printing functions */
-int csp_set_alloc(CSOUND *csound,   struct set_t **set,
-                  set_element_data_eq *ele_eq_func,
-                  set_element_data_print *ele_print_func);
-int csp_set_dealloc(CSOUND *csound, struct set_t **set);
+struct set_t *csp_set_alloc(CSOUND *csound,
+                            set_element_data_eq *ele_eq_func,
+                            set_element_data_print *ele_print_func);
+void csp_set_dealloc(CSOUND *csound, struct set_t **set);
 /* shortcut to get a set of strings uses string element equality and
    printing functions */
-int csp_set_alloc_string(CSOUND *csound, struct set_t **set);
+struct set_t *csp_set_alloc_string(CSOUND *csound);
 
 /* functions to manipulate set, return CSOUND_SUCCESS if successful */
-int csp_set_add(CSOUND *csound,     struct set_t *set, void *data);
-int csp_set_remove(CSOUND *csound,  struct set_t *set, void *data);
+void csp_set_add(CSOUND *csound,     struct set_t *set, void *data);
+void csp_set_remove(CSOUND *csound,  struct set_t *set, void *data);
 /* check element existance returns 1 if data exists */
-int csp_set_exists(CSOUND *csound,  struct set_t *set, void *data);
-int csp_set_print(CSOUND *csound, struct set_t *set);
+void csp_set_print(CSOUND *csound, struct set_t *set);
 
 /* get a count and access members */
 int csp_set_count(struct set_t *set);
-int csp_set_get_num(struct set_t *set, int num, void **data);
 
 /*
  * set union and intersection
  * allocates a new set in result
  * union/intersect first and second putting into result
  */
-int csp_set_union(CSOUND *csound, struct set_t *first,
-                  struct set_t *second, struct set_t **result);
-int csp_set_intersection(CSOUND *csound, struct set_t *first,
-                         struct set_t *second, struct set_t **result);
+struct set_t *csp_set_union(CSOUND *csound, struct set_t *first,
+                   struct set_t *second);
+struct set_t *csp_set_intersection(CSOUND *csound, struct set_t *first,
+                          struct set_t *second);
 
 /* spinlock */
 

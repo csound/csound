@@ -1,3 +1,26 @@
+/*
+    score_parm.h:
+
+    Copyright (C) 2017 John ffitch
+
+    This file is part of Csound.
+
+    The Csound Library is free software; you can redistribute it
+    and/or modify it under the terms of the GNU Lesser General Public
+    License as published by the Free Software Foundation; either
+    version 2.1 of the License, or (at your option) any later version.
+
+    Csound is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU Lesser General Public License for more details.
+
+    You should have received a copy of the GNU Lesser General Public
+    License along with Csound; if not, write to the Free Software
+    Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
+    02110-1301 USA
+*/
+
 #ifndef __SCORE_PARAM_H
 #define __SCORE_PARAM_H
 
@@ -15,24 +38,9 @@ typedef struct ScoreTree {
   int              locn;
 } ScoreTree;
 
-#define MARGS   (3)
+#ifndef __PARSE_PARAM_H
+
 #define MAX_INCLUDE_DEPTH 100
-struct MACRO;
-
-typedef struct MACRON {
-  int             n;
-  unsigned int    line;
-  struct MACRO    *s;
-} MACRON;
-
-typedef struct MACRO {          /* To store active macros */
-    char          *name;        /* Use is by name */
-    int           acnt;         /* Count of arguments */
-    char          *body;        /* The text of the macro */
-    struct MACRO  *next;        /* Chain of active macros */
-    int           margs;        /* amount of space for args */
-    char          *arg[MARGS];  /* With these arguments */
-} MACRO;
 
 typedef struct IFDEFSTACK_ {
     struct IFDEFSTACK_  *prv;
@@ -44,6 +52,8 @@ typedef struct IFDEFSTACK_ {
 } IFDEFSTACK;
 
 
+#endif
+
 typedef struct prs_parm_s {
     void            *yyscanner;
     CORFIL          *cf;
@@ -54,6 +64,8 @@ typedef struct prs_parm_s {
     IFDEFSTACK      *ifdefStack;
     unsigned char   isIfndef;
     unsigned char   isString;
+    unsigned char   isinclude;
+    char            *path;
     uint16_t        line;
     uint32_t        locn;
     uint32_t        llocn;
@@ -66,7 +78,7 @@ typedef struct prs_parm_s {
     int     repeat_cnt_n[RPTDEPTH];
     int     repeat_indx[RPTDEPTH];
     CORFIL  *cf_stack[RPTDEPTH];
-    int     repeat_inc_n /* = 1 */;
+  //int     repeat_inc_n /* = 1 */;
     MACRO   *repeat_mm_n[RPTDEPTH];
     int     repeat_index;
          /* Variables for section repeat */
@@ -96,7 +108,7 @@ typedef struct score_parm_s {
     SCOTOKEN        *arglist;
 } SCORE_PARM;
 
-uint64_t make_location(PRS_PARM *);
+uint64_t make_slocation(PRS_PARM *);
 extern uint8_t file_to_int(CSOUND*, const char*);
 
 #endif

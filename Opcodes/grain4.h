@@ -17,8 +17,8 @@
 
     You should have received a copy of the GNU Lesser General Public
     License along with Csound; if not, write to the Free Software
-    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
-    02111-1307 USA
+    Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
+    02110-1301 USA
 */
 
 #define MAXVOICE 128
@@ -35,7 +35,8 @@ typedef struct {
         int32   gsize[MAXVOICE], stretch[MAXVOICE], mode[MAXVOICE];
         MYFLT   pshift[MAXVOICE], phs[MAXVOICE];
         int16   grnd;
-        int32   clock, gskip_os;
+        //int32   clock;
+        int32   gskip_os;
         int32_t gstart, gend, glength;
         MYFLT   gap_os, gsize_os;
         FUNC    *ftp, *ftp_env;

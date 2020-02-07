@@ -17,8 +17,8 @@
 
     You should have received a copy of the GNU Lesser General Public
     License along with Csound; if not, write to the Free Software
-    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
-    02111-1307 USA
+    Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
+    02110-1301 USA
 */
 
 /* filter.c */
@@ -138,7 +138,7 @@
 
 typedef struct FCOMPLEX {double r,i;} fcomplex;
 
-static double readFilter(FILTER*, int);
+static double readFilter(FILTER*, int32_t);
 static void insertFilter(FILTER*,double);
 
 #ifndef MAX
@@ -151,15 +151,15 @@ static void insertFilter(FILTER*,double);
 typedef struct FPOLAR {double mag,ph;} fpolar;
 
 /* Routines associated with pole control */
-static void expandPoly(fcomplex[], double[], int);
-static void complex2polar(fcomplex[],fpolar[], int);
-static void polar2complex(fpolar[],fcomplex[], int);
-static void sortRoots(fcomplex roots[], int dim);
-static int sortfun(fpolar *a, fpolar *b);
-static void nudgeMags(fpolar a[], fcomplex b[], int dim, double fact);
-static void nudgePhases(fpolar a[], fcomplex b[], int dim, double fact);
+static void expandPoly(fcomplex[], double[], int32_t);
+static void complex2polar(fcomplex[],fpolar[], int32_t);
+static void polar2complex(fpolar[],fcomplex[], int32_t);
+static void sortRoots(fcomplex roots[], int32_t dim);
+static int32_t sortfun(fpolar *a, fpolar *b);
+static void nudgeMags(fpolar a[], fcomplex b[], int32_t dim, double fact);
+static void nudgePhases(fpolar a[], fcomplex b[], int32_t dim, double fact);
 
-static void zroots(CSOUND*, fcomplex [], int, fcomplex []);
+static void zroots(CSOUND*, fcomplex [], int32_t, fcomplex []);
 static fcomplex Cadd(fcomplex, fcomplex);
 static fcomplex Csub(fcomplex, fcomplex);
 static fcomplex Cmul(fcomplex, fcomplex);
@@ -170,16 +170,16 @@ static fcomplex Csqrt(fcomplex);
 static fcomplex RCmul(double, fcomplex);
 
 /* Filter initialization routine */
-static int ifilter(CSOUND *csound, FILTER* p)
+static int32_t ifilter(CSOUND *csound, FILTER* p)
 {
-    int i;
+    int32_t i;
 
     /* since i-time arguments are not guaranteed to propegate to p-time
      * we must copy the i-vars into the p structure.
      */
 
-    p->numa = (int)*p->na;
-    p->numb = (int)*p->nb;
+    p->numa = (int32_t)*p->na;
+    p->numb = (int32_t)*p->nb;
 
     /* First check bounds on initialization arguments */
     if (UNLIKELY((p->numb<1) || (p->numb>(MAXZEROS+1)) ||
@@ -205,19 +205,19 @@ static int ifilter(CSOUND *csound, FILTER* p)
 }
 
 /* izfilter - initialize z-plane controllable filter */
-static int izfilter(CSOUND *csound, ZFILTER *p)
+static int32_t izfilter(CSOUND *csound, ZFILTER *p)
 {
     fcomplex a[MAXPOLES];
     fcomplex *roots;
     double *coeffs;
-    int i, dim;
+    int32_t i, dim;
 
     /* since i-time arguments are not guaranteed to propagate to p-time
      * we must copy the i-vars into the p structure.
      */
 
-    p->numa = (int)*p->na;
-    p->numb = (int)*p->nb;
+    p->numa = (int32_t)*p->na;
+    p->numb = (int32_t)*p->nb;
 
     /* First check bounds on initialization arguments */
     if (UNLIKELY((p->numb<1) || (p->numb>(MAXZEROS+1)) ||
@@ -264,9 +264,10 @@ static int izfilter(CSOUND *csound, ZFILTER *p)
  *                      - a(1)*y(n-1) - ... - a(na)*y(n-na)
  *
  */
-static int afilter(CSOUND *csound, FILTER* p)
+static int32_t afilter(CSOUND *csound, FILTER* p)
 {
-    int      i;
+     IGN(csound);
+    int32_t      i;
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t n, nsmps = CS_KSMPS;
@@ -318,9 +319,10 @@ static int afilter(CSOUND *csound, FILTER* p)
  *                      - a(1)*y(k-1) - ... - a(na)*y(k-na)
  *
  */
-static int kfilter(CSOUND *csound, FILTER* p)
+static int32_t kfilter(CSOUND *csound, FILTER* p)
 {
-    int i;
+     IGN(csound);
+    int32_t i;
 
     double* a = p->dcoeffs+p->numb;
     double* b = p->dcoeffs+1;
@@ -365,9 +367,10 @@ static int kfilter(CSOUND *csound, FILTER* p)
  * The rest of the filter is the same as filter
  *
  */
-static int azfilter(CSOUND *csound, ZFILTER* p)
+static int32_t azfilter(CSOUND *csound, ZFILTER* p)
 {
-    int      i;
+     IGN(csound);
+    int32_t      i;
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t n, nsmps = CS_KSMPS;
@@ -385,7 +388,7 @@ static int azfilter(CSOUND *csound, ZFILTER* p)
     double kmagf = *p->kmagf; /* Mag nudge factor */
     double kphsf = *p->kphsf; /* Phs nudge factor */
 
-    int dim = p->numa;
+    int32_t dim = p->numa;
 
     /* Nudge pole magnitudes */
     complex2polar(roots,B,dim);
@@ -438,7 +441,7 @@ static int azfilter(CSOUND *csound, ZFILTER* p)
  * allows multiple lattice structures to access the same delay line.
  *
  */
-static double readFilter(FILTER* p, int i)
+static double readFilter(FILTER* p, int32_t i)
 {
     double* readPoint; /* Generic pointer address */
 
@@ -477,9 +480,9 @@ static void insertFilter(FILTER* p, double val)
 /* The expanded polynomial is computed as a[0..N] in
  * descending powers of Z
  */
-static void expandPoly(fcomplex roots[], double a[], int dim)
+static void expandPoly(fcomplex roots[], double a[], int32_t dim)
 {
-    int j,k;
+    int32_t j,k;
     fcomplex z[MAXPOLES],d[MAXPOLES];
 
     z[0] = Complex(1.0, 0.0);
@@ -499,9 +502,9 @@ static void expandPoly(fcomplex roots[], double a[], int dim)
 
 #define SQR(a) (a*a)
 
-static void complex2polar(fcomplex a[], fpolar b[], int N)
+static void complex2polar(fcomplex a[], fpolar b[], int32_t N)
 {
-    int i;
+    int32_t i;
 
     for (i=0; i<N; i++) {
       b[i].mag = hypot(a[i].r,a[i].i);
@@ -509,9 +512,9 @@ static void complex2polar(fcomplex a[], fpolar b[], int N)
     }
 }
 
-static void polar2complex(fpolar a[], fcomplex b[],int N)
+static void polar2complex(fpolar a[], fcomplex b[],int32_t N)
 {
-    int i;
+    int32_t i;
 
     for (i=0;i<N;i++) {
       b[i].r = a[i].mag*cos(a[i].ph);
@@ -520,7 +523,7 @@ static void polar2complex(fpolar a[], fcomplex b[],int N)
 }
 
 /* Sort poles in decreasing order of magnitudes */
-static void sortRoots(fcomplex roots[], int dim)
+static void sortRoots(fcomplex roots[], int32_t dim)
 {
     fpolar plr[MAXPOLES];
 
@@ -528,7 +531,8 @@ static void sortRoots(fcomplex roots[], int dim)
     complex2polar(roots, plr, dim);
 
     /* Sort by their magnitudes */
-    qsort(plr, dim, sizeof(fpolar), (int(*)(const void *, const void * ))sortfun);
+    qsort(plr, dim, sizeof(fpolar),
+          (int32_t(*)(const void *, const void * ))sortfun);
 
     /* Convert back to complex form */
     polar2complex(plr,roots,dim);
@@ -536,7 +540,7 @@ static void sortRoots(fcomplex roots[], int dim)
 }
 
 /* Comparison function for sorting in DECREASING order */
-static int sortfun(fpolar *a, fpolar *b)
+static int32_t sortfun(fpolar *a, fpolar *b)
 {
     if (a->mag<b->mag)
       return 1;
@@ -556,11 +560,11 @@ static int sortfun(fpolar *a, fpolar *b)
  * without affecting the overall frequency response characteristic.
  *
  */
-static void nudgeMags(fpolar a[], fcomplex b[], int dim, double fact)
+static void nudgeMags(fpolar a[], fcomplex b[], int32_t dim, double fact)
 {
     double eps = .000001; /* To avoid underflow comparisons */
     double nudgefact;
-    int i;
+    int32_t i;
 
     /* Check range of nudge factor */
     if (fact>0 && fact<=1) {
@@ -596,11 +600,11 @@ static void nudgeMags(fpolar a[], fcomplex b[], int dim, double fact)
  *
  * Multiply phases of all poles by factor
  */
-static void nudgePhases(fpolar a[], fcomplex b[], int dim, double fact)
+static void nudgePhases(fpolar a[], fcomplex b[], int32_t dim, double fact)
 {
     double eps = .000001; /* To avoid underflow comparisons */
     double nudgefact;
-    int i;
+    int32_t i;
     double phmax=0.0;
 
     /* Check range of nudge factor */
@@ -646,9 +650,10 @@ static void nudgePhases(fpolar a[], fcomplex b[], int dim, double fact)
 /* Simple definition is sufficient */
 #define FPMAX(a,b) (a>b ? a : b)
 
-static void laguer(CSOUND *csound, fcomplex a[], int m, fcomplex *x, int *its)
+static void laguer(CSOUND *csound, fcomplex a[], int32_t m,
+                   fcomplex *x, int32_t *its)
 {
-    int iter,j;
+    int32_t iter,j;
     double abx,abp,abm,err;
     fcomplex dx,x1,b,d,f,g,h,sq,gp,gm,g2;
     static const double frac[MR+1] = {0.0,0.5,0.25,0.75,0.13,0.38,0.62,0.88,1.0};
@@ -703,9 +708,9 @@ static void laguer(CSOUND *csound, fcomplex a[], int m, fcomplex *x, int *its)
 #define EPS (2.0e-6)
 #define MAXM (100)
 
-static void zroots(CSOUND *csound,fcomplex a[], int m, fcomplex roots[])
+static void zroots(CSOUND *csound,fcomplex a[], int32_t m, fcomplex roots[])
 {
-    int i,its,j,jj;
+    int32_t i,its,j,jj;
     fcomplex x,b,c,ad[MAXM];
 
     for (j=0; j<=m; j++) ad[j] = a[j];
@@ -865,13 +870,14 @@ static fcomplex RCmul(double x, fcomplex a)
 
 static OENTRY localops[] = {
 { "filter2",0xffff,                                                     },
-{ "filter2.a",  S(FILTER), 0, 5, "a", "aiim", (SUBR)ifilter, NULL, (SUBR)afilter},
+{ "filter2.a",  S(FILTER), 0, 3, "a", "aiim", (SUBR)ifilter, (SUBR)afilter},
 { "filter2.k", S(FILTER), 0, 3,  "k", "kiim", (SUBR)ifilter, (SUBR)kfilter,NULL },
-{ "zfilter2", S(ZFILTER), 0, 5,  "a", "akkiim", (SUBR)izfilter, NULL, (SUBR)azfilter}
+{ "zfilter2", S(ZFILTER), 0, 3,  "a", "akkiim", (SUBR)izfilter, (SUBR)azfilter}
 };
 
-int filter_init_(CSOUND *csound)
+int32_t filter_init_(CSOUND *csound)
 {
     return csound->AppendOpcodes(csound, &(localops[0]),
-                                 (int) (sizeof(localops) / sizeof(OENTRY)));
+                                 (int32_t
+                                  ) (sizeof(localops) / sizeof(OENTRY)));
 }

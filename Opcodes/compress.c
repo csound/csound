@@ -17,8 +17,8 @@
 
     You should have received a copy of the GNU Lesser General Public
     License along with Csound; if not, write to the Free Software
-    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
-    02111-1307 USA
+    Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
+    02110-1301 USA
 */
 
 //#include "csdl.h"
@@ -48,7 +48,7 @@ typedef struct {        /* this now added from 07/01 */
     FUNC    *ftp;
 } DIST;
 
-static int compset(CSOUND *csound, CMPRS *p)
+static int32_t compset(CSOUND *csound, CMPRS *p)
 {
     int32    delsmps;
 
@@ -59,7 +59,7 @@ static int compset(CSOUND *csound, CMPRS *p)
     p->curatt = (MYFLT) MAXPOS;
     p->currls = (MYFLT) MAXPOS;
     /* round to nearest integer */
-    if ((delsmps = MYFLT2LONG(*p->ilook * csound->GetSr(csound))) <= 0L)
+    if (UNLIKELY((delsmps = MYFLT2LONG(*p->ilook * csound->GetSr(csound))) <= 0L))
       delsmps = 1L;                             /* alloc 2 delay bufs   */
     csound->AuxAlloc(csound, delsmps * 2 * sizeof(MYFLT), &p->auxch);
     p->abuf = (MYFLT *)p->auxch.auxp;
@@ -76,15 +76,15 @@ static int compset(CSOUND *csound, CMPRS *p)
 }
 
 /* compress2 is compress but with dB inputs in range [-90,0] rather
-   than [0.90], by setting p->bias valuex */
-static int comp2set(CSOUND *csound, CMPRS *p)
+   than [0.90], by setting p->bias valuex -- JPff */
+static int32_t comp2set(CSOUND *csound, CMPRS *p)
 {
-    int ret = compset(csound, p);
+    int32_t ret = compset(csound, p);
     p->bias = FL(90.0);
     return ret;
 }
 
-static int compress(CSOUND *csound, CMPRS *p)
+static int32_t compress(CSOUND *csound, CMPRS *p)
 {
     MYFLT       *ar, *ainp, *cinp;
     uint32_t offset = p->h.insdshead->ksmps_offset;
@@ -202,12 +202,12 @@ static int compress(CSOUND *csound, CMPRS *p)
     return OK;
 }
 
-static int distset(CSOUND *csound, DIST *p)
+static int32_t distset(CSOUND *csound, DIST *p)
 {
     double  b;
     FUNC    *ftp;
 
-    if (UNLIKELY((ftp = csound->FTnp2Find(csound, p->ifn)) == NULL)) return NOTOK;
+    if (UNLIKELY((ftp = csound->FTnp2Finde(csound, p->ifn)) == NULL)) return NOTOK;
     p->ftp = ftp;
     p->maxphs = (MYFLT)ftp->flen;       /* set ftable params    */
     p->midphs = p->maxphs * FL(0.5);
@@ -225,8 +225,9 @@ static int distset(CSOUND *csound, DIST *p)
     return OK;
 }
 
-static int distort(CSOUND *csound, DIST *p)
+static int32_t distort(CSOUND *csound, DIST *p)
 {
+    IGN(csound);
     MYFLT   *ar, *asig;
     MYFLT   q, rms, dist, dnew, dcur, dinc;
     FUNC    *ftp = p->ftp;
@@ -259,9 +260,9 @@ static int distort(CSOUND *csound, DIST *p)
       MYFLT sig, phs, val;
       sig = asig[n] / dcur;             /* compress the sample  */
       phs = p->midphs * (FL(1.0) + sig); /* as index into table  */
-      if (phs <= FL(0.0))
+      if (UNLIKELY(phs <= FL(0.0)))
         val = p->begval;
-      else if (phs >= p->maxphs)        /* check sticky bits    */
+      else if (UNLIKELY(phs >= p->maxphs))        /* check sticky bits    */
         val = p->endval;
       else {
         int32  iphs = (int32)phs;
@@ -281,12 +282,9 @@ static int distort(CSOUND *csound, DIST *p)
 #define S(x)    sizeof(x)
 
 static OENTRY compress_localops[] = {
-  { "compress", S(CMPRS), 0, 5, "a", "aakkkkkki",
-    (SUBR) compset, NULL, (SUBR) compress },
-  { "compress2", S(CMPRS), 0, 5, "a", "aakkkkkki",
-    (SUBR) comp2set, NULL, (SUBR) compress },
-  { "distort", S(DIST), TR, 5, "a", "akiqo",
-    (SUBR) distset, NULL, (SUBR) distort },
+  { "compress", S(CMPRS), 0, 3, "a", "aakkkkkki", (SUBR) compset, (SUBR) compress },
+  { "compress2", S(CMPRS), 0, 3, "a", "aakkkkkki", (SUBR)comp2set,(SUBR) compress },
+  { "distort", S(DIST), TR, 3, "a", "akiqo", (SUBR) distset, (SUBR) distort },
 };
 
 LINKAGE_BUILTIN(compress_localops)

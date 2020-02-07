@@ -34,7 +34,7 @@
 ; Can run from the command line with "/S /D installation directory".
 ;
 ; Uncomment the following line to build CsoundVST and vst4cs:
-#define CSOUNDVST
+;#define CSOUNDVST
 
 #define MyAppName "Csound6_x64"
 #define MyAppVersion "6"
@@ -199,6 +199,7 @@ Source: "{#MyQtSdkBinDir}Qt5Svg.dll"; DestDir: "{#APP_BIN}"; Components: core;
 Source: "{#MyQtSdkBinDir}Qt5WebChannel.dll"; DestDir: "{#APP_BIN}"; Components: core;
 Source: "{#MyQtSdkBinDir}Qt5WebEngine.dll"; DestDir: "{#APP_BIN}"; Components: core;
 Source: "{#MyQtSdkBinDir}Qt5WebEngineCore.dll"; DestDir: "{#APP_BIN}"; Components: core;
+Source: "{#MyQtSdkBinDir}QtWebEngineProcess.exe"; DestDir: "{#APP_BIN}"; Components: core;
 Source: "{#MyQtSdkBinDir}Qt5WebEngineWidgets.dll"; DestDir: "{#APP_BIN}"; Components: core;
 Source: "{#MyQtSdkBinDir}Qt5Widgets.dll"; DestDir: "{#APP_BIN}"; Components: core;
 Source: "{#MyQtSdkBinDir}Qt5Xml.dll"; DestDir: "{#APP_BIN}"; Components: core;

@@ -2,7 +2,7 @@
   newfils.c:
   filter opcodes
 
-  (c) Victor Lazzarini, 2004
+  Copyright (c) Victor Lazzarini, 2004
 
   This file is part of Csound.
 
@@ -18,8 +18,8 @@
 
   You should have received a copy of the GNU Lesser General Public
   License along with Csound; if not, write to the Free Software
-  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
-  02111-1307 USA
+  Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
+  02110-1301 USA
 */
 
 #include "stdopcod.h"
@@ -42,21 +42,22 @@ static double TanH(double x)
        and if x>~4 tanh is approx constant 1
        and for small x tanh(x) =~ x
        So giving a cheap approximation */
-    int sign = 1;
+    int32_t sign = 1;
     if (x<0) sign=-1, x= -x;
     if (x>=4.0) {
       return sign;
     }
     if (x<0.5) return x*sign;
 #ifdef JPFF
-    printf("x=%g\n",x, fast_tanh(x),tanh(x));
+    printf("x=%g (%g,%g)\n",x, fast_tanh(x),tanh(x));
 #endif
     return sign*fast_tanh(x);
 }
 
-static int moogladder_init(CSOUND *csound, moogladder *p)
+static int32_t moogladder_init(CSOUND *csound, moogladder *p)
 {
-    /* int i; */
+    /* int32_t i; */
+     IGN(csound);
     if (LIKELY(*p->istor == FL(0.0))) {
       /* for (i = 0; i < 6; i++) */
       /*   p->delay[i] = 0.0; */
@@ -70,7 +71,7 @@ static int moogladder_init(CSOUND *csound, moogladder *p)
     return OK;
 }
 
-static int moogladder_process(CSOUND *csound, moogladder *p)
+static int32_t moogladder_process(CSOUND *csound, moogladder *p)
 {
     MYFLT   *out = p->out;
     MYFLT   *in = p->in;
@@ -82,7 +83,7 @@ static int moogladder_process(CSOUND *csound, moogladder *p)
     double  stg[4], input;
     double  acr, tune;
 #define THERMAL (0.000025) /* (1.0 / 40000.0) transistor thermal voltage  */
-    int     j;
+    int32_t     j;
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t i, nsmps = CS_KSMPS;
@@ -133,7 +134,7 @@ static int moogladder_process(CSOUND *csound, moogladder *p)
                                    tanh(input*THERMAL)) - tanh(delay[3]*THERMAL));
         delay[3] = stg[3];
 #else
-        { int k;
+        { int32_t k;
           for (k = 1; k < 4; k++) {
             input = stg[k-1];
             stg[k] = delay[k]
@@ -152,7 +153,7 @@ static int moogladder_process(CSOUND *csound, moogladder *p)
     return OK;
 }
 
-static int moogladder_process_aa(CSOUND *csound, moogladder *p)
+static int32_t moogladder_process_aa(CSOUND *csound, moogladder *p)
 {
     MYFLT   *out = p->out;
     MYFLT   *in = p->in;
@@ -165,7 +166,7 @@ static int moogladder_process_aa(CSOUND *csound, moogladder *p)
     double  stg[4], input;
     double  acr, tune;
 #define THERMAL (0.000025) /* (1.0 / 40000.0) transistor thermal voltage  */
-    int     j;
+    int32_t     j;
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t i, nsmps = CS_KSMPS;
@@ -231,7 +232,7 @@ static int moogladder_process_aa(CSOUND *csound, moogladder *p)
                                    tanh(input*THERMAL)) - tanh(delay[3]*THERMAL));
         delay[3] = stg[3];
 #else
-        { int k;
+        { int32_t k;
           for (k = 1; k < 4; k++) {
             input = stg[k-1];
             stg[k] = delay[k]
@@ -250,7 +251,7 @@ static int moogladder_process_aa(CSOUND *csound, moogladder *p)
     return OK;
 }
 
-static int moogladder_process_ak(CSOUND *csound, moogladder *p)
+static int32_t moogladder_process_ak(CSOUND *csound, moogladder *p)
 {
     MYFLT   *out = p->out;
     MYFLT   *in = p->in;
@@ -262,7 +263,7 @@ static int moogladder_process_ak(CSOUND *csound, moogladder *p)
     double  stg[4], input;
     double  acr, tune;
 #define THERMAL (0.000025) /* (1.0 / 40000.0) transistor thermal voltage  */
-    int     j;
+    int32_t     j;
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t i, nsmps = CS_KSMPS;
@@ -329,7 +330,7 @@ static int moogladder_process_ak(CSOUND *csound, moogladder *p)
                                    tanh(input*THERMAL)) - tanh(delay[3]*THERMAL));
         delay[3] = stg[3];
 #else
-        { int k;
+        { int32_t k;
           for (k = 1; k < 4; k++) {
             input = stg[k-1];
             stg[k] = delay[k]
@@ -348,7 +349,7 @@ static int moogladder_process_ak(CSOUND *csound, moogladder *p)
     return OK;
 }
 
-static int moogladder_process_ka(CSOUND *csound, moogladder *p)
+static int32_t moogladder_process_ka(CSOUND *csound, moogladder *p)
 {
     MYFLT   *out = p->out;
     MYFLT   *in = p->in;
@@ -361,7 +362,7 @@ static int moogladder_process_ka(CSOUND *csound, moogladder *p)
     double  stg[4], input;
     double  acr, tune;
 #define THERMAL (0.000025) /* (1.0 / 40000.0) transistor thermal voltage  */
-    int     j;
+    int32_t     j;
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t i, nsmps = CS_KSMPS;
@@ -428,7 +429,7 @@ static int moogladder_process_ka(CSOUND *csound, moogladder *p)
                                    tanh(input*THERMAL)) - tanh(delay[3]*THERMAL));
         delay[3] = stg[3];
 #else
-        { int k;
+        { int32_t k;
           for (k = 1; k < 4; k++) {
             input = stg[k-1];
             stg[k] = delay[k]
@@ -447,7 +448,7 @@ static int moogladder_process_ka(CSOUND *csound, moogladder *p)
     return OK;
 }
 
-static int moogladder2_process(CSOUND *csound, moogladder *p)
+static int32_t moogladder2_process(CSOUND *csound, moogladder *p)
 {
     MYFLT   *out = p->out;
     MYFLT   *in = p->in;
@@ -459,7 +460,7 @@ static int moogladder2_process(CSOUND *csound, moogladder *p)
     double  stg[4], input;
     double  acr, tune;
 #define THERMAL (0.000025) /* (1.0 / 40000.0) transistor thermal voltage  */
-    int     j;
+    int32_t     j;
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t i, nsmps = CS_KSMPS;
@@ -510,7 +511,7 @@ static int moogladder2_process(CSOUND *csound, moogladder *p)
                                    TanH(input*THERMAL)) - TanH(delay[3]*THERMAL));
         delay[3] = stg[3];
 #else
-        { int k;
+        { int32_t k;
           for (k = 1; k < 4; k++) {
             input = stg[k-1];
             stg[k] = delay[k]
@@ -529,7 +530,7 @@ static int moogladder2_process(CSOUND *csound, moogladder *p)
     return OK;
 }
 
-static int moogladder2_process_aa(CSOUND *csound, moogladder *p)
+static int32_t moogladder2_process_aa(CSOUND *csound, moogladder *p)
 {
     MYFLT   *out = p->out;
     MYFLT   *in = p->in;
@@ -542,7 +543,7 @@ static int moogladder2_process_aa(CSOUND *csound, moogladder *p)
     double  stg[4], input;
     double  acr, tune;
 #define THERMAL (0.000025) /* (1.0 / 40000.0) transistor thermal voltage  */
-    int     j;
+    int32_t     j;
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t i, nsmps = CS_KSMPS;
@@ -608,7 +609,7 @@ static int moogladder2_process_aa(CSOUND *csound, moogladder *p)
                                    TanH(input*THERMAL)) - TanH(delay[3]*THERMAL));
         delay[3] = stg[3];
 #else
-        { int k;
+        { int32_t k;
           for (k = 1; k < 4; k++) {
             input = stg[k-1];
             stg[k] = delay[k]
@@ -627,7 +628,7 @@ static int moogladder2_process_aa(CSOUND *csound, moogladder *p)
     return OK;
 }
 
-static int moogladder2_process_ak(CSOUND *csound, moogladder *p)
+static int32_t moogladder2_process_ak(CSOUND *csound, moogladder *p)
 {
     MYFLT   *out = p->out;
     MYFLT   *in = p->in;
@@ -639,7 +640,7 @@ static int moogladder2_process_ak(CSOUND *csound, moogladder *p)
     double  stg[4], input;
     double  acr, tune;
 #define THERMAL (0.000025) /* (1.0 / 40000.0) transistor thermal voltage  */
-    int     j;
+    int32_t     j;
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t i, nsmps = CS_KSMPS;
@@ -706,7 +707,7 @@ static int moogladder2_process_ak(CSOUND *csound, moogladder *p)
                                    TanH(input*THERMAL)) - TanH(delay[3]*THERMAL));
         delay[3] = stg[3];
 #else
-        { int k;
+        { int32_t k;
           for (k = 1; k < 4; k++) {
             input = stg[k-1];
             stg[k] = delay[k]
@@ -725,7 +726,7 @@ static int moogladder2_process_ak(CSOUND *csound, moogladder *p)
     return OK;
 }
 
-static int moogladder2_process_ka(CSOUND *csound, moogladder *p)
+static int32_t moogladder2_process_ka(CSOUND *csound, moogladder *p)
 {
     MYFLT   *out = p->out;
     MYFLT   *in = p->in;
@@ -738,7 +739,7 @@ static int moogladder2_process_ka(CSOUND *csound, moogladder *p)
     double  stg[4], input;
     double  acr, tune;
 #define THERMAL (0.000025) /* (1.0 / 40000.0) transistor thermal voltage  */
-    int     j;
+    int32_t     j;
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t i, nsmps = CS_KSMPS;
@@ -805,7 +806,7 @@ static int moogladder2_process_ka(CSOUND *csound, moogladder *p)
                                    TanH(input*THERMAL)) - TanH(delay[3]*THERMAL));
         delay[3] = stg[3];
 #else
-        { int k;
+        { int32_t k;
           for (k = 1; k < 4; k++) {
             input = stg[k-1];
             stg[k] = delay[k]
@@ -824,19 +825,20 @@ static int moogladder2_process_ka(CSOUND *csound, moogladder *p)
     return OK;
 }
 
-static int statevar_init(CSOUND *csound,statevar *p)
+static int32_t statevar_init(CSOUND *csound,statevar *p)
 {
+     IGN(csound);
     if (*p->istor==FL(0.0)) {
       p->bpd = p->lpd = p->lp = 0.0;
       p->oldfreq = FL(0.0);
       p->oldres = FL(0.0);
     }
     if (*p->osamp<=FL(0.0)) p->ostimes = 3;
-    else p->ostimes = (int) *p->osamp;
+    else p->ostimes = (int32_t) *p->osamp;
     return OK;
 }
 
-static int statevar_process(CSOUND *csound,statevar *p)
+static int32_t statevar_process(CSOUND *csound,statevar *p)
 {
     MYFLT  *outhp = p->outhp;
     MYFLT  *outlp = p->outlp;
@@ -849,11 +851,11 @@ static int statevar_process(CSOUND *csound,statevar *p)
     double  bpd = p->bpd;
     double  lp  = p->lp, hp = 0.0, bp = 0.0, br = 0.0;
     double  f,q,lim;
-    int ostimes = p->ostimes,j;
+    int32_t ostimes = p->ostimes,j;
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t i, nsmps = CS_KSMPS;
-    int      asgfr = IS_ASIG_ARG(p->freq), asgrs = IS_ASIG_ARG(p->res);
+    int32_t      asgfr = IS_ASIG_ARG(p->freq), asgrs = IS_ASIG_ARG(p->res);
 
     if (UNLIKELY(offset)) {
       memset(outhp, '\0', offset*sizeof(MYFLT));
@@ -909,9 +911,10 @@ static int statevar_process(CSOUND *csound,statevar *p)
     return OK;
 }
 
-static int fofilter_init(CSOUND *csound,fofilter *p)
+static int32_t fofilter_init(CSOUND *csound,fofilter *p)
 {
-    int i;
+     IGN(csound);
+    int32_t i;
     if (*p->istor==FL(0.0)) {
       for (i=0;i<4; i++)
         p->delay[i] = 0.0;
@@ -919,7 +922,7 @@ static int fofilter_init(CSOUND *csound,fofilter *p)
     return OK;
 }
 
-static int fofilter_process(CSOUND *csound,fofilter *p)
+static int32_t fofilter_process(CSOUND *csound,fofilter *p)
 {
     MYFLT  *out = p->out;
     MYFLT  *in = p->in;
@@ -932,8 +935,8 @@ static int fofilter_process(CSOUND *csound,fofilter *p)
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t i, nsmps = CS_KSMPS;
     MYFLT lfrq = -FL(1.0), lrs = -FL(1.0), ldc = -FL(1.0);
-    int   asgfr = IS_ASIG_ARG(p->freq) , asgrs = IS_ASIG_ARG(p->ris);
-    int   asgdc = IS_ASIG_ARG(p->dec);
+    int32_t   asgfr = IS_ASIG_ARG(p->freq) , asgrs = IS_ASIG_ARG(p->ris);
+    int32_t   asgdc = IS_ASIG_ARG(p->dec);
 
     if (UNLIKELY(offset)) memset(out, '\0', offset*sizeof(MYFLT));
     if (UNLIKELY(early)) {
@@ -977,7 +980,7 @@ typedef struct _mvcf {
 } mvclpf24;
 
 double exp2ap(double x) {
-    int i = (int) (floor(x));
+    int32_t i = (int32_t) (floor(x));
     x -= i;
     return ldexp(1 + x * (0.6930 +
                           x * (0.2416 + x * (0.0517 +
@@ -985,7 +988,8 @@ double exp2ap(double x) {
 }
 
 
-int mvclpf24_init(CSOUND *csound, mvclpf24 *p){
+int32_t mvclpf24_init(CSOUND *csound, mvclpf24 *p){
+     IGN(csound);
     if (!*p->skipinit){
       p->c1 = p->c2  = p->c3 =
         p->c4 = p->c5 = FL(0.0);
@@ -995,7 +999,7 @@ int mvclpf24_init(CSOUND *csound, mvclpf24 *p){
 }
 #define CBASE 261.62556416
 
-int mvclpf24_perf1(CSOUND *csound, mvclpf24 *p){
+int32_t mvclpf24_perf1(CSOUND *csound, mvclpf24 *p){
     MYFLT *out = p->out;
     MYFLT *in = p->in, res;
     double c1 = p->c1+1e-6, c2 = p->c2, c3 = p->c3,
@@ -1045,12 +1049,12 @@ int mvclpf24_perf1(CSOUND *csound, mvclpf24 *p){
     return OK;
 }
 
-int mvclpf24_perf1_ak(CSOUND *csound, mvclpf24 *p){
+int32_t mvclpf24_perf1_ak(CSOUND *csound, mvclpf24 *p){
     MYFLT *out = p->out;
     MYFLT *in = p->in, res, *freq = p->freq;
     double c1 = p->c1+1e-6, c2 = p->c2, c3 = p->c3,
       c4 = p->c4, c5 = p->c5, w, x, t;
-    int wi;
+    int32_t wi;
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t i, nsmps = CS_KSMPS;
@@ -1066,7 +1070,7 @@ int mvclpf24_perf1_ak(CSOUND *csound, mvclpf24 *p){
 
     for (i=offset; i < nsmps; i++){
       t  = log2(freq[i]/CBASE) + 10.82;
-      wi = (int) (floor(t));
+      wi = (int32_t) (floor(t));
       t -= wi;
       t  = ldexp(1 + t * (0.6930 +
                           t * (0.2416 + t * (0.0517 +
@@ -1098,7 +1102,7 @@ int mvclpf24_perf1_ak(CSOUND *csound, mvclpf24 *p){
     return OK;
 }
 
-int mvclpf24_perf1_ka(CSOUND *csound, mvclpf24 *p){
+int32_t mvclpf24_perf1_ka(CSOUND *csound, mvclpf24 *p){
     MYFLT *out = p->out;
     MYFLT *in = p->in, *res = p->res;
     double c1 = p->c1+1e-6, c2 = p->c2, c3 = p->c3,
@@ -1148,12 +1152,12 @@ int mvclpf24_perf1_ka(CSOUND *csound, mvclpf24 *p){
     return OK;
 }
 
-int mvclpf24_perf1_aa(CSOUND *csound, mvclpf24 *p){
+int32_t mvclpf24_perf1_aa(CSOUND *csound, mvclpf24 *p){
     MYFLT *out = p->out;
     MYFLT *in = p->in, *res = p->res, *freq = p->freq;
     double c1 = p->c1+1e-6, c2 = p->c2, c3 = p->c3,
       c4 = p->c4, c5 = p->c5, w, x, t;
-    int wi;
+    int32_t wi;
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t i, nsmps = CS_KSMPS;
@@ -1167,7 +1171,7 @@ int mvclpf24_perf1_aa(CSOUND *csound, mvclpf24 *p){
 
     for (i=offset; i < nsmps; i++){
       t = log2(freq[i]/CBASE) + 10.82;
-      wi = (int) (floor(t));
+      wi = (int32_t) (floor(t));
       t -= wi;
       t = ldexp(1 + t * (0.6930 +
                          t * (0.2416 + t * (0.0517 +
@@ -1200,7 +1204,7 @@ int mvclpf24_perf1_aa(CSOUND *csound, mvclpf24 *p){
     return OK;
 }
 
-int mvclpf24_perf2(CSOUND *csound, mvclpf24 *p){
+int32_t mvclpf24_perf2(CSOUND *csound, mvclpf24 *p){
     MYFLT *out = p->out;
     MYFLT *in = p->in, res;
     double c1 = p->c1+1e-6, c2 = p->c2, c3 = p->c3,
@@ -1249,12 +1253,12 @@ int mvclpf24_perf2(CSOUND *csound, mvclpf24 *p){
     return OK;
 }
 
-int mvclpf24_perf2_ak(CSOUND *csound, mvclpf24 *p){
+int32_t mvclpf24_perf2_ak(CSOUND *csound, mvclpf24 *p){
     MYFLT *out = p->out;
     MYFLT *in = p->in, res, *freq = p->freq ;
     double c1 = p->c1+1e-6, c2 = p->c2, c3 = p->c3,
       c4 = p->c4, c5 = p->c5, w, x, t;
-    int wi;
+    int32_t wi;
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t i, nsmps = CS_KSMPS;
@@ -1270,7 +1274,7 @@ int mvclpf24_perf2_ak(CSOUND *csound, mvclpf24 *p){
 
     for (i=offset; i < nsmps; i++){
       t = log2(freq[i]/CBASE) + 10.71;
-      wi = (int) (floor(t));
+      wi = (int32_t) (floor(t));
       t -= wi;
       t = ldexp(1 + t * (0.6930 +
                          t * (0.2416 + t * (0.0517 +
@@ -1300,7 +1304,7 @@ int mvclpf24_perf2_ak(CSOUND *csound, mvclpf24 *p){
     return OK;
 }
 
-int mvclpf24_perf2_ka(CSOUND *csound, mvclpf24 *p){
+int32_t mvclpf24_perf2_ka(CSOUND *csound, mvclpf24 *p){
     MYFLT *out = p->out;
     MYFLT *in = p->in, *res = p->res;
     double c1 = p->c1+1e-6, c2 = p->c2, c3 = p->c3,
@@ -1348,12 +1352,12 @@ int mvclpf24_perf2_ka(CSOUND *csound, mvclpf24 *p){
     return OK;
 }
 
-int mvclpf24_perf2_aa(CSOUND *csound, mvclpf24 *p){
+int32_t mvclpf24_perf2_aa(CSOUND *csound, mvclpf24 *p){
     MYFLT *out = p->out;
     MYFLT *in = p->in, *res = p->res, *freq = p->freq ;
     double c1 = p->c1+1e-6, c2 = p->c2, c3 = p->c3,
       c4 = p->c4, c5 = p->c5, w, x, t;
-    int wi;
+    int32_t wi;
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t i, nsmps = CS_KSMPS;
@@ -1367,7 +1371,7 @@ int mvclpf24_perf2_aa(CSOUND *csound, mvclpf24 *p){
 
     for (i=offset; i < nsmps; i++){
       t = log2(freq[i]/CBASE) + 10.71;
-      wi = (int) (floor(t));
+      wi = (int32_t) (floor(t));
       t -= wi;
       t = ldexp(1 + t * (0.6930 +
                          t * (0.2416 + t * (0.0517 +
@@ -1398,7 +1402,7 @@ int mvclpf24_perf2_aa(CSOUND *csound, mvclpf24 *p){
     return OK;
 }
 
-int mvclpf24_perf3(CSOUND *csound, mvclpf24 *p){
+int32_t mvclpf24_perf3(CSOUND *csound, mvclpf24 *p){
     MYFLT *out = p->out;
     MYFLT *in = p->in, res;
     double c1 = p->c1+1e-6, c2 = p->c2, c3 = p->c3,
@@ -1471,12 +1475,12 @@ int mvclpf24_perf3(CSOUND *csound, mvclpf24 *p){
     return OK;
 }
 
-int mvclpf24_perf3_ak(CSOUND *csound, mvclpf24 *p){
+int32_t mvclpf24_perf3_ak(CSOUND *csound, mvclpf24 *p){
     MYFLT *out = p->out;
     MYFLT *in = p->in, res, *freq = p->freq;
     double c1 = p->c1+1e-6, c2 = p->c2, c3 = p->c3,
       c4 = p->c4, c5 = p->c5, w, x, t, d;
-    int wi;
+    int32_t wi;
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t i, nsmps = CS_KSMPS;
@@ -1491,7 +1495,7 @@ int mvclpf24_perf3_ak(CSOUND *csound, mvclpf24 *p){
 
     for (i=offset; i < nsmps; i++){
       t = log2(freq[i]/CBASE) + 9.70;
-      wi = (int) (floor(t));
+      wi = (int32_t) (floor(t));
       t -= wi;
       t = ldexp(1 + t * (0.6930 +
                          t * (0.2416 + t * (0.0517 +
@@ -1547,7 +1551,7 @@ int mvclpf24_perf3_ak(CSOUND *csound, mvclpf24 *p){
     return OK;
 }
 
-int mvclpf24_perf3_ka(CSOUND *csound, mvclpf24 *p){
+int32_t mvclpf24_perf3_ka(CSOUND *csound, mvclpf24 *p){
     MYFLT *out = p->out;
     MYFLT *in = p->in, *res  = p->res;
     double c1 = p->c1+1e-6, c2 = p->c2, c3 = p->c3,
@@ -1622,12 +1626,12 @@ int mvclpf24_perf3_ka(CSOUND *csound, mvclpf24 *p){
     return OK;
 }
 
-int mvclpf24_perf3_aa(CSOUND *csound, mvclpf24 *p){
+int32_t mvclpf24_perf3_aa(CSOUND *csound, mvclpf24 *p){
     MYFLT *out = p->out;
     MYFLT *in = p->in, *res = p->res, *freq = p->freq;
     double c1 = p->c1+1e-6, c2 = p->c2, c3 = p->c3,
       c4 = p->c4, c5 = p->c5, w, t, x, d;
-    int wi;
+    int32_t wi;
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t i, nsmps = CS_KSMPS;
@@ -1641,7 +1645,7 @@ int mvclpf24_perf3_aa(CSOUND *csound, mvclpf24 *p){
 
     for (i=offset; i < nsmps; i++){
       t = log2(freq[i]/CBASE) + 9.70;
-      wi = (int) (floor(t));
+      wi = (int32_t) (floor(t));
       t -= wi;
       t = ldexp(1 + t * (0.6930 +
                          t * (0.2416 + t * (0.0517 +
@@ -1710,7 +1714,8 @@ typedef struct _mvcf4 {
 } mvclpf24_4;
 
 
-int mvclpf24_4_init(CSOUND *csound, mvclpf24_4 *p){
+int32_t mvclpf24_4_init(CSOUND *csound, mvclpf24_4 *p){
+     IGN(csound);
     if (!*p->skipinit){
       p->c1 = p->c2  = p->c3 =
         p->c4 = p->c5 = FL(0.0);
@@ -1719,7 +1724,7 @@ int mvclpf24_4_init(CSOUND *csound, mvclpf24_4 *p){
     return OK;
 }
 
-int mvclpf24_perf4(CSOUND *csound, mvclpf24_4 *p){
+int32_t mvclpf24_perf4(CSOUND *csound, mvclpf24_4 *p){
     MYFLT *out0 = p->out0, *out1 = p->out1,
       *out2 = p->out2, *out3 = p->out3;
     MYFLT *in = p->in, res;
@@ -1807,13 +1812,13 @@ int mvclpf24_perf4(CSOUND *csound, mvclpf24_4 *p){
 }
 
 
-int mvclpf24_perf4_ak(CSOUND *csound, mvclpf24_4 *p){
+int32_t mvclpf24_perf4_ak(CSOUND *csound, mvclpf24_4 *p){
     MYFLT *out0 = p->out0, *out1 = p->out1,
       *out2 = p->out2, *out3 = p->out3;
     MYFLT *in = p->in, res, *freq = p->freq;
     double c1 = p->c1+1e-6, c2 = p->c2, c3 = p->c3,
            c4 = p->c4, c5 = p->c5, w, x, t, d;
-    int wi;
+    int32_t wi;
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t i, nsmps = CS_KSMPS;
@@ -1837,7 +1842,7 @@ int mvclpf24_perf4_ak(CSOUND *csound, mvclpf24_4 *p){
 
     for (i=offset; i < nsmps; i++){
       t = log2(freq[i]/CBASE) + 9.70;
-      wi = (int) (floor(t));
+      wi = (int32_t) (floor(t));
       t -= wi;
       t = ldexp(1 + t * (0.6930 +
                          t * (0.2416 + t * (0.0517 +
@@ -1894,7 +1899,7 @@ int mvclpf24_perf4_ak(CSOUND *csound, mvclpf24_4 *p){
     return OK;
 }
 
-int mvclpf24_perf4_ka(CSOUND *csound, mvclpf24_4 *p){
+int32_t mvclpf24_perf4_ka(CSOUND *csound, mvclpf24_4 *p){
     MYFLT *out0 = p->out0, *out1 = p->out1,
       *out2 = p->out2, *out3 = p->out3;
     MYFLT *in = p->in, *res = p->res;
@@ -1981,13 +1986,13 @@ int mvclpf24_perf4_ka(CSOUND *csound, mvclpf24_4 *p){
     return OK;
 }
 
-int mvclpf24_perf4_aa(CSOUND *csound, mvclpf24_4 *p){
+int32_t mvclpf24_perf4_aa(CSOUND *csound, mvclpf24_4 *p){
     MYFLT *out0 = p->out0, *out1 = p->out1,
       *out2 = p->out2, *out3 = p->out3;
     MYFLT *in = p->in, *res = p->res, *freq = p->freq;
     double c1 = p->c1+1e-6, c2 = p->c2, c3 = p->c3,
       c4 = p->c4, c5 = p->c5, w, x, t, d;
-    int wi;
+    int32_t wi;
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t i, nsmps = CS_KSMPS;
@@ -2009,7 +2014,7 @@ int mvclpf24_perf4_aa(CSOUND *csound, mvclpf24_4 *p){
 
     for (i=offset; i < nsmps; i++){
       t = log2(freq[i]/CBASE) + 9.70;
-      wi = (int) (floor(t));
+      wi = (int32_t) (floor(t));
       t -= wi;
       t = ldexp(1 + t * (0.6930 +
                          t * (0.2416 + t * (0.0517 +
@@ -2080,7 +2085,8 @@ typedef struct _mvcfh {
   double fr, w, x;
 } mvchpf24;
 
-int mvchpf24_init(CSOUND *csound, mvchpf24 *p){
+int32_t mvchpf24_init(CSOUND *csound, mvchpf24 *p){
+     IGN(csound);
     if (!*p->skipinit){
       p->c1 = p->c2  = p->c3 =
         p->c4 = p->c5 = p->x = FL(0.0);
@@ -2089,7 +2095,7 @@ int mvchpf24_init(CSOUND *csound, mvchpf24 *p){
     return OK;
 }
 
-int mvchpf24_perf(CSOUND *csound, mvchpf24 *p){
+int32_t mvchpf24_perf(CSOUND *csound, mvchpf24 *p){
     MYFLT *out = p->out;
     MYFLT *in = p->in;
     double c1 = p->c1+1e-6, c2 = p->c2, c3 = p->c3,
@@ -2154,12 +2160,12 @@ int mvchpf24_perf(CSOUND *csound, mvchpf24 *p){
     return OK;
 }
 
-int mvchpf24_perf_a(CSOUND *csound, mvchpf24 *p){
+int32_t mvchpf24_perf_a(CSOUND *csound, mvchpf24 *p){
     MYFLT *out = p->out;
     MYFLT *in = p->in, *freq = p->freq;
     double c1 = p->c1+1e-6, c2 = p->c2, c3 = p->c3,
       c4 = p->c4, c5 = p->c5, w, x = p->x, t, d, y;
-    int wi;
+    int32_t wi;
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t i, nsmps = CS_KSMPS;
@@ -2175,7 +2181,7 @@ int mvchpf24_perf_a(CSOUND *csound, mvchpf24 *p){
 
     for (i=offset; i < nsmps; i++){
       t = log2(freq[i]/CBASE) + 9.70;
-      wi = (int) (floor(t));
+      wi = (int32_t) (floor(t));
       t -= wi;
       t = ldexp(1 + t * (0.6930 +
                          t * (0.2416 + t * (0.0517 +
@@ -2222,67 +2228,69 @@ int mvchpf24_perf_a(CSOUND *csound, mvchpf24 *p){
 }
 
 
-static OENTRY localops[] = {
-  {"mvchpf", sizeof(mvchpf24), 0, 5, "a", "akp",
-   (SUBR) mvchpf24_init, NULL, (SUBR) mvchpf24_perf},
-  {"mvchpf", sizeof(mvchpf24), 0, 5, "a", "aap",
-   (SUBR) mvchpf24_init, NULL, (SUBR) mvchpf24_perf_a},
-  {"mvclpf1", sizeof(mvclpf24), 0, 5, "a", "akkp",
-   (SUBR) mvclpf24_init, NULL, (SUBR) mvclpf24_perf1},
-  {"mvclpf1", sizeof(mvclpf24), 0, 5, "a", "aakp",
-   (SUBR) mvclpf24_init, NULL, (SUBR) mvclpf24_perf1_ak},
-  {"mvclpf1", sizeof(mvclpf24), 0, 5, "a", "akap",
-   (SUBR) mvclpf24_init, NULL, (SUBR) mvclpf24_perf1_ka},
-  {"mvclpf1", sizeof(mvclpf24), 0, 5, "a", "aaap",
-   (SUBR) mvclpf24_init, NULL, (SUBR) mvclpf24_perf1_aa},
-  {"mvclpf2", sizeof(mvclpf24), 0, 5, "a", "akkp",
-   (SUBR) mvclpf24_init, NULL, (SUBR) mvclpf24_perf2},
-  {"mvclpf2", sizeof(mvclpf24), 0, 5, "a", "aakp",
-   (SUBR) mvclpf24_init, NULL, (SUBR) mvclpf24_perf2_ak},
-  {"mvclpf2", sizeof(mvclpf24), 0, 5, "a", "akap",
-   (SUBR) mvclpf24_init, NULL, (SUBR) mvclpf24_perf2_ka},
-  {"mvclpf2", sizeof(mvclpf24), 0, 5, "a", "aaap",
-   (SUBR) mvclpf24_init, NULL, (SUBR) mvclpf24_perf2_aa},
-  {"mvclpf3", sizeof(mvclpf24), 0, 5, "a", "akkp",
-   (SUBR) mvclpf24_init, NULL, (SUBR) mvclpf24_perf3},
-  {"mvclpf3", sizeof(mvclpf24), 0, 5, "a", "aakp",
-   (SUBR) mvclpf24_init, NULL, (SUBR) mvclpf24_perf3_ak},
-  {"mvclpf3", sizeof(mvclpf24), 0, 5, "a", "akap",
-   (SUBR) mvclpf24_init, NULL, (SUBR) mvclpf24_perf3_ka},
-  {"mvclpf3", sizeof(mvclpf24), 0, 5, "a", "aaap",
-   (SUBR) mvclpf24_init, NULL, (SUBR) mvclpf24_perf3_aa},
-  {"mvclpf4", sizeof(mvclpf24_4), 0, 5, "aaaa", "akkp",
-   (SUBR) mvclpf24_4_init, NULL, (SUBR) mvclpf24_perf4},
-  {"mvclpf4", sizeof(mvclpf24), 0, 5, "aaaa", "aakp",
-   (SUBR) mvclpf24_init, NULL, (SUBR) mvclpf24_perf4_ak},
-  {"mvclpf4", sizeof(mvclpf24), 0, 5, "aaaa", "akap",
-   (SUBR) mvclpf24_init, NULL, (SUBR) mvclpf24_perf4_ka},
-  {"mvclpf4", sizeof(mvclpf24), 0, 5, "aaaa", "aaap",
-   (SUBR) mvclpf24_init, NULL, (SUBR) mvclpf24_perf4_aa},
-  {"moogladder.kk", sizeof(moogladder), 0, 5, "a", "akkp",
-   (SUBR) moogladder_init, NULL, (SUBR) moogladder_process },
-  {"moogladder.aa", sizeof(moogladder), 0, 5, "a", "aaap",
-   (SUBR) moogladder_init, NULL, (SUBR) moogladder_process_aa },
-  {"moogladder.ak", sizeof(moogladder), 0, 5, "a", "aakp",
-   (SUBR) moogladder_init, NULL, (SUBR) moogladder_process_ak },
-  {"moogladder.ka", sizeof(moogladder), 0, 5, "a", "akap",
-   (SUBR) moogladder_init, NULL, (SUBR) moogladder_process_ka },
-  {"moogladder2.kk", sizeof(moogladder), 0, 5, "a", "akkp",
-   (SUBR) moogladder_init, NULL, (SUBR) moogladder2_process },
-  {"moogladder2.aa", sizeof(moogladder), 0, 5, "a", "aaap",
-   (SUBR) moogladder_init, NULL, (SUBR) moogladder2_process_aa },
-  {"moogladder2.ak", sizeof(moogladder), 0, 5, "a", "aakp",
-   (SUBR) moogladder_init, NULL, (SUBR) moogladder2_process_ak },
-  {"moogladder2.ka", sizeof(moogladder), 0, 5, "a", "akap",
-   (SUBR) moogladder_init, NULL, (SUBR) moogladder2_process_ka },
-  {"statevar", sizeof(statevar), 0, 5, "aaaa", "axxop",
-   (SUBR) statevar_init, NULL, (SUBR) statevar_process     },
-  {"fofilter", sizeof(fofilter), 0, 5, "a", "axxxp",
-   (SUBR) fofilter_init, NULL, (SUBR) fofilter_process     }
+static OENTRY localops[] =
+  {
+   {"mvchpf", sizeof(mvchpf24), 0, 3, "a", "akp",
+   (SUBR) mvchpf24_init, (SUBR) mvchpf24_perf},
+   {"mvchpf", sizeof(mvchpf24), 0, 3, "a", "aap",
+   (SUBR) mvchpf24_init, (SUBR) mvchpf24_perf_a},
+   {"mvclpf1", sizeof(mvclpf24), 0, 3, "a", "akkp",
+   (SUBR) mvclpf24_init, (SUBR) mvclpf24_perf1},
+   {"mvclpf1", sizeof(mvclpf24), 0, 3, "a", "aakp",
+   (SUBR) mvclpf24_init, (SUBR) mvclpf24_perf1_ak},
+   {"mvclpf1", sizeof(mvclpf24), 0, 3, "a", "akap",
+   (SUBR) mvclpf24_init, (SUBR) mvclpf24_perf1_ka},
+   {"mvclpf1", sizeof(mvclpf24), 0, 3, "a", "aaap",
+   (SUBR) mvclpf24_init, (SUBR) mvclpf24_perf1_aa},
+   {"mvclpf2", sizeof(mvclpf24), 0, 3, "a", "akkp",
+   (SUBR) mvclpf24_init, (SUBR) mvclpf24_perf2},
+   {"mvclpf2", sizeof(mvclpf24), 0, 3, "a", "aakp",
+   (SUBR) mvclpf24_init, (SUBR) mvclpf24_perf2_ak},
+   {"mvclpf2", sizeof(mvclpf24), 0, 3, "a", "akap",
+   (SUBR) mvclpf24_init, (SUBR) mvclpf24_perf2_ka},
+   {"mvclpf2", sizeof(mvclpf24), 0, 3, "a", "aaap",
+   (SUBR) mvclpf24_init, (SUBR) mvclpf24_perf2_aa},
+   {"mvclpf3", sizeof(mvclpf24), 0, 3, "a", "akkp",
+   (SUBR) mvclpf24_init, (SUBR) mvclpf24_perf3},
+   {"mvclpf3", sizeof(mvclpf24), 0, 3, "a", "aakp",
+   (SUBR) mvclpf24_init, (SUBR) mvclpf24_perf3_ak},
+   {"mvclpf3", sizeof(mvclpf24), 0, 3, "a", "akap",
+   (SUBR) mvclpf24_init, (SUBR) mvclpf24_perf3_ka},
+   {"mvclpf3", sizeof(mvclpf24), 0, 3, "a", "aaap",
+   (SUBR) mvclpf24_init, (SUBR) mvclpf24_perf3_aa},
+   {"mvclpf4", sizeof(mvclpf24_4), 0, 3, "aaaa", "akkp",
+   (SUBR) mvclpf24_4_init, (SUBR) mvclpf24_perf4},
+   {"mvclpf4", sizeof(mvclpf24), 0, 3, "aaaa", "aakp",
+   (SUBR) mvclpf24_init, (SUBR) mvclpf24_perf4_ak},
+   {"mvclpf4", sizeof(mvclpf24), 0, 3, "aaaa", "akap",
+   (SUBR) mvclpf24_init, (SUBR) mvclpf24_perf4_ka},
+   {"mvclpf4", sizeof(mvclpf24), 0, 3, "aaaa", "aaap",
+   (SUBR) mvclpf24_init, (SUBR) mvclpf24_perf4_aa},
+   {"moogladder.kk", sizeof(moogladder), 0, 3, "a", "akkp",
+   (SUBR) moogladder_init, (SUBR) moogladder_process },
+   {"moogladder.aa", sizeof(moogladder), 0, 3, "a", "aaap",
+   (SUBR) moogladder_init, (SUBR) moogladder_process_aa },
+   {"moogladder.ak", sizeof(moogladder), 0, 3, "a", "aakp",
+   (SUBR) moogladder_init, (SUBR) moogladder_process_ak },
+   {"moogladder.ka", sizeof(moogladder), 0, 3, "a", "akap",
+   (SUBR) moogladder_init, (SUBR) moogladder_process_ka },
+   {"moogladder2.kk", sizeof(moogladder), 0, 3, "a", "akkp",
+   (SUBR) moogladder_init, (SUBR) moogladder2_process },
+   {"moogladder2.aa", sizeof(moogladder), 0, 3, "a", "aaap",
+   (SUBR) moogladder_init, (SUBR) moogladder2_process_aa },
+   {"moogladder2.ak", sizeof(moogladder), 0, 3, "a", "aakp",
+   (SUBR) moogladder_init, (SUBR) moogladder2_process_ak },
+   {"moogladder2.ka", sizeof(moogladder), 0, 3, "a", "akap",
+   (SUBR) moogladder_init, (SUBR) moogladder2_process_ka },
+   {"statevar", sizeof(statevar), 0, 3, "aaaa", "axxop",
+   (SUBR) statevar_init, (SUBR) statevar_process     },
+   {"fofilter", sizeof(fofilter), 0, 3, "a", "axxxp",
+   (SUBR) fofilter_init, (SUBR) fofilter_process     }
 };
 
-int newfils_init_(CSOUND *csound)
+int32_t newfils_init_(CSOUND *csound)
 {
   return csound->AppendOpcodes(csound, &(localops[0]),
-                               (int) (sizeof(localops) / sizeof(OENTRY)));
+                               (int32_t
+                                ) (sizeof(localops) / sizeof(OENTRY)));
 }

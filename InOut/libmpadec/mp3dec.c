@@ -14,7 +14,7 @@
  *
  *  You should have received a copy of the GNU Lesser General Public
  *  License along with this library; if not, write to the Free Software
- *  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ *  Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
  */
 
 /* $Id: mp3dec.c,v 1.6 2009/03/01 15:27:05 jpff Exp $ */
@@ -57,11 +57,11 @@ int mp3dec_init_file(mp3dec_t mp3dec, int fd, int64_t length, int nogap)
     mp3->stream_offset = mp3->stream_size = mp3->stream_position = 0;
     mp3->in_buffer_offset = mp3->in_buffer_used = 0;
     mp3->out_buffer_offset = mp3->out_buffer_used = 0;
-    tmp = lseek(fd, 0, SEEK_CUR);
+    tmp = lseek(fd, (off_t)0, SEEK_CUR);
     if (tmp >= 0) mp3->stream_offset = tmp;
     else mp3->flags &= ~MP3DEC_FLAG_SEEKABLE;
     if (mp3->flags & MP3DEC_FLAG_SEEKABLE) {
-      tmp = lseek(fd, 0, SEEK_END);
+      tmp = lseek(fd, (off_t)0, SEEK_END);
       if (tmp >= 0) {
         mp3->stream_size = tmp;
         tmp = lseek(fd, mp3->stream_offset, SEEK_SET);
@@ -73,7 +73,7 @@ int mp3dec_init_file(mp3dec_t mp3dec, int fd, int64_t length, int nogap)
       if (length && (length < mp3->stream_size)) mp3->stream_size = length;
     } else mp3->stream_size = length;
     // check for ID3 tag
-    if (lseek(fd, 0, SEEK_SET)==0) {
+    if (lseek(fd, (off_t)0, SEEK_SET)==0) {
       char hdr[10];
       if (read(fd, &hdr, 10)!= 10) return MP3DEC_RETCODE_NOT_MPEG_STREAM;
       if (hdr[0] == 'I' && hdr[1] == 'D' && hdr[2] == '3') {
@@ -132,7 +132,7 @@ int mp3dec_init_file(mp3dec_t mp3dec, int fd, int64_t length, int nogap)
       mp3->in_buffer_used -= mp3->in_buffer_offset;
       if (r != MPADEC_RETCODE_OK) {
         // this is a fix for ID3 tag at the start of a file
-        while(r == 7) { /* NO SYNC, read more data */
+        while (r == 7) { /* NO SYNC, read more data */
           int32_t n = sizeof(mp3->in_buffer);
           if (mp3->stream_size && (n > mp3->stream_size))
             n = (int32_t)mp3->stream_size;

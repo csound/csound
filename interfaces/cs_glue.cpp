@@ -17,8 +17,8 @@
 
     You should have received a copy of the GNU Lesser General Public
     License along with Csound; if not, write to the Free Software
-    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
-    02111-1307 USA
+    Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
+    02110-1301 USA
 */
 
 #include "csound.h"
@@ -674,6 +674,7 @@ extern "C" {
 #endif
   }
 
+  /**
   static CS_NOINLINE void InputValueCallback_wrapper(CSOUND *csound,
                                          const char *chnName, MYFLT *value)
   {
@@ -681,7 +682,8 @@ extern "C" {
     p = (CsoundCallbackWrapper*) csoundGetHostData(csound);
     *value = (MYFLT) p->InputValueCallback(chnName);
   }
-
+  */
+  /**
   static CS_NOINLINE void OutputValueCallback_wrapper(CSOUND *csound,
                                           const char *chnName, MYFLT value)
   {
@@ -689,7 +691,7 @@ extern "C" {
     p = (CsoundCallbackWrapper*) csoundGetHostData(csound);
     p->OutputValueCallback(chnName, (double) value);
   }
-
+  */
   static CS_NOINLINE int YieldCallback_wrapper(CSOUND *csound)
   {
     CsoundCallbackWrapper *p;

@@ -21,7 +21,7 @@ class Test:
 def showUI(results):
     root = Tk()
     app = TestApplication(master=root)
-    app.setResults(results)
+    app.setResults(results.test_output_list)
     app.mainloop()
     root.destroy()
 
@@ -35,7 +35,7 @@ def showHelp():
     print message
 
 def runTest():
-    runArgs = "-Wdo test.wav"
+    runArgs = "-Wd -n"
 
     tests = [
         ["buga1.csd", " "],
@@ -46,24 +46,47 @@ def runTest():
         ["buginit.csd", " "],
         ["bugl.csd", " "],
         ["bugm.csd", " "],
-        ["bugn.csd", " "],
-        ["bugs.csd", " "],
+        ["bugn.csd", "named instruments"],
+        ["bugs.csd", "multipe strings in score"],
         ["bugsort.csd", "memory problem in sort"],
-        ["bugst.csd", " "],
-        ["bugtrans.csd", " "],
-        ["bugbra.csd", " "],
+        ["bugst.csd", "string in score"],
+        ["bugtrans.csd", "transegr"],
+        ["bugbra.csd", "Open bracket in expression"],
         ["bugy.csd", "y in score"],
-        ["bugbigargs.csd", "many arguments in score"]
+        ["bugbigargs.csd", "many arguments in score"],
+        ["bugadsr.csd", "xadsr"],
+        ["bug18.csd", "gen18"],
+        ["bugaa.csd", "arate array arithmetic"],
+        ["bugarray.csd", "krate array arithmetic"],
+        ["bugausst.csd", "gausstrig"],
+        ["bugblam.csd", "macro test"],
+        ["bugcopy.csd", "copy mixed rate arrays"],
+        ["bugftlen.csd", "table size oddity"],
+        ["buglosc.csd", "non integer loscil"],
+        ["bugpow.csd", "karray power"],
+        ["bugrezzy.csd", "rezzy stabilised"],
+        ["buggen31.csd", "gen31 test"],
+        ["bugg.csd", "grain3"],
+        ["bugline.csd", "comments in score"],
+        ["arrayout.csd", "array dimension greater than nchls"],
+        ["bugstr1.csd", "escapes in score strings"],
+        ["arit.csd", "arithmetic bretween array anf scalar"],
+        ["bugsice.csd", "testing slicearray and array length"],
+        ["bugj.csd", "testing varios array operations"],
+        ["bugsize.csd", "Showing size change in arrays"],
+        ["bugmon.csd", "test arrray form of monitor"],
+        ["bugname.csd", "recompilation of instr"],
+        ["vbapa.csd", "array case of vbap"],
+        ["bugi.csd", "i() and array access",1],
+        ["gerr.csd", "array syntax error", 1],
+        ["conditional.csd", "conditional expression"]
     ]
 
     output = ""
     tempfile = "/tmp/csound_test_output.txt"
     counter = 1
 
-    retVals = []
-
-    testPass = 0
-    testFail = 0
+    retVals = TestResults()
 
     for t in tests:
         filename = t[0]
@@ -77,15 +100,16 @@ def runTest():
             retVal = os.system(command)
         else:
             executable = (csoundExecutable == "") and "../../csound" or csoundExecutable
-            command = "%s %s %s &> %s"%(executable, runArgs, filename, tempfile)
+            command = "%s %s %s 2> %s"%(executable, runArgs, filename, tempfile)
+            print command
             retVal = os.system(command)
-  
+
         out = ""
         if (retVal == 0) == (expectedResult == 0):
-            testPass += 1
+            retVals.tests_passsed += 1
             out = "[pass] - "
         else:
-            testFail += 1
+            retVals.tests_failed += 1
             out = "[FAIL] - "
 
         out += "Test %i: %s (%s)\n\tReturn Code: %i\tExpected: %d\n"%(counter, desc, filename, retVal, expectedResult
@@ -105,7 +129,7 @@ def runTest():
 
         f.close()
 
-        retVals.append(t + [retVal, csOutput])
+        retVals.add_result(t + [retVal, csOutput])
 
         output += "\n\n"
         counter += 1
@@ -113,7 +137,7 @@ def runTest():
 #    print output
 
     print "%s\n\n"%("=" * 80)
-    print "Tests Passed: %i\nTests Failed: %i\n"%(testPass, testFail)
+    print "Tests Passed: %i\nTests Failed: %i\n"%(retVals.tests_passsed, retVals.tests_failed)
 
 
     f = open("results.txt", "w")
@@ -122,6 +146,15 @@ def runTest():
     f.close()
 
     return retVals
+
+class TestResults:
+    def __init__(self):
+        self.test_output_list = []
+        self.tests_failed = 0
+        self.tests_passsed = 0
+
+    def add_result(self, result):
+        self.test_output_list.append(result)
 
 if __name__ == "__main__":
     if(len(sys.argv) > 1):
@@ -136,7 +169,11 @@ if __name__ == "__main__":
                 print csoundExecutable
             elif arg.startswith("--opcode6dir64="):
                 os.environ['OPCODE6DIR64'] = arg[15:]
-                print os.environ['OPCODE6DIR64'] 
+                print os.environ['OPCODE6DIR64']
     results = runTest()
     if (showUIatClose):
         showUI(results)
+    if results.tests_failed:
+        exit(1)
+    else:
+        exit(0)

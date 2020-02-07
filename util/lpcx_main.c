@@ -17,8 +17,8 @@
 
     You should have received a copy of the GNU Lesser General Public
     License along with Csound; if not, write to the Free Software
-    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
-    02111-1307 USA
+    Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
+    02110-1301 USA
 */
 /* ***************************************************************** */
 /* ******** Program to export lpanal files in tabular format. ****** */
@@ -49,7 +49,7 @@ int main(int argc, char **argv)
     FILE *inf;
     FILE *outf;
     LPHEADER hdr;
-    unsigned int i, j;
+    uint32_t i, j;
     char *str = NULL;
     MYFLT *coef = NULL;
 

@@ -18,8 +18,8 @@
 
     You should have received a copy of the GNU Lesser General Public
     License along with Csound; if not, write to the Free Software
-    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
-    02111-1307 USA
+    Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
+    02110-1301 USA
 */
 
 /*
@@ -192,9 +192,9 @@ void midi_ctl_reset(CSOUND *csound, int16 chan)
     chn->pbensens = FL(2.0);                    /*   pitch bend range */
     chn->datenabl = 0;
     /* reset aftertouch to max value - added by Istvan Varga, May 2002 */
-    chn->aftouch = FL(127.0);
+    chn->aftouch = csound->aftouch;
     for (i = 0; i < 128; i++)
-      chn->polyaft[i] = FL(127.0);
+      chn->polyaft[i] = csound->aftouch;
     /* controller 64 has just been set to zero: terminate any held notes */
     if (chn->ksuscnt && !MGLOB(rawControllerMode))
       sustsoff(csound, chn);
@@ -377,7 +377,7 @@ void m_chn_init_all(CSOUND *csound)
            csound->engineState.instrtxtp[defaultinsno] == NULL);
     if (defaultinsno > (int) csound->engineState.maxinsno)
       defaultinsno = 0;         /* no instruments */
-    for (chan = (int16) 0; chan < (int16) 16; chan++) {
+    for (chan = (int16) 0; chan < (int16) MIDIMAXPORTS; chan++) {
       /* alloc a midi control blk for midi channel */
       /*  & assign default instrument number       */
       csound->m_chnbp[chan] =
@@ -554,6 +554,22 @@ int sensMidi(CSOUND *csound)
         mep->type = type;               /* & begin new event    */
         mep->chan = chan;
         p->datreq = datbyts[(type>>4) & 0x7];
+        if(*p->bufp & 0x80  && p->datreq > 0)
+        {/*
+            if there is another status byte inserted after
+            a chan msg status byte, this implies a port number
+            has been stored before the data bytes
+            *ONLY* if there are data bytes following
+            (not sure if there are times when this is not the case)
+            MIDI backend modules can now insert a port number coded in
+            this way to allow for separate mapping of devices
+          */
+          int port = *(p->bufp++) & 0x0F;
+          if(port >= MIDIMAXPORTS) {
+            csoundWarning(csound, Str("port: %d exceeds max number of ports %d"
+                                      ", mapping to port 0"), port, MIDIMAXPORTS);
+          } else mep->chan += 16*port;
+        }
         p->datcnt = 0;
         goto nxtchr;
       }
@@ -567,11 +583,13 @@ int sensMidi(CSOUND *csound)
     if (++p->datcnt < p->datreq)        /* if msg incomplete    */
       goto nxtchr;                      /*   get next char      */
     /* Enter the input event into a buffer used by 'midiin'. */
+    /* VL -- changed to allow higher-mapped channels */
     if (mep->type != SYSTEM_TYPE) {
       unsigned char *pMessage =
                     &(p->MIDIINbuffer2[p->MIDIINbufIndex++].bData[0]);
-      p->MIDIINbufIndex &= MIDIINBUFMSK;
-      *pMessage++ = mep->type | mep->chan;
+       p->MIDIINbufIndex &= MIDIINBUFMSK;
+      *pMessage++ = mep->type; // | mep->chan;
+      *pMessage++ = mep->chan + 1;
       *pMessage++ = (unsigned char) mep->dat1;
       *pMessage = (p->datreq < 2 ? (unsigned char) 0 : mep->dat2);
     }
@@ -592,7 +610,7 @@ void MidiClose(CSOUND *csound)
     int     retval;
 
     if (p==NULL) {
-      printf("No MIDI\n");
+      printf(Str("No MIDI\n"));
       return;
     }
     if (p->MidiInCloseCallback != NULL) {

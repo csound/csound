@@ -17,8 +17,8 @@
 
     You should have received a copy of the GNU Lesser General Public
     License along with Csound; if not, write to the Free Software
-    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
-    02111-1307 USA
+    Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
+    02110-1301 USA
 */
 
                                                         /* clfilt.h */
@@ -33,6 +33,6 @@ typedef struct {
       alpha[CL_LIM], beta[CL_LIM], odelta2[CL_LIM],
       b0[CL_LIM], b1[CL_LIM], b2[CL_LIM],
       a0[CL_LIM], a1[CL_LIM], a2[CL_LIM], prvfreq;
-  int           ilohi, nsec, ikind;
+      int32_t          ilohi, nsec, ikind;
 } CLFILT;
 

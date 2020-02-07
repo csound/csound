@@ -17,8 +17,8 @@
 
     You should have received a copy of the GNU Lesser General Public
     License along with Csound; if not, write to the Free Software
-    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
-    02111-1307 USA
+    Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
+    02110-1301 USA
 
     As a special exception, if other files instantiate templates or
     use macros or inline functions from this file, this file does not
@@ -35,7 +35,6 @@
 %module csnd6
 %{
 #include "csound.h"
-
 %}
 #else
 #include "csound.h"
@@ -43,7 +42,6 @@
 #include <pthread.h>
 #endif
 #ifdef __BUILDING_CSOUND_INTERFACES
-
 #endif
 #endif
 
@@ -836,7 +834,7 @@ public:
     csound = csoundCreate((CSOUND*) 0);
      #ifdef SWIGPYTHON
       pydata =(pycbdata *) new pycbdata;
-      memset(pydata, 0, sizeof(pydata));
+      memset(pydata, 0, sizeof(pycbdata));
     ((pycbdata *)pydata)->mfunc = NULL;
     ((pycbdata *)pydata)->messageBufferIndex = 0;
     csoundSetHostData(csound, this);
@@ -909,6 +907,10 @@ public:
   virtual MYFLT GetSpoutSample(int frame, int channel) const
   {
     return csoundGetSpoutSample(csound, frame, channel);
+  }
+  virtual const char *GetInputName()
+  {
+    return csoundGetInputName(csound);
   }
 };
 

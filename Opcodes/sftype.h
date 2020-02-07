@@ -17,8 +17,8 @@
 
     You should have received a copy of the GNU Lesser General Public
     License along with Csound; if not, write to the Free Software
-    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
-    02111-1307 USA
+    Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
+    02110-1301 USA
 */
 
 #if !defined(_SFTYPE_H)
@@ -47,13 +47,13 @@
 #if !defined(WIN32) || defined(__CYGWIN__)
 typedef uint32_t    DWORD;
 #endif
-/*  typedef int     BOOL; */
+/*  typedef int32_t     BOOL; */
 typedef uint8_t     BYTE;
 typedef uint16_t    WORD;
 typedef short       SHORT;
 typedef char        CHAR;
 
-typedef unsigned short SFTransform;
+typedef uint16_t SFTransform;
 
 typedef struct
 {

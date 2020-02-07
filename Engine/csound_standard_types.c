@@ -17,8 +17,8 @@
 
  You should have received a copy of the GNU Lesser General Public
  License along with Csound; if not, write to the Free Software
- Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
- 02111-1307 USA
+ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
+ 02110-1301 USA
  */
 
 #include "csoundCore.h"
@@ -30,9 +30,9 @@
 /* MEMORY COPYING FUNCTIONS */
 
 void myflt_copy_value(CSOUND* csound, CS_TYPE* cstype, void* dest, void* src) {
-    MYFLT* f1 = (MYFLT*)dest;
-    MYFLT* f2 = (MYFLT*)src;
-    *f1 = *f2;
+  MYFLT* f1 = (MYFLT*)dest;
+  MYFLT* f2 = (MYFLT*)src;
+  *f1 = *f2;
 }
 
 void asig_copy_value(CSOUND* csound, CS_TYPE* cstype, void* dest, void* src) {
@@ -138,7 +138,7 @@ void array_copy_value(CSOUND* csound, CS_TYPE* cstype, void* dest, void* src) {
         }
         aDest->data = cs->Calloc(cs, aSrc->arrayMemberSize * arrayNumMembers);
     }
-  
+
     var = aDest->arrayType->createVariable(cs, aDest->arrayType);
     for (j = 0; j < arrayNumMembers; j++) {
         int index = j * memMyfltSize;
@@ -181,7 +181,6 @@ void varInitMemoryFsig(CSOUND *csound, CS_VARIABLE* var, MYFLT* memblock) {
     IGN(csound);
     memset(fsig, 0, sizeof(PVSDAT));  /* VL: clear memory for now */
 }
-
 
 /* CREATE VAR FUNCTIONS */
 
@@ -294,7 +293,7 @@ void array_free_var_mem(void* csnd, void* p) {
             for (i = 1; i < dat->dimensions; i++) {
                 size *= dat->sizes[i];
             }
-            size = MYFLT2LRND(size);
+            //size = MYFLT2LRND(size); // size is not a float  but int
             for (i = 0; i < size; i++) {
                 arrayType->freeVariableMemory(csound,
                                               mem+ (i * memMyfltSize));
@@ -304,7 +303,7 @@ void array_free_var_mem(void* csnd, void* p) {
         csound->Free(csound, dat->data);
     }
 
-    if(dat->sizes != NULL) {
+    if (dat->sizes != NULL) {
         csound->Free(csound, dat->sizes);
     }
 }
@@ -384,7 +383,7 @@ void csoundAddStandardTypes(CSOUND* csound, TYPE_POOL* pool) {
  * format is in pairs of specified type and types it can resolve into,
  * termintated by a NULL */
 const char* POLY_IN_TYPES[] = {
-    "x", "kacpri",
+    "x", "kacpri",              /* ***Deprecated*** */
     "T", "Sicpr",
     "U", "Sikcpr",
     "i", "cpri",
@@ -414,7 +413,7 @@ const char* VAR_ARG_IN_TYPES[] = {
 };
 
 const char* POLY_OUT_TYPES[] = {
-    "s", "ka",
+    "s", "ka",                  /* ***Deprecated*** */
     "i", "pi", NULL
 };
 

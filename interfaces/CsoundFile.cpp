@@ -15,7 +15,7 @@
  *
  * You should have received a copy of the GNU Lesser General Public
  * License along with this software; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
  */
 #if defined(MSVC)
 #pragma warning(disable: 4786)
@@ -66,7 +66,7 @@ void PUBLIC scatterArgs(const std::string line,
                         std::vector<std::string> &args, std::vector<char *> &argv)
 {
   args.clear();
-  for (int i = 0; i < argv.size(); ++i) {
+  for (int i = 0; (size_t) i < argv.size(); ++i) {
       char *arg = argv[i];
       if (arg) {
           free(arg);

@@ -17,8 +17,8 @@
 
     You should have received a copy of the GNU Lesser General ublic
     License along with Csound; if not, write to the Free Software
-    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
-    02111-1307 USA
+    Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
+    02110-1301 USA
 */
 
 /**********************************************************/
@@ -55,7 +55,7 @@
    "10: Wrench", "12: CokeCan"};
 */
 
-static inline int my_random(CSOUND *csound, int max)
+static inline int32_t my_random(CSOUND *csound, int32_t max)
 {                                   /* Return Random Int Between 0 and max */
     return (csound->Rand31(&(csound->randSeed1)) % (max + 1));
 }
@@ -187,11 +187,11 @@ static MYFLT noise_tick(CSOUND *csound)
 #define MAX_SHAKE FL(2000.0)
 #define MIN_ENERGY FL(0.0)          /* 0.1 or 0.3?? */
 
-static int cabasaset(CSOUND *csound, CABASA *p)
+static int32_t cabasaset(CSOUND *csound, CABASA *p)
 {
     p->sndLevel = FL(0.0);
-    p->kloop = (int)(p->h.insdshead->offtim * CS_EKR)
-               - (int)(CS_EKR * *p->dettack);
+    p->kloop = (int32_t)(p->h.insdshead->offtim * CS_EKR)
+               - (int32_t)(CS_EKR * *p->dettack);
     p->outputs0 = FL(0.0);
     p->outputs1 = FL(0.0);
     p->shake_maxSave = FL(0.0);
@@ -210,7 +210,7 @@ static int cabasaset(CSOUND *csound, CABASA *p)
     return OK;
 }
 
-static int cabasa(CSOUND *csound, CABASA *p)
+static int32_t cabasa(CSOUND *csound, CABASA *p)
 {
     MYFLT *ar = p->ar;
     uint32_t offset = p->h.insdshead->ksmps_offset;
@@ -289,11 +289,11 @@ static int cabasa(CSOUND *csound, CABASA *p)
     return OK;
 }
 
-static int sekereset(CSOUND *csound, SEKERE *p)
+static int32_t sekereset(CSOUND *csound, SEKERE *p)
 {
     p->sndLevel = FL(0.0);
-    p->kloop = (int)(p->h.insdshead->offtim * CS_EKR)
-               - (int)(CS_EKR * *p->dettack);
+    p->kloop = (int32_t)(p->h.insdshead->offtim * CS_EKR)
+               - (int32_t)(CS_EKR * *p->dettack);
     p->outputs0 = FL(0.0);
     p->outputs1 = FL(0.0);
     p->finalZ2 = FL(0.0);
@@ -316,7 +316,7 @@ static int sekereset(CSOUND *csound, SEKERE *p)
     return OK;
 }
 
-static int sekere(CSOUND *csound, SEKERE *p)
+static int32_t sekere(CSOUND *csound, SEKERE *p)
 {
     MYFLT *ar = p->ar;
     uint32_t offset = p->h.insdshead->ksmps_offset;
@@ -399,11 +399,11 @@ static int sekere(CSOUND *csound, SEKERE *p)
     return OK;
 }
 
-static int sandset(CSOUND *csound, SEKERE *p)
+static int32_t sandset(CSOUND *csound, SEKERE *p)
 {
     p->sndLevel = FL(0.0);
-    p->kloop = (int)(p->h.insdshead->offtim * CS_EKR)
-               - (int)(CS_EKR * *p->dettack);
+    p->kloop = (int32_t)(p->h.insdshead->offtim * CS_EKR)
+               - (int32_t)(CS_EKR * *p->dettack);
     p->outputs0 = FL(0.0);
     p->outputs1 = FL(0.0);
     p->finalZ2 = FL(0.0);
@@ -427,11 +427,11 @@ static int sandset(CSOUND *csound, SEKERE *p)
     return OK;
 }
 
-static int stixset(CSOUND *csound, SEKERE *p)
+static int32_t stixset(CSOUND *csound, SEKERE *p)
 {
     p->sndLevel = FL(0.0);
-    p->kloop = (int)(p->h.insdshead->offtim * CS_EKR)
-               - (int)(CS_EKR * *p->dettack);
+    p->kloop = (int32_t)(p->h.insdshead->offtim * CS_EKR)
+               - (int32_t)(CS_EKR * *p->dettack);
     p->outputs0 = FL(0.0);
     p->outputs1 = FL(0.0);
     p->finalZ2 = FL(0.0);
@@ -454,11 +454,11 @@ static int stixset(CSOUND *csound, SEKERE *p)
     return OK;
 }
 
-static int crunchset(CSOUND *csound, CABASA *p)
+static int32_t crunchset(CSOUND *csound, CABASA *p)
 {
     p->sndLevel = FL(0.0);
-    p->kloop = (int)(p->h.insdshead->offtim * CS_EKR)
-               - (int)(CS_EKR * *p->dettack);
+    p->kloop = (int32_t)(p->h.insdshead->offtim * CS_EKR)
+               - (int32_t)(CS_EKR * *p->dettack);
     p->outputs0 = FL(0.0);
     p->outputs1 = FL(0.0);
     p->shake_maxSave = FL(0.0);
@@ -479,7 +479,7 @@ static int crunchset(CSOUND *csound, CABASA *p)
     return OK;
 }
 
-static int guiroset(CSOUND *csound, GUIRO *p)
+static int32_t guiroset(CSOUND *csound, GUIRO *p)
 {
     MYFLT temp;
 
@@ -490,8 +490,8 @@ static int guiroset(CSOUND *csound, GUIRO *p)
     p->baseGain = FL(0.0);
 
     p->sndLevel = FL(0.0);
-    p->kloop = (int)(p->h.insdshead->offtim * CS_EKR)
-               - (int)(CS_EKR * *p->dettack);
+    p->kloop = (int32_t)(p->h.insdshead->offtim * CS_EKR)
+               - (int32_t)(CS_EKR * *p->dettack);
 
     p->outputs00    = FL(0.0);
     p->outputs01    = FL(0.0);
@@ -530,7 +530,7 @@ static int guiroset(CSOUND *csound, GUIRO *p)
     return OK;
 }
 
-static int guiro(CSOUND *csound, GUIRO *p)
+static int32_t guiro(CSOUND *csound, GUIRO *p)
 {
     MYFLT *ar = p->ar;
     uint32_t offset = p->h.insdshead->ksmps_offset;
@@ -575,7 +575,7 @@ static int guiro(CSOUND *csound, GUIRO *p)
     {
       MYFLT sndLevel     = p->sndLevel;
       MYFLT ratchet      = p->ratchet;
-      int ratchetPos     = p->ratchetPos;
+      int32_t ratchetPos     = p->ratchetPos;
       MYFLT totalEnergy  = p->totalEnergy;
       MYFLT num_objects  = p->num_objects;
       MYFLT soundDecay   = p->soundDecay;
@@ -651,14 +651,14 @@ static int guiro(CSOUND *csound, GUIRO *p)
     return OK;
 }
 
-static int tambourset(CSOUND *csound, TAMBOURINE *p)
+static int32_t tambourset(CSOUND *csound, TAMBOURINE *p)
 {
     MYFLT temp;
 
     p->shake_maxSave = FL(0.0);
     p->sndLevel = FL(0.0);
-    p->kloop = (int)(p->h.insdshead->offtim * CS_EKR)
-               - (int)(CS_EKR * *p->dettack);
+    p->kloop = (int32_t)(p->h.insdshead->offtim * CS_EKR)
+               - (int32_t)(CS_EKR * *p->dettack);
 
     p->outputs00       = FL(0.0);
     p->outputs01       = FL(0.0);
@@ -699,7 +699,7 @@ static int tambourset(CSOUND *csound, TAMBOURINE *p)
     return OK;
 }
 
-static int tambourine(CSOUND *csound, TAMBOURINE *p)
+static int32_t tambourine(CSOUND *csound, TAMBOURINE *p)
 {
     MYFLT *ar = p->ar;
     uint32_t offset = p->h.insdshead->ksmps_offset;
@@ -797,14 +797,14 @@ static int tambourine(CSOUND *csound, TAMBOURINE *p)
     return OK;
 }
 
-static int bambooset(CSOUND *csound, BAMBOO *p)
+static int32_t bambooset(CSOUND *csound, BAMBOO *p)
 {
     MYFLT temp;
     p->shake_maxSave = FL(0.0);
 
     p->sndLevel = FL(0.0);
-    p->kloop = (int)(p->h.insdshead->offtim * CS_EKR)
-               - (int)(CS_EKR * *p->dettack);
+    p->kloop = (int32_t)(p->h.insdshead->offtim * CS_EKR)
+               - (int32_t)(CS_EKR * *p->dettack);
 
     p->outputs00       = FL(0.0);
     p->outputs01       = FL(0.0);
@@ -840,7 +840,7 @@ static int bambooset(CSOUND *csound, BAMBOO *p)
     return OK;
 }
 
-static int bamboo(CSOUND *csound, BAMBOO *p)
+static int32_t bamboo(CSOUND *csound, BAMBOO *p)
 {
     MYFLT *ar = p->ar;
     uint32_t offset = p->h.insdshead->ksmps_offset;
@@ -940,13 +940,13 @@ static int bamboo(CSOUND *csound, BAMBOO *p)
     return OK;
 }
 
-static int wuterset(CSOUND *csound, WUTER *p)
+static int32_t wuterset(CSOUND *csound, WUTER *p)
 {
     MYFLT temp;
 
     p->sndLevel = FL(0.0);
-    p->kloop = (int)(p->h.insdshead->offtim * CS_EKR)
-             - (int)(CS_EKR * *p->dettack);
+    p->kloop = (int32_t)(p->h.insdshead->offtim * CS_EKR)
+             - (int32_t)(CS_EKR * *p->dettack);
 
     p->outputs00       = FL(0.0);
     p->outputs01       = FL(0.0);
@@ -984,7 +984,7 @@ static int wuterset(CSOUND *csound, WUTER *p)
     return OK;
 }
 
-static int wuter(CSOUND *csound, WUTER *p)
+static int32_t wuter(CSOUND *csound, WUTER *p)
 {
     MYFLT *ar = p->ar;
     uint32_t offset = p->h.insdshead->ksmps_offset;
@@ -1043,7 +1043,7 @@ static int wuter(CSOUND *csound, WUTER *p)
 
         shakeEnergy *= systemDecay;               /* Exponential system decay */
         if (my_random(csound, 32767) < num_objects) {
-          int j;
+          int32_t j;
           sndLevel = shakeEnergy;
           j = my_random(csound, 3);
           /* ******** Stange that there is no use of freq0 and freq2  */
@@ -1120,14 +1120,14 @@ static int wuter(CSOUND *csound, WUTER *p)
     return OK;
 }
 
-static int sleighset(CSOUND *csound, SLEIGHBELLS *p)
+static int32_t sleighset(CSOUND *csound, SLEIGHBELLS *p)
 {
     MYFLT temp;
 
     p->shake_maxSave = FL(0.0);
     p->sndLevel = FL(0.0);
-    p->kloop = (int)(p->h.insdshead->offtim * CS_EKR)
-               - (int)(CS_EKR * *p->dettack);
+    p->kloop = (int32_t)(p->h.insdshead->offtim * CS_EKR)
+               - (int32_t)(CS_EKR * *p->dettack);
 
     p->outputs00 = FL(0.0);
     p->outputs01 = FL(0.0);
@@ -1173,7 +1173,7 @@ static int sleighset(CSOUND *csound, SLEIGHBELLS *p)
     return OK;
 }
 
-static int sleighbells(CSOUND *csound, SLEIGHBELLS *p)
+static int32_t sleighbells(CSOUND *csound, SLEIGHBELLS *p)
 {
     MYFLT *ar = p->ar;
     uint32_t offset = p->h.insdshead->ksmps_offset;
@@ -1293,20 +1293,21 @@ static int sleighbells(CSOUND *csound, SLEIGHBELLS *p)
 
 #define S(x)    sizeof(x)
 
-static OENTRY phisem_localops[] = {
-{ "cabasa",  S(CABASA),  0, 5, "a", "iiooo",  (SUBR)cabasaset, NULL, (SUBR)cabasa},
-{ "crunch",  S(CABASA),  0, 5, "a", "iiooo",  (SUBR)crunchset, NULL, (SUBR)cabasa},
-{ "sekere",  S(SEKERE),  0, 5, "a", "iiooo",  (SUBR)sekereset, NULL, (SUBR)sekere},
-{ "sandpaper", S(SEKERE),0, 5, "a", "iiooo",  (SUBR)sandset, NULL,   (SUBR)sekere},
-{ "stix", S(SEKERE),     0, 5, "a", "iiooo",  (SUBR)stixset, NULL,   (SUBR)sekere},
-{ "guiro", S(GUIRO),     0, 5, "a", "kiooooo",(SUBR)guiroset, NULL,  (SUBR)guiro },
-{ "tambourine", S(TAMBOURINE),0, 5,"a", "kioooooo",
-                                        (SUBR)tambourset, NULL, (SUBR)tambourine},
-{ "bamboo", S(BAMBOO),   0, 5, "a", "kioooooo",
-                                        (SUBR)bambooset, NULL, (SUBR)bamboo },
-{ "dripwater", S(WUTER), 0, 5, "a", "kioooooo", (SUBR)wuterset, NULL, (SUBR)wuter },
-{ "sleighbells", S(SLEIGHBELLS), 0, 5, "a","kioooooo",
-                                       (SUBR)sleighset, NULL, (SUBR)sleighbells }
+static OENTRY phisem_localops[] =
+  {
+   { "cabasa",  S(CABASA),  0, 3, "a", "iiooo",  (SUBR)cabasaset, (SUBR)cabasa},
+   { "crunch",  S(CABASA),  0, 3, "a", "iiooo",  (SUBR)crunchset, (SUBR)cabasa},
+   { "sekere",  S(SEKERE),  0, 3, "a", "iiooo",  (SUBR)sekereset, (SUBR)sekere},
+   { "sandpaper", S(SEKERE),0, 3, "a", "iiooo",  (SUBR)sandset,   (SUBR)sekere},
+   { "stix", S(SEKERE),     0, 3, "a", "iiooo",  (SUBR)stixset,   (SUBR)sekere},
+   { "guiro", S(GUIRO),     0, 3, "a", "kiooooo",(SUBR)guiroset,  (SUBR)guiro },
+   { "tambourine", S(TAMBOURINE),0, 3,"a", "kioooooo",
+                                        (SUBR)tambourset, (SUBR)tambourine},
+   { "bamboo", S(BAMBOO),   0, 3, "a", "kioooooo",
+                                        (SUBR)bambooset, (SUBR)bamboo },
+   { "dripwater", S(WUTER), 0, 3, "a", "kioooooo", (SUBR)wuterset, (SUBR)wuter },
+   { "sleighbells", S(SLEIGHBELLS), 0, 3, "a","kioooooo",
+                                       (SUBR)sleighset, (SUBR)sleighbells }
 };
 
 LINKAGE_BUILTIN(phisem_localops)

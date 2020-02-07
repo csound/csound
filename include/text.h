@@ -19,8 +19,8 @@
 
     You should have received a copy of the GNU Lesser General Public
     License along with Csound; if not, write to the Free Software
-    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
-    02111-1307 USA
+    Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
+    02110-1301 USA
 */
 
 #ifndef CSOUND_TEXT_H
@@ -113,7 +113,7 @@ extern "C" {
 #endif
   void init_getstring(void*);
   PUBLIC char *csoundLocalizeString(const char *s)
-     __attribute__ ((format (printf, 1,0)));
+     __attribute__ ((format_arg (1)));
   PUBLIC char* cs_strtok_r(char* str, char* sep, char** lasts);
   PUBLIC double cs_strtod(char* nptr, char** endptr);
   PUBLIC int cs_sprintf(char *str, const char *format, ...);
@@ -123,14 +123,18 @@ extern "C" {
 #endif
 
 
-#ifdef GNU_GETTEXT
+  /* VL commenting this out so ALL uses of Str(x)
+     call LocalizeString() [which might be a stub]
+     This would allows us to keep an eye on
+     -Wformat-security warnings
+  */
+//#ifdef GNU_GETTEXT
 # define Str(x) csoundLocalizeString(x)
-#else
-# define Str(x)  (x)
-#endif
+//#else
+//# define Str(x)  (x)
+//#endif
 
 #define Str_noop(x) x
 
 
 #endif  /* CSOUND_TEXT_H */
-

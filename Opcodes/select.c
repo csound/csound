@@ -17,8 +17,8 @@
 
     You should have received a copy of the GNU Lesser General Public
     License along with Csound; if not, write to the Free Software
-    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
-    02111-1307 USA
+    Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
+    02110-1301 USA
 */
 
 #include "csdl.h"
@@ -29,8 +29,9 @@ typedef struct Select {
 } Selecter;
 
 
-static int selecter(CSOUND *csound, Selecter* p)
+static int32_t selecter(CSOUND *csound, Selecter* p)
 {
+    IGN(csound);
     MYFLT       *ar = p->ar;
 
     MYFLT       *a1=p->in1, *a2=p->in2, *al=p->less, *ae=p->equal, *am=p->more;
@@ -55,8 +56,7 @@ static int selecter(CSOUND *csound, Selecter* p)
 #define S(x)    sizeof(x)
 
 static OENTRY localops[] = {
-  { "select", S(Selecter), 0, 4, "a", "aaaaa",
-                                   NULL, NULL, (SUBR)selecter}
+  { "select", S(Selecter), 0, 2, "a", "aaaaa", NULL, (SUBR)selecter}
 };
 
 LINKAGE

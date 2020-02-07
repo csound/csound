@@ -14,7 +14,7 @@
  *
  *  You should have received a copy of the GNU Lesser General Public
  *  License along with this library; if not, write to the Free Software
- *  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ *  Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
  */
 
 /* $Id: mp3dec_internal.h,v 1.2 2004/08/02 09:38:09 metal_man Exp $ */
@@ -33,7 +33,7 @@ struct mp3dec_t {
   mpadec_t mpadec;
   int32_t fd;
   uint32_t flags;
-  int64_t stream_offset;
+  off_t stream_offset;
   int64_t stream_size;
   int64_t stream_position;
   mpadec_info_t mpainfo;

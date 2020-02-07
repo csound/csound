@@ -20,8 +20,8 @@
 
  You should have received a copy of the GNU Lesser General Public
  License along with Csound; if not, write to the Free Software
- Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
- 02111-1307 USA
+ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
+ 02110-1301 USA
  */
 
 #include "csdl.h"
@@ -40,18 +40,18 @@ extern "C"
         ARRAYDAT *inputArray;
         AUXCH frameSamplesMemory;
         AUXCH framePointerMemory;
-        int frameIndex;
-        int overlapSampleIndex;
-        int readSampleIndex;
-        int framesCount;
-        int frameSamplesCount;
-        int overlapSamplesCount;
-        int ksmps;
+        int32_t frameIndex;
+        int32_t overlapSampleIndex;
+        int32_t readSampleIndex;
+        int32_t framesCount;
+        int32_t frameSamplesCount;
+        int32_t overlapSamplesCount;
+        int32_t ksmps;
         MYFLT **frames;
     } OLABuffer;
 
-    int OLABuffer_initialise(CSOUND *csound, OLABuffer *self);
-    int OLABuffer_process(CSOUND *csound, OLABuffer *self);
+    int32_t OLABuffer_initialise(CSOUND *csound, OLABuffer *self);
+    int32_t OLABuffer_process(CSOUND *csound, OLABuffer *self);
 
 #ifdef __cplusplus
 }

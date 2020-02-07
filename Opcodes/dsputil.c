@@ -18,8 +18,8 @@
 
     You should have received a copy of the GNU Lesser General Public
     License along with Csound; if not, write to the Free Software
-    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
-    02111-1307 USA
+    Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
+    02110-1301 USA
 */
 
 /******************************************************************/
@@ -40,10 +40,10 @@
     /* where callers pass s/2+1, this recreates the parent fft frame size */
 
 /* assumes that FFTsize is an integer multiple of 4 */
-void Polar2Real_PVOC(CSOUND *csound, MYFLT *buf, int FFTsize)
+void Polar2Real_PVOC(CSOUND *csound, MYFLT *buf, int32_t FFTsize)
 {
     MYFLT re, im;
-    int   i;
+    int32_t   i;
 
     for (i = 0; i < FFTsize; i += 4) {
       re = buf[i] * COS(buf[i + 1]);
@@ -62,16 +62,16 @@ void Polar2Real_PVOC(CSOUND *csound, MYFLT *buf, int FFTsize)
     csound->InverseRealFFT(csound, buf, FFTsize);
 }
 
-#define MMmaskPhs(p,q,s) /* p is pha, q is as int, s is 1/PI */ \
-    q = (int)(s*p);     \
-    p -= PI_F*(MYFLT)((int)((q+((q>=0)?(q&1):-(q&1) )))); \
+#define MMmaskPhs(p,q,s) /* p is pha, q is as int32_t, s is 1/PI */ \
+    q = (int32_t)(s*p);     \
+    p -= PI_F*(MYFLT)((int32_t)((q+((q>=0)?(q&1):-(q&1) )))); \
 
 void RewrapPhase(MYFLT *buf, int32 size, MYFLT *oldPh)
 {
     int32    i;
     MYFLT   *pha;
     MYFLT   p,oneOnPi;
-    int     z;
+    int32_t     z;
 
     /* Phase angle was properly scaled when it came out of frqspace */
     /* .. so just add it */
@@ -94,7 +94,7 @@ void FrqToPhase(MYFLT *buf, int32 size, MYFLT incr, MYFLT sampRate, MYFLT fixUp)
     MYFLT   expectedDphas,eDphIncr;
     MYFLT   p;
     int32    i;
-    int     j;
+    int32_t     j;
     MYFLT   oneOnPi;
 
     oneOnPi = FL(1.0)/PI_F;
@@ -104,7 +104,7 @@ void FrqToPhase(MYFLT *buf, int32 size, MYFLT incr, MYFLT sampRate, MYFLT fixUp)
     binMidFrq = FL(0.0);
     /* Of course, you get some phase shift with spot-on frq coz time shift */
     expectedDphas = FL(0.0);
-    eDphIncr = FL(2.0)*PI_F*((incr)/((MYFLT)actual(size)) + fixUp);
+    eDphIncr = TWOPI_F*((incr)/((MYFLT)actual(size)) + fixUp);
     for (i=0; i<someof(size); ++i) {
       p = pha[2L*i];
       p -= binMidFrq;
@@ -114,7 +114,7 @@ void FrqToPhase(MYFLT *buf, int32 size, MYFLT incr, MYFLT sampRate, MYFLT fixUp)
       /* MmaskPhs(p);     */
       pha[2L*i] = p;
       expectedDphas += eDphIncr;
-      expectedDphas -= TWOPI_F*(MYFLT)((int)(expectedDphas*oneOnPi));
+      expectedDphas -= TWOPI_F*(MYFLT)((int32_t)(expectedDphas*oneOnPi));
       binMidFrq += frqPerBin;
     }
     /* Does not deal with 'phases' of DC & fs/2 any different */
@@ -254,7 +254,7 @@ void UDSample(
     lex will be 0.75
  */
 {
-    int     in2out;
+    int32_t     in2out;
     int32    i,j,x;
     MYFLT   a;
     MYFLT   phasePerInStep, fracInStep;
@@ -262,13 +262,13 @@ void UDSample(
     int32    nrstInStep;
     MYFLT   posPhase, negPhase;
     MYFLT   lex = FL(1.0)/fex;
-    int     nrst;
+    int32_t     nrst;
     MYFLT   frac;
 
     phasePerInStep = (lex > 1 ? FL(1.0) : lex) * (MYFLT) SPTS;
     /* If we are upsampling, LPF is at input frq => sinc pd matches */
     /*  downsamp => lpf at output rate; input steps at some fraction */
-    in2out = (int) ((MYFLT) SPDS * (fex < FL(1.0) ? FL(1.0) : fex));
+    in2out = (int32_t) ((MYFLT) SPDS * (fex < FL(1.0) ? FL(1.0) : fex));
     /* number of input points contributing to each op: depends on LPF */
     realInStep = stindex;
     stepInStep = fex;
@@ -279,7 +279,7 @@ void UDSample(
       negPhase = phasePerInStep * fracInStep;
       posPhase = -negPhase;
       /* cum. sinc arguments for +ve & -ve going spans into input */
-      nrst = (int)negPhase;       frac = negPhase - (MYFLT)nrst;
+      nrst = (int32_t)negPhase;       frac = negPhase - (MYFLT)nrst;
       a = (p->dsputil_sncTab[nrst]
            + frac * (p->dsputil_sncTab[nrst + 1]
                      - p->dsputil_sncTab[nrst]))
@@ -288,14 +288,14 @@ void UDSample(
         posPhase += phasePerInStep;
         negPhase += phasePerInStep;
         if ( (x = nrstInStep-j)>=0L ) { /* Brackets inserted here */
-          nrst = (int)negPhase;   frac = negPhase - (MYFLT)nrst;
+          nrst = (int32_t)negPhase;   frac = negPhase - (MYFLT)nrst;
         }
         a += (p->dsputil_sncTab[nrst]
               + frac * (p->dsputil_sncTab[nrst + 1]
                         - p->dsputil_sncTab[nrst]))
              * (MYFLT) inSnd[x];
         if ( (x = nrstInStep+j)<inLen ) { /* Brackets inserted here */
-          nrst = (int)posPhase;   frac = posPhase - (MYFLT)nrst;
+          nrst = (int32_t)posPhase;   frac = posPhase - (MYFLT)nrst;
         }
         a += (p->dsputil_sncTab[nrst]
               + frac * (p->dsputil_sncTab[nrst + 1]
@@ -315,8 +315,8 @@ void UDSample(
 
 void MakeSinc(PVOC_GLOBALS *p)  /* initialise our static sinc table */
 {
-    int     i;
-    int     stLen = SPDS*SPTS;  /* sinc table is SPDS/2 periods of sinc */
+    int32_t     i;
+    int32_t     stLen = SPDS*SPTS;  /* sinc table is SPDS/2 periods of sinc */
     MYFLT   theta   = FL(0.0);  /* theta (sinc arg) reaches pi in SPTS */
     MYFLT   dtheta  = (MYFLT)(SBW*PI)/(MYFLT)SPTS;/* SBW lowers cutoff to redcali */
     MYFLT   phi     = FL(0.0);     /* phi (hamm arg) reaches pi at max ext */
@@ -395,7 +395,7 @@ void PreWarpSpec(
     }
 
     if (pkcnt > 1) {                /*  get final peak */
-      int posi;
+      int32_t posi;
       mag = spec[2*(size/2)];
       slope = ((MYFLT) (mag - pkOld) / pkcnt);
       dsputil_env[size / 2] = mag;

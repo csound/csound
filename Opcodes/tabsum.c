@@ -17,8 +17,8 @@
 
     You should have received a copy of the GNU Lesser General Public
     License along with Csound; if not, write to the Free Software
-    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
-    02111-1307 USA
+    Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
+    02110-1301 USA
 */
 
 #include "csoundCore.h"
@@ -34,7 +34,7 @@ typedef struct {
 } TABSUM;
 
 
-static int tabsuminit(CSOUND *csound, TABSUM *p)
+static int32_t tabsuminit(CSOUND *csound, TABSUM *p)
 {
     if (UNLIKELY((p->ftp = csound->FTnp2Find(csound, p->itab)) == NULL)) {
       return csound->InitError(csound, Str("tabsum: No table"));
@@ -44,22 +44,23 @@ static int tabsuminit(CSOUND *csound, TABSUM *p)
 
 
 
-static int tabsum(CSOUND *csound, TABSUM *p)
+static int32_t tabsum(CSOUND *csound, TABSUM *p)
 {
-    int i, min, max;
+    int32_t i, min, max;
     MYFLT ans = FL(0.0);
     FUNC  *ftp = p->ftp;
     MYFLT *t;
 
-    if (ftp==NULL)
-      return csound->PerfError(csound, p->h.insdshead,
+    if (UNLIKELY(ftp==NULL))
+
+      return csound->PerfError(csound, &(p->h),
                                Str("tabsum: Not initialised"));
     t = p->ftp->ftable;
     min = MYFLT2LRND(*p->kmin);
     max = MYFLT2LRND(*p->kmax);
     if (UNLIKELY(min == 0 && max == 0)) max = ftp->flen-1;
     else if (UNLIKELY(min > max)) {
-      int k = min; min = max; max = k;
+      int32_t k = min; min = max; max = k;
     }
     /* printf("tabsum: min, max = %d, %d\n", min, max); */
     for (i=min; i<=max; i++) ans += t[i];

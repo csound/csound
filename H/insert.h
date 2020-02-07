@@ -17,8 +17,8 @@
 
     You should have received a copy of the GNU Lesser General Public
     License along with Csound; if not, write to the Free Software
-    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
-    02111-1307 USA
+    Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
+    02110-1301 USA
 */
 
 typedef struct {                        /*       INSERT.H                */
@@ -136,6 +136,12 @@ typedef struct {                        /* IV - Oct 20 2002 */
     OPDS    h;
     MYFLT   *i_insno, *iname;
 } NSTRNUM;
+
+typedef struct {                        /* JPff Feb 2019 */
+    OPDS    h;
+    STRINGDAT *ans;
+    MYFLT     *num;
+} NSTRSTR;
 
 typedef struct {
     OPDS    h;

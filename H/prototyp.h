@@ -17,8 +17,8 @@
 
     You should have received a copy of the GNU Lesser General Public
     License along with Csound; if not, write to the Free Software
-    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
-    02111-1307 USA
+    Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
+    02110-1301 USA
 */
 /*  PROTOTYP.H  */
 #if defined(__BUILDING_LIBCSOUND) && !defined(_CSOUND_PROTO_H)
@@ -43,12 +43,12 @@ char    *cs_strndup(CSOUND*, char*, size_t);
 void    csoundAuxAlloc(CSOUND *, size_t, AUXCH *), auxchfree(CSOUND *, INSDS *);
 int     csoundAuxAllocAsync(CSOUND *, size_t , AUXCH *,
                             AUXASYNC *, aux_cb , void *);
-void    fdrecord(CSOUND *, FDCH *), fdclose(CSOUND *, FDCH *);
+void    fdrecord(CSOUND *, FDCH *), csound_fd_close(CSOUND *, FDCH *);
 void    fdchclose(CSOUND *, INSDS *);
 CS_PRINTF2  void    synterr(CSOUND *, const char *, ...);
 CS_NORETURN CS_PRINTF2  void    csoundDie(CSOUND *, const char *, ...);
 CS_PRINTF2  int     csoundInitError(CSOUND *, const char *, ...);
-CS_PRINTF3  int     csoundPerfError(CSOUND *, INSDS *ip, const char *, ...);
+CS_PRINTF3  int     csoundPerfError(CSOUND *, OPDS *h, const char *, ...);
 CS_PRINTF2  void    csoundWarning(CSOUND *, const char *, ...);
 CS_PRINTF2  void    csoundDebugMsg(CSOUND *, const char *, ...);
 CS_PRINTF2  void    csoundErrorMsg(CSOUND *, const char *, ...);
@@ -67,6 +67,7 @@ void    RTLineset(CSOUND *);
 FUNC    *csoundFTFind(CSOUND *, MYFLT *);
 FUNC    *csoundFTFindP(CSOUND *, MYFLT *);
 FUNC    *csoundFTnp2Find(CSOUND *, MYFLT *);
+FUNC    *csoundFTnp2Finde(CSOUND *, MYFLT *);
 MYFLT   intpow(MYFLT, int32);
 void    list_opcodes(CSOUND *, int);
 char    *getstrformat(int format);

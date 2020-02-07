@@ -230,14 +230,14 @@ class PrintThread : public csnd::Thread {
   std::string message;
   
 public:
-  MyThread(csnd::Csound *csound)
+  PrintThread(csnd::Csound *csound)
     : Thread(csound), spinlock(false), on(true), message("") {};
   uintptr_t run() {
     std::string old;
     while(on) {
       lock();
       if(old.compare(message)) {
-       csound->message("%s", message.cstr());
+       csound->message(message.c_str());
        old = message;
       } 
       unlock(); 
@@ -245,7 +245,7 @@ public:
     return 0;
   }
   void lock() {
-    while(spinlock == true) csound->sleep();
+    while(spinlock == true) csound->sleep(1);
     spinlock = true;
   }
   void unlock() {
@@ -261,7 +261,7 @@ public:
 struct AsyncPrint : csnd::Plugin<0, 1> {
   static constexpr char const *otypes = "";
   static constexpr char const *itypes = "S";
-  MyThread t;
+  PrintThread t;
 
   int init() {
     csound->plugin_deinit(this);

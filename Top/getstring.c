@@ -19,8 +19,8 @@
 
     You should have received a copy of the GNU Lesser General Public
     License along with Csound; if not, write to the Free Software
-    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
-    02111-1307 USA
+    Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
+    02110-1301 USA
 */
 
 #include "csoundCore.h"
@@ -52,6 +52,7 @@ int closedir(DIR*);
 #ifndef GNU_GETTEXT
 void init_getstring(void *cs)
 {
+   IGN(cs);
 #ifndef HAVE_STRTOD_L
     setlocale(LC_NUMERIC, "C");                   /* Ensure C syntax */
     csound_c_locale = setlocale(LC_NUMERIC, "C"); /* and remwmber */
@@ -69,11 +70,13 @@ PUBLIC char *csoundLocalizeString(const char *s)
 /* This stub is needed for backwards compatibility */
 PUBLIC void csoundSetLanguage(cslanguage_t lang_code)
 {
+  IGN(lang_code);
     return;
 }
 #else
 void init_getstring(void *cs)
 {
+  IGN(cs);
 /*     s = csoundGetEnv(NULL, "CS_LANG"); */
 /*     if (s == NULL)              /\* Default locale *\/ */
 /*       setlocale (LC_MESSAGES, ""); */

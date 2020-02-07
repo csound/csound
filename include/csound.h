@@ -1,9 +1,33 @@
+/*
+    csound.h:
+
+    Copyright (C) 2003 2005 2008 2013 by John ffitch, Istvan Varga,
+                                         Mike Gogins, Victor Lazzarini,
+                                         Andres Cabrera, Steven Yi
+
+    This file is part of Csound.
+
+    The Csound Library is free software; you can redistribute it
+    and/or modify it under the terms of the GNU Lesser General Public
+    License as published by the Free Software Foundation; either
+    version 2.1 of the License, or (at your option) any later version.
+
+    Csound is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU Lesser General Public License for more details.
+
+    You should have received a copy of the GNU Lesser General Public
+    License along with Csound; if not, write to the Free Software
+    Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
+    02110-1301 USA
+*/
+
 #ifndef CSOUND_H
 #define CSOUND_H
 /*! \mainpage
  *
- * Csound is a unit generator-based, user-programmable,
- * user-extensible computer music system.  It was originally written
+ * Csound is a sound and music computing system. It was originally written
  * by Barry Vercoe at the Massachusetts Institute of Technology in
  * 1984 as the first C language version of this type of
  * software. Since then Csound has received numerous contributions
@@ -38,7 +62,7 @@
  *
  * \b Users
  *
- * Users of the Csound API fall into two main categories: hosts, and plugins.
+ * Users of the Csound API fall into two main categories: hosts and plugins.
  *
  * \li Hosts are applications that use Csound as a software synthesis engine.
  *     Hosts can link with the Csound API either statically or dynamically.
@@ -46,13 +70,14 @@
  * \li Plugins are shared libraries loaded by Csound at run time to implement
  *     external opcodes and/or drivers for audio or MIDI input and output.
  *     Plugin opcodes need only include the csdl.h header which brings all
- *     necessary functions and data structures. Plugins can be written in C++
- *     using either `include/plugin.h` (using the Csound allocator, for opcodes
+ *     necessary functions and data structures.
+ *     Plugins can be written in C or C++. For C++, OOP support is given through
+ *     `include/plugin.h` (using the Csound allocator, for opcodes
  *     that do not involve standard C++ library collections) or
  *     `include/OpcodeBase.hpp` (using the standard ++ allocator, for opcodes
  *     that do use standard C++ library collections).
  *
- * \section section_api_c_example Examples Using the Csound API
+ * \section section_api_c_example Examples Using the Csound (host) API
  *
  * The Csound command--line program is itself built using the Csound API.
  * Its code reads (in outline) as follows:
@@ -73,27 +98,31 @@
  * }
  * \endcode
  *
- * The Csound API defines two modes of operation for hosts. In the first mode,
- * a regular Csound score is performed and then performance automatically
- * ends. This could be called "score mode." In the second mode, Csound
- * continues to perform indefinitely until performance is explicitly ended by
- * calling csoundStop. This could be called "live mode." Which mode is used is
- * determined by when csoundStart is called. In more detail:
+ * Csound code can also be supplied directly using strings, either as
+ * a multi-section CSD (with the same format as CSD files) or
+ * directly as a string. It can be compiled any number of times
+ * before or during performance.
  *
- * \subsection s1 Score Mode
+ * \subsection s1 Using a CSD text
  *
- * \li The <CsOptions> section of the CSD file is processed.
- *
- * \li Either csoundStart must be called after csoundCompileCsd or csoundReadScore,
- *     or csoundReadScore must be called before csoundCompile.
- *
- * \li The score is pre-processed, and events are dispatched as regular score
- *     events. "f", "s", and "e" events are permitted in the score.
+ * System options can be passed via the CSD text before the engine
+ * is started. These are ignored in subsequent compilations.
  *
  * \code
  * #include "csound.h"
  *
- * const char *csd_text = "blah blah blah";
+ * const char *csd_text =
+ *  "<CsoundSynthesizer> \n"
+ *  "<CsOptions> -odac </CsOptions> \n"
+ *  "<CsInstruments> \n"
+ *  "instr 1 \n"
+ *  " out(linen(oscili(p4,p5),0.1,p3,0.1)) \n"
+ *  "endin \n"
+ *  "</CsInstruments> \n"
+ *  "<CsScore> \n"
+ *  "i1 0 5 1000 440 \n"
+ *  "</CsScore> \n"
+ *  "</CsoundSynthesizer> \n";
  *
  * int main(int argc, char **argv)
  * {
@@ -113,21 +142,19 @@
  * }
  * \endcode
  *
- * \subsection s2 Live Mode
+ * \subsection s2 Using Csound code directly.
  *
- * \li The <CsOptions> section of the CSD file not processed; options must
- *     be set by calling csoundSetOption.
- *
- * \li csoundStart must be called before csoundCompileCsd or csoundReadScore.
- *
- * \li The score is not pre-processed, and events are dispatched as real-time
- *     events. "f", "s", and "e" events are not permitted.
+ * Options can be passed via csoundSetOption() before the engine starts.
  *
  * \code
  * #include "csound.h"
  *
- * const char *orc_text = "blah blah blah";
- * const char *sco_text = "blah blah blah";
+ * const char *orc_text =
+ *  "instr 1 \n"
+ *  " out(linen(oscili(p4,p5),0.1,p3,0.1)) \n"
+ *  "endin \n";
+ *
+ * const char *sco_text = "i1 0 5 1000 440 \n";
  *
  * int main(int argc, char **argv)
  * {
@@ -223,7 +250,7 @@
  *
  * You should have received a copy of the GNU Lesser General Public
  * License along with this software; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
  */
 
 /*
@@ -399,7 +426,7 @@ extern "C" {
     CSFTYPE_HRTF,
 
     /* Types for plugins and the files they read/write */
-    CSFTYPE_VST_PLUGIN,
+    CSFTYPE_UNUSED,
     CSFTYPE_LADSPA_PLUGIN,
     CSFTYPE_SNAPSHOT,
 
@@ -690,6 +717,12 @@ extern "C" {
   PUBLIC int csoundCompileTree(CSOUND *csound, TREE *root);
 
   /**
+   * Asynchronous version of csoundCompileTree()
+   */
+  PUBLIC int csoundCompileTreeAsync(CSOUND *csound, TREE *root);
+
+
+  /**
    * Free the resources associated with the TREE *tree
    * This function should be called whenever the TREE was
    * created with csoundParseOrc and memory can be deallocated.
@@ -706,6 +739,14 @@ extern "C" {
    * /endcode
    */
   PUBLIC int csoundCompileOrc(CSOUND *csound, const char *str);
+
+   /**
+   *  Async version of csoundCompileOrc(). The code is parsed and
+   *  compiled, then placed on a queue for
+   *  asynchronous merge into the running engine, and evaluation.
+   *  The function returns following parsing and compilation.
+   */
+  PUBLIC int csoundCompileOrcAsync(CSOUND *csound, const char *str);
 
   /**
    *   Parse and compile an orchestra given on an string,
@@ -887,6 +928,45 @@ extern "C" {
    */
   PUBLIC void csoundReset(CSOUND *);
 
+   /** @}*/
+   /** @defgroup SERVER UDP server
+   *
+   *  @{ */
+
+  /**
+   * Starts the UDP server on a supplied port number
+   * returns CSOUND_SUCCESS if server has been started successfully,
+   * otherwise, CSOUND_ERROR.
+   */
+  PUBLIC int csoundUDPServerStart(CSOUND *csound, unsigned int port);
+
+  /** returns the port number on which the server is running, or
+   *  CSOUND_ERROR if the server is not running.
+   */
+  PUBLIC int csoundUDPServerStatus(CSOUND *csound);
+
+  /**
+   * Closes the UDP server, returning CSOUND_SUCCESS if the
+   * running server was successfully closed, CSOUND_ERROR otherwise.
+   */
+  PUBLIC int csoundUDPServerClose(CSOUND *csound);
+
+  /**
+   * Turns on the transmission of console messages to UDP on address addr
+   * port port. If mirror is one, the messages will continue to be
+   * sent to the usual destination (see csoundSetMessaggeCallback())
+   * as well as to UDP.
+   * returns CSOUND_SUCCESS or CSOUND_ERROR if the UDP transmission
+   * could not be set up.
+   */
+  PUBLIC int csoundUDPConsole(CSOUND *csound, const char *addr,
+                              int port, int mirror);
+
+  /**
+   * Stop transmitting console messages via UDP
+   */
+  PUBLIC void csoundStopUDPConsole(CSOUND *csound);
+
   /** @}*/
   /** @defgroup ATTRIBUTES Attributes
    *
@@ -983,6 +1063,12 @@ extern "C" {
    */
   PUBLIC void csoundSetDebug(CSOUND *, int debug);
 
+  /**
+   * If val > 0, sets the internal variable holding the system HW sr.
+   * Returns the stored value containing the system HW sr.
+   */
+  PUBLIC MYFLT csoundSystemSr(CSOUND *csound, MYFLT val);
+
 
   /** @}*/
   /** @defgroup FILEIO General Input/Output
@@ -993,9 +1079,14 @@ extern "C" {
    *  @{ */
 
   /**
-   * Returns the output audio output name (-o).
+   * Returns the audio output name (-o).
    */
   PUBLIC const char *csoundGetOutputName(CSOUND *);
+
+  /**
+   * Returns the audio input name (-i).
+   */
+  PUBLIC const char *csoundGetInputName(CSOUND *);
 
   /**
    *  Set output destination, type and format
@@ -1060,7 +1151,8 @@ extern "C" {
    * This callback is retained after a csoundReset() call.
    */
   PUBLIC void csoundSetFileOpenCallback(CSOUND *p,
-                                        void (*func)(CSOUND*, const char*, int, int, int));
+                                        void (*func)(CSOUND*, const char*,
+                                                     int, int, int));
 #endif
 
   /** @}*/
@@ -1174,7 +1266,7 @@ extern "C" {
    * handling of sound I/O by the Csound library, allowing the host
    * application to use the spin/spout/input/output buffers directly.
    * For applications using spin/spout, bufSize should be set to 0.
-   * If 'bufSize' is greater than zero, the buffer size (-b) will be
+   * If 'bufSize' is greater than zero, the buffer size (-b) in frames will be
    * set to the integer multiple of ksmps that is nearest to the value
    * specified.
    */
@@ -1212,9 +1304,10 @@ extern "C" {
    * Sets a function to be called by Csound for opening real-time
    * audio playback.
    */
-  PUBLIC void csoundSetPlayopenCallback(CSOUND *,
-                                        int (*playopen__)(CSOUND *,
-                                                          const csRtAudioParams *parm));
+  PUBLIC void
+  csoundSetPlayopenCallback(CSOUND *,
+                            int (*playopen__)(CSOUND *,
+                                              const csRtAudioParams *parm));
 
   /**
    * Sets a function to be called by Csound for performing real-time
@@ -1222,15 +1315,16 @@ extern "C" {
    */
   PUBLIC void csoundSetRtplayCallback(CSOUND *,
                                       void (*rtplay__)(CSOUND *,
-                                                       const MYFLT *outBuf, int nbytes));
+                                                       const MYFLT *outBuf,
+                                                       int nbytes));
 
   /**
    * Sets a function to be called by Csound for opening real-time
    * audio recording.
    */
   PUBLIC void csoundSetRecopenCallback(CSOUND *,
-                                       int (*recopen_)(CSOUND *,
-                                                       const csRtAudioParams *parm));
+                                     int (*recopen_)(CSOUND *,
+                                                     const csRtAudioParams *parm));
 
   /**
    * Sets a function to be called by Csound for performing real-time
@@ -1238,7 +1332,8 @@ extern "C" {
    */
   PUBLIC void csoundSetRtrecordCallback(CSOUND *,
                                         int (*rtrecord__)(CSOUND *,
-                                                          MYFLT *inBuf, int nbytes));
+                                                          MYFLT *inBuf,
+                                                          int nbytes));
 
   /**
    * Sets a function to be called by Csound for closing real-time
@@ -1252,7 +1347,9 @@ extern "C" {
    * (See csoundGetAudioDevList())
    */
   PUBLIC void csoundSetAudioDeviceListCallback(CSOUND *csound,
-                                               int (*audiodevlist__)(CSOUND *, CS_AUDIODEVICE *list, int isOutput));
+                                               int (*audiodevlist__)(CSOUND *,
+                                                   CS_AUDIODEVICE *list,
+                                                   int isOutput));
 
   /** @}*/
   /** @defgroup RTMIDI Realtime Midi I/O
@@ -1290,39 +1387,49 @@ extern "C" {
    * Sets callback for opening real time MIDI input.
    */
   PUBLIC void csoundSetExternalMidiInOpenCallback(CSOUND *,
-                                                  int (*func)(CSOUND *, void **userData, const char *devName));
+                                                  int (*func)(CSOUND *,
+                                                              void **userData,
+                                                              const char *devName));
 
   /**
    * Sets callback for reading from real time MIDI input.
    */
   PUBLIC void csoundSetExternalMidiReadCallback(CSOUND *,
-                                                int (*func)(CSOUND *, void *userData,
-                                                            unsigned char *buf, int nBytes));
+                                                int (*func)(CSOUND *,
+                                                            void *userData,
+                                                            unsigned char *buf,
+                                                            int nBytes));
 
   /**
    * Sets callback for closing real time MIDI input.
    */
   PUBLIC void csoundSetExternalMidiInCloseCallback(CSOUND *,
-                                                   int (*func)(CSOUND *, void *userData));
+                                                   int (*func)(CSOUND *,
+                                                               void *userData));
 
   /**
    * Sets callback for opening real time MIDI output.
    */
   PUBLIC void csoundSetExternalMidiOutOpenCallback(CSOUND *,
-                                                   int (*func)(CSOUND *, void **userData, const char *devName));
+                                                   int (*func)(CSOUND *,
+                                                               void **userData,
+                                                               const char *devName));
 
   /**
    * Sets callback for writing to real time MIDI output.
    */
   PUBLIC void csoundSetExternalMidiWriteCallback(CSOUND *,
-                                                 int (*func)(CSOUND *, void *userData,
-                                                             const unsigned char *buf, int nBytes));
+                                              int (*func)(CSOUND *,
+                                                          void *userData,
+                                                          const unsigned char *buf,
+                                                          int nBytes));
 
   /**
    * Sets callback for closing real time MIDI output.
    */
   PUBLIC void csoundSetExternalMidiOutCloseCallback(CSOUND *,
-                                                    int (*func)(CSOUND *, void *userData));
+                                                    int (*func)(CSOUND *,
+                                                                void *userData));
 
   /**
    * Sets callback for converting MIDI error codes to strings.
@@ -1338,7 +1445,8 @@ extern "C" {
    */
   PUBLIC void csoundSetMIDIDeviceListCallback(CSOUND *csound,
                                               int (*mididevlist__)(CSOUND *,
-                                                                   CS_MIDIDEVICE *list, int isOutput));
+                                                              CS_MIDIDEVICE *list,
+                                                              int isOutput));
 
   /** @}*/
   /** @defgroup SCOREHANDLING Score Handling
@@ -1351,6 +1459,11 @@ extern "C" {
    *  being added to the currently scheduled ones.
    */
   PUBLIC int csoundReadScore(CSOUND *csound, const char *str);
+
+   /**
+   *  Asynchronous version of csoundReadScore().
+   */
+  PUBLIC void csoundReadScoreAsync(CSOUND *csound, const char *str);
 
   /**
    * Returns the current score time in seconds
@@ -1445,20 +1558,32 @@ extern "C" {
   PUBLIC void csoundMessageV(CSOUND *,
                              int attr, const char *format, va_list args);
 
-  PUBLIC void csoundSetDefaultMessageCallback(
-                                              void (*csoundMessageCallback_)(CSOUND *,
-                                                                             int attr,
-                                                                             const char *format,
-                                                                             va_list valist));
+  PUBLIC void csoundSetDefaultMessageCallback(void (*csoundMessageCallback_)(
+                                           CSOUND *,
+                                           int attr,
+                                           const char *format,
+                                           va_list valist));
 
   /**
    * Sets a function to be called by Csound to print an informational message.
+   * This callback is never called on --realtime mode
    */
   PUBLIC void csoundSetMessageCallback(CSOUND *,
-                                       void (*csoundMessageCallback_)(CSOUND *,
-                                                                      int attr,
-                                                                      const char *format,
-                                                                      va_list valist));
+                                   void (*csoundMessageCallback_)(CSOUND *,
+                                                                  int attr,
+                                                                  const char *format,
+                                                                  va_list valist));
+
+  /**
+   * Sets an alternative function to be called by Csound to print an
+   * informational message, using a less granular signature.
+   *  This callback can be set for --realtime mode.
+   *  This callback is cleared after csoundReset
+   */
+  PUBLIC void csoundSetMessageStringCallback(CSOUND *csound,
+              void (*csoundMessageStrCallback)(CSOUND *csound,
+                                               int attr,
+                                               const char *str));
 
   /**
    * Returns the Csound message level (from 0 to 231).
@@ -1551,8 +1676,8 @@ extern "C" {
    *
    * Operations on **p are not thread-safe by default. The host is required
    * to take care of threadsafety by
-   * 1) with control channels use __sync_fetch_and_add() or
-   *    __sync_fetch_and_or() gcc atomic builtins to get or set a channel,
+   * 1) with control channels use __atomic_load() or
+   *    __atomic_store() gcc atomic builtins to get or set a channel,
    *    if available.
    * 2) For string and audio channels (and controls if option 1 is not
    *    available), retrieve the channel lock with csoundGetChannelLock()
@@ -1709,6 +1834,12 @@ extern "C" {
                               char type, const MYFLT *pFields, long numFields);
 
   /**
+   *  Asynchronous version of csoundScoreEvent().
+   */
+  PUBLIC void csoundScoreEventAsync(CSOUND *,
+                              char type, const MYFLT *pFields, long numFields);
+
+  /**
    * Like csoundScoreEvent(), this function inserts a score event, but
    * at absolute time with respect to the start of performance, or from an
    * offset set with time_ofs
@@ -1717,10 +1848,20 @@ extern "C" {
                  char type, const MYFLT *pfields, long numFields, double time_ofs);
 
   /**
+   *  Asynchronous version of csoundScoreEventAbsolute().
+   */
+  PUBLIC void csoundScoreEventAbsoluteAsync(CSOUND *,
+                 char type, const MYFLT *pfields, long numFields, double time_ofs);
+  /**
    * Input a NULL-terminated string (as if from a console),
    * used for line events.
    */
   PUBLIC void csoundInputMessage(CSOUND *, const char *message);
+
+  /**
+   * Asynchronous version of csoundInputMessage().
+   */
+  PUBLIC void csoundInputMessageAsync(CSOUND *, const char *message);
 
   /**
    * Kills off one or more running instances of an instrument identified
@@ -1840,11 +1981,20 @@ extern "C" {
   PUBLIC void csoundTableCopyOut(CSOUND *csound, int table, MYFLT *dest);
 
   /**
+   * Asynchronous version of csoundTableCopyOut()
+   */
+  PUBLIC void csoundTableCopyOutAsync(CSOUND *csound, int table, MYFLT *dest);
+  /**
    * Copy the contents of an array *src into a given function table
    * The table number is assumed to be valid, and the table needs to
    * have sufficient space to receive all the array contents.
    */
   PUBLIC void csoundTableCopyIn(CSOUND *csound, int table, MYFLT *src);
+
+  /**
+   * Asynchronous version of csoundTableCopyIn()
+   */
+  PUBLIC void csoundTableCopyInAsync(CSOUND *csound, int table, MYFLT *src);
 
   /**
    * Stores pointer to function table 'tableNum' in *tablePtr,
@@ -2116,7 +2266,8 @@ extern "C" {
    * that do little more than read or write such data, for example:
    *
    * @code
-   * static int lock = 0;
+   * static spin_lock_t lock = SPINLOCK_INIT;
+   * csoundSpinLockInit(&lock);
    * void write(size_t frames, int* signal)
    * {
    *   csoundSpinLock(&lock);
@@ -2127,90 +2278,24 @@ extern "C" {
    * }
    * @endcode
    */
+  PUBLIC int csoundSpinLockInit(spin_lock_t *spinlock);
 
-  /* PUBLIC void csoundSpinLock(int32_t *spinlock)   */
-  /* PUBLIC void csoundSpinUnlock(int32_t *spinlock) */
+  /**
+   * Locks the spinlock
+   */
+  PUBLIC void csoundSpinLock(spin_lock_t *spinlock);
 
-#if defined(MSVC)
+  /**
+   * Tries the lock, returns CSOUND_SUCCESS if lock could be acquired,
+      CSOUND_ERROR, otherwise.
+   */
+  PUBLIC int csoundSpinTryLock(spin_lock_t *spinlock);
 
-  /* This pragma must come before all public function declarations */
+  /**
+   * Unlocks the spinlock
+   */
+  PUBLIC void csoundSpinUnLock(spin_lock_t *spinlock);
 
-# pragma intrinsic(_InterlockedExchange)
-# define csoundSpinLock(spinlock)                       \
-  {                                                     \
-      while (_InterlockedExchange(spinlock, 1) == 1) {  \
-      }                                                 \
-  }
-# define csoundSpinUnLock(spinlock)             \
-  {                                             \
-      _InterlockedExchange(spinlock, 0);        \
-  }
-# define CSOUND_SPIN_LOCK static int32_t spinlock = 0; csoundSpinLock(&spinlock);
-# define CSOUND_SPIN_UNLOCK csoundSpinUnLock(&spinlock);
-
-#elif defined(__GNUC__) && defined(HAVE_PTHREAD_SPIN_LOCK)
-  //# if defined(SWIG)
-#  define csoundSpinLock(spinlock)                              \
-  {                                                             \
-      pthread_spin_lock((pthread_spinlock_t *)spinlock);        \
-  }
-#  define csoundSpinUnLock(spinlock)                            \
-  {                                                             \
-      pthread_spin_unlock((pthread_spinlock_t *)spinlock);      \
-  }
-#  define CSOUND_SPIN_LOCK static int32_t spinlock = 0; csoundSpinLock(&spinlock);
-#  define CSOUND_SPIN_UNLOCK csoundSpinUnLock(&spinlock);
-  //# else
-  //#  define csoundSpinLock(spinlock)
-  //     pthread_spin_lock((pthread_spinlock_t *)spinlock);
-  //#  define csoundSpinUnLock(spinlock)
-  //     pthread_spin_unlock((pthread_spinlock_t *)spinlock);
-  //#  define CSOUND_SPIN_LOCK
-  //#  define CSOUND_SPIN_UNLOCK
-  //#endif
-
-#elif defined(__GNUC__) && defined(HAVE_SYNC_LOCK_TEST_AND_SET)
-
-# define csoundSpinLock(spinlock)                               \
-  {                                                             \
-      while (__sync_lock_test_and_set(spinlock, 1) == 1) {      \
-      }                                                         \
-  }
-# define csoundSpinUnLock(spinlock)             \
-  {                                             \
-      __sync_lock_release(spinlock);            \
-  }
-# define CSOUND_SPIN_LOCK static int32_t spinlock = 0; csoundSpinLock(&spinlock);
-# define CSOUND_SPIN_UNLOCK csoundSpinUnLock(&spinlock);
-
-#elif defined(MACOSX)
-
-#ifndef SWIG
-
-#include <libkern/OSAtomic.h>
-
-#define csoundSpinLock(spinlock)                \
-  {                                             \
-      OSSpinLockLock(spinlock);                 \
-  }
-#define csoundSpinUnLock(spinlock)              \
-  {                                             \
-      OSSpinLockUnlock(spinlock);               \
-  }
-#define CSOUND_SPIN_LOCK static int32_t spinlock = 0; csoundSpinLock(&spinlock);
-
-#define CSOUND_SPIN_UNLOCK csoundSpinUnLock(&spinlock);
-#endif
-#else
-
-  /* We do not know the configuration,      */
-  /* so we define these symbols as nothing. */
-# define csoundSpinLock(spinlock)
-# define csoundSpinUnLock(spinlock)
-# define CSOUND_SPIN_LOCK
-# define CSOUND_SPIN_UNLOCK
-
-#endif
 
   /** @}*/
   /** @defgroup MISCELLANEOUS Miscellaneous functions
@@ -2381,13 +2466,14 @@ extern "C" {
 #include "version.h"
 
   /**
-   * Create circular buffer with numelem number of elements. The element's size is set
-   * from elemsize. It should be used like:
+   * Create circular buffer with numelem number of elements. The
+   * element's size is set from elemsize. It should be used like:
    *@code
    * void *rb = csoundCreateCircularBuffer(csound, 1024, sizeof(MYFLT));
    *@endcode
    */
-  PUBLIC void *csoundCreateCircularBuffer(CSOUND *csound, int numelem, int elemsize);
+  PUBLIC void *csoundCreateCircularBuffer(CSOUND *csound,
+                                          int numelem, int elemsize);
 
   /**
    * Read from circular buffer
@@ -2456,7 +2542,7 @@ extern "C" {
 
 #ifdef SWIGPYTHON
 
-  PUBLIC CSOUND *csoundGetInstance(long obj){ return (CSOUND *)obj; }
+  PUBLIC CSOUND *csoundGetInstance(int64_t obj){ return (CSOUND *)obj; }
 
 #endif
 
@@ -2490,8 +2576,8 @@ extern "C" {
    */
   PUBLIC void csoundSetInputValueCallback(CSOUND *,
                                           void (*inputValueCalback_)(CSOUND *,
-                                                                     const char *channelName,
-                                                                     MYFLT *value));
+                                                         const char *channelName,
+                                                         MYFLT *value));
 
   /**
    * Called by external software to set a function for Csound to
@@ -2504,8 +2590,8 @@ extern "C" {
    */
   PUBLIC void csoundSetOutputValueCallback(CSOUND *,
                                            void (*outputValueCalback_)(CSOUND *,
-                                                                       const char *channelName,
-                                                                       MYFLT value));
+                                                           const char *channelName,
+                                                           MYFLT value));
 
   /**
    * Sets callback function to be called by the opcodes 'chnsend' and

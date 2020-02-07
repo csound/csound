@@ -17,8 +17,8 @@
 
     You should have received a copy of the GNU Lesser General Public
     License along with Csound; if not, write to the Free Software
-    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
-    02111-1307 USA
+    Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
+    02110-1301 USA
 */
 
 #ifndef CSOUND_MSG_ATTR_H
@@ -36,6 +36,8 @@
 #define CSOUNDMSG_REALTIME      (0x3000)
 /* warning messages */
 #define CSOUNDMSG_WARNING       (0x4000)
+/* stdount messages */
+#define CSOUNDMSG_STDOUT        (0x5000)
 
 /* format attributes (colors etc.), use the bitwise OR of any of these: */
 

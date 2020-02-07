@@ -17,8 +17,8 @@
 
     You should have received a copy of the GNU Lesser General Public
     License along with Csound; if not, write to the Free Software
-    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
-    02111-1307 USA
+    Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
+    02110-1301 USA
 */
 
 /********************************************/
@@ -30,18 +30,18 @@
 typedef struct CONTROL_GLOBALS_ {
     CSOUND  *csound;
     char    cmd[100];
-    int     wish_pid;
-    int     pip1[2];
-    int     pip2[2];
+    int32_t    wish_pid;
+    int32_t    pip1[2];
+    int32_t    pip2[2];
     FILE    *wish_cmd, *wish_res;
-    int     *values;
-    int     *minvals;
-    int     *maxvals;
-    int     max_sliders;
-    int     *buttons;
-    int     *checks;
-    int     max_button;
-    int     max_check;
+    int32_t    *values;
+    int32_t    *minvals;
+    int32_t    *maxvals;
+    int32_t    max_sliders;
+    int32_t    *buttons;
+    int32_t    *checks;
+    int32_t    max_button;
+    int32_t    max_check;
 } CONTROL_GLOBALS;
 
 typedef struct {

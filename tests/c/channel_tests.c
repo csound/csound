@@ -23,8 +23,7 @@ void test_control_channel_params(void)
     csoundSetOption(csound, "--logfile=NULL");
     //int argc = 2;
     csoundCompileOrc(csound, orc1);
-    int err = csoundStart(csound);
-    CU_ASSERT(err == CSOUND_SUCCESS);
+    CU_ASSERT(csoundStart(csound) == CSOUND_SUCCESS);
     controlChannelHints_t hints;
     hints.behav = CSOUND_CONTROL_CHANNEL_INT;
     hints.dflt = 5;
@@ -53,8 +52,7 @@ void test_control_channel(void)
     csoundSetOption(csound, "--logfile=null");
     //int argc = 2;
     csoundCompileOrc(csound, orc1);
-    int err = csoundStart(csound);
-    CU_ASSERT(err == CSOUND_SUCCESS);
+    CU_ASSERT(csoundStart(csound) == CSOUND_SUCCESS);
     csoundSetControlChannel(csound, "testing", 5.0);
     CU_ASSERT_EQUAL(5.0, csoundGetControlChannel(csound, "testing", NULL));
 
@@ -73,8 +71,7 @@ void test_channel_list(void)
     csoundSetOption(csound, "--logfile=null");
     //int argc = 2;
     csoundCompileOrc(csound, orc2);
-    int err = csoundStart(csound);
-    CU_ASSERT(err == CSOUND_SUCCESS);
+    CU_ASSERT(csoundStart(csound) == CSOUND_SUCCESS);
     controlChannelInfo_t *lst;
     int numchnls = csoundListChannels(csound, &lst);
     CU_ASSERT(numchnls == 2);
@@ -102,6 +99,8 @@ void inputCallback(CSOUND *csound,
                    void *channelValuePtr,
                    void *channelType)
 {
+  (void) csound;
+    (void) channelType;
     if (strcmp(channelName, "intest") == 0 /*&& channelType == &CS_VAR_TYPE_K*/) {
         MYFLT *v = (MYFLT *) channelValuePtr;
         *v = 5.0;
@@ -117,6 +116,7 @@ void outputCallback(CSOUND *csound,
                    void *channelValuePtr,
                    void *channelType)
 {
+  (void) channelType; (void) csound;
     if (strcmp(channelName, "intest") == 0 /*&& channelType == &CS_VAR_TYPE_K*/) {
         MYFLT *v = (MYFLT *) channelValuePtr;
         CU_ASSERT_DOUBLE_EQUAL(*v, 5.0, 0.0000001);
@@ -180,6 +180,7 @@ void inputCallback2(CSOUND *csound,
                    void *channelValuePtr,
                    void *channelType)
 {
+     (void) channelType;
     MYFLT val = csoundGetControlChannel(csound, channelName, NULL);
     MYFLT *valPtr = (MYFLT *) channelValuePtr;
     *valPtr = val;
@@ -190,6 +191,7 @@ void outputCallback2(CSOUND *csound,
                    void *channelValuePtr,
                    void *channelType)
 {
+     (void) channelType;
     MYFLT *valPtr = (MYFLT *) channelValuePtr;
     csoundSetControlChannel(csound, channelName, *valPtr);
 }
@@ -297,7 +299,7 @@ void test_chn_hints(void)
     csoundCreateMessageBuffer(csound, 0);
     csoundSetOption(csound, "--logfile=null");
     csoundCompileOrc(csound, orc6);
-    int err = csoundStart(csound);
+    (void)csoundStart(csound);
 //    err = csoundPerformKsmps(csound); //Need this to load instr 0
     controlChannelHints_t hints;
     hints.attributes = 0;
@@ -356,8 +358,7 @@ void test_string_channel(void)
     csoundDestroy(csound);
 }
 
-
-int main()
+int main(void)
 {
    CU_pSuite pSuite = NULL;
 

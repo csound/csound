@@ -17,8 +17,8 @@
 
     You should have received a copy of the GNU Lesser General Public
     License along with Csound; if not, write to the Free Software
-    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
-    02111-1307 USA
+    Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
+    02110-1301 USA
 */
 
 /* the smoothsort is from the Web
@@ -231,6 +231,7 @@ static void smoothsort(SRTBLK *A[], const int N)
     /* element 0 processed */
 }
 
+
 void sort(CSOUND *csound)
 {
     SRTBLK *bp;
@@ -240,7 +241,7 @@ void sort(CSOUND *csound)
       return;
     do {
       n++;                      /* Need to count to alloc the array */
-      switch (bp->text[0]) {
+      switch ((int) bp->text[0]) {
       case 'd':
       case 'i':
         if (bp->insno < 0)
@@ -261,6 +262,9 @@ void sort(CSOUND *csound)
       case 's':
         bp->preced = 'a';
         break;
+      case 'x':
+        n--;
+        break;
       case -1:
       case 'y':
         break;
@@ -275,8 +279,10 @@ void sort(CSOUND *csound)
       /* Get a temporary array and populate it */
       A = ((SRTBLK**) csound->Malloc(csound, n*sizeof(SRTBLK*)));
       bp = csound->frstbp;
-      for (i=0; i<n; i++,bp = bp->nxtblk)
+      for (i=0; i<n; i++,bp = bp->nxtblk) {
         A[i] = bp;
+        if (bp->text[0]=='x') i--; /* try to ignore x opcode */
+      }
       if (LIKELY(A[n-1]->text[0]=='e' || A[n-1]->text[0]=='s'))
         smoothsort(A, n-1);
       else
@@ -286,7 +292,7 @@ void sort(CSOUND *csound)
       for (i=1; i<n-1; i++ ) {
         bp = A[i]; bp->prvblk = A[i-1]; bp->nxtblk = A[i+1];
       }
-      if (n>1) bp = A[n-1]; bp->nxtblk = NULL; bp->prvblk = A[n-2];
+      if (n>1) { bp = A[n-1]; } bp->nxtblk = NULL; bp->prvblk = A[n-2];
       /* and return temporary space */
       csound->Free(csound, A);
 

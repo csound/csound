@@ -17,8 +17,8 @@
 
   You should have received a copy of the GNU Lesser General Public
   License along with Csound; if not, write to the Free Software
-  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
-  02111-1307 USA
+  Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
+  02110-1301 USA
 */
 
 #include <csdl.h>
@@ -49,8 +49,8 @@ PUBLIC int csoundModuleCreate(CSOUND *csound)
       csound->Message(csound, Str("PulseAudio client RT IO module for Csound"
                                   "by Victor Lazzarini\n"));
 
-    if (csound->CreateGlobalVariable(csound, "_pulse_globals",
-                                     sizeof(pulse_globals)) != 0) {
+    if (UNLIKELY(csound->CreateGlobalVariable(csound, "_pulse_globals",
+                                              sizeof(pulse_globals)) != 0)) {
       csound->ErrorMsg(csound, Str(" *** rtpulse: error allocating globals"));
       return -1;
     }
@@ -137,7 +137,7 @@ static int pulse_playopen(CSOUND *csound, const csRtAudioParams *parm)
                                &pulserror
                                ) ;
 
-    if (pulse->ps){
+    if (LIKELY(pulse->ps)){
       csound->Message(csound, Str("pulseaudio output open\n"));
       return 0;
     }
@@ -233,7 +233,7 @@ static int pulse_recopen(CSOUND *csound, const csRtAudioParams *parm)
                                /*&attr*/ NULL,
                                &pulserror );
 
-    if (pulse->ps) return 0;
+    if (LIKELY(pulse->ps)) return 0;
     else {
       csound->ErrorMsg(csound,Str("Pulse audio module error: %s\n"),
                        pa_strerror(pulserror));

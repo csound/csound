@@ -17,8 +17,8 @@
 
     You should have received a copy of the GNU Lesser General Public
     License along with Csound; if not, write to the Free Software
-    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
-    02111-1307 USA
+    Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
+    02110-1301 USA
 */
 
 /****************************************************************/
@@ -34,7 +34,7 @@
 
 /* Predeclare static supporting functions */
 
-void    Polar2Real_PVOC(CSOUND *, MYFLT *, int);
+void    Polar2Real_PVOC(CSOUND *, MYFLT *, int32_t);
 void    RewrapPhase(MYFLT *, int32, MYFLT *);
 void    FrqToPhase(MYFLT *, int32, MYFLT, MYFLT, MYFLT);
 void    FetchIn(float *, MYFLT *, int32, MYFLT);

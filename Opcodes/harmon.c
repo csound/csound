@@ -17,8 +17,8 @@
 
     You should have received a copy of the GNU Lesser General Public
     License along with Csound; if not, write to the Free Software
-    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
-    02111-1307 USA
+    Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
+    02110-1301 USA
 */
 
 #include "csoundCore.h"
@@ -55,10 +55,10 @@ typedef struct {
         VOCDAT  vocdat[VOCMAX], *vlim;
         int16   pbufcnt, maxprd, pulslen, switching;
         AUXCH   auxch;
-        int     hmrngflg;
+        int32_t     hmrngflg;
 } HARM234;
 
-/* static void print_data(HARM234* p, int x) */
+/* static void print32_t32_t32_t_data(HARM234* p, int32_t x) */
 /* { */
 /*     printf("DATA %d\n=======\n", x); */
 /*     printf("nbufsmps, n2bufsmps, period, cpsmode, polarity, poslead " */
@@ -76,7 +76,7 @@ typedef struct {
 /*     printf("pbufcnt, maxprd, pulslen, switching = %d, %d, %d, %d, %d\n", */
 /*            p->pbufcnt, p->maxprd, p->pulslen, p->switching, p->hmrngflg); */
 /*     //AUXCH   auxch; */
-/*     //int     hmrngflg; */
+/*     //int32_t     hmrngflg; */
 /*     printf("pulse: %p %p %p %p; %d %d %d %d\n", */
 /*            p->puldat[0].srcp, p->puldat[1].srcp, */
 /*            p->puldat[2].srcp, p->puldat[3].srcp, */
@@ -95,7 +95,7 @@ typedef struct {
 #define SLEN    256
 #define LCNT    75
 
-static int hm234set(CSOUND *csound, HARM234 *p)
+static int32_t hm234set(CSOUND *csound, HARM234 *p)
 {
     MYFLT minoct = p->minoct;
     p->hmrngflg = 0;
@@ -143,7 +143,7 @@ static int hm234set(CSOUND *csound, HARM234 *p)
     return OK;
 }
 
-static int harmon234(CSOUND *csound, HARM234 *p)
+static int32_t harmon234(CSOUND *csound, HARM234 *p)
 {
     MYFLT       *outp, *dirp;
     MYFLT       *inp1, *inp2;
@@ -313,7 +313,7 @@ static int harmon234(CSOUND *csound, HARM234 *p)
         signdx = FL(0.0);                       /*      & store extended pulse  */
         siginc = (MYFLT)SLEN / sigdist;
         for (nn = sigdist; nn--; signdx += siginc) {
-          MYFLT *sigp = p->sigmoid + (int)signdx;
+          MYFLT *sigp = p->sigmoid + (int32_t)signdx;
           *bufp++ = *x++ * *sigp;               /*      w. sigmoid-envlpd ends  */
         }
         //memcpy(bufp, x, sizeof(MYFLT)*ndirect);
@@ -321,7 +321,7 @@ static int harmon234(CSOUND *csound, HARM234 *p)
           *bufp++ = *x++;
         signdx = (MYFLT)SLEN - siginc;
         for (nn = sigdist; nn--; signdx -= siginc) {
-          MYFLT *sigp = p->sigmoid + (int)signdx;
+          MYFLT *sigp = p->sigmoid + (int32_t)signdx;
           *bufp++ = *x++ * *sigp;
         }
         p->pulslen = pulslen;
@@ -410,7 +410,7 @@ static int harmon234(CSOUND *csound, HARM234 *p)
     return OK;
 }
 
-int harm2set(CSOUND *csound, HARM234 *p)
+int32_t harm2set(CSOUND *csound, HARM234 *p)
 {
     VOCDAT *vdp = p->vocdat;
     vdp->kfrq = p->kfrq1;       vdp->phase = 0; vdp++;
@@ -422,7 +422,7 @@ int harm2set(CSOUND *csound, HARM234 *p)
     return hm234set(csound, p);
 }
 
-int harm3set(CSOUND *csound, HARM234 *p)
+int32_t harm3set(CSOUND *csound, HARM234 *p)
 {
     VOCDAT *vdp = p->vocdat;
     vdp->kfrq = p->kfrq1;       vdp->phase = 0; vdp++;
@@ -439,7 +439,7 @@ int harm3set(CSOUND *csound, HARM234 *p)
     return hm234set(csound, p);
 }
 
-int harm4set(CSOUND *csound, HARM234 *p)
+int32_t harm4set(CSOUND *csound, HARM234 *p)
 {
     VOCDAT *vdp = p->vocdat;
     vdp->kfrq = p->kfrq1;       vdp->phase = 0; vdp++;
@@ -455,10 +455,11 @@ int harm4set(CSOUND *csound, HARM234 *p)
 
 #define S(x)    sizeof(x)
 
-static OENTRY harmon_localops[] = {
-  { "harmon2",S(HARM234),0,5,"a","akkkiip",  (SUBR)harm2set,NULL, (SUBR)harmon234 },
-  { "harmon3",S(HARM234),0,5,"a","akkkkiip", (SUBR)harm3set,NULL, (SUBR)harmon234 },
-  { "harmon4",S(HARM234),0,5,"a","akkkkkiip",(SUBR)harm4set,NULL, (SUBR)harmon234 },
+static OENTRY harmon_localops[] =
+  {
+   { "harmon2",S(HARM234),0,3,"a","akkkiip",  (SUBR)harm2set, (SUBR)harmon234 },
+   { "harmon3",S(HARM234),0,3,"a","akkkkiip", (SUBR)harm3set, (SUBR)harmon234 },
+   { "harmon4",S(HARM234),0,3,"a","akkkkkiip",(SUBR)harm4set, (SUBR)harmon234 },
 };
 
 LINKAGE_BUILTIN(harmon_localops)

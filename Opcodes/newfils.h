@@ -1,7 +1,7 @@
 /*  newfils.h:
     Filter opcodes
 
-    (c) Victor Lazzarini, 2004
+    Copyright (c) Victor Lazzarini, 2004
 
     This file is part of Csound.
 
@@ -17,8 +17,8 @@
 
     You should have received a copy of the GNU Lesser General Public
     License along with Csound; if not, write to the Free Software
-    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
-    02111-1307 USA
+    Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
+    02110-1301 USA
 */
 
 /*
@@ -104,8 +104,8 @@ typedef struct _moogladder {
   double  oldtune;
 } moogladder;
 
-static int moogladder_init(CSOUND *csound,moogladder *p);
-static int moogladder_process(CSOUND *csound,moogladder *p);
+static int32_t moogladder_init(CSOUND *csound,moogladder *p);
+static int32_t moogladder_process(CSOUND *csound,moogladder *p);
 
 typedef struct _statevar {
   OPDS    h;
@@ -122,15 +122,15 @@ typedef struct _statevar {
   double  bpd;
   double  lpd;
   double  lp;
-  int     ostimes;
+  int32_t     ostimes;
   MYFLT   oldfreq;
   MYFLT   oldres;
   double  oldq;
   double  oldf;
 } statevar;
 
-static int statevar_init(CSOUND *csound,statevar *p);
-static int statevar_process(CSOUND *csound,statevar *p);
+static int32_t statevar_init(CSOUND *csound,statevar *p);
+static int32_t statevar_process(CSOUND *csound,statevar *p);
 
 typedef struct _fofilter {
   OPDS    h;
@@ -144,8 +144,9 @@ typedef struct _fofilter {
   double  delay[4];
 } fofilter;
 
-static int fofilter_init(CSOUND *csound,fofilter *p);
-static int fofilter_process(CSOUND *csound,fofilter *p);
+static int32_t fofilter_init(CSOUND *csound,fofilter *p);
+static int32_t
+fofilter_process(CSOUND *csound,fofilter *p);
 
 #endif
 

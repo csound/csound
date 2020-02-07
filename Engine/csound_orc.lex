@@ -20,8 +20,8 @@
 
     You should have received a copy of the GNU Lesser General Public
     License along with Csound; if not, write to the Free Software
-    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
-    02111-1307 USA
+    Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
+    02110-1301 USA
 */
 
 #include <stdio.h>
@@ -104,7 +104,6 @@ SYMBOL          [\(\)\[\]+\-*/%\^\?:.,!]
 <INITIAL>"\n"            { csound_orcset_lineno(1+csound_orcget_lineno(yyscanner),
                                        yyscanner);
                   return NEWLINE; }
-
 "->"            { return S_ELIPSIS; }
 
 "!="            { return S_NEQ; }
@@ -129,7 +128,7 @@ SYMBOL          [\(\)\[\]+\-*/%\^\?:.,!]
 "#"             { return '#'; }
 "¬"             { return '~'; } /* \xC2?\xAC */
 "~"             { return '~'; }
-                     
+
 "@@"{OPTWHITE}{INTGR}     { *lvalp = do_at(csound, 1, yyg); return INTEGER_TOKEN; }
 "@"{OPTWHITE}{INTGR}      { *lvalp = do_at(csound, 0, yyg); return INTEGER_TOKEN; }
 "@i"            { return T_MAPI; }
@@ -137,6 +136,7 @@ SYMBOL          [\(\)\[\]+\-*/%\^\?:.,!]
 "if"            { *lvalp = make_token(csound, yytext);
                   (*lvalp)->type = IF_TOKEN;
                   return IF_TOKEN; }
+
 "then"          { *lvalp = make_token(csound, yytext);
                   (*lvalp)->type = THEN_TOKEN;
                   return THEN_TOKEN; }
@@ -206,7 +206,7 @@ SYMBOL          [\(\)\[\]+\-*/%\^\?:.,!]
                 }
 
 <xstr>{
-  
+
   "}}"   {
                   BEGIN(INITIAL);
                   PARM->xstrbuff[PARM->xstrptr++] = '"';
@@ -322,8 +322,8 @@ SYMBOL          [\(\)\[\]+\-*/%\^\?:.,!]
                         break;
                       }
                     }
-                    else if (ch=='\n') {
-                      if (n>=cnt-2) buff = realloc(buff, cnt+=20);
+                    else if (UNLIKELY(ch=='\n')) {
+                      if (UNLIKELY(n>=cnt-2)) buff = realloc(buff, cnt+=20);
                       buff[n++] = '"';
                       buff[n] = '\0';
                       csound->Message(csound,
@@ -332,7 +332,7 @@ SYMBOL          [\(\)\[\]+\-*/%\^\?:.,!]
                       break;
                     }
                     else {
-                      if (n>=cnt-2) buff = realloc(buff, cnt+=20);
+                      if (UNLIKELY(n>=cnt-2)) buff = realloc(buff, cnt+=20);
                       buff[n++] = ch;
                     }
                   }
@@ -396,11 +396,13 @@ SYMBOL          [\(\)\[\]+\-*/%\^\?:.,!]
 
 %%
 
+  /* unused at the moment
 static inline int isNameChar(int c, int pos)
 {
     c = (int) ((unsigned char) c);
     return (isalpha(c) || (pos && (c == '_' || isdigit(c))));
 }
+  */
 
 ORCTOKEN *new_token(CSOUND *csound, int type)
 {
@@ -425,7 +427,7 @@ ORCTOKEN *make_label(CSOUND *csound, char *s)
     *(ps+1) = '\0';
     len = strlen(s);
     ans->lexeme = (char*)csound->Calloc(csound, len);
-    strncpy(ans->lexeme, s, len-1); /* Not the trailing colon */
+    strNcpy(ans->lexeme, s, len); /* Not the trailing colon */
     return ans;
 }
 
@@ -454,7 +456,7 @@ ORCTOKEN *do_at(CSOUND *csound, int k, struct yyguts_t *yyg)
     sprintf(buf, "%d", i+k);
     len = strlen(buf);
     ans->lexeme = (char*)csound->Calloc(csound, len + 1);
-    strncpy(ans->lexeme, buf, len);
+    strNcpy(ans->lexeme, buf, len+1);
     ans->value = i;
     return ans;
 }
@@ -465,7 +467,7 @@ ORCTOKEN *make_int(CSOUND *csound, char *s)
     ORCTOKEN *ans = new_token(csound, INTEGER_TOKEN);
     int len = strlen(s);
     ans->lexeme = (char*)csound->Calloc(csound, len + 1);
-    strncpy(ans->lexeme, s, len);
+    strNcpy(ans->lexeme, s, len+1);
     ans->value = n;
     return ans;
 }
@@ -476,7 +478,7 @@ ORCTOKEN *make_num(CSOUND *csound, char *s)
     ORCTOKEN *ans = new_token(csound, NUMBER_TOKEN);
     int len = strlen(s);
     ans->lexeme = (char*)csound->Calloc(csound, len + 1);
-    strncpy(ans->lexeme, s, len);
+    strNcpy(ans->lexeme, s, len+1);
     ans->fvalue = n;
     return ans;
 }

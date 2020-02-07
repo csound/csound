@@ -9,7 +9,7 @@
 static  int     nr_infiles = 0;
 static  int     max_infiles = 0;
 static  char    **infile_names = NULL;
-
+static  int     style      = 0;
 static  int     output_is_stdout = 1;
 static  char    *outflname = NULL;
 static  FILE    *outfile = NULL;
@@ -52,6 +52,14 @@ int main(int argc, char **argv)
         else
           output_is_stdout = 0;
       }
+      else if (!strcmp(argv[i], "-s")) {
+        if (!(--j)) {
+          fprintf(stderr, "csb64enc: missing option for -s\n");
+          exit(-1);
+        }
+        i++;
+        style = atoi(argv[i]);
+      }
       else {                                    /* input file name */
         if (*(argv[i]) == '-') {
           fprintf(stderr, "csb64enc: invalid option: %s\n", argv[i]);
@@ -81,6 +89,9 @@ int main(int argc, char **argv)
               "    -w <n>      set line width to n (default: 72)\n");
       fprintf(stderr,
               "    -o <fname>  output file name (default: stdout)\n");
+      fprintf(stderr,
+              "    -s <n>      output style to 0 (CsFileB default)\n"
+              "                or 2 (CsFileC) or 1 (MIDI)\n");
       exit(-1);
     }
     /* open output file */
@@ -96,7 +107,7 @@ int main(int argc, char **argv)
       outfile = stdout;
     /* encode all input files */
     for (i = 0; i < nr_infiles; i++)
-      encode_file(infile_names[i], outfile, 0);
+      encode_file(infile_names[i], outfile, style);
     /* close output file */
     if (!output_is_stdout) {
       fflush(outfile);

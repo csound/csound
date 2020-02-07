@@ -17,8 +17,8 @@
 
     You should have received a copy of the GNU Lesser General Public
     License along with Csound; if not, write to the Free Software
-    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
-    02111-1307 USA
+    Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
+    02110-1301 USA
 */
 
 #include "csoundCore.h"         /*                  RDSCORSTR.C */
@@ -35,13 +35,15 @@ char* get_arg_string(CSOUND *csound, MYFLT p)
     }
     ss = ip->strarg;  /* look at this instr's strarg */
 
-    union {
-      MYFLT d;
-      int32 i;
-    } ch;
-    ch.d = p; n = ch.i&0xffff;
-    while (n-- > 0) {
-      ss += strlen(ss)+1;
+    {
+      union {
+        MYFLT d;
+        int32 i;
+      } ch;
+      ch.d = p; n = ch.i&0xffff;
+      while (n-- > 0) {
+        ss += strlen(ss)+1;
+      }
     }
     return ss;
 }
@@ -62,7 +64,7 @@ static int scanflt(CSOUND *csound, MYFLT *pfld)
     while ((c = corfile_getc(csound->scstr)) == ' ' ||
            c == '\t')  /* skip leading white space */
         ;
-    if (c == ';') {             /* Comments terminate line */
+    if (UNLIKELY(c == ';')) {             /* Comments terminate line */
       flushline(csound);
       return 0;
     }
@@ -74,7 +76,20 @@ static int scanflt(CSOUND *csound, MYFLT *pfld)
       while (n--!=0) sstrp += strlen(sstrp)+1;
       n = sstrp-csound->sstrbuf;
       while ((c = corfile_getc(csound->scstr)) != '"') {
-        //if (c=='\\') c = corfile_getc(csound->scstr);
+        if (c=='\\') { c = corfile_getc(csound->scstr);
+          switch (c) {
+          case '"': c = '"'; break;
+          case '\'': c = '\''; break;
+          case '\\': c = '\\'; break;
+          case 'a': c = '\a'; break;
+          case 'b': c = '\b'; break;
+          case 'f': c = '\f'; break;
+          case 'n': c = '\n'; break;
+          case 'r': c = '\r'; break;
+          case 't': c = '\t'; break;
+          case 'v': c = '\v'; break;
+          }
+        }
         *sstrp++ = c;
         n++;
         if (n > csound->strsiz-10) {
@@ -136,8 +151,10 @@ int rdscor(CSOUND *csound, EVTBLK *e) /* read next score-line from scorefile */
       e->p[2] = FL(INF);
       e->p2orig = FL(INF);
       e->pcnt = 2;
+
       return(1);
     }
+
   /* else read the real score */
     while ((c = corfile_getc(csound->scstr)) != '\0') {
       csound->scnt = 0;
@@ -179,7 +196,6 @@ int rdscor(CSOUND *csound, EVTBLK *e) /* read next score-line from scorefile */
       case 'e':
         e->opcod = c;
         e->pcnt = 0;
-
         return(1);
       case EOF:                          /* necessary for cscoreGetEvent */
         return(0);
@@ -211,7 +227,7 @@ int rdscor(CSOUND *csound, EVTBLK *e) /* read next score-line from scorefile */
                                        (int)e->p[1],(int)e->p[2],
                                        (int)e->p[3],(int)e->p[4]);
                       new = (MYFLT*) csound->Malloc(csound, sizeof(MYFLT)*PMAX);
-                      if (new==NULL) {
+                      if (UNLIKELY(new==NULL)) {
                         fprintf(stderr, Str("Out of Memory\n"));
                         exit(7);
                       }
@@ -256,10 +272,10 @@ int rdscor(CSOUND *csound, EVTBLK *e) /* read next score-line from scorefile */
           return 1;
         }
         e->pcnt = pp - &e->p[0];                   /* count the pfields */
-        if (e->pcnt>=PMAX) e->pcnt += e->c.extra[0]; /* and overflow fields */
+        if (UNLIKELY(e->pcnt>=PMAX))
+          e->pcnt += e->c.extra[0];                /* and overflow fields */
         if (csound->sstrlen) {        /* if string arg present, save it */
-          e->strarg = csound->Malloc(csound, csound->sstrlen); /* FIXME:       */
-          memcpy(e->strarg, csound->sstrbuf, csound->sstrlen); /* leaks memory */
+          e->strarg = csound->sstrbuf; csound->sstrbuf = NULL;
           e->scnt = csound->scnt;
           csound->sstrlen = 0;
         }
@@ -267,6 +283,6 @@ int rdscor(CSOUND *csound, EVTBLK *e) /* read next score-line from scorefile */
         return 1;
       }
     }
-    corfile_rm(&(csound->scstr));
+    corfile_rm(csound, &(csound->scstr));
     return 0;
 }

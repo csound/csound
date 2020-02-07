@@ -17,8 +17,8 @@
 
     You should have received a copy of the GNU Lesser General Public
     License along with Csound; if not, write to the Free Software
-    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
-    02111-1307 USA
+    Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
+    02110-1301 USA
 */
 
 #include "csoundCore.h"
@@ -47,50 +47,50 @@ typedef struct {
         MYFLT   *avar, *kval, *kindx;
 } VASIG_SET;
 
-static int vaget(CSOUND *csound, VA_GET *p)
+static int32_t vaget(CSOUND *csound, VA_GET *p)
 {
     int32 ndx = (int32) MYFLOOR((double)*p->kindx);
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     if (UNLIKELY(ndx<(int32)offset || ndx>=(int32)(CS_KSMPS-early)))
-      return csound->PerfError(csound, p->h.insdshead,
+      return csound->PerfError(csound, &(p->h),
                                Str("Out of range in vaget (%d)"), ndx);
     *p->kout = p->avar[ndx];
     return OK;
 }
 
-static int vaset(CSOUND *csound, VA_SET *p)
+static int32_t vaset(CSOUND *csound, VA_SET *p)
 {
     int32 ndx = (int32) MYFLOOR((double)*p->kindx);
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     if (UNLIKELY(ndx<(int32)offset || ndx>=(int32)(CS_KSMPS-early)))
-      return csound->PerfError(csound, p->h.insdshead,
+      return csound->PerfError(csound, &(p->h),
                                Str("Out of range in vaset (%d)"), ndx);
     p->avar[ndx] = *p->kval;
     return OK;
 }
 
 
-static int vasigget(CSOUND *csound, VASIG_GET *p)
+static int32_t vasigget(CSOUND *csound, VASIG_GET *p)
 {
     int32 ndx = (int32) MYFLOOR((double)*p->kindx);
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     if (UNLIKELY(ndx<(int32)offset || ndx>=(int32)(CS_KSMPS-early)))
-      return csound->PerfError(csound, p->h.insdshead,
+      return csound->PerfError(csound, &(p->h),
                                Str("Out of range in vaget (%d)"), ndx);
     *p->kout = p->avar[ndx];
     return OK;
 }
 
-static int vasigset(CSOUND *csound, VASIG_SET *p)
+static int32_t vasigset(CSOUND *csound, VASIG_SET *p)
 {
     int32 ndx = (int32) MYFLOOR((double)*p->kindx);
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     if (UNLIKELY(ndx<(int32)offset || ndx>=(int32)(CS_KSMPS-early)))
-      return csound->PerfError(csound, p->h.insdshead,
+      return csound->PerfError(csound, &(p->h),
                                Str("Out of range in vaset (%d)"), ndx);
     p->avar[ndx] = *p->kval;
     return OK;
@@ -100,7 +100,7 @@ static int vasigset(CSOUND *csound, VASIG_SET *p)
 
 static OENTRY vaops_localops[] = {
   { "vaget", S(VA_GET),    0, 2,      "k", "ka",  NULL, (SUBR)vaget },
-  { "vaset", S(VA_SET),    0, 2,      "",  "kka", NULL, (SUBR)vaset },
+  { "vaset", S(VA_SET),    WI, 2,      "",  "kka", NULL, (SUBR)vaset },
   { "##array_get", S(VASIG_GET),    0, 2,      "k", "ak",  NULL, (SUBR)vasigget },
   { "##array_set", S(VASIG_SET),    0, 2,      "",  "akk", NULL, (SUBR)vasigset }
 };

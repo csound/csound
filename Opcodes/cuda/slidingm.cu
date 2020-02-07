@@ -18,8 +18,8 @@
 
   You should have received a copy of the GNU Lesser General Public
   License along with Csound; if not, write to the Free Software
-  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
-  02111-1307 USA
+  Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
+  02110-1301 USA
 */
 // slindingm.cu
 // experimental cuda opcodes
@@ -88,6 +88,9 @@ void checkcuda(CSOUND *csound, char* name, int line)
   }
 }
 
+#if !defined(__CUDA_ARCH__) || __CUDA_ARCH__ >= 600
+
+#else
 __device__ double atomicAdd(double* address, double val) { 
   unsigned long long int* address_as_ull = (unsigned long long int*)address; 
   unsigned long long int old = *address_as_ull, assumed; 
@@ -97,6 +100,7 @@ __device__ double atomicAdd(double* address, double val) {
   } while (assumed != old); 
   return __longlong_as_double(old); 
 }
+#endif
 
 __device__ complex conjugate(complex z)
 {

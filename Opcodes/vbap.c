@@ -17,8 +17,8 @@
 
     You should have received a copy of the GNU Lesser General Public
     License along with Csound; if not, write to the Free Software
-    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
-    02111-1307 USA
+    Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
+    02110-1301 USA
 */
 
 /* vbap.c
@@ -36,21 +36,24 @@ Re-written to take flexible number of outputs by JPff 2012 */
 #include <stdlib.h>
 #include "interlocks.h"
 
+#define MATSIZE (4)
+#define ATORAD  (TWOPI_F / FL(360.0))
+
 /* static void choose_ls_triplets(CSOUND *csound, ls *lss, */
 /*                                ls_triplet_chain **ls_triplets, */
-/*                                int ls_amount, int channels); */
-static int any_ls_inside_triplet(int, int, int, ls[], int);
-static void add_ldsp_triplet(CSOUND *csound, int i, int j, int k,
+/*                                int32_t ls_amount, int32_t channels); */
+static int32_t any_ls_inside_triplet(int32_t, int32_t, int32_t, ls[], int32_t);
+static void add_ldsp_triplet(CSOUND *csound, int32_t i, int32_t j, int32_t k,
                              ls_triplet_chain **ls_triplets,
                              ls *lss);
 static void calculate_3x3_matrixes(CSOUND *csound,
                                    ls_triplet_chain *ls_triplets,
-                                   ls lss[], int ls_amount, int ind);
+                                   ls lss[], int32_t ls_amount, int32_t ind);
 static void choose_ls_tuplets(CSOUND *csound, ls lss[],
                               ls_triplet_chain **ls_triplets,
-                              int ls_amount, int ind);
-static void sort_2D_lss(ls lss[], int sorted_lss[],
-                        int ls_amount);
+                              int32_t ls_amount, int32_t ind);
+static void sort_2D_lss(ls lss[], int32_t sorted_lss[],
+                        int32_t ls_amount);
 
 static inline MYFLT vec_prod(CART_VEC v1, CART_VEC v2)
 {
@@ -62,7 +65,7 @@ static inline MYFLT vec_length(CART_VEC v1)
     return SQRT(v1.x*v1.x + v1.y*v1.y + v1.z*v1.z);
 }
 
-static MYFLT *create_ls_table(CSOUND *csound, size_t cnt, int ind)
+static MYFLT *create_ls_table(CSOUND *csound, size_t cnt, int32_t ind)
 {
     char name[24];
     snprintf(name, 24, "vbap_ls_table_%d", ind);
@@ -75,13 +78,13 @@ static MYFLT *create_ls_table(CSOUND *csound, size_t cnt, int ind)
     return (MYFLT*) (csound->QueryGlobalVariableNoCheck(csound, name));
 }
 
-void calc_vbap_gns(int ls_set_am, int dim, LS_SET *sets,
-                   MYFLT *gains, int ls_amount,
+void calc_vbap_gns(int32_t ls_set_am, int dim, LS_SET *sets,
+                   MYFLT *gains, int32_t ls_amount,
                    CART_VEC cart_dir)
      /* Selects a vector base of a virtual source.
         Calculates gain factors in that base. */
 {
-    int i,j,k, tmp2;
+    int32_t i,j,k, tmp2;
     MYFLT vec[3], tmp;
     /* direction of the virtual source in cartesian coordinates*/
     vec[0] = cart_dir.x;
@@ -130,13 +133,13 @@ void calc_vbap_gns(int ls_set_am, int dim, LS_SET *sets,
     }
 
 
-        if (sets[j].set_gains[0]<=FL(0.0) &&
+    if (sets[j].set_gains[0]<=FL(0.0) &&
         sets[j].set_gains[1]<=FL(0.0) &&
         sets[j].set_gains[2]<=FL(0.0)) {
       sets[j].set_gains[0] = FL(1.0);
       sets[j].set_gains[1] = FL(1.0);
       sets[j].set_gains[2] = FL(1.0);
-      }
+    }
 
     memset(gains, 0, ls_amount*sizeof(MYFLT));
 
@@ -168,7 +171,7 @@ void normalize_wts(OUT_WTS *wts)
      /* performs equal-power normalization to gain factors*/
 {
     double tmp;
-
+    MYFLT tmp1;
     if (wts->wt1 < 0) wts->wt1 = FL(0.0);
     if (wts->wt2 < 0) wts->wt2 = FL(0.0);
     if (wts->wt3 < 0) wts->wt3 = FL(0.0);
@@ -178,29 +181,29 @@ void normalize_wts(OUT_WTS *wts)
     tmp += (double)wts->wt3 * wts->wt3;
 
     tmp = sqrt(tmp);
-    tmp = FL(1.0) / (MYFLT)tmp;
-    wts->wt1 *= (MYFLT)tmp;
-    wts->wt2 *= (MYFLT)tmp;
-    wts->wt3 *= (MYFLT)tmp;
+    tmp1 = (MYFLT)(1.0 / tmp);
+    wts->wt1 *= tmp1;
+    wts->wt2 *= tmp1;
+    wts->wt3 *= tmp1;
 }
 
 void angle_to_cart(ANG_VEC avec, CART_VEC *cvec)
      /* conversion */
 {
     /* length unattended */
-    MYFLT atorad = (TWOPI_F / FL(360.0));
-    cvec->x = (MYFLT) (cos((double) (avec.azi * atorad)) *
-                       cos((double) (avec.ele * atorad)));
-    cvec->y = (MYFLT) (sin((double) (avec.azi * atorad)) *
-                       cos((double) (avec.ele * atorad)));
-    cvec->z = (MYFLT) (sin((double) (avec.ele * atorad)));
+    //MYFLT atorad = (TWOPI_F / FL(360.0));
+    cvec->x = (MYFLT) (cos((double) (avec.azi * ATORAD)) *
+                       cos((double) (avec.ele * ATORAD)));
+    cvec->y = (MYFLT) (sin((double) (avec.azi * ATORAD)) *
+                       cos((double) (avec.ele * ATORAD)));
+    cvec->z = (MYFLT) (sin((double) (avec.ele * ATORAD)));
 }
 
 void cart_to_angle(CART_VEC cvec, ANG_VEC *avec)
      /* conversion */
 {
     MYFLT tmp, tmp2, tmp3, tmp4;
-    MYFLT atorad = (TWOPI_F / FL(360.0));
+    //MYFLT atorad = (TWOPI_F / FL(360.0));
 
     tmp3 = SQRT(FL(1.0) - cvec.z*cvec.z);
     if (FABS(tmp3) > FL(0.001)) {
@@ -219,11 +222,11 @@ void cart_to_angle(CART_VEC cvec, ANG_VEC *avec)
     tmp *= tmp2;
     if (FABS(tmp) <= PI_F) {
       avec->azi =  tmp;
-      avec->azi /= atorad;
+      avec->azi /= ATORAD;
     }
     avec->ele = ASIN(cvec.z);
     avec->length = SQRT(cvec.x * cvec.x + cvec.y * cvec.y + cvec.z * cvec.z);
-    avec->ele /= atorad;
+    avec->ele /= ATORAD;
 }
 
 void angle_to_cart_II(ANG_VEC *from, CART_VEC *to)
@@ -235,7 +238,7 @@ void angle_to_cart_II(ANG_VEC *from, CART_VEC *to)
     to->z= SIN(from->ele * ang2rad);
 }
 
-MYFLT vol_p_side_lgth(int i, int j,int k, ls  lss[] )
+MYFLT vol_p_side_lgth(int32_t i, int32_t j,int32_t k, ls  lss[] )
 {
   /* calculate volume of the parallelepiped defined by the loudspeaker
      direction vectors and divide it with total length of the triangle sides.
@@ -248,7 +251,7 @@ MYFLT vol_p_side_lgth(int i, int j,int k, ls  lss[] )
     lgth =    FABS(vec_angle(lss[i].coords,lss[j].coords))
             + FABS(vec_angle(lss[i].coords,lss[k].coords))
             + FABS(vec_angle(lss[j].coords,lss[k].coords));
-    if (lgth>FL(0.00001))
+    if (LIKELY(lgth>FL(0.00001)))
       return volper / lgth;
     else
       return FL(0.0);
@@ -256,7 +259,7 @@ MYFLT vol_p_side_lgth(int i, int j,int k, ls  lss[] )
 
 static void choose_ls_triplets(CSOUND *csound, ls *lss,
                                struct ls_triplet_chain **ls_triplets,
-                               int ls_amount)
+                               int32_t ls_amount)
   /* Selects the loudspeaker triplets, and
      calculates the inversion matrices for each selected triplet.
      A line (connection) is drawn between each loudspeaker. The lines
@@ -265,12 +268,12 @@ static void choose_ls_triplets(CSOUND *csound, ls *lss,
      longer connection is erased. This yields non-intesecting triangles,
      which can be used in panning.*/
 {
-    int i, j, k, l, table_size;
-    int *connections;
-/*  int *i_ptr; */
+    int32_t i, j, k, l, table_size;
+    int32_t *connections;
+/*  int32_t *i_ptr; */
     MYFLT *distance_table;
-    int *distance_table_i;
-    int *distance_table_j;
+    int32_t *distance_table_i;
+    int32_t *distance_table_j;
     MYFLT distance;
     struct ls_triplet_chain *trip_ptr, *prev, *tmp_ptr;
 
@@ -279,15 +282,15 @@ static void choose_ls_triplets(CSOUND *csound, ls *lss,
       return;
     }
 
-    connections = csound->Calloc(csound, ls_amount * ls_amount * sizeof(int));
+    connections = csound->Calloc(csound, ls_amount * ls_amount * sizeof(int32_t));
     distance_table =
       csound->Calloc(csound, ((ls_amount * (ls_amount - 1)) / 2)* sizeof(MYFLT));
     distance_table_i =
-      csound->Calloc(csound, ((ls_amount * (ls_amount - 1)) / 2)* sizeof(int));
+      csound->Calloc(csound, ((ls_amount * (ls_amount - 1)) / 2)* sizeof(int32_t));
     distance_table_j =
-      csound->Calloc(csound, ((ls_amount * (ls_amount - 1)) / 2)* sizeof(int));
+      csound->Calloc(csound, ((ls_amount * (ls_amount - 1)) / 2)* sizeof(int32_t));
 
-/*  i_ptr = (int *) connections; */
+/*  i_ptr = (int32_t *) connections; */
 /*  for (i=0;i< ((CHANNELS) * (CHANNELS )); i++) */
 /*    *(i_ptr++) = 0; */
 
@@ -336,8 +339,8 @@ static void choose_ls_triplets(CSOUND *csound, ls *lss,
        starting from shortest one and removing all that cross it,
        and proceeding to next shortest */
     for (i=0; i<(table_size); i++) {
-      int fst_ls = distance_table_i[i];
-      int sec_ls = distance_table_j[i];
+      int32_t fst_ls = distance_table_i[i];
+      int32_t sec_ls = distance_table_j[i];
       if (connections[fst_ls+ls_amount*sec_ls] == 1)
         for (j=0; j<ls_amount; j++)
           for (k=j+1; k<ls_amount; k++)
@@ -387,15 +390,15 @@ static void choose_ls_triplets(CSOUND *csound, ls *lss,
 
 /* returns 1 if there is loudspeaker(s) inside given ls triplet */
 
-static int any_ls_inside_triplet(int a, int b, int c, ls lss[],
-                                 int ls_amount)
+static int32_t any_ls_inside_triplet(int32_t a, int32_t b, int32_t c, ls lss[],
+                                 int32_t ls_amount)
 {
     MYFLT invdet;
     CART_VEC *lp1, *lp2, *lp3;
     MYFLT invmx[9];
-    int i,j;
+    int32_t i,j;
     MYFLT tmp;
-    int any_ls_inside, this_inside;
+    int32_t any_ls_inside, this_inside;
 
     lp1 =  &(lss[a].coords);
     lp2 =  &(lss[b].coords);
@@ -434,10 +437,11 @@ static int any_ls_inside_triplet(int a, int b, int c, ls lss[],
     return any_ls_inside;
 }
 
-static void add_ldsp_triplet(CSOUND *csound, int i, int j, int k,
+static void add_ldsp_triplet(CSOUND *csound, int32_t i, int32_t j, int32_t k,
                              struct ls_triplet_chain **ls_triplets,
                              ls lss[])
 {
+    IGN(lss);
     struct ls_triplet_chain *ls_ptr, *prev;
     ls_ptr = *ls_triplets;
     prev = NULL;
@@ -510,7 +514,7 @@ void vec_print(CSOUND *csound, CART_VEC v)
 
 }
 
-int lines_intersect(int i,int j,int k,int l,ls  lss[])
+int32_t lines_intersect(int32_t i,int32_t j,int32_t k,int32_t l,ls  lss[])
   /* checks if two lines intersect on 3D sphere
      see theory in paper Pulkki, V. Lokki, T. "Creating Auditory Displays
      with Multiple Loudspeakers Using VBAP: A Case Study with
@@ -561,8 +565,8 @@ int lines_intersect(int i,int j,int k,int l,ls  lss[])
     }
 }
 
-static inline int vbap_ls_init_sr (CSOUND *csound, int dim, int count,
-                            MYFLT **f, int layout)
+static inline int32_t vbap_ls_init_sr (CSOUND *csound, int32_t dim, int32_t count,
+                            MYFLT **f, int32_t layout)
      /* Inits the loudspeaker data. Calls choose_ls_tuplets or _triplets
         according to current dimension. The inversion matrices are
         stored in transposed form to ease calculation at run time.*/
@@ -572,15 +576,18 @@ static inline int vbap_ls_init_sr (CSOUND *csound, int dim, int count,
 
     ANG_VEC a_vector;
     CART_VEC c_vector;
-    int i=0,j;
+    int32_t i=0,j;
 
-    //dim = (int) *p->dim;
-    csound->Warning(csound, "dim : %d\n",dim);
+    //dim = (int32_t) *p->dim;
+    csound->Message(csound, "dim : %d\n",dim);
     if (UNLIKELY(!((dim==2) || (dim == 3)))) {
-      csound->ErrorMsg(csound, Str("Error in loudspeaker dimension."));
+      free(lss);
+      csound->ErrorMsg(csound,
+                       Str("Error in loudspeaker dimension. %d not permitted"),
+                       dim);
       return NOTOK;
     }
-    //count = (int) *p->ls_amount;
+    //count = (int32_t) *p->ls_amount;
     for (j=1;j<=count;j++) {
       if (dim == 3) {
         a_vector.azi= (MYFLT) *f[2*j-2];
@@ -597,9 +604,11 @@ static inline int vbap_ls_init_sr (CSOUND *csound, int dim, int count,
       lss[i].angles.azi = a_vector.azi;
       lss[i].angles.ele = a_vector.ele;
       lss[i].angles.length = FL(1.0);
+      /* printf("**** lss[%d]: (%g %g %g) %g %g\n", i, lss[i].coords.x, */
+      /*        lss[i].coords.y, lss[i].coords.z, a_vector.azi, a_vector.ele); */
       i++;
     }
-    //ls_amount = (int)*p->ls_amount;
+    //ls_amount = (int32_t)*p->ls_amount;
     if (UNLIKELY(count < dim)) {
       free(lss);
       csound->ErrorMsg(csound, Str("Too few loudspeakers"));
@@ -607,32 +616,33 @@ static inline int vbap_ls_init_sr (CSOUND *csound, int dim, int count,
     }
 
     if (dim == 3) {
-      choose_ls_triplets(csound, lss, &ls_triplets,count);
-      calculate_3x3_matrixes(csound, ls_triplets,lss,count, layout);
+      choose_ls_triplets(csound, lss, &ls_triplets, count);
+      calculate_3x3_matrixes(csound, ls_triplets, lss, count, layout);
     }
     else if (dim ==2) {
-      choose_ls_tuplets(csound, lss, &ls_triplets,count, layout);
+      choose_ls_tuplets(csound, lss, &ls_triplets, count, layout);
     }
     free(lss);
     return OK;
 }
 
-int vbap_ls_init (CSOUND *csound, VBAP_LS_INIT *p)
+int32_t vbap_ls_init (CSOUND *csound, VBAP_LS_INIT *p)
 {
-    int dim = (int) *p->dim;
+    int32_t dim = (int32_t) *p->dim;
     MYFLT  layout = (*p->dim-dim)*100;
-    return vbap_ls_init_sr(csound, dim, (int) *p->ls_amount, p->f, round(layout));
+    return vbap_ls_init_sr(csound, dim, (int32_t) *p->ls_amount,
+                           p->f, round(layout));
 }
 
-int vbap_ls_inita (CSOUND *csound, VBAP_LS_INITA *p)
+int32_t vbap_ls_inita (CSOUND *csound, VBAP_LS_INITA *p)
 {
-    int dim = (int) *p->dim;
+    int32_t dim = (int32_t) *p->dim;
     MYFLT  layout = (*p->dim-dim)*100;
-    int i, n = (int)*p->ls_amount;
+    int32_t i, n = (int32_t)*p->ls_amount;
     /* if (n>CHANNELS) */
     /*   return csound->InitError(csound, Str("Too many speakers (%n)\n"), n); */
-    if (n>p->a->sizes[0])
-      return csound->InitError(csound, Str("Too little data speakers (%n)\n"),
+    if (UNLIKELY(n>p->a->sizes[0]))
+      return csound->InitError(csound, Str("Too little data speakers (%d)\n"),
                               n>p->a->sizes[0]);
     MYFLT  **f = csound->Malloc(csound, 2*sizeof(MYFLT*)*n);
     // Transfer values to pointers
@@ -644,7 +654,7 @@ int vbap_ls_inita (CSOUND *csound, VBAP_LS_INITA *p)
 
 static void calculate_3x3_matrixes(CSOUND *csound,
                                    struct ls_triplet_chain *ls_triplets,
-                                   ls lss[], int ls_amount, int ind)
+                                   ls lss[], int32_t ls_amount, int32_t ind)
      /* Calculates the inverse matrices for 3D */
 {
     MYFLT invdet;
@@ -652,7 +662,7 @@ static void calculate_3x3_matrixes(CSOUND *csound,
     MYFLT *ls_table, *invmx;
     MYFLT *ptr;
     struct ls_triplet_chain *tr_ptr = ls_triplets;
-    int triplet_amount = 0, i,j,k;
+    int32_t triplet_amount = 0, i,j,k;
 
     if (UNLIKELY(tr_ptr == NULL)) {
       csound->ErrorMsg(csound, Str("Not valid 3-D configuration"));
@@ -706,7 +716,7 @@ static void calculate_3x3_matrixes(CSOUND *csound,
     for (i = 0; i < triplet_amount; i++) {
       csound->Warning(csound, Str("Triplet %d Loudspeakers: "), i);
       for (j = 0; j < 3; j++) {
-        csound->Warning(csound, "%d ", (int) ls_table[k++]);
+        csound->Warning(csound, "%d ", (int32_t) ls_table[k++]);
       }
       csound->Warning(csound, "\n");
 
@@ -722,34 +732,32 @@ static void calculate_3x3_matrixes(CSOUND *csound,
 static void choose_ls_tuplets(CSOUND *csound,
                               ls lss[],
                               ls_triplet_chain **ls_triplets,
-                              int ls_amount, int ind)
+                              int32_t ls_amount, int32_t ind)
      /* selects the loudspeaker pairs, calculates the inversion
         matrices and stores the data to a global array */
 {
-    int i, j, k;
-    int *sorted_lss = (int*)malloc(sizeof(int)*ls_amount);
-    int *exist = (int*)calloc(1,sizeof(int)*ls_amount);
-    int amount = 0;
-    MYFLT *inv_mat = (MYFLT*)malloc(4*sizeof(MYFLT)*ls_amount), *ls_table, *ptr;
-    //int ftable_size;
-
-    /* for (i=0;i<CHANNELS;i++) { */
-    /*   exist[i]=0; */
-    /* } */
+    IGN(ls_triplets);
+    int32_t i, j, k;
+    int32_t *sorted_lss = (int32_t*)malloc(sizeof(int32_t)*ls_amount);
+    int32_t *exist = (int32_t*)calloc(1,sizeof(int32_t)*ls_amount);
+    int32_t amount = 0;
+    MYFLT *inv_mat = (MYFLT*)malloc(MATSIZE*sizeof(MYFLT)*ls_amount),
+          *ls_table, *ptr;
+    //int32_t ftable_size;
 
     /* sort loudspeakers according their aximuth angle */
     sort_2D_lss(lss,sorted_lss,ls_amount);
 
     /* adjacent loudspeakers are the loudspeaker pairs to be used.*/
     for (i=0;i<(ls_amount-1);i++) {
-      /*csound->Message(csound, "%d %d %f %f\n",sorted_lss[i],sorted_lss[i+1],
-        lss[sorted_lss[i]].angles.azi,
-        lss[sorted_lss[i+1]].angles.azi);*/
+      csound->Message(csound, "***%d %d %f %f\n",sorted_lss[i],sorted_lss[i+1],
+                      lss[sorted_lss[i]].angles.azi,
+                      lss[sorted_lss[i+1]].angles.azi);
       if (LIKELY((lss[sorted_lss[i+1]].angles.azi -
                   lss[sorted_lss[i]].angles.azi) <= (PI - 0.0175))) {
         if (LIKELY(calc_2D_inv_tmatrix( lss[sorted_lss[i]].angles.azi,
                                         lss[sorted_lss[i+1]].angles.azi,
-                                        &inv_mat[4*i]) != 0)) {
+                                        &inv_mat[MATSIZE*i]) != 0)) {
           exist[i]=1;
           amount++;
         }
@@ -761,10 +769,10 @@ static void choose_ls_tuplets(CSOUND *csound,
 
     if (LIKELY(((TWOPI_F - lss[sorted_lss[ls_amount-1]].angles.azi)
                 +lss[sorted_lss[0]].angles.azi) < (PI - 0.0175))) {
-      //printf("less than PI type 2- 0.175\n");
+      //printf("**less than PI type 2- 0.175\n");
       if (LIKELY(calc_2D_inv_tmatrix(lss[sorted_lss[ls_amount-1]].angles.azi,
                                      lss[sorted_lss[0]].angles.azi,
-                                     &inv_mat[4*(ls_amount-1)]) != 0)) {
+                                     &inv_mat[MATSIZE*(ls_amount-1)]) != 0)) {
         exist[ls_amount-1]=1;
         amount++;
       }
@@ -773,8 +781,11 @@ static void choose_ls_tuplets(CSOUND *csound,
                           lss[sorted_lss[ls_amount-1]].angles.azi*FL(180.0)/PI_F,
                           lss[sorted_lss[0]].angles.azi*FL(180.0)/PI_F);
 
-    if (UNLIKELY(amount==0))
+    if (UNLIKELY(amount==0)) {
       csound->InitError(csound, Str("insufficient valid speakers"));
+      free(sorted_lss); free(exist); free(inv_mat);
+      return;
+    }
 
 #if 0
     if ( amount*6 + 6 <= 16) ftable_size = 16;
@@ -786,7 +797,7 @@ static void choose_ls_tuplets(CSOUND *csound,
     csound->Message(csound,
                     "Loudspeaker matrices calculated with configuration : ");
     for (i=0; i< ls_amount; i++)
-      csound->Message(csound, "%.1f ", lss[i].angles.azi / atorad);
+      csound->Message(csound, "%.1f ", lss[i].angles.azi / ATORAD);
     csound->Message(csound, "\n");
 #endif
     ls_table = create_ls_table(csound, amount * 6 + 3 + 100, ind);
@@ -798,30 +809,33 @@ static void choose_ls_tuplets(CSOUND *csound,
       if (exist[i] == 1) {
         *(ptr++) = (MYFLT)sorted_lss[i]+1;
         *(ptr++) = (MYFLT)sorted_lss[i+1]+1;
-        for (j=0;j<4;j++) {
-          *(ptr++) = inv_mat[i*ls_amount+j];
+        for (j=0;j<MATSIZE;j++) {
+          /*printf("iv_mat i=%d a=%d [%d] %f\n",
+            i, ls_amount, i*MATSIZE+j, inv_mat[i*ls_amount+j]); */
+          *(ptr++) = inv_mat[i*MATSIZE+j];
         }
       }
     }
     if (exist[ls_amount-1] == 1) {
       *(ptr++) = (MYFLT)sorted_lss[ls_amount-1]+1;
       *(ptr++) = (MYFLT)sorted_lss[0]+1;
-      for (j=0;j<4;j++) {
-        *(ptr++) = inv_mat[ls_amount*(ls_amount-1)+j];
+      for (j=0;j<MATSIZE;j++) {
+/*         printf("iv_mat[%d] %f\n", (ls_amount-1)*MATSIZE+j, */
+/*                inv_mat[(ls_amount-1)*MATSIZE+j]); */
+        *(ptr++) = inv_mat[(ls_amount-1)*MATSIZE+j];
       }
     }
     k=3;
-    csound->Warning(csound, Str("\nConfigured loudspeakers\n"));
+    csound->Message(csound, Str("\nConfigured loudspeakers\n"));
     for (i=0; i < amount; i++) {
-      csound->Warning(csound, Str("Pair %d Loudspeakers: "), i);
+      csound->Message(csound, Str("Pair %d Loudspeakers: "), i);
       for (j=0; j < 2; j++) {
-        csound->Warning(csound, "%d ", (int) ls_table[k++]);
+        csound->Message(csound, "%d ", (int32_t) ls_table[k++]);
       }
-      csound->Warning(csound, "\n");
 
-    csound->Message(csound, "\nMatrix ");
-      for (j=0; j < 4; j++) {
-      csound->Message(csound, "%f ", ls_table[k]);
+      csound->Message(csound, "\nMatrix ");
+      for (j=0; j < MATSIZE; j++) {
+        csound->Message(csound, "%f ", ls_table[k]);
         k++;
       }
       csound->Message(csound, "\n\n");
@@ -829,10 +843,10 @@ static void choose_ls_tuplets(CSOUND *csound,
     free(sorted_lss); free(exist); free(inv_mat);
 }
 
-static void sort_2D_lss(ls lss[], int sorted_lss[],
-                        int ls_amount)
+static void sort_2D_lss(ls lss[], int32_t sorted_lss[],
+                        int32_t ls_amount)
 {
-    int i,j,index=-1;
+    int32_t i,j,index=-1;
     MYFLT tmp, tmp_azi;
 
     /* Transforming angles between -180 and 180 */
@@ -844,7 +858,7 @@ static void sort_2D_lss(ls lss[], int sorted_lss[],
       else
         tmp = lss[i].coords.y / FABS(lss[i].coords.y);
       lss[i].angles.azi *= tmp;
-      /*printf("tulos %f",    lss[i].angles.azi);*/
+      //printf("***tulos %f\n",    lss[i].angles.azi);
     }
     for (i=0;i<ls_amount;i++) {
       tmp = FL(2000.0);
@@ -864,7 +878,7 @@ static void sort_2D_lss(ls lss[], int sorted_lss[],
     }
 }
 
-int calc_2D_inv_tmatrix(MYFLT azi1,MYFLT azi2, MYFLT inv_mat[4])
+int32_t calc_2D_inv_tmatrix(MYFLT azi1,MYFLT azi2, MYFLT inv_mat[MATSIZE])
 {
     MYFLT x1,x2,x3,x4; /* x1 x3 */
     MYFLT det;
@@ -874,7 +888,7 @@ int calc_2D_inv_tmatrix(MYFLT azi1,MYFLT azi2, MYFLT inv_mat[4])
     x4 = SIN(azi2 );
     det = (x1 * x4) - ( x3 * x2 );
     if (FABS(det) <= FL(0.001)) {
-      /*printf("unusable pair, det %f\n",det);*/
+      //printf("unusable*** pair, det %f\n",det);
       inv_mat[0] = FL(0.0);
       inv_mat[1] = FL(0.0);
       inv_mat[2] = FL(0.0);
@@ -882,6 +896,7 @@ int calc_2D_inv_tmatrix(MYFLT azi1,MYFLT azi2, MYFLT inv_mat[4])
       return 0;
     }
     else {
+      //printf("***inv x (%f,%f,%f,%f): det=%f\n", x4, -x3, -x2, x1, det);
       inv_mat[0] =  (x4 / det);
       inv_mat[1] =  (-x3 / det);
       inv_mat[2] =  (-x2 / det);
@@ -948,20 +963,25 @@ void new_spread_base(CART_VEC spreaddir, CART_VEC vscartdir,
 /* static */
 static OENTRY vbap_localops[] = {
   { "vbap.a",      S(VBAP),
-    TR, 5,  "mmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmm"
+    TR, 3,  "mmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmm"
     "mmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmm",
     "akOOo",
-    (SUBR) vbap_init,          (SUBR) NULL,    (SUBR) vbap                   },
-  { "vbap.A",      S(VBAPA), TR, 5,  "a[]",    "akOOo",
-    (SUBR) vbap_init_a,          (SUBR) NULL,    (SUBR) vbap_a               },
+    (SUBR) vbap_init,    (SUBR) vbap                   },
+  { "vbap.A",      S(VBAPA), TR, 3,  "a[]",    "akOOo",
+    (SUBR) vbap_init_a,    (SUBR) vbap_a               },
   { "vbap4",      S(VBAP),
-    TR|_QQ, 5,  "aaaa",  "akOOo", (SUBR) vbap_init, (SUBR) NULL, (SUBR) vbap },
+    TR|_QQ, 3,  "aaaammmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmm"
+    "mmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmm",
+    "akOOo", (SUBR) vbap_init, (SUBR) vbap },
   { "vbap8",      S(VBAP),
-    TR|_QQ, 5,  "aaaaaaaa", "akOOo",
-    (SUBR) vbap_init,          (SUBR) NULL,    (SUBR) vbap                   },
+    TR|_QQ, 3,  "aaaaaaaammmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmm"
+    "mmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmm",
+    "akOOo",
+    (SUBR) vbap_init,    (SUBR) vbap                   },
   { "vbap16",      S(VBAP),
-    TR|_QQ, 5,  "aaaaaaaaaaaaaaaa", "akOOo",
-    (SUBR) vbap_init,          (SUBR) NULL,    (SUBR) vbap                   },
+    TR|_QQ, 3,  "aaaaaaaaaaaaaaaammmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmm"
+    "mmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmm",
+    "akOOo", (SUBR) vbap_init,    (SUBR) vbap                   },
   { "vbapg.a",      S(VBAP1),             TR, 3,
     "zzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzz"
     "zzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzz", "kOOo",
@@ -969,8 +989,8 @@ static OENTRY vbap_localops[] = {
   { "vbapg.A",      S(VBAPA1),            TR, 3,
     "k[]",  "kOOo",
     (SUBR) vbap1_init_a,         (SUBR) vbap1a                               },
-  { "vbapz",      S(VBAP_ZAK),     ZW|TR, 5,  "",                 "iiakOOo",
-    (SUBR) vbap_zak_init,           (SUBR) NULL,    (SUBR) vbap_zak         },
+  { "vbapz",      S(VBAP_ZAK),     ZW|TR, 3,  "",                 "iiakOOo",
+    (SUBR) vbap_zak_init,    (SUBR) vbap_zak         },
   { "vbaplsinit",S(VBAP_LS_INIT),TR,1, "",
     "ii"
     "oooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo"
@@ -979,29 +999,29 @@ static OENTRY vbap_localops[] = {
   { "vbaplsinit",S(VBAP_LS_INIT),TR,1, "", "iii[]",
     (SUBR) vbap_ls_inita, (SUBR) NULL, (SUBR) NULL, (SUBR) NULL         },
   { "vbapmove.a", S(VBAP_MOVING),
-    TR, 5,  "mmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmm"
+    TR, 3,  "mmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmm"
     "mmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmm",
     "aiiim",
-    (SUBR) vbap_moving_init, (SUBR) NULL, (SUBR) vbap_moving },
-  { "vbapgmove.a",  S(VBAP1_MOVING),      TR, 5,
+    (SUBR) vbap_moving_init, (SUBR) vbap_moving },
+  { "vbapgmove.a",  S(VBAP1_MOVING),      TR, 3,
     "zzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzz"
     "zzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzz", "iiim",
-    (SUBR) vbap1_moving_init,   (SUBR) NULL,    (SUBR) vbap1_moving },
+    (SUBR) vbap1_moving_init,    (SUBR) vbap1_moving },
   { "vbapmove.A", S(VBAPA_MOVING),
-    TR, 5,  "a[]",  "aiiim",
-    (SUBR) vbap_moving_init_a, (SUBR) NULL, (SUBR) vbap_moving_a },
-  { "vbapgmove.A",  S(VBAPA1_MOVING),      TR, 5,
+    TR, 3,  "a[]",  "aiiim",
+    (SUBR) vbap_moving_init_a, (SUBR) vbap_moving_a },
+  { "vbapgmove.A",  S(VBAPA1_MOVING),      TR, 3,
     "k[]", "iiim",
-    (SUBR) vbap1_moving_init_a,   (SUBR) NULL,    (SUBR) vbap1_moving_a },
-  { "vbapzmove",  S(VBAP_ZAK_MOVING),    ZW|TR, 5,  "",  "iiaiiim",
-    (SUBR) vbap_zak_moving_init,    (SUBR) NULL,    (SUBR) vbap_zak_moving  },
-  { "vbap4move", S(VBAP_MOVING),   TR|_QQ, 5,  "aaaa",
+    (SUBR) vbap1_moving_init_a,    (SUBR) vbap1_moving_a },
+  { "vbapzmove",  S(VBAP_ZAK_MOVING),    ZW|TR, 3,  "",  "iiaiiim",
+    (SUBR) vbap_zak_moving_init,    (SUBR) vbap_zak_moving  },
+  { "vbap4move", S(VBAP_MOVING),   TR|_QQ, 3,  "aaaa",
    "aiiim",
-    (SUBR) vbap_moving_init, (SUBR) NULL, (SUBR) vbap_moving },
+    (SUBR) vbap_moving_init, (SUBR) vbap_moving },
   { "vbap8move", S(VBAP_MOVING),
-    TR|_QQ, 5,  "aaaaaaaa",
+    TR|_QQ, 3,  "aaaaaaaa",
     "aiiim",
-    (SUBR) vbap_moving_init, (SUBR) NULL, (SUBR) vbap_moving }
+    (SUBR) vbap_moving_init, (SUBR) vbap_moving }
 
 };
 

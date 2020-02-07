@@ -17,8 +17,8 @@
 
   You should have received a copy of the GNU Lesser General Public
   License along with Csound; if not, write to the Free Software
-  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
-  02111-1307 USA
+  Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
+  02110-1301 USA
 */
 
 #include "csoundCore.h"                         /*      AUXFD.C         */
@@ -44,7 +44,7 @@ void csoundAuxAlloc(CSOUND *csound, size_t nbytes, AUXCH *auxchp)
         csound->Free(csound, tmp);
       }
     }
-    else {                                  /* else linkin new auxch blk */
+    else {                                  /* else link in new auxch blk */
       auxchp->nxtchp = csound->curip->auxchp;
       csound->curip->auxchp = auxchp;
     }
@@ -57,30 +57,30 @@ void csoundAuxAlloc(CSOUND *csound, size_t nbytes, AUXCH *auxchp)
 }
 
 
-uintptr_t alloc_thread(void *p) {
-  AUXASYNC *pp = (AUXASYNC *) p;
-  CSOUND *csound = pp->csound;
-  AUXCH newm;
-  char *ptr;
-  if (pp->auxchp->auxp == NULL) {
-    /* Allocate new memory */
-    newm.size = pp->nbytes;
-    newm.auxp = csound->Calloc(csound, pp->nbytes);
-    newm.endp = (char*) newm.auxp + pp->nbytes;
-    ptr = (char *) newm.auxp;
-    newm  = *(pp->notify(csound, pp->userData, &newm));
-    /* check that the returned pointer is not
-     NULL and that is not the memory we have
-     just allocated in case the old memory was
-     never swapped back.
-     */
-    if (newm.auxp != NULL && newm.auxp != ptr)
-       csound->Free(csound, newm.auxp);
-  } else {
-    csoundAuxAlloc(csound,pp->nbytes,pp->auxchp);
-    pp->notify(csound, pp->userData, pp->auxchp);
-  }
-  return 0;
+static uintptr_t alloc_thread(void *p) {
+    AUXASYNC *pp = (AUXASYNC *) p;
+    CSOUND *csound = pp->csound;
+    AUXCH newm;
+    char *ptr;
+    if (pp->auxchp->auxp == NULL) {
+      /* Allocate new memory */
+      newm.size = pp->nbytes;
+      newm.auxp = csound->Calloc(csound, pp->nbytes);
+      newm.endp = (char*) newm.auxp + pp->nbytes;
+      ptr = (char *) newm.auxp;
+      newm  = *(pp->notify(csound, pp->userData, &newm));
+      /* check that the returned pointer is not
+         NULL and that is not the memory we have
+         just allocated in case the old memory was
+         never swapped back.
+      */
+      if (newm.auxp != NULL && newm.auxp != ptr)
+        csound->Free(csound, newm.auxp);
+    } else {
+      csoundAuxAlloc(csound,pp->nbytes,pp->auxchp);
+      pp->notify(csound, pp->userData, pp->auxchp);
+    }
+    return 0;
 }
 
 
@@ -117,7 +117,7 @@ void fdrecord(CSOUND *csound, FDCH *fdchp)
 /* close a file and remove from fd chain */
 /*  call only from inits, after fdrecord */
 
-void fdclose(CSOUND *csound, FDCH *fdchp)
+void csound_fd_close(CSOUND *csound, FDCH *fdchp)
 {
     FDCH    *prvchp = NULL, *nxtchp;
 
@@ -141,7 +141,7 @@ void fdclose(CSOUND *csound, FDCH *fdchp)
       nxtchp = nxtchp->nxtchp;
     }
     fdchprint(csound, csound->curip);
-    csound->Die(csound, Str("fdclose: no record of fd %p"), fdchp->fd);
+    csound->Die(csound, Str("csound_fd_close: no record of fd %p"), fdchp->fd);
 }
 
 /* release all xds in instr auxp chain */
@@ -155,7 +155,7 @@ void auxchfree(CSOUND *csound, INSDS *ip)
       void  *auxp = (void*) ip->auxchp->auxp;
       AUXCH *nxt = ip->auxchp->nxtchp;
       memset((void*) ip->auxchp, 0, sizeof(AUXCH)); /*  delete the pntr     */
-      csound->Free(csound, auxp);                          /*  & free the space    */
+      csound->Free(csound, auxp);                   /*  & free the space    */
       ip->auxchp = nxt;
     }
     if (UNLIKELY(csound->oparms->odebug))
@@ -198,7 +198,7 @@ static CS_NOINLINE void auxchprint(CSOUND *csound, INSDS *ip)
     /* chain through auxlocs */
     for (curchp = ip->auxchp; curchp != NULL; curchp = curchp->nxtchp)
       csoundMessage(csound,
-                      Str("\tauxch at %p: size %ld, auxp %p, endp %p\n"),
+                      Str("\tauxch at %p: size %zu, auxp %p, endp %p\n"),
                       curchp, curchp->size, curchp->auxp, curchp->endp);
 }
 

@@ -1,0 +1,10 @@
+js/csound.js      
+js/CsoundProcessor.js            
+js/libcsound.js          
+js/libcsound-worklet.wasm.js
+js/CsoundNode.js  
+js/CsoundScriptProcessorNode.js  
+js/libcsound.wasm       
+js/CsoundObj.js   
+js/FileList.js                   
+js/libcsound-worklet.js

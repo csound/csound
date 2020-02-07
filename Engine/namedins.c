@@ -17,8 +17,8 @@
 
     You should have received a copy of the GNU Lesser General Public
     License along with Csound; if not, write to the Free Software
-    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
-    02111-1307 USA
+    Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
+    02110-1301 USA
 */
 
 #include "csoundCore.h"
@@ -33,28 +33,37 @@ int check_instr_name(char *s)
 {
     char    *c = s;
 
-    if (!*c) return 0;  /* empty */
-    if (!isalpha(*c) && *c != '_') return 0;    /* chk if 1st char is valid */
+    if (UNLIKELY(!*c)) return 0;  /* empty */
+    if (UNLIKELY(!isalpha(*c) &&
+                 *c != '_')) return 0;    /* chk if 1st char is valid */
     while (*++c)
-      if (!isalnum(*c) && *c != '_') return 0;
+      if (UNLIKELY(!isalnum(*c) && *c != '_')) return 0;
     return 1;   /* no errors */
 }
 
+
+int32  named_instr_find_in_engine(CSOUND *csound, char *s,
+                                  ENGINE_STATE *engineState) {
+
+  INSTRNAME     *inm;
+    int ss = (*s=='-'?1:0);
+
+    if (!engineState->instrumentNames)
+      return 0L;                              /* no named instruments defined */
+    /* now find instrument */
+    inm = cs_hash_table_get(csound, engineState->instrumentNames, s+ss);
+
+    return (inm == NULL) ? 0L : (ss ? -inm->instno : inm->instno);
+
+}
 /* find the instrument number for the specified name */
 /* return value is zero if none was found */
 
 int32 named_instr_find(CSOUND *csound, char *s)
 {
-    INSTRNAME     *inm;
-    int ss = (*s=='-'?1:0);
-
-    if (!csound->engineState.instrumentNames)
-      return 0L;                              /* no named instruments defined */
-    /* now find instrument */
-    inm = cs_hash_table_get(csound, csound->engineState.instrumentNames, s+ss);
-
-    return (inm == NULL) ? 0L : (ss ? -inm->instno : inm->instno);
+  return named_instr_find_in_engine(csound, s, &csound->engineState);
 }
+
 
 /* convert opcode string argument to instrument number */
 /* return value is -1 if the instrument cannot be found */
@@ -65,8 +74,8 @@ int32 strarg2insno(CSOUND *csound, void *p, int is_string)
 
     if (is_string) {
       if (UNLIKELY((insno = named_instr_find(csound, (char*) p)) <= 0)) {
-        csound->Warning(csound, Str("instr %s not found"), (char*) p);
-        return -1;
+        csound->Message(csound, Str("WARNING: instr %s not found\n"), (char*) p);
+        return NOT_AN_INSTRUMENT;
       }
     }
     else {      /* numbered instrument */
@@ -74,7 +83,7 @@ int32 strarg2insno(CSOUND *csound, void *p, int is_string)
       if (UNLIKELY(insno < 1 || insno > csound->engineState.maxinsno ||
                    !csound->engineState.instrtxtp[insno])) {
         csound->Warning(csound, Str("Cannot Find Instrument %d"), (int) insno);
-        return -1;
+        return csound->engineState.maxinsno;
       }
     }
     return insno;
@@ -89,7 +98,7 @@ int32 strarg2insno_p(CSOUND *csound, char *s)
 
     if (UNLIKELY(!(insno = named_instr_find(csound, s)))) {
       csound->ErrorMsg(csound, Str("instr %s not found"), s);
-      return -1;
+      return NOT_AN_INSTRUMENT;
     }
     return insno;
 }
@@ -112,7 +121,7 @@ int32 strarg2opcno(CSOUND *csound, void *p, int is_string, int force_opcode)
         if (UNLIKELY(insno < 1 || insno > csound->engineState.maxinsno ||
                      !csound->engineState.instrtxtp[insno])) {
           csound->InitError(csound, Str("Cannot Find Instrument %d"), (int) insno);
-          return -1;
+          return NOT_AN_INSTRUMENT;
         }
       }
     }
@@ -124,7 +133,7 @@ int32 strarg2opcno(CSOUND *csound, void *p, int is_string, int force_opcode)
     if (UNLIKELY(insno < 1)) {
       csound->InitError(csound,
                         Str("cannot find the specified instrument or opcode"));
-      insno = -1;
+      insno = NOT_AN_INSTRUMENT;
     }
     return insno;
 }
@@ -160,8 +169,9 @@ int32 strarg2opcno(CSOUND *csound, void *p, int is_string, int force_opcode)
 /*   return value:                                              */
 /*      pointer to the output string; if 's' is not NULL, it is */
 /*      always the same as 's', otherwise it is allocated with  */
-/*      csound->Malloc() and the caller is responsible for freeing the */
-/*      allocated memory with csound->Free() or csound->Free()         */
+/*      csound->Malloc() and the caller is responsible for      */
+/*      freeing the allocated memory with csound->Free() or     */
+/*      csound->Free()                                          */
 
 char *strarg2name(CSOUND *csound, char *s, void *p, const char *baseName,
                                   int is_string)
@@ -230,7 +240,7 @@ PUBLIC int csoundCreateGlobalVariable(CSOUND *csound,
 {
     void* p;
     /* create new empty database if it does not exist yet */
-    if (csound->namedGlobals == NULL) {
+    if (UNLIKELY(csound->namedGlobals == NULL)) {
       csound->namedGlobals = cs_hash_table_create(csound);
       if (UNLIKELY(csound->namedGlobals == NULL))
         return CSOUND_MEMORY;
@@ -264,8 +274,8 @@ PUBLIC void *csoundQueryGlobalVariable(CSOUND *csound, const char *name)
     if (csound->namedGlobals == NULL) return NULL;
 
     /* check for a valid name */
-    if (name == NULL) return NULL;
-    if (name[0] == '\0') return NULL;
+    if (UNLIKELY(name == NULL)) return NULL;
+    if (UNLIKELY(name[0] == '\0')) return NULL;
 
     return cs_hash_table_get(csound, csound->namedGlobals, (char*) name);
 }

@@ -17,8 +17,8 @@
 
     You should have received a copy of the GNU Lesser General Public
     License along with Csound; if not, write to the Free Software
-    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
-    02111-1307 USA
+    Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
+    02110-1301 USA
 */
 
 /*******************************************/
@@ -44,11 +44,12 @@ typedef struct Marimba {
     MYFLT       *doubles, *triples;
 /* Modal4 */
     Modal4      m4;
-    int         multiStrike;
+    int32_t         multiStrike;
     MYFLT       strikePosition;
     MYFLT       stickHardness;
-    int         first;
-    int         kloop;
+    int32_t         first;
+    int32_t
+    kloop;
 } MARIMBA;
 
 #endif

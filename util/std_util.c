@@ -15,17 +15,51 @@
 
     You should have received a copy of the GNU Lesser General Public
     License along with Csound; if not, write to the Free Software
-    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
-    02111-1307 USA
+    Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
+    02110-1301 USA
 */
 
 #include "std_util.h"
 
+/* Modified from BSD sources for strlcpy */
+/*
+ * Copyright (c) 1998 Todd C. Miller <Todd.Miller@courtesan.com>
+ *
+ * Permission to use, copy, modify, and distribute this software for any
+ * purpose with or without fee is hereby granted, provided that the above
+ * copyright notice and this permission notice appear in all copies.
+ */
+/* modifed for speed -- JPff */
+char *
+strNcpy(char *dst, const char *src, size_t siz)
+{
+    char *d = dst;
+    const char *s = src;
+    size_t n = siz;
+
+    /* Copy as many bytes as will fit or until NULL */
+    if (n != 0) {
+      while (--n != 0) {
+        if ((*d++ = *s++) == '\0')
+          break;
+      }
+    }
+
+    /* Not enough room in dst, add NUL */
+    if (n == 0) {
+      if (siz != 0)
+        *d = '\0';                /* NUL-terminate dst */
+
+      //while (*s++) ;
+    }
+    return dst;        /* count does not include NUL */
+}
+
 /* module interface */
 
-PUBLIC int csoundModuleCreate(CSOUND *csound)
+PUBLIC int32_t csoundModuleCreate(CSOUND *csound)
 {
-    int   err = 0;
+    int32_t   err = 0;
 
     err |= atsa_init_(csound);
     err |= envext_init_(csound);
@@ -49,8 +83,8 @@ PUBLIC int csoundModuleCreate(CSOUND *csound)
     return err;
 }
 
-PUBLIC int csoundModuleInfo(void)
+PUBLIC int32_t csoundModuleInfo(void)
 {
-    return ((CS_APIVERSION << 16) + (CS_APISUBVER << 8) + (int) sizeof(MYFLT));
+    return ((CS_APIVERSION << 16) + (CS_APISUBVER << 8) + (int32_t) sizeof(MYFLT));
 }
 

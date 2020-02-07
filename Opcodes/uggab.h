@@ -19,8 +19,8 @@
 
     You should have received a copy of the GNU Lesser General Public
     License along with Csound; if not, write to the Free Software
-    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
-    02111-1307 USA
+    Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
+    02110-1301 USA
 */
 
 /********************************************/
@@ -48,7 +48,7 @@ typedef struct  {
     OPDS        h;
     MYFLT       *out, *amp, *freq, *ift, *iphs;
     FUNC        *ftp;
-    int32        tablen;
+    int32       tablen;
     double      tablenUPsr;
     double      phs;
 } POSC;
@@ -70,7 +70,7 @@ typedef struct {
 typedef struct {
     OPDS        h;
     MYFLT       *ar, *asig, *kcf, *kbw, *ord, *sep, *iflag, *iscl, *istor;
-    int         scale, loop;
+    int32_t     scale, loop;
     AUXCH       aux;
     AUXCH       buffer;
     MYFLT       *yt1, *yt2;
@@ -89,7 +89,7 @@ typedef struct {
         MYFLT   *out, *freq, *retrig, *iphase, *argums[VARGMAX];
         MYFLT   args[VARGMAX];
         double  phs;
-        int     nsegs;
+        int32_t     nsegs;
 } LOOPSEG;
 
 /* Complexity of args leads to confusion */
@@ -104,28 +104,28 @@ typedef struct {
         MYFLT   *out, *freq, *retrig, *iphase;
         T3SEG   argums[VARGMAX/3];
         double  phs;
-        int     nsegs;
+        int32_t nsegs;
 } LOOPTSEG;
 
 typedef struct {
         OPDS    h;
         MYFLT   *out, *kphase, *argums[VARGMAX];
         MYFLT   args[VARGMAX];
-        int     nsegs;
+        int32_t nsegs;
 } LOOPSEGP;
 
 typedef struct {  /* gab f1 */
         OPDS    h;
         MYFLT   *kr, *ksig, *ktime;
         MYFLT   current_val, current_time, incr, val_incremented, old_time;
-        int flag;
+        int32_t flag;
 } LINETO;
 
 typedef struct {  /* gab f1 */
         OPDS    h;
         MYFLT   *kr, *ksig, *ktime, *ktrig;
         MYFLT   current_val, current_time, incr, val_incremented, old_time;
-        int flag;
+        int32_t flag;
 } LINETO2;
 
 typedef struct {
@@ -134,7 +134,7 @@ typedef struct {
         MYFLT   *ampMinRate, *ampMaxRate, *cpsMinRate, *cpsMaxRate, *ifn, *iphs;
         MYFLT   xcpsAmpRate, xcpsFreqRate;
         double  lphs, tablenUPkr;
-        int32    tablen, phsAmpRate, phsFreqRate;
+        int32   tablen, phsAmpRate, phsFreqRate;
         MYFLT   num1amp, num2amp, num1freq, num2freq, dfdmaxAmp, dfdmaxFreq;
         FUNC    *ftp;
 } VIBRATO;
@@ -144,7 +144,7 @@ typedef struct {
         MYFLT   *out, *AverageAmp,*AverageFreq,*ifn;
         MYFLT   xcpsAmpRate, xcpsFreqRate;
         double  lphs, tablenUPkr;
-        int32    tablen, phsAmpRate, phsFreqRate;
+        int32   tablen, phsAmpRate, phsFreqRate;
         MYFLT   num1amp, num2amp, num1freq, num2freq, dfdmaxAmp, dfdmaxFreq;
         FUNC    *ftp;
 } VIBR;
@@ -152,7 +152,7 @@ typedef struct {
 typedef struct {
         OPDS    h;
         MYFLT   *out, *gamp, *amp1, *cps1, *amp2, *cps2, *amp3, *cps3, *option;
-        int     flag;
+        int32_t flag;
         int32   phs1,phs2,phs3;
         MYFLT   num1a,num2a, dfdmax1, num1b,num2b, dfdmax2, num1c,num2c, dfdmax3;
 } JITTER2;
@@ -161,8 +161,8 @@ typedef struct {
         OPDS    h;
         MYFLT   *ar, *amp, *cpsMin, *cpsMax;
         MYFLT   xcps;
-        int32    phs;
-        int     initflag;
+        int32   phs;
+        int32_t initflag;
         MYFLT   num1, num2, dfdmax;
 } JITTER;
 
@@ -171,29 +171,29 @@ typedef struct {
         MYFLT   *ar, *amp, *cpsMin, *cpsMax;
         double  si;
         double  phs;
-        int     initflag, cod;
+        int32_t initflag, cod;
         MYFLT   num0, num1, num2, df0, df1,c3, c2;
 } JITTERS;
 
 #define oneUp31Bit      (4.656612875245796924105750827168e-10)
 
-#define randGab   (MYFLT) ((double)     \
+#define randGab   (MYFLT) ((double)                                       \
         (((csound->holdrand = csound->holdrand * 214013 + 2531011) >> 1)  \
          & 0x7fffffff) * oneUp31Bit)
-#define BiRandGab (MYFLT) ((double)     \
+#define BiRandGab (MYFLT) ((double)                                       \
         (csound->holdrand = csound->holdrand * -214013 + 2531011) * oneUp31Bit)
 
 typedef struct  {
         OPDS    h;
         MYFLT   *out, *tableNum;
-        int     pfn;
+        int32_t pfn;
         FUNC    *ftp;
 } DURAND;
 
 typedef struct  {
         OPDS    h;
         MYFLT   *out, *min, *max, *tableNum;
-        int     pfn;
+        int32_t pfn;
         FUNC    *ftp;
 } CURAND;
 
@@ -227,7 +227,7 @@ typedef struct {
         MYFLT   *ar, *rangeMin, *rangeMax, *cpsMin, *cpsMax;
         double  si;
         double  phs;
-        int initflag, rangeMin_cod, rangeMax_cod;
+        int32_t initflag, rangeMin_cod, rangeMax_cod;
         MYFLT   num0, num1, num2, df0, df1,c3, c2;
 } RANDOM3;
 

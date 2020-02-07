@@ -3,3 +3,4 @@ cs6iOS
 libcsound.a
 libsndfile.a
 csound-iOS-*/
+*.zip

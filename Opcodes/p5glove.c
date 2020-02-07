@@ -17,8 +17,8 @@
 
     You should have received a copy of the GNU Lesser General Public
     License along with Csound; if not, write to the Free Software
-    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
-    02111-1307 USA
+    Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
+    02110-1301 USA
 */
 
                                                         /* p5glove.c */
@@ -30,7 +30,7 @@ typedef struct {
     OPDS      h;
  /* ------------------------------------- */
     void      *thread;
-    int       on;
+    int32_t       on;
 } P5GLOVEINIT;
 
 typedef struct {
@@ -86,13 +86,13 @@ uintptr_t runp5thread(void *g)
     return 0;
 }
 
-int p5g_deinit(CSOUND *csound, P5GLOVEINIT *p)
+int32_t p5g_deinit(CSOUND *csound, P5GLOVEINIT *p)
 {
     p->on = 0;
     return pthread_cancel((pthread_t)(p->thread));
 }
 
-int p5glove_find(CSOUND *csound, P5GLOVEINIT *p)
+int32_t p5glove_find(CSOUND *csound, P5GLOVEINIT *p)
 {
     P5Glove    *glove = (P5Glove*)csound->QueryGlobalVariable(csound, "p5glove");
     if (glove == NULL) {
@@ -105,28 +105,28 @@ int p5glove_find(CSOUND *csound, P5GLOVEINIT *p)
     }
     p->on = 1;
     csound->RegisterDeinitCallback(csound, p,
-                                   (int (*)(CSOUND *, void *)) p5g_deinit);
+                                   (int32_t (*)(CSOUND *, void *)) p5g_deinit);
     p->thread = csound->CreateThread(runp5thread, glove);
     return OK;
 }
 
-int p5glove_poll(CSOUND *csound, P5GLOVE *p)
+int32_t p5glove_poll(CSOUND *csound, P5GLOVE *p)
 {
     /* P5Glove *glove = (P5Glove*)csound->QueryGlobalVariable(csound,"p5glove"); */
-    /* int res; */
+    /* int32_t res; */
     /* if (glove == NULL) */
-    /*   return csound->PerfError(csound,  p->h.insdshead, */
+    /*   return csound->PerfError(csound,  &p->h, */
     /*                            Str("No glove open")); */
     /* res = p5glove_sample(*glove, -1); */
     /* if (res < 0 && errno == EAGAIN) return OK; */
     /* //res = p5glove_sample(*glove, -1); */
     /* if (UNLIKELY(res < 0)) */
-    /*   return csound->PerfError(csound,  p->h.insdshead, */
+    /*   return csound->PerfError(csound,  &p->h, */
     /*                            Str("P5Glove failure")); */
     return OK;
 }
 
-int p5glove_closer(CSOUND *csound, P5GLOVE *p)
+int32_t p5glove_closer(CSOUND *csound, P5GLOVE *p)
 {
     P5Glove    *glove = (P5Glove*)csound->QueryGlobalVariable(csound, "p5glove");
     if (glove==NULL) return NOTOK;
@@ -137,7 +137,7 @@ int p5glove_closer(CSOUND *csound, P5GLOVE *p)
     return OK;
 }
 
-int p5g_data_init(CSOUND *csound, P5GLOVE *p)
+int32_t p5g_data_init(CSOUND *csound, P5GLOVE *p)
 {
     /* P5Glove p5g; */
     /* p5g = (P5Glove)csound->QueryGlobalVariable(csound, "p5glove"); */
@@ -147,19 +147,19 @@ int p5g_data_init(CSOUND *csound, P5GLOVE *p)
     return OK;
 }
 
-int p5g_data(CSOUND *csound, P5GLOVE *p)
+int32_t p5g_data(CSOUND *csound, P5GLOVE *p)
 {
     P5Glove *glove = (P5Glove*)csound->QueryGlobalVariable(csound, "p5glove");
-    int kontrol = (int)(*p->kControl+FL(0.5));
+    int32_t kontrol = (int)(*p->kControl+FL(0.5));
     uint32_t buttons, just, rels;
     if (glove==NULL)
-      csound->PerfError(csound,  p->h.insdshead, Str("No open glove"));
+      csound->PerfError(csound,  &p->h, Str("No open glove"));
     p5glove_get_buttons(*glove,&buttons);
     just = ((!p->last) & buttons);
     rels = (p->last & !buttons);
     p->last = buttons;
     if (kontrol<0) {
-      printf("debug: \n");
+      printf("debug:\n");
       *p->res = FL(0.0);
       return OK;
     }
@@ -168,6 +168,7 @@ int p5g_data(CSOUND *csound, P5GLOVE *p)
       switch (kontrol) {
       case P5G_BUTTONS:
         *p->res = (MYFLT)(buttons);
+        return OK;
       case P5G_BUTTON_A:
         *p->res = (MYFLT)(buttons & P5GLOVE_BUTTON_A);
         return OK;

@@ -17,8 +17,8 @@
 
     You should have received a copy of the GNU Lesser General Public
     License along with Csound; if not, write to the Free Software
-    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
-    02111-1307 USA
+    Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
+    02110-1301 USA
 */
 
 /*                                                      UGENS4.H        */
@@ -77,3 +77,13 @@ typedef struct {
         long    phs;
         MYFLT   num1, num2, dfdmax;
 } RANDI;
+
+typedef struct {
+        OPDS    h;
+        MYFLT   *ar, *xamp, *xcps, *iseed, *sel, *base;
+        int16   ampcod, cpscod, new;
+        int     rand;
+        int64_t phs;
+        MYFLT   period, num1, num2;
+        MYFLT   num3, num4;
+} RANDC;
