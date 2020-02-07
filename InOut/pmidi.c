@@ -19,8 +19,8 @@
 
     You should have received a copy of the GNU Lesser General Public
     License along with Csound; if not, write to the Free Software
-    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
-    02111-1307 USA
+    Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
+    02110-1301 USA
 */
 
 /* Realtime MIDI using Portmidi library */
@@ -45,6 +45,7 @@ void _wassert(wchar_t *condition)
 
 typedef struct _pmall_data {
   PortMidiStream *midistream;
+  int multiport_flag;
   struct _pmall_data *next;
 } pmall_data;
 
@@ -165,7 +166,7 @@ static int start_portmidi(CSOUND *csound)
     csoundUnLock();
 #endif
     if (UNLIKELY(errMsg != NULL)) {
-      csound->ErrorMsg(csound, Str(errMsg));
+      csound->ErrorMsg(csound, "%s", Str(errMsg));
       return -1;
     }
     //#if !defined(WIN32)
@@ -181,21 +182,21 @@ static int listDevices(CSOUND *csound, CS_MIDIDEVICE *list, int isOutput){
   char *drv = (char*) (csound->QueryGlobalVariable(csound, "_RTMIDI"));
 
   if (UNLIKELY(start_portmidi(csound) != 0))
-      return 0;
+    return 0;
 
   cnt = portMidi_getDeviceCount(isOutput);
   if (list == NULL) return cnt;
   for (i = 0; i < cnt; i++) {
-      info = portMidi_getDeviceInfo(i, isOutput);
-      if(info->name != NULL)
+    info = portMidi_getDeviceInfo(i, isOutput);
+    if (info->name != NULL)
       strncpy(list[i].device_name, info->name, 63);
-      snprintf(tmp, 64, "%d", i);
-      strncpy(list[i].device_id, tmp, 63);
-      list[i].isOutput = isOutput;
-      if (info->interf != NULL)
-         strncpy(list[i].interface_name, info->interf, 63);
-      else strcpy(list[i].interface_name, "");
-     strncpy(list[i].midi_module, drv, 63);
+    snprintf(tmp, 64, "%d", i);
+    strncpy(list[i].device_id, tmp, 63);
+    list[i].isOutput = isOutput;
+    if (info->interf != NULL)
+      strncpy(list[i].interface_name, info->interf, 63);
+    else strcpy(list[i].interface_name, "");
+    strncpy(list[i].midi_module, drv, 63);
   }
   return cnt;
 }
@@ -222,9 +223,9 @@ static int OpenMidiInDevice_(CSOUND *csound, void **userData, const char *dev)
 //     PortMidiStream *midistream;
     pmall_data *data = NULL;
     pmall_data *next = NULL;
+    int port = 0;
 
-
-    if (start_portmidi(csound) != 0)
+    if (UNLIKELY(start_portmidi(csound) != 0))
       return -1;
     /* check if there are any devices available */
     cntdev = portMidi_getDeviceCount(0);
@@ -233,13 +234,13 @@ static int OpenMidiInDevice_(CSOUND *csound, void **userData, const char *dev)
     if (dev == NULL || dev[0] == '\0')
       devnum =
         portMidi_getPackedDeviceID((int)Pm_GetDefaultInputDeviceID(), 0);
-    else if (UNLIKELY((dev[0] < '0' || dev[0] > '9') && dev[0] != 'a')) {
+    else if (UNLIKELY((dev[0] < '0' || dev[0] > '9') && dev[0] != 'a' && dev[0] != 'm')) {
       portMidiErrMsg(csound,
-                     Str("error: must specify a device number (>=0) or"
-                         " 'a' for all, not a name"));
+                     Str("error: must specify a device number (>=0),"
+                         " 'a' for all (merged), or 'm' for port mapped, not a name"));
       return -1;
     }
-    else if (dev[0] != 'a') {
+    else if (dev[0] != 'a' && dev[0] != 'm') {
       devnum = (int)atoi(dev);
       if (UNLIKELY(devnum < 0 || devnum >= cntdev)) {
         portMidiErrMsg(csound, Str("error: device number is out of range"));
@@ -247,11 +248,11 @@ static int OpenMidiInDevice_(CSOUND *csound, void **userData, const char *dev)
       }
     }
     else {
-    // allow to proceed if 'a' is given even if there are no MIDI devices
+    // allow to proceed if 'a' OR 'm' is given even if there are no MIDI devices
       devnum = -1;
     }
 
-    if (UNLIKELY(cntdev < 1 && (dev==NULL || dev[0] != 'a'))) {
+    if (UNLIKELY(cntdev < 1 && (dev==NULL || dev[0] != 'a' || dev[0] != 'm'))) {
       return portMidiErrMsg(csound, Str("no input devices are available"));
     }
     opendevs = 0;
@@ -270,14 +271,26 @@ static int OpenMidiInDevice_(CSOUND *csound, void **userData, const char *dev)
           opendevs++;
         }
         info = portMidi_getDeviceInfo(i, 0);
-        if (info->interf != NULL)
+        if (info->interf != NULL) {
           csound->Message(csound,
                           Str("PortMIDI: Activated input device %d: '%s' (%s)\n"),
                           i, info->name, info->interf);
-        else
+          if(dev[0] == 'm')
+            csound->Message(csound, Str("Device mapped to channels %d to %d \n"),
+                                        port*16+1, (port+1)*16);
+        }
+          else {
           csound->Message(csound,
                           Str("PortMIDI: Activated input device %d: '%s'\n"),
                           i, info->name);
+          if(dev[0] == 'm')
+            csound->Message(csound,Str("Device mapped to channels %d to %d \n"),
+                                       port*16+1, (port+1)*16);
+          }
+        /* set multiport mapping if asked */
+        if(dev[0] == 'm') next->multiport_flag = 1;
+        else next->multiport_flag = 0;
+          port++;
         retval = Pm_OpenInput(&next->midistream,
                  (PmDeviceID) portMidi_getRealDeviceID(i, 0),
                          NULL, 512L, (PmTimeProcPtr) NULL, NULL);
@@ -290,8 +303,7 @@ static int OpenMidiInDevice_(CSOUND *csound, void **userData, const char *dev)
           return portMidiErrMsg(csound, Str("error opening input device %d: %s"),
                                           i, Pm_GetErrorText(retval));
         }
-          /* only interested in channel messages (note on, control change, etc.) */
-        /* GAB: fixed for portmidi v.23Aug06 */
+        /* only interested in channel messages (note on, control change, etc.) */
         Pm_SetFilter(next->midistream, (PM_FILT_ACTIVE | PM_FILT_SYSEX));
         /* empty the buffer after setting filter */
         while (Pm_Poll(next->midistream) == TRUE) {
@@ -343,10 +355,12 @@ static int OpenMidiOutDevice_(CSOUND *csound, void **userData, const char *dev)
       csound->Message(csound,
                       Str("PortMIDI: selected output device %d: '%s'\n"),
                       devnum, info->name);
+
+
     retval = Pm_OpenOutput(&midistream,
                            (PmDeviceID) portMidi_getRealDeviceID(devnum, 1),
                            NULL, 512L, (PmTimeProcPtr) NULL, NULL, 0L);
-    if (retval != pmNoError) {
+    if (UNLIKELY(retval != pmNoError)) {
       return portMidiErrMsg(csound, Str("error opening output device %d: %s"),
                                     devnum, Pm_GetErrorText(retval));
     }
@@ -359,7 +373,8 @@ static int OpenMidiOutDevice_(CSOUND *csound, void **userData, const char *dev)
 static int ReadMidiData_(CSOUND *csound, void *userData,
                          unsigned char *mbuf, int nbytes)
 {
-    int             n, retval, st, d1, d2;
+  int             n, retval, st, d1, d2;
+  unsigned char port = 0, map = 0;
     PmEvent         mev;
     pmall_data *data;
     /*
@@ -367,8 +382,11 @@ static int ReadMidiData_(CSOUND *csound, void *userData,
      */
     n = 0;
     data = (pmall_data *)userData;
+
     while (data) {
       retval = Pm_Poll(data->midistream);
+      if(data->multiport_flag) map = 1;
+
       if (retval != FALSE) {
         if (UNLIKELY(retval < 0))
           return portMidiErrMsg(csound, Str("error polling input device"));
@@ -384,23 +402,28 @@ static int ReadMidiData_(CSOUND *csound, void *userData,
                        !(st == 0xF8 || st == 0xFA || st == 0xFB ||
                          st == 0xFC || st == 0xFF)))
             continue;
-          nbytes -= (datbyts[(st - 0x80) >> 4] + 1);
+          nbytes -= (datbyts[(st - 0x80) >> 4] + 1 + map);
           if (UNLIKELY(nbytes < 0)) {
             portMidiErrMsg(csound, Str("buffer overflow in MIDI input"));
             break;
           }
           /* channel messages */
-          n += (datbyts[(st - 0x80) >> 4] + 1);
+          n += (datbyts[(st - 0x80) >> 4] + 1 + map);
           switch (datbyts[(st - 0x80) >> 4]) {
             case 0:
               *mbuf++ = (unsigned char) st;
+              /* don't add port if there is no data byte to follow */
               break;
             case 1:
               *mbuf++ = (unsigned char) st;
+              /* if mapping add port to byte after status */
+              if(map) *mbuf++ = (unsigned char) (0x80 | port);
               *mbuf++ = (unsigned char) d1;
               break;
             case 2:
               *mbuf++ = (unsigned char) st;
+              /* if mapping add port to byte after status */
+              if(map) *mbuf++ = (unsigned char) (0x80 | port);
               *mbuf++ = (unsigned char) d1;
               *mbuf++ = (unsigned char) d2;
               break;
@@ -413,6 +436,7 @@ static int ReadMidiData_(CSOUND *csound, void *userData,
         }
       }
       data = data->next;
+      port++; /* increment port number for mapping */
     }
     /* return the number of bytes read */
     return n;
@@ -504,6 +528,7 @@ PUBLIC int csoundModuleCreate(CSOUND *csound)
 {
     /* nothing to do, report success */
     // csound->Message(csound, Str("PortMIDI real time MIDI plugin for Csound\n"));
+   IGN(csound);
     return 0;
 }
 
@@ -517,7 +542,7 @@ PUBLIC int csoundModuleInit(CSOUND *csound)
     if (!(strcmp(drv, "portmidi") == 0 || strcmp(drv, "PortMidi") == 0 ||
           strcmp(drv, "PortMIDI") == 0 || strcmp(drv, "pm") == 0))
       return 0;
-    csound->Message(csound, Str("rtmidi: PortMIDI module enabled\n"));
+    csound->Message(csound, "%s", Str("rtmidi: PortMIDI module enabled\n"));
     csound->SetExternalMidiInOpenCallback(csound, OpenMidiInDevice_);
     csound->SetExternalMidiReadCallback(csound, ReadMidiData_);
     csound->SetExternalMidiInCloseCallback(csound, CloseMidiInDevice_);
@@ -531,6 +556,7 @@ PUBLIC int csoundModuleInit(CSOUND *csound)
 
 PUBLIC int csoundModuleDestroy(CSOUND *csound) {
 
+  IGN(csound);
     return 0;
 }
 

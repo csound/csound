@@ -17,8 +17,8 @@
 
     You should have received a copy of the GNU Lesser General Public
     License along with Csound; if not, write to the Free Software
-    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
-    02111-1307 USA
+    Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
+    02110-1301 USA
 */
 
 #if !defined(__BUILDING_LIBCSOUND) && !defined(CSOUND_CSDL_H)
@@ -51,8 +51,8 @@
 #ifndef CSOUND_CSDL_H
 /* VL not sure if we need to check for SSE */
 #if defined(__SSE__) && !defined(EMSCRIPTEN)
-#ifndef _MM_DENORMALS_ZERO_ON
 #include <xmmintrin.h>
+#ifndef _MM_DENORMALS_ZERO_ON
 #define _MM_DENORMALS_ZERO_MASK   0x0040
 #define _MM_DENORMALS_ZERO_ON     0x0040
 #define _MM_DENORMALS_ZERO_OFF    0x0000
@@ -75,11 +75,11 @@
 extern "C" {
 #endif /*  __cplusplus */
 
-#ifdef __MACH__
+#if defined(__MACH__) || defined(__FreeBSD__) || defined(__DragonFly__)
 #include <xlocale.h>
 #endif
 
-#if (defined(__MACH__) || defined(ANDROID) || defined(NACL) || defined(__CYGWIN__))
+#if (defined(__MACH__) || defined(ANDROID) || defined(NACL) || defined(__CYGWIN__) || defined(__HAIKU__))
 #include <pthread.h>
 #define BARRIER_SERIAL_THREAD (-1)
 typedef struct {
@@ -105,6 +105,7 @@ typedef struct {
 #define MAXINSNO  (200)
 #define PMAX      (1998)
 #define VARGMAX   (1999)
+#define NOT_AN_INSTRUMENT INT32_MAX
 
 #define ORTXT       h.optext->t
 #define INCOUNT     ORTXT.inlist->count
@@ -188,15 +189,19 @@ extern int ISSTRCOD(MYFLT);
 #define PI      (3.141592653589793238462643383279502884197)
 #endif /* pi */
 #define TWOPI   (6.283185307179586476925286766559005768394)
+#define HALFPI  (1.570796326794896619231321691639751442099)
 #define PI_F    ((MYFLT) PI)
 #define TWOPI_F ((MYFLT) TWOPI)
+#define HALFPI_F ((MYFLT) HALFPI)
 #define INF     (2147483647.0)
+#define ROOT2   (1.414213562373095048801688724209698078569)
 
 #define AMPLMSG 01
 #define RNGEMSG 02
 #define WARNMSG 04
 #define RAWMSG  0x40
 #define TIMEMSG 0x80
+#define NOQQ    0x400
 #define IGN(X)  (void) X
 
 #define ARG_CONSTANT 0
@@ -211,6 +216,11 @@ extern int ISSTRCOD(MYFLT);
 
 enum {FFT_LIB=0, PFFT_LIB, VDSP_LIB};
 enum {FFT_FWD=0, FFT_INV};
+
+/* advance declaration for
+  API  message queue struct
+*/
+struct _message_queue;
 
 typedef struct CORFIL {
     char    *body;
@@ -252,6 +262,7 @@ typedef struct CORFIL {
     double  quality;        /* for ogg encoding */
     int     ksmps_override;
     int     fft_lib;
+    int     echo;
   } OPARMS;
 
   typedef struct arglst {
@@ -284,23 +295,12 @@ typedef struct CORFIL {
         void    *useropinfo;    /* user opcode parameters */
     } OENTRY;
 
-    // holds matching oentries from opcodeList
-    // has space for 16 matches and next pointer in case more are found
-    // (unlikely though)
-    typedef struct oentries {
-        OENTRY* entries[16];
-//        int opnum[16];
-        int count;
-        char *opname;
-        int prvnum;
-        struct oentries* next;
-    } OENTRIES;
-
   /**
    * Storage for parsed orchestra code, for each opcode in an INSTRTXT.
    */
   typedef struct text {
-    int             linenum;        /* Line num in orch file (currently buggy!)  */
+    uint16_t        linenum;        /* Line num in orch file (currently buggy!)  */
+    uint64_t        locn;           /* and location */
     OENTRY          *oentry;
     char            *opcod;         /* Pointer to opcode name in global pool */
     ARGLST          *inlist;        /* Input args (pointer to item in name list) */
@@ -323,7 +323,7 @@ typedef struct CORFIL {
     TEXT    t;                      /* Text of instrument (same in nxtop) */
     int     pmax, vmax, pextrab;    /* Arg count, size of data for all
                                        opcodes in instr */
-    int     mdepends;               /* Opcode type (i/k/a) */
+    //int     mdepends;               /* Opcode type (i/k/a) */
     CS_VAR_POOL* varPool;
 
     //    int     optxtcount;
@@ -401,6 +401,7 @@ typedef struct CORFIL {
     int      arrayMemberSize;
     CS_TYPE* arrayType;
     MYFLT*   data;
+    size_t   allocated;
 //    AUXCH   aux;
   } ARRAYDAT;
 
@@ -589,8 +590,7 @@ typedef struct CORFIL {
 #define CS_ESR       (csound->esr)
 #define CS_PDS       (p->h.insdshead->pds)
 #define CS_SPIN      (p->h.insdshead->spin)
-#define CS_SPOUT      (p->h.insdshead->spout)
-
+#define CS_SPOUT     (p->h.insdshead->spout)
   typedef int (*SUBR)(CSOUND *, void *);
 
   /**
@@ -791,7 +791,7 @@ typedef struct CORFIL {
 #define MIDIINBUFMAX    (1024)
 #define MIDIINBUFMSK    (MIDIINBUFMAX-1)
 
-
+#define MIDIMAXPORTS    (64)
 
   typedef union {
     uint32 dwData;
@@ -881,21 +881,31 @@ typedef struct CORFIL {
 #endif  /* __BUILDING_LIBCSOUND */
 
 #define MARGS   (3)
-typedef struct S_MACRO {          /* To store active macros */
-    char        *name;          /* Use is by name */
-    int         acnt;           /* Count of arguments */
-    CORFIL      *body;          /* The text of the macro */
-    struct S_MACRO *next;         /* Chain of active macros */
-    int         margs;          /* ammount of space for args */
-    char        *arg[MARGS];    /* With these arguments */
-} S_MACRO;
+#define MAX_INCLUDE_DEPTH 100
+struct MACRO;
+
+typedef struct MACRON {
+  int             n;
+  unsigned int    line;
+  struct MACRO    *s;
+  char            *path;
+} MACRON;
+
+typedef struct MACRO {          /* To store active macros */
+    char          *name;        /* Use is by name */
+    int           acnt;         /* Count of arguments */
+    char          *body;        /* The text of the macro */
+    struct MACRO  *next;        /* Chain of active macros */
+    int           margs;        /* amount of space for args */
+    char          *arg[MARGS];  /* With these arguments */
+} MACRO;
 
 typedef struct in_stack_s {     /* Stack of active inputs */
     int16       is_marked_repeat;     /* 1 if this input created by 'n' stmnt */
     int16       args;                 /* Argument count for macro */
   //CORFIL      *cf;                  /* In core file */
   //void        *fd;                  /* for closing stream */
-    S_MACRO       *mac;
+    MACRO       *mac;
     int         line;
     int32       oposit;
 } IN_STACK;
@@ -935,8 +945,8 @@ typedef struct NAME__ {
    */
   typedef struct engine_state {
     CS_VAR_POOL    *varPool;  /* global variable pool */
-    MYFLT_POOL*   constantsPool;
-    CS_HASH_TABLE*  stringPool;
+    CS_HASH_TABLE  *constantsPool;
+    CS_HASH_TABLE  *stringPool;
     int            maxopcno;
     INSTRTXT      **instrtxtp; /* instrument list      */
     INSTRTXT      instxtanchor;
@@ -966,6 +976,27 @@ typedef struct NAME__ {
     char type[12];
   } MODULE_INFO;
 
+
+#define MAX_ALLOC_QUEUE 1024
+
+typedef struct _alloc_data_ {
+  int type;
+  int insno;
+  EVTBLK blk;
+  MCHNBLK *chn;
+  MEVENT mep;
+  INSDS *ip;
+  OPDS *ids;
+} ALLOC_DATA;
+
+#define MAX_MESSAGE_STR 1024
+typedef struct _message_queue_t_ {
+    int attr;
+    char str[MAX_MESSAGE_STR];
+} message_string_queue_t;
+
+
+#include "find_opcode.h"
 
   /**
    * Contains all function pointers, data, and data pointers required
@@ -1138,7 +1169,7 @@ typedef struct NAME__ {
     /**@{ */
     CS_NORETURN CS_PRINTF2 void (*Die)(CSOUND *, const char *msg, ...);
     CS_PRINTF2 int (*InitError)(CSOUND *, const char *msg, ...);
-    CS_PRINTF3 int (*PerfError)(CSOUND *, INSDS *ip,  const char *msg, ...);
+    CS_PRINTF3 int (*PerfError)(CSOUND *, OPDS *h,  const char *msg, ...);
     CS_PRINTF2 void (*Warning)(CSOUND *, const char *msg, ...);
     CS_PRINTF2 void (*DebugMsg)(CSOUND *, const char *msg, ...);
     CS_NORETURN void (*LongJmp)(CSOUND *, int);
@@ -1353,11 +1384,23 @@ typedef struct NAME__ {
     MYFLT (*GetA4)(CSOUND *csound);
     int (*AuxAllocAsync)(CSOUND *, size_t, AUXCH  *,
                          AUXASYNC *, aux_cb, void *);
-       /**@}*/
+    void *(*GetHostData)(CSOUND *);
+    char *(*strNcpy)(char *dst, const char *src, size_t siz);
+    int (*GetZaBounds)(CSOUND *, MYFLT **);
+    OENTRY* (*find_opcode_new)(CSOUND*, char*,
+                               char* , char*);
+    OENTRY* (*find_opcode_exact)(CSOUND*, char*,
+                               char* , char*);
+    int (*GetChannelPtr)(CSOUND *,MYFLT **, const char *, int);
+    int (*ListChannels)(CSOUND *, controlChannelInfo_t **);
+    int (*GetErrorCnt)(CSOUND *);
+    FUNC* (*FTnp2Finde)(CSOUND*, MYFLT *);
+    INSTRTXT *(*GetInstrument)(CSOUND*, int, const char *);
+    /**@}*/
     /** @name Placeholders
         To allow the API to grow while maintining backward binary compatibility. */
     /**@{ */
-    SUBR dummyfn_2[38];
+    SUBR dummyfn_2[29];
     /**@}*/
 #ifdef __BUILDING_LIBCSOUND
     /* ------- private data (not to be used by hosts or externals) ------- */
@@ -1467,10 +1510,6 @@ typedef struct NAME__ {
     FILE*         scoreout;
     int           *argoffspace;
     INSDS         *frstoff;
-    MYFLT         *zkstart;
-    long          zklast;
-    MYFLT         *zastart;
-    long          zalast;
     /** reserved for std opcode library  */
     void          *stdOp_Env;
     int           holdrand;
@@ -1487,8 +1526,8 @@ typedef struct NAME__ {
     int           nspout;
     MYFLT         *auxspin;
     OPARMS        *oparms;
-    /** reserve space for up to 4 MIDI devices */
-    MCHNBLK       *m_chnbp[64];
+    /** reserve space for up to MIDIMAXPORTS MIDI devices */
+    MCHNBLK       *m_chnbp[MIDIMAXPORTS*16];
     int           dither_output;
     MYFLT         onedsr, sicvt;
     MYFLT         tpidsr, pidsr, mpidsr, mtpdsr;
@@ -1537,30 +1576,24 @@ typedef struct NAME__ {
     void          *FFT_table_1;
     void          *FFT_table_2;
     /* statics from twarp.c should be TSEG* */
-    void          *tseg, *tpsave, *tplim;
+    void          *tseg, *tpsave;
+    /* persistent macros */
+    MACRO         *orc_macros;
     /* Statics from express.c */
     MYFLT         *gbloffbas;       /* was static in oload.c */
-    void         *file_io_thread;
-    int          file_io_start;
-    void         *file_io_threadlock;
-    int          realtime_audio_flag;
-    void         *init_pass_thread;
-    int          init_pass_loop;
-    void         *init_pass_threadlock;
-    void         *API_lock;
-    #if defined(HAVE_PTHREAD_SPIN_LOCK)
-    void *spoutlock, *spinlock;
-#else
-    int           spoutlock, spinlock;
-#endif /* defined(HAVE_PTHREAD_SPIN_LOCK) */
-#if defined(HAVE_PTHREAD_SPIN_LOCK)
-    void *memlock, *spinlock1;
-#else
-    int           memlock, spinlock1;
-#endif /* defined(HAVE_PTHREAD_SPIN_LOCK) */
+    void          *file_io_thread;
+    int           file_io_start;
+    void          *file_io_threadlock;
+    int           realtime_audio_flag;
+    void          *event_insert_thread;
+    int           event_insert_loop;
+    void          *init_pass_threadlock;
+    void          *API_lock;
+    spin_lock_t   spoutlock, spinlock;
+    spin_lock_t   memlock, spinlock1;
     char          *delayederrormessages;
     void          *printerrormessagesflag;
-    struct sreadStatics__ {
+    struct sread__ {
       SRTBLK  *bp, *prvibp;           /* current srtblk,  prev w/same int(p1) */
       char    *sp, *nxp;              /* string pntrs into srtblk text        */
       int     op;                     /* opcode of current event              */
@@ -1572,30 +1605,30 @@ typedef struct NAME__ {
       MYFLT   warp_factor /* = FL(1.0) */;
       char    *curmem;
       char    *memend;                /* end of cur memblk                    */
-      S_MACRO   *macros;
+      MACRO   *unused_ptr2;
       int     last_name /* = -1 */;
       IN_STACK  *inputs, *str;
       int     input_size, input_cnt;
-      int     pop;                    /* Number of macros to pop              */
-      int     ingappop /* = 1 */;     /* Are we in a popable gap?             */
+      int     unused_int3;
+      int     unused_int2;
       int     linepos /* = -1 */;
       MARKED_SECTIONS names[30];
 #define NAMELEN 40              /* array size of repeat macro names */
 #define RPTDEPTH 40             /* size of repeat_n arrays (39 loop levels) */
-      char    repeat_name_n[RPTDEPTH][NAMELEN];
-      int     repeat_cnt_n[RPTDEPTH];
-      int32   repeat_point_n[RPTDEPTH];
-      int     repeat_inc_n /* = 1 */;
-      S_MACRO   *repeat_mm_n[RPTDEPTH];
-      int     repeat_index;
+      char    unused_char0[RPTDEPTH][NAMELEN];
+      int     unused_int4[RPTDEPTH];
+      int32   unused_int7[RPTDEPTH];
+      int     unused_int5;
+      MACRO   *unused_ptr0[RPTDEPTH];
+      int     unused_int6;
      /* Variable for repeat sections */
-      char    repeat_name[NAMELEN];
-      int     repeat_cnt;
-      int32   repeat_point;
-      int     repeat_inc /* = 1 */;
-      S_MACRO   *repeat_mm;
+      char    unused_char1[NAMELEN];
+      int     unused_int8;
+      int32   unused_int9;
+      int     unused_intA;
+      MACRO   *unused_ptr1;
       int     nocarry;
-    } sreadStatics;
+    } sread;
     struct onefileStatics__ {
       NAMELST *toremove;
       char    *orcname;
@@ -1611,6 +1644,8 @@ typedef struct NAME__ {
       EVTBLK  prve;
       char    *Linebuf;
       int     linebufsiz;
+      char *orchestra, *orchestrab;
+      int   oflag;
     } lineventStatics;
     struct musmonStatics__ {
       int32   srngcnt[MAXCHNLS], orngcnt[MAXCHNLS];
@@ -1720,9 +1755,10 @@ typedef struct NAME__ {
     void          *barrier1;
     void          *barrier2;
     /* Statics from cs_par_dispatch; */
-    struct global_var_lock_t *global_var_lock_root;
-    struct global_var_lock_t **global_var_lock_cache;
-    int           global_var_lock_count;
+    /* ********These are no longer used******** */
+    void          *pointer1; //struct global_var_lock_t *global_var_lock_root;
+    void          *pointer2; //struct global_var_lock_t **global_var_lock_cache;
+    int           int1; //global_var_lock_count;
     /* statics from cs_par_orc_semantic_analysis */
     struct instr_semantics_t *instCurr;
     struct instr_semantics_t *instRoot;
@@ -1759,9 +1795,28 @@ typedef struct NAME__ {
     void*         csdebug_data; /* debugger data */
     int (*kperf)(CSOUND *); /* kperf function pointer, to switch between debug
                                and nodebug function */
-    int           score_parser;
-    int           tseglen;
+    int           unused_int1;
     int           inZero;       /* flag compilation of instr0 */
+    struct _message_queue **msg_queue;
+    volatile long msg_queue_wget; /* Writer - Get index */
+    volatile long msg_queue_wput; /* Writer - Put Index */
+    volatile long msg_queue_rstart; /* Reader - start index */
+    volatile long msg_queue_items;
+    int      aftouch;
+    void     *directory;
+    ALLOC_DATA *alloc_queue;
+    volatile unsigned long alloc_queue_items;
+    unsigned long alloc_queue_wp;
+    spin_lock_t alloc_spinlock;
+    EVTBLK *init_event;
+    void (*csoundMessageStringCallback)(CSOUND *csound,
+                                        int attr,
+                                        const char *str);
+    char* message_string;
+    volatile unsigned long message_string_queue_items;
+    unsigned long message_string_queue_wp;
+    message_string_queue_t *message_string_queue;
+    int io_initialised;
     /*struct CSOUND_ **self;*/
     /**@}*/
 #endif  /* __BUILDING_LIBCSOUND */

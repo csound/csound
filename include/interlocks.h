@@ -17,8 +17,8 @@
 
     You should have received a copy of the GNU Lesser General Public
     License along with Csound; if not, write to the Free Software
-    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
-    02111-1307 USA
+    Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
+    02110-1301 USA
 */
 
 // ZAK
@@ -26,8 +26,8 @@
 #define ZW (0x0002)
 #define ZB (0x0003)
 
-// Not used??
-#define MO (0x0004)
+// Writes to inputs
+#define WI (0x0004)
 
 //Tables
 #define TR (0x0008)
@@ -44,6 +44,11 @@
 
 //Printing
 #define WR (0x0100)
+
+// Internal oddities -- SPOUT
+#define IR (0x0200)
+#define IW (0x0400)
+#define IB (0x0600)
 
 //Deprecated
 #define _QQ (0x8000)

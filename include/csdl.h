@@ -17,8 +17,8 @@
 
     You should have received a copy of the GNU Lesser General Public
     License along with Csound; if not, write to the Free Software
-    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
-    02111-1307 USA
+    Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
+    02110-1301 USA
 */
 
 #ifndef CSOUND_CSDL_H
@@ -117,13 +117,19 @@ extern "C" {
 
 /* Use the Str() macro for translations of strings */
 #undef Str
-#ifndef GNU_GETTEXT
-#define Str(x)  (x)
-#else
-#define Str(x)  (csound->LocalizeString(x))
-#endif
 
-PUBLIC  long    csound_opcode_init(CSOUND *, OENTRY **);
+  /* VL commenting this out so ALL uses of Str(x)
+     call LocalizeString() [which might be a stub]
+     This would allows us to keep an eye on
+     -Wformat-security warnings
+  */
+//#ifndef GNU_GETTEXT
+//#define Str(x)  (x)
+//#else
+#define Str(x)  (csound->LocalizeString(x))
+//#endif
+
+PUBLIC  int64_t  csound_opcode_init(CSOUND *, OENTRY **);
 PUBLIC  NGFENS  *csound_fgen_init(CSOUND *);
 
 PUBLIC  int     csoundModuleCreate(CSOUND *);
@@ -136,8 +142,8 @@ PUBLIC  int     csoundModuleInfo(void);
 /** The LINKAGE macro sets up linking of opcode list*/
 
 #define LINKAGE                                                         \
-PUBLIC long csound_opcode_init(CSOUND *csound, OENTRY **ep)             \
-{   (void) csound; *ep = localops; return (long) sizeof(localops);  }   \
+PUBLIC int64_t csound_opcode_init(CSOUND *csound, OENTRY **ep)             \
+{   (void) csound; *ep = localops; return (int64_t) sizeof(localops);  }   \
 PUBLIC int csoundModuleInfo(void)                                       \
 { return ((CS_APIVERSION << 16) + (CS_APISUBVER << 8) + (int) sizeof(MYFLT)); }
 
@@ -146,8 +152,8 @@ PUBLIC int csoundModuleInfo(void)                                       \
 
 #undef LINKAGE_BUILTIN
 #define LINKAGE_BUILTIN(name)                                           \
-PUBLIC long csound_opcode_init(CSOUND *csound, OENTRY **ep)             \
-{   (void) csound; *ep = name; return (long) (sizeof(name));  }         \
+PUBLIC int64_t csound_opcode_init(CSOUND *csound, OENTRY **ep)             \
+{   (void) csound; *ep = name; return (int64_t) (sizeof(name));  }         \
 PUBLIC int csoundModuleInfo(void)                                       \
 { return ((CS_APIVERSION << 16) + (CS_APISUBVER << 8) + (int) sizeof(MYFLT)); }
 
@@ -171,4 +177,3 @@ PUBLIC int csoundModuleInfo(void)                                       \
 #endif
 
 #endif      /* CSOUND_CSDL_H */
-

@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="ProjectModuleManager">
+    <modules>
+      <module fileurl="file://$PROJECT_DIR$/CsoundAndroid/CsoundAndroid.iml" filepath="$PROJECT_DIR$/CsoundAndroid/CsoundAndroid.iml" />
+      <module fileurl="file://$PROJECT_DIR$/CsoundAndroidExamples/CsoundAndroidExamples.iml" filepath="$PROJECT_DIR$/CsoundAndroidExamples/CsoundAndroidExamples.iml" />
+      <module fileurl="file://$PROJECT_DIR$/CsoundForAndroid.iml" filepath="$PROJECT_DIR$/CsoundForAndroid.iml" />
+    </modules>
+  </component>
+</project>

@@ -13,15 +13,13 @@
  *
  * You should have received a copy of the GNU Lesser General Public
  * License along with this software; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
  *
  */
 
 #include "csdl.h"
 #include "hdf5.h"
 #include <stdbool.h>
-
-#pragma mark - HDF5IO -
 
 typedef enum ArgumentType
 {
@@ -41,7 +39,7 @@ typedef struct _fft {
     ARRAYDAT *in, *in2;
     MYFLT *f;
     MYFLT b;
-    int n;
+    int32_t n;
     void *setup;
     AUXCH mem;
 } nFFT;
@@ -55,7 +53,7 @@ typedef struct HDF5Dataset
     void *argumentPointer;
     ArgumentType writeType;
     ArgumentType readType;
-    int rank;
+    int32_t rank;
     hsize_t *chunkDimensions;
     AUXCH chunkDimensionsMemory;
     hsize_t *maxDimensions;
@@ -89,13 +87,11 @@ HDF5File *HDF5IO_newHDF5File(CSOUND *csound, AUXCH *hdf5FileMemory,
 
 void HDF5IO_deleteHDF5File(CSOUND *csound, HDF5File *hdf5File);
 
-#pragma mark - HDF5Write -
-
 typedef struct HDF5Write
 {
     OPDS h;
     MYFLT *arguments[20];
-    int inputArgumentCount;
+    int32_t inputArgumentCount;
     size_t ksmps;
     HDF5File *hdf5File;
     AUXCH hdf5FileMemory;
@@ -104,11 +100,11 @@ typedef struct HDF5Write
 
 } HDF5Write;
 
-int HDF5Write_initialise(CSOUND *csound, HDF5Write *self);
+int32_t HDF5Write_initialise(CSOUND *csound, HDF5Write *self);
 
-int HDF5Write_process(CSOUND *csound, HDF5Write *self);
+int32_t HDF5Write_process(CSOUND *csound, HDF5Write *self);
 
-int HDF5Write_finish(CSOUND *csound, void *inReference);
+int32_t HDF5Write_finish(CSOUND *csound, void *inReference);
 
 void HDF5Write_checkArgumentSanity(CSOUND *csound, const HDF5Write *self);
 
@@ -120,14 +116,12 @@ void HDF5Write_newArrayDataset(CSOUND *csound, HDF5Write *self,
 void HDF5Write_deleteArrayDataset(CSOUND *csound, HDF5Dataset *dataset);
 
 
-#pragma mark - HDF5Read -
-
 typedef struct HDF5Read
 {
     OPDS h;
     MYFLT *arguments[20];
-    int inputArgumentCount;
-    int outputArgumentCount;
+    int32_t inputArgumentCount;
+    int32_t outputArgumentCount;
     size_t ksmps;
     HDF5File *hdf5File;
     AUXCH hdf5FileMemory;
@@ -137,11 +131,11 @@ typedef struct HDF5Read
 
 } HDF5Read;
 
-int HDF5Read_initialise(CSOUND *csound, HDF5Read *self);
+int32_t HDF5Read_initialise(CSOUND *csound, HDF5Read *self);
 
-int HDF5Read_process(CSOUND *csound, HDF5Read *self);
+int32_t HDF5Read_process(CSOUND *csound, HDF5Read *self);
 
-int HDF5Read_finish(CSOUND *csound, void *inReference);
+int32_t HDF5Read_finish(CSOUND *csound, void *inReference);
 
 void HDF5Read_checkArgumentSanity(CSOUND *csound, const HDF5Read *self);
 

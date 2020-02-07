@@ -1,4 +1,4 @@
-(cd .. ; xgettext --keyword=Str --keyword=Str_noop -o /tmp/str --omit-header -f all_string_files)
+(cd .. ; xgettext --keyword=Str --keyword=Str_noop --keyword=STR -o /tmp/str --omit-header -f all_string_files)
 msgmerge csound.po /tmp/str -o new.po
 mv csound.po old_csound.po
 mv new.po csound.po

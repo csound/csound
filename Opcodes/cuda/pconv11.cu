@@ -19,8 +19,8 @@
 
   You should have received a copy of the GNU Lesser General Public
   License along with Csound; if not, write to the Free Software
-  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
-  02111-1307 USA
+  Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
+  02110-1301 USA
 */
 
 #include <csdl.h>
@@ -55,7 +55,7 @@ __global__ void pconvol(float *out,float *in,
   out[k+1] = re*im2 + re2*im;
 
   if(t > dftsize+1) return;
-  syncthreads();
+  __syncthreads();
     for(int i=dftsize+2; i < end; i+=(dftsize+2))
       out[t] += out[t + i];
 

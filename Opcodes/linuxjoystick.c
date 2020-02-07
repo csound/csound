@@ -14,8 +14,8 @@
 
   You should have received a copy of the GNU Lesser General Public
   License along with this plugin; if not, write to the Free Software
-  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
-  02111-1307 USA
+  Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
+  02110-1301 USA
 
   USAGE:
   kresultmask linuxjoystick kdevice ktab
@@ -36,15 +36,15 @@
 */
 
 #include "linuxjoystick.h"
-#include <sys/errno.h>
+#include <errno.h>
 
-static int linuxjoystick (CSOUND *csound, LINUXJOYSTICK *stick)
+static int32_t linuxjoystick (CSOUND *csound, LINUXJOYSTICK *stick)
 {
-    static int read_pos = 0;
+    static int32_t read_pos = 0;
     struct js_event js;
-    int read_size;
-    int getmore;
-    int evtidx;
+    int32_t read_size;
+    int32_t getmore;
+    int32_t evtidx;
     long long evtmask = 0;
     char device[256];
 
@@ -67,13 +67,13 @@ static int linuxjoystick (CSOUND *csound, LINUXJOYSTICK *stick)
         (stick->timeout)--;
         return OK;
       }
-      stick->dev = (int)MYFLT2LRND(*stick->kdev);
+      stick->dev = (int32_t)MYFLT2LRND(*stick->kdev);
       snprintf(device, 256, "/dev/js%i", stick->dev);
       if ((stick->devFD = open(device, O_RDONLY, O_NONBLOCK)) < 0) {
         snprintf(device, 256, "/dev/input/js%i", stick->dev);
         stick->devFD = open(device, O_RDONLY, O_NONBLOCK);
       }
-      if (stick->devFD > 0) {
+      if (LIKELY(stick->devFD > 0)) {
         fcntl(stick->devFD, F_SETFL, fcntl(stick->devFD, F_GETFL, 0)|O_NONBLOCK);
         ioctl(stick->devFD, JSIOCGAXES, &stick->numk);
         ioctl(stick->devFD, JSIOCGBUTTONS, &stick->numb);
@@ -81,7 +81,8 @@ static int linuxjoystick (CSOUND *csound, LINUXJOYSTICK *stick)
           csound->Warning
             (csound,
              Str("linuxjoystick: table %d of size %d too small for data size %d"),
-             (int)stick->table, stick->ftp->flen, 2+stick->numk+stick->numb);
+             (int32_t
+              )stick->table, stick->ftp->flen, 2+stick->numk+stick->numb);
           return OK;
         }
         stick->ftp->ftable[ 0 ] = (MYFLT) stick->numk;
@@ -108,7 +109,7 @@ static int linuxjoystick (CSOUND *csound, LINUXJOYSTICK *stick)
       if (read_size == -1 && errno == EAGAIN ) {
         getmore = 0;
       }
-      else if (read_size < 1) {
+      else if (UNLIKELY(read_size < 1)) {
         csound->Warning(csound, Str("linuxjoystick: read %d closing joystick"),
                         read_size);
         close(stick->devFD);

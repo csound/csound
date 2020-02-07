@@ -1,15 +1,69 @@
+/*
+ * pyx.auto.c
+ *
+ * Copyright (C) 2002 Maurizio Umberto Puxeddu, Michael Gogins
+ *
+ * This software is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 2.1 of the License, or (at your option) any later version.
+ *
+ * This software is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ * Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this software; if not, write to the Free Software
+ * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301 USA
+ */
+
+/* Modified from BSD sources for strlcpy */
+/*
+ * Copyright (c) 1998 Todd C. Miller <Todd.Miller@courtesan.com>
+ *
+ * Permission to use, copy, modify, and distribute this software for any
+ * purpose with or without fee is hereby granted, provided that the above
+ * copyright notice and this permission notice appear in all copies.
+ */
+/* modifed for speed -- JPff */
+char *
+strNcpy(char *dst, const char *src, size_t siz)
+{
+    char *d = dst;
+    const char *s = src;
+    size_t n = siz;
+
+    /* Copy as many bytes as will fit or until NULL */
+    if (n != 0) {
+      while (--n != 0) {
+        if ((*d++ = *s++) == '\0')
+          break;
+      }
+    }
+
+    /* Not enough room in dst, add NUL */
+    if (n == 0) {
+      if (siz != 0)
+        *d = '\0';                /* NUL-terminate dst */
+
+      //while (*s++) ;
+    }
+    return dst;        /* count does not include NUL */
+}
+
 
 static int pyexec_krate(CSOUND *csound, PYEXEC *p)
 {
     char      source[1024];
-    PyObject  *result;
+    PyObject  *result  = NULL;
     int *py_initialize_done;
     if ((py_initialize_done =
          csound->QueryGlobalVariable(csound,"PY_INITIALIZE")) == NULL ||
         *py_initialize_done == 0)
       return NOTOK;
 
-    strncpy(source, (char*) p->string->data,1023); source[1023] = '\0';
+    strNcpy(source, (char*) p->string->data,1024); //source[1023] = '\0';
 
     result = exec_file_in_given_context(csound, source, 0);
     if (result == NULL) {
@@ -30,7 +84,7 @@ static int pyexeci_irate(CSOUND *csound, PYEXEC *p)
        *py_initialize_done == 0)
       return NOTOK;
 
-    strncpy(source, (char*) p->string->data, 1023); source[1023] = '\0';
+    strNcpy(source, (char*) p->string->data, 1024); //source[1023] = '\0';
 
     result = exec_file_in_given_context(csound, source, 0);
     if (result == NULL) {
@@ -62,7 +116,7 @@ static int pylexec_krate(CSOUND *csound, PYEXEC *p)
        *py_initialize_done == 0)
       return NOTOK;
 
-    strncpy(source, (char*) p->string->data, 1023); source[1023]='\0';
+    strNcpy(source, (char*) p->string->data, 1024); //source[1023]='\0';
 
     result = exec_file_in_given_context(csound, source, GETPYLOCAL(p->h.insdshead));
     if (result == NULL) {
@@ -84,7 +138,7 @@ static int pylexeci_irate(CSOUND *csound, PYEXEC *p)
 
     create_private_namespace_if_needed(&p->h);
 
-    strncpy(source, (char*) p->string->data, 1023); source[1023]='\0';
+    strNcpy(source, (char*) p->string->data, 1024); //source[1023]='\0';
 
     result = exec_file_in_given_context(csound, source, GETPYLOCAL(p->h.insdshead));
     if (result == NULL) {
@@ -107,7 +161,7 @@ static int pyexect_krate(CSOUND *csound, PYEXECT *p)
     if (!*p->trigger)
       return OK;
 
-    strncpy(source, (char*) p->string->data, 1023);source[1023]='\0';
+    strNcpy(source, (char*) p->string->data, 1024); //source[1023]='\0';
 
     result = exec_file_in_given_context(csound, source, 0);
     if (result == NULL) {
@@ -141,7 +195,7 @@ static int pylexect_krate(CSOUND *csound, PYEXECT *p)
     if (!*p->trigger)
       return OK;
 
-    strncpy(source, (char*) p->string->data, 1023); source[1023]='\0';
+    strNcpy(source, (char*) p->string->data, 1024); //source[1023]='\0';
 
     result = exec_file_in_given_context(csound, source, GETPYLOCAL(p->h.insdshead));
     if (result == NULL) {
@@ -161,7 +215,7 @@ static int pyrun_krate(CSOUND *csound, PYRUN *p)
        *py_initialize_done == 0)
       return NOTOK;
 
-    strncpy(source, (char*) p->string->data, 40959);source[40959]='\0';
+    strNcpy(source, (char*) p->string->data, 40960); //source[40959]='\0';
 
     result = run_statement_in_given_context(source, 0);
     if (result == NULL) {
@@ -181,7 +235,7 @@ static int pyruni_irate(CSOUND *csound, PYRUN *p)
        *py_initialize_done == 0)
       return NOTOK;
 
-    strncpy(source, (char*) p->string->data, 40959);source[40959]='\0';
+    strNcpy(source, (char*) p->string->data, 40960);//source[40959]='\0';
 
     result = run_statement_in_given_context(source, 0);
     if (result == NULL) {
@@ -212,7 +266,7 @@ static int pylrun_krate(CSOUND *csound, PYRUN *p)
        *py_initialize_done == 0)
       return NOTOK;
 
-    strncpy(source, (char*) p->string->data, 40959); source[40959]='\0';
+    strNcpy(source, (char*) p->string->data, 40960); //source[40959]='\0';
 
     result = run_statement_in_given_context(source, GETPYLOCAL(p->h.insdshead));
     if (result == NULL) {
@@ -233,7 +287,7 @@ static int pylruni_irate(CSOUND *csound, PYRUN *p)
       return NOTOK;
     create_private_namespace_if_needed(&p->h);
 
-    strncpy(source, (char*) p->string->data, 40959); source[40959]='\0';
+    strNcpy(source, (char*) p->string->data, 40960); //source[40959]='\0';
 
     result = run_statement_in_given_context(source, GETPYLOCAL(p->h.insdshead));
     if (result == NULL) {
@@ -255,7 +309,7 @@ static int pyrunt_krate(CSOUND *csound, PYRUNT *p)
     if (!*p->trigger)
       return OK;
 
-    strncpy(source, (char*) p->string->data, 40959); source[40959]='\0';
+    strNcpy(source, (char*) p->string->data, 40960); //source[40959]='\0';
 
     result = run_statement_in_given_context(source, 0);
     if (result == NULL) {
@@ -288,7 +342,7 @@ static int pylrunt_krate(CSOUND *csound, PYRUNT *p)
     if (!*p->trigger)
       return OK;
 
-    strncpy(source, (char*) p->string->data, 40959); source[40959]='\0';
+    strNcpy(source, (char*) p->string->data, 40960); //source[40959]='\0';
 
     result = run_statement_in_given_context(source, GETPYLOCAL(p->h.insdshead));
     if (result == NULL) {
@@ -307,7 +361,7 @@ static int pyeval_krate(CSOUND *csound, PYEVAL *p)
         csound->QueryGlobalVariable(csound,"PY_INITIALIZE")) == NULL ||
        *py_initialize_done == 0)
       return NOTOK;
-    strncpy(source, (char*) p->string->data, 1023);source[1023]='\0';
+    strNcpy(source, (char*) p->string->data, 1024);//source[1023]='\0';
 
     result = eval_string_in_given_context(source, 0);
     if (result == NULL) {
@@ -333,7 +387,7 @@ static int pyevali_irate(CSOUND *csound, PYEVAL *p)
         csound->QueryGlobalVariable(csound,"PY_INITIALIZE")) == NULL ||
        *py_initialize_done == 0)
       return NOTOK;
-    strncpy(source, (char*) p->string->data, 1023);source[1023]='\0';
+    strNcpy(source, (char*) p->string->data, 1024); //source[1023]='\0';
 
     result = eval_string_in_given_context(source, 0);
     if (result == NULL) {
@@ -370,7 +424,7 @@ static int pyleval_krate(CSOUND *csound, PYEVAL *p)
         csound->QueryGlobalVariable(csound,"PY_INITIALIZE")) == NULL ||
        *py_initialize_done == 0)
       return NOTOK;
-    strncpy(source, (char*) p->string->data, 1023);source[1023]='\0';
+    strNcpy(source, (char*) p->string->data, 1024); //source[1023]='\0';
 
     result = eval_string_in_given_context(source, GETPYLOCAL(p->h.insdshead));
     if (result == NULL) {
@@ -389,7 +443,7 @@ static int pyleval_krate(CSOUND *csound, PYEVAL *p)
 static int pylevali_irate(CSOUND *csound, PYEVAL *p)
 {
     char      source[1024];
-    PyObject  *result;
+    PyObject  *result = NULL;
     int *py_initialize_done;
     if((py_initialize_done =
         csound->QueryGlobalVariable(csound,"PY_INITIALIZE")) == NULL ||
@@ -397,8 +451,7 @@ static int pylevali_irate(CSOUND *csound, PYEVAL *p)
       return NOTOK;
     create_private_namespace_if_needed(&p->h);
 
-    strncpy(source, (char*) p->string->data, 1023);source[1023]='\0';
-
+    strNcpy(source, (char*) p->string->data, 1024); //source[1023]='\0';
     result = eval_string_in_given_context(source, GETPYLOCAL(p->h.insdshead));
     if (result == NULL) {
       return pyErrMsg(p, "python exception");
@@ -416,7 +469,7 @@ static int pylevali_irate(CSOUND *csound, PYEVAL *p)
 static int pyevalt_krate(CSOUND *csound, PYEVALT *p)
 {
     char      source[1024];
-    PyObject  *result;
+    PyObject  *result  = NULL;
     int *py_initialize_done;
     if((py_initialize_done =
         csound->QueryGlobalVariable(csound,"PY_INITIALIZE")) == NULL ||
@@ -427,8 +480,7 @@ static int pyevalt_krate(CSOUND *csound, PYEVALT *p)
       return OK;
     }
 
-    strncpy(source, (char*) p->string->data, 1023);source[1023]='\0';
-
+    strNcpy(source, (char*) p->string->data, 1024); //source[1023]='\0';
     result = eval_string_in_given_context(source, 0);
     if (result == NULL) {
       return pyErrMsg(p, "python exception");
@@ -458,7 +510,7 @@ static int pylevalt_irate(CSOUND *csound, PYEVALT *p)
 static int pylevalt_krate(CSOUND *csound, PYEVALT *p)
 {
     char      source[1024];
-    PyObject  *result;
+    PyObject  *result  = NULL;
     int *py_initialize_done;
     if((py_initialize_done =
         csound->QueryGlobalVariable(csound,"PY_INITIALIZE")) == NULL ||
@@ -469,8 +521,7 @@ static int pylevalt_krate(CSOUND *csound, PYEVALT *p)
       return OK;
     }
 
-    strncpy(source, (char*) p->string->data, 1023);source[1023]='\0';
-
+    strNcpy(source, (char*) p->string->data, 1024); //source[1023]='\0';
     result = eval_string_in_given_context(source, GETPYLOCAL(p->h.insdshead));
     if (result == NULL) {
       return pyErrMsg(p, "python exception");
@@ -489,7 +540,7 @@ static int pylevalt_krate(CSOUND *csound, PYEVALT *p)
 static int pyassign_krate(CSOUND *csound, PYASSIGN *p)
 {
     char      source[1024];
-    PyObject  *result;
+    PyObject  *result = NULL;
     int *py_initialize_done;
     if((py_initialize_done =
         csound->QueryGlobalVariable(csound,"PY_INITIALIZE")) == NULL ||
@@ -509,7 +560,7 @@ static int pyassign_krate(CSOUND *csound, PYASSIGN *p)
 static int pyassigni_irate(CSOUND *csound, PYASSIGN *p)
 {
     char      source[1024];
-    PyObject  *result;
+    PyObject  *result = NULL;
     int *py_initialize_done;
     if((py_initialize_done =
         csound->QueryGlobalVariable(csound,"PY_INITIALIZE")) == NULL ||
@@ -540,7 +591,7 @@ static int pylassign_irate(CSOUND *csound, PYASSIGN *p)
 static int pylassign_krate(CSOUND *csound, PYASSIGN *p)
 {
     char      source[1024];
-    PyObject  *result;
+    PyObject  *result = NULL;
     int *py_initialize_done;
     if((py_initialize_done =
         csound->QueryGlobalVariable(csound,"PY_INITIALIZE")) == NULL ||
@@ -559,7 +610,7 @@ static int pylassign_krate(CSOUND *csound, PYASSIGN *p)
 static int pylassigni_irate(CSOUND *csound, PYASSIGN *p)
 {
     char      source[1024];
-    PyObject  *result;
+    PyObject  *result = NULL;
     int *py_initialize_done;
     if((py_initialize_done =
         csound->QueryGlobalVariable(csound,"PY_INITIALIZE")) == NULL ||
@@ -580,7 +631,7 @@ static int pylassigni_irate(CSOUND *csound, PYASSIGN *p)
 static int pyassignt_krate(CSOUND *csound, PYASSIGNT *p)
 {
     char      source[1024];
-    PyObject  *result;
+    PyObject  *result = NULL;
     int *py_initialize_done;
     if((py_initialize_done =
         csound->QueryGlobalVariable(csound,"PY_INITIALIZE")) == NULL ||
@@ -613,7 +664,7 @@ static int pylassignt_irate(CSOUND *csound, PYASSIGNT *p)
 static int pylassignt_krate(CSOUND *csound, PYASSIGNT *p)
 {
     char      source[1024];
-    PyObject  *result;
+    PyObject  *result = NULL;
     int *py_initialize_done;
     if ((py_initialize_done =
          csound->QueryGlobalVariable(csound,"PY_INITIALIZE")) == NULL ||

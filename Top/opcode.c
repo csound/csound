@@ -18,8 +18,8 @@
 
     You should have received a copy of the GNU Lesser General Public
     License along with Csound; if not, write to the Free Software
-    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
-    02111-1307 USA
+    Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
+    02110-1301 USA
 */
 
                                 /* OPCODE.C */
@@ -84,6 +84,14 @@ PUBLIC int csoundNewOpcodeList(CSOUND *csound, opcodeListEntry **lstp)
             ep->opname[0] != '\0' && isalpha(ep->opname[0]) &&
             ep->outypes != NULL && ep->intypes != NULL) {
           cnt++;
+#ifdef JPFF
+          if (strchr(ep->intypes, 'x'))
+            printf("%s, type %d %s -> %s\n", ep->opname, ep->thread,
+                   ep->intypes, ep->outypes);
+          /* else if (ep->thread==5 */
+          /*   printf("%s, type 6 %s -> %s\n", ep->opname, */
+          /*          ep->intypes, ep->outypes); */
+#endif
           nBytes += sizeof(opcodeListEntry);
           for (i = 0; ep->opname[i] != '\0' && ep->opname[i] != '.'; i++);
           nBytes += (size_t) i;
@@ -121,6 +129,9 @@ PUBLIC int csoundNewOpcodeList(CSOUND *csound, opcodeListEntry **lstp)
             strcpy(s, ep->outypes);
             ((opcodeListEntry*) lst)[cnt].outypes = s;
             s += ((int) strlen(ep->outypes) + 1);
+#ifdef JPFF
+            if (strlen(ep->outypes)==0) printf("***potential WI opcode %s\n", ep->opname);
+#endif
             strcpy(s, ep->intypes);
             ((opcodeListEntry*) lst)[cnt].intypes = s;
             s += ((int) strlen(ep->intypes) + 1);
@@ -157,7 +168,8 @@ void list_opcodes(CSOUND *csound, int level)
     opcodeListEntry *lst;
     const char      *sp = "                    ";   /* length should be 20 */
     int             j, k;
-    int             cnt, deprec = 0, len = 0, xlen = 0;
+    int             cnt, len = 0, xlen = 0;
+    int             count = 0;
 
     cnt = csoundNewOpcodeList(csound, &lst);
     if (UNLIKELY(cnt <= 0)) {
@@ -165,10 +177,6 @@ void list_opcodes(CSOUND *csound, int level)
       csoundDisposeOpcodeList(csound, lst);
       return;
     }
-    if ((level&2)==0)
-      for (j=0; j<cnt; j++)
-        if ((lst[j].flags&_QQ) !=0) deprec++;
-    csound->Message(csound, Str("%d opcodes\n"), cnt-deprec);
 
     for (j = 0, k = -1; j < cnt; j++) {
       if ((level&1) == 0) {                         /* Print in 4 columns */
@@ -214,7 +222,9 @@ void list_opcodes(CSOUND *csound, int level)
         csound->Message(csound, "%s", sp + (len + 8));
         csound->Message(csound, "%s\n", arg);
       }
+      count++;
     }
     csound->Message(csound, "\n");
+    csound->Message(csound, Str("%d opcodes\n\n"), count);
     csoundDisposeOpcodeList(csound, lst);
 }

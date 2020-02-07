@@ -17,8 +17,8 @@
 
  You should have received a copy of the GNU Lesser General Public
  License along with Csound; if not, write to the Free Software
- Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
- 02111-1307 USA
+ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
+ 02110-1301 USA
  */
 
 #ifndef __CSOUND_DATA_STRUCTURES_H
@@ -27,8 +27,6 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
-
-#define HASH_SIZE 4099
 
 typedef struct _cons {
     void* value; // should be car, but using value
@@ -43,7 +41,9 @@ typedef struct _cs_hash_bucket_item {
 } CS_HASH_TABLE_ITEM;
 
 typedef struct _cs_hash_table {
-    CS_HASH_TABLE_ITEM* buckets[HASH_SIZE];
+    int table_size;
+    int count;
+    CS_HASH_TABLE_ITEM** buckets;
 } CS_HASH_TABLE;
 
 /* FUNCTIONS FOR CONS CELL */
@@ -125,6 +125,7 @@ PUBLIC void cs_hash_table_mfree_complete(CSOUND* csound, CS_HASH_TABLE* hashTabl
     ->value pointer. */
 PUBLIC void cs_hash_table_free_complete(CSOUND* csound, CS_HASH_TABLE* hashTable);
 
+char * cs_inverse_hash_get(CSOUND* csound, CS_HASH_TABLE* hashTable, int n);
 #ifdef __cplusplus
 }
 #endif

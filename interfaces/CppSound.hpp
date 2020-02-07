@@ -15,7 +15,7 @@
  *
  * You should have received a copy of the GNU Lesser General Public
  * License along with this software; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
  */
 #ifndef CSND_CPPSOUND_H
 #define CSND_CPPSOUND_H
@@ -34,7 +34,6 @@
 %module csnd6
 %include "std_string.i"
 %include "std_vector.i"
-%apply std::vector<double> *INPUT { std::vector<double> const & };
 %{
 #include "csound.hpp"
 #include "CsoundFile.hpp"

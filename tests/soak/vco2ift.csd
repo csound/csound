@@ -16,7 +16,7 @@ nchnls = 2
 ; user defined waveform -2: fixed table size (64), number of partials
 ; multiplier is 1.4
 itmp    ftgen 2, 0, 64, 5, 1, 2, 120, 60, 1, 1, 0.001, 1
-ift     vco2init -2, 2, 1.4, 4096, 4096, 2
+ift     vco2init -2, 3, 1.4, 4096, 4096, 2
 
 
 instr 1

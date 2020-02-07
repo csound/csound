@@ -17,8 +17,8 @@
 
     You should have received a copy of the GNU Lesser General Public
     License along with Csound; if not, write to the Free Software
-    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
-    02111-1307 USA
+    Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
+    02110-1301 USA
 */
 
 #include <assert.h>
@@ -298,8 +298,8 @@ debug_opcode_t *csoundDebugGetCurrentOpcodeList(CSOUND *csound)
         return NULL;
     }
     debug_opcode_t *opcode_list = csound->Malloc(csound, sizeof(debug_opcode_t));
-    strncpy(opcode_list->opname, op->optext->t.opcod, 15);
-    opcode_list->opname[15] = '\0';
+    strNcpy(opcode_list->opname, op->optext->t.opcod, 16);
+    //opcode_list->opname[15] = '\0';
     opcode_list->line = op->optext->t.linenum;
     return opcode_list;
 }

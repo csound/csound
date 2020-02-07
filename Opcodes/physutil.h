@@ -17,8 +17,8 @@
 
     You should have received a copy of the GNU Lesser General Public
     License along with Csound; if not, write to the Free Software
-    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
-    02111-1307 USA
+    Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
+    02110-1301 USA
 */
 #if !defined(__PhysUtil_h)
 #define __PhysUtil_h
@@ -85,7 +85,7 @@ typedef struct Envelope {
     MYFLT       value;
     MYFLT       target;
     MYFLT       rate;
-    int         state;
+    int32_t         state;
 } Envelope;
 
 void make_Envelope(Envelope*);
@@ -172,7 +172,7 @@ typedef struct ADSR {
     MYFLT       value;                /* Envelope subclass */
     MYFLT       target;
     MYFLT       rate;
-    int         state;                  /* end */
+    int32_t         state;                  /* end */
     MYFLT       attackRate;
     MYFLT       decayRate;
     MYFLT       sustainLevel;
@@ -192,7 +192,8 @@ void ADSR_setAllTimes(CSOUND *,ADSR*, MYFLT, MYFLT, MYFLT, MYFLT);
 void ADSR_setTarget(CSOUND *,ADSR*, MYFLT);
 void ADSR_setValue(CSOUND *,ADSR*, MYFLT);
 MYFLT ADSR_tick(ADSR*);
-int ADSR_informTick(ADSR*);
+int32_t
+ADSR_informTick(ADSR*);
 MYFLT ADSR_lastOut(ADSR*);
 
 /*******************************************/

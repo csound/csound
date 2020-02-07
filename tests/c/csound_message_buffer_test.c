@@ -18,9 +18,9 @@ void test_create_buffer(void)
     csoundSetGlobalEnv("OPCODE6DIR64", "../../");
     CSOUND *csound = csoundCreate(0);
     int argc = 2;
-    char *argv[] = {"csound", "-v"};
+    const char *argv[] = {"csound", "-v"};
     csoundCreateMessageBuffer(csound, 0);
-    int result = csoundCompile(csound, argc, argv);
+    csoundCompile(csound, argc, argv);
 
     int cnt = csoundGetMessageCnt(csound);
     CU_ASSERT(cnt > 0);
@@ -42,7 +42,7 @@ void test_buffer_run(void)
     csoundSetGlobalEnv("OPCODE6DIR64", "../../");
     CSOUND *csound = csoundCreate(0);
     csoundCreateMessageBuffer(csound, 0);
-    int result = csoundCompileOrc(csound, "instr 1\n"
+    csoundCompileOrc(csound, "instr 1\n"
                                   "asig oscil 0.1, 440\n"
                                   "out asig\n"
                                   "endin\n");

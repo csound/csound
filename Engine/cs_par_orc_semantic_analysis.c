@@ -17,8 +17,8 @@
 
     You should have received a copy of the GNU Lesser General Public
     License along with Csound; if not, write to the Free Software
-    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
-    02111-1307 USA
+    Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
+    02110-1301 USA
 */
 
 #include <stdio.h>
@@ -49,15 +49,15 @@ static INSTR_SEMANTICS *instr_semantics_alloc(CSOUND *csound, char *name)
     INSTR_SEMANTICS *instr =
       csound->Malloc(csound, sizeof(INSTR_SEMANTICS));
     memset(instr, 0, sizeof(INSTR_SEMANTICS));
-    strncpy(instr->hdr, INSTR_SEMANTICS_HDR, HDR_LEN);
+    memcpy(instr->hdr, INSTR_SEMANTICS_HDR, HDR_LEN);
     instr->name = name;
     instr->insno = -1;
     /* always check for greater than 0 in optimisation
        so this is a good default
      */
-    csp_set_alloc_string(csound, &(instr->read_write));
-    csp_set_alloc_string(csound, &(instr->write));
-    csp_set_alloc_string(csound, &(instr->read));
+    instr->read_write = csp_set_alloc_string(csound);
+    instr->write = csp_set_alloc_string(csound);
+    instr->read = csp_set_alloc_string(csound);
 
     return instr;
 }
@@ -146,7 +146,7 @@ void csp_orc_sa_global_read_write_add_list(CSOUND *csound,
                                            struct set_t *write,
                                            struct set_t *read)
 {
-    if (csound->instCurr == NULL) {
+    if (UNLIKELY(csound->instCurr == NULL)) {
       csound->DebugMsg(csound,
                       "Add global read, write lists without any instruments\n");
     }
@@ -165,7 +165,7 @@ void csp_orc_sa_global_read_write_add_list1(CSOUND *csound,
                                            struct set_t *write,
                                            struct set_t *read)
 {
-    if (csound->instCurr == NULL) {
+    if (UNLIKELY(csound->instCurr == NULL)) {
       csound->DebugMsg(csound,
                       "Add global read, write lists without any instruments\n");
     }
@@ -175,14 +175,13 @@ void csp_orc_sa_global_read_write_add_list1(CSOUND *csound,
                       "write lists\n"));
     }
     else {
-      struct set_t *new = NULL;
-      csp_set_union(csound, write, read, &new);
+      struct set_t *new = csp_set_union(csound, write, read);
       //printf("Line: %d of cs_par_orc_semantics(%p)\n", __LINE__, *new);
       if (write->count == 1 && read->count == 1 && new->count == 1) {
         /* this is a read_write list thing */
-        struct set_t *new_read_write = NULL;
-        csp_set_union(csound, csound->instCurr->read_write,
-                      new, &new_read_write);
+        struct set_t *new_read_write = csp_set_union(csound,
+                                                     csound->instCurr->read_write,
+                                                     new);
         //printf("Line: %d of cs_par_orc_semantics(%p)\n",
         //       __LINE__, *new_read_write);
         csp_set_dealloc(csound, &csound->instCurr->read_write);
@@ -198,7 +197,7 @@ void csp_orc_sa_global_read_write_add_list1(CSOUND *csound,
 
 void csp_orc_sa_global_write_add_list(CSOUND *csound, struct set_t *set)
 {
-    if (csound->instCurr == NULL) {
+    if (UNLIKELY(csound->instCurr == NULL)) {
       csound->Message(csound,
                       Str("Add a global write_list without any instruments\n"));
     }
@@ -208,8 +207,7 @@ void csp_orc_sa_global_write_add_list(CSOUND *csound, struct set_t *set)
                       "global write_list\n"));
     }
     else {
-      struct set_t *new = NULL;
-      csp_set_union(csound, csound->instCurr->write, set, &new);
+      struct set_t *new = csp_set_union(csound, csound->instCurr->write, set);
 
       csp_set_dealloc(csound, &csound->instCurr->write);
       csp_set_dealloc(csound, &set);
@@ -231,8 +229,7 @@ void csp_orc_sa_global_read_add_list(CSOUND *csound, struct set_t *set)
                       "global read_list\n"));
     }
     else {
-      struct set_t *new = NULL;
-      csp_set_union(csound, csound->instCurr->read, set, &new);
+      struct set_t *new = csp_set_union(csound, csound->instCurr->read, set);
 
       csp_set_dealloc(csound, &csound->instCurr->read);
       csp_set_dealloc(csound, &set);
@@ -241,14 +238,14 @@ void csp_orc_sa_global_read_add_list(CSOUND *csound, struct set_t *set)
     }
 }
 
-void csp_orc_sa_interlocksf(CSOUND *csound, int code)
+static void csp_orc_sa_interlocksf(CSOUND *csound, int code, char *name)
 {
     if (code&0xfff8) {
       /* zak etc */
       struct set_t *rr = NULL;
       struct set_t *ww = NULL;
-      csp_set_alloc_string(csound, &ww);
-      csp_set_alloc_string(csound, &rr);
+      ww = csp_set_alloc_string(csound);
+      rr = csp_set_alloc_string(csound);
       if (code&ZR) csp_set_add(csound, rr, "##zak");
       if (code&ZW) csp_set_add(csound, ww, "##zak");
       if (code&TR) csp_set_add(csound, rr, "##tab");
@@ -256,8 +253,14 @@ void csp_orc_sa_interlocksf(CSOUND *csound, int code)
       if (code&_CR) csp_set_add(csound, rr, "##chn");
       if (code&_CW) csp_set_add(csound, ww, "##chn");
       if (code&WR) csp_set_add(csound, ww, "##wri");
+      if (code&IR) csp_set_add(csound, rr, "##int");
+      if (code&IW) csp_set_add(csound, ww, "##int");
       csp_orc_sa_global_read_write_add_list(csound, ww, rr);
-      if (code&_QQ) csound->Message(csound, Str("opcode deprecated"));
+      //      printf("code&qq=%4x msglevel = %4x bit=%4x\n",
+      //   code&_QQ, csound->oparms_.msglevel, csound->oparms_.msglevel&NOQQ );
+      if (UNLIKELY((code&_QQ) && !(csound->oparms_.msglevel&NOQQ))) {
+        csound->Message(csound, Str("opcode %s deprecated\n"), name);
+      }
     }
 }
 
@@ -265,14 +268,14 @@ void csp_orc_sa_interlocks(CSOUND *csound, ORCTOKEN *opcode)
 {
     char *name = opcode->lexeme;
     OENTRY *ep = find_opcode(csound, name);
-    csp_orc_sa_interlocksf(csound, ep->flags);
+    csp_orc_sa_interlocksf(csound, ep->flags, name);
 }
 
 //static int inInstr = 0;
 
 void csp_orc_sa_instr_add(CSOUND *csound, char *name)
 {
-  name = cs_strdup(csound, name); // JPff:  leaks: necessary??
+    name = cs_strdup(csound, name); // JPff:  leaks: necessary?? Think it is correct
     //printf("csp_orc_sa_instr_add name=%s\n", name);
     csound->inInstr = 1;
     if (csound->instRoot == NULL) {
@@ -326,14 +329,12 @@ struct set_t *csp_orc_sa_globals_find(CSOUND *csound, TREE *node)
     struct set_t *current_set = NULL;
 
     if (node == NULL) {
-      struct set_t *set = NULL;
-      csp_set_alloc_string(csound, &set);
-      return set;
+      return csp_set_alloc_string(csound);
     }
 
     left  = csp_orc_sa_globals_find(csound, node->left);
     right = csp_orc_sa_globals_find(csound, node->right);
-    csp_set_union(csound, left, right, &current_set);
+    current_set = csp_set_union(csound, left, right);
     //printf("Line: %d of cs_par_orc_semantics(%p)\n", __LINE__, current_set);
     csp_set_dealloc(csound, &left);
     csp_set_dealloc(csound, &right);
@@ -346,7 +347,7 @@ struct set_t *csp_orc_sa_globals_find(CSOUND *csound, TREE *node)
     if (node->next != NULL) {
       struct set_t *prev_set = current_set;
       struct set_t *next = csp_orc_sa_globals_find(csound, node->next);
-      csp_set_union(csound, prev_set, next, &current_set);
+      current_set = csp_set_union(csound, prev_set, next);
       //printf("Line: %d of cs_par_orc_semantics(%p)\n", __LINE__, current_set);
       csp_set_dealloc(csound, &prev_set);
       csp_set_dealloc(csound, &next);
@@ -390,7 +391,8 @@ INSTR_SEMANTICS *csp_orc_sa_instr_get_by_num(CSOUND *csound, int16 insno)
 
 void csp_orc_analyze_tree(CSOUND* csound, TREE* root)
 {
-    if (PARSER_DEBUG) csound->Message(csound, "Performing csp analysis\n");
+    if (UNLIKELY(PARSER_DEBUG))
+      csound->Message(csound, "Performing csp analysis\n");
 
     TREE *current = root;
     TREE *temp;
@@ -424,7 +426,7 @@ void csp_orc_analyze_tree(CSOUND* csound, TREE* root)
       case LABEL_TOKEN:
         break;
       default:
-        if (PARSER_DEBUG)
+        if (UNLIKELY(PARSER_DEBUG))
           csound->Message(csound,
                           "Statement: %s\n", current->value->lexeme);
 
@@ -446,6 +448,6 @@ void csp_orc_analyze_tree(CSOUND* csound, TREE* root)
 
     }
 
-    if (PARSER_DEBUG) csound->Message(csound, "[End csp analysis]\n");
+    if (UNLIKELY(PARSER_DEBUG)) csound->Message(csound, "[End csp analysis]\n");
 
 }

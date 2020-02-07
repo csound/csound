@@ -358,7 +358,7 @@ int main(int argc, char **argv)
       char buff[32];
       time_t tt = time(NULL);
       strftime(buff, 32, "<CsLicence>\nCopyright %Y: ", gmtime(&tt));
-      fprintf(outfile, buff);
+      fprintf(outfile, "%s", buff);
       switch (licencetype) {
       default:
       case 0:

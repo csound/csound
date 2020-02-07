@@ -17,8 +17,8 @@
 
     You should have received a copy of the GNU Lesser General Public
     License along with Csound; if not, write to the Free Software
-    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
-    02111-1307 USA
+    Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
+    02110-1301 USA
 */
 
 /******************************************/
@@ -33,13 +33,13 @@
 
 #define RESOLUTION 100
 
-static int spaceset(CSOUND *csound, SPACE *p)
+static int32_t spaceset(CSOUND *csound, SPACE *p)
 {
     STDOPCOD_GLOBALS  *pp;
     FUNC              *ftp = NULL;
 
     if (*p->ifn > 0) {
-      if (UNLIKELY((ftp = csound->FTnp2Find(csound, p->ifn)) == NULL))
+      if (UNLIKELY((ftp = csound->FTnp2Finde(csound, p->ifn)) == NULL))
         return NOTOK;
       p->ftp = ftp;
     }
@@ -61,14 +61,14 @@ static int spaceset(CSOUND *csound, SPACE *p)
     return OK;
 }
 
-static int space(CSOUND *csound, SPACE *p)
+static int32_t space(CSOUND *csound, SPACE *p)
 {
     MYFLT   *r1, *r2, *r3, *r4, *sigp, ch1, ch2, ch3, ch4;
     MYFLT   distance=FL(1.0), distr, distrsq, direct;
     MYFLT   *rrev1, *rrev2, *rrev3, *rrev4;
     MYFLT   torev, localrev, globalrev;
     MYFLT   xndx, yndx;
-    MYFLT   half_pi = FL(0.5)*PI_F;
+    //MYFLT   half_pi = FL(0.5)*PI_F;
     MYFLT   sqrt2 = SQRT(FL(2.0));
     MYFLT   fabxndx, fabyndx;
     FUNC    *ftp;
@@ -77,6 +77,7 @@ static int space(CSOUND *csound, SPACE *p)
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t n, nsmps = CS_KSMPS;
+    MYFLT revb = *p->reverbamount;
 
     if (*p->ifn > 0) { /* get xy vals from function table */
       if (UNLIKELY((ftp = p->ftp) == NULL)) goto err1;
@@ -125,18 +126,17 @@ static int space(CSOUND *csound, SPACE *p)
       }
     }
 
-    if (distance < FL(1.0)) distance = FL(1.0);
+    if (UNLIKELY(distance < FL(1.0))) distance = FL(1.0);
 
     distr=(FL(1.0) / distance);
     distrsq = FL(1.0)/SQRT(distance);
-
     xndx = (xndx+FL(1.0))*FL(0.5);
     yndx = (yndx+FL(1.0))*FL(0.5);
 
-    ch2 = SIN(half_pi * xndx) * SIN(half_pi * yndx) * sqrt2;
-    ch4 = SIN(half_pi * xndx) * SIN(half_pi * (FL(1.0)-yndx)) * sqrt2;
-    ch1 = SIN(half_pi * (FL(1.0)-xndx)) * SIN(half_pi * yndx) * sqrt2;
-    ch3 = SIN(half_pi * (FL(1.0)-xndx)) * SIN(half_pi * (FL(1.0)-yndx)) * sqrt2;
+    ch2 = SIN(HALFPI_F * xndx) * SIN(HALFPI_F * yndx) * sqrt2;
+    ch4 = SIN(HALFPI_F * xndx) * SIN(HALFPI_F * (FL(1.0)-yndx)) * sqrt2;
+    ch1 = SIN(HALFPI_F * (FL(1.0)-xndx)) * SIN(HALFPI_F * yndx) * sqrt2;
+    ch3 = SIN(HALFPI_F * (FL(1.0)-xndx)) * SIN(HALFPI_F * (FL(1.0)-yndx)) * sqrt2;
 
     r1 = p->r1;
     r2 = p->r2;
@@ -162,7 +162,7 @@ static int space(CSOUND *csound, SPACE *p)
     }
     for (n=offset; n<nsmps; n++) {
       direct = sigp[n] * distr;
-      torev = sigp[n] * distrsq * *p->reverbamount;
+      torev = sigp[n] * distrsq * revb;
       globalrev = torev * distr;
       localrev = torev * (FL(1.0) - distr);
       r1[n] = direct * ch1;
@@ -176,11 +176,11 @@ static int space(CSOUND *csound, SPACE *p)
     }
     return OK;
  err1:
-    return csound->PerfError(csound, p->h.insdshead,
+    return csound->PerfError(csound, &(p->h),
                              Str("space: not initialised"));
 }
 
-static int spsendset(CSOUND *csound, SPSEND *p)
+static int32_t spsendset(CSOUND *csound, SPSEND *p)
 {
     STDOPCOD_GLOBALS  *pp;
 
@@ -189,10 +189,11 @@ static int spsendset(CSOUND *csound, SPSEND *p)
     return OK;
 }
 
-static int spsend(CSOUND *csound, SPSEND *p)
+static int32_t spsend(CSOUND *csound, SPSEND *p)
 {
+    IGN(csound);
     SPACE *q = p->space;
-    int nbytes = CS_KSMPS*sizeof(MYFLT);
+    int32_t nbytes = CS_KSMPS*sizeof(MYFLT);
 
     memmove(p->r1, q->rrev1, nbytes);
     memmove(p->r2, q->rrev2, nbytes);
@@ -201,19 +202,19 @@ static int spsend(CSOUND *csound, SPSEND *p)
     return OK;
 }
 
-static int spdistset(CSOUND *csound, SPDIST *p)
+static int32_t spdistset(CSOUND *csound, SPDIST *p)
 {
    FUNC *ftp;
 
    if (*p->ifn > 0) {
-     if (UNLIKELY((ftp = csound->FTnp2Find(csound, p->ifn)) == NULL))
+     if (UNLIKELY((ftp = csound->FTnp2Finde(csound, p->ifn)) == NULL))
        return NOTOK;
      p->ftp = ftp;
    }
    return OK;
 }
 
-static int spdist(CSOUND *csound, SPDIST *p)
+static int32_t spdist(CSOUND *csound, SPDIST *p)
 {
     MYFLT      *r;
     MYFLT       distance, xndx, yndx;
@@ -259,21 +260,23 @@ static int spdist(CSOUND *csound, SPDIST *p)
     *r=distance;
     return OK;
  err1:
-    return csound->PerfError(csound, p->h.insdshead,
+    return csound->PerfError(csound, &(p->h),
                              Str("spdist: not initialised"));
 }
 
 #define S(x)    sizeof(x)
 
-static OENTRY localops[] = {
-  { "space",  S(SPACE), TR,5, "aaaa", "aikkkk",(SUBR)spaceset, NULL, (SUBR)space },
-  { "spsend", S(SPSEND), 0,5, "aaaa", "",     (SUBR)spsendset, NULL, (SUBR)spsend },
-  { "spdist", S(SPDIST), 0,3,    "k", "ikkk", (SUBR)spdistset, (SUBR)spdist, NULL }
+static OENTRY localops[] =
+  {
+   { "space",  S(SPACE), TR,3, "aaaa", "aikkkk",(SUBR)spaceset, (SUBR)space },
+   { "spsend", S(SPSEND), 0,3, "aaaa", "",     (SUBR)spsendset, (SUBR)spsend },
+   { "spdist", S(SPDIST), 0,3,    "k", "ikkk", (SUBR)spdistset, (SUBR)spdist }
 };
 
-int space_init_(CSOUND *csound)
+int32_t space_init_(CSOUND *csound)
 {
     return csound->AppendOpcodes(csound, &(localops[0]),
-                                 (int) (sizeof(localops) / sizeof(OENTRY)));
+                                 (int32_t
+                                  ) (sizeof(localops) / sizeof(OENTRY)));
 }
 

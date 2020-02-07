@@ -19,8 +19,8 @@
 
   You should have received a copy of the GNU Lesser General Public
   License along with Csound; if not, write to the Free Software
-  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
-  02111-1307 USA
+  Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
+  02110-1301 USA
 
 */
 #ifndef __MODLOAD__H
@@ -34,8 +34,14 @@ void on_load(Csound *);
 }
 
 extern "C" {
-PUBLIC int csoundModuleCreate(CSOUND *csound) { return 0; }
-PUBLIC int csoundModuleDestroy(CSOUND *csound) { return 0; }
+PUBLIC int csoundModuleCreate(CSOUND *csound) {
+  IGN(csound);
+  return 0;
+}
+PUBLIC int csoundModuleDestroy(CSOUND *csound) {
+  IGN(csound);
+  return 0;
+}
 PUBLIC int csoundModuleInit(CSOUND *csound) {
   csnd::on_load((csnd::Csound *)csound);
   return 0;

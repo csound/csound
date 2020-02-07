@@ -1,6 +1,8 @@
 /*
     pvs_ops.c:
 
+    Copyright (c) 2006 Istvan Varga, John ffitch
+
     This file is part of Csound.
 
     The Csound Library is free software; you can redistribute it
@@ -15,23 +17,23 @@
 
     You should have received a copy of the GNU Lesser General Public
     License along with Csound; if not, write to the Free Software
-    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
-    02111-1307 USA
+    Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
+    02110-1301 USA
 */
 
 #include "pvs_ops.h"
 
 /*
-PUBLIC int csoundModuleCreate(CSOUND *csound)
+PUBLIC int32_t csoundModuleCreate(CSOUND *csound)
 {
     (void) csound;
     return 0;
 }
 */
 
-int pvsopc_ModuleInit(CSOUND *csound)
+int32_t pvsopc_ModuleInit(CSOUND *csound)
 {
-    int     err = 0;
+    int32_t     err = 0;
 
     err |= ifd_init_(csound);
     err |= partials_init_(csound);
@@ -45,9 +47,10 @@ int pvsopc_ModuleInit(CSOUND *csound)
 }
 
 /*
-PUBLIC int csoundModuleInfo(void)
+PUBLIC int32_t csoundModuleInfo(void)
 {
-    return ((CS_APIVERSION << 16) + (CS_APISUBVER << 8) + (int) sizeof(MYFLT));
+    return ((CS_APIVERSION << 16) + (CS_APISUBVER << 8) + (int32_t
+) sizeof(MYFLT));
 }
 */
 

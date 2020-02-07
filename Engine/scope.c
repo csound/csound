@@ -38,7 +38,7 @@ extern void csound_scolex_destroy(void *);
       corfile_puts(buff, csound->expanded_sco);
       qq.line = 1;
       csound_prslex(csound, qq.yyscanner);
-      csound->DebugMsg(csound, "yielding >>%s<<\n",
+      csound->Message(csound, "yielding >>%s<<\n",
                        corfile_body(csound->expanded_sco));
       csound_prslex_destroy(qq.yyscanner);
       corfile_rm(&csound->scorestr);

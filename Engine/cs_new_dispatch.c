@@ -18,8 +18,8 @@
 
     You should have received a copy of the GNU Lesser General Public
     License along with Csound; if not, write to the Free Software
-    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
-    02111-1307 USA
+    Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
+    02110-1301 USA
 
 
 ** Fast system for managing task dependencies and dispatching to threads.
@@ -38,6 +38,7 @@
 #include "csoundCore.h"
 #include "cs_par_base.h"
 #include "cs_par_orc_semantics.h"
+#include <stdbool.h>
 
 #if defined(_MSC_VER)
 /* For InterlockedCompareExchange */
@@ -117,7 +118,7 @@ static void dag_print_state(CSOUND *csound)
 }
 
 /* For now allocate a fixed maximum number of tasks; FIXME */
-void create_dag(CSOUND *csound)
+static void create_dag(CSOUND *csound)
 {
     /* Allocate the main task status and watchlists */
     int max = csound->dag_task_max_size;
@@ -128,7 +129,7 @@ void create_dag(CSOUND *csound)
     csound->dag_wlmm = (watchList *)csound->Calloc(csound, sizeof(watchList)*max);
 }
 
-void recreate_dag(CSOUND *csound)
+static void recreate_dag(CSOUND *csound)
 {
     /* Allocate the main task status and watchlists */
     int max = csound->dag_task_max_size;
@@ -154,7 +155,7 @@ static INSTR_SEMANTICS *dag_get_info(CSOUND* csound, int insno)
       current_instr =
         csp_orc_sa_instr_get_by_name(csound,
            csound->engineState.instrtxtp[insno]->insname);
-      if (current_instr == NULL)
+      if (UNLIKELY(current_instr == NULL))
         csound->Die(csound,
                     Str("Failed to find semantic information"
                         " for instrument '%i'"),
@@ -166,10 +167,11 @@ static INSTR_SEMANTICS *dag_get_info(CSOUND* csound, int insno)
 static int dag_intersect(CSOUND *csound, struct set_t *current,
                          struct set_t *later, int cnt)
 {
+    IGN(cnt);
     struct set_t *ans;
     int res = 0;
     struct set_element_t *ele;
-    csp_set_intersection(csound, current, later, &ans);
+    ans = csp_set_intersection(csound, current, later);
     res = ans->count;
     ele = ans->head;
     while (ele != NULL) {
@@ -300,14 +302,26 @@ void dag_reinit(CSOUND *csound)
     //dag_print_state(csound);
 }
 
-//#define ATOMIC_READ(x) __sync_fetch_and_or(&(x), 0)
-//#define ATOMIC_WRITE(x,v) __sync_fetch_and_and(&(x), v)
+//#define ATOMIC_READ(x) __atomic_load(&(x), __ATOMIC_SEQ_CST)
+//#define ATOMIC_WRITE(x,v) __atomic_(&(x), v, __ATOMIC_SEQ_CST)
 #define ATOMIC_READ(x) x
 #define ATOMIC_WRITE(x,v) x = v;
 #if defined(_MSC_VER)
-#define ATOMIC_CAS(x,current,new)  InterlockedCompareExchange(x, current, new)
+#define ATOMIC_CAS(x,current,new) \
+  (current == InterlockedCompareExchange(x, new, current))
 #else
-#define ATOMIC_CAS(x,current,new)  __sync_bool_compare_and_swap(x,current,new)
+#define ATOMIC_CAS(x,current,new)  \
+  __atomic_compare_exchange_n(x,&(current),new, true, __ATOMIC_SEQ_CST, \
+                              __ATOMIC_SEQ_CST)
+#endif
+
+#if defined(_MSC_VER)
+#define ATOMIC_CAS_PTR(x,current,new) \
+  (current == InterlockedCompareExchangePointer(x, new, current))
+#else
+#define ATOMIC_CAS_PTR(x,current,new)  \
+  __atomic_compare_exchange_n(x,&(current),new, true, __ATOMIC_SEQ_CST,\
+                              __ATOMIC_SEQ_CST)
 #endif
 
 taskID dag_get_task(CSOUND *csound, int index, int numThreads, taskID next_task)
@@ -334,7 +348,7 @@ taskID dag_get_task(CSOUND *csound, int index, int numThreads, taskID next_task)
       switch (current_task_status) {
       case AVAILABLE :
         // Need to CAS as the value may have changed
-        if (ATOMIC_CAS(&(task_status[i].s), AVAILABLE, INPROGRESS)) {
+        if (ATOMIC_CAS(&(task_status[i].s), current_task_status, INPROGRESS)) {
           return (taskID)i;
         }
         break;
@@ -374,6 +388,7 @@ static const watchList DoNotRead = { INVALID, NULL};
 inline static int moveWatch(CSOUND *csound, watchList * volatile *w,
                             watchList *t)
 {
+     IGN(csound);
     watchList *local=*w;
     t->next = NULL;
     //printf("moveWatch\n");
@@ -385,7 +400,7 @@ inline static int moveWatch(CSOUND *csound, watchList * volatile *w,
         return 0;//was no & earlier
       }
       else t->next = local;
-    } while (!ATOMIC_CAS(w,local,t));
+    } while (!ATOMIC_CAS_PTR(w,local,t));
     //dag_print_state(csound);
     //printf("moveWatch done\n");
     return 1;
@@ -409,7 +424,7 @@ taskID dag_end_task(CSOUND *csound, taskID i)
     {                                      /* ATOMIC_SWAP */
       do {
         to_notify = ATOMIC_READ(task_watch[i]);
-      } while (!ATOMIC_CAS(&task_watch[i],to_notify,&DoNotRead));
+      } while (!ATOMIC_CAS_PTR(&task_watch[i],to_notify,(watchList *) &DoNotRead));
     } //to_notify = ATOMIC_SWAP(task_watch[i], &DoNotRead);
     //printf("Ending task %d\n", i);
     next = to_notify;
@@ -522,9 +537,9 @@ void initialiseWatch (watchList **w, taskID id) {
   *w = &(wlmm[id].s);
 }
 
-watchList * getWatches(taskID id) {
+inline watchList * getWatches(taskID id) {
 
-    return __sync_lock_test_and_set (&(watch[id]), doNotAdd);
+    return __atomic_test_and_set (&(watch[id]), doNotAdd);
 }
 
 int moveWatch (watchList **w, watchList *t) {
@@ -551,12 +566,13 @@ void appendToWL (taskID id, watchList *l) {
   do {
     w = watch[id];
     l->tail = w;
-    w = __sync_val_compare_and_swap(&(watch[id]),w,l);
+    w = __atomic_compare_exchange_n(&(watch[id]),w,l, false, \
+                                    __ATOMIC_SEQ_CST, __ATOMIC_SEQ_CST);
   } while (!(w == l));
 
 }
 
-void deleteWatch (watchList *t) {
+inline void deleteWatch (watchList *t) {
   wlmm[t->id].used = FALSE;
 }
 

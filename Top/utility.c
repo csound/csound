@@ -17,8 +17,8 @@
 
     You should have received a copy of the GNU Lesser General Public
     License along with Csound; if not, write to the Free Software
-    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
-    02111-1307 USA
+    Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
+    02110-1301 USA
 */
 
 #include "csoundCore.h"
@@ -38,7 +38,8 @@ int csoundAddUtility(CSOUND *csound, const char *name,
     csUtility_t *p;
     /* csound->Message(csound, "csoundAddUtility: name: %s  function: 0x%p\n",
                        name, UtilFunc); */
-    if (csound == NULL || name == NULL || name[0] == '\0' || UtilFunc == NULL)
+    if (UNLIKELY(csound == NULL || name == NULL ||
+                 name[0] == '\0' || UtilFunc == NULL))
       return -1;
     p = (csUtility_t*) csound->utility_db;
     if (LIKELY(p != NULL)) {
@@ -241,22 +242,24 @@ PUBLIC const char *csoundGetUtilityDescription(CSOUND *csound,
  * before calling this function, and csoundReset() should be called
  * after sorting the score to clean up. On success, zero is returned.
  */
+
 PUBLIC int csoundScoreSort(CSOUND *csound, FILE *inFile, FILE *outFile)
 {
     int   err;
-    CORFIL *inf = corfile_create_w();
+    CORFIL *inf = corfile_create_w(csound);
     int c;
     if ((err = setjmp(csound->exitjmp)) != 0) {
       return ((err - CSOUND_EXITJMP_SUCCESS) | CSOUND_EXITJMP_SUCCESS);
     }
-    while ((c=getc(inFile))!=EOF) corfile_putc(c, inf);
+    while ((c=getc(inFile))!=EOF) corfile_putc(csound, c, inf);
+    corfile_puts(csound, "\ne\n#exit\n", inf);
     corfile_rewind(inf);
     /* scsortstr() ignores the second arg - Jan 5 2012 */
     csound->scorestr = inf;
     scsortstr(csound, inf);
     while ((c=corfile_getc(csound->scstr))!=EOF)
       putc(c, outFile);
-    corfile_rm(&csound->scstr);
+    corfile_rm(csound, &csound->scstr);
     return 0;
 }
 
@@ -271,16 +274,16 @@ PUBLIC int csoundScoreExtract(CSOUND *csound,
                               FILE *inFile, FILE *outFile, FILE *extractFile)
 {
     int   err;
-    CORFIL *inf = corfile_create_w();
+    CORFIL *inf = corfile_create_w(csound);
     int c;
     if ((err = setjmp(csound->exitjmp)) != 0) {
       return ((err - CSOUND_EXITJMP_SUCCESS) | CSOUND_EXITJMP_SUCCESS);
     }
-    while ((c=getc(inFile))!=EOF) corfile_putc(c, inf);
+    while ((c=getc(inFile))!=EOF) corfile_putc(csound, c, inf);
     corfile_rewind(inf);
     scxtract(csound, inf, extractFile);
     while ((c=corfile_getc(csound->scstr))!=EOF)
       putc(c, outFile);
-    corfile_rm(&csound->scstr);
+    corfile_rm(csound, &csound->scstr);
     return 0;
 }

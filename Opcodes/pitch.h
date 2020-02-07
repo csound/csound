@@ -20,8 +20,8 @@
 
     You should have received a copy of the GNU Lesser General Public
     License along with Csound; if not, write to the Free Software
-    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
-    02111-1307 USA
+    Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
+    02110-1301 USA
 */
 
                         /*                                      PITCH.H */
@@ -38,16 +38,16 @@ typedef struct {
         double  c1, c2, prvq;
 #define MAXFRQS 120
         SPECDAT wsig;
-        int     nfreqs, ncoefs, dbout, scountdown, timcount;
+        int32_t     nfreqs, ncoefs, dbout, scountdown, timcount;
         MYFLT   curq, *sinp, *cosp, *linbufp;
-        int     winlen[MAXFRQS], offset[MAXFRQS];
+        int32_t     winlen[MAXFRQS], offset[MAXFRQS];
         DOWNDAT downsig;
         WINDAT  sinwindow, octwindow;
         AUXCH   auxch1, auxch2;
-        int     pdist[MAXPTL], nptls, rolloff;
+        int32_t     pdist[MAXPTL], nptls, rolloff;
         MYFLT   pmult[MAXPTL], confact, kvalsav, kval, kavl, kinc, kanc;
         MYFLT   *flop, *fhip, *fundp, *oct0p, threshon, threshoff;
-        int     winpts, jmpcount, playing;
+        int32_t     winpts, jmpcount, playing;
         SPECDAT wfund;
 } PITCH;
 
@@ -55,7 +55,7 @@ typedef struct {
         OPDS    h;
         MYFLT   *cnt;
         void    *clk;
-        int     c;
+        int32_t     c;
 } CLOCK;
 
 typedef struct {
@@ -96,8 +96,8 @@ typedef struct {
     FUNC    *ftp;
     FUNC    *freqtp;
     FUNC    *amptp;
-    unsigned int     count;
-    int     inerr;
+    uint32_t     count;
+    int32_t     inerr;
     AUXCH   lphs;
 } ADSYNT;
 
@@ -106,7 +106,7 @@ typedef struct {
     MYFLT       *sr, *kamp, *ktona, *kbrite, *ibasef, *ifn;
     MYFLT       *imixtbl, *ioctcnt, *iphs;
     int32       lphs[10];
-    int         octcnt;
+    int32_t         octcnt;
     MYFLT       prevamp;
     FUNC        *ftp;
     FUNC        *mixtp;
@@ -130,7 +130,7 @@ typedef struct {
     int32   mediptr;
     int32   rmsmedisize;
     int32   rmsmediptr;
-    int     inerr;
+    int32_t     inerr;
     AUXCH   median;
     AUXCH   rmsmedian;
     AUXCH   buffer;
@@ -159,8 +159,8 @@ typedef struct {
     int32       grd_Rows[GRD_MAX_RANDOM_ROWS];
     int32       grd_NumRows;    /* Number of rows (octave bands of noise) */
     int32       grd_RunningSum; /* Used to optimize summing of generators. */
-    int         grd_Index;      /* Incremented each sample. */
-    int         grd_IndexMask;  /* Index wrapped by ANDing with this mask. */
+    int32_t         grd_Index;      /* Incremented each sample. */
+    int32_t         grd_IndexMask;  /* Index wrapped by ANDing with this mask. */
     MYFLT       grd_Scalar;     /* Used to scale to normalize generated noise. */
 } PINKISH;
 
@@ -169,14 +169,14 @@ typedef struct {
         MYFLT   *aout;
         MYFLT   *ain, *imethod, *limit, *iarg;
         MYFLT   arg, lim, k1, k2;
-        int     meth;
+        int32_t     meth;
 } CLIP;
 
 typedef struct {
         OPDS    h;
         MYFLT   *ar;
         MYFLT   *amp, *freq, *offset;
-        unsigned int     next;
+        uint32_t     next;
 } IMPULSE;
 
 typedef struct {
@@ -203,7 +203,7 @@ typedef struct {
         OPDS    h;
         MYFLT   *rslt, *kamp, *beta;
         MYFLT   last, lastbeta, sq1mb2, ampmod;
-        int     ampinc;
+        int32_t     ampinc;
 } VARI;
 
 typedef struct {
@@ -216,14 +216,14 @@ typedef struct {
         OPDS    h;
         MYFLT   *ar, *ain, *rep, *len;
         AUXCH   auxch;
-        int     length;         /* Length of buffer */
-        int     cnt;            /* Repetions of current cycle */
-        int     start;          /* Start of current cycle */
-        int     current;        /* takeout point */
-        int     direction;      /* Need to check direction of crossing */
-        int     end;            /* Insert point */
+        int32_t     length;         /* Length of buffer */
+        int32_t     cnt;            /* Repetions of current cycle */
+        int32_t     start;          /* Start of current cycle */
+        int32_t     current;        /* takeout point */
+        int32_t     direction;      /* Need to check direction of crossing */
+        int32_t     end;            /* Insert point */
         MYFLT   lastsamp;       /* So we can test changes */
-        int     noinsert;       /* Flag to say we are losing input */
+        int32_t     noinsert;       /* Flag to say we are losing input */
 } BARRI;
 
 typedef struct {
@@ -256,70 +256,70 @@ typedef struct {
         AUXCH   b;
         MYFLT   *buff;
         MYFLT   *med;
-        int     ind;
-        int     maxwind;
+        int32_t     ind;
+        int32_t     maxwind;
 } MEDFILT;
 
-int Foscaa(CSOUND *, XOSC *p);
-int Foscak(CSOUND *, XOSC *p);
-int Foscka(CSOUND *, XOSC *p);
-int Fosckk(CSOUND *, XOSC *p);
-int Foscset(CSOUND *, XOSC *p);
-int GardnerPink_init(CSOUND *, PINKISH *p);
-int GardnerPink_perf(CSOUND *, PINKISH *p);
-int adsynt(CSOUND *, ADSYNT *p);
-int adsyntset(CSOUND *, ADSYNT *p);
-int clip(CSOUND *, CLIP *p);
-int clip_set(CSOUND *, CLIP *p);
-int clockoff(CSOUND *, CLOCK *p);
-int clockon(CSOUND *, CLOCK *p);
-int clockread(CSOUND *, CLKRD *p);
-int clockset(CSOUND *, CLOCK *p);
-int scratchread(CSOUND *, SCRATCHPAD *p);
-int scratchwrite(CSOUND *, SCRATCHPAD *p);
-int cpuperc(CSOUND *, CPU_PERC *p);
-int cpuperc_S(CSOUND *, CPU_PERC *p);
-int hsboscil(CSOUND *, HSBOSC *p);
-int hsboscset(CSOUND *, HSBOSC *p);
-int impulse(CSOUND *, IMPULSE *p);
-int impulse_set(CSOUND *, IMPULSE *p);
-int instcount(CSOUND *, INSTCNT *p);
-int instcount_S(CSOUND *, INSTCNT *p);
-int totalcount(CSOUND *, INSTCNT *p);
-int kphsorbnk(CSOUND *, PHSORBNK *p);
-int ktrnseg(CSOUND *, TRANSEG *p);
-int ktrnsegr(CSOUND *csound, TRANSEG *p);
-int lpf18db(CSOUND *, LPF18 *p);
-int lpf18set(CSOUND *, LPF18 *p);
-int mac(CSOUND *, SUM *p);
-int maca(CSOUND *, SUM *p);
-int macset(CSOUND *, SUM *p);
-int maxalloc(CSOUND *, CPU_PERC *p);
-int mute_inst(CSOUND *, MUTE *p);
-int maxalloc_S(CSOUND *, CPU_PERC *p);
-int mute_inst_S(CSOUND *, MUTE *p);
-int pfun(CSOUND *, PFUN *p);
-int pfunk_init(CSOUND *, PFUNK *p);
-int pfunk(CSOUND *, PFUNK *p);
-int phsbnkset(CSOUND *, PHSORBNK *p);
-int phsorbnk(CSOUND *, PHSORBNK *p);
-int pinkish(CSOUND *, PINKISH *p);
-int pinkset(CSOUND *, PINKISH *p);
-int pitch(CSOUND *, PITCH *p);
-int pitchamdf(CSOUND *, PITCHAMDF *p);
-int pitchamdfset(CSOUND *, PITCHAMDF *p);
-int pitchset(CSOUND *, PITCH *p);
-int trnseg(CSOUND *, TRANSEG *p);
-int trnsegr(CSOUND *csound, TRANSEG *p);
-int trnset(CSOUND *, TRANSEG *p);
-int trnset_bkpt(CSOUND *, TRANSEG *p);
-int trnsetr(CSOUND *csound, TRANSEG *p);
-int varicol(CSOUND *, VARI *p);
-int varicolset(CSOUND *, VARI *p);
-int waveset(CSOUND *, BARRI *p);
-int wavesetset(CSOUND *, BARRI *p);
-int medfiltset(CSOUND *, MEDFILT *p);
-int medfilt(CSOUND *, MEDFILT *p);
-int kmedfilt(CSOUND *, MEDFILT *p);
+int32_t Foscaa(CSOUND *, XOSC *p);
+int32_t Foscak(CSOUND *, XOSC *p);
+int32_t Foscka(CSOUND *, XOSC *p);
+int32_t Fosckk(CSOUND *, XOSC *p);
+int32_t Foscset(CSOUND *, XOSC *p);
+int32_t GardnerPink_init(CSOUND *, PINKISH *p);
+int32_t GardnerPink_perf(CSOUND *, PINKISH *p);
+int32_t adsynt(CSOUND *, ADSYNT *p);
+int32_t adsyntset(CSOUND *, ADSYNT *p);
+int32_t clip(CSOUND *, CLIP *p);
+int32_t clip_set(CSOUND *, CLIP *p);
+int32_t clockoff(CSOUND *, CLOCK *p);
+int32_t clockon(CSOUND *, CLOCK *p);
+int32_t clockread(CSOUND *, CLKRD *p);
+int32_t clockset(CSOUND *, CLOCK *p);
+int32_t scratchread(CSOUND *, SCRATCHPAD *p);
+int32_t scratchwrite(CSOUND *, SCRATCHPAD *p);
+int32_t cpuperc(CSOUND *, CPU_PERC *p);
+int32_t cpuperc_S(CSOUND *, CPU_PERC *p);
+int32_t hsboscil(CSOUND *, HSBOSC *p);
+int32_t hsboscset(CSOUND *, HSBOSC *p);
+int32_t impulse(CSOUND *, IMPULSE *p);
+int32_t impulse_set(CSOUND *, IMPULSE *p);
+int32_t instcount(CSOUND *, INSTCNT *p);
+int32_t instcount_S(CSOUND *, INSTCNT *p);
+int32_t totalcount(CSOUND *, INSTCNT *p);
+int32_t kphsorbnk(CSOUND *, PHSORBNK *p);
+int32_t ktrnseg(CSOUND *, TRANSEG *p);
+int32_t ktrnsegr(CSOUND *csound, TRANSEG *p);
+int32_t lpf18db(CSOUND *, LPF18 *p);
+int32_t lpf18set(CSOUND *, LPF18 *p);
+int32_t mac(CSOUND *, SUM *p);
+int32_t maca(CSOUND *, SUM *p);
+int32_t macset(CSOUND *, SUM *p);
+int32_t maxalloc(CSOUND *, CPU_PERC *p);
+int32_t mute_inst(CSOUND *, MUTE *p);
+int32_t maxalloc_S(CSOUND *, CPU_PERC *p);
+int32_t mute_inst_S(CSOUND *, MUTE *p);
+int32_t pfun(CSOUND *, PFUN *p);
+int32_t pfunk_init(CSOUND *, PFUNK *p);
+int32_t pfunk(CSOUND *, PFUNK *p);
+int32_t phsbnkset(CSOUND *, PHSORBNK *p);
+int32_t phsorbnk(CSOUND *, PHSORBNK *p);
+int32_t pinkish(CSOUND *, PINKISH *p);
+int32_t pinkset(CSOUND *, PINKISH *p);
+int32_t pitch(CSOUND *, PITCH *p);
+int32_t pitchamdf(CSOUND *, PITCHAMDF *p);
+int32_t pitchamdfset(CSOUND *, PITCHAMDF *p);
+int32_t pitchset(CSOUND *, PITCH *p);
+int32_t trnseg(CSOUND *, TRANSEG *p);
+int32_t trnsegr(CSOUND *csound, TRANSEG *p);
+int32_t trnset(CSOUND *, TRANSEG *p);
+int32_t trnset_bkpt(CSOUND *, TRANSEG *p);
+int32_t trnsetr(CSOUND *csound, TRANSEG *p);
+int32_t varicol(CSOUND *, VARI *p);
+int32_t varicolset(CSOUND *, VARI *p);
+int32_t waveset(CSOUND *, BARRI *p);
+int32_t wavesetset(CSOUND *, BARRI *p);
+int32_t medfiltset(CSOUND *, MEDFILT *p);
+int32_t medfilt(CSOUND *, MEDFILT *p);
+int32_t kmedfilt(CSOUND *, MEDFILT *p);
 #endif /* PITCH_H */
 

@@ -19,8 +19,8 @@
 
     You should have received a copy of the GNU Lesser General Public
     License along with Csound; if not, write to the Free Software
-    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
-    02111-1307 USA
+    Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
+    02110-1301 USA
 */
 
 #include <stdio.h>
@@ -52,15 +52,16 @@ extern char** splitArgs(CSOUND* csound, char* argString);
 
 ORCTOKEN *lookup_token(CSOUND *csound, char *s, void *yyscanner)
 {
+    IGN(yyscanner);
     int type = T_IDENT;
     ORCTOKEN *a;
     ORCTOKEN *ans;
 
-    if (PARSER_DEBUG)
+    if (UNLIKELY(PARSER_DEBUG))
       csound->Message(csound, "Looking up token for: %s\n", s);
 
     ans = new_token(csound, T_IDENT);
-  
+
     if (strchr(s, ':') != NULL) {
         char* th;
         char* baseName = strtok_r(s, ":", &th);
@@ -71,7 +72,7 @@ ORCTOKEN *lookup_token(CSOUND *csound, char *s, void *yyscanner)
     } else {
         ans->lexeme = cs_strdup(csound, s);
     }
-        
+
 //    if (udoflag == -2 || namedInstrFlag == 1) {
     if (namedInstrFlag == 1) {
         return ans;
@@ -102,14 +103,14 @@ static char* map_udo_out_arg_type(char* in) {
 
 static void map_args(char* args) {
     while (*args != '\0') {
-        if (*args == ':') {
-            while(*args != 0 && *args != ';') {
-               args++;
-            }
-        } else if (*args == 'K'){
-          *args = 'k';
+      if (*args == ':') {
+        while(*args != 0 && *args != ';') {
+          args++;
         }
-        args++;
+      } else {
+        *args = map_udo_out_arg_type(*args);
+      }
+      args++;
     }
 }
 
@@ -165,20 +166,20 @@ static int parse_opcode_args(CSOUND *csound, OENTRY *opc)
     in_args = splitArgs(csound, intypes);
     out_args = splitArgs(csound, inm->outtypes);
 
-    if (in_args == NULL) {
+    if (UNLIKELY(in_args == NULL)) {
       synterr(csound,
               Str("invalid input argument types found for opcode %s: %s\n"),
               inm->name, intypes);
       err++;
     }
-    if (out_args == NULL) {
+    if (UNLIKELY(out_args == NULL)) {
       synterr(csound,
               Str("invalid output argument types found for opcode %s: %s\n"),
               inm->name, inm->outtypes);
       err++;
     }
 
-    if(err > 0) goto early_exit;
+    if (UNLIKELY(err > 0)) goto early_exit;
 
     if (*in_args[0] != '0') {
       while (in_args[i] != NULL) {
@@ -192,20 +193,20 @@ static int parse_opcode_args(CSOUND *csound, OENTRY *opc)
             dimensions += 1;
             in_arg += 1;
           }
-        
+
           end = in_arg;
           while(*end != ']') {
             end++;
           }
           memcpy(typeSpecifier, in_arg, end - in_arg);
-            
+
           typeSpecifier[(end - in_arg) + 1] = 0;
 // printf("Dimensions: %d SubArgType: %s\n", dimensions, typeSpecifier);
           CS_TYPE* type =
             csoundGetTypeWithVarTypeName(csound->typePool, typeSpecifier);
 
-          if (type == NULL) {
-            synterr(csound, Str("invalid input type for opcode %s \n"), in_arg);
+          if (UNLIKELY(type == NULL)) {
+            synterr(csound, Str("invalid input type for opcode %s\n"), in_arg);
             err++;
             i++;
             continue;
@@ -225,8 +226,8 @@ static int parse_opcode_args(CSOUND *csound, OENTRY *opc)
           CS_TYPE* type =
             csoundGetTypeWithVarTypeName(csound->typePool, c);
 
-          if (type == NULL) {
-            synterr(csound, Str("invalid input type for opcode %s"), in_args[i]);
+          if (UNLIKELY(type == NULL)) {
+            synterr(csound, Str("invalid input type for opcode %s\n"), in_args[i]);
             err++;
             i++;
             continue;
@@ -255,19 +256,19 @@ static int parse_opcode_args(CSOUND *csound, OENTRY *opc)
             dimensions += 1;
             out_arg += 1;
           }
-        
+
           end = out_arg;
           while(*end != ']') {
             end++;
           }
           memcpy(typeSpecifier, out_arg, end - out_arg);
-            
+
           typeSpecifier[(end - out_arg) + 1] = 0;
           //printf("Dimensions: %d SubArgType: %s\n", dimensions, typeSpecifier);
           CS_TYPE* type =
             csoundGetTypeWithVarTypeName(csound->typePool, typeSpecifier);
 
-          if (type == NULL) {
+          if (UNLIKELY(type == NULL)) {
             synterr(csound, Str("invalid output type for opcode %s"), out_args[i]);
             err++;
             i++;
@@ -287,7 +288,7 @@ static int parse_opcode_args(CSOUND *csound, OENTRY *opc)
           CS_TYPE* type =
             csoundGetTypeWithVarTypeName(csound->typePool, c);
 
-          if (type == NULL) {
+          if (UNLIKELY(type == NULL)) {
             synterr(csound, Str("invalid output type for opcode %s"), out_arg);
             err++;
             i++;
@@ -339,7 +340,7 @@ static int parse_opcode_args(CSOUND *csound, OENTRY *opc)
 early_exit:
     if(in_args != NULL) {
       while(in_args[n] != NULL)  {
-        // printf("delete %p \n", argsFound[n]);
+        // printf("delete %p\n", argsFound[n]);
         csound->Free(csound, in_args[n]);
         n++;
       }
@@ -348,7 +349,7 @@ early_exit:
     if (out_args != NULL) {
       n = 0;
       while(out_args[n] != NULL)  {
-        // printf("delete %p \n", argsFound[n]);
+        // printf("delete %p\n", argsFound[n]);
         csound->Free(csound, out_args[n]);
         n++;
       }
@@ -405,8 +406,8 @@ int add_udo_definition(CSOUND *csound, char *opname,
     int len;
 
     if (UNLIKELY(!check_instr_name(opname))) {
-        synterr(csound, Str("invalid name for opcode"));
-        return -1;
+      synterr(csound, Str("invalid name for opcode"));
+      return -1;
     }
 
     len = strlen(intypes);
@@ -420,25 +421,23 @@ int add_udo_definition(CSOUND *csound, char *opname,
     }
 
     /* check if opcode is already defined */
-    if (opc != NULL) {
-        /* IV - Oct 31 2002: redefine old opcode if possible */
-      if (UNLIKELY(
-               !strcmp(opname, "instr") ||
-               !strcmp(opname, "endin") ||
-               !strcmp(opname, "opcode") ||
-               !strcmp(opname, "endop") ||
-               !strcmp(opname, "$label") ||
-               !strcmp(opname, "pset") ||
-               !strcmp(opname, "xin") ||
-               !strcmp(opname, "xout") ||
-               !strcmp(opname, "subinstr"))) {
-          synterr(csound, Str("cannot redefine %s"), opname);
-          return -2;
-        }
-        csound->Message(csound,
-                        Str("WARNING: redefined opcode: %s\n"), opname);
+    if (UNLIKELY(opc != NULL)) {
+      /* IV - Oct 31 2002: redefine old opcode if possible */
+      if (UNLIKELY(!strcmp(opname, "instr") ||
+                   !strcmp(opname, "endin") ||
+                   !strcmp(opname, "opcode") ||
+                   !strcmp(opname, "endop") ||
+                   !strcmp(opname, "$label") ||
+                   !strcmp(opname, "pset") ||
+                   !strcmp(opname, "xin") ||
+                   !strcmp(opname, "xout") ||
+                   !strcmp(opname, "subinstr"))) {
+        synterr(csound, Str("cannot redefine %s"), opname);
+        return -2;
+      }
+      csound->Message(csound,
+                      Str("WARNING: redefined opcode: %s\n"), opname);
     }
-
     /* IV - Oct 31 2002 */
     /* store the name in a linked list (note: must use csound->Calloc) */
     inm = (OPCODINFO *) csound->Calloc(csound, sizeof(OPCODINFO));
@@ -452,45 +451,48 @@ int add_udo_definition(CSOUND *csound, char *opname,
     csound->opcodeInfo = inm;
 
     if (opc != NULL) {
-        opc->useropinfo = inm;
-        newopc = opc;
+      /* printf("**** Redefining case: %s %s %s\n", */
+      /*        inm->name, inm->outtypes, inm->intypes); */
+      opc->useropinfo = inm;
+      newopc = opc;
     } else {
-        /* IV - Oct 31 2002: */
-        /* create a fake opcode so we can call it as such */
-        opc = find_opcode(csound, "##userOpcode");
-        memcpy(&tmpEntry, opc, sizeof(OENTRY));
-        tmpEntry.opname = cs_strdup(csound, opname);
+      /* IV - Oct 31 2002: */
+      /* create a fake opcode so we can call it as such */
+      opc = find_opcode(csound, "##userOpcode");
+      memcpy(&tmpEntry, opc, sizeof(OENTRY));
+      tmpEntry.opname = cs_strdup(csound, opname);
 
-        csound->AppendOpcodes(csound, &tmpEntry, 1);
-        newopc = csound_find_internal_oentry(csound, &tmpEntry);
+      csound->AppendOpcodes(csound, &tmpEntry, 1);
+      newopc = csound_find_internal_oentry(csound, &tmpEntry);
 
-        newopc->useropinfo = (void*) inm; /* ptr to opcode parameters */
+      newopc->useropinfo = (void*) inm; /* ptr to opcode parameters */
 
-        /* check in/out types and copy to the opcode's */
-        /* IV - Sep 8 2002: opcodes have an optional arg for ksmps */
-        newopc->outypes = csound->Malloc(csound, strlen(outtypes) + 1
-                                         + strlen(intypes) + 2);
-        newopc->intypes = &(newopc->outypes[strlen(outtypes) + 1]);
+      /* check in/out types and copy to the opcode's */
+      /* IV - Sep 8 2002: opcodes have an optional arg for ksmps */
+      newopc->outypes = csound->Malloc(csound, strlen(outtypes) + 1
+                                       + strlen(intypes) + 2);
+      newopc->intypes = &(newopc->outypes[strlen(outtypes) + 1]);
     }
 
+    //printf("****Calling parse_opcode_args\n");
     if (UNLIKELY(parse_opcode_args(csound, newopc) != 0))
-        return -3;
+      return -3;
 
     return 0;
 }
 
 void synterr(CSOUND *csound, const char *s, ...)
 {
-  va_list args;
+    va_list args;
 
-  csound->MessageS(csound, CSOUNDMSG_ERROR, Str("error:  "));
-  va_start(args, s);
-  csound->MessageV(csound, CSOUNDMSG_ERROR, s, args);
-  va_end(args);
+    csound->MessageS(csound, CSOUNDMSG_ERROR, Str("error:  "));
+    va_start(args, s);
+    csound->MessageV(csound, CSOUNDMSG_ERROR, s, args);
+    va_end(args);
 
-  /* FIXME - Removed temporarily for debugging
-   * This function may not be necessary at all in the end if some of this is
-   * done in the parser
-   */
-  csound->synterrcnt++;
+    /* FIXME - Removed temporarily for debugging
+     * This function may not be necessary at all in the end if some of this is
+     * done in the parser
+     */
+    csound->synterrcnt++;
 }

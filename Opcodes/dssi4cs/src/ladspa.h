@@ -16,7 +16,7 @@
 
    You should have received a copy of the GNU Lesser General Public
    License along with this library; if not, write to the Free Software
-   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307
+   Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301
    USA. */
 
 #ifndef LADSPA_INCLUDED
@@ -91,7 +91,7 @@ typedef float LADSPA_Data;
    LADSPA_Properties type. This is assembled by ORing individual
    properties together. */
 
-typedef int LADSPA_Properties;
+typedef int32_t LADSPA_Properties;
 
 /* Property LADSPA_PROPERTY_REALTIME indicates that the plugin has a
    real-time dependency (e.g. listens to a MIDI device) and so its
@@ -149,7 +149,7 @@ typedef int LADSPA_Properties;
    Note that a port must be an input or an output port but not both
    and that a port must be a control or audio port but not both. */
 
-typedef int LADSPA_PortDescriptor;
+typedef int32_t LADSPA_PortDescriptor;
 
 /* Property LADSPA_PORT_INPUT indicates that the port is an input. */
 #define LADSPA_PORT_INPUT   0x1
@@ -197,7 +197,7 @@ typedef int LADSPA_PortDescriptor;
    All the hint information for a particular port is aggregated in the
    LADSPA_PortRangeHint structure. */
 
-typedef int LADSPA_PortRangeHintDescriptor;
+typedef int32_t LADSPA_PortRangeHintDescriptor;
 
 /* Hint LADSPA_HINT_BOUNDED_BELOW indicates that the LowerBound field
    of the LADSPA_PortRangeHint should be considered meaningful. The
@@ -376,7 +376,7 @@ typedef struct _LADSPA_Descriptor {
      uniquely. Plugin programmers may reserve ranges of IDs from a
      central body to avoid clashes. Hosts may assume that IDs are
      below 0x1000000. */
-  unsigned long UniqueID;
+  uint64_t UniqueID;
 
   /* This identifier can be used as a unique, case-sensitive
      identifier for the plugin type within the plugin file. Plugin
@@ -403,7 +403,7 @@ typedef struct _LADSPA_Descriptor {
 
   /* This indicates the number of ports (input AND output) present on
      the plugin. */
-  unsigned long PortCount;
+  uint64_t PortCount;
 
   /* This member indicates an array of port descriptors. Valid indices
      vary from 0 to PortCount-1. */
@@ -435,7 +435,7 @@ typedef struct _LADSPA_Descriptor {
      Note that instance initialisation should generally occur in
      activate() rather than here. */
   LADSPA_Handle (*instantiate)(const struct _LADSPA_Descriptor * Descriptor,
-                               unsigned long                     SampleRate);
+                               uint64_t                     SampleRate);
 
   /* This member is a function pointer that connects a port on an
      instantiated plugin to a memory location at which a block of data
@@ -464,7 +464,7 @@ typedef struct _LADSPA_Descriptor {
      However, overlapped buffers or use of a single buffer for both
      audio and control data may result in unexpected behaviour. */
    void (*connect_port)(LADSPA_Handle Instance,
-                        unsigned long Port,
+                        uint64_t Port,
                         LADSPA_Data * DataLocation);
 
   /* This member is a function pointer that initialises a plugin
@@ -503,7 +503,7 @@ typedef struct _LADSPA_Descriptor {
      then there are various things that the plugin should not do
      within the run() or run_adding() functions (see above). */
   void (*run)(LADSPA_Handle Instance,
-              unsigned long SampleCount);
+              uint64_t SampleCount);
 
   /* This method is a function pointer that runs an instance of a
      plugin for a block. This has identical behaviour to run() except
@@ -519,7 +519,7 @@ typedef struct _LADSPA_Descriptor {
      this function pointer must be set to NULL. When it is provided,
      the function set_run_adding_gain() must be provided also. */
   void (*run_adding)(LADSPA_Handle Instance,
-                     unsigned long SampleCount);
+                     uint64_t SampleCount);
 
   /* This method is a function pointer that sets the output gain for
      use when run_adding() is called (see above). If this function is
@@ -586,11 +586,11 @@ typedef struct _LADSPA_Descriptor {
    returning NULL, so the plugin count can be determined by checking
    for the least index that results in NULL being returned. */
 
-const LADSPA_Descriptor * ladspa_descriptor(unsigned long Index);
+const LADSPA_Descriptor * ladspa_descriptor(uint64_t Index);
 
 /* Datatype corresponding to the ladspa_descriptor() function. */
 typedef const LADSPA_Descriptor *
-(*LADSPA_Descriptor_Function)(unsigned long Index);
+(*LADSPA_Descriptor_Function)(uint64_t Index);
 
 /**********************************************************************/
 

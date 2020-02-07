@@ -16,8 +16,8 @@
 
           You should have received a copy of the GNU Lesser General Public
           License along with Csound; if not, write to the Free Software
-          Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
-          02111-1307 USA
+          Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
+          02110-1301 USA
 
 PVSDEMIX:
 De-mixing of stereo sources.
@@ -61,13 +61,14 @@ typedef struct _pvsdemix {
         AUXCH   maxr;
         AUXCH   minl;
         AUXCH   minr;
-        int     beta;
+        int32_t     beta;
         uint32  lastframe;
 }
 PVSDEMIX;
 
-static int pvsdemix_init(CSOUND *csound, PVSDEMIX *p);
-static int pvsdemix_process(CSOUND *csound, PVSDEMIX *p);
+static int32_t pvsdemix_init(CSOUND *csound, PVSDEMIX *p);
+static int32_t
+pvsdemix_process(CSOUND *csound, PVSDEMIX *p);
 
 #endif
 

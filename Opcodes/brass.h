@@ -17,8 +17,8 @@
 
     You should have received a copy of the GNU Lesser General Public
     License along with Csound; if not, write to the Free Software
-    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
-    02111-1307 USA
+    Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
+    02110-1301 USA
 */
 
 /******************************************/
@@ -73,7 +73,7 @@ typedef struct DLineA {
 
 void make_DLineA(CSOUND *,DLineA *, int32 max_length);
 /* void DLineA_clear(DLineA *); */
-int DLineA_setDelay(CSOUND *,DLineA *, MYFLT length);
+int32_t DLineA_setDelay(CSOUND *,DLineA *, MYFLT length);
 MYFLT DLineA_tick(DLineA *, MYFLT sample);
 
 /***********************************************/
@@ -118,7 +118,7 @@ typedef struct BRASS {
     MYFLT       frq;            /* Remember previous value */
     MYFLT       lipT;           /* and lip tension */
     MYFLT       limit;
-    int         kloop;
+    int32_t     kloop;
 } BRASS;
 
 #endif

@@ -20,8 +20,8 @@
 
   You should have received a copy of the GNU Lesser General Public
   License along with Csound; if not, write to the Free Software
-  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
-  02111-1307 USA
+  Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
+  02110-1301 USA
 */
 
 #include <csdl.h>
@@ -136,7 +136,9 @@ static int pvsynset(CSOUND *csound, PVSYN *p){
     p->fac = TWOPI*hsize/csound->GetSr(csound);
     p->scal =csound->GetSr(csound)/N;
     cufftPlan1d(&p->plan, N, CUFFT_C2R, 1);
+#if __CUDACC_VER_MAJOR__ < 8
     cufftSetCompatibilityMode(p->plan, CUFFT_COMPATIBILITY_NATIVE);
+#endif
     csound->RegisterDeinitCallback(csound, p, destroy_pvsyn);
 
     p->bblocks = bins > blockspt? bins/blockspt : 1;
@@ -344,7 +346,9 @@ static int pvanalset(CSOUND *csound, PVAN *p){
     p->fac = csound->GetSr(csound)/(TWOPI*hsize);
     p->scal = (TWOPI*hsize)/N;
     cufftPlan1d(&p->plan, N, CUFFT_R2C, 1);
+#if __CUDACC_VER_MAJOR__ < 8
     cufftSetCompatibilityMode(p->plan, CUFFT_COMPATIBILITY_NATIVE);
+#endif
     csound->RegisterDeinitCallback(csound, p, destroy_pvanal);
 
     p->bblocks = bins > blockspt? bins/blockspt : 1;

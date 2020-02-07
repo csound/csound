@@ -17,8 +17,8 @@
 
     You should have received a copy of the GNU Lesser General Public
     License along with Csound; if not, write to the Free Software
-    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
-    02111-1307 USA
+    Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
+    02110-1301 USA
 */
 
 #include <iostream>
@@ -261,7 +261,8 @@ class CsPerfThreadMsg_Stop : public CsoundPerformanceThreadMessage {
     CsPerfThreadMsg_Stop(CsoundPerformanceThread *pt)
     : CsoundPerformanceThreadMessage(pt)
     {
-      CsoundPerformanceThreadMessage::QueueMessage(new CsPerfThreadMsg_StopRecord(pt));
+      CsoundPerformanceThreadMessage::QueueMessage(
+                                         new CsPerfThreadMsg_StopRecord(pt));
     }
     int run()
     {
@@ -420,7 +421,7 @@ int CsoundPerformanceThread::Perform()
         // if error or end of score, return now
         if (retval)
           goto endOfPerf;
-          fprintf(stderr, "Error or end of score, returning now.");
+        // fprintf(stderr, "Error or end of score, returning now.");
         // if paused, wait until a new message is received, then loop back
         if (!paused)
           break;
@@ -675,14 +676,14 @@ int CsoundPerformanceThread::Join()
     int retval;
     retval = status;
 
-    if (perfThread) {
-      retval = csoundJoinThread(perfThread);
-      perfThread = (void*) 0;
-    }
     if (recordData.running) {
         recordData.running = false;
         csoundCondSignal(recordData.condvar);
         csoundJoinThread(recordData.thread);
+    }
+    if (perfThread) {
+      retval = csoundJoinThread(perfThread);
+      perfThread = (void*) 0;
     }
 
     // delete any pending messages

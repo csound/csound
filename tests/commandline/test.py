@@ -35,18 +35,18 @@ def showHelp():
     in the command "--show-ui" like so:
 
     ./test.py --show-ui
-    
-    The test suite defaults to using the new parser.  To use the old parser for 
+
+    The test suite defaults to using the new parser.  To use the old parser for
     the tests, use "--old-parser" in the command like so:
-    
+
     ./test.py --show-ui --old-parser
-    
+
     """
 
     print message
 
 def runTest():
-    runArgs = "-Wdo test.wav"
+    runArgs = "-nd"# "-Wdo test.wav"
 
     if (parserType == "--old-parser"):
         print "Testing with old parser"
@@ -106,6 +106,7 @@ def runTest():
 	["test_string.csd", "test string assignment and printing"],
 	["test_sprintf.csd", "test string assignment and printing"],
 	["test_sprintf2.csd", "test string assignment and printing that causes reallocation"],
+	["nested_strings.csd", "test nested strings works with schedule [issue #861]"],
 	["test_label_within_if_block.csd", "test label within if block"],
 
 	["test_arrays.csd", "test k-array with single dimension, assignment to expression value"],
@@ -116,7 +117,7 @@ def runTest():
 	["test_arrays_string2.csd", "test simple string-array assignment"],
 	["test_arrays_static_init.csd", "test arrays initialized with static initializer (i.e. kvals = [0,1,2])"],
 	["test_asig_as_array.csd", "test using a-sig with array get/set syntax"],
-	["test_arrays_negative_dimension_fail.csd", 
+	["test_arrays_negative_dimension_fail.csd",
              "test expected failure with negative dimension size and array", 1],
 
 	["test_empty_conditional_branches.csd", "tests that empty branches do not cause compiler issues"],
@@ -131,7 +132,7 @@ def runTest():
 	["test_fsig_udo.csd", "UDO with f-sig arg"],
 	["test_karrays_udo.csd", "UDO with k[] arg"],
 	["test_arrays_addition.csd", "test array arithmetic (i.e. k[] + k[]"],
-	["test_arrays_fns.csd", "test functions on arrays (i.e. tabgen)"],
+	["test_arrays_fns.csd", "test functions on arrays (i.e. tabgen)", 1],
 	["test_polymorphic_udo.csd", "test polymorphic udo"],
 	["test_udo_a_array.csd", "test udo with a-array"],
 	["test_udo_2d_array.csd", "test udo with 2d-array"],
@@ -142,6 +143,7 @@ def runTest():
         ["test_new_udo_syntax.csd", "test new-style UDO syntax"],
         ["test_new_udo_syntax_explicit_types.csd", "test new-style UDO syntax with explicit types"],
         ["test_multiple_return.csd", "test multiple return from express (i.. a1,a2 = xx())"],
+        ["prints_number_no_crash.csd", "test prints does not crash when given a number arguments", 1],
     ]
 
     arrayTests = [["arrays/arrays_i_local.csd", "local i[]"],
@@ -173,9 +175,7 @@ def runTest():
     tests += udoTests
 
     output = ""
-    tempfile = "/tmp/csound_test_output.txt"
-    if(os.sep == '/' and os.name == 'nt'):
-        tempfile = 'csound_test_output.txt'
+    tempfile = 'csound_test_output.txt' if (os.name == 'nt') else '/tmp/csound_test_output.txt'
     counter = 1
 
     retVals = []
@@ -196,10 +196,10 @@ def runTest():
             retVal = os.system(command)
         else:
             executable = (csoundExecutable == "") and "../../csound" or csoundExecutable
-            command = "%s %s %s %s"%(executable, parserType, runArgs, filename)
-            #print command
+            command = "%s %s %s %s 2> %s"%(executable, parserType, runArgs, filename, tempfile)
+            print command
             retVal = os.system(command)
-  
+
         out = ""
         if (retVal == 0) == (expectedResult == 0):
             testPass += 1
@@ -262,7 +262,7 @@ if __name__ == "__main__":
                 print csoundExecutable
             elif arg.startswith("--opcode6dir64="):
                 os.environ['OPCODE6DIR64'] = arg[15:]
-                print os.environ['OPCODE6DIR64'] 
+                print os.environ['OPCODE6DIR64']
     results = runTest()
     if (showUIatClose):
         showUI(results)

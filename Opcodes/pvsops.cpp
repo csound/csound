@@ -16,8 +16,8 @@
 
   You should have received a copy of the GNU Lesser General Public
   License along with Csound; if not, write to the Free Software
-  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
-  02111-1307 USA
+  Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
+  02110-1301 USA
 */
 #include <algorithm>
 #include <plugin.h>
@@ -29,11 +29,10 @@ struct PVTrace : csnd::FPlugin<1, 2> {
 
   int init() {
     if (inargs.fsig_data(0).isSliding())
-      return csound->init_error(Str("sliding not supported"));
-
+      return csound->init_error("sliding not supported");
     if (inargs.fsig_data(0).fsig_format() != csnd::fsig_format::pvs &&
         inargs.fsig_data(0).fsig_format() != csnd::fsig_format::polar)
-      return csound->init_error(Str("fsig format not supported"));
+      return csound->init_error("fsig format not supported");
 
     amps.allocate(csound, inargs.fsig_data(0).nbins());
     csnd::Fsig &fout = outargs.fsig_data(0);
@@ -45,7 +44,6 @@ struct PVTrace : csnd::FPlugin<1, 2> {
   int kperf() {
     csnd::pv_frame &fin = inargs.fsig_data(0);
     csnd::pv_frame &fout = outargs.fsig_data(0);
-
     if (framecount < fin.count()) {
       int n = fin.len() - (int)inargs[1];
       float thrsh;
@@ -63,6 +61,87 @@ struct PVTrace : csnd::FPlugin<1, 2> {
   }
 };
 
+struct binamp {
+  int bin;
+  float amp;
+};
+
+struct PVTrace2 : csnd::FPlugin<2, 5> {
+  csnd::AuxMem<float> amps;
+  csnd::AuxMem<binamp> binlist;
+  static constexpr char const *otypes = "fk[]";
+  static constexpr char const *itypes = "fkopp";
+
+  int init() {
+    csnd::Vector<MYFLT> &bins = outargs.vector_data<MYFLT>(1);
+    if (inargs.fsig_data(0).isSliding())
+      return csound->init_error("sliding not supported");
+
+    if (inargs.fsig_data(0).fsig_format() != csnd::fsig_format::pvs &&
+        inargs.fsig_data(0).fsig_format() != csnd::fsig_format::polar)
+      return csound->init_error("fsig format not supported");
+
+    amps.allocate(csound, inargs.fsig_data(0).nbins());
+    binlist.allocate(csound, inargs.fsig_data(0).nbins());
+    csnd::Fsig &fout = outargs.fsig_data(0);
+    fout.init(csound, inargs.fsig_data(0));
+
+    bins.init(csound, inargs.fsig_data(0).nbins());
+
+    framecount = 0;
+    return OK;
+  }
+
+  int kperf() {
+    csnd::pv_frame &fin = inargs.fsig_data(0);
+    csnd::pv_frame &fout = outargs.fsig_data(0);
+    csnd::Vector<MYFLT> &bins = outargs.vector_data<MYFLT>(1);
+    csnd::AuxMem<binamp> &mbins = binlist;
+
+    if (framecount < fin.count()) {
+      int n = fin.len() - (int)inargs[1];
+      float thrsh;
+      int cnt = 0;
+      int bin = 0;
+      int start = (int) inargs[3];
+      int end = (int) inargs[4];
+      std::transform(fin.begin() + start,
+                     end ? fin.begin() +
+                     ((unsigned int)end <= fin.len() ? end : fin.len()) :
+                     fin.end(), amps.begin(),
+                     [](csnd::pv_bin f) { return f.amp(); });
+      std::nth_element(amps.begin(), amps.begin() + n, amps.end());
+      thrsh = amps[n];
+      std::transform(fin.begin(), fin.end(), fout.begin(),
+                     [thrsh, &mbins, &cnt, &bin](csnd::pv_bin f) {
+                       if(f.amp() >= thrsh) {
+                       mbins[cnt].bin = bin++;
+                       mbins[cnt++].amp = f.amp();
+                       return f;
+                       }
+                       else {
+                        bin++;
+                        return csnd::pv_bin();
+                       }
+                     });
+
+      if(inargs[2] > 0)
+      std::sort(binlist.begin(), binlist.begin()+cnt, [](binamp a, binamp b){
+          return (a.amp > b.amp);});
+
+      std::transform(binlist.begin(), binlist.begin()+cnt, bins.begin(),
+                     [](binamp a) { return (MYFLT) a.bin;});
+      std::fill(bins.begin()+cnt, bins.end(), FL(0.0));
+
+      framecount = fout.count(fin.count());
+    }
+
+    return OK;
+  }
+};
+
+
+
 struct TVConv : csnd::Plugin<1, 6> {
   csnd::AuxMem<MYFLT> ir;
   csnd::AuxMem<MYFLT> in;
@@ -70,12 +149,14 @@ struct TVConv : csnd::Plugin<1, 6> {
   csnd::AuxMem<MYFLT> irsp;
   csnd::AuxMem<MYFLT> out;
   csnd::AuxMem<MYFLT> saved;
+  csnd::AuxMem<MYFLT>::iterator itn;
+  csnd::AuxMem<MYFLT>::iterator itr;
+  csnd::AuxMem<MYFLT>::iterator itnsp;
+  csnd::AuxMem<MYFLT>::iterator itrsp;
   uint32_t n;
   uint32_t fils;
   uint32_t pars;
   uint32_t ffts;
-  uint32_t nparts;
-  uint32_t pp;
   csnd::fftp fwd, inv;
   typedef std::complex<MYFLT> cmplx;
 
@@ -102,24 +183,25 @@ struct TVConv : csnd::Plugin<1, 6> {
       std::swap(pars, fils);
     if (pars > 1) {
       pars = rpow2(pars);
-      fils = rpow2(fils);
+      fils = rpow2(fils) * 2;
       ffts = pars * 2;
       fwd = csound->fft_setup(ffts, FFT_FWD);
       inv = csound->fft_setup(ffts, FFT_INV);
-      out.allocate(csound, 2 * pars);
-      insp.allocate(csound, 2 * fils);
-      irsp.allocate(csound, 2 * fils);
+      out.allocate(csound, ffts);
+      insp.allocate(csound, fils);
+      irsp.allocate(csound, fils);
       saved.allocate(csound, pars);
-      ir.allocate(csound, 2 * fils);
-      in.allocate(csound, 2 * fils);
-      nparts = fils / pars;
-      fils *= 2;
+      ir.allocate(csound, fils);
+      in.allocate(csound, fils);
+      itnsp = insp.begin();
+      itrsp = irsp.begin();
+      n = 0;
     } else {
       ir.allocate(csound, fils);
       in.allocate(csound, fils);
     }
-    n = 0;
-    pp = 0;
+    itn = in.begin();
+    itr = ir.begin();
     return OK;
   }
 
@@ -129,34 +211,44 @@ struct TVConv : csnd::Plugin<1, 6> {
     csnd::AudioSig outsig(this, outargs(0));
     auto irp = irsig.begin();
     auto inp = insig.begin();
-    MYFLT *frz1 = inargs(2);
-    MYFLT *frz2 = inargs(3);
-    bool inc1 = csound->is_asig(frz1);
-    bool inc2 = csound->is_asig(frz2);
+    auto *frz1 = inargs(2);
+    auto *frz2 = inargs(3);
+    auto inc1 = csound->is_asig(frz1);
+    auto inc2 = csound->is_asig(frz2);
+    MYFLT _0dbfs = csound->_0dbfs();
 
     for (auto &s : outsig) {
-      if(*frz1 > 0) in[pp + n] = *inp;
-      if(*frz2 > 0) ir[pp + n] = *irp;
+      if (*frz1 > 0)
+        itn[n] = *inp/_0dbfs;
+      if (*frz2 > 0)
+        itr[n] = *irp/_0dbfs;
 
-      s = out[n] + saved[n];
+      s = (out[n] + saved[n])*_0dbfs;
       saved[n] = out[n + pars];
       if (++n == pars) {
         cmplx *ins, *irs, *ous = to_cmplx(out.data());
-        std::copy(in.begin() + pp, in.begin() + pp + ffts, insp.begin() + pp);
-        std::copy(ir.begin() + pp, ir.begin() + pp + ffts, irsp.begin() + pp);
+        std::copy(itn, itn + ffts, itnsp);
+        std::copy(itr, itr + ffts, itrsp);
         std::fill(out.begin(), out.end(), 0.);
         // FFT
-        csound->rfft(fwd, insp.data() + pp);
-        csound->rfft(fwd, irsp.data() + pp);
-        pp += ffts;
-        if (pp == fils)
-          pp = 0;
+        csound->rfft(fwd, itnsp);
+        csound->rfft(fwd, itrsp);
+        // increment iterators
+        itnsp += ffts, itrsp += ffts;
+        itn += ffts, itr += ffts;
+        if (itnsp == insp.end()) {
+          itnsp = insp.begin();
+          itrsp = irsp.begin();
+          itn = in.begin();
+          itr = ir.begin();
+        }
         // spectral delay line
-        for (uint32_t k = 0, kp = pp; k < nparts; k++, kp += ffts) {
-          if (kp == fils)
-            kp = 0;
-          ins = to_cmplx(insp.data() + kp);
-          irs = to_cmplx(irsp.data() + (nparts - k - 1) * ffts);
+        for (csnd::AuxMem<MYFLT>::iterator it1 = itnsp, it2 = irsp.end() - ffts;
+             it2 >= irsp.begin(); it1 += ffts, it2 -= ffts) {
+          if (it1 == insp.end())
+            it1 = insp.begin();
+          ins = to_cmplx(it1);
+          irs = to_cmplx(it2);
           // spectral product
           for (uint32_t i = 1; i < pars; i++)
             ous[i] += ins[i] * irs[i];
@@ -166,68 +258,11 @@ struct TVConv : csnd::Plugin<1, 6> {
         csound->rfft(inv, out.data());
         n = 0;
       }
-      frz1 += inc1;
-      frz2 += inc2;
-      irp++;
-      inp++;
+      frz1 += inc1, frz2 += inc2;
+      irp++, inp++;
     }
     return OK;
   }
-
-
-  int pconv_ols() {
-    csnd::AudioSig insig(this, inargs(0));
-    csnd::AudioSig irsig(this, inargs(1));
-    csnd::AudioSig outsig(this, outargs(0));
-    auto irp = irsig.begin();
-    auto inp = insig.begin();
-    MYFLT *frz1 = inargs(2);
-    MYFLT *frz2 = inargs(3);
-    bool inc1 = csound->is_asig(frz1);
-    bool inc2 = csound->is_asig(frz2);
-
-    for (auto &s : outsig) {
-      if(*frz1 > 0) 
-	in[pp + n + pars] = *inp;
-      if(*frz2 > 0)
-       ir[pp + n] = *irp;
-
-      s = out[n+pars];
-      
-      if (++n == pars) {
-        cmplx *ins, *irs, *ous = to_cmplx(out.data());
-	uint32_t po = pp;
-        std::copy(in.begin() + pp, in.begin() + pp + ffts, insp.begin() + pp);
-	std::copy(ir.begin() + pp, ir.begin() + pp + ffts, irsp.begin() + pp);
-        std::fill(out.begin(), out.end(), 0.);
-        // FFT
-        csound->rfft(fwd, insp.data() + pp);
-	csound->rfft(fwd, irsp.data() + pp);
-        pp += ffts;
-	if (pp == fils) pp = 0;
-        // spectral delay line
-        for (uint32_t k = 0, kp = pp; k < nparts; k++, kp += ffts) {
-	 if (kp == fils) kp = 0;
-         ins = to_cmplx(insp.data() + kp);
-         irs = to_cmplx(irsp.data() + (nparts - k - 1) * ffts);
-          // spectral product
-          for (uint32_t i = 1; i < pars; i++)
-            ous[i] += ins[i] * irs[i];
-          ous[0] += real_prod(ins[0], irs[0]);
-	 }
-        // IFFT
-        csound->rfft(inv, out.data());
-	std::copy(in.begin() + po + pars, in.begin() + po + ffts, in.begin() + pp);
-        n = 0;
-      }
-      frz1 += inc1;
-      frz2 += inc2;
-      irp++;
-      inp++;
-    }
-    return OK;
-  }
-
 
   int dconv() {
     csnd::AudioSig insig(this, inargs(0));
@@ -235,24 +270,30 @@ struct TVConv : csnd::Plugin<1, 6> {
     csnd::AudioSig outsig(this, outargs(0));
     auto irp = irsig.begin();
     auto inp = insig.begin();
-    MYFLT *frz1 = inargs(2);
-    MYFLT *frz2 = inargs(3);
-    bool inc1 = csound->is_asig(frz1);
-    bool inc2 = csound->is_asig(frz2);
+    auto frz1 = inargs(2);
+    auto frz2 = inargs(3);
+    auto inc1 = csound->is_asig(frz1);
+    auto inc2 = csound->is_asig(frz2);
+
     for (auto &s : outsig) {
-      if(*frz1 > 0) in[pp] = *inp;
-      if(*frz2 > 0) ir[pp] = *irp;
-      pp = pp != fils - 1 ? pp + 1 : 0;
-      s = 0.;
-      for (uint32_t k = 0, kp = pp; k < fils; k++, kp++) {
-        if (kp == fils)
-          kp = 0;
-        s += in[kp] * ir[fils - k - 1];
+      if (*frz1 > 0)
+        *itn = *inp;
+      if (*frz2 > 0)
+        *itr = *irp;
+      itn++, itr++;
+      if (itn == in.end()) {
+        itn = in.begin();
+        itr = ir.begin();
       }
-      frz1 += inc1;
-      frz2 += inc2;
-      inp++;
-      irp++;
+      s = 0.;
+      for (csnd::AuxMem<MYFLT>::iterator it1 = itn, it2 = ir.end() - 1;
+           it2 >= ir.begin(); it1++, it2--) {
+        if (it1 == in.end())
+          it1 = in.begin();
+        s += *it1 * *it2;
+      }
+      frz1 += inc1, frz2 += inc2;
+      inp++, irp++;
     }
     return OK;
   }
@@ -276,7 +317,7 @@ class PrintThread : public csnd::Thread {
     while(!splock.compare_exchange_weak(tmp,true))
       tmp = false;
   }
-  
+
   void unlock() {
     splock = false;
   }
@@ -288,12 +329,12 @@ class PrintThread : public csnd::Thread {
       if(old.compare(message)) {
        csound->message(message.c_str());
        old = message;
-      } 
-      unlock(); 
+      }
+      unlock();
     }
     return 0;
   }
-  
+
 public:
   PrintThread(csnd::Csound *csound)
     : Thread(csound), splock(false), on(true), message("") {};
@@ -302,13 +343,13 @@ public:
     on = false;
     join();
   }
-   
+
   void set_message(const char *m) {
     lock();
     message = m;
-    unlock(); 
+    unlock();
   }
-  
+
 };
 
 
@@ -335,13 +376,9 @@ struct TPrint : csnd::Plugin<0, 1> {
 };
 */
 
-
-
 #include <modload.h>
 void csnd::on_load(Csound *csound) {
-  csnd::plugin<PVTrace>(csound, "pvstrace", csnd::thread::ik);
-  csnd::plugin<TVConv>(csound, "tvconv", "a", "aakkii", csnd::thread::ia);
-  csnd::plugin<TVConv>(csound, "tvconv", "a", "aaakii", csnd::thread::ia);
-  csnd::plugin<TVConv>(csound, "tvconv", "a", "aakaii", csnd::thread::ia);
-  csnd::plugin<TVConv>(csound, "tvconv", "a", "aaaaii", csnd::thread::ia);
+  csnd::plugin<PVTrace>(csound, "pvstrace",  csnd::thread::ik);
+  csnd::plugin<PVTrace2>(csound, "pvstrace", csnd::thread::ik);
+  csnd::plugin<TVConv>(csound, "tvconv", "a", "aaxxii", csnd::thread::ia);
 }

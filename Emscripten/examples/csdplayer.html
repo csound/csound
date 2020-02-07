@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html>
+<!--
+ csound.js CSD file player example
+ Copyright (C) 2013 V Lazzarini
+-->
+
+<head>
+    <title> WebAudio Csound </title>
+    <style type="text/css">
+    html, body {
+      font-family: Monospace;
+      color: #bf94f7;
+      background-color: #000055;
+    }
+
+    #console {
+        font-family:  Monospace;
+        color: #b5b6ff;
+        background-color: #000000;
+        font-size: 16px;
+        width: 805px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-style: solid;
+        padding: 20px 0px;
+      }
+
+     #filebut {
+       font-size: 24px;
+       padding: 20px 0px;
+     }
+     input[type=file] {
+       font-family: Monospace;
+       font-size: 24px;
+       background-color: #b5b6ff;
+       color: #000000;
+     }
+
+     H1 {
+       font-size: 36px;
+     }
+
+     button {
+        margin: auto;
+        font-family: Monospace;
+        width: 805px;
+        padding: 10px 0px;
+        font-size: 24px;
+        background-color: #b5b6ff;
+     }
+    </style>
+    <script type="text/javascript" src="js/csound.js"></script>
+    <script type="text/javascript">
+        // called by csound.js
+        function moduleDidLoad() {}
+
+        function attachListeners() {
+            document.getElementById('files').
+            addEventListener('change', handleFileSelect, false);
+            document.getElementById('playButton').
+            addEventListener('click', togglePlay);
+        }
+
+        var count = 0;
+
+        function handleMessage(message) {
+            var element = document.getElementById('console');
+            element.value += message;
+            element.scrollTop = 99999; // focus on bottom
+            count += 1;
+            if (count == 1000) {
+                element.value = ' ';
+                count = 0;
+            }
+        }
+
+        var playing = false;
+        var started = false;
+        var loaded = false;
+
+        function togglePlay() {
+            if (loaded) {
+                if (!playing) {
+                    if (started) csound.Csound.start();
+                    else {
+                        CSOUND_AUDIO_CONTEXT.resume();
+                        csound.Csound.compileCSD("csdfile.csd");
+                        csound.Csound.start();
+                        started = true;
+                    }
+                    document.getElementById('playButton').innerText = "Pause";
+                    playing = true;
+                } else {
+                    csound.Csound.stop()
+                    document.getElementById('playButton').innerText = "Play";
+                    playing = false;
+                }
+            }
+        }
+
+        function handleFileSelect(evt) {
+            if (!loaded) {
+                var files = evt.target.files;
+                var f = files[0];
+                var objectURL = window.URL.createObjectURL(f);
+                csound.CopyUrlToLocal(objectURL, "csdfile.csd",
+                    function() {
+                        loaded = true;
+                    });
+            } else {
+                csound.UpdateStatus("to load a new CSD file, " +
+                "first refresh page!")
+            }
+        }
+    </script>
+</head>
+<body>
+    <H1> CSD Player </H1>
+    <div id="filebut">
+    <p> CSD file:
+        <input type="file" id="files" name="file" />
+    </p>
+  </div>
+    <textarea class="console" rows="24" id="console">
+      Csound: not loaded</textarea>
+      <p>
+     <button id="playButton">Play</button>
+   </p>
+</body>
+
+</html>

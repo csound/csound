@@ -17,8 +17,8 @@
 
     You should have received a copy of the GNU Lesser General Public
     License along with Csound; if not, write to the Free Software
-    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
-    02111-1307 USA
+    Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
+    02110-1301 USA
 */
 
 #if !defined(_SF_H)
@@ -35,17 +35,17 @@
 #endif
 
 struct _splitType {
-        int num;
+        int32_t num;
         sfSample *sample;
         BYTE sampleModes;
         BYTE minNoteRange;
         BYTE maxNoteRange;
         BYTE minVelRange;
         BYTE maxVelRange;
-        long startOffset;
-        long endOffset;
-        long startLoopOffset;
-        long endLoopOffset;
+        int64_t startOffset;
+        int64_t endOffset;
+        int64_t startLoopOffset;
+        int64_t endLoopOffset;
         char overridingRootKey;
         char coarseTune;
         char fineTune;
@@ -60,7 +60,7 @@ struct _splitType {
 typedef struct _splitType splitType;
 
 struct _instrType {
-        int num;
+        int32_t num;
         char *name;
         BYTE splits_num;
         splitType *split;
@@ -68,7 +68,7 @@ struct _instrType {
 typedef struct _instrType instrType;
 
 struct _layerType {
-        int num;
+        int32_t num;
         char *name;
         BYTE splits_num;
         splitType *split;
@@ -86,10 +86,10 @@ typedef struct _layerType layerType;
 
 struct _presetType {
         char *name;
-        int num;
+        int32_t num;
         WORD prog;
         WORD bank;
-        int layers_num;
+        int32_t layers_num;
         layerType *layer;
 } PACKED;
 typedef struct _presetType presetType;
@@ -119,9 +119,9 @@ typedef struct _CHUNKS CHUNKS;
 
 struct _SFBANK {
         char name[256];
-        int presets_num;
+        int32_t presets_num;
         presetType *preset;
-        int instrs_num;
+        int32_t instrs_num;
         instrType *instr;
         SHORT *sampleData;
         CHUNKS chunk;

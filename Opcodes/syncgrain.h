@@ -1,7 +1,7 @@
 /* syncgrain.h:
    Synchronous granular synthesis
 
-   (c) Victor Lazzarini, 2004
+   Copyright (c) Victor Lazzarini, 2004
 
     This file is part of Csound.
 
@@ -17,8 +17,8 @@
 
     You should have received a copy of the GNU Lesser General Public
     License along with Csound; if not, write to the Free Software
-    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
-    02111-1307 USA
+    Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
+    02110-1301 USA
 
 */
 
@@ -116,8 +116,8 @@ typedef struct _syncgrain {
     MYFLT *ols;
     FUNC  *sfunc;
     FUNC  *efunc;
-    int count, numstreams, firststream;
-    int datasize, envtablesize, olaps;
+    int32_t count, numstreams, firststream;
+    int32_t datasize, envtablesize, olaps;
     AUXCH streamon;
     AUXCH index;
     AUXCH envindex;
@@ -142,17 +142,18 @@ typedef struct _syncgrainl {
   MYFLT *iskip;
     FUNC  *sfunc;
     FUNC  *efunc;
-    int count, numstreams, firststream;
-    int datasize, envtablesize, olaps;
+    int32_t count, numstreams, firststream;
+    int32_t datasize, envtablesize, olaps;
     AUXCH streamon;
     AUXCH index;
     AUXCH envindex;
     float start,frac;
-    int firsttime;
+    int32_t firsttime;
 } syncgrainloop;
 
-static int syncgrain_process(CSOUND *csound, syncgrain *p);
-static int syncgrain_init(CSOUND *csound, syncgrain *p);
+static int32_t syncgrain_process(CSOUND *csound, syncgrain *p);
+static int32_t
+syncgrain_init(CSOUND *csound, syncgrain *p);
 
 #endif
 

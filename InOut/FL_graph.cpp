@@ -18,8 +18,8 @@
 
   You should have received a copy of the GNU Lesser General Public
   License along with Csound; if not, write to the Free Software
-  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
-  02111-1307 USA
+  Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
+  02110-1301 USA
 */
 
 #include <FL/Fl.H>
@@ -34,6 +34,7 @@
 #include "csdl.h"
 #include "cwindow.h"
 #include "winFLTK.h"
+#include <inttypes.h>
 
 #define NUMOFWINDOWS (30)
 #define XINIT    10      /* set default window location */
@@ -125,14 +126,14 @@ void graph_box::draw()
       if (!win)
         return;
       MYFLT       *fdata = win->fdata;
-      long        npts   = win->npts;
+      int32       npts   = win->npts;
       char        *msg   = win->caption;
       short       win_x, win_y,        win_h;     /* window rect */
       short       gra_x, gra_y, gra_w, gra_h;     /* graph rect is inset */
       short       y_axis;
       int         lsegs, pts_pls;
       int         pol;
-      char        string[80];
+      char        string[400];
 
       pol  = win->polarity;
 
@@ -203,10 +204,10 @@ void graph_box::draw()
         fl_line_style(FL_DOT);
         fl_line(win_x+w()/2, win_y, win_x+w()/2, win_y+win_h);
       }
-      if(pol != NEGPOL)
-      sprintf(string, "%s  %ld points, max %5.3f", msg, npts, win->oabsmax);
+      if (pol != NEGPOL)
+      sprintf(string, "%s  %" PRIi32 " points, max %5.3f", msg, npts, win->oabsmax);
       else
-      sprintf(string, "%s  %ld points, max %5.3f", msg, npts, win->max);
+      sprintf(string, "%s  %" PRIi32 " points, max %5.3f", msg, npts, win->max);
 
       ST(form)->label(string);
     }
@@ -231,13 +232,13 @@ void add_graph(CSOUND *csound, WINDAT *wdptr)
 
 
     for (m = 0; m < NUMOFWINDOWS; m++) {  // If text the same use slot
-      if(ST(menu) != NULL) {
-       if (ST(menu)[m].text != NULL && wdptr->caption != NULL){
-        if(strcmp(wdptr->caption, ST(menu)[m].text) == 0) {
-        replacing = 1;
-        goto replace;
+      if (ST(menu) != NULL) {
+        if (ST(menu)[m].text != NULL && strlen(wdptr->caption) == 0){
+          if(strcmp(wdptr->caption, ST(menu)[m].text) == 0) {
+            replacing = 1;
+            goto replace;
+          }
         }
-       }
       }
     }
     // Use a new slot, cycling round
@@ -305,7 +306,9 @@ void makeWindow(CSOUND *csound, char *name)
 }
 
 void graphs_reset(CSOUND * csound){
-  //if(csound->flgraphGlobals != NULL)csound->Free(csound, csound->flgraphGlobals);
+  IGN(csound);
+  //if (csound->flgraphGlobals != NULL)
+  //  csound->Free(csound, csound->flgraphGlobals);
 }
 
 extern "C" {
@@ -364,7 +367,10 @@ extern "C" {
   {
       FLGRAPH_GLOBALS *flgraphGlobals =
          (FLGRAPH_GLOBALS *) csound->QueryGlobalVariable(csound,
-                                                         "FLGRAPH_GLOBALS");
+                                                        "FLGRAPH_GLOBALS");
+      if (flgraphGlobals == 0) {
+          return OK;
+      }
       if (ST(form) && ST(graph_created) == 1) {
 
         if (ST(form)->shown() && !(getFLTKFlags(csound) & 256)) {
@@ -391,10 +397,10 @@ extern "C" {
         WINDAT *n = (WINDAT*) ST(menu)[i].user_data_;
         if (n)
           kill_graph(csound, (uintptr_t) ((void*) n));
-          }
-       if(ST(menu)){
-             delete[] ST(menu);
-             ST(menu) = (Fl_Menu_Item *) 0;
+       }
+       if (ST(menu)){
+         delete[] ST(menu);
+         ST(menu) = (Fl_Menu_Item *) 0;
        }
 
 
@@ -491,7 +497,7 @@ extern "C" {
 
   void KillXYin_FLTK(CSOUND *csound, XYINDAT *wdptr)
   {
-
+    IGN(csound);
       delete ((Fl_Window*) wdptr->windid);
       wdptr->windid = (uintptr_t) 0;
   }

@@ -1,5 +1,5 @@
 /*
-    mixer.c
+    mixer.cXF
 
     Copyright (C) 1995 John ffitch
 
@@ -17,8 +17,8 @@
 
     You should have received a copy of the GNU Lesser General Public
     License along with Csound; if not, write to the Free Software
-    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
-    02111-1307 USA
+    Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
+    02110-1301 USA
 */
 
 /*******************************************************\
@@ -37,6 +37,7 @@
 #include "std_util.h"
 #include "soundio.h"
 #include <ctype.h>
+#include <inttypes.h>
 
 /* Constants */
 
@@ -44,15 +45,15 @@
 #define NUMBER_OF_FILES   (32)
 
 #define FIND(MSG)   if (*s == '\0')  \
-                        if (!(--argc) || ((s = *++argv) && *s == '-')) \
-                            csound->Die(csound, Str("mixer: error: %s"), MSG);
+    if (UNLIKELY(!(--argc) || ((s = *++argv) && *s == '-')))            \
+      csound->Die(csound, Str("mixer: error: %s"), MSG);
 
 typedef struct scalepoint {
     MYFLT y0;
     MYFLT y1;
     MYFLT yr;
-    int x0;
-    int x1;
+    int32_t x0;
+    int32_t x1;
     struct scalepoint *next;
 } scalepoint;
 
@@ -60,33 +61,33 @@ typedef struct inputs {
     long        start;          /* Time this file starts in samples */
     MYFLT       time;           /* Time this file starts in secs */
     char *      name;           /* Name of file */
-    int         use_table;      /* Should we use multiplier or table */
+    int32_t         use_table;      /* Should we use multiplier or table */
     MYFLT       factor;         /* Gain factor */
     char *      fname;          /* Name of scale table file */
     scalepoint *fulltable;      /* Scaling table */
     scalepoint *table;          /* current position in table */
     SNDFILE    *fd;             /* File descriptor handle */
     int16       channels[5];    /* destinations of channels */
-    int         non_clear;      /* Boolean to say if fiddled mixing */
+    int32_t         non_clear;      /* Boolean to say if fiddled mixing */
     SOUNDIN *   p;              /* Csound structure */
 } inputs;
 
 typedef struct mixer_globals_ {
     CSOUND    *csound;
     inputs    mixin[NUMBER_OF_FILES];
-    int       outputs;
-    int       debug;
-    unsigned  outbufsiz;
+    int32_t   outputs;
+    int32_t   debug;
+    uint32_t  outbufsiz;
     MYFLT     *out_buf;
-    int       outrange;                 /* Count samples out of range */
+    int32_t   outrange;                 /* Count samples out of range */
 } MIXER_GLOBALS;
 
 /* Static function prototypes */
 
-static  void    InitScaleTable(MIXER_GLOBALS *, int);
-static  MYFLT   gain(MIXER_GLOBALS *, int, int);
+static  void    InitScaleTable(MIXER_GLOBALS *, int32_t);
+static  MYFLT   gain(MIXER_GLOBALS *, int32_t, int32_t);
 static  SNDFILE *MXsndgetset(CSOUND*,inputs *);
-static  void    MixSound(MIXER_GLOBALS *, int, SNDFILE *, OPARMS *);
+static  void    MixSound(MIXER_GLOBALS *, int32_t, SNDFILE *, OPARMS *);
 
 static const char *usage_txt[] = {
   Str_noop("Usage:\tmixer [-flags] soundfile [-flags] soundfile ..."),
@@ -134,7 +135,7 @@ static void usage(CSOUND *csound, const char *mesg, ...)
 
 static char set_output_format(CSOUND *csound, char c, char outformch, OPARMS *O)
 {
-
+  (void) csound;
     switch (c) {
       case 'a': O->outformat = AE_ALAW;   /* a-law soundfile */
                 break;
@@ -164,10 +165,10 @@ static int mixer_main(CSOUND *csound, int argc, char **argv)
     OPARMS      O;
     char        *inputfile = NULL;
     SNDFILE     *outfd;
-    int         i;
+    int32_t         i;
     char        outformch='s', c, *s;
     const char  *envoutyp;
-    int         n = 0;
+    int32_t         n = 0;
     SF_INFO     sfinfo;
     MIXER_GLOBALS *pp = (MIXER_GLOBALS*) csound->Calloc(csound,
                                                         sizeof(MIXER_GLOBALS));
@@ -195,8 +196,8 @@ static int mixer_main(CSOUND *csound, int argc, char **argv)
     mixin[n].factor = FL(1.0); mixin[n].non_clear = 0;
     mixin[n].fulltable = NULL; mixin[n].use_table = 0;
     for (i=1; i<5; i++) mixin[n].channels[i] = 0;
-    if (!(--argc))
-      usage(csound,Str("Insufficient arguments"));
+    if (UNLIKELY(!(--argc)))
+      usage(csound,"%s", Str("Insufficient arguments"));
     do {
       s = *++argv;
       if (*s++ == '-')                  /* read all flags:  */
@@ -206,11 +207,11 @@ static int mixer_main(CSOUND *csound, int argc, char **argv)
             FIND(Str("no outfilename"))
             O.outfilename = s;         /* soundout name */
             for ( ; *s != '\0'; s++) ;
-            if (strcmp(O.outfilename, "stdin") == 0)
-              csound->Die(csound, Str("mixer: -o cannot be stdin"));
+            if (UNLIKELY(strcmp(O.outfilename, "stdin") == 0))
+              csound->Die(csound, "%s", Str("mixer: -o cannot be stdin"));
 #if defined(WIN32)
-            if (strcmp(O.outfilename,"stdout") == 0) {
-              csound->Die(csound, Str("mixer: stdout audio not supported"));
+            if (UNLIKELY(strcmp(O.outfilename,"stdout") == 0)) {
+              csound->Die(csound, "%s", Str("mixer: stdout audio not supported"));
             }
 #endif
             break;
@@ -238,8 +239,8 @@ static int mixer_main(CSOUND *csound, int argc, char **argv)
             FIND(Str("no start sample"));
             mixin[n].start = atoi(s);
             while (*++s);
-            if (mixin[n].time >= FL(0.0)) {
-              csound->Warning(csound, Str("-S overriding -T"));
+            if (UNLIKELY(mixin[n].time >= FL(0.0))) {
+              csound->Warning(csound, "%s", Str("-S overriding -T"));
               mixin[n].time = -FL(1.0);
             }
             break;
@@ -247,8 +248,8 @@ static int mixer_main(CSOUND *csound, int argc, char **argv)
             FIND(Str("no start time"));
             mixin[n].time = (MYFLT) atof(s);
             while (*++s);
-            if (mixin[n].start >= 0) {
-              csound->Warning(csound, Str("-T overriding -S"));
+            if (UNLIKELY(mixin[n].start >= 0)) {
+              csound->Warning(csound, "%s", Str("-T overriding -S"));
               mixin[n].start = -1;
             }
             break;
@@ -257,7 +258,7 @@ static int mixer_main(CSOUND *csound, int argc, char **argv)
           case '3':
           case '4':
             {
-              int src = c - '0';
+              int32_t src = c - '0';
               if (src > pp->outputs)
                 pp->outputs = src;
               mixin[n].channels[src] = src;
@@ -266,15 +267,16 @@ static int mixer_main(CSOUND *csound, int argc, char **argv)
             }
           case '^':
             {
-              int src = c, dst;
+              int32_t src = c, dst;
               FIND(Str("no source channel number"));
               src = atoi(s);
               while (*++s);
               FIND(Str("no destination channel number"));
               dst = atoi(s);
               while (*++s);
-              if (src > 4 || src < 1 || dst > 4 || dst < 1) {
-                csound->Warning(csound, Str("illegal channel number ignored"));
+              if (UNLIKELY(src > 4 || src < 1 || dst > 4 || dst < 1)) {
+                csound->Warning(csound, "%s",
+                                Str("illegal channel number ignored"));
                 break;
               }
               if (dst > pp->outputs)
@@ -300,7 +302,7 @@ static int mixer_main(CSOUND *csound, int argc, char **argv)
             break;
           case 'H':
             if (isdigit(*s)) {
-              int n;
+              int32_t n;
               sscanf(s, "%d%n", &O.heartbeat, &n);
               s += n;
             }
@@ -316,7 +318,7 @@ static int mixer_main(CSOUND *csound, int argc, char **argv)
             usage(csound, Str("unknown flag -%c"), c);
           }
       else {
-        int i;
+        int32_t i;
         mixin[n].name = --s;
         if (!mixin[n].non_clear)
           for (i=1; i<5; i++) mixin[n].channels[i] = i;
@@ -331,25 +333,25 @@ static int mixer_main(CSOUND *csound, int argc, char **argv)
     } while (--argc);
 
     /* Read sound files */
-    if (n == 0) {
-      csound->ErrorMsg(csound, Str("No mixin"));
+    if (UNLIKELY(n == 0)) {
+      csound->ErrorMsg(csound, "%s", Str("No mixin"));
       return -1;
     }
     for (i = 0; i < n; i++) {
-      if (!MXsndgetset(csound, &mixin[i])) {
+      if (UNLIKELY(!MXsndgetset(csound, &mixin[i]))) {
         csound->ErrorMsg(csound, Str("%s: error while opening %s"),
                                  argv[0], inputfile);
         return -1;
       }
       mixin[i].p->channel = ALLCHNLS;
       if (i>0) {
-        if (mixin[0].p->sr != mixin[i].p->sr) {
-          csound->ErrorMsg(csound, Str("Input formats not the same"));
+        if (UNLIKELY(mixin[0].p->sr != mixin[i].p->sr)) {
+          csound->ErrorMsg(csound, "%s", Str("Input formats not the same"));
           return -1;
         }
       }
       if (mixin[i].non_clear) {
-        int j;
+        int32_t j;
         for (j = 1; j<5; j++)
           if (pp->outputs < mixin[i].channels[j]) {
             pp->outputs = mixin[i].channels[j];
@@ -388,13 +390,14 @@ static int mixer_main(CSOUND *csound, int argc, char **argv)
     memset(&sfinfo, 0, sizeof(SF_INFO));
     //sfinfo.frames = 0/*was -1*/;
     sfinfo.samplerate = mixin[0].p->sr;
-    sfinfo.channels /*= csound->nchnls*/ = (int) mixin[0].p->nchanls;
+    sfinfo.channels /*= csound->nchnls*/ = (int32_t) mixin[0].p->nchanls;
     sfinfo.format = TYPE2SF(O.filetyp) | FORMAT2SF(O.outformat);
     if (strcmp(O.outfilename, "stdout") == 0) {
       outfd = sf_open_fd(1, SFM_WRITE, &sfinfo, 0);
       if (outfd != NULL) {
-        if (csound->CreateFileHandle(csound,
-                                     &outfd, CSFILE_SND_W, "stdout") == NULL) {
+        if (UNLIKELY(csound->CreateFileHandle(csound,
+                                              &outfd, CSFILE_SND_W,
+                                              "stdout") == NULL)) {
           sf_close(outfd);
           return -1;
         }
@@ -404,12 +407,12 @@ static int mixer_main(CSOUND *csound, int argc, char **argv)
                        &sfinfo, "SFDIR", csound->type2csfiletype(O.filetyp,
                        O.outformat), 0) == NULL)
       outfd = NULL;
-    if (outfd == NULL) {
-      csound->ErrorMsg(csound, Str("mixer: error opening output file '%s'"),
-                               O.outfilename);
+    if (UNLIKELY(outfd == NULL)) {
+      csound->ErrorMsg(csound, Str("mixer: error opening output file '%s': %s"),
+                       O.outfilename, Str(sf_strerror(NULL)));
       return -1;
     }
-    if (O.rewrt_hdr)
+    if (UNLIKELY(O.rewrt_hdr))
       sf_command(outfd, SFC_SET_UPDATE_HEADER_AUTO, NULL, 0);
     /* calc outbuf size & alloc bufspace */
     pp->outbufsiz = NUMBER_OF_SAMPLES * pp->outputs;
@@ -426,7 +429,7 @@ static int mixer_main(CSOUND *csound, int argc, char **argv)
 }
 
 static void
-InitScaleTable(MIXER_GLOBALS *pp, int i)
+InitScaleTable(MIXER_GLOBALS *pp, int32_t i)
 {
     CSOUND *csound = pp->csound;
     FILE    *f;
@@ -435,8 +438,8 @@ InitScaleTable(MIXER_GLOBALS *pp, int i)
     MYFLT   x, y;
     scalepoint *tt = (scalepoint*) csound->Malloc(csound, sizeof(scalepoint));
 
-    if (csound->FileOpen2(csound, &f, CSFILE_STD, mixin[i].fname,
-                           "r", NULL, CSFTYPE_FLOATS_TEXT, 0) == NULL) {
+    if (UNLIKELY(csound->FileOpen2(csound, &f, CSFILE_STD, mixin[i].fname,
+                                   "r", NULL, CSFTYPE_FLOATS_TEXT, 0) == NULL)) {
       csound->Die(csound, Str("Cannot open scale table file %s"),
                           mixin[i].fname);
       return;   /* not reached */
@@ -453,7 +456,7 @@ InitScaleTable(MIXER_GLOBALS *pp, int i)
       newpoint = (scalepoint*) csound->Malloc(csound, sizeof(scalepoint));
       newpoint->x0 = tt->x1;
       newpoint->y0 = tt->y1;
-      newpoint->x1 = (int) (x*samplepert);
+      newpoint->x1 = (int32_t) (x*samplepert);
       newpoint->y1 = y;
       if (newpoint->x1 == newpoint->x0) {
         MYFLT div = (MYFLT)(tt->x1 - tt->x0);
@@ -497,7 +500,7 @@ InitScaleTable(MIXER_GLOBALS *pp, int i)
     mixin[i].use_table = 1;
 }
 
-static MYFLT gain(MIXER_GLOBALS *pp, int n, int i)
+static MYFLT gain(MIXER_GLOBALS *pp, int32_t n, int32_t i)
 {
     CSOUND *csound = pp->csound;
     inputs  *mixin = &(pp->mixin[0]);
@@ -528,19 +531,19 @@ static SNDFILE *MXsndgetset(CSOUND *csound, inputs *ddd)
     p->analonly = 1;
     p->channel = ALLCHNLS;
     p->skiptime = FL(0.0);
-    strncpy(p->sfname, ddd->name, MAXSNDNAME-1);
+    strNcpy(p->sfname, ddd->name, MAXSNDNAME-1);
     /* open sndfil, do skiptime */
     if (UNLIKELY((infd = csound->sndgetset(csound, p)) == NULL))
       return NULL;
     p->getframes = p->framesrem;
     dur = (MYFLT) p->getframes / p->sr;
-    csound->Message(csound, Str("mixing %ld sample frames (%3.1f secs)\n"),
-                            (long) p->getframes, dur);
+    csound->Message(csound, "%s %" PRId64 " %s (%3.1f secs)\n",
+                    Str("mixing"), p->getframes, Str("sample frames"), dur);
     ddd->fd = infd;
     return infd;
 }
 
- static void MixSound(MIXER_GLOBALS *pp, int n, SNDFILE *outfd, OPARMS *O)
+ static void MixSound(MIXER_GLOBALS *pp, int32_t n, SNDFILE *outfd, OPARMS *O)
 {
     CSOUND *csound = pp->csound;
     inputs  *mixin = &(pp->mixin[0]);
@@ -552,15 +555,15 @@ static SNDFILE *MXsndgetset(CSOUND *csound, inputs *ddd)
     MYFLT   tpersample;
     MYFLT   max, min;
     long    lmaxpos, lminpos;
-    int     maxtimes, mintimes;
+    int32_t     maxtimes, mintimes;
     long    sample = 0;
-    int     i, j, k;
+    int32_t     i, j, k;
     long    bytes = 0;
-    int     block = 0;
-    int     more_to_read = 1;
-    int     size;
-    int     this_block;
-    int     outputs = pp->outputs;
+    int32_t     block = 0;
+    int32_t     more_to_read = 1;
+    int32_t     size;
+    int32_t     this_block;
+    int32_t     outputs = pp->outputs;
 
     tpersample = FL(1.0)/(MYFLT)mixin[0].p->sr;
     max = FL(0.0);  lmaxpos = 0; maxtimes = 0;
@@ -578,8 +581,11 @@ static SNDFILE *MXsndgetset(CSOUND *csound, inputs *ddd)
         if (sample >= mixin[i].start) {
           read_in = csound->getsndin(csound, mixin[i].fd, ibuffer,
                                      size*mixin[i].p->nchanls, mixin[i].p);
-          for(i=0; i < read_in; i++)
-            ibuffer[i] *= 1.0/csound->Get0dBFS(csound);
+          if (csound->Get0dBFS(csound)!=FL(1.0)) { /* Optimisation? */
+            MYFLT xx = 1.0/csound->Get0dBFS(csound);
+            for(j=0; j < read_in; j++)
+              ibuffer[j] *= xx;
+          }
           read_in /= mixin[i].p->nchanls;
           if (read_in > this_block) this_block = read_in;
           if (mixin[i].non_clear) {
@@ -630,7 +636,7 @@ static SNDFILE *MXsndgetset(CSOUND *csound, inputs *ddd)
         break;
       case 3:
         {
-          int n;
+          int32_t n;
           csound->MessageS(csound, CSOUNDMSG_REALTIME, "%d%n", block, &n);
           while (n--) csound->MessageS(csound, CSOUNDMSG_REALTIME, "\b");
         }
@@ -646,12 +652,12 @@ static SNDFILE *MXsndgetset(CSOUND *csound, inputs *ddd)
     max *= (DFLT_DBFS);
     csound->Message(csound, Str("Max val %d at index %ld (time %.4f, chan %d) "
                                 "%d times\n"),
-                            (int) max, lmaxpos, tpersample * (lmaxpos/outputs),
-                            (int) lmaxpos % outputs, maxtimes);
+                            (int32_t) max, lmaxpos, tpersample * (lmaxpos/outputs),
+                            (int32_t) lmaxpos % outputs, maxtimes);
     csound->Message(csound, Str("Min val %d at index %ld (time %.4f, chan %d) "
                                 "%d times\n"),
-                            (int) min, lminpos, tpersample * (lminpos/outputs),
-                            (int) lminpos % outputs, mintimes);
+                            (int32_t) min, lminpos, tpersample * (lminpos/outputs),
+                            (int32_t) lminpos % outputs, mintimes);
     if (UNLIKELY(pp->outrange))
       csound->Message(csound, Str("%d sample%s out of range\n"),
                               pp->outrange, (pp->outrange == 1 ? "" : "s"));
@@ -662,12 +668,13 @@ static SNDFILE *MXsndgetset(CSOUND *csound, inputs *ddd)
 
 /* module interface */
 
-int mixer_init_(CSOUND *csound)
+int32_t mixer_init_(CSOUND *csound)
 {
     char    buf[128];
-    int     retval = csound->AddUtility(csound, "mixer", mixer_main);
+    int32_t     retval = csound->AddUtility(csound, "mixer", mixer_main);
 
-    snprintf(buf, 128, Str("Mixes sound files (max. %d)"), (int) NUMBER_OF_FILES);
+    snprintf(buf, 128, Str("Mixes sound files (max. %d)"),
+             (int32_t) NUMBER_OF_FILES);
     if (!retval) {
       retval = csound->SetUtilityDescription(csound, "mixer", buf);
     }

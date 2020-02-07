@@ -18,8 +18,8 @@
 
   You should have received a copy of the GNU Lesser General Public
   License along with Csound; if not, write to the Free Software
-  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
-  02111-1307 USA
+  Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
+  02110-1301 USA
 */
 
 #include <csdl.h>
@@ -105,7 +105,7 @@ __global__ void sample(float *out, float *frame, float pitch, int64_t *ph,
   a += ascl*(frame[k] - a);
   out[t] = a*sinf((2*PI*lph)/FMAXLEN);
   if(t >= vsize) return;
-  syncthreads();
+  __syncthreads();
   for(int i=vsize; i < vsize*bins; i+=vsize)
     out[t] += out[t + i];
 }

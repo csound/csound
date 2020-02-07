@@ -1,3 +1,26 @@
+/*
+    wdglobals.h:
+
+    Copyright (C) 2007 Andres Cabrera, Michael Gogins
+
+    This file is part of Csound.
+
+    The Csound Library is free software; you can redistribute it
+    and/or modify it under the terms of the GNU Lesser General Public
+    License as published by the Free Software Foundation; either
+    version 2.1 of the License, or (at your option) any later version.
+
+    Csound is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU Lesser General Public License for more details.
+
+    You should have received a copy of the GNU Lesser General Public
+    License along with Csound; if not, write to the Free Software
+    Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
+    02110-1301 USA
+*/
+
 #include <cstdio>
 #include <cstdlib>
 #include <cmath>
@@ -51,13 +74,6 @@
 #include <cstdlib>
 
 using namespace std;
-
-/*
-** Undefine CS_VSTHOST to build FLTK without VST.
-*/
-#ifdef CS_VSTHOST
-#include "Opcodes/vst4cs/src/vsthost.h"
-#endif
 
 #include "csdl.h"
 #include "winFLTK.h"
@@ -165,7 +181,7 @@ struct ADDR_SET_VALUE { /*: ADDR*/
                    void *new_WidgAddress, void *new_opcode,  int grp = 0) :
         exponential(new_exponential),min(new_min), max(new_max),
         WidgAddress(new_WidgAddress),opcode(new_opcode),
-        widg_type(FL_WIDG), group(grp), joy(FL_JOY) {}
+        widg_type(FL_WIDG), joy(FL_JOY), group(grp) {}
     ADDR_SET_VALUE()
     {
         exponential=LIN_;

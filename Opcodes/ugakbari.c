@@ -17,8 +17,8 @@
 
     You should have received a copy of the GNU Lesser General Public
     License along with Csound; if not, write to the Free Software
-    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
-    02111-1307 USA
+    Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
+    02110-1301 USA
 */
 
 #include "csoundCore.h"
@@ -55,8 +55,9 @@ typedef struct _gainslider {
 
 /*  scale opcode  */
 
-static int scale_process(CSOUND *csound, scale *p)
+static int32_t scale_process(CSOUND *csound, scale *p)
 {
+    IGN(csound);
     if (*p->kmin != *p->kmax) {
       *p->koutval = (*p->kinval * (*p->kmax - *p->kmin) + *p->kmin);
     }
@@ -66,8 +67,9 @@ static int scale_process(CSOUND *csound, scale *p)
 
 /*  expcurve opcode  */
 
-static int expcurve_perf(CSOUND *csound, expcurve *p)
+static int32_t expcurve_perf(CSOUND *csound, expcurve *p)
 {
+    IGN(csound);
     MYFLT ki = *p->kin;
     MYFLT ks = *p->ksteepness;
     *p->kout = EXPCURVE(ki, ks);
@@ -77,8 +79,9 @@ static int expcurve_perf(CSOUND *csound, expcurve *p)
 
 /*  logcurve opcode  */
 
-static int logcurve_perf(CSOUND *csound, logcurve *p)
+static int32_t logcurve_perf(CSOUND *csound, logcurve *p)
 {
+    IGN(csound);
     MYFLT ki = *p->kin;
     MYFLT ks = *p->ksteepness;
     *p->kout = LOGCURVE(ki, ks);
@@ -88,8 +91,10 @@ static int logcurve_perf(CSOUND *csound, logcurve *p)
 
 /*  gainslider opcode  */
 
-static int gainslider_perf(CSOUND *csound, gainslider *p)
+static int32_t
+gainslider_perf(CSOUND *csound, gainslider *p)
 {
+    IGN(csound);
     if (*p->kindex <= FL(0.0)) {
       *p->koutsig = FL(0.0);
     }

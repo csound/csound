@@ -16,8 +16,8 @@
 
   You should have received a copy of the GNU Lesser General Public
   License along with Csound; if not, write to the Free Software
-  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
-  02111-1307 USA
+  Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
+  02110-1301 USA
 */
 #include <csdl.h>
 #include <cufft.h>
@@ -52,8 +52,8 @@ __global__ void pconvol(float *out,float *in,
  
 }  
 
-/* sample-by-sample overlap-save operation */
-__global__ void olapsave(float *buf, float *in, int parts){
+/* sample-by-sample overlap-add operation */
+__global__ void olapadd(float *buf, float *in, int parts){
    int n = (threadIdx.x + blockIdx.x*blockDim.x);
    buf[n] = in[n] + buf[parts+n];
    buf[parts+n] = in[parts+n];
@@ -130,9 +130,13 @@ int pconv_init(CSOUND *csound, PCONV *p){
 
   tmp = (float *) p->bufin.auxp;
   cufftPlan1d(&p->plan, dftsize, CUFFT_R2C, 1);
+#if __CUDACC_VER_MAJOR__ < 8
   cufftSetCompatibilityMode(p->plan, CUFFT_COMPATIBILITY_NATIVE);
+#endif
   cufftPlan1d(&p->iplan, dftsize, CUFFT_C2R, 1);
+#if __CUDACC_VER_MAJOR__ < 8
   cufftSetCompatibilityMode(p->iplan, CUFFT_COMPATIBILITY_NATIVE);
+#endif
 
   for(i =0, k=0; i < nparts; i++){
     for(j=0; j < dftsize; j++)
@@ -222,8 +226,8 @@ int pconv_perf(CSOUND *csound, PCONV *p){
        if(cufftExecC2R(p->iplan,(cufftComplex*)out,out) 
           != CUFFT_SUCCESS) csound->Message(csound, "cuda fft error\n");
 
-       /* overlap-save */
-       olapsave<<<p->oblocks,p->othreads>>>(buf,out,parts); 
+       /* overlap-add */
+       olapadd<<<p->oblocks,p->othreads>>>(buf,out,parts); 
  
        /* copy buffer out */
        cudaMemcpy(bufout,buf, sizeof(float)*parts,cudaMemcpyDeviceToHost);

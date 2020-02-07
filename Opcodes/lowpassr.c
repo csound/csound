@@ -17,8 +17,8 @@
 
     You should have received a copy of the GNU Lesser General Public
     License along with Csound; if not, write to the Free Software
-    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
-    02111-1307 USA
+    Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
+    02110-1301 USA
 */
 
 /* Resonant Lowpass filters by G.Maldonado */
@@ -27,8 +27,10 @@
 #include "lowpassr.h"
 #include <math.h>
 
-static int lowpr_set(CSOUND *csound, LOWPR *p)
+static int32_t lowpr_set(CSOUND *csound, LOWPR *p)
 {
+
+    IGN(csound);
     if (*p->istor==FL(0.0))
       p->ynm1 = p->ynm2 = 0.0;
     p->okf = 0.0;
@@ -37,7 +39,7 @@ static int lowpr_set(CSOUND *csound, LOWPR *p)
     return OK;
 }
 
-static int lowpr(CSOUND *csound, LOWPR *p)
+static int32_t lowpr(CSOUND *csound, LOWPR *p)
 {
     double b, k = p->k;
     MYFLT *ar, *asig;
@@ -50,8 +52,8 @@ static int lowpr(CSOUND *csound, LOWPR *p)
     uint32_t n, nsmps = CS_KSMPS;
 
     if (p->okf != kfco || p->okr != kres) { /* Only if changed */
-      if (kfco<=FL(0.0))
-        return csound->PerfError(csound, p->h.insdshead,
+      if (UNLIKELY(kfco<=FL(0.0)))
+        return csound->PerfError(csound, &(p->h),
                                  Str("Cutoff parameter must be positive"));
       b = 10.0 / (kres * sqrt((double)kfco)) - 1.0;
       p->k = k = 1000.0 / (double)kfco;
@@ -80,7 +82,7 @@ static int lowpr(CSOUND *csound, LOWPR *p)
     return OK;
 }
 
-static int lowpraa(CSOUND *csound, LOWPR *p)
+static int32_t lowpraa(CSOUND *csound, LOWPR *p)
 {
     double b, k = p->k;
     MYFLT *ar, *asig;
@@ -94,8 +96,8 @@ static int lowpraa(CSOUND *csound, LOWPR *p)
     uint32_t n, nsmps = CS_KSMPS;
 
     if (okf!= fco[0] || okr != res[0]) { /* Only if changed */
-      if (fco[0]<=FL(0.0))
-        return csound->PerfError(csound, p->h.insdshead,
+      if (UNLIKELY(fco[0]<=FL(0.0)))
+        return csound->PerfError(csound, &(p->h),
                                  Str("Cutoff parameter must be positive"));
       b = 10.0 / (res[0] * sqrt((double)fco[0])) - 1.0;
       p->k = k = 1000.0 / (double)fco[0];
@@ -116,8 +118,8 @@ static int lowpraa(CSOUND *csound, LOWPR *p)
     }
     for (n=offset; n<nsmps;n++) {
       if (okf!= fco[n] || okr != res[n]) { /* Only if changed */
-        if (fco[n]<=FL(0.0))
-        return csound->PerfError(csound, p->h.insdshead,
+        if (UNLIKELY(fco[n]<=FL(0.0)))
+          return csound->PerfError(csound, &(p->h),
                                  Str("Cutoff parameter must be positive"));
         b = 10.0 / (res[n] * sqrt((double)fco[n])) - 1.0;
         p->k = k = 1000.0 / (double)fco[0];
@@ -136,7 +138,7 @@ static int lowpraa(CSOUND *csound, LOWPR *p)
     return OK;
 }
 
-static int lowprak(CSOUND *csound, LOWPR *p)
+static int32_t lowprak(CSOUND *csound, LOWPR *p)
 {
     double b, k = p->k;
     MYFLT *ar, *asig;
@@ -150,8 +152,8 @@ static int lowprak(CSOUND *csound, LOWPR *p)
     uint32_t n, nsmps = CS_KSMPS;
 
     if (okf != fco[0] || okr != kres) { /* Only if changed */
-      if (fco[0]<=FL(0.0))
-        return csound->PerfError(csound, p->h.insdshead,
+      if (UNLIKELY(fco[0]<=FL(0.0)))
+        return csound->PerfError(csound, &(p->h),
                                  Str("Cutoff parameter must be positive"));
       b = 10.0 / (kres * sqrt((double)fco[0])) - 1.0;
       p->k = k = 1000.0 / (double)fco[0];
@@ -171,8 +173,8 @@ static int lowprak(CSOUND *csound, LOWPR *p)
     }
     for (n=offset; n<nsmps;n++) {
       if (okf != fco[n]) { /* Only if changed */
-        if (fco[n]<=FL(0.0))
-          return csound->PerfError(csound, p->h.insdshead,
+        if (UNLIKELY(fco[n]<=FL(0.0)))
+          return csound->PerfError(csound, &(p->h),
                                    Str("Cutoff parameter must be positive"));
         b = 10.0 / (kres * sqrt((double)fco[n])) - 1.0;
         p->k = k = 1000.0 / (double)fco[n];
@@ -191,7 +193,7 @@ static int lowprak(CSOUND *csound, LOWPR *p)
     return OK;
 }
 
-static int lowprka(CSOUND *csound, LOWPR *p)
+static int32_t lowprka(CSOUND *csound, LOWPR *p)
 {
     double b, k = p->k;
     MYFLT *ar, *asig;
@@ -205,9 +207,9 @@ static int lowprka(CSOUND *csound, LOWPR *p)
     uint32_t n, nsmps = CS_KSMPS;
 
     if (okf!= fco || okr != res[0]) { /* Only if changed */
-        if (fco<=FL(0.0))
-          return csound->PerfError(csound, p->h.insdshead,
-                                   Str("Cutoff parameter must be positive"));
+      if (UNLIKELY(fco<=FL(0.0)))
+        return csound->PerfError(csound, &(p->h),
+                                 Str("Cutoff parameter must be positive"));
       b = 10.0 / (res[0] * sqrt((double)fco)) - 1.0;
       p->k = k = 1000.0 / (double)fco;
       p->coef1 = coef1 = (b+2.0 * k);
@@ -244,10 +246,10 @@ static int lowprka(CSOUND *csound, LOWPR *p)
     return OK;
 }
 
-static int lowpr_setx(CSOUND *csound, LOWPRX *p)
+static int32_t lowpr_setx(CSOUND *csound, LOWPRX *p)
 {
-    int j;
-    if ((p->loop = (int) MYFLT2LONG(*p->ord)) < 1) p->loop = 4; /*default value*/
+    int32_t j;
+    if ((p->loop = (int32_t) MYFLT2LONG(*p->ord)) < 1) p->loop = 4; /*default value*/
     else if (UNLIKELY(p->loop > 10)) {
       return csound->InitError(csound, Str("illegal order num. (min 1, max 10)"));
     }
@@ -257,8 +259,9 @@ static int lowpr_setx(CSOUND *csound, LOWPRX *p)
     return OK;
 }
 
-static int lowprx(CSOUND *csound, LOWPRX *p)
+static int32_t lowprx(CSOUND *csound, LOWPRX *p)
 {
+    IGN(csound);
     MYFLT    b, k = p->k;
     MYFLT   *ar, *asig, yn,*ynm1, *ynm2 ;
     MYFLT    coef1 = p->coef1, coef2 = p->coef2;
@@ -266,8 +269,8 @@ static int lowprx(CSOUND *csound, LOWPRX *p)
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t n, nsmps = CS_KSMPS;
-    int      j;
-    int      asgf = IS_ASIG_ARG(p->kfco), asgr = IS_ASIG_ARG(p->kres);
+    int32_t      j;
+    int32_t      asgf = IS_ASIG_ARG(p->kfco), asgr = IS_ASIG_ARG(p->kres);
 
     ynm1 = p->ynm1;
     ynm2 = p->ynm2;
@@ -303,10 +306,10 @@ static int lowprx(CSOUND *csound, LOWPRX *p)
     return OK;
 }
 
-static int lowpr_w_sep_set(CSOUND *csound, LOWPR_SEP *p)
+static int32_t lowpr_w_sep_set(CSOUND *csound, LOWPR_SEP *p)
 {
-    int j;
-    if ((p->loop = (int) MYFLT2LONG(*p->ord)) < 1)
+    int32_t j;
+    if ((p->loop = (int32_t) MYFLT2LONG(*p->ord)) < 1)
       p->loop = 4; /*default value*/
     else if (UNLIKELY(p->loop > 10)) {
       return csound->InitError(csound, Str("illegal order num. (min 1, max 10)"));
@@ -315,8 +318,9 @@ static int lowpr_w_sep_set(CSOUND *csound, LOWPR_SEP *p)
     return OK;
 }
 
-static int lowpr_w_sep(CSOUND *csound, LOWPR_SEP *p)
+static int32_t lowpr_w_sep(CSOUND *csound, LOWPR_SEP *p)
 {
+     IGN(csound);
     MYFLT    b, k;
     MYFLT   *ar, *asig, yn,*ynm1, *ynm2 ;
     MYFLT    coef1, coef2;
@@ -325,7 +329,7 @@ static int lowpr_w_sep(CSOUND *csound, LOWPR_SEP *p)
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t n, nsmps = CS_KSMPS;
-    int      j;
+    int32_t      j;
 
     MYFLT kres = *p->kres;
     MYFLT kfco;
@@ -369,23 +373,24 @@ static int lowpr_w_sep(CSOUND *csound, LOWPR_SEP *p)
 
 #define S(x)    sizeof(x)
 
-static OENTRY localops[] = {
-{ "lowres.kk",   S(LOWPR),   0, 5, "a", "akko",
-                          (SUBR)lowpr_set, NULL,   (SUBR)lowpr   },
-{ "lowres.aa",   S(LOWPR),   0, 5, "a", "aaao",
-                          (SUBR)lowpr_set, NULL,   (SUBR)lowpraa },
-{ "lowres.ak",   S(LOWPR),   0, 5, "a", "aako",
-                          (SUBR)lowpr_set, NULL,   (SUBR)lowprak },
-{ "lowres.ka",   S(LOWPR),   0, 5, "a", "akao",
-                          (SUBR)lowpr_set, NULL,   (SUBR)lowprka },
-{ "lowresx",  S(LOWPRX),  0, 5, "a", "axxoo",
-                          (SUBR)lowpr_setx, NULL, (SUBR)lowprx   },
-{ "vlowres", S(LOWPR_SEP),0, 5, "a", "akkik",
-                          (SUBR)lowpr_w_sep_set, NULL, (SUBR)lowpr_w_sep }
+static OENTRY localops[] =
+  {
+    { "lowres.kk",   S(LOWPR), 0, 3, "a", "akko",  (SUBR)lowpr_set, (SUBR)lowpr   },
+    { "lowres.aa",   S(LOWPR), 0, 3, "a", "aaao",  (SUBR)lowpr_set, (SUBR)lowpraa },
+    { "lowres.ak",   S(LOWPR), 0, 3, "a", "aako",  (SUBR)lowpr_set, (SUBR)lowprak },
+    { "lowres.ka",   S(LOWPR), 0, 3, "a", "akao",  (SUBR)lowpr_set, (SUBR)lowprka },
+
+    { "lowresx.kk",  S(LOWPRX),0, 3, "a", "akkoo", (SUBR)lowpr_setx, (SUBR)lowprx },
+    { "lowresx.ak",  S(LOWPRX),0, 3, "a", "aakoo", (SUBR)lowpr_setx, (SUBR)lowprx },
+    { "lowresx.ka",  S(LOWPRX),0, 3, "a", "akaoo", (SUBR)lowpr_setx, (SUBR)lowprx },
+    { "lowresx.aa",  S(LOWPRX),0, 3, "a", "aaaoo", (SUBR)lowpr_setx, (SUBR)lowprx },
+
+    { "vlowres", S(LOWPR_SEP),0, 3, "a", "akkik",  (SUBR)lowpr_w_sep_set, (SUBR)lowpr_w_sep }
 };
 
-int lowpassr_init_(CSOUND *csound)
+int32_t lowpassr_init_(CSOUND *csound)
 {
     return csound->AppendOpcodes(csound, &(localops[0]),
-                                 (int) (sizeof(localops) / sizeof(OENTRY)));
+                                 (int32_t
+                                  ) (sizeof(localops) / sizeof(OENTRY)));
 }

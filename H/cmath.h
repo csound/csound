@@ -17,15 +17,15 @@
 
     You should have received a copy of the GNU Lesser General Public
     License along with Csound; if not, write to the Free Software
-    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
-    02111-1307 USA
+    Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
+    02110-1301 USA
 */
 
 double besseli(double);
 
 /* returns 0 on success, -1 if there are insufficient arguments, */
 /* and -2 in the case of an unknown distribution */
-int gen21_rand(FGDATA *ff, FUNC *ftp);
+int32_t gen21_rand(FGDATA *ff, FUNC *ftp);
 
 typedef struct  {
         OPDS    h;
@@ -42,8 +42,8 @@ typedef struct  {
         MYFLT   *ar, *arg1, *xamp, *xcps;
         MYFLT   *iseed;
         MYFLT   dfdmax, num1, num2;
-        int32   phs;
-        int     ampcod, cpscod;
+        int32_t   phs;
+        int32_t     ampcod, cpscod;
 } PRANDI;
 
 typedef struct {

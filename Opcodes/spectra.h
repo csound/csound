@@ -17,8 +17,8 @@
 
     You should have received a copy of the GNU Lesser General Public
     License along with Csound; if not, write to the Free Software
-    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
-    02111-1307 USA
+    Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
+    02110-1301 USA
 */
                         /*                              SPECTRA.H       */
 #ifndef __SPECTRA_H
@@ -31,10 +31,10 @@ typedef struct {
         SPECDAT *wsig;
         MYFLT   *signal,*iprd,*iocts,*ifrqs,*iq,*ihann;
         MYFLT   *idbout,*idisprd,*idsines;
-        int     nfreqs, hanning, ncoefs, dbout, nsmps, scountdown;
+        int32_t     nfreqs, hanning, ncoefs, dbout, nsmps, scountdown;
         uint32_t timcount;
         MYFLT   curq, *sinp, *cosp, *linbufp;
-        int     disprd, dcountdown, winlen[MAXFRQS], offset[MAXFRQS];
+        int32_t     disprd, dcountdown, winlen[MAXFRQS], offset[MAXFRQS];
         DOWNDAT downsig;
         WINDAT  sinwindow, octwindow;
         AUXCH   auxch1, auxch2;
@@ -46,9 +46,9 @@ typedef struct {
         SPECDAT *wsig;
         DOWNDAT *dsig;
         MYFLT   *iprd, *ifrqs, *iq, *ihann, *idbout, *idsines;
-        int     nfreqs, hanning, ncoefs, dbout;
+        int32_t     nfreqs, hanning, ncoefs, dbout;
         MYFLT   curq, *sinp, *cosp, *linbufp;
-        int     countdown, timcount, winlen[MAXFRQS];
+        int32_t     countdown, timcount, winlen[MAXFRQS];
         WINDAT  dwindow;
         AUXCH   auxch;
 } NOCTDFT;
@@ -58,7 +58,7 @@ typedef struct {
         OPDS    h;
         SPECDAT *wsig;
         MYFLT   *iprd, *iwtflg;
-        int     countdown, timcount;
+        int32_t     countdown, timcount;
         WINDAT  dwindow;
 } SPECDISP;
 
@@ -70,10 +70,10 @@ typedef struct {
         SPECDAT *wsig;
         MYFLT   *kvar, *ilo, *ihi, *istrt, *idbthresh, *inptls, *irolloff;
         MYFLT   *iodd, *iconf, *interp, *ifprd, *iwtflg;
-        int     pdist[MAXPTL], nptls, rolloff, kinterp, ftimcnt;
+        int32_t     pdist[MAXPTL], nptls, rolloff, kinterp, ftimcnt;
         MYFLT   pmult[MAXPTL], confact, kvalsav, kval, kavl, kinc, kanc;
         MYFLT   *flop, *fhip, *fundp, *oct0p, threshon, threshoff;
-        int     winpts, jmpcount, playing;
+        int32_t     winpts, jmpcount, playing;
         SPECDAT wfund;
         SPECDISP fdisplay;
 } SPECPTRK;
@@ -83,7 +83,7 @@ typedef struct {
         MYFLT   *ksum;
         SPECDAT *wsig;
         MYFLT   *interp;
-        int     kinterp;
+        int32_t     kinterp;
         MYFLT   kval, kinc;
 } SPECSUM;
 
@@ -107,7 +107,7 @@ typedef struct {
         SPECDAT *wscaled;
         SPECDAT *wsig;
         MYFLT   *ifscale, *ifthresh;
-        int     thresh;
+        int32_t     thresh;
         MYFLT   *fscale, *fthresh;
         AUXCH   auxch;
 } SPECSCAL;

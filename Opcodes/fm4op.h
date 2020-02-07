@@ -17,8 +17,8 @@
 
     You should have received a copy of the GNU Lesser General Public
     License along with Csound; if not, write to the Free Software
-    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
-    02111-1307 USA
+    Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
+    02110-1301 USA
 */
 
 /*******************************************/
@@ -59,7 +59,7 @@ typedef struct TwoZero {
 /* ********************************************************************** */
 
 typedef struct FM4OP {
-    OPDS    h;
+    OPDS        h;
     MYFLT       *ar;                  /* Output */
     MYFLT       *amp, *frequency;
     MYFLT       *control1, *control2, *modDepth; /* Control1 doubles as vowel */
@@ -82,7 +82,7 @@ typedef struct FM4OP {
 } FM4OP;
 
 typedef struct FM4OPV {
-    OPDS    h;
+    OPDS        h;
     MYFLT       *ar;                  /* Output */
     MYFLT       *amp, *frequency;
     MYFLT       *control1, *control2, *modDepth; /* Control1 doubles as vowel */

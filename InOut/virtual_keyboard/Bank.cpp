@@ -17,8 +17,8 @@
 
     You should have received a copy of the GNU Lesser General Public
     License along with Csound; if not, write to the Free Software
-    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
-    02111-1307 USA
+    Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
+    02110-1301 USA
 */
 
 #include "Bank.hpp"
@@ -171,7 +171,7 @@ static char* gm[] = {
 
 Bank::Bank(CSOUND *csound, char* bankName) : bankNum(0) {
         this->name = bankName;
-
+        IGN(csound);
         currentProgram = 0;
         previousProgram = -1;
 }

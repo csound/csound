@@ -1,7 +1,7 @@
 /*
-Brian Carty
-PhD Code August 2010
-binaural reverb: diffuse field
+    Copyright #(c) 2010 Brian Carty
+    PhD Code August 2010
+    binaural reverb: diffuse field
 
    This file is part of Csound.
 
@@ -17,8 +17,8 @@ binaural reverb: diffuse field
 
     You should have received a copy of the GNU Lesser General Public
     License along with Csound; if not, write to the Free Software
-    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
-    02111-1307 USA
+    Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
+    02110-1301 USA
 */
 
 #include "csoundCore.h"
@@ -28,11 +28,11 @@ binaural reverb: diffuse field
 
 /* endian issues: swap bytes for ppc */
 #ifdef WORDS_BIGENDIAN
-static int swap4bytes(CSOUND* csound, MEMFIL* mfp)
+static int32_t swap4bytes(CSOUND* csound, MEMFIL* mfp)
 {
     char c1, c2, c3, c4;
     char *p = mfp->beginp;
-    int  size = mfp->length;
+    int32_t  size = mfp->length;
 
     while (size >= 4)
       {
@@ -44,7 +44,7 @@ static int swap4bytes(CSOUND* csound, MEMFIL* mfp)
     return OK;
 }
 #else
-static int (*swap4bytes)(CSOUND*, MEMFIL*) = NULL;
+static int32_t (*swap4bytes)(CSOUND*, MEMFIL*) = NULL;
 #endif
 
 /* matrices for feedback delay network (fdn) */
@@ -128,7 +128,7 @@ static const MYFLT matrix24[576] =
          mtw,mtw,mtw,mtw,mtw,mtw,mtw,mtw,mtw,mtw,mtw,etw};
 
 /* for delay line lengths */
-static const int primes[229] =
+static const int32_t primes[229] =
   {
     17,      23,     59,     71,    113,    127,    163,    191,    211,    229,
     271,    283,    313,    337,    359,    373,    409,    461,    541,    587,
@@ -170,21 +170,21 @@ typedef struct
 
     /* internal data / class variables */
     MYFLT delaytime;
-    int delaytimeint, basedelay;
+    int32_t delaytimeint, basedelay;
 
     /* number of delay lines */
-    int M;
+    int32_t M;
 
     /* delay line iterators */
-    int u, v, w, x, y, z;
-    int ut, vt, wt, xt, yt, zt;
-    int utf1, vtf1, wtf1, xtf1, ytf1, ztf1;
-    int utf2, vtf2, wtf2, xtf2, ytf2, ztf2;
+    int32_t u, v, w, x, y, z;
+    int32_t ut, vt, wt, xt, yt, zt;
+    int32_t utf1, vtf1, wtf1, xtf1, ytf1, ztf1;
+    int32_t utf2, vtf2, wtf2, xtf2, ytf2, ztf2;
 
     /* buffer lengths, change for different sr */
-    int irlength;
-    int irlengthpad;
-    int overlapsize;
+    int32_t irlength;
+    int32_t irlengthpad;
+    int32_t overlapsize;
 
     /* memory buffers: delays */
     AUXCH delays;
@@ -218,13 +218,13 @@ typedef struct
     AUXCH buffl, buffr;
 
     /* counter */
-    int counter;
+    int32_t counter;
 
     MYFLT sr;
 
 }hrtfreverb;
 
-int hrtfreverb_init(CSOUND *csound, hrtfreverb *p)
+int32_t hrtfreverb_init(CSOUND *csound, hrtfreverb *p)
 {
     /* left and right data files: spectral mag, phase format */
     MEMFIL *fpl = NULL, *fpr = NULL;
@@ -233,45 +233,45 @@ int hrtfreverb_init(CSOUND *csound, hrtfreverb *p)
     float *fpindexl, *fpindexr;
 
     /* processing sizes */
-    int irlength=0, irlengthpad=0, overlapsize=0;
+    int32_t irlength=0, irlengthpad=0, overlapsize=0;
 
     /* pointers used to fill buffers in data structure */
-    int *delaysp;
+    int32_t *delaysp;
     MYFLT *gip, *aip;
     MYFLT *powerp, *HRTFavep, *nump, *denomp, *cohermagsp, *coherup, *cohervp;
     MYFLT *filtoutp, *filtuoutp, *filtvoutp, *filtpadp, *filtupadp, *filtvpadp;
     MYFLT *bufflp, *buffrp;
 
     /* iterators, file skip */
-    int i, j;
-    int skip = 0;
-    int skipdouble = 0;
+    int32_t i, j;
+    int32_t skip = 0;
+    int32_t skipdouble = 0;
 
     /* used in choice of delay line lengths */
-    int basedelay=0;
+    int32_t basedelay=0;
 
     /* local filter variables for spectral manipulations */
     MYFLT rel, rer, retemp, iml, imr, imtemp;
 
     /* setup filters */
     MYFLT T, alpha, aconst, exp;
-    int clipcheck = 0;
+    int32_t clipcheck = 0;
 
     MYFLT sr = (MYFLT)*p->osr;
     MYFLT meanfp = (MYFLT)*p->omeanfp;
-    int order = (int)*p->porder;
+    int32_t order = (int32_t)*p->porder;
 
     /* delay line variables */
     MYFLT delaytime, meanfporder;
-    int delaytimeint;
-    int Msix, Mtwelve, Mtwentyfour;
-    int meanfpsamps, meanfpordersamps;
-    int test;
+    int32_t delaytimeint;
+    int32_t Msix, Mtwelve, Mtwentyfour;
+    int32_t meanfpsamps, meanfpordersamps;
+    int32_t test;
 
     MYFLT rt60low = (MYFLT)*p->ilowrt60;
     MYFLT rt60high = (MYFLT)*p->ihighrt60;
 
-    int M;
+    int32_t M;
 
     /* sr, defualt 44100 */
     if(sr != 44100 && sr != 48000 && sr != 96000)
@@ -314,8 +314,8 @@ int hrtfreverb_init(CSOUND *csound, hrtfreverb *p)
       }
 
     /* copy in string name... */
-    strncpy(filel, (char*) p->ifilel->data, MAXNAME-1);
-    strncpy(filer, (char*) p->ifiler->data, MAXNAME-1);
+    strNcpy(filel, (char*) p->ifilel->data, MAXNAME-1);
+    strNcpy(filer, (char*) p->ifiler->data, MAXNAME-1);
 
     /* reading files, with byte swap */
     fpl = csound->ldmemfile2withCB(csound, filel,
@@ -420,8 +420,8 @@ int hrtfreverb_init(CSOUND *csound, hrtfreverb *p)
 
     /* calculate delayline lengths */
     meanfporder = meanfp * (order + 1);
-    meanfpsamps = (int)(meanfp * sr);
-    meanfpordersamps = (int)(meanfporder * sr);
+    meanfpsamps = (int32_t)(meanfp * sr);
+    meanfpordersamps = (int32_t)(meanfporder * sr);
 
     /* setup reverb time */
     delaytime = rt60low > rt60high ? rt60low : rt60high;
@@ -433,20 +433,20 @@ int hrtfreverb_init(CSOUND *csound, hrtfreverb *p)
 
     /* which no. of delay lines implies ave delay nearest to mfp(which is an
        appropriate ave)? */
-    Msix = abs((int)(delaytime / 6) - meanfpsamps);
-    Mtwelve = abs((int)(delaytime / 12) - meanfpsamps);
-    Mtwentyfour = abs((int)(delaytime / 24) - meanfpsamps);
+    Msix = abs((int32_t)(delaytime / 6) - meanfpsamps);
+    Mtwelve = abs((int32_t)(delaytime / 12) - meanfpsamps);
+    Mtwentyfour = abs((int32_t)(delaytime / 24) - meanfpsamps);
     M = Mtwelve < Mtwentyfour ? (Msix < Mtwelve ? 6 : 12) : 24;
 
-    csound->Message(csound, "%d \n", M);
+    csound->Message(csound, "%d\n", M);
 
     delaytime /= M;
-    delaytimeint = (int)delaytime;
+    delaytimeint= (int32_t)delaytime;
 
     if(delaytimeint < meanfpsamps)
       delaytimeint = meanfpsamps;
 
-    /*csound->Message(csound, "%d %d %d \n", M, delaytimeint, meanfpsamps);*/
+    /*csound->Message(csound, "%d %d %d\n", M, delaytimeint, meanfpsamps);*/
 
     /* maximum value, according to primes array and delay line allocation */
     if(delaytimeint > 10112)
@@ -470,8 +470,8 @@ int hrtfreverb_init(CSOUND *csound, hrtfreverb *p)
       }
 
     /* allocate memory based on M: number of delays */
-    if (!p->delays.auxp || p->delays.size < M * sizeof(int))
-      csound->AuxAlloc(csound, M * sizeof(int), &p->delays);
+    if (!p->delays.auxp || p->delays.size < M * sizeof(int32_t))
+      csound->AuxAlloc(csound, M * sizeof(int32_t), &p->delays);
     if (!p->gi.auxp || p->gi.size < M * sizeof(MYFLT))
       csound->AuxAlloc(csound, M * sizeof(MYFLT), &p->gi);
     if (!p->ai.auxp || p->ai.size < M * sizeof(MYFLT))
@@ -485,7 +485,7 @@ int hrtfreverb_init(CSOUND *csound, hrtfreverb *p)
     if (!p->outmat.auxp || p->outmat.size < M * sizeof(MYFLT))
       csound->AuxAlloc(csound, M * sizeof(MYFLT), &p->outmat);
 
-    memset(p->delays.auxp, 0, M * sizeof(int));
+    memset(p->delays.auxp, 0, M * sizeof(int32_t));
     memset(p->gi.auxp, 0, M * sizeof(MYFLT));
     memset(p->ai.auxp, 0, M * sizeof(MYFLT));
     memset(p->inmat.auxp, 0, M * sizeof(MYFLT));
@@ -513,7 +513,7 @@ int hrtfreverb_init(CSOUND *csound, hrtfreverb *p)
           }
       }
 
-    delaysp = (int *)p->delays.auxp;
+    delaysp = (int32_t *)p->delays.auxp;
 
     /* fill delay data, note this data can be filled locally */
     delaysp[0] = primes[basedelay];
@@ -878,12 +878,12 @@ int hrtfreverb_init(CSOUND *csound, hrtfreverb *p)
     return OK;
 }
 
-int hrtfreverb_process(CSOUND *csound, hrtfreverb *p)
+int32_t hrtfreverb_process(CSOUND *csound, hrtfreverb *p)
 {
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t i, nsmps = CS_KSMPS;
-    int j, k;
+    int32_t j, k;
 
     /* signals in, out */
     MYFLT *in = p->insig, sigin;
@@ -897,19 +897,19 @@ int hrtfreverb_process(CSOUND *csound, hrtfreverb *p)
     MYFLT *del1tfp=NULL, *del2tfp=NULL, *del3tfp=NULL, *del4tfp=NULL,
           *del5tfp=NULL, *del6tfp=NULL, *del7tfp=NULL, *del8tfp=NULL,
           *del9tfp=NULL, *del10tfp=NULL, *del11tfp=NULL, *del12tfp=NULL;
-    int *delaysp;
+    int32_t *delaysp;
 
     /* matrix manipulation */
     MYFLT *inmatp, *inmatlpp, *dellpp, *outmatp;
 
     /* delay line iterators */
-    int u, v, w, x, y, z;
-    int ut=0, vt=0, wt=0, xt=0, yt=0, zt=0;
-    int utf1=0, vtf1=0, wtf1=0, xtf1=0, ytf1=0, ztf1=0;
-    int utf2=0, vtf2=0, wtf2=0, xtf2=0, ytf2=0, ztf2=0;
+    int32_t u, v, w, x, y, z;
+    int32_t ut=0, vt=0, wt=0, xt=0, yt=0, zt=0;
+    int32_t utf1=0, vtf1=0, wtf1=0, xtf1=0, ytf1=0, ztf1=0;
+    int32_t utf2=0, vtf2=0, wtf2=0, xtf2=0, ytf2=0, ztf2=0;
 
     /* number of delays */
-    int M = p->M;
+    int32_t M = p->M;
 
     /* FIR temp variables */
     MYFLT tonall, tonalr;
@@ -919,7 +919,7 @@ int hrtfreverb_process(CSOUND *csound, hrtfreverb *p)
     MYFLT *gip, *aip;
 
     /* counter */
-    int counter = p->counter;
+    int32_t counter = p->counter;
 
     /* matrix/coher and hrtf filter buffers, with overlap add buffers */
     MYFLT *matrixlup = (MYFLT *)p->matrixlu.auxp;
@@ -932,9 +932,9 @@ int hrtfreverb_process(CSOUND *csound, hrtfreverb *p)
     MYFLT *olhrtfrp = (MYFLT *)p->olhrtfr.auxp;
 
     /* processing lengths */
-    int irlength = p->irlength;
-    int irlengthpad = p->irlengthpad;
-    int overlapsize = p->overlapsize;
+    int32_t irlength = p->irlength;
+    int32_t irlengthpad = p->irlengthpad;
+    int32_t overlapsize = p->overlapsize;
 
     /* 1st order FIR mem */
     MYFLT inoldl = p->inoldl;
@@ -979,7 +979,7 @@ int hrtfreverb_process(CSOUND *csound, hrtfreverb *p)
         del12tfp = (MYFLT *)p->del12tf.auxp;
       }
 
-    delaysp = (int *)p->delays.auxp;
+    delaysp = (int32_t *)p->delays.auxp;
 
     inmatp = (MYFLT *)p->inmat.auxp;
     inmatlpp = (MYFLT *)p->inmatlp.auxp;
@@ -1337,8 +1337,8 @@ int hrtfreverb_process(CSOUND *csound, hrtfreverb *p)
 
 static OENTRY hrtfreverb_localops[] =
 {        {
-               "hrtfreverb", sizeof(hrtfreverb), 0,5, "aai", "aiiSSoop",
-                (SUBR)hrtfreverb_init, NULL, (SUBR)hrtfreverb_process
+          "hrtfreverb", sizeof(hrtfreverb), 0,3, "aai", "aiiSSoop",
+                (SUBR)hrtfreverb_init, (SUBR)hrtfreverb_process
         }
 };
 

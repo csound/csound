@@ -17,8 +17,8 @@
 
   You should have received a copy of the GNU Lesser General Public
   License along with Csound; if not, write to the Free Software
-  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
-  02111-1307 USA
+  Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
+  02110-1301 USA
 */
 
 #include <csoundCore.h>
@@ -83,8 +83,10 @@ int csoundReadCircularBuffer(CSOUND *csound, void *p, void *out, int items)
           rp = 0;
         }
       }
-#ifdef HAVE_ATOMIC_BUILTIN
-      __sync_lock_test_and_set(&((circular_buffer *)p)->rp,rp);
+#if defined(MSVC)
+      InterlockedExchange(&((circular_buffer *)p)->rp, rp);
+#elif defined(HAVE_ATOMIC_BUILTIN)
+      __atomic_exchange_n(&((circular_buffer *)p)->rp,rp, __ATOMIC_SEQ_CST);
 #else
       ((circular_buffer *)p)->rp = rp;
 #endif
@@ -131,8 +133,10 @@ void csoundFlushCircularBuffer(CSOUND *csound, void *p)
         rp++;
         if(rp == numelem) rp = 0;
     }
-#ifdef HAVE_ATOMIC_BUILTIN
-      __sync_lock_test_and_set(&((circular_buffer *)p)->rp,rp);
+#if defined(MSVC)
+      InterlockedExchange(&((circular_buffer *)p)->rp, rp);
+#elif defined(HAVE_ATOMIC_BUILTIN)
+      __atomic_store_n(&((circular_buffer *)p)->rp,rp, __ATOMIC_SEQ_CST);
 #else
       ((circular_buffer *)p)->rp = rp;
 #endif
@@ -157,8 +161,10 @@ int csoundWriteCircularBuffer(CSOUND *csound, void *p, const void *in, int items
                 ((char *) in) + (i * elemsize),  elemsize);
         if(wp == numelem) wp = 0;
     }
-#ifdef HAVE_ATOMIC_BUILTIN
-      __sync_lock_test_and_set(&((circular_buffer *)p)->wp,wp);
+#if defined(MSVC)
+      InterlockedExchange(&((circular_buffer *)p)->wp, wp);
+#elif defined(HAVE_ATOMIC_BUILTIN)
+      __atomic_store_n(&((circular_buffer *)p)->wp,wp, __ATOMIC_SEQ_CST);
 #else
       ((circular_buffer *)p)->wp = wp;
 #endif

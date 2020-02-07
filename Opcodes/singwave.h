@@ -17,8 +17,8 @@
 
     You should have received a copy of the GNU Lesser General Public
     License along with Csound; if not, write to the Free Software
-    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
-    02111-1307 USA
+    Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
+    02110-1301 USA
 */
 
 /*******************************************/
@@ -55,8 +55,8 @@ extern char phonemes[32][4];
 
 typedef struct SubNoise {
      Noise      lastOutput;
-     int        counter;
-     int        howOften;
+     int32_t        counter;
+     int32_t        howOften;
 } SubNoise;
 
 typedef struct Modulatr {
@@ -115,7 +115,8 @@ typedef struct VOICF {
     MYFLT       *ifn, *ivfn;
 
     MYFLT       oldform;
-    int         ph;
+    int32_t
+    ph;
     MYFLT       basef;
     MYFLT       lastGain;
     SingWave    voiced;

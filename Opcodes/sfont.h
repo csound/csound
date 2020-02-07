@@ -1,3 +1,4 @@
+
 /*
     sfont.h:
 
@@ -17,8 +18,8 @@
 
     You should have received a copy of the GNU Lesser General Public
     License along with Csound; if not, write to the Free Software
-    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
-    02111-1307 USA
+    Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
+    02110-1301 USA
 */
 
 #include "sftype.h"
@@ -50,7 +51,7 @@ typedef struct {
         OPDS    h;
         MYFLT   *out1, *out2, *ivel, *inotnum,*xamp, *xfreq;
         MYFLT   *ipresethandle, *iflag, *ioffset, *ienv;
-        int     spltNum;
+        int32_t     spltNum;
         SHORT   *base[MAXSPLT], mode[MAXSPLT];
         DWORD   end[MAXSPLT], startloop[MAXSPLT], endloop[MAXSPLT], ti[MAXSPLT];
         double  si[MAXSPLT],phs[MAXSPLT];
@@ -64,7 +65,7 @@ typedef struct {
         OPDS    h;
         MYFLT   *out1, *ivel, *inotnum,*xamp, *xfreq, *ipresethandle,
                 *iflag, *ioffset, *ienv;
-        int     spltNum;
+        int32_t     spltNum;
         SHORT   *base[MAXSPLT], mode[MAXSPLT];
         DWORD   end[MAXSPLT], startloop[MAXSPLT], endloop[MAXSPLT], ti[MAXSPLT];
         double  si[MAXSPLT],phs[MAXSPLT];
@@ -78,7 +79,7 @@ typedef struct {
         OPDS    h;
         MYFLT   *out1, *ivel, *inotnum, *xamp, *xfreq, *instrNum;
         MYFLT   *sfBank, *iflag, *ioffset, *ienv;
-        int     spltNum;
+        int32_t     spltNum;
         SHORT   *base[MAXSPLT], mode[MAXSPLT];
         DWORD   end[MAXSPLT], startloop[MAXSPLT], endloop[MAXSPLT], ti[MAXSPLT];
         double  si[MAXSPLT],phs[MAXSPLT];
@@ -92,7 +93,8 @@ typedef struct {
         OPDS    h;
         MYFLT   *out1, *out2, *ivel, *inotnum, *xamp, *xfreq;
         MYFLT   *instrNum, *sfBank, *iflag, *ioffset, *ienv;
-        int     spltNum;
+        int32_t
+        spltNum;
         SHORT   *base[MAXSPLT], mode[MAXSPLT];
         DWORD   end[MAXSPLT], startloop[MAXSPLT], endloop[MAXSPLT], ti[MAXSPLT];
         double  si[MAXSPLT],phs[MAXSPLT];

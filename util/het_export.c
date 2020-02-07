@@ -17,8 +17,8 @@
 
     You should have received a copy of the GNU Lesser General Public
     License along with Csound; if not, write to the Free Software
-    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
-    02111-1307 USA
+    Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
+    02110-1301 USA
 */
 /* ***************************************************************** */
 /* ******** Program to export hetro files in tabular format. ******* */
@@ -36,28 +36,28 @@
 
 void het_export_usage(CSOUND *csound)
 {
-    csound->Message(csound, Str("Usage: het_export het_file cstext_file\n"));
+    csound->Message(csound, "%s", Str("Usage: het_export het_file cstext_file\n"));
 }
 
-static int het_export(CSOUND *csound, int argc, char **argv)
+static int32_t het_export(CSOUND *csound, int32_t argc, char **argv)
 {
     MEMFIL *inf;
     FILE *outf;
     int16 *adp;
     int16 *endata;
-    int cc = 0;
+    int32_t cc = 0;
 
     if (argc!= 3) {
       het_export_usage(csound);
       return 1;
     }
     inf = csound->ldmemfile2withCB(csound, argv[1], CSFTYPE_HETRO,NULL);
-    if (inf == NULL) {
+    if (UNLIKELY(inf == NULL)) {
       csound->Message(csound, Str("Cannot open input file %s\n"), argv[1]);
       return 1;
     }
     outf = fopen(argv[2], "w");
-    if (outf == NULL) {
+    if (UNLIKELY(outf == NULL)) {
       csound->Message(csound, Str("Cannot open output file %s\n"), argv[2]);
       return 1;
     }
@@ -76,9 +76,9 @@ static int het_export(CSOUND *csound, int argc, char **argv)
 
 /* module interface */
 
-int het_export_init_(CSOUND *csound)
+int32_t het_export_init_(CSOUND *csound)
 {
-    int retval = csound->AddUtility(csound, "het_export", het_export);
+    int32_t retval = csound->AddUtility(csound, "het_export", het_export);
     if (!retval) {
       retval =
         csound->SetUtilityDescription(csound, "het_export",

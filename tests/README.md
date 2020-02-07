@@ -15,3 +15,12 @@ This folder contains unit tests written in C, using the CUnit library.  Currentl
 ## tests/python 
 
 This folder is intended for tests of the Csound API using Python.  The idea is that it would be useful to test from a host language to make sure our assumptions about the C API still work from a host language.
+
+## tests/regression
+
+A collection of previous bugs which should remain fixed
+
+## tests/soak
+
+A large test of most examples from the manual.  The scripts also check for changes sice previous run, using MD5sum for audio output and diff for text
+

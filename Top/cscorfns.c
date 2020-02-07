@@ -17,8 +17,8 @@
 
     You should have received a copy of the GNU Lesser General Public
     License along with Csound; if not, write to the Free Software
-    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
-    02111-1307 USA
+    Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
+    02110-1301 USA
 */
 
 #include "csoundCore.h"     /*                      CSCORFNS.C      */
@@ -172,7 +172,7 @@ PUBLIC EVLIST * cscoreListCreate(CSOUND *csound, int nslots)
     int   needsiz = sizeof(EVLIST) + nslots * sizeof(EVENT *);
     int   minfreesiz = needsiz + sizeof(CSHDR);
 
-    if (minfreesiz > MAXALLOC) {
+    if (UNLIKELY(minfreesiz > MAXALLOC)) {
       csound->Message(csound, Str("Not enough memory\n"));
       exit(1);
     }
@@ -203,7 +203,7 @@ PUBLIC EVENT * cscoreCreateEvent(CSOUND *csound, int pcnt)
     int   needsiz = sizeof(EVENT) + pcnt * sizeof(MYFLT);
     int   minfreesiz = needsiz + sizeof(CSHDR);
 
-    if (minfreesiz > MAXALLOC) {
+    if (UNLIKELY(minfreesiz > MAXALLOC)) {
       csound->Message(csound, Str("Not enough memory\n"));
       exit(1);
     }
@@ -279,7 +279,7 @@ PUBLIC EVENT * cscoreDefineEvent(CSOUND *csound, char *s)
         s++;
       while (*s == ' ')
         s++;
-      if (p > q && *s != '\0')  {           /* too many ? */
+      if (UNLIKELY(p > q && *s != '\0'))  {           /* too many ? */
         p++;
         csound->Message(csound,
                         Str("PMAX exceeded, string event truncated.\n"));
@@ -324,17 +324,17 @@ PUBLIC void cscorePutEvent(CSOUND *csound, EVENT *e)
       if (pcnt--)       fprintf(csound->oscfp," %g",*q++);
       //else goto termin; /* cannot happen */
       if (pcnt--) {
-        if (warpout)    fprintf(csound->oscfp," %g", e->p2orig);
+        if (warpout) {    fprintf(csound->oscfp," %g", e->p2orig);}
                         fprintf(csound->oscfp," %g",*q++);
       }
       else goto termin;
       if (pcnt--) {
-        if (warpout)    fprintf(csound->oscfp," %g", e->p3orig);
+        if (warpout)  {  fprintf(csound->oscfp," %g", e->p3orig); }
                         fprintf(csound->oscfp," %g",*q++);
       }
       else goto termin;
       while (pcnt--)
-        fprintf(csound->oscfp," %g",*q++);
+        { fprintf(csound->oscfp," %g",*q++); }
     }
  termin:
     putc((int)'\n', csound->oscfp);
@@ -398,7 +398,7 @@ PUBLIC EVLIST * cscoreListGetSection(CSOUND *csound)
 
     a = cscoreListCreate(csound, NSLOTS);
     p = &a->e[1];
-    if (csound->scstr == NULL || csound->scstr->body[0] == '\0')
+    if (UNLIKELY(csound->scstr == NULL || csound->scstr->body[0] == '\0'))
       return a;
     while ((e = cscoreGetEvent(csound)) != NULL) {
       if (e->op == 's' || e->op == 'e')
@@ -542,6 +542,7 @@ PUBLIC EVLIST * cscoreListConcatenate(CSOUND *csound, EVLIST *a, EVLIST *b)
 
 PUBLIC void cscoreListSort(CSOUND *csound, EVLIST *a)
 {
+    IGN(csound);
     EVENT **p, **q;
     EVENT *e, *f;
     int  n, gap, i, j;
@@ -729,6 +730,7 @@ PUBLIC EVLIST * cscoreListSeparateTWF(CSOUND *csound, EVLIST *a)
 
 PUBLIC void cscoreFreeEvent(CSOUND *csound, EVENT *e)
 {
+    IGN(csound);
     csfree((CSHDR *) e);
 }
 
@@ -736,6 +738,7 @@ PUBLIC void cscoreFreeEvent(CSOUND *csound, EVENT *e)
 
 PUBLIC void cscoreListFree(CSOUND *csound, EVLIST *a)
 {
+     IGN(csound);
     csfree((CSHDR *) a);
 }
 
@@ -743,6 +746,7 @@ PUBLIC void cscoreListFree(CSOUND *csound, EVLIST *a)
 
 PUBLIC void cscoreListFreeEvents(CSOUND *csound, EVLIST *a)
 {
+     IGN(csound);
     EVENT **p = &a->e[1];
     int  n = a->nevents;
 
@@ -827,9 +831,9 @@ PUBLIC int csoundInitializeCscore(CSOUND *csound, FILE* insco, FILE* outsco)
     EVENT  *next;
 
     if (insco != NULL) {
-      CORFIL *inf = corfile_create_w();
+      CORFIL *inf = corfile_create_w(csound);
       int c;
-      while ((c=getc(insco))!=EOF) corfile_putc(c, inf);
+      while ((c=getc(insco))!=EOF) corfile_putc(csound, c, inf);
       corfile_rewind(inf);
       csound->scstr = inf;
     }
@@ -914,12 +918,12 @@ PUBLIC FILE *cscoreFileGetCurrent(CSOUND *csound)
 PUBLIC void cscoreFileSetCurrent(CSOUND *csound, FILE *fp)
 {
     if (fp != NULL) {
-      CORFIL *inf = corfile_create_w();
+      CORFIL *inf = corfile_create_w(csound);
       int c;
       fseek(fp, 0, SEEK_SET);
-      while ((c=getc(fp))!=EOF) corfile_putc(c, inf);
+      while ((c=getc(fp))!=EOF) corfile_putc(csound, c, inf);
       corfile_rewind(inf);
-      corfile_rm(&csound->scstr);
+      corfile_rm(csound, &csound->scstr);
       csound->scstr = inf;
       nxtevt->op = '\0';
       atEOF = 0;
@@ -934,6 +938,7 @@ PUBLIC void cscoreFileSetCurrent(CSOUND *csound, FILE *fp)
 
 PUBLIC int cscoreListCount(CSOUND *csound, EVLIST *a)
 {
+     IGN(csound);
     EVENT **p;
     int  n, nrem;
 

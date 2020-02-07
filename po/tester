@@ -1,0 +1,2 @@
+(cd .. ; xgettext --keyword=Str --keyword=Str_noop --keyword=STR -o /tmp/str --omit-header -f  all_string_files)
+diff csound.po /tmp/str |more

@@ -17,8 +17,8 @@
 
     You should have received a copy of the GNU Lesser General Public
     License along with Csound; if not, write to the Free Software
-    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
-    02111-1307 USA
+    Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
+    02110-1301 USA
 */
 
 #include "csoundCore.h"         /*                           WINDIN.C   */
@@ -29,6 +29,7 @@
 int xyinset(CSOUND *csound, XYIN *p)
 {
     // This is not the way to do it; set _QQ in interlocks
+    IGN(p);
     return csound->InitError(csound,
                              Str("xyin opcode has been deprecated in Csound6."));
 }

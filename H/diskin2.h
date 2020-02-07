@@ -17,8 +17,8 @@
 
     You should have received a copy of the GNU Lesser General Public
     License along with Csound; if not, write to the Free Software
-    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
-    02111-1307 USA
+    Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
+    02110-1301 USA
 */
 
 #ifndef CSOUND_DISKIN2_H
@@ -53,12 +53,12 @@ typedef struct {
     int     nChannels;
     int     bufSize;            /* in sample frames, power of two */
     int     wrapMode;
-    int32    fileLength;         /* in sample frames */
-    int32    bufStartPos;
+    int32   fileLength;         /* in sample frames */
+    int32   bufStartPos;
     int64_t pos_frac;           /* type should be defined in sysdep.h */
     int64_t pos_frac_inc;
-    int32    prvBufStartPos;
-    int32    winSize;
+    int32   prvBufStartPos;
+    int32   winSize;
     MYFLT   *buf;
     MYFLT   *prvBuf;
     MYFLT   prv_kTranspose;
@@ -68,10 +68,10 @@ typedef struct {
     FDCH    fdch;
     AUXCH   auxData;            /* for dynamically allocated buffers */
     AUXCH   auxData2;
-  MYFLT *aOut_buf;
-  MYFLT aOut_bufsize;
-  void *cb;
-  int  async;
+    MYFLT   *aOut_buf;
+    MYFLT   aOut_bufsize;
+    void    *cb;
+    int     async;
 } DISKIN2;
 
 typedef struct {

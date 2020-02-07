@@ -17,8 +17,8 @@
 
     You should have received a copy of the GNU Lesser General Public
     License along with Csound; if not, write to the Free Software
-    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
-    02111-1307 USA
+    Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
+    02110-1301 USA
 */
 
 #include "stdopcod.h"
@@ -60,7 +60,7 @@ static void getmag(MYFLT *x, int32 size)
     } while (--n);
 
     if (LIKELY(max!=FL(0.0))) {
-      int NN = size/2 + 1;
+      int32_t NN = size/2 + 1;
       for (n=0; n<NN; n++) {
         x[n] /= max;
       }
@@ -197,8 +197,8 @@ static void pfht(MYFLT *fz, int32 n)
         g0 = c1 + c2;
         f3 = s3 - s4;
         f2 = s3 + s4;
-        g3 = SQRT2 * c4;
-        g2 = SQRT2 * c3;
+        g3 = ROOT2 * c4;
+        g2 = ROOT2 * c3;
         fi[4] = f0 - f2;
         fi[0] = f0 + f2;
         fi[6] = f1 - f3;
@@ -241,8 +241,8 @@ static void pfht(MYFLT *fz, int32 n)
 
         g1 = gi[0] - gi[k1];
         g0 = gi[0] + gi[k1];
-        g3 = SQRT2 * gi[k3];
-        g2 = SQRT2 * gi[k2];
+        g3 = ROOT2 * gi[k3];
+        g2 = ROOT2 * gi[k2];
 
         gi[k2] = g0 - g2;
         gi[0] = g0 + g2;
@@ -306,7 +306,7 @@ static void pfht(MYFLT *fz, int32 n)
     } while (k4 < n);
 }
 
-static int Xsynthset(CSOUND *csound, CON *p)
+static int32_t Xsynthset(CSOUND *csound, CON *p)
 {
     uint32_t    flen, bufsize;
     MYFLT       *b;
@@ -314,14 +314,14 @@ static int Xsynthset(CSOUND *csound, CON *p)
     MYFLT       ovlp = *p->ovlp;
 
     flen = (int32)*p->len;
-    if (flen<1) return csound->PerfError(csound, p->h.insdshead,
-                                         Str("cross2: length must be at least 1"));
+    if (UNLIKELY(flen<1))
+      return csound->InitError(csound, Str("cross2: length must be at least 1"));
     p->m = plog2(flen);
     flen = 1L << p->m;
 
     if (ovlp < FL(2.0)) ovlp = FL(2.0);
     else if (ovlp > (MYFLT)(flen+flen)) ovlp = (MYFLT)(flen+flen);
-    ovlp = (MYFLT)(1 << (int)plog2((int32)ovlp));
+    ovlp = (MYFLT)(1 << (int32_t)plog2((int32)ovlp));
 
     bufsize = 10 * flen * sizeof(MYFLT);
 
@@ -337,7 +337,7 @@ static int Xsynthset(CSOUND *csound, CON *p)
     p->in1 = b;            b += 2 * flen;
     p->in2 = b;            b += 2 * flen;
 
-    if ((ftp = csound->FTnp2Find(csound, p->iwin)) != NULL)
+    if ((ftp = csound->FTnp2Finde(csound, p->iwin)) != NULL)
       p->win = ftp;
     else return NOTOK;
 
@@ -346,8 +346,9 @@ static int Xsynthset(CSOUND *csound, CON *p)
     return OK;
 }
 
-static int Xsynth(CSOUND *csound, CON *p)
+static int32_t Xsynth(CSOUND *csound, CON *p)
 {
+     IGN(csound);
     MYFLT               *s, *f, *out, *buf1, *buf2, *outbuf, rfn;
     int32                size, div;
     int32                n, m;
@@ -408,7 +409,7 @@ static int Xsynth(CSOUND *csound, CON *p)
         /* } */
 
         if (*p->bias != FL(0.0)) {
-          int nsize = (int)(size+size);
+          int32_t nsize = (int32_t)(size+size);
 
           do_fht( x, nsize);
           do_fht( y, nsize);
@@ -440,12 +441,12 @@ static int Xsynth(CSOUND *csound, CON *p)
 #define S(x)    sizeof(x)
 
 static OENTRY localops[] = {
-{ "cross2",  S(CON), TR, 5, "a", "aaiiik",(SUBR)Xsynthset, NULL, (SUBR)Xsynth}
+  { "cross2",  S(CON), TR, 3, "a", "aaiiik",(SUBR)Xsynthset, (SUBR)Xsynth}
 };
 
-int cross2_init_(CSOUND *csound)
+int32_t cross2_init_(CSOUND *csound)
 {
     return csound->AppendOpcodes(csound, &(localops[0]),
-                                 (int) (sizeof(localops) / sizeof(OENTRY)));
+                                 (int32_t) (sizeof(localops) / sizeof(OENTRY)));
 }
 

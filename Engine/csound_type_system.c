@@ -17,8 +17,8 @@
 
  You should have received a copy of the GNU Lesser General Public
  License along with Csound; if not, write to the Free Software
- Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
- 02111-1307 USA
+ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
+ 02110-1301 USA
  */
 
 #include "csound_type_system.h"
@@ -139,24 +139,22 @@ CS_VARIABLE* csoundCreateVariable(CSOUND* csound, TYPE_POOL* pool,
                                   CS_TYPE* type, char* name, void* typeArg)
 {
     CS_TYPE_ITEM* current = pool->head;
-    if(type != NULL)
-    while (current != NULL) {
-      if (strcmp(type->varTypeName, current->cstype->varTypeName) == 0) {
-        CS_VARIABLE* var = current->cstype->createVariable(csound, typeArg);
-        var->varType = type;
-        var->varName = cs_strdup(csound, name);
-        return var;
+    if (LIKELY(type != NULL))
+      while (current != NULL) {
+        if (strcmp(type->varTypeName, current->cstype->varTypeName) == 0) {
+          CS_VARIABLE* var = current->cstype->createVariable(csound, typeArg);
+          var->varType = type;
+          var->varName = cs_strdup(csound, name);
+          return var;
+        }
+        current = current->next;
       }
-      current = current->next;
-    }
     else ((CSOUND *)csound)->ErrorMsg(csound,
                                       Str("cannot create variable %s: NULL type"),
                                       name);
     return NULL;
 }
 
-//CS_VARIABLE* csoundFindVariableWithName(CSOUND* csound, CS_VAR_POOL* pool,
-//                                        const char* name) {
 CS_VARIABLE* csoundFindVariableWithName(CSOUND* csound, CS_VAR_POOL* pool,
                                         const char* name)
 {

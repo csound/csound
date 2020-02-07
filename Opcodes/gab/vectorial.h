@@ -12,8 +12,8 @@
 
     You should have received a copy of the GNU Lesser General Public
     License along with the gab library; if not, write to the Free Software
-    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
-    02111-1307 USA
+    Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
+    02110-1301 USA
 
    Ported to csound5 by: Andres Cabrera
 */
@@ -30,9 +30,9 @@ typedef struct {
 typedef struct {
     OPDS    h;
     MYFLT   *xndx, *xfn, *kinterp, *ixmode, *outargs[VARGMAX];
-    int     nargs;
+    int32_t     nargs;
     MYFLT   xbmul;
-    long    pfn, len;
+    int64_t    pfn, len;
     MYFLT   *ftable;
 } MTABLE;
 
@@ -44,9 +44,9 @@ typedef struct {
 typedef struct {
     OPDS    h;
     MYFLT   *xndx, *xfn, *ixmode, *inargs[VARGMAX];
-    int     nargs;
+    int32_t     nargs;
     MYFLT   xbmul;
-    long    pfn, len;
+    int64_t    pfn, len;
     MYFLT   *ftable;
 } MTABLEW;
 
@@ -58,9 +58,9 @@ typedef struct {
 typedef struct {
     OPDS    h;
     MYFLT   *xndx, *xfn, *inargs[VARGMAX];
-    int     nargs;
+    int32_t     nargs;
  /* MYFLT   xbmul; */
-    long    pfn, len;
+    int64_t    pfn, len;
     MYFLT   *ftable;
 } MTABW;
 
@@ -72,9 +72,9 @@ typedef struct {
 typedef struct {
     OPDS    h;
     MYFLT   *xndx, *xfn, *outargs[VARGMAX];
-    int     nargs;
+    int32_t     nargs;
  /* MYFLT   xbmul; */
-    long    pfn, len;
+    int64_t    pfn, len;
     MYFLT   *ftable;
 } MTAB;
 
@@ -82,35 +82,35 @@ typedef struct {
 typedef struct {
     OPDS    h;
     MYFLT   *ifn, *kval, *kelements, *kdstoffset, *kverbose;
-    long    /*elements,*/ len/*, dstoffset*/;
+    int64_t    /*elements,*/ len/*, dstoffset*/;
     MYFLT   *vector;
 } VECTOROP;
 
 typedef struct {
   OPDS    h;
   MYFLT   *ifn, *kval, *ielements, *idstoffset;
-  long    /*elements,*/ len;
+  int64_t    /*elements,*/ len;
   MYFLT   *vector;
 } VECTOROPI;
 
 typedef struct {
   OPDS    h;
   MYFLT   *ifn1, *ifn2, *kelements, *kdstoffset, *ksrcoffset, *kverbose;
-  int     /*elements,*/ len1, len2/*, dstoffset, srcoffset*/;
+  int32_t     /*elements,*/ len1, len2/*, dstoffset, srcoffset*/;
   MYFLT   *vector1, *vector2;
 } VECTORSOP;
 
 typedef struct {
   OPDS    h;
   MYFLT   *ifn1, *ifn2, *ielements, *idstoffset, *isrcoffset;
-  int     /*elements,*/ len1, len2;
+  int32_t     /*elements,*/ len1, len2;
   MYFLT   *vector1, *vector2;
 } VECTORSOPI;
 
 typedef struct {
     OPDS    h;
     MYFLT   *ifn, *kmin, *kmax, *ielements;
-    int     elements;
+    int32_t     elements;
     MYFLT   *vector;
 } VLIMIT;
 
@@ -119,11 +119,11 @@ typedef struct {
     MYFLT   *ifn, *krange, *kcps, *ielements, *idstoffset, *iseed, *isize, *ioffset;
     AUXCH   auxch;
     MYFLT   *vector;
-    int     elements;
-    int     offset;
-    long    phs;
+    int32_t     elements;
+    int32_t     offset;
+    int64_t    phs;
     MYFLT   *num1;
-    long   rand;
+    int64_t   rand;
 } VRANDH;
 
 typedef struct {
@@ -131,18 +131,18 @@ typedef struct {
     MYFLT   *ifn, *krange, *kcps, *ielements, *idstoffset, *iseed, *isize, *ioffset;
     AUXCH   auxch;
     MYFLT   *vector;
-    int     elements;
-    int     offset;
-    long    phs;
+    int32_t     elements;
+    int32_t     offset;
+    int64_t    phs;
     MYFLT   *num1, *num2, *dfdmax;
-    long   rand;
+    int64_t   rand;
 } VRANDI;
 
 /*  TSEG definition from H/vpvoc.h */
 typedef struct {
     FUNC    *function, *nxtfunction;
     MYFLT   d;
-    long    cnt;
+    int64_t    cnt;
 } TSEG;
 
 typedef struct {
@@ -150,8 +150,8 @@ typedef struct {
     MYFLT   *ioutfunc,*ielements,*argums[VARGMAX];
     TSEG    *cursegp;
     MYFLT   *vector;
-    int     elements;
-    long    nsegs;
+    int32_t     elements;
+    int64_t    nsegs;
     AUXCH   auxch;
 } VSEG;
 
@@ -159,7 +159,7 @@ typedef struct {
     OPDS    h;
     MYFLT   *ifn, *khtim, *ielements, *ifnInit;
     MYFLT   c1, c2, *yt1, *vector, prvhtim;
-    int     elements;
+    int32_t     elements;
     AUXCH   auxch;
 } VPORT;
 
@@ -169,7 +169,7 @@ typedef struct {
     AUXCH   aux;
     MYFLT   **buf, *outvec, *invec, *dlyvec;
     int32   *left, maxd;
-    int     elements;
+    int32_t     elements;
 } VECDEL;
 
 typedef struct {
@@ -182,8 +182,8 @@ typedef struct {
     MYFLT   *kphase, *ioutfunc, *ielements,*argums[VARGMAX];
     TSEG2   *cursegp;
     MYFLT   *vector;
-    int     elements;
-    long    nsegs;
+    int32_t     elements;
+    int64_t    nsegs;
     AUXCH   auxch;
 } VPSEG;
 
@@ -191,7 +191,7 @@ typedef struct {
     OPDS    h;
     MYFLT   *kr, *kin, *kdel, *imaxd, *istod, *interp;
     AUXCH   aux;
-    long    left, maxd;
+    int64_t    left, maxd;
 } KDEL;
 
 typedef struct {
@@ -199,7 +199,7 @@ typedef struct {
     MYFLT   *ktrig, *kreinit, *ioutFunc, *initStateFunc,
             *iRuleFunc, *ielements, *irulelen, *iradius;
     MYFLT   *currLine, *outVec, *initVec, *ruleVec;
-    int     elements, NewOld, ruleLen;
+    int32_t     elements, NewOld, ruleLen;
     AUXCH   auxch;
 } CELLA;
 

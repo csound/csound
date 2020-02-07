@@ -21,8 +21,8 @@
 
     You should have received a copy of the GNU Lesser General Public
     License along with Csound; if not, write to the Free Software
-    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
-    02111-1307 USA
+    Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
+    02110-1301 USA
 */
 #include <stdlib.h>
 #include <complex.h>
@@ -35,6 +35,11 @@
 #include "csoundCore.h"
 #include "interlocks.h"
 #include "H/fftlib.h"
+
+#ifdef ANDROID
+float crealf(_Complex float);
+float cimagf(_Complex float);
+#endif
 
 typedef struct {
     OPDS h;
@@ -71,29 +76,29 @@ static void compute_block(CSOUND *csound, PAULSTRETCH *p)
     MYFLT *tmp = p->tmp;
     for (i = 0; i < windowsize; i++) {
       pos = istart_pos + i;
-      if (pos < p->ft->flen) {
+      if (LIKELY(pos < p->ft->flen)) {
         tmp[i] = tbl[pos] * window[i];
       } else {
-        tmp[i] = 0;
+        tmp[i] = FL(0.0);
       }
     }
     /* re-order bins and take FFT */
     tmp[p->windowsize] = tmp[1];
-    tmp[p->windowsize + 1] = 0.0;
+    tmp[p->windowsize + 1] = FL(0.0);
     csoundRealFFTnp2(csound, tmp, p->windowsize);
 
     /* randomize phase */
     for (i = 0; i < windowsize + 2; i += 2) {
       MYFLT mag = HYPOT(tmp[i], tmp[i + 1]);
       // Android 5.1 does not seem to have cexpf ...
-      // complex ph = cexpf(I * ((MYFLT)rand() / RAND_MAX) * 2 * M_PI);
+      // complex ph = cexpf(I * ((MYFLT)rand() / RAND_MAX) * 2 * PI);
       // so ...
-      MYFLT  x = (((MYFLT)rand() / RAND_MAX) * 2 * M_PI);
+      MYFLT  x = (((MYFLT)rand() / RAND_MAX) * 2 * PI);
 #ifdef MSVC
       // TODO - Double check this is equivalent to non-windows complex definition
           _Fcomplex ph = { cos(x), sin(x) };
 #else
-      complex ph =  cos(x) + I*sin(x);
+      complex double ph =  cos(x) + I*sin(x);
 #endif
       tmp[i] = mag * (MYFLT)crealf(ph);
       tmp[i + 1] = mag * (MYFLT)cimagf(ph);
@@ -115,17 +120,17 @@ static void compute_block(CSOUND *csound, PAULSTRETCH *p)
     p->start_pos += p->displace_pos;
 }
 
-static int ps_init(CSOUND* csound, PAULSTRETCH *p)
+static int32_t ps_init(CSOUND* csound, PAULSTRETCH *p)
 {
     FUNC *ftp = csound->FTnp2Find(csound, p->ifn);
     uint32_t i = 0;
-    unsigned int size;
+    uint32_t size;
 
     if (ftp == NULL)
       return csound->InitError(csound, Str("paulstretch: table not found"));
 
     p->ft = ftp;
-    p->windowsize = (uint32_t)floor((CS_ESR * *p->winsize));
+    p->windowsize = (uint32_t)FLOOR((CS_ESR * *p->winsize));
     if (p->windowsize < 16) {
       p->windowsize = 16;
     }
@@ -169,7 +174,7 @@ static int ps_init(CSOUND* csound, PAULSTRETCH *p)
     return OK;
 }
 
-static int paulstretch_perf(CSOUND* csound, PAULSTRETCH *p)
+static int32_t paulstretch_perf(CSOUND* csound, PAULSTRETCH *p)
 {
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
@@ -196,10 +201,9 @@ static int paulstretch_perf(CSOUND* csound, PAULSTRETCH *p)
 }
 
 static OENTRY paulstretch_localops[] = {
-  { "paulstretch", (int) sizeof(PAULSTRETCH), TR, 5, "a", "iii",
-   (int (*)(CSOUND *, void *)) ps_init,
-                                (int (*)(CSOUND *, void *)) NULL,
-                        (int (*)(CSOUND *, void *)) paulstretch_perf}
+  { "paulstretch", (int32_t) sizeof(PAULSTRETCH), TR, 3, "a", "iii",
+    (int32_t (*)(CSOUND *, void *)) ps_init,
+    (int32_t (*)(CSOUND *, void *)) paulstretch_perf}
 };
 
 LINKAGE_BUILTIN(paulstretch_localops)

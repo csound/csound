@@ -17,8 +17,8 @@
 
     You should have received a copy of the GNU Lesser General Public
     License along with Csound; if not, write to the Free Software
-    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
-    02111-1307 USA
+    Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
+    02110-1301 USA
 */
 
 #ifndef CSOUND_OSCBNK_H
@@ -67,11 +67,11 @@ typedef struct {
 typedef struct {
         OPDS    h;
         MYFLT   *args[27];              /* opcode args (see manual)     */
-        int     init_k;                 /* 1st k-cycle (0: no, 1: yes)  */
-        int     nr_osc;                 /* number of oscillators        */
+        int32_t     init_k;                 /* 1st k-cycle (0: no, 1: yes)  */
+        int32_t     nr_osc;                 /* number of oscillators        */
         int32   seed;                   /* random seed                  */
-        int     ilfomode, ieqmode;      /* LFO and EQ mode              */
-        int     eq_interp;              /* enable filter coeff. interp. */
+        int32_t     ilfomode, ieqmode;      /* LFO and EQ mode              */
+        int32_t     eq_interp;              /* enable filter coeff. interp. */
         MYFLT   frq_scl;                /* constants for calculating    */
         MYFLT   lf1_scl, lf1_ofs;       /* k-rate parameters            */
         MYFLT   lf2_scl, lf2_ofs;
@@ -112,11 +112,11 @@ typedef struct {
         MYFLT   *kgdur, *iovrlp;
         MYFLT   *kfn, *iwfn, *irpow;
         MYFLT   *iseed, *imode;
-        int     init_k;                 /* 1st k-cycle (0: no, 1: yes)  */
-        int     mode;                   /* imode (see manual)           */
-        int     nr_osc;                 /* number of oscillators        */
+        int32_t     init_k;                 /* 1st k-cycle (0: no, 1: yes)  */
+        int32_t     mode;                   /* imode (see manual)           */
+        int32_t     nr_osc;                 /* number of oscillators        */
         int32    seed;                   /* random seed                  */
-        int     rnd_mode;               /* random distribution params   */
+        int32_t     rnd_mode;               /* random distribution params   */
         MYFLT   rnd_pow;
         MYFLT   grain_frq, frq_scl;     /* grain frequency              */
         MYFLT   *wft, wft_pfrac;        /* window table                 */
@@ -135,13 +135,13 @@ typedef struct {
         MYFLT   *imaxovr, *kfn, *iwfn;
         MYFLT   *kfrpow, *kprpow;
         MYFLT   *iseed, *imode;
-        int     init_k;                 /* 1st k-cycle (0: no, 1: yes)  */
-        int     mode;                   /* imode (see manual)           */
-        int     ovrlap;                 /* max. number of oscillators   */
+        int32_t     init_k;                 /* 1st k-cycle (0: no, 1: yes)  */
+        int32_t     mode;                   /* imode (see manual)           */
+        int32_t     ovrlap;                 /* max. number of oscillators   */
         int32    seed;                   /* random seed                  */
-        int     f_rnd_mode;             /* random distribution (freq.)  */
+        int32_t     f_rnd_mode;             /* random distribution (freq.)  */
         MYFLT   f_rnd_pow;
-        int     p_rnd_mode, pm_wrap;    /* random distribution (phase)  */
+        int32_t     p_rnd_mode, pm_wrap;    /* random distribution (phase)  */
         MYFLT   p_rnd_pow;
         uint32   grain_frq;      /* grain frequency              */
         MYFLT   frq_scl;
@@ -184,7 +184,7 @@ typedef struct {
         MYFLT   *ar, *kcps, *kfn, *kphs, *istor;
         uint32    phs, lobits, mask;
         MYFLT   pfrac, *ft, oldfn, old_phs;
-        int     init_k;
+        int32_t     init_k;
 } OSCKTP;
 
 typedef struct {
@@ -192,22 +192,22 @@ typedef struct {
         MYFLT   *ar, *xamp, *xcps, *kfn, *async, *kphs, *istor;
         uint32    phs, lobits, mask;
         MYFLT   pfrac, *ft, oldfn;
-        int     init_k;
+        int32_t     init_k;
 } OSCKTS;
 
 /* ---- vco2init, vco2ft, and vco2 opcodes by Istvan Varga, Sep 2002 ---- */
 
 /* Select algorithm to be used for finding table numbers */
 /* Define this macro to use simple table lookup (slower  */
-/* at high control rate, due to float->int cast), or     */
+/* at high control rate, due to float->int32_t cast), or     */
 /* comment it out to use a search algorithm (slower with */
 /* very fast changes in frequency)                       */
 
 #define VCO2FT_USE_TABLE    1
 
 typedef struct {
-    int     npart;              /* number of harmonic partials (may be zero) */
-    int     size;               /* size of the table (not incl. guard point) */
+    int32_t     npart;              /* number of harmonic partials (may be zero) */
+    int32_t     size;               /* size of the table (not incl. guard point) */
     uint32               /* parameters needed for reading the table,  */
             lobits, mask;       /*   and interpolation                       */
     MYFLT   pfrac;
@@ -215,8 +215,8 @@ typedef struct {
 } VCO2_TABLE;
 
 struct VCO2_TABLE_ARRAY_ {
-    int     ntabl;              /* number of tables                          */
-    int     base_ftnum;         /* base ftable number (-1: none)             */
+    int32_t     ntabl;              /* number of tables                          */
+    int32_t     base_ftnum;         /* base ftable number (-1: none)             */
 #ifdef VCO2FT_USE_TABLE
     VCO2_TABLE  **nparts_tabl;  /* table ptrs for all numbers of partials    */
 #else
@@ -237,9 +237,9 @@ typedef struct {
 #ifdef VCO2FT_USE_TABLE
     VCO2_TABLE  **nparts_tabl;  /* table ptrs for all numbers of partials    */
 #endif
-    int     init_k;             /* 1 in first k-cycle, 0 otherwise           */
-    int     mode;               /* algorithm (0, 1, or 2)                    */
-    int     pm_enabled;         /* phase modulation enabled (0: no, 1: yes)  */
+    int32_t     init_k;             /* 1 in first k-cycle, 0 otherwise           */
+    int32_t     mode;               /* algorithm (0, 1, or 2)                    */
+    int32_t     pm_enabled;         /* phase modulation enabled (0: no, 1: yes)  */
 #ifdef VCO2FT_USE_TABLE
     MYFLT   f_scl, p_min, p_scl, kphs_old, kphs2_old;
 #else
@@ -248,7 +248,7 @@ typedef struct {
 #endif
     uint32  phs, phs2;  /* oscillator phase                          */
     VCO2_TABLE_ARRAY  ***vco2_tables;
-    int             *vco2_nr_table_arrays;
+    int32_t             *vco2_nr_table_arrays;
 } VCO2;
 
 typedef struct {
@@ -261,27 +261,27 @@ typedef struct {
     MYFLT   *npart_old, *nparts;
 #endif
     VCO2_TABLE_ARRAY    ***vco2_tables;
-    int                 *vco2_nr_table_arrays;
-    int                 base_ftnum;
+    int32_t                 *vco2_nr_table_arrays;
+    int32_t                 base_ftnum;
 } VCO2FT;
 
 typedef struct {                /* denorm a1[, a2[, a3[, ... ]]] */
     OPDS    h;
     MYFLT   *ar[256];
-    int     *seedptr;
+    int32_t     *seedptr;
 } DENORMS;
 
 typedef struct {                /* kr delayk ksig, idel[, imode] */
     OPDS    h;
     MYFLT   *ar, *ksig, *idel, *imode;
-    int     npts, init_k, readp, mode;
+    int32_t     npts, init_k, readp, mode;
     AUXCH   aux;
 } DELAYK;
 
 typedef struct {                /* kr vdel_k ksig, kdel, imdel[, imode] */
     OPDS    h;
     MYFLT   *ar, *ksig, *kdel, *imdel, *imode;
-    int     npts, init_k, wrtp, mode;
+    int32_t     npts, init_k, wrtp, mode;
     MYFLT   frstkval;
     AUXCH   aux;
 } VDELAYK;
@@ -294,7 +294,8 @@ typedef struct {                /* ar rbjeq asig, kfco, klvl, kQ, kS[, imode] */
         double  omega, cs, sn;
         MYFLT   xnm1, xnm2, ynm1, ynm2;
         MYFLT   b0, b1, b2, a1, a2;
-        int     ftype;
+        int32_t
+        ftype;
 } RBJEQ;
 
 #endif          /* CSOUND_OSCBNK_H */

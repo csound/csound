@@ -17,8 +17,8 @@
 
     You should have received a copy of the GNU Lesser General Public
     License along with Csound; if not, write to the Free Software
-    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
-    02111-1307 USA
+    Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
+    02110-1301 USA
 */
 
 #ifndef _3DUG_H_
@@ -45,7 +45,7 @@
  * exist in file system (because the data is symmetrical.
  */
 
-/* int elevation_data[N_ELEV] = {56, 60, 72, 72, 72, 72, 72, 60, 56, 45, */
+/* int32_t elevation_data[N_ELEV] = {56, 60, 72, 72, 72, 72, 72, 60, 56, 45, */
 /*                               36, 24, 12, 1 };                        */
 
 typedef struct {

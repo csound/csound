@@ -17,8 +17,8 @@
 
     You should have received a copy of the GNU Lesser General Public
     License along with Csound; if not, write to the Free Software
-    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
-    02111-1307 USA
+    Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
+    02110-1301 USA
 */
 
 /*********************************************/
@@ -47,11 +47,11 @@ static void make_DLineN(CSOUND *csound, DLINEN *p, int32 length)
     p->lastOutput = FL(0.0);
 }
 
-static void DLineN_setDelay(CSOUND *csound, DLINEN *p, int lag)
+static void DLineN_setDelay(CSOUND *csound, DLINEN *p, int32_t lag)
 {
     if (UNLIKELY(lag > p->length-1)) {                   /* if delay is too big, */
       csound->Warning(csound, Str("DLineN: Delay length too big ... setting to "
-                                  "maximum length of %ld.\n"), p->length - 1);
+                                  "maximum length of %d.\n"), p->length - 1);
       p->outPoint = p->inPoint + 1;            /* force delay to max_length */
     }
     else
@@ -71,7 +71,7 @@ static void DLineN_tick(DLINEN *p, MYFLT sample) /*  Take one, yield one */
       p->outPoint -= p->length;
 }
 
-int bowedbarset(CSOUND *csound, BOWEDBAR *p)
+int32_t bowedbarset(CSOUND *csound, BOWEDBAR *p)
 {
     int32 i;
     MYFLT amplitude = *p->amp * AMP_RSCALE;
@@ -88,7 +88,7 @@ int bowedbarset(CSOUND *csound, BOWEDBAR *p)
     make_ADSR(&p->adsr);
     ADSR_setAllTimes(csound, &p->adsr, FL(0.02), FL(0.005), FL(0.9), FL(0.01));
 
-    if (*p->lowestFreq>=FL(0.0)) {      /* If no init skip */
+    if (LIKELY(*p->lowestFreq>=FL(0.0))) {      /* If no init skip */
       if (*p->lowestFreq!=FL(0.0))
         p->length = (int32) (CS_ESR / *p->lowestFreq + FL(1.0));
       else if (*p->frequency!=FL(0.0))
@@ -104,7 +104,7 @@ int bowedbarset(CSOUND *csound, BOWEDBAR *p)
     p->nr_modes = NR_MODES;
     for (i = 0; i<NR_MODES; i++) {
       make_DLineN(csound, &p->delay[i], p->length);
-      DLineN_setDelay(csound, &p->delay[i], (int)(p->length/p->modes[i]));
+      DLineN_setDelay(csound, &p->delay[i], (int32_t)(p->length/p->modes[i]));
       BiQuad_clear(&p->bandpass[i]);
     }
 /*     p->gains[0] = FL(0.0); */
@@ -125,7 +125,7 @@ int bowedbarset(CSOUND *csound, BOWEDBAR *p)
     return OK;
 }
 
-int bowedbar(CSOUND *csound, BOWEDBAR *p)
+int32_t bowedbar(CSOUND *csound, BOWEDBAR *p)
 {
     MYFLT       *ar = p->ar;
     uint32_t offset = p->h.insdshead->ksmps_offset;
@@ -133,7 +133,7 @@ int bowedbar(CSOUND *csound, BOWEDBAR *p)
     uint32_t n, nsmps = CS_KSMPS;
     MYFLT       amp = (*p->amp)*AMP_RSCALE; /* Normalise */
     int32 k;
-    int i;
+    int32_t i;
     MYFLT       maxVelocity;
     MYFLT       integration_const = *p->integration_const;
 
@@ -143,17 +143,17 @@ int bowedbar(CSOUND *csound, BOWEDBAR *p)
       p->freq = *p->frequency;
       if (p->freq > FL(1568.0)) p->freq = FL(1568.0);
 
-      p->length = (int)(CS_ESR/p->freq);
+      p->length = (int32_t)(CS_ESR/p->freq);
       p->nr_modes = NR_MODES;   /* reset for frequency shift */
       for (i = 0; i<NR_MODES; i++) {
-        if ((int)(p->length/p->modes[i]) > 4)
-          DLineN_setDelay(csound, &p->delay[i], (int)(p->length/p->modes[i]));
+        if ((int32_t)(p->length/p->modes[i]) > 4)
+          DLineN_setDelay(csound, &p->delay[i], (int32_t)(p->length/p->modes[i]));
         else    {
           p->nr_modes = i;
           break;
         }
       }
-      if (p->nr_modes==0)
+      if (UNLIKELY(p->nr_modes==0))
         return csound->InitError(csound,
                                  Str("Bowedbar: cannot have zero modes\n"));
       for (i=0; i<p->nr_modes; i++) {
