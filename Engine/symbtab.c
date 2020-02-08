@@ -107,8 +107,8 @@ static void map_args(char* args) {
         while(*args != 0 && *args != ';') {
           args++;
         }
-      } else {
-        *args = map_udo_out_arg_type(*args);
+      } else if (*args == 'K'){
+        *args = 'k';
       }
       args++;
     }

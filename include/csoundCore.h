@@ -1795,6 +1795,7 @@ typedef struct _message_queue_t_ {
     void*         csdebug_data; /* debugger data */
     int (*kperf)(CSOUND *); /* kperf function pointer, to switch between debug
                                and nodebug function */
+    int           score_parser;
     int           unused_int1;
     int           inZero;       /* flag compilation of instr0 */
     struct _message_queue **msg_queue;

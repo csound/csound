@@ -18,6 +18,7 @@
 
 #include "ugen.h"
 #include "csound_standard_types.h"
+#include "csound_orc.h"
 
 extern OENTRIES* find_opcode2(CSOUND* csound, char* opname);
 extern char** splitArgs(CSOUND* csound, char* argString);

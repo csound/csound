@@ -1693,7 +1693,8 @@ PUBLIC int csoundCompileTreeInternal(CSOUND *csound, TREE *root, int async)
     engineState = (ENGINE_STATE *) csound->Calloc(csound, sizeof(ENGINE_STATE));
     engineState->stringPool = csound->engineState.stringPool;
     //cs_hash_table_create(csound);
-    engineState->constantsPool = myflt_pool_create(csound);
+    engineState->constantsPool = cs_hash_table_create(csound);
+
     engineState->varPool = typeTable->globalPool;
     prvinstxt = &(engineState->instxtanchor);
     engineState->instrtxtp =
@@ -1762,28 +1763,17 @@ PUBLIC int csoundCompileTreeInternal(CSOUND *csound, TREE *root, int async)
             if (UNLIKELY(!check_instr_name(c))) {
               synterr(csound, Str("invalid name for instrument"));
             }
-            named_instr_alloc(csound,c,instrtxt, insno_priority,
-                              engineState,0);
-            //                if (UNLIKELY(!named_instr_alloc(csound, c,
-            //                                                instrtxt, insno_priority,
-            //                                                engineState,0))) {
-            //                  synterr(csound, Str("instr %s redefined"), c);
-            //                }
-            instrtxt->insname = csound->Malloc(csound, strlen(c) + 1);
-            strcpy(instrtxt->insname, c);
-          }
-          // VL 25.05.2018
-          // this should only be run here in the
-          // first compilation
-          //if(engineState == &csound->engineState)
-          //named_instr_alloc(csound, c, instrtxt, insno_priority,
-          //                engineState, 0);
-          /* if (UNLIKELY(!named_instr_alloc(csound, c, */
-          /*                                 instrtxt, insno_priority, */
-          /*                                 engineState,0))) { */
-          /*   synterr(csound, Str("instr %s redefined"), c); */
-          /* } */
-
+            // VL 25.05.2018
+            // this should only be run here in the
+            // first compilation
+            //if(engineState == &csound->engineState)
+            //named_instr_alloc(csound, c, instrtxt, insno_priority,
+            //                engineState, 0);
+            /* if (UNLIKELY(!named_instr_alloc(csound, c, */
+            /*                                 instrtxt, insno_priority, */
+            /*                                 engineState,0))) { */
+            /*   synterr(csound, Str("instr %s redefined"), c); */
+            /* } */
           instrtxt->insname = csound->Malloc(csound, strlen(c) + 1);
           strcpy(instrtxt->insname, c);
         }

@@ -165,7 +165,8 @@ static TREE *create_minus_token(CSOUND *csound)
   return ans;
 }
 
-static TREE * create_opcode_token(CSOUND *csound, char* op)
+// also used in csound_orc_semantics.c
+TREE * create_opcode_token(CSOUND *csound, char* op)
 {
   TREE *ans = create_empty_token(csound);
 
@@ -509,7 +510,6 @@ static TREE *create_expression(CSOUND *csound, TREE *root, int line, int locn,
   TREE *anchor = NULL, *last;
   TREE * opTree, *current, *newArgList;
   OENTRIES* opentries;
-  char *brkt;
   CS_VARIABLE* var;
 
   /* HANDLE SUB EXPRESSIONS */
@@ -1115,7 +1115,7 @@ TREE* expand_statement(CSOUND* csound, TREE* current, TYPE_TABLE* typeTable)
     TREE* temp;
 
     if (currentArg->type == T_ARRAY) {
-      char *outType, *brkt;
+      char *outType;
       CS_VARIABLE* var;
 
       char *varBaseName = currentArg->left->value->lexeme;

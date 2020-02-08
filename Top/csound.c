@@ -965,6 +965,7 @@ static const CSOUND cenviron_ = {
     -1,             /* audio system sr */
     0,              /* csdebug_data */
     kperf_nodebug,  /* current kperf function - nodebug by default */
+    0,              /* which score parser */
     0,              /* unusedint */
     1,              /* inZero */
     NULL,           /* msg_queue */
