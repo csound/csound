@@ -188,13 +188,19 @@ char* get_array_sub_type(CSOUND* csound, char* arrayName) {
 
 char* create_array_arg_type(CSOUND* csound, CS_VARIABLE* arrayVar) {
   char* varTypeName = arrayVar->subType->varTypeName;
-  int len = arrayVar->dimensions + strlen(varTypeName) + 2;
-  char* retVal = csound->Malloc(csound, len);
-  retVal[len - 1] = '\0';
-  retVal[len - 2] = ']';
-  memset(retVal, '[', arrayVar->dimensions);
-  strNcpy(retVal + arrayVar->dimensions, varTypeName, strlen(varTypeName));
-  return retVal;
+  int i, len = arrayVar->dimensions + strlen(varTypeName) + 3;
+  if (arrayVar->subType!=NULL) {
+    char* retVal = csound->Malloc(csound, len);
+    retVal[len - 1] = '\0';
+    retVal[len - 2] = ']';
+    retVal[len - 3] = *arrayVar->subType->varTypeName;
+    for (i = len - 4; i >= 0; i--) {
+      retVal[i] = '[';
+    }
+    return retVal;
+  }
+  else
+    return NULL;
 }
 
 /* this checks if the annotated type exists */
