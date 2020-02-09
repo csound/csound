@@ -1806,9 +1806,8 @@ PUBLIC int csoundCompileTreeInternal(CSOUND *csound, TREE *root, int async)
           instrtxt->insname = csound->Malloc(csound, strlen(c) + 1);
           strcpy(instrtxt->insname, c);
         }
-        break;
       }
-      p = p->right;
+      p = p->next;
     }
     break;
   case UDO_TOKEN:
