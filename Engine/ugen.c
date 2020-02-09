@@ -24,7 +24,7 @@ extern OENTRIES* find_opcode2(CSOUND* csound, char* opname);
 extern char** splitArgs(CSOUND* csound, char* argString);
 
 // this value is chosen arbitrarily, feel free to modify
-static const int MAX_VAR_ARGS = 8;
+//static const int MAX_VAR_ARGS = 8;
 
 typedef struct {
   const CS_TYPE* type;
@@ -202,7 +202,6 @@ PUBLIC UGEN* ugen_new(UGEN_FACTORY* factory, char* opName, char* outargTypes, ch
     UGEN* ugen;
     OPDS* opds;
     OPTXT* optxt;
-    char name[10];
     CSOUND* csound = factory->csound;
     INSDS* insds = factory->insds;
     OENTRIES* entries = find_opcode2(csound, opName);

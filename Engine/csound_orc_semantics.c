@@ -61,6 +61,7 @@ void do_baktrace(CSOUND *csound, uint64_t files);
 extern int add_udo_definition(CSOUND *csound, char *opname,
                               char *outtypes, char *intypes);
 extern TREE * create_opcode_token(CSOUND *csound, char* op);
+int is_reserved(char*);
 
 const char* SYNTHESIZED_ARG = "_synthesized";
 const char* UNARY_PLUS = "_unary_plus";
@@ -1443,7 +1444,6 @@ void add_arg(CSOUND* csound, char* varName, char* annotation, TYPE_TABLE* typeTa
   char argLetter[2];
   ARRAY_VAR_INIT varInit;
   void* typeArg = NULL;
-  char *brkt; /* used with strtok_r */
 
   t = varName;
   if (*t == '#') t++;
