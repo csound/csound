@@ -203,7 +203,6 @@ int argsRequired(char* argString)
 {
   int retVal = 0;
   char* t = argString;
-
   if (t != NULL) {
     while (*t != '\0') {
       retVal++;
@@ -212,6 +211,7 @@ int argsRequired(char* argString)
         while (*t != ';') {
           t++;
         }
+        t++;
       }
       t++;
       while (*t == '[') { //FIXME - Struct Arrays
@@ -1117,8 +1117,7 @@ void add_to_deadpool(CSOUND *csound, INSTRTXT *instrtxt) {
     }
   }
   /* no free slots, expand pool */
-  csound->dead_instr_pool = (INSTRTXT **)csound->ReAlloc(
-                                                         csound, csound->dead_instr_pool,
+  csound->dead_instr_pool = (INSTRTXT **)csound->ReAlloc(csound, csound->dead_instr_pool,
                                                          ++csound->dead_instr_no * sizeof(INSTRTXT *));
   csound->dead_instr_pool[csound->dead_instr_no - 1] = instrtxt;
   if (UNLIKELY(csound->oparms->odebug))
@@ -1192,7 +1191,7 @@ int named_instr_alloc(CSOUND *csound, char *s, INSTRTXT *ip, int32 insno,
     }
     inm->ip->instance = inm->ip->act_instance = inm->ip->lst_instance = NULL;
   }
- cont:
+cont:
 
   /* allocate entry, */
   inm = (INSTRNAME *)csound->Calloc(csound, sizeof(INSTRNAME));
@@ -1283,8 +1282,7 @@ void named_instr_assign_numbers(CSOUND *csound, ENGINE_STATE *engineState) {
         if (num > engineState->maxinsno) {
           int m = engineState->maxinsno;
           engineState->maxinsno += MAXINSNO; /* Expand */
-          engineState->instrtxtp = (INSTRTXT **)csound->ReAlloc(
-                                                                csound, engineState->instrtxtp,
+          engineState->instrtxtp = (INSTRTXT **)csound->ReAlloc(csound, engineState->instrtxtp,
                                                                 (1 + engineState->maxinsno) * sizeof(INSTRTXT *));
           /* Array expected to be nulled so.... */
           while (++m <= engineState->maxinsno)
@@ -1395,7 +1393,7 @@ void insert_instrtxt(CSOUND *csound, INSTRTXT *instrtxt, int32 instrNum,
 
     /* err++; continue; */
   }
- end:
+end:
 
   instrtxt->instance = instrtxt->act_instance = instrtxt->lst_instance = NULL;
   engineState->instrtxtp[instrNum] = instrtxt;
@@ -1738,7 +1736,6 @@ PUBLIC int csoundCompileTreeInternal(CSOUND *csound, TREE *root, int async)
     case INSTR_TOKEN:
       //print_tree(csound, "Instrument found\n", current);
       instrtxt = create_instrument(csound, current,engineState);
-
       prvinstxt = prvinstxt->nxtinstxt = instrtxt;
 
       /* Handle Inserting into CSOUND here by checking ids (name or
@@ -1935,7 +1932,7 @@ if (engineState != &csound->engineState) {
   var->memBlock->value = csound->A4;
  }
 
-return CSOUND_SUCCESS;
+  return CSOUND_SUCCESS;
 }
 
 #ifdef EMSCRIPTEN
@@ -2196,8 +2193,7 @@ static ARG *createArg(CSOUND *csound, INSTRTXT *ip, char *s,
     arg->type = ARG_CONSTANT;
     // printf("create constant %p: %c\n", arg, c);
 
-    if ((arg->argPtr = cs_hash_table_get(
-                                         csound, csound->engineState.constantsPool, s)) != NULL) {
+    if ((arg->argPtr = cs_hash_table_get(csound, csound->engineState.constantsPool, s)) != NULL) {
       arg->argPtr = find_or_add_constant(csound, engineState->constantsPool, s,
                                          cs_strtod(s, NULL));
     }
@@ -2382,3 +2378,4 @@ int query_reversewrite_opcode(CSOUND *csound, ORCTOKEN *o) {
   OENTRY *ep = find_opcode(csound, name);
   return (ep->flags & WI);
 }
+
