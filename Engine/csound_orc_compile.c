@@ -1816,8 +1816,8 @@ PUBLIC int csoundCompileTreeInternal(CSOUND *csound, TREE *root, int async)
     prvinstxt = prvinstxt->nxtinstxt = instrtxt;
     opname = current->left->value->lexeme;
     OPCODINFO *opinfo =
-      find_opcode_info(csound, opname, current->left->left->value->lexeme,
-                       current->left->right->value->lexeme);
+      find_opcode_info(csound, opname, current->left->left->markup,
+                       current->left->right->markup);
 
     if (UNLIKELY(opinfo == NULL)) {
       csound->Message(csound,
