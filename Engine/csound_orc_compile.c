@@ -211,7 +211,6 @@ int argsRequired(char* argString)
         while (*t != ';') {
           t++;
         }
-        t++;
       }
       t++;
       while (*t == '[') { //FIXME - Struct Arrays
