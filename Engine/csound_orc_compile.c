@@ -275,7 +275,7 @@ char** splitArgs(CSOUND* csound, char* argString)
         part = csound->Malloc(csound, sizeof(char) * (dimensions + len + 2));
 
         memset(part, '[', dimensions);
-        strncpy((part + dimensions), start, len);
+        strNcpy((part + dimensions), start, len + 1);
         part[dimensions + len] = ']';
         part[dimensions + len + 1] = '\0';
 

@@ -193,10 +193,10 @@ char* create_array_arg_type(CSOUND* csound, CS_VARIABLE* arrayVar) {
   char* varTypeName = arrayVar->subType->varTypeName;
   int len = arrayVar->dimensions + strlen(varTypeName) + 2;
   char* retVal = csound->Malloc(csound, len);
-  retVal[len - 1] = '\0';
-  retVal[len - 2] = ']';
   memset(retVal, '[', arrayVar->dimensions);
   strNcpy(retVal + arrayVar->dimensions, varTypeName, strlen(varTypeName) + 1);
+  retVal[len - 1] = '\0';
+  retVal[len - 2] = ']';
   return retVal;
 }
 
