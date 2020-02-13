@@ -2261,7 +2261,7 @@ char argtyp2(char *s) { /* find arg type:  d, w, a, k, i, c, p, r, S, B, b, t */
     return ('S'); /* quoted String */
   if (strcmp(s, "sr") == 0 || strcmp(s, "kr") == 0 || strcmp(s, "0dbfs") == 0 ||
       strcmp(s, "nchnls_i") == 0 || strcmp(s, "ksmps") == 0 ||
-      strcmp(s, "nchnls") == 0)
+      strcmp(s, "nchnls") == 0 || strcmp(s, "A4") == 0)
     return ('r'); /* rsvd */
   if (c == 'w')   /* N.B. w NOT YET #TYPE OR GLOBAL */
     return (c);

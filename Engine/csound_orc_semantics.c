@@ -559,7 +559,7 @@ char* get_arg_type2(CSOUND* csound, TREE* tree, TYPE_TABLE* typeTable)
        the varPool in the engineState
     */
 
-    if (*s == 'g') {
+    if (*s == 'g' || is_reserved(s) == 1) {
       var = csoundFindVariableWithName(csound, csound->engineState.varPool,
                                        tree->value->lexeme);
       if (var == NULL)
@@ -1984,7 +1984,8 @@ int is_reserved(char* varname) {
           strcmp("ksmps", varname) == 0 ||
           strcmp("0dbfs", varname) == 0 ||
           strcmp("nchnls", varname) == 0 ||
-          strcmp("nchnls_i", varname) == 0);
+          strcmp("nchnls_i", varname) == 0) ||
+          strcmp("A4", varname) == 0;
 }
 
 int verify_if_statement(CSOUND* csound, TREE* root, TYPE_TABLE* typeTable) {
