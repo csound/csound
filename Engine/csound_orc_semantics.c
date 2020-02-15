@@ -559,7 +559,7 @@ char* get_arg_type2(CSOUND* csound, TREE* tree, TYPE_TABLE* typeTable)
        the varPool in the engineState
     */
 
-    if (*s == 'g' || is_reserved(s) == 1) {
+    if (*s == 'g') {
       var = csoundFindVariableWithName(csound, csound->engineState.varPool,
                                        tree->value->lexeme);
       if (var == NULL)
@@ -1663,6 +1663,14 @@ TREE* convert_statement_to_opcall(CSOUND* csound, TREE* root, TYPE_TABLE* typeTa
 
     return root;
   }
+  
+  // If a function call made it here, such as:
+  //  print(1,2,3)
+  // then it should just be updated to T_OPCALL and returned
+  if(root->type == T_FUNCTION) {
+    root->type = T_OPCALL;
+    return root;
+  }
 
   if (root->type == GOTO_TOKEN ||
       root->type == KGOTO_TOKEN ||
@@ -1984,8 +1992,7 @@ int is_reserved(char* varname) {
           strcmp("ksmps", varname) == 0 ||
           strcmp("0dbfs", varname) == 0 ||
           strcmp("nchnls", varname) == 0 ||
-          strcmp("nchnls_i", varname) == 0) ||
-          strcmp("A4", varname) == 0;
+          strcmp("nchnls_i", varname) == 0);
 }
 
 int verify_if_statement(CSOUND* csound, TREE* root, TYPE_TABLE* typeTable) {
@@ -2723,6 +2730,21 @@ TREE* make_leaf(CSOUND *csound, int line, int locn, int type, ORCTOKEN *v)
   csound->DebugMsg(csound, "csound_orc_semantics(%d) line = %d\n",
                    __LINE__, line);
   return ans;
+}
+
+TREE* make_opcall_from_func_start(CSOUND *csound, int line, int locn, int type,
+                                  TREE* left, TREE* right) {
+  TREE* firstArg = left->right;
+  TREE* first = right;
+  TREE* rest = right->next;
+  
+  right->next = NULL;
+  
+  TREE* operatorNode = make_node(csound, line, locn, type, firstArg, first);
+  operatorNode->next = rest;
+  left->right = operatorNode;
+  
+  return left;
 }
 
 void delete_tree(CSOUND *csound, TREE *l)

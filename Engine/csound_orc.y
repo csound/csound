@@ -164,6 +164,7 @@
     extern int csound_orcget_lineno(void *);
     extern ORCTOKEN *make_string(CSOUND *, char *);
     extern char* UNARY_PLUS;
+    extern TREE* make_opcall_from_func_start(CSOUND*, int, int, int, TREE*, TREE*);
 %}
 %%
 
@@ -316,6 +317,26 @@ opcall  : identifier NEWLINE
             $2->left = $1;
             $2->right = $3;
           }
+
+        | function_call NEWLINE
+        | function_call '+' expr_list NEWLINE
+          { $$ = make_opcall_from_func_start(csound, LINE, LOCN, '+', $1, $3); }
+        | function_call '-' expr_list NEWLINE
+          { $$ = make_opcall_from_func_start(csound, LINE, LOCN, '-', $1, $3); }
+        | function_call '*' expr_list NEWLINE
+          { $$ = make_opcall_from_func_start(csound, LINE, LOCN, '*', $1, $3); }
+        | function_call '/' expr_list NEWLINE
+          { $$ = make_opcall_from_func_start(csound, LINE, LOCN, '/', $1, $3); }
+        | function_call '^' expr_list NEWLINE
+          { $$ = make_opcall_from_func_start(csound, LINE, LOCN, '^', $1, $3); }
+        | function_call '%' expr_list NEWLINE
+          { $$ = make_opcall_from_func_start(csound, LINE, LOCN, '%', $1, $3); }
+        | function_call '|' expr_list NEWLINE
+          { $$ = make_opcall_from_func_start(csound, LINE, LOCN, '|', $1, $3); }
+        | function_call '&' expr_list NEWLINE
+          { $$ = make_opcall_from_func_start(csound, LINE, LOCN, '&', $1, $3); }
+        | function_call '#' expr_list NEWLINE
+          { $$ = make_opcall_from_func_start(csound, LINE, LOCN, '#', $1, $3); }
         ;
 
 function_call : typed_identifier '(' expr_list ')'
@@ -565,6 +586,7 @@ binary_expr : expr '+' expr   { $$ = make_node(csound, LINE,LOCN, '+', $1, $3); 
                  { $$ = make_node(csound, LINE,LOCN, S_BITSHIFT_RIGHT, $1, $3); }
           | expr S_BITSHIFT_RIGHT error
           ;
+
 
 out_arg_list : out_arg_list ',' out_arg
               { $$ = appendToTree(csound, $1, $3); }

@@ -21,6 +21,13 @@ kval = adsr140_calc_coef(2, 4)
 endin
 
 
+print 3
+print(3)
+print 3 * 4
+print (3 * 4)
+print (3) * 4
+
+
 </CsInstruments>
 
 <CsScore>
