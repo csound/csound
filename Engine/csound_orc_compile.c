@@ -1834,7 +1834,7 @@ PUBLIC int csoundCompileTreeInternal(CSOUND *csound, TREE *root, int async)
 
     break;
   case T_OPCALL:
-  case LABEL:
+  case LABEL_TOKEN:
   case STRUCT_TOKEN:
     break;
 
