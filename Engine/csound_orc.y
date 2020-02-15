@@ -95,7 +95,7 @@
 %start orcfile
 
 /* Precedence Rules */
-%left '?'
+%right '?'
 %left S_AND S_OR
 %left '|'
 %left '&'

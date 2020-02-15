@@ -559,7 +559,7 @@ char* get_arg_type2(CSOUND* csound, TREE* tree, TYPE_TABLE* typeTable)
        the varPool in the engineState
     */
 
-    if (*s == 'g') {
+    if (*s == 'g' || is_reserved(s)) {
       var = csoundFindVariableWithName(csound, csound->engineState.varPool,
                                        tree->value->lexeme);
       if (var == NULL)
@@ -1992,7 +1992,8 @@ int is_reserved(char* varname) {
           strcmp("ksmps", varname) == 0 ||
           strcmp("0dbfs", varname) == 0 ||
           strcmp("nchnls", varname) == 0 ||
-          strcmp("nchnls_i", varname) == 0);
+          strcmp("nchnls_i", varname) == 0) ||
+          strcmp("A4", varname) == 0;
 }
 
 int verify_if_statement(CSOUND* csound, TREE* root, TYPE_TABLE* typeTable) {
@@ -2936,7 +2937,7 @@ static void print_tree_xml(CSOUND *csound, TREE *l, int n, int which)
   }
 
   csound->Message(csound,
-                  "<tree%s (%p : %p) type=\"%d\" ",
+                  "<tree%s addresses=\"(%p : %p)\" type=\"%d\" ",
                   child[which],l, l->value, l->type);
 
   switch (l->type) {
