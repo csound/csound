@@ -409,6 +409,7 @@ QNAN            "qnan"[ \t]*\(
                        PARM->lstack[++PARM->depth] =
                          (strchr(mm->body,'\n') ?file_to_int(csound, mname) : 63);
                        yy_scan_string(mm->body, yyscanner);
+                       csound_preset_lineno(0, yyscanner); /* for Valgrind */
                      }
                    }
                  }
