@@ -1347,7 +1347,7 @@ static int gen21(FGDATA *ff, FUNC *ftp)
 
 static MYFLT nextval(FILE *f)
 {
-    /* Read the next charcater; suppress multiple space and comments to a
+    /* Read the next character; suppress multiple space and comments to a
        single space */
     int c;
  top:
@@ -1369,6 +1369,7 @@ static MYFLT nextval(FILE *f)
       }
       return (MYFLT)d;
     }
+    //else .... allow expressions in [] ?
     while (isspace(c) || c == ',') c = getc(f);       /* Whitespace */
     if (c==';' || c=='#' || c=='<') {     /* Comment and tag*/
       while ((c = getc(f)) != '\n');

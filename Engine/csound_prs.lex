@@ -1463,6 +1463,7 @@ static void expand_macroa(CSOUND *csound, MACRO* mm, yyscan_t yyscanner)
       PARM->lstack[++PARM->depth] =
         (strchr(mm->body,'\n') ?file_to_int(csound, mm->name) : 63);
       yy_scan_string(mm->body, yyscanner);
+      csound_prsset_lineno(0, yyscanner);
     }
 }
 
