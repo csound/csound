@@ -566,6 +566,7 @@ int32_t printsset(CSOUND *csound, PRINTS *p)
     pk.ptime = &ptime;
     printksset(csound, &pk);
     memset(string,0,8192);
+    memset(pk.txtstring,0,sizeof(pk.txtstring));
     if (sprints(string, pk.txtstring, p->kvals, p->INOCOUNT-1)==NOTOK)
         return
           csound->InitError(csound,
