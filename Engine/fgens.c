@@ -145,6 +145,7 @@ int hfgens(CSOUND *csound, FUNC **ftpp, const EVTBLK *evtblkp, int mode)
       csound->genmax = GENMAX + 1;
     }
     msg_enabled = csound->oparms->msglevel & 7;
+    memset(&ff, 0, sizeof(ff)); /* for Valgrind */
     ff.csound = csound;
     memcpy((char*) &(ff.e), (char*) evtblkp,
            (size_t) ((char*) &(evtblkp->p[2]) - (char*) evtblkp));
