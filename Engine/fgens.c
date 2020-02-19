@@ -1621,9 +1621,9 @@ static int gen28(FGDATA *ff, FUNC *ftp)
     if (UNLIKELY(fd == NULL))
       goto gen28err1;
 
-    x = (MYFLT*)csound->Malloc(csound,arraysize*sizeof(MYFLT));
-    y = (MYFLT*)csound->Malloc(csound,arraysize*sizeof(MYFLT));
-    z = (MYFLT*)csound->Malloc(csound,arraysize*sizeof(MYFLT));
+    x = (MYFLT*)csound->Calloc(csound,arraysize*sizeof(MYFLT));
+    y = (MYFLT*)csound->Calloc(csound,arraysize*sizeof(MYFLT));
+    z = (MYFLT*)csound->Calloc(csound,arraysize*sizeof(MYFLT));
 #if defined(USE_DOUBLE)
     while (fscanf( filp, "%lf%lf%lf", &z[i], &x[i], &y[i])!= EOF)
 #else
