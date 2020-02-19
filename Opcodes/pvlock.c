@@ -175,6 +175,8 @@ static int32_t sprocess1(CSOUND *csound, DATASPACE *p)
         double tim;
         double resamp;
         ft = csound->FTnp2Finde(csound,p->knum);
+        if (UNLIKELY(ft==NULL))
+          return csound->PerfError(csound, &(p->h), Str("function table not found"));
         resamp = ft->gen01args.sample_rate/CS_ESR;
         pitch *= resamp;
         tab = ft->ftable;
@@ -390,6 +392,8 @@ static int32_t sprocess2(CSOUND *csound, DATASPACE *p)
       if (cnt == hsize) {
         double resamp;
         ft = csound->FTnp2Finde(csound,p->knum);
+        if (UNLIKELY(ft==NULL))
+          return csound->PerfError(csound, &(p->h), Str("function table not found"));
         resamp = ft->gen01args.sample_rate/CS_ESR;
         pitch *= resamp;
         time  *= resamp;
