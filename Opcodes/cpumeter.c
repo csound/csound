@@ -95,6 +95,7 @@ int32_t cpupercent_init(CSOUND *csound, CPUMETER* p)
     p->cpus = (CPU_t *) p->cpu_a.auxp;
     k = cpupercent_renew(csound, p);
     p->cnt = (p->trig = (int32_t)(*p->itrig * csound->GetSr(csound)));
+    csoundCreateFileHandle(csound, &p->fp, CSFILE_STD, "/proc/stat");
     return k;
 }
 
