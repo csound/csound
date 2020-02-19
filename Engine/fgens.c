@@ -1605,7 +1605,7 @@ static int gen27(FGDATA *ff, FUNC *ftp)
 static int gen28(FGDATA *ff, FUNC *ftp)
 {
     CSOUND  *csound = ff->csound;
-    MYFLT   *fp = ftp->ftable, *finp;
+    MYFLT   *fp, *finp;
     int     seglen, resolution = 100;
     FILE    *filp;
     void    *fd;
