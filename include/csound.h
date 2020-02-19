@@ -2250,6 +2250,9 @@ extern "C" {
   /** Signals a conditional variable */
   PUBLIC void csoundCondSignal(void* condVar);
 
+  /** Destroys a conditional variable */
+  PUBLIC void csoundDestroyCondVar(void* condVar);
+
   /**
    * Waits for at least the specified number of milliseconds,
    * yielding the CPU to other threads.
