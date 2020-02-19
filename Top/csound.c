@@ -1858,6 +1858,8 @@ static inline void process_debug_buffers(CSOUND *csound, csdebug_data_t *data)
         while (n) {
           if (n->line == bkpt_node->line && n->instr == bkpt_node->instr) {
             prev->next = n->next;
+            if (data->cur_bkpt == n)
+              data->cur_bkpt = n->next;
             csound->Free(csound, n); /* TODO this should be moved from kperf to a
                         non-realtime context */
             n = prev->next;
@@ -1932,7 +1934,7 @@ int kperf_debug(CSOUND *csound)
       }
       if (command == CSDEBUG_CMD_CONTINUE &&
           data->status == CSDEBUG_STATUS_STOPPED) {
-        if (data->cur_bkpt->skip <= 2) data->cur_bkpt->count = 2;
+        if (data->cur_bkpt && data->cur_bkpt->skip <= 2) data->cur_bkpt->count = 2;
         data->status = CSDEBUG_STATUS_RUNNING;
         if (data->debug_instr_ptr) {
           /* if not NULL, resume from last active */
