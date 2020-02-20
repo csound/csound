@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/env python3
 
 import os
 import sys
@@ -15,7 +15,7 @@ testFiles = [
 if len(sys.argv) == 2:
     csound = sys.argv[1]
 else:
-    print "Testing git version"
+    print("Testing git version")
 
 
 print "Using Csound Command: " + csound    
@@ -50,10 +50,10 @@ for filename in testFiles:
     try:
         os.remove(filename + ".wav")
     except OSError:
-        print "Error: %s.wav was not generated"%filename
+        print("Error: %s.wav was not generated"%filename)
     
-print "********Comparing checksums"
+print("********Comparing checksums")
 os.system("diff CheckSumsX SAFESumsX")
-print "********Comparing output"
+print("********Comparing output")
 os.system("sed -e /Elapsed/d < OutputX > OutputX1")
 os.system("diff OutputX1 Old_OutputX | grep -v Elapsed")

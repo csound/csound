@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/env python3
 
 import os
 import sys
@@ -1029,10 +1029,10 @@ testFiles = [
 if len(sys.argv) == 2:
     csound = sys.argv[1]
 else:
-    print "Testing git version"
+    print("Testing git version")
 
 
-print "Using Csound Command: " + csound    
+print("Using Csound Command: " + csound)
 
 try:
     os.remove("Old_Output")
@@ -1056,16 +1056,16 @@ for filename in testFiles:
   
     md5sumCommand = "md5sum -b %s.wav >> CheckSums"%filename
 
-    print csCommand
+    print(csCommand)
     os.system(csCommand)
     os.system(md5sumCommand)
 
     try:
         os.remove(filename + ".wav")
     except OSError:
-        print "Error: %s.wav was not generated"%filename
+        print("Error: %s.wav was not generated"%filename)
     
-print "********Comparing checksums"
+print("********Comparing checksums")
 os.system("diff CheckSums SAFESums")
-print "********Comparing output"
+print("********Comparing output")
 os.system("diff Output Old_Output")

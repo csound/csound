@@ -1,9 +1,9 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 import os, fnmatch
 
 SRC_DIR="../../manual/examples/"
-print SRC_DIR
+print(SRC_DIR)
 
 matches = []
 for root, dirnames, filenames in os.walk(SRC_DIR):
@@ -40,4 +40,4 @@ f.write(output)
 f.flush()
 f.close()
 
-print "\nTESTS COMPLETE:\n\tSUCCESS\t%d\n\tFAIL\t%d\n\tTOTAL\t%d"%(success, fail, total)
+print("\nTESTS COMPLETE:\n\tSUCCESS\t%d\n\tFAIL\t%d\n\tTOTAL\t%d"%(success, fail, total))

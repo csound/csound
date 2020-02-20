@@ -1,9 +1,9 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 import os, fnmatch
 
 SRC_DIR="/Users/stevenyi/Desktop/Csound Catalog/"
-print SRC_DIR
+print(SRC_DIR)
 
 matches = []
 for root, dirnames, filenames in os.walk(SRC_DIR):
@@ -21,7 +21,7 @@ total = len(matches)
 for orc in matches:
   ex = csoundCommand % (orc, orc[:-3] + 'sco', outputFile)
   retVal = os.system(ex)
-  print orc, '\t', retVal
+  print(orc, '\t', retVal)
   if retVal != 0:
     output += "=======================\n"
     output += "%s\t%s\n"%(orc, retVal) 
@@ -40,4 +40,4 @@ f.write(output)
 f.flush()
 f.close()
 
-print "\nTESTS COMPLETE:\n\tSUCCESS\t%d\n\tFAIL\t%d\n\tTOTAL\t%d"%(success, fail, total)
+print("\nTESTS COMPLETE:\n\tSUCCESS\t%d\n\tFAIL\t%d\n\tTOTAL\t%d"%(success, fail, total))
