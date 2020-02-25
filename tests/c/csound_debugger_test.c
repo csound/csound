@@ -27,6 +27,7 @@ void test_debugger_init(void)
     csoundCreateMessageBuffer(csound, 0);
     csoundDebuggerInit(csound);
     csoundDebuggerClean(csound);
+    csoundDestroyMessageBuffer(csound);
     csoundDestroy(csound);
 }
 
@@ -41,6 +42,7 @@ void test_add_bkpt(void)
     csoundSetInstrumentBreakpoint(csound, 1.1, 0);
     csoundClearBreakpoints(csound);
     csoundDebuggerClean(csound);
+    csoundDestroyMessageBuffer(csound);
     csoundDestroy(csound);
 }
 
@@ -59,6 +61,7 @@ void test_add_callback(void)
     csoundDebuggerInit(csound);
     csoundSetBreakpointCallback(csound, brkpt_cb, NULL);
     csoundDebuggerClean(csound);
+    csoundDestroyMessageBuffer(csound);
     csoundDestroy(csound);
 }
 
@@ -81,6 +84,7 @@ void test_breakpoint_once(void)
     CU_ASSERT(break_count == 1);
 
     csoundDebuggerClean(csound);
+    csoundDestroyMessageBuffer(csound);
     csoundDestroy(csound);
 }
 
@@ -121,6 +125,7 @@ void test_breakpoint_remove(void)
     CU_ASSERT(break_count == 1);
 
     csoundDebuggerClean(csound);
+    csoundDestroyMessageBuffer(csound);
     csoundDestroy(csound);
 }
 
@@ -153,6 +158,7 @@ void test_variables(void)
     csoundPerformKsmps(csound);
 
     csoundDebuggerClean(csound);
+    csoundDestroyMessageBuffer(csound);
     csoundDestroy(csound);
 }
 
@@ -180,6 +186,7 @@ void test_bkpt_instrument(void)
     csoundPerformKsmps(csound);
 
     csoundDebuggerClean(csound);
+    csoundDestroyMessageBuffer(csound);
     csoundDestroy(csound);
 }
 
@@ -221,6 +228,7 @@ void test_line_breakpoint_add_remove(void)
     csoundPerformKsmps(csound);
 
     csoundDebuggerClean(csound);
+    csoundDestroyMessageBuffer(csound);
     csoundDestroy(csound);
     CU_ASSERT_EQUAL(count, 2);
 }
@@ -290,8 +298,7 @@ void test_line_breakpoint(void)
     CU_ASSERT_EQUAL(count, 3);
 
     csoundDebuggerClean(csound);
-
-
+    csoundDestroyMessageBuffer(csound);
     csoundDestroy(csound);
 
     CU_ASSERT_EQUAL(count, 3);
@@ -365,6 +372,7 @@ void test_line_breakpoint_orc_file(void)
 
     csoundDebuggerClean(csound);
     CU_ASSERT_EQUAL(count, 2);
+    csoundDestroyMessageBuffer(csound);
     csoundDestroy(csound);
 }
 
@@ -379,6 +387,7 @@ void test_no_callback(void)
     csoundPerformKsmps(csound);
 
     csoundDebuggerClean(csound);
+    csoundDestroyMessageBuffer(csound);
     csoundDestroy(csound);
 }
 
@@ -494,6 +503,7 @@ void test_next(void)
     csoundPerformKsmps(csound);
 
     csoundDebuggerClean(csound);
+    csoundDestroyMessageBuffer(csound);
     csoundDestroy(csound);
     CU_ASSERT_EQUAL(count, 5);
 }
