@@ -16,7 +16,6 @@ cmake ../.. -G "MSYS Makefiles" \
 -DCMAKE_INSTALL_PREFIX=dist \
 -DCMAKE_VERBOSE_MAKEFILE=0 \
 -DMUSICXML_LIBRARY=D:/msys64/mingw64/bin/libmusicxml2.dll \
--DNEED_PORTTIME=0 \
 -DTCL_VERSION=8.5 \
 -DUSE_CURL=0 \
 -DSWIG_DIR=C:\msys2\mingw64\share\swig\3.0.6
