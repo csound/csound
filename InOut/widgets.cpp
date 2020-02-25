@@ -3489,7 +3489,7 @@ extern "C" {
       widgetGlobals->AddrSetValue.push_back(ADDR_SET_VALUE(0, 0, 0, (void *) o,
                                                  (void *) p,
                                                  widgetGlobals->currentSnapGroup));
-      //*p->ihandle = AddrValue.size()-1;
+      // *p->ihandle = AddrValue.size()-1;
       *p->ihandle = widgetGlobals->AddrSetValue.size()-1;
       return OK;
   }
@@ -3806,7 +3806,7 @@ extern "C" {
       widgetGlobals->AddrSetValue.push_back(ADDR_SET_VALUE(LIN_, 0, 0, (void *) w,
                                                 (void *) p,
                                                 widgetGlobals->currentSnapGroup));
-      //*p->ihandle = widgetGlobals->AddrSetValue.size()-1;
+      // *p->ihandle = widgetGlobals->AddrSetValue.size()-1;
       widgetGlobals->last_sldbnk = widgetGlobals->AddrSetValue.size()-1;  //gab
       return OK;
   }
@@ -4300,7 +4300,7 @@ extern "C" {
         }
       }
       o->resizable(o);
-      //*p->ix, *p->iy,
+      // *p->ix, *p->iy,
       o->size( (int)*p->iwidth, (int)*p->iheight);
       o->position((int)*p->ix, (int)*p->iy);
       o->align(FL_ALIGN_BOTTOM | FL_ALIGN_WRAP);
@@ -5148,7 +5148,7 @@ extern "C" {
       widgetGlobals->AddrSetValue.push_back(ADDR_SET_VALUE(LIN_, 0, 0, (void *) w,
                                                  (void *) p,
                                                  widgetGlobals->currentSnapGroup));
-      //*p->ihandle = widgetGlobals->AddrSetValue.size()-1;
+      // *p->ihandle = widgetGlobals->AddrSetValue.size()-1;
       widgetGlobals->last_sldbnk = widgetGlobals->AddrSetValue.size()-1;  //gab
 
       return OK;
@@ -5342,7 +5342,7 @@ extern "C" {
       widgetGlobals->AddrSetValue.push_back(ADDR_SET_VALUE(LIN_, 0, 0,
                                                  (void *) w, (void *) p,
                                                  widgetGlobals->currentSnapGroup));
-      //*p->ihandle = widgetGlobals->AddrSetValue.size()-1;
+      // *p->ihandle = widgetGlobals->AddrSetValue.size()-1;
       widgetGlobals->last_sldbnk = widgetGlobals->AddrSetValue.size()-1;  //gab
 
       return OK;

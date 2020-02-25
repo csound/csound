@@ -1398,7 +1398,7 @@ PUBLIC void csoundDestroy(CSOUND *csound)
       csoundDestroyMutex(csound->API_lock);
     }
     /* clear the pointer */
-    //*(csound->self) = NULL;
+    // *(csound->self) = NULL;
     free((void*) csound);
 }
 
