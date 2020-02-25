@@ -43,6 +43,8 @@ find_library(P5GLOVE_LIB p5glove)
 check_include_file(lame.h LAME_HEADER)
 find_library(LAME_LIB mp3lame)
 
+set(GMM_INCLUDE_DIR "third-party/gmm-5.3/include/")
+
 ## OPCODE LIBS WITH NO EXTERNAL DEPENDENCIES ##
 
 make_plugin(mixer mixer.cpp)

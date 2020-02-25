@@ -215,7 +215,7 @@ execute_process (
 SET(PYTHON_MODULE_INSTALL_DIR ${PYTHON_SITE_PACKAGES} CACHE PATH "Python module install dir")
 
 
-if(APPLE) 
+if(APPLE)
   get_filename_component(JAVA_MODULE_INSTALL_DIR_DEFAULT "~/Library/Java/Extensions" ABSOLUTE)
 else()
   set(JAVA_MODULE_INSTALL_DIR_DEFAULT ${LIBRARY_INSTALL_DIR})
@@ -245,7 +245,7 @@ if(WIN32)
     set(CMAKE_SHARED_LIBRARY_PREFIX "")
     set(CMAKE_SHARED_MODULE_PREFIX "")
 
-    set(CSOUND_WINDOWS_LIBRARIES 
+    set(CSOUND_WINDOWS_LIBRARIES
         advapi32
         comctl32
         comdlg32
@@ -512,7 +512,6 @@ endif()
 find_library(VORBISFILE_LIBRARY vorbisfile)
 check_include_file(libintl.h LIBINTL_HEADER)
 find_package(Eigen3 3.3 NO_MODULE)
-find_package(GMM)
 find_library(LIBINTL_LIBRARY intl)
 find_package(Gettext)
 find_library(MATH_LIBRARY m)
@@ -1100,7 +1099,7 @@ function(make_plugin libname srcs)
         ARCHIVE_OUTPUT_DIRECTORY ${BUILD_PLUGINS_DIR})
 
     install(TARGETS ${libname}
-        LIBRARY DESTINATION "${PLUGIN_INSTALL_DIR}" 
+        LIBRARY DESTINATION "${PLUGIN_INSTALL_DIR}"
         ARCHIVE DESTINATION "${PLUGIN_INSTALL_DIR}" )
 
 endfunction(make_plugin)
