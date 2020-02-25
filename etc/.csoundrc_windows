@@ -1,6 +1,0 @@
-;           Print                                    Real-time     Use the       Frames    Frames    
-; Suppress  console                                  audio         PortAudio     per       per       Optimize
-; all       messages     No         16 bit   WAV     output to     real-time     software  hardware  certain
-; displays  color-coded  heartbeat  samples  format  default port  driver        buffer    buffer    expressions
-
-;  -d        -m135        -H0        -s       -W      -o dac        -+rtaudio=pa  -b 128    -B 2048   --expression-opt
