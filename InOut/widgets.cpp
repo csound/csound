@@ -108,6 +108,7 @@ int widget_reset(CSOUND *csound, void *pp)
     WIDGET_GLOBALS *widgetGlobals =
       (WIDGET_GLOBALS *)csound->QueryGlobalVariable(csound, "WIDGET_GLOBALS");
     if (widgetGlobals != NULL) {
+      widgetGlobals->AddrSetValue.~vector<ADDR_SET_VALUE>();
       widgetGlobals->AddrStack.~vector<ADDR_STACK>();
       widgetGlobals->allocatedStrings.~vector<char*>();
       widgetGlobals->fl_windows.~vector<PANELS>();
