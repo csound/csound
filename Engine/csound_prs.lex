@@ -1693,7 +1693,7 @@ static int bodmas(CSOUND *csound, yyscan_t yyscanner, int* term)
           goto parseNumber;
         //        case '^':
         //type = 0;
-        //*++op = c; c = getscochar(csound, 1); break;
+        // *++op = c; c = getscochar(csound, 1); break;
         case '[':
           if (UNLIKELY(type)) {
             csound->Message(csound,
