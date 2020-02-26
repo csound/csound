@@ -2318,6 +2318,7 @@ class Csound:
     #def createCondVar(self):
     #def condWait(self, condVar, mutex):
     #def condSignal(self, condVar):
+    #def destroyCondVar(self, condVar):
     
     def sleep(self, milliseconds):
         """Waits for at least the specified number of *milliseconds*.
