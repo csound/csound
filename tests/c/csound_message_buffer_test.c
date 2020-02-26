@@ -54,8 +54,8 @@ void test_buffer_run(void)
     while (csoundGetMessageCnt(csound)) {
         const char * msg = csoundGetFirstMessage(csound);
         CU_ASSERT_PTR_NOT_NULL(msg);
-        csoundPopFirstMessage(csound);
         printf("CSOUND MESSAGE: %s", msg);
+        csoundPopFirstMessage(csound);
     }
 
     csoundCleanup(csound);
