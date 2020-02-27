@@ -32,7 +32,7 @@
 #include <porttime.h>
 
 /* Stub for compiling this file with MinGW and linking
-   with portmidi.lib built witn MSVC AND with Windows
+   with portmidi.lib built with MSVC AND with Windows
    libraries from MinGW (missing __wassert).
 */
 #if defined(WIN32) && !defined(MSVC)
