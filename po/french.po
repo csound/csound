@@ -7722,9 +7722,8 @@ msgid "vtablei: incorrect table number"
 msgstr "vtablei : numéro de table incorrect"
 
 #: Opcodes/gab/vectorial.c:50
-#, fuzzy
 msgid "vtablei: reading past end of table"
-msgstr "table : ftable %d introuvable"
+msgstr "vtablei : lecture au-delà de la fin de la table"
 
 #: Opcodes/gab/vectorial.c:70
 msgid "vtable: incorrect table number"
@@ -9410,9 +9409,8 @@ msgid "invalid number of output arguments"
 msgstr "nombre d'arguments de sortie non valide"
 
 #: Opcodes/pvlock.c:179 Opcodes/pvlock.c:396
-#, fuzzy
 msgid "function table not found"
-msgstr "table de fonction non trouvée\n"
+msgstr "table de fonction non trouvée"
 
 #: Opcodes/pvlock.c:589
 #, c-format
@@ -11796,7 +11794,6 @@ msgid "--keep-sorted-score"
 msgstr "--keep-sorted-score"
 
 #: Top/argdecode.c:258
-#, fuzzy
 msgid "--simple-sorted-score"
 msgstr "--simple-sorted-score"
 
