@@ -544,7 +544,7 @@ int32_t printks(CSOUND *csound, PRINTKS *p)
     if (p->printat <= CS_KCNT-1) {
       //string[0]='\0';           /* incase of empty string */
       memset(string,0,8192);
-      if (sprints(string, p->txtstring, p->kvals, p->INOCOUNT-2)==NOTOK)
+      if (sprints(string, p->txtstring, p->kvals, p->INOCOUNT-2)!=OK)
         return
           csound->PerfError(csound,  &(p->h),
                             Str("Insufficient arguments in formatted printing"));
@@ -567,7 +567,7 @@ int32_t printsset(CSOUND *csound, PRINTS *p)
     printksset(csound, &pk);
     memset(string,0,8192);
     memset(pk.txtstring,0,sizeof(pk.txtstring));
-    if (sprints(string, pk.txtstring, p->kvals, p->INOCOUNT-1)==NOTOK)
+    if (sprints(string, pk.txtstring, p->kvals, p->INOCOUNT-1)!=OK)
         return
           csound->InitError(csound,
                             Str("Insufficient arguments in formatted printing"));
@@ -587,7 +587,7 @@ int32_t printsset_S(CSOUND *csound, PRINTS *p)
     printksset_S(csound, &pk);
     if (strlen(pk.txtstring) < 8191){
       memset(string,0,8192);
-    if (sprints(string, pk.txtstring, p->kvals, p->INOCOUNT-1)==NOTOK)
+    if (sprints(string, pk.txtstring, p->kvals, p->INOCOUNT-1)!=OK)
         return
           csound->InitError(csound,
                             Str("Insufficient arguments in formatted printing"));
@@ -700,7 +700,7 @@ int32_t printk3(CSOUND *csound, PRINTK3 *p)
       MYFLT *vv[1];
       vv[0] = &value;
       buff[0] = '\0';
-      if (sprints(buff, p->sarg, vv, 1)==NOTOK)
+      if (sprints(buff, p->sarg, vv, 1)!=OK)
         return
           csound->PerfError(csound,  &(p->h),
                             Str("Insufficient arguments in formatted printing"));
