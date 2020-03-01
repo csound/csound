@@ -2245,7 +2245,7 @@ PUBLIC int csoundPerform(CSOUND *csound)
         if (UNLIKELY((done = sensevents(csound)))) {
           csoundMessage(csound, Str("Score finished in csoundPerform().\n"));
           if(!csound->oparms->realtime)
-          csoundUnlockMutex(csound->API_lock);
+            csoundUnlockMutex(csound->API_lock);
           if (csound->oparms->numThreads > 1) {
             csound->multiThreadedComplete = 1;
             csound->WaitBarrier(csound->barrier1);
