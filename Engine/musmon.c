@@ -432,7 +432,7 @@ static void deactivate_all_notes(CSOUND *csound)
       printf("deativate: ip, nxt = %p , %p\n", ip, nxt);
 #endif
       xturnoff_now(csound, ip);
-      if (ip == nxt) break;
+      // should not be needed -- if (ip == nxt) break;
       ip = nxt;
     }
 }
