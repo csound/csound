@@ -1655,7 +1655,7 @@ int32_t inch_opcode1(CSOUND *csound, INCH1 *p)
     ch = MYFLT2LRND(*p->ch);
     if (UNLIKELY(ch > (uint32_t)csound->inchnls)) {
       if (p->init)
-        csound->Message(csound, Str("Input channel %d too large; ignored"), ch);
+        csound->Message(csound, Str("Input channel %d too large; ignored\n"), ch);
       memset(p->ar, 0, sizeof(MYFLT)*nsmps);
       p->init = 0;
       //        return OK;
