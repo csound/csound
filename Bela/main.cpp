@@ -95,7 +95,7 @@ struct DigiIn : csnd::Plugin<1, 1> {
     digiOutBela ksig,ipin
     digiOutBela asig,ipin
 */
-struct DigiOut : csnd::Plugin<0, 2> {
+struct DigiOut : csnd::InPlug<2> {
   int pin;
   int fcount;
   int frms;
@@ -103,7 +103,7 @@ struct DigiOut : csnd::Plugin<0, 2> {
   BelaContext *context;
   
   int init() {
-    pin = (int) inargs[1];
+    pin = (int) args[1];
     if(pin < 0 ) pin = 0;
     if(pin > 15) pin = 15;
     context = (BelaContext *) csound->host_data();
@@ -118,14 +118,14 @@ struct DigiOut : csnd::Plugin<0, 2> {
       pinMode(context,0,pin,1);
       init_done = 1;
     }
-    digitalWrite(context,fcount,pin,(inargs[0] > 0.0 ? 1 : 0));
+    digitalWrite(context,fcount,pin,(args[0] > 0.0 ? 1 : 0));
     fcount += nsmps;
     fcount %= frms;
     return OK;
   }
 
   int aperf() {
-    csnd::AudioSig in(this, inargs(0));
+    csnd::AudioSig in(this, args(0));
     int cnt = fcount;
     if(!init_done) {
       pinMode(context,0,pin,1);
@@ -147,7 +147,7 @@ struct DigiOut : csnd::Plugin<0, 2> {
     digiIOBela ksig,kpin,kdir
     digiIOBela asig,apin,adir 
 */
-struct DigiIO : csnd::Plugin<0, 3> {
+struct DigiIO : csnd::InPlug<3> {
   int fcount;
   int frms;
   BelaContext *context;
@@ -160,24 +160,24 @@ struct DigiIO : csnd::Plugin<0, 3> {
   }
 
   int kperf() {
-    int pin = (int) inargs[1];
+    int pin = (int) args[1];
     if(pin < 0 ) pin = 0;
     if(pin > 15) pin = 15;
-    int mode = inargs[2] > 0.0 ? 1 : 0;
+    int mode = args[2] > 0.0 ? 1 : 0;
     pinMode(context,fcount,pin,mode);
     if(mode)
-     digitalWrite(context,fcount,pin,(inargs[0] > 0.0 ? 1 : 0));
+     digitalWrite(context,fcount,pin,(args[0] > 0.0 ? 1 : 0));
     else
-     inargs[0] = (MYFLT) digitalRead(context,fcount,pin);
+     args[0] = (MYFLT) digitalRead(context,fcount,pin);
     fcount += nsmps;
     fcount %= frms;
     return OK;
   }
 
   int aperf() {
-    csnd::AudioSig sig(this, inargs(0));
-    csnd::AudioSig pins(this, inargs(1));
-    csnd::AudioSig modes(this, inargs(2));
+    csnd::AudioSig sig(this, args(0));
+    csnd::AudioSig pins(this, args(1));
+    csnd::AudioSig modes(this, args(2));
     int cnt = fcount;
     int n = 0, pin, mode;
     for (auto &s : sig) {
