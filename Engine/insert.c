@@ -109,12 +109,11 @@ static int init_pass(CSOUND *csound, INSDS *ip) {
     csoundLockMutex(csound->init_pass_threadlock);
   csound->curip = ip;
   csound->ids = (OPDS *)ip;
-  while (error == 0 && (csound->ids = csound->ids->nxti) != NULL){
-    if (UNLIKELY(csound->oparms->odebug))
-      csound->Message(csound, "init %s:\n",
-                      csound->ids->optext->t.oentry->opname);
+  csound->mode = 1;
+  while (error == 0 && (csound->ids = csound->ids->nxti) != NULL) {
     csound->op = csound->ids->optext->t.oentry->opname;
-    csound->mode = 1;
+    if (UNLIKELY(csound->oparms->odebug))
+      csound->Message(csound, "init %s:\n", csound->op);
     error = (*csound->ids->iopadr)(csound, csound->ids);
   }
   csound->mode = 0;
@@ -132,13 +131,12 @@ static int reinit_pass(CSOUND *csound, INSDS *ip, OPDS *ids) {
   }
   csound->curip = ip;
   csound->ids = ids;
+  csound->mode = 1;
   while (error == 0 && (csound->ids = csound->ids->nxti) != NULL &&
          (csound->ids->iopadr != (SUBR) rireturn)){
-   if (UNLIKELY(csound->oparms->odebug))
-      csound->Message(csound, "reinit %s:\n",
-                      csound->ids->optext->t.oentry->opname);
     csound->op = csound->ids->optext->t.oentry->opname;
-    csound->mode = 1;
+    if (UNLIKELY(csound->oparms->odebug))
+      csound->Message(csound, "reinit %s:\n", csound->op);
     error = (*csound->ids->iopadr)(csound, csound->ids);
   }
   csound->mode = 0;
@@ -251,9 +249,9 @@ int init0(CSOUND *csound)
   ip->onedkr = csound->onedkr;
   ip->kicvt = csound->kicvt;
   csound->inerrcnt = 0;
+  csound->mode = 1;
   while ((csound->ids = csound->ids->nxti) != NULL) {
     csound->op = csound->ids->optext->t.oentry->opname;
-    csound->mode = 1;
     (*csound->ids->iopadr)(csound, csound->ids);  /*   run all i-code     */
   }
   csound->mode = 0;
@@ -1313,9 +1311,9 @@ int subinstrset_(CSOUND *csound, SUBINST *p, int instno)
   csound->curip = p->ip;        /* **** NEW *** */
   p->ip->init_done = 0;
   csound->ids = (OPDS *)p->ip;
+  csound->mode = 1;
   while ((csound->ids = csound->ids->nxti) != NULL) {
     csound->op = csound->ids->optext->t.oentry->opname;
-    csound->mode = 1;
     (*csound->ids->iopadr)(csound, csound->ids);
   }
   csound->mode = 0;
