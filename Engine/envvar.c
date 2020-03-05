@@ -1227,7 +1227,7 @@ void *csoundCreateFileHandle(CSOUND *csound,
       return NULL;
     nbytes += (int) strlen(fullName);
     /* allocate file structure */
-    p = (CSFILE*) csound->Malloc(csound, (size_t) nbytes);
+    p = (CSFILE*) csound->Calloc(csound, (size_t) nbytes);
     if (p == NULL)
       return NULL;
     p->nxt = (CSFILE*) csound->open_files;

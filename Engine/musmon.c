@@ -428,7 +428,11 @@ static void deactivate_all_notes(CSOUND *csound)
 
     while (ip != NULL) {
       INSDS *nxt = ip->nxtact;
+#ifdef BETA
+      printf("deativate: ip, nxt = %p , %p\n", ip, nxt);
+#endif
       xturnoff_now(csound, ip);
+      // should not be needed -- if (ip == nxt) break;
       ip = nxt;
     }
 }

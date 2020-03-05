@@ -416,7 +416,7 @@ mpadec_t mpadec_init(void)
     memset(mpa, 0, sizeof(struct mpadec_t));
     mpa->size = sizeof(struct mpadec_t);
     ch.t16 = 1;
-    //*((int16_t *)temp) = 1;
+    // *((int16_t *)temp) = 1;
     mpa->config.quality = MPADEC_CONFIG_FULL_QUALITY;
     mpa->config.mode = MPADEC_CONFIG_AUTO;
     mpa->config.format = MPADEC_CONFIG_16BIT;

@@ -69,7 +69,7 @@ int32_t midinoteoncps(CSOUND *csound, MIDINOTEON *p)
 int32_t midinoteonoct(CSOUND *csound, MIDINOTEON *p)
 {
     MYFLT octave;
-   IGN(csound);
+    IGN(csound);
     if (!p->h.insdshead->m_chnbp) {
       return OK;
     }

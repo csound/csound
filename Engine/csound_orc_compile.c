@@ -1729,9 +1729,9 @@ int csoundCompileTreeInternal(CSOUND *csound, TREE *root, int async) {
               // VL 25.05.2018
               // this should only be run here in the
               // first compilation
-              //if(engineState == &csound->engineState)
-              //named_instr_alloc(csound, c, instrtxt, insno_priority,
-              //                engineState, 0);
+              if(engineState == &csound->engineState)
+                named_instr_alloc(csound, c, instrtxt, insno_priority,
+                                  engineState, 0);
               /* if (UNLIKELY(!named_instr_alloc(csound, c, */
               /*                                 instrtxt, insno_priority, */
               /*                                 engineState,0))) { */

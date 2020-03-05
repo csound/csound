@@ -1819,6 +1819,8 @@ typedef struct _message_queue_t_ {
     unsigned long message_string_queue_wp;
     message_string_queue_t *message_string_queue;
     int io_initialised;
+    char *op;
+    int  mode;
     /*struct CSOUND_ **self;*/
     /**@}*/
 #endif  /* __BUILDING_LIBCSOUND */

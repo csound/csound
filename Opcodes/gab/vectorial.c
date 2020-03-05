@@ -46,6 +46,9 @@ static int32_t mtable_i(CSOUND *csound,MTABLEI *p)
       int64_t indx = (int64_t) fndx;
       MYFLT fract = fndx - indx;
       for (j=0; j < nargs; j++) {
+        if (UNLIKELY((indx + 1) * nargs + j >= ftp->flen + 1)) {
+          return csound->InitError(csound, Str("vtablei: reading past end of table"));
+        }
         v1 = table[indx * nargs + j];
         v2 = table[(indx + 1) * nargs + j];
         **out++ = v1 + (v2 - v1) * fract;

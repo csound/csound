@@ -145,6 +145,7 @@ int hfgens(CSOUND *csound, FUNC **ftpp, const EVTBLK *evtblkp, int mode)
       csound->genmax = GENMAX + 1;
     }
     msg_enabled = csound->oparms->msglevel & 7;
+    memset(&ff, '\0', sizeof(ff)); /* for Valgrind */
     ff.csound = csound;
     memcpy((char*) &(ff.e), (char*) evtblkp,
            (size_t) ((char*) &(evtblkp->p[2]) - (char*) evtblkp));
@@ -1347,7 +1348,7 @@ static int gen21(FGDATA *ff, FUNC *ftp)
 
 static MYFLT nextval(FILE *f)
 {
-    /* Read the next charcater; suppress multiple space and comments to a
+    /* Read the next character; suppress multiple space and comments to a
        single space */
     int c;
  top:
@@ -1369,6 +1370,7 @@ static MYFLT nextval(FILE *f)
       }
       return (MYFLT)d;
     }
+    //else .... allow expressions in [] ?
     while (isspace(c) || c == ',') c = getc(f);       /* Whitespace */
     if (c==';' || c=='#' || c=='<') {     /* Comment and tag*/
       while ((c = getc(f)) != '\n');
@@ -1603,7 +1605,7 @@ static int gen27(FGDATA *ff, FUNC *ftp)
 static int gen28(FGDATA *ff, FUNC *ftp)
 {
     CSOUND  *csound = ff->csound;
-    MYFLT   *fp = ftp->ftable, *finp;
+    MYFLT   *fp, *finp;
     int     seglen, resolution = 100;
     FILE    *filp;
     void    *fd;
@@ -1619,9 +1621,9 @@ static int gen28(FGDATA *ff, FUNC *ftp)
     if (UNLIKELY(fd == NULL))
       goto gen28err1;
 
-    x = (MYFLT*)csound->Malloc(csound,arraysize*sizeof(MYFLT));
-    y = (MYFLT*)csound->Malloc(csound,arraysize*sizeof(MYFLT));
-    z = (MYFLT*)csound->Malloc(csound,arraysize*sizeof(MYFLT));
+    x = (MYFLT*)csound->Calloc(csound,arraysize*sizeof(MYFLT));
+    y = (MYFLT*)csound->Calloc(csound,arraysize*sizeof(MYFLT));
+    z = (MYFLT*)csound->Calloc(csound,arraysize*sizeof(MYFLT));
 #if defined(USE_DOUBLE)
     while (fscanf( filp, "%lf%lf%lf", &z[i], &x[i], &y[i])!= EOF)
 #else

@@ -102,7 +102,7 @@ msgid "(unknown error)"
 msgstr "(erreur inconnue)"
 
 #: Engine/corfiles.c:59 Engine/corfiles.c:79 Engine/corfiles.c:92
-#: Engine/corfiles.c:108 Engine/fgens.c:1639 Engine/rdscor.c:231
+#: Engine/corfiles.c:108 Engine/fgens.c:1641 Engine/rdscor.c:231
 msgid "Out of Memory\n"
 msgstr "Pas assez de mémoire\n"
 
@@ -586,7 +586,7 @@ msgstr "arguments requis manquants pour l'opcode %s ligne %d :\n"
 
 #: Engine/csound_pre.lex:247 Engine/csound_pre.lex:293
 #: Engine/csound_prs.lex:188 Engine/csound_prs.lex:206
-#: Engine/csound_prs.lex:1770
+#: Engine/csound_prs.lex:1771
 #, c-format
 msgid "Undefined macro: '%s'"
 msgstr "Macro non définie : '%s'"
@@ -594,18 +594,18 @@ msgstr "Macro non définie : '%s'"
 #: Engine/csound_pre.lex:261 Engine/csound_pre.lex:307
 #: Engine/csound_pre.lex:312 Engine/csound_pre.lex:322
 #: Engine/csound_pre.lex:355 Engine/csound_pre.lex:376
-#: Engine/csound_pre.lex:797 Engine/csound_pre.lex:872
-#: Engine/csound_pre.lex:912 Engine/csound_pre.lex:918
-#: Engine/csound_pre.lex:931 Engine/csound_pre.lex:939
-#: Engine/csound_pre.lex:947 Engine/csound_pre.lex:958
-#: Engine/csound_pre.lex:967 Engine/csound_pre.lex:975
-#: Engine/csound_pre.lex:1021 Engine/csound_pre.lex:1033
-#: Engine/csound_pre.lex:1047 Engine/csound_pre.lex:1056
-#: Engine/csound_pre.lex:1078 Engine/csound_pre.lex:1086
-#: Engine/csound_pre.lex:1123 Engine/csound_pre.lex:1133
-#: Engine/csound_pre.lex:1142 Engine/csound_pre.lex:1219
-#: Engine/csound_pre.lex:1364 Engine/csound_pre.lex:1377
-#: Engine/csound_pre.lex:1392 Engine/csound_prs.lex:367
+#: Engine/csound_pre.lex:798 Engine/csound_pre.lex:873
+#: Engine/csound_pre.lex:913 Engine/csound_pre.lex:919
+#: Engine/csound_pre.lex:932 Engine/csound_pre.lex:940
+#: Engine/csound_pre.lex:948 Engine/csound_pre.lex:959
+#: Engine/csound_pre.lex:968 Engine/csound_pre.lex:976
+#: Engine/csound_pre.lex:1022 Engine/csound_pre.lex:1034
+#: Engine/csound_pre.lex:1048 Engine/csound_pre.lex:1057
+#: Engine/csound_pre.lex:1079 Engine/csound_pre.lex:1087
+#: Engine/csound_pre.lex:1124 Engine/csound_pre.lex:1134
+#: Engine/csound_pre.lex:1143 Engine/csound_pre.lex:1220
+#: Engine/csound_pre.lex:1365 Engine/csound_pre.lex:1378
+#: Engine/csound_pre.lex:1393 Engine/csound_prs.lex:367
 #: Engine/csound_prs.lex:406 Engine/csound_prs.lex:445
 #: Engine/csound_prs.lex:538 Engine/csound_prs.lex:765
 #: Engine/csound_prs.lex:841 Engine/csound_prs.lex:875
@@ -643,57 +643,57 @@ msgstr ""
 "Le terminateur d'argument est manquant\n"
 "%.98s"
 
-#: Engine/csound_pre.lex:444
+#: Engine/csound_pre.lex:445
 msgid "unexpected EOF!"
 msgstr "EOF inattendu !"
 
-#: Engine/csound_pre.lex:527 Engine/csound_prs.lex:269
+#: Engine/csound_pre.lex:528 Engine/csound_prs.lex:269
 #, c-format
 msgid "Unexpected character %c(%.2x) line %d\n"
 msgstr "Caractère %c(%.2x) inattendu, ligne %d\n"
 
-#: Engine/csound_pre.lex:566 Engine/csound_prs.lex:308
+#: Engine/csound_pre.lex:567 Engine/csound_prs.lex:308
 msgid "#else without #if\n"
 msgstr "#else sans #if\n"
 
-#: Engine/csound_pre.lex:570 Engine/csound_pre.lex:1280
+#: Engine/csound_pre.lex:571 Engine/csound_pre.lex:1281
 #: Engine/csound_prs.lex:312 Engine/csound_prs.lex:1223
 msgid "#else after #else\n"
 msgstr "#else après un #else\n"
 
-#: Engine/csound_pre.lex:588 Engine/csound_prs.lex:330
+#: Engine/csound_pre.lex:589 Engine/csound_prs.lex:330
 msgid "Unmatched #end\n"
 msgstr "#end non apparié\n"
 
-#: Engine/csound_pre.lex:753 Engine/csound_prs.lex:716
+#: Engine/csound_pre.lex:754 Engine/csound_prs.lex:716
 msgid "Ill formed #include ignored"
 msgstr "#include incorrect ignoré"
 
-#: Engine/csound_pre.lex:763 Engine/csound_pre.lex:840
+#: Engine/csound_pre.lex:764 Engine/csound_pre.lex:841
 #: Engine/csound_prs.lex:725 Engine/csound_prs.lex:808
 msgid "Includes nested too deeply"
 msgstr "Imbrication des boucles trop profonde"
 
-#: Engine/csound_pre.lex:778 Engine/csound_pre.lex:855
+#: Engine/csound_pre.lex:779 Engine/csound_pre.lex:856
 #: Engine/csound_prs.lex:743 Engine/csound_prs.lex:823
 #, c-format
 msgid "%s is a directory; not including"
 msgstr "%s est un répertoire ; pas inclus"
 
-#: Engine/csound_pre.lex:791 Engine/csound_pre.lex:866
+#: Engine/csound_pre.lex:792 Engine/csound_pre.lex:867
 #: Engine/csound_prs.lex:757 Engine/csound_prs.lex:834
 #, c-format
 msgid "Cannot open #include'd file %s\n"
 msgstr "Impossible d'ouvrir le fichier inclus (#include) %s\n"
 
-#: Engine/csound_pre.lex:984 Engine/csound_prs.lex:947
+#: Engine/csound_pre.lex:985 Engine/csound_prs.lex:947
 msgid "macro error\n"
 msgstr "erreur de macro\n"
 
-#: Engine/csound_pre.lex:989 Engine/csound_pre.lex:993
-#: Engine/csound_pre.lex:1000 Engine/csound_pre.lex:1006
-#: Engine/csound_pre.lex:1093 Engine/csound_pre.lex:1097
-#: Engine/csound_pre.lex:1104 Engine/csound_pre.lex:1110
+#: Engine/csound_pre.lex:990 Engine/csound_pre.lex:994
+#: Engine/csound_pre.lex:1001 Engine/csound_pre.lex:1007
+#: Engine/csound_pre.lex:1094 Engine/csound_pre.lex:1098
+#: Engine/csound_pre.lex:1105 Engine/csound_pre.lex:1111
 #: Engine/csound_prs.lex:952 Engine/csound_prs.lex:956
 #: Engine/csound_prs.lex:963 Engine/csound_prs.lex:969
 #: Engine/csound_prs.lex:1056 Engine/csound_prs.lex:1060
@@ -701,40 +701,40 @@ msgstr "erreur de macro\n"
 msgid "define macro runaway\n"
 msgstr "define de macro disparu\n"
 
-#: Engine/csound_pre.lex:1013 Engine/csound_pre.lex:1117
+#: Engine/csound_pre.lex:1014 Engine/csound_pre.lex:1118
 #: Engine/csound_prs.lex:976
 #, c-format
 msgid "define macro unexpected character %c(0x%.2x) awaiting #\n"
 msgstr "caractère %c(0x%.2x) inattendu dans define de macro à la place de #\n"
 
-#: Engine/csound_pre.lex:1027 Engine/csound_prs.lex:990
+#: Engine/csound_pre.lex:1028 Engine/csound_prs.lex:990
 msgid "define macro with args: unexpected EOF"
 msgstr "define de macro avec args : EOF inattendu"
 
-#: Engine/csound_pre.lex:1128 Engine/csound_prs.lex:1091
+#: Engine/csound_pre.lex:1129 Engine/csound_prs.lex:1091
 msgid "define macro: unexpected EOF"
 msgstr "define de macro : EOF inattendu"
 
-#: Engine/csound_pre.lex:1163 Engine/csound_prs.lex:1126
+#: Engine/csound_pre.lex:1164 Engine/csound_prs.lex:1126
 #, c-format
 msgid "macro %s undefined\n"
 msgstr "la macro %s n'est pas définie\n"
 
-#: Engine/csound_pre.lex:1178 Engine/csound_prs.lex:1141
+#: Engine/csound_pre.lex:1179 Engine/csound_prs.lex:1141
 msgid "Undefining undefined macro"
 msgstr "Libération de la macro non définie"
 
-#: Engine/csound_pre.lex:1253 Engine/csound_prs.lex:1196
+#: Engine/csound_pre.lex:1254 Engine/csound_prs.lex:1196
 #, c-format
 msgid "Unmatched #if%sdef\n"
 msgstr "#if%sdef non apparié\n"
 
-#: Engine/csound_pre.lex:1357 Engine/csound_prs.lex:1261
+#: Engine/csound_pre.lex:1358 Engine/csound_prs.lex:1261
 #, c-format
 msgid "Macro definition for %*s\n"
 msgstr "Définition de macro pour %*s\n"
 
-#: Engine/csound_pre.lex:1360
+#: Engine/csound_pre.lex:1361
 msgid "Invalid macro name for --omacro"
 msgstr "Nom de macro non valide pour --omacro"
 
@@ -779,34 +779,34 @@ msgstr "caractère %c(0x%.2x) inattendu dans define de macro à la place de #\n"
 msgid "Invalid macro name for --smacro"
 msgstr "Nom de macro non valide pour --smacro"
 
-#: Engine/csound_prs.lex:1640 Engine/csound_prs.lex:1656 Engine/sread.c:1110
+#: Engine/csound_prs.lex:1641 Engine/csound_prs.lex:1657 Engine/sread.c:1110
 #: Engine/sread.c:1124
 #, c-format
 msgid "illegal placement of operator %c in [] expression"
 msgstr "placement illégal de l'opérateur %c dans l'expression []"
 
-#: Engine/csound_prs.lex:1672 Engine/sread.c:1136
+#: Engine/csound_prs.lex:1673 Engine/sread.c:1136
 msgid "illegal placement of '(' in [] expression"
 msgstr "placement illégal de '(' dans l'expression []"
 
-#: Engine/csound_prs.lex:1682 Engine/sread.c:1142
+#: Engine/csound_prs.lex:1683 Engine/sread.c:1142
 msgid "missing operand before ')' in [] expression"
 msgstr "il manque un opérande avant ')' dans l'expression []"
 
-#: Engine/csound_prs.lex:1699 Engine/sread.c:1156
+#: Engine/csound_prs.lex:1700 Engine/sread.c:1156
 msgid "illegal placement of '[' in [] expression"
 msgstr "placement illégal de '[' dans l'expression []"
 
-#: Engine/csound_prs.lex:1718 Engine/sread.c:1172
+#: Engine/csound_prs.lex:1719 Engine/sread.c:1172
 msgid "missing operand before closing bracket in []"
 msgstr "il manque un opérande avant le crochet fermant dans []"
 
-#: Engine/csound_prs.lex:1742 Engine/sread.c:1188
+#: Engine/csound_prs.lex:1743 Engine/sread.c:1188
 #, c-format
 msgid "illegal character %c(%.2x) in [] expression"
 msgstr "caractère %c(%.2x) illégal dans l'expression []"
 
-#: Engine/csound_prs.lex:1821
+#: Engine/csound_prs.lex:1822
 msgid "unexpected EOF!!\n"
 msgstr "EOF inattendu !!\n"
 
@@ -881,45 +881,45 @@ msgstr "numéro d'instrument hors limites"
 msgid "unknown GEN number"
 msgstr "numéro de GEN inconnu"
 
-#: Engine/fgens.c:165
+#: Engine/fgens.c:166
 msgid "ftable does not exist"
 msgstr "la ftable n'existe pas"
 
-#: Engine/fgens.c:170
+#: Engine/fgens.c:171
 #, c-format
 msgid "ftable %d now deleted\n"
 msgstr "la ftable %d est maintenant supprimée\n"
 
-#: Engine/fgens.c:186 Engine/fgens.c:1702 Engine/fgens.c:1788
-#: Engine/fgens.c:1872 Engine/fgens.c:1989 Engine/fgens.c:2070
-#: Engine/fgens.c:3125
+#: Engine/fgens.c:187 Engine/fgens.c:1704 Engine/fgens.c:1790
+#: Engine/fgens.c:1874 Engine/fgens.c:1991 Engine/fgens.c:2072
+#: Engine/fgens.c:3127
 msgid "insufficient gen arguments"
 msgstr "nombre d'arguments de GEN insuffisant"
 
-#: Engine/fgens.c:214 Opcodes/ftgen.c:119 Opcodes/ftgen.c:676
+#: Engine/fgens.c:215 Opcodes/ftgen.c:104 Opcodes/ftgen.c:661
 #: Opcodes/signalflowgraph.cpp:1353
 #, c-format
 msgid "Named gen \"%s\" not defined"
 msgstr "Le GEN nommé \"%s\" n'est pas défini"
 
-#: Engine/fgens.c:222
+#: Engine/fgens.c:223
 msgid "illegal gen number"
 msgstr "numéro de GEN interdit"
 
-#: Engine/fgens.c:231
+#: Engine/fgens.c:232
 msgid "deferred size for GENs 1, 2, 23, 28 or 49 only"
 msgstr "taille différée seulement pour GENs 1, 2, 23, 28 et 49"
 
-#: Engine/fgens.c:234 Engine/fgens.c:288
+#: Engine/fgens.c:235 Engine/fgens.c:289
 #, c-format
 msgid "ftable %d:\n"
 msgstr "ftable %d :\n"
 
-#: Engine/fgens.c:260 Engine/fgens.c:2405 Engine/fgens.c:3010
+#: Engine/fgens.c:261 Engine/fgens.c:2407 Engine/fgens.c:3012
 msgid "illegal table length"
 msgstr "longueur de table illégale"
 
-#: Engine/fgens.c:345 Engine/fgens.c:2363
+#: Engine/fgens.c:346 Engine/fgens.c:2365
 #, c-format
 msgid ""
 "ftable %d relocating due to size change\n"
@@ -928,178 +928,178 @@ msgstr ""
 "ftable %d réallouée à cause du changement de taille.\n"
 "          les instruments actifs peuvent en être perturbés"
 
-#: Engine/fgens.c:403 Engine/fgens.c:529 Engine/fgens.c:613 Engine/fgens.c:694
-#: Engine/fgens.c:769 Engine/fgens.c:818 Engine/fgens.c:939 Engine/fgens.c:1017
-#: Engine/fgens.c:1119 Engine/fgens.c:1163 Engine/fgens.c:1214
-#: Engine/fgens.c:1485 Engine/fgens.c:1547 Engine/fgens.c:1786
-#: Engine/fgens.c:1869 Engine/fgens.c:2229 Engine/fgens.c:3079
-#: Engine/fgens.c:3122
+#: Engine/fgens.c:404 Engine/fgens.c:530 Engine/fgens.c:614 Engine/fgens.c:695
+#: Engine/fgens.c:770 Engine/fgens.c:819 Engine/fgens.c:940 Engine/fgens.c:1018
+#: Engine/fgens.c:1120 Engine/fgens.c:1164 Engine/fgens.c:1215
+#: Engine/fgens.c:1487 Engine/fgens.c:1549 Engine/fgens.c:1788
+#: Engine/fgens.c:1871 Engine/fgens.c:2231 Engine/fgens.c:3081
+#: Engine/fgens.c:3124
 msgid "using extended arguments\n"
 msgstr "utilisation d'arguments étendus\n"
 
-#: Engine/fgens.c:432
+#: Engine/fgens.c:433
 msgid "no coefs present"
 msgstr "aucun coefficient n'est présent"
 
-#: Engine/fgens.c:437 Engine/fgens.c:703 Engine/fgens.c:711
+#: Engine/fgens.c:438 Engine/fgens.c:704 Engine/fgens.c:712
 msgid "illegal x interval"
 msgstr "intervalle x interdit"
 
-#: Engine/fgens.c:466 Engine/fgens.c:615 Engine/fgens.c:696 Engine/fgens.c:941
-#: Engine/fgens.c:1442 Engine/fgens.c:2576 Engine/fgens.c:2911
-#: Engine/fgens.c:3052 Opcodes/ftest.c:140 Opcodes/quadbezier.c:64
+#: Engine/fgens.c:467 Engine/fgens.c:616 Engine/fgens.c:697 Engine/fgens.c:942
+#: Engine/fgens.c:1444 Engine/fgens.c:2578 Engine/fgens.c:2913
+#: Engine/fgens.c:3054 Opcodes/ftest.c:140 Opcodes/quadbezier.c:64
 #: Top/main.c:174 util/cvanal.c:67 util/lpanal.c:406 util/pvanal.c:170
 msgid "insufficient arguments"
 msgstr "pas assez d'arguments"
 
-#: Engine/fgens.c:470 Engine/fgens.c:1447
+#: Engine/fgens.c:471 Engine/fgens.c:1449
 msgid "unknown srctable number"
 msgstr "numéro de srctable inconnu"
 
-#: Engine/fgens.c:483
+#: Engine/fgens.c:484
 msgid "table size too large"
 msgstr "taille de table trop grande"
 
-#: Engine/fgens.c:568 Engine/fgens.c:601
+#: Engine/fgens.c:569 Engine/fgens.c:602
 msgid "gen call has negative segment size:"
 msgstr "l'appel de GEN a une taille de segment négative :"
 
-#: Engine/fgens.c:570
+#: Engine/fgens.c:571
 msgid "illegal input vals for gen call, beginning:"
 msgstr "appel de GEN avec des valeurs illégales en entrée, début :"
 
-#: Engine/fgens.c:636
+#: Engine/fgens.c:637
 msgid "negative segsiz"
 msgstr "segsiz négatif"
 
-#: Engine/fgens.c:845
+#: Engine/fgens.c:846
 msgid "nh partials < 1"
 msgstr "nombre d'harmoniques nh < 1"
 
-#: Engine/fgens.c:944
+#: Engine/fgens.c:945
 msgid "illegal xint value"
 msgstr "valeur xint illégale"
 
-#: Engine/fgens.c:947
+#: Engine/fgens.c:948
 msgid "illegal xamp value"
 msgstr "valeur xamp illégale"
 
-#: Engine/fgens.c:1019
+#: Engine/fgens.c:1020
 msgid "uneven number of args"
 msgstr "nombre impair d'arguments"
 
-#: Engine/fgens.c:1147
+#: Engine/fgens.c:1148
 msgid "gen call has illegal x-ordinate values:"
 msgstr "l'appel gen a des valeurs d'abscisse x illégales"
 
-#: Engine/fgens.c:1165
+#: Engine/fgens.c:1166
 msgid "wrong number of args"
 msgstr "nombre d'arguments incorrect"
 
-#: Engine/fgens.c:1179
+#: Engine/fgens.c:1180
 msgid "a range given exceeds table length"
 msgstr "un intervalle donné excède la longueur de la table"
 
-#: Engine/fgens.c:1186
+#: Engine/fgens.c:1187
 msgid "an input function does not exist"
 msgstr "une fonction d'entrée n'existe pas"
 
-#: Engine/fgens.c:1323
+#: Engine/fgens.c:1324
 msgid "No such window type!"
 msgstr "Pas de fenêtre de cette sorte !"
 
-#: Engine/fgens.c:1341
+#: Engine/fgens.c:1342
 msgid "Wrong number of input arguments"
 msgstr "Nombre incorrect d'arguments en entrée"
 
-#: Engine/fgens.c:1342
+#: Engine/fgens.c:1343
 msgid "unknown distribution"
 msgstr "distribution inconnue"
 
-#: Engine/fgens.c:1394
+#: Engine/fgens.c:1396
 msgid "error opening ASCII file"
 msgstr "erreur à l'ouverture du fichier ASCII"
 
-#: Engine/fgens.c:1404
+#: Engine/fgens.c:1406
 #, c-format
 msgid "%ld elements in %s\n"
 msgstr "%ld éléments dans %s\n"
 
-#: Engine/fgens.c:1418
+#: Engine/fgens.c:1420
 #, c-format
 msgid "Number(s) after table full in GEN23, starting %f"
 msgstr "Nombre(s) alors que la table est pleine dans GEN23, %f démarre"
 
-#: Engine/fgens.c:1455
+#: Engine/fgens.c:1457
 msgid "table size must be the same of source table"
 msgstr "la taille de la table doit être la même que celle de la table source"
 
-#: Engine/fgens.c:1527 Engine/fgens.c:1596
+#: Engine/fgens.c:1529 Engine/fgens.c:1598
 msgid "x coordinates must all be in increasing order:"
 msgstr "les coordonnées x doivent être toutes en ordre croissant"
 
-#: Engine/fgens.c:1530 Engine/fgens.c:1598
+#: Engine/fgens.c:1532 Engine/fgens.c:1600
 msgid "x coordinate greater than function size:"
 msgstr "coordonnée x supérieure à la taille de la fonction"
 
-#: Engine/fgens.c:1534
+#: Engine/fgens.c:1536
 msgid "illegal input val (y <= 0) for gen call, beginning:"
 msgstr "valeur d'entrée interdite (y <= 0) dans l'appel GEN, début :"
 
-#: Engine/fgens.c:1616
+#: Engine/fgens.c:1618
 msgid "GEN28 requires zero table length"
 msgstr "GEN28 nécessite une longueur de table nulle"
 
-#: Engine/fgens.c:1685
+#: Engine/fgens.c:1687
 msgid "could not open space file"
 msgstr "impossible d'ouvrir le fichier de spatialisation"
 
-#: Engine/fgens.c:1688
+#: Engine/fgens.c:1690
 msgid "Time values must be in increasing order"
 msgstr "Les valeurs de temps doivent être en ordre croissant"
 
-#: Engine/fgens.c:1709
+#: Engine/fgens.c:1711
 msgid "GEN30: source ftable not found"
 msgstr "GEN30 : la ftable source n'a pas été trouvée"
 
-#: Engine/fgens.c:1792
+#: Engine/fgens.c:1794
 msgid "GEN31: source ftable not found"
 msgstr "GEN31 : la ftable source n'a pas été trouvée"
 
-#: Engine/fgens.c:1905
+#: Engine/fgens.c:1907
 #, c-format
 msgid "GEN32: source ftable %d not found"
 msgstr "GEN32 : la ftable source %d n'a pas été trouvée"
 
-#: Engine/fgens.c:2000
+#: Engine/fgens.c:2002
 msgid "GEN33: source ftable not found"
 msgstr "GEN33 : la ftable source n'a pas été trouvée"
 
-#: Engine/fgens.c:2169
+#: Engine/fgens.c:2171
 msgid "unknown source table number"
 msgstr "numéro de table source inconnu"
 
-#: Engine/fgens.c:2201
+#: Engine/fgens.c:2203
 msgid "Gen41: negative probability not allowed"
 msgstr "Gen41 : probabilité négative interdite"
 
-#: Engine/fgens.c:2270
+#: Engine/fgens.c:2272
 #, c-format
 msgid "ftable %d: "
 msgstr "ftable %d : "
 
-#: Engine/fgens.c:2314
+#: Engine/fgens.c:2316
 #, c-format
 msgid "ftable %d:"
 msgstr "ftable %d :"
 
-#: Engine/fgens.c:2357
+#: Engine/fgens.c:2359
 #, c-format
 msgid "replacing previous ftable %d"
 msgstr "remplacement de la ftable précédente %d"
 
-#: Engine/fgens.c:2401 Engine/fgens.c:2517 Engine/fgens.c:2545
-#: Engine/fgens.c:2552 Opcodes/gab/gab.c:576 Opcodes/gab/gab.c:633
+#: Engine/fgens.c:2403 Engine/fgens.c:2519 Engine/fgens.c:2547
+#: Engine/fgens.c:2554 Opcodes/gab/gab.c:576 Opcodes/gab/gab.c:633
 #: Opcodes/midiops2.c:226 Opcodes/midiops2.c:378 Opcodes/midiops2.c:468
 #: Opcodes/uggab.c:1666 Opcodes/uggab.c:1702 Opcodes/uggab.c:1724
 #: Opcodes/uggab.c:1778
@@ -1107,137 +1107,137 @@ msgstr "remplacement de la ftable précédente %d"
 msgid "Invalid ftable no. %f"
 msgstr "Numéro de ftable non valide. %f"
 
-#: Engine/fgens.c:2410
+#: Engine/fgens.c:2412
 #, c-format
 msgid "deferred-size ftable %f illegal here"
 msgstr "taille différée de la ftable %f interdite ici"
 
-#: Engine/fgens.c:2523
+#: Engine/fgens.c:2525
 #, c-format
 msgid "Deferred-size ftable %f load not available at perf time."
 msgstr ""
 "La taille différée au chargement de la ftable %f n'est pas disponible à "
 "l'exécution."
 
-#: Engine/fgens.c:2600
+#: Engine/fgens.c:2602
 #, c-format
 msgid "non-deferred ftable %d needs size %d\n"
 msgstr "la table non différée %d nécessite une taille %d\n"
 
-#: Engine/fgens.c:2662 Opcodes/loscilx.c:70
+#: Engine/fgens.c:2664 Opcodes/loscilx.c:70
 #, c-format
 msgid "invalid sample format: %d"
 msgstr "format d'échantillon non valide : %d"
 
-#: Engine/fgens.c:2671 Engine/fgens.c:2935
+#: Engine/fgens.c:2673 Engine/fgens.c:2937
 #, c-format
 msgid "channel %d illegal"
 msgstr "le canal %d est illégal"
 
-#: Engine/fgens.c:2677
+#: Engine/fgens.c:2679
 #, c-format
 msgid "deferred alloc for %s\n"
 msgstr "allocation différée pour %s\n"
 
-#: Engine/fgens.c:2681
+#: Engine/fgens.c:2683
 #, c-format
 msgid "Failed to open file %s"
 msgstr "L'ouverture du fichier %s a échoué"
 
-#: Engine/fgens.c:2686 Engine/fgens.c:3008
+#: Engine/fgens.c:2688 Engine/fgens.c:3010
 msgid "deferred size, but filesize unknown"
 msgstr "taille différée, mais taille de fichier inconnu"
 
-#: Engine/fgens.c:2689 Engine/fgens.c:3012
+#: Engine/fgens.c:2691 Engine/fgens.c:3014
 #, c-format
 msgid "  defer length %d\n"
 msgstr "  longueur différée %d\n"
 
-#: Engine/fgens.c:2757
+#: Engine/fgens.c:2759
 msgid "GEN1: input file truncated by ftable size"
 msgstr "GEN1 : le fichier en entrée a été tronqué à la taille de la ftable"
 
-#: Engine/fgens.c:2761
+#: Engine/fgens.c:2763
 #, c-format
 msgid "\tlooping endpoint %d exceeds ftsize %d\n"
 msgstr "\tla fin de boucle (%d) dépasse la taille de la table (%d)\n"
 
-#: Engine/fgens.c:2777
+#: Engine/fgens.c:2779
 msgid "GEN1 read error"
 msgstr "GEN1 erreur de lecture"
 
-#: Engine/fgens.c:2782
+#: Engine/fgens.c:2784
 msgid "GEN1: file truncated by ftable size"
 msgstr "GEN1 : le fichier a été tronqué à la taille de la table"
 
-#: Engine/fgens.c:2783
+#: Engine/fgens.c:2785
 #, c-format
 msgid "\taudio samps %d exceeds ftsize %d"
 msgstr "\tles échantillons audio %d dépassent la taille de la table (%d)"
 
-#: Engine/fgens.c:2836
+#: Engine/fgens.c:2838
 msgid "wrong number of ftable arguments"
 msgstr "nombre d'arguments incorrect pour la ftable"
 
-#: Engine/fgens.c:2846 OOps/pstream.c:388
+#: Engine/fgens.c:2848 OOps/pstream.c:388
 msgid "Failed to load PVOC-EX file"
 msgstr "Le chargement du fichier PVOC-EX a échoué"
 
-#: Engine/fgens.c:2858 InOut/midirecv.c:419 OOps/midiops.c:402
+#: Engine/fgens.c:2860 InOut/midirecv.c:419 OOps/midiops.c:402
 #: OOps/midiops.c:452 OOps/midiops.c:464
 msgid "illegal channel number"
 msgstr "numéro de canal illégal"
 
-#: Engine/fgens.c:2876
+#: Engine/fgens.c:2878
 msgid "ftable size too small"
 msgstr "taille de ftable trop petite"
 
-#: Engine/fgens.c:2951 Opcodes/mp3in.c:95 Opcodes/mp3in.c:276
+#: Engine/fgens.c:2953 Opcodes/mp3in.c:95 Opcodes/mp3in.c:276
 #: Opcodes/mp3in.c:458 Top/cscorfns.c:176 Top/cscorfns.c:207
 msgid "Not enough memory\n"
 msgstr "Pas assez de mémoire\n"
 
-#: Engine/fgens.c:3089
+#: Engine/fgens.c:3091
 msgid "GEN51: invalid number of p-fields (too few grades)"
 msgstr "GEN51 : nombre de p-champs non valide (pas assez de degrés)"
 
-#: Engine/fgens.c:3129
+#: Engine/fgens.c:3131
 msgid "number of channels inconsistent with number of args"
 msgstr "nombre de canaux en contradiction avec le nombre d'arguments"
 
-#: Engine/fgens.c:3291
+#: Engine/fgens.c:3293
 msgid "GEN53: invalid number of gen arguments"
 msgstr "GEN53 : nombre d'arguments de GEN non valide"
 
-#: Engine/fgens.c:3301
+#: Engine/fgens.c:3303
 msgid "GEN53: invalid table length"
 msgstr "GEN53 : longueur de table non valide"
 
-#: Engine/fgens.c:3305
+#: Engine/fgens.c:3307
 msgid "GEN53: invalid source table number"
 msgstr "GEN53 : numéro de la table source non valide"
 
-#: Engine/fgens.c:3308
+#: Engine/fgens.c:3310
 msgid "GEN53: mode must be in the range 0 to 15"
 msgstr "GEN53 : le mode doit être compris entre 0 et 15"
 
-#: Engine/fgens.c:3312
+#: Engine/fgens.c:3314
 msgid "GEN53: invalid source table length:"
 msgstr "GEN53 : longueur de la table source non valide"
 
-#: Engine/fgens.c:3317
+#: Engine/fgens.c:3319
 msgid "GEN53: invalid window table"
 msgstr "GEN53 : table de fenêtre non valide"
 
-#: Engine/fgens.c:3332
+#: Engine/fgens.c:3334
 msgid "GEN 53: impulse response input, "
 msgstr "GEN53 : réponse impulsionnelle en entrée, "
 
-#: Engine/fgens.c:3338
+#: Engine/fgens.c:3340
 msgid "GEN 53: frequency response input, "
 msgstr "GEN53 : réponse fréquentielle en entrée, "
 
-#: Engine/fgens.c:3443
+#: Engine/fgens.c:3445
 #, c-format
 msgid "Deferred load of '%s' failed"
 msgstr "Le chargement différé de '%s' a échoué"
@@ -3407,7 +3407,7 @@ msgstr " *** AVERTISSEMENT : désactivation de --sched dans le mode freewheel\n"
 #: InOut/rtjack.c:276 InOut/rtjack.c:289 InOut/rtjack.c:294 InOut/rtjack.c:608
 #: InOut/rtjack.c:659 InOut/rtjack.c:665 InOut/rtjack.c:686 InOut/rtjack.c:692
 #: InOut/rtwinmm.c:107 InOut/rtwinmm.c:311 OOps/str_ops.c:436
-#: OOps/str_ops.c:462 OOps/str_ops.c:487 OOps/str_ops.c:504 Opcodes/ftgen.c:80
+#: OOps/str_ops.c:462 OOps/str_ops.c:487 OOps/str_ops.c:504 Opcodes/ftgen.c:65
 msgid "memory allocation failure"
 msgstr "échec de l'allocation mémoire"
 
@@ -3738,15 +3738,15 @@ msgstr "fermeture du périphérique\n"
 msgid "PortAudio: using ALSA device '%s'\n"
 msgstr "PortAudio : utilisation du périphérique ALSA '%s'\n"
 
-#: InOut/rtpa.c:865
+#: InOut/rtpa.c:883
 msgid "rtaudio: PortAudio module enabled ...\n"
 msgstr "rtaudio : module PortAudio activé ...\n"
 
-#: InOut/rtpa.c:873
+#: InOut/rtpa.c:891
 msgid "using blocking interface\n"
 msgstr "utilisation de l'interface bloquante\n"
 
-#: InOut/rtpa.c:882
+#: InOut/rtpa.c:900
 msgid "using callback interface\n"
 msgstr "utilisation de l'interface de callback\n"
 
@@ -4723,15 +4723,15 @@ msgstr "Echec de la lecture dans readks"
 msgid " *** fftlib.c: internal error: invalid FFT size: %d"
 msgstr " *** fftlib.x : erreur interne : taille de TFR non valide : %d"
 
-#: OOps/goto_ops.c:99
+#: OOps/goto_ops.c:81
 msgid "negative time period"
 msgstr "durée négative"
 
-#: OOps/goto_ops.c:217
+#: OOps/goto_ops.c:199
 msgid "turnoff2: invalid instrument number"
 msgstr "turnoff2 : numéro d'instrument non valide"
 
-#: OOps/goto_ops.c:223
+#: OOps/goto_ops.c:205
 msgid "turnoff2: invalid mode parameter"
 msgstr "turnoff2 : paramètre de mode non valide"
 
@@ -5599,7 +5599,7 @@ msgstr "signes différents"
 
 #: OOps/ugens1.c:144 OOps/ugens1.c:504 OOps/ugens1.c:558 OOps/ugens1.c:618
 #: OOps/ugens1.c:679 OOps/ugens1.c:894 OOps/ugens1.c:1836
-#: Opcodes/gab/vectorial.c:2209 Opcodes/vpvoc.c:42
+#: Opcodes/gab/vectorial.c:2212 Opcodes/vpvoc.c:42
 msgid "incomplete number of input arguments"
 msgstr "nombre incorrect d'arguments en entrée"
 
@@ -6103,28 +6103,28 @@ msgstr "chaîne nulle\n"
 msgid "printks not initialised"
 msgstr "printks : non initialisé"
 
-#: OOps/ugrw1.c:550 OOps/ugrw1.c:572 OOps/ugrw1.c:592 OOps/ugrw1.c:705
+#: OOps/ugrw1.c:550 OOps/ugrw1.c:573 OOps/ugrw1.c:593 OOps/ugrw1.c:706
 msgid "Insufficient arguments in formatted printing"
 msgstr "Arguments insuffisants dans l'impression formatée"
 
-#: OOps/ugrw1.c:596
+#: OOps/ugrw1.c:597
 #, c-format
 msgid "Formatting string too long: %s"
 msgstr "Chaîne de formatage trop longue : %s"
 
-#: OOps/ugrw1.c:740
+#: OOps/ugrw1.c:741
 msgid "inz index > isizea. Not writing."
 msgstr "inz : index > isizea. Pas d'écriture."
 
-#: OOps/ugrw1.c:743
+#: OOps/ugrw1.c:744
 msgid "inz index < 0. Not writing."
 msgstr "inz : index < 0. Pas d'écriture."
 
-#: OOps/ugrw1.c:789 Opcodes/vbap_zak.c:211 Opcodes/vbap_zak.c:525
+#: OOps/ugrw1.c:790 Opcodes/vbap_zak.c:211 Opcodes/vbap_zak.c:525
 msgid "outz index > isizea. No output"
 msgstr "outz : index > isizea. Pas de sortie."
 
-#: OOps/ugrw1.c:792 Opcodes/vbap_zak.c:215 Opcodes/vbap_zak.c:529
+#: OOps/ugrw1.c:793 Opcodes/vbap_zak.c:215 Opcodes/vbap_zak.c:529
 msgid "outz index < 0. No output."
 msgstr "outz : index < 0. Pas de sortie."
 
@@ -6718,13 +6718,13 @@ msgstr "Réglette %d fixé à %s\n"
 msgid "Unknown control %d"
 msgstr "Contrôle %d inconnu"
 
-#: Opcodes/cpumeter.c:81
+#: Opcodes/cpumeter.c:87
 #, c-format
 msgid "Failed to open /proc/stat: %s"
 msgstr "Echec de l'ouverture de /proc/stat : %s"
 
-#: Opcodes/cpumeter.c:83 Opcodes/cpumeter.c:88 Opcodes/cpumeter.c:116
-#: Opcodes/cpumeter.c:157
+#: Opcodes/cpumeter.c:89 Opcodes/cpumeter.c:94 Opcodes/cpumeter.c:125
+#: Opcodes/cpumeter.c:166
 msgid "failed /proc/stat read"
 msgstr "La lecture de /proc/stat a échoué"
 
@@ -7443,60 +7443,60 @@ msgstr "Longueur de table nulle illégale %d"
 msgid "ftable number does not exist\n"
 msgstr "le numéro de ftable n'existe pas\n"
 
-#: Opcodes/ftgen.c:70 Opcodes/ftgen.c:242
+#: Opcodes/ftgen.c:55 Opcodes/ftgen.c:227
 #, c-format
 msgid "Error deleting ftable %d"
 msgstr "Erreur en supprimant la ftable %d"
 
-#: Opcodes/ftgen.c:140 Opcodes/signalflowgraph.cpp:1378
+#: Opcodes/ftgen.c:125 Opcodes/signalflowgraph.cpp:1378
 msgid "ftgen string arg not allowed"
 msgstr "ftgen : argument chaîne interdit"
 
-#: Opcodes/ftgen.c:159 Opcodes/ftgen.c:693 Opcodes/oscbnk.c:1851
+#: Opcodes/ftgen.c:144 Opcodes/ftgen.c:673 Opcodes/oscbnk.c:1851
 #: Opcodes/oscbnk.c:1875
 msgid "ftgen error"
 msgstr "erreur de ftgen"
 
-#: Opcodes/ftgen.c:239
+#: Opcodes/ftgen.c:224
 #, c-format
 msgid "Invalid table number: %d"
 msgstr "Numéro de table non valide : %d"
 
-#: Opcodes/ftgen.c:306
+#: Opcodes/ftgen.c:291
 msgid "table length too long"
 msgstr "taille de table trop grande"
 
-#: Opcodes/ftgen.c:456
+#: Opcodes/ftgen.c:441
 msgid "ftload: error allocating ftable"
 msgstr "ftload : erreur d'allocation de la ftable"
 
-#: Opcodes/ftgen.c:458
+#: Opcodes/ftgen.c:443
 msgid "ftload: no table numbers"
 msgstr "ftload : pas de numéro de table"
 
-#: Opcodes/ftgen.c:460
+#: Opcodes/ftgen.c:445
 msgid "ftload: unable to open file"
 msgstr "ftload : impossible d'ouvrir le fichier"
 
-#: Opcodes/ftgen.c:463
+#: Opcodes/ftgen.c:448
 msgid "ftload: incorrect file"
 msgstr "ftload : fichier incorrect"
 
-#: Opcodes/ftgen.c:601
+#: Opcodes/ftgen.c:586
 msgid "ftsave: Bad table number. Saving is possible only for existing tables."
 msgstr ""
 "ftsave : mauvais numéro de table. La sauvegarde n'est possible que pour des "
 "tables existantes."
 
-#: Opcodes/ftgen.c:604
+#: Opcodes/ftgen.c:589
 msgid "ftsave: no table numbers"
 msgstr "ftsave : pas de numéros de table"
 
-#: Opcodes/ftgen.c:606
+#: Opcodes/ftgen.c:591
 msgid "ftsave: unable to open file"
 msgstr "ftsave : impossible d'ouvrir le fichier"
 
-#: Opcodes/ftgen.c:608
+#: Opcodes/ftgen.c:593
 msgid "ftsave: failed to write file"
 msgstr "ftsave : impossible d'ouvrir le fichier"
 
@@ -7625,7 +7625,7 @@ msgstr "vphaseseg : la première fonction est non valide ou manquante"
 msgid "Failed to find ftable"
 msgstr "ftable introuvable"
 
-#: Opcodes/gab/hvs.c:413 Opcodes/gab/vectorial.c:2349
+#: Opcodes/gab/hvs.c:413 Opcodes/gab/vectorial.c:2352
 msgid "vphaseseg: invalid num. of elements"
 msgstr "vphaseseg : nombre d'éléments non valide"
 
@@ -7721,415 +7721,419 @@ msgstr "tabmorph : toutes les tables doivent avoir la même longueur !"
 msgid "vtablei: incorrect table number"
 msgstr "vtablei : numéro de table incorrect"
 
-#: Opcodes/gab/vectorial.c:67
+#: Opcodes/gab/vectorial.c:50
+msgid "vtablei: reading past end of table"
+msgstr "vtablei : lecture au-delà de la fin de la table"
+
+#: Opcodes/gab/vectorial.c:70
 msgid "vtable: incorrect table number"
 msgstr "vtable : numéro de table incorrect"
 
-#: Opcodes/gab/vectorial.c:88
+#: Opcodes/gab/vectorial.c:91
 msgid "vtablek: incorrect table number"
 msgstr "vtablek : numéro de table incorrect"
 
-#: Opcodes/gab/vectorial.c:142
+#: Opcodes/gab/vectorial.c:145
 msgid "vtablea: incorrect table number"
 msgstr "vtablea : numéro de table incorrect"
 
-#: Opcodes/gab/vectorial.c:202
+#: Opcodes/gab/vectorial.c:205
 msgid "vtabi: incorrect table number"
 msgstr "vtabi : numéro de table incorrect"
 
-#: Opcodes/gab/vectorial.c:217
+#: Opcodes/gab/vectorial.c:220
 msgid "vtab: incorrect table number"
 msgstr "vtab : numéro de table incorrect"
 
-#: Opcodes/gab/vectorial.c:281
+#: Opcodes/gab/vectorial.c:284
 msgid "vtablewi: incorrect table number"
 msgstr "vtablewi : numéro de table incorrect"
 
-#: Opcodes/gab/vectorial.c:297 Opcodes/gab/vectorial.c:396
+#: Opcodes/gab/vectorial.c:300 Opcodes/gab/vectorial.c:399
 msgid "vtablew: incorrect table number"
 msgstr "vtablew : numéro de table incorrect"
 
-#: Opcodes/gab/vectorial.c:318 Opcodes/gab/vectorial.c:415
+#: Opcodes/gab/vectorial.c:321 Opcodes/gab/vectorial.c:418
 msgid "vtablewk: incorrect table number"
 msgstr "vtablewk : numéro de table incorrect"
 
-#: Opcodes/gab/vectorial.c:351
+#: Opcodes/gab/vectorial.c:354
 msgid "vtablewa: incorrect table number"
 msgstr "vtablewa : numéro de table incorrect"
 
-#: Opcodes/gab/vectorial.c:382
+#: Opcodes/gab/vectorial.c:385
 msgid "vtabwi: incorrect table number"
 msgstr "vtabwi : numéro de table incorrect"
 
-#: Opcodes/gab/vectorial.c:444
+#: Opcodes/gab/vectorial.c:447
 msgid "vtabwa: incorrect table number"
 msgstr "vtabwa : numéro de table incorrect"
 
-#: Opcodes/gab/vectorial.c:493 Opcodes/gab/vectorial.c:552
+#: Opcodes/gab/vectorial.c:496 Opcodes/gab/vectorial.c:555
 #, c-format
 msgid "vadd_i: invalid table number %i"
 msgstr "vadd_i : numéro de table %i non valide"
 
-#: Opcodes/gab/vectorial.c:509
+#: Opcodes/gab/vectorial.c:512
 msgid "vadd_i: ifn length exceeded"
 msgstr "vadd_i : la longueur de ifn a été dépassée"
 
-#: Opcodes/gab/vectorial.c:536
+#: Opcodes/gab/vectorial.c:539
 msgid "vadd: ifn1 length exceeded"
 msgstr "vadd : la longueur de ifn1 a été dépassée"
 
-#: Opcodes/gab/vectorial.c:568
+#: Opcodes/gab/vectorial.c:571
 msgid "vmult_i: ifn length exceeded"
 msgstr "vmult_i : la longueur de ifn a été dépassée"
 
-#: Opcodes/gab/vectorial.c:595
+#: Opcodes/gab/vectorial.c:598
 msgid "vmult: ifn1 length exceeded"
 msgstr "vmult : la longueur de ifn1 a été dépassée"
 
-#: Opcodes/gab/vectorial.c:611
+#: Opcodes/gab/vectorial.c:614
 #, c-format
 msgid "vpow_i: invalid table number %i"
 msgstr "vpow_i : numéro de table %i non valide"
 
-#: Opcodes/gab/vectorial.c:627
+#: Opcodes/gab/vectorial.c:630
 msgid "vpow_i: ifn length exceeded"
 msgstr "vpow_i : la longueur de ifn a été dépassée"
 
-#: Opcodes/gab/vectorial.c:655
+#: Opcodes/gab/vectorial.c:658
 msgid "vpow: ifn1 length exceeded"
 msgstr "vpow : la longueur de ifn1 a été dépassée"
 
-#: Opcodes/gab/vectorial.c:671
+#: Opcodes/gab/vectorial.c:674
 #, c-format
 msgid "vexp_i: invalid table number %i"
 msgstr "vexp_i : numéro de table %i non valide"
 
-#: Opcodes/gab/vectorial.c:687
+#: Opcodes/gab/vectorial.c:690
 msgid "vexp_i: ifn length exceeded"
 msgstr "vexp_i : la longueur de ifn a été dépassée"
 
-#: Opcodes/gab/vectorial.c:714
+#: Opcodes/gab/vectorial.c:717
 msgid "vexp: ifn1 length exceeded"
 msgstr "vexp : la longueur de ifn1 a été dépassée"
 
-#: Opcodes/gab/vectorial.c:732
+#: Opcodes/gab/vectorial.c:735
 #, c-format
 msgid "vectorsop: ifn1 invalid table number %i"
 msgstr "vectorsop : ifn1 numéro de table %i non valide"
 
-#: Opcodes/gab/vectorial.c:737
+#: Opcodes/gab/vectorial.c:740
 #, c-format
 msgid "vectorsop: ifn2 invalid table number %i"
 msgstr "vectorsop : ifn2 numéro de table %i non valide"
 
-#: Opcodes/gab/vectorial.c:777
+#: Opcodes/gab/vectorial.c:780
 msgid "vcopy: ifn1 length exceeded"
 msgstr "vcopy : la longueur de ifn1 a été dépassée"
 
-#: Opcodes/gab/vectorial.c:795
+#: Opcodes/gab/vectorial.c:798
 msgid "vcopy: ifn2 length exceeded"
 msgstr "vcopy : la longueur de ifn2 a été dépassée"
 
-#: Opcodes/gab/vectorial.c:822
+#: Opcodes/gab/vectorial.c:825
 #, c-format
 msgid "vcopy_i: ifn1 invalid table number %i"
 msgstr "vcopy_i : ifn1 numéro de table %i non valide"
 
-#: Opcodes/gab/vectorial.c:827
+#: Opcodes/gab/vectorial.c:830
 #, c-format
 msgid "vcopy_i: ifn2 invalid table number %i"
 msgstr "vcopy_i : ifn2 numéro de table %i non valide"
 
-#: Opcodes/gab/vectorial.c:849
+#: Opcodes/gab/vectorial.c:852
 msgid "vcopy_i: ifn1 length exceeded"
 msgstr "vcopy_i : la longueur de ifn1 a été dépassée"
 
-#: Opcodes/gab/vectorial.c:866
+#: Opcodes/gab/vectorial.c:869
 msgid "vcopy_i: ifn2 length exceeded"
 msgstr "vcopy_i : la longueur de ifn2 a été dépassée"
 
-#: Opcodes/gab/vectorial.c:905
+#: Opcodes/gab/vectorial.c:908
 msgid "vaddv: ifn1 length exceeded"
 msgstr "vaddv : la longueur de ifn1 a été dépassée"
 
-#: Opcodes/gab/vectorial.c:924
+#: Opcodes/gab/vectorial.c:927
 msgid "vaddv: ifn2 length exceeded"
 msgstr "vaddv : la longueur de ifn2 a été dépassée"
 
-#: Opcodes/gab/vectorial.c:950
+#: Opcodes/gab/vectorial.c:953
 #, c-format
 msgid "vaddv_i: ifn1 invalid table number %i"
 msgstr "vaddv_i : ifn1 numéro de table %i non valide"
 
-#: Opcodes/gab/vectorial.c:955
+#: Opcodes/gab/vectorial.c:958
 #, c-format
 msgid "vaddv_i: ifn2 invalid table number %i"
 msgstr "vaddv_i : ifn2 numéro de table %i non valide"
 
-#: Opcodes/gab/vectorial.c:977
+#: Opcodes/gab/vectorial.c:980
 msgid "vaddv_i: ifn1 length exceeded"
 msgstr "vaddv_i : la longueur de ifn1 a été dépassée"
 
-#: Opcodes/gab/vectorial.c:995
+#: Opcodes/gab/vectorial.c:998
 msgid "vaddv_i: ifn2 length exceeded"
 msgstr "vaddv_i : la longueur de ifn2 a été dépassée"
 
-#: Opcodes/gab/vectorial.c:1026
+#: Opcodes/gab/vectorial.c:1029
 msgid "vsubv: ifn1 length exceeded"
 msgstr "vsubv :  la longueur de ifn1 a été dépassée"
 
-#: Opcodes/gab/vectorial.c:1045
+#: Opcodes/gab/vectorial.c:1048
 msgid "vsubv: ifn2 length exceeded"
 msgstr "vsubv : la longueur de ifn2 a été dépassée"
 
-#: Opcodes/gab/vectorial.c:1072
+#: Opcodes/gab/vectorial.c:1075
 #, c-format
 msgid "vsubv_i: ifn1 invalid table number %i"
 msgstr "vsubv_i : ifn1 numéro de table %i non valide"
 
-#: Opcodes/gab/vectorial.c:1077
+#: Opcodes/gab/vectorial.c:1080
 #, c-format
 msgid "vsubv_i: ifn2 invalid table number %i"
 msgstr "vsubv_i : ifn2 numéro de table %i non valide"
 
-#: Opcodes/gab/vectorial.c:1099
+#: Opcodes/gab/vectorial.c:1102
 msgid "vsubv_i: ifn1 length exceeded"
 msgstr "vsubv_i : la longueur de ifn1 a été dépassée"
 
-#: Opcodes/gab/vectorial.c:1117
+#: Opcodes/gab/vectorial.c:1120
 msgid "vsubv_i: ifn2 length exceeded"
 msgstr "vsubv_i : la longueur de ifn2 a été dépassée"
 
-#: Opcodes/gab/vectorial.c:1154
+#: Opcodes/gab/vectorial.c:1157
 msgid "vmultv: ifn1 length exceeded"
 msgstr "vmultv : la longueur de ifn1 a été dépassée"
 
-#: Opcodes/gab/vectorial.c:1173
+#: Opcodes/gab/vectorial.c:1176
 msgid "vmultv: ifn2 length exceeded"
 msgstr "vmultv : la longueur de ifn2 a été dépassée"
 
-#: Opcodes/gab/vectorial.c:1200
+#: Opcodes/gab/vectorial.c:1203
 #, c-format
 msgid "vmultv_i: ifn1 invalid table number %i"
 msgstr "vmultv_i : ifn1 numéro de table %i non valide"
 
-#: Opcodes/gab/vectorial.c:1205
+#: Opcodes/gab/vectorial.c:1208
 #, c-format
 msgid "vmultv_i: ifn2 invalid table number %i"
 msgstr "vmultv_i : ifn2 numéro de table %i non valide"
 
-#: Opcodes/gab/vectorial.c:1227
+#: Opcodes/gab/vectorial.c:1230
 msgid "vmultv_i: ifn1 length exceeded"
 msgstr "vmultv_i : la longueur de ifn1 a été dépassée"
 
-#: Opcodes/gab/vectorial.c:1244
+#: Opcodes/gab/vectorial.c:1247
 msgid "vmultv_i: ifn2 length exceeded"
 msgstr "vmultv_i : la longueur de ifn2 a été dépassée"
 
-#: Opcodes/gab/vectorial.c:1281
+#: Opcodes/gab/vectorial.c:1284
 msgid "vdivv: ifn1 length exceeded"
 msgstr "vdivv : la longueur de ifn1 a été dépassée"
 
-#: Opcodes/gab/vectorial.c:1300
+#: Opcodes/gab/vectorial.c:1303
 msgid "vdivv: ifn2 length exceeded"
 msgstr "vdivv : la longueur de ifn2 a été dépassée"
 
-#: Opcodes/gab/vectorial.c:1327
+#: Opcodes/gab/vectorial.c:1330
 #, c-format
 msgid "vdivv_i: ifn1 invalid table number %i"
 msgstr "vdivv_i : ifn1 numéro de table %i non valide"
 
-#: Opcodes/gab/vectorial.c:1332
+#: Opcodes/gab/vectorial.c:1335
 #, c-format
 msgid "vdivv_i: ifn2 invalid table number %i"
 msgstr "vdivv_i : ifn2 numéro de table %i non valide"
 
-#: Opcodes/gab/vectorial.c:1354
+#: Opcodes/gab/vectorial.c:1357
 msgid "vdivv_i: ifn1 length exceeded"
 msgstr "vdivv_i : la longueur de ifn1 a été dépassée"
 
-#: Opcodes/gab/vectorial.c:1372
+#: Opcodes/gab/vectorial.c:1375
 msgid "vdivv_i: ifn2 length exceeded"
 msgstr "vdivv_i : la longueur de ifn2 a été dépassée"
 
-#: Opcodes/gab/vectorial.c:1409
+#: Opcodes/gab/vectorial.c:1412
 msgid "vpowv: ifn1 length exceeded"
 msgstr "vpowv : la longueur de ifn1 a été dépassée"
 
-#: Opcodes/gab/vectorial.c:1428
+#: Opcodes/gab/vectorial.c:1431
 msgid "vpowv: ifn2 length exceeded"
 msgstr "vpowv : la longueur de ifn2 a été dépassée"
 
-#: Opcodes/gab/vectorial.c:1455
+#: Opcodes/gab/vectorial.c:1458
 #, c-format
 msgid "vpowv_i: ifn1 invalid table number %i"
 msgstr "vpowv_i : ifn1 numéro de table %i non valide"
 
-#: Opcodes/gab/vectorial.c:1460
+#: Opcodes/gab/vectorial.c:1463
 #, c-format
 msgid "vpowv_i: ifn2 invalid table number %i"
 msgstr "vpowv_i : ifn2 numéro de table %i non valide"
 
-#: Opcodes/gab/vectorial.c:1482
+#: Opcodes/gab/vectorial.c:1485
 msgid "vpowv_i: ifn1 length exceeded"
 msgstr "vpowv_i : la longueur de ifn1 a été dépassée"
 
-#: Opcodes/gab/vectorial.c:1499
+#: Opcodes/gab/vectorial.c:1502
 msgid "vpowv_i: ifn2 length exceeded"
 msgstr "vpowv_i : la longueur de ifn2 a été dépassée"
 
-#: Opcodes/gab/vectorial.c:1536
+#: Opcodes/gab/vectorial.c:1539
 msgid "vexpv: ifn1 length exceeded"
 msgstr "vexpv : la longueur de ifn1 a été dépassée"
 
-#: Opcodes/gab/vectorial.c:1555
+#: Opcodes/gab/vectorial.c:1558
 msgid "vexpv: ifn2 length exceeded"
 msgstr "vexpv : la longueur de ifn2 a été dépassée"
 
-#: Opcodes/gab/vectorial.c:1582
+#: Opcodes/gab/vectorial.c:1585
 #, c-format
 msgid "vexpv_i: ifn1 invalid table number %i"
 msgstr "vexpv_i : ifn1 numéro de table %i non valide"
 
-#: Opcodes/gab/vectorial.c:1587
+#: Opcodes/gab/vectorial.c:1590
 #, c-format
 msgid "vexpv_i: ifn2 invalid table number %i"
 msgstr "vexpv_i : ifn2 numéro de table %i non valide"
 
-#: Opcodes/gab/vectorial.c:1609
+#: Opcodes/gab/vectorial.c:1612
 msgid "vexpv_i: ifn1 length exceeded"
 msgstr "vexpv_i : la longueur de ifn1 a été dépassée"
 
-#: Opcodes/gab/vectorial.c:1627
+#: Opcodes/gab/vectorial.c:1630
 msgid "vexpv_i: ifn2 length exceeded"
 msgstr "vexpv_i : la longueur de ifn2 a été dépassée"
 
-#: Opcodes/gab/vectorial.c:1664
+#: Opcodes/gab/vectorial.c:1667
 msgid "vmap: Error: ifn1 and ifn2 can not be the same"
 msgstr "vmap : Erreur : ifn1 et ifn2 ne peuvent pas être les mêmes"
 
-#: Opcodes/gab/vectorial.c:1669
+#: Opcodes/gab/vectorial.c:1672
 #, c-format
 msgid "vmap: ifn1 invalid table number %i"
 msgstr "vmap : ifn1 numéro de table %i non valide"
 
-#: Opcodes/gab/vectorial.c:1674
+#: Opcodes/gab/vectorial.c:1677
 #, c-format
 msgid "vmap: ifn2 invalid table number %i"
 msgstr "vmap : ifn2 numéro de table %i non valide"
 
-#: Opcodes/gab/vectorial.c:1696
+#: Opcodes/gab/vectorial.c:1699
 msgid "vmap: ifn1 length exceeded"
 msgstr "vmap : la longueur de ifn1 a été dépassée"
 
-#: Opcodes/gab/vectorial.c:1713
+#: Opcodes/gab/vectorial.c:1716
 msgid "vmap: ifn2 length exceeded"
 msgstr "vmap : la longueur de ifn2 a été dépassée"
 
-#: Opcodes/gab/vectorial.c:1734
+#: Opcodes/gab/vectorial.c:1737
 msgid "vectorop: invalid num of elements"
 msgstr "vectorop : nombre d'éléments non valide"
 
-#: Opcodes/gab/vectorial.c:1764
+#: Opcodes/gab/vectorial.c:1767
 msgid "vport: invalid table length or num of elements"
 msgstr "vport : longueur de table ou nombre d'éléments non valides"
 
-#: Opcodes/gab/vectorial.c:1767
+#: Opcodes/gab/vectorial.c:1770
 msgid "vport: invalid table"
 msgstr "vport : table non valide"
 
-#: Opcodes/gab/vectorial.c:1772
+#: Opcodes/gab/vectorial.c:1775
 msgid "vport: invalid init table length or num of elements"
 msgstr "vport : longueur de table init ou nombre d'éléments non valides"
 
-#: Opcodes/gab/vectorial.c:1775
+#: Opcodes/gab/vectorial.c:1778
 msgid "vport: invalid init table"
 msgstr "vport : table non valide"
 
-#: Opcodes/gab/vectorial.c:1915
+#: Opcodes/gab/vectorial.c:1918
 #, c-format
 msgid "vrandh: Seeding from current time %<PRIu32>\n"
 msgstr "vrandh : graine à partir de l'horloge %<PRIu32>\n"
 
-#: Opcodes/gab/vectorial.c:1928
+#: Opcodes/gab/vectorial.c:1931
 msgid "vrandh: Invalid table."
 msgstr "vrandh : table non valide."
 
-#: Opcodes/gab/vectorial.c:1931
+#: Opcodes/gab/vectorial.c:1934
 msgid "vrandh: idstoffset is greater than table length."
 msgstr "vrandh : idstoffset est supérieur à la longueur de la table."
 
-#: Opcodes/gab/vectorial.c:1936
+#: Opcodes/gab/vectorial.c:1939
 msgid "randh: Table length exceeded, last elements discarded."
 msgstr "randh : longeur de la table dépassée, derniers éléments ignoré."
 
-#: Opcodes/gab/vectorial.c:2016
+#: Opcodes/gab/vectorial.c:2019
 #, c-format
 msgid "vrandi: Seeding from current time %<PRIu32>\n"
 msgstr "vrandi : graine à partir de l'horloge %<PRIu32>\n"
 
-#: Opcodes/gab/vectorial.c:2029
+#: Opcodes/gab/vectorial.c:2032
 msgid "vrandi: Invalid table."
 msgstr "vrandi : table non valide."
 
-#: Opcodes/gab/vectorial.c:2032
+#: Opcodes/gab/vectorial.c:2035
 msgid "vrandi: idstoffset is greater thantable length."
 msgstr "vrandi : idstoffset est supérieur à la longueur de la table."
 
-#: Opcodes/gab/vectorial.c:2037
+#: Opcodes/gab/vectorial.c:2040
 msgid "vrandi: Table length exceeded, last elements discarded."
 msgstr "vrandi : longueur de la table dépassée, derniers éléments ignorés."
 
-#: Opcodes/gab/vectorial.c:2120 Opcodes/gab/vectorial.c:2127
-#: Opcodes/gab/vectorial.c:2134
+#: Opcodes/gab/vectorial.c:2123 Opcodes/gab/vectorial.c:2130
+#: Opcodes/gab/vectorial.c:2137
 msgid "vecdelay: invalid num of elements"
 msgstr "vecdelay : nombre d'éléments non valide"
 
-#: Opcodes/gab/vectorial.c:2122
+#: Opcodes/gab/vectorial.c:2125
 msgid "vecdly: invalid output table"
 msgstr "vecdly : table de sortie non valide"
 
-#: Opcodes/gab/vectorial.c:2129
+#: Opcodes/gab/vectorial.c:2132
 msgid "vecdly: invalid input table"
 msgstr "vecdly : table d'entrée non valide"
 
-#: Opcodes/gab/vectorial.c:2136
+#: Opcodes/gab/vectorial.c:2139
 msgid "vecdly: invalid delay table"
 msgstr "vecdly : table de délai non valide"
 
-#: Opcodes/gab/vectorial.c:2181
+#: Opcodes/gab/vectorial.c:2184
 msgid "vecdly: not initialised"
 msgstr "vecdly : non initialisé"
 
-#: Opcodes/gab/vectorial.c:2229
+#: Opcodes/gab/vectorial.c:2232
 msgid "vlinseg/vexpseg: invalid num. of elements"
 msgstr "vlinseg/vexpseg : nombre d'éléments non valide"
 
-#: Opcodes/gab/vectorial.c:2271 Opcodes/vpvoc.c:126
+#: Opcodes/gab/vectorial.c:2274 Opcodes/vpvoc.c:126
 msgid "tableseg: not initialised"
 msgstr "tableseg : non initialisé"
 
-#: Opcodes/gab/vectorial.c:2301 Opcodes/vpvoc.c:155
+#: Opcodes/gab/vectorial.c:2304 Opcodes/vpvoc.c:155
 msgid "tablexseg: not initialised"
 msgstr "tablexseg : non initialisé"
 
-#: Opcodes/gab/vectorial.c:2454
+#: Opcodes/gab/vectorial.c:2457
 msgid "vdelayk: not initialised"
 msgstr "vdelayk : non initialisé"
 
-#: Opcodes/gab/vectorial.c:2487 Opcodes/gab/vectorial.c:2493
+#: Opcodes/gab/vectorial.c:2490 Opcodes/gab/vectorial.c:2496
 msgid "cella: invalid num of elements"
 msgstr "cella : nombre d'éléments non valide"
 
-#: Opcodes/gab/vectorial.c:2489
+#: Opcodes/gab/vectorial.c:2492
 msgid "cella: invalid output table"
 msgstr "cella : table de sortie non valide"
 
-#: Opcodes/gab/vectorial.c:2496
+#: Opcodes/gab/vectorial.c:2499
 msgid "cella: invalid initial state table"
 msgstr "cella : table d'état initial non valide"
 
-#: Opcodes/gab/vectorial.c:2500
+#: Opcodes/gab/vectorial.c:2503
 msgid "cella: invalid rule table"
 msgstr "cella : table de règle non valide"
 
@@ -8688,8 +8692,8 @@ msgstr "mode de boucle non valide : %d"
 msgid "loscilx: invalid number of output arguments"
 msgstr "loscilx : nombre d'arguments de sortie non valide"
 
-#: Opcodes/loscilx.c:236 Opcodes/loscilx.c:265 Opcodes/pvlock.c:184
-#: Opcodes/pvlock.c:414 Opcodes/pvsbasic.c:598
+#: Opcodes/loscilx.c:236 Opcodes/loscilx.c:265 Opcodes/pvlock.c:186
+#: Opcodes/pvlock.c:418 Opcodes/pvsbasic.c:598
 msgid ""
 "number of output arguments inconsistent with number of sound file channels"
 msgstr ""
@@ -9404,24 +9408,28 @@ msgstr "pvcross : non initialisé"
 msgid "invalid number of output arguments"
 msgstr "nombre d'arguments de sortie non valide"
 
-#: Opcodes/pvlock.c:585
+#: Opcodes/pvlock.c:179 Opcodes/pvlock.c:396
+msgid "function table not found"
+msgstr "table de fonction non trouvée"
+
+#: Opcodes/pvlock.c:589
 #, c-format
 msgid "filescal: failed to open file %s\n"
 msgstr "filescal : échec de l'ouverture du fichier %s\n"
 
-#: Opcodes/pvlock.c:594
+#: Opcodes/pvlock.c:598
 #, c-format
 msgid "filescal: mismatched channel numbers. %d outputs, %d inputs\n"
 msgstr "filescal : nombres de canaux différents. %d sorties, %d entrées\n"
 
-#: Opcodes/pvlock.c:891 Opcodes/pvsband.c:46 Opcodes/pvsbasic.c:719
+#: Opcodes/pvlock.c:895 Opcodes/pvsband.c:46 Opcodes/pvsbasic.c:719
 #: Opcodes/pvsbasic.c:1050 Opcodes/pvsbasic.c:1265 Opcodes/pvsbasic.c:1372
 #: Opcodes/pvsbasic.c:1617 Opcodes/pvsbasic.c:1841 Opcodes/pvsbasic.c:2014
 #: Opcodes/pvsgendy.c:44 Opcodes/signalflowgraph.cpp:701
 msgid "Unsafe to have same fsig as in and out"
 msgstr "Il est risqué d'avoir le même fsig en entrée et en sortie"
 
-#: Opcodes/pvlock.c:903
+#: Opcodes/pvlock.c:907
 msgid "pvsfreeze: signal format must be amp-freq."
 msgstr "pvsfreeze : le format de signal doit être amp-fréq."
 
@@ -10043,13 +10051,13 @@ msgstr "Fixation du phonème : %d %f\n"
 msgid "crossfade cannot be longer than loop\n"
 msgstr "crossfade plus long que la durée de la boucle\n"
 
-#: Opcodes/sndloop.c:315
-msgid "crossfade longer than loop duration\n"
-msgstr "crossfade plus long que la durée de la boucle\n"
-
-#: Opcodes/sndloop.c:319 Opcodes/sndloop.c:448
+#: Opcodes/sndloop.c:310 Opcodes/sndloop.c:448
 msgid "function table not found\n"
 msgstr "table de fonction non trouvée\n"
+
+#: Opcodes/sndloop.c:318
+msgid "crossfade longer than loop duration\n"
+msgstr "crossfade plus long que la durée de la boucle\n"
 
 #: Opcodes/sndloop.c:327
 msgid "function table channel count does not match output"
@@ -11786,7 +11794,7 @@ msgid "--keep-sorted-score"
 msgstr "--keep-sorted-score"
 
 #: Top/argdecode.c:258
-msgid "--simple_sorted_score"
+msgid "--simple-sorted-score"
 msgstr "--simple-sorted-score"
 
 #: Top/argdecode.c:259

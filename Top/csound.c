@@ -987,8 +987,9 @@ static const CSOUND cenviron_ = {
     0,              /* message_string_queue_items */
     0,              /* message_string_queue_wp */
     NULL,            /* message_string_queue */
-    0                /* io_initialised */
-    /*, NULL */      /* self-reference */
+    0,              /* io_initialised */
+    NULL,           /* op */
+    0               /* mode */
 };
 
 void csound_aops_init_tables(CSOUND *cs);
@@ -1398,7 +1399,7 @@ PUBLIC void csoundDestroy(CSOUND *csound)
       csoundDestroyMutex(csound->API_lock);
     }
     /* clear the pointer */
-    //*(csound->self) = NULL;
+    // *(csound->self) = NULL;
     free((void*) csound);
 }
 
@@ -1534,12 +1535,15 @@ inline static int nodePerf(CSOUND *csound, int index, int numThreads)
             insds->spin = csound->spin;
             insds->spout = csound->spraw;
             insds->kcounter =  csound->kcounter;
+            csound->mode = 2;
             while ((opstart = opstart->nxtp) != NULL) {
               /* In case of jumping need this repeat of opstart */
               opstart->insdshead->pds = opstart;
+              csound->op = csound->ids->optext->t.oentry->opname;
               (*opstart->opadr)(csound, opstart); /* run each opcode */
               opstart = opstart->insdshead->pds;
             }
+            csound->mode = 0;
           } else {
             int i, n = csound->nspout, start = 0;
             int lksmps = insds->ksmps;
@@ -1567,11 +1571,14 @@ inline static int nodePerf(CSOUND *csound, int index, int numThreads)
 
             for (i=start; i < n; i+=incr, insds->spin+=incr, insds->spout+=incr) {
               opstart = (OPDS*) insds;
+              csound->mode = 2;
               while ((opstart = opstart->nxtp) != NULL) {
                 opstart->insdshead->pds = opstart;
+                csound->op = csound->ids->optext->t.oentry->opname;
                 (*opstart->opadr)(csound, opstart); /* run each opcode */
                 opstart = opstart->insdshead->pds;
               }
+              csound->mode = 0;
               insds->kcounter++;
             }
           }
@@ -1763,12 +1770,15 @@ int kperf_nodebug(CSOUND *csound)
 
                 for (i=start; i < n; i+=incr, ip->spin+=incr, ip->spout+=incr) {
                   opstart = (OPDS*) ip;
+                  csound->mode = 2;
                   while (error ==  0 && (opstart = opstart->nxtp) != NULL
                          && ip->actflg) {
                     opstart->insdshead->pds = opstart;
+                    csound->op = csound->ids->optext->t.oentry->opname;
                     error = (*opstart->opadr)(csound, opstart); /* run each opcode */
                     opstart = opstart->insdshead->pds;
                   }
+                  csound->mode = 0;
                   ip->kcounter++;
                 }
             }
@@ -1858,6 +1868,8 @@ static inline void process_debug_buffers(CSOUND *csound, csdebug_data_t *data)
         while (n) {
           if (n->line == bkpt_node->line && n->instr == bkpt_node->instr) {
             prev->next = n->next;
+            if (data->cur_bkpt == n)
+              data->cur_bkpt = n->next;
             csound->Free(csound, n); /* TODO this should be moved from kperf to a
                         non-realtime context */
             n = prev->next;
@@ -1932,7 +1944,7 @@ int kperf_debug(CSOUND *csound)
       }
       if (command == CSDEBUG_CMD_CONTINUE &&
           data->status == CSDEBUG_STATUS_STOPPED) {
-        if (data->cur_bkpt->skip <= 2) data->cur_bkpt->count = 2;
+        if (data->cur_bkpt && data->cur_bkpt->skip <= 2) data->cur_bkpt->count = 2;
         data->status = CSDEBUG_STATUS_RUNNING;
         if (data->debug_instr_ptr) {
           /* if not NULL, resume from last active */
@@ -2243,7 +2255,7 @@ PUBLIC int csoundPerform(CSOUND *csound)
         if (UNLIKELY((done = sensevents(csound)))) {
           csoundMessage(csound, Str("Score finished in csoundPerform().\n"));
           if(!csound->oparms->realtime)
-          csoundUnlockMutex(csound->API_lock);
+            csoundUnlockMutex(csound->API_lock);
           if (csound->oparms->numThreads > 1) {
             csound->multiThreadedComplete = 1;
             csound->WaitBarrier(csound->barrier1);
