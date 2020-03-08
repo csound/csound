@@ -1774,7 +1774,8 @@ int kperf_nodebug(CSOUND *csound)
                   while (error ==  0 && (opstart = opstart->nxtp) != NULL
                          && ip->actflg) {
                     opstart->insdshead->pds = opstart;
-                    csound->op = opstart->optext->t.opcod;//csound->ids->optext->t.oentry->opname;
+                    csound->op = opstart->optext->t.opcod;
+                    //csound->ids->optext->t.oentry->opname;
                     error = (*opstart->opadr)(csound, opstart); /* run each opcode */
                     opstart = opstart->insdshead->pds;
                   }
