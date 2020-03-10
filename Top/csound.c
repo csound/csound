@@ -1592,21 +1592,34 @@ inline static int nodePerf(CSOUND *csound, int index, int numThreads)
     return played_count;
 }
 
-inline static void make_interleave(CSOUND *csound)
+inline static void make_interleave(CSOUND *csound, uint32_t lksmps)
 {
-    uint32_t nsmps = csound->ksmps, i, j, k=0;
+    uint32_t nsmps = csound->ksmps, nchan = csound->nchnls,i, j, n, k=0;
     MYFLT *spout = csound->spout;
 
     if (!csound->spoutactive) {
       memset(spout, '\0', csound->nspout*sizeof(MYFLT));
     }
-    else {
+    else if (lksmps == nsmps|| nchan==1 ) {
       for (j=0; j<nsmps; j++) {
-        for (i=0; i<csound->nchnls; i++) {
+        for (i=0; i<nchan; i++) {
           // Will be copy t ad when complette
           spout[k + i] = csound->spraw[i*nsmps+j];
         }
-        k += csound->nchnls;
+        k += nchan;
+      }
+    }
+    else {
+      int m = 0;
+      for (n=0; n<nsmps/lksmps; n++) {
+        for (j=0; j<lksmps; j++) {
+          for (i=0; i<nchan; i++) {
+            // Will be copy t ad when complette
+            spout[k + i] = csound->spraw[i*lksmps+j+m];
+          }
+          k += nchan;
+        }
+        m += nchan*lksmps;
       }
     }
 }
@@ -1663,6 +1676,7 @@ unsigned long kperfThread(void * cs)
 int kperf_nodebug(CSOUND *csound)
 {
     INSDS *ip;
+    int lksmps = csound->ksmps;
     /* update orchestra time */
     csound->kcounter = ++(csound->global_kcounter);
     csound->icurTime += csound->ksmps;
@@ -1735,17 +1749,20 @@ int kperf_nodebug(CSOUND *csound)
             ip->spout = csound->spraw;
             ip->kcounter =  csound->kcounter;
             if (ip->ksmps == csound->ksmps) {
+              csound->mode = 2;
               while (error == 0 &&
                      (opstart = opstart->nxtp) != NULL &&
                      ip->actflg) {
                 opstart->insdshead->pds = opstart;
+                csound->op = opstart->optext->t.opcod;
                 error = (*opstart->opadr)(csound, opstart); /* run each opcode */
                 opstart = opstart->insdshead->pds;
               }
+              csound->mode = 0;
             } else {
                 int error = 0;
                 int i, n = csound->nspout, start = 0;
-                int lksmps = ip->ksmps;
+                lksmps = ip->ksmps;
                 int incr = csound->nchnls*lksmps;
                 int offset =  ip->ksmps_offset;
                 int early = ip->ksmps_no_end;
@@ -1797,7 +1814,7 @@ int kperf_nodebug(CSOUND *csound)
       memset(csound->spout, 0, csound->nspout * sizeof(MYFLT));
       memset(csound->spraw, 0, csound->nspout * sizeof(MYFLT));
     }
-    make_interleave(csound);
+    make_interleave(csound, lksmps);
     csound->spoutran(csound); /* send to audio_out */
     //#ifdef ANDROID
     //struct timespec ts;
@@ -1844,8 +1861,10 @@ static inline void opcode_perf_debug(CSOUND *csound,
           bp_node = bp_node->next;
         }
       opstart->insdshead->pds = opstart;
+      csound->mode = 2;
       (*opstart->opadr)(csound, opstart); /* run each opcode */
       opstart = opstart->insdshead->pds;
+      csound->mode = 0;
     }
 }
 
@@ -1892,7 +1911,7 @@ int kperf_debug(CSOUND *csound)
 {
     INSDS *ip;
     csdebug_data_t *data = (csdebug_data_t *) csound->csdebug_data;
-
+    int lksmps = csound->ksmps;
     /* call message_dequeue to run API calls */
     message_dequeue(csound);
 
@@ -2030,7 +2049,7 @@ int kperf_debug(CSOUND *csound)
                 opcode_perf_debug(csound, data, ip);
             } else { /* when instrument has local ksmps */
               int i, n = csound->nspout, start = 0;
-              int lksmps = ip->ksmps;
+              lksmps = ip->ksmps;
               int incr = csound->nchnls*lksmps;
               int offset =  ip->ksmps_offset;
               int early = ip->ksmps_no_end;
@@ -2082,7 +2101,7 @@ int kperf_debug(CSOUND *csound)
       memset(csound->spraw, 0, csound->nspout * sizeof(MYFLT));
     }
     else
-      make_interleave(csound);
+      make_interleave(csound, lksmps);
     csound->spoutran(csound);               /*      send to audio_out  */
     }
     return 0;

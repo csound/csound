@@ -1880,17 +1880,22 @@ int32_t outq4(CSOUND *csound, OUTM *p)
 
 inline static int32_t outn(CSOUND *csound, uint32_t n, OUTX *p)
 {
-    uint32_t nsmps =CS_KSMPS,  i, j, k=0;
+    uint32_t nsmps = CS_KSMPS,  i, j, k=0;
     MYFLT *spout = CS_SPOUT; ///csound->spraw;
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     //    if (UNLIKELY((offset|early))) {
+    //printf("OUT; spout=%p early=%d offset=%d\n", spout, early, offset);
     early = nsmps - early;
     CSOUND_SPOUT_SPINLOCK
 
     if (!csound->spoutactive) {
+      //printf("inactive: spout=%p size=%ld\n",
+      //       spout, csound->nspout*sizeof(MYFLT));
       memset(spout, '\0', csound->nspout*sizeof(MYFLT));
       for (i=0; i<n; i++) {
+        //printf("        : spout=%p size=%ld\n",
+        //       spout+k+offset, (early-offset)*sizeof(MYFLT));
         memcpy(&spout[k+offset], p->asig[i]+offset, (early-offset)*sizeof(MYFLT));
         k += nsmps;
       }
@@ -1899,6 +1904,7 @@ inline static int32_t outn(CSOUND *csound, uint32_t n, OUTX *p)
     else {
       for (i=0; i<n; i++) {
         for (j=offset; j<early; j++) {
+          //printf("active: spout=%p k=%d j=%d\n", spout, k, j);
           spout[k + j] += p->asig[i][j];
         }
         k += nsmps;
