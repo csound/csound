@@ -897,6 +897,7 @@ OENTRY opcodlst_1[] = {
   { "invalue.k", S(INVAL),_CR, 3, "k", "i", (SUBR) invalset,(SUBR)kinval, NULL },
   { "invalue.i", S(INVAL),_CR, 1, "i", "i", (SUBR) invalsetgo, NULL, NULL },
   { "invalue.iS", S(INVAL),_CR, 1, "i", "S", (SUBR) invalsetSgo, NULL, NULL },
+  { "invalue.kS", S(INVAL),_CR, 3, "k", "S",(SUBR) invalset_S,(SUBR)kinval, NULL },
   { "invalue.S", S(INVAL),_CR, 3, "S", "i",
                                       (SUBR) invalset_string, (SUBR)kinvalS, NULL },
   { "invalue.SS", S(INVAL),_CR, 3, "S", "S",
