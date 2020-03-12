@@ -1782,7 +1782,7 @@ typedef struct _message_queue_t_ {
     int           strsiz;       /* length of current strings space */
     FUNC          *sinetable;   /* A useful table */
     int           sinelength;   /* Size of table */
-    MYFLT         *powerof2;    /* pow2 table */
+    MYFLT         *UNUSEDP;     /* pow2 table */
     MYFLT         *cpsocfrc;    /* cps conv table */
     CORFIL*       expanded_orc; /* output of preprocessor */
     CORFIL*       expanded_sco; /* output of preprocessor */
