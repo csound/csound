@@ -288,7 +288,14 @@ int AuHAL_open(CSOUND *csound, const csRtAudioParams * parm,
       prop.mSelector = kAudioHardwarePropertyDevices;
       if (isInput) {
         for(i=0; (unsigned int)  i < devnos; i++) {
-          if((unsigned int) devinfo[i].indevnum == devnum) CoreAudioDev = i;
+          if((unsigned int) devinfo[i].indevnum == devnum) {
+          	if(devinfo[i].inchannels < parm->nChannels) {
+          		csound->Warning(csound, 
+          			Str("Device has not enough channels (%d, requested %d)"),
+          			devinfo[i].inchannels, parm->nChannels)
+          	}
+          	CoreAudioDev = i;
+          }
         }
         if (LIKELY(CoreAudioDev >= 0)) {
           prop.mSelector = kAudioHardwarePropertyDefaultInputDevice;
