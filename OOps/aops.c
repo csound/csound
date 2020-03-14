@@ -45,26 +45,27 @@ void csound_aops_init_tables(CSOUND *csound)
     int32_t   i;
     if (csound->cpsocfrc==NULL)
       csound->cpsocfrc = (MYFLT *) csound->Malloc(csound, sizeof(MYFLT)*OCTRES);
-    if (csound->powerof2==NULL)
-      csound->powerof2 = (MYFLT *) csound->Malloc(csound,
-                                                  sizeof(MYFLT)*POW2TABSIZI);
+    /* if (csound->powerof2==NULL) */
+    /*   csound->powerof2 = (MYFLT *) csound->Malloc(csound, */
+    /*                                               sizeof(MYFLT)*POW2TABSIZI); */
     for (i = 0; i < OCTRES; i++)
       csound->cpsocfrc[i] = POWER(FL(2.0), (MYFLT)i / OCTRES) * ONEPT;
-    for (i = 0; i < POW2TABSIZI; i++) {
-      csound->powerof2[i] =
-        POWER(FL(2.0), (MYFLT)i * (MYFLT)(1.0/POW2TABSIZI) - FL(POW2MAX));
-    }
+    /* for (i = 0; i < POW2TABSIZI; i++) { */
+    /*   csound->powerof2[i] = */
+    /*     POWER(FL(2.0), (MYFLT)i * (MYFLT)(1.0/POW2TABSIZI) - FL(POW2MAX)); */
+    /* } */
 }
 
 
 MYFLT csoundPow2(CSOUND *csound, MYFLT a)
 {
-    int32_t n;
+    /* int32_t n; */
     if (a > POW2MAX) a = POW2MAX;
     else if (a < -POW2MAX) a = -POW2MAX;
+    return POWER(FL(2.0), a);
     /* 4096 * 15 */
-    n = (int32_t)MYFLT2LRND(a * FL(POW2TABSIZI)) + POW2MAX*POW2TABSIZI;
-    return ((MYFLT) (1UL << (n >> 12)) * csound->powerof2[n & (POW2TABSIZI-1)]);
+    /* n = (int32_t)MYFLT2LRND(a * FL(POW2TABSIZI)) + POW2MAX*POW2TABSIZI; */
+    /* return ((MYFLT) (1UL << (n >> 12)) * csound->powerof2[n & (POW2TABSIZI-1)]); */
 }
 
 
@@ -1255,7 +1256,7 @@ int32_t logbasetwo_set(CSOUND *csound, EVAL *p)
 
 int32_t powoftwo(CSOUND *csound, EVAL *p)
 {
-    *p->r = csound->Pow2(csound,*p->a);
+    *p->r = POWER(FL(2.0), *p->a);
     return OK;
 }
 
@@ -1271,7 +1272,7 @@ int32_t powoftwoa(CSOUND *csound, EVAL *p)
       memset(&r[nsmps], '\0', early*sizeof(MYFLT));
     }
     for (n = offset; n < nsmps; n++)
-      r[n] = csound->Pow2(csound,a[n]);
+      r[n] = POWER(FL(2.0), a[n]);
     return OK;
 }
 
@@ -1281,7 +1282,7 @@ int32_t powoftwoa(CSOUND *csound, EVAL *p)
 int32_t semitone(CSOUND *csound, EVAL *p)
 {
     MYFLT a = *p->a*ONEd12;
-    *p->r = csound->Pow2(csound,a);
+    *p->r = POWER(FL(2.0), a);
     return OK;
 }
 
@@ -1300,15 +1301,15 @@ int32_t asemitone(CSOUND *csound, EVAL *p)            /* JPff */
     }
     for (n = offset; n < nsmps; n++) {
       MYFLT aa = (a[n])*ONEd12;
-      r[n] = csound->Pow2(csound,aa);
+      r[n] = POWER(FL(2.0), aa);
     }
     return OK;
 }
 
 int32_t cent(CSOUND *csound, EVAL *p)
 {
-    MYFLT a = *p->a*ONEd1200;
-    *p->r = csound->Pow2(csound,a);
+    MYFLT a = *p->a;
+    *p->r = POWER(FL(2.0), a/FL(1200.0));
     return OK;
 }
 
@@ -1327,7 +1328,7 @@ int32_t acent(CSOUND *csound, EVAL *p)        /* JPff */
     }
     for (n = offset; n < nsmps; n++) {
       MYFLT aa = (a[n])*ONEd1200;
-      r[n] = csound->Pow2(csound,aa);
+      r[n] = POWER(FL(2.0), aa);
   }
   return OK;
 }
@@ -1336,7 +1337,7 @@ int32_t acent(CSOUND *csound, EVAL *p)        /* JPff */
 
 int32_t db(CSOUND *csound, EVAL *p)
 {
-    *p->r = csound->Pow2(csound,*p->a*LOG2_10D20);
+    *p->r = POWER(FL(2.0), *p->a*LOG2_10D20);
     return OK;
 }
 
@@ -1355,7 +1356,7 @@ int32_t dba(CSOUND *csound, EVAL *p)          /* JPff */
     }
     for (n = offset; n < nsmps; n++) {
       MYFLT aa = a[n];
-      r[n] = csound->Pow2(csound,aa*LOG2_10D20);
+      r[n] = POWER(FL(2.0), aa*LOG2_10D20);
     }
     return OK;
 }
@@ -1880,17 +1881,22 @@ int32_t outq4(CSOUND *csound, OUTM *p)
 
 inline static int32_t outn(CSOUND *csound, uint32_t n, OUTX *p)
 {
-    uint32_t nsmps =CS_KSMPS,  i, j, k=0;
+    uint32_t nsmps = CS_KSMPS,  i, j, k=0;
     MYFLT *spout = CS_SPOUT; ///csound->spraw;
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     //    if (UNLIKELY((offset|early))) {
+    //printf("OUT; spout=%p early=%d offset=%d\n", spout, early, offset);
     early = nsmps - early;
     CSOUND_SPOUT_SPINLOCK
 
     if (!csound->spoutactive) {
+      //printf("inactive: spout=%p size=%ld\n",
+      //       spout, csound->nspout*sizeof(MYFLT));
       memset(spout, '\0', csound->nspout*sizeof(MYFLT));
       for (i=0; i<n; i++) {
+        //printf("        : spout=%p size=%ld\n",
+        //       spout+k+offset, (early-offset)*sizeof(MYFLT));
         memcpy(&spout[k+offset], p->asig[i]+offset, (early-offset)*sizeof(MYFLT));
         k += nsmps;
       }
@@ -1899,6 +1905,7 @@ inline static int32_t outn(CSOUND *csound, uint32_t n, OUTX *p)
     else {
       for (i=0; i<n; i++) {
         for (j=offset; j<early; j++) {
+          //printf("active: spout=%p k=%d j=%d\n", spout, k, j);
           spout[k + j] += p->asig[i][j];
         }
         k += nsmps;
