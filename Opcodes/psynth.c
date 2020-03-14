@@ -1107,7 +1107,7 @@ static int32_t trcross_process(CSOUND *csound, _PSCROSS *p)
       if (bal < 0)
         bal = FL(0.0);
       if (mode < 1)
-        for (i = 0; framein2[i + 3] != -1 && i < end; i += 4)
+        for (i = 0; i < end && framein2[i + 3] != -1; i += 4)
           max = framein2[i] > max ? framein2[i] : max;
 
       for (i = 0; id != -1 && i < end; i += 4, id = (int32_t) framein1[i + 3]) {

@@ -285,7 +285,7 @@ static void Analysis(CSOUND * csound, _PARTS * p)
     /* loop to the end of tracks (indicate by the 0'd bins)
        find continuation tracks */
 
-    for (j = 0; oldbins[prev + j] != 0.f && j < maxtracks; j++) {
+    for (j = 0; j < maxtracks && oldbins[prev + j] != 0.f; j++) {
 
       foundcont = 0;
 
