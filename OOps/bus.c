@@ -1587,9 +1587,9 @@ int32_t chn_k_opcode_init_S(CSOUND *csound, CHN_OPCODE_K *p)
     int32_t mode;
     if(!strcmp("rw", smode->data)) {
         mode = 3;
-    } else if(smode->data[0] == 'r'){
+    } else if(!strcmp("r", smode->data)) {
         mode = 1;
-    } else if(smode->data[0] == 'w') {
+    } else if(!strcmp("w", smode->data)) {
         mode = 2;
     } else
         return csound->InitError(csound, Str("invalid mode, should be r, w, rw"));
