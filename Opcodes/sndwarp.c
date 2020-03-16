@@ -1,4 +1,4 @@
-/*
+ /*
     sndwarp.c:
 
     Copyright (C) 1997 Richard Karpen, John ffitch
@@ -339,7 +339,7 @@ static int32_t sndwarpst(CSOUND *csound, SNDWARPST *p)
         frm10 = *(ftpSamp->ftable + (base * 2));
         frm11 = *(ftpSamp->ftable + ((base+1)*2));
         frm20 = *(ftpSamp->ftable + (base*2)+1);
-        if (((base+1)*2)+1 < ftpSamp->flen + 1)
+        if (((base+1)*2)+1 < (int)ftpSamp->flen + 1)
           frm21 = *(ftpSamp->ftable + (((base+1)*2)+1));
         else
           frm21 = FL(0.0);
