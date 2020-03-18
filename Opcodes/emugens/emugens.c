@@ -1583,12 +1583,12 @@ arrayreshape(CSOUND *csound, ARRAYRESHAPE *p) {
         numitems *= a->sizes[i];
     }
     int32_t numitems2 = numcols*numrows;
-    if(numitems != numitems2)   /* FIXME Should give an error message */
+    if(numitems != numitems2)   /* FIXME Should give an init error message */
         return NOTOK;
     if(dims == 2 && numrows==0) {
         // 2 -> 1
         a->dimensions = 1;
-        a->sizes[0] = numrows;  /* FIXME nurows is zero so no size */
+        a->sizes[0] = numrows;  /* FIXME numrows is zero so no size; fails with 0 size anyway */
         a->sizes[1] = 0;
         return OK;
     }
