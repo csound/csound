@@ -320,8 +320,8 @@ static int32_t array_set(CSOUND* csound, ARRAY_SET *p)
     mem += incr;
     //memcpy(mem, p->value, dat->arrayMemberSize);
     dat->arrayType->copyValue(csound, mem, p->value);
-    printf("array_set: mem = %p, incr = %d, value = %f\n",
-            mem, incr, *((MYFLT*)p->value));
+    /* printf("array_set: mem = %p, incr = %d, value = %f\n", */
+    /*         mem, incr, *((MYFLT*)p->value)); */
     return OK;
 }
 
@@ -4028,7 +4028,7 @@ static OENTRY arrayvars_localops[] =
      (SUBR)tabarithset,(SUBR)tabdiv },
     {"##div.[i]",  sizeof(TABARITH), 0, 1, "i[]", "i[]i[]",
      (SUBR)tabdivi },
-    {"##rems.[]",  sizeof(TABARITH), 0, 3, "k[]", "k[]k[]",
+    {"##reb<ms.[]",  sizeof(TABARITH), 0, 3, "k[]", "k[]k[]",
      (SUBR)tabarithset, (SUBR)tabrem},
     {"##rem.[i]",  sizeof(TABARITH), 0, 1, "i[]", "i[]i[]", (SUBR)tabremi},
     {"##add.[i", sizeof(TABARITH1), 0, 3, "k[]", "k[]i",
