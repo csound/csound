@@ -1588,7 +1588,7 @@ arrayreshape(CSOUND *csound, ARRAYRESHAPE *p) {
     if(dims == 2 && numrows==0) {
         // 2 -> 1
         a->dimensions = 1;
-        a->sizes[0] = numrows;
+        a->sizes[0] = numrows;  /* FIXME nurows is zero so no size */
         a->sizes[1] = 0;
         return OK;
     }
@@ -2363,7 +2363,7 @@ static OENTRY localops[] = {
       (SUBR)array_binop_init, (SUBR)array_or},
     { "##and", S(BINOP_AAA), 0, 3, "k[]", "k[]k[]",
       (SUBR)array_binop_init, (SUBR)array_and},
-    { "reshapearray", S(ARRAYRESHAPE), 0, 1, "", ".[]ip", (SUBR)arrayreshape},
+    { "reshapearray", S(ARRAYRESHAPE), 0, 1, "", ".[]io", (SUBR)arrayreshape},
 
     // { "reshapearray", S(ARRAYRESHAPE), 0, 1, "", "i[]io", (SUBR)arrayreshape},
  // { "reshapearray", S(ARRAYRESHAPE), 0, 2, "", ".[]io", NULL, (SUBR)arrayreshape},
