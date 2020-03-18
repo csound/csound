@@ -320,8 +320,8 @@ static int32_t array_set(CSOUND* csound, ARRAY_SET *p)
     mem += incr;
     //memcpy(mem, p->value, dat->arrayMemberSize);
     dat->arrayType->copyValue(csound, mem, p->value);
-    /* printf("array_set: mem = %p, incr = %d, value = %f\n", */
-    /*         mem, incr, *((MYFLT*)p->value)); */
+    printf("array_set: mem = %p, incr = %d, value = %f\n",
+            mem, incr, *((MYFLT*)p->value));
     return OK;
 }
 
@@ -2681,7 +2681,8 @@ static int32_t trim_i(CSOUND *csound, TRIM *p)
 static int32_t trim(CSOUND *csound, TRIM *p)
 {
     int size = (int)(*p->size);
-    tabcheck(csound, p->tab, size, &(p->h));
+    int n = tabcheck(csound, p->tab, size, &(p->h));
+    if (n != OK) return n;
     p->tab->sizes[0] = size;
     return OK;
 }
