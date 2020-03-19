@@ -3967,7 +3967,41 @@ int32_t deinterleave_perf (CSOUND *csound, INTERL *p) {
     return OK;
 }
 
+static int32 taninv2_A(CSOUND* csound, TABARITH* p)
+{
+    ARRAYDAT* ans = p->ans;
+    ARRAYDAT* aa = p->left;
+    ARRAYDAT* bb = p->right;
+    int i, j, k;
+    if (csound->mode == 1 && tabarithset(csound, p)!=OK)
+                             return NOTOK;
+    k = 0;
+    for (i=0; i<ans->dimensions; i++) {
+      for (j=0; j<aa->sizes[i]; j++) {
+        ans->data[k] = ATAN2(aa->data[k], bb->data[k]);
+        k++;
+      }
+    }
+    return OK;
+}
 
+static int32 taninv2_Aa(CSOUND* csound, TABARITH* p)
+{
+    ARRAYDAT* ans = p->ans;
+    ARRAYDAT* aa = p->left;
+    ARRAYDAT* bb = p->right;
+    int i, j, k;
+    uint32_t m;
+    k = 0;
+    for (i=0; i<ans->dimensions; i++) {
+      for (j=0; j<aa->sizes[i]; j++)
+        for (m=0; m<csound->ksmps; m++) {
+          ans->data[k] = ATAN2(aa->data[k], bb->data[k]);
+          k++;
+        }
+    }
+    return OK;
+}
 
 
 // reverse, scramble, mirror, stutter, rotate, ...
@@ -4343,7 +4377,10 @@ static OENTRY arrayvars_localops[] =
     {"deinterleave", sizeof(INTERL), 0, 1, "i[]i[]","i[]",
      (SUBR)deinterleave_i},
     {"deinterleave", sizeof(INTERL), 0, 1, "k[]k[]","k[]",
-     (SUBR)deinterleave_i, (SUBR)deinterleave_perf}
+     (SUBR)deinterleave_i, (SUBR)deinterleave_perf},
+    { "taninv2.Ai", sizeof(TABARITH), 0, 1, "i[]", "i[]i[]", (SUBR)taninv2_A  },
+    { "taninv2.Ak", sizeof(TABARITH), 0, 2, "k[]", "k[]k[]", (SUBR)tabarithset, (SUBR)taninv2_A  },
+    { "taninv2.Aa", sizeof(TABARITH), 0, 2, "a[]", "a[]a[]", (SUBR)tabarithset, (SUBR)taninv2_Aa  }
   };
 
 LINKAGE_BUILTIN(arrayvars_localops)

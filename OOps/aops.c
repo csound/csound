@@ -834,7 +834,7 @@ LIBA(acosa,ACOS)
 LIBA(atana,ATAN)
 LIBA(sinha,SINH)
 LIBA(cosha,COSH)
-LIBA(tanha,TANH)
+LIBA(tanha,TAN)
 LIBA(log10a,LOG10)
 LIBA(log2a,LOG2)
 
