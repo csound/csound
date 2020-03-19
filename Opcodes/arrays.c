@@ -2681,7 +2681,8 @@ static int32_t trim_i(CSOUND *csound, TRIM *p)
 static int32_t trim(CSOUND *csound, TRIM *p)
 {
     int size = (int)(*p->size);
-    tabcheck(csound, p->tab, size, &(p->h));
+    int n = tabcheck(csound, p->tab, size, &(p->h));
+    if (n != OK) return n;
     p->tab->sizes[0] = size;
     return OK;
 }
@@ -3611,7 +3612,7 @@ int32_t set_cols_i(CSOUND *csound, FFT *p) {
         return csound->InitError(csound, "%s",
                                  Str("Error: index out of range\n"));
     int32_t j,i,len =  p->out->sizes[0];
-    for (j=0,i=start; j < len; i+=len, j++)
+    for (j=0,i=start-1; j < len; i+=len+1, j++)
         p->out->data[i] = p->in->data[j];
     return OK;
 }
@@ -4027,7 +4028,7 @@ static OENTRY arrayvars_localops[] =
      (SUBR)tabarithset,(SUBR)tabdiv },
     {"##div.[i]",  sizeof(TABARITH), 0, 1, "i[]", "i[]i[]",
      (SUBR)tabdivi },
-    {"##rems.[]",  sizeof(TABARITH), 0, 3, "k[]", "k[]k[]",
+    {"##reb<ms.[]",  sizeof(TABARITH), 0, 3, "k[]", "k[]k[]",
      (SUBR)tabarithset, (SUBR)tabrem},
     {"##rem.[i]",  sizeof(TABARITH), 0, 1, "i[]", "i[]i[]", (SUBR)tabremi},
     {"##add.[i", sizeof(TABARITH1), 0, 3, "k[]", "k[]i",

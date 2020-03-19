@@ -1593,6 +1593,7 @@ arrayreshape(CSOUND *csound, ARRAYRESHAPE *p) {
     int32_t numitems = 1;
     int32_t numrows = (int32_t)(*p->numrows);
     int32_t numcols = (int32_t)(*p->numcols);
+
     if(numrows < 0 || numcols < 0) {
         return INITERR(Str("rehsapearray: neither numcols nor numrows can be negative"));
     }
