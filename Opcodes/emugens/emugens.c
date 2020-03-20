@@ -1563,6 +1563,20 @@ tab2array_i(CSOUND *csound, TAB2ARRAY *p) {
 
   works with i and k arrays, at i-time and k-time
 
+  1:  if the sizes of the array and the size of the reshaped array do not match
+it needs an error message. Currently it is rather silent.
+
+2: in calculating the sizes if numcols is zero (the default value)
+multiplying by zero always leads to an error.
+
+3:  in numrows is 0 you end up with a 0 x 0 array.
+
+(3, 5)
+
+0   1  2  3  4
+10 11 12 13 14
+20 21 22 23 24
+
 */
 
 typedef struct {
@@ -1577,31 +1591,45 @@ arrayreshape(CSOUND *csound, ARRAYRESHAPE *p) {
     int32_t dims = a->dimensions;
     int32_t i;
     int32_t numitems = 1;
-    int32_t numcols = (int32_t)(*p->numcols);
     int32_t numrows = (int32_t)(*p->numrows);
+    int32_t numcols = (int32_t)(*p->numcols);
+
+    if(numrows < 0 || numcols < 0) {
+        return INITERR(Str("rehsapearray: neither numcols nor numrows can be negative"));
+    }
+
+    if(dims > 2) {
+        return INITERR(Str("Arrays of more than 2 dimensions are not supported yet"));
+    }
+
     for(i=0; i<dims; i++) {
         numitems *= a->sizes[i];
     }
-    int32_t numitems2 = numcols*numrows;
-    if(numitems != numitems2)   /* FIXME Should give an init error message */
-        return NOTOK;
-    if(dims == 2 && numrows==0) {
-        // 2 -> 1
-        a->dimensions = 1;
-        a->sizes[0] = numrows;  /* FIXME numrows is zero so no size; fails with 0 size anyway */
-        a->sizes[1] = 0;
-        return OK;
-    }
+    int32_t numitems2 = numrows * (numcols > 0 ? numcols : 1);
+    if(numitems != numitems2)
+    	return INITERRF(Str("reshapearray: The number of items do not match."
+    		                "The array has %d elements, but the new shape"
+    		                "results in %d total elements"), 
+                        numitems, numitems2);
+
     if(dims == 2) {
-        // 2 -> 2
+        if(numcols==0) {
+            // 2 dims to 1 dim
+            a->dimensions = 1;
+        }
         a->sizes[0] = numrows;
         a->sizes[1] = numcols;
         return OK;
     }
+
+    if(numcols==0) {
+        // 1 dim to 1 dim, nothing to do
+        return OK;
+    }
+
     if(numcols>0) {
-        // 1 -> 2
-        csound->Free(csound, a->sizes);
-        a->sizes = (int32_t*)csound->Malloc(csound, sizeof(int32_t)*2);
+        // 1 dim. to 2 dimensions
+        a->sizes = csound->ReAlloc(csound, a->sizes, sizeof(int32_t)*2);
         a->dimensions = 2;
         a->sizes[0] = numrows;
         a->sizes[1] = numcols;
