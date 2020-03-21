@@ -3600,7 +3600,7 @@ int32_t set_cols_perf(CSOUND *csound, FFT *p) {
 
 
     int32_t j,i,len =  p->out->sizes[0];
-    for (j=0,i=start; j < len; i+=len, j++)
+    for (j=0,i=start; j < len; i+=len+1, j++)
         p->out->data[i] = p->in->data[j];
     return OK;
 }
@@ -3612,7 +3612,7 @@ int32_t set_cols_i(CSOUND *csound, FFT *p) {
         return csound->InitError(csound, "%s",
                                  Str("Error: index out of range\n"));
     int32_t j,i,len =  p->out->sizes[0];
-    for (j=0,i=start-1; j < len; i+=len+1, j++)
+    for (j=0,i=start; j < len; i+=len+1, j++)
         p->out->data[i] = p->in->data[j];
     return OK;
 }
