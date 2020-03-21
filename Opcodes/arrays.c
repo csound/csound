@@ -3597,6 +3597,9 @@ int32_t set_cols_perf(CSOUND *csound, FFT *p) {
     if (UNLIKELY(start < 0 || start >= p->out->sizes[1]))
       return csound->PerfError(csound, &(p->h),
                                  Str("Error: index out of range\n"));
+    if (UNLIKELY(p->in->dimensions != 1 || p->in->sizes[0]<p->out->sizes[0]))
+      return csound->PerfError(csound, &(p->h),
+                                 Str("Error: New column too short\n"));
 
 
     int32_t j,i,len =  p->out->sizes[0];
@@ -3611,6 +3614,9 @@ int32_t set_cols_i(CSOUND *csound, FFT *p) {
     if (UNLIKELY(start < 0 || start >= p->out->sizes[1]))
         return csound->InitError(csound, "%s",
                                  Str("Error: index out of range\n"));
+    if (UNLIKELY(p->in->dimensions != 1 || p->in->sizes[0]<p->out->sizes[0]))
+      return csound->InitError(csound, "%s",
+                                 Str("Error: New column too short\n"));
     int32_t j,i,len =  p->out->sizes[0];
     for (j=0,i=start; j < len; i+=len+1, j++)
         p->out->data[i] = p->in->data[j];

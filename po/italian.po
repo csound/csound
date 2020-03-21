@@ -4321,9 +4321,9 @@ msgstr "Nessuna tavola per intonazione %d"
 msgid "cpstun: invalid table"
 msgstr "cpstun: tavola non valida"
 
-#: OOps/aops.c:1659 OOps/aops.c:1708
-#, c-format
-msgid "Input channel %d too large; ignored"
+#: OOps/aops.c:1659
+#, fuzzy, c-format
+msgid "Input channel %d too large; ignored\n"
 msgstr "canale d'input %d troppo grande; ignorato"
 
 #: OOps/aops.c:1665 OOps/aops.c:1714
@@ -4334,6 +4334,11 @@ msgstr "canale d'input %d non valido; ignorato"
 #: OOps/aops.c:1703
 msgid "Input and output argument count differs in inch"
 msgstr "Il conto degli argomenti di input e output sono differenti in inch"
+
+#: OOps/aops.c:1708
+#, c-format
+msgid "Input channel %d too large; ignored"
+msgstr "canale d'input %d troppo grande; ignorato"
 
 #: OOps/aops.c:1793
 msgid "Channel greater than nchnls"
@@ -4414,35 +4419,39 @@ msgstr "numero di canale non valido: %d"
 msgid "\"empty\""
 msgstr ""
 
-#: OOps/bus.c:1538 OOps/bus.c:1587 OOps/bus.c:1608 OOps/bus.c:1655
+#: OOps/bus.c:1538 OOps/bus.c:1609 OOps/bus.c:1630 OOps/bus.c:1677
 msgid "invalid mode parameter"
 msgstr "parametro mode non valido"
 
-#: OOps/bus.c:1575 OOps/bus.c:1697
+#: OOps/bus.c:1575 OOps/bus.c:1719
 msgid "invalid channel parameters"
 msgstr "parametro channel non valido"
 
-#: OOps/bus.c:1663
+#: OOps/bus.c:1595
+msgid "invalid mode, should be r, w, rw"
+msgstr ""
+
+#: OOps/bus.c:1685
 msgid "channel already exists"
 msgstr "il canale ?? gia esistente"
 
-#: OOps/bus.c:1700
+#: OOps/bus.c:1722
 msgid "invalid export variable"
 msgstr "variabile esportata non valida"
 
-#: OOps/bus.c:1786
+#: OOps/bus.c:1808
 msgid "read failure in sensekey\n"
 msgstr "lettura fallita in sensekey\n"
 
-#: OOps/bus.c:1794
+#: OOps/bus.c:1816
 msgid "sensekey error:"
 msgstr "errore sensekey:"
 
-#: OOps/bus.c:1898 OOps/bus.c:1924 OOps/bus.c:1965 OOps/bus.c:1992
+#: OOps/bus.c:1920 OOps/bus.c:1946 OOps/bus.c:1987 OOps/bus.c:2014
 msgid "InputChannelCallback not set."
 msgstr "InputChannelCallback non impostato."
 
-#: OOps/bus.c:2043 OOps/bus.c:2069 OOps/bus.c:2097 OOps/bus.c:2123
+#: OOps/bus.c:2065 OOps/bus.c:2091 OOps/bus.c:2119 OOps/bus.c:2145
 msgid "OutputChannelCallback not set."
 msgstr "OutputChannelCallback non impostato."
 
@@ -6554,36 +6563,40 @@ msgid "requested col is out of range\n"
 msgstr "la colonna richiesta ?? fuori intervallo\n"
 
 #: Opcodes/arrays.c:3565 Opcodes/arrays.c:3577 Opcodes/arrays.c:3599
-#: Opcodes/arrays.c:3613
+#: Opcodes/arrays.c:3616
 msgid "Error: index out of range\n"
 msgstr "Errore: indice fuori intervallo\n"
 
-#: Opcodes/arrays.c:3649
+#: Opcodes/arrays.c:3602 Opcodes/arrays.c:3619
+msgid "Error: New column too short\n"
+msgstr ""
+
+#: Opcodes/arrays.c:3655
 msgid "input array too small\n"
 msgstr "array d'input troppo piccolo\n"
 
-#: Opcodes/arrays.c:3726
+#: Opcodes/arrays.c:3732
 msgid "dct: only one-dimensional arrays allowed"
 msgstr "dct: sono permessi solo array unidimensionali"
 
-#: Opcodes/arrays.c:3733
+#: Opcodes/arrays.c:3739
 msgid "dct: non-pow-of-two sizes not yet implemented"
 msgstr "dct: dimensioni non potenza di due non ancora implementate"
 
-#: Opcodes/arrays.c:3756
+#: Opcodes/arrays.c:3762
 msgid "dctinv: only one-dimensional arrays allowed"
 msgstr "dctinv: sono permessi solo array unidimensionali"
 
-#: Opcodes/arrays.c:3764
+#: Opcodes/arrays.c:3770
 msgid "dctinv: non-pow-of-two sizes not yet implemented"
 msgstr "dctinv: dimensioni non potenza di due non ancora implementate"
 
-#: Opcodes/arrays.c:3814
+#: Opcodes/arrays.c:3820
 #, fuzzy
 msgid "mfb: filter bank size exceeds input array length"
 msgstr "un intervallo dato supera la lunghezza della tavola"
 
-#: Opcodes/arrays.c:3932 Opcodes/arrays.c:3956
+#: Opcodes/arrays.c:3938 Opcodes/arrays.c:3962
 #, fuzzy
 msgid "array inputs not in correct format\n"
 msgstr "trfil: input non in formato TRACKS\n"
@@ -7110,30 +7123,45 @@ msgstr ""
 msgid "tab2array: cannot copy a negative number of items"
 msgstr ""
 
+#: Opcodes/emugens/emugens.c:1598
+msgid "rehsapearray: neither numcols nor numrows can be negative"
+msgstr ""
+
+#: Opcodes/emugens/emugens.c:1602
+msgid "Arrays of more than 2 dimensions are not supported yet"
+msgstr ""
+
 #: Opcodes/emugens/emugens.c:1610
+#, c-format
+msgid ""
+"reshapearray: The number of items do not match.The array has %d elements, "
+"but the new shaperesults in %d total elements"
+msgstr ""
+
+#: Opcodes/emugens/emugens.c:1638
 msgid "reshapearray: cannot reshape"
 msgstr ""
 
-#: Opcodes/emugens/emugens.c:1707
+#: Opcodes/emugens/emugens.c:1735
 msgid "cannot print multidimensional string arrays"
 msgstr ""
 
-#: Opcodes/emugens/emugens.c:1709
+#: Opcodes/emugens/emugens.c:1737
 #, c-format
 msgid "only 1-D and 2-D arrays supported, got %d dimensions"
 msgstr ""
 
-#: Opcodes/emugens/emugens.c:1844
+#: Opcodes/emugens/emugens.c:1872
 #, fuzzy, c-format
 msgid "type not supported for printing: %s"
 msgstr "non supportato su questo terminale"
 
-#: Opcodes/emugens/emugens.c:1956
+#: Opcodes/emugens/emugens.c:1984
 #, fuzzy, c-format
 msgid "Could not handle start index: %d"
 msgstr "non riesco a trovare la tavola numero %d\n"
 
-#: Opcodes/emugens/emugens.c:1964
+#: Opcodes/emugens/emugens.c:1992
 #, fuzzy, c-format
 msgid "Could not handle end index: %d"
 msgstr "non riesco a trovare la tavola numero %d\n"
