@@ -288,7 +288,10 @@ int AuHAL_open(CSOUND *csound, const csRtAudioParams * parm,
       prop.mSelector = kAudioHardwarePropertyDevices;
       if (isInput) {
         for(i=0; (unsigned int)  i < devnos; i++) {
-          if((unsigned int) devinfo[i].indevnum == devnum) CoreAudioDev = i;
+          if((unsigned int) devinfo[i].indevnum == devnum) {
+            CoreAudioDev = i;
+            break;
+          }
         }
         if (LIKELY(CoreAudioDev >= 0)) {
           prop.mSelector = kAudioHardwarePropertyDefaultInputDevice;
@@ -316,13 +319,30 @@ int AuHAL_open(CSOUND *csound, const csRtAudioParams * parm,
       }
     }
 
-    for(i=0; (unsigned int)  i < devnos; i++)
-        if(sysdevs[i] == dev){
-          if(isInput) ADC_channels(csound, devinfo[i].inchannels);
-          else DAC_channels(csound, devinfo[i].outchannels);
+    for(i=0; (unsigned int)  i < devnos; i++) {
+      if(sysdevs[i] == dev){
+        if(isInput) {
+          if(devinfo[i].inchannels < parm->nChannels) {
+            csound->ErrorMsg(csound, 
+                             Str(" *** CoreAudio: Device has not enough" 
+                                 " inputs (%d, requested %d)\n"), 
+                             devinfo[i].inchannels, parm->nChannels);
+            return -1;
+          } 
+          ADC_channels(csound, devinfo[i].inchannels);
+        } 
+        else {
+          if(devinfo[i].outchannels < parm->nChannels) {
+            csound->ErrorMsg(csound, 
+                             Str(" *** CoreAudio: Device has not enough"
+                                 " outputs (%d, requested %d)\n"), 
+                             devinfo[i].outchannels, parm->nChannels);
+            return -1;
+          }
+          DAC_channels(csound, devinfo[i].outchannels);
         }
-
-
+      }
+    }   
     csound->Free(csound,sysdevs);
     csound->Free(csound,devinfo);
 

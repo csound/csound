@@ -1585,13 +1585,13 @@ int32_t chn_k_opcode_init_S(CSOUND *csound, CHN_OPCODE_K *p)
 {
     STRINGDAT *smode = (STRINGDAT *)p->imode;
     int32_t mode;
-    if(!strcmp("rw", smode->data)) {
+    if(!strcmp("rw", smode->data))
         mode = 3;
-    } else if(!strcmp("r", smode->data)) {
+    else if(!strcmp("r", smode->data))
         mode = 1;
-    } else if(!strcmp("w", smode->data)) {
+    else if(!strcmp("w", smode->data))
         mode = 2;
-    } else
+    else
         return csound->InitError(csound, Str("invalid mode, should be r, w, rw"));
     return chn_k_opcode_init_(csound, p, mode);
 }
