@@ -1361,9 +1361,9 @@ msgstr ""
 "ERREUR D'INITIALISATION : "
 
 #: Engine/insert.c:1145
-#, fuzzy, c-format
+#, c-format
 msgid "InitError in wrong mode %d\n"
-msgstr "Erreur au démarrage du module '%s'"
+msgstr "Erreur d'initialisation dans le mauvais mode %d\n"
 
 #: Engine/insert.c:1155 Engine/insert.c:1163
 #, c-format
@@ -1376,9 +1376,9 @@ msgid "INIT ERROR in instr %d (subinstr %d) line %d: "
 msgstr "ERREUR D'INITIALISATION dans l'instr %d (subinstr %d) ligne %d : "
 
 #: Engine/insert.c:1180
-#, fuzzy, c-format
+#, c-format
 msgid "PerfError in wrong mode %d\n"
-msgstr "Erreur au démarrage du module '%s'"
+msgstr "Erreur d'exécution dans le mauvais mode %d\n"
 
 #: Engine/insert.c:1188 Engine/insert.c:1195
 #, c-format
@@ -4315,9 +4315,9 @@ msgid "cpstun: invalid table"
 msgstr "cpstun : table non valide"
 
 #: OOps/aops.c:1659
-#, fuzzy, c-format
+#, c-format
 msgid "Input channel %d too large; ignored\n"
-msgstr "Canal d'entrée %d trop grand ; ignoré"
+msgstr "Canal d'entrée %d trop grand ; ignoré\n"
 
 #: OOps/aops.c:1665 OOps/aops.c:1714
 #, c-format
@@ -4421,7 +4421,7 @@ msgstr "paramètres de canal non valides"
 
 #: OOps/bus.c:1595
 msgid "invalid mode, should be r, w, rw"
-msgstr ""
+msgstr "mode non valide, doit être r, w, rw"
 
 #: OOps/bus.c:1685
 msgid "channel already exists"
@@ -6568,7 +6568,7 @@ msgstr "Erreur : index hors limites\n"
 
 #: Opcodes/arrays.c:3602 Opcodes/arrays.c:3619
 msgid "Error: New column too short\n"
-msgstr ""
+msgstr "Erreur : nouvelle colonne trop courte\n"
 
 #: Opcodes/arrays.c:3655
 msgid "input array too small\n"
@@ -7101,12 +7101,12 @@ msgid "tab2array: cannot copy a negative number of items"
 msgstr "tab2array : impossible de copier un nombre négatif d'items"
 
 #: Opcodes/emugens/emugens.c:1598
-msgid "rehsapearray: neither numcols nor numrows can be negative"
-msgstr ""
+msgid "reshapearray: neither numcols nor numrows can be negative"
+msgstr "reshapearray : ni numcols ni numrows ne peut être négatif"
 
 #: Opcodes/emugens/emugens.c:1602
 msgid "Arrays of more than 2 dimensions are not supported yet"
-msgstr ""
+msgstr "Les tableaux à plus de 2 dimensions ne sont pas supportés"
 
 #: Opcodes/emugens/emugens.c:1610
 #, c-format
@@ -7114,6 +7114,8 @@ msgid ""
 "reshapearray: The number of items do not match.The array has %d elements, "
 "but the new shaperesults in %d total elements"
 msgstr ""
+"reshapearray : le nombre d'éléments ne correspond pas. Le tableau a "
+"%d elements, mais le nouveau format résulte en un total de %d éléments"
 
 #: Opcodes/emugens/emugens.c:1638
 msgid "reshapearray: cannot reshape"
