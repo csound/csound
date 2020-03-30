@@ -1595,7 +1595,7 @@ arrayreshape(CSOUND *csound, ARRAYRESHAPE *p) {
     int32_t numcols = (int32_t)(*p->numcols);
 
     if(numrows < 0 || numcols < 0) {
-        return INITERR(Str("rehsapearray: neither numcols nor numrows can be negative"));
+        return INITERR(Str("reshapearray: neither numcols nor numrows can be negative"));
     }
 
     if(dims > 2) {
@@ -1607,10 +1607,10 @@ arrayreshape(CSOUND *csound, ARRAYRESHAPE *p) {
     }
     int32_t numitems2 = numrows * (numcols > 0 ? numcols : 1);
     if(numitems != numitems2)
-    	return INITERRF(Str("reshapearray: The number of items do not match."
-    		                "The array has %d elements, but the new shape"
-    		                "results in %d total elements"), 
-                        numitems, numitems2);
+      return INITERRF(Str("reshapearray: The number of items do not match."
+                          "The array has %d elements, but the new shape"
+                          "results in %d total elements"),
+                      numitems, numitems2);
 
     if(dims == 2) {
         if(numcols==0) {

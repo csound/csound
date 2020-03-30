@@ -482,10 +482,45 @@ AA_VEC(divaa,_mm_div_pd)
 AA(addaa,+)
 AA(subaa,-)
 AA(mulaa,*)
-AA(divaa,/)
+//AA(divaa,/)
 #endif
 
-int32_t modaa(CSOUND *csound, AOP *p)
+int32_t divaa(CSOUND *csound, AOP *p)
+{
+    MYFLT   *r, *a, *b;
+    int     err = 0;
+    IGN(csound);
+    uint32_t n, nsmps = CS_KSMPS;
+    if (LIKELY(nsmps!=1)) {
+      uint32_t offset = p->h.insdshead->ksmps_offset;
+      uint32_t early  = p->h.insdshead->ksmps_no_end;
+      r = p->r;
+      a = p->a;
+      b = p->b;
+      if (UNLIKELY(offset)) memset(r, '\0', offset*sizeof(MYFLT));
+      if (UNLIKELY(early)) {
+        nsmps -= early;
+        memset(&r[nsmps], '\0', early*sizeof(MYFLT));
+      }
+      for (n=offset; n<nsmps; n++ ) {
+        MYFLT bb = b[n];
+        if (UNLIKELY(bb==FL(0.0) && err==0)) {
+          csound->Warning(csound, Str("Division by zero"));
+          err = 1;
+        }
+        r[n] = a[n] / bb;
+      }
+      return OK;
+    }
+    else {
+      if (UNLIKELY(*p->b==FL(0.0)))
+        csound->Warning(csound, Str("Division by zero"));
+      *p->r = *p->a / *p->b;
+      return OK;
+    }
+}
+
+  int32_t modaa(CSOUND *csound, AOP *p)
 {
     MYFLT   *r, *a, *b;
     IGN(csound);
@@ -531,7 +566,7 @@ int32_t divzka(CSOUND *csound, DIVZ *p)
       nsmps -= early;
       memset(&r[nsmps], '\0', early*sizeof(MYFLT));
     }
-    for (n=offset; n<nsmps; n++) {
+     for (n=offset; n<nsmps; n++) {
       MYFLT bb = b[n];
       r[n] = (bb==FL(0.0) ? def : a / bb);
     }
