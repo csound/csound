@@ -169,10 +169,10 @@ int32_t turnoff(CSOUND *csound, LINK *p)/* terminate the current instrument  */
         lcurip = ((OPCOD_IOBUFS*) lcurip->opcod_iobufs)->parent_ip;
       xturnoff(csound, lcurip);
       if (current->xtratim <= 0) {
-        OPDS* curOp = current->nxtp;
+        OPDS* curOp = current->pds;
         while (curOp->nxtp != NULL)
           curOp = curOp->nxtp;                /* loop to last opds */
-        current->nxtp = curOp;
+        current->pds = curOp;
       }
     }
     return OK;
