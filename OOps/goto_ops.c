@@ -161,7 +161,6 @@ int32_t turnoff(CSOUND *csound, LINK *p)/* terminate the current instrument  */
 {                                       /* called by turnoff statmt at Ptime */
     IGN(csound);
     INSDS *current = p->h.insdshead;
-    OPDS* curOp = current->nxtp;
     INSDS *lcurip = p->h.insdshead;
     if (lcurip->actflg) {
     /* IV - Oct 16 2002: check for subinstr and user opcode */
@@ -169,9 +168,12 @@ int32_t turnoff(CSOUND *csound, LINK *p)/* terminate the current instrument  */
       while (lcurip->opcod_iobufs)
         lcurip = ((OPCOD_IOBUFS*) lcurip->opcod_iobufs)->parent_ip;
       xturnoff(csound, lcurip);
-      if (current->xtratim <= 0)
+      if (current->xtratim <= 0) {
+        OPDS* curOp = current->nxtp;
         while (curOp->nxtp != NULL)
           curOp = curOp->nxtp;                /* loop to last opds */
+        current->nxtp = curOp;
+      }
     }
     return OK;
 }
