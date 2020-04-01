@@ -1538,13 +1538,13 @@ static int32_t fprintf_i_S(CSOUND *csound, FPRINTF *p)
 #define S(x)    sizeof(x)
 static OENTRY localops[] = {
 
-    {"fprints",    S(FPRINTF),      0, 1,  "",     "SSM",
+    {"fprints",    S(FPRINTF),      0, 1,  "",     "SSN",
         (SUBR) fprintf_i_S, (SUBR) NULL,(SUBR) NULL, NULL, },
-    {"fprints.i",    S(FPRINTF),      0, 1,  "",     "iSM",
+    {"fprints.i",    S(FPRINTF),      0, 1,  "",     "iSN",
         (SUBR) fprintf_i, (SUBR) NULL,(SUBR) NULL, NULL},
-    { "fprintks",   S(FPRINTF),    WR, 3,  "",     "SSM",
+    { "fprintks",   S(FPRINTF),    WR, 3,  "",     "SSN",
         (SUBR) fprintf_set_S,     (SUBR) fprintf_k,   (SUBR) NULL, NULL,},
-    { "fprintks.i",   S(FPRINTF),    WR, 3,  "",     "iSM",
+    { "fprintks.i",   S(FPRINTF),    WR, 3,  "",     "iSN",
         (SUBR) fprintf_set,     (SUBR) fprintf_k,   (SUBR) NULL, NULL},
      { "vincr",      S(INCR),       WI, 2,  "",     "aa",
         (SUBR) NULL,            (SUBR) incr, NULL         },
