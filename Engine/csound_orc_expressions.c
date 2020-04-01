@@ -324,9 +324,13 @@ static TREE *create_cond_expression(CSOUND *csound,
     while (last->next != NULL) {
       last = last->next;
     }
-    type =
-      (left[0]=='k' || right[0]=='k' || last->left->value->lexeme[1]=='B') ?2 : 1;
-    if (type==2) left[0] = right[0] = 'k';
+    //printf("type = %s , %s\n", left, right);
+    if (left[0]=='S' || right[0]=='S') type = 2;
+    else {
+      type =
+        (left[0]=='k' || right[0]=='k' || last->left->value->lexeme[1]=='B') ?2 : 1;
+      if (type==2) left[0] = right[0] = 'k';
+    }
     //printf("boolvalr = %s, type=%d\n", last->left->value->lexeme, type);
     //print_tree(csound, "\nL1\n", L1);
 
