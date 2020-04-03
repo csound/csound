@@ -325,7 +325,8 @@ static TREE *create_cond_expression(CSOUND *csound,
       last = last->next;
     }
     //printf("type = %s , %s\n", left, right);
-    if (left[0]=='S' || right[0]=='S') type = 2;
+    if (left[0]=='S' || right[0]=='S')
+      type = (last->left->value->lexeme[1]=='B') ?2 : 1;
     else {
       type =
         (left[0]=='k' || right[0]=='k' || last->left->value->lexeme[1]=='B') ?2 : 1;
@@ -390,6 +391,7 @@ static TREE *create_cond_expression(CSOUND *csound,
     last->next->right = create_ans_token(csound, right);
 
     //printf("\n\n*** create_cond_expression ends\n");
+
     //print_tree(csound, "ANSWER\n", b);
     return b;
 }
