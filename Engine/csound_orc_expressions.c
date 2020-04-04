@@ -378,6 +378,7 @@ static TREE *create_cond_expression(CSOUND *csound,
     last->next = create_synthetic_label(csound,ln1);
     while (last->next != NULL) last = last->next;
     //print_tree(csound, "\n\nafter label\n", b);
+
     last->next = c;
     while (last->next != NULL) last = last->next;
     //print_tree(csound, "n\nAfter c\n", b);

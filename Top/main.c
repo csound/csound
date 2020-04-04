@@ -141,9 +141,16 @@ static void put_sorted_score(CSOUND *csound, char *ss, FILE* ff)
       case 'w':
         break;
       }
+      /* Others could be numbers or strings */
       while (1) {
-        fputc(*p, ff);
-        if (*p++==LF) break;
+        printf("** p '%c'\n", *p);
+        if (!strncmp(p, "0x", 2)) {
+          sscanf(p, "%la%n", &p3, &cnt);
+          fprintf(ff, "%lg ", p3);
+          p+=cnt-1;
+        }
+        else fputc(*p, ff);
+        if (*p++=='\n') break;
       }
     }
 }
@@ -350,6 +357,7 @@ PUBLIC int csoundCompileArgs(CSOUND *csound, int argc, const char **argv)
       csound->Message(csound, Str("sorting score ...\n"));
       //printf("score:\n%s", corfile_current(csound->scorestr));
       scsortstr(csound, csound->scorestr);
+      printf("*** keep_tmp = %d\n", csound->keep_tmp);
       if (csound->keep_tmp) {
         FILE *ff = fopen("score.srt", "w");
         if (csound->keep_tmp==1)
