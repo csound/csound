@@ -143,7 +143,7 @@ static void put_sorted_score(CSOUND *csound, char *ss, FILE* ff)
       }
       /* Others could be numbers or strings */
       while (1) {
-        printf("** p '%c'\n", *p);
+        //printf("** p '%c'\n", *p);
         if (!strncmp(p, "0x", 2)) {
           sscanf(p, "%la%n", &p3, &cnt);
           fprintf(ff, "%lg ", p3);
