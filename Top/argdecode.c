@@ -510,7 +510,7 @@ static int decode_long(CSOUND *csound, char *s, int argc, char **argv)
       nn->mac = s;
       nn->next = csound->omacros;
       csound->omacros = nn;
-      return 1;
+     return 1;
     }
     else if (!(strncmp(s, "smacro:", 7))) {
       if (csound->orcname_mode) return 1;
@@ -569,7 +569,7 @@ static int decode_long(CSOUND *csound, char *s, int argc, char **argv)
       if (UNLIKELY(*s=='\0')) dieu(csound, Str("no hardware bufsamps"));
       O->inbufsamps = O->outbufsamps = atoi(s);
       return 1;
-    }
+   }
     else if (!(strcmp (s, "orc"))) {
       csound->use_only_orchfile = 1;    /* orchfile without scorefile */
       return 1;
@@ -878,7 +878,7 @@ static int decode_long(CSOUND *csound, char *s, int argc, char **argv)
     }
     /* -t0 */
     else if (!(strcmp (s, "keep-sorted-score"))) {
-      csound->keep_tmp = 1;
+      csound->keep_tmp= 1;
       return 1;
     }
     else if (!(strcmp (s, "simple-sorted-score"))) {
@@ -1225,7 +1225,7 @@ PUBLIC int argdecode(CSOUND *csound, int argc, const char **argv_)
       strcpy(p2, argv_[i]);
       p2 = (char*) p2 + ((int) strlen(argv_[i]) + 1);
     }
-    csound->keep_tmp = 0;
+    //<csound->keep_tmp = 0;
 
     do {
       s = *++argv;

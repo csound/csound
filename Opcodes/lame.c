@@ -95,7 +95,7 @@ int mp3out_init(CSOUND *csound, MP3OUT* p)
                      &p->auxch);
     p->mp3buffer = p->auxch.auxp;
     p->leftpcm = p->auxch.auxp+p->mp3buffer_size;
-    p->rightpcm = p->leftpcm + sizeof(MYFLT)*nsmps;
+    p->rightpcm = p->leftpcm + nsmps;
     csound->RegisterDeinitCallback(csound, p,
                                    (int32_t (*)(CSOUND*, void*)) mp3out_cleanup);
     return OK;

@@ -193,7 +193,7 @@ option(USE_LIB64 "Set to on to set installation directory for libraries to lib64
 if(USE_LIB64)
     set(LIBRARY_INSTALL_DIR "lib64")
     add_definitions("-DLIB64")
-else()
+elseif(NOT DEFINED LIBRARY_INSTALL_DIR)
     set(LIBRARY_INSTALL_DIR "lib")
 endif()
 message(STATUS "LIBRARY INSTALL DIR: ${LIBRARY_INSTALL_DIR}")
