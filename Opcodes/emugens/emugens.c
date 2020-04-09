@@ -2271,88 +2271,6 @@ strstrip(CSOUND *csound, STR1_1 *p) {
 }
 
 
-/* errormsg
- *
- * errormsg Smsg
- * errormsg Skind, Smsg
- *
- * errormsg "my error message"
- * errormsg "warning", "this is only a warning, event will keep running"
- *
- * Skind can be "error", "warning" or "info"
- * If "error", (the default) a performance error is thrown, which will delete the current event
- * If "warning", a warning will be thrown but the event goes on (a warning is only shown once)
- * If "info", a warning will be thrown each iteration
- *
- * To throw a critical error stopping csound just use exitnow
- *
- * Only k-rate. If "init" rate is needed, just do
- * if timeinstk() == 1 then
- *   errormsg "my init error message"
- * endif
-*/
-
-enum Errorkind_t { ERRORMSG_ERROR, ERRORMSG_WARNING, ERRORMSG_INFO};
-
-typedef struct {
-    OPDS h;
-    STRINGDAT *S1;
-    STRINGDAT *S2;
-    enum Errorkind_t kind;
-    int warning_done;
-    int which;
-} ERRORMSG;
-
-
-static int32_t errormsg_init(CSOUND *csound, ERRORMSG *p) {
-    IGN(csound);
-    if(!strcmp(p->S1->data, "error"))
-        p->kind = ERRORMSG_ERROR;
-    else if(!strcmp(p->S1->data, "warning"))
-        p->kind = ERRORMSG_WARNING;
-    else if(!strcmp(p->S1->data, "info"))
-        p->kind = ERRORMSG_INFO;
-    else
-        return csound->InitError(csound, "Unknown type");
-    p->warning_done = 0;   // default: mark message as "error"
-    p->which = 1;
-    return OK;
-}
-
-static int32_t errormsg_init0(CSOUND *csound, ERRORMSG *p) {
-    IGN(csound);
-    p->kind = ERRORMSG_ERROR;
-    p->which = 0;
-    return OK;
-}
-
-static int32_t errormsg_perf(CSOUND *csound, ERRORMSG *p) {
-    char *name;
-    INSDS *ip;
-    char *msg = p->which == 0 ? p->S1->data : p->S2->data;
-
-    switch(p->kind) {
-    case ERRORMSG_ERROR:
-        return csound->PerfError(csound, &(p->h), "%s\n", msg);
-    case ERRORMSG_WARNING:
-        if(p->warning_done)
-            return OK;
-        ip = p->h.insdshead;
-        name = (ip->instr->insname != NULL) ? ip->instr->insname : "";
-        csound->Warning(csound, "Warning from instr %d (%s), line %d\n    %s\n",
-                          ip->insno, name, p->h.optext->t.linenum, msg);
-        p->warning_done = 1;
-        return OK;
-    case ERRORMSG_INFO:
-        ip = p->h.insdshead;
-        name = (ip->instr->insname != NULL) ? ip->instr->insname : "";
-        csound->Warning(csound, "Info from instr %d (%s), line %d\n    %s\n",
-                          ip->insno, name, p->h.optext->t.linenum, msg);
-        return OK;
-    }
-}
-
-
 /*
 
    Input types:
@@ -2514,9 +2432,6 @@ static OENTRY localops[] = {
       (SUBR)lastcycle_init, (SUBR)lastcycle},
     { "strstrip.i_side", S(STR1_1), 0, 1, "S", "SS", (SUBR)stripside},
     { "strstrip.i", S(STR1_1), 0, 1, "S", "S", (SUBR)strstrip},
-    { "errormsg", S(ERRORMSG), 0, 3, "", "SS", (SUBR)errormsg_init, (SUBR)errormsg_perf},
-    { "errormsg", S(ERRORMSG), 0, 3, "", "S", (SUBR)errormsg_init0, (SUBR)errormsg_perf},
-
 
 };
 
