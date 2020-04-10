@@ -2272,6 +2272,243 @@ strstrip(CSOUND *csound, STR1_1 *p) {
 
 
 /*
+ * echo
+ *
+ * The same as printf but without a trigger
+ *
+ * echo Sfmt, xvar1, [xvar2, ...]
+ *
+ * echo "foo bar %s: %k,", Skey, kvalue
+ *
+ */
+
+
+typedef struct {
+    OPDS    h;
+    STRINGDAT   *sfmt;
+    MYFLT   *args[64];
+    int allocatedBuf;
+    int newline;
+    int fmtlen;
+    STRINGDAT buf;
+    STRINGDAT strseg;
+} ECHO;
+
+
+int32_t echo_reset(CSOUND *csound, ECHO *p) {
+    if(p->buf.data != NULL && p->allocatedBuf) {
+        csound->Free(csound, p->buf.data);
+        p->buf.data = NULL;
+        p->buf.size = 0;
+        p->allocatedBuf = 0;
+    }
+    if(p->strseg.data != NULL) {
+        csound->Free(csound, p->strseg.data);
+        p->strseg.data = NULL;
+        p->strseg.size = 0;
+    }
+    return OK;
+}
+
+
+int32_t echo_init(CSOUND *csound, ECHO *p) {
+    int32_t bufsize = 2048;
+    int32_t fmtlen = strlen(p->sfmt->data);
+    int32_t numVals = (int32_t)p->INOCOUNT - 1;
+    int32_t maxSegmentSize = fmtlen + numVals*7 + 1;
+
+    // Try to reuse memory from previous instances
+    if(p->buf.size < bufsize || p->strseg.size < maxSegmentSize) {
+        if(p->buf.data == NULL)
+            p->buf.data = csound->Calloc(csound, bufsize);
+        else
+            p->buf.data = csound->ReAlloc(csound, p->buf.data, bufsize);
+        p->buf.size = bufsize;
+        if(p->strseg.data == NULL)
+            p->strseg.data = csound->Malloc(csound, maxSegmentSize);
+        else
+            p->strseg.data = csound->ReAlloc(csound, p->strseg.data, maxSegmentSize);
+        p->strseg.size = maxSegmentSize;
+        p->allocatedBuf = 1;
+        csound->RegisterResetCallback(csound, p, (int32_t(*)(CSOUND*, void*))(echo_reset));
+    } else {
+        p->allocatedBuf = 0;
+    }
+    if(p->sfmt->data[fmtlen-1] == ',') {
+        p->newline = 0;
+        p->fmtlen = fmtlen - 1;
+    } else {
+        p->newline = 1;
+        p->fmtlen = fmtlen;
+    }
+    return OK;
+}
+
+
+#define IS_AUDIO_ARG(x) (csound->GetTypeForArg(x) == &CS_VAR_TYPE_A)
+#define IS_STRING_ARG(x) (csound->GetTypeForArg(x) == &CS_VAR_TYPE_S)
+
+
+// This is taken from OOps/str_ops.c, with minor modifications to adapt it to plugin API
+// Memory is actually never allocated here
+static int32_t
+sprintf_opcode_(CSOUND *csound,
+                ECHO *p,          /* opcode data structure pointer       */
+                STRINGDAT *str,   /* pointer to space for output string  */
+                const char *fmt,  /* format string                       */
+                int fmtlen,       /* length of format string             */
+                MYFLT **kvals,    /* array of argument pointers          */
+                int32_t numVals,      /* number of arguments             */
+                int32_t strCode)      /* bit mask for string arguments   */
+{
+    int32_t     len = 0;
+    char *outstring = str->data;
+    MYFLT *parm = NULL;
+    int32_t i = 0, j = 0, n;
+    const char *segwaiting = NULL;
+    int32_t maxChars;
+    int32_t strsegsize = p->strseg.size;
+    char *strseg = p->strseg.data;
+
+    const char *fmtend = fmt+(fmtlen-0);
+
+    for (i = 0; i < numVals; i++) {
+        if (UNLIKELY(IS_AUDIO_ARG(kvals[i]))) {
+            return PERFERR(Str("a-rate argument not allowed"));
+        }
+    }
+
+    if (UNLIKELY((int32_t) ((OPDS*) p)->optext->t.inArgCount > 31)){
+        return PERFERR(Str("too many arguments"));
+    }
+    if (numVals==0) {
+        strcpy(str->data, fmt);
+        return OK;
+    }
+
+    i = 0;
+
+    while (1) {
+        if (UNLIKELY(i >= strsegsize)) {
+            csound->Warning(csound, "%s", "echo: Allocating memory");
+            strsegsize *= 2;
+            p->strseg.data = strseg = csound->ReAlloc(csound, strseg, strsegsize);
+            p->strseg.size = strsegsize;
+        }
+        if (*fmt != '%' && fmt != fmtend && *fmt != '\0') {
+            strseg[i++] = *fmt++;
+            continue;
+        }
+        if (fmt[0] == '%' && fmt[1] == '%') {
+            strseg[i++] = *fmt++;   /* Odd code: %% is usually % and as we
+                                   know the value of *fmt the loads are
+                                   unnecessary */
+            strseg[i++] = *fmt++;
+            continue;
+        }
+
+        /* if already a segment waiting, then lets print it */
+        if (segwaiting != NULL) {
+            maxChars = str->size - len;
+            strseg[i] = '\0';
+            if (UNLIKELY(numVals <= 0)) {
+                return PERFERR(Str("insufficient arguments for format"));
+            }
+            numVals--;
+            strCode >>= 1;
+            parm = kvals[j++];
+
+            switch (*segwaiting) {
+            case 'd':
+            case 'i':
+            case 'o':
+            case 'x':
+            case 'X':
+            case 'u':
+            case 'c':
+                n = sprintf(outstring, strseg, (int32_t) MYFLT2LRND(*parm));
+                break;
+            case 'e':
+            case 'E':
+            case 'f':
+            case 'F':
+            case 'g':
+            case 'G':
+                n = sprintf(outstring, strseg, (double)*parm);
+                break;
+            case 's':
+                if(!IS_STRING_ARG(parm)) {
+                    return PERFERRF(Str("String argument expected, but type is %s"),
+                                    csound->GetTypeForArg(parm)->varTypeName);
+                }
+                if (((STRINGDAT*)parm)->data == str->data) {
+                    return PERFERR(Str("output argument may not be "
+                                       "the same as any of the input args"));
+                }
+                if ((((STRINGDAT*)parm)->size+strlen(strseg)) >= (uint32_t)maxChars) {
+                    int32_t offs = outstring - str->data;
+                    int newsize = str->size  + ((STRINGDAT*)parm)->size + strlen(strseg);
+                    csound->Warning(csound, "%s", Str("echo: Allocating extra memory for output string"));
+                    str->data = csound->ReAlloc(csound, str->data, newsize);
+                    if(str->data == NULL){
+                        return PERFERR(Str("memory allocation failure"));
+                    }
+                    str->size += ((STRINGDAT*)parm)->size + strlen(strseg);
+                    maxChars += ((STRINGDAT*)parm)->size + strlen(strseg);
+                    outstring = str->data + offs;
+                }
+                n = snprintf(outstring, maxChars, strseg, ((STRINGDAT*)parm)->data);
+                break;
+            default:
+                return PERFERR(Str("invalid format string"));
+            }
+            if (n < 0 || n >= maxChars) {
+                /* safely detected excess string length */
+                int32_t offs = outstring - str->data;
+                csound->Warning(csound, "%s", Str("Allocating extra memory for output string"));
+                str->data = csound->ReAlloc(csound, str->data, maxChars*2);
+                if (str->data == NULL)
+                    return PERFERR(Str("memory allocation failure"));
+                outstring = str->data + offs;
+                str->size = maxChars*2;
+            }
+            outstring += n;
+            len += n;
+            i = 0;
+        }
+        if (*fmt == '\0' || fmt == fmtend)
+            break;
+
+        /* copy the '%' */
+        strseg[i++] = *fmt++;
+        /* find the format code */
+        segwaiting = fmt;
+
+        while (!isalpha(*segwaiting) && segwaiting != fmtend && *segwaiting != '\0')
+            segwaiting++;
+    }
+    if (UNLIKELY(numVals > 0)) {
+        return PERFERR(Str("too many arguments for format"));
+    }
+    return OK;
+}
+
+int32_t echo_perf(CSOUND *csound, ECHO *p) {
+    int32_t err = sprintf_opcode_(csound, p, &p->buf, (char*)p->sfmt->data, p->fmtlen,
+                                  &(p->args[0]), (int32_t)p->INOCOUNT - 1, 0);
+    if(err!=OK)
+        return NOTOK;
+   if(p->newline) {
+        csound->MessageS(csound, CSOUNDMSG_ORCH, "%s\n", p->buf.data);
+    } else {
+        csound->MessageS(csound, CSOUNDMSG_ORCH, "%s", p->buf.data);
+    }
+    return OK;
+}
+
+
+
+/*
 
    Input types:
 
@@ -2432,6 +2669,7 @@ static OENTRY localops[] = {
       (SUBR)lastcycle_init, (SUBR)lastcycle},
     { "strstrip.i_side", S(STR1_1), 0, 1, "S", "SS", (SUBR)stripside},
     { "strstrip.i", S(STR1_1), 0, 1, "S", "S", (SUBR)strstrip},
+    { "echo", S(ECHO), 0, 3, "", "S*", (SUBR)echo_init, (SUBR)echo_perf}
 
 };
 
