@@ -2272,13 +2272,13 @@ strstrip(CSOUND *csound, STR1_1 *p) {
 
 
 /*
- * echo
+ * println
  *
  * The same as printf but without a trigger
  *
- * echo Sfmt, xvar1, [xvar2, ...]
+ * println Sfmt, xvar1, [xvar2, ...]
  *
- * echo "foo bar %s: %k,", Skey, kvalue
+ * println "foo bar %s: %k,", Skey, kvalue
  *
  */
 
@@ -2292,10 +2292,10 @@ typedef struct {
     int fmtlen;
     STRINGDAT buf;
     STRINGDAT strseg;
-} ECHO;
+} PRINTLN;
 
 
-int32_t echo_reset(CSOUND *csound, ECHO *p) {
+int32_t println_reset(CSOUND *csound, PRINTLN *p) {
     if(p->buf.data != NULL && p->allocatedBuf) {
         csound->Free(csound, p->buf.data);
         p->buf.data = NULL;
@@ -2311,7 +2311,7 @@ int32_t echo_reset(CSOUND *csound, ECHO *p) {
 }
 
 
-int32_t echo_init(CSOUND *csound, ECHO *p) {
+int32_t println_init(CSOUND *csound, PRINTLN *p) {
     int32_t bufsize = 2048;
     int32_t fmtlen = strlen(p->sfmt->data);
     int32_t numVals = (int32_t)p->INOCOUNT - 1;
@@ -2330,7 +2330,7 @@ int32_t echo_init(CSOUND *csound, ECHO *p) {
             p->strseg.data = csound->ReAlloc(csound, p->strseg.data, maxSegmentSize);
         p->strseg.size = maxSegmentSize;
         p->allocatedBuf = 1;
-        csound->RegisterResetCallback(csound, p, (int32_t(*)(CSOUND*, void*))(echo_reset));
+        csound->RegisterResetCallback(csound, p, (int32_t(*)(CSOUND*, void*))(println_reset));
     } else {
         p->allocatedBuf = 0;
     }
@@ -2353,7 +2353,7 @@ int32_t echo_init(CSOUND *csound, ECHO *p) {
 // Memory is actually never allocated here
 static int32_t
 sprintf_opcode_(CSOUND *csound,
-                ECHO *p,          /* opcode data structure pointer       */
+                PRINTLN *p,          /* opcode data structure pointer       */
                 STRINGDAT *str,   /* pointer to space for output string  */
                 const char *fmt,  /* format string                       */
                 int fmtlen,       /* length of format string             */
@@ -2390,7 +2390,7 @@ sprintf_opcode_(CSOUND *csound,
 
     while (1) {
         if (UNLIKELY(i >= strsegsize)) {
-            csound->Warning(csound, "%s", "echo: Allocating memory");
+            csound->Warning(csound, "%s", "println: Allocating memory");
             strsegsize *= 2;
             p->strseg.data = strseg = csound->ReAlloc(csound, strseg, strsegsize);
             p->strseg.size = strsegsize;
@@ -2448,7 +2448,7 @@ sprintf_opcode_(CSOUND *csound,
                 if ((((STRINGDAT*)parm)->size+strlen(strseg)) >= (uint32_t)maxChars) {
                     int32_t offs = outstring - str->data;
                     int newsize = str->size  + ((STRINGDAT*)parm)->size + strlen(strseg);
-                    csound->Warning(csound, "%s", Str("echo: Allocating extra memory for output string"));
+                    csound->Warning(csound, "%s", Str("println: Allocating extra memory for output string"));
                     str->data = csound->ReAlloc(csound, str->data, newsize);
                     if(str->data == NULL){
                         return PERFERR(Str("memory allocation failure"));
@@ -2493,7 +2493,7 @@ sprintf_opcode_(CSOUND *csound,
     return OK;
 }
 
-int32_t echo_perf(CSOUND *csound, ECHO *p) {
+int32_t println_perf(CSOUND *csound, PRINTLN *p) {
     int32_t err = sprintf_opcode_(csound, p, &p->buf, (char*)p->sfmt->data, p->fmtlen,
                                   &(p->args[0]), (int32_t)p->INOCOUNT - 1, 0);
     if(err!=OK)
@@ -2669,7 +2669,7 @@ static OENTRY localops[] = {
       (SUBR)lastcycle_init, (SUBR)lastcycle},
     { "strstrip.i_side", S(STR1_1), 0, 1, "S", "SS", (SUBR)stripside},
     { "strstrip.i", S(STR1_1), 0, 1, "S", "S", (SUBR)strstrip},
-    { "echo", S(ECHO), 0, 3, "", "S*", (SUBR)echo_init, (SUBR)echo_perf}
+    { "println", S(PRINTLN), 0, 3, "", "S*", (SUBR)println_init, (SUBR)println_perf}
 
 };
 
