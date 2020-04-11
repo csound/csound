@@ -76,7 +76,7 @@
         :csoundReadScore
         ))
 (cffi:define-foreign-library libcsound64
-    (:darwin "libcsound64.dylib")
+    (:darwin "libcsnd6.dylib")
     (:unix "libcsound64.so")
     (:windows "csound64.dll")
     (t (:default "libcsound64")))
