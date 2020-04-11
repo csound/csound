@@ -6,7 +6,7 @@ swig -DUSE_DOUBLE  -cffi -module lcsound -v -nocwrap -swig-lisp -generate-typede
 #   (:use :common-lisp :cffi))
 #(in-package :csound)
 #(cffi:define-foreign-library libcsound64
-#    (:darwin "libcsound64.dylib")
+#    (:darwin "libcsnd6.dylib")
 #    (:unix "libcsound64.so")
 #    (:windows "csound64.dll")
 #    (t (:default "libcsound64")))
