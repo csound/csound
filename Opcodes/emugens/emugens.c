@@ -2345,8 +2345,11 @@ int32_t println_init(CSOUND *csound, PRINTLN *p) {
 }
 
 
-#define IS_AUDIO_ARG(x) (csound->GetTypeForArg(x) == &CS_VAR_TYPE_A)
-#define IS_STRING_ARG(x) (csound->GetTypeForArg(x) == &CS_VAR_TYPE_S)
+// #define IS_AUDIO_ARG(x) (csound->GetTypeForArg(x) == &CS_VAR_TYPE_A)
+#define IS_AUDIO_ARG(x) (!strcmp("a", csound->GetTypeForArg(x)->varTypeName))
+
+// #define IS_STRING_ARG(x) (csound->GetTypeForArg(x) == &CS_VAR_TYPE_S)
+#define IS_STRING_ARG(x) (!strcmp("S", csound->GetTypeForArg(x)->varTypeName))
 
 
 // This is taken from OOps/str_ops.c, with minor modifications to adapt it to plugin API
@@ -2373,9 +2376,8 @@ sprintf_opcode_(CSOUND *csound,
     const char *fmtend = fmt+(fmtlen-0);
 
     for (i = 0; i < numVals; i++) {
-        if (UNLIKELY(IS_AUDIO_ARG(kvals[i]))) {
+        if(UNLIKELY( IS_AUDIO_ARG(kvals[i])) )
             return PERFERR(Str("a-rate argument not allowed"));
-        }
     }
 
     if (UNLIKELY((int32_t) ((OPDS*) p)->optext->t.inArgCount > 31)){
@@ -2669,7 +2671,7 @@ static OENTRY localops[] = {
       (SUBR)lastcycle_init, (SUBR)lastcycle},
     { "strstrip.i_side", S(STR1_1), 0, 1, "S", "SS", (SUBR)stripside},
     { "strstrip.i", S(STR1_1), 0, 1, "S", "S", (SUBR)strstrip},
-    { "println", S(PRINTLN), 0, 3, "", "S*", (SUBR)println_init, (SUBR)println_perf}
+    { "println", S(PRINTLN), 0, 3, "", "SN", (SUBR)println_init, (SUBR)println_perf}
 
 };
 
