@@ -4,6 +4,15 @@ if(BUILD_HDF5_OPCODES)
     find_package(HDF5)
 
     if(HDF5_FOUND)
+        # split version string, as cmake doesn't do this automatically
+        string(REPLACE "." ";" VERSION_LIST ${HDF5_VERSION})
+        list(GET VERSION_LIST 0 HDF5_VERSION_MAJOR)
+        list(GET VERSION_LIST 1 HDF5_VERSION_MINOR)
+        list(GET VERSION_LIST 2 HDF5_VERSION_PATCH)
+        # add definitions so we can use them in the preprocessor
+        ADD_DEFINITIONS(-DHDF5_VERSION_MAJOR=${HDF5_VERSION_MAJOR})
+        ADD_DEFINITIONS(-DHDF5_VERSION_MINOR=${HDF5_VERSION_MINOR})
+        ADD_DEFINITIONS(-DHDF5_VERSION_PATCH=${HDF5_VERSION_PATCH})
         if(MSVC)
             make_plugin(hdf5ops HDF5IO.c)
             target_include_directories(hdf5ops PRIVATE ${HDF5_INCLUDE_DIRS})
