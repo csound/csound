@@ -1313,8 +1313,8 @@ static int gen20(FGDATA *ff, FUNC *ftp)
           ft[i] = FL(1.0);
         return OK;
     case 9:                     /* Sinc */
-        arg = TWOPI / ff->flen;
-        for (i = 0, x = -PI ; i < ((int) ff->flen >> 1) ; i++, x += arg)
+        arg = TWOPI * varian / ff->flen;
+        for (i = 0, x = -PI * varian; i < ((int) ff->flen >> 1) ; i++, x += arg)
           ft[i] = (MYFLT) (xarg * sin(x) / x);
         ft[i++] = (MYFLT) xarg;
         for (x = arg ; i <= (int) ff->flen ; i++, x += arg)
