@@ -1310,7 +1310,7 @@ static int gen20(FGDATA *ff, FUNC *ftp)
       }
     case 8:                     /* Rectangular */
         for (i = 0; i <= (int) ff->flen ; i++)
-          ft[i] = FL(1.0);
+          ft[i] = FL(xarg);
         return OK;
     case 9:                     /* Sinc */
         arg = TWOPI * varian / ff->flen;
