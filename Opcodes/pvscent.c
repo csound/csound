@@ -132,6 +132,47 @@ static int32_t pvsscent(CSOUND *csound, PVSCENT *p)
     return OK;
 }
 
+static int32_t pvsbandw(CSOUND *csound, PVSCENT *p)
+{
+    int32 i,N = p->fin->N;
+    MYFLT c = FL(0.0);
+    MYFLT d = FL(0.0);
+    MYFLT j, binsize = CS_ESR/(MYFLT)N;
+    if (p->fin->sliding) {
+      CMPLX *fin = (CMPLX*) p->fin->frame.auxp;
+      int32_t NB = p->fin->NB;
+      MYFLT cd;
+      for (i=0, j=FL(0.5)*binsize; i<NB; i++, j += binsize) {
+        c += fin[i].re*j;
+        d += fin[i].re;
+      }
+      cd = (d==FL(0.0) ? FL(0.0) : c/d);
+      c = FL(0.0);
+      for (i=0,j=FL(0.5)*binsize; i<N+2; i+=2, j += binsize) {
+        c += fin[i].re*(j - cd)*(j - cd);        
+      }      
+    }
+    else {
+      float *fin = (float *) p->fin->frame.auxp;
+      if (p->lastframe < p->fin->framecount) {
+        // compute centroid
+        MYFLT cd;
+        for (i=0,j=FL(0.5)*binsize; i<N+2; i+=2, j += binsize) {
+          c += fin[i]*j;         /* This ignores phase */
+          d += fin[i];
+        }
+        cd = (d==FL(0.0) ? FL(0.0) : c/d);
+        c = FL(0.0);
+        for (i=0,j=FL(0.5)*binsize; i<N+2; i+=2, j += binsize) {
+          c += fin[i]*(j - cd)*(j - cd);        
+        }       
+        p->lastframe = p->fin->framecount;
+      }
+    }
+    *p->ans = SQRT(c);
+    return OK;
+}
+
 typedef struct _cent {
   OPDS    h;
   MYFLT   *ans;
@@ -172,6 +213,8 @@ static int32_t cent_i(CSOUND *csound, CENT *p)
     p->setup = csound->RealFFT2Setup(csound,p->fsize,FFT_FWD);
     return OK;
 }
+
+
 
 
 static int32_t cent_k(CSOUND *csound, CENT *p)
@@ -408,6 +451,8 @@ int32_t pvspitch_process(CSOUND *csound, PVSPITCH *p)
 static OENTRY localops[] = {
   { "pvscent", sizeof(PVSCENT), 0, 3, "k", "f",
                              (SUBR)pvscentset, (SUBR)pvscent },
+  { "pvsbandwidth", sizeof(PVSCENT), 0, 3, "k", "f",
+                             (SUBR)pvscentset, (SUBR)pvsbandw },
   { "pvscent", sizeof(PVSCENT), 0, 3, "a", "f",
                              (SUBR)pvscentset, (SUBR)pvsscent },
   { "centroid", sizeof(CENT), 0, 3, "k", "aki", (SUBR)cent_i, (SUBR)cent_k, NULL},
