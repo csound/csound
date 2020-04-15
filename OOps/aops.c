@@ -1920,8 +1920,8 @@ inline static int32_t outn(CSOUND *csound, uint32_t n, OUTX *p)
     MYFLT *spout = CS_SPOUT; ///csound->spraw;
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
-    //    if (UNLIKELY((offset|early))) {
-    //printf("OUT; spout=%p early=%d offset=%d\n", spout, early, offset);
+        if (UNLIKELY((offset|early))) {
+          printf("OUT; spout=%p early=%d offset=%d\n", spout, early, offset);}
     early = nsmps - early;
     CSOUND_SPOUT_SPINLOCK
 

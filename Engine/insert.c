@@ -493,11 +493,14 @@ int insert_event(CSOUND *csound, int insno, EVTBLK *newevtp)
     start_time_kcycles = start_time_samps/csound->ksmps;
     ip->ksmps_offset = start_time_samps - start_time_kcycles*csound->ksmps;
     /* with no p3 or xtratim values, can't set the sample accur duration */
-    if (ip->p3.value > 0 && ip->xtratim == 0)
-      ip->no_end = csound->ksmps -
-        ((int)duration_samps+ip->ksmps_offset)%csound->ksmps;
+    if (ip->p3.value > 0 && ip->xtratim == 0) {
+      ip->no_end = (csound->ksmps -
+                    ((int)duration_samps+ip->ksmps_offset)%csound->ksmps)%csound->ksmps;
     /* the ksmps_no_end field is initially 0, set to no_end in the last
        perf cycle */
+    //  printf("*** duration_samps %d ip->ksmps_offset %d csound->ksmps %d ==> %d\n",
+    //         (int)duration_samps, ip->ksmps_offset, csound->ksmps, ip->no_end);
+    }
     else ip->no_end = 0;
     ip->ksmps_no_end = 0;
   }
