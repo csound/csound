@@ -2292,6 +2292,7 @@ typedef struct {
     int fmtlen;
     STRINGDAT buf;
     STRINGDAT strseg;
+    int initDone;
 } PRINTLN;
 
 
@@ -2306,40 +2307,6 @@ int32_t println_reset(CSOUND *csound, PRINTLN *p) {
         csound->Free(csound, p->strseg.data);
         p->strseg.data = NULL;
         p->strseg.size = 0;
-    }
-    return OK;
-}
-
-
-int32_t println_init(CSOUND *csound, PRINTLN *p) {
-    int32_t bufsize = 2048;
-    int32_t fmtlen = strlen(p->sfmt->data);
-    int32_t numVals = (int32_t)p->INOCOUNT - 1;
-    int32_t maxSegmentSize = fmtlen + numVals*7 + 1;
-
-    // Try to reuse memory from previous instances
-    if(p->buf.size < bufsize || p->strseg.size < maxSegmentSize) {
-        if(p->buf.data == NULL)
-            p->buf.data = csound->Calloc(csound, bufsize);
-        else
-            p->buf.data = csound->ReAlloc(csound, p->buf.data, bufsize);
-        p->buf.size = bufsize;
-        if(p->strseg.data == NULL)
-            p->strseg.data = csound->Malloc(csound, maxSegmentSize);
-        else
-            p->strseg.data = csound->ReAlloc(csound, p->strseg.data, maxSegmentSize);
-        p->strseg.size = maxSegmentSize;
-        p->allocatedBuf = 1;
-        csound->RegisterResetCallback(csound, p, (int32_t(*)(CSOUND*, void*))(println_reset));
-    } else {
-        p->allocatedBuf = 0;
-    }
-    if(p->sfmt->data[fmtlen-1] == ',') {
-        p->newline = 0;
-        p->fmtlen = fmtlen - 1;
-    } else {
-        p->newline = 1;
-        p->fmtlen = fmtlen;
     }
     return OK;
 }
@@ -2369,6 +2336,15 @@ int32_t printsk_init(CSOUND *csound, PRINTLN *p) {
     }
     p->newline = 0;
     p->fmtlen = fmtlen;
+    p->initDone = 1;
+    return OK;
+}
+
+int32_t println_init(CSOUND *csound, PRINTLN *p) {
+    int ret = printsk_init(csound, p);
+    if(ret != OK)
+        return INITERR(Str("Error while inititalizing println"));
+    p->newline = 1;
     return OK;
 }
 
@@ -2392,6 +2368,8 @@ sprintf_opcode_(CSOUND *csound,
                 int32_t numVals,      /* number of arguments             */
                 int32_t strCode)      /* bit mask for string arguments   */
 {
+    if(p->initDone == 0)
+        return PERFERRF(Str("Opcode %s not initialized"), p->h.optext->t.opcod);
     int32_t     len = 0;
     char *outstring = str->data;
     MYFLT *parm = NULL;
@@ -2528,11 +2506,7 @@ int32_t println_perf(CSOUND *csound, PRINTLN *p) {
                                   &(p->args[0]), (int32_t)p->INOCOUNT - 1, 0);
     if(err!=OK)
         return NOTOK;
-   if(p->newline) {
-        csound->MessageS(csound, CSOUNDMSG_ORCH, "%s\n", p->buf.data);
-    } else {
-        csound->MessageS(csound, CSOUNDMSG_ORCH, "%s", p->buf.data);
-    }
+    csound->MessageS(csound, CSOUNDMSG_ORCH, "%s\n", p->buf.data);
     return OK;
 }
 
