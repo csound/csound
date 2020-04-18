@@ -97,6 +97,7 @@ int32_t int1_round(CSOUND *, void *), int1a_round(CSOUND *, void *);
 int32_t int1_floor(CSOUND *, void *), int1a_floor(CSOUND *, void *);
 int32_t int1_ceil(CSOUND *, void *), int1a_ceil(CSOUND *, void *);
 int32_t rnd1(CSOUND *, void *), birnd1(CSOUND *, void *);
+int32_t rnd1seed(CSOUND *, void *);
 int32_t abs1(CSOUND *, void *), exp01(CSOUND *, void *);
 int32_t log01(CSOUND *, void *), sqrt1(CSOUND *, void *);
 int32_t sin1(CSOUND *, void *), cos1(CSOUND *, void *);

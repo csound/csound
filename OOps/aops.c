@@ -799,6 +799,13 @@ int32_t int1a_ceil(CSOUND *csound, EVAL *p)         /* round up */
 
 #define rndmlt (105.947)
 
+int32_t rnd1seed(CSOUND *csound, INM *p)
+{
+    double intpart;
+    csound->rndfrac = modf(*p->ar, &intpart);
+    return OK;
+}
+
 int32_t rnd1(CSOUND *csound, EVAL *p)               /* returns unipolar rand(x) */
 {
     double intpart;
