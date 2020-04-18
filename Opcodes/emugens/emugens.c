@@ -1469,6 +1469,83 @@ tabslice_k(CSOUND *csound, TABSLICE *p) {
 }
 
 /*
+  ftset
+
+  ftset table:k, value:k, startIndex:k=0, endIndex:k=0, step:k=1
+
+  Set elements of table to value
+
+  table      : the table to modify
+  value      : the value to set the table elements to
+  startIndex : the index to start copying
+  endIndex   : the index to end copying. NOT INCLUSIVE
+  step       : how many indices to jump (1=contiguous)
+
+  ftset ift, 0      ; clears the table
+  ftset ift, 1, 10  ; set elements between index 10 and end of the table to 1
+
+*/
+
+typedef struct {
+    OPDS h;
+    MYFLT *tabnum, *value, *kstart, *kend, *kstep;
+    FUNC *tab;
+    int lastTabnum;
+} FTSET;
+
+
+static int32_t
+ftset_init(CSOUND *csound, FTSET *p) {
+    IGN(csound);
+    p->lastTabnum = -1;
+    return OK;
+}
+
+static int32_t
+ftset_k(CSOUND *csound, FTSET *p) {
+    int tabnum = (int)(*p->tabnum);
+    FUNC *tab;
+    if(tabnum != p->lastTabnum) {
+        tab = csound->FTnp2Finde(csound, p->tabnum);
+        if(UNLIKELY(tab == NULL))
+            return PERFERRF(Str("Table %d not found"), tabnum);
+        p->tab = tab;
+        p->lastTabnum = tabnum;
+    } else {
+        if(p->tab == NULL)
+            return PERFERR(Str("Table not set"));
+        tab = p->tab;
+    }
+    MYFLT *data = tab->ftable;
+    int tablen = tab->flen;
+    int32_t start = (int32_t)*p->kstart;
+    int32_t end = (int32_t)*p->kend;
+    int32_t step = (int32_t)*p->kstep;
+    MYFLT value = *p->value;
+
+    if(end <= 0)
+        end += tab->flen;
+    else if(end > tablen)
+        end = tablen;
+
+    if(step == 1 && value == 0) {
+        // special case: clear the table, use memset
+        memset(data + start, 0, end - start);
+        return OK;
+    }
+
+    int32_t numitems = (int32_t) (ceil((end - start) / (float)step));
+    if (numitems > tablen)
+        numitems = tablen;
+
+    for(int i=0; i<numitems; i+=step) {
+        data[i] = value;
+    }
+    return OK;
+}
+
+
+/*
 
   tab2array
 
@@ -2646,11 +2723,14 @@ static OENTRY localops[] = {
  // { "reshapearray", S(ARRAYRESHAPE), 0, 2, "", ".[]io", NULL, (SUBR)arrayreshape},
     { "ftslice", S(TABSLICE),  TB, 3, "", "iiOOP",
       (SUBR)tabslice_init, (SUBR)tabslice_k},
+
+    { "ftset.k", S(FTSET), 0, 3, "", "kkOOP", (SUBR)ftset_init, (SUBR)ftset_k },
+
     { "tab2array", S(TAB2ARRAY), TR, 3, "k[]", "iOOP",
       (SUBR)tab2array_init, (SUBR)tab2array_k},
     { "tab2array", S(TAB2ARRAY), TR, 1, "i[]", "ioop", (SUBR)tab2array_i},
 
-    { "printarray", S(ARRAYPRINTK), 0, 3, "", "k[]P",
+    { "printarray", S(ARRAYPRINTK), 0, 3, "", "k[]J",
       (SUBR)arrayprint_init, (SUBR)arrayprint_perf},
     { "printarray", S(ARRAYPRINTK), 0, 3, "", "k[]kS",
       (SUBR)arrayprint_init, (SUBR)arrayprint_perf},
