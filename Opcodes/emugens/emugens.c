@@ -1523,27 +1523,28 @@ ftset_k(CSOUND *csound, FTSET *p) {
     int32_t step = (int32_t)*p->kstep;
     MYFLT value = *p->value;
 
-    if(end <= 0)
-        end += tab->flen;
+    if(end < 0)
+        end += tab->flen+1;
     else if(end > tablen)
         end = tablen;
 
     if(step == 1 && value == 0) {
         // special case: clear the table, use memset
-        memset(data + start, 0, end - start);
+        memset(data + start, '\0', sizeof(MYFLT) * (end - start));
         return OK;
     }
 
-    int32_t numitems = (int32_t) (ceil((end - start) / (float)step));
-    if (numitems > tablen)
-        numitems = tablen;
-
-    for(int i=0; i<numitems; i+=step) {
+    for(int i=start; i<end; i+=step) {
         data[i] = value;
     }
     return OK;
 }
 
+static int32_t
+ftset_i(CSOUND *csound, FTSET *p) {
+    ftset_init(csound, p);
+    return ftset_k(csound, p);
+}
 
 /*
 
@@ -2023,6 +2024,7 @@ ftprint_init(CSOUND *csound, FTPRINT *p) {
         p->numcols = 10;
     p->ftp = csound->FTnp2Finde(csound, p->ifn);
     int32_t trig = (int32_t)*p->ktrig;
+
     if (trig > 0) {
         ftprint_perf(csound, p);
     }
@@ -2724,7 +2726,9 @@ static OENTRY localops[] = {
     { "ftslice", S(TABSLICE),  TB, 3, "", "iiOOP",
       (SUBR)tabslice_init, (SUBR)tabslice_k},
 
-    { "ftset.k", S(FTSET), 0, 3, "", "kkOOP", (SUBR)ftset_init, (SUBR)ftset_k },
+
+    { "ftset.k", S(FTSET), 0, 3, "", "kkOJP", (SUBR)ftset_init, (SUBR)ftset_k },
+    { "ftset.i", S(FTSET), 0, 3, "", "iiojp", (SUBR)ftset_i },
 
     { "tab2array", S(TAB2ARRAY), TR, 3, "k[]", "iOOP",
       (SUBR)tab2array_init, (SUBR)tab2array_k},
