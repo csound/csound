@@ -1505,14 +1505,14 @@ static int32_t
 ftset_k(CSOUND *csound, FTSET *p) {
     int tabnum = (int)(*p->tabnum);
     FUNC *tab;
-    if(tabnum != p->lastTabnum) {
+    if(UNLIKELY(tabnum != p->lastTabnum)) {
         tab = csound->FTnp2Finde(csound, p->tabnum);
         if(UNLIKELY(tab == NULL))
             return PERFERRF(Str("Table %d not found"), tabnum);
         p->tab = tab;
         p->lastTabnum = tabnum;
     } else {
-        if(p->tab == NULL)
+        if(UNLIKELY(p->tab == NULL))
             return PERFERR(Str("Table not set"));
         tab = p->tab;
     }
@@ -1523,8 +1523,8 @@ ftset_k(CSOUND *csound, FTSET *p) {
     int32_t step = (int32_t)*p->kstep;
     MYFLT value = *p->value;
 
-    if(end < 0)
-        end += tab->flen+1;
+    if(end <= 0)
+        end += tab->flen;
     else if(end > tablen)
         end = tablen;
 
@@ -1895,7 +1895,7 @@ static int32_t arrprint(CSOUND *csound, ARRAYDAT *arr,
                                      " %s\n", (char*)currline);
                 }
                 charswritten = 0;
-                startidx = i;
+                startidx = i+1;
             }
         }
         if (charswritten > 0) {
@@ -2049,7 +2049,7 @@ static int handle_negative_idx(uint32_t *out, int32_t idx, uint32_t length) {
 static int32_t
 ftprint_perf(CSOUND *csound, FTPRINT *p) {
     int32_t trig = (int32_t)*p->ktrig;
-    if(trig == 0 || (trig == p->lasttrig))
+    if(trig == 0 || (trig > 0 && trig == p->lasttrig))
         return OK;
     p->lasttrig = trig;
     FUNC *ftp = p->ftp;
@@ -2087,7 +2087,7 @@ ftprint_perf(CSOUND *csound, FTPRINT *p) {
             currline[charswritten++] = '\0';
             csound->MessageS(csound, CSOUNDMSG_ORCH,
                              " %3d: %s\n", startidx, currline);
-            startidx = i;
+            startidx = i+step;
             elemsprinted = 0;
             charswritten = 0;
         }
@@ -2727,8 +2727,8 @@ static OENTRY localops[] = {
       (SUBR)tabslice_init, (SUBR)tabslice_k},
 
 
-    { "ftset.k", S(FTSET), 0, 3, "", "kkOJP", (SUBR)ftset_init, (SUBR)ftset_k },
-    { "ftset.i", S(FTSET), 0, 3, "", "iiojp", (SUBR)ftset_i },
+    { "ftset.k", S(FTSET), 0, 3, "", "kkOOP", (SUBR)ftset_init, (SUBR)ftset_k },
+    { "ftset.i", S(FTSET), 0, 3, "", "iioop", (SUBR)ftset_i },
 
     { "tab2array", S(TAB2ARRAY), TR, 3, "k[]", "iOOP",
       (SUBR)tab2array_init, (SUBR)tab2array_k},
