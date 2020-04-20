@@ -11,6 +11,7 @@ brew install libpng
 brew install libogg
 brew install fluid-synth
 brew install libsamplerate
+brew install openssl
 
 # install Csound, and grab libs pre-built libs from there
 # mkdir csDownload
@@ -50,8 +51,8 @@ export PACKAGE_NAME=csound${CS_VERSION}-MacOS_x86_64.pkg
 export DMG_DIR="Csound${CS_VERSION}"
 export DMG_NAME="csound${CS_VERSION}-MacOS_x86_64.dmg"
 
-export SDK=/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.12.sdk/
-export TARGET=10.7
+export SDK=/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.15.sdk/
+export TARGET=10.10
 export DEPS_BASE=/usr/local
 # If arg2 passed in, will cd into that dir and rebuild, otherwise
 # will clone from repo and do a fresh build
@@ -94,7 +95,7 @@ export BUILD_DIR=`pwd`
 
 echo "Building Csound (double)..."
 
-cmake .. -DBUILD_INSTALLER=1 -DCMAKE_INSTALL_PREFIX=dist -DCMAKE_BUILD_TYPE=Release -DBUILD_TESTS=0 -DBUILD_FAUST_OPCODES=1 -DFAUST_LIBRARY=$DEPS_BASE/lib/libfaust.a  -DCMAKE_OSX_DEPLOYMENT_TARGET=$TARGET -DCMAKE_OSX_SYSROOT=$SDK -DBUILD_STK_OPCODES=1 -DBUILD_LUA_OPCODES=0 -DBUILD_LUA_INTERFACE=0 -DUSE_GETTEXT=0
+cmake .. -DBUILD_INSTALLER=1 -DCMAKE_INSTALL_PREFIX=dist -DUSE_CURL=0 -DCMAKE_BUILD_TYPE=Release -DBUILD_TESTS=0 -DBUILD_FAUST_OPCODES=0 -DCMAKE_OSX_DEPLOYMENT_TARGET=$TARGET -DCMAKE_OSX_SYSROOT=$SDK -DBUILD_STK_OPCODES=1 -DBUILD_LUA_OPCODES=0 -DBUILD_LUA_INTERFACE=0 -DUSE_GETTEXT=0
 # RUN CMAKE TWICE TO GET AROUND ISSUE WITH UNIVERSAL BUILD
 #cmake .. -DBUILD_INSTALLER=1 -DCMAKE_INSTALL_PREFIX=dist -DCMAKE_BUILD_TYPE=Release -DCMAKE_OSX_ARCHITECTURES="i386;x86_64" -DBUILD_TESTS=0 -DBUILD_FAUST_OPCODES=1 -DFAUST_LIBRARY=$DEPS_BASE/lib/libfaust.a -DCMAKE_OSX_DEPLOYMENT_TARGET=$TARGET -DCMAKE_OSX_SYSROOT=$SDK -DBUILD_STK_OPCODES=1 -DBUILD_LUA_OPCODES=0 -DBUILD_LUA_INTERFACE=0 -DUSE_GETTEXT=0
 make -j6 install

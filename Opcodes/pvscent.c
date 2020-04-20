@@ -149,8 +149,8 @@ static int32_t pvsbandw(CSOUND *csound, PVSCENT *p)
       cd = (d==FL(0.0) ? FL(0.0) : c/d);
       c = FL(0.0);
       for (i=0,j=FL(0.5)*binsize; i<N+2; i+=2, j += binsize) {
-        c += fin[i].re*(j - cd)*(j - cd);        
-      }      
+        c += fin[i].re*(j - cd)*(j - cd);
+      }
     }
     else {
       float *fin = (float *) p->fin->frame.auxp;
@@ -164,8 +164,8 @@ static int32_t pvsbandw(CSOUND *csound, PVSCENT *p)
         cd = (d==FL(0.0) ? FL(0.0) : c/d);
         c = FL(0.0);
         for (i=0,j=FL(0.5)*binsize; i<N+2; i+=2, j += binsize) {
-          c += fin[i]*(j - cd)*(j - cd);        
-        }       
+          c += fin[i]*(j - cd)*(j - cd);
+        }
         p->lastframe = p->fin->framecount;
       }
     }
