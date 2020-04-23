@@ -721,7 +721,8 @@ int32_t riset(CSOUND *csound, RANDI *p)
       else {
         MYFLT ss = *p->iseed;
         if (ss>FL(1.0)) p->rand = (int32_t) ss;
-        else p->rand = (int32_t) (*p->iseed * FL(2147483648.0));
+        else if (ss==FL(0.0)) p->rand = (int32_t) (FL(0.5) * FL(2147483648.0));
+        else p->rand = (int32_t) (ss * FL(2147483648.0));
         p->rand = randint31(p->rand);
         p->rand = randint31(p->rand);
         p->num1 = (MYFLT)(p->rand<1) * dv2_31; /* store num1,2 */
@@ -800,6 +801,7 @@ int32_t randi(CSOUND *csound, RANDI *p)
         }
         else {
           int32_t r = randint31(p->rand);          /*   calc new numbers*/
+          //printf("r = %x\n", r);
           p->rand = r;
           p->num1 = p->num2;
           p->num2 = (MYFLT)((int32_t)((uint32_t)r<<1)-BIPOLAR) * dv2_31;
