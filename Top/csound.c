@@ -2333,7 +2333,7 @@ PUBLIC uint32_t csoundGetNchnls(CSOUND *csound)
 
 PUBLIC uint32_t csoundGetNchnlsInput(CSOUND *csound)
 {
-  if (csound->inchnls > 0)
+  if (csound->inchnls >= 0)
     return (uint32_t) csound->inchnls;
   else return csound->nchnls;
 }
