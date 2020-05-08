@@ -1077,8 +1077,10 @@ static int gen16(FGDATA *ff, FUNC *ftp)
     MYFLT   *fp, *valp, val;
     int     nargs = ff->e.pcnt - 4;
     int     nseg = nargs / 3;
-
+    int remaining;
+    
     fp = ftp->ftable;
+    remaining = ff->e.p[3];
     valp = &ff->e.p[5];
     *fp++ = val = *valp++;
     while (nseg-- > 0) {
@@ -1089,6 +1091,7 @@ static int gen16(FGDATA *ff, FUNC *ftp)
       if (alpha == FL(0.0)) {
         MYFLT c1 = (nxtval-val)/dur;
         while (cnt-- > 0) {
+          if (--remaining<=0) break;
           *fp++ = val = val + c1;
         }
       }
@@ -1098,6 +1101,7 @@ static int gen16(FGDATA *ff, FUNC *ftp)
         alpha /= dur;
         x = alpha;
         while (cnt-->0) {
+          if (--remaining<=0) break;
           *fp++ = val + c1 * (FL(1.0) - EXP(x));
           x += alpha;
         }

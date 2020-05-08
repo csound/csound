@@ -833,8 +833,8 @@ MYFLT gausscompute(CSOUND *csound, GAUSS *p) {
   if(p->flag == 0) {
     MYFLT u1 = unirand(csound);
     MYFLT u2 = unirand(csound);
-    MYFLT z = SQRT(-2.*LOG(u1))*cos(2*M_PI*u2);
-    p->z = SQRT(-2.*LOG(u1))*sin(2*M_PI*u2);
+    MYFLT z = SQRT(-2.*LOG(u1))*cos(2*PI*u2);
+    p->z = SQRT(-2.*LOG(u1))*sin(2*PI*u2);
     p->flag = 1;
     return *p->sigma*z + *p->mu; 
   } else {
