@@ -393,13 +393,16 @@ static int32_t psynth2_process(CSOUND *csound, _PSYN2 *p)
                 phasediff -= TWOPI_F;
               while (phasediff < -PI_F)
                 phasediff += TWOPI_F;
+              
               /* update phasediff to match the freq */
               cph = ((freq + freqnext) * factor * 0.5 - phasediff) / TWOPI;
+              
               phasediff += TWOPI_F * (int32_t) (cph + 0.5);
               /* interpolation coefs */
               a2 = 3.0 / facsqr * (phasediff -
                                    factor / 3.0 * (2.0 * freq + freqnext));
               a3 = 1.0 / (3.0 * facsqr) * (freqnext - freq - 2.0 * a2 * factor);
+              //printf("%f %f \n", a2, a3);
               /* interpolation & track synthesis loop */
               a = amp;
               ph = phase;

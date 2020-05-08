@@ -452,16 +452,26 @@ static int32_t partials_process(CSOUND * csound, _PARTS * p)
           frac = (bins[k] - ndx);
           /* freq interpolation */
           pos = ndx * 2 + 1;
-          a = fin1[pos];
+          a = fin1[pos];       
           b = (bins[k] < numbins - 1 ? (fin1[pos + 2] - a) : 0);
           fout[i + 1] = (float) (a + frac * b);
           if (!nophase){
-            float pha = fin2[pos];
+            float pha0 = fin2[pos];
+            float pha1 = bins[k] < numbins - 1 ? fin2[pos + 2] : fin2[pos];
+            float mag0 = fin2[pos - 1];
+            float mag1 = bins[k] < numbins - 1 ? fin2[pos + 1] : fin2[pos - 1];
             /* while (pha >= PI_F)
               pha -= TWOPI_F;
             while (pha < -PI_F)
             pha += TWOPI_F; */
-            fout[i + 2] = pha;  /* phase (truncated) */
+            //fout[i + 2] = pha;  /* phase (truncated) */
+            MYFLT cos0 = mag0*COS(pha0);  
+            MYFLT sin0 = mag0*SIN(pha0);
+            MYFLT cos1 = mag1*COS(pha1);  
+            MYFLT sin1 = mag1*SIN(pha1);
+            MYFLT re = cos0 + frac*(cos1 - cos0);
+            MYFLT im = sin0 + frac*(sin1 - sin0);
+            fout[i + 2] = atan2(im,re); /* phase (interpolated) */
           }
           else
             fout[i + 2] = 0.f;
