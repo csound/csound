@@ -1164,16 +1164,16 @@ int32_t cpsxpch(CSOUND *csound, XENH *p)
     else {                      /* Values in a table */
       MYFLT t = - *p->et;
       FUNC* ftp = csound->FTnp2Finde(csound, &t);
-      int32_t len;
+      int32_t len, fct;
       if (UNLIKELY(ftp == NULL))
         return csound->PerfError(csound, &(p->h),Str("No tuning table %d"),
                                  -((int32_t)*p->et));
       len = ftp->flen;
-      while (fract>len) {
-        fract -= len; loct++;
+      frt = (int32_t)(100.0*fract+0.5);
+      while (frt>len) {
+        frt -= len; loct++;
       }
-      fract += 0.005;
-      *p->r = *p->ref * *(ftp->ftable + (int32_t)(100.0*fract)) *
+      *p->r = *p->ref * *(ftp->ftable + fct) *
         POWER(*p->cy, (MYFLT)loct);
     }
     return OK;
@@ -1192,16 +1192,18 @@ int32_t cps2pch(CSOUND *csound, XENH *p)
     else {
       MYFLT t = - *p->et;
       FUNC* ftp = csound->FTnp2Finde(csound, &t);
-      int32_t len;
+      int32_t len, frt;
       if (UNLIKELY(ftp == NULL))
         return csound->PerfError(csound, &(p->h),Str("No tuning table %d"),
                                  -((int32_t)*p->et));
       len = ftp->flen;
-      while (fract>len) {
-        fract -= len; loct++;
+      frt = (int32_t)(100.0*fract+0.5);
+      //printf("len=%d fract=%g frt=%d\n", len, fract, frt);
+      while (frt>len) {
+        frt -= len; loct++;
       }
-      fract += 0.005;
-      *p->r = (MYFLT)(1.02197503906 * *(ftp->ftable +(int32_t)(100.0*fract)) *
+      //printf("len=%d loct=%g frt=%d\n", len, loct, frt);
+      *p->r = (MYFLT)(1.02197503906 * *(ftp->ftable + frt) *
                       pow(2.0, loct));
     }
 
