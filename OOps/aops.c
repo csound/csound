@@ -1164,7 +1164,7 @@ int32_t cpsxpch(CSOUND *csound, XENH *p)
     else {                      /* Values in a table */
       MYFLT t = - *p->et;
       FUNC* ftp = csound->FTnp2Finde(csound, &t);
-      int32_t len, fct;
+      int32_t len, frt;
       if (UNLIKELY(ftp == NULL))
         return csound->PerfError(csound, &(p->h),Str("No tuning table %d"),
                                  -((int32_t)*p->et));
@@ -1173,7 +1173,7 @@ int32_t cpsxpch(CSOUND *csound, XENH *p)
       while (frt>len) {
         frt -= len; loct++;
       }
-      *p->r = *p->ref * *(ftp->ftable + fct) *
+      *p->r = *p->ref * *(ftp->ftable + frt) *
         POWER(*p->cy, (MYFLT)loct);
     }
     return OK;

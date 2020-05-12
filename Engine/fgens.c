@@ -1078,7 +1078,7 @@ static int gen16(FGDATA *ff, FUNC *ftp)
     int     nargs = ff->e.pcnt - 4;
     int     nseg = nargs / 3;
     int remaining;
-    
+
     fp = ftp->ftable;
     remaining = ff->e.p[3];
     valp = &ff->e.p[5];
