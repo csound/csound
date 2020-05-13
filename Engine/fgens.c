@@ -862,7 +862,8 @@ static int gen11(FGDATA *ff, FUNC *ftp)
       pdlen = PI_F / (MYFLT) ff->flen;
       for (phs = 0; fp <= finp; phs++) {
         x = phs * pdlen;
-        if (!(denom = (MYFLT) sin(x)))
+        denom = sin(x);
+        if (fabs(denom)<1.0e-10) //(!(denom = (MYFLT) sin(x)))
           *fp++ = FL(1.0);
         else *fp++ = ((MYFLT) sin(tnp1 * x) / denom - FL(1.0)) * scale;
       }
