@@ -3931,7 +3931,7 @@ void pffft_RealFFT(CSOUND *csound,
 
 /* ==================================== */
 /* Linear Prediction functions 
-   Vl, 2020
+   VL, 2020
 */
 /* autocorrelation  
   r - output 

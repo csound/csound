@@ -509,10 +509,14 @@ static const CSOUND cenviron_ = {
     csoundErrCnt,
     csoundFTnp2Finde,
     csoundGetInstrument,
+    csoundAutoCorrelation,
+    csoundLPread,
+    csoundLPCeps,
+    csoundCepsLP,
     {
       NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
       NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
-      NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL
+      NULL, NULL, NULL, NULL, NULL
     },
     /* ------- private data (not to be used by hosts or externals) ------- */
     /* callback function pointers */
