@@ -1,7 +1,7 @@
 /*
   fftlib.c:
 
-  Copyright 2005 John Green Istvan Varga
+  Copyright 2005 John Green Istvan Varga Victor Lazzarini
 
   FFT library
   based on public domain code by John Green <green_jt@vsdec.npt.nuwc.navy.mil>
@@ -3928,3 +3928,130 @@ void pffft_RealFFT(CSOUND *csound,
 }
 #endif
 #endif
+
+/* ==================================== */
+/* Linear Prediction functions 
+   Vl, 2020
+*/
+/* autocorrelation  
+  r - output 
+  s - input
+  size - input size
+  returns r
+*/
+MYFLT *csoundAutoCorrelation(CSOUND *csound, MYFLT *r, MYFLT *s, int size){
+   MYFLT sum;
+   int n,m;
+   for(n=0; n < size; n++) {
+     sum = FL(0.0);
+     for(m=n; n < size; n++) 
+       sum += s[size-m]*s[m];
+     r[n] = sum;
+   } 
+   return r;
+}  
+
+/* csound Linear Prediction
+   of signal x of size N
+   of M order.
+   output format: M+1 MYFLT array
+   [E,c1,c2,...,cm]
+   NB: c0 is always 1
+*/
+MYFLT *csoundLPread(CSOUND *csound, MYFLT *x, int N, int M){
+   MYFLT *E, *b, *k, *r, s;
+   int i,m;
+   int L = M+1;
+   E = csoundQueryGlobalVariable(csound, "lp:E");
+   if(E == NULL) {
+     if(csoundCreateGlobalVariable(csound, "lp:E", sizeof(MYFLT)*(M+1))
+        == 0) return NULL;  
+       E = csoundQueryGlobalVariable(csound, "lp:E");
+     }
+   b = csoundQueryGlobalVariable(csound, "lp:b");
+   if(b == NULL) {
+     if(csoundCreateGlobalVariable(csound, "lp:b", sizeof(MYFLT)*(M+1)*(M+1))
+        == 0) return NULL;  
+       b = csoundQueryGlobalVariable(csound, "lp:b");
+    }
+   k = csoundQueryGlobalVariable(csound, "lp:k");
+   if(k == NULL) {
+     if(csoundCreateGlobalVariable(csound, "lp:k", sizeof(MYFLT)*(M+1))
+        == 0) return NULL;  
+       k = csoundQueryGlobalVariable(csound, "lp:k");
+     }
+   r = csoundQueryGlobalVariable(csound, "lp:r");
+   if(r == NULL) {
+     if(csoundCreateGlobalVariable(csound, "lp:r", sizeof(MYFLT)*(N))
+        == 0) return NULL;  
+       r = csoundQueryGlobalVariable(csound, "lp:r");
+     }
+   r = csoundAutoCorrelation(csound,r,x,N);
+
+   /* linear prediction */
+   E[0] = r[0];
+   for(i=1;i<M+1;i++) r[i] /= E[i];
+   b[M*L] = 1.;
+   for(m=1;m<M+1;m++) {
+     s = 0.;
+     b[(m-1)*L] = 1.;
+     for(i=0;i<m;i++) 
+       s += b[(m-1)*L+i]*r[m-i];
+     k[m] =  -(r[m] + s)/E[m-1];
+     b[m*L+m] = k[m];
+     for(i=1;i<m;i++)
+       b[m*L+i] = b[(m-1)*L+i] + k[m]*b[(m-1)*L+(m-i)];
+     E[m] = (1 - k[m]*k[m])*E[m-1];
+   }
+   /* replace first coeff with E*/
+   b[M*L] = E[M];
+   /* return E + coeffs */
+   return &(b[M*L]);
+} 
+ 
+/* LP coeffs to Cepstrum
+   takes an array c of N size
+   and an array b of M+1 size with M all-pole coefficients
+   and E in place of coefficient 0 [E,c1,...,cM]
+   returns N cepstrum coefficients
+*/
+MYFLT *csoundLPCeps(CSOUND *csound, MYFLT *c, MYFLT *b,
+                    int N, int M){
+  int n,m;
+  MYFLT s;
+  c[0] = -LOG(b[0]);
+  c[1] = b[1];
+  for(n=2;n<N;n++){
+    if(n > M)
+      c[n] = 0;
+    else {
+      s = 0.;
+      for(m=1;m<n;m++)
+        s += (m/n)*c[m]*b[n-m];
+      c[n] = b[n] - s;
+    }
+  }
+  for(n=0;n<N;n++) c[n] *= -1;
+  return c;    
+}
+
+/* LP coeffs to Cepstrum
+   takes an array c of N size
+   and an array b of M+1 size 
+   returns M lp coefficients and E in place of 
+   of coefficient 0 [E,c1,...,cM]
+*/
+MYFLT *csoundCepsLP(CSOUND *csound, MYFLT *b, MYFLT *c,
+                    int M, int N){
+  int n,m;
+  MYFLT s;
+  b[1] = -c[1];
+  for(m=2;m<M+1;m++) {
+    s = 0.;
+    for(n=1;n<m;n++)
+      s -= (m-n)*b[n]*c[m-n];
+    b[m] = -c[m] + s/m;
+  }
+  b[0] = EXP(c[0]);
+  return b;
+}
