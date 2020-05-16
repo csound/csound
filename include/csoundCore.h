@@ -1396,7 +1396,8 @@ typedef struct _message_queue_t_ {
     FUNC* (*FTnp2Finde)(CSOUND*, MYFLT *);
     INSTRTXT *(*GetInstrument)(CSOUND*, int, const char *);
     MYFLT* (*AutoCorrelation)(CSOUND *, MYFLT*, MYFLT*, int);
-    MYFLT* (*LPread)(CSOUND *, MYFLT *, int, int);
+    void * (*LPsetup)(CSOUND *csound, int N, int M);
+    MYFLT* (*LPread)(CSOUND *, void *, MYFLT *);
     MYFLT* (*LPCeps)(CSOUND *, MYFLT *, MYFLT *, int, int);
     MYFLT* (*CepsLP)(CSOUND *, MYFLT *, MYFLT *, int, int);
     /**@}*/

@@ -510,6 +510,7 @@ static const CSOUND cenviron_ = {
     csoundFTnp2Finde,
     csoundGetInstrument,
     csoundAutoCorrelation,
+    csoundLPsetup,
     csoundLPread,
     csoundLPCeps,
     csoundCepsLP,

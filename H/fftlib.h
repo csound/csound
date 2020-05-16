@@ -151,19 +151,19 @@ extern "C" {
   MYFLT *csoundAutoCorrelation(CSOUND *csound, MYFLT *r, MYFLT *s, int N);
 
 
+  void *csoundLPsetup(CSOUND *csound, int N, int M); 
 
   /** 
    * Compute linear prediction coefficients
    *
    * x: input signal
-   * N: input size
-   * M: linear prediction order
+   * p: LP setup object
    *
    * returns: array of size M+1 with error E and coefficients 1-M
-   * output format is [E,c1,c2,...,cm]
+   * output format is [E,c1,c2,...,cm] OR NULL if a memory problem occured
    * NB: c0 is always 1
   */
-  MYFLT *csoundLPread(CSOUND *csound, MYFLT *x, int N, int M);
+  MYFLT *csoundLPread(CSOUND *csound, void *p, MYFLT *x);
 
 
   /**

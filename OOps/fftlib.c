@@ -3940,17 +3940,37 @@ void pffft_RealFFT(CSOUND *csound,
   returns r
 */
 MYFLT *csoundAutoCorrelation(CSOUND *csound, MYFLT *r, MYFLT *s, int size){
-   MYFLT sum;
+  MYFLT sum;
    int n,m;
    for(n=0; n < size; n++) {
-     sum = FL(0.0);
-     for(m=n; n < size; n++) 
-       sum += s[size-m]*s[m];
-     r[n] = sum;
-   } 
+    sum = FL(0.0);
+     for(m=n; m < size; m++) 
+      sum += s[size-m]*s[m];
+      r[n] = sum;
+     }
    return r;
 }  
 
+
+ typedef struct LPCparam_ {
+   MYFLT *r, *E, *b, *k;
+   int32_t N, M;
+ } LPCparam;
+
+
+ void *csoundLPsetup(CSOUND *csound, int N, int M) {
+   LPCparam *p = csound->Calloc(csound, sizeof(LPCparam));
+   p->r = csound->Calloc(csound, sizeof(MYFLT)*N);
+   p->E = csound->Calloc(csound, sizeof(MYFLT)*(M+1));
+   p->k = csound->Calloc(csound, sizeof(MYFLT)*(M+1));
+   p->b = csound->Calloc(csound, sizeof(MYFLT)*(M+1)*(M+1));
+   
+   printf("%p \n", p->r);
+   p->N = N;
+   p->M = M;
+   return p;    
+ }
+ 
 /* csound Linear Prediction
    of signal x of size N
    of M order.
@@ -3958,55 +3978,40 @@ MYFLT *csoundAutoCorrelation(CSOUND *csound, MYFLT *r, MYFLT *s, int size){
    [E,c1,c2,...,cm]
    NB: c0 is always 1
 */
-MYFLT *csoundLPread(CSOUND *csound, MYFLT *x, int N, int M){
-   MYFLT *E, *b, *k, *r, s;
-   int i,m;
+ MYFLT *csoundLPread(CSOUND *csound, void *parm, MYFLT *x){
+   LPCparam *p = (LPCparam *) parm;
+   MYFLT *r = p->r;
+   MYFLT *E = p->E;
+   MYFLT *b = p->b;
+   MYFLT *k = p->k;
+   MYFLT s;
+   int N = p->N;
+   int M = p->M;
    int L = M+1;
-   E = csoundQueryGlobalVariable(csound, "lp:E");
-   if(E == NULL) {
-     if(csoundCreateGlobalVariable(csound, "lp:E", sizeof(MYFLT)*(M+1))
-        == 0) return NULL;  
-       E = csoundQueryGlobalVariable(csound, "lp:E");
-     }
-   b = csoundQueryGlobalVariable(csound, "lp:b");
-   if(b == NULL) {
-     if(csoundCreateGlobalVariable(csound, "lp:b", sizeof(MYFLT)*(M+1)*(M+1))
-        == 0) return NULL;  
-       b = csoundQueryGlobalVariable(csound, "lp:b");
-    }
-   k = csoundQueryGlobalVariable(csound, "lp:k");
-   if(k == NULL) {
-     if(csoundCreateGlobalVariable(csound, "lp:k", sizeof(MYFLT)*(M+1))
-        == 0) return NULL;  
-       k = csoundQueryGlobalVariable(csound, "lp:k");
-     }
-   r = csoundQueryGlobalVariable(csound, "lp:r");
-   if(r == NULL) {
-     if(csoundCreateGlobalVariable(csound, "lp:r", sizeof(MYFLT)*(N))
-        == 0) return NULL;  
-       r = csoundQueryGlobalVariable(csound, "lp:r");
-     }
+   int m,i;
+ 
    r = csoundAutoCorrelation(csound,r,x,N);
-
+   //printf("%p \n", r);
    /* linear prediction */
    E[0] = r[0];
-   for(i=1;i<M+1;i++) r[i] /= E[i];
+   for(i=1;i<M+1;i++) r[i] /= E[0];
    b[M*L] = 1.;
    for(m=1;m<M+1;m++) {
      s = 0.;
      b[(m-1)*L] = 1.;
      for(i=0;i<m;i++) 
        s += b[(m-1)*L+i]*r[m-i];
-     k[m] =  -(r[m] + s)/E[m-1];
+     k[m] = -(r[m] + s)/E[m-1];
      b[m*L+m] = k[m];
      for(i=1;i<m;i++)
        b[m*L+i] = b[(m-1)*L+i] + k[m]*b[(m-1)*L+(m-i)];
      E[m] = (1 - k[m]*k[m])*E[m-1];
-   }
+     }
+   
    /* replace first coeff with E*/
    b[M*L] = E[M];
    /* return E + coeffs */
-   return &(b[M*L]);
+   return &b[M*L];
 } 
  
 /* LP coeffs to Cepstrum
@@ -4055,3 +4060,45 @@ MYFLT *csoundCepsLP(CSOUND *csound, MYFLT *b, MYFLT *c,
   b[0] = EXP(c[0]);
   return b;
 }
+
+/** Computes real cepstrum in place from a 
+    non-negative (Hermitian) spectrum
+
+    buf: non-negative spectrum with [DC,Nyq] in the first two positions
+    size: size of buf    
+
+    returns: real-valued (and even) cepstrum 
+    NB: this uses the power spectrum to compute cepstrum
+*/
+MYFLT *csoundRealCepstrum(CSOUND *csound, MYFLT *buf, int size){
+  int i, lps;
+  buf[1] = 0;
+  for(i = 2; i < size; i+=2) {
+   lps = LOG(buf[i]*buf[i] + buf[i+1]*buf[i+1]);
+   buf[i] = lps;
+   buf[i+1] = 0;
+  }
+  csoundInverseRealFFT(csound, buf, size);
+  return buf;  
+}
+
+/** Computes non-negative power spectrum in place from a 
+    real-valued (and even) cepstrum
+
+    buf: real-valued cepstrum 
+    size: size of buf    
+
+    returns: non-negative power spectrum in even-index
+    array positions
+*/
+MYFLT *csoundInverseRealCepstrum(CSOUND *csound, MYFLT *buf, int size){
+  int i, ps;
+  csoundRealFFT(csound, buf, size);
+  for(i = 2; i < size; i+=2) {
+   ps = EXP(buf[i]);
+   buf[i] = ps;
+   buf[i+1] = FL(0.0);
+  }
+  buf[1] = 0;
+  return buf;  
+} 
