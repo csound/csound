@@ -3351,11 +3351,13 @@ msgstr "Le périphérique requis %d (%s) est hors limites"
 #, c-format
 msgid " *** CoreAudio: Device has not enough inputs (%d, requested %d)\n"
 msgstr ""
+" *** CoreAudio : le périphérique n'a pas assez d'entrées (%d, %d requises)\n"
 
 #: InOut/rtauhal.c:337
 #, c-format
 msgid " *** CoreAudio: Device has not enough outputs (%d, requested %d)\n"
 msgstr ""
+" *** CoreAudio : le périphérique n'a pas assez de sorties (%d, %d requises)\n"
 
 #: InOut/rtauhal.c:354
 #, c-format
@@ -7111,14 +7113,13 @@ msgid "cmp (ternary comparator): operator 1 expected <"
 msgstr "cmp (comparateur ternaire) : opérateur 1 attendu <"
 
 #: Opcodes/emugens/emugens.c:1511
-#, fuzzy, c-format
+#, c-format
 msgid "Table %d not found"
-msgstr "La table %f n'a pas été trouvée"
+msgstr "La table %d n'a pas été trouvée"
 
 #: Opcodes/emugens/emugens.c:1516
-#, fuzzy
 msgid "Table not set"
-msgstr "la table n'existe pas"
+msgstr "la table n'est pas fixée"
 
 #: Opcodes/emugens/emugens.c:1589 Opcodes/emugens/emugens.c:1606
 msgid "tab2array: cannot copy a negative number of items"
@@ -7172,27 +7173,27 @@ msgid "Could not handle end index: %d"
 msgstr "Impossible de traiter l'index de fin : %d"
 
 #: Opcodes/emugens/emugens.c:2428
-#, fuzzy
 msgid "Error while inititalizing println"
-msgstr "Erreur de dé-initialisation du module '%s'"
+msgstr "Erreur lors de l'initialisation de println"
 
 #: Opcodes/emugens/emugens.c:2455
-#, fuzzy, c-format
+#, c-format
 msgid "Opcode %s not initialized"
-msgstr "pvcross : non initialisé"
+msgstr "Opcode %s  non initialisé"
 
 #: Opcodes/emugens/emugens.c:2532
-#, fuzzy, c-format
+#, c-format
 msgid "String argument expected, but type is %s"
-msgstr "Chaîne non attendue"
+msgstr "Chaîne de caractères attendue, mais le type est %s"
 
 #: Opcodes/emugens/emugens.c:2544
 msgid "println/printsk: Allocating extra memory for output string"
 msgstr ""
+"println/printsk : allocation de plus de mémoire pour la chaîne de sortie"
 
 #: Opcodes/emugens/emugens.c:2563
 msgid "Allocating extra memory for output string"
-msgstr ""
+msgstr "Allocation de plus de mémoire pour la chaîne de sortie"
 
 #: Opcodes/emugens/emugens_common.h:17
 #, c-format
