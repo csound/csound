@@ -141,62 +141,6 @@ extern "C" {
    */
   void csoundRealFFT2(CSOUND *csound, void *setup, MYFLT *sig);
 
-  /**
-  * Compute autocorrelation function
-  * r: autocorrelation output array (size N)
-  * s: input signal
-  * N: signal size
-  * returns: autocorrelation r
-  */
-  MYFLT *csoundAutoCorrelation(CSOUND *csound, MYFLT *r, MYFLT *s, int N);
-
-
-  void *csoundLPsetup(CSOUND *csound, int N, int M);
-
-  /**
-   * Compute linear prediction coefficients
-   *
-   * x: input signal
-   * p: LP setup object
-   *
-   * returns: array of size M+1 with error E and coefficients 1-M
-   * output format is [E,c1,c2,...,cm] OR NULL if a memory problem occured
-   * NB: c0 is always 1
-  */
-  MYFLT *csoundLPread(CSOUND *csound, void *p, MYFLT *x);
-
-
-  /**
-   * Compute cepstrum coefficients from all-pole coefficients
-   * and linear prediction error
-   *
-   * c: array of size N
-   * b: array of size M+1 with M all-pole coefficients
-   *   and E in place of coefficient 0 [E,c1,...,cM]
-   * N: size of cepstrum array output
-   * M: all-pole filter order
-   *
-   * returns: array with N cepstrum coefficients
-   * NB: cepstrum is computed from power spectrum
-   */
-  MYFLT *csoundCepsLP(CSOUND *csound, MYFLT *b, MYFLT *c, int M, int N);
-
-  /**
-   * Compute all-pole coefficients and linear prediction error
-   * from cepstrum coefficients
-   *
-   * b: array of size M+1
-   * c: array of size N with cepstrum coeffs
-   *
-   * M: all-pole filter order
-   * N: cepstrum size
-   *
-   * returns: M+1 size array with all-pole coefficients 1-M and
-   * E in place of coefficient 0 [E,c1,...,cM]
-   * NB: cepstrum is expected to be computed from power spectrum
-   */
-  MYFLT *csoundLPCeps(CSOUND *csound, MYFLT *c, MYFLT *b, int N, int M);
-
 #ifdef __cplusplus
 }
 #endif

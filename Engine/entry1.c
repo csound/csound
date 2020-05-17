@@ -1190,6 +1190,8 @@ OENTRY opcodlst_1[] = {
     (SUBR)hw_channels},
    { "midiarp",   S(MIDIARP),0,  3,    "kk", "kO",
      midiarp_set, midiarp, NULL },
+   {"lpcfilter", S(LPCFIL), 0, 3, "a", "akkiii",
+   (SUBR) lpfil_init, (SUBR) lpfil_perf},
   /* terminate list */
   {  NULL, 0, 0, 0, NULL, NULL, NULL, NULL, NULL       }
 };
