@@ -391,7 +391,6 @@ int32_t lpfil2_perf(CSOUND *csound, LPCFIL2 *p) {
       memcpy(p->coefs.auxp, &c[1], M*sizeof(MYFLT));
       g = p->g = SQRT(c[0]);
     }
-
     pp = rp;
     y =  in[n]*g;
     for(m = 0; m < M; m++) {
