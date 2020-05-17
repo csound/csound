@@ -253,11 +253,11 @@ int32_t lpfil_perf(CSOUND *csound, LPCFIL *p) {
   MYFLT *out = p->out;
   MYFLT *in = p->in;
   MYFLT y, g = p->g;
-  int32_t M = p->M;
+  int32_t M = p->M, m;
   int32_t pp, rp = p->rp;
   uint32_t offset = p->h.insdshead->ksmps_offset;
   uint32_t early  = p->h.insdshead->ksmps_no_end;
-  uint32_t m, n, nsmps = CS_KSMPS;
+  uint32_t n, nsmps = CS_KSMPS;
 
   if (UNLIKELY(offset)) {
     memset(out, '\0', offset*sizeof(MYFLT));
@@ -270,8 +270,9 @@ int32_t lpfil_perf(CSOUND *csound, LPCFIL *p) {
   if(*p->kflag) {
     MYFLT *c;
     int32_t off = *p->koff;
-    if (off + p->N > p->ft->flen)
-      off = p->ft->flen - p->N;
+    int32_t len = p->ft->flen;
+    if (off + p->N > len)
+      off = len - p->N;
     c = csound->LPread(csound,p->setup,
                        p->ft->ftable+off);
     memcpy(p->coefs.auxp, &c[1], M*sizeof(MYFLT));
@@ -328,12 +329,12 @@ int32_t lpfil2_perf(CSOUND *csound, LPCFIL2 *p) {
   MYFLT *in = p->in;
   MYFLT *sig = p->sig;
   MYFLT y, g = p->g;
-  int32_t M = p->M;
+  int32_t M = p->M, m;
   int32_t N = p->N;
   int32_t pp, rp = p->rp, bp = p->rp;
   uint32_t offset = p->h.insdshead->ksmps_offset;
   uint32_t early  = p->h.insdshead->ksmps_no_end;
-  uint32_t m, n, nsmps = CS_KSMPS;
+  uint32_t n, nsmps = CS_KSMPS;
 
   if (UNLIKELY(offset)) {
     memset(out, '\0', offset*sizeof(MYFLT));
