@@ -55,7 +55,7 @@ typedef struct LPCparam_ {
 
 
 /** Set up linear prediction memory for 
-   autocorrelation size N and predictor order M
+    autocorrelation size N and predictor order M
 */
 void *csoundLPsetup(CSOUND *csound, int N, int M) {
   LPCparam *p = csound->Calloc(csound, sizeof(LPCparam));
@@ -81,8 +81,8 @@ void csoundLPfree(CSOUND *csound, void *parm) {
 }
  
 /** Linear Prediction function
-   output format: M+1 MYFLT array [E,c1,c2,...,cm]
-   NB: c0 is always 1
+    output format: M+1 MYFLT array [E,c1,c2,...,cm]
+    NB: c0 is always 1
 */
 MYFLT *csoundLPread(CSOUND *csound, void *parm, MYFLT *x){
 
@@ -123,10 +123,10 @@ MYFLT *csoundLPread(CSOUND *csound, void *parm, MYFLT *x){
 } 
  
 /** LP coeffs to Cepstrum
-   takes an array c of N size
-   and an array b of M+1 size with M all-pole coefficients
-   and E in place of coefficient 0 [E,c1,...,cM]
-   returns N cepstrum coefficients
+    takes an array c of N size
+    and an array b of M+1 size with M all-pole coefficients
+    and E in place of coefficient 0 [E,c1,...,cM]
+    returns N cepstrum coefficients
 */
 MYFLT *csoundLPCeps(CSOUND *csound, MYFLT *c, MYFLT *b,
                     int N, int M){
@@ -149,10 +149,10 @@ MYFLT *csoundLPCeps(CSOUND *csound, MYFLT *c, MYFLT *b,
 }
 
 /** LP coeffs to Cepstrum
-   takes an array c of N size
-   and an array b of M+1 size 
-   returns M lp coefficients and E in place of 
-   of coefficient 0 [E,c1,...,cM]
+    takes an array c of N size
+    and an array b of M+1 size 
+    returns M lp coefficients and E in place of 
+    of coefficient 0 [E,c1,...,cM]
 */
 MYFLT *csoundCepsLP(CSOUND *csound, MYFLT *b, MYFLT *c,
                     int M, int N){
@@ -221,26 +221,26 @@ int32_t lpfil_init(CSOUND *csound, LPCFIL *p) {
 
   if (ft != NULL) {
     MYFLT *coefs;
-   int N = *p->isiz < ft->flen ? *p->isiz : ft->flen;
-  int Mbytes = *p->iord*sizeof(MYFLT);
-  p->M = *p->iord;
-  p->N = N;
+    int N = *p->isiz < ft->flen ? *p->isiz : ft->flen;
+    int Mbytes = *p->iord*sizeof(MYFLT);
+    p->M = *p->iord;
+    p->N = N;
 
-  p->setup = csound->LPsetup(csound,N,p->M);
-  coefs = csound->LPread(csound,p->setup,ft->ftable);
+    p->setup = csound->LPsetup(csound,N,p->M);
+    coefs = csound->LPread(csound,p->setup,ft->ftable);
   
-  if(p->coefs.auxp == NULL || Mbytes > p->coefs.size) 
-    csound->AuxAlloc(csound, Mbytes, &p->coefs);
-  memcpy(p->coefs.auxp, &coefs[1], Mbytes);
+    if(p->coefs.auxp == NULL || Mbytes > p->coefs.size) 
+      csound->AuxAlloc(csound, Mbytes, &p->coefs);
+    memcpy(p->coefs.auxp, &coefs[1], Mbytes);
 
-  if(p->del.auxp == NULL || Mbytes > p->del.size) 
-    csound->AuxAlloc(csound, Mbytes, &p->del);
-   memset(p->del.auxp, 0, Mbytes);
+    if(p->del.auxp == NULL || Mbytes > p->del.size) 
+      csound->AuxAlloc(csound, Mbytes, &p->del);
+    memset(p->del.auxp, 0, Mbytes);
 
-  p->g = SQRT(coefs[0]);
-  p->rp = 0;
-  p->ft = ft;
-  return OK;
+    p->g = SQRT(coefs[0]);
+    p->rp = 0;
+    p->ft = ft;
+    return OK;
   }
   csound->InitError(csound, "function table %d not found\n", (int) *p->ifn);
   return NOTOK;
@@ -260,11 +260,11 @@ int32_t lpfil_perf(CSOUND *csound, LPCFIL *p) {
   uint32_t m, n, nsmps = CS_KSMPS;
 
   if (UNLIKELY(offset)) {
-      memset(out, '\0', offset*sizeof(MYFLT));
+    memset(out, '\0', offset*sizeof(MYFLT));
   }
   if (UNLIKELY(early)) {
-      nsmps -= early;
-      memset(&out[nsmps], '\0', early*sizeof(MYFLT));
+    nsmps -= early;
+    memset(&out[nsmps], '\0', early*sizeof(MYFLT));
   }
 
   if(*p->kflag) {
@@ -279,15 +279,15 @@ int32_t lpfil_perf(CSOUND *csound, LPCFIL *p) {
   }
 
   for(n=offset; n < nsmps; n++) {
-      pp = rp;
-      y =  in[n]*g;
-      for(m = 0; m < M; m++) {
-        // filter convolution
-        y -= cfs[M - m - 1]*yn[pp];
-        pp = pp != M - 1 ? pp + 1: 0;
-      } 
-      out[n] = yn[rp] = y;
-      rp = rp != M - 1 ? rp + 1: 0;
+    pp = rp;
+    y =  in[n]*g;
+    for(m = 0; m < M; m++) {
+      // filter convolution
+      y -= cfs[M - m - 1]*yn[pp];
+      pp = pp != M - 1 ? pp + 1: 0;
+    } 
+    out[n] = yn[rp] = y;
+    rp = rp != M - 1 ? rp + 1: 0;
   }
   p->rp = rp;
   return OK;
