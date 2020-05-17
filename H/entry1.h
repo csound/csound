@@ -57,6 +57,7 @@
 #include "cs_par_ops.h"
 #include "ugtabs.h"
 #include "compile_ops.h"
+#include "lpred.h"
 
 #define S(x)    sizeof(x)
 
@@ -470,3 +471,5 @@ int32_t loscil3_phs(CSOUND *, void *);
 int32_t balance2(CSOUND *, void *);
 int32_t gauss_scalar(CSOUND *csound, void *p);
 int32_t gauss_vector(CSOUND *csound, void *p);
+int32_t lpfil_init(CSOUND *csound, void *p);  
+int32_t lpfil_perf(CSOUND *csound, void *p);
