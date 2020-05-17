@@ -120,6 +120,21 @@ typedef struct _lpfil {
   FUNC *ft;
 } LPCFIL;
 
+typedef struct _lpfil2 {
+  OPDS h;
+  MYFLT *out;
+  MYFLT *in, *sig, *isiz, *iord;
+  AUXCH coefs;
+  AUXCH del;
+  AUXCH buf;
+  AUXCH cbuf;
+  MYFLT g;
+  int32_t M, N;
+  int32_t rp,bp;
+  void *setup;
+} LPCFIL2;
+  
+
 
   
 #ifdef __cplusplus

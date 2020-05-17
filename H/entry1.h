@@ -473,3 +473,5 @@ int32_t gauss_scalar(CSOUND *csound, void *p);
 int32_t gauss_vector(CSOUND *csound, void *p);
 int32_t lpfil_init(CSOUND *csound, void *p);  
 int32_t lpfil_perf(CSOUND *csound, void *p);
+int32_t lpfil2_init(CSOUND *csound, void *p);  
+int32_t lpfil2_perf(CSOUND *csound, void *p);

@@ -1192,6 +1192,8 @@ OENTRY opcodlst_1[] = {
      midiarp_set, midiarp, NULL },
    {"lpcfilter", S(LPCFIL), 0, 3, "a", "akkiii",
    (SUBR) lpfil_init, (SUBR) lpfil_perf},
+     {"lpcfilter", S(LPCFIL2), 0, 3, "a", "aaii",
+   (SUBR) lpfil2_init, (SUBR) lpfil2_perf},
   /* terminate list */
   {  NULL, 0, 0, 0, NULL, NULL, NULL, NULL, NULL       }
 };
