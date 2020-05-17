@@ -2247,13 +2247,13 @@ int32_t lpfil_init(CSOUND *csound, LPCFIL *p) {
   Nbytes = *p->isiz*sizeof(MYFLT);
   Mbytes = *p->iord*sizeof(MYFLT);
 
-  //if(p->buf.auxp == NULL || Nbytes > p->buf.size) 
-    csound->AuxAlloc(csound, Nbytes, &p->buf); 
-  //if(p->coefs.auxp == NULL || Mbytes > p->coefs.size) 
+  //if(p->buf.auxp == NULL || Nbytes > p->buf.size)
+    csound->AuxAlloc(csound, Nbytes, &p->buf);
+  //if(p->coefs.auxp == NULL || Mbytes > p->coefs.size)
     csound->AuxAlloc(csound, Mbytes, &p->coefs);
-  //if(p->ncoefs.auxp == NULL || Mbytes > p->ncoefs.size) 
+  //if(p->ncoefs.auxp == NULL || Mbytes > p->ncoefs.size)
     csound->AuxAlloc(csound, Mbytes, &p->ncoefs);
-    //if(p->del.auxp == NULL || Mbytes-1 > p->del.size) 
+    //if(p->del.auxp == NULL || Mbytes-1 > p->del.size)
     csound->AuxAlloc(csound, Mbytes-1, &p->del);
 
   p->M = *p->iord;
@@ -2294,8 +2294,8 @@ int32_t lpfil_perf(CSOUND *csound, LPCFIL *p) {
   for(n=offset; n < nsmps; n++) {
       pp = rp;
       y =  in[n]*g;
-      
-      
+
+
       if(bp == N) {
         // compute new coeffs
         MYFLT *c;
@@ -2304,13 +2304,13 @@ int32_t lpfil_perf(CSOUND *csound, LPCFIL *p) {
         memcpy(cfs,c+1,M*sizeof(MYFLT));
         bp = 0;
       } else buf[bp++] = sig[n];
-      
-      for(m = 0; m < M; m++) {
+
+      for(m = 0; m < (uint32)M; m++) {
         // filter convolution
         y -= cfs[M - m - 1]*yn[pp];
         pp = pp != M - 1 ? pp + 1: 0;
         // replace coeffs
-        //cfs[M - m - 1] = ncfs[M - m - 1]; 
+        //cfs[M - m - 1] = ncfs[M - m - 1];
         }
       out[n] = yn[rp] = y;
       rp = rp != M - 1 ? rp + 1: 0;
@@ -2324,7 +2324,7 @@ int32_t lpfil_perf(CSOUND *csound, LPCFIL *p) {
 static OENTRY localops[] =
   {
    {"lpcfilter", sizeof(LPCFIL), 0, 3, "a", "aaii",
-   (SUBR) lpfil_init, (SUBR) lpfil_perf}, 
+   (SUBR) lpfil_init, (SUBR) lpfil_perf},
    {"mvchpf", sizeof(mvchpf24), 0, 3, "a", "akp",
    (SUBR) mvchpf24_init, (SUBR) mvchpf24_perf},
    {"mvchpf", sizeof(mvchpf24), 0, 3, "a", "aap",

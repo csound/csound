@@ -3930,11 +3930,11 @@ void pffft_RealFFT(CSOUND *csound,
 #endif
 
 /* ==================================== */
-/* Linear Prediction functions 
+/* Linear Prediction functions
    VL, 2020
 */
-/* autocorrelation  
-  r - output 
+/* autocorrelation
+  r - output
   s - input
   size - input size
   returns r
@@ -3944,12 +3944,12 @@ MYFLT *csoundAutoCorrelation(CSOUND *csound, MYFLT *r, MYFLT *s, int size){
    int n,m;
    for(n=0; n < size; n++) {
     sum = FL(0.0);
-     for(m=n; m < size; m++) 
-      sum += s[size-m]*s[m];
-      r[n] = sum;
-     }
+     for(m=n; m < size; m++)
+       sum += s[size-m]*s[m];
+     r[n] = sum;
+   }
    return r;
-}  
+}
 
 
  typedef struct LPCparam_ {
@@ -3964,13 +3964,13 @@ MYFLT *csoundAutoCorrelation(CSOUND *csound, MYFLT *r, MYFLT *s, int size){
    p->E = csound->Calloc(csound, sizeof(MYFLT)*(M+1));
    p->k = csound->Calloc(csound, sizeof(MYFLT)*(M+1));
    p->b = csound->Calloc(csound, sizeof(MYFLT)*(M+1)*(M+1));
-   
+
    printf("%p \n", p->r);
    p->N = N;
    p->M = M;
-   return p;    
+   return p;
  }
- 
+
 /* csound Linear Prediction
    of signal x of size N
    of M order.
@@ -3989,7 +3989,7 @@ MYFLT *csoundAutoCorrelation(CSOUND *csound, MYFLT *r, MYFLT *s, int size){
    int M = p->M;
    int L = M+1;
    int m,i;
- 
+
    r = csoundAutoCorrelation(csound,r,x,N);
    //printf("%p \n", r);
    /* linear prediction */
@@ -3999,7 +3999,7 @@ MYFLT *csoundAutoCorrelation(CSOUND *csound, MYFLT *r, MYFLT *s, int size){
    for(m=1;m<M+1;m++) {
      s = 0.;
      b[(m-1)*L] = 1.;
-     for(i=0;i<m;i++) 
+     for(i=0;i<m;i++)
        s += b[(m-1)*L+i]*r[m-i];
      k[m] = -(r[m] + s)/E[m-1];
      b[m*L+m] = k[m];
@@ -4007,13 +4007,13 @@ MYFLT *csoundAutoCorrelation(CSOUND *csound, MYFLT *r, MYFLT *s, int size){
        b[m*L+i] = b[(m-1)*L+i] + k[m]*b[(m-1)*L+(m-i)];
      E[m] = (1 - k[m]*k[m])*E[m-1];
      }
-   
+
    /* replace first coeff with E*/
    b[M*L] = E[M];
    /* return E + coeffs */
    return &b[M*L];
-} 
- 
+}
+
 /* LP coeffs to Cepstrum
    takes an array c of N size
    and an array b of M+1 size with M all-pole coefficients
@@ -4037,13 +4037,13 @@ MYFLT *csoundLPCeps(CSOUND *csound, MYFLT *c, MYFLT *b,
     }
   }
   for(n=0;n<N;n++) c[n] *= -1;
-  return c;    
+  return c;
 }
 
 /* LP coeffs to Cepstrum
    takes an array c of N size
-   and an array b of M+1 size 
-   returns M lp coefficients and E in place of 
+   and an array b of M+1 size
+   returns M lp coefficients and E in place of
    of coefficient 0 [E,c1,...,cM]
 */
 MYFLT *csoundCepsLP(CSOUND *csound, MYFLT *b, MYFLT *c,
@@ -4061,13 +4061,13 @@ MYFLT *csoundCepsLP(CSOUND *csound, MYFLT *b, MYFLT *c,
   return b;
 }
 
-/** Computes real cepstrum in place from a 
+/** Computes real cepstrum in place from a
     non-negative (Hermitian) spectrum
 
     buf: non-negative spectrum with [DC,Nyq] in the first two positions
-    size: size of buf    
+    size: size of buf
 
-    returns: real-valued (and even) cepstrum 
+    returns: real-valued (and even) cepstrum
     NB: this uses the power spectrum to compute cepstrum
 */
 MYFLT *csoundRealCepstrum(CSOUND *csound, MYFLT *buf, int size){
@@ -4079,14 +4079,14 @@ MYFLT *csoundRealCepstrum(CSOUND *csound, MYFLT *buf, int size){
    buf[i+1] = 0;
   }
   csoundInverseRealFFT(csound, buf, size);
-  return buf;  
+  return buf;
 }
 
-/** Computes non-negative power spectrum in place from a 
+/** Computes non-negative power spectrum in place from a
     real-valued (and even) cepstrum
 
-    buf: real-valued cepstrum 
-    size: size of buf    
+    buf: real-valued cepstrum
+    size: size of buf
 
     returns: non-negative power spectrum in even-index
     array positions
@@ -4100,5 +4100,5 @@ MYFLT *csoundInverseRealCepstrum(CSOUND *csound, MYFLT *buf, int size){
    buf[i+1] = FL(0.0);
   }
   buf[1] = 0;
-  return buf;  
-} 
+  return buf;
+}
