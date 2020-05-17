@@ -3933,6 +3933,7 @@ void pffft_RealFFT(CSOUND *csound,
 /* Linear Prediction functions 
    VL, 2020
 */
+ 
 /* autocorrelation  
   r - output 
   s - input
@@ -3941,13 +3942,13 @@ void pffft_RealFFT(CSOUND *csound,
 */
 MYFLT *csoundAutoCorrelation(CSOUND *csound, MYFLT *r, MYFLT *s, int size){
   MYFLT sum;
-   int n,m;
+  int n,m,o;
    for(n=0; n < size; n++) {
     sum = FL(0.0);
-     for(m=n; m < size; m++) 
-      sum += s[size-m]*s[m];
-      r[n] = sum;
-     }
+    for(m=n,o=0; m < size; m++,o++) 
+      sum += s[o]*s[m];
+    r[n] = sum;
+    }
    return r;
 }  
 
@@ -3960,15 +3961,23 @@ MYFLT *csoundAutoCorrelation(CSOUND *csound, MYFLT *r, MYFLT *s, int size){
 
  void *csoundLPsetup(CSOUND *csound, int N, int M) {
    LPCparam *p = csound->Calloc(csound, sizeof(LPCparam));
+   if (N < M+1) N = M+1;
    p->r = csound->Calloc(csound, sizeof(MYFLT)*N);
    p->E = csound->Calloc(csound, sizeof(MYFLT)*(M+1));
    p->k = csound->Calloc(csound, sizeof(MYFLT)*(M+1));
    p->b = csound->Calloc(csound, sizeof(MYFLT)*(M+1)*(M+1));
-   
-   printf("%p \n", p->r);
    p->N = N;
    p->M = M;
    return p;    
+ }
+
+ void csoundLPfree(CSOUND *csound, void *parm) {
+   LPCparam *p = (LPCparam *) parm;
+   csound->Free(csound, p->r);
+   csound->Free(csound, p->b);
+   csound->Free(csound, p->k);
+   csound->Free(csound, p->E);
+   csound->Free(csound, p);
  }
  
 /* csound Linear Prediction
@@ -3979,6 +3988,7 @@ MYFLT *csoundAutoCorrelation(CSOUND *csound, MYFLT *r, MYFLT *s, int size){
    NB: c0 is always 1
 */
  MYFLT *csoundLPread(CSOUND *csound, void *parm, MYFLT *x){
+
    LPCparam *p = (LPCparam *) parm;
    MYFLT *r = p->r;
    MYFLT *E = p->E;
@@ -3989,27 +3999,28 @@ MYFLT *csoundAutoCorrelation(CSOUND *csound, MYFLT *r, MYFLT *s, int size){
    int M = p->M;
    int L = M+1;
    int m,i;
- 
+   
    r = csoundAutoCorrelation(csound,r,x,N);
-   //printf("%p \n", r);
-   /* linear prediction */
+   MYFLT ro = r[0];
+   if (ro > FL(0.0)) {
+   /* if signal power > 0 , do linear prediction */
+   for(i=0;i<L;i++) r[i] /= ro;
    E[0] = r[0];
-   for(i=1;i<M+1;i++) r[i] /= E[0];
    b[M*L] = 1.;
-   for(m=1;m<M+1;m++) {
+   for(m=1;m<L;m++) {
      s = 0.;
      b[(m-1)*L] = 1.;
      for(i=0;i<m;i++) 
        s += b[(m-1)*L+i]*r[m-i];
-     k[m] = -(r[m] + s)/E[m-1];
+     k[m] = -(s)/E[m-1];
      b[m*L+m] = k[m];
      for(i=1;i<m;i++)
        b[m*L+i] = b[(m-1)*L+i] + k[m]*b[(m-1)*L+(m-i)];
      E[m] = (1 - k[m]*k[m])*E[m-1];
      }
-   
    /* replace first coeff with E*/
    b[M*L] = E[M];
+   }
    /* return E + coeffs */
    return &b[M*L];
 } 

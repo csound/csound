@@ -2230,100 +2230,99 @@ int32_t mvchpf24_perf_a(CSOUND *csound, mvchpf24 *p){
 typedef struct _lpfil {
   OPDS h;
   MYFLT *out;
-  MYFLT *in, *sig, *isiz, *iord;
-  AUXCH buf;
+  MYFLT *in, *koff, *kflag, *ifn, *isiz, *iord;
   AUXCH coefs;
-  AUXCH ncoefs;
   AUXCH del;
   MYFLT g;
-  int32_t M,N;
-  int32_t rp, bp;
+  int32_t M, N;
+  int32_t rp;
   void *setup;
+  FUNC *ft;
 } LPCFIL;
 
 static
 int32_t lpfil_init(CSOUND *csound, LPCFIL *p) {
-  int32_t Mbytes, Nbytes;
-  Nbytes = *p->isiz*sizeof(MYFLT);
-  Mbytes = *p->iord*sizeof(MYFLT);
+ 
+  FUNC *ft = csound->FTnp2Find(csound, p->ifn);
 
-  //if(p->buf.auxp == NULL || Nbytes > p->buf.size) 
-    csound->AuxAlloc(csound, Nbytes, &p->buf); 
-  //if(p->coefs.auxp == NULL || Mbytes > p->coefs.size) 
-    csound->AuxAlloc(csound, Mbytes, &p->coefs);
-  //if(p->ncoefs.auxp == NULL || Mbytes > p->ncoefs.size) 
-    csound->AuxAlloc(csound, Mbytes, &p->ncoefs);
-    //if(p->del.auxp == NULL || Mbytes-1 > p->del.size) 
-    csound->AuxAlloc(csound, Mbytes-1, &p->del);
-
+  if (ft != NULL) {
+    MYFLT *coefs;
+   int N = *p->isiz < ft->flen ? *p->isiz : ft->flen;
+  int Mbytes = *p->iord*sizeof(MYFLT);
   p->M = *p->iord;
-  p->N = *p->isiz;
-  p->rp = p->bp = 0;
-  p->setup = csound->LPsetup(csound,p->N,p->M);
-  // printf("%lu %d \n", p->buf.size/sizeof(MYFLT), p->N);
+  p->N = N;
+
+  p->setup = csound->LPsetup(csound,N,p->M);
+  coefs = csound->LPread(csound,p->setup,ft->ftable);
+  
+  if(p->coefs.auxp == NULL || Mbytes > p->coefs.size) 
+    csound->AuxAlloc(csound, Mbytes, &p->coefs);
+  memcpy(p->coefs.auxp, &coefs[1], Mbytes);
+
+  if(p->del.auxp == NULL || Mbytes > p->del.size) 
+    csound->AuxAlloc(csound, Mbytes, &p->del);
+   memset(p->del.auxp, 0, Mbytes);
+
+  p->g = SQRT(coefs[0]);
+  p->rp = 0;
+  p->ft = ft;
   return OK;
+  }
+  csound->InitError(csound, "function table %d not found\n", (int) *p->ifn);
+  return NOTOK;
 }
 
 static
 int32_t lpfil_perf(CSOUND *csound, LPCFIL *p) {
-
-  MYFLT *buf = (MYFLT *)p->buf.auxp;
   MYFLT *cfs = (MYFLT *) p->coefs.auxp;
-  //MYFLT *ncfs = (MYFLT *) p->ncoefs.auxp;
   MYFLT *yn = (MYFLT *) p->del.auxp;
   MYFLT *out = p->out;
   MYFLT *in = p->in;
-  MYFLT *sig = p->sig;
   MYFLT y, g = p->g;
-  int32_t bp = p->bp;
-  int32_t N = p->N;
   int32_t M = p->M;
   int32_t pp, rp = p->rp;
   uint32_t offset = p->h.insdshead->ksmps_offset;
   uint32_t early  = p->h.insdshead->ksmps_no_end;
   uint32_t m, n, nsmps = CS_KSMPS;
 
-    if (UNLIKELY(offset)) {
+  if (UNLIKELY(offset)) {
       memset(out, '\0', offset*sizeof(MYFLT));
-    }
-    if (UNLIKELY(early)) {
+  }
+  if (UNLIKELY(early)) {
       nsmps -= early;
       memset(&out[nsmps], '\0', early*sizeof(MYFLT));
-    }
+  }
+
+  if(*p->kflag) {
+    MYFLT *c;
+    int32_t off = *p->koff;
+    if (off + p->N > p->ft->flen)
+      off = p->ft->flen - p->N;
+    c = csound->LPread(csound,p->setup,
+                       p->ft->ftable+off);
+    memcpy(p->coefs.auxp, &c[1], M*sizeof(MYFLT));
+    g = p->g = SQRT(c[0]);
+  }
 
   for(n=offset; n < nsmps; n++) {
       pp = rp;
       y =  in[n]*g;
-      
-      
-      if(bp == N) {
-        // compute new coeffs
-        MYFLT *c;
-        c = csound->LPread(csound,p->setup,buf);
-        g = c[0];
-        memcpy(cfs,c+1,M*sizeof(MYFLT));
-        bp = 0;
-      } else buf[bp++] = sig[n];
-      
       for(m = 0; m < M; m++) {
         // filter convolution
         y -= cfs[M - m - 1]*yn[pp];
         pp = pp != M - 1 ? pp + 1: 0;
-        // replace coeffs
-        //cfs[M - m - 1] = ncfs[M - m - 1]; 
-        }
+      } 
       out[n] = yn[rp] = y;
       rp = rp != M - 1 ? rp + 1: 0;
   }
   p->rp = rp;
-  p->bp = bp;
-  p->g = g;
   return OK;
 }
 
+
 static OENTRY localops[] =
   {
-   {"lpcfilter", sizeof(LPCFIL), 0, 3, "a", "aaii",
+   {"lpcfilter", sizeof(LPCFIL), 0, 3, "a", "akkiii",
    (SUBR) lpfil_init, (SUBR) lpfil_perf}, 
    {"mvchpf", sizeof(mvchpf24), 0, 3, "a", "akp",
    (SUBR) mvchpf24_init, (SUBR) mvchpf24_perf},

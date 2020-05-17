@@ -151,20 +151,36 @@ extern "C" {
   MYFLT *csoundAutoCorrelation(CSOUND *csound, MYFLT *r, MYFLT *s, int N);
 
 
-  void *csoundLPsetup(CSOUND *csound, int N, int M); 
+   /** 
+   * Linear prediction setup
+   *
+   * N: autocorrelation size
+   * M: filter order
+   *
+   * returns: opaque LP structure to use with linear prediction function
+   */
+  void *csoundLPsetup(CSOUND *csound, int N, int M);
+
+   /** 
+   * Linear prediction setup deallocation
+   *
+   * param: LP setup object
+   * 
+   */
+  
+  void csoundLPfree(CSOUND *csound, void *param); 
 
   /** 
    * Compute linear prediction coefficients
    *
    * x: input signal
-   * p: LP setup object
+   * param: LP setup object
    *
    * returns: array of size M+1 with error E and coefficients 1-M
    * output format is [E,c1,c2,...,cm] OR NULL if a memory problem occured
    * NB: c0 is always 1
   */
   MYFLT *csoundLPread(CSOUND *csound, void *p, MYFLT *x);
-
 
   /**
    * Compute cepstrum coefficients from all-pole coefficients
