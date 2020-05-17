@@ -110,27 +110,30 @@ extern "C" {
 typedef struct _lpfil {
   OPDS h;
   MYFLT *out;
-  MYFLT *in, *koff, *kflag, *ifn, *isiz, *iord;
+  MYFLT *in, *koff, *kflag, *ifn, *isiz, *iord, *iwin;
   AUXCH coefs;
   AUXCH del;
+  AUXCH buf;
   MYFLT g;
-  int32_t M, N;
+  int32_t M, N, wlen;
   int32_t rp;
   void *setup;
+  MYFLT *win;
   FUNC *ft;
 } LPCFIL;
 
 typedef struct _lpfil2 {
   OPDS h;
   MYFLT *out;
-  MYFLT *in, *sig, *isiz, *iord;
+  MYFLT *in, *sig, *isiz, *iord, *iwin;
   AUXCH coefs;
   AUXCH del;
   AUXCH buf;
   AUXCH cbuf;
   MYFLT g;
-  int32_t M, N;
+  int32_t M, N, wlen;
   int32_t rp,bp;
+  MYFLT *win;
   void *setup;
 } LPCFIL2;
   
