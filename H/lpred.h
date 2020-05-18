@@ -114,7 +114,6 @@ typedef struct _lpfil {
   AUXCH coefs;
   AUXCH del;
   AUXCH buf;
-  MYFLT g;
   int32_t M, N, wlen;
   int32_t rp;
   void *setup;
@@ -125,18 +124,28 @@ typedef struct _lpfil {
 typedef struct _lpfil2 {
   OPDS h;
   MYFLT *out;
-  MYFLT *in, *sig, *isiz, *iord, *iwin;
+  MYFLT *in, *sig, *flag, *isiz, *iord, *iwin;
   AUXCH coefs;
   AUXCH del;
   AUXCH buf;
   AUXCH cbuf;
-  MYFLT g;
   int32_t M, N, wlen;
   int32_t rp,bp;
   MYFLT *win;
   void *setup;
 } LPCFIL2;
-  
+
+
+typedef struct _lpreda {
+  OPDS h;
+  ARRAYDAT *out;
+  MYFLT *rms, *err, *cps;
+  MYFLT  *off, *flag, *ifn, *isiz, *iord;
+  AUXCH coefs;
+  int32_t M, N;
+  FUNC *ft;
+  void *setup;
+} LPREDA;  
 
 
   
