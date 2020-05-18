@@ -55,6 +55,7 @@
 #include "namedins.h"
 #include "pvfileio.h"
 #include "fftlib.h"
+#include "lpred.h"
 #include "cs_par_base.h"
 #include "cs_par_orc_semantics.h"
 #include "namedins.h"
@@ -509,10 +510,16 @@ static const CSOUND cenviron_ = {
     csoundErrCnt,
     csoundFTnp2Finde,
     csoundGetInstrument,
+    csoundAutoCorrelation,
+    csoundLPsetup,
+    csoundLPfree,
+    csoundLPread,
+    csoundLPCeps,
+    csoundCepsLP,
     {
       NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
       NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
-      NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL
+      NULL, NULL, NULL, NULL, NULL
     },
     /* ------- private data (not to be used by hosts or externals) ------- */
     /* callback function pointers */
@@ -2333,7 +2340,7 @@ PUBLIC uint32_t csoundGetNchnls(CSOUND *csound)
 
 PUBLIC uint32_t csoundGetNchnlsInput(CSOUND *csound)
 {
-  if (csound->inchnls > 0)
+  if (csound->inchnls >= 0)
     return (uint32_t) csound->inchnls;
   else return csound->nchnls;
 }

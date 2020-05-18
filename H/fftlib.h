@@ -140,9 +140,7 @@ extern "C" {
    * setup:   an FFT setup created with csoundRealFFT2Setup()
    */
   void csoundRealFFT2(CSOUND *csound, void *setup, MYFLT *sig);
-
-
-
+  
 #ifdef __cplusplus
 }
 #endif

@@ -836,10 +836,10 @@ MYFLT gausscompute(CSOUND *csound, GAUSS *p) {
     MYFLT z = SQRT(-2.*LOG(u1))*cos(2*PI*u2);
     p->z = SQRT(-2.*LOG(u1))*sin(2*PI*u2);
     p->flag = 1;
-    return *p->sigma*z + *p->mu; 
+    return *p->sigma*z + *p->mu;
   } else {
     p->flag = 0;
-    return  *p->sigma*p->z + *p->mu; 
+    return  *p->sigma*p->z + *p->mu;
   }
   return OK;
 }
@@ -864,7 +864,8 @@ int32_t gauss_vector(CSOUND *csound, GAUSS *p) {
     for (n = offset; n < nsmps; n++)
       out[n] = gausscompute(csound,p);
     return OK;
-}  
+}
+
 
 
 

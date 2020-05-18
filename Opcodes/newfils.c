@@ -2227,9 +2227,8 @@ int32_t mvchpf24_perf_a(CSOUND *csound, mvchpf24 *p){
     return OK;
 }
 
-
 static OENTRY localops[] =
-  {
+  { 
    {"mvchpf", sizeof(mvchpf24), 0, 3, "a", "akp",
    (SUBR) mvchpf24_init, (SUBR) mvchpf24_perf},
    {"mvchpf", sizeof(mvchpf24), 0, 3, "a", "aap",
