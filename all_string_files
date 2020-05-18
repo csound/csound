@@ -71,6 +71,7 @@
 ./H/insert.h
 ./H/linevent.h
 ./H/lpc.h
+./H/lpred.h
 ./H/midifile.h
 ./H/midiinterop.h
 ./H/midioops.h
@@ -169,6 +170,7 @@
 ./OOps/dumpf.c
 ./OOps/fftlib.c
 ./OOps/goto_ops.c
+./OOps/lpred.c
 ./OOps/midiinterop.c
 ./OOps/midiops.c
 ./OOps/midiout.c
