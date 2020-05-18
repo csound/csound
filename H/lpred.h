@@ -3,7 +3,7 @@
 
   Copyright 2020 Victor Lazzarini
 
-  streaming linear prediction 
+  streaming linear prediction
 
   This file is part of Csound.
 
@@ -34,7 +34,7 @@
 extern "C" {
 #endif
 
-/** 
+/**
   * Compute autocorrelation function
   * r: autocorrelation output array (size N)
   * s: input signal
@@ -44,7 +44,7 @@ extern "C" {
   MYFLT *csoundAutoCorrelation(CSOUND *csound, MYFLT *r, MYFLT *s, int N);
 
 
-   /** 
+   /**
    * Linear prediction setup
    *
    * N: autocorrelation size
@@ -54,16 +54,16 @@ extern "C" {
    */
   void *csoundLPsetup(CSOUND *csound, int N, int M);
 
-   /** 
+   /**
    * Linear prediction setup deallocation
    *
    * param: LP setup object
-   * 
+   *
    */
-  
-  void csoundLPfree(CSOUND *csound, void *param); 
 
-  /** 
+  void csoundLPfree(CSOUND *csound, void *param);
+
+  /**
    * Compute linear prediction coefficients
    *
    * x: input signal
@@ -77,10 +77,10 @@ extern "C" {
 
   /**
    * Compute cepstrum coefficients from all-pole coefficients
-   * and linear prediction error 
+   * and linear prediction error
    *
    * c: array of size N
-   * b: array of size M+1 with M all-pole coefficients 
+   * b: array of size M+1 with M all-pole coefficients
    *   and E in place of coefficient 0 [E,c1,...,cM]
    * N: size of cepstrum array output
    * M: all-pole filter order
@@ -91,17 +91,17 @@ extern "C" {
   MYFLT *csoundCepsLP(CSOUND *csound, MYFLT *b, MYFLT *c, int M, int N);
 
   /**
-   * Compute all-pole coefficients and linear prediction error  
+   * Compute all-pole coefficients and linear prediction error
    * from cepstrum coefficients
    *
    * b: array of size M+1
-   * c: array of size N with cepstrum coeffs 
-   *   
+   * c: array of size N with cepstrum coeffs
+   *
    * M: all-pole filter order
    * N: cepstrum size
    *
-   * returns: M+1 size array with all-pole coefficients 1-M and 
-   * E in place of coefficient 0 [E,c1,...,cM] 
+   * returns: M+1 size array with all-pole coefficients 1-M and
+   * E in place of coefficient 0 [E,c1,...,cM]
    * NB: cepstrum is expected to be computed from power spectrum
    */
   MYFLT *csoundLPCeps(CSOUND *csound, MYFLT *c, MYFLT *b, int N, int M);
@@ -135,7 +135,6 @@ typedef struct _lpfil2 {
   void *setup;
 } LPCFIL2;
 
-
 typedef struct _lpreda {
   OPDS h;
   ARRAYDAT *out;
@@ -147,8 +146,6 @@ typedef struct _lpreda {
   void *setup;
 } LPREDA;  
 
-
-  
 #ifdef __cplusplus
 }
 #endif
