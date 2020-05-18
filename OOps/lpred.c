@@ -234,7 +234,7 @@ int32_t lpfil_init(CSOUND *csound, LPCFIL *p) {
       int i;
       p->wlen = ftw->flen;
       p->win = ftw->ftable;
-      if(p->buf.auxp == NULL || Nbytes > p->buf.size)
+      if(p->buf.auxp == NULL || Nbytes > (int)p->buf.size)
         csound->AuxAlloc(csound, Nbytes, &p->buf);
       buf = (MYFLT*) p->buf.auxp;
       incr = p->wlen/N;
@@ -247,11 +247,11 @@ int32_t lpfil_init(CSOUND *csound, LPCFIL *p) {
       coefs = csound->LPread(csound,p->setup,ft->ftable);
     }
 
-    if(p->coefs.auxp == NULL || Mbytes > p->coefs.size)
+    if(p->coefs.auxp == NULL || Mbytes > (int)p->coefs.size)
       csound->AuxAlloc(csound, Mbytes, &p->coefs);
     memcpy(p->coefs.auxp, &coefs[1], Mbytes);
 
-    if(p->del.auxp == NULL || Mbytes > p->del.size)
+    if(p->del.auxp == NULL || Mbytes > (int)p->del.size)
       csound->AuxAlloc(csound, Mbytes, &p->del);
     memset(p->del.auxp, 0, Mbytes);
 
@@ -338,14 +338,14 @@ int32_t lpfil2_init(CSOUND *csound, LPCFIL2 *p) {
 
     p->setup = csound->LPsetup(csound,p->N,p->M);
 
-    if(p->cbuf.auxp == NULL || Nbytes > p->cbuf.size)
+    if(p->cbuf.auxp == NULL || Nbytes > (int)p->cbuf.size)
       csound->AuxAlloc(csound, Nbytes, &p->cbuf);
-    if(p->buf.auxp == NULL || Mbytes > p->buf.size)
+    if(p->buf.auxp == NULL || Mbytes > (int)p->buf.size)
       csound->AuxAlloc(csound, Nbytes, &p->buf);
 
-    if(p->coefs.auxp == NULL || Mbytes > p->coefs.size)
+    if(p->coefs.auxp == NULL || Mbytes > (int)p->coefs.size)
       csound->AuxAlloc(csound, Mbytes, &p->coefs);
-    if(p->del.auxp == NULL || Mbytes > p->del.size)
+    if(p->del.auxp == NULL || Mbytes > (int)p->del.size)
       csound->AuxAlloc(csound, Mbytes, &p->del);
     memset(p->del.auxp, 0, Mbytes);
 
