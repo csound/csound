@@ -3,7 +3,7 @@
 
   Copyright 2020 Victor Lazzarini
 
-  streaming linear prediction 
+  streaming linear prediction
 
   This file is part of Csound.
 
@@ -30,8 +30,8 @@
 #include "fftlib.h"
 #include "lpred.h"
 
-/** autocorrelation  
-    r - output 
+/** autocorrelation
+    r - output
     s - input
     size - input size
     returns r
@@ -41,12 +41,12 @@ MYFLT *csoundAutoCorrelation(CSOUND *csound, MYFLT *r, MYFLT *s, int size){
   int n,m,o;
   for(n=0; n < size; n++) {
     sum = FL(0.0);
-    for(m=n,o=0; m < size; m++,o++) 
+    for(m=n,o=0; m < size; m++,o++)
       sum += s[o]*s[m];
     r[n] = sum;
   }
   return r;
-}  
+}
 
 typedef struct LPCparam_ {
   MYFLT *r, *E, *b, *k;
@@ -54,7 +54,7 @@ typedef struct LPCparam_ {
 } LPCparam;
 
 
-/** Set up linear prediction memory for 
+/** Set up linear prediction memory for
     autocorrelation size N and predictor order M
 */
 void *csoundLPsetup(CSOUND *csound, int N, int M) {
@@ -66,7 +66,7 @@ void *csoundLPsetup(CSOUND *csound, int N, int M) {
   p->b = csound->Calloc(csound, sizeof(MYFLT)*(M+1)*(M+1));
   p->N = N;
   p->M = M;
-  return p;    
+  return p;
 }
 
 /** Free linear prediction memory
@@ -79,7 +79,7 @@ void csoundLPfree(CSOUND *csound, void *parm) {
   csound->Free(csound, p->E);
   csound->Free(csound, p);
 }
- 
+
 /** Linear Prediction function
     output format: M+1 MYFLT array [E,c1,c2,...,cm]
     NB: c0 is always 1
@@ -96,7 +96,7 @@ MYFLT *csoundLPread(CSOUND *csound, void *parm, MYFLT *x){
   int M = p->M;
   int L = M+1;
   int m,i;
-   
+
   r = csoundAutoCorrelation(csound,r,x,N);
   MYFLT ro = r[0];
   if (ro > FL(0.0)) {
@@ -107,7 +107,7 @@ MYFLT *csoundLPread(CSOUND *csound, void *parm, MYFLT *x){
     for(m=1;m<L;m++) {
       s = 0.;
       b[(m-1)*L] = 1.;
-      for(i=0;i<m;i++) 
+      for(i=0;i<m;i++)
         s += b[(m-1)*L+i]*r[m-i];
       k[m] = -(s)/E[m-1];
       b[m*L+m] = k[m];
@@ -120,8 +120,8 @@ MYFLT *csoundLPread(CSOUND *csound, void *parm, MYFLT *x){
   }
   /* return E + coeffs */
   return &b[M*L];
-} 
- 
+}
+
 /** LP coeffs to Cepstrum
     takes an array c of N size
     and an array b of M+1 size with M all-pole coefficients
@@ -145,13 +145,13 @@ MYFLT *csoundLPCeps(CSOUND *csound, MYFLT *c, MYFLT *b,
     }
   }
   for(n=0;n<N;n++) c[n] *= -1;
-  return c;    
+  return c;
 }
 
 /** LP coeffs to Cepstrum
     takes an array c of N size
-    and an array b of M+1 size 
-    returns M lp coefficients and E in place of 
+    and an array b of M+1 size
+    returns M lp coefficients and E in place of
     of coefficient 0 [E,c1,...,cM]
 */
 MYFLT *csoundCepsLP(CSOUND *csound, MYFLT *b, MYFLT *c,
@@ -169,13 +169,13 @@ MYFLT *csoundCepsLP(CSOUND *csound, MYFLT *b, MYFLT *c,
   return b;
 }
 
-/** Computes real cepstrum in place from a 
+/** Computes real cepstrum in place from a
     non-negative (Hermitian) spectrum
 
     buf: non-negative spectrum with [DC,Nyq] in the first two positions
-    size: size of buf    
+    size: size of buf
 
-    returns: real-valued (and even) cepstrum 
+    returns: real-valued (and even) cepstrum
     NB: this uses the power spectrum to compute cepstrum
 */
 MYFLT *csoundRealCepstrum(CSOUND *csound, MYFLT *buf, int size){
@@ -187,14 +187,14 @@ MYFLT *csoundRealCepstrum(CSOUND *csound, MYFLT *buf, int size){
     buf[i+1] = 0;
   }
   csoundInverseRealFFT(csound, buf, size);
-  return buf;  
+  return buf;
 }
 
-/** Computes non-negative power spectrum in place from a 
+/** Computes non-negative power spectrum in place from a
     real-valued (and even) cepstrum
 
-    buf: real-valued cepstrum 
-    size: size of buf    
+    buf: real-valued cepstrum
+    size: size of buf
 
     returns: non-negative power spectrum in even-index
     array positions
@@ -208,15 +208,15 @@ MYFLT *csoundInverseRealCepstrum(CSOUND *csound, MYFLT *buf, int size){
     buf[i+1] = FL(0.0);
   }
   buf[1] = 0;
-  return buf;  
-} 
+  return buf;
+}
 
 /* opcodes */
 
 
 /* lpcfilter - take lpred input from table */
 int32_t lpfil_init(CSOUND *csound, LPCFIL *p) {
- 
+
   FUNC *ft = csound->FTnp2Find(csound, p->ifn);
 
   if (ft != NULL) {
@@ -234,24 +234,24 @@ int32_t lpfil_init(CSOUND *csound, LPCFIL *p) {
       int i;
       p->wlen = ftw->flen;
       p->win = ftw->ftable;
-      if(p->buf.auxp == NULL || Nbytes > p->buf.size) 
+      if(p->buf.auxp == NULL || Nbytes > p->buf.size)
         csound->AuxAlloc(csound, Nbytes, &p->buf);
       buf = (MYFLT*) p->buf.auxp;
       incr = p->wlen/N;
-      for(i=0, k=0; i < N; i++, k+=incr) 
+      for(i=0, k=0; i < N; i++, k+=incr)
         buf[i] = ft->ftable[i]*p->win[(int)k];
       coefs = csound->LPread(csound,p->setup,buf);
-    } 
+    }
     else {
       p->win = NULL;
       coefs = csound->LPread(csound,p->setup,ft->ftable);
     }
-  
-    if(p->coefs.auxp == NULL || Mbytes > p->coefs.size) 
+
+    if(p->coefs.auxp == NULL || Mbytes > p->coefs.size)
       csound->AuxAlloc(csound, Mbytes, &p->coefs);
     memcpy(p->coefs.auxp, &coefs[1], Mbytes);
 
-    if(p->del.auxp == NULL || Mbytes > p->del.size) 
+    if(p->del.auxp == NULL || Mbytes > p->del.size)
       csound->AuxAlloc(csound, Mbytes, &p->del);
     memset(p->del.auxp, 0, Mbytes);
 
@@ -260,7 +260,7 @@ int32_t lpfil_init(CSOUND *csound, LPCFIL *p) {
     p->ft = ft;
     return OK;
   }
-  csound->InitError(csound, "function table %d not found\n", (int) *p->ifn);
+  csound->InitError(csound, Str("function table %d not found\n"), (int) *p->ifn);
   return NOTOK;
 }
 
@@ -294,10 +294,10 @@ int32_t lpfil_perf(CSOUND *csound, LPCFIL *p) {
     if(p->win) {
       MYFLT *buf, incr, k;
       int i, N = p->N;
-      
+
       buf = (MYFLT*) p->buf.auxp;
       incr = p->wlen/N;
-      for(i=0, k=0; i < N; i++, k+=incr) 
+      for(i=0, k=0; i < N; i++, k+=incr)
         buf[i] = p->ft->ftable[i+off]*p->win[(int)k];
       c = csound->LPread(csound,p->setup,buf);
     } else
@@ -314,7 +314,7 @@ int32_t lpfil_perf(CSOUND *csound, LPCFIL *p) {
       // filter convolution
       y -= cfs[M - m - 1]*yn[pp];
       pp = pp != M - 1 ? pp + 1: 0;
-    } 
+    }
     out[n] = yn[rp] = y;
     rp = rp != M - 1 ? rp + 1: 0;
   }
@@ -335,17 +335,17 @@ int32_t lpfil2_init(CSOUND *csound, LPCFIL2 *p) {
       p->wlen = ftw->flen;
       p->win = ftw->ftable;
     } else p->win = NULL;
-    
+
     p->setup = csound->LPsetup(csound,p->N,p->M);
 
-    if(p->cbuf.auxp == NULL || Nbytes > p->cbuf.size) 
+    if(p->cbuf.auxp == NULL || Nbytes > p->cbuf.size)
       csound->AuxAlloc(csound, Nbytes, &p->cbuf);
-    if(p->buf.auxp == NULL || Mbytes > p->buf.size) 
+    if(p->buf.auxp == NULL || Mbytes > p->buf.size)
       csound->AuxAlloc(csound, Nbytes, &p->buf);
-    
-    if(p->coefs.auxp == NULL || Mbytes > p->coefs.size) 
+
+    if(p->coefs.auxp == NULL || Mbytes > p->coefs.size)
       csound->AuxAlloc(csound, Mbytes, &p->coefs);
-    if(p->del.auxp == NULL || Mbytes > p->del.size) 
+    if(p->del.auxp == NULL || Mbytes > p->del.size)
       csound->AuxAlloc(csound, Mbytes, &p->del);
     memset(p->del.auxp, 0, Mbytes);
 
@@ -397,7 +397,7 @@ int32_t lpfil2_perf(CSOUND *csound, LPCFIL2 *p) {
       // filter convolution
       y -= cfs[M - m - 1]*yn[pp];
       pp = pp != M - 1 ? pp + 1: 0;
-    } 
+    }
     out[n] = yn[rp] = y;
     rp = rp != M - 1 ? rp + 1: 0;
   }
