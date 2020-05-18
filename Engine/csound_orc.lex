@@ -71,7 +71,7 @@ int get_next_char(char *, int, struct yyguts_t*);
 %option stdout
 %option 8bit
 
-LABEL           ^[ \t]*[a-zA-Z0-9_][a-zA-Z0-9_]*:([ \t\n]+|$)  /* VL: added extra checks for after the colon */
+LABEL           ^[ \t]*[a-zA-Z0-9_][a-zA-Z0-9_]*:  /* VL: added extra checks for after the colon */
 IDENT           [a-zA-Z_][a-zA-Z0-9_]*
 IDENTB          [a-zA-Z_][a-zA-Z0-9_]*\([ \t]*("\n")?
 XIDENT          0|[aijkftKOJVPopS\[\]]+
