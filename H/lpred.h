@@ -168,7 +168,6 @@ typedef struct _lpreda2 {
   void *setup;
 } LPREDA2;  
 
-  
 
 #ifdef __cplusplus
 }
