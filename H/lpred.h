@@ -166,7 +166,7 @@ typedef struct _lpreda2 {
   int32_t M, N, wlen, cp, bp;
   MYFLT *win;
   void *setup;
-} LPREDA2;  
+} LPREDA2;
 
 
 #ifdef __cplusplus
