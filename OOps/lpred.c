@@ -288,7 +288,7 @@ int32_t lpfil_init(CSOUND *csound, LPCFIL *p) {
   FUNC *ft = csound->FTnp2Find(csound, p->ifn);
 
   if (ft != NULL) {
-    MYFLT *coefs;
+    MYFLT *c;
     int N = *p->isiz < ft->flen ? *p->isiz : ft->flen;
     int Nbytes = N*sizeof(MYFLT);
     int Mbytes = *p->iord*sizeof(MYFLT);
@@ -308,16 +308,16 @@ int32_t lpfil_init(CSOUND *csound, LPCFIL *p) {
       incr = p->wlen/N;
       for(i=0, k=0; i < N; i++, k+=incr)
         buf[i] = ft->ftable[i]*p->win[(int)k];
-      coefs = csound->LPread(csound,p->setup,buf);
+      c = csound->LPread(csound,p->setup,buf);
     }
     else {
       p->win = NULL;
-      coefs = csound->LPread(csound,p->setup,ft->ftable);
+      c = csound->LPread(csound,p->setup,ft->ftable);
     }
 
     if(p->coefs.auxp == NULL || Mbytes > (int)p->coefs.size)
       csound->AuxAlloc(csound, Mbytes, &p->coefs);
-    memcpy(p->coefs.auxp, &coefs[1], Mbytes);
+    memcpy(p->coefs.auxp, &c[1], Mbytes);
 
     if(p->del.auxp == NULL || Mbytes > (int)p->del.size)
       csound->AuxAlloc(csound, Mbytes, &p->del);
@@ -325,6 +325,7 @@ int32_t lpfil_init(CSOUND *csound, LPCFIL *p) {
 
     p->rp = 0;
     p->ft = ft;
+    p->g = csoundLPrms(csound,p->setup)*SQRT(c[0]);
     return OK;
   }
   csound->InitError(csound, Str("function table %d not found\n"), (int) *p->ifn);
@@ -337,7 +338,7 @@ int32_t lpfil_perf(CSOUND *csound, LPCFIL *p) {
   MYFLT *yn = (MYFLT *) p->del.auxp;
   MYFLT *out = p->out;
   MYFLT *in = p->in;
-  MYFLT y;
+  MYFLT y, g;
   int32_t M = p->M, m;
   int32_t pp, rp = p->rp;
   uint32_t offset = p->h.insdshead->ksmps_offset;
@@ -370,11 +371,12 @@ int32_t lpfil_perf(CSOUND *csound, LPCFIL *p) {
       c = csound->LPread(csound,p->setup,
                          p->ft->ftable+off);
     memcpy(p->coefs.auxp, &c[1], M*sizeof(MYFLT));
+    g = p->g = csoundLPrms(csound,p->setup)*SQRT(c[0]);
   }
 
   for(n=offset; n < nsmps; n++) {
     pp = rp;
-    y =  in[n]*0.001; /* need to scale input */
+    y =  in[n]*g; /* need to scale input */
     for(m = 0; m < M; m++) {
       // filter convolution
       y -= cfs[M - m - 1]*yn[pp];
@@ -413,8 +415,7 @@ int32_t lpfil2_init(CSOUND *csound, LPCFIL2 *p) {
   if(p->del.auxp == NULL || Mbytes > p->del.size) 
     csound->AuxAlloc(csound, Mbytes, &p->del);
   memset(p->del.auxp, 0, Mbytes);
-
-
+  p->cp = 1;
   p->rp = p->bp = 0;
   return OK;
 }
@@ -427,10 +428,10 @@ int32_t lpfil2_perf(CSOUND *csound, LPCFIL2 *p) {
   MYFLT *out = p->out;
   MYFLT *in = p->in;
   MYFLT *sig = p->sig;
-  MYFLT y;
+  MYFLT y, g = p->g;
   int32_t M = p->M, m, flag = (int) *p->flag;
   int32_t N = p->N;
-  int32_t pp, rp = p->rp, bp = p->bp;
+  int32_t pp, rp = p->rp, bp = p->bp, cp = p->cp;
   uint32_t offset = p->h.insdshead->ksmps_offset;
   uint32_t early  = p->h.insdshead->ksmps_no_end;
   uint32_t n, nsmps = CS_KSMPS;
@@ -446,8 +447,7 @@ int32_t lpfil2_perf(CSOUND *csound, LPCFIL2 *p) {
   for(n=offset; n < nsmps; n++) {
     cbuf[bp] = sig[n];
     bp = bp != N - 1 ? bp + 1 : 0;
-    p->cp = p->cp != N/4 - 1 ? p->cp + 1 : 0;
-    if(p->cp == 0 && flag) {
+    if(--cp == 0 && flag) {
       MYFLT *c, k, incr = p->wlen/N;
       int32_t j,i;
       for (j=bp,i=0, k=0; i < N; j++,i++,k+=incr) {
@@ -455,9 +455,11 @@ int32_t lpfil2_perf(CSOUND *csound, LPCFIL2 *p) {
       }
       c = csound->LPread(csound,p->setup,buf);
       memcpy(p->coefs.auxp, &c[1], M*sizeof(MYFLT));
+      g = p->g = csoundLPrms(csound,p->setup)*SQRT(c[0]);
+      cp = (int32_t) (*p->prd > M ? *p->prd : M);
     }
     pp = rp;
-    y =  in[n]*0.001; /* need to scale input */
+    y =  in[n]*g; /* need to scale input */
     for(m = 0; m < M; m++) {
       // filter convolution
       y -= cfs[M - m - 1]*yn[pp];
@@ -468,6 +470,7 @@ int32_t lpfil2_perf(CSOUND *csound, LPCFIL2 *p) {
   }
   p->rp = rp;
   p->bp = bp;
+  p->cp = cp;
   return OK;
 }
 

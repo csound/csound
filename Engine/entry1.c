@@ -1192,7 +1192,7 @@ OENTRY opcodlst_1[] = {
      midiarp_set, midiarp, NULL },
    {"lpcfilter", S(LPCFIL), 0, 3, "a", "akkiiio",
    (SUBR) lpfil_init, (SUBR) lpfil_perf},
-   {"lpcfilter", S(LPCFIL2), 0, 3, "a", "aakiio",
+   {"lpcfilter", S(LPCFIL2), 0, 3, "a", "aakkiio",
    (SUBR) lpfil2_init, (SUBR) lpfil2_perf},
    {"lpcanal", S(LPREDA), 0, 3, "k[]kkk", "kkii",
    (SUBR) lpred_alloc, (SUBR) lpred_run},

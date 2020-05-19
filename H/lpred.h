@@ -117,14 +117,14 @@ typedef struct _lpfil {
   int32_t M, N, wlen;
   int32_t rp;
   void *setup;
-  MYFLT *win;
+  MYFLT *win, g;
   FUNC *ft;
 } LPCFIL;
 
 typedef struct _lpfil2 {
   OPDS h;
   MYFLT *out;
-  MYFLT *in, *sig, *flag, *isiz, *iord, *iwin;
+  MYFLT *in, *sig, *flag, *prd, *isiz, *iord, *iwin;
   AUXCH coefs;
   AUXCH del;
   AUXCH buf;
