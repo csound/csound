@@ -134,6 +134,10 @@ You can install the latest from the develop branch using:
   
 `brew install --HEAD csound`
 
+If you have a HEAD version already installed and you want to rebuild with newly updated code in the develop branch, use: 
+  
+`brew reinstall --HEAD csound`
+
 ### Building Csound using Homebrew-supplied dependencies
 
 If you would like to compile csound on macOS, you need to have its dependencies installed. 
