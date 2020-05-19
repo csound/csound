@@ -1198,6 +1198,8 @@ OENTRY opcodlst_1[] = {
    (SUBR) lpfil3_init, (SUBR) lpfil3_perf},
    {"lpcanal", S(LPREDA), 0, 3, "k[]kkk", "kkiiio",
    (SUBR) lpred_alloc, (SUBR) lpred_run},
+   {"lpcanal", S(LPREDA2), 0, 3, "k[]kkk", "akkiio",
+   (SUBR) lpred_alloc2, (SUBR) lpred_run2},
    {"lpcanal", S(LPREDA), 0, 1, "i[]iii", "iiii",
    (SUBR) lpred_i, NULL},
   /* terminate list */

@@ -480,3 +480,5 @@ int32_t lpred_alloc(CSOUND *csound, void *p);
 int32_t lpred_i(CSOUND *csound, void *p);
 int32_t lpfil3_init(CSOUND *csound, void *p);
 int32_t lpfil3_perf(CSOUND *csound, void *p);
+int32_t lpred_run2(CSOUND *csound, void *p);
+int32_t lpred_alloc2(CSOUND *csound, void *p);
