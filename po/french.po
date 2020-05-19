@@ -4760,9 +4760,9 @@ msgid "turnoff2: invalid mode parameter"
 msgstr "turnoff2 : paramètre de mode non valide"
 
 #: OOps/lpred.c:263
-#, fuzzy, c-format
+#, c-format
 msgid "function table %d not found\n"
-msgstr "table de fonction non trouvée\n"
+msgstr "table de fonction %d non trouvée\n"
 
 #: OOps/midiops.c:101
 msgid "uneven ctrl pairs"
