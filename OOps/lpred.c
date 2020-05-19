@@ -233,6 +233,8 @@ static void pkpick(LPCparam *p){
   for(i=n; i < p->N; i++) pk[i] = FL(-1.0);
 }
 
+
+
 static void pkinterp(LPCparam *p){
   int i, pn, N = p->N;
   MYFLT tmp,y1,y2,a,b;
@@ -249,8 +251,8 @@ static void pkinterp(LPCparam *p){
         y2 = r[pn] - tmp; 
       a = (y2-2*y1)/2;
       b = 1-y1/a;
-      am[i] = pn-1+b/2;
-      pk[i] = tmp-a*b*b/4;
+      pk[i] = pn-1+b/2;
+      am[i] = tmp-a*b*b/4;
     }
     else break;
   }
@@ -265,6 +267,7 @@ MYFLT csoundLPcps(CSOUND *csound, void *parm){
   MYFLT *pk = p->pk, *am = p->am;
   pkpick(p);
   pkinterp(p);
+  pmx = p->pk[0];
   for(i=0;i<p->N;i++){
     if(pk[i] < 0) break;
     if(am[i] > mx) {
