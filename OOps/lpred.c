@@ -341,7 +341,7 @@ int32_t lpfil_perf(CSOUND *csound, LPCFIL *p) {
   MYFLT *yn = (MYFLT *) p->del.auxp;
   MYFLT *out = p->out;
   MYFLT *in = p->in;
-  MYFLT y, g = FL(1.0);
+  MYFLT y, g = p->g;
   int32_t M = p->M, m;
   int32_t pp, rp = p->rp;
   uint32_t offset = p->h.insdshead->ksmps_offset;
