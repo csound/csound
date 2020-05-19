@@ -557,7 +557,7 @@ int32_t lpred_alloc2(CSOUND *csound, LPREDA2 *p) {
     p->setup = csound->LPsetup(csound,N,p->M);
     if(p->buf.auxp == NULL || Nbytes > p->buf.size)
         csound->AuxAlloc(csound, Nbytes, &p->buf);
-    if(p->cbuf.auxp == NULL || Nbytes > p->cbuf.size) 
+    if(p->cbuf.auxp == NULL || Nbytes > p->cbuf.size)
       csound->AuxAlloc(csound, Nbytes, &p->cbuf);
     tabinit(csound,p->out,p->M);
     p->cp = 1;
@@ -577,7 +577,7 @@ int32_t lpred_run2(CSOUND *csound, LPREDA2 *p) {
   uint32_t n, nsmps = CS_KSMPS;
   MYFLT *c;
 
-  if (UNLIKELY(early)) 
+  if (UNLIKELY(early))
     nsmps -= early;
 
   for(n=offset; n < nsmps; n++) {
