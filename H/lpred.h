@@ -139,12 +139,25 @@ typedef struct _lpreda {
   OPDS h;
   ARRAYDAT *out;
   MYFLT *rms, *err, *cps;
-  MYFLT  *off, *flag, *ifn, *isiz, *iord;
+  MYFLT  *off, *flag, *ifn, *isiz, *iord, *iwin;
   AUXCH coefs;
-  int32_t M, N;
+  AUXCH buf;
+  int32_t M, N, wlen;
   FUNC *ft;
+  MYFLT *win;
   void *setup;
-} LPREDA;  
+} LPREDA;
+
+typedef struct _lpfil3 {
+  OPDS h;
+  MYFLT *out, *in;
+  ARRAYDAT *coefs;
+  AUXCH del;
+  int32_t M;
+  int32_t rp;
+} LPCFIL3;
+
+  
 
 #ifdef __cplusplus
 }
