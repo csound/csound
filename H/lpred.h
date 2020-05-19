@@ -117,21 +117,21 @@ typedef struct _lpfil {
   int32_t M, N, wlen;
   int32_t rp;
   void *setup;
-  MYFLT *win;
+  MYFLT *win, g;
   FUNC *ft;
 } LPCFIL;
 
 typedef struct _lpfil2 {
   OPDS h;
   MYFLT *out;
-  MYFLT *in, *sig, *flag, *isiz, *iord, *iwin;
+  MYFLT *in, *sig, *flag, *prd, *isiz, *iord, *iwin;
   AUXCH coefs;
   AUXCH del;
   AUXCH buf;
   AUXCH cbuf;
   int32_t M, N, wlen;
-  int32_t rp,bp;
-  MYFLT *win;
+  int32_t rp,bp,cp;
+  MYFLT *win, g;
   void *setup;
 } LPCFIL2;
 
@@ -139,12 +139,35 @@ typedef struct _lpreda {
   OPDS h;
   ARRAYDAT *out;
   MYFLT *rms, *err, *cps;
-  MYFLT  *off, *flag, *ifn, *isiz, *iord;
-  AUXCH coefs;
-  int32_t M, N;
+  MYFLT  *off, *flag, *ifn, *isiz, *iord, *iwin;
+  AUXCH buf;
+  int32_t M, N, wlen;
   FUNC *ft;
+  MYFLT *win;
   void *setup;
-} LPREDA;  
+} LPREDA;
+
+typedef struct _lpfil3 {
+  OPDS h;
+  MYFLT *out, *in;
+  ARRAYDAT *coefs;
+  AUXCH del;
+  int32_t M;
+  int32_t rp;
+} LPCFIL3;
+
+typedef struct _lpreda2 {
+  OPDS h;
+  ARRAYDAT *out;
+  MYFLT *rms, *err, *cps;
+  MYFLT  *in, *flag, *prd, *isiz, *iord, *iwin;
+  AUXCH cbuf;
+  AUXCH buf;
+  int32_t M, N, wlen, cp, bp;
+  MYFLT *win;
+  void *setup;
+} LPREDA2;
+
 
 #ifdef __cplusplus
 }
