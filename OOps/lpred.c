@@ -505,7 +505,7 @@ int32_t lpred_alloc(CSOUND *csound, LPREDA *p) {
     return OK;
   }
   else
-    csound->InitError(csound, Str("function table %d not found\n"0, (int) *p->ifn);
+    csound->InitError(csound, Str("function table %d not found\n"), (int) *p->ifn);
   return NOTOK;
 }
 
