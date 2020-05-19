@@ -103,7 +103,7 @@ MYFLT *csoundLPread(CSOUND *csound, void *parm, MYFLT *x){
 
   r = csoundAutoCorrelation(csound,r,x,N);
   MYFLT ro = r[0];
-  p->rms = SQRT(ro);
+  p->rms = SQRT(ro/N);
   if (ro > FL(0.0)) {
     /* if signal power > 0 , do linear prediction */
     for(i=0;i<L;i++) r[i] /= ro;
@@ -155,13 +155,8 @@ MYFLT *csoundLPCeps(CSOUND *csound, MYFLT *c, MYFLT *b,
 
 /** LP coeffs to Cepstrum
     takes an array c of N size
-<<<<<<< HEAD
     and an array b of M+1 size 
     returns M lp coefficients and squared error E in place of 
-=======
-    and an array b of M+1 size
-    returns M lp coefficients and E in place of
->>>>>>> 60871371cbbd2025e203310a310d39138ea6c566
     of coefficient 0 [E,c1,...,cM]
 */
 MYFLT *csoundCepsLP(CSOUND *csound, MYFLT *b, MYFLT *c,
@@ -451,7 +446,8 @@ int32_t lpfil2_perf(CSOUND *csound, LPCFIL2 *p) {
   for(n=offset; n < nsmps; n++) {
     cbuf[bp] = sig[n];
     bp = bp != N - 1 ? bp + 1 : 0;
-    if(rp == 0 && flag) {
+    p->cp = p->cp != N/4 - 1 ? p->cp + 1 : 0;
+    if(p->cp == 0 && flag) {
       MYFLT *c, k, incr = p->wlen/N;
       int32_t j,i;
       for (j=bp,i=0, k=0; i < N; j++,i++,k+=incr) {

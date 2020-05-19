@@ -130,8 +130,8 @@ typedef struct _lpfil2 {
   AUXCH buf;
   AUXCH cbuf;
   int32_t M, N, wlen;
-  int32_t rp,bp;
-  MYFLT *win;
+  int32_t rp,bp,cp;
+  MYFLT *win, g;
   void *setup;
 } LPCFIL2;
 
