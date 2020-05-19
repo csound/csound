@@ -463,7 +463,7 @@ int32_t lpfil2_perf(CSOUND *csound, LPCFIL2 *p) {
       c = csound->LPread(csound,p->setup,buf);
       memcpy(p->coefs.auxp, &c[1], M*sizeof(MYFLT));
       g = p->g = csoundLPrms(csound,p->setup)*SQRT(c[0]);
-      cp = (int32_t) (*p->prd > M ? *p->prd : M);
+      cp = (int32_t) *p->prd;
     }
     pp = rp;
     y =  in[n]*g; /* need to scale input */
@@ -590,7 +590,7 @@ int32_t lpred_run2(CSOUND *csound, LPREDA2 *p) {
         buf[i] = p->win == NULL ? cbuf[j%N] : p->win[(int)k]*cbuf[j%N];
       }
       csound->LPread(csound,p->setup,buf);
-      cp = (int32_t) (*p->prd > M ? *p->prd : M);
+      cp = (int32_t) *p->prd;
     }
   }
   c = csoundLPcoefs(csound,p->setup);
