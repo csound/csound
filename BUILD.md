@@ -136,7 +136,7 @@ You can install the latest from the develop branch using:
 
 If you have a HEAD version already installed and you want to rebuild with newly updated code in the develop branch, use: 
   
-`brew reinstall --HEAD csound`
+`brew reinstall csound`
 
 ### Building Csound using Homebrew-supplied dependencies
 
