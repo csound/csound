@@ -27,12 +27,14 @@
 #define CSOUND_LPRED_H
 
 #if !defined(__BUILDING_LIBCSOUND)
-#  error "Csound plugins and host applications should not include fftlib.h"
+#  error "Csound plugins and host applications should not include lpred.h"
 #endif
 
 #ifdef __cplusplus
 extern "C" {
 #endif
+
+#include "pstream.h"  
 
 /**
   * Compute autocorrelation function
@@ -167,6 +169,19 @@ typedef struct _lpreda2 {
   MYFLT *win;
   void *setup;
 } LPREDA2;
+
+
+typedef struct _lpreda3 {
+  OPDS h;
+  PVSDAT *fout;
+  MYFLT  *in, *isiz, *prd, *iord, *iwin;
+  AUXCH cbuf;
+  AUXCH buf;
+  AUXCH fftframe;
+  int32_t M, N, wlen, cp, bp;
+  MYFLT *win;
+  void *setup;
+} LPCPVS;  
 
 
 #ifdef __cplusplus
