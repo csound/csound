@@ -752,3 +752,4 @@ int32_t lpcpvs(CSOUND *csound, LPCPVS *p){
   p->cp = cp;
   return OK;
 }
+
