@@ -1202,6 +1202,8 @@ OENTRY opcodlst_1[] = {
    (SUBR) lpred_alloc2, (SUBR) lpred_run2},
    {"lpcanal", S(LPREDA), 0, 1, "i[]iii", "iiii",
    (SUBR) lpred_i, NULL},
+   {"pvslpc", S(LPCPVS), 0, 3, "f", "aiiio",
+    (SUBR) lpcpvs_init, (SUBR) lpcpvs},
   /* terminate list */
   {  NULL, 0, 0, 0, NULL, NULL, NULL, NULL, NULL       }
 };
