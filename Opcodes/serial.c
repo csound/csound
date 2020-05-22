@@ -463,7 +463,9 @@ int32_t serialPeekByte(CSOUND *csound, SERIALPEEK *p)
     return OK;
 }
 
-
+#ifdef JPFF
+#include "aaa.c"
+#endif
 
 #define S(x)    sizeof(x)
 
@@ -486,6 +488,9 @@ static OENTRY serial_localops[] = {
       (SUBR)NULL, (SUBR)serialPrint, (SUBR)NULL   },
     { (char *)"serialFlush", S(SERIALFLUSH), 0, 2, (char *)"", (char *)"i",
       (SUBR)NULL, (SUBR)serialFlush, (SUBR)NULL   },
+#ifdef JPFF
+#include "aaa.h"
+#endif
 /* { (char *)"serialAvailable", S(SERIALAVAIL), 0, 2, (char *)"k", (char *)"i", */
 /*   (SUBR)NULL, (SUBR)serialAvailable, (SUBR)NULL   }, */
 /* { (char *)"serialPeekByte", S(SERIALPEEK),0,  2, (char *)"k", (char *)"i", */
