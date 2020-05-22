@@ -551,7 +551,7 @@ char* get_arg_type2(CSOUND* csound, TREE* tree, TYPE_TABLE* typeTable)
       if (UNLIKELY(var == NULL)) {
         synterr(csound, Str("Variable '%s' used before defined\n"
                             "Line %d\n"),
-                tree->value->lexeme, tree->line);
+                tree->value->lexeme, tree->line-1); /* -1 as read next line! */
         do_baktrace(csound, tree->locn);
         return NULL;
       }
@@ -560,7 +560,7 @@ char* get_arg_type2(CSOUND* csound, TREE* tree, TYPE_TABLE* typeTable)
         char *res = create_array_arg_type(csound, var);
         if (res==NULL) {        /* **REVIEW** this double syntax error */
           synterr(csound, Str("Array of unknown type\n"));
-          csoundMessage(csound, Str("Line: %d\n"), tree->line);
+          csoundMessage(csound, Str("Line: %d\n"), tree->line-1);
           do_baktrace(csound, tree->locn);
         }
         return res;
