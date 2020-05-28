@@ -683,7 +683,8 @@ static OENTRY localops[] = {
      (SUBR)phasor_init, (SUBR)phasor_a_aa },
 
     {"sc_phasor", S(Phasor), 0, 3, "a", "kkkkO",
-     (SUBR)phasor_init, (SUBR)phasor_a_kk }
+     (SUBR)phasor_init, (SUBR)phasor_a_kk },
+
     {"trigphasor", S(Phasor), 0, 3, "a", "kkkkO",
      (SUBR)phasor_init, (SUBR)phasor_a_kk }
 };
