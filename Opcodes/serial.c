@@ -624,7 +624,7 @@ int32_t arduinoReadSetup(CSOUND* csound, ARD_READ* p)
     p->q = (ARDUINO_GLOBALS*) csound->QueryGlobalVariable(csound,
                                                       "arduinoGlobals_");
     if (p->q == NULL)
-      return csound->InitError(csound, %s", Str("arduinoStart not running\n"));
+      return csound->InitError(csound, "%s", Str("arduinoStart not running\n"));
     return OK;
 }
 
