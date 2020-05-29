@@ -558,7 +558,12 @@ uintptr_t arduino_listen(void *p)
     // Should be synced now
     while (1) {
       unsigned int hi, low;
-      if (q->stop) pthread_exit(NULL);
+      if (q->stop)
+#ifndef WIN32      
+        pthread_exit(NULL);
+#else
+      return NULL;
+#endif
       low = arduino_get_byte(q->port);
       if (low == 0xf0) continue; /* start new frame */
       hi = arduino_get_byte(q->port);
