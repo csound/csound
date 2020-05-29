@@ -593,7 +593,7 @@ int32_t arduinoStart(CSOUND* csound, ARD_START* p)
                              (const char *)p->portName->data,
                              *p->baudRate);
     //printf("xx=%g\n", xx);
-    if (xx<0) return csound->InitError(csound,
+    if (xx<0) return csound->InitError(csound, "%s",
                                        Str("failed to open serial line\n"));
     q = (ARDUINO_GLOBALS*) csound->QueryGlobalVariable(csound,
                                                        "arduinoGlobals_");
@@ -605,7 +605,7 @@ int32_t arduinoStart(CSOUND* csound, ARD_START* p)
         csound->InitError(csound, Str("arduino: failed to allocate globals"));
     q = (ARDUINO_GLOBALS*) csound->QueryGlobalVariable(csound,
                                                        "arduinoGlobals_");
-    if (q==NULL) return csound->InitError(csound, "Failed to allocate\n");
+    if (q==NULL) return csound->InitError(csound, "&%s", Str("Failed to allocate\n"));
     p->q = q;
     q->csound = csound;
     q->lock = csoundCreateMutex(0);
@@ -624,7 +624,7 @@ int32_t arduinoReadSetup(CSOUND* csound, ARD_READ* p)
     p->q = (ARDUINO_GLOBALS*) csound->QueryGlobalVariable(csound,
                                                       "arduinoGlobals_");
     if (p->q == NULL)
-      return csound->InitError(csound, Str("arduinoStart not running\n"));
+      return csound->InitError(csound, %s", Str("arduinoStart not running\n"));
     return OK;
 }
 
@@ -634,7 +634,7 @@ int32_t arduinoRead(CSOUND* csound, ARD_READ* p)
     int ind = *p->index;
     if (ind <0 || ind>MAXSENSORS)
       return csound->PerfError(csound, &p->h,
-                               Str("out of range\n"));
+                               "%s", Str("out of range\n"));
     csoundLockMutex(q->lock);
     *p->val = (MYFLT)q->values[ind];
     csoundUnlockMutex(q->lock);
