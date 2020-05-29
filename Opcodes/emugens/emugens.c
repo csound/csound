@@ -1436,11 +1436,11 @@ tabslice_init(CSOUND *csound, TABSLICE *p) {
     FUNC *ftpsrc, *ftpdst;
     ftpsrc = csound->FTnp2Finde(csound, p->fnsrc);
     if(UNLIKELY(ftpsrc == NULL))
-        return NOTOK;
+        return INITERRF("Source table not found: %d", (int)(*p->fnsrc));
     p->ftpsrc = ftpsrc;
     ftpdst = csound->FTnp2Finde(csound, p->fndst);
     if(UNLIKELY(ftpdst == NULL))
-        return NOTOK;
+        return INITERRF("Destination table not found: %d", (int)(*p->fndst));
     p->ftpdst = ftpdst;
     return OK;
 }
@@ -1465,6 +1465,26 @@ tabslice_k(CSOUND *csound, TABSLICE *p) {
         dst[i] = src[j];
         j += step;
     }
+    return OK;
+}
+
+static int32_t
+tabslice_allk(CSOUND *csound, TABSLICE *p) {
+    p->ftpsrc = csound->FTnp2Finde(csound, p->fnsrc);
+    if(UNLIKELY(p->ftpsrc == NULL))
+        return PERFERRF("Source table not found: %d", (int)*p->fnsrc);
+    p->ftpdst = csound->FTnp2Finde(csound, p->fndst);
+    if(UNLIKELY(p->ftpdst == NULL))
+        return PERFERRF("Destination table not found: %d", (int)*p->fnsrc);
+    return tabslice_k(csound, p);
+}
+
+static int32_t
+tabslice_i(CSOUND *csound, TABSLICE *p) {
+    int error = tabslice_init(csound, p);
+    if(error)
+        return NOTOK;
+    return tabslice_k(csound, p);
     return OK;
 }
 
@@ -2734,9 +2754,14 @@ static OENTRY localops[] = {
 
     // { "reshapearray", S(ARRAYRESHAPE), 0, 1, "", "i[]io", (SUBR)arrayreshape},
  // { "reshapearray", S(ARRAYRESHAPE), 0, 2, "", ".[]io", NULL, (SUBR)arrayreshape},
-    { "ftslice", S(TABSLICE),  TB, 3, "", "iiOOP",
+    { "ftslicei", S(TABSLICE), TB, 1, "", "iioop",
+      (SUBR)tabslice_i },
+
+    { "ftslice.perf", S(TABSLICE),  TB, 3, "", "iiOOP",
       (SUBR)tabslice_init, (SUBR)tabslice_k},
 
+    { "ftslice.onlyperf", S(TABSLICE),  TB, 2, "", "kkOOP",
+      NULL, (SUBR)tabslice_allk},
 
     { "ftset.k", S(FTSET), 0, 3, "", "kkOOP", (SUBR)ftset_init, (SUBR)ftset_k },
     { "ftset.i", S(FTSET), 0, 3, "", "iioop", (SUBR)ftset_i },
