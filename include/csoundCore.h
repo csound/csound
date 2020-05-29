@@ -1398,14 +1398,15 @@ typedef struct _message_queue_t_ {
     MYFLT* (*AutoCorrelation)(CSOUND *, MYFLT*, MYFLT*, int);
     void * (*LPsetup)(CSOUND *csound, int N, int M);
     void (*LPfree)(CSOUND *csound, void *);
-    MYFLT* (*LPread)(CSOUND *, void *, MYFLT *);
+    MYFLT* (*LPred)(CSOUND *, void *, MYFLT *);
     MYFLT* (*LPCeps)(CSOUND *, MYFLT *, MYFLT *, int, int);
     MYFLT* (*CepsLP)(CSOUND *, MYFLT *, MYFLT *, int, int);
+    MYFLT (*LPrms)(CSOUND *, void *);
     /**@}*/
     /** @name Placeholders
         To allow the API to grow while maintining backward binary compatibility. */
     /**@{ */
-    SUBR dummyfn_2[24];
+    SUBR dummyfn_2[23];
     /**@}*/
 #ifdef __BUILDING_LIBCSOUND
     /* ------- private data (not to be used by hosts or externals) ------- */

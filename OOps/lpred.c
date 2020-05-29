@@ -88,7 +88,7 @@ void csoundLPfree(CSOUND *csound, void *parm) {
     output format: M+1 MYFLT array [E,c1,c2,...,cm]
     NB: c0 is always 1
 */
-MYFLT *csoundLPread(CSOUND *csound, void *parm, MYFLT *x){
+MYFLT *csoundLPred(CSOUND *csound, void *parm, MYFLT *x){
 
   LPCparam *p = (LPCparam *) parm;
   MYFLT *r = p->r;
@@ -153,16 +153,32 @@ MYFLT *csoundLPCeps(CSOUND *csound, MYFLT *c, MYFLT *b,
   return c;
 }
 
-/** LP coeffs to Cepstrum
+/** Cepstrum to LP coeffs
     takes an array c of N size
     and an array b of M+1 size
     returns M lp coefficients and squared error E in place of
     of coefficient 0 [E,c1,...,cM]
+
+
+def cepslp(c,M):
+    M += 1
+    b = np.zeros(M)
+    b[0] = 1
+    b[1] = -c[1]
+    for m in range(2,M):
+       s = 0.
+       for n in range(1, m):
+         s -= (m-n)*b[n]*c[m-n]
+       b[m] = -c[m] + s/m
+    E = np.exp(c[0])   
+    return b,E
 */
+
 MYFLT *csoundCepsLP(CSOUND *csound, MYFLT *b, MYFLT *c,
                     int M, int N){
   int n,m;
   MYFLT s;
+  b[0]  = 1;
   b[1] = -c[1];
   for(m=2;m<M+1;m++) {
     s = 0.;
@@ -174,45 +190,39 @@ MYFLT *csoundCepsLP(CSOUND *csound, MYFLT *b, MYFLT *c,
   return b;
 }
 
-/** Computes real cepstrum in place from a
-    non-negative (Hermitian) spectrum
 
-    buf: non-negative spectrum with [DC,Nyq] in the first two positions
-    size: size of buf
+/** Computes real cepstrum in place from a PVS frame
 
-    returns: real-valued (and even) cepstrum
-    NB: this uses the power spectrum to compute cepstrum
+    buf: non-negative spectrum in PVS_AMP_* format
+    size: size of buf (N + 2) 
+    returns: real-valued cepstrum
 */
-MYFLT *csoundRealCepstrum(CSOUND *csound, MYFLT *buf, int size){
-  int i, lps;
-  buf[1] = 0;
-  for(i = 2; i < size; i+=2) {
-    lps = LOG(buf[i]*buf[i] + buf[i+1]*buf[i+1]);
-    buf[i] = lps;
+MYFLT *csoundPvs2RealCepstrum(CSOUND *csound, MYFLT *buf, int size){
+  int i;
+  for(i = 0; i < size - 2; i+=2) {
+    buf[i] = LOG(buf[i]);
     buf[i+1] = 0;
   }
-  csoundInverseRealFFT(csound, buf, size);
+  csoundInverseRealFFT(csound, buf, size - 2);
+  buf[size-2] = buf[size-1] = FL(0.0);
   return buf;
 }
 
-/** Computes non-negative power spectrum in place from a
-    real-valued (and even) cepstrum
+/** Computes magnitude spectrum of a PVS frame from
+    a real-valued cepstrum (in-place)
 
     buf: real-valued cepstrum
-    size: size of buf
+    size: size of buf (N)
 
-    returns: non-negative power spectrum in even-index
-    array positions
+    returns: PVS_AMP_* frame
 */
-MYFLT *csoundInverseRealCepstrum(CSOUND *csound, MYFLT *buf, int size){
-  int i, ps;
+MYFLT *csoundRealCepstrum2Pvs(CSOUND *csound, MYFLT *buf, int size){
+  int i;
   csoundRealFFT(csound, buf, size);
   for(i = 2; i < size; i+=2) {
-    ps = EXP(buf[i]);
-    buf[i] = ps;
+    buf[i] = EXP(buf[i]);
     buf[i+1] = FL(0.0);
   }
-  buf[1] = 0;
   return buf;
 }
 
@@ -284,8 +294,8 @@ MYFLT csoundLPrms(CSOUND *csound, void *parm){
 }
 
 MYFLT *csoundLPcoefs(CSOUND *csound, void *parm) {
-   LPCparam *p = (LPCparam *) parm;
-   return &(p->b[p->M*(p->M+1)]);
+  LPCparam *p = (LPCparam *) parm;
+  return &(p->b[p->M*(p->M+1)]);
 }
 
 /* opcodes */
@@ -315,11 +325,11 @@ int32_t lpfil_init(CSOUND *csound, LPCFIL *p) {
       incr = p->wlen/N;
       for(i=0, k=0; i < N; i++, k+=incr)
         buf[i] = ft->ftable[i]*p->win[(int)k];
-      c = csound->LPread(csound,p->setup,buf);
+      c = csound->LPred(csound,p->setup,buf);
     }
     else {
       p->win = NULL;
-      c = csound->LPread(csound,p->setup,ft->ftable);
+      c = csound->LPred(csound,p->setup,ft->ftable);
     }
 
     if(p->coefs.auxp == NULL || Mbytes > p->coefs.size)
@@ -373,9 +383,9 @@ int32_t lpfil_perf(CSOUND *csound, LPCFIL *p) {
       incr = p->wlen/N;
       for(i=0, k=0; i < N; i++, k+=incr)
         buf[i] = p->ft->ftable[i+off]*p->win[(int)k];
-      c = csound->LPread(csound,p->setup,buf);
+      c = csound->LPred(csound,p->setup,buf);
     } else
-      c = csound->LPread(csound,p->setup,
+      c = csound->LPred(csound,p->setup,
                          p->ft->ftable+off);
     memcpy(p->coefs.auxp, &c[1], M*sizeof(MYFLT));
     g = p->g = csoundLPrms(csound,p->setup)*SQRT(c[0]);
@@ -460,7 +470,7 @@ int32_t lpfil2_perf(CSOUND *csound, LPCFIL2 *p) {
       for (j=bp,i=0, k=0; i < N; j++,i++,k+=incr) {
         buf[i] = p->win == NULL ? cbuf[j%N] : p->win[(int)k]*cbuf[j%N];
       }
-      c = csound->LPread(csound,p->setup,buf);
+      c = csound->LPred(csound,p->setup,buf);
       memcpy(p->coefs.auxp, &c[1], M*sizeof(MYFLT));
       g = p->g = csoundLPrms(csound,p->setup)*SQRT(c[0]);
       cp = (int32_t) (*p->prd > 1 ? *p->prd : 1);
@@ -492,15 +502,15 @@ int32_t lpred_alloc(CSOUND *csound, LPREDA *p) {
     int N = *p->isiz < ft->flen ? *p->isiz : ft->flen;
     uint32_t Nbytes = N*sizeof(MYFLT);
     if(*p->iwin){
-     FUNC *win = csound->FTnp2Find(csound, p->iwin);
-     p->win = win->ftable;
-     p->wlen = win->flen;
+      FUNC *win = csound->FTnp2Find(csound, p->iwin);
+      p->win = win->ftable;
+      p->wlen = win->flen;
     } else p->win = NULL;
     p->M = *p->iord;
     p->N = N;
     p->setup = csound->LPsetup(csound,N,p->M);
     if(p->buf.auxp == NULL || Nbytes > p->buf.size)
-        csound->AuxAlloc(csound, Nbytes, &p->buf);
+      csound->AuxAlloc(csound, Nbytes, &p->buf);
     tabinit(csound,p->out,p->M);
     p->ft = ft;
     return OK;
@@ -524,15 +534,15 @@ int32_t lpred_run(CSOUND *csound, LPREDA *p) {
     p->M = *p->iord;
     p->N = N;
     for (i=0, k=0; i < N; i++,k+=incr) {
-        buf[i] = p->win == NULL ? ft[i+off] : p->win[(int)k]*ft[i+off];
+      buf[i] = p->win == NULL ? ft[i+off] : p->win[(int)k]*ft[i+off];
     }
-    csound->LPread(csound,p->setup, buf);
+    csound->LPred(csound,p->setup, buf);
   }
-   c = csoundLPcoefs(csound,p->setup);
-   memcpy(p->out->data, &c[1], sizeof(MYFLT)*p->M);
-   *p->err = SQRT(c[0]);
-   *p->rms = csoundLPrms(csound,p->setup);
-   *p->cps = csoundLPcps(csound,p->setup);
+  c = csoundLPcoefs(csound,p->setup);
+  memcpy(p->out->data, &c[1], sizeof(MYFLT)*p->M);
+  *p->err = SQRT(c[0]);
+  *p->rms = csoundLPrms(csound,p->setup);
+  *p->cps = csoundLPcps(csound,p->setup);
   return OK;
 }
 
@@ -545,25 +555,27 @@ int32_t lpred_i(CSOUND *csound, LPREDA *p) {
 
 /* audio signal input */
 int32_t lpred_alloc2(CSOUND *csound, LPREDA2 *p) {
-    int N = *p->isiz;
-    uint32_t Nbytes = N*sizeof(MYFLT);
-    if(*p->iwin){
-     FUNC *win = csound->FTnp2Find(csound, p->iwin);
-     p->win = win->ftable;
-     p->wlen = win->flen;
-    } else p->win = NULL;
-    p->M = *p->iord;
-    p->N = N;
-    p->setup = csound->LPsetup(csound,N,p->M);
-    if(p->buf.auxp == NULL || Nbytes > p->buf.size)
-        csound->AuxAlloc(csound, Nbytes, &p->buf);
-    if(p->cbuf.auxp == NULL || Nbytes > p->cbuf.size)
-      csound->AuxAlloc(csound, Nbytes, &p->cbuf);
-    tabinit(csound,p->out,p->M);
-    p->cp = 1;
-    p->bp = 0;
-    return OK;
+  int N = *p->isiz;
+  uint32_t Nbytes = N*sizeof(MYFLT);
+  if(*p->iwin){
+    FUNC *win = csound->FTnp2Find(csound, p->iwin);
+    p->win = win->ftable;
+    p->wlen = win->flen;
+  } else p->win = NULL;
+  p->M = *p->iord;
+  p->N = N;
+  p->setup = csound->LPsetup(csound,N,p->M);
+  if(p->buf.auxp == NULL || Nbytes > p->buf.size)
+    csound->AuxAlloc(csound, Nbytes, &p->buf);
+  if(p->cbuf.auxp == NULL || Nbytes > p->cbuf.size)
+    csound->AuxAlloc(csound, Nbytes, &p->cbuf);
+  tabinit(csound,p->out,p->M);
+  p->cp = 1;
+  p->bp = 0;
+  return OK;
 }
+
+
 
 int32_t lpred_run2(CSOUND *csound, LPREDA2 *p) {
   MYFLT *buf = (MYFLT *) p->buf.auxp;
@@ -589,7 +601,7 @@ int32_t lpred_run2(CSOUND *csound, LPREDA2 *p) {
       for (j=bp,i=0, k=0; i < N; j++,i++,k+=incr) {
         buf[i] = p->win == NULL ? cbuf[j%N] : p->win[(int)k]*cbuf[j%N];
       }
-      csound->LPread(csound,p->setup,buf);
+      csound->LPred(csound,p->setup,buf);
       cp = (int32_t) (*p->prd > 1 ? *p->prd : 1);
     }
   }
@@ -653,42 +665,42 @@ int32_t lpfil3_perf(CSOUND *csound, LPCFIL3 *p) {
 /* pvs <-> lpc */
 
 int32_t lpcpvs_init(CSOUND *csound, LPCPVS *p) {
-    int N = *p->isiz;
-    uint32_t Nbytes = N*sizeof(MYFLT);
-    if(*p->iwin){
-     FUNC *win = csound->FTnp2Find(csound, p->iwin);
-     p->win = win->ftable;
-     p->wlen = win->flen;
-    } else p->win = NULL;
-    p->M = *p->iord;
-    p->N = N;
+  int N = *p->isiz;
+  uint32_t Nbytes = N*sizeof(MYFLT);
+  if(*p->iwin){
+    FUNC *win = csound->FTnp2Find(csound, p->iwin);
+    p->win = win->ftable;
+    p->wlen = win->flen;
+  } else p->win = NULL;
+  p->M = *p->iord;
+  p->N = N;
 
-    if((N & (N - 1)) != 0)
-      return csound->InitError(csound, "input size not power of two\n");
+  if((N & (N - 1)) != 0)
+    return csound->InitError(csound, "input size not power of two\n");
 
-    p->setup = csound->LPsetup(csound,N,p->M);
-    if(p->buf.auxp == NULL || Nbytes > p->buf.size)
-        csound->AuxAlloc(csound, Nbytes, &p->buf);
-    if(p->cbuf.auxp == NULL || Nbytes > p->cbuf.size)
-      csound->AuxAlloc(csound, Nbytes, &p->cbuf);
-    if(p->fftframe.auxp == NULL || Nbytes > p->fftframe.size)
-      csound->AuxAlloc(csound, Nbytes, &p->fftframe);    
+  p->setup = csound->LPsetup(csound,N,p->M);
+  if(p->buf.auxp == NULL || Nbytes > p->buf.size)
+    csound->AuxAlloc(csound, Nbytes, &p->buf);
+  if(p->cbuf.auxp == NULL || Nbytes > p->cbuf.size)
+    csound->AuxAlloc(csound, Nbytes, &p->cbuf);
+  if(p->fftframe.auxp == NULL || Nbytes > p->fftframe.size)
+    csound->AuxAlloc(csound, Nbytes, &p->fftframe);    
 
-    p->fout->N = N;
-    p->fout->sliding = 0;
-    p->fout->NB =  0;
-    p->fout->overlap = (int32_t) *p->prd;
-    p->fout->winsize = N;
-    p->fout->wintype = PVS_WIN_HANN;
-    p->fout->format = PVS_AMP_FREQ;
+  p->fout->N = N;
+  p->fout->sliding = 0;
+  p->fout->NB =  0;
+  p->fout->overlap = (int32_t) *p->prd;
+  p->fout->winsize = N;
+  p->fout->wintype = PVS_WIN_HANN;
+  p->fout->format = PVS_AMP_FREQ;
     
-    Nbytes = (N+2)*sizeof(float);
-    if(p->fout->frame.auxp == NULL || Nbytes > p->fout->frame.size)
-      csound->AuxAlloc(csound, Nbytes, &p->fout->frame);    
+  Nbytes = (N+2)*sizeof(float);
+  if(p->fout->frame.auxp == NULL || Nbytes > p->fout->frame.size)
+    csound->AuxAlloc(csound, Nbytes, &p->fout->frame);    
    
-    p->cp = 1;
-    p->bp = 0;
-    return OK;
+  p->cp = 1;
+  p->bp = 0;
+  return OK;
 }
 
 int32_t lpcpvs(CSOUND *csound, LPCPVS *p){
@@ -717,7 +729,7 @@ int32_t lpcpvs(CSOUND *csound, LPCPVS *p){
       for (j=bp,i=0, k=0; i < N; j++,i++,k+=incr) {
         buf[i] = p->win == NULL ? cbuf[j%N] : p->win[(int)k]*cbuf[j%N];
       }
-      c = csound->LPread(csound,p->setup,buf);
+      c = csound->LPred(csound,p->setup,buf);
       memset(fftframe,0,sizeof(MYFLT)*N);
       memcpy(&fftframe[1], &c[1], sizeof(MYFLT)*M);
       fftframe[0] = 1;
@@ -730,8 +742,8 @@ int32_t lpcpvs(CSOUND *csound, LPCPVS *p){
         int bin = i/2;
         if(i > 0 && i < N)
           inv = sqrt(fftframe[i]*fftframe[i] + fftframe[i+1]*fftframe[i+1]);
-         else if(i == N) inv = fftframe[1];
-         else inv = fftframe[0];
+        else if(i == N) inv = fftframe[1];
+        else inv = fftframe[0];
         if(inv > 0)
           a = g/inv;
         else a = g;
@@ -740,7 +752,7 @@ int32_t lpcpvs(CSOUND *csound, LPCPVS *p){
           pvframe[i+1] = cps*bin/cpsbin;
         else if ((bin+1)/cpsbin)
           pvframe[i+1] = cps*(bin-1)/cpsbin;
-        else if ((bin-1)/cpsbin)
+         else if ((bin-1)/cpsbin)
           pvframe[i+1] = cps*(bin+1)/cpsbin;
    
       }
@@ -753,3 +765,46 @@ int32_t lpcpvs(CSOUND *csound, LPCPVS *p){
   return OK;
 }
 
+
+
+/* stability problems -- not working
+
+int32_t pvscoefs_init(CSOUND *csound, PVSCFS *p) {
+  int Nbytes = (p->fin->N+2)*sizeof(MYFLT);
+  int Mbytes = (p->M+1)*sizeof(MYFLT);
+  p->N = p->fin->N;
+  p->M = *p->iord;
+  if(p->buf.auxp == NULL || Nbytes > p->buf.size)
+    csound->AuxAlloc(csound, Nbytes, &p->buf);
+  if(p->coef.auxp == NULL || Mbytes > p->coef.size)
+    csound->AuxAlloc(csound, Nbytes, &p->coef);
+  tabinit(csound,p->out,p->M);
+  return OK;
+}
+
+int pvscoefs(CSOUND *csound, PVSCFS *p){
+  MYFLT *c = (MYFLT *) p->coef.auxp;
+  if(p->fin->framecount > p->framecount){
+    MYFLT *buf = (MYFLT *) p->buf.auxp;
+    int32_t i;
+    MYFLT pow = 0;
+    float *pvframe = (float *) p->fin->frame.auxp;
+    memset(buf,0,sizeof(MYFLT)*(p->N+2));
+    for(i=2; i < p->N; i+=2) buf[i] = pvframe[i]*pvframe[i];
+    buf[0] = pvframe[0];
+    buf[p->N] = pvframe[p->N];
+    for(i=0; i < p->N+2; i+=2) pow += buf[i];
+    p->rms = SQRT(pow)/(2*SQRT(2.));
+    if(p->rms > 0) {
+     memset(c,0,sizeof(MYFLT)*(p->M+1));
+     csoundPvs2RealCepstrum(csound, buf, p->N+2);
+     csoundCepsLP(csound,c,buf,p->M,p->N);
+    }
+    p->framecount = p->fin->framecount;
+  }
+  memcpy(p->out->data,&c[1],p->M*sizeof(MYFLT));
+  *p->kerr = 1-SQRT(c[0]);
+  *p->krms = p->rms;
+  return OK;
+}
+*/

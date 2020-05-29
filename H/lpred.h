@@ -75,7 +75,7 @@ extern "C" {
    * output format is [E,c1,c2,...,cm] OR NULL if a memory problem occured
    * NB: c0 is always 1
   */
-  MYFLT *csoundLPread(CSOUND *csound, void *p, MYFLT *x);
+  MYFLT *csoundLPred(CSOUND *csound, void *p, MYFLT *x);
 
   /**
    * Compute cepstrum coefficients from all-pole coefficients
@@ -107,6 +107,11 @@ extern "C" {
    * NB: cepstrum is expected to be computed from power spectrum
    */
   MYFLT *csoundLPCeps(CSOUND *csound, MYFLT *c, MYFLT *b, int N, int M);
+
+  /**
+   * Returns the computed RMS from LP object
+   */  
+  MYFLT csoundLPrms(CSOUND *csound, void *parm);
 
 
 typedef struct _lpfil {
@@ -181,7 +186,23 @@ typedef struct _lpreda3 {
   int32_t M, N, wlen, cp, bp;
   MYFLT *win;
   void *setup;
-} LPCPVS;  
+} LPCPVS;
+
+
+/*  stability issues  
+typedef struct _pvscoefs {
+  OPDS h;
+  ARRAYDAT *out;
+  MYFLT *krms, *kerr;
+  PVSDAT  *fin;
+  MYFLT  *iord;
+  AUXCH coef;
+  AUXCH buf;
+  int32_t M, N;
+  MYFLT rms;
+  uint32_t framecount;
+} PVSCFS;  
+*/  
 
 
 #ifdef __cplusplus

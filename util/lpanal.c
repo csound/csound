@@ -1,8 +1,9 @@
 /*
     lpanal.c:
 
-    Copyright (C) 1992, 1997 Paul Lansky, Barry Vercoe,
-                             John ffitch, Marc Resibois
+    Copyright (C) 1992, 1997, 2020 Paul Lansky, Barry Vercoe,
+                             John ffitch, Marc Resibois, Victor Lazzarini
+   
 
     This file is part of Csound.
 
@@ -49,6 +50,9 @@ typedef struct {
   double  *x;
   double  (*a)[MAXPOLES];
   WINDAT   pwindow;
+  // for new lpred method
+  int32_t newmethod;
+  void *setup;
 } LPC;
 
 #ifdef TRACE
@@ -77,7 +81,7 @@ typedef struct {
 
 /* Forward declaration */
 
-static  void    alpol(LPC *, MYFLT *,
+static  void    alpol(CSOUND *, LPC *, MYFLT *,
                       double *, double *, double *, double *);
 static  void    gauss(LPC *, double (*)[MAXPOLES], double*, double*);
 static  void    quit(CSOUND *, char *), lpdieu(CSOUND *, char *);
@@ -371,7 +375,7 @@ static int32_t lpanal(CSOUND *csound, int32_t argc, char **argv)
 #endif
     LPANAL_GLOBALS *lpg;
     int32_t new_format=0;
-    FILE    *oFd;
+    FILE    *oFd;    
 
     lpc.debug   = 0;
     lpc.verbose = 0;
@@ -389,6 +393,7 @@ static int32_t lpanal(CSOUND *csound, int32_t argc, char **argv)
 
    /* Define default values */
     lpc.poleCount = DEFpoleCount;         /* DEFAULTS... */
+    lpc.newmethod = 0;
     slice         = DEFSLICE;
     channel       = 1;
     beg_time      = FL(0.0);
@@ -476,6 +481,10 @@ static int32_t lpanal(CSOUND *csound, int32_t argc, char **argv)
         case 'X':
                         new_format = 1;
                         break;
+        case 'n':
+          // new 
+          lpc.newmethod = 1;
+          break;
         default:
           {
             char errmsg[256];
@@ -485,6 +494,7 @@ static int32_t lpanal(CSOUND *csound, int32_t argc, char **argv)
         }
       else break;
     } while (--argc);
+
 
     /* Do some checks on arguments we got */
 
@@ -614,6 +624,10 @@ static int32_t lpanal(CSOUND *csound, int32_t argc, char **argv)
     csound->FileOpen2(csound, &trace, CSFILE_STD, "lpanal.trace", "w", NULL,
                       CSFTYPE_OTHER_TEXT, 0);
 #endif
+
+    // for new lpred method
+    lpc.setup = csound->LPsetup(csound,lpc.WINDIN,lpc.poleCount);
+    
     /* Do the analysis */
     do {
       MYFLT *fp1;
@@ -625,7 +639,7 @@ static int32_t lpanal(CSOUND *csound, int32_t argc, char **argv)
         (csound, "%s", Str("Starting new frame...\n"));
 #endif
       counter++;
-      alpol(&lpc, sigbuf, &errn, &rms1, &rms2, filterCoef);
+      alpol(csound, &lpc, sigbuf, &errn, &rms1, &rms2, filterCoef);
       /* Transfer results */
       coef[0] = (MYFLT)rms2;
       coef[1] = (MYFLT)rms1;
@@ -650,6 +664,7 @@ static int32_t lpanal(CSOUND *csound, int32_t argc, char **argv)
 
       if (storePoles) {
         /* Treat (swap) filter coefs for resolution */
+        
         filterCoef[lpc.poleCount] = 1.0;
         for (i=0; i<(lpc.poleCount+1)/2; i++) {
           j = lpc.poleCount-1-i;
@@ -682,7 +697,6 @@ static int32_t lpanal(CSOUND *csound, int32_t argc, char **argv)
         InvertPoles(lpc.poleCount,polePart1,polePart2);
 
         synthetize(lpc.poleCount,polePart1,polePart2,polyReal,polyImag);
-
         for (i=0; i<lpc.poleCount; i++) {
 #ifdef TRACE_FILTER
           csound->Message(csound, "filterCoef: %f\n", filterCoef[i]);
@@ -789,11 +803,12 @@ static void lpdieu(CSOUND *csound, char *msg)
  *
  */
 
-static void alpol(LPC *thislp, MYFLT *sig, double *errn,
+static void alpol(CSOUND *csound, LPC *thislp, MYFLT *sig, double *errn,
                   double *rms1, double *rms2, double b[MAXPOLES])
                                         /* sig now MYFLT */
                                         /* b filled here */
 {
+  if(!thislp->newmethod) {
     double v[MAXPOLES];
     double *xp;
     double sum, sumx, sumy;
@@ -848,6 +863,16 @@ static void alpol(LPC *thislp, MYFLT *sig, double *errn,
     *rms2 = sqrt(sumy / (thislp->WINDIN - thislp->poleCount) );
     /*        sum = (*rms2)/(*rms1);  *errn = sum*sum; */
     *errn = sumy/sumx;
+  } else {
+    /* VL 29/05/2020 -- Durbin autoregression method */
+    MYFLT *c;
+    int32_t i;
+    c = csound->LPred(csound, thislp->setup, sig);
+    for (i=1; i <  thislp->poleCount+1;i++) b[i-1] = c[i];
+    *rms1 = csound->LPrms(csound,thislp->setup);
+    *rms2 = SQRT(c[0]);
+    *errn = c[0];
+  }  
 }
 
 /*
@@ -961,6 +986,7 @@ static const char *usage_txt[] = {
            " (default 0)"),
   Str_noop("-g\tgraphical display of results"),
   Str_noop("-a\t\talternate (pole) file storage"),
+  Str_noop("-n\t\t use Durbin method for linear prediction"),
   Str_noop("-- fname\tLog output to file"),
   Str_noop("see also:  Csound Manual Appendix"),
     NULL
