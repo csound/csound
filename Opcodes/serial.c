@@ -549,7 +549,7 @@ uintptr_t arduino_listen(void *p)
     unsigned int ans = 0;
     uint16_t c, val;
     ARDUINO_GLOBALS *q = (ARDUINO_GLOBALS*)p;
-    //CSOUND *csound = q->csound;
+    CSOUND *csound = q->csound;
     //printf("Q=%p\n", q);
     // Read until we see a header word
     while((c = arduino_get_byte(q->port))!=0xf0) {
@@ -568,9 +568,9 @@ uintptr_t arduino_listen(void *p)
       c = (hi>>4)&0x0f;
       //printf("Sensor %d value %d(%.2x)\n", c, val, val);
       // critical region
-      csoundLockMutex(q->lock);
+      csound->LockMutex(q->lock);
       q->values[c] = val;
-      csoundUnlockMutex(q->lock);
+      csound->UnlockMutex(q->lock);
       // end critical region
     }
     return ans;
@@ -579,7 +579,7 @@ uintptr_t arduino_listen(void *p)
 int32_t arduino_deinit(CSOUND *csound, ARD_START *p)
 {                               /* NOT FINISHED */
     p->q->stop = 1;
-    csoundJoinThread(p->q->thread);
+    csound->JoinThread(p->q->thread);
     p->q->thread = NULL;
     return OK;
 }
@@ -597,18 +597,18 @@ int32_t arduinoStart(CSOUND* csound, ARD_START* p)
                                        Str("failed to open serial line\n"));
     q = (ARDUINO_GLOBALS*) csound->QueryGlobalVariable(csound,
                                                        "arduinoGlobals_");
-    if (q!=NULL) return csound->InitError(csound,
+    if (q!=NULL) return csound->InitError(csound, "%s",
                                     Str("arduinoStart already running\n"));
     if (UNLIKELY(csound->CreateGlobalVariable(csound, "arduinoGlobals_",
                                               sizeof(ARDUINO_GLOBALS)) != 0))
       return
-        csound->InitError(csound, Str("arduino: failed to allocate globals"));
+        csound->InitError(csound, "%s", Str("arduino: failed to allocate globals"));
     q = (ARDUINO_GLOBALS*) csound->QueryGlobalVariable(csound,
                                                        "arduinoGlobals_");
     if (q==NULL) return csound->InitError(csound, "&%s", Str("Failed to allocate\n"));
     p->q = q;
     q->csound = csound;
-    q->lock = csoundCreateMutex(0);
+    q->lock = csound->Create_Mutex(0);
     q->port = xx;
     for (n=0; n<MAXSENSORS; n++) q->values[n] = 0;
     // Start listening thread
@@ -635,9 +635,9 @@ int32_t arduinoRead(CSOUND* csound, ARD_READ* p)
     if (ind <0 || ind>MAXSENSORS)
       return csound->PerfError(csound, &p->h,
                                "%s", Str("out of range\n"));
-    csoundLockMutex(q->lock);
+    csound->LockMutex(q->lock);
     *p->val = (MYFLT)q->values[ind];
-    csoundUnlockMutex(q->lock);
+    csound->UnlockMutex(q->lock);
     //printf("ind %d val %d\n", ind, q->values[ind]);
     return OK;
 }
