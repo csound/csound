@@ -158,20 +158,6 @@ MYFLT *csoundLPCeps(CSOUND *csound, MYFLT *c, MYFLT *b,
     and an array b of M+1 size
     returns M lp coefficients and squared error E in place of
     of coefficient 0 [E,c1,...,cM]
-
-
-def cepslp(c,M):
-    M += 1
-    b = np.zeros(M)
-    b[0] = 1
-    b[1] = -c[1]
-    for m in range(2,M):
-       s = 0.
-       for n in range(1, m):
-         s -= (m-n)*b[n]*c[m-n]
-       b[m] = -c[m] + s/m
-    E = np.exp(c[0])   
-    return b,E
 */
 
 MYFLT *csoundCepsLP(CSOUND *csound, MYFLT *b, MYFLT *c,
@@ -297,6 +283,146 @@ MYFLT *csoundLPcoefs(CSOUND *csound, void *parm) {
   LPCparam *p = (LPCparam *) parm;
   return &(p->b[p->M*(p->M+1)]);
 }
+
+
+void polyZero(int32_t n, double *a, double *zerore, double *zeroim,
+             int32_t *pt, int32_t itmax, int32_t *indic, double *work)
+{
+    double        u, v, w, k, m, f, fm, fc, xm, ym, xr, yr, xc, yc;
+    double        dx, dy, term, factor;
+    int32_t       n1, i, j, p, iter;
+    unsigned char conv;
+    double        tmp;
+    factor = 1.0;
+    if (!a[0]) {
+      *pt = 0;
+      *indic = -1;
+      return;
+    }
+
+    memcpy(&work[1], a, (n+1)*sizeof(double));
+    *indic = 0;
+    *pt = 0;
+    n1 = n;
+
+    while (n1>0) {
+      if (a[n1]==0) {
+        zerore[*pt] = 0, zeroim[*pt] = 0;
+        *pt += 1;
+        n1  -= 1;
+      }
+      else {
+        p = n1-1;
+        xc = 0, yc = 0;
+        fc = a[n1]*a[n1];
+        fm = fc;
+        xm = 0.0, ym = 0.0;
+        dx = pow(fabs(a[n]/a[0]),1./n1);
+        dy = 0;
+        iter = 0;
+        conv = 0;
+        while (!conv) {
+          iter += 1;
+          if (iter>itmax) {
+            *indic = -iter;
+            for (i=0; i<=n; i++)
+              a[i] = work[i+1];
+            return;
+          }
+          for (i=1; i<=4; i++) {
+            u = -dy;
+            dy = dx;
+            dx = u;
+            xr = xc+dx, yr = yc+dy;
+            u = 0, v = 0;
+            k = 2*xr;
+            m = xr*xr+yr*yr;
+            for (j=0; j<=p; j++) {
+              w = a[j]+k*u-m*v; 
+              v = u;
+              u = w;
+            }
+
+            tmp = a[n1]+u*xr-m*v;
+            f = tmp*tmp+(u*u*yr*yr);
+            if (f<fm) {
+              xm = xr, ym = yr;
+              fm = f;
+            }
+          }
+          if (fm<fc) {
+            dx = 1.5*dx,dy = 1.5*dy;
+            xc = xm, yc = ym;
+            fc = fm;
+          }
+          else {
+            u = .4*dx - .3*dy;
+            dy = .4*dy + .3*dx;
+            dx = u;
+          }
+          u = fabs(xc)+fabs(yc);
+          term = u+(fabs(dx)+fabs(dy))*factor;
+          if ((u==term)||(fc==0))
+            conv = 1;
+        }
+        u = 0.0, v = 0.0;
+        k = 2.0*xc;
+        m = xc*xc;
+        for (j=0; j<=p; j++) {
+          w = a[j]+k*u-m*v;    
+          v = u;
+          u = w;
+        }
+        tmp = a[n1]+u*xc-m*v;
+        if (tmp*tmp<=fc) {
+          u = 0.0;
+          for (j=0; j<=p; j++) {
+            a[j] = u*xc+a[j];
+            u = a[j];
+          }
+          zerore[*pt] = xc,zeroim[*pt] = 0;
+          *pt += 1;
+        }
+        else {
+          u = 0, v = 0;
+          k = 2*xc;
+          m = xc*xc + yc*yc;
+          p = n1-2;
+          for (j=0; j<=p; j++) {
+            a[j] += k*u-m*v;
+            w = a[j];
+            v = u;
+            u = w;
+          }
+          zerore[*pt] = xc, zeroim[*pt] = yc;
+          *pt += 1;
+          zerore[*pt] = xc, zeroim[*pt] = -yc;
+          *pt += 1;
+        }
+        n1 = p;
+      }
+    }
+    for (i=0; i<=n; i++)
+      a[i] = work[i+1];
+}
+
+#define MPL 500
+int checkStability(CSOUND *csound, MYFLT *c, int32_t M){
+      MYFLT pr[MPL], pi[MPL], tmp[MPL], cf[MPL];
+      int32_t pfound, indic, i,j;
+      cf[M] = 1.0;
+      for (i=0; i< (M+1)/2; i++) {
+          j = M-1-i;
+          cf[i] = c[j];
+          cf[j] = c[i];
+        }
+      polyZero(M,cf,pr,pi,&pfound,2000,&indic,tmp);
+        for(i=0; i < M; i++) {
+          if(SQRT(pi[i]*pi[i]+pr[i]*pr[i]) >= 1.)
+            return 0;
+        }
+      return 1;
+}     
 
 /* opcodes */
 /* lpcfilter - take lpred input from table */
@@ -767,11 +893,11 @@ int32_t lpcpvs(CSOUND *csound, LPCPVS *p){
 
 
 
-/* stability problems -- not working
+/* stability problems -- not working */
 
 int32_t pvscoefs_init(CSOUND *csound, PVSCFS *p) {
-  int Nbytes = (p->fin->N+2)*sizeof(MYFLT);
-  int Mbytes = (p->M+1)*sizeof(MYFLT);
+  unsigned int Nbytes = (p->fin->N+2)*sizeof(MYFLT);
+  unsigned int Mbytes = (p->M+1)*sizeof(MYFLT);
   p->N = p->fin->N;
   p->M = *p->iord;
   if(p->buf.auxp == NULL || Nbytes > p->buf.size)
@@ -799,12 +925,14 @@ int pvscoefs(CSOUND *csound, PVSCFS *p){
      memset(c,0,sizeof(MYFLT)*(p->M+1));
      csoundPvs2RealCepstrum(csound, buf, p->N+2);
      csoundCepsLP(csound,c,buf,p->M,p->N);
+     if(!checkStability(csound,c,p->M))
+       csound->Warning(csound, "unstable filter coeff detected\n");
+     else memcpy(p->out->data,&c[1],p->M*sizeof(MYFLT));
     }
     p->framecount = p->fin->framecount;
   }
-  memcpy(p->out->data,&c[1],p->M*sizeof(MYFLT));
   *p->kerr = 1-SQRT(c[0]);
   *p->krms = p->rms;
   return OK;
 }
-*/
+
