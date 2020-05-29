@@ -189,7 +189,7 @@ typedef struct _lpreda3 {
 } LPCPVS;
 
 
-/*  stability issues  
+  /*  stability issues  */
 typedef struct _pvscoefs {
   OPDS h;
   ARRAYDAT *out;
@@ -202,7 +202,6 @@ typedef struct _pvscoefs {
   MYFLT rms;
   uint32_t framecount;
 } PVSCFS;  
-*/  
 
 
 #ifdef __cplusplus

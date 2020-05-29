@@ -538,7 +538,7 @@ unsigned char arduino_get_byte(HANDLE port)
     unsigned char b;
  top:
     size_t bytes;
-    ReadFile(pport, &b, 1, (PDWORD)&bytes, NULL);
+    ReadFile(port, &b, 1, (PDWORD)&bytes, NULL);
     if (bytes != 1) goto top;
     return b;
 }
