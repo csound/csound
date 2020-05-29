@@ -463,10 +463,6 @@ int32_t serialPeekByte(CSOUND *csound, SERIALPEEK *p)
     return OK;
 }
 
-/* #ifdef JPFF */
-/* #include "aaa.c" */
-/* #endif */
- 
 // Support for arduino output via serial line
 
 /* Basic design:  when arduinoStart is called it opens serial line like
@@ -482,11 +478,6 @@ int32_t serialPeekByte(CSOUND *csound, SERIALPEEK *p)
    Issue: Need to stop the listen thread.
    Issue: Windows version incomplete
 */
-
-void csoundLockMutex(void *);
-void csoundUnlockMutex(void *);
-void* csoundCreateMutex(int);
-uintptr_t csoundJoinThread(void *);
 
 #define MAXSENSORS (14)
 
@@ -532,17 +523,17 @@ unsigned char arduino_get_byte(int32_t port)
     return b;
 }
 
-#else
-unsigned char arduino_get_byte(HANDLE port)
-{
-    unsigned char b;
- top:
-    size_t bytes;
-    ReadFile(pport, &b, 1, (PDWORD)&bytes, NULL);
-    if (bytes != 1) goto top;
-    return b;
-}
-#endif
+// Attempt at Windows verson
+
+/* unsigned char arduino_get_byte(HANDLE port) */
+/* { */
+/*     unsigned char b; */
+/*  top: */
+/*     size_t bytes; */
+/*     ReadFile(pport, &b, 1, (PDWORD)&bytes, NULL); */
+/*     if (bytes != 1) goto top; */
+/*     return b; */
+/* } */
 
 uintptr_t arduino_listen(void *p)
 {
@@ -641,7 +632,7 @@ int32_t arduinoRead(CSOUND* csound, ARD_READ* p)
     //printf("ind %d val %d\n", ind, q->values[ind]);
     return OK;
 }
-
+#endif
 
 // End of arduino code
 
@@ -667,8 +658,10 @@ static OENTRY serial_localops[] = {
       (SUBR)NULL, (SUBR)serialPrint, (SUBR)NULL   },
     { (char *)"serialFlush", S(SERIALFLUSH), 0, 2, (char *)"", (char *)"i",
       (SUBR)NULL, (SUBR)serialFlush, (SUBR)NULL   },
+#ifndef WIN32
     { "arduinoStart", S(ARD_START), 0, 1, "i", "So", (SUBR)arduinoStart, NULL  },
     { "arduinoRead", S(ARD_READ), 0, 3, "k", "ik", (SUBR)arduinoReadSetup, (SUBR)arduinoRead  },
+#endif
 /* { (char *)"serialAvailable", S(SERIALAVAIL), 0, 2, (char *)"k", (char *)"i", */
 /*   (SUBR)NULL, (SUBR)serialAvailable, (SUBR)NULL   }, */
 /* { (char *)"serialPeekByte", S(SERIALPEEK),0,  2, (char *)"k", (char *)"i", */
