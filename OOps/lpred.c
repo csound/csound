@@ -896,8 +896,8 @@ int32_t lpcpvs(CSOUND *csound, LPCPVS *p){
 /* stability problems -- not working */
 
 int32_t pvscoefs_init(CSOUND *csound, PVSCFS *p) {
-  int Nbytes = (p->fin->N+2)*sizeof(MYFLT);
-  int Mbytes = (p->M+1)*sizeof(MYFLT);
+  unsigned int Nbytes = (p->fin->N+2)*sizeof(MYFLT);
+  unsigned int Mbytes = (p->M+1)*sizeof(MYFLT);
   p->N = p->fin->N;
   p->M = *p->iord;
   if(p->buf.auxp == NULL || Nbytes > p->buf.size)
