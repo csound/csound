@@ -210,6 +210,16 @@ typedef struct _pvscoefs {
 } PVSCFS;  
 
 
+typedef struct _cf2p {
+  OPDS h;
+  ARRAYDAT *out;
+  ARRAYDAT *in;
+  int32_t M;
+  void *setup;
+} CF2P;  
+
+  
+
 #ifdef __cplusplus
 }
 #endif
