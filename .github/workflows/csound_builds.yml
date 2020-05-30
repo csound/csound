@@ -19,7 +19,7 @@ jobs:
       - uses: actions/upload-artifact@master
         with:
           name: Csound6.14.0-Web.zip
-        path: .
+          path: .
   android_build:
     runs-on: ubuntu-latest
     steps:
@@ -30,4 +30,4 @@ jobs:
       - uses: actions/upload-artifact@master
         with:
           name: Csound6.14.0-Android.zip
-        path: .
+          path: .
