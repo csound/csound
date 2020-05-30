@@ -30,6 +30,15 @@
 #include "fftlib.h"
 #include "lpred.h"
 
+  static inline MYFLT magc(MYCMPLX c) {
+    return SQRT(c.re*c.re +  c.im*c.im);
+  }
+  
+  static inline MYFLT phsc(MYCMPLX c) {
+    return ATAN2(c.im, c.re);
+  }
+
+
 /** autocorrelation
     r - output
     s - input
@@ -49,7 +58,8 @@ MYFLT *csoundAutoCorrelation(CSOUND *csound, MYFLT *r, MYFLT *s, int size){
 }
 
 typedef struct LPCparam_ {
-  MYFLT *r, *E, *b, *k, *pk, *am, cps,rms;
+  MYFLT *r, *E, *b, *k, *pk, *am, *tmpmem, *cf, cps, rms;
+  MYCMPLX *pl;
   int32_t N, M;
 } LPCparam;
 
@@ -59,13 +69,23 @@ typedef struct LPCparam_ {
 */
 void *csoundLPsetup(CSOUND *csound, int N, int M) {
   LPCparam *p = csound->Calloc(csound, sizeof(LPCparam));
-  if (N < M+1) N = M+1;
-  p->r = csound->Calloc(csound, sizeof(MYFLT)*N);
-  p->E = csound->Calloc(csound, sizeof(MYFLT)*(M+1));
-  p->k = csound->Calloc(csound, sizeof(MYFLT)*(M+1));
-  p->b = csound->Calloc(csound, sizeof(MYFLT)*(M+1)*(M+1));
-  p->pk = csound->Calloc(csound, sizeof(MYFLT)*N);
-  p->am = csound->Calloc(csound, sizeof(MYFLT)*N);
+
+  if(N) {
+    // allocate LP analysis memory if needed
+    N = N < M+1 ? M+1 : N;
+    p->r = csound->Calloc(csound, sizeof(MYFLT)*N);
+    p->pk = csound->Calloc(csound, sizeof(MYFLT)*N);
+    p->am = csound->Calloc(csound, sizeof(MYFLT)*N);
+    p->E = csound->Calloc(csound, sizeof(MYFLT)*(M+1));
+    p->k = csound->Calloc(csound, sizeof(MYFLT)*(M+1));
+    p->b = csound->Calloc(csound, sizeof(MYFLT)*(M+1)*(M+1));
+  }
+  
+  // otherwise just allocate coefficient/pole memory
+  p->pl = csound->Calloc(csound, sizeof(MYCMPLX)*(M+1));
+  p->cf = csound->Calloc(csound, sizeof(MYFLT)*(M+1));
+  p->tmpmem = csound->Calloc(csound, sizeof(MYFLT)*(M+1));
+  
   p->N = N;
   p->M = M;
   p->cps = 0;
@@ -279,150 +299,214 @@ MYFLT csoundLPrms(CSOUND *csound, void *parm){
   return p->rms;
 }
 
+
 MYFLT *csoundLPcoefs(CSOUND *csound, void *parm) {
   LPCparam *p = (LPCparam *) parm;
   return &(p->b[p->M*(p->M+1)]);
 }
 
 
-void polyZero(int32_t n, double *a, double *zerore, double *zeroim,
-             int32_t *pt, int32_t itmax, int32_t *indic, double *work)
+static int32_t findzeros(int32_t M, MYFLT *a, MYCMPLX *zero,
+                         MYFLT *tmpbuf, int32_t itmax)
 {
-    double        u, v, w, k, m, f, fm, fc, xm, ym, xr, yr, xc, yc;
-    double        dx, dy, term, factor;
-    int32_t       n1, i, j, p, iter;
-    unsigned char conv;
-    double        tmp;
-    factor = 1.0;
-    if (!a[0]) {
-      *pt = 0;
-      *indic = -1;
-      return;
+  MYFLT        u, v, w, k, m, f, fm, fc, xm, ym, xr, yr, xc, yc;
+  MYFLT        dx, dy, term, factor, tmp;
+  int32_t      n1, i, j, p, iter, pt = 0;
+  unsigned char conv;;
+  factor = 1.0;
+  if (!a[0]) {
+    return 0;
+  }
+  memcpy(&tmpbuf[1], a, sizeof(M+1));
+  n1 = M;
+  while (n1 > 0) {
+    if (a[n1] == 0) {
+      zero[pt].re = 0, zero[pt].im = 0;
+      pt += 1;
+      n1  -= 1;
     }
-
-    memcpy(&work[1], a, (n+1)*sizeof(double));
-    *indic = 0;
-    *pt = 0;
-    n1 = n;
-
-    while (n1>0) {
-      if (a[n1]==0) {
-        zerore[*pt] = 0, zeroim[*pt] = 0;
-        *pt += 1;
-        n1  -= 1;
-      }
-      else {
-        p = n1-1;
-        xc = 0, yc = 0;
-        fc = a[n1]*a[n1];
-        fm = fc;
-        xm = 0.0, ym = 0.0;
-        dx = pow(fabs(a[n]/a[0]),1./n1);
-        dy = 0;
-        iter = 0;
-        conv = 0;
-        while (!conv) {
-          iter += 1;
-          if (iter>itmax) {
-            *indic = -iter;
-            for (i=0; i<=n; i++)
-              a[i] = work[i+1];
-            return;
-          }
-          for (i=1; i<=4; i++) {
-            u = -dy;
-            dy = dx;
-            dx = u;
-            xr = xc+dx, yr = yc+dy;
-            u = 0, v = 0;
-            k = 2*xr;
-            m = xr*xr+yr*yr;
-            for (j=0; j<=p; j++) {
-              w = a[j]+k*u-m*v; 
-              v = u;
-              u = w;
-            }
-
-            tmp = a[n1]+u*xr-m*v;
-            f = tmp*tmp+(u*u*yr*yr);
-            if (f<fm) {
-              xm = xr, ym = yr;
-              fm = f;
-            }
-          }
-          if (fm<fc) {
-            dx = 1.5*dx,dy = 1.5*dy;
-            xc = xm, yc = ym;
-            fc = fm;
-          }
-          else {
-            u = .4*dx - .3*dy;
-            dy = .4*dy + .3*dx;
-            dx = u;
-          }
-          u = fabs(xc)+fabs(yc);
-          term = u+(fabs(dx)+fabs(dy))*factor;
-          if ((u==term)||(fc==0))
-            conv = 1;
+    else {
+      p = n1-1;
+      xc = 0, yc = 0;
+      fc = a[n1]*a[n1];
+      fm = fc;
+      xm = 0.0, ym = 0.0;
+      dx = pow(fabs(a[M]/a[0]),1./n1);
+      dy = 0;
+      iter = 0;
+      conv = 0;
+      while (!conv) {
+        iter += 1;
+        if (iter>itmax) {
+          for (i=0; i<=M; i++)
+            a[i] = tmpbuf[i+1];
+          return pt;
         }
-        u = 0.0, v = 0.0;
-        k = 2.0*xc;
-        m = xc*xc;
-        for (j=0; j<=p; j++) {
-          w = a[j]+k*u-m*v;    
-          v = u;
-          u = w;
-        }
-        tmp = a[n1]+u*xc-m*v;
-        if (tmp*tmp<=fc) {
-          u = 0.0;
-          for (j=0; j<=p; j++) {
-            a[j] = u*xc+a[j];
-            u = a[j];
-          }
-          zerore[*pt] = xc,zeroim[*pt] = 0;
-          *pt += 1;
-        }
-        else {
+        for (i=1; i<=4; i++) {
+          u = -dy;
+          dy = dx;
+          dx = u;
+          xr = xc+dx, yr = yc+dy;
           u = 0, v = 0;
-          k = 2*xc;
-          m = xc*xc + yc*yc;
-          p = n1-2;
+          k = 2*xr;
+          m = xr*xr+yr*yr;
           for (j=0; j<=p; j++) {
-            a[j] += k*u-m*v;
-            w = a[j];
+            w = a[j] + k*u - m*v; 
             v = u;
             u = w;
           }
-          zerore[*pt] = xc, zeroim[*pt] = yc;
-          *pt += 1;
-          zerore[*pt] = xc, zeroim[*pt] = -yc;
-          *pt += 1;
+
+          tmp = a[n1] + u*xr - m*v;
+          f = tmp*tmp + (u*u*yr*yr);
+          if (f<fm) {
+            xm = xr, ym = yr;
+            fm = f;
+          }
         }
-        n1 = p;
+        if (fm<fc) {
+          dx = 1.5*dx,dy = 1.5*dy;
+          xc = xm, yc = ym;
+          fc = fm;
+        }
+        else {
+          u = .4*dx - .3*dy;
+          dy = .4*dy + .3*dx;
+          dx = u;
+        }
+        u = fabs(xc) + fabs(yc);
+        term = u + (fabs(dx) + fabs(dy))*factor;
+        if ((u==term)||(fc==0))
+          conv = 1;
       }
+      u = 0.0, v = 0.0;
+      k = 2.0*xc;
+      m = xc*xc;
+      for (j=0; j<=p; j++) {
+        w = a[j] + k*u - m*v;    
+        v = u;
+        u = w;
+      }
+      tmp = a[n1] + u*xc - m*v;
+      if (tmp*tmp<=fc) {
+        u = 0.0;
+        for (j=0; j<=p; j++) {
+          a[j] = u*xc + a[j];
+          u = a[j];
+        }
+        zero[pt].re = xc, zero[pt].im = 0;
+        pt += 1;
+      }
+      else {
+        u = 0, v = 0;
+        k = 2*xc;
+        m = xc*xc + yc*yc;
+        p = n1-2;
+        for (j=0; j<=p; j++) {
+          a[j] += k*u-m*v;
+          w = a[j];
+          v = u;
+          u = w;
+        }
+        zero[pt].re = xc, zero[pt].im = yc;
+        pt += 1;
+        zero[pt].re = xc, zero[pt].im = -yc;
+        pt += 1;
+      }
+      n1 = p;
     }
-    for (i=0; i<=n; i++)
-      a[i] = work[i+1];
+  }
+  for (i=0; i<=M; i++)
+    a[i] = tmpbuf[i+1];
+
+  return pt;
 }
 
-#define MPL 500
-int checkStability(CSOUND *csound, MYFLT *c, int32_t M){
-      MYFLT pr[MPL], pi[MPL], tmp[MPL], cf[MPL];
-      int32_t pfound, indic, i,j;
-      cf[M] = 1.0;
-      for (i=0; i< (M+1)/2; i++) {
-          j = M-1-i;
-          cf[i] = c[j];
-          cf[j] = c[i];
-        }
-      polyZero(M,cf,pr,pi,&pfound,2000,&indic,tmp);
-        for(i=0; i < M; i++) {
-          if(SQRT(pi[i]*pi[i]+pr[i]*pr[i]) >= 1.)
-            return 0;
-        }
-      return 1;
-}     
+
+static MYCMPLX *invertfilter(int32_t M, MYCMPLX *zr)
+{
+  int32_t    i;
+  MYFLT pr,pi,pow;
+
+  for (i=0; i < M; i++) {
+    pr = zr[i].re;
+    pi = zr[i].im;
+    pow = pr*pr+pi*pi;
+    zr[i].re = pr/pow;
+    zr[i].im = -pi/pow;
+  }
+  return zr;
+}
+
+static MYFLT *zero2coef(int32_t M, MYCMPLX *zr, MYFLT *c, MYFLT *tmp)
+{
+  int32_t  j, k;
+  MYFLT  pr, pi, cr, ci;
+  c[0] = 1;
+  tmp[0] = 0;
+  for (j=0; j < M; j++) {
+    c[j+1] = 1;
+    tmp[j+1] = 0;
+    pr = zr[j].re;
+    pi = zr[j].im;
+    for (k=j; k>=0; k--) {
+      cr = c[k];
+      ci = tmp[k];
+      c[k] = -(cr*pr-ci*pi);
+      tmp[k] = -(ci*pr+cr*pi);
+      if (k>0) {
+        c[k] += c[k-1];
+        tmp[k] += tmp[k-1];
+      }
+    }
+  }
+  pr = c[0];
+  for (j=0; j <= M; j++) c[j] = c[j]/pr;
+  return c;
+}
+
+
+#define MAX_ITER 2000
+MYCMPLX *csoundCoef2Pole(CSOUND *csound, void *parm, MYFLT *c){
+  LPCparam *p = (LPCparam *) parm;
+  MYCMPLX *pl = p->pl; 
+  MYFLT *buf = p->tmpmem, *cf = p->cf;
+  int32_t i, j, M = p->M;
+  cf[M] = 1.0;
+  for (i=0; i< (M+1)/2; i++) {
+    j = M-1-i;
+    cf[i] = c[j];
+    cf[j] = c[i];
+  }
+  findzeros(M, cf, pl, buf, MAX_ITER); 
+  invertfilter(M, pl);
+  return pl; 
+}
+
+MYFLT *csoundPole2Coef(CSOUND *csound, void *parm, MYCMPLX *pl) { 
+   LPCparam *p = (LPCparam *) parm;
+   pl = invertfilter(p->M, pl);
+   return zero2coef(p->M, pl, p->cf, p->tmpmem);
+ } 
+
+
+MYFLT *csoundStabiliseAllpole(CSOUND *csound, void *parm, MYFLT *c){
+  LPCparam *p = (LPCparam *) parm;
+  MYCMPLX *pl;
+  MYFLT pm, pf;
+  int32_t i, M = p->M;
+
+  pl = csoundCoef2Pole(csound,parm,c);
+  for(i=0; i < M; i++) {
+    pm = magc(pl[i]);
+    pf = phsc(pl[i]);
+    if(pm >= 1.){
+      pm = 1/pm;
+      pl[i].re  = pm*COS(pf);
+      pl[i].im  = pm*SIN(pf);
+    }
+  }
+  return csoundPole2Coef(csound,parm,pl);
+}
 
 /* opcodes */
 /* lpcfilter - take lpred input from table */
@@ -512,7 +596,7 @@ int32_t lpfil_perf(CSOUND *csound, LPCFIL *p) {
       c = csound->LPred(csound,p->setup,buf);
     } else
       c = csound->LPred(csound,p->setup,
-                         p->ft->ftable+off);
+                        p->ft->ftable+off);
     memcpy(p->coefs.auxp, &c[1], M*sizeof(MYFLT));
     g = p->g = csoundLPrms(csound,p->setup)*SQRT(c[0]);
   }
@@ -662,7 +746,7 @@ int32_t lpred_run(CSOUND *csound, LPREDA *p) {
     for (i=0, k=0; i < N; i++,k+=incr) {
       buf[i] = p->win == NULL ? ft[i+off] : p->win[(int)k]*ft[i+off];
     }
-    csound->LPred(csound,p->setup, buf);
+    c = csound->LPred(csound,p->setup, buf);
   }
   c = csoundLPcoefs(csound,p->setup);
   memcpy(p->out->data, &c[1], sizeof(MYFLT)*p->M);
@@ -727,7 +811,7 @@ int32_t lpred_run2(CSOUND *csound, LPREDA2 *p) {
       for (j=bp,i=0, k=0; i < N; j++,i++,k+=incr) {
         buf[i] = p->win == NULL ? cbuf[j%N] : p->win[(int)k]*cbuf[j%N];
       }
-      csound->LPred(csound,p->setup,buf);
+      c = csound->LPred(csound,p->setup,buf);
       cp = (int32_t) (*p->prd > 1 ? *p->prd : 1);
     }
   }
@@ -878,7 +962,7 @@ int32_t lpcpvs(CSOUND *csound, LPCPVS *p){
           pvframe[i+1] = cps*bin/cpsbin;
         else if ((bin+1)/cpsbin)
           pvframe[i+1] = cps*(bin-1)/cpsbin;
-         else if ((bin-1)/cpsbin)
+        else if ((bin-1)/cpsbin)
           pvframe[i+1] = cps*(bin+1)/cpsbin;
    
       }
@@ -900,6 +984,7 @@ int32_t pvscoefs_init(CSOUND *csound, PVSCFS *p) {
   unsigned int Mbytes = (p->M+1)*sizeof(MYFLT);
   p->N = p->fin->N;
   p->M = *p->iord;
+  p->setup = csound->LPsetup(csound,0,p->M);
   if(p->buf.auxp == NULL || Nbytes > p->buf.size)
     csound->AuxAlloc(csound, Nbytes, &p->buf);
   if(p->coef.auxp == NULL || Mbytes > p->coef.size)
@@ -922,16 +1007,16 @@ int pvscoefs(CSOUND *csound, PVSCFS *p){
     for(i=0; i < p->N+2; i+=2) pow += buf[i];
     p->rms = SQRT(pow)/(2*SQRT(2.));
     if(p->rms > 0) {
-     memset(c,0,sizeof(MYFLT)*(p->M+1));
-     csoundPvs2RealCepstrum(csound, buf, p->N+2);
-     csoundCepsLP(csound,c,buf,p->M,p->N);
-     if(!checkStability(csound,c,p->M))
-       csound->Warning(csound, "unstable filter coeff detected\n");
-     else memcpy(p->out->data,&c[1],p->M*sizeof(MYFLT));
+      memset(c,0,sizeof(MYFLT)*(p->M+1));
+      csoundPvs2RealCepstrum(csound, buf, p->N+2);
+      csoundCepsLP(csound,c,buf,p->M,p->N);
+      p->err = sqrt(c[0]);
+      c = csoundStabiliseAllpole(csound,p->setup,c);
+      memcpy(p->out->data,&c[1],p->M*sizeof(MYFLT));
     }
     p->framecount = p->fin->framecount;
   }
-  *p->kerr = 1-SQRT(c[0]);
+  *p->kerr = p->err;
   *p->krms = p->rms;
   return OK;
 }
