@@ -34,7 +34,11 @@
 extern "C" {
 #endif
 
-#include "pstream.h"  
+#include "pstream.h"
+
+  typedef struct _mycmplx {
+    MYFLT re; MYFLT im;
+  } MYCMPLX;
 
 /**
   * Compute autocorrelation function
@@ -200,7 +204,9 @@ typedef struct _pvscoefs {
   AUXCH buf;
   int32_t M, N;
   MYFLT rms;
+  MYFLT err;
   uint32_t framecount;
+  void *setup;
 } PVSCFS;  
 
 
