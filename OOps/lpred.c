@@ -489,7 +489,8 @@ MYFLT *csoundPole2Coef(CSOUND *csound, void *parm, MYCMPLX *pl) {
  } 
 
 
-MYFLT *csoundStabiliseAllpole(CSOUND *csound, void *parm, MYFLT *c){
+MYFLT *csoundStabiliseAllpole(CSOUND *csound, void *parm, MYFLT *c, int mode){
+  if (mode) {
   LPCparam *p = (LPCparam *) parm;
   MYCMPLX *pl;
   MYFLT pm, pf;
@@ -498,14 +499,21 @@ MYFLT *csoundStabiliseAllpole(CSOUND *csound, void *parm, MYFLT *c){
   pl = csoundCoef2Pole(csound,parm,c);
   for(i=0; i < M; i++) {
     pm = magc(pl[i]);
-    pf = phsc(pl[i]);
     if(pm >= 1.){
+      if (mode == 1) {
+      pf = phsc(pl[i]);
       pm = 1/pm;
       pl[i].re  = pm*COS(pf);
       pl[i].im  = pm*SIN(pf);
+      } else {
+        pl[i].re /= pm;
+        pl[i].im /= pm;
+      }
     }
   }
   return csoundPole2Coef(csound,parm,pl);
+  }
+  else return c;
 }
 
 /* opcodes */
@@ -975,10 +983,6 @@ int32_t lpcpvs(CSOUND *csound, LPCPVS *p){
   return OK;
 }
 
-
-
-/* stability problems -- not working */
-
 int32_t pvscoefs_init(CSOUND *csound, PVSCFS *p) {
   unsigned int Nbytes = (p->fin->N+2)*sizeof(MYFLT);
   unsigned int Mbytes = (p->M+1)*sizeof(MYFLT);
@@ -990,6 +994,7 @@ int32_t pvscoefs_init(CSOUND *csound, PVSCFS *p) {
   if(p->coef.auxp == NULL || Mbytes > p->coef.size)
     csound->AuxAlloc(csound, Nbytes, &p->coef);
   tabinit(csound,p->out,p->M);
+  p->mod = *p->imod;
   return OK;
 }
 
@@ -1001,17 +1006,17 @@ int pvscoefs(CSOUND *csound, PVSCFS *p){
     MYFLT pow = 0;
     float *pvframe = (float *) p->fin->frame.auxp;
     memset(buf,0,sizeof(MYFLT)*(p->N+2));
-    for(i=2; i < p->N; i+=2) buf[i] = pvframe[i]*pvframe[i];
+    for(i=2; i < p->N; i+=2) buf[i] = pvframe[i];
     buf[0] = pvframe[0];
     buf[p->N] = pvframe[p->N];
     for(i=0; i < p->N+2; i+=2) pow += buf[i];
-    p->rms = SQRT(pow)/(2*SQRT(2.));
+    p->rms = pow/(2*sqrt(2));
     if(p->rms > 0) {
       memset(c,0,sizeof(MYFLT)*(p->M+1));
       csoundPvs2RealCepstrum(csound, buf, p->N+2);
       csoundCepsLP(csound,c,buf,p->M,p->N);
       p->err = sqrt(c[0]);
-      c = csoundStabiliseAllpole(csound,p->setup,c);
+      c = csoundStabiliseAllpole(csound,p->setup,c,p->mod);
       memcpy(p->out->data,&c[1],p->M*sizeof(MYFLT));
     }
     p->framecount = p->fin->framecount;

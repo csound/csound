@@ -193,18 +193,18 @@ typedef struct _lpreda3 {
 } LPCPVS;
 
 
-  /*  stability issues  */
 typedef struct _pvscoefs {
   OPDS h;
   ARRAYDAT *out;
   MYFLT *krms, *kerr;
   PVSDAT  *fin;
-  MYFLT  *iord;
+  MYFLT  *iord, *imod;
   AUXCH coef;
   AUXCH buf;
   int32_t M, N;
   MYFLT rms;
   MYFLT err;
+  MYFLT mod;
   uint32_t framecount;
   void *setup;
 } PVSCFS;  

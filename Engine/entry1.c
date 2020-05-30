@@ -1204,7 +1204,7 @@ OENTRY opcodlst_1[] = {
    (SUBR) lpred_i, NULL},
    {"pvslpc", S(LPCPVS), 0, 3, "f", "aiiio",
     (SUBR) lpcpvs_init, (SUBR) lpcpvs},
-   {"pvscfs", S(PVSCFS), 0, 3, "k[]kk", "fi",
+   {"pvscfs", S(PVSCFS), 0, 3, "k[]kk", "fip",
     (SUBR) pvscoefs_init, (SUBR) pvscoefs},
   /* terminate list */
   {  NULL, 0, 0, 0, NULL, NULL, NULL, NULL, NULL       }
