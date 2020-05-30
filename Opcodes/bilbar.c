@@ -249,6 +249,7 @@ typedef struct {
     uint32_t    rattle_num, rubber_num;
     int32_t    hammer_index, hammer_on, hammer_contact;
     MYFLT  ham, ham1, ham2;
+    AUXCH  auxchc;
     AUXCH  auxch;
     RATTLE *rattle;
     RUBBER *rubber;
@@ -274,8 +275,8 @@ int32_t init_pp(CSOUND *csound, CSPP *p)
       double *c, /*dx,*/ dxmin = 0.0; /* for stability */
       FUNC  *ftp;
 
-      csound->AuxAlloc(csound, NS*sizeof(double), &p->auxch);
-      c = (double *)p->auxch.auxp;
+      csound->AuxAlloc(csound, NS*sizeof(double), &p->auxchc);
+      c = (double *)p->auxchc.auxp;
 
       if (*p->rattle_tab==FL(0.0) ||
           (ftp=csound->FTnp2Finde(csound, p->rattle_tab)) == NULL) p->rattle_num = 0;
