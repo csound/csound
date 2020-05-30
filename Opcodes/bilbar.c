@@ -306,7 +306,7 @@ int32_t init_pp(CSOUND *csound, CSPP *p)
       csound->AuxAlloc(csound,
                        3*((1+(N+5))*NS+p->rattle_num+p->rubber_num)*sizeof(MYFLT),
                        &p->auxch);
-      c = (double *)p->auxch.auxp;
+      //c = (double *)p->auxch.auxp;
       p->s0 = (MYFLT*)p->auxch.auxp;
       p->s1 = &p->s0[NS];
       p->hammer_force = &p->s1[NS];
