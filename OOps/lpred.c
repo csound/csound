@@ -1,22 +1,16 @@
 /*
   lpred.c:
-
   Copyright 2020 Victor Lazzarini
-
   streaming linear prediction
-
   This file is part of Csound.
-
   The Csound Library is free software; you can redistribute it
   and/or modify it under the terms of the GNU Lesser General Public
   License as published by the Free Software Foundation; either
   version 2.1 of the License, or (at your option) any later version.
-
   Csound is distributed in the hope that it will be useful,
   but WITHOUT ANY WARRANTY; without even the implied warranty of
   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
   GNU Lesser General Public License for more details.
-
   You should have received a copy of the GNU Lesser General Public
   License along with Csound; if not, write to the Free Software
   Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
@@ -198,7 +192,6 @@ MYFLT *csoundCepsLP(CSOUND *csound, MYFLT *b, MYFLT *c,
 
 
 /** Computes real cepstrum in place from a PVS frame
-
     buf: non-negative spectrum in PVS_AMP_* format
     size: size of buf (N + 2) 
     returns: real-valued cepstrum
@@ -216,10 +209,8 @@ MYFLT *csoundPvs2RealCepstrum(CSOUND *csound, MYFLT *buf, int size){
 
 /** Computes magnitude spectrum of a PVS frame from
     a real-valued cepstrum (in-place)
-
     buf: real-valued cepstrum
     size: size of buf (N)
-
     returns: PVS_AMP_* frame
 */
 MYFLT *csoundRealCepstrum2Pvs(CSOUND *csound, MYFLT *buf, int size){
@@ -325,91 +316,6 @@ static int32_t findzeros(int32_t M, MYFLT *a, MYCMPLX *zero,
       pt += 1;
       n1  -= 1;
     }
-<<<<<<< HEAD
-
-    memcpy(&work[1], a, (n+1)*sizeof(double));
-    *indic = 0;
-    *pt = 0;
-    n1 = n;
-
-    while (n1>0) {
-      if (a[n1]==0) {
-        zerore[*pt] = 0, zeroim[*pt] = 0;
-        *pt += 1;
-        n1  -= 1;
-      }
-      else {
-        p = n1-1;
-        xc = 0, yc = 0;
-        fc = a[n1]*a[n1];
-        fm = fc;
-        xm = 0.0, ym = 0.0;
-        dx = pow(fabs(a[n]/a[0]),1./n1);
-        dy = 0;
-        iter = 0;
-        conv = 0;
-        while (!conv) {
-          iter += 1;
-          if (iter>itmax) {
-            *indic = -iter;
-            for (i=0; i<=n; i++)
-              a[i] = work[i+1];
-            return;
-          }
-          for (i=1; i<=4; i++) {
-            u = -dy;
-            dy = dx;
-            dx = u;
-            xr = xc+dx, yr = yc+dy;
-            u = 0, v = 0;
-            k = 2*xr;
-            m = xr*xr+yr*yr;
-            for (j=0; j<=p; j++) {
-              w = a[j]+k*u-m*v; 
-              v = u;
-              u = w;
-            }
-
-            tmp = a[n1]+u*xr-m*v;
-            f = tmp*tmp+(u*u*yr*yr);
-            if (f<fm) {
-              xm = xr, ym = yr;
-              fm = f;
-            }
-          }
-          if (fm<fc) {
-            dx = 1.5*dx,dy = 1.5*dy;
-            xc = xm, yc = ym;
-            fc = fm;
-          }
-          else {
-            u = .4*dx - .3*dy;
-            dy = .4*dy + .3*dx;
-            dx = u;
-          }
-          u = fabs(xc)+fabs(yc);
-          term = u+(fabs(dx)+fabs(dy))*factor;
-          if ((u==term)||(fc==0))
-            conv = 1;
-        }
-        u = 0.0, v = 0.0;
-        k = 2.0*xc;
-        m = xc*xc;
-        for (j=0; j<=p; j++) {
-          w = a[j]+k*u-m*v;    
-          v = u;
-          u = w;
-        }
-        tmp = a[n1]+u*xc-m*v;
-        if (tmp*tmp<=fc) {
-          u = 0.0;
-          for (j=0; j<=p; j++) {
-            a[j] = u*xc+a[j];
-            u = a[j];
-          }
-          zerore[*pt] = xc,zeroim[*pt] = 0;
-          *pt += 1;
-=======
     else {
       p = n1-1;
       xc = 0, yc = 0;
@@ -426,7 +332,6 @@ static int32_t findzeros(int32_t M, MYFLT *a, MYCMPLX *zero,
           for (i=0; i<=M; i++)
             a[i] = tmpbuf[i+1];
           return pt;
->>>>>>> ab8c930d00c16a7e63b93c23240688df9624dd35
         }
         for (i=1; i<=4; i++) {
           u = -dy;
@@ -493,8 +398,114 @@ static int32_t findzeros(int32_t M, MYFLT *a, MYCMPLX *zero,
           v = u;
           u = w;
         }
-      return 1;
-}     
+        zero[pt].re = xc, zero[pt].im = yc;
+        pt += 1;
+        zero[pt].re = xc, zero[pt].im = -yc;
+        pt += 1;
+      }
+      n1 = p;
+    }
+  }
+  for (i=0; i<=M; i++)
+    a[i] = tmpbuf[i+1];
+
+  return pt;
+}
+
+
+static MYCMPLX *invertfilter(int32_t M, MYCMPLX *zr)
+{
+  int32_t    i;
+  MYFLT pr,pi,pow;
+
+  for (i=0; i < M; i++) {
+    pr = zr[i].re;
+    pi = zr[i].im;
+    pow = pr*pr+pi*pi;
+    zr[i].re = pr/pow;
+    zr[i].im = -pi/pow;
+  }
+  return zr;
+}
+
+static MYFLT *zero2coef(int32_t M, MYCMPLX *zr, MYFLT *c, MYFLT *tmp)
+{
+  int32_t  j, k;
+  MYFLT  pr, pi, cr, ci;
+  c[0] = 1;
+  tmp[0] = 0;
+  for (j=0; j < M; j++) {
+    c[j+1] = 1;
+    tmp[j+1] = 0;
+    pr = zr[j].re;
+    pi = zr[j].im;
+    for (k=j; k>=0; k--) {
+      cr = c[k];
+      ci = tmp[k];
+      c[k] = -(cr*pr-ci*pi);
+      tmp[k] = -(ci*pr+cr*pi);
+      if (k>0) {
+        c[k] += c[k-1];
+        tmp[k] += tmp[k-1];
+      }
+    }
+  }
+  pr = c[0];
+  for (j=0; j <= M; j++) c[j] = c[j]/pr;
+  return c;
+}
+
+
+#define MAX_ITER 2000
+MYCMPLX *csoundCoef2Pole(CSOUND *csound, void *parm, MYFLT *c){
+  LPCparam *p = (LPCparam *) parm;
+  MYCMPLX *pl = p->pl; 
+  MYFLT *buf = p->tmpmem, *cf = p->cf;
+  int32_t i, j, M = p->M;
+  cf[M] = 1.0;
+  for (i=0; i< (M+1)/2; i++) {
+    j = M-1-i;
+    cf[i] = c[j];
+    cf[j] = c[i];
+  }
+  findzeros(M, cf, pl, buf, MAX_ITER); 
+  invertfilter(M, pl);
+  return pl; 
+}
+
+MYFLT *csoundPole2Coef(CSOUND *csound, void *parm, MYCMPLX *pl) { 
+   LPCparam *p = (LPCparam *) parm;
+   pl = invertfilter(p->M, pl);
+   return zero2coef(p->M, pl, p->cf, p->tmpmem);
+ } 
+
+
+MYFLT *csoundStabiliseAllpole(CSOUND *csound, void *parm, MYFLT *c, int mode){
+  if (mode) {
+  LPCparam *p = (LPCparam *) parm;
+  MYCMPLX *pl;
+  MYFLT pm, pf;
+  int32_t i, M = p->M;
+
+  pl = csoundCoef2Pole(csound,parm,c);
+  for(i=0; i < M; i++) {
+    pm = magc(pl[i]);
+    if(pm >= 1.){
+      if (mode == 1) {
+      pf = phsc(pl[i]);
+      pm = 1/pm;
+      pl[i].re  = pm*COS(pf);
+      pl[i].im  = pm*SIN(pf);
+      } else {
+        pl[i].re /= pm;
+        pl[i].im /= pm;
+      }
+    }
+  }
+  return csoundPole2Coef(csound,parm,pl);
+  }
+  else return c;
+}
 
 /* opcodes */
 /* lpcfilter - take lpred input from table */
@@ -1005,3 +1016,34 @@ int pvscoefs(CSOUND *csound, PVSCFS *p){
   *p->krms = p->rms;
   return OK;
 }
+
+/* coefficients to filter CF/BW */
+
+int32_t coef2parm_init(CSOUND *csound, CF2P *p) {
+  p->M = p->in->sizes[0];
+  p->setup = csound->LPsetup(csound,0,p->M);
+  tabinit(csound,p->out,p->M);
+  return OK;
+}
+
+int32_t coef2parm(CSOUND *csound, CF2P *p) {
+  MYCMPLX *pl;
+  MYFLT *c = p->in->data, pm, pf;
+  MYFLT *pp = p->out->data, fac = csound->GetSr(csound)/(2*PI);
+  int i,j;
+  pl = csoundCoef2Pole(csound,p->setup,c);
+  for(i = j = 0; i < p->M; i++) {
+     pm = magc(pl[i]);
+     pf = phsc(pl[i])*fac;
+     /* output non-negative freqs only */
+     if(pf >= 0) {
+       pp[j++] = pf;
+       pp[j++] = -LOG(pm)*fac*2;
+       // just in case a pole is not conjugate-paired
+       // or purely real
+       if(j == p->M) break;
+     }
+  }
+  return OK;
+}
+
