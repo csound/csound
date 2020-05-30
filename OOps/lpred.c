@@ -1005,37 +1005,3 @@ int pvscoefs(CSOUND *csound, PVSCFS *p){
   *p->krms = p->rms;
   return OK;
 }
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
-
-/* coefficients to filter CF/BW */
-
-int32_t coef2parm_init(CSOUND *csound, CF2P *p) {
-  p->M = p->in->sizes[0];
-  p->setup = csound->LPsetup(csound,0,p->M);
-  tabinit(csound,p->out,p->M);
-  return OK;
-}
-
-int32_t coef2parm(CSOUND *csound, CF2P *p) {
-  MYCMPLX *pl;
-  MYFLT *c = p->in->data, pm, pf;
-  MYFLT *pp = p->out->data, fac = csound->GetSr(csound)/(2*PI);
-  int i,j;
-  pl = csoundCoef2Pole(csound,p->setup,c);
-  for(i = j = 0; i < p->M; i++, j+=2) {
-     pm = magc(pl[i]);
-     pf = phsc(pl[i])*fac;
-     /* output non-negative freqs only */
-     if(pf >= 0) {
-       pp[j] = pf;
-      pp[j+1] = -LOG(pm)*fac*2;
-     }
-  }
-  return OK;
-}
->>>>>>> ab8c930d00c16a7e63b93c23240688df9624dd35
-=======
-
->>>>>>> parent of a21391e2a... minor
