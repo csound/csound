@@ -180,7 +180,7 @@ MYFLT *csoundCepsLP(CSOUND *csound, MYFLT *b, MYFLT *c,
 /** Computes real cepstrum in place from a PVS frame
 
     buf: non-negative spectrum in PVS_AMP_* format
-    size: size of buf (N + 2) 
+    size: size of buf (N + 2)
     returns: real-valued cepstrum
 */
 MYFLT *csoundPvs2RealCepstrum(CSOUND *csound, MYFLT *buf, int size){
@@ -338,7 +338,7 @@ void polyZero(int32_t n, double *a, double *zerore, double *zeroim,
             k = 2*xr;
             m = xr*xr+yr*yr;
             for (j=0; j<=p; j++) {
-              w = a[j]+k*u-m*v; 
+              w = a[j]+k*u-m*v;
               v = u;
               u = w;
             }
@@ -369,7 +369,7 @@ void polyZero(int32_t n, double *a, double *zerore, double *zeroim,
         k = 2.0*xc;
         m = xc*xc;
         for (j=0; j<=p; j++) {
-          w = a[j]+k*u-m*v;    
+          w = a[j]+k*u-m*v;
           v = u;
           u = w;
         }
@@ -422,7 +422,7 @@ int checkStability(CSOUND *csound, MYFLT *c, int32_t M){
             return 0;
         }
       return 1;
-}     
+}
 
 /* opcodes */
 /* lpcfilter - take lpred input from table */
@@ -810,7 +810,7 @@ int32_t lpcpvs_init(CSOUND *csound, LPCPVS *p) {
   if(p->cbuf.auxp == NULL || Nbytes > p->cbuf.size)
     csound->AuxAlloc(csound, Nbytes, &p->cbuf);
   if(p->fftframe.auxp == NULL || Nbytes > p->fftframe.size)
-    csound->AuxAlloc(csound, Nbytes, &p->fftframe);    
+    csound->AuxAlloc(csound, Nbytes, &p->fftframe);
 
   p->fout->N = N;
   p->fout->sliding = 0;
@@ -819,11 +819,11 @@ int32_t lpcpvs_init(CSOUND *csound, LPCPVS *p) {
   p->fout->winsize = N;
   p->fout->wintype = PVS_WIN_HANN;
   p->fout->format = PVS_AMP_FREQ;
-    
+
   Nbytes = (N+2)*sizeof(float);
   if(p->fout->frame.auxp == NULL || Nbytes > p->fout->frame.size)
-    csound->AuxAlloc(csound, Nbytes, &p->fout->frame);    
-   
+    csound->AuxAlloc(csound, Nbytes, &p->fout->frame);
+
   p->cp = 1;
   p->bp = 0;
   return OK;
@@ -880,7 +880,7 @@ int32_t lpcpvs(CSOUND *csound, LPCPVS *p){
           pvframe[i+1] = cps*(bin-1)/cpsbin;
          else if ((bin-1)/cpsbin)
           pvframe[i+1] = cps*(bin+1)/cpsbin;
-   
+
       }
       p->fout->framecount += 1;
       cp = (int32_t) (*p->prd > 1 ? *p->prd : 1);
@@ -935,4 +935,3 @@ int pvscoefs(CSOUND *csound, PVSCFS *p){
   *p->krms = p->rms;
   return OK;
 }
-
