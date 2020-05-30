@@ -1194,7 +1194,7 @@ OENTRY opcodlst_1[] = {
    (SUBR) lpfil_init, (SUBR) lpfil_perf},
    {"lpcfilter", S(LPCFIL2), 0, 3, "a", "aakkiio",
    (SUBR) lpfil2_init, (SUBR) lpfil2_perf},
-   {"allpole", S(LPCFIL3), 0, 3, "a", "ak[]o",
+   {"allpole", S(LPCFIL3), 0, 3, "a", "ak[]",
    (SUBR) lpfil3_init, (SUBR) lpfil3_perf},
    {"lpcanal", S(LPREDA), 0, 3, "k[]kkk", "kkiiio",
    (SUBR) lpred_alloc, (SUBR) lpred_run},
@@ -1206,6 +1206,12 @@ OENTRY opcodlst_1[] = {
     (SUBR) lpcpvs_init, (SUBR) lpcpvs},
    {"pvscfs", S(PVSCFS), 0, 3, "k[]kk", "fip",
     (SUBR) pvscoefs_init, (SUBR) pvscoefs},
+   {"poleparams", S(CF2P), 0, 3, "k[]", "k[]",
+    (SUBR) coef2parm_init, (SUBR) coef2parm},
+   {"polecoeffs", S(CF2P), 0, 3, "k[]", "k[]",
+    (SUBR) coef2parm_init, (SUBR) parm2coef},
+   {"allpoleb", S(LPCFIL3), 0, 3, "a", "ak[]",
+   (SUBR) lpfil4_init, (SUBR) lpfil4_perf},
   /* terminate list */
   {  NULL, 0, 0, 0, NULL, NULL, NULL, NULL, NULL       }
 };

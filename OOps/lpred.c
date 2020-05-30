@@ -1055,3 +1055,89 @@ int32_t coef2parm(CSOUND *csound, CF2P *p) {
   }
   return OK;
 }
+
+/* CF/BW to coefficients */
+int32_t parm2coef(CSOUND *csound, CF2P *p) {
+  LPCparam *setup = (LPCparam *) p->setup;
+  MYCMPLX *pl = setup->pl;
+  MYFLT *c = p->in->data, pm, pf;
+  MYFLT *pp, fac = csound->GetSr(csound)/(2*PI);
+  int i,j;
+  for(i = j = 0; i < p->M; i+=2, j++) {
+     pm = EXP(-c[i]/(2*fac));
+     pf = c[i]/fac;
+     pl[j].re = pm*COS(pf);
+     pl[j].im = pm*SIN(pf);
+     if(pf != 0 || pf != PI) {
+       // complex conjugate
+        pl[++j].re = pm*COS(pf);
+        pl[j].im = -pm*SIN(pf); 
+     }
+   }
+  pp = csoundPole2Coef(csound,setup,pl);
+  memcpy(p->out->data, pp, sizeof(MYFLT)*p->M);
+  return OK;
+}
+
+/* allpoleb  - take CF/BW from array */
+int32_t lpfil4_init(CSOUND *csound, LPCFIL3 *p) {
+  p->M = p->coefs->sizes[0];
+  uint32_t  Mbytes = p->M*sizeof(MYFLT);
+  if(p->del.auxp == NULL || Mbytes > p->del.size)
+    csound->AuxAlloc(csound, Mbytes, &p->del);
+  memset(p->del.auxp, 0, Mbytes);
+  p->setup = csound->LPsetup(csound,0,p->M);
+  p->rp = 0;
+  return OK;
+}
+
+
+int32_t lpfil4_perf(CSOUND *csound, LPCFIL3 *p) {
+  LPCparam *setup = (LPCparam *) p->setup;
+  MYCMPLX *pl = setup->pl;
+  MYFLT *c = (MYFLT *) p->coefs->data, *cfs;
+  MYFLT *yn = (MYFLT *) p->del.auxp;
+  MYFLT *out = p->out;
+  MYFLT *in = p->in;
+  MYFLT y, pm, pf, fac = csound->GetSr(csound)/(2*PI);;
+  int32_t i, j, M = p->M, m;
+  int32_t pp, rp = p->rp;
+  uint32_t offset = p->h.insdshead->ksmps_offset;
+  uint32_t early  = p->h.insdshead->ksmps_no_end;
+  uint32_t n, nsmps = CS_KSMPS;
+
+  if (UNLIKELY(offset)) {
+    memset(out, '\0', offset*sizeof(MYFLT));
+  }
+  if (UNLIKELY(early)) {
+    nsmps -= early;
+    memset(&out[nsmps], '\0', early*sizeof(MYFLT));
+  }
+
+  for(i = j = 0; i < p->M; i+=2, j++) {
+     pm = EXP(-c[i]/(2*fac));
+     pf = c[i]/fac;
+     pl[j].re = pm*COS(pf);
+     pl[j].im = pm*SIN(pf);
+     if(pf != 0 || pf != PI) {
+       // complex conjugate
+        pl[++j].re = pm*COS(pf);
+        pl[j].im = -pm*SIN(pf); 
+     }
+   }
+  cfs = csoundPole2Coef(csound,setup,pl);
+
+  for(n=offset; n < nsmps; n++) {
+    pp = rp;
+    y =  in[n];
+    for(m = 0; m < M; m++) {
+      // filter convolution
+      y -= cfs[M - m - 1]*yn[pp];
+      pp = pp != M - 1 ? pp + 1: 0;
+    }
+    out[n] = yn[rp] = y;
+    rp = rp != M - 1 ? rp + 1: 0;
+  }
+  p->rp = rp;
+  return OK;
+}

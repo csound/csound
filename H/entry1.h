@@ -486,3 +486,8 @@ int32_t lpcpvs(CSOUND *csound, void *p);
 int32_t lpcpvs_init(CSOUND *csound, void *p);
 int32_t pvscoefs_init(CSOUND *csound, void *p);
 int32_t pvscoefs(CSOUND *csound, void *p);
+int32_t coef2parm_init(CSOUND *csound, void *p);
+int32_t coef2parm(CSOUND *csound, void *p);
+int32_t parm2coef(CSOUND *csound, void *p);
+int32_t lpfil4_init(CSOUND *csound, void *p); 
+int32_t lpfil4_perf(CSOUND *csound, void *p); 

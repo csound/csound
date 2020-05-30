@@ -165,6 +165,7 @@ typedef struct _lpfil3 {
   AUXCH del;
   int32_t M;
   int32_t rp;
+  void *setup;
 } LPCFIL3;
 
 typedef struct _lpreda2 {
