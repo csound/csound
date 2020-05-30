@@ -34,7 +34,11 @@
 extern "C" {
 #endif
 
-#include "pstream.h"  
+#include "pstream.h"
+
+  typedef struct _mycmplx {
+    MYFLT re; MYFLT im;
+  } MYCMPLX;
 
 /**
   * Compute autocorrelation function
@@ -189,20 +193,32 @@ typedef struct _lpreda3 {
 } LPCPVS;
 
 
-  /*  stability issues  */
 typedef struct _pvscoefs {
   OPDS h;
   ARRAYDAT *out;
   MYFLT *krms, *kerr;
   PVSDAT  *fin;
-  MYFLT  *iord;
+  MYFLT  *iord, *imod;
   AUXCH coef;
   AUXCH buf;
   int32_t M, N;
   MYFLT rms;
+  MYFLT err;
+  MYFLT mod;
   uint32_t framecount;
+  void *setup;
 } PVSCFS;  
 
+
+typedef struct _cf2p {
+  OPDS h;
+  ARRAYDAT *out;
+  ARRAYDAT *in;
+  int32_t M;
+  void *setup;
+} CF2P;  
+
+  
 
 #ifdef __cplusplus
 }
