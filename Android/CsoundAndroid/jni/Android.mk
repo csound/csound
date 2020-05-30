@@ -67,6 +67,7 @@ $(CSOUND_SRC_ROOT)/OOps/diskin2.c \
 $(CSOUND_SRC_ROOT)/OOps/disprep.c \
 $(CSOUND_SRC_ROOT)/OOps/dumpf.c \
 $(CSOUND_SRC_ROOT)/OOps/fftlib.c \
+$(CSOUND_SRC_ROOT)/OOps/lpred.c \
 $(CSOUND_SRC_ROOT)/OOps/pffft.c \
 $(CSOUND_SRC_ROOT)/OOps/goto_ops.c \
 $(CSOUND_SRC_ROOT)/OOps/lpred.c \
