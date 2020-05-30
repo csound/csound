@@ -1041,13 +1041,16 @@ int32_t coef2parm(CSOUND *csound, CF2P *p) {
   MYFLT *pp = p->out->data, fac = csound->GetSr(csound)/(2*PI);
   int i,j;
   pl = csoundCoef2Pole(csound,p->setup,c);
-  for(i = j = 0; i < p->M; i++, j+=2) {
+  for(i = j = 0; i < p->M; i++) {
      pm = magc(pl[i]);
      pf = phsc(pl[i])*fac;
      /* output non-negative freqs only */
      if(pf >= 0) {
-       pp[j] = pf;
-      pp[j+1] = -LOG(pm)*fac*2;
+       pp[j++] = pf;
+       pp[j++] = -LOG(pm)*fac*2;
+       // just in case a pole is not conjugate-paired
+       // or purely real
+       if(j == p->M) break;
      }
   }
   return OK;
