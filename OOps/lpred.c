@@ -1133,4 +1133,79 @@ int32_t lpfil4_perf(CSOUND *csound, LPCFIL3 *p) {
   return OK;
 }
 
+/* resonator bank */
+int32_t resonbnk_init(CSOUND *csound, RESONB *p)
+{   
+    int32_t scale, siz;
+    p->scale = scale = (int32_t) *p->iscl;
+    p->ord = p->kparm->sizes[0];
+    siz = (p->ord+1)/2;
+    if (!*p->istor && (p->y1m.auxp == NULL ||
+                       (uint32_t)(siz*sizeof(double)) > p->y1m.size))
+      csound->AuxAlloc(csound, (int32_t)(siz*sizeof(double)), &p->y1m);
+    if (!*p->istor && (p->y2m.auxp == NULL ||
+                       (uint32_t)(siz*sizeof(double)) > p->y2m.size))
+      csound->AuxAlloc(csound, (int32_t)(siz*sizeof(double)), &p->y2m);
 
+    if (UNLIKELY(scale && scale != 1 && scale != 2)) {
+      return csound->InitError(csound, Str("illegal reson iscl value, %f"),
+                                       *p->iscl);
+    }
+    if (!(*p->istor)) {
+      memset(p->y1m.auxp, 0, siz*sizeof(double));
+      memset(p->y2m.auxp, 0, siz*sizeof(double));
+    }
+    return OK;
+}
+
+int32_t resonbnk(CSOUND *csound, RESONB *p)   
+{
+    uint32_t    offset = p->h.insdshead->ksmps_offset;
+    uint32_t    early  = p->h.insdshead->ksmps_no_end;
+    uint32_t    n, nsmps = CS_KSMPS;
+    int32_t     j, k, ord = p->ord, mod = *p->imod;
+    MYFLT       *ar,*asig;
+    double      c3p1, c3t4, omc3, c2sqr, cosf;
+    double      *yt1, *yt2, c1,c2,c3, x;
+    MYFLT bw, cf;
+    
+    ar   = p->ar;
+    asig = p->asig;
+    yt1  = (double*) p->y1m.auxp;
+    yt2  = (double*) p->y2m.auxp; 
+
+    if(mod == 0) // serial
+       memmove(ar,asig,sizeof(MYFLT)*nsmps);
+    
+    if (UNLIKELY(offset)) memset(ar, '\0', offset*sizeof(MYFLT));
+    if (UNLIKELY(early)) {
+      nsmps -= early;
+      memset(&ar[nsmps], '\0', early*sizeof(MYFLT));
+    }
+    
+    for (k=j=0; k < ord; j++,k+=2) {
+      for (n=offset; n<nsmps; n++) {
+        if(mod) x = asig[n]; // parallel
+        else x = ar[n];      // serial
+        cf = p->kparm->data[k];
+        bw = p->kparm->data[k+1];
+        cosf = cos(cf * (double)(csound->tpidsr));
+        c3 = exp(bw * (double)(csound->mtpdsr));
+        c3p1 = c3 + 1.0;
+        c3t4 = c3 * 4.0;
+        omc3 = 1.0 - c3;
+        c2 = c3t4 * cosf / c3p1;     
+        c2sqr = c2 * c2;
+        if (p->scale == 1)
+          c1 = omc3 * sqrt(1.0 - (c2sqr / c3t4));
+        else if (p->scale == 2)
+          c1 = sqrt((c3p1*c3p1-c2sqr) * omc3/c3p1);
+        else c1 = 1.0;
+        x = c1 * x + c2 * yt1[j] - c3 * yt2[j];
+        yt2[j] = yt1[j];
+        yt1[j] = x;
+        if(mod) asig[n] += x; // parallel
+      }
+    }
+    return OK;
+}

@@ -1212,6 +1212,8 @@ OENTRY opcodlst_1[] = {
     (SUBR) coef2parm_init, (SUBR) parm2coef},
    {"allpoleb", S(LPCFIL3), 0, 3, "a", "ak[]",
    (SUBR) lpfil4_init, (SUBR) lpfil4_perf},
+   {"resonbnk", S(RESONB), 0, 3, "a", "ak[]ooo",
+   (SUBR) resonbnk_init, (SUBR) resonbnk},
   /* terminate list */
   {  NULL, 0, 0, 0, NULL, NULL, NULL, NULL, NULL       }
 };

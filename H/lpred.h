@@ -40,17 +40,17 @@ extern "C" {
     MYFLT re; MYFLT im;
   } MYCMPLX;
 
-/**
-  * Compute autocorrelation function
-  * r: autocorrelation output array (size N)
-  * s: input signal
-  * N: signal size
-  * returns: autocorrelation r
-  */
+  /**
+   * Compute autocorrelation function
+   * r: autocorrelation output array (size N)
+   * s: input signal
+   * N: signal size
+   * returns: autocorrelation r
+   */
   MYFLT *csoundAutoCorrelation(CSOUND *csound, MYFLT *r, MYFLT *s, int N);
 
 
-   /**
+  /**
    * Linear prediction setup
    *
    * N: autocorrelation size
@@ -60,7 +60,7 @@ extern "C" {
    */
   void *csoundLPsetup(CSOUND *csound, int N, int M);
 
-   /**
+  /**
    * Linear prediction setup deallocation
    *
    * param: LP setup object
@@ -78,7 +78,7 @@ extern "C" {
    * returns: array of size M+1 with error E and coefficients 1-M
    * output format is [E,c1,c2,...,cm] OR NULL if a memory problem occured
    * NB: c0 is always 1
-  */
+   */
   MYFLT *csoundLPred(CSOUND *csound, void *p, MYFLT *x);
 
   /**
@@ -118,107 +118,115 @@ extern "C" {
   MYFLT csoundLPrms(CSOUND *csound, void *parm);
 
 
-typedef struct _lpfil {
-  OPDS h;
-  MYFLT *out;
-  MYFLT *in, *koff, *kflag, *ifn, *isiz, *iord, *iwin;
-  AUXCH coefs;
-  AUXCH del;
-  AUXCH buf;
-  int32_t M, N, wlen;
-  int32_t rp;
-  void *setup;
-  MYFLT *win, g;
-  FUNC *ft;
-} LPCFIL;
+  typedef struct _lpfil {
+    OPDS h;
+    MYFLT *out;
+    MYFLT *in, *koff, *kflag, *ifn, *isiz, *iord, *iwin;
+    AUXCH coefs;
+    AUXCH del;
+    AUXCH buf;
+    int32_t M, N, wlen;
+    int32_t rp;
+    void *setup;
+    MYFLT *win, g;
+    FUNC *ft;
+  } LPCFIL;
 
-typedef struct _lpfil2 {
-  OPDS h;
-  MYFLT *out;
-  MYFLT *in, *sig, *flag, *prd, *isiz, *iord, *iwin;
-  AUXCH coefs;
-  AUXCH del;
-  AUXCH buf;
-  AUXCH cbuf;
-  int32_t M, N, wlen;
-  int32_t rp,bp,cp;
-  MYFLT *win, g;
-  void *setup;
-} LPCFIL2;
+  typedef struct _lpfil2 {
+    OPDS h;
+    MYFLT *out;
+    MYFLT *in, *sig, *flag, *prd, *isiz, *iord, *iwin;
+    AUXCH coefs;
+    AUXCH del;
+    AUXCH buf;
+    AUXCH cbuf;
+    int32_t M, N, wlen;
+    int32_t rp,bp,cp;
+    MYFLT *win, g;
+    void *setup;
+  } LPCFIL2;
 
-typedef struct _lpreda {
-  OPDS h;
-  ARRAYDAT *out;
-  MYFLT *rms, *err, *cps;
-  MYFLT  *off, *flag, *ifn, *isiz, *iord, *iwin;
-  AUXCH buf;
-  int32_t M, N, wlen;
-  FUNC *ft;
-  MYFLT *win;
-  void *setup;
-} LPREDA;
+  typedef struct _lpreda {
+    OPDS h;
+    ARRAYDAT *out;
+    MYFLT *rms, *err, *cps;
+    MYFLT  *off, *flag, *ifn, *isiz, *iord, *iwin;
+    AUXCH buf;
+    int32_t M, N, wlen;
+    FUNC *ft;
+    MYFLT *win;
+    void *setup;
+  } LPREDA;
 
-typedef struct _lpfil3 {
-  OPDS h;
-  MYFLT *out, *in;
-  ARRAYDAT *coefs;
-  AUXCH del;
-  int32_t M;
-  int32_t rp;
-  void *setup;
-} LPCFIL3;
+  typedef struct _lpfil3 {
+    OPDS h;
+    MYFLT *out, *in;
+    ARRAYDAT *coefs;
+    AUXCH del;
+    int32_t M;
+    int32_t rp;
+    void *setup;
+  } LPCFIL3;
 
-typedef struct _lpreda2 {
-  OPDS h;
-  ARRAYDAT *out;
-  MYFLT *rms, *err, *cps;
-  MYFLT  *in, *flag, *prd, *isiz, *iord, *iwin;
-  AUXCH cbuf;
-  AUXCH buf;
-  int32_t M, N, wlen, cp, bp;
-  MYFLT *win;
-  void *setup;
-} LPREDA2;
-
-
-typedef struct _lpreda3 {
-  OPDS h;
-  PVSDAT *fout;
-  MYFLT  *in, *isiz, *prd, *iord, *iwin;
-  AUXCH cbuf;
-  AUXCH buf;
-  AUXCH fftframe;
-  int32_t M, N, wlen, cp, bp;
-  MYFLT *win;
-  void *setup;
-} LPCPVS;
+  typedef struct _lpreda2 {
+    OPDS h;
+    ARRAYDAT *out;
+    MYFLT *rms, *err, *cps;
+    MYFLT  *in, *flag, *prd, *isiz, *iord, *iwin;
+    AUXCH cbuf;
+    AUXCH buf;
+    int32_t M, N, wlen, cp, bp;
+    MYFLT *win;
+    void *setup;
+  } LPREDA2;
 
 
-typedef struct _pvscoefs {
-  OPDS h;
-  ARRAYDAT *out;
-  MYFLT *krms, *kerr;
-  PVSDAT  *fin;
-  MYFLT  *iord, *imod;
-  AUXCH coef;
-  AUXCH buf;
-  int32_t M, N;
-  MYFLT rms;
-  MYFLT err;
-  MYFLT mod;
-  uint32_t framecount;
-  void *setup;
-} PVSCFS;  
+  typedef struct _lpreda3 {
+    OPDS h;
+    PVSDAT *fout;
+    MYFLT  *in, *isiz, *prd, *iord, *iwin;
+    AUXCH cbuf;
+    AUXCH buf;
+    AUXCH fftframe;
+    int32_t M, N, wlen, cp, bp;
+    MYFLT *win;
+    void *setup;
+  } LPCPVS;
 
 
-typedef struct _cf2p {
-  OPDS h;
-  ARRAYDAT *out;
-  ARRAYDAT *in;
-  int32_t M;
-  void *setup;
-} CF2P;  
+  typedef struct _pvscoefs {
+    OPDS h;
+    ARRAYDAT *out;
+    MYFLT *krms, *kerr;
+    PVSDAT  *fin;
+    MYFLT  *iord, *imod;
+    AUXCH coef;
+    AUXCH buf;
+    int32_t M, N;
+    MYFLT rms;
+    MYFLT err;
+    MYFLT mod;
+    uint32_t framecount;
+    void *setup;
+  } PVSCFS;  
 
+
+  typedef struct _cf2p {
+    OPDS h;
+    ARRAYDAT *out;
+    ARRAYDAT *in;
+    int32_t M;
+    void *setup;
+  } CF2P;  
+
+  typedef struct {
+    OPDS    h;
+    MYFLT   *ar, *asig;
+    ARRAYDAT *kparm;
+    MYFLT   *imod, *iscl, *istor;
+    int     scale, ord;
+    AUXCH   y1m,y2m;
+  } RESONB;
   
 
 #ifdef __cplusplus

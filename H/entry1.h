@@ -490,4 +490,6 @@ int32_t coef2parm_init(CSOUND *csound, void *p);
 int32_t coef2parm(CSOUND *csound, void *p);
 int32_t parm2coef(CSOUND *csound, void *p);
 int32_t lpfil4_init(CSOUND *csound, void *p); 
-int32_t lpfil4_perf(CSOUND *csound, void *p); 
+int32_t lpfil4_perf(CSOUND *csound, void *p);
+int32_t resonbnk_init(CSOUND *csound, void *p);
+int32_t resonbnk(CSOUND *csound, void *p);
