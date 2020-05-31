@@ -25,9 +25,9 @@
 #include "lpred.h"
 
   static inline MYFLT magc(MYCMPLX c) {
-    return SQRT(c.re*c.re +  c.im*c.im);
+      return HYPOT(c.re, c.im);
   }
-  
+
   static inline MYFLT phsc(MYCMPLX c) {
     return ATAN2(c.im, c.re);
   }
@@ -74,12 +74,12 @@ void *csoundLPsetup(CSOUND *csound, int N, int M) {
     p->k = csound->Calloc(csound, sizeof(MYFLT)*(M+1));
     p->b = csound->Calloc(csound, sizeof(MYFLT)*(M+1)*(M+1));
   }
-  
+
   // otherwise just allocate coefficient/pole memory
   p->pl = csound->Calloc(csound, sizeof(MYCMPLX)*(M+1));
   p->cf = csound->Calloc(csound, sizeof(MYFLT)*(M+1));
   p->tmpmem = csound->Calloc(csound, sizeof(MYFLT)*(M+1));
-  
+
   p->N = N;
   p->M = M;
   p->cps = 0;
@@ -193,7 +193,7 @@ MYFLT *csoundCepsLP(CSOUND *csound, MYFLT *b, MYFLT *c,
 
 /** Computes real cepstrum in place from a PVS frame
     buf: non-negative spectrum in PVS_AMP_* format
-    size: size of buf (N + 2) 
+    size: size of buf (N + 2)
     returns: real-valued cepstrum
 */
 MYFLT *csoundPvs2RealCepstrum(CSOUND *csound, MYFLT *buf, int size){
@@ -342,7 +342,7 @@ static int32_t findzeros(int32_t M, MYFLT *a, MYCMPLX *zero,
           k = 2*xr;
           m = xr*xr+yr*yr;
           for (j=0; j<=p; j++) {
-            w = a[j] + k*u - m*v; 
+            w = a[j] + k*u - m*v;
             v = u;
             u = w;
           }
@@ -373,7 +373,7 @@ static int32_t findzeros(int32_t M, MYFLT *a, MYCMPLX *zero,
       k = 2.0*xc;
       m = xc*xc;
       for (j=0; j<=p; j++) {
-        w = a[j] + k*u - m*v;    
+        w = a[j] + k*u - m*v;
         v = u;
         u = w;
       }
@@ -459,7 +459,7 @@ static MYFLT *zero2coef(int32_t M, MYCMPLX *zr, MYFLT *c, MYFLT *tmp)
 #define MAX_ITER 2000
 MYCMPLX *csoundCoef2Pole(CSOUND *csound, void *parm, MYFLT *c){
   LPCparam *p = (LPCparam *) parm;
-  MYCMPLX *pl = p->pl; 
+  MYCMPLX *pl = p->pl;
   MYFLT *buf = p->tmpmem, *cf = p->cf;
   int32_t i, j, M = p->M;
   cf[M] = 1.0;
@@ -468,16 +468,16 @@ MYCMPLX *csoundCoef2Pole(CSOUND *csound, void *parm, MYFLT *c){
     cf[i] = c[j];
     cf[j] = c[i];
   }
-  findzeros(M, cf, pl, buf, MAX_ITER); 
+  findzeros(M, cf, pl, buf, MAX_ITER);
   invertfilter(M, pl);
-  return pl; 
+  return pl;
 }
 
-MYFLT *csoundPole2Coef(CSOUND *csound, void *parm, MYCMPLX *pl) { 
+MYFLT *csoundPole2Coef(CSOUND *csound, void *parm, MYCMPLX *pl) {
    LPCparam *p = (LPCparam *) parm;
    pl = invertfilter(p->M, pl);
    return zero2coef(p->M, pl, p->cf, p->tmpmem);
- } 
+ }
 
 
 MYFLT *csoundStabiliseAllpole(CSOUND *csound, void *parm, MYFLT *c, int mode){
@@ -893,7 +893,7 @@ int32_t lpcpvs_init(CSOUND *csound, LPCPVS *p) {
   if(p->cbuf.auxp == NULL || Nbytes > p->cbuf.size)
     csound->AuxAlloc(csound, Nbytes, &p->cbuf);
   if(p->fftframe.auxp == NULL || Nbytes > p->fftframe.size)
-    csound->AuxAlloc(csound, Nbytes, &p->fftframe);    
+    csound->AuxAlloc(csound, Nbytes, &p->fftframe);
 
   p->fout->N = N;
   p->fout->sliding = 0;
@@ -902,11 +902,11 @@ int32_t lpcpvs_init(CSOUND *csound, LPCPVS *p) {
   p->fout->winsize = N;
   p->fout->wintype = PVS_WIN_HANN;
   p->fout->format = PVS_AMP_FREQ;
-    
+
   Nbytes = (N+2)*sizeof(float);
   if(p->fout->frame.auxp == NULL || Nbytes > p->fout->frame.size)
-    csound->AuxAlloc(csound, Nbytes, &p->fout->frame);    
-   
+    csound->AuxAlloc(csound, Nbytes, &p->fout->frame);
+
   p->cp = 1;
   p->bp = 0;
   return OK;
@@ -963,7 +963,7 @@ int32_t lpcpvs(CSOUND *csound, LPCPVS *p){
           pvframe[i+1] = cps*(bin-1)/cpsbin;
         else if ((bin-1)/cpsbin)
           pvframe[i+1] = cps*(bin+1)/cpsbin;
-   
+
       }
       p->fout->framecount += 1;
       cp = (int32_t) (*p->prd > 1 ? *p->prd : 1);
@@ -1062,7 +1062,7 @@ int32_t parm2coef(CSOUND *csound, CF2P *p) {
      if(pf != 0 || pf != PI) {
        // complex conjugate
         pl[++j].re = pm*COS(pf);
-        pl[j].im = -pm*SIN(pf); 
+        pl[j].im = -pm*SIN(pf);
      }
    }
   pp = csoundPole2Coef(csound,setup,pl);
@@ -1113,7 +1113,7 @@ int32_t lpfil4_perf(CSOUND *csound, LPCFIL3 *p) {
      if(pf != 0 || pf != PI) {
        // complex conjugate
         pl[++j].re = pm*COS(pf);
-        pl[j].im = -pm*SIN(pf); 
+        pl[j].im = -pm*SIN(pf);
      }
    }
   cfs = csoundPole2Coef(csound,setup,pl);
@@ -1135,7 +1135,7 @@ int32_t lpfil4_perf(CSOUND *csound, LPCFIL3 *p) {
 
 /* resonator bank */
 int32_t resonbnk_init(CSOUND *csound, RESONB *p)
-{   
+{
     int32_t scale, siz;
     p->scale = scale = (int32_t) *p->iscl;
     p->ord = p->kparm->sizes[0];
@@ -1158,7 +1158,7 @@ int32_t resonbnk_init(CSOUND *csound, RESONB *p)
     return OK;
 }
 
-int32_t resonbnk(CSOUND *csound, RESONB *p)   
+int32_t resonbnk(CSOUND *csound, RESONB *p)
 {
     uint32_t    offset = p->h.insdshead->ksmps_offset;
     uint32_t    early  = p->h.insdshead->ksmps_no_end;
@@ -1168,21 +1168,21 @@ int32_t resonbnk(CSOUND *csound, RESONB *p)
     double      c3p1, c3t4, omc3, c2sqr, cosf;
     double      *yt1, *yt2, c1,c2,c3, x;
     MYFLT bw, cf;
-    
+
     ar   = p->ar;
     asig = p->asig;
     yt1  = (double*) p->y1m.auxp;
-    yt2  = (double*) p->y2m.auxp; 
+    yt2  = (double*) p->y2m.auxp;
 
     if(mod == 0) // serial
        memmove(ar,asig,sizeof(MYFLT)*nsmps);
-    
+
     if (UNLIKELY(offset)) memset(ar, '\0', offset*sizeof(MYFLT));
     if (UNLIKELY(early)) {
       nsmps -= early;
       memset(&ar[nsmps], '\0', early*sizeof(MYFLT));
     }
-    
+
     for (k=j=0; k < ord; j++,k+=2) {
       for (n=offset; n<nsmps; n++) {
         if(mod) x = asig[n]; // parallel
@@ -1194,7 +1194,7 @@ int32_t resonbnk(CSOUND *csound, RESONB *p)
         c3p1 = c3 + 1.0;
         c3t4 = c3 * 4.0;
         omc3 = 1.0 - c3;
-        c2 = c3t4 * cosf / c3p1;     
+        c2 = c3t4 * cosf / c3p1;
         c2sqr = c2 * c2;
         if (p->scale == 1)
           c1 = omc3 * sqrt(1.0 - (c2sqr / c3t4));

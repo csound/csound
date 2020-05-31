@@ -1547,7 +1547,7 @@ inline static int nodePerf(CSOUND *csound, int index, int numThreads)
             while ((opstart = opstart->nxtp) != NULL) {
               /* In case of jumping need this repeat of opstart */
               opstart->insdshead->pds = opstart;
-              csound->op = csound->ids->optext->t.oentry->opname;
+              csound->op = opstart->optext->t.opcod;
               (*opstart->opadr)(csound, opstart); /* run each opcode */
               opstart = opstart->insdshead->pds;
             }
@@ -1582,7 +1582,7 @@ inline static int nodePerf(CSOUND *csound, int index, int numThreads)
               csound->mode = 2;
               while ((opstart = opstart->nxtp) != NULL) {
                 opstart->insdshead->pds = opstart;
-                csound->op = csound->ids->optext->t.oentry->opname;
+                csound->op = opstart->optext->t.opcod;
                 (*opstart->opadr)(csound, opstart); /* run each opcode */
                 opstart = opstart->insdshead->pds;
               }

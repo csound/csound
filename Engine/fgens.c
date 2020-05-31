@@ -3333,8 +3333,7 @@ static int gen53(FGDATA *ff, FUNC *ftp)
       csound->RealFFT(csound, dstftp, dstflen);
       tmpft[0] = dstftp[0];
       for (i = 2, j = 1; i < dstflen; i += 2, j++)
-        tmpft[j] = SQRT(((dstftp[i] * dstftp[i])
-                         + (dstftp[i + 1] * dstftp[i + 1])));
+        tmpft[j] = HYPOT(dstftp[i], dstftp[i + 1]);
       tmpft[j] = dstftp[1];
       csound->Message(csound,Str("GEN 53: impulse response input, "));
       gen53_freq_response_to_ir(csound, dstftp, tmpft, winftp,
