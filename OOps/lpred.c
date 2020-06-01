@@ -1032,7 +1032,7 @@ static int cmpfunc (const void * a, const void * b) {
 int32_t coef2parm(CSOUND *csound, CF2P *p) {
   MYCMPLX *pl;
   MYFLT *c = p->in->data, pm, pf, sum = 0.0;
-  MYFLT *pp = p->out->data;
+  MYFLT *pp = p->out->data, Nyq = csound->esr/2;
   int i,j;
   // simple check for new data
   for(i=0; i< p->M; i++) sum += c[i];
@@ -1048,7 +1048,7 @@ int32_t coef2parm(CSOUND *csound, CF2P *p) {
         pp[j+1] = 0;
       }
       else {
-        if(pf > 0 && j < p->M) {
+        if(pf > 0 && pf < Nyq && j < p->M) {
           pp[j] = pf;
           pp[j+1] = -LOG(pm)*2/csound->tpidsr;
           j += 2;
@@ -1113,7 +1113,7 @@ int32_t resonbnk(CSOUND *csound, RESONB *p)
   int32_t     j, k, ord = p->ord, mod = *p->imod;
   MYFLT       *ar,*asig;
   double      c3p1, c3t4, omc3, c2sqr, cosf,cc2,cc3;
-  double      *yt1, *yt2, c1,*c2,*c3, x, *c2o, *c3o;
+  double      *yt1, *yt2, c1 = 1.,*c2,*c3, x, *c2o, *c3o;
   MYFLT bw, cf;
   MYFLT kcnt = p->kcnt, prd = *p->iprd, interp, fmin = *p->kmin, fmax = *p->kmax;
 
@@ -1164,7 +1164,6 @@ int32_t resonbnk(CSOUND *csound, RESONB *p)
         else if (p->scale == 2)
           c1 = sqrt((c3p1*c3p1-c2sqr) * omc3/c3p1);
       }
-      else c1 = 1.0;
       x = c1 * x + cc2 * yt1[j] - cc3 * yt2[j];
       yt2[j] = yt1[j];
       yt1[j] = x;
