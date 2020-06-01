@@ -217,15 +217,17 @@ extern "C" {
     ARRAYDAT *in;
     int32_t M;
     void *setup;
+    MYFLT sum;
   } CF2P;  
 
   typedef struct {
     OPDS    h;
     MYFLT   *ar, *asig;
     ARRAYDAT *kparm;
-    MYFLT   *imod, *iscl, *istor;
+    MYFLT   *kmin, *kmax, *iprd, *imod, *iscl, *istor;
     int     scale, ord;
-    AUXCH   y1m,y2m;
+    AUXCH   y1m,y2m,y1o,y2o,y1c,y2c;
+    MYFLT kcnt;
   } RESONB;
   
 
