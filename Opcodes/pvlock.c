@@ -1115,8 +1115,8 @@ int32_t am_fm(CSOUND *csound, AMFM *p) {
     }
 
     for (n=offset; n < nsmps; n++) {
-      am[n] = SQRT(re[n]*re[n] + im[n]*im[n]);
-      ph = atan2(im[n], re[n]);
+      am[n] = HYPOT(re[n], im[n]);
+      ph = ATAN2(im[n], re[n]);
       f = ph - oph;
       oph = ph;
       if (f >= PI) f -= 2*PI;
