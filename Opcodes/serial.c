@@ -4,6 +4,8 @@
                         CSOUND SERIAL PORT OPCODES
                           ma++ ingalls, 2011/9/4
                      modified for WIndows John ffitch
+
+                     extenion for ardiuno by John ffitch 2020
  * based on "Arduino-serial"
  * Copyright (c) 2006, Tod E. Kurt, tod@todbot.com
  * http://todbot.com/blog/
@@ -102,7 +104,7 @@ typedef struct SERIAL_GLOBALS_ {
 } SERIAL_GLOBALS;
 
 static HANDLE get_port(CSOUND *csound, int32_t port)
-{
+v{
     HANDLE hport;
     SERIAL_GLOBALS *q;
     q = (SERIAL_GLOBALS*) csound->QueryGlobalVariable(csound,
@@ -463,6 +465,7 @@ int32_t serialPeekByte(CSOUND *csound, SERIALPEEK *p)
     return OK;
 }
 
+/* ********************************************************************** */
 // Support for arduino output via serial line
 
 /* Basic design:  when arduinoStart is called it opens serial line like
@@ -514,26 +517,25 @@ unsigned char arduino_get_byte(int32_t port)
     ssize_t bytes;
  top:
     bytes = read(port, &b, 1);
-    /* if (bytes<0) { */
-    /*   printf("Thread exiting\n"); */
-    /*   pthread_exit(NULL); */
-    /* } */
     if (bytes != 1) goto top;
     //    printf("Read %.3x\n", b);
     return b;
 }
 
+#else
+
 // Attempt at Windows verson
 
-/* unsigned char arduino_get_byte(HANDLE port) */
-/* { */
-/*     unsigned char b; */
-/*  top: */
-/*     size_t bytes; */
-/*     ReadFile(pport, &b, 1, (PDWORD)&bytes, NULL); */
-/*     if (bytes != 1) goto top; */
-/*     return b; */
-/* } */
+unsigned char arduino_get_byte(HANDLE port)
+{
+    unsigned char b;
+ top:
+    size_t bytes;
+    ReadFile(pport, &b, 1, (PDWORD)&bytes, NULL);
+    if (bytes != 1) goto top;
+    return b;
+}
+#endif
 
 uintptr_t arduino_listen(void *p)
 {
@@ -550,11 +552,11 @@ uintptr_t arduino_listen(void *p)
     while (1) {
       unsigned int hi, low;
       if (q->stop)
-#ifndef WIN32      
-        pthread_exit(NULL);
-#else
-      return NULL;
-#endif
+        //#ifndef WIN32
+        //pthread_exit(NULL);
+        //#else
+        return 0;
+      //#endif
       low = arduino_get_byte(q->port);
       if (low == 0xf0) continue; /* start new frame */
       hi = arduino_get_byte(q->port);
@@ -612,6 +614,7 @@ int32_t arduinoStart(CSOUND* csound, ARD_START* p)
     q->thread = csound->CreateThread(arduino_listen, (void *)q);
     csound->RegisterDeinitCallback(csound, p,
                                    (int32_t (*)(CSOUND *, void *)) arduino_deinit);
+    *p->returnedPort = xx;
  return OK;
 }
 
@@ -637,7 +640,21 @@ int32_t arduinoRead(CSOUND* csound, ARD_READ* p)
     //printf("ind %d val %d\n", ind, q->values[ind]);
     return OK;
 }
-#endif
+
+int32_t arduinoStop(CSOUND* csound, ARD_START* p)
+{
+    ARDUINO_GLOBALS *q =
+      (ARDUINO_GLOBALS*) csound->QueryGlobalVariable(csound,
+                                                     "arduinoGlobals_");
+    if (q==NULL)
+      csound->Message(csound, "%s\n", Str("arduino not running"));
+    else {
+      q->stop = 1;
+      csound->JoinThread(q->thread);
+      q->thread = NULL;
+    }
+    return 0;
+}
 
 // End of arduino code
 
@@ -663,10 +680,9 @@ static OENTRY serial_localops[] = {
       (SUBR)NULL, (SUBR)serialPrint, (SUBR)NULL   },
     { (char *)"serialFlush", S(SERIALFLUSH), 0, 2, (char *)"", (char *)"i",
       (SUBR)NULL, (SUBR)serialFlush, (SUBR)NULL   },
-#ifndef WIN32
     { "arduinoStart", S(ARD_START), 0, 1, "i", "So", (SUBR)arduinoStart, NULL  },
     { "arduinoRead", S(ARD_READ), 0, 3, "k", "ik", (SUBR)arduinoReadSetup, (SUBR)arduinoRead  },
-#endif
+    { "arduinoStop", S(ARD_START), 0, 1, "", "i", (SUBR)arduinoStop, NULL  },
 /* { (char *)"serialAvailable", S(SERIALAVAIL), 0, 2, (char *)"k", (char *)"i", */
 /*   (SUBR)NULL, (SUBR)serialAvailable, (SUBR)NULL   }, */
 /* { (char *)"serialPeekByte", S(SERIALPEEK),0,  2, (char *)"k", (char *)"i", */
