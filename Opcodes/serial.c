@@ -104,7 +104,7 @@ typedef struct SERIAL_GLOBALS_ {
 } SERIAL_GLOBALS;
 
 static HANDLE get_port(CSOUND *csound, int32_t port)
-v{
+{
     HANDLE hport;
     SERIAL_GLOBALS *q;
     q = (SERIAL_GLOBALS*) csound->QueryGlobalVariable(csound,
