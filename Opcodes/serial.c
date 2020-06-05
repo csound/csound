@@ -487,8 +487,12 @@ int32_t serialPeekByte(CSOUND *csound, SERIALPEEK *p)
 typedef struct {
     CSOUND  *csound;
     void *thread;
+#ifdef WIN32
+    HANDLE port;
+#else
     int32_t port;
-    void *lock;
+#endif
+  void *lock;
     int stop;
     int32_t values[MAXSENSORS];
 } ARDUINO_GLOBALS;
@@ -531,7 +535,7 @@ unsigned char arduino_get_byte(HANDLE port)
     unsigned char b;
  top:
     size_t bytes;
-    ReadFile(pport, &b, 1, (PDWORD)&bytes, NULL);
+    ReadFile(port, &b, 1, (PDWORD)&bytes, NULL);
     if (bytes != 1) goto top;
     return b;
 }
@@ -607,7 +611,11 @@ int32_t arduinoStart(CSOUND* csound, ARD_START* p)
     p->q = q;
     q->csound = csound;
     q->lock = csound->Create_Mutex(0);
+#ifdef WIN32
+    q->port = get_port(csound, xx);
+#else
     q->port = xx;
+#endif
     for (n=0; n<MAXSENSORS; n++) q->values[n] = 0;
     // Start listening thread
     q->stop = 0;
