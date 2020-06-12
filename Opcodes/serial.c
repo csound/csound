@@ -472,7 +472,7 @@ int32_t serialPeekByte(CSOUND *csound, SERIALPEEK *p)
    serialBegin and also creates a buffer to store incoming values, and a thead
    listen to the input. We use a 0x80 read to synchonise, and each value is
    packed with an index; data only sent if it changes. This can be cancelled
-   with arduinoStop (not written yet).
+   with arduinoStop.
    The arduino opcode checks that there has been a call to arduinoStart and
    with a simple mutex reads the requested value from the buffer.
 
@@ -582,7 +582,8 @@ int32_t arduino_deinit(CSOUND *csound, ARD_START *p)
 {                               /* NOT FINISHED */
     p->q->stop = 1;
     csound->JoinThread(p->q->thread);
-    p->q->thread = NULL;
+    csound->DestroyGlobalVariable(csound, "arduinoGlobals_");
+      p->q = NULL;
     return OK;
 }
 
@@ -659,9 +660,10 @@ int32_t arduinoStop(CSOUND* csound, ARD_START* p)
     else {
       q->stop = 1;
       csound->JoinThread(q->thread);
-      q->thread = NULL;
+      csound->DestroyGlobalVariable(csound, "arduinoGlobals_");
+        //q->thread = NULL;
     }
-    return 0;
+    return OK;
 }
 
 // End of arduino code
