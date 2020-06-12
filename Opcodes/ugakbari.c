@@ -32,8 +32,7 @@
 typedef struct _scale {
   OPDS  h;
   MYFLT *koutval;
-  MYFLT *kinval, *kmax, *kmin;
-  MYFLT *imax, *imin;
+  MYFLT *kinval, *kmax, *kmin, *imax, *imin;
 } scale;
 
 typedef struct _expcurve {

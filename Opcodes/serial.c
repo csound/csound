@@ -510,7 +510,9 @@ typedef struct {
     MYFLT *val;
     MYFLT *port;
     MYFLT *index;
+    MYFLT *ihtim;
     ARDUINO_GLOBALS *q;
+    MYFLT c1, c2, yt1;
 } ARD_READ;
 
 #ifndef WIN32
@@ -633,20 +635,31 @@ int32_t arduinoReadSetup(CSOUND* csound, ARD_READ* p)
                                                       "arduinoGlobals_");
     if (p->q == NULL)
       return csound->InitError(csound, "%s", Str("arduinoStart not running\n"));
+    /* Initialise port filter */
+    if (*p->ihtim != FL(0.0)) {
+      p->c2 = pow(0.5, (double)CS_ONEDKR / *p->ihtim);
+      p->c1 = 1.0 - p->c2;
+      p->yt1 = FL(0.0);
+    } else {
+      p->c2 = FL(0.0); p->c1 = FL(1.0);
+    }
     return OK;
 }
 
 int32_t arduinoRead(CSOUND* csound, ARD_READ* p)
 {
     ARDUINO_GLOBALS *q = p->q;
+    MYFLT val;
     int ind = *p->index;
     if (ind <0 || ind>MAXSENSORS)
       return csound->PerfError(csound, &p->h,
                                "%s", Str("out of range\n"));
     csound->LockMutex(q->lock);
-    *p->val = (MYFLT)q->values[ind];
+    val = (MYFLT)q->values[ind];
     csound->UnlockMutex(q->lock);
     //printf("ind %d val %d\n", ind, q->values[ind]);
+    p->yt1 = p->c1 * val + p->c2 * p->yt1;
+    *p->val = p->yt1;
     return OK;
 }
 
@@ -691,7 +704,7 @@ static OENTRY serial_localops[] = {
     { (char *)"serialFlush", S(SERIALFLUSH), 0, 2, (char *)"", (char *)"i",
       (SUBR)NULL, (SUBR)serialFlush, (SUBR)NULL   },
     { "arduinoStart", S(ARD_START), 0, 1, "i", "So", (SUBR)arduinoStart, NULL  },
-    { "arduinoRead", S(ARD_READ), 0, 3, "k", "ik", (SUBR)arduinoReadSetup, (SUBR)arduinoRead  },
+    { "arduinoRead", S(ARD_READ), 0, 3, "k", "iko", (SUBR)arduinoReadSetup, (SUBR)arduinoRead  },
     { "arduinoStop", S(ARD_START), 0, 1, "", "i", (SUBR)arduinoStop, NULL  },
 /* { (char *)"serialAvailable", S(SERIALAVAIL), 0, 2, (char *)"k", (char *)"i", */
 /*   (SUBR)NULL, (SUBR)serialAvailable, (SUBR)NULL   }, */
