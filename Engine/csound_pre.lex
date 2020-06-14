@@ -86,7 +86,7 @@ DEFINE          #[ \t]*define
 UNDEF           "#undef"
 IFDEF           #ifn?def
 ELSE            #else[ \t]*(;.*)?$
-END             #end(if)?[ \t]*(;.*)?(\n|\r\n?)
+END             #end(if)?[ \t]*(;.*)?
 CONT            \\[ \t]*(;.*)?(\n|\r\n?)
 RESET           "###\n"
 
@@ -851,7 +851,7 @@ void  do_new_include(CSOUND *csound, yyscan_t yyscanner)
       PARM->llocn = PARM->locn;
       corfile_puts(csound, bb, csound->expanded_orc);
     }
-    csound->DebugMsg(csound,"reading mincluded file \"%s\"\n", buffer);
+    csound->DebugMsg(csound,"reading included file \"%s\"\n", buffer);
     if (UNLIKELY(isDir(buffer)))
       csound->Warning(csound, Str("%s is a directory; not including"), buffer);
     if (PARM->path && buffer[0]!=DIRSEP) {

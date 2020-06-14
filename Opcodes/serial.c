@@ -564,12 +564,12 @@ uintptr_t arduino_listen(void *p)
         return 0;
       //#endif
       low = arduino_get_byte(q->port);
-      if (low == 0xf0) continue; /* start new frame */
+      if (low == 0xf8) continue; /* start new frame */
       hi = arduino_get_byte(q->port);
-      if (hi == 0xf0) continue; /* start new frame */
+      if (hi == 0xf8) continue; /* start new frame */
       //printf("low hi = %.2x %.2x\n", low, hi);
       val = ((hi&0xf)<<7) | (low&0x7f);
-      c = (hi>>4)&0x0f;
+      c = (hi>>3)&0x1f;
       //printf("Sensor %d value %d(%.2x)\n", c, val, val);
       // critical region
       csound->LockMutex(q->lock);
@@ -704,7 +704,7 @@ static OENTRY serial_localops[] = {
     { (char *)"serialFlush", S(SERIALFLUSH), 0, 2, (char *)"", (char *)"i",
       (SUBR)NULL, (SUBR)serialFlush, (SUBR)NULL   },
     { "arduinoStart", S(ARD_START), 0, 1, "i", "So", (SUBR)arduinoStart, NULL  },
-    { "arduinoRead", S(ARD_READ), 0, 3, "k", "iko", (SUBR)arduinoReadSetup, (SUBR)arduinoRead  },
+    { "arduinoRead", S(ARD_READ), 0, 3, "k", "iio", (SUBR)arduinoReadSetup, (SUBR)arduinoRead  },
     { "arduinoStop", S(ARD_START), 0, 1, "", "i", (SUBR)arduinoStop, NULL  },
 /* { (char *)"serialAvailable", S(SERIALAVAIL), 0, 2, (char *)"k", (char *)"i", */
 /*   (SUBR)NULL, (SUBR)serialAvailable, (SUBR)NULL   }, */
