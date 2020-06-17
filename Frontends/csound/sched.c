@@ -170,7 +170,11 @@ int set_rt_priority(int argc, const char **argv)
     }
 
     if (rtmode != 7) {          /* all the above are required to enable */
-      ignore_value(setuid(getuid()));         /* error: give up root privileges */
+      if (setuid(getuid()) < 0) {	/* error: give up root privileges */
+        err_msg("csound: Could not drop privileges");
+        return -1;
+      }
+
       if (rtmode & 1) {
         err_msg("csound: --sched requires -d and either -o dac or -o devaudio");
         return -1;
@@ -226,7 +230,10 @@ int set_rt_priority(int argc, const char **argv)
       }
     }
     /* give up root privileges */
-    ignore_value(setuid(getuid()));
+    if (setuid(getuid()) < 0) {
+      err_msg("csound: Could not drop privileges");
+      return -1;
+    }
     return 0;
 }
 
