@@ -30,9 +30,6 @@ cp src/csound.js dist
 cp build/libcsound.js module/src/
 cp build/libcsound-worklet.js module/src/CsoundProcessor.js
 
-
-#echo "AudioWorkletGlobalScope.libcsound = libcsound" >> libcsound.js
-# echo "AudioWorkletGlobalScope.libcsound = libcsound" >> libcsound-worklet.js
 echo "export default libcsound;" >> module/src/libcsound.js
 
 # --post-js does not work with MODULARIZE, use this for ES6 Module 
