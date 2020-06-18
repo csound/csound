@@ -26,22 +26,20 @@ emcc -v -O2 -g4 -DINIT_STATIC_MODULES=0 -s WASM=1 -s ASSERTIONS=0 -s "BINARYEN_M
 
 # node ../convert.js
 
-echo "AudioWorkletGlobalScope.libcsound = libcsound" >> libcsound.js
+#echo "AudioWorkletGlobalScope.libcsound = libcsound" >> libcsound.js
 # echo "AudioWorkletGlobalScope.libcsound = libcsound" >> libcsound-worklet.js
+echo "export default libcsound;" >> libcsound.js
 
 # --post-js does not work with MODULARIZE, use this for ES6 Module 
-echo "export default libcsound;" >> libcsound-worklet.js
+cat ../src/CsoundProcessor.js >> libcsound-worklet.js
 
 
 cd ..
-rm -rf dist
-mkdir dist
-cp src/CsoundProcessor.js dist/
-cp src/CsoundNode.js dist/
-cp src/CsoundScriptProcessorNode.js dist/
-cp src/CsoundObj.js dist/
-cp src/csound.js dist/
-cp build/libcsound.js dist/
-cp build/libcsound-worklet.js dist/
+cp src/csound.js dist 
+cp build/libcsound.js module/src/
+cp build/libcsound-worklet.js module/src/CsoundProcessor.js
 
+cd module
+npm run-script build
 
+cp dist/*.js ../dist/
