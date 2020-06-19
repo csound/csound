@@ -677,6 +677,11 @@ extern "C" {
   PUBLIC int csoundInitialize(int flags);
 
   /**
+   * Sets the opcodedir, needs to be called before creation
+   */
+  PUBLIC void csoundSetOpcodedir(const char *s);
+
+  /**
    * Creates an instance of Csound.  Returns an opaque pointer that
    * must be passed to most Csound API functions.  The hostData
    * parameter can be NULL, or it can be a pointer to any sort of
@@ -700,10 +705,6 @@ extern "C" {
    */
   PUBLIC int csoundGetAPIVersion(void);
 
-  /**
-   * Sets the opcodedir, needs to be called straight after creation
-   */
-  PUBLIC void csoundSetOpcodedir(CSOUND *csound, const char *s);
   
   /** @}*/
 

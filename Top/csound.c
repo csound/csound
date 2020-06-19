@@ -1304,6 +1304,11 @@ PUBLIC int csoundInitialize(int flags)
     return 0;
   }
 
+static char *opcodedir = NULL;
+
+PUBLIC void csoundSetOpcodedir(const char *s) {
+  opcodedir = (char *) s;
+}
 
 
 PUBLIC CSOUND *csoundCreate(void *hostdata)
@@ -1330,6 +1335,7 @@ PUBLIC CSOUND *csoundCreate(void *hostdata)
     p->csound = csound;
     p->nxt = (csInstance_t*) instance_list;
     instance_list = p;
+    csound->opcodedir = cs_strdup(csound, opcodedir);
     csoundUnLock();
     csoundReset(csound);
     csound->API_lock = csoundCreateMutex(1);
@@ -3391,9 +3397,6 @@ PUBLIC int csoundGetModule(CSOUND *csound, int no, char **module, char **type){
     return CSOUND_SUCCESS;
 }
 
-PUBLIC void csoundSetOpcodedir(CSOUND *csound, const char *s) {
-  csound->opcodedir = cs_strdup(csound, (char *) s);
-}
 
 PUBLIC void csoundReset(CSOUND *csound)
 {
@@ -3407,8 +3410,6 @@ PUBLIC void csoundReset(CSOUND *csound)
      /* and reset */
       csound->Message(csound, "resetting Csound instance\n");
       reset(csound);
-      // opcodedir setting is persistent **experimental**
-      csound->opcodedir = opcodedir;
       /* clear compiled flag */
       csound->engineStatus |= ~(CS_STATE_COMP);
     } else {
@@ -3472,6 +3473,8 @@ PUBLIC void csoundReset(CSOUND *csound)
         csound->Die(csound, Str("Failed during csoundLoadModules"));
 
       /* VL: moved here from main.c */
+      // opcodedir setting is persistent **experimental**
+      csound->opcodedir = opcodedir;
       if (csoundInitModules(csound) != 0)
             csound->LongJmp(csound, 1);
 
