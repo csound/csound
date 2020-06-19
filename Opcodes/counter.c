@@ -26,11 +26,11 @@
 
 /* Structure of a counter */
 typedef struct {
-  int32_t	val;
-  int32_t	max;
-  int32_t	min;
-  int32_t	inc;
-  int32_t	cycles;
+  MYFLT	val;
+  MYFLT	max;
+  MYFLT	min;
+  MYFLT	inc;
+  int	cycles;
 } COUNT;
 
 /* for create counter ocde */
@@ -46,6 +46,13 @@ typedef struct {
   MYFLT         *icnt;
   COUNT         *cnt;
 } COUNTER;
+
+typedef struct {
+  OPDS		h;
+  MYFLT         *max, *min, *inc;
+  MYFLT         *icnt;
+  COUNT         *cnt;
+} CNTSTATE;
 
 
 /* Global structurefor all counters */
@@ -66,7 +73,8 @@ static int32_t setcnt(CSOUND *csound, CNTSET *p)
       if (UNLIKELY(csound->CreateGlobalVariable(csound, "counterGlobals_",
                                                     sizeof(CNT_GLOBALS)) != 0))
         return
-          csound->InitError(csound, "%s", Str("counter: failed to allocate globals"));
+          csound->InitError(csound, "%s",
+                            Str("counter: failed to allocate globals"));
       q = (CNT_GLOBALS*)csound->QueryGlobalVariable(csound, "counterGlobals_");
       q->max_num = 10;
       q->cnts = (COUNT**)csound->Calloc(csound, 10*sizeof(COUNT*));
@@ -74,18 +82,19 @@ static int32_t setcnt(CSOUND *csound, CNTSET *p)
     if (q->max_num >= q->used) {
       COUNT** tt = q->cnts;
       tt = (COUNT**)csound->ReAlloc(csound,
-                                        tt, (q->max_num+10)*sizeof(COUNT*));
+                                    tt, (q->max_num+10)*sizeof(COUNT*));
       if (tt == NULL)
-        return csound->InitError(csound, "%s", Str("Failed to allocate counters\n"));
+        return csound->InitError(csound, "%s",
+                                 Str("Failed to allocate counters\n"));
       q->cnts = tt;
       q->max_num += 10;
     }
     q->cnts[q->used] = (COUNT*)csound->Calloc(csound,sizeof(COUNT));
     y = q->cnts[q->used];
     y->val = 0;
-    y->min = (int)*p->min;
-    y->max = (int)*p->max;
-    y->inc = (int)*p->inc;
+    y->min = *p->min;
+    y->max = *p->max;
+    y->inc = *p->inc;
     *p->res = (MYFLT)q->used;
     ++(q->used);
     return OK;
@@ -125,11 +134,42 @@ static int32_t count_perf(CSOUND *csound, COUNTER *p)
     return OK;
 }
 
+static int32_t count_cycles(CSOUND *csound, COUNTER* p)
+{
+    *p->res = p->cnt->cycles;
+    return OK;
+}
+
+static int32_t count_read(CSOUND *csound, COUNTER* p)
+{
+    *p->res = p->cnt->val;
+    return OK;
+}
+
+static int32_t count_init3(CSOUND *csound, CNTSTATE *p)
+{
+    COUNT* q = find_counter(csound, (int)*p->icnt);
+    if (q==NULL) return NOTOK;
+    p->cnt = q;
+    return OK;
+}
+
+static int32_t count_state(CSOUND *csound, CNTSTATE *p)
+{
+    *p->max = p->cnt->max;
+    *p->min = p->cnt->min;
+    *p->inc = p->cnt->inc;
+    return OK;
+}
+
 #define S(x)    sizeof(x)
 
 static OENTRY counter_localops[] = {
   { "cntCreate", S(CNTSET), 0, 1, "i", "pop", (SUBR)setcnt, NULL, NULL   },
-    { "count", S(COUNTER), 0, 3, "k", "o", (SUBR)count_init, (SUBR)count_perf },
+  { "count", S(COUNTER), SK, 3, "k", "o", (SUBR)count_init, (SUBR)count_perf },
+  { "cntCycles", S(COUNTER), SK, 3, "k", "o", (SUBR)count_init, (SUBR)count_cycles },
+  { "cntRead", S(COUNTER), SK, 3, "k", "o", (SUBR)count_init, (SUBR)count_read },
+  { "cntState", S(CNTSTATE), SK, 3, "kkk", "o", (SUBR)count_init3, (SUBR)count_state },
  };
 
 LINKAGE_BUILTIN(counter_localops)
