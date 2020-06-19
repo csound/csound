@@ -20,6 +20,7 @@ option(BUILD_STACK_OPCODES "Build the stack opcodes" ON)
 option(BUILD_LINEAR_ALGEBRA_OPCODES "Build the linear algebra opcodes" ON)
 option(BUILD_PVSGENDY_OPCODE "Build the pvsgendy opcode" OFF)
 option(BUILD_MP3OUT_OPCODE "Build the mp3out opcode" ON)
+option(BUILD_COUNTER_OPCODES "Build the serial opcode" ON)
 
 message(STATUS "## Building Opcodes ##")
 include(CheckIncludeFiles)
@@ -119,6 +120,10 @@ endif()
 
 
 make_plugin(cellular cellular.c)
+
+if(BUILD_COUNTER_OPCODES)
+   make_plugin(counter counter.c)
+endif()
 
 if(BUILD_SERIAL_OPCODES)
    make_plugin(serial serial.c)
