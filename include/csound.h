@@ -699,6 +699,12 @@ extern "C" {
    * Returns the API version number times 100 (1.00 = 100).
    */
   PUBLIC int csoundGetAPIVersion(void);
+
+  /**
+   * Sets the opcodedir, needs to be called straight after creation
+   */
+  PUBLIC void csoundSetOpcodedir(CSOUND *csound, const char *s);
+  
   /** @}*/
 
   /** @defgroup PERFORMANCE Performance

@@ -997,7 +997,8 @@ static const CSOUND cenviron_ = {
     NULL,            /* message_string_queue */
     0,              /* io_initialised */
     NULL,           /* op */
-    0               /* mode */
+    0,               /* mode */
+    NULL             /* opcodedir */
 };
 
 void csound_aops_init_tables(CSOUND *cs);
@@ -1014,6 +1015,7 @@ static  volatile  int init_done = 0;
 static  volatile  csInstance_t  *instance_list = NULL;
 /* non-zero if performance should be terminated now */
 static  volatile  int exitNow_ = 0;
+
 
 #if !defined(WIN32)
 static void destroy_all_instances(void)
@@ -1301,6 +1303,8 @@ PUBLIC int csoundInitialize(int flags)
     csoundUnLock();
     return 0;
   }
+
+
 
 PUBLIC CSOUND *csoundCreate(void *hostdata)
 {
@@ -3387,17 +3391,24 @@ PUBLIC int csoundGetModule(CSOUND *csound, int no, char **module, char **type){
     return CSOUND_SUCCESS;
 }
 
+PUBLIC void csoundSetOpcodedir(CSOUND *csound, const char *s) {
+  csound->opcodedir = cs_strdup(csound, (char *) s);
+}
 
 PUBLIC void csoundReset(CSOUND *csound)
 {
     char    *s;
     int     i, max_len;
     OPARMS  *O = csound->oparms;
+    char *opcodedir = csound->opcodedir;
+    
     if (csound->engineStatus & CS_STATE_COMP ||
         csound->engineStatus & CS_STATE_PRE) {
      /* and reset */
       csound->Message(csound, "resetting Csound instance\n");
       reset(csound);
+      // opcodedir setting is persistent **experimental**
+      csound->opcodedir = opcodedir;
       /* clear compiled flag */
       csound->engineStatus |= ~(CS_STATE_COMP);
     } else {
