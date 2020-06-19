@@ -246,10 +246,11 @@ int32_t fftset(CSOUND *csound, DSPFFT *p) /* fftset, dspfft -- calc Fast Fourier
 
     window_size = (int32_t)*p->inpts;
     if (UNLIKELY(window_size > WINDMAX)) {
-      return csound->InitError(csound, Str("too many points requested"));
+      return csound->InitError(csound, Str("too many points requested (%d)"), window_size);
     }
     if (UNLIKELY(window_size < WINDMIN)) {
-      return csound->InitError(csound, Str("too few points requested"));
+      return csound->InitError(csound, Str("too few points requested (%d), minimum is %d"), 
+                               window_size, WINDMIN);
     }
     if (UNLIKELY(window_size < 1L || (window_size & (window_size - 1L)) != 0L)) {
       return csound->InitError(csound, Str("window size must be power of two"));
