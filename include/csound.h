@@ -677,7 +677,7 @@ extern "C" {
   PUBLIC int csoundInitialize(int flags);
 
   /**
-   * Sets the opcodedir, needs to be called before creation
+   * Sets an opcodedir override for csoundCreate()
    */
   PUBLIC void csoundSetOpcodedir(const char *s);
 
@@ -689,6 +689,11 @@ extern "C" {
    * that is passed to callback routines.
    */
   PUBLIC CSOUND *csoundCreate(void *hostData);
+
+  /**
+   *  Loads all plugins from a given directory 
+   */
+  PUBLIC int csoundLoadPlugins(CSOUND *csound, const char *dir);
 
   /**
    * Destroys an instance of Csound.

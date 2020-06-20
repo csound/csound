@@ -552,6 +552,7 @@ int csoundLoadModules(CSOUND *csound)
 #endif  /* HAVE_DIRENT_H */
 }
 
+
 static int cmp_func(const void *p1, const void *p2)
 {
     return (strcmp(*((const char**) p1), *((const char**) p2)));
@@ -697,6 +698,149 @@ int csoundLoadAndInitModule(CSOUND *csound, const char *fname)
     memcpy((void*) &csound->exitjmp, (void*) &tmpExitJmp, sizeof(jmp_buf));
 
     return err;
+}
+
+int csoundLoadAndInitModules(CSOUND *csound, const char *opdir)
+{
+#if (defined(HAVE_DIRENT_H) && (TARGET_OS_IPHONE == 0))
+    DIR             *dir;
+    struct dirent   *f;
+    const char      *dname, *fname;
+    char            buf[1024];
+    int             i, n, len, err = CSOUND_SUCCESS;
+    char   *dname1, *end;
+    int     read_directory = 1;
+    char sep =
+#ifdef WIN32
+    ';';
+#else
+    ':';
+#endif
+#ifdef __HAIKU__
+        int dfltdir = 0;
+#endif
+
+    if (UNLIKELY(csound->csmodule_db != NULL))
+      return CSOUND_ERROR;
+
+    /* open plugin directory */
+    dname = csoundGetEnv(csound, (sizeof(MYFLT) == sizeof(float) ?
+                                  plugindir_envvar : plugindir64_envvar));
+    if (dname == NULL) {
+#if ENABLE_OPCODEDIR_WARNINGS
+      csound->opcodedirWasOK = 0;
+#  ifdef USE_DOUBLE
+      dname = csoundGetEnv(csound, plugindir_envvar);
+      if (dname == NULL)
+#  endif
+#endif
+#ifdef  CS_DEFAULT_PLUGINDIR
+        dname = CS_DEFAULT_PLUGINDIR;
+ #ifdef __HAIKU__
+                dfltdir = 1;
+ #endif
+#else
+      dname = "";
+#endif
+    }
+  
+    if (opdir != NULL) {
+      dname = opdir;
+    }
+    
+    /* We now loop through the directory list */
+    while(read_directory) {
+      /* find separator */
+    if((end = strchr(dname, sep)) != NULL) {
+      *end = '\0';
+      /* copy directory name */
+      dname1 = cs_strdup(csound, (char *) dname);
+      *end = sep;  /* restore for re-execution */
+      /* move to next directory name */
+      dname = end + 1;
+    } else {
+      /* copy last directory name) */
+      dname1 = cs_strdup(csound, (char *) dname);
+      read_directory = 0;
+    }
+
+    /* protect for the case where there is an
+       extra separator at the end */
+    if(*dname1 == '\0') {
+      csound->Free(csound, dname1);
+      break;
+    }
+
+    dir = opendir(dname1);
+    if (UNLIKELY(dir == (DIR*) NULL)) {
+ #if defined(__HAIKU__)
+        if(!dfltdir)
+ #endif
+      csound->Warning(csound, Str("Error opening plugin directory '%s': %s"),
+                               dname1, strerror(errno));
+      csound->Free(csound, dname1);
+      continue;
+    }
+
+    if(UNLIKELY(csound->oparms->odebug))
+      csound->Message(csound, "Opening plugin directory: %s\n", dname1);
+    /* load database for deferred plugin loading */
+/*     n = csoundLoadOpcodeDB(csound, dname); */
+/*     if (n != 0) */
+/*       return n; */
+    /* scan all files in directory */
+    while ((f = readdir(dir)) != NULL) {
+      fname = &(f->d_name[0]);
+      if (UNLIKELY(fname[0]=='_')) continue;
+      n = len = (int) strlen(fname);
+      if (UNLIKELY(fname[0]=='_')) continue;
+#if defined(WIN32)
+      strcpy(buf, "dll");
+      n -= 4;
+#elif defined(__MACH__)
+      strcpy(buf, "dylib");
+      n -= 6;
+#else
+      strcpy(buf, "so");
+      n -= 3;
+#endif
+      if (n <= 0 || fname[n] != '.')
+        continue;
+      i = 0;
+      do {
+        if (UNLIKELY((fname[++n] | (char) 0x20) != buf[i]))
+          break;
+      } while (buf[++i] != '\0');
+      if (buf[i] != '\0')
+        continue;
+      /* found a dynamic library, attempt to open it */
+      if (UNLIKELY(((int) strlen(dname) + len + 2) > 1024)) {
+        csound->Warning(csound, Str("path name too long, skipping '%s'"),
+                                fname);
+        continue;
+      }
+      /* printf("DEBUG %s(%d): possibly deny %s\n", __FILE__, __LINE__,fname); */
+      if (UNLIKELY(csoundCheckOpcodeDeny(csound, fname))) {
+        csoundWarning(csound, Str("Library %s omitted\n"), fname);
+        continue;
+      }
+      snprintf(buf, 1024, "%s%c%s", dname1, DIRSEP, fname);
+      if (UNLIKELY(csound->oparms->odebug)) {
+        csoundMessage(csound, Str("Loading '%s'\n"), buf);
+       }
+      n = csoundLoadAndInitModule(csound, buf);
+      if (UNLIKELY(UNLIKELY(n == CSOUND_ERROR)))
+        continue;               /* ignore non-plugin files */
+      if (UNLIKELY(n < err))
+        err = n;                /* record serious errors */
+    }
+    closedir(dir);
+    csound->Free(csound, dname1);
+    }
+    return (err == CSOUND_INITIALIZATION ? CSOUND_ERROR : err);
+#else
+    return CSOUND_SUCCESS;
+#endif  /* HAVE_DIRENT_H */
 }
 
 /**

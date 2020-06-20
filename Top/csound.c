@@ -3397,13 +3397,24 @@ PUBLIC int csoundGetModule(CSOUND *csound, int no, char **module, char **type){
     return CSOUND_SUCCESS;
 }
 
+PUBLIC int csoundLoadPlugins(CSOUND *csound, const char *dir){
+  if (dir != NULL) {
+   int err = csoundLoadAndInitModules(csound, dir);
+   if(!err) {
+     csound->Message(csound, "loaded plugins from %s\n", dir);
+     return CSOUND_SUCCESS;
+  }
+  else return err;
+  }
+  else return CSOUND_ERROR;
+}
 
 PUBLIC void csoundReset(CSOUND *csound)
 {
     char    *s;
     int     i, max_len;
     OPARMS  *O = csound->oparms;
-    char *opcodedir = csound->opcodedir;
+    char *opdir = csound->opcodedir;
     
     if (csound->engineStatus & CS_STATE_COMP ||
         csound->engineStatus & CS_STATE_PRE) {
@@ -3462,7 +3473,9 @@ PUBLIC void csoundReset(CSOUND *csound)
      char *modules = (char *) csoundQueryGlobalVariable(csound, "_MODULES");
      memset(modules, 0, sizeof(MODULE_INFO *)*MAX_MODULES);
 
-      err = csoundLoadModules(csound);
+     /* VL now load modules has opcodedir override */
+     csound->opcodedir = opdir;
+     err = csoundLoadModules(csound);
       if (csound->delayederrormessages &&
           csound->printerrormessagesflag==NULL) {
         csound->Warning(csound, "%s", csound->delayederrormessages);
@@ -3471,12 +3484,10 @@ PUBLIC void csoundReset(CSOUND *csound)
       }
       if (UNLIKELY(err != CSOUND_SUCCESS))
         csound->Die(csound, Str("Failed during csoundLoadModules"));
-
-      /* VL: moved here from main.c */
-      // opcodedir setting is persistent **experimental**
-      csound->opcodedir = opcodedir;
+     
       if (csoundInitModules(csound) != 0)
             csound->LongJmp(csound, 1);
+    
 
       init_pvsys(csound);
       /* utilities depend on this as well as orchs; may get changed by an orch */
