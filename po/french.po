@@ -1919,9 +1919,8 @@ msgid "parser: failed to open input file %s\n"
 msgstr "parser : l'ouverture du fichier d'entrée %s a échoué\n"
 
 #: Engine/new_orc_parser.c:199
-#, fuzzy
 msgid "Unmatched #ifdef or #ifndef\n"
-msgstr "#ifdef non apparié\n"
+msgstr "#ifdef ou #ifndef non apparié\n"
 
 #: Engine/new_orc_parser.c:241
 msgid "Parsing successful!\n"
@@ -4636,14 +4635,14 @@ msgid "display: not initialised"
 msgstr "affichage : non initialisé"
 
 #: OOps/disprep.c:249
-#, fuzzy, c-format
+#, c-format
 msgid "too many points requested (%d)"
-msgstr "trop de points demandés"
+msgstr "trop de points demandés (%d)"
 
 #: OOps/disprep.c:252
-#, fuzzy, c-format
+#, c-format
 msgid "too few points requested (%d), minimum is %d"
-msgstr "pas assez de points demandés"
+msgstr "pas assez de points demandés (%d), le minimum est %d"
 
 #: OOps/disprep.c:256
 msgid "window size must be power of two"
@@ -9885,39 +9884,32 @@ msgid "Nothing to close"
 msgstr "Rien à fermer"
 
 #: Opcodes/serial.c:602
-#, fuzzy
 msgid "failed to open serial line\n"
-msgstr "L'ouverture du fichier %s a échoué\n"
+msgstr "l'ouverture d'une ligne série a échoué\n"
 
 #: Opcodes/serial.c:606
-#, fuzzy
 msgid "arduinoStart already running\n"
-msgstr "Serveur UDP : s'exécute déjà"
+msgstr "arduinoStart s'exécute déjà\n"
 
 #: Opcodes/serial.c:610
-#, fuzzy
 msgid "arduino: failed to allocate globals"
-msgstr "zakinit : échec de l'allocation des variables globales"
+msgstr "arduino : échec de l'allocation des variables globales"
 
 #: Opcodes/serial.c:613
-#, fuzzy
 msgid "Failed to allocate\n"
-msgstr "L'allocation de set a échoué"
+msgstr "L'allocation a échoué\n"
 
 #: Opcodes/serial.c:637
-#, fuzzy
 msgid "arduinoStart not running\n"
-msgstr "OSC n'est pas actif"
+msgstr "arduinoStart n'est pas actif\n"
 
 #: Opcodes/serial.c:656
-#, fuzzy
 msgid "out of range\n"
-msgstr "harmon : hors limites\n"
+msgstr "hors limites\n"
 
 #: Opcodes/serial.c:672
-#, fuzzy
 msgid "arduino not running"
-msgstr "OSC n'est pas actif"
+msgstr "arduino n'est pas actif"
 
 #: Opcodes/sfont.c:115
 #, c-format
@@ -10605,9 +10597,8 @@ msgid "tabsum: Not initialised"
 msgstr "tabsum : non initialisé"
 
 #: Opcodes/ugakbari.c:72
-#, fuzzy
 msgid "Invalid range in scale"
-msgstr "nom de variable non valide"
+msgstr "Etendue non valide dans l'échelle"
 
 #: Opcodes/ugens7.c:46 Opcodes/ugensa.c:49
 msgid "illegal value for iolaps"
@@ -15150,7 +15141,7 @@ msgstr "-a\t\tfichier de stockage alternatif (pôles)"
 
 #: util/lpanal.c:989
 msgid "-n\t\t use Durbin method for linear prediction"
-msgstr ""
+msgstr "-n\t\t utilise la méthode de Durbin pour la prédiction linéaire"
 
 #: util/lpanal.c:990 util/mixer.c:117
 msgid "-- fname\tLog output to file"
