@@ -187,6 +187,7 @@ NamedGen._fields_ = [
     ("next", ct.POINTER(NamedGen))]
 
 
+libcsound.csoundSetOpcodedir.argtypes = [ct.c_char_p]
 libcsound.csoundCreate.restype = ct.c_void_p
 libcsound.csoundCreate.argtypes = [ct.py_object]
 
@@ -664,6 +665,9 @@ def csoundInitialize(flags):
     """
     return libcsound.csoundInitialize(flags)
 
+def setOpcodedir(s):
+	"""Sets the opcodedir, needs to be called before creation."""
+	libcsound.csoundSetOpcodedir(cstring(s))
 
 class Csound:
     #Instantiation
