@@ -269,6 +269,7 @@ static const char *longUsageList[] = {
   Str_noop("--sched                 set real-time scheduling priority and "
                                    "lock memory"),
   Str_noop("--sched=N               set priority to N and lock memory"),
+  Str_noop("--opcode-dir=DIR        load all plugins from DIR"),
   Str_noop("--opcode-lib=NAMES      dynamic libraries to load"),
   Str_noop("--opcode-omit=NAMES     dynamic libraries not to load"),
   Str_noop("--omacro:XXX=YYY        set orchestra macro XXX to value YYY"),
@@ -996,6 +997,11 @@ static int decode_long(CSOUND *csound, char *s, int argc, char **argv)
       s += 18;
       O->midiVelocityAmp = atoi(s);
       return 1;
+    }
+    else if (!(strncmp (s, "opcode-dir=", 11))){
+        s += 11;
+        csoundLoadPlugins(csound, s);
+        return 1;
     }
     else if (!(strncmp (s, "opcode-lib=", 11))) {
       int   nbytes;
