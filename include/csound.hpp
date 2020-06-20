@@ -117,6 +117,9 @@ public:
   {
     return csoundInitializeCscore(csound, insco, outsco);
   }
+  virtual int LoadPlugins(const char *dir){
+    return csoundLoadPlugins(csound, dir);
+  }
   virtual int GetVersion()
   {
     return csoundGetVersion();
