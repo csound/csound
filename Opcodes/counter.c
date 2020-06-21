@@ -134,6 +134,12 @@ static int32_t count_perf(CSOUND *csound, COUNTER *p)
     return OK;
 }
 
+static int32_t count_init_perf(CSOUND *csound, COUNTER *p)
+{
+    if (count_init(csound,p)==OK) return count_perf(csound,p);
+    return NOTOK;
+}
+
 static int32_t count_cycles(CSOUND *csound, COUNTER* p)
 {
     *p->res = p->cnt->cycles;
@@ -167,6 +173,7 @@ static int32_t count_state(CSOUND *csound, CNTSTATE *p)
 static OENTRY counter_localops[] = {
   { "cntCreate", S(CNTSET), 0, 1, "i", "pop", (SUBR)setcnt, NULL, NULL   },
   { "count", S(COUNTER), SK, 3, "k", "o", (SUBR)count_init, (SUBR)count_perf },
+  { "count_i", S(COUNTER), SK, 1, "i", "o", (SUBR)count_init_perf, NULL },
   { "cntCycles", S(COUNTER), SK, 3, "k", "o", (SUBR)count_init, (SUBR)count_cycles },
   { "cntRead", S(COUNTER), SK, 3, "k", "o", (SUBR)count_init, (SUBR)count_read },
   { "cntState", S(CNTSTATE), SK, 3, "kkk", "o", (SUBR)count_init3, (SUBR)count_state },
