@@ -797,6 +797,13 @@ set_source_files_properties(Opcodes/sfont.c PROPERTIES
     COMPILE_FLAGS -mno-ms-bitfields)
 endif()
 
+if(NOT MSVC)
+set_source_files_properties(Opcodes/sfont.c PROPERTIES
+  COMPILE_FLAGS -Wno-address-of-packed-member)
+endif()
+
+
+
 set(stdopcod_SRCS
     Opcodes/ambicode.c
     Opcodes/bbcut.c
