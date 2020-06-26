@@ -2209,38 +2209,73 @@ typedef struct {
     MYFLT *out;
     int extracycles;
     int numcycles;
-    // 0: has extra time, 1: no extrat time, use numcycles
+    // 0 - tied note, has extra time;
+    // 1 - fixed p3, no extra time
+    // 2 - fixed p3, extra time
     int mode;
+    int fired;
 } LASTCYCLE;
 
 static int32_t
 lastcycle_init(CSOUND *csound, LASTCYCLE *p) {
-    p->extracycles = p->h.insdshead->xtratim;
     MYFLT p3 = p->h.insdshead->p3.value;
-    p->numcycles =
-      p3 > 0 ? (int)(p->h.insdshead->offtim * csound->GetKr(csound) + 0.5) : 0;
-    if(p->extracycles == 0) {
-        p->numcycles += p->extracycles;
-    }
-    if(p->extracycles > 0 || p3 < 0)
+    p->numcycles = p3 < 0 ? 0 :
+        (int)(p->h.insdshead->offtim * csound->GetKr(csound) + 0.5);
+    p->extracycles = p->h.insdshead->xtratim;
+    p->numcycles += p->extracycles;
+    if(p3 < 0) {
+        if(p->extracycles == 0) {
+            return INITERR("p3 is negative and no extra time allocated (linsegr, xtratim, etc)"
+                           ". lastcycle will never fire");
+        }
         p->mode = 0;
-    else
+    }
+    else if (p->extracycles > 0) {
+        p->mode = 2;
+    } else {
+        MSG("lastcycle: no extra time defined, turnoff2 will not be detected\n");
         p->mode = 1;
+    }
     *p->out = 0;
+    p->fired = 0;
+    printf("mode: %d\n",p->mode);
     return OK;
 }
 
 static int32_t
 lastcycle(CSOUND *csound, LASTCYCLE *p) {
     IGN(csound);
-    if(p->mode == 1) {
+    if(p->fired == 1) {
+        *p->out = 0;
+        return OK;
+    }
+    switch(p->mode) {
+    case 1:
         p->numcycles--;
-        if(p->numcycles == 0)
+        if(p->numcycles == 0) {
             *p->out = 1;
-    } else if (p->h.insdshead->relesing) {
-        p->extracycles -= 1;
-        if(p->extracycles == 0)
+            p->fired = 1;
+        }
+        break;
+    case 2:
+        p->numcycles--;
+        if(p->h.insdshead->relesing) {
+            p->extracycles--;
+        }
+        if(p->numcycles == 0 || p->extracycles == 0) {
             *p->out = 1;
+            p->fired = 1;
+        }
+        break;
+    case 0:
+        if (p->h.insdshead->relesing) {
+            p->extracycles -= 1;
+            if(p->extracycles == 0) {
+                *p->out = 1;
+                p->fired = 1;
+            }
+        }
+        break;
     }
     return OK;
 }
