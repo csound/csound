@@ -2232,7 +2232,7 @@ lastcycle_init(CSOUND *csound, LASTCYCLE *p) {
     else if (p->extracycles > 0) {
         p->mode = 2;
     } else {
-        MSG(Str("lastcycle: no extra time defined, turnoff2 will not be detected\n"));
+      csound->Message(csound, "%s", Str("lastcycle: no extra time defined, turnoff2 will not be detected\n"));
         p->mode = 1;
     }
     *p->out = 0;
