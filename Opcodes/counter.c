@@ -152,6 +152,12 @@ static int32_t count_read(CSOUND *csound, COUNTER* p)
     return OK;
 }
 
+static int32_t count_reset(CSOUND *csound, COUNTER* p)
+{
+    p->cnt->val = p->cnt->min;
+    return OK;
+}
+
 static int32_t count_init3(CSOUND *csound, CNTSTATE *p)
 {
     COUNT* q = find_counter(csound, (int)*p->icnt);
@@ -176,6 +182,7 @@ static OENTRY counter_localops[] = {
   { "count_i", S(COUNTER), SK, 1, "i", "o", (SUBR)count_init_perf, NULL },
   { "cntCycles", S(COUNTER), SK, 3, "k", "o", (SUBR)count_init, (SUBR)count_cycles },
   { "cntRead", S(COUNTER), SK, 3, "k", "o", (SUBR)count_init, (SUBR)count_read },
+  { "cntReset", S(COUNTER), SK, 3, "", "o", (SUBR)count_init, (SUBR)count_reset },
   { "cntState", S(CNTSTATE), SK, 3, "kkk", "o", (SUBR)count_init3, (SUBR)count_state },
  };
 
