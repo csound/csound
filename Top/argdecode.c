@@ -882,6 +882,12 @@ static int decode_long(CSOUND *csound, char *s, int argc, char **argv)
       return 1;
     }
     /* -t0 */
+    else if (!(strncmp(s, "keep-sorted-score=", 18))) {
+      s += 18;
+      csound->score_srt = s;
+      csound->keep_tmp= 1;
+      return 1;
+    }
     else if (!(strcmp (s, "keep-sorted-score"))) {
       csound->keep_tmp= 1;
       return 1;

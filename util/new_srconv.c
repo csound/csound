@@ -192,6 +192,7 @@ int main(int argc, char **argv)
     sf_count_t  flen;
 
     outformat = SF_FORMAT_PCM_16;
+    filetyp = SF_FORMAT_WAV;
 
     if ((envoutyp = getenv("SFOUTYP")) != NULL) {
       if (strcmp(envoutyp, "AIFF") == 0)

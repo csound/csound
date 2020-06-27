@@ -1,20 +1,15 @@
 /*
     main.c:
-
     Copyright (C) 1991-2002 Barry Vercoe, John ffitch
-
     This file is part of Csound.
-
     The Csound Library is free software; you can redistribute it
     and/or modify it under the terms of the GNU Lesser General Public
     License as published by the Free Software Foundation; either
     version 2.1 of the License, or (at your option) any later version.
-
     Csound is distributed in the hope that it will be useful,
     but WITHOUT ANY WARRANTY; without even the implied warranty of
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
     GNU Lesser General Public License for more details.
-
     You should have received a copy of the GNU Lesser General Public
     License along with Csound; if not, write to the Free Software
     Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
@@ -164,6 +159,7 @@ PUBLIC int csoundCompileArgs(CSOUND *csound, int argc, const char **argv)
     volatile int     csdFound = 0;
     volatile int ac = argc;
     char    *fileDir;
+    volatile int     compiledOk = 0;
 
 
     if ((n = setjmp(csound->exitjmp)) != 0) {
@@ -322,6 +318,9 @@ PUBLIC int csoundCompileArgs(CSOUND *csound, int argc, const char **argv)
                                       "Csound will start with no instruments"));
        }
     }
+    else {
+      compiledOk = 1;
+    }
     csound->modules_loaded = 1;
 
     s = csoundQueryGlobalVariable(csound, "_RTMIDI");
@@ -359,8 +358,7 @@ PUBLIC int csoundCompileArgs(CSOUND *csound, int argc, const char **argv)
       scsortstr(csound, csound->scorestr);
       //printf("*** keep_tmp = %d\n", csound->keep_tmp);
       if (csound->keep_tmp) {
-        FILE *ff = fopen((csound->score_srt==NULL ? "score.srt": csound->score_srt),
-                         "w");
+        FILE *ff = fopen("score.srt", "w");
         if (csound->keep_tmp==1)
           fputs(corfile_body(csound->scstr), ff);
         else
@@ -385,7 +383,10 @@ PUBLIC int csoundCompileArgs(CSOUND *csound, int argc, const char **argv)
     print_benchmark_info(csound, Str("end of score sort"));
     if (O->syntaxCheckOnly) {
       csound->Message(csound, Str("Syntax check completed.\n"));
-      return CSOUND_EXITJMP_SUCCESS;
+      // return CSOUND_EXITJMP_SUCCESS;
+      if (compiledOk)
+          return CSOUND_EXITJMP_SUCCESS;
+      return CSOUND_ERROR;
     }
     return CSOUND_SUCCESS;
 }
