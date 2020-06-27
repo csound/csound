@@ -269,7 +269,7 @@ static const char *longUsageList[] = {
   Str_noop("--sched                 set real-time scheduling priority and "
                                    "lock memory"),
   Str_noop("--sched=N               set priority to N and lock memory"),
-  Str_noop("--opcode-dir=DIR        load all plugins from DIR"),
+  Str_noop("--opcode-dir=DIR        load all plugins from DIR"), 
   Str_noop("--opcode-lib=NAMES      dynamic libraries to load"),
   Str_noop("--opcode-omit=NAMES     dynamic libraries not to load"),
   Str_noop("--omacro:XXX=YYY        set orchestra macro XXX to value YYY"),
