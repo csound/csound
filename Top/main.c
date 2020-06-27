@@ -321,6 +321,8 @@ PUBLIC int csoundCompileArgs(CSOUND *csound, int argc, const char **argv)
           csound->Warning(csound, Str("cannot compile orchestra.\n"
                                       "Csound will start with no instruments"));
        }
+    } else {
+      compiledOk = 1;
     }
     csound->modules_loaded = 1;
 
@@ -385,7 +387,9 @@ PUBLIC int csoundCompileArgs(CSOUND *csound, int argc, const char **argv)
     print_benchmark_info(csound, Str("end of score sort"));
     if (O->syntaxCheckOnly) {
       csound->Message(csound, Str("Syntax check completed.\n"));
-      return CSOUND_EXITJMP_SUCCESS;
+      if(compiledOk == 1)
+        return CSOUND_EXITJMP_SUCCESS;
+      return CSOUND_ERROR;
     }
     return CSOUND_SUCCESS;
 }
