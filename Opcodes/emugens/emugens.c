@@ -2225,20 +2225,18 @@ lastcycle_init(CSOUND *csound, LASTCYCLE *p) {
     p->numcycles += p->extracycles;
     if(p3 < 0) {
         if(p->extracycles == 0) {
-            return INITERR("p3 is negative and no extra time allocated (linsegr, xtratim, etc)"
-                           ". lastcycle will never fire");
+            return INITERR(Str("Tied note without release time (linsegr, xtratim, etc): lastcycle will never fire"));
         }
         p->mode = 0;
     }
     else if (p->extracycles > 0) {
         p->mode = 2;
     } else {
-        MSG("lastcycle: no extra time defined, turnoff2 will not be detected\n");
+        MSG(Str("lastcycle: no extra time defined, turnoff2 will not be detected\n"));
         p->mode = 1;
     }
     *p->out = 0;
     p->fired = 0;
-    printf("mode: %d\n",p->mode);
     return OK;
 }
 
@@ -2246,6 +2244,8 @@ static int32_t
 lastcycle(CSOUND *csound, LASTCYCLE *p) {
     IGN(csound);
     if(p->fired == 1) {
+        // this prevents double firing in the case were a lower instr turns
+        // us off
         *p->out = 0;
         return OK;
     }
