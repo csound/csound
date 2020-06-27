@@ -269,7 +269,7 @@ static const char *longUsageList[] = {
   Str_noop("--sched                 set real-time scheduling priority and "
                                    "lock memory"),
   Str_noop("--sched=N               set priority to N and lock memory"),
-  Str_noop("--opcode-dir=DIR        load all plugins from DIR"),
+  Str_noop("--opcode-dir=DIR        load all plugins from DIR"), 
   Str_noop("--opcode-lib=NAMES      dynamic libraries to load"),
   Str_noop("--opcode-omit=NAMES     dynamic libraries not to load"),
   Str_noop("--omacro:XXX=YYY        set orchestra macro XXX to value YYY"),
@@ -850,6 +850,10 @@ static int decode_long(CSOUND *csound, char *s, int argc, char **argv)
       O->sfwrite = 1;
       return 1;
     }
+    else if (!(strncmp (s, "print_version", 13))) {
+      csound->print_version = 1;
+      return 1;
+    }
     else if (!(strncmp (s, "logfile=", 8))) {
       s += 8;
       if (UNLIKELY(*s=='\0')) dieu(csound, Str("no log file"));
@@ -880,6 +884,12 @@ static int decode_long(CSOUND *csound, char *s, int argc, char **argv)
     /* -t0 */
     else if (!(strcmp (s, "keep-sorted-score"))) {
       csound->keep_tmp= 1;
+      return 1;
+    }
+    else if (!(strncmp (s, "simple-sorted-score=", 20))) {
+      s +=20;
+      csound->score_srt = s;
+      csound->keep_tmp = 2;
       return 1;
     }
     else if (!(strcmp (s, "simple-sorted-score"))) {

@@ -405,11 +405,12 @@ int main(int argc, char **argv)
         outfilename = "test";
     }
     sfinfo.samplerate = (int) ((double) Rout + 0.5);
-    //printf("filetyp=%x outformat=%x\n", filetyp, outformat);
+    printf("filetyp=%x outformat=%x\n", filetyp, outformat);
     sfinfo.format = filetyp | outformat;
     outf = sf_open(outfilename, SFM_WRITE, &sfinfo);
     if (UNLIKELY(outf == NULL)) {
-      snprintf(err_msg, 299, Str("cannot open %s."), outfilename);
+      snprintf(err_msg, 299, Str("cannot open %s (%s)."),
+               outfilename, sf_strerror(outf));
       goto err_rtn_msg1;
     }
     sf_command(outf, SFC_SET_CLIPPING, NULL, SF_TRUE);

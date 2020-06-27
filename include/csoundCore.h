@@ -1804,7 +1804,7 @@ typedef struct _message_queue_t_ {
                                and nodebug function */
     int           score_parser;
     CS_HASH_TABLE* symbtab;
-    int           unused_int1;
+    int           print_version;
     int           inZero;       /* flag compilation of instr0 */
     struct _message_queue **msg_queue;
     volatile long msg_queue_wget; /* Writer - Get index */
@@ -1829,6 +1829,7 @@ typedef struct _message_queue_t_ {
     char *op;
     int  mode;
     char *opcodedir;
+    char *score_srt;
     /*struct CSOUND_ **self;*/
     /**@}*/
 #endif  /* __BUILDING_LIBCSOUND */

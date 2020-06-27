@@ -166,7 +166,6 @@ PUBLIC int csoundCompileArgs(CSOUND *csound, int argc, const char **argv)
     char    *fileDir;
     volatile int compiledOk = 0;
 
-
     if ((n = setjmp(csound->exitjmp)) != 0) {
       return ((n - CSOUND_EXITJMP_SUCCESS) | CSOUND_EXITJMP_SUCCESS);
     }
@@ -323,9 +322,6 @@ PUBLIC int csoundCompileArgs(CSOUND *csound, int argc, const char **argv)
                                       "Csound will start with no instruments"));
        }
     }
-    else {
-      compiledOk = 1;
-    }
     csound->modules_loaded = 1;
 
     s = csoundQueryGlobalVariable(csound, "_RTMIDI");
@@ -363,7 +359,8 @@ PUBLIC int csoundCompileArgs(CSOUND *csound, int argc, const char **argv)
       scsortstr(csound, csound->scorestr);
       //printf("*** keep_tmp = %d\n", csound->keep_tmp);
       if (csound->keep_tmp) {
-        FILE *ff = fopen("score.srt", "w");
+        FILE *ff = fopen((csound->score_srt==NULL ? "score.srt": csound->score_srt),
+                         "w");
         if (csound->keep_tmp==1)
           fputs(corfile_body(csound->scstr), ff);
         else
@@ -388,10 +385,7 @@ PUBLIC int csoundCompileArgs(CSOUND *csound, int argc, const char **argv)
     print_benchmark_info(csound, Str("end of score sort"));
     if (O->syntaxCheckOnly) {
       csound->Message(csound, Str("Syntax check completed.\n"));
-      // return CSOUND_EXITJMP_SUCCESS;
-      if (compiledOk)
-          return CSOUND_EXITJMP_SUCCESS;
-      return CSOUND_ERROR;
+      return CSOUND_EXITJMP_SUCCESS;
     }
     return CSOUND_SUCCESS;
 }

@@ -94,8 +94,8 @@ static void superformula(MYFLT t, MYFLT kx, MYFLT ky, MYFLT krx, MYFLT kry,
     MYFLT b = sp->b;
     MYFLT t1 = COS(y*t/4);
     MYFLT t2 = SIN(z*t/4);
-    MYFLT r0 = pow(fabs(t1/a),n2) + pow(fabs(t2/b),n3);
-    MYFLT r = pow(r0, -1/n1);
+    MYFLT r0 = POWER(FABS(t1/a),n2) + POWER(FABS(t2/b),n3);
+    MYFLT r = POWER(r0, -1/n1);
     *outX = kx + krx*COS(r);
     *outY = ky + kry*SIN(r);
 }
@@ -176,7 +176,7 @@ static int32_t wtPerf(CSOUND *csound, SUPERTER *p)
       /* MOVE SCANNING POINT ROUND THE ELLIPSE */
       theta += pch*((period*TWOPI_F) / csound->GetSr(csound));
     }
-    
+
     p->theta = theta;
     return OK;
 }
