@@ -164,7 +164,7 @@ PUBLIC int csoundCompileArgs(CSOUND *csound, int argc, const char **argv)
     volatile int     csdFound = 0;
     volatile int ac = argc;
     char    *fileDir;
-    int     compiledOk = 0;
+    volatile int compiledOk = 0;
 
 
     if ((n = setjmp(csound->exitjmp)) != 0) {
