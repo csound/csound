@@ -359,7 +359,8 @@ PUBLIC int csoundCompileArgs(CSOUND *csound, int argc, const char **argv)
       scsortstr(csound, csound->scorestr);
       //printf("*** keep_tmp = %d\n", csound->keep_tmp);
       if (csound->keep_tmp) {
-        FILE *ff = fopen("score.srt", "w");
+        FILE *ff = fopen((csound->score_srt==NULL ? "score.srt": csound->score_srt),
+                         "w");
         if (csound->keep_tmp==1)
           fputs(corfile_body(csound->scstr), ff);
         else

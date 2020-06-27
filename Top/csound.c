@@ -994,11 +994,12 @@ static const CSOUND cenviron_ = {
     NULL,           /* message_string */
     0,              /* message_string_queue_items */
     0,              /* message_string_queue_wp */
-    NULL,            /* message_string_queue */
+    NULL,           /* message_string_queue */
     0,              /* io_initialised */
     NULL,           /* op */
-    0,               /* mode */
-    NULL             /* opcodedir */
+    0,              /* mode */
+    NULL,           /* opcodedir */
+    NULL	    /* score_srt */
 };
 
 void csound_aops_init_tables(CSOUND *cs);
