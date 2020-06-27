@@ -190,7 +190,7 @@ NamedGen._fields_ = [
 libcsound.csoundSetOpcodedir.argtypes = [ct.c_char_p]
 libcsound.csoundCreate.restype = ct.c_void_p
 libcsound.csoundCreate.argtypes = [ct.py_object]
-
+libcsound.csoundLoadPlugins.argtypes = [ct.c_void_p, ct.c_char_p]
 libcsound.csoundDestroy.argtypes = [ct.c_void_p]
 
 libcsound.csoundParseOrc.restype = ct.c_void_p
@@ -666,7 +666,7 @@ def csoundInitialize(flags):
     return libcsound.csoundInitialize(flags)
 
 def setOpcodedir(s):
-	"""Sets the opcodedir, needs to be called before creation."""
+	"""Sets an opcodedir override for csoundCreate()."""
 	libcsound.csoundSetOpcodedir(cstring(s))
 
 class Csound:
@@ -685,6 +685,10 @@ class Csound:
         else:
             self.cs = libcsound.csoundCreate(ct.py_object(hostData))
             self.fromPointer = False
+    
+    def loadPlugins(self, directory):
+    	"""Loads all plugins from a given directory."""
+    	return libcsound.csoundLoadPlugins(self.cs, cstring(directory))
     
     def __del__(self):
         """Destroys an instance of Csound."""

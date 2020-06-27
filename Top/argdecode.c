@@ -850,6 +850,10 @@ static int decode_long(CSOUND *csound, char *s, int argc, char **argv)
       O->sfwrite = 1;
       return 1;
     }
+    else if (!(strncmp (s, "print_version", 13))) {
+      csound->print_version = 1;
+      return 1;
+    }
     else if (!(strncmp (s, "logfile=", 8))) {
       s += 8;
       if (UNLIKELY(*s=='\0')) dieu(csound, Str("no log file"));
