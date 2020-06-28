@@ -1,7 +1,7 @@
 /*  newfils.h:
     Filter opcodes
 
-    Copyright (c) Victor Lazzarini, 2004
+    Copyright (c) Victor Lazzarini, 2004, Gleb Rogozinsky, 2020
 
     This file is part of Csound.
 
@@ -83,10 +83,32 @@ kdec: impulse response decay time (to -60dB, in secs)
 istor: defaults to 1, initialise the internal delay buffers
 on startup. 0 means no initialisation.
 
+BOB:
+ar bob asig, kcf, kres, ksat [, istor, iosamps]
+
+Bob is a port of bob~ filter object from Pd.
+The design is based on the papers by Tim Stilson,
+Timothy E. Stinchcombe, and Antti Huovilainen.
+Ported from PD code by Gleb Rogozinsky, Summer of 2020
+
+asig: input signal
+kcf: cutoff frequency (Hz)
+kres: resonance amount. Nominally, a value of 4 should be the limit
+of stability -- above that, the filter oscillates.
+ksat: saturation. This parameter determines at what signal level
+the "transistors" in the model saturate. The maximum output amplitude
+is about 2/3 of that value.
+iosamps: number of times of oversampling used in the filtering process.
+This will determine the maximum sharpness of the filter resonance (Q).
+More oversampling allows higher Qs, less oversampling will limit the resonance.
+The default is 3 times (iosamps=0).
+istor: defaults to 1, initialise the internal delay buffers
+on startup. 0 means no initialisation.
 */
 
 #ifndef _NEWFILS_H
 #define _NEWFILS_H
+#define DIM 4
 
 typedef struct _moogladder {
   OPDS    h;
@@ -148,5 +170,24 @@ static int32_t fofilter_init(CSOUND *csound,fofilter *p);
 static int32_t
 fofilter_process(CSOUND *csound,fofilter *p);
 
-#endif
+typedef struct _bob {
+  OPDS    h;
+  MYFLT   *out;
+  MYFLT   *in;
+  MYFLT   *freq;
+  MYFLT   *res;
+  MYFLT   *sat;
+  MYFLT   *osamp;
+  MYFLT   *istor;
 
+  int32_t ostimes;
+  MYFLT   oldfreq;
+  MYFLT   oldres;
+  MYFLT   oldsat;
+  double  state[DIM];
+} bob;
+
+static int32_t bob_init(CSOUND *csound,bob *p);
+static int32_t bob_process(CSOUND *csound,bob *p);
+
+#endif
