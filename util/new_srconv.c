@@ -406,7 +406,7 @@ int main(int argc, char **argv)
         outfilename = "test";
     }
     sfinfo.samplerate = (int) ((double) Rout + 0.5);
-    printf("filetyp=%x outformat=%x\n", filetyp, outformat);
+    //printf("filetyp=%x outformat=%x\n", filetyp, outformat);
     sfinfo.format = filetyp | outformat;
     outf = sf_open(outfilename, SFM_WRITE, &sfinfo);
     if (UNLIKELY(outf == NULL)) {
