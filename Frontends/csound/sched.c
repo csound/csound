@@ -170,7 +170,7 @@ int set_rt_priority(int argc, const char **argv)
     }
 
     if (rtmode != 7) {          /* all the above are required to enable */
-      if (setuid(getuid()) < 0) {	/* error: give up root privileges */
+      if (setuid(getuid()) < 0) {       /* error: give up root privileges */
         err_msg("csound: Could not drop privileges");
         return -1;
       }

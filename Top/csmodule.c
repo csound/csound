@@ -456,7 +456,7 @@ int csoundLoadModules(CSOUND *csound)
       dname = csound->opcodedir;
       csound->Message(csound, "OPCODEDIR overriden to %s \n", dname);
     }
-    
+
     /* We now loop through the directory list */
     while(read_directory) {
       /* find separator */
@@ -743,11 +743,11 @@ int csoundLoadAndInitModules(CSOUND *csound, const char *opdir)
       dname = "";
 #endif
     }
-  
+
     if (opdir != NULL) {
       dname = opdir;
     }
-    
+
     /* We now loop through the directory list */
     while(read_directory) {
       /* find separator */

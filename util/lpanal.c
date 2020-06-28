@@ -3,7 +3,7 @@
 
     Copyright (C) 1992, 1997, 2020 Paul Lansky, Barry Vercoe,
                              John ffitch, Marc Resibois, Victor Lazzarini
-   
+
 
     This file is part of Csound.
 
@@ -375,7 +375,7 @@ static int32_t lpanal(CSOUND *csound, int32_t argc, char **argv)
 #endif
     LPANAL_GLOBALS *lpg;
     int32_t new_format=0;
-    FILE    *oFd;    
+    FILE    *oFd;
 
     lpc.debug   = 0;
     lpc.verbose = 0;
@@ -482,7 +482,7 @@ static int32_t lpanal(CSOUND *csound, int32_t argc, char **argv)
                         new_format = 1;
                         break;
         case 'n':
-          // new 
+          // new
           lpc.newmethod = 1;
           break;
         default:
@@ -627,7 +627,7 @@ static int32_t lpanal(CSOUND *csound, int32_t argc, char **argv)
 
     // for new lpred method
     lpc.setup = csound->LPsetup(csound,lpc.WINDIN,lpc.poleCount);
-    
+
     /* Do the analysis */
     do {
       MYFLT *fp1;
@@ -664,7 +664,7 @@ static int32_t lpanal(CSOUND *csound, int32_t argc, char **argv)
 
       if (storePoles) {
         /* Treat (swap) filter coefs for resolution */
-        
+
         filterCoef[lpc.poleCount] = 1.0;
         for (i=0; i<(lpc.poleCount+1)/2; i++) {
           j = lpc.poleCount-1-i;
@@ -872,7 +872,7 @@ static void alpol(CSOUND *csound, LPC *thislp, MYFLT *sig, double *errn,
     *rms1 = csound->LPrms(csound,thislp->setup);
     *rms2 = SQRT(c[0]);
     *errn = c[0];
-  }  
+  }
 }
 
 /*

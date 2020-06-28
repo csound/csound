@@ -471,11 +471,11 @@ MYCMPLX *csoundCoef2Pole(CSOUND *csound, void *parm, MYFLT *c){
   return pl;
 }
 
-MYFLT *csoundPole2Coef(CSOUND *csound, void *parm, MYCMPLX *pl) { 
+MYFLT *csoundPole2Coef(CSOUND *csound, void *parm, MYCMPLX *pl) {
   LPCparam *p = (LPCparam *) parm;
   pl = invertfilter(p->M, pl);
   return zero2coef(p->M, pl, p->cf, p->tmpmem);
-} 
+}
 
 MYFLT *csoundStabiliseAllpole(CSOUND *csound, void *parm, MYFLT *c, int mode){
   if (mode) {
@@ -1063,7 +1063,7 @@ int32_t coef2parm(CSOUND *csound, CF2P *p) {
 
 /* resonator bank */
 int32_t resonbnk_init(CSOUND *csound, RESONB *p)
-{   
+{
   int32_t scale, siz;
   p->scale = scale = (int32_t) *p->iscl;
   p->ord =  p->kparm->sizes[0];
@@ -1087,7 +1087,7 @@ int32_t resonbnk_init(CSOUND *csound, RESONB *p)
     csound->AuxAlloc(csound, (int32_t)(siz*sizeof(double)), &p->y1c);
   if (!*p->istor && (p->y2c.auxp == NULL ||
                      (uint32_t)(siz*sizeof(double)) > p->y2c.size))
-    csound->AuxAlloc(csound, (int32_t)(siz*sizeof(double)), &p->y2c);    
+    csound->AuxAlloc(csound, (int32_t)(siz*sizeof(double)), &p->y2c);
 
   if (UNLIKELY(scale && scale != 1 && scale != 2)) {
     return csound->InitError(csound, Str("illegal reson iscl value, %f"),
@@ -1117,23 +1117,23 @@ int32_t resonbnk(CSOUND *csound, RESONB *p)
   MYFLT bw, cf;
   MYFLT kcnt = p->kcnt, prd = *p->iprd, interp, fmin = *p->kmin, fmax = *p->kmax;
 
-    
+
   ar   = p->ar;
   asig = p->asig;
   yt1  = (double*) p->y1m.auxp;
   yt2  = (double*) p->y2m.auxp;
   c2o  = (double*) p->y1o.auxp;
-  c3o  = (double*) p->y2o.auxp; 
+  c3o  = (double*) p->y2o.auxp;
   c2  = (double*) p->y1c.auxp;
   c3  = (double*) p->y2c.auxp;
-    
+
   if (UNLIKELY(offset)) memset(ar, '\0', offset*sizeof(MYFLT));
   if (UNLIKELY(early)) {
     nsmps -= early;
     memset(&ar[nsmps], '\0', early*sizeof(MYFLT));
   }
 
-   
+
   for (n=offset; n<nsmps; n++) {
     x = asig[n];
     ar[n] = 0.;
@@ -1142,8 +1142,8 @@ int32_t resonbnk(CSOUND *csound, RESONB *p)
     for (k=j=0; k < ord; j++,k+=2) {
       if(mod) x = asig[n]; // parallel
       if(kcnt == 0) {
-        c3o[j] = c3[j]; c2o[j] = c2[j];   
-        cf = p->kparm->data[k];  
+        c3o[j] = c3[j]; c2o[j] = c2[j];
+        cf = p->kparm->data[k];
         bw = p->kparm->data[k+1];
         if(cf > fmin && cf < fmax) {
           cosf = cos(cf * (double)(csound->tpidsr));

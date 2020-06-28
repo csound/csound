@@ -225,7 +225,7 @@
 ./Opcodes/compress.c
 ./Opcodes/control.c
 ./Opcodes/control.h
-./OPcodes/counter.c
+./Opcodes/counter.c
 ./Opcodes/cpumeter.c
 ./Opcodes/cross2.c
 ./Opcodes/crossfm.c
