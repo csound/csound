@@ -1,6 +1,9 @@
 /*
-    sterr.c:
-    Copyright (c) 2002 Christian Bacher
+    sterrain.c:
+    Copyright (C) 2002 Matt Gilliard, John ffitch
+    for the original file wave-terrain.c from the csound distribution
+    Modifications and enhancements (C) 2020 Christian Bacher
+
     This file is part of Csound.
     The Csound Library is free software; you can redistribute it
     and/or modify it under the terms of the GNU Lesser General Public
@@ -19,9 +22,17 @@
 #include <csdl.h>
 #include <math.h>
 
-/*  Super Wave-terrain synthesis opcode
+/*  Wave-terrain synthesis opcode
+ *
+ *  author: m gilliard
+ *          en6mjg@bath.ac.uk
  *
  *  Christian Bacher docb22@googlemail.com
+ *  Changes to the original:
+ *  - uses the superformula for generating the curves
+ *
+ *  - tables are krate
+ *  - added k parameter for rotating the curve arround the current x,y
  */
 typedef struct {
 
@@ -85,6 +96,9 @@ typedef struct superparams {
 
 static void superformula(MYFLT t, MYFLT kx, MYFLT ky, MYFLT krx, MYFLT kry,
                          SUPERPARAMS *sp, MYFLT *outX, MYFLT *outY) {
+    if(sp->n1 == 0) return;
+    if(sp->a == 0) return;
+    if(sp->b == 0) return;
     MYFLT y = sp->y;
     MYFLT z = sp->z;
     MYFLT n1 = sp->n1;
@@ -119,7 +133,7 @@ static int32_t wtPerf(CSOUND *csound, SUPERTER *p)
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t i, nsmps = CS_KSMPS;
     int32_t xloc, yloc;
-    MYFLT xc, yc;
+    MYFLT xc = FL(0.0), yc = FL(0.0);
     MYFLT amp = *p->kamp;
     MYFLT pch = *p->kpch;
 
@@ -146,7 +160,8 @@ static int32_t wtPerf(CSOUND *csound, SUPERTER *p)
     s.n3 = *p->sn3;
     s.a = *p->sa;
     s.b = *p->sb;
-    MYFLT period = 1/(*p->speriod);
+    MYFLT period = 1;
+    if(*p->speriod != 0) period = 1/(*p->speriod);
 
     MYFLT sizx = p->sizx, sizy = p->sizy;
     MYFLT theta = p->theta;
