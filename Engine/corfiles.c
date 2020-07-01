@@ -230,7 +230,8 @@ CORFIL *copy_to_corefile(CSOUND *csound, const char *fname,
     }
 #ifdef HAVE_CURL
     if (strstr(fname,"://")) {
-      return copy_url_corefile(csound, fname, fromScore);
+      /* **** Note the +2 is to skip spurous ./ inserted in a file name */
+      return copy_url_corefile(csound, fname+2, fromScore);
     }
 #endif
     fd = fopen_path(csound, &ff, (char *)fname, NULL, (char *)env, fromScore);
