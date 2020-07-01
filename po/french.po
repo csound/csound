@@ -6756,14 +6756,12 @@ msgid "Unknown control %d"
 msgstr "Contrôle %d inconnu"
 
 #: Opcodes/counter.c:77
-#, fuzzy
 msgid "counter: failed to allocate globals"
-msgstr "control : échec de l'allocation des variables globales"
+msgstr "counter : échec de l'allocation des variables globales"
 
 #: Opcodes/counter.c:88
-#, fuzzy
 msgid "Failed to allocate counters\n"
-msgstr "L'allocation a échoué\n"
+msgstr "L'allocation de compteurs a échoué\n"
 
 #: Opcodes/cpumeter.c:87
 #, c-format
@@ -7195,10 +7193,13 @@ msgid ""
 "Tied note without release time (linsegr, xtratim, etc): lastcycle will never "
 "fire"
 msgstr ""
+"Note liée sans durée de relâchement (linsegr, xtratim, etc) : lastcycle "
+"ne s'activera jamais"
 
 #: Opcodes/emugens/emugens.c:2235
 msgid "lastcycle: no extra time defined, turnoff2 will not be detected\n"
 msgstr ""
+"lastcycle : pas de temps supplémentaire défini, turnoff2 ne sera pas détecté\n"
 
 #: Opcodes/emugens/emugens.c:2483
 msgid "Error while inititalizing println"
@@ -10572,9 +10573,9 @@ msgid "the stack is already allocated"
 msgstr "la pile est déjà allouée"
 
 #: Opcodes/sterrain.c:144 Opcodes/sterrain.c:151
-#, fuzzy, c-format
+#, c-format
 msgid "no table %g\n"
-msgstr "ftable %d :\n"
+msgstr "pas de table %q\n"
 
 #: Opcodes/stdopcod.c:39
 msgid "stdopcod.c: error: globals already allocated"
@@ -11940,18 +11941,16 @@ msgid "--keep-sorted-score"
 msgstr "--keep-sorted-score"
 
 #: Top/argdecode.c:258
-#, fuzzy
 msgid "--keep-sorted-score=FNAME"
-msgstr "--keep-sorted-score"
+msgstr "--keep-sorted-score=FNAME"
 
 #: Top/argdecode.c:259
 msgid "--simple-sorted-score"
 msgstr "--simple-sorted-score"
 
 #: Top/argdecode.c:260
-#, fuzzy
 msgid "--simple-sorted-score=FNAME"
-msgstr "--simple-sorted-score"
+msgstr "--simple-sorted-score=FNAME"
 
 #: Top/argdecode.c:261
 msgid "--env:NAME=VALUE        set environment variable NAME to VALUE"
@@ -12013,7 +12012,7 @@ msgstr "--sched=N               fixer la priorité N et verrouiller la mémoire"
 
 #: Top/argdecode.c:274
 msgid "--opcode-dir=DIR        load all plugins from DIR"
-msgstr ""
+msgstr "--opcode-dir=DIR        charge tous les greffons depuis DIR"
 
 #: Top/argdecode.c:275
 msgid "--opcode-lib=NAMES      dynamic libraries to load"
@@ -15516,9 +15515,9 @@ msgstr ""
 "temporelle doit être 0"
 
 #: util/new_srconv.c:413
-#, fuzzy, c-format
+#, c-format
 msgid "cannot open %s (%s)."
-msgstr "impossible d'ouvrir %s"
+msgstr "impossible d'ouvrir %s (%s)."
 
 #: util/new_srconv.c:556 util/srconv.c:779
 msgid ""
