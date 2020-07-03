@@ -2319,8 +2319,9 @@ static CS_NOINLINE void ftresdisp(const FGDATA *ff, FUNC *ftp)
       return;
     memset(&dwindow, 0, sizeof(WINDAT));
     snprintf(strmsg, 64, Str("ftable %d:"), (int) ff->fno);
+    if (csound->csoundMakeGraphCallback_ == NULL) dispinit(csound);
     dispset(csound, &dwindow, ftp->ftable, (int32) (ff->flen),
-                    strmsg, 0, "ftable");
+              strmsg, 0, "ftable");
     display(csound, &dwindow);
 }
 
