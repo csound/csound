@@ -161,9 +161,11 @@ endif()
 
 # in Release configuration, set NDEBUG
 if(${CMAKE_BUILD_TYPE} MATCHES "Release")
+    message(STATUS "Building for release")
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DNDEBUG")
     set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -DNDEBUG")
 elseif(${CMAKE_BUILD_TYPE} MATCHES "Debug")
+    message(STATUS "Building for debug")
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DBETA")
     set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -DBETA")
 endif()
@@ -372,7 +374,7 @@ if(APPLE)
     endif()
 
     add_definitions("-DCS_DEFAULT_PLUGINDIR=\"${CS_FRAMEWORK_FULL_PATH}\"")
-
+    set(DEFAULT_OPCODEDIR ${CS_FRAMEWORK_FULL_PATH})
 endif()
 
 if(BUILD_RELEASE)
@@ -383,6 +385,10 @@ if(BUILD_RELEASE)
     endif()
 else()
     add_definitions("-DBETA")
+endif()
+
+if(APPLE OR LINUX)
+message(STATUS "default plugin dir set to ${DEFAULT_OPCODEDIR}")
 endif()
 
 #if(USE_DOUBLE)
