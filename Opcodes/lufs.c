@@ -22,7 +22,7 @@
     02110-1301 USA
 */
 
-#include "csdl.h"
+#include "csoundCore.h"
 #include <math.h>
 
 typedef struct filter_ {
@@ -377,9 +377,10 @@ static int32_t lufs_perf2(CSOUND *csound, LUFS2 *p)
 
 #define S(x) sizeof(x)
 
-static OENTRY localops[] = {
+static OENTRY lufs_localops[] = {
 { "lufs.a", S(LUFS), 0, 3, "kkk", "a", (SUBR)lufs_init, (SUBR)lufs_perf },
 { "lufs.aa", S(LUFS2), 0, 3, "kkk", "aa", (SUBR)lufs_init2, (SUBR)lufs_perf2 }
 };
 
-LINKAGE
+LINKAGE_BUILTIN(lufs_localops) 
+//LINKAGE

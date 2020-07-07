@@ -783,6 +783,7 @@ set(libcsound_SRCS
     Opcodes/afilters.c
     Opcodes/wpfilters.c
     Opcodes/zak.c
+    Opcodes/lufs.c    
     Top/argdecode.c
     Top/csdebug.c
     Top/cscore_internal.c
