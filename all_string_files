@@ -319,7 +319,7 @@
 ./Opcodes/lowpassr.c
 ./Opcodes/lowpassr.h
 ./Opcodes/lufs.c
-./Opcodes/mandolin.c
+./Opcoes/mandolin.c
 ./Opcodes/mandolin.h
 ./Opcodes/marimba.h
 ./Opcodes/metro.c
