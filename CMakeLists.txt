@@ -193,10 +193,10 @@ endif()
 
 option(USE_LIB64 "Set to on to set installation directory for libraries to lib64" OFF)
 if(USE_LIB64)
-    set(LIBRARY_INSTALL_DIR "lib64")
+	set(LIBRARY_INSTALL_DIR "${CMAKE_INSTALL_PREFIX}/lib64")
     add_definitions("-DLIB64")
 elseif(NOT DEFINED LIBRARY_INSTALL_DIR)
-    set(LIBRARY_INSTALL_DIR "lib")
+    set(LIBRARY_INSTALL_DIR "${CMAKE_INSTALL_PREFIX}/lib")
 endif()
 message(STATUS "LIBRARY INSTALL DIR: ${LIBRARY_INSTALL_DIR}")
 

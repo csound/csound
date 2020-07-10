@@ -85,7 +85,7 @@ find_path(LUA_H_PATH lua.h PATH_SUFFIXES lua5.1)
 
 message(STATUS "PYTHON_LIBRARY: " ${PYTHON_LIBRARY})
 
-check_deps(BUILD_PYTHON_INTERFACE SWIG_FOUND BUILD_CXX_INTERFACE PYTHONLIBS_FOUND)
+check_deps(BUILD_PYTHON_INTERFACE SWIG_FOUND BUILD_CXX_INTERFACE PYTHONLIBS_FOUND PYTHON_MODULE_INSTALL_DIR)
 check_deps(BUILD_JAVA_INTERFACE SWIG_FOUND BUILD_CXX_INTERFACE JNI_FOUND JAVA_FOUND)
 check_deps(BUILD_LUA_INTERFACE SWIG_FOUND BUILD_CXX_INTERFACE  LUA_LIBRARY LUA_H_PATH)
 
@@ -143,20 +143,23 @@ else()
             ARCHIVE DESTINATION "${PYTHON_MODULE_INSTALL_DIR}")
         install(FILES ${BUILD_LIB_DIR}/csnd6.py
             DESTINATION ${PYTHON_MODULE_INSTALL_DIR})
-        install(FILES ${CMAKE_CURRENT_SOURCE_DIR}/ctcsound.py
-            DESTINATION ${PYTHON_MODULE_INSTALL_DIR})
-        execute_process (
-             COMMAND python3 -c
-             "import site, sys; sys.stdout.write(site.getsitepackages()[0])"
-             OUTPUT_VARIABLE PYTHON3_SITE_PACKAGES
-           )
-        SET(PYTHON3_MODULE_INSTALL_DIR ${PYTHON3_SITE_PACKAGES} CACHE PATH "Python3 module install dir")
-        if (PYTHON3_MODULE_INSTALL_DIR)
-          install(FILES ${CMAKE_CURRENT_SOURCE_DIR}/ctcsound.py
-              DESTINATION ${PYTHON3_MODULE_INSTALL_DIR})
-        endif()
 endif()
     endif()
+
+if(PYTHON_MODULE_INSTALL_DIR) 
+        install(FILES ${CMAKE_CURRENT_SOURCE_DIR}/ctcsound.py
+            DESTINATION ${PYTHON_MODULE_INSTALL_DIR})
+endif()
+execute_process (
+     COMMAND python3 -c
+     "import site, sys; sys.stdout.write(site.getsitepackages()[0])"
+     OUTPUT_VARIABLE PYTHON3_SITE_PACKAGES
+   )
+SET(PYTHON3_MODULE_INSTALL_DIR ${PYTHON3_SITE_PACKAGES} CACHE PATH "Python3 module install dir")
+if (PYTHON3_MODULE_INSTALL_DIR)
+  install(FILES ${CMAKE_CURRENT_SOURCE_DIR}/ctcsound.py
+      DESTINATION ${PYTHON3_MODULE_INSTALL_DIR})
+endif()
 
     if(BUILD_JAVA_INTERFACE)
         # The java package needs this unset or it will litter us with .java files
