@@ -132,34 +132,36 @@ if(BUILD_PYTHON_INTERFACE OR BUILD_JAVA_INTERFACE OR BUILD_LUA_INTERFACE)
         endif()
         if(${CMAKE_COMPILER_IS_GNUCC})
           target_compile_options(${SWIG_MODULE_csnd6_REAL_NAME} PRIVATE "-Wno-error")
-	  target_compile_options(${SWIG_MODULE_csnd6_REAL_NAME} PRIVATE "-Wno-unused-parameter")
+          target_compile_options(${SWIG_MODULE_csnd6_REAL_NAME} PRIVATE "-Wno-unused-parameter")
         endif()
 
-if(APPLE)
-   # do nothing
-else()
+      if(APPLE)
+         # do nothing
+      else()
         install(TARGETS ${SWIG_MODULE_csnd6_REAL_NAME}
             LIBRARY DESTINATION "${PYTHON_MODULE_INSTALL_DIR}"
             ARCHIVE DESTINATION "${PYTHON_MODULE_INSTALL_DIR}")
         install(FILES ${BUILD_LIB_DIR}/csnd6.py
             DESTINATION ${PYTHON_MODULE_INSTALL_DIR})
-endif()
+      endif()
     endif()
 
-if(PYTHON_MODULE_INSTALL_DIR) 
+    if(NOT APPLE) 
+      if(PYTHON_MODULE_INSTALL_DIR) 
+              install(FILES ${CMAKE_CURRENT_SOURCE_DIR}/ctcsound.py
+                  DESTINATION ${PYTHON_MODULE_INSTALL_DIR})
+      endif()
+      execute_process (
+           COMMAND python3 -c
+           "import site, sys; sys.stdout.write(site.getsitepackages()[0])"
+           OUTPUT_VARIABLE PYTHON3_SITE_PACKAGES
+         )
+      SET(PYTHON3_MODULE_INSTALL_DIR ${PYTHON3_SITE_PACKAGES} CACHE PATH "Python3 module install dir")
+      if (PYTHON3_MODULE_INSTALL_DIR)
         install(FILES ${CMAKE_CURRENT_SOURCE_DIR}/ctcsound.py
-            DESTINATION ${PYTHON_MODULE_INSTALL_DIR})
-endif()
-execute_process (
-     COMMAND python3 -c
-     "import site, sys; sys.stdout.write(site.getsitepackages()[0])"
-     OUTPUT_VARIABLE PYTHON3_SITE_PACKAGES
-   )
-SET(PYTHON3_MODULE_INSTALL_DIR ${PYTHON3_SITE_PACKAGES} CACHE PATH "Python3 module install dir")
-if (PYTHON3_MODULE_INSTALL_DIR)
-  install(FILES ${CMAKE_CURRENT_SOURCE_DIR}/ctcsound.py
-      DESTINATION ${PYTHON3_MODULE_INSTALL_DIR})
-endif()
+            DESTINATION ${PYTHON3_MODULE_INSTALL_DIR})
+      endif()
+    endif()
 
     if(BUILD_JAVA_INTERFACE)
         # The java package needs this unset or it will litter us with .java files
