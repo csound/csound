@@ -2231,17 +2231,19 @@ lastcycle_init(CSOUND *csound, LASTCYCLE *p) {
     p->numcycles = p3 < 0 ? 0 :
         (int)(p->h.insdshead->offtim * csound->GetKr(csound) + 0.5);
     p->extracycles = p->h.insdshead->xtratim;
+    if(p->extracycles == 0) {
+        p->h.insdshead->xtratim = 1;
+        p->extracycles = 1;
+        MSG(Str("lastcycle: adding an extra cycle to the duration of the event\n"));
+    }
     p->numcycles += p->extracycles;
     if(p3 < 0) {
-        if(p->extracycles == 0) {
-            return INITERR(Str("Tied note without release time (linsegr, xtratim, etc): lastcycle will never fire"));
-        }
         p->mode = 0;
     }
     else if (p->extracycles > 0) {
         p->mode = 2;
     } else {
-      csound->Message(csound, "%s", Str("lastcycle: no extra time defined, turnoff2 will not be detected\n"));
+        MSG(Str("lastcycle: no extra time defined, turnoff2 will not be detected\n"));
         p->mode = 1;
     }
     *p->out = 0;
