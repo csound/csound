@@ -2809,8 +2809,8 @@ static OENTRY localops[] = {
     { "ftslice.onlyperf", S(TABSLICE),  TB, 2, "", "kkOOP",
       NULL, (SUBR)tabslice_allk},
 
-    { "ftset.i", S(FTSET), 0, 1, "", "iioop", (SUBR)ftset_i },
-    { "ftset.k", S(FTSET), 0, 3, "", "kkOOP", (SUBR)ftset_init, (SUBR)ftset_k },
+    { "ftset.i", S(FTSET), TW, 1, "", "iioop", (SUBR)ftset_i },
+    { "ftset.k", S(FTSET), TW, 3, "", "kkOOP", (SUBR)ftset_init, (SUBR)ftset_k },
 
     { "tab2array", S(TAB2ARRAY), TR, 3, "k[]", "iOOP",
       (SUBR)tab2array_init, (SUBR)tab2array_k},
