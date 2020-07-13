@@ -225,7 +225,7 @@
 ./Opcodes/compress.c
 ./Opcodes/control.c
 ./Opcodes/control.h
-./OPcodes/counter.c
+./Opcodes/counter.c
 ./Opcodes/cpumeter.c
 ./Opcodes/cross2.c
 ./Opcodes/crossfm.c
@@ -318,6 +318,7 @@
 ./Opcodes/loscilx.c
 ./Opcodes/lowpassr.c
 ./Opcodes/lowpassr.h
+./Opcodes/lufs.c
 ./Opcodes/mandolin.c
 ./Opcodes/mandolin.h
 ./Opcodes/marimba.h

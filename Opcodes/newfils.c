@@ -2,7 +2,7 @@
   newfils.c:
   filter opcodes
 
-  Copyright (c) Victor Lazzarini, 2004
+  Copyright (c) Victor Lazzarini, 2004, Gleb Rogozinsky, 2020
 
   This file is part of Csound.
 
@@ -2227,6 +2227,110 @@ int32_t mvchpf24_perf_a(CSOUND *csound, mvchpf24 *p){
     return OK;
 }
 
+// Added by Gleb Rogozinsky 2020
+static int32_t calc_derivatives(CSOUND *csound, BOB *p, double *dstate,
+                                double *state, MYFLT in)
+{
+    MYFLT  freq = *p->freq;
+    MYFLT  res = *p->res;
+    double k = TWOPI * freq;
+    double sat = *p->sat;
+    double satinv = 1.0/sat;
+
+    double satstate0 = sat * tanh(state[0] * satinv);
+    double satstate1 = sat * tanh(state[1] * satinv);
+    double satstate2 = sat * tanh(state[2] * satinv);
+
+    dstate[0] = k *
+      (sat * tanh((in - res * state[3]) * satinv) - satstate0);
+    dstate[1] = k * (satstate0 - satstate1);
+    dstate[2] = k * (satstate1 - satstate2);
+    dstate[3] = k * (satstate2 - (sat * tanh(state[3]*satinv)));
+
+    return OK;
+}
+
+static int32_t bob_init(CSOUND *csound,BOB *p)
+{
+    IGN(csound);
+    if (*p->istor==FL(0.0)) {
+      p->oldfreq = FL(0.0);
+      p->oldres = FL(0.0);
+      p->oldsat = FL(0.0);
+    }
+    if (*p->osamp<=FL(1.0)) p->ostimes = 3;
+    else p->ostimes = (int32_t) *p->osamp;
+
+    int i;
+    for (i = 0; i < DIM; i++) {
+      p->state[i] = 0;
+    }
+
+    return OK;
+}
+
+static int32_t bob_process(CSOUND *csound,BOB *p)
+{
+    MYFLT  *out = p->out;
+    MYFLT  *in = p->in;
+    MYFLT  *freq = p->freq;
+    MYFLT  *res  = p->res;
+    MYFLT  *sat  = p->sat;
+
+    int32_t ostimes = p->ostimes,j;
+    double stepsize = 1./(ostimes * csound->GetSr(csound));
+    uint32_t offset = p->h.insdshead->ksmps_offset;
+    uint32_t early  = p->h.insdshead->ksmps_no_end;
+    uint32_t i,l, nsmps = CS_KSMPS;
+    int32_t      asgfr = IS_ASIG_ARG(p->freq),
+                 asgrs = IS_ASIG_ARG(p->res), asgsa = IS_ASIG_ARG(p->sat);
+    double deriv1[DIM], deriv2[DIM], deriv3[DIM], deriv4[DIM],
+      tempstate[DIM];
+
+    if (UNLIKELY(offset)) {
+      memset(out, '\0', offset*sizeof(MYFLT));
+    }
+    if (UNLIKELY(early)) {
+      nsmps -= early;
+      memset(&out[nsmps], '\0', early*sizeof(MYFLT));
+    }
+
+    for (i=offset; i<nsmps; i++) {
+      MYFLT fr = (asgfr ? freq[i] : *freq);
+      MYFLT rs = (asgrs ? res[i] : *res);
+      MYFLT sa = (asgsa ? sat[i] : *sat);
+      *p->freq = fr;
+      *p->res = rs;
+      *p->sat = sa;
+
+      if (p->oldfreq != fr|| p->oldres != rs || p->oldsat != sa) {
+        p->oldfreq = fr;
+        p->oldres = rs;
+        p->oldsat = sa;
+      }
+
+      for (j=0; j<ostimes; j++) {
+        //solver_rungekutte
+        calc_derivatives(csound,p, deriv1, tempstate, in[i]);
+        for (l = 0; l < DIM; l++)
+          tempstate[l] = p->state[l] + 0.5 * stepsize * deriv1[l];
+        calc_derivatives(csound,p, deriv2, tempstate, in[i]);
+        for (l = 0; l < DIM; l++)
+          tempstate[l] = p->state[l] + 0.5 * stepsize * deriv2[l];
+        calc_derivatives(csound,p, deriv3, tempstate, in[i]);
+        for (l = 0; l < DIM; l++)
+          tempstate[l] = p->state[l] + 0.5 * stepsize * deriv3[l];
+        calc_derivatives(csound,p, deriv4, tempstate, in[i]);
+        for (l = 0; l < DIM; l++)
+          p->state[l] += (1./6.) * stepsize *
+            (deriv1[l] + 2 * deriv2[l] + 2 * deriv3[l] +
+             deriv4[l]);
+      }
+      out[i] = p->state[0];
+    }
+    return OK;
+}
+
 static OENTRY localops[] =
   {
    {"mvchpf", sizeof(mvchpf24), 0, 3, "a", "akp",
@@ -2284,7 +2388,9 @@ static OENTRY localops[] =
    {"statevar", sizeof(statevar), 0, 3, "aaaa", "axxop",
    (SUBR) statevar_init, (SUBR) statevar_process     },
    {"fofilter", sizeof(fofilter), 0, 3, "a", "axxxp",
-   (SUBR) fofilter_init, (SUBR) fofilter_process     }
+   (SUBR) fofilter_init, (SUBR) fofilter_process     },
+   {"bob", sizeof(BOB), 0, 3, "a", "axxxop",
+   (SUBR) bob_init, (SUBR) bob_process     }
 };
 
 int32_t newfils_init_(CSOUND *csound)

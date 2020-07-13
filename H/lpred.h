@@ -114,7 +114,7 @@ extern "C" {
 
   /**
    * Returns the computed RMS from LP object
-   */  
+   */
   MYFLT csoundLPrms(CSOUND *csound, void *parm);
 
 
@@ -208,7 +208,7 @@ extern "C" {
     MYFLT mod;
     uint32_t framecount;
     void *setup;
-  } PVSCFS;  
+  } PVSCFS;
 
 
   typedef struct _cf2p {
@@ -218,7 +218,7 @@ extern "C" {
     int32_t M;
     void *setup;
     MYFLT sum;
-  } CF2P;  
+  } CF2P;
 
   typedef struct {
     OPDS    h;
@@ -229,7 +229,7 @@ extern "C" {
     AUXCH   y1m,y2m,y1o,y2o,y1c,y2c;
     MYFLT kcnt;
   } RESONB;
-  
+
 
 #ifdef __cplusplus
 }

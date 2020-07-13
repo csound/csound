@@ -999,7 +999,7 @@ static const CSOUND cenviron_ = {
     NULL,           /* op */
     0,              /* mode */
     NULL,           /* opcodedir */
-    NULL	    /* score_srt */
+    NULL            /* score_srt */
 };
 
 void csound_aops_init_tables(CSOUND *cs);
@@ -3416,7 +3416,7 @@ PUBLIC void csoundReset(CSOUND *csound)
     int     i, max_len;
     OPARMS  *O = csound->oparms;
     char *opdir = csound->opcodedir;
-    
+
     if (csound->engineStatus & CS_STATE_COMP ||
         csound->engineStatus & CS_STATE_PRE) {
      /* and reset */
@@ -3485,10 +3485,10 @@ PUBLIC void csoundReset(CSOUND *csound)
       }
       if (UNLIKELY(err != CSOUND_SUCCESS))
         csound->Die(csound, Str("Failed during csoundLoadModules"));
-     
+
       if (csoundInitModules(csound) != 0)
             csound->LongJmp(csound, 1);
-    
+
 
       init_pvsys(csound);
       /* utilities depend on this as well as orchs; may get changed by an orch */

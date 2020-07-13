@@ -691,7 +691,7 @@ extern "C" {
   PUBLIC CSOUND *csoundCreate(void *hostData);
 
   /**
-   *  Loads all plugins from a given directory 
+   *  Loads all plugins from a given directory
    */
   PUBLIC int csoundLoadPlugins(CSOUND *csound, const char *dir);
 
@@ -710,7 +710,7 @@ extern "C" {
    */
   PUBLIC int csoundGetAPIVersion(void);
 
-  
+
   /** @}*/
 
   /** @defgroup PERFORMANCE Performance

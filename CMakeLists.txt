@@ -161,9 +161,11 @@ endif()
 
 # in Release configuration, set NDEBUG
 if(${CMAKE_BUILD_TYPE} MATCHES "Release")
+    message(STATUS "Building for release")
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DNDEBUG")
     set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -DNDEBUG")
 elseif(${CMAKE_BUILD_TYPE} MATCHES "Debug")
+    message(STATUS "Building for debug")
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DBETA")
     set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -DBETA")
 endif()
@@ -191,10 +193,10 @@ endif()
 
 option(USE_LIB64 "Set to on to set installation directory for libraries to lib64" OFF)
 if(USE_LIB64)
-    set(LIBRARY_INSTALL_DIR "lib64")
+	set(LIBRARY_INSTALL_DIR "${CMAKE_INSTALL_PREFIX}/lib64")
     add_definitions("-DLIB64")
 elseif(NOT DEFINED LIBRARY_INSTALL_DIR)
-    set(LIBRARY_INSTALL_DIR "lib")
+    set(LIBRARY_INSTALL_DIR "${CMAKE_INSTALL_PREFIX}/lib")
 endif()
 message(STATUS "LIBRARY INSTALL DIR: ${LIBRARY_INSTALL_DIR}")
 
@@ -372,17 +374,21 @@ if(APPLE)
     endif()
 
     add_definitions("-DCS_DEFAULT_PLUGINDIR=\"${CS_FRAMEWORK_FULL_PATH}\"")
-
+    set(DEFAULT_OPCODEDIR ${CS_FRAMEWORK_FULL_PATH})
 endif()
 
 if(BUILD_RELEASE)
     add_definitions("-D_CSOUND_RELEASE_")
     if(LINUX)
-        set(DEFAULT_OPCODEDIR "${CMAKE_INSTALL_PREFIX}/${PLUGIN_INSTALL_DIR}")
+        set(DEFAULT_OPCODEDIR "${PLUGIN_INSTALL_DIR}")
         add_definitions("-DCS_DEFAULT_PLUGINDIR=\"${DEFAULT_OPCODEDIR}\"")
     endif()
 else()
     add_definitions("-DBETA")
+endif()
+
+if(APPLE OR LINUX)
+message(STATUS "default plugin dir set to ${DEFAULT_OPCODEDIR}")
 endif()
 
 #if(USE_DOUBLE)
@@ -777,6 +783,7 @@ set(libcsound_SRCS
     Opcodes/afilters.c
     Opcodes/wpfilters.c
     Opcodes/zak.c
+    Opcodes/lufs.c    
     Top/argdecode.c
     Top/csdebug.c
     Top/cscore_internal.c
