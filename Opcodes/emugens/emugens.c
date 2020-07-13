@@ -1522,20 +1522,9 @@ ftset_init(CSOUND *csound, FTSET *p) {
 }
 
 static int32_t
-ftset_k(CSOUND *csound, FTSET *p) {
-    int tabnum = (int)(*p->tabnum);
-    FUNC *tab;
-    if(UNLIKELY(tabnum != p->lastTabnum)) {
-        tab = csound->FTnp2Finde(csound, p->tabnum);
-        if(UNLIKELY(tab == NULL))
-            return PERFERRF(Str("Table %d not found"), tabnum);
-        p->tab = tab;
-        p->lastTabnum = tabnum;
-    } else {
-        if(UNLIKELY(p->tab == NULL))
-            return PERFERR(Str("Table not set"));
-        tab = p->tab;
-    }
+ftset_common(CSOUND *csound, FTSET *p) {
+    printf("ftset common\n");
+    FUNC *tab = p->tab;
     MYFLT *data = tab->ftable;
     int tablen = tab->flen;
     int32_t start = (int32_t)*p->kstart;
@@ -1550,6 +1539,7 @@ ftset_k(CSOUND *csound, FTSET *p) {
 
     if(step == 1 && value == 0) {
         // special case: clear the table, use memset
+        printf("memset %d \n", end-start);
         memset(data + start, '\0', sizeof(MYFLT) * (end - start));
         return OK;
     }
@@ -1561,9 +1551,28 @@ ftset_k(CSOUND *csound, FTSET *p) {
 }
 
 static int32_t
+ftset_k(CSOUND *csound, FTSET *p) {
+    int tabnum = (int)(*p->tabnum);
+    FUNC *tab;
+    if(UNLIKELY(tabnum != p->lastTabnum)) {
+        tab = csound->FTnp2Finde(csound, p->tabnum);
+        if(UNLIKELY(tab == NULL))
+            return PERFERRF(Str("Table %d not found"), tabnum);
+        p->tab = tab;
+        p->lastTabnum = tabnum;
+    } else if(UNLIKELY(p->tab == NULL))
+        return PERFERR(Str("Table not set"));
+
+    return ftset_common(csound, p);
+}
+
+static int32_t
 ftset_i(CSOUND *csound, FTSET *p) {
-    ftset_init(csound, p);
-    return ftset_k(csound, p);
+    FUNC *tab = csound->FTnp2Finde(csound, p->tabnum);
+    if(UNLIKELY(tab == NULL))
+        return INITERRF(Str("Table %d not found"), (int)(*p->tabnum));
+    p->tab = tab;
+    return ftset_common(csound, p);
 }
 
 /*
@@ -2222,17 +2231,19 @@ lastcycle_init(CSOUND *csound, LASTCYCLE *p) {
     p->numcycles = p3 < 0 ? 0 :
         (int)(p->h.insdshead->offtim * csound->GetKr(csound) + 0.5);
     p->extracycles = p->h.insdshead->xtratim;
+    if(p->extracycles == 0) {
+        p->h.insdshead->xtratim = 1;
+        p->extracycles = 1;
+        MSG(Str("lastcycle: adding an extra cycle to the duration of the event\n"));
+    }
     p->numcycles += p->extracycles;
     if(p3 < 0) {
-        if(p->extracycles == 0) {
-            return INITERR(Str("Tied note without release time (linsegr, xtratim, etc): lastcycle will never fire"));
-        }
         p->mode = 0;
     }
     else if (p->extracycles > 0) {
         p->mode = 2;
     } else {
-      csound->Message(csound, "%s", Str("lastcycle: no extra time defined, turnoff2 will not be detected\n"));
+        MSG(Str("lastcycle: no extra time defined, turnoff2 will not be detected\n"));
         p->mode = 1;
     }
     *p->out = 0;
@@ -2798,8 +2809,8 @@ static OENTRY localops[] = {
     { "ftslice.onlyperf", S(TABSLICE),  TB, 2, "", "kkOOP",
       NULL, (SUBR)tabslice_allk},
 
+    { "ftset.i", S(FTSET), 0, 1, "", "iioop", (SUBR)ftset_i },
     { "ftset.k", S(FTSET), 0, 3, "", "kkOOP", (SUBR)ftset_init, (SUBR)ftset_k },
-    { "ftset.i", S(FTSET), 0, 3, "", "iioop", (SUBR)ftset_i },
 
     { "tab2array", S(TAB2ARRAY), TR, 3, "k[]", "iOOP",
       (SUBR)tab2array_init, (SUBR)tab2array_k},
