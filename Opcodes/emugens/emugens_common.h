@@ -6,7 +6,8 @@
 
 #define INITERR(m) (csound->InitError(csound, "%s", m))
 #define INITERRF(fmt, ...) (csound->InitError(csound, fmt, __VA_ARGS__))
-#define MSG(m) (csound->Message(csound, m))
+// VL this is needed for -Wformat-security
+#define MSG(m) (csound->Message(csound, "%s", m))
 #define MSGF(fmt, ...) (csound->Message(csound, fmt, __VA_ARGS__))
 #define PERFERR(m) (csound->PerfError(csound, &(p->h), "%s", m))
 #define PERFERRF(fmt, ...) (csound->PerfError(csound, &(p->h), fmt, __VA_ARGS__))
