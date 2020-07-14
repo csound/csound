@@ -4017,7 +4017,10 @@ static int32 taninv2_Aa(CSOUND* csound, TABARITH* p)
 static OENTRY arrayvars_localops[] =
   {
     { "nxtpow2", sizeof(INOUT), 0, 1, "i", "i", (SUBR)nxtpow2},
-    { "init.0", sizeof(ARRAYINIT), 0, 1, ".[]", "m", (SUBR)array_init },
+    { "init.i", sizeof(ARRAYINIT), 0, 1, "i[]", "m", (SUBR)array_init },
+    { "init.k", sizeof(ARRAYINIT), 0, 1, "k[]", "m", (SUBR)array_init },
+    { "init.a", sizeof(ARRAYINIT), 0, 1, "a[]", "m", (SUBR)array_init },
+    { "init.S", sizeof(ARRAYINIT), 0, 1, "S[]", "m", (SUBR)array_init },
     { "fillarray.k", sizeof(TABFILL), 0, 1, "k[]", "m", (SUBR)tabfill },
     { "fillarray.i", sizeof(TABFILL), 0, 1, "i[]", "m", (SUBR)tabfill },
     { "fillarray.s", sizeof(TABFILL), 0, 1, "S[]", "W", (SUBR)tabfill },

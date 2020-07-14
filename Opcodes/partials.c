@@ -478,7 +478,9 @@ static int32_t partials_process(CSOUND * csound, _PARTS * p)
           fout[i + 3] = (float) trndx[k];  /* trk IDs */
         }
         else {                 /* empty tracks */
-          fout[i + 3] = trndx[k];
+          // VL: 14.07.20
+          // explicitly set it to -1. to mark it dead
+          fout[i + 3] = -1.f;//trndx[k];
         }
       }
 
@@ -505,7 +507,7 @@ int32_t part2txt_init(CSOUND *csound, PARTXT *p){
                                    "w", "", CSFTYPE_FLOATS_TEXT, 0);
     if (UNLIKELY(p->fdch.fd == NULL))
       return csound->InitError(csound, Str("Cannot open %s"), p->fname->data);
-
+    
     p->lastframe = 0;
     return OK;
 }
@@ -514,9 +516,10 @@ int32_t part2txt_perf(CSOUND *csound, PARTXT *p){
      IGN(csound);
     float *tracks = (float *) p->tracks->frame.auxp;
     int32_t i = 0;
+    
     if (p->tracks->framecount > p->lastframe){
-      for (i=0; tracks[i+3] != -1; i+=4){
-        fprintf(p->f, "%f %f %f %d\n",tracks[i],tracks[i+1],
+      for (i=0; tracks[i+3] > 0; i+=4){
+        fprintf(p->f, "%f %f %f %d\n", tracks[i],tracks[i+1],
                 tracks[i+2], (int32_t) tracks[i+3]);
       }
       fprintf(p->f, "-1.0 -1.0 -1.0 -1\n");

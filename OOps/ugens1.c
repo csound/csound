@@ -838,6 +838,7 @@ int32_t kxpseg(CSOUND *csound, EXXPSEG *p)
 {
     XSEG        *segp;
 
+
     segp = p->cursegp;
     if (UNLIKELY(p->auxch.auxp==NULL)) goto err1; /* RWD fix */
     while (--segp->cnt < 0)
@@ -858,6 +859,8 @@ int32_t expseg(CSOUND *csound, EXXPSEG *p)
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t n, nsmps = CS_KSMPS;
     MYFLT       *rs = p->rslt;
+
+    
 
     if (UNLIKELY(offset)) memset(rs, '\0', offset*sizeof(MYFLT));
     if (UNLIKELY(early)) {
@@ -1021,6 +1024,7 @@ int32_t expsegr(CSOUND *csound, EXPSEG *p)
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t n, nsmps = CS_KSMPS;
+ 
 
     if (UNLIKELY(offset)) memset(rs, '\0', offset*sizeof(MYFLT));
     if (UNLIKELY(early)) {
@@ -1058,7 +1062,10 @@ int32_t expsegr(CSOUND *csound, EXPSEG *p)
           }
           else {
             p->curmlt = POWER((segp->nxtpt/val), FL(1.0)/segp->cnt);
-            p->curamlt = POWER(p->curmlt, FL(1.0)/(MYFLT)(nsmps-offset));
+            // VL: this line introduces a bug
+            //p->curamlt = POWER(p->curmlt, FL(1.0)/(MYFLT)(nsmps-offset));
+            // VL: this line fixes it but does not take account of offset
+            p->curamlt = POWER((segp->nxtpt/val), FL(1.0)/segp->acnt);
           }
         }
         if ((amlt = p->curamlt) == FL(1.0)) goto putk;
