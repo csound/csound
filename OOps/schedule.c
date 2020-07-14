@@ -38,6 +38,25 @@ int32_t eventOpcodeI_(CSOUND *csound, LINEVENT *p, int32_t s, char p1);
 int32_t eventOpcode_(CSOUND *csound, LINEVENT *p, int32_t s, char p1);
 
 
+int32_t schedule_array(CSOUND *csound, SCHED *p)
+{
+    LINEVENT pp;
+    ARRAYDAT *pfields = (ARRAYDAT *) p->which;
+    MYFLT *args = pfields->data;
+    int32_t i;
+    pp.h = p->h;
+    char c[2] = "i";
+    pp.args[0] = (MYFLT *) c;
+    pp.argno = pfields->sizes[0] + 1;
+    for (i=1; i < pp.argno ; i++) {
+      pp.args[i] = args+i-1;
+    }
+    pp.flag = 1;
+    return eventOpcodeI_(csound, &pp, 0, 'i');
+}
+
+
+
 int32_t schedule(CSOUND *csound, SCHED *p)
 {
     LINEVENT pp;

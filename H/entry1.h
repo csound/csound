@@ -490,3 +490,5 @@ int32_t coef2parm_init(CSOUND *csound, void *p);
 int32_t coef2parm(CSOUND *csound, void *p);
 int32_t resonbnk_init(CSOUND *csound, void *p);
 int32_t resonbnk(CSOUND *csound, void *p);
+int32_t schedule_array(CSOUND *csound, void *p);
+
