@@ -26,29 +26,29 @@
 
 /* Structure of a counter */
 typedef struct {
-  MYFLT	val;
-  MYFLT	max;
-  MYFLT	min;
-  MYFLT	inc;
-  int	cycles;
+  MYFLT val;
+  MYFLT max;
+  MYFLT min;
+  MYFLT inc;
+  int   cycles;
 } COUNT;
 
 /* for create counter ocde */
 typedef struct {
-  OPDS		h;
+  OPDS          h;
   MYFLT         *res;
   MYFLT         *max, *min, *inc;
 } CNTSET;
 
 typedef struct {
-  OPDS		h;
+  OPDS          h;
   MYFLT         *res;
   MYFLT         *icnt;
   COUNT         *cnt;
 } COUNTER;
 
 typedef struct {
-  OPDS		h;
+  OPDS          h;
   MYFLT         *max, *min, *inc;
   MYFLT         *icnt;
   COUNT         *cnt;
@@ -59,7 +59,7 @@ typedef struct {
 typedef  struct {
   int           max_num;
   int           used;
-  COUNT		**cnts;
+  COUNT         **cnts;
 } CNT_GLOBALS;
 
 

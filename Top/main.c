@@ -161,7 +161,6 @@ PUBLIC int csoundCompileArgs(CSOUND *csound, int argc, const char **argv)
     char    *fileDir;
     volatile int     compiledOk = 0;
 
-
     if ((n = setjmp(csound->exitjmp)) != 0) {
       return ((n - CSOUND_EXITJMP_SUCCESS) | CSOUND_EXITJMP_SUCCESS);
     }
@@ -317,8 +316,7 @@ PUBLIC int csoundCompileArgs(CSOUND *csound, int argc, const char **argv)
           csound->Warning(csound, Str("cannot compile orchestra.\n"
                                       "Csound will start with no instruments"));
        }
-    }
-    else {
+    } else {
       compiledOk = 1;
     }
     csound->modules_loaded = 1;
