@@ -1626,7 +1626,11 @@ int xoutset(CSOUND *csound, XOUT *p)
     void* in = (void*)p->args[i];
     void* out = (void*)bufs[i];
     tmp[i] = in;
-    current->varType->copyValue(csound, out, in);
+    // DO NOT COPY K or A or F vars
+    if (csoundGetTypeForArg(in) != &CS_VAR_TYPE_K &&
+        csoundGetTypeForArg(in) != &CS_VAR_TYPE_F &&
+        csoundGetTypeForArg(in) != &CS_VAR_TYPE_A)
+      current->varType->copyValue(csound, out, in);
     current = current->next;
   }
 
