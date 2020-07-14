@@ -907,6 +907,10 @@ public:
   {
     csoundAddSpinSample(csound, frame, channel, sample);
   }
+    virtual void SetSpinSample(int frame, int channel, MYFLT sample)
+  {
+    csoundSetSpinSample(csound, frame, channel, sample);
+  }
   virtual MYFLT GetSpoutSample(int frame, int channel) const
   {
     return csoundGetSpoutSample(csound, frame, channel);
