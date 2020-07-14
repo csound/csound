@@ -106,11 +106,15 @@ int32_t ctrlinit(CSOUND *csound, CTLINIT *p)
       int16 ctlno, nctls = nargs >> 1;
       chn = csound->m_chnbp[chnl];
       do {
+        MYFLT val;
         ctlno = (int16)**argp++;
         if (UNLIKELY(ctlno < 0 || ctlno > 127)) {
           return csound->InitError(csound, Str("illegal ctrl no"));
         }
-        chn->ctl_val[ctlno] = **argp++;
+        val = **argp++;
+        if (val < FL(0.0) || val > FL(127.0))
+          return csound->InitError(csound, Str("Value out of range [0,127]\n"));
+        chn->ctl_val[ctlno] = val;
       } while (--nctls);
       return OK;
     }
