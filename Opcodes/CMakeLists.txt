@@ -46,11 +46,8 @@ find_library(LAME_LIB mp3lame)
 
 ## OPCODE LIBS WITH NO EXTERNAL DEPENDENCIES ##
 
-make_plugin(mixer mixer.cpp)
-make_plugin(signalflowgraph signalflowgraph.cpp)
-make_plugin(sterrain sterrain.c)
 
-make_plugin(ampmidid ampmidid.cpp)
+make_plugin(sterrain sterrain.c)
 make_plugin(cs_date date.c)
 make_plugin(system_call system_call.c)
 make_plugin(doppler doppler.cpp)
@@ -89,6 +86,10 @@ else()
       set_target_properties(pvsops PROPERTIES COMPILE_FLAGS "-std=gnu++11")
       endif()
 endif()
+
+make_plugin(mixer mixer.cpp)
+make_plugin(signalflowgraph signalflowgraph.cpp)
+make_plugin(ampmidid ampmidid.cpp)
 
 
 if(BUILD_PADSYNTH_OPCODES)
