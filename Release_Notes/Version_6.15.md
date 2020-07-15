@@ -104,6 +104,8 @@ Any valid HTML can also be used.
 
 - scale has additional optional arguments to specify the input range
 
+- schedule/schedulek cab taje arguments from an array
+
 ### Utilities
 
 
@@ -127,7 +129,7 @@ Any valid HTML can also be used.
 
 - the 31 bit pseiudo random number generator was seeded with zero then itstayed on zero.  Than it now fixed.
 
-- gen 20 was wrong in thecase of 8
+- gen 20 was wrong in the case of 8
 
 - turning off an instrumemt from inside a UDO nowworks
 
@@ -139,9 +141,11 @@ Any valid HTML can also be used.
 
 - ftprint had problems not following the manual regarding trig == -1 and could show the wrong index
 
+- part2txt/partials occasionally emited the same track (including same track ID) multiple times for a given time point. Fixed
+
 # SYSTEM LEVEL CHANGES
 
--
+- A crash when csound.evalcode was called witout csoud.start fixed
 
 ### System Changes
 
@@ -175,17 +179,7 @@ Any valid HTML can also be used.
 
 
 ==END==
-commit 1e64bf60c65cd0bf63e2b6e05f019cfeacaca9ee
-Author: vlazzarini <victor.lazzarini@mu.ie>
-Date:   Tue Jul 14 16:10:50 2020 +0100
 
-    issue #1300
-
-commit a2806d6af1b7acff488979c94b4d452349bf16e4
-Author: vlazzarini <victor.lazzarini@mu.ie>
-Date:   Tue Jul 14 15:45:48 2020 +0100
-
-    issue #1349
 
 commit 55f588a9e6f1c766e63ada1e31b5066b8284a2c9
 Author: vlazzarini <victor.lazzarini@mu.ie>
@@ -197,10 +191,7 @@ commit a0ad9bccb06712c45edd9a7bcc0d5b939d9d158e
 Author: vlazzarini <victor.lazzarini@mu.ie>
 Date:   Tue Jul 14 12:56:09 2020 +0100
 
-    fixed #1348
-
-
-    issue #1358
+    issue #1358 expseg
 
 commit 8d1898a8d7bb0cdfe0317691fe16f73382795a51
 Author: Steven Yi <stevenyi@gmail.com>
@@ -231,13 +222,6 @@ Author: vlazzarini <victor.lazzarini@mu.ie>
 Date:   Sun Jul 5 20:51:26 2020 +0100
 
     added Release config to crosscompile
-
-commit d79e32e6a11a0f8b90448f6f617f6c9c466d9fc7
-Author: vlazzarini <victor.lazzarini@mu.ie>
-Date:   Fri Jul 3 14:46:46 2020 +0100
-
-    fixed ticket 1341
-
 
 commit d9ae5fd77efeaec6c66e6bf9dddcf161c930b70e
 Author: vlazzarini <victor.lazzarini@mu.ie>
