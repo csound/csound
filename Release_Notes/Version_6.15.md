@@ -20,7 +20,7 @@ Any valid HTML can also be used.
 
  --->
 
-# CSOUND VERSION 6.15 RELEASE NOTES
+# DRAFT CSOUND VERSION 6.15 RELEASE NOTES
 
 -- The Developers
 
@@ -42,6 +42,9 @@ Any valid HTML can also be used.
 
 - println is similar to printf butwithout the trigger
 
+- rndseed provides a seed for rnd and birnd functions
+
+- <
 ### New Gen and Macros
 
 ### Orchestra
@@ -55,6 +58,8 @@ Any valid HTML can also be used.
 - conditional expressions yielding strings fixed, and other cases
 
 - the sequence //* no lomnger is misinterpreted as starting acomment block
+
+- when usng sampleaccurate mode a new score event that was aligned to the ksmps could stop one cycle early.  Now correct
 
 ### Score
 
@@ -86,6 +91,12 @@ Any valid HTML can also be used.
 
 - lastcycle corrected and clarified
 
+- chn_k can now accept the mode as a string. r=1 (input), w=2 (output), rw=3 (input+output)
+
+- trim improved
+
+- the HDF5 opcodes upgraded to v1.12.0
+
 ### Utilities
 
 
@@ -98,18 +109,28 @@ Any valid HTML can also be used.
 
 ### General Usage
 
+- if using FLTK the widgets are reset on ending a run, which was not always the case earier
+
 
 ## Bugs Fixed
 
 - setcols way very broken; fixed
 
-- cps2pch and cpsxpc fixed in the case f a table of frequencies
+- cps2pch and cpsxpc fixed in the case of a table of frequencies
 
 - the 31 bit pseiudo random number generator was seeded with zero then itstayed on zero.  Than it now fixed.
 
 - gen 20 was wrong in thecase of 8
 
 - turning off an instrumemt from inside a UDO nowworks
+
+- macro expansion in both orchestra and score had a bug related to uninitialsed variable
+
+- if a UDO set a different value for ksmps any output to a multichannel device was incorrectly calculated
+
+- reshape array had a number of problems, now all fixed
+
+- ftprint had problems not following the manual regarding trig == -1 and could show the wrong index
 
 # SYSTEM LEVEL CHANGES
 
@@ -135,6 +156,8 @@ Any valid HTML can also be used.
 - Windows
 
 - MacOS
+
+ - coreaudio now checks the number of channels and fails if here are unsufficient
 
 - GNU/Linux
 
@@ -465,151 +488,9 @@ Date:   Mon Apr 20 20:49:37 2020 +0100
 
     new gauss opcode
 
-commit 6e5569aa2a614ef7a3994c522f84b6a9c626b9d7
-Author: Eduardo Moguillansky <eduardo.moguillansky@gmail.com>
-Date:   Sun Apr 19 20:04:21 2020 +0200
-
-    fix ftprint not following the manual regarding trig == -1; fix ftprint showing wrong index;
-
-commit ba2965e533f9e658ff00956642bbe7540e190827
-Author: John ffitch <jpff@codemist.co.uk>
-Date:   Sat Apr 18 21:34:50 2020 +0100
-
-     add rndseed opcode
-
-commit 2428e9c51595d8348068a67cfd35a2715cbf2c95
-Author: John ffitch <jpff@codemist.co.uk>
-Date:   Wed Apr 15 21:12:52 2020 +0100
-
-    issue #1317 fixed
-
-commit 6550362a23a006a28a441d288f637baca845fd49
+gikcommit 6550362a23a006a28a441d288f637baca845fd49
 Author: vlazzarini <victor.lazzarini@mu.ie>
 Date:   Tue Apr 14 11:13:03 2020 +0100
 
     added pvsbandwidth
-
-commit de4a066566430e8742989dc41638242f5d07fa04
-Author: David Runge <dave@sleepmap.de>
-Date:   Sat Apr 11 22:28:05 2020 +0200
-
-    Fix for HDF5 1.12.0
-    
-    Opcodes/hdf5/HDF5IO.c:
-    The HDF5 update to 1.12.0 introduced breaking API changes [1]
-    Particularly H5Oget_info() got removed.
-    Instead H5Oget_info1() can be called, which provides the same
-    signature.
-    For HDF5 prior to 1.12.0 the call to H5Oget_info() remains.
-    
-    Closes #1313
-    
-commit 6ce22a01dc9c2d5573ceb969819bc622dab50902
-Author: Eduardo Moguillansky <eduardo.moguillansky@gmail.com>
-Date:   Mon Mar 16 14:26:25 2020 +0100
-
-    replace simple char comparison by strcmp in chn_k string init
-
-commit 308b4371408030c614132f57f15bdff7b02b4a90
-Author: Eduardo Moguillansky <eduardo.moguillansky@gmail.com>
-Date:   Thu Mar 12 23:47:05 2020 -0700
-
-    Coreaudio: check if input/output devices have enough channels.
-    Fail if the number of channels is less than requested via nchnls
-    or nchnls_i. Without this, coreaudio fails silently and hangs.
-    With this fix coreaudio has the same behaviour as portaudio on
-    macOS
-
-commit 53cbb19fea67e7a96d9d61190ded6531fa473c78
-Author: Eduardo Moguillansky <eduardo.moguillansky@gmail.com>
-Date:   Fri Mar 13 08:32:33 2020 +0100
-
-    add warning for channel mismatch in coreaudio
-
-
-commit c270902d78db558debb8d84a8828344cb9cb942d
-Author: Eduardo Moguillansky <eduardo.moguillansky@gmail.com>
-Date:   Thu Mar 12 23:47:05 2020 -0700
-
-    Coreaudio: check if input/output devices have enough channels.
-    Fail if the number of channels is less than requested via nchnls
-    or nchnls_i. Without this, coreaudio fails silently and hangs.
-    With this fix coreaudio has the same behaviour as portaudio on
-    macOS
-
-commit 430a99cdfbb97d4d8302d0f369aaedc136e1027d
-Merge: ef906df32 39576bb32
-Author: Steven Yi <stevenyi@gmail.com>
-Date:   Fri Mar 20 14:37:03 2020 -0400
-
-    chn_k: add possibility to set the input/output mode as string
-
-
-commit 93be52a8dc769fa3ec452d388ae3432c207a0b7c
-Author: Eduardo Moguillansky <eduardo.moguillansky@gmail.com>
-Date:   Thu Mar 19 01:26:18 2020 +0100
-
-    fixed reshapearray
-
-commit 83e5137e3adcbe0d7f912fa381c8fa16b52d52b2
-Author: John ffitch <jpff@codemist.co.uk>
-Date:   Wed Mar 18 19:26:38 2020 +0000
-
-    Various impromements in trim
-
-commit e5d58878aa3ecbf38b57ed269153fba1ce625276
-Merge: 456b10b92 24bbcc00a
-Author: John ffitch <jpff@codemist.co.uk>
-Date:   Fri Mar 13 17:02:58 2020 +0000
-
-    Ensure that widget_reset() is called on reset
-
-commit b6593a6d9d243a65ee8f4179d29e08d45af68104
-Author: Eduardo Moguillansky <eduardo.moguillansky@gmail.com>
-Date:   Thu Mar 12 23:47:05 2020 -0700
-
-    Coreaudio: check if input/output devices have enough channels.
-    Fail if the number of channels is less than requested via nchnls
-    or nchnls_i. Without this, coreaudio fails silently and hangs.
-    With this fix coreaudio has the same behaviour as portaudio on
-    macOS
-
-commit fb6627f63dd7995ecb8578af3ef210d697389149
-Author: John ffitch <jpff@codemist.co.uk>
-Date:   Tue Mar 10 22:03:25 2020 +0000
-
-    Fix to setksmp problems
-
-commit 03d5e69598a6679eb66ef94e77c808fcf40c6576
-Author: Eduardo Moguillansky <eduardo.moguillansky@gmail.com>
-Date:   Fri Mar 6 00:25:27 2020 +0100
-
-    added version of chn_k accepting the mode as string. r=1 (input), w=2 (output), rw=3 (input+output)
-
-commit 19aac3f59b37e0ca6560475f408e03cfaca6da44
-Merge: 42f7af7c1 c444e8f75
-Author: John ffitch <jpff@codemist.co.uk>
-Date:   Thu Feb 27 16:48:22 2020 +0000
-
-    Merge pull request #1283 from laserbat/yyin
-    
-    Fixed issue when linking csbeats
-
-commit 093d3fdd17ed6fc789d316e30627b371b987c404
-Author: John ffitch <jpff@codemist.co.uk>
-Date:   Tue Feb 18 21:26:33 2020 +0000
-
-    A¬pply fix for uninitialied data; PR 1257 and 1258
-
-commit ae6dc653f5014bd424603b029a6a95692aee5f39
-Author: John ffitch <jpff@codemist.co.uk>
-Date:   Tue Feb 18 20:25:15 2020 +0000
-
-    A¬pply fix to macro expamsion wthat had an uninitialised value; PR 1256
-
-commit ec5d156401fbd4c65ce7c91a6c1375f9760be002
-Author: Giulio Moro <giuliomoro@yahoo.it>
-Date:   Sun Feb 9 23:55:27 2020 +0000
-
-    Bela: updated include folders
 
