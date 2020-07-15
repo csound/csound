@@ -44,7 +44,8 @@ Any valid HTML can also be used.
 
 - rndseed provides a seed for rnd and birnd functions
 
-- <
+- arduinoStart, arduinoRead and arduiniStop privide a protocol for transfering sensor data from an Arduino to Csound
+
 ### New Gen and Macros
 
 ### Orchestra
@@ -60,6 +61,8 @@ Any valid HTML can also be used.
 - the sequence //* no lomnger is misinterpreted as starting acomment block
 
 - when usng sampleaccurate mode a new score event that was aligned to the ksmps could stop one cycle early.  Now correct
+
+- the maximum line length for various inputs has been increased to 8192
 
 ### Score
 
@@ -96,6 +99,10 @@ Any valid HTML can also be used.
 - trim improved
 
 - the HDF5 opcodes upgraded to v1.12.0
+
+- GEN16 is more careful about lengs of data
+
+- scale has additional optional arguments to specify the input range
 
 ### Utilities
 
@@ -280,20 +287,6 @@ Date:   Wed Jun 17 18:01:05 2020 +0100
 
     allowing some opcodes to use functional syntax if mono output
 
-commit 5da38e1e9db74e4d9fa0a686dda3dcc4b19b572e
-Author: joachimheintz <2196394+joachimheintz@users.noreply.github.com>
-Date:   Sun Jun 14 20:29:31 2020 +0200
-
-    increase MAXLINE to 8192
-    
-    i ran into issues in reading long lines from het.  and as far as i see, this would coincide with the limit in fprints as set in fout.c, line 1284.
-
-commit 0c506fcef4cb23cbdfff4d8c916e46ec2fe91a13
-Author: John ffitch <jpff@codemist.co.uk>
-Date:   Fri Jun 12 15:46:48 2020 +0100
-
-    Revised/extended sale opcode+ tweaks
-
 commit 164abacfd1b4561848cb15ce2c10472ea5e94a39
 Author: vlazzarini <victor.lazzarini@mu.ie>
 Date:   Mon Jun 1 13:18:20 2020 +0100
@@ -415,12 +408,6 @@ Date:   Mon May 18 22:23:55 2020 +0100
 
     added flag argument, fixed scaling
 
-commit e8d7e8314943b59f366167e3b0e68e8b2ffde7ba
-Author: John ffitch <jpff@codemist.co.uk>
-Date:   Mon May 18 14:30:08 2020 +0100
-
-    new files
-
 commit f1696497f552fefb0b85bc26d4d5917e841f9a05
 Author: vlazzarini <victor.lazzarini@mu.ie>
 Date:   Sun May 17 21:39:04 2020 +0100
@@ -475,20 +462,13 @@ Date:   Fri May 8 20:52:16 2020 +0100
 
     Permit zero input channels
 
-    
-commit fb2e61cf2bea6caf5117c30c120430b0fa4ee56c
-Author: John ffitch <jpff@codemist.co.uk>
-Date:   Sat Apr 25 16:22:55 2020 +0100
-
-    Suggeted fix to  gen16
-
 commit cef10017a0f3bceb2591d61882d9e7fc7e4b5093
 Author: vlazzarini <victor.lazzarini@mu.ie>
 Date:   Mon Apr 20 20:49:37 2020 +0100
 
     new gauss opcode
 
-gikcommit 6550362a23a006a28a441d288f637baca845fd49
+commit 6550362a23a006a28a441d288f637baca845fd49
 Author: vlazzarini <victor.lazzarini@mu.ie>
 Date:   Tue Apr 14 11:13:03 2020 +0100
 
