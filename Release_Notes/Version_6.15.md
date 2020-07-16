@@ -22,6 +22,13 @@ Any valid HTML can also be used.
 
 # DRAFT CSOUND VERSION 6.15 RELEASE NOTES
 
+Quite a few new opcodes are in this release as well as extensions of
+existng opcodes.  In particuar there is the introduction of streamed
+LPC wich has long been requested.
+
+Another feature if this release is a large nuber of internal fixes to
+incorrect data access, as wel as the usual tweaks and changes.
+
 -- The Developers
 
 ## USER-LEVEL CHANGES
@@ -62,7 +69,10 @@ Any valid HTML can also be used.
 
 - when usng sampleaccurate mode a new score event that was aligned to the ksmps could stop one cycle early.  Now correct
 
-- the maximum line length for various inputs has been increased to 8192
+- the maximum line length for various inputs has been increased to
+  8192
+
+- now legal to set the number of input channels to zero.
 
 ### Score
 
@@ -104,7 +114,9 @@ Any valid HTML can also be used.
 
 - scale has additional optional arguments to specify the input range
 
-- schedule/schedulek cab taje arguments from an array
+- schedule/schedulek can take arguments from an array
+
+- GEN11 improved with respect to rounding errors
 
 ### Utilities
 
@@ -142,6 +154,10 @@ Any valid HTML can also be used.
 - ftprint had problems not following the manual regarding trig == -1 and could show the wrong index
 
 - part2txt/partials occasionally emited the same track (including same track ID) multiple times for a given time point. Fixed
+
+- expsegr was incorrectly dependen on ksmps when sampleaccurateis in force
+
+- table opcodes had an error when used with non power-of-two lengths
 
 # SYSTEM LEVEL CHANGES
 
@@ -186,12 +202,6 @@ Author: vlazzarini <victor.lazzarini@mu.ie>
 Date:   Tue Jul 14 13:09:42 2020 +0100
 
     issue #1232
-
-commit a0ad9bccb06712c45edd9a7bcc0d5b939d9d158e
-Author: vlazzarini <victor.lazzarini@mu.ie>
-Date:   Tue Jul 14 12:56:09 2020 +0100
-
-    issue #1358 expseg
 
 commit 8d1898a8d7bb0cdfe0317691fe16f73382795a51
 Author: Steven Yi <stevenyi@gmail.com>
@@ -325,12 +335,6 @@ Date:   Fri May 29 13:34:53 2020 +0100
 
     added the Durbin method to lpanal
 
-commit 7a20da5cc99dd73354347d5ece45c473e31f6838
-Author: John ffitch <jpff@codemist.co.uk>
-Date:   Fri May 22 19:48:58 2020 +0100
-
-    table opcodes were wrong wrt non powerof2 cases
-
 commit c587c9cc29377ae5fb2164e7a25c066008116b61
 Author: vlazzarini <victor.lazzarini@mu.ie>
 Date:   Wed May 20 20:29:28 2020 +0100
@@ -428,23 +432,11 @@ Date:   Sat May 16 10:35:43 2020 +0100
 
     linear prediction functions
 
-commit 12e5676912b05de886118aaeb8ab6ac6e7eca225
-Author: John ffitch <jpff@codemist.co.uk>
-Date:   Wed May 13 20:59:39 2020 +0100
-
-    Adjust for rounding error in GEN11
-
 commit aa51ad9656395fbb158dfed7860ff35715665718
 Author: vlazzarini <victor.lazzarini@mu.ie>
 Date:   Fri May 8 21:07:16 2020 +0100
 
     improved phase estimation in partial tracking
-
-commit 582c740394c775c72a9e3ac22cf7a1abeaa3650d
-Author: John ffitch <jpff@codemist.co.uk>
-Date:   Fri May 8 20:52:16 2020 +0100
-
-    Permit zero input channels
 
 commit cef10017a0f3bceb2591d61882d9e7fc7e4b5093
 Author: vlazzarini <victor.lazzarini@mu.ie>
