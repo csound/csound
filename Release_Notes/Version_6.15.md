@@ -51,7 +51,18 @@ incorrect data access, as wel as the usual tweaks and changes.
 
 - rndseed provides a seed for rnd and birnd functions
 
-- arduinoStart, arduinoRead and arduiniStop privide a protocol for transfering sensor data from an Arduino to Csound
+- arduinoStart, arduinoRead and arduiniStop privide a protocol for
+transfering sensor data from an Arduino to Csound
+
+- lpcfilter, lpcanal, allpole, pvslpc, pvscfs, apoleparams, resonbnk:
+new streaming linear prediction opcodes.
+
+- gauss - new version accepting mean and standard deviation as
+parameters, implementing the Box-Muller algorithm.
+
+- pvsbandwidth - returns spectral bandwidth.
+
+- chngeti/a/k/ks/s and chnseti/a/k/ks/s - channel opcodes using arrays.
 
 ### New Gen and Macros
 
@@ -88,6 +99,9 @@ incorrect data access, as wel as the usual tweaks and changes.
 
 - syntax-check-only return an error if syntax failed
 
+- opcode-dir: loads all plugin opcodes from a given directory (in
+  addition to the plugins loaded from the opcode plugin path)
+
 ### Modified Opcodes and Gens
 
 - cent, semitone, dB accuracy improved
@@ -118,8 +132,12 @@ incorrect data access, as wel as the usual tweaks and changes.
 
 - GEN11 improved with respect to rounding errors
 
+- partials has an improved method of phase estimation.
+
 ### Utilities
 
+- lpanal now contains a new alternative algorithm based on the Durbin
+  method, in addition to the original Gauss method.
 
 ### Frontends
 
@@ -171,6 +189,9 @@ incorrect data access, as wel as the usual tweaks and changes.
 
 ### API
 
+- new API to hard override default plugin dir
+
+- new API function to load plugins
 
 ### Platform Specific
 
@@ -196,78 +217,12 @@ incorrect data access, as wel as the usual tweaks and changes.
 
 ==END==
 
-
-commit 55f588a9e6f1c766e63ada1e31b5066b8284a2c9
-Author: vlazzarini <victor.lazzarini@mu.ie>
-Date:   Tue Jul 14 13:09:42 2020 +0100
-
-    issue #1232
-
 commit 8d1898a8d7bb0cdfe0317691fe16f73382795a51
 Author: Steven Yi <stevenyi@gmail.com>
 Date:   Sat Jul 11 09:50:39 2020 -0400
 
     attempting fix for default opcode dir after LIBRARY_INSTALL_DIR change
 
-commit 02294d46467022817da3e9c080a584dcaf9aa8c5
-Author: vlazzarini <victor.lazzarini@mu.ie>
-Date:   Sun Jul 5 21:47:08 2020 +0100
-
-    updated instructions to include setting release config
-
-commit 7a7170fe7b2f636189b093dfa8b467b5ce4d844d
-Author: vlazzarini <victor.lazzarini@mu.ie>
-Date:   Sun Jul 5 21:43:26 2020 +0100
-
-    not hardcoding release
-
-commit 1fd81c2297ac4d5846dfa0c5310e8e9df39cd5ca
-Author: vlazzarini <victor.lazzarini@mu.ie>
-Date:   Sun Jul 5 21:31:57 2020 +0100
-
-    improved status messages
-
-commit e99e0002fe258b5ddd687710c2b7949b9fbc08d9
-Author: vlazzarini <victor.lazzarini@mu.ie>
-Date:   Sun Jul 5 20:51:26 2020 +0100
-
-    added Release config to crosscompile
-
-commit d9ae5fd77efeaec6c66e6bf9dddcf161c930b70e
-Author: vlazzarini <victor.lazzarini@mu.ie>
-Date:   Sat Jun 27 18:17:08 2020 +0100
-
-    option
-
-commit 77dbd4d6ddae244347c992a551ff1b7487b3c2d0
-Author: vlazzarini <victor.lazzarini@mu.ie>
-Date:   Sat Jun 20 22:28:54 2020 +0100
-
-    cmdline option to load all plugins from a given dir
-
-commit d7560d1ec8899ee77e2769a81ec20a670885e467
-Author: vlazzarini <victor.lazzarini@mu.ie>
-Date:   Sat Jun 20 22:19:48 2020 +0100
-
-    added LoadPlugins to c++ interface
-
-commit 1a9b7091ffafa1b8eff271a5e22ce5bafff72457
-Author: vlazzarini <victor.lazzarini@mu.ie>
-Date:   Sat Jun 20 22:06:40 2020 +0100
-
-    new API function to load plugins
-
-commit b6667a35346710cbf798910c024affd5f1405870
-Author: vlazzarini <victor.lazzarini@mu.ie>
-Date:   Fri Jun 19 23:43:42 2020 +0100
-
-    set opcodedir
-
-commit fa6a68f8b8a7158f623e849b66818def8e8aef06
-Author: vlazzarini <victor.lazzarini@mu.ie>
-Date:   Fri Jun 19 22:58:16 2020 +0100
-
-    opcodedir experimental feature
 
 commit b50ad48221841f5abc9540b2f9c5dddbde1a67ff
 Author: Eduardo Moguillansky <eduardo.moguillansky@gmail.com>
@@ -275,178 +230,22 @@ Date:   Fri Jun 19 10:07:11 2020 +0200
 
     better error for dispfft
 
-commit d7350600ad4e76bdb6c3c4a8056119ef28284898
-Author: vlazzarini <victor.lazzarini@mu.ie>
-Date:   Wed Jun 17 18:01:05 2020 +0100
-
-    allowing some opcodes to use functional syntax if mono output
-
-commit 164abacfd1b4561848cb15ce2c10472ea5e94a39
-Author: vlazzarini <victor.lazzarini@mu.ie>
-Date:   Mon Jun 1 13:18:20 2020 +0100
-
-    resonbnk and apoleparams
 
 
-commit 4987a50e3f9a05d1fb966cc054075187e70a441e
-Author: vlazzarini <victor.lazzarini@mu.ie>
-Date:   Sun May 31 10:44:32 2020 +0100
-
-    resonator bank
-
-commit 69b2e4728765751d74278d125836b214d40f20a8
-Author: vlazzarini <victor.lazzarini@mu.ie>
-Date:   Sat May 30 18:47:16 2020 +0100
-
-    allpoleb opcode
-
-Author: vlazzarini <victor.lazzarini@mu.ie>
-Date:   Sat May 30 18:13:52 2020 +0100
-
-    coeffs to params fix
-
-commit ab8c930d00c16a7e63b93c23240688df9624dd35
-Author: vlazzarini <victor.lazzarini@mu.ie>
-Date:   Sat May 30 17:43:31 2020 +0100
-
-    coeffs to params
-
-commit 3df3dfe17b8b9525706f81ed301d28b88c824764
-Author: vlazzarini <victor.lazzarini@mu.ie>
-Date:   Sat May 30 15:58:41 2020 +0100
-
-    pvscfs opcode complete
-
-commit ad226acb57c682636e7de9b8ae805349bc4b6b40
-Author: vlazzarini <victor.lazzarini@mu.ie>
-Date:   Sat May 30 10:43:09 2020 +0100
-
-    pole to coeff and stabilisation code
-
-commit a7bdd937cd2bde1fdbdaf6a9babe75177f5cdbb1
-Author: vlazzarini <victor.lazzarini@mu.ie>
-Date:   Fri May 29 20:28:21 2020 +0100
-
-    csound lock functions correctly from struct now
-
-commit 0e036d7c3f70ff110516b193894c4360547bdff6
-Author: vlazzarini <victor.lazzarini@mu.ie>
-Date:   Fri May 29 13:34:53 2020 +0100
-
-    added the Durbin method to lpanal
-
-commit c587c9cc29377ae5fb2164e7a25c066008116b61
-Author: vlazzarini <victor.lazzarini@mu.ie>
-Date:   Wed May 20 20:29:28 2020 +0100
-
-    lpcanal to pvs
-
-commit 5577f451992f1e28a66b43031d3076546b812ed9
-Author: vlazzarini <victor.lazzarini@mu.ie>
-Date:   Tue May 19 20:59:46 2020 +0100
-
-    removing kprd restriction
-
-commit dbe54203a066c943117d592a472446939419e70d
-Author: vlazzarini <victor.lazzarini@mu.ie>
-Date:   Tue May 19 19:20:31 2020 +0100
-
-    changed opcode name
-
-commit 502990fab5c8b9a09f79bd11b7523ee71e54311f
-Author: vlazzarini <victor.lazzarini@mu.ie>
-Date:   Tue May 19 17:54:13 2020 +0100
-
-    added lpc signal analysis
-
-commit 8f53cef799b274ff0a138611ac9b6eedbc969d2c
-Author: vlazzarini <victor.lazzarini@mu.ie>
-Date:   Tue May 19 17:20:23 2020 +0100
-
-    initialisation
-
-commit 98707d01694d3bf766525f6699eade22c556fc42
-Author: vlazzarini <victor.lazzarini@mu.ie>
-Date:   Tue May 19 14:03:26 2020 +0100
-
-    cps corrected
-
-commit c03f27c5dc624cd2bbe8d1a61673940db51fd95f
-Author: vlazzarini <victor.lazzarini@mu.ie>
-Date:   Tue May 19 13:27:54 2020 +0100
-
-    allpole filter
-
-commit 4961d7e524bc37b72e8256fc80c3c48bfb2cbe6b
-Author: vlazzarini <victor.lazzarini@mu.ie>
-Date:   Tue May 19 11:01:07 2020 +0100
-
-    fixed filter scaling
-
-commit 7946ccda73cc3ba7051c7361213aeb63d5eebf1e
-Author: vlazzarini <victor.lazzarini@mu.ie>
-Date:   Tue May 19 09:19:23 2020 +0100
-
-    rms computation
 
 
-commit ebf454156404148362e793f2be9805ec81a1baca
-Author: vlazzarini <victor.lazzarini@mu.ie>
-Date:   Mon May 18 22:23:55 2020 +0100
 
-    added flag argument, fixed scaling
 
-commit f1696497f552fefb0b85bc26d4d5917e841f9a05
-Author: vlazzarini <victor.lazzarini@mu.ie>
-Date:   Sun May 17 21:39:04 2020 +0100
 
-    update lpcfilter
 
-commit 72db7e6fa55d2a8b9ecfb065dc72ceeb337754b7
-Author: vlazzarini <victor.lazzarini@mu.ie>
-Date:   Sun May 17 21:01:48 2020 +0100
 
-    fixed lpcfilter v2
 
-commit 2422adae5833de84a0143b1d293122f1ce423a8b
-Author: vlazzarini <victor.lazzarini@mu.ie>
-Date:   Sun May 17 18:19:14 2020 +0100
 
-    added new lpc opcode
 
-commit eb78069fc2b48e9d7d1714a7c498f721aefab4af
-Author: vlazzarini <victor.lazzarini@mu.ie>
-Date:   Sun May 17 16:42:01 2020 +0100
 
-    fixed lpread code and test opcode
 
-commit 0c33b36279b263d947a590f2026d6877b01816a7
-Author: vlazzarini <victor.lazzarini@mu.ie>
-Date:   Sat May 16 11:01:34 2020 +0100
 
-    new linear prediction functions
 
-commit 411addb2e47205b533b12287c061ad2a07808e9a
-Author: vlazzarini <victor.lazzarini@mu.ie>
-Date:   Sat May 16 10:35:43 2020 +0100
 
-    linear prediction functions
 
-commit aa51ad9656395fbb158dfed7860ff35715665718
-Author: vlazzarini <victor.lazzarini@mu.ie>
-Date:   Fri May 8 21:07:16 2020 +0100
-
-    improved phase estimation in partial tracking
-
-commit cef10017a0f3bceb2591d61882d9e7fc7e4b5093
-Author: vlazzarini <victor.lazzarini@mu.ie>
-Date:   Mon Apr 20 20:49:37 2020 +0100
-
-    new gauss opcode
-
-commit 6550362a23a006a28a441d288f637baca845fd49
-Author: vlazzarini <victor.lazzarini@mu.ie>
-Date:   Tue Apr 14 11:13:03 2020 +0100
-
-    added pvsbandwidth
 
