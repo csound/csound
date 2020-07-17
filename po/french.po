@@ -4781,9 +4781,8 @@ msgid "illegal ctrl no"
 msgstr "no de ctrl illégal"
 
 #: OOps/midiops.c:116
-#, fuzzy
 msgid "Value out of range [0,127]\n"
-msgstr "valeur hors limites"
+msgstr "valeur hors limites [0..127]\n"
 
 #: OOps/midiops.c:141
 msgid "cpstabm: invalid modulator table"
@@ -7195,7 +7194,7 @@ msgstr "Impossible de traiter l'index de fin : %d"
 
 #: Opcodes/emugens/emugens.c:2237
 msgid "lastcycle: adding an extra cycle to the duration of the event\n"
-msgstr ""
+msgstr "lastcycle: ajout d'un cycle supplémentaire à la durée de l'évènement\n"
 
 #: Opcodes/emugens/emugens.c:2246
 msgid "lastcycle: no extra time defined, turnoff2 will not be detected\n"
