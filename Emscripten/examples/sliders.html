@@ -233,7 +233,7 @@
         paused = true;
       } else {
         if (started == false) {
-          CSOUND_AUDIO_CONTEXT.resume();
+          CsoundObj.CSOUND_AUDIO_CONTEXT.resume();
           started = true;
         }
         csound.start();
@@ -243,7 +243,7 @@
         paused = false;
       }
     }
-    CsoundObj.importScripts("./js/").then(() => {
+    CsoundObj.initialize().then(() => {
       moduleDidLoad();
     });
   </script>

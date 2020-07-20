@@ -129,7 +129,7 @@
     function Play(event) {
       event.preventDefault();
       if (started == false) {
-        CSOUND_AUDIO_CONTEXT.resume();
+        CsoundObj.CSOUND_AUDIO_CONTEXT.resume();
         started = true;
       }
       let note = event.target.value;

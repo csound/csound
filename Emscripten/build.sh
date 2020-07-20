@@ -4,7 +4,7 @@ set -x
 mkdir -p build
 cd build
 
-emconfigure cmake -DCMAKE_VERBOSE_MAKEFILE=1 -DBUILD_PLUGINS_DIR="plugins" -DUSE_COMPILER_OPTIMIZATIONS=0 -DWASM=1 -DINIT_STATIC_MODULES=0 -DUSE_DOUBLE=NO -DBUILD_MULTI_CORE=0 -DBUILD_JACK_OPCODES=0 -DEMSCRIPTEN=1 -DCMAKE_BUILD_TYPE=Release -G"Unix Makefiles" -DHAVE_BIG_ENDIAN=0 -DCMAKE_16BIT_TYPE="unsigned short"  -DHAVE_STRTOD_L=0 -DBUILD_STATIC_LIBRARY=YES -DHAVE_ATOMIC_BUILTIN=0 -DHAVE_SPRINTF_L=NO -DUSE_GETTEXT=NO -DLIBSNDFILE_LIBRARY=../deps/lib/libsndfile.a -DSNDFILE_H_PATH=../deps/include ../..
+emcmake cmake -DCMAKE_VERBOSE_MAKEFILE=1 -DBUILD_PLUGINS_DIR="plugins" -DUSE_COMPILER_OPTIMIZATIONS=0 -DWASM=1 -DINIT_STATIC_MODULES=0 -DUSE_DOUBLE=NO -DBUILD_MULTI_CORE=0 -DBUILD_JACK_OPCODES=0 -DEMSCRIPTEN=1 -DCMAKE_BUILD_TYPE=Release -G"Unix Makefiles" -DHAVE_BIG_ENDIAN=0 -DCMAKE_16BIT_TYPE="unsigned short"  -DHAVE_STRTOD_L=0 -DBUILD_STATIC_LIBRARY=YES -DHAVE_ATOMIC_BUILTIN=0 -DHAVE_SPRINTF_L=NO -DUSE_GETTEXT=NO -DLIBSNDFILE_LIBRARY=../deps/lib/libsndfile.a -DSNDFILE_H_PATH=../deps/include ../..
 
 emmake make csound-static -j6 
 
@@ -25,17 +25,18 @@ emcc -v -O2 -g4 -DINIT_STATIC_MODULES=0 -s WASM=1 -s ASSERTIONS=0 -s "BINARYEN_M
 
 # node ../convert.js
 
-#echo "AudioWorkletGlobalScope.libcsound = libcsound" >> libcsound.js
-# echo "AudioWorkletGlobalScope.libcsound = libcsound" >> libcsound-worklet.js
-echo "export default libcsound;" >> libcsound.js
-
-# --post-js does not work with MODULARIZE, use this for ES6 Module 
-cat ../src/CsoundProcessor.js >> libcsound-worklet.js
-
 cd ..
 cp src/csound.js dist 
 cp build/libcsound.js module/src/
 cp build/libcsound-worklet.js module/src/CsoundProcessor.js
+
+
+#echo "AudioWorkletGlobalScope.libcsound = libcsound" >> libcsound.js
+# echo "AudioWorkletGlobalScope.libcsound = libcsound" >> libcsound-worklet.js
+echo "export default libcsound;" >> module/src/libcsound.js
+
+# --post-js does not work with MODULARIZE, use this for ES6 Module 
+cat src/CsoundProcessor.js >> module/src/CsoundProcessor.js
 
 cd module
 npm run-script build
