@@ -62,7 +62,10 @@ parameters, implementing the Box-Muller algorithm.
 
 - pvsbandwidth - returns spectral bandwidth.
 
-- chngeti/a/k/ks/s and chnseti/a/k/ks/s - channel opcodes using arrays.
+- chngeti/a/k/ks/s and chnseti/a/k/ks/s - channel opcodes using
+arrays.
+
+- vps - vector phase shaping
 
 ### New Gen and Macros
 

@@ -2342,7 +2342,7 @@ int vps_process(CSOUND *csound, VPS *p) {
   uint32_t i, nsmps = CS_KSMPS;
   MYFLT *in = p->in, s;
   MYFLT *out = p->out;
-  MYFLT kd = *p->kd;
+  MYFLT kd = *p->kd < 1. ? (*p->kd >= 0. ? *p->kd : 0.) : 1.;
   MYFLT ke = *p->ke;
 
   if (UNLIKELY(offset)) {
@@ -2352,7 +2352,7 @@ int vps_process(CSOUND *csound, VPS *p) {
       nsmps -= early;
       memset(&out[nsmps], '\0', early*sizeof(MYFLT));
     }
-
+  
     
   for (i=offset; i<nsmps; i++) {
     s = in[i];
