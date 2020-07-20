@@ -140,12 +140,12 @@ static TREE* remove_excess_assigns(CSOUND *csound, TREE* root)
           //current->right != NULL &&  no one looks at current->right
           current->left->value->lexeme[0]=='#') {
         TREE *nxt = current->next;
-        if (PARSER_DEBUG) {
-          printf("passes test1 %s type =%d\n",
-                 current->left->value->lexeme, current->type);
-          printf("next type = %d; lexeme %s\n",
-                 nxt->type, nxt->right->value->lexeme);
-        }
+        /* if (PARSER_DEBUG) { */
+        /*   printf("passes test1 %s type =%d\n", */
+        /*          current->left->value->lexeme, current->type); */
+        /*   printf("next type = %d; lexeme %s\n", */
+        /*          nxt->type, nxt->right->value->lexeme); */
+        /* } */
         /* if (PARSER_DEBUG) printf("test3: %c%c %c\n", */
         /*            nxt->left->value->lexeme[0], nxt->left->value->lexeme[1], */
         /*            nxt->right->value->lexeme[1]); */

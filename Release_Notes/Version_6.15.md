@@ -218,46 +218,15 @@ parameters, implementing the Box-Muller algorithm.
 
 ==END==
 
-ommit 2af6df492f78471769c53e42ca5e65bf1761e52e
+commit 2af6df492f78471769c53e42ca5e65bf1761e52e
 Author: vlazzarini <victor.lazzarini@mu.ie>
 Date:   Tue Jul 14 20:11:49 2020 +0100
 
-    setSpinSample
-
-commit e125000962f3bbe26044c99b36ce23d4b0696839
-Author: vlazzarini <victor.lazzarini@mu.ie>
-Date:   Tue Jul 14 17:14:46 2020 +0100
-
-    moving things
+setSpinSample
 
 Author: Steven Yi <stevenyi@gmail.com>
 Date:   Sat Jul 11 09:50:39 2020 -0400
 
     attempting fix for default opcode dir after LIBRARY_INSTALL_DIR change
-
-
-commit b50ad48221841f5abc9540b2f9c5dddbde1a67ff
-Author: Eduardo Moguillansky <eduardo.moguillansky@gmail.com>
-Date:   Fri Jun 19 10:07:11 2020 +0200
-
-    better error for dispfft
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
