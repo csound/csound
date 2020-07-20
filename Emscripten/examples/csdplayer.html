@@ -85,7 +85,7 @@
                 if (!playing) {
                     if (started) csound.Csound.start();
                     else {
-                        CSOUND_AUDIO_CONTEXT.resume();
+                        CsoundObj.CSOUND_AUDIO_CONTEXT.resume();
                         csound.Csound.compileCSD("csdfile.csd");
                         csound.Csound.start();
                         started = true;

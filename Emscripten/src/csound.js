@@ -54,7 +54,7 @@ Csound = function() {
         var path = absolute_path();
             load_dep(path + "CsoundObj.js", "script", function() {
                 console.log("loaded CsoundObj");
-                CsoundObj.importScripts(path).then(() => {
+                CsoundObj.initialize().then(() => {
                     console.log("loaded WASM runtime");
                     csound.Csound = new CsoundObj();
                     csound.module = true;
