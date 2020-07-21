@@ -43,7 +43,7 @@ incorrect data access, as well as the usual tweaks and changes.
 
 - sterrain is an enhanced version of wterrain with more possible orbits.
 
-- count, cntCreate, cntRead, cntReset, cntCycle and cntState together implement a new counter object that cycles trough a constant range, similar to in PD.
+- count, count_i, cntCreate, cntRead, cntReset, cntCycles and cntState together implement a new counter object that cycles trough a constant range, similar to in PD.
 
 - new alias for sc_ opcodes: sc_lag -> lag, sc_lagud -> lagud, sc_trig -> trigholf, sc_phasor -> phasortrigo.
 
@@ -61,8 +61,6 @@ new streaming linear prediction opcodes.
 parameters, implementing the Box-Muller algorithm.
 
 - pvsbandwidth - returns spectral bandwidth.
-
-- chngeti/a/k/ks/s and chnseti/a/k/ks/s - channel opcodes using arrays.
 
 ### New Gen and Macros
 
