@@ -203,6 +203,7 @@ parameters, implementing the Box-Muller algorithm.
   * Breaking: CsoundObj.importScripts() was removed and replaced with CsoundObj.initialize()
     * paths for loading other files no longer relevant with single-file
     * initialize takes in optional AudioContext, otherwise CsoundObj will create one for use
+  * Breaking: CSOUND\_AUDIO\_CONTEXT moved from global namespace; instead reference CsoundObj.CSOUND\_AUDIO\_CONTEXT
   * Compile flags changed to -O3 and without debug information, per recommendations for release builds by Emscripten
   * Link-Time Optimization (LTO) enabled for reduced size
 
