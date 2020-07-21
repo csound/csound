@@ -62,6 +62,8 @@ parameters, implementing the Box-Muller algorithm.
 
 - pvsbandwidth - returns spectral bandwidth.
 
+- vps - vector phase shaping
+
 ### New Gen and Macros
 
 ### Orchestra
