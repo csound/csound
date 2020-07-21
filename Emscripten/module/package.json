@@ -1,0 +1,31 @@
+{
+  "name": "csound",
+  "version": "6.14.0",
+  "description": "Csound sound and music computing system",
+  "main": "dist/CsoundObj.js",
+  "module": "dist/CsoundObj.esm.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build": "rollup -c"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/csound/csound.git"
+  },
+  "keywords": [
+    "csound",
+    "wasm",
+    "webaudio"
+  ],
+  "author": "Steven Yi",
+  "license": "LGPL-2.1-only",
+  "bugs": {
+    "url": "https://github.com/csound/csound/issues"
+  },
+  "homepage": "https://github.com/csound/csound#readme",
+  "devDependencies": {
+    "@rollup/plugin-url": "^5.0.1",
+    "rollup": "^2.17.0",
+    "rollup-plugin-terser": "^6.1.0"
+  }
+}
