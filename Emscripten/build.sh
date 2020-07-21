@@ -9,6 +9,8 @@ export CXXFLAGS="-O3 -flto"
 
 emcmake cmake -DCMAKE_VERBOSE_MAKEFILE=1 -DBUILD_PLUGINS_DIR="plugins" -DUSE_COMPILER_OPTIMIZATIONS=0 -DWASM=1 -DINIT_STATIC_MODULES=0 -DUSE_DOUBLE=NO -DBUILD_MULTI_CORE=0 -DBUILD_JACK_OPCODES=0 -DEMSCRIPTEN=1 -DCMAKE_BUILD_TYPE=Release -G"Unix Makefiles" -DHAVE_BIG_ENDIAN=0 -DCMAKE_16BIT_TYPE="unsigned short"  -DHAVE_STRTOD_L=0 -DBUILD_STATIC_LIBRARY=YES -DHAVE_ATOMIC_BUILTIN=0 -DHAVE_SPRINTF_L=NO -DUSE_GETTEXT=NO -DLIBSNDFILE_LIBRARY=../deps/lib/libsndfile.a -DSNDFILE_H_PATH=../deps/include ../..
 
+
+
 emmake make csound-static -j6 
 
 emcc -s LINKABLE=1 -s ASSERTIONS=0 ../src/FileList.c -Iinclude -o FileList.bc
@@ -21,10 +23,10 @@ emcc -s LINKABLE=1 -s ASSERTIONS=0 ../src/CsoundObj.c -I../../include -Iinclude 
 # Keep exports in alphabetical order please, to correlate with CsoundObj.js.
 
 ## First build for WASM/ScriptProcessorNode (async compilation = 1, assertions = 1)
-emcc -v -O3 -flto -DINIT_STATIC_MODULES=0 -s WASM=1 -s ASSERTIONS=1 -s LINKABLE=1 -s RESERVED_FUNCTION_POINTERS=1 -s TOTAL_MEMORY=268435456 -s ALLOW_MEMORY_GROWTH=1 -s NO_EXIT_RUNTIME=1 -s SINGLE_FILE=1 --pre-js ../src/FileList.js -s BINARYEN_ASYNC_COMPILATION=1 -s MODULARIZE=1 -s EXPORT_NAME=\"'libcsound'\" -s EXTRA_EXPORTED_RUNTIME_METHODS='["FS", "ccall", "cwrap", "Pointer_stringify"]' CsoundObj.bc FileList.bc libcsound.a ../deps/lib/libsndfile.a ../deps/lib/libogg.a ../deps/lib/libvorbis.a ../deps/lib/libvorbisenc.a ../deps/lib/libFLAC.a -o libcsound.js
+emcc -v -O3 -flto -DINIT_STATIC_MODULES=0 -s WASM=1 -s ASSERTIONS=1 -s LINKABLE=1 -s RESERVED_FUNCTION_POINTERS=1 -s TOTAL_MEMORY=268435456 -s ALLOW_MEMORY_GROWTH=1 -s NO_EXIT_RUNTIME=1 -s SINGLE_FILE=1 --pre-js ../src/FileList.js -s BINARYEN_ASYNC_COMPILATION=1 -s MODULARIZE=1 -s EXPORT_NAME=\"'libcsound'\" -s EXTRA_EXPORTED_RUNTIME_METHODS='["FS", "ccall", "cwrap"]' CsoundObj.bc FileList.bc libcsound.a ../deps/lib/libsndfile.a ../deps/lib/libogg.a ../deps/lib/libvorbis.a ../deps/lib/libvorbisenc.a ../deps/lib/libFLAC.a -o libcsound.js
  
 ## Second build for WASM/AudioWorklet (async compilation = 0, assertions = 0)
-emcc -v -O3 -flto -DINIT_STATIC_MODULES=0 -s WASM=1 -s ASSERTIONS=0 -s LINKABLE=1 -s RESERVED_FUNCTION_POINTERS=1 -s TOTAL_MEMORY=268435456 -s ALLOW_MEMORY_GROWTH=1 -s NO_EXIT_RUNTIME=1 -s SINGLE_FILE=1 --pre-js ../src/FileList.js -s BINARYEN_ASYNC_COMPILATION=0 -s MODULARIZE=1 -s EXPORT_NAME=\"'libcsound'\"  -s EXTRA_EXPORTED_RUNTIME_METHODS='["FS", "ccall", "cwrap", "Pointer_stringify"]' CsoundObj.bc FileList.bc libcsound.a ../deps/lib/libsndfile.a ../deps/lib/libogg.a ../deps/lib/libvorbis.a ../deps/lib/libvorbisenc.a ../deps/lib/libFLAC.a -o libcsound-worklet.js
+emcc -v -O3 -flto -DINIT_STATIC_MODULES=0 -s WASM=1 -s ASSERTIONS=0 -s LINKABLE=1 -s RESERVED_FUNCTION_POINTERS=1 -s TOTAL_MEMORY=268435456 -s ALLOW_MEMORY_GROWTH=1 -s NO_EXIT_RUNTIME=1 -s SINGLE_FILE=1 --pre-js ../src/FileList.js -s BINARYEN_ASYNC_COMPILATION=0 -s MODULARIZE=1 -s EXPORT_NAME=\"'libcsound'\"  -s EXTRA_EXPORTED_RUNTIME_METHODS='["FS", "ccall", "cwrap"]' CsoundObj.bc FileList.bc libcsound.a ../deps/lib/libsndfile.a ../deps/lib/libogg.a ../deps/lib/libvorbis.a ../deps/lib/libvorbisenc.a ../deps/lib/libFLAC.a -o libcsound-worklet.js
 
 # node ../convert.js
 
