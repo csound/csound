@@ -585,7 +585,6 @@ ORCTOKEN *make_label(CSOUND *csound, char *s)
 {
     ORCTOKEN *ans = new_token(csound, LABEL_TOKEN);
     int len;
-    char trm;
     char *ps = s;
     while (*ps != ':') ps++;
     *(ps+1) = '\0';
