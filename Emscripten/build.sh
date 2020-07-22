@@ -1,6 +1,7 @@
 #!/bin/bash 
 set -x
 
+mkdir -p dist
 mkdir -p build
 cd build
 
@@ -31,6 +32,7 @@ emcc -v -O3 -flto -DINIT_STATIC_MODULES=0 -s WASM=1 -s ASSERTIONS=0 -s LINKABLE=
 # node ../convert.js
 
 cd ..
+
 cp src/csound.js dist 
 cp build/libcsound.js module/src/
 cp build/libcsound-worklet.js module/src/CsoundProcessor.js
