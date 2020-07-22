@@ -41,6 +41,7 @@ echo "export default libcsound;" >> module/src/libcsound.js
 cat src/CsoundProcessor.js >> module/src/CsoundProcessor.js
 
 cd module
+npm install 
 npm run-script build
 
 cp dist/*.js ../dist/
