@@ -13,10 +13,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: run the Docker image
-        run: docker run --name cosund_test_run -i sjamble/csound_emscripten
+        run: docker run --name csound_test_run -i sjamble/csound_emscripten
       - name: copying build out of container
-        run: docker cp cosund_test_run:/csound/Emscripten/Csound6.14.0-Web.zip .
-      - uses: actions/upload-artifact@master
+        run: docker cp csound_test_run:/csound/Emscripten/Csound6.14.0-Web.zip .
+      - uses: actions/upload-artifact@v2
         with:
           name: Csound6.14.0-Web.zip
           path: .
@@ -24,10 +24,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: run the Docker image
-        run: docker run --name cosund_test_run -i sjamble/csound_android
+        run: docker run --name csound_test_run -i sjamble/csound_android
       - name: copying build out of container
-        run: docker cp cosund_test_run:/csound/Android/Csound6.14.0-Android.zip .
-      - uses: actions/upload-artifact@master
+        run: docker cp csound_test_run:/csound/Android/Csound6.14.0-Android.zip .
+      - uses: actions/upload-artifact@v2
         with:
           name: Csound6.14.0-Android.zip
           path: .
