@@ -43,6 +43,8 @@ incorrect data access, as well as the usual tweaks and changes.
 
 - sterrain is an enhanced version of wterrain with more possible orbits.
 
+- wterrain2 is a alternative enhancemet of wterrain with ess  variation that sterrain.
+
 - count, count_i, cntCreate, cntRead, cntReset, cntCycles and cntState together implement a new counter object that cycles trough a constant range, similar to in PD.
 
 - new alias for sc_ opcodes: sc_lag -> lag, sc_lagud -> lagud, sc_trig -> trigholf, sc_phasor -> phasortrigo.
