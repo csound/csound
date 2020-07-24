@@ -89,7 +89,7 @@ mkdir -p $SUPPORT_LIBS_DIR
 
 mkdir -p $FRAMEWORK64_DIR/$PYTHON_DIR
 mkdir -p $FRAMEWORK64_DIR/$JAVA_DIR
-mkdir -p $FRAMEWORK64_DIR/$SAMPLES_DIR
+#mkdir -p $FRAMEWORK64_DIR/$SAMPLES_DIR
 mkdir -p $FRAMEWORK64_DIR/../Documentation
 #mkdir -p $FRAMEWORK64_DIR/Headers
 
@@ -121,9 +121,10 @@ echo "copying manual..."
 cp -Rf $MANUAL_DIR/html $FRAMEWORK64_DIR/Resources/
 mv $FRAMEWORK64_DIR/Resources/html $FRAMEWORK64_DIR/Resources/Manual
 
-echo "copying samples..."
+# installer should take care of this now (VL 07.20)
+#echo "copying samples..."
 
-cp csound6/samples/*.dat $FRAMEWORK64_DIR/$SAMPLES_DIR
+#cp csound6/samples/*.dat $FRAMEWORK64_DIR/$SAMPLES_DIR
 
 echo "copying apps..."
 

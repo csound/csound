@@ -27,6 +27,8 @@ set(EXECUTABLE_INSTALL_DIR "bin")
 set(LOCALE_INSTALL_DIR "share/locale")
 set(HEADER_INSTALL_DIR "include/csound")
 
+set(SAMPLES_INSTALL_DIR "/samples")
+
 set(CS_FRAMEWORK_DEST "~/Library/Frameworks" CACHE PATH "Csound framework path")
 include(TestBigEndian)
 include(CheckFunctionExists)
@@ -1430,3 +1432,13 @@ endif(DOXYGEN_FOUND)
 # install CMake module
 install(FILES ${CMAKE_SOURCE_DIR}/cmake/Modules/FindCsound.cmake
         DESTINATION "${CMAKE_INSTALL_PREFIX}/share/cmake/Csound")
+
+# install samples
+if(APPLE)
+ install(DIRECTORY ${CMAKE_SOURCE_DIR}/samples
+          DESTINATION  ${CS_FRAMEWORK_DEST}/${CSOUNDLIB}.framework/Versions/${APIVERSION})
+else()
+ install(DIRECTORY ${CMAKE_SOURCE_DIR}/samples
+          DESTINATION ${CMAKE_INSTALL_PREFIX}/share)
+endif()
+ 
