@@ -21,8 +21,6 @@
     02110-1301 USA
 */
 
-import libcsound from './libcsound-worklet.js'
-
 const CSMOD = {} 
 
 let printCallbacks = [];

@@ -17,6 +17,7 @@ processor Node.
   [instructions](https://kripken.github.io/emscripten-site/docs/getting_started/downloads.html)
   thoroughly. Make sure all steps are followed to ensure a correct
   installation of the toolchain.
+* [NPM](https://www.npmjs.com/): Used to assemble the CsoundObj.js release
 * [JSDoc]](https://usejsdoc.org): if you are build a release package
   and/or documentation, you will need to install JSDoc.
 

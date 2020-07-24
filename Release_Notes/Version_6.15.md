@@ -43,7 +43,9 @@ incorrect data access, as well as the usual tweaks and changes.
 
 - sterrain is an enhanced version of wterrain with more possible orbits.
 
-- count, cntCreate, cntRead, cntReset, cntCycle and cntState together implement a new counter object that cycles trough a constant range, similar to in PD.
+- wterrain2 is a alternative enhancemet of wterrain with ess  variation that sterrain.
+
+- count, count_i, cntCreate, cntRead, cntReset, cntCycles and cntState together implement a new counter object that cycles trough a constant range, similar to in PD.
 
 - new alias for sc_ opcodes: sc_lag -> lag, sc_lagud -> lagud, sc_trig -> trigholf, sc_phasor -> phasortrigo.
 
@@ -61,9 +63,6 @@ new streaming linear prediction opcodes.
 parameters, implementing the Box-Muller algorithm.
 
 - pvsbandwidth - returns spectral bandwidth.
-
-- chngeti/a/k/ks/s and chnseti/a/k/ks/s - channel opcodes using
-arrays.
 
 - vps - vector phase shaping
 
@@ -200,6 +199,15 @@ arrays.
 ### Platform Specific
 
 - WebAudio: 
+ 
+  * Built using Emscripten 1.39.13 (LLVM backend)
+  * New single-file release of CsoundObj.js with all classes and webassembly files combined using npm and rollup
+  * Breaking: CsoundObj.importScripts() was removed and replaced with CsoundObj.initialize()
+    * paths for loading other files no longer relevant with single-file
+    * initialize takes in optional AudioContext, otherwise CsoundObj will create one for use
+  * Breaking: CSOUND\_AUDIO\_CONTEXT moved from global namespace; instead reference CsoundObj.CSOUND\_AUDIO\_CONTEXT
+  * Compile flags changed to -O3 and without debug information, per recommendations for release builds by Emscripten
+  * Link-Time Optimization (LTO) enabled for reduced size
 
 - iOS
 

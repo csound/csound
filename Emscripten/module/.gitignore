@@ -1,0 +1,4 @@
+dist
+node_modules
+src/libcsound.js
+src/CsoundProcessor.js

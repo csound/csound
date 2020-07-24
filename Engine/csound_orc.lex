@@ -43,7 +43,8 @@ ORCTOKEN *new_token(CSOUND *csound, int type);
 ORCTOKEN *make_int(CSOUND *, char *);
 ORCTOKEN *make_num(CSOUND *, char *);
 ORCTOKEN *make_token(CSOUND *, char *s);
- ORCTOKEN *make_label(CSOUND *, char *s, void *);
+ORCTOKEN *make_label(CSOUND *, char *s);
+static void check_newline_for_label(char *pp, void* yyscanner);
 #define udoflag csound->parserUdoflag
 #define namedInstrFlag csound->parserNamedInstrFlag
 #include "parse_param.h"
@@ -378,7 +379,9 @@ FNAME           [a-zA-Z0-9/:.+-_]+
 
 {LABEL}         { char *pp = yytext;
                   while (*pp==' ' || *pp=='\t') pp++;
-                  *lvalp = make_label(csound, pp, yyscanner); return LABEL_TOKEN;
+                  check_newline_for_label(pp, yyscanner);
+                  *lvalp = make_label(csound, pp); 
+                  return LABEL_TOKEN;
                }
 
 "\{\{"          {
@@ -578,21 +581,27 @@ ORCTOKEN *make_token(CSOUND *csound, char *s)
     return ans;
 }
 
-ORCTOKEN *make_label(CSOUND *csound, char *s, void* yyscanner)
+ORCTOKEN *make_label(CSOUND *csound, char *s)
 {
     ORCTOKEN *ans = new_token(csound, LABEL_TOKEN);
     int len;
-    char trm;
     char *ps = s;
     while (*ps != ':') ps++;
-    trm = *(ps+1);
     *(ps+1) = '\0';
     len = strlen(s);
     ans->lexeme = (char*)csound->Calloc(csound, len);
     strNcpy(ans->lexeme, s, len); /* Not the trailing colon */
-    if (trm=='\n')
-      csound_orcset_lineno(1+csound_orcget_lineno(yyscanner),yyscanner);
     return ans;
+}
+
+static void check_newline_for_label(char*s, void* yyscanner) {
+    char *ps = s;
+    while (*ps != ':') ps++;
+    while(*ps != '\0') {
+      if (*ps=='\n')
+        csound_orcset_lineno(1+csound_orcget_lineno(yyscanner),yyscanner);
+      ps++;
+    }
 }
 
 ORCTOKEN *make_string(CSOUND *csound, char *s)

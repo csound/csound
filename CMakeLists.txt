@@ -858,6 +858,7 @@ set(stdopcod_SRCS
     Opcodes/ugnorman.c
     Opcodes/ugsc.c
     Opcodes/wave-terrain.c
+    Opcodes/wterrain2.c
     Opcodes/stdopcod.c
     Opcodes/socksend.c
     Opcodes/sockrecv.c)

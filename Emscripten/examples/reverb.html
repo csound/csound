@@ -63,7 +63,7 @@
   </CsScore>
   </CsoundSynthesizer>
   `;
-    CsoundObj.importScripts("./js/").then(() => {
+    CsoundObj.initialize().then(() => {
       csoundObj = new CsoundObj();
       csoundObj.enableAudioInput((res) => {
         if (res) {
@@ -80,7 +80,7 @@
           document.getElementById('playButton').addEventListener('click',
             click_this);
           document.getElementById('playButton').disabled = false;
-          CSOUND_AUDIO_CONTEXT.suspend();
+          CsoundObj.CSOUND_AUDIO_CONTEXT.suspend();
           csoundObj.compileCSD(TEST_CSD);
           csoundObj.start();
         } else {
@@ -93,11 +93,11 @@
 
     function click_this() {
       if (playing == false) {
-        CSOUND_AUDIO_CONTEXT.resume();
+        CsoundObj.CSOUND_AUDIO_CONTEXT.resume();
         document.getElementById('playButton').innerText = "off";
         playing = true;
       } else {
-        CSOUND_AUDIO_CONTEXT.suspend();
+        CsoundObj.CSOUND_AUDIO_CONTEXT.suspend();
         document.getElementById('playButton').innerText = "on";
         playing = false;
       }

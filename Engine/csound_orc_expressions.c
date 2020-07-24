@@ -317,7 +317,7 @@ static TREE *create_cond_expression(CSOUND *csound,
     //print_tree(csound, "***C\n", c); print_tree(csound,"***D\n", d);
     left = get_arg_type2(csound, c, typeTable);
     right  = get_arg_type2(csound, d, typeTable);
-    printf("types %s %s\n", left, right);
+    //printf("types %s %s\n", left, right);
     if (left[0]=='c') left[0] = 'i';
     if (right[0]=='c') right[0] = 'i';
     //printf("type = %d\n", type);
@@ -325,7 +325,7 @@ static TREE *create_cond_expression(CSOUND *csound,
     while (last->next != NULL) {
       last = last->next;
     }
-    printf("type = %s , %s\n", left, right);
+    //printf("type = %s , %s\n", left, right);
     if (left[0]=='S' || right[0]=='S') {
       type = (last->left->value->lexeme[1]=='B') ?2 : 1;
       eq = "#=.S";
@@ -336,7 +336,7 @@ static TREE *create_cond_expression(CSOUND *csound,
       if (type==2) left[0] = right[0] = 'k';
       eq = "=";
     }
-    printf("boolvalr = %s, type=%d\n", last->left->value->lexeme, type);
+    //printf("boolvalr = %s, type=%d\n", last->left->value->lexeme, type);
     //print_tree(csound, "\nL1\n", L1);
 
     last->next = create_opcode_token(csound, type==1?"cigoto":"ckgoto");
@@ -353,7 +353,7 @@ static TREE *create_cond_expression(CSOUND *csound,
     // Need to get type of expression for newvariable
     right = create_out_arg(csound,left,
                            typeTable->localPool->synthArgCount++, typeTable);
-    printf("right = %s\n", right);
+    //printf("right = %s\n", right);
     {
       TREE *C = create_opcode_token(csound, cs_strdup(csound, eq));
       C->left = create_ans_token(csound, right); C->right = c;
@@ -395,7 +395,7 @@ static TREE *create_cond_expression(CSOUND *csound,
     last->next->left = create_ans_token(csound, right);
     last->next->right = create_ans_token(csound, right);
 
-    printf("\n\n*** create_cond_expression ends\n");
+    //printf("\n\n*** create_cond_expression ends\n");
 
     //print_tree(csound, "ANSWER\n", b);
     return b;
