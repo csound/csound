@@ -429,7 +429,10 @@ or there might be a compiler issue, in which case, you need to change the line a
     in order to disable the vectorial code and use standard C scalar
     operations.
 
-There is no support for NEON on rpi 1 or zero. This is available for rpi 2 and 3, though.
+There is no support for NEON on rpi 1 or zero. This is available for
+rpi 2 and 3, though.
+
+3. Remember to run cmake again (step 7 above) after any changes to Custom.cmake
 
 Fedora 18 <a name="fedora">
 ---------
