@@ -136,7 +136,9 @@ parameters, implementing the Box-Muller algorithm.
 
 - partials has an improved method of phase estimation.
 .
-- cytrlinit checjs that the values are in therang [0,127].
+- ctrlinit checks that the values are in the range [0,127].
+
+- fin as format argument hanged, and is now deprecated.
 ### Utilities
 
 - lpanal now contains a new alternative algorithm based on the Durbin
