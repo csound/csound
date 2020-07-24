@@ -17,11 +17,11 @@ else
 fi
 echo "Version: $CS_VERSION"
 export MANUAL_DIR=`pwd`/../../../manual
-export PACKAGE_NAME=csound${CS_VERSION}-MacOS_x86_64.pkg
+export PACKAGE_NAME=csound-MacOS_x86_64-${CS_VERSION}.pkg
 export DMG_DIR="Csound${CS_VERSION}"
-export DMG_NAME="csound${CS_VERSION}-MacOS_x86_64.dmg"
+export DMG_NAME="csound-MacOS_x86_64-${CS_VERSION}.dmg"
 
-export SDK=/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.12.sdk/
+#export SDK=/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.12.sdk/
 export TARGET=10.7
 export DEPS_BASE=/usr/local
 # If arg2 passed in, will cd into that dir and rebuild, otherwise
@@ -262,7 +262,7 @@ mkdir "$DMG_DIR"
 cd "$DMG_DIR"
 cp ../$PACKAGE_NAME .
 #cp  ../../../readme.pdf .
-cp  ../../../DmgResources/CsoundQt-0.9.7-MacOs.dmg .
+#cp  ../../../DmgResources/CsoundQt-0.9.7-MacOs.dmg .
 #hdiutil create CsoundQT.dmg -srcfolder ../../../DmgResources/
 
 cd ..
