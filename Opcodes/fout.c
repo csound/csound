@@ -1076,10 +1076,12 @@ static int32_t kinfile_set_(CSOUND *csound, KINFILE *p, int32_t istring)
 
     memset(&sfinfo, 0, sizeof(SF_INFO));
     sfinfo.samplerate = (int32_t) MYFLT2LRND(CS_EKR);
-    if ((int32_t) MYFLT2LRND(*p->iflag) == 0)
+    if ((int32_t) MYFLT2LRND(*p->iflag) == -2)
       sfinfo.format = FORMAT2SF(AE_FLOAT) | TYPE2SF(TYP_RAW);
-    else
+    else if ((int32_t) MYFLT2LRND(*p->iflag) == -1)
       sfinfo.format = FORMAT2SF(AE_SHORT) | TYPE2SF(TYP_RAW);
+    else
+      sfinfo.format = 0;
     sfinfo.channels = p->INOCOUNT - 3;
 
     p->nargs = p->INOCOUNT - 3;
