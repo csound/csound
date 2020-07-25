@@ -864,7 +864,7 @@ static int32_t infile_set_(CSOUND *csound, INFILE *p, int32_t istring)
     else if ((int32_t) MYFLT2LRND(*p->iflag) == -1)
       sfinfo.format = FORMAT2SF(AE_SHORT) | TYPE2SF(TYP_RAW);
     else
-    sfinfo.format = 0;
+      sfinfo.format = 0;
     sfinfo.channels = p->INOCOUNT - 3;
      if (CS_KSMPS >= 512)
       p->frames = CS_KSMPS;
@@ -918,10 +918,12 @@ static int32_t infile_set_A(CSOUND *csound, INFILEA *p)
     p->flag = 1;
     memset(&sfinfo, 0, sizeof(SF_INFO));
     sfinfo.samplerate = (int32_t) MYFLT2LRND(CS_ESR);
-    if ((int32_t) MYFLT2LRND(*p->iflag) == 0)
+    if ((int32_t) MYFLT2LRND(*p->iflag) == -2)
       sfinfo.format = FORMAT2SF(AE_FLOAT) | TYPE2SF(TYP_RAW);
-    else
+    else if ((int32_t) MYFLT2LRND(*p->iflag) == -1)
       sfinfo.format = FORMAT2SF(AE_SHORT) | TYPE2SF(TYP_RAW);
+    else
+      sfinfo.format = 0;
     sfinfo.channels = p->INOCOUNT - 3;
     if (CS_KSMPS >= 512)
       p->frames = CS_KSMPS;
