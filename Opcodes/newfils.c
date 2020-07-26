@@ -2258,7 +2258,9 @@ static int32_t bob_init(CSOUND *csound,BOB *p)
       p->oldres = FL(0.0);
       p->oldsat = FL(0.0);
     }
-    if (*p->osamp<=FL(1.0)) p->ostimes = 3;
+
+    if (*p->osamp<=FL(0.0)) p->ostimes = 2;
+    else if (*p->osamp< FL(1.0)) p->ostimes = 1;
     else p->ostimes = (int32_t) *p->osamp;
 
     int i;
