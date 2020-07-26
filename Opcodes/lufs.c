@@ -34,7 +34,7 @@ typedef struct filter_ {
 typedef struct {
         OPDS    h;
         MYFLT   *kmom,*kint,*kst;
-        MYFLT   *in;
+        MYFLT   *rst,*in;
 
         double a1,a2, b0,b1,b2;
         filter filter1; // first stage
@@ -51,7 +51,7 @@ typedef struct {
 typedef struct {
         OPDS    h;
         MYFLT   *kmom,*kint,*kst;
-        MYFLT   *in1,*in2;
+        MYFLT   *rst,*in1,*in2;
 
         double a1,a2, b0,b1,b2;
         filter filter1; // first stage
@@ -138,32 +138,26 @@ static int32_t lufs_init(CSOUND *csound, LUFS *p)
         p->mPk = 0;
         p->jcount = 0;
         p->kcount = 0;
-
+		*p->kmom = -200;
+        *p->kst = -200;
+        *p->kint = -200;
         memset(p->pwr_, '\0', 4*sizeof(MYFLT));
-        /* for (int i=0; i<4; i++) { */
-        /*   p->pwr_[i] = 0; */
-        /* } */
-
         memset(p->pwr_ST, '\0', 30*sizeof(MYFLT));
-        /* for (int i=0; i<30; i++) { */
-        /*   p->pwr_ST[i] = 0; */
-        /* } */
 
     return OK;
 }
 
 static int32_t lufs_perf(CSOUND *csound, LUFS *p)
 {
-        MYFLT tempval, mloudness, mmpower, Gamma, ampower;
+    MYFLT tempval, mloudness, mmpower, Gamma, ampower;
     int nsmps = CS_KSMPS, i,z;
     int numsmps = 4 * p->q; //  400ms block length;
-
     int numsmpsST = 30 * p->q; // 3s block length;
     uint32_t offset = p->h.insdshead->ksmps_offset;
 
       for (i=offset; i<nsmps; i++) {
 
-        tempval   =     filterK1(&p->filter1, p->in[i]);
+        tempval   = filterK1(&p->filter1, p->in[i]);
         tempval   = filterK1(&p->filter2, tempval);
         p->pwr_[3] += tempval * tempval;  //x^2
         p->m++;
@@ -174,6 +168,7 @@ static int32_t lufs_perf(CSOUND *csound, LUFS *p)
           // momentary loudness of the segment - mono, LUFS
           mloudness = -0.691 + 10 * log10(p->pwro);
           *p->kmom = mloudness;
+
           // gating of momentary power
           if (mloudness >= -70) {
             p->mP += p->pwro;
@@ -194,7 +189,7 @@ static int32_t lufs_perf(CSOUND *csound, LUFS *p)
                 ampower = p->mPk / p->kcount;
 
                 // Integrated Loudness
-                        *p->kint = -0.691 + 10 * LOG10(ampower);
+                *p->kint = -0.691 + 10 * LOG10(ampower);
 
                 // next iteration prepare
                 p->pwr_[0] = p->pwr_[1];
@@ -217,6 +212,13 @@ static int32_t lufs_perf(CSOUND *csound, LUFS *p)
         }
     }
 
+    if (*p->rst != 0) {
+    	p->jcount = 0;
+    	p->kcount = 0;
+    	p->mP = 0;
+    	p->mPk = 0;
+    	*p->kint = -200;
+    }
     return OK;
 }
 
@@ -283,20 +285,14 @@ static int32_t lufs_init2(CSOUND *csound, LUFS2 *p)
                 p->mPk = 0;
                 p->jcount = 0;
                 p->kcount = 0;
+                *p->kmom = -200;
+        		*p->kst = -200;
+        		*p->kint = -200;
 
                 memset(p->pwr_1, '\0', 4*sizeof(MYFLT));
-                memset(p->pwr_2, '\0', 4*sizeof(MYFLT));
-                /* for (int i=0; i<4; i++) { */
-                /*         p->pwr_1[i] = 0; */
-                /*         p->pwr_2[i] = 0; */
-                /* } */
-                
+                memset(p->pwr_2, '\0', 4*sizeof(MYFLT));                
                 memset(p->pwr_ST1, '\0', 30*sizeof(MYFLT));
                 memset(p->pwr_ST2, '\0', 30*sizeof(MYFLT));
-                /* for (int i=0; i<30; i++) { */
-                /*         p->pwr_ST1[i] = 0; */
-                /*         p->pwr_ST2[i] = 0; */
-                /* } */
 
     return OK;
 }
@@ -379,15 +375,21 @@ static int32_t lufs_perf2(CSOUND *csound, LUFS2 *p)
           p->pwr_2[3] = 0;
         }
     }
-
+    if (*p->rst != 0) {
+    	p->jcount = 0;
+    	p->kcount = 0;
+    	p->mP = 0;
+    	p->mPk = 0;
+    	*p->kint = -200;
+    }
     return OK;
 }
 
 #define S(x) sizeof(x)
 
 static OENTRY lufs_localops[] = {
-{ "lufs.a", S(LUFS), 0, 3, "kkk", "a", (SUBR)lufs_init, (SUBR)lufs_perf },
-{ "lufs.aa", S(LUFS2), 0, 3, "kkk", "aa", (SUBR)lufs_init2, (SUBR)lufs_perf2 }
+{ "lufs.a", S(LUFS), 0, 3, "kkk", "ka", (SUBR)lufs_init, (SUBR)lufs_perf },
+{ "lufs.aa", S(LUFS2), 0, 3, "kkk", "kaa", (SUBR)lufs_init2, (SUBR)lufs_perf2 }
 };
 
 LINKAGE_BUILTIN(lufs_localops)
