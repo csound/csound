@@ -1,4 +1,7 @@
 # CSOUND FOR WINDOWS
+
+(Note: This document is out of date and should be revised or removed.)
+
 Version 6.09 beta
 
 [![Build Status](https://travis-ci.org/csound/csound.svg?branch=develop)](https://travis-ci.org/csound/csound)

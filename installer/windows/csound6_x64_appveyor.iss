@@ -29,14 +29,11 @@
 #define AppMinVersion GetEnv("CSOUND_VERSION")
 #define AppveyorBuildNumber GetEnv("APPVEYOR_BUILD_NUMBER")
 #define AppPublisher "Csound"
-#define AppURL "http://csound.github.io/"
+#define AppURL "https://csound.com/"
 #define ManualSourceDir "c:\html\"
-#define CsoundQTDir "c:\CsoundQt-0.9.7-Win64\"
-#define CsoundQTIcon "c:\qtcs.ico"
 
 [Components]
 Name: "core"; Description: "Core Csound"; Types: full custom; Flags: fixed
-Name: "csoundqt"; Description: "Csound QT"; Types: full;
 Name: "python"; Description: "Python features (requires Python 2.7)"; Types: full;
 
 [Dirs]
@@ -57,8 +54,6 @@ Name: "{app}\include"
 ; All Csound examples go here.
 Name: "{app}\examples"; Permissions: users-modify
 #define APP_EXAMPLES "{app}\examples\"
-; CsoundQt
-Name: "{app}\CsoundQt"; Permissions: users-modify
 
 ; Csound manual
 Name: "{app}\doc\manual"
@@ -245,15 +240,12 @@ Source: "../../examples\*.*"; DestDir: "{#APP_EXAMPLES}"; Excludes: "*.wav *.htm
 Source: "../../samples\*.*"; DestDir: "{#APP_SAMPLES}"; Flags: ignoreversion recursesubdirs;  Components: core
 Source: {#VcpkgInstallDir}\share\libstk\rawwaves\*.*; DestDir: "{#APP_SAMPLES}"; Flags: ignoreversion recursesubdirs;  Components: core
 Source: {#ManualSourceDir}*.*; DestDir: "{#APP_MANUAL}"; Flags: ignoreversion recursesubdirs; Components: core
-Source: {#CsoundQTDir}*.*; DestDir: "{app}\CsoundQt"; Flags: ignoreversion recursesubdirs; Components: csoundqt
-Source: {#CsoundQTIcon}; DestDir: "{app}\CsoundQt"; Flags: ignoreversion; Components: csoundqt
 
 
 [Icons]
 Name: "{group}\{cm:ProgramOnTheWeb,Csound}"; Filename: "{#AppURL}";  Components: core;
 Name: "{group}\{cm:UninstallProgram,{#AppName}}"; Filename: "{uninstallexe}"
 Name: "{group}\Csound"; Filename: "cmd.exe"; Parameters: "/K csound.exe"; WorkingDir: "{#APP_BIN}"; Flags: dontcloseonexit;  Components: core
-Name: "{group}\CsoundQt"; Filename: "{app}\CsoundQt\bin\CsoundQt-d-html-cs6.exe"; WorkingDir: "{app}\CsoundQt\bin\";  IconFilename:"{app}\CsoundQt\qtcs.ico" ;Components: csoundqt
 Name: "{group}\Csound Reference Manual"; Filename: "http://csound.github.io/docs/manual/indexframes.html";  Components: core
 Name: "{group}\Csound API Reference Manual"; Filename: "http://csound.github.io/docs/api/index.html";  Components: core
 
