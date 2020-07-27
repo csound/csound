@@ -94,8 +94,8 @@ vcpkg --triplet $targetTriplet install `
 
 echo "Downloading and installing non-VCPKG packages..."
 
-choco install swig -y
-choco upgrade swig -y
+choco install swig -y --version=4.0.1 --allow-downgrade
+choco upgrade swig -y --version=4.0.1 --allow-downgrade
 
 choco install winflexbison -y
 choco upgrade winflexbison -y
