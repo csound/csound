@@ -1,9 +1,8 @@
 {
   "name": "csound",
-  "version": "6.14.0",
+  "version": "6.15.0",
   "description": "Csound sound and music computing system",
-  "main": "dist/CsoundObj.js",
-  "module": "dist/CsoundObj.esm.js",
+  "main": "CsoundObj.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "build": "rollup -c"

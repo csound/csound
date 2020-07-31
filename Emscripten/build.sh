@@ -33,7 +33,8 @@ emcc -v -O3 -flto -DINIT_STATIC_MODULES=0 -s WASM=1 -s ASSERTIONS=0 -s LINKABLE=
 
 cd ..
 
-cp src/csound.js dist 
+## Update source for npm module ## 
+
 cp build/libcsound.js module/src/
 cp build/libcsound-worklet.js module/src/CsoundProcessor.js
 
@@ -42,8 +43,13 @@ echo "export default libcsound;" >> module/src/libcsound.js
 # --post-js does not work with MODULARIZE, use this for ES6 Module 
 cat src/CsoundProcessor.js >> module/src/CsoundProcessor.js
 
+## BUILD SINGLE-FILE CsoundObj.js using npm and rollup ##
+
 cd module
 npm install 
 npm run-script build
+cd ..
 
-cp dist/*.js ../dist/
+## Update dist folder ##
+cp src/csound.js dist 
+cp module/CsoundObj.js dist 
