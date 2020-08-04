@@ -328,7 +328,7 @@ static TREE *create_cond_expression(CSOUND *csound,
     //printf("type = %s , %s\n", left, right);
     if (left[0]=='S' || right[0]=='S') {
       type = (last->left->value->lexeme[1]=='B') ?2 : 1;
-      eq = "#=.S";
+      eq = (last->left->value->lexeme[1]=='B') ?"#=.S" : "=.S";
     }
     else {
       type =
@@ -340,7 +340,7 @@ static TREE *create_cond_expression(CSOUND *csound,
     //print_tree(csound, "\nL1\n", L1);
 
     last->next = create_opcode_token(csound, type==1?"cigoto":"ckgoto");
-    print_tree(csound, "first jump\n", last->next);
+    //print_tree(csound, "first jump\n", last->next);
     xx = create_empty_token(csound);
     xx->type = T_IDENT;
     xx->value = make_token(csound, last->left->value->lexeme);
@@ -378,7 +378,7 @@ static TREE *create_cond_expression(CSOUND *csound,
     //print_tree(csound, "\n\nlast assignment\n", last);
     //printf("=======type = %d\n", type);
     last->next = create_simple_goto_token(csound, L2, type==2?0:type);
-    print_tree(csound, "second goto\n", last->next);
+    //print_tree(csound, "second goto\n", last->next);
     //print_tree(csound, "\n\nafter goto\n", b);
     while (last->next != NULL) last = last->next;
     last->next = create_synthetic_label(csound,ln1);
