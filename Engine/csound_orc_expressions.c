@@ -320,14 +320,14 @@ static TREE *create_cond_expression(CSOUND *csound,
     //printf("types %s %s\n", left, right);
     if (left[0]=='c') left[0] = 'i';
     if (right[0]=='c') right[0] = 'i';
-    //printf("type = %d\n", type);
+    //**printf("type = %d\n", type);
     last = b;
     while (last->next != NULL) {
       last = last->next;
     }
     //printf("type = %s , %s\n", left, right);
     if (left[0]=='S' || right[0]=='S') {
-      type = (last->left->value->lexeme[1]=='B') ?2 : 1;
+      type = 2; //(last->left->value->lexeme[1]=='B') ?2 : 1;
       eq = "#=.S";
     }
     else {
@@ -349,7 +349,7 @@ static TREE *create_cond_expression(CSOUND *csound,
     last->right = xx;
     last->right->next = L1;
     last->line = line; root->locn = locn;
-    //print_tree(csound, "***IF node\n", b);
+    print_tree(csound, "***IF node\n", b);
     // Need to get type of expression for newvariable
     right = create_out_arg(csound,left,
                            typeTable->localPool->synthArgCount++, typeTable);
