@@ -1,4 +1,4 @@
-<!---
+!---
 
 To maintain this document use the following markdown:
 
@@ -20,7 +20,7 @@ Any valid HTML can also be used.
 
  --->
 
-# DRAFT CSOUND VERSION 6.15 RELEASE NOTES
+# CSOUND VERSION 6.15 RELEASE NOTES
 
 Quite a few new opcodes are in this release as well as extensions of
 existing opcodes.  In particular there is the introduction of streamed
@@ -138,7 +138,10 @@ parameters, implementing the Box-Muller algorithm.
 .
 - ctrlinit checks that the values are in the range [0,127].
 
-- fin as format argument hanged, and is now deprecated.
+- fin as format argument changed, and is now deprecated.
+
+- fink has the same argument change
+
 ### Utilities
 
 - lpanal now contains a new alternative algorithm based on the Durbin
