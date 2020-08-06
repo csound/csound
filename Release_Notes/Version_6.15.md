@@ -234,15 +234,3 @@ parameters, implementing the Box-Muller algorithm.
 
 ==END==
 
-commit 2af6df492f78471769c53e42ca5e65bf1761e52e
-Author: vlazzarini <victor.lazzarini@mu.ie>
-Date:   Tue Jul 14 20:11:49 2020 +0100
-
-setSpinSample
-
-Author: Steven Yi <stevenyi@gmail.com>
-Date:   Sat Jul 11 09:50:39 2020 -0400
-
-    attempting fix for default opcode dir after LIBRARY_INSTALL_DIR change
-
-
