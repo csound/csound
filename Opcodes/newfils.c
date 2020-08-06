@@ -2227,7 +2227,13 @@ int32_t mvchpf24_perf_a(CSOUND *csound, mvchpf24 *p){
     return OK;
 }
 
-// Added by Gleb Rogozinsky 2020
+/* Bob is a port of bob~ filter object from Pd.
+The design is based on the papers by Tim Stilson,
+Timothy E. Stinchcombe, and Antti Huovilainen.
+Ported from PD code by Gleb Rogozinsky, Summer of 2020
+cased on code by Miller Puckette
+*/
+
 static int32_t calc_derivatives(CSOUND *csound, BOB *p, double *dstate,
                                 double *state, MYFLT in)
 {
