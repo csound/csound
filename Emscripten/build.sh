@@ -24,7 +24,7 @@ emcc -s LINKABLE=1 -s ASSERTIONS=0 ../src/CsoundObj.c -I../../include -Iinclude 
 # Keep exports in alphabetical order please, to correlate with CsoundObj.js.
 
 ## First build for WASM/ScriptProcessorNode (async compilation = 1, assertions = 1)
-emcc -v -O3 -flto -DINIT_STATIC_MODULES=0 -s WASM=1 -s ASSERTIONS=1 -s LINKABLE=1 -s RESERVED_FUNCTION_POINTERS=1 -s TOTAL_MEMORY=268435456 -s ALLOW_MEMORY_GROWTH=1 -s NO_EXIT_RUNTIME=1 -s SINGLE_FILE=1 --pre-js ../src/FileList.js -s BINARYEN_ASYNC_COMPILATION=1 -s MODULARIZE=1 -s EXPORT_NAME=\"'libcsound'\" -s EXTRA_EXPORTED_RUNTIME_METHODS='["FS", "ccall", "cwrap"]' CsoundObj.bc FileList.bc libcsound.a ../deps/lib/libsndfile.a ../deps/lib/libogg.a ../deps/lib/libvorbis.a ../deps/lib/libvorbisenc.a ../deps/lib/libFLAC.a -o libcsound.js
+emcc -v -O3 -flto -DINIT_STATIC_MODULES=0 -s WASM=1 -s ASSERTIONS=1 -s LINKABLE=1 -s RESERVED_FUNCTION_POINTERS=1 -s TOTAL_MEMORY=268435456 -s ALLOW_MEMORY_GROWTH=1 -s NO_EXIT_RUNTIME=1 -s SINGLE_FILE=1 --pre-js ../src/FileList.js -s BINARYEN_ASYNC_COMPILATION=1 -s MODULARIZE=1 -s EXPORT_NAME=\"'libcsound'\" -s EXTRA_EXPORTED_RUNTIME_METHODS='["FS", "ccall", "cwrap"]' -s ENVIRONMENT=web  CsoundObj.bc FileList.bc libcsound.a ../deps/lib/libsndfile.a ../deps/lib/libogg.a ../deps/lib/libvorbis.a ../deps/lib/libvorbisenc.a ../deps/lib/libFLAC.a -o libcsound.js
  
 ## Second build for WASM/AudioWorklet (async compilation = 0, assertions = 0)
 emcc -v -O3 -flto -DINIT_STATIC_MODULES=0 -s WASM=1 -s ASSERTIONS=0 -s LINKABLE=1 -s RESERVED_FUNCTION_POINTERS=1 -s TOTAL_MEMORY=268435456 -s ALLOW_MEMORY_GROWTH=1 -s NO_EXIT_RUNTIME=1 -s SINGLE_FILE=1 --pre-js ../src/FileList.js -s BINARYEN_ASYNC_COMPILATION=0 -s MODULARIZE=1 -s EXPORT_NAME=\"'libcsound'\"  -s EXTRA_EXPORTED_RUNTIME_METHODS='["FS", "ccall", "cwrap"]' CsoundObj.bc FileList.bc libcsound.a ../deps/lib/libsndfile.a ../deps/lib/libogg.a ../deps/lib/libvorbis.a ../deps/lib/libvorbisenc.a ../deps/lib/libFLAC.a -o libcsound-worklet.js
@@ -38,7 +38,7 @@ cd ..
 cp build/libcsound.js module/src/
 cp build/libcsound-worklet.js module/src/CsoundProcessor.js
 
-echo "export default libcsound;" >> module/src/libcsound.js
+#echo "export default libcsound;" >> module/src/libcsound.js
 
 # --post-js does not work with MODULARIZE, use this for ES6 Module 
 cat src/CsoundProcessor.js >> module/src/CsoundProcessor.js

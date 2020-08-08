@@ -1,6 +1,9 @@
 import pkg from './package.json';
 import url from '@rollup/plugin-url';
-//import {terser} from 'rollup-plugin-terser';
+import resolve from '@rollup/plugin-node-resolve';
+import commonjs from '@rollup/plugin-commonjs';
+import { terser } from 'rollup-plugin-terser';
+import nodePolyfills from 'rollup-plugin-node-polyfills';
 
 export default [
 	// browser-friendly UMD build
@@ -15,7 +18,11 @@ export default [
 			url({
 				include: ["**/CsoundProcessor.js"],
 				limit: 9999999999999,
-			})
+			}),
+      nodePolyfills(),
+      resolve(),
+      commonjs(),
+      terser()
 		]
 
 	}
