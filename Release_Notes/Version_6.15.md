@@ -7,8 +7,8 @@ To maintain this document use the following markdown:
 ### Third level heading
 
 - First level bullet point
- - Second level bullet point
-  - Third level bullet point
+  - Second level bullet point
+    - Third level bullet point
 
 `inline code`
 
@@ -205,14 +205,14 @@ parameters, implementing the Box-Muller algorithm.
 
 - WebAudio: 
  
-  * Built using Emscripten 1.40.1 (LLVM backend)
-  * New single-file release of CsoundObj.js with all classes and webassembly files combined using npm and rollup
-  * Breaking: CsoundObj.importScripts() was removed and replaced with CsoundObj.initialize()
-    * paths for loading other files no longer relevant with single-file
-    * initialize takes in optional AudioContext, otherwise CsoundObj will create one for use
-  * Breaking: CSOUND\_AUDIO\_CONTEXT moved from global namespace; instead reference CsoundObj.CSOUND\_AUDIO\_CONTEXT
-  * Compile flags changed to -O3 and without debug information, per recommendations for release builds by Emscripten
-  * Link-Time Optimization (LTO) enabled for reduced size
+  - Built using Emscripten 1.40.1 (LLVM backend)
+  - New single-file release of CsoundObj.js with all classes and webassembly files combined using npm and rollup
+  - Breaking: CsoundObj.importScripts() was removed and replaced with CsoundObj.initialize()
+    - paths for loading other files no longer relevant with single-file
+    - initialize takes in optional AudioContext, otherwise CsoundObj will create one for use
+  - Breaking: CSOUND\_AUDIO\_CONTEXT moved from global namespace; instead reference CsoundObj.CSOUND\_AUDIO\_CONTEXT
+  - Compile flags changed to -O3 and without debug information, per recommendations for release builds by Emscripten
+  - Link-Time Optimization (LTO) enabled for reduced size
 
 - iOS
 
@@ -222,14 +222,14 @@ parameters, implementing the Box-Muller algorithm.
 
 - MacOS
 
- - coreaudio now checks the number of channels and fails if there are insufficient.
+  - coreaudio now checks the number of channels and fails if there are insufficient.
 
 - GNU/Linux
 
 - Haiku port
 
 - Bela
- - updated digiBelaOut and digiIOBela.
+  - updated digiBelaOut and digiIOBela.
 
 
 ==END==
