@@ -205,7 +205,7 @@ parameters, implementing the Box-Muller algorithm.
 
 - WebAudio: 
  
-  * Built using Emscripten 1.39.13 (LLVM backend)
+  * Built using Emscripten 1.40.1 (LLVM backend)
   * New single-file release of CsoundObj.js with all classes and webassembly files combined using npm and rollup
   * Breaking: CsoundObj.importScripts() was removed and replaced with CsoundObj.initialize()
     * paths for loading other files no longer relevant with single-file
