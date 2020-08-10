@@ -1,4 +1,4 @@
-!---
+<!---
 
 To maintain this document use the following markdown:
 
@@ -29,6 +29,10 @@ LPC which has long been requested.
 Another feature if this release is a large number of internal fixes to
 incorrect data access, as well as the usual tweaks and changes.
 
+Starting from this release, no third-party graphic frontends are shipped
+with the installation packages on MacOs and Windows. Users should
+install their choice of frontend separately.
+
 -- The Developers
 
 ## USER-LEVEL CHANGES
@@ -43,9 +47,9 @@ incorrect data access, as well as the usual tweaks and changes.
 
 - sterrain is an enhanced version of wterrain with more possible orbits.
 
-- wterrain2 is a alternative enhancemet of wterrain with ess  variation that sterrain.
+- wterrain2 is a alternative enhancement of wterrain with less variation that sterrain.
 
-- count, count_i, cntCreate, cntRead, cntReset, cntCycles and cntState together implement a new counter object that cycles trough a constant range, similar to in PD.
+- count, count_i, cntCreate, cntRead, cntReset, cntCycles and cntState together implement a new counter object that cycles through a constant range, similar to in PD.
 
 - new alias for sc_ opcodes: sc_lag -> lag, sc_lagud -> lagud, sc_trig -> trigholf, sc_phasor -> phasortrigo.
 
@@ -185,6 +189,8 @@ parameters, implementing the Box-Muller algorithm.
 
 - table opcodes had an error when used with non power-of-two lengths.
 
+- a fencepost error in OSCraw fixed.
+
 # SYSTEM LEVEL CHANGES
 
 - A crash when csound.evalcode was called without csound.start fixed.
@@ -229,8 +235,9 @@ parameters, implementing the Box-Muller algorithm.
 - Haiku port
 
 - Bela
-  - updated digiBelaOut and digiIOBela.
 
+  - updated digiBelaOut and digiIOBela.
+  - Added trill opcode
 
 ==END==
 
