@@ -29,6 +29,10 @@ LPC which has long been requested.
 Another feature if this release is a large number of internal fixes to
 incorrect data access, as well as the usual tweaks and changes.
 
+Starting from this release, no third-party graphic frontends are shipped
+with the installation packages on MacOs and Windows. Users should
+install their choice of frontend separately.
+
 -- The Developers
 
 ## USER-LEVEL CHANGES
@@ -222,15 +226,16 @@ parameters, implementing the Box-Muller algorithm.
 
 - MacOS
 
- - coreaudio now checks the number of channels and fails if there are insufficient.
+  * coreaudio now checks the number of channels and fails if there are insufficient.
 
 - GNU/Linux
 
 - Haiku port
 
 - Bela
- - updated digiBelaOut and digiIOBela.
-
+  * updated digiBelaOut and digiIOBela.
+  * Added trill opcode
+  
 
 ==END==
 
