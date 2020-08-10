@@ -1,25 +1,3 @@
-!---
-
-To maintain this document use the following markdown:
-
-# First level heading
-## Second level heading
-### Third level heading
-
-- First level bullet point
- - Second level bullet point
-  - Third level bullet point
-
-`inline code`
-
-``` pre-formatted text etc.  ```
-
-[hyperlink](url for the hyperlink)
-
-Any valid HTML can also be used.
-
- --->
-
 # CSOUND VERSION 6.15 RELEASE NOTES
 
 Quite a few new opcodes are in this release as well as extensions of
@@ -209,7 +187,7 @@ parameters, implementing the Box-Muller algorithm.
 
 - WebAudio: 
  
-  * Built using Emscripten 1.39.13 (LLVM backend)
+  * Built using Emscripten 1.40.1 (LLVM backend)
   * New single-file release of CsoundObj.js with all classes and webassembly files combined using npm and rollup
   * Breaking: CsoundObj.importScripts() was removed and replaced with CsoundObj.initialize()
     * paths for loading other files no longer relevant with single-file
@@ -235,7 +213,5 @@ parameters, implementing the Box-Muller algorithm.
 - Bela
   * updated digiBelaOut and digiIOBela.
   * Added trill opcode
-  
 
-==END==
 
