@@ -726,7 +726,7 @@ static int32_t perf_raw_osc(CSOUND *csound, RAWOSC *p) {
             buf += 4;
           } else if (c == 's') {
             len = strlen(buf);
-            if (len > str[n].size) {
+            if (len+1 > str[n].size) {
               str[n].data = csound->ReAlloc(csound, str[n].data, len+1);
               str[n].size  = len+1;
             }
