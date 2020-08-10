@@ -1,3 +1,25 @@
+<!---
+
+To maintain this document use the following markdown:
+
+# First level heading
+## Second level heading
+### Third level heading
+
+- First level bullet point
+ - Second level bullet point
+  - Third level bullet point
+
+`inline code`
+
+``` pre-formatted text etc.  ```
+
+[hyperlink](url for the hyperlink)
+
+Any valid HTML can also be used.
+
+ --->
+
 # CSOUND VERSION 6.15 RELEASE NOTES
 
 Quite a few new opcodes are in this release as well as extensions of
@@ -25,9 +47,9 @@ install their choice of frontend separately.
 
 - sterrain is an enhanced version of wterrain with more possible orbits.
 
-- wterrain2 is a alternative enhancemet of wterrain with ess  variation that sterrain.
+- wterrain2 is a alternative enhancement of wterrain with less variation that sterrain.
 
-- count, count_i, cntCreate, cntRead, cntReset, cntCycles and cntState together implement a new counter object that cycles trough a constant range, similar to in PD.
+- count, count_i, cntCreate, cntRead, cntReset, cntCycles and cntState together implement a new counter object that cycles through a constant range, similar to in PD.
 
 - new alias for sc_ opcodes: sc_lag -> lag, sc_lagud -> lagud, sc_trig -> trigholf, sc_phasor -> phasortrigo.
 
@@ -167,6 +189,8 @@ parameters, implementing the Box-Muller algorithm.
 
 - table opcodes had an error when used with non power-of-two lengths.
 
+- a fencepost error in OSCraw fixed.
+
 # SYSTEM LEVEL CHANGES
 
 - A crash when csound.evalcode was called without csound.start fixed.
@@ -187,7 +211,7 @@ parameters, implementing the Box-Muller algorithm.
 
 - WebAudio: 
  
-  * Built using Emscripten 1.40.1 (LLVM backend)
+  * Built using Emscripten 1.39.13 (LLVM backend)
   * New single-file release of CsoundObj.js with all classes and webassembly files combined using npm and rollup
   * Breaking: CsoundObj.importScripts() was removed and replaced with CsoundObj.initialize()
     * paths for loading other files no longer relevant with single-file
@@ -214,4 +238,5 @@ parameters, implementing the Box-Muller algorithm.
   * updated digiBelaOut and digiIOBela.
   * Added trill opcode
 
+==END==
 
