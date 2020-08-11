@@ -26,7 +26,7 @@ Quite a few new opcodes are in this release as well as extensions of
 existing opcodes.  In particular there is the introduction of streamed
 LPC which has long been requested.
 
-Another feature if this release is a large number of internal fixes to
+Another feature in this release is a large number of internal fixes to
 incorrect data access, as well as the usual tweaks and changes.
 
 Starting from this release, no third-party graphic frontends are shipped
@@ -118,7 +118,7 @@ parameters, implementing the Box-Muller algorithm.
 
 - ptable opcodes are now deprecated as they are identical to table opcodes.
 
-- GEN20 case 9 (sinc function) now has an optional parameter tao the x range.
+- GEN20 case 9 (sinc function) now has an optional parameter to the x range.
 
 - fprint(k)s now has a %s format specifier.
 
@@ -169,7 +169,7 @@ parameters, implementing the Box-Muller algorithm.
 
 - cps2pch and cpsxpc fixed in the case of a table of frequencies.
 
-- the 31 bit pseudo random number generator was seeded with zero then it stayed on zero.  Than it now fixed.
+- the 31 bit pseudo random number generator was seeded with zero then it stayed on zero.  That it now fixed.
 
 - gen 20 was wrong in the case of 8.
 
@@ -214,8 +214,8 @@ parameters, implementing the Box-Muller algorithm.
   * Built using Emscripten 1.39.13 (LLVM backend)
   * New single-file release of CsoundObj.js with all classes and webassembly files combined using npm and rollup
   * Breaking: CsoundObj.importScripts() was removed and replaced with CsoundObj.initialize()
-    * paths for loading other files no longer relevant with single-file
-    * initialize takes in optional AudioContext, otherwise CsoundObj will create one for use
+  * paths for loading other files no longer relevant with single-file
+  * initialize takes in optional AudioContext, otherwise CsoundObj will create one for use
   * Breaking: CSOUND\_AUDIO\_CONTEXT moved from global namespace; instead reference CsoundObj.CSOUND\_AUDIO\_CONTEXT
   * Compile flags changed to -O3 and without debug information, per recommendations for release builds by Emscripten
   * Link-Time Optimization (LTO) enabled for reduced size
