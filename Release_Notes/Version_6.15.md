@@ -169,9 +169,9 @@ parameters, implementing the Box-Muller algorithm.
 
 - cps2pch and cpsxpc fixed in the case of a table of frequencies.
 
-- the 31 bit pseudo random number generator was seeded with zero then it stayed on zero.  That it now fixed.
+- the 31 bit pseudo random number generator was seeded with zero then it stayed on zero.  That is now fixed.
 
-- gen 20 was wrong in the case of 8.
+- gen 20 was wrong in the case of 8 (triangle).
 
 - turning off an instrument from inside a UDO now works.
 
