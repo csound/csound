@@ -393,10 +393,10 @@ class CsoundObj {
     }
 
     /**
-     * This static method is used to asynchronously setup the Csound
-     *  engine node.
+     * This static method is used to asynchronously setup the Csound system.
      *
-     * @param {string} script_base A string containing the base path to scripts
+     * @param {AudioContext} audioContext Optional AudioContext object to use for node creation, 
+     * if none passed in, CsoundObj will default to creating one 
      */
     static initialize(audioContext = null) {
         const createAudioContext = () => {

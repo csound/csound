@@ -2,9 +2,9 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
-      <module fileurl="file://$PROJECT_DIR$/CsoundAndroid/CsoundAndroid.iml" filepath="$PROJECT_DIR$/CsoundAndroid/CsoundAndroid.iml" />
-      <module fileurl="file://$PROJECT_DIR$/CsoundAndroidExamples/CsoundAndroidExamples.iml" filepath="$PROJECT_DIR$/CsoundAndroidExamples/CsoundAndroidExamples.iml" />
-      <module fileurl="file://$PROJECT_DIR$/CsoundForAndroid.iml" filepath="$PROJECT_DIR$/CsoundForAndroid.iml" />
+      <module fileurl="file://$PROJECT_DIR$/CsoundAndroid/CsoundAndroid.iml" filepath="$PROJECT_DIR$/CsoundAndroid/CsoundAndroid.iml" group="CsoundForAndroid/CsoundAndroid" />
+      <module fileurl="file://$PROJECT_DIR$/CsoundAndroidExamples/CsoundAndroidExamples.iml" filepath="$PROJECT_DIR$/CsoundAndroidExamples/CsoundAndroidExamples.iml" group="CsoundForAndroid/CsoundAndroidExamples" />
+      <module fileurl="file://$PROJECT_DIR$/CsoundForAndroid.iml" filepath="$PROJECT_DIR$/CsoundForAndroid.iml" group="CsoundForAndroid" />
     </modules>
   </component>
 </project>
