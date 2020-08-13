@@ -50,7 +50,7 @@ int32_t icgoto(CSOUND *csound, CGOTO *p)
 
 int32_t kcgoto(CSOUND *csound, CGOTO *p)
 {
-   IGN(csound);
+    IGN(csound);
     if (*p->cond)
       CS_PDS = p->lblblk->prvp;
 
@@ -73,24 +73,6 @@ int32_t kngoto(CSOUND *csound, CGOTO *p)
       CS_PDS = p->lblblk->prvp;
     return OK;
 }
-
-#ifdef VARGS
-/* an i-rate version that ALWAYS jumps at p-time */
-
-int32_t iingoto(CSOUND *csound, CGOTO *p)
-{
-    if (!*p->cond)
-      csound->ids = p->lblblk->prvi;
-    return OK;
-}
-
-int32_t kingoto(CSOUND *csound, CGOTO *p)
-{
-    IGN(csound);
-    CS_PDS = p->lblblk->prvp;
-    return OK;
-}
-#endif
 
 int32_t timset(CSOUND *csound, TIMOUT *p)
 {
@@ -178,16 +160,20 @@ int32_t ihold(CSOUND *csound, LINK *p)  /* make this note indefinit duration */
 int32_t turnoff(CSOUND *csound, LINK *p)/* terminate the current instrument  */
 {                                       /* called by turnoff statmt at Ptime */
     IGN(csound);
-    INSDS  *lcurip = CS_PDS->insdshead;
-    if (p->h.insdshead->actflg) {
+    INSDS *current = p->h.insdshead;
+    INSDS *lcurip = p->h.insdshead;
+    if (lcurip->actflg) {
     /* IV - Oct 16 2002: check for subinstr and user opcode */
     /* find top level instrument instance */
       while (lcurip->opcod_iobufs)
         lcurip = ((OPCOD_IOBUFS*) lcurip->opcod_iobufs)->parent_ip;
       xturnoff(csound, lcurip);
-      if (lcurip->xtratim <= 0)
-        while (CS_PDS->nxtp != NULL)
-          CS_PDS = CS_PDS->nxtp;                /* loop to last opds */
+      if (current->xtratim <= 0) {
+        OPDS* curOp = current->pds;
+        while (curOp->nxtp != NULL)
+          curOp = curOp->nxtp;                /* loop to last opds */
+        current->pds = curOp;
+      }
     }
     return OK;
 }

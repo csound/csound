@@ -17,11 +17,11 @@ else
 fi
 echo "Version: $CS_VERSION"
 export MANUAL_DIR=`pwd`/../../../manual
-export PACKAGE_NAME=csound${CS_VERSION}-MacOS_x86_64.pkg
+export PACKAGE_NAME=csound-MacOS_x86_64-${CS_VERSION}.pkg
 export DMG_DIR="Csound${CS_VERSION}"
-export DMG_NAME="csound${CS_VERSION}-MacOS_x86_64.dmg"
+export DMG_NAME="csound-MacOS_x86_64-${CS_VERSION}.dmg"
 
-export SDK=/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.12.sdk/
+#export SDK=/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.12.sdk/
 export TARGET=10.7
 export DEPS_BASE=/usr/local
 # If arg2 passed in, will cd into that dir and rebuild, otherwise
@@ -89,7 +89,7 @@ mkdir -p $SUPPORT_LIBS_DIR
 
 mkdir -p $FRAMEWORK64_DIR/$PYTHON_DIR
 mkdir -p $FRAMEWORK64_DIR/$JAVA_DIR
-mkdir -p $FRAMEWORK64_DIR/$SAMPLES_DIR
+#mkdir -p $FRAMEWORK64_DIR/$SAMPLES_DIR
 mkdir -p $FRAMEWORK64_DIR/../Documentation
 #mkdir -p $FRAMEWORK64_DIR/Headers
 
@@ -121,9 +121,10 @@ echo "copying manual..."
 cp -Rf $MANUAL_DIR/html $FRAMEWORK64_DIR/Resources/
 mv $FRAMEWORK64_DIR/Resources/html $FRAMEWORK64_DIR/Resources/Manual
 
-echo "copying samples..."
+# installer should take care of this now (VL 07.20)
+#echo "copying samples..."
 
-cp csound6/samples/*.dat $FRAMEWORK64_DIR/$SAMPLES_DIR
+#cp csound6/samples/*.dat $FRAMEWORK64_DIR/$SAMPLES_DIR
 
 echo "copying apps..."
 
@@ -261,7 +262,7 @@ mkdir "$DMG_DIR"
 cd "$DMG_DIR"
 cp ../$PACKAGE_NAME .
 #cp  ../../../readme.pdf .
-cp  ../../../DmgResources/CsoundQt-0.9.7-MacOs.dmg .
+#cp  ../../../DmgResources/CsoundQt-0.9.7-MacOs.dmg .
 #hdiutil create CsoundQT.dmg -srcfolder ../../../DmgResources/
 
 cd ..

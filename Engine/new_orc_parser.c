@@ -196,7 +196,7 @@ TREE *csoundParseOrc(CSOUND *csound, const char *str)
       //    csound_print_preextra(&qq);
       csound_prelex(csound, qq.yyscanner);
       if (UNLIKELY(qq.ifdefStack != NULL)) {
-        csound->Message(csound, Str("Unmatched #ifdef\n"));
+        csound->Message(csound, Str("Unmatched #ifdef or #ifndef\n"));
         csound->LongJmp(csound, 1);
       }
       csound_prelex_destroy(qq.yyscanner);

@@ -19,7 +19,8 @@ option(BUILD_SELECT_OPCODE "Build the select opcode" ON)
 option(BUILD_STACK_OPCODES "Build the stack opcodes" ON)
 option(BUILD_LINEAR_ALGEBRA_OPCODES "Build the linear algebra opcodes" ON)
 option(BUILD_PVSGENDY_OPCODE "Build the pvsgendy opcode" OFF)
-option(BUILD_MP3OUT_OPCODE "Build the mp3out opcode" OFF)
+option(BUILD_MP3OUT_OPCODE "Build the mp3out opcode" ON)
+option(BUILD_COUNTER_OPCODES "Build the serial opcode" ON)
 
 message(STATUS "## Building Opcodes ##")
 include(CheckIncludeFiles)
@@ -45,10 +46,8 @@ find_library(LAME_LIB mp3lame)
 
 ## OPCODE LIBS WITH NO EXTERNAL DEPENDENCIES ##
 
-make_plugin(mixer mixer.cpp)
-make_plugin(signalflowgraph signalflowgraph.cpp)
 
-make_plugin(ampmidid ampmidid.cpp)
+make_plugin(sterrain sterrain.c)
 make_plugin(cs_date date.c)
 make_plugin(system_call system_call.c)
 make_plugin(doppler doppler.cpp)
@@ -88,6 +87,10 @@ else()
       endif()
 endif()
 
+make_plugin(mixer mixer.cpp)
+make_plugin(signalflowgraph signalflowgraph.cpp)
+make_plugin(ampmidid ampmidid.cpp)
+
 
 if(BUILD_PADSYNTH_OPCODES)
 if(APPLE)
@@ -119,6 +122,10 @@ endif()
 
 
 make_plugin(cellular cellular.c)
+
+if(BUILD_COUNTER_OPCODES)
+   make_plugin(counter counter.c)
+endif()
 
 if(BUILD_SERIAL_OPCODES)
    make_plugin(serial serial.c)
@@ -265,9 +272,9 @@ if(BUILD_PVSGENDY_OPCODES)
     make_plugin(pvsgendy pvsgendy.c)
 endif()
 
-check_deps(BUILD_MP3OUT_OPCODE LAME_H)
+check_deps(BUILD_MP3OUT_OPCODE LAME_HEADER)
 if(BUILD_MP3OUT_OPCODE)
-    make_plugin(mp3out lame.c $LAME_LIB})
+    make_plugin(mp3out lame.c ${LAME_LIB})
 endif()
 
 

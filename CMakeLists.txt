@@ -27,6 +27,8 @@ set(EXECUTABLE_INSTALL_DIR "bin")
 set(LOCALE_INSTALL_DIR "share/locale")
 set(HEADER_INSTALL_DIR "include/csound")
 
+set(SAMPLES_INSTALL_DIR "/samples")
+
 set(CS_FRAMEWORK_DEST "~/Library/Frameworks" CACHE PATH "Csound framework path")
 include(TestBigEndian)
 include(CheckFunctionExists)
@@ -161,9 +163,11 @@ endif()
 
 # in Release configuration, set NDEBUG
 if(${CMAKE_BUILD_TYPE} MATCHES "Release")
+    message(STATUS "Building for release")
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DNDEBUG")
     set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -DNDEBUG")
 elseif(${CMAKE_BUILD_TYPE} MATCHES "Debug")
+    message(STATUS "Building for debug")
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DBETA")
     set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -DBETA")
 endif()
@@ -191,10 +195,10 @@ endif()
 
 option(USE_LIB64 "Set to on to set installation directory for libraries to lib64" OFF)
 if(USE_LIB64)
-    set(LIBRARY_INSTALL_DIR "lib64")
+	set(LIBRARY_INSTALL_DIR "${CMAKE_INSTALL_PREFIX}/lib64")
     add_definitions("-DLIB64")
-else()
-    set(LIBRARY_INSTALL_DIR "lib")
+elseif(NOT DEFINED LIBRARY_INSTALL_DIR)
+    set(LIBRARY_INSTALL_DIR "${CMAKE_INSTALL_PREFIX}/lib")
 endif()
 message(STATUS "LIBRARY INSTALL DIR: ${LIBRARY_INSTALL_DIR}")
 
@@ -372,17 +376,21 @@ if(APPLE)
     endif()
 
     add_definitions("-DCS_DEFAULT_PLUGINDIR=\"${CS_FRAMEWORK_FULL_PATH}\"")
-
+    set(DEFAULT_OPCODEDIR ${CS_FRAMEWORK_FULL_PATH})
 endif()
 
 if(BUILD_RELEASE)
     add_definitions("-D_CSOUND_RELEASE_")
     if(LINUX)
-        set(DEFAULT_OPCODEDIR "${CMAKE_INSTALL_PREFIX}/${PLUGIN_INSTALL_DIR}")
+        set(DEFAULT_OPCODEDIR "${PLUGIN_INSTALL_DIR}")
         add_definitions("-DCS_DEFAULT_PLUGINDIR=\"${DEFAULT_OPCODEDIR}\"")
     endif()
 else()
     add_definitions("-DBETA")
+endif()
+
+if(APPLE OR LINUX)
+message(STATUS "default plugin dir set to ${DEFAULT_OPCODEDIR}")
 endif()
 
 #if(USE_DOUBLE)
@@ -692,6 +700,7 @@ set(libcsound_SRCS
     OOps/disprep.c
     OOps/dumpf.c
     OOps/fftlib.c
+    OOps/lpred.c
     OOps/pffft.c
     OOps/goto_ops.c
     OOps/midiinterop.c
@@ -776,6 +785,7 @@ set(libcsound_SRCS
     Opcodes/afilters.c
     Opcodes/wpfilters.c
     Opcodes/zak.c
+    Opcodes/lufs.c    
     Top/argdecode.c
     Top/csdebug.c
     Top/cscore_internal.c
@@ -795,6 +805,13 @@ if(WIN32 AND NOT MSVC)
 set_source_files_properties(Opcodes/sfont.c PROPERTIES
     COMPILE_FLAGS -mno-ms-bitfields)
 endif()
+
+if(NOT MSVC)
+set_source_files_properties(Opcodes/sfont.c PROPERTIES
+  COMPILE_FLAGS -Wno-address-of-packed-member)
+endif()
+
+
 
 set(stdopcod_SRCS
     Opcodes/ambicode.c
@@ -841,6 +858,7 @@ set(stdopcod_SRCS
     Opcodes/ugnorman.c
     Opcodes/ugsc.c
     Opcodes/wave-terrain.c
+    Opcodes/wterrain2.c
     Opcodes/stdopcod.c
     Opcodes/socksend.c
     Opcodes/sockrecv.c)
@@ -1415,3 +1433,13 @@ endif(DOXYGEN_FOUND)
 # install CMake module
 install(FILES ${CMAKE_SOURCE_DIR}/cmake/Modules/FindCsound.cmake
         DESTINATION "${CMAKE_INSTALL_PREFIX}/share/cmake/Csound")
+
+# install samples
+if(APPLE)
+ install(DIRECTORY ${CMAKE_SOURCE_DIR}/samples
+          DESTINATION  ${CS_FRAMEWORK_DEST}/${CSOUNDLIB}.framework/Versions/${APIVERSION})
+else()
+ install(DIRECTORY ${CMAKE_SOURCE_DIR}/samples
+          DESTINATION ${CMAKE_INSTALL_PREFIX}/share)
+endif()
+ 

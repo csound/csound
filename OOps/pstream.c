@@ -212,8 +212,8 @@ static void adsyn_frame(CSOUND *csound, PVADS *p)
     amps      = (MYFLT *) p->amps.auxp;
     freqs     = (MYFLT *) p->freqs.auxp;
     lastamps  = (MYFLT *) p->lastamps.auxp;
-    startbin  = (int32_t)  *p->ibin;
-    binoffset = (int32_t)  *p->ibinoffset;
+    startbin  = (int32_t) *p->ibin;
+    binoffset = (int32_t) *p->ibinoffset;
     lastbin   = p->maxosc;
 
     /*update amps, freqs*/

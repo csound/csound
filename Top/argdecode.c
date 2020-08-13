@@ -255,7 +255,9 @@ static const char *longUsageList[] = {
                                    "ORC/SCO-relative line #s"),
   Str_noop("--extract-score=FNAME   extract from score.srt using extract file"),
   Str_noop("--keep-sorted-score"),
-  Str_noop("--simple_sorted_score"),
+  Str_noop("--keep-sorted-score=FNAME"),
+  Str_noop("--simple-sorted-score"),
+  Str_noop("--simple-sorted-score=FNAME"),
   Str_noop("--env:NAME=VALUE        set environment variable NAME to VALUE"),
   Str_noop("--env:NAME+=VALUE       append VALUE to environment variable NAME"),
   Str_noop("--strsetN=VALUE         set strset table at index N to VALUE"),
@@ -269,6 +271,7 @@ static const char *longUsageList[] = {
   Str_noop("--sched                 set real-time scheduling priority and "
                                    "lock memory"),
   Str_noop("--sched=N               set priority to N and lock memory"),
+  Str_noop("--opcode-dir=DIR        load all plugins from DIR"),
   Str_noop("--opcode-lib=NAMES      dynamic libraries to load"),
   Str_noop("--opcode-omit=NAMES     dynamic libraries not to load"),
   Str_noop("--omacro:XXX=YYY        set orchestra macro XXX to value YYY"),
@@ -353,7 +356,7 @@ CS_NORETURN void dieu(CSOUND *csound, char *s, ...)
     va_start(args, s);
     csound->ErrMsgV(csound, Str("Csound Command ERROR:    "), s, args);
     va_end(args);
-    //***FIXME This code makes no sense
+    //// FIXME This code makes no sense
     /* if (csound->info_message_request == 0) { */
     /*   csound->info_message_request = 0; */
     /*   csound->LongJmp(csound, 1); */
@@ -510,7 +513,7 @@ static int decode_long(CSOUND *csound, char *s, int argc, char **argv)
       nn->mac = s;
       nn->next = csound->omacros;
       csound->omacros = nn;
-      return 1;
+     return 1;
     }
     else if (!(strncmp(s, "smacro:", 7))) {
       if (csound->orcname_mode) return 1;
@@ -569,7 +572,7 @@ static int decode_long(CSOUND *csound, char *s, int argc, char **argv)
       if (UNLIKELY(*s=='\0')) dieu(csound, Str("no hardware bufsamps"));
       O->inbufsamps = O->outbufsamps = atoi(s);
       return 1;
-    }
+   }
     else if (!(strcmp (s, "orc"))) {
       csound->use_only_orchfile = 1;    /* orchfile without scorefile */
       return 1;
@@ -849,6 +852,10 @@ static int decode_long(CSOUND *csound, char *s, int argc, char **argv)
       O->sfwrite = 1;
       return 1;
     }
+    else if (!(strcmp (s, "print_version"))) {
+      csound->print_version = 1;
+      return 1;
+    }
     else if (!(strncmp (s, "logfile=", 8))) {
       s += 8;
       if (UNLIKELY(*s=='\0')) dieu(csound, Str("no log file"));
@@ -877,8 +884,20 @@ static int decode_long(CSOUND *csound, char *s, int argc, char **argv)
       return 1;
     }
     /* -t0 */
+    else if (!(strncmp(s, "keep-sorted-score=", 18))) {
+      s += 18;
+      csound->score_srt = s;
+      csound->keep_tmp= 1;
+      return 1;
+    }
     else if (!(strcmp (s, "keep-sorted-score"))) {
-      csound->keep_tmp = 1;
+      csound->keep_tmp= 1;
+      return 1;
+    }
+    else if (!(strncmp (s, "simple-sorted-score=", 20))) {
+      s +=20;
+      csound->score_srt = s;
+      csound->keep_tmp = 2;
       return 1;
     }
     else if (!(strcmp (s, "simple-sorted-score"))) {
@@ -996,6 +1015,11 @@ static int decode_long(CSOUND *csound, char *s, int argc, char **argv)
       s += 18;
       O->midiVelocityAmp = atoi(s);
       return 1;
+    }
+    else if (!(strncmp (s, "opcode-dir=", 11))){
+        s += 11;
+        csoundLoadPlugins(csound, s);
+        return 1;
     }
     else if (!(strncmp (s, "opcode-lib=", 11))) {
       int   nbytes;
@@ -1225,7 +1249,7 @@ PUBLIC int argdecode(CSOUND *csound, int argc, const char **argv_)
       strcpy(p2, argv_[i]);
       p2 = (char*) p2 + ((int) strlen(argv_[i]) + 1);
     }
-    csound->keep_tmp = 0;
+    //<csound->keep_tmp = 0;
 
     do {
       s = *++argv;

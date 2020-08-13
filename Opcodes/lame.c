@@ -81,7 +81,7 @@ int mp3out_init(CSOUND *csound, MP3OUT* p)
     lame_set_in_samplerate(gfp,csound->GetSr(csound));
     lame_set_brate(gfp,bitrate);
     lame_set_mode(gfp,mode);
-    lame_set_quality(gfp,quality);   /* 2=high  5 = medium  7=low */ 
+    lame_set_quality(gfp,quality);   /* 2=high  5 = medium  7=low */
     if (UNLIKELY(ret_code = lame_init_params(gfp)) <0)
       return csound->InitError(csound,
                                Str("Failed to initialise LAME %d\n"), ret_code);
@@ -95,7 +95,7 @@ int mp3out_init(CSOUND *csound, MP3OUT* p)
                      &p->auxch);
     p->mp3buffer = p->auxch.auxp;
     p->leftpcm = p->auxch.auxp+p->mp3buffer_size;
-    p->rightpcm = p->leftpcm + sizeof(MYFLT)*nsmps;
+    p->rightpcm = p->leftpcm + nsmps;
     csound->RegisterDeinitCallback(csound, p,
                                    (int32_t (*)(CSOUND*, void*)) mp3out_cleanup);
     return OK;

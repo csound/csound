@@ -67,6 +67,7 @@ $(CSOUND_SRC_ROOT)/OOps/diskin2.c \
 $(CSOUND_SRC_ROOT)/OOps/disprep.c \
 $(CSOUND_SRC_ROOT)/OOps/dumpf.c \
 $(CSOUND_SRC_ROOT)/OOps/fftlib.c \
+$(CSOUND_SRC_ROOT)/OOps/lpred.c \
 $(CSOUND_SRC_ROOT)/OOps/pffft.c \
 $(CSOUND_SRC_ROOT)/OOps/goto_ops.c \
 $(CSOUND_SRC_ROOT)/OOps/midiinterop.c \
@@ -230,6 +231,7 @@ $(CSOUND_SRC_ROOT)/Opcodes/vpvoc.c  \
 $(CSOUND_SRC_ROOT)/Opcodes/pvoc.c \
 $(CSOUND_SRC_ROOT)/Opcodes/wpfilters.c \
 $(CSOUND_SRC_ROOT)/Opcodes/zak.c \
+$(CSOUND_SRC_ROOT)/Opcodes/lufs.c \
 $(CSOUND_SRC_ROOT)/Engine/csound_orc_semantics.c \
 $(CSOUND_SRC_ROOT)/Engine/csound_orc_expressions.c \
 $(CSOUND_SRC_ROOT)/Engine/csound_orc_optimize.c \

@@ -1,19 +1,4 @@
-
 /*
-    ftgen.c:
-
-    Copyright (C) 1991, 1994, 1995, 1998, 2000, 2004
-                  Barry Vercoe, John ffitch, Paris Smaragdis,
-                  Gabriel Maldonado, Richard Karpen, Greg Sullivan,
-                  Pete Moss, Istvan Varga, Victor Lazzarini
-
-    This file is part of Csound.
-
-    The Csound Library is free software; you can redistribute it
-    and/or modify it under the terms of the GNU Lesser General Public
-    License as published by the Free Software Foundation; either
-    version 2.1 of the License, or (at your option) any later version.
-
     Csound is distributed in the hope that it will be useful,
     but WITHOUT ANY WARRANTY; without even the implied warranty of
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
@@ -103,43 +88,43 @@ static int32_t ftgen_(CSOUND *csound, FTGEN *p, int32_t istring1, int32_t istrin
     fp[4] = *p->p4;
 
 
-      if (istring1) {              /* Named gen */
-        NAMEDGEN *named = (NAMEDGEN*) csound->GetNamedGens(csound);
-        while (named) {
-          if (strcmp(named->name, ((STRINGDAT *) p->p4)->data) == 0) {
-            /* Look up by name */
-            fp[4] = named->genum;
-            break;
-          }
-          named = named->next;                            /*  and round again   */
-        }
-        if (UNLIKELY(named == NULL)) {
-          csound->Free(csound,ftevt);
-          return csound->InitError(csound,
-                                   Str("Named gen \"%s\" not defined"),
-                                   (char *)p->p4);
-        }
-        else fp[4] = named->genum;
-      }
-
-      if (istring2) {  /* string argument: */
-        n = (int32_t) fp[4];
-        fp[5] = SSTRCOD;
-        if (n < 0)
-          n = -n;
-        switch (n) {                      /*   must be Gen01, 23, 28, 43, 49 */
-        case 1:
-        case 23:
-        case 28:
-        case 43:
-        case 49:
-          ftevt->strarg = ((STRINGDAT *) p->p5)->data;
+    if (istring1) {              /* Named gen */
+      NAMEDGEN *named = (NAMEDGEN*) csound->GetNamedGens(csound);
+      while (named) {
+        if (strcmp(named->name, ((STRINGDAT *) p->p4)->data) == 0) {
+          /* Look up by name */
+          fp[4] = named->genum;
           break;
-        default:
-          csound->Free(csound, ftevt);
-          return csound->InitError(csound, Str("ftgen string arg not allowed"));
         }
+        named = named->next;                            /*  and round again   */
       }
+      if (UNLIKELY(named == NULL)) {
+        csound->Free(csound,ftevt);
+        return csound->InitError(csound,
+                                 Str("Named gen \"%s\" not defined"),
+                                 (char *)p->p4);
+      }
+      // else fp[4] = named->genum;
+    }
+
+    if (istring2) {  /* string argument: */
+      n = (int32_t) fp[4];
+      fp[5] = SSTRCOD;
+      if (n < 0)
+        n = -n;
+      switch (n) {                      /*   must be Gen01, 23, 28, 43, 49 */
+      case 1:
+      case 23:
+      case 28:
+      case 43:
+      case 49:
+        ftevt->strarg = ((STRINGDAT *) p->p5)->data;
+        break;
+      default:
+        csound->Free(csound, ftevt);
+        return csound->InitError(csound, Str("ftgen string arg not allowed"));
+      }
+    }
     else {
       fp[5] = *p->p5;                                   /* else no string */
     }
@@ -660,39 +645,34 @@ static int32_t ftgen_list(CSOUND *csound, FTGEN *p, int32_t istring)
     fp[4] = *p->p4;
 
 
-      if (istring) {              /* Named gen */
-        NAMEDGEN *named = (NAMEDGEN*) csound->GetNamedGens(csound);
-        while (named) {
-          if (strcmp(named->name, ((STRINGDAT *) p->p4)->data) == 0) {
-            /* Look up by name */
-            fp[4] = named->genum;
-           break;
-          }
-          named = named->next;                            /*  and round again   */
+    if (istring) {              /* Named gen */
+      NAMEDGEN *named = (NAMEDGEN*) csound->GetNamedGens(csound);
+      while (named) {
+        if (strcmp(named->name, ((STRINGDAT *) p->p4)->data) == 0) {
+          /* Look up by name */
+          fp[4] = named->genum;
+          break;
         }
-        if (UNLIKELY(named == NULL)) {
-          csound->Free(csound,ftevt);
-          return csound->InitError(csound,
-                                   Str("Named gen \"%s\" not defined"),
-                                   (char *)p->p4);
-        }
-        else fp[4] = named->genum;
+        named = named->next;                            /*  and round again   */
       }
+      if (UNLIKELY(named == NULL)) {
+        csound->Free(csound,ftevt);
+        return csound->InitError(csound,
+                                 Str("Named gen \"%s\" not defined"),
+                                 (char *)p->p4);
+      }
+    }
 
-      ARRAYDAT *array = (ARRAYDAT*) (p->p5);
-      n = array->sizes[0];
-      ftevt->pcnt = (int16) n+4;
-      int32_t i = 0;
-      memcpy(&fp[5], &array->data[0], n*sizeof(MYFLT));
-      while (i < n) {
-        i++;
-      }
-      n = csound->hfgens(csound, &ftp, ftevt, 1);         /* call the fgen */
-     csound->Free(csound,ftevt);
-     if (UNLIKELY(n != 0))
-       return csound->InitError(csound, Str("ftgen error"));
-     if (ftp != NULL)
-       *p->ifno = (MYFLT) ftp->fno;                      /* record the fno */
+    ARRAYDAT *array = (ARRAYDAT*) (p->p5);
+    n = array->sizes[0];
+    ftevt->pcnt = (int16) n+4;
+    memcpy(&fp[5], array->data, n*sizeof(MYFLT));
+    n = csound->hfgens(csound, &ftp, ftevt, 1);         /* call the fgen */
+    csound->Free(csound,ftevt);
+    if (UNLIKELY(n != 0))
+      return csound->InitError(csound, Str("ftgen error"));
+    if (ftp != NULL)
+      *p->ifno = (MYFLT) ftp->fno;                      /* record the fno */
     return OK;
 }
 

@@ -1395,11 +1395,18 @@ typedef struct _message_queue_t_ {
     int (*GetErrorCnt)(CSOUND *);
     FUNC* (*FTnp2Finde)(CSOUND*, MYFLT *);
     INSTRTXT *(*GetInstrument)(CSOUND*, int, const char *);
+    MYFLT* (*AutoCorrelation)(CSOUND *, MYFLT*, MYFLT*, int);
+    void * (*LPsetup)(CSOUND *csound, int N, int M);
+    void (*LPfree)(CSOUND *csound, void *);
+    MYFLT* (*LPred)(CSOUND *, void *, MYFLT *);
+    MYFLT* (*LPCeps)(CSOUND *, MYFLT *, MYFLT *, int, int);
+    MYFLT* (*CepsLP)(CSOUND *, MYFLT *, MYFLT *, int, int);
+    MYFLT (*LPrms)(CSOUND *, void *);
     /**@}*/
     /** @name Placeholders
         To allow the API to grow while maintining backward binary compatibility. */
     /**@{ */
-    SUBR dummyfn_2[29];
+    SUBR dummyfn_2[23];
     /**@}*/
 #ifdef __BUILDING_LIBCSOUND
     /* ------- private data (not to be used by hosts or externals) ------- */
@@ -1782,7 +1789,7 @@ typedef struct _message_queue_t_ {
     int           strsiz;       /* length of current strings space */
     FUNC          *sinetable;   /* A useful table */
     int           sinelength;   /* Size of table */
-    MYFLT         *powerof2;    /* pow2 table */
+    MYFLT         *UNUSEDP;     /* pow2 table */
     MYFLT         *cpsocfrc;    /* cps conv table */
     CORFIL*       expanded_orc; /* output of preprocessor */
     CORFIL*       expanded_sco; /* output of preprocessor */
@@ -1797,7 +1804,7 @@ typedef struct _message_queue_t_ {
                                and nodebug function */
     int           score_parser;
     CS_HASH_TABLE* symbtab;
-    int           unused_int1;
+    int           print_version;
     int           inZero;       /* flag compilation of instr0 */
     struct _message_queue **msg_queue;
     volatile long msg_queue_wget; /* Writer - Get index */
@@ -1819,6 +1826,10 @@ typedef struct _message_queue_t_ {
     unsigned long message_string_queue_wp;
     message_string_queue_t *message_string_queue;
     int io_initialised;
+    char *op;
+    int  mode;
+    char *opcodedir;
+    char *score_srt;
     /*struct CSOUND_ **self;*/
     /**@}*/
 #endif  /* __BUILDING_LIBCSOUND */

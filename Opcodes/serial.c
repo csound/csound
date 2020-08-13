@@ -1,9 +1,11 @@
 /*****************************************************
-251
+
 
                         CSOUND SERIAL PORT OPCODES
                           ma++ ingalls, 2011/9/4
                      modified for WIndows John ffitch
+
+                     extenion for ardiuno by John ffitch 2020
  * based on "Arduino-serial"
  * Copyright (c) 2006, Tod E. Kurt, tod@todbot.com
  * http://todbot.com/blog/
@@ -403,7 +405,7 @@ int32_t serialWrite_S(CSOUND *csound, SERIALWRITE *p)
 
 int32_t serialRead(CSOUND *csound, SERIALREAD *p)
 {
-     IGN(csound);
+    IGN(csound);
     unsigned char b = 0;
 #ifdef WIN32
     size_t bytes;
@@ -463,6 +465,221 @@ int32_t serialPeekByte(CSOUND *csound, SERIALPEEK *p)
     return OK;
 }
 
+/* ********************************************************************** */
+// Support for arduino output via serial line
+
+/* Basic design:  when arduinoStart is called it opens serial line like
+   serialBegin and also creates a buffer to store incoming values, and a thead
+   listen to the input. We use a 0x80 read to synchonise, and each value is
+   packed with an index; data only sent if it changes. This can be cancelled
+   with arduinoStop.
+   The arduino opcode checks that there has been a call to arduinoStart and
+   with a simple mutex reads the requested value from the buffer.
+
+   Issue: it assumes that the arduino is already running the correct sketch type.
+   Issue:  Can we load the sketch from csound?
+   Issue: Need to stop the listen thread.
+   Issue: Windows version incomplete
+*/
+
+#define MAXSENSORS (14)
+
+typedef struct {
+    CSOUND  *csound;
+    void *thread;
+#ifdef WIN32
+    HANDLE port;
+#else
+    int32_t port;
+#endif
+  void *lock;
+    int stop;
+    int32_t values[MAXSENSORS];
+} ARDUINO_GLOBALS;
+
+typedef struct {
+    OPDS  h;
+    MYFLT *returnedPort;
+    STRINGDAT *portName;
+    MYFLT *baudRate;
+    ARDUINO_GLOBALS *q;
+} ARD_START;
+
+typedef struct {
+    OPDS  h;
+    MYFLT *val;
+    MYFLT *port;
+    MYFLT *index;
+    MYFLT *ihtim;
+    ARDUINO_GLOBALS *q;
+    MYFLT c1, c2, yt1;
+} ARD_READ;
+
+#ifndef WIN32
+/* NOTE we need to remove timeout status VMIN/VTIME maybe */
+unsigned char arduino_get_byte(int32_t port)
+{
+    unsigned char b;
+    ssize_t bytes;
+ top:
+    bytes = read(port, &b, 1);
+    if (bytes != 1) goto top;
+    //    printf("Read %.3x\n", b);
+    return b;
+}
+
+#else
+
+// Attempt at Windows verson
+
+unsigned char arduino_get_byte(HANDLE port)
+{
+    unsigned char b;
+ top:
+    size_t bytes;
+    ReadFile(port, &b, 1, (PDWORD)&bytes, NULL);
+    if (bytes != 1) goto top;
+    return b;
+}
+#endif
+
+uintptr_t arduino_listen(void *p)
+{
+    unsigned int ans = 0;
+    uint16_t c, val;
+    ARDUINO_GLOBALS *q = (ARDUINO_GLOBALS*)p;
+    CSOUND *csound = q->csound;
+    //printf("Q=%p\n", q);
+    // Read until we see a header word
+    while((c = arduino_get_byte(q->port))!=0xf0) {
+      //printf("ignore low %.2x\n", c);
+    }
+    // Should be synced now
+    while (1) {
+      unsigned int hi, low;
+      if (q->stop)
+        //#ifndef WIN32
+        //pthread_exit(NULL);
+        //#else
+        return 0;
+      //#endif
+      low = arduino_get_byte(q->port);
+      if (low == 0xf8) continue; /* start new frame */
+      hi = arduino_get_byte(q->port);
+      if (hi == 0xf8) continue; /* start new frame */
+      //printf("low hi = %.2x %.2x\n", low, hi);
+      val = ((hi&0xf)<<7) | (low&0x7f);
+      c = (hi>>3)&0x1f;
+      //printf("Sensor %d value %d(%.2x)\n", c, val, val);
+      // critical region
+      csound->LockMutex(q->lock);
+      q->values[c] = val;
+      csound->UnlockMutex(q->lock);
+      // end critical region
+    }
+    return ans;
+}
+
+int32_t arduino_deinit(CSOUND *csound, ARD_START *p)
+{                               /* NOT FINISHED */
+    p->q->stop = 1;
+    csound->JoinThread(p->q->thread);
+    csound->DestroyGlobalVariable(csound, "arduinoGlobals_");
+      p->q = NULL;
+    return OK;
+}
+
+int32_t arduinoStart(CSOUND* csound, ARD_START* p)
+{
+    ARDUINO_GLOBALS *q;
+    int n;
+    MYFLT xx =
+      (MYFLT)serialport_init(csound,
+                             (const char *)p->portName->data,
+                             *p->baudRate);
+    //printf("xx=%g\n", xx);
+    if (xx<0) return csound->InitError(csound, "%s",
+                                       Str("failed to open serial line\n"));
+    q = (ARDUINO_GLOBALS*) csound->QueryGlobalVariable(csound,
+                                                       "arduinoGlobals_");
+    if (q!=NULL) return csound->InitError(csound, "%s",
+                                    Str("arduinoStart already running\n"));
+    if (UNLIKELY(csound->CreateGlobalVariable(csound, "arduinoGlobals_",
+                                              sizeof(ARDUINO_GLOBALS)) != 0))
+      return
+        csound->InitError(csound, "%s", Str("arduino: failed to allocate globals"));
+    q = (ARDUINO_GLOBALS*) csound->QueryGlobalVariable(csound,
+                                                       "arduinoGlobals_");
+    if (q==NULL) return csound->InitError(csound, "&%s", Str("Failed to allocate\n"));
+    p->q = q;
+    q->csound = csound;
+    q->lock = csound->Create_Mutex(0);
+#ifdef WIN32
+    q->port = get_port(csound, xx);
+#else
+    q->port = xx;
+#endif
+    for (n=0; n<MAXSENSORS; n++) q->values[n] = 0;
+    // Start listening thread
+    q->stop = 0;
+    q->thread = csound->CreateThread(arduino_listen, (void *)q);
+    csound->RegisterDeinitCallback(csound, p,
+                                   (int32_t (*)(CSOUND *, void *)) arduino_deinit);
+    *p->returnedPort = xx;
+ return OK;
+}
+
+int32_t arduinoReadSetup(CSOUND* csound, ARD_READ* p)
+{
+    p->q = (ARDUINO_GLOBALS*) csound->QueryGlobalVariable(csound,
+                                                      "arduinoGlobals_");
+    if (p->q == NULL)
+      return csound->InitError(csound, "%s", Str("arduinoStart not running\n"));
+    /* Initialise port filter */
+    if (*p->ihtim != FL(0.0)) {
+      p->c2 = pow(0.5, (double)CS_ONEDKR / *p->ihtim);
+      p->c1 = 1.0 - p->c2;
+      p->yt1 = FL(0.0);
+    } else {
+      p->c2 = FL(0.0); p->c1 = FL(1.0);
+    }
+    return OK;
+}
+
+int32_t arduinoRead(CSOUND* csound, ARD_READ* p)
+{
+    ARDUINO_GLOBALS *q = p->q;
+    MYFLT val;
+    int ind = *p->index;
+    if (ind <0 || ind>MAXSENSORS)
+      return csound->PerfError(csound, &p->h,
+                               "%s", Str("out of range\n"));
+    csound->LockMutex(q->lock);
+    val = (MYFLT)q->values[ind];
+    csound->UnlockMutex(q->lock);
+    //printf("ind %d val %d\n", ind, q->values[ind]);
+    p->yt1 = p->c1 * val + p->c2 * p->yt1;
+    *p->val = p->yt1;
+    return OK;
+}
+
+int32_t arduinoStop(CSOUND* csound, ARD_START* p)
+{
+    ARDUINO_GLOBALS *q =
+      (ARDUINO_GLOBALS*) csound->QueryGlobalVariable(csound,
+                                                     "arduinoGlobals_");
+    if (q==NULL)
+      csound->Message(csound, "%s\n", Str("arduino not running"));
+    else {
+      q->stop = 1;
+      csound->JoinThread(q->thread);
+      csound->DestroyGlobalVariable(csound, "arduinoGlobals_");
+        //q->thread = NULL;
+    }
+    return OK;
+}
+
+// End of arduino code
 
 
 #define S(x)    sizeof(x)
@@ -486,6 +703,9 @@ static OENTRY serial_localops[] = {
       (SUBR)NULL, (SUBR)serialPrint, (SUBR)NULL   },
     { (char *)"serialFlush", S(SERIALFLUSH), 0, 2, (char *)"", (char *)"i",
       (SUBR)NULL, (SUBR)serialFlush, (SUBR)NULL   },
+    { "arduinoStart", S(ARD_START), 0, 1, "i", "So", (SUBR)arduinoStart, NULL  },
+    { "arduinoRead", S(ARD_READ), 0, 3, "k", "iio", (SUBR)arduinoReadSetup, (SUBR)arduinoRead  },
+    { "arduinoStop", S(ARD_START), 0, 1, "", "i", (SUBR)arduinoStop, NULL  },
 /* { (char *)"serialAvailable", S(SERIALAVAIL), 0, 2, (char *)"k", (char *)"i", */
 /*   (SUBR)NULL, (SUBR)serialAvailable, (SUBR)NULL   }, */
 /* { (char *)"serialPeekByte", S(SERIALPEEK),0,  2, (char *)"k", (char *)"i", */

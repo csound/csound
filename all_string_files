@@ -71,6 +71,7 @@
 ./H/insert.h
 ./H/linevent.h
 ./H/lpc.h
+./H/lpred.h
 ./H/midifile.h
 ./H/midiinterop.h
 ./H/midioops.h
@@ -169,6 +170,7 @@
 ./OOps/dumpf.c
 ./OOps/fftlib.c
 ./OOps/goto_ops.c
+./OOps/lpred.c
 ./OOps/midiinterop.c
 ./OOps/midiops.c
 ./OOps/midiout.c
@@ -223,6 +225,7 @@
 ./Opcodes/compress.c
 ./Opcodes/control.c
 ./Opcodes/control.h
+./Opcodes/counter.c
 ./Opcodes/cpumeter.c
 ./Opcodes/cross2.c
 ./Opcodes/crossfm.c
@@ -315,6 +318,7 @@
 ./Opcodes/loscilx.c
 ./Opcodes/lowpassr.c
 ./Opcodes/lowpassr.h
+./Opcodes/lufs.c
 ./Opcodes/mandolin.c
 ./Opcodes/mandolin.h
 ./Opcodes/marimba.h
@@ -425,6 +429,7 @@
 ./Opcodes/spectra.h
 ./Opcodes/squinewave.c
 ./Opcodes/stackops.c
+./Opcodes/sterrain.c
 ./Opcodes/stdopcod.c
 ./Opcodes/stdopcod.h
 ./Opcodes/stk/stkOpcodes.cpp
@@ -469,6 +474,7 @@
 ./Opcodes/wiimote.c
 ./Opcodes/wpfilters.c
 ./Opcodes/wpfilters.h
+./Opcodes/wterrain2.c
 ./Opcodes/zak.c
 ./Opcodes/zak.h
 ./Top/argdecode.c

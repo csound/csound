@@ -479,7 +479,7 @@ INSTRTXT *create_instrument0(CSOUND *csound, TREE *root,
   OPTXT *op;
   TREE *current;
   MYFLT sr = FL(-1.0), kr = FL(-1.0), ksmps = FL(-1.0), nchnls = DFLT_NCHNLS,
-        inchnls = FL(0.0), _0dbfs = FL(-1.0);
+        inchnls = -FL(1.0), _0dbfs = FL(-1.0);
   int krdef = 0; //, ksmpsdef = 0, srdef = 0;
   double A4 = 0.0;
   CS_TYPE *rType = (CS_TYPE *)&CS_VAR_TYPE_R;
@@ -561,7 +561,7 @@ INSTRTXT *create_instrument0(CSOUND *csound, TREE *root,
           uval = (val <= 0 ? 1u : (unsigned int)val);
           nchnls = uval;
         } else if (current->left->type == NCHNLSI_TOKEN) {
-          uval = (val <= 0 ? 1u : (unsigned int)val);
+          uval = (val < 0 ? 1u : (unsigned int)val);
           inchnls = uval;
         } else if (current->left->type == ZERODBFS_TOKEN) {
           _0dbfs = val;
@@ -622,7 +622,7 @@ INSTRTXT *create_instrument0(CSOUND *csound, TREE *root,
 
   csound->ksmps = ksmps;
   csound->nchnls = nchnls;
-  if (inchnls == 0)
+  if (inchnls < 0)
     csound->inchnls = nchnls;
   else
     csound->inchnls = inchnls;
@@ -1729,9 +1729,9 @@ int csoundCompileTreeInternal(CSOUND *csound, TREE *root, int async) {
               // VL 25.05.2018
               // this should only be run here in the
               // first compilation
-              //if(engineState == &csound->engineState)
-              //named_instr_alloc(csound, c, instrtxt, insno_priority,
-              //                engineState, 0);
+              if(engineState == &csound->engineState)
+                named_instr_alloc(csound, c, instrtxt, insno_priority,
+                                  engineState, 0);
               /* if (UNLIKELY(!named_instr_alloc(csound, c, */
               /*                                 instrtxt, insno_priority, */
               /*                                 engineState,0))) { */

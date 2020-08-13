@@ -393,13 +393,16 @@ static int32_t psynth2_process(CSOUND *csound, _PSYN2 *p)
                 phasediff -= TWOPI_F;
               while (phasediff < -PI_F)
                 phasediff += TWOPI_F;
+
               /* update phasediff to match the freq */
               cph = ((freq + freqnext) * factor * 0.5 - phasediff) / TWOPI;
+
               phasediff += TWOPI_F * (int32_t) (cph + 0.5);
               /* interpolation coefs */
               a2 = 3.0 / facsqr * (phasediff -
                                    factor / 3.0 * (2.0 * freq + freqnext));
               a3 = 1.0 / (3.0 * facsqr) * (freqnext - freq - 2.0 * a2 * factor);
+              //printf("%f %f \n", a2, a3);
               /* interpolation & track synthesis loop */
               a = amp;
               ph = phase;
@@ -1107,7 +1110,7 @@ static int32_t trcross_process(CSOUND *csound, _PSCROSS *p)
       if (bal < 0)
         bal = FL(0.0);
       if (mode < 1)
-        for (i = 0; framein2[i + 3] != -1 && i < end; i += 4)
+        for (i = 0; i < end && framein2[i + 3] != -1; i += 4)
           max = framein2[i] > max ? framein2[i] : max;
 
       for (i = 0; id != -1 && i < end; i += 4, id = (int32_t) framein1[i + 3]) {

@@ -1171,7 +1171,7 @@ static int32_t filinit(CSOUND *csound, LOADER *pp)
 
 void *loader_thread(void *p){
     LOADER *pp = (LOADER *) p;
-    if(filinit(pp->p.csound,pp) == NOTOK) {
+    if(filinit(pp->p.csound,pp) != OK) {
       if(pp->p.error > 0)
         pp->p.csound->Message(pp->p.csound, Str("mp3scal_load error: %s\n"),
                               mp3dec_error(pp->p.error));
@@ -2052,7 +2052,7 @@ static int32_t filinit2(CSOUND *csound, LOADER *pp)
 
 void *loader_thread2(void *p){
     LOADER *pp = (LOADER *) p;
-    if(filinit2(pp->p.csound,pp) == NOTOK) {
+    if(filinit2(pp->p.csound,pp) != OK) {
       if(pp->p.error > 0)
         pp->p.csound->Message(pp->p.csound, Str("mp3scal_load error: %s\n"),
                               mp3dec_error(pp->p.error));

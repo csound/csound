@@ -192,6 +192,7 @@ int main(int argc, char **argv)
     sf_count_t  flen;
 
     outformat = SF_FORMAT_PCM_16;
+    filetyp = SF_FORMAT_WAV;
 
     if ((envoutyp = getenv("SFOUTYP")) != NULL) {
       if (strcmp(envoutyp, "AIFF") == 0)
@@ -409,7 +410,8 @@ int main(int argc, char **argv)
     sfinfo.format = filetyp | outformat;
     outf = sf_open(outfilename, SFM_WRITE, &sfinfo);
     if (UNLIKELY(outf == NULL)) {
-      snprintf(err_msg, 299, Str("cannot open %s."), outfilename);
+      snprintf(err_msg, 299, Str("cannot open %s (%s)."),
+               outfilename, sf_strerror(outf));
       goto err_rtn_msg1;
     }
     sf_command(outf, SFC_SET_CLIPPING, NULL, SF_TRUE);

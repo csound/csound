@@ -27,7 +27,7 @@
 #include "beats.h"
 
 FILE *myout;
-FILE *yyin;
+extern FILE *yyin;
 int debug = 0;
 
 double pt[13] = { 8.1757989156,  8.6619572180,  9.1770239974,  9.7227182413,

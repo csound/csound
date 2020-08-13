@@ -44,6 +44,7 @@ ORCTOKEN *make_int(CSOUND *, char *);
 ORCTOKEN *make_num(CSOUND *, char *);
 ORCTOKEN *make_token(CSOUND *, char *s);
 ORCTOKEN *make_label(CSOUND *, char *s);
+static void check_newline_for_label(char *pp, void* yyscanner);
 #define udoflag csound->parserUdoflag
 #define namedInstrFlag csound->parserNamedInstrFlag
 #include "parse_param.h"
@@ -71,7 +72,7 @@ int get_next_char(char *, int, struct yyguts_t*);
 %option stdout
 %option 8bit
 
-LABEL           ^[ \t]*[a-zA-Z0-9_][a-zA-Z0-9_]*:([ \t\n]+|$)  /* VL: added extra checks for after the colon */
+LABEL           ^[ \t]*[a-zA-Z0-9_][a-zA-Z0-9_]*:[ \t\n]  /* VL: added extra checks for after the colon */
 IDENT           [a-zA-Z_][a-zA-Z0-9_]*
 IDENTB          [a-zA-Z_][a-zA-Z0-9_]*\([ \t]*("\n")?
 XIDENT          0|[aijkftKOJVPopS\[\]]+
@@ -378,7 +379,9 @@ FNAME           [a-zA-Z0-9/:.+-_]+
 
 {LABEL}         { char *pp = yytext;
                   while (*pp==' ' || *pp=='\t') pp++;
-                  *lvalp = make_label(csound, pp); return LABEL_TOKEN;
+                  check_newline_for_label(pp, yyscanner);
+                  *lvalp = make_label(csound, pp); 
+                  return LABEL_TOKEN;
                }
 
 "\{\{"          {
@@ -589,6 +592,16 @@ ORCTOKEN *make_label(CSOUND *csound, char *s)
     ans->lexeme = (char*)csound->Calloc(csound, len);
     strNcpy(ans->lexeme, s, len); /* Not the trailing colon */
     return ans;
+}
+
+static void check_newline_for_label(char*s, void* yyscanner) {
+    char *ps = s;
+    while (*ps != ':') ps++;
+    while(*ps != '\0') {
+      if (*ps=='\n')
+        csound_orcset_lineno(1+csound_orcget_lineno(yyscanner),yyscanner);
+      ps++;
+    }
 }
 
 ORCTOKEN *make_string(CSOUND *csound, char *s)

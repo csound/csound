@@ -305,13 +305,14 @@ static TREE *create_cond_expression(CSOUND *csound,
     char *left, *right;
     int type;
     TREE *xx;
+    char *eq;
 
     typeTable->labelList =
-            cs_cons(csound,
-                    cs_strdup(csound, L1->value->lexeme), typeTable->labelList);
+      cs_cons(csound,
+              cs_strdup(csound, L1->value->lexeme), typeTable->labelList);
     typeTable->labelList =
-            cs_cons(csound,
-                    cs_strdup(csound, L2->value->lexeme), typeTable->labelList);
+      cs_cons(csound,
+              cs_strdup(csound, L2->value->lexeme), typeTable->labelList);
     //print_tree(csound, "***B\n", b);
     //print_tree(csound, "***C\n", c); print_tree(csound,"***D\n", d);
     left = get_arg_type2(csound, c, typeTable);
@@ -319,18 +320,27 @@ static TREE *create_cond_expression(CSOUND *csound,
     //printf("types %s %s\n", left, right);
     if (left[0]=='c') left[0] = 'i';
     if (right[0]=='c') right[0] = 'i';
-    //printf("type = %d\n", type);
+    //**printf("type = %d\n", type);
     last = b;
     while (last->next != NULL) {
       last = last->next;
     }
-    type =
-      (left[0]=='k' || right[0]=='k' || last->left->value->lexeme[1]=='B') ?2 : 1;
-    if (type==2) left[0] = right[0] = 'k';
+    //printf("type = %s , %s\n", left, right);
+    if (left[0]=='S' || right[0]=='S') {
+      type = (last->left->value->lexeme[1]=='B') ?2 : 1;
+      eq = (last->left->value->lexeme[1]=='B') ?"#=.S" : "=.S";
+    }
+    else {
+      type =
+        (left[0]=='k' || right[0]=='k' || last->left->value->lexeme[1]=='B') ?2 : 1;
+      if (type==2) left[0] = right[0] = 'k';
+      eq = "=";
+    }
     //printf("boolvalr = %s, type=%d\n", last->left->value->lexeme, type);
     //print_tree(csound, "\nL1\n", L1);
 
     last->next = create_opcode_token(csound, type==1?"cigoto":"ckgoto");
+    //print_tree(csound, "first jump\n", last->next);
     xx = create_empty_token(csound);
     xx->type = T_IDENT;
     xx->value = make_token(csound, last->left->value->lexeme);
@@ -346,13 +356,13 @@ static TREE *create_cond_expression(CSOUND *csound,
                            typeTable->localPool->synthArgCount++, typeTable);
     //printf("right = %s\n", right);
     {
-      TREE *C = create_opcode_token(csound, cs_strdup(csound, "="));
+      TREE *C = create_opcode_token(csound, cs_strdup(csound, eq));
       C->left = create_ans_token(csound, right); C->right = c;
       c = C;
     }
     //print_tree(csound, "\n\nc\n", c);
     {
-      TREE *D = create_opcode_token(csound, cs_strdup(csound, "="));
+      TREE *D = create_opcode_token(csound, cs_strdup(csound, eq));
       D->left = create_ans_token(csound, right); D->right = d;
       d = D;
     }
@@ -366,13 +376,15 @@ static TREE *create_cond_expression(CSOUND *csound,
     while (last->next != NULL) last = last->next;
     //Last is now last assignment
     //print_tree(csound, "\n\nlast assignment\n", last);
-
-    last->next = create_simple_goto_token(csound, L2, type);
+    //printf("=======type = %d\n", type);
+    last->next = create_simple_goto_token(csound, L2, type==2?0:type);
+    //print_tree(csound, "second goto\n", last->next);
     //print_tree(csound, "\n\nafter goto\n", b);
     while (last->next != NULL) last = last->next;
     last->next = create_synthetic_label(csound,ln1);
     while (last->next != NULL) last = last->next;
     //print_tree(csound, "\n\nafter label\n", b);
+
     last->next = c;
     while (last->next != NULL) last = last->next;
     //print_tree(csound, "n\nAfter c\n", b);
@@ -380,12 +392,13 @@ static TREE *create_cond_expression(CSOUND *csound,
     last->next = create_synthetic_label(csound,ln2);
     //print_tree(csound, "\n\nafter secondlabel\n", b);
     while (last->next != NULL) last = last->next;
-    last->next = create_opcode_token(csound, cs_strdup(csound,"="));
+    last->next = create_opcode_token(csound, cs_strdup(csound, eq));
     //print_tree(csound, "\n\nafter secondlabel\n", b);
     last->next->left = create_ans_token(csound, right);
     last->next->right = create_ans_token(csound, right);
 
     //printf("\n\n*** create_cond_expression ends\n");
+
     //print_tree(csound, "ANSWER\n", b);
     return b;
 }

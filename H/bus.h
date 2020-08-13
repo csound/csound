@@ -195,6 +195,7 @@ int32_t     chnset_opcode_perf_S(CSOUND *, CHNGET *);
 int32_t     chnmix_opcode_init(CSOUND *, CHNGET *);
 int32_t     chnclear_opcode_init(CSOUND *, CHNCLEAR *);
 int32_t     chn_k_opcode_init(CSOUND *, CHN_OPCODE_K *);
+int32_t     chn_k_opcode_init_S(CSOUND *, CHN_OPCODE_K *);
 int32_t     chn_a_opcode_init(CSOUND *, CHN_OPCODE *);
 int32_t     chn_S_opcode_init(CSOUND *, CHN_OPCODE *);
 int32_t     chnexport_opcode_init(CSOUND *, CHNEXPORT_OPCODE *);

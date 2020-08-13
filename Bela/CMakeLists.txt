@@ -12,7 +12,7 @@ if(BUILD_BELA)
     -lbelaextra)
   target_include_directories(belacsound PRIVATE /usr/xenomai/include
     /usr/xenomai/include/posix
-    /usr/local/include $ENV{HOME}/Bela/include /root/Bela/lib)
+    /usr/local/include $ENV{HOME}/Bela/include $ENV{HOME}/Bela/libraries/Midi $ENV{HOME}/Bela/libraries/Scope)
 else()
   message(STATUS "Not building belacsound program.")
 endif()

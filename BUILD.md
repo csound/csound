@@ -83,18 +83,14 @@ set of folders.
 
 
 
-Mac OS X using Homebrew <a name="OSXHomebrew">
+macOS using Homebrew <a name="OSXHomebrew">
 -----------------------
 
 ### Introduction 
 
-Homebrew is a package manager for OSX. It is able to download, build, and
+Homebrew is a package manager for macOS. It is able to download, build, and
 install applications, including their dependencies. The following sections will
 describe what you will need to do to use Homebrew to install Csound 6.
-
-Note: At this time, this method of installing Csound is currently being tested.
-It is considered beta, and users should be aware that there may be some issues
-that will be required to be worked through.
 
 ### Requirements 
 
@@ -106,7 +102,9 @@ that will be required to be worked through.
 
 [2]: <http://www.brew.sh>
 
-Installing Homebrew You will first need to have a working Homebrew setup. This
+#### Installing Homebrew 
+
+You will first need to have a working Homebrew setup. This
 requires installing Xcode and the Xcode Command-Line tools. More information on
 installing Homebrew is available on the Homebrew website as well as their wiki.
 
@@ -126,43 +124,61 @@ add_subdirectory,add_file,delete_child,directory_inherit'
 
 where YOUR_NAME_HERE refers to your system username.
 
-### Adding the Csound Tap 
-
-Homebrew has a central repository, but it also allows for adding "taps", which
-are additional repositories. A Csound tap has been setup at
-https://github.com/kunstmusik/homebrew-csound. You can tap into it by using the
-following command:
-
-`brew tap kunstmusik/csound`
-
 ### Installing Csound 
 
-Once Homebrew is setup and the csound tap has been tapped, run the following
-command at the commandline to install Csound:
+Once Homebrew is setup, run the following command at the commandline to install Csound:
 
-`brew install --HEAD csound `
+`brew install csound`
 
-### Known Issues 
+You can install the latest from the develop branch using:
+  
+`brew install --HEAD csound`
 
-There is currently a warning issued when Csound installs:
+If you have a HEAD version already installed and you want to rebuild with newly updated code in the develop branch, use: 
+  
+`brew reinstall csound`
 
-`Warning: Could not fix CsoundLib64.framework/Versions/6.0/CsoundLib64 in
-/usr/local/Cellar/csound/HEAD/bin/srconv `
+### Building Csound using Homebrew-supplied dependencies
 
-`Warning: Could not fix CsoundLib64.framework/Versions/6.0/CsoundLib64 in
-/usr/local/Cellar/csound/HEAD/bin/sndinfo `
+If you would like to compile csound on macOS, you need to have its dependencies installed. 
+You can do this manually picking out various packages from Homebrew or you can use the csound 
+formula to install the dependencies using
 
-`Warning: Could not fix CsoundLib64.framework/Versions/6.0/CsoundLib64 in
-/usr/local/Cellar/csound/HEAD/bin/scsort `
+`brew install --only-dependencies csound`
 
-`Warning: Could not fix CsoundLib64.framework/Versions/6.0/CsoundLib64 in
-/usr/local/Cellar/csound/HEAD/bin/scope `
+This installs all of the tools and libraries that is required to build csound and various plugins. After installing dependencies, you can use cmake to build:
 
-....
+1. Clone the csound source from github and `cd` into the root of the csound folder.
+2. `mkdir build` 
+3. `cd build` 
+4. `cmake ..`
+5. `make -j6`
+6. `make install`
 
-This is due to how the CsoundLib64.framework is installed into
-~/Library/Frameworks and bypasses Homebrew's installation path for Frameworks.
-This is a known issue and will be looked into.
+For step 4, you can use `cmake .. -G Xcode` if you then want to build Csound with XCode.  Step 6 may require the use of `sudo` depending on permissions. Note that building from source installs into different paths on the system compared to where the Homebrew-built version of Csound is installed to. It is recommended to `brew uninstall csound` prior to building, installing, and using your self-compiled version of Csound. 
+
+
+<!--### Known Issues -->
+
+<!--There is currently a warning issued when Csound installs:-->
+
+<!--`Warning: Could not fix CsoundLib64.framework/Versions/6.0/CsoundLib64 in-->
+<!--/usr/local/Cellar/csound/HEAD/bin/srconv `-->
+
+<!--`Warning: Could not fix CsoundLib64.framework/Versions/6.0/CsoundLib64 in-->
+<!--/usr/local/Cellar/csound/HEAD/bin/sndinfo `-->
+
+<!--`Warning: Could not fix CsoundLib64.framework/Versions/6.0/CsoundLib64 in-->
+<!--/usr/local/Cellar/csound/HEAD/bin/scsort `-->
+
+<!--`Warning: Could not fix CsoundLib64.framework/Versions/6.0/CsoundLib64 in-->
+<!--/usr/local/Cellar/csound/HEAD/bin/scope `-->
+
+<!--....-->
+
+<!--This is due to how the CsoundLib64.framework is installed into-->
+<!--~/Library/Frameworks and bypasses Homebrew's installation path for Frameworks.-->
+<!--This is a known issue and will be looked into.-->
 
 
 
@@ -413,7 +429,10 @@ or there might be a compiler issue, in which case, you need to change the line a
     in order to disable the vectorial code and use standard C scalar
     operations.
 
-There is no support for NEON on rpi 1 or zero. This is available for rpi 2 and 3, though.
+There is no support for NEON on rpi 1 or zero. This is available for
+rpi 2 and 3, though.
+
+3. Remember to run cmake again (step 7 above) after any changes to Custom.cmake
 
 Fedora 18 <a name="fedora">
 ---------

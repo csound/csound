@@ -145,6 +145,7 @@ int hfgens(CSOUND *csound, FUNC **ftpp, const EVTBLK *evtblkp, int mode)
       csound->genmax = GENMAX + 1;
     }
     msg_enabled = csound->oparms->msglevel & 7;
+    memset(&ff, '\0', sizeof(ff)); /* for Valgrind */
     ff.csound = csound;
     memcpy((char*) &(ff.e), (char*) evtblkp,
            (size_t) ((char*) &(evtblkp->p[2]) - (char*) evtblkp));
@@ -861,7 +862,8 @@ static int gen11(FGDATA *ff, FUNC *ftp)
       pdlen = PI_F / (MYFLT) ff->flen;
       for (phs = 0; fp <= finp; phs++) {
         x = phs * pdlen;
-        if (!(denom = (MYFLT) sin(x)))
+        denom = sin(x);
+        if (fabs(denom)<1.0e-10) //(!(denom = (MYFLT) sin(x)))
           *fp++ = FL(1.0);
         else *fp++ = ((MYFLT) sin(tnp1 * x) / denom - FL(1.0)) * scale;
       }
@@ -1076,8 +1078,10 @@ static int gen16(FGDATA *ff, FUNC *ftp)
     MYFLT   *fp, *valp, val;
     int     nargs = ff->e.pcnt - 4;
     int     nseg = nargs / 3;
+    int remaining;
 
     fp = ftp->ftable;
+    remaining = ff->e.p[3];
     valp = &ff->e.p[5];
     *fp++ = val = *valp++;
     while (nseg-- > 0) {
@@ -1088,6 +1092,7 @@ static int gen16(FGDATA *ff, FUNC *ftp)
       if (alpha == FL(0.0)) {
         MYFLT c1 = (nxtval-val)/dur;
         while (cnt-- > 0) {
+          if (--remaining<=0) break;
           *fp++ = val = val + c1;
         }
       }
@@ -1097,6 +1102,7 @@ static int gen16(FGDATA *ff, FUNC *ftp)
         alpha /= dur;
         x = alpha;
         while (cnt-->0) {
+          if (--remaining<=0) break;
           *fp++ = val + c1 * (FL(1.0) - EXP(x));
           x += alpha;
         }
@@ -1309,11 +1315,11 @@ static int gen20(FGDATA *ff, FUNC *ftp)
       }
     case 8:                     /* Rectangular */
         for (i = 0; i <= (int) ff->flen ; i++)
-          ft[i] = FL(1.0);
+          ft[i] = FL(xarg);
         return OK;
     case 9:                     /* Sinc */
-        arg = TWOPI / ff->flen;
-        for (i = 0, x = -PI ; i < ((int) ff->flen >> 1) ; i++, x += arg)
+        arg = TWOPI * varian / ff->flen;
+        for (i = 0, x = -PI * varian; i < ((int) ff->flen >> 1) ; i++, x += arg)
           ft[i] = (MYFLT) (xarg * sin(x) / x);
         ft[i++] = (MYFLT) xarg;
         for (x = arg ; i <= (int) ff->flen ; i++, x += arg)
@@ -1347,7 +1353,7 @@ static int gen21(FGDATA *ff, FUNC *ftp)
 
 static MYFLT nextval(FILE *f)
 {
-    /* Read the next charcater; suppress multiple space and comments to a
+    /* Read the next character; suppress multiple space and comments to a
        single space */
     int c;
  top:
@@ -1369,6 +1375,7 @@ static MYFLT nextval(FILE *f)
       }
       return (MYFLT)d;
     }
+    //else .... allow expressions in [] ?
     while (isspace(c) || c == ',') c = getc(f);       /* Whitespace */
     if (c==';' || c=='#' || c=='<') {     /* Comment and tag*/
       while ((c = getc(f)) != '\n');
@@ -1603,7 +1610,7 @@ static int gen27(FGDATA *ff, FUNC *ftp)
 static int gen28(FGDATA *ff, FUNC *ftp)
 {
     CSOUND  *csound = ff->csound;
-    MYFLT   *fp = ftp->ftable, *finp;
+    MYFLT   *fp, *finp;
     int     seglen, resolution = 100;
     FILE    *filp;
     void    *fd;
@@ -1619,9 +1626,9 @@ static int gen28(FGDATA *ff, FUNC *ftp)
     if (UNLIKELY(fd == NULL))
       goto gen28err1;
 
-    x = (MYFLT*)csound->Malloc(csound,arraysize*sizeof(MYFLT));
-    y = (MYFLT*)csound->Malloc(csound,arraysize*sizeof(MYFLT));
-    z = (MYFLT*)csound->Malloc(csound,arraysize*sizeof(MYFLT));
+    x = (MYFLT*)csound->Calloc(csound,arraysize*sizeof(MYFLT));
+    y = (MYFLT*)csound->Calloc(csound,arraysize*sizeof(MYFLT));
+    z = (MYFLT*)csound->Calloc(csound,arraysize*sizeof(MYFLT));
 #if defined(USE_DOUBLE)
     while (fscanf( filp, "%lf%lf%lf", &z[i], &x[i], &y[i])!= EOF)
 #else
@@ -2312,8 +2319,9 @@ static CS_NOINLINE void ftresdisp(const FGDATA *ff, FUNC *ftp)
       return;
     memset(&dwindow, 0, sizeof(WINDAT));
     snprintf(strmsg, 64, Str("ftable %d:"), (int) ff->fno);
+    if (csound->csoundMakeGraphCallback_ == NULL) dispinit(csound);
     dispset(csound, &dwindow, ftp->ftable, (int32) (ff->flen),
-                    strmsg, 0, "ftable");
+              strmsg, 0, "ftable");
     display(csound, &dwindow);
 }
 
@@ -3326,8 +3334,7 @@ static int gen53(FGDATA *ff, FUNC *ftp)
       csound->RealFFT(csound, dstftp, dstflen);
       tmpft[0] = dstftp[0];
       for (i = 2, j = 1; i < dstflen; i += 2, j++)
-        tmpft[j] = SQRT(((dstftp[i] * dstftp[i])
-                         + (dstftp[i + 1] * dstftp[i + 1])));
+        tmpft[j] = HYPOT(dstftp[i], dstftp[i + 1]);
       tmpft[j] = dstftp[1];
       csound->Message(csound,Str("GEN 53: impulse response input, "));
       gen53_freq_response_to_ir(csound, dstftp, tmpft, winftp,

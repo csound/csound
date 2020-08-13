@@ -79,7 +79,8 @@ def runTest():
         ["vbapa.csd", "array case of vbap"],
         ["bugi.csd", "i() and array access",1],
         ["gerr.csd", "array syntax error", 1],
-        ["conditional.csd", "conditional expression"]
+        ["conditional.csd", "conditional expression"],
+        ["gen16.csd", "overwriting in gen16"]
     ]
 
     output = ""

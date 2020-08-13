@@ -74,13 +74,13 @@
 
     function main() {
 
-      CsoundObj.importScripts("./js/").then(() => {
+      CsoundObj.initialize().then(() => {
         console.log = print_msg;
         console.warn = print_msg;
         document.getElementById('playButton').addEventListener('click',
           click_this);
         document.getElementById('playButton').disabled = false;
-        CSOUND_AUDIO_CONTEXT.suspend();
+        CsoundObj.CSOUND_AUDIO_CONTEXT.suspend();
         csound = new CsoundObj();
         csound.compileOrc(document.getElementById('instruments').value);
         csound.start();
@@ -89,7 +89,7 @@
             csound.destroy();
         }, false);
 
-        scopeNode = CSOUND_AUDIO_CONTEXT.createAnalyser();
+        scopeNode = CsoundObj.CSOUND_AUDIO_CONTEXT.createAnalyser();
         csound.getNode().connect(scopeNode);
 
         scope = function() {
@@ -154,11 +154,11 @@
     var playing = false;
     function click_this() {
       if(playing == false) {
-      CSOUND_AUDIO_CONTEXT.resume();
+      CsoundObj.CSOUND_AUDIO_CONTEXT.resume();
       document.getElementById('playButton').innerText = "pause";
       playing = true;
     } else {
-      CSOUND_AUDIO_CONTEXT.suspend();
+      CsoundObj.CSOUND_AUDIO_CONTEXT.suspend();
       document.getElementById('playButton').innerText = "play";
       playing = false;
     }
