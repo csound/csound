@@ -507,7 +507,7 @@ int32_t part2txt_init(CSOUND *csound, PARTXT *p){
                                    "w", "", CSFTYPE_FLOATS_TEXT, 0);
     if (UNLIKELY(p->fdch.fd == NULL))
       return csound->InitError(csound, Str("Cannot open %s"), p->fname->data);
-    
+
     p->lastframe = 0;
     return OK;
 }
@@ -516,7 +516,7 @@ int32_t part2txt_perf(CSOUND *csound, PARTXT *p){
      IGN(csound);
     float *tracks = (float *) p->tracks->frame.auxp;
     int32_t i = 0;
-    
+
     if (p->tracks->framecount > p->lastframe){
       for (i=0; tracks[i+3] > 0; i+=4){
         fprintf(p->f, "%f %f %f %d\n", tracks[i],tracks[i+1],

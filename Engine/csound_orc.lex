@@ -380,7 +380,7 @@ FNAME           [a-zA-Z0-9/:.+-_]+
 {LABEL}         { char *pp = yytext;
                   while (*pp==' ' || *pp=='\t') pp++;
                   check_newline_for_label(pp, yyscanner);
-                  *lvalp = make_label(csound, pp); 
+                  *lvalp = make_label(csound, pp);
                   return LABEL_TOKEN;
                }
 

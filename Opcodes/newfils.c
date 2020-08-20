@@ -2360,8 +2360,8 @@ int vps_process(CSOUND *csound, VPS *p) {
       nsmps -= early;
       memset(&out[nsmps], '\0', early*sizeof(MYFLT));
     }
-  
-    
+
+
   for (i=offset; i<nsmps; i++) {
     s = in[i];
     s = s < 1. ? (s >= 0. ? s : 0.) : 1.;

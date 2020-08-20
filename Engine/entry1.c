@@ -808,7 +808,7 @@ OENTRY opcodlst_1[] = {
     NULL, schedule_SN, NULL },
   { "schedulek.array",   S(SCHED),0,  2,     "",     "k[]",
     NULL, schedule_array, NULL },
-  
+
   /* **** End of schedulek **** */
   { "schedwhen", S(WSCHED),0,3,     "",     "kkkkm",ifschedule, kschedule, NULL },
   { "schedwhen", S(WSCHED),0,3,     "",     "kSkkm",ifschedule, kschedule, NULL },

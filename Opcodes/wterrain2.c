@@ -90,13 +90,13 @@ static void ellipse(MYFLT t, MYFLT kx, MYFLT ky, MYFLT krx, MYFLT kry, MYFLT kpa
     *outY = ky + kry * COS(x);
 }
 
-/* the limacon curve parametrized by the kparam value 
+/* the limacon curve parametrized by the kparam value
    see e.g. http://www.2dcurves.com/roulette/roulettel.html
    for kparam = 1 we have a cardioid
 */
 
 static void limacon(MYFLT t, MYFLT kx, MYFLT ky, MYFLT krx, MYFLT kry, MYFLT kparam, MYFLT *outX, MYFLT *outY ) {
-    *outX = kx + krx * SIN(t) * (COS(t) + kparam); 
+    *outX = kx + krx * SIN(t) * (COS(t) + kparam);
     *outY = ky + kry * COS(t) * (COS(t) + kparam);
 }
 
@@ -147,7 +147,7 @@ static void talbot(MYFLT t, MYFLT kx, MYFLT ky, MYFLT krx, MYFLT kry, MYFLT kpar
     *outY = ky + kry * sint * (1 - kparam - kparam*cost*cost);
 }
 
-static void (*ifuncs[8])(MYFLT,MYFLT,MYFLT,MYFLT,MYFLT,MYFLT,MYFLT*,MYFLT*) = { ellipse, lemniskateG, limacon, cornoid, trisec, scarabeus, folium, talbot }; 
+static void (*ifuncs[8])(MYFLT,MYFLT,MYFLT,MYFLT,MYFLT,MYFLT,MYFLT*,MYFLT*) = { ellipse, lemniskateG, limacon, cornoid, trisec, scarabeus, folium, talbot };
 
 static int32_t wtinit(CSOUND *csound, WAVETER *p)
 {
@@ -187,7 +187,7 @@ static int32_t wtPerf(CSOUND *csound, WAVETER *p)
 
 
     uint32_t kfunc = (uint32_t)*p->kfunc;
-    if(kfunc>7) kfunc = 7; 
+    if(kfunc>7) kfunc = 7;
     MYFLT period = 1;
     MYFLT sizx = p->sizx, sizy = p->sizy;
     MYFLT theta = p->theta;
@@ -217,7 +217,7 @@ static int32_t wtPerf(CSOUND *csound, WAVETER *p)
       /* MOVE SCANNING POINT ROUND THE ELLIPSE */
       theta += pch*((period*TWOPI_F) / csound->GetSr(csound));
     }
-    
+
     p->theta = theta;
     return OK;
 }
