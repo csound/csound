@@ -42,7 +42,7 @@ after_build:
   - 7z l csound-windows_x86_64-%CSOUND_VERSION%-%APPVEYOR_BUILD_NUMBER%.zip
 
 test_script:
-  - cmake -DBUILD_PYTHON_OPCODES=1 --build msvc\csound-vs --target csdtests
+  - cmake --build msvc\csound-vs --target csdtests
 
 artifacts:
   - path: csound-windows_x86_64-*.zip
