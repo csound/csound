@@ -1,6 +1,6 @@
 param
 (
-    [string]$vsGenerator="Visual Studio 16 2019"
+    [string]$vsGenerator = "Visual Studio 16 2019"
 )
 
 # Using a custom triplet due to mixed static and dynamic dependencies
@@ -14,7 +14,6 @@ echo "Build type: $targetTriplet"
 $startTime = (Get-Date).TimeOfDay
 $currentDir = Split-Path $MyInvocation.MyCommand.Path
 $cacheDir = $currentDir + "\cache\"
-$csoundDir = $currentDir + "\.."
 $vcpkgDir = ""
 
 # Find VCPKG from path if it already exists
@@ -24,8 +23,7 @@ $vcpkgDir = ""
 
 # Test if VCPKG is already installed on system
 # Download locally to outside the repo
-if ($systemVCPKG)
-{
+if ($systemVCPKG) {
     echo "vcpkg already installed on system, updating"
     $vcpkgDir = Split-Path -Parent $systemVCPKG
     cd $vcpkgDir
@@ -38,8 +36,7 @@ if ($systemVCPKG)
     vcpkg update # Not really functional it seems yet
     cd $currentDir
 }
-elseif (Test-Path "..\..\vcpkg")
-{
+elseif (Test-Path "..\..\vcpkg") {
     cd ..\..\vcpkg
     $env:Path += ";" + $(Get-Location)
     $vcpkgDir = $(Get-Location)
@@ -54,8 +51,7 @@ elseif (Test-Path "..\..\vcpkg")
     vcpkg update
     cd $currentDir
 }
-else
-{
+else {
     cd ..\..
     echo "vcpkg missing, downloading and installing..."
     git clone --depth 1 http://github.com/Microsoft/vcpkg.git
@@ -131,16 +127,14 @@ mkdir staging -ErrorAction SilentlyContinue
 
 cd $depsDir
 
-if (Test-Path "portmidi")
-{
-  cd portmidi
-  svn update  
-  cd ..
-  echo "Portmidi already downloaded, updated"
+if (Test-Path "portmidi") {
+    cd portmidi
+    svn update  
+    cd ..
+    echo "Portmidi already downloaded, updated"
 }
-else
-{
-  svn checkout "https://svn.code.sf.net/p/portmedia/code" portmidi
+else {
+    svn checkout "https://svn.code.sf.net/p/portmedia/code" portmidi
 }
 
 cd portmidi\portmidi\trunk
@@ -159,17 +153,15 @@ copy ..\porttime\porttime.h -Destination $depsIncDir -Force
 
 # END CUSTOM PORTMIDI #
 
-
 cd $currentDir
 mkdir csound-vs -ErrorAction SilentlyContinue
 cd csound-vs -ErrorAction SilentlyContinue
 
 # Default to Release build type. Note: ReleaseWithDebInfo is broken as VCPKG does not currently support this mode properly
 cmake ..\.. -DBUILD_PYTHON_OPCODES=1 -G $vsGenerator `
- -Wno-dev -Wdeprecated `
- -DCMAKE_BUILD_TYPE="Release" `
- -DVCPKG_TARGET_TRIPLET="$targetTriplet" `
- -DCMAKE_TOOLCHAIN_FILE="$vcpkgCmake" `
- -DCMAKE_INSTALL_PREFIX=dist `
- -DCUSTOM_CMAKE="..\Custom-vs.cmake" `
- # -DSTATIC_CRT="ON"
+    -Wno-dev -Wdeprecated `
+    -DCMAKE_BUILD_TYPE="Release" `
+    -DVCPKG_TARGET_TRIPLET="$targetTriplet" `
+    -DCMAKE_TOOLCHAIN_FILE="$vcpkgCmake" `
+    -DCMAKE_INSTALL_PREFIX=dist `
+    -DCUSTOM_CMAKE="..\Custom-vs.cmake" `
