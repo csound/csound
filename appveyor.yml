@@ -1,7 +1,6 @@
 image: Visual Studio 2019
 
 environment:
-  APPVEYOR_SAVE_CACHE_ON_ERROR: "true"
   APPVEYOR_RDP_PASSWORD: Vercoe123
   CSOUND_VERSION: 6.15.0
   VCPKGDir: C:\Tools\vcpkg
