@@ -284,6 +284,7 @@ void m_chanmsg(CSOUND *csound, MEVENT *mep)
             else fval = mep->dat2;
             //            if (dsctl_map != NULL) { always true
             fp = (MYFLT*) &(dsctl_map[parnum*2]);
+            //**** FIXME This if statement does nothing as val is not used ****
             if (*fp != FL(0.0)) {
               MYFLT xx = (fval * *fp++);
               fval = xx + *fp;                /* optionally map */

@@ -456,6 +456,32 @@ static void delete_pending_rt_events(CSOUND *csound)
   csound->OrcTrigEvts = NULL;
 }
 
+#ifdef JPFF
+void delete_selected_rt_events(CSOUND *csound, int instr)
+{
+  EVTNODE *ep = csound->OrcTrigEvts;
+  EVTNODE *last = NULL;
+  while (ep != NULL) {
+    EVTNODE *nxt = ep->nxt;
+    if (ep->evt.opcod=='i' && ep->evt.p[1] == instr) {
+      // Found an event to cancel
+      if (ep->evt.strarg != NULL) {
+        // clarstring if necessary
+        csound->Free(csound,ep->evt.strarg);
+        ep->evt.strarg = NULL;
+      }
+      if (last) last->nxt = nxt; else csound->OrcTrigEvts = nxt;
+      /* push to stack of free event nodes */
+      ep->nxt = csound->freeEvtNodes;
+      csound->freeEvtNodes = ep;
+    }
+    else last = ep;
+    ep = nxt;
+  }
+  //csound->OrcTrigEvts = NULL;
+}
+#endif
+
 static inline void cs_beep(CSOUND *csound)
 {
     csound->Message(csound, Str("%c\tbeep!\n"), '\a');

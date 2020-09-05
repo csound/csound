@@ -196,8 +196,10 @@ static CS_NOINLINE int linevent_alloc(CSOUND *csound, int reallocsize)
 void csoundInputMessageInternal(CSOUND *csound, const char *message)
 {
     int32  size = (int32) strlen(message);
+#if 1
     int n;
-
+#endif
+    
     if ((n=linevent_alloc(csound, 0)) != 0) return;
 
     if (!size) return;
@@ -208,14 +210,14 @@ void csoundInputMessageInternal(CSOUND *csound, const char *message)
       //                 extralloc, size, (int)(STA(Linebufend) - STA(Linep)));
       // FIXME -- Coverity points out that this test is always false
       // and n is never used
-#if 0
+#if 1
       if ((n=linevent_alloc(csound, (STA(linebufsiz) + extralloc))) != 0) {
         csoundErrorMsg(csound, Str("LineBuffer Overflow - "
                                    "Input Data has been Lost"));
         return;
       }
 #else
-      n = linevent_alloc(csound, (STA(linebufsiz) + extralloc));
+      (void) linevent_alloc(csound, (STA(linebufsiz) + extralloc));
 
 #endif
     }

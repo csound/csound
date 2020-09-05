@@ -360,7 +360,7 @@ static int32_t adsrset1(CSOUND *csound, LINSEG *p, int32_t midip)
     //       dur, segp->cnt, segp->acnt, segp->nxtpt);
     segp++;
                                 /* Release */
-    dur = *argp[3];
+    // **FIXME is this needed? dur = *argp[3];
     segp->nxtpt = FL(0.0);
     segp->cnt = (int32_t)(release * CS_EKR + FL(0.5));
     if (UNLIKELY((segp->acnt = (int32_t)(release * csound->esr + FL(0.5))) < 0))
@@ -1958,7 +1958,7 @@ int32_t kosseg(CSOUND *csound, COSSEG *p)
         p->cursegp = segp+1;              /*   else find the next */
         if (UNLIKELY(!(p->curcnt = segp->cnt))) {
           val2 = p->y2 = segp->nxtpt;  /* nonlen = discontin */
-          inc = p->inc = (segp->cnt ? 1.0/(segp->cnt) : 0.0);
+          /* inc = */ p->inc = (segp->cnt ? 1.0/(segp->cnt) : 0.0);
           goto chk1;
         }                                 /*   poslen = new slope */
       }
@@ -2212,7 +2212,7 @@ int32_t kcssegr(CSOUND *csound, COSSEG *p)
         p->cursegp = segp+1;              /*   else find the next */
         if (UNLIKELY(!(p->curcnt = segp->cnt))) {
           val2 = p->y2 = segp->nxtpt;  /* nonlen = discontin */
-          inc = p->inc = (segp->cnt ? 1.0/(segp->cnt) : 0.0);
+          /* inc = */ p->inc = (segp->cnt ? 1.0/(segp->cnt) : 0.0);
           goto chk1;
         }                                 /*   poslen = new slope */
       }

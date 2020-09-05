@@ -201,7 +201,7 @@ NM              [nm][ \t]+
                    //csound->DebugMsg(csound,"Macro with arguments call %s\n",
                    //                 yytext);
                    yytext[yyleng-1] = '\0';
-                   mm = find_definition(PARM->macros, yytext+1);
+                   mm = find_definition(mm, yytext+1);
                    if (UNLIKELY(mm == NULL)) {
                      csound->Message(csound,Str("Undefined macro: '%s'"), yytext);
                      corfile_puts(csound, "$error", PARM->cf);

@@ -203,7 +203,7 @@ static void Analysis(CSOUND * csound, _PARTS * p)
     int32_t numbins = p->numbins, maxtracks = p->mtracks;
     int32_t prev = p->prev, cur = p->cur, foundcont;
     int32_t accum = p->accum, minpoints = (int32_t) (*p->pts > 1 ? *p->pts : 1) - 1;
-    int32_t tracks = p->tracks;
+    int32_t tracks; // = p->tracks;
     double  *mags = (double *) p->mags.auxp;
     double *lmags = (double *) p->lmags.auxp;
     int32_t *cflag = (int32_t *) p->cflag.auxp;

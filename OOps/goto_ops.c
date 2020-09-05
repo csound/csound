@@ -264,6 +264,43 @@ int32_t turnoff2k(CSOUND *csound, TURNOFF2 *p){
     return turnoff2(csound, p, 0);
 }
 
+#ifdef JPFF
+extern void delete_selected_rt_events(CSOUND*, int);
+int32_t turnoff3(CSOUND *csound, TURNOFF2 *p, int32_t isStringArg)
+{
+    MYFLT p1;
+    int32_t   insno;
+
+    if (isStringArg) {
+      p1 = (MYFLT) strarg2insno(csound, ((STRINGDAT *)p->kInsNo)->data, 1);
+    }
+    else if (csound->ISSTRCOD(*p->kInsNo)) {
+      p1 = (MYFLT) strarg2insno(csound, get_arg_string(csound, *p->kInsNo), 1);
+    }
+    else p1 = *(p->kInsNo);
+
+    if (p1 <= FL(0.0))
+      return OK;    /* not triggered */
+
+    insno = (int32_t) p1;
+    if (UNLIKELY(insno < 1 || insno > (int32_t) csound->engineState.maxinsno ||
+                 csound->engineState.instrtxtp[insno] == NULL)) {
+      return csoundPerfError(csound, &(p->h),
+                             Str("turnoff3: invalid instrument number"));
+    }
+    delete_selected_rt_events(csound, insno); 
+    return OK;
+}
+
+int32_t turnoff3S(CSOUND *csound, TURNOFF2 *p){
+    return turnoff3(csound, p, 1);
+}
+
+int32_t turnoff3k(CSOUND *csound, TURNOFF2 *p){
+    return turnoff3(csound, p, 0);
+}
+#endif
+
 int32_t loop_l_i(CSOUND *csound, LOOP_OPS *p)
 {
     /* if ((indxvar += iincr) < ilimit) igoto l */

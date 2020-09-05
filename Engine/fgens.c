@@ -675,7 +675,7 @@ static int gen06(FGDATA *ff, FUNC *ftp)
     segp += 1;
     if (UNLIKELY(nsw && segp>&ff->e.p[PMAX])) {
       segp = &(ff->e.c.extra[1]);
-      nsw  = 0;
+      //nsw  = 0;
     }
     *fp = *(segp);                      /* write last target point */
 
@@ -2920,7 +2920,7 @@ static int gen49raw(FGDATA *ff, FUNC *ftp)
     }
     /* memset(&mpainfo, 0, sizeof(mpadec_info_t)); */ /* Is this necessary? */
     {
-      int32 filno = (int32) MYFLT2LRND(ff->e.p[5]);
+      int32 filno /*= (int32) MYFLT2LRND(ff->e.p[5])*/;
       if (isstrcod(ff->e.p[5])) {
         if (ff->e.strarg[0] == '"') {
           int len = (int) strlen(ff->e.strarg) - 2;

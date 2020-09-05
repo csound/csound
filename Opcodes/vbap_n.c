@@ -471,9 +471,11 @@ int32_t vbap_moving_control(CSOUND *csound, VBAP_MOVE_DATA *p, OPDS *h,
             p->next_fld = 1;
         }
       }
-      if (UNLIKELY((fld[abs(p->next_fld)]==NULL)))
+      if (UNLIKELY((fld[abs(p->next_fld)]==NULL))) {
+        free(tmp_gains);
         return csound->PerfError(csound, h,
                                  Str("Missing fields in vbapmove\n"));
+      }
       if (*field_am >= FL(0.0) && p->dim == 2) /* point-to-point */
         if (UNLIKELY(fabs(fabs(*fld[p->next_fld] -
                                *fld[p->curr_fld]) - 180.0) < 1.0))
@@ -517,6 +519,7 @@ int32_t vbap_moving_control(CSOUND *csound, VBAP_MOVE_DATA *p, OPDS *h,
         p->ang_dir.ele = FL(0.0);
       }
       else {
+        free(tmp_gains);
         return csound->PerfError(csound, h,
                                  Str("Missing fields in vbapmove\n"));
       }
@@ -739,7 +742,7 @@ int32_t vbap_moving_a(CSOUND *csound, VBAPA_MOVING *p)
        with gain factors*/
     if (UNLIKELY(early)) nsmps -= early;
     invfloatn = FL(1.0)/(nsmps-offset);
-    outptr = p->tabout->data;
+    //outptr = p->tabout->data;
     for (j=0; j<cnt ;j++) {
       inptr = p->audio;
       outptr = &p->tabout->data[j*ksmps];

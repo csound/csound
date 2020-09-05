@@ -439,7 +439,6 @@ int32_t resonx(CSOUND *csound, RESONX *p)   /* Gabriel Maldonado, modified  */
     c3   = p->c3;
     yt1  = p->yt1;
     yt2  = p->yt2;
-    ar = p->ar;
     memmove(ar,p->asig,sizeof(MYFLT)*nsmps);
     if (UNLIKELY(offset)) memset(ar, '\0', offset*sizeof(MYFLT));
     if (UNLIKELY(early)) {

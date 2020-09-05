@@ -1121,7 +1121,7 @@ static int decode_long(CSOUND *csound, char *s, int argc, char **argv)
       return 1;
     }
     else if (!(strncmp(s, "udp-echo",8))) {
-      s += 8;
+      //s += 8;
       O->echo = 1;
       return 1;
     }

@@ -1704,7 +1704,7 @@ int32_t chnexport_opcode_init(CSOUND *csound, CHNEXPORT_OPCODE *p)
     /* if control channel, set additional parameters */
     if ((type & CSOUND_CHANNEL_TYPE_MASK) != CSOUND_CONTROL_CHANNEL)
         return OK;
-    type = (int32_t)MYFLT2LRND(*(p->itype));
+    // ***FIXME not used type = (int32_t)MYFLT2LRND(*(p->itype));
     hints.behav = CSOUND_CONTROL_CHANNEL_LIN;
     hints.dflt = *(p->idflt);
     hints.min = *(p->imin);

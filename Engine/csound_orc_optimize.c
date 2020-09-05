@@ -149,7 +149,7 @@ static TREE* remove_excess_assigns(CSOUND *csound, TREE* root)
         /* if (PARSER_DEBUG) printf("test3: %c%c %c\n", */
         /*            nxt->left->value->lexeme[0], nxt->left->value->lexeme[1], */
         /*            nxt->right->value->lexeme[1]); */
-        if (nxt->type == '=' &&
+        if (nxt && nxt->type == '=' &&
             nxt->left != NULL &&
             !strcmp(current->left->value->lexeme,nxt->right->value->lexeme) &&
             same_type(nxt->left->value->lexeme, nxt->right->value->lexeme[1])) {

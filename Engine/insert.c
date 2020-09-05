@@ -2228,7 +2228,7 @@ int useropcd2(CSOUND *csound, UOPCODE *p)
   CS_VARIABLE* current;
   int i, done;
 
-  inm = (OPCODINFO*) p->h.optext->t.oentry->useropinfo;
+  inm = (OPCODINFO*) p->h.optext->t.oentry->useropinfo; /* FIXME value not used */
   done = ATOMIC_GET(p->ip->init_done);
 
   if (UNLIKELY(!done)) /* init not done, exit */
