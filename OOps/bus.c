@@ -813,7 +813,7 @@ int32_t chnget_array_opcode_init(CSOUND* csound, CHNGETARRAY* p)
     int index = 0;
     p->arraySize = arr->sizes[0];
     p->channels = (STRINGDAT*) arr->data;
-    p->channelPtrs = malloc(p->arraySize*sizeof(MYFLT));
+    p->channelPtrs = (MYFLT **) csound->Malloc(csound, p->arraySize*sizeof(MYFLT*)); // VL: surely an array of pointers?
     tabinit(csound, p->arrayDat, p->arraySize);
 
     int32_t err;
@@ -963,7 +963,7 @@ int32_t chnset_array_opcode_init_i(CSOUND *csound, CHNGETARRAY *p)
     ARRAYDAT* channelArr = (ARRAYDAT*) p->iname;
     p->arraySize = channelArr->sizes[0];
     p->channels = (STRINGDAT*) channelArr->data;
-    p->channelPtrs = malloc(p->arraySize*sizeof(MYFLT));
+    p->channelPtrs = (MYFLT **) csound->Malloc(csound, p->arraySize*sizeof(MYFLT*)); // VL surely array of pointers?
 
     for (index = 0; index<p->arraySize; index++) {
         err = csoundGetChannelPtr(csound, &p->channelPtrs[index], (char *) p->channels[index].data,
@@ -1011,7 +1011,7 @@ int32_t chnset_array_opcode_init(CSOUND* csound, CHNGETARRAY* p)
     ARRAYDAT* channelArr = (ARRAYDAT*) p->iname;
     p->arraySize = channelArr->sizes[0];
     p->channels = (STRINGDAT*) channelArr->data;
-    p->channelPtrs = malloc(p->arraySize*sizeof(MYFLT));
+    p->channelPtrs = csound->Malloc(csound, p->arraySize*sizeof(MYFLT*)); // surely an array of pointers?
 
     int32_t channelType;
 

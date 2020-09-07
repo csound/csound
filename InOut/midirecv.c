@@ -288,6 +288,7 @@ void m_chanmsg(CSOUND *csound, MEVENT *mep)
             if (*fp != FL(0.0)) {
               MYFLT xx = (fval * *fp++);
               fval = xx + *fp;                /* optionally map */
+              chn->ctl_val[parnum] = fval;        /* VL: 07.09.20 store it? */
             }
             csound->Message(csound, Str("CHAN %d DRUMKEY %d not in keylst, "
                                         "PARAM %d NOT UPDATED\n"),
