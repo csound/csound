@@ -983,7 +983,7 @@ static int gn1314(FGDATA *ff, FUNC *ftp, MYFLT mxval, MYFLT mxscal)
 #ifdef BETA
           csound->DebugMsg(csound, "Switch to extra args\n");
 #endif
-          nnsw = 0;                /* only switch once */
+          //nnsw = 0;                /* only switch once */
           oddhp = &(ff->e.c.extra[1]);
         }
       }
