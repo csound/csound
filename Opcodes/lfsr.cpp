@@ -75,7 +75,7 @@
  * 
  *      iseed (optional, default -1) -- initial state of the shift register, as a
  *      pattern of bits. The value is treated as an unsigned integer, so the default
- *      of -1 is effectivly all bits on (0b11111111...).
+ *      of -1 is effectively all bits on (0b11111111...).
  *  
  * Performance
  * 
