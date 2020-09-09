@@ -82,6 +82,7 @@
  *      knum -- Integer output.
  */
 
+#include <time.h>
 #include <plugin.h>
 
 struct LFSR : csnd::Plugin<1, 3> {
