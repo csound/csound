@@ -7,6 +7,9 @@
   Based on code by Patrick Dowling in the Ornament & Crime firmware;
   see original copyright notice below this one.
 
+  Original code may be found at:
+  https://github.com/mxmxmx/O_C/blob/master/software/o_c_REV/util/util_turing.h
+
   The Csound Library is free software; you can redistribute it
   and/or modify it under the terms of the GNU Lesser General Public
   License as published by the Free Software Foundation; either
@@ -23,6 +26,8 @@
   02110-1301 USA
 */
 
+// ORIGINAL COPYRIGHT NOTICE
+//
 // Copyright (c) 2016 Patrick Dowling
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -42,6 +47,40 @@
 // LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
+
+/**
+ * Linear Feedback Shirt Register (LFSR) opcode.
+ * 
+ * Description
+ * 
+ *      Output is a series of pseudo-random positive integers. This is the technique
+ *      used in so-called "Turing machine" synth modules and is usually used to
+ *      generate melodic sequences. This implementation is adapted from the firmware
+ *      for the Ornament & Crime module, as used in the Quantermain and Meta-Q apps.
+ * 
+ * Syntax
+ *
+ *      knum lfsr ilen, iprob [, iseed]
+ *
+ *      knum = lfsr(ilen, iprob [, iseed])
+ *
+ * Initialization
+ * 
+ *      ilen -- length of shift register, valid values are 1-31 (inclusive). The
+ *      larger the length, the larger the resulting integers in the output. You
+ *      can use this to constrain the output to a suitable range.
+ * 
+ *      iprob -- probability, valid values 1-255 (inclusive). Controls the spread
+ *      of the output; larger values result in a wider spread of values.
+ * 
+ *      iseed (optional, default -1) -- initial state of the shift register, as a
+ *      pattern of bits. The value is treated as an unsigned integer, so the default
+ *      of -1 is effectivly all bits on (0b11111111...).
+ *  
+ * Performance
+ * 
+ *      knum -- Integer output.
+ */
 
 #include <plugin.h>
 
@@ -80,11 +119,10 @@ struct LFSR : csnd::Plugin<1, 3> {
     int init() {
         srand(time(NULL));
 
-        length_ = (uint8_t) inargs[0];
-        probability_ = (uint8_t) inargs[1];
-        shift_register_ = (uint32_t) (in_count() == 3 ? inargs[2] : 0xffffffff);
+        length_ = inargs[0];
+        probability_ = inargs[1];
+        shift_register_ = in_count() == 3 ? inargs[2] : 0xffffffff;
 
-        // outargs[0] = _process();
         return OK;
     }
 
