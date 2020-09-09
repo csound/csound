@@ -49,7 +49,7 @@
 // SOFTWARE.
 
 /**
- * Linear Feedback Shirt Register (LFSR) opcode.
+ * Linear Feedback Shift Register (LFSR) opcode.
  * 
  * Description
  * 
