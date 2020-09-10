@@ -29,6 +29,7 @@ if ($systemVCPKG) {
     cd $vcpkgDir
     # Update and rebuild vcpkg
     git pull
+    # git checkout 7b7908b
     bootstrap-vcpkg.bat
     # Remove any outdated packages (they will be installed again below)
     vcpkg remove --outdated --recurse
@@ -43,6 +44,7 @@ elseif (Test-Path "..\..\vcpkg") {
     echo "vcpkg already installed locally, updating"
     # Update and rebuild vcpkg
     git pull
+    # git checkout 7b7908b
     bootstrap-vcpkg.bat
     # Remove any outdated packages (they will be installed again below)
     vcpkg remove --outdated --recurse
@@ -54,6 +56,7 @@ else {
     echo "vcpkg missing, downloading and installing..."
     git clone --depth 1 http://github.com/Microsoft/vcpkg.git
     cd vcpkg
+    # git checkout 7b7908b
     $env:Path += ";" + $(Get-Location)
     $vcpkgDir = $(Get-Location)
     [Environment]::SetEnvironmentVariable("VCPKGDir", $env:vcpkgDir, [EnvironmentVariableTarget]::User)
@@ -82,7 +85,7 @@ if (-not (Test-Path $vcpkgDir/buildtrees/portaudio/src/asiosdk)) {
 }
 
 vcpkg --triplet $targetTriplet install `
-    eigen3 fltk zlib libflac libogg libvorbis libsndfile libsamplerate portmidi portaudio liblo hdf5 dirent libstk fluidsynth `
+    eigen3 fltk zlib libflac libogg libvorbis libsndfile libsamplerate portaudio liblo hdf5 dirent libstk fluidsynth `
     --overlay-triplets=.
 
 echo "Downloading and installing non-VCPKG packages..."
@@ -122,6 +125,34 @@ mkdir $depsBinDir -ErrorAction SilentlyContinue
 mkdir $depsIncDir -ErrorAction SilentlyContinue
 mkdir staging -ErrorAction SilentlyContinue
 
+cd $depsDir
+
+if (Test-Path "portmidi") {
+    cd portmidi
+    svn update  
+    cd ..
+    echo "Portmidi already downloaded, updated"
+}
+else {
+    svn checkout "https://svn.code.sf.net/p/portmedia/code" portmidi
+}
+
+cd portmidi\portmidi\trunk
+rm -Path build -Force -Recurse -ErrorAction SilentlyContinue
+mkdir build -ErrorAction SilentlyContinue
+cd build
+cmake .. -G $vsGenerator -DCMAKE_BUILD_TYPE="Release"
+cmake --build . --config Release
+copy .\Release\portmidi.dll -Destination $depsBinDir -Force
+copy .\Release\portmidi.lib -Destination $depsLibDir -Force
+copy .\Release\portmidi_s.lib -Destination $depsLibDir -Force
+copy .\Release\pmjni.dll -Destination $depsBinDir -Force
+copy .\Release\pmjni.lib -Destination $depsLibDir -Force
+copy ..\pm_common\portmidi.h -Destination $depsIncDir -Force
+copy ..\porttime\porttime.h -Destination $depsIncDir -Force
+
+# END CUSTOM PORTMIDI #
+
 cd $currentDir
 mkdir csound-vs -ErrorAction SilentlyContinue
 cd csound-vs -ErrorAction SilentlyContinue
@@ -134,4 +165,3 @@ cmake ..\.. -DBUILD_PYTHON_OPCODES=1 -G $vsGenerator `
     -DCMAKE_TOOLCHAIN_FILE="$vcpkgCmake" `
     -DCMAKE_INSTALL_PREFIX=dist `
     -DCUSTOM_CMAKE="..\Custom-vs.cmake" `
-    # -DSTATIC_CRT="ON"
