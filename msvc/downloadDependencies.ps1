@@ -29,7 +29,7 @@ if ($systemVCPKG) {
     cd $vcpkgDir
     # Update and rebuild vcpkg
     git pull
-    # git checkout 7b7908b
+    git checkout 7b7908b
     bootstrap-vcpkg.bat
     # Remove any outdated packages (they will be installed again below)
     vcpkg remove --outdated --recurse
@@ -44,7 +44,7 @@ elseif (Test-Path "..\..\vcpkg") {
     echo "vcpkg already installed locally, updating"
     # Update and rebuild vcpkg
     git pull
-    # git checkout 7b7908b
+    git checkout 7b7908b
     bootstrap-vcpkg.bat
     # Remove any outdated packages (they will be installed again below)
     vcpkg remove --outdated --recurse
