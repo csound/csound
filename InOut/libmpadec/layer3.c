@@ -447,10 +447,10 @@ static int III_decode_samples(mpadec_t mpadec, grinfo_t *gr_info,
     }
     while (xrptr < &xr[SBLIMIT][0]) *xrptr++ = 0.0;
     while (part2remain > 0) {
-      register unsigned tmp, i = (part2remain > 16) ? 16 : part2remain;
+      unsigned tmp, i = (part2remain > 16) ? 16 : part2remain;
       tmp = GETBITS(i);
       part2remain -= i;
-      i = tmp;
+      i = tmp;                  /* **FIXME** this does nothing */
     }
     mpa->error = (uint8_t)((part2remain < 0) ? TRUE : FALSE);
     return mpa->error;

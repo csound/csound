@@ -628,6 +628,7 @@ int instanceOpcode_(CSOUND *csound, LINEVENT2 *p, int insname)
       if (insname) {
         res = csound->strarg2insno(csound,
                                    ((STRINGDAT*) p->args[0])->data, 1);
+        /* The comprison below and later is suspect */
         if (UNLIKELY(evt.p[1] == NOT_AN_INSTRUMENT)) return NOTOK;
         evt.p[1] = (MYFLT)res;
         evt.strarg = NULL; evt.scnt = 0;
