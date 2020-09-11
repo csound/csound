@@ -1494,6 +1494,9 @@ void sprints1(char *outstring,  char *fmt, MYFLT **kvals, int32 numVals)
         case 'l':
           snprintf(outstring, len, strseg, (int64_t) MYFLT2LRND(*kvals[j]));
           break;
+        case 's':
+            snprintf(outstring, len, strseg, ((STRINGDAT*)(kvals[j]))->data);
+            break;
 
         default:
           snprintf(outstring, len, strseg, *kvals[j]);
@@ -1501,7 +1504,7 @@ void sprints1(char *outstring,  char *fmt, MYFLT **kvals, int32 numVals)
         }
       }
       else
-        snprintf(outstring, len, "%s", strseg);
+       snprintf(outstring, len, "%s", strseg);
     }
 
 }
