@@ -98,9 +98,9 @@ describe what you will need to do to use Homebrew to install Csound 6.
 
 -   Xcode Command-Line Tools
 
--   Homebrew - [http://www.brew.sh][2]
+-   Homebrew - [https://brew.sh][2]
 
-[2]: <http://www.brew.sh>
+[2]: <https://brew.sh>
 
 #### Installing Homebrew 
 
