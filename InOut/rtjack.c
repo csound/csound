@@ -504,7 +504,7 @@ static void openJackStreams(RtJackGlobals *p)
           dev_final = dev;
           sp = strchr(dev_final, '\0');
           if (!isalpha(dev_final[0])) dev_final++;
-          for (i = 0; i < p->nChannels; i++) {
+          for (i = 0; i < p->nChannels_i; i++) {
             snprintf(sp, 128-(dev-sp), "%d", i + 1);
             csound->Message(csound, Str("connecting channel %d to %s\n"),
                             i, dev_final);
