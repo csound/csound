@@ -257,7 +257,7 @@ static void rtJack_AllocateBuffers(RtJackGlobals *p)
     size_t  i, j, m, nBytes, nBytesPerBuf, ofs1, ofs2, ofs3;
     size_t buf_chnls = (size_t) (p->nChannels > p->nChannels_i ?
                                  p->nChannels : p->nChannels_i);
-
+   
     m = (size_t) ((p->inputEnabled ? 1 : 0) + (p->outputEnabled ? 1 : 0));
     if (!m)
       return;
@@ -265,7 +265,7 @@ static void rtJack_AllocateBuffers(RtJackGlobals *p)
     ofs1 = rtJack_AlignData(sizeof(RtJackBuffer*) * (size_t) p->nBuffers);
     ofs2 = rtJack_AlignData(sizeof(RtJackBuffer));
     ofs3 = rtJack_AlignData(sizeof(jack_default_audio_sample_t*)
-                            * (size_t) p->nChannels * m);
+                            * buf_chnls * m);
     nBytesPerBuf = ofs2 + ofs3;
     // VL: 16-09-21 buffers need to have number of channels set to the
     // greatest, input or output
