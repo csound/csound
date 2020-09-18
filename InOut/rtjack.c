@@ -329,8 +329,10 @@ static void listPorts(CSOUND *csound, int isOutput){
     csound->Message(csound, "Jack %s ports:\n",
                     isOutput ? "output" : "input");
     for(i=0; i < n; i++)
-      csound->Message(csound, " %d: %s (dac:%s)\n",
-                      i, devs[i].device_id, devs[i].device_name);
+      csound->Message(csound, " %d: %s (%s:%s)\n", 
+                      i, devs[i].device_id,
+                      isOutput ? "dac" : "adc",
+                      devs[i].device_name);
     csound->Free(csound,devs);
 }
 
