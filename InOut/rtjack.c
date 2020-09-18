@@ -504,7 +504,7 @@ static void openJackStreams(RtJackGlobals *p)
 
       }
       else {
-        if (strcmp(p->outDevName, "null") && p->inDevName != NULL){
+        if (strcmp(p->inDevName, "null") && p->inDevName != NULL){
           char dev[128], *dev_final, *sp;
           strNcpy(dev, p->inDevName, 128); //dev[127]='\0';
           dev_final = dev;
