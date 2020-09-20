@@ -257,7 +257,7 @@ static void rtJack_AllocateBuffers(RtJackGlobals *p)
     size_t  i, j, m, nBytes, nBytesPerBuf, ofs1, ofs2, ofs3;
     size_t buf_chnls = (size_t) (p->nChannels > p->nChannels_i ?
                                  p->nChannels : p->nChannels_i);
-   
+
     m = (size_t) ((p->inputEnabled ? 1 : 0) + (p->outputEnabled ? 1 : 0));
     if (!m)
       return;
@@ -329,7 +329,7 @@ static void listPorts(CSOUND *csound, int isOutput){
     csound->Message(csound, "Jack %s ports:\n",
                     isOutput ? "output" : "input");
     for(i=0; i < n; i++)
-      csound->Message(csound, " %d: %s (%s:%s)\n", 
+      csound->Message(csound, " %d: %s (%s:%s)\n",
                       i, devs[i].device_id,
                       isOutput ? "dac" : "adc",
                       devs[i].device_name);
@@ -492,12 +492,12 @@ static void openJackStreams(RtJackGlobals *p)
             if (jack_connect(p->client, portNames[num+i],
                              jack_port_name(p->inPorts[i])) != 0) {
               csound->Warning(csound,
-                              Str("failed autoconnecting input channel %d\n"
+                              Str("failed to autoconnect input channel %d\n"
                                   "(needs manual connection)"), i+1);
             }
           } else
             csound->Warning(csound, Str("jack port %d not valid\n"
-                                        "failed autoconnecting input channel %d\n"
+                                        "failed to autoconnect input channel %d\n"
                                         "(needs manual connection)"), num+i, i+1);
         }
         jack_free(portNames);
@@ -517,13 +517,13 @@ static void openJackStreams(RtJackGlobals *p)
             if (UNLIKELY(jack_connect(p->client, dev_final,
                                       jack_port_name(p->inPorts[i])) != 0)) {
               csound->Warning(csound,
-                              Str("not autoconnecting input channel %d\n"
+                              Str("failed to autoconnect input channel %d\n"
                                   "(needs manual connection)"), i+1);
             }
           }
           *sp = (char) 0;
-        }
-        csound->Message(csound, "%s", Str("put port not connected\n"));
+        } else
+          csound->Message(csound, "%s", Str("input ports not connected\n"));
       }
 
     }
@@ -544,12 +544,12 @@ static void openJackStreams(RtJackGlobals *p)
             if (jack_connect(p->client, jack_port_name(p->outPorts[i]),
                              portNames[num+i]) != 0) {
               csound->Warning(csound,
-                              Str("failed autoconnecting output channel %d\n"
+                              Str("failed to autoconnect output channel %d\n"
                                   "(needs manual connection)"), i+1);
             }
           } else
             csound->Warning(csound, Str("jack port %d not valid\n"
-                                        "failed autoconnecting output channel %d\n"
+                                        "failed to autoconnect output channel %d\n"
                                         "(needs manual connection)"), num+i, i+1);
         }
 
@@ -575,7 +575,7 @@ static void openJackStreams(RtJackGlobals *p)
           }
           *sp = (char) 0;
         } else
-          csound->Message(csound, "%s", Str("output port not connected\n"));
+          csound->Message(csound, "%s", Str("output ports not connected\n"));
       }
     }
     /* stream is now active */
