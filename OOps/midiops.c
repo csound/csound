@@ -27,6 +27,7 @@
 #include <math.h>
 #include <time.h>
 #include "namedins.h"           /* IV - Oct 31 2002 */
+#include "arrays.h"
 
 #define dv127   (FL(1.0)/FL(127.0))
 
@@ -757,3 +758,35 @@ int32_t midiarp(CSOUND *csound, MIDIARP *p)
 
     return OK;
 }
+
+#ifdef JPFF
+int savectrl_init(CSOUND *csound, SAVECTRL *p)
+{
+    int16 chnl = (int16)(*p->chnl - FL(0.5));
+    int16 i, nargs = p->INOCOUNT-1;
+    MYFLT **argp = p->ctrls;
+    int16 ctlno;
+    p->ivals = (csound->m_chnbp[chnl])->ctl_val;
+    for (i=0; i<nargs; i++) {
+      ctlno = (int16)*argp[i];
+      if (ctlno < FL(0.0) || ctlno > FL(127.0))
+        return csound->InitError(csound, Str("Value out of range [0,127]\n"));
+    }
+    tabinit(csound, p->arr, nargs);
+    p->nargs = nargs;
+    return OK;
+}
+
+int savectrl_perf(CSOUND *csound, SAVECTRL *p)
+{
+    int16 nargs = p->nargs, i;
+    MYFLT **argp = p->ctrls;
+    MYFLT *ctlval = p->ivals;
+    tabcheck(csound, p->arr, nargs, &p->h);
+    for (i=0; i<nargs; i++) {
+      MYFLT val = ctlval[(int16)*argp[i]];
+      p->arr->data[i] = val;
+    }
+    return OK;
+}
+#endif
