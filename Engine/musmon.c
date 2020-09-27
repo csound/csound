@@ -463,10 +463,10 @@ void delete_selected_rt_events(CSOUND *csound, int instr)
   EVTNODE *last = NULL;
   while (ep != NULL) {
     EVTNODE *nxt = ep->nxt;
-    if (ep->evt.opcod=='i' && ep->evt.p[1] == instr) {
+    if (ep->evt.opcod=='i' && (int)(ep->evt.p[1]) == instr) {
       // Found an event to cancel
       if (ep->evt.strarg != NULL) {
-        // clarstring if necessary
+        // clearstring if necessary
         csound->Free(csound,ep->evt.strarg);
         ep->evt.strarg = NULL;
       }
