@@ -1064,7 +1064,7 @@ OENTRY opcodlst_1[] = {
 #ifdef HAVE_CURL
   {  "strfromurl", S(STRCPY_OP), 0, 1, "S", "S", (SUBR) str_from_url     },
 #endif
-  {  "changed.S", S(STRCHGD),_QQ, 3, "k",   "S",
+  {  "changed.S", S(STRCHGD),0, 3, "k",   "S",
      (SUBR) str_changed, (SUBR) str_changed_k, NULL       },
   {  "changed2.S", S(STRCHGD),0, 3, "k",   "S",
      (SUBR) str_changed, (SUBR) str_changed_k, NULL       },
