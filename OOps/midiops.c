@@ -759,7 +759,7 @@ int32_t midiarp(CSOUND *csound, MIDIARP *p)
     return OK;
 }
 
-#ifdef JPFF
+#if 1
 int savectrl_init(CSOUND *csound, SAVECTRL *p)
 {
     int16 chnl = (int16)(*p->chnl - FL(0.5));

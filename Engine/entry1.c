@@ -107,7 +107,7 @@ OENTRY opcodlst_1[] = {
   { "xout", S(XOUT_MAX),0,  1,  "",         "*", xoutset, NULL, NULL, NULL },
   { "setksmps", S(SETKSMPS),0,  1,  "",   "i", setksmpsset, NULL, NULL },
   { "ctrlinit",S(CTLINIT),0,1,      "",  "im", ctrlinit, NULL, NULL, NULL},
-#ifdef JPFF
+#if 1
   { "ctrlsave",S(SAVECTRL),0,3,       "k[]","im", savectrl_init, savectrl_perf, NULL, NULL},
 #endif
   { "massign",S(MASSIGN), 0,1,      "",  "iip",massign_p, NULL, NULL, NULL},
@@ -928,7 +928,7 @@ OENTRY opcodlst_1[] = {
   { "turnoff2.k",S(TURNOFF2),_CW,2,     "",     "kkk",  NULL, turnoff2k, NULL     },
   { "turnoff2.i",S(TURNOFF2),_CW,2,     "",     "ikk",  NULL, turnoff2k, NULL     },
   { "turnoff2.r",S(TURNOFF2),_CW,2,     "",     "ikk",  NULL, turnoff2k, NULL     },
-#ifdef JPFF
+#if 1
   { "turnoff3.S",S(TURNOFF2),_CW,2,     "",     "S",  NULL, turnoff3S, NULL     },
   { "turnoff3.c",S(TURNOFF2),_CW,2,     "",     "i",  NULL, turnoff3k, NULL     },
   { "turnoff3.k",S(TURNOFF2),_CW,2,     "",     "k",  NULL, turnoff3k, NULL     },
@@ -1068,10 +1068,6 @@ OENTRY opcodlst_1[] = {
      (SUBR) str_changed, (SUBR) str_changed_k, NULL       },
   {  "changed2.S", S(STRCHGD),0, 3, "k",   "S",
      (SUBR) str_changed, (SUBR) str_changed_k, NULL       },
-  /* { "loop_lt",   0xfffb                                                  }, */
-  /* { "loop_le",   0xfffb                                                  }, */
-  /* { "loop_gt",   0xfffb                                                  }, */
-  /* { "loop_ge",   0xfffb                                                  }, */
   { "loop_lt.i", S(LOOP_OPS),0,  1,  "", "iiil", (SUBR) loop_l_i, NULL, NULL   },
   { "loop_le.i", S(LOOP_OPS),0,  1,  "", "iiil", (SUBR) loop_le_i, NULL, NULL  },
   { "loop_gt.i", S(LOOP_OPS),0,  1,  "", "iiil", (SUBR) loop_g_i, NULL, NULL   },

@@ -456,7 +456,7 @@ static void delete_pending_rt_events(CSOUND *csound)
   csound->OrcTrigEvts = NULL;
 }
 
-#ifdef JPFF
+#if 1
 void delete_selected_rt_events(CSOUND *csound, int instr)
 {
   EVTNODE *ep = csound->OrcTrigEvts;
