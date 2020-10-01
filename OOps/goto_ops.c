@@ -264,7 +264,6 @@ int32_t turnoff2k(CSOUND *csound, TURNOFF2 *p){
     return turnoff2(csound, p, 0);
 }
 
-#if 1
 extern void delete_selected_rt_events(CSOUND*, int);
 int32_t turnoff3(CSOUND *csound, TURNOFF2 *p, int32_t isStringArg)
 {
@@ -299,7 +298,6 @@ int32_t turnoff3S(CSOUND *csound, TURNOFF2 *p){
 int32_t turnoff3k(CSOUND *csound, TURNOFF2 *p){
     return turnoff3(csound, p, 0);
 }
-#endif
 
 int32_t loop_l_i(CSOUND *csound, LOOP_OPS *p)
 {

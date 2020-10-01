@@ -398,10 +398,8 @@ int32_t ingoto(CSOUND *, void *), kngoto(CSOUND *, void *);
 int32_t nstrnumset(CSOUND *, void *), turnoff2k(CSOUND *, void *);
 int32_t nstrnumset_S(CSOUND *, void *), nstrstr(CSOUND *, void *);
 int32_t turnoff2S(CSOUND *, void *) ;
-#if 1
 int32_t turnoff3S(CSOUND *, void *), turnoff3k(CSOUND *, void *);
 int32_t savectrl_init(CSOUND*, void*), savectrl_perf(CSOUND*, void*);
-#endif
 int32_t loop_l_i(CSOUND *, void *), loop_le_i(CSOUND *, void *);
 int32_t loop_g_i(CSOUND *, void *), loop_ge_i(CSOUND *, void *);
 int32_t loop_l_p(CSOUND *, void *), loop_le_p(CSOUND *, void *);
