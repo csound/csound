@@ -175,7 +175,6 @@ typedef struct {
   int     local_buf_index;
 } MIDIARP;
 
-#ifdef JPFF
 typedef struct {
   OPDS    h;
   ARRAYDAT *arr;
@@ -183,6 +182,5 @@ typedef struct {
   MYFLT   *ivals;
   int16   nargs;
 } SAVECTRL;
-#endif
 
 #endif
