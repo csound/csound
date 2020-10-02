@@ -759,10 +759,14 @@ int32_t midiarp(CSOUND *csound, MIDIARP *p)
     return OK;
 }
 
+/* The internal data structure is an array onanin
+ * length, chan, ctrl1, val1, ctrl2, val2, .....
+ */
+
 int savectrl_init(CSOUND *csound, SAVECTRL *p)
 {
     int16 chnl = (int16)(*p->chnl - FL(0.5));
-    int16 i, nargs = p->INOCOUNT-1;
+    int16 i, j, nargs = p->INOCOUNT-1;
     MYFLT **argp = p->ctrls;
     int16 ctlno;
     p->ivals = (csound->m_chnbp[chnl])->ctl_val;
@@ -771,20 +775,37 @@ int savectrl_init(CSOUND *csound, SAVECTRL *p)
       if (ctlno < FL(0.0) || ctlno > FL(127.0))
         return csound->InitError(csound, Str("Value out of range [0,127]\n"));
     }
-    tabinit(csound, p->arr, nargs);
+    tabinit(csound, p->arr, 2+2*nargs);
+    p->arr->data[0] = nargs;    /* length */
+    p->arr->data[1] = chnl+1;   /* channel */
+    for (i=0, j=2; i<nargs; i++, j+=2) {
+      p->arr->data[j] = *argp[i];
+      p->arr->data[j+1] = FL(0.0);
+    }
     p->nargs = nargs;
     return OK;
 }
 
 int savectrl_perf(CSOUND *csound, SAVECTRL *p)
 {
-    int16 nargs = p->nargs, i;
+    int16 nargs = p->nargs, i, j;
     MYFLT **argp = p->ctrls;
     MYFLT *ctlval = p->ivals;
-    tabcheck(csound, p->arr, nargs, &p->h);
-    for (i=0; i<nargs; i++) {
+    tabcheck(csound, p->arr, 2+2*nargs, &p->h);
+    for (i=0, j=3; i<nargs; i++, j+=2) {
       MYFLT val = ctlval[(int16)*argp[i]];
-      p->arr->data[i] = val;
+      p->arr->data[j] = val;
     }
+    return OK;
+}
+
+int printctrl(CSOUND *csound, PRINTCTRL *p)
+{
+    MYFLT *d = p->arr->data;
+    int n = (int)d[0], i;
+    printf("\n; ctrlinit\t%d", (int)d[1]);
+    for (i=0; i<n; i++)
+      printf(", %d,%d", (int)d[2+2*i], (int)d[3+2*i]);
+    printf("\n\n");
     return OK;
 }

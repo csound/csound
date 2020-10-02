@@ -183,4 +183,9 @@ typedef struct {
   int16   nargs;
 } SAVECTRL;
 
+typedef struct {
+  OPDS    h;
+  ARRAYDAT *arr;
+} PRINTCTRL;
+
 #endif

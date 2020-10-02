@@ -107,9 +107,8 @@ OENTRY opcodlst_1[] = {
   { "xout", S(XOUT_MAX),0,  1,  "",         "*", xoutset, NULL, NULL, NULL },
   { "setksmps", S(SETKSMPS),0,  1,  "",   "i", setksmpsset, NULL, NULL },
   { "ctrlinit",S(CTLINIT),0,1,      "",  "im", ctrlinit, NULL, NULL, NULL},
-#if 1
   { "ctrlsave",S(SAVECTRL),0,3,       "k[]","im", savectrl_init, savectrl_perf, NULL, NULL},
-#endif
+  { "ctrlprint",S(PRINTCTRL),0,2,       "", "k[]", NULL, printctrl, NULL},
   { "massign",S(MASSIGN), 0,1,      "",  "iip",massign_p, NULL, NULL, NULL},
   { "massign.iS",S(MASSIGNS), 0,1,  "",  "iSp",massign_S, NULL, NULL, NULL},
   { "turnon", S(TURNON),  0,1,      "",     "io", turnon, NULL, NULL, NULL},
