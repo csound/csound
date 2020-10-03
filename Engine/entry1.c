@@ -108,7 +108,8 @@ OENTRY opcodlst_1[] = {
   { "setksmps", S(SETKSMPS),0,  1,  "",   "i", setksmpsset, NULL, NULL },
   { "ctrlinit",S(CTLINIT),0,1,      "",  "im", ctrlinit, NULL, NULL, NULL},
   { "ctrlsave",S(SAVECTRL),0,3,       "k[]","im", savectrl_init, savectrl_perf, NULL, NULL},
-  { "ctrlprint",S(PRINTCTRL),0,2,       "", "k[]", NULL, printctrl, NULL},
+  { "ctrlprint.S",S(PRINTCTRL),0,3, "", "k[]S", printctrl_init1, printctrl, NULL},
+  { "ctrlprint",S(PRINTCTRL),0,3,       "", "k[]", printctrl_init, printctrl, NULL},
   { "massign",S(MASSIGN), 0,1,      "",  "iip",massign_p, NULL, NULL, NULL},
   { "massign.iS",S(MASSIGNS), 0,1,  "",  "iSp",massign_S, NULL, NULL, NULL},
   { "turnon", S(TURNON),  0,1,      "",     "io", turnon, NULL, NULL, NULL},
@@ -927,13 +928,11 @@ OENTRY opcodlst_1[] = {
   { "turnoff2.k",S(TURNOFF2),_CW,2,     "",     "kkk",  NULL, turnoff2k, NULL     },
   { "turnoff2.i",S(TURNOFF2),_CW,2,     "",     "ikk",  NULL, turnoff2k, NULL     },
   { "turnoff2.r",S(TURNOFF2),_CW,2,     "",     "ikk",  NULL, turnoff2k, NULL     },
-#if 1
   { "turnoff3.S",S(TURNOFF2),_CW,2,     "",     "S",  NULL, turnoff3S, NULL     },
   { "turnoff3.c",S(TURNOFF2),_CW,2,     "",     "i",  NULL, turnoff3k, NULL     },
   { "turnoff3.k",S(TURNOFF2),_CW,2,     "",     "k",  NULL, turnoff3k, NULL     },
   { "turnoff3.i",S(TURNOFF2),_CW,2,     "",     "i",  NULL, turnoff3k, NULL     },
   { "turnoff3.r",S(TURNOFF2),_CW,2,     "",     "i",  NULL, turnoff3k, NULL     },
-#endif
   { "cngoto", S(CGOTO),0,   3,      "",     "Bl",   ingoto, kngoto, NULL     },
   { "cnkgoto", S(CGOTO),0,   2,      "",     "Bl",   NULL,  kngoto, NULL     },
   { "cingoto", S(CGOTO),0,   1,      "",     "Bl",   ingoto, NULL, NULL     },

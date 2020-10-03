@@ -186,6 +186,8 @@ typedef struct {
 typedef struct {
   OPDS    h;
   ARRAYDAT *arr;
+  STRINGDAT *file;
+  FILE    *fout;
 } PRINTCTRL;
 
 #endif

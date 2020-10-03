@@ -799,13 +799,29 @@ int savectrl_perf(CSOUND *csound, SAVECTRL *p)
     return OK;
 }
 
+int printctrl_init(CSOUND *csound, PRINTCTRL *p)
+{
+    p->fout = stdout;
+    if (p->fout==NULL) return NOTOK;
+    return OK;
+}
+
+int printctrl_init1(CSOUND *csound, PRINTCTRL *p)
+{
+    p->fout = fopen(p->file->data, "a");
+    if (p->fout==NULL) return NOTOK;
+    return OK;
+}
+
+
 int printctrl(CSOUND *csound, PRINTCTRL *p)
 {
     MYFLT *d = p->arr->data;
     int n = (int)d[0], i;
-    printf("\n; ctrlinit\t%d", (int)d[1]);
+    fprintf(p->fout, "\n; ctrlinit\t%d", (int)d[1]);
     for (i=0; i<n; i++)
-      printf(", %d,%d", (int)d[2+2*i], (int)d[3+2*i]);
-    printf("\n\n");
+      fprintf(p->fout, ", %d,%d", (int)d[2+2*i], (int)d[3+2*i]);
+    fprintf(p->fout, "\n\n");
+    fflush(p->fout);
     return OK;
 }
