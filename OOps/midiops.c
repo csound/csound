@@ -900,7 +900,7 @@ int selectctrl_perf(CSOUND *csound, SELECTCTRL *p)
       return csound->PerfError(csound, &p->h, Str("No such preset %d\n"), tag+1);
     }
     int nargs = slot[0];
-    int16 chnl = (int16)slot[1];
+    int16 chnl = (int16)(slot[1]-1);
     MYFLT *ctlval = (csound->m_chnbp[chnl])->ctl_val;
     for (i=2; i<nargs; i+=2) {
       int val = slot[i+1];
