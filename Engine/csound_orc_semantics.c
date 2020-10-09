@@ -1663,7 +1663,7 @@ TREE* convert_statement_to_opcall(CSOUND* csound, TREE* root, TYPE_TABLE* typeTa
 
     return root;
   }
-  
+
   // If a function call made it here, such as:
   //  print(1,2,3)
   // then it should just be updated to T_OPCALL and returned
@@ -2738,13 +2738,13 @@ TREE* make_opcall_from_func_start(CSOUND *csound, int line, int locn, int type,
   TREE* firstArg = left->right;
   TREE* first = right;
   TREE* rest = right->next;
-  
+
   right->next = NULL;
-  
+
   TREE* operatorNode = make_node(csound, line, locn, type, firstArg, first);
   operatorNode->next = rest;
   left->right = operatorNode;
-  
+
   return left;
 }
 
