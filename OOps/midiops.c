@@ -905,7 +905,7 @@ int selectctrl_perf(CSOUND *csound, SELECTCTRL *p)
     for (i=2; i<nargs; i+=2) {
       int val = slot[i+1];
       ctlval[slot[i]] = val;
-      //      printf("control %d value %d\n", slot[i], val);
+      printf("control %d value %d\n", slot[i], val);
     }
     return OK;
 }
