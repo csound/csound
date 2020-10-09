@@ -438,6 +438,7 @@ static int32_t filegrain_init(CSOUND *csound, filegrain *p)
                        (p->dataframes+1)*sizeof(MYFLT)*p->nChannels, &p->buffer);
 
     buffer = (MYFLT *) p->buffer.auxp;
+    memset(&sfinfo, '\0', sizeof(sfinfo)); /* for Valgrind */
     /* open file and read the first block using *p->ioff */
     fd = csound->FileOpen2(csound, &(p->sf), CSFILE_SND_R, fname, &sfinfo,
                             "SFDIR;SSDIR", CSFTYPE_UNKNOWN_AUDIO, 0);

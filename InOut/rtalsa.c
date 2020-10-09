@@ -1854,6 +1854,7 @@ int listAlsaSeq(CSOUND *csound, CS_MIDIDEVICE *list, int isOutput) {
         }
       }
     }
+    snd_seq_close(seq);
     return numdevs;
 }
 

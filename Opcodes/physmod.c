@@ -719,7 +719,7 @@ int32_t DLineA_setDelay(CSOUND *csound, DLineA *p, MYFLT lag)
     p->outPoint = (int32_t) outputPointer;    /* Integer part of delay          */
     p->alpha = FL(1.0) + p->outPoint - outputPointer;/* fractional part of delay */
     if (p->alpha<FL(0.1)) {
-      outputPointer += FL(1.0);             /*  Hack to avoid pole/zero       */
+      ///outputPointer += FL(1.0);          /*  Hack to avoid pole/zero       */
       p->outPoint++;                        /*  cancellation.  Keeps allpass  */
       p->alpha += FL(1.0);                  /*  delay in range of .1 to 1.1   */
     }

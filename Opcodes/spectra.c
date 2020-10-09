@@ -1011,7 +1011,7 @@ int32_t spsclset(CSOUND *csound, SPECSCAL *p)
       return csound->InitError(csound, Str("missing fscale table"));
     }
     else {
-      int32_t nn = npts;
+      int32_t nn; // = npts;
       int32_t phs = 0;
       int32_t inc = (int32_t)PHMASK / npts;
       int32_t lobits = ftp->lobits;
@@ -1025,7 +1025,7 @@ int32_t spsclset(CSOUND *csound, SPECSCAL *p)
     if ((p->thresh = (int32_t)*p->ifthresh) &&
         (ftp=csound->FTFind(csound, p->ifthresh)) != NULL) {
       /* if fthresh given,       */
-      int32_t nn = npts;
+      int32_t nn; // = npts;
       int32_t phs = 0;
       int32_t inc = (int32_t)PHMASK / npts;
       int32_t lobits = ftp->lobits;

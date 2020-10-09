@@ -822,3 +822,52 @@ int32_t gen21_rand(FGDATA *ff, FUNC *ftp)
     }
     return OK;
 }
+
+/* ---------------------------------------------- */
+
+/* New Gauss generator using Box-Mueller transform
+   VL April 2020
+ */
+
+MYFLT gausscompute(CSOUND *csound, GAUSS *p) {
+  if(p->flag == 0) {
+    MYFLT u1 = unirand(csound);
+    MYFLT u2 = unirand(csound);
+    MYFLT z = SQRT(-2.*LOG(u1))*cos(2*PI*u2);
+    p->z = SQRT(-2.*LOG(u1))*sin(2*PI*u2);
+    p->flag = 1;
+    return *p->sigma*z + *p->mu;
+  } else {
+    p->flag = 0;
+    return  *p->sigma*p->z + *p->mu;
+  }
+  return OK;
+}
+
+
+int32_t gauss_scalar(CSOUND *csound, GAUSS *p){
+  *p->a = gausscompute(csound,p);
+  return OK;
+
+}
+
+int32_t gauss_vector(CSOUND *csound, GAUSS *p) {
+    uint32_t offset = p->h.insdshead->ksmps_offset;
+    uint32_t early  = p->h.insdshead->ksmps_no_end;
+    uint32_t n, nsmps = CS_KSMPS;
+    MYFLT *out = p->a;
+    if (UNLIKELY(offset)) memset(out, '\0', offset*sizeof(MYFLT));
+    if (UNLIKELY(early)) {
+      nsmps -= early;
+      memset(&out[nsmps], '\0', early*sizeof(MYFLT));
+    }
+    for (n = offset; n < nsmps; n++)
+      out[n] = gausscompute(csound,p);
+    return OK;
+}
+
+
+
+
+
+

@@ -46,6 +46,9 @@ static int32_t mtable_i(CSOUND *csound,MTABLEI *p)
       int64_t indx = (int64_t) fndx;
       MYFLT fract = fndx - indx;
       for (j=0; j < nargs; j++) {
+        if (UNLIKELY((indx + 1) * nargs + j >= ftp->flen + 1)) {
+          return csound->InitError(csound, Str("vtablei: reading past end of table"));
+        }
         v1 = table[indx * nargs + j];
         v2 = table[(indx + 1) * nargs + j];
         **out++ = v1 + (v2 - v1) * fract;
@@ -1975,7 +1978,7 @@ static int32_t vrandh(CSOUND *csound,VRANDH *p)
     if (p->phs >= MAXLEN) {
       p->phs &= PHMASK;
       elements = p->elements;
-      vector = p->vector;
+      //vector = p->vector;
       num1 = p->num1;
       r = p->rand;
       do {
@@ -2082,7 +2085,7 @@ static int32_t vrandi(CSOUND *csound,VRANDI *p)
     if (p->phs >= MAXLEN) {
       p->phs &= PHMASK;
       elements = p->elements;
-      vector = p->vector;
+      //vector = p->vector;
       num1 = p->num1;
       num2 = p->num2;
       dfdmax = p->dfdmax;
@@ -2109,7 +2112,7 @@ static int32_t vrandi(CSOUND *csound,VRANDI *p)
 static int32_t vecdly_set(CSOUND *csound, VECDEL *p)
 {
     FUNC        *ftp;
-    int32_t elements = (p->elements = (int32_t) *p->ielements), j;
+    int32_t elements, j;
     int32 n;
 
     if (LIKELY((ftp = csound->FTnp2Find(csound,p->ifnOut)) != NULL)) {

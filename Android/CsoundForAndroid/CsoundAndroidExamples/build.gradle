@@ -5,12 +5,12 @@ android {
         debug {
         }
     }
-    compileSdkVersion 23
+    compileSdkVersion 29
     defaultConfig {
         minSdkVersion 21
-        targetSdkVersion 21
+        targetSdkVersion 29
         versionCode 2
-        versionName "6.11.0"
+        versionName "6.15.0"
     }
     buildTypes {
         release {

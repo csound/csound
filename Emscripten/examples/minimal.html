@@ -76,7 +76,7 @@
     // click handler
     function Play() {
       if (started == false) {
-        CSOUND_AUDIO_CONTEXT.resume();
+        CsoundObj.CSOUND_AUDIO_CONTEXT.resume();
         started = true;
       }
       csound.Event("i 1 0 5");

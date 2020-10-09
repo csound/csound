@@ -480,7 +480,7 @@ static int32_t agendyc(CSOUND *csound, GENDYC *p)
       memset(&out[remain+offset], '\0', early*sizeof(MYFLT));
     }
     do {
-      uint32_t n, nsmps = CS_KSMPS;
+      uint32_t n, nsmps;
       if (p->phase <= 0) {
         int32_t     index = p->index;
         MYFLT   fphase, next_midpnt;

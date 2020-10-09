@@ -335,7 +335,7 @@ static int32_t Xsynthset(CSOUND *csound, CON *p)
     p->buffer_in2 = b;     b += 2 * flen;
     p->buffer_out = b;     b += 2 * flen;
     p->in1 = b;            b += 2 * flen;
-    p->in2 = b;            b += 2 * flen;
+    p->in2 = b;            //b += 2 * flen;
 
     if ((ftp = csound->FTnp2Finde(csound, p->iwin)) != NULL)
       p->win = ftp;

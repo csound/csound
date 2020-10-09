@@ -110,12 +110,14 @@ static int init_pass(CSOUND *csound, INSDS *ip) {
     csoundLockMutex(csound->init_pass_threadlock);
   csound->curip = ip;
   csound->ids = (OPDS *)ip;
-  while (error == 0 && (csound->ids = csound->ids->nxti) != NULL){
+  csound->mode = 1;
+  while (error == 0 && (csound->ids = csound->ids->nxti) != NULL) {
+    csound->op = csound->ids->optext->t.oentry->opname;
     if (UNLIKELY(csound->oparms->odebug))
-      csound->Message(csound, "init %s:\n",
-                      csound->ids->optext->t.oentry->opname);
+      csound->Message(csound, "init %s:\n", csound->op);
     error = (*csound->ids->iopadr)(csound, csound->ids);
   }
+  csound->mode = 0;
   if(csound->oparms->realtime)
     csoundUnlockMutex(csound->init_pass_threadlock);
   return error;
@@ -130,13 +132,15 @@ static int reinit_pass(CSOUND *csound, INSDS *ip, OPDS *ids) {
   }
   csound->curip = ip;
   csound->ids = ids;
+  csound->mode = 1;
   while (error == 0 && (csound->ids = csound->ids->nxti) != NULL &&
          (csound->ids->iopadr != (SUBR) rireturn)){
-   if (UNLIKELY(csound->oparms->odebug))
-      csound->Message(csound, "reinit %s:\n",
-                      csound->ids->optext->t.oentry->opname);
+    csound->op = csound->ids->optext->t.oentry->opname;
+    if (UNLIKELY(csound->oparms->odebug))
+      csound->Message(csound, "reinit %s:\n", csound->op);
     error = (*csound->ids->iopadr)(csound, csound->ids);
   }
+  csound->mode = 0;
 
   ATOMIC_SET8(ip->actflg, 1);
   csound->reinitflag = ip->reinitflag = 0;
@@ -246,9 +250,12 @@ int init0(CSOUND *csound)
   ip->onedkr = csound->onedkr;
   ip->kicvt = csound->kicvt;
   csound->inerrcnt = 0;
+  csound->mode = 1;
   while ((csound->ids = csound->ids->nxti) != NULL) {
+    csound->op = csound->ids->optext->t.oentry->opname;
     (*csound->ids->iopadr)(csound, csound->ids);  /*   run all i-code     */
   }
+  csound->mode = 0;
   return csound->inerrcnt;                        /*   return errcnt      */
 }
 
@@ -487,11 +494,16 @@ int insert_event(CSOUND *csound, int insno, EVTBLK *newevtp)
     start_time_kcycles = start_time_samps/csound->ksmps;
     ip->ksmps_offset = start_time_samps - start_time_kcycles*csound->ksmps;
     /* with no p3 or xtratim values, can't set the sample accur duration */
-    if (ip->p3.value > 0 && ip->xtratim == 0)
-      ip->no_end = csound->ksmps -
-        ((int)duration_samps+ip->ksmps_offset)%csound->ksmps;
+    if (ip->p3.value > 0 && ip->xtratim == 0 ){
+      int tmp = ((int)duration_samps+ip->ksmps_offset)%csound->ksmps;
+      if (tmp != 0)ip->no_end = csound->ksmps - tmp; else ip->no_end = 0;
+      //ip->no_end = (csound->ksmps -
+      //              ((int)duration_samps+ip->ksmps_offset)%csound->ksmps)%csound->ksmps;
     /* the ksmps_no_end field is initially 0, set to no_end in the last
        perf cycle */
+    //  printf("*** duration_samps %d ip->ksmps_offset %d csound->ksmps %d ==> %d\n",
+    //         (int)duration_samps, ip->ksmps_offset, csound->ksmps, ip->no_end);
+    }
     else ip->no_end = 0;
     ip->ksmps_no_end = 0;
   }
@@ -1018,7 +1030,7 @@ void free_instr_var_memory(CSOUND* csound, INSDS* ip) {
       return;
   }
 
-  
+
   while (current != NULL) {
     CS_TYPE* varType = current->varType;
     if (varType->freeVariableMemory != NULL) {
@@ -1141,6 +1153,8 @@ int csoundInitError(CSOUND *csound, const char *s, ...)
     va_end(args);
     csound->LongJmp(csound, 1);
   }
+  if (csound->mode != 1)
+    csound->Message(csound, Str("InitError in wrong mode %d\n"), csound->mode);
   /* IV - Oct 16 2002: check for subinstr and user opcode */
   ip = csound->ids->insdshead;
   if (ip->opcod_iobufs) {
@@ -1158,8 +1172,8 @@ int csoundInitError(CSOUND *csound, const char *s, ...)
                csound->ids->optext->t.linenum);
   }
   else
-    snprintf(buf, 512, Str("INIT ERROR in instr %d line %d: "), ip->insno,
-             csound->ids->optext->t.linenum);
+    snprintf(buf, 512, Str("INIT ERROR in instr %d (opcode %s) line %d: "),
+             ip->insno, csound->op, csound->ids->optext->t.linenum);
   va_start(args, s);
   csoundErrMsgV(csound, buf, s, args);
   va_end(args);
@@ -1174,6 +1188,8 @@ int csoundPerfError(CSOUND *csound, OPDS *h, const char *s, ...)
   char    buf[512];
   INSDS *ip = h->insdshead;
   TEXT t = h->optext->t;
+  if (csound->mode != 2)
+    csound->Message(csound, Str("PerfError in wrong mode %d\n"), csound->mode);
   if (ip->opcod_iobufs) {
     OPCODINFO *op = ((OPCOD_IOBUFS*) ip->opcod_iobufs)->opcode_info;
     /* find top level instrument instance */
@@ -1188,8 +1204,8 @@ int csoundPerfError(CSOUND *csound, OPDS *h, const char *s, ...)
                ip->insno, ip->insno, t.linenum);
   }
   else
-    snprintf(buf, 512, Str("PERF ERROR in instr %d line %d: "),
-             ip->insno, t.linenum);
+    snprintf(buf, 512, Str("PERF ERROR in instr %d (opcode %s) line %d: "),
+             ip->insno, csound->op, t.linenum);
   va_start(args, s);
   csoundErrMsgV(csound, buf, s, args);
   va_end(args);
@@ -1307,9 +1323,12 @@ int subinstrset_(CSOUND *csound, SUBINST *p, int instno)
   csound->curip = p->ip;        /* **** NEW *** */
   p->ip->init_done = 0;
   csound->ids = (OPDS *)p->ip;
+  csound->mode = 1;
   while ((csound->ids = csound->ids->nxti) != NULL) {
+    csound->op = csound->ids->optext->t.oentry->opname;
     (*csound->ids->iopadr)(csound, csound->ids);
   }
+  csound->mode = 0;
   p->ip->init_done = 1;
   /* copy length related parameters back to caller instr */
   saved_curip->xtratim = csound->curip->xtratim;
@@ -1518,10 +1537,13 @@ int useropcdset(CSOUND *csound, UOPCODE *p)
     csound->curip = lcurip;
     csound->ids = (OPDS *) (lcurip->nxti);
     ATOMIC_SET(p->ip->init_done, 0);
+    csound->mode = 1;
     while (csound->ids != NULL) {
+      csound->op = csound->ids->optext->t.oentry->opname;
       (*csound->ids->iopadr)(csound, csound->ids);
       csound->ids = csound->ids->nxti;
     }
+    csound->mode = 0;
     ATOMIC_SET(p->ip->init_done, 1);
     /* copy length related parameters back to caller instr */
     parent_ip->relesing = lcurip->relesing;
@@ -1611,7 +1633,12 @@ int xoutset(CSOUND *csound, XOUT *p)
     void* in = (void*)p->args[i];
     void* out = (void*)bufs[i];
     tmp[i] = in;
-    current->varType->copyValue(csound, current->varType, out, in);
+
+    // DO NOT COPY K or A or F vars
+    if (csoundGetTypeForArg(in) != &CS_VAR_TYPE_K &&
+        csoundGetTypeForArg(in) != &CS_VAR_TYPE_F &&
+        csoundGetTypeForArg(in) != &CS_VAR_TYPE_A)
+      current->varType->copyValue(csound, current->varType, out, in);
     current = current->next;
   }
   return OK;
@@ -2205,7 +2232,7 @@ int useropcd2(CSOUND *csound, UOPCODE *p)
   CS_VARIABLE* current;
   int i, done;
 
-  inm = (OPCODINFO*) p->h.optext->t.oentry->useropinfo;
+  inm = (OPCODINFO*) p->h.optext->t.oentry->useropinfo; /* FIXME value not used */
   done = ATOMIC_GET(p->ip->init_done);
 
   if (UNLIKELY(!done)) /* init not done, exit */

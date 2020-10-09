@@ -555,8 +555,245 @@ int32_t pvstanalset(CSOUND *csound, PVST *p)
   return OK;
 }
 
+typedef struct _pvst1 {
+  OPDS h;
+  PVSDAT *fout[1];
+  MYFLT  *ktime;
+  MYFLT  *kamp;
+  MYFLT  *kpitch;
+  MYFLT  *knum;
+  MYFLT  *konset;
+  MYFLT  *wrap, *offset;
+  MYFLT  *fftsize, *hsize, *dbthresh;
+  uint32 scnt;
+  int32_t tscale;
+  MYFLT accum;
+  double pos;
+  float factor, fund, rotfac, scale;
+  AUXCH bwin[MAXOUTS];
+  AUXCH fwin[MAXOUTS], nwin[MAXOUTS];
+  AUXCH win;
+  int32_t nchans;
+  int32_t init;
+  void *fwdsetup;
+} PVST1;
+
+int32_t pvstanalset1(CSOUND *csound, PVST1 *p)
+{
+
+  int32_t i, N, hsize, nChannels;
+  N = (*p->fftsize > 0 ? *p->fftsize : 2048);
+  hsize = (*p->hsize > 0 ? *p->hsize : 512);
+  p->init = 0;
+  nChannels = csound->GetOutputArgCnt(p);
+  if (UNLIKELY(nChannels < 1 || nChannels > 1))
+    return csound->InitError(csound, Str("invalid number of output arguments"));
+  p->nchans = nChannels;
+  for (i=0; i < p->nchans; i++) {
+    p->fout[i]->N = N;
+    p->fout[i]->overlap = hsize;
+    p->fout[i]->wintype = PVS_WIN_HANN;
+    p->fout[i]->winsize = N;
+    p->fout[i]->framecount = 1;
+    if (p->fout[i]->frame.auxp == NULL ||
+        p->fout[i]->frame.size < sizeof(float) * (N + 2))
+      csound->AuxAlloc(csound, (N + 2) * sizeof(float), &p->fout[i]->frame);
+    else
+      memset(p->fout[i]->frame.auxp, 0, sizeof(float)*(N+2));
+    if (p->bwin[i].auxp == NULL ||
+        p->bwin[i].size < sizeof(MYFLT) * (N + 2))
+      csound->AuxAlloc(csound, (N + 2) * sizeof(MYFLT), &p->bwin[i]);
+    else
+      memset(p->bwin[i].auxp, 0, p->bwin[i].size);
+    if (p->fwin[i].auxp == NULL ||
+        p->fwin[i].size < sizeof(MYFLT) * (N + 2))
+      csound->AuxAlloc(csound, (N + 2) * sizeof(MYFLT), &p->fwin[i]);
+    else
+      memset(p->fwin[i].auxp, 0, sizeof(MYFLT)*(N+2));
+    if (p->nwin[i].auxp == NULL ||
+        p->nwin[i].size < sizeof(MYFLT) * (N + 2))
+      csound->AuxAlloc(csound, (N + 2) * sizeof(MYFLT), &p->nwin[i]);
+    else
+      memset(p->nwin[i].auxp, 0, sizeof(MYFLT)*(N+2));
+  }
+
+  if (p->win.auxp == NULL ||
+      p->win.size < sizeof(MYFLT) * (N))
+    csound->AuxAlloc(csound, (N) * sizeof(MYFLT), &p->win);
+  p->scale = 0.0f;
+  for (i=0; i < N; i++)
+    p->scale += (((MYFLT *)p->win.auxp)[i] = 0.5 - 0.5*cos(i*2*PI/N));
+  for (i=0; i < N; i++)
+    ((MYFLT *)p->win.auxp)[i] *= 2./p->scale;
+
+  p->rotfac = hsize*TWOPI/N;
+  p->factor = CS_ESR/(hsize*TWOPI);
+  p->fund = CS_ESR/N;
+  p->scnt = p->fout[0]->overlap;
+  p->tscale  = 1;
+  p->pos =  *p->offset*CS_ESR;
+  //printf("off: %f\n", *p->offset);
+  p->accum = 0.0;
+  p->fwdsetup = csound->RealFFT2Setup(csound,N,FFT_FWD);
+  return OK;
+}
 
 int32_t pvstanal(CSOUND *csound, PVST *p)
+{
+  int32_t hsize = p->fout[0]->overlap, i, k;
+  uint32_t j;
+  uint32_t sizefrs, nchans = p->nchans;
+  int32 N = p->fout[0]->N, post, size;
+  double frac, spos = p->pos, pos;
+  MYFLT *tab, dbtresh = *p->dbthresh;
+  FUNC *ft;
+  float *fout;
+  MYFLT *bwin, *fwin, *nwin, *win = (MYFLT *) p->win.auxp;
+  float amp = (float) (*p->kamp), factor = p->factor, fund = p->fund;
+  float pitch = (float) (*p->kpitch), rotfac = p->rotfac;
+  MYFLT time = *p->ktime;
+  float tmp_real, tmp_im, powrat;
+
+  if ((int32_t)p->scnt >= hsize) {
+    double resamp;
+    /* audio samples are stored in a function table */
+    ft = csound->FTnp2Find(csound,p->knum);
+    if (ft == NULL){
+      csound->PerfError(csound, &(p->h),
+                        Str("could not find table number %d\n"), (int32_t) *p->knum);
+      return NOTOK;
+
+    }
+    resamp = ft->gen01args.sample_rate/CS_ESR;
+    pitch *= resamp;
+    time *= resamp;
+    tab = ft->ftable;
+    size = ft->flen;
+
+    /* nchans = ft->nchanls; */
+    /* spos is the reading position in samples, hsize is hopsize,
+       time is current read rate
+       esr is sampling rate
+    */
+    if (UNLIKELY(ft->nchanls != (int32)nchans))
+      return csound->PerfError(csound, &(p->h),
+                               Str("number of output arguments "
+                                   "inconsistent with number of "
+                                   "sound file channels"));
+
+    sizefrs = size/nchans;
+    if (!*p->wrap && spos == 0.0)
+      spos += hsize;
+    if (!*p->wrap && spos >= sizefrs) {
+      for (j=0; j < nchans; j++) {
+        memset(p->fout[j]->frame.auxp, 0, sizeof(float)*(N+2));
+        p->fout[j]->framecount++;
+      }
+      goto end;
+    }
+
+    while (spos >= sizefrs) spos -= sizefrs;
+    while (spos < hsize)  spos += (sizefrs + hsize);
+    pos = spos;
+
+    for (j=0; j < nchans; j++) {
+
+      fout = (float *)  p->fout[j]->frame.auxp;
+      bwin = (MYFLT *) p->bwin[j].auxp;
+      fwin = (MYFLT *) p->fwin[j].auxp;
+      nwin = (MYFLT *) p->nwin[j].auxp;
+
+      /* this loop fills two frames/windows with samples from table,
+         reading is linearly-interpolated,
+         frames are separated by 1 hopsize
+      */
+      for (i=0; i < N; i++) {
+        /* front window, fwin */
+        MYFLT in;
+        post = (int32_t) pos;
+        frac = pos  - post;
+        post *= nchans;
+        post += j;
+        while (post >= size ) post -= size;
+        while (post < 0) post += size;
+        in = tab[post] + frac*(tab[post+nchans] - tab[post]);
+        fwin[i] = amp * in * win[i]; /* window it */
+        /* back windo, bwin */
+        post = (int32_t) (pos - hsize*pitch);
+        post *= nchans;
+        post += j;
+        while (post >= size ) post -= size;
+        while (post < 0) post += size;
+        in =  tab[post] + frac*(tab[post+nchans] - tab[post]);
+        bwin[i] = in * win[i];  /* window it */
+        if (*p->konset){
+          post = (int32_t) pos + hsize;
+          post *= nchans;
+          post += j;
+          while (post >= size ) post -= size;
+          while (post < 0) post += size;
+          in =  tab[post];
+          nwin[i] = amp * in * win[i];
+        }
+        /* increment read pos according to pitch transposition */
+        pos += pitch;
+      }
+      /* take the FFT of both frames
+         re-order Nyquist bin from pos 1 to N
+      */
+      csound->RealFFT2(csound, p->fwdsetup, bwin);
+      csound->RealFFT2(csound, p->fwdsetup, fwin);
+      if (*p->konset){
+        csound->RealFFT2(csound,p->fwdsetup, nwin);
+        tmp_real = tmp_im = 1e-20f;
+        for (i=2; i < N; i++) {
+          tmp_real += nwin[i]*nwin[i] + nwin[i+1]*nwin[i+1];
+          tmp_im += fwin[i]*fwin[i] + fwin[i+1]*fwin[i+1];
+        }
+        powrat = FL(20.0)*LOG10(tmp_real/tmp_im);
+        if (powrat > dbtresh) p->tscale=0;
+      } else p->tscale=1;
+
+      fwin[N+1] = fwin[1] = 0.0;
+
+      for (i=2,k=1; i < N; i+=2, k++) {
+        double bph, fph, dph;
+        /* freqs */
+        bph = atan2(bwin[i+1],bwin[i]);
+        fph = atan2(fwin[i+1],fwin[i]);
+        /* pdiff, compensate for rotation */
+        dph = fph - bph - rotfac*k;
+        while(dph > PI) dph -= TWOPI;
+        while(dph < -PI) dph += TWOPI;
+        fout[i+1] = (float) (dph*factor + k*fund);
+        /* mags */
+        fout[i] = (float) hypot(fwin[i],fwin[i+1]);
+      }
+
+      p->fout[j]->framecount++;
+    }
+    if (time < 0 || time >= 1 || !*p->konset) {
+      spos += hsize*time;
+    }
+    else if (p->tscale) {
+      spos += hsize*(time/(1+p->accum));
+      p->accum=0.0;
+    }
+    else  {
+      spos += hsize;
+      p->accum++;
+      p->tscale = 1;
+    }
+  end:
+    p->scnt -= hsize;
+    p->pos = spos;
+  }
+  p->scnt += CS_KSMPS;
+  return OK;
+
+}
+
+int32_t pvstanal1(CSOUND *csound, PVST1 *p)
 {
   int32_t hsize = p->fout[0]->overlap, i, k;
   uint32_t j;
@@ -2640,6 +2877,8 @@ static OENTRY localops[] = {
    (SUBR) pvsdiskinproc, NULL},
   {"pvsdiskin.i", sizeof(pvsdiskin),0, 3, "f", "ikkopP",(SUBR) pvsdiskinset,
    (SUBR) pvsdiskinproc, NULL},
+  {"pvstanal", sizeof(PVST1),0, 3, "f", "kkkkPPoooP",
+   (SUBR) pvstanalset1, (SUBR) pvstanal1, NULL},
   {"pvstanal", sizeof(PVST),0, 3, "FFFFFFFFFFFFFFFF", "kkkkPPoooP",
    (SUBR) pvstanalset, (SUBR) pvstanal, NULL},
   {"pvswarp", sizeof(PVSWARP),0, 3, "f", "fkkOPPO",

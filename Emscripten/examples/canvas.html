@@ -84,7 +84,7 @@
 
       function cnvs_play(e) {
         if (started == false) {
-          CSOUND_AUDIO_CONTEXT.resume();
+          CsoundObj.CSOUND_AUDIO_CONTEXT.resume();
           started = true;
         }
         csound.Event("i1 0 -1");
@@ -133,7 +133,7 @@
       function cnvs_tplay(e) {
         e.preventDefault();
         if (started == false) {
-          CSOUND_AUDIO_CONTEXT.resume();
+          CsoundObj.CSOUND_AUDIO_CONTEXT.resume();
           started = true;
         }
         csound.Event("i1 0 -1");

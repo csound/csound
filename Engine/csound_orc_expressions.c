@@ -305,7 +305,6 @@ int is_boolean_expression_node(TREE *node)
 }
 
 //#ifdef JPFF
-
 static TREE *create_cond_expression(CSOUND *csound,
                                     TREE *root, int line, int locn,
                                     TYPE_TABLE* typeTable)
@@ -334,7 +333,6 @@ static TREE *create_cond_expression(CSOUND *csound,
   //printf("types %s %s\n", left, right);
   if (left[0]=='c') left[0] = 'i';
   if (right[0]=='c') right[0] = 'i';
-  //printf("type = %d\n", type);
   last = b;
   while (last->next != NULL) {
     last = last->next;
@@ -404,6 +402,7 @@ static TREE *create_cond_expression(CSOUND *csound,
   //print_tree(csound, "ANSWER\n", b);
   return b;
 }
+
 
 /* static TREE *create_cond_expression(CSOUND *csound, */
 /*                                     TREE *root, int line, int locn, */
@@ -735,6 +734,7 @@ static TREE *create_expression(CSOUND *csound, TREE *root, int line, int locn,
           return NULL;
         }
       }
+
       if (outype == NULL) {
         return NULL;
       }
@@ -1154,8 +1154,7 @@ TREE* expand_statement(CSOUND* csound, TREE* current, TYPE_TABLE* typeTable)
 
       if (previousArg == NULL) {
         current->left = temp;
-      }
-      else {
+      } else {
         previousArg->next = temp;
       }
       temp->next = currentArg->next;
@@ -1231,7 +1230,6 @@ TREE* expand_if_statement(CSOUND* csound,
     TREE *tempLeft;
     TREE *tempRight;
     TREE* last;
-
     TREE *ifBlockCurrent = current;
 
     if (UNLIKELY(PARSER_DEBUG))

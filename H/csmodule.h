@@ -95,6 +95,10 @@ extern "C" {
    */
   int csoundInitModules(CSOUND *csound);
 
+  /** Load and initialise all modules from one directory
+   */
+  int csoundLoadAndInitModules(CSOUND *csound, const char *opdir);
+
   /**
    * Call destructor functions of all loaded modules that have a
    * csoundModuleDestroy symbol, for Csound instance 'csound'.

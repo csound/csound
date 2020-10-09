@@ -350,12 +350,18 @@ int sread(CSOUND *csound)       /*  called from main,  reads from SCOREIN   */
       case 't':
         copypflds(csound);
         break;
+      case 'B':
       case 'b': /* Set a clock base */
         {
           char *old_nxp = (csound->sread.nxp)-2;
           getpfld(csound,0);
-          (csound->sread.clock_base) =
-            stof(csound, (csound->sread.sp));
+          if (csound->sread.op == 'b')
+            (csound->sread.clock_base) =
+              stof(csound, (csound->sread.sp));
+          else
+            (csound->sread.clock_base) +=
+              stof(csound, (csound->sread.sp));
+
           if (csound->oparms->msglevel & TIMEMSG)
             csound->Message(csound,Str("Clockbase = %f\n"),
                             csound->sread.clock_base);
@@ -990,6 +996,7 @@ static int getop(CSOUND *csound)        /* get next legal opcode */
     switch (c) {        /*   and check legality  */
     case 'a':           /* Advance time */
     case 'b':           /* Reset base clock */
+    case 'B':           /* Reset base clock accumulative*/
     case 'd':           /* De-note */
     case 'C':           /* toggle carry flag */
     case 'e':           /* End of all */
@@ -1178,7 +1185,7 @@ static MYFLT read_expression(CSOUND *csound)
           }
           //printf("done ]*** *op=%c v=%lg (%c)\n", *op, *pv, c);
           //getscochar(csound, 1);
-          c = '$'; return *pv;
+          /* c = '$'; */ return *pv;
         case '$':
           break;
         case ' ':               /* Ignore spaces */

@@ -141,8 +141,6 @@ extern "C" {
    */
   void csoundRealFFT2(CSOUND *csound, void *setup, MYFLT *sig);
 
-
-
 #ifdef __cplusplus
 }
 #endif

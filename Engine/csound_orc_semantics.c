@@ -579,20 +579,16 @@ char* get_arg_type2(CSOUND* csound, TREE* tree, TYPE_TABLE* typeTable)
     }
 
     if (var->varType == &CS_VAR_TYPE_ARRAY) {
-      char *res = create_array_arg_type(csound, var);
+        char *res = create_array_arg_type(csound, var);
       if (res==NULL) {        /* **REVIEW** this double syntax error */
         synterr(csound, Str("Array of unknown type\n"));
-        csoundMessage(csound, Str("Line: %d\n"), tree->line);
+        csoundMessage(csound, Str("Line: %d\n"), tree->line-1);
         do_baktrace(csound, tree->locn);
       }
       return res;
     } else {
       return cs_strdup(csound, var->varType->varTypeName);
     }
-
-    //      if (*s == 't') { /* Support legacy t-vars by mapping to k-array */
-    //        return cs_strdup(csound, "[k]");
-    //      }
 
   case T_TYPED_IDENT:
     return cs_strdup(csound, tree->value->optype);
@@ -1663,7 +1659,7 @@ TREE* convert_statement_to_opcall(CSOUND* csound, TREE* root, TYPE_TABLE* typeTa
 
     return root;
   }
-  
+
   // If a function call made it here, such as:
   //  print(1,2,3)
   // then it should just be updated to T_OPCALL and returned
@@ -2738,13 +2734,13 @@ TREE* make_opcall_from_func_start(CSOUND *csound, int line, int locn, int type,
   TREE* firstArg = left->right;
   TREE* first = right;
   TREE* rest = right->next;
-  
+
   right->next = NULL;
-  
+
   TREE* operatorNode = make_node(csound, line, locn, type, firstArg, first);
   operatorNode->next = rest;
   left->right = operatorNode;
-  
+
   return left;
 }
 

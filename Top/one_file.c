@@ -301,7 +301,7 @@ int readOptions(CSOUND *csound, CORFIL *cf, int readingCsOptions)
           top:
             while (*p != '*' && *p != '\0') p++;
             if (*p == '*' && *(p+1)== '/') {
-              p += 2; break;
+              /* p += 2; */ break;
             }
             if (*p=='*') {
               p++; goto top;
