@@ -677,6 +677,11 @@ extern "C" {
   PUBLIC int csoundInitialize(int flags);
 
   /**
+   * Sets an opcodedir override for csoundCreate()
+   */
+  PUBLIC void csoundSetOpcodedir(const char *s);
+
+  /**
    * Creates an instance of Csound.  Returns an opaque pointer that
    * must be passed to most Csound API functions.  The hostData
    * parameter can be NULL, or it can be a pointer to any sort of
@@ -684,6 +689,11 @@ extern "C" {
    * that is passed to callback routines.
    */
   PUBLIC CSOUND *csoundCreate(void *hostData);
+
+  /**
+   *  Loads all plugins from a given directory
+   */
+  PUBLIC int csoundLoadPlugins(CSOUND *csound, const char *dir);
 
   /**
    * Destroys an instance of Csound.
@@ -699,6 +709,8 @@ extern "C" {
    * Returns the API version number times 100 (1.00 = 100).
    */
   PUBLIC int csoundGetAPIVersion(void);
+
+
   /** @}*/
 
   /** @defgroup PERFORMANCE Performance
@@ -2249,6 +2261,9 @@ extern "C" {
 
   /** Signals a conditional variable */
   PUBLIC void csoundCondSignal(void* condVar);
+
+  /** Destroys a conditional variable */
+  PUBLIC void csoundDestroyCondVar(void* condVar);
 
   /**
    * Waits for at least the specified number of milliseconds,

@@ -264,6 +264,18 @@ struct SignalFlowGraphState {
   ~SignalFlowGraphState() {}
   void clear() {
     LockGuard guard(csound, signal_flow_ports_lock);
+
+    for (std::vector<std::vector<std::vector<Outleta *> *> *>::iterator it = aoutletVectors.begin(), end = aoutletVectors.end(); it != end; it++)
+      delete *it;
+    for (std::vector<std::vector<std::vector<Outletk *> *> *>::iterator it = koutletVectors.begin(), end = koutletVectors.end(); it != end; it++)
+      delete *it;
+    for (std::vector<std::vector<std::vector<Outletf *> *> *>::iterator it = foutletVectors.begin(), end = foutletVectors.end(); it != end; it++)
+      delete *it;
+    for (std::vector<std::vector<std::vector<Outletv *> *> *>::iterator it = voutletVectors.begin(), end = voutletVectors.end(); it != end; it++)
+      delete *it;
+    for (std::vector<std::vector<std::vector<Outletkid *> *> *>::iterator it = kidoutletVectors.begin(), end = kidoutletVectors.end(); it != end; it++)
+      delete *it;
+
     aoutletsForSourceOutletIds.clear();
     ainletsForSinkInletIds.clear();
     aoutletVectors.clear();

@@ -32,7 +32,7 @@
 typedef struct _scale {
   OPDS  h;
   MYFLT *koutval;
-  MYFLT *kinval, *kmax, *kmin;
+  MYFLT *kinval, *kmax, *kmin, *imax, *imin;
 } scale;
 
 typedef struct _expcurve {
@@ -58,10 +58,19 @@ typedef struct _gainslider {
 static int32_t scale_process(CSOUND *csound, scale *p)
 {
     IGN(csound);
-    if (*p->kmin != *p->kmax) {
-      *p->koutval = (*p->kinval * (*p->kmax - *p->kmin) + *p->kmin);
+    MYFLT max = *p->imax;
+    MYFLT min = *p->imin;
+    MYFLT kmax = *p->kmax;
+    MYFLT kmin = *p->kmin;
+    if (max>min && /* fmax>=fmin && */ *p->kinval<= max && *p->kinval >= min) {
+      *p->koutval = ((*p->kinval - min)/(max-min))* (kmax - kmin) + kmin;
+    } else {
+      //printf("** input (%g,%g) output (%g,%g) val %g\n",
+      //       min, max, kmin, kmax, *p->kinval);
+      //printf("%d %d %d %d\n",
+      //       max>min, fmax>fmin, *p->kinval<= max, *p->kinval >= min);
+      return csound->InitError(csound, Str("Invalid range in scale"));
     }
-
     return OK;
 }
 
@@ -108,7 +117,7 @@ gainslider_perf(CSOUND *csound, gainslider *p)
 /* opcode library entries */
 
 static OENTRY ugakbari_localops[] = {
-  { "scale", sizeof(scale), 0, 2, "k", "kkk", NULL, (SUBR)scale_process, NULL },
+  { "scale", sizeof(scale), 0, 2, "k", "kkkPO", NULL, (SUBR)scale_process, NULL },
   { "expcurve", sizeof(expcurve), 0, 2, "k", "kk", NULL,
     (SUBR)expcurve_perf, NULL },
   { "logcurve", sizeof(logcurve), 0, 2, "k", "kk", NULL,

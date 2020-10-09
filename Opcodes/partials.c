@@ -203,7 +203,7 @@ static void Analysis(CSOUND * csound, _PARTS * p)
     int32_t numbins = p->numbins, maxtracks = p->mtracks;
     int32_t prev = p->prev, cur = p->cur, foundcont;
     int32_t accum = p->accum, minpoints = (int32_t) (*p->pts > 1 ? *p->pts : 1) - 1;
-    int32_t tracks = p->tracks;
+    int32_t tracks; // = p->tracks;
     double  *mags = (double *) p->mags.auxp;
     double *lmags = (double *) p->lmags.auxp;
     int32_t *cflag = (int32_t *) p->cflag.auxp;
@@ -285,7 +285,7 @@ static void Analysis(CSOUND * csound, _PARTS * p)
     /* loop to the end of tracks (indicate by the 0'd bins)
        find continuation tracks */
 
-    for (j = 0; oldbins[prev + j] != 0.f && j < maxtracks; j++) {
+    for (j = 0; j < maxtracks && oldbins[prev + j] != 0.f; j++) {
 
       foundcont = 0;
 
@@ -456,19 +456,31 @@ static int32_t partials_process(CSOUND * csound, _PARTS * p)
           b = (bins[k] < numbins - 1 ? (fin1[pos + 2] - a) : 0);
           fout[i + 1] = (float) (a + frac * b);
           if (!nophase){
-            float pha = fin2[pos];
+            float pha0 = fin2[pos];
+            float pha1 = bins[k] < numbins - 1 ? fin2[pos + 2] : fin2[pos];
+            float mag0 = fin2[pos - 1];
+            float mag1 = bins[k] < numbins - 1 ? fin2[pos + 1] : fin2[pos - 1];
             /* while (pha >= PI_F)
               pha -= TWOPI_F;
             while (pha < -PI_F)
             pha += TWOPI_F; */
-            fout[i + 2] = pha;  /* phase (truncated) */
+            //fout[i + 2] = pha;  /* phase (truncated) */
+            MYFLT cos0 = mag0*COS(pha0);
+            MYFLT sin0 = mag0*SIN(pha0);
+            MYFLT cos1 = mag1*COS(pha1);
+            MYFLT sin1 = mag1*SIN(pha1);
+            MYFLT re = cos0 + frac*(cos1 - cos0);
+            MYFLT im = sin0 + frac*(sin1 - sin0);
+            fout[i + 2] = atan2(im,re); /* phase (interpolated) */
           }
           else
             fout[i + 2] = 0.f;
           fout[i + 3] = (float) trndx[k];  /* trk IDs */
         }
         else {                 /* empty tracks */
-          fout[i + 3] = trndx[k];
+          // VL: 14.07.20
+          // explicitly set it to -1. to mark it dead
+          fout[i + 3] = -1.f;//trndx[k];
         }
       }
 
@@ -504,9 +516,10 @@ int32_t part2txt_perf(CSOUND *csound, PARTXT *p){
      IGN(csound);
     float *tracks = (float *) p->tracks->frame.auxp;
     int32_t i = 0;
+
     if (p->tracks->framecount > p->lastframe){
-      for (i=0; tracks[i+3] != -1; i+=4){
-        fprintf(p->f, "%f %f %f %d\n",tracks[i],tracks[i+1],
+      for (i=0; tracks[i+3] > 0; i+=4){
+        fprintf(p->f, "%f %f %f %d\n", tracks[i],tracks[i+1],
                 tracks[i+2], (int32_t) tracks[i+3]);
       }
       fprintf(p->f, "-1.0 -1.0 -1.0 -1\n");

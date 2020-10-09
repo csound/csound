@@ -1,6 +1,6 @@
 param
 (
-    [string]$vsGenerator="Visual Studio 16 2019"
+    [string]$vsGenerator = "Visual Studio 16 2019"
 )
 
 # Using a custom triplet due to mixed static and dynamic dependencies
@@ -14,7 +14,6 @@ echo "Build type: $targetTriplet"
 $startTime = (Get-Date).TimeOfDay
 $currentDir = Split-Path $MyInvocation.MyCommand.Path
 $cacheDir = $currentDir + "\cache\"
-$csoundDir = $currentDir + "\.."
 $vcpkgDir = ""
 
 # Find VCPKG from path if it already exists
@@ -24,8 +23,7 @@ $vcpkgDir = ""
 
 # Test if VCPKG is already installed on system
 # Download locally to outside the repo
-if ($systemVCPKG)
-{
+if ($systemVCPKG) {
     echo "vcpkg already installed on system, updating"
     $vcpkgDir = Split-Path -Parent $systemVCPKG
     cd $vcpkgDir
@@ -38,8 +36,7 @@ if ($systemVCPKG)
     vcpkg update # Not really functional it seems yet
     cd $currentDir
 }
-elseif (Test-Path "..\..\vcpkg")
-{
+elseif (Test-Path "..\..\vcpkg") {
     cd ..\..\vcpkg
     $env:Path += ";" + $(Get-Location)
     $vcpkgDir = $(Get-Location)
@@ -54,8 +51,7 @@ elseif (Test-Path "..\..\vcpkg")
     vcpkg update
     cd $currentDir
 }
-else
-{
+else {
     cd ..\..
     echo "vcpkg missing, downloading and installing..."
     git clone --depth 1 http://github.com/Microsoft/vcpkg.git
@@ -89,13 +85,13 @@ if (-not (Test-Path $vcpkgDir/buildtrees/portaudio/src/asiosdk)) {
 }
 
 vcpkg --triplet $targetTriplet install `
-    eigen3 fltk zlib libflac libogg libvorbis libsndfile libsamplerate portmidi portaudio liblo hdf5 dirent libstk fluidsynth `
+    eigen3 fltk zlib libflac libogg libvorbis libsndfile libsamplerate portaudio liblo hdf5 dirent libstk fluidsynth `
     --overlay-triplets=.
 
 echo "Downloading and installing non-VCPKG packages..."
 
-choco install swig -y
-choco upgrade swig -y
+choco install swig -y --version=4.0.1 --allow-downgrade
+choco upgrade swig -y --version=4.0.1 --allow-downgrade
 
 choco install winflexbison -y
 choco upgrade winflexbison -y
@@ -112,15 +108,61 @@ $vcpkgCmake = "$vcpkgDir\scripts\buildsystems\vcpkg.cmake"
 echo "VCPKG script: '$vcpkgCmake'"
 
 cd $currentDir
+
+# TEMPORARILY USE THE FOLLOWING SELF-BUILT PORTMIDI UNTIL VCPKG PROVIDES ONE
+# THAT IS UP TO DATE
+
+$depsDir = $currentDir + "\deps\"
+$stageDir = $currentDir + "\staging\"
+$depsBinDir = $depsDir + "bin\"
+$depsLibDir = $depsDir + "lib\"
+$depsIncDir = $depsDir + "include\"
+
+mkdir cache -ErrorAction SilentlyContinue
+mkdir deps -ErrorAction SilentlyContinue
+mkdir $depsLibDir -ErrorAction SilentlyContinue
+mkdir $depsBinDir -ErrorAction SilentlyContinue
+mkdir $depsIncDir -ErrorAction SilentlyContinue
+mkdir staging -ErrorAction SilentlyContinue
+
+cd $depsDir
+
+if (Test-Path "portmidi") {
+    cd portmidi
+    svn update  
+    cd ..
+    echo "Portmidi already downloaded, updated"
+}
+else {
+    svn checkout "https://svn.code.sf.net/p/portmedia/code" portmidi
+}
+
+cd portmidi\portmidi\trunk
+rm -Path build -Force -Recurse -ErrorAction SilentlyContinue
+mkdir build -ErrorAction SilentlyContinue
+cd build
+cmake .. -G $vsGenerator -DCMAKE_BUILD_TYPE="Release"
+cmake --build . --config Release
+copy .\Release\portmidi.dll -Destination $depsBinDir -Force
+copy .\Release\portmidi.lib -Destination $depsLibDir -Force
+copy .\Release\portmidi_s.lib -Destination $depsLibDir -Force
+copy .\Release\pmjni.dll -Destination $depsBinDir -Force
+copy .\Release\pmjni.lib -Destination $depsLibDir -Force
+copy ..\pm_common\portmidi.h -Destination $depsIncDir -Force
+copy ..\porttime\porttime.h -Destination $depsIncDir -Force
+
+# END CUSTOM PORTMIDI #
+
+cd $currentDir
 mkdir csound-vs -ErrorAction SilentlyContinue
 cd csound-vs -ErrorAction SilentlyContinue
 
 # Default to Release build type. Note: ReleaseWithDebInfo is broken as VCPKG does not currently support this mode properly
-cmake ..\.. -G $vsGenerator `
- -Wno-dev -Wdeprecated `
- -DCMAKE_BUILD_TYPE="Release" `
- -DVCPKG_TARGET_TRIPLET="$targetTriplet" `
- -DCMAKE_TOOLCHAIN_FILE="$vcpkgCmake" `
- -DCMAKE_INSTALL_PREFIX=dist `
- -DCUSTOM_CMAKE="..\Custom-vs.cmake" `
- # -DSTATIC_CRT="ON"
+cmake ..\.. -DBUILD_PYTHON_OPCODES=1 -G $vsGenerator `
+    -Wno-dev -Wdeprecated `
+    -DCMAKE_BUILD_TYPE="Release" `
+    -DVCPKG_TARGET_TRIPLET="$targetTriplet" `
+    -DCMAKE_TOOLCHAIN_FILE="$vcpkgCmake" `
+    -DCMAKE_INSTALL_PREFIX=dist `
+    -DCUSTOM_CMAKE="..\Custom-vs.cmake" `
+

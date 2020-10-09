@@ -1,7 +1,7 @@
 /*
   fftlib.c:
 
-  Copyright 2005 John Green Istvan Varga
+  Copyright 2005 John Green Istvan Varga Victor Lazzarini
 
   FFT library
   based on public domain code by John Green <green_jt@vsdec.npt.nuwc.navy.mil>
@@ -3928,3 +3928,4 @@ void pffft_RealFFT(CSOUND *csound,
 }
 #endif
 #endif
+

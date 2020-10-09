@@ -751,7 +751,7 @@ public:
    */
   void allocate(Csound *csound, int n) {
     size_t bytes = n * sizeof(T);
-    if (auxp == nullptr || size < bytes) {
+    if (auxp == nullptr || size != bytes) {
       csound->AuxAlloc(csound, bytes, (AUXCH *)this);
       std::fill((char *)auxp, (char *)endp, 0);
     }

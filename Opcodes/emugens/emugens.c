@@ -1436,11 +1436,11 @@ tabslice_init(CSOUND *csound, TABSLICE *p) {
     FUNC *ftpsrc, *ftpdst;
     ftpsrc = csound->FTnp2Finde(csound, p->fnsrc);
     if(UNLIKELY(ftpsrc == NULL))
-        return NOTOK;
+        return INITERRF("Source table not found: %d", (int)(*p->fnsrc));
     p->ftpsrc = ftpsrc;
     ftpdst = csound->FTnp2Finde(csound, p->fndst);
     if(UNLIKELY(ftpdst == NULL))
-        return NOTOK;
+        return INITERRF("Destination table not found: %d", (int)(*p->fndst));
     p->ftpdst = ftpdst;
     return OK;
 }
@@ -1466,6 +1466,113 @@ tabslice_k(CSOUND *csound, TABSLICE *p) {
         j += step;
     }
     return OK;
+}
+
+static int32_t
+tabslice_allk(CSOUND *csound, TABSLICE *p) {
+    p->ftpsrc = csound->FTnp2Finde(csound, p->fnsrc);
+    if(UNLIKELY(p->ftpsrc == NULL))
+        return PERFERRF("Source table not found: %d", (int)*p->fnsrc);
+    p->ftpdst = csound->FTnp2Finde(csound, p->fndst);
+    if(UNLIKELY(p->ftpdst == NULL))
+        return PERFERRF("Destination table not found: %d", (int)*p->fnsrc);
+    return tabslice_k(csound, p);
+}
+
+static int32_t
+tabslice_i(CSOUND *csound, TABSLICE *p) {
+    int error = tabslice_init(csound, p);
+    if(error)
+        return NOTOK;
+    return tabslice_k(csound, p);
+    return OK;
+}
+
+/*
+  ftset
+
+  ftset table:k, value:k, startIndex:k=0, endIndex:k=0, step:k=1
+
+  Set elements of table to value
+
+  table      : the table to modify
+  value      : the value to set the table elements to
+  startIndex : the index to start copying
+  endIndex   : the index to end copying. NOT INCLUSIVE
+  step       : how many indices to jump (1=contiguous)
+
+  ftset ift, 0      ; clears the table
+  ftset ift, 1, 10  ; set elements between index 10 and end of the table to 1
+
+*/
+
+typedef struct {
+    OPDS h;
+    MYFLT *tabnum, *value, *kstart, *kend, *kstep;
+    FUNC *tab;
+    int lastTabnum;
+} FTSET;
+
+
+static int32_t
+ftset_init(CSOUND *csound, FTSET *p) {
+    IGN(csound);
+    p->lastTabnum = -1;
+    return OK;
+}
+
+static int32_t
+ftset_common(CSOUND *csound, FTSET *p) {
+    printf("ftset common\n");
+    FUNC *tab = p->tab;
+    MYFLT *data = tab->ftable;
+    int tablen = tab->flen;
+    int32_t start = (int32_t)*p->kstart;
+    int32_t end = (int32_t)*p->kend;
+    int32_t step = (int32_t)*p->kstep;
+    MYFLT value = *p->value;
+
+    if(end <= 0)
+        end += tab->flen;
+    else if(end > tablen)
+        end = tablen;
+
+    if(step == 1 && value == 0) {
+        // special case: clear the table, use memset
+        printf("memset %d \n", end-start);
+        memset(data + start, '\0', sizeof(MYFLT) * (end - start));
+        return OK;
+    }
+
+    for(int i=start; i<end; i+=step) {
+        data[i] = value;
+    }
+    return OK;
+}
+
+static int32_t
+ftset_k(CSOUND *csound, FTSET *p) {
+    int tabnum = (int)(*p->tabnum);
+    FUNC *tab;
+    if(UNLIKELY(tabnum != p->lastTabnum)) {
+        tab = csound->FTnp2Finde(csound, p->tabnum);
+        if(UNLIKELY(tab == NULL))
+            return PERFERRF(Str("Table %d not found"), tabnum);
+        p->tab = tab;
+        p->lastTabnum = tabnum;
+    } else if(UNLIKELY(p->tab == NULL))
+        return PERFERR(Str("Table not set"));
+
+    return ftset_common(csound, p);
+}
+
+static int32_t
+ftset_i(CSOUND *csound, FTSET *p) {
+    FUNC *tab = csound->FTnp2Finde(csound, p->tabnum);
+    if(UNLIKELY(tab == NULL))
+        return INITERRF(Str("Table %d not found"), (int)(*p->tabnum));
+    p->tab = tab;
+    return ftset_common(csound, p);
 }
 
 /*
@@ -1563,6 +1670,20 @@ tab2array_i(CSOUND *csound, TAB2ARRAY *p) {
 
   works with i and k arrays, at i-time and k-time
 
+  1:  if the sizes of the array and the size of the reshaped array do not match
+it needs an error message. Currently it is rather silent.
+
+2: in calculating the sizes if numcols is zero (the default value)
+multiplying by zero always leads to an error.
+
+3:  in numrows is 0 you end up with a 0 x 0 array.
+
+(3, 5)
+
+0   1  2  3  4
+10 11 12 13 14
+20 21 22 23 24
+
 */
 
 typedef struct {
@@ -1577,31 +1698,45 @@ arrayreshape(CSOUND *csound, ARRAYRESHAPE *p) {
     int32_t dims = a->dimensions;
     int32_t i;
     int32_t numitems = 1;
-    int32_t numcols = (int32_t)(*p->numcols);
     int32_t numrows = (int32_t)(*p->numrows);
+    int32_t numcols = (int32_t)(*p->numcols);
+
+    if(numrows < 0 || numcols < 0) {
+        return INITERR(Str("reshapearray: neither numcols nor numrows can be negative"));
+    }
+
+    if(dims > 2) {
+        return INITERR(Str("Arrays of more than 2 dimensions are not supported yet"));
+    }
+
     for(i=0; i<dims; i++) {
         numitems *= a->sizes[i];
     }
-    int32_t numitems2 = numcols*numrows;
+    int32_t numitems2 = numrows * (numcols > 0 ? numcols : 1);
     if(numitems != numitems2)
-        return NOTOK;
-    if(dims == 2 && numrows==0) {
-        // 2 -> 1
-        a->dimensions = 1;
-        a->sizes[0] = numrows;
-        a->sizes[1] = 0;
-        return OK;
-    }
+      return INITERRF(Str("reshapearray: The number of items do not match."
+                          "The array has %d elements, but the new shape"
+                          "results in %d total elements"),
+                      numitems, numitems2);
+
     if(dims == 2) {
-        // 2 -> 2
+        if(numcols==0) {
+            // 2 dims to 1 dim
+            a->dimensions = 1;
+        }
         a->sizes[0] = numrows;
         a->sizes[1] = numcols;
         return OK;
     }
+
+    if(numcols==0) {
+        // 1 dim to 1 dim, nothing to do
+        return OK;
+    }
+
     if(numcols>0) {
-        // 1 -> 2
-        csound->Free(csound, a->sizes);
-        a->sizes = (int32_t*)csound->Malloc(csound, sizeof(int32_t)*2);
+        // 1 dim. to 2 dimensions
+        a->sizes = csound->ReAlloc(csound, a->sizes, sizeof(int32_t)*2);
         a->dimensions = 2;
         a->sizes[0] = numrows;
         a->sizes[1] = numcols;
@@ -1789,7 +1924,7 @@ static int32_t arrprint(CSOUND *csound, ARRAYDAT *arr,
                                      " %s\n", (char*)currline);
                 }
                 charswritten = 0;
-                startidx = i;
+                startidx = i+1;
             }
         }
         if (charswritten > 0) {
@@ -1918,6 +2053,7 @@ ftprint_init(CSOUND *csound, FTPRINT *p) {
         p->numcols = 10;
     p->ftp = csound->FTnp2Finde(csound, p->ifn);
     int32_t trig = (int32_t)*p->ktrig;
+
     if (trig > 0) {
         ftprint_perf(csound, p);
     }
@@ -1942,7 +2078,7 @@ static int handle_negative_idx(uint32_t *out, int32_t idx, uint32_t length) {
 static int32_t
 ftprint_perf(CSOUND *csound, FTPRINT *p) {
     int32_t trig = (int32_t)*p->ktrig;
-    if(trig == 0 || (trig == p->lasttrig))
+    if(trig == 0 || (trig > 0 && trig == p->lasttrig))
         return OK;
     p->lasttrig = trig;
     FUNC *ftp = p->ftp;
@@ -1980,7 +2116,7 @@ ftprint_perf(CSOUND *csound, FTPRINT *p) {
             currline[charswritten++] = '\0';
             csound->MessageS(csound, CSOUNDMSG_ORCH,
                              " %3d: %s\n", startidx, currline);
-            startidx = i;
+            startidx = i+step;
             elemsprinted = 0;
             charswritten = 0;
         }
@@ -2082,37 +2218,75 @@ typedef struct {
     MYFLT *out;
     int extracycles;
     int numcycles;
-    // 0: has extra time, 1: no extrat time, use numcycles
+    // 0 - tied note, has extra time;
+    // 1 - fixed p3, no extra time
+    // 2 - fixed p3, extra time
     int mode;
+    int fired;
 } LASTCYCLE;
 
 static int32_t
 lastcycle_init(CSOUND *csound, LASTCYCLE *p) {
-    p->extracycles = p->h.insdshead->xtratim;
     MYFLT p3 = p->h.insdshead->p3.value;
-    p->numcycles = p3 > 0 ? (int)(p->h.insdshead->offtim * csound->GetKr(csound) + 0.5) : 0;
+    p->numcycles = p3 < 0 ? 0 :
+        (int)(p->h.insdshead->offtim * csound->GetKr(csound) + 0.5);
+    p->extracycles = p->h.insdshead->xtratim;
     if(p->extracycles == 0) {
-        p->numcycles += p->extracycles;
+        p->h.insdshead->xtratim = 1;
+        p->extracycles = 1;
+        MSG(Str("lastcycle: adding an extra cycle to the duration of the event\n"));
     }
-    if(p->extracycles > 0 || p3 < 0)
+    p->numcycles += p->extracycles;
+    if(p3 < 0) {
         p->mode = 0;
-    else
+    }
+    else if (p->extracycles > 0) {
+        p->mode = 2;
+    } else {
+        MSG(Str("lastcycle: no extra time defined, turnoff2 will not be detected\n"));
         p->mode = 1;
+    }
     *p->out = 0;
+    p->fired = 0;
     return OK;
 }
 
 static int32_t
 lastcycle(CSOUND *csound, LASTCYCLE *p) {
     IGN(csound);
-    if(p->mode == 1) {
+    if(p->fired == 1) {
+        // this prevents double firing in the case were a lower instr turns
+        // us off
+        *p->out = 0;
+        return OK;
+    }
+    switch(p->mode) {
+    case 1:
         p->numcycles--;
-        if(p->numcycles == 0)
+        if(p->numcycles == 0) {
             *p->out = 1;
-    } else if (p->h.insdshead->relesing) {
-        p->extracycles -= 1;
-        if(p->extracycles == 0)
+            p->fired = 1;
+        }
+        break;
+    case 2:
+        p->numcycles--;
+        if(p->h.insdshead->relesing) {
+            p->extracycles--;
+        }
+        if(p->numcycles == 0 || p->extracycles == 0) {
             *p->out = 1;
+            p->fired = 1;
+        }
+        break;
+    case 0:
+        if (p->h.insdshead->relesing) {
+            p->extracycles -= 1;
+            if(p->extracycles == 0) {
+                *p->out = 1;
+                p->fired = 1;
+            }
+        }
+        break;
     }
     return OK;
 }
@@ -2244,6 +2418,264 @@ strstrip(CSOUND *csound, STR1_1 *p) {
 
 
 /*
+ * println
+ *
+ * The same as printf but without a trigger
+ *
+ * println Sfmt, xvar1, [xvar2, ...]
+ *
+ * println "foo bar %s: %k,", Skey, kvalue
+ *
+ */
+
+
+typedef struct {
+    OPDS    h;
+    STRINGDAT   *sfmt;
+    MYFLT   *args[64];
+    int allocatedBuf;
+    int newline;
+    int fmtlen;
+    STRINGDAT buf;
+    STRINGDAT strseg;
+    int initDone;
+} PRINTLN;
+
+
+int32_t println_reset(CSOUND *csound, PRINTLN *p) {
+    if(p->buf.data != NULL && p->allocatedBuf) {
+        csound->Free(csound, p->buf.data);
+        p->buf.data = NULL;
+        p->buf.size = 0;
+        p->allocatedBuf = 0;
+    }
+    if(p->strseg.data != NULL) {
+        csound->Free(csound, p->strseg.data);
+        p->strseg.data = NULL;
+        p->strseg.size = 0;
+    }
+    return OK;
+}
+
+int32_t printsk_init(CSOUND *csound, PRINTLN *p) {
+    int32_t bufsize = 2048;
+    int32_t fmtlen = strlen(p->sfmt->data);
+    int32_t numVals = (int32_t)p->INOCOUNT - 1;
+    int32_t maxSegmentSize = fmtlen + numVals*7 + 1;
+
+    // Try to reuse memory from previous instances
+    if(p->buf.size < bufsize || p->strseg.size < maxSegmentSize) {
+        if(p->buf.data == NULL)
+            p->buf.data = csound->Calloc(csound, bufsize);
+        else
+            p->buf.data = csound->ReAlloc(csound, p->buf.data, bufsize);
+        p->buf.size = bufsize;
+        if(p->strseg.data == NULL)
+            p->strseg.data = csound->Malloc(csound, maxSegmentSize);
+        else
+            p->strseg.data = csound->ReAlloc(csound,
+                                             p->strseg.data, maxSegmentSize);
+        p->strseg.size = maxSegmentSize;
+        p->allocatedBuf = 1;
+        csound->RegisterResetCallback(csound, p,
+                                      (int32_t(*)(CSOUND*, void*))(println_reset));
+    } else {
+        p->allocatedBuf = 0;
+    }
+    p->newline = 0;
+    p->fmtlen = fmtlen;
+    p->initDone = 1;
+    return OK;
+}
+
+int32_t println_init(CSOUND *csound, PRINTLN *p) {
+    int ret = printsk_init(csound, p);
+    if(ret != OK)
+        return INITERR(Str("Error while inititalizing println"));
+    p->newline = 1;
+    return OK;
+}
+
+
+// #define IS_AUDIO_ARG(x) (csound->GetTypeForArg(x) == &CS_VAR_TYPE_A)
+#define IS_AUDIO_ARG(x) (!strcmp("a", csound->GetTypeForArg(x)->varTypeName))
+
+// #define IS_STRING_ARG(x) (csound->GetTypeForArg(x) == &CS_VAR_TYPE_S)
+#define IS_STRING_ARG(x) (!strcmp("S", csound->GetTypeForArg(x)->varTypeName))
+
+
+// This is taken from OOps/str_ops.c, with minor modifications to adapt it
+// to plugin API
+// Memory is actually never allocated here
+static int32_t
+sprintf_opcode_(CSOUND *csound,
+                PRINTLN *p,       /* opcode data structure pointer       */
+                STRINGDAT *str,   /* pointer to space for output string  */
+                const char *fmt,  /* format string                       */
+                int fmtlen,       /* length of format string             */
+                MYFLT **kvals,    /* array of argument pointers          */
+                int32_t numVals,      /* number of arguments             */
+                int32_t strCode)      /* bit mask for string arguments   */
+{
+    if(p->initDone == 0)
+        return PERFERRF(Str("Opcode %s not initialized"), p->h.optext->t.opcod);
+    int32_t     len = 0;
+    char *outstring = str->data;
+    MYFLT *parm = NULL;
+    int32_t i = 0, j = 0, n;
+    const char *segwaiting = NULL;
+    int32_t maxChars;
+    int32_t strsegsize = p->strseg.size;
+    char *strseg = p->strseg.data;
+
+    const char *fmtend = fmt+(fmtlen-0);
+
+    for (i = 0; i < numVals; i++) {
+        if(UNLIKELY( IS_AUDIO_ARG(kvals[i])) )
+            return PERFERR(Str("a-rate argument not allowed"));
+    }
+
+    if (UNLIKELY((int32_t) ((OPDS*) p)->optext->t.inArgCount > 31)){
+        return PERFERR(Str("too many arguments"));
+    }
+    if (numVals==0) {
+        strcpy(str->data, fmt);
+        return OK;
+    }
+
+    i = 0;
+
+    while (1) {
+        if (UNLIKELY(i >= strsegsize)) {
+            csound->Warning(csound, "%s", "println: Allocating memory");
+            strsegsize *= 2;
+            p->strseg.data = strseg = csound->ReAlloc(csound, strseg, strsegsize);
+            p->strseg.size = strsegsize;
+        }
+        if (*fmt != '%' && fmt != fmtend && *fmt != '\0') {
+            strseg[i++] = *fmt++;
+            continue;
+        }
+        if (fmt[0] == '%' && fmt[1] == '%') {
+            strseg[i++] = *fmt++;   /* Odd code: %% is usually % and as we
+                                   know the value of *fmt the loads are
+                                   unnecessary */
+            strseg[i++] = *fmt++;
+            continue;
+        }
+
+        /* if already a segment waiting, then lets print it */
+        if (segwaiting != NULL) {
+            maxChars = str->size - len;
+            strseg[i] = '\0';
+            if (UNLIKELY(numVals <= 0)) {
+                return PERFERR(Str("insufficient arguments for format"));
+            }
+            numVals--;
+            strCode >>= 1;
+            parm = kvals[j++];
+
+            switch (*segwaiting) {
+            case 'd':
+            case 'i':
+            case 'o':
+            case 'x':
+            case 'X':
+            case 'u':
+            case 'c':
+                n = sprintf(outstring, strseg, (int32_t) MYFLT2LRND(*parm));
+                break;
+            case 'e':
+            case 'E':
+            case 'f':
+            case 'F':
+            case 'g':
+            case 'G':
+                n = sprintf(outstring, strseg, (double)*parm);
+                break;
+            case 's':
+                if(!IS_STRING_ARG(parm)) {
+                    return PERFERRF(Str("String argument expected, but type is %s"),
+                                    csound->GetTypeForArg(parm)->varTypeName);
+                }
+                if (((STRINGDAT*)parm)->data == str->data) {
+                    return PERFERR(Str("output argument may not be "
+                                       "the same as any of the input args"));
+                }
+                if ((((STRINGDAT*)parm)->size+strlen(strseg)) >= (uint32_t)maxChars) {
+                    int32_t offs = outstring - str->data;
+                    int newsize = str->size  +
+                      ((STRINGDAT*)parm)->size + strlen(strseg);
+                    csound->Warning(csound, "%s",
+                                    Str("println/printsk: Allocating extra "
+                                        "memory for output string"));
+                    str->data = csound->ReAlloc(csound, str->data, newsize);
+                    if(str->data == NULL){
+                        return PERFERR(Str("memory allocation failure"));
+                    }
+                    str->size += ((STRINGDAT*)parm)->size + strlen(strseg);
+                    maxChars += ((STRINGDAT*)parm)->size + strlen(strseg);
+                    outstring = str->data + offs;
+                }
+                n = snprintf(outstring, maxChars, strseg, ((STRINGDAT*)parm)->data);
+                break;
+            default:
+                return PERFERR(Str("invalid format string"));
+            }
+            if (n < 0 || n >= maxChars) {
+                /* safely detected excess string length */
+                int32_t offs = outstring - str->data;
+                csound->Warning(csound, "%s",
+                                Str("Allocating extra memory for output string"));
+                str->data = csound->ReAlloc(csound, str->data, maxChars*2);
+                if (str->data == NULL)
+                    return PERFERR(Str("memory allocation failure"));
+                outstring = str->data + offs;
+                str->size = maxChars*2;
+            }
+            outstring += n;
+            len += n;
+            i = 0;
+        }
+        if (*fmt == '\0' || fmt == fmtend)
+            break;
+
+        /* copy the '%' */
+        strseg[i++] = *fmt++;
+        /* find the format code */
+        segwaiting = fmt;
+
+        while (!isalpha(*segwaiting) && segwaiting != fmtend && *segwaiting != '\0')
+            segwaiting++;
+    }
+    if (UNLIKELY(numVals > 0)) {
+        return PERFERR(Str("too many arguments for format"));
+    }
+    return OK;
+}
+
+int32_t println_perf(CSOUND *csound, PRINTLN *p) {
+    int32_t err = sprintf_opcode_(csound, p, &p->buf,
+                                  (char*)p->sfmt->data, p->fmtlen,
+                                  &(p->args[0]), (int32_t)p->INOCOUNT - 1, 0);
+    if(err!=OK)
+        return NOTOK;
+    csound->MessageS(csound, CSOUNDMSG_ORCH, "%s\n", p->buf.data);
+    return OK;
+}
+
+int32_t printsk_perf(CSOUND *csound, PRINTLN *p) {
+    int32_t err = sprintf_opcode_(csound, p, &p->buf,
+                                  (char*)p->sfmt->data, p->fmtlen,
+                                  &(p->args[0]), (int32_t)p->INOCOUNT - 1, 0);
+    if(err!=OK)
+        return NOTOK;
+    csound->MessageS(csound, CSOUNDMSG_ORCH, "%s", p->buf.data);
+    return OK;
+}
+
+
+/*
 
    Input types:
 
@@ -2332,7 +2764,8 @@ static OENTRY localops[] = {
       NULL, (SUBR)bpfcos_arrpoints2 },
     { "bpfcos", S(BPFARRPOINTS2), 0, 2, "kk", "ki[]i[]i[]",
       NULL, (SUBR)bpfcos_arrpoints2 },
-    { "bpfcos", S(BPFARRPOINTS2), 0, 1, "ii", "ii[]i[]i[]", (SUBR)bpfcos_arrpoints2 },
+    { "bpfcos", S(BPFARRPOINTS2), 0, 1, "ii", "ii[]i[]i[]",
+      (SUBR)bpfcos_arrpoints2 },
 
 
     { "ntom", S(NTOM), 0, 3, "k", "S", (SUBR)ntom, (SUBR)ntom },
@@ -2367,13 +2800,23 @@ static OENTRY localops[] = {
 
     // { "reshapearray", S(ARRAYRESHAPE), 0, 1, "", "i[]io", (SUBR)arrayreshape},
  // { "reshapearray", S(ARRAYRESHAPE), 0, 2, "", ".[]io", NULL, (SUBR)arrayreshape},
-    { "ftslice", S(TABSLICE),  TB, 3, "", "iiOOP",
+    { "ftslicei", S(TABSLICE), TB, 1, "", "iioop",
+      (SUBR)tabslice_i },
+
+    { "ftslice.perf", S(TABSLICE),  TB, 3, "", "iiOOP",
       (SUBR)tabslice_init, (SUBR)tabslice_k},
+
+    { "ftslice.onlyperf", S(TABSLICE),  TB, 2, "", "kkOOP",
+      NULL, (SUBR)tabslice_allk},
+
+    { "ftset.i", S(FTSET), TW, 1, "", "iioop", (SUBR)ftset_i },
+    { "ftset.k", S(FTSET), TW, 3, "", "kkOOP", (SUBR)ftset_init, (SUBR)ftset_k },
+
     { "tab2array", S(TAB2ARRAY), TR, 3, "k[]", "iOOP",
       (SUBR)tab2array_init, (SUBR)tab2array_k},
     { "tab2array", S(TAB2ARRAY), TR, 1, "i[]", "ioop", (SUBR)tab2array_i},
 
-    { "printarray", S(ARRAYPRINTK), 0, 3, "", "k[]P",
+    { "printarray", S(ARRAYPRINTK), 0, 3, "", "k[]J",
       (SUBR)arrayprint_init, (SUBR)arrayprint_perf},
     { "printarray", S(ARRAYPRINTK), 0, 3, "", "k[]kS",
       (SUBR)arrayprint_init, (SUBR)arrayprint_perf},
@@ -2403,8 +2846,11 @@ static OENTRY localops[] = {
     { "lastcycle", S(LASTCYCLE), 0, 3, "k", "",
       (SUBR)lastcycle_init, (SUBR)lastcycle},
     { "strstrip.i_side", S(STR1_1), 0, 1, "S", "SS", (SUBR)stripside},
-    { "strstrip.i", S(STR1_1), 0, 1, "S", "S", (SUBR)strstrip}
-
+    { "strstrip.i", S(STR1_1), 0, 1, "S", "S", (SUBR)strstrip},
+    { "println", S(PRINTLN), 0, 3, "", "SN",
+      (SUBR)println_init, (SUBR)println_perf},
+    { "printsk", S(PRINTLN), 0, 3, "", "SN",
+      (SUBR)printsk_init, (SUBR)printsk_perf}
 };
 
 LINKAGE

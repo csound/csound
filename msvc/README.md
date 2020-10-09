@@ -10,8 +10,8 @@ Once the solution file is produced, CMake will automatically rebuild the project
     * Needs to have C++ tools installed, which isn't the detault
     * <https://www.visualstudio.com/thank-you-downloading-visual-studio/?sku=Community&rel=15>
     * In the installer, in the "Individual components" section. You should install "Python 2 64 bit" (easy way to install Python if not already on system), "VC++ 2019 toolset", "Windows Universal CRT SDK", "Windows 10 SDK"
-2. CMake version 3.6.0 or higher
-    * <https://cmake.org/files/v3.8/cmake-3.8.0-rc4-win64-x64.msi>
+2. CMake version 3.18.0 or higher
+    * <https://cmake.org/download>
     * Ensure Cmake is available on the Windows path
 3. Git latest version
     * <https://git-scm.com/download/win>
@@ -57,34 +57,8 @@ The official instructions are here: <https://github.com/Microsoft/vcpkg>. The lo
 4. Once this script has finished, the Visual Studio solution file will be produced and located in "Csound\msvc\csound-vs" folder.
 5. Open this solution file in Visual Studio and build as normal. Execute "Build Solution" or "Build" the "ALLBUILD" project to build everything.
 
-Alternatively, execute a batch file to do all of the above. `build.bat` should build Csound (but not CsoundQt or the Csound installer) using MSVS 2017; `build2015.bat` should build using MSVS 2015.
+Alternatively, execute a batch file to do all of the above. `build.bat` should build Csound (but not Csound installer) using MSVS 2019.
 
-### Csound QT build
-
-If you want to build CsoundQt in addition to Csound and then compile the Windows installer, you can adapt the following batch file, which emulates the complete AppVeyor build:
-
-```batch
-@echo off
-echo Must call vcvars64.bat first!
-set CSOUND_HOME=D:\\msys64\\home\\restore\\csound\\
-set PYTHON=C:\Program_Files\Anaconda2\python.exe
-set APPVEYOR_BUILD_FOLDER=D:\\msys64\\home\\restore\\csound\\
-set VCREDIST_CRT_DIR=%VCINSTALLDIR%\\Redist\\x64\\Microsoft.VC140.CRT
-set VCREDIST_CXXAMP_DIR=%VCINSTALLDIR%\\Redist\\x64\\Microsoft.VC140.CXXAMP
-set VCREDIST_OPENMP_DIR=%VCINSTALLDIR%\\Redist\\x64\\Microsoft.VC140.OpenMP
-set HDF5_HOME=C:\\Program Files\\HDF_Group\\HDF5\\1.8.19
-powershell -ExecutionPolicy ByPass -File downloadDependencies.ps1 -vsGenerator "Visual Studio 14 2015 Win64" -vsToolset "v140_xp"
-rem powershell -ExecutionPolicy ByPass -File generateProject.ps1 -vsGenerator "Visual Studio 14 2015 Win64" -vsToolset "v140_xp"
-powershell -ExecutionPolicy ByPass -File generateProject.ps1 -vsGenerator "Visual Studio 14 2015 Win64" -vsToolset "v140_xp"
-cmake --build csound-vs --config Release
-call build_csoundqt.bat
-cd %APPVEYOR_BUILD_FOLDER%\\frontends\\nwjs
-call C:\Program_Files\nodejs\nodevars.bat
-call nw-gyp rebuild --target=0.23.5 --arch=x64 --msvs_version=2015
-cd %APPVEYOR_BUILD_FOLDER%\\msvc
-rem "C:\Program Files (x86)\Inno Setup 5\iscc.exe" /o. /dQtSdkBinDir="C:\\Qt\\Qt5.9.1\\5.9.1\\msvc2015_64\\bin\\" /dVcpkgInstalledBinDir="D:\\msys64\\home\\restore\\vcpkg\\installed\\x64-windows\\bin\\"  "..\installer\windows\csound6_x64_appveyor.iss"
-"C:\Program Files (x86)\Inno Setup 5\iscc.exe" /o. /dQtSdkBinDir="C:\\Qt\\Qt5.9.1\\5.9.1\\msvc2015_64\\bin\\" /dVcpkgInstalledBinDir="D:\\msys64\\home\\restore\\vcpkg\\installed\\x64-windows\\bin\\" /dInstallCsoundVst "..\installer\windows\csound6_x64_appveyor.iss"
-```
 
 ## Development workflow
 

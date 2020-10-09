@@ -21,7 +21,6 @@ cmake ../.. -G "MSYS Makefiles" \
 -DCMAKE_BUILD_TYPE=RelWithDebInfo \
 -DCMAKE_VERBOSE_MAKEFILE=1 \
 -DMUSICXML_LIBRARY:FILEPATH=/mingw64/bin/libmusicxml2.dll \
--DNEED_PORTTIME=1 \
 -DPTHREAD_LIBRARY:FILEPATH=/mingw64/x86_64-w64-mingw32/lib/libpthread.a \
 -DTCL_VERSION=8.5 \
 -DUSE_CURL=0 \

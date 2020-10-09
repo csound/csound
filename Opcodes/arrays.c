@@ -2683,7 +2683,8 @@ static int32_t trim_i(CSOUND *csound, TRIM *p)
 static int32_t trim(CSOUND *csound, TRIM *p)
 {
     int size = (int)(*p->size);
-    tabcheck(csound, p->tab, size, &(p->h));
+    int n = tabcheck(csound, p->tab, size, &(p->h));
+    if (n != OK) return n;
     p->tab->sizes[0] = size;
     return OK;
 }
@@ -3598,10 +3599,13 @@ int32_t set_cols_perf(CSOUND *csound, FFT *p) {
     if (UNLIKELY(start < 0 || start >= p->out->sizes[1]))
       return csound->PerfError(csound, &(p->h),
                                  Str("Error: index out of range\n"));
+    if (UNLIKELY(p->in->dimensions != 1 || p->in->sizes[0]<p->out->sizes[0]))
+      return csound->PerfError(csound, &(p->h),
+                                 Str("Error: New column too short\n"));
 
 
     int32_t j,i,len =  p->out->sizes[0];
-    for (j=0,i=start; j < len; i+=len, j++)
+    for (j=0,i=start; j < len; i+=len+1, j++)
         p->out->data[i] = p->in->data[j];
     return OK;
 }
@@ -3612,8 +3616,11 @@ int32_t set_cols_i(CSOUND *csound, FFT *p) {
     if (UNLIKELY(start < 0 || start >= p->out->sizes[1]))
         return csound->InitError(csound, "%s",
                                  Str("Error: index out of range\n"));
+    if (UNLIKELY(p->in->dimensions != 1 || p->in->sizes[0]<p->out->sizes[0]))
+      return csound->InitError(csound, "%s",
+                                 Str("Error: New column too short\n"));
     int32_t j,i,len =  p->out->sizes[0];
-    for (j=0,i=start; j < len; i+=len, j++)
+    for (j=0,i=start; j < len; i+=len+1, j++)
         p->out->data[i] = p->in->data[j];
     return OK;
 }
@@ -3968,7 +3975,41 @@ int32_t deinterleave_perf (CSOUND *csound, INTERL *p) {
     return OK;
 }
 
+static int32 taninv2_A(CSOUND* csound, TABARITH* p)
+{
+    ARRAYDAT* ans = p->ans;
+    ARRAYDAT* aa = p->left;
+    ARRAYDAT* bb = p->right;
+    int i, j, k;
+    if (csound->mode == 1 && tabarithset(csound, p)!=OK)
+                             return NOTOK;
+    k = 0;
+    for (i=0; i<ans->dimensions; i++) {
+      for (j=0; j<aa->sizes[i]; j++) {
+        ans->data[k] = ATAN2(aa->data[k], bb->data[k]);
+        k++;
+      }
+    }
+    return OK;
+}
 
+static int32 taninv2_Aa(CSOUND* csound, TABARITH* p)
+{
+    ARRAYDAT* ans = p->ans;
+    ARRAYDAT* aa = p->left;
+    ARRAYDAT* bb = p->right;
+    int i, j, k;
+    uint32_t m;
+    k = 0;
+    for (i=0; i<ans->dimensions; i++) {
+      for (j=0; j<aa->sizes[i]; j++)
+        for (m=0; m<csound->ksmps; m++) {
+          ans->data[k] = ATAN2(aa->data[k], bb->data[k]);
+          k++;
+        }
+    }
+    return OK;
+}
 
 
 // reverse, scramble, mirror, stutter, rotate, ...
@@ -3978,7 +4019,10 @@ int32_t deinterleave_perf (CSOUND *csound, INTERL *p) {
 static OENTRY arrayvars_localops[] =
   {
     { "nxtpow2", sizeof(INOUT), 0, 1, "i", "i", (SUBR)nxtpow2},
-    { "init.0", sizeof(ARRAYINIT), 0, 1, ".[]", "m", (SUBR)array_init },
+    { "init.i", sizeof(ARRAYINIT), 0, 1, "i[]", "m", (SUBR)array_init },
+    { "init.k", sizeof(ARRAYINIT), 0, 1, "k[]", "m", (SUBR)array_init },
+    { "init.a", sizeof(ARRAYINIT), 0, 1, "a[]", "m", (SUBR)array_init },
+    { "init.S", sizeof(ARRAYINIT), 0, 1, "S[]", "m", (SUBR)array_init },
     { "fillarray.k", sizeof(TABFILL), 0, 1, "k[]", "m", (SUBR)tabfill },
     { "fillarray.i", sizeof(TABFILL), 0, 1, "i[]", "m", (SUBR)tabfill },
     { "fillarray.s", sizeof(TABFILL), 0, 1, "S[]", "W", (SUBR)tabfill },
@@ -4029,7 +4073,7 @@ static OENTRY arrayvars_localops[] =
      (SUBR)tabarithset,(SUBR)tabdiv },
     {"##div.[i]",  sizeof(TABARITH), 0, 1, "i[]", "i[]i[]",
      (SUBR)tabdivi },
-    {"##rems.[]",  sizeof(TABARITH), 0, 3, "k[]", "k[]k[]",
+    {"##reb<ms.[]",  sizeof(TABARITH), 0, 3, "k[]", "k[]k[]",
      (SUBR)tabarithset, (SUBR)tabrem},
     {"##rem.[i]",  sizeof(TABARITH), 0, 1, "i[]", "i[]i[]", (SUBR)tabremi},
     {"##add.[i", sizeof(TABARITH1), 0, 3, "k[]", "k[]i",
@@ -4344,7 +4388,10 @@ static OENTRY arrayvars_localops[] =
     {"deinterleave", sizeof(INTERL), 0, 1, "i[]i[]","i[]",
      (SUBR)deinterleave_i},
     {"deinterleave", sizeof(INTERL), 0, 1, "k[]k[]","k[]",
-     (SUBR)deinterleave_i, (SUBR)deinterleave_perf}
+     (SUBR)deinterleave_i, (SUBR)deinterleave_perf},
+    { "taninv2.Ai", sizeof(TABARITH), 0, 1, "i[]", "i[]i[]", (SUBR)taninv2_A  },
+    { "taninv2.Ak", sizeof(TABARITH), 0, 2, "k[]", "k[]k[]", (SUBR)tabarithset, (SUBR)taninv2_A  },
+    { "taninv2.Aa", sizeof(TABARITH), 0, 2, "a[]", "a[]a[]", (SUBR)tabarithset, (SUBR)taninv2_Aa  }
   };
 
 LINKAGE_BUILTIN(arrayvars_localops)

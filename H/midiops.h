@@ -175,5 +175,45 @@ typedef struct {
   int     local_buf_index;
 } MIDIARP;
 
+typedef struct {
+  OPDS    h;
+  ARRAYDAT *arr;
+  MYFLT   *chnl, *ctrls[64];
+  MYFLT   *ivals;
+  int16   nargs;
+} SAVECTRL;
 
+typedef struct {
+  OPDS    h;
+  ARRAYDAT *arr;
+  STRINGDAT *file;
+  FILE    *fout;
+} PRINTCTRL;
+
+typedef struct {
+  int           max_num;
+  int           **presets;
+} PRESET_GLOB;
+
+typedef struct {
+  OPDS    h;
+  MYFLT   *inum;
+  MYFLT   *itag;
+  MYFLT   *chnl, *ctrls[64];
+  MYFLT   *ivals;
+  int16   nargs;
+  PRESET_GLOB *q;
+} PRESETCTRL;
+
+typedef struct {
+  OPDS    h;
+  MYFLT   *inum;
+  PRESET_GLOB *q;
+} SELECTCTRL;
+
+typedef struct {
+  OPDS    h;
+  STRINGDAT *file;
+  FILE    *fout;
+} PRINTPRESETS;
 #endif

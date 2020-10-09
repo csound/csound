@@ -1,18 +1,23 @@
 /* Scanned Synthesis Opcodes:
-   scansyn.c, scansyn.csd, scansyn.h and related files
-   are Copyright, 1999 by Interval Research.
-   Coded by Paris Smaragdis
-   From an algorithm by Bill Verplank, Max Mathews and Rob Shaw
+   Copyright, 1999 Paris Smaragdis
+   An extended system from an algorithm by Bill Verplank, Max Mathews and Rob Shaw
 
-   Permission to use, copy, or modify these programs and their documentation
-   for educational and research purposes only and without fee is hereby
-   granted, provided that this copyright and permission notice appear on all
-   copies and supporting documentation. For any other uses of this software,
-   in original or modified form, including but not limited to distribution in
-   whole or in part, specific prior permission from Interval Research must be
-   obtained. Interval Research makes no representations about the suitability
-   of this software for any purpose. It is provided "as is" without express or
-   implied warranty.
+    This file is part of Csound.
+
+    The Csound Library is free software; you can redistribute it
+    and/or modify it under the terms of the GNU Lesser General Public
+    License as published by the Free Software Foundation; either
+    version 2.1 of the License, or (at your option) any later version.
+
+    Csound is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU Lesser General Public License for more details.
+
+    You should have received a copy of the GNU Lesser General Public
+    License along with Csound; if not, write to the Free Software
+    Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
+    02110-1301 USA
 */
 
 #include "csdl.h"

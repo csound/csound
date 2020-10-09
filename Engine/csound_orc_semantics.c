@@ -578,11 +578,18 @@ char* get_arg_type2(CSOUND* csound, TREE* tree, TYPE_TABLE* typeTable)
       return NULL;
     }
 
+<<<<<<< HEAD
     if (var->varType == &CS_VAR_TYPE_ARRAY) {
       char *res = create_array_arg_type(csound, var);
       if (res==NULL) {        /* **REVIEW** this double syntax error */
         synterr(csound, Str("Array of unknown type\n"));
         csoundMessage(csound, Str("Line: %d\n"), tree->line);
+=======
+      if (UNLIKELY(var == NULL)) {
+        synterr(csound, Str("Variable '%s' used before defined\n"
+                            "Line %d\n"),
+                tree->value->lexeme, tree->line-1); /* -1 as read next line! */
+>>>>>>> origin/develop
         do_baktrace(csound, tree->locn);
       }
       return res;
@@ -590,9 +597,23 @@ char* get_arg_type2(CSOUND* csound, TREE* tree, TYPE_TABLE* typeTable)
       return cs_strdup(csound, var->varType->varTypeName);
     }
 
+<<<<<<< HEAD
     //      if (*s == 't') { /* Support legacy t-vars by mapping to k-array */
     //        return cs_strdup(csound, "[k]");
     //      }
+=======
+      if (var->varType == &CS_VAR_TYPE_ARRAY) {
+        char *res = create_array_arg_type(csound, var);
+        if (res==NULL) {        /* **REVIEW** this double syntax error */
+          synterr(csound, Str("Array of unknown type\n"));
+          csoundMessage(csound, Str("Line: %d\n"), tree->line-1);
+          do_baktrace(csound, tree->locn);
+        }
+        return res;
+      } else {
+        return cs_strdup(csound, var->varType->varTypeName);
+      }
+>>>>>>> origin/develop
 
   case T_TYPED_IDENT:
     return cs_strdup(csound, tree->value->optype);

@@ -18,7 +18,7 @@ top-level sources
 ```
 $ cp Bela/Custom.cmake.bela Custom.cmake
 $ mkdir build && cd build
-$ cmake .. -DBUILD_BELA=1 -DUSE_DOUBLE=0
+$ cmake .. -DBUILD_BELA=1 -DUSE_DOUBLE=0 -DCMAKE_BUILD_TYPE=Release
 $ make && make install
 $ sudo ldconfig
 ```
@@ -46,7 +46,7 @@ libsndfile1-dev:armhf libasound-dev:armhf and possibly other things.
 
 ```
 $ cmake -DCMAKE_TOOLCHAIN_FILE=../Bela/crosscompile.cmake \
-      -DUSE_DOUBLE=0 -DBUILD_BELA=1 ..
+      -DUSE_DOUBLE=0 -DBUILD_BELA=1 -DCMAKE_BUILD_TYPE=Release ..
 $ make
 $ make install
 ```

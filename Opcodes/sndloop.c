@@ -306,6 +306,9 @@ static int32_t flooper_init(CSOUND *csound, flooper *p)
     int32 len, i, nchnls;
 
     p->sfunc = csound->FTnp2Finde(csound, p->ifn) ;  /* function table */
+    if (UNLIKELY(p->sfunc==NULL)) {
+      return csound->InitError(csound,Str("function table not found\n"));
+    }
     cfds = (int32) (*(p->cfd)*p->sfunc->gen01args.sample_rate);
     starts = (int32) (*(p->start)*p->sfunc->gen01args.sample_rate);
     durs = (int32)  (*(p->dur)*p->sfunc->gen01args.sample_rate);
@@ -314,10 +317,6 @@ static int32_t flooper_init(CSOUND *csound, flooper *p)
       return csound->InitError(csound,
                                Str("crossfade longer than loop duration\n"));
 
-    inc =  FL(1.0)/cfds;    /* inc/dec */
-    if (UNLIKELY(p->sfunc==NULL)) {
-      return csound->InitError(csound,Str("function table not found\n"));
-    }
     tab = p->sfunc->ftable,  /* func table pointer */
     len = p->sfunc->flen;    /* function table length */
     nchnls = p->sfunc->nchanls;
@@ -338,7 +337,7 @@ static int32_t flooper_init(CSOUND *csound, flooper *p)
         p->buffer.size<(durs+1)*sizeof(MYFLT)*nchnls)
       csound->AuxAlloc(csound,(durs+1)*sizeof(MYFLT)*nchnls, &p->buffer);
 
-    inc = (MYFLT)1/cfds;       /* fade envelope incr/decr */
+    inc = FL(1.0)/cfds;       /* fade envelope incr/decr */
     buffer = p->buffer.auxp;   /* loop memory */
 
     /* we now write the loop into memory */

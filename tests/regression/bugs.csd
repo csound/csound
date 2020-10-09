@@ -14,7 +14,7 @@ asig        vibes        .8, 440, .5, p4 , 1, p5, .7, 2, .1
             ii           taninv2  1,2
             print        ii
             prints       p6
-            prints       p7
+            prints       "%s\n", p7
 endin
 
 </CsInstruments>
@@ -23,7 +23,7 @@ endin
 ; Table #1, the "marmstk1.wav" audio file.
 f 1 0 256 1 "marmstk1.wav" 0 0 0
 f 2 0 4096 10 1
-i "baz" 0 1 0.561 0.1 "foo" "bar"
+i "baz" 0 1 0.561 0.1 "foo\n" "bar"
 e
 </CsScore>
 

@@ -9,7 +9,7 @@ set(stdutil_SRCS
     SDIF/sdif.c)
 
 if(MSVC)
-    set(LIBSNDFILE_LIBRARY sndfile-static)
+    set(LIBSNDFILE_LIBRARY SndFile::sndfile)
 endif()
 
 make_plugin(stdutil "${stdutil_SRCS}" ${MATH_LIBRARY} ${LIBSNDFILE_LIBRARY} ${LIBSNDFILE_SUPPORT_LIBS})

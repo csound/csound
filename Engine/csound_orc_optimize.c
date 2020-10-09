@@ -130,6 +130,7 @@ static inline int same_type(char *var, char ty)
     else return var[0]==ty;
 }
 
+
 /* Called directly from the parser; constant fold and some alebraic identities */
 TREE* constant_fold(CSOUND *csound, TREE* root)
 {

@@ -224,7 +224,7 @@ static int32_t hrtferxk(CSOUND *csound, HRTFER *p)
         /* now get to first value of requested azimuth */
     if (az_index == 0) {
    /* csound->Message(csound, "in az_index == 0\n"); */
-      numskip = 0;
+      //numskip = 0;
     }
     else {
       for (i=0, numskip=0; i<az_index; i++)

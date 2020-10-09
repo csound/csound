@@ -154,7 +154,7 @@ static int32_t nlfilt2(CSOUND *csound, NLFILT *p)
     MYFLT   *ar;
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
-    uint32_t n, nsmps = CS_KSMPS;
+    uint32_t    n, nsmps;
     int32_t     point = p->point;
     int32_t     nm1 = point;
     int32_t     nm2 = point - 1;

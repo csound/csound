@@ -320,6 +320,7 @@ static TREE *create_cond_expression(CSOUND *csound,
   char *left, *right;
   int type;
   TREE *xx;
+  char *eq;
 
   typeTable->labelList =
     cs_cons(csound,
@@ -334,11 +335,11 @@ static TREE *create_cond_expression(CSOUND *csound,
   //printf("types %s %s\n", left, right);
   if (left[0]=='c') left[0] = 'i';
   if (right[0]=='c') right[0] = 'i';
-  //printf("type = %d\n", type);
   last = b;
   while (last->next != NULL) {
     last = last->next;
   }
+
   type =
     (left[0]=='k' || right[0]=='k' || last->left->value->lexeme[1]=='B') ?2 : 1;
   if (type==2) left[0] = right[0] = 'k';
@@ -381,13 +382,13 @@ static TREE *create_cond_expression(CSOUND *csound,
   while (last->next != NULL) last = last->next;
   //Last is now last assignment
   //print_tree(csound, "\n\nlast assignment\n", last);
-
-  last->next = create_simple_goto_token(csound, L2, type);
+  last->next = create_simple_goto_token(csound, L2, type==2?0:type);
   //print_tree(csound, "\n\nafter goto\n", b);
   while (last->next != NULL) last = last->next;
   last->next = create_synthetic_label(csound,ln1);
   while (last->next != NULL) last = last->next;
   //print_tree(csound, "\n\nafter label\n", b);
+
   last->next = c;
   while (last->next != NULL) last = last->next;
   //print_tree(csound, "n\nAfter c\n", b);
@@ -395,7 +396,8 @@ static TREE *create_cond_expression(CSOUND *csound,
   last->next = create_synthetic_label(csound,ln2);
   //print_tree(csound, "\n\nafter secondlabel\n", b);
   while (last->next != NULL) last = last->next;
-  last->next = create_opcode_token(csound, cs_strdup(csound,"="));
+  last->next = create_opcode_token(csound, cs_strdup(csound, eq));
+
   //print_tree(csound, "\n\nafter secondlabel\n", b);
   last->next->left = create_ans_token(csound, right);
   last->next->right = create_ans_token(csound, right);
@@ -540,7 +542,6 @@ static TREE *create_expression(CSOUND *csound, TREE *root, int line, int locn,
 
   }
   root->left = newArgList;
-
   current = root->right;
   newArgList = NULL;
   while (current != NULL) {
@@ -1155,6 +1156,7 @@ TREE* expand_statement(CSOUND* csound, TREE* current, TYPE_TABLE* typeTable)
       if (previousArg == NULL) {
         current->left = temp;
       }
+
       else {
         previousArg->next = temp;
       }
@@ -1174,6 +1176,7 @@ TREE* expand_statement(CSOUND* csound, TREE* current, TYPE_TABLE* typeTable)
       anchor = appendToTree(csound, anchor, arraySet);
       //print_tree(csound, "anchor", anchor);
       currentArg = temp;
+      csound->Free(csound, leftArgType);
     }
     previousArg = currentArg;
     currentArg = currentArg->next;

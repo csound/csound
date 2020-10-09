@@ -100,7 +100,6 @@ PUBLIC int csoundModuleInit(CSOUND *csound)
           csound->SetKillGraphCallback(csound, KillGraph_FLTK);
           csound->SetExitGraphCallback(csound, ExitGraph_FLTK);
            /* seemed to crash, but not anymore... */
-          csound->RegisterResetCallback(csound, NULL, widget_reset);
           csound->Message(csound, "graph init...\n");
 
         }
@@ -141,7 +140,9 @@ PUBLIC int csoundModuleInit(CSOUND *csound)
       }
     }
 
+    csound->RegisterResetCallback(csound, NULL, widget_reset);
     widget_init(csound);
+
     return 0;
 }
 

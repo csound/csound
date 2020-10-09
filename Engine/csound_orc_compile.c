@@ -540,7 +540,8 @@ INSTRTXT *create_instrument0(CSOUND *csound, TREE *root,
   OPTXT *op;
   TREE *current;
   MYFLT sr = FL(-1.0), kr = FL(-1.0), ksmps = FL(-1.0), nchnls = DFLT_NCHNLS,
-    inchnls = FL(0.0), _0dbfs = FL(-1.0);
+        inchnls = -FL(1.0), _0dbfs = FL(-1.0);
+
   int krdef = 0; //, ksmpsdef = 0, srdef = 0;
   double A4 = 0.0;
   CS_TYPE *rType = (CS_TYPE *)&CS_VAR_TYPE_R;
@@ -628,6 +629,8 @@ INSTRTXT *create_instrument0(CSOUND *csound, TREE *root,
         }
         else if (strcmp("nchnls_i", current->left->value->lexeme) == 0) {
           uval = (val<=0 ? 1u : (unsigned int)val);
+        } else if (current->left->type == NCHNLSI_TOKEN) {
+          uval = (val < 0 ? 1u : (unsigned int)val);
           inchnls = uval;
         }
         else if (strcmp("0dbfs", current->left->value->lexeme) == 0) {
@@ -691,7 +694,7 @@ INSTRTXT *create_instrument0(CSOUND *csound, TREE *root,
 
   csound->ksmps = ksmps;
   csound->nchnls = nchnls;
-  if (inchnls == 0)
+  if (inchnls < 0)
     csound->inchnls = nchnls;
   else
     csound->inchnls = inchnls;
@@ -2376,4 +2379,3 @@ int query_reversewrite_opcode(CSOUND *csound, ORCTOKEN *o) {
   OENTRY *ep = find_opcode(csound, name);
   return (ep->flags & WI);
 }
-

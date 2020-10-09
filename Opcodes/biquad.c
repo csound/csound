@@ -291,7 +291,7 @@ static int32_t rezzy(CSOUND *csound, REZZY *p)
             }
           }
           else {
-            pi = 0;
+            //pi = 0;
             p0=(sqrt(disc)-b1)/2.0;
             p1=(-sqrt(disc)-b1)/2.0;
             if (p0*p0>=1.0 || p1*p1>=1) {
@@ -341,7 +341,7 @@ static int32_t rezzy(CSOUND *csound, REZZY *p)
               }
             }
             else {
-              pi = 0;
+              //pi = 0;
               p0=(sqrt(disc)-b1)/2.0;
               p1=(-sqrt(disc)-b1)/2.0;
               if (p0*p0>=1.0 || p1*p1>=1) {
@@ -402,7 +402,7 @@ static int32_t rezzy(CSOUND *csound, REZZY *p)
             }
           }
           else {
-            pi = 0;
+            //pi = 0;
             p0=(sqrt(disc)-b1)/2.0;
             p1=(-sqrt(disc)-b1)/2.0;
             if (p0*p0>=1.0 || p1*p1>=1) {
@@ -454,7 +454,7 @@ static int32_t rezzy(CSOUND *csound, REZZY *p)
               }
             }
             else {
-              pi = 0;
+              //pi = 0;
               p0=(sqrt(disc)-b1)/2.0;
               p1=(-sqrt(disc)-b1)/2.0;
               if (p0*p0>=1.0 || p1*p1>=1) {
@@ -1020,7 +1020,7 @@ static int32_t nestedapset(CSOUND *csound, NESTEDAP *p)
     /* new space if reqd */
     if ((auxp = p->auxch.auxp) == NULL || npts != p->npts) {
       csound->AuxAlloc(csound, (size_t)npts*sizeof(MYFLT), &p->auxch);
-      auxp = p->auxch.auxp;
+      //auxp = p->auxch.auxp;
       p->npts = npts;
 
       if (*p->mode == FL(1.0)) {

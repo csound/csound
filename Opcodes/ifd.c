@@ -165,7 +165,8 @@ static void IFAnalysis(CSOUND * csound, IFD * p, MYFLT * signal)
   double  powerspec, da, db, a, b, ph, factor = p->factor, fund = p->fund;
   MYFLT   scl = p->g / p->norm;
   int32_t     i2, i, fftsize = p->fftsize, hsize = p->fftsize / 2;
-  MYFLT   tmp1, tmp2, *diffwin = (MYFLT *) p->diffwin.auxp;
+  MYFLT   tmp1, tmp2;
+  MYFLT *diffwin = (MYFLT *) p->diffwin.auxp;
   MYFLT  *win = (MYFLT *) p->win.auxp;
   MYFLT  *diffsig = (MYFLT *) p->diffsig.auxp;
   float  *output = (float *) p->fout1->frame.auxp;
@@ -186,7 +187,7 @@ static void IFAnalysis(CSOUND * csound, IFD * p, MYFLT * signal)
     tmp2 = signal[i];
     signal[i] = tmp1;
     signal[i + hsize] = tmp2;
-  }
+    }
 
   csound->RealFFT2(csound, p->setup, signal);
   csound->RealFFT2(csound, p->setup,diffsig);

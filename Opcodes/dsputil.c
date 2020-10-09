@@ -409,7 +409,7 @@ void PreWarpSpec(
 
     for (i = 0; i < someof(size); i++) {  /*  warp spectral env. */
       j = (int32)((MYFLT) i * warpFactor);
-      mag = spec[2*i];
+      //mag = spec[2*i];
       if ((j < someof(size)) && (dsputil_env[i] != FL(0.0)))
         spec[2 * i] *= dsputil_env[j] / dsputil_env[i];
       else

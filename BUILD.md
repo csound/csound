@@ -83,18 +83,14 @@ set of folders.
 
 
 
-Mac OS X using Homebrew <a name="OSXHomebrew">
+macOS using Homebrew <a name="OSXHomebrew">
 -----------------------
 
 ### Introduction 
 
-Homebrew is a package manager for OSX. It is able to download, build, and
+Homebrew is a package manager for macOS. It is able to download, build, and
 install applications, including their dependencies. The following sections will
 describe what you will need to do to use Homebrew to install Csound 6.
-
-Note: At this time, this method of installing Csound is currently being tested.
-It is considered beta, and users should be aware that there may be some issues
-that will be required to be worked through.
 
 ### Requirements 
 
@@ -102,11 +98,13 @@ that will be required to be worked through.
 
 -   Xcode Command-Line Tools
 
--   Homebrew - [http://www.brew.sh][2]
+-   Homebrew - [https://brew.sh][2]
 
-[2]: <http://www.brew.sh>
+[2]: <https://brew.sh>
 
-Installing Homebrew You will first need to have a working Homebrew setup. This
+#### Installing Homebrew 
+
+You will first need to have a working Homebrew setup. This
 requires installing Xcode and the Xcode Command-Line tools. More information on
 installing Homebrew is available on the Homebrew website as well as their wiki.
 
@@ -126,43 +124,61 @@ add_subdirectory,add_file,delete_child,directory_inherit'
 
 where YOUR_NAME_HERE refers to your system username.
 
-### Adding the Csound Tap 
-
-Homebrew has a central repository, but it also allows for adding "taps", which
-are additional repositories. A Csound tap has been setup at
-https://github.com/kunstmusik/homebrew-csound. You can tap into it by using the
-following command:
-
-`brew tap kunstmusik/csound`
-
 ### Installing Csound 
 
-Once Homebrew is setup and the csound tap has been tapped, run the following
-command at the commandline to install Csound:
+Once Homebrew is setup, run the following command at the commandline to install Csound:
 
-`brew install --HEAD csound `
+`brew install csound`
 
-### Known Issues 
+You can install the latest from the develop branch using:
+  
+`brew install --HEAD csound`
 
-There is currently a warning issued when Csound installs:
+If you have a HEAD version already installed and you want to rebuild with newly updated code in the develop branch, use: 
+  
+`brew reinstall csound`
 
-`Warning: Could not fix CsoundLib64.framework/Versions/6.0/CsoundLib64 in
-/usr/local/Cellar/csound/HEAD/bin/srconv `
+### Building Csound using Homebrew-supplied dependencies
 
-`Warning: Could not fix CsoundLib64.framework/Versions/6.0/CsoundLib64 in
-/usr/local/Cellar/csound/HEAD/bin/sndinfo `
+If you would like to compile csound on macOS, you need to have its dependencies installed. 
+You can do this manually picking out various packages from Homebrew or you can use the csound 
+formula to install the dependencies using
 
-`Warning: Could not fix CsoundLib64.framework/Versions/6.0/CsoundLib64 in
-/usr/local/Cellar/csound/HEAD/bin/scsort `
+`brew install --only-dependencies csound`
 
-`Warning: Could not fix CsoundLib64.framework/Versions/6.0/CsoundLib64 in
-/usr/local/Cellar/csound/HEAD/bin/scope `
+This installs all of the tools and libraries that is required to build csound and various plugins. After installing dependencies, you can use cmake to build:
 
-....
+1. Clone the csound source from github and `cd` into the root of the csound folder.
+2. `mkdir build` 
+3. `cd build` 
+4. `cmake ..`
+5. `make -j6`
+6. `make install`
 
-This is due to how the CsoundLib64.framework is installed into
-~/Library/Frameworks and bypasses Homebrew's installation path for Frameworks.
-This is a known issue and will be looked into.
+For step 4, you can use `cmake .. -G Xcode` if you then want to build Csound with XCode.  Step 6 may require the use of `sudo` depending on permissions. Note that building from source installs into different paths on the system compared to where the Homebrew-built version of Csound is installed to. It is recommended to `brew uninstall csound` prior to building, installing, and using your self-compiled version of Csound. 
+
+
+<!--### Known Issues -->
+
+<!--There is currently a warning issued when Csound installs:-->
+
+<!--`Warning: Could not fix CsoundLib64.framework/Versions/6.0/CsoundLib64 in-->
+<!--/usr/local/Cellar/csound/HEAD/bin/srconv `-->
+
+<!--`Warning: Could not fix CsoundLib64.framework/Versions/6.0/CsoundLib64 in-->
+<!--/usr/local/Cellar/csound/HEAD/bin/sndinfo `-->
+
+<!--`Warning: Could not fix CsoundLib64.framework/Versions/6.0/CsoundLib64 in-->
+<!--/usr/local/Cellar/csound/HEAD/bin/scsort `-->
+
+<!--`Warning: Could not fix CsoundLib64.framework/Versions/6.0/CsoundLib64 in-->
+<!--/usr/local/Cellar/csound/HEAD/bin/scope `-->
+
+<!--....-->
+
+<!--This is due to how the CsoundLib64.framework is installed into-->
+<!--~/Library/Frameworks and bypasses Homebrew's installation path for Frameworks.-->
+<!--This is a known issue and will be looked into.-->
 
 
 
@@ -265,7 +281,18 @@ $HOME/include. The plugin dir is in $HOME/lib/csound/plugins64-6.0.
 
 ### Dependencies List
 
-If the dependency you are adding uses ./configure, you can use the same parameters to it as explained in step 2. If it uses cmake, you can use the same parameters as in step 5. After adding dependencies to your $HOME directories, you can run cmake again to re-build Csound. Check the printed output to see if the added dependency has switched on the build of the desired component.
+If the dependency you are adding uses ./configure, you can use the
+same parameters to it as explained in step 2. If it uses cmake, you
+can use the same parameters as in step 5. After adding dependencies to
+your $HOME directories, you can run cmake again to re-build
+Csound. Check the printed output to see if the added dependency has
+switched on the build of the desired component.
+
+NB: Since the EOL for Python 2, the Python opcodes build has been
+disabled by default. If you have the Python 2 headers and libraries
+and wishes to build these, use the CMake option
+`-DBUILD_PYTHON_OPCODES=1`. Python 3 opcodes are now available
+separately from the csound/plugins repository.
 
 #### OSC opcodes
 
@@ -275,7 +302,7 @@ liblo - http://liblo.sourceforge.net/ NB: the build for version 0.28 seems to be
 
 Fluidsynth - http://sourceforge.net/apps/trac/fluidsynth/ NB: cmake might need to be coerced into finding the fluidsynth headers once it is built. For that, you can use the following cmake command (see step 5):
 
-cmake -DCMAKE_INSTALL_PREFIX=$HOME -DFLUIDSYNTH_H=$HOME/include ..
+`cmake -DCMAKE_INSTALL_PREFIX=$HOME -DFLUIDSYNTH_H=$HOME/include ..`
 
 #### Widget opcodes
 
@@ -285,21 +312,23 @@ FLTK - http://www.fltk.org/index.php NB: make sure you configure the FLTK build 
 
 libfaust - use faust2 branch of Faust git sources:
 
+```
 $ git clone git://git.code.sf.net/p/faudiostream/code faust
 $ cd faust
 $ git checkout faust2
+```
 
 NB: libfaust also requires LLVM 3.0, 3.1, 3.2, 3.3 or 3.4 - http://llvm.org/ LLVM can be built with CMake (as in step 5 above). To build faust, use the following make command (replacing LLVM_32 for LLVM_3* depending on the version you are using, if it is not 3.2)
 
-$ make LLVM_VERSION=LLVM_32 LLVM_CONFIG=llvm-config LLVM_CLANG=g++ CXX=g++ ARCHFLAGS=-fPIC
+`$ make LLVM_VERSION=LLVM_32 LLVM_CONFIG=llvm-config LLVM_CLANG=g++ CXX=g++ ARCHFLAGS=-fPIC`
 
 To install it, you should run
 
-$make PREFIX=$HOME
+`$ make PREFIX=$HOME`
 
 To switch the faust opcodes build on and coerce cmake into finding the faust library use:
 
-cmake -DCMAKE_INSTALL_PREFIX=$HOME -DBUILD_FAUST_OPCODES=1 -DFAUST_LIBRARY=$HOME/lib/faust/libfaust.a ..
+`cmake -DCMAKE_INSTALL_PREFIX=$HOME -DBUILD_FAUST_OPCODES=1 -DFAUST_LIBRARY=$HOME/lib/faust/libfaust.a ..`
 
 NB: Ubuntu users should be aware that LLVM 3.4 and 3.5 packages seem broken. It is probably recommended to build LLVM by oneself. Otherwise, LLVM 3.3 package is enough for building csound 6.05 with Faust opcodes assuming that
 
@@ -310,7 +339,7 @@ NB: Ubuntu users should be aware that LLVM 3.4 and 3.5 packages seem broken. It 
 
 Then some additional environment variables may have to be set during the configuration step:
 
-cmake -DLLVM_DIR=/usr/share/llvm-3.3/cmake -DCMAKE_MODULE_LINKER_FLAGS="-L/usr/lib/llvm-3.3/lib" -DBUILD_FAUST_OPCODES=1 -DFAUST_LIBRARY=pathTo/libfaust.a ../csound-develop/ 
+`cmake -DLLVM_DIR=/usr/share/llvm-3.3/cmake -DCMAKE_MODULE_LINKER_FLAGS="-L/usr/lib/llvm-3.3/lib" -DBUILD_FAUST_OPCODES=1 -DFAUST_LIBRARY=pathTo/libfaust.a ../csound-develop/ `
 
 #### Portaudio module
 
@@ -413,7 +442,10 @@ or there might be a compiler issue, in which case, you need to change the line a
     in order to disable the vectorial code and use standard C scalar
     operations.
 
-There is no support for NEON on rpi 1 or zero. This is available for rpi 2 and 3, though.
+There is no support for NEON on rpi 1 or zero. This is available for
+rpi 2 and 3, though.
+
+3. Remember to run cmake again (step 7 above) after any changes to Custom.cmake
 
 Fedora 18 <a name="fedora">
 ---------

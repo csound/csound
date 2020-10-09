@@ -209,7 +209,7 @@ public:
       OPARMS oparms;
       csound->GetOParms(csound, &oparms);
       if (oparms.msglevel & 0x7)
-        while (fluidPreset = fluid_sfont_iteration_next(fluidSoundfont))
+        while ((fluidPreset = fluid_sfont_iteration_next(fluidSoundfont)))
         {
           log(csound, "SoundFont: %3d  Bank: %3d  Preset: %3d  %s\n",
               soundFontId, fluid_preset_get_banknum(fluidPreset),
@@ -261,7 +261,7 @@ public:
       OPARMS oparms;
       csound->GetOParms(csound, &oparms);
       if (oparms.msglevel & 0x7)
-        while (fluidPreset = fluid_sfont_iteration_next(fluidSoundfont))
+        while ((fluidPreset = fluid_sfont_iteration_next(fluidSoundfont)))
         {
             std::stringstream ss;
             ss << "Bank: " << fluid_preset_get_banknum(fluidPreset) <<

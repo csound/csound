@@ -57,6 +57,7 @@
 #include "cs_par_ops.h"
 #include "ugtabs.h"
 #include "compile_ops.h"
+#include "lpred.h"
 
 #define S(x)    sizeof(x)
 
@@ -97,6 +98,7 @@ int32_t int1_round(CSOUND *, void *), int1a_round(CSOUND *, void *);
 int32_t int1_floor(CSOUND *, void *), int1a_floor(CSOUND *, void *);
 int32_t int1_ceil(CSOUND *, void *), int1a_ceil(CSOUND *, void *);
 int32_t rnd1(CSOUND *, void *), birnd1(CSOUND *, void *);
+int32_t rnd1seed(CSOUND *, void *);
 int32_t abs1(CSOUND *, void *), exp01(CSOUND *, void *);
 int32_t log01(CSOUND *, void *), sqrt1(CSOUND *, void *);
 int32_t sin1(CSOUND *, void *), cos1(CSOUND *, void *);
@@ -396,6 +398,14 @@ int32_t ingoto(CSOUND *, void *), kngoto(CSOUND *, void *);
 int32_t nstrnumset(CSOUND *, void *), turnoff2k(CSOUND *, void *);
 int32_t nstrnumset_S(CSOUND *, void *), nstrstr(CSOUND *, void *);
 int32_t turnoff2S(CSOUND *, void *) ;
+int32_t turnoff3S(CSOUND *, void *), turnoff3k(CSOUND *, void *);
+int32_t savectrl_init(CSOUND*, void*), savectrl_perf(CSOUND*, void*);
+int32_t printctrl(CSOUND*, void*);
+int32_t printctrl_init(CSOUND*, void*), printctrl_init1(CSOUND*, void*);
+int32_t presetctrl_init(CSOUND*, void*), presetctrl_perf(CSOUND*, void*);
+int32_t selectctrl_init(CSOUND*, void*), selectctrl_perf(CSOUND*, void*);
+int32_t printpresets_init(CSOUND*, void*), printpresets_init1(CSOUND*, void*);
+int32_t printpresets_perf(CSOUND*, void*);
 int32_t loop_l_i(CSOUND *, void *), loop_le_i(CSOUND *, void *);
 int32_t loop_g_i(CSOUND *, void *), loop_ge_i(CSOUND *, void *);
 int32_t loop_l_p(CSOUND *, void *), loop_le_p(CSOUND *, void *);
@@ -468,3 +478,25 @@ int32_t loscil_phs(CSOUND *, void *);
 int32_t loscil3_phs(CSOUND *, void *);
 int32_t balance2(CSOUND *, void *);
 int32_t copyVarGeneric(CSOUND *csound, void *p);
+int32_t gauss_scalar(CSOUND *csound, void *p);
+int32_t gauss_vector(CSOUND *csound, void *p);
+int32_t lpfil_init(CSOUND *csound, void *p);
+int32_t lpfil_perf(CSOUND *csound, void *p);
+int32_t lpfil2_init(CSOUND *csound, void *p);
+int32_t lpfil2_perf(CSOUND *csound, void *p);
+int32_t lpred_run(CSOUND *csound, void *p);
+int32_t lpred_alloc(CSOUND *csound, void *p);
+int32_t lpred_i(CSOUND *csound, void *p);
+int32_t lpfil3_init(CSOUND *csound, void *p);
+int32_t lpfil3_perf(CSOUND *csound, void *p);
+int32_t lpred_run2(CSOUND *csound, void *p);
+int32_t lpred_alloc2(CSOUND *csound, void *p);
+int32_t lpcpvs(CSOUND *csound, void *p);
+int32_t lpcpvs_init(CSOUND *csound, void *p);
+int32_t pvscoefs_init(CSOUND *csound, void *p);
+int32_t pvscoefs(CSOUND *csound, void *p);
+int32_t coef2parm_init(CSOUND *csound, void *p);
+int32_t coef2parm(CSOUND *csound, void *p);
+int32_t resonbnk_init(CSOUND *csound, void *p);
+int32_t resonbnk(CSOUND *csound, void *p);
+int32_t schedule_array(CSOUND *csound, void *p);

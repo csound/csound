@@ -284,11 +284,12 @@ static int Load_File_(CSOUND *csound, const char *filnam,
     fseek(f, 0L, SEEK_SET);
     if (UNLIKELY(*len < 1L))
       goto err_return;
-    *allocp = csound->Malloc(csound, (size_t) (*len)); /*   alloc as reqd     */
+    *allocp = csound->Malloc(csound, (size_t) (*len + 1)); /*   alloc as reqd     */
     if (UNLIKELY(fread(*allocp, (size_t) 1,     /*   read file in      */
                        (size_t) (*len), f) != (size_t) (*len)))
       goto err_return;
     fclose(f);                                  /*   and close it      */
+    (*allocp)[*len] = '\0';                     /*   add sentinel      */
     return 0;                                   /*   return 0 for OK   */
  err_return:
     if (*allocp != NULL) {

@@ -622,34 +622,70 @@ phasor_k_kk(CSOUND *csound, Phasor *p) {
 static OENTRY localops[] = {
     {"sc_lag",    S(LAG0),   0, 3, "k", "kk",
      (SUBR)lag0_init_no_initial_value, (SUBR)lag0k_next},
+    {"lag",    S(LAG0),   0, 3, "k", "kk",
+     (SUBR)lag0_init_no_initial_value, (SUBR)lag0k_next},
+
     {"sc_lag",    S(LAG0),   0, 3, "k", "kki",
+     (SUBR)lag0_init_initial_value, (SUBR)lag0k_next},
+    {"lag",    S(LAG0),   0, 3, "k", "kki",
      (SUBR)lag0_init_initial_value, (SUBR)lag0k_next},
 
     {"sc_lag",    S(LAG0),    0, 3, "a", "aki",
      (SUBR)laga_init_initial_value, (SUBR)laga_next},
+    {"lag",    S(LAG0),    0, 3, "a", "aki",
+     (SUBR)laga_init_initial_value, (SUBR)laga_next},
+
     {"sc_lag",    S(LAG0),    0, 3, "a", "ak",
+     (SUBR)laga_init_no_initial_value, (SUBR)laga_next},
+    {"lag",    S(LAG0),    0, 3, "a", "ak",
      (SUBR)laga_init_no_initial_value, (SUBR)laga_next},
 
     {"sc_lagud",  S(LagUD),  0, 3, "k", "kkki",
      (SUBR)lagud_init_initial_value, (SUBR)lagud_k },
+    {"lagud",  S(LagUD),  0, 3, "k", "kkki",
+     (SUBR)lagud_init_initial_value, (SUBR)lagud_k },
+
     {"sc_lagud",  S(LagUD),  0, 3, "a", "akki",
+     (SUBR)lagud_init_initial_value, (SUBR)lagud_a },
+    {"lagud",  S(LagUD),  0, 3, "a", "akki",
      (SUBR)lagud_init_initial_value, (SUBR)lagud_a },
 
     {"sc_lagud",  S(LagUD),  0, 3, "k", "kkk",
      (SUBR)lagud_init_no_initial_value, (SUBR)lagud_k },
+    {"lagud",  S(LagUD),  0, 3, "k", "kkk",
+     (SUBR)lagud_init_no_initial_value, (SUBR)lagud_k },
+
     {"sc_lagud",  S(LagUD),  0, 3, "a", "akk",
+     (SUBR)lagud_init_no_initial_value, (SUBR)lagud_a },
+    {"lagud",  S(LagUD),  0, 3, "a", "akk",
      (SUBR)lagud_init_no_initial_value, (SUBR)lagud_a },
 
 
     {"sc_trig",   S(Trig),   0, 3, "k", "kk",    (SUBR)trig_init, (SUBR)trig_k },
+    {"trighold",   S(Trig),   0, 3, "k", "kk",    (SUBR)trig_init, (SUBR)trig_k },
+
     {"sc_trig",   S(Trig),   0, 3, "a", "ak",    (SUBR)trig_init, (SUBR)trig_a },
+    {"trighold",   S(Trig),   0, 3, "a", "ak",    (SUBR)trig_init, (SUBR)trig_a },
+
     {"sc_phasor", S(Phasor), 0, 3, "k", "kkkkO",
      (SUBR)phasor_init, (SUBR)phasor_k_kk },
+    {"trigphasor", S(Phasor), 0, 3, "k", "kkkkO",
+     (SUBR)phasor_init, (SUBR)phasor_k_kk },
+
     {"sc_phasor", S(Phasor), 0, 3, "a", "akkkO",
      (SUBR)phasor_init, (SUBR)phasor_a_ak },
+    {"trigphasor", S(Phasor), 0, 3, "a", "akkkO",
+     (SUBR)phasor_init, (SUBR)phasor_a_ak },
+
     {"sc_phasor", S(Phasor), 0, 3, "a", "aakkO",
      (SUBR)phasor_init, (SUBR)phasor_a_aa },
+    {"trigphasor", S(Phasor), 0, 3, "a", "aakkO",
+     (SUBR)phasor_init, (SUBR)phasor_a_aa },
+
     {"sc_phasor", S(Phasor), 0, 3, "a", "kkkkO",
+     (SUBR)phasor_init, (SUBR)phasor_a_kk },
+
+    {"trigphasor", S(Phasor), 0, 3, "a", "kkkkO",
      (SUBR)phasor_init, (SUBR)phasor_a_kk }
 };
 

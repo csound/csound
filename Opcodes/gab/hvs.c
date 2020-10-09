@@ -431,7 +431,7 @@ static int32_t vphaseseg_set(CSOUND *csound, VPSEG *p)
                                  Str("vphaseseg: function invalid or missing"));
       if (LIKELY(dur > 0.0f)) {
         durtot+=dur;
-        segp->d = dur; //* ekr;
+        segp->d = dur; // ekr;
         segp->function = curfunc;
         segp->nxtfunction = nxtfunc;
         //segp->cnt = (int64_t) (segp->d + .5);

@@ -205,6 +205,7 @@ PUBLIC uintptr_t csoundJoinThread(void *thread)
     if(thread == NULL) return 0;
     pthreadReturnValue = pthread_join(*pthread,
                                       &threadRoutineReturnValue);
+    free(pthread);
     if (pthreadReturnValue) {
         return (uintptr_t) ((intptr_t) pthreadReturnValue);
     } else {
@@ -556,6 +557,11 @@ PUBLIC void csoundCondSignal(void* condVar) {
         pthread_cond_signal(condVar);
 }
 
+PUBLIC void csoundDestroyCondVar(void* condVar) {
+        pthread_cond_destroy((pthread_cond_t*)condVar);
+        free(condVar);
+}
+
 /* ------------------------------------------------------------------------ */
 
 #elif defined(WIN32)
@@ -781,6 +787,11 @@ PUBLIC void csoundCondSignal(void* condVar) {
     WakeConditionVariable(cv);
 }
 
+PUBLIC void csoundDestroyCondVar(void* condVar) {
+    memset(condVar, '\0', sizeof(CONDITION_VARIABLE));
+    free(condVar);
+}
+
 // REMOVE FOLLOWING BARRIER DEFINITION WINDOWS SUPPORT LIMITED to WIN 8.1+
 typedef struct barrier {
     CRITICAL_SECTION* mut;
@@ -958,6 +969,10 @@ PUBLIC void csoundCondWait(void* condVar, void* mutex) {
 
 PUBLIC void csoundCondSignal(void* condVar) {
     // notImplementedWarning_("csoundCreateCondSignal");
+}
+
+PUBLIC void csoundDestroyCondVar(void* condVar) {
+    // notImplementedWarning_("csoundDestroyCondVar");
 }
 
 PUBLIC long csoundRunCommand(const char * const *argv, int noWait) {

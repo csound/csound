@@ -218,3 +218,13 @@ CMakeLists.txt.user
 
 # emacs autosaved files
 \#*\#
+
+
+# cmake / doxygen 
+CMakeDoxy*
+CPackConfig.cmake
+CPackSourceConfig.cmake
+Doxyfile
+
+# vscode
+.vscode/

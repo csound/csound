@@ -229,7 +229,11 @@ void HDF5IO_readStringAttribute(CSOUND *csound, HDF5File *self,
 {
     hid_t dataSetID = H5Dopen2(self->fileHandle, datasetName, H5P_DEFAULT);
     H5O_info_t oinfo;
+#if HDF5_VERSION_MAJOR == 1 && HDF5_VERSION_MINOR >= 12
+    HDF5ERROR(H5Oget_info1(dataSetID, &oinfo));
+#else
     HDF5ERROR(H5Oget_info(dataSetID, &oinfo));
+#endif
     hid_t attributeID = H5Aopen_by_idx(dataSetID, ".", H5_INDEX_CRT_ORDER,
                                        H5_ITER_INC, 0, H5P_DEFAULT, H5P_DEFAULT);
     HDF5ERROR(attributeID);

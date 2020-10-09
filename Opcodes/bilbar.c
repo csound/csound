@@ -249,6 +249,7 @@ typedef struct {
     uint32_t    rattle_num, rubber_num;
     int32_t    hammer_index, hammer_on, hammer_contact;
     MYFLT  ham, ham1, ham2;
+    AUXCH  auxchc;
     AUXCH  auxch;
     RATTLE *rattle;
     RUBBER *rubber;
@@ -274,8 +275,8 @@ int32_t init_pp(CSOUND *csound, CSPP *p)
       double *c, /*dx,*/ dxmin = 0.0; /* for stability */
       FUNC  *ftp;
 
-      csound->AuxAlloc(csound, NS*sizeof(double), &p->auxch);
-      c = (double *)p->auxch.auxp;
+      csound->AuxAlloc(csound, NS*sizeof(double), &p->auxchc);
+      c = (double *)p->auxchc.auxp;
 
       if (*p->rattle_tab==FL(0.0) ||
           (ftp=csound->FTnp2Finde(csound, p->rattle_tab)) == NULL) p->rattle_num = 0;
@@ -306,6 +307,7 @@ int32_t init_pp(CSOUND *csound, CSPP *p)
       csound->AuxAlloc(csound,
                        3*((1+(N+5))*NS+p->rattle_num+p->rubber_num)*sizeof(MYFLT),
                        &p->auxch);
+      //c = (double *)p->auxch.auxp;
       p->s0 = (MYFLT*)p->auxch.auxp;
       p->s1 = &p->s0[NS];
       p->hammer_force = &p->s1[NS];
@@ -572,7 +574,7 @@ int32_t play_pp(CSOUND *csound, CSPP *p)
 #define S(x)    sizeof(x)
 
 static OENTRY bilbar_localops[] = {
-  {"barmodel", S(BAR), 0, 3, "a", "kkiikiiii", (SUBR) bar_init,
+  { "barmodel", S(BAR), 0, 3, "a", "kkiikiiii", (SUBR) bar_init,
                                                (SUBR) bar_run},
   { "prepiano", S(CSPP), 0, 3, "mm", "iiiiiikkiiiiiiioo",
                                 (SUBR)init_pp, (SUBR)play_pp },
