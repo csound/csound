@@ -208,6 +208,14 @@ typedef struct {
 typedef struct {
   OPDS    h;
   MYFLT   *inum;
+  MYFLT   *itag;
+  ARRAYDAT *arr;
+  PRESET_GLOB *q;
+} PRESETCTRL1;
+
+typedef struct {
+  OPDS    h;
+  MYFLT   *inum;
   PRESET_GLOB *q;
 } SELECTCTRL;
 

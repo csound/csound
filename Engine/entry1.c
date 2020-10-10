@@ -111,6 +111,7 @@ OENTRY opcodlst_1[] = {
   { "ctrlprint.S",S(PRINTCTRL),0,3, "", "k[]S", printctrl_init1, printctrl, NULL},
   { "ctrlprint",S(PRINTCTRL),0,3,       "", "k[]", printctrl_init, printctrl, NULL},
   { "ctrlpreset", S(PRESETCTRL), 0,3, "k", "kim", presetctrl_init, presetctrl_perf, NULL},
+  { "ctrlpreset.A", S(PRESETCTRL1), 0,3, "k", "kik[]", presetctrl1_init, presetctrl1_perf, NULL},
   { "ctrlselect", S(SELECTCTRL), 0,3,"",   "k", selectctrl_init, selectctrl_perf, NULL },
   { "ctrlprintpresets", S(PRINTPRESETS), 0,3, "", "", printpresets_init, printpresets_perf, NULL},
   { "ctrlprintpresets.S", S(PRINTPRESETS), 0,3, "", "S", printpresets_init1, printpresets_perf, NULL},

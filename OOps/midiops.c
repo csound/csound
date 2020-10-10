@@ -828,7 +828,8 @@ int printctrl(CSOUND *csound, PRINTCTRL *p)
 
 int presetctrl_init(CSOUND *csound, PRESETCTRL *p)
 {
-    PRESET_GLOB *q = (PRESET_GLOB*)csound->QueryGlobalVariable(csound, "presetGlobals_");
+    PRESET_GLOB *q =
+      (PRESET_GLOB*)csound->QueryGlobalVariable(csound, "presetGlobals_");
     if (q==NULL) {
       if (UNLIKELY(csound->CreateGlobalVariable(csound, "presetGlobals_",
                                                 sizeof(PRESET_GLOB)) != 0))
@@ -843,7 +844,7 @@ int presetctrl_init(CSOUND *csound, PRESETCTRL *p)
     return OK;
 }
 
-// Store a set of crtrlinits as a preset, allocating a numer if necessary
+// Store a set of crtrlinits as a preset, allocating a number if necessary
 int presetctrl_perf(CSOUND *csound, PRESETCTRL *p)
 {
     PRESET_GLOB *q = p->q;
@@ -862,7 +863,7 @@ int presetctrl_perf(CSOUND *csound, PRESETCTRL *p)
       if (tt == NULL)
         return csound->InitError(csound, "%s",
                                  Str("Failed to allocate presets\n"));
-      memset(tt+q->max_num, '\0', 10*sizeof(int*));
+      for (i=0; i<10; i++) tt[i+q->max_num] = 0;
       q->presets = tt;
       q->max_num += 10;
     }
@@ -880,9 +881,65 @@ int presetctrl_perf(CSOUND *csound, PRESETCTRL *p)
     return OK;
 }
 
+int presetctrl1_init(CSOUND *csound, PRESETCTRL1 *p)
+{
+    PRESET_GLOB *q =
+      (PRESET_GLOB*)csound->QueryGlobalVariable(csound, "presetGlobals_");
+    if (q==NULL) {
+      if (UNLIKELY(csound->CreateGlobalVariable(csound, "presetGlobals_",
+                                                sizeof(PRESET_GLOB)) != 0))
+        return
+          csound->InitError(csound, "%s",
+                            Str("ctrlpreset: failed to allocate globals"));
+      q = (PRESET_GLOB*)csound->QueryGlobalVariable(csound, "presetGlobals_");
+      q->max_num = 10;
+      q->presets = (int**)csound->Calloc(csound, 10*sizeof(int*));
+    }
+    p->q = q;
+    return OK;
+}
+
+// Store a set of crtrlinits as a preset, allocating a number if necessary
+int presetctrl1_perf(CSOUND *csound, PRESETCTRL1 *p)
+{
+    PRESET_GLOB *q = p->q;
+    int *slot;
+    int i;
+    int tag = (int)*p->itag - 1;
+    if (tag<0) {
+      for (i=0; i<q->max_num; i++)
+        if (q->presets[i]==NULL) { tag=i; break;}
+      if (i>=q->max_num) tag = q->max_num;
+    }
+    if (tag >= q->max_num) {
+      int** tt = q->presets;
+      tt = (int**)csound->ReAlloc(csound,
+                                    tt, (q->max_num+10)*sizeof(int*));
+      if (tt == NULL)
+        return csound->InitError(csound, "%s",
+                                 Str("Failed to allocate presets\n"));
+      for (i=0; i<10; i++) tt[i+q->max_num] = 0;
+      q->presets = tt;
+      q->max_num += 10;
+    }
+    slot = q->presets[tag];
+    if (slot) csound->Free(csound, slot);
+    q->presets[tag] = (int*) csound->Malloc(csound, sizeof(int)*(p->INOCOUNT));
+    slot = q->presets[tag];
+    slot[0] = p->arr->sizes[0];
+    slot[1] = (int)(p->arr->data[1]);
+    for (i=0; i<slot[0]-2; i++)
+      slot[i+2]= (int)p->arr->data[i];
+    /* for (i=0; i<slot[0];i++) printf("%d ", slot[i]); */
+    /* printf("\n"); */
+    *p->inum = (MYFLT)tag+1;
+    return OK;
+}
+
 int selectctrl_init(CSOUND *csound, SELECTCTRL *p)
 {
-    PRESET_GLOB *q = (PRESET_GLOB*)csound->QueryGlobalVariable(csound, "presetGlobals_");
+    PRESET_GLOB *q =
+      (PRESET_GLOB*)csound->QueryGlobalVariable(csound, "presetGlobals_");
     if (q==NULL) {
       return csound->InitError(csound, Str("No presets stored"));
     }
@@ -899,13 +956,15 @@ int selectctrl_perf(CSOUND *csound, SELECTCTRL *p)
     if (slot == NULL) {
       return csound->PerfError(csound, &p->h, Str("No such preset %d\n"), tag+1);
     }
-    int nargs = slot[0];
-    int16 chnl = (int16)(slot[1]-1);
-    MYFLT *ctlval = (csound->m_chnbp[chnl])->ctl_val;
-    for (i=2; i<nargs; i+=2) {
-      int val = slot[i+1];
-      ctlval[slot[i]] = val;
-      printf("control %d value %d\n", slot[i], val);
+    {
+      int nargs = slot[0];
+      int16 chnl = (int16)(slot[1]-1); /* Count from zero */
+      MYFLT *ctlval = (csound->m_chnbp[chnl])->ctl_val;
+      for (i=2; i<nargs; i+=2) {
+        int val = slot[i+1];
+        ctlval[slot[i]] = val;
+        printf("control %d value %d\n", slot[i], val);
+      }
     }
     return OK;
 }
@@ -914,7 +973,8 @@ int printpresets_perf(CSOUND *csound, PRINTPRESETS *p)
 {
     int j;
     FILE *ff = p->fout;
-    PRESET_GLOB *q = (PRESET_GLOB*)csound->QueryGlobalVariable(csound, "presetGlobals_");
+    PRESET_GLOB *q =
+      (PRESET_GLOB*)csound->QueryGlobalVariable(csound, "presetGlobals_");
     if (q==NULL) {
       return csound->InitError(csound, Str("No presets stored"));
     }
@@ -922,7 +982,7 @@ int printpresets_perf(CSOUND *csound, PRINTPRESETS *p)
       if (q->presets[j]) {
         int i;
         int *slot = q->presets[j];
-        fprintf(ff, "\n;; kdummy ctrlpreset\t%d ", j+1);
+        fprintf(ff, "\n;; kpre%d ctrlpreset\t%d ", j+1, j+1);
         for (i=1; i<slot[0]; i++)
           fprintf(ff, ", %d", slot[i]);
         fprintf(ff, "\n");

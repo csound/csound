@@ -403,6 +403,7 @@ int32_t savectrl_init(CSOUND*, void*), savectrl_perf(CSOUND*, void*);
 int32_t printctrl(CSOUND*, void*);
 int32_t printctrl_init(CSOUND*, void*), printctrl_init1(CSOUND*, void*);
 int32_t presetctrl_init(CSOUND*, void*), presetctrl_perf(CSOUND*, void*);
+int32_t presetctrl1_init(CSOUND*, void*), presetctrl1_perf(CSOUND*, void*);
 int32_t selectctrl_init(CSOUND*, void*), selectctrl_perf(CSOUND*, void*);
 int32_t printpresets_init(CSOUND*, void*), printpresets_init1(CSOUND*, void*);
 int32_t printpresets_perf(CSOUND*, void*);
