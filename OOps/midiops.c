@@ -858,14 +858,16 @@ int presetctrl_perf(CSOUND *csound, PRESETCTRL *p)
     }
     if (tag >= q->max_num) {
       int** tt = q->presets;
+      int size = tag-q->max_num;
+      if (size<10) size = 10;
       tt = (int**)csound->ReAlloc(csound,
-                                    tt, (q->max_num+10)*sizeof(int*));
+                                    tt, (q->max_num+size)*sizeof(int*));
       if (tt == NULL)
         return csound->InitError(csound, "%s",
                                  Str("Failed to allocate presets\n"));
-      for (i=0; i<10; i++) tt[i+q->max_num] = 0;
+      for (i=0; i<size; i++) tt[i+q->max_num] = 0;
       q->presets = tt;
-      q->max_num += 10;
+      q->max_num += size;
     }
     slot = q->presets[tag];
     if (slot) csound->Free(csound, slot);
@@ -913,14 +915,16 @@ int presetctrl1_perf(CSOUND *csound, PRESETCTRL1 *p)
     }
     if (tag >= q->max_num) {
       int** tt = q->presets;
-      tt = (int**)csound->ReAlloc(csound,
-                                    tt, (q->max_num+10)*sizeof(int*));
+      int size = tag-q->max_num;
+      if (size<10) size = 10;
+     tt = (int**)csound->ReAlloc(csound,
+                                    tt, (q->max_num+size)*sizeof(int*));
       if (tt == NULL)
         return csound->InitError(csound, "%s",
                                  Str("Failed to allocate presets\n"));
-      for (i=0; i<10; i++) tt[i+q->max_num] = 0;
+      for (i=0; i<size; i++) tt[i+q->max_num] = 0;
       q->presets = tt;
-      q->max_num += 10;
+      q->max_num += size;
     }
     slot = q->presets[tag];
     if (slot) csound->Free(csound, slot);
