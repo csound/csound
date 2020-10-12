@@ -928,11 +928,12 @@ int presetctrl1_perf(CSOUND *csound, PRESETCTRL1 *p)
     }
     slot = q->presets[tag];
     if (slot) csound->Free(csound, slot);
-    q->presets[tag] = (int*) csound->Malloc(csound, sizeof(int)*(int)(p->arr->sizes[0]));
+    q->presets[tag] = (int*) csound->Malloc(csound,
+                                            sizeof(int)*(1+p->arr->sizes[0]));
     slot = q->presets[tag];
     slot[0] = p->arr->sizes[0];
     slot[1] = (int)(p->arr->data[1]);
-    for (i=0; i<slot[0]-2; i++)
+    for (i=0; i<slot[0]-1; i++)
       slot[i+2]= (int)p->arr->data[i];
     /* for (i=0; i<slot[0];i++) printf("%d ", slot[i]); */
     /* printf("\n"); */
