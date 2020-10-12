@@ -11,6 +11,7 @@ echo "Downloading Csound dependencies..."
 echo "vsGenerator: $vsGenerator"
 echo "Build type: $targetTriplet"
 
+$webclient = New-Object System.Net.WebClient
 $startTime = (Get-Date).TimeOfDay
 $currentDir = Split-Path $MyInvocation.MyCommand.Path
 $cacheDir = $currentDir + "\cache\"
@@ -29,7 +30,6 @@ if ($systemVCPKG) {
     cd $vcpkgDir
     # Update and rebuild vcpkg
     git pull
-    git checkout 7b7908b
     bootstrap-vcpkg.bat
     # Remove any outdated packages (they will be installed again below)
     vcpkg remove --outdated --recurse
@@ -44,7 +44,6 @@ elseif (Test-Path "..\..\vcpkg") {
     echo "vcpkg already installed locally, updating"
     # Update and rebuild vcpkg
     git pull
-    git checkout 7b7908b
     bootstrap-vcpkg.bat
     # Remove any outdated packages (they will be installed again below)
     vcpkg remove --outdated --recurse
@@ -56,7 +55,6 @@ else {
     echo "vcpkg missing, downloading and installing..."
     git clone --depth 1 http://github.com/Microsoft/vcpkg.git
     cd vcpkg
-    git checkout 7b7908b
     $env:Path += ";" + $(Get-Location)
     $vcpkgDir = $(Get-Location)
     [Environment]::SetEnvironmentVariable("VCPKGDir", $env:vcpkgDir, [EnvironmentVariableTarget]::User)
@@ -96,6 +94,77 @@ choco upgrade swig -y --version=4.0.1 --allow-downgrade
 choco install winflexbison -y
 choco upgrade winflexbison -y
 
+cd $currentDir
+
+$depsDir = $currentDir + "\deps\"
+$depsBinDir = $depsDir + "bin\"
+$depsLibDir = $depsDir + "lib\"
+$depsIncDir = $depsDir + "include\"
+
+mkdir cache -ErrorAction SilentlyContinue
+mkdir deps -ErrorAction SilentlyContinue
+mkdir $depsLibDir -ErrorAction SilentlyContinue
+mkdir $depsBinDir -ErrorAction SilentlyContinue
+mkdir $depsIncDir -ErrorAction SilentlyContinue
+
+# Download ASIO SDK and extract
+$asioURI = "http://www.steinberg.net/sdk_downloads/asiosdk2.3.zip"
+$fileName = Split-Path -Leaf $asioURI
+$cachedFile = $cacheDir + $fileName
+if (Test-Path $cachedFile -PathType Leaf) {
+    echo "Already downloaded file: $fileName"
+}
+else {
+    echo "Downloading: " $asioURI
+    $webclient.DownloadFile($asioURI, $cachedFile)
+}
+
+# Extract file
+if ($PSVersionTable.PSVersion.Major -gt 3) {
+    Expand-Archive $cachedFile -DestinationPath $depsDir -Force
+}
+else {
+    New-Item $destDir -ItemType directory -Force
+    Expand-Archive $cachedFile -OutputPath $depsDir -Force
+}
+
+cd $depsDir
+
+echo "PortAudio..."
+if (Test-Path "portaudio") {
+    cd portaudio
+    git pull
+    cd ..
+    echo "Portaudio already downloaded, updated."
+}
+else {
+    git clone --depth=1 "https://github.com/PortAudio/portaudio.git"
+}
+
+copy portaudio\include\portaudio.h -Destination $depsIncDir -Force
+rm -Path portaudioBuild -Force -Recurse -ErrorAction SilentlyContinue
+mkdir portaudioBuild -ErrorAction SilentlyContinue
+cd portaudioBuild
+cmake ..\portaudio -G $vsGenerator -DCMAKE_BUILD_TYPE="Release" -DPA_USE_ASIO=1
+cmake --build . --config Release
+copy .\Release\portaudio_x64.dll -Destination $depsBinDir -Force
+copy .\Release\portaudio_x64.lib -Destination $depsLibDir -Force
+
+# Add deps bin directory to the system path if not already there
+if ($env:Path.Contains($depsBinDir)) {
+    echo "Already added dependency bin dir to path"
+}
+else {
+    # For this session add to path var
+    $env:Path += ";" + $depsBinDir
+
+    # Permanently add to system path
+    [Environment]::SetEnvironmentVariable("Path", $env:Path,
+        [EnvironmentVariableTarget]::User)
+
+    echo "Added dependency bin dir to path: $depsBinDir"
+}
+
 $endTime = (Get-Date).TimeOfDay
 $duration = $endTime - $startTime
 
@@ -106,24 +175,6 @@ echo "vsGenerator: $vsGenerator"
 
 $vcpkgCmake = "$vcpkgDir\scripts\buildsystems\vcpkg.cmake"
 echo "VCPKG script: '$vcpkgCmake'"
-
-cd $currentDir
-
-# TEMPORARILY USE THE FOLLOWING SELF-BUILT PORTMIDI UNTIL VCPKG PROVIDES ONE
-# THAT IS UP TO DATE
-
-$depsDir = $currentDir + "\deps\"
-$stageDir = $currentDir + "\staging\"
-$depsBinDir = $depsDir + "bin\"
-$depsLibDir = $depsDir + "lib\"
-$depsIncDir = $depsDir + "include\"
-
-mkdir cache -ErrorAction SilentlyContinue
-mkdir deps -ErrorAction SilentlyContinue
-mkdir $depsLibDir -ErrorAction SilentlyContinue
-mkdir $depsBinDir -ErrorAction SilentlyContinue
-mkdir $depsIncDir -ErrorAction SilentlyContinue
-mkdir staging -ErrorAction SilentlyContinue
 
 cd $currentDir
 mkdir csound-vs -ErrorAction SilentlyContinue

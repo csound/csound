@@ -219,7 +219,7 @@ execute_process (
 SET(PYTHON_MODULE_INSTALL_DIR ${PYTHON_SITE_PACKAGES} CACHE PATH "Python module install dir")
 
 
-if(APPLE) 
+if(APPLE)
   get_filename_component(JAVA_MODULE_INSTALL_DIR_DEFAULT "~/Library/Java/Extensions" ABSOLUTE)
 else()
   set(JAVA_MODULE_INSTALL_DIR_DEFAULT ${LIBRARY_INSTALL_DIR})
@@ -249,7 +249,7 @@ if(WIN32)
     set(CMAKE_SHARED_LIBRARY_PREFIX "")
     set(CMAKE_SHARED_MODULE_PREFIX "")
 
-    set(CSOUND_WINDOWS_LIBRARIES 
+    set(CSOUND_WINDOWS_LIBRARIES
         advapi32
         comctl32
         comdlg32
@@ -785,7 +785,7 @@ set(libcsound_SRCS
     Opcodes/afilters.c
     Opcodes/wpfilters.c
     Opcodes/zak.c
-    Opcodes/lufs.c    
+    Opcodes/lufs.c
     Top/argdecode.c
     Top/csdebug.c
     Top/cscore_internal.c
@@ -1118,7 +1118,7 @@ function(make_plugin libname srcs)
         ARCHIVE_OUTPUT_DIRECTORY ${BUILD_PLUGINS_DIR})
 
     install(TARGETS ${libname}
-        LIBRARY DESTINATION "${PLUGIN_INSTALL_DIR}" 
+        LIBRARY DESTINATION "${PLUGIN_INSTALL_DIR}"
         ARCHIVE DESTINATION "${PLUGIN_INSTALL_DIR}" )
 
 endfunction(make_plugin)
@@ -1442,4 +1442,4 @@ else()
  install(DIRECTORY ${CMAKE_SOURCE_DIR}/samples
           DESTINATION ${CMAKE_INSTALL_PREFIX}/share)
 endif()
- 
+
