@@ -20,7 +20,7 @@ if(BUILD_CXX_INTERFACE)
     add_library(libcsnd6 SHARED ${libcsnd6_SRCS})
 
     if(MSVC)
-        set(libcsnd6_LIBS sndfile-static)
+        set(libcsnd6_LIBS SndFile::sndfile)
     else()
         set(libcsnd6_LIBS ${LIBSNDFILE_LIBRARY})
     endif()

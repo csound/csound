@@ -107,6 +107,14 @@ OENTRY opcodlst_1[] = {
   { "xout", S(XOUT_MAX),0,  1,  "",         "*", xoutset, NULL, NULL, NULL },
   { "setksmps", S(SETKSMPS),0,  1,  "",   "i", setksmpsset, NULL, NULL },
   { "ctrlinit",S(CTLINIT),0,1,      "",  "im", ctrlinit, NULL, NULL, NULL},
+  { "ctrlsave",S(SAVECTRL),0,3,       "k[]","im", savectrl_init, savectrl_perf, NULL, NULL},
+  { "ctrlprint.S",S(PRINTCTRL),0,3, "", "k[]S", printctrl_init1, printctrl, NULL},
+  { "ctrlprint",S(PRINTCTRL),0,3,       "", "k[]", printctrl_init, printctrl, NULL},
+  { "ctrlpreset", S(PRESETCTRL1), 0,3, "k", "kk[]", presetctrl1_init, presetctrl1_perf, NULL},
+  { "ctrlpreset", S(PRESETCTRL), 0,3, "k", "kim", presetctrl_init, presetctrl_perf, NULL},
+  { "ctrlselect", S(SELECTCTRL), 0,3,"",   "k", selectctrl_init, selectctrl_perf, NULL },
+  { "ctrlprintpresets", S(PRINTPRESETS), 0,3, "", "", printpresets_init, printpresets_perf, NULL},
+  { "ctrlprintpresets.S", S(PRINTPRESETS), 0,3, "", "S", printpresets_init1, printpresets_perf, NULL},
   { "massign",S(MASSIGN), 0,1,      "",  "iip",massign_p, NULL, NULL, NULL},
   { "massign.iS",S(MASSIGNS), 0,1,  "",  "iSp",massign_S, NULL, NULL, NULL},
   { "turnon", S(TURNON),  0,1,      "",     "io", turnon, NULL, NULL, NULL},
@@ -808,7 +816,7 @@ OENTRY opcodlst_1[] = {
     NULL, schedule_SN, NULL },
   { "schedulek.array",   S(SCHED),0,  2,     "",     "k[]",
     NULL, schedule_array, NULL },
-  
+
   /* **** End of schedulek **** */
   { "schedwhen", S(WSCHED),0,3,     "",     "kkkkm",ifschedule, kschedule, NULL },
   { "schedwhen", S(WSCHED),0,3,     "",     "kSkkm",ifschedule, kschedule, NULL },
@@ -925,6 +933,11 @@ OENTRY opcodlst_1[] = {
   { "turnoff2.k",S(TURNOFF2),_CW,2,     "",     "kkk",  NULL, turnoff2k, NULL     },
   { "turnoff2.i",S(TURNOFF2),_CW,2,     "",     "ikk",  NULL, turnoff2k, NULL     },
   { "turnoff2.r",S(TURNOFF2),_CW,2,     "",     "ikk",  NULL, turnoff2k, NULL     },
+  { "turnoff3.S",S(TURNOFF2),_CW,2,     "",     "S",  NULL, turnoff3S, NULL     },
+  { "turnoff3.c",S(TURNOFF2),_CW,2,     "",     "i",  NULL, turnoff3k, NULL     },
+  { "turnoff3.k",S(TURNOFF2),_CW,2,     "",     "k",  NULL, turnoff3k, NULL     },
+  { "turnoff3.i",S(TURNOFF2),_CW,2,     "",     "i",  NULL, turnoff3k, NULL     },
+  { "turnoff3.r",S(TURNOFF2),_CW,2,     "",     "i",  NULL, turnoff3k, NULL     },
   { "cngoto", S(CGOTO),0,   3,      "",     "Bl",   ingoto, kngoto, NULL     },
   { "cnkgoto", S(CGOTO),0,   2,      "",     "Bl",   NULL,  kngoto, NULL     },
   { "cingoto", S(CGOTO),0,   1,      "",     "Bl",   ingoto, NULL, NULL     },
@@ -1054,14 +1067,10 @@ OENTRY opcodlst_1[] = {
 #ifdef HAVE_CURL
   {  "strfromurl", S(STRCPY_OP), 0, 1, "S", "S", (SUBR) str_from_url     },
 #endif
-  {  "changed.S", S(STRCHGD),_QQ, 3, "k",   "S",
+  {  "changed.S", S(STRCHGD),0, 3, "k",   "S",
      (SUBR) str_changed, (SUBR) str_changed_k, NULL       },
   {  "changed2.S", S(STRCHGD),0, 3, "k",   "S",
      (SUBR) str_changed, (SUBR) str_changed_k, NULL       },
-  /* { "loop_lt",   0xfffb                                                  }, */
-  /* { "loop_le",   0xfffb                                                  }, */
-  /* { "loop_gt",   0xfffb                                                  }, */
-  /* { "loop_ge",   0xfffb                                                  }, */
   { "loop_lt.i", S(LOOP_OPS),0,  1,  "", "iiil", (SUBR) loop_l_i, NULL, NULL   },
   { "loop_le.i", S(LOOP_OPS),0,  1,  "", "iiil", (SUBR) loop_le_i, NULL, NULL  },
   { "loop_gt.i", S(LOOP_OPS),0,  1,  "", "iiil", (SUBR) loop_g_i, NULL, NULL   },

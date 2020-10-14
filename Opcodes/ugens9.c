@@ -344,7 +344,7 @@ static int32_t convolve(CSOUND *csound, CONVOLVE *p)
             *olap++ = *fftbufind;
             *fftbufind++ = FL(0.0);
           }
-          olap = p->olap+chn*Hlenm1;
+          //olap = p->olap+chn*Hlenm1;
     /* Now pad the rest to zero as well. In theory, this shouldn't be
        necessary, however it's conceivable that rounding errors may
        creep in, and these cells won't be exactly zero. So, let's

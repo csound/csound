@@ -240,7 +240,7 @@ static int32_t sprocess1(CSOUND *csound, DATASPACE *p)
     int32_t N = p->N, hsize = p->hsize, cnt = p->cnt, nchans = p->nchans;
     int32_t nsmps = CS_KSMPS, n;
     int32_t sizefrs, size, post, i, j;
-    int64_t spos = p->pos;
+    int64_t spos;  // = p->pos;
     double pos;
     MYFLT *fwin, *bwin, in,
       *prev, *win = (MYFLT *) p->win.auxp;
@@ -445,7 +445,7 @@ static int32_t sprocess1m(CSOUND *csound, DATASPACEM *p)
     int32_t N = p->N, hsize = p->hsize, cnt = p->cnt, nchans = p->nchans;
     int32_t nsmps = CS_KSMPS, n;
     int32_t sizefrs, size, post, i, j;
-    int64_t spos = p->pos;
+    int64_t spos; //= p->pos;
     double pos;
     MYFLT *fwin, *bwin, in,
       *prev, *win = (MYFLT *) p->win.auxp;

@@ -1626,7 +1626,11 @@ int xoutset(CSOUND *csound, XOUT *p)
     void* in = (void*)p->args[i];
     void* out = (void*)bufs[i];
     tmp[i] = in;
-    current->varType->copyValue(csound, out, in);
+    // DO NOT COPY K or A or F vars
+    if (csoundGetTypeForArg(in) != &CS_VAR_TYPE_K &&
+        csoundGetTypeForArg(in) != &CS_VAR_TYPE_F &&
+        csoundGetTypeForArg(in) != &CS_VAR_TYPE_A)
+      current->varType->copyValue(csound, out, in);
     current = current->next;
   }
 
@@ -2224,7 +2228,7 @@ int useropcd2(CSOUND *csound, UOPCODE *p)
   CS_VARIABLE* current;
   int i, done;
 
-  inm = (OPCODINFO*) p->h.optext->t.oentry->useropinfo;
+  inm = (OPCODINFO*) p->h.optext->t.oentry->useropinfo; /* FIXME value not used */
   done = ATOMIC_GET(p->ip->init_done);
 
   if (UNLIKELY(!done)) /* init not done, exit */

@@ -3,6 +3,8 @@
 # * Using pkgconfig did not work with emconfigure ./configure ..., so hardcoded paths are used
 # * All artifacts are installed into deps/lib and deps/include
 
+export CFLAGS="-O3 -flto"
+export CXXFLAGS="-O3 -flto"
 
 mkdir -p deps
 cd deps

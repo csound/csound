@@ -1,4 +1,4 @@
-/*
+ /*
     gens1.c:
 
     Copyright (C) 1991 Barry Vercoe, John ffitch
@@ -360,7 +360,7 @@ static int32_t adsrset1(CSOUND *csound, LINSEG *p, int32_t midip)
     //       dur, segp->cnt, segp->acnt, segp->nxtpt);
     segp++;
                                 /* Release */
-    dur = *argp[3];
+    // **FIXME is this needed? dur = *argp[3];
     segp->nxtpt = FL(0.0);
     segp->cnt = (int32_t)(release * CS_EKR + FL(0.5));
     if (UNLIKELY((segp->acnt = (int32_t)(release * csound->esr + FL(0.5))) < 0))
@@ -860,7 +860,7 @@ int32_t expseg(CSOUND *csound, EXXPSEG *p)
     uint32_t n, nsmps = CS_KSMPS;
     MYFLT       *rs = p->rslt;
 
-    
+
 
     if (UNLIKELY(offset)) memset(rs, '\0', offset*sizeof(MYFLT));
     if (UNLIKELY(early)) {
@@ -1024,7 +1024,7 @@ int32_t expsegr(CSOUND *csound, EXPSEG *p)
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t n, nsmps = CS_KSMPS;
- 
+
 
     if (UNLIKELY(offset)) memset(rs, '\0', offset*sizeof(MYFLT));
     if (UNLIKELY(early)) {
@@ -1958,7 +1958,7 @@ int32_t kosseg(CSOUND *csound, COSSEG *p)
         p->cursegp = segp+1;              /*   else find the next */
         if (UNLIKELY(!(p->curcnt = segp->cnt))) {
           val2 = p->y2 = segp->nxtpt;  /* nonlen = discontin */
-          inc = p->inc = (segp->cnt ? 1.0/(segp->cnt) : 0.0);
+          /* inc = */ p->inc = (segp->cnt ? 1.0/(segp->cnt) : 0.0);
           goto chk1;
         }                                 /*   poslen = new slope */
       }
@@ -2212,7 +2212,7 @@ int32_t kcssegr(CSOUND *csound, COSSEG *p)
         p->cursegp = segp+1;              /*   else find the next */
         if (UNLIKELY(!(p->curcnt = segp->cnt))) {
           val2 = p->y2 = segp->nxtpt;  /* nonlen = discontin */
-          inc = p->inc = (segp->cnt ? 1.0/(segp->cnt) : 0.0);
+          /* inc = */ p->inc = (segp->cnt ? 1.0/(segp->cnt) : 0.0);
           goto chk1;
         }                                 /*   poslen = new slope */
       }

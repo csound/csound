@@ -27,6 +27,8 @@ set(EXECUTABLE_INSTALL_DIR "bin")
 set(LOCALE_INSTALL_DIR "share/locale")
 set(HEADER_INSTALL_DIR "include/csound")
 
+set(SAMPLES_INSTALL_DIR "/samples")
+
 set(CS_FRAMEWORK_DEST "~/Library/Frameworks" CACHE PATH "Csound framework path")
 include(TestBigEndian)
 include(CheckFunctionExists)
@@ -856,6 +858,7 @@ set(stdopcod_SRCS
     Opcodes/ugnorman.c
     Opcodes/ugsc.c
     Opcodes/wave-terrain.c
+    Opcodes/wterrain2.c
     Opcodes/stdopcod.c
     Opcodes/socksend.c
     Opcodes/sockrecv.c)
@@ -1327,7 +1330,7 @@ endif()
 
 target_compile_options(${CSOUNDLIB} PRIVATE ${libcsound_CFLAGS})
 if(MSVC)
-    target_link_libraries(${CSOUNDLIB} PRIVATE sndfile-static)
+    target_link_libraries(${CSOUNDLIB} PRIVATE SndFile::sndfile ws2_32)
 else()
     target_link_libraries(${CSOUNDLIB} PRIVATE ${libcsound_LIBS})
 endif()
@@ -1344,7 +1347,7 @@ if(BUILD_STATIC_LIBRARY)
     target_compile_options(${CSOUNDLIB_STATIC} PRIVATE ${libcsound_CFLAGS})
 
     if(MSVC)
-        target_link_libraries(${CSOUNDLIB_STATIC} PRIVATE sndfile-static ${CSOUND_WINDOWS_LIBRARIES})
+        target_link_libraries(${CSOUNDLIB_STATIC} PRIVATE SndFile::sndfile ${CSOUND_WINDOWS_LIBRARIES})
     else()
         target_link_libraries(${CSOUNDLIB_STATIC} ${libcsound_LIBS})
     endif()
@@ -1430,3 +1433,13 @@ endif(DOXYGEN_FOUND)
 # install CMake module
 install(FILES ${CMAKE_SOURCE_DIR}/cmake/Modules/FindCsound.cmake
         DESTINATION "${CMAKE_INSTALL_PREFIX}/share/cmake/Csound")
+
+# install samples
+if(APPLE)
+ install(DIRECTORY ${CMAKE_SOURCE_DIR}/samples
+          DESTINATION  ${CS_FRAMEWORK_DEST}/${CSOUNDLIB}.framework/Versions/${APIVERSION})
+else()
+ install(DIRECTORY ${CMAKE_SOURCE_DIR}/samples
+          DESTINATION ${CMAKE_INSTALL_PREFIX}/share)
+endif()
+ 

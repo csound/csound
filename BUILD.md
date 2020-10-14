@@ -98,9 +98,9 @@ describe what you will need to do to use Homebrew to install Csound 6.
 
 -   Xcode Command-Line Tools
 
--   Homebrew - [http://www.brew.sh][2]
+-   Homebrew - [https://brew.sh][2]
 
-[2]: <http://www.brew.sh>
+[2]: <https://brew.sh>
 
 #### Installing Homebrew 
 
@@ -281,7 +281,18 @@ $HOME/include. The plugin dir is in $HOME/lib/csound/plugins64-6.0.
 
 ### Dependencies List
 
-If the dependency you are adding uses ./configure, you can use the same parameters to it as explained in step 2. If it uses cmake, you can use the same parameters as in step 5. After adding dependencies to your $HOME directories, you can run cmake again to re-build Csound. Check the printed output to see if the added dependency has switched on the build of the desired component.
+If the dependency you are adding uses ./configure, you can use the
+same parameters to it as explained in step 2. If it uses cmake, you
+can use the same parameters as in step 5. After adding dependencies to
+your $HOME directories, you can run cmake again to re-build
+Csound. Check the printed output to see if the added dependency has
+switched on the build of the desired component.
+
+NB: Since the EOL for Python 2, the Python opcodes build has been
+disabled by default. If you have the Python 2 headers and libraries
+and wishes to build these, use the CMake option
+`-DBUILD_PYTHON_OPCODES=1`. Python 3 opcodes are now available
+separately from the csound/plugins repository.
 
 #### OSC opcodes
 
@@ -291,7 +302,7 @@ liblo - http://liblo.sourceforge.net/ NB: the build for version 0.28 seems to be
 
 Fluidsynth - http://sourceforge.net/apps/trac/fluidsynth/ NB: cmake might need to be coerced into finding the fluidsynth headers once it is built. For that, you can use the following cmake command (see step 5):
 
-cmake -DCMAKE_INSTALL_PREFIX=$HOME -DFLUIDSYNTH_H=$HOME/include ..
+`cmake -DCMAKE_INSTALL_PREFIX=$HOME -DFLUIDSYNTH_H=$HOME/include ..`
 
 #### Widget opcodes
 
@@ -301,21 +312,23 @@ FLTK - http://www.fltk.org/index.php NB: make sure you configure the FLTK build 
 
 libfaust - use faust2 branch of Faust git sources:
 
+```
 $ git clone git://git.code.sf.net/p/faudiostream/code faust
 $ cd faust
 $ git checkout faust2
+```
 
 NB: libfaust also requires LLVM 3.0, 3.1, 3.2, 3.3 or 3.4 - http://llvm.org/ LLVM can be built with CMake (as in step 5 above). To build faust, use the following make command (replacing LLVM_32 for LLVM_3* depending on the version you are using, if it is not 3.2)
 
-$ make LLVM_VERSION=LLVM_32 LLVM_CONFIG=llvm-config LLVM_CLANG=g++ CXX=g++ ARCHFLAGS=-fPIC
+`$ make LLVM_VERSION=LLVM_32 LLVM_CONFIG=llvm-config LLVM_CLANG=g++ CXX=g++ ARCHFLAGS=-fPIC`
 
 To install it, you should run
 
-$make PREFIX=$HOME
+`$ make PREFIX=$HOME`
 
 To switch the faust opcodes build on and coerce cmake into finding the faust library use:
 
-cmake -DCMAKE_INSTALL_PREFIX=$HOME -DBUILD_FAUST_OPCODES=1 -DFAUST_LIBRARY=$HOME/lib/faust/libfaust.a ..
+`cmake -DCMAKE_INSTALL_PREFIX=$HOME -DBUILD_FAUST_OPCODES=1 -DFAUST_LIBRARY=$HOME/lib/faust/libfaust.a ..`
 
 NB: Ubuntu users should be aware that LLVM 3.4 and 3.5 packages seem broken. It is probably recommended to build LLVM by oneself. Otherwise, LLVM 3.3 package is enough for building csound 6.05 with Faust opcodes assuming that
 
@@ -326,7 +339,7 @@ NB: Ubuntu users should be aware that LLVM 3.4 and 3.5 packages seem broken. It 
 
 Then some additional environment variables may have to be set during the configuration step:
 
-cmake -DLLVM_DIR=/usr/share/llvm-3.3/cmake -DCMAKE_MODULE_LINKER_FLAGS="-L/usr/lib/llvm-3.3/lib" -DBUILD_FAUST_OPCODES=1 -DFAUST_LIBRARY=pathTo/libfaust.a ../csound-develop/ 
+`cmake -DLLVM_DIR=/usr/share/llvm-3.3/cmake -DCMAKE_MODULE_LINKER_FLAGS="-L/usr/lib/llvm-3.3/lib" -DBUILD_FAUST_OPCODES=1 -DFAUST_LIBRARY=pathTo/libfaust.a ../csound-develop/ `
 
 #### Portaudio module
 
@@ -429,7 +442,10 @@ or there might be a compiler issue, in which case, you need to change the line a
     in order to disable the vectorial code and use standard C scalar
     operations.
 
-There is no support for NEON on rpi 1 or zero. This is available for rpi 2 and 3, though.
+There is no support for NEON on rpi 1 or zero. This is available for
+rpi 2 and 3, though.
+
+3. Remember to run cmake again (step 7 above) after any changes to Custom.cmake
 
 Fedora 18 <a name="fedora">
 ---------

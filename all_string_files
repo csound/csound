@@ -474,6 +474,7 @@
 ./Opcodes/wiimote.c
 ./Opcodes/wpfilters.c
 ./Opcodes/wpfilters.h
+./Opcodes/wterrain2.c
 ./Opcodes/zak.c
 ./Opcodes/zak.h
 ./Top/argdecode.c

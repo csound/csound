@@ -380,7 +380,7 @@ static void fftmx(MYFLT *a, MYFLT *b,
 
  lbl110:
     if (nfac[i] != 4) goto lbl230;
-    kspnn = kspan;
+    //kspnn = kspan;
     kspan = kspan/4;
  lbl120:
     c1 = 1.0;

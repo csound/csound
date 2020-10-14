@@ -107,7 +107,7 @@ static int SoundFontLoad(CSOUND *csound, char *fname)
     SFBANK *soundFont;
     sfontg *globals;
     globals = (sfontg *) (csound->QueryGlobalVariable(csound, "::sfontg"));
-    soundFont = globals->soundFont;
+    //soundFont = globals->soundFont;
     fd = csound->FileOpen2(csound, &fil, CSFILE_STD, fname, "rb",
                              "SFDIR;SSDIR", CSFTYPE_SOUNDFONT, 0);
     if (UNLIKELY(fd == NULL)) {
@@ -1694,7 +1694,7 @@ static int32_t fill_SfStruct(CSOUND *csound)
                                            Gfname);
                             return NOTOK;
                         }
-                        sglobal_zone = 0;
+                        //sglobal_zone = 0;
                         ll++;
                       }
                       break;
@@ -1933,7 +1933,7 @@ static int32_t fill_SfStruct(CSOUND *csound)
                                             "Session aborted !"), Gfname);
                     return NOTOK;
                   }
-                  sglobal_zone = 0;
+                  //sglobal_zone = 0;
                   ll++;
                 }
                 break;
@@ -2592,7 +2592,7 @@ static int32_t sflooper_process(CSOUND *csound, sflooper *p)
           outL[i] += out*left;
         }
         else {  /* normal */
-          out = 0;
+          //out = 0;
           tndx0 = (uint32) ndx[0];
           frac0 = ndx[0] - tndx0;
           if (ndx[0] < loop_end[k]-crossfade)

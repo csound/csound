@@ -858,10 +858,13 @@ static int32_t infile_set_(CSOUND *csound, INFILE *p, int32_t istring)
     p->flag = 1;
     memset(&sfinfo, 0, sizeof(SF_INFO));
     sfinfo.samplerate = (int32_t) MYFLT2LRND(CS_ESR);
-    if ((int32_t) MYFLT2LRND(*p->iflag) == 0)
+    /* Following code is seriously broken*/
+    if ((int32_t) MYFLT2LRND(*p->iflag) == -2)
       sfinfo.format = FORMAT2SF(AE_FLOAT) | TYPE2SF(TYP_RAW);
-    else
+    else if ((int32_t) MYFLT2LRND(*p->iflag) == -1)
       sfinfo.format = FORMAT2SF(AE_SHORT) | TYPE2SF(TYP_RAW);
+    else
+      sfinfo.format = 0;
     sfinfo.channels = p->INOCOUNT - 3;
      if (CS_KSMPS >= 512)
       p->frames = CS_KSMPS;
@@ -915,10 +918,12 @@ static int32_t infile_set_A(CSOUND *csound, INFILEA *p)
     p->flag = 1;
     memset(&sfinfo, 0, sizeof(SF_INFO));
     sfinfo.samplerate = (int32_t) MYFLT2LRND(CS_ESR);
-    if ((int32_t) MYFLT2LRND(*p->iflag) == 0)
+    if ((int32_t) MYFLT2LRND(*p->iflag) == -2)
       sfinfo.format = FORMAT2SF(AE_FLOAT) | TYPE2SF(TYP_RAW);
-    else
+    else if ((int32_t) MYFLT2LRND(*p->iflag) == -1)
       sfinfo.format = FORMAT2SF(AE_SHORT) | TYPE2SF(TYP_RAW);
+    else
+      sfinfo.format = 0;
     sfinfo.channels = p->INOCOUNT - 3;
     if (CS_KSMPS >= 512)
       p->frames = CS_KSMPS;
@@ -1071,10 +1076,12 @@ static int32_t kinfile_set_(CSOUND *csound, KINFILE *p, int32_t istring)
 
     memset(&sfinfo, 0, sizeof(SF_INFO));
     sfinfo.samplerate = (int32_t) MYFLT2LRND(CS_EKR);
-    if ((int32_t) MYFLT2LRND(*p->iflag) == 0)
+    if ((int32_t) MYFLT2LRND(*p->iflag) == -2)
       sfinfo.format = FORMAT2SF(AE_FLOAT) | TYPE2SF(TYP_RAW);
-    else
+    else if ((int32_t) MYFLT2LRND(*p->iflag) == -1)
       sfinfo.format = FORMAT2SF(AE_SHORT) | TYPE2SF(TYP_RAW);
+    else
+      sfinfo.format = 0;
     sfinfo.channels = p->INOCOUNT - 3;
 
     p->nargs = p->INOCOUNT - 3;
@@ -1487,6 +1494,9 @@ void sprints1(char *outstring,  char *fmt, MYFLT **kvals, int32 numVals)
         case 'l':
           snprintf(outstring, len, strseg, (int64_t) MYFLT2LRND(*kvals[j]));
           break;
+        case 's':
+            snprintf(outstring, len, strseg, ((STRINGDAT*)(kvals[j]))->data);
+            break;
 
         default:
           snprintf(outstring, len, strseg, *kvals[j]);
@@ -1494,7 +1504,7 @@ void sprints1(char *outstring,  char *fmt, MYFLT **kvals, int32 numVals)
         }
       }
       else
-        snprintf(outstring, len, "%s", strseg);
+       snprintf(outstring, len, "%s", strseg);
     }
 
 }
@@ -1572,11 +1582,11 @@ static OENTRY localops[] = {
         (SUBR) ficlose_opcode_S,  (SUBR) NULL,        (SUBR) NULL, NULL},
     { "ficlose.S",  S(FICLOSE),     0, 1,  "",     "i",
         (SUBR) ficlose_opcode,  (SUBR) NULL,        (SUBR) NULL, NULL },
-    { "fin.a",      S(INFILE),     WI, 3,  "",      "Siiy",
+    { "fin.a",      S(INFILE),     WI|_QQ, 3,  "",      "Siiy",
         (SUBR) infile_set_S,    (SUBR) infile_act, NULL},
     { "fin.A",      S(INFILEA),    WI, 3,  "",     "Siia[]",
         (SUBR) infile_set_A,    (SUBR) infile_arr, NULL},
-    { "fin.i",      S(INFILE),     WI, 3,  "",     "iiiy",
+    { "fin.i",      S(INFILE),     WI|_QQ, 3,  "",     "iiiy",
         (SUBR) infile_set,      (SUBR) infile_act, NULL},
     { "fink",       S(KINFILE),    WI, 3,  "",     "Siiz",
         (SUBR) kinfile_set_S,     (SUBR) kinfile,     (SUBR) NULL, NULL},

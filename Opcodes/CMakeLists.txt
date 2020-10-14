@@ -4,7 +4,7 @@ option(BUILD_FLUID_OPCODES "Build the fluidsynth opcodes" ON)
 option(BUILD_JACK_OPCODES "Build the JACK related opcodes" ON)
 option(BUILD_OSC_OPCODES "Build the OSC Opcodes" ON)
 option(BUILD_IMAGE_OPCODES "Build the image opcodes" ON)
-option(BUILD_PYTHON_OPCODES "Build the Python opcodes" ON)
+option(BUILD_PYTHON_OPCODES "Build the Python opcodes" OFF)
 option(BUILD_WIIMOTE_OPCODES "Build the Wiimote opcodes" ON)
 option(BUILD_P5GLOVE_OPCODES "Build the P5Glove opcodes" ON)
 option(BUILD_SERIAL_OPCODES "Build the serial opcode" ON)
@@ -46,11 +46,8 @@ find_library(LAME_LIB mp3lame)
 
 ## OPCODE LIBS WITH NO EXTERNAL DEPENDENCIES ##
 
-make_plugin(mixer mixer.cpp)
-make_plugin(signalflowgraph signalflowgraph.cpp)
-make_plugin(sterrain sterrain.c)
 
-make_plugin(ampmidid ampmidid.cpp)
+make_plugin(sterrain sterrain.c)
 make_plugin(cs_date date.c)
 make_plugin(system_call system_call.c)
 make_plugin(doppler doppler.cpp)
@@ -60,6 +57,7 @@ make_plugin(getftargs getftargs.c)
 make_plugin(liveconv liveconv.c)
 ##make_plugin(zak zak.c)
 make_plugin(gtf gammatone.c)
+make_plugin(lfsr lfsr.cpp)
 
 make_plugin(fareygen fareygen.c)
 make_plugin(quadbezier quadbezier.c)
@@ -89,6 +87,10 @@ else()
       set_target_properties(pvsops PROPERTIES COMPILE_FLAGS "-std=gnu++11")
       endif()
 endif()
+
+make_plugin(mixer mixer.cpp)
+make_plugin(signalflowgraph signalflowgraph.cpp)
+make_plugin(ampmidid ampmidid.cpp)
 
 
 if(BUILD_PADSYNTH_OPCODES)

@@ -21,26 +21,16 @@
     02110-1301 USA
 */
 
-// Setup a single global AudioContext object if not already defined
-var CSOUND_AUDIO_CONTEXT = CSOUND_AUDIO_CONTEXT || 
-    (function() {
+import csound_processor from "./CsoundProcessor"
 
-        try {
-            var AudioContext = window.AudioContext || window.webkitAudioContext;
-            return new AudioContext();      
-        }
-        catch(error) {
+let CsoundNode;
 
-            console.log('Web Audio API is not supported in this browser');
-        }
-        return null;
-    }());
-
+if(typeof AudioWorkletNode == "function") {
 
 /** This ES6 Class defines a Custom Node as an AudioWorkletNode 
  *  that holds a Csound engine.
  */
-class CsoundNode extends AudioWorkletNode {
+CsoundNode = class extends AudioWorkletNode {
 
     /** 
      *
@@ -347,6 +337,9 @@ class CsoundNode extends AudioWorkletNode {
         this.playStateListeners.forEach(v => v());
     }
 }
+} else {
+    CsoundNode = () => {};
+}
 
 /** This E6 class is used to setup scripts and
     allow the creation of new CsoundNode objects
@@ -359,10 +352,11 @@ class CsoundNodeFactory {
      *
      * @param {string} script_base A string containing the base path to scripts
      */
-    static importScripts(script_base='./') {
-        let actx = CSOUND_AUDIO_CONTEXT;
+    static initialize(audioContext) {
+        let actx = audioContext;
+
         return new Promise( (resolve) => {
-            actx.audioWorklet.addModule(script_base + 'CsoundProcessor.js').then(() => {
+            actx.audioWorklet.addModule(csound_processor).then(() => {
                 resolve(); 
             })      
         }) 
@@ -374,12 +368,14 @@ class CsoundNodeFactory {
      *  @param {number} OutputChannelCount number of output channels
      *  @returns {object}
      */
-    static createNode(inputChannelCount=1, outputChannelCount=2) {
+    static createNode(audioContext, inputChannelCount=1, outputChannelCount=2) {
         var options = {};
         options.numberOfInputs  = inputChannelCount;
         options.numberOfOutputs = 1;
         options.outputChannelCount = [ outputChannelCount ];
-        return new CsoundNode(CSOUND_AUDIO_CONTEXT, options);
+        return new CsoundNode(audioContext, options);
     }
 }
+
+export default CsoundNodeFactory;
 

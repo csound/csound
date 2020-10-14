@@ -2227,7 +2227,13 @@ int32_t mvchpf24_perf_a(CSOUND *csound, mvchpf24 *p){
     return OK;
 }
 
-// Added by Gleb Rogozinsky 2020
+/* Bob is a port of bob~ filter object from Pd.
+The design is based on the papers by Tim Stilson,
+Timothy E. Stinchcombe, and Antti Huovilainen.
+Ported from PD code by Gleb Rogozinsky, Summer of 2020
+cased on code by Miller Puckette
+*/
+
 static int32_t calc_derivatives(CSOUND *csound, BOB *p, double *dstate,
                                 double *state, MYFLT in)
 {
@@ -2258,7 +2264,9 @@ static int32_t bob_init(CSOUND *csound,BOB *p)
       p->oldres = FL(0.0);
       p->oldsat = FL(0.0);
     }
-    if (*p->osamp<=FL(1.0)) p->ostimes = 3;
+
+    if (*p->osamp<=FL(0.0)) p->ostimes = 2;
+    else if (*p->osamp< FL(1.0)) p->ostimes = 1;
     else p->ostimes = (int32_t) *p->osamp;
 
     int i;
@@ -2331,6 +2339,41 @@ static int32_t bob_process(CSOUND *csound,BOB *p)
     return OK;
 }
 
+typedef struct vps {
+  OPDS h;
+  MYFLT *out, *in, *kd, *ke;
+} VPS;
+
+int vps_process(CSOUND *csound, VPS *p) {
+  uint32_t offset = p->h.insdshead->ksmps_offset;
+  uint32_t early  = p->h.insdshead->ksmps_no_end;
+  uint32_t i, nsmps = CS_KSMPS;
+  MYFLT *in = p->in, s;
+  MYFLT *out = p->out;
+  MYFLT kd = *p->kd < 1. ? (*p->kd >= 0. ? *p->kd : 0.) : 1.;
+  MYFLT ke = *p->ke;
+
+  if (UNLIKELY(offset)) {
+      memset(out, '\0', offset*sizeof(MYFLT));
+    }
+    if (UNLIKELY(early)) {
+      nsmps -= early;
+      memset(&out[nsmps], '\0', early*sizeof(MYFLT));
+    }
+
+
+  for (i=offset; i<nsmps; i++) {
+    s = in[i];
+    s = s < 1. ? (s >= 0. ? s : 0.) : 1.;
+    if (s < kd)
+      out[i] = s*ke/kd;
+     else
+      out[i] = ke + (1.-ke)*(s-kd)/(1.-kd);
+  }
+  return OK;
+}
+
+
 static OENTRY localops[] =
   {
    {"mvchpf", sizeof(mvchpf24), 0, 3, "a", "akp",
@@ -2390,7 +2433,9 @@ static OENTRY localops[] =
    {"fofilter", sizeof(fofilter), 0, 3, "a", "axxxp",
    (SUBR) fofilter_init, (SUBR) fofilter_process     },
    {"bob", sizeof(BOB), 0, 3, "a", "axxxop",
-   (SUBR) bob_init, (SUBR) bob_process     }
+    (SUBR) bob_init, (SUBR) bob_process     },
+   {"vps", sizeof(VPS), 0, 2, "a", "akk",
+   (SUBR) NULL, (SUBR) vps_process }
 };
 
 int32_t newfils_init_(CSOUND *csound)

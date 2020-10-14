@@ -640,7 +640,7 @@ int32_t lpfil2_init(CSOUND *csound, LPCFIL2 *p) {
   if(p->coefs.auxp == NULL || Mbytes > p->coefs.size)
     csound->AuxAlloc(csound, Mbytes, &p->coefs);
 
-  
+
   if(p->del.auxp == NULL || Mbytes > p->del.size)
     csound->AuxAlloc(csound, Mbytes, &p->del);
   memset(p->del.auxp, 0, Mbytes);

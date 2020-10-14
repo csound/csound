@@ -599,7 +599,7 @@ static void nkread(CSOUND *csound, MYFLT *kp, FILE *ifd, int32_t format, int32_t
     case 1: {
       int8_t *bp = (int8_t*)inbuf;
       len = nk;
-      len = fread(inbuf, 1, len, ifd);        /* now read the buffer */
+      if ((unsigned)len != fread(inbuf, 1, len, ifd)) break;        /* now read the buffer */
       while (nk--)
         *kp++ = (MYFLT)*bp++;
       break;
@@ -607,7 +607,7 @@ static void nkread(CSOUND *csound, MYFLT *kp, FILE *ifd, int32_t format, int32_t
     case 4: {
       int16_t *bp = (int16_t*)inbuf;
       len = nk * 2;
-      len = fread(inbuf, 1, len, ifd);        /* now read the buffer */
+      if ((unsigned)len != fread(inbuf, 1, len, ifd)) break;;        /* now read the buffer */
       while (nk--)
         *kp++ = (MYFLT)*bp++;
       break;
@@ -615,7 +615,7 @@ static void nkread(CSOUND *csound, MYFLT *kp, FILE *ifd, int32_t format, int32_t
     case 5: {
       int32_t *bp = (int32_t*)inbuf;
       len = nk * 4;
-      len = fread(inbuf, 1, len, ifd);        /* now read the buffer */
+      if ((unsigned)len != fread(inbuf, 1, len, ifd)) break;        /* now read the buffer */
       while (nk--)
         *kp++ = (MYFLT)*bp++;
       break;
@@ -623,7 +623,7 @@ static void nkread(CSOUND *csound, MYFLT *kp, FILE *ifd, int32_t format, int32_t
     case 6: {
       float *bp = (float*)inbuf;
       len = nk * sizeof(float);
-      len = fread(inbuf, 1, len, ifd);        /* now read the buffer */
+      if ((unsigned)len != fread(inbuf, 1, len, ifd)) break;;        /* now read the buffer */
       while (nk--)
         *kp++ = (MYFLT)*bp++;
       break;
