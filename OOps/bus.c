@@ -813,7 +813,7 @@ int32_t chnget_array_opcode_init(CSOUND* csound, CHNGETARRAY* p)
     int index = 0;
     p->arraySize = arr->sizes[0];
     p->channels = (STRINGDAT*) arr->data;
-    p->channelPtrs = malloc(p->arraySize*sizeof(MYFLT));
+    p->channelPtrs = (MYFLT **) csound->Malloc(csound, p->arraySize*sizeof(MYFLT*)); // VL: surely an array of pointers?
     tabinit(csound, p->arrayDat, p->arraySize);
 
     int32_t err;
@@ -963,7 +963,7 @@ int32_t chnset_array_opcode_init_i(CSOUND *csound, CHNGETARRAY *p)
     ARRAYDAT* channelArr = (ARRAYDAT*) p->iname;
     p->arraySize = channelArr->sizes[0];
     p->channels = (STRINGDAT*) channelArr->data;
-    p->channelPtrs = malloc(p->arraySize*sizeof(MYFLT));
+    p->channelPtrs = (MYFLT **) csound->Malloc(csound, p->arraySize*sizeof(MYFLT*)); // VL surely array of pointers?
 
     for (index = 0; index<p->arraySize; index++) {
         err = csoundGetChannelPtr(csound, &p->channelPtrs[index], (char *) p->channels[index].data,
@@ -1011,7 +1011,7 @@ int32_t chnset_array_opcode_init(CSOUND* csound, CHNGETARRAY* p)
     ARRAYDAT* channelArr = (ARRAYDAT*) p->iname;
     p->arraySize = channelArr->sizes[0];
     p->channels = (STRINGDAT*) channelArr->data;
-    p->channelPtrs = malloc(p->arraySize*sizeof(MYFLT));
+    p->channelPtrs = csound->Malloc(csound, p->arraySize*sizeof(MYFLT*)); // surely an array of pointers?
 
     int32_t channelType;
 
@@ -1524,16 +1524,16 @@ int32_t chnset_opcode_perf_S(CSOUND* csound, CHNGET* p)
 
 /* declare control channel, optionally with special parameters */
 
-int32_t chn_k_opcode_init(CSOUND *csound, CHN_OPCODE_K *p)
+int32_t chn_k_opcode_init_(CSOUND *csound, CHN_OPCODE_K *p, int mode)
 {
     MYFLT *dummy;
-    int32_t   type, mode, err;
+    int32_t   type, err;
     controlChannelHints_t hints;
     hints.attributes = NULL;
     hints.max = hints.min = hints.dflt = FL(0.0);
     hints.x = hints.y = hints.height = hints.width = 0;
 
-    mode = (int32_t)MYFLT2LRND(*(p->imode));
+    // mode = (int32_t)MYFLT2LRND(*(p->imode));
     if (UNLIKELY(mode < 1 || mode > 3))
         return csound->InitError(csound, Str("invalid mode parameter"));
     type = CSOUND_CONTROL_CHANNEL;
@@ -1574,6 +1574,28 @@ int32_t chn_k_opcode_init(CSOUND *csound, CHN_OPCODE_K *p)
         return print_chn_err(p, err);
     return csound->InitError(csound, Str("invalid channel parameters"));
 }
+
+int32_t chn_k_opcode_init(CSOUND *csound, CHN_OPCODE_K *p)
+{
+    int32_t mode = (int32_t)MYFLT2LRND(*(p->imode));
+    return chn_k_opcode_init_(csound, p, mode);
+}
+
+int32_t chn_k_opcode_init_S(CSOUND *csound, CHN_OPCODE_K *p)
+{
+    STRINGDAT *smode = (STRINGDAT *)p->imode;
+    int32_t mode;
+    if(!strcmp("rw", smode->data))
+        mode = 3;
+    else if(!strcmp("r", smode->data))
+        mode = 1;
+    else if(!strcmp("w", smode->data))
+        mode = 2;
+    else
+        return csound->InitError(csound, Str("invalid mode, should be r, w, rw"));
+    return chn_k_opcode_init_(csound, p, mode);
+}
+
 
 /* declare audio channel */
 
@@ -1682,7 +1704,7 @@ int32_t chnexport_opcode_init(CSOUND *csound, CHNEXPORT_OPCODE *p)
     /* if control channel, set additional parameters */
     if ((type & CSOUND_CHANNEL_TYPE_MASK) != CSOUND_CONTROL_CHANNEL)
         return OK;
-    type = (int32_t)MYFLT2LRND(*(p->itype));
+    // ***FIXME not used type = (int32_t)MYFLT2LRND(*(p->itype));
     hints.behav = CSOUND_CONTROL_CHANNEL_LIN;
     hints.dflt = *(p->idflt);
     hints.min = *(p->imin);

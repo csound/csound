@@ -21,204 +21,164 @@
     02110-1301 USA
 */
 
-// Setup a single global AudioContext object
-var CSOUND_AUDIO_CONTEXT =
-    CSOUND_AUDIO_CONTEXT ||
-    (function() {
-        try {
-            var AudioContext = window.AudioContext || window.webkitAudioContext;
-            return new AudioContext();
-        } catch (error) {
-            console.log("Web Audio API is not supported in this browser");
-        }
-        return null;
-    })();
+import libcsound from "./libcsound";
 
 // Global singleton variables
-var AudioWorkletGlobalScope = AudioWorkletGlobalScope || {};
 var CSOUND;
 
 // Single-global message callback, needs reworking...
-let messageCallback = msg => console.log(msg);
-const printMessages = t => {
+let messageCallback = (msg) => console.log(msg);
+const printMessages = (t) => {
     messageCallback(t);
 };
+
+const CSMOD = {}
+//CSMOD["ENVIRONMENT"] = "WEB";
+CSMOD["print"] = printMessages;
+CSMOD["printErr"] = printMessages;
+CSMOD["locateFile"] = (f) => script_base + f;
 
 /** This E6 class is used to setup scripts and
     allow the creation of new CsoundScriptProcessorNode objects
     *  @hideconstructor
     */
 class CsoundScriptProcessorNodeFactory {
-    // Utility function to load a script and set callback
-    static loadScript(src, callback) {
-        var script = document.createElementNS(
-            "http://www.w3.org/1999/xhtml",
-            "script"
-        );
-        script.src = src;
-        script.onload = callback;
-        document.head.appendChild(script);
-    }
-
     /**
      * This static method is used to asynchronously setup scripts for
      *  ScriptProcessorNode Csound
      *
      * @param {string} script_base A string containing the base path to scripts
      */
-    static importScripts(script_base = "./") {
-        return new Promise(resolve => {
-            CsoundScriptProcessorNodeFactory.loadScript(
-                script_base + "libcsound.js",
-                () => {
-                    AudioWorkletGlobalScope.CSMOD = {};
-                    let CSMOD = AudioWorkletGlobalScope.CSMOD;
+    static initialize(audioContext) {
+        return new Promise((resolve) => {
 
-                    //CSMOD["ENVIRONMENT"] = "WEB";
-                    CSMOD["print"] = printMessages;
-                    CSMOD["printErr"] = printMessages;
-                    CSMOD["locateFile"] = f => script_base + f;
 
-                    AudioWorkletGlobalScope.libcsound(CSMOD).then(() => {
-                        // Cache cwrap functions into CSOUND global object
-                        CSOUND = {
-                            new: CSMOD.cwrap("CsoundObj_new", ["number"], null),
-                            compileCSD: CSMOD.cwrap(
-                                "CsoundObj_compileCSD",
-                                ["number"],
-                                ["number", "string"]
-                            ),
-                            evaluateCode: CSMOD.cwrap(
-                                "CsoundObj_evaluateCode",
-                                ["number"],
-                                ["number", "string"]
-                            ),
-                            readScore: CSMOD.cwrap(
-                                "CsoundObj_readScore",
-                                ["number"],
-                                ["number", "string"]
-                            ),
-                            reset: CSMOD.cwrap("CsoundObj_reset", null, [
-                                "number"
-                            ]),
-                            getOutputBuffer: CSMOD.cwrap(
-                                "CsoundObj_getOutputBuffer",
-                                ["number"],
-                                ["number"]
-                            ),
-                            getInputBuffer: CSMOD.cwrap(
-                                "CsoundObj_getInputBuffer",
-                                ["number"],
-                                ["number"]
-                            ),
-                            getControlChannel: CSMOD.cwrap(
-                                "CsoundObj_getControlChannel",
-                                ["number"],
-                                ["number", "string"]
-                            ),
-                            setControlChannel: CSMOD.cwrap(
-                                "CsoundObj_setControlChannel",
-                                null,
-                                ["number", "string", "number"]
-                            ),
-                            getStringChannel: CSMOD.cwrap(
-                                "CsoundObj_getStringChannel",
-                                ["string"],
-                                ["number", "string"]
-                            ),
-                            setStringChannel: CSMOD.cwrap(
-                                "CsoundObj_setStringChannel",
-                                null,
-                                ["number", "string", "string"]
-                            ),
-                            getKsmps: CSMOD.cwrap(
-                                "CsoundObj_getKsmps",
-                                ["number"],
-                                ["number"]
-                            ),
-                            performKsmps: CSMOD.cwrap(
-                                "CsoundObj_performKsmps",
-                                ["number"],
-                                ["number"]
-                            ),
-                            render: CSMOD.cwrap("CsoundObj_render", null, [
-                                "number"
-                            ]),
-                            getInputChannelCount: CSMOD.cwrap(
-                                "CsoundObj_getInputChannelCount",
-                                ["number"],
-                                ["number"]
-                            ),
-                            getOutputChannelCount: CSMOD.cwrap(
-                                "CsoundObj_getOutputChannelCount",
-                                ["number"],
-                                ["number"]
-                            ),
-                            getTableLength: CSMOD.cwrap(
-                                "CsoundObj_getTableLength",
-                                ["number"],
-                                ["number", "number"]
-                            ),
-                            getTable: CSMOD.cwrap(
-                                "CsoundObj_getTable",
-                                ["number"],
-                                ["number", "number"]
-                            ),
-                            getZerodBFS: CSMOD.cwrap(
-                                "CsoundObj_getZerodBFS",
-                                ["number"],
-                                ["number"]
-                            ),
-                            setMidiCallbacks: CSMOD.cwrap(
-                                "CsoundObj_setMidiCallbacks",
-                                null,
-                                ["number"]
-                            ),
-                            pushMidiMessage: CSMOD.cwrap(
-                                "CsoundObj_pushMidiMessage",
-                                null,
-                                ["number", "number", "number", "number"]
-                            ),
-                            setOutputChannelCallback: CSMOD.cwrap(
-                                "CsoundObj_setOutputChannelCallback",
-                                null,
-                                ["number", "number"]
-                            ),
-                            compileOrc: CSMOD.cwrap(
-                                "CsoundObj_compileOrc",
-                                "number",
-                                ["number", "string"]
-                            ),
-                            setOption: CSMOD.cwrap(
-                                "CsoundObj_setOption",
-                                null,
-                                ["number", "string"]
-                            ),
-                            prepareRT: CSMOD.cwrap(
-                                "CsoundObj_prepareRT",
-                                null,
-                                ["number"]
-                            ),
-                            getScoreTime: CSMOD.cwrap(
-                                "CsoundObj_getScoreTime",
-                                null,
-                                ["number"]
-                            ),
-                            setTable: CSMOD.cwrap("CsoundObj_setTable", null, [
-                                "number",
-                                "number",
-                                "number",
-                                "number"
-                            ]),
-                            destroy: CSMOD.cwrap("CsoundObj_destroy", null, [
-                                "number"
-                            ])
-                        };
+            libcsound(CSMOD).then(() => {
+                // Cache cwrap functions into CSOUND global object
+                CSOUND = {
+                    new: CSMOD.cwrap("CsoundObj_new", ["number"], null),
+                    compileCSD: CSMOD.cwrap(
+                        "CsoundObj_compileCSD",
+                        ["number"],
+                        ["number", "string"]
+                    ),
+                    evaluateCode: CSMOD.cwrap(
+                        "CsoundObj_evaluateCode",
+                        ["number"],
+                        ["number", "string"]
+                    ),
+                    readScore: CSMOD.cwrap(
+                        "CsoundObj_readScore",
+                        ["number"],
+                        ["number", "string"]
+                    ),
+                    reset: CSMOD.cwrap("CsoundObj_reset", null, ["number"]),
+                    getOutputBuffer: CSMOD.cwrap(
+                        "CsoundObj_getOutputBuffer",
+                        ["number"],
+                        ["number"]
+                    ),
+                    getInputBuffer: CSMOD.cwrap(
+                        "CsoundObj_getInputBuffer",
+                        ["number"],
+                        ["number"]
+                    ),
+                    getControlChannel: CSMOD.cwrap(
+                        "CsoundObj_getControlChannel",
+                        ["number"],
+                        ["number", "string"]
+                    ),
+                    setControlChannel: CSMOD.cwrap(
+                        "CsoundObj_setControlChannel",
+                        null,
+                        ["number", "string", "number"]
+                    ),
+                    getStringChannel: CSMOD.cwrap(
+                        "CsoundObj_getStringChannel",
+                        ["string"],
+                        ["number", "string"]
+                    ),
+                    setStringChannel: CSMOD.cwrap(
+                        "CsoundObj_setStringChannel",
+                        null,
+                        ["number", "string", "string"]
+                    ),
+                    getKsmps: CSMOD.cwrap(
+                        "CsoundObj_getKsmps",
+                        ["number"],
+                        ["number"]
+                    ),
+                    performKsmps: CSMOD.cwrap(
+                        "CsoundObj_performKsmps",
+                        ["number"],
+                        ["number"]
+                    ),
+                    render: CSMOD.cwrap("CsoundObj_render", null, ["number"]),
+                    getInputChannelCount: CSMOD.cwrap(
+                        "CsoundObj_getInputChannelCount",
+                        ["number"],
+                        ["number"]
+                    ),
+                    getOutputChannelCount: CSMOD.cwrap(
+                        "CsoundObj_getOutputChannelCount",
+                        ["number"],
+                        ["number"]
+                    ),
+                    getTableLength: CSMOD.cwrap(
+                        "CsoundObj_getTableLength",
+                        ["number"],
+                        ["number", "number"]
+                    ),
+                    getTable: CSMOD.cwrap(
+                        "CsoundObj_getTable",
+                        ["number"],
+                        ["number", "number"]
+                    ),
+                    getZerodBFS: CSMOD.cwrap(
+                        "CsoundObj_getZerodBFS",
+                        ["number"],
+                        ["number"]
+                    ),
+                    setMidiCallbacks: CSMOD.cwrap(
+                        "CsoundObj_setMidiCallbacks",
+                        null,
+                        ["number"]
+                    ),
+                    pushMidiMessage: CSMOD.cwrap(
+                        "CsoundObj_pushMidiMessage",
+                        null,
+                        ["number", "number", "number", "number"]
+                    ),
+                    setOutputChannelCallback: CSMOD.cwrap(
+                        "CsoundObj_setOutputChannelCallback",
+                        null,
+                        ["number", "number"]
+                    ),
+                    compileOrc: CSMOD.cwrap("CsoundObj_compileOrc", "number", [
+                        "number",
+                        "string",
+                    ]),
+                    setOption: CSMOD.cwrap("CsoundObj_setOption", null, [
+                        "number",
+                        "string",
+                    ]),
+                    prepareRT: CSMOD.cwrap("CsoundObj_prepareRT", null, [
+                        "number",
+                    ]),
+                    getScoreTime: CSMOD.cwrap("CsoundObj_getScoreTime", null, [
+                        "number",
+                    ]),
+                    setTable: CSMOD.cwrap("CsoundObj_setTable", null, [
+                        "number",
+                        "number",
+                        "number",
+                        "number",
+                    ]),
+                    destroy: CSMOD.cwrap("CsoundObj_destroy", null, ["number"]),
+                };
 
-                        resolve();
-                    });
-                }
-            );
+                resolve();
+            });
         });
     }
 
@@ -228,11 +188,11 @@ class CsoundScriptProcessorNodeFactory {
      *  @param {number} outputChannelCount Number of output channels
      *  @returns {object} A new CsoundScriptProcessorNode
      */
-    static createNode(inputChannelCount = 1, outputChannelCount = 2) {
+    static createNode(audioContext, inputChannelCount = 1, outputChannelCount = 2) {
         var options = {};
         options.numberOfInputs = inputChannelCount;
         options.numberOfOutputs = outputChannelCount;
-        return new CsoundScriptProcessorNode(CSOUND_AUDIO_CONTEXT, options);
+        return new CsoundScriptProcessorNode(audioContext, options);
     }
 }
 
@@ -244,12 +204,13 @@ class CsoundScriptProcessorNodeFactory {
  *   numberOfOutputs
  *   @returns {object} A new CsoundScriptProcessorNode
  */
-CsoundScriptProcessorNode = function(context, options) {
+const CsoundScriptProcessorNode = function (context, options) {
     var spn = context.createScriptProcessor(
         0,
         options.numberOfInputs,
         options.numberOfOutputs
     );
+    spn.audioContext = context;
     spn.inputCount = options.numberOfInputs;
     spn.outputCount = options.numberOfOutputs;
 
@@ -261,7 +222,7 @@ CsoundScriptProcessorNode = function(context, options) {
     CSOUND.setOption(cs, "-+rtaudio=null");
     CSOUND.setOption(cs, "-+rtmidi=null");
     CSOUND.prepareRT(cs);
-    var sampleRate = CSOUND_AUDIO_CONTEXT.sampleRate;
+    var sampleRate = context.sampleRate;
     CSOUND.setOption(cs, "--sample-rate=" + sampleRate);
     CSOUND.setOption(cs, "--nchnls=" + this.nchnls);
     CSOUND.setOption(cs, "--nchnls_i=" + this.nchnls_i);
@@ -311,9 +272,9 @@ CsoundScriptProcessorNode = function(context, options) {
             FS.close(stream);
         },
 
-        /** 
-         * 
-         * Unlink file from WASM filesystem (i.e. remove). 
+        /**
+         *
+         * Unlink file from WASM filesystem (i.e. remove).
          *
          * @param {string} filePath A string containing the path to write to.
          * @memberof CsoundMixin
@@ -558,7 +519,7 @@ CsoundScriptProcessorNode = function(context, options) {
             CSOUND.setOption(this.csound, "-M0");
             CSOUND.setOption(this.csound, "-+rtaudio=null");
             CSOUND.setOption(this.csound, "-+rtmidi=null");
-            var sampleRate = CSOUND_AUDIO_CONTEXT.sampleRate;
+            var sampleRate = this.audioContext.sampleRate;
             CSOUND.setOption(this.csound, "--sample-rate=" + sampleRate);
             CSOUND.prepareRT(this.csound);
             CSOUND.setOption(this.csound, "--nchnls=" + this.nchnls);
@@ -617,35 +578,37 @@ CsoundScriptProcessorNode = function(context, options) {
         },
 
         /** Returns the current play state of Csound. Results are either
-         * "playing", "paused", or "stopped". 
-         */ 
+         * "playing", "paused", or "stopped".
+         */
+
         getPlayState() {
-            if(this.running) {
+            if (this.running) {
                 return "playing";
-            } else if(this.started) {
-                return "paused"
+            } else if (this.started) {
+                return "paused";
             }
-            return "stopped"; 
+            return "stopped";
         },
 
+        /** Add a listener callback for play state listening. Must be a function
+         * of type (csoundObj:CsoundObj):void.
+         */
 
-        /** Add a listener callback for play state listening. Must be a function 
-         * of type (csoundObj:CsoundObj):void. 
-         */ 
         addPlayStateListener(listener) {
             this.playStateListeners.add(listener);
         },
 
         /** Remove a listener callback for play state listening. Must be the same
-         * function as passed in with addPlayStateListener. 
-         */ 
+         * function as passed in with addPlayStateListener.
+         */
+
         removePlayStateListener(listener) {
             this.playStateListeners.delete(listener);
         },
 
         firePlayStateChange() {
             // uses CsoundObj's wrapper function
-            this.playStateListeners.forEach(v => v());
+            this.playStateListeners.forEach((v) => v());
         },
 
         onaudioprocess(e) {
@@ -685,7 +648,7 @@ CsoundScriptProcessorNode = function(context, options) {
                     // if we need more samples from Csound
                     result = CSOUND.performKsmps(this.csound);
                     cnt = 0;
-                    if(result != 0) {
+                    if (result != 0) {
                         this.running = false;
                         this.started = false;
                         this.firePlayStateChange();
@@ -715,13 +678,10 @@ CsoundScriptProcessorNode = function(context, options) {
 
             this.cnt = cnt;
             this.result = result;
-        }
+        },
     };
-
-    let CSMOD = AudioWorkletGlobalScope.CSMOD;
-    //CSMOD["print"] = printMessages;
-    //CSMOD["printErr"] = printMessages;
 
     return Object.assign(spn, CsoundMixin);
 };
 
+export default CsoundScriptProcessorNodeFactory;

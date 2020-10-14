@@ -64,7 +64,7 @@ static void multiply_fft_buffers(MYFLT *outBuf, MYFLT *ringBuf,
     rbEndP = (MYFLT*) ringBuf + (int32_t) (partSize * nPartitions);
     rbPtr = &(ringBuf[ringBuf_startPos]);
     irPtr = IR_Data;
-    outBufPtr = outBuf;
+    //outBufPtr = outBuf;
     /* clear output buffer to zero */
     memset(outBuf, 0, sizeof(MYFLT)*(partSize));
     /* do { */

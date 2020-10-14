@@ -50,6 +50,7 @@ int     MIDIinsert(CSOUND *, int, MCHNBLK*, MEVENT*);
   void    remote_Cleanup(CSOUND *);
   char    **csoundGetSearchPathFromEnv(CSOUND *, const char *);
 void    openMIDIout(CSOUND *);
+void print_csound_version(CSOUND*);
 
 #ifdef HAVE_PTHREAD_SPIN_LOCK
 #define RT_SPIN_TRYLOCK { int trylock = CSOUND_SUCCESS; \
@@ -428,7 +429,11 @@ static void deactivate_all_notes(CSOUND *csound)
 
     while (ip != NULL) {
       INSDS *nxt = ip->nxtact;
+#ifdef BETA
+      printf("deativate: ip, nxt = %p , %p\n", ip, nxt);
+#endif
       xturnoff_now(csound, ip);
+      // should not be needed -- if (ip == nxt) break;
       ip = nxt;
     }
 }
@@ -449,6 +454,30 @@ static void delete_pending_rt_events(CSOUND *csound)
     ep = nxt;
   }
   csound->OrcTrigEvts = NULL;
+}
+
+void delete_selected_rt_events(CSOUND *csound, int instr)
+{
+  EVTNODE *ep = csound->OrcTrigEvts;
+  EVTNODE *last = NULL;
+  while (ep != NULL) {
+    EVTNODE *nxt = ep->nxt;
+    if (ep->evt.opcod=='i' && (int)(ep->evt.p[1]) == instr) {
+      // Found an event to cancel
+      if (ep->evt.strarg != NULL) {
+        // clearstring if necessary
+        csound->Free(csound,ep->evt.strarg);
+        ep->evt.strarg = NULL;
+      }
+      if (last) last->nxt = nxt; else csound->OrcTrigEvts = nxt;
+      /* push to stack of free event nodes */
+      ep->nxt = csound->freeEvtNodes;
+      csound->freeEvtNodes = ep;
+    }
+    else last = ep;
+    ep = nxt;
+  }
+  //csound->OrcTrigEvts = NULL;
 }
 
 static inline void cs_beep(CSOUND *csound)
@@ -533,6 +562,7 @@ PUBLIC int csoundCleanup(CSOUND *csound)
       csound->Message(csound, Str("\n%d errors in performance\n"),
                       csound->perferrcnt);
       print_benchmark_info(csound, Str("end of performance"));
+      if (csound->print_version) print_csound_version(csound);
     }
     /* close line input (-L) */
     RTclose(csound);

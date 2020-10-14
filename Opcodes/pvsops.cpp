@@ -70,7 +70,7 @@ struct PVTrace2 : csnd::FPlugin<2, 5> {
   csnd::AuxMem<float> amps;
   csnd::AuxMem<binamp> binlist;
   static constexpr char const *otypes = "fk[]";
-  static constexpr char const *itypes = "fkopp";
+  static constexpr char const *itypes = "fkooo";
 
   int init() {
     csnd::Vector<MYFLT> &bins = outargs.vector_data<MYFLT>(1);

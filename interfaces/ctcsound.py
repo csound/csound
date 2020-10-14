@@ -187,9 +187,10 @@ NamedGen._fields_ = [
     ("next", ct.POINTER(NamedGen))]
 
 
+libcsound.csoundSetOpcodedir.argtypes = [ct.c_char_p]
 libcsound.csoundCreate.restype = ct.c_void_p
 libcsound.csoundCreate.argtypes = [ct.py_object]
-
+libcsound.csoundLoadPlugins.argtypes = [ct.c_void_p, ct.c_char_p]
 libcsound.csoundDestroy.argtypes = [ct.c_void_p]
 
 libcsound.csoundParseOrc.restype = ct.c_void_p
@@ -664,6 +665,9 @@ def csoundInitialize(flags):
     """
     return libcsound.csoundInitialize(flags)
 
+def setOpcodedir(s):
+	"""Sets an opcodedir override for csoundCreate()."""
+	libcsound.csoundSetOpcodedir(cstring(s))
 
 class Csound:
     #Instantiation
@@ -681,6 +685,10 @@ class Csound:
         else:
             self.cs = libcsound.csoundCreate(ct.py_object(hostData))
             self.fromPointer = False
+    
+    def loadPlugins(self, directory):
+    	"""Loads all plugins from a given directory."""
+    	return libcsound.csoundLoadPlugins(self.cs, cstring(directory))
     
     def __del__(self):
         """Destroys an instance of Csound."""
@@ -2318,6 +2326,7 @@ class Csound:
     #def createCondVar(self):
     #def condWait(self, condVar, mutex):
     #def condSignal(self, condVar):
+    #def destroyCondVar(self, condVar):
     
     def sleep(self, milliseconds):
         """Waits for at least the specified number of *milliseconds*.

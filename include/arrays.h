@@ -29,7 +29,7 @@ static inline void tabinit(CSOUND *csound, ARRAYDAT *p, int size)
     size_t ss;
     if (p->dimensions==0) {
         p->dimensions = 1;
-        p->sizes = (int32_t*)csound->Malloc(csound, sizeof(int32_t));
+        p->sizes = (int32_t*)csound->Calloc(csound, sizeof(int32_t));
     }
     if (p->data == NULL) {
         CS_VARIABLE* var = p->arrayType->createVariable(csound, NULL);
@@ -39,6 +39,7 @@ static inline void tabinit(CSOUND *csound, ARRAYDAT *p, int size)
         p->allocated = ss;
     } else if( (ss = p->arrayMemberSize*size) > p->allocated) {
         p->data = (MYFLT*) csound->ReAlloc(csound, p->data, ss);
+        memset((char*)(p->data)+p->allocated, '\0', ss-p->allocated);
         p->allocated = ss;
     }
     if (p->dimensions==1) p->sizes[0] = size;
@@ -80,6 +81,7 @@ static inline int tabcheck(CSOUND *csound, ARRAYDAT *p, int size, OPDS *q)
         Str("Array too small (allocated %zu < needed %zu), but cannot "
             "allocate during performance pass. Allocate a bigger array at init time"),
         p->allocated, s);
+      return NOTOK;
     }
     p->sizes[0] = size;
     return OK;

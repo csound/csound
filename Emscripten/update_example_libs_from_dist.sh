@@ -1,4 +1,5 @@
 #!/bin/sh
-cp dist/* examples/js
+cp dist/CsoundObj.js examples/js
+cp dist/csound.js examples/js
 
 

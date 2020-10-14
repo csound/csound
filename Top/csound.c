@@ -55,6 +55,7 @@
 #include "namedins.h"
 #include "pvfileio.h"
 #include "fftlib.h"
+#include "lpred.h"
 #include "cs_par_base.h"
 #include "cs_par_orc_semantics.h"
 #include "namedins.h"
@@ -509,10 +510,17 @@ static const CSOUND cenviron_ = {
     csoundErrCnt,
     csoundFTnp2Finde,
     csoundGetInstrument,
+    csoundAutoCorrelation,
+    csoundLPsetup,
+    csoundLPfree,
+    csoundLPred,
+    csoundLPCeps,
+    csoundCepsLP,
+    csoundLPrms,
     {
       NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
       NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
-      NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL
+      NULL, NULL, NULL
     },
     /* ------- private data (not to be used by hosts or externals) ------- */
     /* callback function pointers */
@@ -953,7 +961,7 @@ static const CSOUND cenviron_ = {
     0,              /* length of current strings space */
     NULL,           /* sinetable */
     16384,          /* sinesize */
-    NULL,           /* pow2 table */
+    NULL,           /* unused *** pow2 table */
     NULL,           /* cps conv table */
     NULL,           /* output of preprocessor */
     NULL,           /* output of preprocessor */
@@ -966,7 +974,7 @@ static const CSOUND cenviron_ = {
     0,              /* csdebug_data */
     kperf_nodebug,  /* current kperf function - nodebug by default */
     0,              /* which score parser */
-    0,              /* unusedint */
+    0,              /* print_version */
     1,              /* inZero */
     NULL,           /* msg_queue */
     0,              /* msg_queue_wget */
@@ -984,9 +992,12 @@ static const CSOUND cenviron_ = {
     NULL,           /* message_string */
     0,              /* message_string_queue_items */
     0,              /* message_string_queue_wp */
-    NULL,            /* message_string_queue */
-    0                /* io_initialised */
-    /*, NULL */      /* self-reference */
+    NULL,           /* message_string_queue */
+    0,              /* io_initialised */
+    NULL,           /* op */
+    0,              /* mode */
+    NULL,           /* opcodedir */
+    NULL            /* score_srt */
 };
 
 void csound_aops_init_tables(CSOUND *cs);
@@ -1003,6 +1014,7 @@ static  volatile  int init_done = 0;
 static  volatile  csInstance_t  *instance_list = NULL;
 /* non-zero if performance should be terminated now */
 static  volatile  int exitNow_ = 0;
+
 
 #if !defined(WIN32)
 static void destroy_all_instances(void)
@@ -1291,6 +1303,13 @@ PUBLIC int csoundInitialize(int flags)
     return 0;
   }
 
+static char *opcodedir = NULL;
+
+PUBLIC void csoundSetOpcodedir(const char *s) {
+  opcodedir = (char *) s;
+}
+
+
 PUBLIC CSOUND *csoundCreate(void *hostdata)
 {
     CSOUND        *csound;
@@ -1315,6 +1334,7 @@ PUBLIC CSOUND *csoundCreate(void *hostdata)
     p->csound = csound;
     p->nxt = (csInstance_t*) instance_list;
     instance_list = p;
+    csound->opcodedir = cs_strdup(csound, opcodedir);
     csoundUnLock();
     csoundReset(csound);
     csound->API_lock = csoundCreateMutex(1);
@@ -1396,7 +1416,7 @@ PUBLIC void csoundDestroy(CSOUND *csound)
       csoundDestroyMutex(csound->API_lock);
     }
     /* clear the pointer */
-    //*(csound->self) = NULL;
+    // *(csound->self) = NULL;
     free((void*) csound);
 }
 
@@ -1532,12 +1552,15 @@ inline static int nodePerf(CSOUND *csound, int index, int numThreads)
             insds->spin = csound->spin;
             insds->spout = csound->spraw;
             insds->kcounter =  csound->kcounter;
+            csound->mode = 2;
             while ((opstart = opstart->nxtp) != NULL) {
               /* In case of jumping need this repeat of opstart */
               opstart->insdshead->pds = opstart;
+              csound->op = opstart->optext->t.opcod;
               (*opstart->opadr)(csound, opstart); /* run each opcode */
               opstart = opstart->insdshead->pds;
             }
+            csound->mode = 0;
           } else {
             int i, n = csound->nspout, start = 0;
             int lksmps = insds->ksmps;
@@ -1565,11 +1588,14 @@ inline static int nodePerf(CSOUND *csound, int index, int numThreads)
 
             for (i=start; i < n; i+=incr, insds->spin+=incr, insds->spout+=incr) {
               opstart = (OPDS*) insds;
+              csound->mode = 2;
               while ((opstart = opstart->nxtp) != NULL) {
                 opstart->insdshead->pds = opstart;
+                csound->op = opstart->optext->t.opcod;
                 (*opstart->opadr)(csound, opstart); /* run each opcode */
                 opstart = opstart->insdshead->pds;
               }
+              csound->mode = 0;
               insds->kcounter++;
             }
           }
@@ -1583,21 +1609,34 @@ inline static int nodePerf(CSOUND *csound, int index, int numThreads)
     return played_count;
 }
 
-inline static void make_interleave(CSOUND *csound)
+inline static void make_interleave(CSOUND *csound, uint32_t lksmps)
 {
-    uint32_t nsmps = csound->ksmps, i, j, k=0;
+    uint32_t nsmps = csound->ksmps, nchan = csound->nchnls,i, j, n, k=0;
     MYFLT *spout = csound->spout;
 
     if (!csound->spoutactive) {
       memset(spout, '\0', csound->nspout*sizeof(MYFLT));
     }
-    else {
+    else if (lksmps == nsmps|| nchan==1 ) {
       for (j=0; j<nsmps; j++) {
-        for (i=0; i<csound->nchnls; i++) {
+        for (i=0; i<nchan; i++) {
           // Will be copy t ad when complette
           spout[k + i] = csound->spraw[i*nsmps+j];
         }
-        k += csound->nchnls;
+        k += nchan;
+      }
+    }
+    else {
+      int m = 0;
+      for (n=0; n<nsmps/lksmps; n++) {
+        for (j=0; j<lksmps; j++) {
+          for (i=0; i<nchan; i++) {
+            // Will be copy t ad when complette
+            spout[k + i] = csound->spraw[i*lksmps+j+m];
+          }
+          k += nchan;
+        }
+        m += nchan*lksmps;
       }
     }
 }
@@ -1654,6 +1693,7 @@ unsigned long kperfThread(void * cs)
 int kperf_nodebug(CSOUND *csound)
 {
     INSDS *ip;
+    int lksmps = csound->ksmps;
     /* update orchestra time */
     csound->kcounter = ++(csound->global_kcounter);
     csound->icurTime += csound->ksmps;
@@ -1726,17 +1766,20 @@ int kperf_nodebug(CSOUND *csound)
             ip->spout = csound->spraw;
             ip->kcounter =  csound->kcounter;
             if (ip->ksmps == csound->ksmps) {
+              csound->mode = 2;
               while (error == 0 &&
                      (opstart = opstart->nxtp) != NULL &&
                      ip->actflg) {
                 opstart->insdshead->pds = opstart;
+                csound->op = opstart->optext->t.opcod;
                 error = (*opstart->opadr)(csound, opstart); /* run each opcode */
                 opstart = opstart->insdshead->pds;
               }
+              csound->mode = 0;
             } else {
                 int error = 0;
                 int i, n = csound->nspout, start = 0;
-                int lksmps = ip->ksmps;
+                lksmps = ip->ksmps;
                 int incr = csound->nchnls*lksmps;
                 int offset =  ip->ksmps_offset;
                 int early = ip->ksmps_no_end;
@@ -1761,12 +1804,16 @@ int kperf_nodebug(CSOUND *csound)
 
                 for (i=start; i < n; i+=incr, ip->spin+=incr, ip->spout+=incr) {
                   opstart = (OPDS*) ip;
+                  csound->mode = 2;
                   while (error ==  0 && (opstart = opstart->nxtp) != NULL
                          && ip->actflg) {
                     opstart->insdshead->pds = opstart;
+                    csound->op = opstart->optext->t.opcod;
+                    //csound->ids->optext->t.oentry->opname;
                     error = (*opstart->opadr)(csound, opstart); /* run each opcode */
                     opstart = opstart->insdshead->pds;
                   }
+                  csound->mode = 0;
                   ip->kcounter++;
                 }
             }
@@ -1784,7 +1831,7 @@ int kperf_nodebug(CSOUND *csound)
       memset(csound->spout, 0, csound->nspout * sizeof(MYFLT));
       memset(csound->spraw, 0, csound->nspout * sizeof(MYFLT));
     }
-    make_interleave(csound);
+    make_interleave(csound, lksmps);
     csound->spoutran(csound); /* send to audio_out */
     //#ifdef ANDROID
     //struct timespec ts;
@@ -1831,8 +1878,10 @@ static inline void opcode_perf_debug(CSOUND *csound,
           bp_node = bp_node->next;
         }
       opstart->insdshead->pds = opstart;
+      csound->mode = 2;
       (*opstart->opadr)(csound, opstart); /* run each opcode */
       opstart = opstart->insdshead->pds;
+      csound->mode = 0;
     }
 }
 
@@ -1856,6 +1905,8 @@ static inline void process_debug_buffers(CSOUND *csound, csdebug_data_t *data)
         while (n) {
           if (n->line == bkpt_node->line && n->instr == bkpt_node->instr) {
             prev->next = n->next;
+            if (data->cur_bkpt == n)
+              data->cur_bkpt = n->next;
             csound->Free(csound, n); /* TODO this should be moved from kperf to a
                         non-realtime context */
             n = prev->next;
@@ -1877,7 +1928,7 @@ int kperf_debug(CSOUND *csound)
 {
     INSDS *ip;
     csdebug_data_t *data = (csdebug_data_t *) csound->csdebug_data;
-
+    int lksmps = csound->ksmps;
     /* call message_dequeue to run API calls */
     message_dequeue(csound);
 
@@ -1930,7 +1981,7 @@ int kperf_debug(CSOUND *csound)
       }
       if (command == CSDEBUG_CMD_CONTINUE &&
           data->status == CSDEBUG_STATUS_STOPPED) {
-        if (data->cur_bkpt->skip <= 2) data->cur_bkpt->count = 2;
+        if (data->cur_bkpt && data->cur_bkpt->skip <= 2) data->cur_bkpt->count = 2;
         data->status = CSDEBUG_STATUS_RUNNING;
         if (data->debug_instr_ptr) {
           /* if not NULL, resume from last active */
@@ -2015,7 +2066,7 @@ int kperf_debug(CSOUND *csound)
                 opcode_perf_debug(csound, data, ip);
             } else { /* when instrument has local ksmps */
               int i, n = csound->nspout, start = 0;
-              int lksmps = ip->ksmps;
+              lksmps = ip->ksmps;
               int incr = csound->nchnls*lksmps;
               int offset =  ip->ksmps_offset;
               int early = ip->ksmps_no_end;
@@ -2067,7 +2118,7 @@ int kperf_debug(CSOUND *csound)
       memset(csound->spraw, 0, csound->nspout * sizeof(MYFLT));
     }
     else
-      make_interleave(csound);
+      make_interleave(csound, lksmps);
     csound->spoutran(csound);               /*      send to audio_out  */
     }
     return 0;
@@ -2241,7 +2292,7 @@ PUBLIC int csoundPerform(CSOUND *csound)
         if (UNLIKELY((done = sensevents(csound)))) {
           csoundMessage(csound, Str("Score finished in csoundPerform().\n"));
           if(!csound->oparms->realtime)
-          csoundUnlockMutex(csound->API_lock);
+            csoundUnlockMutex(csound->API_lock);
           if (csound->oparms->numThreads > 1) {
             csound->multiThreadedComplete = 1;
             csound->WaitBarrier(csound->barrier1);
@@ -2299,7 +2350,7 @@ PUBLIC uint32_t csoundGetNchnls(CSOUND *csound)
 
 PUBLIC uint32_t csoundGetNchnlsInput(CSOUND *csound)
 {
-  if (csound->inchnls > 0)
+  if (csound->inchnls >= 0)
     return (uint32_t) csound->inchnls;
   else return csound->nchnls;
 }
@@ -3345,12 +3396,25 @@ PUBLIC int csoundGetModule(CSOUND *csound, int no, char **module, char **type){
     return CSOUND_SUCCESS;
 }
 
+PUBLIC int csoundLoadPlugins(CSOUND *csound, const char *dir){
+  if (dir != NULL) {
+   int err = csoundLoadAndInitModules(csound, dir);
+   if(!err) {
+     csound->Message(csound, "loaded plugins from %s\n", dir);
+     return CSOUND_SUCCESS;
+  }
+  else return err;
+  }
+  else return CSOUND_ERROR;
+}
 
 PUBLIC void csoundReset(CSOUND *csound)
 {
     char    *s;
     int     i, max_len;
     OPARMS  *O = csound->oparms;
+    char *opdir = csound->opcodedir;
+
     if (csound->engineStatus & CS_STATE_COMP ||
         csound->engineStatus & CS_STATE_PRE) {
      /* and reset */
@@ -3405,7 +3469,9 @@ PUBLIC void csoundReset(CSOUND *csound)
      char *modules = (char *) csoundQueryGlobalVariable(csound, "_MODULES");
      memset(modules, 0, sizeof(MODULE_INFO *)*MAX_MODULES);
 
-      err = csoundLoadModules(csound);
+     /* VL now load modules has opcodedir override */
+     csound->opcodedir = opdir;
+     err = csoundLoadModules(csound);
       if (csound->delayederrormessages &&
           csound->printerrormessagesflag==NULL) {
         csound->Warning(csound, "%s", csound->delayederrormessages);
@@ -3415,9 +3481,9 @@ PUBLIC void csoundReset(CSOUND *csound)
       if (UNLIKELY(err != CSOUND_SUCCESS))
         csound->Die(csound, Str("Failed during csoundLoadModules"));
 
-      /* VL: moved here from main.c */
       if (csoundInitModules(csound) != 0)
             csound->LongJmp(csound, 1);
+
 
       init_pvsys(csound);
       /* utilities depend on this as well as orchs; may get changed by an orch */

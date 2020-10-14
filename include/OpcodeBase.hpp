@@ -191,6 +191,14 @@ public:
     {
         return opds.insdshead->ksmps;
     }
+    uint32_t output_arg_count()
+    {
+        return (uint32_t)opds.optext->t.outArgCount;
+    }
+    uint32_t input_arg_count()
+    {
+        return (uint32_t)opds.optext->t.inArgCount;
+    }
     void log(CSOUND *csound, const char *format,...)
     {
         va_list args;
@@ -302,6 +310,14 @@ public:
     uint32_t ksmps() const
     {
         return opds.insdshead->ksmps;
+    }
+    uint32_t output_arg_count()
+    {
+        return (uint32_t)opds.optext->t.outArgCount;
+    }
+    uint32_t input_arg_count()
+    {
+        return (uint32_t)opds.optext->t.inArgCount;
     }
     void log(CSOUND *csound, const char *format,...)
     {

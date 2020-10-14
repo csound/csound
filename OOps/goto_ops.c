@@ -160,16 +160,20 @@ int32_t ihold(CSOUND *csound, LINK *p)  /* make this note indefinit duration */
 int32_t turnoff(CSOUND *csound, LINK *p)/* terminate the current instrument  */
 {                                       /* called by turnoff statmt at Ptime */
     IGN(csound);
-    INSDS  *lcurip = CS_PDS->insdshead;
-    if (p->h.insdshead->actflg) {
+    INSDS *current = p->h.insdshead;
+    INSDS *lcurip = p->h.insdshead;
+    if (lcurip->actflg) {
     /* IV - Oct 16 2002: check for subinstr and user opcode */
     /* find top level instrument instance */
       while (lcurip->opcod_iobufs)
         lcurip = ((OPCOD_IOBUFS*) lcurip->opcod_iobufs)->parent_ip;
       xturnoff(csound, lcurip);
-      if (lcurip->xtratim <= 0)
-        while (CS_PDS->nxtp != NULL)
-          CS_PDS = CS_PDS->nxtp;                /* loop to last opds */
+      if (current->xtratim <= 0) {
+        OPDS* curOp = current->pds;
+        while (curOp->nxtp != NULL)
+          curOp = curOp->nxtp;                /* loop to last opds */
+        current->pds = curOp;
+      }
     }
     return OK;
 }
@@ -258,6 +262,41 @@ int32_t turnoff2S(CSOUND *csound, TURNOFF2 *p){
 
 int32_t turnoff2k(CSOUND *csound, TURNOFF2 *p){
     return turnoff2(csound, p, 0);
+}
+
+extern void delete_selected_rt_events(CSOUND*, int);
+int32_t turnoff3(CSOUND *csound, TURNOFF2 *p, int32_t isStringArg)
+{
+    MYFLT p1;
+    int32_t   insno;
+
+    if (isStringArg) {
+      p1 = (MYFLT) strarg2insno(csound, ((STRINGDAT *)p->kInsNo)->data, 1);
+    }
+    else if (csound->ISSTRCOD(*p->kInsNo)) {
+      p1 = (MYFLT) strarg2insno(csound, get_arg_string(csound, *p->kInsNo), 1);
+    }
+    else p1 = *(p->kInsNo);
+
+    if (p1 <= FL(0.0))
+      return OK;    /* not triggered */
+
+    insno = (int32_t) p1;
+    if (UNLIKELY(insno < 1 || insno > (int32_t) csound->engineState.maxinsno ||
+                 csound->engineState.instrtxtp[insno] == NULL)) {
+      return csoundPerfError(csound, &(p->h),
+                             Str("turnoff3: invalid instrument number"));
+    }
+    delete_selected_rt_events(csound, insno); 
+    return OK;
+}
+
+int32_t turnoff3S(CSOUND *csound, TURNOFF2 *p){
+    return turnoff3(csound, p, 1);
+}
+
+int32_t turnoff3k(CSOUND *csound, TURNOFF2 *p){
+    return turnoff3(csound, p, 0);
 }
 
 int32_t loop_l_i(CSOUND *csound, LOOP_OPS *p)

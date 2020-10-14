@@ -201,7 +201,7 @@ NM              [nm][ \t]+
                    //csound->DebugMsg(csound,"Macro with arguments call %s\n",
                    //                 yytext);
                    yytext[yyleng-1] = '\0';
-                   mm = find_definition(PARM->macros, yytext+1);
+                   mm = find_definition(mm, yytext+1);
                    if (UNLIKELY(mm == NULL)) {
                      csound->Message(csound,Str("Undefined macro: '%s'"), yytext);
                      corfile_puts(csound, "$error", PARM->cf);
@@ -652,14 +652,14 @@ static void comment(yyscan_t yyscanner)              /* Skip until nextline */
     char c;
     struct yyguts_t *yyg = (struct yyguts_t*)yyscanner;
     while ((c = input(yyscanner)) != '\n' && c != '\r') { /* skip */
-      if (UNLIKELY((int)c == EOF)) {
+      if (UNLIKELY((int)c == EOF || c=='\0')) {
         YY_CURRENT_BUFFER_LVALUE->yy_buffer_status =
           YY_BUFFER_EOF_PENDING;
         return;
       }
     }
     if (c == '\r' && (c = input(yyscanner)) != '\n') {
-      if (LIKELY((int)c != EOF))
+      if (LIKELY((int)c != EOF && c!='\0'))
         unput(c);
       else
         YY_CURRENT_BUFFER_LVALUE->yy_buffer_status =
@@ -690,6 +690,7 @@ static void do_comment(yyscan_t yyscanner)         /* Skip until * and / chars *
       case '/':
         return;
       case EOF:
+      case '\0':
         goto ERR;
       default:
         goto TOP;
@@ -712,7 +713,7 @@ static void do_include(CSOUND *csound, int term, yyscan_t yyscanner)
     CORFIL *cf;
     struct yyguts_t *yyg = (struct yyguts_t*)yyscanner;
     while ((c=input(yyscanner))!=term) {
-      if (c=='\n' || c==EOF) {
+      if (c=='\n' || c==EOF || c=='\0') {
         csound->Warning(csound, Str("Ill formed #include ignored"));
         return;
       }
@@ -949,23 +950,24 @@ static void do_macro_arg(CSOUND *csound, char *name0, yyscan_t yyscanner)
     free(mname);
     c = input(yyscanner);
     while (c!='#') {
-      if (UNLIKELY(c==EOF)) csound->Die(csound, Str("define macro runaway\n"));
+      if (UNLIKELY(c==EOF || c=='\0'))
+        csound->Die(csound, Str("define macro runaway\n"));
       else if (c==';') {
         while ((c=input(yyscanner))!= '\n')
-          if (UNLIKELY(c==EOF)) {
+          if (UNLIKELY(c==EOF || c=='\0')) {
             csound->Die(csound, Str("define macro runaway\n"));
           }
       }
       else if (c=='/') {
         if ((c=input(yyscanner))=='/') {
           while ((c=input(yyscanner))!= '\n')
-            if (UNLIKELY(c==EOF))
+            if (UNLIKELY(c==EOF || c=='\0'))
               csound->Die(csound, Str("define macro runaway\n"));
         }
         else if (c=='*') {
           while ((c=input(yyscanner))!='*') {
           again:
-            if (UNLIKELY(c==EOF))
+            if (UNLIKELY(c==EOF || c=='\0'))
               csound->Die(csound, Str("define macro runaway\n"));
           }
           if ((c=input(yyscanner))!='/') goto again;
@@ -986,7 +988,7 @@ static void do_macro_arg(CSOUND *csound, char *name0, yyscan_t yyscanner)
     }
 
     while ((c = input(yyscanner)) != '#') { /* read body */
-      if (UNLIKELY(c == EOF))
+      if (UNLIKELY(c == EOF || c=='\0'))
         csound->Die(csound, Str("define macro with args: unexpected EOF"));
       if (c=='$') {             /* munge macro name? */
         int n = strlen(name0)+4;
@@ -1053,23 +1055,24 @@ static void do_macro(CSOUND *csound, char *name0, yyscan_t yyscanner)
     mm->acnt = 0;
     i = 0;
     while ((c = input(yyscanner)) != '#') {
-      if (UNLIKELY(c==EOF)) csound->Die(csound, Str("define macro runaway\n"));
+      if (UNLIKELY(c==EOF || c=='\0'))
+        csound->Die(csound, Str("define macro runaway\n"));
       else if (c==';') {
         while ((c=input(yyscanner))!= '\n')
-          if (UNLIKELY(c==EOF)) {
+          if (UNLIKELY(c==EOF || c=='\0')) {
             csound->Die(csound, Str("define macro runaway\n"));
           }
       }
       else if (c=='/') {
         if ((c=input(yyscanner))=='/') {
           while ((c=input(yyscanner))!= '\n')
-            if (UNLIKELY(c==EOF))
+            if (UNLIKELY(c==EOF || c=='\0'))
               csound->Die(csound, Str("define macro runaway\n"));
         }
         else if (c=='*') {
           while ((c=input(yyscanner))!='*') {
           again:
-            if (UNLIKELY(c==EOF))
+            if (UNLIKELY(c==EOF || c=='\0'))
               csound->Die(csound, Str("define macro runaway\n"));
           }
           if ((c=input(yyscanner))!='/') goto again;
@@ -1192,7 +1195,7 @@ static void do_ifdef_skip_code(CSOUND *csound, yyscan_t yyscanner)
     c = input(yyscanner);
     for (;;) {
       while (c!='\n' && c!= '\r') {
-        if (UNLIKELY(c == EOF)) {
+        if (UNLIKELY(c == EOF || c=='\0')) {
           csound->Message(csound, Str("Unmatched #if%sdef\n"),
                           PARM->isIfndef ? "n" : "");
           csound->LongJmp(csound, 1);
@@ -1463,6 +1466,7 @@ static void expand_macroa(CSOUND *csound, MACRO* mm, yyscan_t yyscanner)
       PARM->lstack[++PARM->depth] =
         (strchr(mm->body,'\n') ?file_to_int(csound, mm->name) : 63);
       yy_scan_string(mm->body, yyscanner);
+      csound_prsset_lineno(0, yyscanner);
     }
 }
 
@@ -1692,7 +1696,7 @@ static int bodmas(CSOUND *csound, yyscan_t yyscanner, int* term)
           goto parseNumber;
         //        case '^':
         //type = 0;
-        //*++op = c; c = getscochar(csound, 1); break;
+        // *++op = c; c = getscochar(csound, 1); break;
         case '[':
           if (UNLIKELY(type)) {
             csound->Message(csound,

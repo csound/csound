@@ -6,8 +6,14 @@
 import os
 import sys
 
-from testUI import TestApplication
-from Tkinter import *
+# from testUI import TestApplication
+
+# try:
+#     # Python 3
+#     from tkinter import *
+# except:
+#     # Python 2
+#     from Tkinter import *
 
 parserType = ""
 showUIatClose = False
@@ -20,12 +26,12 @@ class Test:
         self.description = ""
         self.expected = expected
 
-def showUI(results):
-    root = Tk()
-    app = TestApplication(master=root)
-    app.setResults(results)
-    app.mainloop()
-    root.destroy()
+# def showUI(results):
+#     root = Tk()
+#     app = TestApplication(master=root)
+#     app.setResults(results)
+#     app.mainloop()
+#     root.destroy()
 
 def showHelp():
     message = """Csound Test Suite by Steven Yi<stevenyi@gmail.com>
@@ -43,15 +49,15 @@ def showHelp():
 
     """
 
-    print message
+    print(message)
 
 def runTest():
     runArgs = "-nd"# "-Wdo test.wav"
 
     if (parserType == "--old-parser"):
-        print "Testing with old parser"
+        print("Testing with old parser")
     else:
-        print "Testing with new parser"
+        print("Testing with new parser")
 
     tests = [
         ["test1.csd", "Simple Test, Single Channel"],
@@ -192,12 +198,12 @@ def runTest():
         if(os.sep == '\\' or os.name == 'nt'):
             executable = (csoundExecutable == "") and "..\csound.exe" or csoundExecutable
             command = "%s %s %s %s 2> %s"%(executable, parserType, runArgs, filename, tempfile)
-            print command
+            print(command)
             retVal = os.system(command)
         else:
             executable = (csoundExecutable == "") and "../../csound" or csoundExecutable
             command = "%s %s %s %s 2> %s"%(executable, parserType, runArgs, filename, tempfile)
-            print command
+            print(command)
             retVal = os.system(command)
 
         out = ""
@@ -207,12 +213,12 @@ def runTest():
         else:
             testFail += 1
             out = "[FAIL] - "
-        out += "Test %i: %s (%s)\n\tReturn Code: %i\tExpected: %d\n"%(counter, desc, filename, retVal, expectedResult)
-        print out
 
+        out += "Test %i: %s (%s)\n\tReturn Code: %i\tExpected: %d\n"%(counter, desc, filename, retVal, expectedResult
+)
+        print(out)
         if (out.startswith("[FAIL]")):
             testFailMessages += out
-
         output += "%s\n"%("=" * 80)
         output += "Test %i: %s (%s)\nReturn Code: %i\n"%(counter, desc, filename, retVal)
         output += "%s\n\n"%("=" * 80)
@@ -234,11 +240,11 @@ def runTest():
 
 #    print output
 
-    print "%s\n\n"%("=" * 80)
-    print "Tests Passed: %i\nTests Failed: %i\n"%(testPass, testFail)
+    print("%s\n\n"%("=" * 80))
+    print("Tests Passed: %i\nTests Failed: %i\n"%(testPass, testFail))
 
     if (testFail > 0):
-        print "[FAILED TESTS]\n\n%s"%testFailMessages
+        print("[FAILED TESTS]\n\n%s"%testFailMessages)
 
     f = open("results.txt", "w")
     f.write(output)
@@ -253,16 +259,16 @@ if __name__ == "__main__":
             if (arg == "--help"):
                 showHelp()
                 sys.exit(0)
-            elif arg == "--show-ui":
-                showUIatClose = True
+            # elif arg == "--show-ui":
+            #     showUIatClose = True
             elif arg == "--old-parser":
                 parserType = "--old-parser"
             elif arg.startswith("--csound-executable="):
                 csoundExecutable = arg[20:]
-                print csoundExecutable
+                print(csoundExecutable)
             elif arg.startswith("--opcode6dir64="):
                 os.environ['OPCODE6DIR64'] = arg[15:]
-                print os.environ['OPCODE6DIR64']
+                print(os.environ['OPCODE6DIR64'])
     results = runTest()
-    if (showUIatClose):
-        showUI(results)
+    # if (showUIatClose):
+    #     showUI(results)

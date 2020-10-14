@@ -406,7 +406,7 @@ static int32_t ftload_(CSOUND *csound, FTLOAD *p, int32_t istring)
         header.gen01args.sample_rate = (MYFLT)cs_strtod(s1, &endptr);
         if (UNLIKELY(endptr==NULL)) goto err4;
         if (UNLIKELY(NULL==fgets(s, 64, file))) {goto err4;}
-        s1 = strchr(s, ' ')+1;
+        //s1 = strchr(s, ' ')+1;
         /* WARNING! skips header.gen01args.strarg from saving/loading
            in text format */
         header.fno = (int32) fno;

@@ -575,7 +575,7 @@ static int32_t vcomb(CSOUND *csound, VCOMB *p)
         ar[n] = *rp++;
         *wp++ = (ar[n] * g) + asig[n];
         if (wp >= endp) wp = startp;
-        if (rp >= endp) rp = startp;
+        //if (rp >= endp) rp = startp;
       }
     }
     else {                                       /* if xlpt is k-rate */
@@ -635,7 +635,7 @@ static int32_t valpass(CSOUND *csound, VCOMB *p)
         *wp++ = z = y * g + asig[n];
         ar[n] = y - g * z;
         if (wp >= endp) wp = startp;
-        if (rp >= endp) rp = startp;
+        //if (rp >= endp) rp = startp;
       }
     }
     else {                                              /* if xlpt is k-rate */

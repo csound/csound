@@ -431,6 +431,16 @@ ORCTOKEN *make_label(CSOUND *csound, char *s)
     return ans;
 }
 
+static void check_newline_for_label(char*s, void* yyscanner) {
+    char *ps = s;
+    while (*ps != ':') ps++;
+    while(*ps != '\0') {
+      if (*ps=='\n')
+        csound_orcset_lineno(1+csound_orcget_lineno(yyscanner),yyscanner);
+      ps++;
+    }
+}
+
 ORCTOKEN *make_string(CSOUND *csound, char *s)
 {
     ORCTOKEN *ans = new_token(csound, STRING_TOKEN);

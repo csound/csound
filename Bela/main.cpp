@@ -23,23 +23,27 @@
 
 #include <getopt.h>
 #include <Bela.h>
-#include <Midi.h>
-#include <Scope.h>
-#include <csound.hpp>
-#include <plugin.h>
+#include <libraries/Midi/Midi.h>
+#include <libraries/Scope/Scope.h>
+#include <libraries/Trill/Trill.h>
+#include <csound/csound.hpp>
+#include <csound/plugin.h>
 #include <vector>
 #include <sstream>
 #include <iostream>
 #include <atomic>
 
+
 static int OpenMidiInDevice(CSOUND *csound, void **userData, const char *dev);
 static int CloseMidiInDevice(CSOUND *csound, void *userData);
 static int ReadMidiData(CSOUND *csound, void *userData, unsigned char *mbuf,
-			int nbytes);
+      int nbytes);
 static int OpenMidiOutDevice(CSOUND *csound, void **userData, const char *dev);
 static int CloseMidiOutDevice(CSOUND *csound, void *userData);
 static int WriteMidiData(CSOUND *csound, void *userData, const unsigned char *mbuf,
-			 int nbytes);
+       int nbytes);
+
+std::vector<Trill*> gTouchSensors;
 
 /** DigiIn opcode 
     ksig digiInBela ipin
@@ -95,7 +99,7 @@ struct DigiIn : csnd::Plugin<1, 1> {
     digiOutBela ksig,ipin
     digiOutBela asig,ipin
 */
-struct DigiOut : csnd::Plugin<0, 2> {
+struct DigiOut : csnd::InPlug<2> {
   int pin;
   int fcount;
   int frms;
@@ -103,7 +107,7 @@ struct DigiOut : csnd::Plugin<0, 2> {
   BelaContext *context;
   
   int init() {
-    pin = (int) inargs[1];
+    pin = (int) args[1];
     if(pin < 0 ) pin = 0;
     if(pin > 15) pin = 15;
     context = (BelaContext *) csound->host_data();
@@ -118,14 +122,14 @@ struct DigiOut : csnd::Plugin<0, 2> {
       pinMode(context,0,pin,1);
       init_done = 1;
     }
-    digitalWrite(context,fcount,pin,(inargs[0] > 0.0 ? 1 : 0));
+    digitalWrite(context,fcount,pin,(args[0] > 0.0 ? 1 : 0));
     fcount += nsmps;
     fcount %= frms;
     return OK;
   }
 
   int aperf() {
-    csnd::AudioSig in(this, inargs(0));
+    csnd::AudioSig in(this, args(0));
     int cnt = fcount;
     if(!init_done) {
       pinMode(context,0,pin,1);
@@ -147,7 +151,7 @@ struct DigiOut : csnd::Plugin<0, 2> {
     digiIOBela ksig,kpin,kdir
     digiIOBela asig,apin,adir 
 */
-struct DigiIO : csnd::Plugin<0, 3> {
+struct DigiIO : csnd::InPlug<3> {
   int fcount;
   int frms;
   BelaContext *context;
@@ -160,24 +164,24 @@ struct DigiIO : csnd::Plugin<0, 3> {
   }
 
   int kperf() {
-    int pin = (int) inargs[1];
+    int pin = (int) args[1];
     if(pin < 0 ) pin = 0;
     if(pin > 15) pin = 15;
-    int mode = inargs[2] > 0.0 ? 1 : 0;
+    int mode = args[2] > 0.0 ? 1 : 0;
     pinMode(context,fcount,pin,mode);
     if(mode)
-     digitalWrite(context,fcount,pin,(inargs[0] > 0.0 ? 1 : 0));
+     digitalWrite(context,fcount,pin,(args[0] > 0.0 ? 1 : 0));
     else
-     inargs[0] = (MYFLT) digitalRead(context,fcount,pin);
+     args[0] = (MYFLT) digitalRead(context,fcount,pin);
     fcount += nsmps;
     fcount %= frms;
     return OK;
   }
 
   int aperf() {
-    csnd::AudioSig sig(this, inargs(0));
-    csnd::AudioSig pins(this, inargs(1));
-    csnd::AudioSig modes(this, inargs(2));
+    csnd::AudioSig sig(this, args(0));
+    csnd::AudioSig pins(this, args(1));
+    csnd::AudioSig modes(this, args(2));
     int cnt = fcount;
     int n = 0, pin, mode;
     for (auto &s : sig) {
@@ -198,6 +202,71 @@ struct DigiIO : csnd::Plugin<0, 3> {
     return OK;
   }
 };
+
+/*  TrillIn opcode 
+  read values from Trill sensors
+  array sizes must be same as inumTouches
+  kactiveTouches, ksizes[], kvertLocations[], khoriLocations[] trill inumTouches, itrillID
+*/
+struct TrillIn : csnd::Plugin<4,2> {
+  int activeTouches = 0;
+  int numTouches;
+  int trillID;
+  float *touchSize; 
+  float *touchVertLocation;
+  float *touchHoriLocation;
+  
+  int init() {
+    numTouches = inargs[0];
+    trillID = inargs[1];
+    if (gTouchSensors.size() < trillID+1)
+      return csound->init_error("No Trill sensor connected");
+
+    touchSize = new float[numTouches];
+    touchVertLocation = new float[numTouches];
+    touchHoriLocation = new float[numTouches];    
+    return OK;
+  }
+  
+  int kperf () {
+    activeTouches = gTouchSensors[trillID]->getNumTouches();
+    outargs[0] = MYFLT (activeTouches);
+    // Read locations from Trill sensor
+    for(unsigned int i = 0; i < activeTouches; i++) {
+      touchSize[i] = gTouchSensors[trillID]->touchSize(i);
+      touchVertLocation[i] = gTouchSensors[trillID]->touchLocation(i);
+      touchHoriLocation[i] = gTouchSensors[trillID]->touchHorizontalLocation(i);
+    }
+    // For all inactive touches, set location and size to 0
+    for(unsigned int i = activeTouches; i <  numTouches; i++) {
+      touchSize[i] = 0.0;
+      touchVertLocation[i] = 0.0;
+      touchHoriLocation[i] = 0.0;
+    }
+     
+    csnd::Vector<MYFLT> &out_size = outargs.vector_data<MYFLT>(1);
+    csnd::Vector<MYFLT> &out_v_location = outargs.vector_data<MYFLT>(2);
+    csnd::Vector<MYFLT> &out_h_location = outargs.vector_data<MYFLT>(3);
+
+    std::copy(touchSize, touchSize + numTouches, out_size.begin());
+    std::copy(touchVertLocation, touchVertLocation + numTouches, out_v_location.begin());
+    std::copy(touchHoriLocation, touchHoriLocation + numTouches, out_h_location.begin());
+    return OK;
+  }
+};
+
+void trillReadLoop(void*)
+{
+  while(!Bela_stopRequested())
+  {
+    for(unsigned int n = 0; n < gTouchSensors.size(); ++n)
+    {
+      Trill* t = gTouchSensors[n];
+      t->readI2C();
+    }
+    usleep(50000);
+  }
+}
 
 struct CsChan {
   std::vector<MYFLT> samples;
@@ -223,8 +292,8 @@ bool csound_setup(BelaContext *context, void *p)
   CsData *csData = (CsData *) p;
   Csound *csound;
   const char *args[] = { "csound", csData->csdfile.c_str(), "-iadc",
-			 "-odac", "-+rtaudio=null",
-			 "--realtime", "--daemon" };
+       "-odac", "-+rtaudio=null",
+       "--realtime", "--daemon" };
   int numArgs = (int) (sizeof(args)/sizeof(char *));
 
   /* allocate analog channel memory */
@@ -245,24 +314,40 @@ bool csound_setup(BelaContext *context, void *p)
   csound->SetExternalMidiOutCloseCallback(CloseMidiOutDevice);
   /* set up digi opcodes */
   if(csnd::plugin<DigiIn>((csnd::Csound *) csound->GetCsound(), "digiInBela",
-			  "k","i", csnd::thread::ik) != 0)
+        "k","i", csnd::thread::ik) != 0)
     printf("Warning: could not add digiInBela k-rate opcode\n");
   if(csnd::plugin<DigiIn>((csnd::Csound *) csound->GetCsound(), "digiInBela",
-			  "a", "i", csnd::thread::ia) != 0)
+        "a", "i", csnd::thread::ia) != 0)
     printf("Warning: could not add digiInBela a-rate opcode\n");
   if(csnd::plugin<DigiOut>((csnd::Csound *) csound->GetCsound(), "digiOutBela" ,
-			   "", "ki", csnd::thread::ik) != 0)
+         "", "ki", csnd::thread::ik) != 0)
     printf("Warning: could not add digiOutBela k-rate opcode\n");
   if(csnd::plugin<DigiOut>((csnd::Csound *) csound->GetCsound(), "digiOutBela" ,
-			   "", "ai", csnd::thread::ia) != 0)
+         "", "ai", csnd::thread::ia) != 0)
     printf("Warning: could not add digiOutBela a-rate opcode\n");
   if(csnd::plugin<DigiIO>((csnd::Csound *) csound->GetCsound(), "digiIOBela" ,
-			   "", "kkk", csnd::thread::ik) != 0)
+         "", "kkk", csnd::thread::ik) != 0)
     printf("Warning: could not add digiIOBela k-rate opcode\n");
   if(csnd::plugin<DigiIO>((csnd::Csound *) csound->GetCsound(), "digiIOBela" ,
-			   "", "aaa", csnd::thread::ia) != 0)
+         "", "aaa", csnd::thread::ia) != 0)
     printf("Warning: could not add digiIOBela a-rate opcode\n");
-  
+
+  /* set up trill opcode */
+  if(csnd::plugin<TrillIn>((csnd::Csound *) csound->GetCsound(), "trill" ,
+         "kk[]k[]k[]", "ii", csnd::thread::ik) != 0)
+    printf("Warning: could not add trillBar a-rate opcode\n");  
+
+  /* set up trill sensors */
+  unsigned int i2cBus = 1;
+  for(uint8_t addr = 0x20; addr <= 0x50; ++addr) {
+    Trill::Device device = Trill::probe(i2cBus, addr);
+    if(Trill::NONE != device && Trill::CRAFT != device) {
+      gTouchSensors.push_back(new Trill(i2cBus, device, addr));
+      gTouchSensors.back()->printDetails();
+    }
+  }
+  Bela_runAuxiliaryTask(trillReadLoop);
+
   /* compile CSD */  
   if((csData->res = csound->Compile(numArgs, args)) != 0) {
     printf("Error: Csound could not compile CSD file.\n");
@@ -325,35 +410,35 @@ void csound_render(BelaContext *context, void *p)
     for(n = 0; n < context->audioFrames; n++, blockframes++,
           frm+=incr, count+=nchnls, counti+=nchnls_i){
       if(blockframes == blocksize) {
-	
-	/* set the channels */
-	for(i = 0; i < channel.size(); i++) 
+  
+  /* set the channels */
+  for(i = 0; i < channel.size(); i++) 
           csound->SetChannel(channel[i].name.str().c_str(),
-			     channel[i].samples.data());
-	 
-	/* run csound */
-	if((res = csound->PerformKsmps()) == 0){
+           channel[i].samples.data());
+   
+  /* run csound */
+  if((res = csound->PerformKsmps()) == 0){
           count = 0;
           counti = 0;
           blockframes = 0;
         }
-	else break;
+  else break;
 
         /* get the channels */
         for(i = 0; i < ochannel.size(); i++) 
-	  csound->GetAudioChannel(ochannel[i].name.str().c_str(),
-				  ochannel[i].samples.data());
-	
+    csound->GetAudioChannel(ochannel[i].name.str().c_str(),
+          ochannel[i].samples.data());
+  
         /* get the scope data */
         csound->GetAudioChannel(schannel.name.str().c_str(),
-				  schannel.samples.data());
-	
+          schannel.samples.data());
+  
       }
       /* read/write audio data */
       for(i = 0; i < ichns; i++)
-	 audioIn[counti+i] = audioRead(context,n,i)*scal;
+   audioIn[counti+i] = audioRead(context,n,i)*scal;
       for(i = 0; i < chns; i++)
-	 audioWrite(context,n,i,audioOut[count+i]/scal);
+   audioWrite(context,n,i,audioOut[count+i]/scal);
       
       /* read analogue data 
          analogue frame pos frm gets incremented according to the
@@ -366,7 +451,7 @@ void csound_render(BelaContext *context, void *p)
 
       /* write analogue data */
       for(i = 0; i < ochannel.size(); i++) 
-	analogWriteOnce(context,k,i,ochannel[i].samples[frmcount]); 
+  analogWriteOnce(context,k,i,ochannel[i].samples[frmcount]); 
       
       scope.log(schannel.samples[frmcount]);
     }
@@ -381,6 +466,8 @@ void csound_cleanup(BelaContext *context, void *p)
 {
   CsData *csData = (CsData *) p;
   delete csData->csound;
+  for(auto t : gTouchSensors)
+    delete t;
 }
 
 static Midi gMidi;
@@ -402,7 +489,7 @@ int CloseMidiInDevice(CSOUND *csound, void *userData) {
 }
  
 int ReadMidiData(CSOUND *csound, void *userData,
-		 unsigned char *mbuf, int nbytes) {
+     unsigned char *mbuf, int nbytes) {
   int n = 0, byte;
   if(userData) {
     Midi *midi = (Midi *) userData;
@@ -431,7 +518,7 @@ int CloseMidiOutDevice(CSOUND *csound, void *userData) {
 }
 
 int WriteMidiData(CSOUND *csound, void *userData,
-		  const unsigned char *mbuf, int nbytes) {
+      const unsigned char *mbuf, int nbytes) {
   if(userData) {
     Midi *midi = (Midi *) userData;
     if(midi->writeOutput((midi_byte_t *)mbuf, nbytes) > 0) return nbytes;
@@ -444,7 +531,7 @@ void usage(const char *prg) {
   std::cerr << prg << " [options]\n";
   Bela_usage();
   std::cerr << "  --csd=name [-f name]: CSD file name\n";
-  std::cerr << "  --help [-h]: help message\n";	   
+  std::cerr << "  --help [-h]: help message\n";    
 }
 
 /**
@@ -458,8 +545,8 @@ int main(int argc, const char *argv[]) {
   BelaInitSettings* settings;
   settings = Bela_InitSettings_alloc();
   const option opt[] = {{"csd", required_argument, NULL, 'f'},
-			{"help", 0, NULL, 'h'},
-			{NULL, 0, NULL, 0}};
+      {"help", 0, NULL, 'h'},
+      {NULL, 0, NULL, 0}};
   
   Bela_defaultSettings(settings);
   settings->setup = csound_setup;

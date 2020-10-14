@@ -393,13 +393,16 @@ static int32_t psynth2_process(CSOUND *csound, _PSYN2 *p)
                 phasediff -= TWOPI_F;
               while (phasediff < -PI_F)
                 phasediff += TWOPI_F;
+
               /* update phasediff to match the freq */
               cph = ((freq + freqnext) * factor * 0.5 - phasediff) / TWOPI;
+
               phasediff += TWOPI_F * (int32_t) (cph + 0.5);
               /* interpolation coefs */
               a2 = 3.0 / facsqr * (phasediff -
                                    factor / 3.0 * (2.0 * freq + freqnext));
               a3 = 1.0 / (3.0 * facsqr) * (freqnext - freq - 2.0 * a2 * factor);
+              //printf("%f %f \n", a2, a3);
               /* interpolation & track synthesis loop */
               a = amp;
               ph = phase;
@@ -629,7 +632,7 @@ static int32_t trscale_process(CSOUND *csound, _PTRANS *p)
     MYFLT   nyq = CS_ESR * FL(0.5);
     float   *framein = (float *) p->fin->frame.auxp;
     float   *frameout = (float *) p->fout->frame.auxp;
-    int32_t i = 0, id = (int32_t) framein[3], end = p->numbins * 4;
+    int32_t i = 0, id /* = (int32_t) framein[3]*/, end = p->numbins * 4;
     MYFLT   outfr;
 
     if (p->lastframe < p->fin->framecount) {
@@ -658,7 +661,7 @@ static int32_t trshift_process(CSOUND *csound, _PTRANS *p)
     MYFLT   nyq = CS_ESR * FL(0.5);
     float   *framein = (float *) p->fin->frame.auxp;
     float   *frameout = (float *) p->fout->frame.auxp;
-    int32_t     i = 0, id = (int32_t) framein[3], end = p->numbins * 4;
+    int32_t     i = 0, id /* = (int32_t) framein[3]*/, end = p->numbins * 4;
     MYFLT   outfr;
 
     if (p->lastframe < p->fin->framecount) {
@@ -722,7 +725,7 @@ static int32_t trlowest_process(CSOUND *csound, _PLOW *p)
     float   lowest = (float) nyq, outamp = 0.0f, outph = 0.0f, outid = -1.0f;
     float   *framein = (float *) p->fin->frame.auxp;
     float   *frameout = (float *) p->fout->frame.auxp;
-    int32_t i = 0, id = (int32_t) framein[3], end = p->numbins * 4;
+    int32_t i = 0, id /* = (int32_t) framein[3]*/, end = p->numbins * 4;
 
     if (p->lastframe < p->fin->framecount) {
       do {
@@ -756,7 +759,7 @@ static int32_t trhighest_process(CSOUND *csound, _PLOW *p)
     float   highest = 0.0f, outamp = 0.0f, outph = 0.0f, outid = -1.0f;
     float   *framein = (float *) p->fin->frame.auxp;
     float   *frameout = (float *) p->fout->frame.auxp;
-    int32_t i = 0, id = (int32_t) framein[3], end = p->numbins * 4;
+    int32_t i = 0, id /* = (int32_t) framein[3]*/, end = p->numbins * 4;
 
     if (p->lastframe < p->fin->framecount) {
       do {
@@ -842,7 +845,7 @@ static int32_t trsplit_process(CSOUND *csound, _PSPLIT *p)
     float   *framein = (float *) p->fsig3->frame.auxp;
     float   *frameout1 = (float *) p->fsig1->frame.auxp;
     float   *frameout2 = (float *) p->fsig2->frame.auxp;
-    int32_t i = 0, id = (int32_t) framein[3], end = p->numbins * 4;
+    int32_t i = 0, id /* = (int32_t) framein[3]*/, end = p->numbins * 4;
     int32_t     trkcnt1 = 0, trkcnt2 = 0;
 
     if (p->lastframe < p->fsig3->framecount) {
@@ -1009,7 +1012,7 @@ static int32_t trfil_process(CSOUND *csound, _PSFIL *p)
     MYFLT   *fil = p->tab->ftable;
     float   *framein = (float *) p->fin->frame.auxp;
     float   *frameout = (float *) p->fout->frame.auxp;
-    int32_t i = 0, id = (int32_t) framein[3], len = p->len, end = p->numbins * 4;
+    int32_t i = 0, id /* = (int32_t) framein[3]*/, len = p->len, end = p->numbins * 4;
 
     if (p->lastframe < p->fin->framecount) {
       MYFLT   fr, pos = FL(0.0), frac = FL(0.0);
@@ -1107,7 +1110,7 @@ static int32_t trcross_process(CSOUND *csound, _PSCROSS *p)
       if (bal < 0)
         bal = FL(0.0);
       if (mode < 1)
-        for (i = 0; framein2[i + 3] != -1 && i < end; i += 4)
+        for (i = 0; i < end && framein2[i + 3] != -1; i += 4)
           max = framein2[i] > max ? framein2[i] : max;
 
       for (i = 0; id != -1 && i < end; i += 4, id = (int32_t) framein1[i + 3]) {

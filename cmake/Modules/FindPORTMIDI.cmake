@@ -26,22 +26,9 @@ else ()
       /opt/local/lib
       /sw/lib
   )
- 
-  find_library(PORTTIME_LIBRARY
-    NAMES
-      porttime
-    PATHS
-      /usr/lib
-      /usr/local/lib
-      /opt/local/lib
-      /sw/lib
-  )
 
   set(PORTMIDI_INCLUDE_DIRS ${PORTMIDI_INCLUDE_DIR})
   set(PORTMIDI_LIBRARIES ${PORTMIDI_LIBRARY})
-  if(PORTTIME_LIBRARY)
-      list(APPEND PORTMIDI_LIBRARIES ${PORTTIME_LIBRARY})
-  endif()
 
   if (PORTMIDI_INCLUDE_DIRS AND PORTMIDI_LIBRARIES)
     set(PORTMIDI_FOUND TRUE)

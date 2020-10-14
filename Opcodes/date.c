@@ -133,7 +133,7 @@ static int32_t getcurdir(CSOUND *csound, GETCWD *p)
 }
 
 #ifndef MAXLINE
-#define MAXLINE 1024
+#define MAXLINE 8192
 #endif
 
 typedef struct {

@@ -595,7 +595,12 @@ CsoundPerformanceThread::~CsoundPerformanceThread()
     }
     if (recordLock) {
         csoundDestroyMutex(recordLock);
-
+    }
+    if (recordData.mutex) {
+        csoundDestroyMutex(recordData.mutex);
+    }
+    if (recordData.condvar) {
+        csoundDestroyCondVar(recordData.condvar);
     }
 }
 
