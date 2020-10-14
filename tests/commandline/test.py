@@ -150,6 +150,7 @@ def runTest():
         ["test_new_udo_syntax_explicit_types.csd", "test new-style UDO syntax with explicit types"],
         ["test_multiple_return.csd", "test multiple return from express (i.. a1,a2 = xx())"],
         ["prints_number_no_crash.csd", "test prints does not crash when given a number arguments", 1],
+        ["test_newlines_within_function_calls.csd", "test newlines allowed within function calls"],
     ]
 
     arrayTests = [["arrays/arrays_i_local.csd", "local i[]"],

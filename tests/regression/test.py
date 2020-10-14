@@ -6,10 +6,10 @@
 import os
 import sys
 
-from testUI import TestApplication
-from Tkinter import *
+# from testUI import TestApplication
+# from Tkinter import *
 
-showUIatClose = False
+# showUIatClose = False
 csoundExecutable = ""
 
 class Test:
@@ -18,12 +18,12 @@ class Test:
         self.description = ""
         self.expected = expected
 
-def showUI(results):
-    root = Tk()
-    app = TestApplication(master=root)
-    app.setResults(results.test_output_list)
-    app.mainloop()
-    root.destroy()
+# def showUI(results):
+#     root = Tk()
+#     app = TestApplication(master=root)
+#     app.setResults(results.test_output_list)
+#     app.mainloop()
+#     root.destroy()
 
 def showHelp():
     message = """Csound Regression Test Suite by John ffitch
@@ -32,7 +32,7 @@ def showHelp():
     are written to results.txt file.
     """
 
-    print message
+    print(message)
 
 def runTest():
     runArgs = "-Wd -n"
@@ -97,12 +97,12 @@ def runTest():
         if(os.sep == '\\'):
             executable = (csoundExecutable == "") and "..\..\csound.exe" or csoundExecutable
             command = "%s %s %s 2> %s"%(executable, runArgs, filename, tempfile)
-            print command
+            print(command)
             retVal = os.system(command)
         else:
             executable = (csoundExecutable == "") and "../../csound" or csoundExecutable
             command = "%s %s %s 2> %s"%(executable, runArgs, filename, tempfile)
-            print command
+            print(command)
             retVal = os.system(command)
 
         out = ""
@@ -115,7 +115,7 @@ def runTest():
 
         out += "Test %i: %s (%s)\n\tReturn Code: %i\tExpected: %d\n"%(counter, desc, filename, retVal, expectedResult
 )
-        print out
+        print(out)
         output += "%s\n"%("=" * 80)
         output += "Test %i: %s (%s)\nReturn Code: %i\n"%(counter, desc, filename, retVal)
         output += "%s\n\n"%("=" * 80)
@@ -137,8 +137,8 @@ def runTest():
 
 #    print output
 
-    print "%s\n\n"%("=" * 80)
-    print "Tests Passed: %i\nTests Failed: %i\n"%(retVals.tests_passsed, retVals.tests_failed)
+    print("%s\n\n"%("=" * 80))
+    print("Tests Passed: %i\nTests Failed: %i\n"%(retVals.tests_passsed, retVals.tests_failed))
 
 
     f = open("results.txt", "w")
@@ -163,17 +163,17 @@ if __name__ == "__main__":
             if (arg == "--help"):
                 showHelp()
                 sys.exit(0)
-            elif arg == "--show-ui":
-                showUIatClose = True
+            # elif arg == "--show-ui":
+            #     showUIatClose = True
             elif arg.startswith("--csound-executable="):
                 csoundExecutable = arg[20:]
-                print csoundExecutable
+                print(csoundExecutable)
             elif arg.startswith("--opcode6dir64="):
                 os.environ['OPCODE6DIR64'] = arg[15:]
-                print os.environ['OPCODE6DIR64']
+                print(os.environ['OPCODE6DIR64'])
     results = runTest()
-    if (showUIatClose):
-        showUI(results)
+    # if (showUIatClose):
+    #     showUI(results)
     if results.tests_failed:
         exit(1)
     else:

@@ -70,8 +70,6 @@ int get_next_char(char *, int, struct yyguts_t*);
 %option stdout
 %option 8bit
 
-STRCONST        \"(\\.|[^\"])*\"
-STRCONSTe       \"(\\.|[^\"])*$
 IDENT           [a-zA-Z_][a-zA-Z0-9_]*
 TYPED_IDENTIFIER  [a-zA-Z_][a-zA-Z0-9_]*:[a-zA-Z_][a-zA-Z0-9_]*
 XIDENT          0|[aijkftKOJVPopS\[\]]+
@@ -86,8 +84,11 @@ LINE            ^[ \t]*"#line"
 SLINE           "#sline "
 FILE            ^[ \t]*"#source"
 FNAME           [a-zA-Z0-9/:.+-_]+
-SYMBOL          [\(\)\[\]+\-*/%\^\?:.,!]
+LPAREN          "("
+RPAREN          ")"
+SYMBOL          [\[\]+\-*/%\^\?:.,!]
 
+%s ignorenewline
 %x line
 %x sline
 %x src
@@ -101,9 +102,6 @@ SYMBOL          [\(\)\[\]+\-*/%\^\?:.,!]
 {CONT}          { csound_orcset_lineno(1+csound_orcget_lineno(yyscanner),
                                        yyscanner);
                 }
-<INITIAL>"\n"            { csound_orcset_lineno(1+csound_orcget_lineno(yyscanner),
-                                       yyscanner);
-                  return NEWLINE; }
 "->"            { return S_ELIPSIS; }
 
 "!="            { return S_NEQ; }
@@ -358,13 +356,16 @@ SYMBOL          [\(\)\[\]+\-*/%\^\?:.,!]
                     /*csound->Message(csound,"%d\n", (*lvalp)->type);*/
                     return ((*lvalp)->type);
                 }
+{LPAREN}     { BEGIN(ignorenewline);
+               return *yytext; }
+
+{RPAREN}     { BEGIN(INITIAL);
+               return *yytext; }
 
 {SYMBOL}     { return *yytext;}
 
 {NUMBER}        { *lvalp = make_num(csound, yytext); return (NUMBER_TOKEN); }
-<INITIAL>{
-  {WHITE}         { }
-}
+{WHITE}         { }
 
 {SLINE}         { BEGIN(sline); }
 <sline>{INTGR}   { csound_orcset_lineno(atoi(yytext), yyscanner); }
@@ -393,6 +394,17 @@ SYMBOL          [\(\)\[\]+\-*/%\^\?:.,!]
 <<EOF>>         {
                   yyterminate();
                 }
+
+<ignorenewline>{
+  "\n" {
+    csound_orcset_lineno(1+csound_orcget_lineno(yyscanner),
+                                         yyscanner);
+  }
+}
+
+<INITIAL>"\n"            { csound_orcset_lineno(1+csound_orcget_lineno(yyscanner),
+                                       yyscanner);
+                  return NEWLINE; }
 
 %%
 
@@ -523,13 +535,3 @@ uint64_t csound_orcget_ilocn(void *yyscanner)
 //    struct yyguts_t *yyg  = (struct yyguts_t*)yyscanner;
     return PARM->ilocn;
 }
-/*
-{STRCONSTe}     { *lvalp = make_string(csound, yytext);
-                  csound->Message(csound,
-                          Str("unterminated string found on line %d >>%s<<\n"),
-                          csound_orcget_lineno(yyscanner),
-                          yytext);
-                  return (STRING_TOKEN); }
-STRCONSTe \"(\.|[^\"])$
-STRCONST        \"(\\.|[^\"\n])*\"
-*/
