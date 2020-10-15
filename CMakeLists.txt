@@ -423,7 +423,7 @@ SET(BUILD_SHARED_LIBS ON)
 
 # First, required stuff
 if(MSVC)
-    find_package(LibSndFile CONFIG REQUIRED)
+    find_package(SndFile CONFIG REQUIRED)
 else()
     find_library(LIBSNDFILE_LIBRARY NAMES sndfile libsndfile-1 libsndfile)
 
