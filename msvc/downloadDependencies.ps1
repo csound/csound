@@ -29,7 +29,7 @@ if ($systemVCPKG) {
     cd $vcpkgDir
     # Update and rebuild vcpkg
     git pull
-    git checkout 7b7908b
+    git checkout bfe983d
     bootstrap-vcpkg.bat
     # Remove any outdated packages (they will be installed again below)
     vcpkg remove --outdated --recurse
@@ -44,7 +44,7 @@ elseif (Test-Path "..\..\vcpkg") {
     echo "vcpkg already installed locally, updating"
     # Update and rebuild vcpkg
     git pull
-    git checkout 7b7908b
+    git checkout bfe983d
     bootstrap-vcpkg.bat
     # Remove any outdated packages (they will be installed again below)
     vcpkg remove --outdated --recurse
@@ -56,7 +56,7 @@ else {
     echo "vcpkg missing, downloading and installing..."
     git clone --depth 1 http://github.com/Microsoft/vcpkg.git
     cd vcpkg
-    git checkout 7b7908b
+    git checkout bfe983d
     $env:Path += ";" + $(Get-Location)
     $vcpkgDir = $(Get-Location)
     [Environment]::SetEnvironmentVariable("VCPKGDir", $env:vcpkgDir, [EnvironmentVariableTarget]::User)
