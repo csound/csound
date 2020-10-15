@@ -18,13 +18,13 @@ top-level sources
 ```
 $ cp Bela/Custom.cmake.bela Custom.cmake
 $ mkdir build && cd build
-$ cmake .. -DBUILD_BELA=1 -DUSE_DOUBLE=0 -DCMAKE_BUILD_TYPE=Release
+$ cmake .. -DBUILD_BELA=1 -DUSE_DOUBLE=0 -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=/usr/
 $ make && make install
 $ sudo ldconfig
 ```
 
 Csound is installed by default in /usr/local. Other locations can be
-selected by setting the CMake variable CMAKE_INSTALL_PREFIX. 
+selected by setting the CMake variable CMAKE_INSTALL_PREFIX (as done above)
 
 Cross-compiling instructions
 =========================================
@@ -46,7 +46,7 @@ libsndfile1-dev:armhf libasound-dev:armhf and possibly other things.
 
 ```
 $ cmake -DCMAKE_TOOLCHAIN_FILE=../Bela/crosscompile.cmake \
-      -DUSE_DOUBLE=0 -DBUILD_BELA=1 -DCMAKE_BUILD_TYPE=Release ..
+      -DUSE_DOUBLE=0 -DBUILD_BELA=1 -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=/usr/ ..
 $ make
 $ make install
 ```
@@ -55,11 +55,12 @@ The belacsound program should appear in your binary install directory. Read acce
 to /root/Bela/lib and /root/Bela/include is needed even if these directories are
 empty.
 
+Distribution instructions
+=========================================
 
+Ensure you built above with `-DCMAKE_INSTALL_PREFIX=/usr/`, then you can generate a deb package with:
 
-
-
-
-
-
+```
+cpack -G DEB -D CPACK_PACKAGE_CONTACT="Your Name <your.name@domain.com>"
+```
 
