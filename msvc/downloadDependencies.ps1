@@ -108,24 +108,6 @@ $vcpkgCmake = "$vcpkgDir\scripts\buildsystems\vcpkg.cmake"
 echo "VCPKG script: '$vcpkgCmake'"
 
 cd $currentDir
-
-# TEMPORARILY USE THE FOLLOWING SELF-BUILT PORTMIDI UNTIL VCPKG PROVIDES ONE
-# THAT IS UP TO DATE
-
-$depsDir = $currentDir + "\deps\"
-$stageDir = $currentDir + "\staging\"
-$depsBinDir = $depsDir + "bin\"
-$depsLibDir = $depsDir + "lib\"
-$depsIncDir = $depsDir + "include\"
-
-mkdir cache -ErrorAction SilentlyContinue
-mkdir deps -ErrorAction SilentlyContinue
-mkdir $depsLibDir -ErrorAction SilentlyContinue
-mkdir $depsBinDir -ErrorAction SilentlyContinue
-mkdir $depsIncDir -ErrorAction SilentlyContinue
-mkdir staging -ErrorAction SilentlyContinue
-
-cd $currentDir
 mkdir csound-vs -ErrorAction SilentlyContinue
 cd csound-vs -ErrorAction SilentlyContinue
 
