@@ -933,8 +933,8 @@ int presetctrl1_perf(CSOUND *csound, PRESETCTRL1 *p)
     slot = q->presets[tag];
     slot[0] = p->arr->sizes[0];
     slot[1] = (int)(p->arr->data[1]);
-    for (i=0; i<slot[0]-1; i++)
-      slot[i+2]= (int)p->arr->data[i];
+    for (i=2; i<slot[0]-1; i++)
+      slot[i]= (int)p->arr->data[i];
     /* for (i=0; i<slot[0];i++) printf("%d ", slot[i]); */
     /* printf("\n"); */
     *p->inum = (MYFLT)tag+1;
@@ -987,7 +987,7 @@ int printpresets_perf(CSOUND *csound, PRINTPRESETS *p)
       if (q->presets[j]) {
         int i;
         int *slot = q->presets[j];
-        fprintf(ff, "\n;; kpre%d ctrlpreset\t%d ", j+1, j+1);
+        fprintf(ff, "\n kpre%d ctrlpreset\t%d ", j+1, j+1);
         for (i=1; i<slot[0]; i++)
           fprintf(ff, ", %d", slot[i]);
         fprintf(ff, "\n");
