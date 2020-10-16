@@ -917,8 +917,8 @@ int presetctrl1_perf(CSOUND *csound, PRESETCTRL1 *p)
       int** tt = q->presets;
       int size = tag-q->max_num;
       if (size<10) size = 10;
-     tt = (int**)csound->ReAlloc(csound,
-                                    tt, (q->max_num+size)*sizeof(int*));
+      tt = (int**)csound->ReAlloc(csound,
+                                  tt, (q->max_num+size)*sizeof(int*));
       if (tt == NULL)
         return csound->InitError(csound, "%s",
                                  Str("Failed to allocate presets\n"));
@@ -933,7 +933,7 @@ int presetctrl1_perf(CSOUND *csound, PRESETCTRL1 *p)
     slot = q->presets[tag];
     slot[0] = p->arr->sizes[0];
     slot[1] = (int)(p->arr->data[1]);
-    for (i=2; i<slot[0]-1; i++)
+    for (i=2; i<=slot[0]; i++)
       slot[i]= (int)p->arr->data[i];
     /* for (i=0; i<slot[0];i++) printf("%d ", slot[i]); */
     /* printf("\n"); */
@@ -957,8 +957,8 @@ int selectctrl_perf(CSOUND *csound, SELECTCTRL *p)
     PRESET_GLOB *q = p->q;
     int tag = (int)*p->inum-1;
     int i;
-    int* slot = q->presets[tag];
-    if (slot == NULL) {
+    int* slot;
+    if (tag>q->max_num ||(slot = q->presets[tag])) {
       return csound->PerfError(csound, &p->h, Str("No such preset %d\n"), tag+1);
     }
     {
