@@ -818,7 +818,7 @@ int printctrl(CSOUND *csound, PRINTCTRL *p)
 {
     MYFLT *d = p->arr->data;
     int n = (int)d[0], i;
-    fprintf(p->fout, "\n; ctrlinit\t%d", (int)d[1]);
+    fprintf(p->fout, "\n ctrlinit\t%d", (int)d[1]);
     for (i=0; i<n; i++)
       fprintf(p->fout, ", %d,%d", (int)d[2+2*i], (int)d[3+2*i]);
     fprintf(p->fout, "\n\n");
@@ -901,7 +901,8 @@ int presetctrl1_init(CSOUND *csound, PRESETCTRL1 *p)
     return OK;
 }
 
-// Store a set of crtrlinits as a preset, allocating a number if necessary
+// Store a set of
+crtrlinits as a preset, allocating a number if necessary
 int presetctrl1_perf(CSOUND *csound, PRESETCTRL1 *p)
 {
     PRESET_GLOB *q = p->q;
@@ -958,7 +959,7 @@ int selectctrl_perf(CSOUND *csound, SELECTCTRL *p)
     int tag = (int)*p->inum-1;
     int i;
     int* slot;
-    if (tag>q->max_num ||NULL==(slot = q->presets[tag])) {
+    if (tag>=q->max_num ||NULL==(slot = q->presets[tag])) {
       return csound->PerfError(csound, &p->h, Str("No such preset %d\n"), tag+1);
     }
     {
@@ -992,6 +993,7 @@ int printpresets_perf(CSOUND *csound, PRINTPRESETS *p)
           fprintf(ff, ", %d", slot[i]);
         fprintf(ff, "\n");
       }
+    fprintf(ff, "\n\n");
     fflush(ff);
     return OK;
 }
