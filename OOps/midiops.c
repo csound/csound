@@ -901,8 +901,7 @@ int presetctrl1_init(CSOUND *csound, PRESETCTRL1 *p)
     return OK;
 }
 
-// Store a set of
-crtrlinits as a preset, allocating a number if necessary
+// Store a set of crtrlinits as a preset, allocating a number if necessary
 int presetctrl1_perf(CSOUND *csound, PRESETCTRL1 *p)
 {
     PRESET_GLOB *q = p->q;
