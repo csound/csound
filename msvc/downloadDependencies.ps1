@@ -112,7 +112,7 @@ mkdir csound-vs -ErrorAction SilentlyContinue
 cd csound-vs -ErrorAction SilentlyContinue
 
 # Default to Release build type. Note: ReleaseWithDebInfo is broken as VCPKG does not currently support this mode properly
-cmake ..\.. -DBUILD_PYTHON_OPCODES=1 -G $vsGenerator `
+cmake ..\.. -G $vsGenerator `
     -Wno-dev -Wdeprecated `
     -DCMAKE_BUILD_TYPE="Release" `
     -DVCPKG_TARGET_TRIPLET="$targetTriplet" `
