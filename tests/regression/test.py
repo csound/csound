@@ -84,7 +84,7 @@ def runTest():
     ]
 
     output = ""
-    tempfile = "/tmp/csound_test_output.txt"
+    tempfile = 'csound_test_output.txt' if (os.name == 'nt') else '/tmp/csound_test_output.txt'
     counter = 1
 
     retVals = TestResults()
@@ -94,7 +94,7 @@ def runTest():
         desc = t[1]
         expectedResult = (len(t) == 3) and 1 or 0
 
-        if(os.sep == '\\'):
+        if(os.sep == '\\' or os.name == 'nt'):
             executable = (csoundExecutable == "") and "..\..\csound.exe" or csoundExecutable
             command = "%s %s %s 2> %s"%(executable, runArgs, filename, tempfile)
             print(command)
