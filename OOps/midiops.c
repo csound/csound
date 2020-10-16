@@ -958,7 +958,7 @@ int selectctrl_perf(CSOUND *csound, SELECTCTRL *p)
     int tag = (int)*p->inum-1;
     int i;
     int* slot;
-    if (tag>q->max_num ||(slot = q->presets[tag])) {
+    if (tag>q->max_num ||NULL==(slot = q->presets[tag])) {
       return csound->PerfError(csound, &p->h, Str("No such preset %d\n"), tag+1);
     }
     {
