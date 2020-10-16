@@ -4266,6 +4266,8 @@ static OENTRY arrayvars_localops[] =
       (SUBR) tabslice, (SUBR) tabslice, NULL },
     { "slicearray_i", sizeof(TABSLICE), 0, 1, ".[]", "i[]iip",
       (SUBR) tabslice, NULL },
+    { "slicearray_i", sizeof(TABSLICE), 0, 1, "S[]", "S[]iip",
+      (SUBR) tabslice, NULL },
     { "trim.i", sizeof(TRIM), WI, 1, "", "i[]i", (SUBR)trim_i, NULL },
     { "trim.k", sizeof(TRIM), WI, 2, "", ".[]k", NULL, (SUBR)trim },
     { "trim_i", sizeof(TRIM), WI, 1, "", ".[]i", (SUBR)trim_i, NULL },
