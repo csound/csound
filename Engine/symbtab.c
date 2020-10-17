@@ -398,7 +398,8 @@ OENTRY* csound_find_internal_oentry(CSOUND* csound, OENTRY* oentry) {
  * verification time the opcode can be looked up to get its signature.
  */
 int add_udo_definition(CSOUND *csound, char *opname,
-        char *outtypes, char *intypes) {
+                       char *outtypes, char *intypes,
+                       int flags) {
 
     OENTRY    tmpEntry, *opc, *newopc;
     OPCODINFO *inm;
@@ -421,6 +422,13 @@ int add_udo_definition(CSOUND *csound, char *opname,
 
     /* check if opcode is already defined */
     if (UNLIKELY(opc != NULL)) {
+
+      // check if the opcode is already declared
+      if (opc->flags & UNDEFINED) {
+        opc->flags = 0x0000;
+        return 0;
+      }
+
       /* IV - Oct 31 2002: redefine old opcode if possible */
       if (UNLIKELY(!strcmp(opname, "instr") ||
                    !strcmp(opname, "endin") ||
@@ -471,6 +479,7 @@ int add_udo_definition(CSOUND *csound, char *opname,
       newopc->outypes = csound->Malloc(csound, strlen(outtypes) + 1
                                        + strlen(intypes) + 2);
       newopc->intypes = &(newopc->outypes[strlen(outtypes) + 1]);
+      newopc->flags = flags | newopc->flags;
     }
 
     //printf("****Calling parse_opcode_args\n");

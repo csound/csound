@@ -50,7 +50,8 @@
 #define IW (0x0400)
 #define IB (0x0600)
 
+// Declare but not defined
+#define UNDEFINED (0x0800)
+
 //Deprecated
 #define _QQ (0x8000)
-
-

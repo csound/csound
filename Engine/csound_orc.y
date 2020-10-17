@@ -46,6 +46,7 @@
 %token LABEL_TOKEN
 %token IF_TOKEN
 
+%token DECLARE_TOKEN
 %token UDO_TOKEN
 %token UDOSTART_DEFINITION
 %token UDOEND_TOKEN
@@ -88,6 +89,7 @@
 %token S_ELIPSIS
 %token T_ARRAY
 %token T_ARRAY_IDENT
+%token T_DECLARE
 %token STRUCT_EXPR
 %token T_MAPI
 %token T_MAPK
@@ -156,7 +158,7 @@
     extern TREE* constant_fold(CSOUND *, TREE *);
     extern void csound_orcerror(PARSE_PARM *, void *, CSOUND *,
                                 TREE**, const char*);
-    extern int add_udo_definition(CSOUND*, char *, char *, char *);
+    extern int add_udo_definition(CSOUND*, char *, char *, char *, int);
     extern ORCTOKEN *lookup_token(CSOUND*,char*,void*);
 #define LINE csound_orcget_lineno(scanner)
 #define LOCN csound_orcget_locn(scanner)
@@ -192,6 +194,7 @@ root_statement : statement
                | instr_definition
                | udo_definition
                | struct_definition
+               | declare_definition
                ;
 
 /* Data declarations */
@@ -466,6 +469,14 @@ while : WHILE_TOKEN expr DO_TOKEN statement_list OD_TOKEN
                 $$->left = $2;
                 $$->right = $4; }
       ;
+
+declare_definition : DECLARE_TOKEN identifier udo_arg_list ':' udo_out_arg_list NEWLINE
+ {
+   $$ = make_leaf(csound, LINE, LOCN, T_DECLARE, make_token(csound, $2->value->lexeme));
+   $$->left = $2;
+   $$->left->left = $5;
+   $$->left->right = $3;
+ }
 
 /* Expressions */
 

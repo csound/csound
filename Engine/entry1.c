@@ -85,8 +85,9 @@ OENTRY opcodlst_1[] = {
   { "instr",  0,    0,      0,      "",     "",   NULL, NULL, NULL, NULL },
   { "endin",  0,    0,      0,      "",     "",   NULL, NULL, NULL, NULL },
   /* IV - Sep 8 2002 */
-  { "opcode", 0,    0,      0,      "",     "",   NULL, NULL, NULL, NULL },
-  { "endop",  0,    0,      0,      "",     "",   NULL, NULL, NULL, NULL },
+  { "opcode",  0,    0,      0,      "",     "",   NULL, NULL, NULL, NULL },
+  { "endop",   0,    0,      0,      "",     "",   NULL, NULL, NULL, NULL },
+  { "declare", 0,    0,      0,      "",     "",   NULL, NULL, NULL, NULL },
   { "$label", S(LBLBLK),  0,0,      "",     "",   NULL, NULL, NULL, NULL },
   { "pset",   S(PVSET),   0,0,      "",     "m",  NULL, NULL, NULL, NULL },
 
