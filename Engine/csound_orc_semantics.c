@@ -2456,18 +2456,10 @@ TREE* verify_tree(CSOUND * csound, TREE *root, TYPE_TABLE* typeTable)
         }
 
         current->right = newRight;
-
-        if (top->left != NULL && top->left->type == UDO_ANS_TOKEN) {
-          if(!verify_xin_xout(csound, current, typeTable)) {
-            return 0;
-          }
-        }
-
         newRight = NULL;
       }
 
       typeTable->localPool = typeTable->instr0LocalPool;
-
 
       break;
     }
