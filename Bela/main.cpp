@@ -300,8 +300,10 @@ struct CsData {
 bool csound_setup(BelaContext* context, void* p) {
     CsData* csData = (CsData*)p;
     Csound* csound;
-    const char* args[] = { "csound",  csData->csdfile.c_str(), "-iadc", "-odac", "-+rtaudio=null", "--realtime",
-                           "--daemon" };
+    std::string ksmps_string = "--default-ksmps=";
+    ksmps_string += std::to_string(context->audioFrames);
+    const char* args[] = { "csound",   csData->csdfile.c_str(), "-iadc", "-odac", "-+rtaudio=null", "--realtime",
+                           "--daemon", ksmps_string.c_str() };
     int numArgs = (int)(sizeof(args) / sizeof(char*));
 
     /* allocate analog channel memory */
@@ -349,11 +351,19 @@ bool csound_setup(BelaContext* context, void* p) {
     }
 
     /* compile CSD */
+
     if ((csData->res = csound->Compile(numArgs, args)) != 0) {
         printf("Error: Csound could not compile CSD file.\n");
         return false;
     }
     csData->blocksize = csound->GetKsmps();
+    if (context->audioFrames % csData->blocksize) {
+        fprintf(stderr,
+                "Warning: Csound's ksmps (%d) and Bela's periodSize (%u) differ and the latter is not a multiple of "
+                "the former. This would lead to uneven CPU usage, and may result in dropouts while some CPU resources "
+                "remain unused.\n",
+                csData->blocksize, context->audioFrames);
+    }
     csData->count = 0;
     csData->counti = 0;
     csData->blockframes = 0;
@@ -572,6 +582,7 @@ int main(int argc, const char* argv[]) {
     Bela_InitSettings_free(settings);
     if (res) {
         std::cerr << "error initialising Bela \n";
+        Bela_cleanupAudio();
         return 1;
     }
     if (Bela_startAudio() == 0) {
