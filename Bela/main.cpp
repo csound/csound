@@ -273,7 +273,7 @@ void trillReadLoop(void*) {
             Trill* t = gTouchSensors[n];
             t->readI2C();
         }
-        usleep(50000);
+        usleep(10000);
     }
 }
 
@@ -346,7 +346,6 @@ bool csound_setup(BelaContext* context, void* p) {
             gTouchSensors.back()->printDetails();
         }
     }
-    Bela_runAuxiliaryTask(trillReadLoop);
 
     /* compile CSD */
     if ((csData->res = csound->Compile(numArgs, args)) != 0) {
@@ -373,6 +372,10 @@ bool csound_setup(BelaContext* context, void* p) {
     csData->schannel.name << "scope";
     csData->scope.setup(1, context->audioSampleRate);
 
+    // Enable the Trill sensing thread. Do it as the last thing
+    // so it doesn't slow down loading.
+    if (gTouchSensors.size())
+        Bela_runAuxiliaryTask(trillReadLoop);
     return true;
 }
 
