@@ -451,6 +451,13 @@ void csound_render(BelaContext* context, void* p) {
         csData->count = count;
         csData->counti = counti;
         csData->blockframes = blockframes;
+    } else {
+        // processing has ended, so let's silence the outputs until main()
+        // realises that and tells us to stop
+        memset(context->audioOut, 0, sizeof(context->audioOut[0]) * context->audioOutChannels * context->audioFrames);
+        memset(context->analogOut, 0,
+               sizeof(context->analogOut[0]) * context->analogOutChannels * context->analogFrames);
+        memset(context->digital, 0, sizeof(context->digital[0]) * context->digitalFrames);
     }
 }
 
