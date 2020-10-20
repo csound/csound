@@ -221,9 +221,9 @@ struct DigiIO : csnd::InPlug<3> {
   kactiveTouches, ksizes[], kvertLocations[], khoriLocations[] trill inumTouches, itrillID
 */
 struct TrillIn : csnd::Plugin<4, 2> {
-    int activeTouches = 0;
-    int numTouches;
-    int trillID;
+    unsigned int activeTouches;
+    unsigned int numTouches;
+    unsigned int trillID;
     float* touchSize;
     float* touchVertLocation;
     float* touchHoriLocation;
@@ -231,6 +231,7 @@ struct TrillIn : csnd::Plugin<4, 2> {
     int init() {
         numTouches = inargs[0];
         trillID = inargs[1];
+        activeTouches = 0;
         if (gTouchSensors.size() < trillID + 1)
             return csound->init_error("No Trill sensor connected");
 
