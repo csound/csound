@@ -40,9 +40,9 @@ libsndfile1-dev:armhf libasound-dev:armhf and possibly other things.
 
 3. Build libbela and libbelaextra for armhf.
 
-4. Build libNE10 for armhf and replace the one in Bela/lib/libNE10.a.
-
-5. Build Csound for armhf
+Once the above preparatory steps are done, you can build Csound for armhf. You
+can specify `-DBELA_HOME` to point to your local copy of the Bela repo
+(defaults to `~/Bela`)
 
 ```
 $ cmake -DCMAKE_TOOLCHAIN_FILE=../Bela/crosscompile.cmake \
