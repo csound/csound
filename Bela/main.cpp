@@ -563,25 +563,24 @@ int main(int argc, const char* argv[]) {
         }
     }
 
-    if (res) {
-        res = Bela_initAudio(settings, &csData);
+    if (!res) {
+        std::cerr << "no csd provided, use --csd=name \n";
         Bela_InitSettings_free(settings);
-        if (!res) {
-            if (Bela_startAudio() == 0) {
-                while (csData.res == 0)
-                    usleep(100000);
-            } else {
-                std::cerr << "error starting audio \n";
-            }
-            Bela_stopAudio();
-            Bela_cleanupAudio();
-            return 0;
-        } else {
-            std::cerr << "error initialising Bela \n";
-            return 1;
-        }
+        return 1;
     }
-    std::cerr << "no csd provided, use --csd=name \n";
+    res = Bela_initAudio(settings, &csData);
     Bela_InitSettings_free(settings);
-    return 1;
+    if (res) {
+        std::cerr << "error initialising Bela \n";
+        return 1;
+    }
+    if (Bela_startAudio() == 0) {
+        while (csData.res == 0)
+            usleep(100000);
+    } else {
+        std::cerr << "error starting audio \n";
+    }
+    Bela_stopAudio();
+    Bela_cleanupAudio();
+    return 0;
 }
