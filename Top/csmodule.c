@@ -416,8 +416,8 @@ int csoundLoadModules(CSOUND *csound)
     const char      *dname, *fname;
     char            buf[1024];
     int             i, n, len, err = CSOUND_SUCCESS;
-    char   *dname1, *end;
-    int     read_directory = 1;
+    char            *dname1, *end;
+    int             read_directory = 1;
     char sep =
 #ifdef WIN32
     ';';

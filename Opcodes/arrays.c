@@ -384,6 +384,18 @@ typedef struct {
 
 typedef struct {
   OPDS h;
+  ARRAYDAT *ans;
+  ARRAYDAT *right;
+} TABARITHIN;
+
+typedef struct {
+  OPDS h;
+  ARRAYDAT *ans;
+  MYFLT *right;
+} TABARITHIN1;
+
+typedef struct {
+  OPDS h;
   MYFLT  *ans, *pos;
   ARRAYDAT *tab;
 } TABQUERY;
@@ -674,6 +686,92 @@ static int32_t tabiaadd(CSOUND *csound, TABARITH2 *p)
     MYFLT r       = *p->left;
     return tabiadd(csound, ans, l, r, p);
 }
+
+/* ****************Array versions of addin/subin*********** */
+/// K[] += K
+static int32_t addinAA(CSOUND *csound, TABARITHIN1 *p)
+{
+    ARRAYDAT *ans = p->ans;
+    MYFLT r       = *p->right;
+    //tabinit_like(csound, ans, l);
+    return tabiadd(csound, ans, ans, r, p);
+}
+
+// K[] += K[]
+static int32_t tabaddinkk(CSOUND *csound, TABARITHIN *p)
+{
+    ARRAYDAT *ans = p->ans;
+    ARRAYDAT *r   = p->right;
+    int32_t sizel    = ans->sizes[0];
+    int32_t sizer    = r->sizes[0];
+    int32_t i;
+
+    tabinit_like(csound, ans, r);
+    if (UNLIKELY(ans->data == NULL || r->data==NULL))
+      return csound->PerfError(csound, &(p->h),
+                               Str("array-variable not initialised"));
+
+    for (i=1; i<ans->dimensions; i++) {
+      sizel*=ans->sizes[i];
+      sizer*=r->sizes[i];
+    }
+    if (sizer<sizel) sizel= sizer;
+    for (i=0; i<sizel; i++)
+      ans->data[i] += r->data[i];
+    return OK;
+}
+
+
+
+// K[] -= K
+static int32_t subinAA(CSOUND *csound, TABARITHIN *p)
+{
+    ARRAYDAT *ans = p->ans;
+    ARRAYDAT *r   = p->right;
+    int32_t sizel    = ans->sizes[0];
+    int32_t sizer    = r->sizes[0];
+    int32_t i;
+
+    if (UNLIKELY(ans->data == NULL || r->data==NULL))
+      return csound->PerfError(csound, &(p->h),
+                               Str("array-variable not initialised"));
+
+    for (i=1; i<ans->dimensions; i++) {
+      sizel*=ans->sizes[i];
+      sizer*=r->sizes[i];
+    }
+    if (sizer<sizel) sizel= sizer;
+    for (i=0; i<sizel; i++)
+      ans->data[i] -=r->data[i];
+    return OK;
+}
+
+// K[] -= K[]
+static int32_t tabsubinkk(CSOUND *csound, TABARITHIN *p)
+{
+    ARRAYDAT *ans = p->ans;
+    ARRAYDAT *r   = p->right;
+    int32_t sizel    = ans->sizes[0];
+    int32_t sizer    = r->sizes[0];
+    int32_t i;
+
+    tabinit_like(csound, ans, r);
+    if (UNLIKELY(ans->data == NULL || r->data==NULL))
+      return csound->PerfError(csound, &(p->h),
+                               Str("array-variable not initialised"));
+
+    for (i=1; i<ans->dimensions; i++) {
+      sizel*=ans->sizes[i];
+      sizer*=r->sizes[i];
+    }
+    if (sizer<sizel) sizel= sizer;
+    for (i=0; i<sizel; i++)
+      ans->data[i] -= r->data[i];
+    return OK;
+}
+
+
+
 
 // Subtract K[]-K
 static int32_t tabaisub(CSOUND *csound, TABARITH1 *p)
@@ -4084,10 +4182,18 @@ static OENTRY arrayvars_localops[] =
      (SUBR)tabarithset, (SUBR)tabkrardd },
     {"##add.a[k[", sizeof(TABARITH), 0, 3, "a[]", "a[]k[]",
      (SUBR)tabarithset, (SUBR)tabarkrdd },
+    {"##addin.[i", sizeof(TABARITHIN1), 0, 1, "i[]", "i", (SUBR)addinAA, NULL },
+    {"##addin.[k", sizeof(TABARITHIN1), 0, 2, "k[]", "i", NULL, (SUBR)addinAA },
+    {"##addin.[", sizeof(TABARITHIN), 0, 1, "i[]", "i[]",  (SUBR)tabaddinkk, NULL },
+    {"##addin.[K", sizeof(TABARITHIN), 0, 2, "k[]", "k[]", NULL, (SUBR)tabaddinkk },
     {"##sub.[i", sizeof(TABARITH1), 0, 3, "k[]", "k[]i",
      (SUBR)tabarithset1, (SUBR)tabaisub },
     {"##sub.i[", sizeof(TABARITH2), 0, 3, "k[]", "ik[]",
      (SUBR)tabarithset2, (SUBR)tabiasub },
+    {"##subin.[i", sizeof(TABARITHIN1), 0, 1, "i[]", "i", (SUBR)subinAA, NULL },
+    {"##subin.[", sizeof(TABARITHIN), 0, 1, "i[]", "i[]",  (SUBR)tabsubinkk, NULL },
+    {"##subin.[K", sizeof(TABARITHIN), 0, 2, "k[]", "k[]", NULL, (SUBR)tabsubinkk },
+    {"##subin.[k", sizeof(TABARITHIN1), 0, 2, "k[]", "k", NULL, (SUBR)subinAA },
     {"##sub.[p", sizeof(TABARITH1), 0, 1, "i[]", "i[]i", (SUBR)tabaisubi },
     {"##sub.p[", sizeof(TABARITH2), 0, 1, "i[]", "ii[]", (SUBR)tabiasubi },
     {"##sub.k[a[", sizeof(TABARITH), 0, 3, "a[]", "k[]a[]",
