@@ -720,7 +720,7 @@ int csoundLoadAndInitModules(CSOUND *csound, const char *opdir)
 #ifdef __HAIKU__
         int dfltdir = 0;
 #endif
-        // VL: check is not wanted
+        // VL: check is not wanted 
         //if (UNLIKELY(csound->csmodule_db != NULL))
         ///return CSOUND_ERROR;
 
