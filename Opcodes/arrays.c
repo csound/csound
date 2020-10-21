@@ -721,6 +721,155 @@ static int32_t tabaddinkk(CSOUND *csound, TABARITHIN *p)
     return OK;
 }
 
+//a[]+=a[]
+static int32_t tabaaddin(CSOUND *csound, TABARITHIN *p)
+{
+    ARRAYDAT *ans = p->ans;
+    ARRAYDAT *r   = p->right;
+    int32_t sizel    = ans->sizes[0];
+    int32_t sizer    = r->sizes[0];
+    uint32_t offset = p->h.insdshead->ksmps_offset;
+    uint32_t early  = p->h.insdshead->ksmps_no_end;
+    int32_t i, n, nsmps = CS_KSMPS;
+    int32_t span = (ans->arrayMemberSize)/sizeof(MYFLT);
+
+    if (UNLIKELY(ans->data == NULL || r->data==NULL))
+      return csound->PerfError(csound, &(p->h),
+                               Str("array-variable not initialised"));
+
+    for (i=1; i<ans->dimensions; i++) {
+      sizel*=ans->sizes[i];
+      sizer*=r->sizes[i];
+    }
+    if (sizer<sizel) sizel= sizer;
+    if (UNLIKELY(early)) {
+      nsmps -= early;
+    }
+    for (i=0; i<sizel; i++) {
+      MYFLT *b,*aa;
+      int32_t j = i*span;
+      b = (MYFLT*)&(r->data[j]);
+      aa = (MYFLT*)&(ans->data[j]);
+      if (UNLIKELY(offset)) memset(aa, '\0', offset*sizeof(MYFLT));
+      if (UNLIKELY(early)) {
+        memset(&aa[nsmps], '\0', early*sizeof(MYFLT));
+      }
+      for (n=offset; n<nsmps; n++)
+        aa[n] += b[n];
+    }
+    return OK;
+}
+
+// a[]-=a[]
+static int32_t tabaasubin(CSOUND *csound, TABARITHIN *p)
+{
+    ARRAYDAT *ans = p->ans;
+    ARRAYDAT *r   = p->right;
+    int32_t sizel    = ans->sizes[0];
+    int32_t sizer    = r->sizes[0];
+    uint32_t offset = p->h.insdshead->ksmps_offset;
+    uint32_t early  = p->h.insdshead->ksmps_no_end;
+    int32_t i, n, nsmps = CS_KSMPS-early;
+    int32_t span = (ans->arrayMemberSize)/sizeof(MYFLT);
+
+    if (UNLIKELY(ans->data == NULL || r->data==NULL))
+      return csound->PerfError(csound, &(p->h),
+                               Str("array-variable not initialised"));
+
+    for (i=1; i<ans->dimensions; i++) {
+      sizel*=ans->sizes[i];
+      sizer*=r->sizes[i];
+    }
+    if (sizer<sizel) sizel= sizer;
+    if (UNLIKELY(early)) {
+      nsmps -= early;
+    }
+    for (i=0; i<sizel; i++) {
+      MYFLT *b,*aa;
+      int32_t j = i*span;
+      b = (MYFLT*)&(r->data[j]);
+      aa = (MYFLT*)&(ans->data[j]);
+      if (UNLIKELY(offset)) memset(aa, '\0', offset*sizeof(MYFLT));
+      if (UNLIKELY(early)) {
+        memset(&aa[nsmps], '\0', early*sizeof(MYFLT));
+      }
+      for (n=offset; n<nsmps; n++)
+        aa[n] -= b[n];
+    }
+    return OK;
+}
+
+//a[]+=k[]
+static int32_t tabarkrddin(CSOUND *csound, TABARITHIN *p)
+{
+    ARRAYDAT *ans = p->ans;
+    ARRAYDAT *r   = p->right;
+    int32_t sizel  = ans->sizes[0];
+    int32_t sizer  = r->sizes[0];
+    uint32_t offset = p->h.insdshead->ksmps_offset;
+    uint32_t early  = p->h.insdshead->ksmps_no_end;
+    int32_t i, n, nsmps = CS_KSMPS-early;
+    int32_t span = (ans->arrayMemberSize)/sizeof(MYFLT);
+
+    if (UNLIKELY(ans->data == NULL || r->data==NULL))
+      return csound->PerfError(csound, &(p->h),
+                               Str("array-variable not initialised"));
+
+    for (i=1; i<ans->dimensions; i++) {
+      sizel*=ans->sizes[i];
+      sizer*=r->sizes[i];
+    }
+    if (sizer<sizel) sizel = sizer;
+    for (i=0; i<sizel; i++) {
+      MYFLT b,*aa;
+      int32_t j = i*span;
+      b = r->data[i];
+      aa = (MYFLT*)&(ans->data[j]);
+      if (UNLIKELY(offset)) memset(aa, '\0', offset*sizeof(MYFLT));
+      if (UNLIKELY(early)) {
+        memset(&aa[nsmps], '\0', early*sizeof(MYFLT));
+      }
+      for (n=offset; n<nsmps; n++)
+        aa[n] += b;
+    }
+    return OK;
+}
+
+// a[]-=k[]
+static int32_t tabarkrsbin(CSOUND *csound, TABARITH *p)
+{
+    ARRAYDAT *ans = p->ans;
+    ARRAYDAT *r   = p->right;
+    int32_t sizel    = ans->sizes[0];
+    int32_t sizer    = r->sizes[0];
+    uint32_t offset = p->h.insdshead->ksmps_offset;
+    uint32_t early  = p->h.insdshead->ksmps_no_end;
+    int32_t i, n, nsmps = CS_KSMPS-early;
+    int32_t span = (ans->arrayMemberSize)/sizeof(MYFLT);
+
+    if (UNLIKELY(ans->data == NULL || r->data==NULL))
+      return csound->PerfError(csound, &(p->h),
+                               Str("array-variable not initialised"));
+
+    for (i=1; i<ans->dimensions; i++) {
+      sizel*=ans->sizes[i];
+      sizer*=r->sizes[i];
+    }
+    if (sizer<sizel) sizel = sizer;
+    for (i=0; i<sizel; i++) {
+      MYFLT b,*aa;
+      int32_t j = i*span;
+      b = r->data[i];
+      aa = (MYFLT*)&(ans->data[j]);
+      if (UNLIKELY(offset)) memset(aa, '\0', offset*sizeof(MYFLT));
+      if (UNLIKELY(early)) {
+        memset(&aa[nsmps], '\0', early*sizeof(MYFLT));
+      }
+      for (n=offset; n<nsmps; n++)
+        aa[n] -= b;
+    }
+    return OK;
+}
 
 
 // K[] -= K
@@ -4169,7 +4318,7 @@ static OENTRY arrayvars_localops[] =
      (SUBR)tabarithset,(SUBR)tabdiv },
     {"##div.[i]",  sizeof(TABARITH), 0, 1, "i[]", "i[]i[]",
      (SUBR)tabdivi },
-    {"##reb<ms.[]",  sizeof(TABARITH), 0, 3, "k[]", "k[]k[]",
+    {"##rem.[]",  sizeof(TABARITH), 0, 3, "k[]", "k[]k[]",
      (SUBR)tabarithset, (SUBR)tabrem},
     {"##rem.[i]",  sizeof(TABARITH), 0, 1, "i[]", "i[]i[]", (SUBR)tabremi},
     {"##add.[i", sizeof(TABARITH1), 0, 3, "k[]", "k[]i",
@@ -4186,6 +4335,9 @@ static OENTRY arrayvars_localops[] =
     {"##addin.[k", sizeof(TABARITHIN1), 0, 2, "k[]", "i", NULL, (SUBR)addinAA },
     {"##addin.[", sizeof(TABARITHIN), 0, 1, "i[]", "i[]",  (SUBR)tabaddinkk, NULL },
     {"##addin.[K", sizeof(TABARITHIN), 0, 2, "k[]", "k[]", NULL, (SUBR)tabaddinkk },
+    {"##addin.[a", sizeof(TABARITHIN), 0, 2, "a[]", "a[]", NULL, (SUBR)tabaaddin },
+    {"##addin.[a", sizeof(TABARITHIN), 0, 2, "a[]", "a[]", NULL, (SUBR)tabaaddin },
+    {"##addin.[ak", sizeof(TABARITHIN), 0, 2, "a[]", "k[]", NULL, (SUBR)tabarkrddin },
     {"##sub.[i", sizeof(TABARITH1), 0, 3, "k[]", "k[]i",
      (SUBR)tabarithset1, (SUBR)tabaisub },
     {"##sub.i[", sizeof(TABARITH2), 0, 3, "k[]", "ik[]",
@@ -4194,6 +4346,8 @@ static OENTRY arrayvars_localops[] =
     {"##subin.[", sizeof(TABARITHIN), 0, 1, "i[]", "i[]",  (SUBR)tabsubinkk, NULL },
     {"##subin.[K", sizeof(TABARITHIN), 0, 2, "k[]", "k[]", NULL, (SUBR)tabsubinkk },
     {"##subin.[k", sizeof(TABARITHIN1), 0, 2, "k[]", "k", NULL, (SUBR)subinAA },
+    {"##subin.[a", sizeof(TABARITHIN), 0, 2, "a[]", "a[]", NULL, (SUBR)tabaasubin },
+    {"##subin.[ak", sizeof(TABARITHIN), 0, 2, "a[]", "k[]", NULL, (SUBR)tabarkrsbin },
     {"##sub.[p", sizeof(TABARITH1), 0, 1, "i[]", "i[]i", (SUBR)tabaisubi },
     {"##sub.p[", sizeof(TABARITH2), 0, 1, "i[]", "ii[]", (SUBR)tabiasubi },
     {"##sub.k[a[", sizeof(TABARITH), 0, 3, "a[]", "k[]a[]",
