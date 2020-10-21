@@ -682,7 +682,7 @@ int csoundLoadAndInitModule(CSOUND *csound, const char *fname)
 {
     volatile jmp_buf  tmpExitJmp;
     volatile int      err;
-    //printf("%p CSMODULE\n", csound->csmodule_db);
+    
     err = csoundLoadExternal(csound, fname);
     if (UNLIKELY(err != 0))
       return err;
@@ -720,7 +720,7 @@ int csoundLoadAndInitModules(CSOUND *csound, const char *opdir)
 #ifdef __HAIKU__
         int dfltdir = 0;
 #endif
-        
+        // VL: check is not wanted
         //if (UNLIKELY(csound->csmodule_db != NULL))
         ///return CSOUND_ERROR;
 
