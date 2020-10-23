@@ -4,6 +4,10 @@
     "type": "git",
     "url": "https://github.com/csound/csound"
   },
+  "scripts": {
+    "build:nix": "nix-build -E '(with import <nixpkgs> {}; import ./src/csound.nix)' -o result",
+    "build:docker": "docker build -t csound-wasm -f ./Dockerfile ."
+  },
   "version": "0.0.1",
   "devDependencies": {
     "lerna": "^3.22.1"

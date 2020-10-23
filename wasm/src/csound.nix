@@ -51,6 +51,7 @@ let
   };
 
   csoundRev = "a5b56e6bb9362e26d3dec6fb96545afc6c3ba850";
+  csoundSha = "15xg7adbzs171h6fb4z9id5a1rgdfp0y5bvkp3njnmhiqy6rdqg1";
 
   preprocFlags = ''
     -DGIT_HASH_VALUE=${csoundRev} \
@@ -70,11 +71,17 @@ in pkgs.stdenv.mkDerivation {
 
   name = "csound-wasm";
 
-  src = pkgs.fetchgit {
-    url = ../../.;
-    rev = csoundRev;
-    sha256 = "15xg7adbzs171h6fb4z9id5a1rgdfp0y5bvkp3njnmhiqy6rdqg1";
-  };
+  src = if builtins.pathExists ../../CMakeLists.txt then
+    (pkgs.fetchgit {
+      url = ../../.;
+      rev = csoundRev;
+      sha256 = csoundSha;
+    }) else (pkgs.fetchFromGitHub {
+      owner = "csound";
+      repo = "csound";
+      rev = csoundRev;
+      sha256 = csoundSha;
+    });
 
   buildInputs = [ libsndfile pkgs.flex pkgs.bison ];
 
