@@ -75,8 +75,8 @@ static void rotate_point(MYFLT  cx, MYFLT  cy, MYFLT  angle, MYFLT *x, MYFLT *y)
   *x -= cx;
   *y -= cy;
 
-  float xnew = *x * c - *y * s;
-  float ynew = *x * s + *y * c;
+  MYFLT xnew = *x * c - *y * s;
+  MYFLT ynew = *x * s + *y * c;
 
   *x = xnew + cx;
   *y = ynew + cy;

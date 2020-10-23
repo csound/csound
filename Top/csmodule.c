@@ -416,8 +416,8 @@ int csoundLoadModules(CSOUND *csound)
     const char      *dname, *fname;
     char            buf[1024];
     int             i, n, len, err = CSOUND_SUCCESS;
-    char   *dname1, *end;
-    int     read_directory = 1;
+    char            *dname1, *end;
+    int             read_directory = 1;
     char sep =
 #ifdef WIN32
     ';';
@@ -694,6 +694,7 @@ int csoundLoadAndInitModule(CSOUND *csound, const char *fname)
     }
     /* NOTE: this depends on csound->csmodule_db being the most recently */
     /* loaded plugin library */
+
     err = csoundInitModule(csound, (csoundModule_t*) csound->csmodule_db);
     memcpy((void*) &csound->exitjmp, (void*) &tmpExitJmp, sizeof(jmp_buf));
 
@@ -708,8 +709,8 @@ int csoundLoadAndInitModules(CSOUND *csound, const char *opdir)
     const char      *dname, *fname;
     char            buf[1024];
     int             i, n, len, err = CSOUND_SUCCESS;
-    char   *dname1, *end;
-    int     read_directory = 1;
+    char            *dname1, *end;
+    int             read_directory = 1;
     char sep =
 #ifdef WIN32
     ';';
@@ -719,9 +720,9 @@ int csoundLoadAndInitModules(CSOUND *csound, const char *opdir)
 #ifdef __HAIKU__
         int dfltdir = 0;
 #endif
-
-    if (UNLIKELY(csound->csmodule_db != NULL))
-      return CSOUND_ERROR;
+        // VL: check is not wanted
+        //if (UNLIKELY(csound->csmodule_db != NULL))
+        ///return CSOUND_ERROR;
 
     /* open plugin directory */
     dname = csoundGetEnv(csound, (sizeof(MYFLT) == sizeof(float) ?
