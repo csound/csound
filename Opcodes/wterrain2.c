@@ -224,9 +224,15 @@ static int32_t wtPerf(CSOUND *csound, WAVETER *p)
 
 #define S(x)    sizeof(x)
 
-static OENTRY localops[] = {
+static OENTRY wter_localops[] = {
   { "wterrain2", S(WAVETER), TR, 3,  "a", "kkkkkkkkkkk",
     (SUBR)wtinit, (SUBR)wtPerf },
 };
 
-LINKAGE
+//LINKAGE 
+int32_t wter2_init_(CSOUND *csound)
+{
+    return csound->AppendOpcodes(csound, &(wter_localops[0]),
+                                 (int32_t
+                                  ) (sizeof(wter_localops) / sizeof(OENTRY)));
+}
