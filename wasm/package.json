@@ -1,0 +1,14 @@
+{
+  "name": "@csound/wasm",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/csound/csound"
+  },
+  "version": "0.0.1",
+  "devDependencies": {
+    "lerna": "^3.22.1"
+  },
+  "dependencies": {
+    "@csound/wasm/browser": "file:packages/browser"
+  }
+}
