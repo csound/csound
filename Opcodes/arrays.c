@@ -2676,13 +2676,13 @@ static int32_t tabcopy(CSOUND *csound, TABCPY *p)
       if (p->dst->data == NULL) {
         p->dst->data = csound->Calloc(csound,
                                       p->src->arrayMemberSize * arrayTotalSize);
+        p->dst->allocated = p->src->arrayMemberSize * arrayTotalSize;
       } else {
         p->dst->data = csound->ReAlloc(csound, p->dst->data,
                         p->src->arrayMemberSize * arrayTotalSize);
         memset(p->dst->data, 0, p->src->arrayMemberSize * arrayTotalSize);
       }
     }
-
 
     for (i = 0; i < arrayTotalSize; i++) {
       int32_t index = (i * memMyfltSize);
@@ -2722,6 +2722,7 @@ static int32_t tabcopy1(CSOUND *csound, TABCPY *p)
       if (p->dst->data == NULL) {
         p->dst->data = csound->Calloc(csound,
                                       p->src->arrayMemberSize * arrayTotalSize);
+        p->dst->allocated = p->src->arrayMemberSize * arrayTotalSize;
       } else {
         p->dst->data = csound->ReAlloc(csound, p->dst->data,
                         p->src->arrayMemberSize * arrayTotalSize);
@@ -2773,6 +2774,7 @@ static int32_t tabcopy2(CSOUND *csound, TABCPY *p)
       if (p->dst->data == NULL) {
         p->dst->data = csound->Calloc(csound,
                                       p->src->arrayMemberSize * arrayTotalSize);
+        p->dst->allocated = p->src->arrayMemberSize * arrayTotalSize;
       } else {
         p->dst->data = csound->ReAlloc(csound, p->dst->data,
                         p->src->arrayMemberSize * arrayTotalSize);
