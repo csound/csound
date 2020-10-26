@@ -272,8 +272,9 @@ static int32_t SfAssignAllPresets(CSOUND *csound, SFPASSIGN *p)
     }
     if (enableMsgs)
       csound->Message(csound, Str("\nAll presets have been assigned to preset"
-                                  " handles from %d to %d\nXS\n"),
+                                  " handles from %d to %d\n\n"),
                               (int32_t) *p->startNum, pHandle - 1);
+    globals->currSFndx = pHandle;
     return OK;
 }
 
@@ -682,6 +683,7 @@ static int32_t SfPlayMono_set(CSOUND *csound, SFPLAYMONO *p)
     int32_t layersNum, j, spltNum = 0, flag=(int32_t) *p->iflag;
     sfontg *globals;
     globals = (sfontg *) (csound->QueryGlobalVariable(csound, "::sfontg"));
+    //printf("*** index= %d  maximu = %d\n", index, globals->currSFndx);
     if (UNLIKELY(index>=(DWORD)globals->currSFndx))
       return csound->InitError(csound, Str("invalid soundfont"));
 
