@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>testin @csound/browser</title>
+    <link rel="stylesheet" href="https://unpkg.com/mocha/mocha.css" />
+    <script src="https://unpkg.com/chai/chai.js"></script>
+    <script src="https://unpkg.com/mocha/mocha.js"></script>
+    <script>
+      window.assert = chai.assert;
+    </script>
+  </head>
+  <body>
+    <div id="mocha"></div>
+    <script type="module">
+      const url = "/libcsound.dev.mjs";
+      const helloWorld = `
+         <CsoundSynthesizer>
+           <CsOptions>
+             -odac
+           </CsOptions>
+           <CsInstruments>
+             instr 1
+             prints "Hello World!\n"
+             endin
+           </CsInstruments>
+           <CsScore>
+             i 1 0 0
+           </CsScore>
+         </CsoundSynthesizer>
+     `;
+      let csound;
+      let libcsound;
+
+      const start = async function ({ Csound }) {
+        libcsound = await Csound();
+        csound = await libcsound.csoundCreate();
+        await libcsound.csoundCompileCsdText(csound, helloWorld);
+        await libcsound.csoundStart(csound);
+      };
+      const triggerEvent =
+        "ontouchstart" in document.documentElement ? "touchend" : "click";
+      document
+        .querySelector("#start_test")
+        .addEventListener(triggerEvent, async function () {
+          const CsoundNS = await import(url);
+          start(CsoundNS);
+          mocha.run();
+        });
+    </script>
+    <button id="start_test">Run Tests</button>
+  </body>
+</html>

@@ -1,18 +1,13 @@
 {
   "name": "@csound/wasm",
+  "version": "0.0.0",
   "repository": {
     "type": "git",
     "url": "https://github.com/csound/csound"
   },
   "scripts": {
+    "build": "bash ./compile.sh",
     "build:nix": "nix-build -E '(with import <nixpkgs> {}; import ./src/csound.nix)' -o result",
     "build:docker": "docker build -t csound-wasm -f ./Dockerfile ."
-  },
-  "version": "0.0.1",
-  "devDependencies": {
-    "lerna": "^3.22.1"
-  },
-  "dependencies": {
-    "@csound/wasm/browser": "file:packages/browser"
   }
 }
