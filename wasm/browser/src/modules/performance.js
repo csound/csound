@@ -3,7 +3,7 @@
    https://csound.com/docs/api/modules.html
 */
 
-import { freeStringPtr, string2ptr } from '@root/utils';
+import { freeStringPtr, string2ptr } from "@root/utils";
 
 /**
  * Parses a csound orchestra string
@@ -16,9 +16,9 @@ import { freeStringPtr, string2ptr } from '@root/utils';
  * @param {Object} wasm
  * @return {csoundCreate}
  */
-export const csoundParseOrc = wasm => (csound, orc) => wasm.exports.csoundParseOrc(csound, orc);
+export const csoundParseOrc = (wasm) => (csound, orc) => wasm.exports.csoundParseOrc(csound, orc);
 
-csoundParseOrc.toString = () => 'csoundParseOrc = async (csound, orchestra) => Object;';
+csoundParseOrc.toString = () => "csoundParseOrc = async (csound, orchestra) => Object;";
 
 /**
  * Compiles AST tree
@@ -31,10 +31,10 @@ csoundParseOrc.toString = () => 'csoundParseOrc = async (csound, orchestra) => O
  * @param {Object} wasm
  * @return {csoundCompileTree}
  */
-export const csoundCompileTree = wasm => (csound, tree) =>
+export const csoundCompileTree = (wasm) => (csound, tree) =>
   wasm.exports.csoundCompileTree(csound, tree);
 
-csoundCompileTree.toString = () => 'csoundCompileTree = async (csound, tree) => Number;';
+csoundCompileTree.toString = () => "csoundCompileTree = async (csound, tree) => Number;";
 
 // TODO
 // csoundDeleteTree (CSOUND *csound, TREE *tree)
@@ -50,14 +50,14 @@ csoundCompileTree.toString = () => 'csoundCompileTree = async (csound, tree) => 
  * @param {Object} wasm
  * @return {csoundCompileOrc}
  */
-export const csoundCompileOrc = wasm => (csound, orc) => {
+export const csoundCompileOrc = (wasm) => (csound, orc) => {
   const stringPtr = string2ptr(wasm, orc);
   const result = wasm.exports.csoundCompileOrc(csound, stringPtr);
   freeStringPtr(wasm, stringPtr);
   return result;
 };
 
-csoundCompileOrc.toString = () => 'csoundCompileOrc = async (csound, orchestra) => Number;';
+csoundCompileOrc.toString = () => "csoundCompileOrc = async (csound, orchestra) => Number;";
 
 /**
  * Compiles a csound orchestra string
@@ -70,14 +70,14 @@ csoundCompileOrc.toString = () => 'csoundCompileOrc = async (csound, orchestra) 
  * @param {Object} wasm
  * @return {csoundEvalCode}
  */
-export const csoundEvalCode = wasm => (csound, orc) => {
+export const csoundEvalCode = (wasm) => (csound, orc) => {
   const stringPtr = string2ptr(wasm, orc);
   const result = wasm.exports.csoundEvalCode(csound, stringPtr);
   freeStringPtr(wasm, stringPtr);
   return result;
 };
 
-csoundEvalCode.toString = () => 'csoundEvalCode = async (csound, orchestra) => Number;';
+csoundEvalCode.toString = () => "csoundEvalCode = async (csound, orchestra) => Number;";
 
 // TODO
 // csoundInitializeCscore (CSOUND *, FILE *insco, FILE *outsco)
@@ -95,9 +95,9 @@ csoundEvalCode.toString = () => 'csoundEvalCode = async (csound, orchestra) => N
  * @param {Object} wasm
  * @return {csoundStart}
  */
-export const csoundStart = wasm => csound => wasm.exports.csoundStartWasi(csound);
+export const csoundStart = (wasm) => (csound) => wasm.exports.csoundStartWasi(csound);
 
-csoundStart.toString = () => 'csoundStart = async (csound) => Number;';
+csoundStart.toString = () => "csoundStart = async (csound) => Number;";
 
 // TODO
 // csoundCompile (CSOUND *, int argc, const char **argv)
@@ -113,14 +113,14 @@ csoundStart.toString = () => 'csoundStart = async (csound) => Number;';
  * @param {Object} wasm
  * @return {csoundCompileCsd}
  */
-export const csoundCompileCsd = wasm => (csound, path) => {
+export const csoundCompileCsd = (wasm) => (csound, path) => {
   const stringPtr = string2ptr(wasm, path);
   const result = wasm.exports.csoundCompileCsd(csound, stringPtr);
   freeStringPtr(wasm, stringPtr);
   return result;
 };
 
-csoundCompileCsd.toString = () => 'csoundCompileCsd = async (csound, path) => Number;';
+csoundCompileCsd.toString = () => "csoundCompileCsd = async (csound, path) => Number;";
 
 /**
  * Compiles a CSD string but does not perform it.
@@ -133,7 +133,7 @@ csoundCompileCsd.toString = () => 'csoundCompileCsd = async (csound, path) => Nu
  * @param {Object} wasm
  * @return {csoundCompileCsdText}
  */
-export const csoundCompileCsdText = wasm => (csound, orc) => {
+export const csoundCompileCsdText = (wasm) => (csound, orc) => {
   const stringPtr = string2ptr(wasm, orc);
   const result = wasm.exports.csoundCompileCsdText(csound, stringPtr);
   freeStringPtr(wasm, stringPtr);
@@ -141,7 +141,7 @@ export const csoundCompileCsdText = wasm => (csound, orc) => {
 };
 
 csoundCompileCsdText.toString = () =>
-  'csoundCompileCsdText = async (csound, csoundDocument) => Number;';
+  "csoundCompileCsdText = async (csound, csoundDocument) => Number;";
 
 /**
  * Performs(plays) audio until end is reached
@@ -153,9 +153,9 @@ csoundCompileCsdText.toString = () =>
  * @param {Object} wasm
  * @return {csoundPerform}
  */
-export const csoundPerform = wasm => csound => wasm.exports.csoundPerform(csound);
+export const csoundPerform = (wasm) => (csound) => wasm.exports.csoundPerform(csound);
 
-csoundPerform.toString = () => 'csoundPerform = async (csound) => Number;';
+csoundPerform.toString = () => "csoundPerform = async (csound) => Number;";
 
 /**
  * Performs(plays) 1 ksmps worth of sample(s)
@@ -167,9 +167,9 @@ csoundPerform.toString = () => 'csoundPerform = async (csound) => Number;';
  * @param {Object} wasm
  * @return {csoundPerformKsmps}
  */
-export const csoundPerformKsmps = wasm => csound => wasm.exports.csoundPerformKsmpsWasi(csound);
+export const csoundPerformKsmps = (wasm) => (csound) => wasm.exports.csoundPerformKsmpsWasi(csound);
 
-csoundPerformKsmps.toString = () => 'csoundPerformKsmps = async (csound) => Number;';
+csoundPerformKsmps.toString = () => "csoundPerformKsmps = async (csound) => Number;";
 
 /**
  * Performs(plays) 1 buffer worth of audio
@@ -181,9 +181,9 @@ csoundPerformKsmps.toString = () => 'csoundPerformKsmps = async (csound) => Numb
  * @param {Object} wasm
  * @return {csoundPerformBuffer}
  */
-export const csoundPerformBuffer = wasm => csound => wasm.exports.csoundPerformBuffer(csound);
+export const csoundPerformBuffer = (wasm) => (csound) => wasm.exports.csoundPerformBuffer(csound);
 
-csoundPerformBuffer.toString = () => 'csoundPerformBuffer = async (csound) => Number;';
+csoundPerformBuffer.toString = () => "csoundPerformBuffer = async (csound) => Number;";
 
 /**
  * Stops a csoundPerform
@@ -195,9 +195,9 @@ csoundPerformBuffer.toString = () => 'csoundPerformBuffer = async (csound) => Nu
  * @param {Object} wasm
  * @return {csoundStop}
  */
-export const csoundStop = wasm => csound => wasm.exports.csoundStop(csound);
+export const csoundStop = (wasm) => (csound) => wasm.exports.csoundStop(csound);
 
-csoundStop.toString = () => 'csoundStop = async (csound) => undefined;';
+csoundStop.toString = () => "csoundStop = async (csound) => undefined;";
 
 /**
  * Prints information about the end of a performance,
@@ -210,9 +210,9 @@ csoundStop.toString = () => 'csoundStop = async (csound) => undefined;';
  * @param {Object} wasm
  * @return {csoundCleanup}
  */
-export const csoundCleanup = wasm => csound => wasm.exports.csoundCleanup(csound);
+export const csoundCleanup = (wasm) => (csound) => wasm.exports.csoundCleanup(csound);
 
-csoundCleanup.toString = () => 'csoundCleanup = async (csound) => Number;';
+csoundCleanup.toString = () => "csoundCleanup = async (csound) => Number;";
 
 /**
  * Prints information about the end of a performance,
@@ -225,6 +225,6 @@ csoundCleanup.toString = () => 'csoundCleanup = async (csound) => Number;';
  * @param {Object} wasm
  * @return {csoundReset}
  */
-export const csoundReset = wasm => csound => wasm.exports.csoundResetWasi(csound);
+export const csoundReset = (wasm) => (csound) => wasm.exports.csoundResetWasi(csound);
 
-csoundReset.toString = () => 'csoundReset = async (csound) => Number;';
+csoundReset.toString = () => "csoundReset = async (csound) => Number;";

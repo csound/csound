@@ -1,4 +1,4 @@
-import { freeStringPtr, string2ptr } from '@root/utils';
+import { freeStringPtr, string2ptr } from "@root/utils";
 
 /* eslint-disable unicorn/prevent-abbreviations */
 
@@ -7,7 +7,7 @@ import { freeStringPtr, string2ptr } from '@root/utils';
  * added for internal usage of csound-wasm, feel
  * free to use as well ;)
  */
-export const csoundAppendEnv = wasm => (csound, variable, value) => {
+export const csoundAppendEnv = (wasm) => (csound, variable, value) => {
   const varStringPtr = string2ptr(wasm, variable);
   const valueStringPtr = string2ptr(wasm, value);
   const res = wasm.exports.csoundAppendEnv(csound, varStringPtr, valueStringPtr);
@@ -16,11 +16,11 @@ export const csoundAppendEnv = wasm => (csound, variable, value) => {
   return res;
 };
 
-csoundAppendEnv.toString = () => 'csoundAppendEnv = async (csound, variable, value) => Number;';
+csoundAppendEnv.toString = () => "csoundAppendEnv = async (csound, variable, value) => Number;";
 
 /**
  * Internal function for setting-up browser-fs
  */
-export const setupWasmBrowserFS = wasm => () => {
+export const setupWasmBrowserFS = (wasm) => () => {
   wasm.exports.setupWasmBrowserFS();
 };

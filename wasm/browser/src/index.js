@@ -7,11 +7,7 @@ import AudioWorkletMainThread from "@root/mains/worklet.main";
 import ScriptProcessorNodeMainThread from "@root/mains/old-spn.main";
 import wasmDataURI from "@csound/wasm/lib/libcsound.wasm.zlib";
 import log, { logSAB, logWorklet, logVAN } from "@root/logger";
-import {
-  areWorkletsSupportet,
-  isSabSupported,
-  isScriptProcessorNodeSupported,
-} from "@root/utils";
+import { areWorkletsSupportet, isSabSupported, isScriptProcessorNodeSupported } from "@root/utils";
 
 let audioWorker, csoundWasmApi;
 
@@ -46,15 +42,13 @@ export async function Csound() {
 
   if (!audioWorker) {
     log.error("No detectable WebAudioAPI in current environment");
-    return {};
+    return undefined;
   }
 
   const hasSABSupport = isSabSupported();
 
   if (!hasSABSupport) {
-    log.warn(
-      `SharedArrayBuffers not found, falling back to Vanilla concurrency`
-    );
+    log.warn(`SharedArrayBuffers not found, falling back to Vanilla concurrency`);
   } else {
     logSAB(`using SharedArrayBuffers`);
   }
@@ -70,7 +64,7 @@ export async function Csound() {
     csoundWasmApi = worker.api;
   } else {
     log.error("No detectable WebAssembly support in current environment");
-    return {};
+    return undefined;
   }
 
   return csoundWasmApi;

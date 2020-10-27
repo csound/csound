@@ -12,7 +12,7 @@
   <body>
     <div id="mocha"></div>
     <script type="module">
-      const url = "/libcsound.dev.mjs";
+      const url = "/libcsound.mjs";
       const helloWorld = `
          <CsoundSynthesizer>
            <CsOptions>
@@ -33,19 +33,15 @@
 
       const start = async function ({ Csound }) {
         libcsound = await Csound();
-        csound = await libcsound.csoundCreate();
-        await libcsound.csoundCompileCsdText(csound, helloWorld);
-        await libcsound.csoundStart(csound);
+        await libcsound.csoundCompileCsdText(helloWorld);
+        await libcsound.start();
       };
-      const triggerEvent =
-        "ontouchstart" in document.documentElement ? "touchend" : "click";
-      document
-        .querySelector("#start_test")
-        .addEventListener(triggerEvent, async function () {
-          const CsoundNS = await import(url);
-          start(CsoundNS);
-          mocha.run();
-        });
+      const triggerEvent = "ontouchstart" in document.documentElement ? "touchend" : "click";
+      document.querySelector("#start_test").addEventListener(triggerEvent, async function () {
+        const CsoundNS = await import(url);
+        start(CsoundNS);
+        mocha.run();
+      });
     </script>
     <button id="start_test">Run Tests</button>
   </body>

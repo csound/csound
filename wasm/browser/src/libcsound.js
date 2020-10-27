@@ -1,11 +1,11 @@
-import { assoc, keys, reduce } from 'ramda';
+import { assoc, keys, reduce } from "ramda";
 import {
   csoundCreate,
   csoundDestroy,
   csoundGetAPIVersion,
   csoundGetVersion,
   csoundInitialize,
-} from '@module/instantiation';
+} from "@module/instantiation";
 import {
   csoundParseOrc,
   csoundCompileTree,
@@ -20,7 +20,7 @@ import {
   csoundStop,
   csoundCleanup,
   csoundReset,
-} from '@module/performance';
+} from "@module/performance";
 import {
   csoundGetSr,
   csoundGetKr,
@@ -36,7 +36,7 @@ import {
   csoundGetParams,
   csoundGetDebug,
   csoundSetDebug,
-} from '@module/attributes';
+} from "@module/attributes";
 import {
   csoundGetInputBufferSize,
   csoundGetOutputBufferSize,
@@ -44,7 +44,7 @@ import {
   csoundGetOutputBuffer,
   csoundGetSpin,
   csoundGetSpout,
-} from '@module/rtaudio';
+} from "@module/rtaudio";
 import {
   csoundGetMIDIDevList,
   csoundSetMidiCallbacks,
@@ -52,10 +52,10 @@ import {
   csoundGetMidiOutFileName,
   csoundPushMidiMessage,
   _isRequestingRtMidiInput,
-} from '@module/rtmidi';
-import { csoundInputMessage, csoundInputMessageAsync } from '@module/control-events';
-import { csoundGetInputName, csoundGetOutputName } from '@module/general-io';
-import { csoundAppendEnv, setupWasmBrowserFS } from '@module/extra';
+} from "@module/rtmidi";
+import { csoundInputMessage, csoundInputMessageAsync } from "@module/control-events";
+import { csoundGetInputName, csoundGetOutputName } from "@module/general-io";
+import { csoundAppendEnv, setupWasmBrowserFS } from "@module/extra";
 
 /*
    Don't call these functions directly.
@@ -124,6 +124,6 @@ export const api = {
   setupWasmBrowserFS,
 };
 
-export default function(wasm) {
+export default function (wasm) {
   return reduce((accumulator, k) => assoc(k, api[k](wasm), accumulator), {}, keys(api));
 }

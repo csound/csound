@@ -1,8 +1,8 @@
-import { instantiateAudioPacket } from '@root/workers/common.utils';
+import { instantiateAudioPacket } from "@root/workers/common.utils";
 // https://github.com/xpl/ololog/issues/20
 // import { logSPN } from '@root/logger';
-import { range } from 'ramda';
-import { WebkitAudioContext } from '@root/utils';
+import { range } from "ramda";
+import { WebkitAudioContext } from "@root/utils";
 
 let spnClassInstance;
 
@@ -49,12 +49,16 @@ class CsoundScriptNodeProcessor {
     this.audioContext = new AudioCTX();
 
     // Safari autoplay cancer :(
-    if (this.audioContext.state === 'suspended') {
-      workerMessagePort.broadcastPlayState('realtimePerformancePaused');
-      workerMessagePort.vanillaWorkerState = 'realtimePerformancePaused';
+    if (this.audioContext.state === "suspended") {
+      workerMessagePort.broadcastPlayState("realtimePerformancePaused");
+      workerMessagePort.vanillaWorkerState = "realtimePerformancePaused";
     }
 
-    this.scriptNode = this.audioContext.createScriptProcessor(this.softwareBufferSize, inputsCount, outputsCount);
+    this.scriptNode = this.audioContext.createScriptProcessor(
+      this.softwareBufferSize,
+      inputsCount,
+      outputsCount,
+    );
     this.process = this.process.bind(this);
 
     const processor = this.process.bind(this);
@@ -98,7 +102,7 @@ class CsoundScriptNodeProcessor {
   // try to do the same here as in Vanilla+Worklet
   process({ inputBuffer, outputBuffer }) {
     if (!this.vanillaInitialized || !audioFramePort.ready) {
-      if (workerMessagePort.vanillaWorkerState === 'realtimePerformanceEnded') {
+      if (workerMessagePort.vanillaWorkerState === "realtimePerformanceEnded") {
         if (this.audioContext) {
           this.audioContext.close();
           this.audioContext = undefined;
@@ -137,8 +141,8 @@ class CsoundScriptNodeProcessor {
       : 0;
 
     if (
-      workerMessagePort.vanillaWorkerState !== 'realtimePerformanceStarted' &&
-      workerMessagePort.vanillaWorkerState !== 'realtimePerformanceResumed'
+      workerMessagePort.vanillaWorkerState !== "realtimePerformanceStarted" &&
+      workerMessagePort.vanillaWorkerState !== "realtimePerformanceResumed"
     ) {
       writeableOutputChannels.forEach((channelBuffer) => {
         channelBuffer.fill(0);
@@ -186,7 +190,7 @@ class CsoundScriptNodeProcessor {
     } else {
       // minimize noise
       if (this.bufferUnderrunCount > 1 && this.bufferUnderrunCount < 12) {
-        workerMessagePort.post('Buffer underrun');
+        workerMessagePort.post("Buffer underrun");
         this.bufferUnderrunCount += 1;
       }
 
@@ -194,8 +198,8 @@ class CsoundScriptNodeProcessor {
         // 100 buffer Underruns in a row
         // means a fatal situation and browser
         // may crash
-        workerMessagePort.post('FATAL: 100 buffers failed in a row');
-        workerMessagePort.broadcastPlayState('realtimePerformanceEnded');
+        workerMessagePort.post("FATAL: 100 buffers failed in a row");
+        workerMessagePort.broadcastPlayState("realtimePerformanceEnded");
       }
     }
 
@@ -219,15 +223,15 @@ class CsoundScriptNodeProcessor {
 }
 
 const workerMessageHandler = (event) => {
-  if (event.data.msg === 'initMessagePort') {
+  if (event.data.msg === "initMessagePort") {
     const port = event.ports[0];
     workerMessagePort.post = (log) => port.postMessage({ log });
     workerMessagePort.broadcastPlayState = (playStateChange) =>
       port.postMessage({ playStateChange });
     workerMessagePort.ready = true;
-  } else if (event.data.msg === 'initRequestPort') {
+  } else if (event.data.msg === "initRequestPort") {
     const requestPort = event.ports[0];
-    requestPort.addEventListener('message', (requestPortEvent) => {
+    requestPort.addEventListener("message", (requestPortEvent) => {
       const { audioPacket, readIndex, numFrames } = requestPortEvent.data;
       spnClassInstance &&
         spnClassInstance.updateVanillaFrames({ audioPacket, numFrames, readIndex });
@@ -237,29 +241,29 @@ const workerMessageHandler = (event) => {
       requestPort.start();
       audioFramePort.ready = true;
     }
-  } else if (event.data.msg === 'initAudioInputPort') {
+  } else if (event.data.msg === "initAudioInputPort") {
     const inputPort = event.ports[0];
     audioInputPort.transferInputFrames = (frames) => inputPort.postMessage(frames);
-  } else if (event.data.msg === 'makeSPNClass') {
-    if (typeof spnClassInstance !== 'undefined') {
+  } else if (event.data.msg === "makeSPNClass") {
+    if (typeof spnClassInstance !== "undefined") {
       spnClassInstance = undefined;
     }
     spnClassInstance = new CsoundScriptNodeProcessor(event.data.argumentz);
-  } else if (event.data.msg === 'resume' && spnClassInstance) {
-    spnClassInstance.audioContext.state === 'suspended' && spnClassInstance.audioContext.resume();
-    if (spnClassInstance.audioContext.state === 'running') {
-      workerMessagePort.broadcastPlayState('realtimePerformanceResumed');
+  } else if (event.data.msg === "resume" && spnClassInstance) {
+    spnClassInstance.audioContext.state === "suspended" && spnClassInstance.audioContext.resume();
+    if (spnClassInstance.audioContext.state === "running") {
+      workerMessagePort.broadcastPlayState("realtimePerformanceResumed");
     }
   } else if (event.data.playStateChange) {
     workerMessagePort.vanillaWorkerState = event.data.playStateChange;
-    if (event.data.playStateChange === 'realtimePerformanceEnded') {
+    if (event.data.playStateChange === "realtimePerformanceEnded") {
       spnClassInstance = undefined;
       audioFramePort.ready = false;
-    } else if (event.data.playStateChange === 'realtimePerformanceResumed') {
-      spnClassInstance.audioContext.state === 'suspended' && spnClassInstance.audioContext.resume();
+    } else if (event.data.playStateChange === "realtimePerformanceResumed") {
+      spnClassInstance.audioContext.state === "suspended" && spnClassInstance.audioContext.resume();
     }
   }
 };
 
 // object cloning is terrible in iframes, so it's oldskool and no Comlink :(
-window.addEventListener('message', workerMessageHandler);
+window.addEventListener("message", workerMessageHandler);

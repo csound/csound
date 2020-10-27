@@ -1,12 +1,12 @@
-import * as Comlink from 'comlink';
-import { api as API } from '@root/libcsound';
+import * as Comlink from "comlink";
+import { api as API } from "@root/libcsound";
 import {
   messageEventHandler,
   mainMessagePortAudio,
   mainMessagePort,
   workerMessagePort,
-} from '@root/mains/messages.main';
-import SABWorker from '@root/workers/sab.worker';
+} from "@root/mains/messages.main";
+import SABWorker from "@root/workers/sab.worker";
 import {
   AUDIO_STATE,
   MAX_CHANNELS,
@@ -14,9 +14,9 @@ import {
   MIDI_BUFFER_PAYLOAD_SIZE,
   MIDI_BUFFER_SIZE,
   initialSharedState,
-} from '@root/constants';
-import { logSAB } from '@root/logger';
-import { makeProxyCallback, stopableStates } from '@root/utils';
+} from "@root/constants";
+import { logSAB } from "@root/logger";
+import { makeProxyCallback, stopableStates } from "@root/utils";
 
 class SharedArrayBufferMainThread {
   constructor(audioWorker, wasmDataURI) {
@@ -70,7 +70,7 @@ class SharedArrayBufferMainThread {
   }
 
   async addMessageCallback(callback) {
-    if (typeof callback === 'function') {
+    if (typeof callback === "function") {
       this.messageCallbacks.push(callback);
     } else {
       console.error(`Can't assign ${typeof callback} as a message callback`);
@@ -78,7 +78,7 @@ class SharedArrayBufferMainThread {
   }
 
   async setMessageCallback(callback) {
-    if (typeof callback === 'function') {
+    if (typeof callback === "function") {
       this.messageCallbacks = [callback];
     } else {
       console.error(`Can't assign ${typeof callback} as a message callback`);
@@ -87,7 +87,7 @@ class SharedArrayBufferMainThread {
 
   // User-land hook to csound's play-state changes
   async setCsoundPlayStateChangeCallback(callback) {
-    if (typeof callback !== 'function') {
+    if (typeof callback !== "function") {
       console.error(`Can't assign ${typeof callback} as a playstate change callback`);
     } else {
       this.csoundPlayStateChangeCallbacks = [callback];
@@ -95,7 +95,7 @@ class SharedArrayBufferMainThread {
   }
 
   async addCsoundPlayStateChangeCallback(callback) {
-    if (typeof callback !== 'function') {
+    if (typeof callback !== "function") {
       console.error(`Can't assign ${typeof callback} as a playstate change callback`);
     } else {
       this.csoundPlayStateChangeCallbacks.push(callback);
@@ -109,7 +109,7 @@ class SharedArrayBufferMainThread {
       Atomics.load(this.audioStatePointer, AUDIO_STATE.IS_PERFORMING) === 1
     ) {
       Atomics.store(this.audioStatePointer, AUDIO_STATE.IS_PAUSED, 1);
-      this.onPlayStateChange('realtimePerformancePaused');
+      this.onPlayStateChange("realtimePerformancePaused");
     }
   }
 
@@ -121,7 +121,7 @@ class SharedArrayBufferMainThread {
     ) {
       Atomics.store(this.audioStatePointer, AUDIO_STATE.IS_PAUSED, 0);
       Atomics.notify(this.audioStatePointer, AUDIO_STATE.IS_PAUSED);
-      this.onPlayStateChange('realtimePerformanceResumed');
+      this.onPlayStateChange("realtimePerformanceResumed");
     }
   }
 
@@ -129,7 +129,7 @@ class SharedArrayBufferMainThread {
     this.currentPlayState = newPlayState;
 
     switch (newPlayState) {
-      case 'realtimePerformanceStarted': {
+      case "realtimePerformanceStarted": {
         logSAB(
           `event: realtimePerformanceStarted received,` +
             ` proceeding to call prepareRealtimePerformance`,
@@ -137,7 +137,7 @@ class SharedArrayBufferMainThread {
         await this.prepareRealtimePerformance();
         break;
       }
-      case 'realtimePerformanceEnded': {
+      case "realtimePerformanceEnded": {
         logSAB(`event: realtimePerformanceEnded received, beginning cleanup`);
 
         // re-initialize SAB
@@ -147,7 +147,7 @@ class SharedArrayBufferMainThread {
         break;
       }
 
-      case 'renderEnded': {
+      case "renderEnded": {
         logSAB(`event: renderEnded received, beginning cleanup`);
         break;
       }
@@ -214,12 +214,12 @@ class SharedArrayBufferMainThread {
     // both audio worker and csound worker use 1 handler
     // simplifies flow of data (csound main.worker is always first to receive)
     logSAB(`adding message eventListeners for mainMessagePort and mainMessagePortAudio`);
-    mainMessagePort.addEventListener('message', messageEventHandler(this));
-    mainMessagePortAudio.addEventListener('message', messageEventHandler(this));
+    mainMessagePort.addEventListener("message", messageEventHandler(this));
+    mainMessagePortAudio.addEventListener("message", messageEventHandler(this));
     logSAB(
       `(postMessage) making a message channel from SABMain to SABWorker via workerMessagePort`,
     );
-    csoundWorker.postMessage({ msg: 'initMessagePort' }, [workerMessagePort]);
+    csoundWorker.postMessage({ msg: "initMessagePort" }, [workerMessagePort]);
 
     mainMessagePort.start();
     mainMessagePortAudio.start();
@@ -239,36 +239,31 @@ class SharedArrayBufferMainThread {
       this,
     );
 
-    this.exportApi.csoundPause = this.csoundPause.bind(this);
-    this.exportApi.csoundResume = this.csoundResume.bind(this);
+    this.exportApi.pause = this.csoundPause.bind(this);
+    this.exportApi.resume = this.csoundResume.bind(this);
+    const csoundInstance = await makeProxyCallback(proxyPort, undefined, "csoundCreate")();
 
-    this.exportApi.copyToFs = makeProxyCallback(proxyPort, 'copyToFs');
-    this.exportApi.readFromFs = makeProxyCallback(proxyPort, 'readFromFs');
-    this.exportApi.llFs = makeProxyCallback(proxyPort, 'llFs');
-    this.exportApi.lsFs = makeProxyCallback(proxyPort, 'lsFs');
-    this.exportApi.rmrfFs = makeProxyCallback(proxyPort, 'rmrfFs');
+    this.csoundInstance = csoundInstance;
+    this.exportApi.writeToFs = makeProxyCallback(proxyPort, csoundInstance, "writeToFs");
+    this.exportApi.readFromFs = makeProxyCallback(proxyPort, csoundInstance, "readFromFs");
+    this.exportApi.llFs = makeProxyCallback(proxyPort, csoundInstance, "llFs");
+    this.exportApi.lsFs = makeProxyCallback(proxyPort, csoundInstance, "lsFs");
+    this.exportApi.rmrfFs = makeProxyCallback(proxyPort, csoundInstance, "rmrfFs");
 
     this.exportApi.getAudioContext = async () => this.audioWorker.audioCtx;
 
     for (const apiK of Object.keys(API)) {
-      const proxyCallback = makeProxyCallback(proxyPort, apiK);
+      const proxyCallback = makeProxyCallback(proxyPort, csoundInstance, apiK);
       const reference = API[apiK];
 
       switch (apiK) {
-        case 'csoundCreate': {
-          const csoundCreate = async () => {
-            const csoundInstance = await proxyCallback();
-            this.csoundInstance = csoundInstance;
-            return csoundInstance;
-          };
-          this.exportApi.csoundCreate = csoundCreate.bind(this);
-          csoundCreate.toString = () => reference.toString();
+        case "csoundCreate": {
           break;
         }
-        case 'csoundStart': {
-          const csoundStart = async function (csound) {
-            if (!csound || typeof csound !== 'number') {
-              console.error('csoundStart expects first parameter to be instance of Csound');
+        case "csoundStart": {
+          const csoundStart = async function () {
+            if (!csoundInstance || typeof csoundInstance !== "number") {
+              console.error("starting csound failed because csound instance wasn't created");
               return -1;
             }
 
@@ -277,16 +272,16 @@ class SharedArrayBufferMainThread {
               audioStreamIn,
               audioStreamOut,
               midiBuffer,
-              csound,
+              csound: csoundInstance,
             });
           };
 
           csoundStart.toString = () => reference.toString();
-          this.exportApi.csoundStart = csoundStart.bind(this);
+          this.exportApi.start = csoundStart.bind(this);
           break;
         }
 
-        case 'csoundStop': {
+        case "csoundStop": {
           const csoundStop = async (csound) => {
             logSAB(
               "Checking if it's safe to call stop:",
@@ -295,33 +290,33 @@ class SharedArrayBufferMainThread {
             if (stopableStates.has(this.currentPlayState)) {
               logSAB("Marking SAB's state to STOP");
               Atomics.store(this.audioStatePointer, AUDIO_STATE.STOP, 1);
-              logSAB('Marking that performance is not running anymore (stops the audio too)');
+              logSAB("Marking that performance is not running anymore (stops the audio too)");
               Atomics.store(this.audioStatePointer, AUDIO_STATE.IS_PERFORMING, 0);
 
               // Double check if the thread didn't defenitely get the STOP message
               setTimeout(() => {
-                logSAB('Double checking if SAB stopped');
-                if (this.currentPlayState !== 'realtimePerformanceEnded') {
+                logSAB("Double checking if SAB stopped");
+                if (this.currentPlayState !== "realtimePerformanceEnded") {
                   logSAB("stopping didn't cause the correct event to be triggered");
                   if (Atomics.load(this.audioStatePointer, AUDIO_STATE.STOP) === 0) {
                     logSAB(
-                      'stopped state got reset to 0 (could be fatal, but also race condition)',
+                      "stopped state got reset to 0 (could be fatal, but also race condition)",
                     );
                     Atomics.store(this.audioStatePointer, AUDIO_STATE.STOP, 1);
                   }
-                  logSAB('making a second Atomic notify to SAB, pray for the best');
+                  logSAB("making a second Atomic notify to SAB, pray for the best");
                   Atomics.notify(this.audioStatePointer, AUDIO_STATE.ATOMIC_NOTIFY);
                 }
               }, 1000);
 
               // A potential case where the thread is locked because of pause
-              if (this.currentPlayState === 'realtimePerformancePaused') {
+              if (this.currentPlayState === "realtimePerformancePaused") {
                 Atomics.store(this.audioStatePointer, AUDIO_STATE.IS_PAUSED, 0);
                 Atomics.notify(this.audioStatePointer, AUDIO_STATE.IS_PAUSED);
               }
             }
           };
-          this.exportApi.csoundStop = csoundStop.bind(this);
+          this.exportApi.stop = csoundStop.bind(this);
           csoundStop.toString = () => reference.toString();
           break;
         }

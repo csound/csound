@@ -1,4 +1,4 @@
-import { logVAN } from '@root/logger';
+import { logVAN } from "@root/logger";
 
 const loggerPool = new Set();
 
@@ -8,20 +8,20 @@ if (!__PROD__) {
 }
 
 // exec log-event: msg => cb(msg)
-export const messageEventHandler = worker => event => {
+export const messageEventHandler = (worker) => (event) => {
   if (event.data.log) {
-    loggerPool.forEach(callback => callback(event.data.log));
-    (worker.messageCallbacks || []).forEach(callback => callback(event.data.log));
+    loggerPool.forEach((callback) => callback(event.data.log));
+    (worker.messageCallbacks || []).forEach((callback) => callback(event.data.log));
   } else {
     worker.onPlayStateChange(event.data.playStateChange);
   }
 };
 
 export const emitInternalCsoundLogEvent = (worker, message) => {
-  if (typeof message === 'string') {
-    loggerPool.forEach(callback => callback(message));
+  if (typeof message === "string") {
+    loggerPool.forEach((callback) => callback(message));
     if (worker) {
-      (worker.messageCallbacks || []).forEach(callback => callback(message));
+      (worker.messageCallbacks || []).forEach((callback) => callback(message));
     }
   }
 };
@@ -48,13 +48,13 @@ const iterableMessageChannel = () => {
 };
 
 const safelyClosePorts = ([p1, p2]) => {
-  if (typeof p1.close !== 'undefined') {
+  if (typeof p1.close !== "undefined") {
     try {
       p1.close();
       // eslint-disable unicorn/prefer-optional-catch-binding
     } catch (_) {}
   }
-  if (typeof p2.close !== 'undefined') {
+  if (typeof p2.close !== "undefined") {
     try {
       p2.close();
       // eslint-disable unicorn/prefer-optional-catch-binding
@@ -77,7 +77,7 @@ export const restartWorkerFrameRequestPort = () => {
   [csoundWorkerFrameRequestPort, audioWorkerFrameRequestPort] = iterableMessageChannel();
 };
 
-export const cleanupPorts = csoundWorkerMain => {
+export const cleanupPorts = (csoundWorkerMain) => {
   logVAN(`cleanupPorts`);
 
   safelyClosePorts([mainMessagePort, workerMessagePort]);
@@ -95,8 +95,8 @@ export const cleanupPorts = csoundWorkerMain => {
   safelyClosePorts([csoundWorkerRtMidiPort, csoundMainRtMidiPort]);
   [csoundWorkerRtMidiPort, csoundMainRtMidiPort] = iterableMessageChannel();
 
-  mainMessagePort.addEventListener('message', messageEventHandler(csoundWorkerMain));
-  mainMessagePortAudio.addEventListener('message', messageEventHandler(csoundWorkerMain));
+  mainMessagePort.addEventListener("message", messageEventHandler(csoundWorkerMain));
+  mainMessagePortAudio.addEventListener("message", messageEventHandler(csoundWorkerMain));
 
   mainMessagePort.start();
   mainMessagePortAudio.start();

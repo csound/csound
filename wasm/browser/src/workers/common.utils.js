@@ -1,33 +1,31 @@
-import log from '@root/logger';
+import log from "@root/logger";
 
-export const handleCsoundStart = (
-  workerMessagePort,
-  libraryCsound,
-  createRealtimeAudioThread
-) => arguments_ => {
+export const handleCsoundStart = (workerMessagePort, libraryCsound, createRealtimeAudioThread) => (
+  arguments_,
+) => {
   const { csound } = arguments_;
 
   const startError = libraryCsound.csoundStart(csound);
-  const outputName = libraryCsound.csoundGetOutputName(csound) || 'test.wav';
+  const outputName = libraryCsound.csoundGetOutputName(csound) || "test.wav";
   log(`handleCsoundStart: actual csoundStart result ${startError}, outputName: ${outputName}`);
   if (startError !== 0) {
     workerMessagePort.post(
       `error: csoundStart failed while trying to render ${outputName},` +
-        ' look out for errors in options and syntax'
+        " look out for errors in options and syntax",
     );
     return startError;
   }
 
   const isRequestingRtMidiInput = libraryCsound._isRequestingRtMidiInput(csound);
-  const isExpectingRealtimeOutput = isRequestingRtMidiInput || outputName.includes('dac');
+  const isExpectingRealtimeOutput = isRequestingRtMidiInput || outputName.includes("dac");
 
   if (isExpectingRealtimeOutput) {
     createRealtimeAudioThread(arguments_);
   } else {
     // Do rendering
-    workerMessagePort.broadcastPlayState('renderStarted');
+    workerMessagePort.broadcastPlayState("renderStarted");
     while (libraryCsound.csoundPerformKsmps(csound) === 0) {}
-    workerMessagePort.broadcastPlayState('renderEnded');
+    workerMessagePort.broadcastPlayState("renderEnded");
   }
 };
 

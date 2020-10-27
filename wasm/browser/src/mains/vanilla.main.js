@@ -1,7 +1,7 @@
-import * as Comlink from 'comlink';
-import { logVAN } from '@root/logger';
-import { api as API } from '@root/libcsound';
-import VanillaWorker from '@root/workers/vanilla.worker';
+import * as Comlink from "comlink";
+import { logVAN } from "@root/logger";
+import { api as API } from "@root/libcsound";
+import VanillaWorker from "@root/workers/vanilla.worker";
 import {
   DEFAULT_HARDWARE_BUFFER_SIZE,
   DEFAULT_SOFTWARE_BUFFER_SIZE,
@@ -9,8 +9,8 @@ import {
   MAX_HARDWARE_BUFFER_SIZE,
   MIDI_BUFFER_PAYLOAD_SIZE,
   MIDI_BUFFER_SIZE,
-} from '@root/constants.js';
-import { makeProxyCallback } from '@root/utils';
+} from "@root/constants.js";
+import { makeProxyCallback } from "@root/utils";
 import {
   cleanupPorts,
   csoundMainRtMidiPort,
@@ -21,7 +21,7 @@ import {
   csoundWorkerAudioInputPort,
   csoundWorkerRtMidiPort,
   csoundWorkerFrameRequestPort,
-} from '@root/mains/messages.main';
+} from "@root/mains/messages.main";
 
 class VanillaWorkerMainThread {
   constructor(audioWorker, wasmDataURI) {
@@ -66,7 +66,7 @@ class VanillaWorkerMainThread {
     this.audioWorker.sampleRate = await this.exportApi.csoundGetSr(this.csound);
     this.audioWorker.isRequestingInput = (
       await this.exportApi.csoundGetInputName(this.csound)
-    ).includes('adc');
+    ).includes("adc");
     this.audioWorker.isRequestingMidi = await this.exportApi._isRequestingRtMidiInput(this.csound);
     this.audioWorker.outputsCount = await this.exportApi.csoundGetNchnls(this.csound);
     // TODO fix upstream: await this.exportApi.csoundGetNchnlsInput(this.csound);
@@ -84,13 +84,13 @@ class VanillaWorkerMainThread {
     this.currentPlayState = newPlayState;
 
     switch (newPlayState) {
-      case 'realtimePerformanceStarted': {
+      case "realtimePerformanceStarted": {
         logVAN(`event realtimePerformanceStarted from worker, now preparingRT..`);
         await this.prepareRealtimePerformance();
         break;
       }
 
-      case 'realtimePerformanceEnded': {
+      case "realtimePerformanceEnded": {
         logVAN(`realtimePerformanceEnded`);
         this.midiPortStarted = false;
         this.csound = undefined;
@@ -100,7 +100,7 @@ class VanillaWorkerMainThread {
         break;
       }
 
-      case 'renderEnded': {
+      case "renderEnded": {
         logVAN(`event: renderEnded received, beginning cleanup`);
         cleanupPorts(this);
         // await this.initialize();
@@ -133,7 +133,7 @@ class VanillaWorkerMainThread {
   }
 
   async addMessageCallback(callback) {
-    if (typeof callback === 'function') {
+    if (typeof callback === "function") {
       this.messageCallbacks.push(callback);
     } else {
       console.error(`Can't assign ${typeof callback} as a message callback`);
@@ -141,7 +141,7 @@ class VanillaWorkerMainThread {
   }
 
   async setMessageCallback(callback) {
-    if (typeof callback === 'function') {
+    if (typeof callback === "function") {
       this.messageCallbacks = [callback];
     } else {
       console.error(`Can't assign ${typeof callback} as a message callback`);
@@ -149,22 +149,22 @@ class VanillaWorkerMainThread {
   }
 
   async csoundPause() {
-    if (this.audioWorker && typeof this.audioWorker.workletProxy !== 'undefined') {
+    if (this.audioWorker && typeof this.audioWorker.workletProxy !== "undefined") {
       await this.audioWorker.workletProxy.pause();
     }
-    this.onPlayStateChange('realtimePerformancePaused');
+    this.onPlayStateChange("realtimePerformancePaused");
   }
 
   async csoundResume() {
-    if (this.audioWorker && typeof this.audioWorker.workletProxy !== 'undefined') {
+    if (this.audioWorker && typeof this.audioWorker.workletProxy !== "undefined") {
       await this.audioWorker.workletProxy.resume();
     }
-    this.onPlayStateChange('realtimePerformanceResumed');
+    this.onPlayStateChange("realtimePerformanceResumed");
   }
 
   // User-land hook to csound's play-state changes
   async setCsoundPlayStateChangeCallback(callback) {
-    if (typeof callback !== 'function') {
+    if (typeof callback !== "function") {
       console.error(`Can't assign ${typeof callback} as a playstate change callback`);
     } else {
       this.csoundPlayStateChangeCallbacks = [callback];
@@ -172,7 +172,7 @@ class VanillaWorkerMainThread {
   }
 
   async addCsoundPlayStateChangeCallback(callback) {
-    if (typeof callback !== 'function') {
+    if (typeof callback !== "function") {
       console.error(`Can't assign ${typeof callback} as a playstate change callback`);
     } else {
       this.csoundPlayStateChangeCallbacks.push(callback);
@@ -187,8 +187,8 @@ class VanillaWorkerMainThread {
     const midiBuffer = this.midiBuffer;
 
     logVAN(`mainMessagePort mainMessagePortAudio ports connected to event-listeners`);
-    mainMessagePort.addEventListener('message', messageEventHandler(this));
-    mainMessagePortAudio.addEventListener('message', messageEventHandler(this));
+    mainMessagePort.addEventListener("message", messageEventHandler(this));
+    mainMessagePortAudio.addEventListener("message", messageEventHandler(this));
 
     mainMessagePort.start();
     mainMessagePortAudio.start();
@@ -205,74 +205,80 @@ class VanillaWorkerMainThread {
     this.exportApi.addCsoundPlayStateChangeCallback = this.addCsoundPlayStateChangeCallback.bind(
       this,
     );
+
+    const csoundInstance = await makeProxyCallback(proxyPort, undefined, "csoundCreate")();
+
+    this.csoundInstance = csoundInstance;
     this.exportApi.csoundPause = this.csoundPause.bind(this);
     this.exportApi.csoundResume = this.csoundResume.bind(this);
-    this.exportApi.copyToFs = makeProxyCallback(proxyPort, 'copyToFs');
-    this.exportApi.readFromFs = makeProxyCallback(proxyPort, 'readFromFs');
-    this.exportApi.llFs = makeProxyCallback(proxyPort, 'llFs');
-    this.exportApi.lsFs = makeProxyCallback(proxyPort, 'lsFs');
-    this.exportApi.rmrfFs = makeProxyCallback(proxyPort, 'rmrfFs');
+    this.exportApi.writeToFs = makeProxyCallback(proxyPort, csoundInstance, "writeToFs");
+    this.exportApi.readFromFs = makeProxyCallback(proxyPort, csoundInstance, "readFromFs");
+    this.exportApi.llFs = makeProxyCallback(proxyPort, csoundInstance, "llFs");
+    this.exportApi.lsFs = makeProxyCallback(proxyPort, csoundInstance, "lsFs");
+    this.exportApi.rmrfFs = makeProxyCallback(proxyPort, csoundInstance, "rmrfFs");
 
     this.exportApi.getAudioContext = async () => this.audioWorker.audioCtx;
 
     for (const apiK of Object.keys(API)) {
       const reference = API[apiK];
-      const proxyCallback = makeProxyCallback(proxyPort, apiK);
+      const proxyCallback = makeProxyCallback(proxyPort, csoundInstance, apiK);
       switch (apiK) {
-        case 'csoundStart': {
-          const csoundStart = async function (csound) {
-            if (!csound || typeof csound !== 'number') {
-              console.error('csoundStart expects first parameter to be instance of Csound');
+        case "csoundCreate": {
+          break;
+        }
+        case "csoundStart": {
+          const csoundStart = async function () {
+            if (!csoundInstance || typeof csoundInstance !== "number") {
+              console.error("starting csound failed because csound instance wasn't created");
               return -1;
             }
 
-            this.csound = csound;
-            this.csoundWorker.postMessage({ msg: 'initMessagePort' }, [workerMessagePort]);
-            this.csoundWorker.postMessage({ msg: 'initRequestPort' }, [
+            this.csoundWorker.postMessage({ msg: "initMessagePort" }, [workerMessagePort]);
+            this.csoundWorker.postMessage({ msg: "initRequestPort" }, [
               csoundWorkerFrameRequestPort,
             ]);
-            this.csoundWorker.postMessage({ msg: 'initAudioInputPort' }, [
+            this.csoundWorker.postMessage({ msg: "initAudioInputPort" }, [
               csoundWorkerAudioInputPort,
             ]);
-            this.csoundWorker.postMessage({ msg: 'initRtMidiEventPort' }, [csoundWorkerRtMidiPort]);
+            this.csoundWorker.postMessage({ msg: "initRtMidiEventPort" }, [csoundWorkerRtMidiPort]);
             logVAN(`4x message-ports sent to the worker`);
             return await proxyCallback({
               audioStreamIn,
               audioStreamOut,
               midiBuffer,
-              csound,
+              csound: csoundInstance,
             });
           };
 
           csoundStart.toString = () => reference.toString();
-          this.exportApi.csoundStart = csoundStart.bind(this);
+          this.exportApi.start = csoundStart.bind(this);
           break;
         }
 
-        case 'csoundStop': {
+        case "csoundStop": {
           const brodcastTheEnd = async () =>
-            await this.onPlayStateChange('realtimePerformanceEnded');
+            await this.onPlayStateChange("realtimePerformanceEnded");
           const csoundStop = async function (csound) {
-            if (!csound || typeof csound !== 'number') {
-              console.error('csoundStop expects first parameter to be instance of Csound');
+            if (!csound || typeof csound !== "number") {
+              console.error("csoundStop expects first parameter to be instance of Csound");
               return -1;
             }
 
             const stopResult = await proxyCallback(csound);
-            if (this.currentPlayState === 'realtimePerformancePaused') {
+            if (this.currentPlayState === "realtimePerformancePaused") {
               try {
-                await proxyPort.callUncloned('csoundPerformKsmps', [csound]);
+                await proxyPort.callUncloned("csoundPerformKsmps", [csound]);
               } catch (_) {}
               try {
                 await brodcastTheEnd();
               } catch (_) {}
             }
-            if (this.currentPlayState !== 'realtimePerformanceEnded') {
+            if (this.currentPlayState !== "realtimePerformanceEnded") {
               await brodcastTheEnd();
             }
             return stopResult;
           };
-          this.exportApi.csoundStop = csoundStop.bind(this);
+          this.exportApi.stop = csoundStop.bind(this);
           csoundStop.toString = () => reference.toString();
           break;
         }

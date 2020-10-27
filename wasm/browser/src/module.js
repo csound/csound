@@ -1,9 +1,9 @@
-import { WASI } from '@wasmer/wasi';
+import { WASI } from "@wasmer/wasi";
 // import browserBindings from '@wasmer/wasi/lib/bindings/browser';
-import { lowerI64Imports } from '@wasmer/wasm-transformer';
-import { inflate } from 'pako';
-import { initFS, preopens, wasmFs } from '@root/filesystem';
-import * as path from 'path';
+import { lowerI64Imports } from "@wasmer/wasm-transformer";
+import { inflate } from "pako";
+import { initFS, preopens, wasmFs } from "@root/filesystem";
+import * as path from "path";
 
 export const bindings = {
   ...WASI.defaultBindings,
@@ -17,8 +17,8 @@ const wasi = new WASI({
   bindings,
 });
 
-export default async function(wasmDataURI) {
-  await wasmFs.volume.mkdirSync('/sandbox');
+export default async function (wasmDataURI) {
+  await wasmFs.volume.mkdirSync("/sandbox");
   const wasmZlib = new Uint8Array(wasmDataURI);
   const wasmBytes = inflate(wasmZlib);
   const transformedBinary = await lowerI64Imports(wasmBytes);

@@ -1,19 +1,19 @@
-import { range } from 'ramda';
-import { CS_MIDIDEVICE } from '@root/structures';
+import { range } from "ramda";
+import { CS_MIDIDEVICE } from "@root/structures";
 import {
   freeStringPtr,
   sizeofStruct,
   structBuffer2Object,
   trimNull,
   uint2String,
-} from '@root/utils';
+} from "@root/utils";
 
-export const csoundSetMidiCallbacks = wasm => csound => {
+export const csoundSetMidiCallbacks = (wasm) => (csound) => {
   wasm.exports.csoundSetMidiCallbacks(csound);
 };
 
 // eslint-disable-next-line unicorn/prevent-abbreviations
-export const csoundGetMIDIDevList = wasm => (csound, isOutput) => {
+export const csoundGetMIDIDevList = (wasm) => (csound, isOutput) => {
   const { buffer } = wasm.exports.memory;
   const numberOfDevices = wasm.exports.csoundGetMIDIDevList(csound, undefined, isOutput ? 1 : 0);
   if (numberOfDevices === 0) return [];
@@ -21,33 +21,33 @@ export const csoundGetMIDIDevList = wasm => (csound, isOutput) => {
   const structOffset = wasm.exports.allocCsMidiDeviceStruct(numberOfDevices);
   wasm.exports.csoundGetMIDIDevList(csound, structOffset, isOutput ? 1 : 0);
   const structBuffer = new Uint8Array(buffer, structOffset, structLength * numberOfDevices);
-  const out = range(0, numberOfDevices).map(i =>
-    structBuffer2Object(CS_MIDIDEVICE, structBuffer.subarray(i * structLength, structLength))
+  const out = range(0, numberOfDevices).map((i) =>
+    structBuffer2Object(CS_MIDIDEVICE, structBuffer.subarray(i * structLength, structLength)),
   );
   wasm.exports.freeCsMidiDeviceStruct(structOffset);
   return out;
 };
 
-export const csoundGetRtMidiName = wasm => csound => {
+export const csoundGetRtMidiName = (wasm) => (csound) => {
   const { buffer } = wasm.exports.memory;
   const ptr = wasm.exports.getRtMidiName(csound);
   const stringBuffer = new Uint8Array(buffer, ptr, 128);
-  return trimNull(uint2String(stringBuffer)) || '';
+  return trimNull(uint2String(stringBuffer)) || "";
 };
 
-export const csoundGetMidiOutFileName = wasm => csound => {
+export const csoundGetMidiOutFileName = (wasm) => (csound) => {
   const { buffer } = wasm.exports.memory;
   const ptr = wasm.exports.getMidiOutFileName(csound);
   const stringBuffer = new Uint8Array(buffer, ptr, 128);
   ptr && ptr.length > 0 && freeStringPtr(ptr);
-  return trimNull(uint2String(stringBuffer)) || '';
+  return trimNull(uint2String(stringBuffer)) || "";
 };
 
-export const _isRequestingRtMidiInput = wasm => csound => {
+export const _isRequestingRtMidiInput = (wasm) => (csound) => {
   return wasm.exports.isRequestingRtMidiInput(csound);
 };
 
-export const csoundPushMidiMessage = wasm => (csound, status, data1, data2) => {
+export const csoundPushMidiMessage = (wasm) => (csound, status, data1, data2) => {
   return wasm.exports.pushMidiMessage(csound, status, data1, data2);
 };
 

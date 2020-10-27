@@ -1,13 +1,13 @@
-import * as Comlink from 'comlink';
-import ScriptProcessorNodeWorker from '@root/workers/old-spn.worker';
-import { logSPN } from '@root/logger';
+import * as Comlink from "comlink";
+import ScriptProcessorNodeWorker from "@root/workers/old-spn.worker";
+import { logSPN } from "@root/logger";
 import {
   audioWorkerAudioInputPort,
   audioWorkerFrameRequestPort,
   cleanupPorts,
   emitInternalCsoundLogEvent,
   workerMessagePortAudio,
-} from '@root/mains/messages.main';
+} from "@root/mains/messages.main";
 
 const connectedMidiDevices = new Set();
 
@@ -29,15 +29,15 @@ class ScriptProcessorNodeMainThread {
     this.initialize = this.initialize.bind(this);
     this.onPlayStateChange = this.onPlayStateChange.bind(this);
     this.scriptProcessorNode = true;
-    logSPN('ScriptProcessorNodeMainThread was constructed');
+    logSPN("ScriptProcessorNodeMainThread was constructed");
   }
 
   async onPlayStateChange(newPlayState) {
     this.currentPlayState = newPlayState;
-    this.spnWorker && this.spnWorker.postMessage({ playStateChange: newPlayState }, '*');
+    this.spnWorker && this.spnWorker.postMessage({ playStateChange: newPlayState }, "*");
     switch (newPlayState) {
-      case 'realtimePerformanceStarted': {
-        logSPN('event received: realtimePerformanceStarted');
+      case "realtimePerformanceStarted": {
+        logSPN("event received: realtimePerformanceStarted");
         try {
           await this.initialize();
         } catch (error) {
@@ -45,8 +45,8 @@ class ScriptProcessorNodeMainThread {
         }
         break;
       }
-      case 'realtimePerformanceEnded': {
-        logSPN('event received: realtimePerformanceEnded');
+      case "realtimePerformanceEnded": {
+        logSPN("event received: realtimePerformanceEnded");
         cleanupPorts(this.csoundWorkerMain);
         this.currentPlayState = undefined;
         this.sampleRate = undefined;
@@ -63,18 +63,18 @@ class ScriptProcessorNodeMainThread {
   }
 
   connectPorts() {
-    logSPN('initializing MessagePort on worker threads');
-    this.spnWorker.postMessage({ msg: 'initMessagePort' }, '*', [workerMessagePortAudio]);
-    this.spnWorker.postMessage({ msg: 'initAudioInputPort' }, '*', [audioWorkerAudioInputPort]);
-    this.spnWorker.postMessage({ msg: 'initRequestPort' }, '*', [audioWorkerFrameRequestPort]);
-    this.spnWorker.postMessage({ playStateChange: this.currentPlayState }, '*');
+    logSPN("initializing MessagePort on worker threads");
+    this.spnWorker.postMessage({ msg: "initMessagePort" }, "*", [workerMessagePortAudio]);
+    this.spnWorker.postMessage({ msg: "initAudioInputPort" }, "*", [audioWorkerAudioInputPort]);
+    this.spnWorker.postMessage({ msg: "initRequestPort" }, "*", [audioWorkerFrameRequestPort]);
+    this.spnWorker.postMessage({ playStateChange: this.currentPlayState }, "*");
   }
 
   async initIframe() {
     // HACK FROM (but it works just fine when adding modern security models)
     // https://github.com/GoogleChromeLabs/audioworklet-polyfill/blob/274792e5e3d189e04c9496bed24129118539b4b5/src/realm.js#L18-L20
-    if (typeof window === 'undefined' || typeof window.document === 'undefined') {
-      throw 'Can only run SPN in Browser scope';
+    if (typeof window === "undefined" || typeof window.document === "undefined") {
+      throw "Can only run SPN in Browser scope";
     }
 
     const parentScope = window.document;
@@ -86,15 +86,15 @@ class ScriptProcessorNodeMainThread {
       `<body>`,
       `<script type="text/javascript" src="${ScriptProcessorNodeWorker()}"></script>`,
       `</body>`,
-    ].join('\n');
+    ].join("\n");
 
-    const iFrameBlob = new Blob([iFrameHtml], { type: 'text/html' });
-    const iFrame = document.createElement('iframe');
+    const iFrameBlob = new Blob([iFrameHtml], { type: "text/html" });
+    const iFrame = document.createElement("iframe");
 
     iFrame.src = URL.createObjectURL(iFrameBlob);
-    iFrame.sandbox.add('allow-scripts', 'allow-same-origin');
+    iFrame.sandbox.add("allow-scripts", "allow-same-origin");
 
-    iFrame.style.cssText = 'position:absolute;left:0;top:-999px;width:1px;height:1px;';
+    iFrame.style.cssText = "position:absolute;left:0;top:-999px;width:1px;height:1px;";
 
     // appending early to have access to contentWindow
     const iFrameOnLoad = new Promise((resolve) => {
@@ -130,7 +130,7 @@ class ScriptProcessorNodeMainThread {
 
     this.spnWorker.postMessage(
       {
-        msg: 'makeSPNClass',
+        msg: "makeSPNClass",
         argumentz: {
           hardwareBufferSize: 32768,
           softwareBufferSize: 2048,
@@ -139,7 +139,7 @@ class ScriptProcessorNodeMainThread {
           sampleRate: this.sampleRate,
         },
       },
-      '*',
+      "*",
     );
 
     if (!this.csoundWorkerMain) {
@@ -148,11 +148,11 @@ class ScriptProcessorNodeMainThread {
     }
 
     if (this.isRequestingMidi) {
-      console.error('todo');
+      console.error("todo");
     }
 
     if (this.isRequestingInput) {
-      console.error('todo');
+      console.error("todo");
     }
   }
 }
