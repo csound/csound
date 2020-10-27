@@ -76,7 +76,9 @@ int32_t sfont_ModuleDestroy(CSOUND *csound)
     if (globals == NULL) return 0;
     sfArray = globals->sfArray;
 
+    printf("**Destroy currSFndx = %d\n", globals->currSFndx);
     for (j=0; j<globals->currSFndx; j++) {
+      printf("**j = %d preset_num = %d\n", j, sfArray[j].presets_num);
       for (k=0; k< sfArray[j].presets_num; k++) {
         for (l=0; l<sfArray[j].preset[k].layers_num; l++) {
           csound->Free(csound, sfArray[j].preset[k].layer[l].split);
@@ -274,7 +276,7 @@ static int32_t SfAssignAllPresets(CSOUND *csound, SFPASSIGN *p)
       csound->Message(csound, Str("\nAll presets have been assigned to preset"
                                   " handles from %d to %d\n\n"),
                               (int32_t) *p->startNum, pHandle - 1);
-    globals->currSFndx = pHandle;
+    if (pHandle>globals->currSFndx) globals->currSFndx = pHandle;
     return OK;
 }
 
@@ -683,7 +685,7 @@ static int32_t SfPlayMono_set(CSOUND *csound, SFPLAYMONO *p)
     int32_t layersNum, j, spltNum = 0, flag=(int32_t) *p->iflag;
     sfontg *globals;
     globals = (sfontg *) (csound->QueryGlobalVariable(csound, "::sfontg"));
-    //printf("*** index= %d  maximu = %d\n", index, globals->currSFndx);
+    //printf("*** index= %d  maximum = %d\n", index, globals->currSFndx);
     if (UNLIKELY(index>=(DWORD)globals->currSFndx))
       return csound->InitError(csound, Str("invalid soundfont"));
 
