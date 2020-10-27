@@ -3,6 +3,7 @@
   "version": "0.0.1",
   "main": "./dist/libcsound.mjs",
   "type": "module",
+  "typings": "index.d.ts",
   "keywords": [
     "csound",
     "csound-wasm",
