@@ -80,6 +80,6 @@ csoundGetVersion.toString = () => "csoundGetVersion = async (csound) => Number;"
  * @param {Object} wasm
  * @return {csoundGetVersion}
  */
-export const csoundInitialize = (wasm) => (flags) => wasm.exports.csoundInitialize(flags);
+export const csoundInitialize = (wasm) => (_, flags) => wasm.exports.csoundInitialize(flags);
 
 csoundInitialize.toString = () => "csoundInitialize = async (csound) => Number;";

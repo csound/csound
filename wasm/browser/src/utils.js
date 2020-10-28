@@ -107,6 +107,11 @@ export const isScriptProcessorNodeSupported = () => {
   );
 };
 
+export const csoundApiRename = (apiName) => {
+  const minusCsound = apiName.replace(/^csound/i, "");
+  return minusCsound.charAt(0).toLowerCase() + minusCsound.substring(1);
+};
+
 export const makeProxyCallback = (proxyPort, csoundInstance, apiK) => async (...arguments_) => {
   return await proxyPort.callUncloned(apiK, [csoundInstance, ...arguments_]);
 };

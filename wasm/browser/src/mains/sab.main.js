@@ -16,7 +16,7 @@ import {
   initialSharedState,
 } from "@root/constants";
 import { logSAB } from "@root/logger";
-import { makeProxyCallback, stopableStates } from "@root/utils";
+import { csoundApiRename, makeProxyCallback, stopableStates } from "@root/utils";
 
 class SharedArrayBufferMainThread {
   constructor(audioWorker, wasmDataURI) {
@@ -242,6 +242,7 @@ class SharedArrayBufferMainThread {
     this.exportApi.pause = this.csoundPause.bind(this);
     this.exportApi.resume = this.csoundResume.bind(this);
     const csoundInstance = await makeProxyCallback(proxyPort, undefined, "csoundCreate")();
+    await makeProxyCallback(proxyPort, csoundInstance, "csoundInitialize")(0);
 
     this.csoundInstance = csoundInstance;
     this.exportApi.writeToFs = makeProxyCallback(proxyPort, csoundInstance, "writeToFs");
@@ -292,7 +293,7 @@ class SharedArrayBufferMainThread {
               Atomics.store(this.audioStatePointer, AUDIO_STATE.STOP, 1);
               logSAB("Marking that performance is not running anymore (stops the audio too)");
               Atomics.store(this.audioStatePointer, AUDIO_STATE.IS_PERFORMING, 0);
-
+              x;
               // Double check if the thread didn't defenitely get the STOP message
               setTimeout(() => {
                 logSAB("Double checking if SAB stopped");
@@ -323,7 +324,7 @@ class SharedArrayBufferMainThread {
 
         default: {
           proxyCallback.toString = () => reference.toString();
-          this.exportApi[apiK] = proxyCallback;
+          this.exportApi[csoundApiRename(apiK)] = proxyCallback;
           break;
         }
       }

@@ -1,6 +1,7 @@
 import log from "@root/logger";
 
 export const handleCsoundStart = (workerMessagePort, libraryCsound, createRealtimeAudioThread) => (
+  _,
   arguments_,
 ) => {
   const { csound } = arguments_;

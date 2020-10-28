@@ -100,23 +100,23 @@ export const createStdOutStream = () => {
   });
 };
 
-export async function writeToFs(arrayBuffer, filePath) {
+export async function writeToFs(_, arrayBuffer, filePath) {
   const realPath = path.join("/sandbox", filePath);
   const buf = Buffer.from(new Uint8Array(arrayBuffer));
   wasmFs.fs.writeFileSync(realPath, buf);
 }
 
-export async function readFromFs(filePath) {
+export async function readFromFs(_, filePath) {
   const realPath = path.join("/sandbox", filePath);
   return wasmFs.fs.readFileSync(realPath);
 }
 
-export async function lsFs(lsPath) {
+export async function lsFs(_, lsPath) {
   const realPath = lsPath ? path.join("/sandbox", lsPath) : "/sandbox";
   return wasmFs.fs.readdirSync(realPath);
 }
 
-export async function llFs(llPath) {
+export async function llFs(_, llPath) {
   const realPath = llPath ? path.join("/sandbox", llPath) : "/sandbox";
   const files = wasmFs.fs.readdirSync(realPath);
   return files.map((file) => ({
@@ -149,7 +149,7 @@ function rmrfFsRec(rmrfPath) {
   }
 }
 
-export async function rmrfFs(rmrfPath) {
+export async function rmrfFs(_, rmrfPath) {
   rmrfFsRec(rmrfPath);
   wasmFs.volume.mkdirSync("/sandbox");
 }
@@ -158,7 +158,7 @@ export async function rmrfFs(rmrfPath) {
 // sanboxing security increases, we are safer to have all assets
 // nested from 1 and same root,
 // this implementation is hidden from the Csound runtime itself with a hack
-export async function mkdirp(filePath) {
+export async function mkdirp(_, filePath) {
   wasmFs.volume.mkdirpSync(path.join("/", filePath), {
     mode: "0o777",
   });

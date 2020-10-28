@@ -10,7 +10,7 @@ import {
   MIDI_BUFFER_PAYLOAD_SIZE,
   MIDI_BUFFER_SIZE,
 } from "@root/constants.js";
-import { makeProxyCallback } from "@root/utils";
+import { csoundApiRename, makeProxyCallback } from "@root/utils";
 import {
   cleanupPorts,
   csoundMainRtMidiPort,
@@ -285,7 +285,7 @@ class VanillaWorkerMainThread {
 
         default: {
           proxyCallback.toString = () => reference.toString();
-          this.exportApi[apiK] = proxyCallback;
+          this.exportApi[csoundApiRename(apiK)] = proxyCallback;
           break;
         }
       }
