@@ -217,7 +217,16 @@ struct DigiIO : csnd::InPlug<3> {
 
 /*  TrillIn opcode
   read values from Trill sensors
-  array sizes must be same as inumTouches
+  array sizes must be same as inumTouches.
+  - 1D sensors (e.g.: Bar, Ring) will report all the touches as reported by the
+  hardware
+  - 2D sensors (e.g.: Square, Hex) will report at most one touch, combining the
+  horizontal and vertical readings. See "compound touch"
+  [here](http://docs.bela.io/classTrill.html)
+  - RAW sensors (e.g.: Craft) will report raw readings from all pads. inumTouches
+  in this case indicates how many pads to use/report, the reported location
+  will be the pad index, and the reported size will be the pad reading.
+
   kactiveTouches, ksizes[], kvertLocations[], khoriLocations[] trill inumTouches, itrillID
 */
 struct TrillIn : csnd::Plugin<4, 2> {
@@ -242,13 +251,28 @@ struct TrillIn : csnd::Plugin<4, 2> {
     }
 
     int kperf() {
-        activeTouches = gTouchSensors[trillID]->getNumTouches();
+        Trill& t = *gTouchSensors[trillID];
+        if (t.is1D())
+            activeTouches = t.getNumTouches();
+        else if (t.is2D()) // either 0 or 1 touches
+            activeTouches = (t.getNumTouches() || t.getNumHorizontalTouches());
+        else // we are in raw/diff/baseline mode: the number of "touches" is actually the number of pads
+            activeTouches = std::min(numTouches, t.rawData.size());
         outargs[0] = MYFLT(activeTouches);
         // Read locations from Trill sensor
         for (unsigned int i = 0; i < activeTouches; i++) {
-            touchSize[i] = gTouchSensors[trillID]->touchSize(i);
-            touchVertLocation[i] = gTouchSensors[trillID]->touchLocation(i);
-            touchHoriLocation[i] = gTouchSensors[trillID]->touchHorizontalLocation(i);
+            if (t.is1D()) {
+                touchSize[i] = t.touchSize(i);
+                touchVertLocation[i] = t.touchLocation(i);
+                touchHoriLocation[i] = t.touchHorizontalLocation(i);
+            } else if (t.is2D()) {
+                touchSize[i] = t.compoundTouchSize();
+                touchVertLocation[i] = t.compoundTouchLocation();
+                touchHoriLocation[i] = t.compoundTouchHorizontalLocation();
+            } else {
+                touchSize[i] = t.rawData[i];
+                touchVertLocation[i] = i;
+            }
         }
         // For all inactive touches, set location and size to 0
         for (unsigned int i = activeTouches; i < numTouches; i++) {
