@@ -61,6 +61,6 @@ Distribution instructions
 Ensure you built above with `-DCMAKE_INSTALL_PREFIX=/usr/`, then you can generate a deb package with:
 
 ```
-cpack -G DEB -D CPACK_PACKAGE_CONTACT="Your Name <your.name@domain.com>"
+cpack -G DEB -D CPACK_DEBIAN_PACKAGE_ARCHITECTURE="armhf" -D CPACK_PACKAGE_CONTACT="Your Name <your.name@domain.com>" -D CPACK_STRIP_FILES=true
 ```
 
