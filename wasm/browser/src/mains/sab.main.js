@@ -267,7 +267,6 @@ class SharedArrayBufferMainThread {
               console.error("starting csound failed because csound instance wasn't created");
               return -1;
             }
-
             return await proxyCallback({
               audioStateBuffer,
               audioStreamIn,

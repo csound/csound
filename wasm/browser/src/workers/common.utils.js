@@ -14,20 +14,22 @@ export const handleCsoundStart = (workerMessagePort, libraryCsound, createRealti
       `error: csoundStart failed while trying to render ${outputName},` +
         " look out for errors in options and syntax",
     );
-    return startError;
   }
+  setTimeout(() => {
+    const isRequestingRtMidiInput = libraryCsound._isRequestingRtMidiInput(csound);
+    const isExpectingRealtimeOutput = isRequestingRtMidiInput || outputName.includes("dac");
 
-  const isRequestingRtMidiInput = libraryCsound._isRequestingRtMidiInput(csound);
-  const isExpectingRealtimeOutput = isRequestingRtMidiInput || outputName.includes("dac");
+    if (isExpectingRealtimeOutput) {
+      createRealtimeAudioThread(arguments_);
+    } else {
+      // Do rendering
+      workerMessagePort.broadcastPlayState("renderStarted");
+      while (libraryCsound.csoundPerformKsmps(csound) === 0) {}
+      workerMessagePort.broadcastPlayState("renderEnded");
+    }
+  }, 0);
 
-  if (isExpectingRealtimeOutput) {
-    createRealtimeAudioThread(arguments_);
-  } else {
-    // Do rendering
-    workerMessagePort.broadcastPlayState("renderStarted");
-    while (libraryCsound.csoundPerformKsmps(csound) === 0) {}
-    workerMessagePort.broadcastPlayState("renderEnded");
-  }
+  return startError;
 };
 
 export const instantiateAudioPacket = (numberChannels, numberFrames) => {
