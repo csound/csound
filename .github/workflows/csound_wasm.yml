@@ -23,16 +23,16 @@ jobs:
       uses: actions/setup-node@master
       with:
         node-version: '14.x'
-    - name: @csound/wasm deps
+    - name: '@csound/wasm deps'
       run: yarn install --immutable
       working-directory: ${{env.wasm-bin-dir}}
-    - name: @csound/wasm compile
+    - name: '@csound/wasm compile'
       run: yarn build:nix
       working-directory: ${{env.wasm-bin-dir}}
-    - name: @csound/browser deps
+    - name: '@csound/browser deps'
       run: yarn install --immutable
       working-directory: ${{env.wasm-browser-dir}}
-    - name: @csound/browser test
+    - name: '@csound/browser test'
       run: yarn lint
       working-directory: ${{env.wasm-browser-dir}}
     - name: Build javascript bundles
