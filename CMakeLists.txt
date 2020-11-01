@@ -661,9 +661,7 @@ if(USE_GIT_COMMIT)
   find_package(Git)
   message(STATUS "GIT: ${GIT_EXECUTABLE}")
   if(GIT_FOUND)
-    execute_process(COMMAND ${GIT_EXECUTABLE} "rev-parse" "HEAD"
-                              WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
-                              OUTPUT_VARIABLE git_hash_value)
+    SET(git_hash_value "`${GIT_EXECUTABLE} rev-parse HEAD`")
     if (git_hash_value)
       string(STRIP ${git_hash_value} git_hash_values)
       message(STATUS "HASH: ${git_hash_values}")
