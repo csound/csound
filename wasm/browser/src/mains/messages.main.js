@@ -26,22 +26,6 @@ export const emitInternalCsoundLogEvent = (worker, message) => {
   }
 };
 
-export let { port1: mainMessagePort, port2: workerMessagePort } = new MessageChannel();
-
-export let { port1: mainMessagePortAudio, port2: workerMessagePortAudio } = new MessageChannel();
-
-export let {
-  port1: csoundWorkerFrameRequestPort,
-  port2: audioWorkerFrameRequestPort,
-} = new MessageChannel();
-
-export let {
-  port1: csoundWorkerAudioInputPort,
-  port2: audioWorkerAudioInputPort,
-} = new MessageChannel();
-
-export let { port1: csoundWorkerRtMidiPort, port2: csoundMainRtMidiPort } = new MessageChannel();
-
 const iterableMessageChannel = () => {
   const { port1, port2 } = new MessageChannel();
   return [port1, port2];
@@ -62,52 +46,76 @@ const safelyClosePorts = ([p1, p2]) => {
   }
 };
 
-export const restartMessagePortAudio = () => {
-  safelyClosePorts([mainMessagePortAudio, workerMessagePortAudio]);
-  [mainMessagePortAudio, workerMessagePortAudio] = iterableMessageChannel();
-};
+export class IPCMessagePorts {
+  constructor() {
+    let { port1: mainMessagePort, port2: workerMessagePort } = new MessageChannel();
+    this.mainMessagePort = mainMessagePort;
+    this.workerMessagePort = workerMessagePort;
+    let { port1: mainMessagePortAudio, port2: workerMessagePortAudio } = new MessageChannel();
+    this.mainMessagePortAudio = mainMessagePortAudio;
+    this.workerMessagePortAudio = workerMessagePortAudio;
+    let {
+      port1: csoundWorkerFrameRequestPort,
+      port2: audioWorkerFrameRequestPort,
+    } = new MessageChannel();
+    this.csoundWorkerFrameRequestPort = csoundWorkerFrameRequestPort;
+    this.audioWorkerFrameRequestPort = audioWorkerFrameRequestPort;
+    let {
+      port1: csoundWorkerAudioInputPort,
+      port2: audioWorkerAudioInputPort,
+    } = new MessageChannel();
+    this.csoundWorkerAudioInputPort = csoundWorkerAudioInputPort;
+    this.audioWorkerAudioInputPort = audioWorkerAudioInputPort;
+    let { port1: csoundWorkerRtMidiPort, port2: csoundMainRtMidiPort } = new MessageChannel();
+    csoundWorkerRtMidiPort = this.csoundWorkerRtMidiPort;
+    csoundMainRtMidiPort = this.csoundMainRtMidiPort;
+    // Methods
+    this.restartMessagePortAudio = this.restartMessagePortAudio.bind(this);
+    this.restartWorkerAudioInputPort = this.restartWorkerAudioInputPort.bind(this);
+    this.restartWorkerFrameRequestPort = this.restartWorkerFrameRequestPort.bind(this);
+    this.restartAudioInputPorts = this.restartAudioInputPorts.bind(this);
+    this.restartRtMidiPorts = this.restartRtMidiPorts.bind(this);
+  }
 
-export const restartWorkerAudioInputPort = () => {
-  safelyClosePorts([csoundWorkerAudioInputPort, audioWorkerAudioInputPort]);
-  [csoundWorkerAudioInputPort, audioWorkerAudioInputPort] = iterableMessageChannel();
-};
+  restartMessagePortAudio() {
+    safelyClosePorts([this.mainMessagePortAudio, this.workerMessagePortAudio]);
+    [this.mainMessagePortAudio, this.workerMessagePortAudio] = iterableMessageChannel();
+  }
 
-export const restartWorkerFrameRequestPort = () => {
-  safelyClosePorts([csoundWorkerFrameRequestPort, audioWorkerFrameRequestPort]);
-  [csoundWorkerFrameRequestPort, audioWorkerFrameRequestPort] = iterableMessageChannel();
-};
+  restartWorkerAudioInputPort() {
+    safelyClosePorts([this.csoundWorkerAudioInputPort, this.audioWorkerAudioInputPort]);
+    [this.csoundWorkerAudioInputPort, this.audioWorkerAudioInputPort] = iterableMessageChannel();
+  }
 
-export const cleanupPorts = (csoundWorkerMain) => {
-  logVAN(`cleanupPorts`);
+  restartWorkerFrameRequestPort() {
+    safelyClosePorts([this.csoundWorkerFrameRequestPort, this.audioWorkerFrameRequestPort]);
+    [
+      this.csoundWorkerFrameRequestPort,
+      this.audioWorkerFrameRequestPort,
+    ] = iterableMessageChannel();
+  }
 
-  safelyClosePorts([mainMessagePort, workerMessagePort]);
-  [mainMessagePort, workerMessagePort] = iterableMessageChannel();
+  restartAudioInputPorts() {
+    safelyClosePorts([this.csoundWorkerAudioInputPort, this.audioWorkerAudioInputPort]);
+    [this.csoundWorkerAudioInputPort, this.audioWorkerAudioInputPort] = iterableMessageChannel();
+  }
 
-  safelyClosePorts([mainMessagePortAudio, workerMessagePortAudio]);
-  [mainMessagePortAudio, workerMessagePortAudio] = iterableMessageChannel();
+  restartRtMidiPorts() {
+    safelyClosePorts([this.csoundWorkerRtMidiPort, this.csoundMainRtMidiPort]);
+    [this.csoundWorkerRtMidiPort, this.csoundMainRtMidiPort] = iterableMessageChannel();
+  }
 
-  safelyClosePorts([csoundWorkerFrameRequestPort, audioWorkerFrameRequestPort]);
-  [csoundWorkerFrameRequestPort, audioWorkerFrameRequestPort] = iterableMessageChannel();
+  restart(csoundWorkerMain) {
+    this.restartMessagePortAudio();
+    this.restartWorkerAudioInputPort();
+    this.restartWorkerFrameRequestPort();
+    this.restartAudioInputPorts();
+    this.restartRtMidiPorts();
 
-  safelyClosePorts([csoundWorkerAudioInputPort, audioWorkerAudioInputPort]);
-  [csoundWorkerAudioInputPort, audioWorkerAudioInputPort] = iterableMessageChannel();
+    this.mainMessagePort.addEventListener("message", messageEventHandler(csoundWorkerMain));
+    this.mainMessagePortAudio.addEventListener("message", messageEventHandler(csoundWorkerMain));
 
-  safelyClosePorts([csoundWorkerRtMidiPort, csoundMainRtMidiPort]);
-  [csoundWorkerRtMidiPort, csoundMainRtMidiPort] = iterableMessageChannel();
-
-  mainMessagePort.addEventListener("message", messageEventHandler(csoundWorkerMain));
-  mainMessagePortAudio.addEventListener("message", messageEventHandler(csoundWorkerMain));
-
-  mainMessagePort.start();
-  mainMessagePortAudio.start();
-
-  // csoundWorkerMain.csoundWorker.postMessage({ msg: 'initRequestPort' }, [
-  //   csoundWorkerFrameRequestPort,
-  // ]);
-  // csoundWorkerMain.csoundWorker.postMessage({ msg: 'initAudioInputPort' }, [
-  //   csoundWorkerAudioInputPort,
-  // ]);
-  // csoundWorkerMain.csoundWorker.postMessage({ msg: 'initRtMidiEventPort' }, [
-  //   csoundWorkerRtMidiPort,
-  // ]);
-};
+    this.mainMessagePort.start();
+    this.mainMessagePortAudio.start();
+  }
+}

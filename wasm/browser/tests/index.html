@@ -3,13 +3,13 @@
   <head>
     <title>testin @csound/browser</title>
     <link rel="stylesheet" href="https://unpkg.com/mocha/mocha.css" />
+  </head>
+  <body>
     <script src="https://unpkg.com/chai/chai.js"></script>
     <script src="https://unpkg.com/mocha/mocha.js"></script>
     <script>
       window.assert = chai.assert;
     </script>
-  </head>
-  <body>
     <div id="mocha"></div>
     <script type="module">
       const url = "/libcsound.dev.mjs";
@@ -27,12 +27,27 @@
           i 1 0 0
         </CsScore>
       </CsoundSynthesizer>
-      `;
+     `;
+      const shortTone = `
+      <CsoundSynthesizer>
+        <CsOptions>
+          -odac
+        </CsOptions>
+        <CsInstruments>
+          instr 1
+          out poscil(0.1, 440)
+          endin
+        </CsInstruments>
+        <CsScore>
+          i 1 0 1
+        </CsScore>
+      </CsoundSynthesizer>
+     `;
       mocha.setup("bdd");
       describe("@csound/browser", async () => {
         it("has correct API", async () => {
           const { Csound } = await import(url);
-          const csoundObj = await Csound();
+          const csoundObj = await Csound({ unique: "test1" });
           assert.property(csoundObj, "start", "has .start() method");
           assert.property(csoundObj, "stop", "has .stop() method");
           assert.property(csoundObj, "pause", "has .pause() method");
@@ -42,7 +57,18 @@
         it("can be started", async function () {
           this.timeout(10000);
           const { Csound } = await import(url);
-          const csoundObj = await Csound();
+          const csoundObj = await Csound({ unique: "test2" });
+          const startReturn = await csoundObj.start();
+          assert.equal(startReturn, 0);
+        });
+        it("can play tone", async function () {
+          this.timeout(10000);
+          const { Csound } = await import(url);
+          const csoundObj = await Csound({ unique: "test3" });
+          console.log("pre madness", csoundObj);
+          const compileReturn = await csoundObj.compileCsdText(shortTone);
+          assert.equal(compileReturn, 0);
+          console.log("COMPILE RET", compileReturn);
           const startReturn = await csoundObj.start();
           assert.equal(startReturn, 0);
         });

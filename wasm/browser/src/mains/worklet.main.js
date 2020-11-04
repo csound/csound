@@ -1,17 +1,18 @@
 import * as Comlink from "comlink";
 import WorkletWorker from "@root/workers/worklet.worker";
 import log, { logWorklet } from "@root/logger";
-import {
-  audioWorkerAudioInputPort,
-  audioWorkerFrameRequestPort,
-  emitInternalCsoundLogEvent,
-  workerMessagePortAudio,
-} from "@root/mains/messages.main";
+// import {
+//   audioWorkerAudioInputPort,
+//   audioWorkerFrameRequestPort,
+//   emitInternalCsoundLogEvent,
+//   workerMessagePortAudio,
+// } from "@root/mains/messages.main";
 
 const connectedMidiDevices = new Set();
 
 class AudioWorkletMainThread {
   constructor() {
+    this.ipcMessagePorts = undefined;
     this.audioCtx = undefined;
     this.audioWorkletNode = undefined;
     this.currentPlayState = undefined;
@@ -69,14 +70,16 @@ class AudioWorkletMainThread {
   connectPorts() {
     logWorklet("initializing MessagePort on worker threads");
 
-    this.audioWorkletNode.port.postMessage({ msg: "initMessagePort" }, [workerMessagePortAudio]);
+    this.audioWorkletNode.port.postMessage({ msg: "initMessagePort" }, [
+      this.ipcMessagePorts.workerMessagePortAudio,
+    ]);
 
     this.audioWorkletNode.port.postMessage({ msg: "initAudioInputPort" }, [
-      audioWorkerAudioInputPort,
+      this.ipcMessagePorts.audioWorkerAudioInputPort,
     ]);
 
     this.audioWorkletNode.port.postMessage({ msg: "initRequestPort" }, [
-      audioWorkerFrameRequestPort,
+      this.ipcMessagePorts.audioWorkerFrameRequestPort,
     ]);
 
     try {

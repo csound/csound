@@ -11,20 +11,24 @@ import {
   MIDI_BUFFER_SIZE,
 } from "@root/constants.js";
 import { csoundApiRename, makeProxyCallback } from "@root/utils";
-import {
-  cleanupPorts,
-  csoundMainRtMidiPort,
-  messageEventHandler,
-  mainMessagePortAudio,
-  mainMessagePort,
-  workerMessagePort,
-  csoundWorkerAudioInputPort,
-  csoundWorkerRtMidiPort,
-  csoundWorkerFrameRequestPort,
-} from "@root/mains/messages.main";
+import { IPCMessagePorts } from "@root/mains/messages.main";
+// import {
+//   cleanupPorts,
+//   csoundMainRtMidiPort,
+//   messageEventHandler,
+//   mainMessagePortAudio,
+//   mainMessagePort,
+//   workerMessagePort,
+//   csoundWorkerAudioInputPort,
+//   csoundWorkerRtMidiPort,
+//   csoundWorkerFrameRequestPort,
+// } from "@root/mains/messages.main";
 
 class VanillaWorkerMainThread {
   constructor(audioWorker, wasmDataURI) {
+    this.ipcMessagePorts = new IPCMessagePorts();
+    audioWorker.ipcMessagePorts = this.ipcMessagePorts;
+
     this.audioStreamIn = new Float64Array(
       MAX_CHANNELS * MAX_HARDWARE_BUFFER_SIZE * Float64Array.BYTES_PER_ELEMENT,
     );
@@ -54,7 +58,8 @@ class VanillaWorkerMainThread {
   }
 
   handleMidiInput({ data: payload }) {
-    csoundMainRtMidiPort.postMessage && csoundMainRtMidiPort.postMessage(payload);
+    this.ipcMessagePorts.csoundMainRtMidiPort.postMessage &&
+      this.ipcMessagePorts.csoundMainRtMidiPort.postMessage(payload);
   }
 
   async prepareRealtimePerformance() {
@@ -95,15 +100,13 @@ class VanillaWorkerMainThread {
         this.midiPortStarted = false;
         this.csound = undefined;
         this.currentPlayState = undefined;
-        cleanupPorts(this);
-        // await this.initialize();
+        this.ipcMessagePorts.restart(this);
         break;
       }
 
       case "renderEnded": {
         logVAN(`event: renderEnded received, beginning cleanup`);
-        cleanupPorts(this);
-        // await this.initialize();
+        this.ipcMessagePorts.restart(this);
         break;
       }
 
@@ -187,11 +190,14 @@ class VanillaWorkerMainThread {
     const midiBuffer = this.midiBuffer;
 
     logVAN(`mainMessagePort mainMessagePortAudio ports connected to event-listeners`);
-    mainMessagePort.addEventListener("message", messageEventHandler(this));
-    mainMessagePortAudio.addEventListener("message", messageEventHandler(this));
+    this.ipcMessagePorts.mainMessagePort.addEventListener("message", messageEventHandler(this));
+    this.ipcMessagePorts.mainMessagePortAudio.addEventListener(
+      "message",
+      messageEventHandler(this),
+    );
 
-    mainMessagePort.start();
-    mainMessagePortAudio.start();
+    this.ipcMessagePorts.mainMessagePort.start();
+    this.ipcMessagePorts.mainMessagePortAudio.start();
     logVAN(`mainMessagePort- mainMessagePortAudio .start()`);
 
     const proxyPort = Comlink.wrap(this.csoundWorker);
@@ -233,14 +239,18 @@ class VanillaWorkerMainThread {
               return -1;
             }
 
-            this.csoundWorker.postMessage({ msg: "initMessagePort" }, [workerMessagePort]);
+            this.csoundWorker.postMessage({ msg: "initMessagePort" }, [
+              this.ipcMessagePorts.workerMessagePort,
+            ]);
             this.csoundWorker.postMessage({ msg: "initRequestPort" }, [
-              csoundWorkerFrameRequestPort,
+              this.ipcMessagePorts.csoundWorkerFrameRequestPort,
             ]);
             this.csoundWorker.postMessage({ msg: "initAudioInputPort" }, [
-              csoundWorkerAudioInputPort,
+              this.ipcMessagePorts.csoundWorkerAudioInputPort,
             ]);
-            this.csoundWorker.postMessage({ msg: "initRtMidiEventPort" }, [csoundWorkerRtMidiPort]);
+            this.csoundWorker.postMessage({ msg: "initRtMidiEventPort" }, [
+              this.ipcMessagePorts.csoundWorkerRtMidiPort,
+            ]);
             logVAN(`4x message-ports sent to the worker`);
             return await proxyCallback({
               audioStreamIn,

@@ -88,7 +88,7 @@ export const isSabSupported = () =>
   typeof window.Atomics !== "undefined" &&
   typeof window.SharedArrayBuffer !== "undefined";
 
-export const areWorkletsSupportet = () =>
+export const areWorkletsSupported = () =>
   typeof AudioNode !== "undefined" && typeof AudioWorkletNode !== "undefined";
 
 export const WebkitAudioContext = () => {

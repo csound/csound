@@ -1,11 +1,6 @@
 import * as Comlink from "comlink";
 import { api as API } from "@root/libcsound";
-import {
-  messageEventHandler,
-  mainMessagePortAudio,
-  mainMessagePort,
-  workerMessagePort,
-} from "@root/mains/messages.main";
+import { messageEventHandler, IPCMessagePorts } from "@root/mains/messages.main";
 import SABWorker from "@root/workers/sab.worker";
 import {
   AUDIO_STATE,
@@ -20,6 +15,9 @@ import { csoundApiRename, makeProxyCallback, stopableStates } from "@root/utils"
 
 class SharedArrayBufferMainThread {
   constructor(audioWorker, wasmDataURI) {
+    this.ipcMessagePorts = new IPCMessagePorts();
+    audioWorker.ipcMessagePorts = this.ipcMessagePorts;
+
     this.audioWorker = audioWorker;
     this.csoundInstance = undefined;
     this.wasmDataURI = wasmDataURI;
@@ -214,16 +212,19 @@ class SharedArrayBufferMainThread {
     // both audio worker and csound worker use 1 handler
     // simplifies flow of data (csound main.worker is always first to receive)
     logSAB(`adding message eventListeners for mainMessagePort and mainMessagePortAudio`);
-    mainMessagePort.addEventListener("message", messageEventHandler(this));
-    mainMessagePortAudio.addEventListener("message", messageEventHandler(this));
+    this.ipcMessagePorts.mainMessagePort.addEventListener("message", messageEventHandler(this));
+    this.ipcMessagePorts.mainMessagePortAudio.addEventListener(
+      "message",
+      messageEventHandler(this),
+    );
     logSAB(
       `(postMessage) making a message channel from SABMain to SABWorker via workerMessagePort`,
     );
-    csoundWorker.postMessage({ msg: "initMessagePort" }, [workerMessagePort]);
+    csoundWorker.postMessage({ msg: "initMessagePort" }, [this.ipcMessagePorts.workerMessagePort]);
 
-    mainMessagePort.start();
-    mainMessagePortAudio.start();
-    logSAB(`mainMessagePort and mainMessagePortAudio ports .started`);
+    this.ipcMessagePorts.mainMessagePort.start();
+    this.ipcMessagePorts.mainMessagePortAudio.start();
+    // logSAB(`mainMessagePort and mainMessagePortAudio ports .started`);
     // workerMessagePort.start();
 
     const proxyPort = Comlink.wrap(csoundWorker);

@@ -1,18 +1,21 @@
 import * as Comlink from "comlink";
 import ScriptProcessorNodeWorker from "@root/workers/old-spn.worker";
 import { logSPN } from "@root/logger";
-import {
-  audioWorkerAudioInputPort,
-  audioWorkerFrameRequestPort,
-  cleanupPorts,
-  emitInternalCsoundLogEvent,
-  workerMessagePortAudio,
-} from "@root/mains/messages.main";
+import { IPCMessagePorts } from "@root/mains/messages.main";
+// import {
+//   audioWorkerAudioInputPort,
+//   audioWorkerFrameRequestPort,
+//   cleanupPorts,
+//   emitInternalCsoundLogEvent,
+//   workerMessagePortAudio,
+// } from "@root/mains/messages.main";
 
 const connectedMidiDevices = new Set();
 
 class ScriptProcessorNodeMainThread {
   constructor() {
+    this.ipcMessagePorts = new IPCMessagePorts();
+
     this.audioCtx = undefined;
     this.currentPlayState = undefined;
     this.csoundWorkerMain = undefined;
@@ -41,13 +44,13 @@ class ScriptProcessorNodeMainThread {
         try {
           await this.initialize();
         } catch (error) {
-          console.log(error);
+          console.error(error);
         }
         break;
       }
       case "realtimePerformanceEnded": {
         logSPN("event received: realtimePerformanceEnded");
-        cleanupPorts(this.csoundWorkerMain);
+        this.ipcMessagePorts.restart(this.csoundWorkerMain);
         this.currentPlayState = undefined;
         this.sampleRate = undefined;
         this.inputsCount = undefined;
@@ -64,9 +67,15 @@ class ScriptProcessorNodeMainThread {
 
   connectPorts() {
     logSPN("initializing MessagePort on worker threads");
-    this.spnWorker.postMessage({ msg: "initMessagePort" }, "*", [workerMessagePortAudio]);
-    this.spnWorker.postMessage({ msg: "initAudioInputPort" }, "*", [audioWorkerAudioInputPort]);
-    this.spnWorker.postMessage({ msg: "initRequestPort" }, "*", [audioWorkerFrameRequestPort]);
+    this.spnWorker.postMessage({ msg: "initMessagePort" }, "*", [
+      this.ipcMessagePorts.workerMessagePortAudio,
+    ]);
+    this.spnWorker.postMessage({ msg: "initAudioInputPort" }, "*", [
+      this.ipcMessagePorts.audioWorkerAudioInputPort,
+    ]);
+    this.spnWorker.postMessage({ msg: "initRequestPort" }, "*", [
+      this.ipcMessagePorts.audioWorkerFrameRequestPort,
+    ]);
     this.spnWorker.postMessage({ playStateChange: this.currentPlayState }, "*");
   }
 

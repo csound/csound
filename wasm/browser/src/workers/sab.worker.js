@@ -240,7 +240,8 @@ const sabCreateRealtimeAudioThread = ({
 
 const callUncloned = async (k, arguments_) => {
   const caller = combined.get(k);
-  return caller && caller.apply({}, arguments_ || []);
+  const ret = caller && caller.apply({}, arguments_ || []);
+  return ret;
 };
 
 self.addEventListener("message", (event) => {
