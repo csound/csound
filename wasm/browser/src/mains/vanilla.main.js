@@ -11,18 +11,7 @@ import {
   MIDI_BUFFER_SIZE,
 } from "@root/constants.js";
 import { csoundApiRename, makeProxyCallback } from "@root/utils";
-import { IPCMessagePorts } from "@root/mains/messages.main";
-// import {
-//   cleanupPorts,
-//   csoundMainRtMidiPort,
-//   messageEventHandler,
-//   mainMessagePortAudio,
-//   mainMessagePort,
-//   workerMessagePort,
-//   csoundWorkerAudioInputPort,
-//   csoundWorkerRtMidiPort,
-//   csoundWorkerFrameRequestPort,
-// } from "@root/mains/messages.main";
+import { IPCMessagePorts, messageEventHandler } from "@root/mains/messages.main";
 
 class VanillaWorkerMainThread {
   constructor(audioWorker, wasmDataURI) {
@@ -45,7 +34,7 @@ class VanillaWorkerMainThread {
     this.audioWorker = audioWorker;
     this.wasmDataURI = wasmDataURI;
     this.exportApi = {};
-    this.csound = undefined;
+    this.csoundInstance = undefined;
     this.currentPlayState = undefined;
     this.messageCallbacks = [];
     this.csoundPlayStateChangeCallbacks = [];
@@ -63,17 +52,19 @@ class VanillaWorkerMainThread {
   }
 
   async prepareRealtimePerformance() {
-    if (!this.csound) {
+    if (!this.csoundInstance) {
       console.error(`fatal error: csound instance not found?`);
       return;
     }
 
-    this.audioWorker.sampleRate = await this.exportApi.csoundGetSr(this.csound);
+    this.audioWorker.sampleRate = await this.exportApi.getSr(this.csoundInstance);
     this.audioWorker.isRequestingInput = (
-      await this.exportApi.csoundGetInputName(this.csound)
+      await this.exportApi.getInputName(this.csoundInstance)
     ).includes("adc");
-    this.audioWorker.isRequestingMidi = await this.exportApi._isRequestingRtMidiInput(this.csound);
-    this.audioWorker.outputsCount = await this.exportApi.csoundGetNchnls(this.csound);
+    this.audioWorker.isRequestingMidi = await this.exportApi._isRequestingRtMidiInput(
+      this.csoundInstance,
+    );
+    this.audioWorker.outputsCount = await this.exportApi.getNchnls(this.csoundInstance);
     // TODO fix upstream: await this.exportApi.csoundGetNchnlsInput(this.csound);
     this.audioWorker.inputsCount = this.audioWorker.isRequestingInput ? 1 : 0;
     this.audioWorker.hardwareBufferSize = DEFAULT_HARDWARE_BUFFER_SIZE;
@@ -213,16 +204,16 @@ class VanillaWorkerMainThread {
     );
 
     const csoundInstance = await makeProxyCallback(proxyPort, undefined, "csoundCreate")();
-
+    await makeProxyCallback(proxyPort, csoundInstance, "csoundInitialize")(0);
     this.csoundInstance = csoundInstance;
-    this.exportApi.csoundPause = this.csoundPause.bind(this);
-    this.exportApi.csoundResume = this.csoundResume.bind(this);
+
+    this.exportApi.pause = this.csoundPause.bind(this);
+    this.exportApi.resume = this.csoundResume.bind(this);
     this.exportApi.writeToFs = makeProxyCallback(proxyPort, csoundInstance, "writeToFs");
     this.exportApi.readFromFs = makeProxyCallback(proxyPort, csoundInstance, "readFromFs");
     this.exportApi.llFs = makeProxyCallback(proxyPort, csoundInstance, "llFs");
     this.exportApi.lsFs = makeProxyCallback(proxyPort, csoundInstance, "lsFs");
     this.exportApi.rmrfFs = makeProxyCallback(proxyPort, csoundInstance, "rmrfFs");
-
     this.exportApi.getAudioContext = async () => this.audioWorker.audioCtx;
 
     for (const apiK of Object.keys(API)) {
@@ -238,7 +229,6 @@ class VanillaWorkerMainThread {
               console.error("starting csound failed because csound instance wasn't created");
               return -1;
             }
-
             this.csoundWorker.postMessage({ msg: "initMessagePort" }, [
               this.ipcMessagePorts.workerMessagePort,
             ]);

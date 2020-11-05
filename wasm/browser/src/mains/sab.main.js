@@ -15,6 +15,7 @@ import { csoundApiRename, makeProxyCallback, stopableStates } from "@root/utils"
 
 class SharedArrayBufferMainThread {
   constructor(audioWorker, wasmDataURI) {
+    this.hasSharedArrayBuffer = true;
     this.ipcMessagePorts = new IPCMessagePorts();
     audioWorker.ipcMessagePorts = this.ipcMessagePorts;
 
@@ -207,7 +208,6 @@ class SharedArrayBufferMainThread {
     // that's still mostly harmless.
     logSAB(`providing the audioWorker a pointer to SABMain's instance`);
     this.audioWorker.csoundWorkerMain = this;
-    this.hasSharedArrayBuffer = true;
 
     // both audio worker and csound worker use 1 handler
     // simplifies flow of data (csound main.worker is always first to receive)

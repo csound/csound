@@ -14,7 +14,7 @@ import { areWorkletsSupported, isSabSupported, isScriptProcessorNodeSupported } 
  * @async
  * @return {Promise.<Object>}
  */
-export async function Csound({ audioContext, forceSingleThread = false, unique } = {}) {
+export async function Csound({ audioContext, forceSingleThread = false } = {}) {
   unmuteIosAudio();
 
   const workletSupport = areWorkletsSupported();
@@ -25,7 +25,7 @@ export async function Csound({ audioContext, forceSingleThread = false, unique }
   } else if (spnSupport) {
     logVAN(`support detected`);
   } else {
-    log.warn(`No WebAudio Support detected`);
+    log.warning(`No WebAudio Support detected`);
   }
 
   let audioWorker;
@@ -45,7 +45,7 @@ export async function Csound({ audioContext, forceSingleThread = false, unique }
   const hasSABSupport = isSabSupported();
 
   if (!hasSABSupport) {
-    log.warn(`SharedArrayBuffers not found, falling back to Vanilla concurrency`);
+    log.warning(`SharedArrayBuffers not found, falling back to Vanilla concurrency`);
   } else {
     logSAB(`using SharedArrayBuffers`);
   }

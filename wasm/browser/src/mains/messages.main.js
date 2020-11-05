@@ -67,8 +67,9 @@ export class IPCMessagePorts {
     this.csoundWorkerAudioInputPort = csoundWorkerAudioInputPort;
     this.audioWorkerAudioInputPort = audioWorkerAudioInputPort;
     let { port1: csoundWorkerRtMidiPort, port2: csoundMainRtMidiPort } = new MessageChannel();
-    csoundWorkerRtMidiPort = this.csoundWorkerRtMidiPort;
-    csoundMainRtMidiPort = this.csoundMainRtMidiPort;
+    this.csoundWorkerRtMidiPort = csoundWorkerRtMidiPort;
+    this.csoundMainRtMidiPort = csoundMainRtMidiPort;
+
     // Methods
     this.restartMessagePortAudio = this.restartMessagePortAudio.bind(this);
     this.restartWorkerAudioInputPort = this.restartWorkerAudioInputPort.bind(this);

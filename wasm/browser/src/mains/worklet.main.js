@@ -1,12 +1,6 @@
 import * as Comlink from "comlink";
 import WorkletWorker from "@root/workers/worklet.worker";
 import log, { logWorklet } from "@root/logger";
-// import {
-//   audioWorkerAudioInputPort,
-//   audioWorkerFrameRequestPort,
-//   emitInternalCsoundLogEvent,
-//   workerMessagePortAudio,
-// } from "@root/mains/messages.main";
 
 const connectedMidiDevices = new Set();
 
@@ -44,7 +38,7 @@ class AudioWorkletMainThread {
       case "realtimePerformanceEnded": {
         logWorklet(
           "event received: realtimePerformanceEnded" + !this.csoundWorkerMain.hasSharedArrayBuffer
-            ? ` cleaning up Vanilla ports`
+            ? ` cleaning up ports`
             : "",
         );
         this.audioCtx.close();
@@ -109,10 +103,8 @@ class AudioWorkletMainThread {
 
     const createWorkletNode = (audoContext, inputsCount) => {
       return new AudioWorkletNode(audoContext, "csound-worklet-processor", {
-        numberOfInputs: 1,
-        numberOfOutputs: 1,
-        inputChannelCount: [inputsCount],
-        outputChannelCount: [this.outputsCount],
+        inputChannelCount: inputsCount ? [inputsCount] : 0,
+        outputChannelCount: [this.outputsCount || 2],
         processorOptions: {
           hardwareBufferSize: this.hardwareBufferSize,
           softwareBufferSize: this.softwareBufferSize,

@@ -35,7 +35,7 @@
         </CsOptions>
         <CsInstruments>
           instr 1
-          out poscil(0.1, 440)
+          out poscil(0dbfs/3, 440)
           endin
         </CsInstruments>
         <CsScore>
@@ -47,7 +47,7 @@
       describe("@csound/browser", async () => {
         it("has correct API", async () => {
           const { Csound } = await import(url);
-          const csoundObj = await Csound({ unique: "test1" });
+          const csoundObj = await Csound();
           assert.property(csoundObj, "start", "has .start() method");
           assert.property(csoundObj, "stop", "has .stop() method");
           assert.property(csoundObj, "pause", "has .pause() method");
@@ -57,18 +57,16 @@
         it("can be started", async function () {
           this.timeout(10000);
           const { Csound } = await import(url);
-          const csoundObj = await Csound({ unique: "test2" });
+          const csoundObj = await Csound();
           const startReturn = await csoundObj.start();
           assert.equal(startReturn, 0);
         });
         it("can play tone", async function () {
           this.timeout(10000);
           const { Csound } = await import(url);
-          const csoundObj = await Csound({ unique: "test3" });
-          console.log("pre madness", csoundObj);
+          const csoundObj = await Csound();
           const compileReturn = await csoundObj.compileCsdText(shortTone);
           assert.equal(compileReturn, 0);
-          console.log("COMPILE RET", compileReturn);
           const startReturn = await csoundObj.start();
           assert.equal(startReturn, 0);
         });
