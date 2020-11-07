@@ -325,7 +325,7 @@ static TREE *create_cond_expression(CSOUND *csound,
   while (last->next != NULL) {
     last = last->next;
   }
-  //printf("type = %s , %s\n", left, right);
+  //p{rintf("type = %s , %s\n", left, right);
   if (left[0]=='S' || right[0]=='S') {
     type = (last->left->value->lexeme[1]=='B') ?2 : 1;
     eq = (last->left->value->lexeme[1]=='B') ?"#=.S" : "=.S";
@@ -333,6 +333,10 @@ static TREE *create_cond_expression(CSOUND *csound,
   else if (left[0] == 'a' && right[0] == 'a') {
     type = 0;
     eq = "=";
+  }
+  else if (left[0]=='a' || right[0]=='a') {
+    csound->Warning(csound, Str("Unbanced rates in conditional expression"));
+    return NULL;
   }
   else {
     type =

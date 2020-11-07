@@ -523,6 +523,7 @@ OENTRY opcodlst_1[] = {
   { "outq2",  S(OUTM),IR,    3,      "",     "a",    och2,   outs2   },
   { "outq3",  S(OUTM),IR,    3,      "",     "a",    och3,   outq3   },
   { "outq4",  S(OUTM),IR,    3,      "",     "a",    och2,   outq4   },
+  { "outa",   S(OUTM),IR,    2,      "",     "a",    NULL,   outrep  },
   { "igoto",  S(GOTO),0,    1,      "",     "l",    igoto                   },
   { "kgoto",  S(GOTO),0,    2,      "",     "l",    NULL,   kgoto           },
   { "goto",   S(GOTO),0,    3,      "",     "l",    igoto,  kgoto           },

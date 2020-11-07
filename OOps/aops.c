@@ -2101,6 +2101,43 @@ int32_t outch(CSOUND *csound, OUTCH *p)
     return OK;
 }
 
+int32_t outrep(CSOUND *csound, OUTM *p)
+{
+    uint32_t nsmps = CS_KSMPS,  i, j, k=0;
+    uint32_t n = csound->nchnls;
+    MYFLT *spout = CS_SPOUT; ///csound->spraw;
+    uint32_t offset = p->h.insdshead->ksmps_offset;
+    uint32_t early  = p->h.insdshead->ksmps_no_end;
+    //if (UNLIKELY((offset|early))) {
+    //  printf("OUT; spout=%p early=%d offset=%d\n", spout, early, offset);}
+    early = nsmps - early;
+    CSOUND_SPOUT_SPINLOCK
+
+    if (!csound->spoutactive) {
+      //printf("inactive: spout=%p size=%ld\n",
+      //       spout, csound->nspout*sizeof(MYFLT));
+      memset(spout, '\0', csound->nspout*sizeof(MYFLT));
+      for (i=0; i<n; i++) {
+        //printf("        : spout=%p size=%ld\n",
+        //       spout+k+offset, (early-offset)*sizeof(MYFLT));
+        memcpy(&spout[k+offset], p->asig+offset, (early-offset)*sizeof(MYFLT));
+        k += nsmps;
+      }
+      csound->spoutactive = 1;
+    }
+    else {
+      for (i=0; i<n; i++) {
+        for (j=offset; j<early; j++) {
+          //printf("active: spout=%p k=%d j=%d\n", spout, k, j);
+          spout[k + j] += p->asig[j];
+        }
+        k += nsmps;
+      }
+    }
+    CSOUND_SPOUT_SPINUNLOCK
+    return OK;
+}
+
 /* For parallel mixin template */
 int32_t addina(CSOUND *csound, ASSIGN *p)
 {

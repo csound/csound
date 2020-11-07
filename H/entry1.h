@@ -228,7 +228,7 @@ int32_t in(CSOUND *, void *), ins(CSOUND *, void *);
 int32_t inq(CSOUND *, void *), inh(CSOUND *, void *);
 int32_t ino(CSOUND *, void *), in16(CSOUND *, void *);
 int32_t in32(CSOUND *, void *), outarr_init(CSOUND *, void *);
-int32_t outarr(CSOUND *, void *);
+int32_t outarr(CSOUND *, void *), outrep(CSOUND*, void*);
 int32_t inch_opcode(CSOUND *, void *), inall_opcode(CSOUND *, void *);
 int32_t inch_set(CSOUND*, void*), outmultiple(CSOUND *, void *);
 /* int32_t out(CSOUND *, void *), outs(CSOUND *, void *); */
