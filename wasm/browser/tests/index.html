@@ -27,40 +27,46 @@
           i 1 0 0
         </CsScore>
       </CsoundSynthesizer>
-     `;
+      `;
       const shortTone = `
       <CsoundSynthesizer>
         <CsOptions>
           -odac
         </CsOptions>
         <CsInstruments>
+          0dbfs = 1
           instr 1
           out poscil(0dbfs/3, 440)
           endin
         </CsInstruments>
         <CsScore>
-          i 1 0 1
+          i 1 0 5
         </CsScore>
       </CsoundSynthesizer>
-     `;
+      `;
       mocha.setup("bdd");
+      mocha.fullTrace();
       describe("@csound/browser", async () => {
-        it("has correct API", async () => {
-          const { Csound } = await import(url);
-          const csoundObj = await Csound();
-          assert.property(csoundObj, "start", "has .start() method");
-          assert.property(csoundObj, "stop", "has .stop() method");
-          assert.property(csoundObj, "pause", "has .pause() method");
-          assert.property(csoundObj, "pause", "has .pause() method");
-          assert.property(csoundObj, "setMessageCallback", "has .setMessageCallback() method");
-        });
-        it("can be started", async function () {
-          this.timeout(10000);
-          const { Csound } = await import(url);
-          const csoundObj = await Csound();
-          const startReturn = await csoundObj.start();
-          assert.equal(startReturn, 0);
-        });
+        /*
+      it("has correct API", async () => {
+      const { Csound } = await import(url);
+      const csoundObj = await Csound();
+      console.log("returns?", csoundObj);
+      assert.property(csoundObj, "start", "has .start() method");
+      assert.property(csoundObj, "stop", "has .stop() method");
+      assert.property(csoundObj, "pause", "has .pause() method");
+      assert.property(csoundObj, "pause", "has .pause() method");
+      assert.property(csoundObj, "setMessageCallback", "has .setMessageCallback() method");
+      });
+
+      it("can be started", async function () {
+      this.timeout(10000);
+      const { Csound } = await import(url);
+      const csoundObj = await Csound();
+      const startReturn = await csoundObj.start();
+      assert.equal(startReturn, 0);
+      });
+      */
         it("can play tone", async function () {
           this.timeout(10000);
           const { Csound } = await import(url);

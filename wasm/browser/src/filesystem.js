@@ -151,7 +151,7 @@ function rmrfFsRec(rmrfPath) {
 
 export async function rmrfFs(_, rmrfPath) {
   rmrfFsRec(rmrfPath);
-  wasmFs.volume.mkdirSync("/sandbox");
+  wasmFs.volume.mkdirpSync("/sandbox");
 }
 
 // all folders are stored under /csound, it seems as if

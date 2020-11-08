@@ -18,7 +18,8 @@ const wasi = new WASI({
 });
 
 export default async function (wasmDataURI) {
-  await wasmFs.volume.mkdirSync("/sandbox");
+  console.log(1);
+  await wasmFs.volume.mkdirpSync("/sandbox");
   const wasmZlib = new Uint8Array(wasmDataURI);
   const wasmBytes = inflate(wasmZlib);
   const transformedBinary = await lowerI64Imports(wasmBytes);

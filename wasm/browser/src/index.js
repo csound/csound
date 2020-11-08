@@ -5,20 +5,35 @@ import unmuteIosAudio from "unmute-ios-audio";
 import SharedArrayBufferMainThread from "@root/mains/sab.main";
 import AudioWorkletMainThread from "@root/mains/worklet.main";
 import ScriptProcessorNodeMainThread from "@root/mains/old-spn.main";
+import ScriptProcessorNodeSingleThread from "@root/mains/spn.main";
 import wasmDataURI from "@csound/wasm/lib/libcsound.wasm.zlib";
 import log, { logSAB, logWorklet, logVAN } from "@root/logger";
-import { areWorkletsSupported, isSabSupported, isScriptProcessorNodeSupported } from "@root/utils";
+import {
+  areWorkletsSupported,
+  isSabSupported,
+  isScriptProcessorNodeSupported,
+  WebkitAudioContext,
+} from "@root/utils";
 
 /**
  * The default entry for libcsound es7 module
  * @async
  * @return {Promise.<Object>}
  */
-export async function Csound({ audioContext, forceSingleThread = false } = {}) {
+export async function Csound({
+  audioContext = new (WebkitAudioContext())(),
+  useWorker = false,
+} = {}) {
   unmuteIosAudio();
 
   const workletSupport = areWorkletsSupported();
   const spnSupport = isScriptProcessorNodeSupported();
+
+  // SingleThread implementations
+  if (!useWorker) {
+    const instance = new ScriptProcessorNodeSingleThread({ audioContext });
+    return await instance.initialize(wasmDataURI);
+  }
 
   if (workletSupport) {
     logWorklet(`support detected`);

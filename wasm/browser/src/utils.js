@@ -116,6 +116,11 @@ export const makeProxyCallback = (proxyPort, csoundInstance, apiK) => async (...
   return await proxyPort.callUncloned(apiK, [csoundInstance, ...arguments_]);
 };
 
+export const makeSingleThreadCallback = (csoundInstance, apiCallback) => async (...arguments_) => {
+  return await apiCallback.apply({}, [csoundInstance, ...arguments_]);
+  // return await proxyPort.callUncloned(apiK, [csoundInstance, ...arguments_]);
+};
+
 export const stopableStates = new Set([
   "realtimePerformanceStarted",
   "realtimePerformancePaused",
