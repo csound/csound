@@ -148,8 +148,9 @@ class ScriptProcessorNodeSingleThread {
 
     const bufferLen = output.getChannelData(0).length;
 
-    const csOut = this.csoundOutputBuffer;
-    const csIn = this.csoundInputBuffer;
+    let csOut = this.csoundOutputBuffer;
+    let csIn = this.csoundInputBuffer;
+
     const ksmps = this.ksmps;
     const zerodBFS = this.zerodBFS;
 
@@ -158,8 +159,24 @@ class ScriptProcessorNodeSingleThread {
 
     let cnt = this.cnt || 0;
     let result = this.result || 0;
-
+    console.log(csIn, csOut);
     for (let i = 0; i < bufferLen; i++, cnt++) {
+      if (csOut.length === 0) {
+        csOut = this.csoundOutputBuffer = new Float64Array(
+          this.wasm.exports.memory.buffer,
+          this.csoundApi.csoundGetSpout(this.csoundInstance),
+          ksmps * nchnls,
+        );
+      }
+
+      if (csIn.length === 0) {
+        csIn = this.csoundInputBuffer = new Float64Array(
+          this.wasm.exports.memory.buffer,
+          this.csoundApi.csoundGetSpin(this.csoundInstance),
+          ksmps * nchnls_i,
+        );
+      }
+
       if (cnt == ksmps && result == 0) {
         // if we need more samples from Csound
         result = this.csoundApi.csoundPerformKsmps(this.csoundInstance);
