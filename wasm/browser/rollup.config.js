@@ -98,6 +98,19 @@ export default [
     plugins: [...pluginsCommon, babelCommon, ...(PROD ? [terser()] : [])],
   },
   {
+    input: "src/workers/worklet.singlethread.worker.js",
+    // external: ['comlink'],
+    output: {
+      intro: "let global = this;",
+      file: "dist/__compiled.worklet.singlethread.worker.js",
+      format: "iife",
+      name: "worklet.singlethread.worker",
+      sourcemap: false,
+      globals,
+    },
+    plugins: [...pluginsCommon, babelCommon, ...(PROD ? [terser()] : [])],
+  },
+  {
     input: "src/workers/old-spn.worker.js",
     output: {
       intro: "let global = typeof self !== 'undefined' ? self : window;",
