@@ -26,7 +26,8 @@ import loadWasm from "@root/module";
 import { csoundApiRename, makeSingleThreadCallback } from "@root/utils";
 
 class ScriptProcessorNodeSingleThread {
-  constructor({ audioContext, numberOfInputs = 1, numberOfOutputs = 2, sampleRate = 44100 }) {
+  constructor({ audioContext, numberOfInputs = 1, numberOfOutputs = 2 }) {
+
     this.onaudioprocess = this.onaudioprocess.bind(this);
     this.currentPlayState = undefined;
     this.start = this.start.bind(this);
@@ -44,7 +45,7 @@ class ScriptProcessorNodeSingleThread {
 
     this.numberOfInputs = numberOfInputs;
     this.numberOfOutputs = numberOfOutputs;
-    this.sampleRate = sampleRate;
+    this.sampleRate = context.sampleRate;
 
     // imports from original csound-wasm
     this.started = false;
@@ -66,6 +67,9 @@ class ScriptProcessorNodeSingleThread {
       const ksmps = this.csoundApi.csoundGetKsmps(this.csoundInstance);
       this.ksmps = ksmps;
       this.cnt = ksmps;
+      
+      this.nchnls = this.csoundApi.csoundGetNchnls(this.csoundInstance);
+      this.nchnls_i = this.csoundApi.csoundGetNchnlsInput(this.csoundInstance);
 
       const outputPointer = this.csoundApi.csoundGetSpout(this.csoundInstance);
       this.csoundOutputBuffer = new Float64Array(
@@ -108,6 +112,8 @@ class ScriptProcessorNodeSingleThread {
     // csoundApi.prepareRT(cs);
     // var sampleRate = context.sampleRate;
     csoundApi.csoundSetOption(csoundInstance, "--sample-rate=" + this.sampleRate);
+
+    // FIXME: don't hardcode nchnls and instead read what csound actually gets and map to mono or stereo out
     csoundApi.csoundSetOption(csoundInstance, "--nchnls=" + this.numberOfOutputs);
     csoundApi.csoundSetOption(csoundInstance, "--nchnls_i=" + this.numberOfInputs);
 
@@ -159,7 +165,7 @@ class ScriptProcessorNodeSingleThread {
 
     let cnt = this.cnt || 0;
     let result = this.result || 0;
-    console.log(csIn, csOut);
+
     for (let i = 0; i < bufferLen; i++, cnt++) {
       if (csOut.length === 0) {
         csOut = this.csoundOutputBuffer = new Float64Array(
