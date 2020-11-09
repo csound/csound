@@ -129,6 +129,7 @@ int32_t octcps(CSOUND *, void *), acpsoct(CSOUND *, void *);
 int32_t cpsmidinn(CSOUND *, void *), octmidinn(CSOUND *, void *);
 int32_t pchmidinn(CSOUND *, void *);int32_t massign_S(CSOUND *, void *);
 int32_t massign_p(CSOUND *, void *), ctrlinit(CSOUND *, void *);
+int32_t ctrlnameinit(CSOUND *, void *);
 int32_t notnum(CSOUND *, void *), veloc(CSOUND *, void *);
 int32_t pchmidi(CSOUND *, void *), pchmidib(CSOUND *, void *);
 int32_t octmidi(CSOUND *, void *), octmidib(CSOUND *, void *);
