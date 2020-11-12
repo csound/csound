@@ -1,3 +1,24 @@
+/**
+ * @typedef CSOUND_PARAMS
+ * @property {number} debug_mode
+ * @property {number} buffer_frames
+ * @property {number} hardware_buffer_frames
+ * @property {number} displays
+ * @property {number} ascii_graphs
+ * @property {number} postscript_graphs
+ * @property {number} message_level
+ * @property {number} tempo
+ * @property {number} ring_bell
+ * @property {number} use_cscore
+ * @property {number} terminate_on_midi
+ * @property {number} heartbeat
+ * @property {number} defer_gen01_load
+ * @property {number} midi_key
+ * @property {number} midi_key_cps
+ * @property {number} midi_key_oct
+ * @property {number} midi_key_pch
+ * @property {number} midi_velocity
+ */
 export const CSOUND_PARAMS = [
   /* debug mode, 0 or 1 */
   ["debug_mode", "int"],

@@ -55,7 +55,7 @@ import {
 } from "@module/rtmidi";
 import { csoundInputMessage, csoundInputMessageAsync } from "@module/control-events";
 import { csoundGetInputName, csoundGetOutputName } from "@module/general-io";
-import { csoundAppendEnv, setupWasmBrowserFS } from "@module/extra";
+import { csoundAppendEnv } from "@module/extra";
 
 /*
    Don't call these functions directly.

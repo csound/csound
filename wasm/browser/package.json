@@ -18,6 +18,7 @@
     "build": "yarn build:dev && yarn build:prod",
     "build:dev": "cross-env BUILD_TARGET=development rollup -c --environment production",
     "build:prod": "cross-env BUILD_TARGET=production rollup -c --environment production",
+    "build:readme": "node script/generate-readme.js > README.md",
     "test:open": "http-server ./tests -c-1 --no-dotfiles"
   },
   "devDependencies": {
@@ -44,6 +45,7 @@
     "eslint-plugin-standard": "^4.0.2",
     "eslint-plugin-unicorn": "^23.0.0",
     "http-server": "^0.12.3",
+    "jsdoc-to-markdown": "^6.0.1",
     "ololog": "^1.1.162",
     "rollup": "^2.33.1",
     "rollup-plugin-node-builtins": "^2.1.2",

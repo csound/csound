@@ -16,9 +16,15 @@ import {
 } from "@root/utils";
 
 /**
- * The default entry for libcsound es7 module
+ * CsoundObj API.
+ * @namespace CsoundObj
+ */
+/**
+ * The default entry for @csound/wasm/browser module.
+ * If loaded successfully, it returns CsoundObj,
+ * otherwise undefined.
  * @async
- * @return {Promise.<Object>}
+ * @return {Promise.<CsoundObj|undefined>}
  */
 export async function Csound({
   audioContext = new (WebkitAudioContext())(),

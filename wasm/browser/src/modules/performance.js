@@ -7,48 +7,42 @@ import { freeStringPtr, string2ptr } from "@root/utils";
 
 /**
  * Parses a csound orchestra string
- * @callback csoundParseOrc
- * @param {Csound} csound
+ * @async
+ * @function
+ * @name parseOrc
+ * @memberof CsoundObj
  * @param {string} orc
- * @return {Object}
- */
-/**
- * @param {Object} wasm
- * @return {csoundCreate}
+ * @return {Promise.<object>}
  */
 export const csoundParseOrc = (wasm) => (csound, orc) => wasm.exports.csoundParseOrc(csound, orc);
 
-csoundParseOrc.toString = () => "csoundParseOrc = async (csound, orchestra) => Object;";
+csoundParseOrc.toString = () => "parseOrc = async (orchestra) => Object;";
 
 /**
  * Compiles AST tree
- * @callback csoundCompileTree
- * @param {Csound} csound
- * @param {Object} tree
- * @return {number}
- */
-/**
- * @param {Object} wasm
- * @return {csoundCompileTree}
+ * @async
+ * @function
+ * @name compileTree
+ * @memberof CsoundObj
+ * @param {object} tree
+ * @return {Promise.<number>}
  */
 export const csoundCompileTree = (wasm) => (csound, tree) =>
   wasm.exports.csoundCompileTree(csound, tree);
 
-csoundCompileTree.toString = () => "csoundCompileTree = async (csound, tree) => Number;";
+csoundCompileTree.toString = () => "compileTree = async (tree) => Number;";
 
 // TODO
 // csoundDeleteTree (CSOUND *csound, TREE *tree)
 
 /**
  * Compiles a csound orchestra string
- * @callback csoundCompileOrc
- * @param {Csound} csound
+ * @async
+ * @function
+ * @name compileOrc
+ * @memberof CsoundObj
  * @param {string} orc
- * @return {number}
- */
-/**
- * @param {Object} wasm
- * @return {csoundCompileOrc}
+ * @return {Promise.<number>}
  */
 export const csoundCompileOrc = (wasm) => (csound, orc) => {
   const stringPtr = string2ptr(wasm, orc);
@@ -57,18 +51,16 @@ export const csoundCompileOrc = (wasm) => (csound, orc) => {
   return result;
 };
 
-csoundCompileOrc.toString = () => "csoundCompileOrc = async (csound, orchestra) => Number;";
+csoundCompileOrc.toString = () => "compileOrc = async (orchestra) => Number;";
 
 /**
  * Compiles a csound orchestra string
- * @callback csoundEvalCode
- * @param {Csound} csound
+ * @async
+ * @function
+ * @name evalCode
+ * @memberof CsoundObj
  * @param {string} orc
- * @return {number}
- */
-/**
- * @param {Object} wasm
- * @return {csoundEvalCode}
+ * @return {Promise.<number>}
  */
 export const csoundEvalCode = (wasm) => (csound, orc) => {
   const stringPtr = string2ptr(wasm, orc);
@@ -77,7 +69,7 @@ export const csoundEvalCode = (wasm) => (csound, orc) => {
   return result;
 };
 
-csoundEvalCode.toString = () => "csoundEvalCode = async (csound, orchestra) => Number;";
+csoundEvalCode.toString = () => "csoundEvalCode = async (orchestra) => Number;";
 
 // TODO
 // csoundInitializeCscore (CSOUND *, FILE *insco, FILE *outsco)
@@ -87,31 +79,27 @@ csoundEvalCode.toString = () => "csoundEvalCode = async (csound, orchestra) => N
 
 /**
  * Prepares Csound for performance
- * @callback csoundStart
- * @param {Csound} csound
- * @return {number}
- */
-/**
- * @param {Object} wasm
- * @return {csoundStart}
+ * @async
+ * @function
+ * @name start
+ * @memberof CsoundObj
+ * @return {Promise.<number>}
  */
 export const csoundStart = (wasm) => (csound) => wasm.exports.csoundStartWasi(csound);
 
-csoundStart.toString = () => "csoundStart = async (csound) => Number;";
+csoundStart.toString = () => "start = async () => Number;";
 
 // TODO
 // csoundCompile (CSOUND *, int argc, const char **argv)
 
 /**
  * Compiles a Csound input file but does not perform it.
- * @callback csoundCompileCsd
- * @param {Csound} csound
+ * @async
+ * @function
+ * @name compileCsd
+ * @memberof CsoundObj
  * @param {string} path
- * @return {number}
- */
-/**
- * @param {Object} wasm
- * @return {csoundCompileCsd}
+ * @return {Promise.<number>}
  */
 export const csoundCompileCsd = (wasm) => (csound, path) => {
   const stringPtr = string2ptr(wasm, path);
@@ -120,18 +108,16 @@ export const csoundCompileCsd = (wasm) => (csound, path) => {
   return result;
 };
 
-csoundCompileCsd.toString = () => "csoundCompileCsd = async (csound, path) => Number;";
+csoundCompileCsd.toString = () => "compileCsd = async (path) => Number;";
 
 /**
  * Compiles a CSD string but does not perform it.
- * @callback csoundCompileCsdText
- * @param {Csound} csound
+ * @async
+ * @function
+ * @name compileCsdText
+ * @memberof CsoundObj
  * @param {string} orc
- * @return {number}
- */
-/**
- * @param {Object} wasm
- * @return {csoundCompileCsdText}
+ * @return {Promise.<number>}
  */
 export const csoundCompileCsdText = (wasm) => (csound, orc) => {
   const stringPtr = string2ptr(wasm, orc);
@@ -140,91 +126,78 @@ export const csoundCompileCsdText = (wasm) => (csound, orc) => {
   return result;
 };
 
-csoundCompileCsdText.toString = () =>
-  "csoundCompileCsdText = async (csound, csoundDocument) => Number;";
+csoundCompileCsdText.toString = () => "compileCsdText = async (csoundDocument) => Number;";
 
 /**
  * Performs(plays) audio until end is reached
- * @callback csoundPerform
- * @param {Csound} csound
- * @return {number}
- */
-/**
- * @param {Object} wasm
- * @return {csoundPerform}
+ * @async
+ * @function
+ * @name perform
+ * @memberof CsoundObj
+ * @return {Promise.<number>}
  */
 export const csoundPerform = (wasm) => (csound) => wasm.exports.csoundPerform(csound);
 
-csoundPerform.toString = () => "csoundPerform = async (csound) => Number;";
+csoundPerform.toString = () => "perform = async () => Number;";
 
 /**
  * Performs(plays) 1 ksmps worth of sample(s)
- * @callback csoundPerformKsmps
- * @param {Csound} csound
- * @return {number}
- */
-/**
- * @param {Object} wasm
- * @return {csoundPerformKsmps}
+ * @async
+ * @function
+ * @name performKsmps
+ * @memberof CsoundObj
+ * @return {Promise.<number>}
  */
 export const csoundPerformKsmps = (wasm) => (csound) => wasm.exports.csoundPerformKsmpsWasi(csound);
 
-csoundPerformKsmps.toString = () => "csoundPerformKsmps = async (csound) => Number;";
+csoundPerformKsmps.toString = () => "performKsmps = async (csound) => Number;";
 
 /**
  * Performs(plays) 1 buffer worth of audio
- * @callback csoundPerformBuffer
- * @param {Csound} csound
- * @return {number}
- */
-/**
- * @param {Object} wasm
- * @return {csoundPerformBuffer}
+ * @async
+ * @function
+ * @name performBuffer
+ * @memberof CsoundObj
+ * @return {Promise.<number>}
  */
 export const csoundPerformBuffer = (wasm) => (csound) => wasm.exports.csoundPerformBuffer(csound);
 
-csoundPerformBuffer.toString = () => "csoundPerformBuffer = async (csound) => Number;";
+csoundPerformBuffer.toString = () => "performBuffer = async (csound) => Number;";
 
 /**
  * Stops a csoundPerform
- * @callback csoundStop
- * @param {Csound} csound
- * @return {null}
- */
-/**
- * @param {Object} wasm
- * @return {csoundStop}
+ * @async
+ * @function
+ * @name stop
+ * @memberof CsoundObj
+ * @return {Promise.<undefined>}
  */
 export const csoundStop = (wasm) => (csound) => wasm.exports.csoundStop(csound);
 
-csoundStop.toString = () => "csoundStop = async (csound) => undefined;";
+csoundStop.toString = () => "stop = async () => undefined;";
 
 /**
  * Prints information about the end of a performance,
  * and closes audio and MIDI devices.
- * @callback csoundCleanup
- * @param {Csound} csound
- * @return {number}
- */
-/**
- * @param {Object} wasm
- * @return {csoundCleanup}
+ * @async
+ * @function
+ * @name cleanup
+ * @memberof CsoundObj
+ * @return {Promise.<number>}
  */
 export const csoundCleanup = (wasm) => (csound) => wasm.exports.csoundCleanup(csound);
 
-csoundCleanup.toString = () => "csoundCleanup = async (csound) => Number;";
+csoundCleanup.toString = () => "cleanup = async () => Number;";
 
 /**
  * Prints information about the end of a performance,
  * and closes audio and MIDI devices.
- * @callback csoundReset
- * @param {Csound} csound
- * @return {number}
- */
-/**
- * @param {Object} wasm
- * @return {csoundReset}
+ * @async
+ * @function
+ * @name reset
+ * @memberof CsoundObj
+ * @return {Promise.<number>}
  */
 export const csoundReset = (wasm) => (csound) => wasm.exports.csoundResetWasi(csound);
 
-csoundReset.toString = () => "csoundReset = async (csound) => Number;";
+csoundReset.toString = () => "reset = async () => Number;";

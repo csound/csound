@@ -5,92 +5,79 @@
 
 /**
  * Returns the number of samples in Csound's input buffer.
- * @callback csoundGetInputBufferSize
- * @param {Csound} csound
- * @return {number}
- */
-/**
- * @param {Object} wasm
- * @return {csoundGetInputBufferSize}
+ * @async
+ * @function
+ * @name getInputBufferSize
+ * @memberof CsoundObj
+ * @return {Promise.<number>}
  */
 export const csoundGetInputBufferSize = (wasm) => (csound) =>
   wasm.exports.csoundGetInputBufferSize(csound);
 
-csoundGetInputBufferSize.toString = () => "csoundGetInputBufferSize = async (csound) => Number;";
+csoundGetInputBufferSize.toString = () => "getInputBufferSize = async () => Number;";
 
 /**
  * Returns the number of samples in Csound's output buffer.
- * @callback csoundGetOutputBufferSize
- * @param {Csound} csound
- * @return {number}
- */
-/**
- * @param {Object} wasm
- * @return {csoundGetOutputBufferSize}
+ * @async
+ * @function
+ * @name getOutputBufferSize
+ * @memberof CsoundObj
+ * @return {Promise.<number>}
  */
 export const csoundGetOutputBufferSize = (wasm) => (csound) =>
   wasm.exports.csoundGetOutputBufferSize(csound);
 
-csoundGetOutputBufferSize.toString = () => "csoundGetOutputBufferSize = async (csound) => Number;";
+csoundGetOutputBufferSize.toString = () => "getOutputBufferSize = async () => Number;";
 
 /**
  * Returns the address of the Csound audio input buffer.
- * @callback csoundGetInputBuffer
- * @param {Csound} csound
- * @return {number}
- */
-/**
- * @param {Object} wasm
- * @return {csoundGetInputBuffer}
+ * @async
+ * @function
+ * @name getInputBuffer
+ * @memberof CsoundObj
+ * @return {Promise.<number>}
  */
 export const csoundGetInputBuffer = (wasm) => (csound) => wasm.exports.csoundGetInputBuffer(csound);
 
-csoundGetInputBuffer.toString = () => "csoundGetInputBuffer = async (csound) => Number;";
+csoundGetInputBuffer.toString = () => "getInputBuffer = async () => Number;";
 
 /**
  * Returns the address of the Csound audio output buffer.
- * @callback csoundGetOutputBuffer
- * @param {Csound} csound
- * @return {number}
- */
-/**
- * @param {Object} wasm
- * @return {csoundGetOutputBuffer}
+ * @async
+ * @function
+ * @name getOutputBuffer
+ * @memberof CsoundObj
+ * @return {Promise.<number>}
  */
 export const csoundGetOutputBuffer = (wasm) => (csound) =>
   wasm.exports.csoundGetOutputBuffer(csound);
 
-csoundGetOutputBuffer.toString = () => "csoundGetOutputBuffer = async (csound) => Number;";
+csoundGetOutputBuffer.toString = () => "getOutputBuffer = async () => Number;";
 
 /**
  * Returns the address of the Csound audio input working buffer (spin).
  * Enables external software to write audio into Csound before calling csoundPerformKsmps.
- * @callback csoundGetSpin
- * @param {Csound} csound
- * @return {number}
- */
-/**
- * @param {Object} wasm
- * @return {csoundGetSpin}
+ * @async
+ * @function
+ * @name getSpin
+ * @memberof CsoundObj
+ * @return {Promise.<number>}
  */
 export const csoundGetSpin = (wasm) => (csound) => wasm.exports.csoundGetSpin(csound);
 
-csoundGetSpin.toString = () => "csoundGetSpin = async (csound) => Number;";
+csoundGetSpin.toString = () => "getSpin = async (csound) => Number;";
 
 /**
  * Returns the address of the Csound audio output working buffer (spout).
  * Enables external software to read audio from Csound after calling csoundPerformKsmps.
- * @callback csoundGetSpout
- * @param {Csound} csound
- * @return {number}
- */
-/**
- * @param {Object} wasm
- * @return {csoundGetSpout}
+ * @async
+ * @function getSpout
+ * @memberof CsoundObj
+ * @return {Promise.<number>}
  */
 export const csoundGetSpout = (wasm) => (csound) => wasm.exports.csoundGetSpout(csound);
 
-csoundGetSpout.toString = () => "csoundGetSpout = async (csound) => Number;";
+csoundGetSpout.toString = () => "getSpout = async () => Number;";
 
 // PUBLIC void 	csoundSetRTAudioModule (CSOUND *csound, const char *module)
 // PUBLIC int 	csoundGetModule (CSOUND *csound, int number, char **name, char **type)

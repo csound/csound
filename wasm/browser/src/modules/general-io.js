@@ -7,13 +7,10 @@ import { trimNull, uint2String } from "@root/utils";
 
 /**
  * Returns the audio output name (-o)
- * @callback csoundGetOutputName
- * @param {Csound} csound
- * @return {string}
- */
-/**
- * @param {Object} wasm
- * @return {csoundGetOutputName}
+ * @function
+ * @name getOutputName
+ * @memberof CsoundObj
+ * @return {Promise.<string>}
  */
 export const csoundGetOutputName = (wasm) => (csound) => {
   const { buffer } = wasm.exports.memory;
@@ -22,17 +19,14 @@ export const csoundGetOutputName = (wasm) => (csound) => {
   return trimNull(uint2String(stringBuffer)) || "";
 };
 
-csoundGetOutputName.toString = () => "csoundGetOutputName = async (csound) => String;";
+csoundGetOutputName.toString = () => "getOutputName = async () => String;";
 
 /**
  * Returns the audio input name (-i)
- * @callback csoundGetInputName
- * @param {Csound} csound
- * @return {string}
- */
-/**
- * @param {Object} wasm
- * @return {csoundGetInputName}
+ * @function
+ * @name getInputName
+ * @memberof CsoundObj
+ * @return {Promise.<string>}
  */
 export const csoundGetInputName = (wasm) => (csound) => {
   const { buffer } = wasm.exports.memory;
@@ -41,7 +35,7 @@ export const csoundGetInputName = (wasm) => (csound) => {
   return trimNull(uint2String(stringBuffer)) || "";
 };
 
-csoundGetInputName.toString = () => "csoundGetInputName = async (csound) => String;";
+csoundGetInputName.toString = () => "getInputName = async (csound) => String;";
 
 // PUBLIC void 	csoundSetOutput (CSOUND *csound, const char *name, const char *type, const char *format)
 // PUBLIC void 	csoundGetOutputFormat (CSOUND *csound, char *type, char *format)

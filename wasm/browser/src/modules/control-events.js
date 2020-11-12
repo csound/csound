@@ -8,13 +8,11 @@ import { freeStringPtr, string2ptr } from "@root/utils";
 /**
  * Inputs an immediate score event
  * without any pre-process parsing
- * @callback csoundInputMessage
- * @param {Csound} csound
- * @return {number}
- */
-/**
- * @param {Object} wasm
- * @return {csoundInputMessage}
+ * @async
+ * @function
+ * @name inputMessage
+ * @memberof CsoundObj
+ * @return {Promise.<number>}
  */
 export const csoundInputMessage = (wasm) => (csound, scoEvent) => {
   const stringPtr = string2ptr(wasm, scoEvent);
@@ -23,18 +21,16 @@ export const csoundInputMessage = (wasm) => (csound, scoEvent) => {
   return result;
 };
 
-csoundInputMessage.toString = () => "csoundInputMessage = async (csound, scoreEvent) => Number;";
+csoundInputMessage.toString = () => "inputMessage = async (scoreEvent) => Number;";
 
 /**
  * Inputs an immediate score event
  * without any pre-process parsing
- * @callback csoundInputMessageAsync
- * @param {Csound} csound
- * @return {number}
- */
-/**
- * @param {Object} wasm
- * @return {csoundInputMessageAsync}
+ * @async
+ * @function
+ * @name inputMessageAsync
+ * @memberof CsoundObj
+ * @return {Promise.<number>}
  */
 export const csoundInputMessageAsync = (wasm) => (csound, scoEvent) => {
   const stringPtr = string2ptr(wasm, scoEvent);
@@ -43,8 +39,7 @@ export const csoundInputMessageAsync = (wasm) => (csound, scoEvent) => {
   return result;
 };
 
-csoundInputMessageAsync.toString = () =>
-  "csoundInputMessageAsync = async (csound, scoreEvent) => Number;";
+csoundInputMessageAsync.toString = () => "inputMessageAsync = async (scoreEvent) => Number;";
 
 // csoundGetChannelPtr (CSOUND *, MYFLT **p, const char *name, int type)
 // csoundListChannels (CSOUND *, controlChannelInfo_t **lst)
