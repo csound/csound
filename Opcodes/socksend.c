@@ -446,6 +446,7 @@ typedef struct {
   struct sockaddr_in server_addr;
   int err_state;
   int init_done;
+  int fstime;
 } OSCSEND2;
 
 static int32_t oscsend_deinit(CSOUND *csound, OSCSEND2 *p)
@@ -593,6 +594,7 @@ static int32_t osc_send2_init(CSOUND *csound, OSCSEND2 *p)
     p->last = FL(0.0);
     p->err_state = 0;
     p->init_done = 1;
+    p->fstime = 1;
     return OK;
 }
 
@@ -627,12 +629,12 @@ static inline int32_t aux_realloc(CSOUND *csound, size_t size, AUXCH *aux) {
 
 static int32_t osc_send2(CSOUND *csound, OSCSEND2 *p)
 {
-
-    if(*p->kwhen != p->last) {
+    if(*p->kwhen != p->last || p->fstime) {
       const struct sockaddr *to = (const struct sockaddr *) (&p->server_addr);
 
       int32_t buffersize = 0, size, i, bsize = p->aux.size;
       char *out = (char *) p->aux.auxp;
+      p->fstime = 0;
 
       memset(out,0,bsize);
       /* package destination in 4-byte zero-padded block */
