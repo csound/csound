@@ -129,6 +129,7 @@ int32_t octcps(CSOUND *, void *), acpsoct(CSOUND *, void *);
 int32_t cpsmidinn(CSOUND *, void *), octmidinn(CSOUND *, void *);
 int32_t pchmidinn(CSOUND *, void *);int32_t massign_S(CSOUND *, void *);
 int32_t massign_p(CSOUND *, void *), ctrlinit(CSOUND *, void *);
+int32_t ctrlnameinit(CSOUND *, void *);
 int32_t notnum(CSOUND *, void *), veloc(CSOUND *, void *);
 int32_t pchmidi(CSOUND *, void *), pchmidib(CSOUND *, void *);
 int32_t octmidi(CSOUND *, void *), octmidib(CSOUND *, void *);
@@ -228,7 +229,7 @@ int32_t in(CSOUND *, void *), ins(CSOUND *, void *);
 int32_t inq(CSOUND *, void *), inh(CSOUND *, void *);
 int32_t ino(CSOUND *, void *), in16(CSOUND *, void *);
 int32_t in32(CSOUND *, void *), outarr_init(CSOUND *, void *);
-int32_t outarr(CSOUND *, void *);
+int32_t outarr(CSOUND *, void *), outrep(CSOUND*, void*);
 int32_t inch_opcode(CSOUND *, void *), inall_opcode(CSOUND *, void *);
 int32_t inch_set(CSOUND*, void*), outmultiple(CSOUND *, void *);
 /* int32_t out(CSOUND *, void *), outs(CSOUND *, void *); */

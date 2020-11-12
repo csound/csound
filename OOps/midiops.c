@@ -121,6 +121,35 @@ int32_t ctrlinit(CSOUND *csound, CTLINIT *p)
     }
 }
 
+int32_t ctrlnameinit(CSOUND *csound, CTLINITS *p)
+{
+    int16 chnl = strarg2insno(csound, ((STRINGDAT *)p->iname)->data, 1);
+    int16 nargs = p->INOCOUNT;
+    if (UNLIKELY(chnl > 63)) {
+      return NOTOK;
+    }
+    {
+      MCHNBLK *chn;
+      MYFLT **argp = p->ctrls;
+      int16 ctlno, nctls = nargs >> 1;
+      chn = csound->m_chnbp[chnl];
+      do {
+        MYFLT val;
+        ctlno = (int16)**argp++;
+        if (UNLIKELY(ctlno < 0 || ctlno > 127)) {
+          return csound->InitError(csound, Str("illegal ctrl no"));
+        }
+        val = **argp++;
+        if (val < FL(0.0) || val > FL(127.0))
+          return csound->InitError(csound, Str("Value out of range [0,127]\n"));
+        chn->ctl_val[ctlno] = val;
+      } while (--nctls);
+      return OK;
+    }    
+}
+
+
+
 int32_t notnum(CSOUND *csound, MIDIKMB *p)       /* valid only at I-time */
 {
     *p->r = csound->curip->m_pitch;

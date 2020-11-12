@@ -76,9 +76,7 @@ int32_t sfont_ModuleDestroy(CSOUND *csound)
     if (globals == NULL) return 0;
     sfArray = globals->sfArray;
 
-    printf("**Destroy currSFndx = %d\n", globals->currSFndx);
     for (j=0; j<globals->currSFndx; j++) {
-      printf("**j = %d preset_num = %d\n", j, sfArray[j].presets_num);
       for (k=0; k< sfArray[j].presets_num; k++) {
         for (l=0; l<sfArray[j].preset[k].layers_num; l++) {
           csound->Free(csound, sfArray[j].preset[k].layer[l].split);
