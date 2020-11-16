@@ -121,7 +121,6 @@ export const api = {
   csoundGetOutputName,
   // @module/extra
   csoundAppendEnv,
-  setupWasmBrowserFS,
 };
 
 export default function (wasm) {
