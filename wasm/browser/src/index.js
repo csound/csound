@@ -6,6 +6,7 @@ import SharedArrayBufferMainThread from "@root/mains/sab.main";
 import AudioWorkletMainThread from "@root/mains/worklet.main";
 import ScriptProcessorNodeMainThread from "@root/mains/old-spn.main";
 import ScriptProcessorNodeSingleThread from "@root/mains/spn.main";
+import SingleThreadAudioWorkletMainThread from "@root/mains/worklet.singlethread.main";
 import wasmDataURI from "@csound/wasm/lib/libcsound.wasm.zlib";
 import log, { logSAB, logWorklet, logVAN } from "@root/logger";
 import {
@@ -37,8 +38,18 @@ export async function Csound({
 
   // SingleThread implementations
   if (!useWorker) {
-    const instance = new ScriptProcessorNodeSingleThread({ audioContext });
-    return await instance.initialize(wasmDataURI);
+    if(workletSupport) {
+        console.log("Single Thread AudioWorklet");
+      const instance = new SingleThreadAudioWorkletMainThread({ audioContext });
+      return await instance.initialize(wasmDataURI);
+    } else if(spnSupport) {
+        console.log("Single Thread ScriptProcessorNode");
+      const instance = new ScriptProcessorNodeSingleThread({ audioContext });
+      return await instance.initialize(wasmDataURI);
+    } else {
+      log.error("No detectable WebAudioAPI in current environment");
+      return undefined;
+    }
   }
 
   if (workletSupport) {

@@ -139,6 +139,10 @@ export default [
         dataUrl: true,
       }),
       inlineWebWorkerPlugin({
+        include: ["**/worklet.singlethread.worker.js"],
+        dataUrl: true,
+      }),
+      inlineWebWorkerPlugin({
         include: ["**/sab.worker.js", "**/vanilla.worker.js", "**/old-spn.worker.js"],
         dataUrl: false,
       }),
