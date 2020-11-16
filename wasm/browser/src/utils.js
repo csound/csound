@@ -1,4 +1,4 @@
-// import { TextDecoder, TextEncoder } from 'text-encoding-shim';
+import TextEncoderShim from 'text-encoding-shim';
 
 const sizeOf = {
   int: 4,
@@ -6,8 +6,8 @@ const sizeOf = {
   char: 1,
 };
 
-export const decoder = new TextDecoder("utf-8");
-export const encoder = new TextEncoder("utf-8");
+export const decoder = new TextEncoderShim.TextDecoder("utf-8");
+export const encoder = new TextEncoderShim.TextEncoder("utf-8");
 
 export const uint2String = (uint) => decoder.decode(uint);
 
