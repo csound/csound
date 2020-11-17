@@ -55,8 +55,7 @@ static int32_t pan2run(CSOUND *csound, PAN2 *p)
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t n, nsmps = CS_KSMPS;
-    int32_t
-      asgp = IS_ASIG_ARG(p->pan);
+    int32_t asgp = IS_ASIG_ARG(p->pan);
 
     if (UNLIKELY(offset)) {
       memset(ar, '\0', offset*sizeof(MYFLT));
@@ -70,21 +69,39 @@ static int32_t pan2run(CSOUND *csound, PAN2 *p)
     switch (type) {
     case 0:
       {
-        MYFLT kangl = HALFPI_F * *p->pan;
-        for (n=offset; n<nsmps; n++) {
-          if (asgp) kangl = HALFPI_F * p->pan[n];
-          ar[n] = ain[n] * SIN(kangl);
-        al[n] = ain[n] * COS(kangl);
+        if (asgp){
+          for (n=offset; n<nsmps; n++) {
+            MYFLT kangl = HALFPI_F * p->pan[n];
+            ar[n] = ain[n] * SIN(kangl);
+            al[n] = ain[n] * COS(kangl);
+          }
+        }
+        else {
+          MYFLT kangl = HALFPI_F * *p->pan;
+          MYFLT s = SIN(kangl), c = COS(kangl);
+          for (n=offset; n<nsmps; n++) {
+            ar[n] = ain[n] * s;
+            al[n] = ain[n] * c;
+          }
         }
         break;
       }
     case 1:
       {
-        MYFLT kangl = *p->pan;
-        for (n=offset; n<nsmps; n++) {
-          if (asgp) kangl = p->pan[n];
-          ar[n] = ain[n] * SQRT(kangl);
-          al[n] = ain[n] * SQRT(FL(1.0)-kangl);
+        if (asgp) {
+          for (n=offset; n<nsmps; n++) {
+            MYFLT kangl = p->pan[n];
+            ar[n] = ain[n] * SQRT(kangl);
+            al[n] = ain[n] * SQRT(FL(1.0)-kangl);
+          }
+        }
+        else {
+          MYFLT kangl = *p->pan;
+          MYFLT s = SQRT(kangl), c = SQRT(FL(1.0)-kangl);
+          for (n=offset; n<nsmps; n++) {
+            ar[n] = ain[n] * s;
+            al[n] = ain[n] * c;
+          }
         }
         break;
       }
@@ -100,16 +117,30 @@ static int32_t pan2run(CSOUND *csound, PAN2 *p)
       }
     case 3:
       {
-        MYFLT kangl = *p->pan, cc, ss, l, r;
-        for (n=offset; n<nsmps; n++) {
-          if (asgp) kangl = p->pan[n];
+        MYFLT kangl, cc, ss, l, r;
+        if (asgp) {
+          for (n=offset; n<nsmps; n++) {
+            kangl = p->pan[n];
+            cc = COS(HALFPI*kangl);
+            ss = SIN(HALFPI*kangl);
+            l = ROOT2*(cc+ss)*0.5;
+            r = ROOT2*(cc-ss)*0.5;
+            al[n] = ain[n] * l;
+            ar[n] = ain[n] * r;
+          }
+        }
+        else {
+          kangl = *p->pan;
           cc = COS(HALFPI*kangl);
           ss = SIN(HALFPI*kangl);
           l = ROOT2*(cc+ss)*0.5;
           r = ROOT2*(cc-ss)*0.5;
-          al[n] = ain[n] * l;
-          ar[n] = ain[n] * r;
+          for (n=offset; n<nsmps; n++) {
+            al[n] = ain[n] * l;
+            ar[n] = ain[n] * r;
+          }
         }
+        break;
       }
     }
     return OK;

@@ -54,17 +54,17 @@
 
 
 typedef struct {
-    OPDS    h;
-    MYFLT   *chnl;
+    OPDS      h;
+    MYFLT     *chnl;
     STRINGDAT *insno;
-    MYFLT *iresetctls;
+    MYFLT     *iresetctls;
 } MASSIGNS;
 
 typedef struct {
-    OPDS    h;
-    MYFLT   *chnl;
-    MYFLT *insno;
-    MYFLT *iresetctls;
+    OPDS      h;
+    MYFLT     *chnl;
+    MYFLT     *insno;
+    MYFLT     *iresetctls;
 } MASSIGN;
 
 typedef struct {

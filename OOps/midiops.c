@@ -145,7 +145,7 @@ int32_t ctrlnameinit(CSOUND *csound, CTLINITS *p)
         chn->ctl_val[ctlno] = val;
       } while (--nctls);
       return OK;
-    }    
+    }
 }
 
 
