@@ -354,9 +354,20 @@ OPTXT *create_opcode(CSOUND *csound, TREE *root, INSTRTXT *ip,
   optxt = (OPTXT *)csound->Calloc(csound, (int32)sizeof(OPTXT));
   tp = &(optxt->t);
   tp->linenum = root->line; tp->locn = root->locn;
-  OENTRY *labelOpcode;
+  OENTRY *labelOpcode, *declareOpcode;
 
   switch (root->type) {
+  case T_DECLARE:
+    declareOpcode = find_opcode(csound, "declare");
+    tp->oentry = declareOpcode;
+    tp->opcod = strsav_string(csound, engineState, root->value->lexeme);
+    tp->outlist = (ARGLST *)csound->Malloc(csound, sizeof(ARGLST));
+    tp->outlist->count = 0;
+    tp->inlist = (ARGLST *)csound->Malloc(csound, sizeof(ARGLST));
+    tp->inlist->count = 0;
+    tp->pftype = '_';
+
+    break;
   case LABEL_TOKEN:
     labelOpcode = find_opcode(csound, "$label");
     /* TODO - Need to verify here or elsewhere that this label is not
@@ -590,7 +601,8 @@ INSTRTXT *create_instrument0(CSOUND *csound, TREE *root,
 
   while (current != NULL) {
     unsigned int uval;
-    if (current->type != INSTR_TOKEN && current->type != UDO_TOKEN && current->type != STRUCT_TOKEN) {
+    if (current->type != INSTR_TOKEN && current->type != UDO_TOKEN &&
+        current->type != STRUCT_TOKEN && current->type != T_DECLARE) {
       OENTRY *oentry = (OENTRY *)current->markup;
       if (UNLIKELY(PARSER_DEBUG))
         csound->Message(csound, "In INSTR 0: %s\n", current->value->lexeme);
@@ -633,7 +645,7 @@ INSTRTXT *create_instrument0(CSOUND *csound, TREE *root,
         else if (strcmp("0dbfs", current->left->value->lexeme) == 0) {
           _0dbfs = val;
         }
-        else if  (strcmp("A4", current->left->value->lexeme) == 0) {
+        else if (strcmp("A4", current->left->value->lexeme) == 0) {
           A4 = val;
         }
 
@@ -1836,6 +1848,7 @@ PUBLIC int csoundCompileTreeInternal(CSOUND *csound, TREE *root, int async)
   case T_OPCALL:
   case LABEL_TOKEN:
   case STRUCT_TOKEN:
+  case T_DECLARE:
     break;
 
   default:
@@ -2376,4 +2389,3 @@ int query_reversewrite_opcode(CSOUND *csound, ORCTOKEN *o) {
   OENTRY *ep = find_opcode(csound, name);
   return (ep->flags & WI);
 }
-

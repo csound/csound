@@ -28,6 +28,7 @@
 //#include <stdbool.h>
 #include "csoundCore.h"
 #include "csound_orc.h"
+#include "interlocks.h"
 #include "namedins.h"
 #include "parse_param.h"
 #include "csound_type_system.h"
@@ -59,7 +60,7 @@ char* convert_external_to_internal(CSOUND* csound, char* arg);
 void do_baktrace(CSOUND *csound, uint64_t files);
 
 extern int add_udo_definition(CSOUND *csound, char *opname,
-                              char *outtypes, char *intypes);
+                              char *outtypes, char *intypes, int flags);
 extern TREE * create_opcode_token(CSOUND *csound, char* op);
 int is_reserved(char*);
 
@@ -1659,7 +1660,7 @@ TREE* convert_statement_to_opcall(CSOUND* csound, TREE* root, TYPE_TABLE* typeTa
 
     return root;
   }
-  
+
   // If a function call made it here, such as:
   //  print(1,2,3)
   // then it should just be updated to T_OPCALL and returned
@@ -2378,7 +2379,8 @@ TREE* verify_tree(CSOUND * csound, TREE *root, TYPE_TABLE* typeTable)
         add_udo_definition(csound,
                            top->value->lexeme,
                            top->left->value->lexeme,
-                           top->right->value->lexeme);
+                           top->right->value->lexeme,
+                           0x0000);
 
       } else {
         //            printf(">>> NEW STYLE UDO FOUND <<<\n");
@@ -2399,7 +2401,8 @@ TREE* verify_tree(CSOUND * csound, TREE *root, TYPE_TABLE* typeTable)
         add_udo_definition(csound,
                            current->left->value->lexeme,
                            outArgString,
-                           inArgString);
+                           inArgString,
+                           0x0000);
       }
       csound->inZero = 0;
       if (UNLIKELY(PARSER_DEBUG)) csound->Message(csound, "UDO found\n");
@@ -2431,6 +2434,35 @@ TREE* verify_tree(CSOUND * csound, TREE *root, TYPE_TABLE* typeTable)
       typeTable->localPool = typeTable->instr0LocalPool;
 
       break;
+
+    case T_DECLARE: {
+      char* outArgStringDecl = get_out_types_from_tree(csound, current->left->left);
+      char* inArgStringDecl = get_in_types_from_tree(csound, current->left->right, typeTable);
+      add_udo_definition(csound, current->value->lexeme, inArgStringDecl, outArgStringDecl, UNDEFINED);
+      csound->inZero = 0;
+      if (UNLIKELY(PARSER_DEBUG)) csound->Message(csound, "UDO found\n");
+
+      typeTable->localPool = csoundCreateVarPool(csound);
+      current->markup = typeTable->localPool;
+
+      if (current->right != NULL) {
+
+        newRight = verify_tree(csound, current->right, typeTable);
+
+        if (newRight == NULL) {
+          cs_cons_free(csound, typeTable->labelList);
+          typeTable->labelList = parentLabelList;
+          return NULL;
+        }
+
+        current->right = newRight;
+        newRight = NULL;
+      }
+
+      typeTable->localPool = typeTable->instr0LocalPool;
+
+      break;
+    }
 
     case IF_TOKEN:
       if (!verify_if_statement(csound, current, typeTable)) {
@@ -2734,13 +2766,13 @@ TREE* make_opcall_from_func_start(CSOUND *csound, int line, int locn, int type,
   TREE* firstArg = left->right;
   TREE* first = right;
   TREE* rest = right->next;
-  
+
   right->next = NULL;
-  
+
   TREE* operatorNode = make_node(csound, line, locn, type, firstArg, first);
   operatorNode->next = rest;
   left->right = operatorNode;
-  
+
   return left;
 }
 
@@ -3017,6 +3049,9 @@ static void print_tree_xml(CSOUND *csound, TREE *l, int n, int which)
     csound->Message(csound,"name=\"T_IDENT\" varname=\"%s\"",
                     l->value->lexeme); break;
 
+  case T_DECLARE:
+    csound->Message(csound,"name=\"T_DECLARE\" declvar=\"%s\"",
+                    l->value->lexeme); break;
   case T_ARRAY:
     csound->Message(csound,"name=\"T_ARRAY\""); break;
 

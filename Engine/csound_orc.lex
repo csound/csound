@@ -242,6 +242,10 @@ SYMBOL          [\[\]+\-*/%\^\?:.,!]
                   *lvalp = make_label(csound, pp); return LABEL_TOKEN;
                 }
 
+"declare"       {
+                  return DECLARE_TOKEN;
+                }
+
 "opcode"        { BEGIN(udodef);
                   return UDOSTART_DEFINITION;
                 }
