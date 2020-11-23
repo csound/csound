@@ -601,7 +601,8 @@ INSTRTXT *create_instrument0(CSOUND *csound, TREE *root,
 
   while (current != NULL) {
     unsigned int uval;
-    if (current->type != INSTR_TOKEN && current->type != UDO_TOKEN && current->type != STRUCT_TOKEN) {
+    if (current->type != INSTR_TOKEN && current->type != UDO_TOKEN &&
+        current->type != STRUCT_TOKEN && current->type != T_DECLARE) {
       OENTRY *oentry = (OENTRY *)current->markup;
       if (UNLIKELY(PARSER_DEBUG))
         csound->Message(csound, "In INSTR 0: %s\n", current->value->lexeme);
@@ -648,7 +649,7 @@ INSTRTXT *create_instrument0(CSOUND *csound, TREE *root,
           A4 = val;
         }
 
-      } else if (current->type != T_DECLARE) {
+      } else {
         op->nxtop = create_opcode(csound, current, ip, engineState);
         op = last_optxt(op);
       }
