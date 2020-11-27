@@ -35,7 +35,7 @@ typedef struct {
     MYFLT *pan;                  /* pan position */
     MYFLT *itype;                /* type of panning */
     int32_t   type;
-    MYFLT lastpan, s, c;         /* Caced values */
+    MYFLT lastpan, s, c;         /* Cached values */
 } PAN2;
 //#define SQRT2 FL(1.41421356237309504880)
 
@@ -71,7 +71,7 @@ static int32_t pan2run(CSOUND *csound, PAN2 *p)
     switch (type) {
     case 0:
       {
-        if (asgp){
+        if (asgp) {
           for (n=offset; n<nsmps; n++) {
             MYFLT kangl = HALFPI_F * p->pan[n];
             ar[n] = ain[n] * SIN(kangl);
