@@ -543,6 +543,7 @@ unsigned char arduino_get_byte(HANDLE port)
 }
 #endif
 
+#define DEBUG 1
 uintptr_t arduino_listen(void *p)
 {
 #define SYN (0xf8)
@@ -553,7 +554,7 @@ uintptr_t arduino_listen(void *p)
     //printf("Q=%p\n", q);
     // Read until we see a header word
     while((c = arduino_get_byte(q->port))!=SYN) {
-      //printf("ignore low %.2x\n", c);
+      if (DEBUG) printf("ignore low %.2x\n", c);
     }
     // Should be synced now
     while (1) {
@@ -568,10 +569,10 @@ uintptr_t arduino_listen(void *p)
       if (low == SYN) continue; /* start new frame */
       hi = arduino_get_byte(q->port);
       if (hi == SYN) continue; /* start new frame */
-      //printf("low hi = %.2x %.2x\n", low, hi);
+      if (DEBUG) printf("low hi = %.2x %.2x\n", low, hi);
       val = ((hi&0x7)<<7) | (low&0x7f);
       c = (hi>>3)&0x1f;
-      //printf("Sensor %d value %d(%.2x)\n", c, val, val);
+      if (DEBUG) printf("Sensor %d value %d(%.2x)\n", c, val, val);
       // critical region
       csound->LockMutex(q->lock);
       q->values[c] = val;
