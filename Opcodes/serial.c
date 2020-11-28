@@ -482,7 +482,7 @@ int32_t serialPeekByte(CSOUND *csound, SERIALPEEK *p)
    Issue: Windows version incomplete
 */
 
-#define MAXSENSORS (14)
+#define MAXSENSORS (30)
 
 typedef struct {
     CSOUND  *csound;
@@ -545,14 +545,15 @@ unsigned char arduino_get_byte(HANDLE port)
 
 uintptr_t arduino_listen(void *p)
 {
+#define SYN (0xf8)
     unsigned int ans = 0;
     uint16_t c, val;
     ARDUINO_GLOBALS *q = (ARDUINO_GLOBALS*)p;
     CSOUND *csound = q->csound;
-    printf("Q=%p\n", q);
+    //printf("Q=%p\n", q);
     // Read until we see a header word
-    while((c = arduino_get_byte(q->port))!=0xf0) {
-      printf("ignore low %.2x\n", c);
+    while((c = arduino_get_byte(q->port))!=SYN) {
+      //printf("ignore low %.2x\n", c);
     }
     // Should be synced now
     while (1) {
@@ -564,11 +565,11 @@ uintptr_t arduino_listen(void *p)
         return 0;
       //#endif
       low = arduino_get_byte(q->port);
-      if (low == 0xf8) continue; /* start new frame */
+      if (low == SYN) continue; /* start new frame */
       hi = arduino_get_byte(q->port);
-      if (hi == 0xf8) continue; /* start new frame */
-      printf("low hi = %.2x %.2x\n", low, hi);
-      val = ((hi&0xf)<<7) | (low&0x7f);
+      if (hi == SYN) continue; /* start new frame */
+      //printf("low hi = %.2x %.2x\n", low, hi);
+      val = ((hi&0x7)<<7) | (low&0x7f);
       c = (hi>>3)&0x1f;
       //printf("Sensor %d value %d(%.2x)\n", c, val, val);
       // critical region
