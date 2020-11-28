@@ -543,7 +543,7 @@ unsigned char arduino_get_byte(HANDLE port)
 }
 #endif
 
-#define DEBUG 1
+#define DEBUG 0
 uintptr_t arduino_listen(void *p)
 {
 #define SYN (0xf8)
