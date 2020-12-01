@@ -22,7 +22,7 @@
 */
 
 import * as Comlink from "comlink";
-import { writeToFs, lsFs, llFs, readFromFs, rmrfFs, workerMessagePort } from "@root/filesystem";
+import { writeToFs, lsFs, llFs, readFromFs, rmrfFs } from "@root/filesystem";
 import libcsoundFactory from "@root/libcsound";
 import loadWasm from "@root/module";
 import {assoc, pipe} from "ramda";

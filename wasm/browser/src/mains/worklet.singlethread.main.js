@@ -27,7 +27,7 @@ import * as Comlink from "comlink";
 let initialized = false;
 const initializeModule = async (audioContext) => {
 
-    console.log("Initializing Module");
+    console.log("Initialize Module");
     if(!initialized) {
         await audioContext.audioWorklet.addModule(WorkletWorker());
         initialized = true;
