@@ -10,6 +10,7 @@ import babel from "@rollup/plugin-babel";
 import pluginJson from "@rollup/plugin-json";
 import replace from "@rollup/plugin-replace";
 import { resolve } from "path";
+import { readFileSync } from "fs";
 import * as R from "ramda";
 
 const PROD = process.env.BUILD_TARGET === "production";
@@ -51,6 +52,8 @@ const babelCommon = babel({
     ["@babel/plugin-proposal-object-rest-spread", { useBuiltIns: true }],
   ],
 });
+
+const workletPolyfill = readFileSync("src/workers/worklet.polyfill.js", "utf-8");
 
 export default [
   {
@@ -101,9 +104,9 @@ export default [
     input: "src/workers/worklet.singlethread.worker.js",
     // external: ['comlink'],
     output: {
-      intro: "let global = AudioWorkletGlobalScope; const setTimeout = (a,b) => a();",
+      intro: workletPolyfill,
       file: "dist/__compiled.worklet.singlethread.worker.js",
-      format: "iife",
+      format: "es",
       name: "worklet.singlethread.worker",
       sourcemap: false,
       globals,

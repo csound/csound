@@ -11,6 +11,10 @@ export const bindings = {
   path,
 };
 
+// if(typeof AudioWorkletGlobalScope !== "undefined") {
+//   AudioWorkletGlobalScope.performance = { hrtime: () => 0};
+// }
+
 const wasi = new WASI({
   preopens,
   env: {},
