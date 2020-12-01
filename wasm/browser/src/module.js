@@ -22,7 +22,7 @@ const wasi = new WASI({
 });
 
 export default async function (wasmDataURI) {
-  console.log(1);
+  // console.log(1);
   await wasmFs.volume.mkdirpSync("/sandbox");
   const wasmZlib = new Uint8Array(wasmDataURI);
   const wasmBytes = inflate(wasmZlib);

@@ -23,6 +23,7 @@
 
 import WorkletWorker from "@root/workers/worklet.singlethread.worker";
 import * as Comlink from "comlink";
+import { logWorklet } from "@root/logger";
 
 let initialized = false;
 const initializeModule = async (audioContext) => {
@@ -63,7 +64,7 @@ class SingleThreadAudioWorkletMainThread {
           logWorklet("wrapping Comlink proxy endpoint on the audioWorkletNode.port");
           this.workletProxy = Comlink.wrap(this.node.port);
       } catch (error) {
-          log.error("COMLINK ERROR", error);
+          console.log("COMLINK ERROR", error);
       }
     return this;
   }
