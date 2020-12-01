@@ -101,7 +101,7 @@ export default [
     input: "src/workers/worklet.singlethread.worker.js",
     // external: ['comlink'],
     output: {
-      intro: "let global = this;",
+      intro: "let global = AudioWorkletGlobalScope; const setTimeout = (a,b) => a();",
       file: "dist/__compiled.worklet.singlethread.worker.js",
       format: "iife",
       name: "worklet.singlethread.worker",
