@@ -70,7 +70,7 @@ int32_t pvaddset_(CSOUND *csound, PVADD *p, int32_t stringname)
     FUNC     *ftp = NULL, *AmpGateFunc = NULL;
     int32     memsize;
 
-    if (*p->ifn > FL(0.0))
+    //if (*p->ifn > FL(0.0))
       if (UNLIKELY((ftp = csound->FTFind(csound, p->ifn)) == NULL))
         return NOTOK;
     p->ftp = ftp;
@@ -150,6 +150,8 @@ int32_t pvadd(CSOUND *csound, PVADD *p)
 
     if (UNLIKELY(p->auxch.auxp == NULL)) goto err1;
     ftp = p->ftp;
+
+    if (UNLIKELY(ftp == NULL)) goto err1;
     if (UNLIKELY((frIndx = *p->ktimpnt * p->frPrtim) < 0)) goto err2;
 
     if (frIndx > p->maxFr) { /* not past last one */

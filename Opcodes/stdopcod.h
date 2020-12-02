@@ -118,6 +118,9 @@ extern int32_t ugnorman_init_(CSOUND *);
 extern int32_t ugsc_init_(CSOUND *);
 extern int32_t
 wave_terrain_init_(CSOUND *);
+extern int32_t
+wter2_init_(CSOUND *);
+
 
 #endif  /* CSOUND_STDOPCOD_H */
 

@@ -121,6 +121,35 @@ int32_t ctrlinit(CSOUND *csound, CTLINIT *p)
     }
 }
 
+int32_t ctrlnameinit(CSOUND *csound, CTLINITS *p)
+{
+    int16 chnl = strarg2insno(csound, ((STRINGDAT *)p->iname)->data, 1);
+    int16 nargs = p->INOCOUNT;
+    if (UNLIKELY(chnl > 63)) {
+      return NOTOK;
+    }
+    {
+      MCHNBLK *chn;
+      MYFLT **argp = p->ctrls;
+      int16 ctlno, nctls = nargs >> 1;
+      chn = csound->m_chnbp[chnl];
+      do {
+        MYFLT val;
+        ctlno = (int16)**argp++;
+        if (UNLIKELY(ctlno < 0 || ctlno > 127)) {
+          return csound->InitError(csound, Str("illegal ctrl no"));
+        }
+        val = **argp++;
+        if (val < FL(0.0) || val > FL(127.0))
+          return csound->InitError(csound, Str("Value out of range [0,127]\n"));
+        chn->ctl_val[ctlno] = val;
+      } while (--nctls);
+      return OK;
+    }
+}
+
+
+
 int32_t notnum(CSOUND *csound, MIDIKMB *p)       /* valid only at I-time */
 {
     *p->r = csound->curip->m_pitch;
@@ -818,7 +847,7 @@ int printctrl(CSOUND *csound, PRINTCTRL *p)
 {
     MYFLT *d = p->arr->data;
     int n = (int)d[0], i;
-    fprintf(p->fout, "\n; ctrlinit\t%d", (int)d[1]);
+    fprintf(p->fout, "\n ctrlinit\t%d", (int)d[1]);
     for (i=0; i<n; i++)
       fprintf(p->fout, ", %d,%d", (int)d[2+2*i], (int)d[3+2*i]);
     fprintf(p->fout, "\n\n");
@@ -917,8 +946,8 @@ int presetctrl1_perf(CSOUND *csound, PRESETCTRL1 *p)
       int** tt = q->presets;
       int size = tag-q->max_num;
       if (size<10) size = 10;
-     tt = (int**)csound->ReAlloc(csound,
-                                    tt, (q->max_num+size)*sizeof(int*));
+      tt = (int**)csound->ReAlloc(csound,
+                                  tt, (q->max_num+size)*sizeof(int*));
       if (tt == NULL)
         return csound->InitError(csound, "%s",
                                  Str("Failed to allocate presets\n"));
@@ -933,8 +962,8 @@ int presetctrl1_perf(CSOUND *csound, PRESETCTRL1 *p)
     slot = q->presets[tag];
     slot[0] = p->arr->sizes[0];
     slot[1] = (int)(p->arr->data[1]);
-    for (i=0; i<slot[0]-1; i++)
-      slot[i+2]= (int)p->arr->data[i];
+    for (i=2; i<=slot[0]; i++)
+      slot[i]= (int)p->arr->data[i];
     /* for (i=0; i<slot[0];i++) printf("%d ", slot[i]); */
     /* printf("\n"); */
     *p->inum = (MYFLT)tag+1;
@@ -957,8 +986,8 @@ int selectctrl_perf(CSOUND *csound, SELECTCTRL *p)
     PRESET_GLOB *q = p->q;
     int tag = (int)*p->inum-1;
     int i;
-    int* slot = q->presets[tag];
-    if (slot == NULL) {
+    int* slot;
+    if (tag>=q->max_num ||NULL==(slot = q->presets[tag])) {
       return csound->PerfError(csound, &p->h, Str("No such preset %d\n"), tag+1);
     }
     {
@@ -987,11 +1016,12 @@ int printpresets_perf(CSOUND *csound, PRINTPRESETS *p)
       if (q->presets[j]) {
         int i;
         int *slot = q->presets[j];
-        fprintf(ff, "\n;; kpre%d ctrlpreset\t%d ", j+1, j+1);
+        fprintf(ff, "\n kpre%d ctrlpreset\t%d ", j+1, j+1);
         for (i=1; i<slot[0]; i++)
           fprintf(ff, ", %d", slot[i]);
         fprintf(ff, "\n");
       }
+    fprintf(ff, "\n\n");
     fflush(ff);
     return OK;
 }
