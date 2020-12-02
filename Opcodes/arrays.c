@@ -4534,6 +4534,9 @@ static OENTRY arrayvars_localops[] =
      (SUBR)tabarithset1, (SUBR)tabaipow },
     {"##pow.k[",  sizeof(TABARITH2), 0, 3, "k[]", "kk[]",
      (SUBR)tabarithset2, (SUBR)tabiapow },
+    {"##pow.ki[",  sizeof(TABARITH2), 0, 3, "k[]", "ki[]",
+     (SUBR)tabarithset2, (SUBR)tabiapow },
+     
     {"##pow.[ak",  sizeof(TABARITH1), 0, 3, "a[]", "a[]k",
      (SUBR)tabarithset1, (SUBR)tabarkpow },
     {"##pow.a[k[", sizeof(TABARITH), 0, 3, "a[]", "a[]k[]",
