@@ -62,15 +62,21 @@ static int32_t scale_process(CSOUND *csound, scale *p)
     MYFLT min = *p->imin;
     MYFLT kmax = *p->kmax;
     MYFLT kmin = *p->kmin;
-    if (max>min && /* fmax>=fmin && */ *p->kinval<= max && *p->kinval >= min) {
-      *p->koutval = ((*p->kinval - min)/(max-min))* (kmax - kmin) + kmin;
-    } else {
-      //printf("** input (%g,%g) output (%g,%g) val %g\n",
-      //       min, max, kmin, kmax, *p->kinval);
-      //printf("%d %d %d %d\n",
-      //       max>min, fmax>fmin, *p->kinval<= max, *p->kinval >= min);
-      return csound->InitError(csound, Str("Invalid range in scale"));
-    }
+    MYFLT val = *p->kinval;
+    if (max < min) { max = min ; min = *p->imax; }
+    if (kmax < kmin) { kmax = kmin ; kmin = *p->kmax; }
+    if (val > max) val = max;
+    else if (val < min) val = min;
+
+    //if (max>min && /* fmax>=fmin && */ *p->kinval<= max && *p->kinval >= min) {
+      *p->koutval = ((val - min)/(max-min))* (kmax - kmin) + kmin;
+    /* } else { */
+    /*   //printf("** input (%g,%g) output (%g,%g) val %g\n", */
+    /*   //       min, max, kmin, kmax, *p->kinval); */
+    /*   //printf("%d %d %d %d\n", */
+    /*   //       max>min, fmax>fmin, *p->kinval<= max, *p->kinval >= min); */
+    /*   return csound->InitError(csound, Str("Invalid range in scale")); */
+    /* } */
     return OK;
 }
 

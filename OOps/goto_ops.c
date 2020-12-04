@@ -287,7 +287,7 @@ int32_t turnoff3(CSOUND *csound, TURNOFF2 *p, int32_t isStringArg)
       return csoundPerfError(csound, &(p->h),
                              Str("turnoff3: invalid instrument number"));
     }
-    delete_selected_rt_events(csound, insno); 
+    delete_selected_rt_events(csound, insno);
     return OK;
 }
 

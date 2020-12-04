@@ -274,7 +274,7 @@ static int32_t SfAssignAllPresets(CSOUND *csound, SFPASSIGN *p)
       csound->Message(csound, Str("\nAll presets have been assigned to preset"
                                   " handles from %d to %d\n\n"),
                               (int32_t) *p->startNum, pHandle - 1);
-   
+
     return OK;
 }
 

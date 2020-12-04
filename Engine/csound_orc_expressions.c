@@ -764,7 +764,7 @@ static TREE *create_expression(CSOUND *csound, TREE *root, int line, int locn,
                               typeTable->localPool->synthArgCount++, typeTable);
 
     }
-        
+
     break;
     /* it should not get here, but if it does,
        return NULL */

@@ -229,7 +229,7 @@ static OENTRY wter_localops[] = {
     (SUBR)wtinit, (SUBR)wtPerf },
 };
 
-//LINKAGE 
+//LINKAGE
 int32_t wter2_init_(CSOUND *csound)
 {
     return csound->AppendOpcodes(csound, &(wter_localops[0]),
