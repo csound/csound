@@ -515,6 +515,16 @@ typedef struct {
     MYFLT c1, c2, yt1;
 } ARD_READ;
 
+typedef struct {
+    OPDS  h;
+    MYFLT *val;
+    MYFLT *port;
+    MYFLT *index1;
+    MYFLT *index2;
+    MYFLT *index3;
+    ARDUINO_GLOBALS *q;
+} ARD_READF;
+
 #ifndef WIN32
 /* NOTE we need to remove timeout status VMIN/VTIME maybe */
 unsigned char arduino_get_byte(int32_t port)
@@ -665,6 +675,44 @@ int32_t arduinoRead(CSOUND* csound, ARD_READ* p)
     return OK;
 }
 
+int32_t arduinoReadFSetup(CSOUND* csound, ARD_READF* p)
+{
+    p->q = (ARDUINO_GLOBALS*) csound->QueryGlobalVariable(csound,
+                                                      "arduinoGlobals_");
+    if (p->q == NULL)
+      return csound->InitError(csound, "%s", Str("arduinoStart not running\n"));
+    return OK;
+}
+
+typedef union {
+  float   f;
+  int32_t i;
+} JOINT;
+
+int32_t arduinoReadF(CSOUND* csound, ARD_READF* p)
+{
+    ARDUINO_GLOBALS *q = p->q;
+    JOINT val;
+    int ind1 = *p->index1;
+    int ind2 = *p->index2;
+    int ind3 = *p->index3;
+    int c1, c2, c3;
+    if (ind1<0 || ind1>MAXSENSORS ||
+        ind2<0 || ind2>MAXSENSORS ||
+        ind3 <0 || ind3>MAXSENSORS)
+      return csound->PerfError(csound, &p->h,
+                               "%s", Str("out of range\n"));
+    csound->LockMutex(q->lock);
+    c1 = q->values[ind1];
+    c2 = q->values[ind2];
+    c3 = q->values[ind3];
+    csound->UnlockMutex(q->lock);
+    //printf("ind %d val %d\n", ind, q->values[ind]);
+    val.i = (c3<<22)|(c2<<12)|(c1<<2);
+    *p->val = (MYFLT)val.f;
+    return OK;
+}
+
 int32_t arduinoStop(CSOUND* csound, ARD_START* p)
 {
     ARDUINO_GLOBALS *q =
@@ -706,7 +754,10 @@ static OENTRY serial_localops[] = {
     { (char *)"serialFlush", S(SERIALFLUSH), 0, 2, (char *)"", (char *)"i",
       (SUBR)NULL, (SUBR)serialFlush, (SUBR)NULL   },
     { "arduinoStart", S(ARD_START), 0, 1, "i", "So", (SUBR)arduinoStart, NULL  },
-    { "arduinoRead", S(ARD_READ), 0, 3, "k", "iio", (SUBR)arduinoReadSetup, (SUBR)arduinoRead  },
+    { "arduinoRead", S(ARD_READ), 0, 3, "k", "iio",
+      (SUBR)arduinoReadSetup, (SUBR)arduinoRead  },
+    { "arduinoReadF", S(ARD_READF), 0, 3, "k", "iiii",
+      (SUBR)arduinoReadFSetup, (SUBR)arduinoReadF  },
     { "arduinoStop", S(ARD_START), 0, 1, "", "i", (SUBR)arduinoStop, NULL  },
 /* { (char *)"serialAvailable", S(SERIALAVAIL), 0, 2, (char *)"k", (char *)"i", */
 /*   (SUBR)NULL, (SUBR)serialAvailable, (SUBR)NULL   }, */
