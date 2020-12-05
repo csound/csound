@@ -21,6 +21,9 @@
     02110-1301 USA
 */
 
+/* scale modified and scale2 written as a replacement by JPff Dec 2020 */
+
+
 #include "csoundCore.h"
 #include "interlocks.h"
 #include <math.h>
@@ -38,7 +41,7 @@ typedef struct _scale {
 typedef struct _scale2 {
   OPDS  h;
   MYFLT *koutval;
-  MYFLT *kinval, *kmax, *kmin, *imax, *imin, *ihtim;
+  MYFLT *kinval, *kmin, *kmax, *imin, *imax, *ihtim;
   MYFLT c1, c2, yt1;
 } SCALE2;
 
@@ -125,7 +128,9 @@ static int32_t expcurve_perf(CSOUND *csound, expcurve *p)
     IGN(csound);
     MYFLT ki = *p->kin;
     MYFLT ks = *p->ksteepness;
-    *p->kout = EXPCURVE(ki, ks);
+    if (ks <= FL(1.0)) *p->kout = ki;
+    else 
+      *p->kout = EXPCURVE(ki, ks);
 
     return OK;
 }
@@ -137,7 +142,9 @@ static int32_t logcurve_perf(CSOUND *csound, logcurve *p)
     IGN(csound);
     MYFLT ki = *p->kin;
     MYFLT ks = *p->ksteepness;
-    *p->kout = LOGCURVE(ki, ks);
+    if (ks == FL(1.0)) *p->kout = ki;
+    else 
+      *p->kout = LOGCURVE(ki, ks);
 
     return OK;
 }
