@@ -495,6 +495,7 @@ typedef struct {
   void *lock;
     int stop;
     int32_t values[MAXSENSORS];
+    int32_t buffer[MAXSENSORS];
 } ARDUINO_GLOBALS;
 
 typedef struct {
@@ -569,6 +570,11 @@ uintptr_t arduino_listen(void *p)
     // Should be synced now
     while (1) {
       unsigned int hi, low;
+      // critical region
+      csound->LockMutex(q->lock);
+      memcpy(q->values, q->buffer, MAXSENSORS*sizeof(int32_t));
+      csound->UnlockMutex(q->lock);
+      // end critical region
       if (q->stop)
         //#ifndef WIN32
         //pthread_exit(NULL);
@@ -583,11 +589,7 @@ uintptr_t arduino_listen(void *p)
       val = ((hi&0x7)<<7) | (low&0x7f);
       c = (hi>>3)&0x1f;
       if (DEBUG) printf("Sensor %d value %d(%.2x)\n", c, val, val);
-      // critical region
-      csound->LockMutex(q->lock);
-      q->values[c] = val;
-      csound->UnlockMutex(q->lock);
-      // end critical region
+      q->buffer[c] = val;
     }
     return ans;
 }
