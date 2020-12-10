@@ -520,6 +520,7 @@ typedef struct {
 } BPFARRPOINTS;
 
 static int32_t bpfarrpoints(CSOUND *csound, BPFARRPOINTS *p) {
+    IGN(csound);
     int32_t numxs = p->xs->sizes[0];
     int32_t numys = p->ys->sizes[0];
     int32_t N = numxs < numys ? numxs : numys;
@@ -572,6 +573,7 @@ static inline int32_t bpfidx(MYFLT x, MYFLT *xs, int32_t xslen) {
 }
 
 static int32_t bpfcosarrpoints(CSOUND *csound, BPFARRPOINTS *p) {
+    IGN(csound);
     int32_t numxs = p->xs->sizes[0];
     int32_t numys = p->ys->sizes[0];
     int32_t N = numxs < numys ? numxs : numys;
@@ -2798,10 +2800,7 @@ static OENTRY localops[] = {
       (SUBR)array_binop_init, (SUBR)array_and},
     { "reshapearray", S(ARRAYRESHAPE), 0, 1, "", ".[]io", (SUBR)arrayreshape},
 
-    // { "reshapearray", S(ARRAYRESHAPE), 0, 1, "", "i[]io", (SUBR)arrayreshape},
- // { "reshapearray", S(ARRAYRESHAPE), 0, 2, "", ".[]io", NULL, (SUBR)arrayreshape},
-    { "ftslicei", S(TABSLICE), TB, 1, "", "iioop",
-      (SUBR)tabslice_i },
+    { "ftslicei", S(TABSLICE), TB, 1, "", "iioop", (SUBR)tabslice_i },
 
     { "ftslice.perf", S(TABSLICE),  TB, 3, "", "iiOOP",
       (SUBR)tabslice_init, (SUBR)tabslice_k},
