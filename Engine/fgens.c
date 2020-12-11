@@ -1370,7 +1370,7 @@ static MYFLT nextval(FILE *f)
       } while (isdigit(c) || c=='e' || c=='E' || c=='+' || c=='-' || c=='.');
       buff[j]='\0';
       d = atof(buff);
-      if (c==';' || c=='#') {             /* If exended with comment clear it now */
+      if (c==';' || c=='#') {             /* If extended with comment clear it now */
         while ((c = getc(f)) != '\n');
       }
       return (MYFLT)d;
