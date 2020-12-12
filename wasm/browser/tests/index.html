@@ -13,6 +13,7 @@
     <div id="mocha"></div>
     <script type="module">
       const url = "/libcsound.dev.mjs";
+      import(url).then(console.log).catch(console.error);
       const helloWorld = `
       <CsoundSynthesizer>
         <CsOptions>
@@ -44,11 +45,11 @@
         </CsScore>
       </CsoundSynthesizer>
       `;
-      mocha.setup("bdd");
-      mocha.fullTrace();
+      mocha.setup("bdd").fullTrace();
       describe("@csound/browser", async () => {
         /*
       it("has correct API", async () => {
+      console.log("sanity");
       const { Csound } = await import(url);
       const csoundObj = await Csound();
       console.log("returns?", csoundObj);
@@ -71,6 +72,7 @@
           this.timeout(10000);
           const { Csound } = await import(url);
           const csoundObj = await Csound();
+          console.log("Csound", csoundObj);
           const compileReturn = await csoundObj.compileCsdText(shortTone);
           assert.equal(compileReturn, 0);
           const startReturn = await csoundObj.start();

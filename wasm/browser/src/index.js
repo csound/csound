@@ -38,14 +38,16 @@ export async function Csound({
 
   // SingleThread implementations
   if (!useWorker) {
-    if(workletSupport) {
-        console.log("Single Thread AudioWorklet");
+    if (workletSupport) {
+      console.log("Single Thread AudioWorklet", audioContext);
       const instance = new SingleThreadAudioWorkletMainThread({ audioContext });
-      return await instance.initialize(wasmDataURI);
-    } else if(spnSupport) {
-        console.log("Single Thread ScriptProcessorNode");
+      await instance.initialize(wasmDataURI);
+      return instance;
+    } else if (spnSupport) {
+      console.log("Single Thread ScriptProcessorNode");
       const instance = new ScriptProcessorNodeSingleThread({ audioContext });
-      return await instance.initialize(wasmDataURI);
+      await instance.initialize(wasmDataURI);
+      return instance;
     } else {
       log.error("No detectable WebAudioAPI in current environment");
       return undefined;

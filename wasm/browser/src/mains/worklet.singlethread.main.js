@@ -24,53 +24,84 @@
 import WorkletWorker from "@root/workers/worklet.singlethread.worker";
 import * as Comlink from "comlink";
 import { logWorklet } from "@root/logger";
+import { csoundApiRename, makeProxyCallback } from "@root/utils";
+import { api as API } from "@root/libcsound";
 
-let initialized = false;
-const initializeModule = async (audioContext) => {
-
-    console.log("Initialize Module");
-    if(!initialized) {
-        await audioContext.audioWorklet.addModule(WorkletWorker());
-        initialized = true;
-    }
-
-    return true;
-}
+// let initialized = false;
+// const initializeModule = async (audioContext) => {
+//   console.log("Initialize Module");
+//   if (!initialized) {
+//     await audioContext.audioWorklet.addModule(WorkletWorker());
+//     initialized = true;
+//   }
+//   return true;
+// };
 
 class SingleThreadAudioWorkletMainThread {
-  constructor({audioContext, numberOfInputs = 1, numberOfOutputs = 2 }) {
-      this.audioContext = audioContext;
-      this.inputChannelCount = numberOfInputs;
-      this.outputChannelCount = numberOfOutputs;
+  constructor({ audioContext, numberOfInputs = 1, numberOfOutputs = 2 }) {
+    this.audioContext = audioContext;
+    this.inputChannelCount = numberOfInputs;
+    this.outputChannelCount = numberOfOutputs;
   }
 
   getNode() {
-      return this.node;
+    return this.node;
   }
 
-  async initialize() {
-    await initializeModule(this.audioContext);
+  async initialize(wasmDataURI) {
+    // await initializeModule(this.audioContext);
 
-      console.log("Initializing Module");
-      const options = {};
-      options.numberOfInputs  = this.inputChannelCount;
-      options.numberOfOutputs = 1;
-      options.outputChannelCount = [ this.outputChannelCount ];
+    // if (!this.wasm) {
+    //   this.wasm = await loadWasm(wasmDataURI);
+    // }
+    // libcsound
+    // const csoundApi = libcsoundFactory(this.wasm);
+    // this.worker = WorkletWorker;
+    console.log("Initializing Module");
+    // const options = {};
+    // options.numberOfInputs = this.inputChannelCount;
+    // options.numberOfOutputs = 1;
+    // options.outputChannelCount = [this.outputChannelCount];
+    await this.audioContext.audioWorklet.addModule(WorkletWorker());
 
-      console.log("Creating AudioWorkletNode");
-      this.node = new AudioWorkletNode(this.audioContext, "Csound", options);
+    console.log("moduleinitialized");
+    // const createWorkletNode = (audoContext, inputsCount) => {
+    //   return
+    // };
 
-      try {
-          logWorklet("wrapping Comlink proxy endpoint on the audioWorkletNode.port");
-          this.workletProxy = Comlink.wrap(this.node.port);
-      } catch (error) {
-          console.log("COMLINK ERROR", error);
-      }
-    return this;
+    // this.node = createWorkletNode(this.audoContext, this.inputChannelCount);
+    this.node = new AudioWorkletNode(this.audioContext, "csound-singlethread-worklet-processor", {
+      inputChannelCount: this.inputChannelCount ? [this.inputChannelCount] : 0,
+      outputChannelCount: [this.outputChannelCount || 2],
+    });
+
+    try {
+      logWorklet("wrapping Comlink proxy endpoint on the audioWorkletNode.port");
+      this.workletProxy = Comlink.wrap(this.node.port);
+    } catch (error) {
+      console.log("COMLINK ERROR", error);
+    }
+    const csoundInstance = 0;
+
+    console.log("NODE initialized", this.workletProxy);
+    const res = await this.workletProxy(wasmDataURI);
+
+    // makeProxyCallback(this.workletProxy, csoundInstance, "initialize");
+
+    for (const apiK of Object.keys(API)) {
+      const reference = API[apiK];
+      const proxyCallback = makeProxyCallback(this.workletProxy, csoundInstance, apiK);
+    }
+    // csoundObj
+    // Object.keys(csoundApi).reduce((acc, apiName) => {
+    //   const renamedApiName = csoundApiRename(apiName);
+    //   acc[renamedApiName] = makeSingleThreadCallback(csoundInstance, csoundApi[apiName]);
+    //   return acc;
+    // }, this.exportApi);
+
+    return {};
   }
-
 }
-
 
 // /** This ES6 Class defines a Custom Node as an AudioWorkletNode
 //  *  that holds a Csound engine.
@@ -447,6 +478,4 @@ class SingleThreadAudioWorkletMainThread {
 //     }
 // }
 
-
 export default SingleThreadAudioWorkletMainThread;
-

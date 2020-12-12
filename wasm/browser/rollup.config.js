@@ -111,7 +111,21 @@ export default [
       sourcemap: false,
       globals,
     },
-    plugins: [...pluginsCommon, babelCommon, ...(PROD ? [terser()] : [])],
+    plugins: [
+      alias({
+        entries: {
+          "@wasmer/wasm-transformer/lib/wasm-transformer.wasm":
+            "@wasmer/wasm-transformer/lib/wasm-transformer.wasm",
+          "@wasmer/wasm-transformer": resolve("./script/polyfilled-transformer.js"),
+        },
+      }),
+      arraybufferPlugin({
+        include: ["@wasmer/wasm-transformer/lib/wasm-transformer.wasm"],
+      }),
+      ...pluginsCommon,
+      babelCommon,
+      ...(PROD ? [terser()] : []),
+    ],
   },
   {
     input: "src/workers/old-spn.worker.js",
@@ -138,11 +152,7 @@ export default [
     plugins: [
       ...pluginsCommon,
       inlineWebWorkerPlugin({
-        include: ["**/worklet.worker.js"],
-        dataUrl: true,
-      }),
-      inlineWebWorkerPlugin({
-        include: ["**/worklet.singlethread.worker.js"],
+        include: ["**/worklet.worker.js", "**/worklet.singlethread.worker.js"],
         dataUrl: true,
       }),
       inlineWebWorkerPlugin({

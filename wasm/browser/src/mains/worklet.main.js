@@ -78,7 +78,7 @@ class AudioWorkletMainThread {
 
     try {
       logWorklet("wrapping Comlink proxy endpoint on the audioWorkletNode.port");
-      this.workletProxy = Comlink.wrap(this.audioWorkletNode.port);
+      this.workletProxy = Comlink.wrap(this.audioWorkletNodes.port);
     } catch (error) {
       log.error("COMLINK ERROR", error);
     }
