@@ -34,36 +34,9 @@ import { logWorklet } from "@root/logger";
 //   broadcastPlayState: () => {},
 // };
 
-// let wasm;
-// let libraryCsound;
-// let combined;
-
-// const callUncloned = async (k, arguments_) => {
-//   const caller = combined.get(k);
-//   const ret = caller && caller.apply({}, arguments_ || []);
-//   return ret;
-// };
-
-// const initialize = async (wasmDataURI) => {
-//     logWorklet(`initializing wasm and exposing csoundAPI functions from worker to main`);
-//     wasm = wasm || (await loadWasm(wasmDataURI));
-//     libraryCsound = libraryCsound || libcsoundFactory(wasm);
-//     // const startHandler = handleCsoundStart(
-//     //     workerMessagePort,
-//     //     libraryCsound,
-//     //     createRealtimeAudioThread,
-//     // );
-//     const allAPI = pipe(
-//         assoc("writeToFs", writeToFs),
-//         assoc("readFromFs", readFromFs),
-//         assoc("lsFs", lsFs),
-//         assoc("llFs", llFs),
-//         assoc("rmrfFs", rmrfFs),
-//         assoc("csoundStart", startHandler),
-//         assoc("wasm", wasm),
-//     )(libraryCsound);
-//     combined = new Map(Object.entries(allAPI));
-// };
+let wasm;
+let libraryCsound;
+let combined;
 
 // const CSMOD = {}
 //
@@ -78,50 +51,32 @@ import { logWorklet } from "@root/logger";
 // CSMOD["print"] = printMessages;
 // CSMOD["printErr"] = printMessages;
 
-// INITIALIAZE WASM
-// libcsound(CSMOD);
 
-// SETUP FS
-
-// const FS = CSMOD["FS"];
-// const MEMFS = CSMOD["FS"].filesystems.MEMFS;
-// const pointerStringify = CSMOD["Pointer_stringify"];
-//
-// // FS Helpers
-// const pathToArr = path => {
-//     if (!path) return [];
-//     const minusPrefix = path.replace(/^\//i, "");
-//     const minusPostfix = minusPrefix.replace(/\/$/i, "");
-//     return minusPostfix.split("/");
-// };
-// const ensureRootPrefix = path => (/^\//i.test(path) ? path : `/${path}`);
-// const lsRoot = () => Object.values(FS.nameTable.map(t => t.name));
-//
-// const dirExists = path => {
-//     const pathArr = pathToArr(path);
-//     const result = pathArr.reduce(
-//         ([currMount, bool], item, index) => {
-//             const curPath = ensureRootPrefix(
-//                 pathArr.slice(0, index + 1).join("/")
-//             );
-//             if (!bool) return [null, false];
-//             if (currMount.some(m => m.mountpoint === curPath)) {
-//                 return [
-//                     currMount.find(m => m.mountpoint === curPath).mounts,
-//                     true
-//                 ];
-//             } else {
-//                 return [null, false];
-//             }
-//         },
-//         [FS.root.mount.mounts, true]
-//     );
-//     return result[1];
-// };
 const callUncloned = async (k, arguments_) => {
   const caller = combined.get(k);
   const ret = caller && caller.apply({}, arguments_ || []);
   return ret;
+};
+
+const handleCsoundStart = (workerMessagePort, libraryCsound) => (_, arguments_) => {
+  const { csound } = arguments_;
+
+  const startError = libraryCsound.csoundStart(csound);
+  const outputName = libraryCsound.csoundGetOutputName(csound) || "test.wav";
+  log(`handleCsoundStart: actual csoundStart result ${startError}, outputName: ${outputName}`);
+  if (startError !== 0) {
+    workerMessagePort.post(
+      `error: csoundStart failed while trying to render ${outputName},` +
+        " look out for errors in options and syntax",
+    );
+  }
+
+  // Do rendering
+  workerMessagePort.broadcastPlayState("renderStarted");
+  while (libraryCsound.csoundPerformKsmps(csound) === 0) {}
+  workerMessagePort.broadcastPlayState("renderEnded");
+
+  return startError;
 };
 
 class WorkletSinglethreadWorker extends AudioWorkletProcessor {
@@ -168,11 +123,7 @@ class WorkletSinglethreadWorker extends AudioWorkletProcessor {
   async initialize(wasmDataURI) {
     wasm = await loadWasm(wasmDataURI);
     libraryCsound = libcsoundFactory(wasm);
-    const startHandler = handleCsoundStart(
-      workerMessagePort,
-      libraryCsound,
-      sabCreateRealtimeAudioThread,
-    );
+    const startHandler = handleCsoundStart(this.port, libraryCsound);
     const allAPI = pipe(
       assoc("writeToFs", writeToFs),
       assoc("readFromFs", readFromFs),

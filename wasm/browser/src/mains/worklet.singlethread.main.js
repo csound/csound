@@ -76,7 +76,7 @@ class SingleThreadAudioWorkletMainThread {
     });
 
     try {
-      logWorklet("wrapping Comlink proxy endpoint on the audioWorkletNode.port");
+      console.log("wrapping Comlink proxy endpoint on the audioWorkletNode.port");
       this.workletProxy = Comlink.wrap(this.node.port);
     } catch (error) {
       console.log("COMLINK ERROR", error);
