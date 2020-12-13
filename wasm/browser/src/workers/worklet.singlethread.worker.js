@@ -51,30 +51,25 @@ let combined;
 // CSMOD["print"] = printMessages;
 // CSMOD["printErr"] = printMessages;
 
-
 const callUncloned = async (k, arguments_) => {
   const caller = combined.get(k);
   const ret = caller && caller.apply({}, arguments_ || []);
   return ret;
 };
 
-const handleCsoundStart = (workerMessagePort, libraryCsound) => (_, arguments_) => {
-  const { csound } = arguments_;
-
+const handleCsoundStart = (workerMessagePort, libraryCsound) => (...arguments_) => {
+  const csound = arguments_[0];
   const startError = libraryCsound.csoundStart(csound);
   const outputName = libraryCsound.csoundGetOutputName(csound) || "test.wav";
-  log(`handleCsoundStart: actual csoundStart result ${startError}, outputName: ${outputName}`);
+  logWorklet(
+    `handleCsoundStart: actual csoundStart result ${startError}, outputName: ${outputName}`,
+  );
   if (startError !== 0) {
     workerMessagePort.post(
       `error: csoundStart failed while trying to render ${outputName},` +
         " look out for errors in options and syntax",
     );
   }
-
-  // Do rendering
-//   workerMessagePort.broadcastPlayState("renderStarted");
-//   while (libraryCsound.csoundPerformKsmps(csound) === 0) {}
-//   workerMessagePort.broadcastPlayState("renderEnded");
 
   return startError;
 };
@@ -88,8 +83,8 @@ class WorkletSinglethreadWorker extends AudioWorkletProcessor {
     super(options);
     this.initialize = this.initialize.bind(this);
     // Comlink.expose(this.initialize, this.port);
-    this.callUncloned = callUncloned;
-
+    this.callUncloned = () => console.error("Csound worklet thread is still uninitialized!");
+    this.port.start();
     Comlink.expose(this, this.port);
     // let p = this.port;
     // printCallbacks.push((t) => {
@@ -117,12 +112,12 @@ class WorkletSinglethreadWorker extends AudioWorkletProcessor {
     // Csound.setOption(csObj, "--nchnls_i=" + this.nchnls_i);
     //
     // this.port.onmessage = this.handleMessage.bind(this);
-    this.port.start();
   }
 
   async initialize(wasmDataURI) {
     wasm = await loadWasm(wasmDataURI);
     libraryCsound = libcsoundFactory(wasm);
+    this.callUncloned = callUncloned;
     const startHandler = handleCsoundStart(this.port, libraryCsound);
     const allAPI = pipe(
       assoc("writeToFs", writeToFs),
@@ -134,10 +129,6 @@ class WorkletSinglethreadWorker extends AudioWorkletProcessor {
       assoc("wasm", wasm),
     )(libraryCsound);
     combined = new Map(Object.entries(allAPI));
-
-    // this.wasm = await loadWasm(wasmDataURI);
-    // this.libcsound = libcsoundFactory(wasm);
-    // return this.libcsound;
   }
 
   process(inputs, outputs, parameters) {

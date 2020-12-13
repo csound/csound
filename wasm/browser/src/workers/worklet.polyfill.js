@@ -42,6 +42,14 @@ var TextDecoder = function (encoding, options) {
   if (typeof this.fatal !== "boolean") {
     throw new TypeError("fatal flag must be boolean");
   }
+  this.trimNull = (a) => {
+    const c = a.indexOf("\0");
+    if (c > -1) {
+      return a.substr(0, c);
+    }
+    return a;
+  };
+
   this.decode = function (view, options) {
     if (typeof view === "undefined") {
       return "";
@@ -60,7 +68,7 @@ var TextDecoder = function (encoding, options) {
       arr.forEach(function (charcode, i) {
         charArr[i] = String.fromCharCode(charcode);
       });
-      return decodeURIComponent(escape(charArr.join("")));
+      return this.trimNull(charArr.join(""));
     }
   };
 };

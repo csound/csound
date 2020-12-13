@@ -41,13 +41,11 @@ export async function Csound({
     if (workletSupport) {
       console.log("Single Thread AudioWorklet", audioContext);
       const instance = new SingleThreadAudioWorkletMainThread({ audioContext });
-      await instance.initialize(wasmDataURI);
-      return instance;
+      return await instance.initialize(wasmDataURI);
     } else if (spnSupport) {
       console.log("Single Thread ScriptProcessorNode");
       const instance = new ScriptProcessorNodeSingleThread({ audioContext });
-      await instance.initialize(wasmDataURI);
-      return instance;
+      return await instance.initialize(wasmDataURI);
     } else {
       log.error("No detectable WebAudioAPI in current environment");
       return undefined;
