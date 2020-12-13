@@ -27,15 +27,15 @@ import { logWorklet } from "@root/logger";
 import { csoundApiRename, makeProxyCallback } from "@root/utils";
 import { api as API } from "@root/libcsound";
 
-// let initialized = false;
-// const initializeModule = async (audioContext) => {
-//   console.log("Initialize Module");
-//   if (!initialized) {
-//     await audioContext.audioWorklet.addModule(WorkletWorker());
-//     initialized = true;
-//   }
-//   return true;
-// };
+let initialized = false;
+const initializeModule = async (audioContext) => {
+  console.log("Initialize Module");
+  if (!initialized) {
+    await audioContext.audioWorklet.addModule(WorkletWorker());
+    initialized = true;
+  }
+  return true;
+};
 
 class SingleThreadAudioWorkletMainThread {
   constructor({ audioContext, numberOfInputs = 1, numberOfOutputs = 2 }) {
@@ -49,7 +49,7 @@ class SingleThreadAudioWorkletMainThread {
   }
 
   async initialize(wasmDataURI) {
-    // await initializeModule(this.audioContext);
+    await initializeModule(this.audioContext);
 
     // if (!this.wasm) {
     //   this.wasm = await loadWasm(wasmDataURI);
@@ -57,14 +57,14 @@ class SingleThreadAudioWorkletMainThread {
     // libcsound
     // const csoundApi = libcsoundFactory(this.wasm);
     // this.worker = WorkletWorker;
-    console.log("Initializing Module");
+    // console.log("Initializing Module");
     // const options = {};
     // options.numberOfInputs = this.inputChannelCount;
     // options.numberOfOutputs = 1;
     // options.outputChannelCount = [this.outputChannelCount];
-    await this.audioContext.audioWorklet.addModule(WorkletWorker());
+    // await this.audioContext.audioWorklet.addModule(WorkletWorker());
 
-    console.log("moduleinitialized");
+    // console.log("moduleinitialized");
     // const createWorkletNode = (audoContext, inputsCount) => {
     //   return
     // };

@@ -87,10 +87,10 @@ class WorkletSinglethreadWorker extends AudioWorkletProcessor {
   constructor(options) {
     super(options);
     this.initialize = this.initialize.bind(this);
-    Comlink.expose(this.initialize, this.port);
+    // Comlink.expose(this.initialize, this.port);
     this.callUncloned = callUncloned;
 
-    // Comlink.expose(this, this.port);
+    Comlink.expose(this, this.port);
     // let p = this.port;
     // printCallbacks.push((t) => {
     //     p.postMessage(["log", t]);
@@ -117,7 +117,7 @@ class WorkletSinglethreadWorker extends AudioWorkletProcessor {
     // Csound.setOption(csObj, "--nchnls_i=" + this.nchnls_i);
     //
     // this.port.onmessage = this.handleMessage.bind(this);
-    // this.port.start();
+    this.port.start();
   }
 
   async initialize(wasmDataURI) {
