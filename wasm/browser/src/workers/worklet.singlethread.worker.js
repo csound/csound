@@ -72,9 +72,9 @@ const handleCsoundStart = (workerMessagePort, libraryCsound) => (_, arguments_) 
   }
 
   // Do rendering
-  workerMessagePort.broadcastPlayState("renderStarted");
-  while (libraryCsound.csoundPerformKsmps(csound) === 0) {}
-  workerMessagePort.broadcastPlayState("renderEnded");
+//   workerMessagePort.broadcastPlayState("renderStarted");
+//   while (libraryCsound.csoundPerformKsmps(csound) === 0) {}
+//   workerMessagePort.broadcastPlayState("renderEnded");
 
   return startError;
 };
