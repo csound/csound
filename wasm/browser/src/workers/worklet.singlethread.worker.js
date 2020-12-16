@@ -52,6 +52,7 @@ let combined;
 // CSMOD["printErr"] = printMessages;
 
 const callUncloned = async (k, arguments_) => {
+  console.log("calling " + k);
   const caller = combined.get(k);
   const ret = caller && caller.apply({}, arguments_ || []);
   return ret;
@@ -61,15 +62,15 @@ const handleCsoundStart = (workerMessagePort, libraryCsound) => (...arguments_) 
   const csound = arguments_[0];
   const startError = libraryCsound.csoundStart(csound);
   const outputName = libraryCsound.csoundGetOutputName(csound) || "test.wav";
-  logWorklet(
-    `handleCsoundStart: actual csoundStart result ${startError}, outputName: ${outputName}`,
-  );
-  if (startError !== 0) {
-    workerMessagePort.post(
-      `error: csoundStart failed while trying to render ${outputName},` +
-        " look out for errors in options and syntax",
-    );
-  }
+  // logWorklet(
+  //   `handleCsoundStart: actual csoundStart result ${startError}, outputName: ${outputName}`,
+  // );
+  // if (startError !== 0) {
+  //   workerMessagePort.post(
+  //     `error: csoundStart failed while trying to render ${outputName},` +
+  //       " look out for errors in options and syntax",
+  //   );
+  // }
 
   return startError;
 };
@@ -81,6 +82,7 @@ class WorkletSinglethreadWorker extends AudioWorkletProcessor {
 
   constructor(options) {
     super(options);
+    this.options = options;
     this.initialize = this.initialize.bind(this);
     // Comlink.expose(this.initialize, this.port);
     this.callUncloned = () => console.error("Csound worklet thread is still uninitialized!");
@@ -93,42 +95,51 @@ class WorkletSinglethreadWorker extends AudioWorkletProcessor {
     // let csObj = Csound.new();
     // this.csObj = csObj;
     // // engine status
-    // this.result = 0;
-    // this.running = false;
-    // this.started = false;
-    // this.sampleRate = sampleRate;
-    //
-    // Csound.setMidiCallbacks(csObj);
-    // Csound.setOption(csObj, "-odac");
-    // Csound.setOption(csObj, "-iadc");
-    // Csound.setOption(csObj, "-M0");
-    // Csound.setOption(csObj, "-+rtaudio=null");
-    // Csound.setOption(csObj, "-+rtmidi=null");
-    // Csound.setOption(csObj, "--sample-rate="+sampleRate);
-    // Csound.prepareRT(csObj);
-    // this.nchnls = options.outputChannelCount[0];
-    // this.nchnls_i = options.numberOfInputs;
-    // Csound.setOption(csObj, "--nchnls=" + this.nchnls);
-    // Csound.setOption(csObj, "--nchnls_i=" + this.nchnls_i);
     //
     // this.port.onmessage = this.handleMessage.bind(this);
   }
 
   async initialize(wasmDataURI) {
-    wasm = await loadWasm(wasmDataURI);
+    wasm = this.wasm = await loadWasm(wasmDataURI);
     libraryCsound = libcsoundFactory(wasm);
     this.callUncloned = callUncloned;
+    let cs = this.csound = libraryCsound.csoundCreate(0);
+
+    this.result = 0;
+    this.running = false;
+    this.started = false;
+    this.sampleRate = sampleRate;
+    libraryCsound.csoundSetMidiCallbacks(cs);
+    libraryCsound.csoundSetOption(cs, "-odac");
+    libraryCsound.csoundSetOption(cs, "-iadc");
+    libraryCsound.csoundSetOption(cs, "-M0");
+    libraryCsound.csoundSetOption(cs, "-+rtaudio=null");
+    libraryCsound.csoundSetOption(cs, "-+rtmidi=null");
+    libraryCsound.csoundSetOption(cs, "--sample-rate="+sampleRate);
+    // libraryCsound.prepareRT(cs);
+    this.nchnls = this.options.outputChannelCount[0];
+    this.nchnls_i = this.options.numberOfInputs;
+    libraryCsound.csoundSetOption(cs, "--nchnls=" + this.nchnls);
+    libraryCsound.csoundSetOption(cs, "--nchnls_i=" + this.nchnls_i);
+
     const startHandler = handleCsoundStart(this.port, libraryCsound);
+    const csoundCreate = (v) => {
+      console.log("Calling csoundCreate");
+      return this.csound;
+    }
     const allAPI = pipe(
       assoc("writeToFs", writeToFs),
       assoc("readFromFs", readFromFs),
       assoc("lsFs", lsFs),
       assoc("llFs", llFs),
       assoc("rmrfFs", rmrfFs),
-      assoc("csoundStart", startHandler),
+      assoc("csoundCreate", csoundCreate),
+      // assoc("csoundStart", startHandler),
+      assoc("csoundStart", this.start.bind(this)),
       assoc("wasm", wasm),
     )(libraryCsound);
     combined = new Map(Object.entries(allAPI));
+    // console.log("AAA", combined);
   }
 
   process(inputs, outputs, parameters) {
@@ -162,13 +173,13 @@ class WorkletSinglethreadWorker extends AudioWorkletProcessor {
     for (let i = 0; i < bufferLen; i++, cnt++) {
       if (cnt == ksmps && result == 0) {
         // if we need more samples from Csound
-        result = Csound.performKsmps(this.csObj);
+        result = libraryCsound.csoundPerformKsmps(this.csound);
         cnt = 0;
 
         if (result != 0) {
           this.running = false;
           this.started = false;
-          Csound.cleanup(this.csObj);
+          libraryCsound.csoundCleanup(this.csound);
           this.firePlayStateChange();
         }
       }
@@ -191,29 +202,34 @@ class WorkletSinglethreadWorker extends AudioWorkletProcessor {
   }
 
   start() {
+    console.log("START CALLED: started already? " + this.started);
+    let retVal = -1;
     if (this.started == false) {
-      let csObj = this.csObj;
-      let ksmps = Csound.getKsmps(csObj);
+      let cs = this.csound;
+      let ksmps = libraryCsound.csoundGetKsmps(cs);
       this.ksmps = ksmps;
       this.cnt = ksmps;
 
-      let outputPointer = Csound.getOutputBuffer(csObj);
-      this.csoundOutputBuffer = new Float32Array(
-        CSMOD.HEAP8.buffer,
+      let outputPointer = libraryCsound.csoundGetOutputBuffer(cs);
+      this.csoundOutputBuffer = new Float64Array(
+        this.wasm.exports.memory.buffer,
         outputPointer,
         ksmps * this.nchnls,
       );
-      let inputPointer = Csound.getInputBuffer(csObj);
-      this.csoundInputBuffer = new Float32Array(
-        CSMOD.HEAP8.buffer,
+      let inputPointer = libraryCsound.csoundGetInputBuffer(cs);
+      this.csoundInputBuffer = new Float64Array(
+        this.wasm.exports.memory.buffer,
         inputPointer,
         ksmps * this.nchnls_i,
       );
-      this.zerodBFS = Csound.getZerodBFS(csObj);
+      this.zerodBFS = libraryCsound.csoundGet0dBFS(cs);
+      retVal = libraryCsound.csoundStart(cs);
       this.started = true;
     }
     this.running = true;
-    this.firePlayStateChange();
+    // this.firePlayStateChange();
+
+    return retVal; 
   }
 
   // compileOrc(orcString) {

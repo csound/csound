@@ -59,6 +59,7 @@
       assert.property(csoundObj, "setMessageCallback", "has .setMessageCallback() method");
       });
 
+      */
       it("can be started", async function () {
       this.timeout(10000);
       const { Csound } = await import(url);
@@ -66,11 +67,10 @@
       const startReturn = await csoundObj.start();
       assert.equal(startReturn, 0);
       });
-      */
         it("can play tone", async function () {
           this.timeout(10000);
           const { Csound } = await import(url);
-          const csoundObj = await Csound();
+          const csoundObj = await Csound({});
           console.log("Csound", csoundObj);
           const compileReturn = await csoundObj.compileCsdText(shortTone);
           assert.equal(compileReturn, 0);

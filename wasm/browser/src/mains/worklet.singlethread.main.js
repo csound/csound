@@ -30,10 +30,10 @@ import { api as API } from "@root/libcsound";
 let initialized = false;
 const initializeModule = async (audioContext) => {
   console.log("Initialize Module");
-  if (!initialized) {
+//   if (!initialized) {
     await audioContext.audioWorklet.addModule(WorkletWorker());
     initialized = true;
-  }
+//   }
   return true;
 };
 
