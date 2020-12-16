@@ -91,6 +91,8 @@ class SingleThreadAudioWorkletMainThread {
       outputChannelCount: [this.outputChannelCount || 2],
     });
 
+    this.node.connect(this.audioContext.destination);
+
     try {
       console.log("wrapping Comlink proxy endpoint on the audioWorkletNode.port");
       this.workletProxy = Comlink.wrap(this.node.port);

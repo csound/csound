@@ -171,6 +171,23 @@ class WorkletSinglethreadWorker extends AudioWorkletProcessor {
     let result = this.result;
 
     for (let i = 0; i < bufferLen; i++, cnt++) {
+
+      if (csOut.length === 0) {
+        csOut = this.csoundOutputBuffer = new Float64Array(
+          this.wasm.exports.memory.buffer,
+          libraryCsound.csoundGetSpout(this.csound),
+          ksmps * nchnls,
+        );
+      }
+
+      if (csIn.length === 0) {
+        csIn = this.csoundInputBuffer = new Float64Array(
+          this.wasm.exports.memory.buffer,
+          libraryCsound.csoundGetSpin(this.csound),
+          ksmps * nchnls_i,
+        );
+      }
+
       if (cnt == ksmps && result == 0) {
         // if we need more samples from Csound
         result = libraryCsound.csoundPerformKsmps(this.csound);
@@ -180,7 +197,7 @@ class WorkletSinglethreadWorker extends AudioWorkletProcessor {
           this.running = false;
           this.started = false;
           libraryCsound.csoundCleanup(this.csound);
-          this.firePlayStateChange();
+          // this.firePlayStateChange();
         }
       }
 
@@ -210,13 +227,13 @@ class WorkletSinglethreadWorker extends AudioWorkletProcessor {
       this.ksmps = ksmps;
       this.cnt = ksmps;
 
-      let outputPointer = libraryCsound.csoundGetOutputBuffer(cs);
+      let outputPointer = libraryCsound.csoundGetSpout(cs);
       this.csoundOutputBuffer = new Float64Array(
         this.wasm.exports.memory.buffer,
         outputPointer,
         ksmps * this.nchnls,
       );
-      let inputPointer = libraryCsound.csoundGetInputBuffer(cs);
+      let inputPointer = libraryCsound.csoundGetSpin(cs);
       this.csoundInputBuffer = new Float64Array(
         this.wasm.exports.memory.buffer,
         inputPointer,
