@@ -715,7 +715,7 @@ int32_t midiarp(CSOUND *csound, MIDIARP *p)
         p->data2  = (MYFLT) *++temp;
 
         if (p->status==144 && p->data2>0) {
-          p->notes[p->noteCnt] = p->data1;
+          p->notes[p->noteCnt] = p->data2;
 
           for (i = 0 ; i < p->maxNumNotes ; i++)
             p->sortedNotes[i] = p->notes[i];
@@ -726,7 +726,7 @@ int32_t midiarp(CSOUND *csound, MIDIARP *p)
 
         }
         else if (p->status==128 || (p->status==144 && p->data2==0)) {
-          zeroNoteFromArray(p->notes, p->data1, p->maxNumNotes);
+          zeroNoteFromArray(p->notes, p->data2, p->maxNumNotes);
 
           for (i = 0 ; i < p->maxNumNotes ; i++)
             p->sortedNotes[i] = p->notes[i];
@@ -745,21 +745,22 @@ int32_t midiarp(CSOUND *csound, MIDIARP *p)
         if (p->noteIndex<p->maxNumNotes && p->sortedNotes[p->noteIndex]!=0)
           *p->noteOut = p->sortedNotes[p->noteIndex];
 
-        if (arpmode==0) {
+        if (arpmode==0)
+        {
           //up and down pattern
-          if (p->direction>0) {
-            p->noteIndex = (p->noteIndex < p->maxNumNotes-1
-                            ? p->noteIndex+1 : p->maxNumNotes - p->noteCnt);
-            if (p->noteIndex==p->maxNumNotes-1)
-              p->direction = -2;
-          }
-          else {
-            p->noteIndex = (p->noteIndex > p->maxNumNotes - p->noteCnt
-                            ? p->noteIndex-1 : p->maxNumNotes-1);
-            if (p->noteIndex==p->maxNumNotes-p->noteCnt)
-              p->direction = 2;
+            if(p->direction>0) {
+                p->noteIndex = (p->noteIndex < p->maxNumNotes-1
+                                ? p->noteIndex+1 : p->maxNumNotes - p->noteCnt);
+                if(p->noteIndex==p->maxNumNotes-1)
+                    p->direction = -2;
+            }
+            else{
+                p->noteIndex = (p->noteIndex >= p->maxNumNotes - p->noteCnt
+                                ? p->noteIndex-1 : p->maxNumNotes-1);
+                if(p->noteIndex==p->maxNumNotes-p->noteCnt)
+                    p->direction = 2;
 
-          }
+            }
         }
         else if (arpmode==1) {
           //up only pattern
