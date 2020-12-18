@@ -25,21 +25,23 @@ import WorkletWorker from "@root/workers/worklet.singlethread.worker";
 import * as Comlink from "comlink";
 import { logWorklet } from "@root/logger";
 import { csoundApiRename, makeProxyCallback } from "@root/utils";
+import { IPCMessagePorts, messageEventHandler } from "@root/mains/messages.main";
 import { api as API } from "@root/libcsound";
 
 let initialized = false;
 const initializeModule = async (audioContext) => {
   console.log("Initialize Module");
-//   if (!initialized) {
-    await audioContext.audioWorklet.addModule(WorkletWorker());
-    initialized = true;
-//   }
+  //   if (!initialized) {
+  await audioContext.audioWorklet.addModule(WorkletWorker());
+  initialized = true;
+  //   }
   return true;
 };
 
 class SingleThreadAudioWorkletMainThread {
   constructor({ audioContext, numberOfInputs = 1, numberOfOutputs = 2 }) {
     this.exportApi = {};
+    this.ipcMessagePorts = new IPCMessagePorts();
     this.audioContext = audioContext;
     this.inputChannelCount = numberOfInputs;
     this.outputChannelCount = numberOfOutputs;
@@ -100,6 +102,9 @@ class SingleThreadAudioWorkletMainThread {
       console.log("COMLINK ERROR", error);
     }
 
+    this.ipcMessagePorts.mainMessagePort.addEventListener("message", messageEventHandler(this));
+    this.ipcMessagePorts.mainMessagePort.start();
+
     await this.workletProxy.initialize(wasmDataURI);
     const csoundInstance = await makeProxyCallback(this.workletProxy, undefined, "csoundCreate")();
     this.csoundInstance = csoundInstance;
@@ -117,15 +122,35 @@ class SingleThreadAudioWorkletMainThread {
     for (const apiK of Object.keys(API)) {
       const reference = API[apiK];
       const proxyCallback = makeProxyCallback(this.workletProxy, csoundInstance, apiK);
-      proxyCallback.toString = () => reference.toString();
-      this.exportApi[csoundApiRename(apiK)] = proxyCallback;
+      switch (apiK) {
+        case "csoundCreate": {
+          break;
+        }
+
+        case "csoundStart": {
+          const csoundStart = async function () {
+            if (!csoundInstance || typeof csoundInstance !== "number") {
+              console.error("starting csound failed because csound instance wasn't created");
+              return -1;
+            }
+            this.node.port.postMessage({ msg: "initMessagePort" }, [
+              this.ipcMessagePorts.workerMessagePort,
+            ]);
+
+            return await proxyCallback();
+          };
+
+          csoundStart.toString = () => reference.toString();
+          this.exportApi.start = csoundStart.bind(this);
+          break;
+        }
+        default: {
+          proxyCallback.toString = () => reference.toString();
+          this.exportApi[csoundApiRename(apiK)] = proxyCallback;
+          break;
+        }
+      }
     }
-    // csoundObj
-    // Object.keys(csoundApi).reduce((acc, apiName) => {
-    //   const renamedApiName = csoundApiRename(apiName);
-    //   acc[renamedApiName] = makeSingleThreadCallback(csoundInstance, csoundApi[apiName]);
-    //   return acc;
-    // }, this.exportApi);
 
     return this.exportApi;
   }

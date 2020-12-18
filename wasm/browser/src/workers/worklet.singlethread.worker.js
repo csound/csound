@@ -22,7 +22,7 @@
 */
 
 import * as Comlink from "comlink";
-import { writeToFs, lsFs, llFs, readFromFs, rmrfFs } from "@root/filesystem";
+import { writeToFs, lsFs, llFs, readFromFs, rmrfFs, workerMessagePort } from "@root/filesystem";
 import libcsoundFactory from "@root/libcsound";
 import loadWasm from "@root/module";
 import { assoc, pipe } from "ramda";
@@ -88,6 +88,19 @@ class WorkletSinglethreadWorker extends AudioWorkletProcessor {
     this.callUncloned = () => console.error("Csound worklet thread is still uninitialized!");
     this.port.start();
     Comlink.expose(this, this.port);
+
+    this.port.addEventListener("message", (event) => {
+      if (event.data.msg === "initMessagePort") {
+        const port = event.ports[0];
+        workerMessagePort.post = (log) => port.postMessage({ log });
+        workerMessagePort.broadcastPlayState = (playStateChange) => {
+          workerMessagePort.vanillaWorkerState = playStateChange;
+          port.postMessage({ playStateChange });
+        };
+        workerMessagePort.ready = true;
+      }
+    });
+
     // let p = this.port;
     // printCallbacks.push((t) => {
     //     p.postMessage(["log", t]);
@@ -103,7 +116,7 @@ class WorkletSinglethreadWorker extends AudioWorkletProcessor {
     wasm = this.wasm = await loadWasm(wasmDataURI);
     libraryCsound = libcsoundFactory(wasm);
     this.callUncloned = callUncloned;
-    let cs = this.csound = libraryCsound.csoundCreate(0);
+    let cs = (this.csound = libraryCsound.csoundCreate(0));
 
     this.result = 0;
     this.running = false;
@@ -115,7 +128,7 @@ class WorkletSinglethreadWorker extends AudioWorkletProcessor {
     libraryCsound.csoundSetOption(cs, "-M0");
     libraryCsound.csoundSetOption(cs, "-+rtaudio=null");
     libraryCsound.csoundSetOption(cs, "-+rtmidi=null");
-    libraryCsound.csoundSetOption(cs, "--sample-rate="+sampleRate);
+    libraryCsound.csoundSetOption(cs, "--sample-rate=" + sampleRate);
     // libraryCsound.prepareRT(cs);
     this.nchnls = this.options.outputChannelCount[0];
     this.nchnls_i = this.options.numberOfInputs;
@@ -126,7 +139,7 @@ class WorkletSinglethreadWorker extends AudioWorkletProcessor {
     const csoundCreate = (v) => {
       console.log("Calling csoundCreate");
       return this.csound;
-    }
+    };
     const allAPI = pipe(
       assoc("writeToFs", writeToFs),
       assoc("readFromFs", readFromFs),
@@ -171,7 +184,6 @@ class WorkletSinglethreadWorker extends AudioWorkletProcessor {
     let result = this.result;
 
     for (let i = 0; i < bufferLen; i++, cnt++) {
-
       if (csOut.length === 0) {
         csOut = this.csoundOutputBuffer = new Float64Array(
           this.wasm.exports.memory.buffer,
@@ -246,7 +258,7 @@ class WorkletSinglethreadWorker extends AudioWorkletProcessor {
     this.running = true;
     // this.firePlayStateChange();
 
-    return retVal; 
+    return retVal;
   }
 
   // compileOrc(orcString) {
@@ -413,4 +425,5 @@ class WorkletSinglethreadWorker extends AudioWorkletProcessor {
   //     }
   // }
 }
+
 registerProcessor("csound-singlethread-worklet-processor", WorkletSinglethreadWorker);
