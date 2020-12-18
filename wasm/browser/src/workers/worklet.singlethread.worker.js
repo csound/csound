@@ -38,42 +38,30 @@ let wasm;
 let libraryCsound;
 let combined;
 
-// const CSMOD = {}
-//
-// let printCallbacks = [];
-// let printMessages = (t) => {
-//   for(let i = 0; i < printCallbacks.length; i++) {
-//     printCallbacks[i](t);
-//   }
-// };
-//
-// CSMOD["ENVIRONMENT"] = "WEB";
-// CSMOD["print"] = printMessages;
-// CSMOD["printErr"] = printMessages;
 
 const callUncloned = async (k, arguments_) => {
-  console.log("calling " + k);
+  // console.log("calling " + k);
   const caller = combined.get(k);
   const ret = caller && caller.apply({}, arguments_ || []);
   return ret;
 };
 
-const handleCsoundStart = (workerMessagePort, libraryCsound) => (...arguments_) => {
-  const csound = arguments_[0];
-  const startError = libraryCsound.csoundStart(csound);
-  const outputName = libraryCsound.csoundGetOutputName(csound) || "test.wav";
-  // logWorklet(
-  //   `handleCsoundStart: actual csoundStart result ${startError}, outputName: ${outputName}`,
-  // );
-  // if (startError !== 0) {
-  //   workerMessagePort.post(
-  //     `error: csoundStart failed while trying to render ${outputName},` +
-  //       " look out for errors in options and syntax",
-  //   );
-  // }
+// const handleCsoundStart = (workerMessagePort, libraryCsound) => (...arguments_) => {
+//   const csound = arguments_[0];
+//   const startError = libraryCsound.csoundStart(csound);
+//   const outputName = libraryCsound.csoundGetOutputName(csound) || "test.wav";
+//   // logWorklet(
+//   //   `handleCsoundStart: actual csoundStart result ${startError}, outputName: ${outputName}`,
+//   // );
+//   // if (startError !== 0) {
+//   //   workerMessagePort.post(
+//   //     `error: csoundStart failed while trying to render ${outputName},` +
+//   //       " look out for errors in options and syntax",
+//   //   );
+//   // }
 
-  return startError;
-};
+//   return startError;
+// };
 
 class WorkletSinglethreadWorker extends AudioWorkletProcessor {
   static get parameterDescriptors() {
@@ -100,16 +88,6 @@ class WorkletSinglethreadWorker extends AudioWorkletProcessor {
         workerMessagePort.ready = true;
       }
     });
-
-    // let p = this.port;
-    // printCallbacks.push((t) => {
-    //     p.postMessage(["log", t]);
-    // });
-    // let csObj = Csound.new();
-    // this.csObj = csObj;
-    // // engine status
-    //
-    // this.port.onmessage = this.handleMessage.bind(this);
   }
 
   async initialize(wasmDataURI) {
@@ -135,9 +113,9 @@ class WorkletSinglethreadWorker extends AudioWorkletProcessor {
     libraryCsound.csoundSetOption(cs, "--nchnls=" + this.nchnls);
     libraryCsound.csoundSetOption(cs, "--nchnls_i=" + this.nchnls_i);
 
-    const startHandler = handleCsoundStart(this.port, libraryCsound);
+    // const startHandler = handleCsoundStart(this.port, libraryCsound);
     const csoundCreate = (v) => {
-      console.log("Calling csoundCreate");
+      // console.log("Calling csoundCreate");
       return this.csound;
     };
     const allAPI = pipe(
@@ -231,7 +209,6 @@ class WorkletSinglethreadWorker extends AudioWorkletProcessor {
   }
 
   start() {
-    console.log("START CALLED: started already? " + this.started);
     let retVal = -1;
     if (this.started == false) {
       let cs = this.csound;
