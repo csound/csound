@@ -24,7 +24,9 @@ extern int dateops_init_(CSOUND *csound);
 // pointer which is writable from js
 char* allocStringMem (int length) {
   char *ptr = NULL;
-  ptr = malloc((length * sizeof(char)) + 1);
+  ptr = malloc(((length + 1) * sizeof(char)));
+  // NULL Terminate
+  ptr[length] = NULL;
   return ptr;
 }
 
@@ -256,6 +258,8 @@ char* getMidiOutFileName(CSOUND *csound) {
 double csoundGetControlChannelWasi(CSOUND* csound, char* channelName) { 
   int *error = NULL;
   double returnValue = csoundGetControlChannel(csound, channelName, error);
+
+//  printf("csoundGetControlChannel: Channel Name %s\n", channelName);
   if (error != NULL) {
     printf("csoundGetControlChannel: Error %d\n", *error);
     return 0;
