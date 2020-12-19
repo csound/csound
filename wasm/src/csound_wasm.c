@@ -253,6 +253,18 @@ char* getMidiOutFileName(CSOUND *csound) {
   }
 }
 
+double csoundGetControlChannelWasi(CSOUND* csound, char* channelName) { 
+  int *error = NULL;
+  double returnValue = csoundGetControlChannel(csound, channelName, error);
+  if (error != NULL) {
+    printf("csoundGetControlChannel: Error %d\n", *error);
+    return 0;
+  } else {
+    return returnValue;
+  }
+}
+
+
 /* char* csoundGetMidiOptions(CSOUND *csound) { */
 /*   csoundGetParams(); */
 /* } */

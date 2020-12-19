@@ -64,6 +64,7 @@
   "csoundGetChannelLock",
   "csoundGetChannelPtr",
   "csoundGetControlChannel",
+  "csoundGetControlChannelWasi",
   "csoundGetControlChannelHints",
   "csoundGetCurrentThreadId",
   "csoundGetCurrentTimeSamples",

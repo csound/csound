@@ -35,6 +35,10 @@
         </CsOptions>
         <CsInstruments>
           0dbfs = 1
+
+          chnset(1, "test1")
+          chnset(2, "test2") 
+
           instr 1
           out poscil(0dbfs/3, 440) * linen:a(1, .01, p3, .01)
           endin
@@ -67,7 +71,7 @@
       const startReturn = await csoundObj.start();
       assert.equal(startReturn, 0);
       });
-        it("can play tone", async function () {
+        it("can play tone and get channel values", async function () {
           this.timeout(10000);
           const { Csound } = await import(url);
           const csoundObj = await Csound({});
@@ -76,6 +80,8 @@
           assert.equal(compileReturn, 0);
           const startReturn = await csoundObj.start();
           assert.equal(startReturn, 0);
+          assert.equal(1, await csoundObj.getControlChannel("test1"));
+          assert.equal(2, await csoundObj.getControlChannel("test2"));
         });
       });
       const triggerEvent = "ontouchstart" in document.documentElement ? "touchend" : "click";
