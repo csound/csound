@@ -42,10 +42,10 @@ export const csoundInputMessageAsync = (wasm) => (csound, scoEvent) => {
 csoundInputMessageAsync.toString = () => "inputMessageAsync = async (scoreEvent) => Number;";
 
 export const csoundGetControlChannel = (wasm) => (csound, channelName) => {
-  console.log("Requesting channel value for: " + channelName);
+  // console.log("Requesting channel value for: " + channelName);
   const stringPtr = string2ptr(wasm, channelName);
   const result = wasm.exports.csoundGetControlChannelWasi(csound, stringPtr);
-  console.log("result: " + result);
+  // console.log("result: " + result);
   freeStringPtr(wasm, stringPtr);
   return result;
 };
