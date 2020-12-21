@@ -48,6 +48,26 @@
         </CsScore>
       </CsoundSynthesizer>
       `;
+
+      const shortTone2 = `
+      <CsoundSynthesizer>
+        <CsOptions>
+          -odac
+        </CsOptions>
+        <CsInstruments>
+          0dbfs = 1
+
+          chnset(440, "freq")
+
+          instr 1
+          out poscil(0dbfs/3, chnget:k("freq")) * linen:a(1, .01, p3, .01)
+          endin
+        </CsInstruments>
+        <CsScore>
+          i 1 0 1
+        </CsScore>
+      </CsoundSynthesizer>
+      `;
       mocha.setup("bdd").fullTrace();
       describe("@csound/browser", async () => {
         /*
@@ -67,15 +87,15 @@
       it("can be started", async function () {
       this.timeout(10000);
       const { Csound } = await import(url);
-      const csoundObj = await Csound();
+      const csoundObj = await Csound({useWorker: false});
       const startReturn = await csoundObj.start();
       assert.equal(startReturn, 0);
+      csoundObj.reset();
       });
         it("can play tone and get channel values", async function () {
           this.timeout(10000);
           const { Csound } = await import(url);
-          const csoundObj = await Csound({});
-          console.log("Csound", csoundObj);
+          const csoundObj = await Csound({useWorker: false});
           const compileReturn = await csoundObj.compileCsdText(shortTone);
           assert.equal(compileReturn, 0);
           const startReturn = await csoundObj.start();
@@ -83,7 +103,20 @@
           assert.equal(1, await csoundObj.getControlChannel("test1"));
           assert.equal(2, await csoundObj.getControlChannel("test2"));
         });
+
+        it("can play tone and send channel values", async function () {
+          this.timeout(10000);
+          const { Csound } = await import(url);
+          const csoundObj = await Csound({useWorker: false});
+          const compileReturn = await csoundObj.compileCsdText(shortTone2);
+          assert.equal(compileReturn, 0);
+          const startReturn = await csoundObj.start();
+          assert.equal(startReturn, 0);
+          await csoundObj.setControlChannel("freq", 880);
+          assert.equal(880, await csoundObj.getControlChannel("freq"));
+        });
       });
+
       const triggerEvent = "ontouchstart" in document.documentElement ? "touchend" : "click";
       document.querySelector("#all_tests").addEventListener(triggerEvent, async function () {
         mocha.run();

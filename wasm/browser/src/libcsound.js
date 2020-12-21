@@ -53,7 +53,7 @@ import {
   csoundPushMidiMessage,
   _isRequestingRtMidiInput,
 } from "@module/rtmidi";
-import { csoundInputMessage, csoundInputMessageAsync, csoundGetControlChannel } from "@module/control-events";
+import { csoundInputMessage, csoundInputMessageAsync, csoundGetControlChannel, csoundSetControlChannel } from "@module/control-events";
 import { csoundGetInputName, csoundGetOutputName } from "@module/general-io";
 import { csoundAppendEnv } from "@module/extra";
 
@@ -117,6 +117,7 @@ export const api = {
   csoundInputMessage,
   csoundInputMessageAsync,
   csoundGetControlChannel,
+  csoundSetControlChannel,
   // @module/general_io
   csoundGetInputName,
   csoundGetOutputName,
