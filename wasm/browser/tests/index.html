@@ -111,6 +111,22 @@
       assert.equal(startReturn, 0);
       csoundObj.reset();
       });
+
+      it("can use just compileOrc", async function () {
+      this.timeout(10000);
+      const { Csound } = await import(url);
+      const csoundObj = await Csound({useWorker: false});
+      await csoundObj.compileOrc(`
+      ksmps=64
+      instr 1 
+        out oscili(.25, 110)
+      endin
+      schedule(1,0,1)
+      `)
+      const startReturn = await csoundObj.start();
+      assert.equal(startReturn, 0);
+      csoundObj.reset();
+      });
         it("can play tone and get channel values", async function () {
           this.timeout(10000);
           const { Csound } = await import(url);

@@ -100,18 +100,9 @@ class WorkletSinglethreadWorker extends AudioWorkletProcessor {
     this.running = false;
     this.started = false;
     this.sampleRate = sampleRate;
-    libraryCsound.csoundSetMidiCallbacks(cs);
-    libraryCsound.csoundSetOption(cs, "-odac");
-    libraryCsound.csoundSetOption(cs, "-iadc");
-    libraryCsound.csoundSetOption(cs, "-M0");
-    libraryCsound.csoundSetOption(cs, "-+rtaudio=null");
-    libraryCsound.csoundSetOption(cs, "-+rtmidi=null");
-    libraryCsound.csoundSetOption(cs, "--sample-rate=" + sampleRate);
-    // libraryCsound.prepareRT(cs);
-    this.nchnls = this.options.outputChannelCount[0];
-    this.nchnls_i = this.options.numberOfInputs;
-    libraryCsound.csoundSetOption(cs, "--nchnls=" + this.nchnls);
-    libraryCsound.csoundSetOption(cs, "--nchnls_i=" + this.nchnls_i);
+
+    this.resetCsound(false);
+
 
     // const startHandler = handleCsoundStart(this.port, libraryCsound);
     const csoundCreate = (v) => {
@@ -125,12 +116,33 @@ class WorkletSinglethreadWorker extends AudioWorkletProcessor {
       assoc("llFs", llFs),
       assoc("rmrfFs", rmrfFs),
       assoc("csoundCreate", csoundCreate),
+      assoc("csoundReset", (cs) => this.resetCsound(true)),
       // assoc("csoundStart", startHandler),
       assoc("csoundStart", this.start.bind(this)),
       assoc("wasm", wasm),
     )(libraryCsound);
     combined = new Map(Object.entries(allAPI));
     // console.log("AAA", combined);
+  }
+
+  async resetCsound(callReset) {
+    let cs = this.csound;
+
+    if(callReset) {
+      libraryCsound.csoundReset(cs);
+    }
+
+    libraryCsound.csoundSetMidiCallbacks(cs);
+    libraryCsound.csoundSetOption(cs, "-odac");
+    libraryCsound.csoundSetOption(cs, "-iadc");
+    libraryCsound.csoundSetOption(cs, "-M0");
+    libraryCsound.csoundSetOption(cs, "-+rtaudio=null");
+    libraryCsound.csoundSetOption(cs, "-+rtmidi=null");
+    libraryCsound.csoundSetOption(cs, "--sample-rate=" + this.sampleRate);
+    this.nchnls = this.options.outputChannelCount[0];
+    this.nchnls_i = this.options.numberOfInputs;
+    libraryCsound.csoundSetOption(cs, "--nchnls=" + this.nchnls);
+    libraryCsound.csoundSetOption(cs, "--nchnls_i=" + this.nchnls_i);
   }
 
   process(inputs, outputs, parameters) {
@@ -162,6 +174,22 @@ class WorkletSinglethreadWorker extends AudioWorkletProcessor {
     let result = this.result;
 
     for (let i = 0; i < bufferLen; i++, cnt++) {
+
+      if (cnt == ksmps && result == 0) {
+        // if we need more samples from Csound
+        result = libraryCsound.csoundPerformKsmps(this.csound);
+        cnt = 0;
+
+        if (result != 0) {
+          this.running = false;
+          this.started = false;
+          libraryCsound.csoundCleanup(this.csound);
+          // this.firePlayStateChange();
+        }
+      }
+     
+      /* Check if MEMGROWTH occured from csoundPerformKsmps or otherwise. If so, 
+      rest output ant input buffers to new pointer locations. */
       if (csOut.length === 0) {
         csOut = this.csoundOutputBuffer = new Float64Array(
           this.wasm.exports.memory.buffer,
@@ -176,19 +204,6 @@ class WorkletSinglethreadWorker extends AudioWorkletProcessor {
           libraryCsound.csoundGetSpin(this.csound),
           ksmps * nchnls_i,
         );
-      }
-
-      if (cnt == ksmps && result == 0) {
-        // if we need more samples from Csound
-        result = libraryCsound.csoundPerformKsmps(this.csound);
-        cnt = 0;
-
-        if (result != 0) {
-          this.running = false;
-          this.started = false;
-          libraryCsound.csoundCleanup(this.csound);
-          // this.firePlayStateChange();
-        }
       }
 
       for (let channel = 0; channel < input.length; channel++) {

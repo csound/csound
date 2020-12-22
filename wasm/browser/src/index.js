@@ -64,9 +64,9 @@ export async function Csound({
   let csoundWasmApi;
 
   if (workletSupport) {
-    audioWorker = new AudioWorkletMainThread();
+    audioWorker = new AudioWorkletMainThread({ audioContext });
   } else if (spnSupport) {
-    audioWorker = new ScriptProcessorNodeMainThread();
+    audioWorker = new ScriptProcessorNodeMainThread({ audioContext });
   }
 
   if (!audioWorker) {
