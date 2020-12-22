@@ -44,6 +44,14 @@ export const string2ptr = (wasm, string) => {
   return offset;
 };
 
+export const ptr2string = (wasm, stringPtr) => {
+
+  const { buffer } = wasm.exports.memory;
+  const buf = new Uint8Array(buffer, stringPtr);
+  const res = decoder.decode(buf);
+  return res;
+};
+
 export const sizeofStruct = (jsStruct) => {
   const result = jsStruct.reduce((total, [_, primitive, ...rest]) => {
     if (primitive === "char") {

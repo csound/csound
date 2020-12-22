@@ -26,7 +26,7 @@ char* allocStringMem (int length) {
   char *ptr = NULL;
   ptr = malloc(((length + 1) * sizeof(char)));
   // NULL Terminate
-  ptr[length] = NULL;
+  ptr[length] = 0;
   return ptr;
 }
 
@@ -266,6 +266,14 @@ double csoundGetControlChannelWasi(CSOUND* csound, char* channelName) {
   } else {
     return returnValue;
   }
+}
+
+char* csoundGetStringChannelWasi(CSOUND* csound, const char *channelName) {
+  int len = csoundGetChannelDatasize(csound, channelName);
+  char *data = calloc(1, sizeof(char) * (len + 1));
+
+  csoundGetStringChannel(csound, channelName, data);
+  return data;
 }
 
 

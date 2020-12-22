@@ -68,6 +68,25 @@
         </CsScore>
       </CsoundSynthesizer>
       `;
+
+
+      const stringChannelTest = `
+      <CsoundSynthesizer>
+        <CsOptions>
+          -odac
+        </CsOptions>
+        <CsInstruments>
+          0dbfs = 1
+
+          chnset("test0", "strChannel")
+
+        </CsInstruments>
+        <CsScore>
+          i 1 0 1
+        </CsScore>
+      </CsoundSynthesizer>
+      `;
+
       mocha.setup("bdd").fullTrace();
       describe("@csound/browser", async () => {
         /*
@@ -102,6 +121,7 @@
           assert.equal(startReturn, 0);
           assert.equal(1, await csoundObj.getControlChannel("test1"));
           assert.equal(2, await csoundObj.getControlChannel("test2"));
+          setTimeout(() => csoundObj.reset(), 1000);
         });
 
         it("can play tone and send channel values", async function () {
@@ -114,6 +134,22 @@
           assert.equal(startReturn, 0);
           await csoundObj.setControlChannel("freq", 880);
           assert.equal(880, await csoundObj.getControlChannel("freq"));
+        });
+
+        it("can send and receive string channel values", async function () {
+          this.timeout(10000);
+          const { Csound } = await import(url);
+          const csoundObj = await Csound({useWorker: false});
+
+          console.log(csoundObj);
+          const compileReturn = await csoundObj.compileCsdText(stringChannelTest);
+          assert.equal(compileReturn, 0);
+          const startReturn = await csoundObj.start();
+          assert.equal(startReturn, 0);
+          console.log(await csoundObj.getStringChannel("strChannel"))
+          assert.equal("test0", await csoundObj.getStringChannel("strChannel"));
+          await csoundObj.setStringChannel("strChannel", "test1");
+          assert.equal("test1", await csoundObj.getStringChannel("strChannel"));
         });
       });
 
