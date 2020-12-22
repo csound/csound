@@ -28,7 +28,7 @@ import {
  * @return {Promise.<CsoundObj|undefined>}
  */
 export async function Csound({
-  audioContext = new (WebkitAudioContext())(),
+  audioContext = new (WebkitAudioContext())({ latencyHint: "interactive" }),
   useWorker = false,
 } = {}) {
   unmuteIosAudio();

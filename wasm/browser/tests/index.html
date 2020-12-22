@@ -103,10 +103,13 @@
       });
 
       */
+
+      const useWorker = true;
+
       it("can be started", async function () {
       this.timeout(10000);
       const { Csound } = await import(url);
-      const csoundObj = await Csound({useWorker: false});
+      const csoundObj = await Csound({useWorker});
       const startReturn = await csoundObj.start();
       assert.equal(startReturn, 0);
       csoundObj.reset();
@@ -115,7 +118,7 @@
       it("can use just compileOrc", async function () {
       this.timeout(10000);
       const { Csound } = await import(url);
-      const csoundObj = await Csound({useWorker: false});
+      const csoundObj = await Csound({useWorker});
       await csoundObj.compileOrc(`
       ksmps=64
       instr 1 
@@ -130,7 +133,7 @@
         it("can play tone and get channel values", async function () {
           this.timeout(10000);
           const { Csound } = await import(url);
-          const csoundObj = await Csound({useWorker: false});
+          const csoundObj = await Csound({useWorker});
           const compileReturn = await csoundObj.compileCsdText(shortTone);
           assert.equal(compileReturn, 0);
           const startReturn = await csoundObj.start();
@@ -143,7 +146,7 @@
         it("can play tone and send channel values", async function () {
           this.timeout(10000);
           const { Csound } = await import(url);
-          const csoundObj = await Csound({useWorker: false});
+          const csoundObj = await Csound({useWorker});
           const compileReturn = await csoundObj.compileCsdText(shortTone2);
           assert.equal(compileReturn, 0);
           const startReturn = await csoundObj.start();
@@ -155,7 +158,7 @@
         it("can send and receive string channel values", async function () {
           this.timeout(10000);
           const { Csound } = await import(url);
-          const csoundObj = await Csound({useWorker: false});
+          const csoundObj = await Csound({useWorker});
 
           console.log(csoundObj);
           const compileReturn = await csoundObj.compileCsdText(stringChannelTest);

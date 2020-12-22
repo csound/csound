@@ -28,6 +28,7 @@ import { csoundApiRename, makeSingleThreadCallback } from "@root/utils";
 class ScriptProcessorNodeSingleThread {
   constructor({ audioContext, numberOfInputs = 1, numberOfOutputs = 2 }) {
 
+    this.audioContext = audioContext;
     this.onaudioprocess = this.onaudioprocess.bind(this);
     this.currentPlayState = undefined;
     this.start = this.start.bind(this);
@@ -128,7 +129,8 @@ class ScriptProcessorNodeSingleThread {
     this.exportApi.resume = this.resume.bind(this);
     this.exportApi.setMessageCallback = this.setMessageCallback.bind(this);
     this.exportApi.start = this.start.bind(this);
-
+    this.exportApi.getAudioContext = async () => this.audioContext;
+    
     return this.exportApi;
   }
 
