@@ -5,7 +5,7 @@ import log, { logWorklet } from "@root/logger";
 const connectedMidiDevices = new Set();
 
 class AudioWorkletMainThread {
-  constructor({audioContext}) {
+  constructor({ audioContext }) {
     this.ipcMessagePorts = undefined;
     this.audioContext = audioContext;
     this.audioWorkletNode = undefined;
@@ -78,22 +78,13 @@ class AudioWorkletMainThread {
 
     try {
       logWorklet("wrapping Comlink proxy endpoint on the audioWorkletNode.port");
-      this.workletProxy = Comlink.wrap(this.audioWorkletNodes.port);
+      this.workletProxy = Comlink.wrap(this.audioWorkletNode.port);
     } catch (error) {
       log.error("COMLINK ERROR", error);
     }
   }
 
   async initialize() {
-    // const newAudioContext = new AudioContext({
-    //   latencyHint: "interactive",
-    //   sampleRate: this.sampleRate,
-    // });
-
-    // this.audioCtx = newAudioContext;
-
-    // logWorklet("new AudioContext");
-
     await this.audioContext.audioWorklet.addModule(WorkletWorker());
     logWorklet("WorkletWorker module added");
 

@@ -42,18 +42,6 @@ const createRealtimeAudioThread = ({ csound }) => {
     return -1;
   }
 
-  // The actual realtime start
-  // doing this early to detect errors
-  // derive options and attributes for the performance
-  const startError = libraryCsound.csoundStart(csound);
-  if (startError !== 0) {
-    workerMessagePort.post(
-      "error: csoundStart failed in realtime-performance," +
-        " look out for errors in options and syntax",
-    );
-    return -1;
-  }
-
   // Prompt for midi-input on demand
   // const isRequestingRtMidiInput = libraryCsound._isRequestingRtMidiInput(csound);
 

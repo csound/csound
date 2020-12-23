@@ -15,6 +15,7 @@ export const handleCsoundStart = (workerMessagePort, libraryCsound, createRealti
         " look out for errors in options and syntax",
     );
   }
+
   setTimeout(() => {
     const isRequestingRtMidiInput = libraryCsound._isRequestingRtMidiInput(csound);
     const isExpectingRealtimeOutput = isRequestingRtMidiInput || outputName.includes("dac");
