@@ -1,9 +1,12 @@
 import * as Comlink from "comlink";
 import { api as API } from "@root/libcsound";
 import { messageEventHandler, IPCMessagePorts } from "@root/mains/messages.main";
+import { makeSABPerfCallback } from "@root/sab.main.utils";
 import SABWorker from "@root/workers/sab.worker";
 import {
   AUDIO_STATE,
+  CALLBACK_DATA_BUFFER_SIZE,
+  DATA_TYPE,
   MAX_CHANNELS,
   MAX_HARDWARE_BUFFER_SIZE,
   MIDI_BUFFER_PAYLOAD_SIZE,
@@ -45,6 +48,23 @@ class SharedArrayBufferMainThread {
     );
 
     this.midiBuffer = new Int32Array(this.midiBufferSAB);
+
+    this.callbackBufferSAB = new SharedArrayBuffer(1024 * Int32Array.BYTES_PER_ELEMENT);
+
+    this.callbackBuffer = new Int32Array(this.callbackBufferSAB);
+
+    this.callbackStringDataBufferSAB = new SharedArrayBuffer(
+      CALLBACK_DATA_BUFFER_SIZE * Int8Array.BYTES_PER_ELEMENT,
+    );
+
+    this.callbackStringDataBuffer = new Uint8Array(this.callbackStringDataBufferSAB);
+
+    this.callbackFloatArrayDataBufferSAB = new SharedArrayBuffer(
+      CALLBACK_DATA_BUFFER_SIZE * Float64Array.BYTES_PER_ELEMENT,
+    );
+
+    this.callbackFloatArrayDataBuffer = new Float64Array(this.callbackFloatArrayDataBufferSAB);
+
     this.onPlayStateChange = this.onPlayStateChange.bind(this);
     logSAB(`SharedArrayBufferMainThread got constructed`);
   }
@@ -200,9 +220,13 @@ class SharedArrayBufferMainThread {
     const csoundWorker = new Worker(SABWorker());
     this.csoundWorker = csoundWorker;
     const audioStateBuffer = this.audioStateBuffer;
+    const audioStatePointer = this.audioStatePointer;
     const audioStreamIn = this.audioStreamIn;
     const audioStreamOut = this.audioStreamOut;
     const midiBuffer = this.midiBuffer;
+    const callbackBuffer = this.callbackBuffer;
+    const callbackStringDataBuffer = this.callbackStringDataBuffer;
+    const callbackFloatArrayDataBuffer = this.callbackFloatArrayDataBuffer;
 
     // This will sadly create circular structure
     // that's still mostly harmless.
@@ -273,6 +297,9 @@ class SharedArrayBufferMainThread {
               audioStreamIn,
               audioStreamOut,
               midiBuffer,
+              callbackBuffer,
+              callbackStringDataBuffer,
+              callbackFloatArrayDataBuffer,
               csound: csoundInstance,
             });
           };
@@ -323,8 +350,22 @@ class SharedArrayBufferMainThread {
         }
 
         default: {
-          proxyCallback.toString = () => reference.toString();
-          this.exportApi[csoundApiRename(apiK)] = proxyCallback;
+          const perfCallback = makeSABPerfCallback({
+            apiK,
+            audioStatePointer,
+            callbackBuffer,
+            callbackStringDataBuffer,
+            callbackFloatArrayDataBuffer,
+          });
+          const bufferWrappedCallback = async (...args) => {
+            if (this.currentPlayState === "realtimePerformanceStarted") {
+              return perfCallback(args);
+            } else {
+              return await proxyCallback.apply(undefined, args);
+            }
+          };
+          bufferWrappedCallback.toString = () => reference.toString();
+          this.exportApi[csoundApiRename(apiK)] = bufferWrappedCallback;
           break;
         }
       }

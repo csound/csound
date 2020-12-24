@@ -5,9 +5,11 @@ import loadWasm from "@root/module";
 import { logSAB } from "@root/logger";
 import { handleCsoundStart } from "@root/workers/common.utils";
 import { assoc, pipe } from "ramda";
-
+import { handleSABCallbacks } from "@root/sab.worker.utils";
 import {
   AUDIO_STATE,
+  CALLBACK_DATA_BUFFER_SIZE,
+  DATA_TYPE,
   MAX_HARDWARE_BUFFER_SIZE,
   MIDI_BUFFER_SIZE,
   MIDI_BUFFER_PAYLOAD_SIZE,
@@ -18,11 +20,19 @@ let wasm;
 let libraryCsound;
 let combined;
 
+const callUncloned = async (k, arguments_) => {
+  const caller = combined.get(k);
+  const ret = caller && caller.apply({}, arguments_ || []);
+  return ret;
+};
+
 const sabCreateRealtimeAudioThread = ({
   audioStateBuffer,
   audioStreamIn,
   audioStreamOut,
   midiBuffer,
+  callbackBuffer,
+  callbackStringDataBuffer,
   csound,
 }) => {
   if (!wasm || !libraryCsound) {
@@ -163,6 +173,14 @@ const sabCreateRealtimeAudioThread = ({
       }
     }
 
+    handleSABCallbacks({
+      audioStatePointer,
+      csound,
+      callbackBuffer,
+      callbackStringDataBuffer,
+      combined,
+    });
+
     const framesRequested = _b;
 
     const availableInputFrames = Atomics.load(audioStatePointer, AUDIO_STATE.AVAIL_IN_BUFS);
@@ -236,12 +254,6 @@ const sabCreateRealtimeAudioThread = ({
   }
 
   logSAB(`End of realtimePerformance loop!`);
-};
-
-const callUncloned = async (k, arguments_) => {
-  const caller = combined.get(k);
-  const ret = caller && caller.apply({}, arguments_ || []);
-  return ret;
 };
 
 self.addEventListener("message", (event) => {
