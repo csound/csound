@@ -67,23 +67,6 @@ const createRealtimeAudioThread = ({ csound }) => {
   let lastPerformance = 0;
 
   audioProcessCallback = ({ readIndex, numFrames }) => {
-    // MEMGROW KILLS REFERENCES!
-    // https://github.com/emscripten-core/emscripten/issues/6747#issuecomment-400081465
-    if (csoundInputBuffer.length === 0) {
-      csoundInputBuffer = new Float64Array(
-        wasm.exports.memory.buffer,
-        libraryCsound.csoundGetSpin(csound),
-        ksmps * nchnlsInput,
-      );
-    }
-    if (csoundOutputBuffer.length === 0) {
-      csoundOutputBuffer = new Float64Array(
-        wasm.exports.memory.buffer,
-        libraryCsound.csoundGetSpout(csound),
-        ksmps * nchnls,
-      );
-    }
-
     const outputAudioPacket = instantiateAudioPacket(nchnls, numFrames);
     const hasInput = audioInputs.buffers.length > 0 && audioInputs.availableFrames >= numFrames;
 
@@ -112,6 +95,23 @@ const createRealtimeAudioThread = ({ csound }) => {
           csoundWorkerFrameRequestPort = undefined;
           return { framesLeft: i };
         }
+      }
+
+      // MEMGROW KILLS REFERENCES!
+      // https://github.com/emscripten-core/emscripten/issues/6747#issuecomment-400081465
+      if (csoundInputBuffer.length === 0) {
+        csoundInputBuffer = new Float64Array(
+          wasm.exports.memory.buffer,
+          libraryCsound.csoundGetSpin(csound),
+          ksmps * nchnlsInput,
+        );
+      }
+      if (csoundOutputBuffer.length === 0) {
+        csoundOutputBuffer = new Float64Array(
+          wasm.exports.memory.buffer,
+          libraryCsound.csoundGetSpout(csound),
+          ksmps * nchnls,
+        );
       }
 
       outputAudioPacket.forEach((channel, channelIndex) => {
