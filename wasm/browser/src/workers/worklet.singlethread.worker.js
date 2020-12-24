@@ -77,17 +77,24 @@ class WorkletSinglethreadWorker extends AudioWorkletProcessor {
     this.port.start();
     Comlink.expose(this, this.port);
 
-    this.port.addEventListener("message", (event) => {
-      if (event.data.msg === "initMessagePort") {
-        const port = event.ports[0];
-        workerMessagePort.post = (log) => port.postMessage({ log });
-        workerMessagePort.broadcastPlayState = (playStateChange) => {
-          workerMessagePort.vanillaWorkerState = playStateChange;
-          port.postMessage({ playStateChange });
-        };
-        workerMessagePort.ready = true;
-      }
-    });
+    workerMessagePort.post = (log) => this.port.postMessage({ log });
+    workerMessagePort.broadcastPlayState = (playStateChange) => {
+      workerMessagePort.vanillaWorkerState = playStateChange;
+      this.port.postMessage({ playStateChange });
+    };
+    workerMessagePort.ready = true;
+
+    // this.port.addEventListener("message", (event) => {
+    //   if (event.data.msg === "initMessagePort") {
+    //     const port = event.ports[0];
+    //     workerMessagePort.post = (log) => port.postMessage({ log });
+    //     workerMessagePort.broadcastPlayState = (playStateChange) => {
+    //       workerMessagePort.vanillaWorkerState = playStateChange;
+    //       port.postMessage({ playStateChange });
+    //     };
+    //     workerMessagePort.ready = true;
+    //   }
+    // });
   }
 
   async initialize(wasmDataURI) {
@@ -143,10 +150,14 @@ class WorkletSinglethreadWorker extends AudioWorkletProcessor {
     this.nchnls_i = this.options.numberOfInputs;
     libraryCsound.csoundSetOption(cs, "--nchnls=" + this.nchnls);
     libraryCsound.csoundSetOption(cs, "--nchnls_i=" + this.nchnls_i);
+    
+    this.running = false;
+    this.started = false;
+    this.result = 0;
   }
 
   process(inputs, outputs, parameters) {
-    if (this.csoundOutputBuffer == null || this.running == false) {
+    if (this.csoundOutputBuffer == null || !this.running) {
       let output = outputs[0];
       let bufferLen = output[0].length;
       for (let i = 0; i < bufferLen; i++) {
@@ -252,170 +263,6 @@ class WorkletSinglethreadWorker extends AudioWorkletProcessor {
 
     return retVal;
   }
-
-  // compileOrc(orcString) {
-  //     Csound.compileOrc(this.csObj, orcString);
-  // }
-  //
-  // getPlayState() {
-  //     if(this.running) {
-  //         return "playing";
-  //     } else if(this.started) {
-  //         return "paused"
-  //     }
-  //     return "stopped";
-  // }
-
-  // firePlayStateChange() {
-  //     this.port.postMessage(["playState", this.getPlayState()]);
-  // }
-  //
-  //
-  // handleMessage(event) {
-  //     let data = event.data;
-  //     let p = this.port;
-  //
-  //     switch (data[0]) {
-  //     case "compileCSD":
-  //         this.result = Csound.compileCSD(this.csObj, data[1]);
-  //         break;
-  //     case "compileCSDPromise":
-  //         p.postMessage([
-  //             "compileCSDPromise",
-  //             data[1],
-  //             Csound.compileCSD(this.csObj, data[2])
-  //         ]);
-  //         break;
-  //     case "compileOrc":
-  //         Csound.compileOrc(this.csObj, data[1]);
-  //         break;
-  //     case "evalCode":
-  //         Csound.evaluateCode(this.csObj, data[1]);
-  //         break;
-  //     case "evalCodePromise":
-  //         p.postMessage([
-  //             "evalCodePromise",
-  //             data[1],
-  //             Csound.evaluateCode(this.csObj, data[2])
-  //         ]);
-  //         break;
-  //     case "readScore":
-  //         Csound.readScore(this.csObj, data[1]);
-  //         break;
-  //     case "setControlChannel":
-  //         Csound.setControlChannel(this.csObj,
-  //                                  data[1], data[2]);
-  //         break;
-  //     case "setStringChannel":
-  //         Csound.setStringChannel(this.csObj,
-  //                                 data[1], data[2]);
-  //         break;
-  //     case "start":
-  //         this.start();
-  //         break;
-  //     case "stop":
-  //         this.running = false;
-  //         this.started = false;
-  //         this.firePlayStateChange();
-  //         break;
-  //     case "play":
-  //         this.start();
-  //         break;
-  //     case "pause":
-  //         this.running = false;
-  //         this.started = true;
-  //         this.firePlayStateChange();
-  //         break;
-  //     case "resume":
-  //         this.running = true;
-  //         this.started = true;
-  //         this.firePlayStateChange();
-  //         break;
-  //     case "setOption":
-  //         Csound.setOption(this.csObj, data[1]);
-  //         break;
-  //     case "reset":
-  //         let csObj = this.csObj;
-  //         this.started = false;
-  //         this.running = false;
-  //         Csound.reset(csObj);
-  //         Csound.setMidiCallbacks(csObj);
-  //         Csound.setOption(csObj, "-odac");
-  //         Csound.setOption(csObj, "-iadc");
-  //         Csound.setOption(csObj, "-M0");
-  //         Csound.setOption(csObj, "-+rtaudio=null");
-  //         Csound.setOption(csObj, "-+rtmidi=null");
-  //         Csound.setOption(csObj, "--sample-rate="+this.sampleRate);
-  //         Csound.prepareRT(csObj);
-  //         //this.nchnls = options.numberOfOutputs;
-  //         //this.nchnls_i = options.numberOfInputs;
-  //         Csound.setOption(csObj, "--nchnls=" + this.nchnls);
-  //         Csound.setOption(csObj, "--nchnls_i=" + this.nchnls_i);
-  //         this.csoundOutputBuffer = null;
-  //         this.ksmps = null;
-  //         this.zerodBFS = null;
-  //         this.firePlayStateChange();
-  //         break;
-  //     case "cleanup":
-  //         Csound.cleanup(this.csObj);
-  //         break;
-  //     case "setCurrentDirFS":
-  //         let dirPath = data[2];
-  //         if (!dirExists(dirPath)) {
-  //             mkdirRecursive(dirPath);
-  //         }
-  //         FS.chdir(ensureRootPrefix(dirPath));
-  //         p.postMessage(["setCurrentDirFSDone", data[1]]);
-  //         break;
-  //     case "writeToFS":
-  //         let name = data[1];
-  //         let blobData = data[2];
-  //         let buf = new Uint8Array(blobData)
-  //         let stream = FS.open(name, 'w+');
-  //         FS.write(stream, buf, 0, buf.length, 0);
-  //         FS.close(stream);
-  //
-  //         break;
-  //     case "unlinkFromFS":
-  //         let filePath = data[1];
-  //         FS.unlink(filePath);
-  //         break;
-  //     case "midiMessage":
-  //         let byte1 = data[1];
-  //         let byte2 = data[2];
-  //         let byte3 = data[3];
-  //         Csound.pushMidiMessage(this.csObj, byte1, byte2, byte3);
-  //         break;
-  //     case "getControlChannel":
-  //         let channel = data[1];
-  //         let value = Csound.getControlChannel(this.csObj, channel);
-  //         p.postMessage(["control", channel, value]);
-  //         break;
-  //     case "getStringChannel":
-  //         let schannel = data[1];
-  //         let svalue = Csound.getStringChannel(this.csObj, schannel);
-  //         svalue = pointerStringify(svalue);
-  //         p.postMessage(["stringChannel", schannel, svalue]);
-  //         break;
-  //     case "getTable":
-  //         let buffer = Csound.getTable(this.csObj, data[1]);
-  //         let len = Csound.getTableLength(this.csObj, data[1]);
-  //         let src = new Float32Array(CSMOD.HEAP8.buffer, buffer, len);
-  //         let table = new Float32Array(src);
-  //         p.postMessage(["table", data[1], table]);
-  //         break;
-  //     case "setTableAtIndex":
-  //         Csound.setTable(this.csObj, data[1], data[2], data[3]);
-  //         break;
-  //     case "setTable":
-  //         let cstable = new Float32Array(data[2]);
-  //         for(let i = 0; i < cstable.length; i++)
-  //             Csound.setTable(this.csObj, data[1], i, cstable[i]);
-  //         break;
-  //     default:
-  //         console.log('[CsoundAudioProcessor] Invalid Message: "' + event.data);
-  //     }
-  // }
 }
 
 registerProcessor("csound-singlethread-worklet-processor", WorkletSinglethreadWorker);
