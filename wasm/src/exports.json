@@ -1,5 +1,6 @@
 [
   "_start",
+  "memory",
   "csoundSetMidiCallbacks",
   "sizeOfMidiStruct",
   "isRequestingRtMidiInput",

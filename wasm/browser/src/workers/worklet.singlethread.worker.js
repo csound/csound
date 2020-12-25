@@ -35,9 +35,9 @@ import { logWorklet } from "@root/logger";
 // };
 
 let wasm;
+let plugins;
 let libraryCsound;
 let combined;
-
 
 const callUncloned = async (k, arguments_) => {
   // console.log("calling " + k);
@@ -90,11 +90,27 @@ class WorkletSinglethreadWorker extends AudioWorkletProcessor {
     });
   }
 
-  async initialize(wasmDataURI) {
-    wasm = this.wasm = await loadWasm(wasmDataURI);
+  initialize(wasmDataURI, withPlugins = []) {
+    loadWasm(wasmDataURI, withPlugins).then(([wasm, plugins]) => {
+      this.wasm = wasm;
+      libraryCsound = libcsoundFactory(wasm);
+      this.callUncloned = callUncloned;
+      let cs = (this.csound = libraryCsound.csoundCreate(0));
+      plugins.forEach((plugin) => {
+        plugin.exports.init(cs);
+      });
+    });
+  }
+  async initialize_(wasmDataURI, withPlugins = []) {
+    [wasm, plugins] = await loadWasm(wasmDataURI, withPlugins);
+    this.wasm = wasm;
     libraryCsound = libcsoundFactory(wasm);
     this.callUncloned = callUncloned;
     let cs = (this.csound = libraryCsound.csoundCreate(0));
+    console.log("CS created");
+    plugins.forEach((plugin) => {
+      plugin.exports.init(cs);
+    });
 
     this.result = 0;
     this.running = false;

@@ -15,6 +15,7 @@ import {
 } from "@root/constants.js";
 
 let wasm;
+let plugins;
 let libraryCsound;
 let combined;
 
@@ -254,10 +255,11 @@ self.addEventListener("message", (event) => {
   }
 });
 
-const initialize = async (wasmDataURI) => {
+const initialize = async (wasmDataURI, withPlugins = []) => {
   logSAB(`initializing SABWorker and WASM`);
-  wasm = await loadWasm(wasmDataURI);
+  [wasm, plugins] = await loadWasm(wasmDataURI, withPlugins);
   libraryCsound = libcsoundFactory(wasm);
+
   const startHandler = handleCsoundStart(
     workerMessagePort,
     libraryCsound,
@@ -273,6 +275,13 @@ const initialize = async (wasmDataURI) => {
     assoc("wasm", wasm),
   )(libraryCsound);
   combined = new Map(Object.entries(allAPI));
+  const csoundInstance = libraryCsound.csoundCreate();
+  plugins.forEach((plugin) => {
+    console.log("LOADPLGZPRE", plugin, plugin.exports.init);
+    // wasm.exports.loadWasmPluginFromOentries(csoundInstance, plugin.exports.localops);
+    plugin.exports.init(csoundInstance);
+  });
+  return csoundInstance;
 };
 
 Comlink.expose({ initialize, callUncloned });

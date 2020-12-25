@@ -24,7 +24,8 @@
 import WorkletWorker from "@root/workers/worklet.singlethread.worker";
 import * as Comlink from "comlink";
 import { logWorklet } from "@root/logger";
-import { csoundApiRename, makeProxyCallback } from "@root/utils";
+import { isEmpty } from "ramda";
+import { csoundApiRename, fetchPlugins, makeProxyCallback } from "@root/utils";
 import { IPCMessagePorts, messageEventHandler } from "@root/mains/messages.main";
 import { api as API } from "@root/libcsound";
 
@@ -66,7 +67,7 @@ class SingleThreadAudioWorkletMainThread {
     this.onPlayStateChange("realtimePerformanceResumed");
   }
 
-  async initialize(wasmDataURI) {
+  async initialize({ wasmDataURI, withPlugins }) {
     await initializeModule(this.audioContext);
 
     // if (!this.wasm) {
@@ -104,8 +105,11 @@ class SingleThreadAudioWorkletMainThread {
 
     this.ipcMessagePorts.mainMessagePort.addEventListener("message", messageEventHandler(this));
     this.ipcMessagePorts.mainMessagePort.start();
+    if (withPlugins && !isEmpty(withPlugins)) {
+      withPlugins = await fetchPlugins(withPlugins);
+    }
 
-    await this.workletProxy.initialize(wasmDataURI);
+    await this.workletProxy.initialize(wasmDataURI, withPlugins);
     const csoundInstance = await makeProxyCallback(this.workletProxy, undefined, "csoundCreate")();
     this.csoundInstance = csoundInstance;
     await makeProxyCallback(this.workletProxy, csoundInstance, "csoundInitialize")(0);

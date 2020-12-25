@@ -127,3 +127,12 @@ export const stopableStates = new Set([
   "realtimePerformanceResumed",
   "renderStarted",
 ]);
+
+export const fetchPlugins = async (withPlugins) => {
+  return await Promise.all(
+    withPlugins.map(async (url) => {
+      const response = await fetch(url);
+      return response.arrayBuffer();
+    }),
+  );
+};

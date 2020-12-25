@@ -23,11 +23,11 @@
 
 import libcsoundFactory from "@root/libcsound";
 import loadWasm from "@root/module";
-import { csoundApiRename, makeSingleThreadCallback } from "@root/utils";
+import { isEmpty } from "ramda";
+import { csoundApiRename, fetchPlugins, makeSingleThreadCallback } from "@root/utils";
 
 class ScriptProcessorNodeSingleThread {
   constructor({ audioContext, numberOfInputs = 1, numberOfOutputs = 2 }) {
-
     this.onaudioprocess = this.onaudioprocess.bind(this);
     this.currentPlayState = undefined;
     this.start = this.start.bind(this);
@@ -45,7 +45,7 @@ class ScriptProcessorNodeSingleThread {
 
     this.numberOfInputs = numberOfInputs;
     this.numberOfOutputs = numberOfOutputs;
-    this.sampleRate = context.sampleRate;
+    this.sampleRate = audioContext.sampleRate;
 
     // imports from original csound-wasm
     this.started = false;
@@ -67,7 +67,7 @@ class ScriptProcessorNodeSingleThread {
       const ksmps = this.csoundApi.csoundGetKsmps(this.csoundInstance);
       this.ksmps = ksmps;
       this.cnt = ksmps;
-      
+
       this.nchnls = this.csoundApi.csoundGetNchnls(this.csoundInstance);
       this.nchnls_i = this.csoundApi.csoundGetNchnlsInput(this.csoundInstance);
 
@@ -92,9 +92,13 @@ class ScriptProcessorNodeSingleThread {
     return this.csoundApi.csoundStart(this.csoundInstance);
   }
 
-  async initialize(wasmDataURI) {
+  async initialize({ wasmDataURI, withPlugins }) {
+    if (!this.plugins && withPlugins && !isEmpty(withPlugins)) {
+      withPlugins = await fetchPlugins(withPlugins);
+    }
+
     if (!this.wasm) {
-      this.wasm = await loadWasm(wasmDataURI);
+      [this.wasm, this.plugins] = await loadWasm(wasmDataURI, withPlugins);
     }
 
     // libcsound
@@ -102,6 +106,12 @@ class ScriptProcessorNodeSingleThread {
     this.csoundApi = csoundApi;
     const csoundInstance = await csoundApi.csoundCreate(0);
     this.csoundInstance = csoundInstance;
+
+    // this.plugins.forEach((plugin) => {
+    //   console.log(plugin);
+    //   console.log("INSTANCE??", this.wasm.exports.memory, plugin.exports.memory);
+    //   plugin.exports.wasm_init(csoundInstance);
+    // });
     // CSOUND.setMidiCallbacks(cs); // FIXME
 
     csoundApi.csoundSetOption(csoundInstance, "-odac");

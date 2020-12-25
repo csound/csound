@@ -10,14 +10,14 @@
 /* #include "lpred.h" */
 
 #ifdef INIT_STATIC_MODULES
-extern int init_static_modules(CSOUND *csound);
-extern int scansyn_init_(CSOUND *csound);
-extern int scansynx_init_(CSOUND *csound);
-extern int emugens_init_(CSOUND *csound);
-extern int pvsops_init_(CSOUND *csound);
-extern int liveconv_init_(CSOUND *csound);
-extern int unsupported_opdoces_init_(CSOUND *csound);
-extern int dateops_init_(CSOUND *csound);
+/* extern int init_static_modules(CSOUND *csound); */
+/* extern int scansyn_init_(CSOUND *csound); */
+/* extern int scansynx_init_(CSOUND *csound); */
+/* extern int emugens_init_(CSOUND *csound); */
+/* extern int pvsops_init_(CSOUND *csound); */
+/* extern int liveconv_init_(CSOUND *csound); */
+/* extern int unsupported_opdoces_init_(CSOUND *csound); */
+/* extern int dateops_init_(CSOUND *csound); */
 #endif
 
 // returns the address of a string
@@ -198,34 +198,35 @@ void csoundSetMidiCallbacks(CSOUND *csound) {
 // same as csoundCreate but also loads
 // opcodes which need initialization to
 // be callable (aka static_modules)
-CSOUND *csoundCreateWasi() {
+__attribute__((used))
+int32_t csoundCreateWasi() {
   CSOUND *csound = csoundCreate(NULL);
-  init_static_modules(csound);
-  csoundSetMidiCallbacks(csound);
-  scansyn_init_(csound);
-  scansynx_init_(csound);
-  emugens_init_(csound);
-  pvsops_init_(csound);
-  liveconv_init_(csound);
-  dateops_init_(csound);
-  unsupported_opdoces_init_(csound);
-  return csound;
+  /* init_static_modules(csound); */
+  /* csoundSetMidiCallbacks(csound); */
+  /* scansyn_init_(csound); */
+  /* scansynx_init_(csound); */
+  /* emugens_init_(csound); */
+  /* pvsops_init_(csound); */
+  /* liveconv_init_(csound); */
+  /* dateops_init_(csound); */
+  /* unsupported_opdoces_init_(csound); */
+  return (int32_t) csound;
 }
 
 // same as csoundReset but also loads
 // opcodes which need re-initialization to
 // be callable (aka static_modules)
 void csoundResetWasi(CSOUND *csound) {
-  csoundReset(csound);
-  init_static_modules(csound);
-  csoundSetMidiCallbacks(csound);
-  scansyn_init_(csound);
-  scansynx_init_(csound);
-  emugens_init_(csound);
-  pvsops_init_(csound);
-  liveconv_init_(csound);
-  dateops_init_(csound);
-  unsupported_opdoces_init_(csound);
+  /* csoundReset(csound); */
+  /* init_static_modules(csound); */
+  /* csoundSetMidiCallbacks(csound); */
+  /* scansyn_init_(csound); */
+  /* scansynx_init_(csound); */
+  /* emugens_init_(csound); */
+  /* pvsops_init_(csound); */
+  /* liveconv_init_(csound); */
+  /* dateops_init_(csound); */
+  /* unsupported_opdoces_init_(csound); */
 }
 
 int isRequestingRtMidiInput(CSOUND *csound) {
@@ -253,7 +254,7 @@ char* getMidiOutFileName(CSOUND *csound) {
   }
 }
 
-double csoundGetControlChannelWasi(CSOUND* csound, char* channelName) { 
+double csoundGetControlChannelWasi(CSOUND* csound, char* channelName) {
   int *error = NULL;
   double returnValue = csoundGetControlChannel(csound, channelName, error);
   if (error != NULL) {
@@ -262,6 +263,28 @@ double csoundGetControlChannelWasi(CSOUND* csound, char* channelName) {
   } else {
     return returnValue;
   }
+}
+
+typedef void (*fp_wasm_load)(CSOUND *, OENTRY *);
+
+void loadWasmPluginFromOentries_(CSOUND* csound, OENTRY* opcodeEntry) {
+  int32_t x = (int32_t) mcalloc(csound, 100);
+  fprintf(stderr, "%d %s", x, "Stack overflow!\n");
+  /* fprintf(stderr, "%s", "Stack overflow!\n"); */
+  /* printf("GIVE ME SANITY \n"); */
+  /* printf("sizeof %lu %lu \n", sizeof(&opcodeEntry), sizeof(OENTRY)); */
+  /* for(int i = 0; i < sizeof(&opcodeEntry) / sizeof(OENTRY); i++) { */
+  /*   printf("opname?! %s \n", opcodeEntry[i].opname); */
+  /*   csoundAppendOpcodes(csound, &(opcodeEntry[i]), (int32_t) (sizeof(opcodeEntry[i]) / sizeof(OENTRY))); */
+  /* } */
+}
+
+
+__attribute__((used)) fp_wasm_load loadWasmPluginFromOentries = &loadWasmPluginFromOentries_;
+
+int32_t init_static_modules(int32_t x) {
+  printf("DELETEME");
+  return 0;
 }
 
 
@@ -273,13 +296,56 @@ double csoundGetControlChannelWasi(CSOUND* csound, char* channelName) {
 /* #else */
 // DUMMY MAIN (never called, but is needed)
 int main (int argc, char *argv[] ) {}
-/* #endif */
 
-// HACK FIX
-int __multi3(int a, double b, double c, double d, double e) {
+
+// WORKAROUND: --shared causes wasi to instpect
+// callers to main, when there isn't any main
+// so for now we override _start
+/* #include <wasi/api.h> */
+/* __attribute__((weak)) void __wasm_call_ctors(void); */
+/* void _start(void) { */
+/*   if (__wasm_call_ctors) { */
+/*     __wasm_call_ctors(); */
+/*   } */
+/* } */
+
+
+// Compilation fix for unsupported functions defined
+// wasi-libc/expected/wasm32-wasi/undefined-symbols.txt
+int32_t siprintf(int32_t x, int32_t y, int32_t z) {
+  printf("ERROR: call to unsupported function siprintf");
   return 0;
 }
 
+int32_t __small_sprintf(int32_t x, int32_t y, int32_t z) {
+  printf("ERROR: call to unsupported function __small_sprintf");
+  return 0;
+}
+
+int32_t fiprintf(int32_t x, int32_t y, int32_t z) {
+  printf("ERROR: call to unsupported function fiprintf");
+  return 0;
+}
+
+int32_t __small_fprintf(int32_t x, int32_t y, int32_t z) {
+  printf("ERROR: call to unsupported function __small_fprintf");
+  return 0;
+}
+
+int32_t __getf2(int64_t x, int64_t y, int64_t z, int64_t zz) {
+  printf("ERROR: call to unsupported function __getf2");
+  return 0;
+}
+
+void __extenddftf2(int32_t x, double y) {
+  printf("ERROR: call to unsupported function __extenddftf2");
+}
+
+void __multi3(int32_t a, int64_t b, int64_t c, int64_t d, int64_t e) {
+  printf("ERROR: call to unsupported function __multi3");
+}
+
 int __lttf2(long double a, long double b) {
+  printf("ERROR: call to unsupported function __lttf2");
   return 0;
 }

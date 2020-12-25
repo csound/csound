@@ -173,7 +173,7 @@ class VanillaWorkerMainThread {
     }
   }
 
-  async initialize() {
+  async initialize({ withPlugins }) {
     logVAN(`vanilla.main: initialize`);
     this.csoundWorker = this.csoundWorker || new Worker(VanillaWorker());
     const audioStreamIn = this.audioStreamIn;

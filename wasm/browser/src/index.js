@@ -30,6 +30,7 @@ import {
 export async function Csound({
   audioContext = new (WebkitAudioContext())(),
   useWorker = false,
+  withPlugins = [],
 } = {}) {
   unmuteIosAudio();
 
@@ -41,11 +42,11 @@ export async function Csound({
     if (workletSupport) {
       console.log("Single Thread AudioWorklet", audioContext);
       const instance = new SingleThreadAudioWorkletMainThread({ audioContext });
-      return await instance.initialize(wasmDataURI);
+      return instance.initialize({ wasmDataURI, withPlugins });
     } else if (spnSupport) {
       console.log("Single Thread ScriptProcessorNode");
       const instance = new ScriptProcessorNodeSingleThread({ audioContext });
-      return await instance.initialize(wasmDataURI);
+      return await instance.initialize({ wasmDataURI, withPlugins });
     } else {
       log.error("No detectable WebAudioAPI in current environment");
       return undefined;
@@ -89,7 +90,7 @@ export async function Csound({
 
   if (worker) {
     log(`starting Csound thread initialization via WebWorker`);
-    await worker.initialize();
+    await worker.initialize({ withPlugins });
     csoundWasmApi = worker.api;
   } else {
     log.error("No detectable WebAssembly support in current environment");
