@@ -4,6 +4,8 @@ export const MAX_CHANNELS = 32;
 export const MAX_HARDWARE_BUFFER_SIZE = 16384;
 export const MIDI_BUFFER_SIZE = 1024;
 export const MIDI_BUFFER_PAYLOAD_SIZE = 3;
+export const CALLBACK_DATA_BUFFER_SIZE = 16384;
+// export const CALLBACK_DATA_BUFFER_SIZE = 1024;
 
 export const initialSharedState = [
   0, // 1 = Worklet requests new buffer data (atomic notify)
@@ -21,7 +23,7 @@ export const initialSharedState = [
   0, // n = buffer write index of input buffer
   0, // n = buffer write index of output buffer
   0, // n = the read index of the callback buffer
-  0, // n = amount of callbacks waiting from main thread
+  0, // n = the write index of the callback string data-buffer
   44100, // sample rate
   0, // n = if 1 then is requesting rtmidi
   0, // n = rtmidi buffer index
@@ -45,9 +47,16 @@ export const AUDIO_STATE = {
   INPUT_WRITE_INDEX: 12,
   OUTPUT_WRITE_INDEX: 13,
   CALLBACK_BUFFER_INDEX: 14,
-  AVAIL_CALLBACKS: 15,
-  SAMPLE_RATE: 16,
-  IS_REQUESTING_RTMIDI: 17,
-  RTMIDI_INDEX: 18,
-  AVAIL_RTMIDI_EVENTS: 19,
+  CALLBACK_STRING_DATA_BUFFER_POS: 15,
+  CALLBACK_FLOAT_ARRAY_DATA_BUFFER_POS: 16,
+  SAMPLE_RATE: 17,
+  IS_REQUESTING_RTMIDI: 18,
+  RTMIDI_INDEX: 19,
+  AVAIL_RTMIDI_EVENTS: 20,
+};
+
+export const DATA_TYPE = {
+  NUMBER: 0,
+  STRING: 1,
+  FLOAT_ARRAY: 2,
 };

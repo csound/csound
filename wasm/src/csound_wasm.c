@@ -24,7 +24,9 @@
 // pointer which is writable from js
 char* allocStringMem (int length) {
   char *ptr = NULL;
-  ptr = malloc((length * sizeof(char)) + 1);
+  ptr = malloc(((length + 1) * sizeof(char)));
+  // NULL Terminate
+  ptr[length] = 0;
   return ptr;
 }
 
@@ -257,6 +259,8 @@ char* getMidiOutFileName(CSOUND *csound) {
 double csoundGetControlChannelWasi(CSOUND* csound, char* channelName) {
   int *error = NULL;
   double returnValue = csoundGetControlChannel(csound, channelName, error);
+
+//  printf("csoundGetControlChannel: Channel Name %s\n", channelName);
   if (error != NULL) {
     printf("csoundGetControlChannel: Error %d\n", *error);
     return 0;
@@ -279,13 +283,18 @@ void loadWasmPluginFromOentries_(CSOUND* csound, OENTRY* opcodeEntry) {
   /* } */
 }
 
-
 __attribute__((used)) fp_wasm_load loadWasmPluginFromOentries = &loadWasmPluginFromOentries_;
 
 int32_t init_static_modules(int32_t x) {
   printf("DELETEME");
   return 0;
-}
+
+char* csoundGetStringChannelWasi(CSOUND* csound, const char *channelName) {
+  int len = csoundGetChannelDatasize(csound, channelName);
+  char *data = calloc(1, sizeof(char) * (len + 1));
+
+  csoundGetStringChannel(csound, channelName, data);
+  return data;
 
 
 /* char* csoundGetMidiOptions(CSOUND *csound) { */

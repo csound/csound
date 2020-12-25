@@ -24,6 +24,7 @@
 import WorkletWorker from "@root/workers/worklet.singlethread.worker";
 import * as Comlink from "comlink";
 import { logWorklet } from "@root/logger";
+
 import { isEmpty } from "ramda";
 import { csoundApiRename, fetchPlugins, makeProxyCallback } from "@root/utils";
 import { IPCMessagePorts, messageEventHandler } from "@root/mains/messages.main";
@@ -42,15 +43,83 @@ const initializeModule = async (audioContext) => {
 class SingleThreadAudioWorkletMainThread {
   constructor({ audioContext, numberOfInputs = 1, numberOfOutputs = 2 }) {
     this.exportApi = {};
-    this.ipcMessagePorts = new IPCMessagePorts();
     this.audioContext = audioContext;
     this.inputChannelCount = numberOfInputs;
     this.outputChannelCount = numberOfOutputs;
+
+    this.messageCallbacks = [];
+    this.csoundPlayStateChangeCallbacks = [];
     this.onPlayStateChange = this.onPlayStateChange.bind(this);
     this.currentPlayState = undefined;
   }
   async onPlayStateChange(newPlayState) {
     this.currentPlayState = newPlayState;
+
+    switch (newPlayState) {
+      case "realtimePerformanceStarted": {
+        console.log(`event realtimePerformanceStarted from worker, now preparingRT..`);
+        // await this.prepareRealtimePerformance();
+        break;
+      }
+
+      case "realtimePerformanceEnded": {
+        console.log(`realtimePerformanceEnded`);
+        this.midiPortStarted = false;
+        // this.csound = undefined;
+        this.currentPlayState = undefined;
+        break;
+      }
+
+      case "renderEnded": {
+        console.log(`event: renderEnded received, beginning cleanup`);
+        break;
+      }
+
+      default: {
+        break;
+      }
+    }
+
+    this.csoundPlayStateChangeCallbacks.forEach((callback) => {
+      try {
+        callback(newPlayState);
+      } catch (error) {
+        console.error(error);
+      }
+    });
+  }
+
+  async addMessageCallback(callback) {
+    if (typeof callback === "function") {
+      this.messageCallbacks.push(callback);
+    } else {
+      console.error(`Can't assign ${typeof callback} as a message callback`);
+    }
+  }
+
+  async setMessageCallback(callback) {
+    if (typeof callback === "function") {
+      this.messageCallbacks = [callback];
+    } else {
+      console.error(`Can't assign ${typeof callback} as a message callback`);
+    }
+  }
+
+  // User-land hook to csound's play-state changes
+  async setCsoundPlayStateChangeCallback(callback) {
+    if (typeof callback !== "function") {
+      console.error(`Can't assign ${typeof callback} as a playstate change callback`);
+    } else {
+      this.csoundPlayStateChangeCallbacks = [callback];
+    }
+  }
+
+  async addCsoundPlayStateChangeCallback(callback) {
+    if (typeof callback !== "function") {
+      console.error(`Can't assign ${typeof callback} as a playstate change callback`);
+    } else {
+      this.csoundPlayStateChangeCallbacks.push(callback);
+    }
   }
 
   async csoundPause() {
@@ -102,12 +171,12 @@ class SingleThreadAudioWorkletMainThread {
     } catch (error) {
       console.log("COMLINK ERROR", error);
     }
-
-    this.ipcMessagePorts.mainMessagePort.addEventListener("message", messageEventHandler(this));
-    this.ipcMessagePorts.mainMessagePort.start();
     if (withPlugins && !isEmpty(withPlugins)) {
       withPlugins = await fetchPlugins(withPlugins);
     }
+
+    this.node.port.addEventListener("message", messageEventHandler(this));
+    this.node.port.start();
 
     await this.workletProxy.initialize(wasmDataURI, withPlugins);
     const csoundInstance = await makeProxyCallback(this.workletProxy, undefined, "csoundCreate")();
@@ -122,6 +191,14 @@ class SingleThreadAudioWorkletMainThread {
     this.exportApi.rmrfFs = makeProxyCallback(this.workletProxy, csoundInstance, "rmrfFs");
     this.exportApi.getAudioContext = async () => this.audioContext;
     this.exportApi.getNode = async () => this.node;
+    this.exportApi.setMessageCallback = this.setMessageCallback.bind(this);
+    this.exportApi.addMessageCallback = this.addMessageCallback.bind(this);
+    this.exportApi.setCsoundPlayStateChangeCallback = this.setCsoundPlayStateChangeCallback.bind(
+      this,
+    );
+    this.exportApi.addCsoundPlayStateChangeCallback = this.addCsoundPlayStateChangeCallback.bind(
+      this,
+    );
 
     for (const apiK of Object.keys(API)) {
       const reference = API[apiK];
@@ -137,9 +214,9 @@ class SingleThreadAudioWorkletMainThread {
               console.error("starting csound failed because csound instance wasn't created");
               return -1;
             }
-            this.node.port.postMessage({ msg: "initMessagePort" }, [
-              this.ipcMessagePorts.workerMessagePort,
-            ]);
+            // this.node.port.postMessage({ msg: "initMessagePort" }, [
+            //   this.ipcMessagePorts.workerMessagePort,
+            // ]);
 
             return await proxyCallback();
           };

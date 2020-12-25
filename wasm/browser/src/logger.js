@@ -1,6 +1,10 @@
-import _log from "log";
+// import _log from "log";
 import { bgLightCyan, bgLightMagenta, bgBlack, bgYellow, yellow, white } from "ansicolor";
 import { isWebWorker } from "browser-or-node";
+
+const _log = console.log;
+_log.warning = console.log;
+_log.error = console.log;
 
 export const logWorklet = (...argumentz) =>
   _log.apply(undefined, [`${bgLightCyan("AudioWorklet")}`].concat(argumentz));

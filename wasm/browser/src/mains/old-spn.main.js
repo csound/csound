@@ -13,10 +13,10 @@ import { IPCMessagePorts } from "@root/mains/messages.main";
 const connectedMidiDevices = new Set();
 
 class ScriptProcessorNodeMainThread {
-  constructor() {
+  constructor({audioContext}) {
     this.ipcMessagePorts = new IPCMessagePorts();
 
-    this.audioCtx = undefined;
+    this.audioContext = audioContext;
     this.currentPlayState = undefined;
     this.csoundWorkerMain = undefined;
 

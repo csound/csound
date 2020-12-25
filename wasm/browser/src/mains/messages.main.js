@@ -70,12 +70,17 @@ export class IPCMessagePorts {
     this.csoundWorkerRtMidiPort = csoundWorkerRtMidiPort;
     this.csoundMainRtMidiPort = csoundMainRtMidiPort;
 
+    let { port1: sabWorkerCallbackReply, port2: sabMainCallbackReply } = new MessageChannel();
+    this.sabWorkerCallbackReply = sabWorkerCallbackReply;
+    this.sabMainCallbackReply = sabMainCallbackReply;
+
     // Methods
     this.restartMessagePortAudio = this.restartMessagePortAudio.bind(this);
     this.restartWorkerAudioInputPort = this.restartWorkerAudioInputPort.bind(this);
     this.restartWorkerFrameRequestPort = this.restartWorkerFrameRequestPort.bind(this);
     this.restartAudioInputPorts = this.restartAudioInputPorts.bind(this);
     this.restartRtMidiPorts = this.restartRtMidiPorts.bind(this);
+    this.restartSabReplyPorts = this.restartSabReplyPorts(this);
   }
 
   restartMessagePortAudio() {
@@ -106,6 +111,12 @@ export class IPCMessagePorts {
     [this.csoundWorkerRtMidiPort, this.csoundMainRtMidiPort] = iterableMessageChannel();
   }
 
+  restartSabReplyPorts() {
+    safelyClosePorts([this.sabWorkerCallbackReply, this.sabMainCallbackReply]);
+    [this.sabWorkerCallbackReply, this.sabMainCallbackReply] = iterableMessageChannel();
+  }
+
+  // only used in vanilla
   restart(csoundWorkerMain) {
     this.restartMessagePortAudio();
     this.restartWorkerAudioInputPort();

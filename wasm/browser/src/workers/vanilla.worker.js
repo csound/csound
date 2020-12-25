@@ -42,18 +42,6 @@ const createRealtimeAudioThread = ({ csound }) => {
     return -1;
   }
 
-  // The actual realtime start
-  // doing this early to detect errors
-  // derive options and attributes for the performance
-  const startError = libraryCsound.csoundStart(csound);
-  if (startError !== 0) {
-    workerMessagePort.post(
-      "error: csoundStart failed in realtime-performance," +
-        " look out for errors in options and syntax",
-    );
-    return -1;
-  }
-
   // Prompt for midi-input on demand
   // const isRequestingRtMidiInput = libraryCsound._isRequestingRtMidiInput(csound);
 
@@ -79,23 +67,6 @@ const createRealtimeAudioThread = ({ csound }) => {
   let lastPerformance = 0;
 
   audioProcessCallback = ({ readIndex, numFrames }) => {
-    // MEMGROW KILLS REFERENCES!
-    // https://github.com/emscripten-core/emscripten/issues/6747#issuecomment-400081465
-    if (csoundInputBuffer.length === 0) {
-      csoundInputBuffer = new Float64Array(
-        wasm.exports.memory.buffer,
-        libraryCsound.csoundGetSpin(csound),
-        ksmps * nchnlsInput,
-      );
-    }
-    if (csoundOutputBuffer.length === 0) {
-      csoundOutputBuffer = new Float64Array(
-        wasm.exports.memory.buffer,
-        libraryCsound.csoundGetSpout(csound),
-        ksmps * nchnls,
-      );
-    }
-
     const outputAudioPacket = instantiateAudioPacket(nchnls, numFrames);
     const hasInput = audioInputs.buffers.length > 0 && audioInputs.availableFrames >= numFrames;
 
@@ -124,6 +95,23 @@ const createRealtimeAudioThread = ({ csound }) => {
           csoundWorkerFrameRequestPort = undefined;
           return { framesLeft: i };
         }
+      }
+
+      // MEMGROW KILLS REFERENCES!
+      // https://github.com/emscripten-core/emscripten/issues/6747#issuecomment-400081465
+      if (csoundInputBuffer.length === 0) {
+        csoundInputBuffer = new Float64Array(
+          wasm.exports.memory.buffer,
+          libraryCsound.csoundGetSpin(csound),
+          ksmps * nchnlsInput,
+        );
+      }
+      if (csoundOutputBuffer.length === 0) {
+        csoundOutputBuffer = new Float64Array(
+          wasm.exports.memory.buffer,
+          libraryCsound.csoundGetSpout(csound),
+          ksmps * nchnls,
+        );
       }
 
       outputAudioPacket.forEach((channel, channelIndex) => {

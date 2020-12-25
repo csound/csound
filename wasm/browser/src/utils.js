@@ -36,12 +36,26 @@ export const string2ptr = (wasm, string) => {
     return;
   }
 
-  const { buffer } = wasm.exports.memory;
   const stringBuf = encoder.encode(string);
   const offset = wasm.exports.allocStringMem(stringBuf.length);
+  const { buffer } = wasm.exports.memory;
   const outBuf = new Uint8Array(buffer, offset, stringBuf.length + 1);
   outBuf.set(stringBuf);
   return offset;
+};
+
+export const ptr2string = (wasm, stringPtr) => {
+  const { buffer } = wasm.exports.memory;
+  const buf = new Uint8Array(buffer, stringPtr);
+  const res = decoder.decode(buf);
+  return trimNull(res);
+};
+
+export const appendBuffers = (buffer1, buffer2) => {
+  const tmp = new Uint8Array(buffer1.byteLength + buffer2.byteLength);
+  tmp.set(new Uint8Array(buffer1), 0);
+  tmp.set(new Uint8Array(buffer2), buffer1.byteLength);
+  return tmp.buffer;
 };
 
 export const sizeofStruct = (jsStruct) => {

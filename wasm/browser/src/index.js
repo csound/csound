@@ -28,7 +28,7 @@ import {
  * @return {Promise.<CsoundObj|undefined>}
  */
 export async function Csound({
-  audioContext = new (WebkitAudioContext())(),
+  audioContext = new (WebkitAudioContext())({ latencyHint: "interactive" }),
   useWorker = false,
   withPlugins = [],
 } = {}) {
@@ -65,9 +65,9 @@ export async function Csound({
   let csoundWasmApi;
 
   if (workletSupport) {
-    audioWorker = new AudioWorkletMainThread();
+    audioWorker = new AudioWorkletMainThread({ audioContext });
   } else if (spnSupport) {
-    audioWorker = new ScriptProcessorNodeMainThread();
+    audioWorker = new ScriptProcessorNodeMainThread({ audioContext });
   }
 
   if (!audioWorker) {

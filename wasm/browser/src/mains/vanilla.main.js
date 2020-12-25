@@ -214,7 +214,7 @@ class VanillaWorkerMainThread {
     this.exportApi.llFs = makeProxyCallback(proxyPort, csoundInstance, "llFs");
     this.exportApi.lsFs = makeProxyCallback(proxyPort, csoundInstance, "lsFs");
     this.exportApi.rmrfFs = makeProxyCallback(proxyPort, csoundInstance, "rmrfFs");
-    this.exportApi.getAudioContext = async () => this.audioWorker.audioCtx;
+    this.exportApi.getAudioContext = async () => this.audioWorker.audioContext;
 
     for (const apiK of Object.keys(API)) {
       const reference = API[apiK];

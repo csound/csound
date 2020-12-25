@@ -28,6 +28,7 @@ import { csoundApiRename, fetchPlugins, makeSingleThreadCallback } from "@root/u
 
 class ScriptProcessorNodeSingleThread {
   constructor({ audioContext, numberOfInputs = 1, numberOfOutputs = 2 }) {
+    this.audioContext = audioContext;
     this.onaudioprocess = this.onaudioprocess.bind(this);
     this.currentPlayState = undefined;
     this.start = this.start.bind(this);
@@ -138,6 +139,7 @@ class ScriptProcessorNodeSingleThread {
     this.exportApi.resume = this.resume.bind(this);
     this.exportApi.setMessageCallback = this.setMessageCallback.bind(this);
     this.exportApi.start = this.start.bind(this);
+    this.exportApi.getAudioContext = async () => this.audioContext;
 
     return this.exportApi;
   }
@@ -177,6 +179,21 @@ class ScriptProcessorNodeSingleThread {
     let result = this.result || 0;
 
     for (let i = 0; i < bufferLen; i++, cnt++) {
+      if (cnt == ksmps && result == 0) {
+        // if we need more samples from Csound
+        result = this.csoundApi.csoundPerformKsmps(this.csoundInstance);
+        cnt = 0;
+        if (result != 0) {
+          // this.running = false;
+          // this.started = false;
+          // this.firePlayStateChange();
+          // TODO fire event
+          this.currentPlayState = "realtimePerformanceEnded";
+        }
+      }
+
+      /* Check if MEMGROWTH occured from csoundPerformKsmps or otherwise. If so,
+      rest output ant input buffers to new pointer locations. */
       if (csOut.length === 0) {
         csOut = this.csoundOutputBuffer = new Float64Array(
           this.wasm.exports.memory.buffer,
@@ -191,19 +208,6 @@ class ScriptProcessorNodeSingleThread {
           this.csoundApi.csoundGetSpin(this.csoundInstance),
           ksmps * nchnls_i,
         );
-      }
-
-      if (cnt == ksmps && result == 0) {
-        // if we need more samples from Csound
-        result = this.csoundApi.csoundPerformKsmps(this.csoundInstance);
-        cnt = 0;
-        if (result != 0) {
-          // this.running = false;
-          // this.started = false;
-          // this.firePlayStateChange();
-          // TODO fire event
-          this.currentPlayState = "realtimePerformanceEnded";
-        }
       }
 
       for (let channel = 0; channel < input.numberOfChannels; channel++) {

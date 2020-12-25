@@ -5,9 +5,9 @@ import log, { logWorklet } from "@root/logger";
 const connectedMidiDevices = new Set();
 
 class AudioWorkletMainThread {
-  constructor() {
+  constructor({ audioContext }) {
     this.ipcMessagePorts = undefined;
-    this.audioCtx = undefined;
+    this.audioContext = audioContext;
     this.audioWorkletNode = undefined;
     this.currentPlayState = undefined;
     this.csoundWorkerMain = undefined;
@@ -41,10 +41,10 @@ class AudioWorkletMainThread {
             ? ` cleaning up ports`
             : "",
         );
-        this.audioCtx.close();
+        this.audioContext.close();
         this.audioWorkletNode.disconnect();
         delete this.audioWorkletNode;
-        this.audioCtx = undefined;
+        this.audioContext = undefined;
         this.currentPlayState = undefined;
         this.workletProxy = undefined;
         this.sampleRate = undefined;
@@ -78,22 +78,14 @@ class AudioWorkletMainThread {
 
     try {
       logWorklet("wrapping Comlink proxy endpoint on the audioWorkletNode.port");
-      this.workletProxy = Comlink.wrap(this.audioWorkletNodes.port);
+      this.workletProxy = Comlink.wrap(this.audioWorkletNode.port);
     } catch (error) {
       log.error("COMLINK ERROR", error);
     }
   }
 
   async initialize() {
-    const newAudioContext = new AudioContext({
-      latencyHint: "interactive",
-      sampleRate: this.sampleRate,
-    });
-
-    this.audioCtx = newAudioContext;
-
-    logWorklet("new AudioContext");
-    await newAudioContext.audioWorklet.addModule(WorkletWorker());
+    await this.audioContext.audioWorklet.addModule(WorkletWorker());
     logWorklet("WorkletWorker module added");
 
     if (!this.csoundWorkerMain) {
@@ -101,8 +93,8 @@ class AudioWorkletMainThread {
       return;
     }
 
-    const createWorkletNode = (audoContext, inputsCount) => {
-      return new AudioWorkletNode(audoContext, "csound-worklet-processor", {
+    const createWorkletNode = (audioContext, inputsCount) => {
+      return new AudioWorkletNode(audioContext, "csound-worklet-processor", {
         inputChannelCount: inputsCount ? [inputsCount] : 0,
         outputChannelCount: [this.outputsCount || 2],
         processorOptions: {
@@ -166,17 +158,17 @@ class AudioWorkletMainThread {
 
       const microphoneCallback = (stream) => {
         if (stream) {
-          const liveInput = newAudioContext.createMediaStreamSource(stream);
+          const liveInput = this.audioContext.createMediaStreamSource(stream);
           this.inputsCount = liveInput.channelCount;
-          const newNode = createWorkletNode(newAudioContext, liveInput.channelCount);
+          const newNode = createWorkletNode(this.audioContext, liveInput.channelCount);
           this.audioWorkletNode = newNode;
-          liveInput.connect(newNode).connect(newAudioContext.destination);
+          liveInput.connect(newNode).connect(this.audioContext.destination);
         } else {
           // Continue as before if user cancels
           this.inputsCount = 0;
-          const newNode = createWorkletNode(newAudioContext, 0);
+          const newNode = createWorkletNode(this.audioContext, 0);
           this.audioWorkletNode = newNode;
-          this.audioWorkletNode.connect(newAudioContext.destination);
+          this.audioWorkletNode.connect(this.audioContext.destination);
         }
         !this.csoundWorkerMain.hasSharedArrayBuffer && this.connectPorts();
       };
@@ -200,10 +192,10 @@ class AudioWorkletMainThread {
             log.error,
           );
     } else {
-      const newNode = createWorkletNode(newAudioContext, 0);
+      const newNode = createWorkletNode(this.audioContext, 0);
       this.audioWorkletNode = newNode;
       logWorklet("connecting Node to AudioContext destination");
-      this.audioWorkletNode.connect(newAudioContext.destination);
+      this.audioWorkletNode.connect(this.audioContext.destination);
       !this.csoundWorkerMain.hasSharedArrayBuffer && this.connectPorts();
     }
   }

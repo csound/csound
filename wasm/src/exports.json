@@ -106,6 +106,7 @@
   "csoundGetSpoutSample",
   "csoundGetSr",
   "csoundGetStringChannel",
+  "csoundGetStringChannelWasi",
   "csoundGetTable",
   "csoundGetTableArgs",
   "csoundGetUtilityDescription",
