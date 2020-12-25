@@ -5,6 +5,7 @@ export const handleSABCallbacks = ({
   audioStatePointer,
   csound,
   callbackBuffer,
+  callbackReply,
   callbackStringDataBuffer,
   combined,
 }) => {
@@ -16,6 +17,7 @@ export const handleSABCallbacks = ({
         break;
       } else {
         const argumentCount = Atomics.load(callbackBuffer, callbackIndex);
+        const replyId = Atomics.load(callbackBuffer, callbackIndex + 1);
         if (argumentCount == 0) {
           console.error("Csound SAB internal error, argumentcount is zero!");
         }
@@ -23,7 +25,7 @@ export const handleSABCallbacks = ({
         // callbackIndex += 1;
         const argumentz = [];
         for (let argumentIndex = 0; argumentIndex < argumentCount; argumentIndex++) {
-          const argumentPosition = argumentIndex * 3 + 1 + callbackIndex;
+          const argumentPosition = argumentIndex * 3 + 2 + callbackIndex;
           const dataType = Atomics.load(callbackBuffer, argumentPosition);
           const dataValue1 = Atomics.load(callbackBuffer, argumentPosition + 1);
           const dataValue2 = Atomics.load(callbackBuffer, argumentPosition + 2);
@@ -47,9 +49,11 @@ export const handleSABCallbacks = ({
             // TODO!!
           }
         }
+
         const [k, ...argz] = argumentz;
         const caller = combined.get(k);
-        caller && caller.apply(undefined, [csound, ...argz]);
+        const returnVal = caller && caller.apply(undefined, [csound, ...argz]);
+        callbackReply(replyId, returnVal);
         callbackIndex += argumentCount - 1;
       }
     }

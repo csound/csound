@@ -246,10 +246,19 @@ class SharedArrayBufferMainThread {
     );
     csoundWorker.postMessage({ msg: "initMessagePort" }, [this.ipcMessagePorts.workerMessagePort]);
 
+    // we send callbacks to the worker in SAB, but receive these return values as message events
+    let returnQueue = {};
+    this.ipcMessagePorts.sabMainCallbackReply.addEventListener("message", (event) => {
+      const { uid, value } = event.data;
+      const promize = returnQueue[uid];
+      promize && promize(value);
+    });
+    csoundWorker.postMessage({ msg: "initCallbackReplyPort" }, [
+      this.ipcMessagePorts.sabWorkerCallbackReply,
+    ]);
+
     this.ipcMessagePorts.mainMessagePort.start();
     this.ipcMessagePorts.mainMessagePortAudio.start();
-    // logSAB(`mainMessagePort and mainMessagePortAudio ports .started`);
-    // workerMessagePort.start();
 
     const proxyPort = Comlink.wrap(csoundWorker);
     await proxyPort.initialize(this.wasmDataURI);
@@ -356,6 +365,7 @@ class SharedArrayBufferMainThread {
             callbackBuffer,
             callbackStringDataBuffer,
             callbackFloatArrayDataBuffer,
+            returnQueue,
           });
           const bufferWrappedCallback = async (...args) => {
             if (this.currentPlayState === "realtimePerformanceStarted") {

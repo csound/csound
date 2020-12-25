@@ -16,6 +16,7 @@ import {
   initialSharedState,
 } from "@root/constants.js";
 
+let callbackReply = (uid, value) => {};
 let wasm;
 let libraryCsound;
 let combined;
@@ -177,6 +178,7 @@ const sabCreateRealtimeAudioThread = ({
       audioStatePointer,
       csound,
       callbackBuffer,
+      callbackReply,
       callbackStringDataBuffer,
       combined,
     });
@@ -263,6 +265,11 @@ self.addEventListener("message", (event) => {
     workerMessagePort.broadcastPlayState = (playStateChange) =>
       port.postMessage({ playStateChange });
     workerMessagePort.ready = true;
+  }
+
+  if (event.data.msg === "initCallbackReplyPort") {
+    const port = event.ports[0];
+    callbackReply = (uid, value) => port.postMessage({ uid, value });
   }
 });
 

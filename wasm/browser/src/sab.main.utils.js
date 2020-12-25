@@ -1,18 +1,28 @@
 import { AUDIO_STATE, CALLBACK_DATA_BUFFER_SIZE, DATA_TYPE } from "@root/constants";
 import { encoder } from "@root/utils";
 
+let uid = 0;
+
 export const makeSABPerfCallback = ({
   apiK,
   audioStatePointer,
   callbackBuffer,
   callbackStringDataBuffer,
   callbackFloatArrayDataBuffer,
+  returnQueue,
 }) => (args) => {
+  uid += 1;
+  let rejectCallback;
+  const returnPromise = new Promise((resolve, reject) => {
+    returnQueue[uid] = resolve;
+    rejectCallback = reject;
+  });
   const argumentz = [apiK, ...args];
   const callbackBufferIndex = Atomics.load(audioStatePointer, AUDIO_STATE.CALLBACK_BUFFER_INDEX);
   Atomics.store(callbackBuffer, callbackBufferIndex, argumentz.length);
+  Atomics.store(callbackBuffer, callbackBufferIndex + 1, argumentz.length);
   argumentz.forEach((argument, index) => {
-    const argumentPosition = callbackBufferIndex + index * 3 + 1;
+    const argumentPosition = callbackBufferIndex + index * 3 + 2;
     if (typeof argument === "number") {
       const dataType = DATA_TYPE.NUMBER;
       Atomics.store(callbackBuffer, argumentPosition, dataType);
@@ -55,7 +65,9 @@ export const makeSABPerfCallback = ({
       console.error(`TODO!`);
     } else {
       console.error(`Illegal argument in ${apiK}: ${argument}`);
+      rejectCallback(`Illegal argument ${argument}`);
     }
   });
   Atomics.add(audioStatePointer, AUDIO_STATE.CALLBACK_BUFFER_INDEX, callbackBufferIndex + 1);
+  return returnPromise;
 };
