@@ -48,7 +48,7 @@ export const ptr2string = (wasm, stringPtr) => {
   const { buffer } = wasm.exports.memory;
   const buf = new Uint8Array(buffer, stringPtr);
   const res = decoder.decode(buf);
-  return res;
+  return trimNull(res);
 };
 
 export const appendBuffers = (buffer1, buffer2) => {
