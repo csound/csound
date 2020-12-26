@@ -137,25 +137,6 @@ class SingleThreadAudioWorkletMainThread {
   async initialize(wasmDataURI) {
     await initializeModule(this.audioContext);
 
-    // if (!this.wasm) {
-    //   this.wasm = await loadWasm(wasmDataURI);
-    // }
-    // libcsound
-    // const csoundApi = libcsoundFactory(this.wasm);
-    // this.worker = WorkletWorker;
-    // console.log("Initializing Module");
-    // const options = {};
-    // options.numberOfInputs = this.inputChannelCount;
-    // options.numberOfOutputs = 1;
-    // options.outputChannelCount = [this.outputChannelCount];
-    // await this.audioContext.audioWorklet.addModule(WorkletWorker());
-
-    // console.log("moduleinitialized");
-    // const createWorkletNode = (audoContext, inputsCount) => {
-    //   return
-    // };
-
-    // this.node = createWorkletNode(this.audoContext, this.inputChannelCount);
     this.node = new AudioWorkletNode(this.audioContext, "csound-singlethread-worklet-processor", {
       inputChannelCount: this.inputChannelCount ? [this.inputChannelCount] : 0,
       outputChannelCount: [this.outputChannelCount || 2],
