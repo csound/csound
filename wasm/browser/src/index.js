@@ -30,6 +30,8 @@ import {
 export async function Csound({
   audioContext = new (WebkitAudioContext())({ latencyHint: "interactive" }),
   useWorker = false,
+  useSAB = true,
+  useSPN = false
 } = {}) {
   unmuteIosAudio();
 
@@ -38,7 +40,7 @@ export async function Csound({
 
   // SingleThread implementations
   if (!useWorker) {
-    if (workletSupport) {
+    if (workletSupport && !useSPN) {
       console.log("Single Thread AudioWorklet", audioContext);
       const instance = new SingleThreadAudioWorkletMainThread({ audioContext });
       return await instance.initialize(wasmDataURI);
@@ -63,7 +65,7 @@ export async function Csound({
   let audioWorker;
   let csoundWasmApi;
 
-  if (workletSupport) {
+  if (workletSupport && !useSPN) {
     audioWorker = new AudioWorkletMainThread({ audioContext });
   } else if (spnSupport) {
     audioWorker = new ScriptProcessorNodeMainThread({ audioContext });
@@ -83,7 +85,7 @@ export async function Csound({
   }
 
   const worker =
-    hasSABSupport && workletSupport
+    hasSABSupport && workletSupport && useSAB
       ? new SharedArrayBufferMainThread(audioWorker, wasmDataURI)
       : new VanillaWorkerMainThread(audioWorker, wasmDataURI);
 
