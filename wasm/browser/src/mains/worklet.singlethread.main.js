@@ -175,6 +175,7 @@ class SingleThreadAudioWorkletMainThread {
     this.exportApi.addCsoundPlayStateChangeCallback = this.addCsoundPlayStateChangeCallback.bind(
       this,
     );
+    this.exportApi.name = "Csound: Audio Worklet, Single-threaded";
 
     for (const apiK of Object.keys(API)) {
       const reference = API[apiK];

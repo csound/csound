@@ -150,7 +150,7 @@ class WorkletSinglethreadWorker extends AudioWorkletProcessor {
     libraryCsound.csoundSetMidiCallbacks(cs);
     libraryCsound.csoundSetOption(cs, "-odac");
     libraryCsound.csoundSetOption(cs, "-iadc");
-    libraryCsound.csoundSetOption(cs, "-M0");
+    // libraryCsound.csoundSetOption(cs, "-M0");
     // libraryCsound.csoundSetOption(cs, "-+rtaudio=null");
     // libraryCsound.csoundSetOption(cs, "-+rtmidi=null");
     libraryCsound.csoundSetOption(cs, "--sample-rate=" + this.sampleRate);

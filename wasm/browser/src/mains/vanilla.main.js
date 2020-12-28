@@ -37,7 +37,6 @@ class VanillaWorkerMainThread {
     this.csoundInstance = undefined;
     this.currentPlayState = undefined;
     this.messageCallbacks = [];
-    this.csoundPlayStateChangeCallbacks = [];
     this.midiPortStarted = false;
     this.onPlayStateChange = this.onPlayStateChange.bind(this);
   }
@@ -215,6 +214,7 @@ class VanillaWorkerMainThread {
     this.exportApi.lsFs = makeProxyCallback(proxyPort, csoundInstance, "lsFs");
     this.exportApi.rmrfFs = makeProxyCallback(proxyPort, csoundInstance, "rmrfFs");
     this.exportApi.getAudioContext = async () => this.audioWorker.audioContext;
+    this.exportApi.getNode = async () => this.audioWorker.audioWorkletNode;
 
     for (const apiK of Object.keys(API)) {
       const reference = API[apiK];

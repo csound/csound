@@ -42,8 +42,8 @@ class ScriptProcessorNodeSingleThread {
     this.spn.inputCount = numberOfInputs;
     this.spn.outputCount = numberOfOutputs;
     this.spn.onaudioprocess = this.onaudioprocess;
-    this.exportApi.getNode = () => this.spn;
-
+    this.node = this.spn;
+    this.exportApi.getNode = async () => this.spn;
     this.numberOfInputs = numberOfInputs;
     this.numberOfOutputs = numberOfOutputs;
     this.sampleRate = context.sampleRate;
@@ -107,9 +107,9 @@ class ScriptProcessorNodeSingleThread {
 
     csoundApi.csoundSetOption(csoundInstance, "-odac");
     csoundApi.csoundSetOption(csoundInstance, "-iadc");
-    csoundApi.csoundSetOption(csoundInstance, "-M0");
-    csoundApi.csoundSetOption(csoundInstance, "-+rtaudio=null");
-    csoundApi.csoundSetOption(csoundInstance, "-+rtmidi=null");
+    // csoundApi.csoundSetOption(csoundInstance, "-M0");
+    // csoundApi.csoundSetOption(csoundInstance, "-+rtaudio=null");
+    // csoundApi.csoundSetOption(csoundInstance, "-+rtmidi=null");
     // csoundApi.prepareRT(cs);
     // var sampleRate = context.sampleRate;
     csoundApi.csoundSetOption(csoundInstance, "--sample-rate=" + this.sampleRate);
@@ -131,6 +131,8 @@ class ScriptProcessorNodeSingleThread {
     this.exportApi.start = this.start.bind(this);
     this.exportApi.getAudioContext = async () => this.audioContext;
     
+    this.exportApi.name = "Csound: ScriptProcessor Node, Single-threaded";
+
     return this.exportApi;
   }
 
