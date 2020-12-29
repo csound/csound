@@ -1,13 +1,9 @@
 #include <stdio.h>
 #include <stdlib.h>
-/* #include <signal.h> */
 #include <string.h>
 #include <unistd.h>
-/* #include <limits.h> */
 #include "csound.h"
 #include "csoundCore.h"
-/* #include "fftlib.h" */
-/* #include "lpred.h" */
 
 #ifdef INIT_STATIC_MODULES
 extern int init_static_modules(CSOUND *csound);
@@ -200,6 +196,7 @@ void csoundSetMidiCallbacks(CSOUND *csound) {
 // same as csoundCreate but also loads
 // opcodes which need initialization to
 // be callable (aka static_modules)
+__attribute__((used))
 CSOUND *csoundCreateWasi() {
   CSOUND *csound = csoundCreate(NULL);
   init_static_modules(csound);
@@ -213,6 +210,21 @@ CSOUND *csoundCreateWasi() {
   unsupported_opdoces_init_(csound);
   return csound;
 }
+
+/* CSOUND *csoundCreateWasi() { */
+/*   /\* fprintf(stderr, "%d %s", (int) &csoundGetRandomSeedFromTime, "Stack overflow!\n"); *\/ */
+/*   CSOUND *csound = csoundCreate(NULL); */
+/*   /\* init_static_modules(csound); *\/ */
+/*   /\* csoundSetMidiCallbacks(csound); *\/ */
+/*   /\* scansyn_init_(csound); *\/ */
+/*   /\* scansynx_init_(csound); *\/ */
+/*   /\* emugens_init_(csound); *\/ */
+/*   /\* pvsops_init_(csound); *\/ */
+/*   /\* liveconv_init_(csound); *\/ */
+/*   /\* dateops_init_(csound); *\/ */
+/*   /\* unsupported_opdoces_init_(csound); *\/ */
+/*   return csound; */
+/* } */
 
 // same as csoundReset but also loads
 // opcodes which need re-initialization to
@@ -244,18 +256,16 @@ char* getRtMidiName(CSOUND *csound) {
 
 char* getMidiOutFileName(CSOUND *csound) {
   if (csound->oparms->FMidiname == NULL) {
-    printf("NIX\n");
     return "\0";
   } else {
     /* char* str = (char*) malloc((100)*sizeof(char)); */
-    printf("FMIDINAME %s \n", csound->oparms->FMidiname);
     /* sprintf(str, "%s\n", csound->oparms->FMidiname); */
     /* printf("STR %s \n", str); */
     return csound->oparms->FMidiname;
   }
 }
 
-double csoundGetControlChannelWasi(CSOUND* csound, char* channelName) { 
+double csoundGetControlChannelWasi(CSOUND* csound, char* channelName) {
   int *error = NULL;
   double returnValue = csoundGetControlChannel(csound, channelName, error);
 
@@ -276,22 +286,52 @@ char* csoundGetStringChannelWasi(CSOUND* csound, const char *channelName) {
   return data;
 }
 
+extern size_t __heap_base;
 
-/* char* csoundGetMidiOptions(CSOUND *csound) { */
-/*   csoundGetParams(); */
-/* } */
-
-/* #if defined(CSOUND_EXE_WASM) */
-/* #else */
 // DUMMY MAIN (never called, but is needed)
 int main (int argc, char *argv[] ) {}
-/* #endif */
 
-// HACK FIX
-int __multi3(int a, double b, double c, double d, double e) {
+
+// Compilation fix for unsupported functions defined
+// wasi-libc/expected/wasm32-wasi/undefined-symbols.txt
+int32_t siprintf(int32_t x, int32_t y, int32_t z) {
+  printf("ERROR: call to unsupported function siprintf");
   return 0;
 }
 
+int32_t __small_sprintf(int32_t x, int32_t y, int32_t z) {
+  printf("ERROR: call to unsupported function __small_sprintf");
+  return 0;
+}
+
+int32_t fiprintf(int32_t x, int32_t y, int32_t z) {
+  printf("ERROR: call to unsupported function fiprintf");
+  return 0;
+}
+
+int32_t __small_fprintf(int32_t x, int32_t y, int32_t z) {
+  printf("ERROR: call to unsupported function __small_fprintf");
+  return 0;
+}
+
+int32_t __getf2(int64_t x, int64_t y, int64_t z, int64_t zz) {
+  printf("ERROR: call to unsupported function __getf2");
+  return 0;
+}
+
+void __extenddftf2(int32_t x, double y) {
+  printf("ERROR: call to unsupported function __extenddftf2");
+}
+
+void __multi3(int32_t a, int64_t b, int64_t c, int64_t d, int64_t e) {
+  printf("ERROR: call to unsupported function __multi3");
+}
+
+void __muloti4(int32_t a, int64_t b, int64_t c, int64_t d, int64_t d_, int32_t e) {
+  printf("ERROR: call to unsupported function __muloti4");
+}
+
 int __lttf2(long double a, long double b) {
+  printf("ERROR: call to unsupported function __lttf2");
   return 0;
 }

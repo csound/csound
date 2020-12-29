@@ -1,17 +1,17 @@
-{ stdenv, fetchFromGitHub, fetchgit, lib, cmake, git, perl, ninja, python }:
+{ stdenv, fetchFromGitHub, fetchgit, lib, cmake, git, perl, ninja, python3 }:
 
 let wasilibc = fetchFromGitHub {
   owner = "WebAssembly";
   repo = "wasi-libc";
-  rev = "00cc5944dfc8c85ab5c5bee4cdef221afa2121f7";
-  sha256 = "1i41lmgpdp00pn5r5ddd2hzmk0dv0l2pzbc4b84nrsiwp605m10r";
+  rev = "378fd4b21aab6d390f3a1c1817d53c422ad00a62";
+  sha256 = "0h5g0q5j9cni7jab0b6bzkw5xm1b1am0dws2skq3cc9c9rnbn1ga";
 };
 
 llvm-project = fetchFromGitHub {
   owner = "llvm";
   repo = "llvm-project";
-  rev = "d32170dbd5b0d54436537b6b75beaf44324e0c28";
-  sha256 = "1mhr0yhbz5w5mv4gk3jpcz12d3k2mvm6qi276fx4bw21q3vs2z4q";
+  rev = "9a6de74d5a9e11a7865ce4873ff3297b7efbb673";
+  sha256 = "1xcr16xk30a4zjz8fpqacqcfarl2dpv6jy1vnhqi1yl5i70zx6s4";
 };
 
 config = fetchgit {
@@ -25,25 +25,44 @@ in stdenv.mkDerivation {
   src = fetchFromGitHub {
     owner = "WebAssembly";
     repo = "wasi-sdk";
-    rev = "8446a3f8d49f70d17e38cefd9990a9e79bf3e78a";
-    sha256 = "1z5a8kwp8xnj24bczcs3q3ikkspskwk79mxxb529siswnc30l5dk";
+    rev = "b36c433738f0c29160a5ac1c1cee1b1b884bf4a0";
+    sha256 = "0dn0y1rzcmbzmymy5z73x234vwhg0qcjmw0yvhankc27z355f7ss";
     fetchSubmodules = false;
   };
 
   dontUseCmakeConfigure = true;
   dontUseNinjaBuild = true;
   dontUseNinjaInstall = true;
+  dontStrip = true;
+  WASM_CFLAGS = "-fPIC -D__wasi__=1 -D__wasm32__=1";
   PREFIX = "${placeholder "out"}";
+
   postPatch = ''
     rm -rf src/*
     cp -rf ${wasilibc} src/wasi-libc
     cp -rf ${llvm-project} src/llvm-project
     cp -rf ${config} src/config
     chmod -R +rw src/
+    sed -i -e 's/diff -wur.*//g' src/wasi-libc/Makefile
+    substituteInPlace src/wasi-libc/Makefile \
+      --replace 'wasm32-wasi' 'wasm32-unknown-emscripten'
+
     substituteInPlace Makefile \
       --replace 'DESTDIR=$(abspath build/install)' \
-                'DESTDIR='
+                'DESTDIR=' \
+      --replace 'COMPILER_RT_HAS_FPIC_FLAG=OFF' \
+                'COMPILER_RT_HAS_FPIC_FLAG=ON' \
+      --replace 'DLIBCXXABI_ENABLE_PIC:BOOL=OFF' \
+                'DLIBCXXABI_ENABLE_PIC:BOOL=ON' \
+      --replace 'wasi-sysroot"' \
+                'wasi-sysroot -fPIC -D__wasi__=1 -D__wasm32__=1"'
+
+    substituteInPlace wasi-sdk.cmake \
+      --replace 'wasm32-wasi' 'wasm32-unknown-emscripten'
+    substituteInPlace src/llvm-project/libcxx/include/__locale \
+      --replace '<xlocale.h>' '<support/musl/xlocale.h>'
   '';
-  buildInputs = [ cmake git perl ninja python ];
+
+  buildInputs = [ cmake git perl ninja python3 ];
   installPhase = "true";
 }

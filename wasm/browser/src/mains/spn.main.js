@@ -23,11 +23,11 @@
 
 import libcsoundFactory from "@root/libcsound";
 import loadWasm from "@root/module";
-import { csoundApiRename, makeSingleThreadCallback } from "@root/utils";
+import { isEmpty } from "ramda";
+import { csoundApiRename, fetchPlugins, makeSingleThreadCallback } from "@root/utils";
 
 class ScriptProcessorNodeSingleThread {
   constructor({ audioContext, numberOfInputs = 1, numberOfOutputs = 2 }) {
-
     this.audioContext = audioContext;
     this.onaudioprocess = this.onaudioprocess.bind(this);
     this.currentPlayState = undefined;
@@ -46,7 +46,7 @@ class ScriptProcessorNodeSingleThread {
     this.exportApi.getNode = async () => this.spn;
     this.numberOfInputs = numberOfInputs;
     this.numberOfOutputs = numberOfOutputs;
-    this.sampleRate = context.sampleRate;
+    this.sampleRate = audioContext.sampleRate;
 
     // imports from original csound-wasm
     this.started = false;
@@ -68,7 +68,7 @@ class ScriptProcessorNodeSingleThread {
       const ksmps = this.csoundApi.csoundGetKsmps(this.csoundInstance);
       this.ksmps = ksmps;
       this.cnt = ksmps;
-      
+
       this.nchnls = this.csoundApi.csoundGetNchnls(this.csoundInstance);
       this.nchnls_i = this.csoundApi.csoundGetNchnlsInput(this.csoundInstance);
 
@@ -93,9 +93,13 @@ class ScriptProcessorNodeSingleThread {
     return this.csoundApi.csoundStart(this.csoundInstance);
   }
 
-  async initialize(wasmDataURI) {
+  async initialize({ wasmDataURI, withPlugins }) {
+    if (!this.plugins && withPlugins && !isEmpty(withPlugins)) {
+      withPlugins = await fetchPlugins(withPlugins);
+    }
+
     if (!this.wasm) {
-      this.wasm = await loadWasm(wasmDataURI);
+      [this.wasm, this.plugins] = await loadWasm(wasmDataURI, withPlugins);
     }
 
     // libcsound
@@ -103,6 +107,12 @@ class ScriptProcessorNodeSingleThread {
     this.csoundApi = csoundApi;
     const csoundInstance = await csoundApi.csoundCreate(0);
     this.csoundInstance = csoundInstance;
+
+    // this.plugins.forEach((plugin) => {
+    //   console.log(plugin);
+    //   console.log("INSTANCE??", this.wasm.exports.memory, plugin.exports.memory);
+    //   plugin.exports.wasm_init(csoundInstance);
+    // });
     // CSOUND.setMidiCallbacks(cs); // FIXME
 
     csoundApi.csoundSetOption(csoundInstance, "-odac");
@@ -130,9 +140,7 @@ class ScriptProcessorNodeSingleThread {
     this.exportApi.setMessageCallback = this.setMessageCallback.bind(this);
     this.exportApi.start = this.start.bind(this);
     this.exportApi.getAudioContext = async () => this.audioContext;
-    
     this.exportApi.name = "Csound: ScriptProcessor Node, Single-threaded";
-
     return this.exportApi;
   }
 
@@ -171,7 +179,6 @@ class ScriptProcessorNodeSingleThread {
     let result = this.result || 0;
 
     for (let i = 0; i < bufferLen; i++, cnt++) {
-
       if (cnt == ksmps && result == 0) {
         // if we need more samples from Csound
         result = this.csoundApi.csoundPerformKsmps(this.csoundInstance);
@@ -185,7 +192,7 @@ class ScriptProcessorNodeSingleThread {
         }
       }
 
-      /* Check if MEMGROWTH occured from csoundPerformKsmps or otherwise. If so, 
+      /* Check if MEMGROWTH occured from csoundPerformKsmps or otherwise. If so,
       rest output ant input buffers to new pointer locations. */
       if (csOut.length === 0) {
         csOut = this.csoundOutputBuffer = new Float64Array(

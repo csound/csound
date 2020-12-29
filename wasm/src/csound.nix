@@ -35,7 +35,7 @@ let
     '';
   };
 
-  libsndfile = import ./libsndfile.nix;
+  libsndfile = pkgs.callPackage ./libsndfile.nix {};
 
   csoundModLoadPatch = pkgs.writeTextFile {
     name = "csoundModLoadPatch";
@@ -55,7 +55,6 @@ let
 
   preprocFlags = ''
     -DGIT_HASH_VALUE=${csoundRev} \
-    -DINIT_STATIC_MODULES=1 \
     -DUSE_DOUBLE=1 \
     -DLINUX=0 \
     -DO_NDELAY=O_NONBLOCK \
@@ -67,26 +66,25 @@ let
     -Wno-macro-redefined \
   '';
 
-in pkgs.stdenv.mkDerivation {
+in pkgs.stdenvNoCC.mkDerivation rec {
 
   name = "csound-wasm";
 
-  src = if builtins.pathExists ../../CMakeLists.txt then
-    (pkgs.fetchgit {
-      url = ../../.;
-      rev = csoundRev;
-      sha256 = csoundSha;
-    }) else (pkgs.fetchFromGitHub {
-      owner = "csound";
-      repo = "csound";
-      rev = csoundRev;
-      sha256 = csoundSha;
-    });
+  src = with builtins; pkgs.fetchFromGitHub (fromJSON (readFile ./version.json));
 
-  buildInputs = [ libsndfile pkgs.flex pkgs.bison ];
+  buildInputs = [ pkgs.flex pkgs.bison ];
+
+  dontStrip = true;
+  AR = "${wasi-sdk}/bin/ar";
+  CC = "${wasi-sdk}/bin/clang";
+  CPP = "${wasi-sdk}/bin/clang-cpp";
+  CXX = "${wasi-sdk}/bin/clang++";
+  LD = "${wasi-sdk}/bin/wasm-ld";
+  NM = "${wasi-sdk}/bin/nm";
+  OBJCOPY = "${wasi-sdk}/bin/objcopy";
+  RANLIB = "${wasi-sdk}/bin/ranlib";
 
   postPatch = ''
-
     # Experimental setjmp patching
     find ./ -type f -exec sed -i -e 's/#include <setjmp.h>//g' {} \;
     find ./ -type f -exec sed -i -e 's/csound->LongJmp(csound, retval);/return retval;/g' {} \;
@@ -94,6 +92,8 @@ in pkgs.stdenv.mkDerivation {
     find ./ -type f -exec sed -i -e 's/longjmp(.*)//g' {} \;
     find ./ -type f -exec sed -i -e 's/jmp_buf/int/g' {} \;
     find ./ -type f -exec sed -i -e 's/setjmp(csound->exitjmp)/0/g' {} \;
+
+    # find ./ -type f -exec sed -i -e 's/csound->Calloc/mcalloc/g' {} \;
 
     find ./ -type f -exec sed -i -e 's/HAVE_PTHREAD/FFS_NO_PTHREADS/g' {} \;
     find ./ -type f -exec sed -i -e 's/#ifdef LINUX/#ifdef _NOT_LINUX_/g' {} \;
@@ -140,6 +140,11 @@ in pkgs.stdenv.mkDerivation {
     # when it come to filesystem calls
     substituteInPlace OOps/diskin2.c \
       --replace '__EMSCRIPTEN__' 'WASM_BUILD'
+
+    substituteInPlace Engine/csound_orc_compile.c \
+      --replace '#ifdef EMSCRIPTEN' '#if 1' \
+      --replace 'void sanitize(CSOUND *csound) {}' \
+                'void sanitize(CSOUND *csound);'
 
     substituteInPlace Top/one_file.c \
       --replace '#include "corfile.h"' \
@@ -191,6 +196,7 @@ in pkgs.stdenv.mkDerivation {
       --replace 'signal(sigs[i], signal_handler);' "" \
       --replace 'static void psignal' 'static void psignal_' \
       --replace 'HAVE_RDTSC' '__NOT_HERE___' \
+      --replace '#if !defined(WIN32)' '#if 0' \
       --replace 'static double timeResolutionSeconds = -1.0;' \
                 'static double timeResolutionSeconds = 0.000001;'
 
@@ -267,7 +273,6 @@ in pkgs.stdenv.mkDerivation {
              &(localops[0]), (int32_t) (sizeof(localops) / sizeof(OENTRY))); }'
 
     # date and fs
-    sed -i '1s|^|char *getcwd(x,y) {return "/";}\n|' Opcodes/date.c
     sed -i '1s/^/#include <unistd.h>\n/' Opcodes/date.c
     sed -i -e 's/LINUX/1/g' Opcodes/date.c
     substituteInPlace Opcodes/date.c \
@@ -295,23 +300,31 @@ in pkgs.stdenv.mkDerivation {
   '';
 
   buildPhase = ''
-
     mkdir -p build && cd build
     cp ${./csound_wasm.c} ./csound_wasm.c
     cp ${./unsupported_opcodes.c} ./unsupported_opcodes.c
 
+    # Why the wasm32-unknown-emscripten triplet:
+    # https://bugs.llvm.org/show_bug.cgi?id=42714
     echo "Compile libcsound.wasm"
     ${wasi-sdk}/bin/clang \
+      --target=wasm32-unknown-emscripten \
+      -mno-unimplemented-simd128 \
+      -mmutable-globals \
+      -mreference-types \
       --sysroot=${wasi-sdk}/share/wasi-sysroot \
-      -fno-exceptions -O2 -c \
+      -fPIC -O3 \
       -I../H -I../Engine -I../include -I../ \
       -I../InOut/libmpadec \
-      -I${libsndfile.out}/include \
+      -I${libsndfile}/include \
+      -I${wasi-sdk}/share/wasi-sysroot/include/c++/v1 \
+      -DINIT_STATIC_MODULES=1 \
+      -D__wasi__=1 \
+      -D__wasm32__=1 \
       -D_WASI_EMULATED_SIGNAL \
       -D_WASI_EMULATED_MMAN \
       -D__BUILDING_LIBCSOUND \
-      -DWASM_BUILD=1 ${preprocFlags} \
-      csound_wasm.c \
+      -DWASM_BUILD=1 ${preprocFlags} -c \
       unsupported_opcodes.c \
       ../Engine/auxfd.c \
       ../Engine/cfgvar.c \
@@ -340,7 +353,6 @@ in pkgs.stdenv.mkDerivation {
       ../Engine/memfiles.c \
       ../Engine/musmon.c \
       ../Engine/namedins.c \
-      ../Engine/new_orc_parser.c \
       ../Engine/new_orc_parser.c \
       ../Engine/pools.c \
       ../Engine/rdscor.c \
@@ -545,6 +557,7 @@ in pkgs.stdenv.mkDerivation {
       ../Opcodes/vbap_zak.c \
       ../Opcodes/vpvoc.c \
       ../Opcodes/wave-terrain.c \
+      ../Opcodes/wterrain2.c \
       ../Opcodes/wpfilters.c \
       ../Opcodes/zak.c \
       ../Top/argdecode.c \
@@ -560,6 +573,7 @@ in pkgs.stdenv.mkDerivation {
       ../Top/threads.c \
       ../Top/threadsafe.c \
       ../Top/utility.c \
+      ../Top/csound.c \
       ../Top/init_static_modules.c \
       ../Opcodes/ampmidid.cpp \
       ../Opcodes/doppler.cpp \
@@ -568,25 +582,26 @@ in pkgs.stdenv.mkDerivation {
       ../Opcodes/mixer.cpp \
       ../Opcodes/signalflowgraph.cpp \
       ../Opcodes/pvsops.cpp \
-      ../Top/csound.c
+      csound_wasm.c
 
-      echo "Link togeather libcsound"
-      # mv csound_wasm_exe.s.o csound_wasm_exe.s.o_bak
-      ${wasi-sdk}/bin/wasm-ld \
-        --lto-O2 \
-        --demangle \
-        -error-limit=0 \
-        -L${wasi-sdk}/share/wasi-sysroot/lib/wasm32-wasi \
-        -L${libsndfile.out}/lib \
-        -lc -lm -ldl -lsndfile -lc++ -lc++abi \
-        -lwasi-emulated-mman -lwasi-emulated-signal \
-        ${
+     echo "Create libcsound.wasm pie"
+     ${wasi-sdk}/bin/wasm-ld --lto-O3 \
+       --experimental-pic -pie --entry=_start \
+       --import-table --import-memory \
+       ${
           pkgs.lib.concatMapStrings (x: " --export=" + x + " ")
           (with builtins; fromJSON (readFile ./exports.json))
         } \
-        ${wasi-sdk}/share/wasi-sysroot/lib/wasm32-wasi/crt1.o \
-         *.o \
-        -o libcsound.wasm
+       -L${wasi-sdk}/share/wasi-sysroot/lib/wasm32-wasi \
+       -L${wasi-sdk}/share/wasi-sysroot/lib/wasm32-unknown-emscripten \
+       -L${libsndfile}/lib \
+       -lsndfile -lc -lwasi-emulated-signal -lwasi-emulated-mman \
+       ${wasi-sdk}/share/wasi-sysroot/lib/wasm32-unknown-emscripten/crt1.o \
+        *.o -o libcsound.wasm
+
+      echo "Archiving the objects"
+      ${wasi-sdk}/bin/llvm-ar crS libcsound.a ./*.o
+      ${wasi-sdk}/bin/llvm-ranlib -U libcsound.a
   '';
 
   installPhase = ''
@@ -595,10 +610,11 @@ in pkgs.stdenv.mkDerivation {
     cp ./libcsound.wasm $out/lib
     cp -rf ../H $out/include
     cp -rf ../Engine $out/include
-    cp -rf ../include $out/include
+    cp -rf ../include/* $out/include
 
-    # make a compressed version for the browser bundle
+    # # make a compressed version for the browser bundle
     ${pkgs.zopfli}/bin/zopfli --zlib -c \
       $out/lib/libcsound.wasm > $out/lib/libcsound.wasm.zlib
+    cp libcsound.a $out/lib
   '';
 }

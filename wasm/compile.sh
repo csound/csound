@@ -1,11 +1,14 @@
 #!/usr/bin/env bash
 
-nix-build -E '(with import <nixpkgs> {}; import ./src/csound.nix)' -o result &&
+nix-build -E '(with import <nixpkgs> {}; import ./src/csound.nix)' -o result --show-trace &&
     if [ -d "./lib" ]; then
         printf '%s\n' "Cleaning directory lib"
         rm -rf "./lib"
     fi &&
     mkdir lib &&
+    cp ./result/lib/* lib &&
+    chmod 0600 lib/* &&
+    nix-build -E '(with import <nixpkgs> {}; pkgs.callPackage ./src/plugin_example.nix {})' -o result &&
     cp ./result/lib/* lib &&
     chmod 0600 lib/*
 

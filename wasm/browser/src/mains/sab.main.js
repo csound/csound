@@ -14,7 +14,8 @@ import {
   initialSharedState,
 } from "@root/constants";
 import { logSAB } from "@root/logger";
-import { csoundApiRename, makeProxyCallback, stopableStates } from "@root/utils";
+import { isEmpty } from "ramda";
+import { csoundApiRename, fetchPlugins, makeProxyCallback, stopableStates } from "@root/utils";
 
 class SharedArrayBufferMainThread {
   constructor(audioWorker, wasmDataURI) {
@@ -215,7 +216,11 @@ class SharedArrayBufferMainThread {
     this.audioWorker.softwareBufferSize = softwareBufferSize;
   }
 
-  async initialize() {
+  async initialize({ withPlugins }) {
+    if (withPlugins && !isEmpty(withPlugins)) {
+      withPlugins = await fetchPlugins(withPlugins);
+    }
+
     logSAB(`initialization: instantiate the SABWorker Thread`);
     const csoundWorker = new Worker(SABWorker());
     this.csoundWorker = csoundWorker;
@@ -261,7 +266,7 @@ class SharedArrayBufferMainThread {
     this.ipcMessagePorts.mainMessagePortAudio.start();
 
     const proxyPort = Comlink.wrap(csoundWorker);
-    await proxyPort.initialize(this.wasmDataURI);
+    const csoundInstance = await proxyPort.initialize(this.wasmDataURI, withPlugins);
     logSAB(`A proxy port from SABMain to SABWorker established`);
 
     this.exportApi.setMessageCallback = this.setMessageCallback.bind(this);
@@ -275,7 +280,7 @@ class SharedArrayBufferMainThread {
 
     this.exportApi.pause = this.csoundPause.bind(this);
     this.exportApi.resume = this.csoundResume.bind(this);
-    const csoundInstance = await makeProxyCallback(proxyPort, undefined, "csoundCreate")();
+    // await makeProxyCallback(proxyPort, undefined, "csoundCreate")();
     await makeProxyCallback(proxyPort, csoundInstance, "csoundInitialize")(0);
 
     this.csoundInstance = csoundInstance;
