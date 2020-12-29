@@ -2,7 +2,6 @@
 
 let
   wasi-sdk = pkgs.callPackage ./wasi-sdk.nix { };
-  wasilibc-fpic = pkgs.callPackage ./wasilibc.fpic.nix { };
   exports = with builtins; (fromJSON (readFile ./exports.json));
   patchClock = pkgs.writeTextFile {
     name = "patchClock";
@@ -56,7 +55,6 @@ let
 
   preprocFlags = ''
     -DGIT_HASH_VALUE=${csoundRev} \
-    -DINIT_STATIC_MODULES=1 \
     -DUSE_DOUBLE=1 \
     -DLINUX=0 \
     -DO_NDELAY=O_NONBLOCK \
@@ -302,8 +300,6 @@ in pkgs.stdenvNoCC.mkDerivation rec {
   '';
 
   buildPhase = ''
-
-    cp ${./arrays.c} Opcodes/arrays.c
     mkdir -p build && cd build
     cp ${./csound_wasm.c} ./csound_wasm.c
     cp ${./unsupported_opcodes.c} ./unsupported_opcodes.c
@@ -312,21 +308,23 @@ in pkgs.stdenvNoCC.mkDerivation rec {
     # https://bugs.llvm.org/show_bug.cgi?id=42714
     echo "Compile libcsound.wasm"
     ${wasi-sdk}/bin/clang \
-      -nostdlib --target=wasm32-unknown-emscripten \
+      --target=wasm32-unknown-emscripten \
+      -mno-unimplemented-simd128 \
+      -mmutable-globals \
+      -mreference-types \
       --sysroot=${wasi-sdk}/share/wasi-sysroot \
-      -fPIC -O2 -fno-omit-frame-pointer -c \
-      -include ${./typedefs.h} \
+      -fPIC -O3 \
       -I../H -I../Engine -I../include -I../ \
       -I../InOut/libmpadec \
       -I${libsndfile}/include \
-      -DMEMDEBUG=1 \
+      -I${wasi-sdk}/share/wasi-sysroot/include/c++/v1 \
+      -DINIT_STATIC_MODULES=1 \
       -D__wasi__=1 \
       -D__wasm32__=1 \
       -D_WASI_EMULATED_SIGNAL \
       -D_WASI_EMULATED_MMAN \
       -D__BUILDING_LIBCSOUND \
-      -DWASM_BUILD=1 ${preprocFlags} \
-      csound_wasm.c \
+      -DWASM_BUILD=1 ${preprocFlags} -c \
       unsupported_opcodes.c \
       ../Engine/auxfd.c \
       ../Engine/cfgvar.c \
@@ -355,7 +353,6 @@ in pkgs.stdenvNoCC.mkDerivation rec {
       ../Engine/memfiles.c \
       ../Engine/musmon.c \
       ../Engine/namedins.c \
-      ../Engine/new_orc_parser.c \
       ../Engine/new_orc_parser.c \
       ../Engine/pools.c \
       ../Engine/rdscor.c \
@@ -576,56 +573,31 @@ in pkgs.stdenvNoCC.mkDerivation rec {
       ../Top/threads.c \
       ../Top/threadsafe.c \
       ../Top/utility.c \
-      ../Top/csound.c
+      ../Top/csound.c \
+      ../Top/init_static_modules.c \
+      ../Opcodes/ampmidid.cpp \
+      ../Opcodes/doppler.cpp \
+      ../Opcodes/tl/fractalnoise.cpp \
+      ../Opcodes/ftsamplebank.cpp \
+      ../Opcodes/mixer.cpp \
+      ../Opcodes/signalflowgraph.cpp \
+      ../Opcodes/pvsops.cpp \
+      csound_wasm.c
 
-      # ../Top/init_static_modules.c \
-      # ../Opcodes/ampmidid.cpp \
-      # ../Opcodes/doppler.cpp \
-      # ../Opcodes/tl/fractalnoise.cpp \
-      # ../Opcodes/ftsamplebank.cpp \
-      # ../Opcodes/mixer.cpp \
-      # ../Opcodes/signalflowgraph.cpp \
-      # ../Opcodes/pvsops.cpp \
-
-      # echo "Link each object as --shared"
-      # mkdir shared_objects
-      # for obj in *.o; do
-      #   echo OBJ $obj
-      #   ${wasi-sdk}/bin/wasm-ld --shared \
-      #     $obj -o shared_objects/$obj
-      # done
-
-     # ${wasi-sdk}/bin/clang -fPIC ./*.o -o all.o
-
-     ${wasi-sdk}/bin/llvm-ar -x ${libsndfile}/lib/libsndfile.a
-     ${wasi-sdk}/bin/clang *.o -o libcsound.wasm
-
-     # {wasi-sdk}/bin/wasm-ld --lto-O0 --no-entry --shared \
-     #   {
-     #      pkgs.lib.concatMapStrings (x: " --export=" + x + " ")
-     #      (with builtins; fromJSON (readFile ./exports.json))
-     #    } \
-     #    -L${wasilibc-fpic}/lib \
-     #    -L${libsndfile}/lib \
-     #    -lc -lm -ldl -lrt -lutil -lsndfile \
-     #    -lwasi-emulated-mman -lwasi-emulated-signal \
-     #    ${wasilibc-fpic}/lib/crt1.o \
-     #    ./*.o -o libcsound.wasm
-
-      # echo "Create libcsound.wasm pie"
-      # ${wasi-sdk}/bin/wasm-ld \
-      #   --lto-O0 --shared \
-      #   -error-limit=0 \
-      #   -L${wasi-sdk}/share/wasi-sysroot/lib/wasm32-wasi \
-      #   -L${libsndfile}/lib \
-      #   -lc -lm -ldl -lc++ -lc++abi  -lsndfile \
-      #   -lwasi-emulated-mman -lwasi-emulated-signal \
-      #   --allow-undefined \
-      #   --export-dynamic \
-      #   shared_objects/*.o \
-      #   -o libcsound.wasm
-
-       # {wasi-sdk}/share/wasi-sysroot/lib/wasm32-wasi/crt1.o \
+     echo "Create libcsound.wasm pie"
+     ${wasi-sdk}/bin/wasm-ld --lto-O3 \
+       --experimental-pic -pie --entry=_start \
+       --import-table --import-memory \
+       ${
+          pkgs.lib.concatMapStrings (x: " --export=" + x + " ")
+          (with builtins; fromJSON (readFile ./exports.json))
+        } \
+       -L${wasi-sdk}/share/wasi-sysroot/lib/wasm32-wasi \
+       -L${wasi-sdk}/share/wasi-sysroot/lib/wasm32-unknown-emscripten \
+       -L${libsndfile}/lib \
+       -lsndfile -lc -lwasi-emulated-signal -lwasi-emulated-mman \
+       ${wasi-sdk}/share/wasi-sysroot/lib/wasm32-unknown-emscripten/crt1.o \
+        *.o -o libcsound.wasm
 
       echo "Archiving the objects"
       ${wasi-sdk}/bin/llvm-ar crS libcsound.a ./*.o

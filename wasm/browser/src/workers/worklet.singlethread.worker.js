@@ -35,7 +35,6 @@ import { logWorklet } from "@root/logger";
 // };
 
 let wasm;
-let plugins;
 let libraryCsound;
 let combined;
 
@@ -97,61 +96,52 @@ class WorkletSinglethreadWorker extends AudioWorkletProcessor {
     // });
   }
 
-  initialize(wasmDataURI, withPlugins = []) {
-    loadWasm(wasmDataURI, withPlugins).then(([wasm, plugins]) => {
+  async initialize(wasmDataURI, withPlugins) {
+    let resolver;
+    const waiter = new Promise((res) => {
+      resolver = res;
+    });
+    loadWasm(wasmDataURI, withPlugins).then((wasm) => {
       this.wasm = wasm;
       libraryCsound = libcsoundFactory(wasm);
       this.callUncloned = callUncloned;
       let cs = (this.csound = libraryCsound.csoundCreate(0));
-      plugins.forEach((plugin) => {
-        plugin.exports.init(cs);
-      });
+
+      this.result = 0;
+      this.running = false;
+      this.started = false;
+      this.sampleRate = sampleRate;
+
+      this.resetCsound(false);
+
+      // const startHandler = handleCsoundStart(this.port, libraryCsound);
+      const csoundCreate = (v) => {
+        // console.log("Calling csoundCreate");
+        return this.csound;
+      };
+      const allAPI = pipe(
+        assoc("writeToFs", writeToFs),
+        assoc("readFromFs", readFromFs),
+        assoc("lsFs", lsFs),
+        assoc("llFs", llFs),
+        assoc("rmrfFs", rmrfFs),
+        assoc("csoundCreate", csoundCreate),
+        assoc("csoundReset", (cs) => this.resetCsound(true)),
+        // assoc("csoundStart", startHandler),
+        assoc("csoundStart", this.start.bind(this)),
+        assoc("wasm", wasm),
+      )(libraryCsound);
+      combined = new Map(Object.entries(allAPI));
+      resolver();
     });
-  }
-  async initialize_(wasmDataURI, withPlugins = []) {
-    [wasm, plugins] = await loadWasm(wasmDataURI, withPlugins);
-    this.wasm = wasm;
-    libraryCsound = libcsoundFactory(wasm);
-    this.callUncloned = callUncloned;
-    let cs = (this.csound = libraryCsound.csoundCreate(0));
-    console.log("CS created");
-    plugins.forEach((plugin) => {
-      plugin.exports.init(cs);
-    });
 
-    this.result = 0;
-    this.running = false;
-    this.started = false;
-    this.sampleRate = sampleRate;
-
-    this.resetCsound(false);
-
-
-    // const startHandler = handleCsoundStart(this.port, libraryCsound);
-    const csoundCreate = (v) => {
-      // console.log("Calling csoundCreate");
-      return this.csound;
-    };
-    const allAPI = pipe(
-      assoc("writeToFs", writeToFs),
-      assoc("readFromFs", readFromFs),
-      assoc("lsFs", lsFs),
-      assoc("llFs", llFs),
-      assoc("rmrfFs", rmrfFs),
-      assoc("csoundCreate", csoundCreate),
-      assoc("csoundReset", (cs) => this.resetCsound(true)),
-      // assoc("csoundStart", startHandler),
-      assoc("csoundStart", this.start.bind(this)),
-      assoc("wasm", wasm),
-    )(libraryCsound);
-    combined = new Map(Object.entries(allAPI));
-    // console.log("AAA", combined);
+    await waiter;
   }
 
   async resetCsound(callReset) {
     let cs = this.csound;
 
-    if(callReset) {
+    if (callReset) {
       libraryCsound.csoundReset(cs);
     }
 
@@ -166,7 +156,7 @@ class WorkletSinglethreadWorker extends AudioWorkletProcessor {
     this.nchnls_i = this.options.numberOfInputs;
     libraryCsound.csoundSetOption(cs, "--nchnls=" + this.nchnls);
     libraryCsound.csoundSetOption(cs, "--nchnls_i=" + this.nchnls_i);
-    
+
     this.running = false;
     this.started = false;
     this.result = 0;
@@ -201,7 +191,6 @@ class WorkletSinglethreadWorker extends AudioWorkletProcessor {
     let result = this.result;
 
     for (let i = 0; i < bufferLen; i++, cnt++) {
-
       if (cnt == ksmps && result == 0) {
         // if we need more samples from Csound
         result = libraryCsound.csoundPerformKsmps(this.csound);
@@ -214,8 +203,8 @@ class WorkletSinglethreadWorker extends AudioWorkletProcessor {
           // this.firePlayStateChange();
         }
       }
-     
-      /* Check if MEMGROWTH occured from csoundPerformKsmps or otherwise. If so, 
+
+      /* Check if MEMGROWTH occured from csoundPerformKsmps or otherwise. If so,
       rest output ant input buffers to new pointer locations. */
       if (csOut.length === 0) {
         csOut = this.csoundOutputBuffer = new Float64Array(

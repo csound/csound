@@ -1,23 +1,19 @@
 #include <stdio.h>
 #include <stdlib.h>
-/* #include <signal.h> */
 #include <string.h>
 #include <unistd.h>
-/* #include <limits.h> */
 #include "csound.h"
 #include "csoundCore.h"
-/* #include "fftlib.h" */
-/* #include "lpred.h" */
 
 #ifdef INIT_STATIC_MODULES
-/* extern int init_static_modules(CSOUND *csound); */
-/* extern int scansyn_init_(CSOUND *csound); */
-/* extern int scansynx_init_(CSOUND *csound); */
-/* extern int emugens_init_(CSOUND *csound); */
-/* extern int pvsops_init_(CSOUND *csound); */
-/* extern int liveconv_init_(CSOUND *csound); */
-/* extern int unsupported_opdoces_init_(CSOUND *csound); */
-/* extern int dateops_init_(CSOUND *csound); */
+extern int init_static_modules(CSOUND *csound);
+extern int scansyn_init_(CSOUND *csound);
+extern int scansynx_init_(CSOUND *csound);
+extern int emugens_init_(CSOUND *csound);
+extern int pvsops_init_(CSOUND *csound);
+extern int liveconv_init_(CSOUND *csound);
+extern int unsupported_opdoces_init_(CSOUND *csound);
+extern int dateops_init_(CSOUND *csound);
 #endif
 
 // returns the address of a string
@@ -201,34 +197,49 @@ void csoundSetMidiCallbacks(CSOUND *csound) {
 // opcodes which need initialization to
 // be callable (aka static_modules)
 __attribute__((used))
-int32_t csoundCreateWasi() {
+CSOUND *csoundCreateWasi() {
   CSOUND *csound = csoundCreate(NULL);
-  /* init_static_modules(csound); */
-  /* csoundSetMidiCallbacks(csound); */
-  /* scansyn_init_(csound); */
-  /* scansynx_init_(csound); */
-  /* emugens_init_(csound); */
-  /* pvsops_init_(csound); */
-  /* liveconv_init_(csound); */
-  /* dateops_init_(csound); */
-  /* unsupported_opdoces_init_(csound); */
-  return (int32_t) csound;
+  init_static_modules(csound);
+  csoundSetMidiCallbacks(csound);
+  scansyn_init_(csound);
+  scansynx_init_(csound);
+  emugens_init_(csound);
+  pvsops_init_(csound);
+  liveconv_init_(csound);
+  dateops_init_(csound);
+  unsupported_opdoces_init_(csound);
+  return csound;
 }
+
+/* CSOUND *csoundCreateWasi() { */
+/*   /\* fprintf(stderr, "%d %s", (int) &csoundGetRandomSeedFromTime, "Stack overflow!\n"); *\/ */
+/*   CSOUND *csound = csoundCreate(NULL); */
+/*   /\* init_static_modules(csound); *\/ */
+/*   /\* csoundSetMidiCallbacks(csound); *\/ */
+/*   /\* scansyn_init_(csound); *\/ */
+/*   /\* scansynx_init_(csound); *\/ */
+/*   /\* emugens_init_(csound); *\/ */
+/*   /\* pvsops_init_(csound); *\/ */
+/*   /\* liveconv_init_(csound); *\/ */
+/*   /\* dateops_init_(csound); *\/ */
+/*   /\* unsupported_opdoces_init_(csound); *\/ */
+/*   return csound; */
+/* } */
 
 // same as csoundReset but also loads
 // opcodes which need re-initialization to
 // be callable (aka static_modules)
 void csoundResetWasi(CSOUND *csound) {
-  /* csoundReset(csound); */
-  /* init_static_modules(csound); */
-  /* csoundSetMidiCallbacks(csound); */
-  /* scansyn_init_(csound); */
-  /* scansynx_init_(csound); */
-  /* emugens_init_(csound); */
-  /* pvsops_init_(csound); */
-  /* liveconv_init_(csound); */
-  /* dateops_init_(csound); */
-  /* unsupported_opdoces_init_(csound); */
+  csoundReset(csound);
+  init_static_modules(csound);
+  csoundSetMidiCallbacks(csound);
+  scansyn_init_(csound);
+  scansynx_init_(csound);
+  emugens_init_(csound);
+  pvsops_init_(csound);
+  liveconv_init_(csound);
+  dateops_init_(csound);
+  unsupported_opdoces_init_(csound);
 }
 
 int isRequestingRtMidiInput(CSOUND *csound) {
@@ -245,11 +256,9 @@ char* getRtMidiName(CSOUND *csound) {
 
 char* getMidiOutFileName(CSOUND *csound) {
   if (csound->oparms->FMidiname == NULL) {
-    printf("NIX\n");
     return "\0";
   } else {
     /* char* str = (char*) malloc((100)*sizeof(char)); */
-    printf("FMIDINAME %s \n", csound->oparms->FMidiname);
     /* sprintf(str, "%s\n", csound->oparms->FMidiname); */
     /* printf("STR %s \n", str); */
     return csound->oparms->FMidiname;
@@ -269,54 +278,18 @@ double csoundGetControlChannelWasi(CSOUND* csound, char* channelName) {
   }
 }
 
-typedef void (*fp_wasm_load)(CSOUND *, OENTRY *);
-
-void loadWasmPluginFromOentries_(CSOUND* csound, OENTRY* opcodeEntry) {
-  int32_t x = (int32_t) mcalloc(csound, 100);
-  fprintf(stderr, "%d %s", x, "Stack overflow!\n");
-  /* fprintf(stderr, "%s", "Stack overflow!\n"); */
-  /* printf("GIVE ME SANITY \n"); */
-  /* printf("sizeof %lu %lu \n", sizeof(&opcodeEntry), sizeof(OENTRY)); */
-  /* for(int i = 0; i < sizeof(&opcodeEntry) / sizeof(OENTRY); i++) { */
-  /*   printf("opname?! %s \n", opcodeEntry[i].opname); */
-  /*   csoundAppendOpcodes(csound, &(opcodeEntry[i]), (int32_t) (sizeof(opcodeEntry[i]) / sizeof(OENTRY))); */
-  /* } */
-}
-
-__attribute__((used)) fp_wasm_load loadWasmPluginFromOentries = &loadWasmPluginFromOentries_;
-
-int32_t init_static_modules(int32_t x) {
-  printf("DELETEME");
-  return 0;
-
 char* csoundGetStringChannelWasi(CSOUND* csound, const char *channelName) {
   int len = csoundGetChannelDatasize(csound, channelName);
   char *data = calloc(1, sizeof(char) * (len + 1));
 
   csoundGetStringChannel(csound, channelName, data);
   return data;
+}
 
+extern size_t __heap_base;
 
-/* char* csoundGetMidiOptions(CSOUND *csound) { */
-/*   csoundGetParams(); */
-/* } */
-
-/* #if defined(CSOUND_EXE_WASM) */
-/* #else */
 // DUMMY MAIN (never called, but is needed)
 int main (int argc, char *argv[] ) {}
-
-
-// WORKAROUND: --shared causes wasi to instpect
-// callers to main, when there isn't any main
-// so for now we override _start
-/* #include <wasi/api.h> */
-/* __attribute__((weak)) void __wasm_call_ctors(void); */
-/* void _start(void) { */
-/*   if (__wasm_call_ctors) { */
-/*     __wasm_call_ctors(); */
-/*   } */
-/* } */
 
 
 // Compilation fix for unsupported functions defined
@@ -352,6 +325,10 @@ void __extenddftf2(int32_t x, double y) {
 
 void __multi3(int32_t a, int64_t b, int64_t c, int64_t d, int64_t e) {
   printf("ERROR: call to unsupported function __multi3");
+}
+
+void __muloti4(int32_t a, int64_t b, int64_t c, int64_t d, int64_t d_, int32_t e) {
+  printf("ERROR: call to unsupported function __muloti4");
 }
 
 int __lttf2(long double a, long double b) {

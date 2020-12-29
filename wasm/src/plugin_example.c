@@ -62,10 +62,6 @@ int mult_vector(CSOUND *csound, MULT *p) {
    overloads are called "mult"
 */
 
-/* extern OENTRY localops; */
-
-/* int csoundAppendOpcodes(CSOUND *, const OENTRY *opcodeList, int n); */
-
 static OENTRY localops[] =
   {
    {  "mult.aa", sizeof(MULT), 0, 2, "a", "aa",
@@ -77,59 +73,6 @@ static OENTRY localops[] =
   };
 
 
-
-// DUMMY MAIN (never called, but is needed)
-/* int main (int argc, char *argv[] ) {} */
-
-/* typedef int32_t (*fp_type_32)(CSOUND *, const OENTRY *opcodeList, int32_t n); */
-/* typedef void (*fp_type_32_error_msg)(CSOUND *csound, const char *msg, ...); */
-/* void csoundErrorMsg(CSOUND *csound, const char *msg, ...); */
-/* int csoundAppendOpcodes(CSOUND *, const OENTRY *opcodeList, int n); */
-/* fp_type_32_error_msg csoundErrorMsg_ = &csoundErrorMsg; */
-/* fp_type_32 csoundAppendOpcodes_ = &csoundAppendOpcodes; */
-
-/* extern int32_t (*loadWasmPluginFromOentries)(CSOUND*, OENTRY*); */
-
-/* void loadWasmPluginFromOentries_(CSOUND*, OENTRY*); */
-
-/* typedef void (*fp_wasm_load)(CSOUND *, OENTRY *); */
-
-/* __attribute__((used)) fp_wasm_load loadWasmPluginFromOentries = &loadWasmPluginFromOentries_; */
-
-/* __attribute__((used)) */
-/* void loadWasmPluginFromOentries(CSOUND* csound, OENTRY* opcodeEntry); */
-
-typedef void (*fp_wasm_load)(CSOUND *, OENTRY *);
-/* void loadWasmPluginFromOentries_(CSOUND* csound, OENTRY* opcodeEntry); */
-fp_wasm_load loadWasmPluginFromOentries;
-/* void (*loadWasmPluginFromOentries)(fp_wasm_load); */
-
-
-/* typedef void (*fp_type_32)(CSOUND *, OENTRY *); */
-
-/* __attribute__((used)) fp_type_32 loadWasmPluginFromOentries = loadWasmPluginFromOentries; */
-
-
-
-
-extern int32_t init(CSOUND *csound) {
-  /* fp_type_32 fp32_external = &function_ret_32; */
-  printf("addr plugin \n"); //  &loadWasmPluginFromOentries
-  /* (loadWasmPluginFromOentries)(csound, &localops[0]); */
-  (*loadWasmPluginFromOentries)(csound, &localops[0]);
-  return (int32_t) 0;
-
-  /* return csoundAppendOpcodes(csound, &(localops[0]), (int32_t) (sizeof(localops) / sizeof(OENTRY))); */
-  /* return csoundAppendOpcode(csound, "mult.kk", sizeof(MULT), 0, 2, "k", "kk", NULL, (SUBR) mult_scalar); */
+__attribute__((used)) int32_t init(CSOUND *csound) {
+  return csound->AppendOpcodes(csound, &(localops[0]), (int32_t) (sizeof(localops) / sizeof(OENTRY)));
 }
-/* LINKAGE; */
-
-/* extern int init(CSOUND *csound) { */
-/*   {  "mult.aa", sizeof(MULT), 0,  2,  "a", "aa",          NULL,         (SUBR) mult_vector } */
-/*    { "wterrain2", S(WAVETER), TR, 3,  "a", "kkkkkkkkkkk", (SUBR)wtinit, (SUBR)wtPerf }, */
-/*          csoundAppendOpcode(csound, opname,    int dsblksiz, f, t,  o, iint,      i,        a, k) */
-/*   return csoundAppendOpcode(csound, "mult.aa", sizeof(MULT), 0, 2, "a", "aa", NULL, (SUBR) mult_vector) | */
-/*     csoundAppendOpcode(csound, "mult.kk", sizeof(MULT), 0, 2, "k", "kk", NULL, (SUBR) mult_scalar) | */
-/*     csoundAppendOpcode(csound, "mult.ii", sizeof(MULT), 0, 1, "i", "ii", (SUBR) mult_scalar, NULL); */
-/*   /\* return csound->AppendOpcodes(csound, &(localops[0]), (int32_t) (sizeof(localops) / sizeof(OENTRY))); *\/ */
-/* } */

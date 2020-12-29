@@ -24,10 +24,8 @@
 import WorkletWorker from "@root/workers/worklet.singlethread.worker";
 import * as Comlink from "comlink";
 import { logWorklet } from "@root/logger";
-
-import { isEmpty } from "ramda";
 import { csoundApiRename, fetchPlugins, makeProxyCallback } from "@root/utils";
-import { IPCMessagePorts, messageEventHandler } from "@root/mains/messages.main";
+import { messageEventHandler } from "@root/mains/messages.main";
 import { api as API } from "@root/libcsound";
 
 let initialized = false;
@@ -137,6 +135,10 @@ class SingleThreadAudioWorkletMainThread {
   }
 
   async initialize({ wasmDataURI, withPlugins }) {
+    if (withPlugins && withPlugins.length > 0) {
+      withPlugins = await fetchPlugins(withPlugins);
+    }
+
     await initializeModule(this.audioContext);
 
     // if (!this.wasm) {
@@ -170,9 +172,6 @@ class SingleThreadAudioWorkletMainThread {
       this.workletProxy = Comlink.wrap(this.node.port);
     } catch (error) {
       console.log("COMLINK ERROR", error);
-    }
-    if (withPlugins && !isEmpty(withPlugins)) {
-      withPlugins = await fetchPlugins(withPlugins);
     }
 
     this.node.port.addEventListener("message", messageEventHandler(this));

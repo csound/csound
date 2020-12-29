@@ -2,9 +2,7 @@
 
 let
   wasi-sdk = pkgs.callPackage ./wasi-sdk.nix { };
-  wasilibc-fpic = pkgs.callPackage ./wasilibc.fpic.nix { };
   csound = pkgs.callPackage ./csound.nix {};
-  libsndfile = pkgs.callPackage ./libsndfile.nix {};
 
 in pkgs.stdenv.mkDerivation {
   name = "csound-wasm-plugin-example";
@@ -13,25 +11,25 @@ in pkgs.stdenv.mkDerivation {
 
   buildPhase = ''
     echo "Compile plugin_example.wasm"
-    ${wasi-sdk}/bin/clang \
-      -nostdlib --target=wasm32-unknown-emscripten \
-      --sysroot=${wasi-sdk}/share/wasi-sysroot \
+    ${wasi-sdk}/bin/clang -fPIC \
       --target=wasm32-unknown-emscripten \
-      -fno-exceptions -fPIC -O0 \
+      --sysroot=${wasi-sdk}/share/wasi-sysroot \
       -D__wasi__=1 \
       -D__wasm32__=1 \
+      -D_WASI_EMULATED_SIGNAL \
+      -D_WASI_EMULATED_MMAN \
       -I${csound}/include \
-      -include ${csound}/include/H/prototyp.h \
       -c ${./plugin_example.c}
 
     echo "Link togeather plugin_example.wasm"
-    ${wasi-sdk}/bin/wasm-ld --lto-O0 \
-      --shared \
-      --no-entry \
-      -error-limit=0 \
-       --export=init \
-      -L${wasilibc-fpic}/lib -lc \
-      -L${csound}/lib -lcsound \
+    ${wasi-sdk}/bin/wasm-ld --shared \
+      --import-table --import-memory \
+      --export=__wasm_call_ctors \
+      --export-dynamic --no-entry \
+      -L${csound}/lib \
+      -L${wasi-sdk}/share/wasi-sysroot/lib/wasm32-wasi \
+      -L${wasi-sdk}/share/wasi-sysroot/lib/wasm32-unknown-emscripten \
+      -lcsound -lc -lwasi-emulated-signal -lwasi-emulated-mman \
       *.o -o plugin_example.wasm
   '';
 

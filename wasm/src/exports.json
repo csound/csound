@@ -1,6 +1,4 @@
 [
-  "_start",
-  "memory",
   "csoundSetMidiCallbacks",
   "sizeOfMidiStruct",
   "isRequestingRtMidiInput",
@@ -20,6 +18,7 @@
   "allocStringMem",
   "csoundAddSpinSample",
   "csoundAppendOpcode",
+  "csoundAppendOpcodes",
   "csoundCleanup",
   "csoundClearSpin",
   "csoundCloseLibrary",
@@ -157,7 +156,6 @@
   "csoundScoreEventAsync",
   "csoundScoreExtract",
   "csoundScoreSort",
-  "csoundSeedRandMT",
   "csoundSetAudioChannel",
   "csoundSetAudioDeviceListCallback",
   "csoundSetControlChannel",

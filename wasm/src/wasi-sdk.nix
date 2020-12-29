@@ -34,17 +34,35 @@ in stdenv.mkDerivation {
   dontUseNinjaBuild = true;
   dontUseNinjaInstall = true;
   dontStrip = true;
+  WASM_CFLAGS = "-fPIC -D__wasi__=1 -D__wasm32__=1";
   PREFIX = "${placeholder "out"}";
+
   postPatch = ''
     rm -rf src/*
     cp -rf ${wasilibc} src/wasi-libc
     cp -rf ${llvm-project} src/llvm-project
     cp -rf ${config} src/config
     chmod -R +rw src/
+    sed -i -e 's/diff -wur.*//g' src/wasi-libc/Makefile
+    substituteInPlace src/wasi-libc/Makefile \
+      --replace 'wasm32-wasi' 'wasm32-unknown-emscripten'
+
     substituteInPlace Makefile \
       --replace 'DESTDIR=$(abspath build/install)' \
-                'DESTDIR='
+                'DESTDIR=' \
+      --replace 'COMPILER_RT_HAS_FPIC_FLAG=OFF' \
+                'COMPILER_RT_HAS_FPIC_FLAG=ON' \
+      --replace 'DLIBCXXABI_ENABLE_PIC:BOOL=OFF' \
+                'DLIBCXXABI_ENABLE_PIC:BOOL=ON' \
+      --replace 'wasi-sysroot"' \
+                'wasi-sysroot -fPIC -D__wasi__=1 -D__wasm32__=1"'
+
+    substituteInPlace wasi-sdk.cmake \
+      --replace 'wasm32-wasi' 'wasm32-unknown-emscripten'
+    substituteInPlace src/llvm-project/libcxx/include/__locale \
+      --replace '<xlocale.h>' '<support/musl/xlocale.h>'
   '';
+
   buildInputs = [ cmake git perl ninja python3 ];
   installPhase = "true";
 }
