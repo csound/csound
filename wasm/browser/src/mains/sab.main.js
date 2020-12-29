@@ -267,6 +267,7 @@ class SharedArrayBufferMainThread {
 
     const proxyPort = Comlink.wrap(csoundWorker);
     const csoundInstance = await proxyPort.initialize(this.wasmDataURI, withPlugins);
+    this.csoundInstance = csoundInstance;
     logSAB(`A proxy port from SABMain to SABWorker established`);
 
     this.exportApi.setMessageCallback = this.setMessageCallback.bind(this);
@@ -280,10 +281,7 @@ class SharedArrayBufferMainThread {
 
     this.exportApi.pause = this.csoundPause.bind(this);
     this.exportApi.resume = this.csoundResume.bind(this);
-    // await makeProxyCallback(proxyPort, undefined, "csoundCreate")();
-    await makeProxyCallback(proxyPort, csoundInstance, "csoundInitialize")(0);
 
-    this.csoundInstance = csoundInstance;
     this.exportApi.writeToFs = makeProxyCallback(proxyPort, csoundInstance, "writeToFs");
     this.exportApi.readFromFs = makeProxyCallback(proxyPort, csoundInstance, "readFromFs");
     this.exportApi.llFs = makeProxyCallback(proxyPort, csoundInstance, "llFs");

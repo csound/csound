@@ -192,7 +192,9 @@ class VanillaWorkerMainThread {
 
     const proxyPort = Comlink.wrap(this.csoundWorker);
     this.proxyPort = proxyPort;
-    await proxyPort.initialize(this.wasmDataURI);
+    const csoundInstance = await proxyPort.initialize(this.wasmDataURI, withPlugins);
+    this.csoundInstance = csoundInstance;
+
     this.exportApi.setMessageCallback = this.setMessageCallback.bind(this);
     this.exportApi.addMessageCallback = this.addMessageCallback.bind(this);
     this.exportApi.setCsoundPlayStateChangeCallback = this.setCsoundPlayStateChangeCallback.bind(
@@ -201,10 +203,6 @@ class VanillaWorkerMainThread {
     this.exportApi.addCsoundPlayStateChangeCallback = this.addCsoundPlayStateChangeCallback.bind(
       this,
     );
-
-    const csoundInstance = await makeProxyCallback(proxyPort, undefined, "csoundCreate")();
-    await makeProxyCallback(proxyPort, csoundInstance, "csoundInitialize")(0);
-    this.csoundInstance = csoundInstance;
 
     this.exportApi.pause = this.csoundPause.bind(this);
     this.exportApi.resume = this.csoundResume.bind(this);

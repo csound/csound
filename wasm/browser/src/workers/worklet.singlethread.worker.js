@@ -104,12 +104,12 @@ class WorkletSinglethreadWorker extends AudioWorkletProcessor {
     const waiter = new Promise((res) => {
       resolver = res;
     });
-    loadWasm(wasmDataURI, withPlugins).then((wasm) => {
+    loadWasm(wasmDataURI, withPlugins).then(([wasm, plugins]) => {
       this.wasm = wasm;
       libraryCsound = libcsoundFactory(wasm);
       this.callUncloned = callUncloned;
       let cs = (this.csound = libraryCsound.csoundCreate(0));
-
+      plugins.forEach((plugin) => plugin.exports.init(cs));
       this.result = 0;
       this.running = false;
       this.started = false;

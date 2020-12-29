@@ -165,7 +165,6 @@ export async function mkdirp(_, filePath) {
 }
 
 export const initFS = async (wasm) => {
-  console.log(wasmFs);
   createStdErrorStream();
   createStdOutStream();
 };

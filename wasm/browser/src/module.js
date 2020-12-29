@@ -160,8 +160,7 @@ export default async function (wasmDataURI, withPlugins = []) {
   }, []);
 
   wasi.start(instance_);
-
   await initFS(instance_);
 
-  return instance_;
+  return [instance_, withPlugins];
 }

@@ -25,7 +25,7 @@ const shortTone = `
     0dbfs = 1
 
     chnset(1, "test1")
-    chnset(2, "test2") 
+    chnset(2, "test2")
 
     instr 1
     out poscil(0dbfs/3, 440) * linen:a(1, .01, p3, .01)
@@ -74,6 +74,40 @@ const stringChannelTest = `
 </CsoundSynthesizer>
 `;
 
+const pluginTest = `
+<CsoundSynthesizer>
+<CsOptions>
+</CsOptions>
+<CsInstruments>
+  0dbfs=1
+  instr 1
+    i1 = 2
+    i2 = 2
+    i3 mult i1, i2
+    print i3
+  endin
+  instr 2
+    k1 = 2
+    k2 = 2
+    k3 mult k1, k2
+    printk2 k3
+  endin
+  instr 3
+    a1 oscili 0dbfs, 440
+    a2 oscili 0dbfs, 356
+    a3 mult a1, a2
+    out a3
+  endin
+</CsInstruments>
+<CsScore>
+  i1 0 0
+  i2 0 1
+  i3 0 2
+  e 0 0
+</CsScore>
+</CsoundSynthesizer>
+`;
+
 mocha.setup("bdd").fullTrace();
 
 const csoundVariations = [
@@ -105,7 +139,7 @@ assert.property(cs, "setMessageCallback", "has .setMessageCallback() method");
       this.timeout(10000);
       const { Csound } = await import(url);
       const cs = await Csound(test);
-      console.log(`Csound version: ${cs.name}`)
+      console.log(`Csound version: ${cs.name}`);
       const startReturn = await cs.start();
       assert.equal(startReturn, 0);
       await cs.reset();
@@ -126,7 +160,7 @@ assert.property(cs, "setMessageCallback", "has .setMessageCallback() method");
       const cs = await Csound(test);
       await cs.compileOrc(`
 ksmps=64
-instr 1 
+instr 1
     out oscili(.25, 110)
 endin
 schedule(1,0,1)
@@ -149,7 +183,6 @@ schedule(1,0,1)
 
       await cs.reset();
       (await cs.getNode()).disconnect();
-
     });
 
     it("can play tone and send channel values", async function () {
@@ -182,6 +215,16 @@ schedule(1,0,1)
       assert.equal("test1", await cs.getStringChannel("strChannel"));
       await cs.reset();
       (await cs.getNode()).disconnect();
+    });
+
+    it("can load and run plugins", async () => {
+      const { Csound } = await import(url);
+      const csoundObj = await Csound({
+        withPlugins: ["./plugin_example.wasm"],
+      });
+      await csoundObj.start();
+      assert.equal(0, await csoundObj.compileCsdText(pluginTest));
+      await csoundObj.stop();
     });
   });
 });

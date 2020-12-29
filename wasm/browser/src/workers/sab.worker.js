@@ -294,12 +294,11 @@ const initialize = async (wasmDataURI, withPlugins = []) => {
     assoc("wasm", wasm),
   )(libraryCsound);
   combined = new Map(Object.entries(allAPI));
+
+  libraryCsound.csoundInitialize(0);
   const csoundInstance = libraryCsound.csoundCreate();
-  plugins.forEach((plugin) => {
-    console.log("LOADPLGZPRE", plugin, plugin.exports.init);
-    // wasm.exports.loadWasmPluginFromOentries(csoundInstance, plugin.exports.localops);
-    plugin.exports.init(csoundInstance);
-  });
+  plugins.forEach((plugin) => plugin.exports.init(csoundInstance));
+
   return csoundInstance;
 };
 
