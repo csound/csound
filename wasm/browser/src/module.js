@@ -54,7 +54,7 @@ export default async function (wasmDataURI, withPlugins = []) {
   });
   await wasmFs.volume.mkdirpSync("/sandbox");
   const wasmZlib = new Uint8Array(wasmDataURI);
-  const wasmBytes = wasmZlib; //inflate(wasmZlib);
+  const wasmBytes = inflate(wasmZlib);
 
   const { memorySize, memoryAlign, tableSize } = getBinaryHeaderData(wasmBytes);
   // get the header data from plugins which we need before

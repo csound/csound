@@ -574,7 +574,6 @@ in pkgs.stdenvNoCC.mkDerivation rec {
       ../Top/threadsafe.c \
       ../Top/utility.c \
       ../Top/csound.c \
-      ../Top/init_static_modules.c \
       ../Opcodes/ampmidid.cpp \
       ../Opcodes/doppler.cpp \
       ../Opcodes/tl/fractalnoise.cpp \
@@ -595,7 +594,8 @@ in pkgs.stdenvNoCC.mkDerivation rec {
        -L${wasi-sdk}/share/wasi-sysroot/lib/wasm32-wasi \
        -L${wasi-sdk}/share/wasi-sysroot/lib/wasm32-unknown-emscripten \
        -L${libsndfile}/lib \
-       -lsndfile -lc -lwasi-emulated-signal -lwasi-emulated-mman \
+       -lc -lc++ -lc++abi \
+       -lsndfile -lwasi-emulated-signal -lwasi-emulated-mman \
        ${wasi-sdk}/share/wasi-sysroot/lib/wasm32-unknown-emscripten/crt1.o \
         *.o -o libcsound.wasm
 

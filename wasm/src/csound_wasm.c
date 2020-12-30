@@ -6,7 +6,6 @@
 #include "csoundCore.h"
 
 #ifdef INIT_STATIC_MODULES
-extern int init_static_modules(CSOUND *csound);
 extern int scansyn_init_(CSOUND *csound);
 extern int scansynx_init_(CSOUND *csound);
 extern int emugens_init_(CSOUND *csound);
@@ -15,6 +14,17 @@ extern int liveconv_init_(CSOUND *csound);
 extern int unsupported_opdoces_init_(CSOUND *csound);
 extern int dateops_init_(CSOUND *csound);
 #endif
+
+int init_static_modules(CSOUND *csound) {
+  scansyn_init_(csound);
+  scansynx_init_(csound);
+  emugens_init_(csound);
+  pvsops_init_(csound);
+  liveconv_init_(csound);
+  dateops_init_(csound);
+  unsupported_opdoces_init_(csound);
+};
+
 
 // returns the address of a string
 // pointer which is writable from js
@@ -199,47 +209,16 @@ void csoundSetMidiCallbacks(CSOUND *csound) {
 __attribute__((used))
 CSOUND *csoundCreateWasi() {
   CSOUND *csound = csoundCreate(NULL);
-  init_static_modules(csound);
   csoundSetMidiCallbacks(csound);
-  scansyn_init_(csound);
-  scansynx_init_(csound);
-  emugens_init_(csound);
-  pvsops_init_(csound);
-  liveconv_init_(csound);
-  dateops_init_(csound);
-  unsupported_opdoces_init_(csound);
   return csound;
 }
-
-/* CSOUND *csoundCreateWasi() { */
-/*   /\* fprintf(stderr, "%d %s", (int) &csoundGetRandomSeedFromTime, "Stack overflow!\n"); *\/ */
-/*   CSOUND *csound = csoundCreate(NULL); */
-/*   /\* init_static_modules(csound); *\/ */
-/*   /\* csoundSetMidiCallbacks(csound); *\/ */
-/*   /\* scansyn_init_(csound); *\/ */
-/*   /\* scansynx_init_(csound); *\/ */
-/*   /\* emugens_init_(csound); *\/ */
-/*   /\* pvsops_init_(csound); *\/ */
-/*   /\* liveconv_init_(csound); *\/ */
-/*   /\* dateops_init_(csound); *\/ */
-/*   /\* unsupported_opdoces_init_(csound); *\/ */
-/*   return csound; */
-/* } */
 
 // same as csoundReset but also loads
 // opcodes which need re-initialization to
 // be callable (aka static_modules)
 void csoundResetWasi(CSOUND *csound) {
   csoundReset(csound);
-  init_static_modules(csound);
   csoundSetMidiCallbacks(csound);
-  scansyn_init_(csound);
-  scansynx_init_(csound);
-  emugens_init_(csound);
-  pvsops_init_(csound);
-  liveconv_init_(csound);
-  dateops_init_(csound);
-  unsupported_opdoces_init_(csound);
 }
 
 int isRequestingRtMidiInput(CSOUND *csound) {
