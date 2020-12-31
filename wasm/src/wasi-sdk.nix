@@ -1,4 +1,4 @@
-{ stdenv, fetchFromGitHub, fetchgit, lib, cmake, git, perl, ninja, python3 }:
+{ stdenv, fetchFromGitHub, fetchgit, fetchurl, lib, cmake, git, perl, ninja, python3 }:
 
 let wasilibc = fetchFromGitHub {
   owner = "WebAssembly";
@@ -18,6 +18,16 @@ config = fetchgit {
   url = "https://git.savannah.gnu.org/git/config.git";
   rev = "2593751ef276497e312d7c4ce7fd049614c7bf80";
   sha256 = "1sh410ncfs9fwxw03m1r4lcm10iv305g0jb2bb2yvgzlpb28lsz9";
+};
+
+emscripten_new_cpp_patch = fetchurl {
+  url = "https://raw.githubusercontent.com/emscripten-core/emscripten/a153b417d34cb6f872310f5969e522d255d7294a/system/lib/libcxx/new.cpp";
+  sha256 = "0ghdfdjx71gxsxhkl6y7ri9x841h32y140m9n2qjhd27p013sphb";
+};
+
+emscripten_new_delete_cppabi_patch = fetchurl {
+  url = "https://raw.githubusercontent.com/emscripten-core/emscripten/a153b417d34cb6f872310f5969e522d255d7294a/system/lib/libcxxabi/src/stdlib_new_delete.cpp";
+  sha256 = "099d5458xcbrcrhv3l1643ms529753q1yrr6m349rcwd33ad6g9r";
 };
 
 in stdenv.mkDerivation {
@@ -44,6 +54,9 @@ in stdenv.mkDerivation {
     cp -rf ${config} src/config
     chmod -R +rw src/
     sed -i -e 's/diff -wur.*//g' src/wasi-libc/Makefile
+    cp ${emscripten_new_cpp_patch} src/llvm-project/libcxx/src/new.cpp
+    cp ${emscripten_new_delete_cppabi_patch} src/llvm-project/libcxxabi/src/stdlib_new_delete.cpp
+
     substituteInPlace src/wasi-libc/Makefile \
       --replace 'wasm32-wasi' 'wasm32-unknown-emscripten'
 
@@ -55,12 +68,18 @@ in stdenv.mkDerivation {
       --replace 'DLIBCXXABI_ENABLE_PIC:BOOL=OFF' \
                 'DLIBCXXABI_ENABLE_PIC:BOOL=ON' \
       --replace 'wasi-sysroot"' \
-                'wasi-sysroot -fPIC -D__wasi__=1 -D__wasm32__=1"'
+                'wasi-sysroot -fPIC -fno-exceptions -D__wasi__=1 -D__wasm32__=1 -D_LIBCXXABI_NO_EXCEPTIONS=1"' \
+      --replace 'wasm32-wasi' \
+                'wasm32-unknown-emscripten'
 
     substituteInPlace wasi-sdk.cmake \
       --replace 'wasm32-wasi' 'wasm32-unknown-emscripten'
     substituteInPlace src/llvm-project/libcxx/include/__locale \
       --replace '<xlocale.h>' '<support/musl/xlocale.h>'
+    substituteInPlace src/llvm-project/libcxxabi/src/stdlib_new_delete.cpp \
+      --replace '__EMSCRIPTEN__' '__wasi__' || exit 1
+    substituteInPlace src/llvm-project/libcxx/src/new.cpp \
+      --replace '__EMSCRIPTEN__' '__wasi__' || exit 1
   '';
 
   buildInputs = [ cmake git perl ninja python3 ];

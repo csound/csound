@@ -8,10 +8,12 @@ in pkgs.stdenv.mkDerivation {
   name = "csound-wasm-plugin-example";
   buildInputs = [ csound ];
   unpackPhase = "true";
+  dontStrip = true;
 
   buildPhase = ''
     echo "Compile plugin_example.wasm"
-    ${wasi-sdk}/bin/clang -fPIC \
+    ${wasi-sdk}/bin/clang  \
+      -fPIC -fno-exceptions -fno-rtti \
       --target=wasm32-unknown-emscripten \
       --sysroot=${wasi-sdk}/share/wasi-sysroot \
       -D__wasi__=1 \
@@ -27,9 +29,8 @@ in pkgs.stdenv.mkDerivation {
       --export=__wasm_call_ctors \
       --export-dynamic --no-entry \
       -L${csound}/lib \
-      -L${wasi-sdk}/share/wasi-sysroot/lib/wasm32-wasi \
       -L${wasi-sdk}/share/wasi-sysroot/lib/wasm32-unknown-emscripten \
-      -lcsound -lc -lwasi-emulated-signal -lwasi-emulated-mman \
+      -lcsound -lc -lc++ -lc++abi -lwasi-emulated-signal -lwasi-emulated-mman \
       *.o -o plugin_example.wasm
   '';
 

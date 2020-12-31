@@ -313,7 +313,7 @@ in pkgs.stdenvNoCC.mkDerivation rec {
       -mmutable-globals \
       -mreference-types \
       --sysroot=${wasi-sdk}/share/wasi-sysroot \
-      -fPIC -O3 \
+      -fPIC -fno-exceptions -fno-rtti -O3 \
       -I../H -I../Engine -I../include -I../ \
       -I../InOut/libmpadec \
       -I${libsndfile}/include \
@@ -577,11 +577,12 @@ in pkgs.stdenvNoCC.mkDerivation rec {
       ../Opcodes/ampmidid.cpp \
       ../Opcodes/doppler.cpp \
       ../Opcodes/tl/fractalnoise.cpp \
-      ../Opcodes/ftsamplebank.cpp \
       ../Opcodes/mixer.cpp \
       ../Opcodes/signalflowgraph.cpp \
       ../Opcodes/pvsops.cpp \
       csound_wasm.c
+
+     #TODO fix ../Opcodes/ftsamplebank.cpp (why does it import thread-local?)
 
      echo "Create libcsound.wasm pie"
      ${wasi-sdk}/bin/wasm-ld --lto-O3 \
@@ -591,7 +592,6 @@ in pkgs.stdenvNoCC.mkDerivation rec {
           pkgs.lib.concatMapStrings (x: " --export=" + x + " ")
           (with builtins; fromJSON (readFile ./exports.json))
         } \
-       -L${wasi-sdk}/share/wasi-sysroot/lib/wasm32-wasi \
        -L${wasi-sdk}/share/wasi-sysroot/lib/wasm32-unknown-emscripten \
        -L${libsndfile}/lib \
        -lc -lc++ -lc++abi \

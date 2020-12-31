@@ -6,6 +6,7 @@
 #include "csoundCore.h"
 
 #ifdef INIT_STATIC_MODULES
+extern int init_static_modules(CSOUND *csound);
 extern int scansyn_init_(CSOUND *csound);
 extern int scansynx_init_(CSOUND *csound);
 extern int emugens_init_(CSOUND *csound);
@@ -14,6 +15,8 @@ extern int liveconv_init_(CSOUND *csound);
 extern int unsupported_opdoces_init_(CSOUND *csound);
 extern int dateops_init_(CSOUND *csound);
 #endif
+
+/* int init_static_modules(CSOUND *csound) { } */
 
 int init_static_modules(CSOUND *csound) {
   scansyn_init_(csound);
@@ -28,6 +31,7 @@ int init_static_modules(CSOUND *csound) {
 
 // returns the address of a string
 // pointer which is writable from js
+__attribute__((used))
 char* allocStringMem (int length) {
   char *ptr = NULL;
   ptr = malloc(((length + 1) * sizeof(char)));
@@ -70,7 +74,7 @@ void freeCsMidiDeviceStruct(CSOUND_PARAMS* ptr) {
   free(ptr);
 }
 // END CS_MIDIDEVICE
-
+__attribute__((used))
 int csoundStartWasi(CSOUND *csound) {
   // got annoyed, fix this before adding more targets!
   csoundAppendEnv(csound, "SADIR", "/csound/");
@@ -191,6 +195,7 @@ static int midiInClose(CSOUND *csound, void *userData) {
   return OK;
 }
 
+__attribute__((used))
 void csoundSetMidiCallbacks(CSOUND *csound) {
   csoundSetHostImplementedMIDIIO(csound, 1);
   csoundSetExternalMidiInOpenCallback(csound, midiInOpen);
