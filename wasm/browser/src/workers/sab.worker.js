@@ -18,7 +18,6 @@ import {
 
 let callbackReply = (uid, value) => {};
 let wasm;
-let plugins;
 let libraryCsound;
 let combined;
 
@@ -276,7 +275,7 @@ self.addEventListener("message", (event) => {
 
 const initialize = async (wasmDataURI, withPlugins = []) => {
   logSAB(`initializing SABWorker and WASM`);
-  [wasm, plugins] = await loadWasm(wasmDataURI, withPlugins);
+  wasm = await loadWasm(wasmDataURI, withPlugins);
   libraryCsound = libcsoundFactory(wasm);
 
   const startHandler = handleCsoundStart(
@@ -297,8 +296,6 @@ const initialize = async (wasmDataURI, withPlugins = []) => {
 
   libraryCsound.csoundInitialize(0);
   const csoundInstance = libraryCsound.csoundCreate();
-  plugins.forEach((plugin) => plugin.exports.init(csoundInstance));
-
   return csoundInstance;
 };
 

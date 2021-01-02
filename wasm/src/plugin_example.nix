@@ -2,11 +2,11 @@
 
 let
   wasi-sdk = pkgs.callPackage ./wasi-sdk.nix { };
-  csound = pkgs.callPackage ./csound.nix {};
+  csound-wasm = pkgs.callPackage ./csound.nix {};
 
 in pkgs.stdenv.mkDerivation {
   name = "csound-wasm-plugin-example";
-  buildInputs = [ csound ];
+  buildInputs = [ csound-wasm ];
   unpackPhase = "true";
   dontStrip = true;
 
@@ -20,17 +20,18 @@ in pkgs.stdenv.mkDerivation {
       -D__wasm32__=1 \
       -D_WASI_EMULATED_SIGNAL \
       -D_WASI_EMULATED_MMAN \
-      -I${csound}/include \
+      -DUSE_DOUBLE=1 \
+      -I${csound-wasm}/include \
       -c ${./plugin_example.c}
 
     echo "Link togeather plugin_example.wasm"
     ${wasi-sdk}/bin/wasm-ld --shared \
       --import-table --import-memory \
       --export=__wasm_call_ctors \
-      --export-dynamic --no-entry \
-      -L${csound}/lib \
+      --no-entry \
+      -L${csound-wasm}/lib \
       -L${wasi-sdk}/share/wasi-sysroot/lib/wasm32-unknown-emscripten \
-      -lcsound -lc -lc++ -lc++abi -lwasi-emulated-signal -lwasi-emulated-mman \
+      -lcsound -lc -lwasi-emulated-signal -lwasi-emulated-mman \
       *.o -o plugin_example.wasm
   '';
 

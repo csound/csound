@@ -108,6 +108,34 @@ const pluginTest = `
 </CsoundSynthesizer>
 `;
 
+const cxxPluginTest = `
+<CsoundSynthesizer>
+<CsOptions>
+</CsOptions>
+<CsInstruments>
+  0dbfs=1
+instr 1
+ kcone_lengths[] fillarray 0.0316, 0.051, .3, 0.2
+ kradii_in[] fillarray 0.0055, 0.00635, 0.0075, 0.0075
+ kradii_out[]  fillarray 0.0055, 0.0075, 0.0075, 0.0275
+ kcurve_type[] fillarray 1, 1, 1, 2
+ kLength linseg 0.2, 2, 0.3
+ kPick_Pos = 1.0
+ kEndReflection init 1.0
+ kEndReflection = 1.0
+ kDensity = 1.0
+ kComputeVisco = 0
+ aImpulse mpulse .5, .1
+ aFeedback, aSound resontube 0.005*aImpulse, kLength, kcone_lengths, kradii_in, kradii_out, kcurve_type, kEndReflection, kDensity, kPick_Pos, kComputeVisco
+ out aSound
+endin
+</CsInstruments>
+<CsScore>
+i1 0 2
+</CsScore>
+</CsoundSynthesizer>
+`;
+
 mocha.setup("bdd").fullTrace();
 
 const csoundVariations = [
@@ -224,6 +252,16 @@ schedule(1,0,1)
       });
       await csoundObj.start();
       assert.equal(0, await csoundObj.compileCsdText(pluginTest));
+      await csoundObj.stop();
+    });
+
+    it("can load and run c++ plugins", async () => {
+      const { Csound } = await import(url);
+      const csoundObj = await Csound({
+        withPlugins: ["./plugin_example_cxx.wasm"],
+      });
+      await csoundObj.start();
+      assert.equal(0, await csoundObj.compileCsdText(cxxPluginTest));
       await csoundObj.stop();
     });
   });

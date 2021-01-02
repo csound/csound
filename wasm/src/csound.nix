@@ -50,11 +50,10 @@ let
     '';
   };
 
-  csoundRev = "a5b56e6bb9362e26d3dec6fb96545afc6c3ba850";
-  csoundSha = "15xg7adbzs171h6fb4z9id5a1rgdfp0y5bvkp3njnmhiqy6rdqg1";
+  csoundSrc = with builtins; pkgs.fetchFromGitHub (fromJSON (readFile ./version.json));
 
   preprocFlags = ''
-    -DGIT_HASH_VALUE=${csoundRev} \
+    -DGIT_HASH_VALUE=${csoundSrc.rev} \
     -DUSE_DOUBLE=1 \
     -DLINUX=0 \
     -DO_NDELAY=O_NONBLOCK \
@@ -70,7 +69,7 @@ in pkgs.stdenvNoCC.mkDerivation rec {
 
   name = "csound-wasm";
 
-  src = with builtins; pkgs.fetchFromGitHub (fromJSON (readFile ./version.json));
+  src = csoundSrc;
 
   buildInputs = [ pkgs.flex pkgs.bison ];
 
@@ -110,15 +109,16 @@ in pkgs.stdenvNoCC.mkDerivation rec {
     find ./ -type f -exec sed -i -e 's/PUBLIC.*int32_t.*csoundModuleInfo/static int32_t csoundModuleInfo/g' {} \;
     find ./ -type f -exec sed -i -e 's/PUBLIC.*NGFENS.*\*csound_fgen_init/static NGFENS *csound_fgen_init/g' {} \;
 
-
     sed -i -e 's/csoundUDPConsole.*//g' Top/argdecode.c
 
     cat ${csoundModLoadPatch} > include/modload.h
 
-    # Don't initialize static_modules which are not compiled in wasm env
-    substituteInPlace Top/csmodule.c \
-      --replace '#ifndef NACL' '#ifndef WASM_BUILD' \
-      --replace 'lufs_localops_init,' ""
+    # Todo: add this to csound proper
+    substituteInPlace H/csmodule.h \
+      --replace 'int csoundLoadModules(CSOUND *csound);' \
+                'int csoundLoadModules(CSOUND *csound)
+                 __attribute__((__import_module__("env"),
+                                __import_name__("csoundLoadModules")));'
 
     # Patch 64bit integer clock
     ${patchClock}/bin/patchClock Top/csound.c
@@ -292,14 +292,22 @@ in pkgs.stdenvNoCC.mkDerivation rec {
   '';
 
   configurePhase = ''
-    ${pkgs.flex}/bin/flex -B ./Engine/csound_orc.lex > ./Engine/csound_orc.c
-    ${pkgs.flex}/bin/flex -B ./Engine/csound_pre.lex > ./Engine/csound_pre.c
-    ${pkgs.flex}/bin/flex -B ./Engine/csound_prs.lex > ./Engine/csound_prs.c
-    ${pkgs.flex}/bin/flex -B ./Engine/csound_sco.lex > ./Engine/csound_sco.c
-    ${pkgs.bison}/bin/bison -pcsound_orc -d --report=itemset ./Engine/csound_orc.y -o ./Engine/csound_orcparse.c
+    ${pkgs.bison}/bin/bison -pcsound_orc -d --report=itemset ./Engine/csound_orc.y \
+      -o ./Engine/csound_orcparse.c
+    # ${pkgs.bison}/bin/bison -pcsound_sco -d --report=itemset ./Engine/csound_sco.y \
+    #   --defines=./H/csound_scoparse.h \
+    #   -o ./Engine/csound_scoparse.c
+
+    ${pkgs.flex}/bin/flex -B ./Engine/csound_orc.lex > ./Engine/csound_orclex.c
+    ${pkgs.flex}/bin/flex -B ./Engine/csound_pre.lex > ./Engine/csound_prelex.c
+    ${pkgs.flex}/bin/flex -B ./Engine/csound_prs.lex > ./Engine/csound_prslex.c
+    # ${pkgs.flex}/bin/flex -B ./Engine/csound_sco.lex > ./Engine/csound_scolex.c
   '';
 
   buildPhase = ''
+    cp ${ ./csdl_with_proposal.h } include/csdl.h
+    cp ${ ./csmodule_with_proposal.c } Top/csmodule.c
+    cp ${ ./modload_with_proposal.h } include/modload.h
     mkdir -p build && cd build
     cp ${./csound_wasm.c} ./csound_wasm.c
     cp ${./unsupported_opcodes.c} ./unsupported_opcodes.c
@@ -309,10 +317,8 @@ in pkgs.stdenvNoCC.mkDerivation rec {
     echo "Compile libcsound.wasm"
     ${wasi-sdk}/bin/clang \
       --target=wasm32-unknown-emscripten \
-      -mno-unimplemented-simd128 \
-      -mmutable-globals \
-      -mreference-types \
       --sysroot=${wasi-sdk}/share/wasi-sysroot \
+      -fno-force-enable-int128 \
       -fPIC -fno-exceptions -fno-rtti -O3 \
       -I../H -I../Engine -I../include -I../ \
       -I../InOut/libmpadec \
@@ -323,6 +329,8 @@ in pkgs.stdenvNoCC.mkDerivation rec {
       -D__wasm32__=1 \
       -D_WASI_EMULATED_SIGNAL \
       -D_WASI_EMULATED_MMAN \
+      -D__wasilibc_printscan_no_long_double \
+      -D__wasilibc_printscan_no_floating_point \
       -D__BUILDING_LIBCSOUND \
       -DWASM_BUILD=1 ${preprocFlags} -c \
       unsupported_opcodes.c \
@@ -333,14 +341,14 @@ in pkgs.stdenvNoCC.mkDerivation rec {
       ../Engine/cs_par_base.c \
       ../Engine/cs_par_orc_semantic_analysis.c \
       ../Engine/csound_data_structures.c \
-      ../Engine/csound_orc.c \
+      ../Engine/csound_orclex.c \
       ../Engine/csound_orc_compile.c \
       ../Engine/csound_orc_expressions.c \
       ../Engine/csound_orc_optimize.c \
       ../Engine/csound_orc_semantics.c \
       ../Engine/csound_orcparse.c \
-      ../Engine/csound_pre.c \
-      ../Engine/csound_prs.c \
+      ../Engine/csound_prelex.c \
+      ../Engine/csound_prslex.c \
       ../Engine/csound_standard_types.c \
       ../Engine/csound_type_system.c \
       ../Engine/entry1.c \
@@ -582,26 +590,26 @@ in pkgs.stdenvNoCC.mkDerivation rec {
       ../Opcodes/pvsops.cpp \
       csound_wasm.c
 
-     #TODO fix ../Opcodes/ftsamplebank.cpp (why does it import thread-local?)
+    #TODO fix ../Opcodes/ftsamplebank.cpp (why does it import thread-local?)
 
-     echo "Create libcsound.wasm pie"
-     ${wasi-sdk}/bin/wasm-ld --lto-O3 \
-       --experimental-pic -pie --entry=_start \
-       --import-table --import-memory \
-       ${
-          pkgs.lib.concatMapStrings (x: " --export=" + x + " ")
-          (with builtins; fromJSON (readFile ./exports.json))
-        } \
-       -L${wasi-sdk}/share/wasi-sysroot/lib/wasm32-unknown-emscripten \
-       -L${libsndfile}/lib \
-       -lc -lc++ -lc++abi \
-       -lsndfile -lwasi-emulated-signal -lwasi-emulated-mman \
-       ${wasi-sdk}/share/wasi-sysroot/lib/wasm32-unknown-emscripten/crt1.o \
-        *.o -o libcsound.wasm
+    echo "Create libcsound.wasm pie"
+    ${wasi-sdk}/bin/wasm-ld --lto-O3 \
+      --experimental-pic -pie --entry=_start \
+      --import-table --import-memory \
+      ${
+         pkgs.lib.concatMapStrings (x: " --export=" + x + " ")
+         (with builtins; fromJSON (readFile ./exports.json))
+       } \
+      -L${wasi-sdk}/share/wasi-sysroot/lib/wasm32-unknown-emscripten \
+      -L${libsndfile}/lib \
+      -lc  -lc++ -lc++abi \
+      -lsndfile -lwasi-emulated-signal -lwasi-emulated-mman \
+      ${wasi-sdk}/share/wasi-sysroot/lib/wasm32-unknown-emscripten/crt1.o \
+       *.o -o libcsound.wasm
 
-      echo "Archiving the objects"
-      ${wasi-sdk}/bin/llvm-ar crS libcsound.a ./*.o
-      ${wasi-sdk}/bin/llvm-ranlib -U libcsound.a
+    echo "Archiving the objects"
+    ${wasi-sdk}/bin/llvm-ar crS libcsound.a ./*.o
+    ${wasi-sdk}/bin/llvm-ranlib -U libcsound.a
   '';
 
   installPhase = ''

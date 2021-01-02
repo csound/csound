@@ -72,7 +72,4 @@ static OENTRY localops[] =
         (SUBR) mult_scalar, NULL }
   };
 
-
-__attribute__((used)) int32_t init(CSOUND *csound) {
-  return csound->AppendOpcodes(csound, &(localops[0]), (int32_t) (sizeof(localops) / sizeof(OENTRY)));
-}
+LINKAGE

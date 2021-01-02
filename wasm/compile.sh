@@ -10,6 +10,7 @@ nix-build -E '(with import <nixpkgs> {}; import ./src/csound.nix)' -o result --s
     chmod 0600 lib/* &&
     nix-build -E '(with import <nixpkgs> {}; pkgs.callPackage ./src/plugin_example.nix {})' -o result &&
     cp ./result/lib/* lib &&
-    chmod 0600 lib/*
-
-printf '%s\n' "wasm binary ready in ./lib"
+    chmod 0600 lib/* &&
+    nix-build -E '(with import <nixpkgs> {}; pkgs.callPackage ./src/plugin_example_cxx.nix {})' -o result &&
+    cp ./result/lib/* lib &&
+    printf '%s\n' "wasm binary ready in ./lib"

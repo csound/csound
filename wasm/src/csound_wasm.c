@@ -1,9 +1,13 @@
+#include "csound.h"
+#include "csoundCore.h"
+#include <errno.h>
+#include <limits.h>
+#include <stdarg.h>
+#include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
-#include "csound.h"
-#include "csoundCore.h"
 
 #ifdef INIT_STATIC_MODULES
 extern int init_static_modules(CSOUND *csound);
@@ -278,15 +282,46 @@ int main (int argc, char *argv[] ) {}
 
 // Compilation fix for unsupported functions defined
 // wasi-libc/expected/wasm32-wasi/undefined-symbols.txt
-int32_t siprintf(int32_t x, int32_t y, int32_t z) {
-  printf("ERROR: call to unsupported function siprintf");
-  return 0;
+
+int vsprintf(char *restrict s, const char *restrict fmt, va_list ap) {
+	return vsnprintf(s, INT_MAX, fmt, ap);
 }
 
-int32_t __small_sprintf(int32_t x, int32_t y, int32_t z) {
-  printf("ERROR: call to unsupported function __small_sprintf");
-  return 0;
+int vsiprintf(char *restrict s, const char *restrict fmt, va_list ap) {
+	return vsnprintf(s, INT_MAX, fmt, ap);
 }
+
+int __small_vsprintf(char *restrict s, const char *restrict fmt, va_list ap) {
+  	return vsnprintf(s, INT_MAX, fmt, ap);
+}
+
+int sprintf(char *restrict s, const char *restrict fmt, ...) {
+	int ret;
+	va_list ap;
+	va_start(ap, fmt);
+	ret = vsprintf(s, fmt, ap);
+	va_end(ap);
+	return ret;
+}
+
+int siprintf(char *restrict s, const char *restrict fmt, ...) {
+	int ret;
+	va_list ap;
+	va_start(ap, fmt);
+	ret = vsiprintf(s, fmt, ap);
+	va_end(ap);
+	return ret;
+}
+
+int __small_sprintf(char *restrict s, const char *restrict fmt, ...) {
+	int ret;
+	va_list ap;
+	va_start(ap, fmt);
+	ret = __small_vsprintf(s, fmt, ap);
+	va_end(ap);
+	return ret;
+}
+
 
 int32_t fiprintf(int32_t x, int32_t y, int32_t z) {
   printf("ERROR: call to unsupported function fiprintf");
@@ -299,23 +334,29 @@ int32_t __small_fprintf(int32_t x, int32_t y, int32_t z) {
 }
 
 int32_t __getf2(int64_t x, int64_t y, int64_t z, int64_t zz) {
-  printf("ERROR: call to unsupported function __getf2");
-  return 0;
+  if (x > y) {
+    return 1;
+  } else if (x == y) {
+    return 0;
+  } else {
+    return -1;
+  }
 }
 
-void __extenddftf2(int32_t x, double y) {
-  printf("ERROR: call to unsupported function __extenddftf2");
+void __extenddftf2(int32_t x, double y) {}
+
+int32_t __multi3(int32_t a, int64_t b, int64_t c, int64_t d, int64_t e) {
+  return a * b;
 }
 
-void __multi3(int32_t a, int64_t b, int64_t c, int64_t d, int64_t e) {
-  printf("ERROR: call to unsupported function __multi3");
-}
-
-void __muloti4(int32_t a, int64_t b, int64_t c, int64_t d, int64_t d_, int32_t e) {
-  printf("ERROR: call to unsupported function __muloti4");
-}
+void __muloti4(int32_t a, int64_t b, int64_t c, int64_t d, int64_t d_, int32_t e) {}
 
 int __lttf2(long double a, long double b) {
-  printf("ERROR: call to unsupported function __lttf2");
-  return 0;
+  if (a > b) {
+    return 1;
+  } else if (a == b) {
+    return 0;
+  } else {
+    return -1;
+  }
 }

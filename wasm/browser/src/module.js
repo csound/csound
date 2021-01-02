@@ -1,5 +1,6 @@
 import { WASI } from "@wasmer/wasi";
 import { inflate } from "pako";
+import { dlinit } from "@root/dlinit";
 import { initFS, preopens, wasmFs } from "@root/filesystem";
 import * as path from "path";
 
@@ -11,6 +12,35 @@ export const bindings = {
   ...WASI.defaultBindings,
   fs: wasmFs.fs,
   path,
+};
+
+const assertPluginExports = (pluginInstance) => {
+  if (
+    !pluginInstance ||
+    typeof pluginInstance !== "object" ||
+    typeof pluginInstance.exports !== "object"
+  ) {
+    console.error("Error instantiating a csound plugin, instance and/or export is missing!");
+    return false;
+  } else if (!pluginInstance.exports.__wasm_call_ctors) {
+    console.error(
+      "A csound plugin didn't export __wasm_call_ctors.\n" +
+        "Please re-run wasm-ld with either --export-all or include --export=__wasm_call_ctors",
+    );
+    return false;
+  } else if (
+    !pluginInstance.exports.csoundModuleCreate &&
+    !pluginInstance.exports.csound_opcode_init &&
+    !pluginInstance.exports.csound_fgen_init
+  ) {
+    console.error(
+      "A csound plugin turns out to be neither a plugin, opcode or module.\n" +
+        "Perhaps csdl.h or module.h wasn't imported correctly?",
+    );
+    return false;
+  } else {
+    return true;
+  }
 };
 
 const getBinaryHeaderData = (wasmBytes) => {
@@ -103,12 +133,26 @@ export default async function (wasmDataURI, withPlugins = []) {
   const module = await WebAssembly.compile(wasmBytes);
   const options = wasi.getImports(module);
 
+  let withPlugins_ = [];
+  let instance;
+  const csoundLoadModules = (csoundInstance) => {
+    withPlugins_.forEach((pluginInstance) => {
+      if (instance) {
+        dlinit(instance, pluginInstance, table, csoundInstance);
+      } else {
+        console.error("csound-wasm internal: timing problem detected!");
+      }
+    });
+    return 0;
+  };
+
   options["env"] = options["env"] || {};
   options["env"]["memory"] = memory;
   options["env"]["__indirect_function_table"] = table;
   options["env"]["__stack_pointer"] = stackPointer;
   options["env"]["__memory_base"] = memoryBase;
   options["env"]["__table_base"] = tableBase;
+  options["env"]["csoundLoadModules"] = csoundLoadModules;
 
   options["GOT.mem"] = options["GOT.mem"] || {};
   options["GOT.mem"]["__heap_base"] = heapBase;
@@ -116,8 +160,8 @@ export default async function (wasmDataURI, withPlugins = []) {
   options["GOT.func"] = options["GOT.func"] || {};
   options["GOT.func"]["__wasilibc_find_relpath_alloc"] = __dummy;
 
-  const instance = await WebAssembly.instantiate(module, options);
-
+  instance = await WebAssembly.instantiate(module, options);
+  console.log("Instance", instance);
   const moduleExports = Object.assign({}, instance.exports);
   const instance_ = {};
   instance_["exports"] = Object.assign(moduleExports, {
@@ -126,7 +170,7 @@ export default async function (wasmDataURI, withPlugins = []) {
 
   let currentMemorySegment = initialMemory;
 
-  withPlugins = await withPlugins.reduce(async (acc, { headerData, wasmPluginBytes }) => {
+  withPlugins_ = await withPlugins.reduce(async (acc, { headerData, wasmPluginBytes }) => {
     acc = await acc;
     try {
       const {
@@ -149,10 +193,14 @@ export default async function (wasmDataURI, withPlugins = []) {
       pluginOptions["env"]["__memory_base"] = pluginMemoryBase;
       pluginOptions["env"]["__stack_pointer"] = stackPointer;
       pluginOptions["env"]["__table_base"] = tableBase;
+      pluginOptions["env"]["csoundLoadModules"] = __dummy;
       currentMemorySegment += Math.ceil((pluginMemorySize + pluginMemoryAlign) / PAGE_SIZE);
       const pluginInstance = await WebAssembly.instantiate(plugin, pluginOptions);
-      pluginInstance.exports.__wasm_call_ctors();
-      acc.push(pluginInstance);
+      if (assertPluginExports(pluginInstance)) {
+        console.log("pluginInstznce", pluginInstance);
+        pluginInstance.exports.__wasm_call_ctors();
+        acc.push(pluginInstance);
+      }
     } catch (error) {
       console.error("Error while compiling csound-plugin", error);
     }
@@ -162,5 +210,5 @@ export default async function (wasmDataURI, withPlugins = []) {
   wasi.start(instance_);
   await initFS(instance_);
 
-  return [instance_, withPlugins];
+  return instance_;
 }

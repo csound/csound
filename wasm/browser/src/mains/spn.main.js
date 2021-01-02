@@ -99,7 +99,7 @@ class ScriptProcessorNodeSingleThread {
     }
 
     if (!this.wasm) {
-      [this.wasm, this.plugins] = await loadWasm(wasmDataURI, withPlugins);
+      this.wasm = await loadWasm(wasmDataURI, withPlugins);
     }
 
     // libcsound

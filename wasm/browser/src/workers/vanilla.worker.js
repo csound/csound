@@ -7,7 +7,6 @@ import libcsoundFactory from "@root/libcsound";
 import loadWasm from "@root/module";
 import { assoc, pipe } from "ramda";
 
-let plugins = [];
 let wasm, combined, libraryCsound;
 
 let audioProcessCallback = () => {};
@@ -199,9 +198,9 @@ addEventListener("message", (event) => {
   }
 });
 
-const initialize = async (wasmDataURI) => {
+const initialize = async (wasmDataURI, withPlugins = []) => {
   logVAN(`initializing wasm and exposing csoundAPI functions from worker to main`);
-  [wasm, plugins] = [wasm, plugins] || (await loadWasm(wasmDataURI));
+  wasm = await loadWasm(wasmDataURI);
   libraryCsound = libraryCsound || libcsoundFactory(wasm);
   const startHandler = handleCsoundStart(
     workerMessagePort,
