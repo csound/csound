@@ -1,7 +1,42 @@
-{ pkgs ? import <nixpkgs> { } }:
+{ pkgs ? import <nixpkgs> { }, static ? false }:
 
 let
-  wasi-sdk = pkgs.callPackage ./wasi-sdk.nix { };
+  lib = pkgs.lib;
+  wasi-sdk-dyn = pkgs.callPackage ./wasi-sdk.nix { };
+  wasi-sdk-static = pkgs.callPackage ./wasi-sdk-static.nix { };
+  wasi-sdk = if static then wasi-sdk-static else wasi-sdk-dyn;
+  static-link = ''
+    echo "Create libcsound.wasm standalone"
+    ${wasi-sdk}/bin/wasm-ld --lto-O3 \
+      --entry=_start \
+      ${
+         pkgs.lib.concatMapStrings (x: " --export=" + x + " ")
+         (with builtins; fromJSON (readFile ./exports.json))
+       } \
+      -L${wasi-sdk}/share/wasi-sysroot/lib/wasm32-wasi \
+      -L${libsndfile}/lib \
+      -lc  -lc++ -lc++abi \
+      -lsndfile -lwasi-emulated-signal -lwasi-emulated-mman \
+      ${wasi-sdk}/share/wasi-sysroot/lib/wasm32-wasi/crt1.o \
+       *.o -o libcsound.wasm
+  '';
+  dyn-link = ''
+    echo "Create libcsound.wasm pie"
+    ${wasi-sdk}/bin/wasm-ld --lto-O3 \
+      --experimental-pic -pie --entry=_start \
+      --import-table --import-memory \
+      ${
+         pkgs.lib.concatMapStrings (x: " --export=" + x + " ")
+         (with builtins; fromJSON (readFile ./exports.json))
+       } \
+      -L${wasi-sdk}/share/wasi-sysroot/lib/wasm32-unknown-emscripten \
+      -L${libsndfile}/lib \
+      -lc  -lc++ -lc++abi \
+      -lsndfile -lwasi-emulated-signal -lwasi-emulated-mman \
+      ${wasi-sdk}/share/wasi-sysroot/lib/wasm32-unknown-emscripten/crt1.o \
+       *.o -o libcsound.wasm
+
+  '';
   exports = with builtins; (fromJSON (readFile ./exports.json));
   patchClock = pkgs.writeTextFile {
     name = "patchClock";
@@ -316,15 +351,18 @@ in pkgs.stdenvNoCC.mkDerivation rec {
     # https://bugs.llvm.org/show_bug.cgi?id=42714
     echo "Compile libcsound.wasm"
     ${wasi-sdk}/bin/clang \
-      --target=wasm32-unknown-emscripten \
+      ${lib.optionalString (static == false) "--target=wasm32-unknown-emscripten" } \
       --sysroot=${wasi-sdk}/share/wasi-sysroot \
       -fno-force-enable-int128 \
-      -fPIC -fno-exceptions -fno-rtti -O3 \
+      ${lib.optionalString (static == false) "-fPIC" } -fno-exceptions -fno-rtti -O3 \
       -I../H -I../Engine -I../include -I../ \
       -I../InOut/libmpadec \
       -I${libsndfile}/include \
       -I${wasi-sdk}/share/wasi-sysroot/include/c++/v1 \
       -DINIT_STATIC_MODULES=1 \
+      -U__MACH__ \
+      -UMAC \
+      -UMACOSX \
       -D__wasi__=1 \
       -D__wasm32__=1 \
       -D_WASI_EMULATED_SIGNAL \
@@ -591,21 +629,7 @@ in pkgs.stdenvNoCC.mkDerivation rec {
       csound_wasm.c
 
     #TODO fix ../Opcodes/ftsamplebank.cpp (why does it import thread-local?)
-
-    echo "Create libcsound.wasm pie"
-    ${wasi-sdk}/bin/wasm-ld --lto-O3 \
-      --experimental-pic -pie --entry=_start \
-      --import-table --import-memory \
-      ${
-         pkgs.lib.concatMapStrings (x: " --export=" + x + " ")
-         (with builtins; fromJSON (readFile ./exports.json))
-       } \
-      -L${wasi-sdk}/share/wasi-sysroot/lib/wasm32-unknown-emscripten \
-      -L${libsndfile}/lib \
-      -lc  -lc++ -lc++abi \
-      -lsndfile -lwasi-emulated-signal -lwasi-emulated-mman \
-      ${wasi-sdk}/share/wasi-sysroot/lib/wasm32-unknown-emscripten/crt1.o \
-       *.o -o libcsound.wasm
+    ${if (static == true) then static-link else dyn-link}
 
     echo "Archiving the objects"
     ${wasi-sdk}/bin/llvm-ar crS libcsound.a ./*.o

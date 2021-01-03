@@ -1,4 +1,5 @@
 [
+  "chdir",
   "csoundSetMidiCallbacks",
   "sizeOfMidiStruct",
   "isRequestingRtMidiInput",

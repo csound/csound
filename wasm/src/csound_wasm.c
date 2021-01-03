@@ -283,9 +283,9 @@ int main (int argc, char *argv[] ) {}
 // Compilation fix for unsupported functions defined
 // wasi-libc/expected/wasm32-wasi/undefined-symbols.txt
 
-int vsprintf(char *restrict s, const char *restrict fmt, va_list ap) {
-	return vsnprintf(s, INT_MAX, fmt, ap);
-}
+/* int vsprintf(char *restrict s, const char *restrict fmt, va_list ap) { */
+/* 	return vsnprintf(s, INT_MAX, fmt, ap); */
+/* } */
 
 int vsiprintf(char *restrict s, const char *restrict fmt, va_list ap) {
 	return vsnprintf(s, INT_MAX, fmt, ap);
@@ -295,14 +295,14 @@ int __small_vsprintf(char *restrict s, const char *restrict fmt, va_list ap) {
   	return vsnprintf(s, INT_MAX, fmt, ap);
 }
 
-int sprintf(char *restrict s, const char *restrict fmt, ...) {
-	int ret;
-	va_list ap;
-	va_start(ap, fmt);
-	ret = vsprintf(s, fmt, ap);
-	va_end(ap);
-	return ret;
-}
+/* int sprintf(char *restrict s, const char *restrict fmt, ...) { */
+/* 	int ret; */
+/* 	va_list ap; */
+/* 	va_start(ap, fmt); */
+/* 	ret = vsprintf(s, fmt, ap); */
+/* 	va_end(ap); */
+/* 	return ret; */
+/* } */
 
 int siprintf(char *restrict s, const char *restrict fmt, ...) {
 	int ret;
@@ -345,9 +345,9 @@ int32_t __getf2(int64_t x, int64_t y, int64_t z, int64_t zz) {
 
 void __extenddftf2(int32_t x, double y) {}
 
-int32_t __multi3(int32_t a, int64_t b, int64_t c, int64_t d, int64_t e) {
-  return a * b;
-}
+/* int32_t __multi3(int32_t a, int64_t b, int64_t c, int64_t d, int64_t e) { */
+/*   return a * b; */
+/* } */
 
 void __muloti4(int32_t a, int64_t b, int64_t c, int64_t d, int64_t d_, int32_t e) {}
 
