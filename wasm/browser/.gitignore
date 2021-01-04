@@ -19,3 +19,4 @@ deps.js
 .envrc
 tmp
 dev.html
+tests/debug.html

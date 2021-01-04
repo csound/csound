@@ -108,7 +108,7 @@ class WorkletSinglethreadWorker extends AudioWorkletProcessor {
       this.wasm = wasm;
       libraryCsound = libcsoundFactory(wasm);
       this.callUncloned = callUncloned;
-      let cs = (this.csound = libraryCsound.csoundCreate(0));
+      this.csound = libraryCsound.csoundCreate(0);
       this.result = 0;
       this.running = false;
       this.started = false;
@@ -152,11 +152,6 @@ class WorkletSinglethreadWorker extends AudioWorkletProcessor {
     }
 
     libraryCsound.csoundSetMidiCallbacks(cs);
-    libraryCsound.csoundSetOption(cs, "-odac");
-    libraryCsound.csoundSetOption(cs, "-iadc");
-    // libraryCsound.csoundSetOption(cs, "-M0");
-    // libraryCsound.csoundSetOption(cs, "-+rtaudio=null");
-    // libraryCsound.csoundSetOption(cs, "-+rtmidi=null");
     libraryCsound.csoundSetOption(cs, "--sample-rate=" + this.sampleRate);
     this.nchnls = this.options.outputChannelCount[0];
     this.nchnls_i = this.options.numberOfInputs;

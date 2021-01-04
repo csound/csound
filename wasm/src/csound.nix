@@ -22,7 +22,7 @@ let
   '';
   dyn-link = ''
     echo "Create libcsound.wasm pie"
-    ${wasi-sdk}/bin/wasm-ld --lto-O3 \
+    ${wasi-sdk}/bin/wasm-ld --lto-O0 \
       --experimental-pic -pie --entry=_start \
       --import-table --import-memory \
       ${
@@ -70,7 +70,7 @@ let
     '';
   };
 
-  libsndfile = pkgs.callPackage ./libsndfile.nix {};
+  libsndfile = pkgs.callPackage ./libsndfile.nix { inherit static; };
 
   csoundModLoadPatch = pkgs.writeTextFile {
     name = "csoundModLoadPatch";

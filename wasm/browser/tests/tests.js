@@ -77,6 +77,7 @@ const stringChannelTest = `
 const pluginTest = `
 <CsoundSynthesizer>
 <CsOptions>
+ -odac
 </CsOptions>
 <CsInstruments>
   0dbfs=1
@@ -111,6 +112,7 @@ const pluginTest = `
 const cxxPluginTest = `
 <CsoundSynthesizer>
 <CsOptions>
+ -odac
 </CsOptions>
 <CsInstruments>
   0dbfs=1
@@ -164,7 +166,7 @@ assert.property(cs, "setMessageCallback", "has .setMessageCallback() method");
 */
 
     it("can be started", async function () {
-      this.timeout(10000);
+      // this.timeout(10000);
       const { Csound } = await import(url);
       const cs = await Csound(test);
       console.log(`Csound version: ${cs.name}`);
@@ -175,7 +177,7 @@ assert.property(cs, "setMessageCallback", "has .setMessageCallback() method");
     });
 
     it("has getAudioContext()", async function () {
-      this.timeout(10000);
+      // this.timeout(10000);
       const { Csound } = await import(url);
       const cs = await Csound(test);
       assert.property(cs, "getAudioContext", "has .getAudioContext() method");
@@ -183,23 +185,24 @@ assert.property(cs, "setMessageCallback", "has .setMessageCallback() method");
     });
 
     it("can use run using just compileOrc", async function () {
-      this.timeout(10000);
+      // this.timeout(10000);
       const { Csound } = await import(url);
       const cs = await Csound(test);
       await cs.compileOrc(`
-ksmps=64
-instr 1
-    out oscili(.25, 110)
-endin
-schedule(1,0,1)
-`);
+        ksmps=64
+        instr 1
+          out oscili(.25, 110)
+        endin
+        schedule(1,0,1)
+      `);
       const startReturn = await cs.start();
       assert.equal(startReturn, 0);
       await cs.reset();
       (await cs.getNode()).disconnect();
     });
+
     it("can play tone and get channel values", async function () {
-      this.timeout(10000);
+      // this.timeout(10000);
       const { Csound } = await import(url);
       const cs = await Csound(test);
       const compileReturn = await cs.compileCsdText(shortTone);
@@ -214,7 +217,7 @@ schedule(1,0,1)
     });
 
     it("can play tone and send channel values", async function () {
-      this.timeout(10000);
+      // this.timeout(10000);
       const { Csound } = await import(url);
       const cs = await Csound(test);
       const compileReturn = await cs.compileCsdText(shortTone2);
@@ -228,7 +231,7 @@ schedule(1,0,1)
     });
 
     it("can send and receive string channel values", async function () {
-      this.timeout(10000);
+      // this.timeout(10000);
       const { Csound } = await import(url);
       const cs = await Csound(test);
 

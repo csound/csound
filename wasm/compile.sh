@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-nix-build -E '(with import <nixpkgs> {}; import ./src/csound.nix)' -o result --show-trace &&
+nix-build -E '(with import <nixpkgs> {}; callPackage ./src/csound.nix { static = false; })' -o result --show-trace &&
     if [ -d "./lib" ]; then
         printf '%s\n' "Cleaning directory lib"
         rm -rf "./lib"

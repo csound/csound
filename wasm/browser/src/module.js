@@ -49,8 +49,8 @@ const getBinaryHeaderData = (wasmBytes) => {
     console.error("Wasm magic number is missing!");
   }
   if (wasmBytes[8] !== 0) {
-    console.error("Dylink section wasn't found in wasm binary");
-    return;
+    console.log("Dylink section wasn't found in wasm binary, assuming static wasm.");
+    return "static";
   }
 
   let next = 9;
@@ -76,6 +76,18 @@ const getBinaryHeaderData = (wasmBytes) => {
   return { sectionSize, memorySize, memoryAlign, neededDynlibsCount, tableSize, tableAlign };
 };
 
+// currently dl is default, static is good for low level debugging
+const loadStaticWasm = async ({ wasmBytes }) => {
+  const module = await WebAssembly.compile(wasmBytes);
+  const options = wasi.getImports(module);
+  options["env"] = options["env"] || {};
+  options["env"]["csoundLoadModules"] = () => 0;
+  const instance = await WebAssembly.instantiate(module, options);
+  wasi.start(instance);
+  await initFS(instance);
+  return instance;
+};
+
 export default async function (wasmDataURI, withPlugins = []) {
   wasi = new WASI({
     preopens,
@@ -85,8 +97,11 @@ export default async function (wasmDataURI, withPlugins = []) {
   await wasmFs.volume.mkdirpSync("/sandbox");
   const wasmZlib = new Uint8Array(wasmDataURI);
   const wasmBytes = inflate(wasmZlib);
-
-  const { memorySize, memoryAlign, tableSize } = getBinaryHeaderData(wasmBytes);
+  const magicData = getBinaryHeaderData(wasmBytes);
+  if (magicData === "static") {
+    return await loadStaticWasm({ wasmBytes });
+  }
+  const { memorySize, memoryAlign, tableSize } = magicData;
   // get the header data from plugins which we need before
   // initializing the main module
   withPlugins = withPlugins.reduce((acc, wasmPlugin) => {
@@ -104,6 +119,7 @@ export default async function (wasmDataURI, withPlugins = []) {
     return acc;
   }, []);
 
+  const fixedMemoryBase = 512;
   const initialMemory = Math.ceil((memorySize + memoryAlign) / PAGE_SIZE);
   const pluginsMemory = Math.ceil(
     withPlugins.reduce(
@@ -111,7 +127,7 @@ export default async function (wasmDataURI, withPlugins = []) {
       0,
     ) / PAGE_SIZE,
   );
-  const totalInitialMemory = initialMemory + pluginsMemory;
+  const totalInitialMemory = initialMemory + pluginsMemory + fixedMemoryBase;
 
   const memory = new WebAssembly.Memory({
     initial: totalInitialMemory,
@@ -127,7 +143,7 @@ export default async function (wasmDataURI, withPlugins = []) {
     { value: "i32", mutable: true },
     totalInitialMemory * PAGE_SIZE,
   );
-  const memoryBase = new WebAssembly.Global({ value: "i32", mutable: false }, 0);
+  const memoryBase = new WebAssembly.Global({ value: "i32", mutable: false }, fixedMemoryBase);
   const tableBase = new WebAssembly.Global({ value: "i32", mutable: false }, 1);
   const __dummy = new WebAssembly.Global({ value: "i32", mutable: true }, 0);
   const module = await WebAssembly.compile(wasmBytes);
@@ -158,10 +174,9 @@ export default async function (wasmDataURI, withPlugins = []) {
   options["GOT.mem"]["__heap_base"] = heapBase;
 
   options["GOT.func"] = options["GOT.func"] || {};
-  options["GOT.func"]["__wasilibc_find_relpath_alloc"] = __dummy;
 
   instance = await WebAssembly.instantiate(module, options);
-  console.log("Instance", instance);
+
   const moduleExports = Object.assign({}, instance.exports);
   const instance_ = {};
   instance_["exports"] = Object.assign(moduleExports, {
@@ -180,13 +195,14 @@ export default async function (wasmDataURI, withPlugins = []) {
       } = headerData;
 
       const plugin = await WebAssembly.compile(wasmPluginBytes);
-      const pluginOptions = Object.assign({}, options);
+      const pluginOptions = {};
       const pluginMemoryBase = new WebAssembly.Global(
         { value: "i32", mutable: false },
         currentMemorySegment * PAGE_SIZE,
       );
 
       table.grow(pluginTableSize);
+      pluginOptions["wasi_snapshot_preview1"] = options["wasi_snapshot_preview1"] || {};
       pluginOptions["env"] = Object.assign(pluginOptions["env"] || {}, {});
       pluginOptions["env"]["memory"] = memory;
       pluginOptions["env"]["__indirect_function_table"] = table;
@@ -194,10 +210,10 @@ export default async function (wasmDataURI, withPlugins = []) {
       pluginOptions["env"]["__stack_pointer"] = stackPointer;
       pluginOptions["env"]["__table_base"] = tableBase;
       pluginOptions["env"]["csoundLoadModules"] = __dummy;
+
       currentMemorySegment += Math.ceil((pluginMemorySize + pluginMemoryAlign) / PAGE_SIZE);
       const pluginInstance = await WebAssembly.instantiate(plugin, pluginOptions);
       if (assertPluginExports(pluginInstance)) {
-        console.log("pluginInstznce", pluginInstance);
         pluginInstance.exports.__wasm_call_ctors();
         acc.push(pluginInstance);
       }
@@ -209,6 +225,5 @@ export default async function (wasmDataURI, withPlugins = []) {
 
   wasi.start(instance_);
   await initFS(instance_);
-
   return instance_;
 }

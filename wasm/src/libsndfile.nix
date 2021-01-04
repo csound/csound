@@ -1,12 +1,17 @@
-{ pkgs ? import <nixpkgs> { } }:
+{ pkgs ? import <nixpkgs> { }, static ? false }:
 
-let wasi-sdk = pkgs.callPackage ./wasi-sdk.nix {};
+let lib = pkgs.lib;
+    wasi-sdk-dyn = pkgs.callPackage ./wasi-sdk.nix { };
+    wasi-sdk-static = pkgs.callPackage ./wasi-sdk-static.nix { };
+    wasi-sdk = if static then wasi-sdk-static else wasi-sdk-dyn;
 
 in pkgs.stdenvNoCC.mkDerivation rec {
-    name = "libsndfile-1.0.25";
-    src = pkgs.fetchurl {
-      url = "http://www.mega-nerd.com/libsndfile/files/${name}.tar.gz";
-      sha256 = "10j8mbb65xkyl0kfy0hpzpmrp0jkr12c7mfycqipxgka6ayns0ar";
+    name = "libsndfile";
+    src = pkgs.fetchFromGitHub {
+      owner = "libsndfile";
+      repo = "libsndfile";
+      rev = "d03045b014c12ac0ea4187462d75edced1dfc0b3";
+      sha256 = "09x3h0gd2xacz4k88ry8pbzmiy80dp3wm8h5pyigmlc0hsxhn2v6";
     };
 
     AR = "${wasi-sdk}/bin/ar";
@@ -19,19 +24,15 @@ in pkgs.stdenvNoCC.mkDerivation rec {
     RANLIB = "${wasi-sdk}/bin/ranlib";
 
     postPatch = ''
-      substituteInPlace src/sndfile.c \
-        --replace 'assert (sizeof (sf_count_t) == 8) ;' ""
-      substituteInPlace src/sfconfig.h \
-        --replace '#include "config.h"' ""
-      substituteInPlace src/common.c \
-        --replace '#include	<config.h>' ""
-      mv src/sndfile.h.in src/sndfile.h
+      # substituteInPlace src/sndfile.c \
+      #   --replace 'assert (sizeof (sf_count_t) == 8) ;' ""
+      mv include/sndfile.h.in include/sndfile.h
       mv src/g72x.c src/g72x_parent.c
       rm src/G72x/g72x_test.c
       rm src/test_file_io.c
-      find ./src -type f -exec sed -i -e 's/@TYPEOF_SF_COUNT_T@/int64_t/g' {} \;
-      find ./src -type f -exec sed -i -e 's/@SIZEOF_SF_COUNT_T@/8/g' {} \;
-      find ./src -type f -exec sed -i -e 's/@SF_COUNT_MAX@/0x7FFFFFFFFFFFFFFFLL/g' {} \;
+      find ./ -type f -exec sed -i -e 's/@TYPEOF_SF_COUNT_T@/int64_t/g' {} \;
+      find ./ -type f -exec sed -i -e 's/@SIZEOF_SF_COUNT_T@/8/g' {} \;
+      find ./ -type f -exec sed -i -e 's/@SF_COUNT_MAX@/65536/g' {} \;
     '';
 
     configurePhase = "true";
@@ -39,13 +40,16 @@ in pkgs.stdenvNoCC.mkDerivation rec {
     buildPhase = ''
        ${wasi-sdk}/bin/clang \
          --sysroot=${wasi-sdk}/share/wasi-sysroot \
-         --target=wasm32-unknown-emscripten \
-         -fPIC -O2 -fno-omit-frame-pointer \
-         -include src/sndfile.h \
-         -I./src -I./src/GSM610 -I./src/G72x \
+         ${lib.optionalString (static == false) "--target=wasm32-unknown-emscripten" } \
+         ${lib.optionalString (static == false) "-fPIC" } \
+         -O2 \
+         -include include/sndfile.h \
+         -I./include -I./src -I./src/ALAC \
+         -I./src/GSM610 -I./src/G72x \
          -D__wasi__=1 \
          -D__wasm32__=1 \
-         -D__EMSCRIPTEN__=0 \
+         -DOS_IS_WIN32=0 \
+         -DUSE_WINDOWS_API=0 \
          -DSIZEOF_SF_COUNT_T=8 \
          -DCPU_IS_LITTLE_ENDIAN=1 \
          -DCPU_IS_BIG_ENDIAN=0 \
@@ -58,10 +62,9 @@ in pkgs.stdenvNoCC.mkDerivation rec {
          -DPACKAGE_VERSION='"1.0.25"' \
          -DPACKAGE='"libsndfile"' \
          -DVERSION='"1.0.25"' \
-         -DPRId64=d \
          -D_WASI_EMULATED_SIGNAL \
          -D_WASI_EMULATED_MMAN \
-         -fno-exceptions -O0 -c \
+         -fno-exceptions -c \
          -Wno-unknown-attributes \
          -Wno-shift-op-parentheses \
          -Wno-bitwise-op-parentheses \
@@ -69,6 +72,7 @@ in pkgs.stdenvNoCC.mkDerivation rec {
          -Wno-macro-redefined \
          src/G72x/*.c \
          src/GSM610/*.c \
+         src/ALAC/*.c \
          src/*.c
     '';
 
@@ -77,6 +81,7 @@ in pkgs.stdenvNoCC.mkDerivation rec {
       rm -rf ./test*
       ${wasi-sdk}/bin/llvm-ar crS $out/lib/libsndfile.a *.o
       ${wasi-sdk}/bin/llvm-ranlib -U $out/lib/libsndfile.a
+      cp include/*.h $out/include
       cp src/*.h $out/include
       cp src/GSM610/*.h $out/include
       cp src/G72x/*.h $out/include
