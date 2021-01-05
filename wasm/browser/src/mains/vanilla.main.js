@@ -10,7 +10,8 @@ import {
   MIDI_BUFFER_PAYLOAD_SIZE,
   MIDI_BUFFER_SIZE,
 } from "@root/constants.js";
-import { csoundApiRename, makeProxyCallback } from "@root/utils";
+import { isEmpty } from "ramda";
+import { csoundApiRename, fetchPlugins, makeProxyCallback } from "@root/utils";
 import { IPCMessagePorts, messageEventHandler } from "@root/mains/messages.main";
 
 class VanillaWorkerMainThread {
@@ -173,6 +174,9 @@ class VanillaWorkerMainThread {
   }
 
   async initialize({ withPlugins }) {
+    if (withPlugins && !isEmpty(withPlugins)) {
+      withPlugins = await fetchPlugins(withPlugins);
+    }
     logVAN(`vanilla.main: initialize`);
     this.csoundWorker = this.csoundWorker || new Worker(VanillaWorker());
     const audioStreamIn = this.audioStreamIn;

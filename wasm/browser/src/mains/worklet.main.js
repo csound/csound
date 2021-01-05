@@ -29,6 +29,7 @@ class AudioWorkletMainThread {
 
   async onPlayStateChange(newPlayState) {
     this.currentPlayState = newPlayState;
+
     switch (newPlayState) {
       case "realtimePerformanceStarted": {
         logWorklet("event received: realtimePerformanceStarted");
@@ -41,10 +42,10 @@ class AudioWorkletMainThread {
             ? ` cleaning up ports`
             : "",
         );
-        this.audioContext.close();
-        this.audioWorkletNode.disconnect();
-        delete this.audioWorkletNode;
-        this.audioContext = undefined;
+        // this.audioContext.close();
+        // this.audioWorkletNode.disconnect();
+        // delete this.audioWorkletNode;
+        // this.audioContext = undefined;
         this.currentPlayState = undefined;
         this.workletProxy = undefined;
         this.sampleRate = undefined;
@@ -57,6 +58,17 @@ class AudioWorkletMainThread {
       default: {
         break;
       }
+    }
+
+    // hacky SAB timing fix when starting
+    // eventually, replace this spaghetti with
+    // private/internal event emitters
+    if (this.csoundWorkerMain.startPromiz) {
+      const startPromiz = this.csoundWorkerMain.startPromiz;
+      setTimeout(() => {
+        startPromiz();
+      }, 0);
+      delete this.csoundWorkerMain.startPromiz;
     }
   }
 

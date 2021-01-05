@@ -166,7 +166,7 @@ assert.property(cs, "setMessageCallback", "has .setMessageCallback() method");
 */
 
     it("can be started", async function () {
-      // this.timeout(10000);
+      this.timeout(10000);
       const { Csound } = await import(url);
       const cs = await Csound(test);
       console.log(`Csound version: ${cs.name}`);
@@ -177,7 +177,7 @@ assert.property(cs, "setMessageCallback", "has .setMessageCallback() method");
     });
 
     it("has getAudioContext()", async function () {
-      // this.timeout(10000);
+      this.timeout(10000);
       const { Csound } = await import(url);
       const cs = await Csound(test);
       assert.property(cs, "getAudioContext", "has .getAudioContext() method");
@@ -185,7 +185,7 @@ assert.property(cs, "setMessageCallback", "has .setMessageCallback() method");
     });
 
     it("can use run using just compileOrc", async function () {
-      // this.timeout(10000);
+      this.timeout(10000);
       const { Csound } = await import(url);
       const cs = await Csound(test);
       await cs.compileOrc(`
@@ -202,7 +202,7 @@ assert.property(cs, "setMessageCallback", "has .setMessageCallback() method");
     });
 
     it("can play tone and get channel values", async function () {
-      // this.timeout(10000);
+      this.timeout(10000);
       const { Csound } = await import(url);
       const cs = await Csound(test);
       const compileReturn = await cs.compileCsdText(shortTone);
@@ -211,13 +211,12 @@ assert.property(cs, "setMessageCallback", "has .setMessageCallback() method");
       assert.equal(startReturn, 0);
       assert.equal(1, await cs.getControlChannel("test1"));
       assert.equal(2, await cs.getControlChannel("test2"));
-
-      await cs.reset();
       (await cs.getNode()).disconnect();
+      await cs.reset();
     });
 
     it("can play tone and send channel values", async function () {
-      // this.timeout(10000);
+      this.timeout(10000);
       const { Csound } = await import(url);
       const cs = await Csound(test);
       const compileReturn = await cs.compileCsdText(shortTone2);
@@ -226,12 +225,12 @@ assert.property(cs, "setMessageCallback", "has .setMessageCallback() method");
       assert.equal(startReturn, 0);
       await cs.setControlChannel("freq", 880);
       assert.equal(880, await cs.getControlChannel("freq"));
-      await cs.reset();
       (await cs.getNode()).disconnect();
+      await cs.reset();
     });
 
     it("can send and receive string channel values", async function () {
-      // this.timeout(10000);
+      this.timeout(10000);
       const { Csound } = await import(url);
       const cs = await Csound(test);
 
@@ -244,8 +243,8 @@ assert.property(cs, "setMessageCallback", "has .setMessageCallback() method");
       assert.equal("test0", await cs.getStringChannel("strChannel"));
       await cs.setStringChannel("strChannel", "test1");
       assert.equal("test1", await cs.getStringChannel("strChannel"));
-      await cs.reset();
       (await cs.getNode()).disconnect();
+      await cs.reset();
     });
 
     it("can load and run plugins", async () => {
@@ -256,8 +255,8 @@ assert.property(cs, "setMessageCallback", "has .setMessageCallback() method");
       await cs.start();
       assert.equal(0, await cs.compileCsdText(pluginTest));
       await cs.stop();
-      await cs.reset();
       (await cs.getNode()).disconnect();
+      await cs.reset();
     });
 
     it("can load and run c++ plugins", async () => {
@@ -268,8 +267,8 @@ assert.property(cs, "setMessageCallback", "has .setMessageCallback() method");
       await cs.start();
       assert.equal(0, await cs.compileCsdText(cxxPluginTest));
       await cs.stop();
-      await cs.reset();
       (await cs.getNode()).disconnect();
+      await cs.reset();
     });
   });
 });

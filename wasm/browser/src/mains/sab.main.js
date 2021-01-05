@@ -16,6 +16,7 @@ import {
 import { logSAB } from "@root/logger";
 import { isEmpty } from "ramda";
 import { csoundApiRename, fetchPlugins, makeProxyCallback, stopableStates } from "@root/utils";
+import * as events from "@root/events";
 
 class SharedArrayBufferMainThread {
   constructor(audioWorker, wasmDataURI) {
@@ -27,9 +28,12 @@ class SharedArrayBufferMainThread {
     this.csoundInstance = undefined;
     this.wasmDataURI = wasmDataURI;
     this.currentPlayState = undefined;
+    this.currentDerivedPlayState = "stop";
     this.exportApi = {};
     this.messageCallbacks = [];
     this.csoundPlayStateChangeCallbacks = [];
+
+    this.startPromiz = undefined;
 
     this.audioStateBuffer = new SharedArrayBuffer(
       initialSharedState.length * Int32Array.BYTES_PER_ELEMENT,
@@ -155,19 +159,32 @@ class SharedArrayBufferMainThread {
             ` proceeding to call prepareRealtimePerformance`,
         );
         await this.prepareRealtimePerformance();
+        events.triggerRealtimePerformanceStarted(this);
         break;
       }
       case "realtimePerformanceEnded": {
         logSAB(`event: realtimePerformanceEnded received, beginning cleanup`);
-
+        events.triggerRealtimePerformanceEnded(this);
         // re-initialize SAB
         initialSharedState.forEach((value, index) => {
           Atomics.store(this.audioStatePointer, index, value);
         });
         break;
       }
-
+      case "realtimePerformancePaused": {
+        events.triggerRealtimePerformancePaused(this);
+        break;
+      }
+      case "realtimePerformanceResumed": {
+        events.triggerRealtimePerformanceResumed(this);
+        break;
+      }
+      case "renderStarted": {
+        events.triggerRenderStarted(this);
+        break;
+      }
       case "renderEnded": {
+        events.triggerRenderEnded(this);
         logSAB(`event: renderEnded received, beginning cleanup`);
         break;
       }
@@ -181,6 +198,13 @@ class SharedArrayBufferMainThread {
       await this.audioWorker.onPlayStateChange(newPlayState);
     } catch (error) {
       console.error(error);
+    }
+
+    if (this.startPromiz && newPlayState !== "realtimePerformanceStarted") {
+      // either we are rendering or something went wrong with the start
+      // otherwise the audioWorker resolves this
+      this.startPromiz();
+      delete this.startPromiz;
     }
 
     this.csoundPlayStateChangeCallbacks.forEach((callback) => {
@@ -288,7 +312,15 @@ class SharedArrayBufferMainThread {
     this.exportApi.lsFs = makeProxyCallback(proxyPort, csoundInstance, "lsFs");
     this.exportApi.rmrfFs = makeProxyCallback(proxyPort, csoundInstance, "rmrfFs");
 
+    this.exportApi.getNode = async () => {
+      const maybeNode = this.audioWorker.audioWorkletNode;
+      console.log(maybeNode, this);
+      return maybeNode;
+    };
+
     this.exportApi.getAudioContext = async () => this.audioWorker.audioContext;
+
+    this.exportApi = events.decorateAPI(this.exportApi);
 
     for (const apiK of Object.keys(API)) {
       const proxyCallback = makeProxyCallback(proxyPort, csoundInstance, apiK);
@@ -304,7 +336,11 @@ class SharedArrayBufferMainThread {
               console.error("starting csound failed because csound instance wasn't created");
               return -1;
             }
-            return await proxyCallback({
+            const startPromise = new Promise((resolve) => {
+              this.startPromiz = resolve;
+            });
+
+            const startResult = await proxyCallback({
               audioStateBuffer,
               audioStreamIn,
               audioStreamOut,
@@ -314,6 +350,9 @@ class SharedArrayBufferMainThread {
               callbackFloatArrayDataBuffer,
               csound: csoundInstance,
             });
+
+            await startPromise;
+            return startResult;
           };
 
           csoundStart.toString = () => reference.toString();
@@ -332,7 +371,6 @@ class SharedArrayBufferMainThread {
               Atomics.store(this.audioStatePointer, AUDIO_STATE.STOP, 1);
               logSAB("Marking that performance is not running anymore (stops the audio too)");
               Atomics.store(this.audioStatePointer, AUDIO_STATE.IS_PERFORMING, 0);
-              x;
               // Double check if the thread didn't defenitely get the STOP message
               setTimeout(() => {
                 logSAB("Double checking if SAB stopped");
