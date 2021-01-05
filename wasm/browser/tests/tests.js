@@ -250,22 +250,26 @@ assert.property(cs, "setMessageCallback", "has .setMessageCallback() method");
 
     it("can load and run plugins", async () => {
       const { Csound } = await import(url);
-      const csoundObj = await Csound({
+      const cs = await Csound({
         withPlugins: ["./plugin_example.wasm"],
       });
-      await csoundObj.start();
-      assert.equal(0, await csoundObj.compileCsdText(pluginTest));
-      await csoundObj.stop();
+      await cs.start();
+      assert.equal(0, await cs.compileCsdText(pluginTest));
+      await cs.stop();
+      await cs.reset();
+      (await cs.getNode()).disconnect();
     });
 
     it("can load and run c++ plugins", async () => {
       const { Csound } = await import(url);
-      const csoundObj = await Csound({
+      const cs = await Csound({
         withPlugins: ["./plugin_example_cxx.wasm"],
       });
-      await csoundObj.start();
-      assert.equal(0, await csoundObj.compileCsdText(cxxPluginTest));
-      await csoundObj.stop();
+      await cs.start();
+      assert.equal(0, await cs.compileCsdText(cxxPluginTest));
+      await cs.stop();
+      await cs.reset();
+      (await cs.getNode()).disconnect();
     });
   });
 });
