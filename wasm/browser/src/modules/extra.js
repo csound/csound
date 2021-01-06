@@ -18,3 +18,7 @@ export const csoundAppendEnv = (wasm) => (csound, variable, value) => {
 };
 
 csoundAppendEnv.toString = () => "appendEnv = async (csound, variable, value) => Number;";
+
+// deliberately no jsdocs because this is internal only
+export const csoundShouldDaemonize = (wasm) => (csound) =>
+  wasm.exports.csoundShouldDaemonize(csound);

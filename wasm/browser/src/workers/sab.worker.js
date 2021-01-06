@@ -1,5 +1,5 @@
 import * as Comlink from "comlink";
-import { writeToFs, lsFs, llFs, readFromFs, rmrfFs, workerMessagePort } from "@root/filesystem";
+import { MessagePortState, writeToFs, lsFs, llFs, readFromFs, rmrfFs } from "@root/filesystem";
 import libcsoundFactory from "@root/libcsound";
 import loadWasm from "@root/module";
 import { logSAB } from "@root/logger";
@@ -16,9 +16,6 @@ import {
   initialSharedState,
 } from "@root/constants.js";
 
-let callbackReply = (uid, value) => {};
-let wasm;
-let libraryCsound;
 let combined;
 
 const callUncloned = async (k, arguments_) => {
@@ -28,6 +25,11 @@ const callUncloned = async (k, arguments_) => {
 };
 
 const sabCreateRealtimeAudioThread = ({
+  callbackReply,
+  libraryCsound,
+  wasm,
+  workerMessagePort,
+}) => ({
   audioStateBuffer,
   audioStreamIn,
   audioStreamOut,
@@ -36,11 +38,6 @@ const sabCreateRealtimeAudioThread = ({
   callbackStringDataBuffer,
   csound,
 }) => {
-  if (!wasm || !libraryCsound) {
-    workerMessagePort.post("error: csound wasn't initialized before starting");
-    return -1;
-  }
-
   const audioStatePointer = new Int32Array(audioStateBuffer);
 
   // In case of multiple performances, let's reset the sab state
@@ -180,7 +177,7 @@ const sabCreateRealtimeAudioThread = ({
       callbackBuffer,
       callbackReply,
       callbackStringDataBuffer,
-      combined,
+      libraryCsound,
     });
 
     const framesRequested = _b;
@@ -258,37 +255,44 @@ const sabCreateRealtimeAudioThread = ({
   logSAB(`End of realtimePerformance loop!`);
 };
 
-self.addEventListener("message", (event) => {
-  if (event.data.msg === "initMessagePort") {
-    const port = event.ports[0];
-    workerMessagePort.post = (log) => port.postMessage({ log });
-    workerMessagePort.broadcastPlayState = (playStateChange) =>
-      port.postMessage({ playStateChange });
-    workerMessagePort.ready = true;
-  }
+const initMessagePort = ({ port }) => {
+  const workerMessagePort = new MessagePortState();
+  workerMessagePort.post = (log) => port.postMessage({ log });
+  workerMessagePort.broadcastPlayState = (playStateChange) => port.postMessage({ playStateChange });
+  workerMessagePort.ready = true;
+  return workerMessagePort;
+};
 
-  if (event.data.msg === "initCallbackReplyPort") {
-    const port = event.ports[0];
-    callbackReply = (uid, value) => port.postMessage({ uid, value });
-  }
-});
+const initCallbackReplyPort = ({ port }) => (uid, value) => port.postMessage({ uid, value });
 
-const initialize = async (wasmDataURI, withPlugins = []) => {
+const initialize = async ({ wasmDataURI, withPlugins = [], messagePort, callbackReplyPort }) => {
   logSAB(`initializing SABWorker and WASM`);
-  wasm = await loadWasm(wasmDataURI, withPlugins);
-  libraryCsound = libcsoundFactory(wasm);
+  const workerMessagePort = initMessagePort({ port: messagePort });
+  const callbackReply = initCallbackReplyPort({ port: callbackReplyPort });
+  const [wasm, wasmFs] = await loadWasm({
+    wasmDataURI,
+    withPlugins,
+    messagePort: workerMessagePort,
+  });
+  const libraryCsound = libcsoundFactory(wasm);
 
   const startHandler = handleCsoundStart(
     workerMessagePort,
     libraryCsound,
-    sabCreateRealtimeAudioThread,
+    sabCreateRealtimeAudioThread({
+      libraryCsound,
+      wasm,
+      callbackReply,
+      workerMessagePort,
+    }),
   );
+
   const allAPI = pipe(
-    assoc("writeToFs", writeToFs),
-    assoc("readFromFs", readFromFs),
-    assoc("lsFs", lsFs),
-    assoc("llFs", llFs),
-    assoc("rmrfFs", rmrfFs),
+    assoc("writeToFs", writeToFs(wasmFs)),
+    assoc("readFromFs", readFromFs(wasmFs)),
+    assoc("lsFs", lsFs(wasmFs)),
+    assoc("llFs", llFs(wasmFs)),
+    assoc("rmrfFs", rmrfFs(wasmFs)),
     assoc("csoundStart", startHandler),
     assoc("wasm", wasm),
   )(libraryCsound);

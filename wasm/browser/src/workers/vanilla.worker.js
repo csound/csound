@@ -1,5 +1,5 @@
 import * as Comlink from "comlink";
-import { writeToFs, lsFs, llFs, readFromFs, rmrfFs, workerMessagePort } from "@root/filesystem";
+import { writeToFs, lsFs, llFs, readFromFs, rmrfFs, MessagePortState } from "@root/filesystem";
 import { logVAN } from "@root/logger";
 import { MAX_HARDWARE_BUFFER_SIZE } from "@root/constants.js";
 import { handleCsoundStart, instantiateAudioPacket } from "@root/workers/common.utils";
@@ -7,41 +7,31 @@ import libcsoundFactory from "@root/libcsound";
 import loadWasm from "@root/module";
 import { assoc, pipe } from "ramda";
 
-let wasm, combined, libraryCsound;
-
+let combined;
 let audioProcessCallback = () => {};
-
-const audioInputs = {
-  availableFrames: 0,
-  buffers: [],
-  inputReadIndex: 0,
-  inputWriteIndex: 0,
-  port: undefined,
-};
-
-let csoundWorkerFrameRequestPort;
 
 let rtmidiPort;
 let rtmidiQueue = [];
 
-const createAudioInputBuffers = (inputsCount) => {
+const createAudioInputBuffers = (audioInputs, inputsCount) => {
   for (let channelIndex = 0; channelIndex < inputsCount; ++channelIndex) {
     audioInputs.buffers.push(new Float64Array(MAX_HARDWARE_BUFFER_SIZE));
   }
 };
 
-const generateAudioFrames = (arguments_) => {
+const generateAudioFrames = (arguments_, workerMessagePort) => {
   if (workerMessagePort.vanillaWorkerState !== "realtimePerformanceEnded") {
     return audioProcessCallback(arguments_);
   }
 };
 
-const createRealtimeAudioThread = ({ csound }) => {
-  if (!wasm || !libraryCsound) {
-    workerMessagePort.post("error: csound wasn't initialized before starting");
-    return -1;
-  }
-
+const createRealtimeAudioThread = ({
+  libraryCsound,
+  wasm,
+  workerMessagePort,
+  audioInputs,
+  csoundWorkerFrameRequestPort,
+}) => ({ csound }) => {
   // Prompt for midi-input on demand
   // const isRequestingRtMidiInput = libraryCsound._isRequestingRtMidiInput(csound);
 
@@ -145,75 +135,151 @@ const callUncloned = async (k, arguments_) => {
   return caller && caller.apply({}, arguments_ || []);
 };
 
-addEventListener("message", (event) => {
-  if (event.data.msg === "initMessagePort") {
-    logVAN(`initMessagePort`);
-    const port = event.ports[0];
-    workerMessagePort.post = (log) => port.postMessage({ log });
-    workerMessagePort.broadcastPlayState = (playStateChange) => {
-      workerMessagePort.vanillaWorkerState = playStateChange;
-      port.postMessage({ playStateChange });
-    };
-    workerMessagePort.ready = true;
-  } else if (event.data.msg === "initRequestPort") {
-    logVAN(`initRequestPort`);
-    csoundWorkerFrameRequestPort = event.ports[0];
-    csoundWorkerFrameRequestPort.addEventListener("message", (requestEvent) => {
-      const { framesLeft = 0, audioPacket } = generateAudioFrames(requestEvent.data) || {};
-      csoundWorkerFrameRequestPort &&
-        csoundWorkerFrameRequestPort.postMessage({
-          numFrames: requestEvent.data.numFrames - framesLeft,
-          audioPacket,
-          ...requestEvent.data,
-        });
-    });
-    csoundWorkerFrameRequestPort.start();
-  } else if (event.data.msg === "initAudioInputPort") {
-    logVAN(`initAudioInputPort`);
-    audioInputs.port = event.ports[0];
-    audioInputs.port.addEventListener("message", ({ data: pkgs }) => {
-      if (audioInputs.buffers.length === 0) {
-        createAudioInputBuffers(pkgs.length);
-      }
-      audioInputs.buffers.forEach((buf, i) => {
-        buf.set(pkgs[i], audioInputs.inputWriteIndex);
-      });
-      audioInputs.inputWriteIndex += pkgs[0].length;
-      audioInputs.availableFrames += pkgs[0].length;
-      if (audioInputs.inputWriteIndex >= MAX_HARDWARE_BUFFER_SIZE) {
-        audioInputs.inputWriteIndex = 0;
-      }
-    });
-    audioInputs.port.start();
-  } else if (event.data.msg === "initRtMidiEventPort") {
-    logVAN(`initRtMidiEventPort`);
-    rtmidiPort = event.ports[0];
-    rtmidiPort.addEventListener("message", ({ data: payload }) => {
-      rtmidiQueue.push(payload);
-    });
-    rtmidiPort.start();
-  } else if (event.data.playStateChange) {
-    logVAN(`playStateChange`, event.data.playStateChange.playStateChange);
-    workerMessagePort.vanillaWorkerState = event.data.playStateChange.playStateChange;
-  }
-});
+// addEventListener("message", (event) => {
+//   if (event.data.msg === "initRequestPort") {
+//     logVAN(`initRequestPort`);
+//     csoundWorkerFrameRequestPort = event.ports[0];
+//     csoundWorkerFrameRequestPort.addEventListener("message", (requestEvent) => {
+//       const { framesLeft = 0, audioPacket } = generateAudioFrames(requestEvent.data) || {};
+//       csoundWorkerFrameRequestPort &&
+//         csoundWorkerFrameRequestPort.postMessage({
+//           numFrames: requestEvent.data.numFrames - framesLeft,
+//           audioPacket,
+//           ...requestEvent.data,
+//         });
+//     });
+//     csoundWorkerFrameRequestPort.start();
+//   } else if (event.data.msg === "initAudioInputPort") {
+//     logVAN(`initAudioInputPort`);
+//     audioInputs.port = event.ports[0];
+//     audioInputs.port.addEventListener("message", ({ data: pkgs }) => {
+//       if (audioInputs.buffers.length === 0) {
+//         createAudioInputBuffers(audioInputs, pkgs.length);
+//       }
+//       audioInputs.buffers.forEach((buf, i) => {
+//         buf.set(pkgs[i], audioInputs.inputWriteIndex);
+//       });
+//       audioInputs.inputWriteIndex += pkgs[0].length;
+//       audioInputs.availableFrames += pkgs[0].length;
+//       if (audioInputs.inputWriteIndex >= MAX_HARDWARE_BUFFER_SIZE) {
+//         audioInputs.inputWriteIndex = 0;
+//       }
+//     });
+//     audioInputs.port.start();
+//   } else if (event.data.msg === "initRtMidiEventPort") {
+//     logVAN(`initRtMidiEventPort`);
+//     rtmidiPort = event.ports[0];
+//     rtmidiPort.addEventListener("message", ({ data: payload }) => {
+//       rtmidiQueue.push(payload);
+//     });
+//     rtmidiPort.start();
+//   } else if (event.data.playStateChange) {
+//     logVAN(`playStateChange`, event.data.playStateChange.playStateChange);
+//     workerMessagePort.vanillaWorkerState = event.data.playStateChange.playStateChange;
+//   }
+// });
 
-const initialize = async (wasmDataURI, withPlugins = []) => {
+const initMessagePort = ({ port }) => {
+  logVAN(`initMessagePort`);
+  const workerMessagePort = new MessagePortState();
+  workerMessagePort.post = (log) => port.postMessage({ log });
+  workerMessagePort.broadcastPlayState = (playStateChange) => {
+    workerMessagePort.vanillaWorkerState = playStateChange;
+    port.postMessage({ playStateChange });
+  };
+  workerMessagePort.ready = true;
+  return workerMessagePort;
+};
+
+const initRequestPort = ({ csoundWorkerFrameRequestPort }) => {
+  logVAN(`initRequestPort`);
+  csoundWorkerFrameRequestPort.addEventListener("message", (requestEvent) => {
+    const { framesLeft = 0, audioPacket } = generateAudioFrames(requestEvent.data) || {};
+    csoundWorkerFrameRequestPort.postMessage({
+      numFrames: requestEvent.data.numFrames - framesLeft,
+      audioPacket,
+      ...requestEvent.data,
+    });
+  });
+  return csoundWorkerFrameRequestPort;
+  // csoundWorkerFrameRequestPort.start();
+};
+
+const initAudioInputPort = ({ port }) => {
+  logVAN(`initAudioInputPort`);
+  const audioInputs = {
+    availableFrames: 0,
+    buffers: [],
+    inputReadIndex: 0,
+    inputWriteIndex: 0,
+    port,
+  };
+  audioInputs.port.addEventListener("message", ({ data: pkgs }) => {
+    if (audioInputs.buffers.length === 0) {
+      createAudioInputBuffers(audioInputs, pkgs.length);
+    }
+    audioInputs.buffers.forEach((buf, i) => {
+      buf.set(pkgs[i], audioInputs.inputWriteIndex);
+    });
+    audioInputs.inputWriteIndex += pkgs[0].length;
+    audioInputs.availableFrames += pkgs[0].length;
+    if (audioInputs.inputWriteIndex >= MAX_HARDWARE_BUFFER_SIZE) {
+      audioInputs.inputWriteIndex = 0;
+    }
+  });
+  // audioInputs.port.start();
+  return audioInputs;
+};
+
+const initRtMidiEventPort = ({ rtmidiPort }) => {
+  logVAN(`initRtMidiEventPort`);
+  rtmidiPort.addEventListener("message", ({ data: payload }) => {
+    rtmidiQueue.push(payload);
+  });
+  // rtmidiPort.start();
+  return rtmidiPort;
+};
+
+const initialize = async ({
+  wasmDataURI,
+  withPlugins = [],
+  messagePort,
+  requestPort,
+  audioInputPort,
+  rtmidiPort,
+}) => {
   logVAN(`initializing wasm and exposing csoundAPI functions from worker to main`);
-  wasm = await loadWasm(wasmDataURI);
-  libraryCsound = libraryCsound || libcsoundFactory(wasm);
+  const workerMessagePort = initMessagePort({ port: messagePort });
+  const audioInputs = initAudioInputPort({ port: audioInputPort });
+  const csoundWorkerFrameRequestPort = initRequestPort({
+    csoundWorkerFrameRequestPort: requestPort,
+  });
+  initRtMidiEventPort({ rtmidiPort });
+  const [wasm, wasmFs] = await loadWasm({
+    wasmDataURI,
+    withPlugins,
+    messagePort: workerMessagePort,
+  });
+  const libraryCsound = libcsoundFactory(wasm);
+
   const startHandler = handleCsoundStart(
     workerMessagePort,
     libraryCsound,
-    createRealtimeAudioThread,
-    plugins,
+    createRealtimeAudioThread({
+      libraryCsound,
+      wasm,
+      audioInputs,
+      workerMessagePort,
+      csoundWorkerFrameRequestPort,
+    }),
   );
+
   const allAPI = pipe(
-    assoc("writeToFs", writeToFs),
-    assoc("readFromFs", readFromFs),
-    assoc("lsFs", lsFs),
-    assoc("llFs", llFs),
-    assoc("rmrfFs", rmrfFs),
+    assoc("writeToFs", writeToFs(wasmFs)),
+    assoc("readFromFs", readFromFs(wasmFs)),
+    assoc("lsFs", lsFs(wasmFs)),
+    assoc("llFs", llFs(wasmFs)),
+    assoc("rmrfFs", rmrfFs(wasmFs)),
     assoc("csoundStart", startHandler),
     assoc("wasm", wasm),
   )(libraryCsound);
@@ -221,8 +287,6 @@ const initialize = async (wasmDataURI, withPlugins = []) => {
 
   libraryCsound.csoundInitialize(0);
   const csoundInstance = libraryCsound.csoundCreate();
-  plugins.forEach((plugin) => plugin.exports.init(csoundInstance));
-
   return csoundInstance;
 };
 

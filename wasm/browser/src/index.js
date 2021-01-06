@@ -16,6 +16,8 @@ import {
   WebkitAudioContext,
 } from "@root/utils";
 
+let x;
+
 /**
  * CsoundObj API.
  * @namespace CsoundObj
@@ -37,6 +39,12 @@ export async function Csound({
   autoConnect = true,
   withPlugins = [],
 } = {}) {
+  if (!x) {
+    console.log("Setting X!");
+    x = 666;
+  } else {
+    console.log("MEMORY LEAK!!!");
+  }
   unmuteIosAudio();
 
   const workletSupport = areWorkletsSupported();

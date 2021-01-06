@@ -1,4 +1,5 @@
 [
+  "csoundShouldDaemonize",
   "chdir",
   "csoundSetMidiCallbacks",
   "sizeOfMidiStruct",

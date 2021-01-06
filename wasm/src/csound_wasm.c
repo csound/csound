@@ -77,22 +77,41 @@ CS_MIDIDEVICE* allocCsMidiDeviceStruct(int num) {
 void freeCsMidiDeviceStruct(CSOUND_PARAMS* ptr) {
   free(ptr);
 }
+
+// internal function to determine
+// if csound has started in daemon mode
+// or without orcCompile*/evalCode* called
+__attribute__((used))
+int csoundShouldDaemonize(CSOUND *csound) {
+  if (csound->oparms->daemon == 1 ||
+      (csound->instr0 == NULL && *csound->csdname == '\0')) {
+    return 1;
+  } else {
+    return 0;
+  }
+}
+
+
 // END CS_MIDIDEVICE
 __attribute__((used))
 int csoundStartWasi(CSOUND *csound) {
   const char* outputDev = csoundGetOutputName(csound);
   // detect realtime mode automatically
-  if (strncmp("dac", outputDev, 3) == 0) {
+  if ((strncmp("dac", outputDev, 3) == 0) ||
+      csoundShouldDaemonize(csound)) {
     csoundSetHostImplementedAudioIO(csound, 1, 0);
   }
   return csoundStart(csound);
 }
+
+extern int sensevents(CSOUND *);
 
 // The built-in performKsmps has mutex and setjmp
 // which we don't have in wasi based wasm
 int csoundPerformKsmpsWasi(CSOUND *csound)
 {
   int done;
+
   if (UNLIKELY(!(csound->engineStatus & CS_STATE_COMP))) {
     csound->Warning(csound,
                     Str("Csound not ready for performance: csoundStart() "
@@ -104,8 +123,7 @@ int csoundPerformKsmpsWasi(CSOUND *csound)
     csoundMessage(csound, Str("Score finished in csoundPerformKsmps() with %d.\n"), done);
     return -1;
   } else {
-    csound->kperf(csound);
-    return 0;
+    return csound->kperf(csound);
   }
 }
 

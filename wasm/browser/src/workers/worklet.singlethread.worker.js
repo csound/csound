@@ -22,7 +22,7 @@
 */
 
 import * as Comlink from "comlink";
-import { writeToFs, lsFs, llFs, readFromFs, rmrfFs, workerMessagePort } from "@root/filesystem";
+import { writeToFs, lsFs, llFs, readFromFs, rmrfFs, MessagePortState } from "@root/filesystem";
 import libcsoundFactory from "@root/libcsound";
 import loadWasm from "@root/module";
 import { assoc, pipe } from "ramda";
@@ -34,7 +34,6 @@ import { logWorklet } from "@root/logger";
 //   broadcastPlayState: () => {},
 // };
 
-let wasm;
 let libraryCsound;
 let combined;
 
@@ -75,13 +74,13 @@ class WorkletSinglethreadWorker extends AudioWorkletProcessor {
     this.callUncloned = () => console.error("Csound worklet thread is still uninitialized!");
     this.port.start();
     Comlink.expose(this, this.port);
-
-    workerMessagePort.post = (log) => this.port.postMessage({ log });
-    workerMessagePort.broadcastPlayState = (playStateChange) => {
-      workerMessagePort.vanillaWorkerState = playStateChange;
+    this.workerMessagePort = new MessagePortState();
+    this.workerMessagePort.post = (log) => this.port.postMessage({ log });
+    this.workerMessagePort.broadcastPlayState = (playStateChange) => {
+      this.workerMessagePort.vanillaWorkerState = playStateChange;
       this.port.postMessage({ playStateChange });
     };
-    workerMessagePort.ready = true;
+    this.workerMessagePort.ready = true;
 
     // this.port.addEventListener("message", (event) => {
     //   console.log(event.data);
@@ -104,7 +103,7 @@ class WorkletSinglethreadWorker extends AudioWorkletProcessor {
     const waiter = new Promise((res) => {
       resolver = res;
     });
-    loadWasm(wasmDataURI, withPlugins).then((wasm) => {
+    loadWasm(wasmDataURI, withPlugins).then(([wasm, wasmFs]) => {
       this.wasm = wasm;
       libraryCsound = libcsoundFactory(wasm);
       this.callUncloned = callUncloned;
@@ -122,11 +121,11 @@ class WorkletSinglethreadWorker extends AudioWorkletProcessor {
         return this.csound;
       };
       const allAPI = pipe(
-        assoc("writeToFs", writeToFs),
-        assoc("readFromFs", readFromFs),
-        assoc("lsFs", lsFs),
-        assoc("llFs", llFs),
-        assoc("rmrfFs", rmrfFs),
+        assoc("writeToFs", writeToFs(wasmFs)),
+        assoc("readFromFs", readFromFs(wasmFs)),
+        assoc("lsFs", lsFs(wasmFs)),
+        assoc("llFs", llFs(wasmFs)),
+        assoc("rmrfFs", rmrfFs(wasmFs)),
         assoc("csoundCreate", csoundCreate),
         assoc("csoundReset", (cs) => this.resetCsound(true)),
         // assoc("csoundStart", startHandler),

@@ -249,9 +249,13 @@ assert.property(cs, "setMessageCallback", "has .setMessageCallback() method");
 
     it("can load and run plugins", async () => {
       const { Csound } = await import(url);
-      const cs = await Csound({
-        withPlugins: ["./plugin_example.wasm"],
-      });
+      const testWithPlugin = Object.assign(
+        {
+          withPlugins: ["./plugin_example.wasm"],
+        },
+        test,
+      );
+      const cs = await Csound(testWithPlugin);
       await cs.start();
       assert.equal(0, await cs.compileCsdText(pluginTest));
       await cs.stop();
@@ -261,9 +265,13 @@ assert.property(cs, "setMessageCallback", "has .setMessageCallback() method");
 
     it("can load and run c++ plugins", async () => {
       const { Csound } = await import(url);
-      const cs = await Csound({
-        withPlugins: ["./plugin_example_cxx.wasm"],
-      });
+      const testWithPlugin = Object.assign(
+        {
+          withPlugins: ["./plugin_example_cxx.wasm"],
+        },
+        test,
+      );
+      const cs = await Csound(testWithPlugin);
       await cs.start();
       assert.equal(0, await cs.compileCsdText(cxxPluginTest));
       await cs.stop();

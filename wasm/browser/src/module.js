@@ -1,18 +1,11 @@
 import { WASI } from "@wasmer/wasi";
+import { WasmFs } from "@wasmer/wasmfs";
 import { inflate } from "pako";
 import { dlinit } from "@root/dlinit";
-import { initFS, preopens, wasmFs } from "@root/filesystem";
+import { initFS } from "@root/filesystem";
 import * as path from "path";
 
 const PAGE_SIZE = 65536;
-
-let wasi;
-
-export const bindings = {
-  ...WASI.defaultBindings,
-  fs: wasmFs.fs,
-  path,
-};
 
 const assertPluginExports = (pluginInstance) => {
   if (
@@ -77,29 +70,39 @@ const getBinaryHeaderData = (wasmBytes) => {
 };
 
 // currently dl is default, static is good for low level debugging
-const loadStaticWasm = async ({ wasmBytes }) => {
+const loadStaticWasm = async ({ wasmBytes, wasi, messagePort }) => {
   const module = await WebAssembly.compile(wasmBytes);
   const options = wasi.getImports(module);
   options["env"] = options["env"] || {};
   options["env"]["csoundLoadModules"] = () => 0;
   const instance = await WebAssembly.instantiate(module, options);
   wasi.start(instance);
-  await initFS(instance);
+  await initFS(wasmFs, messagePort);
   return instance;
 };
 
-export default async function (wasmDataURI, withPlugins = []) {
-  wasi = new WASI({
-    preopens,
+export default async function ({ wasmDataURI, withPlugins = [], messagePort }) {
+  const wasmFs = new WasmFs();
+  const bindings = {
+    ...WASI.defaultBindings,
+    fs: wasmFs.fs,
+    path,
+  };
+  const wasi = new WASI({
+    // --dir <wasm path>:<host path>
+    preopens: {
+      "/": "/",
+    },
     env: {},
     bindings,
   });
   await wasmFs.volume.mkdirpSync("/sandbox");
+
   const wasmZlib = new Uint8Array(wasmDataURI);
   const wasmBytes = inflate(wasmZlib);
   const magicData = getBinaryHeaderData(wasmBytes);
   if (magicData === "static") {
-    return await loadStaticWasm({ wasmBytes });
+    return [await loadStaticWasm({ messagePort, wasmBytes, wasi }), wasmFs];
   }
   const { memorySize, memoryAlign, tableSize } = magicData;
   // get the header data from plugins which we need before
@@ -224,6 +227,6 @@ export default async function (wasmDataURI, withPlugins = []) {
   }, []);
 
   wasi.start(instance_);
-  await initFS(instance_);
-  return instance_;
+  await initFS(wasmFs, messagePort);
+  return [instance_, wasmFs];
 }

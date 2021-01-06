@@ -62,7 +62,8 @@ import {
   csoundSetStringChannel,
 } from "@module/control-events";
 import { csoundGetInputName, csoundGetOutputName } from "@module/general-io";
-import { csoundAppendEnv } from "@module/extra";
+import { csoundAppendEnv, csoundShouldDaemonize } from "@module/extra";
+import { csoundIsScorePending } from "@module/score-handling";
 
 /*
    Don't call these functions directly.
@@ -132,6 +133,9 @@ export const api = {
   csoundGetOutputName,
   // @module/extra
   csoundAppendEnv,
+  csoundShouldDaemonize,
+  // @module/score-handling
+  csoundIsScorePending,
 };
 
 export default function (wasm) {

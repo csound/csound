@@ -10,7 +10,7 @@
       const pluginTest = `
       <CsoundSynthesizer>
         <CsOptions>
-        -odac
+          -o xxx.wav
         </CsOptions>
         <CsInstruments>
           0dbfs=1
@@ -40,7 +40,7 @@
           e 0 0
         </CsScore>
       </CsoundSynthesizer>
-     `;
+      `;
 
       const halfPhyslerTest = `
       <CsoundSynthesizer>
@@ -150,7 +150,7 @@
           i5 13 4
         </CsScore>
       </CsoundSynthesizer>
-     `;
+      `;
 
       const pluginTestEnd = `
       <CsoundSynthesizer>
@@ -170,17 +170,22 @@
       const runIt = async () => {
         const { Csound } = await import(url);
         const csoundObj = await Csound({
+          useWorker: true,
+          useSAB: false,
           withPlugins: ["./plugin_example.wasm"],
-          useWorker: false,
         });
 
-        // const compileReturn = await csoundObj.compileCsdText(halfPhyslerTest);
-        const compileReturn = await csoundObj.compileCsdText(pluginTest);
+        // const compileReturn = await csoundObj.evalCode(halfPhyslerTest);
+        console.log("PRE COMPILE");
+        console.log("PRE START");
         const startReturn = await csoundObj.start();
+        const compileReturn = await csoundObj.compileCsdText(pluginTest);
         const n = await csoundObj.getNode();
+        console.log("PRE GETAUDIOCTX");
         const ctx = await csoundObj.getAudioContext();
-        console.log(n, ctx);
+        console.log("PRE STOP");
         await csoundObj.stop();
+        console.log("STOP");
       };
 
       const triggerEvent = "ontouchstart" in document.documentElement ? "touchend" : "click";

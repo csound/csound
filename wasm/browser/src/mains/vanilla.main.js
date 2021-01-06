@@ -17,6 +17,7 @@ import { IPCMessagePorts, messageEventHandler } from "@root/mains/messages.main"
 class VanillaWorkerMainThread {
   constructor(audioWorker, wasmDataURI) {
     this.ipcMessagePorts = new IPCMessagePorts();
+    this.csoundPlayStateChangeCallbacks = [];
     audioWorker.ipcMessagePorts = this.ipcMessagePorts;
 
     this.audioStreamIn = new Float64Array(
@@ -40,6 +41,7 @@ class VanillaWorkerMainThread {
     this.messageCallbacks = [];
     this.midiPortStarted = false;
     this.onPlayStateChange = this.onPlayStateChange.bind(this);
+    this.startPromiz = undefined;
   }
 
   get api() {
@@ -111,10 +113,17 @@ class VanillaWorkerMainThread {
       if (!this.audioWorker) {
         console.error(`fatal error: audioWorker not initialized!`);
       } else {
-        this.audioWorker.onPlayStateChange(newPlayState);
+        await this.audioWorker.onPlayStateChange(newPlayState);
       }
     } catch (error) {
       console.error(`Csound thread crashed while receiving an IPC message: ${error}`);
+    }
+
+    if (this.startPromiz && newPlayState !== "realtimePerformanceStarted") {
+      // either we are rendering or something went wrong with the start
+      // otherwise the audioWorker resolves this
+      this.startPromiz();
+      delete this.startPromiz;
     }
 
     this.csoundPlayStateChangeCallbacks.forEach((callback) => {
@@ -196,7 +205,25 @@ class VanillaWorkerMainThread {
 
     const proxyPort = Comlink.wrap(this.csoundWorker);
     this.proxyPort = proxyPort;
-    const csoundInstance = await proxyPort.initialize(this.wasmDataURI, withPlugins);
+    const csoundInstance = await proxyPort.initialize(
+      Comlink.transfer(
+        {
+          wasmDataURI: this.wasmDataURI,
+          messagePort: this.ipcMessagePorts.workerMessagePort,
+          requestPort: this.ipcMessagePorts.csoundWorkerFrameRequestPort,
+          audioInputPort: this.ipcMessagePorts.csoundWorkerAudioInputPort,
+          rtmidiPort: this.ipcMessagePorts.csoundWorkerRtMidiPort,
+          withPlugins,
+        },
+        [
+          this.ipcMessagePorts.workerMessagePort,
+          this.ipcMessagePorts.csoundWorkerFrameRequestPort,
+          this.ipcMessagePorts.csoundWorkerAudioInputPort,
+          this.ipcMessagePorts.csoundWorkerRtMidiPort,
+        ],
+      ),
+    );
+
     this.csoundInstance = csoundInstance;
 
     this.exportApi.setMessageCallback = this.setMessageCallback.bind(this);
@@ -231,25 +258,17 @@ class VanillaWorkerMainThread {
               console.error("starting csound failed because csound instance wasn't created");
               return -1;
             }
-            this.csoundWorker.postMessage({ msg: "initMessagePort" }, [
-              this.ipcMessagePorts.workerMessagePort,
-            ]);
-            this.csoundWorker.postMessage({ msg: "initRequestPort" }, [
-              this.ipcMessagePorts.csoundWorkerFrameRequestPort,
-            ]);
-            this.csoundWorker.postMessage({ msg: "initAudioInputPort" }, [
-              this.ipcMessagePorts.csoundWorkerAudioInputPort,
-            ]);
-            this.csoundWorker.postMessage({ msg: "initRtMidiEventPort" }, [
-              this.ipcMessagePorts.csoundWorkerRtMidiPort,
-            ]);
-            logVAN(`4x message-ports sent to the worker`);
-            return await proxyCallback({
+            const startPromise = new Promise((resolve) => {
+              this.startPromiz = resolve;
+            });
+            const startResult = await proxyCallback({
               audioStreamIn,
               audioStreamOut,
               midiBuffer,
               csound: csoundInstance,
             });
+            await startPromise;
+            return startResult;
           };
 
           csoundStart.toString = () => reference.toString();
@@ -261,15 +280,14 @@ class VanillaWorkerMainThread {
           const brodcastTheEnd = async () =>
             await this.onPlayStateChange("realtimePerformanceEnded");
           const csoundStop = async function (csound) {
-            if (!csound || typeof csound !== "number") {
-              console.error("csoundStop expects first parameter to be instance of Csound");
+            if (!csoundInstance || typeof csoundInstance !== "number") {
+              console.error("starting csound failed because csound instance wasn't created");
               return -1;
             }
-
-            const stopResult = await proxyCallback(csound);
+            const stopResult = await proxyCallback(csoundInstance);
             if (this.currentPlayState === "realtimePerformancePaused") {
               try {
-                await proxyPort.callUncloned("csoundPerformKsmps", [csound]);
+                await proxyPort.callUncloned("csoundPerformKsmps", [csoundInstance]);
               } catch (_) {}
               try {
                 await brodcastTheEnd();

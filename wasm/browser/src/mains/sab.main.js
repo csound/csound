@@ -273,7 +273,6 @@ class SharedArrayBufferMainThread {
     logSAB(
       `(postMessage) making a message channel from SABMain to SABWorker via workerMessagePort`,
     );
-    csoundWorker.postMessage({ msg: "initMessagePort" }, [this.ipcMessagePorts.workerMessagePort]);
 
     // we send callbacks to the worker in SAB, but receive these return values as message events
     let returnQueue = {};
@@ -282,16 +281,24 @@ class SharedArrayBufferMainThread {
       const promize = returnQueue[uid];
       promize && promize(value);
     });
-    csoundWorker.postMessage({ msg: "initCallbackReplyPort" }, [
-      this.ipcMessagePorts.sabWorkerCallbackReply,
-    ]);
+
+    const proxyPort = Comlink.wrap(csoundWorker);
+    const csoundInstance = await proxyPort.initialize(
+      Comlink.transfer(
+        {
+          wasmDataURI: this.wasmDataURI,
+          messagePort: this.ipcMessagePorts.workerMessagePort,
+          callbackReplyPort: this.ipcMessagePorts.sabWorkerCallbackReply,
+          withPlugins,
+        },
+        [this.ipcMessagePorts.workerMessagePort, this.ipcMessagePorts.sabWorkerCallbackReply],
+      ),
+    );
+    this.csoundInstance = csoundInstance;
 
     this.ipcMessagePorts.mainMessagePort.start();
     this.ipcMessagePorts.mainMessagePortAudio.start();
 
-    const proxyPort = Comlink.wrap(csoundWorker);
-    const csoundInstance = await proxyPort.initialize(this.wasmDataURI, withPlugins);
-    this.csoundInstance = csoundInstance;
     logSAB(`A proxy port from SABMain to SABWorker established`);
 
     this.exportApi.setMessageCallback = this.setMessageCallback.bind(this);
@@ -409,8 +416,12 @@ class SharedArrayBufferMainThread {
             returnQueue,
           });
           const bufferWrappedCallback = async (...args) => {
-            if (this.currentPlayState === "realtimePerformanceStarted") {
-              return perfCallback(args);
+            console.log("bufferPerfCallback", args, this.currentPlayState);
+            if (
+              this.currentPlayState === "realtimePerformanceStarted" ||
+              this.currentPlayState === "renderStarted"
+            ) {
+              return await perfCallback(args);
             } else {
               return await proxyCallback.apply(undefined, args);
             }

@@ -7,7 +7,7 @@ export const handleSABCallbacks = ({
   callbackBuffer,
   callbackReply,
   callbackStringDataBuffer,
-  combined,
+  libraryCsound,
 }) => {
   const callbackBufferIndex = Atomics.load(audioStatePointer, AUDIO_STATE.CALLBACK_BUFFER_INDEX);
   if (callbackBufferIndex > 0) {
@@ -51,7 +51,7 @@ export const handleSABCallbacks = ({
         }
 
         const [k, ...argz] = argumentz;
-        const caller = combined.get(k);
+        const caller = libraryCsound[k];
         const returnVal = caller && caller.apply(undefined, [csound, ...argz]);
         callbackReply(replyId, returnVal);
         callbackIndex += argumentCount - 1;

@@ -6,7 +6,16 @@ export const handleCsoundStart = (workerMessagePort, libraryCsound, createRealti
 ) => {
   const { csound } = arguments_;
 
+  // If no orchestra was given, we assume realtime daemon mode
+  // otherwise we'll end up rendering forever within the while loop
+  const shouldDemonize = libraryCsound.csoundShouldDaemonize(csound) === 1;
+
+  if (shouldDemonize) {
+    libraryCsound.csoundSetOption(csound, "--daemon");
+    libraryCsound.csoundSetOption(csound, "-odac");
+  }
   const startError = libraryCsound.csoundStart(csound);
+
   const outputName = libraryCsound.csoundGetOutputName(csound) || "test.wav";
   log(`handleCsoundStart: actual csoundStart result ${startError}, outputName: ${outputName}`);
   if (startError !== 0) {
@@ -18,7 +27,8 @@ export const handleCsoundStart = (workerMessagePort, libraryCsound, createRealti
 
   setTimeout(() => {
     const isRequestingRtMidiInput = libraryCsound._isRequestingRtMidiInput(csound);
-    const isExpectingRealtimeOutput = isRequestingRtMidiInput || outputName.includes("dac");
+    const isExpectingRealtimeOutput =
+      shouldDemonize || isRequestingRtMidiInput || outputName.includes("dac");
 
     if (isExpectingRealtimeOutput) {
       createRealtimeAudioThread(arguments_);
