@@ -27,7 +27,7 @@ import { isEmpty } from "ramda";
 import { csoundApiRename, fetchPlugins, makeSingleThreadCallback } from "@root/utils";
 
 class ScriptProcessorNodeSingleThread {
-  constructor({ audioContext, numberOfInputs = 1, numberOfOutputs = 2 }) {
+  constructor({ audioContext, inputChannelCount = 1, outputChanelCount = 2 }) {
     this.audioContext = audioContext;
     this.onaudioprocess = this.onaudioprocess.bind(this);
     this.currentPlayState = undefined;
@@ -36,11 +36,10 @@ class ScriptProcessorNodeSingleThread {
     this.csoundInstance = undefined;
     this.csoundApi = undefined;
     this.exportApi = {};
-    this.spn = audioContext.createScriptProcessor(0, numberOfInputs, numberOfOutputs);
-    this.spn.connect(audioContext.destination);
+    this.spn = audioContext.createScriptProcessor(0, inputChannelCount, outputChanelCount);
     this.spn.audioContext = audioContext;
-    this.spn.inputCount = numberOfInputs;
-    this.spn.outputCount = numberOfOutputs;
+    this.spn.inputCount = inputChannelCount;
+    this.spn.outputCount = outputChannelCount;
     this.spn.onaudioprocess = this.onaudioprocess;
     this.node = this.spn;
     this.exportApi.getNode = async () => this.spn;
@@ -93,7 +92,7 @@ class ScriptProcessorNodeSingleThread {
     return this.csoundApi.csoundStart(this.csoundInstance);
   }
 
-  async initialize({ wasmDataURI, withPlugins }) {
+  async initialize({ wasmDataURI, withPlugins, autoConnect }) {
     if (!this.plugins && withPlugins && !isEmpty(withPlugins)) {
       withPlugins = await fetchPlugins(withPlugins);
     }
@@ -107,6 +106,10 @@ class ScriptProcessorNodeSingleThread {
     this.csoundApi = csoundApi;
     const csoundInstance = await csoundApi.csoundCreate(0);
     this.csoundInstance = csoundInstance;
+
+    if(autoConnect) {
+      this.spn.connect(audioContext.destination);
+    }
 
     // this.plugins.forEach((plugin) => {
     //   console.log(plugin);

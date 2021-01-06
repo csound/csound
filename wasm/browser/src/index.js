@@ -28,10 +28,13 @@ import {
  * @return {Promise.<CsoundObj|undefined>}
  */
 export async function Csound({
-  audioContext = new (WebkitAudioContext())({ latencyHint: "interactive" }),
+  audioContext,
   useWorker = false,
   useSAB = true,
   useSPN = false,
+  inputChannelCount = 2,
+  outputChannelCount = 2,
+  autoConnect = true,
   withPlugins = [],
 } = {}) {
   unmuteIosAudio();
@@ -41,14 +44,18 @@ export async function Csound({
 
   // SingleThread implementations
   if (!useWorker) {
+    // default to creating an audio context for SingleThread
+    audioContext = audioContext || new (WebkitAudioContext())({ latencyHint: "interactive" });
     if (workletSupport && !useSPN) {
       console.log("Single Thread AudioWorklet", audioContext);
-      const instance = new SingleThreadAudioWorkletMainThread({ audioContext });
-      return instance.initialize({ wasmDataURI, withPlugins });
+       const instance = new SingleThreadAudioWorkletMainThread({ audioContext, inputChannelCount, outputChannelCount });
+      // const instance = await createSingleThreadAudioWorkletAPI({audioContext, withPlugins});
+      //return instance;
+      return instance.initialize({ wasmDataURI, withPlugins, autoConnect });
     } else if (spnSupport) {
       console.log("Single Thread ScriptProcessorNode");
-      const instance = new ScriptProcessorNodeSingleThread({ audioContext });
-      return await instance.initialize({ wasmDataURI, withPlugins });
+      const instance = new ScriptProcessorNodeSingleThread({ audioContext, inputChannelCount, outputChannelCount });
+      return await instance.initialize({ wasmDataURI, withPlugins, autoConnect });
     } else {
       log.error("No detectable WebAudioAPI in current environment");
       return undefined;

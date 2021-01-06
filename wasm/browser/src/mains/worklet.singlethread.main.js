@@ -39,11 +39,11 @@ const initializeModule = async (audioContext) => {
 };
 
 class SingleThreadAudioWorkletMainThread {
-  constructor({ audioContext, numberOfInputs = 1, numberOfOutputs = 2 }) {
+  constructor({ audioContext, inputChannelCount = 1, outputChannelCount = 2 }) {
     this.exportApi = {};
     this.audioContext = audioContext;
-    this.inputChannelCount = numberOfInputs;
-    this.outputChannelCount = numberOfOutputs;
+    this.inputChannelCount = inputChannelCount;
+    this.outputChannelCount = outputChannelCount;
 
     this.messageCallbacks = [];
     this.csoundPlayStateChangeCallbacks = [];
@@ -134,7 +134,7 @@ class SingleThreadAudioWorkletMainThread {
     this.onPlayStateChange("realtimePerformanceResumed");
   }
 
-  async initialize({ wasmDataURI, withPlugins }) {
+  async initialize({ wasmDataURI, withPlugins, autoConnect }) {
     if (withPlugins && withPlugins.length > 0) {
       withPlugins = await fetchPlugins(withPlugins);
     }
@@ -146,7 +146,9 @@ class SingleThreadAudioWorkletMainThread {
       outputChannelCount: [this.outputChannelCount || 2],
     });
 
-    this.node.connect(this.audioContext.destination);
+    if (autoConnect) {
+      this.node.connect(this.audioContext.destination);
+    }
 
     try {
       console.log("wrapping Comlink proxy endpoint on the audioWorkletNode.port");
