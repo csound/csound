@@ -153,10 +153,8 @@ class WorkletSinglethreadWorker extends AudioWorkletProcessor {
 
     libraryCsound.csoundSetMidiCallbacks(cs);
     libraryCsound.csoundSetOption(cs, "--sample-rate=" + this.sampleRate);
-    this.nchnls = this.options.outputChannelCount[0];
-    this.nchnls_i = this.options.numberOfInputs;
-    libraryCsound.csoundSetOption(cs, "--nchnls=" + this.nchnls);
-    libraryCsound.csoundSetOption(cs, "--nchnls_i=" + this.nchnls_i);
+    this.nchnls = -1;
+    this.nchnls_i = -1;
     this.csoundOutputBuffer = null;
   }
 
@@ -220,14 +218,46 @@ class WorkletSinglethreadWorker extends AudioWorkletProcessor {
         );
       }
 
-      for (let channel = 0; channel < input.length; channel++) {
+      // handle 1->1, 1->2, 2->1, 2->2 input channel count mixing and nchnls_i
+      const inputChanMax = Math.min(this.nchnls_i, input.length);
+      for (let channel = 0; channel < inputChanMax; channel++) {
         let inputChannel = input[channel];
         csIn[cnt * nchnls_i + channel] = inputChannel[i] * zerodBFS;
       }
-      for (let channel = 0; channel < output.length; channel++) {
-        let outputChannel = output[channel];
-        if (result == 0) outputChannel[i] = csOut[cnt * nchnls + channel] / zerodBFS;
-        else outputChannel[i] = 0;
+
+      // Channel mixing matches behavior of:
+      // https://developer.mozilla.org/en-US/docs/Web/API/Web_Audio_API/Basic_concepts_behind_Web_Audio_API#Up-mixing_and_down-mixing
+
+      // handle 1->1, 1->2, 2->1, 2->2 output channel count mixing and nchnls
+      if (this.nchnls == output.length) {
+        for (let channel = 0; channel < output.length; channel++) {
+          const outputChannel = output[channel];
+          if (result == 0) outputChannel[i] = csOut[cnt * nchnls + channel] / zerodBFS;
+          else outputChannel[i] = 0;
+        }
+      } else if(this.nchnls == 2 && output.length == 1) {
+          const outputChannel = output[0];
+          if(result == 0) {
+            const left = csOut[cnt * nchnls] / zerodBFS;
+            const right = csOut[cnt * nchnls + 1] / zerodBFS;
+            outputChannel[i] = 0.5 * (left + right);
+          } else {
+            outputChannel[i] = 0;
+          }
+      } else if(this.nchnls == 1 && output.length == 2) {
+          const outChan0 = output[0];
+          const outChan1 = output[1];
+
+          if(result == 0) {
+            const val = csOut[cnt * nchnls] / zerodBFS;
+            outChan0[i] = val;
+            outChan1[i] = val; 
+          } else {
+            outChan0[i] = 0;
+            outChan1[i] = 0; 
+          }
+      } else {
+        // FIXME: we do not support other cases at this time
       }
     }
 
@@ -244,6 +274,8 @@ class WorkletSinglethreadWorker extends AudioWorkletProcessor {
       let ksmps = libraryCsound.csoundGetKsmps(cs);
       this.ksmps = ksmps;
       this.cnt = ksmps;
+      this.nchnls = libraryCsound.csoundGetNchnls(cs);
+      this.nchnls_i = libraryCsound.csoundGetNchnlsInput(cs);
 
       this.zerodBFS = libraryCsound.csoundGet0dBFS(cs);
       retVal = libraryCsound.csoundStart(cs);
