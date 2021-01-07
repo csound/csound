@@ -22,7 +22,8 @@
 */
 
 import * as Comlink from "comlink";
-import { writeToFs, lsFs, llFs, readFromFs, rmrfFs, MessagePortState } from "@root/filesystem";
+import MessagePortState from "@utils/message-port-state";
+import { writeToFs, lsFs, llFs, readFromFs, rmrfFs } from "@root/filesystem";
 import libcsoundFactory from "@root/libcsound";
 import loadWasm from "@root/module";
 import { assoc, pipe } from "ramda";
@@ -234,27 +235,27 @@ class WorkletSinglethreadWorker extends AudioWorkletProcessor {
           if (result == 0) outputChannel[i] = csOut[cnt * nchnls + channel] / zerodBFS;
           else outputChannel[i] = 0;
         }
-      } else if(this.nchnls == 2 && output.length == 1) {
-          const outputChannel = output[0];
-          if(result == 0) {
-            const left = csOut[cnt * nchnls] / zerodBFS;
-            const right = csOut[cnt * nchnls + 1] / zerodBFS;
-            outputChannel[i] = 0.5 * (left + right);
-          } else {
-            outputChannel[i] = 0;
-          }
-      } else if(this.nchnls == 1 && output.length == 2) {
-          const outChan0 = output[0];
-          const outChan1 = output[1];
+      } else if (this.nchnls == 2 && output.length == 1) {
+        const outputChannel = output[0];
+        if (result == 0) {
+          const left = csOut[cnt * nchnls] / zerodBFS;
+          const right = csOut[cnt * nchnls + 1] / zerodBFS;
+          outputChannel[i] = 0.5 * (left + right);
+        } else {
+          outputChannel[i] = 0;
+        }
+      } else if (this.nchnls == 1 && output.length == 2) {
+        const outChan0 = output[0];
+        const outChan1 = output[1];
 
-          if(result == 0) {
-            const val = csOut[cnt * nchnls] / zerodBFS;
-            outChan0[i] = val;
-            outChan1[i] = val; 
-          } else {
-            outChan0[i] = 0;
-            outChan1[i] = 0; 
-          }
+        if (result == 0) {
+          const val = csOut[cnt * nchnls] / zerodBFS;
+          outChan0[i] = val;
+          outChan1[i] = val;
+        } else {
+          outChan0[i] = 0;
+          outChan1[i] = 0;
+        }
       } else {
         // FIXME: we do not support other cases at this time
       }

@@ -39,7 +39,7 @@ class VanillaWorkerMainThread {
     this.exportApi = {};
     this.csoundInstance = undefined;
     this.currentPlayState = undefined;
-    this.messageCallbacks = [];
+    // this.messageCallbacks = [];
     this.midiPortStarted = false;
     this.onPlayStateChange = this.onPlayStateChange.bind(this);
     this.startPromiz = undefined;
@@ -194,6 +194,7 @@ class VanillaWorkerMainThread {
     const midiBuffer = this.midiBuffer;
 
     logVAN(`mainMessagePort mainMessagePortAudio ports connected to event-listeners`);
+
     this.ipcMessagePorts.mainMessagePort.addEventListener("message", messageEventHandler(this));
     this.ipcMessagePorts.mainMessagePortAudio.addEventListener(
       "message",

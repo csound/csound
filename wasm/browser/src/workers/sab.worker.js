@@ -1,5 +1,6 @@
 import * as Comlink from "comlink";
-import { MessagePortState, writeToFs, lsFs, llFs, readFromFs, rmrfFs } from "@root/filesystem";
+import { writeToFs, lsFs, llFs, readFromFs, rmrfFs } from "@root/filesystem";
+import MessagePortState from "@utils/message-port-state";
 import libcsoundFactory from "@root/libcsound";
 import loadWasm from "@root/module";
 import { logSAB } from "@root/logger";

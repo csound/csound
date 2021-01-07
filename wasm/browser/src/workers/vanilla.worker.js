@@ -1,5 +1,6 @@
 import * as Comlink from "comlink";
-import { writeToFs, lsFs, llFs, readFromFs, rmrfFs, MessagePortState } from "@root/filesystem";
+import MessagePortState from "@utils/message-port-state";
+import { writeToFs, lsFs, llFs, readFromFs, rmrfFs } from "@root/filesystem";
 import { logVAN } from "@root/logger";
 import { MAX_HARDWARE_BUFFER_SIZE } from "@root/constants.js";
 import { handleCsoundStart, instantiateAudioPacket } from "@root/workers/common.utils";

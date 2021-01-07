@@ -1,6 +1,6 @@
 import * as Comlink from "comlink";
 import { instantiateAudioPacket } from "@root/workers/common.utils";
-import { MessagePortState } from "@root/filesystem";
+import MessagePortState from "@utils/message-port-state";
 // https://github.com/xpl/ololog/issues/20
 // import { logSPN } from '@root/logger';
 import { range } from "ramda";

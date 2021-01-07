@@ -5,12 +5,6 @@ import { cleanStdout, uint2String } from "@root/utils";
 import { Buffer } from "buffer-es6";
 // import { Buffer } from 'buffer';
 
-export function MessagePortState() {}
-MessagePortState.prototype.ready = 0;
-MessagePortState.prototype.post = () => {};
-MessagePortState.prototype.broadcastPlayState = () => {};
-MessagePortState.prototype.vanillaWorkerState = () => {};
-
 export const touchFile = (wasmFs, filename) => {
   wasmFs.fs.writeFileSync(`/sandbox/${filename}`, "");
 };

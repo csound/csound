@@ -28,6 +28,7 @@ const pluginsCommon = [
     entries: [
       { find: "@root", replacement: resolve("./src") },
       { find: "@module", replacement: resolve("./src/modules") },
+      { find: "@utils", replacement: resolve("./src/utils") },
       { find: "path", replacement: require.resolve("path-browserify") },
       { find: "buffer", replacement: require.resolve("buffer-es6") },
       { find: "global", replacement: "window" },

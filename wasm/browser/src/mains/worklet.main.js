@@ -3,6 +3,7 @@ import WorkletWorker from "@root/workers/worklet.worker";
 import log, { logWorklet } from "@root/logger";
 
 const connectedMidiDevices = new Set();
+let UID = 0;
 
 class AudioWorkletMainThread {
   constructor({ audioContext }) {
@@ -22,7 +23,6 @@ class AudioWorkletMainThread {
     this.softwareBufferSize = undefined;
 
     this.initialize = this.initialize.bind(this);
-    this.connectPorts = this.connectPorts.bind(this);
     this.onPlayStateChange = this.onPlayStateChange.bind(this);
     logWorklet("AudioWorkletMainThread was constructed");
   }
@@ -73,28 +73,28 @@ class AudioWorkletMainThread {
   }
 
   // SAB bypasses this mechanism!
-  connectPorts() {
-    logWorklet("initializing MessagePort on worker threads");
+  // connectPorts() {
+  //   logWorklet("initializing MessagePort on worker threads");
 
-    this.audioWorkletNode.port.postMessage({ msg: "initMessagePort" }, [
-      this.ipcMessagePorts.workerMessagePortAudio,
-    ]);
+  //   this.audioWorkletNode.port.postMessage({ msg: "initMessagePort" }, [
+  //     this.ipcMessagePorts.workerMessagePortAudio,
+  //   ]);
 
-    this.audioWorkletNode.port.postMessage({ msg: "initAudioInputPort" }, [
-      this.ipcMessagePorts.audioWorkerAudioInputPort,
-    ]);
+  //   this.audioWorkletNode.port.postMessage({ msg: "initAudioInputPort" }, [
+  //     this.ipcMessagePorts.audioWorkerAudioInputPort,
+  //   ]);
 
-    this.audioWorkletNode.port.postMessage({ msg: "initRequestPort" }, [
-      this.ipcMessagePorts.audioWorkerFrameRequestPort,
-    ]);
+  //   this.audioWorkletNode.port.postMessage({ msg: "initRequestPort" }, [
+  //     this.ipcMessagePorts.audioWorkerFrameRequestPort,
+  //   ]);
 
-    try {
-      logWorklet("wrapping Comlink proxy endpoint on the audioWorkletNode.port");
-      this.workletProxy = Comlink.wrap(this.audioWorkletNode.port);
-    } catch (error) {
-      log.error("COMLINK ERROR", error);
-    }
-  }
+  //   try {
+  //     logWorklet("wrapping Comlink proxy endpoint on the audioWorkletNode.port");
+  //     this.workletProxy = Comlink.wrap(this.audioWorkletNode.port);
+  //   } catch (error) {
+  //     log.error("COMLINK ERROR", error);
+  //   }
+  // }
 
   async initialize() {
     await this.audioContext.audioWorklet.addModule(WorkletWorker());
@@ -105,11 +105,15 @@ class AudioWorkletMainThread {
       return;
     }
 
+    const contextUid = `audioWorklet${UID}`;
+    UID += 1;
+
     const createWorkletNode = (audioContext, inputsCount) => {
       return new AudioWorkletNode(audioContext, "csound-worklet-processor", {
         inputChannelCount: inputsCount ? [inputsCount] : 0,
         outputChannelCount: [this.outputsCount || 2],
         processorOptions: {
+          contextUid,
           hardwareBufferSize: this.hardwareBufferSize,
           softwareBufferSize: this.softwareBufferSize,
           isRequestingInput: this.isRequestingInput,
@@ -182,7 +186,6 @@ class AudioWorkletMainThread {
           this.audioWorkletNode = newNode;
           this.audioWorkletNode.connect(this.audioContext.destination);
         }
-        !this.csoundWorkerMain.hasSharedArrayBuffer && this.connectPorts();
       };
 
       logWorklet("requesting microphone access");
@@ -208,8 +211,24 @@ class AudioWorkletMainThread {
       this.audioWorkletNode = newNode;
       logWorklet("connecting Node to AudioContext destination");
       this.audioWorkletNode.connect(this.audioContext.destination);
-      !this.csoundWorkerMain.hasSharedArrayBuffer && this.connectPorts();
     }
+
+    this.workletProxy = Comlink.wrap(this.audioWorkletNode.port);
+    await this.workletProxy.initialize(
+      Comlink.transfer(
+        {
+          contextUid,
+          inputPort: this.ipcMessagePorts.audioWorkerAudioInputPort,
+          messagePort: this.ipcMessagePorts.workerMessagePortAudio,
+          requestPort: this.ipcMessagePorts.audioWorkerFrameRequestPort,
+        },
+        [
+          this.ipcMessagePorts.audioWorkerAudioInputPort,
+          this.ipcMessagePorts.workerMessagePortAudio,
+          this.ipcMessagePorts.audioWorkerFrameRequestPort,
+        ],
+      ),
+    );
   }
 }
 
