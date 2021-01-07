@@ -1,31 +1,22 @@
+import * as Comlink from "comlink";
 import { instantiateAudioPacket } from "@root/workers/common.utils";
+import { MessagePortState } from "@root/filesystem";
 // https://github.com/xpl/ololog/issues/20
 // import { logSPN } from '@root/logger';
 import { range } from "ramda";
-import { WebkitAudioContext } from "@root/utils";
-
-let spnClassInstance;
 
 const PERIODS = 4;
 
-const workerMessagePort = {
-  ready: false,
-  post: () => {},
-  broadcastPlayState: () => {},
-  vanillaWorkerState: undefined,
-};
-
-const audioFramePort = {
-  requestFrames: () => {},
-  ready: false,
-};
-
-const audioInputPort = {
-  transferInputFrames: undefined,
-};
-
 class CsoundScriptNodeProcessor {
-  constructor({ hardwareBufferSize, softwareBufferSize, inputsCount, outputsCount, sampleRate }) {
+  constructor({
+    audioContext,
+    contextUid,
+    hardwareBufferSize,
+    softwareBufferSize,
+    inputsCount,
+    outputsCount,
+    sampleRate,
+  }) {
     this.hardwareBufferSize = hardwareBufferSize;
     this.softwareBufferSize = softwareBufferSize;
     this.inputsCount = inputsCount;
@@ -44,28 +35,33 @@ class CsoundScriptNodeProcessor {
     this.vanillaInputChannels = instantiateAudioPacket(inputsCount, hardwareBufferSize);
     this.vanillaOutputChannels = instantiateAudioPacket(outputsCount, hardwareBufferSize);
 
-    // SPN
-    const AudioCTX = WebkitAudioContext();
-    this.audioContext = new AudioCTX();
-
-    // Safari autoplay cancer :(
-    if (this.audioContext.state === "suspended") {
-      workerMessagePort.broadcastPlayState("realtimePerformancePaused");
-      workerMessagePort.vanillaWorkerState = "realtimePerformancePaused";
-    }
-
+    this.audioContext = audioContext;
+    this.contextUid = contextUid;
+    this.nodeUid = `${contextUid}Node`;
     this.scriptNode = this.audioContext.createScriptProcessor(
       this.softwareBufferSize,
       inputsCount,
       outputsCount,
     );
     this.process = this.process.bind(this);
-
     const processor = this.process.bind(this);
     this.scriptNode.onaudioprocess = processor;
-    this.scriptNode.connect(this.audioContext.destination);
+    window[this.nodeUid] = this.scriptNode.connect(this.audioContext.destination);
 
-    const updateVanillaFrames = this.updateVanillaFrames.bind(this);
+    this.updateVanillaFrames = this.updateVanillaFrames.bind(this);
+    this.initCallbacks = this.initCallbacks.bind(this);
+  }
+
+  initCallbacks({ workerMessagePort, transferInputFrames, requestPort }) {
+    this.workerMessagePort = workerMessagePort;
+    this.transferInputFrames = transferInputFrames;
+    this.requestPort = requestPort;
+
+    // Safari autoplay cancer :(
+    if (this.audioContext.state === "suspended") {
+      this.workerMessagePort.broadcastPlayState("realtimePerformancePaused");
+      this.workerMessagePort.vanillaWorkerState = "realtimePerformancePaused";
+    }
   }
 
   updateVanillaFrames({ audioPacket, numFrames, readIndex }) {
@@ -101,27 +97,29 @@ class CsoundScriptNodeProcessor {
 
   // try to do the same here as in Vanilla+Worklet
   process({ inputBuffer, outputBuffer }) {
-    if (!this.vanillaInitialized || !audioFramePort.ready) {
-      if (workerMessagePort.vanillaWorkerState === "realtimePerformanceEnded") {
+    if (!this.vanillaInitialized) {
+      if (this.workerMessagePort.vanillaWorkerState === "realtimePerformanceEnded") {
         if (this.audioContext) {
           this.audioContext.close();
           this.audioContext = undefined;
         }
         return true;
       }
-      if (audioFramePort.requestFrames && !this.vanillaInitialized) {
-        // this minimizes startup glitches
-        const firstTransferSize = this.softwareBufferSize * PERIODS;
-        audioFramePort.requestFrames({
-          readIndex: 0,
-          numFrames: firstTransferSize,
-        });
-        this.pendingFrames += firstTransferSize;
-        this.vanillaInitialized = true;
-        return true;
-      } else if (!this.vanillaFirstTransferDone) {
-        return true;
-      }
+
+      // this minimizes startup glitches
+      const firstTransferSize = this.softwareBufferSize * PERIODS;
+
+      this.requestPort.postMessage.call(this.requestPort, {
+        readIndex: 0,
+        numFrames: firstTransferSize,
+      });
+      this.pendingFrames += firstTransferSize;
+      this.vanillaInitialized = true;
+      return true;
+    }
+
+    if (!this.vanillaFirstTransferDone) {
+      return true;
     }
 
     const writeableInputChannels = range(0, this.inputsCount).map((index) =>
@@ -141,8 +139,8 @@ class CsoundScriptNodeProcessor {
       : 0;
 
     if (
-      workerMessagePort.vanillaWorkerState !== "realtimePerformanceStarted" &&
-      workerMessagePort.vanillaWorkerState !== "realtimePerformanceResumed"
+      this.workerMessagePort.vanillaWorkerState !== "realtimePerformanceStarted" &&
+      this.workerMessagePort.vanillaWorkerState !== "realtimePerformanceResumed"
     ) {
       writeableOutputChannels.forEach((channelBuffer) => {
         channelBuffer.fill(0);
@@ -179,7 +177,7 @@ class CsoundScriptNodeProcessor {
           this.vanillaInputChannels.forEach((channelBuffer) => {
             packet.push(channelBuffer.subarray(pastBufferBegin, thisBufferEnd));
           });
-          audioInputPort.transferInputFrames(packet);
+          this.transferInputFrames(packet);
         }
       }
 
@@ -190,7 +188,7 @@ class CsoundScriptNodeProcessor {
     } else {
       // minimize noise
       if (this.bufferUnderrunCount > 1 && this.bufferUnderrunCount < 12) {
-        workerMessagePort.post("Buffer underrun");
+        this.workerMessagePort.post("Buffer underrun");
         this.bufferUnderrunCount += 1;
       }
 
@@ -198,8 +196,8 @@ class CsoundScriptNodeProcessor {
         // 100 buffer Underruns in a row
         // means a fatal situation and browser
         // may crash
-        workerMessagePort.post("FATAL: 100 buffers failed in a row");
-        workerMessagePort.broadcastPlayState("realtimePerformanceEnded");
+        this.workerMessagePort.post("FATAL: 100 buffers failed in a row");
+        this.workerMessagePort.broadcastPlayState("realtimePerformanceEnded");
       }
     }
 
@@ -211,7 +209,7 @@ class CsoundScriptNodeProcessor {
         (this.vanillaAvailableFrames + nextOutputReadIndex + this.pendingFrames) %
         this.hardwareBufferSize;
 
-      audioFramePort.requestFrames({
+      this.requestPort.postMessage.call(this.requestPort, {
         readIndex: futureOutputReadIndex,
         numFrames: this.softwareBufferSize * PERIODS,
       });
@@ -221,49 +219,65 @@ class CsoundScriptNodeProcessor {
     return true;
   }
 }
+const initAudioInputPort = ({ audioInputPort }) => (frames) => audioInputPort.postMessage(frames);
 
-const workerMessageHandler = (event) => {
-  if (event.data.msg === "initMessagePort") {
-    const port = event.ports[0];
-    workerMessagePort.post = (log) => port.postMessage({ log });
-    workerMessagePort.broadcastPlayState = (playStateChange) =>
-      port.postMessage({ playStateChange });
-    workerMessagePort.ready = true;
-  } else if (event.data.msg === "initRequestPort") {
-    const requestPort = event.ports[0];
-    requestPort.addEventListener("message", (requestPortEvent) => {
-      const { audioPacket, readIndex, numFrames } = requestPortEvent.data;
-      spnClassInstance &&
-        spnClassInstance.updateVanillaFrames({ audioPacket, numFrames, readIndex });
-    });
-    audioFramePort.requestFrames = (arguments_) => requestPort.postMessage(arguments_);
-    if (!audioFramePort.ready) {
-      requestPort.start();
-      audioFramePort.ready = true;
-    }
-  } else if (event.data.msg === "initAudioInputPort") {
-    const inputPort = event.ports[0];
-    audioInputPort.transferInputFrames = (frames) => inputPort.postMessage(frames);
-  } else if (event.data.msg === "makeSPNClass") {
-    if (typeof spnClassInstance !== "undefined") {
-      spnClassInstance = undefined;
-    }
-    spnClassInstance = new CsoundScriptNodeProcessor(event.data.argumentz);
-  } else if (event.data.msg === "resume" && spnClassInstance) {
-    spnClassInstance.audioContext.state === "suspended" && spnClassInstance.audioContext.resume();
-    if (spnClassInstance.audioContext.state === "running") {
-      workerMessagePort.broadcastPlayState("realtimePerformanceResumed");
-    }
-  } else if (event.data.playStateChange) {
-    workerMessagePort.vanillaWorkerState = event.data.playStateChange;
-    if (event.data.playStateChange === "realtimePerformanceEnded") {
-      spnClassInstance = undefined;
-      audioFramePort.ready = false;
-    } else if (event.data.playStateChange === "realtimePerformanceResumed") {
+const initMessagePort = ({ port, spnClassInstance }) => {
+  const workerMessagePort = new MessagePortState();
+  workerMessagePort.post = (log) => port.postMessage({ log });
+  workerMessagePort.broadcastPlayState = (playStateChange) => port.postMessage({ playStateChange });
+  workerMessagePort.ready = true;
+  port.addEventListener("message", (event) => {
+    if (event.data.msg === "resume") {
       spnClassInstance.audioContext.state === "suspended" && spnClassInstance.audioContext.resume();
+      if (spnClassInstance.audioContext.state === "running") {
+        workerMessagePort.broadcastPlayState("realtimePerformanceResumed");
+      }
+      if (event.data.playStateChange === "realtimePerformanceEnded") {
+        // TODO just stop
+        // spnClassInstance = undefined;
+        // audioFramePort.ready = false;
+      } else if (event.data.playStateChange === "realtimePerformanceResumed") {
+        spnClassInstance.audioContext.state === "suspended" &&
+          spnClassInstance.audioContext.resume();
+      }
     }
-  }
+  });
+  return workerMessagePort;
 };
 
-// object cloning is terrible in iframes, so it's oldskool and no Comlink :(
-window.addEventListener("message", workerMessageHandler);
+const initRequestPort = ({ requestPort, spnClassInstance }) => {
+  requestPort.addEventListener("message", (requestPortEvent) => {
+    const { audioPacket, readIndex, numFrames } = requestPortEvent.data;
+    spnClassInstance.updateVanillaFrames({ audioPacket, numFrames, readIndex });
+  });
+  return requestPort;
+};
+
+const initialize = async ({
+  contextUid,
+  hardwareBufferSize,
+  softwareBufferSize,
+  inputsCount,
+  outputsCount,
+  sampleRate,
+  audioInputPort,
+  messagePort,
+  requestPort,
+}) => {
+  const audioContext = window[contextUid];
+  const spnClassInstance = new CsoundScriptNodeProcessor({
+    audioContext,
+    contextUid,
+    hardwareBufferSize,
+    softwareBufferSize,
+    inputsCount,
+    outputsCount,
+    sampleRate,
+  });
+  const workerMessagePort = initMessagePort({ port: messagePort, spnClassInstance });
+  const transferInputFrames = initAudioInputPort({ audioInputPort, spnClassInstance });
+  initRequestPort({ requestPort, spnClassInstance });
+  spnClassInstance.initCallbacks({ workerMessagePort, transferInputFrames, requestPort });
+};
+
+Comlink.expose({ initialize }, Comlink.windowEndpoint(window.parent));

@@ -191,18 +191,19 @@ const initMessagePort = ({ port }) => {
   return workerMessagePort;
 };
 
-const initRequestPort = ({ csoundWorkerFrameRequestPort }) => {
+const initRequestPort = ({ csoundWorkerFrameRequestPort, workerMessagePort }) => {
   logVAN(`initRequestPort`);
   csoundWorkerFrameRequestPort.addEventListener("message", (requestEvent) => {
-    const { framesLeft = 0, audioPacket } = generateAudioFrames(requestEvent.data) || {};
+    const { framesLeft = 0, audioPacket } =
+      generateAudioFrames(requestEvent.data, workerMessagePort) || {};
     csoundWorkerFrameRequestPort.postMessage({
       numFrames: requestEvent.data.numFrames - framesLeft,
       audioPacket,
       ...requestEvent.data,
     });
   });
+  csoundWorkerFrameRequestPort.start();
   return csoundWorkerFrameRequestPort;
-  // csoundWorkerFrameRequestPort.start();
 };
 
 const initAudioInputPort = ({ port }) => {
@@ -227,7 +228,7 @@ const initAudioInputPort = ({ port }) => {
       audioInputs.inputWriteIndex = 0;
     }
   });
-  // audioInputs.port.start();
+  audioInputs.port.start();
   return audioInputs;
 };
 
@@ -236,7 +237,7 @@ const initRtMidiEventPort = ({ rtmidiPort }) => {
   rtmidiPort.addEventListener("message", ({ data: payload }) => {
     rtmidiQueue.push(payload);
   });
-  // rtmidiPort.start();
+  rtmidiPort.start();
   return rtmidiPort;
 };
 
@@ -253,6 +254,7 @@ const initialize = async ({
   const audioInputs = initAudioInputPort({ port: audioInputPort });
   const csoundWorkerFrameRequestPort = initRequestPort({
     csoundWorkerFrameRequestPort: requestPort,
+    workerMessagePort,
   });
   initRtMidiEventPort({ rtmidiPort });
   const [wasm, wasmFs] = await loadWasm({

@@ -2,18 +2,11 @@ import * as Comlink from "comlink";
 import ScriptProcessorNodeWorker from "@root/workers/old-spn.worker";
 import { logSPN } from "@root/logger";
 import { IPCMessagePorts } from "@root/mains/messages.main";
-// import {
-//   audioWorkerAudioInputPort,
-//   audioWorkerFrameRequestPort,
-//   cleanupPorts,
-//   emitInternalCsoundLogEvent,
-//   workerMessagePortAudio,
-// } from "@root/mains/messages.main";
 
-const connectedMidiDevices = new Set();
+let UID = 0;
 
 class ScriptProcessorNodeMainThread {
-  constructor({audioContext}) {
+  constructor({ audioContext, audioContextIsProvided }) {
     this.ipcMessagePorts = new IPCMessagePorts();
 
     this.audioContext = audioContext;
@@ -63,20 +56,16 @@ class ScriptProcessorNodeMainThread {
         break;
       }
     }
-  }
-
-  connectPorts() {
-    logSPN("initializing MessagePort on worker threads");
-    this.spnWorker.postMessage({ msg: "initMessagePort" }, "*", [
-      this.ipcMessagePorts.workerMessagePortAudio,
-    ]);
-    this.spnWorker.postMessage({ msg: "initAudioInputPort" }, "*", [
-      this.ipcMessagePorts.audioWorkerAudioInputPort,
-    ]);
-    this.spnWorker.postMessage({ msg: "initRequestPort" }, "*", [
-      this.ipcMessagePorts.audioWorkerFrameRequestPort,
-    ]);
-    this.spnWorker.postMessage({ playStateChange: this.currentPlayState }, "*");
+    // hacky SAB timing fix when starting
+    // eventually, replace this spaghetti with
+    // private/internal event emitters
+    if (this.csoundWorkerMain.startPromiz) {
+      const startPromiz = this.csoundWorkerMain.startPromiz;
+      setTimeout(() => {
+        startPromiz();
+      }, 0);
+      delete this.csoundWorkerMain.startPromiz;
+    }
   }
 
   async initIframe() {
@@ -135,34 +124,29 @@ class ScriptProcessorNodeMainThread {
       }
     }
 
-    this.connectPorts();
+    const contextUid = `audioWorklet${UID}`;
+    UID += 1;
 
-    this.spnWorker.postMessage(
-      {
-        msg: "makeSPNClass",
-        argumentz: {
+    const proxyPort = Comlink.wrap(Comlink.windowEndpoint(this.spnWorker));
+    this.spnWorker[contextUid] = this.audioContext;
+    await proxyPort.initialize(
+      Comlink.transfer(
+        {
+          contextUid,
           hardwareBufferSize: 32768,
           softwareBufferSize: 2048,
           inputsCount: this.inputsCount,
           outputsCount: this.outputsCount,
           sampleRate: this.sampleRate,
+          messagePort: this.ipcMessagePorts.workerMessagePortAudio,
+          requestPort: this.ipcMessagePorts.audioWorkerFrameRequestPort,
         },
-      },
-      "*",
+        [
+          this.ipcMessagePorts.workerMessagePortAudio,
+          this.ipcMessagePorts.audioWorkerFrameRequestPort,
+        ],
+      ),
     );
-
-    if (!this.csoundWorkerMain) {
-      log.error(`fatal: worker not reachable from worklet-main thread`);
-      return;
-    }
-
-    if (this.isRequestingMidi) {
-      console.error("todo");
-    }
-
-    if (this.isRequestingInput) {
-      console.error("todo");
-    }
   }
 }
 
