@@ -15,7 +15,7 @@ import { csoundApiRename, fetchPlugins, makeProxyCallback } from "@root/utils";
 import { IPCMessagePorts, messageEventHandler } from "@root/mains/messages.main";
 
 class VanillaWorkerMainThread {
-  constructor(audioWorker, wasmDataURI) {
+  constructor({ audioWorker, wasmDataURI, audioContextIsProvided }) {
     this.ipcMessagePorts = new IPCMessagePorts();
     this.csoundPlayStateChangeCallbacks = [];
     audioWorker.ipcMessagePorts = this.ipcMessagePorts;
@@ -34,6 +34,7 @@ class VanillaWorkerMainThread {
 
     audioWorker.csoundWorkerMain = this;
     this.audioWorker = audioWorker;
+    this.audioContextIsProvided = audioContextIsProvided;
     this.wasmDataURI = wasmDataURI;
     this.exportApi = {};
     this.csoundInstance = undefined;

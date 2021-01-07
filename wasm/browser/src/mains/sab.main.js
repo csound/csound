@@ -19,12 +19,13 @@ import { csoundApiRename, fetchPlugins, makeProxyCallback, stopableStates } from
 import * as events from "@root/events";
 
 class SharedArrayBufferMainThread {
-  constructor(audioWorker, wasmDataURI) {
+  constructor({ audioWorker, wasmDataURI, audioContextIsProvided }) {
     this.hasSharedArrayBuffer = true;
     this.ipcMessagePorts = new IPCMessagePorts();
     audioWorker.ipcMessagePorts = this.ipcMessagePorts;
 
     this.audioWorker = audioWorker;
+    this.audioContextIsProvided = audioContextIsProvided;
     this.csoundInstance = undefined;
     this.wasmDataURI = wasmDataURI;
     this.currentPlayState = undefined;
