@@ -361,7 +361,7 @@ function initMessagePort({ port }) {
 function initRequestPort({ requestPort, audioNode }) {
   requestPort.addEventListener("message", (requestPortEvent) => {
     const { audioPacket, readIndex, numFrames } = requestPortEvent.data;
-    audioNode.updateVanillaFrames.call(this, { audioPacket, numFrames, readIndex });
+    audioNode.updateVanillaFrames({ audioPacket, numFrames, readIndex });
   });
   const requestFrames = (arguments_) => requestPort.postMessage(arguments_);
 

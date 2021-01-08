@@ -29,12 +29,6 @@ import loadWasm from "@root/module";
 import { assoc, pipe } from "ramda";
 import { logWorklet } from "@root/logger";
 
-// const workerMessagePort = {
-//   ready: false,
-//   post: () => {},
-//   broadcastPlayState: () => {},
-// };
-
 let libraryCsound;
 let combined;
 
@@ -44,23 +38,6 @@ const callUncloned = async (k, arguments_) => {
   const ret = caller && caller.apply({}, arguments_ || []);
   return ret;
 };
-
-// const handleCsoundStart = (workerMessagePort, libraryCsound) => (...arguments_) => {
-//   const csound = arguments_[0];
-//   const startError = libraryCsound.csoundStart(csound);
-//   const outputName = libraryCsound.csoundGetOutputName(csound) || "test.wav";
-//   // logWorklet(
-//   //   `handleCsoundStart: actual csoundStart result ${startError}, outputName: ${outputName}`,
-//   // );
-//   // if (startError !== 0) {
-//   //   workerMessagePort.post(
-//   //     `error: csoundStart failed while trying to render ${outputName},` +
-//   //       " look out for errors in options and syntax",
-//   //   );
-//   // }
-
-//   return startError;
-// };
 
 class WorkletSinglethreadWorker extends AudioWorkletProcessor {
   static get parameterDescriptors() {
@@ -82,21 +59,6 @@ class WorkletSinglethreadWorker extends AudioWorkletProcessor {
       this.port.postMessage({ playStateChange });
     };
     this.workerMessagePort.ready = true;
-
-    // this.port.addEventListener("message", (event) => {
-    //   console.log(event.data);
-    // });
-    // this.port.addEventListener("message", (event) => {
-    //   if (event.data.msg === "initMessagePort") {
-    //     const port = event.ports[0];
-    //     workerMessagePort.post = (log) => port.postMessage({ log });
-    //     workerMessagePort.broadcastPlayState = (playStateChange) => {
-    //       workerMessagePort.vanillaWorkerState = playStateChange;
-    //       port.postMessage({ playStateChange });
-    //     };
-    //     workerMessagePort.ready = true;
-    //   }
-    // });
   }
 
   async initialize(wasmDataURI, withPlugins) {
@@ -104,38 +66,40 @@ class WorkletSinglethreadWorker extends AudioWorkletProcessor {
     const waiter = new Promise((res) => {
       resolver = res;
     });
-    loadWasm(wasmDataURI, withPlugins).then(([wasm, wasmFs]) => {
-      this.wasm = wasm;
-      libraryCsound = libcsoundFactory(wasm);
-      this.callUncloned = callUncloned;
-      this.csound = libraryCsound.csoundCreate(0);
-      this.result = 0;
-      this.running = false;
-      this.started = false;
-      this.sampleRate = sampleRate;
+    loadWasm({ wasmDataURI, withPlugins, messagePort: this.workerMessagePort }).then(
+      ([wasm, wasmFs]) => {
+        this.wasm = wasm;
+        libraryCsound = libcsoundFactory(wasm);
+        this.callUncloned = callUncloned;
+        this.csound = libraryCsound.csoundCreate(0);
+        this.result = 0;
+        this.running = false;
+        this.started = false;
+        this.sampleRate = sampleRate;
 
-      this.resetCsound(false);
+        this.resetCsound(false);
 
-      // const startHandler = handleCsoundStart(this.port, libraryCsound);
-      const csoundCreate = (v) => {
-        // console.log("Calling csoundCreate");
-        return this.csound;
-      };
-      const allAPI = pipe(
-        assoc("writeToFs", writeToFs(wasmFs)),
-        assoc("readFromFs", readFromFs(wasmFs)),
-        assoc("lsFs", lsFs(wasmFs)),
-        assoc("llFs", llFs(wasmFs)),
-        assoc("rmrfFs", rmrfFs(wasmFs)),
-        assoc("csoundCreate", csoundCreate),
-        assoc("csoundReset", (cs) => this.resetCsound(true)),
-        // assoc("csoundStart", startHandler),
-        assoc("csoundStart", this.start.bind(this)),
-        assoc("wasm", wasm),
-      )(libraryCsound);
-      combined = new Map(Object.entries(allAPI));
-      resolver();
-    });
+        // const startHandler = handleCsoundStart(this.port, libraryCsound);
+        const csoundCreate = (v) => {
+          // console.log("Calling csoundCreate");
+          return this.csound;
+        };
+        const allAPI = pipe(
+          assoc("writeToFs", writeToFs(wasmFs)),
+          assoc("readFromFs", readFromFs(wasmFs)),
+          assoc("lsFs", lsFs(wasmFs)),
+          assoc("llFs", llFs(wasmFs)),
+          assoc("rmrfFs", rmrfFs(wasmFs)),
+          assoc("csoundCreate", csoundCreate),
+          assoc("csoundReset", (cs) => this.resetCsound(true)),
+          // assoc("csoundStart", startHandler),
+          assoc("csoundStart", this.start.bind(this)),
+          assoc("wasm", wasm),
+        )(libraryCsound);
+        combined = new Map(Object.entries(allAPI));
+        resolver();
+      },
+    );
 
     await waiter;
   }

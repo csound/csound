@@ -173,7 +173,8 @@ assert.property(cs, "setMessageCallback", "has .setMessageCallback() method");
       const startReturn = await cs.start();
       assert.equal(startReturn, 0);
       await cs.reset();
-      (await cs.getNode()).disconnect();
+      const audioNode = await cs.getNode();
+      audioNode && audioNode.disconnect();
     });
 
     it("has getAudioContext()", async function () {
@@ -181,7 +182,8 @@ assert.property(cs, "setMessageCallback", "has .setMessageCallback() method");
       const { Csound } = await import(url);
       const cs = await Csound(test);
       assert.property(cs, "getAudioContext", "has .getAudioContext() method");
-      (await cs.getNode()).disconnect();
+      const audioNode = await cs.getNode();
+      audioNode && audioNode.disconnect();
     });
 
     it("can use run using just compileOrc", async function () {
@@ -198,7 +200,8 @@ assert.property(cs, "setMessageCallback", "has .setMessageCallback() method");
       const startReturn = await cs.start();
       assert.equal(startReturn, 0);
       await cs.reset();
-      (await cs.getNode()).disconnect();
+      const audioNode = await cs.getNode();
+      audioNode && audioNode.disconnect();
     });
 
     it("can play tone and get channel values", async function () {
@@ -211,7 +214,8 @@ assert.property(cs, "setMessageCallback", "has .setMessageCallback() method");
       assert.equal(startReturn, 0);
       assert.equal(1, await cs.getControlChannel("test1"));
       assert.equal(2, await cs.getControlChannel("test2"));
-      (await cs.getNode()).disconnect();
+      const audioNode = await cs.getNode();
+      audioNode && audioNode.disconnect();
       await cs.reset();
     });
 
@@ -225,7 +229,8 @@ assert.property(cs, "setMessageCallback", "has .setMessageCallback() method");
       assert.equal(startReturn, 0);
       await cs.setControlChannel("freq", 880);
       assert.equal(880, await cs.getControlChannel("freq"));
-      (await cs.getNode()).disconnect();
+      const audioNode = await cs.getNode();
+      audioNode && audioNode.disconnect();
       await cs.reset();
     });
 
@@ -243,7 +248,8 @@ assert.property(cs, "setMessageCallback", "has .setMessageCallback() method");
       assert.equal("test0", await cs.getStringChannel("strChannel"));
       await cs.setStringChannel("strChannel", "test1");
       assert.equal("test1", await cs.getStringChannel("strChannel"));
-      (await cs.getNode()).disconnect();
+      const audioNode = await cs.getNode();
+      audioNode && audioNode.disconnect();
       await cs.reset();
     });
 
@@ -256,11 +262,11 @@ assert.property(cs, "setMessageCallback", "has .setMessageCallback() method");
         test,
       );
       const cs = await Csound(testWithPlugin);
-      await cs.start();
       assert.equal(0, await cs.compileCsdText(pluginTest));
+      await cs.start();
+      const audioNode = await cs.getNode();
+      audioNode && audioNode.disconnect();
       await cs.stop();
-      (await cs.getNode()).disconnect();
-      await cs.reset();
     });
 
     it("can load and run c++ plugins", async () => {
@@ -272,11 +278,9 @@ assert.property(cs, "setMessageCallback", "has .setMessageCallback() method");
         test,
       );
       const cs = await Csound(testWithPlugin);
-      await cs.start();
       assert.equal(0, await cs.compileCsdText(cxxPluginTest));
+      await cs.start();
       await cs.stop();
-      (await cs.getNode()).disconnect();
-      await cs.reset();
     });
   });
 });

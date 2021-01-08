@@ -136,50 +136,6 @@ const callUncloned = async (k, arguments_) => {
   return caller && caller.apply({}, arguments_ || []);
 };
 
-// addEventListener("message", (event) => {
-//   if (event.data.msg === "initRequestPort") {
-//     logVAN(`initRequestPort`);
-//     csoundWorkerFrameRequestPort = event.ports[0];
-//     csoundWorkerFrameRequestPort.addEventListener("message", (requestEvent) => {
-//       const { framesLeft = 0, audioPacket } = generateAudioFrames(requestEvent.data) || {};
-//       csoundWorkerFrameRequestPort &&
-//         csoundWorkerFrameRequestPort.postMessage({
-//           numFrames: requestEvent.data.numFrames - framesLeft,
-//           audioPacket,
-//           ...requestEvent.data,
-//         });
-//     });
-//     csoundWorkerFrameRequestPort.start();
-//   } else if (event.data.msg === "initAudioInputPort") {
-//     logVAN(`initAudioInputPort`);
-//     audioInputs.port = event.ports[0];
-//     audioInputs.port.addEventListener("message", ({ data: pkgs }) => {
-//       if (audioInputs.buffers.length === 0) {
-//         createAudioInputBuffers(audioInputs, pkgs.length);
-//       }
-//       audioInputs.buffers.forEach((buf, i) => {
-//         buf.set(pkgs[i], audioInputs.inputWriteIndex);
-//       });
-//       audioInputs.inputWriteIndex += pkgs[0].length;
-//       audioInputs.availableFrames += pkgs[0].length;
-//       if (audioInputs.inputWriteIndex >= MAX_HARDWARE_BUFFER_SIZE) {
-//         audioInputs.inputWriteIndex = 0;
-//       }
-//     });
-//     audioInputs.port.start();
-//   } else if (event.data.msg === "initRtMidiEventPort") {
-//     logVAN(`initRtMidiEventPort`);
-//     rtmidiPort = event.ports[0];
-//     rtmidiPort.addEventListener("message", ({ data: payload }) => {
-//       rtmidiQueue.push(payload);
-//     });
-//     rtmidiPort.start();
-//   } else if (event.data.playStateChange) {
-//     logVAN(`playStateChange`, event.data.playStateChange.playStateChange);
-//     workerMessagePort.vanillaWorkerState = event.data.playStateChange.playStateChange;
-//   }
-// });
-
 const initMessagePort = ({ port }) => {
   logVAN(`initMessagePort`);
   const workerMessagePort = new MessagePortState();
