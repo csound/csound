@@ -10,7 +10,7 @@ const SAB_PERIODS = 3;
 const VANILLA_PERIODS = 4;
 
 function processSharedArrayBuffer(inputs, outputs) {
-  const isPerforming = Atomics.load(this.sharedArrayBuffer, AUDIO_STATE.IS_PERFORMING) === 2;
+  const isPerforming = Atomics.load(this.sharedArrayBuffer, AUDIO_STATE.IS_PERFORMING) === 1;
   const isPaused = Atomics.load(this.sharedArrayBuffer, AUDIO_STATE.IS_PAUSED) === 1;
   const isStopped = Atomics.load(this.sharedArrayBuffer, AUDIO_STATE.STOP) === 1;
 
@@ -27,8 +27,8 @@ function processSharedArrayBuffer(inputs, outputs) {
   this.isPerformingLastTime = isPerforming;
 
   if (this.preProcessCount < SAB_PERIODS && this.isPerformingLastTime && isPerforming) {
-    Atomics.store(this.sharedArrayBuffer, AUDIO_STATE.ATOMIC_NOFITY, 1);
-    Atomics.notify(this.sharedArrayBuffer, AUDIO_STATE.ATOMIC_NOTIFY);
+    !Atomics.or(this.sharedArrayBuffer, AUDIO_STATE.ATOMIC_NOFITY, 1) &&
+      Atomics.notify(this.sharedArrayBuffer, AUDIO_STATE.ATOMIC_NOTIFY);
     this.preProcessCount += 1;
     return true;
   }
@@ -40,8 +40,8 @@ function processSharedArrayBuffer(inputs, outputs) {
   const availableOutputBuffers = Atomics.load(this.sharedArrayBuffer, AUDIO_STATE.AVAIL_OUT_BUFS);
 
   if (availableOutputBuffers < this.softwareBufferSize * SAB_PERIODS) {
-    Atomics.store(this.sharedArrayBuffer, AUDIO_STATE.ATOMIC_NOFITY, 1);
-    Atomics.notify(this.sharedArrayBuffer, AUDIO_STATE.ATOMIC_NOTIFY);
+    !Atomics.or(this.sharedArrayBuffer, AUDIO_STATE.ATOMIC_NOFITY, 1) &&
+      Atomics.notify(this.sharedArrayBuffer, AUDIO_STATE.ATOMIC_NOTIFY);
   }
 
   const inputWriteIndex = Atomics.load(this.sharedArrayBuffer, AUDIO_STATE.INPUT_WRITE_INDEX);
@@ -285,7 +285,6 @@ class CsoundWorkletProcessor extends AudioWorkletProcessor {
   initCallbacks({ workerMessagePort, audioInputPort, audioFramePort }) {
     if (workerMessagePort) {
       this.workerMessagePort = workerMessagePort;
-      this.workerMessagePort = this.workerMessagePort.bind(this);
     }
 
     if (audioInputPort) {
@@ -356,6 +355,7 @@ function initMessagePort({ port }) {
   workerMessagePort.post = (log) => port.postMessage({ log });
   workerMessagePort.broadcastPlayState = (playStateChange) => port.postMessage({ playStateChange });
   workerMessagePort.ready = true;
+  return workerMessagePort;
 }
 
 function initRequestPort({ requestPort, audioNode }) {

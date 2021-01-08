@@ -276,10 +276,12 @@ class SharedArrayBufferMainThread {
     // simplifies flow of data (csound main.worker is always first to receive)
     logSAB(`adding message eventListeners for mainMessagePort and mainMessagePortAudio`);
     this.ipcMessagePorts.mainMessagePort.addEventListener("message", messageEventHandler(this));
+    this.ipcMessagePorts.mainMessagePort.start();
     this.ipcMessagePorts.mainMessagePortAudio.addEventListener(
       "message",
       messageEventHandler(this),
     );
+    this.ipcMessagePorts.mainMessagePortAudio.start();
     logSAB(
       `(postMessage) making a message channel from SABMain to SABWorker via workerMessagePort`,
     );
@@ -291,6 +293,7 @@ class SharedArrayBufferMainThread {
       const promize = returnQueue[uid];
       promize && promize(value);
     });
+    this.ipcMessagePorts.sabMainCallbackReply.start();
 
     const proxyPort = Comlink.wrap(csoundWorker);
     const csoundInstance = await proxyPort.initialize(
@@ -440,14 +443,15 @@ class SharedArrayBufferMainThread {
             returnQueue,
           });
           const bufferWrappedCallback = async (...args) => {
-            if (
-              this.currentPlayState === "realtimePerformanceStarted" ||
-              this.currentPlayState === "renderStarted"
-            ) {
-              return await perfCallback(args);
-            } else {
-              return await proxyCallback.apply(undefined, args);
-            }
+            return await proxyCallback.apply(undefined, args);
+            // if (
+            //   this.currentPlayState === "realtimePerformanceStarted" ||
+            //   this.currentPlayState === "renderStarted"
+            // ) {
+            //   return await perfCallback(args);
+            // } else {
+            //   return await proxyCallback.apply(undefined, args);
+            // }
           };
           bufferWrappedCallback.toString = () => reference.toString();
           this.exportApi[csoundApiRename(apiK)] = bufferWrappedCallback;

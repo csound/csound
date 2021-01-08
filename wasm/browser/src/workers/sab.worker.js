@@ -21,7 +21,6 @@ let combined;
 
 const callUncloned = async (k, arguments_) => {
   const caller = combined.get(k);
-  console.log("caller", k, arguments_);
   const ret = caller && caller.apply({}, arguments_ || []);
   return ret;
 };
@@ -94,19 +93,6 @@ const sabCreateRealtimeAudioThread = ({
     );
   }
 
-  // Indicator for csound performance
-  // != 0 would mean the performance has ended
-  let lastReturn = 0;
-
-  // Indicator for end of performance
-  // we want to last buffers to go trough
-  // without any stopping mechanism starting
-  // so this is local scoped stuff
-  let performanceEnded = 0;
-
-  // First round indicator
-  let firstRound = true;
-
   // Let's notify the audio-worker that performance has started
   Atomics.store(audioStatePointer, AUDIO_STATE.IS_PERFORMING, 1);
   workerMessagePort.broadcastPlayState("realtimePerformanceStarted");
@@ -122,12 +108,14 @@ const sabCreateRealtimeAudioThread = ({
       }),
   );
 
-  while (Atomics.wait(audioStatePointer, AUDIO_STATE.ATOMIC_NOTIFY, 0) === "ok" || true) {
+  const performanceLoop = ({ lastReturn = 0, performanceEnded = 0, firstRound = true }) => {
     if (firstRound) {
-      firstRound = false;
+      // if after 1 minute the audioWorklet isn't ready, then something's very wrong
+      Atomics.wait(audioStatePointer, AUDIO_STATE.ATOMIC_NOTIFY, 0, 60 * 1000);
+      Atomics.and(audioStatePointer, AUDIO_STATE.ATOMIC_NOTIFY, 0);
       logSAB(`Atomic.wait unlocked, performance started`);
+      return performanceLoop({ lastReturn, performanceEnded, firstRound: false });
     }
-
     if (
       Atomics.load(audioStatePointer, AUDIO_STATE.STOP) === 1 ||
       Atomics.load(audioStatePointer, AUDIO_STATE.IS_PERFORMING) !== 1 ||
@@ -140,9 +128,7 @@ const sabCreateRealtimeAudioThread = ({
         libraryCsound.csoundPerformKsmps(csound);
       }
       logSAB(`triggering realtimePerformanceEnded event`);
-      setTimeout(() => {
-        workerMessagePort.broadcastPlayState("realtimePerformanceEnded");
-      }, 0);
+      workerMessagePort.broadcastPlayState("realtimePerformanceEnded");
       logSAB(`End of realtimePerformance loop!`);
       return;
     }
@@ -248,9 +234,21 @@ const sabCreateRealtimeAudioThread = ({
     hasInput && Atomics.sub(audioStatePointer, AUDIO_STATE.AVAIL_IN_BUFS, framesRequested);
     Atomics.add(audioStatePointer, AUDIO_STATE.AVAIL_OUT_BUFS, framesRequested);
 
-    // perpare to wait
-    Atomics.store(audioStatePointer, AUDIO_STATE.ATOMIC_NOTIFY, 0);
-  }
+    if (audioStatePointer[AUDIO_STATE.ATOMIC_NOTIFY] === 0) {
+      Atomics.wait(audioStatePointer, AUDIO_STATE.ATOMIC_NOTIFY, 0);
+      // // unblock the thread for 1 event-loop to receive IPC message events
+      setTimeout(() => {
+        // perpare to wait
+        Atomics.wait(audioStatePointer, AUDIO_STATE.ATOMIC_NOTIFY, 0);
+        Atomics.store(audioStatePointer, AUDIO_STATE.ATOMIC_NOTIFY, 0);
+        return performanceLoop({ lastReturn, performanceEnded, firstRound });
+      }, 0);
+    } else {
+      Atomics.store(audioStatePointer, AUDIO_STATE.ATOMIC_NOTIFY, 0);
+      return performanceLoop({ lastReturn, performanceEnded, firstRound });
+    }
+  };
+  return performanceLoop({});
 };
 
 const initMessagePort = ({ port }) => {
@@ -258,14 +256,10 @@ const initMessagePort = ({ port }) => {
   workerMessagePort.post = (log) => port.postMessage({ log });
   workerMessagePort.broadcastPlayState = (playStateChange) => port.postMessage({ playStateChange });
   workerMessagePort.ready = true;
-  port.start();
   return workerMessagePort;
 };
 
-const initCallbackReplyPort = ({ port }) => {
-  port.start();
-  return (uid, value) => port.postMessage({ uid, value });
-};
+const initCallbackReplyPort = ({ port }) => (uid, value) => port.postMessage({ uid, value });
 
 const renderFn = ({ callbackReply, libraryCsound }) => ({
   audioStateBuffer,
