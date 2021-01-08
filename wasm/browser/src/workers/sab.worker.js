@@ -21,6 +21,7 @@ let combined;
 
 const callUncloned = async (k, arguments_) => {
   const caller = combined.get(k);
+  console.log("caller", k, arguments_);
   const ret = caller && caller.apply({}, arguments_ || []);
   return ret;
 };
@@ -261,7 +262,10 @@ const initMessagePort = ({ port }) => {
   return workerMessagePort;
 };
 
-const initCallbackReplyPort = ({ port }) => (uid, value) => port.postMessage({ uid, value });
+const initCallbackReplyPort = ({ port }) => {
+  port.start();
+  return (uid, value) => port.postMessage({ uid, value });
+};
 
 const renderFn = ({ callbackReply, libraryCsound }) => ({
   audioStateBuffer,

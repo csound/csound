@@ -57,10 +57,10 @@ export const csoundSetControlChannel = (wasm) => (csound, channelName, value) =>
   wasm.exports.csoundSetControlChannel(csound, stringPtr, value);
   freeStringPtr(wasm, stringPtr);
   // TODO: Do our API methods needs to return anything?
-  return null; 
+  return null;
 };
 
-csoundGetControlChannel.toString = () => "setControlChannel = async (channelName) => void;";
+csoundSetControlChannel.toString = () => "setControlChannel = async (channelName) => void;";
 
 export const csoundGetStringChannel = (wasm) => (csound, channelName) => {
   const stringPtr = string2ptr(wasm, channelName);
@@ -81,7 +81,7 @@ export const csoundSetStringChannel = (wasm) => (csound, channelName, value) => 
   freeStringPtr(wasm, stringPtr);
   freeStringPtr(wasm, stringPtr2);
   // TODO: Do our API methods needs to return anything?
-  return null; 
+  return null;
 };
 
 csoundSetStringChannel.toString = () => "setStringChannel = async (channelName, value) => void;";
