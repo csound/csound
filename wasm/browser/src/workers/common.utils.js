@@ -1,9 +1,11 @@
 import log from "@root/logger";
 
-export const handleCsoundStart = (workerMessagePort, libraryCsound, createRealtimeAudioThread) => (
-  _,
-  arguments_,
-) => {
+export const handleCsoundStart = (
+  workerMessagePort,
+  libraryCsound,
+  createRealtimeAudioThread,
+  renderFn,
+) => (_, arguments_) => {
   const { csound } = arguments_;
 
   // If no orchestra was given, we assume realtime daemon mode
@@ -35,7 +37,11 @@ export const handleCsoundStart = (workerMessagePort, libraryCsound, createRealti
     } else {
       // Do rendering
       workerMessagePort.broadcastPlayState("renderStarted");
-      while (libraryCsound.csoundPerformKsmps(csound) === 0) {}
+      if (renderFn) {
+        renderFn(arguments_);
+      } else {
+        while (libraryCsound.csoundPerformKsmps(csound) === 0) {}
+      }
       workerMessagePort.broadcastPlayState("renderEnded");
     }
   }, 0);

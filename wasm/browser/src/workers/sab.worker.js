@@ -138,14 +138,12 @@ const sabCreateRealtimeAudioThread = ({
         libraryCsound.csoundStop(csound);
         libraryCsound.csoundPerformKsmps(csound);
       }
-
-      logSAB(`nulling all playState stuff in SAB`);
-      Atomics.store(audioStatePointer, AUDIO_STATE.STOP, 0);
-      Atomics.store(audioStatePointer, AUDIO_STATE.IS_PAUSED, 0);
-      Atomics.store(audioStatePointer, AUDIO_STATE.IS_PERFORMING, 0);
       logSAB(`triggering realtimePerformanceEnded event`);
-      workerMessagePort.broadcastPlayState("realtimePerformanceEnded");
-      break;
+      setTimeout(() => {
+        workerMessagePort.broadcastPlayState("realtimePerformanceEnded");
+      }, 0);
+      logSAB(`End of realtimePerformance loop!`);
+      return;
     }
 
     if (Atomics.load(audioStatePointer, AUDIO_STATE.IS_PAUSED) === 1) {
@@ -252,8 +250,6 @@ const sabCreateRealtimeAudioThread = ({
     // perpare to wait
     Atomics.store(audioStatePointer, AUDIO_STATE.ATOMIC_NOTIFY, 0);
   }
-
-  logSAB(`End of realtimePerformance loop!`);
 };
 
 const initMessagePort = ({ port }) => {
@@ -261,10 +257,39 @@ const initMessagePort = ({ port }) => {
   workerMessagePort.post = (log) => port.postMessage({ log });
   workerMessagePort.broadcastPlayState = (playStateChange) => port.postMessage({ playStateChange });
   workerMessagePort.ready = true;
+  port.start();
   return workerMessagePort;
 };
 
 const initCallbackReplyPort = ({ port }) => (uid, value) => port.postMessage({ uid, value });
+
+const renderFn = ({ callbackReply, libraryCsound }) => ({
+  audioStateBuffer,
+  callbackBuffer,
+  callbackStringDataBuffer,
+  csound,
+}) => {
+  const audioStatePointer = new Int32Array(audioStateBuffer);
+  Atomics.store(audioStatePointer, AUDIO_STATE.IS_PERFORMING, 1);
+  while (
+    Atomics.load(audioStatePointer, AUDIO_STATE.STOP) !== 1 &&
+    libraryCsound.csoundPerformKsmps(csound) === 0
+  ) {
+    if (Atomics.load(audioStatePointer, AUDIO_STATE.IS_PAUSED) === 1) {
+      // eslint-disable-next-line no-unused-expressions
+      Atomics.wait(audioStatePointer, AUDIO_STATE.IS_PAUSED, 0) === "ok";
+    }
+    handleSABCallbacks({
+      audioStatePointer,
+      csound,
+      callbackBuffer,
+      callbackReply,
+      callbackStringDataBuffer,
+      libraryCsound,
+    });
+  }
+  Atomics.store(audioStatePointer, AUDIO_STATE.IS_PERFORMING, 0);
+};
 
 const initialize = async ({ wasmDataURI, withPlugins = [], messagePort, callbackReplyPort }) => {
   logSAB(`initializing SABWorker and WASM`);
@@ -286,6 +311,7 @@ const initialize = async ({ wasmDataURI, withPlugins = [], messagePort, callback
       callbackReply,
       workerMessagePort,
     }),
+    renderFn({ libraryCsound, callbackReply }),
   );
 
   const allAPI = pipe(

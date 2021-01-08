@@ -35,6 +35,7 @@ class SharedArrayBufferMainThread {
     this.csoundPlayStateChangeCallbacks = [];
 
     this.startPromiz = undefined;
+    this.stopPromiz = undefined;
 
     this.audioStateBuffer = new SharedArrayBuffer(
       initialSharedState.length * Int32Array.BYTES_PER_ELEMENT,
@@ -165,6 +166,10 @@ class SharedArrayBufferMainThread {
       }
       case "realtimePerformanceEnded": {
         logSAB(`event: realtimePerformanceEnded received, beginning cleanup`);
+        if (this.stopPromiz) {
+          this.stopPromiz();
+          delete this.stopPromiz;
+        }
         events.triggerRealtimePerformanceEnded(this);
         // re-initialize SAB
         initialSharedState.forEach((value, index) => {
@@ -185,6 +190,10 @@ class SharedArrayBufferMainThread {
         break;
       }
       case "renderEnded": {
+        if (this.stopPromiz) {
+          this.stopPromiz();
+          delete this.stopPromiz;
+        }
         events.triggerRenderEnded(this);
         logSAB(`event: renderEnded received, beginning cleanup`);
         break;
@@ -322,7 +331,6 @@ class SharedArrayBufferMainThread {
 
     this.exportApi.getNode = async () => {
       const maybeNode = this.audioWorker.audioWorkletNode;
-      console.log(maybeNode, this);
       return maybeNode;
     };
 
@@ -344,6 +352,7 @@ class SharedArrayBufferMainThread {
               console.error("starting csound failed because csound instance wasn't created");
               return -1;
             }
+
             const startPromise = new Promise((resolve) => {
               this.startPromiz = resolve;
             });
@@ -369,41 +378,55 @@ class SharedArrayBufferMainThread {
         }
 
         case "csoundStop": {
-          const csoundStop = async (csound) => {
+          const csoundStop = async () => {
             logSAB(
               "Checking if it's safe to call stop:",
               stopableStates.has(this.currentPlayState),
             );
+
             if (stopableStates.has(this.currentPlayState)) {
               logSAB("Marking SAB's state to STOP");
+              const stopPromise = new Promise((resolve) => {
+                this.stopPromiz = resolve;
+              });
               Atomics.store(this.audioStatePointer, AUDIO_STATE.STOP, 1);
               logSAB("Marking that performance is not running anymore (stops the audio too)");
               Atomics.store(this.audioStatePointer, AUDIO_STATE.IS_PERFORMING, 0);
-              // Double check if the thread didn't defenitely get the STOP message
-              setTimeout(() => {
-                logSAB("Double checking if SAB stopped");
-                if (this.currentPlayState !== "realtimePerformanceEnded") {
-                  logSAB("stopping didn't cause the correct event to be triggered");
-                  if (Atomics.load(this.audioStatePointer, AUDIO_STATE.STOP) === 0) {
-                    logSAB(
-                      "stopped state got reset to 0 (could be fatal, but also race condition)",
-                    );
-                    Atomics.store(this.audioStatePointer, AUDIO_STATE.STOP, 1);
-                  }
-                  logSAB("making a second Atomic notify to SAB, pray for the best");
-                  Atomics.notify(this.audioStatePointer, AUDIO_STATE.ATOMIC_NOTIFY);
-                }
-              }, 1000);
 
               // A potential case where the thread is locked because of pause
               if (this.currentPlayState === "realtimePerformancePaused") {
                 Atomics.store(this.audioStatePointer, AUDIO_STATE.IS_PAUSED, 0);
                 Atomics.notify(this.audioStatePointer, AUDIO_STATE.IS_PAUSED);
               }
+              if (this.currentPlayState !== "renderStarted") {
+                Atomics.store(this.audioStatePointer, AUDIO_STATE.ATOMIC_NOFITY, 1);
+                Atomics.notify(this.audioStatePointer, AUDIO_STATE.ATOMIC_NOTIFY);
+              }
+              await stopPromise;
+              return 0;
+            } else {
+              return -1;
             }
           };
           this.exportApi.stop = csoundStop.bind(this);
           csoundStop.toString = () => reference.toString();
+          break;
+        }
+
+        case "csoundReset": {
+          const csoundReset = async () => {
+            if (stopableStates.has(this.currentPlayState)) {
+              await this.exportApi.stop();
+            }
+            const resetResult = await proxyCallback([]);
+            this.audioStateBuffer = new SharedArrayBuffer(
+              initialSharedState.length * Int32Array.BYTES_PER_ELEMENT,
+            );
+            this.audioStatePointer = new Int32Array(this.audioStateBuffer);
+            return resetResult;
+          };
+          this.exportApi.reset = csoundReset.bind(this);
+          csoundReset.toString = () => reference.toString();
           break;
         }
 
@@ -417,7 +440,6 @@ class SharedArrayBufferMainThread {
             returnQueue,
           });
           const bufferWrappedCallback = async (...args) => {
-            console.log("bufferPerfCallback", args, this.currentPlayState);
             if (
               this.currentPlayState === "realtimePerformanceStarted" ||
               this.currentPlayState === "renderStarted"

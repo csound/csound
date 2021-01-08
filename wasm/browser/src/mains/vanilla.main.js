@@ -11,7 +11,7 @@ import {
   MIDI_BUFFER_SIZE,
 } from "@root/constants.js";
 import { isEmpty } from "ramda";
-import { csoundApiRename, fetchPlugins, makeProxyCallback } from "@root/utils";
+import { csoundApiRename, fetchPlugins, makeProxyCallback, stopableStates } from "@root/utils";
 import { IPCMessagePorts, messageEventHandler } from "@root/mains/messages.main";
 
 class VanillaWorkerMainThread {
@@ -281,7 +281,7 @@ class VanillaWorkerMainThread {
         case "csoundStop": {
           const brodcastTheEnd = async () =>
             await this.onPlayStateChange("realtimePerformanceEnded");
-          const csoundStop = async function (csound) {
+          const csoundStop = async function () {
             if (!csoundInstance || typeof csoundInstance !== "number") {
               console.error("starting csound failed because csound instance wasn't created");
               return -1;
@@ -302,6 +302,19 @@ class VanillaWorkerMainThread {
           };
           this.exportApi.stop = csoundStop.bind(this);
           csoundStop.toString = () => reference.toString();
+          break;
+        }
+
+        case "csoundReset": {
+          const csoundReset = async () => {
+            if (stopableStates.has(this.currentPlayState)) {
+              await this.exportApi.stop();
+            }
+            const resetResult = await proxyCallback([]);
+            return resetResult;
+          };
+          this.exportApi.reset = csoundReset.bind(this);
+          csoundReset.toString = () => reference.toString();
           break;
         }
 

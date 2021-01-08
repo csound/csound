@@ -283,7 +283,7 @@ static CS_NOINLINE int csoundInitModule(CSOUND *csound, csoundModule_t *m)
 
 __attribute__((used))
 void csoundWasiLoadPlugin(CSOUND *csound, void *preInitFunc, void *initFunc, void *destFunc, void *errCodeToStr) {
-    csoundModule_t *module = malloc (sizeof(csoundModule_t));
+    csoundModule_t *module = csound->Malloc(csound, sizeof(csoundModule_t) + 1);
     module->h = (void*) NULL;
 
     // The javascript host must assert that this is provided
@@ -306,7 +306,7 @@ void csoundWasiLoadPlugin(CSOUND *csound, void *preInitFunc, void *initFunc, voi
 
 __attribute__((used))
 void csoundWasiLoadOpcodeLibrary(CSOUND *csound, void *fgenInitFunc, void *opcodeInitFunc) {
-    csoundModule_t *module = malloc (sizeof(csoundModule_t));
+    csoundModule_t *module = csound->Malloc(csound, sizeof(csoundModule_t) + 1);
     module->h = (void*) NULL;
 
     if (fgenInitFunc) {
@@ -322,8 +322,27 @@ void csoundWasiLoadOpcodeLibrary(CSOUND *csound, void *fgenInitFunc, void *opcod
 }
 
 int csoundDestroyModules(CSOUND *csound) {
-    printf("Called csoundDestroyModules!!\n");
-    return 0;
+    csoundModule_t  *m;
+    int i;
+    int retval = CSOUND_SUCCESS;
+
+    while (csound->csmodule_db != NULL) {
+      m = (csoundModule_t*) csound->csmodule_db;
+      /* call destructor functions */
+      if (m->PreInitFunc != NULL && m->fn.p.DestFunc != NULL) {
+        i = m->fn.p.DestFunc(csound);
+        if (UNLIKELY(i != 0)) {
+          print_module_error(csound, Str("Error de-initialising module '%s'"),
+                                     &(m->name[0]), m, i);
+          retval = CSOUND_ERROR;
+        }
+      }
+      csound->csmodule_db = (void*) m->nxt;
+      /* free memory used by database */
+      csound->Free(csound, (void*) m);
+    }
+    /* return with error code */
+    return retval;
 }
 
 int csoundInitModules(CSOUND *csound) {
