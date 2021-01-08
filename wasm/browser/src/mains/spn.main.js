@@ -111,7 +111,7 @@ class ScriptProcessorNodeSingleThread {
       [this.wasm, this.wasmFs] = await loadWasm({
         wasmDataURI,
         withPlugins,
-        messagePort: this.workerMessagePort,
+        messagePort: this.messagePort,
       });
     }
 
@@ -126,12 +126,6 @@ class ScriptProcessorNodeSingleThread {
     }
 
     this.resetCsound(false);
-
-    // this.plugins.forEach((plugin) => {
-    //   console.log(plugin);
-    //   console.log("INSTANCE??", this.wasm.exports.memory, plugin.exports.memory);
-    //   plugin.exports.wasm_init(csoundInstance);
-    // });
 
     // csoundObj
     Object.keys(csoundApi).reduce((acc, apiName) => {
