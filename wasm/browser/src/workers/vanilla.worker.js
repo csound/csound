@@ -69,6 +69,11 @@ const createRealtimeAudioThread = ({ libraryCsound, wasm, workerMessagePort, aud
     for (let i = 0; i < numFrames; i++) {
       const currentCsoundBufferPos = i % ksmps;
       if (workerMessagePort.vanillaWorkerState === "realtimePerformanceEnded") {
+        if (lastPerformance === 0) {
+          libraryCsound.csoundStop(csoundInstance);
+          lastPerformance = libraryCsound.csoundPerformKsmps(csound);
+        }
+        workerMessagePort.broadcastPlayState("realtimePerformanceEnded");
         audioProcessCallback = () => {};
         rtmidiQueue = [];
         audioInputs.port = undefined;

@@ -6,6 +6,7 @@ import MessagePortState from "@utils/message-port-state";
 import { range } from "ramda";
 
 const PERIODS = 4;
+const spnInstances = new Map();
 
 class CsoundScriptNodeProcessor {
   constructor({
@@ -226,22 +227,6 @@ const initMessagePort = ({ port, spnClassInstance }) => {
   workerMessagePort.post = (log) => port.postMessage({ log });
   workerMessagePort.broadcastPlayState = (playStateChange) => port.postMessage({ playStateChange });
   workerMessagePort.ready = true;
-  port.addEventListener("message", (event) => {
-    if (event.data.msg === "resume") {
-      spnClassInstance.audioContext.state === "suspended" && spnClassInstance.audioContext.resume();
-      if (spnClassInstance.audioContext.state === "running") {
-        workerMessagePort.broadcastPlayState("realtimePerformanceResumed");
-      }
-      if (event.data.playStateChange === "realtimePerformanceEnded") {
-        // TODO just stop
-        // spnClassInstance = undefined;
-        // audioFramePort.ready = false;
-      } else if (event.data.playStateChange === "realtimePerformanceResumed") {
-        spnClassInstance.audioContext.state === "suspended" &&
-          spnClassInstance.audioContext.resume();
-      }
-    }
-  });
   return workerMessagePort;
 };
 
@@ -251,6 +236,37 @@ const initRequestPort = ({ requestPort, spnClassInstance }) => {
     spnClassInstance.updateVanillaFrames({ audioPacket, numFrames, readIndex });
   });
   return requestPort;
+};
+
+const setPlayState = ({ contextUid, newPlayState }) => {
+  const spnClassInstance = spnInstances.set(contextUid);
+  if (!spnClassInstance) {
+    console.error("Tried to set playState after node was deleted, or before it was created!");
+    return;
+  }
+  // unclear I know, but it's just here to imperatively
+  // resume with audioplay policy in mind
+  if (newPlayState === "resume") {
+    spnClassInstance.audioContext.state === "suspended" && spnClassInstance.audioContext.resume();
+    if (spnClassInstance.audioContext.state === "running") {
+      spnClassInstance.workerMessagePort.broadcastPlayState("realtimePerformanceResumed");
+    }
+    return;
+  }
+  if (!spnClassInstance.workerMessagePort) {
+    // perhaps we are rendering, so this is just ignored
+    return;
+  }
+  if (newPlayState === "realtimePerformanceEnded") {
+    // ping-pong
+    spnClassInstance.workerMessagePort.broadcastPlayState("realtimePerformanceEnded");
+    spnInstances.delete(contextUid);
+    window[contextUid] && delete window[contextUid];
+    window[`${contextUid}Node`] && delete window[`${contextUid}Node`];
+  } else if (newPlayState === "realtimePerformanceResumed") {
+    spnClassInstance.audioContext.state === "suspended" && spnClassInstance.audioContext.resume();
+  }
+  spnClassInstance.workerMessagePort.vanillaWorkerState = newPlayState;
 };
 
 const initialize = async ({
@@ -278,6 +294,7 @@ const initialize = async ({
   const transferInputFrames = initAudioInputPort({ audioInputPort, spnClassInstance });
   initRequestPort({ requestPort, spnClassInstance });
   spnClassInstance.initCallbacks({ workerMessagePort, transferInputFrames, requestPort });
+  spnInstances.set(contextUid, spnClassInstance);
 };
 
-Comlink.expose({ initialize }, Comlink.windowEndpoint(window.parent));
+Comlink.expose({ initialize, setPlayState }, Comlink.windowEndpoint(window.parent));

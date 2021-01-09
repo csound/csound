@@ -3,6 +3,12 @@ import ScriptProcessorNodeWorker from "@root/workers/old-spn.worker";
 import { logSPN } from "@root/logger";
 import { IPCMessagePorts } from "@root/mains/messages.main";
 
+// we reuse the spnWorker
+// since it handles multiple
+// audio Contexts via UID.
+let spnWorker;
+let proxyPort;
+
 let UID = 0;
 
 class ScriptProcessorNodeMainThread {
@@ -30,7 +36,8 @@ class ScriptProcessorNodeMainThread {
 
   async onPlayStateChange(newPlayState) {
     this.currentPlayState = newPlayState;
-    this.spnWorker && this.spnWorker.postMessage({ playStateChange: newPlayState }, "*");
+    proxyPort && proxyPort.setPlayState({ contextUid: this.contextUid, newPlayState });
+
     switch (newPlayState) {
       case "realtimePerformanceStarted": {
         logSPN("event received: realtimePerformanceStarted");
@@ -43,12 +50,6 @@ class ScriptProcessorNodeMainThread {
       }
       case "realtimePerformanceEnded": {
         logSPN("event received: realtimePerformanceEnded");
-        this.currentPlayState = undefined;
-        this.sampleRate = undefined;
-        this.inputsCount = undefined;
-        this.outputsCount = undefined;
-        this.hardwareBufferSize = undefined;
-        this.softwareBufferSize = undefined;
         break;
       }
       default: {
@@ -111,23 +112,27 @@ class ScriptProcessorNodeMainThread {
     const iFrameWin = iFrame.contentWindow;
     const iFrameDoc = iFrameWin.document;
 
-    this.spnWorker = iFrameWin;
+    spnWorker = iFrameWin;
   }
 
   async initialize() {
-    if (!this.spnWorker) {
+    if (!spnWorker) {
       await this.initIframe();
-      if (!this.spnWorker) {
+      if (!spnWorker) {
         console.error("SPN FATAL: Couldn't create iFrame");
         return;
       }
     }
 
     const contextUid = `audioWorklet${UID}`;
+    this.contextUid = contextUid;
     UID += 1;
 
-    const proxyPort = Comlink.wrap(Comlink.windowEndpoint(this.spnWorker));
-    this.spnWorker[contextUid] = this.audioContext;
+    if (!proxyPort) {
+      proxyPort = Comlink.wrap(Comlink.windowEndpoint(spnWorker));
+    }
+
+    spnWorker[contextUid] = this.audioContext;
     await proxyPort.initialize(
       Comlink.transfer(
         {
