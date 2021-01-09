@@ -63,7 +63,7 @@ import {
 } from "@module/control-events";
 import { csoundGetInputName, csoundGetOutputName } from "@module/general-io";
 import { csoundAppendEnv, csoundShouldDaemonize } from "@module/extra";
-import { csoundIsScorePending } from "@module/score-handling";
+import { csoundIsScorePending, csoundSetScorePending } from "@module/score-handling";
 
 /*
    Don't call these functions directly.
@@ -136,6 +136,7 @@ export const api = {
   csoundShouldDaemonize,
   // @module/score-handling
   csoundIsScorePending,
+  csoundSetScorePending,
 };
 
 export default function (wasm) {

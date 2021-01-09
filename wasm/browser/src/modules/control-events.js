@@ -41,27 +41,53 @@ export const csoundInputMessageAsync = (wasm) => (csound, scoEvent) => {
 
 csoundInputMessageAsync.toString = () => "inputMessageAsync = async (scoreEvent) => Number;";
 
+/**
+ * Retrieves the value of control channel identified by channelName.
+ * If the err argument is not NULL, the error (or success) code finding
+ * or accessing the channel is stored in it.
+ * @async
+ * @function
+ * @name getControlChannel
+ * @memberof CsoundObj
+ * @param {string} channelName
+ * @return {Promise.<undefined>}
+ */
 export const csoundGetControlChannel = (wasm) => (csound, channelName) => {
-  // console.log("Requesting channel value for: " + channelName);
   const stringPtr = string2ptr(wasm, channelName);
   const result = wasm.exports.csoundGetControlChannelWasi(csound, stringPtr);
-  // console.log("result: " + result);
   freeStringPtr(wasm, stringPtr);
   return result;
 };
 
 csoundGetControlChannel.toString = () => "getControlChannel = async (channelName) => Number;";
 
+/**
+ * Sets the value of control channel identified by channelName
+ * @async
+ * @function
+ * @name setControlChannel
+ * @memberof CsoundObj
+ * @param {string} channelName
+ * @param {number} value
+ * @return {Promise.<undefined>}
+ */
 export const csoundSetControlChannel = (wasm) => (csound, channelName, value) => {
   const stringPtr = string2ptr(wasm, channelName);
   wasm.exports.csoundSetControlChannel(csound, stringPtr, value);
   freeStringPtr(wasm, stringPtr);
-  // TODO: Do our API methods needs to return anything?
-  return null;
 };
 
-csoundSetControlChannel.toString = () => "setControlChannel = async (channelName) => void;";
+csoundSetControlChannel.toString = () => "setControlChannel = async (channelName, value) => void;";
 
+/**
+ * Retrieves the string channel identified by channelName
+ * @async
+ * @function
+ * @name getStringChannel
+ * @memberof CsoundObj
+ * @param {string} channelName
+ * @return {Promise.<undefined>}
+ */
 export const csoundGetStringChannel = (wasm) => (csound, channelName) => {
   const stringPtr = string2ptr(wasm, channelName);
   const resPtr = wasm.exports.csoundGetStringChannelWasi(csound, stringPtr);
@@ -74,14 +100,22 @@ export const csoundGetStringChannel = (wasm) => (csound, channelName) => {
 
 csoundGetStringChannel.toString = () => "getStringChannel = async (channelName) => String;";
 
+/**
+ * Sets the string channel value identified by channelName
+ * @async
+ * @function
+ * @name setStringChannel
+ * @memberof CsoundObj
+ * @param {string} channelName
+ * @param {string} value
+ * @return {Promise.<undefined>}
+ */
 export const csoundSetStringChannel = (wasm) => (csound, channelName, value) => {
   const stringPtr = string2ptr(wasm, channelName);
   const stringPtr2 = string2ptr(wasm, value);
   wasm.exports.csoundSetStringChannel(csound, stringPtr, stringPtr2);
   freeStringPtr(wasm, stringPtr);
   freeStringPtr(wasm, stringPtr2);
-  // TODO: Do our API methods needs to return anything?
-  return null;
 };
 
 csoundSetStringChannel.toString = () => "setStringChannel = async (channelName, value) => void;";

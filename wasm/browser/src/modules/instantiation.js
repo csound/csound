@@ -46,7 +46,7 @@ csoundGetAPIVersion.toString = () => "getAPIVersion = async () => Number;";
  */
 export const csoundGetVersion = (wasm) => () => wasm.exports.csoundGetVersion();
 
-csoundGetVersion.toString = () => "getVersion = async (csound) => Number;";
+csoundGetVersion.toString = () => "getVersion = async () => Number;";
 
 /**
  * Initialise Csound with specific flags.
