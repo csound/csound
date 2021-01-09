@@ -33,7 +33,6 @@ let libraryCsound;
 let combined;
 
 const callUncloned = async (k, arguments_) => {
-  // console.log("calling " + k);
   const caller = combined.get(k);
   const ret = caller && caller.apply({}, arguments_ || []);
   return ret;
@@ -48,6 +47,9 @@ class WorkletSinglethreadWorker extends AudioWorkletProcessor {
     super(options);
     this.options = options;
     this.initialize = this.initialize.bind(this);
+    this.pause = this.pause.bind(this);
+    this.resume = this.resume.bind(this);
+    this.isPaused = false;
     // Comlink.expose(this.initialize, this.port);
     this.callUncloned = () => console.error("Csound worklet thread is still uninitialized!");
     this.port.start();
@@ -122,8 +124,20 @@ class WorkletSinglethreadWorker extends AudioWorkletProcessor {
     this.csoundOutputBuffer = null;
   }
 
+  pause() {
+    if (!this.isPaused) {
+      this.isPaused = true;
+    }
+  }
+
+  resume() {
+    if (this.isPaused) {
+      this.isPaused = false;
+    }
+  }
+
   process(inputs, outputs, parameters) {
-    if (this.csoundOutputBuffer == null || this.running == false) {
+    if (this.isPaused || this.csoundOutputBuffer == null || this.running == false) {
       let output = outputs[0];
       let bufferLen = output[0].length;
       for (let i = 0; i < bufferLen; i++) {

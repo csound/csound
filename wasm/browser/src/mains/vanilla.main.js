@@ -13,11 +13,12 @@ import {
 import { isEmpty } from "ramda";
 import { csoundApiRename, fetchPlugins, makeProxyCallback, stopableStates } from "@root/utils";
 import { IPCMessagePorts, messageEventHandler } from "@root/mains/messages.main";
+import { PublicEventAPI } from "@root/events";
 
 class VanillaWorkerMainThread {
   constructor({ audioWorker, wasmDataURI, audioContextIsProvided }) {
     this.ipcMessagePorts = new IPCMessagePorts();
-    this.csoundPlayStateChangeCallbacks = [];
+    this.publicEvents = new PublicEventAPI(this);
     audioWorker.ipcMessagePorts = this.ipcMessagePorts;
 
     audioWorker.csoundWorkerMain = this;
@@ -74,6 +75,7 @@ class VanillaWorkerMainThread {
       case "realtimePerformanceStarted": {
         logVAN(`event: realtimePerformanceStarted from worker, now preparingRT..`);
         await this.prepareRealtimePerformance();
+        this.publicEvents.triggerRealtimePerformanceStarted(this);
         break;
       }
 
@@ -84,17 +86,29 @@ class VanillaWorkerMainThread {
           delete this.stopPromiz;
         }
         this.midiPortStarted = false;
-        this.csound = undefined;
         this.currentPlayState = undefined;
+        this.publicEvents.triggerRealtimePerformanceEnded(this);
         break;
       }
-
+      case "realtimePerformancePaused": {
+        this.publicEvents.triggerRealtimePerformancePaused(this);
+        break;
+      }
+      case "realtimePerformanceResumed": {
+        this.publicEvents.triggerRealtimePerformanceResumed(this);
+        break;
+      }
+      case "renderStarted": {
+        this.publicEvents.triggerRenderStarted(this);
+        break;
+      }
       case "renderEnded": {
         logVAN(`event: renderEnded received, beginning cleanup`);
         if (this.stopPromiz) {
           this.stopPromiz();
           delete this.stopPromiz;
         }
+        this.publicEvents.triggerRenderEnded(this);
         break;
       }
 
@@ -120,14 +134,6 @@ class VanillaWorkerMainThread {
       this.startPromiz();
       delete this.startPromiz;
     }
-
-    this.csoundPlayStateChangeCallbacks.forEach((callback) => {
-      try {
-        callback(newPlayState);
-      } catch (error) {
-        console.error(error);
-      }
-    });
   }
 
   async addMessageCallback(callback) {
@@ -158,23 +164,6 @@ class VanillaWorkerMainThread {
       await this.audioWorker.workletProxy.resume();
     }
     this.onPlayStateChange("realtimePerformanceResumed");
-  }
-
-  // User-land hook to csound's play-state changes
-  async setCsoundPlayStateChangeCallback(callback) {
-    if (typeof callback !== "function") {
-      console.error(`Can't assign ${typeof callback} as a playstate change callback`);
-    } else {
-      this.csoundPlayStateChangeCallbacks = [callback];
-    }
-  }
-
-  async addCsoundPlayStateChangeCallback(callback) {
-    if (typeof callback !== "function") {
-      console.error(`Can't assign ${typeof callback} as a playstate change callback`);
-    } else {
-      this.csoundPlayStateChangeCallbacks.push(callback);
-    }
   }
 
   async initialize({ withPlugins }) {
@@ -212,12 +201,6 @@ class VanillaWorkerMainThread {
 
     this.exportApi.setMessageCallback = this.setMessageCallback.bind(this);
     this.exportApi.addMessageCallback = this.addMessageCallback.bind(this);
-    this.exportApi.setCsoundPlayStateChangeCallback = this.setCsoundPlayStateChangeCallback.bind(
-      this,
-    );
-    this.exportApi.addCsoundPlayStateChangeCallback = this.addCsoundPlayStateChangeCallback.bind(
-      this,
-    );
 
     this.exportApi.pause = this.csoundPause.bind(this);
     this.exportApi.resume = this.csoundResume.bind(this);
@@ -228,6 +211,7 @@ class VanillaWorkerMainThread {
     this.exportApi.rmrfFs = makeProxyCallback(proxyPort, csoundInstance, "rmrfFs");
     this.exportApi.getAudioContext = async () => this.audioWorker.audioContext;
     this.exportApi.getNode = async () => this.audioWorker.audioWorkletNode;
+    this.exportApi = this.publicEvents.decorateAPI(this.exportApi);
 
     for (const apiK of Object.keys(API)) {
       const reference = API[apiK];
@@ -236,6 +220,7 @@ class VanillaWorkerMainThread {
         case "csoundCreate": {
           break;
         }
+
         case "csoundStart": {
           const csoundStart = async function () {
             if (!csoundInstance || typeof csoundInstance !== "number") {

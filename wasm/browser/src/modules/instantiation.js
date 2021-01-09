@@ -56,7 +56,7 @@ csoundGetVersion.toString = () => "getVersion = async () => Number;";
  * sets signal handlers and atexit() callbacks.
  * @async
  * @function
- * @name GetVersion
+ * @name initialize
  * @memberof CsoundObj
  * @return {Promise.<number>} - Return value is zero on success,
  *     positive if initialisation was done already, and negative on error.

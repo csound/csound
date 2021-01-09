@@ -164,7 +164,6 @@ assert.property(cs, "setMessageCallback", "has .setMessageCallback() method");
 });
 
 */
-
     it("can be started", async function () {
       this.timeout(10000);
       const { Csound } = await import(url);
@@ -253,7 +252,7 @@ assert.property(cs, "setMessageCallback", "has .setMessageCallback() method");
       await cs.reset();
     });
 
-    it("can load and run plugins", async () => {
+    it("can load and run plugins", async function () {
       const { Csound } = await import(url);
       const testWithPlugin = Object.assign(
         {
@@ -269,7 +268,7 @@ assert.property(cs, "setMessageCallback", "has .setMessageCallback() method");
       await cs.stop();
     });
 
-    it("can load and run c++ plugins", async () => {
+    it("can load and run c++ plugins", async function () {
       const { Csound } = await import(url);
       const testWithPlugin = Object.assign(
         {
@@ -282,10 +281,37 @@ assert.property(cs, "setMessageCallback", "has .setMessageCallback() method");
       await cs.start();
       await cs.stop();
     });
+
+    it("emits public events in realtime performance", async function () {
+      this.timeout(10000);
+      const eventPlaySpy = sinon.spy();
+      const eventPauseSpy = sinon.spy();
+      const eventStopSpy = sinon.spy();
+
+      const { Csound } = await import(url);
+      const csoundObj = await Csound(test);
+
+      csoundObj.on("play", eventPlaySpy);
+      csoundObj.on("pause", eventPauseSpy);
+      csoundObj.on("stop", eventStopSpy);
+
+      await csoundObj.setOption("-odac");
+      await csoundObj.compileCsdText(shortTone);
+      await csoundObj.start();
+      await csoundObj.pause();
+      await csoundObj.resume();
+      await csoundObj.stop();
+      assert(eventPlaySpy.calledOnce, 'The "play" event was emitted once');
+      assert(eventPauseSpy.calledOnce, 'The "pause" event was emitted once');
+      assert(eventStopSpy.calledOnce, 'The "stop" event was emitted once');
+    });
   });
 });
 
 const triggerEvent = "ontouchstart" in document.documentElement ? "touchend" : "click";
 document.querySelector("#all_tests").addEventListener(triggerEvent, async function () {
+  mocha.fullTrace(true);
+  mocha.checkLeaks(true);
+  mocha.cleanReferencesAfterRun(true);
   mocha.run();
 });

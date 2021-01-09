@@ -16,12 +16,13 @@ import {
 import { logSAB } from "@root/logger";
 import { isEmpty } from "ramda";
 import { csoundApiRename, fetchPlugins, makeProxyCallback, stopableStates } from "@root/utils";
-import * as events from "@root/events";
+import { PublicEventAPI } from "@root/events";
 
 class SharedArrayBufferMainThread {
   constructor({ audioWorker, wasmDataURI, audioContextIsProvided }) {
     this.hasSharedArrayBuffer = true;
     this.ipcMessagePorts = new IPCMessagePorts();
+    this.publicEvents = new PublicEventAPI(this);
     audioWorker.ipcMessagePorts = this.ipcMessagePorts;
 
     this.audioWorker = audioWorker;
@@ -32,7 +33,6 @@ class SharedArrayBufferMainThread {
     this.currentDerivedPlayState = "stop";
     this.exportApi = {};
     this.messageCallbacks = [];
-    this.csoundPlayStateChangeCallbacks = [];
 
     this.startPromiz = undefined;
     this.stopPromiz = undefined;
@@ -111,23 +111,6 @@ class SharedArrayBufferMainThread {
     }
   }
 
-  // User-land hook to csound's play-state changes
-  async setCsoundPlayStateChangeCallback(callback) {
-    if (typeof callback !== "function") {
-      console.error(`Can't assign ${typeof callback} as a playstate change callback`);
-    } else {
-      this.csoundPlayStateChangeCallbacks = [callback];
-    }
-  }
-
-  async addCsoundPlayStateChangeCallback(callback) {
-    if (typeof callback !== "function") {
-      console.error(`Can't assign ${typeof callback} as a playstate change callback`);
-    } else {
-      this.csoundPlayStateChangeCallbacks.push(callback);
-    }
-  }
-
   async csoundPause() {
     if (
       Atomics.load(this.audioStatePointer, AUDIO_STATE.IS_PAUSED) !== 1 &&
@@ -161,7 +144,7 @@ class SharedArrayBufferMainThread {
             ` proceeding to call prepareRealtimePerformance`,
         );
         await this.prepareRealtimePerformance();
-        events.triggerRealtimePerformanceStarted(this);
+        this.publicEvents.triggerRealtimePerformanceStarted(this);
         break;
       }
       case "realtimePerformanceEnded": {
@@ -170,7 +153,7 @@ class SharedArrayBufferMainThread {
           this.stopPromiz();
           delete this.stopPromiz;
         }
-        events.triggerRealtimePerformanceEnded(this);
+        this.publicEvents.triggerRealtimePerformanceEnded(this);
         // re-initialize SAB
         initialSharedState.forEach((value, index) => {
           Atomics.store(this.audioStatePointer, index, value);
@@ -178,15 +161,15 @@ class SharedArrayBufferMainThread {
         break;
       }
       case "realtimePerformancePaused": {
-        events.triggerRealtimePerformancePaused(this);
+        this.publicEvents.triggerRealtimePerformancePaused(this);
         break;
       }
       case "realtimePerformanceResumed": {
-        events.triggerRealtimePerformanceResumed(this);
+        this.publicEvents.triggerRealtimePerformanceResumed(this);
         break;
       }
       case "renderStarted": {
-        events.triggerRenderStarted(this);
+        this.publicEvents.triggerRenderStarted(this);
         break;
       }
       case "renderEnded": {
@@ -194,7 +177,7 @@ class SharedArrayBufferMainThread {
           this.stopPromiz();
           delete this.stopPromiz;
         }
-        events.triggerRenderEnded(this);
+        this.publicEvents.triggerRenderEnded(this);
         logSAB(`event: renderEnded received, beginning cleanup`);
         break;
       }
@@ -216,14 +199,6 @@ class SharedArrayBufferMainThread {
       this.startPromiz();
       delete this.startPromiz;
     }
-
-    this.csoundPlayStateChangeCallbacks.forEach((callback) => {
-      try {
-        callback(newPlayState);
-      } catch (error) {
-        console.error(error);
-      }
-    });
   }
 
   async prepareRealtimePerformance() {
@@ -316,12 +291,6 @@ class SharedArrayBufferMainThread {
 
     this.exportApi.setMessageCallback = this.setMessageCallback.bind(this);
     this.exportApi.addMessageCallback = this.addMessageCallback.bind(this);
-    this.exportApi.setCsoundPlayStateChangeCallback = this.setCsoundPlayStateChangeCallback.bind(
-      this,
-    );
-    this.exportApi.addCsoundPlayStateChangeCallback = this.addCsoundPlayStateChangeCallback.bind(
-      this,
-    );
 
     this.exportApi.pause = this.csoundPause.bind(this);
     this.exportApi.resume = this.csoundResume.bind(this);
@@ -339,7 +308,7 @@ class SharedArrayBufferMainThread {
 
     this.exportApi.getAudioContext = async () => this.audioWorker.audioContext;
 
-    this.exportApi = events.decorateAPI(this.exportApi);
+    this.exportApi = this.publicEvents.decorateAPI(this.exportApi);
 
     for (const apiK of Object.keys(API)) {
       const proxyCallback = makeProxyCallback(proxyPort, csoundInstance, apiK);

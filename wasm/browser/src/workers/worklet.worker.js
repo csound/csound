@@ -269,7 +269,7 @@ class CsoundWorkletProcessor extends AudioWorkletProcessor {
       this.actualProcess = processVanillaBuffers.bind(this);
       this.updateVanillaFrames = this.updateVanillaFrames.bind(this);
     }
-    Comlink.expose({ initialize }, this.port);
+    Comlink.expose({ initialize, pause: this.pause, resume: this.resume }, this.port);
     logWorklet(`Worker thread was constructed`);
     logWorklet(
       JSON.stringify({

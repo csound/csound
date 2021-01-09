@@ -27,6 +27,7 @@ import { logWorklet } from "@root/logger";
 import { csoundApiRename, fetchPlugins, makeProxyCallback } from "@root/utils";
 import { messageEventHandler } from "@root/mains/messages.main";
 import { api as API } from "@root/libcsound";
+import { PublicEventAPI } from "@root/events";
 
 let initialized = false;
 const initializeModule = async (audioContext) => {
@@ -41,35 +42,49 @@ const initializeModule = async (audioContext) => {
 class SingleThreadAudioWorkletMainThread {
   constructor({ audioContext, inputChannelCount = 1, outputChannelCount = 2 }) {
     this.exportApi = {};
+    this.publicEvents = new PublicEventAPI(this);
+    this.exportApi = this.publicEvents.decorateAPI(this.exportApi);
     this.audioContext = audioContext;
     this.inputChannelCount = inputChannelCount;
     this.outputChannelCount = outputChannelCount;
 
     this.messageCallbacks = [];
-    this.csoundPlayStateChangeCallbacks = [];
     this.onPlayStateChange = this.onPlayStateChange.bind(this);
     this.currentPlayState = undefined;
   }
+
   async onPlayStateChange(newPlayState) {
     this.currentPlayState = newPlayState;
 
     switch (newPlayState) {
       case "realtimePerformanceStarted": {
         console.log(`event realtimePerformanceStarted from worker, now preparingRT..`);
-        // await this.prepareRealtimePerformance();
+        this.publicEvents.triggerRealtimePerformanceStarted(this);
         break;
       }
 
       case "realtimePerformanceEnded": {
         console.log(`realtimePerformanceEnded`);
         this.midiPortStarted = false;
-        // this.csound = undefined;
         this.currentPlayState = undefined;
+        this.publicEvents.triggerRealtimePerformanceEnded(this);
         break;
       }
-
+      case "realtimePerformancePaused": {
+        this.publicEvents.triggerRealtimePerformancePaused(this);
+        break;
+      }
+      case "realtimePerformanceResumed": {
+        this.publicEvents.triggerRealtimePerformanceResumed(this);
+        break;
+      }
+      case "renderStarted": {
+        this.publicEvents.triggerRenderStarted(this);
+        break;
+      }
       case "renderEnded": {
         console.log(`event: renderEnded received, beginning cleanup`);
+        this.publicEvents.triggerRenderEnded(this);
         break;
       }
 
@@ -77,14 +92,6 @@ class SingleThreadAudioWorkletMainThread {
         break;
       }
     }
-
-    this.csoundPlayStateChangeCallbacks.forEach((callback) => {
-      try {
-        callback(newPlayState);
-      } catch (error) {
-        console.error(error);
-      }
-    });
   }
 
   async addMessageCallback(callback) {
@@ -100,23 +107,6 @@ class SingleThreadAudioWorkletMainThread {
       this.messageCallbacks = [callback];
     } else {
       console.error(`Can't assign ${typeof callback} as a message callback`);
-    }
-  }
-
-  // User-land hook to csound's play-state changes
-  async setCsoundPlayStateChangeCallback(callback) {
-    if (typeof callback !== "function") {
-      console.error(`Can't assign ${typeof callback} as a playstate change callback`);
-    } else {
-      this.csoundPlayStateChangeCallbacks = [callback];
-    }
-  }
-
-  async addCsoundPlayStateChangeCallback(callback) {
-    if (typeof callback !== "function") {
-      console.error(`Can't assign ${typeof callback} as a playstate change callback`);
-    } else {
-      this.csoundPlayStateChangeCallbacks.push(callback);
     }
   }
 
@@ -175,12 +165,7 @@ class SingleThreadAudioWorkletMainThread {
     this.exportApi.getNode = async () => this.node;
     this.exportApi.setMessageCallback = this.setMessageCallback.bind(this);
     this.exportApi.addMessageCallback = this.addMessageCallback.bind(this);
-    this.exportApi.setCsoundPlayStateChangeCallback = this.setCsoundPlayStateChangeCallback.bind(
-      this,
-    );
-    this.exportApi.addCsoundPlayStateChangeCallback = this.addCsoundPlayStateChangeCallback.bind(
-      this,
-    );
+
     this.exportApi.name = "Csound: Audio Worklet, Single-threaded";
 
     for (const apiK of Object.keys(API)) {

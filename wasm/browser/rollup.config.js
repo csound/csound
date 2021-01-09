@@ -147,7 +147,7 @@ export default [
       intro: "let global = window;",
       file: DEV ? "dist/libcsound.dev.mjs" : "dist/libcsound.mjs",
       format: "module",
-      sourcemap: true,
+      sourcemap: DEV ? "inline" : false,
       globals,
     },
     plugins: [

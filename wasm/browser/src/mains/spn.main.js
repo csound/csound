@@ -28,12 +28,15 @@ import { writeToFs, lsFs, llFs, readFromFs, rmrfFs } from "@root/filesystem";
 import { isEmpty } from "ramda";
 import { csoundApiRename, fetchPlugins, makeSingleThreadCallback } from "@root/utils";
 import { messageEventHandler } from "./messages.main";
+import { PublicEventAPI } from "@root/events";
 
 class ScriptProcessorNodeSingleThread {
   constructor({ audioContext, inputChannelCount = 1, outputChannelCount = 2 }) {
+    this.publicEvents = new PublicEventAPI(this);
     this.audioContext = audioContext;
     this.onaudioprocess = this.onaudioprocess.bind(this);
     this.currentPlayState = undefined;
+    this.onPlayStateChange = this.onPlayStateChange.bind(this);
     this.start = this.start.bind(this);
     this.wasm = undefined;
     this.csoundInstance = undefined;
@@ -61,11 +64,44 @@ class ScriptProcessorNodeSingleThread {
     this.started = false;
   }
 
+  async onPlayStateChange(newPlayState) {
+    this.currentPlayState = newPlayState;
+    switch (newPlayState) {
+      case "realtimePerformanceStarted": {
+        this.publicEvents.triggerRealtimePerformanceStarted(this);
+        break;
+      }
+
+      case "realtimePerformanceEnded": {
+        this.publicEvents.triggerRealtimePerformanceEnded(this);
+        break;
+      }
+      case "realtimePerformancePaused": {
+        this.publicEvents.triggerRealtimePerformancePaused(this);
+        break;
+      }
+      case "realtimePerformanceResumed": {
+        this.publicEvents.triggerRealtimePerformanceResumed(this);
+        break;
+      }
+      case "renderStarted": {
+        this.publicEvents.triggerRenderStarted(this);
+        break;
+      }
+      case "renderEnded": {
+        this.publicEvents.triggerRenderEnded(this);
+        break;
+      }
+
+      default: {
+        break;
+      }
+    }
+  }
+
   async pause() {}
 
   async resume() {}
-
-  async setMessageCallback() {}
 
   async start() {
     if (!this.csoundApi) {
@@ -97,10 +133,11 @@ class ScriptProcessorNodeSingleThread {
       this.zerodBFS = this.csoundApi.csoundGet0dBFS(this.csoundInstance);
       this.started = true;
     }
-    // TODO FIRE THE EVENT
-    this.currentPlayState = "realtimePerformanceStarted";
+    this.onPlayStateChange("realtimePerformanceStarted");
     return this.csoundApi.csoundStart(this.csoundInstance);
   }
+
+  async setMessageCallback() {}
 
   async initialize({ wasmDataURI, withPlugins, autoConnect }) {
     if (!this.plugins && withPlugins && !isEmpty(withPlugins)) {
@@ -147,7 +184,7 @@ class ScriptProcessorNodeSingleThread {
     this.exportApi.lsFs = lsFs(this.wasmFs);
     this.exportApi.readFromFs = readFromFs(this.wasmFs);
     this.exportApi.rmrfFs = rmrfFs(this.wasmFs);
-
+    this.exportApi = this.publicEvents.decorateAPI(this.exportApi);
     return this.exportApi;
   }
 

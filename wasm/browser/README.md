@@ -31,6 +31,9 @@ CsoundObj API.
 **Kind**: global namespace  
 
 * [CsoundObj](#CsoundObj) : <code>object</code>
+    * [.removeListener(eventName, listener)](#CsoundObj.removeListener) ⇒ <code>external:EventEmitter</code>
+    * [.eventNames()](#CsoundObj.eventNames) ⇒ <code>Array.&lt;string&gt;</code>
+    * [.listeners(eventName)](#CsoundObj.listeners) ⇒ <code>Array.&lt;function()&gt;</code>
     * [.getSr()](#CsoundObj.getSr) ⇒ <code>Promise.&lt;number&gt;</code>
     * [.getKr()](#CsoundObj.getKr) ⇒ <code>Promise.&lt;number&gt;</code>
     * [.getKsmps()](#CsoundObj.getKsmps) ⇒ <code>Promise.&lt;number&gt;</code>
@@ -47,12 +50,16 @@ CsoundObj API.
     * [.setDebug(debug)](#CsoundObj.setDebug) ⇒ <code>Promise.&lt;undefined&gt;</code>
     * [.inputMessage()](#CsoundObj.inputMessage) ⇒ <code>Promise.&lt;number&gt;</code>
     * [.inputMessageAsync()](#CsoundObj.inputMessageAsync) ⇒ <code>Promise.&lt;number&gt;</code>
+    * [.getControlChannel(channelName)](#CsoundObj.getControlChannel) ⇒ <code>Promise.&lt;undefined&gt;</code>
+    * [.setControlChannel(channelName, value)](#CsoundObj.setControlChannel) ⇒ <code>Promise.&lt;undefined&gt;</code>
+    * [.getStringChannel(channelName)](#CsoundObj.getStringChannel) ⇒ <code>Promise.&lt;undefined&gt;</code>
+    * [.setStringChannel(channelName, value)](#CsoundObj.setStringChannel) ⇒ <code>Promise.&lt;undefined&gt;</code>
     * [.getOutputName()](#CsoundObj.getOutputName) ⇒ <code>Promise.&lt;string&gt;</code>
     * [.getInputName()](#CsoundObj.getInputName) ⇒ <code>Promise.&lt;string&gt;</code>
     * [.destroy()](#CsoundObj.destroy) ⇒ <code>Promise.&lt;undefined&gt;</code>
     * [.getAPIVersion()](#CsoundObj.getAPIVersion) ⇒ <code>Promise.&lt;number&gt;</code>
     * [.getVersion()](#CsoundObj.getVersion) ⇒ <code>Promise.&lt;number&gt;</code>
-    * [.GetVersion()](#CsoundObj.GetVersion) ⇒ <code>Promise.&lt;number&gt;</code>
+    * [.initialize()](#CsoundObj.initialize) ⇒ <code>Promise.&lt;number&gt;</code>
     * [.parseOrc(orc)](#CsoundObj.parseOrc) ⇒ <code>Promise.&lt;object&gt;</code>
     * [.compileTree(tree)](#CsoundObj.compileTree) ⇒ <code>Promise.&lt;number&gt;</code>
     * [.compileOrc(orc)](#CsoundObj.compileOrc) ⇒ <code>Promise.&lt;number&gt;</code>
@@ -72,6 +79,38 @@ CsoundObj API.
     * [.getOutputBuffer()](#CsoundObj.getOutputBuffer) ⇒ <code>Promise.&lt;number&gt;</code>
     * [.getSpin()](#CsoundObj.getSpin) ⇒ <code>Promise.&lt;number&gt;</code>
     * [.getSpout()](#CsoundObj.getSpout) ⇒ <code>Promise.&lt;number&gt;</code>
+    * [.isScorePending()](#CsoundObj.isScorePending) ⇒ <code>Promise.&lt;number&gt;</code>
+    * [.setScorePending(pending)](#CsoundObj.setScorePending) ⇒ <code>Promise.&lt;undefined&gt;</code>
+
+<a name="CsoundObj.removeListener"></a>
+
+### CsoundObj.removeListener(eventName, listener) ⇒ <code>external:EventEmitter</code>
+Removes the specified listener from the listener array for the event named eventName.
+
+**Kind**: static method of [<code>CsoundObj</code>](#CsoundObj)  
+
+| Param | Type |
+| --- | --- |
+| eventName | [<code>PublicEvents</code>](#PublicEvents) | 
+| listener | <code>function</code> | 
+
+<a name="CsoundObj.eventNames"></a>
+
+### CsoundObj.eventNames() ⇒ <code>Array.&lt;string&gt;</code>
+Returns an array listing the events for which the emitter has registered listeners.
+The values in the array are strings.
+
+**Kind**: static method of [<code>CsoundObj</code>](#CsoundObj)  
+<a name="CsoundObj.listeners"></a>
+
+### CsoundObj.listeners(eventName) ⇒ <code>Array.&lt;function()&gt;</code>
+Returns a copy of the array of listeners for the event named eventName.
+
+**Kind**: static method of [<code>CsoundObj</code>](#CsoundObj)  
+
+| Param | Type |
+| --- | --- |
+| eventName | [<code>PublicEvents</code>](#PublicEvents) | 
 
 <a name="CsoundObj.getSr"></a>
 
@@ -194,6 +233,54 @@ Inputs an immediate score event
 without any pre-process parsing
 
 **Kind**: static method of [<code>CsoundObj</code>](#CsoundObj)  
+<a name="CsoundObj.getControlChannel"></a>
+
+### CsoundObj.getControlChannel(channelName) ⇒ <code>Promise.&lt;undefined&gt;</code>
+Retrieves the value of control channel identified by channelName.
+If the err argument is not NULL, the error (or success) code finding
+or accessing the channel is stored in it.
+
+**Kind**: static method of [<code>CsoundObj</code>](#CsoundObj)  
+
+| Param | Type |
+| --- | --- |
+| channelName | <code>string</code> | 
+
+<a name="CsoundObj.setControlChannel"></a>
+
+### CsoundObj.setControlChannel(channelName, value) ⇒ <code>Promise.&lt;undefined&gt;</code>
+Sets the value of control channel identified by channelName
+
+**Kind**: static method of [<code>CsoundObj</code>](#CsoundObj)  
+
+| Param | Type |
+| --- | --- |
+| channelName | <code>string</code> | 
+| value | <code>number</code> | 
+
+<a name="CsoundObj.getStringChannel"></a>
+
+### CsoundObj.getStringChannel(channelName) ⇒ <code>Promise.&lt;undefined&gt;</code>
+Retrieves the string channel identified by channelName
+
+**Kind**: static method of [<code>CsoundObj</code>](#CsoundObj)  
+
+| Param | Type |
+| --- | --- |
+| channelName | <code>string</code> | 
+
+<a name="CsoundObj.setStringChannel"></a>
+
+### CsoundObj.setStringChannel(channelName, value) ⇒ <code>Promise.&lt;undefined&gt;</code>
+Sets the string channel value identified by channelName
+
+**Kind**: static method of [<code>CsoundObj</code>](#CsoundObj)  
+
+| Param | Type |
+| --- | --- |
+| channelName | <code>string</code> | 
+| value | <code>string</code> | 
+
 <a name="CsoundObj.getOutputName"></a>
 
 ### CsoundObj.getOutputName() ⇒ <code>Promise.&lt;string&gt;</code>
@@ -224,9 +311,9 @@ Returns the API version as int
 Returns the Csound version as int
 
 **Kind**: static method of [<code>CsoundObj</code>](#CsoundObj)  
-<a name="CsoundObj.GetVersion"></a>
+<a name="CsoundObj.initialize"></a>
 
-### CsoundObj.GetVersion() ⇒ <code>Promise.&lt;number&gt;</code>
+### CsoundObj.initialize() ⇒ <code>Promise.&lt;number&gt;</code>
 Initialise Csound with specific flags.
 This function is called internally by csoundCreate(),
 so there is generally no need to use it explicitly
@@ -384,6 +471,48 @@ Returns the address of the Csound audio output working buffer (spout).
 Enables external software to read audio from Csound after calling csoundPerformKsmps.
 
 **Kind**: static method of [<code>CsoundObj</code>](#CsoundObj)  
+<a name="CsoundObj.isScorePending"></a>
+
+### CsoundObj.isScorePending() ⇒ <code>Promise.&lt;number&gt;</code>
+Sees whether Csound score events are performed or not,
+independently of real-time MIDI events
+
+**Kind**: static method of [<code>CsoundObj</code>](#CsoundObj)  
+<a name="CsoundObj.setScorePending"></a>
+
+### CsoundObj.setScorePending(pending) ⇒ <code>Promise.&lt;undefined&gt;</code>
+Sets whether Csound score events are performed or not
+(real-time events will continue to be performed).
+Can be used by external software, such as a VST host,
+to turn off performance of score events (while continuing to perform real-time events),
+for example to mute a Csound score while working on other tracks of a piece,
+or to play the Csound instruments live.
+
+**Kind**: static method of [<code>CsoundObj</code>](#CsoundObj)  
+
+| Param | Type |
+| --- | --- |
+| pending | <code>number</code> | 
+
+<a name="PublicEvents"></a>
+
+## PublicEvents : <code>enum</code>
+**Kind**: global enum  
+**Read only**: true  
+**Properties**
+
+| Name | Type | Description |
+| --- | --- | --- |
+| "play" | <code>string</code> | called anytime performance goes from pause/stop to a running state |
+| "pause" | <code>string</code> | called after any successful csound.pause() calls |
+| "stop" | <code>string</code> | called after end of performance or after a successful csound.stop() |
+| "realtimePerformanceStarted" | <code>string</code> | called at the start of realtime performance but not on resume or render |
+| "realtimePerformancePaused" | <code>string</code> | only called if csound.pause() was successfully called during performance |
+| "realtimePerformanceResumed" | <code>string</code> | only called if csound.resume() was successfully called after a pause |
+| "realtimePerformanceEnded" | <code>string</code> | called after end of performance or after a successful csound.stop() |
+| "renderStarted" | <code>string</code> | called at the start of offline/non-realtime render to disk |
+| "renderEnded" | <code>string</code> | called at the end of offline/non-realtime render to disk |
+
 <a name="Csound"></a>
 
 ## Csound() ⇒ <code>Promise.&lt;(CsoundObj\|undefined)&gt;</code>
