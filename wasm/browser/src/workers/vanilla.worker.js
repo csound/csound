@@ -10,8 +10,6 @@ import { assoc, pipe } from "ramda";
 
 let combined;
 let audioProcessCallback = () => {};
-
-let rtmidiPort;
 let rtmidiQueue = [];
 
 const createAudioInputBuffers = (audioInputs, inputsCount) => {
@@ -26,13 +24,9 @@ const generateAudioFrames = (arguments_, workerMessagePort) => {
   }
 };
 
-const createRealtimeAudioThread = ({
-  libraryCsound,
-  wasm,
-  workerMessagePort,
-  audioInputs,
-  csoundWorkerFrameRequestPort,
-}) => ({ csound }) => {
+const createRealtimeAudioThread = ({ libraryCsound, wasm, workerMessagePort, audioInputs }) => ({
+  csound,
+}) => {
   // Prompt for midi-input on demand
   // const isRequestingRtMidiInput = libraryCsound._isRequestingRtMidiInput(csound);
 
@@ -57,7 +51,7 @@ const createRealtimeAudioThread = ({
 
   let lastPerformance = 0;
 
-  audioProcessCallback = ({ readIndex, numFrames }) => {
+  audioProcessCallback = ({ numFrames }) => {
     const outputAudioPacket = instantiateAudioPacket(nchnls, numFrames);
     const hasInput = audioInputs.buffers.length > 0 && audioInputs.availableFrames >= numFrames;
 
@@ -74,16 +68,19 @@ const createRealtimeAudioThread = ({
 
     for (let i = 0; i < numFrames; i++) {
       const currentCsoundBufferPos = i % ksmps;
-
+      if (workerMessagePort.vanillaWorkerState === "realtimePerformanceEnded") {
+        audioProcessCallback = () => {};
+        rtmidiQueue = [];
+        audioInputs.port = undefined;
+        return { framesLeft: i };
+      }
       if (currentCsoundBufferPos === 0 && lastPerformance === 0) {
         lastPerformance = libraryCsound.csoundPerformKsmps(csound);
         if (lastPerformance !== 0) {
           workerMessagePort.broadcastPlayState("realtimePerformanceEnded");
           audioProcessCallback = () => {};
           rtmidiQueue = [];
-          rtmidiPort = undefined;
           audioInputs.port = undefined;
-          csoundWorkerFrameRequestPort = undefined;
           return { framesLeft: i };
         }
       }
@@ -139,6 +136,7 @@ const callUncloned = async (k, arguments_) => {
 const initMessagePort = ({ port }) => {
   logVAN(`initMessagePort`);
   const workerMessagePort = new MessagePortState();
+  workerMessagePort.port = port;
   workerMessagePort.post = (log) => port.postMessage({ log });
   workerMessagePort.broadcastPlayState = (playStateChange) => {
     workerMessagePort.vanillaWorkerState = playStateChange;
@@ -198,6 +196,27 @@ const initRtMidiEventPort = ({ rtmidiPort }) => {
   return rtmidiPort;
 };
 
+const renderFn = ({ libraryCsound, workerMessagePort }) => async ({ csound }) => {
+  let endResolve;
+  const endPromise = new Promise((resolve) => {
+    endResolve = resolve;
+  });
+  const performKsmps = () => {
+    if (
+      workerMessagePort.vanillaWorkerState === "renderStarted" &&
+      libraryCsound.csoundPerformKsmps(csound) === 0
+    ) {
+      // this is immediately executed, but allows events to be picked up
+      setTimeout(performKsmps, 0);
+    } else {
+      workerMessagePort.broadcastPlayState("renderEnded");
+      endResolve();
+    }
+  };
+  performKsmps();
+  await endPromise;
+};
+
 const initialize = async ({
   wasmDataURI,
   withPlugins = [],
@@ -208,8 +227,9 @@ const initialize = async ({
 }) => {
   logVAN(`initializing wasm and exposing csoundAPI functions from worker to main`);
   const workerMessagePort = initMessagePort({ port: messagePort });
+
   const audioInputs = initAudioInputPort({ port: audioInputPort });
-  const csoundWorkerFrameRequestPort = initRequestPort({
+  initRequestPort({
     csoundWorkerFrameRequestPort: requestPort,
     workerMessagePort,
   });
@@ -229,8 +249,8 @@ const initialize = async ({
       wasm,
       audioInputs,
       workerMessagePort,
-      csoundWorkerFrameRequestPort,
     }),
+    renderFn({ libraryCsound, workerMessagePort }),
   );
 
   const allAPI = pipe(
@@ -246,6 +266,24 @@ const initialize = async ({
 
   libraryCsound.csoundInitialize(0);
   const csoundInstance = libraryCsound.csoundCreate();
+
+  workerMessagePort.port.addEventListener("message", (event) => {
+    if (event.data && event.data.newPlayState) {
+      if (event.data.newPlayState === "realtimePerformanceEnded") {
+        libraryCsound.csoundStop(csoundInstance);
+        if (workerMessagePort.vanillaWorkerState !== "realtimePerformanceEnded") {
+          libraryCsound.csoundPerformKsmps(csoundInstance);
+        }
+        // ping-pong for better timing of events:
+        // the event is only sent from main but state isn't stored
+        // until it arrived back
+        workerMessagePort.broadcastPlayState("realtimePerformanceEnded");
+      }
+      workerMessagePort.vanillaWorkerState = event.data.newPlayState;
+    }
+  });
+  workerMessagePort.port.start();
+
   return csoundInstance;
 };
 

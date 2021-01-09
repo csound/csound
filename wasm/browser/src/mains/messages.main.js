@@ -26,26 +26,6 @@ export const emitInternalCsoundLogEvent = (worker, message) => {
   }
 };
 
-const iterableMessageChannel = () => {
-  const { port1, port2 } = new MessageChannel();
-  return [port1, port2];
-};
-
-const safelyClosePorts = ([p1, p2]) => {
-  if (typeof p1.close !== "undefined") {
-    try {
-      p1.close();
-      // eslint-disable unicorn/prefer-optional-catch-binding
-    } catch (_) {}
-  }
-  if (typeof p2.close !== "undefined") {
-    try {
-      p2.close();
-      // eslint-disable unicorn/prefer-optional-catch-binding
-    } catch (_) {}
-  }
-};
-
 export class IPCMessagePorts {
   constructor() {
     let { port1: mainMessagePort, port2: workerMessagePort } = new MessageChannel();
@@ -73,61 +53,5 @@ export class IPCMessagePorts {
     let { port1: sabWorkerCallbackReply, port2: sabMainCallbackReply } = new MessageChannel();
     this.sabWorkerCallbackReply = sabWorkerCallbackReply;
     this.sabMainCallbackReply = sabMainCallbackReply;
-
-    // Methods
-    this.restartMessagePortAudio = this.restartMessagePortAudio.bind(this);
-    this.restartWorkerAudioInputPort = this.restartWorkerAudioInputPort.bind(this);
-    this.restartWorkerFrameRequestPort = this.restartWorkerFrameRequestPort.bind(this);
-    this.restartAudioInputPorts = this.restartAudioInputPorts.bind(this);
-    this.restartRtMidiPorts = this.restartRtMidiPorts.bind(this);
-    this.restartSabReplyPorts = this.restartSabReplyPorts(this);
-  }
-
-  restartMessagePortAudio() {
-    safelyClosePorts([this.mainMessagePortAudio, this.workerMessagePortAudio]);
-    [this.mainMessagePortAudio, this.workerMessagePortAudio] = iterableMessageChannel();
-  }
-
-  restartWorkerAudioInputPort() {
-    safelyClosePorts([this.csoundWorkerAudioInputPort, this.audioWorkerAudioInputPort]);
-    [this.csoundWorkerAudioInputPort, this.audioWorkerAudioInputPort] = iterableMessageChannel();
-  }
-
-  restartWorkerFrameRequestPort() {
-    safelyClosePorts([this.csoundWorkerFrameRequestPort, this.audioWorkerFrameRequestPort]);
-    [
-      this.csoundWorkerFrameRequestPort,
-      this.audioWorkerFrameRequestPort,
-    ] = iterableMessageChannel();
-  }
-
-  restartAudioInputPorts() {
-    safelyClosePorts([this.csoundWorkerAudioInputPort, this.audioWorkerAudioInputPort]);
-    [this.csoundWorkerAudioInputPort, this.audioWorkerAudioInputPort] = iterableMessageChannel();
-  }
-
-  restartRtMidiPorts() {
-    safelyClosePorts([this.csoundWorkerRtMidiPort, this.csoundMainRtMidiPort]);
-    [this.csoundWorkerRtMidiPort, this.csoundMainRtMidiPort] = iterableMessageChannel();
-  }
-
-  restartSabReplyPorts() {
-    safelyClosePorts([this.sabWorkerCallbackReply, this.sabMainCallbackReply]);
-    [this.sabWorkerCallbackReply, this.sabMainCallbackReply] = iterableMessageChannel();
-  }
-
-  // only used in vanilla
-  restart(csoundWorkerMain) {
-    this.restartMessagePortAudio();
-    this.restartWorkerAudioInputPort();
-    this.restartWorkerFrameRequestPort();
-    this.restartAudioInputPorts();
-    this.restartRtMidiPorts();
-
-    this.mainMessagePort.addEventListener("message", messageEventHandler(csoundWorkerMain));
-    this.mainMessagePortAudio.addEventListener("message", messageEventHandler(csoundWorkerMain));
-
-    this.mainMessagePort.start();
-    this.mainMessagePortAudio.start();
   }
 }

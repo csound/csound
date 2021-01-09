@@ -261,7 +261,7 @@ const initMessagePort = ({ port }) => {
 
 const initCallbackReplyPort = ({ port }) => (uid, value) => port.postMessage({ uid, value });
 
-const renderFn = ({ callbackReply, libraryCsound }) => ({
+const renderFn = ({ callbackReply, libraryCsound, workerMessagePort }) => ({
   audioStateBuffer,
   callbackBuffer,
   callbackStringDataBuffer,
@@ -287,6 +287,7 @@ const renderFn = ({ callbackReply, libraryCsound }) => ({
     });
   }
   Atomics.store(audioStatePointer, AUDIO_STATE.IS_PERFORMING, 0);
+  workerMessagePort.broadcastPlayState("renderEnded");
 };
 
 const initialize = async ({ wasmDataURI, withPlugins = [], messagePort, callbackReplyPort }) => {
@@ -309,7 +310,7 @@ const initialize = async ({ wasmDataURI, withPlugins = [], messagePort, callback
       callbackReply,
       workerMessagePort,
     }),
-    renderFn({ libraryCsound, callbackReply }),
+    renderFn({ libraryCsound, callbackReply, workerMessagePort }),
   );
 
   const allAPI = pipe(

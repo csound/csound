@@ -42,7 +42,6 @@ export const handleCsoundStart = (
       } else {
         while (libraryCsound.csoundPerformKsmps(csound) === 0) {}
       }
-      workerMessagePort.broadcastPlayState("renderEnded");
     }
   }, 0);
 

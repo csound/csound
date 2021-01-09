@@ -84,23 +84,29 @@ class VanillaWorkerMainThread {
 
     switch (newPlayState) {
       case "realtimePerformanceStarted": {
-        logVAN(`event realtimePerformanceStarted from worker, now preparingRT..`);
+        logVAN(`event: realtimePerformanceStarted from worker, now preparingRT..`);
         await this.prepareRealtimePerformance();
         break;
       }
 
       case "realtimePerformanceEnded": {
-        logVAN(`realtimePerformanceEnded`);
+        logVAN(`event: realtimePerformanceEnded`);
+        if (this.stopPromiz) {
+          this.stopPromiz();
+          delete this.stopPromiz;
+        }
         this.midiPortStarted = false;
         this.csound = undefined;
         this.currentPlayState = undefined;
-        this.ipcMessagePorts.restart(this);
         break;
       }
 
       case "renderEnded": {
         logVAN(`event: renderEnded received, beginning cleanup`);
-        this.ipcMessagePorts.restart(this);
+        if (this.stopPromiz) {
+          this.stopPromiz();
+          delete this.stopPromiz;
+        }
         break;
       }
 
@@ -279,26 +285,18 @@ class VanillaWorkerMainThread {
         }
 
         case "csoundStop": {
-          const brodcastTheEnd = async () =>
-            await this.onPlayStateChange("realtimePerformanceEnded");
           const csoundStop = async function () {
-            if (!csoundInstance || typeof csoundInstance !== "number") {
-              console.error("starting csound failed because csound instance wasn't created");
-              return -1;
-            }
-            const stopResult = await proxyCallback(csoundInstance);
-            if (this.currentPlayState === "realtimePerformancePaused") {
-              try {
-                await proxyPort.callUncloned("csoundPerformKsmps", [csoundInstance]);
-              } catch (_) {}
-              try {
-                await brodcastTheEnd();
-              } catch (_) {}
-            }
-            if (this.currentPlayState !== "realtimePerformanceEnded") {
-              await brodcastTheEnd();
-            }
-            return stopResult;
+            const stopPromise = new Promise((resolve) => {
+              this.stopPromiz = resolve;
+            });
+            this.ipcMessagePorts.mainMessagePort.postMessage({
+              newPlayState:
+                this.currentPlayState === "renderStarted"
+                  ? "renderEnded"
+                  : "realtimePerformanceEnded",
+            });
+            await stopPromise;
+            return 0;
           };
           this.exportApi.stop = csoundStop.bind(this);
           csoundStop.toString = () => reference.toString();

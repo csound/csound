@@ -43,7 +43,6 @@ class ScriptProcessorNodeMainThread {
       }
       case "realtimePerformanceEnded": {
         logSPN("event received: realtimePerformanceEnded");
-        this.ipcMessagePorts.restart(this.csoundWorkerMain);
         this.currentPlayState = undefined;
         this.sampleRate = undefined;
         this.inputsCount = undefined;

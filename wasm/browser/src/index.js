@@ -29,13 +29,13 @@ import {
  */
 export async function Csound({
   audioContext,
-  useWorker = false,
-  useSAB = true,
-  useSPN = false,
   inputChannelCount = 2,
   outputChannelCount = 2,
   autoConnect = true,
   withPlugins = [],
+  useWorker = false,
+  useSAB = true,
+  useSPN = false,
 } = {}) {
   unmuteIosAudio();
 
@@ -102,7 +102,7 @@ export async function Csound({
   if (!hasSABSupport) {
     log.warning(`SharedArrayBuffers not found, falling back to Vanilla concurrency`);
   } else {
-    logSAB(`using SharedArrayBuffers`);
+    useSAB && logSAB(`using SharedArrayBuffers`);
   }
 
   const worker =
