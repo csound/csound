@@ -20,18 +20,6 @@ class VanillaWorkerMainThread {
     this.csoundPlayStateChangeCallbacks = [];
     audioWorker.ipcMessagePorts = this.ipcMessagePorts;
 
-    this.audioStreamIn = new Float64Array(
-      MAX_CHANNELS * MAX_HARDWARE_BUFFER_SIZE * Float64Array.BYTES_PER_ELEMENT,
-    );
-
-    this.audioStreamOut = new Float64Array(
-      MAX_CHANNELS * MAX_HARDWARE_BUFFER_SIZE * Float64Array.BYTES_PER_ELEMENT,
-    );
-
-    this.midiBuffer = new Int32Array(
-      MIDI_BUFFER_SIZE * MIDI_BUFFER_PAYLOAD_SIZE * Int32Array.BYTES_PER_ELEMENT,
-    );
-
     audioWorker.csoundWorkerMain = this;
     this.audioWorker = audioWorker;
     this.audioContextIsProvided = audioContextIsProvided;
@@ -195,21 +183,9 @@ class VanillaWorkerMainThread {
     }
     logVAN(`vanilla.main: initialize`);
     this.csoundWorker = this.csoundWorker || new Worker(VanillaWorker());
-    const audioStreamIn = this.audioStreamIn;
-    const audioStreamOut = this.audioStreamOut;
-    const midiBuffer = this.midiBuffer;
-
-    logVAN(`mainMessagePort mainMessagePortAudio ports connected to event-listeners`);
 
     this.ipcMessagePorts.mainMessagePort.addEventListener("message", messageEventHandler(this));
-    this.ipcMessagePorts.mainMessagePortAudio.addEventListener(
-      "message",
-      messageEventHandler(this),
-    );
-
     this.ipcMessagePorts.mainMessagePort.start();
-    this.ipcMessagePorts.mainMessagePortAudio.start();
-    logVAN(`mainMessagePort- mainMessagePortAudio .start()`);
 
     const proxyPort = Comlink.wrap(this.csoundWorker);
     this.proxyPort = proxyPort;
@@ -270,9 +246,6 @@ class VanillaWorkerMainThread {
               this.startPromiz = resolve;
             });
             const startResult = await proxyCallback({
-              audioStreamIn,
-              audioStreamOut,
-              midiBuffer,
               csound: csoundInstance,
             });
             await startPromise;
