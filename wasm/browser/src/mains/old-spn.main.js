@@ -1,6 +1,6 @@
 import * as Comlink from "comlink";
 import ScriptProcessorNodeWorker from "@root/workers/old-spn.worker";
-import { logSPN } from "@root/logger";
+import log, { logSPN } from "@root/logger";
 import { IPCMessagePorts } from "@root/mains/messages.main";
 
 // we reuse the spnWorker
@@ -12,7 +12,9 @@ let proxyPort;
 let UID = 0;
 
 class ScriptProcessorNodeMainThread {
-  constructor({ audioContext, audioContextIsProvided }) {
+  constructor({ audioContext, audioContextIsProvided, autoConnect }) {
+    this.autoConnect = autoConnect;
+    this.audioContextIsProvided = audioContextIsProvided;
     this.ipcMessagePorts = new IPCMessagePorts();
 
     this.audioContext = audioContext;
@@ -132,6 +134,19 @@ class ScriptProcessorNodeMainThread {
       proxyPort = Comlink.wrap(Comlink.windowEndpoint(spnWorker));
     }
 
+    if (!this.audioContext) {
+      if (this.audioContextIsProvided) {
+        log.error(`fatal: the provided AudioContext was undefined`);
+      }
+      this.audioContext = new (WebkitAudioContext())();
+    }
+    if (this.audioContext.state === "closed") {
+      if (this.audioContextIsProvided) {
+        log.error(`fatal: the provided AudioContext was closed, falling back new AudioContext`);
+      }
+      this.audioContext = new (WebkitAudioContext())();
+    }
+
     spnWorker[contextUid] = this.audioContext;
     await proxyPort.initialize(
       Comlink.transfer(
@@ -144,6 +159,8 @@ class ScriptProcessorNodeMainThread {
           sampleRate: this.sampleRate,
           messagePort: this.ipcMessagePorts.workerMessagePortAudio,
           requestPort: this.ipcMessagePorts.audioWorkerFrameRequestPort,
+          audioContextIsProvided: this.audioContextIsProvided,
+          autoConnect: this.autoConnect,
         },
         [
           this.ipcMessagePorts.workerMessagePortAudio,

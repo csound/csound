@@ -17,7 +17,11 @@ class CsoundScriptNodeProcessor {
     inputsCount,
     outputsCount,
     sampleRate,
+    audioContextIsProvided,
+    autoConnect,
   }) {
+    this.autoConnect = autoConnect;
+    this.audioContextIsProvided = audioContextIsProvided;
     this.hardwareBufferSize = hardwareBufferSize;
     this.softwareBufferSize = softwareBufferSize;
     this.inputsCount = inputsCount;
@@ -47,7 +51,12 @@ class CsoundScriptNodeProcessor {
     this.process = this.process.bind(this);
     const processor = this.process.bind(this);
     this.scriptNode.onaudioprocess = processor;
-    window[this.nodeUid] = this.scriptNode.connect(this.audioContext.destination);
+
+    if (this.autoConnect) {
+      window[this.nodeUid] = this.scriptNode.connect(this.audioContext.destination);
+    } else {
+      window[this.nodeUid] = this.scriptNode.context.destination;
+    }
 
     this.updateVanillaFrames = this.updateVanillaFrames.bind(this);
     this.initCallbacks = this.initCallbacks.bind(this);
@@ -98,15 +107,12 @@ class CsoundScriptNodeProcessor {
 
   // try to do the same here as in Vanilla+Worklet
   process({ inputBuffer, outputBuffer }) {
-    if (!this.vanillaInitialized) {
-      if (this.workerMessagePort.vanillaWorkerState === "realtimePerformanceEnded") {
-        if (this.audioContext) {
-          this.audioContext.close();
-          this.audioContext = undefined;
-        }
-        return true;
-      }
+    if (this.workerMessagePort.vanillaWorkerState === "realtimePerformanceEnded") {
+      setPlayState({ contextUid: this.contextUid, newPlayState: "realtimePerformanceEnded" });
+      return true;
+    }
 
+    if (!this.vanillaInitialized) {
       // this minimizes startup glitches
       const firstTransferSize = this.softwareBufferSize * PERIODS;
 
@@ -257,12 +263,26 @@ const setPlayState = ({ contextUid, newPlayState }) => {
     // perhaps we are rendering, so this is just ignored
     return;
   }
-  if (newPlayState === "realtimePerformanceEnded") {
+  if (
+    newPlayState === "realtimePerformanceEnded" &&
+    spnClassInstance.workerMessagePort.vanillaWorkerState !== "realtimePerformanceEnded"
+  ) {
     // ping-pong
     spnClassInstance.workerMessagePort.broadcastPlayState("realtimePerformanceEnded");
+
+    if (window[`${contextUid}Node`]) {
+      if (spnClassInstance.autoConnect) {
+        window[`${contextUid}Node`].disconnect();
+      }
+      delete window[`${contextUid}Node`];
+    }
+    if (window[contextUid]) {
+      if (spnClassInstance.autoConnect && !spnClassInstance.audioContextIsProvided) {
+        window[contextUid].close();
+      }
+      delete window[contextUid];
+    }
     spnInstances.delete(contextUid);
-    window[contextUid] && delete window[contextUid];
-    window[`${contextUid}Node`] && delete window[`${contextUid}Node`];
   } else if (newPlayState === "realtimePerformanceResumed") {
     spnClassInstance.audioContext.state === "suspended" && spnClassInstance.audioContext.resume();
   }
@@ -279,6 +299,8 @@ const initialize = async ({
   audioInputPort,
   messagePort,
   requestPort,
+  audioContextIsProvided,
+  autoConnect,
 }) => {
   const audioContext = window[contextUid];
   const spnClassInstance = new CsoundScriptNodeProcessor({
@@ -289,6 +311,8 @@ const initialize = async ({
     inputsCount,
     outputsCount,
     sampleRate,
+    audioContextIsProvided,
+    autoConnect,
   });
   const workerMessagePort = initMessagePort({ port: messagePort, spnClassInstance });
   const transferInputFrames = initAudioInputPort({ audioInputPort, spnClassInstance });

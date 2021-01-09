@@ -1,12 +1,15 @@
 import * as Comlink from "comlink";
 import WorkletWorker from "@root/workers/worklet.worker";
 import log, { logWorklet } from "@root/logger";
+import { WebkitAudioContext } from "@root/utils";
 
 const connectedMidiDevices = new Set();
 let UID = 0;
 
 class AudioWorkletMainThread {
-  constructor({ audioContext }) {
+  constructor({ audioContext, audioContextIsProvided, autoConnect }) {
+    this.autoConnect = autoConnect;
+    this.audioContextIsProvided = audioContextIsProvided;
     this.ipcMessagePorts = undefined;
     this.audioContext = audioContext;
     this.audioWorkletNode = undefined;
@@ -42,10 +45,13 @@ class AudioWorkletMainThread {
             ? ` cleaning up ports`
             : "",
         );
-        // this.audioContext.close();
-        // this.audioWorkletNode.disconnect();
-        // delete this.audioWorkletNode;
-        // this.audioContext = undefined;
+        if (!this.audioContextIsProvided && this.autoConnect) {
+          this.audioContext.close();
+        }
+        if (this.autoConnect) {
+          this.audioWorkletNode.disconnect();
+        }
+        delete this.audioWorkletNode;
         this.currentPlayState = undefined;
         this.workletProxy = undefined;
         this.sampleRate = undefined;
@@ -72,31 +78,20 @@ class AudioWorkletMainThread {
     }
   }
 
-  // SAB bypasses this mechanism!
-  // connectPorts() {
-  //   logWorklet("initializing MessagePort on worker threads");
-
-  //   this.audioWorkletNode.port.postMessage({ msg: "initMessagePort" }, [
-  //     this.ipcMessagePorts.workerMessagePortAudio,
-  //   ]);
-
-  //   this.audioWorkletNode.port.postMessage({ msg: "initAudioInputPort" }, [
-  //     this.ipcMessagePorts.audioWorkerAudioInputPort,
-  //   ]);
-
-  //   this.audioWorkletNode.port.postMessage({ msg: "initRequestPort" }, [
-  //     this.ipcMessagePorts.audioWorkerFrameRequestPort,
-  //   ]);
-
-  //   try {
-  //     logWorklet("wrapping Comlink proxy endpoint on the audioWorkletNode.port");
-  //     this.workletProxy = Comlink.wrap(this.audioWorkletNode.port);
-  //   } catch (error) {
-  //     log.error("COMLINK ERROR", error);
-  //   }
-  // }
-
   async initialize() {
+    if (!this.audioContext) {
+      if (this.audioContextIsProvided) {
+        log.error(`fatal: the provided AudioContext was undefined`);
+      }
+      this.audioContext = new (WebkitAudioContext())();
+    }
+    if (this.audioContext.state === "closed") {
+      if (this.audioContextIsProvided) {
+        log.error(`fatal: the provided AudioContext was closed, falling back new AudioContext`);
+      }
+      this.audioContext = new (WebkitAudioContext())();
+    }
+
     await this.audioContext.audioWorklet.addModule(WorkletWorker());
     logWorklet("WorkletWorker module added");
 
@@ -178,13 +173,17 @@ class AudioWorkletMainThread {
           this.inputsCount = liveInput.channelCount;
           const newNode = createWorkletNode(this.audioContext, liveInput.channelCount);
           this.audioWorkletNode = newNode;
-          liveInput.connect(newNode).connect(this.audioContext.destination);
+          if (this.autoConnect) {
+            liveInput.connect(newNode).connect(this.audioContext.destination);
+          }
         } else {
           // Continue as before if user cancels
           this.inputsCount = 0;
           const newNode = createWorkletNode(this.audioContext, 0);
           this.audioWorkletNode = newNode;
-          this.audioWorkletNode.connect(this.audioContext.destination);
+          if (this.autoConnect) {
+            this.audioWorkletNode.connect(this.audioContext.destination);
+          }
         }
       };
 
@@ -210,7 +209,9 @@ class AudioWorkletMainThread {
       const newNode = createWorkletNode(this.audioContext, 0);
       this.audioWorkletNode = newNode;
       logWorklet("connecting Node to AudioContext destination");
-      this.audioWorkletNode.connect(this.audioContext.destination);
+      if (this.autoConnect) {
+        this.audioWorkletNode.connect(this.audioContext.destination);
+      }
     }
 
     this.workletProxy = Comlink.wrap(this.audioWorkletNode.port);
