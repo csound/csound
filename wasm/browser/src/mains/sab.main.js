@@ -1,7 +1,6 @@
 import * as Comlink from "comlink";
 import { api as API } from "@root/libcsound";
 import { messageEventHandler, IPCMessagePorts } from "@root/mains/messages.main";
-import { makeSABPerfCallback } from "@root/sab.main.utils";
 import SABWorker from "@root/workers/sab.worker";
 import {
   AUDIO_STATE,
@@ -56,21 +55,20 @@ class SharedArrayBufferMainThread {
 
     this.midiBuffer = new Int32Array(this.midiBufferSAB);
 
-    this.callbackBufferSAB = new SharedArrayBuffer(1024 * Int32Array.BYTES_PER_ELEMENT);
-
-    this.callbackBuffer = new Int32Array(this.callbackBufferSAB);
-
-    this.callbackStringDataBufferSAB = new SharedArrayBuffer(
-      CALLBACK_DATA_BUFFER_SIZE * Int8Array.BYTES_PER_ELEMENT,
-    );
-
-    this.callbackStringDataBuffer = new Uint8Array(this.callbackStringDataBufferSAB);
-
-    this.callbackFloatArrayDataBufferSAB = new SharedArrayBuffer(
-      CALLBACK_DATA_BUFFER_SIZE * Float64Array.BYTES_PER_ELEMENT,
-    );
-
-    this.callbackFloatArrayDataBuffer = new Float64Array(this.callbackFloatArrayDataBufferSAB);
+    // this.callbackBufferSAB = new SharedArrayBuffer(1024 * Int32Array.BYTES_PER_ELEMENT);
+    // this.callbackBuffer = new Int32Array(this.callbackBufferSAB);
+    // this.callbackStringDataBufferSAB = new SharedArrayBuffer(
+    //   CALLBACK_DATA_BUFFER_SIZE * Uint8Array.BYTES_PER_ELEMENT,
+    // );
+    // this.callbackStringDataBuffer = new Uint8Array(this.callbackStringDataBufferSAB);
+    // this.callbackFloat32ArrayDataBufferSAB = new SharedArrayBuffer(
+    //   CALLBACK_DATA_BUFFER_SIZE * Float32Array.BYTES_PER_ELEMENT,
+    // );
+    // this.callbackFloat32ArrayDataBuffer = new Float32Array(this.callbackFloat32ArrayDataBufferSAB);
+    // this.callbackFloat64ArrayDataBufferSAB = new SharedArrayBuffer(
+    //   CALLBACK_DATA_BUFFER_SIZE * Float64Array.BYTES_PER_ELEMENT,
+    // );
+    // this.callbackFloat64ArrayDataBuffer = new Float64Array(this.callbackFloat64ArrayDataBufferSAB);
 
     this.onPlayStateChange = this.onPlayStateChange.bind(this);
     logSAB(`SharedArrayBufferMainThread got constructed`);
@@ -238,9 +236,10 @@ class SharedArrayBufferMainThread {
     const audioStreamIn = this.audioStreamIn;
     const audioStreamOut = this.audioStreamOut;
     const midiBuffer = this.midiBuffer;
-    const callbackBuffer = this.callbackBuffer;
-    const callbackStringDataBuffer = this.callbackStringDataBuffer;
-    const callbackFloatArrayDataBuffer = this.callbackFloatArrayDataBuffer;
+    // const callbackBuffer = this.callbackBuffer;
+    // const callbackStringDataBuffer = this.callbackStringDataBuffer;
+    // const callbackFloat32ArrayDataBuffer = this.callbackFloat32ArrayDataBuffer;
+    // const callbackFloat64ArrayDataBuffer = this.callbackFloat64ArrayDataBuffer;
 
     // This will sadly create circular structure
     // that's still mostly harmless.
@@ -268,7 +267,7 @@ class SharedArrayBufferMainThread {
       const promize = returnQueue[uid];
       promize && promize(value);
     });
-    this.ipcMessagePorts.sabMainCallbackReply.start();
+    // this.ipcMessagePorts.sabMainCallbackReply.start();
 
     const proxyPort = Comlink.wrap(csoundWorker);
     const csoundInstance = await proxyPort.initialize(
@@ -276,10 +275,9 @@ class SharedArrayBufferMainThread {
         {
           wasmDataURI: this.wasmDataURI,
           messagePort: this.ipcMessagePorts.workerMessagePort,
-          callbackReplyPort: this.ipcMessagePorts.sabWorkerCallbackReply,
           withPlugins,
         },
-        [this.ipcMessagePorts.workerMessagePort, this.ipcMessagePorts.sabWorkerCallbackReply],
+        [this.ipcMessagePorts.workerMessagePort],
       ),
     );
     this.csoundInstance = csoundInstance;
@@ -334,9 +332,6 @@ class SharedArrayBufferMainThread {
               audioStreamIn,
               audioStreamOut,
               midiBuffer,
-              callbackBuffer,
-              callbackStringDataBuffer,
-              callbackFloatArrayDataBuffer,
               csound: csoundInstance,
             });
 
@@ -403,24 +398,33 @@ class SharedArrayBufferMainThread {
         }
 
         default: {
-          const perfCallback = makeSABPerfCallback({
-            apiK,
-            audioStatePointer,
-            callbackBuffer,
-            callbackStringDataBuffer,
-            callbackFloatArrayDataBuffer,
-            returnQueue,
-          });
           const bufferWrappedCallback = async (...args) => {
             return await proxyCallback.apply(undefined, args);
-            // if (
-            //   this.currentPlayState === "realtimePerformanceStarted" ||
-            //   this.currentPlayState === "renderStarted"
-            // ) {
-            //   return await perfCallback(args);
-            // } else {
-            //   return await proxyCallback.apply(undefined, args);
-            // }
+            if (
+              this.currentPlayState === "realtimePerformanceStarted" ||
+              this.currentPlayState === "renderStarted"
+            ) {
+              // avoiding deadlock by sending the IPC callback
+              // while thread is unlocked
+              const waitResult = Atomics.wait(
+                audioStatePointer,
+                AUDIO_STATE.ATOMIC_NOTIFY,
+                0,
+                1000,
+              );
+              if (waitResult === "timed-out") {
+                console.error("Worker timed out so ${csoundApiRename(apiK)}() wasn't called!");
+              }
+              return await proxyCallback.apply(undefined, args);
+            } else if (
+              this.currentPlayState === "realtimePerformanceEnded" ||
+              this.currentPlayState === "renderEnded"
+            ) {
+              console.error(`${csoundApiRename(apiK)} was called after perfomance ended`);
+              return;
+            } else {
+              return await proxyCallback.apply(undefined, args);
+            }
           };
           bufferWrappedCallback.toString = () => reference.toString();
           this.exportApi[csoundApiRename(apiK)] = bufferWrappedCallback;

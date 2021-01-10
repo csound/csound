@@ -159,8 +159,6 @@ i1 0 2
         const startReturn = await cs.start();
         assert.equal(startReturn, 0);
         await cs.stop();
-        // const audioNode = await cs.getNode();
-        // audioNode && audioNode.disconnect();
       });
 
       it("has expected methods", async function () {
@@ -171,8 +169,6 @@ i1 0 2
         assert.property(cs, "stop", "has .stop() method");
         assert.property(cs, "pause", "has .pause() method");
         await cs.stop();
-        // const audioNode = await cs.getNode();
-        // audioNode && audioNode.disconnect();
       });
 
       it("can use run using just compileOrc", async function () {
@@ -188,8 +184,6 @@ i1 0 2
         const startReturn = await cs.start();
         assert.equal(startReturn, 0);
         await cs.stop();
-        // const audioNode = await cs.getNode();
-        // audioNode && audioNode.disconnect();
       });
 
       it("can play tone and get channel values", async function () {
@@ -198,11 +192,10 @@ i1 0 2
         const compileReturn = await cs.compileCsdText(shortTone);
         assert.equal(compileReturn, 0);
         const startReturn = await cs.start();
+
         assert.equal(startReturn, 0);
         assert.equal(1, await cs.getControlChannel("test1"));
         assert.equal(2, await cs.getControlChannel("test2"));
-        // const audioNode = await cs.getNode();
-        // audioNode && audioNode.disconnect();
         await cs.stop();
       });
 
@@ -215,25 +208,19 @@ i1 0 2
         assert.equal(startReturn, 0);
         await cs.setControlChannel("freq", 880);
         assert.equal(880, await cs.getControlChannel("freq"));
-        // const audioNode = await cs.getNode();
-        // audioNode && audioNode.disconnect();
         await cs.stop();
       });
 
       it("can send and receive string channel values", async function () {
         this.timeout(10000);
         const cs = await Csound(test);
-        console.log(cs);
         const compileReturn = await cs.compileCsdText(stringChannelTest);
         assert.equal(compileReturn, 0);
         const startReturn = await cs.start();
         assert.equal(startReturn, 0);
-        console.log(await cs.getStringChannel("strChannel"));
         assert.equal("test0", await cs.getStringChannel("strChannel"));
         await cs.setStringChannel("strChannel", "test1");
         assert.equal("test1", await cs.getStringChannel("strChannel"));
-        // const audioNode = await cs.getNode();
-        // audioNode && audioNode.disconnect();
         await cs.stop();
       });
 
@@ -247,8 +234,6 @@ i1 0 2
         const cs = await Csound(testWithPlugin);
         assert.equal(0, await cs.compileCsdText(pluginTest));
         await cs.start();
-        // const audioNode = await cs.getNode();
-        // audioNode && audioNode.disconnect();
         await cs.stop();
       });
 
@@ -270,12 +255,14 @@ i1 0 2
         const eventPlaySpy = sinon.spy();
         const eventPauseSpy = sinon.spy();
         const eventStopSpy = sinon.spy();
+        const eventOnAudioNodeCreatedSpy = sinon.spy();
 
         const csoundObj = await Csound(test);
 
         csoundObj.on("play", eventPlaySpy);
         csoundObj.on("pause", eventPauseSpy);
         csoundObj.on("stop", eventStopSpy);
+        csoundObj.on("onAudioNodeCreated", eventOnAudioNodeCreatedSpy);
 
         await csoundObj.setOption("-odac");
         await csoundObj.compileCsdText(shortTone);
@@ -286,6 +273,14 @@ i1 0 2
         assert(eventPlaySpy.calledOnce, 'The "play" event was emitted once');
         assert(eventPauseSpy.calledOnce, 'The "pause" event was emitted once');
         assert(eventStopSpy.calledOnce, 'The "stop" event was emitted once');
+        assert(
+          eventOnAudioNodeCreatedSpy.calledOnce,
+          'The "onAudioNodeCreated" event was emitted once',
+        );
+        assert(
+          eventOnAudioNodeCreatedSpy.calledWith(sinon.match.instanceOf(AudioNode)),
+          'The argument provided to the callback of "onAudioNodeCreated" was an AudioNode',
+        );
       });
     });
   });

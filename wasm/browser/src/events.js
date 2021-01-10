@@ -13,6 +13,8 @@ import EE3 from "eventemitter3";
  * @property {string} "realtimePerformanceEnded" called after end of performance or after a successful csound.stop()
  * @property {string} "renderStarted" called at the start of offline/non-realtime render to disk
  * @property {string} "renderEnded" called at the end of offline/non-realtime render to disk
+ * @property {string} "onAudioNodeCreated" called when an audioNode is created from the AudioContext before realtime performance,
+ * the event callback will include the audioNode itself, which is needed if autoConnect is set to false.
  */
 
 export class PublicEventAPI {
@@ -27,7 +29,7 @@ export class PublicEventAPI {
     this.triggerRealtimePerformanceEnded = this.triggerRealtimePerformanceEnded.bind(this);
     this.triggerRenderStarted = this.triggerRenderStarted.bind(this);
     this.triggerRenderEnded = this.triggerRenderEnded.bind(this);
-    // this.eventEmitter.emit = this.eventEmitter.emit.bind(this.eventEmitter);
+    this.triggerOnAudioNodeCreated = this.triggerOnAudioNodeCreated.bind(this);
   }
 
   triggerRealtimePerformanceStarted() {
@@ -78,6 +80,10 @@ export class PublicEventAPI {
     }
   }
 
+  triggerOnAudioNodeCreated(audioNode) {
+    this.eventEmitter.emit("onAudioNodeCreated", audioNode);
+  }
+
   decorateAPI(exportApi) {
     /**
      * Removes the specified listener from the listener array for the event named eventName.
@@ -98,6 +104,13 @@ export class PublicEventAPI {
      * @return {Array<string>}
      */
     exportApi["eventNames"] = this.eventEmitter.eventNames.bind(this.eventEmitter);
+    /**
+     * Returns the number of listeners listening to the event named eventName.
+     * @function
+     * @name listenerCount
+     * @memberof CsoundObj
+     * @return {number}
+     */
     exportApi["listenerCount"] = this.eventEmitter.listenerCount.bind(this.eventEmitter);
     /**
      * Returns a copy of the array of listeners for the event named eventName.
@@ -108,10 +121,67 @@ export class PublicEventAPI {
      * @return {Array<function>}
      */
     exportApi["listeners"] = this.eventEmitter.listeners.bind(this.eventEmitter);
+    /**
+     * Alias for removeListener()
+     * @function
+     * @name off
+     * @memberof CsoundObj
+     * @param {PublicEvents} eventName
+     * @param {function} listener
+     * @return {external:EventEmitter}
+     */
     exportApi["off"] = this.eventEmitter.off.bind(this.eventEmitter);
+    /**
+     * Adds the listener function to the end of the listeners array for the event named eventName.
+     * No checks are made to see if the listener has already been added.
+     * Multiple calls passing the same combination of eventName and listener
+     * will result in the listener being added, and called, multiple times.
+     * @function
+     * @name on
+     * @memberof CsoundObj
+     * @param {PublicEvents} eventName
+     * @param {function} listener
+     * @return {external:EventEmitter}
+     */
     exportApi["on"] = this.eventEmitter.on.bind(this.eventEmitter);
+    /**
+     * Adds a one-time listener function for the event named eventName.
+     * The next time eventName is triggered, this listener is removed and then invoked.
+     * @function
+     * @name once
+     * @memberof CsoundObj
+     * @param {PublicEvents} eventName
+     * @param {function} listener
+     * @return {external:EventEmitter}
+     */
     exportApi["once"] = this.eventEmitter.once.bind(this.eventEmitter);
+    /**
+     * Removes all listeners, or those of the specified eventName.
+     * It is bad practice to remove listeners added elsewhere in the code,
+     * particularly when the EventEmitter instance was created by some other
+     * component or module.
+     * Returns a reference to the EventEmitter, so that calls can be chained.
+     * @function
+     * @name removeAllListeners
+     * @memberof CsoundObj
+     * @param {PublicEvents} eventName
+     * @param {function} listener
+     * @return {external:EventEmitter}
+     */
     exportApi["removeAllListeners"] = this.eventEmitter.removeAllListeners.bind(this.eventEmitter);
+    /**
+     * Removes the specified listener from the listener array for the event named eventName.
+     * removeListener() will remove, at most, one instance of a listener from the listener array.
+     * If any single listener has been added multiple times to the listener array for the specified eventName,
+     * then removeListener() must be called multiple times to remove each instance.
+     * Removes the specified listener from the listener array for the event named eventName.
+     * @function
+     * @name removeListener
+     * @memberof CsoundObj
+     * @param {PublicEvents} eventName
+     * @param {function} listener
+     * @return {external:EventEmitter}
+     */
     exportApi["removeListener"] = this.eventEmitter.removeListener.bind(this.eventEmitter);
     return exportApi;
   }

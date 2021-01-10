@@ -283,6 +283,7 @@ class CsoundWorkletProcessor extends AudioWorkletProcessor {
   }
 
   initCallbacks({ workerMessagePort, audioInputPort, audioFramePort }) {
+    logWorklet(`initCallbacks in worker`);
     if (workerMessagePort) {
       this.workerMessagePort = workerMessagePort;
     }
@@ -359,6 +360,7 @@ function initMessagePort({ port }) {
 }
 
 function initRequestPort({ requestPort, audioNode }) {
+  logWorklet(`initRequestPort in worker`);
   requestPort.addEventListener("message", (requestPortEvent) => {
     const { audioPacket, readIndex, numFrames } = requestPortEvent.data;
     audioNode.updateVanillaFrames({ audioPacket, numFrames, readIndex });
@@ -373,6 +375,7 @@ function initRequestPort({ requestPort, audioNode }) {
 }
 
 function initAudioInputPort({ inputPort }) {
+  logWorklet(`initAudioInputPort in worker`);
   return {
     ready: false,
     transferInputFrames: (frames) => inputPort.postMessage(frames),

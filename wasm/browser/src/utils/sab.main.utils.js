@@ -3,12 +3,13 @@ import { encoder } from "@root/utils";
 
 let uid = 0;
 
-export const makeSABPerfCallback = ({
+export const makeSABPerfCallback = async ({
   apiK,
   audioStatePointer,
   callbackBuffer,
   callbackStringDataBuffer,
-  callbackFloatArrayDataBuffer,
+  callbackFloat32ArrayDataBuffer,
+  callbackFloat64ArrayDataBuffer,
   returnQueue,
 }) => (args) => {
   uid += 1;
@@ -18,9 +19,37 @@ export const makeSABPerfCallback = ({
     rejectCallback = reject;
   });
   const argumentz = [apiK, ...args];
-  const callbackBufferIndex = Atomics.load(audioStatePointer, AUDIO_STATE.CALLBACK_BUFFER_INDEX);
-  Atomics.store(callbackBuffer, callbackBufferIndex, argumentz.length);
-  Atomics.store(callbackBuffer, callbackBufferIndex + 1, argumentz.length);
+  // store all the data so that we can push it to the shared arryay buffer
+  // somewhat atomically
+  const callbackBufferSlice = new Int32Array(2 + 3 * argumentz.length);
+  callbackBufferSlice[0] = argumentz.length;
+  callbackBufferSlice[1] = uid;
+
+  await argumentz.reduce(async (acc, argument, index) => {
+    await acc;
+    const argumentPosition = index * 3 + 2;
+
+    if (typeof argument === "number") {
+      const dataType = DATA_TYPE.NUMBER;
+      callbackBufferSlice[argumentPosition] = dataType;
+      callbackBufferSlice[argumentPosition + 1] = argument;
+      return acc;
+    }
+
+    if (typeof argument == "string") {
+      const stringBuffer = encoder.encode(argument);
+      const callbackStringDataBufferIndex = Atomics.load(
+        audioStatePointer,
+        AUDIO_STATE.CALLBACK_STRING_DATA_BUFFER_POS,
+      );
+    }
+
+
+  })
+
+  // const callbackBufferIndex = Atomics.load(audioStatePointer, AUDIO_STATE.CALLBACK_BUFFER_INDEX);
+  // Atomics.store(callbackBuffer, callbackBufferIndex, argumentz.length);
+  // Atomics.store(callbackBuffer, callbackBufferIndex + 1, argumentz.length);
   argumentz.forEach((argument, index) => {
     const argumentPosition = callbackBufferIndex + index * 3 + 2;
     if (typeof argument === "number") {
@@ -28,6 +57,7 @@ export const makeSABPerfCallback = ({
       Atomics.store(callbackBuffer, argumentPosition, dataType);
       Atomics.store(callbackBuffer, argumentPosition + 1, argument);
     } else if (typeof argument == "string") {
+      const stringBuffer = encoder.encode(argument);
       const callbackStringDataBufferIndex = Atomics.load(
         audioStatePointer,
         AUDIO_STATE.CALLBACK_STRING_DATA_BUFFER_POS,
@@ -58,10 +88,9 @@ export const makeSABPerfCallback = ({
           callbackStringDataBufferIndex + argument.length,
         );
       }
-    } else if (
-      typeof argument == "object" &&
-      (argument.constructor === Float32Array || argument.constructor === Float64Array)
-    ) {
+    } else if (typeof argument == "object" && argument instanceof Float32Array) {
+      console.error(`TODO!`);
+    } else if (typeof argument == "object" && argument instanceof Float64Array) {
       console.error(`TODO!`);
     } else {
       console.error(`Illegal argument in ${apiK}: ${argument}`);

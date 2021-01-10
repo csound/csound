@@ -49,7 +49,7 @@ class AudioWorkletMainThread {
           !this.audioContextIsProvided &&
           this.autoConnect &&
           this.audioContext &&
-          this.audioContext.state === "running"
+          this.audioContext.state !== "closed"
         ) {
           await this.audioContext.close();
         }
@@ -109,7 +109,7 @@ class AudioWorkletMainThread {
     UID += 1;
 
     const createWorkletNode = (audioContext, inputsCount) => {
-      return new AudioWorkletNode(audioContext, "csound-worklet-processor", {
+      const audioNode = new AudioWorkletNode(audioContext, "csound-worklet-processor", {
         inputChannelCount: inputsCount ? [inputsCount] : 0,
         outputChannelCount: [this.outputsCount || 2],
         processorOptions: {
@@ -128,6 +128,8 @@ class AudioWorkletMainThread {
             this.csoundWorkerMain.hasSharedArrayBuffer && this.csoundWorkerMain.audioStreamOut,
         },
       });
+      this.csoundWorkerMain.publicEvents.triggerOnAudioNodeCreated(audioNode);
+      return audioNode;
     };
 
     if (this.isRequestingMidi) {
@@ -220,6 +222,7 @@ class AudioWorkletMainThread {
     }
 
     this.workletProxy = Comlink.wrap(this.audioWorkletNode.port);
+
     await this.workletProxy.initialize(
       Comlink.transfer(
         {
@@ -235,6 +238,7 @@ class AudioWorkletMainThread {
         ],
       ),
     );
+    logWorklet("initialization finished in main");
   }
 }
 
