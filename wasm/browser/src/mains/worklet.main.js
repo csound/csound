@@ -45,13 +45,18 @@ class AudioWorkletMainThread {
             ? ` cleaning up ports`
             : "",
         );
-        if (!this.audioContextIsProvided && this.autoConnect) {
-          this.audioContext.close();
+        if (
+          !this.audioContextIsProvided &&
+          this.autoConnect &&
+          this.audioContext &&
+          this.audioContext.state === "running"
+        ) {
+          await this.audioContext.close();
         }
-        if (this.autoConnect) {
+        if (this.autoConnect && this.audioWorkletNode) {
           this.audioWorkletNode.disconnect();
         }
-        delete this.audioWorkletNode;
+        this.audioWorkletNode && delete this.audioWorkletNode;
         this.currentPlayState = undefined;
         this.workletProxy = undefined;
         this.sampleRate = undefined;
