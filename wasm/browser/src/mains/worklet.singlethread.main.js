@@ -198,6 +198,7 @@ class SingleThreadAudioWorkletMainThread {
             const startResult = await proxyCallback({
               csound: csoundInstance,
             });
+            this.publicEvents.triggerOnAudioNodeCreated(this.node);
             await startPromise;
             return startResult;
           };

@@ -112,7 +112,7 @@ class ScriptProcessorNodeMainThread {
     }
 
     const iFrameWin = iFrame.contentWindow;
-    const iFrameDoc = iFrameWin.document;
+    // const iFrameDoc = iFrameWin.document;
 
     spnWorker = iFrameWin;
   }
@@ -168,6 +168,10 @@ class ScriptProcessorNodeMainThread {
         ],
       ),
     );
+    if (this.csoundWorkerMain && this.csoundWorkerMain.publicEvents) {
+      const audioNode = spnWorker[`${contextUid}Node`];
+      audioNode && this.csoundWorkerMain.publicEvents.triggerOnAudioNodeCreated(audioNode);
+    }
   }
 }
 
