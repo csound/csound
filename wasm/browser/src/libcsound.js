@@ -64,6 +64,13 @@ import {
 import { csoundGetInputName, csoundGetOutputName } from "@module/general-io";
 import { csoundAppendEnv, csoundShouldDaemonize } from "@module/extra";
 import { csoundIsScorePending, csoundSetScorePending } from "@module/score-handling";
+import {
+  csoundTableLength,
+  csoundTableGet,
+  csoundTableSet,
+  csoundTableCopyIn,
+  csoundTableCopyOut,
+} from "@module/table";
 
 /*
    Don't call these functions directly.
@@ -137,6 +144,12 @@ export const api = {
   // @module/score-handling
   csoundIsScorePending,
   csoundSetScorePending,
+  // @module/table
+  csoundTableLength,
+  csoundTableGet,
+  csoundTableSet,
+  csoundTableCopyIn,
+  csoundTableCopyOut,
 };
 
 export default function (wasm) {

@@ -50,6 +50,7 @@ void freeStringMem (char* ptr) {
   free(ptr);
 }
 
+__attribute__((used))
 CSOUND_PARAMS* allocCsoundParamsStruct() {
   CSOUND_PARAMS* ptr = NULL;
   ptr = malloc(sizeof(CSOUND_PARAMS));
@@ -57,6 +58,19 @@ CSOUND_PARAMS* allocCsoundParamsStruct() {
 }
 
 void freeCsoundParams(CSOUND_PARAMS* ptr) {
+  free(ptr);
+}
+
+__attribute__((used))
+double* allocFloatArray(int length) {
+  double *ptr = NULL;
+  ptr = malloc((length * sizeof(double)) + 1);
+  // NULL Terminate
+  ptr[length * sizeof(double)] = '\0';
+  return ptr;
+}
+
+void freeFloatArrayMem(double* ptr) {
   free(ptr);
 }
 

@@ -140,6 +140,24 @@ i1 0 2
 </CsoundSynthesizer>
 `;
 
+  const ftableTest = `
+<CsoundSynthesizer>
+<CsOptions>
+    -odac
+</CsOptions>
+<CsInstruments>
+    instr 1
+    prints "Hello Fibonnaci!\\n"
+    prints "Table length %d\\n", tableng:i(1)
+    endin
+</CsInstruments>
+<CsScore>
+    f 1 0 8 -2 0 1 1 2 3 5 8 13
+    i 1 0 -1
+</CsScore>
+</CsoundSynthesizer>
+`;
+
   mocha.setup("bdd").fullTrace();
 
   const csoundVariations = [
@@ -282,6 +300,20 @@ i1 0 2
           eventOnAudioNodeCreatedSpy.calledWith(sinon.match.instanceOf(AudioNode)),
           'The argument provided to the callback of "onAudioNodeCreated" was an AudioNode',
         );
+      });
+
+      it("can read and write ftabled in realtime", async function () {
+        const csoundObj = await Csound(test);
+        await csoundObj.setOption("-odac");
+        await csoundObj.compileCsdText(ftableTest);
+        await csoundObj.start();
+        assert.equal(8, await csoundObj.tableLength(1));
+        // assert few indicies
+        assert.equal(0, await csoundObj.tableGet(1, 0));
+        assert.equal(1, await csoundObj.tableGet(1, 1));
+        assert.equal(1, await csoundObj.tableGet(1, 2));
+        assert.equal(2, await csoundObj.tableGet(1, 3));
+        await csoundObj.stop();
       });
     });
   });

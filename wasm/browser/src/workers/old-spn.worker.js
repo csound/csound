@@ -64,13 +64,14 @@ class CsoundScriptNodeProcessor {
 
   initCallbacks({ workerMessagePort, transferInputFrames, requestPort }) {
     this.workerMessagePort = workerMessagePort;
+
     this.transferInputFrames = transferInputFrames;
     this.requestPort = requestPort;
 
     // Safari autoplay cancer :(
     if (this.audioContext.state === "suspended") {
       this.workerMessagePort.broadcastPlayState("realtimePerformancePaused");
-      this.workerMessagePort.vanillaWorkerState = "realtimePerformancePaused";
+      // this.workerMessagePort.vanillaWorkerState = "realtimePerformancePaused";
     }
   }
 
@@ -99,9 +100,10 @@ class CsoundScriptNodeProcessor {
         }
       }
       this.vanillaAvailableFrames += numFrames;
-      if (!this.vanillaFirstTransferDone) {
-        this.vanillaFirstTransferDone = true;
-      }
+    }
+    if (!this.vanillaFirstTransferDone) {
+      this.vanillaFirstTransferDone = true;
+      this.workerMessagePort.broadcastPlayState("realtimePerformanceStarted");
     }
   }
 
@@ -116,10 +118,11 @@ class CsoundScriptNodeProcessor {
       // this minimizes startup glitches
       const firstTransferSize = this.softwareBufferSize * PERIODS;
 
-      this.requestPort.postMessage.call(this.requestPort, {
+      this.requestPort.postMessage({
         readIndex: 0,
         numFrames: firstTransferSize,
       });
+
       this.pendingFrames += firstTransferSize;
       this.vanillaInitialized = true;
       return true;
@@ -228,11 +231,12 @@ class CsoundScriptNodeProcessor {
 }
 const initAudioInputPort = ({ audioInputPort }) => (frames) => audioInputPort.postMessage(frames);
 
-const initMessagePort = ({ port, spnClassInstance }) => {
+const initMessagePort = ({ port, initialPlayState }) => {
   const workerMessagePort = new MessagePortState();
   workerMessagePort.post = (log) => port.postMessage({ log });
   workerMessagePort.broadcastPlayState = (playStateChange) => port.postMessage({ playStateChange });
   workerMessagePort.ready = true;
+  workerMessagePort.vanillaWorkerState = initialPlayState;
   return workerMessagePort;
 };
 
@@ -241,15 +245,16 @@ const initRequestPort = ({ requestPort, spnClassInstance }) => {
     const { audioPacket, readIndex, numFrames } = requestPortEvent.data;
     spnClassInstance.updateVanillaFrames({ audioPacket, numFrames, readIndex });
   });
+  requestPort.start();
   return requestPort;
 };
 
 const setPlayState = ({ contextUid, newPlayState }) => {
-  const spnClassInstance = spnInstances.set(contextUid);
+  const spnClassInstance = spnInstances.get(contextUid);
   if (!spnClassInstance) {
-    console.error("Tried to set playState after node was deleted, or before it was created!");
     return;
   }
+
   // unclear I know, but it's just here to imperatively
   // resume with audioplay policy in mind
   if (newPlayState === "resume") {
@@ -301,6 +306,7 @@ const initialize = async ({
   requestPort,
   audioContextIsProvided,
   autoConnect,
+  initialPlayState,
 }) => {
   const audioContext = window[contextUid];
   const spnClassInstance = new CsoundScriptNodeProcessor({
@@ -314,7 +320,8 @@ const initialize = async ({
     audioContextIsProvided,
     autoConnect,
   });
-  const workerMessagePort = initMessagePort({ port: messagePort, spnClassInstance });
+
+  const workerMessagePort = initMessagePort({ port: messagePort, initialPlayState });
   const transferInputFrames = initAudioInputPort({ audioInputPort, spnClassInstance });
   initRequestPort({ requestPort, spnClassInstance });
   spnClassInstance.initCallbacks({ workerMessagePort, transferInputFrames, requestPort });

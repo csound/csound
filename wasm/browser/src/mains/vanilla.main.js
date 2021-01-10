@@ -127,13 +127,6 @@ class VanillaWorkerMainThread {
     } catch (error) {
       console.error(`Csound thread crashed while receiving an IPC message: ${error}`);
     }
-
-    if (this.startPromiz && newPlayState !== "realtimePerformanceStarted") {
-      // either we are rendering or something went wrong with the start
-      // otherwise the audioWorker resolves this
-      this.startPromiz();
-      delete this.startPromiz;
-    }
   }
 
   async addMessageCallback(callback) {
@@ -167,6 +160,10 @@ class VanillaWorkerMainThread {
   }
 
   async initialize({ withPlugins }) {
+    if (typeof this.audioWorker.initIframe === "function") {
+      await this.audioWorker.initIframe();
+    }
+
     if (withPlugins && !isEmpty(withPlugins)) {
       withPlugins = await fetchPlugins(withPlugins);
     }
@@ -227,8 +224,16 @@ class VanillaWorkerMainThread {
               console.error("starting csound failed because csound instance wasn't created");
               return -1;
             }
-            const startPromise = new Promise((resolve) => {
+            const startPromise = new Promise((resolve, reject) => {
               this.startPromiz = resolve;
+              setTimeout(() => {
+                if (typeof this.startPromiz === "function") {
+                  reject(`a call to start() timed out`);
+                  delete this.startPromiz;
+                  return -1;
+                }
+                // 10 second timeout
+              }, 10 * 60 * 1000);
             });
             const startResult = await proxyCallback({
               csound: csoundInstance,

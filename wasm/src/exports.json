@@ -18,6 +18,8 @@
   "freeStringMem",
   "freeCsMidiDeviceStruct",
   "allocStringMem",
+  "allocFloatArray",
+  "freeFloatArrayMem",
   "csoundAddSpinSample",
   "csoundAppendOpcode",
   "csoundAppendOpcodes",

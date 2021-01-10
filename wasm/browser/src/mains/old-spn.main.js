@@ -1,7 +1,8 @@
 import * as Comlink from "comlink";
 import ScriptProcessorNodeWorker from "@root/workers/old-spn.worker";
 import log, { logSPN } from "@root/logger";
-import { IPCMessagePorts } from "@root/mains/messages.main";
+import { messageEventHandler } from "@root/mains/messages.main";
+import { WebkitAudioContext } from "@root/utils";
 
 // we reuse the spnWorker
 // since it handles multiple
@@ -15,7 +16,6 @@ class ScriptProcessorNodeMainThread {
   constructor({ audioContext, audioContextIsProvided, autoConnect }) {
     this.autoConnect = autoConnect;
     this.audioContextIsProvided = audioContextIsProvided;
-    this.ipcMessagePorts = new IPCMessagePorts();
 
     this.audioContext = audioContext;
     this.currentPlayState = undefined;
@@ -37,13 +37,31 @@ class ScriptProcessorNodeMainThread {
   }
 
   async onPlayStateChange(newPlayState) {
-    this.currentPlayState = newPlayState;
-    proxyPort && proxyPort.setPlayState({ contextUid: this.contextUid, newPlayState });
+    if (this.currentPlayState === newPlayState) {
+      if (newPlayState === "realtimePerformanceStarted" && this.csoundWorkerMain.startPromiz) {
+        // hacky SAB timing fix when starting
+        // eventually, replace this spaghetti with
+        // private/internal event emitters
+        const startPromiz = this.csoundWorkerMain.startPromiz;
+        setTimeout(() => {
+          startPromiz();
+        }, 0);
+        delete this.csoundWorkerMain.startPromiz;
+      }
+      return;
+    }
+
+    proxyPort &&
+      (await proxyPort.setPlayState({
+        contextUid: this.contextUid,
+        newPlayState,
+      }));
 
     switch (newPlayState) {
       case "realtimePerformanceStarted": {
         logSPN("event received: realtimePerformanceStarted");
         try {
+          this.currentPlayState = newPlayState;
           await this.initialize();
         } catch (error) {
           console.error(error);
@@ -58,16 +76,7 @@ class ScriptProcessorNodeMainThread {
         break;
       }
     }
-    // hacky SAB timing fix when starting
-    // eventually, replace this spaghetti with
-    // private/internal event emitters
-    if (this.csoundWorkerMain.startPromiz) {
-      const startPromiz = this.csoundWorkerMain.startPromiz;
-      setTimeout(() => {
-        startPromiz();
-      }, 0);
-      delete this.csoundWorkerMain.startPromiz;
-    }
+    this.currentPlayState = newPlayState;
   }
 
   async initIframe() {
@@ -148,6 +157,8 @@ class ScriptProcessorNodeMainThread {
     }
 
     spnWorker[contextUid] = this.audioContext;
+    const { port1: mainMessagePort, port2: workerMessagePort } = new MessageChannel();
+
     await proxyPort.initialize(
       Comlink.transfer(
         {
@@ -157,17 +168,22 @@ class ScriptProcessorNodeMainThread {
           inputsCount: this.inputsCount,
           outputsCount: this.outputsCount,
           sampleRate: this.sampleRate,
-          messagePort: this.ipcMessagePorts.workerMessagePortAudio,
+          audioInputPort: this.ipcMessagePorts.audioWorkerAudioInputPort,
+          messagePort: workerMessagePort,
           requestPort: this.ipcMessagePorts.audioWorkerFrameRequestPort,
           audioContextIsProvided: this.audioContextIsProvided,
           autoConnect: this.autoConnect,
+          initialPlayState: this.currentPlayState,
         },
         [
-          this.ipcMessagePorts.workerMessagePortAudio,
+          this.ipcMessagePorts.audioWorkerAudioInputPort,
+          workerMessagePort,
           this.ipcMessagePorts.audioWorkerFrameRequestPort,
         ],
       ),
     );
+    mainMessagePort.addEventListener("message", messageEventHandler(this));
+    mainMessagePort.start();
     if (this.csoundWorkerMain && this.csoundWorkerMain.publicEvents) {
       const audioNode = spnWorker[`${contextUid}Node`];
       audioNode && this.csoundWorkerMain.publicEvents.triggerOnAudioNodeCreated(audioNode);
