@@ -106,12 +106,14 @@ class ScriptProcessorNodeSingleThread {
 
   async pause() {
     if (this.started && this.running) {
+      this.running = false;
       this.onPlayStateChange("realtimePerformancePaused");
     }
   }
 
   async resume() {
     if (this.started && !this.running) {
+      this.running = true;
       this.onPlayStateChange("realtimePerformanceResumed");
     }
   }

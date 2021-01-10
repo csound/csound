@@ -270,8 +270,8 @@ i1 0 2
         await csoundObj.pause();
         await csoundObj.resume();
         await csoundObj.stop();
-        // fixme called -> calledTwice
-        assert(eventPlaySpy.called, 'The "play" event was emitted twice');
+
+        assert(eventPlaySpy.calledTwice, 'The "play" event was emitted twice');
         assert(eventPauseSpy.calledOnce, 'The "pause" event was emitted once');
         assert(eventStopSpy.calledOnce, 'The "stop" event was emitted once');
         assert(
