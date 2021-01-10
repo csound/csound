@@ -38,6 +38,9 @@ class ScriptProcessorNodeSingleThread {
     this.currentPlayState = undefined;
     this.onPlayStateChange = this.onPlayStateChange.bind(this);
     this.start = this.start.bind(this);
+    this.stop = this.stop.bind(this);
+    this.pause = this.pause.bind(this);
+    this.resume = this.resume.bind(this);
     this.wasm = undefined;
     this.csoundInstance = undefined;
     this.csoundApi = undefined;
@@ -53,18 +56,20 @@ class ScriptProcessorNodeSingleThread {
     // this is the only actual single-thread usecase
     // so we get away with just forwarding it as if it's form
     // a message port
+    this.messageEventHandler = messageEventHandler(this).bind(this);
     this.messagePort = new MessagePortState();
-    this.messagePort.post = (log) => messageEventHandler({ event: { data: { log } } });
-    this.messagePort.broadcastPlayState = (playStateChange) => {
-      this.currentPlayState = playStateChange;
-    };
+    this.messagePort.post = (log) => this.messageEventHandler({ data: { log } });
     this.messagePort.ready = true;
 
     // imports from original csound-wasm
+    this.running = false;
     this.started = false;
   }
 
   async onPlayStateChange(newPlayState) {
+    if (this.currentPlayState === newPlayState) {
+      return;
+    }
     this.currentPlayState = newPlayState;
     switch (newPlayState) {
       case "realtimePerformanceStarted": {
@@ -99,9 +104,29 @@ class ScriptProcessorNodeSingleThread {
     }
   }
 
-  async pause() {}
+  async pause() {
+    if (this.started && this.running) {
+      this.onPlayStateChange("realtimePerformancePaused");
+    }
+  }
 
-  async resume() {}
+  async resume() {
+    if (this.started && !this.running) {
+      this.onPlayStateChange("realtimePerformanceResumed");
+    }
+  }
+
+  async stop() {
+    if (this.started) {
+      const stopPromise = new Promise((resolve) => {
+        this.stopPromiz = resolve;
+      });
+      const stopResult = this.csoundApi.csoundStop(this.csoundInstance);
+      await stopPromise;
+      this.csoundOutputBuffer = null;
+      return stopResult;
+    }
+  }
 
   async start() {
     if (!this.csoundApi) {
@@ -110,6 +135,13 @@ class ScriptProcessorNodeSingleThread {
     }
 
     if (this.currentPlayState !== "realtimePerformanceStarted") {
+      this.result = 0;
+      this.csoundApi.csoundSetOption(this.csoundInstance, "-odac");
+      this.csoundApi.csoundSetOption(this.csoundInstance, "-iadc");
+      this.csoundApi.csoundSetOption(this.csoundInstance, "--sample-rate=" + this.sampleRate);
+      this.nchnls = -1;
+      this.nchnls_i = -1;
+
       const ksmps = this.csoundApi.csoundGetKsmps(this.csoundInstance);
       this.ksmps = ksmps;
       this.cnt = ksmps;
@@ -131,10 +163,16 @@ class ScriptProcessorNodeSingleThread {
         ksmps * this.nchnls_i,
       );
       this.zerodBFS = this.csoundApi.csoundGet0dBFS(this.csoundInstance);
-      this.started = true;
+
+      this.publicEvents.triggerOnAudioNodeCreated(this.spn);
+      const startPromise = new Promise((resolve) => {
+        this.startPromiz = resolve;
+      });
+      const startResult = this.csoundApi.csoundStart(this.csoundInstance);
+      this.running = true;
+      await startPromise;
+      return startResult;
     }
-    this.onPlayStateChange("realtimePerformanceStarted");
-    return this.csoundApi.csoundStart(this.csoundInstance);
   }
 
   async setMessageCallback() {}
@@ -175,6 +213,7 @@ class ScriptProcessorNodeSingleThread {
     this.exportApi.resume = this.resume.bind(this);
     this.exportApi.setMessageCallback = this.setMessageCallback.bind(this);
     this.exportApi.start = this.start.bind(this);
+    this.exportApi.stop = this.stop.bind(this);
     this.exportApi.reset = () => this.resetCsound(true);
     this.exportApi.getAudioContext = async () => this.audioContext;
     this.exportApi.name = "Csound: ScriptProcessor Node, Single-threaded";
@@ -189,6 +228,17 @@ class ScriptProcessorNodeSingleThread {
   }
 
   async resetCsound(callReset) {
+    if (
+      this.currentPlayState !== "realtimePerformanceEnded" &&
+      this.currentPlayState !== "realtimePerformanceStarted"
+    ) {
+      // reset can't be called until performance has started or ended!
+      return -1;
+    }
+    if (this.currentPlayState === "realtimePerformanceStarted") {
+      this.onPlayStateChange("realtimePerformanceEnded");
+    }
+
     this.running = false;
     this.started = false;
     this.result = 0;
@@ -211,10 +261,7 @@ class ScriptProcessorNodeSingleThread {
   }
 
   onaudioprocess(e) {
-    if (
-      this.csoundOutputBuffer === null ||
-      this.currentPlayState !== "realtimePerformanceStarted"
-    ) {
+    if (this.csoundOutputBuffer === null || this.running === false) {
       const output = e.outputBuffer;
       const bufferLen = output.getChannelData(0).length;
 
@@ -225,6 +272,15 @@ class ScriptProcessorNodeSingleThread {
         }
       }
       return;
+    }
+
+    if (this.running && !this.started) {
+      this.started = true;
+      this.onPlayStateChange("realtimePerformanceStarted");
+      if (this.startPromiz) {
+        this.startPromiz();
+        delete this.startPromiz;
+      }
     }
 
     const input = e.inputBuffer;
@@ -250,11 +306,13 @@ class ScriptProcessorNodeSingleThread {
         result = this.csoundApi.csoundPerformKsmps(this.csoundInstance);
         cnt = 0;
         if (result != 0) {
-          // this.running = false;
-          // this.started = false;
-          // this.firePlayStateChange();
-          // TODO fire event
-          this.currentPlayState = "realtimePerformanceEnded";
+          this.running = false;
+          this.started = false;
+          this.onPlayStateChange("realtimePerformanceEnded");
+          if (this.stopPromiz) {
+            this.stopPromiz();
+            delete this.stopPromiz;
+          }
         }
       }
 

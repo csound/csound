@@ -34,7 +34,7 @@ export class PublicEventAPI {
 
   triggerRealtimePerformanceStarted() {
     this.eventEmitter.emit("realtimePerformanceStarted");
-    if (this.currentDerivedPlayState == "pause" || this.currentDerivedPlayState == "stop") {
+    if (this.currentDerivedPlayState !== "play") {
       this.eventEmitter.emit("play");
       this.currentDerivedPlayState = "play";
     }

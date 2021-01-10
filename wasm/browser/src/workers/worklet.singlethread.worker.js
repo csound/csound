@@ -50,17 +50,20 @@ class WorkletSinglethreadWorker extends AudioWorkletProcessor {
     this.pause = this.pause.bind(this);
     this.resume = this.resume.bind(this);
     this.isPaused = false;
-    // Comlink.expose(this.initialize, this.port);
     this.callUncloned = () => console.error("Csound worklet thread is still uninitialized!");
     this.port.start();
     Comlink.expose(this, this.port);
     this.workerMessagePort = new MessagePortState();
-    this.workerMessagePort.post = (log) => this.port.postMessage({ log });
-    this.workerMessagePort.broadcastPlayState = (playStateChange) => {
-      this.workerMessagePort.vanillaWorkerState = playStateChange;
-      this.port.postMessage({ playStateChange });
+    this.initializeMessagePort = ({ messagePort }) => {
+      this.workerMessagePort.post = (log) => messagePort.postMessage({ log });
+      this.workerMessagePort.broadcastPlayState = (playStateChange) => {
+        if (this.workerMessagePort.workerState !== playStateChange) {
+          this.workerMessagePort.workerState = playStateChange;
+        }
+        messagePort.postMessage({ playStateChange });
+      };
+      this.workerMessagePort.ready = true;
     };
-    this.workerMessagePort.ready = true;
   }
 
   async initialize(wasmDataURI, withPlugins) {
@@ -93,9 +96,9 @@ class WorkletSinglethreadWorker extends AudioWorkletProcessor {
           assoc("llFs", llFs(wasmFs)),
           assoc("rmrfFs", rmrfFs(wasmFs)),
           assoc("csoundCreate", csoundCreate),
-          assoc("csoundReset", (cs) => this.resetCsound(true)),
-          // assoc("csoundStart", startHandler),
+          assoc("csoundReset", this.resetCsound.bind(true)),
           assoc("csoundStart", this.start.bind(this)),
+          assoc("csoundStop", this.stop.bind(this)),
           assoc("wasm", wasm),
         )(libraryCsound);
         combined = new Map(Object.entries(allAPI));
@@ -107,6 +110,17 @@ class WorkletSinglethreadWorker extends AudioWorkletProcessor {
   }
 
   async resetCsound(callReset) {
+    if (
+      this.workerMessagePort.workerState !== "realtimePerformanceEnded" &&
+      this.workerMessagePort.workerState !== "realtimePerformanceStarted"
+    ) {
+      // reset can't be called until performance has started or ended!
+      return -1;
+    }
+    if (this.workerMessagePort.workerState === "realtimePerformanceStarted") {
+      this.workerMessagePort.broadcastPlayState("realtimePerformanceEnded");
+    }
+
     this.running = false;
     this.started = false;
     this.result = 0;
@@ -124,14 +138,23 @@ class WorkletSinglethreadWorker extends AudioWorkletProcessor {
     this.csoundOutputBuffer = null;
   }
 
+  stop() {
+    this.workerMessagePort.broadcastPlayState("realtimePerformanceEnded");
+    if (this.csound) {
+      libraryCsound.csoundStop(this.csound);
+    }
+  }
+
   pause() {
     if (!this.isPaused) {
+      this.workerMessagePort.broadcastPlayState("realtimePerformancePaused");
       this.isPaused = true;
     }
   }
 
   resume() {
     if (this.isPaused) {
+      this.workerMessagePort.broadcastPlayState("realtimePerformanceResumed");
       this.isPaused = false;
     }
   }
@@ -270,6 +293,7 @@ class WorkletSinglethreadWorker extends AudioWorkletProcessor {
       );
 
       this.started = true;
+      this.workerMessagePort.broadcastPlayState("realtimePerformanceStarted");
     }
     this.running = true;
     // this.firePlayStateChange();

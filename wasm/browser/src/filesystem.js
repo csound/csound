@@ -25,7 +25,6 @@ const stdErrorCallback = (workerMessagePort) => (data) => {
     }
 
     outstr += firstElement || "";
-
     if (outstr && workerMessagePort.ready) {
       workerMessagePort.post(outstr);
     }
