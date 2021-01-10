@@ -527,7 +527,13 @@ int32_t kbndset(CSOUND *csound, MIDIKMAP *p)
 {
     IGN(csound);
     p->lo = *p->ilo;
-    p->scale = *p->ihi - *p->ilo;
+    p->scale = (*p->ihi - p->lo);
+    /* { */
+    /*   printf("lo hi =%f %f\tr=-1 v = %f / r=0 v = %f / r=1 v = %f\n", */
+    /*          p->lo, *p->ihi, p->lo + (-1) * p->scale, */
+    /*          p->lo + 0 * p->scale, */
+    /*          p->lo + 1 * p->scale);  */
+    /* } */
     return OK;
 }
 
