@@ -51,12 +51,13 @@ class ScriptProcessorNodeMainThread {
       return;
     }
 
-    proxyPort &&
-      (await proxyPort.setPlayState({
+    if (proxyPort && newPlayState !== "renderStarted" && newPlayState !== "renderEnded") {
+      await proxyPort.setPlayState({
         contextUid: this.contextUid,
         newPlayState,
-      }));
-
+      });
+    }
+    
     switch (newPlayState) {
       case "realtimePerformanceStarted": {
         logSPN("event received: realtimePerformanceStarted");
@@ -157,6 +158,7 @@ class ScriptProcessorNodeMainThread {
     }
 
     spnWorker[contextUid] = this.audioContext;
+    window["__csound_wasm_iframe_parent_" + contextUid] = this.audioContext;
     const { port1: mainMessagePort, port2: workerMessagePort } = new MessageChannel();
 
     await proxyPort.initialize(
@@ -185,7 +187,8 @@ class ScriptProcessorNodeMainThread {
     mainMessagePort.addEventListener("message", messageEventHandler(this));
     mainMessagePort.start();
     if (this.csoundWorkerMain && this.csoundWorkerMain.publicEvents) {
-      const audioNode = spnWorker[`${contextUid}Node`];
+      const audioNode = spnWorker[`${contextUid}Node`] || window["__csound_wasm_iframe_parent_" + contextUid + "Node"];
+      console.log("AUDO NODE?", audioNode);
       audioNode && this.csoundWorkerMain.publicEvents.triggerOnAudioNodeCreated(audioNode);
     }
   }

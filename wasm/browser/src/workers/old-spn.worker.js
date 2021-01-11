@@ -1,9 +1,26 @@
 import * as Comlink from "comlink";
 import { instantiateAudioPacket } from "@root/workers/common.utils";
 import MessagePortState from "@utils/message-port-state";
+import {newAudioContext} from "@utils/new-audio-context"
 // https://github.com/xpl/ololog/issues/20
 // import { logSPN } from '@root/logger';
 import { range } from "ramda";
+
+const getAudioContext = (contextUid) => {
+  return window[contextUid] || window.parent["__csound_wasm_iframe_parent_" + contextUid] || newAudioContext();
+}
+
+const getAudioNode = (contextUid) => {
+  return window[contextUid + "Node"] || window.parent["__csound_wasm_iframe_parent_" + contextUid + "Node"];
+}
+
+const setAudioNode = (contextUid, audioNode) => {
+  if (window[contextUid]) {
+    window[contextUid + "Node"] = audioNode;
+  } else {
+    window.parent["__csound_wasm_iframe_parent_" + contextUid + "Node"] = audioNode;
+  }
+}
 
 const PERIODS = 4;
 const spnInstances = new Map();
@@ -42,7 +59,7 @@ class CsoundScriptNodeProcessor {
 
     this.audioContext = audioContext;
     this.contextUid = contextUid;
-    this.nodeUid = `${contextUid}Node`;
+    // this.nodeUid = `${contextUid}Node`;
     this.scriptNode = this.audioContext.createScriptProcessor(
       this.softwareBufferSize,
       inputsCount,
@@ -53,9 +70,9 @@ class CsoundScriptNodeProcessor {
     this.scriptNode.onaudioprocess = processor;
 
     if (this.autoConnect) {
-      window[this.nodeUid] = this.scriptNode.connect(this.audioContext.destination);
+      setAudioNode(contextUid, this.scriptNode.connect(this.audioContext.destination));
     } else {
-      window[this.nodeUid] = this.scriptNode.context.destination;
+      setAudioNode(contextUid, this.scriptNode.context.destination);
     }
 
     this.updateVanillaFrames = this.updateVanillaFrames.bind(this);
@@ -279,15 +296,15 @@ const setPlayState = ({ contextUid, newPlayState }) => {
       if (spnClassInstance.autoConnect) {
         window[`${contextUid}Node`].disconnect();
       }
-      delete window[`${contextUid}Node`];
+      window[`${contextUid}Node`] = undefined;
     }
     if (window[contextUid]) {
       if (spnClassInstance.autoConnect && !spnClassInstance.audioContextIsProvided) {
         window[contextUid].close();
       }
-      delete window[contextUid];
     }
     spnInstances.delete(contextUid);
+    window[contextUid] = undefined;
   } else if (newPlayState === "realtimePerformanceResumed") {
     spnClassInstance.audioContext.state === "suspended" && spnClassInstance.audioContext.resume();
   }
@@ -308,7 +325,8 @@ const initialize = async ({
   autoConnect,
   initialPlayState,
 }) => {
-  const audioContext = window[contextUid];
+  let audioContext = getAudioContext(contextUid);
+
   const spnClassInstance = new CsoundScriptNodeProcessor({
     audioContext,
     contextUid,

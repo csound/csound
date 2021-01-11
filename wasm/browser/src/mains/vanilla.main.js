@@ -98,7 +98,11 @@ class VanillaWorkerMainThread {
         this.publicEvents.triggerRealtimePerformanceResumed(this);
         break;
       }
-      case "renderStarted": {
+    case "renderStarted": {
+              if (this.startPromiz) {
+          this.startPromiz();
+          delete this.startPromiz;
+              };
         this.publicEvents.triggerRenderStarted(this);
         break;
       }
