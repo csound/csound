@@ -1,26 +1,65 @@
 import * as Comlink from "comlink";
 import { instantiateAudioPacket } from "@root/workers/common.utils";
 import MessagePortState from "@utils/message-port-state";
-import {newAudioContext} from "@utils/new-audio-context"
+import { newAudioContext } from "@utils/new-audio-context";
 // https://github.com/xpl/ololog/issues/20
 // import { logSPN } from '@root/logger';
 import { range } from "ramda";
 
 const getAudioContext = (contextUid) => {
-  return window[contextUid] || window.parent["__csound_wasm_iframe_parent_" + contextUid] || newAudioContext();
-}
+  return (
+    window[contextUid] ||
+    window.parent[`__csound_wasm_iframe_parent_${contextUid}`] ||
+    newAudioContext()
+  );
+};
+
+const closeAndDeleteContext = (contextUid) => {
+  const maybeContext1 = window[contextUid];
+  const maybeContext2 = window.parent[`__csound_wasm_iframe_parent_${contextUid}`];
+  if (maybeContext1) {
+    if (maybeContext1.state !== "closed") {
+      maybeContext1.close();
+    }
+    delete window[contextUid];
+  }
+  if (maybeContext2) {
+    // if false, then the above close statement should cut it
+    if (maybeContext1 !== maybeContext2 && maybeContext2.state !== "closed") {
+      maybeContext2.close();
+    }
+
+    delete window.parent[`__csound_wasm_iframe_parent_${contextUid}`];
+  }
+};
 
 const getAudioNode = (contextUid) => {
-  return window[contextUid + "Node"] || window.parent["__csound_wasm_iframe_parent_" + contextUid + "Node"];
-}
+  return (
+    window[contextUid + "Node"] || window.parent[`__csound_wasm_iframe_parent_${contextUid}Node`]
+  );
+};
 
 const setAudioNode = (contextUid, audioNode) => {
   if (window[contextUid]) {
-    window[contextUid + "Node"] = audioNode;
+    window[`${contextUid}Node`] = audioNode;
   } else {
-    window.parent["__csound_wasm_iframe_parent_" + contextUid + "Node"] = audioNode;
+    window.parent[`__csound_wasm_iframe_parent_${contextUid}Node`] = audioNode;
   }
-}
+};
+
+const disconnectAudioNode = (contextUid) => {
+  const audoNode = getAudioNode(contextUid);
+  audoNode && audoNode.disconnect();
+};
+
+const deleteAudioNode = (contextUid) => {
+  if (window[contextUid + "Node"]) {
+    delete window[contextUid + "Node"];
+  }
+  if (window.parent[`__csound_wasm_iframe_parent_${contextUid}Node`]) {
+    delete window.parent[`__csound_wasm_iframe_parent_${contextUid}Node`];
+  }
+};
 
 const PERIODS = 4;
 const spnInstances = new Map();
@@ -292,19 +331,14 @@ const setPlayState = ({ contextUid, newPlayState }) => {
     // ping-pong
     spnClassInstance.workerMessagePort.broadcastPlayState("realtimePerformanceEnded");
 
-    if (window[`${contextUid}Node`]) {
-      if (spnClassInstance.autoConnect) {
-        window[`${contextUid}Node`].disconnect();
-      }
-      window[`${contextUid}Node`] = undefined;
+    if (spnClassInstance.autoConnect) {
+      disconnectAudioNode(contextUid);
     }
-    if (window[contextUid]) {
-      if (spnClassInstance.autoConnect && !spnClassInstance.audioContextIsProvided) {
-        window[contextUid].close();
-      }
-    }
+    deleteAudioNode(contextUid);
     spnInstances.delete(contextUid);
-    window[contextUid] = undefined;
+    if (spnClassInstance.autoConnect && !spnClassInstance.audioContextIsProvided) {
+      closeAndDeleteContext(contextUid);
+    }
   } else if (newPlayState === "realtimePerformanceResumed") {
     spnClassInstance.audioContext.state === "suspended" && spnClassInstance.audioContext.resume();
   }

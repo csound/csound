@@ -57,7 +57,7 @@ class ScriptProcessorNodeMainThread {
         newPlayState,
       });
     }
-    
+
     switch (newPlayState) {
       case "realtimePerformanceStarted": {
         logSPN("event received: realtimePerformanceStarted");
@@ -157,8 +157,11 @@ class ScriptProcessorNodeMainThread {
       this.audioContext = new (WebkitAudioContext())();
     }
 
+    // just set it both on parent and iframe
+    // since 1 works on linux and other one on mac
+    // leaking globals indeed
     spnWorker[contextUid] = this.audioContext;
-    window["__csound_wasm_iframe_parent_" + contextUid] = this.audioContext;
+    window[`__csound_wasm_iframe_parent_${contextUid}`] = this.audioContext;
     const { port1: mainMessagePort, port2: workerMessagePort } = new MessageChannel();
 
     await proxyPort.initialize(
@@ -187,8 +190,8 @@ class ScriptProcessorNodeMainThread {
     mainMessagePort.addEventListener("message", messageEventHandler(this));
     mainMessagePort.start();
     if (this.csoundWorkerMain && this.csoundWorkerMain.publicEvents) {
-      const audioNode = spnWorker[`${contextUid}Node`] || window["__csound_wasm_iframe_parent_" + contextUid + "Node"];
-      console.log("AUDO NODE?", audioNode);
+      const audioNode =
+        spnWorker[`${contextUid}Node`] || window[`__csound_wasm_iframe_parent_${contextUid}Node`];
       audioNode && this.csoundWorkerMain.publicEvents.triggerOnAudioNodeCreated(audioNode);
     }
   }
