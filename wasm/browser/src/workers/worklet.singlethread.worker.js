@@ -74,6 +74,7 @@ class WorkletSinglethreadWorker extends AudioWorkletProcessor {
     loadWasm({ wasmDataURI, withPlugins, messagePort: this.workerMessagePort }).then(
       ([wasm, wasmFs]) => {
         this.wasm = wasm;
+        this.wasmFs = wasmFs;
         [this.watcherStdOut, this.watcherStdErr] = initFS(this.wasmFs, this.workerMessagePort);
         libraryCsound = libcsoundFactory(wasm);
         this.callUncloned = callUncloned;
@@ -149,12 +150,10 @@ class WorkletSinglethreadWorker extends AudioWorkletProcessor {
       libraryCsound.csoundStop(this.csound);
     }
     if (this.watcherStdOut) {
-      this.watcherStdOut.close();
       delete this.watcherStdOut;
     }
 
     if (this.watcherStdErr) {
-      this.watcherStdErr.close();
       delete this.watcherStdErr;
     }
   }
