@@ -25,7 +25,7 @@ import {
  * If loaded successfully, it returns CsoundObj,
  * otherwise undefined.
  * 
- * @param {Object} params Initialization parameters
+ * @param {Object} [params] Initialization parameters
  * @param {AudioContext} [params.audioContext] - Optional AudioContext to use; if none given, an AudioContext will be created.
  * @param {Number} [params.inputChannelCount=2] - Optional input channel count for AudioNode used with WebAudio graph. Defaults to 2.  
  * @param {Number} [params.outputChannelCount=2] - Optional output channel count AudioNode used with WebAudio graph. Defaults to 2.  
