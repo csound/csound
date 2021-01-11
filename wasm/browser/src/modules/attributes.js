@@ -158,7 +158,7 @@ csoundSetOption.toString = () => "setOption = async (option) => Number;";
  * @function
  * @name setParams
  * @memberof CsoundObj
- * @param {CSOUND_PARAMS} - csoundParams object
+ * @param {CSOUND_PARAMS} csoundParams - csoundParams object
  * @return {Promise.<undefined>}
  */
 export const csoundSetParams = curry((wasm, csound, csoundParameters) => {

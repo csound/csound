@@ -9,7 +9,7 @@
 ## Functions
 
 <dl>
-<dt><a href="#Csound">Csound(params)</a> ⇒ <code>Promise.&lt;(CsoundObj|undefined)&gt;</code></dt>
+<dt><a href="#Csound">Csound([params])</a> ⇒ <code>Promise.&lt;(CsoundObj|undefined)&gt;</code></dt>
 <dd><p>The default entry for @csound/wasm/browser module.
 If loaded successfully, it returns CsoundObj,
 otherwise undefined.</p>
@@ -37,6 +37,7 @@ CsoundObj API.
     * [.listeners(eventName)](#CsoundObj.listeners) ⇒ <code>Array.&lt;function()&gt;</code>
     * [.off(eventName, listener)](#CsoundObj.off) ⇒ <code>external:EventEmitter</code>
     * [.on(eventName, listener)](#CsoundObj.on) ⇒ <code>external:EventEmitter</code>
+    * [.addListener(eventName, listener)](#CsoundObj.addListener) ⇒ <code>external:EventEmitter</code>
     * [.once(eventName, listener)](#CsoundObj.once) ⇒ <code>external:EventEmitter</code>
     * [.removeAllListeners(eventName, listener)](#CsoundObj.removeAllListeners) ⇒ <code>external:EventEmitter</code>
     * [.removeListener(eventName, listener)](#CsoundObj.removeListener) ⇒ <code>external:EventEmitter</code>
@@ -50,7 +51,7 @@ CsoundObj API.
     * [.getCurrentTimeSamples()](#CsoundObj.getCurrentTimeSamples) ⇒ <code>Promise.&lt;number&gt;</code>
     * [.getSizeOfMYFLT()](#CsoundObj.getSizeOfMYFLT) ⇒ <code>Promise.&lt;number&gt;</code>
     * [.setOption()](#CsoundObj.setOption) ⇒ <code>Promise.&lt;number&gt;</code>
-    * [.setParams()](#CsoundObj.setParams) ⇒ <code>Promise.&lt;undefined&gt;</code>
+    * [.setParams(csoundParams)](#CsoundObj.setParams) ⇒ <code>Promise.&lt;undefined&gt;</code>
     * [.getParams()](#CsoundObj.getParams) ⇒ [<code>Promise.&lt;CSOUND\_PARAMS&gt;</code>](#CSOUND_PARAMS)
     * [.getDebug()](#CsoundObj.getDebug) ⇒ <code>Promise.&lt;number&gt;</code>
     * [.setDebug(debug)](#CsoundObj.setDebug) ⇒ <code>Promise.&lt;undefined&gt;</code>
@@ -148,6 +149,18 @@ Adds the listener function to the end of the listeners array for the event named
 No checks are made to see if the listener has already been added.
 Multiple calls passing the same combination of eventName and listener
 will result in the listener being added, and called, multiple times.
+
+**Kind**: static method of [<code>CsoundObj</code>](#CsoundObj)  
+
+| Param | Type |
+| --- | --- |
+| eventName | [<code>PublicEvents</code>](#PublicEvents) | 
+| listener | <code>function</code> | 
+
+<a name="CsoundObj.addListener"></a>
+
+### CsoundObj.addListener(eventName, listener) ⇒ <code>external:EventEmitter</code>
+Alias for "on"
 
 **Kind**: static method of [<code>CsoundObj</code>](#CsoundObj)  
 
@@ -264,7 +277,7 @@ no spaces are allowed in the string.
 **Kind**: static method of [<code>CsoundObj</code>](#CsoundObj)  
 <a name="CsoundObj.setParams"></a>
 
-### CsoundObj.setParams() ⇒ <code>Promise.&lt;undefined&gt;</code>
+### CsoundObj.setParams(csoundParams) ⇒ <code>Promise.&lt;undefined&gt;</code>
 Configure Csound with a given set of
 parameters defined in the CSOUND_PARAMS structure.
 These parameters are the part of the OPARMS struct
@@ -276,9 +289,9 @@ performance has started.
 
 **Kind**: static method of [<code>CsoundObj</code>](#CsoundObj)  
 
-| Type | Description |
-| --- | --- |
-| [<code>CSOUND\_PARAMS</code>](#CSOUND_PARAMS) | csoundParams object |
+| Param | Type | Description |
+| --- | --- | --- |
+| csoundParams | [<code>CSOUND\_PARAMS</code>](#CSOUND_PARAMS) | csoundParams object |
 
 <a name="CsoundObj.getParams"></a>
 
@@ -661,20 +674,21 @@ it returns undefined.
 
 | Name | Type | Description |
 | --- | --- | --- |
-| "play" | <code>string</code> | called anytime performance goes from pause/stop to a running state |
-| "pause" | <code>string</code> | called after any successful csound.pause() calls |
-| "stop" | <code>string</code> | called after end of performance or after a successful csound.stop() |
-| "realtimePerformanceStarted" | <code>string</code> | called at the start of realtime performance but not on resume or render |
-| "realtimePerformancePaused" | <code>string</code> | only called if csound.pause() was successfully called during performance |
-| "realtimePerformanceResumed" | <code>string</code> | only called if csound.resume() was successfully called after a pause |
-| "realtimePerformanceEnded" | <code>string</code> | called after end of performance or after a successful csound.stop() |
-| "renderStarted" | <code>string</code> | called at the start of offline/non-realtime render to disk |
-| "renderEnded" | <code>string</code> | called at the end of offline/non-realtime render to disk |
-| "onAudioNodeCreated" | <code>string</code> | called when an audioNode is created from the AudioContext before realtime performance, the event callback will include the audioNode itself, which is needed if autoConnect is set to false. |
+| "play" | <code>string</code> | called anytime performance goes from pause/stop to a running state. |
+| "pause" | <code>string</code> | called after any successful csound.pause() calls. |
+| "stop" | <code>string</code> | called after end of performance or after a successful csound.stop(). |
+| "realtimePerformanceStarted" | <code>string</code> | called at the start of realtime performance but not on resume or render. |
+| "realtimePerformancePaused" | <code>string</code> | only called if csound.pause() was successfully called during performance. |
+| "realtimePerformanceResumed" | <code>string</code> | only called if csound.resume() was successfully called after a pause. |
+| "realtimePerformanceEnded" | <code>string</code> | called after end of performance or after a successful csound.stop(). |
+| "renderStarted" | <code>string</code> | called at the start of offline/non-realtime render to disk. |
+| "renderEnded" | <code>string</code> | called at the end of offline/non-realtime render to disk. |
+| "onAudioNodeCreated" | <code>string</code> | called when an audioNode is created from the AudioContext before realtime performance. the event callback will include the audioNode itself, which is needed if autoConnect is set to false. |
+| "message" | <code>string</code> | the main entrypoint to csound's messaging (-m) system, a default event listener will print the message to the browser console, this default listener can be removed by the user. |
 
 <a name="Csound"></a>
 
-## Csound(params) ⇒ <code>Promise.&lt;(CsoundObj\|undefined)&gt;</code>
+## Csound([params]) ⇒ <code>Promise.&lt;(CsoundObj\|undefined)&gt;</code>
 The default entry for @csound/wasm/browser module.
 If loaded successfully, it returns CsoundObj,
 otherwise undefined.
@@ -683,7 +697,7 @@ otherwise undefined.
 
 | Param | Type | Default | Description |
 | --- | --- | --- | --- |
-| params | <code>Object</code> |  | Initialization parameters |
+| [params] | <code>Object</code> |  | Initialization parameters |
 | [params.audioContext] | <code>AudioContext</code> |  | Optional AudioContext to use; if none given, an AudioContext will be created. |
 | [params.inputChannelCount] | <code>Number</code> | <code>2</code> | Optional input channel count for AudioNode used with WebAudio graph. Defaults to 2. |
 | [params.outputChannelCount] | <code>Number</code> | <code>2</code> | Optional output channel count AudioNode used with WebAudio graph. Defaults to 2. |
