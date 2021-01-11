@@ -9,7 +9,7 @@
 ## Functions
 
 <dl>
-<dt><a href="#Csound">Csound()</a> ⇒ <code>Promise.&lt;(CsoundObj|undefined)&gt;</code></dt>
+<dt><a href="#Csound">Csound(params)</a> ⇒ <code>Promise.&lt;(CsoundObj|undefined)&gt;</code></dt>
 <dd><p>The default entry for @csound/wasm/browser module.
 If loaded successfully, it returns CsoundObj,
 otherwise undefined.</p>
@@ -87,6 +87,11 @@ CsoundObj API.
     * [.getSpout()](#CsoundObj.getSpout) ⇒ <code>Promise.&lt;number&gt;</code>
     * [.isScorePending()](#CsoundObj.isScorePending) ⇒ <code>Promise.&lt;number&gt;</code>
     * [.setScorePending(pending)](#CsoundObj.setScorePending) ⇒ <code>Promise.&lt;undefined&gt;</code>
+    * [.tableLength(tableNum)](#CsoundObj.tableLength) ⇒ <code>Promise.&lt;number&gt;</code>
+    * [.tableGet(tableNum, tableIndex)](#CsoundObj.tableGet) ⇒ <code>Promise.&lt;number&gt;</code>
+    * [.tableSet(tableNum, tableIndex, value)](#CsoundObj.tableSet) ⇒ <code>Promise.&lt;number&gt;</code>
+    * [.tableCopyIn(tableNum, tableIndex, value)](#CsoundObj.tableCopyIn) ⇒ <code>Promise.&lt;undefined&gt;</code>
+    * [.tableCopyOut(tableNum)](#CsoundObj.tableCopyOut) ⇒ <code>Promise.&lt;(Float64Array\|undefined)&gt;</code>
 
 <a name="CsoundObj.removeListener"></a>
 
@@ -578,6 +583,75 @@ or to play the Csound instruments live.
 | --- | --- |
 | pending | <code>number</code> | 
 
+<a name="CsoundObj.tableLength"></a>
+
+### CsoundObj.tableLength(tableNum) ⇒ <code>Promise.&lt;number&gt;</code>
+Returns the length of a function table
+(not including the guard point),
+or -1 if the table does not exist.
+
+**Kind**: static method of [<code>CsoundObj</code>](#CsoundObj)  
+
+| Param | Type |
+| --- | --- |
+| tableNum | <code>string</code> | 
+
+<a name="CsoundObj.tableGet"></a>
+
+### CsoundObj.tableGet(tableNum, tableIndex) ⇒ <code>Promise.&lt;number&gt;</code>
+Returns the value of a slot in a function table.
+The table number and index are assumed to be valid.
+
+**Kind**: static method of [<code>CsoundObj</code>](#CsoundObj)  
+
+| Param | Type |
+| --- | --- |
+| tableNum | <code>string</code> | 
+| tableIndex | <code>string</code> | 
+
+<a name="CsoundObj.tableSet"></a>
+
+### CsoundObj.tableSet(tableNum, tableIndex, value) ⇒ <code>Promise.&lt;number&gt;</code>
+Sets the value of a slot in a function table.
+The table number and index are assumed to be valid.
+
+**Kind**: static method of [<code>CsoundObj</code>](#CsoundObj)  
+
+| Param | Type |
+| --- | --- |
+| tableNum | <code>string</code> | 
+| tableIndex | <code>string</code> | 
+| value | <code>string</code> | 
+
+<a name="CsoundObj.tableCopyIn"></a>
+
+### CsoundObj.tableCopyIn(tableNum, tableIndex, value) ⇒ <code>Promise.&lt;undefined&gt;</code>
+Copy the contents of a Float64Array from javascript into a given csound function table.
+The table number is assumed to be valid, and the table needs to have sufficient space
+to receive all the array contents.
+The table number and index are assumed to be valid.
+
+**Kind**: static method of [<code>CsoundObj</code>](#CsoundObj)  
+
+| Param | Type |
+| --- | --- |
+| tableNum | <code>string</code> | 
+| tableIndex | <code>string</code> | 
+| value | <code>string</code> | 
+
+<a name="CsoundObj.tableCopyOut"></a>
+
+### CsoundObj.tableCopyOut(tableNum) ⇒ <code>Promise.&lt;(Float64Array\|undefined)&gt;</code>
+Copies the contents of a function table from csound into Float64Array.
+The function returns a Float64Array if the table exists, otherwise
+it returns undefined.
+
+**Kind**: static method of [<code>CsoundObj</code>](#CsoundObj)  
+
+| Param | Type |
+| --- | --- |
+| tableNum | <code>string</code> | 
+
 <a name="PublicEvents"></a>
 
 ## PublicEvents : <code>enum</code>
@@ -600,12 +674,25 @@ or to play the Csound instruments live.
 
 <a name="Csound"></a>
 
-## Csound() ⇒ <code>Promise.&lt;(CsoundObj\|undefined)&gt;</code>
+## Csound(params) ⇒ <code>Promise.&lt;(CsoundObj\|undefined)&gt;</code>
 The default entry for @csound/wasm/browser module.
 If loaded successfully, it returns CsoundObj,
 otherwise undefined.
 
 **Kind**: global function  
+
+| Param | Type | Default | Description |
+| --- | --- | --- | --- |
+| params | <code>Object</code> |  | Initialization parameters |
+| [params.audioContext] | <code>AudioContext</code> |  | Optional AudioContext to use; if none given, an AudioContext will be created. |
+| [params.inputChannelCount] | <code>Number</code> | <code>2</code> | Optional input channel count for AudioNode used with WebAudio graph. Defaults to 2. |
+| [params.outputChannelCount] | <code>Number</code> | <code>2</code> | Optional output channel count AudioNode used with WebAudio graph. Defaults to 2. |
+| [params.autoConnect] | <code>Boolean</code> | <code>true</code> | Set to configure Csound to automatically connect to the audioContext.destination output. |
+| [params.withPlugins] | <code>Array.&lt;Object&gt;</code> |  | Array of WebAssembly Csound plugin libraries to use with Csound. |
+| [params.useWorker] | <code>Boolean</code> | <code>false</code> | Configure to use backend using Web Workers to run Csound in a thread separate from audio callback. |
+| [params.useSAB] | <code>Boolean</code> | <code>true</code> | Configure to use SharedArrayBuffers for WebWorker communications if platform supports it. |
+| [params.useSPN] | <code>Boolean</code> | <code>false</code> | Configure to use explicitly request ScriptProcessorNode rather than AudioWorklet. Recommended only for debug testing purposes. |
+
 <a name="CSOUND_PARAMS"></a>
 
 ## CSOUND\_PARAMS
