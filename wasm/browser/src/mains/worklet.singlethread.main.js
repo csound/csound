@@ -45,6 +45,8 @@ class SingleThreadAudioWorkletMainThread {
     this.ipcMessagePorts = new IPCMessagePorts();
     this.publicEvents = new PublicEventAPI(this);
     this.exportApi = this.publicEvents.decorateAPI(this.exportApi);
+    // the default message listener
+    this.exportApi.addListener("message", console.log);
     this.audioContext = audioContext;
     this.inputChannelCount = inputChannelCount;
     this.outputChannelCount = outputChannelCount;
@@ -97,22 +99,6 @@ class SingleThreadAudioWorkletMainThread {
       default: {
         break;
       }
-    }
-  }
-
-  async addMessageCallback(callback) {
-    if (typeof callback === "function") {
-      this.messageCallbacks.push(callback);
-    } else {
-      console.error(`Can't assign ${typeof callback} as a message callback`);
-    }
-  }
-
-  async setMessageCallback(callback) {
-    if (typeof callback === "function") {
-      this.messageCallbacks = [callback];
-    } else {
-      console.error(`Can't assign ${typeof callback} as a message callback`);
     }
   }
 
@@ -172,8 +158,6 @@ class SingleThreadAudioWorkletMainThread {
     this.exportApi.rmrfFs = makeProxyCallback(this.workletProxy, csoundInstance, "rmrfFs");
     this.exportApi.getAudioContext = async () => this.audioContext;
     this.exportApi.getNode = async () => this.node;
-    this.exportApi.setMessageCallback = this.setMessageCallback.bind(this);
-    this.exportApi.addMessageCallback = this.addMessageCallback.bind(this);
 
     this.exportApi.name = "Csound: Audio Worklet, Single-threaded";
 

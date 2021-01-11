@@ -24,7 +24,7 @@
 import libcsoundFactory from "@root/libcsound";
 import loadWasm from "@root/module";
 import MessagePortState from "@utils/message-port-state";
-import { writeToFs, lsFs, llFs, readFromFs, rmrfFs } from "@root/filesystem";
+import { initFS, writeToFs, lsFs, llFs, readFromFs, rmrfFs } from "@root/filesystem";
 import { isEmpty } from "ramda";
 import { csoundApiRename, fetchPlugins, makeSingleThreadCallback } from "@root/utils";
 import { messageEventHandler } from "./messages.main";
@@ -56,9 +56,8 @@ class ScriptProcessorNodeSingleThread {
     // this is the only actual single-thread usecase
     // so we get away with just forwarding it as if it's form
     // a message port
-    this.messageEventHandler = messageEventHandler(this).bind(this);
     this.messagePort = new MessagePortState();
-    this.messagePort.post = (log) => this.messageEventHandler({ data: { log } });
+    this.messagePort.post = (log) => messageEventHandler(this)({ data: { log } });
     this.messagePort.ready = true;
 
     // imports from original csound-wasm
@@ -125,7 +124,18 @@ class ScriptProcessorNodeSingleThread {
       });
       const stopResult = this.csoundApi.csoundStop(this.csoundInstance);
       await stopPromise;
-      this.csoundOutputBuffer = null;
+      if (this.watcherStdOut) {
+        this.watcherStdOut.close();
+        delete this.watcherStdOut;
+      }
+
+      if (this.watcherStdErr) {
+        this.watcherStdErr.close();
+        delete this.watcherStdErr;
+      }
+
+      delete this.csoundOutputBuffer;
+      delete this.currentPlayState;
       return stopResult;
     }
   }
@@ -170,14 +180,15 @@ class ScriptProcessorNodeSingleThread {
       const startPromise = new Promise((resolve) => {
         this.startPromiz = resolve;
       });
+      if (!this.watcherStdOut && !this.watcherStdErr) {
+        [this.watcherStdOut, this.watcherStdErr] = initFS(this.wasmFs, this.messagePort);
+      }
       const startResult = this.csoundApi.csoundStart(this.csoundInstance);
       this.running = true;
       await startPromise;
       return startResult;
     }
   }
-
-  async setMessageCallback() {}
 
   async initialize({ wasmDataURI, withPlugins, autoConnect }) {
     if (!this.plugins && withPlugins && !isEmpty(withPlugins)) {
@@ -190,6 +201,7 @@ class ScriptProcessorNodeSingleThread {
         withPlugins,
         messagePort: this.messagePort,
       });
+      [this.watcherStdOut, this.watcherStdErr] = initFS(this.wasmFs, this.messagePort);
     }
 
     // libcsound
@@ -213,7 +225,6 @@ class ScriptProcessorNodeSingleThread {
 
     this.exportApi.pause = this.pause.bind(this);
     this.exportApi.resume = this.resume.bind(this);
-    this.exportApi.setMessageCallback = this.setMessageCallback.bind(this);
     this.exportApi.start = this.start.bind(this);
     this.exportApi.stop = this.stop.bind(this);
     this.exportApi.reset = () => this.resetCsound(true);
@@ -226,6 +237,8 @@ class ScriptProcessorNodeSingleThread {
     this.exportApi.readFromFs = readFromFs(this.wasmFs);
     this.exportApi.rmrfFs = rmrfFs(this.wasmFs);
     this.exportApi = this.publicEvents.decorateAPI(this.exportApi);
+    // the default message listener
+    this.exportApi.addListener("message", console.log);
     return this.exportApi;
   }
 
@@ -254,6 +267,10 @@ class ScriptProcessorNodeSingleThread {
 
     // FIXME:
     // libraryCsound.csoundSetMidiCallbacks(cs);
+    if (!this.watcherStdOut && !this.watcherStdErr) {
+      [this.watcherStdOut, this.watcherStdErr] = initFS(this.wasmFs, this.messagePort);
+    }
+
     libraryCsound.csoundSetOption(cs, "-odac");
     libraryCsound.csoundSetOption(cs, "-iadc");
     libraryCsound.csoundSetOption(cs, "--sample-rate=" + this.sampleRate);

@@ -1,5 +1,5 @@
 import * as Comlink from "comlink";
-import { writeToFs, lsFs, llFs, readFromFs, rmrfFs } from "@root/filesystem";
+import { initFS, writeToFs, lsFs, llFs, readFromFs, rmrfFs } from "@root/filesystem";
 import MessagePortState from "@utils/message-port-state";
 import libcsoundFactory from "@root/libcsound";
 import loadWasm from "@root/module";
@@ -22,13 +22,18 @@ const callUncloned = async (k, arguments_) => {
   return ret;
 };
 
-const sabCreateRealtimeAudioThread = ({ libraryCsound, wasm, workerMessagePort }) => ({
-  audioStateBuffer,
-  audioStreamIn,
-  audioStreamOut,
-  midiBuffer,
-  csound,
-}) => {
+const sabCreateRealtimeAudioThread = ({
+  libraryCsound,
+  wasm,
+  wasmFs,
+  workerMessagePort,
+  watcherStdOut,
+  watcherStdErr,
+}) => ({ audioStateBuffer, audioStreamIn, audioStreamOut, midiBuffer, csound }) => {
+  if (!watcherStdOut && !watcherStdErr) {
+    [watcherStdOut, watcherStdErr] = initFS(wasmFs, workerMessagePort);
+  }
+
   const audioStatePointer = new Int32Array(audioStateBuffer);
 
   // In case of multiple performances, let's reset the sab state
@@ -120,6 +125,10 @@ const sabCreateRealtimeAudioThread = ({ libraryCsound, wasm, workerMessagePort }
       logSAB(`triggering realtimePerformanceEnded event`);
       workerMessagePort.broadcastPlayState("realtimePerformanceEnded");
       logSAB(`End of realtimePerformance loop!`);
+      watcherStdOut && watcherStdOut.close();
+      watcherStdOut = undefined;
+      watcherStdErr && watcherStdErr.close();
+      watcherStdErr = undefined;
       return;
     }
 
@@ -146,15 +155,6 @@ const sabCreateRealtimeAudioThread = ({ libraryCsound, wasm, workerMessagePort }
         Atomics.sub(audioStatePointer, AUDIO_STATE.AVAIL_RTMIDI_EVENTS, availableMidiEvents);
       }
     }
-
-    // handleSABCallbacks({
-    //   audioStatePointer,
-    //   csound,
-    //   callbackBuffer,
-    //   callbackReply,
-    //   callbackStringDataBuffer,
-    //   libraryCsound,
-    // });
 
     const framesRequested = _b;
 
@@ -251,7 +251,14 @@ const initMessagePort = ({ port }) => {
 
 // const initCallbackReplyPort = ({ port }) => (uid, value) => port.postMessage({ uid, value });
 
-const renderFn = ({ libraryCsound, workerMessagePort }) => ({ audioStateBuffer, csound }) => {
+const renderFn = ({ libraryCsound, workerMessagePort, wasmFs, watcherStdOut, watcherStdErr }) => ({
+  audioStateBuffer,
+  csound,
+}) => {
+  if (!watcherStdOut && !watcherStdErr) {
+    [watcherStdOut, watcherStdErr] = initFS(wasmFs, workerMessagePort);
+  }
+
   const audioStatePointer = new Int32Array(audioStateBuffer);
   Atomics.store(audioStatePointer, AUDIO_STATE.IS_PERFORMING, 1);
   while (
@@ -262,17 +269,13 @@ const renderFn = ({ libraryCsound, workerMessagePort }) => ({ audioStateBuffer, 
       // eslint-disable-next-line no-unused-expressions
       Atomics.wait(audioStatePointer, AUDIO_STATE.IS_PAUSED, 0) === "ok";
     }
-    // handleSABCallbacks({
-    //   audioStatePointer,
-    //   csound,
-    //   callbackBuffer,
-    //   callbackReply,
-    //   callbackStringDataBuffer,
-    //   libraryCsound,
-    // });
   }
   Atomics.store(audioStatePointer, AUDIO_STATE.IS_PERFORMING, 0);
   workerMessagePort.broadcastPlayState("renderEnded");
+  watcherStdOut && watcherStdOut.close();
+  watcherStdOut = undefined;
+  watcherStdErr && watcherStdErr.close();
+  watcherStdErr = undefined;
 };
 
 const initialize = async ({ wasmDataURI, withPlugins = [], messagePort }) => {
@@ -284,6 +287,8 @@ const initialize = async ({ wasmDataURI, withPlugins = [], messagePort }) => {
     withPlugins,
     messagePort: workerMessagePort,
   });
+
+  let [watcherStdOut, watcherStdErr] = initFS(wasmFs, workerMessagePort);
   const libraryCsound = libcsoundFactory(wasm);
 
   const startHandler = handleCsoundStart(
@@ -292,9 +297,12 @@ const initialize = async ({ wasmDataURI, withPlugins = [], messagePort }) => {
     sabCreateRealtimeAudioThread({
       libraryCsound,
       wasm,
+      wasmFs,
       workerMessagePort,
+      watcherStdOut,
+      watcherStdErr,
     }),
-    renderFn({ libraryCsound, workerMessagePort }),
+    renderFn({ libraryCsound, workerMessagePort, watcherStdOut, watcherStdErr }),
   );
 
   const allAPI = pipe(

@@ -1,6 +1,6 @@
 import * as Comlink from "comlink";
 import MessagePortState from "@utils/message-port-state";
-import { writeToFs, lsFs, llFs, readFromFs, rmrfFs } from "@root/filesystem";
+import { initFS, writeToFs, lsFs, llFs, readFromFs, rmrfFs } from "@root/filesystem";
 import { logVAN } from "@root/logger";
 import { MAX_HARDWARE_BUFFER_SIZE } from "@root/constants.js";
 import { handleCsoundStart, instantiateAudioPacket } from "@root/workers/common.utils";
@@ -24,9 +24,24 @@ const generateAudioFrames = (arguments_, workerMessagePort) => {
   }
 };
 
-const createRealtimeAudioThread = ({ libraryCsound, wasm, workerMessagePort, audioInputs }) => ({
-  csound,
-}) => {
+const createRealtimeAudioThread = ({
+  libraryCsound,
+  wasm,
+  wasmFs,
+  workerMessagePort,
+  audioInputs,
+  watcherStdOut,
+  watcherStdErr,
+}) => ({ csound }) => {
+  if (!watcherStdOut && !watcherStdErr) {
+    [watcherStdOut, watcherStdErr] = initFS(wasmFs, workerMessagePort);
+  }
+  const closeWatchers = () => {
+    watcherStdOut && watcherStdOut.close();
+    watcherStdOut = undefined;
+    watcherStdErr && watcherStdErr.close();
+    watcherStdErr = undefined;
+  };
   // Prompt for midi-input on demand
   // const isRequestingRtMidiInput = libraryCsound._isRequestingRtMidiInput(csound);
 
@@ -77,6 +92,7 @@ const createRealtimeAudioThread = ({ libraryCsound, wasm, workerMessagePort, aud
         audioProcessCallback = () => {};
         rtmidiQueue = [];
         audioInputs.port = undefined;
+        closeWatchers();
         return { framesLeft: i };
       }
       if (currentCsoundBufferPos === 0 && lastPerformance === 0) {
@@ -86,6 +102,7 @@ const createRealtimeAudioThread = ({ libraryCsound, wasm, workerMessagePort, aud
           audioProcessCallback = () => {};
           rtmidiQueue = [];
           audioInputs.port = undefined;
+          closeWatchers();
           return { framesLeft: i };
         }
       }
@@ -201,8 +218,18 @@ const initRtMidiEventPort = ({ rtmidiPort }) => {
   return rtmidiPort;
 };
 
-const renderFn = ({ libraryCsound, workerMessagePort }) => async ({ csound }) => {
+const renderFn = ({
+  libraryCsound,
+  workerMessagePort,
+  wasmFs,
+  watcherStdOut,
+  watcherStdErr,
+}) => async ({ csound }) => {
   let endResolve;
+  if (!watcherStdOut && !watcherStdErr) {
+    [watcherStdOut, watcherStdErr] = initFS(wasmFs, workerMessagePort);
+  }
+
   const endPromise = new Promise((resolve) => {
     endResolve = resolve;
   });
@@ -220,6 +247,10 @@ const renderFn = ({ libraryCsound, workerMessagePort }) => async ({ csound }) =>
   };
   performKsmps();
   await endPromise;
+  watcherStdOut && watcherStdOut.close();
+  watcherStdOut = undefined;
+  watcherStdErr && watcherStdErr.close();
+  watcherStdErr = undefined;
 };
 
 const initialize = async ({
@@ -244,6 +275,9 @@ const initialize = async ({
     withPlugins,
     messagePort: workerMessagePort,
   });
+
+  let [watcherStdOut, watcherStdErr] = initFS(wasmFs, workerMessagePort);
+
   const libraryCsound = libcsoundFactory(wasm);
 
   const startHandler = handleCsoundStart(
@@ -252,10 +286,13 @@ const initialize = async ({
     createRealtimeAudioThread({
       libraryCsound,
       wasm,
+      wasmFs,
       audioInputs,
       workerMessagePort,
+      watcherStdOut,
+      watcherStdErr,
     }),
-    renderFn({ libraryCsound, workerMessagePort }),
+    renderFn({ libraryCsound, workerMessagePort, watcherStdOut, watcherStdErr, wasmFs }),
   );
 
   const allAPI = pipe(

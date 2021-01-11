@@ -1,27 +1,19 @@
 import path from "path";
 import { cleanStdout, uint2String } from "@root/utils";
-// import { isBrowser, isWebWorker } from 'browser-or-node';
-// import { forEach, range } from 'ramda';
 import { Buffer } from "buffer-es6";
-// import { Buffer } from 'buffer';
 
 export const touchFile = (wasmFs, filename) => {
   wasmFs.fs.writeFileSync(`/sandbox/${filename}`, "");
 };
 
-let stdErrorPos = 0;
-let stdErrorBuffer = [];
-let stdOutPos = 0;
-let stdOutBuffer = [];
-
-const stdErrorCallback = (workerMessagePort) => (data) => {
+const stdErrorCallback = (workerMessagePort, streamState) => (data) => {
   const cleanString = cleanStdout(uint2String(data));
   if (cleanString.includes("\n")) {
     const [firstElement, ...next] = cleanString.split("\n");
     let outstr = "";
-    while (stdErrorBuffer.length > 0) {
-      outstr += stdErrorBuffer[0];
-      stdErrorBuffer.shift();
+    while (streamState.stdErrorBuffer.length > 0) {
+      outstr += streamState.stdErrorBuffer[0];
+      streamState.stdErrorBuffer.shift();
     }
 
     outstr += firstElement || "";
@@ -29,31 +21,35 @@ const stdErrorCallback = (workerMessagePort) => (data) => {
       workerMessagePort.post(outstr);
     }
 
-    next.forEach((s) => stdErrorBuffer.push(s));
+    next.forEach((s) => streamState.stdErrorBuffer.push(s));
   } else {
-    stdErrorBuffer.push(cleanString);
+    streamState.stdErrorBuffer.push(cleanString);
   }
 };
 
-const createStdErrorStream = (wasmFs, workerMessagePort) => {
-  const stdErrorCallback_ = stdErrorCallback(workerMessagePort);
-  wasmFs.fs.watch("/dev/stderr", { encoding: "buffer" }, (eventType, filename) => {
+const createStdErrorStream = (wasmFs, workerMessagePort, streamState) => {
+  const stdErrorCallback_ = stdErrorCallback(workerMessagePort, streamState);
+  const watcher = new wasmFs.volume.FSWatcher();
+  function listener(eventType, filename) {
     if (filename) {
       const contents = wasmFs.fs.readFileSync("/dev/stderr");
-      stdErrorCallback_(contents.slice(stdErrorPos));
-      stdErrorPos = contents.length;
+      stdErrorCallback_(contents.slice(streamState.stdErrorPos));
+      streamState.stdErrorPos = contents.length;
     }
-  });
+  }
+  watcher.start("/dev/stderr", true, false, "buffer");
+  watcher.addListener("change", listener);
+  return watcher;
 };
 
-const stdOutCallback = (workerMessagePort) => (data) => {
+const stdOutCallback = (workerMessagePort, streamState) => (data) => {
   const cleanString = cleanStdout(uint2String(data));
   if (cleanString.includes("\n")) {
     const [firstElement, ...next] = cleanString.split("\n");
     let outstr = "";
-    while (stdOutBuffer.length > 0) {
-      outstr += stdOutBuffer[0];
-      stdOutBuffer.shift();
+    while (streamState.stdOutBuffer.length > 0) {
+      outstr += streamState.stdOutBuffer[0];
+      streamState.stdOutBuffer.shift();
     }
 
     outstr += firstElement;
@@ -61,21 +57,25 @@ const stdOutCallback = (workerMessagePort) => (data) => {
       workerMessagePort.post(outstr);
     }
 
-    next.forEach((s) => stdOutBuffer.push(s));
+    next.forEach((s) => streamState.stdOutBuffer.push(s));
   } else {
-    stdOutBuffer.push(cleanString);
+    streamState.stdOutBuffer.push(cleanString);
   }
 };
 
-export const createStdOutStream = (wasmFs, workerMessagePort) => {
-  const stdOutCallback_ = stdOutCallback(workerMessagePort);
-  wasmFs.fs.watch("/dev/stdout", { encoding: "buffer" }, (eventType, filename) => {
+export const createStdOutStream = (wasmFs, workerMessagePort, streamState) => {
+  const stdOutCallback_ = stdOutCallback(workerMessagePort, streamState);
+  const watcher = new wasmFs.volume.FSWatcher();
+  function listener(eventType, filename) {
     if (filename) {
       const contents = wasmFs.fs.readFileSync("/dev/stdout");
-      stdOutCallback_(contents.slice(stdOutPos));
-      stdOutPos = contents.length;
+      stdOutCallback_(contents.slice(streamState.stdOutPos));
+      streamState.stdOutPos = contents.length;
     }
-  });
+  }
+  watcher.start("/dev/stdout", true, false, "buffer");
+  watcher.addListener("change", listener);
+  return watcher;
 };
 
 export async function writeToFs(wasmFs) {
@@ -142,10 +142,6 @@ export async function rmrfFs(wasmFs) {
   };
 }
 
-// all folders are stored under /csound, it seems as if
-// sanboxing security increases, we are safer to have all assets
-// nested from 1 and same root,
-// this implementation is hidden from the Csound runtime itself with a hack
 export async function mkdirp(wasmFs) {
   return (_, filePath) => {
     wasmFs.volume.mkdirpSync(path.join("/", filePath), {
@@ -154,12 +150,16 @@ export async function mkdirp(wasmFs) {
   };
 }
 
-export const initFS = async (wasmFs, messagePort) => {
-  stdErrorPos = 0;
-  stdErrorBuffer = [];
-  stdOutPos = 0;
-  stdOutBuffer = [];
+export const initFS = (wasmFs, messagePort) => {
+  const streamState = {
+    stdErrorPos: 0,
+    stdErrorBuffer: [],
+    stdOutPos: 0,
+    stdOutBuffer: [],
+  };
 
-  createStdErrorStream(wasmFs, messagePort);
-  createStdOutStream(wasmFs, messagePort);
+  return [
+    createStdOutStream(wasmFs, messagePort, streamState),
+    createStdErrorStream(wasmFs, messagePort, streamState),
+  ];
 };

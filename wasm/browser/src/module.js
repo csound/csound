@@ -227,6 +227,5 @@ export default async function ({ wasmDataURI, withPlugins = [], messagePort }) {
   }, []);
 
   wasi.start(instance_);
-  await initFS(wasmFs, messagePort);
   return [instance_, wasmFs];
 }

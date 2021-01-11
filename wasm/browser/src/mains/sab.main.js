@@ -4,8 +4,6 @@ import { messageEventHandler, IPCMessagePorts } from "@root/mains/messages.main"
 import SABWorker from "@root/workers/sab.worker";
 import {
   AUDIO_STATE,
-  CALLBACK_DATA_BUFFER_SIZE,
-  DATA_TYPE,
   MAX_CHANNELS,
   MAX_HARDWARE_BUFFER_SIZE,
   MIDI_BUFFER_PAYLOAD_SIZE,
@@ -91,22 +89,6 @@ class SharedArrayBufferMainThread {
     Atomics.store(this.midiBuffer, nextIndex + 1, data1);
     Atomics.store(this.midiBuffer, nextIndex + 2, data2);
     Atomics.add(this.audioStatePointer, AUDIO_STATE.AVAIL_RTMIDI_EVENTS, 1);
-  }
-
-  async addMessageCallback(callback) {
-    if (typeof callback === "function") {
-      this.messageCallbacks.push(callback);
-    } else {
-      console.error(`Can't assign ${typeof callback} as a message callback`);
-    }
-  }
-
-  async setMessageCallback(callback) {
-    if (typeof callback === "function") {
-      this.messageCallbacks = [callback];
-    } else {
-      console.error(`Can't assign ${typeof callback} as a message callback`);
-    }
   }
 
   async csoundPause() {
@@ -287,9 +269,6 @@ class SharedArrayBufferMainThread {
 
     logSAB(`A proxy port from SABMain to SABWorker established`);
 
-    this.exportApi.setMessageCallback = this.setMessageCallback.bind(this);
-    this.exportApi.addMessageCallback = this.addMessageCallback.bind(this);
-
     this.exportApi.pause = this.csoundPause.bind(this);
     this.exportApi.resume = this.csoundResume.bind(this);
 
@@ -307,6 +286,9 @@ class SharedArrayBufferMainThread {
     this.exportApi.getAudioContext = async () => this.audioWorker.audioContext;
 
     this.exportApi = this.publicEvents.decorateAPI(this.exportApi);
+
+    // the default message listener
+    this.exportApi.addListener("message", console.log);
 
     for (const apiK of Object.keys(API)) {
       const proxyCallback = makeProxyCallback(proxyPort, csoundInstance, apiK);
