@@ -4,17 +4,20 @@ import EE3 from "eventemitter3";
  * @typedef PublicEvents
  * @readonly
  * @enum {number}
- * @property {string} "play" called anytime performance goes from pause/stop to a running state
- * @property {string} "pause" called after any successful csound.pause() calls
- * @property {string} "stop" called after end of performance or after a successful csound.stop()
- * @property {string} "realtimePerformanceStarted" called at the start of realtime performance but not on resume or render
- * @property {string} "realtimePerformancePaused" only called if csound.pause() was successfully called during performance
- * @property {string} "realtimePerformanceResumed" only called if csound.resume() was successfully called after a pause
- * @property {string} "realtimePerformanceEnded" called after end of performance or after a successful csound.stop()
- * @property {string} "renderStarted" called at the start of offline/non-realtime render to disk
- * @property {string} "renderEnded" called at the end of offline/non-realtime render to disk
- * @property {string} "onAudioNodeCreated" called when an audioNode is created from the AudioContext before realtime performance,
+ * @property {string} "play" called anytime performance goes from pause/stop to a running state.
+ * @property {string} "pause" called after any successful csound.pause() calls.
+ * @property {string} "stop" called after end of performance or after a successful csound.stop().
+ * @property {string} "realtimePerformanceStarted" called at the start of realtime performance but not on resume or render.
+ * @property {string} "realtimePerformancePaused" only called if csound.pause() was successfully called during performance.
+ * @property {string} "realtimePerformanceResumed" only called if csound.resume() was successfully called after a pause.
+ * @property {string} "realtimePerformanceEnded" called after end of performance or after a successful csound.stop().
+ * @property {string} "renderStarted" called at the start of offline/non-realtime render to disk.
+ * @property {string} "renderEnded" called at the end of offline/non-realtime render to disk.
+ * @property {string} "onAudioNodeCreated" called when an audioNode is created from the AudioContext before realtime performance.
  * the event callback will include the audioNode itself, which is needed if autoConnect is set to false.
+ * @property {string} "message" the main entrypoint to csound's messaging (-m) system,
+ * a default event listener will print the message to the browser console, this default
+ * listener can be removed by the user.
  */
 
 export class PublicEventAPI {
@@ -84,6 +87,10 @@ export class PublicEventAPI {
     this.eventEmitter.emit("onAudioNodeCreated", audioNode);
   }
 
+  triggerMessage(log) {
+    this.eventEmitter.emit("message", log);
+  }
+
   decorateAPI(exportApi) {
     /**
      * Removes the specified listener from the listener array for the event named eventName.
@@ -144,6 +151,16 @@ export class PublicEventAPI {
      * @return {external:EventEmitter}
      */
     exportApi["on"] = this.eventEmitter.on.bind(this.eventEmitter);
+    /**
+     * Alias for "on"
+     * @function
+     * @name addListener
+     * @memberof CsoundObj
+     * @param {PublicEvents} eventName
+     * @param {function} listener
+     * @return {external:EventEmitter}
+     */
+    exportApi["addListener"] = this.eventEmitter.on.bind(this.eventEmitter);
     /**
      * Adds a one-time listener function for the event named eventName.
      * The next time eventName is triggered, this listener is removed and then invoked.

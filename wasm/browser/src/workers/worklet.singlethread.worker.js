@@ -23,7 +23,7 @@
 
 import * as Comlink from "comlink";
 import MessagePortState from "@utils/message-port-state";
-import { writeToFs, lsFs, llFs, readFromFs, rmrfFs } from "@root/filesystem";
+import { initFS, writeToFs, lsFs, llFs, readFromFs, rmrfFs } from "@root/filesystem";
 import libcsoundFactory from "@root/libcsound";
 import loadWasm from "@root/module";
 import { assoc, pipe } from "ramda";
@@ -74,6 +74,7 @@ class WorkletSinglethreadWorker extends AudioWorkletProcessor {
     loadWasm({ wasmDataURI, withPlugins, messagePort: this.workerMessagePort }).then(
       ([wasm, wasmFs]) => {
         this.wasm = wasm;
+        [this.watcherStdOut, this.watcherStdErr] = initFS(this.wasmFs, this.workerMessagePort);
         libraryCsound = libcsoundFactory(wasm);
         this.callUncloned = callUncloned;
         this.csound = libraryCsound.csoundCreate(0);
@@ -131,6 +132,10 @@ class WorkletSinglethreadWorker extends AudioWorkletProcessor {
       libraryCsound.csoundReset(cs);
     }
 
+    if (!this.watcherStdOut && !this.watcherStdErr) {
+      [this.watcherStdOut, this.watcherStdErr] = initFS(this.wasmFs, this.workerMessagePort);
+    }
+
     libraryCsound.csoundSetMidiCallbacks(cs);
     libraryCsound.csoundSetOption(cs, "--sample-rate=" + this.sampleRate);
     this.nchnls = -1;
@@ -142,6 +147,15 @@ class WorkletSinglethreadWorker extends AudioWorkletProcessor {
     this.workerMessagePort.broadcastPlayState("realtimePerformanceEnded");
     if (this.csound) {
       libraryCsound.csoundStop(this.csound);
+    }
+    if (this.watcherStdOut) {
+      this.watcherStdOut.close();
+      delete this.watcherStdOut;
+    }
+
+    if (this.watcherStdErr) {
+      this.watcherStdErr.close();
+      delete this.watcherStdErr;
     }
   }
 

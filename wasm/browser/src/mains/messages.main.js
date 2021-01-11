@@ -10,8 +10,9 @@ if (!__PROD__) {
 // exec log-event: msg => cb(msg)
 export const messageEventHandler = (worker) => (event) => {
   if (event.data.log) {
-    loggerPool.forEach((callback) => callback(event.data.log));
-    (worker.messageCallbacks || []).forEach((callback) => callback(event.data.log));
+    // loggerPool.forEach((callback) => callback(event.data.log));
+    // (worker.messageCallbacks || []).forEach((callback) => callback(event.data.log));
+    worker.publicEvents.triggerMessage(event.data.log);
   } else {
     worker.onPlayStateChange(event.data.playStateChange);
   }

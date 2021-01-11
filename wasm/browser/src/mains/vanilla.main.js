@@ -133,22 +133,6 @@ class VanillaWorkerMainThread {
     }
   }
 
-  async addMessageCallback(callback) {
-    if (typeof callback === "function") {
-      this.messageCallbacks.push(callback);
-    } else {
-      console.error(`Can't assign ${typeof callback} as a message callback`);
-    }
-  }
-
-  async setMessageCallback(callback) {
-    if (typeof callback === "function") {
-      this.messageCallbacks = [callback];
-    } else {
-      console.error(`Can't assign ${typeof callback} as a message callback`);
-    }
-  }
-
   async csoundPause() {
     if (this.audioWorker && typeof this.audioWorker.workletProxy !== "undefined") {
       await this.audioWorker.workletProxy.pause();
@@ -200,9 +184,6 @@ class VanillaWorkerMainThread {
 
     this.csoundInstance = csoundInstance;
 
-    this.exportApi.setMessageCallback = this.setMessageCallback.bind(this);
-    this.exportApi.addMessageCallback = this.addMessageCallback.bind(this);
-
     this.exportApi.pause = this.csoundPause.bind(this);
     this.exportApi.resume = this.csoundResume.bind(this);
     this.exportApi.writeToFs = makeProxyCallback(proxyPort, csoundInstance, "writeToFs");
@@ -213,6 +194,8 @@ class VanillaWorkerMainThread {
     this.exportApi.getAudioContext = async () => this.audioWorker.audioContext;
     this.exportApi.getNode = async () => this.audioWorker.audioWorkletNode;
     this.exportApi = this.publicEvents.decorateAPI(this.exportApi);
+    // the default message listener
+    this.exportApi.addListener("message", console.log);
 
     for (const apiK of Object.keys(API)) {
       const reference = API[apiK];
