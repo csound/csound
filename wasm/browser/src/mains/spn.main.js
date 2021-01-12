@@ -65,6 +65,25 @@ class ScriptProcessorNodeSingleThread {
     this.started = false;
   }
 
+  async terminateInstance() {
+    if (this.spn) {
+      this.spn.disconnect();
+      delete this.spn;
+    }
+    if (this.audioContext) {
+      if (this.audioContext.state !== "closed") {
+        await this.audioContext.close();
+      }
+      delete this.audioContext;
+    }
+    if (this.publicEvents) {
+      this.publicEvents.terminateInstance();
+      delete this.publicEvents;
+    }
+    Object.keys(this.exportApi).forEach((key) => delete this.exportApi[key]);
+    Object.keys(this).forEach((key) => delete this[key]);
+  }
+
   async onPlayStateChange(newPlayState) {
     if (this.currentPlayState === newPlayState) {
       return;
@@ -134,6 +153,7 @@ class ScriptProcessorNodeSingleThread {
         delete this.watcherStdErr;
       }
 
+      delete this.csoundInputBuffer;
       delete this.csoundOutputBuffer;
       delete this.currentPlayState;
       return stopResult;
@@ -228,6 +248,7 @@ class ScriptProcessorNodeSingleThread {
     this.exportApi.start = this.start.bind(this);
     this.exportApi.stop = this.stop.bind(this);
     this.exportApi.reset = () => this.resetCsound(true);
+    this.exportApi.terminateInstance = this.terminateInstance.bind(this);
     this.exportApi.getAudioContext = async () => this.audioContext;
     this.exportApi.name = "Csound: ScriptProcessor Node, Single-threaded";
 

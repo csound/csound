@@ -36,6 +36,29 @@ class ScriptProcessorNodeMainThread {
     logSPN("ScriptProcessorNodeMainThread was constructed");
   }
 
+  async terminateInstance() {
+    if (window[`__csound_wasm_iframe_parent_${this.contextUid}Node`]) {
+      window[`__csound_wasm_iframe_parent_${this.contextUid}Node`].disconnect();
+      delete window[`__csound_wasm_iframe_parent_${this.contextUid}Node`].disconnect();
+    }
+    if (this.audioContext) {
+      if (this.audioContext.state !== "closed") {
+        await this.audioContext.close();
+      }
+      delete this.audioContext;
+    }
+    if (proxyPort) {
+      proxyPort[Comlink.releaseProxy]();
+      proxyPort = undefined;
+    }
+    if (this.iFrameElement) {
+      this.iFrameElement.parentNode.removeChild(this.iFrameElement);
+    }
+    spnWorker = undefined;
+    UID = 0;
+    Object.keys(this).forEach((key) => delete this[key]);
+  }
+
   async onPlayStateChange(newPlayState) {
     if (this.currentPlayState === newPlayState) {
       if (newPlayState === "realtimePerformanceStarted" && this.csoundWorkerMain.startPromiz) {
@@ -71,6 +94,10 @@ class ScriptProcessorNodeMainThread {
       }
       case "realtimePerformanceEnded": {
         logSPN("event received: realtimePerformanceEnded");
+        if (window[`__csound_wasm_iframe_parent_${this.contextUid}Node`]) {
+          window[`__csound_wasm_iframe_parent_${this.contextUid}Node`].disconnect();
+          delete window[`__csound_wasm_iframe_parent_${this.contextUid}Node`].disconnect();
+        }
         break;
       }
       default: {
@@ -100,6 +127,7 @@ class ScriptProcessorNodeMainThread {
 
     const iFrameBlob = new Blob([iFrameHtml], { type: "text/html" });
     const iFrame = document.createElement("iframe");
+    this.iFrameElement = iFrame;
 
     iFrame.src = URL.createObjectURL(iFrameBlob);
     iFrame.sandbox.add("allow-scripts", "allow-same-origin");
