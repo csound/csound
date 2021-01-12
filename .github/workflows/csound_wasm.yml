@@ -21,4 +21,4 @@ jobs:
         name: csound
         authToken: '${{ secrets.CACHIX_AUTH_TOKEN }}'
     - name: Compile wasm binaries
-      run: bash $wasm_bin_dir/compile.sh
+      run: cd $wasm_bin_dir && bash compile.sh
