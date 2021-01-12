@@ -6,6 +6,8 @@ import { newAudioContext } from "@utils/new-audio-context";
 // import { logSPN } from '@root/logger';
 import { range } from "ramda";
 
+const startPromizes = {};
+
 const getAudioContext = (contextUid) => {
   return (
     window[contextUid] ||
@@ -14,19 +16,23 @@ const getAudioContext = (contextUid) => {
   );
 };
 
-const closeAndDeleteContext = (contextUid) => {
+const closeAndDeleteContext = async (contextUid) => {
   const maybeContext1 = window[contextUid];
   const maybeContext2 = window.parent[`__csound_wasm_iframe_parent_${contextUid}`];
   if (maybeContext1) {
     if (maybeContext1.state !== "closed") {
-      maybeContext1.close();
+      try {
+        await maybeContext1.close();
+      } catch (error) {}
     }
     delete window[contextUid];
   }
   if (maybeContext2) {
     // if false, then the above close statement should cut it
     if (maybeContext1 !== maybeContext2 && maybeContext2.state !== "closed") {
-      maybeContext2.close();
+      try {
+        await maybeContext2.close();
+      } catch (error) {}
     }
 
     delete window.parent[`__csound_wasm_iframe_parent_${contextUid}`];
@@ -159,7 +165,10 @@ class CsoundScriptNodeProcessor {
     }
     if (!this.vanillaFirstTransferDone) {
       this.vanillaFirstTransferDone = true;
-      this.workerMessagePort.broadcastPlayState("realtimePerformanceStarted");
+      if (startPromizes[this.contextUid]) {
+        startPromizes[this.contextUid]();
+        delete startPromizes[this.contextUid];
+      }
     }
   }
 
@@ -287,12 +296,19 @@ class CsoundScriptNodeProcessor {
 }
 const initAudioInputPort = ({ audioInputPort }) => (frames) => audioInputPort.postMessage(frames);
 
-const initMessagePort = ({ port, initialPlayState }) => {
+const initMessagePort = ({ port }) => {
   const workerMessagePort = new MessagePortState();
   workerMessagePort.post = (log) => port.postMessage({ log });
-  workerMessagePort.broadcastPlayState = (playStateChange) => port.postMessage({ playStateChange });
+  workerMessagePort.broadcastPlayState = (playStateChange) => {
+    if (
+      workerMessagePort.vanillaWorkerState === "realtimePerformanceStarted" &&
+      playStateChange === "realtimePerformanceStarted"
+    ) {
+      return;
+    }
+    port.postMessage({ playStateChange });
+  };
   workerMessagePort.ready = true;
-  workerMessagePort.vanillaWorkerState = initialPlayState;
   return workerMessagePort;
 };
 
@@ -305,7 +321,7 @@ const initRequestPort = ({ requestPort, spnClassInstance }) => {
   return requestPort;
 };
 
-const setPlayState = ({ contextUid, newPlayState }) => {
+const setPlayState = async ({ contextUid, newPlayState }) => {
   const spnClassInstance = spnInstances.get(contextUid);
   if (!spnClassInstance) {
     return;
@@ -342,6 +358,7 @@ const setPlayState = ({ contextUid, newPlayState }) => {
   } else if (newPlayState === "realtimePerformanceResumed") {
     spnClassInstance.audioContext.state === "suspended" && spnClassInstance.audioContext.resume();
   }
+
   spnClassInstance.workerMessagePort.vanillaWorkerState = newPlayState;
 };
 
@@ -373,11 +390,26 @@ const initialize = async ({
     autoConnect,
   });
 
-  const workerMessagePort = initMessagePort({ port: messagePort, initialPlayState });
+  const workerMessagePort = initMessagePort({ port: messagePort });
   const transferInputFrames = initAudioInputPort({ audioInputPort, spnClassInstance });
   initRequestPort({ requestPort, spnClassInstance });
   spnClassInstance.initCallbacks({ workerMessagePort, transferInputFrames, requestPort });
   spnInstances.set(contextUid, spnClassInstance);
+
+  if (initialPlayState === "realtimePerformanceStarted") {
+    const startPromise = new Promise((resolve, reject) => {
+      startPromizes[contextUid] = resolve;
+      setTimeout(() => {
+        if (typeof startPromizes[contextUid] === "function") {
+          reject(`a call to start() timed out`);
+          delete startPromizes[contextUid];
+          return -1;
+        }
+        // 10 second timeout
+      }, 10 * 60 * 1000);
+    });
+    return await startPromise;
+  }
 };
 
 Comlink.expose({ initialize, setPlayState }, Comlink.windowEndpoint(window.parent));

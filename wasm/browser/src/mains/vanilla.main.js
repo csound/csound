@@ -89,6 +89,10 @@ class VanillaWorkerMainThread {
   }
 
   async onPlayStateChange(newPlayState) {
+    if (!this.publicEvents) {
+      // prevent error after termination
+      return;
+    }
     this.currentPlayState = newPlayState;
 
     switch (newPlayState) {
@@ -145,7 +149,7 @@ class VanillaWorkerMainThread {
     try {
       if (!this.audioWorker) {
         console.error(`fatal error: audioWorker not initialized!`);
-      } else {
+      } else if (typeof this.audioWorker.onPlayStateChange === "function") {
         await this.audioWorker.onPlayStateChange(newPlayState);
       }
     } catch (error) {

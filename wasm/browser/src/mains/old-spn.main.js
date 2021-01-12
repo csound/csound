@@ -37,13 +37,16 @@ class ScriptProcessorNodeMainThread {
   }
 
   async terminateInstance() {
+    delete this.onPlayStateChange;
     if (window[`__csound_wasm_iframe_parent_${this.contextUid}Node`]) {
       window[`__csound_wasm_iframe_parent_${this.contextUid}Node`].disconnect();
       delete window[`__csound_wasm_iframe_parent_${this.contextUid}Node`].disconnect();
     }
     if (this.audioContext) {
       if (this.audioContext.state !== "closed") {
-        await this.audioContext.close();
+        try {
+          await this.audioContext.close();
+        } catch (error) {}
       }
       delete this.audioContext;
     }
@@ -61,35 +64,25 @@ class ScriptProcessorNodeMainThread {
 
   async onPlayStateChange(newPlayState) {
     if (this.currentPlayState === newPlayState) {
-      if (newPlayState === "realtimePerformanceStarted" && this.csoundWorkerMain.startPromiz) {
-        // hacky SAB timing fix when starting
-        // eventually, replace this spaghetti with
-        // private/internal event emitters
-        const startPromiz = this.csoundWorkerMain.startPromiz;
-        setTimeout(() => {
-          startPromiz();
-        }, 0);
-        delete this.csoundWorkerMain.startPromiz;
-      }
       return;
-    }
-
-    if (proxyPort && newPlayState !== "renderStarted" && newPlayState !== "renderEnded") {
-      await proxyPort.setPlayState({
-        contextUid: this.contextUid,
-        newPlayState,
-      });
     }
 
     switch (newPlayState) {
       case "realtimePerformanceStarted": {
         logSPN("event received: realtimePerformanceStarted");
-        try {
-          this.currentPlayState = newPlayState;
-          await this.initialize();
-        } catch (error) {
-          console.error(error);
+        this.currentPlayState = newPlayState;
+        await this.initialize();
+        if (this.csoundWorkerMain.startPromiz) {
+          // hacky SAB timing fix when starting
+          // eventually, replace this spaghetti with
+          // private/internal event emitters
+          const startPromiz = this.csoundWorkerMain.startPromiz;
+          setTimeout(() => {
+            startPromiz();
+          }, 0);
+          delete this.csoundWorkerMain.startPromiz;
         }
+
         break;
       }
       case "realtimePerformanceEnded": {
@@ -105,6 +98,15 @@ class ScriptProcessorNodeMainThread {
       }
     }
     this.currentPlayState = newPlayState;
+    if (
+      proxyPort &&
+      (newPlayState !== "realtimePerformanceStarted" || newPlayState !== "renderStarted")
+    ) {
+      await proxyPort.setPlayState({
+        contextUid: this.contextUid,
+        newPlayState,
+      });
+    }
   }
 
   async initIframe() {
@@ -220,7 +222,15 @@ class ScriptProcessorNodeMainThread {
     if (this.csoundWorkerMain && this.csoundWorkerMain.publicEvents) {
       const audioNode =
         spnWorker[`${contextUid}Node`] || window[`__csound_wasm_iframe_parent_${contextUid}Node`];
-      audioNode && this.csoundWorkerMain.publicEvents.triggerOnAudioNodeCreated(audioNode);
+
+      if (
+        audioNode &&
+        this.csoundWorkerMain &&
+        this.csoundWorkerMain.publicEvents &&
+        this.csoundWorkerMain.publicEvents.triggerOnAudioNodeCreated
+      ) {
+        this.csoundWorkerMain.publicEvents.triggerOnAudioNodeCreated(audioNode);
+      }
     }
   }
 }
