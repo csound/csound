@@ -2,39 +2,23 @@ name: csound_wasm
 on:
   push:
     branches:
-      - develop
-      - master
+      - feature/webaudio-csound
 jobs:
   csound-wasm:
     env:
-      wasm-bin-dir: ./wasm
-      wasm-browser-dir: ./wasm/browser
+      wasm_bin_dir: ./wasm
+      wasm_browser_dir: ./wasm/browser
     name: csound-wasm
     runs-on: ubuntu-latest
     steps:
     - name: Checkout repository
       uses: actions/checkout@master
-    - uses: cachix/install-nix-action@v8
-    - uses: cachix/cachix-action@v6
+    - uses: cachix/install-nix-action@v12
+      with:
+        nix_path: nixpkgs=channel:nixos-unstable
+    - uses: cachix/cachix-action@v8
       with:
         name: csound-wasm
         signingKey: '${{ secrets.CACHIX_SIGNING_KEY }}'
-    - name: Set up Node.js
-      uses: actions/setup-node@master
-      with:
-        node-version: '14.x'
-    - name: '@csound/wasm deps'
-      run: yarn install --immutable
-      working-directory: ${{env.wasm-bin-dir}}
-    - name: '@csound/wasm compile'
-      run: yarn build:nix
-      working-directory: ${{env.wasm-bin-dir}}
-    - name: '@csound/browser deps'
-      run: yarn install --immutable
-      working-directory: ${{env.wasm-browser-dir}}
-    - name: '@csound/browser test'
-      run: yarn lint
-      working-directory: ${{env.wasm-browser-dir}}
-    - name: Build javascript bundles
-      run: yarn release
-      working-directory: ${{env.wasm-browser-dir}}
+    - name: Compile wasm binaries
+      run: bash $wasm_bin_dir/compile.sh
