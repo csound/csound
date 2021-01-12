@@ -27,7 +27,25 @@ class AudioWorkletMainThread {
 
     this.initialize = this.initialize.bind(this);
     this.onPlayStateChange = this.onPlayStateChange.bind(this);
+    this.terminateInstance = this.terminateInstance.bind(this);
     logWorklet("AudioWorkletMainThread was constructed");
+  }
+
+  async terminateInstance() {
+    if (this.audioWorkletNode) {
+      this.audioWorkletNode.disconnect();
+      delete this.audioWorkletNode;
+    }
+    if (this.audioContext) {
+      if (this.audioContext.state !== "closed") {
+        await this.audioContext.close();
+      }
+      delete this.audioContext;
+    }
+    if (this.workletProxy) {
+      this.workletProxy[Comlink.releaseProxy]();
+      delete this.workletProxy;
+    }
   }
 
   async onPlayStateChange(newPlayState) {

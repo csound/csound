@@ -177,6 +177,7 @@ i1 0 2
         const startReturn = await cs.start();
         assert.equal(startReturn, 0);
         await cs.stop();
+        cs.terminateInstance && (await cs.terminateInstance());
       });
 
       it("has expected methods", async function () {
@@ -187,6 +188,7 @@ i1 0 2
         assert.property(cs, "stop", "has .stop() method");
         assert.property(cs, "pause", "has .pause() method");
         await cs.stop();
+        cs.terminateInstance && (await cs.terminateInstance());
       });
 
       it("can use run using just compileOrc", async function () {
@@ -202,6 +204,7 @@ i1 0 2
         const startReturn = await cs.start();
         assert.equal(startReturn, 0);
         await cs.stop();
+        cs.terminateInstance && (await cs.terminateInstance());
       });
 
       it("can play tone and get channel values", async function () {
@@ -215,6 +218,7 @@ i1 0 2
         assert.equal(1, await cs.getControlChannel("test1"));
         assert.equal(2, await cs.getControlChannel("test2"));
         await cs.stop();
+        cs.terminateInstance && (await cs.terminateInstance());
       });
 
       it("can play tone and send channel values", async function () {
@@ -227,6 +231,7 @@ i1 0 2
         await cs.setControlChannel("freq", 880);
         assert.equal(880, await cs.getControlChannel("freq"));
         await cs.stop();
+        cs.terminateInstance && (await cs.terminateInstance());
       });
 
       it("can send and receive string channel values", async function () {
@@ -240,6 +245,7 @@ i1 0 2
         await cs.setStringChannel("strChannel", "test1");
         assert.equal("test1", await cs.getStringChannel("strChannel"));
         await cs.stop();
+        cs.terminateInstance && (await cs.terminateInstance());
       });
 
       it("can load and run plugins", async function () {
@@ -253,6 +259,7 @@ i1 0 2
         assert.equal(0, await cs.compileCsdText(pluginTest));
         await cs.start();
         await cs.stop();
+        cs.terminateInstance && (await cs.terminateInstance());
       });
 
       it("can load and run c++ plugins", async function () {
@@ -266,6 +273,7 @@ i1 0 2
         assert.equal(0, await cs.compileCsdText(cxxPluginTest));
         await cs.start();
         await cs.stop();
+        cs.terminateInstance && (await cs.terminateInstance());
       });
 
       it("emits public events in realtime performance", async function () {
@@ -300,6 +308,7 @@ i1 0 2
           eventOnAudioNodeCreatedSpy.calledWith(sinon.match.instanceOf(AudioNode)),
           'The argument provided to the callback of "onAudioNodeCreated" was an AudioNode',
         );
+        csoundObj.terminateInstance && (await csoundObj.terminateInstance());
       });
 
       it("can read and write ftabled in realtime", async function () {
@@ -314,6 +323,7 @@ i1 0 2
         assert.equal(1, await csoundObj.tableGet(1, 2));
         assert.equal(2, await csoundObj.tableGet(1, 3));
         await csoundObj.stop();
+        csoundObj.terminateInstance && (await csoundObj.terminateInstance());
       });
     });
   });

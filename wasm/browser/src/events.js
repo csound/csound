@@ -33,6 +33,24 @@ export class PublicEventAPI {
     this.triggerRenderStarted = this.triggerRenderStarted.bind(this);
     this.triggerRenderEnded = this.triggerRenderEnded.bind(this);
     this.triggerOnAudioNodeCreated = this.triggerOnAudioNodeCreated.bind(this);
+    this.terminateInstance = this.terminateInstance.bind(this);
+  }
+
+  terminateInstance() {
+    this.eventEmitter.removeAllListeners([
+      "play",
+      "pause",
+      "stop",
+      "realtimePerformanceStarted",
+      "realtimePerformancePaused",
+      "realtimePerformanceResumed",
+      "realtimePerformanceEnded",
+      "renderStarted",
+      "renderEnded",
+      "onAudioNodeCreated",
+      "message",
+    ]);
+    Object.keys(this).forEach((key) => delete this[key]);
   }
 
   triggerRealtimePerformanceStarted() {

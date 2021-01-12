@@ -56,6 +56,29 @@ class SingleThreadAudioWorkletMainThread {
     this.currentPlayState = undefined;
   }
 
+  async terminateInstance() {
+    if (this.node) {
+      this.node.disconnect();
+      delete this.node;
+    }
+    if (this.audioContext) {
+      if (this.audioContext.state !== "closed") {
+        await this.audioContext.close();
+      }
+      delete this.audioContext;
+    }
+    if (this.workletProxy) {
+      this.workletProxy[Comlink.releaseProxy]();
+      delete this.workletProxy;
+    }
+    if (this.publicEvents) {
+      this.publicEvents.terminateInstance();
+      delete this.publicEvents;
+    }
+    Object.keys(this.exportApi).forEach((key) => delete this.exportApi[key]);
+    Object.keys(this).forEach((key) => delete this[key]);
+  }
+
   async onPlayStateChange(newPlayState) {
     if (this.currentPlayState == newPlayState) {
       return;
@@ -151,6 +174,7 @@ class SingleThreadAudioWorkletMainThread {
     await makeProxyCallback(this.workletProxy, csoundInstance, "csoundInitialize")(0);
     this.exportApi.pause = this.csoundPause.bind(this);
     this.exportApi.resume = this.csoundResume.bind(this);
+    this.exportApi.terminateInstance = this.terminateInstance.bind(this);
     this.exportApi.writeToFs = makeProxyCallback(this.workletProxy, csoundInstance, "writeToFs");
     this.exportApi.readFromFs = makeProxyCallback(this.workletProxy, csoundInstance, "readFromFs");
     this.exportApi.llFs = makeProxyCallback(this.workletProxy, csoundInstance, "llFs");

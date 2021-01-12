@@ -1,31 +1,30 @@
-import { logVAN } from "@root/logger";
-
-const loggerPool = new Set();
-
-// debug mode: console.log always all messages
-if (!__PROD__) {
-  loggerPool.add(console.log);
-}
+// import { logVAN } from "@root/logger";
 
 // exec log-event: msg => cb(msg)
 export const messageEventHandler = (worker) => (event) => {
   if (event.data.log) {
-    // loggerPool.forEach((callback) => callback(event.data.log));
-    // (worker.messageCallbacks || []).forEach((callback) => callback(event.data.log));
-    worker.publicEvents.triggerMessage(event.data.log);
+    if (worker && worker.publicEvents && worker.publicEvents.triggerMessage) {
+      worker.publicEvents.triggerMessage(event.data.log);
+    } else {
+      // in case of errors, this can happen
+      // in which case, it's good to see the log
+      console.log(event.data.log);
+    }
   } else {
-    worker.onPlayStateChange(event.data.playStateChange);
-  }
-};
-
-export const emitInternalCsoundLogEvent = (worker, message) => {
-  if (typeof message === "string") {
-    loggerPool.forEach((callback) => callback(message));
-    if (worker) {
-      (worker.messageCallbacks || []).forEach((callback) => callback(message));
+    if (worker && worker.onPlayStateChange) {
+      worker.onPlayStateChange(event.data.playStateChange);
     }
   }
 };
+
+// export const emitInternalCsoundLogEvent = (worker, message) => {
+//   if (typeof message === "string") {
+//     loggerPool.forEach((callback) => callback(message));
+//     if (worker) {
+//       (worker.messageCallbacks || []).forEach((callback) => callback(message));
+//     }
+//   }
+// };
 
 export class IPCMessagePorts {
   constructor() {

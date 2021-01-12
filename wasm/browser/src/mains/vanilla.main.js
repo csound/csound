@@ -34,6 +34,26 @@ class VanillaWorkerMainThread {
     this.startPromiz = undefined;
   }
 
+  async terminateInstance() {
+    if (this.csoundWorker) {
+      this.csoundWorker.terminate();
+      delete this.csoundWorker;
+    }
+    if (this.audioWorker && this.audioWorker.terminateInstance) {
+      await this.audioWorker.terminateInstance();
+      delete this.audioWorker.terminateInstance;
+    }
+    if (this.proxyPort) {
+      this.proxyPort[Comlink.releaseProxy]();
+      delete this.proxyPort;
+    }
+    if (this.publicEvents) {
+      this.publicEvents.terminateInstance();
+    }
+    Object.keys(this.exportApi).forEach((key) => delete this.exportApi[key]);
+    Object.keys(this).forEach((key) => delete this[key]);
+  }
+
   get api() {
     return this.exportApi;
   }
@@ -186,6 +206,8 @@ class VanillaWorkerMainThread {
 
     this.exportApi.pause = this.csoundPause.bind(this);
     this.exportApi.resume = this.csoundResume.bind(this);
+    this.exportApi.terminateInstance = this.terminateInstance.bind(this);
+
     this.exportApi.writeToFs = makeProxyCallback(proxyPort, csoundInstance, "writeToFs");
     this.exportApi.readFromFs = makeProxyCallback(proxyPort, csoundInstance, "readFromFs");
     this.exportApi.llFs = makeProxyCallback(proxyPort, csoundInstance, "llFs");

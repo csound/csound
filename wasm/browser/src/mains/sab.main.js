@@ -53,23 +53,28 @@ class SharedArrayBufferMainThread {
 
     this.midiBuffer = new Int32Array(this.midiBufferSAB);
 
-    // this.callbackBufferSAB = new SharedArrayBuffer(1024 * Int32Array.BYTES_PER_ELEMENT);
-    // this.callbackBuffer = new Int32Array(this.callbackBufferSAB);
-    // this.callbackStringDataBufferSAB = new SharedArrayBuffer(
-    //   CALLBACK_DATA_BUFFER_SIZE * Uint8Array.BYTES_PER_ELEMENT,
-    // );
-    // this.callbackStringDataBuffer = new Uint8Array(this.callbackStringDataBufferSAB);
-    // this.callbackFloat32ArrayDataBufferSAB = new SharedArrayBuffer(
-    //   CALLBACK_DATA_BUFFER_SIZE * Float32Array.BYTES_PER_ELEMENT,
-    // );
-    // this.callbackFloat32ArrayDataBuffer = new Float32Array(this.callbackFloat32ArrayDataBufferSAB);
-    // this.callbackFloat64ArrayDataBufferSAB = new SharedArrayBuffer(
-    //   CALLBACK_DATA_BUFFER_SIZE * Float64Array.BYTES_PER_ELEMENT,
-    // );
-    // this.callbackFloat64ArrayDataBuffer = new Float64Array(this.callbackFloat64ArrayDataBufferSAB);
-
     this.onPlayStateChange = this.onPlayStateChange.bind(this);
     logSAB(`SharedArrayBufferMainThread got constructed`);
+  }
+
+  async terminateInstance() {
+    if (this.csoundWorker) {
+      this.csoundWorker.terminate();
+      delete this.csoundWorker;
+    }
+    if (this.audioWorker && this.audioWorker.terminateInstance) {
+      await this.audioWorker.terminateInstance();
+      delete this.audioWorker.terminateInstance;
+    }
+    if (this.proxyPort) {
+      this.proxyPort[Comlink.releaseProxy]();
+      delete this.proxyPort;
+    }
+    if (this.publicEvents) {
+      this.publicEvents.terminateInstance();
+    }
+    Object.keys(this.exportApi).forEach((key) => delete this.exportApi[key]);
+    Object.keys(this).forEach((key) => delete this[key]);
   }
 
   get api() {
@@ -218,13 +223,7 @@ class SharedArrayBufferMainThread {
     const audioStreamIn = this.audioStreamIn;
     const audioStreamOut = this.audioStreamOut;
     const midiBuffer = this.midiBuffer;
-    // const callbackBuffer = this.callbackBuffer;
-    // const callbackStringDataBuffer = this.callbackStringDataBuffer;
-    // const callbackFloat32ArrayDataBuffer = this.callbackFloat32ArrayDataBuffer;
-    // const callbackFloat64ArrayDataBuffer = this.callbackFloat64ArrayDataBuffer;
 
-    // This will sadly create circular structure
-    // that's still mostly harmless.
     logSAB(`providing the audioWorker a pointer to SABMain's instance`);
     this.audioWorker.csoundWorkerMain = this;
 
@@ -252,6 +251,7 @@ class SharedArrayBufferMainThread {
     // this.ipcMessagePorts.sabMainCallbackReply.start();
 
     const proxyPort = Comlink.wrap(csoundWorker);
+    this.proxyPort = proxyPort;
     const csoundInstance = await proxyPort.initialize(
       Comlink.transfer(
         {
@@ -271,6 +271,7 @@ class SharedArrayBufferMainThread {
 
     this.exportApi.pause = this.csoundPause.bind(this);
     this.exportApi.resume = this.csoundResume.bind(this);
+    this.exportApi.terminateInstance = this.terminateInstance.bind(this);
 
     this.exportApi.writeToFs = makeProxyCallback(proxyPort, csoundInstance, "writeToFs");
     this.exportApi.readFromFs = makeProxyCallback(proxyPort, csoundInstance, "readFromFs");
