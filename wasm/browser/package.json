@@ -20,7 +20,7 @@
     "build:prod": "cross-env BUILD_TARGET=production rollup -c --environment production",
     "build:readme": "node script/generate-readme.js > README.md",
     "test:open": "http-server ./tests -c-1 --no-dotfiles",
-    "build:types": "jsdoc -t node_modules/tsd-jsdoc/dist -r src -d ."
+    "build:types": "jsdoc -t node_modules/tsd-jsdoc/dist -r src -d .; mv types.d.ts index.d.ts"
   },
   "devDependencies": {
     "@babel/core": "^7.12.3",
