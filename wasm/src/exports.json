@@ -1,4 +1,5 @@
 [
+  "__wasi_js_csoundSetMessageStringCallback",
   "csoundShouldDaemonize",
   "chdir",
   "csoundSetMidiCallbacks",

@@ -2,7 +2,7 @@ import { WASI } from "@wasmer/wasi";
 import { WasmFs } from "@wasmer/wasmfs";
 import { inflate } from "pako";
 import { dlinit } from "@root/dlinit";
-import { initFS } from "@root/filesystem";
+import { csoundWasiJsMessageCallback } from "@root/filesystem";
 import * as path from "path";
 
 const PAGE_SIZE = 65536;
@@ -149,6 +149,7 @@ export default async function ({ wasmDataURI, withPlugins = [], messagePort }) {
   const memoryBase = new WebAssembly.Global({ value: "i32", mutable: false }, fixedMemoryBase);
   const tableBase = new WebAssembly.Global({ value: "i32", mutable: false }, 1);
   const __dummy = new WebAssembly.Global({ value: "i32", mutable: true }, 0);
+
   const module = await WebAssembly.compile(wasmBytes);
   const options = wasi.getImports(module);
 
@@ -172,6 +173,14 @@ export default async function ({ wasmDataURI, withPlugins = [], messagePort }) {
   options["env"]["__memory_base"] = memoryBase;
   options["env"]["__table_base"] = tableBase;
   options["env"]["csoundLoadModules"] = csoundLoadModules;
+
+  const streamBuffer = [];
+
+  options["env"]["csoundWasiJsMessageCallback"] = csoundWasiJsMessageCallback({
+    memory,
+    streamBuffer,
+    messagePort,
+  });
 
   options["GOT.mem"] = options["GOT.mem"] || {};
   options["GOT.mem"]["__heap_base"] = heapBase;
@@ -213,6 +222,7 @@ export default async function ({ wasmDataURI, withPlugins = [], messagePort }) {
       pluginOptions["env"]["__stack_pointer"] = stackPointer;
       pluginOptions["env"]["__table_base"] = tableBase;
       pluginOptions["env"]["csoundLoadModules"] = __dummy;
+      delete pluginOptions["env"]["csoundWasiJsMessageCallback"];
 
       currentMemorySegment += Math.ceil((pluginMemorySize + pluginMemoryAlign) / PAGE_SIZE);
       const pluginInstance = await WebAssembly.instantiate(plugin, pluginOptions);
@@ -227,5 +237,6 @@ export default async function ({ wasmDataURI, withPlugins = [], messagePort }) {
   }, []);
 
   wasi.start(instance_);
+  instance_.exports["__wasi_js_csoundSetMessageStringCallback"]();
   return [instance_, wasmFs];
 }

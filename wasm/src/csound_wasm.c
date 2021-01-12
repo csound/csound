@@ -30,6 +30,7 @@ int init_static_modules(CSOUND *csound) {
   liveconv_init_(csound);
   dateops_init_(csound);
   unsupported_opdoces_init_(csound);
+  return 0;
 };
 
 
@@ -139,6 +140,31 @@ int csoundPerformKsmpsWasi(CSOUND *csound)
   } else {
     return csound->kperf(csound);
   }
+}
+// for message callbacks, probably we don't want this for non-js
+// wasm interpretors
+
+void csoundWasiJsMessageCallback(
+    CSOUND *csound,
+    int attr,
+    int len,
+    const char *str
+) __attribute__((
+     used,
+    __import_module__("env"),
+    __import_name__("csoundWasiJsMessageCallback")
+));
+
+
+void csoundWasiCMessageCallback(CSOUND *csound, int attr, const char *format, va_list args) {
+  char buffer[MAX_MESSAGE_STR];
+  int len = vsnprintf(buffer, MAX_MESSAGE_STR, format, args);
+  (* csoundWasiJsMessageCallback)(csound, attr, len, buffer);
+}
+
+
+void __wasi_js_csoundSetMessageStringCallback() {
+  return csoundSetDefaultMessageCallback(&csoundWasiCMessageCallback);
 }
 
 // copy/paste from upstream csound-emscripten
