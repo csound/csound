@@ -308,22 +308,81 @@ i1 0 2
           eventOnAudioNodeCreatedSpy.calledWith(sinon.match.instanceOf(AudioNode)),
           'The argument provided to the callback of "onAudioNodeCreated" was an AudioNode',
         );
-        csoundObj.terminateInstance && (await csoundObj.terminateInstance());
+        await csoundObj.terminateInstance();
       });
 
-      it("can read and write ftabled in realtime", async function () {
+      it("can read and write ftables in realtime", async function () {
         const csoundObj = await Csound(test);
         await csoundObj.setOption("-odac");
         await csoundObj.compileCsdText(ftableTest);
         await csoundObj.start();
-        assert.equal(8, await csoundObj.tableLength(1));
+
         // assert few indicies
-        assert.equal(0, await csoundObj.tableGet(1, 0));
-        assert.equal(1, await csoundObj.tableGet(1, 1));
-        assert.equal(1, await csoundObj.tableGet(1, 2));
-        assert.equal(2, await csoundObj.tableGet(1, 3));
+        assert.equal(8, await csoundObj.tableLength(1), "The length of the table counts as 8");
+        assert.equal(0, await csoundObj.tableGet(1, 0, "The first index is 0"));
+        assert.equal(1, await csoundObj.tableGet(1, 1, "The second index is 1"));
+        assert.equal(1, await csoundObj.tableGet(1, 2, "The third index is 2"));
+        assert.equal(2, await csoundObj.tableGet(1, 3, "The fourth index is 3"));
+
+        await csoundObj.tableSet(1, 0, 123);
+        await csoundObj.tableSet(1, 1, 666);
+
+        assert.equal(123, await csoundObj.tableGet(1, 0, "The first index was modified to 123"));
+        assert.equal(666, await csoundObj.tableGet(1, 1, "The second index was modified to 666"));
         await csoundObj.stop();
-        csoundObj.terminateInstance && (await csoundObj.terminateInstance());
+        await csoundObj.terminateInstance();
+      });
+
+      it("can read and write arraybuffers to/from ftables in realtime", async function () {
+        const csoundObj = await Csound(test);
+        await csoundObj.setOption("-odac");
+        await csoundObj.compileCsdText(ftableTest);
+        await csoundObj.start();
+
+        const tableLength = await csoundObj.tableLength(1);
+
+        // we initialize a float64 typed array
+        // using the length of the original csound table
+        const float64array = new Float64Array(tableLength);
+
+        // we then fill the arrays with test values
+        float64array.set([1, 1.1, 1.01, 1.001]);
+
+        // then we copy the the array from js into csound's runtime onto table 1
+        await csoundObj.tableCopyIn(1, float64array);
+
+        // assert that the values got delivered
+        assert.equal(
+          float64array[0],
+          await csoundObj.tableGet(1, 0),
+          "The first index from table1 matches the first index of the copied array",
+        );
+        assert.equal(
+          float64array[1],
+          await csoundObj.tableGet(1, 1),
+          "The second index from table1 matches the second index of the copied array",
+        );
+        assert.equal(
+          float64array[2],
+          await csoundObj.tableGet(1, 2),
+          "The third index from table1 matches the third index of the copied array",
+        );
+        assert.equal(
+          float64array[3],
+          await csoundObj.tableGet(1, 3),
+          "The fourth index from table1 matches the fourth index of the copied array",
+        );
+
+        const csoundTableOneFloat64 = await csoundObj.tableCopyOut(1);
+        // we convert it to normal Array for readability
+        const csoundTableOneArray = Array.from(csoundTableOneFloat64);
+        assert.deepEqual(
+          csoundTableOneArray,
+          [1, 1.1, 1.01, 1.001, 0, 0, 0, 0],
+          "The current csound table matches the 4 numbers we copied into it followed by 4 empty values (0)",
+        );
+        await csoundObj.stop();
+        await csoundObj.terminateInstance();
       });
     });
   });

@@ -14,6 +14,8 @@
 If loaded successfully, it returns CsoundObj,
 otherwise undefined.</p>
 </dd>
+<dt><a href="#tableCopyOut">tableCopyOut(tableNum)</a> ⇒ <code>Promise.&lt;(Float64Array|undefined)&gt;</code></dt>
+<dd></dd>
 </dl>
 
 ## Typedefs
@@ -31,68 +33,83 @@ CsoundObj API.
 **Kind**: global namespace  
 
 * [CsoundObj](#CsoundObj) : <code>object</code>
-    * [.removeListener(eventName, listener)](#CsoundObj.removeListener) ⇒ <code>external:EventEmitter</code>
-    * [.eventNames()](#CsoundObj.eventNames) ⇒ <code>Array.&lt;string&gt;</code>
-    * [.listenerCount()](#CsoundObj.listenerCount) ⇒ <code>number</code>
-    * [.listeners(eventName)](#CsoundObj.listeners) ⇒ <code>Array.&lt;function()&gt;</code>
-    * [.off(eventName, listener)](#CsoundObj.off) ⇒ <code>external:EventEmitter</code>
-    * [.on(eventName, listener)](#CsoundObj.on) ⇒ <code>external:EventEmitter</code>
-    * [.addListener(eventName, listener)](#CsoundObj.addListener) ⇒ <code>external:EventEmitter</code>
-    * [.once(eventName, listener)](#CsoundObj.once) ⇒ <code>external:EventEmitter</code>
-    * [.removeAllListeners(eventName, listener)](#CsoundObj.removeAllListeners) ⇒ <code>external:EventEmitter</code>
-    * [.removeListener(eventName, listener)](#CsoundObj.removeListener) ⇒ <code>external:EventEmitter</code>
-    * [.getSr()](#CsoundObj.getSr) ⇒ <code>Promise.&lt;number&gt;</code>
-    * [.getKr()](#CsoundObj.getKr) ⇒ <code>Promise.&lt;number&gt;</code>
-    * [.getKsmps()](#CsoundObj.getKsmps) ⇒ <code>Promise.&lt;number&gt;</code>
-    * [.getNchnls()](#CsoundObj.getNchnls) ⇒ <code>Promise.&lt;number&gt;</code>
-    * [.getNchnlsInput()](#CsoundObj.getNchnlsInput) ⇒ <code>Promise.&lt;number&gt;</code>
-    * [.get0dBFS()](#CsoundObj.get0dBFS) ⇒ <code>Promise.&lt;number&gt;</code>
-    * [.getA4()](#CsoundObj.getA4) ⇒ <code>Promise.&lt;number&gt;</code>
-    * [.getCurrentTimeSamples()](#CsoundObj.getCurrentTimeSamples) ⇒ <code>Promise.&lt;number&gt;</code>
-    * [.getSizeOfMYFLT()](#CsoundObj.getSizeOfMYFLT) ⇒ <code>Promise.&lt;number&gt;</code>
-    * [.setOption()](#CsoundObj.setOption) ⇒ <code>Promise.&lt;number&gt;</code>
-    * [.setParams(csoundParams)](#CsoundObj.setParams) ⇒ <code>Promise.&lt;undefined&gt;</code>
-    * [.getParams()](#CsoundObj.getParams) ⇒ [<code>Promise.&lt;CSOUND\_PARAMS&gt;</code>](#CSOUND_PARAMS)
-    * [.getDebug()](#CsoundObj.getDebug) ⇒ <code>Promise.&lt;number&gt;</code>
-    * [.setDebug(debug)](#CsoundObj.setDebug) ⇒ <code>Promise.&lt;undefined&gt;</code>
-    * [.inputMessage()](#CsoundObj.inputMessage) ⇒ <code>Promise.&lt;number&gt;</code>
-    * [.inputMessageAsync()](#CsoundObj.inputMessageAsync) ⇒ <code>Promise.&lt;number&gt;</code>
-    * [.getControlChannel(channelName)](#CsoundObj.getControlChannel) ⇒ <code>Promise.&lt;undefined&gt;</code>
-    * [.setControlChannel(channelName, value)](#CsoundObj.setControlChannel) ⇒ <code>Promise.&lt;undefined&gt;</code>
-    * [.getStringChannel(channelName)](#CsoundObj.getStringChannel) ⇒ <code>Promise.&lt;undefined&gt;</code>
-    * [.setStringChannel(channelName, value)](#CsoundObj.setStringChannel) ⇒ <code>Promise.&lt;undefined&gt;</code>
-    * [.getOutputName()](#CsoundObj.getOutputName) ⇒ <code>Promise.&lt;string&gt;</code>
-    * [.getInputName()](#CsoundObj.getInputName) ⇒ <code>Promise.&lt;string&gt;</code>
-    * [.destroy()](#CsoundObj.destroy) ⇒ <code>Promise.&lt;undefined&gt;</code>
-    * [.getAPIVersion()](#CsoundObj.getAPIVersion) ⇒ <code>Promise.&lt;number&gt;</code>
-    * [.getVersion()](#CsoundObj.getVersion) ⇒ <code>Promise.&lt;number&gt;</code>
-    * [.initialize()](#CsoundObj.initialize) ⇒ <code>Promise.&lt;number&gt;</code>
-    * [.parseOrc(orc)](#CsoundObj.parseOrc) ⇒ <code>Promise.&lt;object&gt;</code>
-    * [.compileTree(tree)](#CsoundObj.compileTree) ⇒ <code>Promise.&lt;number&gt;</code>
-    * [.compileOrc(orc)](#CsoundObj.compileOrc) ⇒ <code>Promise.&lt;number&gt;</code>
-    * [.evalCode(orc)](#CsoundObj.evalCode) ⇒ <code>Promise.&lt;number&gt;</code>
-    * [.start()](#CsoundObj.start) ⇒ <code>Promise.&lt;number&gt;</code>
-    * [.compileCsd(path)](#CsoundObj.compileCsd) ⇒ <code>Promise.&lt;number&gt;</code>
-    * [.compileCsdText(orc)](#CsoundObj.compileCsdText) ⇒ <code>Promise.&lt;number&gt;</code>
-    * [.perform()](#CsoundObj.perform) ⇒ <code>Promise.&lt;number&gt;</code>
-    * [.performKsmps()](#CsoundObj.performKsmps) ⇒ <code>Promise.&lt;number&gt;</code>
-    * [.performBuffer()](#CsoundObj.performBuffer) ⇒ <code>Promise.&lt;number&gt;</code>
-    * [.stop()](#CsoundObj.stop) ⇒ <code>Promise.&lt;undefined&gt;</code>
-    * [.cleanup()](#CsoundObj.cleanup) ⇒ <code>Promise.&lt;number&gt;</code>
-    * [.reset()](#CsoundObj.reset) ⇒ <code>Promise.&lt;number&gt;</code>
-    * [.getInputBufferSize()](#CsoundObj.getInputBufferSize) ⇒ <code>Promise.&lt;number&gt;</code>
-    * [.getOutputBufferSize()](#CsoundObj.getOutputBufferSize) ⇒ <code>Promise.&lt;number&gt;</code>
-    * [.getInputBuffer()](#CsoundObj.getInputBuffer) ⇒ <code>Promise.&lt;number&gt;</code>
-    * [.getOutputBuffer()](#CsoundObj.getOutputBuffer) ⇒ <code>Promise.&lt;number&gt;</code>
-    * [.getSpin()](#CsoundObj.getSpin) ⇒ <code>Promise.&lt;number&gt;</code>
-    * [.getSpout()](#CsoundObj.getSpout) ⇒ <code>Promise.&lt;number&gt;</code>
-    * [.isScorePending()](#CsoundObj.isScorePending) ⇒ <code>Promise.&lt;number&gt;</code>
-    * [.setScorePending(pending)](#CsoundObj.setScorePending) ⇒ <code>Promise.&lt;undefined&gt;</code>
-    * [.tableLength(tableNum)](#CsoundObj.tableLength) ⇒ <code>Promise.&lt;number&gt;</code>
-    * [.tableGet(tableNum, tableIndex)](#CsoundObj.tableGet) ⇒ <code>Promise.&lt;number&gt;</code>
-    * [.tableSet(tableNum, tableIndex, value)](#CsoundObj.tableSet) ⇒ <code>Promise.&lt;number&gt;</code>
-    * [.tableCopyIn(tableNum, tableIndex, value)](#CsoundObj.tableCopyIn) ⇒ <code>Promise.&lt;undefined&gt;</code>
-    * [.tableCopyOut(tableNum)](#CsoundObj.tableCopyOut) ⇒ <code>Promise.&lt;(Float64Array\|undefined)&gt;</code>
+    * _global_
+        * [tableCopyOut(tableNum)](#tableCopyOut) ⇒ <code>Promise.&lt;(Float64Array\|undefined)&gt;</code>
+    * _static_
+        * [.removeListener(eventName, listener)](#CsoundObj.removeListener) ⇒ <code>external:EventEmitter</code>
+        * [.eventNames()](#CsoundObj.eventNames) ⇒ <code>Array.&lt;string&gt;</code>
+        * [.listenerCount()](#CsoundObj.listenerCount) ⇒ <code>number</code>
+        * [.listeners(eventName)](#CsoundObj.listeners) ⇒ <code>Array.&lt;function()&gt;</code>
+        * [.off(eventName, listener)](#CsoundObj.off) ⇒ <code>external:EventEmitter</code>
+        * [.on(eventName, listener)](#CsoundObj.on) ⇒ <code>external:EventEmitter</code>
+        * [.addListener(eventName, listener)](#CsoundObj.addListener) ⇒ <code>external:EventEmitter</code>
+        * [.once(eventName, listener)](#CsoundObj.once) ⇒ <code>external:EventEmitter</code>
+        * [.removeAllListeners(eventName, listener)](#CsoundObj.removeAllListeners) ⇒ <code>external:EventEmitter</code>
+        * [.removeListener(eventName, listener)](#CsoundObj.removeListener) ⇒ <code>external:EventEmitter</code>
+        * [.getSr()](#CsoundObj.getSr) ⇒ <code>Promise.&lt;number&gt;</code>
+        * [.getKr()](#CsoundObj.getKr) ⇒ <code>Promise.&lt;number&gt;</code>
+        * [.getKsmps()](#CsoundObj.getKsmps) ⇒ <code>Promise.&lt;number&gt;</code>
+        * [.getNchnls()](#CsoundObj.getNchnls) ⇒ <code>Promise.&lt;number&gt;</code>
+        * [.getNchnlsInput()](#CsoundObj.getNchnlsInput) ⇒ <code>Promise.&lt;number&gt;</code>
+        * [.get0dBFS()](#CsoundObj.get0dBFS) ⇒ <code>Promise.&lt;number&gt;</code>
+        * [.getA4()](#CsoundObj.getA4) ⇒ <code>Promise.&lt;number&gt;</code>
+        * [.getCurrentTimeSamples()](#CsoundObj.getCurrentTimeSamples) ⇒ <code>Promise.&lt;number&gt;</code>
+        * [.getSizeOfMYFLT()](#CsoundObj.getSizeOfMYFLT) ⇒ <code>Promise.&lt;number&gt;</code>
+        * [.setOption()](#CsoundObj.setOption) ⇒ <code>Promise.&lt;number&gt;</code>
+        * [.setParams(csoundParams)](#CsoundObj.setParams) ⇒ <code>Promise.&lt;undefined&gt;</code>
+        * [.getParams()](#CsoundObj.getParams) ⇒ [<code>Promise.&lt;CSOUND\_PARAMS&gt;</code>](#CSOUND_PARAMS)
+        * [.getDebug()](#CsoundObj.getDebug) ⇒ <code>Promise.&lt;number&gt;</code>
+        * [.setDebug(debug)](#CsoundObj.setDebug) ⇒ <code>Promise.&lt;undefined&gt;</code>
+        * [.inputMessage()](#CsoundObj.inputMessage) ⇒ <code>Promise.&lt;number&gt;</code>
+        * [.inputMessageAsync()](#CsoundObj.inputMessageAsync) ⇒ <code>Promise.&lt;number&gt;</code>
+        * [.getControlChannel(channelName)](#CsoundObj.getControlChannel) ⇒ <code>Promise.&lt;undefined&gt;</code>
+        * [.setControlChannel(channelName, value)](#CsoundObj.setControlChannel) ⇒ <code>Promise.&lt;undefined&gt;</code>
+        * [.getStringChannel(channelName)](#CsoundObj.getStringChannel) ⇒ <code>Promise.&lt;undefined&gt;</code>
+        * [.setStringChannel(channelName, value)](#CsoundObj.setStringChannel) ⇒ <code>Promise.&lt;undefined&gt;</code>
+        * [.getOutputName()](#CsoundObj.getOutputName) ⇒ <code>Promise.&lt;string&gt;</code>
+        * [.getInputName()](#CsoundObj.getInputName) ⇒ <code>Promise.&lt;string&gt;</code>
+        * [.destroy()](#CsoundObj.destroy) ⇒ <code>Promise.&lt;undefined&gt;</code>
+        * [.getAPIVersion()](#CsoundObj.getAPIVersion) ⇒ <code>Promise.&lt;number&gt;</code>
+        * [.getVersion()](#CsoundObj.getVersion) ⇒ <code>Promise.&lt;number&gt;</code>
+        * [.initialize()](#CsoundObj.initialize) ⇒ <code>Promise.&lt;number&gt;</code>
+        * [.parseOrc(orc)](#CsoundObj.parseOrc) ⇒ <code>Promise.&lt;object&gt;</code>
+        * [.compileTree(tree)](#CsoundObj.compileTree) ⇒ <code>Promise.&lt;number&gt;</code>
+        * [.compileOrc(orc)](#CsoundObj.compileOrc) ⇒ <code>Promise.&lt;number&gt;</code>
+        * [.evalCode(orc)](#CsoundObj.evalCode) ⇒ <code>Promise.&lt;number&gt;</code>
+        * [.start()](#CsoundObj.start) ⇒ <code>Promise.&lt;number&gt;</code>
+        * [.compileCsd(path)](#CsoundObj.compileCsd) ⇒ <code>Promise.&lt;number&gt;</code>
+        * [.compileCsdText(orc)](#CsoundObj.compileCsdText) ⇒ <code>Promise.&lt;number&gt;</code>
+        * [.perform()](#CsoundObj.perform) ⇒ <code>Promise.&lt;number&gt;</code>
+        * [.performKsmps()](#CsoundObj.performKsmps) ⇒ <code>Promise.&lt;number&gt;</code>
+        * [.performBuffer()](#CsoundObj.performBuffer) ⇒ <code>Promise.&lt;number&gt;</code>
+        * [.stop()](#CsoundObj.stop) ⇒ <code>Promise.&lt;undefined&gt;</code>
+        * [.cleanup()](#CsoundObj.cleanup) ⇒ <code>Promise.&lt;number&gt;</code>
+        * [.reset()](#CsoundObj.reset) ⇒ <code>Promise.&lt;number&gt;</code>
+        * [.getInputBufferSize()](#CsoundObj.getInputBufferSize) ⇒ <code>Promise.&lt;number&gt;</code>
+        * [.getOutputBufferSize()](#CsoundObj.getOutputBufferSize) ⇒ <code>Promise.&lt;number&gt;</code>
+        * [.getInputBuffer()](#CsoundObj.getInputBuffer) ⇒ <code>Promise.&lt;number&gt;</code>
+        * [.getOutputBuffer()](#CsoundObj.getOutputBuffer) ⇒ <code>Promise.&lt;number&gt;</code>
+        * [.getSpin()](#CsoundObj.getSpin) ⇒ <code>Promise.&lt;number&gt;</code>
+        * [.getSpout()](#CsoundObj.getSpout) ⇒ <code>Promise.&lt;number&gt;</code>
+        * [.isScorePending()](#CsoundObj.isScorePending) ⇒ <code>Promise.&lt;number&gt;</code>
+        * [.setScorePending(pending)](#CsoundObj.setScorePending) ⇒ <code>Promise.&lt;undefined&gt;</code>
+        * [.tableLength(tableNum)](#CsoundObj.tableLength) ⇒ <code>Promise.&lt;number&gt;</code>
+        * [.tableGet(tableNum, tableIndex)](#CsoundObj.tableGet) ⇒ <code>Promise.&lt;number&gt;</code>
+        * [.tableSet(tableNum, tableIndex, value)](#CsoundObj.tableSet) ⇒ <code>Promise.&lt;undefined&gt;</code>
+        * [.tableCopyIn(tableNum, tableIndex, array)](#CsoundObj.tableCopyIn) ⇒ <code>Promise.&lt;undefined&gt;</code>
+        * [.tableCopyOut(tableNum)](#CsoundObj.tableCopyOut) ⇒ <code>Promise.&lt;(Float64Array\|undefined)&gt;</code>
+        * [.getTableArgs(tableNum)](#CsoundObj.getTableArgs) ⇒ <code>Promise.&lt;(Float64Array\|undefined)&gt;</code>
+        * [.isNamedGEN(tableNum)](#CsoundObj.isNamedGEN) ⇒ <code>Promise.&lt;number&gt;</code>
+        * [.csoundGetNamedGEN(tableNum)](#CsoundObj.csoundGetNamedGEN) ⇒ <code>Promise.&lt;(string\|undefined)&gt;</code>
+
+<a name="tableCopyOut"></a>
+
+### CsoundObjtableCopyOut(tableNum) ⇒ <code>Promise.&lt;(Float64Array\|undefined)&gt;</code>
+**Kind**: global method of [<code>CsoundObj</code>](#CsoundObj)  
+
+| Param | Type |
+| --- | --- |
+| tableNum | <code>string</code> | 
 
 <a name="CsoundObj.removeListener"></a>
 
@@ -624,7 +641,7 @@ The table number and index are assumed to be valid.
 
 <a name="CsoundObj.tableSet"></a>
 
-### CsoundObj.tableSet(tableNum, tableIndex, value) ⇒ <code>Promise.&lt;number&gt;</code>
+### CsoundObj.tableSet(tableNum, tableIndex, value) ⇒ <code>Promise.&lt;undefined&gt;</code>
 Sets the value of a slot in a function table.
 The table number and index are assumed to be valid.
 
@@ -638,8 +655,8 @@ The table number and index are assumed to be valid.
 
 <a name="CsoundObj.tableCopyIn"></a>
 
-### CsoundObj.tableCopyIn(tableNum, tableIndex, value) ⇒ <code>Promise.&lt;undefined&gt;</code>
-Copy the contents of a Float64Array from javascript into a given csound function table.
+### CsoundObj.tableCopyIn(tableNum, tableIndex, array) ⇒ <code>Promise.&lt;undefined&gt;</code>
+Copy the contents of an Array or TypedArray from javascript into a given csound function table.
 The table number is assumed to be valid, and the table needs to have sufficient space
 to receive all the array contents.
 The table number and index are assumed to be valid.
@@ -650,7 +667,7 @@ The table number and index are assumed to be valid.
 | --- | --- |
 | tableNum | <code>string</code> | 
 | tableIndex | <code>string</code> | 
-| value | <code>string</code> | 
+| array | <code>Array.&lt;number&gt;</code> \| <code>ArrayLike.&lt;number&gt;</code> | 
 
 <a name="CsoundObj.tableCopyOut"></a>
 
@@ -658,6 +675,45 @@ The table number and index are assumed to be valid.
 Copies the contents of a function table from csound into Float64Array.
 The function returns a Float64Array if the table exists, otherwise
 it returns undefined.
+
+**Kind**: static method of [<code>CsoundObj</code>](#CsoundObj)  
+
+| Param | Type |
+| --- | --- |
+| tableNum | <code>string</code> | 
+
+<a name="CsoundObj.getTableArgs"></a>
+
+### CsoundObj.getTableArgs(tableNum) ⇒ <code>Promise.&lt;(Float64Array\|undefined)&gt;</code>
+Copies the contents of a function table from csound into Float64Array.
+The function returns a Float64Array if the table exists, otherwise
+it returns undefined.
+
+**Kind**: static method of [<code>CsoundObj</code>](#CsoundObj)  
+
+| Param | Type |
+| --- | --- |
+| tableNum | <code>string</code> | 
+
+<a name="CsoundObj.isNamedGEN"></a>
+
+### CsoundObj.isNamedGEN(tableNum) ⇒ <code>Promise.&lt;number&gt;</code>
+Checks if a given GEN number num is a named GEN if so,
+it returns the string length (excluding terminating NULL char).
+Otherwise it returns 0.
+
+**Kind**: static method of [<code>CsoundObj</code>](#CsoundObj)  
+
+| Param | Type |
+| --- | --- |
+| tableNum | <code>string</code> | 
+
+<a name="CsoundObj.csoundGetNamedGEN"></a>
+
+### CsoundObj.csoundGetNamedGEN(tableNum) ⇒ <code>Promise.&lt;(string\|undefined)&gt;</code>
+Gets the GEN name from a number num, if this is a named GEN.
+If the table number doesn't represent a named GEN, it will
+return undefined.
 
 **Kind**: static method of [<code>CsoundObj</code>](#CsoundObj)  
 

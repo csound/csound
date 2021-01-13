@@ -45,15 +45,15 @@ csoundTableGet.toString = () => "tableGet = async (tableNum, tableIndex) => Numb
  * @param {string} tableNum
  * @param {string} tableIndex
  * @param {string} value
- * @return {Promise.<number>}
+ * @return {Promise.<undefined>}
  */
 export const csoundTableSet = (wasm) => (csound, tableNum, tableIndex, value) =>
   wasm.exports.csoundTableSet(csound, tableNum, tableIndex, value);
 
-csoundTableSet.toString = () => "tableSet = async (tableNum, tableIndex, value) => Number;";
+csoundTableSet.toString = () => "tableSet = async (tableNum, tableIndex, value) => undefined;";
 
 /**
- * Copy the contents of a Float64Array from javascript into a given csound function table.
+ * Copy the contents of an Array or TypedArray from javascript into a given csound function table.
  * The table number is assumed to be valid, and the table needs to have sufficient space
  * to receive all the array contents.
  * The table number and index are assumed to be valid.
@@ -63,11 +63,13 @@ csoundTableSet.toString = () => "tableSet = async (tableNum, tableIndex, value) 
  * @memberof CsoundObj
  * @param {string} tableNum
  * @param {string} tableIndex
- * @param {string} value
+ * @param {Array<number>|ArrayLike<number>} array
  * @return {Promise.<undefined>}
  */
-export const csoundTableCopyIn = (wasm) => (csound, tableNum, float64Array) => {
-  const arrPtr = wasm.exports.allocFloatArray(float64Array.length);
+export const csoundTableCopyIn = (wasm) => (csound, tableNum, array) => {
+  const arrPtr = wasm.exports.allocFloatArray(array.length);
+  const buffer = new Float64Array(wasm.exports.memory.buffer, arrPtr, array.length);
+  buffer.set(array);
   wasm.exports.csoundTableCopyIn(csound, tableNum, arrPtr);
   wasm.exports.freeFloatArrayMem(arrPtr);
 };
@@ -99,10 +101,80 @@ export const csoundTableCopyOut = (wasm) => (csound, tableNum) => {
 
 csoundTableCopyOut.toString = () => "tableCopyOut = async (tableNum) => ?Float64Array;";
 
-// PUBLIC void 	csoundTableCopyOut (CSOUND *csound, int table, MYFLT *dest)
-// PUBLIC void 	csoundTableCopyOutAsync (CSOUND *csound, int table, MYFLT *dest)
+/**
+ * @name getTable
+ * @alias csoundTableCopyOut
+ * @async
+ * @function
+ * @name tableCopyOut
+ * @memberof CsoundObj
+ * @param {string} tableNum
+ * @return {Promise.<Float64Array|undefined>}
+ */
+export const csoundGetTable = csoundTableCopyOut;
+csoundGetTable.toString = csoundTableCopyOut.toString;
 
-// PUBLIC int 	csoundGetTable (CSOUND *, MYFLT **tablePtr, int tableNum)
-// PUBLIC int 	csoundGetTableArgs (CSOUND *csound, MYFLT **argsPtr, int tableNum)
-// PUBLIC int 	csoundIsNamedGEN (CSOUND *csound, int num)
-// PUBLIC void 	csoundGetNamedGEN (CSOUND *csound, int num, char *name, int len)
+/**
+ * Copies the contents of a function table from csound into Float64Array.
+ * The function returns a Float64Array if the table exists, otherwise
+ * it returns undefined.
+ * @async
+ * @function
+ * @name getTableArgs
+ * @memberof CsoundObj
+ * @param {string} tableNum
+ * @return {Promise.<Float64Array|undefined>}
+ */
+export const csoundGetTableArgs = (wasm) => (csound, tableNum) => {
+  const arrPtr = wasm.exports.allocFloatArray(1024);
+  wasm.exports.csoundGetTableArgs(csound, arrPtr, tableNum);
+  const { buffer } = wasm.exports.memory;
+  const jsArr = new Float64Array(buffer, arrPtr, 1024);
+  wasm.exports.freeFloatArrayMem(arrPtr);
+  return jsArr;
+};
+
+csoundGetTableArgs.toString = () => "getTableArgs = async (tableNum) => ?Float64Array;";
+
+// broken: https://github.com/csound/csound/issues/1422
+/**
+ * Checks if a given GEN number num is a named GEN if so,
+ * it returns the string length (excluding terminating NULL char).
+ * Otherwise it returns 0.
+ * @async
+ * @function
+ * @name isNamedGEN
+ * @memberof CsoundObj
+ * @param {string} tableNum
+ * @return {Promise.<number>}
+ */
+export const csoundIsNamedGEN = (wasm) => (csound, tableNum) =>
+  wasm.exports.csoundIsNamedGEN(csound, tableNum);
+
+csoundIsNamedGEN.toString = () => "isNamedGEN = async (tableNum) => number;";
+
+// broken: https://github.com/csound/csound/issues/1422
+/**
+ * Gets the GEN name from a number num, if this is a named GEN.
+ * If the table number doesn't represent a named GEN, it will
+ * return undefined.
+ * @async
+ * @function
+ * @name csoundGetNamedGEN
+ * @memberof CsoundObj
+ * @param {string} tableNum
+ * @return {Promise.<string|undefined>}
+ */
+export const csoundGetNamedGEN = (wasm) => (csound, tableNum) => {
+  const stringLength = wasm.exports.csoundIsNamedGEN(csound, tableNum);
+  if (stringLength > 0) {
+    const offset = wasm.exports.allocStringMem(stringLength);
+    wasm.exports.csoundGetNamedGEN(csound, offset, tableNum, stringLength);
+    const { buffer } = wasm.exports.memory;
+    const stringBuffer = new Uint8Array(buffer, offset, stringLength);
+    const result = decoder.decode(stringBuffer);
+    return result;
+  }
+};
+
+csoundGetNamedGEN.toString = () => "getNamedGEN = async (tableNum) => ?string;";

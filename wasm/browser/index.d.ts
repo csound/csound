@@ -306,20 +306,39 @@ declare namespace CsoundObj {
      * Sets the value of a slot in a function table.
      * The table number and index are assumed to be valid.
      */
-    function tableSet(tableNum: string, tableIndex: string, value: string): Promise<number>;
+    function tableSet(tableNum: string, tableIndex: string, value: string): Promise<undefined>;
     /**
-     * Copy the contents of a Float64Array from javascript into a given csound function table.
+     * Copy the contents of an Array or TypedArray from javascript into a given csound function table.
      * The table number is assumed to be valid, and the table needs to have sufficient space
      * to receive all the array contents.
      * The table number and index are assumed to be valid.
      */
-    function tableCopyIn(tableNum: string, tableIndex: string, value: string): Promise<undefined>;
+    function tableCopyIn(tableNum: string, tableIndex: string, array: number[] | ArrayLike<number>): Promise<undefined>;
     /**
      * Copies the contents of a function table from csound into Float64Array.
      * The function returns a Float64Array if the table exists, otherwise
      * it returns undefined.
      */
     function tableCopyOut(tableNum: string): Promise<Float64Array | undefined>;
+    function tableCopyOut(tableNum: string): Promise<Float64Array | undefined>;
+    /**
+     * Copies the contents of a function table from csound into Float64Array.
+     * The function returns a Float64Array if the table exists, otherwise
+     * it returns undefined.
+     */
+    function getTableArgs(tableNum: string): Promise<Float64Array | undefined>;
+    /**
+     * Checks if a given GEN number num is a named GEN if so,
+     * it returns the string length (excluding terminating NULL char).
+     * Otherwise it returns 0.
+     */
+    function isNamedGEN(tableNum: string): Promise<number>;
+    /**
+     * Gets the GEN name from a number num, if this is a named GEN.
+     * If the table number doesn't represent a named GEN, it will
+     * return undefined.
+     */
+    function csoundGetNamedGEN(tableNum: string): Promise<string | undefined>;
 }
 
 /**

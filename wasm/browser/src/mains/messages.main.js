@@ -15,15 +15,6 @@ export const messageEventHandler = (worker) => (event) => {
   }
 };
 
-// export const emitInternalCsoundLogEvent = (worker, message) => {
-//   if (typeof message === "string") {
-//     loggerPool.forEach((callback) => callback(message));
-//     if (worker) {
-//       (worker.messageCallbacks || []).forEach((callback) => callback(message));
-//     }
-//   }
-// };
-
 export class IPCMessagePorts {
   constructor() {
     let { port1: mainMessagePort, port2: workerMessagePort } = new MessageChannel();

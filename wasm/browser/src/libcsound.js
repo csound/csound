@@ -70,6 +70,10 @@ import {
   csoundTableSet,
   csoundTableCopyIn,
   csoundTableCopyOut,
+  csoundGetTable,
+  csoundGetTableArgs,
+  csoundIsNamedGEN,
+  csoundGetNamedGEN,
 } from "@module/table";
 
 /*
@@ -150,6 +154,10 @@ export const api = {
   csoundTableSet,
   csoundTableCopyIn,
   csoundTableCopyOut,
+  csoundGetTable,
+  csoundGetTableArgs,
+  csoundIsNamedGEN,
+  csoundGetNamedGEN,
 };
 
 export default function (wasm) {
