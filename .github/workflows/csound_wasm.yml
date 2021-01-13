@@ -60,5 +60,5 @@ jobs:
       - name: Run the unit-tests
         run : |
           cd $wasm_browser_dir
-          nix-env -f '<nixpkgs>' -iA chromedriver selenium-server-standalone
+          nix-env -f '<nixpkgs>' -iA google-chrome chromedriver selenium-server-standalone
           yarn test:ci
