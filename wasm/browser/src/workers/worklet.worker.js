@@ -14,16 +14,21 @@ function processSharedArrayBuffer(inputs, outputs) {
   const isPaused = Atomics.load(this.sharedArrayBuffer, AUDIO_STATE.IS_PAUSED) === 1;
   const isStopped = Atomics.load(this.sharedArrayBuffer, AUDIO_STATE.STOP) === 1;
 
+  if (this.startPromiz) {
+    this.startPromiz();
+    delete this.startPromiz;
+  }
+  
   if (!this.sharedArrayBuffer || isPaused || !isPerforming || isStopped) {
     this.isPerformingLastTime = isPerforming;
     this.preProcessCount = 0;
-
+    
     // Fix for that chrome 64 bug which doesn't 0 the arrays
     // https://github.com/csound/web-ide/issues/102#issuecomment-663894059
     (outputs[0] || []).forEach((array) => array.fill(0));
     return true;
   }
-
+  
   this.isPerformingLastTime = isPerforming;
 
   if (this.preProcessCount < SAB_PERIODS && this.isPerformingLastTime && isPerforming) {
@@ -104,6 +109,10 @@ function processVanillaBuffers(inputs, outputs) {
     });
     this.pendingFrames += firstTransferSize;
     this.vanillaInitialized = true;
+    if (this.startPromiz) {
+      this.startPromiz();
+      delete this.startPromiz;
+    }
     return true;
   }
 
@@ -282,7 +291,7 @@ class CsoundWorkletProcessor extends AudioWorkletProcessor {
     );
   }
 
-  initCallbacks({ workerMessagePort, audioInputPort, audioFramePort }) {
+  initCallbacks({ workerMessagePort, audioInputPort, audioFramePort, startPromiz }) {
     logWorklet(`initCallbacks in worker`);
     if (workerMessagePort) {
       this.workerMessagePort = workerMessagePort;
@@ -295,6 +304,7 @@ class CsoundWorkletProcessor extends AudioWorkletProcessor {
       this.audioFramePort = audioFramePort;
     }
     this.messagePortsReady = true;
+    this.startPromiz = startPromiz;
   }
 
   updateVanillaFrames({ audioPacket, numFrames, readIndex }) {
@@ -389,7 +399,12 @@ const initialize = async ({ contextUid, inputPort, messagePort, requestPort }) =
 
   const audioInputPort = initAudioInputPort({ inputPort });
   const audioFramePort = initRequestPort({ requestPort, audioNode });
-  audioNode.initCallbacks({ workerMessagePort, audioInputPort, audioFramePort });
+  let startPromiz;
+  const startPromise = new Promise((resolve) => {
+    startPromiz = resolve;    
+  });
+  audioNode.initCallbacks({ workerMessagePort, audioInputPort, audioFramePort, startPromiz });
+  await startPromise;
 };
 
 registerProcessor("csound-worklet-processor", CsoundWorkletProcessor);
