@@ -30,7 +30,7 @@ jobs:
       uses: actions/upload-artifact@master
       with:
         name: lib
-        path: lib.zip
+        path: $wasm_bin_dir/lib.zip
   browser-test:
     env:
       wasm_bin_dir: ./wasm
