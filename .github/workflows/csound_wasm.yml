@@ -23,6 +23,7 @@ jobs:
       run: cd $wasm_bin_dir && bash compile.sh
     - name: Zip the compilation output
       run: |
+          cd $wasm_bin_dir
           nix-env -f '<nixpkgs>' -iA zip
           zip -r lib.zip lib
     - name: Archive Wasm Artifacts
