@@ -13,10 +13,9 @@ const webDriverCapabilities = {
   "goog:chromeOptions": {
     args: [
       "--headless",
-      // "--require-audio-hardware-for-testing",
-      // "--allow-hidden-media-playback",
-      // "--allow-insecure-localhost",
-      // "--auto-select-desktop-capture-source",
+      // https://stackoverflow.com/a/50642913/3714556
+      "--disable-dev-shm-usage",
+      "--auto-select-desktop-capture-source",
       "--disable-gesture-requirement-for-media-playback",
       "--autoplay-policy=no-user-gesture-required",
     ],
