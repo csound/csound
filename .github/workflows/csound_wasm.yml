@@ -47,7 +47,7 @@ jobs:
       - uses: cachix/cachix-action@v8
         with:
           name: csound
-        authToken: 'eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJjJDIzMTgiLCJqdGkiOiJhNDQzZmMwMi1mMDBjLTQzNDUtYjA3YS1jYzJjYjIzYjE2OTAiLCJzY29wZXMiOiJjYWNoZSJ9.UOQEV1Hd1ZEQdNF1STxbt0wcCrIrihsv4KThD_wHk3E'
+          authToken: 'eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJjJDIzMTgiLCJqdGkiOiJhNDQzZmMwMi1mMDBjLTQzNDUtYjA3YS1jYzJjYjIzYjE2OTAiLCJzY29wZXMiOiJjYWNoZSJ9.UOQEV1Hd1ZEQdNF1STxbt0wcCrIrihsv4KThD_wHk3E'
       - name: Download Artifact
         uses: actions/download-artifact@master
         with:
