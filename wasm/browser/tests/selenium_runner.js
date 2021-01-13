@@ -24,20 +24,23 @@ const webDriverCapabilities = {
   },
 };
 
-const CI_BIN = "/nix/var/nix/profiles/default/bin/google-chrome";
-if (fs.existsSync(CI_BIN)) {
-  webDriverCapabilities["binary"] = CI_BIN;
+const CI_BIN = process.env["CHROME_BIN"];
+if (CI_BIN && fs.existsSync(CI_BIN)) {
+  webDriverCapabilities["goog:chromeOptions"]["binary"] = CI_BIN;
 }
 
 (async function () {
-  const result = await runMochaWebDriverTest(
-    webDriverCapabilities,
-    "http://localhost:8081/index.html",
-  );
-  httpServerPs.kill();
-  if (result.success) {
+  let result;
+  try {
+    result = await runMochaWebDriverTest(webDriverCapabilities, "http://localhost:8081/index.html");
+  } catch (error) {
+    console.error(error);
     process.exit(-1);
-  } else {
+  }
+  httpServerPs.kill();
+  if (result && result.success) {
     process.exit(0);
+  } else {
+    process.exit(-1);
   }
 })();
