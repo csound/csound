@@ -23,7 +23,7 @@ jobs:
       run: cd $wasm_bin_dir && bash compile.sh
     - name: Zip the compilation output
       run: |
-          nix-env -iA unzip
+          nix-env -f '<nixpkgs>' -iA zip
           ls lib
           zip -r lib.zip lib
     - name: Archive Wasm Artifacts
@@ -50,13 +50,14 @@ jobs:
           name: lib
       - name: Uncompress freshly compiled wasm artifacts
         run: |
-          nix-env -iA unzip
+          nix-env -f '<nixpkgs>' -iA unzip
           unzip ./lib.zip -d $wasm_bin_dir
       - name: Build the production js module bundle
         run: |
           cd &wasm_browser_dir
+          yarn
           yarn build:prod
       - name: Run the unit-tests
         run : |
-          nix-env -iA chromedriver selenium-server-standalone
+          nix-env -f '<nixpkgs>' -iA chromedriver selenium-server-standalone
           yarn test:ci
