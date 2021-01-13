@@ -15,6 +15,7 @@ const webDriverCapabilities = {
       "--headless",
       // https://stackoverflow.com/a/50642913/3714556
       "--disable-dev-shm-usage",
+      "--no-sandbox",
       "--auto-select-desktop-capture-source",
       "--disable-gesture-requirement-for-media-playback",
       "--autoplay-policy=no-user-gesture-required",
