@@ -362,12 +362,12 @@ int csoundInitModules(CSOUND *csound) {
 // extern int csoundLoadModules(CSOUND *csound);
 
 int csoundLoadExternals(CSOUND *csound) {
-    printf("Called loadModules!!\n");
+    /* printf("Called loadModules!!\n"); */
     return 0;
 }
 
 int csoundLoadAndInitModules(CSOUND *csound, const char *opdir) {
-    printf("Unimplemented feature in wasi!\n");
+    /* printf("Unimplemented feature in wasi!\n"); */
     return 0;
 }
 

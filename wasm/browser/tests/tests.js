@@ -1,5 +1,6 @@
 (async () => {
-  const url = "/libcsound.dev.mjs";
+  const isCI = location.port === "8081";
+  const url = isCI ? "/libcsound.mjs" : "/libcsound.dev.mjs";
   const { Csound } = await import(url);
 
   const helloWorld = `
@@ -159,6 +160,10 @@ i1 0 2
 `;
 
   mocha.setup("bdd").fullTrace();
+
+  if (isCI) {
+    MochaWebdriverClient.install(mocha);
+  }
 
   const csoundVariations = [
     { useWorker: false, useSPN: false, name: "SINGLE THREAD, AW" },
@@ -394,4 +399,7 @@ i1 0 2
     mocha.cleanReferencesAfterRun(true);
     mocha.run();
   });
+  if (isCI) {
+    mocha.run();
+  }
 })();

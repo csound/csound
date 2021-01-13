@@ -24,16 +24,16 @@ import {
  * The default entry for @csound/wasm/browser module.
  * If loaded successfully, it returns CsoundObj,
  * otherwise undefined.
- * 
+ *
  * @param {Object} [params] Initialization parameters
  * @param {AudioContext} [params.audioContext] - Optional AudioContext to use; if none given, an AudioContext will be created.
- * @param {Number} [params.inputChannelCount=2] - Optional input channel count for AudioNode used with WebAudio graph. Defaults to 2.  
- * @param {Number} [params.outputChannelCount=2] - Optional output channel count AudioNode used with WebAudio graph. Defaults to 2.  
- * @param {Boolean} [params.autoConnect=true] - Set to configure Csound to automatically connect to the audioContext.destination output.  
+ * @param {Number} [params.inputChannelCount=2] - Optional input channel count for AudioNode used with WebAudio graph. Defaults to 2.
+ * @param {Number} [params.outputChannelCount=2] - Optional output channel count AudioNode used with WebAudio graph. Defaults to 2.
+ * @param {Boolean} [params.autoConnect=true] - Set to configure Csound to automatically connect to the audioContext.destination output.
  * @param {Object[]} [params.withPlugins] - Array of WebAssembly Csound plugin libraries to use with Csound.
- * @param {Boolean} [params.useWorker=false] - Configure to use backend using Web Workers to run Csound in a thread separate from audio callback. 
+ * @param {Boolean} [params.useWorker=false] - Configure to use backend using Web Workers to run Csound in a thread separate from audio callback.
  * @param {Boolean} [params.useSAB=true] - Configure to use SharedArrayBuffers for WebWorker communications if platform supports it.
- * @param {Boolean} [params.useSPN=false] - Configure to use explicitly request ScriptProcessorNode rather than AudioWorklet. Recommended only for debug testing purposes. 
+ * @param {Boolean} [params.useSPN=false] - Configure to use explicitly request ScriptProcessorNode rather than AudioWorklet. Recommended only for debug testing purposes.
  * @async
  * @return {Promise.<CsoundObj|undefined>}
  */
