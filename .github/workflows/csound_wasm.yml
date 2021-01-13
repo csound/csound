@@ -7,7 +7,7 @@ jobs:
   csound-wasm:
     env:
       wasm_bin_dir: ./wasm
-    name: csound-wasm binaries compilation
+    name: Compiling wasm bins
     runs-on: ubuntu-latest
     steps:
     - name: Checkout repository
@@ -24,7 +24,7 @@ jobs:
     - name: Zip the compilation output
       run: |
           nix-env -f '<nixpkgs>' -iA zip
-          ls lib
+          cd $wasm_bin_dir
           zip -r lib.zip lib
     - name: Archive Wasm Artifacts
       uses: actions/upload-artifact@master
@@ -52,6 +52,7 @@ jobs:
         run: |
           nix-env -f '<nixpkgs>' -iA unzip
           unzip ./lib.zip -d $wasm_bin_dir
+          ls $wasm_bin_dir
       - name: Build the production js module bundle
         run: |
           cd &wasm_browser_dir
@@ -59,5 +60,6 @@ jobs:
           yarn build:prod
       - name: Run the unit-tests
         run : |
+          cd &wasm_browser_dir
           nix-env -f '<nixpkgs>' -iA chromedriver selenium-server-standalone
           yarn test:ci
