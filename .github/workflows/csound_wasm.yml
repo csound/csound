@@ -23,14 +23,17 @@ jobs:
       run: cd $wasm_bin_dir && bash compile.sh
     - name: Zip the compilation output
       run: |
+          echo ${{ env.wasm_bin_dir }}
+          ls ${{ env.wasm_bin_dir }}
           nix-env -f '<nixpkgs>' -iA zip
           cd $wasm_bin_dir
           zip -r lib.zip lib
+          ls
     - name: Archive Wasm Artifacts
       uses: actions/upload-artifact@master
       with:
         name: lib
-        path: $wasm_bin_dir/lib.zip
+        path: ${{ env.wasm_bin_dir }}/lib.zip
   browser-test:
     env:
       wasm_bin_dir: ./wasm
