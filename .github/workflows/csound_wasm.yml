@@ -21,6 +21,11 @@ jobs:
         authToken: 'eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJjJDIzMTgiLCJqdGkiOiJhNDQzZmMwMi1mMDBjLTQzNDUtYjA3YS1jYzJjYjIzYjE2OTAiLCJzY29wZXMiOiJjYWNoZSJ9.UOQEV1Hd1ZEQdNF1STxbt0wcCrIrihsv4KThD_wHk3E'
     - name: Compile wasm binaries
       run: cd $wasm_bin_dir && bash compile.sh
+    - name: Zip the compilation output
+      run: |
+          nix-env -iA unzip
+          ls lib
+          zip -r lib.zip lib
     - name: Archive Wasm Artifacts
       uses: actions/upload-artifact@master
       with:
