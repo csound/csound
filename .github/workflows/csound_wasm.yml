@@ -23,12 +23,8 @@ jobs:
       run: cd $wasm_bin_dir && bash compile.sh
     - name: Zip the compilation output
       run: |
-          echo ${{ env.wasm_bin_dir }}
-          ls ${{ env.wasm_bin_dir }}
           nix-env -f '<nixpkgs>' -iA zip
-          cd $wasm_bin_dir
           zip -r lib.zip lib
-          ls
     - name: Archive Wasm Artifacts
       uses: actions/upload-artifact@master
       with:
@@ -55,14 +51,13 @@ jobs:
         run: |
           nix-env -f '<nixpkgs>' -iA unzip
           unzip ./lib.zip -d $wasm_bin_dir
-          ls $wasm_bin_dir
       - name: Build the production js module bundle
         run: |
-          cd &wasm_browser_dir
+          cd $wasm_browser_dir
           yarn
           yarn build:prod
       - name: Run the unit-tests
         run : |
-          cd &wasm_browser_dir
+          cd $wasm_browser_dir
           nix-env -f '<nixpkgs>' -iA chromedriver selenium-server-standalone
           yarn test:ci
