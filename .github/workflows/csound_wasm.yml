@@ -60,5 +60,6 @@ jobs:
       - name: Run the unit-tests
         run : |
           cd $wasm_browser_dir
+          export NIXPKGS_ALLOW_UNFREE=1
           nix-env -f '<nixpkgs>' -iA google-chrome chromedriver selenium-server-standalone
           yarn test:ci
