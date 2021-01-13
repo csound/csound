@@ -1,5 +1,6 @@
 // import util from "util";
 import { spawn } from "child_process";
+import fs from "fs";
 // const spawnAsync = util.promisify(spawn);
 // import Webdriver from "selenium-webdriver";
 // const { Builder, By, until } = Webdriver;
@@ -22,6 +23,11 @@ const webDriverCapabilities = {
     ],
   },
 };
+
+const CI_BIN = "/nix/var/nix/profiles/default/bin/google-chrome";
+if (fs.existsSync(CI_BIN)) {
+  webDriverCapabilities["binary"] = CI_BIN;
+}
 
 (async function () {
   const result = await runMochaWebDriverTest(
