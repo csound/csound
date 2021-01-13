@@ -61,7 +61,7 @@ jobs:
         run : |
           cd $wasm_browser_dir
           export NIXPKGS_ALLOW_UNFREE=1
-          nix-env -f '<nixpkgs>' -iE 'pkgs: (pkgs {}).google-chrome.override \
+          nix-env -f '<nixpkgs>' -iE 'pkgs: (pkgs {}).google-chrome.override
             { commandLineArgs = "--no-sandbox --disable-dev-shm-usage --headless";}'
           nix-env -f '<nixpkgs>' -iA chromedriver selenium-server-standalone
           yarn test:ci
