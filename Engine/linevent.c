@@ -199,7 +199,7 @@ void csoundInputMessageInternal(CSOUND *csound, const char *message)
 #if 1
     int n;
 #endif
-    
+
     if ((n=linevent_alloc(csound, 0)) != 0) return;
 
     if (!size) return;

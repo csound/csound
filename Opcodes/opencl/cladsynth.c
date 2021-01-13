@@ -317,7 +317,7 @@ static int init_cladsyn(CSOUND *csound, CLADSYN *p){
   clSetKernelArg(p->kernel2, 5, sizeof(cl_int), &p->bins);
   clSetKernelArg(p->kernel2, 6, sizeof(cl_int), &p->vsamps);
   clSetKernelArg(p->kernel2, 7, sizeof(cl_float),  &p->sr);
-  
+
   return OK;
 }
 
@@ -330,13 +330,13 @@ static int perf_cladsyn(CSOUND *csound, CLADSYN *p){
   MYFLT      *asig = p->asig;
   int count = p->count,  vsamps = p->vsamps;
   p->fp = (float *) (p->fsig->frame.auxp);
-  
+
   if (UNLIKELY(offset)) memset(asig, '\0', offset*sizeof(MYFLT));
   if (UNLIKELY(early)) {
     nsmps -= early;
     memset(&asig[nsmps], '\0', early*sizeof(MYFLT));
    }
-  
+
   for(n=offset; n < nsmps; n++){
     if(count == 0) {
      int err;

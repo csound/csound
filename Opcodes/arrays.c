@@ -2676,13 +2676,13 @@ static int32_t tabcopy(CSOUND *csound, TABCPY *p)
       if (p->dst->data == NULL) {
         p->dst->data = csound->Calloc(csound,
                                       p->src->arrayMemberSize * arrayTotalSize);
+        p->dst->allocated = p->src->arrayMemberSize * arrayTotalSize;
       } else {
         p->dst->data = csound->ReAlloc(csound, p->dst->data,
                         p->src->arrayMemberSize * arrayTotalSize);
         memset(p->dst->data, 0, p->src->arrayMemberSize * arrayTotalSize);
       }
     }
-
 
     for (i = 0; i < arrayTotalSize; i++) {
       int32_t index = (i * memMyfltSize);
@@ -2722,6 +2722,7 @@ static int32_t tabcopy1(CSOUND *csound, TABCPY *p)
       if (p->dst->data == NULL) {
         p->dst->data = csound->Calloc(csound,
                                       p->src->arrayMemberSize * arrayTotalSize);
+        p->dst->allocated = p->src->arrayMemberSize * arrayTotalSize;
       } else {
         p->dst->data = csound->ReAlloc(csound, p->dst->data,
                         p->src->arrayMemberSize * arrayTotalSize);
@@ -2773,6 +2774,7 @@ static int32_t tabcopy2(CSOUND *csound, TABCPY *p)
       if (p->dst->data == NULL) {
         p->dst->data = csound->Calloc(csound,
                                       p->src->arrayMemberSize * arrayTotalSize);
+        p->dst->allocated = p->src->arrayMemberSize * arrayTotalSize;
       } else {
         p->dst->data = csound->ReAlloc(csound, p->dst->data,
                         p->src->arrayMemberSize * arrayTotalSize);
@@ -4532,6 +4534,9 @@ static OENTRY arrayvars_localops[] =
      (SUBR)tabarithset1, (SUBR)tabaipow },
     {"##pow.k[",  sizeof(TABARITH2), 0, 3, "k[]", "kk[]",
      (SUBR)tabarithset2, (SUBR)tabiapow },
+    {"##pow.ki[",  sizeof(TABARITH2), 0, 3, "k[]", "ki[]",
+     (SUBR)tabarithset2, (SUBR)tabiapow },
+     
     {"##pow.[ak",  sizeof(TABARITH1), 0, 3, "a[]", "a[]k",
      (SUBR)tabarithset1, (SUBR)tabarkpow },
     {"##pow.a[k[", sizeof(TABARITH), 0, 3, "a[]", "a[]k[]",
@@ -4588,7 +4593,11 @@ static OENTRY arrayvars_localops[] =
       (SUBR) tabslice, (SUBR) tabslice, NULL },
     { "slicearray.S", sizeof(TABSLICE), 0, 2, "S[]", "S[]iip",
       (SUBR) tabslice, (SUBR) tabslice, NULL },
-    { "slicearray_i", sizeof(TABSLICE), 0, 1, ".[]", "i[]iip",
+    { "slicearray_i.i", sizeof(TABSLICE), 0, 1, "i[]", "i[]iip",
+      (SUBR) tabslice, NULL },
+    { "slicearray_i.k", sizeof(TABSLICE), 0, 1, "k[]", "k[]iip",
+    (SUBR) tabslice, NULL },
+    { "slicearray_i.S", sizeof(TABSLICE), 0, 1, "S[]", "S[]iip",
       (SUBR) tabslice, NULL },
     { "trim.i", sizeof(TRIM), WI, 1, "", "i[]i", (SUBR)trim_i, NULL },
     { "trim.k", sizeof(TRIM), WI, 2, "", ".[]k", NULL, (SUBR)trim },
