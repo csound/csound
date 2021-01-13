@@ -1,3 +1,4 @@
+# A shell environment for a CI test job
 let
   pkgs = import <nixpkgs> {};
   google_chrome_ci = pkgs.google-chrome.override { commandLineArgs = "--no-sandbox --disable-dev-shm-usage --headless";};

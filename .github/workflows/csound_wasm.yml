@@ -57,9 +57,14 @@ jobs:
           cd $wasm_browser_dir
           yarn
           yarn build:prod
-      - name: Run the unit-tests
-        run : |
+      - name: Install test dependencies
+        run: |
           cd $wasm_browser_dir
           export NIXPKGS_ALLOW_UNFREE=1
+          nix-shell --run 'exit 0'
+      - name: Run the unit-tests
+        run : |
+          export NIXPKGS_ALLOW_UNFREE=1
+          cd $wasm_browser_dir
           nix-shell --pure
           yarn test:ci
