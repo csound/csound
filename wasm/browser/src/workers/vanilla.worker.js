@@ -184,14 +184,14 @@ const initRequestPort = ({ csoundWorkerFrameRequestPort, workerMessagePort }) =>
 };
 
 const initAudioInputPort = ({ port }) => {
-  log(`initAudioInputPort`);
+  log(`initAudioInputPort`)();
   const audioInputs = {
     availableFrames: 0,
     buffers: [],
     inputReadIndex: 0,
     inputWriteIndex: 0,
     port,
-  }();
+  };
   audioInputs.port.addEventListener("message", ({ data: pkgs }) => {
     if (audioInputs.buffers.length === 0) {
       createAudioInputBuffers(audioInputs, pkgs.length);

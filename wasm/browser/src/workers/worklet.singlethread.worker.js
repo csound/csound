@@ -48,14 +48,17 @@ class WorkletSinglethreadWorker extends AudioWorkletProcessor {
     this.options = options;
     this.initialize = this.initialize.bind(this);
     this.pause = this.pause.bind(this);
+    this.process = this.process.bind(this);
     this.resume = this.resume.bind(this);
+    this.start = this.start.bind(this);
+    this.needsStartNotification = false;
     this.isPaused = false;
     this.callUncloned = () => console.error("Csound worklet thread is still uninitialized!");
     this.port.start();
     Comlink.expose(this, this.port);
     this.workerMessagePort = new MessagePortState();
     this.initializeMessagePort = ({ messagePort }) => {
-      this.workerMessagePort.post = (messageLog) => messagePort.postMessage({ messageLog });
+      this.workerMessagePort.post = (messageLog) => messagePort.postMessage({ log: messageLog });
       this.workerMessagePort.broadcastPlayState = (playStateChange) => {
         if (this.workerMessagePort.workerState !== playStateChange) {
           this.workerMessagePort.workerState = playStateChange;
@@ -102,10 +105,11 @@ class WorkletSinglethreadWorker extends AudioWorkletProcessor {
           assoc("wasm", wasm),
         )(libraryCsound);
         combined = new Map(Object.entries(allAPI));
+        log("wasm initialized and api generated")();
         resolver();
       },
     );
-
+    log("waiting on wasm initialization to complete")();
     await waiter;
   }
 
@@ -160,7 +164,7 @@ class WorkletSinglethreadWorker extends AudioWorkletProcessor {
   }
 
   process(inputs, outputs) {
-    if (this.isPaused || this.csoundOutputBuffer == null || this.running == false) {
+    if (this.isPaused || !this.csoundOutputBuffer || this.running == false) {
       let output = outputs[0];
       let bufferLen = output[0].length;
       for (let i = 0; i < bufferLen; i++) {
@@ -170,6 +174,13 @@ class WorkletSinglethreadWorker extends AudioWorkletProcessor {
         }
       }
       return true;
+    }
+
+    // if we are starting, we need to bordcast it
+    // this late in order to avoid timing issues
+    if (this.needsStartNotification) {
+      this.needsStartNotification = false;
+      this.workerMessagePort.broadcastPlayState("realtimePerformanceStarted");
     }
 
     let input = inputs[0];
@@ -203,7 +214,7 @@ class WorkletSinglethreadWorker extends AudioWorkletProcessor {
 
       /* Check if MEMGROWTH occured from csoundPerformKsmps or otherwise. If so,
       rest output ant input buffers to new pointer locations. */
-      if (csOut.length === 0) {
+      if (!csOut || csOut.length === 0) {
         csOut = this.csoundOutputBuffer = new Float64Array(
           this.wasm.exports.memory.buffer,
           libraryCsound.csoundGetSpout(this.csound),
@@ -211,7 +222,7 @@ class WorkletSinglethreadWorker extends AudioWorkletProcessor {
         );
       }
 
-      if (csIn.length === 0) {
+      if (!csIn || csIn.length === 0) {
         csIn = this.csoundInputBuffer = new Float64Array(
           this.wasm.exports.memory.buffer,
           libraryCsound.csoundGetSpin(this.csound),
@@ -268,9 +279,10 @@ class WorkletSinglethreadWorker extends AudioWorkletProcessor {
     return true;
   }
 
-  start() {
+  async start() {
     let retVal = -1;
-    if (this.started == false) {
+    if (!this.started) {
+      log("worklet thread is starting..")();
       let cs = this.csound;
       let ksmps = libraryCsound.csoundGetKsmps(cs);
       this.ksmps = ksmps;
@@ -280,6 +292,7 @@ class WorkletSinglethreadWorker extends AudioWorkletProcessor {
 
       this.zerodBFS = libraryCsound.csoundGet0dBFS(cs);
       retVal = libraryCsound.csoundStart(cs);
+      log("csoundStart called with {} return val", retVal)();
       this.csoundOutputBuffer = new Float64Array(
         this.wasm.exports.memory.buffer,
         libraryCsound.csoundGetSpout(cs),
@@ -292,11 +305,11 @@ class WorkletSinglethreadWorker extends AudioWorkletProcessor {
       );
 
       this.started = true;
-      this.workerMessagePort.broadcastPlayState("realtimePerformanceStarted");
+      this.needsStartNotification = true;
+    } else {
+      log("worklet was asked to start but it already has!")();
     }
     this.running = true;
-    // this.firePlayStateChange();
-
     return retVal;
   }
 }

@@ -22,7 +22,7 @@ const oldSpnMainLogger = loggerFactory.getLoggerColor("OldSpn_Main", "#8E24AA");
 const oldSpnWorkerLogger = loggerFactory.getLoggerColor("OldSpn_Worker", "#E1BEE7");
 const singleWorkletMainLogger = loggerFactory.getLoggerColor("WorkletSinglethread_Main", "#1E88E5");
 const singleWorkletWorkerLogger = loggerFactory.getLoggerColor(
-  "WorkletSinglethread_Main",
+  "WorkletSinglethread_Worker",
   "#90CAF9",
 );
 const commonUtilsLogger = loggerFactory.getLoggerColor("common.utils.js", "#FFD600");
@@ -38,8 +38,8 @@ export const logOldSpnMain = oldSpnMainLogger.log;
 export const logOldSpnWorker = oldSpnWorkerLogger.log;
 export const logIndex = indexLogger.log;
 export const logSPNMainSingle = (...argz) => () => console.log(...argz); // TODO
-export const logSinglethreadWorkletMain = singleWorkletWorkerLogger.log;
-export const logSinglethreadWorkletWorker = singleWorkletMainLogger.log;
+export const logSinglethreadWorkletMain = singleWorkletMainLogger.log;
+export const logSinglethreadWorkletWorker = singleWorkletWorkerLogger.log;
 export const logCommonUtils = commonUtilsLogger.log;
 export const logWasmModule = wasmModuleLogger.log;
 

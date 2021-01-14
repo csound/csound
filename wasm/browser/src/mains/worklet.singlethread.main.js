@@ -89,6 +89,7 @@ class SingleThreadAudioWorkletMainThread {
     switch (newPlayState) {
       case "realtimePerformanceStarted": {
         if (this.startPromiz) {
+          log("Start promise resolved")();
           this.startPromiz();
           delete this.startPromiz;
         }
