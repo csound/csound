@@ -3,9 +3,9 @@ import commonjs from "@rollup/plugin-commonjs";
 import nodejsResolve from "@rollup/plugin-node-resolve";
 import arraybufferPlugin from "./script/rollup-arraybuffer";
 import inlineWebWorkerPlugin from "./script/inline-webworker";
-// import nodePolyfills from "rollup-plugin-node-polyfills";
+import nodePolyfills from "rollup-plugin-node-polyfills";
 import { terser } from "rollup-plugin-terser";
-import strip from "@rollup/plugin-strip";
+// import strip from "@rollup/plugin-strip";
 import babel from "@rollup/plugin-babel";
 import pluginJson from "@rollup/plugin-json";
 import replace from "@rollup/plugin-replace";
@@ -34,20 +34,70 @@ const pluginsCommon = [
       { find: "global", replacement: "window" },
     ],
   }),
-  replace({ __PROD__: PROD, __DEV__: DEV }),
-  strip({
-    exclude: !PROD ? [] : ["@root/logger.js"],
-    functions: !PROD ? [] : ["log", "logSAB", "logSPN", "logWorklet", "logVAN"],
+  replace({
+    __PROD__: PROD,
+    __DEV__: DEV,
+    __LOGGER__: DEV
+      ? readFileSync("src/logger.dev.js", "utf-8")
+      : readFileSync("src/logger.prod.js", "utf-8"),
   }),
+  // strip({
+  //   include: ["src/**/*.js"],
+  //   debugger: true,
+  //   exclude: !PROD
+  //     ? []
+  //     : [
+  //         "./src/logger.js",
+  //         "@root/logger",
+  //         "ololog",
+  //         "ansicolor",
+  //         "pipez",
+  //         "printable-characters",
+  //         "stacktracey",
+  //         "string.bullet",
+  //         "string.ify",
+  //       ],
+  //   functions: !PROD
+  //     ? []
+  //     : [
+  //         "_log",
+  //         "log",
+  //         "logWorklet",
+  //         "logVAN",
+  //         "logWorkletWorker",
+  //         "logSPN",
+  //         "logSABMain",
+  //         "logSABWorker",
+  //         "logIndex",
+  //       ],
+  // }),
   pluginJson(),
   nodejsResolve({ preferBuiltins: false }),
   commonjs({ transformMixedEsModules: false, ignoreGlobal: false }),
-  // nodePolyfills({ fs: false, crypto: false, sourceMap: false, path: true, process: true }),
 ];
+
+if (DEV) {
+  pluginsCommon.push(
+    nodePolyfills({
+      fs: false,
+      crypto: false,
+      sourceMap: false,
+      path: false,
+      process: true,
+      util: true,
+    }),
+  );
+}
 
 const babelCommon = babel({
   babelHelpers: "inline",
   include: "src/**/*.js",
+  overrides: [
+    {
+      test: "./src/workers/*.worker.js",
+      compact: true,
+    },
+  ],
   plugins: [
     ["@babel/plugin-transform-destructuring", { useBuiltIns: true }],
     ["@babel/plugin-proposal-object-rest-spread", { useBuiltIns: true }],
@@ -59,57 +109,51 @@ const workletPolyfill = readFileSync("src/workers/worklet.polyfill.js", "utf-8")
 export default [
   {
     input: "src/workers/sab.worker.js",
-    // external: ['comlink'],
     output: {
       intro: "let global = typeof self !== 'undefined' ? self : window;",
       file: "dist/__compiled.sab.worker.js",
       format: "iife",
+      sourcemap: DEV ? "inline" : false,
+      sourcemapFile: "sab.worker.js",
       name: "sab.worker",
-      sourcemap: false,
       globals,
     },
-    plugins: [
-      ...pluginsCommon,
-      babelCommon,
-      ...(PROD ? [terser()] : []),
-      // arraybufferPlugin({ include: ['**/*.wasm', '**/*.wasm.zlib'] })
-    ],
+    plugins: [...pluginsCommon, babelCommon, ...(PROD ? [terser()] : [])],
   },
   {
     input: "src/workers/vanilla.worker.js",
-    // external: ['comlink'],
     output: {
       intro: "let global = typeof self !== 'undefined' ? self : window;",
       file: "dist/__compiled.vanilla.worker.js",
       format: "iife",
+      sourcemap: DEV ? "inline" : false,
+      sourcemapFile: "vanilla.worker.js",
       name: "vanilla.worker",
-      sourcemap: false,
       globals,
     },
     plugins: [...pluginsCommon, babelCommon, ...(PROD ? [terser()] : [])],
   },
   {
     input: "src/workers/worklet.worker.js",
-    // external: ['comlink'],
     output: {
       intro: "let global = this;",
       file: "dist/__compiled.worklet.worker.js",
       format: "iife",
+      sourcemap: DEV ? "inline" : false,
+      sourcemapFile: "worklet.worker.js",
       name: "worklet.worker",
-      sourcemap: false,
       globals,
     },
     plugins: [...pluginsCommon, babelCommon, ...(PROD ? [terser()] : [])],
   },
   {
     input: "src/workers/worklet.singlethread.worker.js",
-    // external: ['comlink'],
     output: {
       intro: workletPolyfill,
       file: "dist/__compiled.worklet.singlethread.worker.js",
       format: "es",
+      sourcemap: DEV ? "inline" : false,
       name: "worklet.singlethread.worker",
-      sourcemap: false,
       globals,
     },
     plugins: [
@@ -134,15 +178,14 @@ export default [
       intro: "let global = typeof self !== 'undefined' ? self : window;",
       file: "dist/__compiled.old-spn.worker.js",
       format: "iife",
+      sourcemap: DEV ? "inline" : false,
       name: "old-spn.worker",
-      sourcemap: false,
       globals,
     },
     plugins: [...pluginsCommon, babelCommon, ...(PROD ? [terser()] : [])],
   },
   {
     input: "src/index.js",
-    // external: ['comlink'],
     output: {
       intro: "let global = window;",
       file: DEV ? "dist/libcsound.dev.mjs" : "dist/libcsound.mjs",

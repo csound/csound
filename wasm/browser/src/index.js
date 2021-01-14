@@ -8,7 +8,7 @@ import ScriptProcessorNodeMainThread from "@root/mains/old-spn.main";
 import ScriptProcessorNodeSingleThread from "@root/mains/spn.main";
 import SingleThreadAudioWorkletMainThread from "@root/mains/worklet.singlethread.main";
 import wasmDataURI from "@csound/wasm/lib/libcsound.wasm.zlib";
-import log, { logSAB, logWorklet, logVAN } from "@root/logger";
+import { logIndex as log } from "@root/logger";
 import {
   areWorkletsSupported,
   isSabSupported,
@@ -62,7 +62,7 @@ export async function Csound({
   // SingleThread implementations
   if (!useWorker) {
     if (workletSupport && !useSPN) {
-      console.log("Single Thread AudioWorklet", audioContext);
+      log("Single Thread AudioWorklet")();
       const instance = new SingleThreadAudioWorkletMainThread({
         audioContext,
         inputChannelCount,
@@ -72,7 +72,7 @@ export async function Csound({
       //return instance;
       return instance.initialize({ wasmDataURI, withPlugins, autoConnect });
     } else if (spnSupport) {
-      console.log("Single Thread ScriptProcessorNode");
+      log("Single Thread ScriptProcessorNode")();
       const instance = new ScriptProcessorNodeSingleThread({
         audioContext,
         inputChannelCount,
@@ -80,17 +80,17 @@ export async function Csound({
       });
       return await instance.initialize({ wasmDataURI, withPlugins, autoConnect });
     } else {
-      log.error("No detectable WebAudioAPI in current environment");
+      console.error("No detectable WebAudioAPI in current environment");
       return undefined;
     }
   }
 
   if (workletSupport) {
-    logWorklet(`support detected`);
+    log(`worklet support detected`)();
   } else if (spnSupport) {
-    logVAN(`support detected`);
+    log(`scriptProcessorNode support detected`)();
   } else {
-    log.warning(`No WebAudio Support detected`);
+    console.error(`No WebAudio Support detected`);
   }
 
   let audioWorker;
@@ -107,16 +107,16 @@ export async function Csound({
   }
 
   if (!audioWorker) {
-    log.error("No detectable WebAudioAPI in current environment");
+    console.error("No detectable WebAudioAPI in current environment");
     return undefined;
   }
 
   const hasSABSupport = isSabSupported();
 
   if (!hasSABSupport) {
-    log.warning(`SharedArrayBuffers not found, falling back to Vanilla concurrency`);
+    log(`SharedArrayBuffers not found, falling back to Vanilla concurrency`)();
   } else {
-    useSAB && logSAB(`using SharedArrayBuffers`);
+    useSAB && log(`using SharedArrayBuffers`)();
   }
 
   const worker =
@@ -125,11 +125,11 @@ export async function Csound({
       : new VanillaWorkerMainThread({ audioWorker, wasmDataURI, audioContextIsProvided });
 
   if (worker) {
-    log(`starting Csound thread initialization via WebWorker`);
+    log(`starting Csound thread initialization via WebWorker`)();
     await worker.initialize({ withPlugins });
     csoundWasmApi = worker.api;
   } else {
-    log.error("No detectable WebAssembly support in current environment");
+    console.error("No detectable WebAssembly support in current environment");
     return undefined;
   }
 

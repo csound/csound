@@ -1,5 +1,3 @@
-// import { logVAN } from "@root/logger";
-
 // exec log-event: msg => cb(msg)
 export const messageEventHandler = (worker) => (event) => {
   if (event.data.log) {

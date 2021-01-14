@@ -3,7 +3,7 @@ import { initFS, writeToFs, lsFs, llFs, readFromFs, rmrfFs } from "@root/filesys
 import MessagePortState from "@utils/message-port-state";
 import libcsoundFactory from "@root/libcsound";
 import loadWasm from "@root/module";
-import { logSAB } from "@root/logger";
+import { logSABWorker as log } from "@root/logger";
 import { handleCsoundStart } from "@root/workers/common.utils";
 import { assoc, pipe } from "ramda";
 import {
@@ -91,7 +91,7 @@ const sabCreateRealtimeAudioThread = ({
   // Let's notify the audio-worker that performance has started
   Atomics.store(audioStatePointer, AUDIO_STATE.IS_PERFORMING, 1);
   workerMessagePort.broadcastPlayState("realtimePerformanceStarted");
-  logSAB(
+  log(
     `Atomic.wait started (thread is now locked)\n` +
       JSON.stringify({
         sr: sampleRate,
@@ -101,14 +101,14 @@ const sabCreateRealtimeAudioThread = ({
         _B,
         _b,
       }),
-  );
+  )();
 
   const performanceLoop = ({ lastReturn = 0, performanceEnded = 0, firstRound = true }) => {
     if (firstRound) {
       // if after 1 minute the audioWorklet isn't ready, then something's very wrong
       Atomics.wait(audioStatePointer, AUDIO_STATE.ATOMIC_NOTIFY, 0, 60 * 1000);
       Atomics.and(audioStatePointer, AUDIO_STATE.ATOMIC_NOTIFY, 0);
-      logSAB(`Atomic.wait unlocked, performance started`);
+      log(`Atomic.wait unlocked, performance started`)();
       return performanceLoop({ lastReturn, performanceEnded, firstRound: false });
     }
     if (
@@ -117,14 +117,14 @@ const sabCreateRealtimeAudioThread = ({
       performanceEnded
     ) {
       if (lastReturn === 0 && !performanceEnded) {
-        logSAB(`calling csoundStop and one performKsmps to trigger endof logs`);
+        log(`calling csoundStop and one performKsmps to trigger endof logs`)();
         // Trigger "performance ended" logs
         libraryCsound.csoundStop(csound);
         libraryCsound.csoundPerformKsmps(csound);
       }
-      logSAB(`triggering realtimePerformanceEnded event`);
-      workerMessagePort.broadcastPlayState("realtimePerformanceEnded");
-      logSAB(`End of realtimePerformance loop!`);
+      log(`triggering realtimePerformanceEnded event`)();
+      workerMessagePort.broadcastPlayState("realtimePerformanceEnded")();
+      log(`End of realtimePerformance loop!`)();
       watcherStdOut && watcherStdOut.close();
       watcherStdOut = undefined;
       watcherStdErr && watcherStdErr.close();
@@ -243,7 +243,7 @@ const sabCreateRealtimeAudioThread = ({
 
 const initMessagePort = ({ port }) => {
   const workerMessagePort = new MessagePortState();
-  workerMessagePort.post = (log) => port.postMessage({ log });
+  workerMessagePort.post = (messageLog) => port.postMessage({ log: messageLog });
   workerMessagePort.broadcastPlayState = (playStateChange) => port.postMessage({ playStateChange });
   workerMessagePort.ready = true;
   return workerMessagePort;
@@ -279,7 +279,7 @@ const renderFn = ({ libraryCsound, workerMessagePort, wasmFs, watcherStdOut, wat
 };
 
 const initialize = async ({ wasmDataURI, withPlugins = [], messagePort }) => {
-  logSAB(`initializing SABWorker and WASM`);
+  log(`initializing SABWorker and WASM`)();
   const workerMessagePort = initMessagePort({ port: messagePort });
   // const callbackReply = initCallbackReplyPort({ port: callbackReplyPort });
   const [wasm, wasmFs] = await loadWasm({

@@ -2,8 +2,7 @@ import * as Comlink from "comlink";
 import { instantiateAudioPacket } from "@root/workers/common.utils";
 import MessagePortState from "@utils/message-port-state";
 import { newAudioContext } from "@utils/new-audio-context";
-// https://github.com/xpl/ololog/issues/20
-// import { logSPN } from '@root/logger';
+import { logOldSpnWorker as log } from "@root/logger";
 import { range } from "ramda";
 
 const startPromizes = {};
@@ -298,7 +297,7 @@ const initAudioInputPort = ({ audioInputPort }) => (frames) => audioInputPort.po
 
 const initMessagePort = ({ port }) => {
   const workerMessagePort = new MessagePortState();
-  workerMessagePort.post = (log) => port.postMessage({ log });
+  workerMessagePort.post = (messageLog) => port.postMessage({ log: messageLog });
   workerMessagePort.broadcastPlayState = (playStateChange) => {
     if (
       workerMessagePort.vanillaWorkerState === "realtimePerformanceStarted" &&

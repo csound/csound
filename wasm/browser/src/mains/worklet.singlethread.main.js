@@ -23,7 +23,7 @@
 
 import WorkletWorker from "@root/workers/worklet.singlethread.worker";
 import * as Comlink from "comlink";
-import { logWorklet } from "@root/logger";
+import { logSinglethreadWorkletMain as log } from "@root/logger";
 import { csoundApiRename, fetchPlugins, makeProxyCallback } from "@root/utils";
 import { messageEventHandler, IPCMessagePorts } from "@root/mains/messages.main";
 import { api as API } from "@root/libcsound";
@@ -31,7 +31,7 @@ import { PublicEventAPI } from "@root/events";
 
 let initialized = false;
 const initializeModule = async (audioContext) => {
-  console.log("Initialize Module");
+  log("Initialize Module")();
   //   if (!initialized) {
   await audioContext.audioWorklet.addModule(WorkletWorker());
   initialized = true;
@@ -154,10 +154,10 @@ class SingleThreadAudioWorkletMainThread {
     }
 
     try {
-      console.log("wrapping Comlink proxy endpoint on the audioWorkletNode.port");
+      log("wrapping Comlink proxy endpoint on the audioWorkletNode.port")();
       this.workletProxy = Comlink.wrap(this.node.port);
     } catch (error) {
-      console.log("COMLINK ERROR", error);
+      console.error("COMLINK ERROR", error);
     }
 
     await this.workletProxy.initializeMessagePort(

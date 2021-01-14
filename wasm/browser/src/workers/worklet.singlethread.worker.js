@@ -27,7 +27,7 @@ import { writeToFs, lsFs, llFs, readFromFs, rmrfFs } from "@root/filesystem";
 import libcsoundFactory from "@root/libcsound";
 import loadWasm from "@root/module";
 import { assoc, pipe } from "ramda";
-import { logWorklet } from "@root/logger";
+import { logSinglethreadWorkletWorker as log } from "@root/logger";
 
 let libraryCsound;
 let combined;
@@ -55,7 +55,7 @@ class WorkletSinglethreadWorker extends AudioWorkletProcessor {
     Comlink.expose(this, this.port);
     this.workerMessagePort = new MessagePortState();
     this.initializeMessagePort = ({ messagePort }) => {
-      this.workerMessagePort.post = (log) => messagePort.postMessage({ log });
+      this.workerMessagePort.post = (messageLog) => messagePort.postMessage({ messageLog });
       this.workerMessagePort.broadcastPlayState = (playStateChange) => {
         if (this.workerMessagePort.workerState !== playStateChange) {
           this.workerMessagePort.workerState = playStateChange;
@@ -67,6 +67,7 @@ class WorkletSinglethreadWorker extends AudioWorkletProcessor {
   }
 
   async initialize(wasmDataURI, withPlugins) {
+    log("initializing worklet.singlethread.worker")();
     let resolver;
     const waiter = new Promise((res) => {
       resolver = res;

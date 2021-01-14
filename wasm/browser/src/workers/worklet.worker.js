@@ -2,7 +2,7 @@ import * as Comlink from "comlink";
 import MessagePortState from "@utils/message-port-state";
 import { AUDIO_STATE, MAX_HARDWARE_BUFFER_SIZE } from "@root/constants";
 import { instantiateAudioPacket } from "@root/workers/common.utils";
-import { logWorklet } from "@root/logger";
+import { logWorkletWorker as log } from "@root/logger";
 
 const activeNodes = new Map();
 
@@ -270,20 +270,11 @@ class CsoundWorkletProcessor extends AudioWorkletProcessor {
       this.updateVanillaFrames = this.updateVanillaFrames.bind(this);
     }
     Comlink.expose({ initialize, pause: this.pause, resume: this.resume }, this.port);
-    logWorklet(`Worker thread was constructed`);
-    logWorklet(
-      JSON.stringify({
-        sr: this.sampleRate,
-        nchnls_i: this.inputsCount,
-        nchnls: this.outputsCount,
-        _B: this.hardwareBufferSize,
-        _b: this.softwareBufferSize,
-      }),
-    );
+    log(`Worker thread was constructed`)();
   }
 
   initCallbacks({ workerMessagePort, audioInputPort, audioFramePort }) {
-    logWorklet(`initCallbacks in worker`);
+    log(`initCallbacks in worker`)();
     if (workerMessagePort) {
       this.workerMessagePort = workerMessagePort;
     }
@@ -350,17 +341,17 @@ class CsoundWorkletProcessor extends AudioWorkletProcessor {
 }
 
 function initMessagePort({ port }) {
-  logWorklet(`initMessagePort in worker`);
+  log(`initMessagePort in worker`)();
   const workerMessagePort = new MessagePortState();
 
-  workerMessagePort.post = (log) => port.postMessage({ log });
+  workerMessagePort.post = (logMessage) => port.postMessage({ log: logMessage });
   workerMessagePort.broadcastPlayState = (playStateChange) => port.postMessage({ playStateChange });
   workerMessagePort.ready = true;
   return workerMessagePort;
 }
 
 function initRequestPort({ requestPort, audioNode }) {
-  logWorklet(`initRequestPort in worker`);
+  log(`initRequestPort in worker`)();
   requestPort.addEventListener("message", (requestPortEvent) => {
     const { audioPacket, readIndex, numFrames } = requestPortEvent.data;
     audioNode.updateVanillaFrames({ audioPacket, numFrames, readIndex });
@@ -375,7 +366,7 @@ function initRequestPort({ requestPort, audioNode }) {
 }
 
 function initAudioInputPort({ inputPort }) {
-  logWorklet(`initAudioInputPort in worker`);
+  log(`initAudioInputPort in worker`)();
   return {
     ready: false,
     transferInputFrames: (frames) => inputPort.postMessage(frames),

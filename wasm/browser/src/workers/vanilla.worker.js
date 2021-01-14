@@ -1,7 +1,7 @@
 import * as Comlink from "comlink";
 import MessagePortState from "@utils/message-port-state";
 import { initFS, writeToFs, lsFs, llFs, readFromFs, rmrfFs } from "@root/filesystem";
-import { logVAN } from "@root/logger";
+import { logVANWorker as log } from "@root/logger";
 import { MAX_HARDWARE_BUFFER_SIZE } from "@root/constants.js";
 import { handleCsoundStart, instantiateAudioPacket } from "@root/workers/common.utils";
 import libcsoundFactory from "@root/libcsound";
@@ -156,10 +156,10 @@ const callUncloned = async (k, arguments_) => {
 };
 
 const initMessagePort = ({ port }) => {
-  logVAN(`initMessagePort`);
+  log(`initMessagePort`)();
   const workerMessagePort = new MessagePortState();
   workerMessagePort.port = port;
-  workerMessagePort.post = (log) => port.postMessage({ log });
+  workerMessagePort.post = (messageLog) => port.postMessage({ log: messageLog });
   workerMessagePort.broadcastPlayState = (playStateChange) => {
     workerMessagePort.vanillaWorkerState = playStateChange;
     port.postMessage({ playStateChange });
@@ -169,7 +169,7 @@ const initMessagePort = ({ port }) => {
 };
 
 const initRequestPort = ({ csoundWorkerFrameRequestPort, workerMessagePort }) => {
-  logVAN(`initRequestPort`);
+  log(`initRequestPort`)();
   csoundWorkerFrameRequestPort.addEventListener("message", (requestEvent) => {
     const { framesLeft = 0, audioPacket } =
       generateAudioFrames(requestEvent.data, workerMessagePort) || {};
@@ -184,14 +184,14 @@ const initRequestPort = ({ csoundWorkerFrameRequestPort, workerMessagePort }) =>
 };
 
 const initAudioInputPort = ({ port }) => {
-  logVAN(`initAudioInputPort`);
+  log(`initAudioInputPort`);
   const audioInputs = {
     availableFrames: 0,
     buffers: [],
     inputReadIndex: 0,
     inputWriteIndex: 0,
     port,
-  };
+  }();
   audioInputs.port.addEventListener("message", ({ data: pkgs }) => {
     if (audioInputs.buffers.length === 0) {
       createAudioInputBuffers(audioInputs, pkgs.length);
@@ -210,7 +210,7 @@ const initAudioInputPort = ({ port }) => {
 };
 
 const initRtMidiEventPort = ({ rtmidiPort }) => {
-  logVAN(`initRtMidiEventPort`);
+  log(`initRtMidiEventPort`)();
   rtmidiPort.addEventListener("message", ({ data: payload }) => {
     rtmidiQueue.push(payload);
   });
@@ -261,7 +261,7 @@ const initialize = async ({
   audioInputPort,
   rtmidiPort,
 }) => {
-  logVAN(`initializing wasm and exposing csoundAPI functions from worker to main`);
+  log(`initializing wasm and exposing csoundAPI functions from worker to main`)();
   const workerMessagePort = initMessagePort({ port: messagePort });
 
   const audioInputs = initAudioInputPort({ port: audioInputPort });

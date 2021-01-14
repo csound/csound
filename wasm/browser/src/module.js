@@ -3,6 +3,7 @@ import { WasmFs } from "@wasmer/wasmfs";
 import { inflate } from "pako";
 import { dlinit } from "@root/dlinit";
 import { csoundWasiJsMessageCallback } from "@root/filesystem";
+import { logWasmModule as log } from "@root/logger";
 import * as path from "path";
 
 const PAGE_SIZE = 65536;
@@ -42,7 +43,7 @@ const getBinaryHeaderData = (wasmBytes) => {
     console.error("Wasm magic number is missing!");
   }
   if (wasmBytes[8] !== 0) {
-    console.log("Dylink section wasn't found in wasm binary, assuming static wasm.");
+    log("Dylink section wasn't found in wasm binary, assuming static wasm.");
     return "static";
   }
 

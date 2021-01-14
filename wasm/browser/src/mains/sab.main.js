@@ -10,7 +10,7 @@ import {
   MIDI_BUFFER_SIZE,
   initialSharedState,
 } from "@root/constants";
-import { logSAB } from "@root/logger";
+import { logSABMain as log } from "@root/logger";
 import { isEmpty } from "ramda";
 import { csoundApiRename, fetchPlugins, makeProxyCallback, stopableStates } from "@root/utils";
 import { PublicEventAPI } from "@root/events";
@@ -54,7 +54,7 @@ class SharedArrayBufferMainThread {
     this.midiBuffer = new Int32Array(this.midiBufferSAB);
 
     this.onPlayStateChange = this.onPlayStateChange.bind(this);
-    logSAB(`SharedArrayBufferMainThread got constructed`);
+    log(`SharedArrayBufferMainThread got constructed`)();
   }
 
   async terminateInstance() {
@@ -121,19 +121,22 @@ class SharedArrayBufferMainThread {
 
   async onPlayStateChange(newPlayState) {
     this.currentPlayState = newPlayState;
-
+    if (!this.publicEvents) {
+      // prevent late timers from calling terminated fn
+      return;
+    }
     switch (newPlayState) {
       case "realtimePerformanceStarted": {
-        logSAB(
+        log(
           `event: realtimePerformanceStarted received,` +
             ` proceeding to call prepareRealtimePerformance`,
-        );
+        )();
         await this.prepareRealtimePerformance();
         this.publicEvents.triggerRealtimePerformanceStarted(this);
         break;
       }
       case "realtimePerformanceEnded": {
-        logSAB(`event: realtimePerformanceEnded received, beginning cleanup`);
+        log(`event: realtimePerformanceEnded received, beginning cleanup`)();
         if (this.stopPromiz) {
           this.stopPromiz();
           delete this.stopPromiz;
@@ -163,7 +166,7 @@ class SharedArrayBufferMainThread {
           delete this.stopPromiz;
         }
         this.publicEvents.triggerRenderEnded(this);
-        logSAB(`event: renderEnded received, beginning cleanup`);
+        log(`event: renderEnded received, beginning cleanup`)();
         break;
       }
       default: {
@@ -187,7 +190,7 @@ class SharedArrayBufferMainThread {
   }
 
   async prepareRealtimePerformance() {
-    logSAB(`prepareRealtimePerformance`);
+    log(`prepareRealtimePerformance`)();
     const outputsCount = Atomics.load(this.audioStatePointer, AUDIO_STATE.NCHNLS);
     const inputCount = Atomics.load(this.audioStatePointer, AUDIO_STATE.NCHNLS_I);
 
@@ -215,7 +218,7 @@ class SharedArrayBufferMainThread {
       withPlugins = await fetchPlugins(withPlugins);
     }
 
-    logSAB(`initialization: instantiate the SABWorker Thread`);
+    log(`initialization: instantiate the SABWorker Thread`)();
     const csoundWorker = new Worker(SABWorker());
     this.csoundWorker = csoundWorker;
     const audioStateBuffer = this.audioStateBuffer;
@@ -224,12 +227,12 @@ class SharedArrayBufferMainThread {
     const audioStreamOut = this.audioStreamOut;
     const midiBuffer = this.midiBuffer;
 
-    logSAB(`providing the audioWorker a pointer to SABMain's instance`);
+    log(`providing the audioWorker a pointer to SABMain's instance`)();
     this.audioWorker.csoundWorkerMain = this;
 
     // both audio worker and csound worker use 1 handler
     // simplifies flow of data (csound main.worker is always first to receive)
-    logSAB(`adding message eventListeners for mainMessagePort and mainMessagePortAudio`);
+    log(`adding message eventListeners for mainMessagePort and mainMessagePortAudio`)();
     this.ipcMessagePorts.mainMessagePort.addEventListener("message", messageEventHandler(this));
     this.ipcMessagePorts.mainMessagePort.start();
     this.ipcMessagePorts.mainMessagePortAudio.addEventListener(
@@ -237,9 +240,7 @@ class SharedArrayBufferMainThread {
       messageEventHandler(this),
     );
     this.ipcMessagePorts.mainMessagePortAudio.start();
-    logSAB(
-      `(postMessage) making a message channel from SABMain to SABWorker via workerMessagePort`,
-    );
+    log(`(postMessage) making a message channel from SABMain to SABWorker via workerMessagePort`)();
 
     // we send callbacks to the worker in SAB, but receive these return values as message events
     let returnQueue = {};
@@ -267,7 +268,7 @@ class SharedArrayBufferMainThread {
     this.ipcMessagePorts.mainMessagePort.start();
     this.ipcMessagePorts.mainMessagePortAudio.start();
 
-    logSAB(`A proxy port from SABMain to SABWorker established`);
+    log(`A proxy port from SABMain to SABWorker established`)();
 
     this.exportApi.pause = this.csoundPause.bind(this);
     this.exportApi.resume = this.csoundResume.bind(this);
@@ -329,18 +330,22 @@ class SharedArrayBufferMainThread {
 
         case "csoundStop": {
           const csoundStop = async () => {
-            logSAB(
-              "Checking if it's safe to call stop:",
-              stopableStates.has(this.currentPlayState),
-            );
+            log(
+              [
+                "Checking if it's safe to call stop:",
+                stopableStates.has(this.currentPlayState),
+                "currentPlayState is",
+                this.currentPlayState,
+              ].join("\n"),
+            )();
 
             if (stopableStates.has(this.currentPlayState)) {
-              logSAB("Marking SAB's state to STOP");
+              log("Marking SAB's state to STOP")();
               const stopPromise = new Promise((resolve) => {
                 this.stopPromiz = resolve;
               });
               Atomics.store(this.audioStatePointer, AUDIO_STATE.STOP, 1);
-              logSAB("Marking that performance is not running anymore (stops the audio too)");
+              log("Marking that performance is not running anymore (stops the audio too)")();
               Atomics.store(this.audioStatePointer, AUDIO_STATE.IS_PERFORMING, 0);
 
               // A potential case where the thread is locked because of pause
@@ -415,7 +420,7 @@ class SharedArrayBufferMainThread {
         }
       }
     }
-    logSAB(`PUBLIC API Generated and stored`);
+    log(`PUBLIC API Generated and stored`)();
   }
 }
 

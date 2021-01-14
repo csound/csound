@@ -1,5 +1,5 @@
 import * as Comlink from "comlink";
-import { logVAN } from "@root/logger";
+import { logVANMain as log } from "@root/logger";
 import { api as API } from "@root/libcsound";
 import VanillaWorker from "@root/workers/vanilla.worker";
 import {
@@ -85,7 +85,7 @@ class VanillaWorkerMainThread {
       this.audioWorker.softwareBufferSize *= 2;
     }
 
-    logVAN(`vars for rtPerf set`);
+    log(`vars for rtPerf set`)();
   }
 
   async onPlayStateChange(newPlayState) {
@@ -97,14 +97,14 @@ class VanillaWorkerMainThread {
 
     switch (newPlayState) {
       case "realtimePerformanceStarted": {
-        logVAN(`event: realtimePerformanceStarted from worker, now preparingRT..`);
+        log(`event: realtimePerformanceStarted from worker, now preparingRT..`)();
         await this.prepareRealtimePerformance();
         this.publicEvents.triggerRealtimePerformanceStarted(this);
         break;
       }
 
       case "realtimePerformanceEnded": {
-        logVAN(`event: realtimePerformanceEnded`);
+        log(`event: realtimePerformanceEnded`)();
         if (this.stopPromiz) {
           this.stopPromiz();
           delete this.stopPromiz;
@@ -131,7 +131,7 @@ class VanillaWorkerMainThread {
         break;
       }
       case "renderEnded": {
-        logVAN(`event: renderEnded received, beginning cleanup`);
+        log(`event: renderEnded received, beginning cleanup`)();
         if (this.stopPromiz) {
           this.stopPromiz();
           delete this.stopPromiz;
@@ -179,7 +179,7 @@ class VanillaWorkerMainThread {
     if (withPlugins && !isEmpty(withPlugins)) {
       withPlugins = await fetchPlugins(withPlugins);
     }
-    logVAN(`vanilla.main: initialize`);
+    log(`vanilla.main: initialize`)();
     this.csoundWorker = this.csoundWorker || new Worker(VanillaWorker());
 
     this.ipcMessagePorts.mainMessagePort.addEventListener("message", messageEventHandler(this));
@@ -299,7 +299,7 @@ class VanillaWorkerMainThread {
         }
       }
     }
-    logVAN(`exportAPI generated`);
+    log(`exportAPI generated`)();
   }
 }
 

@@ -1,9 +1,5 @@
-// import util from "util";
-import { spawn } from "child_process";
 import fs from "fs";
-// const spawnAsync = util.promisify(spawn);
-// import Webdriver from "selenium-webdriver";
-// const { Builder, By, until } = Webdriver;
+import { spawn } from "child_process";
 import MochaWebdriverRunner from "mocha-webdriver-runner";
 const { runMochaWebDriverTest } = MochaWebdriverRunner;
 

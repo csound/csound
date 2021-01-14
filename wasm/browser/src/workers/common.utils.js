@@ -1,4 +1,4 @@
-import log from "@root/logger";
+import { logCommonUtils as log } from "@root/logger";
 
 export const handleCsoundStart = (
   workerMessagePort,
@@ -19,7 +19,7 @@ export const handleCsoundStart = (
   const startError = libraryCsound.csoundStart(csound);
 
   const outputName = libraryCsound.csoundGetOutputName(csound) || "test.wav";
-  log(`handleCsoundStart: actual csoundStart result ${startError}, outputName: ${outputName}`);
+  log(`handleCsoundStart: actual csoundStart result ${startError}, outputName: ${outputName}`)();
   if (startError !== 0) {
     workerMessagePort.post(
       `error: csoundStart failed while trying to render ${outputName},` +

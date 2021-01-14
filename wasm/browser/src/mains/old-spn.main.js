@@ -1,6 +1,6 @@
 import * as Comlink from "comlink";
 import ScriptProcessorNodeWorker from "@root/workers/old-spn.worker";
-import log, { logSPN } from "@root/logger";
+import { logOldSpnMain as log } from "@root/logger";
 import { messageEventHandler } from "@root/mains/messages.main";
 import { WebkitAudioContext } from "@root/utils";
 
@@ -33,7 +33,7 @@ class ScriptProcessorNodeMainThread {
     this.initialize = this.initialize.bind(this);
     this.onPlayStateChange = this.onPlayStateChange.bind(this);
     this.scriptProcessorNode = true;
-    logSPN("ScriptProcessorNodeMainThread was constructed");
+    log("ScriptProcessorNodeMainThread was constructed")();
   }
 
   async terminateInstance() {
@@ -69,7 +69,7 @@ class ScriptProcessorNodeMainThread {
 
     switch (newPlayState) {
       case "realtimePerformanceStarted": {
-        logSPN("event received: realtimePerformanceStarted");
+        log("event received: realtimePerformanceStarted")();
         this.currentPlayState = newPlayState;
         await this.initialize();
         if (this.csoundWorkerMain.startPromiz) {
@@ -86,7 +86,7 @@ class ScriptProcessorNodeMainThread {
         break;
       }
       case "realtimePerformanceEnded": {
-        logSPN("event received: realtimePerformanceEnded");
+        log("event received: realtimePerformanceEnded")();
         if (window[`__csound_wasm_iframe_parent_${this.contextUid}Node`]) {
           window[`__csound_wasm_iframe_parent_${this.contextUid}Node`].disconnect();
           delete window[`__csound_wasm_iframe_parent_${this.contextUid}Node`].disconnect();
@@ -176,13 +176,13 @@ class ScriptProcessorNodeMainThread {
 
     if (!this.audioContext) {
       if (this.audioContextIsProvided) {
-        log.error(`fatal: the provided AudioContext was undefined`);
+        console.error(`fatal: the provided AudioContext was undefined`);
       }
       this.audioContext = new (WebkitAudioContext())();
     }
     if (this.audioContext.state === "closed") {
       if (this.audioContextIsProvided) {
-        log.error(`fatal: the provided AudioContext was closed, falling back new AudioContext`);
+        console.error(`fatal: the provided AudioContext was closed, falling back new AudioContext`);
       }
       this.audioContext = new (WebkitAudioContext())();
     }

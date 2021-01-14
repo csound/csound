@@ -1,6 +1,6 @@
 import * as Comlink from "comlink";
 import WorkletWorker from "@root/workers/worklet.worker";
-import log, { logWorklet } from "@root/logger";
+import { logWorkletMain as log } from "@root/logger";
 import { WebkitAudioContext } from "@root/utils";
 
 const connectedMidiDevices = new Set();
@@ -28,7 +28,7 @@ class AudioWorkletMainThread {
     this.initialize = this.initialize.bind(this);
     this.onPlayStateChange = this.onPlayStateChange.bind(this);
     this.terminateInstance = this.terminateInstance.bind(this);
-    logWorklet("AudioWorkletMainThread was constructed");
+    log("AudioWorkletMainThread was constructed")();
   }
 
   async terminateInstance() {
@@ -55,16 +55,16 @@ class AudioWorkletMainThread {
 
     switch (newPlayState) {
       case "realtimePerformanceStarted": {
-        logWorklet("event received: realtimePerformanceStarted");
+        log("event received: realtimePerformanceStarted")();
         await this.initialize();
         break;
       }
       case "realtimePerformanceEnded": {
-        logWorklet(
+        log(
           "event received: realtimePerformanceEnded" + !this.csoundWorkerMain.hasSharedArrayBuffer
             ? ` cleaning up ports`
             : "",
-        );
+        )();
         if (
           !this.audioContextIsProvided &&
           this.autoConnect &&
@@ -108,22 +108,22 @@ class AudioWorkletMainThread {
   async initialize() {
     if (!this.audioContext) {
       if (this.audioContextIsProvided) {
-        log.error(`fatal: the provided AudioContext was undefined`);
+        console.error(`fatal: the provided AudioContext was undefined`);
       }
       this.audioContext = new (WebkitAudioContext())();
     }
     if (this.audioContext.state === "closed") {
       if (this.audioContextIsProvided) {
-        log.error(`fatal: the provided AudioContext was closed, falling back new AudioContext`);
+        console.error(`fatal: the provided AudioContext was closed, falling back new AudioContext`);
       }
       this.audioContext = new (WebkitAudioContext())();
     }
 
     await this.audioContext.audioWorklet.addModule(WorkletWorker());
-    logWorklet("WorkletWorker module added");
+    log("WorkletWorker module added")();
 
     if (!this.csoundWorkerMain) {
-      log.error(`fatal: worker not reachable from worklet-main thread`);
+      console.error(`fatal: worker not reachable from worklet-main thread`);
       return;
     }
 
@@ -155,17 +155,14 @@ class AudioWorkletMainThread {
     };
 
     if (this.isRequestingMidi) {
-      emitInternalCsoundLogEvent(this.csoundWorkerMain, "requesting for web-midi connection");
+      log("requesting for web-midi connection");
       if (navigator && navigator.requestMIDIAccess) {
         try {
           const midiDevices = await navigator.requestMIDIAccess();
           if (midiDevices.inputs) {
             const midiInputs = midiDevices.inputs.values();
             for (let input = midiInputs.next(); input && !input.done; input = midiInputs.next()) {
-              emitInternalCsoundLogEvent(
-                this.csoundWorkerMain,
-                `Connecting midi-input: ${input.value.name || "unkown"}`,
-              );
+              log(`Connecting midi-input: ${input.value.name || "unkown"}`);
               if (!connectedMidiDevices.has(input.value.name || "unkown")) {
                 input.value.onmidimessage = this.csoundWorkerMain.handleMidiInput.bind(
                   this.csoundWorkerMain,
@@ -174,19 +171,13 @@ class AudioWorkletMainThread {
               }
             }
           } else {
-            emitInternalCsoundLogEvent(this.csoundWorkerMain, "no midi-device detected");
+            log("no midi-device detected");
           }
         } catch (error) {
-          emitInternalCsoundLogEvent(
-            this.csoundWorkerMain,
-            "error while connecting web-midi: " + error,
-          );
+          log("error while connecting web-midi: " + error);
         }
       } else {
-        emitInternalCsoundLogEvent(
-          this.csoundWorkerMain,
-          "no web-midi support found, midi-input will not work!",
-        );
+        log("no web-midi support found, midi-input will not work!");
       }
     }
 
@@ -216,14 +207,14 @@ class AudioWorkletMainThread {
         }
       };
 
-      logWorklet("requesting microphone access");
+      log("requesting microphone access")();
       typeof navigator.mediaDevices !== "undefined"
         ? getUserMedia
             .call(navigator.mediaDevices, {
               audio: { echoCancellation: false, sampleSize: 32 },
             })
             .then(microphoneCallback)
-            .catch(log.error)
+            .catch(console.error)
         : getUserMedia.call(
             navigator,
             {
@@ -232,12 +223,12 @@ class AudioWorkletMainThread {
               },
             },
             microphoneCallback,
-            log.error,
+            console.error,
           );
     } else {
       const newNode = createWorkletNode(this.audioContext, 0);
       this.audioWorkletNode = newNode;
-      logWorklet("connecting Node to AudioContext destination");
+      log("connecting Node to AudioContext destination")();
       if (this.autoConnect) {
         this.audioWorkletNode.connect(this.audioContext.destination);
       }
@@ -260,7 +251,7 @@ class AudioWorkletMainThread {
         ],
       ),
     );
-    logWorklet("initialization finished in main");
+    log("initialization finished in main")();
   }
 }
 
