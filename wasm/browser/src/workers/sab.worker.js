@@ -123,7 +123,7 @@ const sabCreateRealtimeAudioThread = ({
         libraryCsound.csoundPerformKsmps(csound);
       }
       log(`triggering realtimePerformanceEnded event`)();
-      workerMessagePort.broadcastPlayState("realtimePerformanceEnded")();
+      workerMessagePort.broadcastPlayState("realtimePerformanceEnded");
       log(`End of realtimePerformance loop!`)();
       watcherStdOut && watcherStdOut.close();
       watcherStdOut = undefined;
