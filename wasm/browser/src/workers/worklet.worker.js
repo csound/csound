@@ -14,6 +14,11 @@ function processSharedArrayBuffer(inputs, outputs) {
   const isPaused = Atomics.load(this.sharedArrayBuffer, AUDIO_STATE.IS_PAUSED) === 1;
   const isStopped = Atomics.load(this.sharedArrayBuffer, AUDIO_STATE.STOP) === 1;
 
+  if (this.startPromiz) {
+    this.startPromiz();
+    delete this.startPromiz;
+  }
+
   if (!this.sharedArrayBuffer || isPaused || !isPerforming || isStopped) {
     this.isPerformingLastTime = isPerforming;
     this.preProcessCount = 0;
@@ -104,6 +109,10 @@ function processVanillaBuffers(inputs, outputs) {
     });
     this.pendingFrames += firstTransferSize;
     this.vanillaInitialized = true;
+    if (this.startPromiz) {
+      this.startPromiz();
+      delete this.startPromiz;
+    }
     return true;
   }
 
@@ -273,7 +282,7 @@ class CsoundWorkletProcessor extends AudioWorkletProcessor {
     log(`Worker thread was constructed`)();
   }
 
-  initCallbacks({ workerMessagePort, audioInputPort, audioFramePort }) {
+  initCallbacks({ workerMessagePort, audioInputPort, audioFramePort, startPromiz }) {
     log(`initCallbacks in worker`)();
     if (workerMessagePort) {
       this.workerMessagePort = workerMessagePort;
@@ -286,6 +295,7 @@ class CsoundWorkletProcessor extends AudioWorkletProcessor {
       this.audioFramePort = audioFramePort;
     }
     this.messagePortsReady = true;
+    this.startPromiz = startPromiz;
   }
 
   updateVanillaFrames({ audioPacket, numFrames, readIndex }) {
@@ -380,7 +390,12 @@ const initialize = async ({ contextUid, inputPort, messagePort, requestPort }) =
 
   const audioInputPort = initAudioInputPort({ inputPort });
   const audioFramePort = initRequestPort({ requestPort, audioNode });
-  audioNode.initCallbacks({ workerMessagePort, audioInputPort, audioFramePort });
+  let startPromiz;
+  const startPromise = new Promise((resolve) => {
+    startPromiz = resolve;
+  });
+  audioNode.initCallbacks({ workerMessagePort, audioInputPort, audioFramePort, startPromiz });
+  await startPromise;
 };
 
 registerProcessor("csound-worklet-processor", CsoundWorkletProcessor);
