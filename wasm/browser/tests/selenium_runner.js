@@ -28,7 +28,10 @@ if (CI_BIN && fs.existsSync(CI_BIN)) {
 (async function () {
   let result;
   try {
-    result = await runMochaWebDriverTest(webDriverCapabilities, "http://localhost:8081/index.html");
+    result = await runMochaWebDriverTest(
+      webDriverCapabilities,
+      "http://localhost:8081/index.html?ci=true",
+    );
   } catch (error) {
     console.error(error);
     process.exit(-1);

@@ -1,5 +1,5 @@
 (async () => {
-  const isCI = location.port === "8081";
+  const isCI = location.port === "8081" && location.search.includes("ci=true");
   const url = isCI ? "/libcsound.mjs" : "/libcsound.dev.mjs";
   const { Csound } = await import(url);
 
@@ -392,16 +392,13 @@ i1 0 2
 
       it("can stop() and reset() without start()", async function () {
         const csoundObj = await Csound(test);
-        await csoundObj.stop()
-        await csoundObj.reset()
+        await csoundObj.stop();
+        await csoundObj.reset();
         await csoundObj.start();
         await csoundObj.stop();
         await csoundObj.terminateInstance();
       });
-
     });
-
-
   });
 
   const triggerEvent = "ontouchstart" in document.documentElement ? "touchend" : "click";
