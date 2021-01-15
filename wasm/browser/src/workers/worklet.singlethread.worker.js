@@ -114,6 +114,10 @@ class WorkletSinglethreadWorker extends AudioWorkletProcessor {
   }
 
   async resetCsound(callReset) {
+    // no start = no reset
+    if (!this.workerMessagePort) {
+      return;
+    }
     if (
       this.workerMessagePort.workerState !== "realtimePerformanceEnded" &&
       this.workerMessagePort.workerState !== "realtimePerformanceStarted"
