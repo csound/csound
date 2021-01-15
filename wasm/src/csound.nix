@@ -104,7 +104,24 @@ in pkgs.stdenvNoCC.mkDerivation rec {
 
   name = "csound-wasm";
 
-  src = csoundSrc;
+  src = builtins.path {
+    path = ./. + "../../../";
+    filter = path: type:
+      ((builtins.match ".*/Engine.*" path != null ||
+        builtins.match ".*/H.*" path != null ||
+        builtins.match ".*/InOut.*" path != null ||
+        builtins.match ".*/OOps.*" path != null ||
+        builtins.match ".*/Opcodes.*" path != null ||
+        builtins.match ".*/Top.*" path != null ||
+        builtins.match ".*/include.*" path != null) &&
+       (lib.strings.hasSuffix ".c" path ||
+        lib.strings.hasSuffix ".cpp" path ||
+        lib.strings.hasSuffix ".h" path ||
+        lib.strings.hasSuffix ".hpp" path ||
+        lib.strings.hasSuffix ".y" path ||
+        lib.strings.hasSuffix ".lex" path ||
+        type == "directory"));
+  };
 
   buildInputs = [ pkgs.flex pkgs.bison ];
 
@@ -322,8 +339,6 @@ in pkgs.stdenvNoCC.mkDerivation rec {
        return 0;
      }
     }' >>  Opcodes/pvsops.cpp
-
-    rm CMakeLists.txt
   '';
 
   configurePhase = ''
