@@ -370,6 +370,10 @@ class SharedArrayBufferMainThread {
 
         case "csoundReset": {
           const csoundReset = async () => {
+            // no start = noReset
+            if (!this.currentPlayState) {
+              return;
+            }
             if (stopableStates.has(this.currentPlayState)) {
               await this.exportApi.stop();
             }
