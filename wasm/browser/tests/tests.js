@@ -389,7 +389,19 @@ i1 0 2
         await csoundObj.stop();
         await csoundObj.terminateInstance();
       });
+
+      it("can stop() and reset() without start()", async function () {
+        const csoundObj = await Csound(test);
+        await csoundObj.stop()
+        await csoundObj.reset()
+        await csoundObj.start();
+        await csoundObj.stop();
+        await csoundObj.terminateInstance();
+      });
+
     });
+
+
   });
 
   const triggerEvent = "ontouchstart" in document.documentElement ? "touchend" : "click";
