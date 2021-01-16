@@ -87,7 +87,7 @@ const createRealtimeAudioThread = ({
         }
         workerMessagePort.broadcastPlayState("realtimePerformanceEnded");
         audioProcessCallback = () => {};
-        rtmidiQueue = [];
+        clearArray(rtmidiQueue);
         audioInputs.port = undefined;
         closeWatchers();
         return { framesLeft: i };
@@ -97,7 +97,7 @@ const createRealtimeAudioThread = ({
         if (lastPerformance !== 0) {
           workerMessagePort.broadcastPlayState("realtimePerformanceEnded");
           audioProcessCallback = () => {};
-          rtmidiQueue = [];
+          clearArray(rtmidiQueue);
           audioInputs.port = undefined;
           closeWatchers();
           return { framesLeft: i };

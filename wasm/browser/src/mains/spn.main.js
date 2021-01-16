@@ -29,6 +29,7 @@ import { isEmpty } from "ramda";
 import { csoundApiRename, fetchPlugins, makeSingleThreadCallback } from "@root/utils";
 import { messageEventHandler } from "./messages.main";
 import { PublicEventAPI } from "@root/events";
+import { requestMidi } from "@utils/request-midi";
 
 class ScriptProcessorNodeSingleThread {
   constructor({ audioContext, inputChannelCount = 1, outputChannelCount = 2 }) {
@@ -204,6 +205,12 @@ class ScriptProcessorNodeSingleThread {
         [this.watcherStdOut, this.watcherStdErr] = initFS(this.wasmFs, this.messagePort);
       }
       const startResult = this.csoundApi.csoundStart(this.csoundInstance);
+      if (this.csoundApi._isRequestingRtMidiInput(this.csoundInstance)) {
+        requestMidi({
+          onMidiMessage: ({ data: event }) =>
+            this.csoundApi.csoundPushMidiMessage(this.csoundInstance, event[0], event[1], event[2]),
+        });
+      }
       this.running = true;
       await startPromise;
       return startResult;
