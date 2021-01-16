@@ -2,6 +2,7 @@ import * as Comlink from "comlink";
 import WorkletWorker from "@root/workers/worklet.worker";
 import { logWorkletMain as log } from "@root/logger";
 import { WebkitAudioContext } from "@root/utils";
+import { requestMicrophoneNode } from "./io.utils";
 
 const connectedMidiDevices = new Set();
 let UID = 0;
