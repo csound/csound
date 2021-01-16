@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html>
-    <head>
+  <head>
         <title>debug @csound/browser</title>
     </head>
     <body>
@@ -39,6 +39,8 @@ printks "Aftertouch:%d%n",0,kAfttch ;print kAfttch to console when it changes
 iNum     notnum                     ;read in MIDI note number
 ; MIDI note number + pitch bend are converted to cycles per seconds
 aSig     poscil   0.1,cpsmidinn(iNum+kPchBnd),giSine
+
+aSig *= expsegr(0.001, .02, 1, .5, 0.001)
          out      aSig              ;audio to output
   endin
 
