@@ -52,19 +52,15 @@ export const ptr2string = (wasm, stringPtr) => {
 };
 
 export const appendBuffers = (buffer1, buffer2) => {
-  const tmp = new Uint8Array(buffer1.byteLength + buffer2.byteLength);
-  tmp.set(new Uint8Array(buffer1), 0);
-  tmp.set(new Uint8Array(buffer2), buffer1.byteLength);
-  return tmp.buffer;
+  const temporary = new Uint8Array(buffer1.byteLength + buffer2.byteLength);
+  temporary.set(new Uint8Array(buffer1), 0);
+  temporary.set(new Uint8Array(buffer2), buffer1.byteLength);
+  return temporary.buffer;
 };
 
 export const sizeofStruct = (jsStruct) => {
   const result = jsStruct.reduce((total, [_, primitive, ...rest]) => {
-    if (primitive === "char") {
-      return (total += sizeOf[primitive] * rest[0]);
-    } else {
-      return (total += sizeOf[primitive]);
-    }
+    return total += primitive === "char" ? sizeOf[primitive] * rest[0] : sizeOf[primitive];
   }, 0);
   return result;
 };
@@ -123,7 +119,7 @@ export const isScriptProcessorNodeSupported = () => {
 
 export const csoundApiRename = (apiName) => {
   const minusCsound = apiName.replace(/^csound/i, "");
-  return minusCsound.charAt(0).toLowerCase() + minusCsound.substring(1);
+  return minusCsound.charAt(0).toLowerCase() + minusCsound.slice(1);
 };
 
 export const makeProxyCallback = (proxyPort, csoundInstance, apiK) => async (...arguments_) => {

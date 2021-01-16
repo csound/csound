@@ -52,8 +52,8 @@ export const handleSABCallbacks = ({
 
         const [k, ...argz] = argumentz;
         const caller = libraryCsound[k];
-        const returnVal = caller && caller.apply(undefined, [csound, ...argz]);
-        callbackReply(replyId, returnVal);
+        const returnValue = caller && caller.apply(undefined, [csound, ...argz]);
+        callbackReply(replyId, returnValue);
         callbackIndex += argumentCount - 1;
       }
     }

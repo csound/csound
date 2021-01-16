@@ -243,7 +243,7 @@ class SharedArrayBufferMainThread {
     log(`(postMessage) making a message channel from SABMain to SABWorker via workerMessagePort`)();
 
     // we send callbacks to the worker in SAB, but receive these return values as message events
-    let returnQueue = {};
+    const returnQueue = {};
     this.ipcMessagePorts.sabMainCallbackReply.addEventListener("message", (event) => {
       const { uid, value } = event.data;
       const promize = returnQueue[uid];
@@ -390,8 +390,8 @@ class SharedArrayBufferMainThread {
         }
 
         default: {
-          const bufferWrappedCallback = async (...args) => {
-            return await proxyCallback.apply(undefined, args);
+          const bufferWrappedCallback = async (...arguments_) => {
+            return await proxyCallback.apply(undefined, arguments_);
             if (
               this.currentPlayState === "realtimePerformanceStarted" ||
               this.currentPlayState === "renderStarted"
@@ -407,7 +407,7 @@ class SharedArrayBufferMainThread {
               if (waitResult === "timed-out") {
                 console.error("Worker timed out so ${csoundApiRename(apiK)}() wasn't called!");
               }
-              return await proxyCallback.apply(undefined, args);
+              return await proxyCallback.apply(undefined, arguments_);
             } else if (
               this.currentPlayState === "realtimePerformanceEnded" ||
               this.currentPlayState === "renderEnded"
@@ -415,7 +415,7 @@ class SharedArrayBufferMainThread {
               console.error(`${csoundApiRename(apiK)} was called after perfomance ended`);
               return;
             } else {
-              return await proxyCallback.apply(undefined, args);
+              return await proxyCallback.apply(undefined, arguments_);
             }
           };
           bufferWrappedCallback.toString = () => reference.toString();

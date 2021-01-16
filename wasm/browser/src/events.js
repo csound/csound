@@ -119,7 +119,7 @@ export class PublicEventAPI {
      * @param {function} listener
      * @return {external:EventEmitter}
      */
-    exportApi["removeListener"] = this.eventEmitter.removeListener.bind(this.eventEmitter);
+    exportApi.removeListener = this.eventEmitter.removeListener.bind(this.eventEmitter);
     /**
      * Returns an array listing the events for which the emitter has registered listeners.
      * The values in the array are strings.
@@ -128,7 +128,7 @@ export class PublicEventAPI {
      * @memberof CsoundObj
      * @return {Array<string>}
      */
-    exportApi["eventNames"] = this.eventEmitter.eventNames.bind(this.eventEmitter);
+    exportApi.eventNames = this.eventEmitter.eventNames.bind(this.eventEmitter);
     /**
      * Returns the number of listeners listening to the event named eventName.
      * @function
@@ -136,7 +136,7 @@ export class PublicEventAPI {
      * @memberof CsoundObj
      * @return {number}
      */
-    exportApi["listenerCount"] = this.eventEmitter.listenerCount.bind(this.eventEmitter);
+    exportApi.listenerCount = this.eventEmitter.listenerCount.bind(this.eventEmitter);
     /**
      * Returns a copy of the array of listeners for the event named eventName.
      * @function
@@ -145,7 +145,7 @@ export class PublicEventAPI {
      * @param {PublicEvents} eventName
      * @return {Array<function>}
      */
-    exportApi["listeners"] = this.eventEmitter.listeners.bind(this.eventEmitter);
+    exportApi.listeners = this.eventEmitter.listeners.bind(this.eventEmitter);
     /**
      * Alias for removeListener()
      * @function
@@ -155,7 +155,7 @@ export class PublicEventAPI {
      * @param {function} listener
      * @return {external:EventEmitter}
      */
-    exportApi["off"] = this.eventEmitter.off.bind(this.eventEmitter);
+    exportApi.off = this.eventEmitter.off.bind(this.eventEmitter);
     /**
      * Adds the listener function to the end of the listeners array for the event named eventName.
      * No checks are made to see if the listener has already been added.
@@ -168,7 +168,7 @@ export class PublicEventAPI {
      * @param {function} listener
      * @return {external:EventEmitter}
      */
-    exportApi["on"] = this.eventEmitter.on.bind(this.eventEmitter);
+    exportApi.on = this.eventEmitter.on.bind(this.eventEmitter);
     /**
      * Alias for "on"
      * @function
@@ -178,7 +178,7 @@ export class PublicEventAPI {
      * @param {function} listener
      * @return {external:EventEmitter}
      */
-    exportApi["addListener"] = this.eventEmitter.on.bind(this.eventEmitter);
+    exportApi.addListener = this.eventEmitter.on.bind(this.eventEmitter);
     /**
      * Adds a one-time listener function for the event named eventName.
      * The next time eventName is triggered, this listener is removed and then invoked.
@@ -189,7 +189,7 @@ export class PublicEventAPI {
      * @param {function} listener
      * @return {external:EventEmitter}
      */
-    exportApi["once"] = this.eventEmitter.once.bind(this.eventEmitter);
+    exportApi.once = this.eventEmitter.once.bind(this.eventEmitter);
     /**
      * Removes all listeners, or those of the specified eventName.
      * It is bad practice to remove listeners added elsewhere in the code,
@@ -203,7 +203,7 @@ export class PublicEventAPI {
      * @param {function} listener
      * @return {external:EventEmitter}
      */
-    exportApi["removeAllListeners"] = this.eventEmitter.removeAllListeners.bind(this.eventEmitter);
+    exportApi.removeAllListeners = this.eventEmitter.removeAllListeners.bind(this.eventEmitter);
     /**
      * Removes the specified listener from the listener array for the event named eventName.
      * removeListener() will remove, at most, one instance of a listener from the listener array.
@@ -217,7 +217,7 @@ export class PublicEventAPI {
      * @param {function} listener
      * @return {external:EventEmitter}
      */
-    exportApi["removeListener"] = this.eventEmitter.removeListener.bind(this.eventEmitter);
+    exportApi.removeListener = this.eventEmitter.removeListener.bind(this.eventEmitter);
     return exportApi;
   }
 }

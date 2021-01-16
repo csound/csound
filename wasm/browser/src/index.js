@@ -49,7 +49,7 @@ export async function Csound({
 } = {}) {
   unmuteIosAudio();
 
-  let audioContextIsProvided =
+  const audioContextIsProvided =
     audioContext && WebkitAudioContext() && audioContext instanceof WebkitAudioContext();
 
   if (!audioContextIsProvided) {
@@ -69,7 +69,7 @@ export async function Csound({
         outputChannelCount,
       });
       // const instance = await createSingleThreadAudioWorkletAPI({audioContext, withPlugins});
-      //return instance;
+      // return instance;
       return instance.initialize({ wasmDataURI, withPlugins, autoConnect });
     } else if (spnSupport) {
       log("Single Thread ScriptProcessorNode")();
@@ -81,7 +81,7 @@ export async function Csound({
       return await instance.initialize({ wasmDataURI, withPlugins, autoConnect });
     } else {
       console.error("No detectable WebAudioAPI in current environment");
-      return undefined;
+      return;
     }
   }
 
@@ -108,7 +108,7 @@ export async function Csound({
 
   if (!audioWorker) {
     console.error("No detectable WebAudioAPI in current environment");
-    return undefined;
+    return;
   }
 
   const hasSABSupport = isSabSupported();
@@ -130,7 +130,7 @@ export async function Csound({
     csoundWasmApi = worker.api;
   } else {
     console.error("No detectable WebAssembly support in current environment");
-    return undefined;
+    return;
   }
 
   return csoundWasmApi;

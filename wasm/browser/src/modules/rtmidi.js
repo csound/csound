@@ -21,8 +21,8 @@ export const csoundGetMIDIDevList = (wasm) => (csound, isOutput) => {
   const structOffset = wasm.exports.allocCsMidiDeviceStruct(numberOfDevices);
   wasm.exports.csoundGetMIDIDevList(csound, structOffset, isOutput ? 1 : 0);
   const structBuffer = new Uint8Array(buffer, structOffset, structLength * numberOfDevices);
-  const out = range(0, numberOfDevices).map((i) =>
-    structBuffer2Object(CS_MIDIDEVICE, structBuffer.subarray(i * structLength, structLength)),
+  const out = range(0, numberOfDevices).map((index) =>
+    structBuffer2Object(CS_MIDIDEVICE, structBuffer.subarray(index * structLength, structLength)),
   );
   wasm.exports.freeCsMidiDeviceStruct(structOffset);
   return out;

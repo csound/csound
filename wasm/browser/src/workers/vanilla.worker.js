@@ -78,8 +78,8 @@ const createRealtimeAudioThread = ({
       clearArray(rtmidiQueue);
     }
 
-    for (let i = 0; i < numFrames; i++) {
-      const currentCsoundBufferPos = i % ksmps;
+    for (let index = 0; index < numFrames; index++) {
+      const currentCsoundBufferPos = index % ksmps;
       if (workerMessagePort.vanillaWorkerState === "realtimePerformanceEnded") {
         if (lastPerformance === 0) {
           libraryCsound.csoundStop(csoundInstance);
@@ -90,7 +90,7 @@ const createRealtimeAudioThread = ({
         clearArray(rtmidiQueue);
         audioInputs.port = undefined;
         closeWatchers();
-        return { framesLeft: i };
+        return { framesLeft: index };
       }
       if (currentCsoundBufferPos === 0 && lastPerformance === 0) {
         lastPerformance = libraryCsound.csoundPerformKsmps(csound);
@@ -100,7 +100,7 @@ const createRealtimeAudioThread = ({
           clearArray(rtmidiQueue);
           audioInputs.port = undefined;
           closeWatchers();
-          return { framesLeft: i };
+          return { framesLeft: index };
         }
       }
 
@@ -123,7 +123,7 @@ const createRealtimeAudioThread = ({
 
       outputAudioPacket.forEach((channel, channelIndex) => {
         if (csoundOutputBuffer.length > 0) {
-          channel[i] =
+          channel[index] =
             (csoundOutputBuffer[currentCsoundBufferPos * nchnls + channelIndex] || 0) /
             zeroDecibelFullScale;
         }
@@ -132,7 +132,7 @@ const createRealtimeAudioThread = ({
       if (hasInput) {
         for (let ii = 0; ii < nchnlsInput; ii++) {
           csoundInputBuffer[currentCsoundBufferPos * nchnlsInput + ii] =
-            (audioInputs.buffers[ii][i + (audioInputs.inputReadIndex % MAX_HARDWARE_BUFFER_SIZE)] ||
+            (audioInputs.buffers[ii][index + (audioInputs.inputReadIndex % MAX_HARDWARE_BUFFER_SIZE)] ||
               0) * zeroDecibelFullScale;
         }
       }
@@ -193,8 +193,8 @@ const initAudioInputPort = ({ port }) => {
     if (audioInputs.buffers.length === 0) {
       createAudioInputBuffers(audioInputs, pkgs.length);
     }
-    audioInputs.buffers.forEach((buf, i) => {
-      buf.set(pkgs[i], audioInputs.inputWriteIndex);
+    audioInputs.buffers.forEach((buf, index) => {
+      buf.set(pkgs[index], audioInputs.inputWriteIndex);
     });
     audioInputs.inputWriteIndex += pkgs[0].length;
     audioInputs.availableFrames += pkgs[0].length;
@@ -215,7 +215,7 @@ const initRtMidiEventPort = ({ rtmidiPort }) => {
   return rtmidiPort;
 };
 
-const renderFn = ({
+const renderFunction = ({
   libraryCsound,
   workerMessagePort,
   wasmFs,
@@ -273,7 +273,7 @@ const initialize = async ({
     messagePort: workerMessagePort,
   });
 
-  let [watcherStdOut, watcherStdErr] = initFS(wasmFs, workerMessagePort);
+  const [watcherStdOut, watcherStdError] = initFS(wasmFs, workerMessagePort);
 
   const libraryCsound = libcsoundFactory(wasm);
 
@@ -287,9 +287,9 @@ const initialize = async ({
       audioInputs,
       workerMessagePort,
       watcherStdOut,
-      watcherStdErr,
+      watcherStdErr: watcherStdError,
     }),
-    renderFn({ libraryCsound, workerMessagePort, watcherStdOut, watcherStdErr, wasmFs }),
+    renderFunction({ libraryCsound, workerMessagePort, watcherStdOut, watcherStdErr: watcherStdError, wasmFs }),
   );
 
   const allAPI = pipe(

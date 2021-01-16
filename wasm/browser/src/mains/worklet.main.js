@@ -41,7 +41,7 @@ class AudioWorkletMainThread {
       if (this.audioContext.state !== "closed") {
         try {
           await this.audioContext.close();
-        } catch (error) {}
+        } catch {}
       }
       delete this.audioContext;
     }
@@ -74,7 +74,7 @@ class AudioWorkletMainThread {
         ) {
           try {
             await this.audioContext.close();
-          } catch (error) {}
+          } catch {}
         }
         if (this.autoConnect && this.audioWorkletNode) {
           this.audioWorkletNode.disconnect();

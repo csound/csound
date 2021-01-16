@@ -4,7 +4,7 @@ export const handleCsoundStart = (
   workerMessagePort,
   libraryCsound,
   createRealtimeAudioThread,
-  renderFn,
+  renderFunction,
 ) => (_, arguments_) => {
   const { csound } = arguments_;
 
@@ -37,8 +37,8 @@ export const handleCsoundStart = (
     } else {
       // Do rendering
       workerMessagePort.broadcastPlayState("renderStarted");
-      if (renderFn) {
-        renderFn(arguments_);
+      if (renderFunction) {
+        renderFunction(arguments_);
       } else {
         while (libraryCsound.csoundPerformKsmps(csound) === 0) {}
       }

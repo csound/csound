@@ -1,4 +1,4 @@
-let global = AudioWorkletGlobalScope;
+const global = AudioWorkletGlobalScope;
 
 const setTimeout = (a, b) => {};
 const performance = {
@@ -11,29 +11,29 @@ const performance = {
 const fetch = (a) => null;
 
 // FROM https://gitlab.com/PseudoPsycho/text-encoding-shim/-/blob/master/index.js
-var utf8Encodings = ["utf8", "utf-8", "unicode-1-1-utf-8"];
+const utf8Encodings = new Set(["utf8", "utf-8", "unicode-1-1-utf-8"]);
 
-var TextEncoder = function (encoding) {
-  if (utf8Encodings.indexOf(encoding) < 0 && typeof encoding !== "undefined" && encoding !== null) {
+const TextEncoder = function (encoding) {
+  if (!utf8Encodings.has(encoding) && typeof encoding !== "undefined" && encoding !== null) {
     throw new RangeError("Invalid encoding type. Only utf-8 is supported");
   } else {
     this.encoding = "utf-8";
-    this.encode = function (str) {
-      if (typeof str !== "string") {
+    this.encode = function (string) {
+      if (typeof string !== "string") {
         throw new TypeError("passed argument must be of type string");
       }
-      var binstr = unescape(encodeURIComponent(str)),
-        arr = new Uint8Array(binstr.length);
-      binstr.split("").forEach(function (char, i) {
-        arr[i] = char.charCodeAt(0);
+      const binstr = unescape(encodeURIComponent(string));
+        const array = new Uint8Array(binstr.length);
+      binstr.split("").forEach(function (char, index) {
+        array[index] = char.charCodeAt(0);
       });
-      return arr;
+      return array;
     };
   }
 };
 
-var TextDecoder = function (encoding, options) {
-  if (utf8Encodings.indexOf(encoding) < 0 && typeof encoding !== "undefined" && encoding !== null) {
+const TextDecoder = function (encoding, options) {
+  if (!utf8Encodings.has(encoding) && typeof encoding !== "undefined" && encoding !== null) {
     throw new RangeError("Invalid encoding type. Only utf-8 is supported");
   }
   this.encoding = "utf-8";
@@ -45,7 +45,7 @@ var TextDecoder = function (encoding, options) {
   this.trimNull = (a) => {
     const c = a.indexOf("\0");
     if (c > -1) {
-      return a.substr(0, c);
+      return a.slice(0, Math.max(0, c));
     }
     return a;
   };
@@ -55,7 +55,7 @@ var TextDecoder = function (encoding, options) {
       return "";
     }
 
-    var stream = typeof options !== "undefined" && "stream" in options ? options.stream : false;
+    const stream = typeof options !== "undefined" && "stream" in options ? options.stream : false;
     if (typeof stream !== "boolean") {
       throw new TypeError("stream option must be boolean");
     }
@@ -63,12 +63,12 @@ var TextDecoder = function (encoding, options) {
     if (!ArrayBuffer.isView(view)) {
       throw new TypeError("passed argument must be an array buffer view");
     } else {
-      var arr = new Uint8Array(view.buffer, view.byteOffset, view.byteLength),
-        charArr = new Array(arr.length);
-      arr.forEach(function (charcode, i) {
-        charArr[i] = String.fromCharCode(charcode);
+      const array = new Uint8Array(view.buffer, view.byteOffset, view.byteLength);
+        const charArray = new Array(array.length);
+      array.forEach(function (charcode, index) {
+        charArray[index] = String.fromCharCode(charcode);
       });
-      return this.trimNull(charArr.join(""));
+      return this.trimNull(charArray.join(""));
     }
   };
 };

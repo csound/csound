@@ -36,8 +36,8 @@ const rtmidiQueue = [];
 
 const callUncloned = async (k, arguments_) => {
   const caller = combined.get(k);
-  const ret = caller && caller.apply({}, arguments_ || []);
-  return ret;
+  const returnValue = caller && caller.apply({}, arguments_ || []);
+  return returnValue;
 };
 
 class WorkletSinglethreadWorker extends AudioWorkletProcessor {
@@ -80,8 +80,8 @@ class WorkletSinglethreadWorker extends AudioWorkletProcessor {
   async initialize(wasmDataURI, withPlugins) {
     log("initializing worklet.singlethread.worker")();
     let resolver;
-    const waiter = new Promise((res) => {
-      resolver = res;
+    const waiter = new Promise((resolve) => {
+      resolver = resolve;
     });
     loadWasm({ wasmDataURI, withPlugins, messagePort: this.workerMessagePort }).then(
       ([wasm, wasmFs]) => {
@@ -94,7 +94,7 @@ class WorkletSinglethreadWorker extends AudioWorkletProcessor {
         this.result = 0;
         this.running = false;
         this.started = false;
-        this.sampleRate = sampleRate;
+        // this.sampleRate = sampleRate;
         this.resetCsound(false);
 
         const csoundCreate = (v) => {
@@ -141,7 +141,7 @@ class WorkletSinglethreadWorker extends AudioWorkletProcessor {
     this.started = false;
     this.result = 0;
 
-    let cs = this.csound;
+    const cs = this.csound;
 
     if (callReset) {
       libraryCsound.csoundReset(cs);
@@ -176,13 +176,13 @@ class WorkletSinglethreadWorker extends AudioWorkletProcessor {
   }
 
   process(inputs, outputs) {
-    if (this.isPaused || !this.csoundOutputBuffer || this.running == false) {
-      let output = outputs[0];
-      let bufferLen = output[0].length;
-      for (let i = 0; i < bufferLen; i++) {
+    if (this.isPaused || !this.csoundOutputBuffer || !this.running) {
+      const output = outputs[0];
+      const bufferLength = output[0].length;
+      for (let index = 0; index < bufferLength; index++) {
         for (let channel = 0; channel < output.numberOfChannels; channel++) {
-          let outputChannel = output[channel];
-          outputChannel[i] = 0;
+          const outputChannel = output[channel];
+          outputChannel[index] = 0;
         }
       }
       return true;
@@ -202,23 +202,23 @@ class WorkletSinglethreadWorker extends AudioWorkletProcessor {
       clearArray(rtmidiQueue);
     }
 
-    let input = inputs[0];
-    let output = outputs[0];
+    const input = inputs[0];
+    const output = outputs[0];
 
-    let bufferLen = output[0].length;
+    const bufferLength = output[0].length;
 
     let csOut = this.csoundOutputBuffer;
     let csIn = this.csoundInputBuffer;
-    let ksmps = this.ksmps;
-    let zerodBFS = this.zerodBFS;
+    const ksmps = this.ksmps;
+    const zerodBFS = this.zerodBFS;
 
     let cnt = this.cnt;
-    let nchnls = this.nchnls;
-    let nchnls_i = this.nchnls_i;
+    const nchnls = this.nchnls;
+    const nchnls_index = this.nchnls_i;
     let result = this.result;
 
-    for (let i = 0; i < bufferLen; i++, cnt++) {
-      if (cnt >= ksmps && result == 0) {
+    for (let index = 0; index < bufferLength; index++, cnt++) {
+      if (cnt >= ksmps && result === 0) {
         // if we need more samples from Csound
         result = libraryCsound.csoundPerformKsmps(this.csound);
         cnt = 0;
@@ -245,47 +245,46 @@ class WorkletSinglethreadWorker extends AudioWorkletProcessor {
         csIn = this.csoundInputBuffer = new Float64Array(
           this.wasm.exports.memory.buffer,
           libraryCsound.csoundGetSpin(this.csound),
-          ksmps * nchnls_i,
+          ksmps * nchnls_index,
         );
       }
 
       // handle 1->1, 1->2, 2->1, 2->2 input channel count mixing and nchnls_i
       const inputChanMax = Math.min(this.nchnls_i, input.length);
       for (let channel = 0; channel < inputChanMax; channel++) {
-        let inputChannel = input[channel];
-        csIn[cnt * nchnls_i + channel] = inputChannel[i] * zerodBFS;
+        const inputChannel = input[channel];
+        csIn[cnt * nchnls_index + channel] = inputChannel[index] * zerodBFS;
       }
 
       // Channel mixing matches behavior of:
       // https://developer.mozilla.org/en-US/docs/Web/API/Web_Audio_API/Basic_concepts_behind_Web_Audio_API#Up-mixing_and_down-mixing
 
       // handle 1->1, 1->2, 2->1, 2->2 output channel count mixing and nchnls
-      if (this.nchnls == output.length) {
-        for (let channel = 0; channel < output.length; channel++) {
-          const outputChannel = output[channel];
-          if (result == 0) outputChannel[i] = csOut[cnt * nchnls + channel] / zerodBFS;
-          else outputChannel[i] = 0;
+      if (this.nchnls === output.length) {
+        for (const [channel, outputChannel] of output.entries()) {
+          if (result === 0) outputChannel[index] = csOut[cnt * nchnls + channel] / zerodBFS;
+          else outputChannel[index] = 0;
         }
-      } else if (this.nchnls == 2 && output.length == 1) {
+      } else if (this.nchnls === 2 && output.length === 1) {
         const outputChannel = output[0];
-        if (result == 0) {
+        if (result === 0) {
           const left = csOut[cnt * nchnls] / zerodBFS;
           const right = csOut[cnt * nchnls + 1] / zerodBFS;
-          outputChannel[i] = 0.5 * (left + right);
+          outputChannel[index] = 0.5 * (left + right);
         } else {
-          outputChannel[i] = 0;
+          outputChannel[index] = 0;
         }
-      } else if (this.nchnls == 1 && output.length == 2) {
+      } else if (this.nchnls === 1 && output.length === 2) {
         const outChan0 = output[0];
         const outChan1 = output[1];
 
-        if (result == 0) {
-          const val = csOut[cnt * nchnls] / zerodBFS;
-          outChan0[i] = val;
-          outChan1[i] = val;
+        if (result === 0) {
+          const value = csOut[cnt * nchnls] / zerodBFS;
+          outChan0[index] = value;
+          outChan1[index] = value;
         } else {
-          outChan0[i] = 0;
-          outChan1[i] = 0;
+          outChan0[index] = 0;
+          outChan1[index] = 0;
         }
       } else {
         // FIXME: we do not support other cases at this time
@@ -299,19 +298,19 @@ class WorkletSinglethreadWorker extends AudioWorkletProcessor {
   }
 
   async start() {
-    let retVal = -1;
+    let returnValueValue = -1;
     if (!this.started) {
       log("worklet thread is starting..")();
-      let cs = this.csound;
-      let ksmps = libraryCsound.csoundGetKsmps(cs);
+      const cs = this.csound;
+      const ksmps = libraryCsound.csoundGetKsmps(cs);
       this.ksmps = ksmps;
       this.cnt = ksmps;
       this.nchnls = libraryCsound.csoundGetNchnls(cs);
       this.nchnls_i = libraryCsound.csoundGetNchnlsInput(cs);
 
       this.zerodBFS = libraryCsound.csoundGet0dBFS(cs);
-      retVal = libraryCsound.csoundStart(cs);
-      log("csoundStart called with {} return val", retVal)();
+      returnValueValue = libraryCsound.csoundStart(cs);
+      log("csoundStart called with {} return val", returnValueValue)();
       this.csoundOutputBuffer = new Float64Array(
         this.wasm.exports.memory.buffer,
         libraryCsound.csoundGetSpout(cs),
@@ -329,7 +328,7 @@ class WorkletSinglethreadWorker extends AudioWorkletProcessor {
       log("worklet was asked to start but it already has!")();
     }
     this.running = true;
-    return retVal;
+    return returnValueValue;
   }
 }
 

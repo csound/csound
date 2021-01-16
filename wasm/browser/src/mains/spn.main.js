@@ -164,7 +164,7 @@ class ScriptProcessorNodeSingleThread {
   async start() {
     if (!this.csoundApi) {
       console.error("starting csound failed because csound instance wasn't created");
-      return undefined;
+      return;
     }
 
     if (this.currentPlayState !== "realtimePerformanceStarted") {
@@ -244,10 +244,10 @@ class ScriptProcessorNodeSingleThread {
     this.resetCsound(false);
 
     // csoundObj
-    Object.keys(csoundApi).reduce((acc, apiName) => {
+    Object.keys(csoundApi).reduce((accumulator, apiName) => {
       const renamedApiName = csoundApiRename(apiName);
-      acc[renamedApiName] = makeSingleThreadCallback(csoundInstance, csoundApi[apiName]);
-      return acc;
+      accumulator[renamedApiName] = makeSingleThreadCallback(csoundInstance, csoundApi[apiName]);
+      return accumulator;
     }, this.exportApi);
 
     this.exportApi.pause = this.pause.bind(this);
@@ -286,8 +286,8 @@ class ScriptProcessorNodeSingleThread {
     this.started = false;
     this.result = 0;
 
-    let cs = this.csoundInstance;
-    let libraryCsound = this.csoundApi;
+    const cs = this.csoundInstance;
+    const libraryCsound = this.csoundApi;
 
     if (callReset) {
       libraryCsound.csoundReset(cs);
@@ -310,12 +310,12 @@ class ScriptProcessorNodeSingleThread {
   onaudioprocess(e) {
     if (this.csoundOutputBuffer === null || this.running === false) {
       const output = e.outputBuffer;
-      const bufferLen = output.getChannelData(0).length;
+      const bufferLength = output.getChannelData(0).length;
 
-      for (let i = 0; i < bufferLen; i++) {
+      for (let index = 0; index < bufferLength; index++) {
         for (let channel = 0; channel < output.numberOfChannels; channel++) {
           const outputChannel = output.getChannelData(channel);
-          outputChannel[i] = 0;
+          outputChannel[index] = 0;
         }
       }
       return;
@@ -333,7 +333,7 @@ class ScriptProcessorNodeSingleThread {
     const input = e.inputBuffer;
     const output = e.outputBuffer;
 
-    const bufferLen = output.getChannelData(0).length;
+    const bufferLength = output.getChannelData(0).length;
 
     let csOut = this.csoundOutputBuffer;
     let csIn = this.csoundInputBuffer;
@@ -342,12 +342,12 @@ class ScriptProcessorNodeSingleThread {
     const zerodBFS = this.zerodBFS;
 
     const nchnls = this.nchnls;
-    const nchnls_i = this.nchnls_i;
+    const nchnls_index = this.nchnls_i;
 
     let cnt = this.cnt || 0;
     let result = this.result || 0;
 
-    for (let i = 0; i < bufferLen; i++, cnt++) {
+    for (let index = 0; index < bufferLength; index++, cnt++) {
       if (cnt == ksmps && result == 0) {
         // if we need more samples from Csound
         result = this.csoundApi.csoundPerformKsmps(this.csoundInstance);
@@ -377,7 +377,7 @@ class ScriptProcessorNodeSingleThread {
         csIn = this.csoundInputBuffer = new Float64Array(
           this.wasm.exports.memory.buffer,
           this.csoundApi.csoundGetSpin(this.csoundInstance),
-          ksmps * nchnls_i,
+          ksmps * nchnls_index,
         );
       }
 
@@ -385,7 +385,7 @@ class ScriptProcessorNodeSingleThread {
       const inputChanMax = Math.min(this.nchnls_i, input.numberOfChannels);
       for (let channel = 0; channel < inputChanMax; channel++) {
         const inputChannel = input.getChannelData(channel);
-        csIn[cnt * nchnls_i + channel] = inputChannel[i] * zerodBFS;
+        csIn[cnt * nchnls_index + channel] = inputChannel[index] * zerodBFS;
       }
 
       // Output Channel mixing matches behavior of:
@@ -395,29 +395,29 @@ class ScriptProcessorNodeSingleThread {
       if (this.nchnls == output.numberOfChannels) {
         for (let channel = 0; channel < output.numberOfChannels; channel++) {
           const outputChannel = output.getChannelData(channel);
-          if (result == 0) outputChannel[i] = csOut[cnt * nchnls + channel] / zerodBFS;
-          else outputChannel[i] = 0;
+          if (result == 0) outputChannel[index] = csOut[cnt * nchnls + channel] / zerodBFS;
+          else outputChannel[index] = 0;
         }
       } else if (this.nchnls == 2 && output.numberOfChannels == 1) {
         const outputChannel = output.getChannelData(0);
         if (result == 0) {
           const left = csOut[cnt * nchnls] / zerodBFS;
           const right = csOut[cnt * nchnls + 1] / zerodBFS;
-          outputChannel[i] = 0.5 * (left + right);
+          outputChannel[index] = 0.5 * (left + right);
         } else {
-          outputChannel[i] = 0;
+          outputChannel[index] = 0;
         }
       } else if (this.nchnls == 1 && output.numberOfChannels == 2) {
         const outChan0 = output.getChannelData(0);
         const outChan1 = output.getChannelData(1);
 
         if (result == 0) {
-          const val = csOut[cnt * nchnls] / zerodBFS;
-          outChan0[i] = val;
-          outChan1[i] = val;
+          const value = csOut[cnt * nchnls] / zerodBFS;
+          outChan0[index] = value;
+          outChan1[index] = value;
         } else {
-          outChan0[i] = 0;
-          outChan1[i] = 0;
+          outChan0[index] = 0;
+          outChan1[index] = 0;
         }
       } else {
         // FIXME: we do not support other cases at this time

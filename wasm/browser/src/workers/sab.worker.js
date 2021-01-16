@@ -18,8 +18,8 @@ let combined;
 
 const callUncloned = async (k, arguments_) => {
   const caller = combined.get(k);
-  const ret = caller && caller.apply({}, arguments_ || []);
-  return ret;
+  const returnValue = caller && caller.apply({}, arguments_ || []);
+  return returnValue;
 };
 
 const sabCreateRealtimeAudioThread = ({
@@ -141,17 +141,17 @@ const sabCreateRealtimeAudioThread = ({
       const availableMidiEvents = Atomics.load(audioStatePointer, AUDIO_STATE.AVAIL_RTMIDI_EVENTS);
       if (availableMidiEvents > 0) {
         const rtmidiBufferIndex = Atomics.load(audioStatePointer, AUDIO_STATE.RTMIDI_INDEX);
-        let absIdx = rtmidiBufferIndex;
-        for (let idx = 0; idx < availableMidiEvents; idx++) {
+        let absIndex = rtmidiBufferIndex;
+        for (let index = 0; index < availableMidiEvents; index++) {
           // MIDI_BUFFER_PAYLOAD_SIZE
-          absIdx = (rtmidiBufferIndex + MIDI_BUFFER_PAYLOAD_SIZE * idx) % MIDI_BUFFER_SIZE;
-          const status = Atomics.load(midiBuffer, absIdx);
-          const data1 = Atomics.load(midiBuffer, absIdx + 1);
-          const data2 = Atomics.load(midiBuffer, absIdx + 2);
+          absIndex = (rtmidiBufferIndex + MIDI_BUFFER_PAYLOAD_SIZE * index) % MIDI_BUFFER_SIZE;
+          const status = Atomics.load(midiBuffer, absIndex);
+          const data1 = Atomics.load(midiBuffer, absIndex + 1);
+          const data2 = Atomics.load(midiBuffer, absIndex + 2);
           libraryCsound.csoundPushMidiMessage(csound, status, data1, data2);
         }
 
-        Atomics.store(audioStatePointer, AUDIO_STATE.RTMIDI_INDEX, (absIdx + 1) % MIDI_BUFFER_SIZE);
+        Atomics.store(audioStatePointer, AUDIO_STATE.RTMIDI_INDEX, (absIndex + 1) % MIDI_BUFFER_SIZE);
         Atomics.sub(audioStatePointer, AUDIO_STATE.AVAIL_RTMIDI_EVENTS, availableMidiEvents);
       }
     }
@@ -178,9 +178,9 @@ const sabCreateRealtimeAudioThread = ({
 
     const outputWriteIndex = Atomics.load(audioStatePointer, AUDIO_STATE.OUTPUT_WRITE_INDEX);
 
-    for (let i = 0; i < framesRequested; i++) {
-      const currentInputReadIndex = hasInput && (inputReadIndex + i) % _B;
-      const currentOutputWriteIndex = (outputWriteIndex + i) % _B;
+    for (let index = 0; index < framesRequested; index++) {
+      const currentInputReadIndex = hasInput && (inputReadIndex + index) % _B;
+      const currentOutputWriteIndex = (outputWriteIndex + index) % _B;
 
       const currentCsoundInputBufferPos = hasInput && currentInputReadIndex % ksmps;
       const currentCsoundOutputBufferPos = currentOutputWriteIndex % ksmps;
@@ -251,7 +251,7 @@ const initMessagePort = ({ port }) => {
 
 // const initCallbackReplyPort = ({ port }) => (uid, value) => port.postMessage({ uid, value });
 
-const renderFn = ({ libraryCsound, workerMessagePort, wasmFs, watcherStdOut, watcherStdErr }) => ({
+const renderFunction = ({ libraryCsound, workerMessagePort, wasmFs, watcherStdOut, watcherStdErr }) => ({
   audioStateBuffer,
   csound,
 }) => {
@@ -288,7 +288,7 @@ const initialize = async ({ wasmDataURI, withPlugins = [], messagePort }) => {
     messagePort: workerMessagePort,
   });
 
-  let [watcherStdOut, watcherStdErr] = initFS(wasmFs, workerMessagePort);
+  const [watcherStdOut, watcherStdError] = initFS(wasmFs, workerMessagePort);
   const libraryCsound = libcsoundFactory(wasm);
 
   const startHandler = handleCsoundStart(
@@ -300,9 +300,9 @@ const initialize = async ({ wasmDataURI, withPlugins = [], messagePort }) => {
       wasmFs,
       workerMessagePort,
       watcherStdOut,
-      watcherStdErr,
+      watcherStdErr: watcherStdError,
     }),
-    renderFn({ libraryCsound, workerMessagePort, watcherStdOut, watcherStdErr }),
+    renderFunction({ libraryCsound, workerMessagePort, watcherStdOut, watcherStdErr: watcherStdError }),
   );
 
   const allAPI = pipe(

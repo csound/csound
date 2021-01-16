@@ -342,11 +342,7 @@ class CsoundWorkletProcessor extends AudioWorkletProcessor {
   }
 
   process(inputs, outputs) {
-    if (this.isPaused || !this.messagePortsReady) {
-      return true;
-    } else {
-      return this.actualProcess.call(this, inputs, outputs);
-    }
+    return this.isPaused || !this.messagePortsReady ? true : this.actualProcess(inputs, outputs);
   }
 }
 

@@ -15,6 +15,7 @@
   ],
   "scripts": {
     "lint": "eslint 'src/**/*.js'",
+    "lint:ci": "cross-env ESLINT_JUNIT_OUTPUT=tests/eslint.junit.xml eslint -f ./node_modules/eslint-junit/index.js 'src/**/*.js'",
     "build": "yarn build:dev && yarn build:prod",
     "build:dev": "cross-env BUILD_TARGET=development rollup -c --environment production",
     "build:prod": "cross-env BUILD_TARGET=production rollup -c --environment production",
@@ -39,6 +40,7 @@
     "eslint": "^7.17.0",
     "eslint-config-prettier": "^7.1.0",
     "eslint-config-standard": "^16.0.2",
+    "eslint-junit": "^1.0.1",
     "eslint-loader": "^4.0.2",
     "eslint-plugin-import": "^2.22.1",
     "eslint-plugin-node": "^11.1.0",

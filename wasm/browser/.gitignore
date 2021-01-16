@@ -21,3 +21,4 @@ tmp
 dev.html
 tests/debug.html
 tests/results.junit.xml
+tests/eslint.junit.xml

@@ -81,11 +81,11 @@ export const createStdOutStream = (wasmFs, workerMessagePort, streamState) => {
 
 export const csoundWasiJsMessageCallback = ({ memory, streamBuffer, messagePort }) => (
   csound,
-  attr,
-  len,
+  attribute,
+  length_,
   offset,
 ) => {
-  const buf = new Uint8Array(memory.buffer, offset, len);
+  const buf = new Uint8Array(memory.buffer, offset, length_);
   const string = decoder.decode(buf);
   const endsWithNewline = /\n$/g.test(string);
   const startsWithNewline = /^\n/g.test(string);
@@ -160,17 +160,13 @@ export async function llFs(wasmFs) {
 function rmrfFsRec(wasmFs, rmrfPath) {
   let rmrfPathSandboxed;
   if (typeof rmrfPath === "string") {
-    if (rmrfPath.startsWith("/sandbox")) {
-      rmrfPathSandboxed = rmrfPath;
-    } else {
-      rmrfPathSandboxed = path.join("/sandbox", rmrfPath);
-    }
+    rmrfPathSandboxed = rmrfPath.startsWith("/sandbox") ? rmrfPath : path.join("/sandbox", rmrfPath);
   } else {
     rmrfPathSandboxed = "/sandbox";
   }
   if (wasmFs.fs.existsSync(rmrfPathSandboxed)) {
     wasmFs.fs.readdirSync(rmrfPathSandboxed).forEach((file) => {
-      var currentPath = path.join(rmrfPathSandboxed, file);
+      const currentPath = path.join(rmrfPathSandboxed, file);
       if (wasmFs.fs.lstatSync(currentPath).isDirectory()) {
         rmrfFsRec(wasmFs, currentPath);
       } else {
