@@ -32,13 +32,11 @@ if (CI_BIN && fs.existsSync(CI_BIN)) {
       webDriverCapabilities,
       "http://localhost:8081/index.html?ci=true",
       {
-        reporter: "xunit",
+        reporter: "mocha-junit-reporter",
         reporterOptions: {
-          output: "tests/results.xunit.xml",
-          suiteName: "Test Suite @csound/brower",
+          mochaFile: "tests/results.junit.xml",
+          rootSuiteTitle: "Test Suite @csound/brower",
         },
-        // globalsToSave: ["someResult"],
-        // globals: ["someResult"],
       },
     );
   } catch (error) {

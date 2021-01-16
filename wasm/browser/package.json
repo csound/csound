@@ -50,6 +50,7 @@
     "jsdoc": "^3.6.6",
     "jsdoc-to-markdown": "^6.0.1",
     "lines-logger": "2.0.2",
+    "mocha-junit-reporter": "^2.0.0",
     "rollup": "^2.36.1",
     "rollup-plugin-node-builtins": "^2.1.2",
     "rollup-plugin-node-polyfills": "^0.2.1",

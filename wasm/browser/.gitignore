@@ -20,4 +20,4 @@ deps.js
 tmp
 dev.html
 tests/debug.html
-tests/results.xunit.xml
+tests/results.junit.xml
