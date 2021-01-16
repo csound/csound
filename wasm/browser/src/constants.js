@@ -22,8 +22,6 @@ export const initialSharedState = [
   0, // n = buffer read index of output buffer
   0, // n = buffer write index of input buffer
   0, // n = buffer write index of output buffer
-  0, // n = the read index of the callback buffer
-  0, // n = the write index of the callback string data-buffer
   44100, // sample rate
   0, // n = if 1 then is requesting rtmidi
   0, // n = rtmidi buffer index
@@ -46,14 +44,10 @@ export const AUDIO_STATE = {
   OUTPUT_READ_INDEX: 11,
   INPUT_WRITE_INDEX: 12,
   OUTPUT_WRITE_INDEX: 13,
-  CALLBACK_BUFFER_INDEX: 14,
-  CALLBACK_STRING_DATA_BUFFER_POS: 15,
-  CALLBACK_FLOAT_32_ARRAY_BUFFER_POS: 16,
-  CALLBACK_FLOAT_64_ARRAY_BUFFER_POS: 17,
-  SAMPLE_RATE: 18,
-  IS_REQUESTING_RTMIDI: 19,
-  RTMIDI_INDEX: 20,
-  AVAIL_RTMIDI_EVENTS: 21,
+  SAMPLE_RATE: 14,
+  IS_REQUESTING_RTMIDI: 15,
+  RTMIDI_INDEX: 16,
+  AVAIL_RTMIDI_EVENTS: 17,
 };
 
 export const DATA_TYPE = {

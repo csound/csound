@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>debug @csound/browser</title>
+    </head>
+    <body>
+        <script type="module">
+         const url = "/libcsound.dev.mjs";
+
+         const testMidi = `
+<CsoundSynthesizer>
+<CsOptions>
+-odac -Ma
+</CsOptions>
+<CsInstruments>
+sr = 44100
+ksmps = 32
+nchnls = 1
+0dbfs = 1
+
+giSine  ftgen  0,0,2^10,10,1  ; a sine wave
+
+  instr 1
+; -- pitch bend --
+kPchBnd  pchbend  0,4               ;read in pitch bend (range -2 to 2)
+kTrig1   changed  kPchBnd           ;if 'kPchBnd' changes generate a trigger
+ if kTrig1=1 then
+printks "Pitch Bend:%f%n",0,kPchBnd ;print kPchBnd to console when it changes
+ endif
+
+; -- aftertouch --
+kAfttch  aftouch 0,0.9              ;read in aftertouch (range 0 to 0.9)
+kTrig2   changed kAfttch            ;if 'kAfttch' changes generate a trigger
+ if kTrig2=1 then
+printks "Aftertouch:%d%n",0,kAfttch ;print kAfttch to console when it changes
+ endif
+
+; -- create a sound --
+iNum     notnum                     ;read in MIDI note number
+; MIDI note number + pitch bend are converted to cycles per seconds
+aSig     poscil   0.1,cpsmidinn(iNum+kPchBnd),giSine
+         out      aSig              ;audio to output
+  endin
+
+</CsInstruments>
+<CsScore>
+</CsScore>
+<CsoundSynthesizer>
+;example by Iain McCurdy
+         `;
+
+         const runIt = async () => {
+             const { Csound } = await import(url);
+             const csoundObj = await Csound({
+                 useWorker: true,
+                 useSPN: false,
+                 useSAB: true
+             });
+
+             const compileReturn = await csoundObj.compileCsdText(testMidi);
+             const startReturn = await csoundObj.start();
+             /* const n = await csoundObj.getNode(); */
+             /* const ctx = await csoundObj.getAudioContext(); */
+         };
+
+         const triggerEvent = "ontouchstart" in document.documentElement ? "touchend" : "click";
+         document.querySelector("#all_tests").addEventListener(triggerEvent, async function () {
+             await runIt();
+         });
+        </script>
+        <button id="all_tests">Run All Tests</button>
+    </body>
+</html>
