@@ -1,5 +1,6 @@
 import path from "path";
 import { cleanStdout, decoder, uint2String } from "@root/utils";
+import { clearArray } from "@utils/clear-array";
 import { Buffer } from "buffer-es6";
 
 export const touchFile = (wasmFs, filename) => {
@@ -77,12 +78,6 @@ export const createStdOutStream = (wasmFs, workerMessagePort, streamState) => {
   watcher.addListener("change", listener);
   return watcher;
 };
-
-function clearArray(array) {
-  while (array.length) {
-    array.pop();
-  }
-}
 
 export const csoundWasiJsMessageCallback = ({ memory, streamBuffer, messagePort }) => (
   csound,

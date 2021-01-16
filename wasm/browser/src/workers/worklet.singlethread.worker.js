@@ -27,10 +27,12 @@ import { writeToFs, lsFs, llFs, readFromFs, rmrfFs } from "@root/filesystem";
 import libcsoundFactory from "@root/libcsound";
 import loadWasm from "@root/module";
 import { assoc, pipe } from "ramda";
+import { clearArray } from "@utils/clear-array";
 import { logSinglethreadWorkletWorker as log } from "@root/logger";
 
 let libraryCsound;
 let combined;
+const rtmidiQueue = [];
 
 const callUncloned = async (k, arguments_) => {
   const caller = combined.get(k);
@@ -57,7 +59,7 @@ class WorkletSinglethreadWorker extends AudioWorkletProcessor {
     this.port.start();
     Comlink.expose(this, this.port);
     this.workerMessagePort = new MessagePortState();
-    this.initializeMessagePort = ({ messagePort }) => {
+    this.initializeMessagePort = ({ messagePort, rtmidiPort }) => {
       this.workerMessagePort.post = (messageLog) => messagePort.postMessage({ log: messageLog });
       this.workerMessagePort.broadcastPlayState = (playStateChange) => {
         if (this.workerMessagePort.workerState !== playStateChange) {
@@ -66,6 +68,12 @@ class WorkletSinglethreadWorker extends AudioWorkletProcessor {
         messagePort.postMessage({ playStateChange });
       };
       this.workerMessagePort.ready = true;
+      log(`initRtMidiEventPort`)();
+      this.rtmidiPort = rtmidiPort;
+      this.rtmidiPort.addEventListener("message", ({ data: payload }) => {
+        rtmidiQueue.push(payload);
+      });
+      this.rtmidiPort.start();
     };
   }
 
@@ -185,6 +193,13 @@ class WorkletSinglethreadWorker extends AudioWorkletProcessor {
     if (this.needsStartNotification) {
       this.needsStartNotification = false;
       this.workerMessagePort.broadcastPlayState("realtimePerformanceStarted");
+    }
+
+    if (rtmidiQueue.length > 0) {
+      rtmidiQueue.forEach((event) => {
+        libraryCsound.csoundPushMidiMessage(this.csound, event[0], event[1], event[2]);
+      });
+      clearArray(rtmidiQueue);
     }
 
     let input = inputs[0];

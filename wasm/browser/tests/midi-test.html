@@ -52,8 +52,8 @@ aSig     poscil   0.1,cpsmidinn(iNum+kPchBnd),giSine
          const runIt = async () => {
              const { Csound } = await import(url);
              const csoundObj = await Csound({
-                 useWorker: true,
-                 useSPN: true,
+                 useWorker: false,
+                 useSPN: false,
                  useSAB: false
              });
 

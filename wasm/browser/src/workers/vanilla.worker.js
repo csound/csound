@@ -6,11 +6,12 @@ import { MAX_HARDWARE_BUFFER_SIZE } from "@root/constants.js";
 import { handleCsoundStart, instantiateAudioPacket } from "@root/workers/common.utils";
 import libcsoundFactory from "@root/libcsound";
 import loadWasm from "@root/module";
+import { clearArray } from "@utils/clear-array";
 import { assoc, pipe } from "ramda";
 
 let combined;
 let audioProcessCallback = () => {};
-let rtmidiQueue = [];
+const rtmidiQueue = [];
 
 const createAudioInputBuffers = (audioInputs, inputsCount) => {
   for (let channelIndex = 0; channelIndex < inputsCount; ++channelIndex) {
@@ -72,13 +73,9 @@ const createRealtimeAudioThread = ({
 
     if (rtmidiQueue.length > 0) {
       rtmidiQueue.forEach((event) => {
-        try {
-          libraryCsound.csoundPushMidiMessage(csound, event[0], event[1], event[2]);
-        } catch (error) {
-          console.error(error);
-        }
+        libraryCsound.csoundPushMidiMessage(csound, event[0], event[1], event[2]);
       });
-      rtmidiQueue = [];
+      clearArray(rtmidiQueue);
     }
 
     for (let i = 0; i < numFrames; i++) {

@@ -29,6 +29,7 @@ import { messageEventHandler, IPCMessagePorts } from "@root/mains/messages.main"
 import { api as API } from "@root/libcsound";
 import { PublicEventAPI } from "@root/events";
 import { enableAudioInput } from "./io.utils";
+import { requestMidi } from "@utils/request-midi";
 
 let initialized = false;
 const initializeModule = async (audioContext) => {
@@ -139,6 +140,11 @@ class SingleThreadAudioWorkletMainThread {
     }
   }
 
+  handleMidiInput({ data: payload }) {
+    this.ipcMessagePorts.csoundMainRtMidiPort.postMessage &&
+      this.ipcMessagePorts.csoundMainRtMidiPort.postMessage(payload);
+  }
+
   async initialize({ wasmDataURI, withPlugins, autoConnect }) {
     if (withPlugins && withPlugins.length > 0) {
       withPlugins = await fetchPlugins(withPlugins);
@@ -163,9 +169,13 @@ class SingleThreadAudioWorkletMainThread {
     }
 
     await this.workletProxy.initializeMessagePort(
-      Comlink.transfer({ messagePort: this.ipcMessagePorts.workerMessagePort }, [
-        this.ipcMessagePorts.workerMessagePort,
-      ]),
+      Comlink.transfer(
+        {
+          messagePort: this.ipcMessagePorts.workerMessagePort,
+          rtmidiPort: this.ipcMessagePorts.csoundWorkerRtMidiPort,
+        },
+        [this.ipcMessagePorts.workerMessagePort, this.ipcMessagePorts.csoundWorkerRtMidiPort],
+      ),
     );
     this.ipcMessagePorts.mainMessagePort.addEventListener("message", messageEventHandler(this));
     this.ipcMessagePorts.mainMessagePort.start();
@@ -209,6 +219,11 @@ class SingleThreadAudioWorkletMainThread {
             const startResult = await proxyCallback({
               csound: csoundInstance,
             });
+            if (await this.exportApi._isRequestingRtMidiInput(csoundInstance)) {
+              requestMidi({
+                onMidiMessage: this.handleMidiInput.bind(this),
+              });
+            }
             this.publicEvents.triggerOnAudioNodeCreated(this.node);
             await startPromise;
             return startResult;
