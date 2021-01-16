@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>debug @csound/browser</title>
+  </head>
+  <body>
+    <script type="module">
+      const url = "/libcsound.dev.mjs";
+
+      const test = `
+      <CsoundSynthesizer>
+        <CsOptions>
+        -odac --daemon
+        </CsOptions>
+        <CsInstruments>
+          0dbfs=1
+          nchnls_i=1
+          nchnls=2
+
+          instr 1
+            ain = inch(1) 
+            al, ar  reverbsc ain, ain, 0.85, 10000 
+
+            out(al, ar)
+          endin
+
+          schedule(1, 0, -1)
+
+        </CsInstruments>
+        <CsScore>
+        </CsScore>
+      </CsoundSynthesizer>
+     `;
+
+      const runIt = async () => {
+        const { Csound } = await import(url);
+        const csoundObj = await Csound({
+          useWorker: false,
+          useSPN: false,
+          outputChannelCount: 2
+        });
+
+        const compileReturn = await csoundObj.compileCsdText(test);
+        // console.log(csoundObj);
+        await csoundObj.enableAudioInput();
+        const startReturn = await csoundObj.start();
+        const n = await csoundObj.getNode();
+        const ctx = await csoundObj.getAudioContext();
+      };
+
+      const triggerEvent = "ontouchstart" in document.documentElement ? "touchend" : "click";
+      document.querySelector("#all_tests").addEventListener(triggerEvent, async function () {
+        await runIt();
+      });
+    </script>
+    <button id="all_tests">Run All Tests</button>
+  </body>
+</html>

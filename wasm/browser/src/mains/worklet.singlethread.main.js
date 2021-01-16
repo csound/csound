@@ -28,6 +28,7 @@ import { csoundApiRename, fetchPlugins, makeProxyCallback } from "@root/utils";
 import { messageEventHandler, IPCMessagePorts } from "@root/mains/messages.main";
 import { api as API } from "@root/libcsound";
 import { PublicEventAPI } from "@root/events";
+import { enableAudioInput } from "./io.utils";
 
 let initialized = false;
 const initializeModule = async (audioContext) => {
@@ -183,6 +184,7 @@ class SingleThreadAudioWorkletMainThread {
     this.exportApi.rmrfFs = makeProxyCallback(this.workletProxy, csoundInstance, "rmrfFs");
     this.exportApi.getAudioContext = async () => this.audioContext;
     this.exportApi.getNode = async () => this.node;
+    this.exportApi.enableAudioInput = enableAudioInput.bind(this.exportApi);
 
     this.exportApi.name = "Csound: Audio Worklet, Single-threaded";
 
