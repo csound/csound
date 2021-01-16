@@ -72,6 +72,10 @@ jobs:
           cd $wasm_browser_dir
           nix-shell --pure
           yarn test:ci
+          mv tests/results.junit.xml tests/_results.junit.xml
+          ex -s +'%s/<testsuite name=""[^>].\{-}>\n.*<\/testsuite>//ge' +%p +q! \
+            _results.junit.xml > results.junit.xml
+          rm tests/_results.junit.xml
       - name: Publish Test Report
         uses: mikepenz/action-junit-report@v1
         with:

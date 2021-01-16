@@ -35,7 +35,8 @@ if (CI_BIN && fs.existsSync(CI_BIN)) {
         reporter: "mocha-junit-reporter",
         reporterOptions: {
           mochaFile: "tests/results.junit.xml",
-          rootSuiteTitle: "Test Suite @csound/brower",
+          useFullSuiteTitle: true,
+          rootSuiteTitle: undefined,
         },
       },
     );

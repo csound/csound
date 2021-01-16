@@ -10,6 +10,7 @@ in pkgs.mkShell {
     google_chrome_ci
     nodejs
     selenium-server-standalone
+    vim
     yarn
   ];
 }
