@@ -35,6 +35,7 @@ jobs:
     env:
       wasm_bin_dir: ./wasm
       wasm_browser_dir: ./wasm/browser
+      NIXPKGS_ALLOW_UNFREE: 1
     name: Browser bundle build and test
     needs: csound-wasm
     runs-on: ubuntu-latest
@@ -64,11 +65,9 @@ jobs:
       - name: Install test dependencies
         run: |
           cd $wasm_browser_dir
-          export NIXPKGS_ALLOW_UNFREE=1
           nix-shell --run 'exit 0'
       - name: Run the unit-tests
         run : |
-          export NIXPKGS_ALLOW_UNFREE=1
           cd $wasm_browser_dir
           nix-shell --pure
           yarn test:ci
