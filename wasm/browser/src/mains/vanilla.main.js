@@ -2,14 +2,7 @@ import * as Comlink from "comlink";
 import { logVANMain as log } from "@root/logger";
 import { api as API } from "@root/libcsound";
 import VanillaWorker from "@root/workers/vanilla.worker";
-import {
-  DEFAULT_HARDWARE_BUFFER_SIZE,
-  DEFAULT_SOFTWARE_BUFFER_SIZE,
-  MAX_CHANNELS,
-  MAX_HARDWARE_BUFFER_SIZE,
-  MIDI_BUFFER_PAYLOAD_SIZE,
-  MIDI_BUFFER_SIZE,
-} from "@root/constants.js";
+import { DEFAULT_HARDWARE_BUFFER_SIZE, DEFAULT_SOFTWARE_BUFFER_SIZE } from "@root/constants.js";
 import { isEmpty } from "ramda";
 import { csoundApiRename, fetchPlugins, makeProxyCallback, stopableStates } from "@root/utils";
 import { IPCMessagePorts, messageEventHandler } from "@root/mains/messages.main";

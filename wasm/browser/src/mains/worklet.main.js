@@ -3,8 +3,8 @@ import WorkletWorker from "@root/workers/worklet.worker";
 import { logWorkletMain as log } from "@root/logger";
 import { WebkitAudioContext } from "@root/utils";
 import { requestMicrophoneNode } from "./io.utils";
+import { requestMidi } from "@utils/request-midi";
 
-const connectedMidiDevices = new Set();
 let UID = 0;
 
 class AudioWorkletMainThread {
@@ -157,29 +157,9 @@ class AudioWorkletMainThread {
 
     if (this.isRequestingMidi) {
       log("requesting for web-midi connection");
-      if (navigator && navigator.requestMIDIAccess) {
-        try {
-          const midiDevices = await navigator.requestMIDIAccess();
-          if (midiDevices.inputs) {
-            const midiInputs = midiDevices.inputs.values();
-            for (let input = midiInputs.next(); input && !input.done; input = midiInputs.next()) {
-              log(`Connecting midi-input: ${input.value.name || "unkown"}`);
-              if (!connectedMidiDevices.has(input.value.name || "unkown")) {
-                input.value.onmidimessage = this.csoundWorkerMain.handleMidiInput.bind(
-                  this.csoundWorkerMain,
-                );
-                connectedMidiDevices.add(input.value.name || "unkown");
-              }
-            }
-          } else {
-            log("no midi-device detected");
-          }
-        } catch (error) {
-          log("error while connecting web-midi: " + error);
-        }
-      } else {
-        log("no web-midi support found, midi-input will not work!");
-      }
+      requestMidi({
+        onMidiMessage: this.csoundWorkerMain.handleMidiInput.bind(this.csoundWorkerMain),
+      });
     }
 
     if (this.isRequestingInput) {

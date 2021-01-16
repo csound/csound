@@ -3,6 +3,7 @@ import ScriptProcessorNodeWorker from "@root/workers/old-spn.worker";
 import { logOldSpnMain as log } from "@root/logger";
 import { messageEventHandler } from "@root/mains/messages.main";
 import { WebkitAudioContext } from "@root/utils";
+import { requestMidi } from "@utils/request-midi";
 
 // we reuse the spnWorker
 // since it handles multiple
@@ -231,6 +232,12 @@ class ScriptProcessorNodeMainThread {
       ) {
         this.csoundWorkerMain.publicEvents.triggerOnAudioNodeCreated(audioNode);
       }
+    }
+    if (this.isRequestingMidi && this.csoundWorkerMain && this.csoundWorkerMain.handleMidiInput) {
+      log("requesting for web-midi connection");
+      requestMidi({
+        onMidiMessage: this.csoundWorkerMain.handleMidiInput.bind(this.csoundWorkerMain),
+      });
     }
   }
 }

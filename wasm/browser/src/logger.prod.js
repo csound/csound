@@ -12,5 +12,6 @@ export const logSinglethreadWorkletMain = () => () => {};
 export const logSinglethreadWorkletWorker = () => () => {};
 export const logCommonUtils = () => () => {};
 export const logWasmModule = () => () => {};
+export const logMidiRequest = () => () => {};
 
 export default () => () => {};

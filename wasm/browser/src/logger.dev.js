@@ -26,7 +26,8 @@ const singleWorkletWorkerLogger = loggerFactory.getLoggerColor(
   "#90CAF9",
 );
 const commonUtilsLogger = loggerFactory.getLoggerColor("common.utils.js", "#FFD600");
-const wasmModuleLogger = loggerFactory.getLoggerColor("common.utils.js", "#FFF59D");
+const wasmModuleLogger = loggerFactory.getLoggerColor("module.js", "#FFF59D");
+const midiRequestLogger = loggerFactory.getLoggerColor("utils/request-midi.js", "#FFD600");
 
 export const logWorkletMain = workletMainLogger.log;
 export const logWorkletWorker = workletWorkerLogger.log;
@@ -42,5 +43,6 @@ export const logSinglethreadWorkletMain = singleWorkletMainLogger.log;
 export const logSinglethreadWorkletWorker = singleWorkletWorkerLogger.log;
 export const logCommonUtils = commonUtilsLogger.log;
 export const logWasmModule = wasmModuleLogger.log;
+export const logMidiRequest = midiRequestLogger.log;
 
 export default () => () => {};
