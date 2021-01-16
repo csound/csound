@@ -67,6 +67,7 @@ jobs:
           cd $wasm_browser_dir
           nix-shell --run 'exit 0'
       - name: Run the unit-tests
+        continue-on-error: true # allow the reporter to report the failures
         run : |
           cd $wasm_browser_dir
           nix-shell --pure
