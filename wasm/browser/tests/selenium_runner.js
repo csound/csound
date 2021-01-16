@@ -31,6 +31,15 @@ if (CI_BIN && fs.existsSync(CI_BIN)) {
     result = await runMochaWebDriverTest(
       webDriverCapabilities,
       "http://localhost:8081/index.html?ci=true",
+      {
+        reporter: "xunit",
+        reporterOptions: {
+          output: "tests/results.xunit.xml",
+          suiteName: "Test Suite @csound/brower",
+        },
+        // globalsToSave: ["someResult"],
+        // globals: ["someResult"],
+      },
     );
   } catch (error) {
     console.error(error);

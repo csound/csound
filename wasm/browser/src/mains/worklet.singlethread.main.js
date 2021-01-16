@@ -80,7 +80,7 @@ class SingleThreadAudioWorkletMainThread {
   }
 
   async onPlayStateChange(newPlayState) {
-    if (this.currentPlayState == newPlayState) {
+    if (this.currentPlayState === newPlayState || !this.publicEvents) {
       return;
     }
 
