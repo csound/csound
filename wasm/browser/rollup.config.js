@@ -210,4 +210,14 @@ export default [
       ...(PROD ? [terser()] : []),
     ],
   },
+  {
+    input: "src/libcsound.js",
+    output: {
+      intro: "// this file is intended for @csound/nodejs\n",
+      file: "dist/factory.mjs",
+      format: "module",
+      sourcemap: false,
+    },
+    plugins: [...pluginsCommon],
+  },
 ];
