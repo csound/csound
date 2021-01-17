@@ -14,7 +14,7 @@ jobs:
       uses: actions/checkout@master
     - uses: cachix/install-nix-action@v12
       with:
-        nix_path: nixpkgs=channel:nixos-unstable
+        nix_path: nixpkgs=https://github.com/NixOS/nixpkgs/archive/3876561795a7111dac8fd4b71e0279e46b08eed8.tar.gz
     - uses: cachix/cachix-action@v8
       with:
         name: csound
