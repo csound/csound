@@ -29,7 +29,9 @@ class SharedArrayBufferMainThread {
     this.currentPlayState = undefined;
     this.currentDerivedPlayState = "stop";
     this.exportApi = {};
-    this.messageCallbacks = [];
+
+    this.callbackId = 0;
+    this.callbackBuffer = {};
 
     this.startPromiz = undefined;
     this.stopPromiz = undefined;
@@ -242,14 +244,23 @@ class SharedArrayBufferMainThread {
     this.ipcMessagePorts.mainMessagePortAudio.start();
     log(`(postMessage) making a message channel from SABMain to SABWorker via workerMessagePort`)();
 
-    // we send callbacks to the worker in SAB, but receive these return values as message events
-    const returnQueue = {};
     this.ipcMessagePorts.sabMainCallbackReply.addEventListener("message", (event) => {
-      const { uid, value } = event.data;
-      const promize = returnQueue[uid];
-      promize && promize(value);
+      if (event.data === "poll") {
+        this.ipcMessagePorts.sabMainCallbackReply.postMessage(
+          Object.keys(this.callbackBuffer).map((id) => ({
+            id,
+            apiKey: this.callbackBuffer[id].apiKey,
+            argumentz: this.callbackBuffer[id].argumentz,
+          })),
+        );
+      } else {
+        event.data.forEach(({ id, answer }) => {
+          this.callbackBuffer[id].resolveCallback(answer);
+          delete this.callbackBuffer[id];
+        });
+      }
     });
-    // this.ipcMessagePorts.sabMainCallbackReply.start();
+    this.ipcMessagePorts.sabMainCallbackReply.start();
 
     const proxyPort = Comlink.wrap(csoundWorker);
     this.proxyPort = proxyPort;
@@ -258,9 +269,10 @@ class SharedArrayBufferMainThread {
         {
           wasmDataURI: this.wasmDataURI,
           messagePort: this.ipcMessagePorts.workerMessagePort,
+          callbackPort: this.ipcMessagePorts.sabWorkerCallbackReply,
           withPlugins,
         },
-        [this.ipcMessagePorts.workerMessagePort],
+        [this.ipcMessagePorts.workerMessagePort, this.ipcMessagePorts.sabWorkerCallbackReply],
       ),
     );
     this.csoundInstance = csoundInstance;
@@ -292,11 +304,11 @@ class SharedArrayBufferMainThread {
     // the default message listener
     this.exportApi.addListener("message", console.log);
 
-    for (const apiK of Object.keys(API)) {
-      const proxyCallback = makeProxyCallback(proxyPort, csoundInstance, apiK);
-      const reference = API[apiK];
+    for (const apiKey of Object.keys(API)) {
+      const proxyCallback = makeProxyCallback(proxyPort, csoundInstance, apiKey);
+      const reference = API[apiKey];
 
-      switch (apiK) {
+      switch (apiKey) {
         case "csoundCreate": {
           break;
         }
@@ -397,27 +409,43 @@ class SharedArrayBufferMainThread {
             ) {
               // avoiding deadlock by sending the IPC callback
               // while thread is unlocked
-              const waitResult = Atomics.wait(
-                audioStatePointer,
-                AUDIO_STATE.ATOMIC_NOTIFY,
-                0,
-                1000,
-              );
-              if (waitResult === "timed-out") {
-                console.error(`Worker timed out so ${csoundApiRename(apiK)}() wasn't called!`);
-              }
-              return await proxyCallback.apply(undefined, arguments_);
+              const callbackId = this.callbackId;
+              this.callbackId += 1;
+              const returnPromise = new Promise((resolve, reject) => {
+                const timeout = setTimeout(
+                  () =>
+                    reject(
+                      new Error(`Worker timed out so ${csoundApiRename(apiKey)}() wasn't called!`),
+                    ),
+                  10000,
+                );
+                const resolveCallback = (...answer) => {
+                  clearTimeout(timeout);
+                  if (answer.length > 0) {
+                    resolve.apply(answer);
+                  } else {
+                    resolve();
+                  }
+                };
+                this.callbackBuffer[callbackId] = {
+                  resolveCallback,
+                  apiKey,
+                  argumentz: [csoundInstance, ...arguments_],
+                };
+              });
+              Atomics.compareExchange(audioStatePointer, AUDIO_STATE.HAS_PENDING_CALLBACKS, 0, 1);
+              return await returnPromise;
             } else if (
               this.currentPlayState === "realtimePerformanceEnded" ||
               this.currentPlayState === "renderEnded"
             ) {
-              console.error(`${csoundApiRename(apiK)} was called after perfomance ended`);
+              console.error(`${csoundApiRename(apiKey)} was called after perfomance ended`);
             } else {
               return await proxyCallback.apply(undefined, arguments_);
             }
           };
           bufferWrappedCallback.toString = () => reference.toString();
-          this.exportApi[csoundApiRename(apiK)] = bufferWrappedCallback;
+          this.exportApi[csoundApiRename(apiKey)] = bufferWrappedCallback;
           break;
         }
       }

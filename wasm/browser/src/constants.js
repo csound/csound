@@ -26,6 +26,7 @@ export const initialSharedState = [
   0, // n = if 1 then is requesting rtmidi
   0, // n = rtmidi buffer index
   0, // n = available rtmidi events in buffer
+  0, // n = has pending callbacks
 ];
 
 // Enum helper for SAB
@@ -48,6 +49,7 @@ export const AUDIO_STATE = {
   IS_REQUESTING_RTMIDI: 15,
   RTMIDI_INDEX: 16,
   AVAIL_RTMIDI_EVENTS: 17,
+  HAS_PENDING_CALLBACKS: 18,
 };
 
 export const DATA_TYPE = {
