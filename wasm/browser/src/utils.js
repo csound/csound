@@ -7,10 +7,6 @@ export const appendBuffers = (buffer1, buffer2) => {
   return temporary.buffer;
 };
 
-export const freeStringPtr = (wasm, ptr) => {
-  wasm.exports.freeStringMem(ptr);
-};
-
 export const nearestPowerOf2 = (n) => {
   return 1 << (31 - Math.clz32(n));
 };

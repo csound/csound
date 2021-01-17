@@ -3,7 +3,7 @@
    https://csound.com/docs/api/modules.html
 */
 
-import { freeStringPtr, string2ptr } from "@root/utils";
+import { freeStringPtr, string2ptr } from "@utils/string-pointers";
 
 /**
  * Parses a csound orchestra string

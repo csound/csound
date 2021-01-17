@@ -1,4 +1,16 @@
-import { encoder } from "@utils/text-encoders";
+import { encoder, uint2String } from "@utils/text-encoders";
+import { trimNull } from "@utils/trim-null";
+
+export const freeStringPtr = (wasm, ptr) => {
+  wasm.exports.freeStringMem(ptr);
+};
+
+export const ptr2string = (wasm, stringPtr) => {
+  const { buffer } = wasm.exports.memory;
+  const intArray = new Uint8Array(buffer, stringPtr);
+  const result = uint2String(intArray);
+  return trimNull(result);
+};
 
 export const string2ptr = (wasm, string) => {
   if (typeof string !== "string") {

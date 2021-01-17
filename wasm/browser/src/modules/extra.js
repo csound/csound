@@ -1,4 +1,4 @@
-import { freeStringPtr, string2ptr } from "@root/utils";
+import { freeStringPtr, string2ptr } from "@utils/string-pointers";
 
 /* eslint-disable unicorn/prevent-abbreviations */
 

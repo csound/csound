@@ -3,9 +3,7 @@
    https://csound.com/docs/api/modules.html
 */
 
-import { freeStringPtr } from "@root/utils";
-import { ptr2string } from "@utils/pointer-to-string";
-import { string2ptr } from "@utils/string-to-pointer";
+import { freeStringPtr, ptr2string, string2ptr } from "@utils/string-pointers";
 
 /**
  * Inputs an immediate score event

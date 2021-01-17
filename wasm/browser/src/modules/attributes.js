@@ -5,8 +5,9 @@
 
 /* eslint-disable unicorn/prevent-abbreviations */
 
-import { freeStringPtr, sizeofStruct, string2ptr } from "@root/utils";
-import { structBufferToObject } from "@root/structure-buffer-to-object";
+import { sizeofStruct } from "@utils/native-sizes";
+import { freeStringPtr, string2ptr } from "@utils/string-pointers";
+import { structBufferToObject } from "@utils/structure-buffer-to-object";
 import { CSOUND_PARAMS } from "@root/structures";
 import { curry } from "ramda";
 
