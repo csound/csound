@@ -1,7 +1,7 @@
 import path from "path";
-import { cleanStdout, decoder, uint2String } from "@root/utils";
+import { uint2String } from "@utils/text-encoders";
+import { cleanStdout } from "@utils/clean-stdout-string";
 import { clearArray } from "@utils/clear-array";
-import { Buffer } from "buffer-es6";
 
 export const touchFile = (wasmFs, filename) => {
   wasmFs.fs.writeFileSync(`/sandbox/${filename}`, "");
@@ -86,7 +86,7 @@ export const csoundWasiJsMessageCallback = ({ memory, streamBuffer, messagePort 
   offset,
 ) => {
   const buf = new Uint8Array(memory.buffer, offset, length_);
-  const string = decoder.decode(buf);
+  const string = uint2String(buf);
   const endsWithNewline = /\n$/g.test(string);
   const startsWithNewline = /^\n/g.test(string);
   const chunks = string.split("\n").filter((item) => item.length > 0);
@@ -160,7 +160,9 @@ export async function llFs(wasmFs) {
 function rmrfFsRec(wasmFs, rmrfPath) {
   let rmrfPathSandboxed;
   if (typeof rmrfPath === "string") {
-    rmrfPathSandboxed = rmrfPath.startsWith("/sandbox") ? rmrfPath : path.join("/sandbox", rmrfPath);
+    rmrfPathSandboxed = rmrfPath.startsWith("/sandbox")
+      ? rmrfPath
+      : path.join("/sandbox", rmrfPath);
   } else {
     rmrfPathSandboxed = "/sandbox";
   }

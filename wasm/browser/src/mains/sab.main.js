@@ -391,7 +391,6 @@ class SharedArrayBufferMainThread {
 
         default: {
           const bufferWrappedCallback = async (...arguments_) => {
-            return await proxyCallback.apply(undefined, arguments_);
             if (
               this.currentPlayState === "realtimePerformanceStarted" ||
               this.currentPlayState === "renderStarted"
@@ -405,7 +404,7 @@ class SharedArrayBufferMainThread {
                 1000,
               );
               if (waitResult === "timed-out") {
-                console.error("Worker timed out so ${csoundApiRename(apiK)}() wasn't called!");
+                console.error(`Worker timed out so ${csoundApiRename(apiK)}() wasn't called!`);
               }
               return await proxyCallback.apply(undefined, arguments_);
             } else if (
@@ -413,7 +412,6 @@ class SharedArrayBufferMainThread {
               this.currentPlayState === "renderEnded"
             ) {
               console.error(`${csoundApiRename(apiK)} was called after perfomance ended`);
-              return;
             } else {
               return await proxyCallback.apply(undefined, arguments_);
             }

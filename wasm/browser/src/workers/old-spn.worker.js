@@ -283,7 +283,7 @@ class CsoundScriptNodeProcessor {
         (this.vanillaAvailableFrames + nextOutputReadIndex + this.pendingFrames) %
         this.hardwareBufferSize;
 
-      this.requestPort.postMessage.call(this.requestPort, {
+      this.requestPort.postMessage({
         readIndex: futureOutputReadIndex,
         numFrames: this.softwareBufferSize * PERIODS,
       });
@@ -375,7 +375,8 @@ const initialize = async ({
   autoConnect,
   initialPlayState,
 }) => {
-  let audioContext = getAudioContext(contextUid);
+  log("initializing old-spn worker in iframe")();
+  const audioContext = getAudioContext(contextUid);
 
   const spnClassInstance = new CsoundScriptNodeProcessor({
     audioContext,
@@ -400,7 +401,7 @@ const initialize = async ({
       startPromizes[contextUid] = resolve;
       setTimeout(() => {
         if (typeof startPromizes[contextUid] === "function") {
-          reject(`a call to start() timed out`);
+          reject(new Error(`a call to start() timed out`));
           delete startPromizes[contextUid];
           return -1;
         }

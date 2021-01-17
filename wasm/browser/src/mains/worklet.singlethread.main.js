@@ -31,13 +31,9 @@ import { PublicEventAPI } from "@root/events";
 import { enableAudioInput } from "./io.utils";
 import { requestMidi } from "@utils/request-midi";
 
-let initialized = false;
 const initializeModule = async (audioContext) => {
   log("Initialize Module")();
-  //   if (!initialized) {
   await audioContext.audioWorklet.addModule(WorkletWorker());
-  initialized = true;
-  //   }
   return true;
 };
 

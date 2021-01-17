@@ -3,7 +3,8 @@
    https://csound.com/docs/api/modules.html
 */
 
-import { trimNull, uint2String } from "@root/utils";
+import { uint2String } from "@utils/text-encoders";
+import { trimNull } from "@utils/trim-null";
 
 /**
  * Returns the audio output name (-o)

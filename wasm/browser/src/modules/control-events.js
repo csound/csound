@@ -3,7 +3,9 @@
    https://csound.com/docs/api/modules.html
 */
 
-import { freeStringPtr, string2ptr, ptr2string } from "@root/utils";
+import { freeStringPtr } from "@root/utils";
+import { ptr2string } from "@utils/pointer-to-string";
+import { string2ptr } from "@utils/string-to-pointer";
 
 /**
  * Inputs an immediate score event
@@ -90,11 +92,11 @@ csoundSetControlChannel.toString = () => "setControlChannel = async (channelName
  */
 export const csoundGetStringChannel = (wasm) => (csound, channelName) => {
   const stringPtr = string2ptr(wasm, channelName);
-  const resPtr = wasm.exports.csoundGetStringChannelWasi(csound, stringPtr);
-  const result = ptr2string(wasm, resPtr);
+  const pointerToResult = wasm.exports.csoundGetStringChannelWasi(csound, stringPtr);
+  const result = ptr2string(wasm, pointerToResult);
 
   freeStringPtr(wasm, stringPtr);
-  freeStringPtr(wasm, resPtr);
+  freeStringPtr(wasm, pointerToResult);
   return result;
 };
 

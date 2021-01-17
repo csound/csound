@@ -56,7 +56,7 @@ class ScriptProcessorNodeMainThread {
       proxyPort = undefined;
     }
     if (this.iFrameElement) {
-      this.iFrameElement.parentNode.removeChild(this.iFrameElement);
+      this.iFrameElement.remove();
     }
     spnWorker = undefined;
     UID = 0;
@@ -114,10 +114,11 @@ class ScriptProcessorNodeMainThread {
     // HACK FROM (but it works just fine when adding modern security models)
     // https://github.com/GoogleChromeLabs/audioworklet-polyfill/blob/274792e5e3d189e04c9496bed24129118539b4b5/src/realm.js#L18-L20
     if (typeof window === "undefined" || typeof window.document === "undefined") {
-      throw "Can only run SPN in Browser scope";
+      throw new TypeError("Can only run SPN in Browser scope");
     }
 
     const parentScope = window.document;
+    // eslint-disable-next-line unicorn/prevent-abbreviations
     const iFrameHtml = [
       `<!doctype html>`,
       `<html lang="en">`,
@@ -128,23 +129,25 @@ class ScriptProcessorNodeMainThread {
       `</body>`,
     ].join("\n");
 
+    // eslint-disable-next-line unicorn/prevent-abbreviations
     const iFrameBlob = new Blob([iFrameHtml], { type: "text/html" });
-    const iFrame = document.createElement("iframe");
-    this.iFrameElement = iFrame;
+    this.iFrameElement = document.createElement("iframe");
 
-    iFrame.src = URL.createObjectURL(iFrameBlob);
-    iFrame.sandbox.add("allow-scripts", "allow-same-origin");
+    this.iFrameElement.src = URL.createObjectURL(iFrameBlob);
+    this.iFrameElement.sandbox.add("allow-scripts", "allow-same-origin");
 
-    iFrame.style.cssText = "position:absolute;left:0;top:-999px;width:1px;height:1px;";
+    this.iFrameElement.style.cssText = "position:absolute;left:0;top:-999px;width:1px;height:1px;";
 
     // appending early to have access to contentWindow
+    // eslint-disable-next-line unicorn/prevent-abbreviations
     const iFrameOnLoad = new Promise((resolve) => {
-      iFrame.onload = () => {
+      // eslint-disable-next-line unicorn/prefer-add-event-listener
+      this.iFrameElement.onload = () => {
         resolve();
       };
     });
 
-    parentScope.body.appendChild(iFrame);
+    parentScope.body.append(this.iFrameElement);
 
     try {
       await iFrameOnLoad;
@@ -152,10 +155,7 @@ class ScriptProcessorNodeMainThread {
       console.error(error);
     }
 
-    const iFrameWin = iFrame.contentWindow;
-    // const iFrameDoc = iFrameWin.document;
-
-    spnWorker = iFrameWin;
+    spnWorker = this.iFrameElement.contentWindow;
   }
 
   async initialize() {

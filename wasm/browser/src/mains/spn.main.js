@@ -24,7 +24,7 @@
 import libcsoundFactory from "@root/libcsound";
 import loadWasm from "@root/module";
 import MessagePortState from "@utils/message-port-state";
-import { initFS, writeToFs, lsFs, llFs, readFromFs, rmrfFs } from "@root/filesystem";
+import { initFS, writeToFs, llFs, lsFs, readFromFs, rmrfFs } from "@root/filesystem";
 import { isEmpty } from "ramda";
 import { csoundApiRename, fetchPlugins, makeSingleThreadCallback } from "@root/utils";
 import { messageEventHandler } from "./messages.main";
@@ -262,6 +262,7 @@ class ScriptProcessorNodeSingleThread {
     // filesystem export
     this.exportApi.writeToFs = writeToFs(this.wasmFs);
     this.exportApi.lsFs = lsFs(this.wasmFs);
+    this.exportApi.llFs = llFs(this.wasmFs);
     this.exportApi.readFromFs = readFromFs(this.wasmFs);
     this.exportApi.rmrfFs = rmrfFs(this.wasmFs);
     this.exportApi = this.publicEvents.decorateAPI(this.exportApi);
@@ -304,12 +305,12 @@ class ScriptProcessorNodeSingleThread {
     libraryCsound.csoundSetOption(cs, "--sample-rate=" + this.sampleRate);
     this.nchnls = -1;
     this.nchnls_i = -1;
-    this.csoundOutputBuffer = null;
+    delete this.csoundOutputBuffer;
   }
 
-  onaudioprocess(e) {
+  onaudioprocess(event) {
     if (this.csoundOutputBuffer === null || this.running === false) {
-      const output = e.outputBuffer;
+      const output = event.outputBuffer;
       const bufferLength = output.getChannelData(0).length;
 
       for (let index = 0; index < bufferLength; index++) {
@@ -330,8 +331,8 @@ class ScriptProcessorNodeSingleThread {
       }
     }
 
-    const input = e.inputBuffer;
-    const output = e.outputBuffer;
+    const input = event.inputBuffer;
+    const output = event.outputBuffer;
 
     const bufferLength = output.getChannelData(0).length;
 
@@ -342,17 +343,17 @@ class ScriptProcessorNodeSingleThread {
     const zerodBFS = this.zerodBFS;
 
     const nchnls = this.nchnls;
-    const nchnls_index = this.nchnls_i;
+    const nchnlsIn = this.nchnls_i;
 
     let cnt = this.cnt || 0;
     let result = this.result || 0;
 
     for (let index = 0; index < bufferLength; index++, cnt++) {
-      if (cnt == ksmps && result == 0) {
+      if (cnt === ksmps && result === 0) {
         // if we need more samples from Csound
         result = this.csoundApi.csoundPerformKsmps(this.csoundInstance);
         cnt = 0;
-        if (result != 0) {
+        if (result !== 0) {
           this.running = false;
           this.started = false;
           this.onPlayStateChange("realtimePerformanceEnded");
@@ -377,7 +378,7 @@ class ScriptProcessorNodeSingleThread {
         csIn = this.csoundInputBuffer = new Float64Array(
           this.wasm.exports.memory.buffer,
           this.csoundApi.csoundGetSpin(this.csoundInstance),
-          ksmps * nchnls_index,
+          ksmps * nchnlsIn,
         );
       }
 
@@ -385,33 +386,33 @@ class ScriptProcessorNodeSingleThread {
       const inputChanMax = Math.min(this.nchnls_i, input.numberOfChannels);
       for (let channel = 0; channel < inputChanMax; channel++) {
         const inputChannel = input.getChannelData(channel);
-        csIn[cnt * nchnls_index + channel] = inputChannel[index] * zerodBFS;
+        csIn[cnt * nchnlsIn + channel] = inputChannel[index] * zerodBFS;
       }
 
       // Output Channel mixing matches behavior of:
       // https://developer.mozilla.org/en-US/docs/Web/API/Web_Audio_API/Basic_concepts_behind_Web_Audio_API#Up-mixing_and_down-mixing
 
       // handle 1->1, 1->2, 2->1, 2->2 output channel count mixing and nchnls
-      if (this.nchnls == output.numberOfChannels) {
+      if (this.nchnls === output.numberOfChannels) {
         for (let channel = 0; channel < output.numberOfChannels; channel++) {
           const outputChannel = output.getChannelData(channel);
-          if (result == 0) outputChannel[index] = csOut[cnt * nchnls + channel] / zerodBFS;
+          if (result === 0) outputChannel[index] = csOut[cnt * nchnls + channel] / zerodBFS;
           else outputChannel[index] = 0;
         }
-      } else if (this.nchnls == 2 && output.numberOfChannels == 1) {
+      } else if (this.nchnls === 2 && output.numberOfChannels === 1) {
         const outputChannel = output.getChannelData(0);
-        if (result == 0) {
+        if (result === 0) {
           const left = csOut[cnt * nchnls] / zerodBFS;
           const right = csOut[cnt * nchnls + 1] / zerodBFS;
           outputChannel[index] = 0.5 * (left + right);
         } else {
           outputChannel[index] = 0;
         }
-      } else if (this.nchnls == 1 && output.numberOfChannels == 2) {
+      } else if (this.nchnls === 1 && output.numberOfChannels === 2) {
         const outChan0 = output.getChannelData(0);
         const outChan1 = output.getChannelData(1);
 
-        if (result == 0) {
+        if (result === 0) {
           const value = csOut[cnt * nchnls] / zerodBFS;
           outChan0[index] = value;
           outChan1[index] = value;

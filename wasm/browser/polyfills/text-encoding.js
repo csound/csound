@@ -1,15 +1,3 @@
-const global = AudioWorkletGlobalScope;
-
-const setTimeout = (a, b) => {};
-const performance = {
-  offset: Date.now(),
-  now: function now() {
-    return Date.now() - this.offset;
-  },
-};
-
-const fetch = (a) => null;
-
 // FROM https://gitlab.com/PseudoPsycho/text-encoding-shim/-/blob/master/index.js
 const utf8Encodings = new Set(["utf8", "utf-8", "unicode-1-1-utf-8"]);
 
@@ -23,7 +11,7 @@ const TextEncoder = function (encoding) {
         throw new TypeError("passed argument must be of type string");
       }
       const binstr = unescape(encodeURIComponent(string));
-        const array = new Uint8Array(binstr.length);
+      const array = new Uint8Array(binstr.length);
       binstr.split("").forEach(function (char, index) {
         array[index] = char.charCodeAt(0);
       });
@@ -64,7 +52,7 @@ const TextDecoder = function (encoding, options) {
       throw new TypeError("passed argument must be an array buffer view");
     } else {
       const array = new Uint8Array(view.buffer, view.byteOffset, view.byteLength);
-        const charArray = new Array(array.length);
+      const charArray = new Array(array.length);
       array.forEach(function (charcode, index) {
         charArray[index] = String.fromCharCode(charcode);
       });

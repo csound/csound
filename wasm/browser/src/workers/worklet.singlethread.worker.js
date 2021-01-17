@@ -151,7 +151,7 @@ class WorkletSinglethreadWorker extends AudioWorkletProcessor {
     libraryCsound.csoundSetOption(cs, "--sample-rate=" + this.sampleRate);
     this.nchnls = -1;
     this.nchnls_i = -1;
-    this.csoundOutputBuffer = null;
+    delete this.csoundOutputBuffer;
   }
 
   stop() {
@@ -214,7 +214,7 @@ class WorkletSinglethreadWorker extends AudioWorkletProcessor {
 
     let cnt = this.cnt;
     const nchnls = this.nchnls;
-    const nchnls_index = this.nchnls_i;
+    const nchnlsIn = this.nchnls_i;
     let result = this.result;
 
     for (let index = 0; index < bufferLength; index++, cnt++) {
@@ -223,7 +223,7 @@ class WorkletSinglethreadWorker extends AudioWorkletProcessor {
         result = libraryCsound.csoundPerformKsmps(this.csound);
         cnt = 0;
 
-        if (result != 0) {
+        if (result !== 0) {
           this.running = false;
           this.started = false;
           libraryCsound.csoundCleanup(this.csound);
@@ -245,7 +245,7 @@ class WorkletSinglethreadWorker extends AudioWorkletProcessor {
         csIn = this.csoundInputBuffer = new Float64Array(
           this.wasm.exports.memory.buffer,
           libraryCsound.csoundGetSpin(this.csound),
-          ksmps * nchnls_index,
+          ksmps * nchnlsIn,
         );
       }
 
@@ -253,7 +253,7 @@ class WorkletSinglethreadWorker extends AudioWorkletProcessor {
       const inputChanMax = Math.min(this.nchnls_i, input.length);
       for (let channel = 0; channel < inputChanMax; channel++) {
         const inputChannel = input[channel];
-        csIn[cnt * nchnls_index + channel] = inputChannel[index] * zerodBFS;
+        csIn[cnt * nchnlsIn + channel] = inputChannel[index] * zerodBFS;
       }
 
       // Channel mixing matches behavior of:

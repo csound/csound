@@ -82,7 +82,7 @@ const createRealtimeAudioThread = ({
       const currentCsoundBufferPos = index % ksmps;
       if (workerMessagePort.vanillaWorkerState === "realtimePerformanceEnded") {
         if (lastPerformance === 0) {
-          libraryCsound.csoundStop(csoundInstance);
+          libraryCsound.csoundStop(csound);
           lastPerformance = libraryCsound.csoundPerformKsmps(csound);
         }
         workerMessagePort.broadcastPlayState("realtimePerformanceEnded");
@@ -108,14 +108,14 @@ const createRealtimeAudioThread = ({
       // https://github.com/emscripten-core/emscripten/issues/6747#issuecomment-400081465
       if (csoundInputBuffer.length === 0) {
         csoundInputBuffer = new Float64Array(
-          wasm.exports.memory.buffer,
+          buffer,
           libraryCsound.csoundGetSpin(csound),
           ksmps * nchnlsInput,
         );
       }
       if (csoundOutputBuffer.length === 0) {
         csoundOutputBuffer = new Float64Array(
-          wasm.exports.memory.buffer,
+          buffer,
           libraryCsound.csoundGetSpout(csound),
           ksmps * nchnls,
         );
@@ -132,8 +132,9 @@ const createRealtimeAudioThread = ({
       if (hasInput) {
         for (let ii = 0; ii < nchnlsInput; ii++) {
           csoundInputBuffer[currentCsoundBufferPos * nchnlsInput + ii] =
-            (audioInputs.buffers[ii][index + (audioInputs.inputReadIndex % MAX_HARDWARE_BUFFER_SIZE)] ||
-              0) * zeroDecibelFullScale;
+            (audioInputs.buffers[ii][
+              index + (audioInputs.inputReadIndex % MAX_HARDWARE_BUFFER_SIZE)
+            ] || 0) * zeroDecibelFullScale;
         }
       }
     }
@@ -289,7 +290,13 @@ const initialize = async ({
       watcherStdOut,
       watcherStdErr: watcherStdError,
     }),
-    renderFunction({ libraryCsound, workerMessagePort, watcherStdOut, watcherStdErr: watcherStdError, wasmFs }),
+    renderFunction({
+      libraryCsound,
+      workerMessagePort,
+      watcherStdOut,
+      watcherStdErr: watcherStdError,
+      wasmFs,
+    }),
   );
 
   const allAPI = pipe(

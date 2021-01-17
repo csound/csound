@@ -2,9 +2,9 @@ import { WASI } from "@wasmer/wasi";
 import { WasmFs } from "@wasmer/wasmfs";
 import { inflate } from "pako";
 import { dlinit } from "@root/dlinit";
-import { csoundWasiJsMessageCallback } from "@root/filesystem";
+import { csoundWasiJsMessageCallback, initFS } from "@root/filesystem";
 import { logWasmModule as log } from "@root/logger";
-import * as path from "path";
+import path from "path";
 
 const PAGE_SIZE = 65536;
 
@@ -71,7 +71,7 @@ const getBinaryHeaderData = (wasmBytes) => {
 };
 
 // currently dl is default, static is good for low level debugging
-const loadStaticWasm = async ({ wasmBytes, wasi, messagePort }) => {
+const loadStaticWasm = async ({ wasmBytes, wasmFs, wasi, messagePort }) => {
   const module = await WebAssembly.compile(wasmBytes);
   const options = wasi.getImports(module);
   options.env = options.env || {};
@@ -103,7 +103,7 @@ export default async function ({ wasmDataURI, withPlugins = [], messagePort }) {
   const wasmBytes = inflate(wasmZlib);
   const magicData = getBinaryHeaderData(wasmBytes);
   if (magicData === "static") {
-    return [await loadStaticWasm({ messagePort, wasmBytes, wasi }), wasmFs];
+    return [await loadStaticWasm({ messagePort, wasmBytes, wasmFs, wasi }), wasmFs];
   }
   const { memorySize, memoryAlign, tableSize } = magicData;
   // get the header data from plugins which we need before
@@ -155,10 +155,10 @@ export default async function ({ wasmDataURI, withPlugins = [], messagePort }) {
   const options = wasi.getImports(module);
 
   let withPlugins_ = [];
-  let instance;
+
   const csoundLoadModules = (csoundInstance) => {
     withPlugins_.forEach((pluginInstance) => {
-      if (instance) {
+      if (typeof instance !== "undefined") {
         dlinit(instance, pluginInstance, table, csoundInstance);
       } else {
         console.error("csound-wasm internal: timing problem detected!");
@@ -188,7 +188,7 @@ export default async function ({ wasmDataURI, withPlugins = [], messagePort }) {
 
   options["GOT.func"] = options["GOT.func"] || {};
 
-  instance = await WebAssembly.instantiate(module, options);
+  const instance = await WebAssembly.instantiate(module, options);
 
   const moduleExports = Object.assign({}, instance.exports);
   const instance_ = {};

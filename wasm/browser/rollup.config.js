@@ -38,39 +38,9 @@ const pluginsCommon = [
     __PROD__: PROD,
     __DEV__: DEV,
     __LOGGER__: DEV
-      ? readFileSync("src/logger.dev.js", "utf-8")
-      : readFileSync("src/logger.prod.js", "utf-8"),
+      ? readFileSync("src/logger.development.js", "utf-8")
+      : readFileSync("src/logger.production.js", "utf-8"),
   }),
-  // strip({
-  //   include: ["src/**/*.js"],
-  //   debugger: true,
-  //   exclude: !PROD
-  //     ? []
-  //     : [
-  //         "./src/logger.js",
-  //         "@root/logger",
-  //         "ololog",
-  //         "ansicolor",
-  //         "pipez",
-  //         "printable-characters",
-  //         "stacktracey",
-  //         "string.bullet",
-  //         "string.ify",
-  //       ],
-  //   functions: !PROD
-  //     ? []
-  //     : [
-  //         "_log",
-  //         "log",
-  //         "logWorklet",
-  //         "logVAN",
-  //         "logWorkletWorker",
-  //         "logSPN",
-  //         "logSABMain",
-  //         "logSABWorker",
-  //         "logIndex",
-  //       ],
-  // }),
   pluginJson(),
   nodejsResolve({ preferBuiltins: false }),
   commonjs({ transformMixedEsModules: false, ignoreGlobal: false }),
@@ -104,7 +74,12 @@ const babelCommon = babel({
   ],
 });
 
-const workletPolyfill = readFileSync("src/workers/worklet.polyfill.js", "utf-8");
+const polyfills = {
+  fetch_noop: readFileSync("polyfills/fetch-noop.js", "utf-8"),
+  set_timeout_noop: readFileSync("polyfills/set-timeout-noop.js", "utf-8"),
+  text_encoding: readFileSync("polyfills/text-encoding.js", "utf-8"),
+  performance: readFileSync("polyfills/performance.js", "utf-8"),
+};
 
 export default [
   {
@@ -149,7 +124,13 @@ export default [
   {
     input: "src/workers/worklet.singlethread.worker.js",
     output: {
-      intro: workletPolyfill,
+      intro: [
+        "const global = AudioWorkletGlobalScope;",
+        polyfills.fetch_noop,
+        polyfills.set_timeout_noop,
+        polyfills.text_encoding,
+        polyfills.performance,
+      ].join("\n"),
       file: "dist/__compiled.worklet.singlethread.worker.js",
       format: "es",
       sourcemap: DEV ? "inline" : false,

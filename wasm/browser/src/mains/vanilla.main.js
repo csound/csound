@@ -234,7 +234,7 @@ class VanillaWorkerMainThread {
               this.startPromiz = resolve;
               setTimeout(() => {
                 if (typeof this.startPromiz === "function") {
-                  reject(`a call to start() timed out`);
+                  reject(new Error(`a call to start() timed out`));
                   delete this.startPromiz;
                   return -1;
                 }

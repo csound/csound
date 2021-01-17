@@ -46,28 +46,28 @@ export const dlinit = (hostInstance, pluginInstance, table, csoundInstance) => {
       csoundModuleErrorCodeToString,
     );
   } else if (pluginInstance.exports.csound_opcode_init || pluginInstance.exports.csound_fgen_init) {
-    const csound_opcode_init = new WebAssembly.Global({ value: "i32", mutable: true }, 0);
-    const csound_fgen_init = new WebAssembly.Global({ value: "i32", mutable: true }, 0);
+    const csoundOpcodeInit = new WebAssembly.Global({ value: "i32", mutable: true }, 0);
+    const csoundFgenInit = new WebAssembly.Global({ value: "i32", mutable: true }, 0);
     let tableEnd = table.length;
 
     if (typeof pluginInstance.exports.csound_opcode_init === "function") {
       table.grow(1);
-      csound_opcode_init.value = tableEnd;
+      csoundOpcodeInit.value = tableEnd;
       table.set(tableEnd, pluginInstance.exports.csound_opcode_init);
       tableEnd += 1;
     }
 
     if (typeof pluginInstance.exports.csound_fgen_init === "function") {
       table.grow(1);
-      csound_fgen_init.value = tableEnd;
+      csoundFgenInit.value = tableEnd;
       table.set(tableEnd, pluginInstance.exports.csound_fgen_init);
       tableEnd += 1;
     }
 
     hostInstance.exports.csoundWasiLoadOpcodeLibrary(
       csoundInstance,
-      csound_fgen_init,
-      csound_opcode_init,
+      csoundFgenInit,
+      csoundOpcodeInit,
     );
   } else {
     console.error("Plugin doesn't export nececcary functions to quality as csound plugin.");

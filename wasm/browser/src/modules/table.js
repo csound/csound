@@ -1,3 +1,4 @@
+import { uint2String } from "@utils/text-encoders";
 /*
    csound table module from <csound.h>
    https://csound.com/docs/api/group___t_a_b_l_e.html
@@ -125,6 +126,7 @@ csoundGetTable.toString = csoundTableCopyOut.toString;
  * @param {string} tableNum
  * @return {Promise.<Float64Array|undefined>}
  */
+// eslint-disable-next-line unicorn/prevent-abbreviations
 export const csoundGetTableArgs = (wasm) => (csound, tableNumber) => {
   const arrayPtr = wasm.exports.allocFloatArray(1024);
   wasm.exports.csoundGetTableArgs(csound, arrayPtr, tableNumber);
@@ -172,7 +174,7 @@ export const csoundGetNamedGEN = (wasm) => (csound, tableNumber) => {
     wasm.exports.csoundGetNamedGEN(csound, offset, tableNumber, stringLength);
     const { buffer } = wasm.exports.memory;
     const stringBuffer = new Uint8Array(buffer, offset, stringLength);
-    const result = decoder.decode(stringBuffer);
+    const result = uint2String(stringBuffer);
     return result;
   }
 };

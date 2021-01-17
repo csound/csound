@@ -1,12 +1,7 @@
 import { range } from "ramda";
 import { CS_MIDIDEVICE } from "@root/structures";
-import {
-  freeStringPtr,
-  sizeofStruct,
-  structBuffer2Object,
-  trimNull,
-  uint2String,
-} from "@root/utils";
+import { structBufferToObject } from "@root/structure-buffer-to-object";
+import { freeStringPtr, sizeofStruct, trimNull, uint2String } from "@root/utils";
 
 export const csoundSetMidiCallbacks = (wasm) => (csound) => {
   wasm.exports.csoundSetMidiCallbacks(csound);
@@ -22,7 +17,7 @@ export const csoundGetMIDIDevList = (wasm) => (csound, isOutput) => {
   wasm.exports.csoundGetMIDIDevList(csound, structOffset, isOutput ? 1 : 0);
   const structBuffer = new Uint8Array(buffer, structOffset, structLength * numberOfDevices);
   const out = range(0, numberOfDevices).map((index) =>
-    structBuffer2Object(CS_MIDIDEVICE, structBuffer.subarray(index * structLength, structLength)),
+    structBufferToObject(CS_MIDIDEVICE, structBuffer.subarray(index * structLength, structLength)),
   );
   wasm.exports.freeCsMidiDeviceStruct(structOffset);
   return out;

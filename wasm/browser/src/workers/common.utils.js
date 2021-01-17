@@ -40,6 +40,7 @@ export const handleCsoundStart = (
       if (renderFunction) {
         renderFunction(arguments_);
       } else {
+        // eslint-disable-next-line no-empty
         while (libraryCsound.csoundPerformKsmps(csound) === 0) {}
       }
     }

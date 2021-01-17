@@ -3,8 +3,6 @@
    https://csound.com/docs/api/modules.html
 */
 
-import { freeStringPtr, string2ptr, ptr2string } from "@root/utils";
-
 /**
  * Sees whether Csound score events are performed or not,
  * independently of real-time MIDI events

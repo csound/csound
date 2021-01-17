@@ -5,7 +5,8 @@
 
 /* eslint-disable unicorn/prevent-abbreviations */
 
-import { freeStringPtr, sizeofStruct, string2ptr, structBuffer2Object } from "@root/utils";
+import { freeStringPtr, sizeofStruct, string2ptr } from "@root/utils";
+import { structBufferToObject } from "@root/structure-buffer-to-object";
 import { CSOUND_PARAMS } from "@root/structures";
 import { curry } from "ramda";
 
@@ -183,7 +184,7 @@ export const csoundGetParams = curry((wasm, csound) => {
   const structOffset = wasm.exports.allocCsoundParamsStruct();
   const structBuffer = new Uint8Array(buffer, structOffset, structLength);
   wasm.exports.csoundGetParams(csound, structOffset);
-  const currentCsoundParameters = structBuffer2Object(CSOUND_PARAMS, structBuffer);
+  const currentCsoundParameters = structBufferToObject(CSOUND_PARAMS, structBuffer);
   wasm.exports.freeCsoundParams(structOffset);
   return currentCsoundParameters;
 });
