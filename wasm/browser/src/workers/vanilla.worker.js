@@ -56,14 +56,22 @@ const createRealtimeAudioThread = ({
 
   workerMessagePort.broadcastPlayState("realtimePerformanceStarted");
 
-  const { buffer } = wasm.exports.memory;
+  // const { buffer } = wasm.exports.memory;
   const inputBufferPtr = libraryCsound.csoundGetSpin(csound);
   const outputBufferPtr = libraryCsound.csoundGetSpout(csound);
   const ksmps = libraryCsound.csoundGetKsmps(csound);
 
-  let csoundInputBuffer = new Float64Array(buffer, inputBufferPtr, ksmps * nchnlsInput);
+  let csoundInputBuffer = new Float64Array(
+    wasm.exports.memory.buffer,
+    inputBufferPtr,
+    ksmps * nchnlsInput,
+  );
 
-  let csoundOutputBuffer = new Float64Array(buffer, outputBufferPtr, ksmps * nchnls);
+  let csoundOutputBuffer = new Float64Array(
+    wasm.exports.memory.buffer,
+    outputBufferPtr,
+    ksmps * nchnls,
+  );
 
   let lastPerformance = 0;
 
@@ -108,14 +116,14 @@ const createRealtimeAudioThread = ({
       // https://github.com/emscripten-core/emscripten/issues/6747#issuecomment-400081465
       if (csoundInputBuffer.length === 0) {
         csoundInputBuffer = new Float64Array(
-          buffer,
+          wasm.exports.memory.buffer,
           libraryCsound.csoundGetSpin(csound),
           ksmps * nchnlsInput,
         );
       }
       if (csoundOutputBuffer.length === 0) {
         csoundOutputBuffer = new Float64Array(
-          buffer,
+          wasm.exports.memory.buffer,
           libraryCsound.csoundGetSpout(csound),
           ksmps * nchnls,
         );
