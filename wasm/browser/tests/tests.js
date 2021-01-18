@@ -1,6 +1,6 @@
 (async () => {
   const isCI = location.port === "8081" && location.search.includes("ci=true");
-  const url = isCI ? "/libcsound.mjs" : "/libcsound.dev.mjs";
+  const url = isCI ? "/libcsound.mjs" : "/libcsound.mjs";
   const { Csound } = await import(url);
 
   const helloWorld = `
@@ -55,7 +55,7 @@
     endin
 </CsInstruments>
 <CsScore>
-    i 1 0 10
+    i 1 0 1
 </CsScore>
 </CsoundSynthesizer>
 `;
@@ -67,12 +67,12 @@
 </CsOptions>
 <CsInstruments>
     0dbfs = 1
+
     chnset("test0", "strChannel")
-    instr 1
-    endin
+
 </CsInstruments>
 <CsScore>
-  i 1 0 10
+    i 1 0 1
 </CsScore>
 </CsoundSynthesizer>
 `;
@@ -154,12 +154,12 @@ i1 0 2
 </CsInstruments>
 <CsScore>
     f 1 0 8 -2 0 1 1 2 3 5 8 13
-    i 1 0 10
+    i 1 0 -1
 </CsScore>
 </CsoundSynthesizer>
 `;
 
-  mocha.setup({ timeout: 10000, ui: "bdd" }).fullTrace();
+  mocha.setup("bdd").fullTrace();
 
   if (isCI) {
     MochaWebdriverClient.install(mocha);
@@ -176,6 +176,7 @@ i1 0 2
   csoundVariations.forEach((test) => {
     describe(`@csound/browser : ${test.name}`, async () => {
       it("can be started", async function () {
+        this.timeout(10000);
         const cs = await Csound(test);
         console.log(`Csound version: ${cs.name}`);
         const startReturn = await cs.start();
@@ -185,6 +186,7 @@ i1 0 2
       });
 
       it("has expected methods", async function () {
+        this.timeout(10000);
         const cs = await Csound(test);
         assert.property(cs, "getAudioContext", "has .getAudioContext() method");
         assert.property(cs, "start", "has .start() method");
@@ -195,6 +197,7 @@ i1 0 2
       });
 
       it("can use run using just compileOrc", async function () {
+        this.timeout(10000);
         const cs = await Csound(test);
         await cs.compileOrc(`
         ksmps=64
@@ -210,6 +213,7 @@ i1 0 2
       });
 
       it("can play tone and get channel values", async function () {
+        this.timeout(10000);
         const cs = await Csound(test);
         const compileReturn = await cs.compileCsdText(shortTone);
         assert.equal(compileReturn, 0);
@@ -223,6 +227,7 @@ i1 0 2
       });
 
       it("can play tone and send channel values", async function () {
+        this.timeout(10000);
         const cs = await Csound(test);
         const compileReturn = await cs.compileCsdText(shortTone2);
         assert.equal(compileReturn, 0);
@@ -235,6 +240,7 @@ i1 0 2
       });
 
       it("can send and receive string channel values", async function () {
+        this.timeout(10000);
         const cs = await Csound(test);
         const compileReturn = await cs.compileCsdText(stringChannelTest);
         assert.equal(compileReturn, 0);
@@ -276,6 +282,7 @@ i1 0 2
       });
 
       it("emits public events in realtime performance", async function () {
+        this.timeout(10000);
         const eventPlaySpy = sinon.spy();
         const eventPauseSpy = sinon.spy();
         const eventStopSpy = sinon.spy();

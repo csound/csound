@@ -12,6 +12,7 @@ import {
 } from "@root/constants";
 import { logSABMain as log } from "@root/logger";
 import { isEmpty } from "ramda";
+import { clearArray } from "@utils/clear-array";
 import { csoundApiRename, fetchPlugins, makeProxyCallback, stopableStates } from "@root/utils";
 import { PublicEventAPI } from "@root/events";
 
@@ -138,6 +139,11 @@ class SharedArrayBufferMainThread {
         break;
       }
       case "realtimePerformanceEnded": {
+        // flush out events sent during the time which the worker was stopping
+        Object.values(this.callbackBuffer).forEach(({ argumentz, apiKey, resolveCallback }) =>
+          this.proxyPort.callUncloned(apiKey, argumentz).then(resolveCallback),
+        );
+        this.callbackBuffer = {};
         log(`event: realtimePerformanceEnded received, beginning cleanup`)();
         if (this.stopPromiz) {
           this.stopPromiz();
@@ -440,11 +446,6 @@ class SharedArrayBufferMainThread {
               });
               Atomics.compareExchange(audioStatePointer, AUDIO_STATE.HAS_PENDING_CALLBACKS, 0, 1);
               return await returnPromise;
-            } else if (
-              this.currentPlayState === "realtimePerformanceEnded" ||
-              this.currentPlayState === "renderEnded"
-            ) {
-              console.error(`${csoundApiRename(apiKey)} was called after perfomance ended`);
             } else {
               return await proxyCallback.apply(undefined, arguments_);
             }
