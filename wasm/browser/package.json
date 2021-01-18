@@ -13,7 +13,8 @@
     "polyfills",
     "script",
     "src",
-    "tests",
+    "tests/index.html",
+    "tests/*.js",
     "index.d.ts",
     "rollup.config.js"
   ],

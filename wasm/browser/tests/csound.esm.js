@@ -1,0 +1,1 @@
+../dist/csound.esm.js
