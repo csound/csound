@@ -94,10 +94,11 @@ class AudioWorkletMainThread {
       }
     }
 
-    // hacky SAB timing fix when starting
-    // eventually, replace this spaghetti with
-    // private/internal event emitters
-    if (this.csoundWorkerMain.startPromiz) {
+    if (
+      this.csoundWorkerMain &&
+      this.csoundWorkerMain.startPromiz &&
+      !this.csoundWorkerMain.hasSharedArrayBuffer
+    ) {
       const startPromiz = this.csoundWorkerMain.startPromiz;
       setTimeout(() => {
         startPromiz();

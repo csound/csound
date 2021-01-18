@@ -8,7 +8,11 @@ export const messageEventHandler = (worker) => (event) => {
       // in which case, it's good to see the log
       console.log(event.data.log);
     }
-  } else if (worker && worker.onPlayStateChange) {
+  } else if (event.data.sabWorker && worker && worker.hasSharedArrayBuffer) {
+    if (event.data.sabWorker === "unlocked" && typeof worker.startPromiz === "function") {
+      worker.startPromiz();
+    }
+  } else if (event.data.playStateChange && worker && worker.onPlayStateChange) {
     worker.onPlayStateChange(event.data.playStateChange);
   }
 };

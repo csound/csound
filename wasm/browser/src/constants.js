@@ -12,6 +12,7 @@ export const initialSharedState = [
   0, // 1 = Csound is currently performing
   0, // 1 = Csound is currently paused
   0, // 1 = STOP
+  0, // n = performKsmps call count
   2, // n = nchnls
   0, // n = ncnls_i
   DEFAULT_HARDWARE_BUFFER_SIZE, // n = [hardware -B] bufferSize
@@ -35,21 +36,22 @@ export const AUDIO_STATE = {
   IS_PERFORMING: 1,
   IS_PAUSED: 2,
   STOP: 3,
-  NCHNLS: 4,
-  NCHNLS_I: 5,
-  HW_BUFFER_SIZE: 6,
-  SW_BUFFER_SIZE: 7,
-  AVAIL_IN_BUFS: 8,
-  AVAIL_OUT_BUFS: 9,
-  INPUT_READ_INDEX: 10,
-  OUTPUT_READ_INDEX: 11,
-  INPUT_WRITE_INDEX: 12,
-  OUTPUT_WRITE_INDEX: 13,
-  SAMPLE_RATE: 14,
-  IS_REQUESTING_RTMIDI: 15,
-  RTMIDI_INDEX: 16,
-  AVAIL_RTMIDI_EVENTS: 17,
-  HAS_PENDING_CALLBACKS: 18,
+  PERF_LOOP_CNT: 4,
+  NCHNLS: 5,
+  NCHNLS_I: 6,
+  HW_BUFFER_SIZE: 7,
+  SW_BUFFER_SIZE: 8,
+  AVAIL_IN_BUFS: 9,
+  AVAIL_OUT_BUFS: 10,
+  INPUT_READ_INDEX: 11,
+  OUTPUT_READ_INDEX: 12,
+  INPUT_WRITE_INDEX: 13,
+  OUTPUT_WRITE_INDEX: 14,
+  SAMPLE_RATE: 15,
+  IS_REQUESTING_RTMIDI: 16,
+  RTMIDI_INDEX: 17,
+  AVAIL_RTMIDI_EVENTS: 18,
+  HAS_PENDING_CALLBACKS: 19,
 };
 
 export const DATA_TYPE = {

@@ -60,6 +60,7 @@ function processSharedArrayBuffer(inputs, outputs) {
     (outputReadIndex + writeableOutputChannels[0].length) % this.hardwareBufferSize;
 
   if (availableOutputBuffers > 0) {
+    this.bufferUnderrunCount = 0;
     writeableOutputChannels.forEach((channelBuffer, channelIndex) => {
       channelBuffer.set(
         this.sabOutputChannels[channelIndex].subarray(
@@ -93,7 +94,23 @@ function processSharedArrayBuffer(inputs, outputs) {
       writeableOutputChannels[0].length,
     );
   } else {
-    this.workerMessagePort.post("Buffer underrun");
+    if (this.sharedArrayBuffer[AUDIO_STATE.PERF_LOOP_CNT] > this.preProcessCount) {
+      // Logic: buffer isn't underruning if first
+      // audio buffers hasn't arrived yet.
+      // The starting time of SAB is highly async,
+      // and buffer underrun warning any earlier
+      // would be noise.
+      this.workerMessagePort.post("Buffer underrun");
+    }
+    this.bufferUnderrunCount += 1;
+
+    if (this.bufferUnderrunCount === 100) {
+      // 100 buffer Underruns in a row
+      // means a fatal situation and browser
+      // may crash
+      this.workerMessagePort.post("FATAL: 100 buffers failed in a row");
+      this.workerMessagePort.broadcastPlayState("realtimePerformanceEnded");
+    }
   }
 
   return true;

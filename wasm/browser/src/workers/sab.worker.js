@@ -16,6 +16,7 @@ import {
 
 let combined;
 let pollPromise;
+let unlockPromise;
 
 const callUncloned = async (k, arguments_) => {
   const caller = combined.get(k);
@@ -31,7 +32,7 @@ const sabCreateRealtimeAudioThread = ({
   workerMessagePort,
   watcherStdOut,
   watcherStdErr,
-}) => ({ audioStateBuffer, audioStreamIn, audioStreamOut, midiBuffer, csound }) => {
+}) => async ({ audioStateBuffer, audioStreamIn, audioStreamOut, midiBuffer, csound }) => {
   if (!watcherStdOut && !watcherStdErr) {
     [watcherStdOut, watcherStdErr] = initFS(wasmFs, workerMessagePort);
   }
@@ -58,6 +59,7 @@ const sabCreateRealtimeAudioThread = ({
   Atomics.store(audioStatePointer, AUDIO_STATE.NCHNLS_I, nchnlsInput);
   Atomics.store(audioStatePointer, AUDIO_STATE.SAMPLE_RATE, sampleRate);
   Atomics.store(audioStatePointer, AUDIO_STATE.IS_REQUESTING_RTMIDI, isRequestingRtMidiInput);
+  Atomics.store(audioStatePointer, AUDIO_STATE.KSMPS_CALL_CNT, 0);
 
   const ksmps = libraryCsound.csoundGetKsmps(csound);
 
@@ -90,9 +92,10 @@ const sabCreateRealtimeAudioThread = ({
     );
   }
 
+  workerMessagePort.broadcastPlayState("realtimePerformanceStarted");
   // Let's notify the audio-worker that performance has started
   Atomics.store(audioStatePointer, AUDIO_STATE.IS_PERFORMING, 1);
-  workerMessagePort.broadcastPlayState("realtimePerformanceStarted");
+
   log(
     `Atomic.wait started (thread is now locked)\n` +
       JSON.stringify({
@@ -105,26 +108,17 @@ const sabCreateRealtimeAudioThread = ({
       }),
   )();
 
-  const performanceLoop = ({ lastReturn = 0, performanceEnded = false, firstRound = true }) => {
-    if (firstRound) {
-      // if after 1 minute the audioWorklet isn't ready, then something's very wrong
-      Atomics.wait(audioStatePointer, AUDIO_STATE.ATOMIC_NOTIFY, 0, 60 * 1000);
-      Atomics.and(audioStatePointer, AUDIO_STATE.ATOMIC_NOTIFY, 0);
-      log(`Atomic.wait unlocked, performance started`)();
-      return performanceLoop({ lastReturn, performanceEnded, firstRound: false });
-    }
+  let firstRound = true;
+  let lastReturn = 0;
+  let waitResult;
+
+  const maybeStop = () => {
     if (
       Atomics.load(audioStatePointer, AUDIO_STATE.STOP) === 1 ||
       Atomics.load(audioStatePointer, AUDIO_STATE.IS_PERFORMING) !== 1 ||
-      performanceEnded
+      lastReturn !== 0
     ) {
-      log(
-        `performance is ending possible culprits: STOP {}, IS_PERFORMING {}, performanceEnded {}`,
-        audioStatePointer[AUDIO_STATE.STOP] === 1,
-        audioStatePointer[AUDIO_STATE.IS_PERFORMING] !== 1,
-        performanceEnded === 1,
-      )();
-      if (lastReturn === 0 && !performanceEnded) {
+      if (lastReturn === 0) {
         log(`calling csoundStop and one performKsmps to trigger endof logs`)();
         // Trigger "performance ended" logs
         libraryCsound.csoundStop(csound);
@@ -137,12 +131,34 @@ const sabCreateRealtimeAudioThread = ({
       watcherStdOut = undefined;
       watcherStdErr && watcherStdErr.close();
       watcherStdErr = undefined;
+      return true;
+    } else {
+      return false;
+    }
+  };
+
+  while ((waitResult = Atomics.wait(audioStatePointer, AUDIO_STATE.ATOMIC_NOTIFY, 0, 10 * 1000))) {
+    if (waitResult === "timed-out") {
+      maybeStop();
       return;
+    }
+
+    if (firstRound) {
+      firstRound = false;
+      await new Promise((resolve) => {
+        unlockPromise = resolve;
+        workerMessagePort.broadcastSabUnlocked();
+      });
+      log(`Atomic.wait unlocked, performance started`)();
     }
 
     if (Atomics.load(audioStatePointer, AUDIO_STATE.IS_PAUSED) === 1) {
       // eslint-disable-next-line no-unused-expressions
       Atomics.wait(audioStatePointer, AUDIO_STATE.IS_PAUSED, 0) === "ok";
+    }
+
+    if (maybeStop()) {
+      return;
     }
 
     if (isRequestingRtMidiInput) {
@@ -197,11 +213,11 @@ const sabCreateRealtimeAudioThread = ({
       const currentCsoundInputBufferPos = hasInput && currentInputReadIndex % ksmps;
       const currentCsoundOutputBufferPos = currentOutputWriteIndex % ksmps;
 
-      if (currentCsoundOutputBufferPos === 0 && !performanceEnded) {
+      if (currentCsoundOutputBufferPos === 0) {
         if (lastReturn === 0) {
           lastReturn = libraryCsound.csoundPerformKsmps(csound);
-        } else {
-          performanceEnded = true;
+        } else if (lastReturn !== 0) {
+          Atomics.store(audioStatePointer, AUDIO_STATE.IS_PERFORMING, 0);
         }
       }
 
@@ -235,50 +251,53 @@ const sabCreateRealtimeAudioThread = ({
     // they were actually consumed
     hasInput && Atomics.sub(audioStatePointer, AUDIO_STATE.AVAIL_IN_BUFS, framesRequested);
     Atomics.add(audioStatePointer, AUDIO_STATE.AVAIL_OUT_BUFS, framesRequested);
-
+    Atomics.add(audioStatePointer, AUDIO_STATE.PERF_LOOP_CNT, 1);
     if (Atomics.compareExchange(audioStatePointer, AUDIO_STATE.HAS_PENDING_CALLBACKS, 1, 0) === 1) {
-      new Promise((resolve) => {
+      await new Promise((resolve) => {
         pollPromise = resolve;
         callbacksRequest();
-      }).then(() => {
-        Atomics.wait(audioStatePointer, AUDIO_STATE.ATOMIC_NOTIFY, 0);
-        Atomics.store(audioStatePointer, AUDIO_STATE.ATOMIC_NOTIFY, 0);
-        return performanceLoop({ lastReturn, performanceEnded, firstRound });
       });
-    } else {
-      Atomics.wait(audioStatePointer, AUDIO_STATE.ATOMIC_NOTIFY, 0);
-      Atomics.store(audioStatePointer, AUDIO_STATE.ATOMIC_NOTIFY, 0);
-      return performanceLoop({ lastReturn, performanceEnded, firstRound });
     }
-  };
-  return performanceLoop({});
+
+    if (maybeStop()) {
+      return;
+    }
+    Atomics.compareExchange(audioStatePointer, AUDIO_STATE.ATOMIC_NOTIFY, 1, 0);
+  }
 };
 
 const initMessagePort = ({ port }) => {
   const workerMessagePort = new MessagePortState();
   workerMessagePort.post = (messageLog) => port.postMessage({ log: messageLog });
   workerMessagePort.broadcastPlayState = (playStateChange) => port.postMessage({ playStateChange });
+  workerMessagePort.broadcastSabUnlocked = () => port.postMessage({ sabWorker: "unlocked" });
   workerMessagePort.ready = true;
   return workerMessagePort;
 };
 
 const initCallbackReplyPort = ({ port }) => {
   port.addEventListener("message", (event) => {
-    const callbacks = event.data;
-    const answers = callbacks.reduce((accumulator, { id, argumentz, apiKey }) => {
-      try {
-        const caller = combined.get(apiKey);
-        const answer = caller && caller.apply({}, argumentz || []);
-        accumulator.push({ id, answer });
-      } catch (error) {
-        throw new Error(error);
-      }
-      return accumulator;
-    }, []);
-    port.postMessage(answers);
-    const donePromise = pollPromise;
-    pollPromise = undefined;
-    donePromise && donePromise(callbacks);
+    if (event.data && event.data.unlock) {
+      const unlockPromise_ = unlockPromise;
+      unlockPromise = undefined;
+      unlockPromise_ && unlockPromise_();
+    } else {
+      const callbacks = event.data;
+      const answers = callbacks.reduce((accumulator, { id, argumentz, apiKey }) => {
+        try {
+          const caller = combined.get(apiKey);
+          const answer = caller && caller.apply({}, argumentz || []);
+          accumulator.push({ id, answer });
+        } catch (error) {
+          throw new Error(error);
+        }
+        return accumulator;
+      }, []);
+      port.postMessage(answers);
+      const pollPromise_ = pollPromise;
+      pollPromise = undefined;
+      pollPromise_ && pollPromise_(callbacks);
+    }
   });
   port.start();
 };
@@ -297,6 +316,7 @@ const renderFunction = ({
 
   const audioStatePointer = new Int32Array(audioStateBuffer);
   Atomics.store(audioStatePointer, AUDIO_STATE.IS_PERFORMING, 1);
+  workerMessagePort.broadcastSabUnlocked();
   while (
     Atomics.load(audioStatePointer, AUDIO_STATE.STOP) !== 1 &&
     libraryCsound.csoundPerformKsmps(csound) === 0
@@ -368,6 +388,7 @@ const initialize = async ({ wasmDataURI, withPlugins = [], messagePort, callback
 
   libraryCsound.csoundInitialize(0);
   const csoundInstance = libraryCsound.csoundCreate();
+
   return csoundInstance;
 };
 

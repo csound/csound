@@ -123,7 +123,7 @@ class SharedArrayBufferMainThread {
 
   async onPlayStateChange(newPlayState) {
     this.currentPlayState = newPlayState;
-    if (!this.publicEvents) {
+    if (!this.publicEvents || !newPlayState) {
       // prevent late timers from calling terminated fn
       return;
     }
@@ -185,7 +185,6 @@ class SharedArrayBufferMainThread {
 
     if (this.startPromiz && newPlayState !== "realtimePerformanceStarted") {
       // either we are rendering or something went wrong with the start
-      // otherwise the audioWorker resolves this
       this.startPromiz();
       delete this.startPromiz;
     }
@@ -246,13 +245,14 @@ class SharedArrayBufferMainThread {
 
     this.ipcMessagePorts.sabMainCallbackReply.addEventListener("message", (event) => {
       if (event.data === "poll") {
-        this.ipcMessagePorts.sabMainCallbackReply.postMessage(
-          Object.keys(this.callbackBuffer).map((id) => ({
-            id,
-            apiKey: this.callbackBuffer[id].apiKey,
-            argumentz: this.callbackBuffer[id].argumentz,
-          })),
-        );
+        this.ipcMessagePorts &&
+          this.ipcMessagePorts.sabMainCallbackReply.postMessage(
+            Object.keys(this.callbackBuffer).map((id) => ({
+              id,
+              apiKey: this.callbackBuffer[id].apiKey,
+              argumentz: this.callbackBuffer[id].argumentz,
+            })),
+          );
       } else {
         event.data.forEach(({ id, answer }) => {
           this.callbackBuffer[id].resolveCallback(answer);
@@ -332,6 +332,10 @@ class SharedArrayBufferMainThread {
             });
 
             await startPromise;
+            setTimeout(() => {
+              this.ipcMessagePorts &&
+                this.ipcMessagePorts.sabMainCallbackReply.postMessage({ unlock: true });
+            }, 0);
             return startResult;
           };
 
@@ -366,10 +370,12 @@ class SharedArrayBufferMainThread {
                 Atomics.notify(this.audioStatePointer, AUDIO_STATE.IS_PAUSED);
               }
               if (this.currentPlayState !== "renderStarted") {
-                Atomics.store(this.audioStatePointer, AUDIO_STATE.ATOMIC_NOFITY, 1);
+                Atomics.compareExchange(this.audioStatePointer, AUDIO_STATE.ATOMIC_NOFITY, 0, 1);
                 Atomics.notify(this.audioStatePointer, AUDIO_STATE.ATOMIC_NOTIFY);
               }
-              await stopPromise;
+
+              this.stopPromiz && (await stopPromise);
+
               return 0;
             } else {
               return -1;
@@ -402,13 +408,16 @@ class SharedArrayBufferMainThread {
         }
 
         default: {
+          // avoiding deadlock by sending the IPC callback
+          // while thread is unlocked
           const bufferWrappedCallback = async (...arguments_) => {
             if (
               this.currentPlayState === "realtimePerformanceStarted" ||
-              this.currentPlayState === "renderStarted"
+              this.currentPlayState === "renderStarted" ||
+              this.startPromiz
+              // startPromiz indicates that startup is in progress
+              // and any events send before it's resolved are swallowed
             ) {
-              // avoiding deadlock by sending the IPC callback
-              // while thread is unlocked
               const callbackId = this.callbackId;
               this.callbackId += 1;
               const returnPromise = new Promise((resolve, reject) => {
@@ -421,11 +430,7 @@ class SharedArrayBufferMainThread {
                 );
                 const resolveCallback = (answer) => {
                   clearTimeout(timeout);
-                  if (answer.length > 0) {
-                    resolve.apply(answer);
-                  } else {
-                    resolve();
-                  }
+                  resolve(answer);
                 };
                 this.callbackBuffer[callbackId] = {
                   resolveCallback,

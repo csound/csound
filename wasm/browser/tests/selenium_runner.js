@@ -16,6 +16,7 @@ const webDriverCapabilities = {
       "--auto-select-desktop-capture-source",
       "--disable-gesture-requirement-for-media-playback",
       "--autoplay-policy=no-user-gesture-required",
+      "--disable-cache",
     ],
   },
 };
