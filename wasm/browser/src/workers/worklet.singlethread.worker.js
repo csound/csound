@@ -47,6 +47,8 @@ class WorkletSinglethreadWorker extends AudioWorkletProcessor {
 
   constructor(options) {
     super(options);
+    // eslint-disable-next-line no-undef
+    this.sampleRate = sampleRate;
     this.options = options;
     this.initialize = this.initialize.bind(this);
     this.pause = this.pause.bind(this);
@@ -94,7 +96,6 @@ class WorkletSinglethreadWorker extends AudioWorkletProcessor {
         this.result = 0;
         this.running = false;
         this.started = false;
-        // this.sampleRate = sampleRate;
         this.resetCsound(false);
 
         const csoundCreate = (v) => {
@@ -123,17 +124,17 @@ class WorkletSinglethreadWorker extends AudioWorkletProcessor {
 
   async resetCsound(callReset) {
     // no start = no reset
-    if (!this.workerMessagePort) {
-      return;
+    if (callReset && !this.workerMessagePort) {
+      return -1;
     }
-    if (
+    if (callReset && 
       this.workerMessagePort.workerState !== "realtimePerformanceEnded" &&
       this.workerMessagePort.workerState !== "realtimePerformanceStarted"
     ) {
       // reset can't be called until performance has started or ended!
       return -1;
     }
-    if (this.workerMessagePort.workerState === "realtimePerformanceStarted") {
+    if (callReset && this.workerMessagePort.workerState === "realtimePerformanceStarted") {
       this.workerMessagePort.broadcastPlayState("realtimePerformanceEnded");
     }
 
@@ -148,6 +149,8 @@ class WorkletSinglethreadWorker extends AudioWorkletProcessor {
     }
 
     libraryCsound.csoundSetMidiCallbacks(cs);
+    libraryCsound.csoundSetOption(cs, "-iadc");
+    libraryCsound.csoundSetOption(cs, "-odac");
     libraryCsound.csoundSetOption(cs, "--sample-rate=" + this.sampleRate);
     this.nchnls = -1;
     this.nchnls_i = -1;
@@ -227,7 +230,11 @@ class WorkletSinglethreadWorker extends AudioWorkletProcessor {
           this.running = false;
           this.started = false;
           libraryCsound.csoundCleanup(this.csound);
-          // this.firePlayStateChange();
+          this.workerMessagePort.broadcastPlayState("realtimePerformanceEnded");
+          // if (this.stopPromiz) {
+          //   this.stopPromiz();
+          //   delete this.stopPromiz;
+          // }
         }
       }
 
