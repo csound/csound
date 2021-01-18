@@ -419,7 +419,7 @@ class SharedArrayBufferMainThread {
                     ),
                   10000,
                 );
-                const resolveCallback = (...answer) => {
+                const resolveCallback = (answer) => {
                   clearTimeout(timeout);
                   if (answer.length > 0) {
                     resolve.apply(answer);
