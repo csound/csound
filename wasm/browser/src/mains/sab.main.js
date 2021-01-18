@@ -12,7 +12,6 @@ import {
 } from "@root/constants";
 import { logSABMain as log } from "@root/logger";
 import { isEmpty } from "ramda";
-import { clearArray } from "@utils/clear-array";
 import { csoundApiRename, fetchPlugins, makeProxyCallback, stopableStates } from "@root/utils";
 import { PublicEventAPI } from "@root/events";
 
