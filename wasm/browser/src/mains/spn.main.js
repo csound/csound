@@ -254,7 +254,6 @@ class ScriptProcessorNodeSingleThread {
     this.exportApi.resume = this.resume.bind(this);
     this.exportApi.start = this.start.bind(this);
     this.exportApi.stop = this.stop.bind(this);
-    this.exportApi.reset = () => this.resetCsound(true);
     this.exportApi.terminateInstance = this.terminateInstance.bind(this);
     this.exportApi.getAudioContext = async () => this.audioContext;
     this.exportApi.name = "Csound: ScriptProcessor Node, Single-threaded";
@@ -266,6 +265,8 @@ class ScriptProcessorNodeSingleThread {
     this.exportApi.readFromFs = readFromFs(this.wasmFs);
     this.exportApi.rmrfFs = rmrfFs(this.wasmFs);
     this.exportApi = this.publicEvents.decorateAPI(this.exportApi);
+
+    this.exportApi.reset = () => this.resetCsound(true); 
     // the default message listener
     this.exportApi.addListener("message", console.log);
     return this.exportApi;
@@ -273,6 +274,7 @@ class ScriptProcessorNodeSingleThread {
 
   async resetCsound(callReset) {
     if (
+      callReset && 
       this.currentPlayState !== "realtimePerformanceEnded" &&
       this.currentPlayState !== "realtimePerformanceStarted"
     ) {
