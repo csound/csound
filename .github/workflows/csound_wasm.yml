@@ -92,4 +92,5 @@ jobs:
         uses: mikepenz/action-junit-report@v2
         with:
           report_paths: '**/tests/*.junit.xml'
+          fail_on_failure: true
           github_token: ${{ secrets.GITHUB_TOKEN }}
