@@ -18,7 +18,7 @@ let
       -lc  -lc++ -lc++abi \
       -lsndfile -lwasi-emulated-signal -lwasi-emulated-mman \
       ${wasi-sdk}/share/wasi-sysroot/lib/wasm32-wasi/crt1.o \
-       *.o -o libcsound.wasm
+       *.o -o csound.wasm
   '';
   dyn-link = ''
     echo "Create libcsound.wasm pie"
@@ -34,7 +34,7 @@ let
       -lc  -lc++ -lc++abi \
       -lsndfile -lwasi-emulated-signal -lwasi-emulated-mman \
       ${wasi-sdk}/share/wasi-sysroot/lib/wasm32-unknown-emscripten/crt1.o \
-       *.o -o libcsound.wasm
+       *.o -o csound.dylib.wasm
 
   '';
   exports = with builtins; (fromJSON (readFile ./exports.json));
@@ -647,21 +647,22 @@ in pkgs.stdenvNoCC.mkDerivation rec {
     ${if (static == true) then static-link else dyn-link}
 
     echo "Archiving the objects"
-    ${wasi-sdk}/bin/llvm-ar crS libcsound.a ./*.o
-    ${wasi-sdk}/bin/llvm-ranlib -U libcsound.a
+    ${wasi-sdk}/bin/llvm-ar crS libcsound${lib.optionalString (static == false) "-dylib" }.a ./*.o
+    ${wasi-sdk}/bin/llvm-ranlib -U libcsound${lib.optionalString (static == false) "-dylib" }.a
   '';
 
   installPhase = ''
     mkdir -p $out/lib
     mkdir -p $out/include
-    cp ./libcsound.wasm $out/lib
+    cp ./*.wasm $out/lib
+    cp ./*.a $out/lib
     cp -rf ../H $out/include
     cp -rf ../Engine $out/include
     cp -rf ../include/* $out/include
 
     # # make a compressed version for the browser bundle
     ${pkgs.zopfli}/bin/zopfli --zlib -c \
-      $out/lib/libcsound.wasm > $out/lib/libcsound.wasm.zlib
-    cp libcsound.a $out/lib
+      $out/lib/csound${lib.optionalString (static == false) ".dylib" }.wasm \
+        > $out/lib/csound${lib.optionalString (static == false) ".dylib" }.wasm.z
   '';
 }
