@@ -55,7 +55,7 @@ in pkgs.stdenv.mkDerivation {
       --no-entry \
       -L${csound-wasm}/lib \
       -L${wasi-sdk}/share/wasi-sysroot/lib/wasm32-unknown-emscripten \
-      -lcsound -lc -lc++ -lc++abi -lwasi-emulated-signal -lwasi-emulated-mman \
+      -lcsound-dylib -lc -lc++ -lc++abi -lwasi-emulated-signal -lwasi-emulated-mman \
       *.o -o plugin_example_cxx.wasm
   '';
 

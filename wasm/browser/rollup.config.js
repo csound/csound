@@ -13,9 +13,13 @@ import { resolve } from "path";
 import { readFileSync } from "fs";
 import * as R from "ramda";
 
-const PROD = process.env.BUILD_TARGET === "production";
+const RELEASE = process.env.BUILD_TARGET && process.env.BUILD_TARGET.startsWith("release");
+const RELEASE_DEV = process.env.BUILD_TARGET === "release_dev";
+const RELEASE_PROD = process.env.BUILD_TARGET === "release_prod";
 
-const DEV = process.env.BUILD_TARGET === "development";
+const PROD = RELEASE_PROD || process.env.BUILD_TARGET === "production";
+
+const DEV = RELEASE_DEV || process.env.BUILD_TARGET === "development";
 
 const globals = {
   comlink: "Comlink",
@@ -80,6 +84,49 @@ const polyfills = {
   text_encoding: readFileSync("polyfills/text-encoding.js", "utf-8"),
   performance: readFileSync("polyfills/performance.js", "utf-8"),
 };
+
+const fileExt = {
+  module: ".esm.js",
+  cjs: ".cjs.js",
+  iife: ".iife.js",
+};
+
+const mainByType = (type) => ({
+  input: "src/index.js",
+  output: {
+    intro: "let global = window;",
+    file: DEV ? `dist/csound.dev${fileExt[type]}` : `dist/csound${fileExt[type]}`,
+    format: type,
+    sourcemap: DEV ? "inline" : false,
+    exports: type === "module" ? "auto" : "named",
+    name: "Csound",
+    globals,
+  },
+  plugins: [
+    ...pluginsCommon,
+    inlineWebWorkerPlugin({
+      include: ["**/worklet.worker.js", "**/worklet.singlethread.worker.js"],
+      dataUrl: true,
+    }),
+    inlineWebWorkerPlugin({
+      include: ["**/sab.worker.js", "**/vanilla.worker.js", "**/old-spn.worker.js"],
+      dataUrl: false,
+    }),
+    R.assoc("plugins", R.append("add-module-exports", babelCommon.plugins), babelCommon),
+    arraybufferPlugin({
+      include: ["@csound/wasm-bin/lib/csound.dylib.wasm.z"],
+    }),
+    ...(PROD ? [terser()] : []),
+  ],
+});
+
+let mainConfiguration;
+
+if (RELEASE) {
+  mainConfiguration = [mainByType("module"), mainByType("cjs"), mainByType("iife")];
+} else {
+  mainConfiguration = [mainByType("module")];
+}
 
 export default [
   {
@@ -166,39 +213,14 @@ export default [
     plugins: [...pluginsCommon, babelCommon, ...(PROD ? [terser()] : [])],
   },
   {
-    input: "src/index.js",
-    output: {
-      intro: "let global = window;",
-      file: DEV ? "dist/libcsound.dev.mjs" : "dist/libcsound.mjs",
-      format: "module",
-      sourcemap: DEV ? "inline" : false,
-      globals,
-    },
-    plugins: [
-      ...pluginsCommon,
-      inlineWebWorkerPlugin({
-        include: ["**/worklet.worker.js", "**/worklet.singlethread.worker.js"],
-        dataUrl: true,
-      }),
-      inlineWebWorkerPlugin({
-        include: ["**/sab.worker.js", "**/vanilla.worker.js", "**/old-spn.worker.js"],
-        dataUrl: false,
-      }),
-      R.assoc("plugins", R.append("add-module-exports", babelCommon.plugins), babelCommon),
-      arraybufferPlugin({
-        include: ["@csound/wasm/lib/libcsound.wasm.zlib"],
-      }),
-      ...(PROD ? [terser()] : []),
-    ],
-  },
-  {
     input: "src/libcsound.js",
     output: {
       intro: "// this file is intended for @csound/nodejs\n",
-      file: "dist/factory.mjs",
+      file: "dist/factory.esm.js",
       format: "module",
       sourcemap: false,
     },
     plugins: [...pluginsCommon],
   },
+  ...mainConfiguration,
 ];

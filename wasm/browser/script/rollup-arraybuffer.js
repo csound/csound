@@ -59,7 +59,7 @@ export default function arraybufferPlugin(options = {}) {
     name: "arraybuffer",
     intro: arraybufferCode,
     load(id) {
-      if (id.endsWith(".wasm.zlib")) {
+      if (id.endsWith(".wasm.z")) {
         id = realpathSync(id);
         return {
           code: `export default __toArrayBuffer("${readFileSync(id).toString("base64")}");`,

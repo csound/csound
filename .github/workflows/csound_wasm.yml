@@ -22,7 +22,7 @@ jobs:
         name: csound
         authToken: 'eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJjJDIzMTgiLCJqdGkiOiJhNDQzZmMwMi1mMDBjLTQzNDUtYjA3YS1jYzJjYjIzYjE2OTAiLCJzY29wZXMiOiJjYWNoZSJ9.UOQEV1Hd1ZEQdNF1STxbt0wcCrIrihsv4KThD_wHk3E'
     - name: Compile wasm binaries
-      run: cd $wasm_bin_dir && bash compile.sh
+      run: cd $wasm_bin_dir && yarn build
     - name: Zip the compilation output
       run: |
           cd $wasm_bin_dir

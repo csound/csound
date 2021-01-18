@@ -31,7 +31,7 @@ in pkgs.stdenv.mkDerivation {
       --no-entry \
       -L${csound-wasm}/lib \
       -L${wasi-sdk}/share/wasi-sysroot/lib/wasm32-unknown-emscripten \
-      -lcsound -lc -lwasi-emulated-signal -lwasi-emulated-mman \
+      -lcsound-dylib -lc -lwasi-emulated-signal -lwasi-emulated-mman \
       *.o -o plugin_example.wasm
   '';
 

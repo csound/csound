@@ -7,7 +7,7 @@ import AudioWorkletMainThread from "@root/mains/worklet.main";
 import ScriptProcessorNodeMainThread from "@root/mains/old-spn.main";
 import ScriptProcessorNodeSingleThread from "@root/mains/spn.main";
 import SingleThreadAudioWorkletMainThread from "@root/mains/worklet.singlethread.main";
-import wasmDataURI from "@csound/wasm/lib/libcsound.wasm.zlib";
+import wasmDataURI from "@csound/wasm-bin/lib/csound.dylib.wasm.z";
 import { logIndex as log } from "@root/logger";
 import {
   areWorkletsSupported,
