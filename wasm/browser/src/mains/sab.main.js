@@ -5,7 +5,7 @@ import SABWorker from "@root/workers/sab.worker";
 import {
   AUDIO_STATE,
   MAX_CHANNELS,
-  MAX_HARDWARE_BUFFER_SIZE,
+  RING_BUFFER_SIZE,
   MIDI_BUFFER_PAYLOAD_SIZE,
   MIDI_BUFFER_SIZE,
   initialSharedState,
@@ -16,14 +16,20 @@ import { csoundApiRename, fetchPlugins, makeProxyCallback, stopableStates } from
 import { PublicEventAPI } from "@root/events";
 
 class SharedArrayBufferMainThread {
-  constructor({ audioWorker, wasmDataURI, audioContextIsProvided }) {
+  constructor({
+    audioContext,
+    audioWorker,
+    wasmDataURI,
+    audioContextIsProvided,
+    inputChannelCount,
+    outputChannelCount,
+  }) {
     this.hasSharedArrayBuffer = true;
     this.ipcMessagePorts = new IPCMessagePorts();
     this.publicEvents = new PublicEventAPI(this);
     audioWorker.ipcMessagePorts = this.ipcMessagePorts;
 
     this.audioWorker = audioWorker;
-    this.audioContextIsProvided = audioContextIsProvided;
     this.csoundInstance = undefined;
     this.wasmDataURI = wasmDataURI;
     this.currentPlayState = undefined;
@@ -42,11 +48,23 @@ class SharedArrayBufferMainThread {
 
     this.audioStatePointer = new Int32Array(this.audioStateBuffer);
 
+    if (audioContextIsProvided) {
+      Atomics.store(this.audioStatePointer, AUDIO_STATE.SAMPLE_RATE, audioContext.sampleRate);
+    }
+
+    if (inputChannelCount) {
+      Atomics.store(this.audioStatePointer, AUDIO_STATE.NCHNLS_I, inputChannelCount);
+    }
+
+    if (outputChannelCount) {
+      Atomics.store(this.audioStatePointer, AUDIO_STATE.NCHNLS, outputChannelCount);
+    }
+
     this.audioStreamIn = new SharedArrayBuffer(
-      MAX_CHANNELS * MAX_HARDWARE_BUFFER_SIZE * Float64Array.BYTES_PER_ELEMENT,
+      MAX_CHANNELS * RING_BUFFER_SIZE * Float64Array.BYTES_PER_ELEMENT,
     );
     this.audioStreamOut = new SharedArrayBuffer(
-      MAX_CHANNELS * MAX_HARDWARE_BUFFER_SIZE * Float64Array.BYTES_PER_ELEMENT,
+      MAX_CHANNELS * RING_BUFFER_SIZE * Float64Array.BYTES_PER_ELEMENT,
     );
 
     this.midiBufferSAB = new SharedArrayBuffer(
@@ -200,23 +218,22 @@ class SharedArrayBufferMainThread {
     const outputsCount = Atomics.load(this.audioStatePointer, AUDIO_STATE.NCHNLS);
     const inputCount = Atomics.load(this.audioStatePointer, AUDIO_STATE.NCHNLS_I);
 
-    this.audioWorker.isRequestingInput = inputCount > 0;
+    this.audioWorker.isRequestingInput = Atomics.load(
+      this.audioStatePointer,
+      AUDIO_STATE.IS_REQUESTING_MIC,
+    );
     this.audioWorker.isRequestingMidi = Atomics.load(
       this.audioStatePointer,
       AUDIO_STATE.IS_REQUESTING_RTMIDI,
     );
 
+    const ksmps = Atomics.load(this.audioStatePointer, AUDIO_STATE.KSMPS);
     const sampleRate = Atomics.load(this.audioStatePointer, AUDIO_STATE.SAMPLE_RATE);
 
-    const hardwareBufferSize = Atomics.load(this.audioStatePointer, AUDIO_STATE.HW_BUFFER_SIZE);
-
-    const softwareBufferSize = Atomics.load(this.audioStatePointer, AUDIO_STATE.SW_BUFFER_SIZE);
-
+    this.audioWorker.ksmps = ksmps;
     this.audioWorker.sampleRate = sampleRate;
     this.audioWorker.inputCount = inputCount;
     this.audioWorker.outputsCount = outputsCount;
-    this.audioWorker.hardwareBufferSize = hardwareBufferSize;
-    this.audioWorker.softwareBufferSize = softwareBufferSize;
   }
 
   async initialize({ withPlugins }) {
@@ -375,8 +392,8 @@ class SharedArrayBufferMainThread {
                 Atomics.notify(this.audioStatePointer, AUDIO_STATE.IS_PAUSED);
               }
               if (this.currentPlayState !== "renderStarted") {
-                Atomics.compareExchange(this.audioStatePointer, AUDIO_STATE.ATOMIC_NOFITY, 0, 1);
-                Atomics.notify(this.audioStatePointer, AUDIO_STATE.ATOMIC_NOTIFY);
+                !Atomics.compareExchange(this.audioStatePointer, AUDIO_STATE.CSOUND_LOCK, 0, 1) &&
+                  Atomics.notify(this.audioStatePointer, AUDIO_STATE.CSOUND_LOCK);
               }
 
               this.stopPromiz && (await stopPromise);

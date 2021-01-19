@@ -2,7 +2,7 @@ import * as Comlink from "comlink";
 import MessagePortState from "@utils/message-port-state";
 import { initFS, writeToFs, lsFs, llFs, readFromFs, rmrfFs } from "@root/filesystem";
 import { logVANWorker as log } from "@root/logger";
-import { MAX_HARDWARE_BUFFER_SIZE } from "@root/constants.js";
+import { RING_BUFFER_SIZE } from "@root/constants.js";
 import { handleCsoundStart, instantiateAudioPacket } from "@root/workers/common.utils";
 import libcsoundFactory from "@root/libcsound";
 import loadWasm from "@root/module";
@@ -15,7 +15,7 @@ const rtmidiQueue = [];
 
 const createAudioInputBuffers = (audioInputs, inputsCount) => {
   for (let channelIndex = 0; channelIndex < inputsCount; ++channelIndex) {
-    audioInputs.buffers.push(new Float64Array(MAX_HARDWARE_BUFFER_SIZE));
+    audioInputs.buffers.push(new Float64Array(RING_BUFFER_SIZE));
   }
 };
 
@@ -74,6 +74,7 @@ const createRealtimeAudioThread = ({
   );
 
   let lastPerformance = 0;
+  let currentCsoundBufferPos = 0;
 
   audioProcessCallback = ({ numFrames }) => {
     const outputAudioPacket = instantiateAudioPacket(nchnls, numFrames);
@@ -87,7 +88,7 @@ const createRealtimeAudioThread = ({
     }
 
     for (let index = 0; index < numFrames; index++) {
-      const currentCsoundBufferPos = index % ksmps;
+      currentCsoundBufferPos = (currentCsoundBufferPos + 1) % ksmps;
       if (workerMessagePort.vanillaWorkerState === "realtimePerformanceEnded") {
         if (lastPerformance === 0) {
           libraryCsound.csoundStop(csound);
@@ -140,16 +141,15 @@ const createRealtimeAudioThread = ({
       if (hasInput) {
         for (let ii = 0; ii < nchnlsInput; ii++) {
           csoundInputBuffer[currentCsoundBufferPos * nchnlsInput + ii] =
-            (audioInputs.buffers[ii][
-              index + (audioInputs.inputReadIndex % MAX_HARDWARE_BUFFER_SIZE)
-            ] || 0) * zeroDecibelFullScale;
+            (audioInputs.buffers[ii][index + (audioInputs.inputReadIndex % RING_BUFFER_SIZE)] ||
+              0) * zeroDecibelFullScale;
         }
       }
     }
 
     if (hasInput) {
       audioInputs.availableFrames -= numFrames;
-      audioInputs.inputReadIndex += numFrames % MAX_HARDWARE_BUFFER_SIZE;
+      audioInputs.inputReadIndex += numFrames % RING_BUFFER_SIZE;
     }
 
     return { audioPacket: outputAudioPacket, framesLeft: 0 };
@@ -207,7 +207,7 @@ const initAudioInputPort = ({ port }) => {
     });
     audioInputs.inputWriteIndex += pkgs[0].length;
     audioInputs.availableFrames += pkgs[0].length;
-    if (audioInputs.inputWriteIndex >= MAX_HARDWARE_BUFFER_SIZE) {
+    if (audioInputs.inputWriteIndex >= RING_BUFFER_SIZE) {
       audioInputs.inputWriteIndex = 0;
     }
   });

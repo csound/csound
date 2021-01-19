@@ -27,8 +27,10 @@ import {
  *
  * @param {Object} [params] Initialization parameters
  * @param {AudioContext} [params.audioContext] - Optional AudioContext to use; if none given, an AudioContext will be created.
- * @param {Number} [params.inputChannelCount=2] - Optional input channel count for AudioNode used with WebAudio graph. Defaults to 2.
- * @param {Number} [params.outputChannelCount=2] - Optional output channel count AudioNode used with WebAudio graph. Defaults to 2.
+ * @param {Number} [params.inputChannelCount] - Optional input channel count for AudioNode used with WebAudio graph.
+ * Defaults to the value of nchnls_i in useWorker but 2 otherwise.
+ * @param {Number} [params.outputChannelCount] - Optional output channel count AudioNode used with WebAudio graph.
+ * Defaults to the value of nchnls in useWorker but 2 otherwise.
  * @param {Boolean} [params.autoConnect=true] - Set to configure Csound to automatically connect to the audioContext.destination output.
  * @param {Object[]} [params.withPlugins] - Array of WebAssembly Csound plugin libraries to use with Csound.
  * @param {Boolean} [params.useWorker=false] - Configure to use backend using Web Workers to run Csound in a thread separate from audio callback.
@@ -39,8 +41,8 @@ import {
  */
 export async function Csound({
   audioContext,
-  inputChannelCount = 2,
-  outputChannelCount = 2,
+  inputChannelCount,
+  outputChannelCount,
   autoConnect = true,
   withPlugins = [],
   useWorker = false,
@@ -65,8 +67,8 @@ export async function Csound({
       log("Single Thread AudioWorklet")();
       const instance = new SingleThreadAudioWorkletMainThread({
         audioContext,
-        inputChannelCount,
-        outputChannelCount,
+        inputChannelCount: inputChannelCount || 2,
+        outputChannelCount: outputChannelCount || 2,
       });
       // const instance = await createSingleThreadAudioWorkletAPI({audioContext, withPlugins});
       // return instance;
@@ -75,8 +77,8 @@ export async function Csound({
       log("Single Thread ScriptProcessorNode")();
       const instance = new ScriptProcessorNodeSingleThread({
         audioContext,
-        inputChannelCount,
-        outputChannelCount,
+        inputChannelCount: inputChannelCount || 2,
+        outputChannelCount: outputChannelCount || 2,
       });
       return await instance.initialize({ wasmDataURI, withPlugins, autoConnect });
     } else {
@@ -121,7 +123,14 @@ export async function Csound({
 
   const worker =
     hasSABSupport && workletSupport && useSAB
-      ? new SharedArrayBufferMainThread({ audioWorker, wasmDataURI, audioContextIsProvided })
+      ? new SharedArrayBufferMainThread({
+          audioWorker,
+          wasmDataURI,
+          audioContext,
+          audioContextIsProvided,
+          inputChannelCount,
+          outputChannelCount,
+        })
       : new VanillaWorkerMainThread({ audioWorker, wasmDataURI, audioContextIsProvided });
 
   if (worker) {

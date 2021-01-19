@@ -1,13 +1,12 @@
 import * as Comlink from "comlink";
 import MessagePortState from "@utils/message-port-state";
-import { AUDIO_STATE, MAX_HARDWARE_BUFFER_SIZE } from "@root/constants";
+import { AUDIO_STATE, RING_BUFFER_SIZE } from "@root/constants";
 import { instantiateAudioPacket } from "@root/workers/common.utils";
 import { logWorkletWorker as log } from "@root/logger";
 
-const activeNodes = new Map();
+const VANILLA_INPUT_WRITE_BUFFER_LEN = 2048;
 
-const SAB_PERIODS = 3;
-const VANILLA_PERIODS = 4;
+const activeNodes = new Map();
 
 function processSharedArrayBuffer(inputs, outputs) {
   const isPerforming = Atomics.load(this.sharedArrayBuffer, AUDIO_STATE.IS_PERFORMING) === 1;
@@ -21,7 +20,9 @@ function processSharedArrayBuffer(inputs, outputs) {
 
   if (!this.sharedArrayBuffer || isPaused || !isPerforming || isStopped) {
     this.isPerformingLastTime = isPerforming;
-    this.preProcessCount = 0;
+    this.firstBufferReady = false;
+    this.notifiedOnce = false;
+    // this.preProcessCount = 0;
 
     // Fix for that chrome 64 bug which doesn't 0 the arrays
     // https://github.com/csound/web-ide/issues/102#issuecomment-663894059
@@ -31,51 +32,45 @@ function processSharedArrayBuffer(inputs, outputs) {
 
   this.isPerformingLastTime = isPerforming;
 
-  if (this.preProcessCount < SAB_PERIODS && this.isPerformingLastTime && isPerforming) {
-    !Atomics.or(this.sharedArrayBuffer, AUDIO_STATE.ATOMIC_NOFITY, 1) &&
-      Atomics.notify(this.sharedArrayBuffer, AUDIO_STATE.ATOMIC_NOTIFY);
-    this.preProcessCount += 1;
-    return true;
+  const writeableInputChannels = inputs && inputs[0];
+  const writeableOutputChannels = outputs && outputs[0];
+  const bufferLength = writeableOutputChannels[0].length;
+
+  if (this.bufferLength !== bufferLength) {
+    this.bufferLength = bufferLength;
+    Atomics.store(this.sharedArrayBuffer, AUDIO_STATE.BUFFER_LEN, bufferLength);
   }
 
-  const writeableInputChannels = inputs[0] || [];
-  const writeableOutputChannels = outputs[0] || [];
-
-  const hasWriteableInputChannels = writeableInputChannels.length > 0;
-  const availableOutputBuffers = Atomics.load(this.sharedArrayBuffer, AUDIO_STATE.AVAIL_OUT_BUFS);
-
-  if (availableOutputBuffers < this.softwareBufferSize * SAB_PERIODS) {
-    !Atomics.or(this.sharedArrayBuffer, AUDIO_STATE.ATOMIC_NOFITY, 1) &&
-      Atomics.notify(this.sharedArrayBuffer, AUDIO_STATE.ATOMIC_NOTIFY);
-  }
-
-  const inputWriteIndex = Atomics.load(this.sharedArrayBuffer, AUDIO_STATE.INPUT_WRITE_INDEX);
-  const outputReadIndex = Atomics.load(this.sharedArrayBuffer, AUDIO_STATE.OUTPUT_READ_INDEX);
-
-  const nextInputWriteIndex = hasWriteableInputChannels
-    ? (inputWriteIndex + writeableInputChannels[0].length) % this.hardwareBufferSize
-    : 0;
+  const nextInputWriteIndex =
+    writeableInputChannels && writeableInputChannels.length > 0
+      ? (this.inputWriteIndex + bufferLength) % RING_BUFFER_SIZE
+      : 0;
 
   const nextOutputReadIndex =
-    (outputReadIndex + writeableOutputChannels[0].length) % this.hardwareBufferSize;
+    writeableOutputChannels && writeableOutputChannels.length > 0
+      ? (this.outputReadIndex + bufferLength) % RING_BUFFER_SIZE
+      : 0;
 
-  if (availableOutputBuffers > 0) {
-    this.bufferUnderrunCount = 0;
+  if (Atomics.load(this.sharedArrayBuffer, AUDIO_STATE.AVAIL_OUT_BUFS) >= bufferLength) {
+    this.bufferUnderrunCount && (this.bufferUnderrunCount = 0);
     writeableOutputChannels.forEach((channelBuffer, channelIndex) => {
+      // a simple set, where the len is the destination size and 2nd arg the offset
+
       channelBuffer.set(
         this.sabOutputChannels[channelIndex].subarray(
-          outputReadIndex,
-          nextOutputReadIndex < outputReadIndex ? this.hardwareBufferSize : nextOutputReadIndex,
+          this.outputReadIndex,
+          nextOutputReadIndex < this.outputReadIndex ? RING_BUFFER_SIZE : nextOutputReadIndex,
         ),
       );
     });
 
-    if (this.inputsCount > 0 && hasWriteableInputChannels && writeableInputChannels[0].length > 0) {
+    if (writeableInputChannels && writeableInputChannels[0].length > 0) {
       writeableInputChannels.forEach((channelBuffer, channelIndex) => {
-        this.sabInputChannels[channelIndex].set(channelBuffer, inputWriteIndex);
+        this.sabInputChannels[channelIndex].set(channelBuffer, this.inputWriteIndex);
       });
 
-      Atomics.store(this.sharedArrayBuffer, AUDIO_STATE.INPUT_WRITE_INDEX, nextInputWriteIndex);
+      this.inputWriteIndex = nextInputWriteIndex;
+      // Atomics.store(this.sharedArrayBuffer, AUDIO_STATE.INPUT_WRITE_INDEX, nextInputWriteIndex);
 
       // increase availability of new input data
       Atomics.add(
@@ -85,25 +80,17 @@ function processSharedArrayBuffer(inputs, outputs) {
       );
     }
 
-    Atomics.store(this.sharedArrayBuffer, AUDIO_STATE.OUTPUT_READ_INDEX, nextOutputReadIndex);
+    this.outputReadIndex = nextOutputReadIndex;
 
     // subtract the available output buffers, all channels are the same length
-    Atomics.sub(
-      this.sharedArrayBuffer,
-      AUDIO_STATE.AVAIL_OUT_BUFS,
-      writeableOutputChannels[0].length,
-    );
+    Atomics.sub(this.sharedArrayBuffer, AUDIO_STATE.AVAIL_OUT_BUFS, bufferLength);
+    Atomics.store(this.sharedArrayBuffer, AUDIO_STATE.OUTPUT_READ_INDEX, this.outputReadIndex);
   } else {
-    if (this.sharedArrayBuffer[AUDIO_STATE.PERF_LOOP_CNT] > this.preProcessCount) {
-      // Logic: buffer isn't underruning if first
-      // audio buffers hasn't arrived yet.
-      // The starting time of SAB is highly async,
-      // and buffer underrun warning any earlier
-      // would be noise.
-      this.workerMessagePort.post("Buffer underrun");
+    if (this.outputReadIndex > 4098) {
+      console.log("buffer underrun");
     }
-    this.bufferUnderrunCount += 1;
 
+    this.bufferUnderrunCount += 1;
     if (this.bufferUnderrunCount === 100) {
       // 100 buffer Underruns in a row
       // means a fatal situation and browser
@@ -119,7 +106,7 @@ function processSharedArrayBuffer(inputs, outputs) {
 function processVanillaBuffers(inputs, outputs) {
   if (!this.vanillaInitialized) {
     // this minimizes startup glitches
-    const firstTransferSize = this.softwareBufferSize * 4;
+    const firstTransferSize = 8192;
     this.audioFramePort.requestFrames({
       readIndex: 0,
       numFrames: firstTransferSize,
@@ -133,41 +120,47 @@ function processVanillaBuffers(inputs, outputs) {
     return true;
   }
 
-  const writeableInputChannels = inputs[0] || [];
-  const writeableOutputChannels = outputs[0] || [];
-  const hasWriteableInputChannels = writeableInputChannels.length > 0;
+  if (!this.vanillaFirstTransferDone) {
+    ((outputs && outputs[0]) || []).forEach((array) => array.fill(0));
+    return true;
+  }
+
+  const writeableInputChannels = inputs && inputs[0];
+  const writeableOutputChannels = outputs && outputs[0];
+  const bufferLength = writeableOutputChannels ? writeableOutputChannels[0].length : 0;
 
   const nextOutputReadIndex =
-    (this.vanillaOutputReadIndex + writeableOutputChannels[0].length) % this.hardwareBufferSize;
+    writeableOutputChannels && writeableOutputChannels.length > 0
+      ? (this.vanillaOutputReadIndex + writeableOutputChannels[0].length) % RING_BUFFER_SIZE
+      : 0;
 
-  const nextInputReadIndex = hasWriteableInputChannels
-    ? (this.vanillaInputReadIndex + writeableInputChannels[0].length) % this.hardwareBufferSize
-    : 0;
+  const nextInputReadIndex =
+    writeableInputChannels && writeableInputChannels.length > 0
+      ? (this.vanillaInputReadIndex + writeableInputChannels[0].length) % RING_BUFFER_SIZE
+      : 0;
 
-  if (this.vanillaAvailableFrames >= writeableOutputChannels[0].length) {
+  if (bufferLength && this.vanillaAvailableFrames >= bufferLength) {
     writeableOutputChannels.forEach((channelBuffer, channelIndex) => {
       channelBuffer.set(
         this.vanillaOutputChannels[channelIndex].subarray(
           this.vanillaOutputReadIndex,
           nextOutputReadIndex < this.vanillaOutputReadIndex
-            ? this.hardwareBufferSize
+            ? RING_BUFFER_SIZE
             : nextOutputReadIndex,
         ),
       );
     });
 
-    if (this.inputsCount > 0 && hasWriteableInputChannels && writeableInputChannels[0].length > 0) {
-      const inputBufferLength = this.softwareBufferSize * VANILLA_PERIODS;
+    if (writeableInputChannels && writeableInputChannels.length > 0) {
       writeableInputChannels.forEach((channelBuffer, channelIndex) => {
         this.vanillaInputChannels[channelIndex].set(channelBuffer, this.vanillaInputReadIndex);
       });
-      if (nextInputReadIndex % inputBufferLength === 0) {
+      if (nextInputReadIndex % VANILLA_INPUT_WRITE_BUFFER_LEN === 0) {
         const packet = [];
         const pastBufferBegin =
-          (nextInputReadIndex === 0 ? this.hardwareBufferSize : nextInputReadIndex) -
-          inputBufferLength;
-        const thisBufferEnd =
-          nextInputReadIndex === 0 ? this.hardwareBufferSize : nextInputReadIndex;
+          (nextInputReadIndex === 0 ? RING_BUFFER_SIZE : nextInputReadIndex) -
+          VANILLA_INPUT_WRITE_BUFFER_LEN;
+        const thisBufferEnd = nextInputReadIndex === 0 ? RING_BUFFER_SIZE : nextInputReadIndex;
         this.vanillaInputChannels.forEach((channelBuffer) => {
           packet.push(channelBuffer.subarray(pastBufferBegin, thisBufferEnd));
         });
@@ -177,7 +170,7 @@ function processVanillaBuffers(inputs, outputs) {
 
     this.vanillaOutputReadIndex = nextOutputReadIndex;
     this.vanillaInputReadIndex = nextInputReadIndex;
-    this.vanillaAvailableFrames -= writeableOutputChannels[0].length;
+    this.vanillaAvailableFrames -= bufferLength;
     this.bufferUnderrunCount = 0;
   } else {
     // minimize noise
@@ -195,22 +188,17 @@ function processVanillaBuffers(inputs, outputs) {
     }
   }
 
-  if (
-    this.vanillaAvailableFrames < this.softwareBufferSize * VANILLA_PERIODS &&
-    this.pendingFrames < this.softwareBufferSize * VANILLA_PERIODS * 2
-  ) {
+  // 2048 is max buffer
+  const framesRequest = 2048 - this.vanillaAvailableFrames;
+  if (framesRequest > 0) {
     const futureOutputReadIndex =
-      (this.vanillaAvailableFrames + nextOutputReadIndex + this.pendingFrames) %
-      this.hardwareBufferSize;
+      (this.vanillaAvailableFrames + nextOutputReadIndex + this.pendingFrames) % RING_BUFFER_SIZE;
 
     this.audioFramePort.requestFrames({
-      readIndex:
-        futureOutputReadIndex < this.hardwareBufferSize
-          ? futureOutputReadIndex
-          : futureOutputReadIndex + 1,
-      numFrames: this.softwareBufferSize * VANILLA_PERIODS,
+      readIndex: futureOutputReadIndex,
+      numFrames: framesRequest,
     });
-    this.pendingFrames += this.softwareBufferSize * VANILLA_PERIODS;
+    this.pendingFrames += framesRequest;
   }
 
   return true;
@@ -220,11 +208,10 @@ class CsoundWorkletProcessor extends AudioWorkletProcessor {
   constructor({
     processorOptions: {
       contextUid,
-      hardwareBufferSize,
-      softwareBufferSize,
       inputsCount,
       outputsCount,
-      sampleRate,
+      ksmps,
+      // sampleRate,
       maybeSharedArrayBuffer,
       maybeSharedArrayBufferAudioIn,
       maybeSharedArrayBufferAudioOut,
@@ -238,12 +225,12 @@ class CsoundWorkletProcessor extends AudioWorkletProcessor {
     this.pause = this.pause.bind(this);
     this.resume = this.resume.bind(this);
     this.isPaused = false;
-
-    this.sampleRate = sampleRate;
+    // this.sampleRate = sampleRate;
+    this.ksmps = ksmps;
     this.inputsCount = inputsCount;
     this.outputsCount = outputsCount;
-    this.hardwareBufferSize = hardwareBufferSize;
-    this.softwareBufferSize = softwareBufferSize;
+    this.inputWriteIndex = 0;
+    this.outputReadIndex = 0;
     this.bufferUnderrunCount = 0;
 
     // NON-SAB PROCESS
@@ -259,27 +246,17 @@ class CsoundWorkletProcessor extends AudioWorkletProcessor {
 
       for (let channelIndex = 0; channelIndex < inputsCount; ++channelIndex) {
         this.sabInputChannels.push(
-          new Float64Array(
-            this.audioStreamIn,
-            MAX_HARDWARE_BUFFER_SIZE * channelIndex,
-            MAX_HARDWARE_BUFFER_SIZE,
-          ),
+          new Float64Array(this.audioStreamIn, RING_BUFFER_SIZE * channelIndex, RING_BUFFER_SIZE),
         );
       }
 
       for (let channelIndex = 0; channelIndex < outputsCount; ++channelIndex) {
         this.sabOutputChannels.push(
-          new Float64Array(
-            this.audioStreamOut,
-            MAX_HARDWARE_BUFFER_SIZE * channelIndex,
-            MAX_HARDWARE_BUFFER_SIZE,
-          ),
+          new Float64Array(this.audioStreamOut, RING_BUFFER_SIZE * channelIndex, RING_BUFFER_SIZE),
         );
       }
       this.actualProcess = processSharedArrayBuffer.bind(this);
     } else {
-      // Bit more agressive buffering with vanilla
-      this.hardwareBufferSize = MAX_HARDWARE_BUFFER_SIZE;
       this.vanillaOutputChannels = [];
       this.vanillaInputChannels = [];
       this.vanillaOutputReadIndex = 0;
@@ -289,8 +266,9 @@ class CsoundWorkletProcessor extends AudioWorkletProcessor {
 
       this.vanillaInitialized = false;
       this.vanillaFirstTransferDone = false;
-      this.vanillaInputChannels = instantiateAudioPacket(inputsCount, MAX_HARDWARE_BUFFER_SIZE);
-      this.vanillaOutputChannels = instantiateAudioPacket(outputsCount, MAX_HARDWARE_BUFFER_SIZE);
+      this.minBufferSize = 4096;
+      this.vanillaInputChannels = instantiateAudioPacket(inputsCount, RING_BUFFER_SIZE);
+      this.vanillaOutputChannels = instantiateAudioPacket(outputsCount, RING_BUFFER_SIZE);
 
       this.actualProcess = processVanillaBuffers.bind(this);
       this.updateVanillaFrames = this.updateVanillaFrames.bind(this);
@@ -321,21 +299,23 @@ class CsoundWorkletProcessor extends AudioWorkletProcessor {
     if (audioPacket) {
       for (let channelIndex = 0; channelIndex < this.outputsCount; ++channelIndex) {
         let hasLeftover = false;
-        let framesLeft = numFrames;
-        const nextReadIndex = readIndex % this.hardwareBufferSize;
+        let framesLeft;
+        const nextReadIndex = (readIndex + numFrames) % RING_BUFFER_SIZE;
         if (nextReadIndex < readIndex) {
           hasLeftover = true;
-          framesLeft = this.hardwareBufferSize - readIndex;
+          framesLeft = RING_BUFFER_SIZE - readIndex;
         }
 
-        this.vanillaOutputChannels[channelIndex].set(
-          audioPacket[channelIndex].subarray(0, framesLeft),
-          readIndex,
-        );
-
-        if (hasLeftover) {
+        if (!hasLeftover) {
+          this.vanillaOutputChannels[channelIndex].set(audioPacket[channelIndex], readIndex);
+        } else {
+          this.vanillaOutputChannels[channelIndex].set(
+            audioPacket[channelIndex].subarray(0, framesLeft),
+            readIndex,
+          );
           this.vanillaOutputChannels[channelIndex].set(
             audioPacket[channelIndex].subarray(framesLeft),
+            0,
           );
         }
       }

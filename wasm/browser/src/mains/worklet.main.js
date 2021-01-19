@@ -20,6 +20,7 @@ class AudioWorkletMainThread {
 
     // never default these, get it from
     // csound-worker before starting
+    this.ksmps = undefined;
     this.sampleRate = undefined;
     this.inputsCount = undefined;
     this.outputsCount = undefined;
@@ -112,16 +113,26 @@ class AudioWorkletMainThread {
       if (this.audioContextIsProvided) {
         console.error(`fatal: the provided AudioContext was undefined`);
       }
-      this.audioContext = new (WebkitAudioContext())();
+      this.audioContext = new (WebkitAudioContext())({ sampleRate: this.sampleRate });
     }
     if (this.audioContext.state === "closed") {
       if (this.audioContextIsProvided) {
         console.error(`fatal: the provided AudioContext was closed, falling back new AudioContext`);
       }
-      this.audioContext = new (WebkitAudioContext())();
+      this.audioContext = new (WebkitAudioContext())({ sampleRate: this.sampleRate });
+    }
+
+    if (this.sampleRate !== this.audioContext.sampleRate) {
+      this.audioContext = new (WebkitAudioContext())({ sampleRate: this.sampleRate });
+      // if this.audioContextIsProvided is true
+      // it should already be picked
+      if (this.audioContextIsProvided) {
+        console.error("Internal error: sample rate was ignored from provided audioContext");
+      }
     }
 
     await this.audioContext.audioWorklet.addModule(WorkletWorker());
+
     log("WorkletWorker module added")();
 
     if (!this.csoundWorkerMain) {
@@ -143,7 +154,7 @@ class AudioWorkletMainThread {
           isRequestingInput: this.isRequestingInput,
           inputsCount,
           outputsCount: this.outputsCount,
-          sampleRate: this.sampleRate,
+          ksmps: this.ksmps,
           maybeSharedArrayBuffer:
             this.csoundWorkerMain.hasSharedArrayBuffer && this.csoundWorkerMain.audioStatePointer,
           maybeSharedArrayBufferAudioIn:
@@ -210,6 +221,7 @@ class AudioWorkletMainThread {
     } else {
       const newNode = createWorkletNode(this.audioContext, 0);
       this.audioWorkletNode = newNode;
+
       log("connecting Node to AudioContext destination")();
       if (this.autoConnect) {
         this.audioWorkletNode.connect(this.audioContext.destination);
