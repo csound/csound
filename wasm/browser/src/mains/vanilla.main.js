@@ -2,7 +2,6 @@ import * as Comlink from "comlink";
 import { logVANMain as log } from "@root/logger";
 import { api as API } from "@root/libcsound";
 import VanillaWorker from "@root/workers/vanilla.worker";
-// import { DEFAULT_HARDWARE_BUFFER_SIZE, DEFAULT_SOFTWARE_BUFFER_SIZE } from "@root/constants.js";
 import { isEmpty } from "ramda";
 import { csoundApiRename, fetchPlugins, makeProxyCallback, stopableStates } from "@root/utils";
 import { IPCMessagePorts, messageEventHandler } from "@root/mains/messages.main";
@@ -90,6 +89,7 @@ class VanillaWorkerMainThread {
     );
     this.audioWorker.outputsCount = await this.exportApi.getNchnls(this.csoundInstance);
     // TODO fix upstream: await this.exportApi.csoundGetNchnlsInput(this.csound);
+
     this.audioWorker.inputsCount = this.audioWorker.isRequestingInput ? 1 : 0;
     // if (this.audioWorker.scriptProcessorNode) {
     //   this.audioWorker.softwareBufferSize *= 2;
@@ -235,6 +235,11 @@ class VanillaWorkerMainThread {
     this.exportApi.getAudioContext = async () => this.audioWorker.audioContext;
     this.exportApi.getNode = async () => this.audioWorker.audioWorkletNode;
     this.exportApi = this.publicEvents.decorateAPI(this.exportApi);
+    this.exportApi.enableAudioInput = () =>
+      console.warn(
+        `enableAudioInput was ignored: please use -iadc option before calling start with useWorker=true`,
+      );
+
     // the default message listener
     this.exportApi.addListener("message", console.log);
 

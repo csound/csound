@@ -313,6 +313,10 @@ class SharedArrayBufferMainThread {
     this.exportApi.llFs = makeProxyCallback(proxyPort, csoundInstance, "llFs");
     this.exportApi.lsFs = makeProxyCallback(proxyPort, csoundInstance, "lsFs");
     this.exportApi.rmrfFs = makeProxyCallback(proxyPort, csoundInstance, "rmrfFs");
+    this.exportApi.enableAudioInput = () =>
+      console.warn(
+        `enableAudioInput was ignored: please use -iadc option before calling start with useWorker=true`,
+      );
 
     this.exportApi.getNode = async () => {
       const maybeNode = this.audioWorker.audioWorkletNode;
@@ -365,7 +369,6 @@ class SharedArrayBufferMainThread {
           this.exportApi.start = csoundStart.bind(this);
           break;
         }
-
         case "csoundStop": {
           const csoundStop = async () => {
             log(

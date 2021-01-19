@@ -64,7 +64,11 @@ function processSharedArrayBuffer(inputs, outputs) {
       );
     });
 
-    if (writeableInputChannels && writeableInputChannels[0].length > 0) {
+    if (
+      writeableInputChannels &&
+      writeableInputChannels[0] &&
+      writeableInputChannels[0].length > 0
+    ) {
       writeableInputChannels.forEach((channelBuffer, channelIndex) => {
         this.sabInputChannels[channelIndex].set(channelBuffer, this.inputWriteIndex);
       });

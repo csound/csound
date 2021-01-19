@@ -5,12 +5,12 @@
   </head>
   <body>
     <script type="module">
-      const url = "/libcsound.dev.mjs";
+      const url = "/csound.dev.esm.js";
 
       const test = `
       <CsoundSynthesizer>
         <CsOptions>
-        -odac --daemon
+        -odac -iadc --daemon
         </CsOptions>
         <CsInstruments>
           0dbfs=1
@@ -18,8 +18,8 @@
           nchnls=2
 
           instr 1
-            ain = inch(1) 
-            al, ar  reverbsc ain, ain, 0.85, 10000 
+            ain = inch(1)
+            al, ar  reverbsc ain, ain, 0.85, 10000
 
             out(al, ar)
           endin
@@ -35,8 +35,9 @@
       const runIt = async () => {
         const { Csound } = await import(url);
         const csoundObj = await Csound({
-          useWorker: false,
-          useSPN: false,
+          useWorker: true,
+          useSPN: true,
+          useSAB: false,
           outputChannelCount: 2
         });
 

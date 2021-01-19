@@ -4,6 +4,7 @@ import { logOldSpnMain as log } from "@root/logger";
 import { messageEventHandler } from "@root/mains/messages.main";
 import { WebkitAudioContext } from "@root/utils";
 import { requestMidi } from "@utils/request-midi";
+import { requestMicrophoneNode } from "@root/mains/io.utils";
 
 // we reuse the spnWorker
 // since it handles multiple
@@ -204,6 +205,19 @@ class ScriptProcessorNodeMainThread {
     window[`__csound_wasm_iframe_parent_${contextUid}`] = this.audioContext;
     const { port1: mainMessagePort, port2: workerMessagePort } = new MessageChannel();
 
+    let liveInput;
+    if (this.isRequestingInput) {
+      await new Promise((resolve) => {
+        const microphoneCallback = (stream) => {
+          if (stream) {
+            liveInput = this.audioContext.createMediaStreamSource(stream);
+          }
+          resolve();
+        };
+        requestMicrophoneNode(microphoneCallback);
+      });
+    }
+
     await proxyPort.initialize(
       Comlink.transfer(
         {
@@ -229,9 +243,11 @@ class ScriptProcessorNodeMainThread {
     );
     mainMessagePort.addEventListener("message", messageEventHandler(this));
     mainMessagePort.start();
+
     if (this.csoundWorkerMain && this.csoundWorkerMain.publicEvents) {
       const audioNode =
         spnWorker[`${contextUid}Node`] || window[`__csound_wasm_iframe_parent_${contextUid}Node`];
+      audioNode && liveInput.connect(audioNode);
 
       if (
         audioNode &&
