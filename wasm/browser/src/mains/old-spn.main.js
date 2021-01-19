@@ -247,7 +247,7 @@ class ScriptProcessorNodeMainThread {
     if (this.csoundWorkerMain && this.csoundWorkerMain.publicEvents) {
       const audioNode =
         spnWorker[`${contextUid}Node`] || window[`__csound_wasm_iframe_parent_${contextUid}Node`];
-      audioNode && liveInput.connect(audioNode);
+      audioNode && liveInput && liveInput.connect(audioNode);
 
       if (
         audioNode &&
