@@ -53,12 +53,19 @@ const sabCreateRealtimeAudioThread = ({
     libraryCsound.csoundGetInputName(csound).includes("adc");
 
   // Store Csound AudioParams for upcoming performance
-  const nchnls =
-    Atomics.load(audioStatePointer, AUDIO_STATE.NCHNLS) || libraryCsound.csoundGetNchnls(csound);
+  const userProvidedNchnls = Atomics.load(audioStatePointer, AUDIO_STATE.NCHNLS);
+  const userProvidedNchnlsIn = Atomics.load(audioStatePointer, AUDIO_STATE.NCHNLS_I);
+  const userProvidedSr = Atomics.load(audioStatePointer, AUDIO_STATE.SAMPLE_RATE);
+
+  userProvidedNchnls && libraryCsound.csoundSetOption(csound, `--nchnls=${userProvidedNchnls}`);
+  userProvidedNchnlsIn &&
+    libraryCsound.csoundSetOption(csound, `--nchnls_i=${userProvidedNchnlsIn}`);
+  userProvidedSr && libraryCsound.csoundSetOption(csound, `--sr=${userProvidedSr}`);
+
+  const nchnls = libraryCsound.csoundGetNchnls(csound);
 
   const nchnlsInput =
-    Atomics.load(audioStatePointer, AUDIO_STATE.NCHNLS_I) ||
-    (isExpectingInput ? libraryCsound.csoundGetNchnlsInput(csound) : 0);
+    userProvidedNchnlsIn || isExpectingInput ? libraryCsound.csoundGetNchnlsInput(csound) : 0;
   const sampleRate =
     Atomics.load(audioStatePointer, AUDIO_STATE.SAMPLE_RATE) || libraryCsound.csoundGetSr(csound);
 

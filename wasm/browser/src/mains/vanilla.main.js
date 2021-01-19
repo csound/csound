@@ -9,7 +9,14 @@ import { IPCMessagePorts, messageEventHandler } from "@root/mains/messages.main"
 import { PublicEventAPI } from "@root/events";
 
 class VanillaWorkerMainThread {
-  constructor({ audioWorker, wasmDataURI, audioContextIsProvided }) {
+  constructor({
+    audioContext,
+    audioWorker,
+    wasmDataURI,
+    audioContextIsProvided,
+    inputChannelCount,
+    outputChannelCount,
+  }) {
     this.ipcMessagePorts = new IPCMessagePorts();
     this.publicEvents = new PublicEventAPI(this);
     audioWorker.ipcMessagePorts = this.ipcMessagePorts;
@@ -18,6 +25,18 @@ class VanillaWorkerMainThread {
     this.audioWorker = audioWorker;
     this.audioContextIsProvided = audioContextIsProvided;
     this.wasmDataURI = wasmDataURI;
+
+    if (audioContextIsProvided) {
+      this.sampleRate = audioContext.sampleRate;
+    }
+    if (inputChannelCount) {
+      this.inputChannelCount = inputChannelCount;
+    }
+
+    if (outputChannelCount) {
+      this.outputChannelCount = outputChannelCount;
+    }
+
     this.exportApi = {};
     this.csoundInstance = undefined;
     this.currentPlayState = undefined;
@@ -186,6 +205,11 @@ class VanillaWorkerMainThread {
           requestPort: this.ipcMessagePorts.csoundWorkerFrameRequestPort,
           audioInputPort: this.ipcMessagePorts.csoundWorkerAudioInputPort,
           rtmidiPort: this.ipcMessagePorts.csoundWorkerRtMidiPort,
+          // these values are only set if the user provided them
+          // during init or by passing audioContext
+          sampleRate: this.sampleRate,
+          inputChannelCount: this.inputChannelCount,
+          outputChannelCount: this.outputChannelCount,
           withPlugins,
         },
         [

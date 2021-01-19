@@ -33,6 +33,9 @@ const createRealtimeAudioThread = ({
   audioInputs,
   watcherStdOut,
   watcherStdErr,
+  inputChannelCount,
+  outputChannelCount,
+  sampleRate,
 }) => ({ csound }) => {
   if (!watcherStdOut && !watcherStdErr) {
     [watcherStdOut, watcherStdErr] = initFS(wasmFs, workerMessagePort);
@@ -50,8 +53,17 @@ const createRealtimeAudioThread = ({
   const isExpectingInput = libraryCsound.csoundGetInputName(csound).includes("adc");
 
   // Store Csound AudioParams for upcoming performance
+  sampleRate && libraryCsound.csoundSetOption(csound, `--sr=${sampleRate}`);
+  outputChannelCount && libraryCsound.csoundSetOption(csound, `--nchnls=${outputChannelCount}`);
+  inputChannelCount && libraryCsound.csoundSetOption(csound, `--nchnls_i=${inputChannelCount}`);
   const nchnls = libraryCsound.csoundGetNchnls(csound);
-  const nchnlsInput = isExpectingInput ? libraryCsound.csoundGetNchnlsInput(csound) : 0;
+  const nchnlsInput =
+    inputChannelCount > 0
+      ? inputChannelCount
+      : isExpectingInput
+      ? libraryCsound.csoundGetNchnlsInput(csound)
+      : 0;
+
   const zeroDecibelFullScale = libraryCsound.csoundGet0dBFS(csound);
 
   workerMessagePort.broadcastPlayState("realtimePerformanceStarted");
@@ -260,12 +272,15 @@ const renderFunction = ({
 };
 
 const initialize = async ({
+  audioInputPort,
+  inputChannelCount,
+  messagePort,
+  outputChannelCount,
+  requestPort,
+  rtmidiPort,
+  sampleRate,
   wasmDataURI,
   withPlugins = [],
-  messagePort,
-  requestPort,
-  audioInputPort,
-  rtmidiPort,
 }) => {
   log(`initializing wasm and exposing csoundAPI functions from worker to main`)();
   const workerMessagePort = initMessagePort({ port: messagePort });
@@ -297,6 +312,9 @@ const initialize = async ({
       workerMessagePort,
       watcherStdOut,
       watcherStdErr: watcherStdError,
+      inputChannelCount,
+      outputChannelCount,
+      sampleRate,
     }),
     renderFunction({
       libraryCsound,

@@ -179,13 +179,22 @@ class ScriptProcessorNodeMainThread {
       if (this.audioContextIsProvided) {
         console.error(`fatal: the provided AudioContext was undefined`);
       }
-      this.audioContext = new (WebkitAudioContext())();
+      this.audioContext = new (WebkitAudioContext())({ sampleRate: this.sampleRate });
     }
     if (this.audioContext.state === "closed") {
       if (this.audioContextIsProvided) {
         console.error(`fatal: the provided AudioContext was closed, falling back new AudioContext`);
       }
-      this.audioContext = new (WebkitAudioContext())();
+      this.audioContext = new (WebkitAudioContext())({ sampleRate: this.sampleRate });
+    }
+
+    if (this.sampleRate !== this.audioContext.sampleRate) {
+      this.audioContext = new (WebkitAudioContext())({ sampleRate: this.sampleRate });
+      // if this.audioContextIsProvided is true
+      // it should already be picked
+      if (this.audioContextIsProvided) {
+        console.error("Internal error: sample rate was ignored from provided audioContext");
+      }
     }
 
     // just set it both on parent and iframe
