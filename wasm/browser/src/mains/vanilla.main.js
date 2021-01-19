@@ -156,15 +156,16 @@ class VanillaWorkerMainThread {
     }
 
     // forward the message from worker to the audioWorker
-    try {
-      if (!this.audioWorker) {
-        console.error(`fatal error: audioWorker not initialized!`);
-      } else if (typeof this.audioWorker.onPlayStateChange === "function") {
-        await this.audioWorker.onPlayStateChange(newPlayState);
-      }
-    } catch (error) {
-      console.error(`Csound thread crashed while receiving an IPC message: ${error}`);
-    }
+    await this.audioWorker.onPlayStateChange(newPlayState);
+    // try {
+    //   if (!this.audioWorker) {
+    //     console.error(`fatal error: audioWorker not initialized!`);
+    //   } else if (typeof this.audioWorker.onPlayStateChange === "function") {
+    //     await this.audioWorker.onPlayStateChange(newPlayState);
+    //   }
+    // } catch (error) {
+    //   console.error(`Csound thread crashed while receiving an IPC message: ${error}`);
+    // }
   }
 
   async csoundPause() {

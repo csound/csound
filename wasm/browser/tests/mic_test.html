@@ -20,7 +20,6 @@
           instr 1
             ain = inch(1)
             al, ar  reverbsc ain, ain, 0.85, 10000
-
             out(al, ar)
           endin
 
@@ -36,7 +35,7 @@
         const { Csound } = await import(url);
         const csoundObj = await Csound({
           useWorker: true,
-          useSPN: true,
+          useSPN: false,
           useSAB: false,
           outputChannelCount: 2
         });

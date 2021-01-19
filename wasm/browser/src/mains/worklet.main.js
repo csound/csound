@@ -174,7 +174,13 @@ class AudioWorkletMainThread {
       });
     }
 
+    let microphonePromise;
+
     if (this.isRequestingInput) {
+      let resolveMicrophonePromise;
+      microphonePromise = new Promise((resolve) => {
+        resolveMicrophonePromise = resolve;
+      });
       const getUserMedia =
         typeof navigator.mediaDevices !== "undefined"
           ? navigator.mediaDevices.getUserMedia
@@ -198,6 +204,7 @@ class AudioWorkletMainThread {
             this.audioWorkletNode.connect(this.audioContext.destination);
           }
         }
+        resolveMicrophonePromise && resolveMicrophonePromise();
       };
 
       log("requesting microphone access")();
@@ -227,6 +234,8 @@ class AudioWorkletMainThread {
         this.audioWorkletNode.connect(this.audioContext.destination);
       }
     }
+
+    microphonePromise && (await microphonePromise);
 
     this.workletProxy = Comlink.wrap(this.audioWorkletNode.port);
 
