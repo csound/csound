@@ -98,7 +98,7 @@ class WorkletSinglethreadWorker extends AudioWorkletProcessor {
         this.started = false;
         this.resetCsound(false);
 
-        const csoundCreate = (v) => {
+        const csoundCreate = async (v) => {
           return this.csound;
         };
         const allAPI = pipe(
@@ -108,7 +108,7 @@ class WorkletSinglethreadWorker extends AudioWorkletProcessor {
           assoc("llFs", llFs(wasmFs)),
           assoc("rmrfFs", rmrfFs(wasmFs)),
           assoc("csoundCreate", csoundCreate),
-          assoc("csoundReset", this.resetCsound.bind(true)),
+          assoc("csoundReset", this.resetCsound.bind(this)),
           assoc("csoundStart", this.start.bind(this)),
           assoc("csoundStop", this.stop.bind(this)),
           assoc("wasm", wasm),
