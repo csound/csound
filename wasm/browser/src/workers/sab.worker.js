@@ -49,7 +49,7 @@ const sabCreateRealtimeAudioThread = ({
 
   // Prompt for microphone only on demand!
   const isExpectingInput =
-    Atomics.load(audioStatePointer, AUDIO_STATE.NCHNLS_I) !== 0 &&
+    Atomics.load(audioStatePointer, AUDIO_STATE.NCHNLS_I) === 0 &&
     libraryCsound.csoundGetInputName(csound).includes("adc");
 
   // Store Csound AudioParams for upcoming performance
