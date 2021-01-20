@@ -398,6 +398,19 @@ i1 0 2
         await csoundObj.stop();
         await csoundObj.terminateInstance();
       });
+
+      it.only("can start() -> stop() -> reset() and start again", async function () {
+        this.timeout(10000);
+        const csoundObj = await Csound(test);
+        await csoundObj.compileCsdText(helloWorld);
+        await csoundObj.start();
+        await csoundObj.stop();
+        await csoundObj.reset();
+        await csoundObj.compileCsdText(helloWorld);
+        await csoundObj.start();
+        await csoundObj.stop();
+        await csoundObj.terminateInstance();
+      });
     });
   });
 

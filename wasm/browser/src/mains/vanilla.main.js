@@ -5,6 +5,7 @@ import VanillaWorker from "@root/workers/vanilla.worker";
 import { isEmpty } from "ramda";
 import { csoundApiRename, fetchPlugins, makeProxyCallback, stopableStates } from "@root/utils";
 import { IPCMessagePorts, messageEventHandler } from "@root/mains/messages.main";
+import { EventPromises } from "@utils/event-promises";
 import { PublicEventAPI } from "@root/events";
 
 class VanillaWorkerMainThread {
@@ -17,6 +18,7 @@ class VanillaWorkerMainThread {
     outputChannelCount,
   }) {
     this.ipcMessagePorts = new IPCMessagePorts();
+    this.eventPromises = new EventPromises();
     this.publicEvents = new PublicEventAPI(this);
     audioWorker.ipcMessagePorts = this.ipcMessagePorts;
 
@@ -42,7 +44,6 @@ class VanillaWorkerMainThread {
     // this.messageCallbacks = [];
     this.midiPortStarted = false;
     this.onPlayStateChange = this.onPlayStateChange.bind(this);
-    this.startPromiz = undefined;
   }
 
   async terminateInstance() {
@@ -114,14 +115,12 @@ class VanillaWorkerMainThread {
       }
 
       case "realtimePerformanceEnded": {
+        // a noop if the stop promise already exists
+        this.eventPromises.createStopPromise();
         log(`event: realtimePerformanceEnded`)();
-        if (this.stopPromiz) {
-          this.stopPromiz();
-          delete this.stopPromiz;
-        }
         this.midiPortStarted = false;
-        this.currentPlayState = undefined;
         this.publicEvents.triggerRealtimePerformanceEnded(this);
+        this.eventPromises.releaseStopPromises();
         break;
       }
       case "realtimePerformancePaused": {
@@ -133,19 +132,13 @@ class VanillaWorkerMainThread {
         break;
       }
       case "renderStarted": {
-        if (this.startPromiz) {
-          this.startPromiz();
-          delete this.startPromiz;
-        }
+        this.eventPromises.releaseStartPromises();
         this.publicEvents.triggerRenderStarted(this);
         break;
       }
       case "renderEnded": {
         log(`event: renderEnded received, beginning cleanup`)();
-        if (this.stopPromiz) {
-          this.stopPromiz();
-          delete this.stopPromiz;
-        }
+        this.eventPromises.releaseStopPromises();
         this.publicEvents.triggerRenderEnded(this);
         break;
       }
@@ -157,15 +150,6 @@ class VanillaWorkerMainThread {
 
     // forward the message from worker to the audioWorker
     await this.audioWorker.onPlayStateChange(newPlayState);
-    // try {
-    //   if (!this.audioWorker) {
-    //     console.error(`fatal error: audioWorker not initialized!`);
-    //   } else if (typeof this.audioWorker.onPlayStateChange === "function") {
-    //     await this.audioWorker.onPlayStateChange(newPlayState);
-    //   }
-    // } catch (error) {
-    //   console.error(`Csound thread crashed while receiving an IPC message: ${error}`);
-    // }
   }
 
   async csoundPause() {
@@ -198,7 +182,7 @@ class VanillaWorkerMainThread {
 
     const proxyPort = Comlink.wrap(this.csoundWorker);
     this.proxyPort = proxyPort;
-    const csoundInstance = await proxyPort.initialize(
+    this.csoundInstance = await proxyPort.initialize(
       Comlink.transfer(
         {
           wasmDataURI: this.wasmDataURI,
@@ -222,17 +206,15 @@ class VanillaWorkerMainThread {
       ),
     );
 
-    this.csoundInstance = csoundInstance;
-
     this.exportApi.pause = this.csoundPause.bind(this);
     this.exportApi.resume = this.csoundResume.bind(this);
     this.exportApi.terminateInstance = this.terminateInstance.bind(this);
 
-    this.exportApi.writeToFs = makeProxyCallback(proxyPort, csoundInstance, "writeToFs");
-    this.exportApi.readFromFs = makeProxyCallback(proxyPort, csoundInstance, "readFromFs");
-    this.exportApi.llFs = makeProxyCallback(proxyPort, csoundInstance, "llFs");
-    this.exportApi.lsFs = makeProxyCallback(proxyPort, csoundInstance, "lsFs");
-    this.exportApi.rmrfFs = makeProxyCallback(proxyPort, csoundInstance, "rmrfFs");
+    this.exportApi.writeToFs = makeProxyCallback(proxyPort, this.csoundInstance, "writeToFs");
+    this.exportApi.readFromFs = makeProxyCallback(proxyPort, this.csoundInstance, "readFromFs");
+    this.exportApi.llFs = makeProxyCallback(proxyPort, this.csoundInstance, "llFs");
+    this.exportApi.lsFs = makeProxyCallback(proxyPort, this.csoundInstance, "lsFs");
+    this.exportApi.rmrfFs = makeProxyCallback(proxyPort, this.csoundInstance, "rmrfFs");
     this.exportApi.getAudioContext = async () => this.audioWorker.audioContext;
     this.exportApi.getNode = async () => this.audioWorker.audioWorkletNode;
     this.exportApi = this.publicEvents.decorateAPI(this.exportApi);
@@ -246,7 +228,7 @@ class VanillaWorkerMainThread {
 
     for (const apiK of Object.keys(API)) {
       const reference = API[apiK];
-      const proxyCallback = makeProxyCallback(proxyPort, csoundInstance, apiK);
+      const proxyCallback = makeProxyCallback(proxyPort, this.csoundInstance, apiK);
       switch (apiK) {
         case "csoundCreate": {
           break;
@@ -254,25 +236,13 @@ class VanillaWorkerMainThread {
 
         case "csoundStart": {
           const csoundStart = async function () {
-            if (!csoundInstance || typeof csoundInstance !== "number") {
-              console.error("starting csound failed because csound instance wasn't created");
-              return -1;
-            }
-            const startPromise = new Promise((resolve, reject) => {
-              this.startPromiz = resolve;
-              setTimeout(() => {
-                if (typeof this.startPromiz === "function") {
-                  reject(new Error(`a call to start() timed out`));
-                  delete this.startPromiz;
-                  return -1;
-                }
-                // 10 second timeout
-              }, 10 * 60 * 1000);
-            });
+            this.eventPromises.createStartPromise();
+
             const startResult = await proxyCallback({
-              csound: csoundInstance,
+              csound: this.csoundInstance,
             });
-            await startPromise;
+            await this.eventPromises.waitForStart();
+
             return startResult;
           };
 
@@ -283,17 +253,19 @@ class VanillaWorkerMainThread {
 
         case "csoundStop": {
           const csoundStop = async function () {
-            const stopPromise = new Promise((resolve) => {
-              this.stopPromiz = resolve;
-            });
-            this.ipcMessagePorts.mainMessagePort.postMessage({
-              newPlayState:
-                this.currentPlayState === "renderStarted"
-                  ? "renderEnded"
-                  : "realtimePerformanceEnded",
-            });
-            await stopPromise;
-            return 0;
+            if (this.eventPromises.isWaitingToStop()) {
+              return -1;
+            } else {
+              this.eventPromises.createStopPromise();
+              this.ipcMessagePorts.mainMessagePort.postMessage({
+                newPlayState:
+                  this.currentPlayState === "renderStarted"
+                    ? "renderEnded"
+                    : "realtimePerformanceEnded",
+              });
+              await this.eventPromises.waitForStop();
+              return 0;
+            }
           };
           this.exportApi.stop = csoundStop.bind(this);
           csoundStop.toString = () => reference.toString();
@@ -302,10 +274,21 @@ class VanillaWorkerMainThread {
 
         case "csoundReset": {
           const csoundReset = async () => {
+            // no start = noReset
+            if (!this.currentPlayState) {
+              return;
+            }
             if (stopableStates.has(this.currentPlayState)) {
               await this.exportApi.stop();
+            } else if (this.eventPromises.isWaitingToStop()) {
+              await this.eventPromises.waitForStop();
             }
             const resetResult = await proxyCallback([]);
+            if (!this.audioContextIsProvided) {
+              await this.audioWorker.terminateInstance();
+              delete this.audioWorker.audioContext;
+            }
+            this.ipcMessagePorts.restartAudioWorkerPorts();
             return resetResult;
           };
           this.exportApi.reset = csoundReset.bind(this);

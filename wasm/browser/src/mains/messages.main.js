@@ -17,6 +17,26 @@ export const messageEventHandler = (worker) => (event) => {
   }
 };
 
+const iterableMessageChannel = () => {
+  const { port1, port2 } = new MessageChannel();
+  return [port1, port2];
+};
+
+const safelyClosePorts = ([p1, p2]) => {
+  if (typeof p1.close !== "undefined") {
+    try {
+      p1.close();
+      // eslint-disable unicorn/prefer-optional-catch-binding
+    } catch (_) {}
+  }
+  if (typeof p2.close !== "undefined") {
+    try {
+      p2.close();
+      // eslint-disable unicorn/prefer-optional-catch-binding
+    } catch (_) {}
+  }
+};
+
 export class IPCMessagePorts {
   constructor() {
     const { port1: mainMessagePort, port2: workerMessagePort } = new MessageChannel();
@@ -44,5 +64,21 @@ export class IPCMessagePorts {
     const { port1: sabWorkerCallbackReply, port2: sabMainCallbackReply } = new MessageChannel();
     this.sabWorkerCallbackReply = sabWorkerCallbackReply;
     this.sabMainCallbackReply = sabMainCallbackReply;
+
+    this.restartAudioWorkerPorts = this.restartAudioWorkerPorts.bind(this);
+  }
+
+  restartAudioWorkerPorts() {
+    safelyClosePorts([this.csoundWorkerAudioInputPort, this.audioWorkerAudioInputPort]);
+    [this.csoundWorkerAudioInputPort, this.audioWorkerAudioInputPort] = iterableMessageChannel();
+
+    safelyClosePorts([this.mainMessagePortAudio, this.workerMessagePortAudio]);
+    [this.mainMessagePortAudio, this.workerMessagePortAudio] = iterableMessageChannel();
+
+    safelyClosePorts([this.csoundWorkerFrameRequestPort, this.audioWorkerFrameRequestPort]);
+    [
+      this.csoundWorkerFrameRequestPort,
+      this.audioWorkerFrameRequestPort,
+    ] = iterableMessageChannel();
   }
 }

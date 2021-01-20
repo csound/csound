@@ -92,6 +92,10 @@ function processSharedArrayBuffer(inputs, outputs) {
   } else {
     if (this.outputReadIndex > 4098) {
       console.log("buffer underrun");
+    } else {
+      // a not so pretty way to prevent buffer underrun messages
+      // from being delivered before the first buffers are received
+      return true;
     }
 
     this.bufferUnderrunCount += 1;
@@ -101,6 +105,7 @@ function processSharedArrayBuffer(inputs, outputs) {
       // may crash
       this.workerMessagePort.post("FATAL: 100 buffers failed in a row");
       this.workerMessagePort.broadcastPlayState("realtimePerformanceEnded");
+      return false;
     }
   }
 
@@ -189,6 +194,7 @@ function processVanillaBuffers(inputs, outputs) {
       // may crash
       this.workerMessagePort.post("FATAL: 100 buffers failed in a row");
       this.workerMessagePort.broadcastPlayState("realtimePerformanceEnded");
+      return false;
     }
   }
 

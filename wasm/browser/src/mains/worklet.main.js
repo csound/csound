@@ -30,6 +30,7 @@ class AudioWorkletMainThread {
     this.initialize = this.initialize.bind(this);
     this.onPlayStateChange = this.onPlayStateChange.bind(this);
     this.terminateInstance = this.terminateInstance.bind(this);
+    this.createWorkletNode = this.createWorkletNode.bind(this);
     log("AudioWorkletMainThread was constructed")();
   }
 
@@ -50,6 +51,28 @@ class AudioWorkletMainThread {
       this.workletProxy[Comlink.releaseProxy]();
       delete this.workletProxy;
     }
+  }
+
+  createWorkletNode(audioContext, inputsCount, contextUid) {
+    const audioNode = new AudioWorkletNode(audioContext, "csound-worklet-processor", {
+      inputChannelCount: inputsCount ? [inputsCount] : 0,
+      outputChannelCount: [this.outputsCount || 2],
+      processorOptions: {
+        contextUid,
+        isRequestingInput: this.isRequestingInput,
+        inputsCount,
+        outputsCount: this.outputsCount,
+        ksmps: this.ksmps,
+        maybeSharedArrayBuffer:
+          this.csoundWorkerMain.hasSharedArrayBuffer && this.csoundWorkerMain.audioStatePointer,
+        maybeSharedArrayBufferAudioIn:
+          this.csoundWorkerMain.hasSharedArrayBuffer && this.csoundWorkerMain.audioStreamIn,
+        maybeSharedArrayBufferAudioOut:
+          this.csoundWorkerMain.hasSharedArrayBuffer && this.csoundWorkerMain.audioStreamOut,
+      },
+    });
+    this.csoundWorkerMain.publicEvents.triggerOnAudioNodeCreated(audioNode);
+    return audioNode;
   }
 
   async onPlayStateChange(newPlayState) {
@@ -77,12 +100,22 @@ class AudioWorkletMainThread {
             await this.audioContext.close();
           } catch {}
         }
+
         if (this.autoConnect && this.audioWorkletNode) {
           this.audioWorkletNode.disconnect();
+          delete this.audioWorkletNode;
         }
+        if (this.workletProxy) {
+          this.workletProxy[Comlink.releaseProxy]();
+          delete this.workletProxy;
+        }
+
+        if (this.workletWorkerUrl) {
+          (window.URL || window.webkitURL).revokeObjectURL(this.workletWorkerUrl);
+        }
+
         this.audioWorkletNode && delete this.audioWorkletNode;
         this.currentPlayState = undefined;
-        this.workletProxy = undefined;
         this.sampleRate = undefined;
         this.inputsCount = undefined;
         this.outputsCount = undefined;
@@ -97,14 +130,10 @@ class AudioWorkletMainThread {
 
     if (
       this.csoundWorkerMain &&
-      this.csoundWorkerMain.startPromiz &&
+      this.csoundWorkerMain.eventPromises &&
       !this.csoundWorkerMain.hasSharedArrayBuffer
     ) {
-      const startPromiz = this.csoundWorkerMain.startPromiz;
-      setTimeout(() => {
-        startPromiz();
-      }, 0);
-      delete this.csoundWorkerMain.startPromiz;
+      await this.csoundWorkerMain.eventPromises.releaseStartPromises();
     }
   }
 
@@ -131,7 +160,8 @@ class AudioWorkletMainThread {
       }
     }
 
-    await this.audioContext.audioWorklet.addModule(WorkletWorker());
+    this.workletWorkerUrl = WorkletWorker();
+    await this.audioContext.audioWorklet.addModule(this.workletWorkerUrl);
 
     log("WorkletWorker module added")();
 
@@ -142,30 +172,6 @@ class AudioWorkletMainThread {
 
     const contextUid = `audioWorklet${UID}`;
     UID += 1;
-
-    const createWorkletNode = (audioContext, inputsCount) => {
-      const audioNode = new AudioWorkletNode(audioContext, "csound-worklet-processor", {
-        inputChannelCount: inputsCount ? [inputsCount] : 0,
-        outputChannelCount: [this.outputsCount || 2],
-        processorOptions: {
-          contextUid,
-          hardwareBufferSize: this.hardwareBufferSize,
-          softwareBufferSize: this.softwareBufferSize,
-          isRequestingInput: this.isRequestingInput,
-          inputsCount,
-          outputsCount: this.outputsCount,
-          ksmps: this.ksmps,
-          maybeSharedArrayBuffer:
-            this.csoundWorkerMain.hasSharedArrayBuffer && this.csoundWorkerMain.audioStatePointer,
-          maybeSharedArrayBufferAudioIn:
-            this.csoundWorkerMain.hasSharedArrayBuffer && this.csoundWorkerMain.audioStreamIn,
-          maybeSharedArrayBufferAudioOut:
-            this.csoundWorkerMain.hasSharedArrayBuffer && this.csoundWorkerMain.audioStreamOut,
-        },
-      });
-      this.csoundWorkerMain.publicEvents.triggerOnAudioNodeCreated(audioNode);
-      return audioNode;
-    };
 
     if (this.isRequestingMidi) {
       log("requesting for web-midi connection");
@@ -190,7 +196,11 @@ class AudioWorkletMainThread {
         if (stream) {
           const liveInput = this.audioContext.createMediaStreamSource(stream);
           this.inputsCount = liveInput.channelCount;
-          const newNode = createWorkletNode(this.audioContext, liveInput.channelCount);
+          const newNode = this.createWorkletNode(
+            this.audioContext,
+            liveInput.channelCount,
+            contextUid,
+          );
           this.audioWorkletNode = newNode;
           if (this.autoConnect) {
             liveInput.connect(newNode).connect(this.audioContext.destination);
@@ -198,7 +208,7 @@ class AudioWorkletMainThread {
         } else {
           // Continue as before if user cancels
           this.inputsCount = 0;
-          const newNode = createWorkletNode(this.audioContext, 0);
+          const newNode = this.createWorkletNode(this.audioContext, 0, contextUid);
           this.audioWorkletNode = newNode;
           if (this.autoConnect) {
             this.audioWorkletNode.connect(this.audioContext.destination);
@@ -226,7 +236,7 @@ class AudioWorkletMainThread {
             console.error,
           );
     } else {
-      const newNode = createWorkletNode(this.audioContext, 0);
+      const newNode = this.createWorkletNode(this.audioContext, 0, contextUid);
       this.audioWorkletNode = newNode;
 
       log("connecting Node to AudioContext destination")();
@@ -236,24 +246,23 @@ class AudioWorkletMainThread {
     }
 
     microphonePromise && (await microphonePromise);
-
     this.workletProxy = Comlink.wrap(this.audioWorkletNode.port);
-
     await this.workletProxy.initialize(
       Comlink.transfer(
         {
           contextUid,
-          inputPort: this.ipcMessagePorts.audioWorkerAudioInputPort,
           messagePort: this.ipcMessagePorts.workerMessagePortAudio,
           requestPort: this.ipcMessagePorts.audioWorkerFrameRequestPort,
+          inputPort: this.ipcMessagePorts.audioWorkerAudioInputPort,
         },
         [
-          this.ipcMessagePorts.audioWorkerAudioInputPort,
           this.ipcMessagePorts.workerMessagePortAudio,
           this.ipcMessagePorts.audioWorkerFrameRequestPort,
+          this.ipcMessagePorts.audioWorkerAudioInputPort,
         ],
       ),
     );
+
     log("initialization finished in main")();
   }
 }

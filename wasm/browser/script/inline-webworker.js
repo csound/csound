@@ -1,6 +1,6 @@
-import { readFileSync } from 'fs';
-import { basename, resolve } from 'path';
-import { createFilter } from 'rollup-pluginutils';
+import { readFileSync } from "fs";
+import { basename, resolve } from "path";
+import { createFilter } from "rollup-pluginutils";
 
 const inlineCode = () => `
 // http://stackoverflow.com/questions/10343913/how-to-create-a-web-worker-from-a-string
@@ -46,26 +46,25 @@ export default function inlineWebworker(options = {}) {
   const filter = createFilter(options.include, options.exclude);
   const dataUrl = options.dataUrl;
   return {
-    name: 'inline-webworker',
+    name: "inline-webworker",
     load(id) {
       if (filter(id)) {
         const filename = basename(id);
-        id = resolve('./dist', `__compiled.${filename}`);
+        id = resolve("./dist", `__compiled.${filename}`);
         return {
           code: dataUrl
             ? `
-             export default () => "data:application/javascript;base64,${readFileSync(
-               id,
-               { encoding: 'base64' }
-             )}";
+             export default () => "data:application/javascript;base64,${readFileSync(id, {
+               encoding: "base64",
+             })}";
             `
             : `
           export default () => (window.URL || window.webkitURL).createObjectURL(new Blob([${JSON.stringify(
-            readFileSync(id).toString('utf8')
+            readFileSync(id).toString("utf8"),
           )}]));`,
-          map: { mappings: '' }
+          map: { mappings: "" },
         };
       }
-    }
+    },
   };
 }

@@ -11,10 +11,10 @@ export const initialSharedState = [
   0, // 1 = Csound is currently performing
   0, // 1 = Csound is currently paused
   0, // 1 = STOP
-  0, // n = sample rate
-  0, // n = ksmps
-  0, // n = nchnls
-  0, // n = ncnls_i
+  -1, // n = sample rate
+  -1, // n = ksmps
+  -1, // n = nchnls
+  -1, // n = ncnls_i
   0, // n = if 1 then it's requesting microphone
   DEFAULT_BUFFER_LEN, // number of samples per process
   0, // n = buffer read index of output buffer

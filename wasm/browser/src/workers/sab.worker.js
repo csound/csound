@@ -27,6 +27,7 @@ const callUncloned = async (k, arguments_) => {
 const sabCreateRealtimeAudioThread = ({
   libraryCsound,
   callbacksRequest,
+  releaseStop,
   wasm,
   wasmFs,
   workerMessagePort,
@@ -57,10 +58,11 @@ const sabCreateRealtimeAudioThread = ({
   const userProvidedNchnlsIn = Atomics.load(audioStatePointer, AUDIO_STATE.NCHNLS_I);
   const userProvidedSr = Atomics.load(audioStatePointer, AUDIO_STATE.SAMPLE_RATE);
 
-  userProvidedNchnls && libraryCsound.csoundSetOption(csound, `--nchnls=${userProvidedNchnls}`);
-  userProvidedNchnlsIn &&
+  userProvidedNchnls > -1 &&
+    libraryCsound.csoundSetOption(csound, `--nchnls=${userProvidedNchnls}`);
+  userProvidedNchnlsIn > -1 &&
     libraryCsound.csoundSetOption(csound, `--nchnls_i=${userProvidedNchnlsIn}`);
-  userProvidedSr && libraryCsound.csoundSetOption(csound, `--sr=${userProvidedSr}`);
+  userProvidedSr > -1 && libraryCsound.csoundSetOption(csound, `--sr=${userProvidedSr}`);
 
   const nchnls = libraryCsound.csoundGetNchnls(csound);
 
@@ -73,7 +75,7 @@ const sabCreateRealtimeAudioThread = ({
   Atomics.store(audioStatePointer, AUDIO_STATE.NCHNLS, nchnls);
   Atomics.store(audioStatePointer, AUDIO_STATE.NCHNLS_I, nchnlsInput);
   Atomics.store(audioStatePointer, AUDIO_STATE.IS_REQUESTING_MIC, isExpectingInput ? 1 : 0);
-  Atomics.store(audioStatePointer, AUDIO_STATE.SAMPLE_RATE, sampleRate);
+  Atomics.store(audioStatePointer, AUDIO_STATE.SAMPLE_RATE, libraryCsound.csoundGetSr(csound));
   Atomics.store(audioStatePointer, AUDIO_STATE.IS_REQUESTING_RTMIDI, isRequestingRtMidiInput);
 
   const ksmps = libraryCsound.csoundGetKsmps(csound);
@@ -110,11 +112,12 @@ const sabCreateRealtimeAudioThread = ({
   let currentOutputWriteIndex = 0;
   let waitResult;
 
-  const maybeStop = () => {
+  const maybeStop = (forceStop = false) => {
     if (
       Atomics.load(audioStatePointer, AUDIO_STATE.STOP) === 1 ||
       Atomics.load(audioStatePointer, AUDIO_STATE.IS_PERFORMING) !== 1 ||
-      lastReturn !== 0
+      lastReturn !== 0 ||
+      forceStop
     ) {
       if (lastReturn === 0) {
         log(`calling csoundStop and one performKsmps to trigger endof logs`)();
@@ -129,6 +132,7 @@ const sabCreateRealtimeAudioThread = ({
       watcherStdOut = undefined;
       watcherStdErr && watcherStdErr.close();
       watcherStdErr = undefined;
+      releaseStop();
       return true;
     } else {
       return false;
@@ -142,13 +146,12 @@ const sabCreateRealtimeAudioThread = ({
     (waitResult = Atomics.wait(audioStatePointer, AUDIO_STATE.CSOUND_LOCK, 1, 10 * 1000))
   ) {
     if (waitResult === "timed-out") {
-      maybeStop();
+      maybeStop(true);
       return;
     }
 
     if (firstRound) {
       firstRound = false;
-
       await new Promise((resolve) => {
         unlockPromise = resolve;
         workerMessagePort.broadcastSabUnlocked();
@@ -213,7 +216,7 @@ const sabCreateRealtimeAudioThread = ({
           firstPerformKsmps = false;
         } else if (lastReturn !== 0) {
           Atomics.store(audioStatePointer, AUDIO_STATE.IS_PERFORMING, 0);
-          maybeStop();
+          maybeStop(true);
           return;
         }
       }
@@ -307,6 +310,7 @@ const initCallbackReplyPort = ({ port }) => {
 const renderFunction = ({
   libraryCsound,
   callbacksRequest,
+  releaseStop,
   workerMessagePort,
   wasmFs,
   watcherStdOut,
@@ -336,6 +340,7 @@ const renderFunction = ({
   }
   Atomics.store(audioStatePointer, AUDIO_STATE.IS_PERFORMING, 0);
   workerMessagePort.broadcastPlayState("renderEnded");
+  releaseStop();
   watcherStdOut && watcherStdOut.close();
   watcherStdOut = undefined;
   watcherStdErr && watcherStdErr.close();
@@ -346,6 +351,7 @@ const initialize = async ({ wasmDataURI, withPlugins = [], messagePort, callback
   log(`initializing SABWorker and WASM`)();
   const workerMessagePort = initMessagePort({ port: messagePort });
   const callbacksRequest = () => callbackPort.postMessage("poll");
+  const releaseStop = () => callbackPort.postMessage("releaseStop");
   initCallbackReplyPort({ port: callbackPort });
   const [wasm, wasmFs] = await loadWasm({
     wasmDataURI,
@@ -362,6 +368,7 @@ const initialize = async ({ wasmDataURI, withPlugins = [], messagePort, callback
     sabCreateRealtimeAudioThread({
       libraryCsound,
       callbacksRequest,
+      releaseStop,
       wasm,
       wasmFs,
       workerMessagePort,
@@ -371,6 +378,7 @@ const initialize = async ({ wasmDataURI, withPlugins = [], messagePort, callback
     renderFunction({
       libraryCsound,
       callbacksRequest,
+      releaseStop,
       workerMessagePort,
       watcherStdOut,
       watcherStdErr: watcherStdError,

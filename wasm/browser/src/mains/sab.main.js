@@ -13,6 +13,7 @@ import {
 import { logSABMain as log } from "@root/logger";
 import { isEmpty } from "ramda";
 import { csoundApiRename, fetchPlugins, makeProxyCallback, stopableStates } from "@root/utils";
+import { EventPromises } from "@utils/event-promises";
 import { PublicEventAPI } from "@root/events";
 
 class SharedArrayBufferMainThread {
@@ -26,9 +27,11 @@ class SharedArrayBufferMainThread {
   }) {
     this.hasSharedArrayBuffer = true;
     this.ipcMessagePorts = new IPCMessagePorts();
+    this.eventPromises = new EventPromises();
     this.publicEvents = new PublicEventAPI(this);
     audioWorker.ipcMessagePorts = this.ipcMessagePorts;
 
+    this.audioContextIsProvided = audioContextIsProvided;
     this.audioWorker = audioWorker;
     this.csoundInstance = undefined;
     this.wasmDataURI = wasmDataURI;
@@ -38,9 +41,6 @@ class SharedArrayBufferMainThread {
 
     this.callbackId = 0;
     this.callbackBuffer = {};
-
-    this.startPromiz = undefined;
-    this.stopPromiz = undefined;
 
     this.audioStateBuffer = new SharedArrayBuffer(
       initialSharedState.length * Int32Array.BYTES_PER_ELEMENT,
@@ -156,17 +156,13 @@ class SharedArrayBufferMainThread {
         break;
       }
       case "realtimePerformanceEnded": {
+        this.eventPromises.createStopPromise();
         // flush out events sent during the time which the worker was stopping
         Object.values(this.callbackBuffer).forEach(({ argumentz, apiKey, resolveCallback }) =>
           this.proxyPort.callUncloned(apiKey, argumentz).then(resolveCallback),
         );
         this.callbackBuffer = {};
         log(`event: realtimePerformanceEnded received, beginning cleanup`)();
-        if (this.stopPromiz) {
-          this.stopPromiz();
-          delete this.stopPromiz;
-        }
-        this.publicEvents.triggerRealtimePerformanceEnded(this);
         // re-initialize SAB
         initialSharedState.forEach((value, index) => {
           Atomics.store(this.audioStatePointer, index, value);
@@ -186,10 +182,6 @@ class SharedArrayBufferMainThread {
         break;
       }
       case "renderEnded": {
-        if (this.stopPromiz) {
-          this.stopPromiz();
-          delete this.stopPromiz;
-        }
         this.publicEvents.triggerRenderEnded(this);
         log(`event: renderEnded received, beginning cleanup`)();
         break;
@@ -204,12 +196,6 @@ class SharedArrayBufferMainThread {
       await this.audioWorker.onPlayStateChange(newPlayState);
     } catch (error) {
       console.error(error);
-    }
-
-    if (this.startPromiz && newPlayState !== "realtimePerformanceStarted") {
-      // either we are rendering or something went wrong with the start
-      this.startPromiz();
-      delete this.startPromiz;
     }
   }
 
@@ -275,6 +261,9 @@ class SharedArrayBufferMainThread {
               argumentz: this.callbackBuffer[id].argumentz,
             })),
           );
+      } else if (event.data === "releaseStop") {
+        this.eventPromises.releaseStopPromises();
+        this.publicEvents.triggerRealtimePerformanceEnded(this);
       } else {
         event.data.forEach(({ id, answer }) => {
           this.callbackBuffer[id].resolveCallback(answer);
@@ -344,10 +333,7 @@ class SharedArrayBufferMainThread {
               console.error("starting csound failed because csound instance wasn't created");
               return -1;
             }
-
-            const startPromise = new Promise((resolve) => {
-              this.startPromiz = resolve;
-            });
+            this.eventPromises.createStartPromise();
 
             const startResult = await proxyCallback({
               audioStateBuffer,
@@ -357,11 +343,10 @@ class SharedArrayBufferMainThread {
               csound: csoundInstance,
             });
 
-            await startPromise;
-            setTimeout(() => {
-              this.ipcMessagePorts &&
-                this.ipcMessagePorts.sabMainCallbackReply.postMessage({ unlock: true });
-            }, 0);
+            await this.eventPromises.waitForStart();
+            this.ipcMessagePorts &&
+              this.ipcMessagePorts.sabMainCallbackReply.postMessage({ unlock: true });
+
             return startResult;
           };
 
@@ -379,12 +364,13 @@ class SharedArrayBufferMainThread {
                 this.currentPlayState,
               ].join("\n"),
             )();
-
-            if (stopableStates.has(this.currentPlayState)) {
+            if (this.eventPromises.isWaitingToStop()) {
+              return -1;
+            } else if (stopableStates.has(this.currentPlayState)) {
               log("Marking SAB's state to STOP")();
-              const stopPromise = new Promise((resolve) => {
-                this.stopPromiz = resolve;
-              });
+
+              this.eventPromises.createStopPromise();
+
               Atomics.store(this.audioStatePointer, AUDIO_STATE.STOP, 1);
               log("Marking that performance is not running anymore (stops the audio too)")();
               Atomics.store(this.audioStatePointer, AUDIO_STATE.IS_PERFORMING, 0);
@@ -398,9 +384,7 @@ class SharedArrayBufferMainThread {
                 !Atomics.compareExchange(this.audioStatePointer, AUDIO_STATE.CSOUND_LOCK, 0, 1) &&
                   Atomics.notify(this.audioStatePointer, AUDIO_STATE.CSOUND_LOCK);
               }
-
-              this.stopPromiz && (await stopPromise);
-
+              await this.eventPromises.waitForStop();
               return 0;
             } else {
               return -1;
@@ -419,12 +403,16 @@ class SharedArrayBufferMainThread {
             }
             if (stopableStates.has(this.currentPlayState)) {
               await this.exportApi.stop();
+            } else if (this.eventPromises.isWaitingToStop()) {
+              await this.eventPromises.waitForStop();
             }
+            this.ipcMessagePorts.restartAudioWorkerPorts();
+            if (!this.audioContextIsProvided) {
+              await this.audioWorker.terminateInstance();
+              delete this.audioWorker.audioContext;
+            }
+
             const resetResult = await proxyCallback([]);
-            this.audioStateBuffer = new SharedArrayBuffer(
-              initialSharedState.length * Int32Array.BYTES_PER_ELEMENT,
-            );
-            this.audioStatePointer = new Int32Array(this.audioStateBuffer);
             return resetResult;
           };
           this.exportApi.reset = csoundReset.bind(this);
@@ -439,7 +427,7 @@ class SharedArrayBufferMainThread {
             if (
               this.currentPlayState === "realtimePerformanceStarted" ||
               this.currentPlayState === "renderStarted" ||
-              this.startPromiz
+              this.eventPromises.isWaitingToStart()
               // startPromiz indicates that startup is in progress
               // and any events send before it's resolved are swallowed
             ) {
