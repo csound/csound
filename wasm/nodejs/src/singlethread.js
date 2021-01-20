@@ -17,17 +17,47 @@ export default class SingleThread {
 
   processKsmps(byteCount) {
     const that = this.that;
-    const frameCount = byteCount / Float32Array.BYTES_PER_ELEMENT;
-    const buffer = new Float32Array(frameCount);
-    for (let frameIndex = 0; frameIndex++; frameIndex < frameCount) {
-      if (this.csoundBufferPos === 0) {
-        this.lastReturn = that.libcsound.csoundPerformKsmps();
+    const frameCount = byteCount / Float32Array.BYTES_PER_ELEMENT / this.nchnls;
+    const buffer = Buffer.alloc(byteCount);
+    if (this.startClickKillCount < 8) {
+      this.push(buffer);
+      this.startClickKillCount += 1;
+      return;
+    }
+    for (let frameIndex = 0; frameIndex < frameCount; frameIndex++) {
+      if (this.csoundOutputBuffer.length === 0) {
+        this.csoundOutputBuffer = new Float64Array(
+          that.wasm.exports.memory.buffer,
+          this.outputBufferPtr,
+          this.ksmps * this.nchnls,
+        );
       }
-      buffer[frameIndex] = this.csoundOutputBuffer[csoundBufferPos];
+      if (this.csoundBufferPos === 0) {
+        this.lastReturn = that.libcsound.csoundPerformKsmps(that.csoundInstance);
+      }
+
+      if (this.lastReturn !== 0) {
+        return;
+      }
+
+      for (let channelIndex = 0; channelIndex < this.nchnls; channelIndex++) {
+        const csoundSampl = this.csoundOutputBuffer[
+          this.csoundBufferPos * this.nchnls + channelIndex
+        ];
+
+        buffer.writeFloatLE(
+          csoundSampl,
+          channelIndex * Float32Array.BYTES_PER_ELEMENT +
+            frameIndex * this.nchnls * Float32Array.BYTES_PER_ELEMENT,
+        );
+      }
+
       this.csoundBufferPos = (this.csoundBufferPos + 1) % this.ksmps;
     }
-    this.push(Buffer.from(buffer));
+
+    this.push(buffer);
   }
+
   processRealtimeAudio() {
     const nchnls = this.libcsound.csoundGetNchnls(this.csoundInstance);
     const ksmps = this.libcsound.csoundGetKsmps(this.csoundInstance);
@@ -47,13 +77,16 @@ export default class SingleThread {
     stream.ksmps = ksmps;
     stream.nchnls = nchnls;
     stream.csoundBufferPos = 0;
+    stream.zeroDecibelFullScale = this.libcsound.csoundGet0dBFS(this.csoundInstance);
 
     const outputBufferPtr = this.libcsound.csoundGetSpout(this.csoundInstance);
+    stream.outputBufferPtr = outputBufferPtr;
     stream.csoundOutputBuffer = new Float64Array(
       this.wasm.exports.memory.buffer,
       outputBufferPtr,
       ksmps * nchnls,
     );
+    stream.startClickKillCount = 0;
     stream.pipe(speaker);
   }
 
