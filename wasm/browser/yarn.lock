@@ -291,10 +291,10 @@
     lodash "^4.17.19"
     to-fast-properties "^2.0.0"
 
-"@csound/wasm-bin@6.16.0-beta1":
-  version "6.16.0-beta1"
-  resolved "https://registry.yarnpkg.com/@csound/wasm-bin/-/wasm-bin-6.16.0-beta1.tgz#ca28715e43cea11bbe6f9f72368058187062cdd5"
-  integrity sha512-yQwb+SUdR4yopUDxqDMECzIr15+Kl+PiQ35PYGaQekj3+rBaKElZWwBlPiKnDjBzbygImmJE5Q83UnAyQj5Crg==
+"@csound/wasm-bin@6.16.0-beta2":
+  version "6.16.0-beta2"
+  resolved "https://registry.yarnpkg.com/@csound/wasm-bin/-/wasm-bin-6.16.0-beta2.tgz#d5b4a44cd46b53d3f6fc203bb2b0f1a7a402a118"
+  integrity sha512-UuOXEfCV1exoR6VfBisXZ6G1Oyl4zIqyQrkqkYf56taYKWN1z/bd3ONk3zD9vOE645XHQkeGjjbNxGasWRhTqg==
 
 "@eslint/eslintrc@^0.2.2":
   version "0.2.2"
