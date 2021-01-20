@@ -159,7 +159,7 @@ i1 0 2
 </CsoundSynthesizer>
 `;
 
-  mocha.setup("bdd").fullTrace();
+  mocha.setup({ ui: "bdd", timeout: 10000 }).fullTrace();
 
   if (isCI) {
     MochaWebdriverClient.install(mocha);
@@ -176,7 +176,6 @@ i1 0 2
   csoundVariations.forEach((test) => {
     describe(`@csound/browser : ${test.name}`, async () => {
       it("can be started", async function () {
-        this.timeout(10000);
         const cs = await Csound(test);
         console.log(`Csound version: ${cs.name}`);
         const startReturn = await cs.start();
@@ -186,7 +185,6 @@ i1 0 2
       });
 
       it("has expected methods", async function () {
-        this.timeout(10000);
         const cs = await Csound(test);
         assert.property(cs, "getAudioContext", "has .getAudioContext() method");
         assert.property(cs, "start", "has .start() method");
@@ -197,7 +195,6 @@ i1 0 2
       });
 
       it("can use run using just compileOrc", async function () {
-        this.timeout(10000);
         const cs = await Csound(test);
         await cs.compileOrc(`
         ksmps=64
@@ -213,7 +210,6 @@ i1 0 2
       });
 
       it("can play tone and get channel values", async function () {
-        this.timeout(10000);
         const cs = await Csound(test);
         const compileReturn = await cs.compileCsdText(shortTone);
         assert.equal(compileReturn, 0);
@@ -227,7 +223,6 @@ i1 0 2
       });
 
       it("can play tone and send channel values", async function () {
-        this.timeout(10000);
         const cs = await Csound(test);
         const compileReturn = await cs.compileCsdText(shortTone2);
         assert.equal(compileReturn, 0);
@@ -240,7 +235,6 @@ i1 0 2
       });
 
       it("can send and receive string channel values", async function () {
-        this.timeout(10000);
         const cs = await Csound(test);
         const compileReturn = await cs.compileCsdText(stringChannelTest);
         assert.equal(compileReturn, 0);
@@ -282,7 +276,6 @@ i1 0 2
       });
 
       it("emits public events in realtime performance", async function () {
-        this.timeout(10000);
         const eventPlaySpy = sinon.spy();
         const eventPauseSpy = sinon.spy();
         const eventStopSpy = sinon.spy();
@@ -400,7 +393,6 @@ i1 0 2
       });
 
       it("can start() -> stop() -> reset() and start again", async function () {
-        this.timeout(10000);
         const csoundObj = await Csound(test);
         await csoundObj.compileCsdText(helloWorld);
         await csoundObj.start();
