@@ -1,3 +1,7 @@
+# @csound/browser [![npm (scoped with tag)](https://shields.shivering-isles.com/npm/v/@csound/browser/latest)](https://www.npmjs.com/package/@csound/browser)[![GitHub Workflow Status](https://shields.shivering-isles.com/github/workflow/status/csound/csound/csound_wasm)(https://github.com/csound/csound/actions?query=workflow%3Acsound_wasm)][![styled with prettier](https://img.shields.io/badge/styled_with-prettier-ff69b4.svg)](https://github.com/prettier/prettier)
+
+## Api Documentation
+
 ## Objects
 
 <dl>
@@ -755,8 +759,8 @@ otherwise undefined.
 | --- | --- | --- | --- |
 | [params] | <code>Object</code> |  | Initialization parameters |
 | [params.audioContext] | <code>AudioContext</code> |  | Optional AudioContext to use; if none given, an AudioContext will be created. |
-| [params.inputChannelCount] | <code>Number</code> | <code>2</code> | Optional input channel count for AudioNode used with WebAudio graph. Defaults to 2. |
-| [params.outputChannelCount] | <code>Number</code> | <code>2</code> | Optional output channel count AudioNode used with WebAudio graph. Defaults to 2. |
+| [params.inputChannelCount] | <code>Number</code> |  | Optional input channel count for AudioNode used with WebAudio graph. Defaults to the value of nchnls_i in useWorker but 2 otherwise. |
+| [params.outputChannelCount] | <code>Number</code> |  | Optional output channel count AudioNode used with WebAudio graph. Defaults to the value of nchnls in useWorker but 2 otherwise. |
 | [params.autoConnect] | <code>Boolean</code> | <code>true</code> | Set to configure Csound to automatically connect to the audioContext.destination output. |
 | [params.withPlugins] | <code>Array.&lt;Object&gt;</code> |  | Array of WebAssembly Csound plugin libraries to use with Csound. |
 | [params.useWorker] | <code>Boolean</code> | <code>false</code> | Configure to use backend using Web Workers to run Csound in a thread separate from audio callback. |
