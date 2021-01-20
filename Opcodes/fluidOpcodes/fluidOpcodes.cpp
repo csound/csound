@@ -118,14 +118,14 @@ public:
       result =
           csound->InitError(csound, "%s", Str("error allocating fluid engine\n"));
     } else {
-#if (FLUIDSYNTH_VERSION_MAJOR >= 2)
-      // TODO: Change -1 to a configurable FX group?
-      fluid_synth_chorus_on(fluidSynth, -1, chorusEnabled);
-      fluid_synth_reverb_on(fluidSynth, -1, reverbEnabled);
-#else
+//~ #if (FLUIDSYNTH_VERSION_MAJOR >= 2)
+      //~ // TODO: Change -1 to a configurable FX group?
+      //~ fluid_synth_chorus_on(fluidSynth, -1, chorusEnabled);
+      //~ fluid_synth_reverb_on(fluidSynth, -1, reverbEnabled);
+//~ #else
       fluid_synth_set_chorus_on(fluidSynth, chorusEnabled);
       fluid_synth_set_reverb_on(fluidSynth, reverbEnabled);
-#endif
+//~ #endif
       log(csound, "Created fluidEngine 0x%p with sampling rate = %f, "
                   "chorus %s, reverb %s, channels %d, voices %d.\n",
           fluidSynth, (double)csound->GetSr(csound),
