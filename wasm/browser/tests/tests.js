@@ -399,7 +399,7 @@ i1 0 2
         await csoundObj.terminateInstance();
       });
 
-      it.only("can start() -> stop() -> reset() and start again", async function () {
+      it("can start() -> stop() -> reset() and start again", async function () {
         this.timeout(10000);
         const csoundObj = await Csound(test);
         await csoundObj.compileCsdText(helloWorld);
