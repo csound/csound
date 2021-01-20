@@ -292,6 +292,33 @@ declare namespace CsoundObj {
      */
     function setScorePending(pending: number): Promise<undefined>;
     /**
+     * Read, preprocess, and load a score from an ASCII string It can be called repeatedly,
+     * with the new score events being added to the currently scheduled ones.
+     */
+    function readScore(score: string): Promise<undefined>;
+    /**
+     * Returns the current score time in seconds since the beginning of performance.
+     */
+    function getScoreTime(): Promise<number>;
+    /**
+     * Returns the score time beginning at which score events will actually immediately be performed
+     */
+    function getScoreOffsetSeconds(): Promise<number>;
+    /**
+     * Csound score events prior to the specified time are not performed,
+     * and performance begins immediately at the specified time
+     * (real-time events will continue to be performed as they are received).
+     * Can be used by external software, such as a VST host, to begin
+     * score performance midway through a Csound score,
+     * for example to repeat a loop in a sequencer,
+     * or to synchronize other events with the Csound score.
+     */
+    function setScoreOffsetSeconds(time: number): Promise<number>;
+    /**
+     * Rewinds a compiled Csound score to the time specified with csoundObj.setScoreOffsetSeconds().
+     */
+    function rewindScore(): Promise<number>;
+    /**
      * Returns the length of a function table
      * (not including the guard point),
      * or -1 if the table does not exist.
@@ -347,8 +374,10 @@ declare namespace CsoundObj {
  * otherwise undefined.
  * @param [params] - Initialization parameters
  * @param [params.audioContext] - Optional AudioContext to use; if none given, an AudioContext will be created.
- * @param [params.inputChannelCount = 2] - Optional input channel count for AudioNode used with WebAudio graph. Defaults to 2.
- * @param [params.outputChannelCount = 2] - Optional output channel count AudioNode used with WebAudio graph. Defaults to 2.
+ * @param [params.inputChannelCount] - Optional input channel count for AudioNode used with WebAudio graph.
+ * Defaults to the value of nchnls_i in useWorker but 2 otherwise.
+ * @param [params.outputChannelCount] - Optional output channel count AudioNode used with WebAudio graph.
+ * Defaults to the value of nchnls in useWorker but 2 otherwise.
  * @param [params.autoConnect = true] - Set to configure Csound to automatically connect to the audioContext.destination output.
  * @param [params.withPlugins] - Array of WebAssembly Csound plugin libraries to use with Csound.
  * @param [params.useWorker = false] - Configure to use backend using Web Workers to run Csound in a thread separate from audio callback.

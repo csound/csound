@@ -101,6 +101,11 @@ CsoundObj API.
         * [.getSpout()](#CsoundObj.getSpout) ⇒ <code>Promise.&lt;number&gt;</code>
         * [.isScorePending()](#CsoundObj.isScorePending) ⇒ <code>Promise.&lt;number&gt;</code>
         * [.setScorePending(pending)](#CsoundObj.setScorePending) ⇒ <code>Promise.&lt;undefined&gt;</code>
+        * [.readScore(score)](#CsoundObj.readScore) ⇒ <code>Promise.&lt;undefined&gt;</code>
+        * [.getScoreTime()](#CsoundObj.getScoreTime) ⇒ <code>Promise.&lt;number&gt;</code>
+        * [.getScoreOffsetSeconds()](#CsoundObj.getScoreOffsetSeconds) ⇒ <code>Promise.&lt;number&gt;</code>
+        * [.setScoreOffsetSeconds(time)](#CsoundObj.setScoreOffsetSeconds) ⇒ <code>Promise.&lt;number&gt;</code>
+        * [.rewindScore()](#CsoundObj.rewindScore) ⇒ <code>Promise.&lt;number&gt;</code>
         * [.tableLength(tableNum)](#CsoundObj.tableLength) ⇒ <code>Promise.&lt;number&gt;</code>
         * [.tableGet(tableNum, tableIndex)](#CsoundObj.tableGet) ⇒ <code>Promise.&lt;number&gt;</code>
         * [.tableSet(tableNum, tableIndex, value)](#CsoundObj.tableSet) ⇒ <code>Promise.&lt;undefined&gt;</code>
@@ -621,6 +626,53 @@ or to play the Csound instruments live.
 | --- | --- |
 | pending | <code>number</code> | 
 
+<a name="CsoundObj.readScore"></a>
+
+### CsoundObj.readScore(score) ⇒ <code>Promise.&lt;undefined&gt;</code>
+Read, preprocess, and load a score from an ASCII string It can be called repeatedly,
+with the new score events being added to the currently scheduled ones.
+
+**Kind**: static method of [<code>CsoundObj</code>](#CsoundObj)  
+
+| Param | Type |
+| --- | --- |
+| score | <code>string</code> | 
+
+<a name="CsoundObj.getScoreTime"></a>
+
+### CsoundObj.getScoreTime() ⇒ <code>Promise.&lt;number&gt;</code>
+Returns the current score time in seconds since the beginning of performance.
+
+**Kind**: static method of [<code>CsoundObj</code>](#CsoundObj)  
+<a name="CsoundObj.getScoreOffsetSeconds"></a>
+
+### CsoundObj.getScoreOffsetSeconds() ⇒ <code>Promise.&lt;number&gt;</code>
+Returns the score time beginning at which score events will actually immediately be performed
+
+**Kind**: static method of [<code>CsoundObj</code>](#CsoundObj)  
+<a name="CsoundObj.setScoreOffsetSeconds"></a>
+
+### CsoundObj.setScoreOffsetSeconds(time) ⇒ <code>Promise.&lt;number&gt;</code>
+Csound score events prior to the specified time are not performed,
+and performance begins immediately at the specified time
+(real-time events will continue to be performed as they are received).
+Can be used by external software, such as a VST host, to begin
+score performance midway through a Csound score,
+for example to repeat a loop in a sequencer,
+or to synchronize other events with the Csound score.
+
+**Kind**: static method of [<code>CsoundObj</code>](#CsoundObj)  
+
+| Param | Type |
+| --- | --- |
+| time | <code>number</code> | 
+
+<a name="CsoundObj.rewindScore"></a>
+
+### CsoundObj.rewindScore() ⇒ <code>Promise.&lt;number&gt;</code>
+Rewinds a compiled Csound score to the time specified with csoundObj.setScoreOffsetSeconds().
+
+**Kind**: static method of [<code>CsoundObj</code>](#CsoundObj)  
 <a name="CsoundObj.tableLength"></a>
 
 ### CsoundObj.tableLength(tableNum) ⇒ <code>Promise.&lt;number&gt;</code>
