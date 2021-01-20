@@ -63,7 +63,15 @@ import {
 } from "@module/control-events";
 import { csoundGetInputName, csoundGetOutputName } from "@module/general-io";
 import { csoundAppendEnv, csoundShouldDaemonize } from "@module/extra";
-import { csoundIsScorePending, csoundSetScorePending } from "@module/score-handling";
+import {
+  csoundIsScorePending,
+  csoundSetScorePending,
+  csoundReadScore,
+  csoundGetScoreTime,
+  csoundGetScoreOffsetSeconds,
+  csoundSetScoreOffsetSeconds,
+  csoundRewindScore,
+} from "@module/score-handling";
 import {
   csoundTableLength,
   csoundTableGet,
@@ -148,6 +156,11 @@ export const api = {
   // @module/score-handling
   csoundIsScorePending,
   csoundSetScorePending,
+  csoundReadScore,
+  csoundGetScoreTime,
+  csoundGetScoreOffsetSeconds,
+  csoundSetScoreOffsetSeconds,
+  csoundRewindScore,
   // @module/table
   csoundTableLength,
   csoundTableGet,
