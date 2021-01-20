@@ -16,3 +16,4 @@ dist
 *.log
 .envrc
 tmp
+dev.js

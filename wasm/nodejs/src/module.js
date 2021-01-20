@@ -1,6 +1,5 @@
 import fs from "fs";
 import path from "path";
-import { Readable } from "stream";
 import { createRequire } from "module";
 import { promisify } from "util";
 import { csoundWasiJsMessageCallback } from "./filesystem.js";
@@ -8,12 +7,11 @@ import { WASI } from "@wasmer/wasi";
 import { default as wasiBindings } from "@wasmer/wasi/lib/bindings/node.js";
 import { lowerI64Imports } from "@wasmer/wasm-transformer";
 import { WasmFs } from "@wasmer/wasmfs";
-import Speaker from "speaker";
 
 const require = createRequire(import.meta.url);
 const readFilePromise = promisify(fs.readFile);
 
-const wasmPath = require.resolve("@csound/wasm/lib/libcsound.wasm");
+const wasmDylibPath = require.resolve("@csound/wasm/lib/csound.dylib.wasm");
 const PAGE_SIZE = 65536;
 
 const getBinaryHeaderData = (wasmBytes) => {
@@ -50,7 +48,7 @@ const getBinaryHeaderData = (wasmBytes) => {
 };
 
 export default async function ({ withPlugins = [] }) {
-  const fileBuffer = await readFilePromise(wasmPath);
+  const fileBuffer = await readFilePromise(wasmDylibPath);
   const { memorySize, memoryAlign, tableSize } = getBinaryHeaderData(fileBuffer);
 
   const wasi = new WASI({
@@ -118,5 +116,5 @@ export default async function ({ withPlugins = [] }) {
 
   wasi.start(instance_);
   instance.exports.__wasi_js_csoundSetMessageStringCallback();
-  return instance;
+  return instance_;
 }

@@ -15,7 +15,13 @@
   "engines": {
     "node": ">=14"
   },
-  "scripts": {},
+  "scripts": {
+    "test": "jest"
+  },
+  "jest": {
+    "verbose": true,
+    "testRegex": "tests/.*.js"
+  },
   "dependencies": {
     "@csound/browser": "../browser",
     "@csound/wasm": "../",
@@ -24,5 +30,8 @@
     "@wasmer/wasmfs": "^0.12.0",
     "easymidi": "^2.0.1",
     "speaker": "^0.5.2"
+  },
+  "devDependencies": {
+    "jest": "^26.6.3"
   }
 }
