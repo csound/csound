@@ -22,6 +22,9 @@ Any valid HTML can also be used.
 
 # CSOUND VERSION 6.16 RELEASE NOTES - DRAFT - DRAFT - DRAFT - DRAFT 
 
+Tis us mainly abug fixing release but there are new opcodes, including
+support for simpler use of MIDI controls and a new opcode to connect
+to an Arduino.
 
 -- The Developers
 
@@ -33,12 +36,14 @@ Any valid HTML can also be used.
 
 - lfsr, a linear feedback shift register opcode for psuedo random umber generation.
 
-- ctrlsave ***NOT DOCUMENTED***
+- ctrlsave stores the currrent values of MIDIcontrollers in an array.
 
 - turnoff3 extends tuning off to remove instrument instances that are
-  queued via scheduling but not yet active. *** NOT DICUMENTED***
+  queued via scheduling but not yet active. *** NOT DOCUMENTED***
 
-- ctrlprint ***NOT DOCUMENTED***
+- ctrlprint prints the result of a ctrlsave call in a form that can be used in an orchestra.
+
+- ctrlprintpresets ***NOT DOCUMENTED***
 
 - ctrlselect ***NOT DOCUMENTED***
 
@@ -46,17 +51,17 @@ Any valid HTML can also be used.
 
 - outall writes a signal to all output channels.
 
-- scale2 is similar to scale but has different argumet order and has
+- scale2 is similar to scale but has different argument order and has
 an optional port filter.
 
-- aduinoReadF extends te arduino family to transfe floating pont
+- aduinoReadF extends the arduino family to transfer floating point
   values.
   
 ### New Gen and Macros
 
 ### Orchestra
 
-- The operations += and -= mnow work for i and k arrays. 
+- The operations += and -= now work for i and k arrays. 
 
 ### Score
 
@@ -68,8 +73,6 @@ an optional port filter.
 ### Modified Opcodes and Gens
 
 - slicearray_i now works for string arrays.
-
-- ctrlinit fomat ***EXPLIN** Think it adds strings.
 
 - OSCsend aways runs on the first call regardless of the value of kwhen.
 
@@ -94,6 +97,8 @@ an optional port filter.
 
 ## Bugs Fixed
 
+- the wterrain2 opcode was not correctly compiled on some platforms.
+
 - fprintks opcode crashed when format contains one %s
 
 - bug in rtjack when number of outputs differed from the number in
@@ -106,7 +111,7 @@ an optional port filter.
 - bug in --opcode-dir option fixed.
 
 - sfpassign failed to remember the number of presets causng
-  confusion.  This also affects sflay ad sfinstrplay.
+  confusion.  This also affects sfplay ad sfinstrplay.
 
 - midiarp opcode fixed (issue 1365)
 
