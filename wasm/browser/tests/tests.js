@@ -174,7 +174,8 @@ i1 0 2
   ];
 
   csoundVariations.forEach((test) => {
-    describe(`@csound/browser : ${test.name}`, async () => {
+    describe(`@csound/browser : ${test.name}`, async function () {
+      this.timeout(10000);
       it("can be started", async function () {
         const cs = await Csound(test);
         console.log(`Csound version: ${cs.name}`);
