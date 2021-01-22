@@ -1,4 +1,3 @@
-import { FsExtra } from "@hlolli/memfs-extra";
 import { createFsFromVolume } from "memfs";
 import { filenameToSteps, pathToFilename, Volume } from "memfs/lib/volume";
 import path from "path";
@@ -7,7 +6,7 @@ import path from "path";
 // persistency, we'll sync a non-worker storage
 // with the filesystems spawned on threads
 export const persistentStorage = new Volume();
-export const filesystemExtra = new FsExtra(createFsFromVolume(persistentStorage));
+export const persistentFilesystem = createFsFromVolume(persistentStorage);
 
 // modified from @wasmer/wasmfs
 function fromJSONFixed(vol, json) {

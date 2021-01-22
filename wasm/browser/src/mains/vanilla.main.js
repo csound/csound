@@ -8,7 +8,7 @@ import { IPCMessagePorts, messageEventHandler } from "@root/mains/messages.main"
 import { EventPromises } from "@utils/event-promises";
 import { PublicEventAPI } from "@root/events";
 import {
-  filesystemExtra,
+  persistentFilesystem,
   getPersistentStorage,
   syncPersistentStorage,
 } from "@root/filesystem/persistent-fs";
@@ -218,7 +218,7 @@ class VanillaWorkerMainThread {
     this.exportApi.pause = this.csoundPause.bind(this);
     this.exportApi.resume = this.csoundResume.bind(this);
     this.exportApi.terminateInstance = this.terminateInstance.bind(this);
-    this.exportApi.fs = filesystemExtra;
+    this.exportApi.fs = persistentFilesystem;
 
     // sync/getWorkerFs is only for internal usage
     this.getWorkerFs = makeProxyCallback(proxyPort, this.csoundInstance, "getWorkerFs");

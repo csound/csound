@@ -31,7 +31,7 @@ import { PublicEventAPI } from "@root/events";
 import { requestMidi } from "@utils/request-midi";
 import { initFS, getWorkerFs, rmrfFs, syncWorkerFs } from "@root/filesystem/worker-fs";
 import {
-  filesystemExtra,
+  persistentFilesystem,
   getPersistentStorage,
   syncPersistentStorage,
 } from "@root/filesystem/persistent-fs";
@@ -267,7 +267,7 @@ class ScriptProcessorNodeSingleThread {
     this.exportApi.terminateInstance = this.terminateInstance.bind(this);
     this.exportApi.getAudioContext = async () => this.audioContext;
     this.exportApi.name = "Csound: ScriptProcessor Node, Single-threaded";
-    this.exportApi.fs = filesystemExtra;
+    this.exportApi.fs = persistentFilesystem;
 
     this.exportApi = this.publicEvents.decorateAPI(this.exportApi);
 

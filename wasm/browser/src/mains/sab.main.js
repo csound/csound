@@ -16,7 +16,7 @@ import { csoundApiRename, fetchPlugins, makeProxyCallback, stopableStates } from
 import { EventPromises } from "@utils/event-promises";
 import { PublicEventAPI } from "@root/events";
 import {
-  filesystemExtra,
+  persistentFilesystem,
   getPersistentStorage,
   syncPersistentStorage,
 } from "@root/filesystem/persistent-fs";
@@ -307,7 +307,7 @@ class SharedArrayBufferMainThread {
     this.exportApi.pause = this.csoundPause.bind(this);
     this.exportApi.resume = this.csoundResume.bind(this);
     this.exportApi.terminateInstance = this.terminateInstance.bind(this);
-    this.exportApi.fs = filesystemExtra;
+    this.exportApi.fs = persistentFilesystem;
 
     // sync/getWorkerFs is only for internal usage
     this.getWorkerFs = makeProxyCallback(proxyPort, csoundInstance, "getWorkerFs");

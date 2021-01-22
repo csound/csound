@@ -31,7 +31,7 @@ import { PublicEventAPI } from "@root/events";
 import { enableAudioInput } from "./io.utils";
 import { requestMidi } from "@utils/request-midi";
 import {
-  filesystemExtra,
+  persistentFilesystem,
   getPersistentStorage,
   syncPersistentStorage,
 } from "@root/filesystem/persistent-fs";
@@ -190,7 +190,7 @@ class SingleThreadAudioWorkletMainThread {
     this.exportApi.pause = this.csoundPause.bind(this);
     this.exportApi.resume = this.csoundResume.bind(this);
     this.exportApi.terminateInstance = this.terminateInstance.bind(this);
-    this.exportApi.fs = filesystemExtra;
+    this.exportApi.fs = persistentFilesystem;
 
     // sync/getWorkerFs is only for internal usage
     this.getWorkerFs = makeProxyCallback(this.workletProxy, csoundInstance, "getWorkerFs");
