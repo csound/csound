@@ -30,6 +30,11 @@ import { api as API } from "@root/libcsound";
 import { PublicEventAPI } from "@root/events";
 import { enableAudioInput } from "./io.utils";
 import { requestMidi } from "@utils/request-midi";
+import {
+  filesystemExtra,
+  getPersistentStorage,
+  syncPersistentStorage,
+} from "@root/filesystem/persistent-fs";
 
 const initializeModule = async (audioContext) => {
   log("Initialize Module")();
@@ -96,6 +101,7 @@ class SingleThreadAudioWorkletMainThread {
       }
 
       case "realtimePerformanceEnded": {
+        syncPersistentStorage(await this.getWorkerFs());
         this.midiPortStarted = false;
         this.currentPlayState = undefined;
         this.publicEvents.triggerRealtimePerformanceEnded(this);
@@ -114,6 +120,7 @@ class SingleThreadAudioWorkletMainThread {
         break;
       }
       case "renderEnded": {
+        syncPersistentStorage(await this.getWorkerFs());
         this.publicEvents.triggerRenderEnded(this);
         break;
       }
@@ -183,11 +190,14 @@ class SingleThreadAudioWorkletMainThread {
     this.exportApi.pause = this.csoundPause.bind(this);
     this.exportApi.resume = this.csoundResume.bind(this);
     this.exportApi.terminateInstance = this.terminateInstance.bind(this);
-    this.exportApi.writeToFs = makeProxyCallback(this.workletProxy, csoundInstance, "writeToFs");
-    this.exportApi.readFromFs = makeProxyCallback(this.workletProxy, csoundInstance, "readFromFs");
-    this.exportApi.llFs = makeProxyCallback(this.workletProxy, csoundInstance, "llFs");
-    this.exportApi.lsFs = makeProxyCallback(this.workletProxy, csoundInstance, "lsFs");
-    this.exportApi.rmrfFs = makeProxyCallback(this.workletProxy, csoundInstance, "rmrfFs");
+    this.exportApi.fs = filesystemExtra;
+
+    // sync/getWorkerFs is only for internal usage
+    this.getWorkerFs = makeProxyCallback(this.workletProxy, csoundInstance, "getWorkerFs");
+    this.getWorkerFs = this.getWorkerFs.bind(this);
+    this.syncWorkerFs = makeProxyCallback(this.workletProxy, csoundInstance, "syncWorkerFs");
+    this.syncWorkerFs = this.syncWorkerFs.bind(this);
+
     this.exportApi.getAudioContext = async () => this.audioContext;
     this.exportApi.getNode = async () => this.node;
     this.exportApi.enableAudioInput = enableAudioInput.bind(this.exportApi);
@@ -212,9 +222,12 @@ class SingleThreadAudioWorkletMainThread {
               this.startPromiz = resolve;
             });
 
+            await this.syncWorkerFs(getPersistentStorage());
+
             const startResult = await proxyCallback({
               csound: csoundInstance,
             });
+
             if (await this.exportApi._isRequestingRtMidiInput(csoundInstance)) {
               requestMidi({
                 onMidiMessage: this.handleMidiInput.bind(this),

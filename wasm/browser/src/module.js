@@ -2,7 +2,7 @@ import { WASI } from "@wasmer/wasi";
 import { WasmFs } from "@wasmer/wasmfs";
 import { inflate } from "pako";
 import { dlinit } from "@root/dlinit";
-import { csoundWasiJsMessageCallback, initFS } from "@root/filesystem";
+import { csoundWasiJsMessageCallback, initFS } from "@root/filesystem/worker-fs";
 import { logWasmModule as log } from "@root/logger";
 import path from "path";
 
@@ -39,7 +39,8 @@ const assertPluginExports = (pluginInstance) => {
 
 const getBinaryHeaderData = (wasmBytes) => {
   const magicBytes = new Uint32Array(new Uint8Array(wasmBytes.subarray(0, 24)).buffer);
-  if (magicBytes[0] !== 0x6D736100) {
+  // eslint-disable-next-line unicorn/number-literal-case
+  if (magicBytes[0] !== 0x6d736100) {
     console.error("Wasm magic number is missing!");
   }
   if (wasmBytes[8] !== 0) {
@@ -53,7 +54,8 @@ const getBinaryHeaderData = (wasmBytes) => {
     let mul = 1;
     while (1) {
       const byte = wasmBytes[next++];
-      returnValue += (byte & 0x7F) * mul;
+      // eslint-disable-next-line unicorn/number-literal-case
+      returnValue += (byte & 0x7f) * mul;
       mul *= 0x80;
       if (!(byte & 0x80)) break;
     }

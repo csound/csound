@@ -23,7 +23,7 @@
 
 import * as Comlink from "comlink";
 import MessagePortState from "@utils/message-port-state";
-import { writeToFs, lsFs, llFs, readFromFs, rmrfFs } from "@root/filesystem";
+import { getWorkerFs, syncWorkerFs } from "@root/filesystem/worker-fs";
 import libcsoundFactory from "@root/libcsound";
 import loadWasm from "@root/module";
 import { assoc, pipe } from "ramda";
@@ -102,11 +102,8 @@ class WorkletSinglethreadWorker extends AudioWorkletProcessor {
           return this.csound;
         };
         const allAPI = pipe(
-          assoc("writeToFs", writeToFs(wasmFs)),
-          assoc("readFromFs", readFromFs(wasmFs)),
-          assoc("lsFs", lsFs(wasmFs)),
-          assoc("llFs", llFs(wasmFs)),
-          assoc("rmrfFs", rmrfFs(wasmFs)),
+          assoc("getWorkerFs", getWorkerFs(wasmFs)),
+          assoc("syncWorkerFs", syncWorkerFs(wasmFs)),
           assoc("csoundCreate", csoundCreate),
           assoc("csoundReset", this.resetCsound.bind(this)),
           assoc("csoundStart", this.start.bind(this)),
@@ -127,7 +124,8 @@ class WorkletSinglethreadWorker extends AudioWorkletProcessor {
     if (callReset && !this.workerMessagePort) {
       return -1;
     }
-    if (callReset && 
+    if (
+      callReset &&
       this.workerMessagePort.workerState !== "realtimePerformanceEnded" &&
       this.workerMessagePort.workerState !== "realtimePerformanceStarted"
     ) {

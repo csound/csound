@@ -10,8 +10,8 @@ in pkgs.stdenvNoCC.mkDerivation rec {
     src = pkgs.fetchFromGitHub {
       owner = "libsndfile";
       repo = "libsndfile";
-      rev = "d03045b014c12ac0ea4187462d75edced1dfc0b3";
-      sha256 = "09x3h0gd2xacz4k88ry8pbzmiy80dp3wm8h5pyigmlc0hsxhn2v6";
+      rev = "4fe1c6a0b370625bc4878aa24e0c1ad6fbc77072";
+      sha256 = "1pn7bv577hbgl6ncflc23xkkrjjlljp0rbl5agffaiq7qalfva7d";
     };
 
     AR = "${wasi-sdk}/bin/ar";
@@ -32,7 +32,7 @@ in pkgs.stdenvNoCC.mkDerivation rec {
       rm src/test_file_io.c
       find ./ -type f -exec sed -i -e 's/@TYPEOF_SF_COUNT_T@/int64_t/g' {} \;
       find ./ -type f -exec sed -i -e 's/@SIZEOF_SF_COUNT_T@/8/g' {} \;
-      find ./ -type f -exec sed -i -e 's/@SF_COUNT_MAX@/65536/g' {} \;
+      find ./ -type f -exec sed -i -e 's/@SF_COUNT_MAX@/0x7FFFFFFFFFFFFFFFLL/g' {} \;
     '';
 
     configurePhase = "true";

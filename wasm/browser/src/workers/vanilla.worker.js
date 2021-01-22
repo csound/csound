@@ -1,6 +1,6 @@
 import * as Comlink from "comlink";
 import MessagePortState from "@utils/message-port-state";
-import { initFS, writeToFs, lsFs, llFs, readFromFs, rmrfFs } from "@root/filesystem";
+import { initFS, getWorkerFs, syncWorkerFs } from "@root/filesystem/worker-fs";
 import { logVANWorker as log } from "@root/logger";
 import { RING_BUFFER_SIZE } from "@root/constants.js";
 import { handleCsoundStart, instantiateAudioPacket } from "@root/workers/common.utils";
@@ -326,11 +326,8 @@ const initialize = async ({
   );
 
   const allAPI = pipe(
-    assoc("writeToFs", writeToFs(wasmFs)),
-    assoc("readFromFs", readFromFs(wasmFs)),
-    assoc("lsFs", lsFs(wasmFs)),
-    assoc("llFs", llFs(wasmFs)),
-    assoc("rmrfFs", rmrfFs(wasmFs)),
+    assoc("getWorkerFs", getWorkerFs(wasmFs)),
+    assoc("syncWorkerFs", syncWorkerFs(wasmFs)),
     assoc("csoundStart", startHandler),
     assoc("wasm", wasm),
   )(libraryCsound);

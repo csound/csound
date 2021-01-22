@@ -24,12 +24,17 @@
 import libcsoundFactory from "@root/libcsound";
 import loadWasm from "@root/module";
 import MessagePortState from "@utils/message-port-state";
-import { initFS, writeToFs, llFs, lsFs, readFromFs, rmrfFs } from "@root/filesystem";
 import { isEmpty } from "ramda";
 import { csoundApiRename, fetchPlugins, makeSingleThreadCallback } from "@root/utils";
 import { messageEventHandler } from "./messages.main";
 import { PublicEventAPI } from "@root/events";
 import { requestMidi } from "@utils/request-midi";
+import { initFS, getWorkerFs, rmrfFs, syncWorkerFs } from "@root/filesystem/worker-fs";
+import {
+  filesystemExtra,
+  getPersistentStorage,
+  syncPersistentStorage,
+} from "@root/filesystem/persistent-fs";
 
 class ScriptProcessorNodeSingleThread {
   constructor({ audioContext, inputChannelCount = 1, outputChannelCount = 2 }) {
@@ -97,6 +102,7 @@ class ScriptProcessorNodeSingleThread {
       }
 
       case "realtimePerformanceEnded": {
+        syncPersistentStorage(getWorkerFs(this.wasmFs)());
         this.publicEvents.triggerRealtimePerformanceEnded(this);
         break;
       }
@@ -113,6 +119,7 @@ class ScriptProcessorNodeSingleThread {
         break;
       }
       case "renderEnded": {
+        syncPersistentStorage(getWorkerFs(this.wasmFs)());
         this.publicEvents.triggerRenderEnded(this);
         break;
       }
@@ -204,6 +211,9 @@ class ScriptProcessorNodeSingleThread {
       if (!this.watcherStdOut && !this.watcherStdErr) {
         [this.watcherStdOut, this.watcherStdErr] = initFS(this.wasmFs, this.messagePort);
       }
+      // nuke the "worker" fs to keep same behavior for all
+      rmrfFs(this.wasmFs)({}, "/");
+      syncWorkerFs(this.wasmFs)({}, getPersistentStorage());
       const startResult = this.csoundApi.csoundStart(this.csoundInstance);
       if (this.csoundApi._isRequestingRtMidiInput(this.csoundInstance)) {
         requestMidi({
@@ -257,16 +267,11 @@ class ScriptProcessorNodeSingleThread {
     this.exportApi.terminateInstance = this.terminateInstance.bind(this);
     this.exportApi.getAudioContext = async () => this.audioContext;
     this.exportApi.name = "Csound: ScriptProcessor Node, Single-threaded";
+    this.exportApi.fs = filesystemExtra;
 
-    // filesystem export
-    this.exportApi.writeToFs = writeToFs(this.wasmFs);
-    this.exportApi.lsFs = lsFs(this.wasmFs);
-    this.exportApi.llFs = llFs(this.wasmFs);
-    this.exportApi.readFromFs = readFromFs(this.wasmFs);
-    this.exportApi.rmrfFs = rmrfFs(this.wasmFs);
     this.exportApi = this.publicEvents.decorateAPI(this.exportApi);
 
-    this.exportApi.reset = () => this.resetCsound(true); 
+    this.exportApi.reset = () => this.resetCsound(true);
     // the default message listener
     this.exportApi.addListener("message", console.log);
     return this.exportApi;
@@ -274,7 +279,7 @@ class ScriptProcessorNodeSingleThread {
 
   async resetCsound(callReset) {
     if (
-      callReset && 
+      callReset &&
       this.currentPlayState !== "realtimePerformanceEnded" &&
       this.currentPlayState !== "realtimePerformanceStarted"
     ) {

@@ -1,4 +1,6 @@
 import path from "path";
+import { Buffer } from "buffer-es6";
+import { filenameToSteps } from "memfs/lib/volume";
 import { uint2String } from "@utils/text-encoders";
 import { cleanStdout } from "@utils/clean-stdout-string";
 import { clearArray } from "@utils/clear-array";
@@ -124,7 +126,7 @@ export const csoundWasiJsMessageCallback = ({ memory, streamBuffer, messagePort 
   });
 };
 
-export async function writeToFs(wasmFs) {
+export function writeToFs(wasmFs) {
   return (_, arrayBuffer, filePath) => {
     const realPath = path.join("/sandbox", filePath);
     const buf = Buffer.from(new Uint8Array(arrayBuffer));
@@ -132,21 +134,21 @@ export async function writeToFs(wasmFs) {
   };
 }
 
-export async function readFromFs(wasmFs) {
+export function readFromFs(wasmFs) {
   return (_, filePath) => {
     const realPath = path.join("/sandbox", filePath);
     return wasmFs.fs.readFileSync(realPath);
   };
 }
 
-export async function lsFs(wasmFs) {
+export function lsFs(wasmFs) {
   return (_, lsPath) => {
     const realPath = lsPath ? path.join("/sandbox", lsPath) : "/sandbox";
     return wasmFs.fs.readdirSync(realPath);
   };
 }
 
-export async function llFs(wasmFs) {
+export function llFs(wasmFs) {
   return (_, llPath) => {
     const realPath = llPath ? path.join("/sandbox", llPath) : "/sandbox";
     const files = wasmFs.fs.readdirSync(realPath);
@@ -179,20 +181,48 @@ function rmrfFsRec(wasmFs, rmrfPath) {
   }
 }
 
-export async function rmrfFs(wasmFs) {
+export function rmrfFs(wasmFs) {
   return (_, rmrfPath) => {
     rmrfFsRec(wasmFs, rmrfPath);
     wasmFs.volume.mkdirpSync("/sandbox");
   };
 }
 
-export async function mkdirp(wasmFs) {
+export function mkdirp(wasmFs) {
   return (_, filePath) => {
     wasmFs.volume.mkdirpSync(path.join("/", filePath), {
       mode: "0o777",
     });
   };
 }
+
+export function getWorkerFs(wasmFs) {
+  return () => wasmFs.toJSON("/sandbox");
+}
+
+// modified from @wasmer/wasmfs
+function fromJSONFixed(vol, json) {
+  const seperator = "/";
+  for (const filename_ in json) {
+    const filename = (filename_.startsWith("/") ? "/sandbox" : "/sandbox/") + filename_;
+    const data = json[filename_];
+    const isDirectory = data ? !Object.getPrototypeOf(data) : !data;
+    if (!isDirectory) {
+      const steps = filenameToSteps(filename);
+      if (steps.length > 1) {
+        const dirname = seperator + steps.slice(0, -1).join(seperator);
+        vol.mkdirpBase(dirname, 0o777);
+      }
+      vol.writeFileSync(filename, data ? Buffer.from(data) : data, { mode: 0o777 });
+    } else {
+      vol.mkdirpBase(filename, 0o777);
+    }
+  }
+}
+
+export const syncWorkerFs = (wasmFs) => (_, persistentStorage) => {
+  fromJSONFixed(wasmFs.volume, persistentStorage);
+};
 
 export const initFS = (wasmFs, messagePort) => {
   const streamState = {

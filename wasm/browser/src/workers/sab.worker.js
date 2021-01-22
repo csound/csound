@@ -1,5 +1,5 @@
 import * as Comlink from "comlink";
-import { initFS, writeToFs, lsFs, llFs, readFromFs, rmrfFs } from "@root/filesystem";
+import { initFS, getWorkerFs, syncWorkerFs } from "@root/filesystem/worker-fs";
 import MessagePortState from "@utils/message-port-state";
 import libcsoundFactory from "@root/libcsound";
 import loadWasm from "@root/module";
@@ -386,11 +386,8 @@ const initialize = async ({ wasmDataURI, withPlugins = [], messagePort, callback
   );
 
   const allAPI = pipe(
-    assoc("writeToFs", writeToFs(wasmFs)),
-    assoc("readFromFs", readFromFs(wasmFs)),
-    assoc("lsFs", lsFs(wasmFs)),
-    assoc("llFs", llFs(wasmFs)),
-    assoc("rmrfFs", rmrfFs(wasmFs)),
+    assoc("getWorkerFs", getWorkerFs(wasmFs)),
+    assoc("syncWorkerFs", syncWorkerFs(wasmFs)),
     assoc("csoundStart", startHandler),
     assoc("wasm", wasm),
   )(libraryCsound);

@@ -65,6 +65,10 @@ export class IPCMessagePorts {
     this.sabWorkerCallbackReply = sabWorkerCallbackReply;
     this.sabMainCallbackReply = sabMainCallbackReply;
 
+    const { port1: mainFilesystemPort, port2: workerFilesystemPort } = new MessageChannel();
+    this.mainFilesystemPort = mainFilesystemPort;
+    this.workerFilesystemPort = workerFilesystemPort;
+
     this.restartAudioWorkerPorts = this.restartAudioWorkerPorts.bind(this);
   }
 

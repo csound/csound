@@ -159,6 +159,39 @@ i1 0 2
 </CsoundSynthesizer>
 `;
 
+  const samplesTest = `
+<CsoundSynthesizer>
+<CsOptions>
+-odac
+</CsOptions>
+<CsInstruments>
+sr = 44100
+ksmps = 32
+nchnls = 1
+0dbfs = 1
+
+instr 1
+ Ssample = "tiny_test_sample.wav"
+ aRead[] diskin Ssample, 1, 0, 0
+ out aRead[0], aRead[0]
+endin
+
+instr 2
+  aSig monitor
+  fout "monitor_out.wav", 4, aSig
+endin
+
+</CsInstruments>
+<CsScore>
+i 2 0 1
+i 1 0 0.1
+i 1 + .
+i 1 + .
+e
+</CsScore>
+</CsoundSynthesizer>
+`;
+
   mocha.setup({ ui: "bdd", timeout: 10000 }).fullTrace();
 
   if (isCI) {
@@ -402,6 +435,42 @@ i1 0 2
         await csoundObj.compileCsdText(helloWorld);
         await csoundObj.start();
         await csoundObj.stop();
+        await csoundObj.terminateInstance();
+      });
+
+      it("can play a sample, write a sample and read the output file", async function () {
+        const csoundObj = await Csound(test);
+        const response = await fetch("/tiny_test_sample.wav");
+        const testSampleArrayBuffer = await response.arrayBuffer();
+        const testSample = new Uint8Array(testSampleArrayBuffer);
+        csoundObj.fs.writeFileSync("tiny_test_sample.wav", testSample);
+
+        assert.include(
+          csoundObj.fs.readdirSync("/"),
+          "tiny_test_sample.wav",
+          "The sample was written into the root dir",
+        );
+
+        assert.equal(0, await csoundObj.compileCsdText(samplesTest), "The test string is valid");
+        assert.equal(
+          0,
+          await csoundObj.start(),
+          "Csounds starts normally, indicating the sample was found",
+        );
+
+        // allow the example to play until the end
+        let endResolver;
+        const waitUntilEnd = new Promise((resolve) => {
+          endResolver = resolve;
+        });
+        csoundObj.on("realtimePerformanceEnded", endResolver);
+        await waitUntilEnd;
+
+        assert.include(
+          csoundObj.fs.readdirSync("/"),
+          "monitor_out.wav",
+          "The sample which csound wrote with fout, is accessible after the end of performance",
+        );
         await csoundObj.terminateInstance();
       });
     });

@@ -7,6 +7,11 @@ import { csoundApiRename, fetchPlugins, makeProxyCallback, stopableStates } from
 import { IPCMessagePorts, messageEventHandler } from "@root/mains/messages.main";
 import { EventPromises } from "@utils/event-promises";
 import { PublicEventAPI } from "@root/events";
+import {
+  filesystemExtra,
+  getPersistentStorage,
+  syncPersistentStorage,
+} from "@root/filesystem/persistent-fs";
 
 class VanillaWorkerMainThread {
   constructor({
@@ -115,9 +120,10 @@ class VanillaWorkerMainThread {
       }
 
       case "realtimePerformanceEnded": {
+        log(`event: realtimePerformanceEnded`)();
         // a noop if the stop promise already exists
         this.eventPromises.createStopPromise();
-        log(`event: realtimePerformanceEnded`)();
+        syncPersistentStorage(await this.getWorkerFs());
         this.midiPortStarted = false;
         this.publicEvents.triggerRealtimePerformanceEnded(this);
         this.eventPromises.releaseStopPromises();
@@ -138,6 +144,7 @@ class VanillaWorkerMainThread {
       }
       case "renderEnded": {
         log(`event: renderEnded received, beginning cleanup`)();
+        syncPersistentStorage(await this.getWorkerFs());
         this.eventPromises.releaseStopPromises();
         this.publicEvents.triggerRenderEnded(this);
         break;
@@ -190,6 +197,7 @@ class VanillaWorkerMainThread {
           requestPort: this.ipcMessagePorts.csoundWorkerFrameRequestPort,
           audioInputPort: this.ipcMessagePorts.csoundWorkerAudioInputPort,
           rtmidiPort: this.ipcMessagePorts.csoundWorkerRtMidiPort,
+          fsPort: this.ipcMessagePorts.workerFilesystemPort,
           // these values are only set if the user provided them
           // during init or by passing audioContext
           sampleRate: this.sampleRate,
@@ -202,6 +210,7 @@ class VanillaWorkerMainThread {
           this.ipcMessagePorts.csoundWorkerFrameRequestPort,
           this.ipcMessagePorts.csoundWorkerAudioInputPort,
           this.ipcMessagePorts.csoundWorkerRtMidiPort,
+          this.ipcMessagePorts.workerFilesystemPort,
         ],
       ),
     );
@@ -209,12 +218,14 @@ class VanillaWorkerMainThread {
     this.exportApi.pause = this.csoundPause.bind(this);
     this.exportApi.resume = this.csoundResume.bind(this);
     this.exportApi.terminateInstance = this.terminateInstance.bind(this);
+    this.exportApi.fs = filesystemExtra;
 
-    this.exportApi.writeToFs = makeProxyCallback(proxyPort, this.csoundInstance, "writeToFs");
-    this.exportApi.readFromFs = makeProxyCallback(proxyPort, this.csoundInstance, "readFromFs");
-    this.exportApi.llFs = makeProxyCallback(proxyPort, this.csoundInstance, "llFs");
-    this.exportApi.lsFs = makeProxyCallback(proxyPort, this.csoundInstance, "lsFs");
-    this.exportApi.rmrfFs = makeProxyCallback(proxyPort, this.csoundInstance, "rmrfFs");
+    // sync/getWorkerFs is only for internal usage
+    this.getWorkerFs = makeProxyCallback(proxyPort, this.csoundInstance, "getWorkerFs");
+    this.getWorkerFs = this.getWorkerFs.bind(this);
+    this.syncWorkerFs = makeProxyCallback(proxyPort, this.csoundInstance, "syncWorkerFs");
+    this.syncWorkerFs = this.syncWorkerFs.bind(this);
+
     this.exportApi.getAudioContext = async () => this.audioWorker.audioContext;
     this.exportApi.getNode = async () => this.audioWorker.audioWorkletNode;
     this.exportApi = this.publicEvents.decorateAPI(this.exportApi);
@@ -237,6 +248,7 @@ class VanillaWorkerMainThread {
         case "csoundStart": {
           const csoundStart = async function () {
             this.eventPromises.createStartPromise();
+            await this.syncWorkerFs(getPersistentStorage());
 
             const startResult = await proxyCallback({
               csound: this.csoundInstance,

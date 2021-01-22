@@ -15,6 +15,11 @@ import { isEmpty } from "ramda";
 import { csoundApiRename, fetchPlugins, makeProxyCallback, stopableStates } from "@root/utils";
 import { EventPromises } from "@utils/event-promises";
 import { PublicEventAPI } from "@root/events";
+import {
+  filesystemExtra,
+  getPersistentStorage,
+  syncPersistentStorage,
+} from "@root/filesystem/persistent-fs";
 
 class SharedArrayBufferMainThread {
   constructor({
@@ -157,6 +162,8 @@ class SharedArrayBufferMainThread {
       }
       case "realtimePerformanceEnded": {
         this.eventPromises.createStopPromise();
+        syncPersistentStorage(await this.getWorkerFs());
+
         // flush out events sent during the time which the worker was stopping
         Object.values(this.callbackBuffer).forEach(({ argumentz, apiKey, resolveCallback }) =>
           this.proxyPort.callUncloned(apiKey, argumentz).then(resolveCallback),
@@ -167,6 +174,7 @@ class SharedArrayBufferMainThread {
         initialSharedState.forEach((value, index) => {
           Atomics.store(this.audioStatePointer, index, value);
         });
+        this.publicEvents.triggerRealtimePerformanceEnded(this);
         break;
       }
       case "realtimePerformancePaused": {
@@ -182,6 +190,7 @@ class SharedArrayBufferMainThread {
         break;
       }
       case "renderEnded": {
+        syncPersistentStorage(await this.getWorkerFs());
         this.publicEvents.triggerRenderEnded(this);
         log(`event: renderEnded received, beginning cleanup`)();
         break;
@@ -262,8 +271,10 @@ class SharedArrayBufferMainThread {
             })),
           );
       } else if (event.data === "releaseStop") {
+        this.onPlayStateChange(
+          this.currentPlayState === "renderStarted" ? "renderEnded" : "realtimePerformanceEnded",
+        );
         this.eventPromises.releaseStopPromises();
-        this.publicEvents.triggerRealtimePerformanceEnded(this);
       } else {
         event.data.forEach(({ id, answer }) => {
           this.callbackBuffer[id].resolveCallback(answer);
@@ -296,12 +307,14 @@ class SharedArrayBufferMainThread {
     this.exportApi.pause = this.csoundPause.bind(this);
     this.exportApi.resume = this.csoundResume.bind(this);
     this.exportApi.terminateInstance = this.terminateInstance.bind(this);
+    this.exportApi.fs = filesystemExtra;
 
-    this.exportApi.writeToFs = makeProxyCallback(proxyPort, csoundInstance, "writeToFs");
-    this.exportApi.readFromFs = makeProxyCallback(proxyPort, csoundInstance, "readFromFs");
-    this.exportApi.llFs = makeProxyCallback(proxyPort, csoundInstance, "llFs");
-    this.exportApi.lsFs = makeProxyCallback(proxyPort, csoundInstance, "lsFs");
-    this.exportApi.rmrfFs = makeProxyCallback(proxyPort, csoundInstance, "rmrfFs");
+    // sync/getWorkerFs is only for internal usage
+    this.getWorkerFs = makeProxyCallback(proxyPort, csoundInstance, "getWorkerFs");
+    this.getWorkerFs = this.getWorkerFs.bind(this);
+    this.syncWorkerFs = makeProxyCallback(proxyPort, csoundInstance, "syncWorkerFs");
+    this.syncWorkerFs = this.syncWorkerFs.bind(this);
+
     this.exportApi.enableAudioInput = () =>
       console.warn(
         `enableAudioInput was ignored: please use -iadc option before calling start with useWorker=true`,
@@ -334,6 +347,7 @@ class SharedArrayBufferMainThread {
               return -1;
             }
             this.eventPromises.createStartPromise();
+            await this.syncWorkerFs(getPersistentStorage());
 
             const startResult = await proxyCallback({
               audioStateBuffer,
@@ -344,6 +358,7 @@ class SharedArrayBufferMainThread {
             });
 
             await this.eventPromises.waitForStart();
+
             this.ipcMessagePorts &&
               this.ipcMessagePorts.sabMainCallbackReply.postMessage({ unlock: true });
 
@@ -365,6 +380,7 @@ class SharedArrayBufferMainThread {
               ].join("\n"),
             )();
             if (this.eventPromises.isWaitingToStop()) {
+              log("already waiting to stop, doing nothing")();
               return -1;
             } else if (stopableStates.has(this.currentPlayState)) {
               log("Marking SAB's state to STOP")();
