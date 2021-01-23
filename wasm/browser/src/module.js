@@ -1,10 +1,10 @@
+import * as path from "path-browserify";
 import { WASI } from "@wasmer/wasi";
 import { WasmFs } from "@wasmer/wasmfs";
 import { inflate } from "pako";
 import { dlinit } from "@root/dlinit";
 import { csoundWasiJsMessageCallback, initFS } from "@root/filesystem/worker-fs";
 import { logWasmModule as log } from "@root/logger";
-import path from "path";
 
 const PAGE_SIZE = 65536;
 

@@ -105,7 +105,7 @@ class VanillaWorkerMainThread {
   }
 
   async onPlayStateChange(newPlayState) {
-    if (!this.publicEvents) {
+    if (!this.publicEvents || newPlayState === this.currentPlayState) {
       // prevent error after termination
       return;
     }
@@ -115,7 +115,6 @@ class VanillaWorkerMainThread {
       case "realtimePerformanceStarted": {
         log(`event: realtimePerformanceStarted from worker, now preparingRT..`)();
         await this.prepareRealtimePerformance();
-        this.publicEvents.triggerRealtimePerformanceStarted(this);
         break;
       }
 
@@ -126,7 +125,7 @@ class VanillaWorkerMainThread {
         syncPersistentStorage(await this.getWorkerFs());
         this.midiPortStarted = false;
         this.publicEvents.triggerRealtimePerformanceEnded(this);
-        this.eventPromises.releaseStopPromises();
+        await this.eventPromises.releaseStopPromises();
         break;
       }
       case "realtimePerformancePaused": {
@@ -138,15 +137,15 @@ class VanillaWorkerMainThread {
         break;
       }
       case "renderStarted": {
-        this.eventPromises.releaseStartPromises();
+        await this.eventPromises.releaseStartPromises();
         this.publicEvents.triggerRenderStarted(this);
         break;
       }
       case "renderEnded": {
         log(`event: renderEnded received, beginning cleanup`)();
         syncPersistentStorage(await this.getWorkerFs());
-        this.eventPromises.releaseStopPromises();
         this.publicEvents.triggerRenderEnded(this);
+        await this.eventPromises.releaseStopPromises();
         break;
       }
 

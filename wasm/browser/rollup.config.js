@@ -5,7 +5,6 @@ import arraybufferPlugin from "./script/rollup-arraybuffer";
 import inlineWebWorkerPlugin from "./script/inline-webworker";
 import nodePolyfills from "rollup-plugin-node-polyfills";
 import { terser } from "rollup-plugin-terser";
-// import strip from "@rollup/plugin-strip";
 import babel from "@rollup/plugin-babel";
 import pluginJson from "@rollup/plugin-json";
 import replace from "@rollup/plugin-replace";
@@ -104,6 +103,7 @@ const mainByType = (type) => ({
   },
   plugins: [
     ...pluginsCommon,
+    ...(PROD ? [nodePolyfills()] : []),
     inlineWebWorkerPlugin({
       include: ["**/worklet.worker.js", "**/worklet.singlethread.worker.js"],
       dataUrl: true,
@@ -219,6 +219,7 @@ export default [
       file: "dist/factory.esm.js",
       format: "module",
       sourcemap: false,
+      globals,
     },
     plugins: [...pluginsCommon],
   },

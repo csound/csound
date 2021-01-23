@@ -1,6 +1,5 @@
 import { createFsFromVolume } from "memfs";
-import { filenameToSteps, pathToFilename, Volume } from "memfs/lib/volume";
-import path from "path";
+import { Volume } from "memfs/lib/volume";
 
 // because workers come and go, for users to have some
 // persistency, we'll sync a non-worker storage
@@ -16,7 +15,7 @@ function fromJSONFixed(vol, json) {
     const data = json[filename];
     const isDirectory = data ? Object.getPrototypeOf(data) === null : data === null;
     if (!isDirectory) {
-      const steps = filenameToSteps(filename);
+      const steps = filename.split(seperator);
       if (steps.length > 1) {
         const dirname = seperator + steps.slice(0, -1).join(seperator);
         vol.mkdirpBase(dirname, 0o777);
@@ -39,18 +38,15 @@ function _toJSON(link, json = {}) {
     if (child) {
       const node = child.getNode();
       if (node && node.isFile()) {
-        let filename = child.getPath();
-        if (path) filename = path.relative(path, filename);
+        const filename = child.getPath();
         json[filename] = node.getBuffer();
       } else if (node && node.isDirectory()) {
-        _toJSON(child, json, path);
+        _toJSON(child, json);
       }
     }
   }
 
-  let directoryPath = link.getPath();
-
-  if (path) directoryPath = path.relative(path, directoryPath);
+  const directoryPath = link.getPath();
 
   if (directoryPath && isEmpty) {
     delete json[directoryPath];
@@ -66,7 +62,7 @@ function toJSONFixed(volume, paths, json = {}, isRelative = false) {
   if (paths) {
     if (!Array.isArray(paths)) paths = [paths];
     for (const path of paths) {
-      const filename = pathToFilename(path);
+      const filename = path.split("/").slice(-1)[0];
       const link = volume.getResolvedLink(filename);
       if (!link) continue;
       links.push(link);

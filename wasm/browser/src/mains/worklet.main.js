@@ -82,6 +82,15 @@ class AudioWorkletMainThread {
       case "realtimePerformanceStarted": {
         log("event received: realtimePerformanceStarted")();
         await this.initialize();
+        if (
+          this.csoundWorkerMain &&
+          this.csoundWorkerMain.eventPromises &&
+          !this.csoundWorkerMain.hasSharedArrayBuffer
+        ) {
+          this.csoundWorkerMain.publicEvents &&
+            this.csoundWorkerMain.publicEvents.triggerRealtimePerformanceStarted(this);
+          await this.csoundWorkerMain.eventPromises.releaseStartPromises();
+        }
         break;
       }
       case "realtimePerformanceEnded": {
@@ -126,14 +135,6 @@ class AudioWorkletMainThread {
       default: {
         break;
       }
-    }
-
-    if (
-      this.csoundWorkerMain &&
-      this.csoundWorkerMain.eventPromises &&
-      !this.csoundWorkerMain.hasSharedArrayBuffer
-    ) {
-      await this.csoundWorkerMain.eventPromises.releaseStartPromises();
     }
   }
 

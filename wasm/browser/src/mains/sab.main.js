@@ -174,7 +174,6 @@ class SharedArrayBufferMainThread {
         initialSharedState.forEach((value, index) => {
           Atomics.store(this.audioStatePointer, index, value);
         });
-        this.publicEvents.triggerRealtimePerformanceEnded(this);
         break;
       }
       case "realtimePerformancePaused": {
@@ -275,6 +274,7 @@ class SharedArrayBufferMainThread {
           this.currentPlayState === "renderStarted" ? "renderEnded" : "realtimePerformanceEnded",
         );
         this.eventPromises.releaseStopPromises();
+        this.publicEvents.triggerRealtimePerformanceEnded(this);
       } else {
         event.data.forEach(({ id, answer }) => {
           this.callbackBuffer[id].resolveCallback(answer);

@@ -17,6 +17,7 @@
     "unicorn/no-array-reduce": "off",
     "unicorn/prefer-optional-catch-binding": "off",
     "unicorn/no-nested-ternary": "off",
-    "unicorn/no-array-callback-reference": "off"
+    "unicorn/no-array-callback-reference": "off",
+    "unicorn/no-array-for-each": "off"
   }
 }

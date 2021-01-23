@@ -1,6 +1,5 @@
-import path from "path";
+import * as path from "path-browserify";
 import { Buffer } from "buffer-es6";
-import { filenameToSteps } from "memfs/lib/volume";
 import { uint2String } from "@utils/text-encoders";
 import { cleanStdout } from "@utils/clean-stdout-string";
 import { clearArray } from "@utils/clear-array";
@@ -208,7 +207,7 @@ function fromJSONFixed(vol, json) {
     const data = json[filename_];
     const isDirectory = data ? !Object.getPrototypeOf(data) : !data;
     if (!isDirectory) {
-      const steps = filenameToSteps(filename);
+      const steps = filename.split(seperator);
       if (steps.length > 1) {
         const dirname = seperator + steps.slice(0, -1).join(seperator);
         vol.mkdirpBase(dirname, 0o777);

@@ -445,6 +445,13 @@ e
         const testSample = new Uint8Array(testSampleArrayBuffer);
         csoundObj.fs.writeFileSync("tiny_test_sample.wav", testSample);
 
+        // allow the example to play until the end
+        let endResolver;
+        const waitUntilEnd = new Promise((resolve) => {
+          endResolver = resolve;
+        });
+        csoundObj.on("realtimePerformanceEnded", endResolver);
+
         assert.include(
           csoundObj.fs.readdirSync("/"),
           "tiny_test_sample.wav",
@@ -458,14 +465,7 @@ e
           "Csounds starts normally, indicating the sample was found",
         );
 
-        // allow the example to play until the end
-        let endResolver;
-        const waitUntilEnd = new Promise((resolve) => {
-          endResolver = resolve;
-        });
-        csoundObj.on("realtimePerformanceEnded", endResolver);
         await waitUntilEnd;
-
         assert.include(
           csoundObj.fs.readdirSync("/"),
           "monitor_out.wav",

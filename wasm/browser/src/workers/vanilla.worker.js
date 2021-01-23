@@ -66,8 +66,6 @@ const createRealtimeAudioThread = ({
 
   const zeroDecibelFullScale = libraryCsound.csoundGet0dBFS(csound);
 
-  workerMessagePort.broadcastPlayState("realtimePerformanceStarted");
-
   // const { buffer } = wasm.exports.memory;
   const inputBufferPtr = libraryCsound.csoundGetSpin(csound);
   const outputBufferPtr = libraryCsound.csoundGetSpout(csound);
@@ -87,6 +85,7 @@ const createRealtimeAudioThread = ({
 
   let lastPerformance = 0;
   let currentCsoundBufferPos = 0;
+  workerMessagePort.broadcastPlayState("realtimePerformanceStarted");
 
   audioProcessCallback = ({ numFrames }) => {
     const outputAudioPacket = instantiateAudioPacket(nchnls, numFrames);

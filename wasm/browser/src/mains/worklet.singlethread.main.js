@@ -30,6 +30,7 @@ import { api as API } from "@root/libcsound";
 import { PublicEventAPI } from "@root/events";
 import { enableAudioInput } from "./io.utils";
 import { requestMidi } from "@utils/request-midi";
+import { EventPromises } from "@utils/event-promises";
 import {
   persistentFilesystem,
   getPersistentStorage,
@@ -47,6 +48,7 @@ class SingleThreadAudioWorkletMainThread {
     this.exportApi = {};
     this.ipcMessagePorts = new IPCMessagePorts();
     this.publicEvents = new PublicEventAPI(this);
+    this.eventPromises = new EventPromises();
     this.exportApi = this.publicEvents.decorateAPI(this.exportApi);
     // the default message listener
     this.exportApi.addListener("message", console.log);
@@ -101,6 +103,7 @@ class SingleThreadAudioWorkletMainThread {
       }
 
       case "realtimePerformanceEnded": {
+        this.eventPromises.createStopPromise();
         syncPersistentStorage(await this.getWorkerFs());
         this.midiPortStarted = false;
         this.currentPlayState = undefined;
@@ -214,13 +217,7 @@ class SingleThreadAudioWorkletMainThread {
 
         case "csoundStart": {
           const csoundStart = async function () {
-            if (!csoundInstance || typeof csoundInstance !== "number") {
-              console.error("starting csound failed because csound instance wasn't created");
-              return -1;
-            }
-            const startPromise = new Promise((resolve) => {
-              this.startPromiz = resolve;
-            });
+            this.eventPromises.createStartPromise();
 
             await this.syncWorkerFs(getPersistentStorage());
 
@@ -234,12 +231,28 @@ class SingleThreadAudioWorkletMainThread {
               });
             }
             this.publicEvents.triggerOnAudioNodeCreated(this.node);
-            await startPromise;
+            await this.eventPromises.waitForStart();
             return startResult;
           };
 
           csoundStart.toString = () => reference.toString();
           this.exportApi.start = csoundStart.bind(this);
+          break;
+        }
+        case "csoundStop": {
+          const csoundStop = async () => {
+            if (this.eventPromises.isWaitingToStop()) {
+              log("already waiting to stop, doing nothing")();
+              return -1;
+            } else {
+              this.eventPromises.createStopPromise();
+              const stopResult = await proxyCallback();
+              await this.eventPromises.waitForStop();
+              return stopResult;
+            }
+          };
+          csoundStop.toString = () => reference.toString();
+          this.exportApi.stop = csoundStop.bind(this);
           break;
         }
         default: {
