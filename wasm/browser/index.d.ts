@@ -1,3 +1,4 @@
+import { IFs } from "memfs";
 /**
  * @property "play" - called anytime performance goes from pause/stop to a running state.
  * @property "pause" - called after any successful csound.pause() calls.
@@ -15,6 +16,9 @@
  * listener can be removed by the user.
  */
 declare type PublicEvents = number;
+
+declare class PublicEventAPI {
+}
 
 /**
  * CsoundObj API.
@@ -69,6 +73,11 @@ declare namespace CsoundObj {
      * Removes the specified listener from the listener array for the event named eventName.
      */
     function removeListener(eventName: PublicEvents, listener: (...params: any[]) => any): external;
+    /**
+     * The in-browser filesystem based on nodejs's
+     * built-in module "fs"
+     */
+    var fs: IFs;
     /**
      * Returns the sample rate from Csound instance
      */
@@ -395,6 +404,27 @@ declare function Csound(params?: {
     useSPN?: boolean;
 }): Promise<CsoundObj | undefined>;
 
+declare class IPCMessagePorts {
+}
+
+declare class ScriptProcessorNodeMainThread {
+}
+
+declare class SharedArrayBufferMainThread {
+}
+
+declare class ScriptProcessorNodeSingleThread {
+}
+
+declare class VanillaWorkerMainThread {
+}
+
+declare class AudioWorkletMainThread {
+}
+
+declare class SingleThreadAudioWorkletMainThread {
+}
+
 declare type CSOUND_PARAMS = {
     debug_mode: number;
     buffer_frames: number;
@@ -415,4 +445,16 @@ declare type CSOUND_PARAMS = {
     midi_key_pch: number;
     midi_velocity: number;
 };
+
+declare class EventPromises {
+}
+
+declare class CsoundScriptNodeProcessor {
+}
+
+declare class WorkletSinglethreadWorker extends AudioWorkletProcessor {
+}
+
+declare class CsoundWorkletProcessor extends AudioWorkletProcessor {
+}
 

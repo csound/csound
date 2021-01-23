@@ -44,6 +44,7 @@ CsoundObj API.
     * _global_
         * [tableCopyOut(tableNum)](#tableCopyOut) ⇒ <code>Promise.&lt;(Float64Array\|undefined)&gt;</code>
     * _static_
+        * [.fs](#CsoundObj.fs) : <code>IFs:memfs</code>
         * [.removeListener(eventName, listener)](#CsoundObj.removeListener) ⇒ <code>external:EventEmitter</code>
         * [.eventNames()](#CsoundObj.eventNames) ⇒ <code>Array.&lt;string&gt;</code>
         * [.listenerCount()](#CsoundObj.listenerCount) ⇒ <code>number</code>
@@ -124,6 +125,13 @@ CsoundObj API.
 | --- | --- |
 | tableNum | <code>string</code> | 
 
+<a name="CsoundObj.fs"></a>
+
+### CsoundObj.fs : <code>IFs:memfs</code>
+The in-browser filesystem based on nodejs's
+built-in module "fs"
+
+**Kind**: static property of [<code>CsoundObj</code>](#CsoundObj)  
 <a name="CsoundObj.removeListener"></a>
 
 ### CsoundObj.removeListener(eventName, listener) ⇒ <code>external:EventEmitter</code>

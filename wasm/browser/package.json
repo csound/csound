@@ -63,7 +63,7 @@
     "build:readme": "node script/generate-readme.js > README.md",
     "test:ci": "node tests/selenium_runner.js",
     "test:open": "http-server ./tests -c-1 --no-dotfiles",
-    "build:types": "jsdoc -t node_modules/tsd-jsdoc/dist -r src -d .; mv types.d.ts index.d.ts"
+    "build:types": "node script/generate-typings.js"
   },
   "devDependencies": {
     "@babel/core": "^7.12.10",
@@ -92,6 +92,8 @@
     "eslint-plugin-unicorn": "^27.0.0",
     "http-server": "^0.12.3",
     "jsdoc": "^3.6.6",
+    "jsdoc-export-default-interop": "^0.3.1",
+    "jsdoc-plugin-typescript": "^2.0.6",
     "jsdoc-to-markdown": "^6.0.1",
     "lines-logger": "2.1.2",
     "mocha": "^8.2.1",

@@ -3,8 +3,16 @@ import { Volume } from "memfs/lib/volume";
 
 // because workers come and go, for users to have some
 // persistency, we'll sync a non-worker storage
-// with the filesystems spawned on threads
+// with the filesystems spawned on threads  * @extends {typeof import("memfs").IFs}
 export const persistentStorage = new Volume();
+
+/**
+ * The in-browser filesystem based on nodejs's
+ * built-in module "fs"
+ * @name fs
+ * @memberof CsoundObj
+ * @type {IFs:memfs}
+ */
 export const persistentFilesystem = createFsFromVolume(persistentStorage);
 
 // modified from @wasmer/wasmfs
