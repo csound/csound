@@ -7,6 +7,11 @@
   "browser": "./dist/csound.esm.js",
   "typings": "index.d.ts",
   "type": "module",
+  "exports": {
+    "require": "./dist/csound.cjs.js",
+    "import": "./dist/csound.esm.js",
+    "default": "./dist/csound.esm.js"
+  },
   "files": [
     "dist/csound*",
     "dist/factory*",
