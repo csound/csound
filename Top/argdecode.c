@@ -313,6 +313,7 @@ static const char *longUsageList[] = {
                                    "PFFFT = 1, vDSP =2)"),
   Str_noop("--udp-echo              echo UDP commands on terminal"),
   Str_noop("--aft-zero              set aftertouch to zero, not 127 (default)"),
+  Str_noop("--safe                  include hard clipping in audio output"),
   " ",
   Str_noop("--help                  long help"),
   NULL
