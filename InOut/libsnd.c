@@ -62,6 +62,7 @@ static inline void alloc_globals(CSOUND *csound)
 
 static void spoutsf(CSOUND *csound)
 {
+    OPARMS  *O = csound->oparms;
     uint32_t   chn = 0;
     int     n;
     int spoutrem = csound->nspout;
@@ -90,6 +91,15 @@ static void spoutsf(CSOUND *csound)
       if (absamp > csound->e0dbfs) {        /* out of range?     */
         csound->rngcnt[chn]++;              /*  report it        */
         csound->rngflg = 1;
+        //printf("save = %d\n", O->limiter);
+#if 1
+        if (O->limiter) {
+          MYFLT x = *(sp-1);
+          //printf("Limit %f \n", *(sp-1));
+          if (x<0) *(sp-1) = -csound->e0dbfs;
+          else *(sp-1) = csound->e0dbfs;
+        }
+#endif
       }
       if (csound->multichan) {
         if (++chn >= csound->nchnls) {

@@ -43,11 +43,11 @@ to an Arduino.
 
 - ctrlprint prints the result of a ctrlsave call in a form that can be used in an orchestra.
 
-- ctrlprintpresets ***NOT DOCUMENTED***
+- ctrlprintpresets prints the MIDI controller preset.
 
-- ctrlselect ***NOT DOCUMENTED***
+- ctrlselect selects a preset for MIDI controller values.
 
-- ctrlpreset ***NOT DOCUMENTED***
+- ctrlpreset defines a preset for MIDI controllers.
 
 - outall writes a signal to all output channels.
 

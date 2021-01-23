@@ -263,6 +263,7 @@ typedef struct CORFIL {
     int     ksmps_override;
     int     fft_lib;
     int     echo;
+    int     limiter;
   } OPARMS;
 
   typedef struct arglst {
