@@ -129,7 +129,7 @@ declare interface CsoundObj {
      * Set a single csound option (flag),
      * no spaces are allowed in the string.
      */
-    setOption: () =>Promise<number>;
+    setOption: (option: string) =>Promise<number>;
     /**
      * Configure Csound with a given set of
      * parameters defined in the CSOUND_PARAMS structure.

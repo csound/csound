@@ -136,6 +136,7 @@ csoundGetSizeOfMYFLT.toString = () => "getSizeOfMYFLT = async () => Number;";
  * @function
  * @name setOption
  * @memberof CsoundObj
+ * @param {string} option
  * @return {Promise.<number>}
  */
 export const csoundSetOption = curry((wasm, csound, option) => {
