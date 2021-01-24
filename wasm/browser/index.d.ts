@@ -246,6 +246,14 @@ declare interface CsoundObj {
      */
     compileCsdText: (orc: string) => Promise<number>;
     /**
+     * Pauses a performance if it's running
+     */
+    pause: () => Promise<undefined>;
+    /**
+     * Resumes a performance if it's paused
+     */
+    resume: () => Promise<undefined>;
+    /**
      * Performs(plays) audio until end is reached
      */
     perform: () => Promise<number>;
