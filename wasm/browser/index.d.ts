@@ -415,6 +415,8 @@ declare function Csound(params?: {
     useSPN?: boolean;
 }): Promise<CsoundObj | undefined>;
 
+declare type Csound = typeof Csound;
+
 declare type CSOUND_PARAMS = {
     debug_mode: number;
     buffer_frames: number;
