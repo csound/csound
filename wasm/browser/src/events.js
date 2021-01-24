@@ -111,16 +111,6 @@ export class PublicEventAPI {
 
   decorateAPI(exportApi) {
     /**
-     * Removes the specified listener from the listener array for the event named eventName.
-     * @function
-     * @name removeListener
-     * @memberof CsoundObj
-     * @param {PublicEvents} eventName
-     * @param {function} listener
-     * @return {external:EventEmitter}
-     */
-    exportApi.removeListener = this.eventEmitter.removeListener.bind(this.eventEmitter);
-    /**
      * Returns an array listing the events for which the emitter has registered listeners.
      * The values in the array are strings.
      * @function
@@ -200,7 +190,6 @@ export class PublicEventAPI {
      * @name removeAllListeners
      * @memberof CsoundObj
      * @param {PublicEvents} eventName
-     * @param {function} listener
      * @return {external:EventEmitter}
      */
     exportApi.removeAllListeners = this.eventEmitter.removeAllListeners.bind(this.eventEmitter);

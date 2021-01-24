@@ -107,7 +107,7 @@ csoundTableCopyOut.toString = () => "tableCopyOut = async (tableNum) => ?Float64
  * @alias csoundTableCopyOut
  * @async
  * @function
- * @name tableCopyOut
+ * @name getTable
  * @memberof CsoundObj
  * @param {string} tableNum
  * @return {Promise.<Float64Array|undefined>}
