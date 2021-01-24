@@ -112,11 +112,11 @@ const mainByType = (type) => ({
       include: ["**/sab.worker.js", "**/vanilla.worker.js", "**/old-spn.worker.js"],
       dataUrl: false,
     }),
-    R.assoc("plugins", R.append("add-module-exports", babelCommon.plugins), babelCommon),
+    // R.assoc("plugins", R.append("add-module-exports", babelCommon.plugins), babelCommon),
     arraybufferPlugin({
       include: ["@csound/wasm-bin/lib/csound.dylib.wasm.z"],
     }),
-    ...(PROD ? [terser()] : []),
+    ...(PROD ? [terser({ module: type === "module" })] : []),
   ],
 });
 

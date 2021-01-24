@@ -23,7 +23,7 @@ declare class PublicEventAPI {
 /**
  * CsoundObj API.
  */
-declare namespace CsoundObj {
+declare interface CsoundObj {
     /**
      * Removes the specified listener from the listener array for the event named eventName.
      */
@@ -457,4 +457,3 @@ declare class WorkletSinglethreadWorker extends AudioWorkletProcessor {
 
 declare class CsoundWorkletProcessor extends AudioWorkletProcessor {
 }
-

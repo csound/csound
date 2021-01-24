@@ -3,9 +3,6 @@
   "version": "6.16.0-beta3",
   "description": "A package containing csound wasm binaries which can be bundled into other csound packages 📂",
   "main": "./lib/csound.wasm",
-  "exports": {
-    "default": "./lib/csound.wasm"
-  },
   "files": [
     "src",
     "lib"
