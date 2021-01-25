@@ -1222,6 +1222,17 @@ static int decode_long(CSOUND *csound, char *s, int argc, char **argv)
       csound->aftouch = 0;
       return 1;
     }
+    else if (!(strncmp(s, "limiter=", 8)))  {
+      s += 8;
+      O->limiter = atof(s);
+      if (O->limiter>1.0 || O->limiter<0) {
+        csound->MessageS(csound, CSOUNDMSG_STDOUT,
+                         Str("Ignoring invalid limiter\n"));
+        O->limiter = 0;
+      }
+      return 1;
+
+    }
     else if (!(strcmp(s, "limiter"))) {
       O->limiter = 0.25;
       return 1;

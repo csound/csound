@@ -71,7 +71,7 @@ static void spoutsf(CSOUND *csound)
     uint32  nframes = csound->libsndStatics.nframes;
     MYFLT lim = O->limiter*csound->e0dbfs;
     MYFLT rlim = lim==0 ? 0 : FL(1.0)/lim;
-    MYFLT k1 = lim==0? 0 : PI_F/(FL(2.0) * O->limiter * csound->e0dbfs);
+    MYFLT k1 = FL(1.0)/TANH(FL(1.0));
  nchk:
     /* if nspout remaining > buf rem, prepare to send in parts */
     if ((n = spoutrem) > (int) csound->libsndStatics.outbufrem) {
@@ -87,7 +87,7 @@ static void spoutsf(CSOUND *csound)
       if (absamp < FL(0.0)) {
         absamp = -absamp;
       }
-#if JPFF
+#if 1
       if (O->limiter) {
         MYFLT x = *(sp-1);
         if (x< -lim) *(sp-1) = -lim;
