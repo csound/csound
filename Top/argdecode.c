@@ -313,7 +313,7 @@ static const char *longUsageList[] = {
                                    "PFFFT = 1, vDSP =2)"),
   Str_noop("--udp-echo              echo UDP commands on terminal"),
   Str_noop("--aft-zero              set aftertouch to zero, not 127 (default)"),
-  Str_noop("--limiter               include clipping in audio output"),
+  Str_noop("--limiter[=num]         include clipping in audio output"),
   " ",
   Str_noop("--help                  long help"),
   NULL
@@ -1234,7 +1234,7 @@ static int decode_long(CSOUND *csound, char *s, int argc, char **argv)
 
     }
     else if (!(strcmp(s, "limiter"))) {
-      O->limiter = 0.25;
+      O->limiter = 0.5;
       return 1;
     }
     csoundErrorMsg(csound, Str("unknown long option: '--%s'"), s);
