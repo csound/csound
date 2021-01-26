@@ -59,10 +59,13 @@ jobs:
         run: |
           nix-env -f '<nixpkgs>' -iA unzip
           unzip ./lib.zip -d $wasm_bin_dir
+          cd $wasm_bin_dir
+          yarn link
       - name: Build the production js module bundle
         run: |
           cd $wasm_browser_dir
           yarn
+          yarn link @csound/wasm-bin
           yarn build:prod
       - name: Install test dependencies
         run: |
