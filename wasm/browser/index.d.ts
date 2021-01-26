@@ -48,10 +48,6 @@ declare interface CsoundObj {
     getNode: () => Promise<AudioNode | undefined>;
 
     /**
-     * Removes the specified listener from the listener array for the event named eventName.
-     */
-    removeListener: (eventName: PublicEvents, listener: EventEmitter.EventListener<PublicEvents, any>) => EventEmitter;
-    /**
      * Returns an array listing the events for which the emitter has registered listeners.
      * The values in the array are strings.
      */
@@ -244,7 +240,7 @@ declare interface CsoundObj {
     /**
      * Compiles a csound orchestra string
      */
-    evalCode(orc: string) => Promise<number>;
+    evalCode: (orc: string) => Promise<number>;
     /**
      * Prepares Csound for performance
      */
