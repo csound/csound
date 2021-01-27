@@ -40,7 +40,10 @@ export const isScriptProcessorNodeSupported = () => {
 };
 
 export const csoundApiRename = (apiName) => {
-  const minusCsound = apiName.replace(/^csound/i, "");
+  let minusCsound = apiName.replace(/^csound/i, "");
+  if (apiName === "csoundPushMidiMessage") {
+    minusCsound = "midiMessage";
+  }
   return minusCsound.charAt(0).toLowerCase() + minusCsound.slice(1);
 };
 

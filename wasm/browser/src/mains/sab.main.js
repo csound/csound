@@ -435,6 +435,14 @@ class SharedArrayBufferMainThread {
           csoundReset.toString = () => reference.toString();
           break;
         }
+        case "csoundPushMidiMessage": {
+          const midiMessage = async (status = 0, data1 = 0, data2 = 0) => {
+            this.handleMidiInput({ data: [status, data1, data2] });
+          };
+          this.exportApi.midiMessage = midiMessage.bind(this);
+          midiMessage.toString = () => reference.toString();
+          break;
+        }
 
         default: {
           // avoiding deadlock by sending the IPC callback

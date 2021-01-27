@@ -22,7 +22,7 @@
 If loaded successfully, it returns CsoundObj,
 otherwise undefined.</p>
 </dd>
-<dt><a href="#tableCopyOut">tableCopyOut(tableNum)</a> ⇒ <code>Promise.&lt;(Float64Array|undefined)&gt;</code></dt>
+<dt><a href="#getTable">getTable(tableNum)</a> ⇒ <code>Promise.&lt;(Float64Array|undefined)&gt;</code></dt>
 <dd></dd>
 </dl>
 
@@ -30,6 +30,8 @@ otherwise undefined.</p>
 
 <dl>
 <dt><a href="#CSOUND_PARAMS">CSOUND_PARAMS</a></dt>
+<dd></dd>
+<dt><a href="#CS_MIDIDEVICE">CS_MIDIDEVICE</a></dt>
 <dd></dd>
 </dl>
 
@@ -42,10 +44,9 @@ CsoundObj API.
 
 * [CsoundObj](#CsoundObj) : <code>object</code>
     * _global_
-        * [tableCopyOut(tableNum)](#tableCopyOut) ⇒ <code>Promise.&lt;(Float64Array\|undefined)&gt;</code>
+        * [getTable(tableNum)](#getTable) ⇒ <code>Promise.&lt;(Float64Array\|undefined)&gt;</code>
     * _static_
         * [.fs](#CsoundObj.fs) : <code>IFs:memfs</code>
-        * [.removeListener(eventName, listener)](#CsoundObj.removeListener) ⇒ <code>external:EventEmitter</code>
         * [.eventNames()](#CsoundObj.eventNames) ⇒ <code>Array.&lt;string&gt;</code>
         * [.listenerCount()](#CsoundObj.listenerCount) ⇒ <code>number</code>
         * [.listeners(eventName)](#CsoundObj.listeners) ⇒ <code>Array.&lt;function()&gt;</code>
@@ -53,7 +54,7 @@ CsoundObj API.
         * [.on(eventName, listener)](#CsoundObj.on) ⇒ <code>external:EventEmitter</code>
         * [.addListener(eventName, listener)](#CsoundObj.addListener) ⇒ <code>external:EventEmitter</code>
         * [.once(eventName, listener)](#CsoundObj.once) ⇒ <code>external:EventEmitter</code>
-        * [.removeAllListeners(eventName, listener)](#CsoundObj.removeAllListeners) ⇒ <code>external:EventEmitter</code>
+        * [.removeAllListeners(eventName)](#CsoundObj.removeAllListeners) ⇒ <code>external:EventEmitter</code>
         * [.removeListener(eventName, listener)](#CsoundObj.removeListener) ⇒ <code>external:EventEmitter</code>
         * [.getSr()](#CsoundObj.getSr) ⇒ <code>Promise.&lt;number&gt;</code>
         * [.getKr()](#CsoundObj.getKr) ⇒ <code>Promise.&lt;number&gt;</code>
@@ -64,7 +65,7 @@ CsoundObj API.
         * [.getA4()](#CsoundObj.getA4) ⇒ <code>Promise.&lt;number&gt;</code>
         * [.getCurrentTimeSamples()](#CsoundObj.getCurrentTimeSamples) ⇒ <code>Promise.&lt;number&gt;</code>
         * [.getSizeOfMYFLT()](#CsoundObj.getSizeOfMYFLT) ⇒ <code>Promise.&lt;number&gt;</code>
-        * [.setOption()](#CsoundObj.setOption) ⇒ <code>Promise.&lt;number&gt;</code>
+        * [.setOption(option)](#CsoundObj.setOption) ⇒ <code>Promise.&lt;number&gt;</code>
         * [.setParams(csoundParams)](#CsoundObj.setParams) ⇒ <code>Promise.&lt;undefined&gt;</code>
         * [.getParams()](#CsoundObj.getParams) ⇒ [<code>Promise.&lt;CSOUND\_PARAMS&gt;</code>](#CSOUND_PARAMS)
         * [.getDebug()](#CsoundObj.getDebug) ⇒ <code>Promise.&lt;number&gt;</code>
@@ -100,6 +101,9 @@ CsoundObj API.
         * [.getOutputBuffer()](#CsoundObj.getOutputBuffer) ⇒ <code>Promise.&lt;number&gt;</code>
         * [.getSpin()](#CsoundObj.getSpin) ⇒ <code>Promise.&lt;number&gt;</code>
         * [.getSpout()](#CsoundObj.getSpout) ⇒ <code>Promise.&lt;number&gt;</code>
+        * [.getMIDIDevList(isOutput)](#CsoundObj.getMIDIDevList) ⇒ [<code>Promise.&lt;CS\_MIDIDEVICE&gt;</code>](#CS_MIDIDEVICE)
+        * [.getRtMidiName()](#CsoundObj.getRtMidiName) ⇒ <code>Promise.&lt;string&gt;</code>
+        * [.midiMessage(midi, midi, midi)](#CsoundObj.midiMessage) ⇒ <code>Promise.&lt;void&gt;</code>
         * [.isScorePending()](#CsoundObj.isScorePending) ⇒ <code>Promise.&lt;number&gt;</code>
         * [.setScorePending(pending)](#CsoundObj.setScorePending) ⇒ <code>Promise.&lt;undefined&gt;</code>
         * [.readScore(score)](#CsoundObj.readScore) ⇒ <code>Promise.&lt;undefined&gt;</code>
@@ -114,11 +118,11 @@ CsoundObj API.
         * [.tableCopyOut(tableNum)](#CsoundObj.tableCopyOut) ⇒ <code>Promise.&lt;(Float64Array\|undefined)&gt;</code>
         * [.getTableArgs(tableNum)](#CsoundObj.getTableArgs) ⇒ <code>Promise.&lt;(Float64Array\|undefined)&gt;</code>
         * [.isNamedGEN(tableNum)](#CsoundObj.isNamedGEN) ⇒ <code>Promise.&lt;number&gt;</code>
-        * [.csoundGetNamedGEN(tableNum)](#CsoundObj.csoundGetNamedGEN) ⇒ <code>Promise.&lt;(string\|undefined)&gt;</code>
+        * [.getNamedGEN(tableNum)](#CsoundObj.getNamedGEN) ⇒ <code>Promise.&lt;(string\|undefined)&gt;</code>
 
-<a name="tableCopyOut"></a>
+<a name="getTable"></a>
 
-### CsoundObjtableCopyOut(tableNum) ⇒ <code>Promise.&lt;(Float64Array\|undefined)&gt;</code>
+### CsoundObjgetTable(tableNum) ⇒ <code>Promise.&lt;(Float64Array\|undefined)&gt;</code>
 **Kind**: global method of [<code>CsoundObj</code>](#CsoundObj)  
 
 | Param | Type |
@@ -132,18 +136,6 @@ The in-browser filesystem based on nodejs's
 built-in module "fs"
 
 **Kind**: static property of [<code>CsoundObj</code>](#CsoundObj)  
-<a name="CsoundObj.removeListener"></a>
-
-### CsoundObj.removeListener(eventName, listener) ⇒ <code>external:EventEmitter</code>
-Removes the specified listener from the listener array for the event named eventName.
-
-**Kind**: static method of [<code>CsoundObj</code>](#CsoundObj)  
-
-| Param | Type |
-| --- | --- |
-| eventName | [<code>PublicEvents</code>](#PublicEvents) | 
-| listener | <code>function</code> | 
-
 <a name="CsoundObj.eventNames"></a>
 
 ### CsoundObj.eventNames() ⇒ <code>Array.&lt;string&gt;</code>
@@ -222,7 +214,7 @@ The next time eventName is triggered, this listener is removed and then invoked.
 
 <a name="CsoundObj.removeAllListeners"></a>
 
-### CsoundObj.removeAllListeners(eventName, listener) ⇒ <code>external:EventEmitter</code>
+### CsoundObj.removeAllListeners(eventName) ⇒ <code>external:EventEmitter</code>
 Removes all listeners, or those of the specified eventName.
 It is bad practice to remove listeners added elsewhere in the code,
 particularly when the EventEmitter instance was created by some other
@@ -234,7 +226,6 @@ Returns a reference to the EventEmitter, so that calls can be chained.
 | Param | Type |
 | --- | --- |
 | eventName | [<code>PublicEvents</code>](#PublicEvents) | 
-| listener | <code>function</code> | 
 
 <a name="CsoundObj.removeListener"></a>
 
@@ -308,11 +299,16 @@ Return the size of MYFLT in number of bytes
 **Kind**: static method of [<code>CsoundObj</code>](#CsoundObj)  
 <a name="CsoundObj.setOption"></a>
 
-### CsoundObj.setOption() ⇒ <code>Promise.&lt;number&gt;</code>
+### CsoundObj.setOption(option) ⇒ <code>Promise.&lt;number&gt;</code>
 Set a single csound option (flag),
 no spaces are allowed in the string.
 
 **Kind**: static method of [<code>CsoundObj</code>](#CsoundObj)  
+
+| Param | Type |
+| --- | --- |
+| option | <code>string</code> | 
+
 <a name="CsoundObj.setParams"></a>
 
 ### CsoundObj.setParams(csoundParams) ⇒ <code>Promise.&lt;undefined&gt;</code>
@@ -611,6 +607,41 @@ Returns the address of the Csound audio output working buffer (spout).
 Enables external software to read audio from Csound after calling csoundPerformKsmps.
 
 **Kind**: static method of [<code>CsoundObj</code>](#CsoundObj)  
+<a name="CsoundObj.getMIDIDevList"></a>
+
+### CsoundObj.getMIDIDevList(isOutput) ⇒ [<code>Promise.&lt;CS\_MIDIDEVICE&gt;</code>](#CS_MIDIDEVICE)
+This function can be called to obtain a list of available input or output midi devices.
+If list is NULL, the function will only return the number of devices
+(isOutput=1 for out devices, 0 for in devices).
+
+**Kind**: static method of [<code>CsoundObj</code>](#CsoundObj)  
+
+| Param | Type |
+| --- | --- |
+| isOutput | <code>number</code> | 
+
+<a name="CsoundObj.getRtMidiName"></a>
+
+### CsoundObj.getRtMidiName() ⇒ <code>Promise.&lt;string&gt;</code>
+This function can be called to obtain a list of available input or output midi devices.
+If list is NULL, the function will only return the number of devices
+(isOutput=1 for out devices, 0 for in devices).
+
+**Kind**: static method of [<code>CsoundObj</code>](#CsoundObj)  
+<a name="CsoundObj.midiMessage"></a>
+
+### CsoundObj.midiMessage(midi, midi, midi) ⇒ <code>Promise.&lt;void&gt;</code>
+Emit a midi message with a given triplet of values
+in the range of 0 to 127.
+
+**Kind**: static method of [<code>CsoundObj</code>](#CsoundObj)  
+
+| Param | Type | Description |
+| --- | --- | --- |
+| midi | <code>number</code> | status value |
+| midi | <code>number</code> | data1 |
+| midi | <code>number</code> | data2 |
+
 <a name="CsoundObj.isScorePending"></a>
 
 ### CsoundObj.isScorePending() ⇒ <code>Promise.&lt;number&gt;</code>
@@ -776,9 +807,9 @@ Otherwise it returns 0.
 | --- | --- |
 | tableNum | <code>string</code> | 
 
-<a name="CsoundObj.csoundGetNamedGEN"></a>
+<a name="CsoundObj.getNamedGEN"></a>
 
-### CsoundObj.csoundGetNamedGEN(tableNum) ⇒ <code>Promise.&lt;(string\|undefined)&gt;</code>
+### CsoundObj.getNamedGEN(tableNum) ⇒ <code>Promise.&lt;(string\|undefined)&gt;</code>
 Gets the GEN name from a number num, if this is a named GEN.
 If the table number doesn't represent a named GEN, it will
 return undefined.
@@ -857,5 +888,19 @@ otherwise undefined.
 | midi_key_oct | <code>number</code> | 
 | midi_key_pch | <code>number</code> | 
 | midi_velocity | <code>number</code> | 
+
+<a name="CS_MIDIDEVICE"></a>
+
+## CS\_MIDIDEVICE
+**Kind**: global typedef  
+**Properties**
+
+| Name | Type |
+| --- | --- |
+| device_name | <code>string</code> | 
+| interface_name | <code>string</code> | 
+| device_id | <code>string</code> | 
+| midi_module | <code>string</code> | 
+| isOutput | <code>number</code> | 
 
 

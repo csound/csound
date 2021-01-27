@@ -10,6 +10,17 @@ export const csoundSetMidiCallbacks = (wasm) => (csound) => {
   wasm.exports.csoundSetMidiCallbacks(csound);
 };
 
+/**
+ * This function can be called to obtain a list of available input or output midi devices.
+ * If list is NULL, the function will only return the number of devices
+ * (isOutput=1 for out devices, 0 for in devices).
+ * @async
+ * @function
+ * @name getMIDIDevList
+ * @memberof CsoundObj
+ * @param {number} isOutput
+ * @return {Promise.<CS_MIDIDEVICE>}
+ */
 // eslint-disable-next-line unicorn/prevent-abbreviations
 export const csoundGetMIDIDevList = (wasm) => (csound, isOutput) => {
   const { buffer } = wasm.exports.memory;
@@ -26,12 +37,26 @@ export const csoundGetMIDIDevList = (wasm) => (csound, isOutput) => {
   return out;
 };
 
+csoundGetMIDIDevList.toString = () => "getMIDIDevList = async (isOutput) => Object;";
+
+/**
+ * This function can be called to obtain a list of available input or output midi devices.
+ * If list is NULL, the function will only return the number of devices
+ * (isOutput=1 for out devices, 0 for in devices).
+ * @async
+ * @function
+ * @name getRtMidiName
+ * @memberof CsoundObj
+ * @return {Promise.<string>}
+ */
 export const csoundGetRtMidiName = (wasm) => (csound) => {
   const { buffer } = wasm.exports.memory;
   const ptr = wasm.exports.getRtMidiName(csound);
   const stringBuffer = new Uint8Array(buffer, ptr, 128);
   return trimNull(uint2String(stringBuffer)) || "";
 };
+
+csoundGetRtMidiName.toString = () => "getRtMidiName = async () => String;";
 
 export const csoundGetMidiOutFileName = (wasm) => (csound) => {
   const { buffer } = wasm.exports.memory;
@@ -45,9 +70,23 @@ export const _isRequestingRtMidiInput = (wasm) => (csound) => {
   return wasm.exports.isRequestingRtMidiInput(csound);
 };
 
+/**
+ * Emit a midi message with a given triplet of values
+ * in the range of 0 to 127.
+ * @async
+ * @function
+ * @name midiMessage
+ * @memberof CsoundObj
+ * @param {number} midi status value
+ * @param {number} midi data1
+ * @param {number} midi data2
+ * @return {Promise.<void>}
+ */
 export const csoundPushMidiMessage = (wasm) => (csound, status, data1, data2) => {
-  return wasm.exports.pushMidiMessage(csound, status, data1, data2);
+  wasm.exports.pushMidiMessage(csound, status, data1, data2);
 };
+
+csoundPushMidiMessage.toString = () => "midiMessage = async (status, data1, data2) => undefined;";
 
 // PUBLIC void 	csoundSetMIDIModule (CSOUND *csound, const char *module)
 // PUBLIC void 	csoundSetHostImplementedMIDIIO (CSOUND *csound, int state)

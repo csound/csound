@@ -162,7 +162,7 @@ csoundIsNamedGEN.toString = () => "isNamedGEN = async (tableNum) => number;";
  * return undefined.
  * @async
  * @function
- * @name csoundGetNamedGEN
+ * @name getNamedGEN
  * @memberof CsoundObj
  * @param {string} tableNum
  * @return {Promise.<string|undefined>}

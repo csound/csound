@@ -36,14 +36,14 @@ declare type PublicEvents =
  */
 declare interface CsoundObj {
 
-    /** Returns the AudioContext used to create AudioNodes. May be one passed as initialization parameters to 
+    /** Returns the AudioContext used to create AudioNodes. May be one passed as initialization parameters to
      * Csound() or one created by Csound itself if none are provided.
      */
     getAudioContext: () => Promise<AudioContext | undefined>;
 
     /** Returns the AudioNode used with Csound processing. May return undefined if node has not yet been created.
      * Single-thread (the default) backends will have nodes available right after initializing Csound, while worker-backed
-     * versions of Csound may construct the node later when Csound starts.  
+     * versions of Csound may construct the node later when Csound starts.
      */
     getNode: () => Promise<AudioNode | undefined>;
 
@@ -401,7 +401,11 @@ declare interface CsoundObj {
      * If the table number doesn't represent a named GEN, it will
      * return undefined.
      */
-    csoundGetNamedGEN: (tableNum: string) => Promise<string | undefined>;
+    getNamedGEN: (tableNum: string) => Promise<string | undefined>;
+    /**
+     * Emit a midi message
+     */
+    midiMessage: (status: number, data1: number, data2: number) => Promise<undefined>;
 }
 
 /**
