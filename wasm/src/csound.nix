@@ -268,11 +268,7 @@ in pkgs.stdenvNoCC.mkDerivation rec {
                  #include <fcntl.h>
                  #include <errno.h>
                  #define getcwd(x,y) "/"
-                 ' \
-       --replace '/* csoundErrorMsg(csound, Str("csound->FileOpen2(\"%s\") failed: %s."), */' \
-                 'csoundErrorMsg(csound, Str("csound->FileOpen2(\"%s\") failed: %s."), fullName, strerror(errno));' \
-       --replace '/* csound->Warning(csound, Str("Failed to open %s: %s\n"), */' \
-                 'csound->Warning(csound, Str("Failed to open %s: %s\n"), fullName, sf_strerror(NULL));'
+                 '
 
     substituteInPlace Engine/csound_pre.lex \
       --replace 'PARM->path = ".";' 'PARM->path = "/sandbox/";'
