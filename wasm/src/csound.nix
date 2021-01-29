@@ -253,11 +253,12 @@ in pkgs.stdenvNoCC.mkDerivation rec {
                 'static double timeResolutionSeconds = 0.000001;'
 
     substituteInPlace Engine/envvar.c \
-      --replace 'return name;' \
-                'char* fsPrefix = csound->Malloc(
-                   csound, (size_t) strlen(name) + 9);
-                 strcpy(fsPrefix, (name[0] == DIRSEP) ? "/sandbox" : "/sandbox/");
+       --replace 'return name;' \
+                 'char* fsPrefix = csound->Malloc(
+                   csound, (size_t) strlen(name) + 10);
+                 strcpy(fsPrefix, (name[0] == DIRSEP) ? "/sandbox\0" : "/sandbox/\0");
                  strcat(fsPrefix, name);
+                 csound->Free(csound, name);
                  return fsPrefix;' \
       --replace '#include <math.h>' \
                 '#include <math.h>
@@ -267,25 +268,11 @@ in pkgs.stdenvNoCC.mkDerivation rec {
                  #include <fcntl.h>
                  #include <errno.h>
                  #define getcwd(x,y) "/"
-                 static void strcat_beg(char *src, char *dst)
-                 {
-                 size_t dst_len = strlen(dst) + 1, src_len = strlen(src);
-                 memmove(dst + src_len, dst, dst_len);
-                 memcpy(dst, src, src_len);
-                 }
                  ' \
-       --replace 'tmp_f = fopen(fullName, (char*) param);' \
-                 'char* fsPrefix = csound->Malloc(
-                  csound, (size_t) strlen(fullName) + 9);
-                  strcpy(fsPrefix, (fullName[0] == DIRSEP) ? "/sandbox" : "/sandbox/");
-                  strcat(fsPrefix, fullName);
-                  tmp_f = fopen(fullName, (char*) param);' \
        --replace '/* csoundErrorMsg(csound, Str("csound->FileOpen2(\"%s\") failed: %s."), */' \
-                 'csoundErrorMsg(csound, Str("csound->FileOpen2(\"%s\") prefix: %s failed: %s."), fullName, fsPrefix, strerror(errno));' \
+                 'csoundErrorMsg(csound, Str("csound->FileOpen2(\"%s\") failed: %s."), fullName, strerror(errno));' \
        --replace '/* csound->Warning(csound, Str("Failed to open %s: %s\n"), */' \
-                 'csound->Warning(csound, Str("Failed to open %s: %s\n"), fullName, sf_strerror(NULL));' \
-       --replace 'csound->Free(csound, fullName);' '(void)0;'
-
+                 'csound->Warning(csound, Str("Failed to open %s: %s\n"), fullName, sf_strerror(NULL));'
 
     substituteInPlace Engine/csound_pre.lex \
       --replace 'PARM->path = ".";' 'PARM->path = "/sandbox/";'

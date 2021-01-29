@@ -20,8 +20,8 @@ export const persistentFilesystem = createFsFromVolume(persistentStorage);
 function fromJSONFixed(vol, json) {
   const seperator = "/";
   for (let filename in json) {
-    filename = filename.replace(/^\/sandbox\//i, "");
     const data = json[filename];
+    filename = filename.replace(/^\/sandbox\//i, "");
     const isDirectory = data ? Object.getPrototypeOf(data) === null : data === null;
     if (!isDirectory) {
       const steps = filename.split(seperator);
@@ -87,8 +87,9 @@ function toJSONFixed(volume, paths, json = {}, isRelative = false) {
 
 const lastmods = {};
 
-export const syncPersistentStorage = (workerStorage) =>
+export const syncPersistentStorage = (workerStorage) => {
   fromJSONFixed(persistentStorage, workerStorage);
+};
 
 export const getModifiedPersistentStorage = () => {
   const currentFs = toJSONFixed(persistentStorage, "/");
