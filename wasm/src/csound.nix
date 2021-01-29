@@ -139,8 +139,8 @@ in pkgs.stdenvNoCC.mkDerivation rec {
     # Experimental setjmp patching
     find ./ -type f -exec sed -i -e 's/#include <setjmp.h>//g' {} \;
     find ./ -type f -exec sed -i -e 's/csound->LongJmp(csound, retval);/return retval;/g' {} \;
-    find ./ -type f -exec sed -i -e 's/csound->LongJmp(.*)//g' {} \;
-    find ./ -type f -exec sed -i -e 's/longjmp(.*)//g' {} \;
+    find ./ -type f -exec sed -i -e 's/csound->LongJmp(.*)/(void)0/g' {} \;
+    find ./ -type f -exec sed -i -e 's/longjmp(.*)/(void)0/g' {} \;
     find ./ -type f -exec sed -i -e 's/jmp_buf/int/g' {} \;
     find ./ -type f -exec sed -i -e 's/setjmp(csound->exitjmp)/0/g' {} \;
 
@@ -273,7 +273,22 @@ in pkgs.stdenvNoCC.mkDerivation rec {
                  memmove(dst + src_len, dst, dst_len);
                  memcpy(dst, src, src_len);
                  }
-                 '
+                 ' \
+       --replace 'tmp_f = fopen(fullName, (char*) param);' \
+                 'char* fsPrefix = csound->Malloc(
+                  csound, (size_t) strlen(fullName) + 9);
+                  strcpy(fsPrefix, (fullName[0] == DIRSEP) ? "/sandbox" : "/sandbox/");
+                  strcat(fsPrefix, fullName);
+                  tmp_f = fopen(fullName, (char*) param);' \
+       --replace '/* csoundErrorMsg(csound, Str("csound->FileOpen2(\"%s\") failed: %s."), */' \
+                 'csoundErrorMsg(csound, Str("csound->FileOpen2(\"%s\") prefix: %s failed: %s."), fullName, fsPrefix, strerror(errno));' \
+       --replace '/* csound->Warning(csound, Str("Failed to open %s: %s\n"), */' \
+                 'csound->Warning(csound, Str("Failed to open %s: %s\n"), fullName, sf_strerror(NULL));' \
+       --replace 'csound->Free(csound, fullName);' '(void)0;'
+
+
+    substituteInPlace Engine/csound_pre.lex \
+      --replace 'PARM->path = ".";' 'PARM->path = "/sandbox/";'
 
     # since we recommend n^2 number,
     # let's make sure that it's default too

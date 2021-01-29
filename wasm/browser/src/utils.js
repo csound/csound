@@ -1,4 +1,5 @@
 // import TextEncoderShim from 'text-encoding-shim';
+import { getModifiedPersistentStorage } from "@root/filesystem/persistent-fs";
 
 export const appendBuffers = (buffer1, buffer2) => {
   const temporary = new Uint8Array(buffer1.byteLength + buffer2.byteLength);
@@ -47,21 +48,27 @@ export const csoundApiRename = (apiName) => {
   return minusCsound.charAt(0).toLowerCase() + minusCsound.slice(1);
 };
 
-export const makeProxyCallback = (proxyPort, csoundInstance, apiK) => async (...arguments_) => {
-  return await proxyPort.callUncloned(apiK, [csoundInstance, ...arguments_]);
-};
-
-export const makeSingleThreadCallback = (csoundInstance, apiCallback) => async (...arguments_) => {
-  return await apiCallback.apply({}, [csoundInstance, ...arguments_]);
-  // return await proxyPort.callUncloned(apiK, [csoundInstance, ...arguments_]);
-};
-
 export const stopableStates = new Set([
   "realtimePerformanceStarted",
   "realtimePerformancePaused",
   "realtimePerformanceResumed",
   "renderStarted",
 ]);
+
+export const makeProxyCallback = (proxyPort, csoundInstance, apiK, playState) => async (
+  ...arguments_
+) => {
+  if (!playState || !stopableStates.has(playState)) {
+    const modifiedFs = getModifiedPersistentStorage();
+    Object.values(modifiedFs).length > 0 &&
+      (await proxyPort.callUncloned("syncWorkerFs", [csoundInstance, modifiedFs]));
+  }
+  return await proxyPort.callUncloned(apiK, [csoundInstance, ...arguments_]);
+};
+
+export const makeSingleThreadCallback = (csoundInstance, apiCallback) => async (...arguments_) => {
+  return await apiCallback.apply({}, [csoundInstance, ...arguments_]);
+};
 
 export const fetchPlugins = async (withPlugins) => {
   return await Promise.all(

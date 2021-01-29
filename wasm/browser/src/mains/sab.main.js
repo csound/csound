@@ -15,11 +15,7 @@ import { isEmpty } from "ramda";
 import { csoundApiRename, fetchPlugins, makeProxyCallback, stopableStates } from "@root/utils";
 import { EventPromises } from "@utils/event-promises";
 import { PublicEventAPI } from "@root/events";
-import {
-  persistentFilesystem,
-  getPersistentStorage,
-  syncPersistentStorage,
-} from "@root/filesystem/persistent-fs";
+import { persistentFilesystem, syncPersistentStorage } from "@root/filesystem/persistent-fs";
 
 class SharedArrayBufferMainThread {
   constructor({
@@ -310,10 +306,13 @@ class SharedArrayBufferMainThread {
     this.exportApi.fs = persistentFilesystem;
 
     // sync/getWorkerFs is only for internal usage
-    this.getWorkerFs = makeProxyCallback(proxyPort, csoundInstance, "getWorkerFs");
+    this.getWorkerFs = makeProxyCallback(
+      proxyPort,
+      csoundInstance,
+      "getWorkerFs",
+      this.currentPlayState,
+    );
     this.getWorkerFs = this.getWorkerFs.bind(this);
-    this.syncWorkerFs = makeProxyCallback(proxyPort, csoundInstance, "syncWorkerFs");
-    this.syncWorkerFs = this.syncWorkerFs.bind(this);
 
     this.exportApi.enableAudioInput = () =>
       console.warn(
@@ -333,7 +332,12 @@ class SharedArrayBufferMainThread {
     this.exportApi.addListener("message", console.log);
 
     for (const apiKey of Object.keys(API)) {
-      const proxyCallback = makeProxyCallback(proxyPort, csoundInstance, apiKey);
+      const proxyCallback = makeProxyCallback(
+        proxyPort,
+        csoundInstance,
+        apiKey,
+        this.currentPlayState,
+      );
       const reference = API[apiKey];
 
       switch (apiKey) {
@@ -347,7 +351,6 @@ class SharedArrayBufferMainThread {
               return -1;
             }
             this.eventPromises.createStartPromise();
-            await this.syncWorkerFs(getPersistentStorage());
 
             const startResult = await proxyCallback({
               audioStateBuffer,
@@ -427,7 +430,6 @@ class SharedArrayBufferMainThread {
               await this.audioWorker.terminateInstance();
               delete this.audioWorker.audioContext;
             }
-
             const resetResult = await proxyCallback([]);
             return resetResult;
           };

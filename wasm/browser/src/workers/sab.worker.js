@@ -387,7 +387,7 @@ const initialize = async ({ wasmDataURI, withPlugins = [], messagePort, callback
 
   const allAPI = pipe(
     assoc("getWorkerFs", getWorkerFs(wasmFs)),
-    assoc("syncWorkerFs", syncWorkerFs(wasmFs)),
+    assoc("syncWorkerFs", syncWorkerFs(wasm.exports.memory, wasmFs)),
     assoc("csoundStart", startHandler),
     assoc("wasm", wasm),
   )(libraryCsound);

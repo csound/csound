@@ -103,7 +103,7 @@ class WorkletSinglethreadWorker extends AudioWorkletProcessor {
         };
         const allAPI = pipe(
           assoc("getWorkerFs", getWorkerFs(wasmFs)),
-          assoc("syncWorkerFs", syncWorkerFs(wasmFs)),
+          assoc("syncWorkerFs", syncWorkerFs(wasm.exports.memory, wasmFs)),
           assoc("csoundCreate", csoundCreate),
           assoc("csoundReset", this.resetCsound.bind(this)),
           assoc("csoundStart", this.start.bind(this)),

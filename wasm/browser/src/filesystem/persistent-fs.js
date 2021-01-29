@@ -1,5 +1,6 @@
 import { createFsFromVolume } from "memfs";
 import { Volume } from "memfs/lib/volume";
+import { difference } from "ramda";
 
 // because workers come and go, for users to have some
 // persistency, we'll sync a non-worker storage
@@ -84,8 +85,31 @@ function toJSONFixed(volume, paths, json = {}, isRelative = false) {
   return json;
 }
 
-export const syncPersistentStorage = (workerStorage) => {
-  fromJSONFixed(persistentStorage, workerStorage);
-};
+const lastmods = {};
 
-export const getPersistentStorage = () => toJSONFixed(persistentStorage, "/");
+export const syncPersistentStorage = (workerStorage) =>
+  fromJSONFixed(persistentStorage, workerStorage);
+
+export const getModifiedPersistentStorage = () => {
+  const currentFs = toJSONFixed(persistentStorage, "/");
+  const needsSync = {};
+
+  for (const dataKey of Object.keys(currentFs)) {
+    const lastModified = persistentFilesystem.statSync(dataKey).mtimeMs;
+    if (!lastmods[dataKey]) {
+      needsSync[dataKey] = currentFs[dataKey];
+      lastmods[dataKey] = lastModified;
+    } else if (lastmods[dataKey] !== lastModified) {
+      needsSync[dataKey] = currentFs[dataKey];
+      lastmods[dataKey] = lastModified;
+    }
+  }
+
+  const needsUnlink = difference(Object.keys(lastmods), Object.keys(currentFs));
+
+  if (needsUnlink.length > 0) {
+    needsSync.__unlink = needsUnlink;
+  }
+
+  return needsSync;
+};

@@ -7,11 +7,7 @@ import { csoundApiRename, fetchPlugins, makeProxyCallback, stopableStates } from
 import { IPCMessagePorts, messageEventHandler } from "@root/mains/messages.main";
 import { EventPromises } from "@utils/event-promises";
 import { PublicEventAPI } from "@root/events";
-import {
-  persistentFilesystem,
-  getPersistentStorage,
-  syncPersistentStorage,
-} from "@root/filesystem/persistent-fs";
+import { persistentFilesystem, syncPersistentStorage } from "@root/filesystem/persistent-fs";
 
 class VanillaWorkerMainThread {
   constructor({
@@ -220,10 +216,13 @@ class VanillaWorkerMainThread {
     this.exportApi.fs = persistentFilesystem;
 
     // sync/getWorkerFs is only for internal usage
-    this.getWorkerFs = makeProxyCallback(proxyPort, this.csoundInstance, "getWorkerFs");
+    this.getWorkerFs = makeProxyCallback(
+      proxyPort,
+      this.csoundInstance,
+      "getWorkerFs",
+      this.currentPlayState,
+    );
     this.getWorkerFs = this.getWorkerFs.bind(this);
-    this.syncWorkerFs = makeProxyCallback(proxyPort, this.csoundInstance, "syncWorkerFs");
-    this.syncWorkerFs = this.syncWorkerFs.bind(this);
 
     this.exportApi.getAudioContext = async () => this.audioWorker.audioContext;
     this.exportApi.getNode = async () => this.audioWorker.audioWorkletNode;
@@ -238,7 +237,12 @@ class VanillaWorkerMainThread {
 
     for (const apiK of Object.keys(API)) {
       const reference = API[apiK];
-      const proxyCallback = makeProxyCallback(proxyPort, this.csoundInstance, apiK);
+      const proxyCallback = makeProxyCallback(
+        proxyPort,
+        this.csoundInstance,
+        apiK,
+        this.currentPlayState,
+      );
       switch (apiK) {
         case "csoundCreate": {
           break;
@@ -247,7 +251,6 @@ class VanillaWorkerMainThread {
         case "csoundStart": {
           const csoundStart = async function () {
             this.eventPromises.createStartPromise();
-            await this.syncWorkerFs(getPersistentStorage());
 
             const startResult = await proxyCallback({
               csound: this.csoundInstance,

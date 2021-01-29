@@ -25,14 +25,19 @@ import libcsoundFactory from "@root/libcsound";
 import loadWasm from "@root/module";
 import MessagePortState from "@utils/message-port-state";
 import { isEmpty } from "ramda";
-import { csoundApiRename, fetchPlugins, makeSingleThreadCallback } from "@root/utils";
+import {
+  csoundApiRename,
+  fetchPlugins,
+  makeSingleThreadCallback,
+  stopableStates,
+} from "@root/utils";
 import { messageEventHandler } from "./messages.main";
 import { PublicEventAPI } from "@root/events";
 import { requestMidi } from "@utils/request-midi";
 import { initFS, getWorkerFs, rmrfFs, syncWorkerFs } from "@root/filesystem/worker-fs";
 import {
   persistentFilesystem,
-  getPersistentStorage,
+  getModifiedPersistentStorage,
   syncPersistentStorage,
 } from "@root/filesystem/persistent-fs";
 
@@ -213,7 +218,6 @@ class ScriptProcessorNodeSingleThread {
       }
       // nuke the "worker" fs to keep same behavior for all
       rmrfFs(this.wasmFs)({}, "/");
-      syncWorkerFs(this.wasmFs)({}, getPersistentStorage());
       const startResult = this.csoundApi.csoundStart(this.csoundInstance);
       if (this.csoundApi._isRequestingRtMidiInput(this.csoundInstance)) {
         requestMidi({
@@ -256,7 +260,17 @@ class ScriptProcessorNodeSingleThread {
     // csoundObj
     Object.keys(csoundApi).reduce((accumulator, apiName) => {
       const renamedApiName = csoundApiRename(apiName);
-      accumulator[renamedApiName] = makeSingleThreadCallback(csoundInstance, csoundApi[apiName]);
+      accumulator[renamedApiName] = (...arguments_) => {
+        if (
+          (stopableStates.has(this.currentPlayState) || !this.currentPlayState) &&
+          typeof this.wasmFs !== "undefined"
+        ) {
+          syncWorkerFs(this.wasm.exports.memory, this.wasmFs)({}, getModifiedPersistentStorage());
+        }
+
+        return makeSingleThreadCallback(csoundInstance, csoundApi[apiName])(arguments_);
+      };
+      accumulator[renamedApiName].toString = csoundApi[apiName].toString;
       return accumulator;
     }, this.exportApi);
 

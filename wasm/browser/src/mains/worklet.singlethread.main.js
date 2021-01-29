@@ -31,11 +31,7 @@ import { PublicEventAPI } from "@root/events";
 import { enableAudioInput } from "./io.utils";
 import { requestMidi } from "@utils/request-midi";
 import { EventPromises } from "@utils/event-promises";
-import {
-  persistentFilesystem,
-  getPersistentStorage,
-  syncPersistentStorage,
-} from "@root/filesystem/persistent-fs";
+import { persistentFilesystem, syncPersistentStorage } from "@root/filesystem/persistent-fs";
 
 const initializeModule = async (audioContext) => {
   log("Initialize Module")();
@@ -187,19 +183,32 @@ class SingleThreadAudioWorkletMainThread {
     this.ipcMessagePorts.mainMessagePort.start();
 
     await this.workletProxy.initialize(wasmDataURI, withPlugins);
-    const csoundInstance = await makeProxyCallback(this.workletProxy, undefined, "csoundCreate")();
+    const csoundInstance = await makeProxyCallback(
+      this.workletProxy,
+      undefined,
+      "csoundCreate",
+      this.currentPlayState,
+    )();
     this.csoundInstance = csoundInstance;
-    await makeProxyCallback(this.workletProxy, csoundInstance, "csoundInitialize")(0);
+    await makeProxyCallback(
+      this.workletProxy,
+      csoundInstance,
+      "csoundInitialize",
+      this.currentPlayState,
+    )(0);
     this.exportApi.pause = this.csoundPause.bind(this);
     this.exportApi.resume = this.csoundResume.bind(this);
     this.exportApi.terminateInstance = this.terminateInstance.bind(this);
     this.exportApi.fs = persistentFilesystem;
 
     // sync/getWorkerFs is only for internal usage
-    this.getWorkerFs = makeProxyCallback(this.workletProxy, csoundInstance, "getWorkerFs");
+    this.getWorkerFs = makeProxyCallback(
+      this.workletProxy,
+      csoundInstance,
+      "getWorkerFs",
+      this.currentPlayState,
+    );
     this.getWorkerFs = this.getWorkerFs.bind(this);
-    this.syncWorkerFs = makeProxyCallback(this.workletProxy, csoundInstance, "syncWorkerFs");
-    this.syncWorkerFs = this.syncWorkerFs.bind(this);
 
     this.exportApi.getAudioContext = async () => this.audioContext;
     this.exportApi.getNode = async () => this.node;
@@ -209,7 +218,12 @@ class SingleThreadAudioWorkletMainThread {
 
     for (const apiK of Object.keys(API)) {
       const reference = API[apiK];
-      const proxyCallback = makeProxyCallback(this.workletProxy, csoundInstance, apiK);
+      const proxyCallback = makeProxyCallback(
+        this.workletProxy,
+        csoundInstance,
+        apiK,
+        this.currentPlayState,
+      );
       switch (apiK) {
         case "csoundCreate": {
           break;
@@ -218,8 +232,6 @@ class SingleThreadAudioWorkletMainThread {
         case "csoundStart": {
           const csoundStart = async function () {
             this.eventPromises.createStartPromise();
-
-            await this.syncWorkerFs(getPersistentStorage());
 
             const startResult = await proxyCallback({
               csound: csoundInstance,

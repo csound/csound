@@ -473,6 +473,47 @@ e
         );
         await csoundObj.terminateInstance();
       });
+
+      it("can play a csd from a nested filesystem directory, with code requiring a sample", async function () {
+        const csoundObj = await Csound(test);
+        const response = await fetch("/tiny_test_sample.wav");
+        const testSampleArrayBuffer = await response.arrayBuffer();
+        const testSample = new Uint8Array(testSampleArrayBuffer);
+        csoundObj.fs.writeFileSync("tiny_test_sample.wav", testSample);
+
+        // Writing the csd to disk
+        const csdPath = "/somedir/anycsd.csd";
+        csoundObj.fs.mkdirpSync("/somedir");
+        csoundObj.fs.writeFileSync(csdPath, samplesTest);
+
+        // allow the example to play until the end
+        let endResolver;
+        const waitUntilEnd = new Promise((resolve) => {
+          endResolver = resolve;
+        });
+        csoundObj.on("realtimePerformanceEnded", endResolver);
+
+        assert.include(
+          csoundObj.fs.readdirSync("/"),
+          "tiny_test_sample.wav",
+          "The sample was written into the root dir",
+        );
+
+        assert.equal(0, await csoundObj.compileCsd(csdPath), "The test Csd is valid");
+        assert.equal(
+          0,
+          await csoundObj.start(),
+          "Csounds starts normally, indicating the sample was found",
+        );
+
+        await waitUntilEnd;
+        assert.include(
+          csoundObj.fs.readdirSync("/"),
+          "monitor_out.wav",
+          "The sample which csound wrote with fout, is accessible after the end of performance",
+        );
+        await csoundObj.terminateInstance();
+      });
     });
   });
 

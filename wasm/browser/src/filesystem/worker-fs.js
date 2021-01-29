@@ -200,8 +200,17 @@ export function getWorkerFs(wasmFs) {
 }
 
 // modified from @wasmer/wasmfs
-function fromJSONFixed(vol, json) {
+function fromJSONFixed(memory, vol, json) {
   const seperator = "/";
+
+  if (json.__unlink) {
+    for (const doUnlink_ of json.__unlink) {
+      const doUnlink = (doUnlink_.startsWith("/") ? "/sandbox" : "/sandbox/") + doUnlink_;
+      vol.unlinkSync(doUnlink);
+    }
+    delete json.__unlink;
+  }
+
   for (const filename_ in json) {
     const filename = (filename_.startsWith("/") ? "/sandbox" : "/sandbox/") + filename_;
     const data = json[filename_];
@@ -219,8 +228,8 @@ function fromJSONFixed(vol, json) {
   }
 }
 
-export const syncWorkerFs = (wasmFs) => (_, persistentStorage) => {
-  fromJSONFixed(wasmFs.volume, persistentStorage);
+export const syncWorkerFs = (memory, wasmFs) => (_, persistentStorage) => {
+  fromJSONFixed(memory, wasmFs.volume, persistentStorage);
 };
 
 export const initFS = (wasmFs, messagePort) => {
