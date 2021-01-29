@@ -69,6 +69,9 @@ static void spoutsf(CSOUND *csound)
     MYFLT   *sp = csound->spout;
     MYFLT   absamp = FL(0.0);
     uint32  nframes = csound->libsndStatics.nframes;
+    MYFLT lim = O->limiter*csound->e0dbfs;
+    MYFLT rlim = lim==0 ? 0 : FL(1.0)/lim;
+    MYFLT k1 = FL(1.0)/TANH(FL(1.0)); /*  1.31304 */
  nchk:
     /* if nspout remaining > buf rem, prepare to send in parts */
     if ((n = spoutrem) > (int) csound->libsndStatics.outbufrem) {
@@ -77,29 +80,39 @@ static void spoutsf(CSOUND *csound)
     spoutrem -= n;
     csound->libsndStatics.outbufrem -= n;
     do {
-      absamp = *sp++;
-      if (csound->libsndStatics.osfopen) {
-        *csound->libsndStatics.outbufp++ = (absamp * csound->dbfs_to_float);
+      // built inlimiter start ****
+      if (O->limiter) {
+        MYFLT x = *sp;
+        absamp = x;
+        if (UNLIKELY(x>=lim))
+          x = lim;
+        else if (UNLIKELY(x<= -lim))
+          x = -lim;
+        else
+          x = lim*k1*TANH(x*rlim);
+        //printf("*** %g -> %g\n", *(sp-1), x);
+        *sp++ = x;
+        if (csound->libsndStatics.osfopen) {
+          *csound->libsndStatics.outbufp++ = (x * csound->dbfs_to_float);
+        }
+      }
+      // limiter end ****
+      else {
+        absamp = *sp++;
+        if (csound->libsndStatics.osfopen) {
+          *csound->libsndStatics.outbufp++ = (absamp * csound->dbfs_to_float);
+        }
       }
       if (absamp < FL(0.0)) {
         absamp = -absamp;
       }
       if (absamp > csound->maxamp[chn]) {   /*  maxamp this seg  */
         csound->maxamp[chn] = absamp;
-        csound->maxpos[chn] = nframes;
+         csound->maxpos[chn] = nframes;
       }
       if (absamp > csound->e0dbfs) {        /* out of range?     */
         csound->rngcnt[chn]++;              /*  report it        */
         csound->rngflg = 1;
-        //printf("save = %d\n", O->limiter);
-#if 1
-        if (O->limiter) {
-          MYFLT x = *(sp-1);
-          //printf("Limit %f \n", *(sp-1));
-          if (x<0) *(sp-1) = -csound->e0dbfs;
-          else *(sp-1) = csound->e0dbfs;
-        }
-#endif
       }
       if (csound->multichan) {
         if (++chn >= csound->nchnls) {
