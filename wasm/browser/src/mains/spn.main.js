@@ -36,6 +36,7 @@ import { PublicEventAPI } from "@root/events";
 import { requestMidi } from "@utils/request-midi";
 import { initFS, getWorkerFs, rmrfFs, syncWorkerFs } from "@root/filesystem/worker-fs";
 import {
+  clearFsLastmods,
   persistentFilesystem,
   getModifiedPersistentStorage,
   syncPersistentStorage,
@@ -108,6 +109,7 @@ class ScriptProcessorNodeSingleThread {
 
       case "realtimePerformanceEnded": {
         syncPersistentStorage(getWorkerFs(this.wasmFs)());
+        clearFsLastmods();
         this.publicEvents.triggerRealtimePerformanceEnded(this);
         break;
       }
@@ -125,6 +127,7 @@ class ScriptProcessorNodeSingleThread {
       }
       case "renderEnded": {
         syncPersistentStorage(getWorkerFs(this.wasmFs)());
+        clearFsLastmods();
         this.publicEvents.triggerRenderEnded(this);
         break;
       }
@@ -244,7 +247,7 @@ class ScriptProcessorNodeSingleThread {
       });
       [this.watcherStdOut, this.watcherStdErr] = initFS(this.wasmFs, this.messagePort);
     }
-
+    clearFsLastmods();
     // libcsound
     const csoundApi = libcsoundFactory(this.wasm);
     this.csoundApi = csoundApi;
@@ -268,7 +271,7 @@ class ScriptProcessorNodeSingleThread {
           syncWorkerFs(this.wasm.exports.memory, this.wasmFs)({}, getModifiedPersistentStorage());
         }
 
-        return makeSingleThreadCallback(csoundInstance, csoundApi[apiName])(arguments_);
+        return makeSingleThreadCallback(csoundInstance, csoundApi[apiName]).apply({}, arguments_);
       };
       accumulator[renamedApiName].toString = csoundApi[apiName].toString;
       return accumulator;

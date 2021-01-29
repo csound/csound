@@ -113,3 +113,10 @@ export const getModifiedPersistentStorage = () => {
 
   return needsSync;
 };
+
+export const clearFsLastmods = () => {
+  const keys = Object.keys(lastmods);
+  for (const key of keys) {
+    key && delete lastmods[key];
+  }
+};

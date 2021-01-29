@@ -31,7 +31,11 @@ import { PublicEventAPI } from "@root/events";
 import { enableAudioInput } from "./io.utils";
 import { requestMidi } from "@utils/request-midi";
 import { EventPromises } from "@utils/event-promises";
-import { persistentFilesystem, syncPersistentStorage } from "@root/filesystem/persistent-fs";
+import {
+  clearFsLastmods,
+  persistentFilesystem,
+  syncPersistentStorage,
+} from "@root/filesystem/persistent-fs";
 
 const initializeModule = async (audioContext) => {
   log("Initialize Module")();
@@ -101,6 +105,7 @@ class SingleThreadAudioWorkletMainThread {
       case "realtimePerformanceEnded": {
         this.eventPromises.createStopPromise();
         syncPersistentStorage(await this.getWorkerFs());
+        clearFsLastmods();
         this.midiPortStarted = false;
         this.currentPlayState = undefined;
         this.publicEvents.triggerRealtimePerformanceEnded(this);
@@ -120,6 +125,7 @@ class SingleThreadAudioWorkletMainThread {
       }
       case "renderEnded": {
         syncPersistentStorage(await this.getWorkerFs());
+        clearFsLastmods();
         this.publicEvents.triggerRenderEnded(this);
         break;
       }
@@ -153,6 +159,7 @@ class SingleThreadAudioWorkletMainThread {
     }
 
     await initializeModule(this.audioContext);
+    clearFsLastmods();
 
     this.node = new AudioWorkletNode(this.audioContext, "csound-singlethread-worklet-processor", {
       inputChannelCount: this.inputChannelCount ? [this.inputChannelCount] : 0,

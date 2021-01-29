@@ -15,7 +15,11 @@ import { isEmpty } from "ramda";
 import { csoundApiRename, fetchPlugins, makeProxyCallback, stopableStates } from "@root/utils";
 import { EventPromises } from "@utils/event-promises";
 import { PublicEventAPI } from "@root/events";
-import { persistentFilesystem, syncPersistentStorage } from "@root/filesystem/persistent-fs";
+import {
+  clearFsLastmods,
+  persistentFilesystem,
+  syncPersistentStorage,
+} from "@root/filesystem/persistent-fs";
 
 class SharedArrayBufferMainThread {
   constructor({
@@ -159,7 +163,7 @@ class SharedArrayBufferMainThread {
       case "realtimePerformanceEnded": {
         this.eventPromises.createStopPromise();
         syncPersistentStorage(await this.getWorkerFs());
-
+        clearFsLastmods();
         // flush out events sent during the time which the worker was stopping
         Object.values(this.callbackBuffer).forEach(({ argumentz, apiKey, resolveCallback }) =>
           this.proxyPort.callUncloned(apiKey, argumentz).then(resolveCallback),
@@ -187,6 +191,7 @@ class SharedArrayBufferMainThread {
       case "renderEnded": {
         syncPersistentStorage(await this.getWorkerFs());
         this.publicEvents.triggerRenderEnded(this);
+        clearFsLastmods();
         log(`event: renderEnded received, beginning cleanup`)();
         break;
       }
@@ -232,6 +237,7 @@ class SharedArrayBufferMainThread {
     }
 
     log(`initialization: instantiate the SABWorker Thread`)();
+    clearFsLastmods();
     const csoundWorker = new Worker(SABWorker());
     this.csoundWorker = csoundWorker;
     const audioStateBuffer = this.audioStateBuffer;

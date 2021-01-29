@@ -7,7 +7,11 @@ import { csoundApiRename, fetchPlugins, makeProxyCallback, stopableStates } from
 import { IPCMessagePorts, messageEventHandler } from "@root/mains/messages.main";
 import { EventPromises } from "@utils/event-promises";
 import { PublicEventAPI } from "@root/events";
-import { persistentFilesystem, syncPersistentStorage } from "@root/filesystem/persistent-fs";
+import {
+  clearFsLastmods,
+  persistentFilesystem,
+  syncPersistentStorage,
+} from "@root/filesystem/persistent-fs";
 
 class VanillaWorkerMainThread {
   constructor({
@@ -118,6 +122,7 @@ class VanillaWorkerMainThread {
         log(`event: realtimePerformanceEnded`)();
         // a noop if the stop promise already exists
         this.eventPromises.createStopPromise();
+        clearFsLastmods();
         syncPersistentStorage(await this.getWorkerFs());
         this.midiPortStarted = false;
         this.publicEvents.triggerRealtimePerformanceEnded(this);
@@ -140,6 +145,7 @@ class VanillaWorkerMainThread {
       case "renderEnded": {
         log(`event: renderEnded received, beginning cleanup`)();
         syncPersistentStorage(await this.getWorkerFs());
+        clearFsLastmods();
         this.publicEvents.triggerRenderEnded(this);
         await this.eventPromises.releaseStopPromises();
         break;
@@ -177,6 +183,7 @@ class VanillaWorkerMainThread {
       withPlugins = await fetchPlugins(withPlugins);
     }
     log(`vanilla.main: initialize`)();
+    clearFsLastmods();
     this.csoundWorker = this.csoundWorker || new Worker(VanillaWorker());
 
     this.ipcMessagePorts.mainMessagePort.addEventListener("message", messageEventHandler(this));
