@@ -406,6 +406,10 @@ declare interface CsoundObj {
      * Emit a midi message
      */
     midiMessage: (status: number, data1: number, data2: number) => Promise<undefined>;
+    /**
+     * Terminates an instances and all its workers, making disabling any futher uses of a given instance.
+     */
+    terminateInstance: () => Promise<void>;
 }
 
 /**
