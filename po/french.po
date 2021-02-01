@@ -384,7 +384,7 @@ msgstr "L'opcode \"%s\" est obsolète\n"
 
 #: Engine/csound_orc_expressions.c:338
 msgid "Unbanced rates in conditional expression"
-msgstr ""
+msgstr "Taux discordants dans l'expression conditionnelle"
 
 #: Engine/csound_orc_expressions.c:615
 #, c-format
@@ -3500,16 +3500,16 @@ msgid "connecting channel %d to %s\n"
 msgstr "connexion du canal %d à %s\n"
 
 #: InOut/rtjack.c:495 InOut/rtjack.c:520
-#, fuzzy, c-format
+#, c-format
 msgid ""
 "failed to autoconnect input channel %d\n"
 "(needs manual connection)"
 msgstr ""
-"échec de la connexion automatique du canal de sortie %d\n"
+"échec de la connexion automatique du canal d'entrée %d\n"
 "(il faut une connexion manuelle)"
 
 #: InOut/rtjack.c:499
-#, fuzzy, c-format
+#, c-format
 msgid ""
 "jack port %d not valid\n"
 "failed to autoconnect input channel %d\n"
@@ -3520,9 +3520,8 @@ msgstr ""
 "(il faut une connexion manuelle)"
 
 #: InOut/rtjack.c:526
-#, fuzzy
 msgid "input ports not connected\n"
-msgstr "port d'entrée non connecté\n"
+msgstr "ports d'entrée non connectés\n"
 
 #: InOut/rtjack.c:547 InOut/rtjack.c:571
 #, c-format
@@ -3534,7 +3533,7 @@ msgstr ""
 "(il faut une connexion manuelle)"
 
 #: InOut/rtjack.c:551
-#, fuzzy, c-format
+#, c-format
 msgid ""
 "jack port %d not valid\n"
 "failed to autoconnect output channel %d\n"
@@ -3545,9 +3544,8 @@ msgstr ""
 "(il faut une connexion manuelle)"
 
 #: InOut/rtjack.c:578
-#, fuzzy
 msgid "output ports not connected\n"
-msgstr "port de sortie non connecté\n"
+msgstr "ports de sortie non connectés\n"
 
 #: InOut/rtjack.c:630
 msgid "input and output parameters are not consistent"
@@ -4750,9 +4748,8 @@ msgid "turnoff2: invalid mode parameter"
 msgstr "turnoff2 : paramètre de mode non valide"
 
 #: OOps/goto_ops.c:288
-#, fuzzy
 msgid "turnoff3: invalid instrument number"
-msgstr "turnoff2 : numéro d'instrument non valide"
+msgstr "turnoff3 : numéro d'instrument non valide"
 
 #: OOps/lpred.c:556 OOps/lpred.c:731
 #, c-format
@@ -4801,24 +4798,21 @@ msgstr ""
 "Mode arp sélectionné non valide: %d. Les modes autorisés sont 0, 1, 2 et 3\n"
 
 #: OOps/midiops.c:874 OOps/midiops.c:931
-#, fuzzy
 msgid "ctrlpreset: failed to allocate globals"
-msgstr "control : échec de l'allocation des variables globales"
+msgstr "ctrlpreset : échec de l'allocation des variables globales"
 
 #: OOps/midiops.c:903 OOps/midiops.c:960
-#, fuzzy
 msgid "Failed to allocate presets\n"
-msgstr "L'allocation de set a échoué"
+msgstr "L'allocation des préréglages a échoué\n"
 
 #: OOps/midiops.c:985 OOps/midiops.c:1020
-#, fuzzy
 msgid "No presets stored"
-msgstr "Pas d'évènement précédent pour ^"
+msgstr "Aucun préréglage stocké"
 
 #: OOps/midiops.c:998
 #, c-format
 msgid "No such preset %d\n"
-msgstr ""
+msgstr "Pas de préréglage %d\n"
 
 #: OOps/midiout.c:121
 msgid "illegal mrtmsg argument"
@@ -9993,8 +9987,8 @@ msgid ""
 "Assigning all Presets of \"%s\" starting from %d (preset handle number)\n"
 msgstr ""
 "\n"
-"Assignation de tous les Presets de \"%s\" à partir de %d (numéro du "
-"descripteur de preset)\n"
+"Assignation de tous les préréglages de \"%s\" à partir de %d (numéro du "
+"descripteur de préréglage)\n"
 
 #: Opcodes/sfont.c:267
 #, c-format
@@ -10002,16 +9996,16 @@ msgid "%3d<--%-20s\t(prog:%-3d bank:%d)\n"
 msgstr "%3d<--%-20s\t(prog : %-3d bank : %d)\n"
 
 #: Opcodes/sfont.c:274
-#, fuzzy, c-format
+#, c-format
 msgid ""
 "\n"
 "All presets have been assigned to preset handles from %d to %d\n"
 "\n"
 msgstr ""
 "\n"
-"Tous les presets ont été assignés aux descripteurs de preset allant de %d à "
-"%d\n"
-"XS\n"
+"Tous les préréglages ont été assignés aux descripteurs de préréglage allant "
+"de %d à %d\n"
+"\n"
 
 #: Opcodes/sfont.c:293
 #, c-format
@@ -10025,7 +10019,7 @@ msgstr ""
 #: Opcodes/sfont.c:313
 #, c-format
 msgid "sfpreset: preset handle too big (%d), max: %d"
-msgstr "sfpreset : descripteur de preset trop grand (%d), max : %d"
+msgstr "sfpreset : descripteur de préréglage trop grand (%d), max : %d"
 
 #: Opcodes/sfont.c:331
 #, c-format
@@ -10033,16 +10027,16 @@ msgid ""
 "sfpreset: cannot find any preset having prog number %d and bank number %d in "
 "SoundFont file \"%s\""
 msgstr ""
-"sfpreset : impossible de trouver un preset ayant le numéro de prog %d et le "
+"sfpreset : impossible de trouver un préréglage ayant le numéro de prog %d et le "
 "numéro de banque %d dans le fichier SoundFont \"%s\""
 
 #: Opcodes/sfont.c:355 Opcodes/sfont.c:2301
 msgid "sfplay: invalid or out-of-range preset number"
-msgstr "sfplay : numéro de preset non valide ou hors limites"
+msgstr "sfplay : numéro de préréglage non valide ou hors limites"
 
 #: Opcodes/sfont.c:694
 msgid "sfplaym: invalid or out-of-range preset number"
-msgstr "sfplaym : numéro de preset non valide ou hors limites"
+msgstr "sfplaym : numéro de préréglage non valide ou hors limites"
 
 #: Opcodes/sfont.c:959 Opcodes/sfont.c:1232
 msgid "sfinstr: instrument out of range"
@@ -12198,7 +12192,7 @@ msgstr "--aft-zero              fixe l'aftertouch à 0, pas 127 (par défaut)"
 
 #: Top/argdecode.c:316
 msgid "--limiter[=num]         include clipping in audio output"
-msgstr ""
+msgstr "--limiter[=num]         écrêter la sortie audio"
 
 #: Top/argdecode.c:318
 msgid "--help                  long help"
@@ -12383,9 +12377,8 @@ msgid "realtime mode enabled\n"
 msgstr "mode temps réel activé\n"
 
 #: Top/argdecode.c:1230
-#, fuzzy
 msgid "Ignoring invalid limiter\n"
-msgstr "vport : table non valide"
+msgstr "Limiteur non valide ignoré\n"
 
 #: Top/argdecode.c:1240
 #, c-format
