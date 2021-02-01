@@ -232,7 +232,19 @@ class VanillaWorkerMainThread {
     this.getWorkerFs = this.getWorkerFs.bind(this);
 
     this.exportApi.getAudioContext = async () => this.audioWorker.audioContext;
-    this.exportApi.getNode = async () => this.audioWorker.audioWorkletNode;
+
+    this.exportApi.getNode = async () => {
+      const maybeNode = this.audioWorker.audioWorkletNode;
+      if (maybeNode) {
+        return maybeNode;
+      } else {
+        const node = await new Promise((resolve) => {
+          this.exportApi.once("onAudioNodeCreated", resolve);
+        });
+        return node;
+      }
+    };
+
     this.exportApi = this.publicEvents.decorateAPI(this.exportApi);
     this.exportApi.enableAudioInput = () =>
       console.warn(

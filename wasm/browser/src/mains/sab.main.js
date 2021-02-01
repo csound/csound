@@ -327,7 +327,14 @@ class SharedArrayBufferMainThread {
 
     this.exportApi.getNode = async () => {
       const maybeNode = this.audioWorker.audioWorkletNode;
-      return maybeNode;
+      if (maybeNode) {
+        return maybeNode;
+      } else {
+        const node = await new Promise((resolve) => {
+          this.exportApi.once("onAudioNodeCreated", resolve);
+        });
+        return node;
+      }
     };
 
     this.exportApi.getAudioContext = async () => this.audioWorker.audioContext;
