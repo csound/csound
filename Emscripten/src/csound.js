@@ -84,7 +84,7 @@ Csound = function() {
      * @param {string} opt_message The status message.
      */
     function UpdateStatus(opt_message, keep) {
-		if (keep === undefined) keep = true;
+        if (keep === undefined) keep = true;
         if (opt_message) {
             statusText = 'Csound: ' + opt_message + '\n';
         }
