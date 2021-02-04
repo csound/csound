@@ -63,11 +63,12 @@
 
     function handleMessage(message) {
       var element = document.getElementById('console');
-      element.value += message;
+      element.appendChild(document.createTextNode(message));
+      element.appendChild(document.createElementNS("http://www.w3.org/1999/xhtml", "br"));
       element.scrollTop = 99999; // focus on bottom
       count += 1;
       if (count == 1000) {
-        element.value = ' ';
+        element.textNode = ' ';
         count = 0;
       }
     }
@@ -88,8 +89,7 @@
   <div id="clickarea">
     <h1>Minimal</h1>
     <h3 id="tit"></h3>
-    <textarea class="console" cols="80" rows="24" id="console">Csound: not loaded
-</textarea>
+    <div class="console" style="overflow-y: scroll; height:600px;width: 800px" id="console">Csound: not loaded<br></div>
   </div>
 </body>
 
