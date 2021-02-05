@@ -119,7 +119,7 @@ public:
       result =
           csound->InitError(csound, "%s", Str("error allocating fluid engine\n"));
     } else {
-#if (FLUIDSYNTH_VERSION_MAJOR >= 2)
+#if (FLUIDSYNTH_VERSION_MAJOR >= 2 && FLUIDSYNTH_VERSION_MINOR >= 3)
       // TODO: Change -1 to a configurable FX group?
       fluid_synth_chorus_on(fluidSynth, -1, chorusEnabled);
       fluid_synth_reverb_on(fluidSynth, -1, reverbEnabled);
