@@ -6261,7 +6261,7 @@ msgstr ""
 
 #: Opcodes/ambicode1.c:689
 #, fuzzy
-msgid "bformdec1 output array not initilised"
+msgid "bformdec1 output array not initialised"
 msgstr "t-var: nicht initialisiert"
 
 #: Opcodes/arrayops.cpp:78 Opcodes/arrayops.cpp:175
@@ -6728,7 +6728,7 @@ msgstr ""
 
 #: Opcodes/dssi4cs/src/dssi4cs.c:403 Opcodes/dssi4cs/src/dssi4cs.c:422
 #, c-format
-msgid "DSSI4CS: No run() funtion in: %s"
+msgid "DSSI4CS: No run() function in: %s"
 msgstr ""
 
 #: Opcodes/dssi4cs/src/dssi4cs.c:604
@@ -10893,7 +10893,7 @@ msgstr "table: nicht initialisiert"
 
 #: Opcodes/vbap_n.c:781
 #, fuzzy
-msgid "Output array in vpabmove not initalised"
+msgid "Output array in vpabmove not initialised"
 msgstr "table: nicht initialisiert"
 
 #: Opcodes/vbap_zak.c:358 Opcodes/vbap_zak.c:403
@@ -11562,7 +11562,7 @@ msgid "--m-range=[01]          messages on range errors"
 msgstr ""
 
 #: Top/argdecode.c:248
-msgid "--m-warnings=[01]       mesage on warnings"
+msgid "--m-warnings=[01]       message on warnings"
 msgstr ""
 
 #: Top/argdecode.c:249

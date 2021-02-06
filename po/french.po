@@ -6404,7 +6404,7 @@ msgid "The output channel count does not match the isetup value."
 msgstr "Le nombre de canaux de sortie ne correspond pas à la valeur de isetup."
 
 #: Opcodes/ambicode1.c:689
-msgid "bformdec1 output array not initilised"
+msgid "bformdec1 output array not initialised"
 msgstr "tableau de sortie de bformdec1 non initialisé"
 
 #: Opcodes/arrayops.cpp:78 Opcodes/arrayops.cpp:175
@@ -6867,7 +6867,7 @@ msgstr "DSSI4CS : impossible d'instancier le greffon : %s"
 
 #: Opcodes/dssi4cs/src/dssi4cs.c:403 Opcodes/dssi4cs/src/dssi4cs.c:422
 #, c-format
-msgid "DSSI4CS: No run() funtion in: %s"
+msgid "DSSI4CS: No run() function in: %s"
 msgstr "DSSI4CS : pas de fonction run() dans : %s"
 
 #: Opcodes/dssi4cs/src/dssi4cs.c:604
@@ -11177,7 +11177,7 @@ msgid "could not find layout table no.0"
 msgstr "la table de disposition nO.0 est introuvable"
 
 #: Opcodes/vbap_n.c:781
-msgid "Output array in vpabmove not initalised"
+msgid "Output array in vpabmove not initialised"
 msgstr "Tableau de sortie de vpabmove non initialisé"
 
 #: Opcodes/vbap_zak.c:358 Opcodes/vbap_zak.c:403
@@ -11906,7 +11906,7 @@ msgid "--m-range=[01]          messages on range errors"
 msgstr "--m-range=[01]          messages sur les erreurs de dépassement"
 
 #: Top/argdecode.c:248
-msgid "--m-warnings=[01]       mesage on warnings"
+msgid "--m-warnings=[01]       message on warnings"
 msgstr "--m-warnings=[01]       messages d'avertissement"
 
 #: Top/argdecode.c:249

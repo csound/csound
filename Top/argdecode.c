@@ -245,7 +245,7 @@ static const char *longUsageList[] = {
   " ",
   Str_noop("--m-amps=[01]           messages on note amps"),
   Str_noop("--m-range=[01]          messages on range errors"),
-  Str_noop("--m-warnings=[01]       mesage on warnings"),
+  Str_noop("--m-warnings=[01]       message on warnings"),
   Str_noop("--m-raw=[01]            raw amp messages"),
   Str_noop("--m-dB=[01]             amp messages in dB"),
   Str_noop("--m-colours=[01]        colour amp messages"),

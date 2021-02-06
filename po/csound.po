@@ -6153,7 +6153,7 @@ msgid "The output channel count does not match the isetup value."
 msgstr ""
 
 #: Opcodes/ambicode1.c:689
-msgid "bformdec1 output array not initilised"
+msgid "bformdec1 output array not initialised"
 msgstr ""
 
 #: Opcodes/arrayops.cpp:78 Opcodes/arrayops.cpp:175
@@ -6600,7 +6600,7 @@ msgstr ""
 
 #: Opcodes/dssi4cs/src/dssi4cs.c:403 Opcodes/dssi4cs/src/dssi4cs.c:422
 #, c-format
-msgid "DSSI4CS: No run() funtion in: %s"
+msgid "DSSI4CS: No run() function in: %s"
 msgstr ""
 
 #: Opcodes/dssi4cs/src/dssi4cs.c:604
@@ -10666,7 +10666,7 @@ msgid "could not find layout table no.0"
 msgstr ""
 
 #: Opcodes/vbap_n.c:781
-msgid "Output array in vpabmove not initalised"
+msgid "Output array in vpabmove not initialised"
 msgstr ""
 
 #: Opcodes/vbap_zak.c:358 Opcodes/vbap_zak.c:403
@@ -11333,7 +11333,7 @@ msgid "--m-range=[01]          messages on range errors"
 msgstr ""
 
 #: Top/argdecode.c:248
-msgid "--m-warnings=[01]       mesage on warnings"
+msgid "--m-warnings=[01]       message on warnings"
 msgstr ""
 
 #: Top/argdecode.c:249
