@@ -12,6 +12,7 @@ import { freeStringPtr, ptr2string, string2ptr } from "@utils/string-pointers";
  * @function
  * @name inputMessage
  * @memberof CsoundObj
+ * @param {string} scoreEvent
  * @return {Promise.<number>}
  */
 export const csoundInputMessage = (wasm) => (csound, scoEvent) => {
@@ -30,6 +31,7 @@ csoundInputMessage.toString = () => "inputMessage = async (scoreEvent) => Number
  * @function
  * @name inputMessageAsync
  * @memberof CsoundObj
+ * @param {string} scoreEvent
  * @return {Promise.<number>}
  */
 export const csoundInputMessageAsync = (wasm) => (csound, scoEvent) => {
