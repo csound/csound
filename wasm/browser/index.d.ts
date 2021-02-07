@@ -171,12 +171,12 @@ declare interface CsoundObj {
      * Inputs an immediate score event
      * without any pre-process parsing
      */
-    inputMessage: () => Promise<number>;
+    inputMessage: (scoreEvent: string) => Promise<number>;
     /**
      * Inputs an immediate score event
      * without any pre-process parsing
      */
-    inputMessageAsync: () => Promise<number>;
+    inputMessageAsync: (scoreEvent: string) => Promise<number>;
     /**
      * Retrieves the value of control channel identified by channelName.
      * If the err argument is not NULL, the error (or success) code finding
