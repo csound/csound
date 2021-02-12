@@ -9,8 +9,7 @@ import { trimNull } from "@utils/trim-null";
 /**
  * Returns the audio output name (-o)
  * @function
- * @name getOutputName
- * @memberof CsoundObj
+ * @name CsoundObj#getOutputName
  * @return {Promise.<string>}
  */
 export const csoundGetOutputName = (wasm) => (csound) => {
@@ -25,8 +24,7 @@ csoundGetOutputName.toString = () => "getOutputName = async () => String;";
 /**
  * Returns the audio input name (-i)
  * @function
- * @name getInputName
- * @memberof CsoundObj
+ * @name CsoundObj#getInputName
  * @return {Promise.<string>}
  */
 export const csoundGetInputName = (wasm) => (csound) => {

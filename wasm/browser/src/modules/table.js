@@ -10,8 +10,7 @@ import { uint2String } from "@utils/text-encoders";
  * or -1 if the table does not exist.
  * @async
  * @function
- * @name tableLength
- * @memberof CsoundObj
+ * @name CsoundObj#tableLength
  * @param {string} tableNum
  * @return {Promise.<number>}
  */
@@ -25,8 +24,7 @@ csoundTableLength.toString = () => "tableLength = async (tableNum) => Number;";
  * The table number and index are assumed to be valid.
  * @async
  * @function
- * @name tableGet
- * @memberof CsoundObj
+ * @name CsoundObj#tableGet
  * @param {string} tableNum
  * @param {string} tableIndex
  * @return {Promise.<number>}
@@ -41,8 +39,7 @@ csoundTableGet.toString = () => "tableGet = async (tableNum, tableIndex) => Numb
  * The table number and index are assumed to be valid.
  * @async
  * @function
- * @name tableSet
- * @memberof CsoundObj
+ * @name CsoundObj#tableSet
  * @param {string} tableNum
  * @param {string} tableIndex
  * @param {string} value
@@ -60,8 +57,7 @@ csoundTableSet.toString = () => "tableSet = async (tableNum, tableIndex, value) 
  * The table number and index are assumed to be valid.
  * @async
  * @function
- * @name tableCopyIn
- * @memberof CsoundObj
+ * @name CsoundObj#tableCopyIn
  * @param {string} tableNum
  * @param {string} tableIndex
  * @param {Array<number>|ArrayLike<number>} array
@@ -83,8 +79,7 @@ csoundTableCopyIn.toString = () => "tableCopyIn = async (tableNum, float64Array)
  * it returns undefined.
  * @async
  * @function
- * @name tableCopyOut
- * @memberof CsoundObj
+ * @name CsoundObj#tableCopyOut
  * @param {string} tableNum
  * @return {Promise.<Float64Array|undefined>}
  */
@@ -103,12 +98,11 @@ export const csoundTableCopyOut = (wasm) => (csound, tableNumber) => {
 csoundTableCopyOut.toString = () => "tableCopyOut = async (tableNum) => ?Float64Array;";
 
 /**
- * @name getTable
+ * @name CsoundObj#getTable
  * @alias csoundTableCopyOut
  * @async
  * @function
- * @name getTable
- * @memberof CsoundObj
+ * @name CsoundObj#getTable
  * @param {string} tableNum
  * @return {Promise.<Float64Array|undefined>}
  */
@@ -121,8 +115,7 @@ csoundGetTable.toString = csoundTableCopyOut.toString;
  * it returns undefined.
  * @async
  * @function
- * @name getTableArgs
- * @memberof CsoundObj
+ * @name CsoundObj#getTableArgs
  * @param {string} tableNum
  * @return {Promise.<Float64Array|undefined>}
  */
@@ -145,8 +138,7 @@ csoundGetTableArgs.toString = () => "getTableArgs = async (tableNum) => ?Float64
  * Otherwise it returns 0.
  * @async
  * @function
- * @name isNamedGEN
- * @memberof CsoundObj
+ * @name CsoundObj#isNamedGEN
  * @param {string} tableNum
  * @return {Promise.<number>}
  */
@@ -162,8 +154,7 @@ csoundIsNamedGEN.toString = () => "isNamedGEN = async (tableNum) => number;";
  * return undefined.
  * @async
  * @function
- * @name getNamedGEN
- * @memberof CsoundObj
+ * @name CsoundObj#getNamedGEN
  * @param {string} tableNum
  * @return {Promise.<string|undefined>}
  */

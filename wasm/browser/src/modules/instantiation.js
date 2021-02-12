@@ -16,8 +16,7 @@ csoundCreate.toString = () => "create = async () => undefined;";
  * Destroys an instance of Csound and frees memory
  * @async
  * @function
- * @name destroy
- * @memberof CsoundObj
+ * @name CsoundObj#destroy
  * @return {Promise.<undefined>}
  */
 export const csoundDestroy = (wasm) => (csound) => wasm.exports.csoundDestroy(csound);
@@ -28,8 +27,7 @@ csoundDestroy.toString = () => "destroy = async () => undefined;";
  * Returns the API version as int
  * @async
  * @function
- * @name getAPIVersion
- * @memberof CsoundObj
+ * @name CsoundObj#getAPIVersion
  * @return {Promise.<number>}
  */
 export const csoundGetAPIVersion = (wasm) => () => wasm.exports.csoundGetAPIVersion();
@@ -40,8 +38,7 @@ csoundGetAPIVersion.toString = () => "getAPIVersion = async () => Number;";
  * Returns the Csound version as int
  * @async
  * @function
- * @name getVersion
- * @memberof CsoundObj
+ * @name CsoundObj#getVersion
  * @return {Promise.<number>}
  */
 export const csoundGetVersion = (wasm) => () => wasm.exports.csoundGetVersion();
@@ -56,8 +53,8 @@ csoundGetVersion.toString = () => "getVersion = async () => Number;";
  * sets signal handlers and atexit() callbacks.
  * @async
  * @function
- * @name initialize
- * @memberof CsoundObj
+ * @name CsoundObj#initialize
+
  * @return {Promise.<number>} - Return value is zero on success,
  *     positive if initialisation was done already, and negative on error.
  */

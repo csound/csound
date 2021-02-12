@@ -16,8 +16,7 @@ export const csoundSetMidiCallbacks = (wasm) => (csound) => {
  * (isOutput=1 for out devices, 0 for in devices).
  * @async
  * @function
- * @name getMIDIDevList
- * @memberof CsoundObj
+ * @name CsoundObj#getMIDIDevList
  * @param {number} isOutput
  * @return {Promise.<CS_MIDIDEVICE>}
  */
@@ -45,8 +44,7 @@ csoundGetMIDIDevList.toString = () => "getMIDIDevList = async (isOutput) => Obje
  * (isOutput=1 for out devices, 0 for in devices).
  * @async
  * @function
- * @name getRtMidiName
- * @memberof CsoundObj
+ * @name CsoundObj#getRtMidiName
  * @return {Promise.<string>}
  */
 export const csoundGetRtMidiName = (wasm) => (csound) => {
@@ -75,8 +73,7 @@ export const _isRequestingRtMidiInput = (wasm) => (csound) => {
  * in the range of 0 to 127.
  * @async
  * @function
- * @name midiMessage
- * @memberof CsoundObj
+ * @name CsoundObj#midiMessage
  * @param {number} midi status value
  * @param {number} midi data1
  * @param {number} midi data2

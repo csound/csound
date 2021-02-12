@@ -10,8 +10,7 @@ import { freeStringPtr, ptr2string, string2ptr } from "@utils/string-pointers";
  * without any pre-process parsing
  * @async
  * @function
- * @name inputMessage
- * @memberof CsoundObj
+ * @name CsoundObj#inputMessage
  * @param {string} scoreEvent
  * @return {Promise.<number>}
  */
@@ -29,8 +28,7 @@ csoundInputMessage.toString = () => "inputMessage = async (scoreEvent) => Number
  * without any pre-process parsing
  * @async
  * @function
- * @name inputMessageAsync
- * @memberof CsoundObj
+ * @name CsoundObj#inputMessageAsync
  * @param {string} scoreEvent
  * @return {Promise.<number>}
  */
@@ -49,8 +47,7 @@ csoundInputMessageAsync.toString = () => "inputMessageAsync = async (scoreEvent)
  * or accessing the channel is stored in it.
  * @async
  * @function
- * @name getControlChannel
- * @memberof CsoundObj
+ * @name CsoundObj#getControlChannel
  * @param {string} channelName
  * @return {Promise.<undefined>}
  */
@@ -67,8 +64,7 @@ csoundGetControlChannel.toString = () => "getControlChannel = async (channelName
  * Sets the value of control channel identified by channelName
  * @async
  * @function
- * @name setControlChannel
- * @memberof CsoundObj
+ * @name CsoundObj#setControlChannel
  * @param {string} channelName
  * @param {number} value
  * @return {Promise.<undefined>}
@@ -85,8 +81,7 @@ csoundSetControlChannel.toString = () => "setControlChannel = async (channelName
  * Retrieves the string channel identified by channelName
  * @async
  * @function
- * @name getStringChannel
- * @memberof CsoundObj
+ * @name CsoundObj#getStringChannel
  * @param {string} channelName
  * @return {Promise.<undefined>}
  */
@@ -106,8 +101,7 @@ csoundGetStringChannel.toString = () => "getStringChannel = async (channelName) 
  * Sets the string channel value identified by channelName
  * @async
  * @function
- * @name setStringChannel
- * @memberof CsoundObj
+ * @name CsoundObj#setStringChannel
  * @param {string} channelName
  * @param {string} value
  * @return {Promise.<undefined>}

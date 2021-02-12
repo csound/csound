@@ -7,8 +7,7 @@
  * Returns the number of samples in Csound's input buffer.
  * @async
  * @function
- * @name getInputBufferSize
- * @memberof CsoundObj
+ * @name CsoundObj#getInputBufferSize
  * @return {Promise.<number>}
  */
 export const csoundGetInputBufferSize = (wasm) => (csound) =>
@@ -20,8 +19,7 @@ csoundGetInputBufferSize.toString = () => "getInputBufferSize = async () => Numb
  * Returns the number of samples in Csound's output buffer.
  * @async
  * @function
- * @name getOutputBufferSize
- * @memberof CsoundObj
+ * @name CsoundObj#getOutputBufferSize
  * @return {Promise.<number>}
  */
 export const csoundGetOutputBufferSize = (wasm) => (csound) =>
@@ -33,8 +31,7 @@ csoundGetOutputBufferSize.toString = () => "getOutputBufferSize = async () => Nu
  * Returns the address of the Csound audio input buffer.
  * @async
  * @function
- * @name getInputBuffer
- * @memberof CsoundObj
+ * @name CsoundObj#getInputBuffer
  * @return {Promise.<number>}
  */
 export const csoundGetInputBuffer = (wasm) => (csound) => wasm.exports.csoundGetInputBuffer(csound);
@@ -45,8 +42,7 @@ csoundGetInputBuffer.toString = () => "getInputBuffer = async () => Number;";
  * Returns the address of the Csound audio output buffer.
  * @async
  * @function
- * @name getOutputBuffer
- * @memberof CsoundObj
+ * @name CsoundObj#getOutputBuffer
  * @return {Promise.<number>}
  */
 export const csoundGetOutputBuffer = (wasm) => (csound) =>
@@ -59,8 +55,7 @@ csoundGetOutputBuffer.toString = () => "getOutputBuffer = async () => Number;";
  * Enables external software to write audio into Csound before calling csoundPerformKsmps.
  * @async
  * @function
- * @name getSpin
- * @memberof CsoundObj
+ * @name CsoundObj#getSpin
  * @return {Promise.<number>}
  */
 export const csoundGetSpin = (wasm) => (csound) => wasm.exports.csoundGetSpin(csound);
@@ -71,8 +66,8 @@ csoundGetSpin.toString = () => "getSpin = async (csound) => Number;";
  * Returns the address of the Csound audio output working buffer (spout).
  * Enables external software to read audio from Csound after calling csoundPerformKsmps.
  * @async
- * @function getSpout
- * @memberof CsoundObj
+ * @function
+ * @name CsoundObj#getSpout
  * @return {Promise.<number>}
  */
 export const csoundGetSpout = (wasm) => (csound) => wasm.exports.csoundGetSpout(csound);

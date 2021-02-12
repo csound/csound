@@ -10,8 +10,7 @@ import { freeStringPtr, string2ptr } from "@utils/string-pointers";
  * independently of real-time MIDI events
  * @async
  * @function
- * @name isScorePending
- * @memberof CsoundObj
+ * @name CsoundObj#isScorePending
  * @return {Promise.<number>}
  */
 export const csoundIsScorePending = (wasm) => (csound) => wasm.exports.csoundIsScorePending(csound);
@@ -27,8 +26,7 @@ csoundIsScorePending.toString = () => "isScorePending = async () => Number;";
  * or to play the Csound instruments live.
  * @async
  * @function
- * @name setScorePending
- * @memberof CsoundObj
+ * @name CsoundObj#setScorePending
  * @param {number} pending
  * @return {Promise.<undefined>}
  */
@@ -42,8 +40,7 @@ csoundSetScorePending.toString = () => "setScorePending = async (pending) => Num
  * with the new score events being added to the currently scheduled ones.
  * @async
  * @function
- * @name readScore
- * @memberof CsoundObj
+ * @name CsoundObj#readScore
  * @param {string} score
  * @return {Promise.<undefined>}
  */
@@ -60,8 +57,7 @@ csoundReadScore.toString = () => "readScore = async (score) => Number;";
  * Returns the current score time in seconds since the beginning of performance.
  * @async
  * @function
- * @name getScoreTime
- * @memberof CsoundObj
+ * @name CsoundObj#getScoreTime
  * @return {Promise.<number>}
  */
 export const csoundGetScoreTime = (wasm) => (csound) => wasm.exports.csoundGetScoreTime(csound);
@@ -72,8 +68,7 @@ csoundGetScoreTime.toString = () => "getScoreTime = async () => Number;";
  * Returns the score time beginning at which score events will actually immediately be performed
  * @async
  * @function
- * @name getScoreOffsetSeconds
- * @memberof CsoundObj
+ * @name CsoundObj#getScoreOffsetSeconds
  * @return {Promise.<number>}
  */
 export const csoundGetScoreOffsetSeconds = (wasm) => (csound) =>
@@ -91,8 +86,7 @@ csoundGetScoreOffsetSeconds.toString = () => "getScoreOffsetSeconds = async () =
  * or to synchronize other events with the Csound score.
  * @async
  * @function
- * @name setScoreOffsetSeconds
- * @memberof CsoundObj
+ * @name CsoundObj#setScoreOffsetSeconds
  * @param {number} time
  * @return {Promise.<number>}
  */
@@ -105,8 +99,7 @@ csoundSetScoreOffsetSeconds.toString = () => "setScoreOffsetSeconds = async () =
  * Rewinds a compiled Csound score to the time specified with csoundObj.setScoreOffsetSeconds().
  * @async
  * @function
- * @name rewindScore
- * @memberof CsoundObj
+ * @name CsoundObj#rewindScore
  * @return {Promise.<number>}
  */
 export const csoundRewindScore = (wasm) => (csound) => wasm.exports.csoundRewindScore(csound);
