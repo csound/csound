@@ -51,17 +51,35 @@ MYFLT *csoundAutoCorrelation(CSOUND *csound, MYFLT *r, MYFLT *s, int size){
 }
 
 typedef struct LPCparam_ {
-  MYFLT *r, *E, *b, *k, *pk, *am, *tmpmem, *cf, cps, rms;
+  MYFLT *r, *E, *b, *k, *pk, *am, *tmpmem, *cf, cps, rms, *ftbuf;
   MYCMPLX *pl;
-  int32_t N, M;
+  int32_t N, M, FN;
 } LPCparam;
 
+MYFLT *acorr(CSOUND *csound, LPCparam *p, MYFLT *r, MYFLT *s, int size){
+  int N = p->FN;
+  int i,j;
+  MYFLT *buf = p->ftbuf,ai,ar; 
+  memset(buf, 0, sizeof(MYFLT)*N*2);
+  for(i=j=0; j < size; i+=2,j++)
+    buf[i] = s[j];
+  csoundComplexFFT(csound,buf,N);
+  for(i = 0; i < N*2; i+=2) {
+    ar = buf[i]; ai = buf[i];
+    buf[i] = ar*ar + ai*ai; buf[i+1] = 0;
+  }
+  csoundInverseComplexFFT(csound, buf, N);
+  for(i=j=0; j < size; i+=2,j++)
+    r[j] = buf[i];
+  return r;
+}
 
 /** Set up linear prediction memory for
     autocorrelation size N and predictor order M
 */
 void *csoundLPsetup(CSOUND *csound, int N, int M) {
   LPCparam *p = csound->Calloc(csound, sizeof(LPCparam));
+  int fn = 0;
 
   if(N) {
     // allocate LP analysis memory if needed
@@ -72,6 +90,8 @@ void *csoundLPsetup(CSOUND *csound, int N, int M) {
     p->E = csound->Calloc(csound, sizeof(MYFLT)*(M+1));
     p->k = csound->Calloc(csound, sizeof(MYFLT)*(M+1));
     p->b = csound->Calloc(csound, sizeof(MYFLT)*(M+1)*(M+1));
+    for(fn=2; fn < N*2-1; fn*=2); 
+    p->ftbuf = csound->Calloc(csound, sizeof(MYFLT)*fn*2);
   }
 
   // otherwise just allocate coefficient/pole memory
@@ -81,6 +101,7 @@ void *csoundLPsetup(CSOUND *csound, int N, int M) {
 
   p->N = N;
   p->M = M;
+  p->FN = fn;
   p->cps = 0;
   p->rms  = 0;
   return p;
@@ -114,7 +135,7 @@ MYFLT *csoundLPred(CSOUND *csound, void *parm, MYFLT *x){
   int L = M+1;
   int m,i;
 
-  r = csoundAutoCorrelation(csound,r,x,N);
+  r = acorr(csound,p,r,x,N);
   MYFLT ro = r[0];
   p->rms = SQRT(ro/N);
   if (ro > FL(0.0)) {
