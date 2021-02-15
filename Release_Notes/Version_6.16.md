@@ -22,9 +22,9 @@ Any valid HTML can also be used.
 
 # CSOUND VERSION 6.16 RELEASE NOTES - DRAFT - DRAFT - DRAFT - DRAFT 
 
-Tis us mainly abug fixing release but there are new opcodes, including
+This is mainly a bug fixing release but there are new opcodes, including
 support for simpler use of MIDI controls and a new opcode to connect
-to an Arduino.
+to an Arduino.  Also there is an optional limiter in the soun outpur chain.
 
 -- The Developers
 
@@ -34,14 +34,16 @@ to an Arduino.
 
 - cntDelete deltes a counter object
 
-- lfsr, a linear feedback shift register opcode for psuedo random umber generation.
+- lfsr, a linear feedback shift register opcode for psuedo random
+  umber generation.
 
 - ctrlsave stores the currrent values of MIDIcontrollers in an array.
 
 - turnoff3 extends tuning off to remove instrument instances that are
   queued via scheduling but not yet active. *** NOT DOCUMENTED***
 
-- ctrlprint prints the result of a ctrlsave call in a form that can be used in an orchestra.
+- ctrlprint prints the result of a ctrlsave call in a form that can be
+  used in an orchestra.
 
 - ctrlprintpresets prints the MIDI controller preset.
 
@@ -56,8 +58,10 @@ an optional port filter.
 
 - aduinoReadF extends the arduino family to transfer floating point
   values.
-  
-### New Gen and Macros
+
+- triglinseg and trigexpseg are triggered versions of linseg and expseg
+
+## New Gen and Macros
 
 ### Orchestra
 
@@ -68,7 +72,10 @@ an optional port filter.
 
 ### Options
 
-
+New options --limiter and --limiter=num (where num is in range (0,1]
+inserts a tanh limiter (see clip version2) at the end of each k-cycle.
+This can be used wen exerimenting or trying some alien inputs to save
+your ears or speakers.  The default value in the first form is 0.5
 
 ### Modified Opcodes and Gens
 
@@ -115,6 +122,9 @@ an optional port filter.
 
 - midiarp opcode fixed (issue 1365)
 
+- a bug in moogladdet where te value of 0dbfs affected te outout is
+  now fixed.
+
 # SYSTEM LEVEL CHANGES
 
 
@@ -147,14 +157,11 @@ an optional port filter.
 
 ==END==
 
-commit c91f932d30ac20f3161aad3e3f0a1c21691ff50c
-Author: roryywalsh <rorywalsh@ear.ie>
-Date:   Wed Dec 16 19:22:56 2020 +0000
+commit 47a9cf5d8b0093f3840f122654f49a406fb1b240
+Author: vlazzarini <victor.lazzarini@mu.ie>
+Date:   Fri Jan 29 10:00:45 2021 +0000
 
-    fixing midiarp opcode - github issue no #1365
-
-
-
+    fixed values of vt for moogladder 0dbfs != 32768
 
 **END**
 

@@ -400,7 +400,7 @@ int32_t dssiinit(CSOUND * csound, DSSIINIT * p)
 
       }
       if (UNLIKELY(!DSSIPlugin_->Descriptor->run)) {
-        return csound->InitError(csound, Str("DSSI4CS: No run() funtion in: %s"),
+        return csound->InitError(csound, Str("DSSI4CS: No run() function in: %s"),
                                  LDescriptor->Name);
       }
       PortCount = DSSIPlugin_->Descriptor->PortCount;
@@ -419,7 +419,7 @@ int32_t dssiinit(CSOUND * csound, DSSIINIT * p)
       }
       if (UNLIKELY(!DSSIPlugin_->DSSIDescriptor->LADSPA_Plugin->run)) {
         unloadLADSPAPluginLibrary(csound, PluginLibrary);
-        return csound->InitError(csound, Str("DSSI4CS: No run() funtion in: %s"),
+        return csound->InitError(csound, Str("DSSI4CS: No run() function in: %s"),
                                          LDescriptor->Name);
       }
       PortCount = DSSIPlugin_->DSSIDescriptor->LADSPA_Plugin->PortCount;

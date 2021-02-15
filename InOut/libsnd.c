@@ -81,6 +81,9 @@ static void spoutsf(CSOUND *csound)
     csound->libsndStatics.outbufrem -= n;
     do {
       // built inlimiter start ****
+      // There is a rather awkward problem in reporting out of range not being
+      // confused by the limited value but passing the clipped values to the
+      // output.  Current solution is nasty and should be easier 
       if (O->limiter) {
         MYFLT x = *sp;
         absamp = x;
