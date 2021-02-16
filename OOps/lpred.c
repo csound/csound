@@ -57,20 +57,17 @@ typedef struct LPCparam_ {
 } LPCparam;
 
 MYFLT *acorr(CSOUND *csound, LPCparam *p, MYFLT *r, MYFLT *s, int size){
-  int N = p->FN;
-  int i,j;
+  int32_t N = p->FN, i;
   MYFLT *buf = p->ftbuf,ai,ar; 
-  memset(buf, 0, sizeof(MYFLT)*N*2);
-  for(i=j=0; j < size; i+=2,j++)
-    buf[i] = s[j];
-  csoundComplexFFT(csound,buf,N);
-  for(i = 0; i < N*2; i+=2) {
+  memset(buf, 0, sizeof(MYFLT)*N);
+  memcpy(buf,s,sizeof(MYFLT)*size);
+  csoundRealFFT(csound,buf,N);
+  for(i = 0; i < N; i+=2) {
     ar = buf[i]; ai = buf[i];
-    buf[i] = ar*ar + ai*ai; buf[i+1] = 0;
+    buf[i] = ar*ar + ai*ai; buf[i+1] = 0.;
   }
-  csoundInverseComplexFFT(csound, buf, N);
-  for(i=j=0; j < size; i+=2,j++)
-    r[j] = buf[i];
+  csoundInverseRealFFT(csound, buf, N);
+  memcpy(r,buf,sizeof(MYFLT)*size);
   return r;
 }
 
@@ -91,7 +88,7 @@ void *csoundLPsetup(CSOUND *csound, int N, int M) {
     p->k = csound->Calloc(csound, sizeof(MYFLT)*(M+1));
     p->b = csound->Calloc(csound, sizeof(MYFLT)*(M+1)*(M+1));
     for(fn=2; fn < N*2-1; fn*=2); 
-    p->ftbuf = csound->Calloc(csound, sizeof(MYFLT)*fn*2);
+    p->ftbuf = csound->Calloc(csound, sizeof(MYFLT)*fn);
   }
 
   // otherwise just allocate coefficient/pole memory
