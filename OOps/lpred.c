@@ -63,7 +63,7 @@ MYFLT *acorr(CSOUND *csound, LPCparam *p, MYFLT *r, MYFLT *s, int size){
   memcpy(buf,s,sizeof(MYFLT)*size);
   csoundRealFFT(csound,buf,N);
   for(i = 0; i < N; i+=2) {
-    ar = buf[i]; ai = buf[i];
+    ar = buf[i]; ai = buf[i+1];
     buf[i] = ar*ar + ai*ai; buf[i+1] = 0.;
   }
   csoundInverseRealFFT(csound, buf, N);
