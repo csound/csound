@@ -24,31 +24,15 @@
 #include "fftlib.h"
 #include "lpred.h"
 
-  static inline MYFLT magc(MYCMPLX c) {
-      return HYPOT(c.re, c.im);
-  }
-
-  static inline MYFLT phsc(MYCMPLX c) {
-    return ATAN2(c.im, c.re);
-  }
-
-/** autocorrelation
-    r - output
-    s - input
-    size - input size
-    returns r
-*/
-MYFLT *csoundAutoCorrelation(CSOUND *csound, MYFLT *r, MYFLT *s, int size){
-  MYFLT sum;
-  int n,m,o;
-  for(n=0; n < size; n++) {
-    sum = FL(0.0);
-    for(m=n,o=0; m < size; m++,o++)
-      sum += s[o]*s[m];
-    r[n] = sum;
-  }
-  return r;
+static inline MYFLT magc(MYCMPLX c) {
+  return HYPOT(c.re, c.im);
 }
+
+static inline MYFLT phsc(MYCMPLX c) {
+  return ATAN2(c.im, c.re);
+}
+
+
 
 typedef struct LPCparam_ {
   MYFLT *r, *E, *b, *k, *pk, *am, *tmpmem, *cf, cps, rms, *ftbuf;
@@ -56,21 +40,46 @@ typedef struct LPCparam_ {
   int32_t N, M, FN;
 } LPCparam;
 
-MYFLT *acorr(CSOUND *csound, LPCparam *p, MYFLT *r, MYFLT *s, int size){
-  int32_t N = p->FN, i;
-  MYFLT *buf = p->ftbuf,ai,ar; 
-  memset(buf, 0, sizeof(MYFLT)*N);
-  memcpy(buf,s,sizeof(MYFLT)*size);
-  csoundRealFFT(csound,buf,N);
-  buf[0] *= buf[0];
-  buf[1] *= buf[1];
-  for(i = 2; i < N; i+=2) {
-    ar = buf[i]; ai = buf[i+1];
-    buf[i] = ar*ar + ai*ai; buf[i+1] = 0.;
+
+/** autocorrelation 
+    computes autocorr out-of-place using spectral or
+    time-domain methods.
+    r - output
+    s - input
+    size - input size
+    buf - FFT buffer (if NULL, time-domain autocorr is used)
+    N - FFT size (power-of-two >= size*2-1) 
+    returns r
+*/
+MYFLT *csoundAutoCorrelation(CSOUND *csound, MYFLT *r, MYFLT *s, int size,
+                             MYFLT *buf, int N){
+  if(buf != NULL) {
+    int32_t i;
+    MYFLT ai,ar; 
+    memset(buf, 0, sizeof(MYFLT)*N);
+    memcpy(buf,s,sizeof(MYFLT)*size);
+    csoundRealFFT(csound,buf,N);
+    buf[0] *= buf[0];
+    buf[1] *= buf[1];
+    for(i = 2; i < N; i+=2) {
+      ar = buf[i]; ai = buf[i+1];
+      buf[i] = ar*ar + ai*ai; buf[i+1] = 0.;
+    }
+    csoundInverseRealFFT(csound, buf, N);
+    memcpy(r,buf,sizeof(MYFLT)*size);
+    return r;
   }
-  csoundInverseRealFFT(csound, buf, N);
-  memcpy(r,buf,sizeof(MYFLT)*size);
-  return r;
+  else {
+    MYFLT sum;
+    int n,m,o;
+    for(n=0; n < size; n++) {
+      sum = FL(0.0);
+      for(m=n,o=0; m < size; m++,o++)
+        sum += s[o]*s[m];
+      r[n] = sum;
+    }
+    return r;
+  }
 }
 
 /** Set up linear prediction memory for
@@ -134,7 +143,7 @@ MYFLT *csoundLPred(CSOUND *csound, void *parm, MYFLT *x){
   int L = M+1;
   int m,i;
 
-  r = acorr(csound,p,r,x,N);
+  r = csoundAutoCorrelation(csound,r,x,N,p->ftbuf,p->FN);
   MYFLT ro = r[0];
   p->rms = SQRT(ro/N);
   if (ro > FL(0.0)) {
