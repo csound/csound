@@ -579,23 +579,37 @@ PUBLIC int csoundCompileCsdText(CSOUND *csound, const char *csd_text)
 {
     //csound->oparms->odebug = 1; /* *** SWITCH ON EXTRA DEBUGGING *** */
     int res = read_unified_file4(csound, corfile_create_r(csound, csd_text));
-    printf("file read res = %d\n", res);
+    //printf("file read res = %d\n", res);
     if (LIKELY(res)) {
       if (csound->csdname != NULL) csound->Free(csound, csound->csdname);
       csound->csdname = cs_strdup(csound, "*string*"); /* Mark as from text. */
       res = csoundCompileOrcInternal(csound, NULL, 0);
-      printf("internalread res = %d\n", res);
+      //printf("internalread res = %d\n", res);
       if (res == CSOUND_SUCCESS){
         if ((csound->engineStatus & CS_STATE_COMP) != 0) {
-          char *sc = scsortstr(csound, csound->scorestr);
-          if (sc) {
-            if(csound->oparms->odebug)
-              csound->Message(csound,
-                              Str("Real-time score events (engineStatus: %d).\n"),
-                              csound->engineStatus);
-            csoundInputMessage(csound, (const char *) sc);
+          if (csound->scorestr==NULL) {
+            printf("*** no score\n");
+            csound->scorestr = corfile_create_w(csound);
+            corfile_puts(csound, "\nf0 800000000000.0\ne\n",csound->scorestr);
+            corfile_puts(csound, "\ne\n#exit\n",csound->scorestr);
+          }
+          {
+            printf("*** in score >>>%s<<<\n", corfile_body(csound->scorestr));
+            char *sc = scsortstr(csound, csound->scorestr);
+            printf("*** 0ut score >>>%s<<<\n", sc);
+            if (sc) {
+              if(csound->oparms->odebug)
+                csound->Message(csound,
+                                Str("Real-time score events (engineStatus: %d).\n"),
+                                csound->engineStatus);
+              csoundInputMessage(csound, (const char *) sc);
+            }
           }
         } else {
+          if (csound->scorestr==NULL) {
+            csound->scorestr = corfile_create_w(csound);
+            corfile_puts(csound, "\n\n\ne\n#exit\n",csound->scorestr);
+          }
           scsortstr(csound, csound->scorestr);
           if(csound->oparms->odebug)
             csound->Message(csound,
