@@ -62,7 +62,7 @@ char *scsortstr(CSOUND *csound, CORFIL *scin)
       swritestr(csound, sco, first);
       //printf("sorted: >>>%s<<<\n", sco->body);
     }
-    //printf("**** first = %d body = >>%s<<\n", first, sco->body);
+    printf("**** first = %d body = >>%s<<\n", first, sco->body);
     if (first) {
       int i = 0;
       while (isspace(sco->body[i])) i++;
@@ -71,7 +71,7 @@ char *scsortstr(CSOUND *csound, CORFIL *scin)
         corfile_puts(csound, "f0 800000000000.0\ne\n", sco); /* ~25367 years */
       }
       else corfile_puts(csound, "e\n", sco);
-      //printf("body >>%s<<\n", sco->body);
+      printf("body >>%s<<\n", sco->body);
     }
     corfile_flush(csound, sco);
     sfree(csound);

@@ -590,8 +590,8 @@ PUBLIC int csoundCompileCsdText(CSOUND *csound, const char *csd_text)
           if (csound->scorestr==NULL) {
             printf("*** no score\n");
             csound->scorestr = corfile_create_w(csound);
-            corfile_puts(csound, "\nf0 800000000000.0\ne\n",csound->scorestr);
-            corfile_puts(csound, "\ne\n#exit\n",csound->scorestr);
+            corfile_puts(csound, "\nf0 800000000000.0\ne\n#exit\n",csound->scorestr);
+            //corfile_puts(csound, "e\n#exit\n",csound->scorestr);
           }
           {
             printf("*** in score >>>%s<<<\n", corfile_body(csound->scorestr));
