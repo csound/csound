@@ -9663,7 +9663,7 @@ a2010-01-16  john ffitch  <jpff@codemist.co.uk>
 
 1999-04-01  John ffitch  <jpff@weir>
 
-	* pvread.c (pvreadset): Correct error mesage to say PVREAD rather
+	* pvread.c (pvreadset): Correct error message to say PVREAD rather
 	than PVOC
 
 1999-03-31  John ffitch  <jpff@weir>

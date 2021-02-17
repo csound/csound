@@ -72,10 +72,13 @@ an optional port filter.
 
 ### Options
 
-New options --limiter and --limiter=num (where num is in range (0,1]
+- New options --limiter and --limiter=num (where num is in range (0,1]
 inserts a tanh limiter (see clip version2) at the end of each k-cycle.
 This can be used wen exerimenting or trying some alien inputs to save
 your ears or speakers.  The default value in the first form is 0.5
+
+- A typing error meant that the tag <CsShortLicense> was not recognised,
+although the English spelling (CsSortLicence) was.  Corrected.
 
 ### Modified Opcodes and Gens
 
@@ -157,11 +160,14 @@ your ears or speakers.  The default value in the first form is 0.5
 
 ==END==
 
-commit 47a9cf5d8b0093f3840f122654f49a406fb1b240
-Author: vlazzarini <victor.lazzarini@mu.ie>
-Date:   Fri Jan 29 10:00:45 2021 +0000
+commit 25c1e6bf2a0077b89a2859b92a529fc0c77e4919 (HEAD -> develop, origin/develop
+, origin/HEAD)
+Author: Francois PINOT <fggpinot@gmail.com>
+Date:   Sun Feb 7 09:50:56 2021 +0100
 
-    fixed values of vt for moogladder 0dbfs != 32768
+    Updated French translation
+
+
 
 **END**
 
