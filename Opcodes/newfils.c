@@ -2387,7 +2387,7 @@ typedef struct vcf {
 
 int vcf_init(CSOUND *csound, VCF *p) {
   MYFLT g, *G = p->G;
-  p->piosr = M_PI/csound->GetSr(csound);
+  p->piosr = PI/csound->GetSr(csound);
   p->ff = *p->f;
   g = TAN(p->ff*p->piosr);
   G[0] = g/(1+g);
