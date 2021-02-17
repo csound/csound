@@ -2377,7 +2377,7 @@ int vps_process(CSOUND *csound, VPS *p) {
 
 typedef struct vcf {
   OPDS h;
-  MYFLT *y, *x, *f, *r;
+  MYFLT *y, *x, *f, *r, *istor;
   MYFLT s[4];
   MYFLT A, G[4];
   MYFLT ff;
@@ -2395,7 +2395,8 @@ int vcf_init(CSOUND *csound, VCF *p) {
   G[1] = G[0]*G[0]; // G^2
   G[2] = G[0]*G[1]; // G^3
   G[3] = G[0]*G[2]; // G^4
-  memset(p->s, 0, 4*sizeof(MYFLT));
+  if(*p->istor == 0)
+    memset(p->s, 0, 4*sizeof(MYFLT));
   return OK;
 }
 
@@ -2440,7 +2441,7 @@ int vcf_perfk(CSOUND *csound, VCF *p) {
   return OK;
 }
 
-int vcf_perfa(CSOUND *csound, VCF *p) {
+int vcf_perfak(CSOUND *csound, VCF *p) {
   MYFLT *G = p->G, A, *s = p->s, ss, g;
   MYFLT *y = p->y, *x = p->x, w, u;
   MYFLT k = *p->r <=  1 ? (*p->r >= 0 ? *p->r*4 : 0)  : 4;
@@ -2478,74 +2479,158 @@ int vcf_perfa(CSOUND *csound, VCF *p) {
   return OK;
 }
 
+int vcf_perfka(CSOUND *csound, VCF *p) {
+  MYFLT *G = p->G, A = p->A, *s = p->s, ss;
+  MYFLT *y = p->y, *x = p->x, w, u;
+  MYFLT *r = p->r, k;
+  uint32_t offset = p->h.insdshead->ksmps_offset;
+  uint32_t early  = p->h.insdshead->ksmps_no_end;
+  uint32_t i, j, nsmps = CS_KSMPS;
+  if(*p->f != p->ff) { 
+    MYFLT g;
+    p->ff = *p->f;
+    g = TAN(p->ff*p->piosr);
+    G[0] = g/(1+g);
+    p->A = A = (g-1)/(1+g);
+    G[1] = G[0]*G[0]; 
+    G[2] = G[0]*G[1]; 
+    G[3] = G[0]*G[2]; 
+  }
+  
+  if (UNLIKELY(offset)) {
+    memset(y, '\0', offset*sizeof(MYFLT));
+  }
+  if (UNLIKELY(early)) {
+    nsmps -= early;
+    memset(&y[nsmps], '\0', early*sizeof(MYFLT));
+  }
+
+  for (i=offset; i<nsmps; i++) {
+    k = r[i] <=  1 ? (r[i] >= 0 ? r[i]*4 : 0)  : 4;
+    ss = s[3];
+    for(j = 0; j < 3; j++) ss += s[j]*G[2-j];
+    y[i] = (G[3]*x[i] + ss)/(1 + k*G[3]);
+    u = G[0]*(x[i] - k*y[i]);
+    for(j = 0; j < 3; j++) {
+      w = u + s[j];
+      s[j] = u - A*w;
+      u = G[0]*w;
+    }
+    s[3] = G[0]*w - A*y[i];
+  }
+  return OK;
+}
+
+int vcf_perfaa(CSOUND *csound, VCF *p) {
+  MYFLT *G = p->G, A, *s = p->s, ss, g;
+  MYFLT *y = p->y, *x = p->x, w, u;
+  MYFLT *r = p->r, k;
+  uint32_t offset = p->h.insdshead->ksmps_offset;
+  uint32_t early  = p->h.insdshead->ksmps_no_end;
+  uint32_t i, j, nsmps = CS_KSMPS;
+  MYFLT piosr = p->piosr;
+  
+  if (UNLIKELY(offset)) {
+    memset(y, '\0', offset*sizeof(MYFLT));
+  }
+  if (UNLIKELY(early)) {
+    nsmps -= early;
+    memset(&y[nsmps], '\0', early*sizeof(MYFLT));
+  }
+
+  for (i=offset; i<nsmps; i++) {
+    k = r[i] <=  1 ? (r[i] >= 0 ? r[i]*4 : 0)  : 4;
+    g = TAN(p->f[i]*piosr);
+    G[0] = g/(1+g);
+    A = (g-1)/(1+g);
+    G[1] = G[0]*G[0]; 
+    G[2] = G[0]*G[1]; 
+    G[3] = G[0]*G[2]; 
+    ss = s[3];
+    for(j = 0; j < 3; j++) ss += s[j]*G[2-j];
+    y[i] = (G[3]*x[i] + ss)/(1 + k*G[3]);
+    u = G[0]*(x[i] - k*y[i]);
+    for(j = 0; j < 3; j++) {
+      w = u + s[j];
+      s[j] = u - A*w;
+      u = G[0]*w;
+    }
+    s[3] = G[0]*w - A*y[i];
+  }
+  return OK;
+}
+
 
 static OENTRY localops[] =
   {
-    {"mvchpf", sizeof(mvchpf24), 0, 3, "a", "akp",
+    {"mvchpf", sizeof(mvchpf24), 0, 3, "a", "ako",
      (SUBR) mvchpf24_init, (SUBR) mvchpf24_perf},
-    {"mvchpf", sizeof(mvchpf24), 0, 3, "a", "aap",
+    {"mvchpf", sizeof(mvchpf24), 0, 3, "a", "aao",
      (SUBR) mvchpf24_init, (SUBR) mvchpf24_perf_a},
-    {"mvclpf1", sizeof(mvclpf24), 0, 3, "a", "akkp",
+    {"mvclpf1", sizeof(mvclpf24), 0, 3, "a", "akko",
      (SUBR) mvclpf24_init, (SUBR) mvclpf24_perf1},
-    {"mvclpf1", sizeof(mvclpf24), 0, 3, "a", "aakp",
+    {"mvclpf1", sizeof(mvclpf24), 0, 3, "a", "aako",
      (SUBR) mvclpf24_init, (SUBR) mvclpf24_perf1_ak},
-    {"mvclpf1", sizeof(mvclpf24), 0, 3, "a", "akap",
+    {"mvclpf1", sizeof(mvclpf24), 0, 3, "a", "akao",
      (SUBR) mvclpf24_init, (SUBR) mvclpf24_perf1_ka},
-    {"mvclpf1", sizeof(mvclpf24), 0, 3, "a", "aaap",
+    {"mvclpf1", sizeof(mvclpf24), 0, 3, "a", "aaao",
      (SUBR) mvclpf24_init, (SUBR) mvclpf24_perf1_aa},
-    {"mvclpf2", sizeof(mvclpf24), 0, 3, "a", "akkp",
+    {"mvclpf2", sizeof(mvclpf24), 0, 3, "a", "akko",
      (SUBR) mvclpf24_init, (SUBR) mvclpf24_perf2},
-    {"mvclpf2", sizeof(mvclpf24), 0, 3, "a", "aakp",
+    {"mvclpf2", sizeof(mvclpf24), 0, 3, "a", "aako",
      (SUBR) mvclpf24_init, (SUBR) mvclpf24_perf2_ak},
-    {"mvclpf2", sizeof(mvclpf24), 0, 3, "a", "akap",
+    {"mvclpf2", sizeof(mvclpf24), 0, 3, "a", "akao",
      (SUBR) mvclpf24_init, (SUBR) mvclpf24_perf2_ka},
-    {"mvclpf2", sizeof(mvclpf24), 0, 3, "a", "aaap",
+    {"mvclpf2", sizeof(mvclpf24), 0, 3, "a", "aaao",
      (SUBR) mvclpf24_init, (SUBR) mvclpf24_perf2_aa},
-    {"mvclpf3", sizeof(mvclpf24), 0, 3, "a", "akkp",
+    {"mvclpf3", sizeof(mvclpf24), 0, 3, "a", "akko",
      (SUBR) mvclpf24_init, (SUBR) mvclpf24_perf3},
-    {"mvclpf3", sizeof(mvclpf24), 0, 3, "a", "aakp",
+    {"mvclpf3", sizeof(mvclpf24), 0, 3, "a", "aako",
      (SUBR) mvclpf24_init, (SUBR) mvclpf24_perf3_ak},
-    {"mvclpf3", sizeof(mvclpf24), 0, 3, "a", "akap",
+    {"mvclpf3", sizeof(mvclpf24), 0, 3, "a", "akao",
      (SUBR) mvclpf24_init, (SUBR) mvclpf24_perf3_ka},
-    {"mvclpf3", sizeof(mvclpf24), 0, 3, "a", "aaap",
+    {"mvclpf3", sizeof(mvclpf24), 0, 3, "a", "aaao",
      (SUBR) mvclpf24_init, (SUBR) mvclpf24_perf3_aa},
-    {"mvclpf4", sizeof(mvclpf24_4), 0, 3, "aaaa", "akkp",
+    {"mvclpf4", sizeof(mvclpf24_4), 0, 3, "aaaa", "akko",
      (SUBR) mvclpf24_4_init, (SUBR) mvclpf24_perf4},
-    {"mvclpf4", sizeof(mvclpf24), 0, 3, "aaaa", "aakp",
+    {"mvclpf4", sizeof(mvclpf24), 0, 3, "aaaa", "aako",
      (SUBR) mvclpf24_init, (SUBR) mvclpf24_perf4_ak},
-    {"mvclpf4", sizeof(mvclpf24), 0, 3, "aaaa", "akap",
+    {"mvclpf4", sizeof(mvclpf24), 0, 3, "aaaa", "akao",
      (SUBR) mvclpf24_init, (SUBR) mvclpf24_perf4_ka},
-    {"mvclpf4", sizeof(mvclpf24), 0, 3, "aaaa", "aaap",
+    {"mvclpf4", sizeof(mvclpf24), 0, 3, "aaaa", "aaao",
      (SUBR) mvclpf24_init, (SUBR) mvclpf24_perf4_aa},
-    {"moogladder.kk", sizeof(moogladder), 0, 3, "a", "akkp",
+    {"moogladder.kk", sizeof(moogladder), 0, 3, "a", "akko",
      (SUBR) moogladder_init, (SUBR) moogladder_process },
-    {"moogladder.aa", sizeof(moogladder), 0, 3, "a", "aaap",
+    {"moogladder.aa", sizeof(moogladder), 0, 3, "a", "aaao",
      (SUBR) moogladder_init, (SUBR) moogladder_process_aa },
-    {"moogladder.ak", sizeof(moogladder), 0, 3, "a", "aakp",
+    {"moogladder.ak", sizeof(moogladder), 0, 3, "a", "aako",
      (SUBR) moogladder_init, (SUBR) moogladder_process_ak },
-    {"moogladder.ka", sizeof(moogladder), 0, 3, "a", "akap",
+    {"moogladder.ka", sizeof(moogladder), 0, 3, "a", "akao",
      (SUBR) moogladder_init, (SUBR) moogladder_process_ka },
-    {"moogladder2.kk", sizeof(moogladder), 0, 3, "a", "akkp",
+    {"moogladder2.kk", sizeof(moogladder), 0, 3, "a", "akko",
      (SUBR) moogladder_init, (SUBR) moogladder2_process },
-    {"moogladder2.aa", sizeof(moogladder), 0, 3, "a", "aaap",
+    {"moogladder2.aa", sizeof(moogladder), 0, 3, "a", "aaao",
      (SUBR) moogladder_init, (SUBR) moogladder2_process_aa },
-    {"moogladder2.ak", sizeof(moogladder), 0, 3, "a", "aakp",
+    {"moogladder2.ak", sizeof(moogladder), 0, 3, "a", "aako",
      (SUBR) moogladder_init, (SUBR) moogladder2_process_ak },
-    {"moogladder2.ka", sizeof(moogladder), 0, 3, "a", "akap",
+    {"moogladder2.ka", sizeof(moogladder), 0, 3, "a", "akao",
      (SUBR) moogladder_init, (SUBR) moogladder2_process_ka },
-    {"statevar", sizeof(statevar), 0, 3, "aaaa", "axxop",
+    {"statevar", sizeof(statevar), 0, 3, "aaaa", "axxoo",
      (SUBR) statevar_init, (SUBR) statevar_process     },
-    {"fofilter", sizeof(fofilter), 0, 3, "a", "axxxp",
+    {"fofilter", sizeof(fofilter), 0, 3, "a", "axxxo",
      (SUBR) fofilter_init, (SUBR) fofilter_process     },
-    {"bob", sizeof(BOB), 0, 3, "a", "axxxop",
+    {"bob", sizeof(BOB), 0, 3, "a", "axxxoo",
      (SUBR) bob_init, (SUBR) bob_process     },
     {"vps", sizeof(VPS), 0, 2, "a", "akk",
      (SUBR) NULL, (SUBR) vps_process },
-    {"vcf", sizeof(VCF), 0, 3, "a", "akk",
+    {"vcf", sizeof(VCF), 0, 3, "a", "akko",
      (SUBR) vcf_init, (SUBR) vcf_perfk },
-    {"vcf", sizeof(VCF), 0, 3, "a", "aak",
-     (SUBR) vcf_init, (SUBR) vcf_perfa }
-    
+    {"vcf", sizeof(VCF), 0, 3, "a", "aako",
+     (SUBR) vcf_init, (SUBR) vcf_perfak },
+    {"vcf", sizeof(VCF), 0, 3, "a", "akao",
+     (SUBR) vcf_init, (SUBR) vcf_perfka },
+    {"vcf", sizeof(VCF), 0, 3, "a", "aaao",
+     (SUBR) vcf_init, (SUBR) vcf_perfaa }
   };
 
 int32_t newfils_init_(CSOUND *csound)
