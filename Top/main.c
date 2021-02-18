@@ -595,9 +595,9 @@ PUBLIC int csoundCompileCsdText(CSOUND *csound, const char *csd_text)
           /* } */
           {
             //printf("*** in score >>>%s<<<\n", corfile_body(csound->scorestr));
-            char *sc = (csound->scorestr==NULL ? "f0 800000000000.0\ne\n" :
+            char *sc = (csound->scorestr==NULL ? "\n" :
                         scsortstr(csound, csound->scorestr));
-            printf("*** 0ut score >>>%s<<<\n", sc);
+            //printf("*** Out score >>>%s<<<\n", sc);
             if (sc) {
               if(csound->oparms->odebug)
                 csound->Message(csound,
