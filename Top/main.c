@@ -587,15 +587,16 @@ PUBLIC int csoundCompileCsdText(CSOUND *csound, const char *csd_text)
       //printf("internalread res = %d\n", res);
       if (res == CSOUND_SUCCESS){
         if ((csound->engineStatus & CS_STATE_COMP) != 0) {
-          if (csound->scorestr==NULL) {
-            printf("*** no score\n");
-            csound->scorestr = corfile_create_w(csound);
-            corfile_puts(csound, "\nf0 800000000000.0\ne\n#exit\n",csound->scorestr);
-            //corfile_puts(csound, "e\n#exit\n",csound->scorestr);
-          }
+          /* if (csound->scorestr==NULL) { */
+          /*   printf("*** no score\n"); */
+          /*   csound->scorestr = corfile_create_w(csound); */
+          /*   corfile_puts(csound, "\nf0 800000000000.0\ne\n#exit\n",csound->scorestr); */
+          /*   //corfile_puts(csound, "e\n#exit\n",csound->scorestr); */
+          /* } */
           {
-            printf("*** in score >>>%s<<<\n", corfile_body(csound->scorestr));
-            char *sc = scsortstr(csound, csound->scorestr);
+            //printf("*** in score >>>%s<<<\n", corfile_body(csound->scorestr));
+            char *sc = (csound->scorestr==NULL ? "f0 800000000000.0\ne\n" :
+                        scsortstr(csound, csound->scorestr));
             printf("*** 0ut score >>>%s<<<\n", sc);
             if (sc) {
               if(csound->oparms->odebug)
