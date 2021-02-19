@@ -594,12 +594,20 @@ PUBLIC int csoundCompileCsdText(CSOUND *csound, const char *csd_text)
           /*   //corfile_puts(csound, "e\n#exit\n",csound->scorestr); */
           /* } */
           {
-            //printf("*** in score >>>%s<<<\n", corfile_body(csound->scorestr));
-            char *sc = (csound->scorestr==NULL ? "\n" :
-                        scsortstr(csound, csound->scorestr));
+            char *sc;
+            if (csound->scorestr==NULL)
+              sc = "#exit";
+            else {
+              //printf("INPUT STRING %s\n", csound->scorestr->body+csound->scorestr->len-9);
+              csound->scorestr->body[+csound->scorestr->len-9] = ' ';
+              //printf("Mangld >>%s<<\n", csound->scorestr->body);
+              //corfile_puts(csound, "\n#exit\n", csound->scorestr);
+              //printf("*** in score >>%s<<<\n", corfile_body(csound->scorestr));
+              sc = scsortstr(csound, csound->scorestr);
+            }
             //printf("*** Out score >>>%s<<<\n", sc);
             if (sc) {
-              if(csound->oparms->odebug)
+              if (csound->oparms->odebug)
                 csound->Message(csound,
                                 Str("Real-time score events (engineStatus: %d).\n"),
                                 csound->engineStatus);
@@ -612,7 +620,7 @@ PUBLIC int csoundCompileCsdText(CSOUND *csound, const char *csd_text)
             corfile_puts(csound, "\n\n\ne\n#exit\n",csound->scorestr);
           }
           scsortstr(csound, csound->scorestr);
-          if(csound->oparms->odebug)
+          if (csound->oparms->odebug)
             csound->Message(csound,
                             Str("Compiled score "
                                 "(engineStatus: %d).\n"), csound->engineStatus);
