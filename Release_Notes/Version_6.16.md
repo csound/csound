@@ -95,6 +95,9 @@ although the English spelling (CsSortLicence) was.  Corrected.
 - expcurve and logcurve now incorporate range checks and corrects end
   values.
   
+- streaming lpc opcodes have had a major improvement in performance (>10x speedup for some cases),
+due to a new autocorrelation routine.
+
 ### Utilities
 
 
@@ -125,14 +128,20 @@ although the English spelling (CsSortLicence) was.  Corrected.
 
 - midiarp opcode fixed (issue 1365)
 
-- a bug in moogladdet where te value of 0dbfs affected te outout is
+- a bug in moogladder where the value of 0dbfs affected the outout is
   now fixed.
+
+- bugs in several filters where istor was defaulting to 1 instead of 0 as described in the manual have 
+been fixed.
 
 # SYSTEM LEVEL CHANGES
 
 
 ### System Changes
 
+ - new autocorrelation routine can compute in the frequency or
+in the time domain. Thanks to Patrick from
+Peru for the improvement suggestion.
 
 ### Translations
 
