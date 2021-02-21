@@ -140,8 +140,7 @@ been fixed.
 ### System Changes
 
  - new autocorrelation routine can compute in the frequency or
-in the time domain. Thanks to Patrick from
-Peru for the improvement suggestion.
+in the time domain. Thanks to Patrick Ropohl for the improvement suggestion.
 
 ### Translations
 
