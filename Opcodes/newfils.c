@@ -2586,10 +2586,7 @@ int spf_init(CSOUND *csound, SPF *p) {
   p->b[0] = -2*(1 - w2)*fac;
   p->b[1] = (1. - p->R*w + w2)*fac;
   p->ff = *p->f;
-  p->R = *p->r;
-  if(*p->istor != FL(0.0)) 
-    s[0] = s[1] = sl[0] = sl[1] = sh[0] = sh[1] = sb[0] = sb[1];
-  else
+  if(*p->istor == FL(0.0)) 
     s[0] = s[1] = sl[0] = sl[1] = sh[0] = sh[1] = sb[0] = sb[1] = 0.f;
   return OK;
 }
@@ -2604,22 +2601,22 @@ int spf_perfkk(CSOUND *csound, SPF *p) {
   double *sh = p->sh, *sl = p->sl, *sb = p->sb, *s = p->s;
  
   if(p->ff != *p->f ||
-   p->R  != *p->r) {
-      double w, w2, fac;
-      p->R = *p->r >  0 ? (*p->r <= 2. ? *p->r : 2.) : 0.;
-      w = TAN(*p->f*p->piosr);
-      w2 = w*w;
-      fac = 1./(1. + p->R*w + w2);
-      al[0] = w2*fac;
-      al[1] = 2*w2*fac;
-      ah[0] = fac;
-      ah[1] = -2*fac;
-      ab = w*fac*p->R;
-      b[0] = -2*(1 - w2)*fac;
-      b[1] = (1. - p->R*w + w2)*fac;
-      p->ff = *p->f;
-      p->ab = ab; 
-     }
+     p->R  != *p->r) {
+    double w, w2, fac;
+    p->R = *p->r >  0 ? (*p->r <= 2. ? *p->r : 2.) : 0.;
+    w = TAN(*p->f*p->piosr);
+    w2 = w*w;
+    fac = 1./(1. + p->R*w + w2);
+    al[0] = w2*fac;
+    al[1] = 2*w2*fac;
+    ah[0] = fac;
+    ah[1] = -2*fac;
+    ab = w*fac*p->R;
+    b[0] = -2*(1 - w2)*fac;
+    b[1] = (1. - p->R*w + w2)*fac;
+    p->ff = *p->f;
+    p->ab = ab; 
+  }
 
   if (UNLIKELY(offset)) {
     memset(y, '\0', offset*sizeof(MYFLT));
@@ -2791,7 +2788,205 @@ int spf_perfka(CSOUND *csound, SPF *p) {
   return OK;
 }
 
+typedef struct _skf {
+  OPDS h;
+  MYFLT *y,*x,*f,*K,*ihp,*istor;
+  double ff, R, KK;
+  double s[2];
+  double a[2],b[2];
+  double piosr;
+} SKF;
 
+int skf_init(CSOUND *csound, SKF *p) {
+  double w, w2, fac;
+  double *s = p->s;
+  p->piosr = M_PI/csound->GetSr(csound);
+  w = TAN(*p->f*p->piosr);
+  w2 = w*w;
+  p->KK = (*p->K > 1 ? (*p->K <= 3. ? *p->K : 3.) : 1.);
+  p->R = 3 - p->KK;
+  fac = 1./(1. + p->R*w + w2);
+  if(*p->ihp) {
+    p->a[0] = fac;
+    p->a[1] = -2*fac;
+  }
+  else {
+    p->a[0] = w2*fac;
+    p->a[1] = 2*w2*fac;
+  }
+  p->b[0] = -2*(1 - w2)*fac;
+  p->b[1] = (1. - p->R*w + w2)*fac;
+  p->ff = *p->f;
+  if(*p->istor == FL(0.0)) 
+    s[0] = s[1] = 0.f;
+  return OK;
+}
+
+int skf_perfkk(CSOUND *csound, SKF *p) {
+  uint32_t offset = p->h.insdshead->ksmps_offset;
+  uint32_t early  = p->h.insdshead->ksmps_no_end;
+  uint32_t i, nsmps = CS_KSMPS;
+  double *b = p->b,*a = p->a;
+  MYFLT *x = p->x, *y = p->y;
+  double yy;
+  double *s = p->s;
+ 
+  if(p->ff != *p->f ||
+     p->KK != *p->K) {
+    double w, w2, fac;
+    p->KK = (*p->K > 1 ? (*p->K <= 3. ? *p->K : 3.) : 1.);
+    p->R = 3 - p->KK;
+    w = TAN(*p->f*p->piosr);
+    w2 = w*w;
+    fac = 1./(1. + p->R*w + w2);
+    if(*p->ihp) {
+      a[0] = fac;
+      a[1] = -2*fac;
+    } else {
+      a[0] = w2*fac;
+      a[1] = 2*w2*fac;
+    }
+    b[0] = -2*(1 - w2)*fac;
+    b[1] = (1. - p->R*w + w2)*fac;
+    p->ff = *p->f;
+  }
+
+  if (UNLIKELY(offset)) {
+    memset(y, '\0', offset*sizeof(MYFLT));
+  }
+  if (UNLIKELY(early)) {
+    nsmps -= early;
+    memset(&y[nsmps], '\0', early*sizeof(MYFLT));
+  }
+
+  for (i=offset; i<nsmps; i++) {
+    yy = x[i] - b[0]*s[0] - b[1]*s[1];
+    y[i] = a[0]*yy + a[1]*s[0] + a[0]*s[1];
+    s[1] = s[0];
+    s[0] = yy;
+  }
+  return OK; 
+}
+
+int skf_perfak(CSOUND *csound, SKF *p) {
+  uint32_t offset = p->h.insdshead->ksmps_offset;
+  uint32_t early  = p->h.insdshead->ksmps_no_end;
+  uint32_t i, nsmps = CS_KSMPS;
+  double *b = p->b,*a = p->a;
+  MYFLT *x = p->x, *y = p->y, *f = p->f;
+  double yy, R;
+  double *s = p->s;
+  R = 3 - (*p->K > 1 ? (*p->K <= 3. ? *p->K : 3.) : 1.);
+
+  if (UNLIKELY(offset)) {
+    memset(y, '\0', offset*sizeof(MYFLT));
+  }
+  if (UNLIKELY(early)) {
+    nsmps -= early;
+    memset(&y[nsmps], '\0', early*sizeof(MYFLT));
+  }
+
+  for (i=offset; i<nsmps; i++) {
+    double w, w2, fac;
+    w = TAN(f[i]*p->piosr);
+    w2 = w*w;
+    fac = 1./(1. + R*w + w2);
+    if(*p->ihp) {
+      a[0] = fac;
+      a[1] = -2*fac;
+    } else {
+      a[0] = w2*fac;
+      a[1] = 2*w2*fac;
+    }
+    b[0] = -2*(1 - w2)*fac;
+    b[1] = (1. - R*w + w2)*fac; 
+    yy = x[i] - b[0]*s[0] - b[1]*s[1];
+    y[i] = a[0]*yy + a[1]*s[0] + a[0]*s[1];
+    s[1] = s[0];
+    s[0] = yy;
+  }
+  return OK; 
+}
+
+int skf_perfaa(CSOUND *csound, SKF *p) {
+  uint32_t offset = p->h.insdshead->ksmps_offset;
+  uint32_t early  = p->h.insdshead->ksmps_no_end;
+  uint32_t i, nsmps = CS_KSMPS;
+  double *b = p->b,*a = p->a;
+  MYFLT *x = p->x, *y = p->y, *f = p->f;
+  double yy, R, *K = p->K;
+  double *s = p->s;
+
+  if (UNLIKELY(offset)) {
+    memset(y, '\0', offset*sizeof(MYFLT));
+  }
+  if (UNLIKELY(early)) {
+    nsmps -= early;
+    memset(&y[nsmps], '\0', early*sizeof(MYFLT));
+  }
+
+  for (i=offset; i<nsmps; i++) {
+    double w, w2, fac;
+    R = 3 - (K[i] > 1 ? (K[i] <= 3. ? K[i] : 3.) : 1.);
+    w = TAN(f[i]*p->piosr);
+    w2 = w*w;
+    fac = 1./(1. + R*w + w2);
+    if(*p->ihp) {
+      a[0] = fac;
+      a[1] = -2*fac;
+    } else {
+      a[0] = w2*fac;
+      a[1] = 2*w2*fac;
+    }
+    b[0] = -2*(1 - w2)*fac;
+    b[1] = (1. - R*w + w2)*fac; 
+    yy = x[i] - b[0]*s[0] - b[1]*s[1];
+    y[i] = a[0]*yy + a[1]*s[0] + a[0]*s[1];
+    s[1] = s[0];
+    s[0] = yy;
+  }
+  return OK; 
+}
+
+int skf_perfka(CSOUND *csound, SKF *p) {
+  uint32_t offset = p->h.insdshead->ksmps_offset;
+  uint32_t early  = p->h.insdshead->ksmps_no_end;
+  uint32_t i, nsmps = CS_KSMPS;
+  double *b = p->b,*a = p->a;
+  MYFLT *x = p->x, *y = p->y;
+  double yy, R, *K = p->K;
+  double *s = p->s;
+  double w, w2, fac;
+  w = TAN(*p->f*p->piosr);
+  w2 = w*w;
+
+  if (UNLIKELY(offset)) {
+    memset(y, '\0', offset*sizeof(MYFLT));
+  }
+  if (UNLIKELY(early)) {
+    nsmps -= early;
+    memset(&y[nsmps], '\0', early*sizeof(MYFLT));
+  }
+
+  for (i=offset; i<nsmps; i++) {
+    R = 3 - (K[i] > 1 ? (K[i] <= 3. ? K[i] : 3.) : 1.);
+    fac = 1./(1. + R*w + w2);
+    if(*p->ihp) {
+      a[0] = fac;
+      a[1] = -2*fac;
+    } else {
+      a[0] = w2*fac;
+      a[1] = 2*w2*fac;
+    }
+    b[0] = -2*(1 - w2)*fac;
+    b[1] = (1. - R*w + w2)*fac; 
+    yy = x[i] - b[0]*s[0] - b[1]*s[1];
+    y[i] = a[0]*yy + a[1]*s[0] + a[0]*s[1];
+    s[1] = s[0];
+    s[0] = yy;
+  }
+  return OK; 
+}
 
 static OENTRY localops[] =
   {
@@ -2870,7 +3065,15 @@ static OENTRY localops[] =
     {"spf", sizeof(SPF), 0, 3, "a", "aaaaao",
      (SUBR) spf_init, (SUBR) spf_perfaa },
     {"spf", sizeof(SPF), 0, 3, "a", "aaakao",
-     (SUBR) spf_init, (SUBR) spf_perfka }
+     (SUBR) spf_init, (SUBR) spf_perfka },
+    {"skf", sizeof(SKF), 0, 3, "a", "akkoo",
+     (SUBR) skf_init, (SUBR) skf_perfkk },
+    {"skf", sizeof(SKF), 0, 3, "a", "aakoo",
+     (SUBR) skf_init, (SUBR) skf_perfak },
+    {"skf", sizeof(SKF), 0, 3, "a", "aaaoo",
+     (SUBR) skf_init, (SUBR) skf_perfaa },
+    {"skf", sizeof(SKF), 0, 3, "a", "akaoo",
+     (SUBR) skf_init, (SUBR) skf_perfka }
   };
 
 int32_t newfils_init_(CSOUND *csound)

@@ -59,7 +59,15 @@ an optional port filter.
 - aduinoReadF extends the arduino family to transfer floating point
   values.
 
-- triglinseg and trigexpseg are triggered versions of linseg and expseg
+- triglinseg and trigexpseg are triggered versions of linseg and
+expseg
+
+-  vclpf is a 4-pole resonant lowpass linear filter based on a tipical
+analogue filter configuration.
+
+- spf is a second-order multimode filter based on the Steiner-Parker
+configuration with separate lowpass, highpass, and bandpass inputs
+and a single output.
 
 ## New Gen and Macros
 
