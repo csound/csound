@@ -439,6 +439,7 @@
 ./Opcodes/tabsum.c
 ./Opcodes/tl/fractalnoise.cpp
 ./Opcodes/tl/sc_noise.c
+./Opcodes/trigEnvSegs.cpp
 ./Opcodes/ugakbari.c
 ./Opcodes/ugens7.c
 ./Opcodes/ugens8.c

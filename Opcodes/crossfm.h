@@ -57,7 +57,7 @@ typedef struct {
 
   MYFLT phase1, phase2;                       /* phase of oscillators       */
   MYFLT sig1, sig2;                           /* a-rate oscillators outputs */
-  MYFLT siz1, siz2;                           /* size of funtion tables     */
+  MYFLT siz1, siz2;                           /* size of function tables    */
   FUNC  *ftp1, *ftp2;                         /* function table pointers    */
   short frq1adv, frq2adv, ndx1adv, ndx2adv;   /* increment values for xargs */
                                               /* pointers (0 for i-rate and */

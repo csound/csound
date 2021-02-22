@@ -45,9 +45,11 @@ extern "C" {
    * r: autocorrelation output array (size N)
    * s: input signal
    * N: signal size
+   * b: fft buffer (if NULL then time-domain algorithm is used)
+   * NF: fft size, power-of-two (NF >= N*2-1)
    * returns: autocorrelation r
    */
-  MYFLT *csoundAutoCorrelation(CSOUND *csound, MYFLT *r, MYFLT *s, int N);
+  MYFLT *csoundAutoCorrelation(CSOUND *csound, MYFLT *r, MYFLT *s, int size, MYFLT *b, int NF);
 
 
   /**

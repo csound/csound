@@ -1624,6 +1624,7 @@ int32_t clip(CSOUND *csound, CLIP *p)
           x = -limit;
         else
           x = limit*k1*TANH(x*rlim);
+        //printf("*** %g -> %g\n", ain[n], x);
         aout[n] = x;
       }
       return OK;

@@ -76,7 +76,7 @@ CS_NOINLINE char *csoundTmpFileName(CSOUND *csound, const char *ext)
       if (tmpdir != NULL && tmpdir[0] != '\0')
         snprintf(lbuf, nBytes, "%s/csound-XXXXXX", tmpdir);
       else
-        strcpy(lbuf, "/tmp/csound-XXXXXX");
+        strcpy(lbuf, "/tmp/csond-XXXXXX");
       umask(0077);
         /* ensure exclusive access on buggy implementations of mkstemp */
       if (UNLIKELY((fd = mkstemp(lbuf)) < 0))

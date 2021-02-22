@@ -245,7 +245,7 @@ static const char *longUsageList[] = {
   " ",
   Str_noop("--m-amps=[01]           messages on note amps"),
   Str_noop("--m-range=[01]          messages on range errors"),
-  Str_noop("--m-warnings=[01]       mesage on warnings"),
+  Str_noop("--m-warnings=[01]       message on warnings"),
   Str_noop("--m-raw=[01]            raw amp messages"),
   Str_noop("--m-dB=[01]             amp messages in dB"),
   Str_noop("--m-colours=[01]        colour amp messages"),
@@ -313,6 +313,7 @@ static const char *longUsageList[] = {
                                    "PFFFT = 1, vDSP =2)"),
   Str_noop("--udp-echo              echo UDP commands on terminal"),
   Str_noop("--aft-zero              set aftertouch to zero, not 127 (default)"),
+  Str_noop("--limiter[=num]         include clipping in audio output"),
   " ",
   Str_noop("--help                  long help"),
   NULL
@@ -1212,16 +1213,30 @@ static int decode_long(CSOUND *csound, char *s, int argc, char **argv)
       csound->info_message_request = 1;
       return 1;
     }
-    else if(!strncmp(s, "use-system-sr",13)){
+    else if(!strncmp(s, "use-system-sr",13)) {
       if (O->sr_override == FL(0.0))
           O->sr_override = FL(-1.0);
       return 1;
     }
-    else if (!(strcmp(s, "aft-zero"))){
+    else if (!(strcmp(s, "aft-zero"))) {
       csound->aftouch = 0;
       return 1;
     }
+    else if (!(strncmp(s, "limiter=", 8)))  {
+      s += 8;
+      O->limiter = atof(s);
+      if (O->limiter>1.0 || O->limiter<0) {
+        csound->MessageS(csound, CSOUNDMSG_STDOUT,
+                         Str("Ignoring invalid limiter\n"));
+        O->limiter = 0;
+      }
+      return 1;
 
+    }
+    else if (!(strcmp(s, "limiter"))) {
+      O->limiter = 0.5;
+      return 1;
+    }
     csoundErrorMsg(csound, Str("unknown long option: '--%s'"), s);
     return 0;
 }

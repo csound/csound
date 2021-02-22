@@ -2520,7 +2520,7 @@ sprintf_opcode_(CSOUND *csound,
                 int32_t strCode)      /* bit mask for string arguments   */
 {
     if(p->initDone == 0)
-        return PERFERRF(Str("Opcode %s not initialized"), p->h.optext->t.opcod);
+        return PERFERRF(Str("Opcode %s not initialised"), p->h.optext->t.opcod);
     int32_t     len = 0;
     char *outstring = str->data;
     MYFLT *parm = NULL;

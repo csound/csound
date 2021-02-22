@@ -778,7 +778,7 @@ int32_t vbap_moving_init_a(CSOUND *csound, VBAPA_MOVING *p)
 
     if (UNLIKELY(p->tabout->data==NULL)) {
       return csound->InitError(csound,
-                               Str("Output array in vpabmove not initalised"));
+                               Str("Output array in vpabmove not initialised"));
     }
     cnt = p->tabout->sizes[0];
 

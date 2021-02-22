@@ -47,10 +47,10 @@ struct TrigLinseg : csnd::Plugin<1, 64>
             else
                 values.push_back (inargs[argCnt]);
 
-			argCnt++;
+            argCnt++;
         }
 
-		//values.push_back(inargs[argCnt - 1]);
+        //values.push_back(inargs[argCnt - 1]);
 
         incr = (values[1] - values[0]) / durations[0];
         totalLength = std::accumulate (durations.begin(), durations.end(), 0);
@@ -75,12 +75,12 @@ struct TrigLinseg : csnd::Plugin<1, 64>
     MYFLT envGenerator (int sampIncr)
     {
         // trigger envelope
-		if (inargs[0] == 1)
-		{
-			incr = (values[1] - values[0]) / durations[0];
-			outValue = inargs[1];
-			playEnv = 1;
-		}
+        if (inargs[0] == 1)
+          {
+            incr = (values[1] - values[0]) / durations[0];
+            outValue = inargs[1];
+            playEnv = 1;
+          }
 
 
         if (playEnv == 1 && segment < durations.size())
@@ -89,13 +89,13 @@ struct TrigLinseg : csnd::Plugin<1, 64>
             {
                 outValue += incr;
                 counter += sampIncr;
-			}
+                        }
             else
             {
                 segment++;
-				counter = 0;
-				if (segment < durations.size())
-					incr = (values[segment + 1] - values[segment]) / durations[segment];
+                counter = 0;
+                if (segment < durations.size())
+                  incr = (values[segment + 1] - values[segment]) / durations[segment];
             }
         }
         else
@@ -169,12 +169,12 @@ struct TrigExpseg : csnd::Plugin<1, 64>
     MYFLT envGenerator (int sampIncr)
     {
         // trigger envelope
-		if (inargs[0] == 1)
-		{
-			incr = pow(values[1] / values[0], 1 / (durations[0]));
-			outValue = inargs[1];
-			playEnv = 1;
-		}
+        if (inargs[0] == 1)
+          {
+            incr = pow(values[1] / values[0], 1 / (durations[0]));
+            outValue = inargs[1];
+            playEnv = 1;
+          }
 
 
         if (playEnv == 1 && segment < durations.size())
@@ -188,8 +188,8 @@ struct TrigExpseg : csnd::Plugin<1, 64>
             {
                 segment++;
                 counter = 0;
-				if(segment < durations.size())
-					incr = pow (values[segment + 1] / values[segment], 1 / (durations[segment]));
+                if(segment < durations.size())
+                  incr = pow (values[segment + 1] / values[segment], 1 / (durations[segment]));
             }
         }
         else
@@ -218,4 +218,3 @@ void csnd::on_load (Csound* csound)
     csnd::plugin<TrigLinseg> (csound, "trigLinseg.aa", "a", "km", csnd::thread::ia);
     csnd::plugin<TrigLinseg> (csound, "trigLinseg.kk", "k", "km", csnd::thread::ik);
 }
-

@@ -22,9 +22,9 @@ Any valid HTML can also be used.
 
 # CSOUND VERSION 6.16 RELEASE NOTES - DRAFT - DRAFT - DRAFT - DRAFT 
 
-Tis us mainly abug fixing release but there are new opcodes, including
+This is mainly a bug fixing release but there are new opcodes, including
 support for simpler use of MIDI controls and a new opcode to connect
-to an Arduino.
+to an Arduino.  Also there is an optional limiter in the soun outpur chain.
 
 -- The Developers
 
@@ -34,20 +34,22 @@ to an Arduino.
 
 - cntDelete deltes a counter object
 
-- lfsr, a linear feedback shift register opcode for psuedo random umber generation.
+- lfsr, a linear feedback shift register opcode for psuedo random
+  umber generation.
 
 - ctrlsave stores the currrent values of MIDIcontrollers in an array.
 
 - turnoff3 extends tuning off to remove instrument instances that are
   queued via scheduling but not yet active. *** NOT DOCUMENTED***
 
-- ctrlprint prints the result of a ctrlsave call in a form that can be used in an orchestra.
+- ctrlprint prints the result of a ctrlsave call in a form that can be
+  used in an orchestra.
 
-- ctrlprintpresets ***NOT DOCUMENTED***
+- ctrlprintpresets prints the MIDI controller preset.
 
-- ctrlselect ***NOT DOCUMENTED***
+- ctrlselect selects a preset for MIDI controller values.
 
-- ctrlpreset ***NOT DOCUMENTED***
+- ctrlpreset defines a preset for MIDI controllers.
 
 - outall writes a signal to all output channels.
 
@@ -56,8 +58,18 @@ an optional port filter.
 
 - aduinoReadF extends the arduino family to transfer floating point
   values.
-  
-### New Gen and Macros
+
+- triglinseg and trigexpseg are triggered versions of linseg and
+expseg
+
+-  vclpf is a 4-pole resonant lowpass linear filter based on a tipical
+analogue filter configuration.
+
+- spf is a second-order multimode filter based on the Steiner-Parker
+configuration with separate lowpass, highpass, and bandpass inputs
+and a single output.
+
+## New Gen and Macros
 
 ### Orchestra
 
@@ -68,7 +80,13 @@ an optional port filter.
 
 ### Options
 
+- New options --limiter and --limiter=num (where num is in range (0,1]
+inserts a tanh limiter (see clip version2) at the end of each k-cycle.
+This can be used wen exerimenting or trying some alien inputs to save
+your ears or speakers.  The default value in the first form is 0.5
 
+- A typing error meant that the tag <CsShortLicense> was not recognised,
+although the English spelling (CsSortLicence) was.  Corrected.
 
 ### Modified Opcodes and Gens
 
@@ -85,6 +103,9 @@ an optional port filter.
 - expcurve and logcurve now incorporate range checks and corrects end
   values.
   
+- streaming lpc opcodes have had a major improvement in performance (>10x speedup for some cases),
+due to a new autocorrelation routine.
+
 ### Utilities
 
 
@@ -115,11 +136,19 @@ an optional port filter.
 
 - midiarp opcode fixed (issue 1365)
 
+- a bug in moogladder where the value of 0dbfs affected the outout is
+  now fixed.
+
+- bugs in several filters where istor was defaulting to 1 instead of 0 as described in the manual have 
+been fixed.
+
 # SYSTEM LEVEL CHANGES
 
 
 ### System Changes
 
+ - new autocorrelation routine can compute in the frequency or
+in the time domain. Thanks to Patrick Ropohl for the improvement suggestion.
 
 ### Translations
 
@@ -147,12 +176,12 @@ an optional port filter.
 
 ==END==
 
-commit c91f932d30ac20f3161aad3e3f0a1c21691ff50c
-Author: roryywalsh <rorywalsh@ear.ie>
-Date:   Wed Dec 16 19:22:56 2020 +0000
+commit 25c1e6bf2a0077b89a2859b92a529fc0c77e4919 (HEAD -> develop, origin/develop
+, origin/HEAD)
+Author: Francois PINOT <fggpinot@gmail.com>
+Date:   Sun Feb 7 09:50:56 2021 +0100
 
-    fixing midiarp opcode - github issue no #1365
-
+    Updated French translation
 
 
 
