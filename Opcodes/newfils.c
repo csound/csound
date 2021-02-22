@@ -2573,7 +2573,7 @@ typedef struct _spf {
 int spf_init(CSOUND *csound, SPF *p) {
   double w, w2, fac;
   double *sh = p->sh, *sl = p->sl, *sb = p->sb, *s = p->s;
-  p->piosr = M_PI/csound->GetSr(csound);
+  p->piosr = PI/csound->GetSr(csound);
   w = TAN(*p->f*p->piosr);
   w2 = w*w;
   p->R = *p->r >  0 ? (*p->r <= 2. ? *p->r : 2.) : 0.;
@@ -2800,7 +2800,7 @@ typedef struct _skf {
 int skf_init(CSOUND *csound, SKF *p) {
   double w, w2, fac;
   double *s = p->s;
-  p->piosr = M_PI/csound->GetSr(csound);
+  p->piosr = PI/csound->GetSr(csound);
   w = TAN(*p->f*p->piosr);
   w2 = w*w;
   p->KK = (*p->K > 1 ? (*p->K <= 3. ? *p->K : 3.) : 1.);
