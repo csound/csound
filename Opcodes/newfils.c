@@ -2560,6 +2560,238 @@ int vcf_perfaa(CSOUND *csound, VCF *p) {
   return OK;
 }
 
+typedef struct _spf {
+  OPDS h;
+  MYFLT *y,*xl,*xh,*xb,*f,*r, *istor;
+  double ff, R;
+  double s[2],sl[2],sh[2],sb[2];
+  double al[2],ah[2],ab,b[2];
+  double piosr;
+} SPF;
+
+
+int spf_init(CSOUND *csound, SPF *p) {
+  double w, w2, fac;
+  double *sh = p->sh, *sl = p->sl, *sb = p->sb, *s = p->s;
+  p->piosr = M_PI/csound->GetSr(csound);
+  w = TAN(*p->f*p->piosr);
+  w2 = w*w;
+  p->R = *p->r >  0 ? (*p->r <= 2. ? *p->r : 2.) : 0.;
+  fac = 1./(1. + p->R*w + w2);
+  p->al[0] = w2*fac;
+  p->al[1] = 2*w2*fac;
+  p->ah[0] = fac;
+  p->ah[1] = -2*fac;
+  p->ab = w*fac*p->R;
+  p->b[0] = -2*(1 - w2)*fac;
+  p->b[1] = (1. - p->R*w + w2)*fac;
+  p->ff = *p->f;
+  p->R = *p->r;
+  if(*p->istor != FL(0.0)) 
+    s[0] = s[1] = sl[0] = sl[1] = sh[0] = sh[1] = sb[0] = sb[1];
+  else
+    s[0] = s[1] = sl[0] = sl[1] = sh[0] = sh[1] = sb[0] = sb[1] = 0.f;
+  return OK;
+}
+
+int spf_perfkk(CSOUND *csound, SPF *p) {
+  uint32_t offset = p->h.insdshead->ksmps_offset;
+  uint32_t early  = p->h.insdshead->ksmps_no_end;
+  uint32_t i, nsmps = CS_KSMPS;
+  double *b = p->b,*al = p->al,*ah = p->ah, ab = p->ab;
+  MYFLT *xl = p->xl, *xh = p->xh, *xb = p->xb, *y = p->y;
+  double x;
+  double *sh = p->sh, *sl = p->sl, *sb = p->sb, *s = p->s;
+ 
+  if(p->ff != *p->f ||
+   p->R  != *p->r) {
+      double w, w2, fac;
+      p->R = *p->r >  0 ? (*p->r <= 2. ? *p->r : 2.) : 0.;
+      w = TAN(*p->f*p->piosr);
+      w2 = w*w;
+      fac = 1./(1. + p->R*w + w2);
+      al[0] = w2*fac;
+      al[1] = 2*w2*fac;
+      ah[0] = fac;
+      ah[1] = -2*fac;
+      ab = w*fac*p->R;
+      b[0] = -2*(1 - w2)*fac;
+      b[1] = (1. - p->R*w + w2)*fac;
+      p->ff = *p->f;
+      p->ab = ab; 
+     }
+
+  if (UNLIKELY(offset)) {
+    memset(y, '\0', offset*sizeof(MYFLT));
+  }
+  if (UNLIKELY(early)) {
+    nsmps -= early;
+    memset(&y[nsmps], '\0', early*sizeof(MYFLT));
+  }
+
+  for (i=offset; i<nsmps; i++) {
+    x = xh[i]*ah[0] + sh[0]*ah[1] + sh[1]*ah[0];
+    sh[1] = sh[0];
+    sh[0] = xh[i];
+    x += xl[i]*al[0] + sl[0]*al[1] + sl[1]*al[0];
+    sl[1] = sl[0];
+    sl[0] = xl[i];
+    x += (xb[i] - sb[1])*ab;
+    sb[1] = sb[0];
+    sb[0] = xb[i];
+    y[i] = x - b[0]*s[0] - b[1]*s[1];
+    s[1] = s[0];
+    s[0] = y[i];
+  }
+  return OK;
+  
+}
+
+
+int spf_perfak(CSOUND *csound, SPF *p) {
+  uint32_t offset = p->h.insdshead->ksmps_offset;
+  uint32_t early  = p->h.insdshead->ksmps_no_end;
+  uint32_t i, nsmps = CS_KSMPS;
+  double *b = p->b,*al = p->al,*ah = p->ah, ab;
+  MYFLT *xl = p->xl, *xh = p->xh, *xb = p->xb, *y = p->y;
+  double x;
+  double *sh = p->sh, *sl = p->sl, *sb = p->sb, *s = p->s;
+  double w, w2, fac, R;
+  MYFLT *f = p->f;
+
+  R = *p->r >  0 ? (*p->r <= 2. ? *p->r : 2.) : 0.;
+ 
+  if (UNLIKELY(offset)) {
+    memset(y, '\0', offset*sizeof(MYFLT));
+  }
+  if (UNLIKELY(early)) {
+    nsmps -= early;
+    memset(&y[nsmps], '\0', early*sizeof(MYFLT));
+  }
+
+  for (i=offset; i<nsmps; i++) {
+    w = TAN(f[i]*p->piosr);
+    w2 = w*w;
+    fac = 1./(1. + R*w + w2);
+    al[0] = w2*fac;
+    al[1] = 2*w2*fac;
+    ah[0] = fac;
+    ah[1] = -2*fac;
+    ab = w*fac*R;
+    b[0] = -2*(1 - w2)*fac;
+    b[1] = (1. - R*w + w2)*fac;
+    x = xh[i]*ah[0] + sh[0]*ah[1] + sh[1]*ah[0];
+    sh[1] = sh[0];
+    sh[0] = xh[i];
+    x += xl[i]*al[0] + sl[0]*al[1] + sl[1]*al[0];
+    sl[1] = sl[0];
+    sl[0] = xl[i];
+    x += (xb[i] - sb[1])*ab;
+    sb[1] = sb[0];
+    sb[0] = xb[i];
+    y[i] = x - b[0]*s[0] - b[1]*s[1];
+    s[1] = s[0];
+    s[0] = y[i];
+  }
+  return OK;
+}
+
+int spf_perfaa(CSOUND *csound, SPF *p) {
+  uint32_t offset = p->h.insdshead->ksmps_offset;
+  uint32_t early  = p->h.insdshead->ksmps_no_end;
+  uint32_t i, nsmps = CS_KSMPS;
+  double *b = p->b,*al = p->al,*ah = p->ah, ab;
+  MYFLT *xl = p->xl, *xh = p->xh, *xb = p->xb, *y = p->y;
+  double x;
+  double *sh = p->sh, *sl = p->sl, *sb = p->sb, *s = p->s;
+  double w, w2, fac, R;
+  MYFLT *r = p->r, *f = p->f;
+ 
+  if (UNLIKELY(offset)) {
+    memset(y, '\0', offset*sizeof(MYFLT));
+  }
+  if (UNLIKELY(early)) {
+    nsmps -= early;
+    memset(&y[nsmps], '\0', early*sizeof(MYFLT));
+  }
+
+  for (i=offset; i<nsmps; i++) {
+    w = TAN(f[i]*p->piosr);
+    w2 = w*w;
+    R = r[i] > 0 ? (r[i] <= 2. ? r[i] : 2.) : 0.;
+    fac = 1./(1. + R*w + w2);
+    al[0] = w2*fac;
+    al[1] = 2*w2*fac;
+    ah[0] = fac;
+    ah[1] = -2*fac;
+    ab = w*fac*R;
+    b[0] = -2*(1 - w2)*fac;
+    b[1] = (1. - R*w + w2)*fac;
+    x = xh[i]*ah[0] + sh[0]*ah[1] + sh[1]*ah[0];
+    sh[1] = sh[0];
+    sh[0] = xh[i];
+    x += xl[i]*al[0] + sl[0]*al[1] + sl[1]*al[0];
+    sl[1] = sl[0];
+    sl[0] = xl[i];
+    x += (xb[i] - sb[1])*ab;
+    sb[1] = sb[0];
+    sb[0] = xb[i];
+    y[i] = x - b[0]*s[0] - b[1]*s[1];
+    s[1] = s[0];
+    s[0] = y[i];
+  }
+  return OK;
+}
+
+int spf_perfka(CSOUND *csound, SPF *p) {
+  uint32_t offset = p->h.insdshead->ksmps_offset;
+  uint32_t early  = p->h.insdshead->ksmps_no_end;
+  uint32_t i, nsmps = CS_KSMPS;
+  double *b = p->b,*al = p->al,*ah = p->ah, ab;
+  MYFLT *xl = p->xl, *xh = p->xh, *xb = p->xb, *y = p->y;
+  double x;
+  double *sh = p->sh, *sl = p->sl, *sb = p->sb, *s = p->s;
+  double w, w2, fac, R;
+  MYFLT *r = p->r;
+
+  w = TAN(*p->f*p->piosr);
+  w2 = w*w;
+  
+  if (UNLIKELY(offset)) {
+    memset(y, '\0', offset*sizeof(MYFLT));
+  }
+  if (UNLIKELY(early)) {
+    nsmps -= early;
+    memset(&y[nsmps], '\0', early*sizeof(MYFLT));
+  }
+
+  for (i=offset; i<nsmps; i++) {
+    R = r[i] > 0 ? (r[i] <= 2. ? r[i] : 2.) : 0.;
+    fac = 1./(1. + R*w + w2);
+    al[0] = w2*fac;
+    al[1] = 2*w2*fac;
+    ah[0] = fac;
+    ah[1] = -2*fac;
+    ab = w*fac*R;
+    b[0] = -2*(1 - w2)*fac;
+    b[1] = (1. - R*w + w2)*fac;
+    x = xh[i]*ah[0] + sh[0]*ah[1] + sh[1]*ah[0];
+    sh[1] = sh[0];
+    sh[0] = xh[i];
+    x += xl[i]*al[0] + sl[0]*al[1] + sl[1]*al[0];
+    sl[1] = sl[0];
+    sl[0] = xl[i];
+    x += (xb[i] - sb[1])*ab;
+    sb[1] = sb[0];
+    sb[0] = xb[i];
+    y[i] = x - b[0]*s[0] - b[1]*s[1];
+    s[1] = s[0];
+    s[0] = y[i];
+  }
+  return OK;
+}
+
+
 
 static OENTRY localops[] =
   {
@@ -2630,7 +2862,15 @@ static OENTRY localops[] =
     {"vcf", sizeof(VCF), 0, 3, "a", "akao",
      (SUBR) vcf_init, (SUBR) vcf_perfka },
     {"vcf", sizeof(VCF), 0, 3, "a", "aaao",
-     (SUBR) vcf_init, (SUBR) vcf_perfaa }
+     (SUBR) vcf_init, (SUBR) vcf_perfaa },
+    {"spf", sizeof(SPF), 0, 3, "a", "aaakko",
+     (SUBR) spf_init, (SUBR) spf_perfkk },
+    {"spf", sizeof(SPF), 0, 3, "a", "aaaako",
+     (SUBR) spf_init, (SUBR) spf_perfak },
+    {"spf", sizeof(SPF), 0, 3, "a", "aaaaao",
+     (SUBR) spf_init, (SUBR) spf_perfaa },
+    {"spf", sizeof(SPF), 0, 3, "a", "aaakao",
+     (SUBR) spf_init, (SUBR) spf_perfka }
   };
 
 int32_t newfils_init_(CSOUND *csound)
