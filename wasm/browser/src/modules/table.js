@@ -96,7 +96,7 @@ export const csoundTableCopyOut = (wasm) => (csound, tableNumber) => {
     const { buffer } = wasm.exports.memory;
     const jsArray = new Float64Array(buffer, arrayPtr, tableLength);
     wasm.exports.freeFloatArrayMem(arrayPtr);
-    return jsArray;
+    return Float64Array.from(jsArray);
   }
 };
 
