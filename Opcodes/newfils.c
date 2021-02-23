@@ -2378,15 +2378,15 @@ int vps_process(CSOUND *csound, VPS *p) {
 typedef struct vcf {
   OPDS h;
   MYFLT *y, *x, *f, *r, *istor;
-  MYFLT s[4];
-  MYFLT A, G[4];
+  double s[4];
+  double A, G[4];
   MYFLT ff;
-  MYFLT piosr;
+  double piosr;
 } VCF;
 
 
 int vcf_init(CSOUND *csound, VCF *p) {
-  MYFLT g, *G = p->G;
+  double g, *G = p->G;
   p->piosr = PI/csound->GetSr(csound);
   p->ff = *p->f;
   g = TAN(p->ff*p->piosr);
@@ -2401,8 +2401,9 @@ int vcf_init(CSOUND *csound, VCF *p) {
 }
 
 int vcf_perfk(CSOUND *csound, VCF *p) {
-  MYFLT *G = p->G, A = p->A, *s = p->s, ss;
-  MYFLT *y = p->y, *x = p->x, w, u;
+  double *G = p->G, A = p->A, *s = p->s, ss;
+  MYFLT *y = p->y, *x = p->x;
+  double w, u;
   MYFLT k = *p->r <=  1 ? (*p->r >= 0 ? *p->r*4 : 0)  : 4;
   uint32_t offset = p->h.insdshead->ksmps_offset;
   uint32_t early  = p->h.insdshead->ksmps_no_end;
@@ -2442,8 +2443,9 @@ int vcf_perfk(CSOUND *csound, VCF *p) {
 }
 
 int vcf_perfak(CSOUND *csound, VCF *p) {
-  MYFLT *G = p->G, A, *s = p->s, ss, g;
-  MYFLT *y = p->y, *x = p->x, w, u;
+  double *G = p->G, A, *s = p->s, ss, g;
+  MYFLT *y = p->y, *x = p->x;
+  double w, u;
   MYFLT k = *p->r <=  1 ? (*p->r >= 0 ? *p->r*4 : 0)  : 4;
   uint32_t offset = p->h.insdshead->ksmps_offset;
   uint32_t early  = p->h.insdshead->ksmps_no_end;
@@ -2480,8 +2482,9 @@ int vcf_perfak(CSOUND *csound, VCF *p) {
 }
 
 int vcf_perfka(CSOUND *csound, VCF *p) {
-  MYFLT *G = p->G, A = p->A, *s = p->s, ss;
-  MYFLT *y = p->y, *x = p->x, w, u;
+  double *G = p->G, A = p->A, *s = p->s, ss;
+  MYFLT *y = p->y, *x = p->x;
+  double w, u;
   MYFLT *r = p->r, k;
   uint32_t offset = p->h.insdshead->ksmps_offset;
   uint32_t early  = p->h.insdshead->ksmps_no_end;
@@ -2522,8 +2525,9 @@ int vcf_perfka(CSOUND *csound, VCF *p) {
 }
 
 int vcf_perfaa(CSOUND *csound, VCF *p) {
-  MYFLT *G = p->G, A, *s = p->s, ss, g;
-  MYFLT *y = p->y, *x = p->x, w, u;
+  double *G = p->G, A, *s = p->s, ss, g;
+  MYFLT *y = p->y, *x = p->x;
+  double w, u;
   MYFLT *r = p->r, k;
   uint32_t offset = p->h.insdshead->ksmps_offset;
   uint32_t early  = p->h.insdshead->ksmps_no_end;
