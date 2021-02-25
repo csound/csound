@@ -17,7 +17,7 @@ in pkgs.stdenvNoCC.mkDerivation rec {
          ${lib.optionalString (static == false) "--target=wasm32-unknown-emscripten" } \
          ${lib.optionalString (static == false) "-fPIC" } \
         -I${pkgs.libogg.dev}/include \
-        -O2 \
+        -O3 \
         -D__wasi__=1 \
         -D__wasm32__=1 \
         -c \

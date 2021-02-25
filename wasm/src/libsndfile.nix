@@ -46,7 +46,7 @@ in pkgs.stdenvNoCC.mkDerivation rec {
          --sysroot=${wasi-sdk}/share/wasi-sysroot \
          ${lib.optionalString (static == false) "--target=wasm32-unknown-emscripten" } \
          ${lib.optionalString (static == false) "-fPIC" } \
-         -O2 \
+         -O3 \
          -include include/sndfile.h \
          -I./include -I./src -I./src/ALAC \
          -I./src/GSM610 -I./src/G72x \

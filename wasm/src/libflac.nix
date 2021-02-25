@@ -27,7 +27,7 @@ in pkgs.stdenvNoCC.mkDerivation rec {
          -I./src/libFLAC/include \
          -I./include \
          -I${pkgs.libsndfile.dev}/include \
-         -O2 \
+         -O3 \
          -D__wasi__=1 \
          -D__wasm32__=1 \
          -DHAVE_LROUND=1 \

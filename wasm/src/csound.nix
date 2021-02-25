@@ -22,7 +22,7 @@ let
   '';
   dyn-link = ''
     echo "Create libcsound.wasm pie"
-    ${wasi-sdk}/bin/wasm-ld --lto-O0 \
+    ${wasi-sdk}/bin/wasm-ld --lto-O3 \
       --experimental-pic -pie --entry=_start \
       --import-table --import-memory \
       ${
@@ -318,6 +318,22 @@ in pkgs.stdenvNoCC.mkDerivation rec {
     echo 'extern int32_t emugens_init_(CSOUND *);' >> \
       Opcodes/emugens/emugens_common.h
 
+    substituteInPlace Opcodes/emugens/scugens.c \
+      --replace 'LINKAGE' \
+       'int32_t scugens_init_(CSOUND *csound) {
+           return csound->AppendOpcodes(csound,
+             &(localops[0]), (int32_t) (sizeof(localops) / sizeof(OENTRY))); }'
+    echo 'extern int32_t scugens_init_(CSOUND *);' >> \
+      Opcodes/emugens/emugens_common.h
+
+    substituteInPlace Opcodes/emugens/beosc.c \
+      --replace 'LINKAGE' \
+       'int32_t beosc_init_(CSOUND *csound) {
+           return csound->AppendOpcodes(csound,
+             &(localops[0]), (int32_t) (sizeof(localops) / sizeof(OENTRY))); }'
+    echo 'extern int32_t beosc_init_(CSOUND *);' >> \
+      Opcodes/emugens/emugens_common.h
+
     # opcode-lib: liveconv
     substituteInPlace Opcodes/liveconv.c \
       --replace 'LINKAGE' \
@@ -372,7 +388,7 @@ in pkgs.stdenvNoCC.mkDerivation rec {
       -fno-force-enable-int128 \
       ${lib.optionalString (static == false) "-fPIC" } -fno-exceptions -fno-rtti -O3 \
       -I../H -I../Engine -I../include -I../ \
-      -I../InOut/libmpadec \
+      -I../InOut/libmpadec -I../Opcodes/emugens \
       -I${libsndfile}/include \
       -I${wasi-sdk}/share/wasi-sysroot/include/c++/v1 \
       -DINIT_STATIC_MODULES=1 \
