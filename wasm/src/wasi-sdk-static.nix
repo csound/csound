@@ -44,7 +44,8 @@ in stdenv.mkDerivation {
     chmod -R +rw src/
     substituteInPlace Makefile \
       --replace 'DESTDIR=$(abspath build/install)' \
-                'DESTDIR='
+                'DESTDIR=' \
+      --replace 'install-clang ' 'install-clang install-llc install-opt '
   '';
 
   buildInputs = [ cmake git perl ninja python3 ];

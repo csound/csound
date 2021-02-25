@@ -23,6 +23,8 @@ in pkgs.stdenvNoCC.mkDerivation rec {
     OBJCOPY = "${wasi-sdk}/bin/objcopy";
     RANLIB = "${wasi-sdk}/bin/ranlib";
 
+    patches = [ ./libsndfile_disable_oggopus.patch ];
+
     postPatch = ''
       # substituteInPlace src/sndfile.c \
       #   --replace 'assert (sizeof (sf_count_t) == 8) ;' ""
@@ -30,6 +32,7 @@ in pkgs.stdenvNoCC.mkDerivation rec {
       mv src/g72x.c src/g72x_parent.c
       rm src/G72x/g72x_test.c
       rm src/test_file_io.c
+      rm src/ogg_opus.c
       find ./ -type f -exec sed -i -e 's/@TYPEOF_SF_COUNT_T@/int64_t/g' {} \;
       find ./ -type f -exec sed -i -e 's/@SIZEOF_SF_COUNT_T@/8/g' {} \;
       find ./ -type f -exec sed -i -e 's/@SF_COUNT_MAX@/0x7FFFFFFFFFFFFFFFLL/g' {} \;
@@ -37,6 +40,7 @@ in pkgs.stdenvNoCC.mkDerivation rec {
 
     configurePhase = "true";
     dontStrip = true;
+
     buildPhase = ''
        ${wasi-sdk}/bin/clang \
          --sysroot=${wasi-sdk}/share/wasi-sysroot \
@@ -46,6 +50,9 @@ in pkgs.stdenvNoCC.mkDerivation rec {
          -include include/sndfile.h \
          -I./include -I./src -I./src/ALAC \
          -I./src/GSM610 -I./src/G72x \
+         -I${pkgs.libogg.dev}/include \
+         -I${pkgs.flac.dev}/include \
+         -I${pkgs.libvorbis.dev}/include \
          -D__wasi__=1 \
          -D__wasm32__=1 \
          -DOS_IS_WIN32=0 \
@@ -58,6 +65,7 @@ in pkgs.stdenvNoCC.mkDerivation rec {
          -DHAVE_UNISTD_H=1 \
          -DCPU_CLIPS_POSITIVE=0 \
          -DCPU_CLIPS_NEGATIVE=1 \
+         -DHAVE_EXTERNAL_XIPH_LIBS=1 \
          -DPACKAGE_NAME='"libsndfile"' \
          -DPACKAGE_VERSION='"1.0.25"' \
          -DPACKAGE='"libsndfile"' \

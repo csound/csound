@@ -382,8 +382,8 @@ int32_t __getf2(int64_t x, int64_t y, int64_t z, int64_t zz) {
 
 void __extenddftf2(int32_t x, double y) {}
 
-int32_t __multi3(int32_t a, int64_t b, int64_t c, int64_t d, int64_t e) {
-  return a * b;
+void __multi3(int32_t a, int64_t b, int64_t c, int64_t d, int64_t e) {
+  // return a * b;
 }
 
 void __muloti4(int32_t a, int64_t b, int64_t c, int64_t d, int64_t d_, int32_t e) {}

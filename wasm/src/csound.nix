@@ -14,8 +14,8 @@ let
          (with builtins; fromJSON (readFile ./exports.json))
        } \
       -L${wasi-sdk}/share/wasi-sysroot/lib/wasm32-wasi \
-      -L${libsndfile}/lib \
-      -lc  -lc++ -lc++abi \
+      -L${libsndfile}/lib -L${libflac}/lib -L${libogg}/lib -L${libvorbis}/lib \
+      -lc  -lc++ -lc++abi -lflac -logg -lvorbis \
       -lsndfile -lwasi-emulated-signal -lwasi-emulated-mman \
       ${wasi-sdk}/share/wasi-sysroot/lib/wasm32-wasi/crt1.o \
        *.o -o csound.wasm
@@ -30,8 +30,8 @@ let
          (with builtins; fromJSON (readFile ./exports.json))
        } \
       -L${wasi-sdk}/share/wasi-sysroot/lib/wasm32-unknown-emscripten \
-      -L${libsndfile}/lib \
-      -lc  -lc++ -lc++abi \
+      -L${libsndfile}/lib -L${libflac}/lib -L${libogg}/lib -L${libvorbis}/lib \
+      -lc  -lc++ -lc++abi -lflac -logg -lvorbis \
       -lsndfile -lwasi-emulated-signal -lwasi-emulated-mman \
       ${wasi-sdk}/share/wasi-sysroot/lib/wasm32-unknown-emscripten/crt1.o \
        *.o -o csound.dylib.wasm
@@ -71,6 +71,9 @@ let
   };
 
   libsndfile = pkgs.callPackage ./libsndfile.nix { inherit static; };
+  libogg = pkgs.callPackage ./libogg.nix { inherit static; };
+  libflac = pkgs.callPackage ./libflac.nix { inherit static; };
+  libvorbis = pkgs.callPackage ./libvorbis.nix { inherit static; };
 
   csoundModLoadPatch = pkgs.writeTextFile {
     name = "csoundModLoadPatch";
