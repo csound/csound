@@ -252,10 +252,10 @@ static int32_t hrtfmove_init(CSOUND *csound, hrtfmove *p)
       fade = 8;
     p->fade = fade;
 
-    /* sr, defualt 44100 */
-    if(sr != 44100 && sr != 48000 && sr != 96000)
-      sr = 44100;
-    p->sr = sr;
+    /* sr, default 44100 */
+    //    if(sr != 44100 && sr != 48000 && sr != 96000)
+    //  sr = 44100;
+    if (sr==0) sr = CS_ESR;
 
     if (UNLIKELY(CS_ESR != sr))
       csound->Message(csound,
@@ -1440,7 +1440,8 @@ static int32_t hrtfstat_init(CSOUND *csound, hrtfstat *p)
     MYFLT *rightshiftbuffer;
 
     /* sr */
-    if(sr != FL(44100.0) && sr != FL(48000.0) && sr != FL(96000.0))
+    if (sr == 0) sr = CS_ESR;
+    if (sr != FL(44100.0) && sr != FL(48000.0) && sr != FL(96000.0))
       sr = FL(44100.0);
     p->sr = sr;
 
@@ -2070,6 +2071,7 @@ static int32_t hrtfmove2_init(CSOUND *csound, hrtfmove2 *p)
 
     int32_t i = 0;
 
+    if (sr==0) sr = CS_ESR;
     if(sr != 44100 && sr != 48000 && sr != 96000)
       sr = 44100;
     p->sr = sr;
