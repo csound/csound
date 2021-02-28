@@ -1690,7 +1690,7 @@ int csoundCompileTreeInternal(CSOUND *csound, TREE *root, int async) {
 
         named_instr_alloc(csound, c, instrtxt, insno_priority, engineState, 0);
         if(engineState != &csound->engineState)
-        named_instr_assign_numbers(csound, engineState);
+          named_instr_assign_numbers(csound, engineState);
         /* VL 10.10.14: check for redefinition */
         // if (UNLIKELY(!named_instr_alloc(csound, c,
         //  instrtxt, insno_priority,
