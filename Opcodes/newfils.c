@@ -3029,20 +3029,20 @@ int svn_init(CSOUND *csound, SVN *p) {
       for(i=0; i <= TABSIZE; x += step, i++)
         tab[i] = TANH(x);
     }
-    p->max = 4.;
+    p->max = .125;
     p->tab = tab;
     p->size = TABSIZE;
     } else {
     FUNC *ftab = csound->FTnp2Find(csound, p->ifn);
     p->tab = ftab->ftable;
     p->size = ftab->flen;
-    p->max = *p->mx;
+    p->max = 1./(*p->mx*2);
    }
   return OK;
 }
 
 static inline MYFLT nlf(MYFLT *t, double x, MYFLT mx, int siz){
-  double p =  (x/(2*mx) + 0.5)*siz;
+  double p =  (x*mx + 0.5)*siz;
   int32_t n = (int32_t) p;
   return n > 0 ? (n < siz ? t[n] + (p - n)*(t[n+1] - t[n]) : t[siz-1]) : t[0]; 
 }  
