@@ -1716,9 +1716,13 @@ int nstrnumset_S(CSOUND *csound, NSTRNUM *p)
 
 int nstrstr(CSOUND *csound, NSTRSTR *p)
 {
-    char *ss = cs_inverse_hash_get(csound,
-                                   csound->engineState.instrumentNames,
-                                   (int)*p->num);
+    char *ss;
+    if (csound->engineState.instrumentNames) {
+      ss = cs_inverse_hash_get(csound,
+                               csound->engineState.instrumentNames,
+                               (int)*p->num);
+    }
+    else ss= "";
     mfree(csound,p->ans->data);
     p->ans->data = cs_strdup(csound, ss);
     p->ans->size = strlen(ss);

@@ -593,7 +593,7 @@ PUBLIC int csoundCompileCsdText(CSOUND *csound, const char *csd_text)
           /*   corfile_puts(csound, "\nf0 800000000000.0\ne\n#exit\n",csound->scorestr); */
           /*   //corfile_puts(csound, "e\n#exit\n",csound->scorestr); */
           /* } */
-          {
+          {                     /* Ned to exsure tere is no e opcode before '#exit'.  Thiscode is flacky */
             char *sc;
             if (csound->scorestr==NULL)
               sc = "#exit";
