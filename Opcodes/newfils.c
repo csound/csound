@@ -2567,7 +2567,7 @@ int vcf_perfaa(CSOUND *csound, VCF *p) {
 typedef struct _spf {
   OPDS h;
   MYFLT *y,*xl,*xh,*xb,*f,*r, *istor;
-  double ff, R;
+  MYFLT ff, R;
   double s[2],sl[2],sh[2],sb[2];
   double al[2],ah[2],ab,b[2];
   double piosr;
@@ -2795,7 +2795,7 @@ int spf_perfka(CSOUND *csound, SPF *p) {
 typedef struct _skf {
   OPDS h;
   MYFLT *y,*x,*f,*K,*ihp,*istor;
-  double ff, R, KK;
+  MYFLT ff, R, KK;
   double s[2];
   double a[2],b[2];
   double piosr;
@@ -2992,6 +2992,116 @@ int skf_perfka(CSOUND *csound, SKF *p) {
   return OK; 
 }
 
+
+typedef struct _svn {
+  OPDS h;
+  MYFLT *yh,*yl,*yb,*yr,*x,*f,*q,*kn,*ifn,*mx,*istor;
+  MYFLT ff, Q;
+  double fac, w;
+  double s[2];
+  double piosr;
+  MYFLT *tab, max;
+  int size;
+} SVN;
+
+#define TABSIZE 20000
+
+int svn_init(CSOUND *csound, SVN *p) {
+  double w2;
+  double *s = p->s;
+  p->piosr = PI/csound->GetSr(csound);
+  p->w = TAN(*p->f*p->piosr);
+  w2 = p->w*p->w;
+  p->Q = *p->q >  0.5 ? *p->q : 0.5;
+  p->fac = 1./(1. + p->w/p->Q + w2);
+  p->ff = *p->f;
+  if(*p->istor == FL(0.0)) 
+    s[0] = s[1]  = 0.f;
+
+   if(*p->ifn == FL(0.0)) {
+    double *tab;
+    tab = csound->QueryGlobalVariable(csound, "::TANH::");
+    if(tab == NULL) {
+      int i;
+      csound->CreateGlobalVariable(csound,"::TANH::",sizeof(MYFLT)*(TABSIZE+1));
+      tab =  csound->QueryGlobalVariable(csound, "::TANH::");
+      MYFLT step  = 8./TABSIZE, x = -4.;
+      for(i=0; i <= TABSIZE; x += step, i++)
+        tab[i] = TANH(x);
+    }
+    p->max = 4.;
+    p->tab = tab;
+    p->size = TABSIZE;
+    } else {
+    FUNC *ftab = csound->FTnp2Find(csound, p->ifn);
+    p->tab = ftab->ftable;
+    p->size = ftab->flen;
+    p->max = *p->mx;
+   }
+  return OK;
+}
+
+static inline MYFLT nlf(MYFLT *t, double x, MYFLT mx, int siz){
+  double p =  (x/(2*mx) + 0.5)*siz;
+  int32_t n = (int32_t) p;
+  return n > 0 ? (n < siz ? t[n] + (p - n)*(t[n+1] - t[n]) : t[siz-1]) : t[0]; 
+}  
+ 
+
+int svn_perfkk(CSOUND *csound, SVN *p) {
+  uint32_t offset = p->h.insdshead->ksmps_offset;
+  uint32_t early  = p->h.insdshead->ksmps_no_end;
+  uint32_t i, nsmps = CS_KSMPS;
+  MYFLT *yl = p->yl, *yh = p->yh, *yb = p->yb, *yr = p->yr;
+  MYFLT *x = p->x , kn = *p->kn, kno1;
+  double u, w = p->w, fac = p->fac, Q = p->Q, R;
+  double *s = p->s, *tab = p->tab;
+  double max = p->max;
+  int size = p->size;
+  kno1 = 1./kn;
+  R = 1./Q;
+  
+  
+  if(p->ff != *p->f ||
+     p->Q  != *p->q) {
+    double w, w2;
+    w = p->w = TAN(*p->f*p->piosr);
+    w2 = w*w;
+    Q = p->Q = *p->q >  0.5 ? *p->q : 0.5;
+    fac = p->fac = 1./(1. + w/Q + w2);
+    p->ff = *p->f;
+    R = 1./Q;
+  }
+
+  if (UNLIKELY(offset)) {
+    memset(yl, '\0', offset*sizeof(MYFLT));
+    memset(yh, '\0', offset*sizeof(MYFLT));
+    memset(yb, '\0', offset*sizeof(MYFLT));
+    memset(yr, '\0', offset*sizeof(MYFLT));
+  }
+  if (UNLIKELY(early)) {
+    nsmps -= early;
+    memset(&yl[nsmps], '\0', early*sizeof(MYFLT));
+    memset(&yr[nsmps], '\0', early*sizeof(MYFLT));
+    memset(&yh[nsmps], '\0', early*sizeof(MYFLT));
+    memset(&yb[nsmps], '\0', early*sizeof(MYFLT));
+  }
+
+  for (i=offset; i<nsmps; i++) {
+    u = x[i];
+    yh[i] = (u - (R + w) * s[0] - s[1])*fac;
+    u = w * nlf(tab,yh[i]*kn,max,size)*kno1;
+    yb[i] = u + s[0];
+    s[0] = yb[i] + u;
+    u = w * nlf(tab,yb[i]*kn,max,size)*kno1;
+    yl[i] = u + s[1];
+    s[1] =  yl[i] + u;
+    yr[i] =  yh[i] + yl[i];
+  }
+  return OK; 
+}
+
+
 static OENTRY localops[] =
   {
     {"mvchpf", sizeof(mvchpf24), 0, 3, "a", "ako",
@@ -3077,7 +3187,9 @@ static OENTRY localops[] =
     {"skf", sizeof(SKF), 0, 3, "a", "aaaoo",
      (SUBR) skf_init, (SUBR) skf_perfaa },
     {"skf", sizeof(SKF), 0, 3, "a", "akaoo",
-     (SUBR) skf_init, (SUBR) skf_perfka }
+     (SUBR) skf_init, (SUBR) skf_perfka },
+    {"svn", sizeof(SVN), 0, 3, "aaaa", "akkkopo",
+     (SUBR) svn_init, (SUBR) svn_perfkk },   
   };
 
 int32_t newfils_init_(CSOUND *csound)
