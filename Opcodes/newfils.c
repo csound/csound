@@ -3141,6 +3141,99 @@ int svn_perfak(CSOUND *csound, SVN *p) {
   return OK; 
 }
 
+int svn_perfka(CSOUND *csound, SVN *p) {
+  uint32_t offset = p->h.insdshead->ksmps_offset;
+  uint32_t early  = p->h.insdshead->ksmps_no_end;
+  uint32_t i, nsmps = CS_KSMPS;
+  MYFLT *yl = p->yl, *yh = p->yh, *yb = p->yb, *yr = p->yr;
+  MYFLT *x = p->x, kn = *p->kn, kno1, *q = p->q;
+  double u, w = p->w, w2, fac = p->fac, D;
+  double *s = p->s, *tab = p->tab;
+  double max = p->max;
+  int size = p->size;
+  kno1 = 1./kn;
+  w2 = w*w;
+
+  if(p->ff != *p->f) {
+    w = p->w = TAN(*p->f*p->piosr);
+    w2 = w*w;
+    p->ff = *p->f;
+  }
+
+  if (UNLIKELY(offset)) {
+    memset(yl, '\0', offset*sizeof(MYFLT));
+    memset(yh, '\0', offset*sizeof(MYFLT));
+    memset(yb, '\0', offset*sizeof(MYFLT));
+    memset(yr, '\0', offset*sizeof(MYFLT));
+  }
+  if (UNLIKELY(early)) {
+    nsmps -= early;
+    memset(&yl[nsmps], '\0', early*sizeof(MYFLT));
+    memset(&yr[nsmps], '\0', early*sizeof(MYFLT));
+    memset(&yh[nsmps], '\0', early*sizeof(MYFLT));
+    memset(&yb[nsmps], '\0', early*sizeof(MYFLT));
+  }
+
+  for (i=offset; i<nsmps; i++) {
+    D = 1./(q[i] >  0.5 ? q[i] : 0.5);
+    fac = 1./(1. + w*D + w2);
+    
+    u = x[i];
+    yh[i] = (u - (D + w) * s[0] - s[1])*fac;
+    u = w * nlf(tab,yh[i]*kn,max,size)*kno1;
+    yb[i] = u + s[0];
+    s[0] = yb[i] + u;
+    u = w * nlf(tab,yb[i]*kn,max,size)*kno1;
+    yl[i] = u + s[1];
+    s[1] =  yl[i] + u;
+    yr[i] =  yh[i] + yl[i];
+  }
+  return OK; 
+}
+
+int svn_perfaa(CSOUND *csound, SVN *p) {
+  uint32_t offset = p->h.insdshead->ksmps_offset;
+  uint32_t early  = p->h.insdshead->ksmps_no_end;
+  uint32_t i, nsmps = CS_KSMPS;
+  MYFLT *yl = p->yl, *yh = p->yh, *yb = p->yb, *yr = p->yr;
+  MYFLT *x = p->x , kn = *p->kn, kno1, *f = p->f, *q = p->q;
+  double u, w, fac, D;
+  double *s = p->s, *tab = p->tab;
+  double max = p->max;
+  int size = p->size;
+  kno1 = 1./kn;
+  
+  if (UNLIKELY(offset)) {
+    memset(yl, '\0', offset*sizeof(MYFLT));
+    memset(yh, '\0', offset*sizeof(MYFLT));
+    memset(yb, '\0', offset*sizeof(MYFLT));
+    memset(yr, '\0', offset*sizeof(MYFLT));
+  }
+  if (UNLIKELY(early)) {
+    nsmps -= early;
+    memset(&yl[nsmps], '\0', early*sizeof(MYFLT));
+    memset(&yr[nsmps], '\0', early*sizeof(MYFLT));
+    memset(&yh[nsmps], '\0', early*sizeof(MYFLT));
+    memset(&yb[nsmps], '\0', early*sizeof(MYFLT));
+  }
+
+  for (i=offset; i<nsmps; i++) {
+    D = 1./(q[i] >  0.5 ? q[i] : 0.5);
+    w = TAN(f[i]*p->piosr);
+    fac = 1./(1. + w*D + w*w);
+    
+    u = x[i];
+    yh[i] = (u - (D + w) * s[0] - s[1])*fac;
+    u = w * nlf(tab,yh[i]*kn,max,size)*kno1;
+    yb[i] = u + s[0];
+    s[0] = yb[i] + u;
+    u = w * nlf(tab,yb[i]*kn,max,size)*kno1;
+    yl[i] = u + s[1];
+    s[1] =  yl[i] + u;
+    yr[i] =  yh[i] + yl[i];
+  }
+  return OK; 
+}
 
 
 static OENTRY localops[] =
@@ -3232,7 +3325,11 @@ static OENTRY localops[] =
     {"svn", sizeof(SVN), 0, 3, "aaaa", "akkkopo",
      (SUBR) svn_init, (SUBR) svn_perfkk },
     {"svn", sizeof(SVN), 0, 3, "aaaa", "aakkopo",
-     (SUBR) svn_init, (SUBR) svn_perfak },  
+     (SUBR) svn_init, (SUBR) svn_perfak },
+    {"svn", sizeof(SVN), 0, 3, "aaaa", "akakopo",
+     (SUBR) svn_init, (SUBR) svn_perfka },
+    {"svn", sizeof(SVN), 0, 3, "aaaa", "aaakopo",
+     (SUBR) svn_init, (SUBR) svn_perfaa } 
   };
 
 int32_t newfils_init_(CSOUND *csound)
