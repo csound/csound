@@ -1,6 +1,6 @@
 {
   "name": "@csound/browser",
-  "version": "6.16.0-beta3",
+  "version": "6.16.0-beta4",
   "module": "./dist/csound.esm.js",
   "main": "./dist/csound.cjs.js",
   "iife": "./dist/csound.iife.js",
@@ -67,7 +67,7 @@
     "@babel/core": "^7.12.10",
     "@babel/plugin-proposal-object-rest-spread": "^7.12.1",
     "@babel/plugin-transform-destructuring": "^7.12.1",
-    "@csound/wasm-bin": "6.16.0-beta3",
+    "@csound/wasm-bin": "6.16.0-beta4",
     "@rollup/plugin-alias": "^3.1.1",
     "@rollup/plugin-babel": "^5.2.2",
     "@rollup/plugin-commonjs": "^17.0.0",

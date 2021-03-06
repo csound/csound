@@ -70,8 +70,8 @@ CsoundObj API.
         * [.getParams()](#CsoundObj.getParams) ⇒ [<code>Promise.&lt;CSOUND\_PARAMS&gt;</code>](#CSOUND_PARAMS)
         * [.getDebug()](#CsoundObj.getDebug) ⇒ <code>Promise.&lt;number&gt;</code>
         * [.setDebug(debug)](#CsoundObj.setDebug) ⇒ <code>Promise.&lt;undefined&gt;</code>
-        * [.inputMessage()](#CsoundObj.inputMessage) ⇒ <code>Promise.&lt;number&gt;</code>
-        * [.inputMessageAsync()](#CsoundObj.inputMessageAsync) ⇒ <code>Promise.&lt;number&gt;</code>
+        * [.inputMessage(scoreEvent)](#CsoundObj.inputMessage) ⇒ <code>Promise.&lt;number&gt;</code>
+        * [.inputMessageAsync(scoreEvent)](#CsoundObj.inputMessageAsync) ⇒ <code>Promise.&lt;number&gt;</code>
         * [.getControlChannel(channelName)](#CsoundObj.getControlChannel) ⇒ <code>Promise.&lt;undefined&gt;</code>
         * [.setControlChannel(channelName, value)](#CsoundObj.setControlChannel) ⇒ <code>Promise.&lt;undefined&gt;</code>
         * [.getStringChannel(channelName)](#CsoundObj.getStringChannel) ⇒ <code>Promise.&lt;undefined&gt;</code>
@@ -357,18 +357,28 @@ Return the size of MYFLT in number of bytes
 
 <a name="CsoundObj.inputMessage"></a>
 
-### CsoundObj.inputMessage() ⇒ <code>Promise.&lt;number&gt;</code>
+### CsoundObj.inputMessage(scoreEvent) ⇒ <code>Promise.&lt;number&gt;</code>
 Inputs an immediate score event
 without any pre-process parsing
 
 **Kind**: static method of [<code>CsoundObj</code>](#CsoundObj)  
+
+| Param | Type |
+| --- | --- |
+| scoreEvent | <code>string</code> | 
+
 <a name="CsoundObj.inputMessageAsync"></a>
 
-### CsoundObj.inputMessageAsync() ⇒ <code>Promise.&lt;number&gt;</code>
+### CsoundObj.inputMessageAsync(scoreEvent) ⇒ <code>Promise.&lt;number&gt;</code>
 Inputs an immediate score event
 without any pre-process parsing
 
 **Kind**: static method of [<code>CsoundObj</code>](#CsoundObj)  
+
+| Param | Type |
+| --- | --- |
+| scoreEvent | <code>string</code> | 
+
 <a name="CsoundObj.getControlChannel"></a>
 
 ### CsoundObj.getControlChannel(channelName) ⇒ <code>Promise.&lt;undefined&gt;</code>
