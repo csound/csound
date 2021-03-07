@@ -1324,6 +1324,11 @@ PUBLIC CSOUND *csoundCreate(void *hostdata)
     csound = (CSOUND*) malloc(sizeof(CSOUND));
     if (UNLIKELY(csound == NULL)) return NULL;
     memcpy(csound, &cenviron_, sizeof(CSOUND));
+#ifdef WIN32
+    csound->plain_text_output = 1;
+#else // WIN32
+    csound->plain_text_output = !(isatty(fileno(stdout)) || isatty(fileno(stderr)));
+#endif // WIN32
     init_getstring(csound);
     csound->oparms = &(csound->oparms_);
     csound->hostdata = hostdata;
@@ -2513,17 +2518,19 @@ PUBLIC void csoundSetCscoreCallback(CSOUND *p,
 static void csoundDefaultMessageCallback(CSOUND *csound, int attr,
                                          const char *format, va_list args)
 {
-#if defined(WIN32)
-    switch (attr & CSOUNDMSG_TYPE_MASK) {
-    case CSOUNDMSG_ERROR:
-    case CSOUNDMSG_WARNING:
-    case CSOUNDMSG_REALTIME:
-      vfprintf(stderr, format, args);
-      break;
-    default:
-      vfprintf(stdout, format, args);
+    if(csound->plain_text_output) {
+        switch (attr & CSOUNDMSG_TYPE_MASK) {
+        case CSOUNDMSG_ERROR:
+        case CSOUNDMSG_WARNING:
+        case CSOUNDMSG_REALTIME:
+          vfprintf(stderr, format, args);
+          break;
+        default:
+          vfprintf(stdout, format, args);
+        }
+        return;
     }
-#else
+#if !defined(WIN32)
     FILE *fp = stderr;
     if ((attr & CSOUNDMSG_TYPE_MASK) == CSOUNDMSG_STDOUT)
       fp = stdout;

@@ -47,17 +47,19 @@ static int insert_midi(CSOUND *csound, int insno, MCHNBLK *chn,
 static int insert_event(CSOUND *csound, int insno, EVTBLK *newevtp);
 
 static void print_messages(CSOUND *csound, int attr, const char *str){
-#if defined(WIN32)
-    switch (attr & CSOUNDMSG_TYPE_MASK) {
-    case CSOUNDMSG_ERROR:
-    case CSOUNDMSG_WARNING:
-    case CSOUNDMSG_REALTIME:
-      fprintf(stderr, str);
-      break;
-    default:
-      fprintf(stdout, str);
+    if (csound->plain_text_output) {
+        switch (attr & CSOUNDMSG_TYPE_MASK) {
+        case CSOUNDMSG_ERROR:
+        case CSOUNDMSG_WARNING:
+        case CSOUNDMSG_REALTIME:
+            fprintf(stderr, str);
+            break;
+        default:
+            fprintf(stdout, str);
+        }
+        return;
     }
-#else
+#if !defined(WIN32)
     FILE *fp = stderr;
     if ((attr & CSOUNDMSG_TYPE_MASK) == CSOUNDMSG_STDOUT)
       fp = stdout;
