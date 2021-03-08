@@ -103,11 +103,11 @@ export default async function ({ wasmDataURI, withPlugins = [], messagePort }) {
   await wasmFs.volume.mkdirpSync("/sandbox");
 
   const wasmZlib = new Uint8Array(wasmDataURI);
+  const wasmInflated = inflate(wasmZlib);
+
   const wasmBytes =
-    typeof BigUint64Array === "undefined"
-      ? await lowerI64Imports(inflate(wasmZlib))
-      : inflate(wasmZlib);
-  const magicData = getBinaryHeaderData(wasmBytes);
+    typeof BigUint64Array === "undefined" ? await lowerI64Imports(wasmInflated) : wasmInflated;
+  const magicData = getBinaryHeaderData(wasmInflated);
   if (magicData === "static") {
     return [await loadStaticWasm({ messagePort, wasmBytes, wasmFs, wasi }), wasmFs];
   }
