@@ -2918,7 +2918,8 @@ int skf_perfaa(CSOUND *csound, SKF *p) {
   uint32_t i, nsmps = CS_KSMPS;
   double *b = p->b,*a = p->a;
   MYFLT *x = p->x, *y = p->y, *f = p->f;
-  double yy, R, *K = p->K;
+  double yy, R;
+  MYFLT *K = p->K;
   double *s = p->s;
 
   if (UNLIKELY(offset)) {
@@ -2958,7 +2959,8 @@ int skf_perfka(CSOUND *csound, SKF *p) {
   uint32_t i, nsmps = CS_KSMPS;
   double *b = p->b,*a = p->a;
   MYFLT *x = p->x, *y = p->y;
-  double yy, R, *K = p->K;
+  double yy, R;
+  MYFLT *K = p->K;
   double *s = p->s;
   double w, w2, fac;
   w = TAN(*p->f*p->piosr);
@@ -3017,7 +3019,7 @@ int svn_init(CSOUND *csound, SVN *p) {
   p->ff = *p->f;
   if(*p->istor == FL(0.0)) s[0] = s[1]  = 0.f; 
   if(*p->ifn == FL(0.0)) {
-    double *tab;
+    MYFLT *tab;
     tab = csound->QueryGlobalVariable(csound, "::TANH::");
     if(tab == NULL) {
       int i;
@@ -3053,7 +3055,8 @@ int svn_perfkk(CSOUND *csound, SVN *p) {
   MYFLT *yl = p->yl, *yh = p->yh, *yb = p->yb, *yr = p->yr;
   MYFLT *x = p->x , kn = *p->kn, kno1;
   double u, w = p->w, fac = p->fac, Q = p->Q, D;
-  double *s = p->s, *tab = p->tab;
+  double *s = p->s;
+  MYFLT *tab = p->tab;
   double max = p->max;
   int size = p->size;
   kno1 = 1./kn;
@@ -3103,7 +3106,8 @@ int svn_perfak(CSOUND *csound, SVN *p) {
   MYFLT *yl = p->yl, *yh = p->yh, *yb = p->yb, *yr = p->yr;
   MYFLT *x = p->x , kn = *p->kn, kno1, *f = p->f;
   double u, w, fac, Q = p->Q, D;
-  double *s = p->s, *tab = p->tab;
+  double *s = p->s;
+  MYFLT *tab = p->tab;
   double max = p->max;
   int size = p->size;
   kno1 = 1./kn;
@@ -3148,7 +3152,8 @@ int svn_perfka(CSOUND *csound, SVN *p) {
   MYFLT *yl = p->yl, *yh = p->yh, *yb = p->yb, *yr = p->yr;
   MYFLT *x = p->x, kn = *p->kn, kno1, *q = p->q;
   double u, w = p->w, w2, fac = p->fac, D;
-  double *s = p->s, *tab = p->tab;
+  double *s = p->s;
+  MYFLT *tab = p->tab;
   double max = p->max;
   int size = p->size;
   kno1 = 1./kn;
@@ -3198,7 +3203,8 @@ int svn_perfaa(CSOUND *csound, SVN *p) {
   MYFLT *yl = p->yl, *yh = p->yh, *yb = p->yb, *yr = p->yr;
   MYFLT *x = p->x , kn = *p->kn, kno1, *f = p->f, *q = p->q;
   double u, w, fac, D;
-  double *s = p->s, *tab = p->tab;
+  double *s = p->s;
+  MYFLT *tab = p->tab;
   double max = p->max;
   int size = p->size;
   kno1 = 1./kn;
