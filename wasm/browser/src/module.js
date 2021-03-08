@@ -1,6 +1,7 @@
 import * as path from "path-browserify";
 import { WASI } from "@wasmer/wasi";
 import { WasmFs } from "@wasmer/wasmfs";
+import { lowerI64Imports } from "@wasmer/wasm-transformer";
 import { inflate } from "pako";
 import { dlinit } from "@root/dlinit";
 import { csoundWasiJsMessageCallback, initFS } from "@root/filesystem/worker-fs";
@@ -102,7 +103,10 @@ export default async function ({ wasmDataURI, withPlugins = [], messagePort }) {
   await wasmFs.volume.mkdirpSync("/sandbox");
 
   const wasmZlib = new Uint8Array(wasmDataURI);
-  const wasmBytes = inflate(wasmZlib);
+  const wasmBytes =
+    typeof BigUint64Array === "undefined"
+      ? await lowerI64Imports(inflate(wasmZlib))
+      : inflate(wasmZlib);
   const magicData = getBinaryHeaderData(wasmBytes);
   if (magicData === "static") {
     return [await loadStaticWasm({ messagePort, wasmBytes, wasmFs, wasi }), wasmFs];
