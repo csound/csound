@@ -579,14 +579,14 @@ INSTRTXT *create_instrument0(CSOUND *csound, TREE *root,
   /* Deal with defaults and consistency */
   if (ksmps == FL(-1.0)) {
     if (sr == FL(-1.0))
-      sr = DFLT_SR;
+      sr = csound->oparms->sr_default;//   DFLT_SR;
     if (kr == FL(-1.0))
-      kr = DFLT_KR;
+      kr = csound->oparms->kr_default;//  DFLT_KR;
     ksmps = (MYFLT)((int)(sr / kr + FL(0.5)));
     kr = sr / ksmps; /* VL - avoid inconsistency */
   } else if (kr == FL(-1.0)) {
     if (sr == FL(-1.0))
-      sr = DFLT_SR;
+      sr = csound->oparms->sr_default;//  DFLT_SR;
     kr = sr / ksmps;
   } else if (sr == FL(-1.0)) {
     sr = kr * ksmps;
