@@ -72,6 +72,7 @@ typedef struct {
     MYFLT   aOut_bufsize;
     void    *cb;
     int     async;
+  MYFLT     transpose;
 } DISKIN2;
 
 typedef struct {
