@@ -1031,13 +1031,14 @@ static int32_t pvsfreezeprocess(CSOUND *csound, PVSFREEZE *p)
   fout = (float *) p->fout->frame.auxp;
   fin = (float *) p->fin->frame.auxp;
   freez = (float *) p->freez.auxp;
+   int32    N = p->fin->N;
 
   framesize = p->fin->N + 2;
 
   if (p->lastframe < p->fin->framecount) {
-
+    memset(fout, 0, sizeof(float)*(N+2));
     for (i = 0; i < framesize; i += 2) {
-      if (freeza < 1)
+      if (freeza < 1) 
         freez[i] = fin[i];
       if (freezf < 1)
         freez[i + 1] = fin[i + 1];

@@ -6202,7 +6202,7 @@ msgstr ""
 
 #: Opcodes/ambicode1.c:689
 #, fuzzy
-msgid "bformdec1 output array not initilised"
+msgid "bformdec1 output array not initialised"
 msgstr "%s: не выступлено с иничиативой"
 
 #: Opcodes/arrayops.cpp:78 Opcodes/arrayops.cpp:175
@@ -6667,7 +6667,7 @@ msgstr ""
 
 #: Opcodes/dssi4cs/src/dssi4cs.c:403 Opcodes/dssi4cs/src/dssi4cs.c:422
 #, c-format
-msgid "DSSI4CS: No run() funtion in: %s"
+msgid "DSSI4CS: No run() function in: %s"
 msgstr ""
 
 #: Opcodes/dssi4cs/src/dssi4cs.c:604
@@ -7161,23 +7161,23 @@ msgstr ""
 msgid "wguide2 xfreq1 and xfreq2 arguments must be both a-rate or k and i-rate"
 msgstr ""
 
-#: Opcodes/fluidOpcodes/fluidOpcodes.cpp:119
+#: Opcodes/fluidOpcodes/fluidOpcodes.cpp:120
 msgid "error allocating fluid engine\n"
 msgstr ""
 
-#: Opcodes/fluidOpcodes/fluidOpcodes.cpp:191
+#: Opcodes/fluidOpcodes/fluidOpcodes.cpp:192
 #, c-format
 msgid "fluid: unable to load %s"
 msgstr ""
 
-#: Opcodes/fluidOpcodes/fluidOpcodes.cpp:572
+#: Opcodes/fluidOpcodes/fluidOpcodes.cpp:573
 #, c-format
 msgid ""
 "result: %d\n"
 " Note off: c:%3d k:%3d\n"
 msgstr ""
 
-#: Opcodes/fluidOpcodes/fluidOpcodes.cpp:652
+#: Opcodes/fluidOpcodes/fluidOpcodes.cpp:653
 msgid "Illegal Interpolation Method: Must be either 0, 1, 4, or 7.\n"
 msgstr ""
 
@@ -10815,7 +10815,7 @@ msgstr "%s: не выступлено с иничиативой"
 
 #: Opcodes/vbap_n.c:781
 #, fuzzy
-msgid "Output array in vpabmove not initalised"
+msgid "Output array in vpabmove not initialised"
 msgstr "%s: не выступлено с иничиативой"
 
 #: Opcodes/vbap_zak.c:358 Opcodes/vbap_zak.c:403
@@ -11483,7 +11483,7 @@ msgid "--m-range=[01]          messages on range errors"
 msgstr ""
 
 #: Top/argdecode.c:248
-msgid "--m-warnings=[01]       mesage on warnings"
+msgid "--m-warnings=[01]       message on warnings"
 msgstr ""
 
 #: Top/argdecode.c:249

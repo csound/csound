@@ -59,7 +59,15 @@ an optional port filter.
 - aduinoReadF extends the arduino family to transfer floating point
   values.
 
-- triglinseg and trigexpseg are triggered versions of linseg and expseg
+- triglinseg and trigexpseg are triggered versions of linseg and
+expseg
+
+-  vclpf is a 4-pole resonant lowpass linear filter based on a tipical
+analogue filter configuration.
+
+- spf is a second-order multimode filter based on the Steiner-Parker
+configuration with separate lowpass, highpass, and bandpass inputs
+and a single output.
 
 ## New Gen and Macros
 
@@ -72,10 +80,13 @@ an optional port filter.
 
 ### Options
 
-New options --limiter and --limiter=num (where num is in range (0,1]
+- New options --limiter and --limiter=num (where num is in range (0,1]
 inserts a tanh limiter (see clip version2) at the end of each k-cycle.
 This can be used wen exerimenting or trying some alien inputs to save
 your ears or speakers.  The default value in the first form is 0.5
+
+- A typing error meant that the tag <CsShortLicense> was not recognised,
+although the English spelling (CsSortLicence) was.  Corrected.
 
 ### Modified Opcodes and Gens
 
@@ -92,6 +103,9 @@ your ears or speakers.  The default value in the first form is 0.5
 - expcurve and logcurve now incorporate range checks and corrects end
   values.
   
+- streaming lpc opcodes have had a major improvement in performance (>10x speedup for some cases),
+due to a new autocorrelation routine.
+
 ### Utilities
 
 
@@ -122,14 +136,19 @@ your ears or speakers.  The default value in the first form is 0.5
 
 - midiarp opcode fixed (issue 1365)
 
-- a bug in moogladdet where te value of 0dbfs affected te outout is
+- a bug in moogladder where the value of 0dbfs affected the outout is
   now fixed.
+
+- bugs in several filters where istor was defaulting to 1 instead of 0 as described in the manual have 
+been fixed.
 
 # SYSTEM LEVEL CHANGES
 
 
 ### System Changes
 
+ - new autocorrelation routine can compute in the frequency or
+in the time domain. Thanks to Patrick Ropohl for the improvement suggestion.
 
 ### Translations
 
@@ -157,11 +176,14 @@ your ears or speakers.  The default value in the first form is 0.5
 
 ==END==
 
-commit 47a9cf5d8b0093f3840f122654f49a406fb1b240
-Author: vlazzarini <victor.lazzarini@mu.ie>
-Date:   Fri Jan 29 10:00:45 2021 +0000
+commit 25c1e6bf2a0077b89a2859b92a529fc0c77e4919 (HEAD -> develop, origin/develop
+, origin/HEAD)
+Author: Francois PINOT <fggpinot@gmail.com>
+Date:   Sun Feb 7 09:50:56 2021 +0100
 
-    fixed values of vt for moogladder 0dbfs != 32768
+    Updated French translation
+
+
 
 **END**
 

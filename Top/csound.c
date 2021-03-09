@@ -923,9 +923,10 @@ static const CSOUND cenviron_ = {
       0.4,          /*    vbr quality  */
       0,            /*    ksmps_override */
       0,             /*    fft_lib */
-      0
+      0,             /* echo */
+      0.0,           /* limiter */
+      DFLT_SR, DFLT_KR  /* defaults */
     },
-
     {0, 0, {0}}, /* REMOT_BUF */
     NULL,           /* remoteGlobals        */
     0, 0,           /* nchanof, nchanif     */

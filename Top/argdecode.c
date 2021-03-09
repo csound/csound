@@ -245,7 +245,7 @@ static const char *longUsageList[] = {
   " ",
   Str_noop("--m-amps=[01]           messages on note amps"),
   Str_noop("--m-range=[01]          messages on range errors"),
-  Str_noop("--m-warnings=[01]       mesage on warnings"),
+  Str_noop("--m-warnings=[01]       message on warnings"),
   Str_noop("--m-raw=[01]            raw amp messages"),
   Str_noop("--m-dB=[01]             amp messages in dB"),
   Str_noop("--m-colours=[01]        colour amp messages"),
@@ -1218,6 +1218,12 @@ static int decode_long(CSOUND *csound, char *s, int argc, char **argv)
           O->sr_override = FL(-1.0);
       return 1;
     }
+    else if(!strncmp(s, "default-ksmps=",14)) {
+      s += 14;
+      O->kr_default = O->sr_default/atof(s);
+      return 1;
+    }
+    
     else if (!(strcmp(s, "aft-zero"))) {
       csound->aftouch = 0;
       return 1;

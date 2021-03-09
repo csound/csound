@@ -9,7 +9,7 @@ msgstr ""
 "Project-Id-Version: CSOUND 6.xx\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2008-07-30 08:53+0100\n"
-"PO-Revision-Date: 2020-06-28 20:46+0100\n"
+"PO-Revision-Date: 2021-02-07 17:25+0000\n"
 "Last-Translator: John ffitch <jpff@sourceforge.net>\n"
 "Language-Team: English (US)\n"
 "Language: en-GB\n"
@@ -35,7 +35,7 @@ msgstr ""
 #: Engine/auxfd.c:201
 #, c-format
 msgid "\tauxch at %p: size %zu, auxp %p, endp %p\n"
-msgstr ""
+msgstr "\tauxch at %p: size %zu, auxp %p, endp %p\n"
 
 #: Engine/auxfd.c:213
 #, c-format
@@ -3423,9 +3423,8 @@ msgid ""
 msgstr ""
 
 #: InOut/rtjack.c:526
-#, fuzzy
 msgid "input ports not connected\n"
-msgstr "---> Couldn't connect\n"
+msgstr ""
 
 #: InOut/rtjack.c:547 InOut/rtjack.c:571
 #, c-format
@@ -3443,9 +3442,8 @@ msgid ""
 msgstr ""
 
 #: InOut/rtjack.c:578
-#, fuzzy
 msgid "output ports not connected\n"
-msgstr "---> Couldn't connect\n"
+msgstr ""
 
 #: InOut/rtjack.c:630
 msgid "input and output parameters are not consistent"
@@ -4215,9 +4213,8 @@ msgid "out: number of channels truncated from %d to %d"
 msgstr ""
 
 #: OOps/aops.c:2080
-#, fuzzy
 msgid "outch must have an even number of arguments"
-msgstr "incomplete number of input arguments"
+msgstr ""
 
 #: OOps/aops.c:2270
 msgid "Unknown function called"
@@ -4611,9 +4608,9 @@ msgid "turnoff3: invalid instrument number"
 msgstr ""
 
 #: OOps/lpred.c:556 OOps/lpred.c:731
-#, fuzzy, c-format
+#, c-format
 msgid "function table %d not found\n"
-msgstr "paulstretch: table not found"
+msgstr ""
 
 #: OOps/lpred.c:1098 OOps/ugens5.c:294 OOps/ugens5.c:412 Opcodes/gab/gab.c:51
 #: Opcodes/ugsc.c:216
@@ -4656,14 +4653,12 @@ msgid "Invalid arp mode selected: %d. Valid modes are 0, 1, 2, and 3\n"
 msgstr ""
 
 #: OOps/midiops.c:874 OOps/midiops.c:931
-#, fuzzy
 msgid "ctrlpreset: failed to allocate globals"
-msgstr "failed to initialize remote globals."
+msgstr "ctrlpreset: failed to allocate globals"
 
 #: OOps/midiops.c:903 OOps/midiops.c:960
-#, fuzzy
 msgid "Failed to allocate presets\n"
-msgstr "Failed to find ftable"
+msgstr ""
 
 #: OOps/midiops.c:985 OOps/midiops.c:1020
 msgid "No presets stored"
@@ -6046,7 +6041,6 @@ msgid "OSC: failed to allocate globals"
 msgstr ""
 
 #: Opcodes/OSC.c:590
-#, fuzzy
 msgid "OSC deinitialised\n"
 msgstr "OSC deinitiatized\n"
 
@@ -6168,8 +6162,8 @@ msgid "The output channel count does not match the isetup value."
 msgstr "The output channel count doesn't match the isetup value."
 
 #: Opcodes/ambicode1.c:689
-msgid "bformdec1 output array not initilised"
-msgstr "bformdec1 output array not initilized"
+msgid "bformdec1 output array not initialised"
+msgstr "bformdec1 output array not initialized"
 
 #: Opcodes/arrayops.cpp:78 Opcodes/arrayops.cpp:175
 msgid "second input array is too short\n"
@@ -6290,9 +6284,8 @@ msgid "No table for copy2ftab"
 msgstr ""
 
 #: Opcodes/arrays.c:2858 Opcodes/arrays.c:2885
-#, fuzzy
 msgid "Offset is out of bounds"
-msgstr "instr %s not found"
+msgstr ""
 
 #: Opcodes/arrays.c:2916
 msgid "inconsistent start, end and increment parameters"
@@ -6525,14 +6518,12 @@ msgid "Unknown control %d"
 msgstr ""
 
 #: Opcodes/counter.c:79
-#, fuzzy
 msgid "counter: failed to allocate globals"
-msgstr "failed to initialize remote globals."
+msgstr ""
 
 #: Opcodes/counter.c:96
-#, fuzzy
 msgid "Failed to allocate counters\n"
-msgstr "Failed to find ftable"
+msgstr ""
 
 #: Opcodes/cpumeter.c:87
 #, c-format
@@ -6618,7 +6609,7 @@ msgstr ""
 
 #: Opcodes/dssi4cs/src/dssi4cs.c:403 Opcodes/dssi4cs/src/dssi4cs.c:422
 #, c-format
-msgid "DSSI4CS: No run() funtion in: %s"
+msgid "DSSI4CS: No run() function in: %s"
 msgstr ""
 
 #: Opcodes/dssi4cs/src/dssi4cs.c:604
@@ -6885,14 +6876,13 @@ msgid "cmp (ternary comparator): operator 1 expected <"
 msgstr ""
 
 #: Opcodes/emugens/emugens.c:1562 Opcodes/emugens/emugens.c:1575
-#, fuzzy, c-format
+#, c-format
 msgid "Table %d not found"
-msgstr "%s not found"
+msgstr ""
 
 #: Opcodes/emugens/emugens.c:1566
-#, fuzzy
 msgid "Table not set"
-msgstr "table doesn't exist"
+msgstr ""
 
 #: Opcodes/emugens/emugens.c:1620 Opcodes/emugens/emugens.c:1637
 msgid "tab2array: cannot copy a negative number of items"
@@ -6956,7 +6946,7 @@ msgstr ""
 #: Opcodes/emugens/emugens.c:2523
 #, fuzzy, c-format
 msgid "Opcode %s not initialized"
-msgstr "pvcross: not initialized"
+msgstr "Opcode %s not initialized"
 
 #: Opcodes/emugens/emugens.c:2600
 #, c-format
@@ -7100,23 +7090,23 @@ msgstr ""
 msgid "wguide2 xfreq1 and xfreq2 arguments must be both a-rate or k and i-rate"
 msgstr ""
 
-#: Opcodes/fluidOpcodes/fluidOpcodes.cpp:119
+#: Opcodes/fluidOpcodes/fluidOpcodes.cpp:120
 msgid "error allocating fluid engine\n"
 msgstr ""
 
-#: Opcodes/fluidOpcodes/fluidOpcodes.cpp:191
+#: Opcodes/fluidOpcodes/fluidOpcodes.cpp:192
 #, c-format
 msgid "fluid: unable to load %s"
 msgstr "fluid: unable to load %s"
 
-#: Opcodes/fluidOpcodes/fluidOpcodes.cpp:572
+#: Opcodes/fluidOpcodes/fluidOpcodes.cpp:573
 #, c-format
 msgid ""
 "result: %d\n"
 " Note off: c:%3d k:%3d\n"
 msgstr ""
 
-#: Opcodes/fluidOpcodes/fluidOpcodes.cpp:652
+#: Opcodes/fluidOpcodes/fluidOpcodes.cpp:653
 msgid "Illegal Interpolation Method: Must be either 0, 1, 4, or 7.\n"
 msgstr ""
 
@@ -7527,9 +7517,8 @@ msgid "vtablei: incorrect table number"
 msgstr ""
 
 #: Opcodes/gab/vectorial.c:50
-#, fuzzy
 msgid "vtablei: reading past end of table"
-msgstr "table: couldn't find ftable %d"
+msgstr ""
 
 #: Opcodes/gab/vectorial.c:70
 msgid "vtable: incorrect table number"
@@ -8336,9 +8325,8 @@ msgid "Jack ports unregistered.\n"
 msgstr ""
 
 #: Opcodes/jacko.cpp:696
-#, fuzzy
 msgid "Jack client closed.\n"
-msgstr "Activated Jack client \"%s\".\n"
+msgstr ""
 
 #: Opcodes/jacko.cpp:706
 msgid "JackoState::close.\n"
@@ -8372,12 +8360,12 @@ msgid "Could not create Jack connection from \"%s\" to \"%s\": status %d.\n"
 msgstr "Couldn't create Jack connection from \"%s\" to \"%s\": status %d.\n"
 
 #: Opcodes/lame.c:87
-#, fuzzy, c-format
+#, c-format
 msgid "Failed to initialise LAME %d\n"
 msgstr "Failed to initialize LAME %d\n"
 
 #: Opcodes/lame.c:91
-#, fuzzy, c-format
+#, c-format
 msgid "mp3out %s: failed to open file"
 msgstr "mp3out %s: failed to open file"
 
@@ -9147,9 +9135,8 @@ msgstr ""
 
 #: Opcodes/pvlock.c:275 Opcodes/pvlock.c:480 Opcodes/pvlock.c:714
 #: Opcodes/pvlock.c:934
-#, fuzzy
 msgid "function table not found"
-msgstr "paulstretch: table not found"
+msgstr ""
 
 #: Opcodes/pvlock.c:1128
 #, c-format
@@ -9530,23 +9517,20 @@ msgid "Nothing to close"
 msgstr ""
 
 #: Opcodes/serial.c:616
-#, fuzzy
 msgid "failed to open serial line\n"
-msgstr "Can't open input file %s"
+msgstr ""
 
 #: Opcodes/serial.c:620
 msgid "arduinoStart already running\n"
 msgstr ""
 
 #: Opcodes/serial.c:624
-#, fuzzy
 msgid "arduino: failed to allocate globals"
-msgstr "failed to initialize remote globals."
+msgstr ""
 
 #: Opcodes/serial.c:627
-#, fuzzy
 msgid "Failed to allocate\n"
-msgstr "Failed to find ftable"
+msgstr ""
 
 #: Opcodes/serial.c:651 Opcodes/serial.c:685
 msgid "arduinoStart not running\n"
@@ -10712,7 +10696,7 @@ msgid "could not find layout table no.0"
 msgstr "couldn't find layout table no.0"
 
 #: Opcodes/vbap_n.c:781
-msgid "Output array in vpabmove not initalised"
+msgid "Output array in vpabmove not initialised"
 msgstr "Output array in vpabmove not initalized"
 
 #: Opcodes/vbap_zak.c:358 Opcodes/vbap_zak.c:403
@@ -11388,7 +11372,7 @@ msgid "--m-range=[01]          messages on range errors"
 msgstr ""
 
 #: Top/argdecode.c:248
-msgid "--m-warnings=[01]       mesage on warnings"
+msgid "--m-warnings=[01]       message on warnings"
 msgstr ""
 
 #: Top/argdecode.c:249
@@ -14813,9 +14797,9 @@ msgid "srconv: first frame value in time-vary function must be 0"
 msgstr ""
 
 #: util/new_srconv.c:413
-#, fuzzy, c-format
+#, c-format
 msgid "cannot open %s (%s)."
-msgstr "can't open %s."
+msgstr "can't open %s (%s)."
 
 #: util/new_srconv.c:556 util/srconv.c:779
 msgid ""

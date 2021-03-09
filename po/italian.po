@@ -6408,7 +6408,8 @@ msgid "The output channel count does not match the isetup value."
 msgstr "Il conto dei canali d'output non combacia con il valore di isetup."
 
 #: Opcodes/ambicode1.c:689
-msgid "bformdec1 output array not initilised"
+#, fuzzy
+msgid "bformdec1 output array not initialised"
 msgstr "bformdec1 array d'output non inizializzato"
 
 #: Opcodes/arrayops.cpp:78 Opcodes/arrayops.cpp:175
@@ -6870,8 +6871,8 @@ msgid "DSSI4CS: Could not instantiate plugin: %s"
 msgstr "DSSI4CS: Non riesco ad istanziare il plugin: %s"
 
 #: Opcodes/dssi4cs/src/dssi4cs.c:403 Opcodes/dssi4cs/src/dssi4cs.c:422
-#, c-format
-msgid "DSSI4CS: No run() funtion in: %s"
+#, fuzzy, c-format
+msgid "DSSI4CS: No run() function in: %s"
 msgstr "DSSI4CS: Nessuna funzione run() in: %s"
 
 #: Opcodes/dssi4cs/src/dssi4cs.c:604
@@ -7397,16 +7398,16 @@ msgstr ""
 "wguide2 gli argomenti xfreq1 e xfreq2 devono essere entrambe a a-rate o k e "
 "i-rate"
 
-#: Opcodes/fluidOpcodes/fluidOpcodes.cpp:119
+#: Opcodes/fluidOpcodes/fluidOpcodes.cpp:120
 msgid "error allocating fluid engine\n"
 msgstr "errore allocazione fluid engine\n"
 
-#: Opcodes/fluidOpcodes/fluidOpcodes.cpp:191
+#: Opcodes/fluidOpcodes/fluidOpcodes.cpp:192
 #, c-format
 msgid "fluid: unable to load %s"
 msgstr "fluid: non riesco a caricare %s"
 
-#: Opcodes/fluidOpcodes/fluidOpcodes.cpp:572
+#: Opcodes/fluidOpcodes/fluidOpcodes.cpp:573
 #, c-format
 msgid ""
 "result: %d\n"
@@ -7415,7 +7416,7 @@ msgstr ""
 "risultato: %d\n"
 " Note off: c:%3d k:%3d\n"
 
-#: Opcodes/fluidOpcodes/fluidOpcodes.cpp:652
+#: Opcodes/fluidOpcodes/fluidOpcodes.cpp:653
 msgid "Illegal Interpolation Method: Must be either 0, 1, 4, or 7.\n"
 msgstr "Metodo d'interpolazione illegale: Deve essere 0, 1, 4, o 7.\n"
 
@@ -11126,7 +11127,8 @@ msgid "could not find layout table no.0"
 msgstr "non riesco a trovare la tavola di layout no.0"
 
 #: Opcodes/vbap_n.c:781
-msgid "Output array in vpabmove not initalised"
+#, fuzzy
+msgid "Output array in vpabmove not initialised"
 msgstr "Array d'output in vpabmove non inizializzato"
 
 #: Opcodes/vbap_zak.c:358 Opcodes/vbap_zak.c:403
@@ -11794,7 +11796,7 @@ msgid "--m-range=[01]          messages on range errors"
 msgstr ""
 
 #: Top/argdecode.c:248
-msgid "--m-warnings=[01]       mesage on warnings"
+msgid "--m-warnings=[01]       message on warnings"
 msgstr ""
 
 #: Top/argdecode.c:249
