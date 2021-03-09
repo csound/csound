@@ -115,7 +115,7 @@ export default async function ({ wasmDataURI, withPlugins = [], messagePort }) {
   // get the header data from plugins which we need before
   // initializing the main module
   withPlugins = await withPlugins.reduce(async (accumulator, wasmPlugin) => {
-    const acc = await accumulator;
+    const accumulator_ = await accumulator;
     let loweredWasmPluginBytes;
     let wasmPluginBytes;
     let pluginHeaderData;
@@ -130,9 +130,9 @@ export default async function ({ wasmDataURI, withPlugins = [], messagePort }) {
       console.error("Error in plugin", error);
     }
     if (pluginHeaderData) {
-      acc.push({ headerData: pluginHeaderData, wasmPluginBytes: loweredWasmPluginBytes });
+      accumulator_.push({ headerData: pluginHeaderData, wasmPluginBytes: loweredWasmPluginBytes });
     }
-    return acc;
+    return accumulator_;
   }, []);
 
   const fixedMemoryBase = 512;
