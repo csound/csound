@@ -35,7 +35,7 @@
     endin
 </CsInstruments>
 <CsScore>
-    i 1 0 1
+    i 1 0 2
 </CsScore>
 </CsoundSynthesizer>
 `;
@@ -72,7 +72,7 @@
 
 </CsInstruments>
 <CsScore>
-    i 1 0 1
+    i 1 0 2
 </CsScore>
 </CsoundSynthesizer>
 `;

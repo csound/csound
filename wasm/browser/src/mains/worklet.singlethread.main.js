@@ -108,6 +108,8 @@ class SingleThreadAudioWorkletMainThread {
         this.eventPromises &&
           this.eventPromises.isWaitingToStop() &&
           this.eventPromises.releaseStopPromises();
+        // just to be double sure that there's no hanging promise
+        this.eventPromises && this.eventPromises.releaseStartPromises();
         break;
       }
       case "realtimePerformancePaused": {

@@ -314,8 +314,7 @@ class WorkletSinglethreadWorker extends AudioWorkletProcessor {
       this.nchnls_i = libraryCsound.csoundGetNchnlsInput(cs);
 
       this.zerodBFS = libraryCsound.csoundGet0dBFS(cs);
-      returnValueValue = libraryCsound.csoundStart(cs);
-      log("csoundStart called with {} return val", returnValueValue)();
+
       this.csoundOutputBuffer = new Float64Array(
         this.wasm.exports.memory.buffer,
         libraryCsound.csoundGetSpout(cs),
@@ -326,7 +325,8 @@ class WorkletSinglethreadWorker extends AudioWorkletProcessor {
         libraryCsound.csoundGetSpin(cs),
         ksmps * this.nchnls_i,
       );
-
+      returnValueValue = libraryCsound.csoundStart(cs);
+      log("csoundStart called with {} return val", returnValueValue)();
       this.started = true;
       this.needsStartNotification = true;
     } else {
