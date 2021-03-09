@@ -33,6 +33,7 @@ import {
 } from "@root/utils";
 import { messageEventHandler } from "./messages.main";
 import { PublicEventAPI } from "@root/events";
+import { EventPromises } from "@utils/event-promises";
 import { requestMidi } from "@utils/request-midi";
 import { initFS, getWorkerFs, rmrfFs, syncWorkerFs } from "@root/filesystem/worker-fs";
 import {
@@ -45,6 +46,7 @@ import {
 class ScriptProcessorNodeSingleThread {
   constructor({ audioContext, inputChannelCount = 1, outputChannelCount = 2 }) {
     this.publicEvents = new PublicEventAPI(this);
+    this.eventPromises = new EventPromises();
     this.audioContext = audioContext;
     this.onaudioprocess = this.onaudioprocess.bind(this);
     this.currentPlayState = undefined;
@@ -110,6 +112,8 @@ class ScriptProcessorNodeSingleThread {
       case "realtimePerformanceEnded": {
         syncPersistentStorage(getWorkerFs(this.wasmFs)());
         clearFsLastmods();
+        // nuke the "worker" fs to keep same behavior for all
+        this.wasmFs && rmrfFs(this.wasmFs)({}, "/");
         this.publicEvents.triggerRealtimePerformanceEnded(this);
         break;
       }
@@ -129,6 +133,7 @@ class ScriptProcessorNodeSingleThread {
         syncPersistentStorage(getWorkerFs(this.wasmFs)());
         clearFsLastmods();
         this.publicEvents.triggerRenderEnded(this);
+        this.wasmFs && rmrfFs(this.wasmFs)({}, "/");
         break;
       }
 
@@ -154,11 +159,9 @@ class ScriptProcessorNodeSingleThread {
 
   async stop() {
     if (this.started) {
-      const stopPromise = new Promise((resolve) => {
-        this.stopPromiz = resolve;
-      });
+      this.eventPromises.createStopPromise();
       const stopResult = this.csoundApi.csoundStop(this.csoundInstance);
-      await stopPromise;
+      await this.eventPromises.waitForStop();
       if (this.watcherStdOut) {
         this.watcherStdOut.close();
         delete this.watcherStdOut;
@@ -213,14 +216,11 @@ class ScriptProcessorNodeSingleThread {
       this.zerodBFS = this.csoundApi.csoundGet0dBFS(this.csoundInstance);
 
       this.publicEvents.triggerOnAudioNodeCreated(this.spn);
-      const startPromise = new Promise((resolve) => {
-        this.startPromiz = resolve;
-      });
+      this.eventPromises.createStartPromise();
+
       if (!this.watcherStdOut && !this.watcherStdErr) {
         [this.watcherStdOut, this.watcherStdErr] = initFS(this.wasmFs, this.messagePort);
       }
-      // nuke the "worker" fs to keep same behavior for all
-      rmrfFs(this.wasmFs)({}, "/");
       const startResult = this.csoundApi.csoundStart(this.csoundInstance);
       if (this.csoundApi._isRequestingRtMidiInput(this.csoundInstance)) {
         requestMidi({
@@ -229,7 +229,7 @@ class ScriptProcessorNodeSingleThread {
         });
       }
       this.running = true;
-      await startPromise;
+      await this.eventPromises.waitForStart();
       return startResult;
     }
   }
@@ -268,7 +268,8 @@ class ScriptProcessorNodeSingleThread {
           (stopableStates.has(this.currentPlayState) || !this.currentPlayState) &&
           typeof this.wasmFs !== "undefined"
         ) {
-          syncWorkerFs(this.wasm.exports.memory, this.wasmFs)({}, getModifiedPersistentStorage());
+          const modifiedPersistentStorage = getModifiedPersistentStorage();
+          syncWorkerFs(this.wasm.exports.memory, this.wasmFs)(undefined, modifiedPersistentStorage);
         }
 
         return makeSingleThreadCallback(csoundInstance, csoundApi[apiName]).apply({}, arguments_);
@@ -349,10 +350,7 @@ class ScriptProcessorNodeSingleThread {
     if (this.running && !this.started) {
       this.started = true;
       this.onPlayStateChange("realtimePerformanceStarted");
-      if (this.startPromiz) {
-        this.startPromiz();
-        delete this.startPromiz;
-      }
+      this.eventPromises && this.eventPromises.releaseStartPromises();
     }
 
     const input = event.inputBuffer;
@@ -381,10 +379,7 @@ class ScriptProcessorNodeSingleThread {
           this.running = false;
           this.started = false;
           this.onPlayStateChange("realtimePerformanceEnded");
-          if (this.stopPromiz) {
-            this.stopPromiz();
-            delete this.stopPromiz;
-          }
+          this.eventPromises && this.eventPromises.releaseStopPromises();
         }
       }
 
