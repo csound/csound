@@ -1211,7 +1211,7 @@ tabrowcopyarr_k(CSOUND *csound, TABROWCOPYARR *p) {
     uint32_t idx0 = offset + numcols * row0 + start;
     uint32_t idx1 = idx0 + (end-start);
     uint32_t numitems = (uint32_t) (ceil((end - start) / (MYFLT)step));
-    ARRAY_ENSURESIZE(csound, p->outarr, numitems);
+    ARRAY_ENSURESIZE_PERF(csound, p->outarr, numitems);
 
     MYFLT *out = p->outarr->data;
     MYFLT *tabsource = p->tabsource;
@@ -1283,7 +1283,7 @@ getrowlin_k(CSOUND *csound, GETROWLIN *p) {
     int numcols  = p->inarr->sizes[1];
     if(numitems > numcols)
         return PERFERR(Str("Asked to read too many items from a row"));
-    ARRAY_ENSURESIZE(csound, p->outarr, numitems);
+    ARRAY_ENSURESIZE_PERF(csound, p->outarr, numitems);
 
     p->numitems = numitems;
     MYFLT row = *p->krow;
