@@ -49,9 +49,7 @@ class SingleThreadAudioWorkletMainThread {
     this.ipcMessagePorts = new IPCMessagePorts();
     this.publicEvents = new PublicEventAPI(this);
     this.eventPromises = new EventPromises();
-    this.exportApi = this.publicEvents.decorateAPI(this.exportApi);
-    // the default message listener
-    this.exportApi.addListener("message", console.log);
+
     this.audioContext = audioContext;
     this.inputChannelCount = inputChannelCount;
     this.outputChannelCount = outputChannelCount;
@@ -93,22 +91,23 @@ class SingleThreadAudioWorkletMainThread {
 
     switch (newPlayState) {
       case "realtimePerformanceStarted": {
-        if (this.startPromiz) {
+        if (this.eventPromises.isWaitingToStart()) {
           log("Start promise resolved")();
-          this.startPromiz();
-          delete this.startPromiz;
+          this.eventPromises.releaseStartPromises();
         }
         this.publicEvents.triggerRealtimePerformanceStarted(this);
         break;
       }
 
       case "realtimePerformanceEnded": {
-        this.eventPromises.createStopPromise();
         syncPersistentStorage(await this.getWorkerFs());
         clearFsLastmods();
         this.midiPortStarted = false;
         this.currentPlayState = undefined;
-        this.publicEvents.triggerRealtimePerformanceEnded(this);
+        this.publicEvents && this.publicEvents.triggerRealtimePerformanceEnded(this);
+        this.eventPromises &&
+          this.eventPromises.isWaitingToStop() &&
+          this.eventPromises.releaseStopPromises();
         break;
       }
       case "realtimePerformancePaused": {
@@ -222,6 +221,9 @@ class SingleThreadAudioWorkletMainThread {
     this.exportApi.enableAudioInput = enableAudioInput.bind(this.exportApi);
 
     this.exportApi.name = "Csound: Audio Worklet, Single-threaded";
+    this.exportApi = this.publicEvents.decorateAPI(this.exportApi);
+    // the default message listener
+    this.exportApi.addListener("message", console.log);
 
     for (const apiK of Object.keys(API)) {
       const reference = API[apiK];

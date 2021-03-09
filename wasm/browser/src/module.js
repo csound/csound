@@ -114,19 +114,25 @@ export default async function ({ wasmDataURI, withPlugins = [], messagePort }) {
   const { memorySize, memoryAlign, tableSize } = magicData;
   // get the header data from plugins which we need before
   // initializing the main module
-  withPlugins = withPlugins.reduce((accumulator, wasmPlugin) => {
+  withPlugins = await withPlugins.reduce(async (accumulator, wasmPlugin) => {
+    const acc = await accumulator;
+    let loweredWasmPluginBytes;
     let wasmPluginBytes;
     let pluginHeaderData;
     try {
       wasmPluginBytes = new Uint8Array(wasmPlugin);
+      loweredWasmPluginBytes =
+        typeof BigUint64Array === "undefined"
+          ? await lowerI64Imports(wasmPluginBytes)
+          : wasmPluginBytes;
       pluginHeaderData = getBinaryHeaderData(wasmPluginBytes);
     } catch (error) {
       console.error("Error in plugin", error);
     }
     if (pluginHeaderData) {
-      accumulator.push({ headerData: pluginHeaderData, wasmPluginBytes });
+      acc.push({ headerData: pluginHeaderData, wasmPluginBytes: loweredWasmPluginBytes });
     }
-    return accumulator;
+    return acc;
   }, []);
 
   const fixedMemoryBase = 512;
