@@ -98,7 +98,7 @@ export async function Csound({
   let audioWorker;
   let csoundWasmApi;
 
-  if (!useSPN || workletSupport) {
+  if (!useSPN && workletSupport) {
     audioWorker = new AudioWorkletMainThread({ audioContext, audioContextIsProvided, autoConnect });
   } else if (spnSupport) {
     audioWorker = new ScriptProcessorNodeMainThread({
