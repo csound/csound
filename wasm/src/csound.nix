@@ -7,7 +7,7 @@ let
   wasi-sdk = if static then wasi-sdk-static else wasi-sdk-dyn;
   static-link = ''
     echo "Create libcsound.wasm standalone"
-    ${wasi-sdk}/bin/wasm-ld --lto-O3 \
+    ${wasi-sdk}/bin/wasm-ld --lto-O2 \
       --entry=_start \
       ${
          pkgs.lib.concatMapStrings (x: " --export=" + x + " ")
@@ -22,7 +22,7 @@ let
   '';
   dyn-link = ''
     echo "Create libcsound.wasm pie"
-    ${wasi-sdk}/bin/wasm-ld --lto-O3 \
+    ${wasi-sdk}/bin/wasm-ld --lto-O2 \
       --experimental-pic -pie --entry=_start \
       --import-table --import-memory \
       ${
@@ -386,7 +386,7 @@ in pkgs.stdenvNoCC.mkDerivation rec {
       ${lib.optionalString (static == false) "--target=wasm32-unknown-emscripten" } \
       --sysroot=${wasi-sdk}/share/wasi-sysroot \
       -fno-force-enable-int128 \
-      ${lib.optionalString (static == false) "-fPIC" } -fno-exceptions -fno-rtti -O3 \
+      ${lib.optionalString (static == false) "-fPIC" } -fno-exceptions -fno-rtti -Oz \
       -I../H -I../Engine -I../include -I../ \
       -I../InOut/libmpadec -I../Opcodes/emugens \
       -I${libsndfile}/include \

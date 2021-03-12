@@ -377,7 +377,7 @@ const initialize = async ({
 }) => {
   log("initializing old-spn worker in iframe")();
   const audioContext = getAudioContext(contextUid);
-
+  console.log("audioContext", audioContext);
   const spnClassInstance = new CsoundScriptNodeProcessor({
     audioContext,
     contextUid,

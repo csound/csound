@@ -24,7 +24,7 @@ in pkgs.stdenvNoCC.mkDerivation rec {
          -I${pkgs.libogg.dev}/include \
          -I./include \
          -I./lib \
-         -O3 \
+         -Oz \
          -D__wasi__=1 \
          -D__wasm32__=1 \
          -D__NO_MATH_INLINES=1 \

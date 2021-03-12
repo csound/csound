@@ -86,6 +86,9 @@ export const csoundWasiJsMessageCallback = ({ memory, streamBuffer, messagePort 
   length_,
   offset,
 ) => {
+  if (!memory) {
+    return;
+  }
   const buf = new Uint8Array(memory.buffer, offset, length_);
   const string = uint2String(buf);
   const endsWithNewline = /\n$/g.test(string);

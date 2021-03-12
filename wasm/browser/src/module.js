@@ -76,9 +76,18 @@ const getBinaryHeaderData = (wasmBytes) => {
 // currently dl is default, static is good for low level debugging
 const loadStaticWasm = async ({ wasmBytes, wasmFs, wasi, messagePort }) => {
   const module = await WebAssembly.compile(wasmBytes);
+  const memory = new WebAssembly.Memory({ initial: 65536 / 4 });
+  const streamBuffer = [];
   const options = wasi.getImports(module);
   options.env = options.env || {};
   options.env.csoundLoadModules = () => 0;
+  options.env.memory = memory;
+  options.env.csoundWasiJsMessageCallback = csoundWasiJsMessageCallback({
+    memory: options.env.memory,
+    streamBuffer,
+    messagePort,
+  });
+
   const instance = await WebAssembly.instantiate(module, options);
   wasi.start(instance);
   await initFS(wasmFs, messagePort);

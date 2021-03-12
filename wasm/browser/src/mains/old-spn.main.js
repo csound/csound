@@ -124,6 +124,7 @@ class ScriptProcessorNodeMainThread {
       `<!doctype html>`,
       `<html lang="en">`,
       `<head>`,
+      `<meta charset="UTF-8">`,
       `</head>`,
       `<body>`,
       `<script type="text/javascript" src="${ScriptProcessorNodeWorker()}"></script>`,
@@ -189,13 +190,8 @@ class ScriptProcessorNodeMainThread {
       this.audioContext = new (WebkitAudioContext())({ sampleRate: this.sampleRate });
     }
 
-    if (this.sampleRate !== this.audioContext.sampleRate) {
+    if (!this.audioContextIsProvided && this.sampleRate !== this.audioContext.sampleRate) {
       this.audioContext = new (WebkitAudioContext())({ sampleRate: this.sampleRate });
-      // if this.audioContextIsProvided is true
-      // it should already be picked
-      if (this.audioContextIsProvided) {
-        console.error("Internal error: sample rate was ignored from provided audioContext");
-      }
     }
 
     // just set it both on parent and iframe
@@ -241,6 +237,7 @@ class ScriptProcessorNodeMainThread {
         ],
       ),
     );
+
     mainMessagePort.addEventListener("message", messageEventHandler(this));
     mainMessagePort.start();
 
