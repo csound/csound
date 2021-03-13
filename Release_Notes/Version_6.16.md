@@ -69,6 +69,12 @@ analogue filter configuration.
 configuration with separate lowpass, highpass, and bandpass inputs
 and a single output.
 
+- skf is a second-order lowpass or highpass filter based on a
+linear model of the Sallen-Key analogue filter.
+
+- svn is a non-linear state variable filter with overdrive control
+and optional user-defined non-linear map.
+
 ## New Gen and Macros
 
 ### Orchestra
