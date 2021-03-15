@@ -75,6 +75,8 @@ linear model of the Sallen-Key analogue filter.
 - svn is a non-linear state variable filter with overdrive control
 and optional user-defined non-linear map.
 
+- autocorr computes the autocorrelation of a sequence stored in an array.
+
 ## New Gen and Macros
 
 ### Orchestra
