@@ -3053,7 +3053,7 @@ int svn_perfkk(CSOUND *csound, SVN *p) {
   uint32_t early  = p->h.insdshead->ksmps_no_end;
   uint32_t i, nsmps = CS_KSMPS;
   MYFLT *yl = p->yl, *yh = p->yh, *yb = p->yb, *yr = p->yr;
-  MYFLT *x = p->x , kn = *p->kn, kno1;
+  MYFLT *x = p->x , kn = *p->kn > 0 ? *p->kn : .0001, kno1;
   double u, w = p->w, fac = p->fac, Q = p->Q, D;
   double *s = p->s;
   MYFLT *tab = p->tab;
@@ -3104,7 +3104,7 @@ int svn_perfak(CSOUND *csound, SVN *p) {
   uint32_t early  = p->h.insdshead->ksmps_no_end;
   uint32_t i, nsmps = CS_KSMPS;
   MYFLT *yl = p->yl, *yh = p->yh, *yb = p->yb, *yr = p->yr;
-  MYFLT *x = p->x , kn = *p->kn, kno1, *f = p->f;
+  MYFLT *x = p->x , kn = *p->kn > 0 ? *p->kn : .0001, kno1, *f = p->f;
   double u, w, fac, Q = p->Q, D;
   double *s = p->s;
   MYFLT *tab = p->tab;
@@ -3150,7 +3150,7 @@ int svn_perfka(CSOUND *csound, SVN *p) {
   uint32_t early  = p->h.insdshead->ksmps_no_end;
   uint32_t i, nsmps = CS_KSMPS;
   MYFLT *yl = p->yl, *yh = p->yh, *yb = p->yb, *yr = p->yr;
-  MYFLT *x = p->x, kn = *p->kn, kno1, *q = p->q;
+  MYFLT *x = p->x,  kn = *p->kn > 0 ? *p->kn : .0001, kno1, *q = p->q;
   double u, w = p->w, w2, fac = p->fac, D;
   double *s = p->s;
   MYFLT *tab = p->tab;
@@ -3201,7 +3201,7 @@ int svn_perfaa(CSOUND *csound, SVN *p) {
   uint32_t early  = p->h.insdshead->ksmps_no_end;
   uint32_t i, nsmps = CS_KSMPS;
   MYFLT *yl = p->yl, *yh = p->yh, *yb = p->yb, *yr = p->yr;
-  MYFLT *x = p->x , kn = *p->kn, kno1, *f = p->f, *q = p->q;
+  MYFLT *x = p->x ,kn = *p->kn > 0 ? *p->kn : .0001, kno1, *f = p->f, *q = p->q;
   double u, w, fac, D;
   double *s = p->s;
   MYFLT *tab = p->tab;

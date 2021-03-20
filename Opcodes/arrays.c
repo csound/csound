@@ -3287,6 +3287,34 @@ static int32_t monitora_init(CSOUND *csound, OUTA *p)
   transform operations
 */
 
+typedef struct _autocorr {
+  OPDS h;
+  ARRAYDAT *out;
+  ARRAYDAT *in;
+  AUXCH mem;
+  int32_t N;
+  int32_t FN;
+} AUTOCORR;
+
+int32_t init_autocorr(CSOUND *csound, AUTOCORR *p) {
+  int32_t   N = p->in->sizes[0], fn;
+  for(fn=2; fn < N*2-1; fn*=2);
+  if (p->mem.auxp == 0 || p->mem.size < fn*sizeof(MYFLT))
+      csound->AuxAlloc(csound, fn*sizeof(MYFLT), &p->mem);
+  p->N = N;
+  p->FN = fn;
+  tabinit(csound, p->out,N);
+  return OK;
+}
+
+int32_t perf_autocorr(CSOUND *csound, AUTOCORR *p) {
+  MYFLT *r = p->out->data;
+  MYFLT *buf = (MYFLT *) p->mem.auxp;
+  MYFLT *s = p->in->data;
+  csound->AutoCorrelation(csound,r,s,p->N,buf,p->FN);
+  return OK;
+}
+
 typedef struct _fft {
   OPDS h;
   ARRAYDAT *out;
@@ -4722,7 +4750,8 @@ static OENTRY arrayvars_localops[] =
      (SUBR)deinterleave_i, (SUBR)deinterleave_perf},
     { "taninv2.Ai", sizeof(TABARITH), 0, 1, "i[]", "i[]i[]", (SUBR)taninv2_A  },
     { "taninv2.Ak", sizeof(TABARITH), 0, 2, "k[]", "k[]k[]", (SUBR)tabarithset, (SUBR)taninv2_A  },
-    { "taninv2.Aa", sizeof(TABARITH), 0, 2, "a[]", "a[]a[]", (SUBR)tabarithset, (SUBR)taninv2_Aa  }
+    { "taninv2.Aa", sizeof(TABARITH), 0, 2, "a[]", "a[]a[]", (SUBR)tabarithset, (SUBR)taninv2_Aa  },
+    { "autocorr", sizeof(AUTOCORR), 0, 3, "k[]", "k[]", (SUBR) init_autocorr, (SUBR) perf_autocorr }
   };
 
 LINKAGE_BUILTIN(arrayvars_localops)

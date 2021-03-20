@@ -439,7 +439,8 @@ mtof_arr_init(CSOUND *csound, PITCHCONV_ARR *p) {
 
  */
 
-
+// VL Clang complains this is unused, commenting out.
+/*
 static inline int32_t bpf_find_multidim(MYFLT x, MYFLT *xs, int32_t xslen, int32_t step, int32_t lastidx) {
     // xslen: size of xs (number of frames, not size of array)
     // step: normally 1, can be more for the case where xs and ys (and possibly zs, etc)
@@ -472,7 +473,7 @@ static inline int32_t bpf_find_multidim(MYFLT x, MYFLT *xs, int32_t xslen, int32
     }
     return imin;
 }
-
+*/
 
 #define BPF_MAXPOINTS 256
 
