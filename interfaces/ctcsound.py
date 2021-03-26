@@ -1852,14 +1852,14 @@ class Csound:
           pfields for this event, starting with the p1 value specified in
           pFields[0].
         """
-        p = np.array(pFields).astype(MYFLT)
+        p = np.asarray(pFields, dtype=MYFLT)
         ptr = p.ctypes.data_as(ct.POINTER(MYFLT))
         numFields = ct.c_long(p.size)
         return libcsound.csoundScoreEvent(self.cs, cchar(type_), ptr, numFields)
     
     def scoreEventAsync(self, type_, pFields):
         """Asynchronous version of :py:meth:`scoreEvent()`."""
-        p = np.array(pFields).astype(MYFLT)
+        p = np.asarray(pFields, dtype=MYFLT)
         ptr = p.ctypes.data_as(ct.POINTER(MYFLT))
         numFields = ct.c_long(p.size)
         libcsound.csoundScoreEventAsync(self.cs, cchar(type_), ptr, numFields)
@@ -1870,14 +1870,14 @@ class Csound:
         The event is inserted at absolute time with respect to the start of
         performance, or from an offset set with timeOffset.
         """
-        p = np.array(pFields).astype(MYFLT)
+        p = np.asarray(pFields, dtype=MYFLT)
         ptr = p.ctypes.data_as(ct.POINTER(MYFLT))
         numFields = ct.c_long(p.size)
         return libcsound.csoundScoreEventAbsolute(self.cs, cchar(type_), ptr, numFields, ct.c_double(timeOffset))
     
     def scoreEventAbsoluteAsync(self, type_, pFields, timeOffset):
         """Asynchronous version of :py:meth:`scoreEventAbsolute()`."""
-        p = np.array(pFields).astype(MYFLT)
+        p = np.asarray(pFields, dtype=MYFLT)
         ptr = p.ctypes.data_as(ct.POINTER(MYFLT))
         numFields = ct.c_long(p.size)
         libcsound.csoundScoreEventAbsoluteAsync(self.cs, cchar(type_), ptr, numFields, ct.c_double(timeOffset))
