@@ -1180,16 +1180,26 @@ void named_instr_assign_numbers(CSOUND *csound, ENGINE_STATE *engineState) {
 
   while (--insno_priority > -3) {
     if (insno_priority == -2) {
-
+      int found = 0;
       /* check both this state & current state */
       if(engineState->maxinsno > csound->engineState.maxinsno) {
-          num = engineState->maxinsno;
-          while (engineState->instrtxtp[num] && --num);
+        for(num=engineState->maxinsno; num > csound->engineState.maxinsno; num--) {
+          if(engineState->instrtxtp[num]) {
+            found = 1;
+            break;
+          }
+        }
       } else {
-          num = csound->engineState.maxinsno;
-          while (!csound->engineState.instrtxtp[num] && --num);
+        for(num=csound->engineState.maxinsno; num > engineState->maxinsno; num--) {
+          if(csound->engineState.instrtxtp[num]) {
+            found = 1;
+            break;
+          }
+        }
       }
-
+      if(!found) {
+        while(!engineState->instrtxtp[num] && !csound->engineState.instrtxtp[num] && --num);
+      }
     }
     for (inm = inm_first; inm; inm = inm->next) {
       INSTRNAME *temp = (INSTRNAME *)inm->name;
