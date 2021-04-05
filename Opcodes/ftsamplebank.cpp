@@ -153,7 +153,7 @@ int loadSamplesToTables(CSOUND *csound, int index, char *directory,
 
           if(extension == fileExtensions[i])
             {
-              if (strlen(directory) > 2) {
+              if (strlen(directory) > 0) {
 #if defined(WIN32)
               fullFileName << directory << "\\" << ent->d_name;
 #else
@@ -294,10 +294,10 @@ std::vector<std::string> searchDir(CSOUND *csound, char *directory,
 
         std::string fname = ent->d_name;
         size_t lastPos = fname.find_last_of(".");
-        if (fname.length() > 2 && (fileExtension.empty() ||
+        if (fname.length() > 0 && (fileExtension.empty() ||
             (lastPos != std::string::npos &&
             fname.substr(lastPos) == fileExtension))) {
-          if (strlen(directory) > 2) {
+          if (strlen(directory) > 0) {
 #if defined(WIN32)
             fullFileName << directory << "\\" << ent->d_name;
 #else

@@ -473,24 +473,27 @@ sprintf_opcode_(CSOUND *csound,
 #endif
           break;
         case 's':
-          if (((STRINGDAT*)parm)->data == str->data) {
-            csound->Free(csound, strseg);
-            return StrOp_ErrMsg(p, Str("output argument may not be "
-                                       "the same as any of the input args"));
-          }
-          if ((((STRINGDAT*)parm)->size+strlen(strseg)) >= (uint32_t)maxChars) {
-            int32_t offs = outstring - str->data;
-            str->data = csound->ReAlloc(csound, str->data,
-                                        str->size  + ((STRINGDAT*)parm)->size +
-                                        strlen(strseg));
-           if(str->data == NULL){
-              return StrOp_ErrMsg(p, Str("memory allocation failure"));
+          if (IS_STR_ARG(parm)) {
+            if (((STRINGDAT*)parm)->data == str->data) {
+              csound->Free(csound, strseg);
+              return StrOp_ErrMsg(p, Str("output argument may not be "
+                                         "the same as any of the input args"));
             }
-            str->size += ((STRINGDAT*)parm)->size + strlen(strseg);
-            maxChars += ((STRINGDAT*)parm)->size + strlen(strseg);
-            outstring = str->data + offs;
+            if ((((STRINGDAT*)parm)->size+strlen(strseg)) >= (uint32_t)maxChars) {
+              int32_t offs = outstring - str->data;
+              str->data = csound->ReAlloc(csound, str->data,
+                                          str->size  + ((STRINGDAT*)parm)->size +
+                                          strlen(strseg));
+              if(str->data == NULL){
+                return StrOp_ErrMsg(p, Str("memory allocation failure"));
+              }
+              str->size += ((STRINGDAT*)parm)->size + strlen(strseg);
+              maxChars += ((STRINGDAT*)parm)->size + strlen(strseg);
+              outstring = str->data + offs;
+            }
+            n = snprintf(outstring, maxChars, strseg, ((STRINGDAT*)parm)->data);
           }
-          n = snprintf(outstring, maxChars, strseg, ((STRINGDAT*)parm)->data);
+          else return StrOp_ErrMsg(p, Str("Not string type"));
           break;
         default:
           csound->Free(csound, strseg);
