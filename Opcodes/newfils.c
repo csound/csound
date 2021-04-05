@@ -2997,7 +2997,7 @@ int skf_perfka(CSOUND *csound, SKF *p) {
 
 typedef struct _svn {
   OPDS h;
-  MYFLT *yh,*yl,*yb,*yr,*x,*f,*q,*kn,*ifn,*mx,*istor;
+  MYFLT *yh,*yl,*yb,*yr,*x,*f,*q,*kn,*ifn,*inm,*mx,*istor;
   MYFLT ff, Q;
   double fac, w;
   double s[2];
@@ -3029,6 +3029,7 @@ int svn_init(CSOUND *csound, SVN *p) {
       for(i=0; i <= TABSIZE; x += step, i++)
         tab[i] = TANH(x);
     }
+    tab[TABSIZE] = tab[TABSIZE-1];
     p->max = .125;
     p->tab = tab;
     p->size = TABSIZE;
@@ -3043,7 +3044,7 @@ int svn_init(CSOUND *csound, SVN *p) {
 
 static inline MYFLT nlf(MYFLT *t, double x, MYFLT mx, int siz){
   double p =  (x*mx + 0.5)*siz;
-  int32_t n = (int32_t) p;
+  int32_t n = (int32_t) p; 
   return n > 0 ? (n < siz ? t[n] + (p - n)*(t[n+1] - t[n]) : t[siz-1]) : t[0]; 
 }  
  
@@ -3053,15 +3054,17 @@ int svn_perfkk(CSOUND *csound, SVN *p) {
   uint32_t early  = p->h.insdshead->ksmps_no_end;
   uint32_t i, nsmps = CS_KSMPS;
   MYFLT *yl = p->yl, *yh = p->yh, *yb = p->yb, *yr = p->yr;
-  MYFLT *x = p->x , kn = *p->kn > 0 ? *p->kn : .0001, kno1;
+  MYFLT *x = p->x , kn = *p->kn, kno1;
   double u, w = p->w, fac = p->fac, Q = p->Q, D;
   double *s = p->s;
-  MYFLT *tab = p->tab;
-  double max = p->max;
-  int size = p->size;
-  kno1 = 1./kn;
+  MYFLT *tab = p->tab, *tn = NULL;
+  double max = p->max, mx = *p->mx;
+  int32_t size = p->size, sz;
+  FUNC *ftab = csound->FTnp2Find(csound, p->inm);
+  double scal = csound->Get0dBFS(csound), iscal;
+  iscal = 1./scal;
   D = 1./Q;
-  
+
   if(p->ff != *p->f ||
      p->Q  != *p->q) {
     w = p->w = TAN(*p->f*p->piosr);
@@ -3085,16 +3088,44 @@ int svn_perfkk(CSOUND *csound, SVN *p) {
     memset(&yb[nsmps], '\0', early*sizeof(MYFLT));
   }
 
-  for (i=offset; i<nsmps; i++) {
-    u = x[i];
-    yh[i] = (u - (D + w) * s[0] - s[1])*fac;
-    u = w * nlf(tab,yh[i]*kn,max,size)*kno1;
-    yb[i] = u + s[0];
-    s[0] = yb[i] + u;
-    u = w * nlf(tab,yb[i]*kn,max,size)*kno1;
-    yl[i] = u + s[1];
-    s[1] =  yl[i] + u;
-    yr[i] =  yh[i] + yl[i];
+
+  if(kn > 0.) {
+    if(ftab != NULL) {
+      tn = ftab->ftable;
+      sz = ftab->flen;
+      if(kn > mx) kn = mx;
+    } else kn /= max;   
+    kno1 = 1./kn;
+    for (i=offset; i<nsmps; i++) {
+      u = x[i]*iscal;
+      yh[i] = (u - (D + w) * s[0] - s[1])*fac;
+      u = w * nlf(tab,yh[i]*kn,max,size)*(tn ? tn[(int)(sz*kn/mx)] : kno1);
+      yb[i] = u + s[0];
+      s[0] = yb[i] + u;
+      u = w * nlf(tab,yb[i]*kn,max,size)*(tn ? tn[(int)(sz*kn/mx)] : kno1);
+      yl[i] = u + s[1];
+      s[1] =  yl[i] + u;
+      yr[i] = (yh[i] + yl[i])*scal;
+      yl[i] *= scal;
+      yb[i] *= scal;
+      yh[i] *= scal;
+    }
+  }
+  else {
+    for (i=offset; i<nsmps; i++) {
+      u = x[i]*iscal;
+      yh[i] = (u - (D + w) * s[0] - s[1])*fac;
+      u = w * yh[i];
+      yb[i] = u + s[0];
+      s[0] = yb[i] + u;
+      u = w * yb[i];
+      yl[i] = u + s[1];
+      s[1] =  yl[i] + u;
+      yr[i] = (yh[i] + yl[i])*scal;
+      yl[i] *= scal;
+      yb[i] *= scal;
+      yh[i] *= scal;
+    }
   }
   return OK; 
 }
@@ -3107,10 +3138,12 @@ int svn_perfak(CSOUND *csound, SVN *p) {
   MYFLT *x = p->x , kn = *p->kn > 0 ? *p->kn : .0001, kno1, *f = p->f;
   double u, w, fac, Q = p->Q, D;
   double *s = p->s;
-  MYFLT *tab = p->tab;
-  double max = p->max;
-  int size = p->size;
-  kno1 = 1./kn;
+  MYFLT *tab = p->tab, *tn = NULL;
+  double max = p->max, mx = *p->mx;
+  int32_t size = p->size, sz;
+  FUNC *ftab = csound->FTnp2Find(csound, p->inm);
+  double scal = csound->Get0dBFS(csound), iscal;
+  iscal = 1./scal;
   Q = p->Q = *p->q >  0.5 ? *p->q : 0.5;
   D = 1./Q;
   
@@ -3128,19 +3161,47 @@ int svn_perfak(CSOUND *csound, SVN *p) {
     memset(&yb[nsmps], '\0', early*sizeof(MYFLT));
   }
 
-  for (i=offset; i<nsmps; i++) {
-    w = TAN(f[i]*p->piosr);
-    fac = 1./(1. + w*D + w*w);
-    
-    u = x[i];
-    yh[i] = (u - (D + w) * s[0] - s[1])*fac;
-    u = w * nlf(tab,yh[i]*kn,max,size)*kno1;
-    yb[i] = u + s[0];
-    s[0] = yb[i] + u;
-    u = w * nlf(tab,yb[i]*kn,max,size)*kno1;
-    yl[i] = u + s[1];
-    s[1] =  yl[i] + u;
-    yr[i] =  yh[i] + yl[i];
+  if(kn > 0.) {
+    if(ftab != NULL) {
+      tn = ftab->ftable;
+      sz = ftab->flen;
+      if(kn > mx) kn = mx;
+    }
+    if (kn < 0) kn = 0.;
+    kno1 = 1./kn;   
+    for (i=offset; i<nsmps; i++) {
+      w = TAN(f[i]*p->piosr);
+      fac = 1./(1. + w*D + w*w);
+      u = x[i]*iscal;
+      yh[i] = (u - (D + w) * s[0] - s[1])*fac;
+      u = w * nlf(tab,yh[i]*kn,max,size)*(tn ? tn[(int)(sz*kn/mx)] : kno1);
+      yb[i] = u + s[0];
+      s[0] = yb[i] + u;
+      u = w * nlf(tab,yb[i]*kn,max,size)*(tn ? tn[(int)(sz*kn/mx)] : kno1);
+      yl[i] = u + s[1];
+      s[1] =  yl[i] + u;
+      yr[i] = (yh[i] + yl[i])*scal;
+      yl[i] *= scal;
+      yb[i] *= scal;
+      yh[i] *= scal;
+    }
+  } else {
+    for (i=offset; i<nsmps; i++) {
+      w = TAN(f[i]*p->piosr);
+      fac = 1./(1. + w*D + w*w);
+      u = x[i]*iscal;
+      yh[i] = (u - (D + w) * s[0] - s[1])*fac;
+      u = w * yh[i];
+      yb[i] = u + s[0];
+      s[0] = yb[i] + u;
+      u = w * yb[i];
+      yl[i] = u + s[1];
+      s[1] =  yl[i] + u;
+      yr[i] = (yh[i] + yl[i])*scal;
+      yl[i] *= scal;
+      yb[i] *= scal;
+      yh[i] *= scal;
+    }
   }
   return OK; 
 }
@@ -3153,10 +3214,12 @@ int svn_perfka(CSOUND *csound, SVN *p) {
   MYFLT *x = p->x,  kn = *p->kn > 0 ? *p->kn : .0001, kno1, *q = p->q;
   double u, w = p->w, w2, fac = p->fac, D;
   double *s = p->s;
-  MYFLT *tab = p->tab;
-  double max = p->max;
-  int size = p->size;
-  kno1 = 1./kn;
+  MYFLT *tab = p->tab, *tn = NULL;
+  double max = p->max, mx = *p->mx;
+  int32_t size = p->size, sz;
+  FUNC *ftab = csound->FTnp2Find(csound, p->inm);
+  double scal = csound->Get0dBFS(csound), iscal;
+  iscal = 1./scal;
   w2 = w*w;
 
   if(p->ff != *p->f) {
@@ -3179,19 +3242,48 @@ int svn_perfka(CSOUND *csound, SVN *p) {
     memset(&yb[nsmps], '\0', early*sizeof(MYFLT));
   }
 
-  for (i=offset; i<nsmps; i++) {
-    D = 1./(q[i] >  0.5 ? q[i] : 0.5);
-    fac = 1./(1. + w*D + w2);
-    
-    u = x[i];
-    yh[i] = (u - (D + w) * s[0] - s[1])*fac;
-    u = w * nlf(tab,yh[i]*kn,max,size)*kno1;
-    yb[i] = u + s[0];
-    s[0] = yb[i] + u;
-    u = w * nlf(tab,yb[i]*kn,max,size)*kno1;
-    yl[i] = u + s[1];
-    s[1] =  yl[i] + u;
-    yr[i] =  yh[i] + yl[i];
+  if(kn > 0.) {
+    if(ftab != NULL) {
+      tn = ftab->ftable;
+      sz = ftab->flen;
+      if(kn > mx) kn = mx;
+    }
+    if (kn < 0) kn = 0.;
+    kno1 = 1./kn;
+    for (i=offset; i<nsmps; i++) {
+      D = 1./(q[i] >  0.5 ? q[i] : 0.5);
+      fac = 1./(1. + w*D + w2);
+      u = x[i]*iscal;
+      yh[i] = (u - (D + w) * s[0] - s[1])*fac;
+      u = w * nlf(tab,yh[i]*kn,max,size)*(tn ? tn[(int)(sz*kn/mx)] : kno1);
+      yb[i] = u + s[0];
+      s[0] = yb[i] + u;
+      u = w * nlf(tab,yb[i]*kn,max,size)*(tn ? tn[(int)(sz*kn/mx)] : kno1);
+      yl[i] = u + s[1];
+      s[1] =  yl[i] + u;
+      yr[i] = (yh[i] + yl[i])*scal;
+      yl[i] *= scal;
+      yb[i] *= scal;
+      yh[i] *= scal;
+    }
+  }
+  else {
+    for (i=offset; i<nsmps; i++) {
+      D = 1./(q[i] >  0.5 ? q[i] : 0.5);
+      fac = 1./(1. + w*D + w2); 
+      u = x[i]*iscal;
+      yh[i] = (u - (D + w) * s[0] - s[1])*fac;
+      u = w * yh[i];
+      yb[i] = u + s[0];
+      s[0] = yb[i] + u;
+      u = w * yb[i];
+      yl[i] = u + s[1];
+      s[1] =  yl[i] + u;
+      yr[i] = (yh[i] + yl[i])*scal;
+      yl[i] *= scal;
+      yb[i] *= scal;
+      yh[i] *= scal;
+    }
   }
   return OK; 
 }
@@ -3204,10 +3296,12 @@ int svn_perfaa(CSOUND *csound, SVN *p) {
   MYFLT *x = p->x ,kn = *p->kn > 0 ? *p->kn : .0001, kno1, *f = p->f, *q = p->q;
   double u, w, fac, D;
   double *s = p->s;
-  MYFLT *tab = p->tab;
-  double max = p->max;
-  int size = p->size;
-  kno1 = 1./kn;
+  MYFLT *tab = p->tab, *tn = NULL;
+  double max = p->max, mx = *p->mx;
+  int32_t size = p->size, sz;
+  FUNC *ftab = csound->FTnp2Find(csound, p->inm);
+  double scal = csound->Get0dBFS(csound), iscal;
+  iscal = 1./scal;
   
   if (UNLIKELY(offset)) {
     memset(yl, '\0', offset*sizeof(MYFLT));
@@ -3223,20 +3317,50 @@ int svn_perfaa(CSOUND *csound, SVN *p) {
     memset(&yb[nsmps], '\0', early*sizeof(MYFLT));
   }
 
-  for (i=offset; i<nsmps; i++) {
-    D = 1./(q[i] >  0.5 ? q[i] : 0.5);
-    w = TAN(f[i]*p->piosr);
-    fac = 1./(1. + w*D + w*w);
-    
-    u = x[i];
-    yh[i] = (u - (D + w) * s[0] - s[1])*fac;
-    u = w * nlf(tab,yh[i]*kn,max,size)*kno1;
-    yb[i] = u + s[0];
-    s[0] = yb[i] + u;
-    u = w * nlf(tab,yb[i]*kn,max,size)*kno1;
-    yl[i] = u + s[1];
-    s[1] =  yl[i] + u;
-    yr[i] =  yh[i] + yl[i];
+  if(kn > 0.) {
+    if(ftab != NULL) {
+      tn = ftab->ftable;
+      sz = ftab->flen;
+      if(kn > mx) kn = mx;
+    }
+    if (kn < 0) kn = 0.;
+    kno1 = 1./kn;
+  
+    for (i=offset; i<nsmps; i++) {
+      D = 1./(q[i] >  0.5 ? q[i] : 0.5);
+      w = TAN(f[i]*p->piosr);
+      fac = 1./(1. + w*D + w*w);
+      u = x[i]*iscal;
+      yh[i] = (u - (D + w) * s[0] - s[1])*fac;
+      u = w * nlf(tab,yh[i]*kn,max,size)*(tn ? tn[(int)(sz*kn/mx)] : kno1);
+      yb[i] = u + s[0];
+      s[0] = yb[i] + u;
+      u = w * nlf(tab,yb[i]*kn,max,size)*(tn ? tn[(int)(sz*kn/mx)] : kno1);
+      yl[i] = u + s[1];
+      s[1] =  yl[i] + u;
+      yr[i] = (yh[i] + yl[i])*scal;
+      yl[i] *= scal;
+      yb[i] *= scal;
+      yh[i] *= scal;
+    }
+  } else {
+    for (i=offset; i<nsmps; i++) {
+      D = 1./(q[i] >  0.5 ? q[i] : 0.5);
+      w = TAN(f[i]*p->piosr);
+      fac = 1./(1. + w*D + w*w);
+      u = x[i]*iscal;
+      yh[i] = (u - (D + w) * s[0] - s[1])*fac;
+      u = w * yh[i];
+      yb[i] = u + s[0];
+      s[0] = yb[i] + u;
+      u = w * yb[i];
+      yl[i] = u + s[1];
+      s[1] =  yl[i] + u;
+      yr[i] = (yh[i] + yl[i])*scal;
+      yl[i] *= scal;
+      yb[i] *= scal;
+      yh[i] *= scal;
+    }
   }
   return OK; 
 }
@@ -3328,13 +3452,13 @@ static OENTRY localops[] =
      (SUBR) skf_init, (SUBR) skf_perfaa },
     {"skf", sizeof(SKF), 0, 3, "a", "akaoo",
      (SUBR) skf_init, (SUBR) skf_perfka },
-    {"svn", sizeof(SVN), 0, 3, "aaaa", "akkkopo",
+    {"svn", sizeof(SVN), 0, 3, "aaaa", "akkkoopo",
      (SUBR) svn_init, (SUBR) svn_perfkk },
-    {"svn", sizeof(SVN), 0, 3, "aaaa", "aakkopo",
+    {"svn", sizeof(SVN), 0, 3, "aaaa", "aakkoopo",
      (SUBR) svn_init, (SUBR) svn_perfak },
-    {"svn", sizeof(SVN), 0, 3, "aaaa", "akakopo",
+    {"svn", sizeof(SVN), 0, 3, "aaaa", "akakoopo",
      (SUBR) svn_init, (SUBR) svn_perfka },
-    {"svn", sizeof(SVN), 0, 3, "aaaa", "aaakopo",
+    {"svn", sizeof(SVN), 0, 3, "aaaa", "aaakoopo",
      (SUBR) svn_init, (SUBR) svn_perfaa } 
   };
 
