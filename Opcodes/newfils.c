@@ -3059,7 +3059,7 @@ int svn_perfkk(CSOUND *csound, SVN *p) {
   double *s = p->s;
   MYFLT *tab = p->tab, *tn = NULL;
   double max = p->max, mx = *p->mx;
-  int32_t size = p->size, sz;
+  int32_t size = p->size, sz = 0;
   FUNC *ftab = csound->FTnp2Find(csound, p->inm);
   double scal = csound->Get0dBFS(csound), iscal;
   iscal = 1./scal;
@@ -3140,7 +3140,7 @@ int svn_perfak(CSOUND *csound, SVN *p) {
   double *s = p->s;
   MYFLT *tab = p->tab, *tn = NULL;
   double max = p->max, mx = *p->mx;
-  int32_t size = p->size, sz;
+  int32_t size = p->size, sz = 0;
   FUNC *ftab = csound->FTnp2Find(csound, p->inm);
   double scal = csound->Get0dBFS(csound), iscal;
   iscal = 1./scal;
@@ -3216,7 +3216,7 @@ int svn_perfka(CSOUND *csound, SVN *p) {
   double *s = p->s;
   MYFLT *tab = p->tab, *tn = NULL;
   double max = p->max, mx = *p->mx;
-  int32_t size = p->size, sz;
+  int32_t size = p->size, sz = 0;
   FUNC *ftab = csound->FTnp2Find(csound, p->inm);
   double scal = csound->Get0dBFS(csound), iscal;
   iscal = 1./scal;
@@ -3298,7 +3298,7 @@ int svn_perfaa(CSOUND *csound, SVN *p) {
   double *s = p->s;
   MYFLT *tab = p->tab, *tn = NULL;
   double max = p->max, mx = *p->mx;
-  int32_t size = p->size, sz;
+  int32_t size = p->size, sz = 0;
   FUNC *ftab = csound->FTnp2Find(csound, p->inm);
   double scal = csound->Get0dBFS(csound), iscal;
   iscal = 1./scal;
