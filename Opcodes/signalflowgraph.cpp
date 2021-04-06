@@ -165,70 +165,46 @@ std::ostream &operator<<(std::ostream &stream, const EVTBLK &a) {
   return stream;
 }
 
+// Stupid hash from http://www.cse.yorku.ca/~oz/hash.html.
+unsigned long djb2_hash(unsigned char *str) {
+  unsigned long hash = 5381;
+  int c;
+  while (c = *str++)
+    hash = ((hash << 5) + hash) + c; /* hash * 33 + c */
+  return hash;
+}
+
+
 /**
  * A wrapper to get proper C++ value
  * semantics for a map key.
  */
 struct EventBlock {
   EVTBLK evtblk;
-  EventBlock() { std::memset(&evtblk, 0, sizeof(EVTBLK)); }
-  EventBlock(const EVTBLK &other) {
-    std::memcpy(&evtblk, &other, sizeof(EVTBLK));
-  }
-  EventBlock(const EventBlock &other) {
-    std::memcpy(&evtblk, &other.evtblk, sizeof(EVTBLK));
-  }
-  virtual ~EventBlock() {}
-  EventBlock &operator=(const EVTBLK &other) {
-    std::memcpy(&evtblk, &other, sizeof(EVTBLK));
-    return *this;
-  }
-  EventBlock &operator=(const EventBlock &other) {
-    std::memcpy(&evtblk, &other.evtblk, sizeof(EVTBLK));
-    return *this;
-  }
+  unsigned long strarg_djb2_hash;
 };
 
 
 bool operator<(const EventBlock &a, const EventBlock &b) {
-  int n = std::max(a.evtblk.pcnt, b.evtblk.pcnt);
+  // If the number of p-fields differ, compare and exit.
+  if (a.evtblk.pcnt != b.evtblk.pcnt) {
+    return a.evtblk.pcnt < b.evtblk.pcnt;
+  }
+  int n = a.evtblk.pcnt;
   for (int i = 0; i < n+1; ++i) {
-    // std::fprintf(stderr, "%p[%3d/%3d]: %9.4f  %p[%3d/%3d]: %9.4f\n", &a,
-    // i, a.evtblk.pcnt, a.evtblk.p[i], &b, i, b.evtblk.pcnt, b.evtblk.p[i]);
-    //std::fprintf(stderr, "a: %g b: %g\n", a.evtblk.p[i], b.evtblk.p[i]);
-    if (isstrcod(a.evtblk.p[i]) || isstrcod(b.evtblk.p[i])) {
-      if ((isstrcod(a.evtblk.p[i]) == true) &&
-          (isstrcod(b.evtblk.p[i]) == false)) {
-        // std::fprintf(stderr, "<\n\n");
-        return true;
-      }
-      if ((isstrcod(a.evtblk.p[i]) == false) &&
-          (isstrcod(b.evtblk.p[i]) == true)) {
-        // std::fprintf(stderr, ">=\n\n");
-        return false;
-      }
-      if ((isstrcod(a.evtblk.p[i]) == true) &&
-          (isstrcod(b.evtblk.p[i]) == true)) {
-        if (std::strcmp(a.evtblk.strarg, b.evtblk.strarg) < 0) {
-          // std::fprintf(stderr, "<\n\n");
-          return true;
-        }
-      }
+    // Return if one's a string and the other isn't.
+    if (isstrcod(a.evtblk.p[i]) != isstrcod(b.evtblk.p[i])) {
+       return isstrcod(a.evtblk.p[i]) < isstrcod(b.evtblk.p[i]);
     }
-    if (a.evtblk.p[i] < b.evtblk.p[i]) {
-      // std::fprintf(stderr, "<\n\n");
-      return true;
-    }
-    if (a.evtblk.p[i] > b.evtblk.p[i]) {
-      // std::fprintf(stderr, ">=\n\n");
-      return false;
+    // If both are strings..
+    if (isstrcod(a.evtblk.p[i])) {
+      // ..return if the hashes are unequal.
+      if (a.strarg_djb2_hash != b.strarg_djb2_hash) return a.strarg_djb2_hash < b.strarg_djb2_hash;
+    } else {
+      // If both are numbers, return if the values are unequal.
+      if (a.evtblk.p[i] != b.evtblk.p[i]) return a.evtblk.p[i] < b.evtblk.p[i];
     }
   }
-  // if (a.evtblk.pcnt < b.evtblk.pcnt) {
-  //    std::fprintf(stderr, "<\n\n");
-  //    return true;
-  //}
-  // std::fprintf(stderr, ">=\n\n");
   return false;
 }
 
@@ -1324,6 +1300,7 @@ static void warn(CSOUND *csound, const char *format, ...) {
   }
 }
 
+
 /**
  * Copy all event parameters to a structure that will be used as a key to
  * a dictionary for pre-allocated function tables. If the key is in the
@@ -1402,6 +1379,10 @@ static int ftgenonce_(CSOUND *csound, FTGEN *p, bool isNamedGenerator,
       *fp++ = **argp++;
     } while (--n);
   }
+  // Hash the string.
+  // We can't refer to the strarg later because it points to memory that will
+  // be overwritten by future event blocks.
+  eventBlock.strarg_djb2_hash = djb2_hash((unsigned char *) ftevt->strarg);
   if (sfg_globals->functionTablesForEvtblks.find(eventBlock) !=
       sfg_globals->functionTablesForEvtblks.end()) {
     *p->ifno = sfg_globals->functionTablesForEvtblks[eventBlock];
