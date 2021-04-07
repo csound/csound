@@ -929,8 +929,9 @@ static void deact(CSOUND *csound, INSDS *ip)
       csound->Message(csound, Str("removed instance of instr %d\n"), ip->insno);
   }
   /* IV - Oct 24 2002: ip->prvact may be NULL, so need to check */
-  if (ip->prvact && (nxtp = ip->prvact->nxtact = ip->nxtact) != NULL)
+  if (ip->prvact && (nxtp = ip->prvact->nxtact = ip->nxtact) != NULL) {
     nxtp->prvact = ip->prvact;
+  }
   ip->actflg = 0;
   /* link into free instance chain */
   /* This also destroys ip->nxtact causing loops */
