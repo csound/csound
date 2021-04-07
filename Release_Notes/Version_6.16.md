@@ -32,7 +32,7 @@ to an Arduino.  Also there is an optional limiter in the soun outpur chain.
 
 ### New opcodes
 
-- cntDelete deltes a counter object
+- cntDelete deletes a counter object
 
 - lfsr, a linear feedback shift register opcode for psuedo random
   umber generation.
@@ -40,7 +40,7 @@ to an Arduino.  Also there is an optional limiter in the soun outpur chain.
 - ctrlsave stores the currrent values of MIDIcontrollers in an array.
 
 - turnoff3 extends tuning off to remove instrument instances that are
-  queued via scheduling but not yet active. *** NOT DOCUMENTED***
+  queued via scheduling but not yet active.
 
 - ctrlprint prints the result of a ctrlsave call in a form that can be
   used in an orchestra.
@@ -77,7 +77,9 @@ and optional user-defined non-linear map.
 
 - autocorr computes the autocorrelation of a sequence stored in an array.
 
-## New Gen and Macros
+- turnoff2_i is inittime version of turniff2.
+
+
 
 ### Orchestra
 
@@ -111,8 +113,10 @@ although the English spelling (CsSortLicence) was.  Corrected.
 - expcurve and logcurve now incorporate range checks and corrects end
   values.
   
-- streaming lpc opcodes have had a major improvement in performance (>10x speedup for some cases),
-due to a new autocorrelation routine.
+- streaming lpc opcodes have had a major improvement in performance
+  (>10x speedup for some cases), due to a new autocorrelation routine.
+
+- restriction on size of directory name size in frsamplebank removed
 
 ### Utilities
 
@@ -122,7 +126,7 @@ due to a new autocorrelation routine.
 
 ### General Usage
 
-- Csound no longer supports Python2 opcodes follow end of life.
+- Csound no longer supports Python2 opcodes following end of life.
 
 ## Bugs Fixed
 
@@ -146,9 +150,15 @@ due to a new autocorrelation routine.
 
 - a bug in moogladder where the value of 0dbfs affected the outout is
   now fixed.
+ 
+- bugs in several filters where istor was defaulting to 1 instead of 0
+  as described in the manual have been fixed.
 
-- bugs in several filters where istor was defaulting to 1 instead of 0 as described in the manual have 
-been fixed.
+- bug in assigning numbers to named instruments fixed.  This
+  articularly affected dynamic definitions of instruments.
+
+- use of %s format in sprintf crashed if the corresponding item was not a
+  string.  Thus now gives an error.
 
 # SYSTEM LEVEL CHANGES
 
@@ -184,13 +194,53 @@ in the time domain. Thanks to Patrick Ropohl for the improvement suggestion.
 
 ==END==
 
-commit 25c1e6bf2a0077b89a2859b92a529fc0c77e4919 (HEAD -> develop, origin/develop
-, origin/HEAD)
-Author: Francois PINOT <fggpinot@gmail.com>
-Date:   Sun Feb 7 09:50:56 2021 +0100
+commit c8e277f456a04aff37304ee3fa9e9a03ab45026a
+Author: Eduardo Moguillansky <eduardo.moguillansky@gmail.com>
+Date:   Tue Mar 9 23:01:54 2021 +0100
 
-    Updated French translation
+    better formatting when listing devices in alsa; proper search in bpf (bisect); fix bug in ftprint where trigger was not working as advertised
 
+commit e6c9ce1d1f20cb2a688402be089961f3583d2b37
+Author: vlazzarini <victor.lazzarini@mu.ie>
+Date:   Mon Mar 8 18:08:39 2021 +0000
+
+    diskin2 async fix
+
+commit a893a9176dba0d941dbdbc7ee4ade12abd0532db
+Author: vlazzarini <victor.lazzarini@mu.ie>
+Date:   Mon Mar 8 13:24:48 2021 +0000
+
+    added default ksmps override option
+
+commit 96e895a02774e34f3b04526306ffe05442d7d0f5
+Author: vlazzarini <victor.lazzarini@mu.ie>
+Date:   Wed Mar 3 18:07:08 2021 +0000
+
+    sflooper iflag
+
+Author: vlazzarini <victor.lazzarini@mu.ie>
+Date:   Wed Feb 17 20:53:29 2021 +0000
+
+    vcf filter
+
+commit 6061124ed9b6d60579f287ab1f98702e097cb5b0
+Author: vlazzarini <victor.lazzarini@mu.ie>
+Date:   Tue Feb 16 22:57:51 2021 +0000
+
+    refactoring and incorporting DFT autocorr to the interface
+
+commit 7a6027f174a10c581b0084086d918360302fb4a3
+Author: vlazzarini <victor.lazzarini@mu.ie>
+Date:   Tue Feb 16 22:39:35 2021 +0000
+
+    fixed handling of 0Hz and Nyquist
+
+
+commit b4aec656a15dbc3528b7dd0d14b4f3c43c41c279
+Author: vlazzarini <victor.lazzarini@mu.ie>
+Date:   Mon Feb 15 22:19:23 2021 +0000
+
+    lpc autocorr using FFT
 
 
 **END**
