@@ -181,79 +181,89 @@ int32_t turnoff(CSOUND *csound, LINK *p)/* terminate the current instrument  */
 /* turnoff2 opcode */
 int32_t turnoff2(CSOUND *csound, TURNOFF2 *p, int32_t isStringArg)
 {
-    MYFLT p1;
-    INSDS *ip, *ip2, *nip;
-    int32_t   mode, insno, allow_release;
+  MYFLT p1;
+  INSDS *ip, *ip2, *nip;
+  int32_t   mode, insno, allow_release;
 
-    if (isStringArg) {
-      p1 = (MYFLT) strarg2insno(csound, ((STRINGDAT *)p->kInsNo)->data, 1);
-    }
-    else if (csound->ISSTRCOD(*p->kInsNo)) {
-      p1 = (MYFLT) strarg2insno(csound, get_arg_string(csound, *p->kInsNo), 1);
-    }
-    else p1 = *(p->kInsNo);
+  if (isStringArg) {
+    p1 = (MYFLT) strarg2insno(csound, ((STRINGDAT *)p->kInsNo)->data, 1);
+  }
+  else if (csound->ISSTRCOD(*p->kInsNo)) {
+    p1 = (MYFLT) strarg2insno(csound, get_arg_string(csound, *p->kInsNo), 1);
+  }
+  else p1 = *(p->kInsNo);
 
-    if (p1 <= FL(0.0))
-      return OK;    /* not triggered */
+  if (p1 <= FL(0.0))
+    return OK;    /* not triggered */
 
-    insno = (int32_t) p1;
-    if (UNLIKELY(insno < 1 || insno > (int32_t) csound->engineState.maxinsno ||
-                 csound->engineState.instrtxtp[insno] == NULL)) {
+  insno = (int32_t) p1;
+  if (UNLIKELY(insno < 1 || insno > (int32_t) csound->engineState.maxinsno ||
+               csound->engineState.instrtxtp[insno] == NULL)) {
+    if(p->h.iopadr == NULL)
       return csoundPerfError(csound, &(p->h),
                              Str("turnoff2: invalid instrument number"));
-    }
-    mode = (int32_t) (*(p->kFlags) + FL(0.5));
-    allow_release = (*(p->kRelease) == FL(0.0) ? 0 : 1);
-    if (UNLIKELY(mode < 0 || mode > 15 || (mode & 3) == 3)) {
+    else return csoundInitError(csound, 
+                                Str("turnoff2: invalid instrument number"));
+        
+           }
+  mode = (int32_t) (*(p->kFlags) + FL(0.5));
+  allow_release = (*(p->kRelease) == FL(0.0) ? 0 : 1);
+  if (UNLIKELY(mode < 0 || mode > 15 || (mode & 3) == 3)) {
+    if(p->h.iopadr == NULL)
       return csoundPerfError(csound, &(p->h),
                              Str("turnoff2: invalid mode parameter"));
-    }
-    ip = &(csound->actanchor);
-    ip2 = NULL;
-/*     if ((mode & 4) && !ip->p1){ */
-/*       return csoundPerfError(csound, &(p->h), */
-/*                              Str("turnoff2: invalid instrument number")); */
-/*     }   */
-    while ((ip = ip->nxtact) != NULL && (int32_t) ip->insno != insno);
-    if (ip == NULL)
-      return OK;
-    do {                        /* This loop does not terminate in mode=0 */
-      nip = ip->nxtact;
-      if (((mode & 8) && ip->offtim >= 0.0) ||
-          ((mode & 4) && ip->p1.value != p1) ||
-          (allow_release && ip->relesing)) {
-        ip = nip;
-        continue;
-      }
-      if (!(mode & 3)) {
-        if (allow_release) {
-          xturnoff(csound, ip);
-        }
-        else {
-          nip = ip->nxtact;
-          xturnoff_now(csound, ip);
-        }
-      }
-      else {
-        ip2 = ip;
-        if ((mode & 3) == 1)
-          break;
-      }
+    else csoundInitError(csound,
+                         Str("turnoff2: invalid mode parameter"));
+  }
+  ip = &(csound->actanchor);
+  ip2 = NULL;
+  /*     if ((mode & 4) && !ip->p1){ */
+  /*       return csoundPerfError(csound, &(p->h), */
+  /*                              Str("turnoff2: invalid instrument number")); */
+  /*     }   */
+  while ((ip = ip->nxtact) != NULL && (int32_t) ip->insno != insno);
+  if (ip == NULL)
+    return OK;
+  do {                        /* This loop does not terminate in mode=0 */
+    nip = ip->nxtact;
+    if (((mode & 8) && ip->offtim >= 0.0) ||
+        ((mode & 4) && ip->p1.value != p1) ||
+        (allow_release && ip->relesing)) {
       ip = nip;
-    } while (ip != NULL && (int32_t) ip->insno == insno);
-    if (ip2 != NULL) {
+      continue;
+    }
+    if (!(mode & 3)) {
       if (allow_release) {
-        xturnoff(csound, ip2);
+        xturnoff(csound, ip);
       }
       else {
-        xturnoff_now(csound, ip2);
+        nip = ip->nxtact;
+        xturnoff_now(csound, ip);
       }
     }
+    else {
+      ip2 = ip;
+      if ((mode & 3) == 1)
+        break;
+    }
+    ip = nip;
+  } while (ip != NULL && (int32_t) ip->insno == insno);
+  if (ip2 != NULL) {
+    if (allow_release) {
+      xturnoff(csound, ip2);
+    }
+    else {
+      xturnoff_now(csound, ip2);
+    }
+
+    
+    
     if (!p->h.insdshead->actflg) {  /* if current note was deactivated: */
       while (CS_PDS->nxtp != NULL)
         CS_PDS = CS_PDS->nxtp;            /* loop to last opds */
     }
-    return OK;
+  }
+  return OK;
 }
 
 int32_t turnoff2S(CSOUND *csound, TURNOFF2 *p){
