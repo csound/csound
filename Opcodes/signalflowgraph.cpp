@@ -1379,10 +1379,10 @@ static int ftgenonce_(CSOUND *csound, FTGEN *p, bool isNamedGenerator,
       *fp++ = **argp++;
     } while (--n);
   }
-  // Hash the string.
+  // Hash the strarg.
   // We can't refer to the strarg later because it points to memory that will
   // be overwritten by future event blocks.
-  eventBlock.strarg_djb2_hash = djb2_hash((unsigned char *) ftevt->strarg);
+  if (hasStringParameter) eventBlock.strarg_djb2_hash = djb2_hash((unsigned char *) ftevt->strarg);
   if (sfg_globals->functionTablesForEvtblks.find(eventBlock) !=
       sfg_globals->functionTablesForEvtblks.end()) {
     *p->ifno = sfg_globals->functionTablesForEvtblks[eventBlock];
