@@ -3769,7 +3769,7 @@ msgid ""
 "channels (%d)\n"
 msgstr ""
 "Erreur du module pulse audio : spéc d'échantillon non valide, "
-"vérifier le nombre de canaux de sortie (%D)\n"
+"vérifier le nombre de canaux de sortie (%d)\n"
 
 #: InOut/rtpulse.c:128
 msgid "PulseAudio output server: default\n"
