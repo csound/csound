@@ -930,6 +930,8 @@ OENTRY opcodlst_1[] = {
   { "nstrstr", S(NSTRSTR),0, 1,       "S",    "i",    nstrstr, NULL, NULL      },
   { "nstrstr.k", S(NSTRSTR),0, 2,     "S",    "k",    NULL, nstrstr, NULL      },
   //{ "turnoff2",   0xFFFB,   _CW,    0, NULL,   NULL,   NULL, NULL, NULL          },
+  { "turnoff2_i.S",S(TURNOFF2),_CW,1,     "",     "Soo",  turnoff2S, NULL     },
+  { "turnoff2_i.i",S(TURNOFF2),_CW,1,     "",     "ioo",  turnoff2k, NULL     },
   { "turnoff2.S",S(TURNOFF2),_CW,2,     "",     "Skk",  NULL, turnoff2S, NULL     },
   { "turnoff2.c",S(TURNOFF2),_CW,2,     "",     "ikk",  NULL, turnoff2k, NULL     },
   { "turnoff2.k",S(TURNOFF2),_CW,2,     "",     "kkk",  NULL, turnoff2k, NULL     },

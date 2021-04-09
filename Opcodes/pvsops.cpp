@@ -45,7 +45,7 @@ struct PVTrace : csnd::FPlugin<1, 2> {
     csnd::pv_frame &fin = inargs.fsig_data(0);
     csnd::pv_frame &fout = outargs.fsig_data(0);
     if (framecount < fin.count()) {
-      int n = fin.len() - (int)inargs[1];
+      int n = fin.len() - (int) (inargs[1] >= 1 ? inargs[1] : 1.);
       float thrsh;
       std::transform(fin.begin(), fin.end(), amps.begin(),
                      [](csnd::pv_bin f) { return f.amp(); });
@@ -99,7 +99,7 @@ struct PVTrace2 : csnd::FPlugin<2, 5> {
     csnd::AuxMem<binamp> &mbins = binlist;
 
     if (framecount < fin.count()) {
-      int n = fin.len() - (int)inargs[1];
+      int n = fin.len() - (int) (inargs[1] >= 1 ? inargs[1] : 1.);
       float thrsh;
       int cnt = 0;
       int bin = 0;

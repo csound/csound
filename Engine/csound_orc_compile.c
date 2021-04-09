@@ -579,14 +579,14 @@ INSTRTXT *create_instrument0(CSOUND *csound, TREE *root,
   /* Deal with defaults and consistency */
   if (ksmps == FL(-1.0)) {
     if (sr == FL(-1.0))
-      sr = DFLT_SR;
+      sr = csound->oparms->sr_default;//   DFLT_SR;
     if (kr == FL(-1.0))
-      kr = DFLT_KR;
+      kr = csound->oparms->kr_default;//  DFLT_KR;
     ksmps = (MYFLT)((int)(sr / kr + FL(0.5)));
     kr = sr / ksmps; /* VL - avoid inconsistency */
   } else if (kr == FL(-1.0)) {
     if (sr == FL(-1.0))
-      sr = DFLT_SR;
+      sr = csound->oparms->sr_default;//  DFLT_SR;
     kr = sr / ksmps;
   } else if (sr == FL(-1.0)) {
     sr = kr * ksmps;
@@ -1180,18 +1180,26 @@ void named_instr_assign_numbers(CSOUND *csound, ENGINE_STATE *engineState) {
 
   while (--insno_priority > -3) {
     if (insno_priority == -2) {
+      int found = 0;
       /* check both this state & current state */
-      num = engineState->maxinsno >
-        csound->engineState.maxinsno ?
-        engineState->maxinsno :
-        csound->engineState.maxinsno; /* find last used instr number */
-
-      /* check both this state & current state */
-      while ((!engineState->instrtxtp[num] ||
-              !csound->engineState.instrtxtp[num]) &&
-             --num)
-        ;
-
+      if(engineState->maxinsno > csound->engineState.maxinsno) {
+        for(num=engineState->maxinsno; num > csound->engineState.maxinsno; num--) {
+          if(engineState->instrtxtp[num]) {
+            found = 1;
+            break;
+          }
+        }
+      } else {
+        for(num=csound->engineState.maxinsno; num > engineState->maxinsno; num--) {
+          if(csound->engineState.instrtxtp[num]) {
+            found = 1;
+            break;
+          }
+        }
+      }
+      if(!found) {
+        while(!engineState->instrtxtp[num] && !csound->engineState.instrtxtp[num] && --num);
+      }
     }
     for (inm = inm_first; inm; inm = inm->next) {
       INSTRNAME *temp = (INSTRNAME *)inm->name;
@@ -1221,23 +1229,23 @@ void named_instr_assign_numbers(CSOUND *csound, ENGINE_STATE *engineState) {
             engineState->instrtxtp[m] = NULL;
         }
         inum = num;
-      } else
+
+      } else {
         inum = no; // else use existing number
+      }
       /* hack: "name" actually points to the corresponding INSTRNAME */
       inm2 = (INSTRNAME *)(inm->name); /* entry in the table */
 
       inm2->instno = (int32)inum;
       engineState->instrtxtp[inum] = inm2->ip;
 
-      //if(&csound->engineState == engineState) {
-        /* print message only after merge */
-       if (UNLIKELY((csound->oparms->odebug) || (csound->oparms->msglevel > 0)))
+      if (UNLIKELY((csound->oparms->odebug) || (csound->oparms->msglevel > 0)))
         csound->Message(csound, Str("instr %s uses instrument number %d\n"),
                         inm2->name, inum);
-       //}
     }
   }
   /* clear temporary chains */
+
   inm = inm_first;
   while (inm) {
     INSTRNAME *nxtinm = inm->next;
@@ -1690,7 +1698,7 @@ int csoundCompileTreeInternal(CSOUND *csound, TREE *root, int async) {
 
         named_instr_alloc(csound, c, instrtxt, insno_priority, engineState, 0);
         if(engineState != &csound->engineState)
-        named_instr_assign_numbers(csound, engineState);
+          named_instr_assign_numbers(csound, engineState);
         /* VL 10.10.14: check for redefinition */
         // if (UNLIKELY(!named_instr_alloc(csound, c,
         //  instrtxt, insno_priority,

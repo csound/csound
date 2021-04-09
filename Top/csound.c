@@ -923,9 +923,10 @@ static const CSOUND cenviron_ = {
       0.4,          /*    vbr quality  */
       0,            /*    ksmps_override */
       0,             /*    fft_lib */
-      0
+      0,             /* echo */
+      0.0,           /* limiter */
+      DFLT_SR, DFLT_KR  /* defaults */
     },
-
     {0, 0, {0}}, /* REMOT_BUF */
     NULL,           /* remoteGlobals        */
     0, 0,           /* nchanof, nchanif     */
@@ -1788,7 +1789,7 @@ int kperf_nodebug(CSOUND *csound)
                 OPDS  *opstart;
                 ip->spin = csound->spin;
                 ip->spout = csound->spraw;
-                ip->kcounter =  csound->kcounter*csound->ksmps/lksmps;
+                ip->kcounter = (csound->kcounter-1)*csound->ksmps/lksmps;
 
                 /* we have to deal with sample-accurate code
                    whole CS_KSMPS blocks are offset here, the
@@ -1805,6 +1806,7 @@ int kperf_nodebug(CSOUND *csound)
                 }
 
                 for (i=start; i < n; i+=incr, ip->spin+=incr, ip->spout+=incr) {
+                  ip->kcounter++;
                   opstart = (OPDS*) ip;
                   csound->mode = 2;
                   while (error ==  0 && (opstart = opstart->nxtp) != NULL
@@ -1814,9 +1816,10 @@ int kperf_nodebug(CSOUND *csound)
                     //csound->ids->optext->t.oentry->opname;
                     error = (*opstart->opadr)(csound, opstart); /* run each opcode */
                     opstart = opstart->insdshead->pds;
+                    
                   }
                   csound->mode = 0;
-                  ip->kcounter++;
+                  
                 }
             }
           }

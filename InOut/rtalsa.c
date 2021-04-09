@@ -603,6 +603,16 @@ static void list_devices(CSOUND *csound)
     csound->Free(csound, line_);
 }
 
+static void trim_trailing_whitespace(char *s) {
+    int i = 0, index = -1;
+    while(s[i] != '\0') {
+        if(s[i] != ' ' && s[i] != '\t' && s[i] != '\n')
+            index = i;
+        i++;
+    }
+    s[index+1] = '\0';
+}
+
 int listDevices(CSOUND *csound, CS_AUDIODEVICE *list, int isOutput){
 
   IGN(csound);
@@ -645,7 +655,9 @@ int listDevices(CSOUND *csound, CS_AUDIODEVICE *list, int isOutput){
           /* for some reason, there appears to be a memory
              problem if we try to copy more than 10 chars,
              even though list[n].device_name is 64 chars long */
-          strNcpy(list[n].device_name, temp, 11);
+
+          strNcpy(list[n].device_name, temp, 63);
+          trim_trailing_whitespace(list[n].device_name);
           //list[n].device_name[10] = '\0';
           snprintf(tmp, 64, "%shw:%i,%i", isOutput ? "dac:" : "adc:", card, num);
           strNcpy(list[n].device_id, tmp, 16);

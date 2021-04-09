@@ -2274,7 +2274,7 @@ typedef struct _sflooper {
   OPDS h;
   MYFLT *outL, *outR;  /* output */
   MYFLT *ivel, *inotnum, *amp, *pitch, *ipresethandle, *loop_start, *loop_end,
-    *crossfade, *start, *imode, *ifn2, *iskip;
+    *crossfade, *start, *imode, *ifn2, *iskip, *iflag;
   int32_t     spltNum;
   SHORT   *sBase[MAXSPLT];
   FUNC *efunc;
@@ -2326,9 +2326,18 @@ static int32_t sflooper_init(CSOUND *csound, sflooper *p)
             int32_t orgkey = split->overridingRootKey;
             if (orgkey == -1) orgkey = sample->byOriginalKey;
             orgfreq = globals->pitches[orgkey];
-            freq = orgfreq * pow(2.0, ONETWELTH * tuneCorrection) *
+
+            if (*p->iflag) {
+              freq = orgfreq * pow(2.0, ONETWELTH * tuneCorrection);
+              p->freq[spltNum]= (freq/(orgfreq*orgfreq))*
+                               sample->dwSampleRate*csound->onedsr;
+            }
+            else {            
+              freq = orgfreq * pow(2.0, ONETWELTH * tuneCorrection) *
                 pow(2.0, ONETWELTH * (split->scaleTuning*0.01) * (notnum-orgkey));
-            p->freq[spltNum]= (freq/orgfreq) * sample->dwSampleRate*csound->onedsr;
+              p->freq[spltNum]= (freq/orgfreq) * sample->dwSampleRate*csound->onedsr;
+            }
+            
             attenuation = (MYFLT) (layer->initialAttenuation +
                                    split->initialAttenuation);
             attenuation = POWER(FL(2.0), (-FL(1.0)/FL(60.0)) * attenuation )
@@ -2680,7 +2689,7 @@ static OENTRY localops[] = {
     (SUBR)SfInstrPlay_set, (SUBR)SfInstrPlay3 },
   { "sfinstr3m", S(SFIPLAYMONO), 0, 3, "a", "iixxiiooo",
     (SUBR)SfInstrPlayMono_set, (SUBR)SfInstrPlayMono3 },
-  { "sflooper", S(sflooper), 0, 3, "aa", "iikkikkkoooo",
+  { "sflooper", S(sflooper), 0, 3, "aa", "iikkikkkooooo",
     (SUBR)sflooper_init, (SUBR)sflooper_process },
   { NULL, 0, 0, 0, NULL, NULL, (SUBR) NULL, (SUBR) NULL, (SUBR) NULL }
 };

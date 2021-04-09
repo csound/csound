@@ -2203,16 +2203,22 @@ static int gen41(FGDATA *ff, FUNC *ftp)   /*gab d5*/
     MYFLT    tot_prob = FL(0.0);
     int     nargs = ff->e.pcnt - 4;
 
+    //printf("*** nargs = %d, len = %d, number = %d\n", nargs, ftp->flen, ftp->fno);
     for (j=0; j < nargs; j+=2) {
       if (UNLIKELY(pp[j+1]<0))
         return fterror(ff, Str("Gen41: negative probability not allowed"));
       tot_prob += pp[j+1];
     }
     //printf("total prob = %g\n", tot_prob);
+    if (nargs&1)
+      return fterror(ff, Str("Gen41: Must have even numer of arguments"));
     for (i=0, j=0; j< nargs; j+=2) {
       width = (int) ((pp[j+1]/tot_prob) * ff->flen +.5);
       for ( k=0; k < width; k++,i++) {
-        fp[i] = pp[j];
+        if (i<ff->flen) {
+          //printf("*** i=%d, j=%d, pp]j] = %f\n", i, j, pp[j]);
+          fp[i] = pp[j];
+        } //else printf("%d out of range\n", i);
       }
     }
     //printf("GEN41: i=%d le=%d\n", i, ff->flen);

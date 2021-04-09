@@ -264,6 +264,7 @@ typedef struct CORFIL {
     int     fft_lib;
     int     echo;
     MYFLT   limiter;
+    float   sr_default, kr_default;
   } OPARMS;
 
   typedef struct arglst {

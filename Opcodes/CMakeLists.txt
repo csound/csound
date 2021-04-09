@@ -62,6 +62,8 @@ make_plugin(lfsr lfsr.cpp)
 make_plugin(fareygen fareygen.c)
 make_plugin(quadbezier quadbezier.c)
 
+## Experimental opcode -- JPFF
+## make_plugin(mverb MV.c)
 
 if(APPLE)
    make_plugin(arrayops arrayops.cpp)
