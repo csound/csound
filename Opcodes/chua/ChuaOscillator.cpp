@@ -49,7 +49,7 @@
 // % initial state (I3,V2,V1)(0) is called a trajectory of Chua's
 // % oscillator.
 // %
-// % This function uses a RungeKutta integration method optimised for the chua
+// % This function uses a Runge-Kutta integration method optimised for the chua
 // % paradigm
 // %
 // % Reference:
