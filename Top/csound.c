@@ -1789,7 +1789,7 @@ int kperf_nodebug(CSOUND *csound)
                 OPDS  *opstart;
                 ip->spin = csound->spin;
                 ip->spout = csound->spraw;
-                ip->kcounter =  csound->kcounter*csound->ksmps/lksmps;
+                ip->kcounter = (csound->kcounter-1)*csound->ksmps/lksmps;
 
                 /* we have to deal with sample-accurate code
                    whole CS_KSMPS blocks are offset here, the
@@ -1806,6 +1806,7 @@ int kperf_nodebug(CSOUND *csound)
                 }
 
                 for (i=start; i < n; i+=incr, ip->spin+=incr, ip->spout+=incr) {
+                  ip->kcounter++;
                   opstart = (OPDS*) ip;
                   csound->mode = 2;
                   while (error ==  0 && (opstart = opstart->nxtp) != NULL
@@ -1815,9 +1816,10 @@ int kperf_nodebug(CSOUND *csound)
                     //csound->ids->optext->t.oentry->opname;
                     error = (*opstart->opadr)(csound, opstart); /* run each opcode */
                     opstart = opstart->insdshead->pds;
+                    
                   }
                   csound->mode = 0;
-                  ip->kcounter++;
+                  
                 }
             }
           }

@@ -1471,7 +1471,7 @@ int useropcdset(CSOUND *csound, UOPCODE *p)
       lcurip->ekr = csound->esr / (MYFLT) local_ksmps;
       lcurip->onedkr = FL(1.0) / lcurip->ekr;
       lcurip->kicvt = (MYFLT) FMAXLEN /lcurip->ekr;
-      lcurip->kcounter *= ksmps_scale;
+      lcurip->kcounter = (CS_KCNT)*ksmps_scale;
     } else {
       lcurip->ksmps = CS_KSMPS;
       lcurip->kcounter = CS_KCNT;
@@ -1839,6 +1839,7 @@ int subinstr(CSOUND *csound, SUBINST *p)
   /*  run each opcode  */
   if (csound->ksmps == ip->ksmps) {
     int error = 0;
+    ip->kcounter++;
     if ((CS_PDS = (OPDS *) (ip->nxtp)) != NULL) {
       CS_PDS->insdshead->pds = NULL;
       do {
@@ -1849,7 +1850,7 @@ int subinstr(CSOUND *csound, SUBINST *p)
         }
       } while (error == 0 && (CS_PDS = CS_PDS->nxtp));
     }
-    ip->kcounter++;
+
   }
   else {
     int i, n = csound->nspout, start = 0;
@@ -1875,6 +1876,7 @@ int subinstr(CSOUND *csound, SUBINST *p)
     }
 
     for (i=start; i < n; i+=incr, ip->spin+=incr, ip->spout+=incr) {
+      ip->kcounter++;
       if ((CS_PDS = (OPDS *) (ip->nxtp)) != NULL) {
         int error = 0;
         CS_PDS->insdshead->pds = NULL;
@@ -1890,7 +1892,6 @@ int subinstr(CSOUND *csound, SUBINST *p)
           }
         } while (error == 0 && (CS_PDS = CS_PDS->nxtp));
       }
-      ip->kcounter++;
     }
     ip->spout = (MYFLT*) p->saved_spout.auxp;
   }
@@ -1926,6 +1927,7 @@ int useropcd1(CSOUND *csound, UOPCODE *p)
   MYFLT** internal_ptrs = p->buf->iobufp_ptrs;
   MYFLT** external_ptrs = p->ar;
   int done;
+  
 
   done = ATOMIC_GET(p->ip->init_done);
   if (UNLIKELY(!done)) /* init not done, exit */
@@ -1953,6 +1955,7 @@ int useropcd1(CSOUND *csound, UOPCODE *p)
 
   if (this_instr->ksmps == 1) {           /* special case for local kr == sr */
     do {
+      this_instr->kcounter++; /*kcounter needs to be incremented BEFORE perf */
       /* copy inputs */
       current = inm->in_arg_pool->head;
       for (i = 0; i < inm->inchns; i++) {
@@ -2039,8 +2042,6 @@ int useropcd1(CSOUND *csound, UOPCODE *p)
         current = current->next;
       }
 
-
-      this_instr->kcounter++;
       this_instr->spout += csound->nchnls;
       this_instr->spin  += csound->nchnls;
     } while (++ofs < g_ksmps);
@@ -2062,6 +2063,7 @@ int useropcd1(CSOUND *csound, UOPCODE *p)
     if (UNLIKELY(early)) this_instr->ksmps_no_end = early % lksmps;
 
     do {
+      this_instr->kcounter++;
       /* copy a-sig inputs, accounting for offset */
       size_t asigSize = (this_instr->ksmps * sizeof(MYFLT));
       current = inm->in_arg_pool->head;
@@ -2153,7 +2155,7 @@ int useropcd1(CSOUND *csound, UOPCODE *p)
 
       this_instr->spout += csound->nchnls*lksmps;
       this_instr->spin  += csound->nchnls*lksmps;
-      this_instr->kcounter++;
+      
     } while ((ofs += this_instr->ksmps) < g_ksmps);
   }
 
@@ -2228,10 +2230,10 @@ int useropcd2(CSOUND *csound, UOPCODE *p)
 {
   OPDS    *saved_pds = CS_PDS;
   MYFLT   **tmp;
-  INSDS    *this_instr = p->ip;
   OPCODINFO   *inm;
   CS_VARIABLE* current;
   int i, done;
+  
 
   inm = (OPCODINFO*) p->h.optext->t.oentry->useropinfo; /* FIXME value not used */
   done = ATOMIC_GET(p->ip->init_done);
@@ -2241,10 +2243,10 @@ int useropcd2(CSOUND *csound, UOPCODE *p)
 
   p->ip->spin = p->parent_ip->spin;
   p->ip->spout = p->parent_ip->spout;
+  p->ip->kcounter++;  /* kcount should be incremented BEFORE perf */
 
   if (UNLIKELY(!(CS_PDS = (OPDS*) (p->ip->nxtp))))
     goto endop; /* no perf code */
-
 
   /* IV - Nov 16 2002: update release flag */
   p->ip->relesing = p->parent_ip->relesing;
@@ -2289,7 +2291,7 @@ int useropcd2(CSOUND *csound, UOPCODE *p)
   } while (error == 0 && p->ip != NULL
            && (CS_PDS = CS_PDS->nxtp));
   }
-  this_instr->kcounter++;
+  
 
   /* copy outputs */
   current = inm->out_arg_pool->head;
