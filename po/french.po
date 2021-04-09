@@ -1088,9 +1088,8 @@ msgid "Gen41: negative probability not allowed"
 msgstr "Gen41 : probabilité négative interdite"
 
 #: Engine/fgens.c:2214
-#, fuzzy
 msgid "Gen41: Must have even numer of arguments"
-msgstr "Il doit y avoir un nombre pair d'arguments dans mac\n"
+msgstr "Gen41 : il doit y avoir un nombre pair d'arguments"
 
 #: Engine/fgens.c:2283
 #, c-format
@@ -3769,6 +3768,8 @@ msgid ""
 "Pulse audio module error: invalid sample spec, check number of output "
 "channels (%d)\n"
 msgstr ""
+"Erreur du module pulse audio : spéc d'échantillon non valide, "
+"vérifier le nombre de canaux de sortie (%D)\n"
 
 #: InOut/rtpulse.c:128
 msgid "PulseAudio output server: default\n"
@@ -5624,9 +5625,8 @@ msgid "output argument may not be the same as any of the input args"
 msgstr "l'argument de sortie ne peut pas être le même qu'un argument d'entrée"
 
 #: OOps/str_ops.c:496
-#, fuzzy
 msgid "Not string type"
-msgstr "Pas de fenêtre de cette sorte !"
+msgstr "N'est pas du type chaîne de caractères"
 
 #: OOps/str_ops.c:500 Opcodes/emugens/emugens.c:2873
 msgid "invalid format string"
@@ -7133,19 +7133,20 @@ msgid "bpf: too many pargs (max=256)"
 msgstr "bpf : trop de pargs (max=256)"
 
 #: Opcodes/emugens/emugens.c:891 Opcodes/emugens/emugens.c:953
-#, fuzzy, c-format
+#, c-format
 msgid "At least two pairs are needed, got %d"
-msgstr "longueur de table trop petite : %d attendu, %d obtenu\n"
+msgstr "Au moins deux couples sont nécessaires, obtenu %d"
 
 #: Opcodes/emugens/emugens.c:951
-#, fuzzy, c-format
+#, c-format
 msgid "bpf: data length should be even (pairs of x, y), got %d"
-msgstr "bpf : la longueur des données doit être paire (couples de x, y)"
+msgstr ""
+"bpf : la longueur des données doit être paire (couples de x, y), obtenu %d"
 
 #: Opcodes/emugens/emugens.c:955
-#, fuzzy, c-format
+#, c-format
 msgid "bpf: too many pargs (max=%d)"
-msgstr "bpf : trop de pargs (max=256)"
+msgstr "bpf : trop de pargs (max=%d)"
 
 #: Opcodes/emugens/emugens.c:1128
 #, c-format
@@ -7245,7 +7246,7 @@ msgid "Error while inititalizing println"
 msgstr "Erreur lors de l'initialisation de println"
 
 #: Opcodes/emugens/emugens.c:2771
-#, fuzzy, c-format
+#, c-format
 msgid "Opcode %s not initialised"
 msgstr "Opcode %s  non initialisé"
 
