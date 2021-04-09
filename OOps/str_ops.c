@@ -473,13 +473,13 @@ sprintf_opcode_(CSOUND *csound,
 #endif
           break;
         case 's':
-          if (IS_STR_ARG(parm)) {
-            if (((STRINGDAT*)parm)->data == str->data) {
+          if (LIKELY(IS_STR_ARG(parm))) {
+            if (UNLIKELY(((STRINGDAT*)parm)->data == str->data)) {
               csound->Free(csound, strseg);
               return StrOp_ErrMsg(p, Str("output argument may not be "
                                          "the same as any of the input args"));
             }
-            if ((((STRINGDAT*)parm)->size+strlen(strseg)) >= (uint32_t)maxChars) {
+            if (UNLIKELY(((STRINGDAT*)parm)->size+strlen(strseg) >= (uint32_t)maxChars)) {
               int32_t offs = outstring - str->data;
               str->data = csound->ReAlloc(csound, str->data,
                                           str->size  + ((STRINGDAT*)parm)->size +
@@ -493,7 +493,7 @@ sprintf_opcode_(CSOUND *csound,
             }
             n = snprintf(outstring, maxChars, strseg, ((STRINGDAT*)parm)->data);
           }
-          else return StrOp_ErrMsg(p, Str("Not string type"));
+          else return StrOp_ErrMsg(p, Str("Not string type for %%s"));
           break;
         default:
           csound->Free(csound, strseg);
