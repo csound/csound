@@ -2031,6 +2031,10 @@ typedef struct {
     STRINGDAT *Sfmt;
     STRINGDAT *Slabel;
     int32_t lasttrig;
+
+    const char *printfmt;
+    char fmtdata[128];
+    const char *label;
 } ARRAYPRINT;
 
 #define ARRPRINT_SEP (csound->MessageS(csound, CSOUNDMSG_ORCH, "\n"))
@@ -2090,6 +2094,28 @@ arrayprint_init(CSOUND *csound, ARRAYPRINTK *p) {
         return INITERRF(Str("only 1-D and 2-D arrays supported, got %d dimensions"),
                         p->in->dimensions);
     p->lasttrig = 0;
+    char arraytype = p->in->arrayType->varTypeName[0];
+    const char *default_fmt =
+      arraytype == 'S' ? default_printfmt_str : default_printfmt;
+    p->printfmt =
+      (p->Sfmt == NULL || strlen(p->Sfmt->data) < 2) ? default_fmt : p->Sfmt->data;
+
+    if(strstr(p->printfmt, "%d") != NULL) {
+        str_replace(p->fmtdata, p->printfmt, "%d", "%.0f"); fflush(stdout);
+        p->printfmt = p->fmtdata;
+    }
+
+    p->label = p->Slabel != NULL ? p->Slabel->data : NULL;
+    return OK;
+}
+
+static int32_t
+arrayprint_init_notrig(CSOUND *csound, ARRAYPRINT *p) {
+    if(p->in->arrayType->varTypeName[0] == 'S' && p->in->dimensions > 1)
+        return INITERR(Str("cannot print multidimensional string arrays"));
+    if(p->in->dimensions > 2)
+        return INITERRF(Str("only 1-D and 2-D arrays supported, got %d dimensions"),
+                        p->in->dimensions);
     char arraytype = p->in->arrayType->varTypeName[0];
     const char *default_fmt =
       arraytype == 'S' ? default_printfmt_str : default_printfmt;
@@ -2236,6 +2262,10 @@ arrayprint_perf(CSOUND *csound, ARRAYPRINTK *p) {
     return ret;
 }
 
+static int32_t
+arrayprint_perf_notrig(CSOUND *csound, ARRAYPRINT *p) {
+    return arrprint_(csound, p->in, p->printfmt, p->label);
+}
 
 static int32_t
 arrayprint_i(CSOUND *csound, ARRAYPRINT *p) {
@@ -3069,8 +3099,14 @@ static OENTRY localops[] = {
       (SUBR)arrayprint_init, (SUBR)arrayprint_perf},
     { "printarray", S(ARRAYPRINTK), 0, 3, "", "k[]kS",
       (SUBR)arrayprint_init, (SUBR)arrayprint_perf},
+    { "printarray.k_notrig", S(ARRAYPRINT), 0, 3, "", "k[]S",
+      (SUBR)arrayprint_init_notrig, (SUBR)arrayprint_perf_notrig},
+
     { "printarray", S(ARRAYPRINTK), 0, 3, "", "k[]kSS",
       (SUBR)arrayprint_init, (SUBR)arrayprint_perf},
+
+    { "printarray.k_notrig", S(ARRAYPRINT), 0, 3, "", "k[]SS",
+      (SUBR)arrayprint_init_notrig, (SUBR)arrayprint_perf_notrig},
 
 
     { "printarray.i", S(ARRAYPRINT), 0, 1, "", "i[]", (SUBR)arrayprint_i},
@@ -3078,12 +3114,16 @@ static OENTRY localops[] = {
     { "printarray.fmt_label_i", S(ARRAYPRINT), 0, 1, "", "i[]SS",
       (SUBR)arrayprintf_i},
 
-    { "printarray", S(ARRAYPRINTK), 0, 3, "", "S[]P",
+    { "printarray", S(ARRAYPRINTK), 0, 3, "", "S[]J",
       (SUBR)arrayprint_init, (SUBR)arrayprint_perf},
     { "printarray", S(ARRAYPRINTK), 0, 3, "", "S[]kS",
       (SUBR)arrayprint_init, (SUBR)arrayprint_perf},
-    { "printarray", S(ARRAYPRINTK), 0, 3, "", "S[]kSS",
-      (SUBR)arrayprint_init, (SUBR)arrayprint_perf},
+
+    { "printarray", S(ARRAYPRINT), 0, 3, "", "S[]S",
+      (SUBR)arrayprint_init_notrig, (SUBR)arrayprint_perf_notrig},
+
+    { "printarray", S(ARRAYPRINT), 0, 3, "", "S[]SS",
+      (SUBR)arrayprint_init_notrig, (SUBR)arrayprint_perf_notrig},
 
     { "ftprint", S(FTPRINT), TR, 3, "", "iPOOPo",
       (SUBR)ftprint_init, (SUBR)ftprint_perf },
