@@ -3365,6 +3365,63 @@ int svn_perfaa(CSOUND *csound, SVN *p) {
   return OK; 
 }
 
+typedef struct midsid {
+  OPDS h;
+  MYFLT *a0, *a1, *a2, *a3, *kw;
+} MIDSID;
+
+int ms_encod(CSOUND *csound, MIDSID *p) {
+  uint32_t offset = p->h.insdshead->ksmps_offset;
+  uint32_t early  = p->h.insdshead->ksmps_no_end;
+  uint32_t i, nsmps = CS_KSMPS;
+  MYFLT *m = p->a0, *s = p->a1, *l = p->a2, *r = p->a3;
+
+  if (UNLIKELY(offset)) {
+    memset(m, '\0', offset*sizeof(MYFLT));
+    memset(s, '\0', offset*sizeof(MYFLT));
+  }
+  if (UNLIKELY(early)) {
+    nsmps -= early;
+    memset(&m[nsmps], '\0', early*sizeof(MYFLT));
+    memset(&s[nsmps], '\0', early*sizeof(MYFLT));
+  }
+
+  for(i=0; i < nsmps; i++) {
+    m[i] = l[i] + r[i];
+    s[i] = l[i] - r[i];
+  }
+  return OK;
+}
+
+int ms_decod(CSOUND *csound, MIDSID *p) {
+  uint32_t offset = p->h.insdshead->ksmps_offset;
+  uint32_t early  = p->h.insdshead->ksmps_no_end;
+  uint32_t i, nsmps = CS_KSMPS;
+  MYFLT *m = p->a2, *s = p->a3, *l = p->a0, *r = p->a1;
+  MYFLT w = *p->kw, wm1;
+  wm1 = 1. - (w = w > 0. ? (w < 1. ? w : 1.) : 0.);
+  
+  if (UNLIKELY(offset)) {
+    memset(l, '\0', offset*sizeof(MYFLT));
+    memset(r, '\0', offset*sizeof(MYFLT));
+  }
+  if (UNLIKELY(early)) {
+    nsmps -= early;
+    memset(&l[nsmps], '\0', early*sizeof(MYFLT));
+    memset(&r[nsmps], '\0', early*sizeof(MYFLT));
+  }
+
+  for(i=0; i < nsmps; i++) {
+    MYFLT mm, ss;
+    mm = m[i]*wm1;
+    ss = s[i]*w;
+    l[i] = mm + ss;
+    r[i] = mm - ss;
+  }
+  return OK;
+}
+
+
 
 static OENTRY localops[] =
   {
@@ -3459,7 +3516,11 @@ static OENTRY localops[] =
     {"svn", sizeof(SVN), 0, 3, "aaaa", "akakoopo",
      (SUBR) svn_init, (SUBR) svn_perfka },
     {"svn", sizeof(SVN), 0, 3, "aaaa", "aaakoopo",
-     (SUBR) svn_init, (SUBR) svn_perfaa } 
+     (SUBR) svn_init, (SUBR) svn_perfaa },
+    {"st2ms", sizeof(MIDSID), 0, 2, "aa", "aa",
+     (SUBR) NULL, (SUBR) ms_encod},
+    {"ms2st", sizeof(MIDSID), 0, 2, "aa", "aak",
+     (SUBR) NULL, (SUBR) ms_decod },
   };
 
 int32_t newfils_init_(CSOUND *csound)
