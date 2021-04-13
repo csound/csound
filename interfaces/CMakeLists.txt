@@ -229,11 +229,13 @@ if(BUILD_PYTHON_INTERFACE OR BUILD_JAVA_INTERFACE OR BUILD_LUA_INTERFACE)
         if(${CMAKE_COMPILER_IS_GNUCC})
             message(STATUS "setting compile options for lib_jcsound")
             target_compile_options(_jcsound6 PRIVATE "-Wno-error")
-            if(COMMAND target_link_options)
+         endif()
+         if(LINUX)
+           if(COMMAND target_link_options)
             target_link_options(_jcsound6 PRIVATE
             "-Wl,-soname,lib_jcsound.so.1")
             message(STATUS "setting SONAME for lib_jcsound")
-            endif()
+        endif()
         endif()
 
         install(TARGETS _jcsound6
