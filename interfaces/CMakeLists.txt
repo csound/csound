@@ -210,8 +210,14 @@ if(BUILD_PYTHON_INTERFACE OR BUILD_JAVA_INTERFACE OR BUILD_LUA_INTERFACE)
         SWIG_LINK_LIBRARIES(_jcsound6 ${swigjava_LIBS})
         target_include_directories(${SWIG_MODULE__jcsound6_REAL_NAME}
         PRIVATE ${JNI_INCLUDE_DIRS})
-        if((APPLE) OR (LINUX))
+        if(LINUX)
         set_target_properties(${SWIG_MODULE__jcsound6_REAL_NAME}
+            PROPERTIES COMPILE_FLAGS "-Wno-unused-function"
+            LINK_FLAGS "-Wl,-soname,lib_jcsound.so.1"
+            )
+         endif()
+         if (APPLE)
+          set_target_properties(${SWIG_MODULE__jcsound6_REAL_NAME}
             PROPERTIES COMPILE_FLAGS "-Wno-unused-function" )
          endif()
 
@@ -230,13 +236,6 @@ if(BUILD_PYTHON_INTERFACE OR BUILD_JAVA_INTERFACE OR BUILD_LUA_INTERFACE)
             message(STATUS "setting compile options for lib_jcsound")
             target_compile_options(_jcsound6 PRIVATE "-Wno-error")
          endif()
-         if(LINUX)
-           if(COMMAND target_link_options)
-            target_link_options(_jcsound6 PRIVATE
-            "-Wl,-soname,lib_jcsound.so.1")
-            message(STATUS "setting SONAME for lib_jcsound")
-        endif()
-        endif()
 
         install(TARGETS _jcsound6
             LIBRARY DESTINATION "${JAVA_MODULE_INSTALL_DIR}"
