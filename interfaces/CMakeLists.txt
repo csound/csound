@@ -85,7 +85,7 @@ find_path(LUA_H_PATH lua.h PATH_SUFFIXES lua5.1)
 
 message(STATUS "PYTHON_LIBRARY: " ${PYTHON_LIBRARY})
 
-check_deps(BUILD_PYTHON_INTERFACE SWIG_FOUND BUILD_CXX_INTERFACE PYTHONLIBS_FOUND PYTHON_MODULE_INSTALL_DIR)
+check_deps(BUILD_PYTHON_INTERFACE SWIG_FOUND BUILD_CXX_INTERFACE PYTHONLIBS_FOUND)
 check_deps(BUILD_JAVA_INTERFACE SWIG_FOUND BUILD_CXX_INTERFACE JNI_FOUND JAVA_FOUND)
 check_deps(BUILD_LUA_INTERFACE SWIG_FOUND BUILD_CXX_INTERFACE  LUA_LIBRARY LUA_H_PATH)
 
@@ -138,16 +138,7 @@ if(BUILD_PYTHON_INTERFACE OR BUILD_JAVA_INTERFACE OR BUILD_LUA_INTERFACE)
       if(APPLE)
          # do nothing
       else()
-        install(TARGETS ${SWIG_MODULE_csnd6_REAL_NAME}
-            LIBRARY DESTINATION "${PYTHON_MODULE_INSTALL_DIR}"
-            ARCHIVE DESTINATION "${PYTHON_MODULE_INSTALL_DIR}")
-        install(FILES ${BUILD_LIB_DIR}/csnd6.py
-            DESTINATION ${PYTHON_MODULE_INSTALL_DIR})
-      endif()
-    endif()
-
-    if(NOT APPLE)
-     execute_process (
+         execute_process (
     COMMAND python -c
     "import site, sys; sys.stdout.write(site.getsitepackages()[0])"
     OUTPUT_VARIABLE PYTHON_SITE_PACKAGES
@@ -160,7 +151,15 @@ if(BUILD_PYTHON_INTERFACE OR BUILD_JAVA_INTERFACE OR BUILD_LUA_INTERFACE)
               install(FILES ${CMAKE_CURRENT_SOURCE_DIR}/ctcsound.py
                   DESTINATION ${PYTHON_MODULE_INSTALL_DIR})
       endif()
+        install(TARGETS ${SWIG_MODULE_csnd6_REAL_NAME}
+            LIBRARY DESTINATION "${PYTHON_MODULE_INSTALL_DIR}"
+            ARCHIVE DESTINATION "${PYTHON_MODULE_INSTALL_DIR}")
+        install(FILES ${BUILD_LIB_DIR}/csnd6.py
+            DESTINATION ${PYTHON_MODULE_INSTALL_DIR})
+      endif()
+    endif()
 
+    if(NOT APPLE)
       execute_process (
            COMMAND python3 -c
            "import site, sys; sys.stdout.write(site.getsitepackages()[0])"
@@ -228,6 +227,7 @@ if(BUILD_PYTHON_INTERFACE OR BUILD_JAVA_INTERFACE OR BUILD_LUA_INTERFACE)
             LIBRARY_OUTPUT_DIRECTORY ${BUILD_LIB_DIR}
             ARCHIVE_OUTPUT_DIRECTORY ${BUILD_LIB_DIR})
         if(${CMAKE_COMPILER_IS_GNUCC})
+            message(STATUS "setting compile options for lib_jcsound")
             target_compile_options(_jcsound6 PRIVATE "-Wno-error")
             if(COMMAND target_link_options)
             target_link_options(_jcsound6 PRIVATE
