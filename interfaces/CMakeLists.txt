@@ -215,6 +215,7 @@ if(BUILD_PYTHON_INTERFACE OR BUILD_JAVA_INTERFACE OR BUILD_LUA_INTERFACE)
             PROPERTIES COMPILE_FLAGS "-Wno-unused-function"
             LINK_FLAGS "-Wl,-soname,lib_jcsound.so.1"
             )
+         message(STATUS "Setting soname")   
          endif()
          if (APPLE)
           set_target_properties(${SWIG_MODULE__jcsound6_REAL_NAME}
