@@ -218,12 +218,6 @@ Date:   Tue Feb 16 22:57:51 2021 +0000
 
     refactoring and incorporting DFT autocorr to the interface
 
-commit 7a6027f174a10c581b0084086d918360302fb4a3
-Author: vlazzarini <victor.lazzarini@mu.ie>
-Date:   Tue Feb 16 22:39:35 2021 +0000
-
-    fixed handling of 0Hz and Nyquist
-
 
 **END**
 
