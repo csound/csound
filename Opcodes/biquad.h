@@ -127,3 +127,9 @@ typedef struct {
     MYFLT   limit;
 } MODE;
 
+typedef struct {
+  OPDS h;
+  MYFLT *out;
+  MYFLT *in, *tau, *f0;
+  MYFLT theta, r1, x, y, x1, y1;
+} MVMFILT;
