@@ -2675,6 +2675,9 @@ int32_t pvs2tab_init(CSOUND *csound, PVS2TAB_T *p)
                    (p->fsig->format == PVS_AMP_PHASE))))
     return csound->InitError(csound, Str("pvs2tab: signal format "
                                          "must be amp-phase or amp-freq."));
+    if (UNLIKELY(p->fsig->sliding))
+        return csound->InitError(csound, Str("pvs2tab: cannot use sliding PVS"));
+    
   if (LIKELY(p->ans->data)) return OK;
   return csound->InitError(csound, Str("array-variable not initialised"));
 }
@@ -2703,7 +2706,10 @@ int32_t pvs2tabsplit_init(CSOUND *csound, PVS2TABSPLIT_T *p)
                    (p->fsig->format == PVS_AMP_PHASE))))
     return csound->InitError(csound, Str("pvs2tab: signal format "
                                          "must be amp-phase or amp-freq."));
-
+    
+    if (UNLIKELY(p->fsig->sliding))
+        return csound->InitError(csound, Str("pvs2tab: cannot use sliding PVS"));
+    
   if (LIKELY(p->mags->data) && LIKELY(p->freqs->data))
     return OK;
 
