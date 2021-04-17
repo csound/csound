@@ -101,6 +101,7 @@ template <MYFLT (*bop)(MYFLT, MYFLT)> struct ArrayOp3 : csnd::Plugin<1, 2> {
     csnd::myfltvec &out = outargs.myfltvec_data(0);
     csnd::myfltvec &in = inargs.myfltvec_data(0);
     out.init(csound, in.len());
+    if (!is_perf()) process(out, in, inargs[1]);
     return OK;
   }
 
