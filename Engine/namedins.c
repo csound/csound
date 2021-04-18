@@ -42,24 +42,35 @@ int check_instr_name(char *s)
 }
 
 
-int32  named_instr_find_in_engine(CSOUND *csound, char *s,
+MYFLT  named_instr_find_in_engine(CSOUND *csound, char *s,
                                   ENGINE_STATE *engineState) {
 
   INSTRNAME     *inm;
     int ss = (*s=='-'?1:0);
-
+    char *tt;
     if (!engineState->instrumentNames)
       return 0L;                              /* no named instruments defined */
-    /* now find instrument */
-    inm = cs_hash_table_get(csound, engineState->instrumentNames, s+ss);
-
-    return (inm == NULL) ? 0L : (ss ? -inm->instno : inm->instno);
-
+    if ((tt=strchr(s, '.'))==NULL) {
+      /* now find instrument */
+      inm = cs_hash_table_get(csound, engineState->instrumentNames, s+ss);
+      return (inm == NULL) ? 0L : (ss ? -inm->instno : inm->instno);
+    }
+    else {                     /* tagged instrument */
+      char buff[256];
+      int len = tt-s-ss;
+      MYFLT frac;
+      strncpy(buff,s+ss, len);
+      buff[len] = '\0';
+      inm = cs_hash_table_get(csound, engineState->instrumentNames, buff);
+      frac = atof(tt);
+      printf("** fraction found %f\n", frac);
+      return (inm == NULL) ? 0L : (ss ? -(inm->instno+frac) : inm->instno+frac);
+    }
 }
 /* find the instrument number for the specified name */
 /* return value is zero if none was found */
 
-int32 named_instr_find(CSOUND *csound, char *s)
+MYFLT named_instr_find(CSOUND *csound, char *s)
 {
   return named_instr_find_in_engine(csound, s, &csound->engineState);
 }

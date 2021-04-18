@@ -40,7 +40,7 @@ int check_instr_name(char *);
 /* find the instrument number for the specified name */
 /* return value is zero if none was found */
 
-int32 named_instr_find(CSOUND *, char *);
+MYFLT named_instr_find(CSOUND *, char *);
 
 /* convert opcode string argument to instrument number */
 /* return value is -1 if the instrument cannot be found */

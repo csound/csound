@@ -1056,8 +1056,8 @@ void add_to_deadpool(CSOUND *csound, INSTRTXT *instrtxt) {
                     csound->dead_instr_no - 1);
 }
 
-int32 named_instr_find(CSOUND *csound, char *s);
-int32  named_instr_find_in_engine(CSOUND *csound, char *s,
+MYFLT named_instr_find(CSOUND *csound, char *s);
+MYFLT named_instr_find_in_engine(CSOUND *csound, char *s,
                                   ENGINE_STATE *engineState);
 /**
    allocate entry for named instrument ip with name s
