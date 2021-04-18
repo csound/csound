@@ -130,6 +130,6 @@ typedef struct {
 typedef struct {
   OPDS h;
   MYFLT *out;
-  MYFLT *in, *tau, *f0;
-  MYFLT theta, r1, x, y, x1, y1;
+  MYFLT *in, *tau, *f0, *reinit;
+  MYFLT x, y;
 } MVMFILT;
