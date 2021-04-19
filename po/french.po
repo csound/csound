@@ -5626,9 +5626,9 @@ msgid "output argument may not be the same as any of the input args"
 msgstr "l'argument de sortie ne peut pas être le même qu'un argument d'entrée"
 
 #: OOps/str_ops.c:496
-#, fuzzy, c-format
+#, c-format
 msgid "Not string type for %%s"
-msgstr "N'est pas du type chaîne de caractères"
+msgstr "Pas de type chaîne de caractères pour %%s"
 
 #: OOps/str_ops.c:500 Opcodes/emugens/emugens.c:2903
 msgid "invalid format string"
@@ -9697,7 +9697,7 @@ msgstr "pvs2tab : le format du signal doit être amp-phase ou amp-fréq."
 
 #: Opcodes/pvsbasic.c:2679 Opcodes/pvsbasic.c:2711
 msgid "pvs2tab: cannot use sliding PVS"
-msgstr ""
+msgstr "pvs2tab : ne peut pas utiliser de PVS glissant"
 
 #: Opcodes/pvsbasic.c:2822
 msgid ""
