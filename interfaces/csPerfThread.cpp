@@ -221,6 +221,13 @@ public:
       return 0;
     }
     ~CsPerfThreadMsg_Record() {
+        CsoundPerformanceThreadMessage::lockRecord();
+        recordData_t *recordData = CsoundPerformanceThreadMessage::getRecordData();
+        if (recordData->sfile) {
+            sf_close((SNDFILE *) recordData->sfile);
+            recordData->sfile = NULL;
+        }
+        CsoundPerformanceThreadMessage::unlockRecord();
     }
 private:
     std::string filename;
@@ -239,7 +246,10 @@ public:
       if (recordData->running) {
           recordData->running = false;
           csoundJoinThread(recordData->thread);
-          sf_close((SNDFILE *) recordData->sfile);
+          if (recordData->sfile) {
+            sf_close((SNDFILE *) recordData->sfile);
+            recordData->sfile = NULL;
+          }
       }
 
       CsoundPerformanceThreadMessage::unlockRecord();
