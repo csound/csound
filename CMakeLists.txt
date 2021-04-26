@@ -410,6 +410,14 @@ TEST_BIG_ENDIAN(BIG_ENDIAN)
 
 SET(BUILD_SHARED_LIBS ON)
 
+if(UNIX)
+    if(USE_LIB64)
+        SET(CMAKE_INSTALL_RPATH "$ORIGIN/../lib64")
+    else()
+        SET(CMAKE_INSTALL_RPATH "$ORIGIN/../lib")
+    endif()
+endif()
+
 ## HEADER/LIBRARY/OTHER CHECKS ##
 
 # First, required stuff
