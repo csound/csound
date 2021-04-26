@@ -647,7 +647,7 @@ static void nkread(CSOUND *csound, MYFLT *kp, FILE *ifd, int32_t format, int32_t
         do {                    /* Absorb digits */
           c = getc(ifd);
           if (c == EOF) return;
-          if (bp - inbuf + 1 >= sizeof(inbuf)) return;
+          if ((unsigned)(bp - inbuf + 1) >= sizeof(inbuf)) return;
           *(++bp) = (char)c;
         } while (isdigit(*bp) ||
                  *bp=='-' || *bp=='+' || *bp=='.' || *bp=='e' ||*bp=='E');
@@ -678,7 +678,7 @@ static void nkread(CSOUND *csound, MYFLT *kp, FILE *ifd, int32_t format, int32_t
         do {                    /* Absorb digits and such*/
           c = getc(ifd);
           if (c == EOF) return;
-          if (bp - inbuf + 1 >= sizeof(inbuf)) return;
+          if ((unsigned)(bp - inbuf + 1) >= sizeof(inbuf)) return;
           *(++bp) = (char)c;
         } while (!isspace(*bp));
         (void)ungetc(*bp, ifd); //fseek(ifd, -1L, SEEK_CUR);
