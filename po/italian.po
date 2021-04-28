@@ -1492,7 +1492,7 @@ msgstr "-L stdin fcntl fallito"
 #: OOps/dumpf.c:111 OOps/dumpf.c:139 OOps/dumpf.c:165 OOps/dumpf.c:194
 #: OOps/dumpf.c:219 OOps/dumpf.c:246 OOps/dumpf.c:395 OOps/dumpf.c:421
 #: OOps/dumpf.c:447 OOps/dumpf.c:475 OOps/dumpf.c:501 OOps/dumpf.c:529
-#: OOps/dumpf.c:555 OOps/dumpf.c:583 OOps/dumpf.c:756 OOps/dumpf.c:783
+#: OOps/dumpf.c:555 OOps/dumpf.c:583 OOps/dumpf.c:780 OOps/dumpf.c:807
 #: Opcodes/partials.c:509 util/hetro.c:263
 #, c-format
 msgid "Cannot open %s"
@@ -3942,325 +3942,6 @@ msgstr "virtual_keyboard.cpp: error allocating FLTK flags"
 msgid "Error registering opcode '%s'"
 msgstr "Errore registrazione opcode '%s'"
 
-#: plugins/widgets/widgets.cpp:1128
-msgid ""
-"Invalid snapshot. Perhaps you modified orchestra widget code after you saved "
-"the snapshot bank."
-msgstr ""
-"Istantanea (snapshot) non valida. Forse avete modificato il codice orchestra "
-"del widget dopo aver salvato l'istantanea del banco."
-
-#: plugins/widgets/widgets.cpp:1321
-msgid "No name for FLbutbank"
-msgstr "Nessun nome per FLbutbank"
-
-#: plugins/widgets/widgets.cpp:1579
-msgid "FLsetsnap: invalid table"
-msgstr "FLsetsnap: tavola non valida"
-
-#: plugins/widgets/widgets.cpp:1584
-msgid "setsnap saving\n"
-msgstr "salvataggio setsnap\n"
-
-#: plugins/widgets/widgets.cpp:1623
-msgid ""
-"Saving could overwrite the old file.\n"
-"Are you sure to save ?"
-msgstr ""
-"Il salvataggio potrebbe sovrascrivere il vecchio file.\n"
-"Sicuro di voler salvare ?"
-
-#: plugins/widgets/widgets.cpp:1624
-msgid "Warning"
-msgstr "Attenzione"
-
-#: plugins/widgets/widgets.cpp:1635
-msgid ""
-"Saving could overwrite the old file.\n"
-"Are you sure you want to save ?"
-msgstr ""
-"Il salvataggio potrebbe sovrascrivere il vecchio file.\n"
-"Sicuro di voler salvare ?"
-
-#: plugins/widgets/widgets.cpp:1637
-msgid "No"
-msgstr "No"
-
-#: plugins/widgets/widgets.cpp:1637
-msgid "Yes"
-msgstr "Si"
-
-#: plugins/widgets/widgets.cpp:1647
-msgid "FLsavesnap: cannot open file"
-msgstr "FLsavesnap: non riesco ad aprire il file"
-
-#: plugins/widgets/widgets.cpp:1704
-msgid "FLloadsnap: cannot open file"
-msgstr "FLloadsnap: non riesco ad aprire il file"
-
-#: plugins/widgets/widgets.cpp:1750
-msgid ""
-"unmatched widget, probably due to a modified orchestra. Modifying an "
-"orchestra makes it incompatible with old snapshot files"
-msgstr ""
-"widget non combaciante, probabilmente dovuto a orchestra modificata. "
-"Modificare una orchestra la rende incompatibile con i vecchi files "
-"istantanea (snapshot)"
-
-#: plugins/widgets/widgets.cpp:2144
-msgid "end of widget thread\n"
-msgstr "fine del thread del widget\n"
-
-#: plugins/widgets/widgets.cpp:2172
-msgid "FLrun was already called"
-msgstr "FLrun ?? gi?? stato chiamato"
-
-#: plugins/widgets/widgets.cpp:2175
-msgid "FL_run: memory allocation failure"
-msgstr "FL_run: allocazione di memoria fallita"
-
-#: plugins/widgets/widgets.cpp:2286 plugins/widgets/widgets.cpp:2309
-msgid "Error: Unable to fork process\n"
-msgstr "Errore: Non riesco a separare il processo\n"
-
-#: plugins/widgets/widgets.cpp:2722
-msgid "FLpanel_end: invalid stack pointer: verify its placement"
-msgstr ""
-"FLpanel_end: puntatore allo stack non valido: verificate il suo "
-"posizionamento"
-
-#: plugins/widgets/widgets.cpp:2726
-msgid ""
-"FLpanel_end: invalid stack count: verify FLpanel/FLpanel_end count and "
-"placement"
-msgstr ""
-"FLpanel_end: conteggio stack non valido: verificate il conteggio e il "
-"posizionamento di FLpanel/FLpanel_end"
-
-#: plugins/widgets/widgets.cpp:2757 plugins/widgets/widgets.cpp:2795
-msgid "FLscroll_end: invalid stack pointer: verify its placement"
-msgstr ""
-"FLscroll_end: puntatore allo stack non valido: verificate il suo "
-"posizionamento"
-
-#: plugins/widgets/widgets.cpp:2761
-msgid ""
-"FLscroll_end: invalid stack count: verify FLscroll/FLscroll_end count and "
-"placement"
-msgstr ""
-"FLscroll_end: conteggio stack non valido: verificate conteggio e "
-"posizionamento FLscroll/FLscroll_end"
-
-#: plugins/widgets/widgets.cpp:2799
-msgid ""
-"FLtabs_end: invalid stack count: verify FLtabs/FLtabs_end count and placement"
-msgstr ""
-"FLtabs_end: conteggio stack non valido: verificate conteggio e "
-"posizionamento FLtabs/FLtabs_end"
-
-#: plugins/widgets/widgets.cpp:2849
-msgid "FLgroup_end: invalid stack pointer: verify its placement"
-msgstr ""
-"FLgroup_end: puntatore allo stack non valido: verificate il suo "
-"posizionamento"
-
-#: plugins/widgets/widgets.cpp:2853
-msgid ""
-"FLgroup_end: invalid stack count: verify FLgroup/FLgroup_end count and "
-"placement"
-msgstr ""
-"FLgroup_end: conteggio stack non valido: verificate conteggio e "
-"posizionamento FLgroup/FLgroup_end"
-
-#: plugins/widgets/widgets.cpp:2894
-msgid "FLpack_end: invalid stack pointer: verify its placement"
-msgstr ""
-"FLpack_end: puntatore allo stack non valido: verificate il suo posizionamento"
-
-#: plugins/widgets/widgets.cpp:2898
-msgid ""
-"FLpack_end: invalid stack count: verify FLpack/FLpack_end count and placement"
-msgstr ""
-"FLpack_end: conteggio stack non valido: verificate conteggio e "
-"posizionamento FLpack/FLpack_end"
-
-#: plugins/widgets/widgets.cpp:2985
-msgid "System error: value() method called from non-valuator object"
-msgstr ""
-
-#: plugins/widgets/widgets.cpp:3060
-msgid "FLvalue cannot be set by FLsetVal.\n"
-msgstr "FLvalue non pu?? essere impostato da FLsetVal.\n"
-
-#: plugins/widgets/widgets.cpp:3078
-#, c-format
-msgid "(fl_setWidgetValuei): not fully implemented yet; exp=%d"
-msgstr "(fl_setWidgetValuei): non ancora implementato del tutto; exp=%d"
-
-#: plugins/widgets/widgets.cpp:3099
-msgid "FLvalue cannot be set by FLsetVal\n"
-msgstr "FLvalue non pu?? essere impostato da FLsetVal\n"
-
-#: plugins/widgets/widgets.cpp:3117
-#, c-format
-msgid "(fl_setWidgetValue_set): not fully implemented yet; exp=%d"
-msgstr "(fl_setWidgetValue_set): non ancora implementato del tutto; exp=%d"
-
-#: plugins/widgets/widgets.cpp:3537 plugins/widgets/widgets.cpp:5044
-msgid "FLslider exponential, using non-labeled slider"
-msgstr "FLslider esponenziale, uso slider non etichettato"
-
-#: plugins/widgets/widgets.cpp:3560
-msgid "FLslider: invalid slider type"
-msgstr "FLslider: tipo di slider non valido"
-
-#: plugins/widgets/widgets.cpp:3573 plugins/widgets/widgets.cpp:4418
-msgid "FLslider: zero is illegal in exponential operations"
-msgstr "FLslider: zero ?? illegale nelle operazioni esponenziali"
-
-#: plugins/widgets/widgets.cpp:3639 plugins/widgets/widgets.cpp:4780
-#: plugins/widgets/widgets.cpp:5006 plugins/widgets/widgets.cpp:5198
-msgid "invalid ZAK space allocation"
-msgstr "allocazione dello spazio ZAK non valida"
-
-#: plugins/widgets/widgets.cpp:3754
-msgid "FLslidBnk: zero is illegal in exponential operations"
-msgstr "FLslidBnk: zero ?? illegale nelle operazioni esponenziali"
-
-#: plugins/widgets/widgets.cpp:3863 plugins/widgets/widgets.cpp:3897
-msgid "FLjoy X axe: zero is illegal in exponential operations"
-msgstr "FLjoy asse X: zero ?? illegale nelle operazioni esponenziali"
-
-#: plugins/widgets/widgets.cpp:3994
-msgid "FLknob: invalid knob type"
-msgstr "FLknob: tipo di manopola (knob) non valido"
-
-#: plugins/widgets/widgets.cpp:4010
-msgid "FLknob: zero is illegal in exponential operations"
-msgstr "FLknob: zero ?? illegale nelle operazioni esponenziali"
-
-#: plugins/widgets/widgets.cpp:4115 plugins/widgets/widgets.cpp:4248
-#, c-format
-msgid "FLbutton \"%s\" ignoring snapshot capture retrieve"
-msgstr ""
-
-#: plugins/widgets/widgets.cpp:4157
-msgid "FLbutton: invalid button type"
-msgstr "FLbutton: tipo di pulsante non valido"
-
-#: plugins/widgets/widgets.cpp:4193
-msgid "FLcloseButton: invalid stack pointer: verify its placement"
-msgstr ""
-"FLcloseButton: puntatore allo stack non valido: verificate il suo "
-"posizionamento"
-
-#: plugins/widgets/widgets.cpp:4215
-#, c-format
-msgid "Command Found: %s\n"
-msgstr "Trovato Comando: %s\n"
-
-#: plugins/widgets/widgets.cpp:4218
-msgid "About"
-msgstr "A proposito"
-
-#: plugins/widgets/widgets.cpp:4291
-msgid "FLbuttonBank: invalid button type"
-msgstr "FLbuttonBank: tipo di buttonnon valido"
-
-#: plugins/widgets/widgets.cpp:4331
-#, c-format
-msgid "FLcount \"%s\" ignoring snapshot capture retrieve"
-msgstr ""
-
-#: plugins/widgets/widgets.cpp:4404
-msgid "FLroller: invalid roller type"
-msgstr "FLroller: tipo di roller non valido"
-
-#: plugins/widgets/widgets.cpp:4616
-msgid "FLhvsBox: a square area must be delimited by 2 lines at least"
-msgstr "FLhvsBox: un'area quadrata deve essere delimitata da almeno 2 linee"
-
-#: plugins/widgets/widgets.cpp:4670
-msgid "FLkeyIn: invalid table number"
-msgstr "FLkeyIn: numero di tavola non valido"
-
-#: plugins/widgets/widgets.cpp:4674
-msgid "FLkeyIn: table too short!"
-msgstr "FLkeyIn: tavola troppo corta!"
-
-#: plugins/widgets/widgets.cpp:4904
-msgid "FLvslidBnk: zero is illegal in exponential operations"
-msgstr "FLvslidBnk: zero ?? illegale nelle operazioni esponenziali"
-
-#: plugins/widgets/widgets.cpp:5095 plugins/widgets/widgets.cpp:5288
-msgid "FLsliderBank: zero is illegal in exponential operations"
-msgstr "FLsliderBank: zero ?? illegale nelle operazioni esponenziali"
-
-#: plugins/widgets/widgets.cpp:5237
-msgid "FLslidBnk2: FLslider exponential, using non-labeled slider"
-msgstr "FLslidBnk2: FLslider esponenziale, uso slider non etichettato"
-
-#: plugins/widgets/widgets.cpp:5384 plugins/widgets/widgets.cpp:5453
-msgid "FLsldBnkSet: invalid table number"
-msgstr "FLsldBnkSet: numero di tavola non valido"
-
-#: plugins/widgets/widgets.cpp:5389 plugins/widgets/widgets.cpp:5458
-msgid "FLslidBnkSet: table too short!"
-msgstr "FLslidBnkSet: la tavola ?? troppo corta!"
-
-#: plugins/widgets/widgets.cpp:5398 plugins/widgets/widgets.cpp:5467
-msgid "FLsldBnkSet: invalid outable number"
-msgstr "FLsldBnkSet: numero della outable non valido"
-
-#: plugins/widgets/widgets.cpp:5403 plugins/widgets/widgets.cpp:5473
-msgid "FLslidBnkSet: too many sliders to reset!"
-msgstr "FLslidBnkSet: troppi slider da resettare!"
-
-#: plugins/widgets/widgets.cpp:5427
-msgid "FLslidBnkSet: function mapping not available"
-msgstr "FLslidBnkSet: funzione di mappatura non disponibile"
-
-#: plugins/widgets/widgets.cpp:5501 plugins/widgets/widgets.cpp:5595
-#: plugins/widgets/widgets.cpp:5685
-msgid ""
-"FLslidBnk2Setk: value out of range: function mapping requires a 0 to 1 range "
-"for input"
-msgstr ""
-"FLslidBnk2Setk: valore fuori intervallo: funzione di mappatura richiede "
-"intervallo da 0 a 1 per l'input"
-
-#: plugins/widgets/widgets.cpp:5533
-msgid "FLsldBnkSetk: invalid table number"
-msgstr "FLsldBnkSetk: numero di tavola non valido"
-
-#: plugins/widgets/widgets.cpp:5538 plugins/widgets/widgets.cpp:5631
-msgid "FLslidBnkSetk: table too short!"
-msgstr "FLslidBnkSetk: la tavola ?? troppo corta!"
-
-#: plugins/widgets/widgets.cpp:5547
-msgid "FLsldBnkSetk: invalid outable number"
-msgstr "FLsldBnkSetk: numero della outable non valido"
-
-#: plugins/widgets/widgets.cpp:5553 plugins/widgets/widgets.cpp:5646
-msgid "FLslidBnkSetk: too many sliders to reset!"
-msgstr "FLslidBnkSetk: troppi slider da resettare!"
-
-#: plugins/widgets/widgets.cpp:5626
-msgid "FLslidBnkSetk: invalid table number"
-msgstr "FLslidBnkSetk: numero di tavola non valido"
-
-#: plugins/widgets/widgets.cpp:5640
-msgid "FLslidBnkSetk: invalid outable number"
-msgstr "FLslidBnkSetk: numero della outable non valido"
-
-#: plugins/widgets/widgets.cpp:5718
-msgid "FLxyin: none of X limits can be zero in exponential mode!"
-msgstr "FLxyin: nessun limite di X pu?? essere zero nel modo esponenziale!"
-
-#: plugins/widgets/widgets.cpp:5745
-msgid "FLxyin: none of Y limits can be zero in exponential mode!"
-msgstr "FLxyin: nessun limite di Y pu?? essere zero nel modo esponenziale!"
-
 #: InOut/winEPS.c:135
 #, c-format
 msgid "** Warning **  PostScript file %s cannot be opened\n"
@@ -4276,15 +3957,6 @@ msgstr ""
 "\n"
 " PostScript graphs scritto sul file %s\n"
 "\n"
-
-#: plugins/widgets/winFLTK.c:55
-#, c-format
-msgid "%s: widget opcodes have been disabled by the host application"
-msgstr "%s: l'opcode widget ?? stato disabilitato dall'applicazione host"
-
-#: plugins/widgets/winFLTK.c:80
-msgid "widgets.cpp: error allocating FLTK flags"
-msgstr "widgets.cpp: errore allocazione opzioni FLTK"
 
 #: InOut/winascii.c:78
 #, c-format
@@ -4738,7 +4410,7 @@ msgstr "formato richiesto sconosciuto"
 msgid "alaw and ulaw not implemented here"
 msgstr "alaw e ulaw qui non sono implementati"
 
-#: OOps/dumpf.c:310 OOps/dumpf.c:670
+#: OOps/dumpf.c:310 OOps/dumpf.c:694
 msgid "unknown kdump format"
 msgstr "formato kdump sconosciuto"
 
@@ -4746,7 +4418,7 @@ msgstr "formato kdump sconosciuto"
 msgid "write failure in dumpk"
 msgstr "scrittura fallita in dumpk"
 
-#: OOps/dumpf.c:803
+#: OOps/dumpf.c:827
 msgid "Read failure in readks"
 msgstr "Lettura fallita in readks"
 
@@ -7338,83 +7010,6 @@ msgstr "Tavola no. < 1 sft=%.2f"
 msgid "Source sft table %.2f not found."
 msgstr "Tavola %.2f sorgente sft non trovata."
 
-#: plugins/faustcsound/faustgen.cpp:307
-#, c-format
-msgid ""
-"\n"
-"Faust compilation problem:\n"
-"line %s\n"
-msgstr ""
-"\n"
-"problema di compilazione Faust:\n"
-"linea %s\n"
-
-#: plugins/faustcsound/faustgen.cpp:439
-#, c-format
-msgid "could not find DSP %p for deletion"
-msgstr "non riesco a trovare DSP %p per la cancellazione"
-
-#: plugins/faustcsound/faustgen.cpp:459 plugins/faustcsound/faustgen.cpp:745
-msgid ""
-"Faust code was not ready. Try compiling it \n"
-"in a separate instrument prior to running it here\n"
-msgstr ""
-
-#: plugins/faustcsound/faustgen.cpp:468 plugins/faustcsound/faustgen.cpp:755
-msgid ""
-"Faust code did not compile properly.\n"
-"Check above messages for Faust compiler errors\n"
-msgstr ""
-"Il codice Faust non ?? stato compilato correttamente.\n"
-"Verificate i messaggi sopra per gli errori nel compilatore Faust\n"
-
-#: plugins/faustcsound/faustgen.cpp:473 plugins/faustcsound/faustgen.cpp:760
-msgid "no factory available\n"
-msgstr "no factory available\n"
-
-#: plugins/faustcsound/faustgen.cpp:478 plugins/faustcsound/faustgen.cpp:765
-#, c-format
-msgid "factory not found %d\n"
-msgstr "factory non trovato %d\n"
-
-#: plugins/faustcsound/faustgen.cpp:484 plugins/faustcsound/faustgen.cpp:771
-#: plugins/faustcsound/faustgen.cpp:887
-msgid "Faust instantiation problem\n"
-msgstr "problema istanziamento Faust\n"
-
-#: plugins/faustcsound/faustgen.cpp:550 plugins/faustcsound/faustgen.cpp:1094
-msgid "no dsp instances available\n"
-msgstr "nessuna istanza dsp disponibile\n"
-
-#: plugins/faustcsound/faustgen.cpp:556 plugins/faustcsound/faustgen.cpp:1100
-#, c-format
-msgid "dsp instance not found %d\n"
-msgstr "istanza dsp non trovata %d\n"
-
-#: plugins/faustcsound/faustgen.cpp:565 plugins/faustcsound/faustgen.cpp:812
-#: plugins/faustcsound/faustgen.cpp:925
-msgid "wrong number of input args\n"
-msgstr "numero di argomenti in input sbagliato\n"
-
-#: plugins/faustcsound/faustgen.cpp:569 plugins/faustcsound/faustgen.cpp:817
-msgid "wrong number of output args\n"
-msgstr "numero di argomenti d'output sbagliato\n"
-
-#: plugins/faustcsound/faustgen.cpp:874
-#, c-format
-msgid "Faust compilation problem: %s\n"
-msgstr "problema di compilazione Faust: %s\n"
-
-#: plugins/faustcsound/faustgen.cpp:936
-#, fuzzy, c-format
-msgid "wrong number of output args: need %d had %d\n"
-msgstr "numero di argomenti d'output sbagliato\n"
-
-#: plugins/faustcsound/faustgen.cpp:1106 plugins/faustcsound/faustgen.cpp:1123
-#, c-format
-msgid "dsp control %s not found\n"
-msgstr "controllo dsp %s non trovato\n"
-
 #: Opcodes/filter.c:187 Opcodes/filter.c:225
 msgid "Filter order out of bounds: (1 <= nb < 51, 0 <= na <= 50)"
 msgstr "Ordine del filtro fuori dai limiti: (1 <= nb < 51, 0 <= na <= 50)"
@@ -8625,32 +8220,6 @@ msgstr "pvsifd: fftsize dovrebbe essere un potenza di due"
 msgid "pvsifd: unsupported value for iwintype\n"
 msgstr "pvsifd: valore di iwintype non supportato\n"
 
-#: plugins/image/imageOpcodes.c:105 plugins/image/imageOpcodes.c:433
-#, c-format
-msgid "imageload: cannot open image %s.\n"
-msgstr "imageload: non posso aprire l'immagine %s.\n"
-
-#: plugins/image/imageOpcodes.c:111 plugins/image/imageOpcodes.c:117
-#, c-format
-msgid "imageload: file %s is not in PNG format.\n"
-msgstr "imageload: il file %s non ?? in formato PNG.\n"
-
-#: plugins/image/imageOpcodes.c:125 plugins/image/imageOpcodes.c:132
-#: plugins/image/imageOpcodes.c:172 plugins/image/imageOpcodes.c:181
-#: plugins/image/imageOpcodes.c:196 plugins/image/imageOpcodes.c:299
-#: plugins/image/imageOpcodes.c:306 plugins/image/imageOpcodes.c:319
-msgid "imageload: out of memory.\n"
-msgstr "imageload: fuori memoria.\n"
-
-#: plugins/image/imageOpcodes.c:291
-#, c-format
-msgid "imageload: cannot open image %s for writing.\n"
-msgstr "imageload: non posso aprire l'immagine %s in scrittura.\n"
-
-#: plugins/image/imageOpcodes.c:400
-msgid "Cannot allocate memory.\n"
-msgstr "Non posso allocare memoria.\n"
-
 #: Opcodes/jackTransport.c:58
 msgid "Cannot find Jack client.\n"
 msgstr "Non riesco a trovare il cliente Jack.\n"
@@ -9269,97 +8838,97 @@ msgstr "Deve avere un numero pari di argomenti in mac\n"
 msgid "clockread: clock still running, call clockoff first"
 msgstr "clockread: clock ?? ancora in funzione, chiamate prima clockoff"
 
-#: Opcodes/pitch.c:595 Opcodes/pitch.c:605
+#: Opcodes/pitch.c:596 Opcodes/pitch.c:606
 msgid "scratchpad index out of range"
 msgstr "scratchpad indece fuori intervallo"
 
-#: Opcodes/pitch.c:628
+#: Opcodes/pitch.c:629
 msgid "adsynt: wavetable not found!"
 msgstr "adsynt: wavetable non trovata!"
 
-#: Opcodes/pitch.c:641
+#: Opcodes/pitch.c:642
 msgid "adsynt: freqtable not found!"
 msgstr "adsynt: freqtable non trovata!"
 
-#: Opcodes/pitch.c:646
+#: Opcodes/pitch.c:647
 msgid "adsynt: partial count is greater than freqtable size!"
 msgstr ""
 "adsynt: il conto delle parziali ?? maggiore della dimensione di freqtable!"
 
-#: Opcodes/pitch.c:654
+#: Opcodes/pitch.c:655
 msgid "adsynt: amptable not found!"
 msgstr "adsynt: amptable non trovata!"
 
-#: Opcodes/pitch.c:659
+#: Opcodes/pitch.c:660
 msgid "adsynt: partial count is greater than amptable size!"
 msgstr ""
 "adsynt: il conto delle parziali ?? maggiore della dimensione di amptable!"
 
-#: Opcodes/pitch.c:695
+#: Opcodes/pitch.c:696
 msgid "adsynt: not initialised"
 msgstr "adsynt: non inizializzato"
 
-#: Opcodes/pitch.c:775
+#: Opcodes/pitch.c:776
 msgid "hsboscil: not initialised"
 msgstr "hsboscil: non inizializzato"
 
-#: Opcodes/pitch.c:861
+#: Opcodes/pitch.c:862
 msgid "pitchamdf: maxcps must be > mincps !"
 msgstr "pitchamdf: maxcps deve essere > mincps !"
 
-#: Opcodes/pitch.c:1008
+#: Opcodes/pitch.c:1009
 msgid "pitchamdf: not initialised"
 msgstr "pitchamdf: non inizializzato"
 
-#: Opcodes/pitch.c:1189 Opcodes/pitch.c:1219
+#: Opcodes/pitch.c:1190 Opcodes/pitch.c:1220
 msgid "phasorbnk: not initialised"
 msgstr "phasorbnk: non inizializzato"
 
-#: Opcodes/pitch.c:1286
+#: Opcodes/pitch.c:1287
 msgid "pinkish: Invalid method code"
 msgstr ""
 
-#: Opcodes/pitch.c:1297
+#: Opcodes/pitch.c:1298
 msgid "pinkish: Filter method requires a-rate (noise) input"
 msgstr "pinkish: Il metodo del filtro richiede un input (noise) a-rate"
 
-#: Opcodes/pitch.c:1426
+#: Opcodes/pitch.c:1427
 #, c-format
 msgid ""
 "pinkish: Gardner method requires 4-%d bands. Default %<PRIi32> substituted "
 "for %d.\n"
 msgstr ""
 
-#: Opcodes/pitch.c:1693
+#: Opcodes/pitch.c:1694
 msgid "Incorrect argument count in transeg"
 msgstr "Numero di argomenti non corretto in transeg"
 
-#: Opcodes/pitch.c:1745
+#: Opcodes/pitch.c:1746
 msgid "Incorrect argument count in transegb"
 msgstr "Numero di argomenti non corretto in transegb"
 
-#: Opcodes/pitch.c:1796 Opcodes/pitch.c:1955
+#: Opcodes/pitch.c:1797 Opcodes/pitch.c:1956
 msgid "Error: transeg not initialised (krate)\n"
 msgstr "Errore: transeg non inizializzato (krate)\n"
 
-#: Opcodes/pitch.c:1834 Opcodes/pitch.c:2014
+#: Opcodes/pitch.c:1835 Opcodes/pitch.c:2015
 msgid "transeg: not initialised (arate)\n"
 msgstr "transeg: non inizializzato (arate)\n"
 
-#: Opcodes/pitch.c:1891
+#: Opcodes/pitch.c:1892
 msgid "Incorrect argument count in transegr"
 msgstr "Numero di argomenti non corretto in transegr"
 
-#: Opcodes/pitch.c:2331
+#: Opcodes/pitch.c:2332
 msgid "median: not initialised (arate)\n"
 msgstr "median: non inizializzato (arate)\n"
 
-#: Opcodes/pitch.c:2335 Opcodes/pitch.c:2388
+#: Opcodes/pitch.c:2336 Opcodes/pitch.c:2389
 #, c-format
 msgid "median: window (%d)larger than maximum(%d); truncated"
 msgstr "median: window (%d)pi?? larga del massimo(%d); troncata"
 
-#: Opcodes/pitch.c:2384
+#: Opcodes/pitch.c:2385
 msgid "median: not initialised (krate)\n"
 msgstr "median: non inizializzato (krate)\n"
 
@@ -9775,152 +9344,157 @@ msgstr "reverbsc: fattore di modulazione dell'altezza (pitch) non valido"
 msgid "reverbsc: not initialised"
 msgstr "reverbsc: non inizializzato"
 
-#: Opcodes/scansyn.c:57
+#: Opcodes/scansyn.c:60
 msgid "scanu: Could not find ifnnit ftable"
 msgstr "scanu: Non trovo la ftable ifnnit"
 
-#: Opcodes/scansyn.c:60
+#: Opcodes/scansyn.c:63
 msgid "scanu: Init table has bad size"
 msgstr "scanu: Tavola init ha una pessima dimensione"
 
-#: Opcodes/scansyn.c:84
+#: Opcodes/scansyn.c:94
 msgid "scanu: Could not find ifninit ftable"
 msgstr "scanu: Non trovo la ftable ifninit"
 
-#: Opcodes/scansyn.c:138 Opcodes/scansyn.c:195 Opcodes/scansynx.c:214
+#: Opcodes/scansyn.c:148 Opcodes/scansyn.c:205 Opcodes/scansynx.c:200
 msgid "Eek ... scan synthesis id was not found"
 msgstr "Eek ... scan synthesis id non ?? stato trovato"
 
-#: Opcodes/scansyn.c:186
+#: Opcodes/scansyn.c:196
 msgid "scans: No scan synthesis net specified"
 msgstr "scans: Nessuna scan synthesis net specificata"
 
-#: Opcodes/scansyn.c:219
+#: Opcodes/scansyn.c:229
 msgid "scanu: Could not find ifnmass table"
 msgstr "scanu: Non trovo la tavola ifnmass"
 
-#: Opcodes/scansyn.c:227
+#: Opcodes/scansyn.c:237
 msgid "scanu: Could not find ifncentr table"
 msgstr "scanu: Non trovo la tavola ifncentr"
 
-#: Opcodes/scansyn.c:231 Opcodes/scansyn.c:242 Opcodes/scansyn.c:321
+#: Opcodes/scansyn.c:241 Opcodes/scansyn.c:252 Opcodes/scansyn.c:331
 msgid "scanu: Parameter tables should all have the same length"
 msgstr ""
 "scanu: Le tavole dei parametri dovrebbero avere tutte la stessa lunghezza"
 
-#: Opcodes/scansyn.c:238
+#: Opcodes/scansyn.c:248
 msgid "scanu: Could not find ifndamp table"
 msgstr "scanu: Non trovo la tavola ifndamp"
 
-#: Opcodes/scansyn.c:253
+#: Opcodes/scansyn.c:263
 msgid "scanu: Could not find ifnstiff table"
 msgstr "scanu: Non trovo la tavola ifnstiff"
 
-#: Opcodes/scansyn.c:260
+#: Opcodes/scansyn.c:270
 msgid "scanu: Spring matrix is too small"
 msgstr "scanu: La matrice Spring ?? troppo piccola"
 
-#: Opcodes/scansyn.c:317
+#: Opcodes/scansyn.c:327
 msgid "scanu: Could not find ifnvel table"
 msgstr "scanu: Non trovo la tavola ifnvel"
 
-#: Opcodes/scansyn.c:341 Opcodes/scansynx.c:448
+#: Opcodes/scansyn.c:340
+#, fuzzy
+msgid "i_rate parameter out of range\n"
+msgstr "pvsadsyn: parametro ibin fuori intervallo.\n"
+
+#: Opcodes/scansyn.c:356 Opcodes/scansynx.c:434
 msgid "Mass displacement"
 msgstr "Posizionamento delle Masse"
 
-#: Opcodes/scansyn.c:341 Opcodes/scansynx.c:448
+#: Opcodes/scansyn.c:356 Opcodes/scansynx.c:434
 msgid "Scansynth window"
 msgstr "Scansynth window"
 
-#: Opcodes/scansyn.c:361
+#: Opcodes/scansyn.c:376
 msgid "scanu: invalid id table"
 msgstr "scanu: id della tavola non valido"
 
-#: Opcodes/scansyn.c:453
+#: Opcodes/scansyn.c:488
 msgid "scanu: not initialised"
 msgstr "scanu: non inizializzato"
 
-#: Opcodes/scansyn.c:489 Opcodes/scansynx.c:617
+#: Opcodes/scansyn.c:524 Opcodes/scansynx.c:609
 msgid "scans: Could not find the ifntraj table"
 msgstr "scans: Non trovo la tavola ifntraj"
 
-#: Opcodes/scansyn.c:499
+#: Opcodes/scansyn.c:534
 msgid "vermp: Trajectory table includes values out of range"
 msgstr "vermp: La tavola della traiettoria ha valori fuori intervallo"
 
-#: Opcodes/scansynx.c:93
+#: Opcodes/scansynx.c:81
 msgid "scanux: Could not find ifnnit ftable"
 msgstr "scanux: Non trovo la ftable ifnnit"
 
-#: Opcodes/scansynx.c:97
+#: Opcodes/scansynx.c:85
 msgid "scanux: Init table has bad size"
 msgstr "scanux: Tavola init ha una pessima dimensione"
 
-#: Opcodes/scansynx.c:131
+#: Opcodes/scansynx.c:117
 msgid "scanux: Could not find ifninit ftable"
 msgstr "scanux: Non trovo la ftable ifninit"
 
-#: Opcodes/scansynx.c:205
+#: Opcodes/scansynx.c:191
 msgid "xscans: No scan synthesis net specified"
 msgstr "xscans: Nessuna scan synthesis net specificata"
 
-#: Opcodes/scansynx.c:243
+#: Opcodes/scansynx.c:229
 msgid "scanux: Could not find ifnmass table"
 msgstr "scanux: Non trovo la tavola ifnmass"
 
-#: Opcodes/scansynx.c:251
+#: Opcodes/scansynx.c:237
 msgid "scanux: Could not find ifncentr table"
 msgstr "scanux: Non trovo la tavola ifncentr"
 
-#: Opcodes/scansynx.c:255 Opcodes/scansynx.c:266 Opcodes/scansynx.c:429
+#: Opcodes/scansynx.c:241 Opcodes/scansynx.c:252 Opcodes/scansynx.c:415
 msgid "scanux: Parameter tables should all have the same length"
 msgstr ""
 "scanux: Le tavole dei parametri dovrebbero avere tutte la stessa lunghezza"
 
-#: Opcodes/scansynx.c:262
+#: Opcodes/scansynx.c:248
 msgid "scanux: Could not find ifndamp table"
 msgstr "scanux: Non trovo la tavola ifndamp"
 
-#: Opcodes/scansynx.c:277
+#: Opcodes/scansynx.c:263
 msgid "scanux: Could not find ifnstiff table"
 msgstr "scanux: Non trovo la tavola ifnstiff"
 
-#: Opcodes/scansynx.c:283
+#: Opcodes/scansynx.c:269
 msgid "scanux: Spring matrix is too small"
 msgstr "scanux: La matrice Spring ?? troppo piccola"
 
-#: Opcodes/scansynx.c:322
+#: Opcodes/scansynx.c:308
 #, c-format
 msgid "SCANU cannot load %s"
 msgstr "SCANU non posso caricare %s"
 
-#: Opcodes/scansynx.c:342
+#: Opcodes/scansynx.c:328
 #, c-format
 msgid "%d: Looking for (%d) %s Found %.12s\n"
 msgstr "%d: Cercando (%d) %s Trovato %.12s\n"
 
-#: Opcodes/scansynx.c:344
+#: Opcodes/scansynx.c:330
 msgid "Not a valid matrix"
 msgstr "Non ?? una matrice valida"
 
-#: Opcodes/scansynx.c:369
+#: Opcodes/scansynx.c:355
 #, c-format
 msgid "(%d,%d) is out of range\n"
 msgstr "(%d,%d) ?? fuori intervallo\n"
 
-#: Opcodes/scansynx.c:425
+#: Opcodes/scansynx.c:411
 msgid "scanux: Could not find ifnvel table"
 msgstr "scanux: Non trovo la tavola ifnvel"
 
-#: Opcodes/scansynx.c:467
+#: Opcodes/scansynx.c:453
 msgid "xscanu: invalid id table"
 msgstr "xscanu: id della tavola non valido"
 
-#: Opcodes/scansynx.c:584
+#: Opcodes/scansynx.c:576
 msgid "xscanu: not initialised"
 msgstr "xscanu: non inizializzato"
 
-#: Opcodes/scansynx.c:627
+#: Opcodes/scansynx.c:619
 msgid "scsn: Trajectory table includes values out of range"
 msgstr "scsn: La tavola della traiettoria ha valori fuori intervallo"
 
@@ -10616,14 +10190,14 @@ msgstr "Errore nell'allocazione dell'argomento nello stack"
 msgid "the stack is already allocated"
 msgstr "lo stack ?? gia allocato"
 
+#: Opcodes/stdopcod.c:39
+msgid "stdopcod.c: error: globals already allocated"
+msgstr "stdopcod.c: errore: globali gi?? allocate"
+
 #: Opcodes/sterrain.c:144 Opcodes/sterrain.c:151
 #, fuzzy, c-format
 msgid "no table %g\n"
 msgstr "ftable %d:\n"
-
-#: Opcodes/stdopcod.c:39
-msgid "stdopcod.c: error: globals already allocated"
-msgstr "stdopcod.c: errore: globali gi?? allocate"
 
 #: Opcodes/stk/stkOpcodes.cpp:567
 msgid ""
@@ -13187,6 +12761,437 @@ msgid ""
 "Array too small (allocated %zu < needed %zu), but cannot allocate during "
 "performance pass. Allocate a bigger array at init time"
 msgstr ""
+
+#: plugins/faustcsound/faustgen.cpp:307
+#, c-format
+msgid ""
+"\n"
+"Faust compilation problem:\n"
+"line %s\n"
+msgstr ""
+"\n"
+"problema di compilazione Faust:\n"
+"linea %s\n"
+
+#: plugins/faustcsound/faustgen.cpp:439
+#, c-format
+msgid "could not find DSP %p for deletion"
+msgstr "non riesco a trovare DSP %p per la cancellazione"
+
+#: plugins/faustcsound/faustgen.cpp:459 plugins/faustcsound/faustgen.cpp:745
+msgid ""
+"Faust code was not ready. Try compiling it \n"
+"in a separate instrument prior to running it here\n"
+msgstr ""
+
+#: plugins/faustcsound/faustgen.cpp:468 plugins/faustcsound/faustgen.cpp:755
+msgid ""
+"Faust code did not compile properly.\n"
+"Check above messages for Faust compiler errors\n"
+msgstr ""
+"Il codice Faust non ?? stato compilato correttamente.\n"
+"Verificate i messaggi sopra per gli errori nel compilatore Faust\n"
+
+#: plugins/faustcsound/faustgen.cpp:473 plugins/faustcsound/faustgen.cpp:760
+msgid "no factory available\n"
+msgstr "no factory available\n"
+
+#: plugins/faustcsound/faustgen.cpp:478 plugins/faustcsound/faustgen.cpp:765
+#, c-format
+msgid "factory not found %d\n"
+msgstr "factory non trovato %d\n"
+
+#: plugins/faustcsound/faustgen.cpp:484 plugins/faustcsound/faustgen.cpp:771
+#: plugins/faustcsound/faustgen.cpp:887
+msgid "Faust instantiation problem\n"
+msgstr "problema istanziamento Faust\n"
+
+#: plugins/faustcsound/faustgen.cpp:550 plugins/faustcsound/faustgen.cpp:1094
+msgid "no dsp instances available\n"
+msgstr "nessuna istanza dsp disponibile\n"
+
+#: plugins/faustcsound/faustgen.cpp:556 plugins/faustcsound/faustgen.cpp:1100
+#, c-format
+msgid "dsp instance not found %d\n"
+msgstr "istanza dsp non trovata %d\n"
+
+#: plugins/faustcsound/faustgen.cpp:565 plugins/faustcsound/faustgen.cpp:812
+#: plugins/faustcsound/faustgen.cpp:925
+msgid "wrong number of input args\n"
+msgstr "numero di argomenti in input sbagliato\n"
+
+#: plugins/faustcsound/faustgen.cpp:569 plugins/faustcsound/faustgen.cpp:817
+msgid "wrong number of output args\n"
+msgstr "numero di argomenti d'output sbagliato\n"
+
+#: plugins/faustcsound/faustgen.cpp:874
+#, c-format
+msgid "Faust compilation problem: %s\n"
+msgstr "problema di compilazione Faust: %s\n"
+
+#: plugins/faustcsound/faustgen.cpp:936
+#, fuzzy, c-format
+msgid "wrong number of output args: need %d had %d\n"
+msgstr "numero di argomenti d'output sbagliato\n"
+
+#: plugins/faustcsound/faustgen.cpp:1106 plugins/faustcsound/faustgen.cpp:1123
+#, c-format
+msgid "dsp control %s not found\n"
+msgstr "controllo dsp %s non trovato\n"
+
+#: plugins/image/imageOpcodes.c:105 plugins/image/imageOpcodes.c:433
+#, c-format
+msgid "imageload: cannot open image %s.\n"
+msgstr "imageload: non posso aprire l'immagine %s.\n"
+
+#: plugins/image/imageOpcodes.c:111 plugins/image/imageOpcodes.c:117
+#, c-format
+msgid "imageload: file %s is not in PNG format.\n"
+msgstr "imageload: il file %s non ?? in formato PNG.\n"
+
+#: plugins/image/imageOpcodes.c:125 plugins/image/imageOpcodes.c:132
+#: plugins/image/imageOpcodes.c:172 plugins/image/imageOpcodes.c:181
+#: plugins/image/imageOpcodes.c:196 plugins/image/imageOpcodes.c:299
+#: plugins/image/imageOpcodes.c:306 plugins/image/imageOpcodes.c:319
+msgid "imageload: out of memory.\n"
+msgstr "imageload: fuori memoria.\n"
+
+#: plugins/image/imageOpcodes.c:291
+#, c-format
+msgid "imageload: cannot open image %s for writing.\n"
+msgstr "imageload: non posso aprire l'immagine %s in scrittura.\n"
+
+#: plugins/image/imageOpcodes.c:400
+msgid "Cannot allocate memory.\n"
+msgstr "Non posso allocare memoria.\n"
+
+#: plugins/widgets/widgets.cpp:1128
+msgid ""
+"Invalid snapshot. Perhaps you modified orchestra widget code after you saved "
+"the snapshot bank."
+msgstr ""
+"Istantanea (snapshot) non valida. Forse avete modificato il codice orchestra "
+"del widget dopo aver salvato l'istantanea del banco."
+
+#: plugins/widgets/widgets.cpp:1321
+msgid "No name for FLbutbank"
+msgstr "Nessun nome per FLbutbank"
+
+#: plugins/widgets/widgets.cpp:1579
+msgid "FLsetsnap: invalid table"
+msgstr "FLsetsnap: tavola non valida"
+
+#: plugins/widgets/widgets.cpp:1584
+msgid "setsnap saving\n"
+msgstr "salvataggio setsnap\n"
+
+#: plugins/widgets/widgets.cpp:1623
+msgid ""
+"Saving could overwrite the old file.\n"
+"Are you sure to save ?"
+msgstr ""
+"Il salvataggio potrebbe sovrascrivere il vecchio file.\n"
+"Sicuro di voler salvare ?"
+
+#: plugins/widgets/widgets.cpp:1624
+msgid "Warning"
+msgstr "Attenzione"
+
+#: plugins/widgets/widgets.cpp:1635
+msgid ""
+"Saving could overwrite the old file.\n"
+"Are you sure you want to save ?"
+msgstr ""
+"Il salvataggio potrebbe sovrascrivere il vecchio file.\n"
+"Sicuro di voler salvare ?"
+
+#: plugins/widgets/widgets.cpp:1637
+msgid "No"
+msgstr "No"
+
+#: plugins/widgets/widgets.cpp:1637
+msgid "Yes"
+msgstr "Si"
+
+#: plugins/widgets/widgets.cpp:1647
+msgid "FLsavesnap: cannot open file"
+msgstr "FLsavesnap: non riesco ad aprire il file"
+
+#: plugins/widgets/widgets.cpp:1704
+msgid "FLloadsnap: cannot open file"
+msgstr "FLloadsnap: non riesco ad aprire il file"
+
+#: plugins/widgets/widgets.cpp:1750
+msgid ""
+"unmatched widget, probably due to a modified orchestra. Modifying an "
+"orchestra makes it incompatible with old snapshot files"
+msgstr ""
+"widget non combaciante, probabilmente dovuto a orchestra modificata. "
+"Modificare una orchestra la rende incompatibile con i vecchi files "
+"istantanea (snapshot)"
+
+#: plugins/widgets/widgets.cpp:2144
+msgid "end of widget thread\n"
+msgstr "fine del thread del widget\n"
+
+#: plugins/widgets/widgets.cpp:2172
+msgid "FLrun was already called"
+msgstr "FLrun ?? gi?? stato chiamato"
+
+#: plugins/widgets/widgets.cpp:2175
+msgid "FL_run: memory allocation failure"
+msgstr "FL_run: allocazione di memoria fallita"
+
+#: plugins/widgets/widgets.cpp:2286 plugins/widgets/widgets.cpp:2309
+msgid "Error: Unable to fork process\n"
+msgstr "Errore: Non riesco a separare il processo\n"
+
+#: plugins/widgets/widgets.cpp:2722
+msgid "FLpanel_end: invalid stack pointer: verify its placement"
+msgstr ""
+"FLpanel_end: puntatore allo stack non valido: verificate il suo "
+"posizionamento"
+
+#: plugins/widgets/widgets.cpp:2726
+msgid ""
+"FLpanel_end: invalid stack count: verify FLpanel/FLpanel_end count and "
+"placement"
+msgstr ""
+"FLpanel_end: conteggio stack non valido: verificate il conteggio e il "
+"posizionamento di FLpanel/FLpanel_end"
+
+#: plugins/widgets/widgets.cpp:2757 plugins/widgets/widgets.cpp:2795
+msgid "FLscroll_end: invalid stack pointer: verify its placement"
+msgstr ""
+"FLscroll_end: puntatore allo stack non valido: verificate il suo "
+"posizionamento"
+
+#: plugins/widgets/widgets.cpp:2761
+msgid ""
+"FLscroll_end: invalid stack count: verify FLscroll/FLscroll_end count and "
+"placement"
+msgstr ""
+"FLscroll_end: conteggio stack non valido: verificate conteggio e "
+"posizionamento FLscroll/FLscroll_end"
+
+#: plugins/widgets/widgets.cpp:2799
+msgid ""
+"FLtabs_end: invalid stack count: verify FLtabs/FLtabs_end count and placement"
+msgstr ""
+"FLtabs_end: conteggio stack non valido: verificate conteggio e "
+"posizionamento FLtabs/FLtabs_end"
+
+#: plugins/widgets/widgets.cpp:2849
+msgid "FLgroup_end: invalid stack pointer: verify its placement"
+msgstr ""
+"FLgroup_end: puntatore allo stack non valido: verificate il suo "
+"posizionamento"
+
+#: plugins/widgets/widgets.cpp:2853
+msgid ""
+"FLgroup_end: invalid stack count: verify FLgroup/FLgroup_end count and "
+"placement"
+msgstr ""
+"FLgroup_end: conteggio stack non valido: verificate conteggio e "
+"posizionamento FLgroup/FLgroup_end"
+
+#: plugins/widgets/widgets.cpp:2894
+msgid "FLpack_end: invalid stack pointer: verify its placement"
+msgstr ""
+"FLpack_end: puntatore allo stack non valido: verificate il suo posizionamento"
+
+#: plugins/widgets/widgets.cpp:2898
+msgid ""
+"FLpack_end: invalid stack count: verify FLpack/FLpack_end count and placement"
+msgstr ""
+"FLpack_end: conteggio stack non valido: verificate conteggio e "
+"posizionamento FLpack/FLpack_end"
+
+#: plugins/widgets/widgets.cpp:2985
+msgid "System error: value() method called from non-valuator object"
+msgstr ""
+
+#: plugins/widgets/widgets.cpp:3060
+msgid "FLvalue cannot be set by FLsetVal.\n"
+msgstr "FLvalue non pu?? essere impostato da FLsetVal.\n"
+
+#: plugins/widgets/widgets.cpp:3078
+#, c-format
+msgid "(fl_setWidgetValuei): not fully implemented yet; exp=%d"
+msgstr "(fl_setWidgetValuei): non ancora implementato del tutto; exp=%d"
+
+#: plugins/widgets/widgets.cpp:3099
+msgid "FLvalue cannot be set by FLsetVal\n"
+msgstr "FLvalue non pu?? essere impostato da FLsetVal\n"
+
+#: plugins/widgets/widgets.cpp:3117
+#, c-format
+msgid "(fl_setWidgetValue_set): not fully implemented yet; exp=%d"
+msgstr "(fl_setWidgetValue_set): non ancora implementato del tutto; exp=%d"
+
+#: plugins/widgets/widgets.cpp:3537 plugins/widgets/widgets.cpp:5044
+msgid "FLslider exponential, using non-labeled slider"
+msgstr "FLslider esponenziale, uso slider non etichettato"
+
+#: plugins/widgets/widgets.cpp:3560
+msgid "FLslider: invalid slider type"
+msgstr "FLslider: tipo di slider non valido"
+
+#: plugins/widgets/widgets.cpp:3573 plugins/widgets/widgets.cpp:4418
+msgid "FLslider: zero is illegal in exponential operations"
+msgstr "FLslider: zero ?? illegale nelle operazioni esponenziali"
+
+#: plugins/widgets/widgets.cpp:3639 plugins/widgets/widgets.cpp:4780
+#: plugins/widgets/widgets.cpp:5006 plugins/widgets/widgets.cpp:5198
+msgid "invalid ZAK space allocation"
+msgstr "allocazione dello spazio ZAK non valida"
+
+#: plugins/widgets/widgets.cpp:3754
+msgid "FLslidBnk: zero is illegal in exponential operations"
+msgstr "FLslidBnk: zero ?? illegale nelle operazioni esponenziali"
+
+#: plugins/widgets/widgets.cpp:3863 plugins/widgets/widgets.cpp:3897
+msgid "FLjoy X axe: zero is illegal in exponential operations"
+msgstr "FLjoy asse X: zero ?? illegale nelle operazioni esponenziali"
+
+#: plugins/widgets/widgets.cpp:3994
+msgid "FLknob: invalid knob type"
+msgstr "FLknob: tipo di manopola (knob) non valido"
+
+#: plugins/widgets/widgets.cpp:4010
+msgid "FLknob: zero is illegal in exponential operations"
+msgstr "FLknob: zero ?? illegale nelle operazioni esponenziali"
+
+#: plugins/widgets/widgets.cpp:4115 plugins/widgets/widgets.cpp:4248
+#, c-format
+msgid "FLbutton \"%s\" ignoring snapshot capture retrieve"
+msgstr ""
+
+#: plugins/widgets/widgets.cpp:4157
+msgid "FLbutton: invalid button type"
+msgstr "FLbutton: tipo di pulsante non valido"
+
+#: plugins/widgets/widgets.cpp:4193
+msgid "FLcloseButton: invalid stack pointer: verify its placement"
+msgstr ""
+"FLcloseButton: puntatore allo stack non valido: verificate il suo "
+"posizionamento"
+
+#: plugins/widgets/widgets.cpp:4215
+#, c-format
+msgid "Command Found: %s\n"
+msgstr "Trovato Comando: %s\n"
+
+#: plugins/widgets/widgets.cpp:4218
+msgid "About"
+msgstr "A proposito"
+
+#: plugins/widgets/widgets.cpp:4291
+msgid "FLbuttonBank: invalid button type"
+msgstr "FLbuttonBank: tipo di buttonnon valido"
+
+#: plugins/widgets/widgets.cpp:4331
+#, c-format
+msgid "FLcount \"%s\" ignoring snapshot capture retrieve"
+msgstr ""
+
+#: plugins/widgets/widgets.cpp:4404
+msgid "FLroller: invalid roller type"
+msgstr "FLroller: tipo di roller non valido"
+
+#: plugins/widgets/widgets.cpp:4616
+msgid "FLhvsBox: a square area must be delimited by 2 lines at least"
+msgstr "FLhvsBox: un'area quadrata deve essere delimitata da almeno 2 linee"
+
+#: plugins/widgets/widgets.cpp:4670
+msgid "FLkeyIn: invalid table number"
+msgstr "FLkeyIn: numero di tavola non valido"
+
+#: plugins/widgets/widgets.cpp:4674
+msgid "FLkeyIn: table too short!"
+msgstr "FLkeyIn: tavola troppo corta!"
+
+#: plugins/widgets/widgets.cpp:4904
+msgid "FLvslidBnk: zero is illegal in exponential operations"
+msgstr "FLvslidBnk: zero ?? illegale nelle operazioni esponenziali"
+
+#: plugins/widgets/widgets.cpp:5095 plugins/widgets/widgets.cpp:5288
+msgid "FLsliderBank: zero is illegal in exponential operations"
+msgstr "FLsliderBank: zero ?? illegale nelle operazioni esponenziali"
+
+#: plugins/widgets/widgets.cpp:5237
+msgid "FLslidBnk2: FLslider exponential, using non-labeled slider"
+msgstr "FLslidBnk2: FLslider esponenziale, uso slider non etichettato"
+
+#: plugins/widgets/widgets.cpp:5384 plugins/widgets/widgets.cpp:5453
+msgid "FLsldBnkSet: invalid table number"
+msgstr "FLsldBnkSet: numero di tavola non valido"
+
+#: plugins/widgets/widgets.cpp:5389 plugins/widgets/widgets.cpp:5458
+msgid "FLslidBnkSet: table too short!"
+msgstr "FLslidBnkSet: la tavola ?? troppo corta!"
+
+#: plugins/widgets/widgets.cpp:5398 plugins/widgets/widgets.cpp:5467
+msgid "FLsldBnkSet: invalid outable number"
+msgstr "FLsldBnkSet: numero della outable non valido"
+
+#: plugins/widgets/widgets.cpp:5403 plugins/widgets/widgets.cpp:5473
+msgid "FLslidBnkSet: too many sliders to reset!"
+msgstr "FLslidBnkSet: troppi slider da resettare!"
+
+#: plugins/widgets/widgets.cpp:5427
+msgid "FLslidBnkSet: function mapping not available"
+msgstr "FLslidBnkSet: funzione di mappatura non disponibile"
+
+#: plugins/widgets/widgets.cpp:5501 plugins/widgets/widgets.cpp:5595
+#: plugins/widgets/widgets.cpp:5685
+msgid ""
+"FLslidBnk2Setk: value out of range: function mapping requires a 0 to 1 range "
+"for input"
+msgstr ""
+"FLslidBnk2Setk: valore fuori intervallo: funzione di mappatura richiede "
+"intervallo da 0 a 1 per l'input"
+
+#: plugins/widgets/widgets.cpp:5533
+msgid "FLsldBnkSetk: invalid table number"
+msgstr "FLsldBnkSetk: numero di tavola non valido"
+
+#: plugins/widgets/widgets.cpp:5538 plugins/widgets/widgets.cpp:5631
+msgid "FLslidBnkSetk: table too short!"
+msgstr "FLslidBnkSetk: la tavola ?? troppo corta!"
+
+#: plugins/widgets/widgets.cpp:5547
+msgid "FLsldBnkSetk: invalid outable number"
+msgstr "FLsldBnkSetk: numero della outable non valido"
+
+#: plugins/widgets/widgets.cpp:5553 plugins/widgets/widgets.cpp:5646
+msgid "FLslidBnkSetk: too many sliders to reset!"
+msgstr "FLslidBnkSetk: troppi slider da resettare!"
+
+#: plugins/widgets/widgets.cpp:5626
+msgid "FLslidBnkSetk: invalid table number"
+msgstr "FLslidBnkSetk: numero di tavola non valido"
+
+#: plugins/widgets/widgets.cpp:5640
+msgid "FLslidBnkSetk: invalid outable number"
+msgstr "FLslidBnkSetk: numero della outable non valido"
+
+#: plugins/widgets/widgets.cpp:5718
+msgid "FLxyin: none of X limits can be zero in exponential mode!"
+msgstr "FLxyin: nessun limite di X pu?? essere zero nel modo esponenziale!"
+
+#: plugins/widgets/widgets.cpp:5745
+msgid "FLxyin: none of Y limits can be zero in exponential mode!"
+msgstr "FLxyin: nessun limite di Y pu?? essere zero nel modo esponenziale!"
+
+#: plugins/widgets/winFLTK.c:55
+#, c-format
+msgid "%s: widget opcodes have been disabled by the host application"
+msgstr "%s: l'opcode widget ?? stato disabilitato dall'applicazione host"
+
+#: plugins/widgets/winFLTK.c:80
+msgid "widgets.cpp: error allocating FLTK flags"
+msgstr "widgets.cpp: errore allocazione opzioni FLTK"
 
 #: po/sndfile_str.c:3
 msgid "Format not recognised."
