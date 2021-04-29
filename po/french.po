@@ -9396,9 +9396,8 @@ msgid "scanu: Could not find ifnvel table"
 msgstr "scanu : la table ifnvel n'a pas été trouvée"
 
 #: Opcodes/scansyn.c:340
-#, fuzzy
 msgid "i_rate parameter out of range\n"
-msgstr "pvsadsyn : le paramètre ibin est hors limites.\n"
+msgstr "paramètre i_rate hors limites\n"
 
 #: Opcodes/scansyn.c:356 Opcodes/scansynx.c:434
 msgid "Mass displacement"
