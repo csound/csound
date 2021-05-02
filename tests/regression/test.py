@@ -6,16 +6,16 @@
 import os
 import sys
 
-from testUI import TestApplication
+# from testUI import TestApplication
 
-try:
-    # Python 3
-    from tkinter import *
-except:
-    # Python 2
-    from Tkinter import *
+# try:
+#     # Python 3
+#     from tkinter import *
+# except:
+#     # Python 2
+#     from Tkinter import *
 
-showUIatClose = False
+# showUIatClose = False
 csoundExecutable = ""
 sourceDirectory = "."
 
@@ -25,12 +25,12 @@ class Test:
         self.description = ""
         self.expected = expected
 
-def showUI(results):
-    root = Tk()
-    app = TestApplication(master=root)
-    app.setResults(results.test_output_list)
-    app.mainloop()
-    root.destroy()
+# def showUI(results):
+#     root = Tk()
+#     app = TestApplication(master=root)
+#     app.setResults(results.test_output_list)
+#     app.mainloop()
+#     root.destroy()
 
 def showHelp():
     message = """Csound Regression Test Suite by John ffitch
@@ -173,8 +173,8 @@ if __name__ == "__main__":
             if (arg == "--help"):
                 showHelp()
                 sys.exit(0)
-            elif arg == "--show-ui":
-                showUIatClose = True
+            # elif arg == "--show-ui":
+            #     showUIatClose = True
             elif arg.startswith("--csound-executable="):
                 csoundExecutable = arg[20:]
                 print(csoundExecutable)
@@ -184,8 +184,8 @@ if __name__ == "__main__":
             elif arg.startswith("--source-dir="):
                 sourceDirectory = arg[13:]
     results = runTest()
-    if (showUIatClose):
-        showUI(results)
+    # if (showUIatClose):
+    #     showUI(results)
     if results.tests_failed:
         exit(1)
     else:
