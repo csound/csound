@@ -12,8 +12,11 @@ try:
     # Python 3
     from tkinter import *
 except:
+    try:
     # Python 2
-    from Tkinter import *
+     from Tkinter import *
+    except:
+     pass
 
 parserType = ""
 showUIatClose = False
