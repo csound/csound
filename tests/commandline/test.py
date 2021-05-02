@@ -6,17 +6,25 @@
 import os
 import sys
 
-from testUI import TestApplication
+test_ui = False
 
 try:
     # Python 3
     from tkinter import *
+    from testUI import TestApplication
+    test_ui = True
 except:
     try:
     # Python 2
      from Tkinter import *
+     from testUI import TestApplication
+     test_ui = True
     except:
      pass
+
+
+
+
 
 parserType = ""
 showUIatClose = False
@@ -31,11 +39,12 @@ class Test:
         self.expected = expected
 
 def showUI(results):
-    root = Tk()
-    app = TestApplication(master=root)
-    app.setResults(results)
-    app.mainloop()
-    root.destroy()
+    if test_ui is True:
+     root = Tk()
+     app = TestApplication(master=root)
+     app.setResults(results)
+     app.mainloop()
+     root.destroy()
 
 def showHelp():
     message = """Csound Test Suite by Steven Yi<stevenyi@gmail.com>
