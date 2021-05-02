@@ -6,28 +6,25 @@
 import os
 import sys
 
-test_ui = False
+# test_ui = False
 
-try:
-    # Python 3
-    from tkinter import *
-    from testUI import TestApplication
-    test_ui = True
-except:
-    try:
-    # Python 2
-     from Tkinter import *
-     from testUI import TestApplication
-     test_ui = True
-    except:
-     pass
-
-
-
+# try:
+#     # Python 3
+#     from tkinter import *
+#     from testUI import TestApplication
+#     test_ui = True
+# except:
+#     try:
+#     # Python 2
+#      from Tkinter import *
+#      from testUI import TestApplication
+#      test_ui = True
+#     except:
+#      pass
 
 
 parserType = ""
-showUIatClose = False
+# showUIatClose = False
 ##csoundExecutable = r"C:/Users/new/csound-csound6-git/csound.exe "
 csoundExecutable =""
 sourceDirectory = "."
@@ -38,13 +35,13 @@ class Test:
         self.description = ""
         self.expected = expected
 
-def showUI(results):
-    if test_ui is True:
-     root = Tk()
-     app = TestApplication(master=root)
-     app.setResults(results)
-     app.mainloop()
-     root.destroy()
+# def showUI(results):
+#     if test_ui is True:
+#      root = Tk()
+#      app = TestApplication(master=root)
+#      app.setResults(results)
+#      app.mainloop()
+#      root.destroy()
 
 def showHelp():
     message = """Csound Test Suite by Steven Yi<stevenyi@gmail.com>
@@ -258,8 +255,8 @@ if __name__ == "__main__":
             if (arg == "--help"):
                 showHelp()
                 sys.exit(0)
-            elif arg == "--show-ui":
-                showUIatClose = True
+            # elif arg == "--show-ui":
+            #     showUIatClose = True
             elif arg == "--old-parser":
                 parserType = "--old-parser"
             elif arg.startswith("--csound-executable="):
@@ -271,5 +268,5 @@ if __name__ == "__main__":
             elif arg.startswith("--source-dir="):
                 sourceDirectory = arg[13:]
     results = runTest()
-    if (showUIatClose):
-        showUI(results)
+    # if (showUIatClose):
+    #     showUI(results)
