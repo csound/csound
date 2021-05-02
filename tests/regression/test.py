@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/python3
 
 # Csound6 Regresson Test Suite
 # By Steven Yi<stevenyi at gmail dot com>John ffitch
@@ -7,10 +7,17 @@ import os
 import sys
 
 from testUI import TestApplication
-from Tkinter import *
+
+try:
+    # Python 3
+    from tkinter import *
+except:
+    # Python 2
+    from Tkinter import *
 
 showUIatClose = False
 csoundExecutable = ""
+sourceDirectory = "."
 
 class Test:
     def __init__(self, fileName, description, expected=True):
@@ -32,7 +39,7 @@ def showHelp():
     are written to results.txt file.
     """
 
-    print message
+    print(message)
 
 def runTest():
     runArgs = "-Wd -n"
@@ -84,7 +91,7 @@ def runTest():
     ]
 
     output = ""
-    tempfile = "/tmp/csound_test_output.txt"
+    tempfile = "csound_test_output.txt"
     counter = 1
 
     retVals = TestResults()
@@ -97,13 +104,16 @@ def runTest():
         if(os.sep == '\\'):
             executable = (csoundExecutable == "") and "..\..\csound.exe" or csoundExecutable
             command = "%s %s %s 2> %s"%(executable, runArgs, filename, tempfile)
-            print command
+            print(command)
             retVal = os.system(command)
         else:
             executable = (csoundExecutable == "") and "../../csound" or csoundExecutable
-            command = "%s %s %s 2> %s"%(executable, runArgs, filename, tempfile)
-            print command
+            command = "%s %s %s/%s 2> %s"%(executable, runArgs, sourceDirectory, filename, tempfile)
+            print(command)
             retVal = os.system(command)
+
+        if hasattr(os, 'WIFEXITED') and os.WIFEXITED(retVal):
+            retVal = os.WEXITSTATUS(retVal)
 
         out = ""
         if (retVal == 0) == (expectedResult == 0):
@@ -115,7 +125,7 @@ def runTest():
 
         out += "Test %i: %s (%s)\n\tReturn Code: %i\tExpected: %d\n"%(counter, desc, filename, retVal, expectedResult
 )
-        print out
+        print(out)
         output += "%s\n"%("=" * 80)
         output += "Test %i: %s (%s)\nReturn Code: %i\n"%(counter, desc, filename, retVal)
         output += "%s\n\n"%("=" * 80)
@@ -135,10 +145,10 @@ def runTest():
         output += "\n\n"
         counter += 1
 
-#    print output
+#    print(output)
 
-    print "%s\n\n"%("=" * 80)
-    print "Tests Passed: %i\nTests Failed: %i\n"%(retVals.tests_passsed, retVals.tests_failed)
+    print("%s\n\n"%("=" * 80))
+    print("Tests Passed: %i\nTests Failed: %i\n"%(retVals.tests_passsed, retVals.tests_failed))
 
 
     f = open("results.txt", "w")
@@ -167,10 +177,12 @@ if __name__ == "__main__":
                 showUIatClose = True
             elif arg.startswith("--csound-executable="):
                 csoundExecutable = arg[20:]
-                print csoundExecutable
+                print(csoundExecutable)
             elif arg.startswith("--opcode6dir64="):
                 os.environ['OPCODE6DIR64'] = arg[15:]
-                print os.environ['OPCODE6DIR64']
+                print(os.environ['OPCODE6DIR64'])
+            elif arg.startswith("--source-dir="):
+                sourceDirectory = arg[13:]
     results = runTest()
     if (showUIatClose):
         showUI(results)

@@ -1,4 +1,9 @@
-from Tkinter import *
+try:
+    # Python 3
+    from tkinter import *
+except:
+    # Python 2
+    from Tkinter import *
 
 class TestApplication(Frame):
     def selectTest(self):

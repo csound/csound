@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/python3
 
 # Csound Test Suite
 # By Steven Yi <stevenyi at gmail dot com>
@@ -19,6 +19,7 @@ parserType = ""
 showUIatClose = False
 ##csoundExecutable = r"C:/Users/new/csound-csound6-git/csound.exe "
 csoundExecutable =""
+sourceDirectory = "."
 
 class Test:
     def __init__(self, fileName, description, expected=True):
@@ -169,7 +170,7 @@ def runTest():
     tests += udoTests
 
     output = ""
-    tempfile = 'csound_test_output.txt' if (os.name == 'nt') else '/tmp/csound_test_output.txt'
+    tempfile = 'csound_test_output.txt'
     counter = 1
 
     retVals = []
@@ -184,14 +185,17 @@ def runTest():
 
         if(os.sep == '\\' or os.name == 'nt'):
             executable = (csoundExecutable == "") and "..\csound.exe" or csoundExecutable
-            command = "%s %s %s %s 2> %s"%(executable, parserType, runArgs, filename, tempfile)
+            command = "%s %s %s %s/%s 2> %s"%(executable, parserType, runArgs, sourceDirectory, filename, tempfile)
             print(command)
             retVal = os.system(command)
         else:
             executable = (csoundExecutable == "") and "../../csound" or csoundExecutable
-            command = "%s %s %s %s 2> %s"%(executable, parserType, runArgs, filename, tempfile)
+            command = "%s %s %s %s/%s 2> %s"%(executable, parserType, runArgs, sourceDirectory, filename, tempfile)
             print(command)
             retVal = os.system(command)
+
+        if hasattr(os, 'WIFEXITED') and os.WIFEXITED(retVal):
+            retVal = os.WEXITSTATUS(retVal)
 
         out = ""
         if (retVal == 0) == (expectedResult == 0):
@@ -252,6 +256,8 @@ if __name__ == "__main__":
             elif arg.startswith("--opcode6dir64="):
                 os.environ['OPCODE6DIR64'] = arg[15:]
                 print(os.environ['OPCODE6DIR64'])
+            elif arg.startswith("--source-dir="):
+                sourceDirectory = arg[13:]
     results = runTest()
     if (showUIatClose):
         showUI(results)

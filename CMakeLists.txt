@@ -441,6 +441,7 @@ find_package(FAUST)
 find_package(Java)
 find_package(JNI)
 find_package(MUSICXML)
+find_package(Python)
 find_package(VSTSDK2X)
 
 #if(MUSICXML_FOUND)
