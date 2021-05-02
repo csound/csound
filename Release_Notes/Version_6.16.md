@@ -85,8 +85,13 @@ and optional user-defined non-linear map.
 
 - The operations += and -= now work for i and k arrays. 
 
+-  k-rate array operators are now only processed at k-rate.
+    
 ### Score
 
+- An instance of a named instrument can have a decimal fraction added
+  to the name to allow for tied notes and other facilities that were
+  only avaiable for numbered instruments.
 
 ### Options
 
@@ -120,6 +125,12 @@ although the English spelling (CsSortLicence) was.  Corrected.
   (>10x speedup for some cases), due to a new autocorrelation routine.
 
 - restriction on size of directory name size in ftsamplebank removed.
+
+- if a non string is passed to sprintf t be formatted as a %s an error
+  is signalled.
+
+- readk family of opcodes now support comments in the input whix is inored.
+
 
 ### Utilities
 
@@ -167,6 +178,14 @@ although the English spelling (CsSortLicence) was.  Corrected.
 
 - aynchronous use of diskin2 fixed.
 
+- pvs2tab does not crash in the sliding case but gives a error.
+
+- in some circumstances turnoff2 could cause the silencing of another
+  instrument for one k-cycle. This is now fixed.
+
+- timeinstk behaved diferently in a UDO to normal use.  This has been
+  corrected.
+
 # SYSTEM LEVEL CHANGES
 
 
@@ -201,11 +220,47 @@ in the time domain. Thanks to Patrick Ropohl for the improvement suggestion.
 
 ==END==
 
+commit 670d093eb1d04bd7eb510af83d597473300546fd (HEAD -> develop, origin/develop, origin/HEAD)
+Merge: fb29f9af2 d24373f4a
+Author: John ffitch <jpff@codemist.co.uk>
+Date:   Sun May 2 18:22:01 2021 +0100
+
+commit 6616350b8c352d816405eb1f530f9ce672f36782
+Author: vlazzarini <victor.lazzarini@mu.ie>
+Date:   Wed Apr 14 10:57:41 2021 +0100
+
+    removing python and image dlls from build list
+    image opcodes removed, now in plugin repo
+    faust opcodes removed, now in plugin repo
+    Python opcodes are now in plugin repo
+    Ableton Link opcodes moved to plugins repo
+
+commit bd23a6f356a1c48061bb29f92a582898d9b57c4d
+Author: vlazzarini <victor.lazzarini@mu.ie>
+Date:   Sat Apr 10 20:34:12 2021 +0100
+
+    ms opcodes
+
+    Fix printarray behaviour for string arrays (default is to print at every cycle, S arrays were wrong)
+
+commit 206b528c88d6e90b6a90575cf3316be2b019480e
+Author: Eduardo Moguillansky <eduardo.moguillansky@gmail.com>
+Date:   Fri Apr 9 12:18:34 2021 +0200
+
+    fixed printarray behaviour for string arrays (default is to print at every cycle); added a variant without trigger; manual should be corrected
+
+commit 3f7f142aa7aaac91d522bed458c3e3cfc2be09d5
+Author: vlazzarini <victor.lazzarini@mu.ie>
+Date:   Wed Apr 7 15:30:56 2021 +0100
+
+    correctly merge both engine states when assigning an instrument number to a named instr
+
 commit 96e895a02774e34f3b04526306ffe05442d7d0f5
 Author: vlazzarini <victor.lazzarini@mu.ie>
 Date:   Wed Mar 3 18:07:08 2021 +0000
 
     sflooper iflag
+
 
 Author: vlazzarini <victor.lazzarini@mu.ie>
 Date:   Wed Feb 17 20:53:29 2021 +0000
