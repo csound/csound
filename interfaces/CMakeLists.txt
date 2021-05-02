@@ -3,7 +3,6 @@
 # C++ INTERFACE LIBRARY
 
 option(BUILD_CXX_INTERFACE "Build the C++ interface library" ON)
-option(BUILD_PYTHON_INTERFACE "Build the Python interface (needs BUILD_CXX_INTERFACE)" ON)
 option(BUILD_JAVA_INTERFACE "Build the Java interface (needs BUILD_CXX_INTERFACE)" ON)
 option(BUILD_LUA_INTERFACE "Build the Lua interface (needs BUILD_CXX_INTERFACE)" ON)
 
@@ -70,7 +69,6 @@ endif()
 
 # SWIG INTERFACES
 find_package(SWIG 2.0)
-find_package(PythonLibs)
 find_package(JNI)
 find_package(Java)
 
@@ -83,83 +81,13 @@ if(NOT LUA_LIBRARY AND WIN32)
 endif()
 find_path(LUA_H_PATH lua.h PATH_SUFFIXES lua5.1)
 
-message(STATUS "PYTHON_LIBRARY: " ${PYTHON_LIBRARY})
 
-check_deps(BUILD_PYTHON_INTERFACE SWIG_FOUND BUILD_CXX_INTERFACE PYTHONLIBS_FOUND)
 check_deps(BUILD_JAVA_INTERFACE SWIG_FOUND BUILD_CXX_INTERFACE JNI_FOUND JAVA_FOUND)
-check_deps(BUILD_LUA_INTERFACE SWIG_FOUND BUILD_CXX_INTERFACE  LUA_LIBRARY LUA_H_PATH)
+check_deps(BUILD_LUA_INTERFACE SWIG_FOUND BUILD_CXX_INTERFACE
+LUA_LIBRARY LUA_H_PATH)
 
-if(BUILD_PYTHON_INTERFACE OR BUILD_JAVA_INTERFACE OR BUILD_LUA_INTERFACE)
-    message(STATUS "SWIG_USE_FILE: " ${SWIG_USE_FILE})
-    include(${SWIG_USE_FILE})
-    set(CMAKE_SWIG_FLAGS ${libcsound_CFLAGS})
-    list(APPEND CMAKE_SWIG_FLAGS "-includeall" "-verbose")
-    if(USE_DOUBLE)
-        list(APPEND CMAKE_SWIG_FLAGS "-DUSE_DOUBLE")
-    endif(USE_DOUBLE)
-    set(CMAKE_SWIG_OUTDIR ${BUILD_LIB_DIR})
-    if(BUILD_PYTHON_INTERFACE)
-        if(WIN32)
-            set(swigpython_LIBS ${CSOUNDLIB} ${LIBSNDFILE_LIBRARY} ${LIBSNDFILE_SUPPORT_LIBS} ${PYTHON_LIBRARY} libcsnd6)
-        else()
-            # Note: Do not link to PYTHON_LIBRARY so that it can be loaded in any python
-            set(swigpython_LIBS ${CSOUNDLIB} ${LIBSNDFILE_LIBRARY} libcsnd6)
-        endif()
-        SET_SOURCE_FILES_PROPERTIES(python_interface.i
-            PROPERTIES CPLUSPLUS ON
-            SWIG_MODULE_NAME csnd6)
-        set(SWIG_MODULE_csnd6_EXTRA_DEPS
-             ../include/csound.h ../include/cfgvar.h ../include/csound.hpp
-             cs_glue.hpp csPerfThread.hpp CsoundFile.hpp
-             CppSound.hpp filebuilding.h Soundfile.hpp)
-        if(COMMAND SWIG_ADD_LIBRARY)
-	        SWIG_ADD_LIBRARY(csnd6 
-		     TYPE MODULE 
-		     LANGUAGE python 
-		     SOURCES python_interface.i)
- 	    else()
-	        SWIG_ADD_MODULE(csnd6 python python_interface.i)
-	    endif()
-        swig_link_libraries(csnd6 ${swigpython_LIBS})
-        target_include_directories(${SWIG_MODULE_csnd6_REAL_NAME} PRIVATE ${PYTHON_INCLUDE_PATH})
-        set_target_properties(${SWIG_MODULE_csnd6_REAL_NAME} PROPERTIES
-            RUNTIME_OUTPUT_DIRECTORY ${BUILD_LIB_DIR}
-            LIBRARY_OUTPUT_DIRECTORY ${BUILD_LIB_DIR}
-            ARCHIVE_OUTPUT_DIRECTORY ${BUILD_LIB_DIR})
-        if(APPLE)
-            set_target_properties(${SWIG_MODULE_csnd6_REAL_NAME} PROPERTIES
-                LINK_FLAGS "-undefined dynamic_lookup")
-        endif()
-        if(${CMAKE_COMPILER_IS_GNUCC})
-          target_compile_options(${SWIG_MODULE_csnd6_REAL_NAME} PRIVATE "-Wno-error")
-          target_compile_options(${SWIG_MODULE_csnd6_REAL_NAME} PRIVATE "-Wno-unused-parameter")
-        endif()
 
-      if(APPLE)
-         # do nothing
-      else()
-         execute_process (
-    COMMAND python -c
-    "import site, sys; sys.stdout.write(site.getsitepackages()[0])"
-    OUTPUT_VARIABLE PYTHON_SITE_PACKAGES
-     )
-      SET(PYTHON_MODULE_INSTALL_DIR ${PYTHON_SITE_PACKAGES} CACHE PATH
-               "Python module install dir")
-               
-      if(PYTHON_MODULE_INSTALL_DIR)
-         message(STATUS "PYTHON MODULE INSTALL DIR: ${PYTHON_MODULE_INSTALL_DIR}" )
-              install(FILES ${CMAKE_CURRENT_SOURCE_DIR}/ctcsound.py
-                  DESTINATION ${PYTHON_MODULE_INSTALL_DIR})
-      endif()
-        install(TARGETS ${SWIG_MODULE_csnd6_REAL_NAME}
-            LIBRARY DESTINATION "${PYTHON_MODULE_INSTALL_DIR}"
-            ARCHIVE DESTINATION "${PYTHON_MODULE_INSTALL_DIR}")
-        install(FILES ${BUILD_LIB_DIR}/csnd6.py
-            DESTINATION ${PYTHON_MODULE_INSTALL_DIR})
-      endif()
-    endif()
-
-    if(NOT APPLE)
+if(NOT APPLE)
       execute_process (
            COMMAND python3 -c
            "import site, sys; sys.stdout.write(site.getsitepackages()[0])"
@@ -173,8 +101,20 @@ if(BUILD_PYTHON_INTERFACE OR BUILD_JAVA_INTERFACE OR BUILD_LUA_INTERFACE)
         install(FILES ${CMAKE_CURRENT_SOURCE_DIR}/ctcsound.py
             DESTINATION ${PYTHON3_MODULE_INSTALL_DIR})
       endif()
-    endif()
+endif(NOT APPLE)
 
+
+
+if(BUILD_PYTHON_INTERFACE OR BUILD_JAVA_INTERFACE OR BUILD_LUA_INTERFACE)
+    message(STATUS "SWIG_USE_FILE: " ${SWIG_USE_FILE})
+    include(${SWIG_USE_FILE})
+    set(CMAKE_SWIG_FLAGS ${libcsound_CFLAGS})
+    list(APPEND CMAKE_SWIG_FLAGS "-includeall" "-verbose")
+    if(USE_DOUBLE)
+        list(APPEND CMAKE_SWIG_FLAGS "-DUSE_DOUBLE")
+    endif(USE_DOUBLE)
+    set(CMAKE_SWIG_OUTDIR ${BUILD_LIB_DIR})
+   
     if(BUILD_JAVA_INTERFACE)
         # The java package needs this unset or it will litter us with .java files
         unset(CMAKE_SWIG_OUTDIR)
