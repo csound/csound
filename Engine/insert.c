@@ -353,6 +353,10 @@ int insert_event(CSOUND *csound, int insno, EVTBLK *newevtp)
                               "instr maxalloc"));
     return(0);
   }
+  /* If named ensure we have the fraction */
+  if (csound->engineState.instrtxtp[insno]->insname && newevtp->strarg)
+    newevtp->p[1] = named_instr_find(csound, newevtp->strarg);
+
   /* if find this insno, active, with indef (tie) & matching p1 */
   for (ip = tp->instance; ip != NULL; ip = ip->nxtinstance) {
     if (ip->actflg && ip->offtim < 0.0 && ip->p1.value == newevtp->p[1]) {
@@ -2722,8 +2726,8 @@ int csoundKillInstanceInternal(CSOUND *csound, MYFLT instr, char *instrName,
   int   insno;
 
   if (instrName) {
-    insno = named_instr_find(csound, instrName);
-    instr = (MYFLT) insno;
+    instr = named_instr_find(csound, instrName);
+    insno = (int) instr;
   } else insno = instr;
 
   if (UNLIKELY(insno < 1 || insno > (int) csound->engineState.maxinsno ||

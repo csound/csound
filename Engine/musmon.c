@@ -775,12 +775,14 @@ static int process_score_event(CSOUND *csound, EVTBLK *evt, int rtEvt)
     return (evt->opcod == 'l' ? 3 : (evt->opcod == 's' ? 1 : 2));
   case 'q':
     if (csound->ISSTRCOD(evt->p[1]) && evt->strarg) {    /* IV - Oct 31 2002 */
-      if (UNLIKELY((insno = (int) named_instr_find(csound, evt->strarg)) == 0)) {
+      MYFLT n = named_instr_find(csound, evt->strarg);
+      if (UNLIKELY((insno = (int) n) == 0)) {
         printScoreError(csound, rtEvt,
                         Str(" - note deleted. instr %s undefined"),
                         evt->strarg);
         break;
       }
+      evt->p[1] = n;
       csound->Message(csound, Str("Setting instrument %s %s\n"),
                       evt->strarg, (evt->p[3] == 0 ? Str("off") : Str("on")));
       csound->engineState.instrtxtp[insno]->muted = (int16) evt->p[3];
@@ -803,12 +805,14 @@ static int process_score_event(CSOUND *csound, EVTBLK *evt, int rtEvt)
   case 'i':
   case 'd':
     if (csound->ISSTRCOD(evt->p[1]) && evt->strarg) {    /* IV - Oct 31 2002 */
-      if (UNLIKELY((insno = (int) named_instr_find(csound, evt->strarg)) == 0)) {
+      MYFLT n = named_instr_find(csound, evt->strarg);
+      if (UNLIKELY((insno = (int)n) == 0)) {
         printScoreError(csound, rtEvt,
                         Str(" - note deleted. instr %s undefined"),
                         evt->strarg);
         break;
       }
+      evt->p[1] = n;
       if (insno<0) {
         evt->p[1] = insno; insno = -insno;
       }
@@ -1381,8 +1385,10 @@ int insert_score_event_at_sample(CSOUND *csound, EVTBLK *evt, int64_t time_ofs)
       }
     }
     else if (evt->strarg != NULL && csound->ISSTRCOD(p[1])) {
-      i = (int) named_instr_find(csound, evt->strarg);
-      if (i<0) {p[1]=i; i= -i;}
+      MYFLT n = named_instr_find(csound, evt->strarg);
+      p[1] = n;
+      i =(int) n;
+      if (n<0) {i= -i;}
     }
     else
       i = (int) fabs((double) p[1]);

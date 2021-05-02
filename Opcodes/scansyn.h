@@ -38,6 +38,7 @@ typedef struct {
     int32        idx, len, exti;
     int32_t      id;
     void        *win;
+    FUNC        *fi;
     SCANSYN_GLOBALS *pp;
 } PSCSNU;
 
@@ -49,7 +50,7 @@ typedef struct {
     MYFLT       *interp;
     AUXCH       aux_t;
     MYFLT       fix, phs;
-    int32        tlen, *t;
+    int32       tlen, *t;
     int32_t     oscil_interp;
     PSCSNU      *p;
 } PSCSNS;
@@ -78,8 +79,9 @@ typedef struct {
 #endif
     int32       idx, exti;
     uint32_t    len;
-    int32_t         id;
+    int32_t       id;
     void        *win;
+    FUNC        *fi;
     SCANSYN_GLOBALS *pp;
 } PSCSNUX;
 
@@ -93,7 +95,7 @@ typedef struct {
     AUXCH       aux_t;
     MYFLT       fix, phs;
     int32       tlen, *t;
-    int32_t         oscil_interp;
+    int32_t     oscil_interp;
     PSCSNUX     *p;
 } PSCSNSX;
 
