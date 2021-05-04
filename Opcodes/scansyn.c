@@ -41,7 +41,7 @@
 
 /* Order of interpolation of updating */
 /* Either 2 (linear) or 3 (cubic) */
-#define PHASE_INTERP 3
+//#define PHASE_INTERP 3
 //#define XALL
 
 /****************************************************************************
@@ -293,17 +293,26 @@ static int32_t scsnu_init(CSOUND *csound, PSCSNU *p)
 #if PHASE_INTERP == 3
     p->x3 = p->v + len;
 #endif
-
+    
     /* Initialize them ... */
-    {
-      uint32_t i;
-      for (i = 0 ; i != len ; i++) {
-        p->x0[i] = p->x1[i] = p->x2[i]= p->ext[i] = FL(0.0);
+    /* { */
+    /*   uint32_t i; */
+      /* This relies on contiguous allocation of these vectors
+         but as they are allocated va AuxAlloc they are zeroed anyway!  */
+      //memset(p->x0, '\0', 4*len+sizeof(MYFlT));
+      /* memset(p->x1, '\0', len+sizeof(MYFlT)); */
+      /* memset(p->x2, '\0', len+sizeof(MYFlT)); */
+      /* memset(p->ext, '\0', len+sizeof(MYFlT)); */
+      /* for (i = 0 ; i != len ; i++) { */
+      /*   p->x0[i] = p->x1[i] = p->x2[i]= p->ext[i] = FL(0.0); */
 #if PHASE_INTERP == 3
-        p->x3[i] = FL(0.0);
+      //memset(p->x3, '\0', len+sizeof(MYFlT));
+      /* p->x3[i] = FL(0.0); */
 #endif
-      }
-    }
+      /* } */
+      /* for (i=0; i<4*len; i++) */
+      /*   if (p->x0[i]!= 0.0) printf("FAIL i=%d value=%g\n",i,p->x0[i]); */
+    /* } */
     p->fi = NULL;
     /* ... according to scheme */
     if ((int32_t)*p->i_init < 0) {
@@ -341,7 +350,7 @@ static int32_t scsnu_init(CSOUND *csound, PSCSNU *p)
       p->rate = 0;
     }
     else
-      p->rate = *p->i_rate * csound->GetSr(csound);
+      p->rate = (int32_t)(*p->i_rate * csound->GetSr(csound));
 
       /* Initialize index */
     p->idx = 0;
@@ -469,9 +478,9 @@ static int32_t scsnu_play(CSOUND *csound, PSCSNU *p)
         for (i = 0 ; i != p->len ; i++) {
 #if PHASE_INTERP == 3
           out[i] = x1[i] + t*(-x3[i]*FL(0.5) +
-                                    t*(x3[i]*FL(0.5) - x1[i] +
-                                       x2[i]*FL(0.5))
-                                    + x2[i]*FL(0.5));
+                              t*(x3[i]*FL(0.5) - x1[i] +
+                                 x2[i]*FL(0.5))
+                              + x2[i]*FL(0.5));
 #else
           out[i] = x2[i] + (x1[i] - x2[i]) * t;
 #endif

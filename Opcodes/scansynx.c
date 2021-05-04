@@ -382,11 +382,11 @@ static int32_t scsnux_init_(CSOUND *csound, PSCSNUX *p, int32_t istring)
 /*       p->x3[i] = FL(0.0); */
 /* #endif */
 /*     } */
-#if PHASE_INTERP == 3
-    memset(p->x0, 0, 6*len*sizeof(MYFLT));
-#else
-    memset(p->x0, 0, 5*len*sizeof(MYFLT));
-#endif
+/* #if PHASE_INTERP == 3 */
+/*     memset(p->x0, 0, 6*len*sizeof(MYFLT)); */
+/* #else */
+/*     memset(p->x0, 0, 5*len*sizeof(MYFLT)); */
+/* #endif */
 
     /* ... according to scheme */
     if ((int32_t)*p->i_init < 0) {
@@ -419,7 +419,7 @@ static int32_t scsnux_init_(CSOUND *csound, PSCSNUX *p, int32_t istring)
         p->v[i] = f->ftable[i];
     }
     /* Cache update rate over to local structure */
-    p->rate = *p->i_rate * csound->GetSr(csound);
+    p->rate = (int32_t)(*p->i_rate * csound->GetSr(csound));
 
       /* Initialize index */
     p->idx  = 0;
@@ -483,15 +483,15 @@ static int32_t scsnux(CSOUND *csound, PSCSNUX *p)
     int32_t  len = p->len;
     int32    exti = p->exti;
     int32    idx = p->idx;
-    MYFLT    rate = p->rate;
+    int32_t  rate = p->rate;
     MYFLT   *out = p->out;
-    MYFLT       *x0 = p->x0;
-    MYFLT       *x1 = p->x1;
-    MYFLT       *x2 = p->x2;
+    MYFLT   *x0 = p->x0;
+    MYFLT   *x1 = p->x1;
+    MYFLT   *x2 = p->x2;
 #if PHASE_INTERP == 3
-    MYFLT       *x3 = p->x3;
+    MYFLT   *x3 = p->x3;
 #endif
-    MYFLT       *v = p->v;
+    MYFLT    *v = p->v;
     pp = p->pp;
     if (UNLIKELY(pp == NULL)) goto err1;
 
@@ -618,7 +618,7 @@ static int32_t scsnsx_init(CSOUND *csound, PSCSNSX *p)
           return csound->InitError(csound, "%s",
                                    Str("scsn: Trajectory table includes "
                                        "values out of range"));
-      /* Allocate mem<ory and pad to accomodate interpolation */
+      /* Allocate memory and pad to accomodate interpolation */
                                 /* Note that the 3 here is a hack -- jpff */
       csound->AuxAlloc(csound, (p->tlen + 4)*sizeof(int32), &p->aux_t);
       p->t = (int32_t*)p->aux_t.auxp + (int32_t)(oscil_interp-1)/2;
