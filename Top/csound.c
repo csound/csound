@@ -3406,9 +3406,9 @@ PUBLIC int csoundGetModule(CSOUND *csound, int no, char **module, char **type){
 
 PUBLIC int csoundLoadPlugins(CSOUND *csound, const char *dir){
   if (dir != NULL) {
+   csound->Message(csound, "loading plugins from %s\n", dir); 
    int err = csoundLoadAndInitModules(csound, dir);
    if(!err) {
-     csound->Message(csound, "loaded plugins from %s\n", dir);
      return CSOUND_SUCCESS;
   }
   else return err;
