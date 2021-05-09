@@ -451,10 +451,45 @@ int csoundLoadModules(CSOUND *csound)
       dname = "";
 #endif
     }
+
+
+#ifdef CS_DEFAULT_USER_PLUGINDIR
+    // Add user plugins dir to the search path
+    // On linux and mac this path is relative to ~,
+    // on windows it is relative to %LOCALAPPDATA%, which is
+    // C:\Users\<User>\AppData\Local
+    enum { _buflen = 2048 };
+    char opcode_paths_buf[_buflen];
+#if defined(LINUX) || defined(__MACH__)
+    char *prefix = getenv("HOME");
+#elif defined(WIN32)
+    // C:\Users\<User>\AppData\Local\csound\6.0\plugins64
+    char *prefix = getenv("LOCALAPPDATA");
+#endif
+    int pos = strlen(dname);
+    int prefixlen = strlen(prefix);
+    if(pos + prefixlen + 2 > _buflen - 1) {
+      csound->Message(csound, "plugins search path two long\n");
+    } else {
+      strncpy(opcode_paths_buf, dname, _buflen-1);
+      opcode_paths_buf[pos++] = sep;
+      strncpy(&opcode_paths_buf[pos], prefix, _buflen-1-pos);
+      pos += prefixlen;
+      opcode_paths_buf[pos++] = '/';
+      strncpy(&opcode_paths_buf[pos], CS_DEFAULT_USER_PLUGINDIR, _buflen-1-pos);
+      pos += strlen(CS_DEFAULT_USER_PLUGINDIR);
+      opcode_paths_buf[pos] = '\0';
+      dname = opcode_paths_buf;
+    }
+#endif
+
     /* opcodedir GLOBAL override **experimental** */
     if (csound->opcodedir != NULL) {
       dname = csound->opcodedir;
       csound->Message(csound, "OPCODEDIR overridden to %s \n", dname);
+    } else {
+      csound->Message(csound, "Plugins search path: %s\n", dname);
+
     }
 
     /* We now loop through the directory list */
