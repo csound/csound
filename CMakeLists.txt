@@ -377,6 +377,7 @@ endif()
 if(LINUX)
     set(DEFAULT_OPCODEDIR "${PLUGIN_INSTALL_DIR}")
     add_definitions("-DCS_DEFAULT_PLUGINDIR=\"${DEFAULT_OPCODEDIR}\"")
+    # dir relative to $HOME
     set(DEFAULT_USER_PLUGINDIR ".local/lib/csound/${APIVERSION}/plugins64")
     add_definitions("-DCS_DEFAULT_USER_PLUGINDIR=\"${DEFAULT_USER_PLUGINDIR}\"")
 endif()

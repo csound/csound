@@ -469,7 +469,7 @@ int csoundLoadModules(CSOUND *csound)
     int pos = strlen(dname);
     int prefixlen = strlen(prefix);
     if(pos + prefixlen + 2 > _buflen - 1) {
-      csound->Message(csound, "plugins search path two long\n");
+      csound->Message(csound, "plugins search path too long\n");
     } else {
       strncpy(opcode_paths_buf, dname, _buflen-1);
       opcode_paths_buf[pos++] = sep;
