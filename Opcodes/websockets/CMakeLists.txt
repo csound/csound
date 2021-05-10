@@ -30,7 +30,12 @@ endif()
 
 check_include_file(libwebsockets.h WEBSOCKETS_H)
 
-check_deps(BUILD_WEBSOCKET_OPCODE websockets_library)
+if(APPLE)
+  check_deps(BUILD_WEBSOCKET_OPCODE websockets_library ssl_library crypto_library)
+else()
+  check_deps(BUILD_WEBSOCKET_OPCODE websockets_library)
+endif()
+
 if(BUILD_WEBSOCKET_OPCODE)
 
  	make_plugin(websocketIO WebSocketOpcode.c)

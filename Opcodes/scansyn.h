@@ -33,9 +33,9 @@ typedef struct {
     MYFLT       *a_ext, *i_disp, *i_id;
     AUXCH       aux_f;
     AUXCH       aux_x;
-    MYFLT       *x0, *x1, *x2, *x3, *ext, *v, rate;
+    MYFLT       *x0, *x1, *x2, *x3, *ext, *v;
     MYFLT       *m, *f, *c, *d, *out;
-    int32        idx, len, exti;
+    int32        idx, len, exti, rate;
     int32_t      id;
     void        *win;
     FUNC        *fi;
