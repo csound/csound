@@ -488,7 +488,8 @@ int csoundLoadModules(CSOUND *csound)
       dname = csound->opcodedir;
       csound->Message(csound, "OPCODEDIR overridden to %s \n", dname);
     } else {
-      csound->Message(csound, "Plugins search path: %s\n", dname);
+      if(UNLIKELY(csound->oparms->odebug))
+        csound->Message(csound, "Plugins search path: %s\n", dname);
 
     }
 
