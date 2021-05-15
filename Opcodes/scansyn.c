@@ -98,57 +98,27 @@ static int32_t scsnu_hammer(CSOUND *csound, PSCSNU *p, MYFLT pos, MYFLT wgt)
     f = fi->ftable;
     i1 = (int32_t)(len*pos-fi->flen/2);
     i2 = (int32_t)(len*pos+fi->flen/2);
-#ifdef JPFF
-    printf("*** pos, wgt = %g %g; i1, i2 = %d,%d\n", pos, wgt,i1, i2);
-#endif
     for (i = i1 ; i < 0 ; i++) {
 #ifdef XALL
       x2[len+i] += wgt * *f;
       x3[len+i] += wgt * *f;
 #endif
-#ifdef JPFF
-      printf("**x1[%d](%f) -> ", len+i, x1[len+i]);
-#endif
       x1[len+i] += wgt * *f++;
-#ifdef JPFF
-      printf("%f\n", x1[len+i]);
-#endif
     }
-#ifdef JPFF
-    printf("*\n");
-#endif
     for (; i < p->len && i < i2 ; i++) {
 #ifdef XALL
       x2[i] += wgt * *f;
       x3[i] += wgt * *f;
 #endif
-#ifdef JPFF
-      printf("**x1[%d](%f) -> ", i, x1[i]);
-#endif
       x1[i] += wgt * *f++;
-#ifdef JPFF
-      printf("%f\n", x1[i]);
-#endif
     }
-#ifdef JPFF
-    printf("*\n");
-#endif
     for (; i < i2 ; i++) {
 #ifdef XALL
       x2[i-len] += wgt * *f;
       x3[i-len] += wgt * *f;
 #endif
-#ifdef JPFF
-      printf("**x1[%d](%f) -> ", i-len, x1[i-len]);
-#endif
       x1[i-len] += wgt * *f++;
-#ifdef JPFF
-      printf("%f\n", x1[i-len]);
-#endif
     }
-#ifdef JPFF
-    printf("***\n");
-#endif
     return OK;
 }
 
@@ -322,7 +292,7 @@ static int32_t scsnu_init(CSOUND *csound, PSCSNU *p)
 #if PHASE_INTERP == 3
     p->x3 = p->v + len;
 #endif
-    
+
     /* Initialize them ... */
     /* This relies on contiguous allocation of these vectors
        but as they are allocated va AuxAlloc they are zeroed anyway!  */
@@ -340,15 +310,51 @@ static int32_t scsnu_init(CSOUND *csound, PSCSNU *p)
     p->fi = NULL;
     /* ... according to scheme */
     if ((int32_t)*p->i_init < 0) {
-      int32_t res;
-      res = scsnu_hammer(csound, p, *p->i_l, FL(1.0));
-      if (res != OK) return res;
-      if (*p->i_disp)
-        csound->display(csound, p->win); /* *********************** */
-      res = scsnu_hammer(csound, p, *p->i_r, -FL(1.0));
-      if (res != OK) return res;
-      if (*p->i_disp)
-        csound->display(csound, p->win); /* *********************** */
+      if (p->revised) {
+        int32_t i;
+        MYFLT *x1 = p->x1;
+#ifdef XALL
+        MYFLT *x3 = p->x3, *x2 = p->x2;
+#endif
+        int32_t len = p->len;
+        int32_t l = (int32_t)(*p->i_l*p->len), r = (int32_t)(*p->i_r*p->len);
+        if (l<r) {
+          MYFLT slope = FL(1.0)/l;
+          for (i = 0; i<=l; i++)
+            x1[i] = i*slope;
+          slope = (MYFLT)2.0/(l-r);
+          for (i=l+1; i<=r; i++)
+            x1[i] = (MYFLT)(l+r)/(r-l) + i*slope;
+          slope = FL(1.0)/(len-r);
+          for (i=r+1; i<len; i++)
+            x1[i] = -(MYFLT)len/(len-r) +i*slope;
+        }
+        else if (r<l) {
+        MYFLT slope = -FL(1.0)/r;
+        for (i = 0; i<=r; i++)
+          x1[i] = i*slope;
+        slope = (MYFLT)2.0/(l-r);
+        for (i=r+1; i<=l; i++)
+          x1[i] = (MYFLT)(l+r)/(r-l) + i*slope;
+        slope = -(MYFLT)FL(1.0)/(len-l);
+        for (i=l+1; i<len; i++)
+          x1[i] = (MYFLT)len/(len-l) +i*slope;
+        }
+        else { //Only one up pluck
+          MYFLT slope = FL(1.0)/l;
+          for (i = 0; i<=l; i++)
+            x1[i] = i*slope;
+          slope = -FL(1.0)/(len-l);
+        for (i=l+1; i<len; i++)
+          x1[i] = (MYFLT)len/(len-l) + slope*i;
+        }
+      }
+      else {
+        int32_t res = scsnu_hammer(csound, p, *p->i_l, FL(1.0));
+        if (res != OK) return res;
+        res = scsnu_hammer(csound, p, *p->i_r, -FL(1.0));
+        if (res != OK) return res;
+      }
     }
     else {
       int32_t res;
@@ -357,6 +363,9 @@ static int32_t scsnu_init(CSOUND *csound, PSCSNU *p)
       if (*p->i_disp)
         csound->display(csound, p->win); /* *********************** */
     }
+    if (*p->i_disp)
+      csound->display(csound, p->win); /* *********************** */
+
     /* Velocity gets presidential treatment */
     {
       uint32_t i;
@@ -416,6 +425,18 @@ static int32_t scsnu_init(CSOUND *csound, PSCSNU *p)
     return OK;
 }
 
+int scsnu_init1(CSOUND *csound, PSCSNU *p)
+{
+    p->revised = 0;
+    return scsnu_init(csound, p);
+}
+int scsnu_init2(CSOUND *csound, PSCSNU *p)
+{
+    p->revised = 1;
+    return scsnu_init(csound, p);
+}
+
+
 /*
  *      Performance function for updater
  */
@@ -440,7 +461,7 @@ static int32_t scsnu_play(CSOUND *csound, PSCSNU *p)
     MYFLT       *x3 = p->x3;
 #endif
     MYFLT       *v = p->v;
-    
+
     pp = p->pp;
     if (UNLIKELY(pp == NULL)) goto err1;
 
@@ -466,6 +487,8 @@ static int32_t scsnu_play(CSOUND *csound, PSCSNU *p)
         for (i = 0 ; i != len ; i++) {
           MYFLT a = FL(0.0);
                                 /* Throw in audio drive */
+
+
           v[i] += p->ext[exti++] * pp->ewin[i];
           if (UNLIKELY(exti >= len))
             exti = 0;
@@ -486,18 +509,10 @@ static int32_t scsnu_play(CSOUND *csound, PSCSNU *p)
           x0[i] += v[i] * dt;
         }
         /* Swap to get time order */
-/*         for (i = 0 ; i != len ; i++) { */
-/* #if PHASE_INTERP == 3 */
-/*           p->x3[i] = p->x2[i]; */
-/* #endif */
-/*           p->x2[i] = p->x1[i]; */
-/*           p->x1[i] = p->x0[i]; */
-/*         } */
-#if 1
         {
           MYFLT* tmp= x2;
 #if PHASE_INTERP == 3
-          tmp = x3; 
+          tmp = x3;
           p->x3 = x3 = x2;
 #endif
           p->x2 = x2 = x1;
@@ -505,17 +520,10 @@ static int32_t scsnu_play(CSOUND *csound, PSCSNU *p)
           p->x0 = x0 = tmp;
           memcpy(x0, x1, len*sizeof(MYFLT));
         }
-#else
-#if PHASE_INTERP == 3
-        memcpy(x3, x2, len*sizeof(MYFLT));
-#endif
-        memcpy(x2, x1, len*sizeof(MYFLT));
-        memcpy(x1, x0, len*sizeof(MYFLT));
-#endif
         /* Reset index and display the state */
         idx = 0;
-        //if (*p->i_disp)
-        //  csound->display(csound, p->win);
+        if (*p->i_disp)
+          csound->display(csound, p->win);
       }
       if (p->id<0) { /* Write to ftable */
         int32_t i;
@@ -710,7 +718,9 @@ static int32_t scsns_play(CSOUND *csound, PSCSNS *p)
 static OENTRY localops[] =
   {
    { "scanu", S(PSCSNU),TR, 3, "", "iiiiiiikkkkiikkaii",
-     (SUBR)scsnu_init, (SUBR)scsnu_play },
+     (SUBR)scsnu_init1, (SUBR)scsnu_play},
+   { "scanu2", S(PSCSNU),TR, 3, "", "iiiiiiikkkkiikkaii",
+     (SUBR)scsnu_init2, (SUBR)scsnu_play },
    { "scans", S(PSCSNS),TR, 3, "a","kkiio", (SUBR)scsns_init, (SUBR)scsns_play}
 };
 

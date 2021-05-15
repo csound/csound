@@ -35,11 +35,12 @@ typedef struct {
     AUXCH       aux_x;
     MYFLT       *x0, *x1, *x2, *x3, *ext, *v;
     MYFLT       *m, *f, *c, *d, *out;
-    int32        idx, len, exti, rate;
-    int32_t      id;
+    int32       idx, len, exti, rate;
+    int32_t     id;
     void        *win;
     FUNC        *fi;
     SCANSYN_GLOBALS *pp;
+    int         revised;
 } PSCSNU;
 
 /* Data structure for scanning opcode */
