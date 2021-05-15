@@ -500,7 +500,11 @@ static int32_t scsnu_play(CSOUND *csound, PSCSNU *p)
           for (j = 0 ; j != len ; j++)
             if (p->f[i*len+j])
               a += (x1[j] - x1[i]) * p->f[i*len+j] * *p->k_f;
-          a += - x1[i] * p->c[i] * *p->k_c -
+          if (p->revised)
+            a += - x1[i] * p->c[i] * *p->k_c -
+               fabs(x2[i] - x1[i]) * p->d[i] * *p->k_d;
+          else
+             a += - x1[i] * p->c[i] * *p->k_c -
                (x2[i] - x1[i]) * p->d[i] * *p->k_d;
           a /= p->m[i] * *p->k_m;
                                 /* From which we get velocity */
@@ -597,7 +601,7 @@ static int32_t scsns_init(CSOUND *csound, PSCSNS *p)
                                      "values out of range"));
     /* Allocate memory and pad to accomodate interpolation */
                               /* Note that the 4 here is a hack -- jpff */
-    csound->AuxAlloc(csound, (p->tlen + 4)*sizeof(int32), &p->aux_t);
+    csound->AuxAlloc(csound, (p->tlen + 4)*sizeof(int32_t), &p->aux_t);
     p->t = (int32_t*)p->aux_t.auxp + (int32_t)(oscil_interp-1)/2;
     /* Fill 'er up */
     for (i = 0 ; i != p->tlen ; i++)
@@ -619,13 +623,14 @@ static int32_t scsns_init(CSOUND *csound, PSCSNS *p)
  */
 static int32_t scsns_play(CSOUND *csound, PSCSNS *p)
 {
-     IGN(csound);
+    IGN(csound);
     MYFLT phs = p->phs, inc = *p->k_freq * p->fix;
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t i, nsmps = CS_KSMPS;
     MYFLT t = (MYFLT)p->p->idx/p->p->rate;
     MYFLT *out = p->a_out;
+    PSCSNU *pp = p->p;
 
     if (UNLIKELY(offset)) memset(out, '\0', offset*sizeof(MYFLT));
     if (UNLIKELY(early)) {
@@ -636,7 +641,6 @@ static int32_t scsns_play(CSOUND *csound, PSCSNS *p)
     case 1:
       for (i = offset ; i < nsmps ; i++) {
       /* Do various interpolations to get output sample ... */
-        PSCSNU *pp = p->p;
 /*      MYFLT x = phs - (int32_t)phs; */
         out[i] = *p->k_amp * (pinterp(phs, t));
                 /* Update oscillator phase and wrap around if needed */
@@ -650,7 +654,6 @@ static int32_t scsns_play(CSOUND *csound, PSCSNS *p)
     case 2:
       for (i = offset ; i < nsmps ; i++) {
       /* Do various interpolations to get output sample ... */
-        PSCSNU *pp = p->p;
         MYFLT x = phs - (int32_t)phs;
         MYFLT y1 = pinterp(phs  , t);
         MYFLT y2 = pinterp(phs+1, t);
@@ -667,7 +670,6 @@ static int32_t scsns_play(CSOUND *csound, PSCSNS *p)
     case 3:
       for (i = offset ; i < nsmps ; i++) {
       /* Do various interpolations to get output sample ... */
-        PSCSNU *pp = p->p;
         /* VL -- what happens if phs is 0? */
         MYFLT x = phs - (int32_t)phs;
         MYFLT y1 = pinterp(phs-1, t);
@@ -687,7 +689,6 @@ static int32_t scsns_play(CSOUND *csound, PSCSNS *p)
     case 4:
       for (i = offset ; i < nsmps ; i++) {
       /* Do various interpolations to get output sample ... */
-        PSCSNU *pp = p->p;
         /* VL -- what happens if phs is 0? */
         MYFLT x = phs - (int32_t)phs;
         MYFLT y1 = pinterp(phs-1, t);
