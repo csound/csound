@@ -497,15 +497,21 @@ static int32_t scsnu_play(CSOUND *csound, PSCSNU *p)
           //if (*p->i_disp)
           //  csound->display(csound, p->win); /* *********************** */
                                 /* Estimate acceleration */
-          for (j = 0 ; j != len ; j++)
-            if (p->f[i*len+j])
-              a += (x1[j] - x1[i]) * p->f[i*len+j] * *p->k_f;
+          {
+            MYFLT kf = *p->k_f;
+            for (j = 0 ; j != len ; j++) {
+              MYFLT weight = p->f[i*len+j];
+              if (weight)
+                a += (x1[j]
+                      - x1[i]) * weight * kf;
+            }
+          }
           if (p->revised)
             a += - x1[i] * p->c[i] * *p->k_c -
-               fabs(x2[i] - x1[i]) * p->d[i] * *p->k_d;
+               FABS(x2[i] - x1[i]) * p->d[i] * *p->k_d;
           else
-             a += - x1[i] * p->c[i] * *p->k_c -
-               (x2[i] - x1[i]) * p->d[i] * *p->k_d;
+            a += - x1[i] * p->c[i] * *p->k_c -
+              (x2[i] - x1[i]) * p->d[i] * *p->k_d;
           a /= p->m[i] * *p->k_m;
                                 /* From which we get velocity */
           v[i] += dt * a;
