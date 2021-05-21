@@ -79,7 +79,9 @@ and optional user-defined non-linear map.
 
 - turnoff2_i is init-time version of turnoff2.
 
-
+- scanu2 is a revision of scanu to make it closer to the original
+  concept.  Damping now a positive value and plucking initialisation
+  totally rewritten, plus various code improvements.
 
 ### Orchestra
 
@@ -186,6 +188,9 @@ although the English spelling (CsSortLicence) was.  Corrected.
 - timeinstk behaved diferently in a UDO to normal use.  This has been
   corrected.
 
+- Fixed midiarp init method as it was causing an issue with one of the arp modes.
+
+
 # SYSTEM LEVEL CHANGES
 
 
@@ -224,16 +229,6 @@ commit f967b4d3e74f7f09fa6ce23be93a10c75cdfe923
 Author: John ffitch <jpff@codemist.co.uk>
 Date:   Sat May 15 16:21:40 2021 +0100
 
-    Added scanu2 revised vrsion with plucks option rather than a hammer
-
-commit 5cd3182737645e69d7b2196cad52531392538776
-Author: Rory Walsh <rorywalsh@ear.ie>
-Date:   Wed May 12 13:26:45 2021 +0100
-
-    Update midiops.c
-    
-    Fixing midiarp init method - it was causing an issue with one of the arp modes
-
 commit b198343d1825eef68ef4e9de2850ad270c59d9de
 Author: Eduardo Moguillansky <eduardo.moguillansky@gmail.com>
 Date:   Wed May 12 02:14:05 2021 +0200
@@ -256,14 +251,7 @@ commit abadd351aacbf85b7903be6fc2af0d1465282054
 Merge: 7e7d76779 581182457
 Author: vlazzarini <victor.lazzarini@nuim.ie>
 Date:   Tue May 4 12:25:19 2021 +0100
-    Merge pull request #1470 from joel-binarybrain/develop
     
-    Fixed scaling of attack stage of xadsr
-
-commit 91d983e9710983e2a10dc947d20b23375be8fc3f
-Author: Joel-binarybrain <52596269+joel-binarybrain@users.noreply.github.com>
-Date:   Mon May 3 18:34:02 2021 +0100
-
     Fixed scaling of attack stage of xadsr
 
 commit 6616350b8c352d816405eb1f530f9ce672f36782

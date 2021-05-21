@@ -360,8 +360,6 @@ static int32_t scsnu_init(CSOUND *csound, PSCSNU *p)
       int32_t res;
       if (*p->i_id<FL(0.0)) scsnu_hammer(csound, p, FL(0.5), FL(1.0));
       else if ((res=scsnu_initw(csound, p))!=OK) return res;
-      if (*p->i_disp)
-        csound->display(csound, p->win); /* *********************** */
     }
     if (*p->i_disp)
       csound->display(csound, p->win); /* *********************** */
@@ -488,7 +486,6 @@ static int32_t scsnu_play(CSOUND *csound, PSCSNU *p)
           MYFLT a = FL(0.0);
                                 /* Throw in audio drive */
 
-
           v[i] += p->ext[exti++] * pp->ewin[i];
           if (UNLIKELY(exti >= len))
             exti = 0;
@@ -502,8 +499,7 @@ static int32_t scsnu_play(CSOUND *csound, PSCSNU *p)
             for (j = 0 ; j != len ; j++) {
               MYFLT weight = p->f[i*len+j];
               if (weight)
-                a += (x1[j]
-                      - x1[i]) * weight * kf;
+                a += (x1[j] - x1[i]) * weight * kf;
             }
           }
           if (p->revised)
