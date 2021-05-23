@@ -83,6 +83,9 @@ and optional user-defined non-linear map.
   concept.  Damping now a positive value and plucking initialisation
   totally rewritten, plus various code improvements.
 
+- st2ms and ms2st are stereo to MS and vice-versa conversion opcodes
+with stereo width control.
+
 ### Orchestra
 
 - The operations += and -= now work for i and k arrays. 
