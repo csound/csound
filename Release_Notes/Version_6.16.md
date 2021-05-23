@@ -79,7 +79,9 @@ and optional user-defined non-linear map.
 
 - turnoff2_i is init-time version of turnoff2.
 
-
+- scanu2 is a revision of scanu to make it closer to the original
+  concept.  Damping now a positive value and plucking initialisation
+  totally rewritten, plus various code improvements.
 
 ### Orchestra
 
@@ -186,6 +188,9 @@ although the English spelling (CsSortLicence) was.  Corrected.
 - timeinstk behaved diferently in a UDO to normal use.  This has been
   corrected.
 
+- Fixed midiarp init method as it was causing an issue with one of the arp modes.
+
+
 # SYSTEM LEVEL CHANGES
 
 
@@ -220,10 +225,34 @@ in the time domain. Thanks to Patrick Ropohl for the improvement suggestion.
 
 ==END==
 
-commit 670d093eb1d04bd7eb510af83d597473300546fd (HEAD -> develop, origin/develop, origin/HEAD)
-Merge: fb29f9af2 d24373f4a
+commit f967b4d3e74f7f09fa6ce23be93a10c75cdfe923
 Author: John ffitch <jpff@codemist.co.uk>
-Date:   Sun May 2 18:22:01 2021 +0100
+Date:   Sat May 15 16:21:40 2021 +0100
+
+commit b198343d1825eef68ef4e9de2850ad270c59d9de
+Author: Eduardo Moguillansky <eduardo.moguillansky@gmail.com>
+Date:   Wed May 12 02:14:05 2021 +0200
+
+    Add an env var (CS_USER_PLUGINDIR) to override default user plugindir
+
+commit 6824b50ae2c860cc44c229f66f147f8ea87d532d
+Author: Eduardo Moguillansky <eduardo.moguillansky@gmail.com>
+Date:   Mon May 10 00:58:08 2021 +0200
+
+    Add a user folder to the paths searched for plugins
+
+commit 908fb0f3feed3cfe59a7183972535e9c97477d6f
+Author: Steven Yi <stevenyi@gmail.com>
+Date:   Thu May 6 09:52:28 2021 -0400
+
+    bump minimum cmake version to 3.5, remove trusty build from Travis
+
+commit abadd351aacbf85b7903be6fc2af0d1465282054
+Merge: 7e7d76779 581182457
+Author: vlazzarini <victor.lazzarini@nuim.ie>
+Date:   Tue May 4 12:25:19 2021 +0100
+    
+    Fixed scaling of attack stage of xadsr
 
 commit 6616350b8c352d816405eb1f530f9ce672f36782
 Author: vlazzarini <victor.lazzarini@mu.ie>
