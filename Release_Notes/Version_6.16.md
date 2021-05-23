@@ -106,7 +106,13 @@ your ears or speakers.  The default value in the first form is 0.5
 although the English spelling (CsSortLicence) was.  Corrected.
 
 - New option --default-ksmps=num changes the fafault valuefron the
-  internal fixed number.
+internal fixed number.
+
+- New environment variable `CS_USER_PLUGINDIR` has been added to
+indicate a user plugin dir path (in addition to the system plugin
+directory). This added search path defaults to standard locations
+on different platforms (documented in the manual).
+
 
 ### Modified Opcodes and Gens
 
@@ -133,6 +139,7 @@ although the English spelling (CsSortLicence) was.  Corrected.
 
 - readk family of opcodes now support comments in the input whix is inored.
 
+- Added iflag parameter to sflooper.
 
 ### Utilities
 
@@ -190,6 +197,13 @@ although the English spelling (CsSortLicence) was.  Corrected.
 
 - Fixed midiarp init method as it was causing an issue with one of the arp modes.
 
+- Fixed scaling of attack stage of xadsr.
+
+- Fix printarray behaviour for string arrays (default is to print at
+  every cycle); added a variant without trigger.
+
+- Bug with named instrument merging in new compilations fixed.
+
 
 # SYSTEM LEVEL CHANGES
 
@@ -197,7 +211,19 @@ although the English spelling (CsSortLicence) was.  Corrected.
 ### System Changes
 
  - new autocorrelation routine can compute in the frequency or
-in the time domain. Thanks to Patrick Ropohl for the improvement suggestion.
+in the time domain. Thanks to Patrick Ropohl for the improvement
+suggestion.
+
+- Minimum cmake version bumped to 3.5.
+
+-  Image opcodes removed, now in plugin repo
+
+- faust opcodes removed, now in plugin repo
+
+- Python opcodes are now in plugin repo
+
+- Ableton Link opcodes moved to plugins repo
+
 
 ### Translations
 
@@ -222,86 +248,8 @@ in the time domain. Thanks to Patrick Ropohl for the improvement suggestion.
 
 - Bela
 
-
 ==END==
-
-commit f967b4d3e74f7f09fa6ce23be93a10c75cdfe923
-Author: John ffitch <jpff@codemist.co.uk>
-Date:   Sat May 15 16:21:40 2021 +0100
-
-commit b198343d1825eef68ef4e9de2850ad270c59d9de
-Author: Eduardo Moguillansky <eduardo.moguillansky@gmail.com>
-Date:   Wed May 12 02:14:05 2021 +0200
-
-    Add an env var (CS_USER_PLUGINDIR) to override default user plugindir
-
-commit 6824b50ae2c860cc44c229f66f147f8ea87d532d
-Author: Eduardo Moguillansky <eduardo.moguillansky@gmail.com>
-Date:   Mon May 10 00:58:08 2021 +0200
-
-    Add a user folder to the paths searched for plugins
-
-commit 908fb0f3feed3cfe59a7183972535e9c97477d6f
-Author: Steven Yi <stevenyi@gmail.com>
-Date:   Thu May 6 09:52:28 2021 -0400
-
-    bump minimum cmake version to 3.5, remove trusty build from Travis
-
-commit abadd351aacbf85b7903be6fc2af0d1465282054
-Merge: 7e7d76779 581182457
-Author: vlazzarini <victor.lazzarini@nuim.ie>
-Date:   Tue May 4 12:25:19 2021 +0100
     
-    Fixed scaling of attack stage of xadsr
-
-commit 6616350b8c352d816405eb1f530f9ce672f36782
-Author: vlazzarini <victor.lazzarini@mu.ie>
-Date:   Wed Apr 14 10:57:41 2021 +0100
-
-    removing python and image dlls from build list
-    image opcodes removed, now in plugin repo
-    faust opcodes removed, now in plugin repo
-    Python opcodes are now in plugin repo
-    Ableton Link opcodes moved to plugins repo
-
-commit bd23a6f356a1c48061bb29f92a582898d9b57c4d
-Author: vlazzarini <victor.lazzarini@mu.ie>
-Date:   Sat Apr 10 20:34:12 2021 +0100
-
-    ms opcodes
-
-    Fix printarray behaviour for string arrays (default is to print at every cycle, S arrays were wrong)
-
-commit 206b528c88d6e90b6a90575cf3316be2b019480e
-Author: Eduardo Moguillansky <eduardo.moguillansky@gmail.com>
-Date:   Fri Apr 9 12:18:34 2021 +0200
-
-    fixed printarray behaviour for string arrays (default is to print at every cycle); added a variant without trigger; manual should be corrected
-
-commit 3f7f142aa7aaac91d522bed458c3e3cfc2be09d5
-Author: vlazzarini <victor.lazzarini@mu.ie>
-Date:   Wed Apr 7 15:30:56 2021 +0100
-
-    correctly merge both engine states when assigning an instrument number to a named instr
-
-commit 96e895a02774e34f3b04526306ffe05442d7d0f5
-Author: vlazzarini <victor.lazzarini@mu.ie>
-Date:   Wed Mar 3 18:07:08 2021 +0000
-
-    sflooper iflag
 
 
-Author: vlazzarini <victor.lazzarini@mu.ie>
-Date:   Wed Feb 17 20:53:29 2021 +0000
-
-    vcf filter
-
-commit 6061124ed9b6d60579f287ab1f98702e097cb5b0
-Author: vlazzarini <victor.lazzarini@mu.ie>
-Date:   Tue Feb 16 22:57:51 2021 +0000
-
-    refactoring and incorporting DFT autocorr to the interface
-
-
-**END**
 
