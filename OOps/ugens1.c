@@ -787,7 +787,7 @@ int32_t xdsrset(CSOUND *csound, EXXPSEG *p)
     attack -= FL(0.001);
     if (attack > len) {attack = len; len -= attack;}
     if (decay > len) {decay = len; len -= decay;}
-    sus = len;
+    sus = len-attack-decay;
     segp[0].val = FL(0.001);   /* Like zero start, but exponential */
     segp[0].mlt = FL(1.0);
     segp[0].cnt = (int32_t) (delay*CS_EKR + FL(0.5));
