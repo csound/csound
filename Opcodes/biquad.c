@@ -1590,6 +1590,84 @@ static int32_t mode(CSOUND *csound, MODE *p)
     return OK;
 }
 
+int mvmfilterset(CSOUND *csound, MVMFILT *p)
+{
+  IGN(csound);
+  if (*p->reinit==FL(0.0)) {
+    p->x = 0;
+    p->y = 0;
+  }
+  return OK;
+}
+
+int mvmfilter(CSOUND *csound, MVMFILT *p) {
+  uint32_t	offset	 = p->h.insdshead->ksmps_offset;
+  uint32_t	early	 = p->h.insdshead->ksmps_no_end;
+  MYFLT	fs	 = csound->GetSr(csound);
+  uint32_t	n, nsmps = CS_KSMPS;
+  int32_t	asigtau, asigf0;
+  asigtau = IS_ASIG_ARG(p->tau);
+  asigf0  = IS_ASIG_ARG(p->f0);
+
+  MYFLT *out,*in,*f0,*tau;
+  out = p->out;
+  in  = p->in;
+  f0  = p->f0;
+  tau = p->tau;
+
+  MYFLT theta,r1,x1,y1,x,y,limit;
+  x  = p->x;
+  y  = p->y;
+  limit = csound->GetSr(csound) / FL(2.0);
+
+  MYFLT f0val=*p->f0;
+  f0val = f0val > limit ? limit : f0val;
+
+  if (UNLIKELY(offset)) memset(p->out, '\0', offset*sizeof(MYFLT));
+  if (UNLIKELY(early)) {
+    nsmps -= early;
+    memset(&p->out[nsmps], '\0', early*sizeof(MYFLT));
+  }
+
+  if ((! asigtau) || (! asigf0)) {
+    theta  = (TWOPI * f0val) / fs;
+    if (*tau > FL(0.0)) {
+      r1     = exp(-1 / (*tau*fs));
+    } else {
+      r1 = 0;
+    }
+    x1     = cos(theta) * r1;
+    y1     = sin(theta) * r1;
+  }
+
+  for(n = offset; n < nsmps; n++) {
+    if (asigtau && tau[n] > FL(0.0)) {
+      r1 = exp(-1 / (tau[n]*fs));
+    } else {
+      r1 = 0;
+    }
+
+    if (asigf0) {
+      f0val = f0[n];
+      f0val = f0val > limit ? limit : f0val;
+    }
+    if (asigf0 || asigtau) {
+      theta  = (TWOPI * f0val) / fs;
+      x1     = cos(theta) * r1;
+      y1     = sin(theta) * r1;
+    }
+
+    MYFLT x_  = x;
+    x      = (x1 * x)  - (y1 * y) + in[n];
+    y      = (y1 * x_) + (x1 * y);
+    out[n] = x;
+  }
+
+  p->x = x;
+  p->y = y;
+
+  return OK;
+}
 
 
 #define S(x)    sizeof(x)
@@ -1616,7 +1694,9 @@ static OENTRY localops[] = {
                                      (SUBR)nestedapset,  (SUBR)nestedap},
 { "lorenz", S(LORENZ),0,  3, "aaa", "kkkkiiiio",
                                   (SUBR)lorenzset,  (SUBR)lorenz},
-{ "mode",  S(MODE),   0, 3,      "a", "axxo", (SUBR)modeset,  (SUBR)mode   }
+{ "mode",  S(MODE),   0, 3,      "a", "axxo", (SUBR)modeset,  (SUBR)mode   },
+{ "mvmfilter", S(MVMFILT), 0, 3, "a", "axxo",
+                                  (SUBR) mvmfilterset, (SUBR) mvmfilter },
 };
 
 int32_t biquad_init_(CSOUND *csound)
