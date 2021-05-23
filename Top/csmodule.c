@@ -402,6 +402,14 @@ static int csoundCheckOpcodeDeny(CSOUND * csound, const char *fname)
 }
 
 
+static int _dir_exists(char *path) {
+    // returns 1 if path is a directory and it exists
+    struct stat s;
+    int err = stat(path, &s);
+    return (err == 0 && S_ISDIR(s.st_mode)) ? 1 : 0;
+}
+
+
 /**
  * Load plugin libraries for Csound instance 'csound', and call
  * pre-initialisation functions.
@@ -415,11 +423,11 @@ int csoundLoadModules(CSOUND *csound)
     DIR *dir;
     struct dirent *f;
     const char *dname, *fname;
-    char buf[1024];
+    enum { searchpath_buflen = 2048, buflen = 1024 };
+    char buf[buflen];
     int i, n, len, err = CSOUND_SUCCESS;
     char *dname1, *end;
     int read_directory = 1;
-    enum { searchpath_buflen = 2048 };
     char searchpath_buf[searchpath_buflen];
     char sep =
 #ifdef WIN32
@@ -460,7 +468,7 @@ int csoundLoadModules(CSOUND *csound)
       dname = csound->opcodedir;
       csound->Message(csound, "OPCODEDIR overridden to %s \n", dname);
     }
-    int pos = strlen(dname);
+    size_t pos = strlen(dname);
     char *userplugindir = getenv("CS_USER_PLUGINDIR");
     // The user set a search path for plugins via an env variable. Paths here
     // should be absolute and should not need variable expansion
@@ -477,30 +485,36 @@ int csoundLoadModules(CSOUND *csound)
       // In this case, userplugindir is a relative path to a prefix wich needs
       // to be expanded
       userplugindir = CS_DEFAULT_USER_PLUGINDIR;
+
 #if defined(LINUX) || defined(__MACH__)
       char *prefix = getenv("HOME");
 #elif defined(WIN32)
       char *prefix = getenv("LOCALAPPDATA");
 #endif
-      int prefixlen = strlen(prefix);
+      size_t prefixlen = strlen(prefix);
+      size_t userplugindirlen = strlen(userplugindir);
       if(pos + prefixlen + 2 > searchpath_buflen - 1) {
-        csound->ErrorMsg(csound, "plugins search path too long\n");
+        csound->ErrorMsg(csound, Str("Plugins search path too long\n"));
+      } else if(userplugindirlen + prefixlen + 1 >= buflen) {
+        csound->ErrorMsg(csound, Str("User plugin dir too long\n"));
       } else {
-        strncpy(searchpath_buf, dname, searchpath_buflen-1);
-        searchpath_buf[pos++] = sep;
-        strncpy(&searchpath_buf[pos], prefix, searchpath_buflen-1-pos);
-        pos += prefixlen;
-        searchpath_buf[pos++] = '/';
-        strncpy(&searchpath_buf[pos], userplugindir, searchpath_buflen-1-pos);
-        pos += strlen(userplugindir);
-        searchpath_buf[pos] = '\0';
-        dname = searchpath_buf;
+        strncpy(buf, prefix, buflen);
+        buf[prefixlen] = '/';
+        strncpy(&buf[prefixlen+1], userplugindir, buflen-prefixlen-2);
+        if(_dir_exists(buf)) {
+          strncpy(searchpath_buf, dname, searchpath_buflen-1);
+          searchpath_buf[pos++] = sep;
+          strncpy(&searchpath_buf[pos], buf, searchpath_buflen-1-pos);
+          pos += userplugindirlen + prefixlen + 1;
+          searchpath_buf[pos] = '\0';
+          dname = searchpath_buf;
+        }
       }
 #endif
     }
 
     if(UNLIKELY(csound->oparms->odebug))
-      csound->Message(csound, "Plugins search path: %s\n", dname);
+      csound->Message(csound, Str("Plugins search path: %s\n"), dname);
 
     /* We now loop through the directory list */
     while(read_directory) {
