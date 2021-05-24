@@ -473,11 +473,7 @@ int csoundLoadModules(CSOUND *csound)
     // The user set a search path for plugins via an env variable. Paths here
     // should be absolute and should not need variable expansion
     if(userplugindir != NULL) {
-      strncpy(searchpath_buf, dname, searchpath_buflen-1);
-      searchpath_buf[pos++] = sep;
-      strncpy(&searchpath_buf[pos], userplugindir, searchpath_buflen-1-pos);
-      pos += strlen(userplugindir);
-      searchpath_buf[pos] = '\0';
+      snprintf(searchpath_buf, searchpath_buflen, "%s%c%s", dname, sep, userplugindir);
       dname = searchpath_buf;
     } else {
 #ifdef CS_DEFAULT_USER_PLUGINDIR
@@ -498,15 +494,9 @@ int csoundLoadModules(CSOUND *csound)
       } else if(userplugindirlen + prefixlen + 1 >= buflen) {
         csound->ErrorMsg(csound, Str("User plugin dir too long\n"));
       } else {
-        strncpy(buf, prefix, buflen);
-        buf[prefixlen] = '/';
-        strncpy(&buf[prefixlen+1], userplugindir, buflen-prefixlen-2);
+        snprintf(buf, buflen, "%s/%s", prefix, userplugindir);
         if(_dir_exists(buf)) {
-          strncpy(searchpath_buf, dname, searchpath_buflen-1);
-          searchpath_buf[pos++] = sep;
-          strncpy(&searchpath_buf[pos], buf, searchpath_buflen-1-pos);
-          pos += userplugindirlen + prefixlen + 1;
-          searchpath_buf[pos] = '\0';
+          snprintf(searchpath_buf, searchpath_buflen, "%s%c%s", dname, sep, buf);
           dname = searchpath_buf;
         }
       }
