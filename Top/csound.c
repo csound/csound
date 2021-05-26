@@ -1309,7 +1309,7 @@ PUBLIC int csoundInitialize(int flags)
 static char *opcodedir = NULL;
 
 PUBLIC void csoundSetOpcodedir(const char *s) {
-  opcodedir = (char *) s;
+  opcodedir = strdup(s);
 }
 
 

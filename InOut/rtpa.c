@@ -605,7 +605,9 @@ static void rtclose_(CSOUND *csound)
     pabs->complete = 1;
 
     if (pabs->paStream != NULL) {
+#ifndef __MACH__
       PaStream  *stream = pabs->paStream;
+#endif
       unsigned int i;
 
       for (i = 0; i < 4u; i++) {
@@ -616,9 +618,11 @@ static void rtclose_(CSOUND *csound)
         csound->NotifyThreadLock(pabs->clientLock);
         //Pa_Sleep(80);
       }
+#ifndef __MACH__
+          Pa_StopStream(stream);
+          Pa_CloseStream(stream);
+#endif
 
-      Pa_StopStream(stream);
-      Pa_CloseStream(stream);
       //Pa_Sleep(80);
     }
 
