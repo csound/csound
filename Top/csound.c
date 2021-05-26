@@ -1309,7 +1309,8 @@ PUBLIC int csoundInitialize(int flags)
 static char *opcodedir = NULL;
 
 PUBLIC void csoundSetOpcodedir(const char *s) {
-  opcodedir = (char *) s;
+  if(opcodedir != NULL) free(opcodedir);
+  opcodedir = strdup(s);
 }
 
 
@@ -1317,7 +1318,6 @@ PUBLIC CSOUND *csoundCreate(void *hostdata)
 {
     CSOUND        *csound;
     csInstance_t  *p;
-    char *path = NULL;
     _MM_SET_DENORMALS_ZERO_MODE(_MM_DENORMALS_ZERO_ON);
 
     if (init_done != 1) {
@@ -1338,10 +1338,7 @@ PUBLIC CSOUND *csoundCreate(void *hostdata)
     p->csound = csound;
     p->nxt = (csInstance_t*) instance_list;
     instance_list = p;
-    if(opcodedir != NULL)
-       path = strdup(opcodedir);
     csoundUnLock();
-    csound->opcodedir = cs_strdup(csound, path);
     csoundReset(csound);
     csound->API_lock = csoundCreateMutex(1);
     allocate_message_queue(csound);
@@ -1349,7 +1346,6 @@ PUBLIC CSOUND *csoundCreate(void *hostdata)
        address of the pointer to CSOUND inside
        the struct, so it can be cleared later */
     //csound->self = &csound;
-    if(path != NULL) free(path);
     return csound;
 }
 
@@ -3424,9 +3420,7 @@ PUBLIC void csoundReset(CSOUND *csound)
     char    *s;
     int     i, max_len;
     OPARMS  *O = csound->oparms;
-    char *opdir = NULL;
-    if (csound->opcodedir != NULL)
-     opdir = strdup(csound->opcodedir);
+
 
     if (csound->engineStatus & CS_STATE_COMP ||
         csound->engineStatus & CS_STATE_PRE) {
@@ -3486,11 +3480,11 @@ PUBLIC void csoundReset(CSOUND *csound)
      memset(modules, 0, sizeof(MODULE_INFO *)*MAX_MODULES);
 
      /* VL now load modules has opcodedir override */
-     if(opdir) 
-      csound->opcodedir = cs_strdup(csound, opdir);
+     if(opcodedir) 
+      csound->opcodedir = cs_strdup(csound, opcodedir);
      else
        csound->opcodedir = NULL;
-     free(opdir);
+
      err = csoundLoadModules(csound);
       if (csound->delayederrormessages &&
           csound->printerrormessagesflag==NULL) {
