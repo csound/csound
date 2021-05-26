@@ -1341,6 +1341,7 @@ PUBLIC CSOUND *csoundCreate(void *hostdata)
     if(opcodedir != NULL)
        path = strdup(opcodedir);
     csoundUnLock();
+    csound->opcodedir = cs_strdup(csound, path);
     csoundReset(csound);
     csound->API_lock = csoundCreateMutex(1);
     allocate_message_queue(csound);
@@ -1348,7 +1349,7 @@ PUBLIC CSOUND *csoundCreate(void *hostdata)
        address of the pointer to CSOUND inside
        the struct, so it can be cleared later */
     //csound->self = &csound;
-    csound->opcodedir = cs_strdup(csound, path);
+
     if(path != NULL) free(path);
     return csound;
 }

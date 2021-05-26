@@ -201,36 +201,37 @@ install_name_tool -change $DEPS_BASE/lib/libportaudio.2.dylib @loader_path/libpo
 # @loader_path/../../ => /Library/Frameworks/CsoundLib64.framework/
 install_name_tool -change $DEPS_BASE/lib/libsndfile.1.dylib @loader_path/../../libs/libsndfile.1.dylib $FRAMEWORK64_DIR/CsoundLib64
 install_name_tool -change $DEPS_BASE/lib/libsndfile.1.dylib @loader_path/../../libs/libsndfile.1.dylib $FRAMEWORK64_DIR/Versions/6.0/libcsnd6.6.0.dylib
+install_name_tool -change libsndfile.1.dylib @loader_path/../../libs/libsndfile.1.dylib $FRAMEWORK64_DIR/Versions/6.0/libcsnd6.6.0.dylib
 
-install_name_tool -change $DEPS_BASE/lib/libsndfile.1.dylib @loader_path/../../../../../libs/libsndfile.1.dylib $FRAMEWORK64_DIR/Versions/6.0/Resources/Python/Current/_csnd6.so
-
-# absolute path in _csnd6.so
-install_name_tool -change $BUILD_DIR/libcsnd6.6.0.dylib /Library/Frameworks/CsoundLib64.framework/Versions/6.0/libcsnd6.6.0.dylib $FRAMEWORK64_DIR/Versions/6.0/Resources/Python/Current/_csnd6.so
+#install_name_tool -change $DEPS_BASE/lib/libsndfile.1.dylib @loader_path/../../../../../libs/libsndfile.1.dylib $FRAMEWORK64_DIR/Versions/6.0/Resources/Python/Current/_csnd6.so
 
 # absolute path in _csnd6.so
-install_name_tool -change $BUILD_DIR/CsoundLib64.framework/Versions/6.0/CsoundLib64 /Library/Frameworks/CsoundLib64.framework/Versions/6.0/CsoundLib64 $FRAMEWORK64_DIR/Versions/6.0/Resources/Python/Current/_csnd6.so
+#install_name_tool -change $BUILD_DIR/libcsnd6.6.0.dylib /Library/Frameworks/CsoundLib64.framework/Versions/6.0/libcsnd6.6.0.dylib $FRAMEWORK64_DIR/Versions/6.0/Resources/Python/Current/_csnd6.so
+
+# absolute path in _csnd6.so
+#install_name_tool -change $BUILD_DIR/CsoundLib64.framework/Versions/6.0/CsoundLib64 /Library/Frameworks/CsoundLib64.framework/Versions/6.0/CsoundLib64 $FRAMEWORK64_DIR/Versions/6.0/Resources/Python/Current/_csnd6.so
 
 # absolute path in libcsnd6.6.0.dylib
 install_name_tool -change CsoundLib64.framework/Versions/6.0/CsoundLib64  /Library/Frameworks/CsoundLib64.framework/Versions/6.0/CsoundLib64  $FRAMEWORK64_DIR/Versions/6.0/libcsnd6.6.0.dylib
 
-install_name_tool -change /System/Library/Frameworks/Python.framework/Versions/2.7/Python Python.framework/Versions/2.7/Python $FRAMEWORK64_DIR/Resources/Opcodes64/libpy.dylib
+#install_name_tool -change /System/Library/Frameworks/Python.framework/Versions/2.7/Python Python.framework/Versions/2.7/Python $FRAMEWORK64_DIR/Resources/Opcodes64/libpy.dylib
 
 install_name_tool -change $DEPS_BASE/lib/libsndfile.1.dylib @loader_path/../../../../libs/libsndfile.1.dylib $FRAMEWORK64_DIR/Versions/6.0/Resources/Java/lib_jcsound6.jnilib
 
 # Python Library now needs to be re-set to /Library/Frameworks 
 install_name_tool -change /System/Library/Frameworks/Python.framework/Versions/2.7/Python /Library/Frameworks/Python.framework/Versions/2.7/Python $FRAMEWORK64_DIR/Resources/Opcodes64/libpy.dylib
 install_name_tool -change $DEPS_BASE/lib/libsndfile.1.dylib @loader_path/../../../../libs/libsndfile.1.dylib $FRAMEWORK64_DIR/Resources/Opcodes64/libstdutil.dylib
-install_name_tool -change $DEPS_BASE/lib/libfltk.1.3.dylib @loader_path/../../../../libs/libfltk.1.3.dylib $FRAMEWORK64_DIR/Resources/Opcodes64/libwidgets.dylib
-install_name_tool -change $DEPS_BASE/lib/libfltk_images.1.3.dylib @loader_path/../../../../libs/libfltk_images.1.3.dylib $FRAMEWORK64_DIR/Resources/Opcodes64/libwidgets.dylib
-install_name_tool -change $DEPS_BASE/lib/libfltk_forms.1.3.dylib @loader_path/../../../../libs/libfltk_forms.1.3.dylib $FRAMEWORK64_DIR/Resources/Opcodes64/libwidgets.dylib
-install_name_tool -change $DEPS_BASE/lib/libfltk.1.3.dylib @loader_path/../../../../libs/libfltk.1.3.dylib $FRAMEWORK64_DIR/Resources/Opcodes64/libvirtual.dylib
-install_name_tool -change $DEPS_BASE/lib/libfltk_images.1.3.dylib @loader_path/../../../../libs/libfltk_images.1.3.dylib $FRAMEWORK64_DIR/Resources/Opcodes64/libvirtual.dylib
-install_name_tool -change $DEPS_BASE/lib/libfltk_forms.1.3.dylib @loader_path/../../../../libs/libfltk_forms.1.3.dylib $FRAMEWORK64_DIR/Resources/Opcodes64/libvirtual.dylib
+#install_name_tool -change $DEPS_BASE/lib/libfltk.1.3.dylib @loader_path/../../../../libs/libfltk.1.3.dylib $FRAMEWORK64_DIR/Resources/Opcodes64/libwidgets.dylib
+#install_name_tool -change $DEPS_BASE/lib/libfltk_images.1.3.dylib @loader_path/../../../../libs/libfltk_images.1.3.dylib $FRAMEWORK64_DIR/Resources/Opcodes64/libwidgets.dylib
+#install_name_tool -change $DEPS_BASE/lib/libfltk_forms.1.3.dylib @loader_path/../../../../libs/libfltk_forms.1.3.dylib $FRAMEWORK64_DIR/Resources/Opcodes64/libwidgets.dylib
+#install_name_tool -change $DEPS_BASE/lib/libfltk.1.3.dylib @loader_path/../../../../libs/libfltk.1.3.dylib $FRAMEWORK64_DIR/Resources/Opcodes64/libvirtual.dylib
+#install_name_tool -change $DEPS_BASE/lib/libfltk_images.1.3.dylib @loader_path/../../../../libs/libfltk_images.1.3.dylib $FRAMEWORK64_DIR/Resources/Opcodes64/libvirtual.dylib
+#install_name_tool -change $DEPS_BASE/lib/libfltk_forms.1.3.dylib @loader_path/../../../../libs/libfltk_forms.1.3.dylib $FRAMEWORK64_DIR/Resources/Opcodes64/libvirtual.dylib
 install_name_tool -change $DEPS_BASE/lib/liblo.7.dylib @loader_path/../../../../libs/liblo.7.dylib $FRAMEWORK64_DIR/Resources/Opcodes64/libosc.dylib
 install_name_tool -change $DEPS_BASE/lib/libportaudio.2.dylib @loader_path/../../../../libs/libportaudio.2.dylib $FRAMEWORK64_DIR/Resources/Opcodes64/librtpa.dylib
 install_name_tool -change $DEPS_BASE/lib/libwiiuse.dylib @loader_path/../../../../libs/libwiiuse.dylib $FRAMEWORK64_DIR/Resources/Opcodes64/libwiimote.dylib
-install_name_tool -change $DEPS_BASE/lib/libpng16.16.dylib @loader_path/../../../../libs/libpng16.16.dylib $FRAMEWORK64_DIR/Resources/Opcodes64/libimage.dylib
-install_name_tool -change $DEPS_BASE/lib/libpng16.16.dylib @loader_path/../../../../libs/libpng16.16.dylib $FRAMEWORK64_DIR/Resources/Opcodes64/libwidgets.dylib
+#install_name_tool -change $DEPS_BASE/lib/libpng16.16.dylib @loader_path/../../../../libs/libpng16.16.dylib $FRAMEWORK64_DIR/Resources/Opcodes64/libimage.dylib
+#install_name_tool -change $DEPS_BASE/lib/libpng16.16.dylib @loader_path/../../../../libs/libpng16.16.dylib $FRAMEWORK64_DIR/Resources/Opcodes64/libwidgets.dylib
 install_name_tool -change $DEPS_BASE/lib/libfluidsynth.1.dylib @loader_path/../../../../libs/libfluidsynth.1.dylib $FRAMEWORK64_DIR/Resources/Opcodes64/libfluidOpcodes.dylib
 install_name_tool -change libportmidi.dylib @loader_path/../../../../libs/libportmidi.dylib $FRAMEWORK64_DIR/Resources/Opcodes64/libpmidi.dylib
 
