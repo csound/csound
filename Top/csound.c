@@ -1317,7 +1317,7 @@ PUBLIC CSOUND *csoundCreate(void *hostdata)
 {
     CSOUND        *csound;
     csInstance_t  *p;
-    char *path;
+    char *path = NULL;
     _MM_SET_DENORMALS_ZERO_MODE(_MM_DENORMALS_ZERO_ON);
 
     if (init_done != 1) {
@@ -1338,7 +1338,8 @@ PUBLIC CSOUND *csoundCreate(void *hostdata)
     p->csound = csound;
     p->nxt = (csInstance_t*) instance_list;
     instance_list = p;
-    path = strdup(opcodedir);
+    if(opcodedir != NULL)
+       path = strdup(opcodedir);
     csoundUnLock();
     csoundReset(csound);
     csound->API_lock = csoundCreateMutex(1);
@@ -1348,7 +1349,7 @@ PUBLIC CSOUND *csoundCreate(void *hostdata)
        the struct, so it can be cleared later */
     //csound->self = &csound;
     csound->opcodedir = cs_strdup(csound, path);
-    free(path);
+    if(path != NULL) free(path);
     return csound;
 }
 
