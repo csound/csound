@@ -308,8 +308,16 @@ static int32_t scsnu_init(CSOUND *csound, PSCSNU *p)
     }
 
     p->fi = NULL;
+    MYFLT temp;
     /* ... according to scheme */
-    if ((int32_t)*p->i_init < 0) {
+    if (MODF(*p->i_init, &temp)) {
+      // random fill
+      int i;
+      MYFLT *x1 = p->x1;
+      for (i=0; i<p->len; i++)
+        x1[i] = temp*(MYFLT)(random()-(RAND_MAX/2))/(RAND_MAX/2);
+    }
+    else if ((int32_t)*p->i_init < 0) {
       if (p->revised) {
         int32_t i;
         MYFLT *x1 = p->x1;
@@ -358,7 +366,7 @@ static int32_t scsnu_init(CSOUND *csound, PSCSNU *p)
     }
     else {
       int32_t res;
-      if (*p->i_id<FL(0.0)) scsnu_hammer(csound, p, FL(0.5), FL(1.0));
+      if (*p->i_id<=FL(0.0)) scsnu_hammer(csound, p, FL(0.5), FL(1.0));
       else if ((res=scsnu_initw(csound, p))!=OK) return res;
     }
     if (*p->i_disp)
@@ -494,24 +502,30 @@ static int32_t scsnu_play(CSOUND *csound, PSCSNU *p)
           //if (*p->i_disp)
           //  csound->display(csound, p->win); /* *********************** */
                                 /* Estimate acceleration */
-          {
+          if (p->revised) {
             MYFLT kf = *p->k_f;
             for (j = 0 ; j != len ; j++) {
               MYFLT weight = p->f[i*len+j];
-              if (weight)
-                a += (x1[j] - x1[i]) * weight * kf;
+              if (weight!=FL(0.0))
+                a += (x1[j] - x1[i]) /(weight*kf);
             }
-          }
-          if (p->revised)
             a += - x1[i] * p->c[i] * *p->k_c -
                FABS(x2[i] - x1[i]) * p->d[i] * *p->k_d;
-          else
+          }
+          else {
+            MYFLT kf = *p->k_f;
+            for (j = 0 ; j != len ; j++) {
+              MYFLT weight = p->f[i*len+j];
+              if (weight!=FL(0.0))
+                a += (x1[j] - x1[i]) * weight * kf;
+            }
             a += - x1[i] * p->c[i] * *p->k_c -
               (x2[i] - x1[i]) * p->d[i] * *p->k_d;
+          }
           a /= p->m[i] * *p->k_m;
-                                /* From which we get velocity */
+          /* From which we get velocity */
           v[i] += dt * a;
-                                /* ... and future position */
+          /* ... and future position */
           x0[i] += v[i] * dt;
         }
         /* Swap to get time order */

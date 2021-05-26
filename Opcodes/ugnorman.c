@@ -1047,8 +1047,8 @@ static void FetchADDNZbands(int32_t ptls, int32_t firstband, double *datastart,
     int32_t i;                  /* for the for loop */
     /*int32_t     firstband = p->firstband;*/
 
-#ifdef BETA
-    printf("FetchADDNZbands: position %f\n", (double)position);
+#if 0
+    printf("FetchADDNZbands<: position %f\n", (double)position);
 #endif
     frame = (int32_t) position;
     frm_0 = datastart + frame * frmInc;
@@ -1649,8 +1649,7 @@ static int32_t atssinnoiset(CSOUND *csound, ATSSINNOI *p)
          (p->nzmemsize != nzmemsize))) {
       if (p->filename != NULL)
         csound->Free(csound, p->filename);
-      p->filename = (char *) csound->Malloc(csound,
-                                            sizeof(char) * strlen(atsfilname));
+      p->filename = (char *) csound->Malloc(csound, 1 + strlen(atsfilname));
       strcpy(p->filename, atsfilname);
    /* csound->Message(csound, "\n band to energy res calculation %s \n",
                               p->filename); */
@@ -1836,7 +1835,7 @@ static int32_t atssinnoiset_S(CSOUND *csound, ATSSINNOI *p)
       if (p->filename != NULL)
         csound->Free(csound, p->filename);
       p->filename = (char *) csound->Malloc(csound,
-                                            sizeof(char) * strlen(atsfilname));
+                                            1 + strlen(atsfilname));
       strcpy(p->filename, atsfilname);
    /* csound->Message(csound, "\n band to energy res calculation %s \n",
                               p->filename); */
@@ -1936,7 +1935,7 @@ static int32_t atssinnoi(CSOUND *csound, ATSSINNOI *p)
 
     fetchSINNOIpartials(p, frIndx);
 
-    FetchADDNZbands(*p->iptls, p->firstband, p->datastart, p->frmInc, p->maxFr,
+    FetchADDNZbands(25/* *p->iptls*/, p->firstband, p->datastart, p->frmInc, p->maxFr,
                     p->swapped, p->nzbuf, frIndx);
 
 
