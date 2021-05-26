@@ -1309,7 +1309,7 @@ PUBLIC int csoundInitialize(int flags)
 static char *opcodedir = NULL;
 
 PUBLIC void csoundSetOpcodedir(const char *s) {
-  opcodedir = strdup(s);
+  opcodedir = (char *) s;
 }
 
 
@@ -1317,6 +1317,7 @@ PUBLIC CSOUND *csoundCreate(void *hostdata)
 {
     CSOUND        *csound;
     csInstance_t  *p;
+    char *path;
     _MM_SET_DENORMALS_ZERO_MODE(_MM_DENORMALS_ZERO_ON);
 
     if (init_done != 1) {
@@ -1337,7 +1338,7 @@ PUBLIC CSOUND *csoundCreate(void *hostdata)
     p->csound = csound;
     p->nxt = (csInstance_t*) instance_list;
     instance_list = p;
-    csound->opcodedir = cs_strdup(csound, opcodedir);
+    path = strdup(opcodedir);
     csoundUnLock();
     csoundReset(csound);
     csound->API_lock = csoundCreateMutex(1);
@@ -1346,7 +1347,8 @@ PUBLIC CSOUND *csoundCreate(void *hostdata)
        address of the pointer to CSOUND inside
        the struct, so it can be cleared later */
     //csound->self = &csound;
-
+    csound->opcodedir = cs_strdup(csound, path);
+    free(path);
     return csound;
 }
 
