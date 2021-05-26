@@ -1349,7 +1349,6 @@ PUBLIC CSOUND *csoundCreate(void *hostdata)
        address of the pointer to CSOUND inside
        the struct, so it can be cleared later */
     //csound->self = &csound;
-
     if(path != NULL) free(path);
     return csound;
 }
@@ -3425,7 +3424,9 @@ PUBLIC void csoundReset(CSOUND *csound)
     char    *s;
     int     i, max_len;
     OPARMS  *O = csound->oparms;
-    char *opdir = csound->opcodedir;
+    char *opdir = NULL;
+    if (csound->opcodedir != NULL)
+     opdir = strdup(csound->opcodedir);
 
     if (csound->engineStatus & CS_STATE_COMP ||
         csound->engineStatus & CS_STATE_PRE) {
@@ -3485,7 +3486,11 @@ PUBLIC void csoundReset(CSOUND *csound)
      memset(modules, 0, sizeof(MODULE_INFO *)*MAX_MODULES);
 
      /* VL now load modules has opcodedir override */
-     csound->opcodedir = opdir;
+     if(opdir) 
+      csound->opcodedir = cs_strdup(csound, opdir);
+     else
+       csound->opcodedir = NULL;
+     free(opdir);
      err = csoundLoadModules(csound);
       if (csound->delayederrormessages &&
           csound->printerrormessagesflag==NULL) {
