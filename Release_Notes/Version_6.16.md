@@ -207,6 +207,7 @@ on different platforms (documented in the manual).
 
 - Bug with named instrument merging in new compilations fixed.
 
+- ATSA opcode coukd cause memory problems.  The 6.16 release is better but not yet verified.
 
 # SYSTEM LEVEL CHANGES
 
