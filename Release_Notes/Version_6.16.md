@@ -207,7 +207,7 @@ on different platforms (documented in the manual).
 
 - Bug with named instrument merging in new compilations fixed.
 
-- ATSA opcode coukd cause memory problems.  The 6.16 release is better but not yet verified.
+- ATSA opcode atsinnoi could cause memory problems.  The 6.16 release is better but not yet verified.
 
 # SYSTEM LEVEL CHANGES
 
@@ -244,8 +244,11 @@ suggestion.
 
 - Windows
 
-- MacOS
-
+- MacOS:
+   Some opcode libs with dependencies have been removed from release. Image
+   opcodes, Python opcodes, Faust opcodes, and FLTK Widget opcodes have
+   been moved to a separate repository and are not included anymore.
+   
 - GNU/Linux
 
 - Haiku port
