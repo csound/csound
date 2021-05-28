@@ -22,6 +22,7 @@
 #
 
 import ctypes as ct
+import ctypes.util
 import numpy as np
 import sys
 
@@ -41,7 +42,6 @@ elif sys.platform.startswith('win'):
     if sys.version_info.major <=3 and sys.version_info.minor < 8:
         libcsound = ct.cdll.csound64
     else:
-        import ctypes.util
         libcsound = ct.CDLL(ctypes.util.find_library("csound64"))
 elif sys.platform.startswith('darwin'):
     libcsound = ct.CDLL("CsoundLib64.framework/CsoundLib64")
@@ -2698,7 +2698,7 @@ elif sys.platform.startswith('win'):
     else:
         libcspt = ct.CDLL(ctypes.util.find_library("csnd6"))
 elif sys.platform.startswith('darwin'):
-    libcspt = ct.CDLL("libcsnd6.6.0.dylib")
+    libcspt = ct.CDLL(ctypes.util.find_library('csnd6'))
 else:
     sys.exit("Don't know your system! Exiting...")
 
