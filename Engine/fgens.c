@@ -2824,8 +2824,8 @@ typedef struct _pvstabledat {
     int32    fftsize;
     int32    overlap;
     int32    winsize;
-    int     wintype;
-    int     chans;
+    int      wintype;
+    int      chans;
     int32    format;
     int32    blockalign;
     uint32 frames;
