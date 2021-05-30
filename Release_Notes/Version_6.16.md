@@ -137,12 +137,14 @@ on different platforms (documented in the manual).
 
 - restriction on size of directory name size in ftsamplebank removed.
 
-- if a non string is passed to sprintf t be formatted as a %s an error
+- if a non string is passed to sprintf to be formatted as a %s an error
   is signalled.
 
-- readk family of opcodes now support comments in the input whix is inored.
+- readk family of opcodes now support comments in the input which is inored.
 
 - Added iflag parameter to sflooper.
+
+- Opcodes beosc, beadsynt, tabrowl, getrowlin, getrowlin removed.
 
 ### Utilities
 
