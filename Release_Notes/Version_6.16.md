@@ -22,9 +22,10 @@ Any valid HTML can also be used.
 
 # CSOUND VERSION 6.16 RELEASE NOTES - DRAFT - DRAFT - DRAFT - DRAFT 
 
-This is mainly a bug fixing release but there are new opcodes, including
-support for simpler use of MIDI controls and a new opcode to connect
-to an Arduino.  Also there is an optional limiter in the sound output chain.
+This delayed release was mainly a bug fixing release but there
+aresignificant new opcodes, including support for simpler use of MIDI
+controls and a new opcode to connect to an Arduino.  Also there is an
+optional limiter in the sound output chain.
 
 -- The Developers
 
@@ -86,6 +87,11 @@ and optional user-defined non-linear map.
 - st2ms and ms2st are stereo to MS and vice-versa conversion opcodes
 with stereo width control.
 
+###New gen
+
+- gen44 allows te wroyting of siffnes matricres for scanu/scanu2 in a textual format
+
+
 ### Orchestra
 
 - The operations += and -= now work for i and k arrays. 
@@ -144,7 +150,7 @@ on different platforms (documented in the manual).
 
 - Added iflag parameter to sflooper.
 
-- Opcodes beosc, beadsynt, tabrowl, getrowlin, getrowlin removed.
+- Opcodes beosc, beadsynt, tabrowl, and getrowlin removed.
 
 ### Utilities
 

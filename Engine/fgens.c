@@ -74,7 +74,7 @@ static int gen30(FGDATA *, FUNC *), gen31(FGDATA *, FUNC *);
 static int gen32(FGDATA *, FUNC *), gen33(FGDATA *, FUNC *);
 static int gen34(FGDATA *, FUNC *), gen40(FGDATA *, FUNC *);
 static int gen41(FGDATA *, FUNC *), gen42(FGDATA *, FUNC *);
-static int gen43(FGDATA *, FUNC *);
+static int gen43(FGDATA *, FUNC *), gen44(FGDATA *, FUNC *);
 static int gn1314(FGDATA *, FUNC *, MYFLT, MYFLT);
 static int gen51(FGDATA *, FUNC *), gen52(FGDATA *, FUNC *);
 static int gen53(FGDATA *, FUNC *);
@@ -89,7 +89,7 @@ static const GEN or_sub[GENMAX + 1] = {
     gen11, gen12, gen13, gen14, gen15, gen16, gen17, gen18, gen19, gen20,
     gen21, GENUL, gen23, gen24, gen25, GENUL, gen27, gen28, GENUL, gen30,
     gen31, gen32, gen33, gen34, GENUL, GENUL, GENUL, GENUL, GENUL, gen40,
-    gen41, gen42, gen43, GENUL, GENUL, GENUL, GENUL, GENUL,
+    gen41, gen42, gen43, gen44, GENUL, GENUL, GENUL, GENUL,
 #ifndef NACL
     gen49,
 #else
@@ -2900,6 +2900,48 @@ static int gen43(FGDATA *ff, FUNC *ftp)
     }
     return OK;
 }
+
+static int gen44(FGDATA *ff, FUNC *ftp)
+{
+    /*
+      This Gen routine calculates a stiffness matrix for scanu/scanu2.
+    */
+
+    MYFLT   *fp = ftp->ftable;
+    CSOUND  *csound = ff->csound;
+    FILE    *filp;
+    void    *fd;
+    char buff[80];
+    int len;
+    int i, j, n;
+    MYFLT stiffness;
+    
+    if (isstrcod(ff->e.p[5]))
+      strncpy(buff, (char *)(&ff->e.strarg[0]), 79);
+    else
+      csound->strarg2name(csound, buff, &(ff->e.p[5]), "stiff.", 0);
+    fd = csound->FileOpen2(csound, &filp, CSFILE_STD, buff, "r",
+                           "SFDIR;SSDIR;INCDIR", CSFTYPE_FLOATS_TEXT, 0);
+    if (UNLIKELY(fd == NULL))
+      return csound->InitError(csound, Str("Failed to open file %s\n"), buff);
+    if (UNLIKELY(NULL==fgets(buff, 80, filp)))
+      return csound->InitError(csound, Str("Failed to read matrix file"));
+    if (1!=sscanf(buff, "<MATRIX size=%d", &len))
+      return csound->InitError(csound, Str("No header in matrix file"));
+    memset(fp, '\0', sizeof(MYFLT)*ff->e.p[3]);
+    while (NULL!=  fgets(buff, 80, filp)) {
+      if (strncmp(buff, "<MATRIX>", 8)==0) break;
+      n = sscanf(buff, " %d %d %lf \n", &i, &j, &stiffness);
+      if (n==2)stiffness = FL(1.0);
+      else if (n!=3) return csound->InitError(csound, Str("format error\n"));
+      if (i<1 || i>len || j<1 || j>len)
+        return csound->InitError(csound, Str("Out of range"));
+      fp[(i-1)*len+j-1] = stiffness;
+    }
+    if (ff->e.p[4]>0) ff->e.p[4] = -44;
+    return OK;
+}
+
 #ifndef NACL
 #include "mp3dec.h"
 
