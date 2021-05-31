@@ -409,7 +409,7 @@ static int paBlockingReadWriteStreamCallback(const void *input,
                                              PaStreamCallbackFlags statusFlags,
                                              void *userData)
 {
-    int     err;
+    int     err =0;
     PA_BLOCKING_STREAM *pabs = (PA_BLOCKING_STREAM*) userData;
     CSOUND  *csound = pabs->csound;
     float   *paInput = (float*) input;
@@ -418,10 +418,12 @@ static int paBlockingReadWriteStreamCallback(const void *input,
     IGN(statusFlags);
     IGN(timeInfo);
 
-    if (pabs->complete == 1) {
-        return paComplete;
-    }
-
+#ifndef __MACH__    
+if (pabs->complete == 1) {
+     return paComplete;
+}
+#endif
+ 
 #ifdef WIN32
     if (pabs->paStream == NULL
         || pabs->paused
@@ -446,7 +448,7 @@ static int paBlockingReadWriteStreamCallback(const void *input,
       csound->WaitThreadLock(pabs->paLock, (size_t) 500);
       err = 0;
      #endif*/
-
+ 
     if (pabs->mode & 1) {
       int n = pabs->inBufSamples;
       int i = 0;
@@ -471,8 +473,8 @@ static int paBlockingReadWriteStreamCallback(const void *input,
     }
 
    paClearOutputBuffer(pabs, pabs->outputBuffer);
-   csound->NotifyThreadLock(pabs->clientLock);
 
+   csound->NotifyThreadLock(pabs->clientLock);
     return paContinue;
 }
 
@@ -605,25 +607,18 @@ static void rtclose_(CSOUND *csound)
     pabs->complete = 1;
 
     if (pabs->paStream != NULL) {
-#ifndef __MACH__
       PaStream  *stream = pabs->paStream;
-#endif
       unsigned int i;
 
       for (i = 0; i < 4u; i++) {
 #if NO_FULLDUPLEX_PA_LOCK
         if (!pabs->noPaLock)
 #endif
-          csound->NotifyThreadLock(pabs->paLock);
+         csound->NotifyThreadLock(pabs->paLock);
         csound->NotifyThreadLock(pabs->clientLock);
-        //Pa_Sleep(80);
-      }
-#ifndef __MACH__
+           }
           Pa_StopStream(stream);
           Pa_CloseStream(stream);
-#endif
-
-      //Pa_Sleep(80);
     }
 
     if (pabs->clientLock != NULL) {
