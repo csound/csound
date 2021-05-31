@@ -418,11 +418,13 @@ static int paBlockingReadWriteStreamCallback(const void *input,
   IGN(statusFlags);
   IGN(timeInfo);
 
-#ifndef __MACH__    
+  //#ifndef __MACH__    
   if (pabs->complete == 1) {
-    return paComplete;
+    if (pabs->mode & 2)
+      paClearOutputBuffer(pabs, paOutput);
+    return paContinue;
   }
-#endif
+  //#endif
  
 #ifdef WIN32
   if (pabs->paStream == NULL
