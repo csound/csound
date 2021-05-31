@@ -63,7 +63,7 @@ declare interface CsoundObj {
     /**
      * Alias for removeListener()
      */
-    off(eventName: PublicEvents, listener: EventEmitter.EventListener<PublicEvents, any>) => EventEmitter;
+    off: (eventName: PublicEvents, listener: EventEmitter.EventListener<PublicEvents, any>) => EventEmitter;
     /**
      * Adds the listener to the end of the listeners array for the event named eventName.
      * No checks are made to see if the listener has already been added.
@@ -91,7 +91,7 @@ declare interface CsoundObj {
     /**
      * Removes the specified listener from the listener array for the event named eventName.
      */
-    removeListener: (eventName: PublicEvents,  listener: EventEmitter.EventListener<PublicEvents, any>)) => EventEmitter;
+    removeListener: (eventName: PublicEvents,  listener: EventEmitter.EventListener<PublicEvents, any>) => EventEmitter;
     /**
      * The in-browser filesystem based on nodejs's
      * built-in module "fs"
