@@ -1,29 +1,8 @@
-<!---
-
-To maintain this document use the following markdown:
-
-# First level heading
-## Second level heading
-### Third level heading
-
-- First level bullet point
-  - Second level bullet point
-    - Third level bullet point
-
-`inline code`
-
-``` pre-formatted text etc.  ```
-
-[hyperlink](url for the hyperlink)
-
-Any valid HTML can also be used.
-
- --->
 
 # CSOUND VERSION 6.16 RELEASE NOTES - DRAFT - DRAFT - DRAFT - DRAFT 
 
 This delayed release was mainly a bug fixing release but there
-aresignificant new opcodes, including support for simpler use of MIDI
+are significant new opcodes, including support for simpler use of MIDI
 controls and a new opcode to connect to an Arduino.  Also there is an
 optional limiter in the sound output chain.
 
@@ -35,10 +14,10 @@ optional limiter in the sound output chain.
 
 - cntDelete deletes a counter object
 
-- lfsr, a linear feedback shift register opcode for psuedo random
+- lfsr, a linear feedback shift register opcode for pseudo random
   number generation.
 
-- ctrlsave stores the currrent values of MIDI controllers in an array.
+- ctrlsave stores the current values of MIDI controllers in an array.
 
 - turnoff3 extends tuning off to remove instrument instances that are
   queued via scheduling but not yet active.
@@ -89,7 +68,8 @@ with stereo width control.
 
 ###New gen
 
-- gen44 allows te wroyting of siffnes matricres for scanu/scanu2 in a textual format
+- gen44 allows the writing of stiffness matrices for scanu/scanu2 in a
+  textual format.
 
 
 ### Orchestra
@@ -102,19 +82,19 @@ with stereo width control.
 
 - An instance of a named instrument can have a decimal fraction added
   to the name to allow for tied notes and other facilities that were
-  only avaiable for numbered instruments.
+  only avaliable for numbered instruments.
 
 ### Options
 
 - New options --limiter and --limiter=num (where num is in range (0,1]
 inserts a tanh limiter (see clip version2) at the end of each k-cycle.
-This can be used when exerimenting or trying some alien inputs to save
+This can be used when experimenting or trying some alien inputs to save
 your ears or speakers.  The default value in the first form is 0.5
 
 - A typing error meant that the tag <CsShortLicense> was not recognised,
 although the English spelling (CsSortLicence) was.  Corrected.
 
-- New option --default-ksmps=num changes the fafault valuefron the
+- New option --default-ksmps=num changes the default value from the
 internal fixed number.
 
 - New environment variable `CS_USER_PLUGINDIR` has been added to
@@ -127,7 +107,7 @@ on different platforms (documented in the manual).
 
 - slicearray_i now works for string arrays.
 
-- OSCsend aways runs on the first call regardless of the value of kwhen.
+- OSCsend always runs on the first call regardless of the value of kwhen.
 
 - pvadd can access the internal ftable -1.
 
@@ -146,7 +126,7 @@ on different platforms (documented in the manual).
 - if a non string is passed to sprintf to be formatted as a %s an error
   is signalled.
 
-- readk family of opcodes now support comments in the input which is inored.
+- readk family of opcodes now support comments in the input which is ignored.
 
 - Added iflag parameter to sflooper.
 
@@ -173,37 +153,37 @@ on different platforms (documented in the manual).
 
 - FLsetVal now works properly with "inverted range" FLsliders.
 
-- conditional expressiond with a-rate output now work corrctly.
+- conditional expressions with a-rate output now work correctly.
 
 - bug in --opcode-dir option fixed.
 
-- sfpassign failed to remember the number of presets causng
+- sfpassign failed to remember the number of presets causing
   confusion.  This also affects sfplay ad sfinstrplay.
 
 - midiarp opcode fixed (issue 1365)
 
-- a bug in moogladder where the value of 0dbfs affected the outout is
+- a bug in moogladder where the value of 0dbfs affected the output is
   now fixed.
  
 - bugs in several filters where istor was defaulting to 1 instead of 0
   as described in the manual have been fixed.
 
 - bug in assigning numbers to named instruments fixed.  This
-  articularly affected dynamic definitions of instruments.
+  particularly affected dynamic definitions of instruments.
 
 - use of %s format in sprintf crashed if the corresponding item was not a
   string.  Thus now gives an error.
 
 - fix bug in ftprint where trigger was not working as advertised.
 
-- aynchronous use of diskin2 fixed.
+- asynchronous use of diskin2 fixed.
 
 - pvs2tab does not crash in the sliding case but gives a error.
 
 - in some circumstances turnoff2 could cause the silencing of another
   instrument for one k-cycle. This is now fixed.
 
-- timeinstk behaved diferently in a UDO to normal use.  This has been
+- timeinstk behaved differently in a UDO to normal use.  This has been
   corrected.
 
 - Fixed midiarp init method as it was causing an issue with one of the arp modes.
@@ -265,6 +245,3 @@ suggestion.
 
 ==END==
     
-
-
-
