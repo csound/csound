@@ -2930,7 +2930,7 @@ static int gen44(FGDATA *ff, FUNC *ftp)
       return csound->InitError(csound, Str("No header in matrix file"));
     memset(fp, '\0', sizeof(MYFLT)*ff->e.p[3]);
     while (NULL!=  fgets(buff, 80, filp)) {
-      if (strncmp(buff, "<MATRIX>", 8)==0) break;
+      if (strncmp(buff, "</MATRIX>", 8)==0) break;
       n = sscanf(buff, " %d %d %lf \n", &i, &j, &stiffness);
       if (n==2)stiffness = FL(1.0);
       else if (n!=3) return csound->InitError(csound, Str("format error\n"));

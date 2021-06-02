@@ -6,6 +6,10 @@ are significant new opcodes, including support for simpler use of MIDI
 controls and a new opcode to connect to an Arduino.  Also there is an
 optional limiter in the sound output chain.
 
+Also there are a number of new filters including including the final
+opcode written by the 'father of computer music' Max Mathews (with
+Julius Smith)! ported by Joel Ross.
+
 -- The Developers
 
 ## USER-LEVEL CHANGES
@@ -65,6 +69,8 @@ and optional user-defined non-linear map.
 
 - st2ms and ms2st are stereo to MS and vice-versa conversion opcodes
 with stereo width control.
+
+- mvmfilter is a filter with pronounced resonance and controllable decay time.
 
 ###New gen
 
