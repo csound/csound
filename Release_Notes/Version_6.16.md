@@ -77,7 +77,6 @@ with stereo width control.
 - gen44 allows the writing of stiffness matrices for scanu/scanu2 in a
   textual format.
 
-
 ### Orchestra
 
 - The operations += and -= now work for i and k arrays. 
@@ -119,17 +118,17 @@ on different platforms (documented in the manual).
 
 - pan2 efficiency improved in many cases.
 
-- add version of pow for the case kout[] = kx ^ ivalues[]
+- Add version of pow for the case kout[] = kx ^ ivalues[]
 
 - expcurve and logcurve now incorporate range checks and corrects end
   values.
   
-- streaming lpc opcodes have had a major improvement in performance
+- Streaming LPC opcodes have had a major improvement in performance
   (>10x speedup for some cases), due to a new autocorrelation routine.
 
-- restriction on size of directory name size in ftsamplebank removed.
+- Restriction on size of directory name size in ftsamplebank removed.
 
-- if a non string is passed to sprintf to be formatted as a %s an error
+- If a non string is passed to sprintf to be formatted as a %s an error
   is signalled.
 
 - readk family of opcodes now support comments in the input which is ignored.
@@ -140,53 +139,51 @@ on different platforms (documented in the manual).
 
 ### Utilities
 
-
 ### Frontends
-
 
 ### General Usage
 
-- Csound no longer supports Python2 opcodes following end of life.
+- Csound no longer supports Python2 opcodes following end of life for Python 2.
 
 ## Bugs Fixed
 
-- the wterrain2 opcode was not correctly compiled on some platforms.
+- The wterrain2 opcode was not correctly compiled on some platforms.
 
 - fprintks opcode crashed when format contains one %s.
 
-- bug in rtjack when number of outputs differed from the number in
+- Bug in rtjack when number of outputs differed from the number in
   inputs.
 
 - FLsetVal now works properly with "inverted range" FLsliders.
 
-- conditional expressions with a-rate output now work correctly.
+- Conditional expressions with a-rate output now work correctly.
 
-- bug in --opcode-dir option fixed.
+- Bug in --opcode-dir option fixed.
 
 - sfpassign failed to remember the number of presets causing
   confusion.  This also affects sfplay ad sfinstrplay.
 
-- midiarp opcode fixed (issue 1365)
+- midiarp opcode fixed (issue 1365).
 
-- a bug in moogladder where the value of 0dbfs affected the output is
+- A bug in moogladder where the value of 0dbfs affected the output is
   now fixed.
  
-- bugs in several filters where istor was defaulting to 1 instead of 0
+- Bugs in several filters where istor was defaulting to 1 instead of 0
   as described in the manual have been fixed.
 
-- bug in assigning numbers to named instruments fixed.  This
+- Bug in assigning numbers to named instruments fixed.  This
   particularly affected dynamic definitions of instruments.
 
-- use of %s format in sprintf crashed if the corresponding item was not a
+- Use of %s format in sprintf crashed if the corresponding item was not a
   string.  Thus now gives an error.
 
-- fix bug in ftprint where trigger was not working as advertised.
+- Fix bug in ftprint where trigger was not working as advertised.
 
-- asynchronous use of diskin2 fixed.
+- Asynchronous use of diskin2 fixed.
 
 - pvs2tab does not crash in the sliding case but gives a error.
 
-- in some circumstances turnoff2 could cause the silencing of another
+- In some circumstances turnoff2 could cause the silencing of another
   instrument for one k-cycle. This is now fixed.
 
 - timeinstk behaved differently in a UDO to normal use.  This has been
@@ -205,32 +202,29 @@ on different platforms (documented in the manual).
 
 # SYSTEM LEVEL CHANGES
 
-
 ### System Changes
 
- - new autocorrelation routine can compute in the frequency or
+ - New autocorrelation routine can compute in the frequency or
 in the time domain. Thanks to Patrick Ropohl for the improvement
 suggestion.
 
 - Minimum cmake version bumped to 3.5.
 
--  Image opcodes removed, now in plugin repo
+- Image opcodes removed, now in plugin repo.
 
-- faust opcodes removed, now in plugin repo
+- faust opcodes removed, now in plugin repo.
 
-- Python opcodes are now in plugin repo
+- Python opcodes are now in plugin repo.
 
-- Ableton Link opcodes moved to plugins repo
-
+- Ableton Link opcodes moved to plugins repo.
 
 ### Translations
 
 ### API
 
-
 ### Platform Specific
 
-- WebAudio: 
+- WebAudio
  
 - iOS
 
@@ -239,6 +233,7 @@ suggestion.
 - Windows
 
 - MacOS:
+    
    Some opcode libs with dependencies have been removed from release. Image
    opcodes, Python opcodes, Faust opcodes, and FLTK Widget opcodes have
    been moved to a separate repository and are not included anymore.
