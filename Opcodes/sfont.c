@@ -1754,8 +1754,8 @@ static int32_t fill_SfStruct(CSOUND *csound)
                       split->endLoopOffset += igen[m].genAmount.shAmount * 32768;
                       break;
                     case delayVolEnv:
-                      csound->Message(csound, "del: %f\n",
-                                      (double) igen[m].genAmount.shAmount);
+                      // csound->Message(csound, "del: %f\n",
+                      //                 (double) igen[m].genAmount.shAmount);
                       break;
                     case attackVolEnv:           /*attack */
                       split->attack = POWER(FL(2.0),
