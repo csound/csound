@@ -1,5 +1,5 @@
 /*
-    fgens.c:
+   fgens.c:
 
     Copyright (C) 1991, 1994, 1995, 1998, 2000, 2004
                   Barry Vercoe, John ffitch, Paris Smaragdis,
@@ -228,7 +228,7 @@ int hfgens(CSOUND *csound, FUNC **ftpp, const EVTBLK *evtblkp, int mode)
       /* defer alloc to gen01|gen23|gen28 */
       ff.guardreq = 1;
       if (UNLIKELY(genum != 1 && genum != 2 && genum != 23 &&
-                   genum != 28 && genum != 49 && genum<=GENMAX)) {
+                   genum != 28 && genum != 44 && genum != 49 && genum<=GENMAX)) {
         return fterror(&ff, Str("deferred size for GENs 1, 2, 23, 28 or 49 only"));
       }
       if (UNLIKELY(msg_enabled))
@@ -2907,7 +2907,7 @@ static int gen44(FGDATA *ff, FUNC *ftp)
       This Gen routine calculates a stiffness matrix for scanu/scanu2.
     */
 
-    MYFLT   *fp = ftp->ftable;
+    MYFLT   *fp;
     CSOUND  *csound = ff->csound;
     FILE    *filp;
     void    *fd;
@@ -2928,7 +2928,16 @@ static int gen44(FGDATA *ff, FUNC *ftp)
       return fterror(ff, Str("GEN44; Failed to read matrix file\n"));
     if (1!=sscanf(buff, "<MATRIX size=%d", &len))
       return fterror(ff, Str("GEN44: No header in matrix file\n"));
-    memset(fp, '\0', sizeof(MYFLT)*ff->e.p[3]);
+    if (ftp==NULL) {
+      ff->flen = len*len;
+      ftp = ftalloc(ff);
+      fp = ftp->ftable;
+    }
+    else if (ff->e.p[3]<len*len) {
+      fp = ftp->ftable = csound->Calloc(csound, len*len*sizeof(MYFLT));
+      ftp->flen = len*len;
+    }
+    else memset(fp = ftp->ftable, '\0', sizeof(MYFLT)*ff->e.p [3]);
     while (NULL!=  fgets(buff, 80, filp)) {
       if (strncmp(buff, "</MATRIX>", 8)==0) break;
       n = sscanf(buff, " %d %d %lf \n", &i, &j, &stiffness);

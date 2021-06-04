@@ -259,7 +259,7 @@ static int32_t scsnu_init(CSOUND *csound, PSCSNU *p)
       /* Get the table */
       if (UNLIKELY((f = csound->FTnp2Find(csound, p->i_f)) == NULL)) {
         return csound->InitError(csound,
-                                 "%s", Str("scanu: Could not find ifnstiff table"));
+                                 "%s", Str("scanu: Could not find ifndisplace table"));
       }
 
      /* Check that the size is good */

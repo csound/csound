@@ -897,7 +897,7 @@ msgstr "la ftable %d viene cancellata\n"
 
 #: Engine/fgens.c:187 Engine/fgens.c:1709 Engine/fgens.c:1795
 #: Engine/fgens.c:1879 Engine/fgens.c:1996 Engine/fgens.c:2077
-#: Engine/fgens.c:3181
+#: Engine/fgens.c:3190
 msgid "insufficient gen arguments"
 msgstr "gli argomenti della gen sono insufficienti"
 
@@ -920,7 +920,7 @@ msgstr "dimensione differita solo per GENs 1, 2, 23, 28 o 49"
 msgid "ftable %d:\n"
 msgstr "ftable %d:\n"
 
-#: Engine/fgens.c:261 Engine/fgens.c:2419 Engine/fgens.c:3066
+#: Engine/fgens.c:261 Engine/fgens.c:2419 Engine/fgens.c:3075
 msgid "illegal table length"
 msgstr "lunghezza della tavola illegale"
 
@@ -937,8 +937,8 @@ msgstr ""
 #: Engine/fgens.c:770 Engine/fgens.c:819 Engine/fgens.c:941 Engine/fgens.c:1019
 #: Engine/fgens.c:1125 Engine/fgens.c:1169 Engine/fgens.c:1220
 #: Engine/fgens.c:1492 Engine/fgens.c:1554 Engine/fgens.c:1793
-#: Engine/fgens.c:1876 Engine/fgens.c:2242 Engine/fgens.c:3135
-#: Engine/fgens.c:3178
+#: Engine/fgens.c:1876 Engine/fgens.c:2242 Engine/fgens.c:3144
+#: Engine/fgens.c:3187
 msgid "using extended arguments\n"
 msgstr "uso di argomenti estesi\n"
 
@@ -951,8 +951,8 @@ msgid "illegal x interval"
 msgstr "intervallo di x non consentito"
 
 #: Engine/fgens.c:467 Engine/fgens.c:616 Engine/fgens.c:697 Engine/fgens.c:943
-#: Engine/fgens.c:1449 Engine/fgens.c:2590 Engine/fgens.c:2967
-#: Engine/fgens.c:3108 Opcodes/ftest.c:140 Opcodes/quadbezier.c:64
+#: Engine/fgens.c:1449 Engine/fgens.c:2590 Engine/fgens.c:2976
+#: Engine/fgens.c:3117 Opcodes/ftest.c:140 Opcodes/quadbezier.c:64
 #: Top/main.c:176 util/cvanal.c:67 util/lpanal.c:411 util/pvanal.c:170
 msgid "insufficient arguments"
 msgstr "argomenti insufficienti"
@@ -1141,7 +1141,7 @@ msgstr "ftable %d con dimensione non differita necessita di dimensione %d\n"
 msgid "invalid sample format: %d"
 msgstr "formato campione non valido: %d"
 
-#: Engine/fgens.c:2685 Engine/fgens.c:2991
+#: Engine/fgens.c:2685 Engine/fgens.c:3000
 #, c-format
 msgid "channel %d illegal"
 msgstr "canale %d non consentito"
@@ -1156,11 +1156,11 @@ msgstr "allocazione differita per %s\n"
 msgid "Failed to open file %s"
 msgstr "Fallita apertura del file %s"
 
-#: Engine/fgens.c:2700 Engine/fgens.c:3064
+#: Engine/fgens.c:2700 Engine/fgens.c:3073
 msgid "deferred size, but filesize unknown"
 msgstr "dimensione differita, ma dimensione del file sconosciuta"
 
-#: Engine/fgens.c:2703 Engine/fgens.c:3068
+#: Engine/fgens.c:2703 Engine/fgens.c:3077
 #, c-format
 msgid "  defer length %d\n"
 msgstr "lunghezza differita %d\n"
@@ -1218,62 +1218,62 @@ msgstr "fallita lettura file %s\n"
 msgid "GEN44: No header in matrix file\n"
 msgstr ""
 
-#: Engine/fgens.c:2936
+#: Engine/fgens.c:2945
 #, fuzzy
 msgid "GEN44: format error\n"
 msgstr "GEN1 errore in lettura"
 
-#: Engine/fgens.c:2938
+#: Engine/fgens.c:2947
 #, fuzzy
 msgid "GEN44: Out of range\n"
 msgstr "harmon fuori intervallo\n"
 
-#: Engine/fgens.c:3007 Opcodes/mp3in.c:95 Opcodes/mp3in.c:276
+#: Engine/fgens.c:3016 Opcodes/mp3in.c:95 Opcodes/mp3in.c:276
 #: Opcodes/mp3in.c:458 Top/cscorfns.c:176 Top/cscorfns.c:207
 msgid "Not enough memory\n"
 msgstr "emoria insufficiente\n"
 
-#: Engine/fgens.c:3145
+#: Engine/fgens.c:3154
 msgid "GEN51: invalid number of p-fields (too few grades)"
 msgstr "GEN51: numero di p-fields non valido (troppi pochi gradi)"
 
-#: Engine/fgens.c:3185
+#: Engine/fgens.c:3194
 msgid "number of channels inconsistent with number of args"
 msgstr "numero di canali incongruente con il numero di argomenti"
 
-#: Engine/fgens.c:3347
+#: Engine/fgens.c:3356
 msgid "GEN53: invalid number of gen arguments"
 msgstr "GEN53: numero di argomenti della gen non valido"
 
-#: Engine/fgens.c:3357
+#: Engine/fgens.c:3366
 msgid "GEN53: invalid table length"
 msgstr "GEN53: lunghezza della tavola non valida"
 
-#: Engine/fgens.c:3361
+#: Engine/fgens.c:3370
 msgid "GEN53: invalid source table number"
 msgstr "GEN53: numero di source table non valido"
 
-#: Engine/fgens.c:3364
+#: Engine/fgens.c:3373
 msgid "GEN53: mode must be in the range 0 to 15"
 msgstr "GEN53: mode dev'essere nell'intervallo tra 0 e 15"
 
-#: Engine/fgens.c:3368
+#: Engine/fgens.c:3377
 msgid "GEN53: invalid source table length:"
 msgstr "GEN53: lunghezza della source table non valida"
 
-#: Engine/fgens.c:3373
+#: Engine/fgens.c:3382
 msgid "GEN53: invalid window table"
 msgstr "GEN53: window table non valida"
 
-#: Engine/fgens.c:3387
+#: Engine/fgens.c:3396
 msgid "GEN 53: impulse response input, "
 msgstr "GEN 53: impulse response input, "
 
-#: Engine/fgens.c:3393
+#: Engine/fgens.c:3402
 msgid "GEN 53: frequency response input, "
 msgstr "GEN 53: frequency response input, "
 
-#: Engine/fgens.c:3498
+#: Engine/fgens.c:3507
 #, c-format
 msgid "Deferred load of '%s' failed"
 msgstr "fallito caricamento differito di '%s'"
@@ -9268,8 +9268,9 @@ msgid "scanu: Could not find ifndamp table"
 msgstr "scanu: Non trovo la tavola ifndamp"
 
 #: Opcodes/scansyn.c:262
-msgid "scanu: Could not find ifnstiff table"
-msgstr "scanu: Non trovo la tavola ifnstiff"
+#, fuzzy
+msgid "scanu: Could not find ifndisplace table"
+msgstr "scanu: Non trovo la tavola ifndamp"
 
 #: Opcodes/scansyn.c:269
 msgid "scanu: Spring matrix is too small"
@@ -15907,6 +15908,9 @@ msgstr "processo scot terminato\n"
 #, c-format
 msgid "scot: %d errors.\n"
 msgstr "scot: %d errori.\n"
+
+#~ msgid "scanu: Could not find ifnstiff table"
+#~ msgstr "scanu: Non trovo la tavola ifnstiff"
 
 #, fuzzy
 #~ msgid "beadsynt: phasetable not found"
