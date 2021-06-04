@@ -1176,6 +1176,10 @@ msgstr ""
 msgid "GEN44: format error\n"
 msgstr ""
 
+#: Engine/fgens.c:2938
+msgid "GEN44: Out of range\n"
+msgstr ""
+
 #: Engine/fgens.c:3007 Opcodes/mp3in.c:95 Opcodes/mp3in.c:276
 #: Opcodes/mp3in.c:458 Top/cscorfns.c:176 Top/cscorfns.c:207
 msgid "Not enough memory\n"
@@ -1224,10 +1228,6 @@ msgstr ""
 #: Engine/fgens.c:3498
 #, c-format
 msgid "Deferred load of '%s' failed"
-msgstr ""
-
-#: Engine/fgens.c:2938
-msgid "GEN44: Out of range\"));"
 msgstr ""
 
 #: Engine/insert.c:323

@@ -2935,7 +2935,7 @@ static int gen44(FGDATA *ff, FUNC *ftp)
       if (n==2)stiffness = FL(1.0);
       else if (n!=3) return fterror(ff, Str("GEN44: format error\n"));
       if (i<1 || i>len || j<1 || j>len)
-        return fterror(ff, Str("GEN44: Out of range\"));
+        return fterror(ff, Str("GEN44: Out of range\n"));
       fp[(i-1)*len+j-1] = stiffness;
     }
     if (ff->e.p[4]>0) ff->e.p[4] = -44;

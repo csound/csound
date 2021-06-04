@@ -1180,6 +1180,11 @@ msgstr ""
 msgid "GEN44: format error\n"
 msgstr ""
 
+#: Engine/fgens.c:2938
+#, fuzzy
+msgid "GEN44: Out of range\n"
+msgstr "неправильный число аргументов"
+
 #: Engine/fgens.c:3007 Opcodes/mp3in.c:95 Opcodes/mp3in.c:276
 #: Opcodes/mp3in.c:458 Top/cscorfns.c:176 Top/cscorfns.c:207
 msgid "Not enough memory\n"
@@ -1230,11 +1235,6 @@ msgstr ""
 #, c-format
 msgid "Deferred load of '%s' failed"
 msgstr ""
-
-#: Engine/fgens.c:2938
-#, fuzzy
-msgid "GEN44: Out of range\"));"
-msgstr "неправильный число аргументов"
 
 #: Engine/insert.c:323
 #, c-format
