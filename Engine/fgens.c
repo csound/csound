@@ -2923,19 +2923,19 @@ static int gen44(FGDATA *ff, FUNC *ftp)
     fd = csound->FileOpen2(csound, &filp, CSFILE_STD, buff, "r",
                            "SFDIR;SSDIR;INCDIR", CSFTYPE_FLOATS_TEXT, 0);
     if (UNLIKELY(fd == NULL))
-      return csound->InitError(csound, Str("Failed to open file %s\n"), buff);
+      return fterror(ff, Str("GEN44: Failed to open file %s\n"), buff);
     if (UNLIKELY(NULL==fgets(buff, 80, filp)))
-      return csound->InitError(csound, Str("Failed to read matrix file"));
+      return fterror(ff, Str("GEN44; Failed to read matrix file\n"));
     if (1!=sscanf(buff, "<MATRIX size=%d", &len))
-      return csound->InitError(csound, Str("No header in matrix file"));
+      return fterror(ff, Str("GEN44: No header in matrix file\n"));
     memset(fp, '\0', sizeof(MYFLT)*ff->e.p[3]);
     while (NULL!=  fgets(buff, 80, filp)) {
       if (strncmp(buff, "</MATRIX>", 8)==0) break;
       n = sscanf(buff, " %d %d %lf \n", &i, &j, &stiffness);
       if (n==2)stiffness = FL(1.0);
-      else if (n!=3) return csound->InitError(csound, Str("format error\n"));
+      else if (n!=3) return fterror(ff, Str("GEN44: format error\n"));
       if (i<1 || i>len || j<1 || j>len)
-        return csound->InitError(csound, Str("Out of range"));
+        return fterror(ff, Str("GEN44: Out of range\"));
       fp[(i-1)*len+j-1] = stiffness;
     }
     if (ff->e.p[4]>0) ff->e.p[4] = -44;
