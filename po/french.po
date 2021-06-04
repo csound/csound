@@ -1201,28 +1201,25 @@ msgid "ftable size too small"
 msgstr "taille de ftable trop petite"
 
 #: Engine/fgens.c:2926
-#, fuzzy, c-format
+#, c-format
 msgid "GEN44: Failed to open file %s\n"
-msgstr "L'ouverture du fichier %s a échoué"
+msgstr "GEN44 : échec de l'ouverture du fichier %s\n"
 
 #: Engine/fgens.c:2928
-#, fuzzy
 msgid "GEN44; Failed to read matrix file\n"
-msgstr "impossible de lire le fichier %s\n"
+msgstr "GEN44 : échec de la lecture du fichier de la matrice\n"
 
 #: Engine/fgens.c:2930
 msgid "GEN44: No header in matrix file\n"
-msgstr ""
+msgstr "GEN44 : Pas d'en-tête dans le fichier de la matrice\n"
 
-#: Engine/fgens.c:2945
-#, fuzzy
+#: Engine/fgens.c:2936
 msgid "GEN44: format error\n"
-msgstr "GEN1 erreur de lecture"
+msgstr "GEN44 : erreur de format\n"
 
-#: Engine/fgens.c:2947
-#, fuzzy
+#: Engine/fgens.c:2938
 msgid "GEN44: Out of range\n"
-msgstr "hors limites\n"
+msgstr "GEN44 : hors limites\n"
 
 #: Engine/fgens.c:3016 Opcodes/mp3in.c:95 Opcodes/mp3in.c:276
 #: Opcodes/mp3in.c:458 Top/cscorfns.c:176 Top/cscorfns.c:207
@@ -2325,7 +2322,7 @@ msgstr "ipmidi : module ipMIDI activé\n"
 
 #: InOut/libsnd.c:507
 msgid "error: cannot run input audio with nchnls_i=0"
-msgstr ""
+msgstr "erreur : pas d'entrée audio possible avec nchnls_i=0"
 
 #: InOut/libsnd.c:514
 msgid "error: no input file name"
@@ -12086,19 +12083,17 @@ msgid "Error in pre-initialisation function of module '%s'"
 msgstr "Erreur dans le fonction de pré-initialisation du module '%s'"
 
 #: Top/csmodule.c:493
-#, fuzzy
 msgid "Plugins search path too long\n"
-msgstr "Le nom du chemin du répertoire courant est trop long\n"
+msgstr "Chemin de recherche des greffons trop long\n"
 
 #: Top/csmodule.c:495
-#, fuzzy
 msgid "User plugin dir too long\n"
-msgstr "p-champ chaîne de caractères trop long"
+msgstr "Répertoire des greffons de l'utilisateur trop long\n"
 
 #: Top/csmodule.c:507
 #, c-format
 msgid "Plugins search path: %s\n"
-msgstr ""
+msgstr "Chemin de recherche des greffons : %s\n"
 
 #: Top/csmodule.c:538 Top/csmodule.c:833
 #, c-format
