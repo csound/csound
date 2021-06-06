@@ -326,14 +326,6 @@ in pkgs.stdenvNoCC.mkDerivation rec {
     echo 'extern int32_t scugens_init_(CSOUND *);' >> \
       Opcodes/emugens/emugens_common.h
 
-    substituteInPlace Opcodes/emugens/beosc.c \
-      --replace 'LINKAGE' \
-       'int32_t beosc_init_(CSOUND *csound) {
-           return csound->AppendOpcodes(csound,
-             &(localops[0]), (int32_t) (sizeof(localops) / sizeof(OENTRY))); }'
-    echo 'extern int32_t beosc_init_(CSOUND *);' >> \
-      Opcodes/emugens/emugens_common.h
-
     # opcode-lib: liveconv
     substituteInPlace Opcodes/liveconv.c \
       --replace 'LINKAGE' \
@@ -515,7 +507,6 @@ in pkgs.stdenvNoCC.mkDerivation rec {
       ../Opcodes/date.c \
       ../Opcodes/dcblockr.c \
       ../Opcodes/dsputil.c \
-      ../Opcodes/emugens/beosc.c \
       ../Opcodes/emugens/emugens.c \
       ../Opcodes/emugens/scugens.c \
       ../Opcodes/eqfil.c \
