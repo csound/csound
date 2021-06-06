@@ -897,7 +897,7 @@ msgstr "la ftable %d viene cancellata\n"
 
 #: Engine/fgens.c:187 Engine/fgens.c:1709 Engine/fgens.c:1795
 #: Engine/fgens.c:1879 Engine/fgens.c:1996 Engine/fgens.c:2077
-#: Engine/fgens.c:3139
+#: Engine/fgens.c:3190
 msgid "insufficient gen arguments"
 msgstr "gli argomenti della gen sono insufficienti"
 
@@ -920,7 +920,7 @@ msgstr "dimensione differita solo per GENs 1, 2, 23, 28 o 49"
 msgid "ftable %d:\n"
 msgstr "ftable %d:\n"
 
-#: Engine/fgens.c:261 Engine/fgens.c:2419 Engine/fgens.c:3024
+#: Engine/fgens.c:261 Engine/fgens.c:2419 Engine/fgens.c:3075
 msgid "illegal table length"
 msgstr "lunghezza della tavola illegale"
 
@@ -937,8 +937,8 @@ msgstr ""
 #: Engine/fgens.c:770 Engine/fgens.c:819 Engine/fgens.c:941 Engine/fgens.c:1019
 #: Engine/fgens.c:1125 Engine/fgens.c:1169 Engine/fgens.c:1220
 #: Engine/fgens.c:1492 Engine/fgens.c:1554 Engine/fgens.c:1793
-#: Engine/fgens.c:1876 Engine/fgens.c:2242 Engine/fgens.c:3093
-#: Engine/fgens.c:3136
+#: Engine/fgens.c:1876 Engine/fgens.c:2242 Engine/fgens.c:3144
+#: Engine/fgens.c:3187
 msgid "using extended arguments\n"
 msgstr "uso di argomenti estesi\n"
 
@@ -951,8 +951,8 @@ msgid "illegal x interval"
 msgstr "intervallo di x non consentito"
 
 #: Engine/fgens.c:467 Engine/fgens.c:616 Engine/fgens.c:697 Engine/fgens.c:943
-#: Engine/fgens.c:1449 Engine/fgens.c:2590 Engine/fgens.c:2925
-#: Engine/fgens.c:3066 Opcodes/ftest.c:140 Opcodes/quadbezier.c:64
+#: Engine/fgens.c:1449 Engine/fgens.c:2590 Engine/fgens.c:2976
+#: Engine/fgens.c:3117 Opcodes/ftest.c:140 Opcodes/quadbezier.c:64
 #: Top/main.c:176 util/cvanal.c:67 util/lpanal.c:411 util/pvanal.c:170
 msgid "insufficient arguments"
 msgstr "argomenti insufficienti"
@@ -1141,7 +1141,7 @@ msgstr "ftable %d con dimensione non differita necessita di dimensione %d\n"
 msgid "invalid sample format: %d"
 msgstr "formato campione non valido: %d"
 
-#: Engine/fgens.c:2685 Engine/fgens.c:2949
+#: Engine/fgens.c:2685 Engine/fgens.c:3000
 #, c-format
 msgid "channel %d illegal"
 msgstr "canale %d non consentito"
@@ -1156,11 +1156,11 @@ msgstr "allocazione differita per %s\n"
 msgid "Failed to open file %s"
 msgstr "Fallita apertura del file %s"
 
-#: Engine/fgens.c:2700 Engine/fgens.c:3022
+#: Engine/fgens.c:2700 Engine/fgens.c:3073
 msgid "deferred size, but filesize unknown"
 msgstr "dimensione differita, ma dimensione del file sconosciuta"
 
-#: Engine/fgens.c:2703 Engine/fgens.c:3026
+#: Engine/fgens.c:2703 Engine/fgens.c:3077
 #, c-format
 msgid "  defer length %d\n"
 msgstr "lunghezza differita %d\n"
@@ -1204,52 +1204,76 @@ msgstr "numero di canale non consentito"
 msgid "ftable size too small"
 msgstr "dimensione della ftable troppo piccola"
 
-#: Engine/fgens.c:2965 Opcodes/mp3in.c:95 Opcodes/mp3in.c:276
+#: Engine/fgens.c:2926
+#, fuzzy, c-format
+msgid "GEN44: Failed to open file %s\n"
+msgstr "Fallita apertura del file %s"
+
+#: Engine/fgens.c:2928
+#, fuzzy
+msgid "GEN44; Failed to read matrix file\n"
+msgstr "fallita lettura file %s\n"
+
+#: Engine/fgens.c:2930
+msgid "GEN44: No header in matrix file\n"
+msgstr ""
+
+#: Engine/fgens.c:2945
+#, fuzzy
+msgid "GEN44: format error\n"
+msgstr "GEN1 errore in lettura"
+
+#: Engine/fgens.c:2947
+#, fuzzy
+msgid "GEN44: Out of range\n"
+msgstr "harmon fuori intervallo\n"
+
+#: Engine/fgens.c:3016 Opcodes/mp3in.c:95 Opcodes/mp3in.c:276
 #: Opcodes/mp3in.c:458 Top/cscorfns.c:176 Top/cscorfns.c:207
 msgid "Not enough memory\n"
 msgstr "emoria insufficiente\n"
 
-#: Engine/fgens.c:3103
+#: Engine/fgens.c:3154
 msgid "GEN51: invalid number of p-fields (too few grades)"
 msgstr "GEN51: numero di p-fields non valido (troppi pochi gradi)"
 
-#: Engine/fgens.c:3143
+#: Engine/fgens.c:3194
 msgid "number of channels inconsistent with number of args"
 msgstr "numero di canali incongruente con il numero di argomenti"
 
-#: Engine/fgens.c:3305
+#: Engine/fgens.c:3356
 msgid "GEN53: invalid number of gen arguments"
 msgstr "GEN53: numero di argomenti della gen non valido"
 
-#: Engine/fgens.c:3315
+#: Engine/fgens.c:3366
 msgid "GEN53: invalid table length"
 msgstr "GEN53: lunghezza della tavola non valida"
 
-#: Engine/fgens.c:3319
+#: Engine/fgens.c:3370
 msgid "GEN53: invalid source table number"
 msgstr "GEN53: numero di source table non valido"
 
-#: Engine/fgens.c:3322
+#: Engine/fgens.c:3373
 msgid "GEN53: mode must be in the range 0 to 15"
 msgstr "GEN53: mode dev'essere nell'intervallo tra 0 e 15"
 
-#: Engine/fgens.c:3326
+#: Engine/fgens.c:3377
 msgid "GEN53: invalid source table length:"
 msgstr "GEN53: lunghezza della source table non valida"
 
-#: Engine/fgens.c:3331
+#: Engine/fgens.c:3382
 msgid "GEN53: invalid window table"
 msgstr "GEN53: window table non valida"
 
-#: Engine/fgens.c:3345
+#: Engine/fgens.c:3396
 msgid "GEN 53: impulse response input, "
 msgstr "GEN 53: impulse response input, "
 
-#: Engine/fgens.c:3351
+#: Engine/fgens.c:3402
 msgid "GEN 53: frequency response input, "
 msgstr "GEN 53: frequency response input, "
 
-#: Engine/fgens.c:3456
+#: Engine/fgens.c:3507
 #, c-format
 msgid "Deferred load of '%s' failed"
 msgstr "fallito caricamento differito di '%s'"
@@ -2300,54 +2324,58 @@ msgstr "ipMIDI plugin MIDI in tempo reale per Csound\n"
 msgid "ipmidi: ipMIDI module enabled\n"
 msgstr "ipmidi: modulo ipMIDI abilitato\n"
 
-#: InOut/libsnd.c:509
+#: InOut/libsnd.c:507
+msgid "error: cannot run input audio with nchnls_i=0"
+msgstr ""
+
+#: InOut/libsnd.c:514
 msgid "error: no input file name"
 msgstr "errore: manca il nome del file di input"
 
-#: InOut/libsnd.c:535 InOut/rtpa.c:494
+#: InOut/libsnd.c:540 InOut/rtpa.c:498
 msgid "Failed to initialise real time audio input"
 msgstr "Fallita inizializzazione dell'input audio in tempo reale"
 
-#: InOut/libsnd.c:549 InOut/libsnd.c:568
+#: InOut/libsnd.c:554 InOut/libsnd.c:573
 #, c-format
 msgid "isfinit: cannot open %s -- %s"
 msgstr "isfinit: impossibile aprire %s -- %s"
 
-#: InOut/libsnd.c:555
+#: InOut/libsnd.c:560
 #, c-format
 msgid "isfinit: cannot open %s"
 msgstr "isfinit: impossibile aprire %s"
 
-#: InOut/libsnd.c:577
+#: InOut/libsnd.c:582
 #, c-format
 msgid "audio_in %s has sr = %d, orch sr = %d"
 msgstr "audio_in %s ha sr = %d, orch sr = %d"
 
-#: InOut/libsnd.c:582
+#: InOut/libsnd.c:587
 #, c-format
 msgid "audio_in %s has %d chnls, orch %d chnls_i"
 msgstr "audio_in %s ha %d chnls, orch %d chnls_i"
 
-#: InOut/libsnd.c:602
+#: InOut/libsnd.c:607
 #, c-format
 msgid "reading %d sample blks of %lu-bit floats from %s\n"
 msgstr "lettura di %d blocchi-campione di %lu-bit floats da %s\n"
 
-#: InOut/libsnd.c:607
+#: InOut/libsnd.c:612
 #, c-format
 msgid "reading %d-byte blks of %s from %s (%s)\n"
 msgstr "lettura blocchi di %d-byte di %s da %s (%s)\n"
 
-#: InOut/libsnd.c:728 InOut/libsnd.c:804
+#: InOut/libsnd.c:733 InOut/libsnd.c:809
 #, c-format
 msgid "Output file type changed to %s for use in pipe\n"
 msgstr "Tipo di file output cambiato in %s per usarlo nella pipe\n"
 
-#: InOut/libsnd.c:747
+#: InOut/libsnd.c:752
 msgid "Failed to initialise real time audio output"
 msgstr "Fallita inizializzazione dell'output audio in tempo reale"
 
-#: InOut/libsnd.c:792 InOut/libsnd.c:799 InOut/libsnd.c:811
+#: InOut/libsnd.c:797 InOut/libsnd.c:804 InOut/libsnd.c:816
 #, c-format
 msgid ""
 "sfinit: cannot open fd %d\n"
@@ -2356,12 +2384,12 @@ msgstr ""
 "sfinit: impossibile aprire fd %d\n"
 "%s"
 
-#: InOut/libsnd.c:819
+#: InOut/libsnd.c:824
 #, c-format
 msgid "sfinit: cannot open %s"
 msgstr "sfinit: impossibile aprire %s"
 
-#: InOut/libsnd.c:823
+#: InOut/libsnd.c:828
 #, c-format
 msgid ""
 "sfinit: cannot open %s\n"
@@ -2370,39 +2398,39 @@ msgstr ""
 "sfinit: impossibile aprire %s\n"
 "%s"
 
-#: InOut/libsnd.c:897
+#: InOut/libsnd.c:902
 #, c-format
 msgid "writing %d sample blks of %lu-bit floats to %s\n"
 msgstr "scrittura di %d blocchi-campione di %lu-bit floats su %s\n"
 
-#: InOut/libsnd.c:901 util/srconv.c:507
+#: InOut/libsnd.c:906 util/srconv.c:507
 #, c-format
 msgid "writing %d-byte blks of %s to %s"
 msgstr "scrittura blocchi di %d-byte di %s su %s"
 
-#: InOut/libsnd.c:906 InOut/libsnd.c:982
+#: InOut/libsnd.c:911 InOut/libsnd.c:987
 msgid " (raw)\n"
 msgstr " (raw)\n"
 
-#: InOut/libsnd.c:973
+#: InOut/libsnd.c:978
 msgid "sample blks of "
 msgstr "blocchi campione di"
 
-#: InOut/libsnd.c:974
+#: InOut/libsnd.c:979
 msgid "-bit floats written to "
 msgstr "-bit floats scritti su"
 
-#: InOut/libsnd.c:978
+#: InOut/libsnd.c:983
 #, c-format
 msgid "%<PRIi32> %d sample blks of %s written to %s"
 msgstr "%<PRIi32> %d blocchi-campione di %s scritti su %s"
 
-#: InOut/libsnd.c:995
+#: InOut/libsnd.c:1000
 #, c-format
 msgid "soundfile write returned bytecount of %d, not %d"
 msgstr "il soundfile scritto restituisce conteggio byte di %d, non %d"
 
-#: InOut/libsnd.c:998
+#: InOut/libsnd.c:1003
 msgid ""
 "(disk may be full...\n"
 " closing the file ...)"
@@ -2410,11 +2438,11 @@ msgstr ""
 "(forse disco pieno...\n"
 " chiusura file ...)"
 
-#: InOut/libsnd.c:1001
+#: InOut/libsnd.c:1006
 msgid "\t... closed\n"
 msgstr "\t... chiuso\n"
 
-#: InOut/libsnd.c:1007
+#: InOut/libsnd.c:1012
 msgid "not writing to sound disk\n"
 msgstr "nessuna scrittura su sound disk\n"
 
@@ -3097,7 +3125,7 @@ msgstr ""
 msgid " *** ALSA: %s: memory allocation failure"
 msgstr " *** ALSA: %s: allocazione di memoria fallita"
 
-#: InOut/rtalsa.c:768 InOut/rtpa.c:782
+#: InOut/rtalsa.c:768 InOut/rtpa.c:783
 msgid "Buffer overrun in real-time audio input"
 msgstr "Buffer overrun nell'input audio in tempo reale"
 
@@ -3109,7 +3137,7 @@ msgstr "Input audio in tempo reale sospeso"
 msgid "Error reading data from audio input device"
 msgstr "Errore in lettura dati dal dispositivo di input audio"
 
-#: InOut/rtalsa.c:813 InOut/rtpa.c:806
+#: InOut/rtalsa.c:813 InOut/rtpa.c:807
 msgid "Buffer underrun in real-time audio output"
 msgstr "Buffer underrun nell'output audio in tempo reale"
 
@@ -3713,7 +3741,7 @@ msgstr "PortAudio: selezionato %s dispositivo '%s'\n"
 msgid "PortAudio: failed to obtain device info.\n"
 msgstr "PortAudio: fallito ottenimento info dispositivo.\n"
 
-#: InOut/rtpa.c:245 InOut/rtpa.c:666 InOut/rtwinmm.c:262
+#: InOut/rtpa.c:245 InOut/rtpa.c:667 InOut/rtwinmm.c:262
 msgid "Must specify a device number, not a name"
 msgstr "Si deve specificare un numero di dispositivo, non un nome"
 
@@ -3737,24 +3765,24 @@ msgstr ""
 "ATTENZIONE: la dimensione del buffer deve essere un multiplo intero di ksmps "
 "in full-duplex mode\n"
 
-#: InOut/rtpa.c:601 InOut/rtpa.c:815
+#: InOut/rtpa.c:605 InOut/rtpa.c:816
 msgid "closing device\n"
 msgstr "chiusura dispositivo\n"
 
-#: InOut/rtpa.c:670
+#: InOut/rtpa.c:671
 #, c-format
 msgid "PortAudio: using ALSA device '%s'\n"
 msgstr "PortAudio: uso del dispositivo ALSA '%s'\n"
 
-#: InOut/rtpa.c:883
+#: InOut/rtpa.c:884
 msgid "rtaudio: PortAudio module enabled ...\n"
 msgstr "rtaudio: modulo PortAudio abilitato ...\n"
 
-#: InOut/rtpa.c:891
+#: InOut/rtpa.c:892
 msgid "using blocking interface\n"
 msgstr "uso dell'interfaccia a blocchi\n"
 
-#: InOut/rtpa.c:900
+#: InOut/rtpa.c:901
 msgid "using callback interface\n"
 msgstr "uso dell'interfaccia callback\n"
 
@@ -6672,148 +6700,6 @@ msgstr ""
 "Non riesco a trovare la label \"%s\" nel file della libreria del plugin \"%s"
 "\"."
 
-#: Opcodes/emugens/beosc.c:599
-#, fuzzy
-msgid "beadsynt: phasetable not found"
-msgstr "adsynt: wavetable non trovata!"
-
-#: Opcodes/emugens/beosc.c:641
-#, fuzzy
-msgid "beadsynt: wavetable not found"
-msgstr "adsynt: wavetable non trovata!"
-
-#: Opcodes/emugens/beosc.c:652
-#, fuzzy
-msgid "beadsynt: partial count > amptable size"
-msgstr ""
-"adsynt: il conto delle parziali ?? maggiore della dimensione di amptable!"
-
-#: Opcodes/emugens/beosc.c:658
-#, fuzzy
-msgid "beadsynt: freqtable not found!"
-msgstr "adsynt: freqtable non trovata!"
-
-#: Opcodes/emugens/beosc.c:661
-#, fuzzy
-msgid "beadsynt: partial count > freqtable size"
-msgstr ""
-"adsynt: il conto delle parziali ?? maggiore della dimensione di freqtable!"
-
-#: Opcodes/emugens/beosc.c:667
-#, fuzzy
-msgid "beadsynt: bandwidth table not found"
-msgstr "adsynt: amptable non trovata!"
-
-#: Opcodes/emugens/beosc.c:670
-#, fuzzy
-msgid "beadsynt: partial count > bandwidth size"
-msgstr ""
-"adsynt: il conto delle parziali ?? maggiore della dimensione di amptable!"
-
-#: Opcodes/emugens/beosc.c:686
-#, fuzzy
-msgid "beadsynt: wavetable not found!"
-msgstr "adsynt: wavetable non trovata!"
-
-#: Opcodes/emugens/beosc.c:695
-#, fuzzy
-msgid "The arrays should have 1 dimension"
-msgstr "l'array in non ?? bidimensionale\n"
-
-#: Opcodes/emugens/beosc.c:706
-#, fuzzy
-msgid "Amplitudes array is too small"
-msgstr "array d'input troppo piccolo\n"
-
-#: Opcodes/emugens/beosc.c:709
-#, fuzzy
-msgid "Frequencies array is too small"
-msgstr "array d'input troppo piccolo\n"
-
-#: Opcodes/emugens/beosc.c:712
-#, fuzzy
-msgid "bandwidths array is too small"
-msgstr "array d'input troppo piccolo\n"
-
-#: Opcodes/emugens/beosc.c:745
-#, fuzzy
-msgid "beadsynt: not initialised"
-msgstr "adsynt: non inizializzato"
-
-#: Opcodes/emugens/beosc.c:1075 Opcodes/emugens/beosc.c:1079
-#, fuzzy
-msgid "tabrowcopy: incorrect table number"
-msgstr "tabw_i: numero di tavola non corretto"
-
-#: Opcodes/emugens/beosc.c:1085
-#, fuzzy
-msgid "tabrowcopy: iend cannot be bigger than numcols"
-msgstr "tabw_i: numero di tavola non corretto"
-
-#: Opcodes/emugens/beosc.c:1094
-#, fuzzy
-msgid "tabrowcopy: Destination table too small"
-msgstr "copyTabElems: tavola di destinazione troppo corta"
-
-#: Opcodes/emugens/beosc.c:1106
-#, c-format
-msgid ">>>> tabrowlin: row %.4f > maxrow %d! It will be clipped\n"
-msgstr ""
-
-#: Opcodes/emugens/beosc.c:1129
-#, fuzzy
-msgid "tabrowcopy: krow cannot be negative"
-msgstr "Sezioni del loop non possono essere innestati"
-
-#: Opcodes/emugens/beosc.c:1137 Opcodes/emugens/beosc.c:1146
-msgid "tabrowcopy: tab off end"
-msgstr ""
-
-#: Opcodes/emugens/beosc.c:1169
-#, fuzzy
-msgid "tabrowlin: incorrect table number"
-msgstr "tabw_i: numero di tavola non corretto"
-
-#: Opcodes/emugens/beosc.c:1176
-msgid "tabrowlin: iend cannot be bigger than numcols"
-msgstr ""
-
-#: Opcodes/emugens/beosc.c:1180
-msgid "tabrowlin: end must be bigger than start"
-msgstr ""
-
-#: Opcodes/emugens/beosc.c:1185
-msgid "tabrowlin: no items to copy"
-msgstr ""
-
-#: Opcodes/emugens/beosc.c:1208
-#, fuzzy
-msgid "krow cannot be negative"
-msgstr "pvsfread: ichan non pu?? essere negativo.\n"
-
-#: Opcodes/emugens/beosc.c:1222 Opcodes/emugens/beosc.c:1230
-#, fuzzy
-msgid "tab off end"
-msgstr "tab off end %i"
-
-#: Opcodes/emugens/beosc.c:1275
-msgid "The input array should be a 2D array"
-msgstr ""
-
-#: Opcodes/emugens/beosc.c:1285
-msgid "Asked to read too many items from a row"
-msgstr ""
-
-#: Opcodes/emugens/beosc.c:1292
-#, fuzzy
-msgid "getrowlin: krow cannot be negative"
-msgstr "Sezioni del loop non possono essere innestati"
-
-#: Opcodes/emugens/beosc.c:1294
-#, c-format
-msgid "getrowlin: row %.4f > maxrow %d, clipping\n"
-msgstr ""
-
 #: Opcodes/emugens/emugens.c:95 Opcodes/emugens/emugens.c:126
 msgid "linlin.k: Division by zero"
 msgstr "linlin.k: Divisione per zero"
@@ -9364,61 +9250,62 @@ msgstr "Eek ... scan synthesis id non ?? stato trovato"
 msgid "scans: No scan synthesis net specified"
 msgstr "scans: Nessuna scan synthesis net specificata"
 
-#: Opcodes/scansyn.c:229
+#: Opcodes/scansyn.c:228
 msgid "scanu: Could not find ifnmass table"
 msgstr "scanu: Non trovo la tavola ifnmass"
 
-#: Opcodes/scansyn.c:237
+#: Opcodes/scansyn.c:236
 msgid "scanu: Could not find ifncentr table"
 msgstr "scanu: Non trovo la tavola ifncentr"
 
-#: Opcodes/scansyn.c:241 Opcodes/scansyn.c:252 Opcodes/scansyn.c:331
+#: Opcodes/scansyn.c:240 Opcodes/scansyn.c:251 Opcodes/scansyn.c:385
 msgid "scanu: Parameter tables should all have the same length"
 msgstr ""
 "scanu: Le tavole dei parametri dovrebbero avere tutte la stessa lunghezza"
 
-#: Opcodes/scansyn.c:248
+#: Opcodes/scansyn.c:247
 msgid "scanu: Could not find ifndamp table"
 msgstr "scanu: Non trovo la tavola ifndamp"
 
-#: Opcodes/scansyn.c:263
-msgid "scanu: Could not find ifnstiff table"
-msgstr "scanu: Non trovo la tavola ifnstiff"
+#: Opcodes/scansyn.c:262
+#, fuzzy
+msgid "scanu: Could not find ifndisplace table"
+msgstr "scanu: Non trovo la tavola ifndamp"
 
-#: Opcodes/scansyn.c:270
+#: Opcodes/scansyn.c:269
 msgid "scanu: Spring matrix is too small"
 msgstr "scanu: La matrice Spring ?? troppo piccola"
 
-#: Opcodes/scansyn.c:327
+#: Opcodes/scansyn.c:307 Opcodes/scansynx.c:434
+msgid "Mass displacement"
+msgstr "Posizionamento delle Masse"
+
+#: Opcodes/scansyn.c:307 Opcodes/scansynx.c:434
+msgid "Scansynth window"
+msgstr "Scansynth window"
+
+#: Opcodes/scansyn.c:381
 msgid "scanu: Could not find ifnvel table"
 msgstr "scanu: Non trovo la tavola ifnvel"
 
-#: Opcodes/scansyn.c:340
+#: Opcodes/scansyn.c:394
 #, fuzzy
 msgid "i_rate parameter out of range\n"
 msgstr "pvsadsyn: parametro ibin fuori intervallo.\n"
 
-#: Opcodes/scansyn.c:356 Opcodes/scansynx.c:434
-msgid "Mass displacement"
-msgstr "Posizionamento delle Masse"
-
-#: Opcodes/scansyn.c:356 Opcodes/scansynx.c:434
-msgid "Scansynth window"
-msgstr "Scansynth window"
-
-#: Opcodes/scansyn.c:376
+#: Opcodes/scansyn.c:425
 msgid "scanu: invalid id table"
 msgstr "scanu: id della tavola non valido"
 
-#: Opcodes/scansyn.c:488
+#: Opcodes/scansyn.c:570
 msgid "scanu: not initialised"
 msgstr "scanu: non inizializzato"
 
-#: Opcodes/scansyn.c:524 Opcodes/scansynx.c:609
+#: Opcodes/scansyn.c:606 Opcodes/scansynx.c:609
 msgid "scans: Could not find the ifntraj table"
 msgstr "scans: Non trovo la tavola ifntraj"
 
-#: Opcodes/scansyn.c:534
+#: Opcodes/scansyn.c:616
 msgid "vermp: Trajectory table includes values out of range"
 msgstr "vermp: La tavola della traiettoria ha valori fuori intervallo"
 
@@ -10532,90 +10419,90 @@ msgstr ""
 msgid "ATSADDNZ: time pointer out of range, truncating to last frame\n"
 msgstr ""
 
-#: Opcodes/ugnorman.c:1606 Opcodes/ugnorman.c:1792
+#: Opcodes/ugnorman.c:1606 Opcodes/ugnorman.c:1791
 #, c-format
 msgid "ATSSINNOI: Partial(s) out of range, max partial allowed is %i"
 msgstr ""
 
-#: Opcodes/ugnorman.c:1643 Opcodes/ugnorman.c:1829
+#: Opcodes/ugnorman.c:1643 Opcodes/ugnorman.c:1828
 msgid "ATSSINNOI: Type not implemented"
 msgstr ""
 
-#: Opcodes/ugnorman.c:1917
+#: Opcodes/ugnorman.c:1916
 msgid ""
 "ATSSINNOI: only positive time pointer values are allowed, setting to zero\n"
 msgstr ""
 
-#: Opcodes/ugnorman.c:1925
+#: Opcodes/ugnorman.c:1924
 msgid "ATSSINNOI: time pointer out of range, truncating to last frame\n"
 msgstr ""
 
-#: Opcodes/ugnorman.c:2185 Opcodes/ugnorman.c:2282
+#: Opcodes/ugnorman.c:2184 Opcodes/ugnorman.c:2281
 #, c-format
 msgid "ATSBUFREAD: Partial out of range, max partial is %i"
 msgstr ""
 
-#: Opcodes/ugnorman.c:2217 Opcodes/ugnorman.c:2314
+#: Opcodes/ugnorman.c:2216 Opcodes/ugnorman.c:2313
 msgid "ATSBUFREAD: Type not implemented"
 msgstr ""
 
-#: Opcodes/ugnorman.c:2428
+#: Opcodes/ugnorman.c:2427
 msgid ""
 "ATSBUFREAD: only positive time pointer values are allowed, setting to zero\n"
 msgstr ""
 
-#: Opcodes/ugnorman.c:2437
+#: Opcodes/ugnorman.c:2436
 msgid "ATSBUFREAD: time pointer out of range, truncating to last frame\n"
 msgstr ""
 
-#: Opcodes/ugnorman.c:2455
+#: Opcodes/ugnorman.c:2454
 msgid "ATSBUFREAD: not initialised"
 msgstr "ATSBUFREAD: non inizializzato"
 
-#: Opcodes/ugnorman.c:2467 Opcodes/ugnorman.c:2493
+#: Opcodes/ugnorman.c:2466 Opcodes/ugnorman.c:2492
 msgid "ATSPARTIALTAP: you must have an atsbufread before an atspartialtap"
 msgstr ""
 
-#: Opcodes/ugnorman.c:2471
+#: Opcodes/ugnorman.c:2470
 #, c-format
 msgid "ATSPARTIALTAP: exceeded max partial %i"
 msgstr ""
 
-#: Opcodes/ugnorman.c:2476
+#: Opcodes/ugnorman.c:2475
 msgid "ATSPARTIALTAP: partial must be positive and nonzero"
 msgstr ""
 
-#: Opcodes/ugnorman.c:2503 Opcodes/ugnorman.c:2551
+#: Opcodes/ugnorman.c:2502 Opcodes/ugnorman.c:2550
 msgid "ATSINTERPREAD: you must have an atsbufread before an atsinterpread"
 msgstr ""
 
-#: Opcodes/ugnorman.c:2521
+#: Opcodes/ugnorman.c:2520
 msgid "ATSINTERPREAD: frequency must be greater than 20 and less than 20000 Hz"
 msgstr ""
 
-#: Opcodes/ugnorman.c:2567 Opcodes/ugnorman.c:2661
+#: Opcodes/ugnorman.c:2566 Opcodes/ugnorman.c:2660
 msgid "ATSCROSS: Function table number for synthesis waveform not valid"
 msgstr ""
 
-#: Opcodes/ugnorman.c:2607 Opcodes/ugnorman.c:2702
+#: Opcodes/ugnorman.c:2606 Opcodes/ugnorman.c:2701
 #, c-format
 msgid "ATSCROSS: Partial(s) out of range, max partial allowed is %i"
 msgstr ""
 
-#: Opcodes/ugnorman.c:2641 Opcodes/ugnorman.c:2736
+#: Opcodes/ugnorman.c:2640 Opcodes/ugnorman.c:2735
 msgid "ATSCROSS: Type not implemented"
 msgstr ""
 
-#: Opcodes/ugnorman.c:2877
+#: Opcodes/ugnorman.c:2876
 msgid ""
 "ATSCROSS: only positive time pointer values are allowed, setting to zero\n"
 msgstr ""
 
-#: Opcodes/ugnorman.c:2886
+#: Opcodes/ugnorman.c:2885
 msgid "ATSCROSS: time pointer out of range, truncating to last frame\n"
 msgstr ""
 
-#: Opcodes/ugnorman.c:2935
+#: Opcodes/ugnorman.c:2934
 msgid "ATSCROSS: you must have an atsbufread before an atsinterpread"
 msgstr ""
 
@@ -12010,41 +11897,56 @@ msgstr ""
 msgid "Error in pre-initialisation function of module '%s'"
 msgstr ""
 
-#: Top/csmodule.c:488 Top/csmodule.c:780
+#: Top/csmodule.c:493
+#, fuzzy
+msgid "Plugins search path too long\n"
+msgstr "Nome del percorso della directory corrente troppo lungo\n"
+
+#: Top/csmodule.c:495
+#, fuzzy
+msgid "User plugin dir too long\n"
+msgstr "la stringa in p-field ?? troppo lunga"
+
+#: Top/csmodule.c:507
+#, c-format
+msgid "Plugins search path: %s\n"
+msgstr ""
+
+#: Top/csmodule.c:538 Top/csmodule.c:833
 #, c-format
 msgid "Error opening plugin directory '%s': %s"
 msgstr ""
 
-#: Top/csmodule.c:527 Top/csmodule.c:819
+#: Top/csmodule.c:576 Top/csmodule.c:872
 #, c-format
 msgid "path name too long, skipping '%s'"
 msgstr ""
 
-#: Top/csmodule.c:533 Top/csmodule.c:825
+#: Top/csmodule.c:582 Top/csmodule.c:878
 #, c-format
 msgid "Library %s omitted\n"
 msgstr ""
 
-#: Top/csmodule.c:538 Top/csmodule.c:830
+#: Top/csmodule.c:589 Top/csmodule.c:883
 #, c-format
 msgid "Loading '%s'\n"
 msgstr ""
 
-#: Top/csmodule.c:571
+#: Top/csmodule.c:622
 msgid "Loading command-line libraries:\n"
 msgstr ""
 
-#: Top/csmodule.c:594
+#: Top/csmodule.c:645
 #, c-format
 msgid " *** error loading '%s'"
 msgstr ""
 
-#: Top/csmodule.c:617
+#: Top/csmodule.c:668
 #, c-format
 msgid "Error starting module '%s'"
 msgstr ""
 
-#: Top/csmodule.c:867
+#: Top/csmodule.c:920
 #, c-format
 msgid "Error de-initialising module '%s'"
 msgstr ""
@@ -12089,185 +11991,185 @@ msgstr ""
 msgid "Error allocating opcode list"
 msgstr ""
 
-#: Top/csound.c:1664
+#: Top/csound.c:1663
 #, c-format
 msgid "Multithread performance:thread %d of %d starting.\n"
 msgstr ""
 
-#: Top/csound.c:1670
+#: Top/csound.c:1669
 msgid "Bad ThreadId"
 msgstr ""
 
-#: Top/csound.c:2176 Top/csound.c:2213 Top/csound.c:2242 Top/csound.c:2283
-#: Top/csound.c:4532
+#: Top/csound.c:2175 Top/csound.c:2212 Top/csound.c:2241 Top/csound.c:2282
+#: Top/csound.c:4535
 msgid "Csound not ready for performance: csoundStart() has not been called\n"
 msgstr ""
 
-#: Top/csound.c:2195
+#: Top/csound.c:2194
 #, c-format
 msgid "Score finished in csoundPerformKsmps() with %d.\n"
 msgstr ""
 
-#: Top/csound.c:2220 Top/csound.c:4539
+#: Top/csound.c:2219 Top/csound.c:4542
 msgid "Early return from csoundPerformKsmps().\n"
 msgstr ""
 
-#: Top/csound.c:2227
+#: Top/csound.c:2226
 msgid "Score finished in csoundPerformKsmpsInternal().\n"
 msgstr ""
 
-#: Top/csound.c:2249
+#: Top/csound.c:2248
 msgid "Early return from csoundPerformBuffer().\n"
 msgstr ""
 
-#: Top/csound.c:2292
+#: Top/csound.c:2291
 msgid "Early return from csoundPerform().\n"
 msgstr ""
 
-#: Top/csound.c:2301
+#: Top/csound.c:2300
 msgid "Score finished in csoundPerform().\n"
 msgstr ""
 
-#: Top/csound.c:2314
+#: Top/csound.c:2313
 msgid "csoundPerform(): stopped.\n"
 msgstr ""
 
-#: Top/csound.c:2651
+#: Top/csound.c:2650
 msgid "WARNING: "
 msgstr "ATTENZIONE: "
 
-#: Top/csound.c:2789
+#: Top/csound.c:2788
 msgid "rtdummy: failed to allocate globals"
 msgstr ""
 
-#: Top/csound.c:2790
+#: Top/csound.c:2789
 msgid "rtaudio: dummy module enabled\n"
 msgstr ""
 
-#: Top/csound.c:2819 Top/csound.c:2856
+#: Top/csound.c:2818 Top/csound.c:2855
 msgid " *** error: rtaudio module set to empty string"
 msgstr ""
 
-#: Top/csound.c:2823 Top/csound.c:2860
+#: Top/csound.c:2822 Top/csound.c:2859
 #, c-format
 msgid " unknown rtaudio module: '%s', using dummy module"
 msgstr ""
 
-#: Top/csound.c:2977
+#: Top/csound.c:2976
 msgid "!!WARNING: real time midi input disabled, using dummy functions\n"
 msgstr ""
 
-#: Top/csound.c:2982 Top/csound.c:3016
+#: Top/csound.c:2981 Top/csound.c:3015
 msgid "error: -+rtmidi set to empty string"
 msgstr ""
 
-#: Top/csound.c:2985 Top/csound.c:3019
+#: Top/csound.c:2984 Top/csound.c:3018
 #, c-format
 msgid "error: -+rtmidi='%s': unknown module"
 msgstr ""
 
-#: Top/csound.c:3011
+#: Top/csound.c:3010
 msgid "WARNING: real time midi output disabled, using dummy functions\n"
 msgstr ""
 
-#: Top/csound.c:3033
+#: Top/csound.c:3032
 msgid "Unknown MIDI error"
 msgstr ""
 
-#: Top/csound.c:3197
+#: Top/csound.c:3196
 msgid "Failed to allocate new opcode entry."
 msgstr ""
 
-#: Top/csound.c:3219
+#: Top/csound.c:3218
 #, c-format
 msgid "Failed to allocate opcode entry for %s."
 msgstr ""
 
-#: Top/csound.c:3361 Top/main.c:429
+#: Top/csound.c:3360 Top/main.c:429
 msgid "setting dummy interface\n"
 msgstr "impostazione interfaccia dummy\n"
 
-#: Top/csound.c:3452
+#: Top/csound.c:3451
 msgid "Failed during csoundInitEnv"
 msgstr ""
 
-#: Top/csound.c:3475
+#: Top/csound.c:3474
 msgid "Failed during csoundInitStaticModules"
 msgstr ""
 
-#: Top/csound.c:3493
+#: Top/csound.c:3496
 msgid "Failed during csoundLoadModules"
 msgstr ""
 
-#: Top/csound.c:3538
+#: Top/csound.c:3541
 msgid "Real time audio module name"
 msgstr "Nome modulo audio per tempo reale"
 
-#: Top/csound.c:3567
+#: Top/csound.c:3570
 msgid "Real time MIDI module name"
 msgstr "Nome modulo MIDI per tempo reale"
 
-#: Top/csound.c:3572
+#: Top/csound.c:3575
 msgid "Ignore events (other than tempo changes) in tracks defined by pattern"
 msgstr ""
 
-#: Top/csound.c:3578
+#: Top/csound.c:3581
 msgid "Do not handle special MIDI controllers (sustain pedal etc.)"
 msgstr ""
 
-#: Top/csound.c:3586
+#: Top/csound.c:3589
 msgid "Title tag in output soundfile (no spaces)"
 msgstr ""
 
-#: Top/csound.c:3592
+#: Top/csound.c:3595
 msgid "Copyright tag in output soundfile (no spaces)"
 msgstr ""
 
-#: Top/csound.c:3597
+#: Top/csound.c:3600
 msgid "Short Copyright tag in output soundfile"
 msgstr ""
 
-#: Top/csound.c:3603
+#: Top/csound.c:3606
 msgid "Software tag in output soundfile (no spaces)"
 msgstr ""
 
-#: Top/csound.c:3608
+#: Top/csound.c:3611
 msgid "Artist tag in output soundfile (no spaces)"
 msgstr ""
 
-#: Top/csound.c:3615
+#: Top/csound.c:3618
 msgid "Comment tag in output soundfile (no spaces)"
 msgstr ""
 
-#: Top/csound.c:3620
+#: Top/csound.c:3623
 msgid "Date tag in output soundfile (no spaces)"
 msgstr ""
 
-#: Top/csound.c:3630
+#: Top/csound.c:3633
 msgid "Enable message attributes (colors etc.)"
 msgstr ""
 
-#: Top/csound.c:3636
+#: Top/csound.c:3639
 msgid "Start score playback at the specified time, skipping earlier events"
 msgstr ""
 
-#: Top/csound.c:3643
+#: Top/csound.c:3646
 msgid "Ignore <CsOptions> in CSD files (default: no)"
 msgstr ""
 
-#: Top/csound.c:3867
+#: Top/csound.c:3870
 msgid "Cannot open /proc/cpuinfo. Support for RDTSC is not available.\n"
 msgstr ""
 
-#: Top/csound.c:3897
+#: Top/csound.c:3900
 msgid "No valid CPU frequency entry was found in /proc/cpuinfo.\n"
 msgstr ""
 
-#: Top/csound.c:4419
+#: Top/csound.c:4422
 msgid "csoundDestroyMessageBuffer: Message buffer not allocated."
 msgstr ""
 
-#: Top/csound.c:4451
+#: Top/csound.c:4454
 msgid "csound: internal error: message buffer overflow\n"
 msgstr ""
 
@@ -12750,12 +12652,12 @@ msgstr ""
 msgid "The available utilities are:\n"
 msgstr ""
 
-#: include/arrays.h:76
+#: include/arrays.h:81
 #, fuzzy
 msgid "Array not initialised"
 msgstr "array-var non inizializzato"
 
-#: include/arrays.h:81
+#: include/arrays.h:86
 #, c-format
 msgid ""
 "Array too small (allocated %zu < needed %zu), but cannot allocate during "
@@ -16007,6 +15909,96 @@ msgstr "processo scot terminato\n"
 msgid "scot: %d errors.\n"
 msgstr "scot: %d errori.\n"
 
+#~ msgid "scanu: Could not find ifnstiff table"
+#~ msgstr "scanu: Non trovo la tavola ifnstiff"
+
+#, fuzzy
+#~ msgid "beadsynt: phasetable not found"
+#~ msgstr "adsynt: wavetable non trovata!"
+
+#, fuzzy
+#~ msgid "beadsynt: wavetable not found"
+#~ msgstr "adsynt: wavetable non trovata!"
+
+#, fuzzy
+#~ msgid "beadsynt: partial count > amptable size"
+#~ msgstr ""
+#~ "adsynt: il conto delle parziali ?? maggiore della dimensione di amptable!"
+
+#, fuzzy
+#~ msgid "beadsynt: freqtable not found!"
+#~ msgstr "adsynt: freqtable non trovata!"
+
+#, fuzzy
+#~ msgid "beadsynt: partial count > freqtable size"
+#~ msgstr ""
+#~ "adsynt: il conto delle parziali ?? maggiore della dimensione di freqtable!"
+
+#, fuzzy
+#~ msgid "beadsynt: bandwidth table not found"
+#~ msgstr "adsynt: amptable non trovata!"
+
+#, fuzzy
+#~ msgid "beadsynt: partial count > bandwidth size"
+#~ msgstr ""
+#~ "adsynt: il conto delle parziali ?? maggiore della dimensione di amptable!"
+
+#, fuzzy
+#~ msgid "beadsynt: wavetable not found!"
+#~ msgstr "adsynt: wavetable non trovata!"
+
+#, fuzzy
+#~ msgid "The arrays should have 1 dimension"
+#~ msgstr "l'array in non ?? bidimensionale\n"
+
+#, fuzzy
+#~ msgid "Amplitudes array is too small"
+#~ msgstr "array d'input troppo piccolo\n"
+
+#, fuzzy
+#~ msgid "Frequencies array is too small"
+#~ msgstr "array d'input troppo piccolo\n"
+
+#, fuzzy
+#~ msgid "bandwidths array is too small"
+#~ msgstr "array d'input troppo piccolo\n"
+
+#, fuzzy
+#~ msgid "beadsynt: not initialised"
+#~ msgstr "adsynt: non inizializzato"
+
+#, fuzzy
+#~ msgid "tabrowcopy: incorrect table number"
+#~ msgstr "tabw_i: numero di tavola non corretto"
+
+#, fuzzy
+#~ msgid "tabrowcopy: iend cannot be bigger than numcols"
+#~ msgstr "tabw_i: numero di tavola non corretto"
+
+#, fuzzy
+#~ msgid "tabrowcopy: Destination table too small"
+#~ msgstr "copyTabElems: tavola di destinazione troppo corta"
+
+#, fuzzy
+#~ msgid "tabrowcopy: krow cannot be negative"
+#~ msgstr "Sezioni del loop non possono essere innestati"
+
+#, fuzzy
+#~ msgid "tabrowlin: incorrect table number"
+#~ msgstr "tabw_i: numero di tavola non corretto"
+
+#, fuzzy
+#~ msgid "krow cannot be negative"
+#~ msgstr "pvsfread: ichan non pu?? essere negativo.\n"
+
+#, fuzzy
+#~ msgid "tab off end"
+#~ msgstr "tab off end %i"
+
+#, fuzzy
+#~ msgid "getrowlin: krow cannot be negative"
+#~ msgstr "Sezioni del loop non possono essere innestati"
+
 #~ msgid ""
 #~ "failed autoconnecting input channel %d\n"
 #~ "(needs manual connection)"
@@ -16456,9 +16448,6 @@ msgstr "scot: %d errori.\n"
 
 #~ msgid "multiple string p-fields"
 #~ msgstr "multiple stringhe p-fields"
-
-#~ msgid "string p-field is too long"
-#~ msgstr "la stringa in p-field ?? troppo lunga"
 
 #~ msgid "instr %ld redefined"
 #~ msgstr "strumento %ld ridefinito"

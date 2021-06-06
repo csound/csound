@@ -132,7 +132,7 @@ struct scsn_elem {
     struct scsn_elem    *next;
 };
 
-#if 1
+#if 0
 /* remove from list */
 static int32_t listrm(CSOUND *csound, PSCSNU *p)
 {
@@ -179,7 +179,7 @@ static void listadd(SCANSYN_GLOBALS *pp, PSCSNU *p)
     i->p = p;
     i->next = (struct scsn_elem *) pp->scsn_list;
     pp->scsn_list = (void*) i;
-#if 1
+#if 0
     csound->RegisterDeinitCallback(csound, p, (int32_t (*)(CSOUND*, void*)) listrm);
 #endif
 }
@@ -259,7 +259,7 @@ static int32_t scsnu_init(CSOUND *csound, PSCSNU *p)
       /* Get the table */
       if (UNLIKELY((f = csound->FTnp2Find(csound, p->i_f)) == NULL)) {
         return csound->InitError(csound,
-                                 "%s", Str("scanu: Could not find ifnstiff table"));
+                                 "%s", Str("scanu: Could not find ifndisplace table"));
       }
 
      /* Check that the size is good */
