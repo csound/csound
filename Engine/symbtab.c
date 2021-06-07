@@ -199,7 +199,7 @@ static int parse_opcode_args(CSOUND *csound, OENTRY *opc)
           }
           memcpy(typeSpecifier, in_arg, end - in_arg);
 
-          typeSpecifier[(end - in_arg) + 1] = 0;
+          typeSpecifier[(end - in_arg)] = 0;
 // printf("Dimensions: %d SubArgType: %s\n", dimensions, typeSpecifier);
           CS_TYPE* type =
             csoundGetTypeWithVarTypeName(csound->typePool, typeSpecifier);
