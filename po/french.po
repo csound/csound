@@ -9290,9 +9290,8 @@ msgid "scanu: Could not find ifndamp table"
 msgstr "scanu : la table ifndamp n'a pas été trouvée"
 
 #: Opcodes/scansyn.c:262
-#, fuzzy
 msgid "scanu: Could not find ifndisplace table"
-msgstr "scanu : la table ifndamp n'a pas été trouvée"
+msgstr "scanu : la table ifndisplace n'a pas été trouvée"
 
 #: Opcodes/scansyn.c:269
 msgid "scanu: Spring matrix is too small"
