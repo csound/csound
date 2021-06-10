@@ -54,7 +54,7 @@ elseif (Test-Path "..\..\vcpkg") {
 else {
     cd ..\..
     echo "vcpkg missing, downloading and installing..."
-    git clone --depth 1 http://github.com/Microsoft/vcpkg.git
+    git clone http://github.com/Microsoft/vcpkg.git
     cd vcpkg
     git checkout bfe983d
     $env:Path += ";" + $(Get-Location)
