@@ -31,7 +31,7 @@ if ($systemVCPKG) {
     cd $vcpkgDir
     # Update and rebuild vcpkg
     git pull
-    git checkout $vcpkgVersion 
+    git checkout $vcpkgVersion
     bootstrap-vcpkg.bat
     # Remove any outdated packages (they will be installed again below)
     vcpkg remove --outdated --recurse
@@ -58,7 +58,7 @@ else {
     echo "vcpkg missing, downloading and installing..."
     git clone http://github.com/Microsoft/vcpkg.git
     cd vcpkg
-    git checkout $vcpkgVersion 
+    git checkout $vcpkgVersion
     $env:Path += ";" + $(Get-Location)
     $vcpkgDir = $(Get-Location)
     [Environment]::SetEnvironmentVariable("VCPKGDir", $env:vcpkgDir, [EnvironmentVariableTarget]::User)
@@ -121,3 +121,5 @@ cmake ..\.. -DBUILD_PYTHON_OPCODES=1 -G $vsGenerator `
     -DCMAKE_TOOLCHAIN_FILE="$vcpkgCmake" `
     -DCMAKE_INSTALL_PREFIX=dist `
     -DCUSTOM_CMAKE="..\Custom-vs.cmake" `
+
+echo "Complete"
