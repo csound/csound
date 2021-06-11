@@ -206,7 +206,7 @@ Source: "{#ReleaseDir}\glib-2.0-0.dll"; DestDir: "{#APP_BIN}"; Flags: ignorevers
 Source: "{#ReleaseDir}\gtf.dll"; DestDir: "{#APP_BIN}"; Flags: ignoreversion; Components: core;
 ;Source: "{#ReleaseDir}\hdf5.dll"; DestDir: "{#APP_PLUGINS64}"; Flags: ignoreversion; Components: core;
 ;Source: "{#ReleaseDir}\jpeg62.dll"; DestDir: "{#APP_PLUGINS64}"; Flags: ignoreversion; Components: core;
-Source: "{#ReleaseDir}\libcharset.dll"; DestDir: "{#APP_BIN}"; Flags: ignoreversion; Components: core;
+;Source: "{#ReleaseDir}\libcharset.dll"; DestDir: "{#APP_BIN}"; Flags: ignoreversion; Components: core;
 ;Source: "{#ReleaseDir}\libfltk_forms_SHARED.dll"; DestDir: "{#APP_PLUGINS64}"; Flags: ignoreversion; Components: core;
 ;Source: "{#ReleaseDir}\libfltk_images_SHARED.dll"; DestDir: "{#APP_PLUGINS64}"; Flags: ignoreversion; Components: core;
 ;Source: "{#ReleaseDir}\libfltk_SHARED.dll"; DestDir: "{#APP_PLUGINS64}"; Flags: ignoreversion; Components: core;
