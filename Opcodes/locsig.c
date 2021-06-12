@@ -51,7 +51,7 @@ static int32_t locsigset(CSOUND *csound, LOCSIG *p)
       p->rrev1 = fltp;   fltp += CS_KSMPS;
       p->rrev2 = fltp;   fltp += CS_KSMPS;
       p->rrev3 = fltp;   fltp += CS_KSMPS;
-      p->rrev4 = fltp;   fltp += CS_KSMPS;
+      p->rrev4 = fltp;   //fltp += CS_KSMPS;
     }
 
     p->prev_degree = -FL(918273645.192837465);

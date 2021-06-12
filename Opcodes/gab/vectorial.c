@@ -1978,7 +1978,7 @@ static int32_t vrandh(CSOUND *csound,VRANDH *p)
     if (p->phs >= MAXLEN) {
       p->phs &= PHMASK;
       elements = p->elements;
-      vector = p->vector;
+      //vector = p->vector;
       num1 = p->num1;
       r = p->rand;
       do {
@@ -2085,7 +2085,7 @@ static int32_t vrandi(CSOUND *csound,VRANDI *p)
     if (p->phs >= MAXLEN) {
       p->phs &= PHMASK;
       elements = p->elements;
-      vector = p->vector;
+      //vector = p->vector;
       num1 = p->num1;
       num2 = p->num2;
       dfdmax = p->dfdmax;
@@ -2112,7 +2112,7 @@ static int32_t vrandi(CSOUND *csound,VRANDI *p)
 static int32_t vecdly_set(CSOUND *csound, VECDEL *p)
 {
     FUNC        *ftp;
-    int32_t elements = (p->elements = (int32_t) *p->ielements), j;
+    int32_t elements, j;
     int32 n;
 
     if (LIKELY((ftp = csound->FTnp2Find(csound,p->ifnOut)) != NULL)) {

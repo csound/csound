@@ -53,7 +53,7 @@ static int32_t spaceset(CSOUND *csound, SPACE *p)
       p->rrev1 = fltp;   fltp += CS_KSMPS;
       p->rrev2 = fltp;   fltp += CS_KSMPS;
       p->rrev3 = fltp;   fltp += CS_KSMPS;
-      p->rrev4 = fltp;   fltp += CS_KSMPS;
+      p->rrev4 = fltp;   //fltp += CS_KSMPS;
     }
 
     pp = (STDOPCOD_GLOBALS*) csound->stdOp_Env;

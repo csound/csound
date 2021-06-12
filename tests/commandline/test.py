@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/python3
 
 # Csound Test Suite
 # By Steven Yi <stevenyi at gmail dot com>
@@ -6,19 +6,28 @@
 import os
 import sys
 
-from testUI import TestApplication
+# test_ui = False
 
-try:
-    # Python 3
-    from tkinter import *
-except:
-    # Python 2
-    from Tkinter import *
+# try:
+#     # Python 3
+#     from tkinter import *
+#     from testUI import TestApplication
+#     test_ui = True
+# except:
+#     try:
+#     # Python 2
+#      from Tkinter import *
+#      from testUI import TestApplication
+#      test_ui = True
+#     except:
+#      pass
+
 
 parserType = ""
-showUIatClose = False
+# showUIatClose = False
 ##csoundExecutable = r"C:/Users/new/csound-csound6-git/csound.exe "
 csoundExecutable =""
+sourceDirectory = "."
 
 class Test:
     def __init__(self, fileName, description, expected=True):
@@ -26,12 +35,13 @@ class Test:
         self.description = ""
         self.expected = expected
 
-def showUI(results):
-    root = Tk()
-    app = TestApplication(master=root)
-    app.setResults(results)
-    app.mainloop()
-    root.destroy()
+# def showUI(results):
+#     if test_ui is True:
+#      root = Tk()
+#      app = TestApplication(master=root)
+#      app.setResults(results)
+#      app.mainloop()
+#      root.destroy()
 
 def showHelp():
     message = """Csound Test Suite by Steven Yi<stevenyi@gmail.com>
@@ -41,12 +51,12 @@ def showHelp():
     in the command "--show-ui" like so:
 
     ./test.py --show-ui
-    
-    The test suite defaults to using the new parser.  To use the old parser for 
+
+    The test suite defaults to using the new parser.  To use the old parser for
     the tests, use "--old-parser" in the command like so:
-    
+
     ./test.py --show-ui --old-parser
-    
+
     """
 
     print(message)
@@ -122,7 +132,7 @@ def runTest():
 	["test_arrays_string.csd", "test string-array"],
 	["test_arrays_string2.csd", "test simple string-array assignment"],
 	["test_asig_as_array.csd", "test using a-sig with array get/set syntax"],
-	["test_arrays_negative_dimension_fail.csd", 
+	["test_arrays_negative_dimension_fail.csd",
              "test expected failure with negative dimension size and array", 1],
 
 	["test_empty_conditional_branches.csd", "tests that empty branches do not cause compiler issues"],
@@ -143,6 +153,7 @@ def runTest():
 	["test_udo_2d_array.csd", "test udo with 2d-array"],
         ["test_udo_string_array_join.csd", "test udo with S[] arg returning S"],
         ["test_array_function_call.csd", "test synthesizing an array arg from a function-call"],
+        ["test_array_operations.csd", "test multiple operations on multiple array types"],
         ["prints_number_no_crash.csd", "test prints does not crash when given a number arguments", 1],
     ]
 
@@ -168,7 +179,7 @@ def runTest():
     tests += udoTests
 
     output = ""
-    tempfile = 'csound_test_output.txt' if (os.name == 'nt') else '/tmp/csound_test_output.txt'
+    tempfile = 'csound_test_output.txt'
     counter = 1
 
     retVals = []
@@ -183,15 +194,18 @@ def runTest():
 
         if(os.sep == '\\' or os.name == 'nt'):
             executable = (csoundExecutable == "") and "..\csound.exe" or csoundExecutable
-            command = "%s %s %s %s 2> %s"%(executable, parserType, runArgs, filename, tempfile)
+            command = "%s %s %s %s/%s 2> %s"%(executable, parserType, runArgs, sourceDirectory, filename, tempfile)
             print(command)
             retVal = os.system(command)
         else:
             executable = (csoundExecutable == "") and "../../csound" or csoundExecutable
-            command = "%s %s %s %s 2> %s"%(executable, parserType, runArgs, filename, tempfile)
+            command = "%s %s %s %s/%s 2> %s"%(executable, parserType, runArgs, sourceDirectory, filename, tempfile)
             print(command)
             retVal = os.system(command)
-  
+
+        if hasattr(os, 'WIFEXITED') and os.WIFEXITED(retVal):
+            retVal = os.WEXITSTATUS(retVal)
+
         out = ""
         if (retVal == 0) == (expectedResult == 0):
             testPass += 1
@@ -241,8 +255,8 @@ if __name__ == "__main__":
             if (arg == "--help"):
                 showHelp()
                 sys.exit(0)
-            elif arg == "--show-ui":
-                showUIatClose = True
+            # elif arg == "--show-ui":
+            #     showUIatClose = True
             elif arg == "--old-parser":
                 parserType = "--old-parser"
             elif arg.startswith("--csound-executable="):
@@ -251,6 +265,8 @@ if __name__ == "__main__":
             elif arg.startswith("--opcode6dir64="):
                 os.environ['OPCODE6DIR64'] = arg[15:]
                 print(os.environ['OPCODE6DIR64'])
+            elif arg.startswith("--source-dir="):
+                sourceDirectory = arg[13:]
     results = runTest()
-    if (showUIatClose):
-        showUI(results)
+    # if (showUIatClose):
+    #     showUI(results)

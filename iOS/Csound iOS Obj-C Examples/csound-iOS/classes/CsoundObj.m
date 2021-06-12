@@ -416,7 +416,7 @@ OSStatus  Csound_Render(void *inRefCon,
         
     cs = csoundCreate(NULL);
         
-    char *argv[4] = { "csound",
+    const char *argv[4] = { "csound",
 		      (char*)[[paths objectAtIndex:0] cStringUsingEncoding:NSASCIIStringEncoding], "-o", (char*)[[paths objectAtIndex:1] cStringUsingEncoding:NSASCIIStringEncoding]};
     int ret = csoundCompile(cs, 4, argv);
         
@@ -453,7 +453,7 @@ OSStatus  Csound_Render(void *inRefCon,
       [CsoundMIDI setMidiInCallbacks:cs];
     }
         
-    char *argv[2] = { "csound", (char*)[csdFilePath cStringUsingEncoding:NSASCIIStringEncoding]};
+    const char *argv[2] = { "csound", (char*)[csdFilePath cStringUsingEncoding:NSASCIIStringEncoding]};
     int ret = csoundCompile(cs, 2, argv);
     mCsData.running = true;
     mCsData.nsmps = 0;

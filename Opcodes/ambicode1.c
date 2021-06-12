@@ -686,7 +686,7 @@ ibformdec_a(CSOUND * csound, AMBIDA * p) {
     int32_t dim;
     if (p->tabout->data==NULL || p->tabout->dimensions!=1)
       return csound->InitError(csound,
-                               Str("bformdec1 output array not initilised"));
+                               Str("bformdec1 output array not initialised"));
     dim = p->tabin->sizes[0];
     /* All we do in here is police our parameters. */
     if (UNLIKELY(dim != 4 &&

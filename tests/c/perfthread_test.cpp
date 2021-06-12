@@ -67,13 +67,13 @@ void test_record(void)
     csound.ReadScore((char*)"i 1 0  3 0.5 5000\n");
     csound.Start();
     performanceThread1.Play();
-    performanceThread1.Record("testrec.wav");
+    //performanceThread1.Record("testrec.wav");
 #if !defined(__WINNT__)
     sleep(1);
 #else
     Sleep(1000);
 #endif
-    performanceThread1.StopRecord();
+    //performanceThread1.StopRecord();
     performanceThread1.Join();
     csound.Cleanup();
     csound.Reset();

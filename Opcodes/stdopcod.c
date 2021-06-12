@@ -92,7 +92,7 @@ int32_t stdopc_ModuleInit(CSOUND *csound)
     err |= ugnorman_init_(csound);
     err |= ugsc_init_(csound);
     err |= wave_terrain_init_(csound);
-
+    err |= wter2_init_(csound);
     return (err ? CSOUND_ERROR : CSOUND_SUCCESS);
 }
 

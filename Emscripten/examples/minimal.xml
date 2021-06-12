@@ -77,7 +77,7 @@
     // click handler
     function Play() {
       if (started == false) {
-        CSOUND_AUDIO_CONTEXT.resume();
+        CsoundObj.CSOUND_AUDIO_CONTEXT.resume();
         started = true;
       }
       csound.Event("i 1 0 5");
@@ -88,10 +88,10 @@
 
 <body>
   <div id="clickarea">
-    <H1> Minimal </H1>
-    <h3 id="tit"> </h3>
-    <textarea class="console" cols="80" rows="24" id="console">
-          Csound: not loaded</textarea>
+    <h1>Minimal</h1>
+    <h3 id="tit"></h3>
+    <textarea class="console" cols="80" rows="24" id="console">Csound: not loaded
+</textarea>
   </div>
 </body>
 

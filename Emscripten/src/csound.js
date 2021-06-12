@@ -84,6 +84,7 @@ Csound = function() {
      * @param {string} opt_message The status message.
      */
     function UpdateStatus(opt_message, keep) {
+        if (keep === undefined) keep = true;
         if (opt_message) {
             statusText = 'Csound: ' + opt_message + '\n';
         }
@@ -91,10 +92,10 @@ Csound = function() {
         if (statusField) {
             var fieldType = statusField.tagName.toLowerCase();
             if (fieldType == 'div') {
-                statusText += " <br>";
-                if (!keep) statusField.innerHTML = statusText;
+                if (!keep) statusField.textNode = statusText;
                 else
-                    statusField.innerHTML += statusText;
+                    statusField.appendChild(document.createTextNode(statusText));
+                statusField.appendChild(document.createElementNS("http://www.w3.org/1999/xhtml", "br"));
             } else {
                 if (!keep) statusField.value = statusText;
                 else statusField.value += statusText;

@@ -138,7 +138,7 @@ static int32_t lufs_init(CSOUND *csound, LUFS *p)
         p->mPk = 0;
         p->jcount = 0;
         p->kcount = 0;
-		*p->kmom = -200;
+                *p->kmom = -200;
         *p->kst = -200;
         *p->kint = -200;
         memset(p->pwr_, '\0', 4*sizeof(MYFLT));
@@ -213,11 +213,11 @@ static int32_t lufs_perf(CSOUND *csound, LUFS *p)
     }
 
     if (*p->rst != 0) {
-    	p->jcount = 0;
-    	p->kcount = 0;
-    	p->mP = 0;
-    	p->mPk = 0;
-    	*p->kint = -200;
+        p->jcount = 0;
+        p->kcount = 0;
+        p->mP = 0;
+        p->mPk = 0;
+        *p->kint = -200;
     }
     return OK;
 }
@@ -286,11 +286,11 @@ static int32_t lufs_init2(CSOUND *csound, LUFS2 *p)
                 p->jcount = 0;
                 p->kcount = 0;
                 *p->kmom = -200;
-        		*p->kst = -200;
-        		*p->kint = -200;
+                        *p->kst = -200;
+                        *p->kint = -200;
 
                 memset(p->pwr_1, '\0', 4*sizeof(MYFLT));
-                memset(p->pwr_2, '\0', 4*sizeof(MYFLT));                
+                memset(p->pwr_2, '\0', 4*sizeof(MYFLT));
                 memset(p->pwr_ST1, '\0', 30*sizeof(MYFLT));
                 memset(p->pwr_ST2, '\0', 30*sizeof(MYFLT));
 
@@ -334,7 +334,7 @@ static int32_t lufs_perf2(CSOUND *csound, LUFS2 *p)
 
           // relative treshold
           Gamma = -0.691 + 10 * LOG10(mmpower) - 10;
-          
+
           if (mloudness >= Gamma) {
             p->mPk += p->pwro1 + p->pwro2;
             p->kcount++;
@@ -376,11 +376,11 @@ static int32_t lufs_perf2(CSOUND *csound, LUFS2 *p)
         }
     }
     if (*p->rst != 0) {
-    	p->jcount = 0;
-    	p->kcount = 0;
-    	p->mP = 0;
-    	p->mPk = 0;
-    	*p->kint = -200;
+        p->jcount = 0;
+        p->kcount = 0;
+        p->mP = 0;
+        p->mPk = 0;
+        *p->kint = -200;
     }
     return OK;
 }

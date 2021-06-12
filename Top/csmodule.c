@@ -401,6 +401,15 @@ static int csoundCheckOpcodeDeny(CSOUND * csound, const char *fname)
     return 0;
 }
 
+
+static int _dir_exists(char *path) {
+    // returns 1 if path is a directory and it exists
+    struct stat s;
+    int err = stat(path, &s);
+    return (err == 0 && S_ISDIR(s.st_mode)) ? 1 : 0;
+}
+
+
 /**
  * Load plugin libraries for Csound instance 'csound', and call
  * pre-initialisation functions.
@@ -411,13 +420,15 @@ static int csoundCheckOpcodeDeny(CSOUND * csound, const char *fname)
 int csoundLoadModules(CSOUND *csound)
 {
 #if (defined(HAVE_DIRENT_H) && (TARGET_OS_IPHONE == 0))
-    DIR             *dir;
-    struct dirent   *f;
-    const char      *dname, *fname;
-    char            buf[1024];
-    int             i, n, len, err = CSOUND_SUCCESS;
-    char   *dname1, *end;
-    int     read_directory = 1;
+    DIR *dir;
+    struct dirent *f;
+    const char *dname, *fname;
+    enum { searchpath_buflen = 2048, buflen = 1024 };
+    char buf[buflen];
+    int i, n, len, err = CSOUND_SUCCESS;
+    char *dname1, *end;
+    int read_directory = 1;
+    char searchpath_buf[searchpath_buflen];
     char sep =
 #ifdef WIN32
     ';';
@@ -444,18 +455,56 @@ int csoundLoadModules(CSOUND *csound)
 #endif
 #ifdef  CS_DEFAULT_PLUGINDIR
         dname = CS_DEFAULT_PLUGINDIR;
- #ifdef __HAIKU__
-                dfltdir = 1;
- #endif
+  #ifdef __HAIKU__
+        dfltdir = 1;
+  #endif
 #else
       dname = "";
 #endif
     }
+
     /* opcodedir GLOBAL override **experimental** */
     if (csound->opcodedir != NULL) {
       dname = csound->opcodedir;
-      csound->Message(csound, "OPCODEDIR overriden to %s \n", dname);
+      csound->Message(csound, "OPCODEDIR overridden to %s \n", dname);
     }
+    size_t pos = strlen(dname);
+    char *userplugindir = getenv("CS_USER_PLUGINDIR");
+    // The user set a search path for plugins via an env variable. Paths here
+    // should be absolute and should not need variable expansion
+    if(userplugindir != NULL) {
+      snprintf(searchpath_buf, searchpath_buflen, "%s%c%s", dname, sep, userplugindir);
+      dname = searchpath_buf;
+    } else {
+#ifdef CS_DEFAULT_USER_PLUGINDIR
+      // Use default user path
+      // In this case, userplugindir is a relative path to a prefix wich needs
+      // to be expanded
+      userplugindir = CS_DEFAULT_USER_PLUGINDIR;
+
+#if defined(LINUX) || defined(__MACH__)
+      char *prefix = getenv("HOME");
+#elif defined(WIN32)
+      char *prefix = getenv("LOCALAPPDATA");
+#endif
+      size_t prefixlen = strlen(prefix);
+      size_t userplugindirlen = strlen(userplugindir);
+      if(pos + prefixlen + 2 > searchpath_buflen - 1) {
+        csound->ErrorMsg(csound, Str("Plugins search path too long\n"));
+      } else if(userplugindirlen + prefixlen + 1 >= buflen) {
+        csound->ErrorMsg(csound, Str("User plugin dir too long\n"));
+      } else {
+        snprintf(buf, buflen, "%s/%s", prefix, userplugindir);
+        if(_dir_exists(buf)) {
+          snprintf(searchpath_buf, searchpath_buflen, "%s%c%s", dname, sep, buf);
+          dname = searchpath_buf;
+        }
+      }
+#endif
+    }
+
+    if(UNLIKELY(csound->oparms->odebug))
+      csound->Message(csound, Str("Plugins search path: %s\n"), dname);
 
     /* We now loop through the directory list */
     while(read_directory) {
@@ -464,9 +513,11 @@ int csoundLoadModules(CSOUND *csound)
       *end = '\0';
       /* copy directory name */
       dname1 = cs_strdup(csound, (char *) dname);
+
       *end = sep;  /* restore for re-execution */
       /* move to next directory name */
       dname = end + 1;
+
     } else {
       /* copy last directory name) */
       dname1 = cs_strdup(csound, (char *) dname);
@@ -479,7 +530,6 @@ int csoundLoadModules(CSOUND *csound)
       csound->Free(csound, dname1);
       break;
     }
-
     dir = opendir(dname1);
     if (UNLIKELY(dir == (DIR*) NULL)) {
  #if defined(__HAIKU__)
@@ -490,7 +540,6 @@ int csoundLoadModules(CSOUND *csound)
       csound->Free(csound, dname1);
       continue;
     }
-
     if(UNLIKELY(csound->oparms->odebug))
       csound->Message(csound, "Opening plugin directory: %s\n", dname1);
     /* load database for deferred plugin loading */
@@ -533,7 +582,9 @@ int csoundLoadModules(CSOUND *csound)
         csoundWarning(csound, Str("Library %s omitted\n"), fname);
         continue;
       }
+
       snprintf(buf, 1024, "%s%c%s", dname1, DIRSEP, fname);
+
       if (UNLIKELY(csound->oparms->odebug)) {
         csoundMessage(csound, Str("Loading '%s'\n"), buf);
        }
@@ -694,6 +745,7 @@ int csoundLoadAndInitModule(CSOUND *csound, const char *fname)
     }
     /* NOTE: this depends on csound->csmodule_db being the most recently */
     /* loaded plugin library */
+
     err = csoundInitModule(csound, (csoundModule_t*) csound->csmodule_db);
     memcpy((void*) &csound->exitjmp, (void*) &tmpExitJmp, sizeof(jmp_buf));
 
@@ -708,8 +760,8 @@ int csoundLoadAndInitModules(CSOUND *csound, const char *opdir)
     const char      *dname, *fname;
     char            buf[1024];
     int             i, n, len, err = CSOUND_SUCCESS;
-    char   *dname1, *end;
-    int     read_directory = 1;
+    char            *dname1, *end;
+    int             read_directory = 1;
     char sep =
 #ifdef WIN32
     ';';
@@ -719,11 +771,13 @@ int csoundLoadAndInitModules(CSOUND *csound, const char *opdir)
 #ifdef __HAIKU__
         int dfltdir = 0;
 #endif
-
-    if (UNLIKELY(csound->csmodule_db != NULL))
-      return CSOUND_ERROR;
+        // VL: check is not wanted
+        //if (UNLIKELY(csound->csmodule_db != NULL))
+        ///return CSOUND_ERROR;
 
     /* open plugin directory */
+    // EM'2021: This seems to be dead code since opdir will never be NULL and
+    // the value of dname will be discarded, see "dname = opdir" later
     dname = csoundGetEnv(csound, (sizeof(MYFLT) == sizeof(float) ?
                                   plugindir_envvar : plugindir64_envvar));
     if (dname == NULL) {

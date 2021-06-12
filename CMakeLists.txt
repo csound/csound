@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 2.8.12)
+cmake_minimum_required(VERSION 3.5)
 # silence RPATH cmake warning
 set(CMAKE_MACOSX_RPATH 1)
 set(CMAKE_EXPORT_COMPILE_COMMANDS 1)
@@ -210,15 +210,6 @@ else()
     set(PLUGIN_INSTALL_DIR "${LIBRARY_INSTALL_DIR}/csound/plugins-${APIVERSION}")
 endif()
 
-execute_process (
-    COMMAND python -c
-    "import site, sys; sys.stdout.write(site.getsitepackages()[0])"
-    OUTPUT_VARIABLE PYTHON_SITE_PACKAGES
-)
-
-SET(PYTHON_MODULE_INSTALL_DIR ${PYTHON_SITE_PACKAGES} CACHE PATH "Python module install dir")
-
-
 if(APPLE) 
   get_filename_component(JAVA_MODULE_INSTALL_DIR_DEFAULT "~/Library/Java/Extensions" ABSOLUTE)
 else()
@@ -377,14 +368,28 @@ if(APPLE)
 
     add_definitions("-DCS_DEFAULT_PLUGINDIR=\"${CS_FRAMEWORK_FULL_PATH}\"")
     set(DEFAULT_OPCODEDIR ${CS_FRAMEWORK_FULL_PATH})
+
+    # dir relative to $HOME
+    set(DEFAULT_USER_PLUGINDIR "Library/csound/${APIVERSION}/plugins64")
+    add_definitions("-DCS_DEFAULT_USER_PLUGINDIR=\"${DEFAULT_USER_PLUGINDIR}\"")
+endif()
+
+if(LINUX)
+    set(DEFAULT_OPCODEDIR "${PLUGIN_INSTALL_DIR}")
+    add_definitions("-DCS_DEFAULT_PLUGINDIR=\"${DEFAULT_OPCODEDIR}\"")
+    # dir relative to $HOME
+    set(DEFAULT_USER_PLUGINDIR ".local/lib/csound/${APIVERSION}/plugins64")
+    add_definitions("-DCS_DEFAULT_USER_PLUGINDIR=\"${DEFAULT_USER_PLUGINDIR}\"")
+endif()
+
+if(WIN32)
+    # dir relaive to %LOCALAPPDATA%
+    set(DEFAULT_USER_PLUGINDIR "csound/${APIVERSION}/plugins64")
+    add_definitions("-DCS_DEFAULT_USER_PLUGINDIR=\"${DEFAULT_USER_PLUGINDIR}\"")
 endif()
 
 if(BUILD_RELEASE)
     add_definitions("-D_CSOUND_RELEASE_")
-    if(LINUX)
-        set(DEFAULT_OPCODEDIR "${PLUGIN_INSTALL_DIR}")
-        add_definitions("-DCS_DEFAULT_PLUGINDIR=\"${DEFAULT_OPCODEDIR}\"")
-    endif()
 else()
     add_definitions("-DBETA")
 endif()
@@ -423,7 +428,7 @@ SET(BUILD_SHARED_LIBS ON)
 
 # First, required stuff
 if(MSVC)
-    find_package(LibSndFile CONFIG REQUIRED)
+    find_package(SndFile CONFIG REQUIRED)
 else()
     find_library(LIBSNDFILE_LIBRARY NAMES sndfile libsndfile-1 libsndfile)
 
@@ -446,10 +451,11 @@ find_package(FLTK)
 #        LIST_REPLACE(FLTK_LIBRARIES 2 "fltk_images_SHARED")
 #    endif()
 #endif()
-find_package(FAUST)
+
 find_package(Java)
 find_package(JNI)
 find_package(MUSICXML)
+find_package(Python)
 find_package(VSTSDK2X)
 
 #if(MUSICXML_FOUND)
@@ -1330,7 +1336,7 @@ endif()
 
 target_compile_options(${CSOUNDLIB} PRIVATE ${libcsound_CFLAGS})
 if(MSVC)
-    target_link_libraries(${CSOUNDLIB} PRIVATE sndfile-static)
+    target_link_libraries(${CSOUNDLIB} PRIVATE SndFile::sndfile ws2_32)
 else()
     target_link_libraries(${CSOUNDLIB} PRIVATE ${libcsound_LIBS})
 endif()
@@ -1347,7 +1353,7 @@ if(BUILD_STATIC_LIBRARY)
     target_compile_options(${CSOUNDLIB_STATIC} PRIVATE ${libcsound_CFLAGS})
 
     if(MSVC)
-        target_link_libraries(${CSOUNDLIB_STATIC} PRIVATE sndfile-static ${CSOUND_WINDOWS_LIBRARIES})
+        target_link_libraries(${CSOUNDLIB_STATIC} PRIVATE SndFile::sndfile ${CSOUND_WINDOWS_LIBRARIES})
     else()
         target_link_libraries(${CSOUNDLIB_STATIC} ${libcsound_LIBS})
     endif()

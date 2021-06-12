@@ -241,7 +241,7 @@ static int32_t grainsetv4(CSOUND *csound, GRAINV4 *p)
                                            "of igskip and ilength"));
     }
 
-    nvoice = (int32_t)*p->ivoice;
+    //nvoice = (int32_t)*p->ivoice;
 
     if (UNLIKELY(*p->ilength < (20 * *p->kgsize)))
       csound->Warning(csound, Str("granule_set: "

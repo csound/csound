@@ -530,12 +530,13 @@ static int32_t sinit3_(CSOUND *csound, DATASPACE *p)
       fdrecord(csound, &(p->fdch));
     */
     printf("fftsize = %d\n", p->N);
-    int32_t buffersize = size;
-    buffersize /= mpainfo.decoded_sample_size;
     int32_t skip = (int32_t)(*p->skip*CS_ESR)*p->resamp;
     p->bufused = -1;
 
-    /*while (skip > 0) {
+    /*
+    int32_t buffersize = size;
+    buffersize /= mpainfo.decoded_sample_size;
+    while (skip > 0) {
       int32_t xx= skip;
       if (xx > buffersize) xx = buffersize;
       skip -= xx;

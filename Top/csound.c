@@ -923,9 +923,10 @@ static const CSOUND cenviron_ = {
       0.4,          /*    vbr quality  */
       0,            /*    ksmps_override */
       0,             /*    fft_lib */
-      0
+      0,             /* echo */
+      0.0,           /* limiter */
+      DFLT_SR, DFLT_KR  /* defaults */
     },
-
     {0, 0, {0}}, /* REMOT_BUF */
     NULL,           /* remoteGlobals        */
     0, 0,           /* nchanof, nchanif     */
@@ -1308,7 +1309,8 @@ PUBLIC int csoundInitialize(int flags)
 static char *opcodedir = NULL;
 
 PUBLIC void csoundSetOpcodedir(const char *s) {
-  opcodedir = (char *) s;
+  if(opcodedir != NULL) free(opcodedir);
+  opcodedir = strdup(s);
 }
 
 
@@ -1336,7 +1338,6 @@ PUBLIC CSOUND *csoundCreate(void *hostdata)
     p->csound = csound;
     p->nxt = (csInstance_t*) instance_list;
     instance_list = p;
-    csound->opcodedir = cs_strdup(csound, opcodedir);
     csoundUnLock();
     csoundReset(csound);
     csound->API_lock = csoundCreateMutex(1);
@@ -1345,7 +1346,6 @@ PUBLIC CSOUND *csoundCreate(void *hostdata)
        address of the pointer to CSOUND inside
        the struct, so it can be cleared later */
     //csound->self = &csound;
-
     return csound;
 }
 
@@ -1750,7 +1750,7 @@ int kperf_nodebug(CSOUND *csound)
         double time_end = (csound->ksmps+csound->icurTime)/csound->esr;
 
         while (ip != NULL) {                /* for each instr active:  */
-          INSDS *nxt = ip->nxtact;
+          INSDS *nxt = ip->nxtact; 
           if (UNLIKELY(csound->oparms->sampleAccurate &&
                        ip->offtim > 0                 &&
                        time_end > ip->offtim)) {
@@ -1788,7 +1788,7 @@ int kperf_nodebug(CSOUND *csound)
                 OPDS  *opstart;
                 ip->spin = csound->spin;
                 ip->spout = csound->spraw;
-                ip->kcounter =  csound->kcounter*csound->ksmps/lksmps;
+                ip->kcounter = (csound->kcounter-1)*csound->ksmps/lksmps;
 
                 /* we have to deal with sample-accurate code
                    whole CS_KSMPS blocks are offset here, the
@@ -1805,6 +1805,7 @@ int kperf_nodebug(CSOUND *csound)
                 }
 
                 for (i=start; i < n; i+=incr, ip->spin+=incr, ip->spout+=incr) {
+                  ip->kcounter++;
                   opstart = (OPDS*) ip;
                   csound->mode = 2;
                   while (error ==  0 && (opstart = opstart->nxtp) != NULL
@@ -1814,9 +1815,10 @@ int kperf_nodebug(CSOUND *csound)
                     //csound->ids->optext->t.oentry->opname;
                     error = (*opstart->opadr)(csound, opstart); /* run each opcode */
                     opstart = opstart->insdshead->pds;
+                    
                   }
                   csound->mode = 0;
-                  ip->kcounter++;
+                  
                 }
             }
           }
@@ -1824,7 +1826,14 @@ int kperf_nodebug(CSOUND *csound)
                                  csound->kcounter/csound->ekr);*/
           ip->ksmps_offset = 0; /* reset sample-accuracy offset */
           ip->ksmps_no_end = 0; /* reset end of loop samples */
-          ip = nxt; /* but this does not allow for all deletions */
+          ip = ip->nxtact; /* VL 13.04.21 this allows for deletions to operate 
+                              correctly on the active 
+                              list at perf time
+                              this allows for turnoff2 to work correctly
+                               */
+          if(ip == NULL) ip = nxt; /* now check again if there is nothing nxt
+                                       in the chain making sure turnoff also
+                                       works */
         }
       }
     }
@@ -3400,9 +3409,9 @@ PUBLIC int csoundGetModule(CSOUND *csound, int no, char **module, char **type){
 
 PUBLIC int csoundLoadPlugins(CSOUND *csound, const char *dir){
   if (dir != NULL) {
+   csound->Message(csound, "loading plugins from %s\n", dir); 
    int err = csoundLoadAndInitModules(csound, dir);
    if(!err) {
-     csound->Message(csound, "loaded plugins from %s\n", dir);
      return CSOUND_SUCCESS;
   }
   else return err;
@@ -3415,7 +3424,7 @@ PUBLIC void csoundReset(CSOUND *csound)
     char    *s;
     int     i, max_len;
     OPARMS  *O = csound->oparms;
-    char *opdir = csound->opcodedir;
+
 
     if (csound->engineStatus & CS_STATE_COMP ||
         csound->engineStatus & CS_STATE_PRE) {
@@ -3475,7 +3484,11 @@ PUBLIC void csoundReset(CSOUND *csound)
      memset(modules, 0, sizeof(MODULE_INFO *)*MAX_MODULES);
 
      /* VL now load modules has opcodedir override */
-     csound->opcodedir = opdir;
+     if(opcodedir) 
+      csound->opcodedir = cs_strdup(csound, opcodedir);
+     else
+       csound->opcodedir = NULL;
+
      err = csoundLoadModules(csound);
       if (csound->delayederrormessages &&
           csound->printerrormessagesflag==NULL) {

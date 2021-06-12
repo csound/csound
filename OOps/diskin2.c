@@ -405,6 +405,7 @@ static int32_t diskin2_init_(CSOUND *csound, DISKIN2 *p, int32_t stringname)
     }
     p->pos_frac_inc = (int64_t)0;
     p->prv_kTranspose = FL(0.0);
+    p->transpose = FL(1.0);
     /* allocate and initialise buffers */
     p->bufSize = diskin2_calc_buffer_size(p, MYFLT2LONG(p->BufSize));
     n = 2 * p->bufSize * p->nChannels * (int32_t)sizeof(MYFLT);
@@ -755,15 +756,16 @@ int32_t diskin_file_read(CSOUND *csound, DISKIN2 *p)
     int32_t ndx;
     int32_t wsized2, warp;
     MYFLT   *aOut = (MYFLT *)p->aOut_buf; /* needs to be allocated */
+    MYFLT transpose = p->transpose;
 
     if (UNLIKELY(p->fdch.fd == NULL) ) goto file_error;
     if (!p->initDone && !p->SkipInit) {
       return csound->PerfError(csound, &(p->h),
                                Str("diskin2: not initialised"));
     }
-    if (*(p->kTranspose) != p->prv_kTranspose) {
+    if (transpose != p->prv_kTranspose) {
       double  f;
-      p->prv_kTranspose = *(p->kTranspose);
+      p->prv_kTranspose = transpose;
       f = (double)p->prv_kTranspose * p->warpScale * (double)POS_FRAC_SCALE;
 #ifdef HAVE_C99
       p->pos_frac_inc = (int64_t)llrint(f);
@@ -944,6 +946,7 @@ int32_t diskin2_perf_asynchronous(CSOUND *csound, DISKIN2 *p)
     int32_t chn;
     void *cb = p->cb;
     int32_t chans = p->nChannels;
+    p->transpose =  *p->kTranspose;
 
     if (offset || early) {
       for (chn = 0; chn < chans; chn++)

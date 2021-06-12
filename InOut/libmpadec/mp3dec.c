@@ -137,7 +137,7 @@ int mp3dec_init_file(mp3dec_t mp3dec, int fd, int64_t length, int nogap)
           if (mp3->stream_size && (n > mp3->stream_size))
             n = (int32_t)mp3->stream_size;
           n = read(fd, mp3->in_buffer, n);
-          if (n <= 0){ n = 0; break; } /* EOF */
+          if (n <= 0){ /* n = 0; */ break; } /* EOF */
           mp3->stream_position = mp3->in_buffer_used = n;
           r = mpadec_decode(mp3->mpadec, mp3->in_buffer,
                             mp3->in_buffer_used,

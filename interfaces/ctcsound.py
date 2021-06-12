@@ -22,18 +22,19 @@
 #
 
 import ctypes as ct
+import ctypes.util
 import numpy as np
 import sys
 
 # This is a workaround to yield the PEP 3118 problem which appeared with
 # numpy 1.15.0
 if np.__version__ < '1.15':
-	arrFromPointer = lambda p : np.ctypeslib.as_array(p)
+    arrFromPointer = lambda p : np.ctypeslib.as_array(p)
 elif np.__version__ < '1.16':
-	sys.exit("ctcsound won't work with numpy 1.15.x. Please revert numpy" +
-		" to an older version or update numpy to a version >= 1.16")
+    sys.exit("ctcsound won't work with numpy 1.15.x. Please revert numpy" +
+        " to an older version or update numpy to a version >= 1.16")
 else:
-	arrFromPointer = lambda p : p.contents
+    arrFromPointer = lambda p : p.contents
 
 if sys.platform.startswith('linux'):
     libcsound = ct.CDLL("libcsound64.so")
@@ -41,10 +42,9 @@ elif sys.platform.startswith('win'):
     if sys.version_info.major <=3 and sys.version_info.minor < 8:
         libcsound = ct.cdll.csound64
     else:
-        import ctypes.util
         libcsound = ct.CDLL(ctypes.util.find_library("csound64"))
 elif sys.platform.startswith('darwin'):
-    libcsound = ct.CDLL("CsoundLib64.framework/CsoundLib64")
+    libcsound = ct.CDLL(ctypes.util.find_library("CsoundLib64"))
 else:
     sys.exit("Don't know your system! Exiting...")
 
@@ -338,6 +338,8 @@ libcsound.csoundSetCscoreCallback.argtypes = [ct.c_void_p, CSCOREFUNC]
 
 libcsound.csoundMessage.argtypes = [ct.c_void_p, ct.c_char_p, ct.c_char_p]
 libcsound.csoundMessageS.argtypes = [ct.c_void_p, ct.c_int, ct.c_char_p, ct.c_char_p]
+DEFMSGFUNC = ct.CFUNCTYPE(None, ct.c_void_p, ct.c_int, ct.c_char_p, ct.c_void_p)
+libcsound.csoundSetDefaultMessageCallback.argtypes = [DEFMSGFUNC]
 libcsound.csoundGetMessageLevel.argtypes = [ct.c_void_p]
 libcsound.csoundSetMessageLevel.argtypes = [ct.c_void_p, ct.c_int]
 libcsound.csoundCreateMessageBuffer.argtypes = [ct.c_void_p, ct.c_int]
@@ -666,9 +668,21 @@ def csoundInitialize(flags):
     return libcsound.csoundInitialize(flags)
 
 def setOpcodedir(s):
-	"""Sets an opcodedir override for csoundCreate()."""
-	libcsound.csoundSetOpcodedir(cstring(s))
+    """Sets an opcodedir override for csoundCreate()."""
+    libcsound.csoundSetOpcodedir(cstring(s))
 
+defaultMessageCbRef = None
+def setDefaultMessageCallback(function):
+    """Not fully implemented. Do not use it yet except for disabling messaging:
+    
+    def noMessage(csound, attr, flags, *args):
+        pass
+    ctcsound.setDefaultMessageCallback(noMessage)
+    """
+    global defaultMessageCbReg
+    defaultMessageCbRef = DEFMSGFUNC(function)
+    libcsound.csoundSetDefaultMessageCallback(defaultMessageCbRef)
+    
 class Csound:
     #Instantiation
     def __init__(self, hostData=None, pointer_=None):
@@ -687,8 +701,8 @@ class Csound:
             self.fromPointer = False
     
     def loadPlugins(self, directory):
-    	"""Loads all plugins from a given directory."""
-    	return libcsound.csoundLoadPlugins(self.cs, cstring(directory))
+        """Loads all plugins from a given directory."""
+        return libcsound.csoundLoadPlugins(self.cs, cstring(directory))
     
     def __del__(self):
         """Destroys an instance of Csound."""
@@ -1068,10 +1082,10 @@ class Csound:
         libcsound.csoundSetDebug(self.cs, ct.c_int(debug))
 
     def systemSr(self, val):
-    	"""If val > 0, sets the internal variable holding the system HW sr.
-    	
-    	Returns the stored value containing the system HW sr."""
-    	return libcsound.csoundSystemSr(self.cs, val)
+        """If val > 0, sets the internal variable holding the system HW sr.
+        
+        Returns the stored value containing the system HW sr."""
+        return libcsound.csoundSystemSr(self.cs, val)
 
     #General Input/Output
     def outputName(self):
@@ -1541,8 +1555,6 @@ class Csound:
             s = fmt % args
         libcsound.csoundMessageS(self.cs, attr, cstring("%s"), cstring(s))
 
-    #def setDefaultMessageCallback():
-    
     #def setMessageCallback():
     
     #def setMessageStringCallback()
@@ -1840,14 +1852,14 @@ class Csound:
           pfields for this event, starting with the p1 value specified in
           pFields[0].
         """
-        p = np.array(pFields).astype(MYFLT)
+        p = np.asarray(pFields, dtype=MYFLT)
         ptr = p.ctypes.data_as(ct.POINTER(MYFLT))
         numFields = ct.c_long(p.size)
         return libcsound.csoundScoreEvent(self.cs, cchar(type_), ptr, numFields)
     
     def scoreEventAsync(self, type_, pFields):
         """Asynchronous version of :py:meth:`scoreEvent()`."""
-        p = np.array(pFields).astype(MYFLT)
+        p = np.asarray(pFields, dtype=MYFLT)
         ptr = p.ctypes.data_as(ct.POINTER(MYFLT))
         numFields = ct.c_long(p.size)
         libcsound.csoundScoreEventAsync(self.cs, cchar(type_), ptr, numFields)
@@ -1858,14 +1870,14 @@ class Csound:
         The event is inserted at absolute time with respect to the start of
         performance, or from an offset set with timeOffset.
         """
-        p = np.array(pFields).astype(MYFLT)
+        p = np.asarray(pFields, dtype=MYFLT)
         ptr = p.ctypes.data_as(ct.POINTER(MYFLT))
         numFields = ct.c_long(p.size)
         return libcsound.csoundScoreEventAbsolute(self.cs, cchar(type_), ptr, numFields, ct.c_double(timeOffset))
     
     def scoreEventAbsoluteAsync(self, type_, pFields, timeOffset):
         """Asynchronous version of :py:meth:`scoreEventAbsolute()`."""
-        p = np.array(pFields).astype(MYFLT)
+        p = np.asarray(pFields, dtype=MYFLT)
         ptr = p.ctypes.data_as(ct.POINTER(MYFLT))
         numFields = ct.c_long(p.size)
         libcsound.csoundScoreEventAbsoluteAsync(self.cs, cchar(type_), ptr, numFields, ct.c_double(timeOffset))
@@ -2686,7 +2698,7 @@ elif sys.platform.startswith('win'):
     else:
         libcspt = ct.CDLL(ctypes.util.find_library("csnd6"))
 elif sys.platform.startswith('darwin'):
-    libcspt = ct.CDLL("libcsnd6.6.0.dylib")
+    libcspt = ct.CDLL(ctypes.util.find_library('csnd6'))
 else:
     sys.exit("Don't know your system! Exiting...")
 

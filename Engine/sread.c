@@ -1185,7 +1185,7 @@ static MYFLT read_expression(CSOUND *csound)
           }
           //printf("done ]*** *op=%c v=%lg (%c)\n", *op, *pv, c);
           //getscochar(csound, 1);
-          c = '$'; return *pv;
+          /* c = '$'; */ return *pv;
         case '$':
           break;
         case ' ':               /* Ignore spaces */

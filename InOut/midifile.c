@@ -490,7 +490,7 @@ static void sortEventLists(CSOUND *csound)
       /* tick values are in fractions of a beat */
       timeVal = 0.0;
       tempoVal = default_tempo;
-      prvTicks = curTicks = 0UL;
+      /* prvTicks = */ curTicks = 0UL;
       /* k-periods per tick */
       tempoVal = (double) csound->ekr / (tempoVal * MF(timeCode) / 60.0);
       i = j = 0;

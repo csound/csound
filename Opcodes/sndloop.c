@@ -317,7 +317,6 @@ static int32_t flooper_init(CSOUND *csound, flooper *p)
       return csound->InitError(csound,
                                Str("crossfade longer than loop duration\n"));
 
-    inc =  FL(1.0)/cfds;    /* inc/dec */
     tab = p->sfunc->ftable,  /* func table pointer */
     len = p->sfunc->flen;    /* function table length */
     nchnls = p->sfunc->nchanls;
@@ -338,7 +337,7 @@ static int32_t flooper_init(CSOUND *csound, flooper *p)
         p->buffer.size<(durs+1)*sizeof(MYFLT)*nchnls)
       csound->AuxAlloc(csound,(durs+1)*sizeof(MYFLT)*nchnls, &p->buffer);
 
-    inc = (MYFLT)1/cfds;       /* fade envelope incr/decr */
+    inc = FL(1.0)/cfds;       /* fade envelope incr/decr */
     buffer = p->buffer.auxp;   /* loop memory */
 
     /* we now write the loop into memory */

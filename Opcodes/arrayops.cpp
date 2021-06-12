@@ -37,7 +37,7 @@ inline MYFLT limx(MYFLT f, MYFLT v1, MYFLT v2) {
   return f > v1 ? (f < v2 ? f : v2) : v1;
 }
 
-/** i-time, k-rate operator
+/** k-rate operator
     kout[] op kin[]
  */
 template <MYFLT (*op)(MYFLT)> struct ArrayOp : csnd::Plugin<1, 1> {
@@ -46,12 +46,13 @@ template <MYFLT (*op)(MYFLT)> struct ArrayOp : csnd::Plugin<1, 1> {
                    [](MYFLT f) { return op(f); });
     return OK;
   }
-
+  
   int init() {
     csnd::myfltvec &out = outargs.myfltvec_data(0);
     csnd::myfltvec &in = inargs.myfltvec_data(0);
     out.init(csound, in.len());
-    return process(out, in);
+    if (!is_perf()) process(out, in);
+    return OK;
   }
 
   int kperf() {
@@ -59,7 +60,7 @@ template <MYFLT (*op)(MYFLT)> struct ArrayOp : csnd::Plugin<1, 1> {
   }
 };
 
-/** i-time, k-rate binary operator
+/** k-rate binary operator
     kout[] op kin1[], kin2[]
  */
 template <MYFLT (*bop)(MYFLT, MYFLT)> struct ArrayOp2 : csnd::Plugin<1, 2> {
@@ -77,16 +78,16 @@ template <MYFLT (*bop)(MYFLT, MYFLT)> struct ArrayOp2 : csnd::Plugin<1, 2> {
     if (UNLIKELY(in2.len() < in1.len()))
       return csound->init_error(Str_noop("second input array is too short\n"));
     out.init(csound, in1.len());
-    return process(out, in1, in2);
+    if (!is_perf()) process(out, in1, in2);
+    return OK;
   }
-
   int kperf() {
     return process(outargs.myfltvec_data(0), inargs.myfltvec_data(0),
                    inargs.myfltvec_data(1));
   }
 };
 
-/** i-time, k-rate binary operator with array and scalar
+/** k-rate binary operator with array and scalar
     kout[] op kin1[], kin2
  */
 template <MYFLT (*bop)(MYFLT, MYFLT)> struct ArrayOp3 : csnd::Plugin<1, 2> {
@@ -100,9 +101,9 @@ template <MYFLT (*bop)(MYFLT, MYFLT)> struct ArrayOp3 : csnd::Plugin<1, 2> {
   int init() {
     csnd::myfltvec &out = outargs.myfltvec_data(0);
     csnd::myfltvec &in = inargs.myfltvec_data(0);
-    MYFLT v = inargs[1];
     out.init(csound, in.len());
-    return process(out, in, v);
+    if (!is_perf()) process(out, in, inargs[1]);
+    return OK;
   }
 
   int kperf() {
@@ -111,7 +112,7 @@ template <MYFLT (*bop)(MYFLT, MYFLT)> struct ArrayOp3 : csnd::Plugin<1, 2> {
   }
 };
 
-/** i-time, k-rate binary operator with array and two scalar
+/** k-rate binary operator with array and two scalar
     kout[] op kin1[], kin2, kin3
  */
 template <MYFLT (*trop)(MYFLT, MYFLT, MYFLT)>
@@ -126,10 +127,9 @@ struct ArrayOp4 : csnd::Plugin<1, 3> {
   int init() {
     csnd::myfltvec &out = outargs.myfltvec_data(0);
     csnd::myfltvec &in = inargs.myfltvec_data(0);
-    MYFLT v1 = inargs[1];
-    MYFLT v2 = inargs[2];
     out.init(csound, in.len());
-    return process(out, in, v1, v2);
+    if(!is_perf()) process(out, in, inargs[1], inargs[2]);
+    return OK;
   }
 
   int kperf() {
@@ -138,7 +138,7 @@ struct ArrayOp4 : csnd::Plugin<1, 3> {
   }
 };
 
-/** i-time, k-rate operator
+/** k-rate operator
     kout[] sort[a,d] kin[]
  */
 template <typename T> struct ArraySort : csnd::Plugin<1, 1> {
@@ -152,7 +152,8 @@ template <typename T> struct ArraySort : csnd::Plugin<1, 1> {
     csnd::myfltvec &out = outargs.myfltvec_data(0);
     csnd::myfltvec &in = inargs.myfltvec_data(0);
     out.init(csound, in.len());
-    return process(out, in);
+    if (!is_perf()) process(out, in);
+    return OK;
   }
 
   int kperf() {
@@ -200,6 +201,7 @@ template <typename T, int I> struct Accum : csnd::Plugin<1, 1> {
     return OK;
   }
 };
+
 
 #include <modload.h>
 void csnd::on_load(Csound *csound) {
@@ -319,11 +321,11 @@ void csnd::on_load(Csound *csound) {
   csnd::plugin<ArraySort<std::greater<MYFLT>>>(csound, "sortd", "k[]", "k[]",
                                                csnd::thread::ik);
   csnd::plugin<Dot>(csound, "dot", "i", "i[]i[]", csnd::thread::i);
-  csnd::plugin<Dot>(csound, "dot", "k", "k[]k[]", csnd::thread::ik);
+  csnd::plugin<Dot>(csound, "dot", "k", "k[]k[]", csnd::thread::k);
   csnd::plugin<Accum<std::multiplies<MYFLT>, 1>>(csound, "product", "k", "k[]",
-                                                 csnd::thread::ik);
+                                                 csnd::thread::k);
   csnd::plugin<Accum<std::plus<MYFLT>, 0>>(csound, "sum", "k", "k[]",
-                                           csnd::thread::ik);
+                                           csnd::thread::k);
   csnd::plugin<Accum<std::multiplies<MYFLT>, 1>>(csound, "product", "i", "i[]",
                                                  csnd::thread::i);
   csnd::plugin<Accum<std::plus<MYFLT>, 0>>(csound, "sum", "i", "i[]",

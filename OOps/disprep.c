@@ -141,7 +141,7 @@ int32_t kdsplay(CSOUND *csound, DSPLAY *p)
         p->pntcnt = p->npts;
         if (fp >= p->endp) {
           fp = p->begp;
-          fp2 = fp + p->bufpts;
+          fp2 = fp + p->bufpts; /* FIXME: Unused */
         }
         p->dwindow.fdata = fp;  /* display from fp */
         display(csound, &p->dwindow);
@@ -384,7 +384,7 @@ int32_t kdspfft(CSOUND *csound, DSPFFT *p)
         MYFLT *hWin = (MYFLT *) p->auxch.auxp;
         d_fft(csound, p->sampbuf, csound->disprep_fftcoefs,
               p->windsize, hWin, p->dbout, p->overN);
-        tp = csound->disprep_fftcoefs;
+        //tp = csound->disprep_fftcoefs; UNUSED
         //tplim = tp + p->ncoefs;
         //do {
         // *tp *= p->overN;            /* scale 1/N */
@@ -434,7 +434,7 @@ int32_t dspfft(CSOUND *csound, DSPFFT *p)
           MYFLT *hWin = (MYFLT *) p->auxch.auxp;
           d_fft(csound, p->sampbuf, csound->disprep_fftcoefs,
                 p->windsize, hWin, p->dbout, p->overN);
-          tp = csound->disprep_fftcoefs;
+          //tp = csound->disprep_fftcoefs; UNUSED
           //tplim = tp + p->ncoefs;
           //do {
           //  *tp *= p->overN;              /* scale 1/N */

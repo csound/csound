@@ -65,18 +65,6 @@
 #define PHASE_INTERP 3
 #define XALL
 
-/* static void unquote(char *dst, char *src) */
-/* { */
-/*     if (src[0] == '"') { */
-/*       int32_t len = (int32_t) strlen(src) - 2; */
-/*       strcpy(dst, src + 1); */
-/*       if (len >= 0 && dst[len] == '"') */
-/*         dst[len] = '\0'; */
-/*     } */
-/*     else */
-/*       strcpy(dst, src); */
-/* } */
-
 /***************************************************************************
  *      Helper functions and macros for updater                            *
  ***************************************************************************/
@@ -97,12 +85,8 @@ static int32_t scsnux_initw(CSOUND *csound, PSCSNUX *p)
                                Str("scanux: Init table has bad size"));
     /*
       memcpy is 20 times faster that loop!!
-    for (i = 0 ; i != len ; i++) {
-      p->x0[i] = fi->ftable[i];
-      p->x1[i] = fi->ftable[i];
-      p->x2[i] = fi->ftable[i];
-    }
     */
+    p->fi = fi;
     len *= sizeof(MYFLT);
     memcpy(p->x0, fi->ftable, len);
     memcpy(p->x1, fi->ftable, len);
@@ -126,11 +110,13 @@ static int32_t scsnux_hammer(CSOUND *csound, PSCSNUX *p, MYFLT pos, MYFLT sgn)
 
     /* Get table */
     //if (UNLIKELY(tab<FL(0.0))) tab = -tab;   /* JPff fix here */
-    if (UNLIKELY((fi = csound->FTnp2Find(csound, &tab)) == NULL)) {
-      return csound->InitError(csound,
-                               "%s", Str("scanux: Could not find ifninit ftable"));
+    fi = p->fi;
+    if (p->fi == NULL)
+      if (UNLIKELY((fi = csound->FTnp2Find(csound, &tab)) == NULL)) {
+        return csound->InitError(csound, "%s",
+                                 Str("scanux: Could not find ifninit ftable"));
     }
-
+    p->fi = fi;
     /* Add hit */
     f  = fi->ftable;
     i1 = (int32_t)(len*pos - fi->flen/2);
@@ -396,11 +382,11 @@ static int32_t scsnux_init_(CSOUND *csound, PSCSNUX *p, int32_t istring)
 /*       p->x3[i] = FL(0.0); */
 /* #endif */
 /*     } */
-#if PHASE_INTERP == 3
-    memset(p->x0, 0, 6*len*sizeof(MYFLT));
-#else
-    memset(p->x0, 0, 5*len*sizeof(MYFLT));
-#endif
+/* #if PHASE_INTERP == 3 */
+/*     memset(p->x0, 0, 6*len*sizeof(MYFLT)); */
+/* #else */
+/*     memset(p->x0, 0, 5*len*sizeof(MYFLT)); */
+/* #endif */
 
     /* ... according to scheme */
     if ((int32_t)*p->i_init < 0) {
@@ -433,7 +419,7 @@ static int32_t scsnux_init_(CSOUND *csound, PSCSNUX *p, int32_t istring)
         p->v[i] = f->ftable[i];
     }
     /* Cache update rate over to local structure */
-    p->rate = *p->i_rate * csound->GetSr(csound);
+    p->rate = (int32_t)(*p->i_rate * csound->GetSr(csound));
 
       /* Initialize index */
     p->idx  = 0;
@@ -494,12 +480,18 @@ static int32_t scsnux(CSOUND *csound, PSCSNUX *p)
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t n, nsmps = CS_KSMPS;
-    int32_t     len = p->len;
+    int32_t  len = p->len;
     int32    exti = p->exti;
     int32    idx = p->idx;
-    MYFLT   rate = p->rate;
+    int32_t  rate = p->rate;
     MYFLT   *out = p->out;
-
+    MYFLT   *x0 = p->x0;
+    MYFLT   *x1 = p->x1;
+    MYFLT   *x2 = p->x2;
+#if PHASE_INTERP == 3
+    MYFLT   *x3 = p->x3;
+#endif
+    MYFLT    *v = p->v;
     pp = p->pp;
     if (UNLIKELY(pp == NULL)) goto err1;
 
@@ -521,7 +513,7 @@ static int32_t scsnux(CSOUND *csound, PSCSNUX *p)
         for (i = 0 ; i != len ; i++) {
           MYFLT a = FL(0.0);
                                 /* Throw in audio drive */
-          p->v[i] += p->ext[exti++] * pp->ewinx[i];
+          v[i] += p->ext[exti++] * pp->ewinx[i];
           if (UNLIKELY(exti >= len)) exti = 0L;
                                 /* And push feedback */
           scsnux_hammer(csound, p, *p->k_x, *p->k_y);
@@ -529,30 +521,30 @@ static int32_t scsnux(CSOUND *csound, PSCSNUX *p)
           for (j = 0 ; j != len ; j++) {
 #ifdef USING_CHAR
             if (p->f[cnt])  /* if connection */
-              a += (p->x1[j] - p->x1[i])/* * p->f[cnt] */ * *p->k_f;
+              a += (x1[j] - x1[i])/* * p->f[cnt] */ * *p->k_f;
 #else
             int32_t wd = (cnt)>>LOG_BITS_PER_UNIT;
             int32_t bt = (cnt)&(BITS_PER_UNIT-1);
             if (p->f[wd]&(1<<bt))
-              a += (p->x1[j] - p->x1[i]) * *p->k_f;
+              a += (x1[j] - x1[i]) * *p->k_f;
 #endif
             cnt++;
           }
-          a += - p->x1[i] * p->c[i] * *p->k_c -
-               (p->x2[i] - p->x1[i]) * p->d[i] * *p->k_d;
+          a += - x1[i] * p->c[i] * *p->k_c -
+               (x2[i] - x1[i]) * p->d[i] * *p->k_d;
           a /= p->m[i] * *p->k_m;
                                 /* From which we get velocity */
-          p->v[i] += /* dt * */ a; /* Integrate accel to velocity */
+          v[i] += /* dt * */ a; /* Integrate accel to velocity */
                                 /* ... and again to position future position */
-          p->x0[i] += p->v[i] /* * dt */;
+          x0[i] += v[i] /* * dt */;
         }
         /* Swap to get time order */
         for (i = 0 ; i != len ; i++) {
 #if PHASE_INTERP == 3
-          p->x3[i] = p->x2[i];
+          x3[i] = x2[i];
 #endif
-          p->x2[i] = p->x1[i];
-          p->x1[i] = p->x0[i];
+          x2[i] = x1[i];
+          x1[i] = x0[i];
         }
         /* Reset index and display the state */
         idx = 0;
@@ -564,12 +556,12 @@ static int32_t scsnux(CSOUND *csound, PSCSNUX *p)
         MYFLT t  = (MYFLT)idx / rate;
         for (i = 0 ; i != p->len ; i++) {
 #if PHASE_INTERP == 3
-          out[i] = p->x1[i] +
-            t*(-p->x3[i]*FL(0.5) +
-               t*(p->x3[i]*FL(0.5) - p->x1[i] + p->x2[i]*FL(0.5))
-               + p->x2[i]*FL(0.5));
+          out[i] = x1[i] +
+            t*(-x3[i]*FL(0.5) +
+               t*(x3[i]*FL(0.5) - x1[i] + x2[i]*FL(0.5))
+               + x2[i]*FL(0.5));
 #else
-          out[i] = p->x2[i] + (p->x1[i] - p->x2[i]) * t;
+          out[i] = x2[i] + (x1[i] - x2[i]) * t;
 #endif
         }
       }
@@ -626,7 +618,7 @@ static int32_t scsnsx_init(CSOUND *csound, PSCSNSX *p)
           return csound->InitError(csound, "%s",
                                    Str("scsn: Trajectory table includes "
                                        "values out of range"));
-      /* Allocate mem<ory and pad to accomodate interpolation */
+      /* Allocate memory and pad to accomodate interpolation */
                                 /* Note that the 3 here is a hack -- jpff */
       csound->AuxAlloc(csound, (p->tlen + 4)*sizeof(int32), &p->aux_t);
       p->t = (int32_t*)p->aux_t.auxp + (int32_t)(oscil_interp-1)/2;

@@ -166,7 +166,7 @@ int32_t printk(CSOUND *csound, PRINTK *p)
     if (UNLIKELY(p->initialised != -1))
       csound->PerfError(csound, &(p->h), Str("printk not initialised"));
 
-    //printf("printk: KCNT = %lu\n", CS_KCNT);
+    //printf("printk: KCNT = %llu\n", CS_KCNT);
     //printf("printat = %lf\n", p->printat);
     /* Now test if the cycle number has reached the next print time */
     if (p->printat <= CS_KCNT-1) {

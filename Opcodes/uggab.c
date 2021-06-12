@@ -284,7 +284,7 @@ static int32_t posckk(CSOUND *csound, POSC *p)
 static int32_t poscaa(CSOUND *csound, POSC *p)
 {
     FUNC        *ftp = p->ftp;
-    MYFLT       *out = p->out, *ft = p->ftp->ftable;
+    MYFLT       *out = p->out, *ft;
     MYFLT       *curr_samp, fract;
     double      phs = p->phs;
     MYFLT       *freq = p->freq;
@@ -709,7 +709,7 @@ static int32_t lposc(CSOUND *csound, LPOSC *p)
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t n, nsmps = CS_KSMPS;
-    double      loop, end, looplength = p->looplength;
+    double      loop, end, looplength;// = p->looplength;
     MYFLT       amp = *p->amp;
 
     if ((loop = *p->kloop) < 0) loop=0;
@@ -741,7 +741,7 @@ static int32_t lposc3(CSOUND *csound, LPOSC *p)
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t n, nsmps = CS_KSMPS;
-    double      loop, end, looplength = p->looplength;
+    double      loop, end, looplength;// = p->looplength;
     MYFLT       amp = *p->amp;
     int32_t     x0;
     MYFLT       y0, y1, ym1, y2;

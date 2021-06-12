@@ -106,21 +106,20 @@ void dispset(CSOUND *csound,            /* setup a new window       */
     char *t = wdptr->caption;
     char *tlim = t + CAPSIZE - 1;
 
-
-    csound->GetOParms(csound, &O);    
-    if (!O.displays) return;    // return if displays disabled 
-    wdptr->fdata    = fdata;            // init remainder of data structure  
+    csound->GetOParms(csound, &O);
+    if (!O.displays) return;    // return if displays disabled
+    wdptr->fdata    = fdata;            // init remainder of data structure
     wdptr->npts     = npts;
     while (*s != '\0' && t < tlim)
-      *t++ = *s++;                      //  (copy the caption) 
+      *t++ = *s++;                      //  (copy the caption)
     *t = '\0';
     // if no window defined for this str, create one
-    if (!wdptr->windid && csound->csoundMakeGraphCallback_ != NULL) {   
+    if (!wdptr->windid && csound->csoundMakeGraphCallback_ != NULL) {
       csound->csoundMakeGraphCallback_(csound, wdptr, label);
       if (O.postscript)
-        PS_MakeGraph(csound, wdptr, label); 
-    } 
-  
+        PS_MakeGraph(csound, wdptr, label);
+    }
+
     wdptr->waitflg  = waitflg;
     wdptr->polarity = (int16)NOPOL;
     wdptr->max      = FL(0.0);
@@ -128,7 +127,7 @@ void dispset(CSOUND *csound,            /* setup a new window       */
     wdptr->absmax   = FL(0.0);
     wdptr->oabsmax  = FL(0.0);
     wdptr->danflag  = 0;
-    
+
 }
 
 int dispexit(CSOUND *csound)

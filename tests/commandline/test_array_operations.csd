@@ -55,7 +55,8 @@ Slast      strsubk    Sdump, 0, klen-2
            printf     "%s]\n", kprint+1, Slast
 endif
   endop
-  opcode PrtArr1S, 0, S[]oj
+
+  opcode PrtArr1Si, 0, S[]oj
 SArr[], istart, iend xin
 iend       =          (iend == -1 ? lenarray(SArr) : iend)
 indx       =          istart
@@ -66,8 +67,20 @@ indx       +=         1
  enduntil
            printf_i   "%s]\n", 1, SArr[indx]
   endop
-  
-  
+
+  opcode PrtArr1Sk, 0, S[]oj
+SArr[], istart, iend xin
+iend       =          (iend == -1 ? lenarray(SArr) : iend)
+indx       =          istart
+           printks   "%s", p3, "["
+ until indx >= iend-1 do
+           printks    "%s, ", p3, SArr[indx]
+indx       +=         1
+ enduntil
+           printks   "%s]\n", p3, SArr[indx]
+  endop
+
+
 
     giSine  ftgen   0, 0, 8, 10, 1
 
@@ -80,7 +93,7 @@ instr Fillarray
     prints "iArr1d = "
     PrtArr1i iArr1d
     prints "SArr1d = "
-    PrtArr1S SArr1d
+    PrtArr1Si SArr1d
     printks "kArr1d = ", 0
     PrtArr1k kArr1d
 ;different types, two dims
@@ -106,7 +119,7 @@ instr Lenarray
     prints "Length of iArr1d = %d\n", lenarray(iArr1d)
     prints "Length of SArr1d = %d\n", lenarray(SArr1d)
     printks "Length of kArr1d = %d\n", 0, lenarray(kArr1d)
-    turnoff    
+    turnoff
 endin
 
 
@@ -124,8 +137,8 @@ instr Slicearray
    kArr[]  fillarray  1, 2, 3, 4, 5, 6, 7, 8, 9
    kArr1[] init       5
    kArr2[] init       4
-   kArr1   slicearray iArr, 0, 4
-   kArr2   slicearray iArr, 5, 8
+   kArr1   slicearray kArr, 0, 4
+   kArr2   slicearray kArr, 5, 8
            PrtArr1k   kArr1
            PrtArr1k   kArr2
 ;string arrays
@@ -134,8 +147,30 @@ instr Slicearray
    SArr2[] init       2
    SArr1   slicearray SArr, 0, 2
    SArr2   slicearray SArr, 3, 4
-           PrtArr1S   SArr1
-           PrtArr1S   SArr2
+           PrtArr1Sk   SArr1
+           PrtArr1Sk   SArr2
+           turnoff
+endin
+
+instr Slicearray_i
+    prints "\n instr Sclicearray_i\n"
+;i-rate
+   iArr[]  fillarray  1, 2, 3, 4, 5, 6, 7, 8, 9
+   iArr1[] init       5
+   iArr2[] init       4
+   iArr1   slicearray_i iArr, 0, 4
+   iArr2   slicearray_i iArr, 5, 8
+           PrtArr1i     iArr1
+           PrtArr1i     iArr2
+
+;string arrays
+   SArr[]  fillarray  "a", "b", "c", "d", "e"
+   SArr1[] init       3
+   SArr2[] init       2
+   SArr1   slicearray_i SArr, 0, 2
+   SArr2   slicearray_i SArr, 3, 4
+           PrtArr1Si    SArr1
+           PrtArr1Si    SArr2
            turnoff
 endin
 
@@ -372,7 +407,7 @@ instr Assign
     Sarr1[] fillarray "is", "this", "really", "possible", "?"
     ;not yet ...=)
 ;    Sarr2[] = Sarr1
-;    PrtArr1S Sarr2 
+;    PrtArr1S Sarr2
 ;k-rate
     kArr1[] fillarray 1, 2, 3, 4, 5
     kArr2[] = kArr1
@@ -409,17 +444,125 @@ endin
 i "Fillarray" 0 .01
 i "Lenarray" .01 .01
 i "Slicearray" .02 .01
-i "Copyf2array" .03 .01
-i "Copya2ftab" .04 .01
-i "Arr_Num_Math" .05 .01
-i "Arr_Arr_Math" .06 .01
-i "Minarray" .07 .01
-i "Maxarray" .08 .01
-i "Sumarray" .09 .01
-i "Scalearray" .1 .01
-i "Maparray" .11 .01
-i "Assign" .12 .01
-i "Genarray" .13 .01
+i "Slicearray_i" .03 .01
+i "Copyf2array" .04 .01
+i "Copya2ftab" .05 .01
+i "Arr_Num_Math" .06 .01
+i "Arr_Arr_Math" .07 .01
+i "Minarray" .08 .01
+i "Maxarray" .09 .01
+i "Sumarray" .1 .01
+i "Scalearray" .11 .01
+i "Maparray" .12 .01
+i "Assign" .13 .01
+i "Genarray" .14 .01
 </CsScore>
 </CsoundSynthesizer>
+prints:
+ instr Fillarray
+iArr1d = [ 1.000,  2.000,  3.000]
+SArr1d = [a, b, c]
+kArr1d = [ 1.000,  2.000,  3.000]
 
+ instr Lenarray
+Length of iArr1d = 3
+Length of SArr1d = 3
+Length of kArr1d = 3
+
+ instr Sclicearray
+[ 1.000,  2.000,  3.000,  4.000,  5.000]
+[ 6.000,  7.000,  8.000,  9.000]
+[ 1.000,  2.000,  3.000,  4.000,  5.000]
+[ 6.000,  7.000,  8.000,  9.000]
+
+ instr Sclicearray_i
+[ 1.000,  2.000,  3.000,  4.000,  5.000]
+[ 6.000,  7.000,  8.000,  9.000]
+[a, b, c]
+[d, e]
+
+ instr Copyf2array
+[ 0.000,  0.707,  1.000,  0.707,  0.000, -0.707, -1.000, -0.707]
+[ 0.000,  0.707,  1.000,  0.707,  0.000, -0.707, -1.000, -0.707]
+
+ instr Copya2ftab
+iFt1 values = 1.000 2.000 3.000 4.000 5.000 6.000 7.000 8.000
+iFt2 values = 1.000 2.000 3.000 4.000 5.000 6.000 7.000 8.000
+
+ instr Arr_Num_Math
+iArr1 = [ 1.000,  2.000,  3.000]
+iArr2 = iArr1 + 10: [11.000, 12.000, 13.000]
+iArr3 = iArr2 - 10: [ 1.000,  2.000,  3.000]
+iArr4 = iArr3 * 10: [10.000, 20.000, 30.000]
+iArr5 = iArr4 / 10: [ 1.000,  2.000,  3.000]
+kArr1 = [-1.000, -2.000, -3.000]
+kArr2 = kArr1 + 10: [ 9.000,  8.000,  7.000]
+kArr3 = kArr2 - 10: [-1.000, -2.000, -3.000]
+kArr4 = kArr3 * 10: [-10.000, -20.000, -30.000]
+kArr5 = kArr4 / 10: [-1.000, -2.000, -3.000]
+
+ instr Arr_Arr_Math
+iArr1 = [ 1.000,  2.000,  3.000]
+iArr2 = [ 4.000,  5.000,  6.000]
+iArr3[] = iArr1 + iArr2:
+        [ 5.000,  7.000,  9.000]
+iArr4[] = iArr1 - iArr2:
+        [-3.000, -3.000, -3.000]
+iArr5[] = iArr1 * iArr2:
+        [ 4.000, 10.000, 18.000]
+iArr6[] = iArr1 / iArr2:
+        [ 0.250,  0.400,  0.500]
+kArr1 = [-1.000, -2.000, -3.000]
+kArr2 = [-4.000, -5.000, -6.000]
+kArr3[] = kArr1 + kArr2:
+        [-5.000, -7.000, -9.000]
+kArr4[] = kArr1 - kArr2:
+        [ 3.000,  3.000,  3.000]
+kArr5[] = kArr1 * kArr2:
+        [ 4.000, 10.000, 18.000]
+kArr6[] = kArr1 / kArr2:
+        [ 0.250,  0.400,  0.500]
+
+ instr Minarray
+iArr = [-1.000,  0.000,  1.100, -3.300, 17.000]
+iMin = value -3.300 at index 3
+kArr = [-1.000,  0.000,  1.100, -3.300, 17.000]
+kMin = value -3.300 at index 3
+
+ instr Maxarray
+iArr = [-1.000,  0.000,  1.100, -3.300, 17.000]
+iMax = value 17.000 at index 4
+kArr = [-1.000,  0.000,  1.100, -3.300, 17.000]
+kMax = value 17.000 at index 4
+
+ instr Sumarray
+iArr = [-1.000,  0.000,  1.100, -3.300, 17.000]
+iSum = 13.800
+kArr = [-1.000,  0.000,  1.100, -3.300, 17.000]
+kSum = 13.800
+
+ instr Scalearray
+iArr before scaling: [-1.000,  0.000,  1.100, -3.300, 17.000]
+iArr after scaling (0..10): [ 1.133,  1.626,  2.167,  0.000, 10.000]
+kArr before scaling: [-1.000,  0.000,  1.100, -3.300, 17.000]
+kArr after scaling (0..10): [ 1.133,  1.626,  2.167,  0.000, 10.000]
+
+ instr Maparray
+iArr1 = [ 1.000,  2.000,  3.000,  4.000,  5.000]
+applied sqrt function to it = [ 1.000,  1.414,  1.732,  2.000,  2.236]
+kArr1 = [ 1.000,  2.000,  3.000,  4.000,  5.000]
+applied sqrt function to it = [ 1.000,  1.414,  1.732,  2.000,  2.236]
+
+ instr Assign
+[ 1.000,  2.000,  3.000,  4.000,  5.000]
+[ 1.000,  2.000,  3.000,  4.000,  5.000]
+
+ instr Genarray
+[ 1.000,  2.000,  3.000,  4.000,  5.000]
+[-1.000, -0.500,  0.000,  0.500,  1.000]
+[ 1.000,  0.500,  0.000, -0.500, -1.000]
+[-1.000, -0.400,  0.200,  0.800]
+[ 1.000,  2.000,  3.000,  4.000,  5.000]
+[-1.000, -0.500,  0.000,  0.500,  1.000]
+[ 1.000,  0.500,  0.000, -0.500, -1.000]
+[-1.000, -0.400,  0.200,  0.800]

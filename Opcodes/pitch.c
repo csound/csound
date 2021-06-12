@@ -581,8 +581,9 @@ int32_t clockread(CSOUND *csound, CLKRD *p)
       return csound->InitError(csound, Str("clockread: clock still running, "
                                            "call clockoff first"));
     /* result in ms */
+#ifdef JPFF
     printf("readclock%d: %g\n", cnt, clk->counters[cnt]);
-
+#endif
     *p->r = (MYFLT) (clk->counters[cnt] * 1000.0);
     return OK;
 }
@@ -1624,6 +1625,7 @@ int32_t clip(CSOUND *csound, CLIP *p)
           x = -limit;
         else
           x = limit*k1*TANH(x*rlim);
+        //printf("*** %g -> %g\n", ain[n], x);
         aout[n] = x;
       }
       return OK;

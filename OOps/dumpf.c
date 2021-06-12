@@ -594,12 +594,13 @@ static void nkread(CSOUND *csound, MYFLT *kp, FILE *ifd, int32_t format, int32_t
 {
     int32_t   len;
     char  inbuf[256];
+    int in_comment = 0;
 
     switch(format) {               /* place formatted kvals into outbuf */
     case 1: {
       int8_t *bp = (int8_t*)inbuf;
       len = nk;
-      len = fread(inbuf, 1, len, ifd);        /* now read the buffer */
+      if ((unsigned)len != fread(inbuf, 1, len, ifd)) break;        /* now read the buffer */
       while (nk--)
         *kp++ = (MYFLT)*bp++;
       break;
@@ -607,7 +608,7 @@ static void nkread(CSOUND *csound, MYFLT *kp, FILE *ifd, int32_t format, int32_t
     case 4: {
       int16_t *bp = (int16_t*)inbuf;
       len = nk * 2;
-      len = fread(inbuf, 1, len, ifd);        /* now read the buffer */
+      if ((unsigned)len != fread(inbuf, 1, len, ifd)) break;        /* now read the buffer */
       while (nk--)
         *kp++ = (MYFLT)*bp++;
       break;
@@ -615,7 +616,7 @@ static void nkread(CSOUND *csound, MYFLT *kp, FILE *ifd, int32_t format, int32_t
     case 5: {
       int32_t *bp = (int32_t*)inbuf;
       len = nk * 4;
-      len = fread(inbuf, 1, len, ifd);        /* now read the buffer */
+      if ((unsigned)len != fread(inbuf, 1, len, ifd)) break;        /* now read the buffer */
       while (nk--)
         *kp++ = (MYFLT)*bp++;
       break;
@@ -623,7 +624,7 @@ static void nkread(CSOUND *csound, MYFLT *kp, FILE *ifd, int32_t format, int32_t
     case 6: {
       float *bp = (float*)inbuf;
       len = nk * sizeof(float);
-      len = fread(inbuf, 1, len, ifd);        /* now read the buffer */
+      if ((unsigned)len != fread(inbuf, 1, len, ifd)) break;        /* now read the buffer */
       while (nk--)
         *kp++ = (MYFLT)*bp++;
       break;
@@ -631,11 +632,23 @@ static void nkread(CSOUND *csound, MYFLT *kp, FILE *ifd, int32_t format, int32_t
     case 7:
       while (nk--) {
         char *bp = inbuf;
-        do {                    /* Skip whitespace */
-          *bp = (char)getc(ifd);
-        } while (isspace(*bp));
+        int c;
+        /* NOTE: could use nextval() in Engine/fgens.c instead */
+        do {                    /* Skip whitespace and comments */
+          c = getc(ifd);
+          switch (c) {
+            case EOF: return;
+            case '\n': in_comment = 0; break;
+            case '#': case ';': case '<': in_comment = 1; break;
+            default: break;
+          }
+          *bp = (char)c;
+        } while (isspace(*bp) || in_comment);
         do {                    /* Absorb digits */
-          *(++bp) = (char)getc(ifd);
+          c = getc(ifd);
+          if (c == EOF) return;
+          if ((unsigned)(bp - inbuf + 1) >= sizeof(inbuf)) return;
+          *(++bp) = (char)c;
         } while (isdigit(*bp) ||
                  *bp=='-' || *bp=='+' || *bp=='.' || *bp=='e' ||*bp=='E');
         ungetc(*bp, ifd); //fseek(ifd, -1L, SEEK_CUR);
@@ -651,11 +664,22 @@ static void nkread(CSOUND *csound, MYFLT *kp, FILE *ifd, int32_t format, int32_t
     case 8:
       while (nk--) {
         char *bp = inbuf;
-        do {                    /* Skip whitespace */
-          *bp = (char)getc(ifd);
-        } while (isspace(*bp));
+        int c;
+        do {                    /* Skip whitespace and comments */
+          c = getc(ifd);
+          switch (c) {
+            case EOF: return;
+            case '\n': in_comment = 0; break;
+            case '#': case ';': case '<': in_comment = 1; break;
+            default: break;
+          }
+          *bp = (char)c;
+        } while (isspace(*bp) || in_comment);
         do {                    /* Absorb digits and such*/
-          *(++bp) = (char)getc(ifd);
+          c = getc(ifd);
+          if (c == EOF) return;
+          if ((unsigned)(bp - inbuf + 1) >= sizeof(inbuf)) return;
+          *(++bp) = (char)c;
         } while (!isspace(*bp));
         (void)ungetc(*bp, ifd); //fseek(ifd, -1L, SEEK_CUR);
         *bp = '\0';

@@ -2998,12 +2998,15 @@ static void fl_setWidgetValue_(CSOUND *csound,
 
     if ((!widgetType || widgetType > 2) &&
         (v.exponential == LIN_ || v.exponential == EXP_)) {
-      if (val < v.min)
-        val = v.min;
-      else if (val > v.max)
-        val = v.max;
+      MYFLT vmin, vmax;
+      if (v.max < v.min) { vmax = v.min;vmin= v.max;}
+      else { vmax = v.max; vmin = v.min;}
+      if (val < vmin)
+        val = vmin;
+      else if (val > vmax)
+        val = vmax;
       if (v.exponential == EXP_)
-        val = (MYFLT) (log(val / v.min) / log_base);
+        val = (MYFLT) (log(val / vmin) / log_base);
     }
     fltkLockingIsEnabled = ((getFLTKFlags(csound) & 8) == 0);
     if (fltkLockingIsEnabled)

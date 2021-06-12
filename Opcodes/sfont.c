@@ -107,7 +107,7 @@ static int SoundFontLoad(CSOUND *csound, char *fname)
     SFBANK *soundFont;
     sfontg *globals;
     globals = (sfontg *) (csound->QueryGlobalVariable(csound, "::sfontg"));
-    soundFont = globals->soundFont;
+    //soundFont = globals->soundFont;
     fd = csound->FileOpen2(csound, &fil, CSFILE_STD, fname, "rb",
                              "SFDIR;SSDIR", CSFTYPE_SOUNDFONT, 0);
     if (UNLIKELY(fd == NULL)) {
@@ -272,8 +272,9 @@ static int32_t SfAssignAllPresets(CSOUND *csound, SFPASSIGN *p)
     }
     if (enableMsgs)
       csound->Message(csound, Str("\nAll presets have been assigned to preset"
-                                  " handles from %d to %d\nXS\n"),
+                                  " handles from %d to %d\n\n"),
                               (int32_t) *p->startNum, pHandle - 1);
+
     return OK;
 }
 
@@ -682,7 +683,8 @@ static int32_t SfPlayMono_set(CSOUND *csound, SFPLAYMONO *p)
     int32_t layersNum, j, spltNum = 0, flag=(int32_t) *p->iflag;
     sfontg *globals;
     globals = (sfontg *) (csound->QueryGlobalVariable(csound, "::sfontg"));
-    if (UNLIKELY(index>=(DWORD)globals->currSFndx))
+    //printf("*** index= %d  maximum = %d\n", index, globals->currSFndx);
+    if (UNLIKELY(index>=MAX_SFPRESET))
       return csound->InitError(csound, Str("invalid soundfont"));
 
     preset = globals->presetp[index];
@@ -949,7 +951,7 @@ static int32_t SfInstrPlay_set(CSOUND *csound, SFIPLAY *p)
     SFBANK *sf;
     int32_t index = (int32_t) *p->sfBank;
     globals = (sfontg *) (csound->QueryGlobalVariable(csound, "::sfontg"));
-    if (UNLIKELY(index<0 || index>=globals->currSFndx))
+    if (UNLIKELY(index>=MAX_SFPRESET))
       return csound->InitError(csound, Str("invalid soundfont"));
     sf = &globals->sfArray[index];
 
@@ -1694,7 +1696,7 @@ static int32_t fill_SfStruct(CSOUND *csound)
                                            Gfname);
                             return NOTOK;
                         }
-                        sglobal_zone = 0;
+                        //sglobal_zone = 0;
                         ll++;
                       }
                       break;
@@ -1752,8 +1754,8 @@ static int32_t fill_SfStruct(CSOUND *csound)
                       split->endLoopOffset += igen[m].genAmount.shAmount * 32768;
                       break;
                     case delayVolEnv:
-                      csound->Message(csound, "del: %f\n",
-                                      (double) igen[m].genAmount.shAmount);
+                      // csound->Message(csound, "del: %f\n",
+                      //                 (double) igen[m].genAmount.shAmount);
                       break;
                     case attackVolEnv:           /*attack */
                       split->attack = POWER(FL(2.0),
@@ -1933,7 +1935,7 @@ static int32_t fill_SfStruct(CSOUND *csound)
                                             "Session aborted !"), Gfname);
                     return NOTOK;
                   }
-                  sglobal_zone = 0;
+                  //sglobal_zone = 0;
                   ll++;
                 }
                 break;
@@ -2272,7 +2274,7 @@ typedef struct _sflooper {
   OPDS h;
   MYFLT *outL, *outR;  /* output */
   MYFLT *ivel, *inotnum, *amp, *pitch, *ipresethandle, *loop_start, *loop_end,
-    *crossfade, *start, *imode, *ifn2, *iskip;
+    *crossfade, *start, *imode, *ifn2, *iskip, *iflag;
   int32_t     spltNum;
   SHORT   *sBase[MAXSPLT];
   FUNC *efunc;
@@ -2324,9 +2326,18 @@ static int32_t sflooper_init(CSOUND *csound, sflooper *p)
             int32_t orgkey = split->overridingRootKey;
             if (orgkey == -1) orgkey = sample->byOriginalKey;
             orgfreq = globals->pitches[orgkey];
-            freq = orgfreq * pow(2.0, ONETWELTH * tuneCorrection) *
+
+            if (*p->iflag) {
+              freq = orgfreq * pow(2.0, ONETWELTH * tuneCorrection);
+              p->freq[spltNum]= (freq/(orgfreq*orgfreq))*
+                               sample->dwSampleRate*csound->onedsr;
+            }
+            else {            
+              freq = orgfreq * pow(2.0, ONETWELTH * tuneCorrection) *
                 pow(2.0, ONETWELTH * (split->scaleTuning*0.01) * (notnum-orgkey));
-            p->freq[spltNum]= (freq/orgfreq) * sample->dwSampleRate*csound->onedsr;
+              p->freq[spltNum]= (freq/orgfreq) * sample->dwSampleRate*csound->onedsr;
+            }
+            
             attenuation = (MYFLT) (layer->initialAttenuation +
                                    split->initialAttenuation);
             attenuation = POWER(FL(2.0), (-FL(1.0)/FL(60.0)) * attenuation )
@@ -2592,7 +2603,7 @@ static int32_t sflooper_process(CSOUND *csound, sflooper *p)
           outL[i] += out*left;
         }
         else {  /* normal */
-          out = 0;
+          //out = 0;
           tndx0 = (uint32) ndx[0];
           frac0 = ndx[0] - tndx0;
           if (ndx[0] < loop_end[k]-crossfade)
@@ -2678,7 +2689,7 @@ static OENTRY localops[] = {
     (SUBR)SfInstrPlay_set, (SUBR)SfInstrPlay3 },
   { "sfinstr3m", S(SFIPLAYMONO), 0, 3, "a", "iixxiiooo",
     (SUBR)SfInstrPlayMono_set, (SUBR)SfInstrPlayMono3 },
-  { "sflooper", S(sflooper), 0, 3, "aa", "iikkikkkoooo",
+  { "sflooper", S(sflooper), 0, 3, "aa", "iikkikkkooooo",
     (SUBR)sflooper_init, (SUBR)sflooper_process },
   { NULL, 0, 0, 0, NULL, NULL, (SUBR) NULL, (SUBR) NULL, (SUBR) NULL }
 };

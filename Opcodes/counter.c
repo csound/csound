@@ -55,10 +55,11 @@ typedef struct {
 } CNTSTATE;
 
 
-/* Global structurefor all counters */
+/* Global structure for all counters */
 typedef  struct {
   int           max_num;
   int           used;
+  int           free;
   COUNT         **cnts;
 } CNT_GLOBALS;
 
@@ -69,6 +70,7 @@ static int32_t setcnt(CSOUND *csound, CNTSET *p)
     COUNT *y;
     CNT_GLOBALS *q = (CNT_GLOBALS*)
       csound->QueryGlobalVariable(csound, "counterGlobals_");
+    int m = 0;
     if (q==NULL) {
       if (UNLIKELY(csound->CreateGlobalVariable(csound, "counterGlobals_",
                                                     sizeof(CNT_GLOBALS)) != 0))
@@ -79,27 +81,34 @@ static int32_t setcnt(CSOUND *csound, CNTSET *p)
       q->max_num = 10;
       q->cnts = (COUNT**)csound->Calloc(csound, 10*sizeof(COUNT*));
     }
-    if (q->max_num >= q->used) {
-      COUNT** tt = q->cnts;
-      tt = (COUNT**)csound->ReAlloc(csound,
-                                    tt, (q->max_num+10)*sizeof(COUNT*));
-      if (tt == NULL)
-        return csound->InitError(csound, "%s",
-                                 Str("Failed to allocate counters\n"));
-      q->cnts = tt;
-      q->max_num += 10;
+    if (q->free) {
+      int n = 0;
+      while (q->cnts[n]!=NULL) n++;
+      q->free--;
+      m = n;
+    } else {
+      if (q->max_num >= q->used) {
+        COUNT** tt = q->cnts;
+        tt = (COUNT**)csound->ReAlloc(csound,
+                                      tt, (q->max_num+10)*sizeof(COUNT*));
+        if (tt == NULL)
+          return csound->InitError(csound, "%s",
+                                   Str("Failed to allocate counters\n"));
+        q->cnts = tt;
+        q->max_num += 10;
+      }
+      m = q->used;
+      ++q->used;
     }
-    q->cnts[q->used] = (COUNT*)csound->Calloc(csound,sizeof(COUNT));
-    y = q->cnts[q->used];
+    q->cnts[m] = (COUNT*)csound->Calloc(csound,sizeof(COUNT));
+    y = q->cnts[m];
     y->val = 0;
     y->min = *p->min;
     y->max = *p->max;
     y->inc = *p->inc;
-    *p->res = (MYFLT)q->used;
-    ++(q->used);
+    *p->res = (MYFLT)m;
     return OK;
 }
-
 
 COUNT* find_counter(CSOUND *csound, int n)
 {
@@ -174,6 +183,22 @@ static int32_t count_state(CSOUND *csound, CNTSTATE *p)
     return OK;
 }
 
+static int32_t count_del(CSOUND *csound, COUNTER* p)
+{
+    int n = (int)*p->icnt;
+    CNT_GLOBALS *q = (CNT_GLOBALS*)
+      csound->QueryGlobalVariable(csound, "counterGlobals_");
+    if (q==NULL || n>q->max_num || n<0 || q->cnts[n]==NULL) {
+      *p->res = -FL(1.0);
+      return OK;
+    }
+    csound->Free(csound, q->cnts[n]);
+    q->cnts[n] = NULL;
+    q->free++;
+    *p->res = (MYFLT)n;
+    return OK;
+}
+
 #define S(x)    sizeof(x)
 
 static OENTRY counter_localops[] = {
@@ -184,6 +209,8 @@ static OENTRY counter_localops[] = {
   { "cntRead", S(COUNTER), SK, 3, "k", "o", (SUBR)count_init, (SUBR)count_read },
   { "cntReset", S(COUNTER), SK, 3, "", "o", (SUBR)count_init, (SUBR)count_reset },
   { "cntState", S(CNTSTATE), SK, 3, "kkk", "o", (SUBR)count_init3, (SUBR)count_state },
+  { "cntDelete", S(COUNTER), SK, 2, "k", "k", NULL, (SUBR)count_del, NULL },
+  { "cntDelete_i", S(COUNTER), SK, 1, "i", "i", (SUBR)count_del, NULL, NULL },
  };
 
 LINKAGE_BUILTIN(counter_localops)
