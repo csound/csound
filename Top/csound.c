@@ -1750,7 +1750,7 @@ int kperf_nodebug(CSOUND *csound)
         double time_end = (csound->ksmps+csound->icurTime)/csound->esr;
 
         while (ip != NULL) {                /* for each instr active:  */
-          /* INSDS *nxt = ip->nxtact; */
+          INSDS *nxt = ip->nxtact; 
           if (UNLIKELY(csound->oparms->sampleAccurate &&
                        ip->offtim > 0                 &&
                        time_end > ip->offtim)) {
@@ -1826,10 +1826,14 @@ int kperf_nodebug(CSOUND *csound)
                                  csound->kcounter/csound->ekr);*/
           ip->ksmps_offset = 0; /* reset sample-accuracy offset */
           ip->ksmps_no_end = 0; /* reset end of loop samples */
-          /*ip = nxt; */ /* but this does not allow for all deletions */
           ip = ip->nxtact; /* VL 13.04.21 this allows for deletions to operate 
                               correctly on the active 
-                              list at perf time */
+                              list at perf time
+                              this allows for turnoff2 to work correctly
+                               */
+          if(ip == NULL) ip = nxt; /* now check again if there is nothing nxt
+                                       in the chain making sure turnoff also
+                                       works */
         }
       }
     }
