@@ -2,7 +2,7 @@ image: Visual Studio 2019
 
 environment:
   APPVEYOR_RDP_PASSWORD: Vercoe123
-  CSOUND_VERSION: 6.16.0
+  CSOUND_VERSION: 6.17.0
   VCPKGDir: C:\Tools\vcpkg
   VSGENERATOR: Visual Studio 16 2019
 
@@ -44,10 +44,10 @@ test_script:
   - cmake --build msvc\csound-vs --target csdtests
 
 artifacts:
-  - path: csound-windows_x86_64-*.zip
+  - path: csound-windows_x86_64-*-binaries.zip
     name: Csound Binaries
     type: zip
-  - path: msvc/Csound6_x64*.exe
+  - path: msvc/Csound6-windows_x86_64-*.exe
     name: Csound Installer
     type: exe
 
@@ -63,7 +63,7 @@ deploy:
   provider: GitHub
   auth_token:
     secure: puEAPJVkwT2mZwhobSNpk5LhUEP+61K9j6T66qIXKFk=
-  artifact: msvc/csound-windows_x86_64*.exe
+  artifact: msvc/csound-windows_x86_64-*.exe
   draft: true
   prerelease: true
   on:
