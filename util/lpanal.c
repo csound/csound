@@ -627,6 +627,8 @@ static int32_t lpanal(CSOUND *csound, int32_t argc, char **argv)
 
     // for new lpred method
     lpc.setup = csound->LPsetup(csound,lpc.WINDIN,lpc.poleCount);
+    if(lpc.newmethod)
+      csound->Message(csound, "using Durbin method \n");
 
     /* Do the analysis */
     do {
