@@ -40,7 +40,7 @@ Julius Smith)! ported by Joel Ross.
 - scale2 is similar to scale but has different argument order and has
   an optional port filter.
 
-- aduinoReadF extends the arduino family to transfer floating point
+- arduinoReadF extends the arduino family to transfer floating point
   values.
 
 - triglinseg and trigexpseg are triggered versions of linseg and
