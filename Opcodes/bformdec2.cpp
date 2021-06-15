@@ -22,7 +22,7 @@
  */
 
 #include <stdlib.h>
-#include <unistd.h>
+//#include <unistd.h>
 #include "csdl.h"
 #include <math.h>
 #include "csoundCore.h"
