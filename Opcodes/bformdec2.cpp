@@ -25,7 +25,7 @@
 //#include <unistd.h>
 #include "csdl.h"
 #include <math.h>
-//#include "csoundCore.h"
+#include "csoundCore.h"
 #include <string.h>
 #include <new>
 
@@ -62,6 +62,7 @@ static const int32_t elevationarray[14] =
 
 /* assumed mit hrtf data will be used here. Otherwise delay data would need
    to be extracted and replaced here... */
+/* 
 static const float minphasedels[368] =
 {
   0.000000f, 0.000045f, 0.000091f, 0.000136f, 0.000159f, 0.000204f,
@@ -127,7 +128,7 @@ static const float minphasedels[368] =
   0.000000f, 0.000045f, 0.000068f, 0.000091f, 0.000068f, 0.000045f,
   0.000000f, 0.000000f
 };
-
+*/
 
 #ifdef WORDS_BIGENDIAN
 static int32_t swap4bytes(CSOUND* csound, MEMFIL* mfp)
@@ -312,15 +313,15 @@ virtual int32_t hrtfstat_init(CSOUND *csound, MYFLT elev, MYFLT angle, MYFLT r, 
                                    swap4bytes);
     if (UNLIKELY(fpl == NULL))
       return
-        csound->InitError(csound,
+        csound->InitError(csound, "%s",
                           Str("\n\n\nCannot load left data file, exiting\n\n"));
 
     fpr = csound->ldmemfile2withCB(csound, filer, CSFTYPE_FLOATS_BINARY,
                                    swap4bytes);
     if (UNLIKELY(fpr == NULL))
       return
-        csound->InitError(csound,
-                          Str("\n\n\nCannot load right data file, exiting\n\n"));
+        csound->InitError(csound, 
+                           "%s", Str("\n\n\nCannot load right data file, exiting\n\n"));
 
     irlength_p = irlength;
     irlengthpad_p = irlengthpad;
@@ -912,7 +913,7 @@ static int32_t ihoambdec(CSOUND *csound, HOAMBDEC* p)
     /* First check bounds on initialization arguments */
     if (UNLIKELY((p->numb<1) || (p->numb>(MAXZEROS+1)) ||
                  (p->numa<0) || (p->numa>MAXPOLES)))
-        return csound->InitError(csound, Str("Filter order out of bounds: "
+        return csound->InitError(csound,  "%s", Str("Filter order out of bounds: "
                                            "(1 <= nb < 51, 0 <= na <= 50)"));
 
     /* Calculate the total delay in samples and allocate memory for it */
@@ -938,38 +939,38 @@ static int32_t ihoambdec(CSOUND *csound, HOAMBDEC* p)
         case 16: p->order = 3; break;
         case 25: p->order = 4; break;
         case 36: p->order = 5; break;
-        default : return csound->InitError(csound, Str("illegal number of inputs"));
+        default : return csound->InitError(csound, "%s", Str("illegal number of inputs"));
     }
 
     if ((isetup == 1) & (p->order >= 2)) {
-        return csound->InitError(csound, Str("Stereo configuration only works with first order"));
+        return csound->InitError(csound, "%s", Str("Stereo configuration only works with first order"));
     }
     if ((isetup == 2) & (p->order >= 2)) {
-        return csound->InitError(csound, Str("Quad configuration only works with first order"));
+        return csound->InitError(csound, "%s", Str("Quad configuration only works with first order"));
     }
 
     if ((isetup == 3) & (p->order >= 3)) {
-        return csound->InitError(csound, Str("5.0 configuration only works with first and second order"));
+        return csound->InitError(csound, "%s", Str("5.0 configuration only works with first and second order"));
     }
 
     if ((isetup == 4) & (p->order >= 4)) {
-        return csound->InitError(csound, Str("Octagon configuration only works with first, second and third order"));
+        return csound->InitError(csound, "%s", Str("Octagon configuration only works with first, second and third order"));
     }
 
     if ((isetup == 5) & (p->order >= 2)) {
-        return csound->InitError(csound, Str("Cube configuration only works with first order"));
+        return csound->InitError(csound, "%s", Str("Cube configuration only works with first order"));
     }
 
     if ((isetup == 6) & (p->order >= 3)) {
-        return csound->InitError(csound, Str("Hexagon configuration only works with first and second order"));
+        return csound->InitError(csound, "%s", Str("Hexagon configuration only works with first and second order"));
     }
 
     if ((isetup == 21) & (p->order >= 4)) {
-        return csound->InitError(csound, Str("2D Binaural configuration only works with first, second and third order"));
+        return csound->InitError(csound, "%s", Str("2D Binaural configuration only works with first, second and third order"));
     }
 
     if ((isetup == 31) & (p->order >= 4)) {
-        return csound->InitError(csound, Str("3D Binaural configuration only works with first, second and third order"));
+        return csound->InitError(csound, "%s", Str("3D Binaural configuration only works with first, second and third order"));
     }
 
     p->horizontal = ((isetup == 1) | (isetup == 2) | (isetup == 3)  | (isetup == 4)  | (isetup == 6) | (isetup == 21));
@@ -1736,7 +1737,7 @@ static int32_t ahoambdec(CSOUND *csound, HOAMBDEC* p)
       }
     }
 
-    double poleSamp[p->n_signals],inSamp[p->n_signals];
+    double poleSamp[p->n_signals ],inSamp[p->n_signals];
     double zeroSamp_lf[p->n_signals],zeroSamp_hf[p->n_signals];
     //double poleSamp_nfc[p->n_signals],inSamp_nfc[p->n_signals],zeroSamp_nfc[p->n_signals];
 
@@ -1753,13 +1754,12 @@ static int32_t ahoambdec(CSOUND *csound, HOAMBDEC* p)
         n_outs_A = 8;
     } else if (isetup == 31) {  //binaural 3D
         n_outs_A = 20;
+    } else {
         n_outs_A = n_outs;
     }
 
     MYFLT out_A[n_outs_A][nsmps-offset];
-    MYFLT *out_binaural0, *out_binaural1;
-    out_binaural0 = new MYFLT [nsmps-offset];
-    out_binaural1 = new MYFLT [nsmps-offset];
+    MYFLT out_binaural0[nsmps-offset],out_binaural1[nsmps-offset];
 
     for (n=offset; n<nsmps; n++) {
 
