@@ -1736,8 +1736,12 @@ static int32_t ahoambdec(CSOUND *csound, HOAMBDEC* p)
       }
     }
 
-    double poleSamp[p->n_signals],inSamp[p->n_signals];
-    double zeroSamp_lf[p->n_signals],zeroSamp_hf[p->n_signals];
+    double *poleSamp, *inSamp;
+    poleSamp = new double [p->n_signals];
+    inSamp = new double [p->n_signals];
+    double *zeroSamp_lf, *zeroSamp_hf;
+    zeroSamp_lf = new double [p->n_signals];
+    zeroSamp_hf = new double [p->n_signals];
     //double poleSamp_nfc[p->n_signals],inSamp_nfc[p->n_signals],zeroSamp_nfc[p->n_signals];
 
     double y_lf,y_hf;
@@ -1753,12 +1757,13 @@ static int32_t ahoambdec(CSOUND *csound, HOAMBDEC* p)
         n_outs_A = 8;
     } else if (isetup == 31) {  //binaural 3D
         n_outs_A = 20;
-    } else {
         n_outs_A = n_outs;
     }
 
     MYFLT out_A[n_outs_A][nsmps-offset];
-    MYFLT out_binaural0[nsmps-offset],out_binaural1[nsmps-offset];
+    MYFLT *out_binaural0, *out_binaural1;
+    out_binaural0 = new MYFLT [nsmps-offset];
+    out_binaural1 = new MYFLT [nsmps-offset];
 
     for (n=offset; n<nsmps; n++) {
 
@@ -2147,3 +2152,4 @@ static OENTRY localops[] = {
 };
 
 LINKAGE_BUILTIN(localops)
+q
