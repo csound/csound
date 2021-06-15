@@ -806,7 +806,7 @@ static void lpdieu(CSOUND *csound, char *msg)
  */
 
 static void alpol(CSOUND *csound, LPC *thislp, MYFLT *sig, double *errn,
-                  double *rms1, double *rms2, double b[MAXPOLES])
+                  double *rms1, double *rms2, double *b)
                                         /* sig now MYFLT */
                                         /* b filled here */
 {
