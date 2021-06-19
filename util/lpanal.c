@@ -627,6 +627,8 @@ static int32_t lpanal(CSOUND *csound, int32_t argc, char **argv)
 
     // for new lpred method
     lpc.setup = csound->LPsetup(csound,lpc.WINDIN,lpc.poleCount);
+    if(lpc.newmethod)
+      csound->Message(csound, "using Durbin method \n");
 
     /* Do the analysis */
     do {
@@ -804,7 +806,7 @@ static void lpdieu(CSOUND *csound, char *msg)
  */
 
 static void alpol(CSOUND *csound, LPC *thislp, MYFLT *sig, double *errn,
-                  double *rms1, double *rms2, double b[MAXPOLES])
+                  double *rms1, double *rms2, double *b)
                                         /* sig now MYFLT */
                                         /* b filled here */
 {
