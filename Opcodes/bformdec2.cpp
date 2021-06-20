@@ -835,7 +835,7 @@ typedef struct {
     MYFLT*    setup;         /* configuration         */
     ARRAYDAT*    in;         /* input buffers    */
     MYFLT*    band; 		// 0 for mix decoder, 1 for LF decoder, 2 for HF decoder
-    MYFLT*    r; 			// Distance for NFC. If r=-1 NFC off.
+    MYFLT*    r; 		// Distance for NFC. If r=-1 NFC off.
     MYFLT*    freq_cut; 	// frequency of band-splitting
     MYFLT*    type_mix; 	// 0 for energy, 1 for rms, 2 for amplitude
     STRINGDAT* ifilel;
@@ -1623,7 +1623,7 @@ static int32_t ihoambdec(CSOUND *csound, HOAMBDEC* p)
 					g1 = 0.718267025;
 					g2 = 0.510742657;
 					g3 = 0.254187063;
-		    		break;
+                                        break;
 				case 2: // "amp"
 					g0 = 1.0;
 					g1 = 0.861136312;
@@ -1737,8 +1737,11 @@ static int32_t ahoambdec(CSOUND *csound, HOAMBDEC* p)
       }
     }
 
-    double poleSamp[p->n_signals ],inSamp[p->n_signals];
-    double zeroSamp_lf[p->n_signals],zeroSamp_hf[p->n_signals];
+    // ***** FIX MEMORY ALOCATION *****
+    //double poleSamp[p->n_signals],inSamp[p->n_signals];
+    //double zeroSamp_lf[p->n_signals],zeroSamp_hf[p->n_signals];
+    double poleSamp[36],inSamp[36];
+    double zeroSamp_lf[36],zeroSamp_hf[36];
     //double poleSamp_nfc[p->n_signals],inSamp_nfc[p->n_signals],zeroSamp_nfc[p->n_signals];
 
     double y_lf,y_hf;
@@ -1758,6 +1761,7 @@ static int32_t ahoambdec(CSOUND *csound, HOAMBDEC* p)
         n_outs_A = n_outs;
     }
 
+    // ***** FIX MEMORY ALOCATION *****
     MYFLT out_A[n_outs_A][nsmps-offset];
     MYFLT out_binaural0[nsmps-offset],out_binaural1[nsmps-offset];
 
