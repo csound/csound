@@ -456,13 +456,17 @@ static void delete_pending_rt_events(CSOUND *csound)
   csound->OrcTrigEvts = NULL;
 }
 
-void delete_selected_rt_events(CSOUND *csound, int instr)
+void delete_selected_rt_events(CSOUND *csound, MYFLT instr)
 {
   EVTNODE *ep = csound->OrcTrigEvts;
   EVTNODE *last = NULL;
   while (ep != NULL) {
     EVTNODE *nxt = ep->nxt;
-    if (ep->evt.opcod=='i' && (int)(ep->evt.p[1]) == instr) {
+    //printf("*** delete_selected_rt_events: instr = %f, p[1] = %f\n",
+    //instr, ep->evt.p[1]);
+    if (ep->evt.opcod=='i' &&
+        (((int)(ep->evt.p[1]) == instr) || (ep->evt.p[1] == instr))) {
+      //printf(" ** found\n");
       // Found an event to cancel
       if (ep->evt.strarg != NULL) {
         // clearstring if necessary
