@@ -834,10 +834,10 @@ typedef struct {
     ARRAYDAT*    out;        /* output buffers   */
     MYFLT*    setup;         /* configuration         */
     ARRAYDAT*    in;         /* input buffers    */
-    MYFLT*    band; 		// 0 for mix decoder, 1 for LF decoder, 2 for HF decoder
-    MYFLT*    r; 		// Distance for NFC. If r=-1 NFC off.
-    MYFLT*    freq_cut; 	// frequency of band-splitting
-    MYFLT*    type_mix; 	// 0 for energy, 1 for rms, 2 for amplitude
+    MYFLT*    band; 	// 0 for mix decoder, 1 for LF decoder, 2 for HF decoder
+    MYFLT*    r; 	// Distance for NFC. If r=-1 NFC off.
+    MYFLT*    freq_cut; // frequency of band-splitting
+    MYFLT*    type_mix; // 0 for energy, 1 for rms, 2 for amplitude
     STRINGDAT* ifilel;
     STRINGDAT* ifiler;
 
@@ -875,6 +875,8 @@ typedef struct {
 
     hrtf* binaural[20]; // instances of hrtf class
     AUXCH     binaural_mem[20]; // aux for hrtf
+    AUXCH     out_A;
+    AUXCH     out_binaural0, out_binaural1;
 
 } HOAMBDEC;
 
@@ -886,7 +888,7 @@ static void process_nfc(CSOUND*,HOAMBDEC*, int, int, int, int, int);
 
 #ifndef MAX
 #define MAX(a,b) ((a>b)?(a):(b))
-#define MIN(a,b) ((a>b)?(b):(a))
+//#define MIN(a,b) ((a>b)?(b):(a))
 #endif
 
 /*#define POLEISH (1) */     /* 1=poleish pole roots after Laguer root finding */
@@ -958,7 +960,7 @@ static int32_t ihoambdec(CSOUND *csound, HOAMBDEC* p)
     }
 
     if ((isetup == 5) & (p->order >= 2)) {
-        return csound->InitError(csound, "%s", Str("Cube configuration only works with first order"));
+        return csound->InitError(csound, "%s", Str("Cube configuration only works wivvvth first order"));
     }
 
     if ((isetup == 6) & (p->order >= 3)) {
@@ -1701,7 +1703,10 @@ static int32_t ihoambdec(CSOUND *csound, HOAMBDEC* p)
             p->fRec11[sig][l0] = 0.0;
         }
     }
-
+    uint32_t nsmps = CS_KSMPS;
+    csound->AuxAlloc(csound, sizeof(MYFLT)*20*nsmps, &p->out_A);
+    csound->AuxAlloc(csound, sizeof(MYFLT)*nsmps, &p->out_binaural0);
+    csound->AuxAlloc(csound, sizeof(MYFLT)*nsmps, &p->out_binaural1);
     return OK;
 }
 
@@ -1762,9 +1767,13 @@ static int32_t ahoambdec(CSOUND *csound, HOAMBDEC* p)
     }
 
     // ***** FIX MEMORY ALOCATION *****
-    MYFLT out_A[n_outs_A][nsmps-offset];
-    MYFLT out_binaural0[nsmps-offset],out_binaural1[nsmps-offset];
-
+    //MYFLT out_A[20/*n_outs_A*/][nsmps-offset];
+    //MYFLT out_binaural0[nsmps-offset],out_binaural1[nsmps-offset];
+    MYFLT *out_A, *out_binaural0, *out_binaural1;
+    out_A = (MYFLT*)p->out_A.auxp;
+    out_binaural0 = (MYFLT*)p->out_binaural0.auxp;
+    out_binaural1 = (MYFLT*)p->out_binaural1.auxp;
+    
     for (n=offset; n<nsmps; n++) {
 
         if (isetup == 1) { // Stereo configuration. Nor band splitting nor near field compensation.
@@ -1782,7 +1791,7 @@ static int32_t ahoambdec(CSOUND *csound, HOAMBDEC* p)
         }
 
         for (int o = 0; o < n_outs_A; o++) {
-            out_A[o][n] = 0.0;
+            out_A[ksmps*o+n] = 0.0;
         }
 
         for (j = 0; j < p->n_signals; j++) {  // ambisonics signals
@@ -1832,9 +1841,9 @@ static int32_t ahoambdec(CSOUND *csound, HOAMBDEC* p)
             for (int o = 0; o < n_outs_A; o++) {
                 if (isetup == 21 || isetup == 31) { //binaural
                    switch((int)*(p->band)) {
-                   case 0: out_A[o][n] += (MYFLT) ((p->M_lf[o][in_ix])*y_lf - (p->M_hf[o][in_ix])*y_hf); break;
-                   case 1: out_A[o][n] += (MYFLT) y_lf; break;
-                   case 2: out_A[o][n] += (MYFLT) y_hf; break;
+                   case 0: out_A[o*ksmps+n] += (MYFLT) ((p->M_lf[o][in_ix])*y_lf - (p->M_hf[o][in_ix])*y_hf); break;
+                   case 1: out_A[o*ksmps+n] += (MYFLT) y_lf; break;
+                   case 2: out_A[o*ksmps+n] += (MYFLT) y_hf; break;
                    default: ;
                     }
                 } else {
@@ -1851,7 +1860,7 @@ static int32_t ahoambdec(CSOUND *csound, HOAMBDEC* p)
 
     if (isetup == 21 || isetup == 31) { //binaural 2D or 3D
         for (int j = 0; j < n_outs_A; j++) {
-            p->binaural[j]->hrtfstat_process(csound, out_A[j], out_binaural0, out_binaural1, offset, early, nsmps);
+            p->binaural[j]->hrtfstat_process(csound, &out_A[j*ksmps], out_binaural0, out_binaural1, offset, early, nsmps);
 
             for (n=offset; n<nsmps; n++) {
                 out[n] += (MYFLT) out_binaural0[n];
