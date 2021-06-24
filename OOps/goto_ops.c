@@ -274,7 +274,7 @@ int32_t turnoff2k(CSOUND *csound, TURNOFF2 *p){
   return turnoff2(csound, p, 0);
 }
 
-extern void delete_selected_rt_events(CSOUND*, int);
+extern void delete_selected_rt_events(CSOUND*, MYFLT);
 int32_t turnoff3(CSOUND *csound, TURNOFF2 *p, int32_t isStringArg)
 {
   MYFLT p1;
@@ -292,12 +292,13 @@ int32_t turnoff3(CSOUND *csound, TURNOFF2 *p, int32_t isStringArg)
     return OK;    /* not triggered */
 
   insno = (int32_t) p1;
+  //printf("*** turnoff3: insno = %d, p1 = %f\n", insno, p1);
   if (UNLIKELY(insno < 1 || insno > (int32_t) csound->engineState.maxinsno ||
                csound->engineState.instrtxtp[insno] == NULL)) {
     return csoundPerfError(csound, &(p->h),
                            Str("turnoff3: invalid instrument number"));
   }
-  delete_selected_rt_events(csound, insno);
+  delete_selected_rt_events(csound, p1);
   return OK;
 }
 

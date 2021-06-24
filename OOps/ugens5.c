@@ -1022,8 +1022,8 @@ int32_t lprsnset(CSOUND *csound, LPRESON *p)
 
    /* connect to previously loaded lpc analysis */
    /* get adr lpread struct */
+    
     p->lpread = q = ((LPREAD**) csound->lprdaddr)[csound->currentLPCSlot];
-
     csound->AuxAlloc(csound, (int32)((q->npoles<<1)*sizeof(MYFLT)), &p->aux);
    /* Initialize pointer to circulat buffer (for filtering) */
     p->circjp = p->circbuf = (MYFLT*)p->aux.auxp;
