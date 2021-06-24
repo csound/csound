@@ -1024,8 +1024,6 @@ int32_t lprsnset(CSOUND *csound, LPRESON *p)
    /* get adr lpread struct */
     
     p->lpread = q = ((LPREAD**) csound->lprdaddr)[csound->currentLPCSlot];
-    printf("slot:%p \n",q->kcoefs);
-
     csound->AuxAlloc(csound, (int32)((q->npoles<<1)*sizeof(MYFLT)), &p->aux);
    /* Initialize pointer to circulat buffer (for filtering) */
     p->circjp = p->circbuf = (MYFLT*)p->aux.auxp;
@@ -1462,9 +1460,7 @@ int32_t lpitpset(CSOUND *csound, LPINTERPOL *p)
     csound->AuxAlloc(csound, (int32)(p->npoles*8*sizeof(MYFLT)), &p->aux);
     p->kcoefs = (MYFLT*)p->aux.auxp;
     p->storePoles = 1;
-
-    ((LPREAD**) csound->lprdaddr)[++csound->currentLPCSlot] = (LPREAD*) p;
-    printf("slot:%p \n",p->kcoefs);   
+    ((LPREAD**) csound->lprdaddr)[csound->currentLPCSlot] = (LPREAD*) p;
     return OK;
 }
 
