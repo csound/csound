@@ -1769,7 +1769,6 @@ ftset_init(CSOUND *csound, FTSET *p) {
 static int32_t
 ftset_common(CSOUND *csound, FTSET *p) {
     IGN(csound);
-    printf("ftset common\n");
     FUNC *tab = p->tab;
     MYFLT *data = tab->ftable;
     int tablen = tab->flen;
@@ -1785,7 +1784,6 @@ ftset_common(CSOUND *csound, FTSET *p) {
 
     if(step == 1 && value == 0) {
         // special case: clear the table, use memset
-        printf("memset %d \n", end-start);
         memset(data + start, '\0', sizeof(MYFLT) * (end - start));
         return OK;
     }
