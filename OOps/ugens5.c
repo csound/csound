@@ -1463,7 +1463,7 @@ int32_t lpitpset(CSOUND *csound, LPINTERPOL *p)
     p->kcoefs = (MYFLT*)p->aux.auxp;
     p->storePoles = 1;
     {
-      LPREAD *q = (LPREAD*)csound->Malloc(csound, sizeof(LPREAD));
+      LPREAD *q = (LPREAD*)csound->Calloc(csound, sizeof(LPREAD));
       memcpy(q, p, sizeof(LPREAD));
       q->kcoefs = p->kcoefs;
       q->storePoles = 1;
