@@ -1463,10 +1463,20 @@ int32_t lpitpset(CSOUND *csound, LPINTERPOL *p)
     p->kcoefs = (MYFLT*)p->aux.auxp;
     p->storePoles = 1;
     {
-      LPREAD *q = (LPREAD*)csound->Calloc(csound, sizeof(LPREAD));
+      LPREAD *q;
+      csound->AuxAlloc(csound, sizeof(LPREAD), &p->slotaux);
+      q = (LPREAD*)p->slotaux.auxp;
       memcpy(q, p, sizeof(LPREAD));
       q->kcoefs = p->kcoefs;
       q->storePoles = 1;
+      csound->currentLPCSlot++;
+      if (csound->lprdaddr == NULL ||
+        csound->currentLPCSlot >= csound->max_lpc_slot) {
+      csound->max_lpc_slot = csound->currentLPCSlot + MAX_LPC_SLOT;
+      csound->lprdaddr = csound->ReAlloc(csound,
+                                  csound->lprdaddr,
+                                  csound->max_lpc_slot * sizeof(LPREAD*));
+      }
       ((LPREAD**) csound->lprdaddr)[csound->currentLPCSlot] = q;
     }
     return OK;
