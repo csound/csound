@@ -111,7 +111,7 @@ cp  $BLD/lib_jcsound6.jnilib $FRAMEWORK64_DIR/$JAVA_DIR
 
 # fix ID to /Library/Frameworks/CsoundLib64.framework/CsoundLib64
 # as CMake introduces an undesirable @rpath
-install_name_tool -id CsoundLib64.framework/CsoundLib64 $FRAMEWORK64_DIR/CsoundLib64
+install_name_tool -id CsoundLib64 $FRAMEWORK64_DIR/CsoundLib64
 
 echo "copying manual..."
 
