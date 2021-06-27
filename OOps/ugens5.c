@@ -1469,7 +1469,8 @@ int32_t lpitpset(CSOUND *csound, LPINTERPOL *p)
       memcpy(q, p, sizeof(LPREAD));
       q->kcoefs = p->kcoefs;
       q->storePoles = 1;
-      csound->currentLPCSlot++;
+      //csound->currentLPCSlot++; ?? Or othr way to create a slot
+      // Following code shoukd not be necessary
       if (csound->lprdaddr == NULL ||
         csound->currentLPCSlot >= csound->max_lpc_slot) {
       csound->max_lpc_slot = csound->currentLPCSlot + MAX_LPC_SLOT;
