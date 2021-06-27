@@ -645,7 +645,8 @@ int32_t lprdset_(CSOUND *csound, LPREAD *p, int32_t stringname)
     if (LIKELY((magic==LP_MAGIC)||(magic==LP_MAGIC2))) {
       p->storePoles = (magic==LP_MAGIC2);
 
-      csound->Warning(csound, Str("Using %s type of file.\n"),
+      if(csound->oparms->odebug)
+      csound->Message(csound, Str("Using %s type of file.\n"),
                       p->storePoles?Str("pole"):Str("filter coefficient"));
       /* Store header length */
       p->headlen = lph->headersize;
