@@ -199,7 +199,7 @@ class ScriptProcessorNodeMainThread {
     // leaking globals indeed
     spnWorker[contextUid] = this.audioContext;
     window[`__csound_wasm_iframe_parent_${contextUid}`] = this.audioContext;
-    const { port1: mainMessagePort, port2: workerMessagePort } = new MessageChannel();
+    // const { port1: mainMessagePort, port2: workerMessagePort } = new MessageChannel();
 
     let liveInput;
     if (this.isRequestingInput) {
@@ -224,7 +224,7 @@ class ScriptProcessorNodeMainThread {
           outputsCount: this.outputsCount,
           sampleRate: this.sampleRate,
           audioInputPort: this.ipcMessagePorts.audioWorkerAudioInputPort,
-          messagePort: workerMessagePort,
+          messagePort: this.ipcMessagePorts.workerMessagePort,
           requestPort: this.ipcMessagePorts.audioWorkerFrameRequestPort,
           audioContextIsProvided: this.audioContextIsProvided,
           autoConnect: this.autoConnect,
@@ -232,14 +232,14 @@ class ScriptProcessorNodeMainThread {
         },
         [
           this.ipcMessagePorts.audioWorkerAudioInputPort,
-          workerMessagePort,
+          this.ipcMessagePorts.workerMessagePort,
           this.ipcMessagePorts.audioWorkerFrameRequestPort,
         ],
       ),
     );
 
-    mainMessagePort.addEventListener("message", messageEventHandler(this));
-    mainMessagePort.start();
+    this.ipcMessagePorts.mainMessagePort.addEventListener("message", messageEventHandler(this));
+    this.ipcMessagePorts.mainMessagePort.start();
 
     if (this.csoundWorkerMain && this.csoundWorkerMain.publicEvents) {
       const audioNode =
