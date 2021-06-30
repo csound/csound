@@ -8,7 +8,6 @@ param
 $targetTriplet = "x64-windows-csound"
 
 # $vcpkgVersion = "680b27d15f4d62bc6181fd33dc5259482b0890b1"
-
 echo "Downloading Csound dependencies..."
 echo "vsGenerator: $vsGenerator"
 echo "Build type: $targetTriplet"
@@ -31,7 +30,10 @@ if ($systemVCPKG) {
     cd $vcpkgDir
     # Update and rebuild vcpkg
     git pull
+<<<<<<< HEAD
     # git checkout $vcpkgVersion
+=======
+>>>>>>> hotfix/6.16.1
     bootstrap-vcpkg.bat
     # Remove any outdated packages (they will be installed again below)
     vcpkg remove --outdated --recurse
@@ -46,7 +48,10 @@ elseif (Test-Path "..\..\vcpkg") {
     echo "vcpkg already installed locally, updating"
     # Update and rebuild vcpkg
     git pull
+<<<<<<< HEAD
     # git checkout $vcpkgVersion
+=======
+>>>>>>> hotfix/6.16.1
     bootstrap-vcpkg.bat
     # Remove any outdated packages (they will be installed again below)
     vcpkg remove --outdated --recurse
@@ -58,7 +63,10 @@ else {
     echo "vcpkg missing, downloading and installing..."
     git clone http://github.com/Microsoft/vcpkg.git
     cd vcpkg
+<<<<<<< HEAD
     # git checkout $vcpkgVersion
+=======
+>>>>>>> hotfix/6.16.1
     $env:Path += ";" + $(Get-Location)
     $vcpkgDir = $(Get-Location)
     [Environment]::SetEnvironmentVariable("VCPKGDir", $env:vcpkgDir, [EnvironmentVariableTarget]::User)
