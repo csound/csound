@@ -1826,12 +1826,15 @@ int kperf_nodebug(CSOUND *csound)
                                  csound->kcounter/csound->ekr);*/
           ip->ksmps_offset = 0; /* reset sample-accuracy offset */
           ip->ksmps_no_end = 0; /* reset end of loop samples */
-          ip = ip->nxtact; /* VL 13.04.21 this allows for deletions to operate 
+          if(nxt == NULL)
+             ip = ip->nxtact;
+          /* VL 13.04.21 this allows for deletions to operate 
                               correctly on the active 
                               list at perf time
                               this allows for turnoff2 to work correctly
-                               */
-          if(ip == NULL) ip = nxt; /* now check again if there is nothing nxt
+                              */
+          else
+            ip = nxt; /* now check again if there is nothing nxt
                                        in the chain making sure turnoff also
                                        works */
         }
