@@ -45,10 +45,7 @@ elseif (Test-Path "..\..\vcpkg") {
     echo "vcpkg already installed locally, updating"
     # Update and rebuild vcpkg
     git pull
-<<<<<<< HEAD
     # git checkout $vcpkgVersion
-=======
->>>>>>> hotfix/6.16.1
     bootstrap-vcpkg.bat
     # Remove any outdated packages (they will be installed again below)
     vcpkg remove --outdated --recurse
