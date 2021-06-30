@@ -8,7 +8,6 @@ param
 $targetTriplet = "x64-windows-csound"
 
 # $vcpkgVersion = "680b27d15f4d62bc6181fd33dc5259482b0890b1"
-
 echo "Downloading Csound dependencies..."
 echo "vsGenerator: $vsGenerator"
 echo "Build type: $targetTriplet"
