@@ -60,10 +60,7 @@ else {
     echo "vcpkg missing, downloading and installing..."
     git clone http://github.com/Microsoft/vcpkg.git
     cd vcpkg
-<<<<<<< HEAD
     # git checkout $vcpkgVersion
-=======
->>>>>>> hotfix/6.16.1
     $env:Path += ";" + $(Get-Location)
     $vcpkgDir = $(Get-Location)
     [Environment]::SetEnvironmentVariable("VCPKGDir", $env:vcpkgDir, [EnvironmentVariableTarget]::User)
