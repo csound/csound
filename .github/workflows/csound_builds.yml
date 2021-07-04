@@ -26,7 +26,7 @@ jobs:
       - name: run the Docker image
         run: docker run --name csound_test_run -i sjamble/csound_android
       - name: copying build out of container
-        run: docker cp csound_test_run:/csound/Android/csound-android-6.16.0.zip .
+        run: docker cp csound_test_run:/csound/Android/csound-android-6.16.1.zip .
       - uses: actions/upload-artifact@v2
         with:
           name: csound-android-6.16.1.zip 
