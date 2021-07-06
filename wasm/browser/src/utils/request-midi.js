@@ -1,4 +1,4 @@
-import { logMidiRequest as log } from "@root/logger";
+import { logMidiRequest as log } from "../logger";
 
 const connectedMidiDevices = new Set();
 
@@ -8,6 +8,9 @@ export async function requestMidi({ onMidiMessage }) {
     try {
       const midiDevices = await navigator.requestMIDIAccess();
       if (midiDevices.inputs) {
+        /** @type {Iterator}
+         *  @supress {JSC_WRONG_ARGUMENT_COUNT}
+         */
         const midiInputs = midiDevices.inputs.values();
         for (let input = midiInputs.next(); input && !input.done; input = midiInputs.next()) {
           log(`Connecting midi-input: ${input.value.name || "unkown"}`);

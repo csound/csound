@@ -1,8 +1,8 @@
-import * as Comlink from "comlink";
-import MessagePortState from "@utils/message-port-state";
-import { AUDIO_STATE, RING_BUFFER_SIZE } from "@root/constants";
-import { instantiateAudioPacket } from "@root/workers/common.utils";
-import { logWorkletWorker as log } from "@root/logger";
+import { expose } from "comlink/dist/esm/comlink.mjs";
+import MessagePortState from "../utils/message-port-state";
+import { AUDIO_STATE, RING_BUFFER_SIZE } from "../constants";
+import { instantiateAudioPacket } from "./common.utils";
+import { logWorkletWorker as log } from "../logger";
 
 const VANILLA_INPUT_WRITE_BUFFER_LEN = 2048;
 
@@ -283,7 +283,7 @@ class CsoundWorkletProcessor extends AudioWorkletProcessor {
       this.actualProcess = processVanillaBuffers.bind(this);
       this.updateVanillaFrames = this.updateVanillaFrames.bind(this);
     }
-    Comlink.expose({ initialize, pause: this.pause, resume: this.resume }, this.port);
+    expose({ initialize, pause: this.pause, resume: this.resume }, this.port);
     log(`Worker thread was constructed`)();
   }
 

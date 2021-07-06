@@ -1,9 +1,10 @@
-import * as Comlink from "comlink";
-import WorkletWorker from "@root/workers/worklet.worker";
-import { logWorkletMain as log } from "@root/logger";
-import { WebkitAudioContext } from "@root/utils";
+import * as Comlink from "comlink/dist/esm/comlink.mjs";
+// import WorkletWorker from "@root/workers/worklet.worker";
+import { logWorkletMain as log } from "../logger";
+import { WebkitAudioContext } from "../utils";
 // import { requestMicrophoneNode } from "./io.utils";
-import { requestMidi } from "@utils/request-midi";
+import { requestMidi } from "../utils/request-midi";
+const WorkletWorker = goog.require("worker.worklet");
 
 let UID = 0;
 
@@ -81,7 +82,12 @@ class AudioWorkletMainThread {
     switch (newPlayState) {
       case "realtimePerformanceStarted": {
         log("event received: realtimePerformanceStarted")();
-        await this.initialize();
+        try {
+          await this.initialize();
+        } catch (error) {
+          console.error(error);
+        }
+
         if (
           this.csoundWorkerMain &&
           this.csoundWorkerMain.eventPromises &&
@@ -97,7 +103,7 @@ class AudioWorkletMainThread {
         log(
           "event received: realtimePerformanceEnded" + !this.csoundWorkerMain.hasSharedArrayBuffer
             ? ` cleaning up ports`
-            : "",
+            : ""
         )();
         if (
           !this.audioContextIsProvided &&
@@ -145,6 +151,7 @@ class AudioWorkletMainThread {
       }
       this.audioContext = new (WebkitAudioContext())({ sampleRate: this.sampleRate });
     }
+
     if (this.audioContext.state === "closed") {
       if (this.audioContextIsProvided) {
         console.error(`fatal: the provided AudioContext was closed, falling back new AudioContext`);
@@ -160,9 +167,13 @@ class AudioWorkletMainThread {
         console.error("Internal error: sample rate was ignored from provided audioContext");
       }
     }
-
     this.workletWorkerUrl = WorkletWorker();
-    await this.audioContext.audioWorklet.addModule(this.workletWorkerUrl);
+
+    try {
+      await this.audioContext.audioWorklet.addModule(this.workletWorkerUrl);
+    } catch (error) {
+      console.error("Error calling audioWorklet.addModule", error);
+    }
 
     log("WorkletWorker module added")();
 
@@ -200,7 +211,7 @@ class AudioWorkletMainThread {
           const newNode = this.createWorkletNode(
             this.audioContext,
             liveInput.channelCount,
-            contextUid,
+            contextUid
           );
           this.audioWorkletNode = newNode;
           if (this.autoConnect) {
@@ -234,7 +245,7 @@ class AudioWorkletMainThread {
               },
             },
             microphoneCallback,
-            console.error,
+            console.error
           );
     } else {
       const newNode = this.createWorkletNode(this.audioContext, 0, contextUid);
@@ -260,8 +271,8 @@ class AudioWorkletMainThread {
           this.ipcMessagePorts.workerMessagePortAudio,
           this.ipcMessagePorts.audioWorkerFrameRequestPort,
           this.ipcMessagePorts.audioWorkerAudioInputPort,
-        ],
-      ),
+        ]
+      )
     );
 
     log("initialization finished in main")();

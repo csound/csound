@@ -1,11 +1,12 @@
-import { assoc, keys, reduce } from "ramda";
+goog.declareModuleId("libcsound");
+
 import {
   csoundCreate,
   csoundDestroy,
   csoundGetAPIVersion,
   csoundGetVersion,
   csoundInitialize,
-} from "@module/instantiation";
+} from "./modules/instantiation";
 import {
   csoundParseOrc,
   csoundCompileTree,
@@ -20,7 +21,7 @@ import {
   csoundStop,
   csoundCleanup,
   csoundReset,
-} from "@module/performance";
+} from "./modules/performance";
 import {
   csoundGetSr,
   csoundGetKr,
@@ -36,7 +37,7 @@ import {
   csoundGetParams,
   csoundGetDebug,
   csoundSetDebug,
-} from "@module/attributes";
+} from "./modules/attributes";
 import {
   csoundGetInputBufferSize,
   csoundGetOutputBufferSize,
@@ -44,7 +45,7 @@ import {
   csoundGetOutputBuffer,
   csoundGetSpin,
   csoundGetSpout,
-} from "@module/rtaudio";
+} from "./modules/rtaudio";
 import {
   csoundGetMIDIDevList,
   csoundSetMidiCallbacks,
@@ -52,7 +53,7 @@ import {
   csoundGetMidiOutFileName,
   csoundPushMidiMessage,
   _isRequestingRtMidiInput,
-} from "@module/rtmidi";
+} from "./modules/rtmidi";
 import {
   csoundInputMessage,
   csoundInputMessageAsync,
@@ -60,9 +61,9 @@ import {
   csoundSetControlChannel,
   csoundGetStringChannel,
   csoundSetStringChannel,
-} from "@module/control-events";
-import { csoundGetInputName, csoundGetOutputName } from "@module/general-io";
-import { csoundAppendEnv, csoundShouldDaemonize } from "@module/extra";
+} from "./modules/control-events";
+import { csoundGetInputName, csoundGetOutputName } from "./modules/general-io";
+import { csoundAppendEnv, csoundShouldDaemonize } from "./modules/extra";
 import {
   csoundIsScorePending,
   csoundSetScorePending,
@@ -71,7 +72,7 @@ import {
   csoundGetScoreOffsetSeconds,
   csoundSetScoreOffsetSeconds,
   csoundRewindScore,
-} from "@module/score-handling";
+} from "./modules/score-handling";
 import {
   csoundTableLength,
   csoundTableGet,
@@ -82,8 +83,9 @@ import {
   csoundGetTableArgs,
   csoundIsNamedGEN,
   csoundGetNamedGEN,
-} from "@module/table";
-
+} from "./modules/table";
+import { assoc, keys, reduce } from "rambda/dist/rambda.esm.js";
+// const { assoc, keys, reduce } = require("rambda/dist/rambda.esm.js");
 /*
    Don't call these functions directly.
    They are closures that take wasm instance as

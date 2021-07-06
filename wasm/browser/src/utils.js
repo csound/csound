@@ -1,6 +1,3 @@
-// import TextEncoderShim from 'text-encoding-shim';
-import { getModifiedPersistentStorage } from "@root/filesystem/persistent-fs";
-
 export const appendBuffers = (buffer1, buffer2) => {
   const temporary = new Uint8Array(buffer1.byteLength + buffer2.byteLength);
   temporary.set(new Uint8Array(buffer1), 0);
@@ -59,7 +56,7 @@ export const makeProxyCallback = (proxyPort, csoundInstance, apiK, playState) =>
   ...arguments_
 ) => {
   if (!playState || !stopableStates.has(playState)) {
-    const modifiedFs = getModifiedPersistentStorage();
+    const modifiedFs = {}; // getModifiedPersistentStorage();
     Object.values(modifiedFs).length > 0 &&
       (await proxyPort.callUncloned("syncWorkerFs", [csoundInstance, modifiedFs]));
   }
@@ -75,6 +72,6 @@ export const fetchPlugins = async (withPlugins) => {
     withPlugins.map(async (url) => {
       const response = await fetch(url);
       return response.arrayBuffer();
-    }),
+    })
   );
 };

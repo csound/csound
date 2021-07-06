@@ -1,7 +1,6 @@
-import * as Comlink from "comlink";
-import { api as API } from "@root/libcsound";
-import { messageEventHandler, IPCMessagePorts } from "@root/mains/messages.main";
-import SABWorker from "@root/workers/sab.worker";
+import * as Comlink from "comlink/dist/esm/comlink.mjs";
+import { api as API } from "../libcsound";
+import { messageEventHandler, IPCMessagePorts } from "./messages.main";
 import {
   AUDIO_STATE,
   MAX_CHANNELS,
@@ -9,27 +8,27 @@ import {
   MIDI_BUFFER_PAYLOAD_SIZE,
   MIDI_BUFFER_SIZE,
   initialSharedState,
-} from "@root/constants";
-import { logSABMain as log } from "@root/logger";
-import { isEmpty } from "ramda";
-import { csoundApiRename, fetchPlugins, makeProxyCallback, stopableStates } from "@root/utils";
-import { EventPromises } from "@utils/event-promises";
-import { PublicEventAPI } from "@root/events";
-import {
-  clearFsLastmods,
-  persistentFilesystem,
-  syncPersistentStorage,
-} from "@root/filesystem/persistent-fs";
+} from "../constants";
+import { logSABMain as log } from "../logger";
+import { isEmpty } from "rambda/dist/rambda.esm.js";
+import { csoundApiRename, fetchPlugins, makeProxyCallback, stopableStates } from "../utils";
+import { EventPromises } from "../utils/event-promises";
+import { PublicEventAPI } from "../events";
+
+const PersistentFs = goog.require("csound.filesystem.PersistentFs");
+const SABWorker = goog.require("worker.sab");
 
 class SharedArrayBufferMainThread {
   constructor({
     audioContext,
     audioWorker,
     wasmDataURI,
+    wasmTransformerDataURI,
     audioContextIsProvided,
     inputChannelCount,
     outputChannelCount,
   }) {
+    this.fs = new PersistentFs();
     this.hasSharedArrayBuffer = true;
     this.ipcMessagePorts = new IPCMessagePorts();
     this.eventPromises = new EventPromises();
@@ -38,8 +37,10 @@ class SharedArrayBufferMainThread {
 
     this.audioContextIsProvided = audioContextIsProvided;
     this.audioWorker = audioWorker;
+    this.audioWorker.onPlayStateChange = this.audioWorker.onPlayStateChange.bind(audioWorker);
     this.csoundInstance = undefined;
-    this.wasmDataURI = wasmDataURI;
+    this.wasmDataURI = wasmDataURI();
+    this.wasmTransformerDataURI = wasmTransformerDataURI();
     this.currentPlayState = undefined;
     this.currentDerivedPlayState = "stop";
     this.exportApi = {};
@@ -79,6 +80,8 @@ class SharedArrayBufferMainThread {
     this.midiBuffer = new Int32Array(this.midiBufferSAB);
 
     this.onPlayStateChange = this.onPlayStateChange.bind(this);
+    this.prepareRealtimePerformance = this.prepareRealtimePerformance.bind(this);
+
     log(`SharedArrayBufferMainThread got constructed`)();
   }
 
@@ -145,6 +148,10 @@ class SharedArrayBufferMainThread {
   }
 
   async onPlayStateChange(newPlayState) {
+    if (typeof this === "undefined") {
+      console.log("Failed to announce playstatechange", newPlayState);
+      return;
+    }
     this.currentPlayState = newPlayState;
     if (!this.publicEvents || !newPlayState) {
       // prevent late timers from calling terminated fn
@@ -156,14 +163,18 @@ class SharedArrayBufferMainThread {
           `event: realtimePerformanceStarted received,` +
             ` proceeding to call prepareRealtimePerformance`,
         )();
-        await this.prepareRealtimePerformance();
-        this.publicEvents.triggerRealtimePerformanceStarted(this);
+        this.prepareRealtimePerformance
+          .call(this)
+          .then(() => this.publicEvents.triggerRealtimePerformanceStarted(this))
+          .catch(console.error);
+
         break;
       }
       case "realtimePerformanceEnded": {
         this.eventPromises.createStopPromise();
-        syncPersistentStorage(await this.getWorkerFs());
-        clearFsLastmods();
+        // syncPersistentStorage(await this.getWorkerFs());
+        // clearFsLastmods();
+
         // flush out events sent during the time which the worker was stopping
         Object.values(this.callbackBuffer).forEach(({ argumentz, apiKey, resolveCallback }) =>
           this.proxyPort.callUncloned(apiKey, argumentz).then(resolveCallback),
@@ -174,7 +185,6 @@ class SharedArrayBufferMainThread {
         initialSharedState.forEach((value, index) => {
           Atomics.store(this.audioStatePointer, index, value);
         });
-        break;
       }
       case "realtimePerformancePaused": {
         this.publicEvents.triggerRealtimePerformancePaused(this);
@@ -189,9 +199,9 @@ class SharedArrayBufferMainThread {
         break;
       }
       case "renderEnded": {
-        syncPersistentStorage(await this.getWorkerFs());
-        this.publicEvents.triggerRenderEnded(this);
-        clearFsLastmods();
+        // syncPersistentStorage(await this.getWorkerFs());
+        // this.publicEvents.triggerRenderEnded(this);
+        // clearFsLastmods();
         log(`event: renderEnded received, beginning cleanup`)();
         break;
       }
@@ -202,7 +212,8 @@ class SharedArrayBufferMainThread {
 
     // forward the message from worker to the audioWorker
     try {
-      await this.audioWorker.onPlayStateChange(newPlayState);
+      // console.log("this?", this);
+      await this.audioWorker.onPlayStateChange.call(this.audioWorker, newPlayState);
     } catch (error) {
       console.error(error);
     }
@@ -237,7 +248,7 @@ class SharedArrayBufferMainThread {
     }
 
     log(`initialization: instantiate the SABWorker Thread`)();
-    clearFsLastmods();
+    // clearFsLastmods();
     const csoundWorker = new Worker(SABWorker());
     this.csoundWorker = csoundWorker;
     const audioStateBuffer = this.audioStateBuffer;
@@ -292,11 +303,16 @@ class SharedArrayBufferMainThread {
       Comlink.transfer(
         {
           wasmDataURI: this.wasmDataURI,
+          wasmTransformerDataURI: this.wasmTransformerDataURI,
           messagePort: this.ipcMessagePorts.workerMessagePort,
           callbackPort: this.ipcMessagePorts.sabWorkerCallbackReply,
           withPlugins,
         },
-        [this.ipcMessagePorts.workerMessagePort, this.ipcMessagePorts.sabWorkerCallbackReply],
+        [
+          this.wasmDataURI,
+          this.ipcMessagePorts.workerMessagePort,
+          this.ipcMessagePorts.sabWorkerCallbackReply,
+        ],
       ),
     );
     this.csoundInstance = csoundInstance;
@@ -309,16 +325,18 @@ class SharedArrayBufferMainThread {
     this.exportApi.pause = this.csoundPause.bind(this);
     this.exportApi.resume = this.csoundResume.bind(this);
     this.exportApi.terminateInstance = this.terminateInstance.bind(this);
-    this.exportApi.fs = persistentFilesystem;
+    await this.fs.initDb();
+    this.exportApi.fs = this.fs;
+    // this.exportApi.fs = persistentFilesystem;
 
     // sync/getWorkerFs is only for internal usage
-    this.getWorkerFs = makeProxyCallback(
-      proxyPort,
-      csoundInstance,
-      "getWorkerFs",
-      this.currentPlayState,
-    );
-    this.getWorkerFs = this.getWorkerFs.bind(this);
+    // this.getWorkerFs = makeProxyCallback(
+    //   proxyPort,
+    //   csoundInstance,
+    //   "getWorkerFs",
+    //   this.currentPlayState,
+    // );
+    // this.getWorkerFs = this.getWorkerFs.bind(this);
 
     this.exportApi.enableAudioInput = () =>
       console.warn(

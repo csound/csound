@@ -5,11 +5,10 @@
 
 /* eslint-disable unicorn/prevent-abbreviations */
 
-import { sizeofStruct } from "@utils/native-sizes";
-import { freeStringPtr, string2ptr } from "@utils/string-pointers";
-import { structBufferToObject } from "@utils/structure-buffer-to-object";
-import { CSOUND_PARAMS } from "@root/structures";
-import { curry } from "ramda";
+import { sizeofStruct } from "../utils/native-sizes";
+import { freeStringPtr, string2ptr } from "../utils/string-pointers";
+import { structBufferToObject } from "../utils/structure-buffer-to-object";
+import { CSOUND_PARAMS } from "../structures";
 
 /**
  * Returns the sample rate from Csound instance
@@ -19,7 +18,7 @@ import { curry } from "ramda";
  * @memberof CsoundObj
  * @return {Promise.<number>}
  */
-export const csoundGetSr = curry((wasm, csound) => wasm.exports.csoundGetSr(csound));
+export const csoundGetSr = (wasm) => (csound) => wasm.exports.csoundGetSr(csound);
 
 csoundGetSr.toString = () => "getSr = async () => Number;";
 
@@ -31,7 +30,7 @@ csoundGetSr.toString = () => "getSr = async () => Number;";
  * @memberof CsoundObj
  * @return {Promise.<number>}
  */
-export const csoundGetKr = curry((wasm, csound) => wasm.exports.csoundGetKr(csound));
+export const csoundGetKr = (wasm) => (csound) => wasm.exports.csoundGetKr(csound);
 
 csoundGetKr.toString = () => "getKr = async () => Number;";
 
@@ -43,7 +42,7 @@ csoundGetKr.toString = () => "getKr = async () => Number;";
  * @memberof CsoundObj
  * @return {Promise.<number>}
  */
-export const csoundGetKsmps = curry((wasm, csound) => wasm.exports.csoundGetKsmps(csound));
+export const csoundGetKsmps = (wasm) => (csound) => wasm.exports.csoundGetKsmps(csound);
 
 csoundGetKsmps.toString = () => "getKsmps = async () => Number;";
 
@@ -55,7 +54,7 @@ csoundGetKsmps.toString = () => "getKsmps = async () => Number;";
  * @memberof CsoundObj
  * @return {Promise.<number>}
  */
-export const csoundGetNchnls = curry((wasm, csound) => wasm.exports.csoundGetNchnls(csound));
+export const csoundGetNchnls = (wasm) => (csound) => wasm.exports.csoundGetNchnls(csound);
 
 csoundGetNchnls.toString = () => "getNchnls = async () => Number;";
 
@@ -67,9 +66,7 @@ csoundGetNchnls.toString = () => "getNchnls = async () => Number;";
  * @memberof CsoundObj
  * @return {Promise.<number>}
  */
-export const csoundGetNchnlsInput = curry((wasm, csound) =>
-  wasm.exports.csoundGetNchnlsInput(csound),
-);
+export const csoundGetNchnlsInput = (wasm) => (csound) => wasm.exports.csoundGetNchnlsInput(csound);
 
 csoundGetNchnlsInput.toString = () => "getNchnlsInput = async () => Number;";
 
@@ -81,7 +78,7 @@ csoundGetNchnlsInput.toString = () => "getNchnlsInput = async () => Number;";
  * @memberof CsoundObj
  * @return {Promise.<number>}
  */
-export const csoundGet0dBFS = curry((wasm, csound) => wasm.exports.csoundGet0dBFS(csound));
+export const csoundGet0dBFS = (wasm) => (csound) => wasm.exports.csoundGet0dBFS(csound);
 
 csoundGet0dBFS.toString = () => "get0dBFS = async () => Number;";
 
@@ -93,7 +90,7 @@ csoundGet0dBFS.toString = () => "get0dBFS = async () => Number;";
  * @memberof CsoundObj
  * @return {Promise.<number>}
  */
-export const csoundGetA4 = curry((wasm, csound) => wasm.exports.csoundGetA4(csound));
+export const csoundGetA4 = (wasm) => (csound) => wasm.exports.csoundGetA4(csound);
 
 csoundGetA4.toString = () => "getA4 = async () => Number;";
 
@@ -105,9 +102,8 @@ csoundGetA4.toString = () => "getA4 = async () => Number;";
  * @memberof CsoundObj
  * @return {Promise.<number>}
  */
-export const csoundGetCurrentTimeSamples = curry((wasm, csound) =>
-  wasm.exports.csoundGetCurrentTimeSamples(csound),
-);
+export const csoundGetCurrentTimeSamples = (wasm) => (csound) =>
+  wasm.exports.csoundGetCurrentTimeSamples(csound);
 
 csoundGetCurrentTimeSamples.toString = () => "getCurrentTimeSamples = async () => Number;";
 
@@ -119,9 +115,7 @@ csoundGetCurrentTimeSamples.toString = () => "getCurrentTimeSamples = async () =
  * @memberof CsoundObj
  * @return {Promise.<number>}
  */
-export const csoundGetSizeOfMYFLT = curry((wasm, csound) =>
-  wasm.exports.csoundGetSizeOfMYFLT(csound),
-);
+export const csoundGetSizeOfMYFLT = (wasm) => (csound) => wasm.exports.csoundGetSizeOfMYFLT(csound);
 
 csoundGetSizeOfMYFLT.toString = () => "getSizeOfMYFLT = async () => Number;";
 
@@ -139,12 +133,12 @@ csoundGetSizeOfMYFLT.toString = () => "getSizeOfMYFLT = async () => Number;";
  * @param {string} option
  * @return {Promise.<number>}
  */
-export const csoundSetOption = curry((wasm, csound, option) => {
+export const csoundSetOption = (wasm) => (csound, option) => {
   const stringPtr = string2ptr(wasm, option);
   const result = wasm.exports.csoundSetOption(csound, stringPtr);
   freeStringPtr(wasm, stringPtr);
   return result;
-});
+};
 
 csoundSetOption.toString = () => "setOption = async (option) => Number;";
 
@@ -164,9 +158,9 @@ csoundSetOption.toString = () => "setOption = async (option) => Number;";
  * @param {CSOUND_PARAMS} csoundParams - csoundParams object
  * @return {Promise.<undefined>}
  */
-export const csoundSetParams = curry((wasm, csound, csoundParameters) => {
+export const csoundSetParams = (wasm) => (csound, csoundParameters) => {
   wasm.exports.csoundSetParams(csound, csoundParameters);
-});
+};
 
 csoundSetParams.toString = () => "setParams = async (csoundParams) => undefined;";
 
@@ -180,7 +174,7 @@ csoundSetParams.toString = () => "setParams = async (csoundParams) => undefined;
  * @memberof CsoundObj
  * @return {Promise.<CSOUND_PARAMS>} - CSOUND_PARAMS object
  */
-export const csoundGetParams = curry((wasm, csound) => {
+export const csoundGetParams = (wasm) => (csound) => {
   const { buffer } = wasm.exports.memory;
   const structLength = sizeofStruct(CSOUND_PARAMS);
   const structOffset = wasm.exports.allocCsoundParamsStruct();
@@ -189,7 +183,7 @@ export const csoundGetParams = curry((wasm, csound) => {
   const currentCsoundParameters = structBufferToObject(CSOUND_PARAMS, structBuffer);
   wasm.exports.freeCsoundParams(structOffset);
   return currentCsoundParameters;
-});
+};
 
 csoundGetParams.toString = () => "getParams = async () => CSOUND_PARAMS;";
 
@@ -203,7 +197,7 @@ csoundGetParams.toString = () => "getParams = async () => CSOUND_PARAMS;";
  * @memberof CsoundObj
  * @return {Promise.<number>}
  */
-export const csoundGetDebug = curry((wasm, csound) => wasm.exports.csoundGetDebug(csound));
+export const csoundGetDebug = (wasm) => (csound) => wasm.exports.csoundGetDebug(csound);
 
 csoundGetDebug.toString = () => "getDebug = async () => Number;";
 
@@ -216,8 +210,8 @@ csoundGetDebug.toString = () => "getDebug = async () => Number;";
  * @param {number} debug
  * @return {Promise.<undefined>}
  */
-export const csoundSetDebug = curry((wasm, csound, debug) => {
+export const csoundSetDebug = (wasm) => (csound, debug) => {
   wasm.exports.csoundSetDebug(csound, debug);
-});
+};
 
 csoundSetDebug.toString = () => "setDebug = async (number) => undefined;";

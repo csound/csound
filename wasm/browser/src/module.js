@@ -1,11 +1,13 @@
-import * as path from "path-browserify";
-import { WASI } from "@wasmer/wasi";
-import { WasmFs } from "@wasmer/wasmfs";
-import { lowerI64Imports } from "@wasmer/wasm-transformer";
-import { inflate } from "pako";
-import { dlinit } from "@root/dlinit";
-import { csoundWasiJsMessageCallback, initFS } from "@root/filesystem/worker-fs";
-import { logWasmModule as log } from "@root/logger";
+// import path from "path-browserify";
+// import { lowerI64Imports } from "@wasmer/wasm-transformer/lib/unoptimized/wasm-transformer.esm.js";
+// import { WasmFs } from "./filesystem/memfs/index";
+import { dlinit } from "./dlinit";
+import { csoundWasiJsMessageCallback } from "./filesystem/worker-fs";
+import { logWasmModule as log } from "./logger";
+goog.require("Zlib");
+goog.require("Zlib.Inflate");
+goog.require("csound.filesystem.WASI");
+goog.require("csound.utils.transform_imports");
 
 const PAGE_SIZE = 65536;
 
@@ -20,7 +22,7 @@ const assertPluginExports = (pluginInstance) => {
   } else if (!pluginInstance.exports.__wasm_call_ctors) {
     console.error(
       "A csound plugin didn't export __wasm_call_ctors.\n" +
-        "Please re-run wasm-ld with either --export-all or include --export=__wasm_call_ctors",
+        "Please re-run wasm-ld with either --export-all or include --export=__wasm_call_ctors"
     );
     return false;
   } else if (
@@ -30,7 +32,7 @@ const assertPluginExports = (pluginInstance) => {
   ) {
     console.error(
       "A csound plugin turns out to be neither a plugin, opcode or module.\n" +
-        "Perhaps csdl.h or module.h wasn't imported correctly?",
+        "Perhaps csdl.h or module.h wasn't imported correctly?"
     );
     return false;
   } else {
@@ -90,32 +92,51 @@ const loadStaticWasm = async ({ wasmBytes, wasmFs, wasi, messagePort }) => {
 
   const instance = await WebAssembly.instantiate(module, options);
   wasi.start(instance);
-  await initFS(wasmFs, messagePort);
+  // await initFS(wasmFs, messagePort);
   return instance;
 };
 
-export default async function ({ wasmDataURI, withPlugins = [], messagePort }) {
-  const wasmFs = new WasmFs();
-  const bindings = {
-    ...WASI.defaultBindings,
-    fs: wasmFs.fs,
-    path,
-  };
-  const wasi = new WASI({
-    // --dir <wasm path>:<host path>
-    preopens: {
-      "/": "/",
-    },
-    env: {},
-    bindings,
-  });
-  await wasmFs.volume.mkdirpSync("/sandbox");
+export default async function ({
+  wasmDataURI,
+  wasmTransformerDataURI,
+  withPlugins = [],
+  messagePort,
+}) {
+  const wasmFs = {}; // new WasmFs();
 
-  const wasmZlib = new Uint8Array(wasmDataURI);
-  const wasmInflated = inflate(wasmZlib);
+  // const bindings = {
+  //   // ...WASI.defaultBindings,
+  //   fs: wasmFs.fs,
+  //   path,
+  // };
 
-  const wasmBytes =
-    typeof BigUint64Array === "undefined" ? await lowerI64Imports(wasmInflated) : wasmInflated;
+  // {
+  //   // --dir <wasm path>:<host path>
+  //   preopens: {
+  //     "/": "/",
+  //   },
+  //   env: {},
+  //   // bindings,
+  // }
+
+  const wasi = new csound.filesystem.WASI({ preopens: { "/": "/" } });
+  await wasi.initDb();
+  // await wasmFs.volume.mkdirpSync("/sandbox");
+
+  const wasmCompressed = new Uint8Array(wasmDataURI);
+  const wasmZlib = new Zlib.Inflate(wasmCompressed);
+
+  const wasmInflated = wasmZlib.decompress();
+  const wasmBytes = await csound.utils.transform_imports.lowerI64Imports(
+    wasmInflated,
+    wasmTransformerDataURI
+  );
+
+  // const wasmBytes =
+  //   typeof BigUint64Array === "undefined"
+  //     ? await csound.utils.transform_imports.lowerI64Imports(wasmInflated, wasmTransformerDataURI)
+  //       : wasmInflated;
+
   const magicData = getBinaryHeaderData(wasmInflated);
   if (magicData === "static") {
     return [await loadStaticWasm({ messagePort, wasmBytes, wasmFs, wasi }), wasmFs];
@@ -149,8 +170,8 @@ export default async function ({ wasmDataURI, withPlugins = [], messagePort }) {
   const pluginsMemory = Math.ceil(
     withPlugins.reduce(
       (accumulator, { headerData: { memorySize } }) => accumulator + (memorySize + memoryAlign),
-      0,
-    ) / PAGE_SIZE,
+      0
+    ) / PAGE_SIZE
   );
   const totalInitialMemory = initialMemory + pluginsMemory + fixedMemoryBase;
 
@@ -160,13 +181,15 @@ export default async function ({ wasmDataURI, withPlugins = [], messagePort }) {
 
   const table = new WebAssembly.Table({ initial: tableSize + 1, element: "anyfunc" });
 
+  wasi.setMemory(memory);
+
   const stackPointer = new WebAssembly.Global(
     { value: "i32", mutable: true },
-    totalInitialMemory * PAGE_SIZE,
+    totalInitialMemory * PAGE_SIZE
   );
   const heapBase = new WebAssembly.Global(
     { value: "i32", mutable: true },
-    totalInitialMemory * PAGE_SIZE,
+    totalInitialMemory * PAGE_SIZE
   );
   const memoryBase = new WebAssembly.Global({ value: "i32", mutable: false }, fixedMemoryBase);
   const tableBase = new WebAssembly.Global({ value: "i32", mutable: false }, 1);
@@ -174,7 +197,6 @@ export default async function ({ wasmDataURI, withPlugins = [], messagePort }) {
 
   const module = await WebAssembly.compile(wasmBytes);
   const options = wasi.getImports(module);
-
   let withPlugins_ = [];
 
   const csoundLoadModules = (csoundInstance) => {
@@ -197,7 +219,6 @@ export default async function ({ wasmDataURI, withPlugins = [], messagePort }) {
   options.env.csoundLoadModules = csoundLoadModules;
 
   const streamBuffer = [];
-
   options.env.csoundWasiJsMessageCallback = csoundWasiJsMessageCallback({
     memory,
     streamBuffer,
@@ -232,7 +253,7 @@ export default async function ({ wasmDataURI, withPlugins = [], messagePort }) {
       const pluginOptions = {};
       const pluginMemoryBase = new WebAssembly.Global(
         { value: "i32", mutable: false },
-        currentMemorySegment * PAGE_SIZE,
+        currentMemorySegment * PAGE_SIZE
       );
 
       table.grow(pluginTableSize);
@@ -260,5 +281,5 @@ export default async function ({ wasmDataURI, withPlugins = [], messagePort }) {
 
   wasi.start(instance_);
   instance_.exports.__wasi_js_csoundSetMessageStringCallback();
-  return [instance_, wasmFs];
+  return [instance_, wasi];
 }

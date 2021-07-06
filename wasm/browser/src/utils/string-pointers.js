@@ -1,5 +1,5 @@
-import { encoder, uint2String } from "@utils/text-encoders";
-import { trimNull } from "@utils/trim-null";
+import { trimNull } from "./trim-null";
+const { encoder, uint2String } = goog.require("csound.utils.text_encoders");
 
 export const freeStringPtr = (wasm, ptr) => {
   wasm.exports.freeStringMem(ptr);

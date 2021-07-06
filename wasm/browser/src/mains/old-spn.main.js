@@ -1,10 +1,12 @@
-import * as Comlink from "comlink";
-import ScriptProcessorNodeWorker from "@root/workers/old-spn.worker";
-import { logOldSpnMain as log } from "@root/logger";
-import { messageEventHandler } from "@root/mains/messages.main";
-import { WebkitAudioContext } from "@root/utils";
-import { requestMidi } from "@utils/request-midi";
-import { requestMicrophoneNode } from "@root/mains/io.utils";
+import * as Comlink from "comlink/dist/esm/comlink.mjs";
+// import ScriptProcessorNodeWorker from "../workers/old-spn.worker";
+import { logOldSpnMain as log } from "../logger";
+import { messageEventHandler } from "./messages.main";
+import { WebkitAudioContext } from "../utils";
+import { requestMidi } from "../utils/request-midi";
+import { requestMicrophoneNode } from "./io.utils";
+
+const ScriptProcessorNodeWorker = goog.require("worker.old_spn");
 
 // we reuse the spnWorker
 // since it handles multiple
@@ -42,7 +44,7 @@ class ScriptProcessorNodeMainThread {
     delete this.onPlayStateChange;
     if (window[`__csound_wasm_iframe_parent_${this.contextUid}Node`]) {
       window[`__csound_wasm_iframe_parent_${this.contextUid}Node`].disconnect();
-      delete window[`__csound_wasm_iframe_parent_${this.contextUid}Node`].disconnect();
+      delete window[`__csound_wasm_iframe_parent_${this.contextUid}Node`];
     }
     if (this.audioContext) {
       if (this.audioContext.state !== "closed") {
@@ -91,7 +93,7 @@ class ScriptProcessorNodeMainThread {
         log("event received: realtimePerformanceEnded")();
         if (window[`__csound_wasm_iframe_parent_${this.contextUid}Node`]) {
           window[`__csound_wasm_iframe_parent_${this.contextUid}Node`].disconnect();
-          delete window[`__csound_wasm_iframe_parent_${this.contextUid}Node`].disconnect();
+          delete window[`__csound_wasm_iframe_parent_${this.contextUid}Node`];
         }
         break;
       }

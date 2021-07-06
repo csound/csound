@@ -2,8 +2,8 @@
 // promises which hold back releases
 // of certain async events
 // for internal usecases only
-import { equals, reject } from "ramda";
-import { clearArray } from "@utils/clear-array";
+import { equals, reject } from "rambda/dist/rambda.esm.js";
+import { clearArray } from "./clear-array";
 
 export class EventPromises {
   constructor() {

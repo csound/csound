@@ -1,123 +1,149 @@
-import { createFsFromVolume } from "memfs";
-import { Volume } from "memfs/lib/volume";
-import { difference } from "ramda";
+goog.provide("csound.filesystem.PersistentFs");
+goog.require("goog.async.Deferred");
+goog.require("goog.db.IndexedDb");
+goog.require("goog.db.Transaction");
+goog.require("goog.string");
+goog.require("goog.string.path");
 
-// because workers come and go, for users to have some
-// persistency, we'll sync a non-worker storage
-// with the filesystems spawned on threads  * @extends {typeof import("memfs").IFs}
-export const persistentStorage = new Volume();
+const TransactionMode = goog.db.Transaction.TransactionMode;
+const IndexedDb = goog.db.IndexedDb;
 
-/**
- * The in-browser filesystem based on nodejs's
- * built-in module "fs"
- * @name fs
- * @memberof CsoundObj
- * @type {IFs:memfs}
- */
-export const persistentFilesystem = createFsFromVolume(persistentStorage);
+csound.filesystem.PersistentFs = function () {
+  this.initDb = this.initDb.bind(this);
+  this.ls = this.ls.bind(this);
+  this.write = this.write.bind(this);
+};
 
-// modified from @wasmer/wasmfs
-function fromJSONFixed(vol, json) {
-  const seperator = "/";
-  for (let filename in json) {
-    const data = json[filename];
-    filename = filename.replace(/^\/sandbox\//i, "");
-    const isDirectory = data ? Object.getPrototypeOf(data) === null : data === null;
-    if (!isDirectory) {
-      const steps = filename.split(seperator);
-      if (steps.length > 1) {
-        const dirname = seperator + steps.slice(0, -1).join(seperator);
-        vol.mkdirpBase(dirname, 0o777);
-      }
-      vol.writeFileSync(filename, data || "");
-    } else {
-      vol.mkdirpBase(filename, 0o777);
-    }
-  }
+csound.filesystem.PersistentFs.prototype.initDb = function () {};
+
+function cutRootSlash(s = "") {
+  return s.replace(/^\//g, "");
 }
 
-// modified from @wasmer/wasmfs
-function _toJSON(link, json = {}) {
-  let isEmpty = true;
+csound.filesystem.PersistentFs.prototype.write = function (filename, data) {
+  const defered = new goog.async.Deferred();
 
-  for (const name in link.children) {
-    isEmpty = false;
+  if (typeof filename !== "string") {
+    throw new Error("fs.writeFile - filename must be of type string");
+  }
 
-    const child = link.getChild(name);
-    if (child) {
-      const node = child.getNode();
-      if (node && node.isFile()) {
-        const filename = child.getPath();
-        json[filename] = node.getBuffer();
-      } else if (node && node.isDirectory()) {
-        _toJSON(child, json);
+  if (!(data instanceof Uint8Array)) {
+    throw new Error("fs.writeFile - data must be of type Uint8Array");
+  }
+
+  filename = cutRootSlash(goog.string.path.normalizePath(filename));
+  const nextVersionDefer = new goog.async.Deferred();
+
+  goog.db.openDatabase("csound").addCallback((lastDb) => {
+    const currentVersion = lastDb.getVersion();
+    const nextVersion = currentVersion + 1;
+    lastDb.close();
+    nextVersionDefer.callback(nextVersion);
+  });
+
+  nextVersionDefer.then((nextVersion) => {
+    const onBlocked = () =>
+      defered.errback(
+        `fs.write - couldn't write ${filename} to fs.` +
+          "\n" +
+          `Maybe csound is currently running on a different thread/tab?`
+      );
+
+    const onUpgradeNeeded = (ev, nextDb, tx) => {
+      if (!nextDb.getObjectStoreNames().contains(filename)) {
+        nextDb.createObjectStore(filename);
       }
-    }
-  }
+    };
 
-  const directoryPath = link.getPath();
+    goog.db.openDatabase("csound", nextVersion, onUpgradeNeeded, onBlocked).then((nextDb) => {
+      const putTx = nextDb.createTransaction(
+        [filename],
+        goog.db.Transaction.TransactionMode.READ_WRITE
+      );
 
-  if (directoryPath && isEmpty) {
-    delete json[directoryPath];
-  }
+      const store = putTx.objectStore(filename);
 
-  return json;
-}
+      if (nextDb.getObjectStoreNames().contains(filename)) {
+        store.clear();
+      }
+      store.put(data, 1);
+      nextDb.close();
+      defered.awaitDeferred(putTx.wait());
+      defered.callback();
+    });
+  });
 
-// modified from @wasmer/wasmfs
-function toJSONFixed(volume, paths, json = {}, isRelative = false) {
-  const links = [];
+  return defered;
+};
 
-  if (paths) {
-    if (!Array.isArray(paths)) paths = [paths];
-    for (const path of paths) {
-      const filename = path.split("/").slice(-1)[0];
-      const link = volume.getResolvedLink(filename);
-      if (!link) continue;
-      links.push(link);
-    }
+csound.filesystem.PersistentFs.prototype.ls = function (dirName) {
+  const defered = new goog.async.Deferred();
+  let dirFilter = "";
+  if (!dirName || dirName === "/" || typeof dirName !== "string") {
+    dirFilter = "";
   } else {
-    links.push(volume.root);
+    dirName = goog.string.path.normalizePath(dirName);
+    dirName = curRootSlash(dirName);
+    dirFilter = dirName;
   }
+  goog.db.openDatabase("csound").addCallback((db) => {
+    const allItems = Array.from(db.getObjectStoreNames());
 
-  if (links.length === 0) return json;
-  for (const link of links) _toJSON(link, json, isRelative ? link.getPath() : "");
-  return json;
-}
-
-const lastmods = {};
-
-export const syncPersistentStorage = (workerStorage) => {
-  fromJSONFixed(persistentStorage, workerStorage);
+    const result = allItems.reduce((a, i) => {
+      if (dirFilter === "") {
+        const cand = i.replace(/\/.*/, "");
+        if (!a.includes(cand)) {
+          a.push(cand);
+        }
+      } else {
+        if (i.startsWith(dirFilter) && !a.includes(cutRootSlash(i.replace(dirFilter)))) {
+          a.push(cutRootSlash(i.replace(dirFilter)));
+        }
+      }
+      return a;
+    }, []);
+    db.close();
+    defered.callback(result);
+  });
+  return defered;
 };
 
-export const getModifiedPersistentStorage = () => {
-  const currentFs = toJSONFixed(persistentStorage, "/");
-  const needsSync = {};
+// for singlethread-wasi which has no direct indexedDb access
+csound.filesystem.PersistentFs.prototype.transferDbBeforeStart = function (dirName) {
+  const defered = new goog.async.Deferred();
 
-  for (const dataKey of Object.keys(currentFs)) {
-    const lastModified = persistentFilesystem.statSync(dataKey).mtimeMs;
-    if (!lastmods[dataKey]) {
-      needsSync[dataKey] = currentFs[dataKey];
-      lastmods[dataKey] = lastModified;
-    } else if (lastmods[dataKey] !== lastModified) {
-      needsSync[dataKey] = currentFs[dataKey];
-      lastmods[dataKey] = lastModified;
+  goog.db.openDatabase("csound").addCallback(async (db) => {
+    const dbAssets = db.getObjectStoreNames();
+    const tx = await db.createTransaction(dbAssets, goog.db.Transaction.TransactionMode.READ_ONLY);
+    const dbFs = {};
+    const buffers = [];
+
+    for (const dbAsset of dbAssets) {
+      const handle = await tx.objectStore(dbAsset).getAll();
+      dbFs[dbAsset] = handle;
+      for (const arr of handle) {
+        buffers.push(arr.buffer);
+      }
     }
-  }
+    defered.succeed({ data: dbFs, buffers });
+  });
+  // .addErrback((error) => defered.cancel(error));
 
-  const needsUnlink = difference(Object.keys(lastmods), Object.keys(currentFs));
-
-  if (needsUnlink.length > 0) {
-    needsSync.__unlink = needsUnlink;
-  }
-
-  return needsSync;
+  return defered;
 };
 
-export const clearFsLastmods = () => {
-  const keys = Object.keys(lastmods);
-  for (const key of keys) {
-    key && delete lastmods[key];
-  }
-};
+// const curDb = await goog.db.openDatabase("csound");
+// const tx = await curDb.createTransaction(["/csound/xxx.wav"], TransactionMode.READ_ONLY);
+// const objectStore = tx.objectStore("/csound/xxx.wav");
+// const allData = await objectStore.getAll();
+// const newFile = new File(allData, "xxx.wav", { type: "audio/wav" });
+// console.log(
+//   "curDb",
+//   curDb,
+//   tx,
+//   objectStore,
+//   allData,
+//   newFile,
+//   URL.createObjectURL(newFile)
+// );
+// break;

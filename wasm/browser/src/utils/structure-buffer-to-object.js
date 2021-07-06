@@ -1,6 +1,6 @@
-import { trimNull } from "@utils/trim-null";
-import { sizeOfPrimitive } from "@utils/native-sizes";
-import { uint2String } from "@utils/text-encoders";
+import { trimNull } from "./trim-null";
+import { sizeOfPrimitive } from "./native-sizes";
+const { uint2String } = goog.require("csound.utils.text_encoders");
 
 export const structBufferToObject = (jsStruct, buffer) => {
   const [result] = jsStruct.reduce(

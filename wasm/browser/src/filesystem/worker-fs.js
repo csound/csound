@@ -1,8 +1,13 @@
-import * as path from "path-browserify";
-import { Buffer } from "buffer-es6";
-import { uint2String } from "@utils/text-encoders";
-import { cleanStdout } from "@utils/clean-stdout-string";
-import { clearArray } from "@utils/clear-array";
+// const path = goog.require("path-browserify");
+
+import { clearArray } from "../utils/clear-array";
+goog.require("csound.utils.text_encoders");
+
+/*
+import path from "path-browserify";
+// import { uint2String } from "../utils/text-encoders";
+import { cleanStdout } from "../utils/clean-stdout-string";
+
 
 export const touchFile = (wasmFs, filename) => {
   wasmFs.fs.writeFileSync(`/sandbox/${filename}`, "");
@@ -79,59 +84,59 @@ export const createStdOutStream = (wasmFs, workerMessagePort, streamState) => {
   watcher.addListener("change", listener);
   return watcher;
 };
+*/
 
-export const csoundWasiJsMessageCallback = ({ memory, streamBuffer, messagePort }) => (
-  csound,
-  attribute,
-  length_,
-  offset,
-) => {
-  if (!memory) {
-    return;
-  }
-  const buf = new Uint8Array(memory.buffer, offset, length_);
-  const string = uint2String(buf);
-  const endsWithNewline = /\n$/g.test(string);
-  const startsWithNewline = /^\n/g.test(string);
-  const chunks = string.split("\n").filter((item) => item.length > 0);
-  const printableChunks = [];
-
-  if ((chunks.length === 0 && endsWithNewline) || startsWithNewline) {
-    printableChunks.push(streamBuffer.join(""));
-    clearArray(streamBuffer);
-  }
-  chunks.forEach((chunk, index) => {
-    // if it's last chunk
-    if (index + 1 === chunks.length) {
-      if (endsWithNewline) {
-        if (index === 0) {
-          printableChunks.push(streamBuffer.join("") + chunk);
-          clearArray(streamBuffer);
-        } else {
-          printableChunks.push(chunk);
-        }
-      } else {
-        streamBuffer.push(chunk);
-      }
-    } else if (index === 0) {
-      printableChunks.push(streamBuffer.join("") + chunk);
+export const csoundWasiJsMessageCallback = ({ memory, streamBuffer }) => {
+  return function (csound_, attribute, length_, offset) {
+    // console.log("log", csound, attribute, length_, offset);
+    if (!memory) {
+      return;
+    }
+    const buf = new Uint8Array(memory.buffer, offset, length_);
+    const string = csound.utils.text_encoders.uint2String(buf);
+    const endsWithNewline = /\n$/g.test(string);
+    const startsWithNewline = /^\n/g.test(string);
+    const chunks = string.split("\n").filter((item) => item.length > 0);
+    const printableChunks = [];
+    if ((chunks.length === 0 && endsWithNewline) || startsWithNewline) {
+      printableChunks.push(streamBuffer.join(""));
       clearArray(streamBuffer);
-    } else {
-      printableChunks.push(chunk);
     }
-  });
-
-  printableChunks.forEach((chunk) => {
-    if (messagePort.ready) {
-      messagePort.post(chunk.replace(/(\r\n|\n|\r)/gm, ""));
-    }
-  });
+    chunks.forEach((chunk, index) => {
+      // if it's last chunk
+      if (index + 1 === chunks.length) {
+        if (endsWithNewline) {
+          if (index === 0) {
+            printableChunks.push(streamBuffer.join("") + chunk);
+            clearArray(streamBuffer);
+          } else {
+            printableChunks.push(chunk);
+          }
+        } else {
+          streamBuffer.push(chunk);
+        }
+      } else if (index === 0) {
+        printableChunks.push(streamBuffer.join("") + chunk);
+        clearArray(streamBuffer);
+      } else {
+        printableChunks.push(chunk);
+      }
+    });
+    printableChunks.forEach((chunk) => {
+      console.log(chunk.replace(/(\r\n|\n|\r)/gm, ""));
+      // if (messagePort.ready) {
+      //   messagePort.post(chunk.replace(/(\r\n|\n|\r)/gm, ""));
+      // }
+    });
+  };
 };
+
+/*
 
 export function writeToFs(wasmFs) {
   return (_, arrayBuffer, filePath) => {
     const realPath = path.join("/sandbox", filePath);
-    const buf = Buffer.from(new Uint8Array(arrayBuffer));
+    const buf = new Uint8Array(arrayBuffer);
     wasmFs.fs.writeFileSync(realPath, buf);
   };
 }
@@ -224,7 +229,7 @@ function fromJSONFixed(memory, vol, json) {
         const dirname = seperator + steps.slice(0, -1).join(seperator);
         vol.mkdirpBase(dirname, 0o777);
       }
-      vol.writeFileSync(filename, data ? Buffer.from(data) : data, { mode: 0o777 });
+      vol.writeFileSync(filename, data ? data : "", { mode: 0o777 });
     } else {
       vol.mkdirpBase(filename, 0o777);
     }
@@ -248,3 +253,4 @@ export const initFS = (wasmFs, messagePort) => {
     createStdErrorStream(wasmFs, messagePort, streamState),
   ];
 };
+*/

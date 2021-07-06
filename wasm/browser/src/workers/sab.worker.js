@@ -1,19 +1,22 @@
-import * as Comlink from "comlink";
-import { initFS, getWorkerFs, syncWorkerFs } from "@root/filesystem/worker-fs";
-import MessagePortState from "@utils/message-port-state";
-import libcsoundFactory from "@root/libcsound";
-import loadWasm from "@root/module";
-import { logSABWorker as log } from "@root/logger";
-import { handleCsoundStart } from "@root/workers/common.utils";
-import { assoc, pipe } from "ramda";
+import { expose } from "comlink/dist/esm/comlink.mjs";
+// import { initFS, getWorkerFs, syncWorkerFs } from "../filesystem/worker-fs";
+import MessagePortState from "../utils/message-port-state";
+import libcsoundFactory from "../libcsound.js";
+import loadWasm from "../module";
+import { logSABWorker as log } from "../logger";
+import { handleCsoundStart } from "../workers/common.utils";
 import {
   AUDIO_STATE,
   RING_BUFFER_SIZE,
   MIDI_BUFFER_SIZE,
   MIDI_BUFFER_PAYLOAD_SIZE,
   initialSharedState,
-} from "@root/constants.js";
+} from "../constants";
+import { assoc, pipe } from "rambda/dist/rambda.esm.js";
 
+/**
+ * @type {Map.<LibcsoundUncloned>}
+ */
 let combined;
 let pollPromise;
 let unlockPromise;
@@ -29,15 +32,9 @@ const sabCreateRealtimeAudioThread = ({
   callbacksRequest,
   releaseStop,
   wasm,
-  wasmFs,
+  wasi,
   workerMessagePort,
-  watcherStdOut,
-  watcherStdErr,
 }) => async ({ audioStateBuffer, audioStreamIn, audioStreamOut, midiBuffer, csound }) => {
-  if (!watcherStdOut && !watcherStdErr) {
-    [watcherStdOut, watcherStdErr] = initFS(wasmFs, workerMessagePort);
-  }
-
   const audioStatePointer = new Int32Array(audioStateBuffer);
 
   // In case of multiple performances, let's reset the sab state
@@ -128,10 +125,6 @@ const sabCreateRealtimeAudioThread = ({
       log(`triggering realtimePerformanceEnded event`)();
       workerMessagePort.broadcastPlayState("realtimePerformanceEnded");
       log(`End of realtimePerformance loop!`)();
-      watcherStdOut && watcherStdOut.close();
-      watcherStdOut = undefined;
-      watcherStdErr && watcherStdErr.close();
-      watcherStdErr = undefined;
       releaseStop();
       return true;
     } else {
@@ -160,8 +153,7 @@ const sabCreateRealtimeAudioThread = ({
     }
 
     if (Atomics.load(audioStatePointer, AUDIO_STATE.IS_PAUSED) === 1) {
-      // eslint-disable-next-line no-unused-expressions
-      Atomics.wait(audioStatePointer, AUDIO_STATE.IS_PAUSED, 0) === "ok";
+      Atomics.wait(audioStatePointer, AUDIO_STATE.IS_PAUSED, 0);
     }
 
     if (maybeStop()) {
@@ -311,25 +303,21 @@ const renderFunction = ({
   libraryCsound,
   callbacksRequest,
   releaseStop,
+  wasi,
   workerMessagePort,
-  wasmFs,
-  watcherStdOut,
-  watcherStdErr,
 }) => async ({ audioStateBuffer, csound }) => {
-  if (!watcherStdOut && !watcherStdErr) {
-    [watcherStdOut, watcherStdErr] = initFS(wasmFs, workerMessagePort);
-  }
-
   const audioStatePointer = new Int32Array(audioStateBuffer);
-  Atomics.store(audioStatePointer, AUDIO_STATE.IS_PERFORMING, 1);
+  Atomics.store(audioStatePointer, AUDIO_STATE.IS_RENDERING, 1);
+
   workerMessagePort.broadcastSabUnlocked();
+
   while (
     Atomics.load(audioStatePointer, AUDIO_STATE.STOP) !== 1 &&
     libraryCsound.csoundPerformKsmps(csound) === 0
   ) {
     if (Atomics.load(audioStatePointer, AUDIO_STATE.IS_PAUSED) === 1) {
       // eslint-disable-next-line no-unused-expressions
-      Atomics.wait(audioStatePointer, AUDIO_STATE.IS_PAUSED, 0) === "ok";
+      Atomics.wait(audioStatePointer, AUDIO_STATE.IS_PAUSED, 0);
     }
     if (Atomics.compareExchange(audioStatePointer, AUDIO_STATE.HAS_PENDING_CALLBACKS, 1, 0) === 1) {
       await new Promise((resolve) => {
@@ -338,56 +326,64 @@ const renderFunction = ({
       });
     }
   }
-  Atomics.store(audioStatePointer, AUDIO_STATE.IS_PERFORMING, 0);
+  Atomics.store(audioStatePointer, AUDIO_STATE.IS_RENDERING, 0);
   workerMessagePort.broadcastPlayState("renderEnded");
   releaseStop();
-  watcherStdOut && watcherStdOut.close();
-  watcherStdOut = undefined;
-  watcherStdErr && watcherStdErr.close();
-  watcherStdErr = undefined;
 };
 
-const initialize = async ({ wasmDataURI, withPlugins = [], messagePort, callbackPort }) => {
+const initialize = async ({
+  wasmDataURI,
+  wasmTransformerDataURI,
+  withPlugins = [],
+  messagePort,
+  callbackPort,
+}) => {
   log(`initializing SABWorker and WASM`)();
   const workerMessagePort = initMessagePort({ port: messagePort });
   const callbacksRequest = () => callbackPort.postMessage("poll");
-  const releaseStop = () => callbackPort.postMessage("releaseStop");
   initCallbackReplyPort({ port: callbackPort });
-  const [wasm, wasmFs] = await loadWasm({
+
+  const [wasm, wasi] = await loadWasm({
     wasmDataURI,
+    wasmTransformerDataURI,
     withPlugins,
     messagePort: workerMessagePort,
   });
 
-  const [watcherStdOut, watcherStdError] = initFS(wasmFs, workerMessagePort);
+  const releaseStop = () => {
+    console.log("releaseStop");
+    wasi.syncDbAfterEnd().then((db) => callbackPort.postMessage("releaseStop"));
+  };
+  // const [watcherStdOut, watcherStdError] = initFS(wasmFs, workerMessagePort);
+
   const libraryCsound = libcsoundFactory(wasm);
 
-  const startHandler = handleCsoundStart(
-    workerMessagePort,
-    libraryCsound,
-    sabCreateRealtimeAudioThread({
-      libraryCsound,
-      callbacksRequest,
-      releaseStop,
-      wasm,
-      wasmFs,
-      workerMessagePort,
-      watcherStdOut,
-      watcherStdErr: watcherStdError,
-    }),
-    renderFunction({
-      libraryCsound,
-      callbacksRequest,
-      releaseStop,
-      workerMessagePort,
-      watcherStdOut,
-      watcherStdErr: watcherStdError,
-    }),
-  );
+  const startHandler = (_, args) =>
+    wasi.syncDbBeforeStart().then(() => {
+      handleCsoundStart(
+        workerMessagePort,
+        libraryCsound,
+        wasi,
+        sabCreateRealtimeAudioThread({
+          libraryCsound,
+          callbacksRequest,
+          releaseStop,
+          wasm,
+          workerMessagePort,
+        }),
+        renderFunction({
+          libraryCsound,
+          callbacksRequest,
+          releaseStop,
+          workerMessagePort,
+          wasi,
+        }),
+      )(args);
+    });
 
   const allAPI = pipe(
-    assoc("getWorkerFs", getWorkerFs(wasmFs)),
-    assoc("syncWorkerFs", syncWorkerFs(wasm.exports.memory, wasmFs)),
+    // assoc("getWorkerFs", getWorkerFs(wasmFs)),
+    // assoc("syncWorkerFs", syncWorkerFs(wasm.exports.memory, wasmFs)),
     assoc("csoundStart", startHandler),
     assoc("wasm", wasm),
   )(libraryCsound);
@@ -399,4 +395,6 @@ const initialize = async ({ wasmDataURI, withPlugins = [], messagePort, callback
   return csoundInstance;
 };
 
-Comlink.expose({ initialize, callUncloned });
+export const sab_worker = { initialize, callUncloned };
+
+expose({ initialize: sab_worker.initialize, callUncloned: sab_worker.callUncloned });

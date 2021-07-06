@@ -1,4 +1,4 @@
-import { uint2String } from "@utils/text-encoders";
+const { uint2string } = goog.require("csound.utils.text_encoders");
 /*
    csound table module from <csound.h>
    https://csound.com/docs/api/group___t_a_b_l_e.html

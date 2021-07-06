@@ -1,11 +1,12 @@
-import { logCommonUtils as log } from "@root/logger";
+import { logCommonUtils as log } from "../logger.js";
 
 export const handleCsoundStart = (
   workerMessagePort,
   libraryCsound,
+  wasi,
   createRealtimeAudioThread,
-  renderFunction,
-) => (_, arguments_) => {
+  renderFunction
+) => (arguments_) => {
   const { csound } = arguments_;
 
   // If no orchestra was given, we assume realtime daemon mode
@@ -23,7 +24,7 @@ export const handleCsoundStart = (
   if (startError !== 0) {
     workerMessagePort.post(
       `error: csoundStart failed while trying to render ${outputName},` +
-        " look out for errors in options and syntax",
+        " look out for errors in options and syntax"
     );
   }
 

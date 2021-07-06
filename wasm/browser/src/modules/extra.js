@@ -1,4 +1,4 @@
-import { freeStringPtr, string2ptr } from "@utils/string-pointers";
+import { freeStringPtr, string2ptr } from "../utils/string-pointers";
 
 /* eslint-disable unicorn/prevent-abbreviations */
 
@@ -6,7 +6,6 @@ import { freeStringPtr, string2ptr } from "@utils/string-pointers";
  * Append 'value' to environment variable 'name'
  * added for internal usage of csound-wasm, feel
  * free to use as well ;)
- * @private
  */
 export const csoundAppendEnv = (wasm) => (csound, variable, value) => {
   const varStringPtr = string2ptr(wasm, variable);

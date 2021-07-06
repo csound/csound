@@ -9,6 +9,7 @@ export const initialSharedState = [
   0, // 1 = csound worker is locked
   4096, // n = framesRequested (4096 is only initial and will thereafter be max'd to 2048)
   0, // 1 = Csound is currently performing
+  0, // 1 = Csound is currently rendering
   0, // 1 = Csound is currently paused
   0, // 1 = STOP
   -1, // n = sample rate
@@ -32,22 +33,23 @@ export const AUDIO_STATE = {
   CSOUND_LOCK: 0,
   FRAMES_REQUESTED: 1,
   IS_PERFORMING: 2,
-  IS_PAUSED: 3,
-  STOP: 4,
-  SAMPLE_RATE: 5,
-  KSMPS: 6,
-  NCHNLS: 7,
-  NCHNLS_I: 8,
-  IS_REQUESTING_MIC: 9,
-  BUFFER_LEN: 10,
-  OUTPUT_READ_INDEX: 11,
-  OUTPUT_WRITE_INDEX: 12,
-  AVAIL_IN_BUFS: 13,
-  AVAIL_OUT_BUFS: 14,
-  IS_REQUESTING_RTMIDI: 15,
-  RTMIDI_INDEX: 16,
-  AVAIL_RTMIDI_EVENTS: 17,
-  HAS_PENDING_CALLBACKS: 18,
+  IS_RENDERING: 3,
+  IS_PAUSED: 4,
+  STOP: 5,
+  SAMPLE_RATE: 6,
+  KSMPS: 7,
+  NCHNLS: 8,
+  NCHNLS_I: 9,
+  IS_REQUESTING_MIC: 10,
+  BUFFER_LEN: 11,
+  OUTPUT_READ_INDEX: 12,
+  OUTPUT_WRITE_INDEX: 13,
+  AVAIL_IN_BUFS: 14,
+  AVAIL_OUT_BUFS: 15,
+  IS_REQUESTING_RTMIDI: 16,
+  RTMIDI_INDEX: 17,
+  AVAIL_RTMIDI_EVENTS: 18,
+  HAS_PENDING_CALLBACKS: 19,
 };
 
 export const DATA_TYPE = {

@@ -1,0 +1,93 @@
+diff a/wasm/browser/src/filesystem/worker-fs.js b/wasm/browser/src/filesystem/worker-fs.js	(rejected hunks)
+@@ -80,55 +80,52 @@ export const createStdOutStream = (wasmFs, workerMessagePort, streamState) => {
+   return watcher;
+ };
+ 
+-export const csoundWasiJsMessageCallback = ({ memory, streamBuffer, messagePort }) => (
+-  csound,
+-  attribute,
+-  length_,
+-  offset,
+-) => {
+-  const buf = new Uint8Array(memory.buffer, offset, length_);
+-  const string = uint2String(buf);
+-  const endsWithNewline = /\n$/g.test(string);
+-  const startsWithNewline = /^\n/g.test(string);
+-  const chunks = string.split("\n").filter((item) => item.length > 0);
+-  const printableChunks = [];
+-
+-  if ((chunks.length === 0 && endsWithNewline) || startsWithNewline) {
+-    printableChunks.push(streamBuffer.join(""));
+-    clearArray(streamBuffer);
+-  }
+-  chunks.forEach((chunk, index) => {
+-    // if it's last chunk
+-    if (index + 1 === chunks.length) {
+-      if (endsWithNewline) {
+-        if (index === 0) {
+-          printableChunks.push(streamBuffer.join("") + chunk);
+-          clearArray(streamBuffer);
++export const csoundWasiJsMessageCallback = ({ memory, streamBuffer, messagePort }) => {
++  return function (csound, attribute, length_, offset) {
++    const buf = new Uint8Array(memory.buffer, offset, length_);
++    const string = uint2String(buf);
++    const endsWithNewline = /\n$/g.test(string);
++    const startsWithNewline = /^\n/g.test(string);
++    const chunks = string.split("\n").filter((item) => item.length > 0);
++    const printableChunks = [];
++
++    if ((chunks.length === 0 && endsWithNewline) || startsWithNewline) {
++      printableChunks.push(streamBuffer.join(""));
++      clearArray(streamBuffer);
++    }
++    chunks.forEach((chunk, index) => {
++      // if it's last chunk
++      if (index + 1 === chunks.length) {
++        if (endsWithNewline) {
++          if (index === 0) {
++            printableChunks.push(streamBuffer.join("") + chunk);
++            clearArray(streamBuffer);
++          } else {
++            printableChunks.push(chunk);
++          }
+         } else {
+-          printableChunks.push(chunk);
++          streamBuffer.push(chunk);
+         }
++      } else if (index === 0) {
++        printableChunks.push(streamBuffer.join("") + chunk);
++        clearArray(streamBuffer);
+       } else {
+-        streamBuffer.push(chunk);
++        printableChunks.push(chunk);
+       }
+-    } else if (index === 0) {
+-      printableChunks.push(streamBuffer.join("") + chunk);
+-      clearArray(streamBuffer);
+-    } else {
+-      printableChunks.push(chunk);
+-    }
+-  });
++    });
+ 
+-  printableChunks.forEach((chunk) => {
+-    if (messagePort.ready) {
+-      messagePort.post(chunk.replace(/(\r\n|\n|\r)/gm, ""));
+-    }
+-  });
++    printableChunks.forEach((chunk) => {
++      if (messagePort.ready) {
++        messagePort.post(chunk.replace(/(\r\n|\n|\r)/gm, ""));
++      }
++    });
++  };
+ };
+ 
+ export function writeToFs(wasmFs) {
+   return (_, arrayBuffer, filePath) => {
+     const realPath = path.join("/sandbox", filePath);
+-    const buf = Buffer.from(new Uint8Array(arrayBuffer));
++    const buf = new Uint8Array(arrayBuffer);
+     wasmFs.fs.writeFileSync(realPath, buf);
+   };
+ }

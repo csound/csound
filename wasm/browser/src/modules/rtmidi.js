@@ -1,10 +1,10 @@
-import { range } from "ramda";
-import { CS_MIDIDEVICE } from "@root/structures";
-import { structBufferToObject } from "@utils/structure-buffer-to-object";
-import { freeStringPtr } from "@utils/string-pointers";
-import { uint2String } from "@utils/text-encoders";
-import { sizeofStruct } from "@utils/native-sizes";
-import { trimNull } from "@utils/trim-null";
+import { CS_MIDIDEVICE } from "../structures";
+import { structBufferToObject } from "../utils/structure-buffer-to-object";
+import { freeStringPtr } from "../utils/string-pointers";
+import { sizeofStruct } from "../utils/native-sizes";
+import { trimNull } from "../utils/trim-null";
+import { range } from "rambda/dist/rambda.esm.js";
+const { uint2string } = goog.require("csound.utils.text_encoders");
 
 export const csoundSetMidiCallbacks = (wasm) => (csound) => {
   wasm.exports.csoundSetMidiCallbacks(csound);
@@ -77,9 +77,9 @@ export const _isRequestingRtMidiInput = (wasm) => (csound) => {
  * @function
  * @name midiMessage
  * @memberof CsoundObj
- * @param {number} midi status value
- * @param {number} midi data1
- * @param {number} midi data2
+ * @param {number} midiStatus
+ * @param {number} midiData1
+ * @param {number} midiData2
  * @return {Promise.<void>}
  */
 export const csoundPushMidiMessage = (wasm) => (csound, status, data1, data2) => {

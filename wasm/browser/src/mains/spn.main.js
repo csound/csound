@@ -21,27 +21,22 @@
     02110-1301 USA
 */
 
-import libcsoundFactory from "@root/libcsound";
-import loadWasm from "@root/module";
-import MessagePortState from "@utils/message-port-state";
-import { isEmpty } from "ramda";
-import {
-  csoundApiRename,
-  fetchPlugins,
-  makeSingleThreadCallback,
-  stopableStates,
-} from "@root/utils";
+import libcsoundFactory from "../libcsound";
+import loadWasm from "../module";
+import MessagePortState from "../utils/message-port-state";
+import { isEmpty } from "rambda/dist/rambda.esm.js";
+import { csoundApiRename, fetchPlugins, makeSingleThreadCallback, stopableStates } from "../utils";
 import { messageEventHandler } from "./messages.main";
-import { PublicEventAPI } from "@root/events";
-import { EventPromises } from "@utils/event-promises";
-import { requestMidi } from "@utils/request-midi";
-import { initFS, getWorkerFs, rmrfFs, syncWorkerFs } from "@root/filesystem/worker-fs";
-import {
-  clearFsLastmods,
-  persistentFilesystem,
-  getModifiedPersistentStorage,
-  syncPersistentStorage,
-} from "@root/filesystem/persistent-fs";
+import { PublicEventAPI } from "../events";
+import { EventPromises } from "../utils/event-promises";
+import { requestMidi } from "../utils/request-midi";
+// import { initFS, getWorkerFs, rmrfFs, syncWorkerFs } from "../filesystem/worker-fs";
+// import {
+//   clearFsLastmods,
+//   persistentFilesystem,
+//   getModifiedPersistentStorage,
+//   syncPersistentStorage,
+// } from "../filesystem/persistent-fs";
 
 class ScriptProcessorNodeSingleThread {
   constructor({ audioContext, inputChannelCount = 1, outputChannelCount = 2 }) {
@@ -110,10 +105,6 @@ class ScriptProcessorNodeSingleThread {
       }
 
       case "realtimePerformanceEnded": {
-        syncPersistentStorage(getWorkerFs(this.wasmFs)());
-        clearFsLastmods();
-        // nuke the "worker" fs to keep same behavior for all
-        this.wasmFs && rmrfFs(this.wasmFs)({}, "/");
         this.publicEvents.triggerRealtimePerformanceEnded(this);
         break;
       }
@@ -130,10 +121,8 @@ class ScriptProcessorNodeSingleThread {
         break;
       }
       case "renderEnded": {
-        syncPersistentStorage(getWorkerFs(this.wasmFs)());
-        clearFsLastmods();
         this.publicEvents.triggerRenderEnded(this);
-        this.wasmFs && rmrfFs(this.wasmFs)({}, "/");
+
         break;
       }
 
@@ -204,23 +193,20 @@ class ScriptProcessorNodeSingleThread {
       this.csoundOutputBuffer = new Float64Array(
         this.wasm.exports.memory.buffer,
         outputPointer,
-        ksmps * this.nchnls,
+        ksmps * this.nchnls
       );
 
       const inputPointer = this.csoundApi.csoundGetSpin(this.csoundInstance);
       this.csoundInputBuffer = new Float64Array(
         this.wasm.exports.memory.buffer,
         inputPointer,
-        ksmps * this.nchnls_i,
+        ksmps * this.nchnls_i
       );
       this.zerodBFS = this.csoundApi.csoundGet0dBFS(this.csoundInstance);
 
       this.publicEvents.triggerOnAudioNodeCreated(this.spn);
       this.eventPromises.createStartPromise();
 
-      if (!this.watcherStdOut && !this.watcherStdErr) {
-        [this.watcherStdOut, this.watcherStdErr] = initFS(this.wasmFs, this.messagePort);
-      }
       const startResult = this.csoundApi.csoundStart(this.csoundInstance);
       if (this.csoundApi._isRequestingRtMidiInput(this.csoundInstance)) {
         requestMidi({
@@ -240,14 +226,15 @@ class ScriptProcessorNodeSingleThread {
     }
 
     if (!this.wasm) {
-      [this.wasm, this.wasmFs] = await loadWasm({
+      const [wasm, wasmFs] = await loadWasm({
         wasmDataURI,
         withPlugins,
         messagePort: this.messagePort,
       });
-      [this.watcherStdOut, this.watcherStdErr] = initFS(this.wasmFs, this.messagePort);
+      this.wasm = wasm;
+      this.wasmFs = wasmFs;
     }
-    clearFsLastmods();
+
     // libcsound
     const csoundApi = libcsoundFactory(this.wasm);
     this.csoundApi = csoundApi;
@@ -268,8 +255,8 @@ class ScriptProcessorNodeSingleThread {
           (stopableStates.has(this.currentPlayState) || !this.currentPlayState) &&
           typeof this.wasmFs !== "undefined"
         ) {
-          const modifiedPersistentStorage = getModifiedPersistentStorage();
-          syncWorkerFs(this.wasm.exports.memory, this.wasmFs)(undefined, modifiedPersistentStorage);
+          // const modifiedPersistentStorage = getModifiedPersistentStorage();
+          // syncWorkerFs(this.wasm.exports.memory, this.wasmFs)(undefined, modifiedPersistentStorage);
         }
 
         return makeSingleThreadCallback(csoundInstance, csoundApi[apiName]).apply({}, arguments_);
@@ -285,7 +272,7 @@ class ScriptProcessorNodeSingleThread {
     this.exportApi.terminateInstance = this.terminateInstance.bind(this);
     this.exportApi.getAudioContext = async () => this.audioContext;
     this.exportApi.name = "Csound: ScriptProcessor Node, Single-threaded";
-    this.exportApi.fs = persistentFilesystem;
+    // this.exportApi.fs = persistentFilesystem;
 
     this.exportApi = this.publicEvents.decorateAPI(this.exportApi);
 
@@ -321,9 +308,6 @@ class ScriptProcessorNodeSingleThread {
 
     // FIXME:
     // libraryCsound.csoundSetMidiCallbacks(cs);
-    if (!this.watcherStdOut && !this.watcherStdErr) {
-      [this.watcherStdOut, this.watcherStdErr] = initFS(this.wasmFs, this.messagePort);
-    }
 
     libraryCsound.csoundSetOption(cs, "-odac");
     libraryCsound.csoundSetOption(cs, "-iadc");
@@ -389,7 +373,7 @@ class ScriptProcessorNodeSingleThread {
         csOut = this.csoundOutputBuffer = new Float64Array(
           this.wasm.exports.memory.buffer,
           this.csoundApi.csoundGetSpout(this.csoundInstance),
-          ksmps * nchnls,
+          ksmps * nchnls
         );
       }
 
@@ -397,7 +381,7 @@ class ScriptProcessorNodeSingleThread {
         csIn = this.csoundInputBuffer = new Float64Array(
           this.wasm.exports.memory.buffer,
           this.csoundApi.csoundGetSpin(this.csoundInstance),
-          ksmps * nchnlsIn,
+          ksmps * nchnlsIn
         );
       }
 

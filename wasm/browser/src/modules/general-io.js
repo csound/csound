@@ -3,8 +3,8 @@
    https://csound.com/docs/api/modules.html
 */
 
-import { uint2String } from "@utils/text-encoders";
-import { trimNull } from "@utils/trim-null";
+import { trimNull } from "../utils/trim-null";
+const { uint2string } = goog.require("csound.utils.text_encoders");
 
 /**
  * Returns the audio output name (-o)
