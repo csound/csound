@@ -288,11 +288,9 @@ your $HOME directories, you can run cmake again to re-build
 Csound. Check the printed output to see if the added dependency has
 switched on the build of the desired component.
 
-NB: Since the EOL for Python 2, the Python opcodes build has been
-disabled by default. If you have the Python 2 headers and libraries
-and wishes to build these, use the CMake option
-`-DBUILD_PYTHON_OPCODES=1`. Python 3 opcodes are now available
-separately from the csound/plugins repository.
+NB: Since the EOL for Python 2, the Python opcodes have been removed
+from the main library repository. A new set of opcodes for Python 3 is
+found in the plugin opcodes repository.
 
 #### OSC opcodes
 
@@ -303,43 +301,6 @@ liblo - http://liblo.sourceforge.net/ NB: the build for version 0.28 seems to be
 Fluidsynth - http://sourceforge.net/apps/trac/fluidsynth/ NB: cmake might need to be coerced into finding the fluidsynth headers once it is built. For that, you can use the following cmake command (see step 5):
 
 `cmake -DCMAKE_INSTALL_PREFIX=$HOME -DFLUIDSYNTH_H=$HOME/include ..`
-
-#### Widget opcodes
-
-FLTK - http://www.fltk.org/index.php NB: make sure you configure the FLTK build with --enable-shared, otherwise there could be problems linking to libfltk on 64bit linux.
-
-#### Faust opcodes
-
-libfaust - use faust2 branch of Faust git sources:
-
-```
-$ git clone git://git.code.sf.net/p/faudiostream/code faust
-$ cd faust
-$ git checkout faust2
-```
-
-NB: libfaust also requires LLVM 3.0, 3.1, 3.2, 3.3 or 3.4 - http://llvm.org/ LLVM can be built with CMake (as in step 5 above). To build faust, use the following make command (replacing LLVM_32 for LLVM_3* depending on the version you are using, if it is not 3.2)
-
-`$ make LLVM_VERSION=LLVM_32 LLVM_CONFIG=llvm-config LLVM_CLANG=g++ CXX=g++ ARCHFLAGS=-fPIC`
-
-To install it, you should run
-
-`$ make PREFIX=$HOME`
-
-To switch the faust opcodes build on and coerce cmake into finding the faust library use:
-
-`cmake -DCMAKE_INSTALL_PREFIX=$HOME -DBUILD_FAUST_OPCODES=1 -DFAUST_LIBRARY=$HOME/lib/faust/libfaust.a ..`
-
-NB: Ubuntu users should be aware that LLVM 3.4 and 3.5 packages seem broken. It is probably recommended to build LLVM by oneself. Otherwise, LLVM 3.3 package is enough for building csound 6.05 with Faust opcodes assuming that
-
-- LLVMConfig.cmake is correctly spelled in /usr/share/llvm-3.3/cmake (otherwise create a symbolic link with that name : ln -s /usr/share/llvm-3.3/cmake/LLVM-Config.cmake /usr/share/llvm-3.3/cmake/LLVMConfig.cmake) 
-- llvm-config is correctly spelled in /usr/bin
-- faust2 is built with LLVM 3.3
-- cmake version > 2.8.7 (version 3.3.0 builds easily for instance)
-
-Then some additional environment variables may have to be set during the configuration step:
-
-`cmake -DLLVM_DIR=/usr/share/llvm-3.3/cmake -DCMAKE_MODULE_LINKER_FLAGS="-L/usr/lib/llvm-3.3/lib" -DBUILD_FAUST_OPCODES=1 -DFAUST_LIBRARY=pathTo/libfaust.a ../csound-develop/ `
 
 #### Portaudio module
 
@@ -355,7 +316,7 @@ Jack connection kit - http://jackaudio.org/
 
 #### Python bindings
 
-swig - http://www.swig.org/ Python headers / library - http://www.python.org
+Python headers / library - http://www.python.org
 
 #### Java bindings
 
@@ -496,8 +457,7 @@ In the source directory what gets compiled is controlled by the file
 CMakeLists.txt. By default lots of stuff will get built, as long as you have the
 required dependencies installed.
 
-The following commands will add most required packages (but note that lua
-interfaces and faust opcodes may still not work):
+The following commands will add most required packages:
 
 `su - `
 
@@ -536,10 +496,6 @@ interfaces and faust opcodes may still not work):
 `yum install wiiuse wiiuse-devel `
 
 `yum install bluez-libs-devel `
-
-yum install llvm-devel
-
-`yum install faust faust-tools`
 
 `exit `
 
