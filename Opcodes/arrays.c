@@ -2529,6 +2529,7 @@ static int32_t tabsuma(CSOUND *csound, TABQUERY1 *p)
     
     if (UNLIKELY(offset)) memset(ans, '\0', offset*sizeof(MYFLT));
     if (UNLIKELY(early)) {
+        nsmps -= early;
         memset(&ans[nsmps], '\0', early*sizeof(MYFLT));
     }
 
