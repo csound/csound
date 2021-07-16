@@ -91,7 +91,8 @@ int32_t seedrand(CSOUND *csound, PRAND *p)
     csound->holdrand = (int32_t)(seedVal & (uint32_t) 0x7FFFFFFF);
     while (seedVal >= (uint32_t)0x7FFFFFFE)
       seedVal -= (uint32_t)0x7FFFFFFE;
-    csound->randSeed1 = ((int32_t)seedVal + 1);
+    if (seedVal==0) csound->randSeed1 = ((int32_t)1);
+    csound->randSeed1 = ((int32_t)seedVal);
 
     return OK;
 }

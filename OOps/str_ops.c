@@ -316,7 +316,7 @@ int32_t strcat_opcode(CSOUND *csound, STRCAT_OP *p)
          p->r->size = size + 1;
     }
 
-    strNcpy((char*) p->r->data,  str1, p->r->size-1);
+    strNcpy((char*) p->r->data,  str1, p->r->size);
     strcat((char*) p->r->data, str2);
 
     csound->Free(csound, str2);                 /* not needed anymore */
