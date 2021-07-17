@@ -3351,6 +3351,7 @@ static void reset(CSOUND *csound)
     csound->enableHostImplementedMIDIIO = saved_env->enableHostImplementedMIDIIO;
     memcpy(&(csound->exitjmp), &(saved_env->exitjmp), sizeof(jmp_buf));
     csound->memalloc_db = saved_env->memalloc_db;
+    csound->message_buffer = saved_env->message_buffer; /*VL 19.06.21 keep msg buffer */
     //csound->self = self;
     free(saved_env);
 

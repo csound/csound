@@ -1,14 +1,14 @@
 
 # CSOUND VERSION 6.16 RELEASE NOTES - DRAFT - DRAFT - DRAFT - DRAFT 
 
-This delayed release was mainly a bug fixing release but there
+This delayed release is mainly a bug fixing release, but there
 are significant new opcodes, including support for simpler use of MIDI
 controls and a new opcode to connect to an Arduino.  Also there is an
 optional limiter in the sound output chain.
 
-Also there are a number of new filters including including the final
+There are a number of new filters, including including the final
 opcode written by the 'father of computer music' Max Mathews (with
-Julius Smith)! ported by Joel Ross.
+Julius Smith!), ported by Joel Ross.
 
 -- The Developers
 
@@ -40,7 +40,7 @@ Julius Smith)! ported by Joel Ross.
 - scale2 is similar to scale but has different argument order and has
   an optional port filter.
 
-- aduinoReadF extends the arduino family to transfer floating point
+- arduinoReadF extends the arduino family to transfer floating point
   values.
 
 - triglinseg and trigexpseg are triggered versions of linseg and
@@ -72,7 +72,7 @@ with stereo width control.
 
 - mvmfilter is a filter with pronounced resonance and controllable decay time.
 
-###New gen
+### New gen
 
 - gen44 allows the writing of stiffness matrices for scanu/scanu2 in a
   textual format.
@@ -143,7 +143,7 @@ on different platforms (documented in the manual).
 
 ### General Usage
 
-- Csound no longer supports Python2 opcodes following end of life for Python 2.
+- Csound no longer supports Python2 opcodes, following end of life for Python 2.
 
 ## Bugs Fixed
 
@@ -214,9 +214,9 @@ suggestion.
 
 - faust opcodes removed, now in plugin repo.
 
-- Python opcodes are now in plugin repo.
+- Python opcodes removed, now in plugin repo.
 
-- Ableton Link opcodes moved to plugins repo.
+- Ableton Link opcodes removed, now on plugins repo.
 
 ### Translations
 

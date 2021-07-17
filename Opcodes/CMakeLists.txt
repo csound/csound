@@ -52,6 +52,7 @@ make_plugin(liveconv liveconv.c)
 ##make_plugin(zak zak.c)
 make_plugin(gtf gammatone.c)
 make_plugin(lfsr lfsr.cpp)
+make_plugin(bformdec2 bformdec2.cpp)
 
 make_plugin(fareygen fareygen.c)
 make_plugin(quadbezier quadbezier.c)

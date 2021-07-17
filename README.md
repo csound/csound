@@ -1,5 +1,5 @@
 # CSOUND
-Version 6.14.0
+Version 6.16.0
 
 [![Build Status](https://travis-ci.org/csound/csound.svg?branch=develop)](https://travis-ci.org/csound/csound)
 [![Build status](https://ci.appveyor.com/api/projects/status/1qamc986774rsbjq/branch/develop?svg=true)](https://ci.appveyor.com/project/csound/csound/branch/develop)
@@ -61,6 +61,7 @@ from around the world. They include (but are not limited to):
 * Eli Breder
 * Fabio P. Bertolotti
 * Felipe Sataler
+* François Pinot
 * Gabriel Maldonado
 * Greg Sullivan
 * Hans Mikelson

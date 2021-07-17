@@ -202,6 +202,7 @@
 ./Opcodes/babo.h
 ./Opcodes/bbcut.c
 ./Opcodes/bbcut.h
+./Opcodes/bformdec2.cpp
 ./Opcodes/bilbar.c
 ./Opcodes/biquad.c
 ./Opcodes/biquad.h
