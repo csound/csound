@@ -21,9 +21,9 @@ jobs:
       - name: Configure build
         run: mkdir build && cd build && cmake ..
       - name: Build Csound 
-        run: make 
+        run: cd build && make 
       - name: Run tests
-        run: make test csdtests
+        run: cd build && make test csdtests
         
   emscripten_build:
     runs-on: ubuntu-latest
