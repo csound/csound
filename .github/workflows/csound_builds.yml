@@ -26,10 +26,10 @@ jobs:
         run: cd build && make test csdtests
 
   macos_build:
-    runs-on: macos 
+    runs-on: macos-latest
     steps:
       - name: Checkout Source Code
-        uses: actions/checkout@v2
+        uses: actions/checkout@v1
         with: 
           fetch-depth: 1
       - name: Install Dependencies
