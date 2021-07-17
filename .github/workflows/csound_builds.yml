@@ -24,6 +24,22 @@ jobs:
         run: cd build && make 
       - name: Run tests
         run: cd build && make test csdtests
+
+  macos_build:
+    runs-on: macos 
+    steps:
+      - name: Checkout Source Code
+        uses: actions/checkout@v2
+        with: 
+          fetch-depth: 1
+      - name: Install Dependencies
+        run: brew install cmake swig eigen asio libsndfile portaudio19 portmidi libsamplerate liblo jack openjdk hdf5 gettext fluid-synth fltk stk wiiuse
+      - name: Configure build
+        run: mkdir build && cd build && cmake ..
+      - name: Build Csound 
+        run: cd build && make 
+      - name: Run tests
+        run: cd build && make test csdtests
         
   emscripten_build:
     runs-on: ubuntu-latest
