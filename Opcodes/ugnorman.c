@@ -126,9 +126,10 @@ static int32_t load_atsfile(CSOUND *csound, void *p, MEMFIL **mfp, char *fname,
     /* load memfile */
     if (UNLIKELY((*mfp = csound->ldmemfile2withCB(csound, fname,
                                                   CSFTYPE_ATS, NULL)) == NULL)) {
-      return  csound->InitError(csound,
+      (void)csound->InitError(csound,
                                 Str("%s: Ats file %s not read (does it exist?)"),
                                 opname, fname);
+      return NOTOK;
     }
     atsh = (ATSSTRUCT*) (*mfp)->beginp;
 
@@ -137,9 +138,10 @@ static int32_t load_atsfile(CSOUND *csound, void *p, MEMFIL **mfp, char *fname,
       return 0;
     /* check to see if it is byteswapped */
     if (UNLIKELY((int32_t) bswap(&(atsh->magic)) != 123)) {
-      return csound->InitError(csound, Str("%s: either %s is not an ATS file "
+      (void)csound->InitError(csound, Str("%s: either %s is not an ATS file "
                                            "or the byte endianness is wrong"),
                                opname, fname);
+      return NOTOK;
     }
     pp = (STDOPCOD_GLOBALS*) csound->stdOp_Env;
     if (pp->swapped_warning)
@@ -1557,6 +1559,7 @@ static int32_t atssinnoiset(CSOUND *csound, ATSSINNOI *p)
     if (UNLIKELY(p->swapped < 0)){
       return NOTOK;
     }
+
     atsh = (ATSSTRUCT*) p->atsmemfile->beginp;
     p->atshead = atsh;
 
@@ -1741,6 +1744,7 @@ static int32_t atssinnoiset_S(CSOUND *csound, ATSSINNOI *p)
     if (UNLIKELY(p->swapped < 0)){
       return NOTOK;
     }
+
     atsh = (ATSSTRUCT*) p->atsmemfile->beginp;
     p->atshead = atsh;
 
