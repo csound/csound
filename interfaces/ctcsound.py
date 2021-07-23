@@ -2702,8 +2702,7 @@ elif sys.platform.startswith('darwin'):
 else:
     sys.exit("Don't know your system! Exiting...")
 
-libcspt.
-NewCsoundPT.restype = ct.c_void_p
+libcspt.NewCsoundPT.restype = ct.c_void_p
 libcspt.NewCsoundPT.argtypes = [ct.c_void_p]
 libcspt.DeleteCsoundPT.argtypes = [ct.c_void_p]
 libcspt.CsoundPTisRunning.argtypes = [ct.c_void_p]
