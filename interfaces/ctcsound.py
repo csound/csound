@@ -2698,11 +2698,12 @@ elif sys.platform.startswith('win'):
     else:
         libcspt = ct.CDLL(ctypes.util.find_library("csnd6"))
 elif sys.platform.startswith('darwin'):
-    libcspt = ct.CDLL(ctypes.util.find_library('csnd6'))
+    libcspt = ct.CDLL(ctypes.util.find_library('csnd6.6.0'))
 else:
     sys.exit("Don't know your system! Exiting...")
 
-libcspt.NewCsoundPT.restype = ct.c_void_p
+libcspt.
+NewCsoundPT.restype = ct.c_void_p
 libcspt.NewCsoundPT.argtypes = [ct.c_void_p]
 libcspt.DeleteCsoundPT.argtypes = [ct.c_void_p]
 libcspt.CsoundPTisRunning.argtypes = [ct.c_void_p]
