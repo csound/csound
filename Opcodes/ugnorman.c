@@ -1059,6 +1059,7 @@ static void FetchADDNZbands(int32_t ptls, int32_t firstband, double *datastart,
     /* we should not try to interpolate */
     if (UNLIKELY(frame == maxFr)) {
       for (i = 0; i < ptls; i++) {
+        /* printf("Line %d: i = %d\n", __LINE__, i); */
         buf[i] = (swapped == 1 ? bswap(&frm_0[firstband + i])
                                     : frm_0[firstband + i]); /* output value */
       }
@@ -1755,7 +1756,8 @@ static int32_t atssinnoiset_S(CSOUND *csound, ATSSINNOI *p)
                                                         + sizeof(RANDIATS));
     /* allocate space if we need it */
     /* need room for a buffer and an array of oscillator phase increments */
-    if (p->auxch.auxp != NULL || memsize > (int32_t)p->auxch.size)
+     /* printf("line %d: msize = %d\n", __LINE__, memsize); */
+     if (p->auxch.auxp != NULL || memsize > (int32_t)p->auxch.size)
       csound->AuxAlloc(csound, (size_t) memsize, &p->auxch);
 
     /* set up the buffer, phase, etc. */
@@ -1763,7 +1765,8 @@ static int32_t atssinnoiset_S(CSOUND *csound, ATSSINNOI *p)
     p->randinoise = (RANDIATS *) (p->oscbuf + (int32_t) (*p->iptls));
     p->oscphase = (double *) (p->randinoise + (int32_t) (*p->iptls));
     p->nzbuf = (double *) (p->oscphase + (int32_t) (*p->iptls));
-
+    /* printf("Line %d: oscbuf, randnoise, oscphase, nzbuf = %p, %p,%p, %p\n", */
+    /*        __LINE__,p->oscbuf,p->randinoise, p->oscphase, p->nzbuf); */
     if (p->swapped == 1) {
       p->maxFr = (int32_t) bswap(&atsh->nfrms) - 1;
       p->timefrmInc = bswap(&atsh->nfrms) / bswap(&atsh->dur);
@@ -1939,7 +1942,7 @@ static int32_t atssinnoi(CSOUND *csound, ATSSINNOI *p)
 
     fetchSINNOIpartials(p, frIndx);
 
-    FetchADDNZbands(25/* *p->iptls*/, p->firstband, p->datastart, p->frmInc, p->maxFr,
+    FetchADDNZbands(/*25*/ *p->iptls, p->firstband, p->datastart, p->frmInc, p->maxFr,
                     p->swapped, p->nzbuf, frIndx);
 
 
