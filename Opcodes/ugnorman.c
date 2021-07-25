@@ -1757,7 +1757,7 @@ static int32_t atssinnoiset_S(CSOUND *csound, ATSSINNOI *p)
     /* allocate space if we need it */
     /* need room for a buffer and an array of oscillator phase increments */
      /* printf("line %d: msize = %d\n", __LINE__, memsize); */
-     if (p->auxch.auxp != NULL || memsize > (int32_t)p->auxch.size)
+    if (p->auxch.auxp != NULL || memsize > (int32_t)p->auxch.size)
       csound->AuxAlloc(csound, (size_t) memsize, &p->auxch);
 
     /* set up the buffer, phase, etc. */
