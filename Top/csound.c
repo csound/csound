@@ -2605,12 +2605,12 @@ PUBLIC void csoundSetMessageCallback(CSOUND *csound,
 PUBLIC void csoundMessageV(CSOUND *csound,
                            int attr, const char *format, va_list args)
 {
-  if(csound->csoundMessageCallback_) {
-    csound->csoundMessageCallback_(csound, attr, format, args);
-  } else {
-    vsnprintf(csound->message_string, MAX_MESSAGE_STR, format, args);
-    csound->csoundMessageStringCallback(csound, attr, csound->message_string);
-  }
+    if(csound->csoundMessageCallback_) {
+      csound->csoundMessageCallback_(csound, attr, format, args);
+    } else {
+      vsnprintf(csound->message_string, MAX_MESSAGE_STR, format, args);
+      csound->csoundMessageStringCallback(csound, attr, csound->message_string);
+    }
 }
 
 PUBLIC void csoundMessage(CSOUND *csound, const char *format, ...)
@@ -2618,10 +2618,10 @@ PUBLIC void csoundMessage(CSOUND *csound, const char *format, ...)
     va_list args;
     va_start(args, format);
     if(csound->csoundMessageCallback_)
-    csound->csoundMessageCallback_(csound, 0, format, args);
+      csound->csoundMessageCallback_(csound, 0, format, args);
     else {
-    vsnprintf(csound->message_string, MAX_MESSAGE_STR, format, args);
-    csound->csoundMessageStringCallback(csound, 0, csound->message_string);
+      vsnprintf(csound->message_string, MAX_MESSAGE_STR, format, args);
+      csound->csoundMessageStringCallback(csound, 0, csound->message_string);
     }
     va_end(args);
 }
@@ -2631,10 +2631,10 @@ PUBLIC void csoundMessageS(CSOUND *csound, int attr, const char *format, ...)
     va_list args;
     va_start(args, format);
     if(csound->csoundMessageCallback_)
-    csound->csoundMessageCallback_(csound, attr, format, args);
+      csound->csoundMessageCallback_(csound, attr, format, args);
     else {
-    vsnprintf(csound->message_string, MAX_MESSAGE_STR, format, args);
-    csound->csoundMessageStringCallback(csound, attr, csound->message_string);
+      vsnprintf(csound->message_string, MAX_MESSAGE_STR, format, args);
+      csound->csoundMessageStringCallback(csound, attr, csound->message_string);
     }
     va_end(args);
 }

@@ -2698,7 +2698,7 @@ elif sys.platform.startswith('win'):
     else:
         libcspt = ct.CDLL(ctypes.util.find_library("csnd6"))
 elif sys.platform.startswith('darwin'):
-    libcspt = ct.CDLL(ctypes.util.find_library('csnd6'))
+    libcspt = ct.CDLL(ctypes.util.find_library('csnd6.6.0'))
 else:
     sys.exit("Don't know your system! Exiting...")
 
