@@ -1,14 +1,27 @@
 cmake_minimum_required(VERSION 3.5)
+
 # silence RPATH cmake warning
 set(CMAKE_MACOSX_RPATH 1)
 set(CMAKE_EXPORT_COMPILE_COMMANDS 1)
+
+# For Windows/MSVC, use VCPKG to manage dependencies
+if (MSVC)
+    # Use vcpkg submodule toolchain by default
+    set(CMAKE_TOOLCHAIN_FILE ${CMAKE_CURRENT_SOURCE_DIR}/vcpkg/scripts/buildsystems/vcpkg.cmake
+    CACHE STRING "Vcpkg toolchain file")
+    message(STATUS "CMAKE_TOOLCHAIN_FILE: ${CMAKE_TOOLCHAIN_FILE}")
+
+    # Set the target triplet if none is passed in. Must be based on build env
+    set(VCPKG_TARGET_TRIPLET "x64-windows-csound")
+    set(VCPKG_OVERLAY_TRIPLETS ${CMAKE_CURRENT_SOURCE_DIR}/msvc)
+endif()
 
 project(Csound)
 
 ENABLE_TESTING()
 
 if (${CMAKE_CXX_COMPILER_ID} STREQUAL "Clang")
-set(CMAKE_COMPILER_IS_CLANG 1)
+  set(CMAKE_COMPILER_IS_CLANG 1)
 endif()
 
 message(STATUS "Csound directory: ${CMAKE_HOME_DIRECTORY}")
@@ -233,7 +246,7 @@ if(WIN32)
     set(CMAKE_SHARED_LIBRARY_PREFIX "")
     set(CMAKE_SHARED_MODULE_PREFIX "")
 
-    set(CSOUND_WINDOWS_LIBRARIES 
+    set(CSOUND_WINDOWS_LIBRARIES
         advapi32
         comctl32
         comdlg32
@@ -319,7 +332,7 @@ message(STATUS "Building for OSX")
   else()
     message(STATUS "OSX: Setting Deployment Target to ${CMAKE_OSX_DEPLOYMENT_TARGET}")
   endif()
-  
+
   set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -DHAVE_VECLIB")
   if(NOT VECLIB_PATH)
     set(VECLIB_PATH "/System/Library/Frameworks/")
@@ -327,7 +340,7 @@ message(STATUS "Building for OSX")
  endif()
 endif()
 
-# Set plugins install directory 
+# Set plugins install directory
 if(USE_DOUBLE)
     if(APPLE)
         set(CSOUNDLIB "CsoundLib64")
@@ -363,7 +376,7 @@ if(APPLE)
       set(DEFAULT_USER_PLUGINDIR
     "Library/csound/${APIVERSION}/plugins")
     endif()
-    
+
     add_definitions("-DCS_DEFAULT_USER_PLUGINDIR=\"${DEFAULT_USER_PLUGINDIR}\"")
 endif()
 
@@ -490,7 +503,7 @@ if(NOT MSVC AND REQUIRE_PTHREADS)
 endif()
 
 
-# Now, non required library searches 
+# Now, non required library searches
 option(USE_ATOMIC_BUILTIN "Use Atomic Builtins if supported" ON)
 if(USE_ATOMIC_BUILTIN)
   include(cmake/CheckAtomic.cmake)
@@ -768,7 +781,7 @@ set(libcsound_SRCS
     Opcodes/afilters.c
     Opcodes/wpfilters.c
     Opcodes/zak.c
-    Opcodes/lufs.c    
+    Opcodes/lufs.c
     Top/argdecode.c
     Top/csdebug.c
     Top/cscore_internal.c
@@ -1034,7 +1047,7 @@ endif()
 add_library(${CSOUNDLIB} SHARED ${libcsound_SRCS})
 set_target_properties(${CSOUNDLIB} PROPERTIES
     SOVERSION ${APIVERSION})
-    
+
 if(APPLE)
     set_target_properties(${CSOUNDLIB} PROPERTIES FRAMEWORK YES)
     set_target_properties(${CSOUNDLIB} PROPERTIES FRAMEWORK_VERSION "${APIVERSION}")
@@ -1073,7 +1086,7 @@ function(make_plugin libname srcs)
         ARCHIVE_OUTPUT_DIRECTORY ${BUILD_PLUGINS_DIR})
 
     install(TARGETS ${libname}
-        LIBRARY DESTINATION "${PLUGIN_INSTALL_DIR}" 
+        LIBRARY DESTINATION "${PLUGIN_INSTALL_DIR}"
         ARCHIVE DESTINATION "${PLUGIN_INSTALL_DIR}" )
 
 endfunction(make_plugin)
@@ -1365,4 +1378,4 @@ else()
  install(DIRECTORY ${CMAKE_SOURCE_DIR}/samples
           DESTINATION ${CMAKE_INSTALL_PREFIX}/share)
 endif()
- 
+
