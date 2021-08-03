@@ -4,17 +4,12 @@ cmake_minimum_required(VERSION 3.5)
 set(CMAKE_MACOSX_RPATH 1)
 set(CMAKE_EXPORT_COMPILE_COMMANDS 1)
 
-# For Windows/MSVC, use VCPKG to manage dependencies
-if (MSVC)
-    # Use vcpkg submodule toolchain by default
-    set(CMAKE_TOOLCHAIN_FILE ${CMAKE_CURRENT_SOURCE_DIR}/vcpkg/scripts/buildsystems/vcpkg.cmake
-    CACHE STRING "Vcpkg toolchain file")
-    message(STATUS "CMAKE_TOOLCHAIN_FILE: ${CMAKE_TOOLCHAIN_FILE}")
+# Use vcpkg submodule toolchain by default
+set(VCPKG_OVERLAY_TRIPLETS ${CMAKE_CURRENT_SOURCE_DIR}/msvc)
+set(CMAKE_TOOLCHAIN_FILE ${CMAKE_CURRENT_SOURCE_DIR}/vcpkg/scripts/buildsystems/vcpkg.cmake
+  CACHE STRING "Vcpkg toolchain file")
 
-    # Set the target triplet if none is passed in. Must be based on build env
-    set(VCPKG_TARGET_TRIPLET "x64-windows-csound")
-    set(VCPKG_OVERLAY_TRIPLETS ${CMAKE_CURRENT_SOURCE_DIR}/msvc)
-endif()
+message(STATUS "CMAKE_TOOLCHAIN_FILE: ${CMAKE_TOOLCHAIN_FILE}")
 
 project(Csound)
 
