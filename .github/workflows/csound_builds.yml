@@ -1,65 +1,80 @@
 name: csound_builds
 
-on: 
-  push:
-    branches:
-      - develop
-      - master
-    pull_request:
-      branches:
-        - develop
+on:
+    push:
+        branches:
+            - develop
+            - master
+        pull_request:
+            branches:
+                - develop
 jobs:
-  linux_build:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout Source Code
-        uses: actions/checkout@v1
-        with: 
-          fetch-depth: 1
-      - name: Install Dependencies
-        run: sudo apt-get update && sudo apt-get install cmake libsndfile1-dev libasound2-dev libjack-dev portaudio19-dev libportmidi-dev libpulse-dev swig liblua5.1-0-dev default-jdk libfltk1.1-dev libfluidsynth-dev liblo-dev fluid ladspa-sdk libpng-dev dssi-dev libstk0-dev libgmm++-dev bison flex libportsmf-dev libeigen3-dev libcunit1-dev 
-      - name: Configure build
-        run: mkdir build && cd build && cmake ..
-      - name: Build Csound 
-        run: cd build && make 
-      - name: Run tests
-        run: cd build && make test csdtests
+    linux_build:
+        runs-on: ubuntu-latest
+        steps:
+            - name: Checkout Source Code
+              uses: actions/checkout@v1
+              with:
+                  fetch-depth: 1
+            - name: Install Dependencies
+              run: sudo apt-get update && sudo apt-get install cmake libsndfile1-dev libasound2-dev libjack-dev portaudio19-dev libportmidi-dev libpulse-dev swig liblua5.1-0-dev default-jdk libfltk1.1-dev libfluidsynth-dev liblo-dev fluid ladspa-sdk libpng-dev dssi-dev libstk0-dev libgmm++-dev bison flex libportsmf-dev libeigen3-dev libcunit1-dev
+            - name: Configure build
+              run: mkdir build && cd build && cmake ..
+            - name: Build Csound
+              run: cd build && make
+            - name: Run tests
+              run: cd build && make test csdtests
 
-  macos_build:
-    runs-on: macos-latest
-    steps:
-      - name: Checkout Source Code
-        uses: actions/checkout@v1
-        with: 
-          fetch-depth: 1
-      - name: Install Dependencies
-        run: brew install cmake swig eigen asio libsndfile portaudio portmidi libsamplerate liblo jack openjdk hdf5 gettext fluid-synth fltk stk wiiuse
-      - name: Configure build
-        run: mkdir build && cd build && cmake ..
-      - name: Build Csound 
-        run: cd build && make 
-      - name: Run tests
-        run: cd build && make test csdtests
-        
-  emscripten_build:
-    runs-on: ubuntu-latest
-    steps:
-      - name: run the Docker image
-        run: docker run --name csound_test_run -i sjamble/csound_emscripten
-      - name: copying build out of container
-        run: docker cp csound_test_run:/csound/Emscripten/csound-web-6.17.0.zip .
-      - uses: actions/upload-artifact@v2
-        with:
-          name: csound-web-6.17.0.zip
-          path: .
-  android_build:
-    runs-on: ubuntu-latest
-    steps:
-      - name: run the Docker image
-        run: docker run --name csound_test_run -i sjamble/csound_android
-      - name: copying build out of container
-        run: docker cp csound_test_run:/csound/Android/csound-android-6.17.0.zip .
-      - uses: actions/upload-artifact@v2
-        with:
-          name: csound-android-6.17.0.zip 
-          path: .
+    macos_build:
+        runs-on: macos-latest
+        steps:
+            - name: Checkout Source Code
+              uses: actions/checkout@v1
+              with:
+                  fetch-depth: 1
+            - name: Install Dependencies
+              run: brew install cmake swig eigen asio libsndfile portaudio portmidi libsamplerate liblo jack openjdk hdf5 gettext fluid-synth fltk stk wiiuse
+            - name: Configure build
+              run: mkdir build && cd build && cmake ..
+            - name: Build Csound
+              run: cd build && make
+            - name: Run tests
+              run: cd build && make test csdtests
+
+    emscripten_build:
+        runs-on: ubuntu-latest
+        steps:
+            - name: run the Docker image
+              run: docker run --name csound_test_run -i sjamble/csound_emscripten
+            - name: copying build out of container
+              run: docker cp csound_test_run:/csound/Emscripten/csound-web-6.17.0.zip .
+            - uses: actions/upload-artifact@v2
+              with:
+                  name: csound-web-6.17.0.zip
+                  path: .
+
+    android_build:
+        runs-on: ubuntu-latest
+        steps:
+            - name: run the Docker image
+              run: docker run --name csound_test_run -i sjamble/csound_android
+            - name: copying build out of container
+              run: docker cp csound_test_run:/csound/Android/csound-android-6.17.0.zip .
+            - uses: actions/upload-artifact@v2
+              with:
+                  name: csound-android-6.17.0.zip
+                  path: .
+
+    windows_build:
+        runs-on: windows-latest
+        steps:
+            - name: Checkout Source Code
+              uses: actions/checkout@v1
+              with:
+                  fetch-depth: 1
+            - name: Configure build
+              run: cmake -B build -S . -DVCPKG_TARGET_TRIPLET=x64-windows-csound
+            - name: Build Csound
+              run: cmake --build build
+            - name: Run tests
+              run: cmake --build build --target csdtests
