@@ -72,7 +72,7 @@ jobs:
               uses: actions/checkout@v1
               with:
                   fetch-depth: 1
-            - name: System dependencies
+            - name: Install system dependencies
               run: |
                   choco install swig -y --version=4.0.1 --allow-downgrade
                   choco install winflexbison -y
