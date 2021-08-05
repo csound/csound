@@ -228,3 +228,4 @@ Doxyfile
 
 # vscode
 .vscode/
+.cache
