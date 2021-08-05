@@ -5,9 +5,10 @@ on:
     branches:
       - develop
       - master
-    pull_request:
-      branches:
-        - develop
+  pull_request:
+    branches:
+      - develop
+
 jobs:
   linux_build:
     runs-on: ubuntu-latest
