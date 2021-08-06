@@ -1,5 +1,8 @@
 name: csound_builds
 
+env:
+  VCPKG_BINARY_SOURCES: "clear;nuget,GitHub,readwrite"
+
 on:
   push:
     branches:
@@ -78,6 +81,16 @@ jobs:
         run: |
           choco install swig -y --version=4.0.1 --allow-downgrade
           choco install winflexbison -y
+      - name: "Setup NuGet Credentials"
+        shell: "bash"
+        run: >
+          `./vcpkg/vcpkg fetch nuget | tail -n 1`
+          sources add
+          -source "https://nuget.pkg.github.com/csound/index.json"
+          -storepasswordincleartext
+          -name "GitHub"
+          -username "csound"
+          -password "${{ secrets.GITHUB_TOKEN }}"
       - name: Configure build
         run: cmake -B build -S . -DVCPKG_TARGET_TRIPLET=x64-windows-csound
       - name: Build Csound
