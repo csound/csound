@@ -94,7 +94,7 @@ jobs:
           -username "csound"
           -password "${{ secrets.GITHUB_TOKEN }}"
       - name: Configure build
-        run: cmake -B build -S . -DVCPKG_TARGET_TRIPLET=x64-windows-csound -DUSE_VCPKG=1
+        run: cmake -B build -S . -DUSE_VCPKG=1
       - name: Build Csound
         run: cmake --build build
       - name: Run tests
