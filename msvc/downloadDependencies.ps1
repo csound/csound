@@ -87,7 +87,7 @@ if (-not (Test-Path $vcpkgDir/buildtrees/portaudio/src/asiosdk)) {
 
 vcpkg --triplet $targetTriplet install `
     eigen3 fltk zlib libflac libogg libvorbis libsndfile libsamplerate portmidi portaudio liblo hdf5 dirent libstk fluidsynth `
-    --overlay-triplets=.
+    --overlay-triplets=../platform/triplets
 
 echo "Downloading and installing non-VCPKG packages..."
 
