@@ -1836,14 +1836,15 @@ int csoundCompileTreeInternal(CSOUND *csound, TREE *root, int async) {
     return CSOUND_ERROR;
   }
 
-  /* now add the instruments with names, assigning them fake instr numbers */
-  named_instr_assign_numbers(csound, engineState);
+
   if (engineState != &csound->engineState) {
     OPDS *ids = csound->ids;
     /* any compilation other than the first one */
     /* merge ENGINE_STATE */
     /* lock to ensure thread-safety */
     if (!async) {
+      /* now add the instruments with names, assigning them fake instr numbers */
+      named_instr_assign_numbers(csound, engineState);
       if (!csound->oparms->realtime)
         csoundLockMutex(csound->API_lock);
       merge_state(csound, engineState, typeTable, ids);
@@ -1857,6 +1858,8 @@ int csoundCompileTreeInternal(CSOUND *csound, TREE *root, int async) {
         csoundSpinUnLock(&csound->alloc_spinlock);
     }
   } else {
+    /* now add the instruments with names, assigning them fake instr numbers */
+    named_instr_assign_numbers(csound, engineState);
     /* first compilation */
     insert_opcodes(csound, csound->opcodeInfo, engineState);
     ip = engineState->instxtanchor.nxtinstxt;
