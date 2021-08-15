@@ -2,6 +2,8 @@ name: csound_builds
 
 env:
   VCPKG_BINARY_SOURCES: "clear;nuget,GitHub,readwrite"
+  CSOUND_VERSION: 6.17.0
+  CSOUND_MANUAL_VERSION: 6.16.0
 
 on:
   push:
@@ -70,6 +72,7 @@ jobs:
           path: .
 
   windows_build:
+    name: Windows build
     runs-on: windows-latest
     steps:
       - name: Checkout Source Code
@@ -83,8 +86,8 @@ jobs:
           choco install winflexbison -y
       - name: Bootstrap VCPKG
         run: .\vcpkg\bootstrap-vcpkg.bat
-      - name: "Setup NuGet Credentials"
-        shell: "bash"
+      - name: Setup NuGet Credentials
+        shell: bash
         run: >
           `./vcpkg/vcpkg fetch nuget | tail -n 1`
           sources add
@@ -99,6 +102,18 @@ jobs:
         run: cmake --build build
       - name: Run tests
         run: cmake --build build --target csdtests
+      - name: Acquire Csound manual
+        shell: bash
+        run: |
+          cd C:/
+          wget https://github.com/csound/manual/releases/download/6.16.0/Csound6.16.0_manual_html.zip -O manual.zip
+          7z x manual.zip
+      - name: Build installer
+        run: |
+          iscc /dVcpkgInstallDir=%VCPKGDir%\\installed\\x64-windows-csound /omsvc installer\\windows\\csound6_x64_appveyor.iss
+          7z a csound-windows_x86_64-${{env.CSOUND_VERSION}}-${{env.GITHUB_RUN_ID}}.zip %GITHUB_WORKSPACE%\msvc\csound-vs\Release\*.exe %GITHUB_WORKSPACE%\msvc\csound-vs\Release\csound64.lib %GITHUB_WORKSPACE%\include\ %GITHUB_WORKSPACE%\msvc\csound-vs\Release\*.dll %GITHUB_WORKSPACE%\msvc\csound-vs\Release\*.pyd %GITHUB_WORKSPACE%\msvc\csound-vs\*.jar %GITHUB_WORKSPACE%\msvc\csound-vs\*.py 
+          7z l csound-windows_x86_64-${{env.CSOUND_VERSION}}-${{env.GITHUB_RUN_ID}}.zip
+
 # jobs:
 #   build:
 #     strategy:
