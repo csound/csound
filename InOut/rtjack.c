@@ -562,8 +562,15 @@ static void openJackStreams(RtJackGlobals *p)
           dev_final = dev;
           sp = strchr(dev_final, '\0');
           if (!isalpha(dev_final[0])) dev_final++;
+          char **portNames = (char**) jack_get_ports(p->client,
+                                                     p->outDevName,
+                                                     JACK_DEFAULT_AUDIO_TYPE,
+                                                     JackPortIsInput);
           for (i = 0; i < p->nChannels; i++) {
-            snprintf(sp, 128-(dev-sp), "%d", i + 1);
+            // snprintf(sp, 128-(dev-sp), "%d", i + 1);
+            dev_final = portNames[i];
+            if(dev_final == NULL)
+                break;
             csound->Message(csound, Str("connecting channel %d to %s\n"),
                             i, dev_final);
             if (UNLIKELY(jack_connect(p->client, jack_port_name(p->outPorts[i]),
@@ -574,6 +581,7 @@ static void openJackStreams(RtJackGlobals *p)
             }
           }
           *sp = (char) 0;
+          jack_free(portNames);
         } else
           csound->Message(csound, "%s", Str("output ports not connected\n"));
       }
