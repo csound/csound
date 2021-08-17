@@ -26,7 +26,7 @@
 #include <jack/midiport.h>
 #include <ctype.h>
 #include <sys/time.h>
-#include "natsort.h"
+#include "alphanumcmp.h"
 
 /* no #ifdef, should always have these on systems where JACK is available */
 #include <unistd.h>
@@ -374,7 +374,7 @@ static void rtJack_RegisterPorts(RtJackGlobals *p)
 }
 
 
-static DonnaSortOptions sort_options_natural = DONNA_SORT_NATURAL_ORDER;
+// static DonnaSortOptions sort_options_natural = DONNA_SORT_NATURAL_ORDER;
 
 
 static int strcmp_natural (const void *s1, const void *s2)
@@ -382,7 +382,8 @@ static int strcmp_natural (const void *s1, const void *s2)
     /* by default we invert results (reverse==-1), because we actually print
      * then in reversed order */
     // return reverse * strcmp_ext (* (char **) s1, * (char **) s2, sort_options);
-    return strcmp_ext (* (char **) s1, * (char **) s2, sort_options_natural);
+    return alphanum_cmp(* (char **) s1, * (char **) s2);
+    // return strcmp_ext (* (char **) s1, * (char **) s2, sort_options_natural);
 }
 
 /* connect to JACK server, set up ports and ring buffers, */
