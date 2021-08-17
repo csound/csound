@@ -141,6 +141,7 @@ Source: "..\..\msvc\csound-vs\Release\csdebugger.exe"; DestDir: "{#APP_BIN}"; Fl
 Source: "..\..\msvc\csound-vs\Release\csnd6.dll"; DestDir: "{#APP_BIN}"; Flags: ignoreversion; Components: core;
 Source: "..\..\msvc\csound-vs\Release\csound.exe"; DestDir: "{#APP_BIN}"; Flags: ignoreversion; Components: core;
 Source: "..\..\msvc\csound-vs\Release\csnd6.lib"; DestDir: "{#APP_LIB}"; Flags: ignoreversion; Components: core;
+Source: "..\..\msvc\csound-vs\Release\libcsnd6.lib"; DestDir: "{#APP_LIB}"; Flags: ignoreversion; Components: core;
 Source: "..\..\msvc\csound-vs\Release\csound64.dll"; DestDir: "{#APP_BIN}"; Flags: ignoreversion; Components: core;
 Source: "..\..\msvc\csound-vs\Release\csound64.lib"; DestDir: "{#APP_LIB}"; Flags: ignoreversion; Components: core;
 Source: "..\..\msvc\csound-vs\Release\libcsound64.lib"; DestDir: "{#APP_LIB}"; Flags: ignoreversion; Components: core;
