@@ -15,7 +15,7 @@ if (USE_VCPKG)
     elseif (UNIX)
         set(VCPKG_TARGET_TRIPLET "x64-linux")
     endif()
-    
+
     set(VCPKG_FEATURE_FLAGS versions)
     set(VCPKG_OVERLAY_TRIPLETS ${CMAKE_CURRENT_SOURCE_DIR}/platform/triplets)
     set(CMAKE_TOOLCHAIN_FILE ${CMAKE_CURRENT_SOURCE_DIR}/vcpkg/scripts/buildsystems/vcpkg.cmake
