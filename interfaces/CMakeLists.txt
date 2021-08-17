@@ -60,9 +60,36 @@ if(BUILD_CXX_INTERFACE)
     install(TARGETS libcsnd6
         LIBRARY DESTINATION "${LIBRARY_INSTALL_DIR}"
         ARCHIVE DESTINATION "${LIBRARY_INSTALL_DIR}")
+
+if(BUILD_STATIC_LIBRARY)
+   add_library(libcsnd6-static STATIC ${libcsnd6_SRCS})
+    SET_TARGET_PROPERTIES(libcsnd6-static PROPERTIES OUTPUT_NAME csnd6)
+    SET_TARGET_PROPERTIES(libcsnd6-static PROPERTIES PREFIX "lib")
+    target_compile_options(libcsnd6-static PRIVATE ${libcsnd6_CFLAGS})
+    
+      if(APPLE)
+       target_compile_options(libcsnd6-static PRIVATE "-std=c++11")
+      endif()
+
+    set_target_properties(libcsnd6-static  PROPERTIES
+        RUNTIME_OUTPUT_DIRECTORY ${BUILD_BIN_DIR}
+        LIBRARY_OUTPUT_DIRECTORY ${BUILD_LIB_DIR}
+        ARCHIVE_OUTPUT_DIRECTORY ${BUILD_LIB_DIR})
+
+    # Add the install target
+    install(TARGETS libcsnd6-static
+        LIBRARY DESTINATION "${LIBRARY_INSTALL_DIR}"
+        ARCHIVE DESTINATION "${LIBRARY_INSTALL_DIR}")
+endif()
+
+
+
 else()
  message(STATUS "NOT Building C++ interface library.")
 endif()
+
+
+
 
 
 
