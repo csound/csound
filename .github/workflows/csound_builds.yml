@@ -107,11 +107,13 @@ jobs:
       - name: Run tests
         run: cmake --build build --target csdtests
       - name: Acquire Csound manual
-        shell: bash
-        run: |
-          cd C:/
-          wget https://github.com/csound/manual/releases/download/6.16.0/Csound6.16.0_manual_html.zip -O manual.zip
-          7z x manual.zip
+        uses: dawidd6/action-download-artifact@v2
+        with:
+          github_token: ${{secrets.GITHUB_TOKEN}}
+          branch: master
+          name: Csound6.16.0_manual_html.zip
+          path: C:/
+          repo: https://github.com/csound/manual
       - name: Build installer
         run: |
           iscc /dVcpkgInstallDir=%VCPKGDir%\\installed\\x64-windows-csound /omsvc installer\\windows\\csound6_x64_appveyor.iss
