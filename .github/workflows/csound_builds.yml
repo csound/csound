@@ -16,6 +16,7 @@ on:
 
 jobs:
   linux_build:
+    name: Linux/Ubuntu build
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Source Code
@@ -32,6 +33,7 @@ jobs:
         run: cd build && make test csdtests
 
   macos_build:
+    name: MacOS build
     runs-on: macos-latest
     steps:
       - name: Checkout Source Code
@@ -48,6 +50,7 @@ jobs:
         run: cd build && make test csdtests
 
   emscripten_build:
+    name: EMscripten build
     runs-on: ubuntu-latest
     steps:
       - name: run the Docker image
@@ -60,6 +63,7 @@ jobs:
           path: .
 
   android_build:
+    name: Android build
     runs-on: ubuntu-latest
     steps:
       - name: run the Docker image
@@ -111,7 +115,7 @@ jobs:
       - name: Build installer
         run: |
           iscc /dVcpkgInstallDir=%VCPKGDir%\\installed\\x64-windows-csound /omsvc installer\\windows\\csound6_x64_appveyor.iss
-          7z a csound-windows_x86_64-${{env.CSOUND_VERSION}}-${{env.GITHUB_RUN_ID}}.zip %GITHUB_WORKSPACE%\msvc\csound-vs\Release\*.exe %GITHUB_WORKSPACE%\msvc\csound-vs\Release\csound64.lib %GITHUB_WORKSPACE%\include\ %GITHUB_WORKSPACE%\msvc\csound-vs\Release\*.dll %GITHUB_WORKSPACE%\msvc\csound-vs\Release\*.pyd %GITHUB_WORKSPACE%\msvc\csound-vs\*.jar %GITHUB_WORKSPACE%\msvc\csound-vs\*.py 
+          7z a csound-windows_x86_64-${{env.CSOUND_VERSION}}-${{env.GITHUB_RUN_ID}}.zip %GITHUB_WORKSPACE%\msvc\csound-vs\Release\*.exe %GITHUB_WORKSPACE%\msvc\csound-vs\Release\csound64.lib %GITHUB_WORKSPACE%\include\ %GITHUB_WORKSPACE%\msvc\csound-vs\Release\*.dll %GITHUB_WORKSPACE%\msvc\csound-vs\Release\*.pyd %GITHUB_WORKSPACE%\msvc\csound-vs\*.jar %GITHUB_WORKSPACE%\msvc\csound-vs\*.py
           7z l csound-windows_x86_64-${{env.CSOUND_VERSION}}-${{env.GITHUB_RUN_ID}}.zip
 
 # jobs:
