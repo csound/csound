@@ -190,7 +190,10 @@ if(USE_JACK)
         list(APPEND rtjack_LIBS
             ${JACK_LIBRARY} ${PTHREAD_LIBRARY})
     endif()
-    make_plugin(rtjack rtjack.c "${rtjack_LIBS}")
+    # set(rtjack_SRCS rtjack.c natsort.c)
+    set(rtjack_SRCS rtjack.c alphanumcmp.c)
+    make_plugin(rtjack "${rtjack_SRCS}" "${rtjack_LIBS}")
+    # make_plugin(rtjack rtjack.c "${rtjack_LIBS}")
 endif()
 
 check_deps(USE_FLTK FLTK_FOUND)

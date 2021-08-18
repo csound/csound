@@ -26,6 +26,7 @@
 #include <jack/midiport.h>
 #include <ctype.h>
 #include <sys/time.h>
+#include "alphanumcmp.h"
 
 /* no #ifdef, should always have these on systems where JACK is available */
 #include <unistd.h>
@@ -38,6 +39,7 @@
 #ifdef LINUX
 #include <sched.h>
 #endif
+
 
 /* Modified from BSD sources for strlcpy */
 /*
@@ -372,6 +374,18 @@ static void rtJack_RegisterPorts(RtJackGlobals *p)
 }
 
 
+// static DonnaSortOptions sort_options_natural = DONNA_SORT_NATURAL_ORDER;
+
+
+static int strcmp_natural (const void *s1, const void *s2)
+{
+    /* by default we invert results (reverse==-1), because we actually print
+     * then in reversed order */
+    // return reverse * strcmp_ext (* (char **) s1, * (char **) s2, sort_options);
+    return alphanum_cmp(* (char **) s1, * (char **) s2);
+    // return strcmp_ext (* (char **) s1, * (char **) s2, sort_options_natural);
+}
+
 /* connect to JACK server, set up ports and ring buffers, */
 /* activate client, and connect ports if requested */
 
@@ -475,6 +489,7 @@ static void openJackStreams(RtJackGlobals *p)
       rtJack_Error(csound, -1, Str("error activating JACK client"));
 
     /* connect ports if requested */
+    int sortPorts = 1;   // this could be a command line flag (--unsorted-devices)
     if (p->inputEnabled) {
       listPorts(csound,0);
       if (p->inDevNum >= 0){
@@ -484,11 +499,19 @@ static void openJackStreams(RtJackGlobals *p)
                                                    (char*) NULL,
                                                    JACK_DEFAULT_AUDIO_TYPE,
                                                    portFlags);
+        size_t numPorts = 0;
+        if (portNames != NULL)
+          for(; portNames[numPorts] != NULL; numPorts++);
 
         for (i = 0; i < p->nChannels_i; i++) {
+          if (num+i+1 >= numPorts){
+            csound->Message(csound, Str("Trying to connect input channel %d but there are "
+                                        "not enough ports available\n"), num+i);
+            break;
+          }
           if (portNames[num+i] != NULL){
             csound->Message(csound, Str("connecting channel %d to %s\n"),
-                            i,portNames[num+i]);
+                            i, portNames[num+i]);
             if (jack_connect(p->client, portNames[num+i],
                              jack_port_name(p->inPorts[i])) != 0) {
               csound->Warning(csound,
@@ -510,15 +533,36 @@ static void openJackStreams(RtJackGlobals *p)
           dev_final = dev;
           sp = strchr(dev_final, '\0');
           if (!isalpha(dev_final[0])) dev_final++;
-          for (i = 0; i < p->nChannels_i; i++) {
-            snprintf(sp, 128-(dev-sp), "%d", i + 1);
-            csound->Message(csound, Str("connecting channel %d to %s\n"),
-                            i, dev_final);
-            if (UNLIKELY(jack_connect(p->client, dev_final,
-                                      jack_port_name(p->inPorts[i])) != 0)) {
-              csound->Warning(csound,
-                              Str("failed to autoconnect input channel %d\n"
-                                  "(needs manual connection)"), i+1);
+          char **portNames = (char**) jack_get_ports(p->client,
+                                                     p->inDevName,
+                                                     JACK_DEFAULT_AUDIO_TYPE,
+                                                     JackPortIsOutput);
+          size_t numPorts = 0;
+          if (portNames != NULL)
+            for(; portNames[numPorts] != NULL; numPorts++);
+          if (numPorts == 0) {
+            csound->Warning(csound, Str("Failed to autoconnect, no ports match pattern %s\n"),
+                                        p->inDevName);
+          }
+          else {
+            if (sortPorts)
+              qsort (portNames, numPorts, sizeof (*portNames), strcmp_natural);
+            for (i = 0; i < p->nChannels_i; i++) {
+              // snprintf(sp, 128-(dev-sp), "%d", i + 1);
+              dev_final = portNames[i];
+              if(dev_final == NULL) {
+                csound->Message(csound, Str("Not enough ports to connect all out channels,"
+                                            "only connected %d channels\n"), i);
+                break;
+              }
+              csound->Message(csound, Str("connecting channel %d to %s\n"),
+                              i, dev_final);
+              if (UNLIKELY(jack_connect(p->client, dev_final,
+                                        jack_port_name(p->inPorts[i])) != 0)) {
+                csound->Warning(csound,
+                                Str("failed to autoconnect input channel %d\n"
+                                    "(needs manual connection)"), i+1);
+              }
             }
           }
           *sp = (char) 0;
@@ -532,12 +576,22 @@ static void openJackStreams(RtJackGlobals *p)
       if (p->outDevNum >= 0) {
         int num = p->outDevNum;
         unsigned long portFlags =  JackPortIsInput;
+        // gibing NULL as the regex selection, all ports will be returned.
+        // the NN in dacNN is used to determine the first port
         char **portNames = (char**) jack_get_ports(p->client,
                                                    (char*) NULL,
                                                    JACK_DEFAULT_AUDIO_TYPE,
                                                    portFlags);
-
+        // jack_get_ports returned a NULL terminated array of strings
+        size_t numPorts = 0;
+        if (portNames != NULL)
+          for(; portNames[numPorts] != NULL; numPorts++);
         for (i = 0; i < p->nChannels; i++) {
+          if (num+i+1 >= numPorts){
+            csound->Message(csound, Str("Trying to connect channel %d but there are "
+                                        "no ports available\n"), num+i);
+            break;
+          }
           if (portNames[num+i] != NULL) {
             csound->Message(csound, Str("connecting channel %d to %s\n"),
                             i,portNames[num+i]);
@@ -552,7 +606,6 @@ static void openJackStreams(RtJackGlobals *p)
                                         "failed to autoconnect output channel %d\n"
                                         "(needs manual connection)"), num+i, i+1);
         }
-
         jack_free(portNames);
       }
       else {
@@ -562,18 +615,39 @@ static void openJackStreams(RtJackGlobals *p)
           dev_final = dev;
           sp = strchr(dev_final, '\0');
           if (!isalpha(dev_final[0])) dev_final++;
-          for (i = 0; i < p->nChannels; i++) {
-            snprintf(sp, 128-(dev-sp), "%d", i + 1);
-            csound->Message(csound, Str("connecting channel %d to %s\n"),
-                            i, dev_final);
-            if (UNLIKELY(jack_connect(p->client, jack_port_name(p->outPorts[i]),
-                                      dev_final) != 0)) {
-              csound->Warning(csound, Str("failed to autoconnect output channel "
-                                          "%d\n(needs manual connection)"), i+1);
-
+          char **portNames = (char**) jack_get_ports(p->client,
+                                                     p->outDevName,
+                                                     JACK_DEFAULT_AUDIO_TYPE,
+                                                     JackPortIsInput);
+          size_t numPorts = 0;
+          if (portNames != NULL)
+            for(; portNames[numPorts] != NULL; numPorts++);
+          if (numPorts == 0) {
+            csound->Warning(csound, Str("Failed to autoconnect, no ports match pattern %s\n"),
+                                        p->outDevName);
+          }
+          else {
+            if (sortPorts)
+              qsort (portNames, numPorts, sizeof (*portNames), strcmp_natural);
+            for (i = 0; i < p->nChannels; i++) {
+              // snprintf(sp, 128-(dev-sp), "%d", i + 1);
+              dev_final = portNames[i];
+              if(dev_final == NULL) {
+                csound->Message(csound, Str("Not enough ports to connect all out channels,"
+                                            "only connected %d channels\n"), i);
+                break;
+              }
+              csound->Message(csound, Str("connecting channel %d to %s\n"),
+                              i, dev_final);
+              if (UNLIKELY(jack_connect(p->client, jack_port_name(p->outPorts[i]),
+                                        dev_final) != 0)) {
+                  csound->Warning(csound, Str("failed to autoconnect output channel "
+                                              "%d\n(needs manual connection)"), i+1);
+              }
             }
           }
           *sp = (char) 0;
+          jack_free(portNames);
         } else
           csound->Message(csound, "%s", Str("output ports not connected\n"));
       }
