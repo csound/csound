@@ -370,7 +370,14 @@ if(APPLE)
     set(DEFAULT_OPCODEDIR ${CS_FRAMEWORK_FULL_PATH})
 
     # dir relative to $HOME
-    set(DEFAULT_USER_PLUGINDIR "Library/csound/${APIVERSION}/plugins64")
+    if(USE_DOUBLE)
+      set(DEFAULT_USER_PLUGINDIR
+    "Library/csound/${APIVERSION}/plugins64")
+   else()
+      set(DEFAULT_USER_PLUGINDIR
+    "Library/csound/${APIVERSION}/plugins")
+    endif()
+
     add_definitions("-DCS_DEFAULT_USER_PLUGINDIR=\"${DEFAULT_USER_PLUGINDIR}\"")
 endif()
 
@@ -378,13 +385,23 @@ if(LINUX)
     set(DEFAULT_OPCODEDIR "${PLUGIN_INSTALL_DIR}")
     add_definitions("-DCS_DEFAULT_PLUGINDIR=\"${DEFAULT_OPCODEDIR}\"")
     # dir relative to $HOME
-    set(DEFAULT_USER_PLUGINDIR ".local/lib/csound/${APIVERSION}/plugins64")
+    if(USE_DOUBLE)
+    set(DEFAULT_USER_PLUGINDIR
+    ".local/lib/csound/${APIVERSION}/plugins64")
+    else()
+    set(DEFAULT_USER_PLUGINDIR
+    ".local/lib/csound/${APIVERSION}/plugins")
+    endif()
     add_definitions("-DCS_DEFAULT_USER_PLUGINDIR=\"${DEFAULT_USER_PLUGINDIR}\"")
 endif()
 
 if(WIN32)
     # dir relaive to %LOCALAPPDATA%
+    if(USE_DOUBLE)
     set(DEFAULT_USER_PLUGINDIR "csound/${APIVERSION}/plugins64")
+    else()
+    set(DEFAULT_USER_PLUGINDIR "csound/${APIVERSION}/plugin")
+    endif()
     add_definitions("-DCS_DEFAULT_USER_PLUGINDIR=\"${DEFAULT_USER_PLUGINDIR}\"")
 endif()
 
