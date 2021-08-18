@@ -114,7 +114,7 @@ jobs:
           branch: master
           name: Csound6.16.0_manual_html.zip
           path: C:/
-          repo: https://github.com/csound/manual
+          repo: csound/manual
       - name: Build installer
         run: |
           iscc /dVcpkgInstallDir=%VCPKGDir%\\installed\\x64-windows-csound /omsvc installer\\windows\\csound6_x64_appveyor.iss
