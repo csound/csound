@@ -504,7 +504,7 @@ static void openJackStreams(RtJackGlobals *p)
           for(; portNames[numPorts] != NULL; numPorts++);
 
         for (i = 0; i < p->nChannels_i; i++) {
-          if (num+i+1 >= numPorts){
+          if (num+i+1 >= (int)numPorts){
             csound->Message(csound, Str("Trying to connect input channel %d but there are "
                                         "not enough ports available\n"), num+i);
             break;
@@ -587,7 +587,7 @@ static void openJackStreams(RtJackGlobals *p)
         if (portNames != NULL)
           for(; portNames[numPorts] != NULL; numPorts++);
         for (i = 0; i < p->nChannels; i++) {
-          if (num+i+1 >= numPorts){
+          if (num+i+1 >= (int)numPorts){
             csound->Message(csound, Str("Trying to connect channel %d but there are "
                                         "no ports available\n"), num+i);
             break;

@@ -3373,9 +3373,9 @@ PUBLIC void csoundSetRTAudioModule(CSOUND *csound, const char *module){
       csound->SetRtcloseCallback(csound, rtclose_dummy);
       csound->SetAudioDeviceListCallback(csound, audio_dev_list_dummy);
       return;
-  }
-   if (csoundInitModules(csound) != 0)
-             csound->LongJmp(csound, 1);
+    }
+    if (csoundInitModules(csound) != 0)
+      csound->LongJmp(csound, 1);
 }
 
 
