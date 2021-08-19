@@ -117,7 +117,7 @@ jobs:
           7z x manual.zip
       - name: Build installer
         run: |
-          iscc /dVcpkgInstallDir=vcpkg_installed\\x64-windows-csound /omsvc installer\\windows\\csound6_x64_appveyor.iss
+          iscc /omsvc installer\\windows\\csound6_x64_github.iss
           7z a csound-windows_x86_64-${{env.CSOUND_VERSION}}-${{env.GITHUB_RUN_ID}}.zip %GITHUB_WORKSPACE%\msvc\csound-vs\Release\*.exe %GITHUB_WORKSPACE%\msvc\csound-vs\Release\csound64.lib %GITHUB_WORKSPACE%\include\ %GITHUB_WORKSPACE%\msvc\csound-vs\Release\*.dll %GITHUB_WORKSPACE%\msvc\csound-vs\Release\*.pyd %GITHUB_WORKSPACE%\msvc\csound-vs\*.jar %GITHUB_WORKSPACE%\msvc\csound-vs\*.py
           7z l csound-windows_x86_64-${{env.CSOUND_VERSION}}-${{env.GITHUB_RUN_ID}}.zip
 
