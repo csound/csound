@@ -119,11 +119,11 @@ jobs:
         shell: cmd
         run: |
           $Env:RedistVersion=Get-Content "C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\VC\Auxiliary\Build\Microsoft.VCRedistVersion.default.txt"
-          $Env:VCREDIST_CRT_DIR=C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\VC\Redist\MSVC\%RedistVersion%\x64\Microsoft.VC142.CRT
-          $Env:VCREDIST_CXXAMP_DIR=C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\VC\Redist\MSVC\%RedistVersion%\x64\Microsoft.VC142.CXXAMP
-          $Env:VCREDIST_OPENMP_DIR=C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\VC\Redist\MSVC\%RedistVersion%\x64\Microsoft.VC142.OpenMP
+          $Env:VCREDIST_CRT_DIR=C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\VC\Redist\MSVC\${Env:RedistVersion}\x64\Microsoft.VC142.CRT
+          $Env:VCREDIST_CXXAMP_DIR=C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\VC\Redist\MSVC\${Env:RedistVersion}\x64\Microsoft.VC142.CXXAMP
+          $Env:VCREDIST_OPENMP_DIR=C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\VC\Redist\MSVC\${Env:RedistVersion}\x64\Microsoft.VC142.OpenMP
           iscc /omsvc installer\\windows\\csound6_x64_github.iss
-          7z a csound-windows_x86_64-${{env.CSOUND_VERSION}}-${{env.GITHUB_RUN_ID}}.zip %GITHUB_WORKSPACE%\msvc\csound-vs\Release\*.exe %GITHUB_WORKSPACE%\msvc\csound-vs\Release\csound64.lib %GITHUB_WORKSPACE%\include\ %GITHUB_WORKSPACE%\msvc\csound-vs\Release\*.dll %GITHUB_WORKSPACE%\msvc\csound-vs\Release\*.pyd %GITHUB_WORKSPACE%\msvc\csound-vs\*.jar %GITHUB_WORKSPACE%\msvc\csound-vs\*.py
+          7z a csound-windows_x86_64-${{env.CSOUND_VERSION}}-${{env.GITHUB_RUN_ID}}.zip ${Env:GITHUB_WORKSPACE}\build\Release\*.exe ${Env:GITHUB_WORKSPACE}\build\Release\csound64.lib ${Env:GITHUB_WORKSPACE}\build\include\ ${Env:GITHUB_WORKSPACE}\build\Release\*.dll ${Env:GITHUB_WORKSPACE}\build\Release\*.pyd ${Env:GITHUB_WORKSPACE}\build\*.jar ${Env:GITHUB_WORKSPACE}\build\*.py
           7z l csound-windows_x86_64-${{env.CSOUND_VERSION}}-${{env.GITHUB_RUN_ID}}.zip
 
 # jobs:
