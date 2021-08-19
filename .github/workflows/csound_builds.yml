@@ -23,14 +23,17 @@ jobs:
         uses: actions/checkout@v1
         with:
           fetch-depth: 1
+          submodules: true
+      - name: Bootstrap VCPKG
+        run: ./vcpkg/bootstrap-vcpkg.sh
       - name: Install Dependencies
-        run: sudo apt-get update && sudo apt-get install cmake libsndfile1-dev libasound2-dev libjack-dev portaudio19-dev libportmidi-dev libpulse-dev swig liblua5.1-0-dev default-jdk libfltk1.1-dev libfluidsynth-dev liblo-dev fluid ladspa-sdk libpng-dev dssi-dev libstk0-dev libgmm++-dev bison flex libportsmf-dev libeigen3-dev libcunit1-dev
+        run: sudo apt-get update && sudo apt-get install -y cmake default-jdk bison flex
       - name: Configure build
-        run: mkdir build && cd build && cmake ..
+        run: cmake -B build -S . -DUSE_VCPKG=1
       - name: Build Csound
-        run: cd build && make
+        run: cmake --build build
       - name: Run tests
-        run: cd build && make test csdtests
+        run: cmake --build build --target csdtests
 
   macos_build:
     name: MacOS build
@@ -117,7 +120,7 @@ jobs:
           repo: csound/manual
       - name: Build installer
         run: |
-          iscc /dVcpkgInstallDir=%VCPKGDir%\\installed\\x64-windows-csound /omsvc installer\\windows\\csound6_x64_appveyor.iss
+          iscc /dVcpkgInstallDir=vcpkg_installed\\x64-windows-csound /omsvc installer\\windows\\csound6_x64_appveyor.iss
           7z a csound-windows_x86_64-${{env.CSOUND_VERSION}}-${{env.GITHUB_RUN_ID}}.zip %GITHUB_WORKSPACE%\msvc\csound-vs\Release\*.exe %GITHUB_WORKSPACE%\msvc\csound-vs\Release\csound64.lib %GITHUB_WORKSPACE%\include\ %GITHUB_WORKSPACE%\msvc\csound-vs\Release\*.dll %GITHUB_WORKSPACE%\msvc\csound-vs\Release\*.pyd %GITHUB_WORKSPACE%\msvc\csound-vs\*.jar %GITHUB_WORKSPACE%\msvc\csound-vs\*.py
           7z l csound-windows_x86_64-${{env.CSOUND_VERSION}}-${{env.GITHUB_RUN_ID}}.zip
 
