@@ -26,7 +26,7 @@
 #define BuildNumber GetEnv("GITHUB_RUN_NUMBER")
 #define AppPublisher "Csound"
 #define AppURL "https://csound.com/"
-#define ManualSourceDir "c:\html"
+#define ManualSourceDir "html"
 #define BuildRoot "build"
 #define ReleaseDir "build\Release"
 
@@ -120,7 +120,7 @@ Source: "{#VCREDIST_OPENMP_DIR}\*"; DestDir: "{#APP_BIN}"; Flags: recursesubdirs
 Source: "interfaces\ctcsound.py"; DestDir: "{#APP_BIN}"; Flags: ignoreversion; Components: core;
 Source: "{#BuildRoot}\csnd6.jar"; DestDir: "{#APP_BIN}"; Flags: ignoreversion; Components: core;
 
-Source: "{#ReleaseDir}\*jcsound6.dll"; DestDir: "{#APP_BIN}"; Flags: ignoreversion; Components: core;
+Source: "{#ReleaseDir}\_jcsound6.dll"; DestDir: "{#APP_BIN}"; Flags: ignoreversion; Components: core;
 Source: "{#ReleaseDir}\ampmidid.dll"; DestDir: "{#APP_PLUGINS64}"; Flags: ignoreversion; Components: core;
 Source: "{#ReleaseDir}\arrayops.dll"; DestDir: "{#APP_PLUGINS64}"; Flags: ignoreversion; Components: core;
 Source: "{#ReleaseDir}\atsa.exe"; DestDir: "{#APP_BIN}"; Flags: ignoreversion; Components: core;
