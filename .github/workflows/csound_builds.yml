@@ -112,7 +112,7 @@ jobs:
       - name: Acquire Csound manual
         shell: powershell
         run: |
-          Invoke-WebRequest -Uri "https://github.com/csound/manual/releases/download/6.16.0/Csound6.16.0_manual_html.zip" -OutFile "C:/manual.zip"
+          Invoke-WebRequest -Uri "https://github.com/csound/manual/releases/download/6.16.0/Csound6.16.0_manual_html.zip" -OutFile "./manual.zip"
           7z x manual.zip
       - name: Build installer
         shell: powershell
