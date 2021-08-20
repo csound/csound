@@ -115,12 +115,12 @@ jobs:
           Invoke-WebRequest -Uri "https://github.com/csound/manual/releases/download/6.16.0/Csound6.16.0_manual_html.zip" -OutFile "C:/manual.zip"
           7z x manual.zip
       - name: Build installer
-        shell: cmd
+        shell: powershell
         run: |
           $Env:RedistVersion=Get-Content "C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\VC\Auxiliary\Build\Microsoft.VCRedistVersion.default.txt"
-          $Env:VCREDIST_CRT_DIR=C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\VC\Redist\MSVC\${Env:RedistVersion}\x64\Microsoft.VC142.CRT
-          $Env:VCREDIST_CXXAMP_DIR=C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\VC\Redist\MSVC\${Env:RedistVersion}\x64\Microsoft.VC142.CXXAMP
-          $Env:VCREDIST_OPENMP_DIR=C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\VC\Redist\MSVC\${Env:RedistVersion}\x64\Microsoft.VC142.OpenMP
+          $Env:VCREDIST_CRT_DIR="C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\VC\Redist\MSVC\${Env:RedistVersion}\x64\Microsoft.VC142.CRT"
+          $Env:VCREDIST_CXXAMP_DIR="C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\VC\Redist\MSVC\${Env:RedistVersion}\x64\Microsoft.VC142.CXXAMP"
+          $Env:VCREDIST_OPENMP_DIR="C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\VC\Redist\MSVC\${Env:RedistVersion}\x64\Microsoft.VC142.OpenMP"
           iscc /omsvc installer\\windows\\csound6_x64_github.iss
           7z a csound-windows_x86_64-${{env.CSOUND_VERSION}}-${{env.GITHUB_RUN_ID}}.zip ${Env:GITHUB_WORKSPACE}\build\Release\*.exe ${Env:GITHUB_WORKSPACE}\build\Release\csound64.lib ${Env:GITHUB_WORKSPACE}\build\include\ ${Env:GITHUB_WORKSPACE}\build\Release\*.dll ${Env:GITHUB_WORKSPACE}\build\Release\*.pyd ${Env:GITHUB_WORKSPACE}\build\*.jar ${Env:GITHUB_WORKSPACE}\build\*.py
           7z l csound-windows_x86_64-${{env.CSOUND_VERSION}}-${{env.GITHUB_RUN_ID}}.zip

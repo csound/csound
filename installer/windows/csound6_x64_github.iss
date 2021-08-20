@@ -34,6 +34,9 @@
 #define BuildRoot "build"
 #define ReleaseDir "build\Release"
 
+; Set the default folder to be the Csound root (otherwise defaults to where the script is located)
+SourceDir="../../"
+
 ; Microsoft C/C++ runtime libraries
 #define VCREDIST_CRT_DIR GetEnv("VCREDIST_CRT_DIR")
 #define VCREDIST_CXXAMP_DIR GetEnv("VCREDIST_CXXAMP_DIR")
@@ -93,7 +96,6 @@ ChangesEnvironment=yes
 AppId={{180B4E5B-9A2F-4DA8-8692-97A174ACB74E}
 AppName={#AppName}
 AppVersion={#AppVersion}
-;AppVerName={#AppName}-{AppMinVersion}
 AppPublisher={#AppPublisher}
 AppPublisherURL={#AppURL}
 AppSupportURL={#AppURL}
@@ -101,7 +103,7 @@ AppUpdatesURL={#AppURL}
 DefaultDirName={pf64}\{#AppName}
 DefaultGroupName=Csound
 AllowNoIcons=yes
-LicenseFile="..\..\README.md"
+LicenseFile="README.md"
 OutputDir="installer\windows"
 OutputBaseFilename="{#AppName}-{#AppMinVersion}-{#BuildNumber}"
 Compression=lzma
@@ -235,7 +237,7 @@ Source: "interfaces\*.py"; DestDir: "{#APP_BIN}"; Flags: ignoreversion;  Compone
 Source: "examples\*.*"; DestDir: "{#APP_EXAMPLES}"; Excludes: "*.wav *.html"; Flags: ignoreversion recursesubdirs;  Components: core
 Source: "samples\*.*"; DestDir: "{#APP_SAMPLES}"; Flags: ignoreversion recursesubdirs;  Components: core
 
-Source: "vcpkg_installed\x64-windows-csound\share\libstk\rawwaves\*.*"; DestDir: "{#APP_SAMPLES}"; Flags: ignoreversion recursesubdirs;  Components: core
+Source: "build\vcpkg_installed\x64-windows-csound\share\libstk\rawwaves\*.*"; DestDir: "{#APP_SAMPLES}"; Flags: ignoreversion recursesubdirs;  Components: core
 Source: "{#BuildRoot}\include\float-version.h"; DestDir: "{#APP_INCLUDE}\csound"; Flags: ignoreversion;  Components: core
 Source: "{#ManualSourceDir}\*.*"; DestDir: "{#APP_MANUAL}"; Flags: ignoreversion recursesubdirs; Components: core
 
