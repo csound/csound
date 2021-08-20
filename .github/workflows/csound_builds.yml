@@ -106,7 +106,7 @@ jobs:
       - name: Configure build
         run: cmake -B build -S . -DUSE_VCPKG=1 -DCUSTOM_CMAKE="./platform/windows/Custom-vs.cmake"
       - name: Build Csound
-        run: cmake --build build
+        run: cmake --build build --config Release
       - name: Run tests
         run: cmake --build build --target csdtests
       - name: Acquire Csound manual
