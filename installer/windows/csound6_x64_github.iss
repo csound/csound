@@ -6,11 +6,7 @@
 ;
 ; SEE THE DOCUMENTATION FOR DETAILS ON CREATING INNO SETUP SCRIPT FILES!
 ;
-; This file is for building the Csound NSIS installer with AppVeyor and
-; assumes that the build has been created by running "build.bat" from
-; csound/msvc in the AppVeyor environment.
-;
-; DIRECTORY STRUCTURE
+; INSTALLED DIRECTORY STRUCTURE
 ;
 ; C:\Program Files\Csound6
 ;     bin (copy Csound, PortAudio, libsndfile binary trees here including runtime
