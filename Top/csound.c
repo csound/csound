@@ -517,10 +517,11 @@ static const CSOUND cenviron_ = {
     csoundLPCeps,
     csoundCepsLP,
     csoundLPrms,
+    csoundCreateThread2,
     {
       NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
       NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
-      NULL, NULL, NULL
+      NULL, NULL
     },
     /* ------- private data (not to be used by hosts or externals) ------- */
     /* callback function pointers */
@@ -1000,7 +1001,7 @@ static const CSOUND cenviron_ = {
     NULL,           /* op */
     0,              /* mode */
     NULL,           /* opcodedir */
-    NULL            /* score_srt */
+    NULL           /* score_srt */
 };
 
 void csound_aops_init_tables(CSOUND *cs);

@@ -2141,6 +2141,17 @@ extern "C" {
                                   void *userdata);
 
   /**
+   * Creates and starts a new thread of execution
+   * with a user-defined stack size.
+   * Returns an opaque pointer that represents the thread on success,
+   * or NULL for failure.
+   * The userdata pointer is passed to the thread routine.
+   */
+  PUBLIC void *csoundCreateThread2(uintptr_t (*threadRoutine)(void *),
+                                   unsigned int stack,
+                                   void *userdata);
+
+  /**
    * Returns the ID of the currently executing thread,
    * or NULL for failure.
    *
