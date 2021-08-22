@@ -420,6 +420,8 @@ libcsound.csoundSetYieldCallback.argtypes = [ct.c_void_p, YIELDFUNC]
 THREADFUNC = ct.CFUNCTYPE(ct.POINTER(ct.c_uint), ct.py_object)
 libcsound.csoundCreateThread.restype = ct.c_void_p
 libcsound.csoundCreateThread.argtypes = [THREADFUNC, ct.py_object]
+libcsound.csoundCreateThread2.restype = ct.c_void_p
+libcsound.csoundCreateThread2.argtypes = [THREADFUNC, ct.c_uint, ct.py_object]
 libcsound.csoundGetCurrentThreadId.restype = ct.c_void_p
 libcsound.csoundJoinThread.restype = ct.POINTER(ct.c_uint)
 libcsound.csoundJoinThread.argtypes = [ct.c_void_p]
@@ -2196,6 +2198,20 @@ class Csound:
         The *userdata* pointer is passed to the thread routine.
         """
         ret = libcsound.csoundCreateThread(THREADFUNC(function), ct.py_object(userdata))
+        if (ret):
+            return ret
+        return None
+    
+    def createThread2(self, function, stack, userdata):
+        """Creates and starts a new thread of execution with a user-defined
+        stack size.
+        
+        Returns an opaque pointer that represents the thread on success,
+        or :code:`None` for failure.
+        The *userdata* pointer is passed to the thread routine.
+        """
+        ret = libcsound.csoundCreateThread2(THREADFUNC(function),
+        	ct.c_uint(stack), ct.py_object(userdata))
         if (ret):
             return ret
         return None
