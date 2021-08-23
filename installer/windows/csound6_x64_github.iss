@@ -20,7 +20,7 @@
 ;
 
 [setup]
-#define AppName "Csound6_x64"
+#define AppName "csound"
 #define AppVersion "6"
 #define AppMinVersion GetEnv("CSOUND_VERSION")
 #define BuildNumber GetEnv("GITHUB_RUN_NUMBER")
@@ -101,7 +101,7 @@ DefaultGroupName=Csound
 AllowNoIcons=yes
 LicenseFile="README.md"
 OutputDir="installer\windows"
-OutputBaseFilename="{#AppName}-{#AppMinVersion}-{#BuildNumber}"
+OutputBaseFilename="{#AppName}-windows_x86_64-{#AppMinVersion}-{#BuildNumber}"
 Compression=lzma
 SolidCompression=yes
 
