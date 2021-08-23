@@ -144,6 +144,7 @@ cp $DEPS_BASE/lib/libvorbis.0.dylib $SUPPORT_LIBS_DIR
 cp $DEPS_BASE/lib/libogg.0.dylib $SUPPORT_LIBS_DIR
 cp $DEPS_BASE/lib/libfluidsynth.1.dylib $SUPPORT_LIBS_DIR
 cp $DEPS_BASE/lib/libwiiuse.dylib $SUPPORT_LIBS_DIR
+
  
 # chnage IDs
 #install_name_tool -id libfltk.1.3.dylib $SUPPORT_LIBS_DIR/libfltk.1.3.dylib
@@ -234,6 +235,9 @@ install_name_tool -change $DEPS_BASE/lib/libwiiuse.dylib @loader_path/../../../.
 install_name_tool -change $DEPS_BASE/lib/libfluidsynth.1.dylib @loader_path/../../../../libs/libfluidsynth.1.dylib $FRAMEWORK64_DIR/Resources/Opcodes64/libfluidOpcodes.dylib
 install_name_tool -change libportmidi.dylib @loader_path/../../../../libs/libportmidi.dylib $FRAMEWORK64_DIR/Resources/Opcodes64/libpmidi.dylib
 
+
+cp ../../PkgResources/Info.plist CsoundLib64/Package_Contents/Library/Frameworks/CsoundLib64.framework/Versions/6.0/Resources/.
+
 echo "...setting permissions..."
 
 cd installer
@@ -254,7 +258,7 @@ pkgbuild --identifier com.csound.csound6Environment.csoundApps64 --root CsoundAp
 
 echo "building product..."
 
-productbuild --distribution ../../Distribution2.dist --resources ../../PkgResources/en.lproj $PACKAGE_NAME
+productbuild --distribution ../../Distribution2.dist --resources ../../PkgResources/en.lproj --version $CS_VERSION  $PACKAGE_NAME
 
 echo "assembling DMG..."
 
