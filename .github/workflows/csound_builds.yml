@@ -2,8 +2,7 @@ name: csound_builds
 
 env:
   VCPKG_BINARY_SOURCES: "clear;nuget,GitHub,readwrite"
-  CSOUND_VERSION: 6.17.0
-  CSOUND_MANUAL_VERSION: 6.16.0
+  CSOUND_VERSION: 6.16.2
 
 on:
   push:
@@ -126,12 +125,12 @@ jobs:
           7z l csound-windows_x86_64-${{env.CSOUND_VERSION}}-${GITHUB_RUN_ID}.zip
       - uses: actions/upload-artifact@v2
         with:
-          name: ^csound-windows_|(?:\.exe)$
-          path: .
+          name: csound-windows_x86_64-${{env.CSOUND_VERSION}}.exe
+          path: ./^csound-windows_|(?:\.exe)$
       - uses: actions/upload-artifact@v2
         with:
-          name: csound-windows_x86_64-*.zip
-          path: .
+          name: csound-windows_x86_64-${{env.CSOUND_VERSION}}-binaries.zip
+          path: ./csound-windows_x86_64-*.zip
 # jobs:
 #   build:
 #     strategy:
