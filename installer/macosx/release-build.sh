@@ -249,8 +249,8 @@ sudo chmod -R 755    CsoundApps64/Package_Contents/usr
 
 echo "building packages ..."
 
-pkgbuild --identifier com.csound.csound6Environment.csoundLib64 --root CsoundLib64/Package_Contents/ --version 1 --scripts ../../PkgResources/CsoundLib64 CsoundLib64.pkg
-pkgbuild --identifier com.csound.csound6Environment.csoundApps64 --root CsoundApps64/Package_Contents/ --version 1 --scripts ../../PkgResources/CsoundApps64 CsoundApps64.pkg
+pkgbuild --identifier com.csound.csound6Environment.csoundLib64 --root CsoundLib64/Package_Contents/ --version $CS_VERSION --scripts ../../PkgResources/CsoundLib64 CsoundLib64.pkg
+pkgbuild --identifier com.csound.csound6Environment.csoundApps64 --root CsoundApps64/Package_Contents/ --version $CS_VERSION --scripts ../../PkgResources/CsoundApps64 CsoundApps64.pkg
 
 echo "building product..."
 
