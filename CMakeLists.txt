@@ -20,6 +20,18 @@ endif()
 
 # Project definitions
 set(APIVERSION "6.0")
+set(CS_VERSION "6")
+set(CS_SUBVER "17")
+set(CS_PATCHLEVEL "0")
+
+set(MACOSX_FRAMEWORK_BUNDLE_VERSION
+"${CS_VERSION}.${CS_SUBVER}.${CS_PATCHLEVEL}")
+
+set(MACOSX_FRAMEWORK_SHORT_VERSION_STRING
+"${CS_VERSION}.${CS_SUBVER}.${CS_PATCHLEVEL}")
+
+set(MACOSX_FRAMEWORK_IDENTIFIER
+"CSND")
 
 # Relative install paths
 set(EXECUTABLE_INSTALL_DIR "bin")
@@ -1067,7 +1079,8 @@ add_subdirectory(include)
 if(APPLE)
     string(REGEX REPLACE "([^;]+)(;|$)" "include/\\1\\2" csheaders "${csheaders}")
     file(GLOB H_headers "${CMAKE_CURRENT_SOURCE_DIR}/H/*.h")
-    set(libcsound_SRCS "${libcsound_SRCS};${csheaders};${H_headers};${CMAKE_CURRENT_BINARY_DIR}/include/float-version.h")
+    set(libcsound_SRCS
+    "${libcsound_SRCS};${csheaders};${H_headers};${CMAKE_CURRENT_BINARY_DIR}/include/float-version.h;${CMAKE_CURRENT_BINARY_DIR}/include/version.h")
 endif()
 
 add_library(${CSOUNDLIB} SHARED ${libcsound_SRCS})
@@ -1079,7 +1092,9 @@ set_target_properties(${CSOUNDLIB} PROPERTIES
 if(APPLE)
     set_target_properties(${CSOUNDLIB} PROPERTIES FRAMEWORK YES)
     set_target_properties(${CSOUNDLIB} PROPERTIES FRAMEWORK_VERSION "${APIVERSION}")
-    set_target_properties(${CSOUNDLIB} PROPERTIES PUBLIC_HEADER "${csheaders};${CMAKE_CURRENT_BINARY_DIR}/include/float-version.h")
+    set_target_properties(${CSOUNDLIB} PROPERTIES PUBLIC_HEADER
+    "${csheaders};${CMAKE_CURRENT_BINARY_DIR}/include/float-version.h;${CMAKE_CURRENT_BINARY_DIR}/include/version.h"
+    )
 endif()
 
 # This copies libsndfile into the framework and sets the install names
