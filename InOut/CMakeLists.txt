@@ -10,10 +10,8 @@ option(USE_IPMIDI "Build the IPMIDI I/O module" ON)
 option(USE_JACK "Build the jack I/O module and opcodes" ON)
 option(USE_ALSA "Build the ALSA I/O module" ON)
 # option(USE_COREAUDIO "Build the CoreAudio I/O module" ON)
-option(USE_COREMIDI "Build the CoreMIDI I/O Module" ON)
+# option(USE_COREMIDI "Build the CoreMIDI I/O Module" ON)
 option(USE_AUDIOUNIT "Build the CoreAudio AudioUnit I/O module (requires CoreAudio)" ON)
-option(USE_FLTK "Use FLTK for graphs and widget opcodes" OFF)
-option(BUILD_VIRTUAL_KEYBOARD "Build Virtual MIDI keyboard" OFF)
 
 list(APPEND CMAKE_REQUIRED_INCLUDES "/usr/local/include")
 
@@ -195,20 +193,6 @@ if(USE_JACK)
     # make_plugin(rtjack rtjack.c "${rtjack_LIBS}")
 endif()
 
-check_deps(USE_FLTK FLTK_FOUND)
-if(USE_FLTK)
-    set(widgets_SRCS FL_graph.cpp winFLTK.c widgets.cpp)
-    make_plugin(widgets "${widgets_SRCS}" "${FLTK_LIBRARIES}")
-    if(NOT MSVC)
-        target_link_libraries(widgets ${FLTK_BASE_LIBRARY})
-        target_link_libraries(widgets ${FLTK_FORMS_LIBRARY})
-        target_link_libraries(widgets ${FLTK_IMAGES_LIBRARY})
-    else()
-        target_link_libraries(widgets ${FLTK_LIBRARIES})
-    endif()
-    target_include_directories(widgets PRIVATE ${FLTK_INCLUDE_DIR})
-endif()
-
 if(HAIKU)
 	find_library(HAIKU_MEDIA_LIBRARY media)
 	find_library(HAIKU_MIDI_LIBRARY midi2)
@@ -218,27 +202,4 @@ if(HAIKU)
     target_link_libraries(rthaiku ${HAIKU_MIDI_LIBRARY})
 endif()
 
-check_deps(BUILD_VIRTUAL_KEYBOARD FLTK_FOUND)
-if(BUILD_VIRTUAL_KEYBOARD)
-    set(virtual_SRCS virtual_keyboard/FLTKKeyboard.cpp
-        virtual_keyboard/FLTKKeyboardWindow.cpp
-        virtual_keyboard/FLTKKeyboardWidget.cpp
-        virtual_keyboard/virtual_keyboard.cpp
-        virtual_keyboard/Bank.cpp
-        virtual_keyboard/KeyboardMapping.cpp
-        virtual_keyboard/Program.cpp
-        virtual_keyboard/SliderBank.cpp
-        virtual_keyboard/SliderData.cpp)
-    make_plugin(virtual "${virtual_SRCS}" "${FLTK_LIBRARIES}")
-    if (NOT MSVC)
-        target_link_libraries(virtual ${FLTK_BASE_LIBRARY})
-        target_link_libraries(virtual ${FLTK_FORMS_LIBRARY})
-        target_link_libraries(virtual ${FLTK_IMAGES_LIBRARY})
-    else()
-        target_link_libraries(virtual ${FLTK_LIBRARIES})
-    endif()
-    target_include_directories(virtual PRIVATE ".")
-    target_include_directories(virtual PRIVATE ${FLTK_INCLUDE_DIR})
-endif()
 
-message(STATUS "")
