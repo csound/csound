@@ -131,7 +131,6 @@ Source: "..\..\msvc\csound-vs\Release\atsa.exe"; DestDir: "{#APP_BIN}"; Flags: i
 ;; Source: "..\..\msvc\csound-vs\Release\beosc.dll"; DestDir: "{#APP_PLUGINS64}"; Flags: ignoreversion; Components: core;
 Source: "..\..\msvc\csound-vs\Release\buchla.dll"; DestDir: "{#APP_PLUGINS64}"; Flags: ignoreversion; Components: core;
 Source: "..\..\msvc\csound-vs\Release\cellular.dll"; DestDir: "{#APP_PLUGINS64}"; Flags: ignoreversion; Components: core;
-Source: "..\..\msvc\csound-vs\Release\chua.dll"; DestDir: "{#APP_PLUGINS64}"; Flags: ignoreversion; Components: core;
 Source: "..\..\msvc\csound-vs\Release\cs.exe"; DestDir: "{#APP_BIN}"; Flags: ignoreversion skipifsourcedoesntexist; Components: core;
 Source: "..\..\msvc\csound-vs\Release\cs_date.dll"; DestDir: "{#APP_PLUGINS64}"; Flags: ignoreversion; Components: core;
 Source: "..\..\msvc\csound-vs\Release\csanalyze.exe"; DestDir: "{#APP_BIN}"; Flags: ignoreversion; Components: core;
