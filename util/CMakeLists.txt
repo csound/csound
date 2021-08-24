@@ -13,7 +13,6 @@ if(MSVC)
 endif()
 
 make_plugin(stdutil "${stdutil_SRCS}" ${MATH_LIBRARY} ${LIBSNDFILE_LIBRARY} ${LIBSNDFILE_SUPPORT_LIBS})
-add_dependency_to_framework(stdutil ${LIBSNDFILE_LIBRARY})
 
 if(BUILD_UTILITIES)
     make_utility(atsa        atsa_main.c)
