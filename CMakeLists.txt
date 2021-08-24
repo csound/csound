@@ -3,12 +3,7 @@ cmake_minimum_required(VERSION 3.5)
 set(CMAKE_MACOSX_RPATH 1)
 set(CMAKE_EXPORT_COMPILE_COMMANDS 1)
 
-# LINUX definition
-if(CMAKE_SYSTEM_NAME MATCHES "Linux")
-    set(LINUX YES)
-else()
-    set(LINUX NO)
-endif()
+
 
 project(Csound)
 
@@ -374,6 +369,16 @@ if(APPLE)
     
     add_definitions("-DCS_DEFAULT_USER_PLUGINDIR=\"${DEFAULT_USER_PLUGINDIR}\"")
 endif()
+
+# LINUX definition
+if(CMAKE_SYSTEM_NAME MATCHES "Linux")
+    set(LINUX YES)
+    message(STATUS "LINUX operating system found")
+else()
+    set(LINUX NO)
+endif()
+
+
 
 if(LINUX)
     set(DEFAULT_OPCODEDIR "${PLUGIN_INSTALL_DIR}")
@@ -1075,38 +1080,6 @@ function(make_plugin libname srcs)
         ARCHIVE DESTINATION "${PLUGIN_INSTALL_DIR}" )
 
 endfunction(make_plugin)
-
-# this copies the dependencies of plugins into framework
-# and fixes the lib name references
-function(add_dependency_to_framework pluginlib dependency)
-
-
-	#if(APPLE AND NOT ${CMAKE_GENERATOR} STREQUAL "Xcode")
-
-	#get_filename_component(source ${dependency} REALPATH)
-	#get_filename_component(depname ${source} NAME)
-	#
-	#set(RESOURCE_DIR ${BUILD_DIR}/${CSOUNDLIB}.framework/Versions/${APIVERSION}/Resources)
-
-	#if(NOT EXISTS ${RESOURCE_DIR}/libs/${depname})
-	#add_custom_command(
-	#TARGET ${pluginlib}
-	#COMMAND mkdir
-	#ARGS -p ${RESOURCE_DIR}/libs
-	#COMMAND cp
-	#ARGS -f ${source} ${RESOURCE_DIR}/libs/${depname}
-	#COMMAND ${CMAKE_INSTALL_NAME_TOOL}
-	#ARGS -id ${depname} ${RESOURCE_DIR}/libs/${depname}
-	#)
-	#endif()
-	#add_custom_command(
-	#TARGET ${pluginlib}
-	#POST_BUILD
-	#COMMAND ${CMAKE_INSTALL_NAME_TOOL}
-	#ARGS -change ${source} @loader_path/../libs/${depname} ${BUILD_PLUGINS_DIR}/lib${pluginlib}.dylib
-	#)
-	#endif()
-endfunction(add_dependency_to_framework)
 
 # Add the install target
 if(WIN32)
