@@ -1863,9 +1863,15 @@ static void list_audio_devices(CSOUND *csound, int output){
       csound->MessageS(csound, CSOUNDMSG_STDOUT,
                        Str("%d audio input devices\n"), n);
     csoundGetAudioDevList(csound,devs,output);
-    for (i=0; i < n; i++)
-      csound->Message(csound, " %d: %s (%s)\n",
-                      i, devs[i].device_id, devs[i].device_name);
+    for (i=0; i < n; i++) {
+      int nchnls = devs[i].max_nchnls;
+      if(nchnls > 0)
+        csound->Message(csound, " %d: %s (%s) [ch:%d]\n",
+                        i, devs[i].device_id, devs[i].device_name, nchnls);
+      else
+        csound->Message(csound, " %d: %s (%s)\n",
+                        i, devs[i].device_id, devs[i].device_name);
+    }
     csound->Free(csound, devs);
 }
 
