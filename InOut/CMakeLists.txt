@@ -12,8 +12,8 @@ option(USE_ALSA "Build the ALSA I/O module" ON)
 # option(USE_COREAUDIO "Build the CoreAudio I/O module" ON)
 option(USE_COREMIDI "Build the CoreMIDI I/O Module" ON)
 option(USE_AUDIOUNIT "Build the CoreAudio AudioUnit I/O module (requires CoreAudio)" ON)
-option(USE_FLTK "Use FLTK for graphs and widget opcodes" ON)
-option(BUILD_VIRTUAL_KEYBOARD "Build Virtual MIDI keyboard" ON)
+option(USE_FLTK "Use FLTK for graphs and widget opcodes" OFF)
+option(BUILD_VIRTUAL_KEYBOARD "Build Virtual MIDI keyboard" OFF)
 
 list(APPEND CMAKE_REQUIRED_INCLUDES "/usr/local/include")
 

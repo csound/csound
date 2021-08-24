@@ -1,4 +1,3 @@
-option(BUILD_CHUA_OPCODES "Build the chua opcodes" ON)
 option(BUILD_DSSI_OPCODES "Build the DSSI opcodes" ON)
 option(BUILD_FLUID_OPCODES "Build the fluidsynth opcodes" ON)
 option(BUILD_JACK_OPCODES "Build the JACK related opcodes" ON)
@@ -154,15 +153,6 @@ endif()
 
 ## OPCODES WITH EXTERNAL DEPENDENCIES ##
 
-check_deps(BUILD_CHUA_OPCODES EIGEN3_FOUND)
-if(BUILD_CHUA_OPCODES)
-    make_plugin(chua chua/ChuaOscillator.cpp)
-    target_link_libraries(chua PRIVATE Eigen3::Eigen)
- if(APPLE)
-   set_target_properties(chua PROPERTIES COMPILE_FLAGS "-Wno-unused-local-typedef")
- endif()
-endif()
-
 check_deps(BUILD_DSSI_OPCODES LINUX)
 if(BUILD_DSSI_OPCODES)
     set(dssi_SRC dssi4cs/src/load.c dssi4cs/src/dssi4cs.c)
@@ -195,6 +185,8 @@ if(BUILD_JACK_OPCODES)
 endif()
 
 check_deps(BUILD_LINEAR_ALGEBRA_OPCODES USE_DOUBLE)
+
+find_package(GMM)
 if(BUILD_LINEAR_ALGEBRA_OPCODES AND GMM_FOUND)
     make_plugin(linear_algebra linear_algebra.cpp)
     target_include_directories(linear_algebra PRIVATE ${GMM_INCLUDE_DIR})

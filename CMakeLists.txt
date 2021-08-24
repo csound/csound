@@ -3,6 +3,13 @@ cmake_minimum_required(VERSION 3.5)
 set(CMAKE_MACOSX_RPATH 1)
 set(CMAKE_EXPORT_COMPILE_COMMANDS 1)
 
+# LINUX definition
+if(CMAKE_SYSTEM_NAME MATCHES "Linux")
+    set(LINUX YES)
+else()
+    set(LINUX NO)
+endif()
+
 project(Csound)
 
 ENABLE_TESTING()
@@ -24,6 +31,8 @@ set(CS_VERSION "6")
 set(CS_SUBVER "17")
 set(CS_PATCHLEVEL "0")
 
+message(STATUS "Csound version: ${CS_VERSION}.${CS_SUBVER}.${CS_PATCHLEVEL}")
+
 set(MACOSX_FRAMEWORK_BUNDLE_VERSION
 "${CS_VERSION}.${CS_SUBVER}.${CS_PATCHLEVEL}")
 
@@ -35,13 +44,11 @@ set(MACOSX_FRAMEWORK_IDENTIFIER
 
 # Relative install paths
 set(EXECUTABLE_INSTALL_DIR "bin")
-
 set(LOCALE_INSTALL_DIR "share/locale")
 set(HEADER_INSTALL_DIR "include/csound")
-
 set(SAMPLES_INSTALL_DIR "/samples")
+set(CS_FRAMEWORK_DEST "$ENV{HOME}/Library/Frameworks" CACHE PATH "Csound framework path")
 
-set(CS_FRAMEWORK_DEST "~/Library/Frameworks" CACHE PATH "Csound framework path")
 include(TestBigEndian)
 include(CheckFunctionExists)
 include(CheckIncludeFile)
@@ -92,7 +99,7 @@ endfunction(make_executable)
 # name - name of executable to produce
 # srcs - list of src files
 # libraries - OPTIONAL extra libraries to link
-
+#
 function(make_utility name srcs)
     make_executable(${name} "${srcs}" "${CSOUNDLIB}")
     add_dependencies(${name} ${CSOUNDLIB})
@@ -108,7 +115,9 @@ endfunction()
 # it will abort the cmake run.
 # If FAIL_MISSING is false, it will set the option to OFF.
 # If the target is not enabled, it will do nothing.
-# example: check_deps(BUILD_NEW_PARSER FLEX_EXECUTABLE BISON_EXECUTABLE)
+# example: check_deps(BUILD_NEW_PARSER FLEX_EXECUTABLE
+# BISON_EXECUTABLE)
+#
 function(check_deps option)
     if(${option})
         set(i 1)
@@ -139,10 +148,6 @@ endfunction(check_deps)
 option(USE_COMPILER_OPTIMIZATIONS "Use the default Csound compiler optimization flags" ON)
 if(USE_COMPILER_OPTIMIZATIONS)
 include(cmake/CompilerOptimizations.cmake)
-endif()
-
-if(APPLE)
-    set(OSX_VERSION " ")
 endif()
 
 ## USER OPTIONS ##
@@ -205,6 +210,7 @@ if(APPLE)
     endif()
 endif()
 
+# library installation directories
 option(USE_LIB64 "Set to on to set installation directory for libraries to lib64" OFF)
 if(USE_LIB64)
 	set(LIBRARY_INSTALL_DIR "${CMAKE_INSTALL_PREFIX}/lib64")
@@ -222,29 +228,12 @@ else()
     set(PLUGIN_INSTALL_DIR "${LIBRARY_INSTALL_DIR}/csound/plugins-${APIVERSION}")
 endif()
 
-if(APPLE) 
-  get_filename_component(JAVA_MODULE_INSTALL_DIR_DEFAULT "~/Library/Java/Extensions" ABSOLUTE)
-else()
-  set(JAVA_MODULE_INSTALL_DIR_DEFAULT ${LIBRARY_INSTALL_DIR})
-endif()
-
-set(JAVA_MODULE_INSTALL_DIR ${JAVA_MODULE_INSTALL_DIR_DEFAULT} CACHE PATH "Java module install dir")
-message(STATUS "JAVA_MODULE_INSTALL_DIR: ${JAVA_MODULE_INSTALL_DIR}")
-
-set(LUA_MODULE_INSTALL_DIR ${LIBRARY_INSTALL_DIR} CACHE PATH "Lua module install dir")
-
-# VL this is breaking CUDA compilation. It's not necessary
-#if(APPLE)
-#    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=gnu++11 -stdlib=libc++")
-#endif()
-
 if(WIN32 AND NOT MSVC)
     if(EXISTS "C:/MinGW/include")
         include_directories(C:/MinGW/include)
     else()
         MESSAGE(STATUS "MinGW include dir not found.")
     endif()
-
     set(CMAKE_MODULE_LINKER_FLAGS "${CMAKE_MODULE_LINKER_FLAGS} -Wl,--add-stdcall-alias")
 endif()
 
@@ -293,15 +282,10 @@ if(WIN32)
     endif()
 endif()
 
+# MacOS/IOS c++11 flags
 if(APPLE)
     set(CMAKE_CXX_FLAGS  "${CMAKE_CXX_FLAGS} -stdlib=libc++")
     set_target_properties(${CSOUNDLIB} PROPERTIES CXX_COMPILE_FLAGS  "-std=c++11")
-endif()
-
-if(CMAKE_SYSTEM_NAME MATCHES "Linux")
-    set(LINUX YES)
-else()
-    set(LINUX NO)
 endif()
 
 set(BUILD_DIR ${CMAKE_CURRENT_BINARY_DIR})
@@ -331,9 +315,7 @@ message(STATUS "Building for OSX")
   if(BUILD_INSTALLER)
     set(CS_FRAMEWORK_DEST "${CMAKE_INSTALL_PREFIX}")
   endif()
-
   set(DEFAULT_OSX_SYSROOT /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.8.sdk/)
-
  if(NOT CMAKE_OSX_SYSROOT AND EXISTS ${DEFAULT_OSX_SYSROOT})
     set(CMAKE_OSX_SYSROOT ${DEFAULT_OSX_SYSROOT})
  endif()
@@ -345,16 +327,15 @@ message(STATUS "Building for OSX")
   else()
     message(STATUS "OSX: Setting Deployment Target to ${CMAKE_OSX_DEPLOYMENT_TARGET}")
   endif()
-
+  
   set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -DHAVE_VECLIB")
-
   if(NOT VECLIB_PATH)
     set(VECLIB_PATH "/System/Library/Frameworks/")
   endif()
  endif()
-
 endif()
 
+# Set plugins install directory 
 if(USE_DOUBLE)
     if(APPLE)
         set(CSOUNDLIB "CsoundLib64")
@@ -371,6 +352,7 @@ else()
     endif()
 endif()
 
+# set default user plugin directory
 if(APPLE)
     if(BUILD_INSTALLER)
        	set(CS_FRAMEWORK_FULL_PATH "/Library/Frameworks/${CSOUNDLIB}.framework/Versions/${APIVERSION}/Resources/Opcodes64")
@@ -389,7 +371,7 @@ if(APPLE)
       set(DEFAULT_USER_PLUGINDIR
     "Library/csound/${APIVERSION}/plugins")
     endif()
-
+    
     add_definitions("-DCS_DEFAULT_USER_PLUGINDIR=\"${DEFAULT_USER_PLUGINDIR}\"")
 endif()
 
@@ -427,34 +409,21 @@ if(APPLE OR LINUX)
 message(STATUS "default plugin dir set to ${DEFAULT_OPCODEDIR}")
 endif()
 
-#if(USE_DOUBLE)
-#    set(BUILD_PLUGINS_DIR ${BUILD_DIR}/plugins64)
-#else()
-#    set(BUILD_PLUGINS_DIR ${BUILD_DIR}/plugins)
-#endif()
-
 set(BUILD_PLUGINS_DIR ${BUILD_DIR})
 set(BUILD_BIN_DIR ${BUILD_DIR})
 set(BUILD_LIB_DIR ${BUILD_DIR})
-
-#if(APPLE AND NOT ${CMAKE_GENERATOR} STREQUAL "Xcode")
-#    set(BUILD_PLUGINS_DIR ${BUILD_DIR}/${CSOUNDLIB}.framework/Versions/${APIVERSION}/Resources/Opcodes)
-#endif()
 
 message(STATUS "BUILD_BIN_DIR set to ${BUILD_BIN_DIR}.")
 message(STATUS "BUILD_LIB_DIR set to ${BUILD_LIB_DIR}.")
 message(STATUS "BUILD_PLUGINS_DIR set to ${BUILD_PLUGINS_DIR}.")
 
 # OS specific checks
-
 TEST_BIG_ENDIAN(BIG_ENDIAN)
 
 ## CONFIGURATION ##
-
 SET(BUILD_SHARED_LIBS ON)
 
 ## HEADER/LIBRARY/OTHER CHECKS ##
-
 # First, required stuff
 if(MSVC)
     find_package(SndFile CONFIG REQUIRED)
@@ -469,27 +438,11 @@ endif()
 find_package(CURL)
 set(FLTK_SKIP_OPENGL true)
 find_package(FLTK)
-#if (FLTK_FOUND AND MSVC)
-#    # If "SHARED" variants of FLTK libraries exist, use them.
-#    find_library(FLTK_SHARED_VARIANT "fltk_SHARED")
-#    message(STATUS "FLTK_SHARED_VARIANT:" ${FLTK_SHARED_VARIANT})
-#    if(FLTK_SHARED_VARIANT)
-#        message(STATUS "Using 'SHARED' variants of FLTK libraries.")
-#        LIST_REPLACE(FLTK_LIBRARIES 0 "fltk_SHARED")
-#        LIST_REPLACE(FLTK_LIBRARIES 1 "fltk_forms_SHARED")
-#        LIST_REPLACE(FLTK_LIBRARIES 2 "fltk_images_SHARED")
-#    endif()
-#endif()
-
 find_package(Java)
 find_package(JNI)
-find_package(MUSICXML)
-find_package(Python)
-find_package(VSTSDK2X)
-
-#if(MUSICXML_FOUND)
-#set(CMAKE_CXX_FLAGS "-DHAVE_MUSICXML2 ${CMAKE_CXX_FLAGS}")
-#endif()
+#find_package(MUSICXML)
+#find_package(Python)
+#find_package(VSTSDK2X)
 
 # TODO should this work for MSVC also?
 if(WIN32)
@@ -535,8 +488,7 @@ if(NOT MSVC AND REQUIRE_PTHREADS)
 endif()
 
 
-# Now, non required library searches #
-
+# Now, non required library searches 
 option(USE_ATOMIC_BUILTIN "Use Atomic Builtins if supported" ON)
 if(USE_ATOMIC_BUILTIN)
   include(cmake/CheckAtomic.cmake)
@@ -554,8 +506,6 @@ endif()
 
 find_library(VORBISFILE_LIBRARY vorbisfile)
 check_include_file(libintl.h LIBINTL_HEADER)
-find_package(Eigen3 3.3 NO_MODULE)
-find_package(GMM)
 find_library(LIBINTL_LIBRARY intl)
 find_package(Gettext)
 find_library(MATH_LIBRARY m)
@@ -667,11 +617,7 @@ if(REQUIRE_PTHREADS AND (PTHREAD_LIBRARY OR HAIKU))
   endif()
 endif()
 
-
-#if(WIN32)
-    include_directories(${LIBSNDFILE_INCLUDE_DIRECTORY})
-#endif(WIN32)
-
+include_directories(${LIBSNDFILE_INCLUDE_DIRECTORY})
 # get the git hash and pass it to csound
 SET(git_hash_values "none")
 if(USE_GIT_COMMIT)
@@ -1086,9 +1032,7 @@ endif()
 add_library(${CSOUNDLIB} SHARED ${libcsound_SRCS})
 set_target_properties(${CSOUNDLIB} PROPERTIES
     SOVERSION ${APIVERSION})
-
-
-
+    
 if(APPLE)
     set_target_properties(${CSOUNDLIB} PROPERTIES FRAMEWORK YES)
     set_target_properties(${CSOUNDLIB} PROPERTIES FRAMEWORK_VERSION "${APIVERSION}")
@@ -1097,35 +1041,6 @@ if(APPLE)
     )
 endif()
 
-# This copies libsndfile into the framework and sets the install names
-# of CsoundLib to refer to it.
-#if(APPLE AND NOT ${CMAKE_GENERATOR} STREQUAL "Xcode")
-
-#get_filename_component(source ${LIBSNDFILE_LIBRARY} REALPATH)
-#get_filename_component(depname ${source} NAME)
-
-#set(CSOUNDLIB_DIR ${BUILD_DIR}/${CSOUNDLIB}.framework/Versions/${APIVERSION})
-
-#if(NOT EXISTS ${CSOUNDLIB_DIR}/Resources/libs/${depname})
-#   add_custom_command(
-#       TARGET ${CSOUNDLIB}
-#       POST_BUILD
-#       COMMAND mkdir
-#       ARGS -p ${CSOUNDLIB_DIR}/Resources/libs
-#       COMMAND cp
-#       ARGS ${source} ${CSOUNDLIB_DIR}/Resources/libs/${depname}
-#       COMMAND ${CMAKE_INSTALL_NAME_TOOL}
-#       ARGS -id ${depname} ${CSOUNDLIB_DIR}/Resources/libs/${depname}
-#)
-#endif()
-
-#add_custom_command(
-#       TARGET ${CSOUNDLIB}
-#       POST_BUILD
-#       COMMAND ${CMAKE_INSTALL_NAME_TOOL}
-#       ARGS -change ${source} @loader_path/Resources/libs/${depname} ${CSOUNDLIB_DIR}/${CSOUNDLIB}
-#)
-#endif()
 
 # Utility function to make plugins. All plugin targets should use this as it
 # sets up output directory set in top-level CmakeLists.txt
