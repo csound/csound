@@ -144,6 +144,7 @@ cp $DEPS_BASE/lib/libvorbis.0.dylib $SUPPORT_LIBS_DIR
 cp $DEPS_BASE/lib/libogg.0.dylib $SUPPORT_LIBS_DIR
 cp $DEPS_BASE/lib/libfluidsynth.1.dylib $SUPPORT_LIBS_DIR
 cp $DEPS_BASE/lib/libwiiuse.dylib $SUPPORT_LIBS_DIR
+
  
 # chnage IDs
 #install_name_tool -id libfltk.1.3.dylib $SUPPORT_LIBS_DIR/libfltk.1.3.dylib
@@ -249,12 +250,12 @@ sudo chmod -R 755    CsoundApps64/Package_Contents/usr
 
 echo "building packages ..."
 
-pkgbuild --identifier com.csound.csound6Environment.csoundLib64 --root CsoundLib64/Package_Contents/ --version 1 --scripts ../../PkgResources/CsoundLib64 CsoundLib64.pkg
-pkgbuild --identifier com.csound.csound6Environment.csoundApps64 --root CsoundApps64/Package_Contents/ --version 1 --scripts ../../PkgResources/CsoundApps64 CsoundApps64.pkg
+pkgbuild --identifier com.csound.csound6Environment.csoundLib64 --root CsoundLib64/Package_Contents/ --version $CS_VERSION --scripts ../../PkgResources/CsoundLib64 CsoundLib64.pkg
+pkgbuild --identifier com.csound.csound6Environment.csoundApps64 --root CsoundApps64/Package_Contents/ --version $CS_VERSION --scripts ../../PkgResources/CsoundApps64 CsoundApps64.pkg
 
 echo "building product..."
 
-productbuild --distribution ../../Distribution2.dist --resources ../../PkgResources/en.lproj $PACKAGE_NAME
+productbuild --distribution ../../Distribution2.dist --resources ../../PkgResources/en.lproj --version $CS_VERSION  $PACKAGE_NAME
 
 echo "assembling DMG..."
 

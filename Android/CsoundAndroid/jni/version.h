@@ -24,6 +24,7 @@
 #ifndef CSOUND_VERSION_H
 #define CSOUND_VERSION_H
 
+/* Generated from CMake variables */
 #define VERSION "6.17"
 
 /* Define to the full name of this package. */
@@ -35,7 +36,7 @@
 /* Define to the one symbol short name of this package. */
 #define CS_PACKAGE_TARNAME  "csound"
 
-/* Define to the version of this package. */
+/* Define to the version of this package. Generated from CMake variables */
 #define CS_PACKAGE_VERSION  VERSION
 #define CS_VERSION          (6)
 #define CS_SUBVER           (17)
