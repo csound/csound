@@ -41,8 +41,6 @@
 ./Frontends/csound/csound_main.c
 ./Frontends/csound/sched.c
 ./Frontends/debugger/csdebugger.cpp
-./Frontends/winsound/main.cxx
-./Frontends/winsound/winsound.fl
 ./H/aops.h
 ./H/bus.h
 ./H/cmath.h
