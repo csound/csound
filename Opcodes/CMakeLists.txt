@@ -1,4 +1,3 @@
-option(BUILD_CHUA_OPCODES "Build the chua opcodes" ON)
 option(BUILD_DSSI_OPCODES "Build the DSSI opcodes" ON)
 option(BUILD_FLUID_OPCODES "Build the fluidsynth opcodes" ON)
 option(BUILD_JACK_OPCODES "Build the JACK related opcodes" ON)
@@ -154,15 +153,6 @@ endif()
 
 ## OPCODES WITH EXTERNAL DEPENDENCIES ##
 
-check_deps(BUILD_CHUA_OPCODES EIGEN3_FOUND)
-if(BUILD_CHUA_OPCODES)
-    make_plugin(chua chua/ChuaOscillator.cpp)
-    target_link_libraries(chua PRIVATE Eigen3::Eigen)
- if(APPLE)
-   set_target_properties(chua PROPERTIES COMPILE_FLAGS "-Wno-unused-local-typedef")
- endif()
-endif()
-
 check_deps(BUILD_DSSI_OPCODES LINUX)
 if(BUILD_DSSI_OPCODES)
     set(dssi_SRC dssi4cs/src/load.c dssi4cs/src/dssi4cs.c)
@@ -195,6 +185,8 @@ if(BUILD_JACK_OPCODES)
 endif()
 
 check_deps(BUILD_LINEAR_ALGEBRA_OPCODES USE_DOUBLE)
+
+find_package(GMM)
 if(BUILD_LINEAR_ALGEBRA_OPCODES AND GMM_FOUND)
     make_plugin(linear_algebra linear_algebra.cpp)
     target_include_directories(linear_algebra PRIVATE ${GMM_INCLUDE_DIR})
@@ -222,14 +214,11 @@ if(BUILD_OSC_OPCODES AND LIBLO_FOUND)
     else()
       target_link_libraries(osc ${LIBLO_LIBRARIES} pthread)
     endif()
-    add_dependency_to_framework(osc ${LIBLO_LIBRARIES})
 endif()
 
 check_deps(BUILD_WIIMOTE_OPCODES WIIUSE_H WIIUSE_LIB)
 if(BUILD_WIIMOTE_OPCODES)
     make_plugin(wiimote wiimote.c ${WIIUSE_LIB})
-    add_dependency_to_framework(wiimote ${WIIUSE_LIB})
-
 endif()
 
 if(BUILD_EXCITER_OPCODES)
@@ -279,7 +268,7 @@ endif()
 #endforeach(TARG)
 #endif()
 
-add_subdirectory(stk)
+
 add_subdirectory(cuda)
 add_subdirectory(opencl)
 add_subdirectory(hdf5)

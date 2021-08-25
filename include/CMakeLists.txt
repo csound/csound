@@ -5,6 +5,8 @@ list(APPEND csheaders ${csheaders_hpp})
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/float-version.h.in ${CMAKE_CURRENT_BINARY_DIR}/float-version.h)
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/version.h.in ${CMAKE_CURRENT_BINARY_DIR}/version.h)
 
+# copy version.h for Android
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/version.h.in ${CMAKE_SOURCE_DIR}/Android/CsoundAndroid/jni/version.h)
 
 # These don't live here... but we list them here to have all headers
 # in one place

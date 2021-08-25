@@ -24,7 +24,7 @@
 #ifndef CSOUND_VERSION_H
 #define CSOUND_VERSION_H
 
-/* Generated from CMake variables */
+/* Version string generated from CMake variables */
 #define VERSION "6.17"
 
 /* Define to the full name of this package. */
