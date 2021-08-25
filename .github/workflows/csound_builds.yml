@@ -85,8 +85,7 @@ jobs:
           submodules: true
       - name: Install system dependencies
         run: |
-          choco install swig -y --version=4.0.1 --allow-downgrade
-          choco install winflexbison -y
+          choco install -y winflexbison
       - name: Bootstrap VCPKG
         run: .\vcpkg\bootstrap-vcpkg.bat
       - name: Setup NuGet Credentials
