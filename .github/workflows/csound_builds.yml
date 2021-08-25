@@ -2,7 +2,7 @@ name: csound_builds
 
 env:
   VCPKG_BINARY_SOURCES: "clear;nuget,GitHub,readwrite"
-  CSOUND_VERSION: 6.16.2
+  CSOUND_VERSION: 6.17.0
 
 on:
   push:
