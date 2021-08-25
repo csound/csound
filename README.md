@@ -1,5 +1,5 @@
 # CSOUND
-Version 6.16.2
+Version 6.17.0 (beta)
 
 <!--- [![Build Status](https://travis-ci.org/csound/csound.svg?branch=develop)](https://travis-ci.org/csound/csound) --->
 ![Build Status](https://github.com/csound/csound/actions/workflows/csound_builds.yml/badge.svg?branch=develop)
