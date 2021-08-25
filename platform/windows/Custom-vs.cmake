@@ -60,14 +60,6 @@ set(CMAKE_VERBOSE_MAKEFILE ON)
 set(CMAKE_16BIT_TYPE "unsigned short")
 set(FAIL_MISSING OFF) # Enable when packaging
 
-
-# TEMPORARILY USE THE FOLLOWING SELF-BUILT PORTMIDI UNTIL VCPKG PROVIDES ONE
-# THAT IS UP TO DATE
-list(APPEND CMAKE_PREFIX_PATH "${PROJECT_SOURCE_DIR}\\msvc\\deps")
-set(CMAKE_REQUIRED_INCLUDES ${PROJECT_SOURCE_DIR}\\msvc\\deps\\include)
-
-# END CUSTOM PORTMIDI #
-
 # Disable the following warnings in msvc
 # - C4244 loss of data in conversion
 # - C4267 loss of data in conversion
@@ -78,4 +70,3 @@ set(CMAKE_REQUIRED_INCLUDES ${PROJECT_SOURCE_DIR}\\msvc\\deps\\include)
 # - C4477 format string type differences
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} /wd4244 /wd4267 /wd4005 /wd4996 /wd4047 /wd4090 /wd4477")
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /wd4244 /wd4267 /wd4005 /wd4996 /wd4047 /wd4090 /wd4477 /wd4251")
-
