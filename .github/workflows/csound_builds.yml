@@ -117,8 +117,6 @@ jobs:
           $Env:VCREDIST_CXXAMP_DIR="C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Redist\MSVC\${Env:RedistVersion}\x64\Microsoft.VC142.CXXAMP"
           $Env:VCREDIST_OPENMP_DIR="C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Redist\MSVC\${Env:RedistVersion}\x64\Microsoft.VC142.OpenMP"
           iscc /o. installer\\windows\\csound6_x64_github.iss
-          7z a csound-windows_x86_64-${{env.CSOUND_VERSION}}-${GITHUB_RUN_NUMBER}.zip ${Env:GITHUB_WORKSPACE}\build\Release\*.exe ${Env:GITHUB_WORKSPACE}\build\Release\csound64.lib ${Env:GITHUB_WORKSPACE}\build\include\ ${Env:GITHUB_WORKSPACE}\build\Release\*.dll ${Env:GITHUB_WORKSPACE}\build\Release\*.pyd ${Env:GITHUB_WORKSPACE}\build\*.jar ${Env:GITHUB_WORKSPACE}\build\*.py
-          7z l csound-windows_x86_64-${{env.CSOUND_VERSION}}-${GITHUB_RUN_NUMBER}.zip
       - name: Upload installer
         uses: actions/upload-artifact@v2
         with:
@@ -128,6 +126,13 @@ jobs:
       - name: Upload zip
         uses: actions/upload-artifact@v2
         with:
-          name: csound-windows_x86_64-${{env.CSOUND_VERSION}}-binaries.zip
-          path: ./csound-windows_x86_64-*.zip
+          name: csound-windows_x86_64-${{env.CSOUND_VERSION}}-${env.GITHUB_RUN_NUMBER}.zip
+          path: |
+            ${Env:GITHUB_WORKSPACE}\build\Release\*.exe
+            ${Env:GITHUB_WORKSPACE}\build\Release\csound64.lib
+            ${Env:GITHUB_WORKSPACE}\build\include\
+            ${Env:GITHUB_WORKSPACE}\build\Release\*.dll
+            ${Env:GITHUB_WORKSPACE}\build\Release\*.pyd
+            ${Env:GITHUB_WORKSPACE}\build\*.jar
+            ${Env:GITHUB_WORKSPACE}\build\*.py
           if-no-files-found: error
