@@ -22,17 +22,14 @@ jobs:
         uses: actions/checkout@v1
         with:
           fetch-depth: 1
-          submodules: true
-      - name: Bootstrap VCPKG
-        run: ./vcpkg/bootstrap-vcpkg.sh
       - name: Install Dependencies
-        run: sudo apt-get update && sudo apt-get install -y cmake default-jdk bison flex
+        run: sudo apt-get update && sudo apt-get install cmake libsndfile1-dev libasound2-dev libjack-dev portaudio19-dev libportmidi-dev libpulse-dev swig liblua5.1-0-dev default-jdk libfltk1.1-dev libfluidsynth-dev liblo-dev fluid ladspa-sdk libpng-dev dssi-dev libstk0-dev libgmm++-dev bison flex libportsmf-dev libeigen3-dev libcunit1-dev
       - name: Configure build
-        run: cmake -B build -S . -DUSE_VCPKG=1
+        run: mkdir build && cd build && cmake ..
       - name: Build Csound
-        run: cmake --build build
+        run: cd build && make
       - name: Run tests
-        run: cmake --build build --target csdtests
+        run: cd build && make test csdtests
 
   macos_build:
     name: MacOS build
