@@ -131,27 +131,3 @@ jobs:
         with:
           name: csound-windows_x86_64-${{env.CSOUND_VERSION}}-binaries.zip
           path: ./csound-windows_x86_64-*.zip
-# jobs:
-#   build:
-#     strategy:
-#       matrix:
-#         include:
-#           - name: Linux (Ubuntu latest)
-#             os: ubuntu-latest
-#             # install_dir: ~/libKeyFinder
-#             # cmake_extras: -DCMAKE_BUILD_TYPE=RelWithDebInfo
-
-#           - name: macOS (latest)
-#             os: macos-latest
-#             # install_dir: ~/libKeyFinder
-#             # cmake_extras: -DCMAKE_BUILD_TYPE=RelWithDebInfo
-
-#           - name: Windows (latest)
-#             os: windows-latest
-#             install_dir: C:\libKeyFinder
-#             cmake_extras: >-
-#               -DVCPKG_TARGET_TRIPLET=x64-windows-static
-#               -DCMAKE_TOOLCHAIN_FILE=C:\vcpkg\scripts\buildsystems\vcpkg.cmake
-#             cmake_config: --config RelWithDebInfo
-#             ctest_config: --build-config RelWithDebInfo
-
