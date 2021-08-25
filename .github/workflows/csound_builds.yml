@@ -125,8 +125,10 @@ jobs:
         with:
           name: csound-windows_x86_64-${{env.CSOUND_VERSION}}.exe
           path: ./csound-windows_x86_64-*.exe
+          if-no-files-found: error
       - name: Update zip
         uses: actions/upload-artifact@v2
         with:
           name: csound-windows_x86_64-${{env.CSOUND_VERSION}}-binaries.zip
           path: ./csound-windows_x86_64-*.zip
+          if-no-files-found: error
