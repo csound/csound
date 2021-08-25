@@ -126,7 +126,6 @@ Source: "{#ReleaseDir}\arrayops.dll"; DestDir: "{#APP_PLUGINS64}"; Flags: ignore
 Source: "{#ReleaseDir}\atsa.exe"; DestDir: "{#APP_BIN}"; Flags: ignoreversion; Components: core;
 Source: "{#ReleaseDir}\buchla.dll"; DestDir: "{#APP_PLUGINS64}"; Flags: ignoreversion; Components: core;
 Source: "{#ReleaseDir}\cellular.dll"; DestDir: "{#APP_PLUGINS64}"; Flags: ignoreversion; Components: core;
-Source: "{#ReleaseDir}\chua.dll"; DestDir: "{#APP_PLUGINS64}"; Flags: ignoreversion; Components: core;
 Source: "{#ReleaseDir}\cs.exe"; DestDir: "{#APP_BIN}"; Flags: ignoreversion skipifsourcedoesntexist; Components: core;
 Source: "{#ReleaseDir}\cs_date.dll"; DestDir: "{#APP_PLUGINS64}"; Flags: ignoreversion; Components: core;
 Source: "{#ReleaseDir}\csanalyze.exe"; DestDir: "{#APP_BIN}"; Flags: ignoreversion; Components: core;
@@ -192,10 +191,7 @@ Source: "{#ReleaseDir}\srconv.exe"; DestDir: "{#APP_BIN}"; Flags: ignoreversion;
 Source: "{#ReleaseDir}\src_conv.exe"; DestDir: "{#APP_BIN}"; Flags: ignoreversion; Components: core;
 Source: "{#ReleaseDir}\stackops.dll"; DestDir: "{#APP_PLUGINS64}"; Flags: ignoreversion; Components: core;
 Source: "{#ReleaseDir}\stdutil.dll"; DestDir: "{#APP_PLUGINS64}"; Flags: ignoreversion; Components: core;
-Source: "{#ReleaseDir}\stkops.dll"; DestDir: "{#APP_PLUGINS64}"; Flags: ignoreversion; Components: core;
 Source: "{#ReleaseDir}\system_call.dll"; DestDir: "{#APP_PLUGINS64}"; Flags: ignoreversion; Components: core;
-Source: "{#ReleaseDir}\virtual.dll"; DestDir: "{#APP_PLUGINS64}"; Flags: ignoreversion; Components: core;
-Source: "{#ReleaseDir}\widgets.dll"; DestDir: "{#APP_PLUGINS64}"; Flags: ignoreversion; Components: core;
 
 Source: "{#ReleaseDir}\glib-2.0-0.dll"; DestDir: "{#APP_BIN}"; Flags: ignoreversion; Components: core;
 Source: "{#ReleaseDir}\gtf.dll"; DestDir: "{#APP_BIN}"; Flags: ignoreversion; Components: core;
@@ -208,21 +204,6 @@ Source: "{#ReleaseDir}\pcre.dll"; DestDir: "{#APP_BIN}"; Flags: ignoreversion; C
 Source: "{#ReleaseDir}\portaudio.dll"; DestDir: "{#APP_BIN}"; Flags: ignoreversion; Components: core;
 Source: "{#ReleaseDir}\portmidi.dll"; DestDir: "{#APP_BIN}"; Flags: ignoreversion; Components: core;
 Source: "{#ReleaseDir}\zlib1.dll"; DestDir: "{#APP_BIN}"; Flags: ignoreversion; Components: core;
-
-;Source: "{#ReleaseDir}\FLAC.dll"; DestDir: "{#APP_PLUGINS64}"; Flags: ignoreversion; Components: core;
-;Source: "{#ReleaseDir}\hdf5.dll"; DestDir: "{#APP_PLUGINS64}"; Flags: ignoreversion; Components: core;
-;Source: "{#ReleaseDir}\jpeg62.dll"; DestDir: "{#APP_PLUGINS64}"; Flags: ignoreversion; Components: core;
-;Source: "{#ReleaseDir}\libcharset.dll"; DestDir: "{#APP_BIN}"; Flags: ignoreversion; Components: core;
-;Source: "{#ReleaseDir}\libfltk_forms_SHARED.dll"; DestDir: "{#APP_PLUGINS64}"; Flags: ignoreversion; Components: core;
-;Source: "{#ReleaseDir}\libfltk_images_SHARED.dll"; DestDir: "{#APP_PLUGINS64}"; Flags: ignoreversion; Components: core;
-;Source: "{#ReleaseDir}\libfltk_SHARED.dll"; DestDir: "{#APP_PLUGINS64}"; Flags: ignoreversion; Components: core;
-;Source: "{#ReleaseDir}\libpng16.dll"; DestDir: "{#APP_PLUGINS64}"; Flags: ignoreversion; Components: core;
-;Source: "{#ReleaseDir}\libsamplerate-0.dll"; DestDir: "{#APP_PLUGINS64}"; Flags: ignoreversion; Components: core;
-;Source: "{#ReleaseDir}\libsndfile-1.dll"; DestDir: "{#APP_PLUGINS64}"; Flags: ignoreversion; Components: core;
-;Source: "{#ReleaseDir}\ogg.dll"; DestDir: "{#APP_PLUGINS64}"; Flags: ignoreversion; Components: core;
-;Source: "{#ReleaseDir}\portaudio.dll"; DestDir: "{#APP_PLUGINS64}"; Flags: ignoreversion; Components: core;
-;Source: "{#ReleaseDir}\vorbis.dll"; DestDir: "{#APP_PLUGINS64}"; Flags: ignoreversion; Components: core;
-;Source: "{#ReleaseDir}\vorbisenc.dll"; DestDir: "{#APP_PLUGINS64}"; Flags: ignoreversion; Components: core;
 
 Source: "include\*.h"; DestDir: "{#APP_INCLUDE}\csound"; Flags: ignoreversion;  Components: core
 Source: "include\*.hpp"; DestDir: "{#APP_INCLUDE}\csound"; Flags: ignoreversion;  Components: core
