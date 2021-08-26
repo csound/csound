@@ -120,13 +120,13 @@ jobs:
       - name: Upload installer
         uses: actions/upload-artifact@v2
         with:
-          name: csound-windows_x86_64-${{env.CSOUND_VERSION}}.exe
+          name: csound-${{env.CSOUND_VERSION}}.${{github.run_number}}-windows-x64-installer
           path: ./csound-windows_x86_64-*.exe
           if-no-files-found: error
       - name: Upload zip
         uses: actions/upload-artifact@v2
         with:
-          name: csound-windows_x86_64-${{env.CSOUND_VERSION}}-${{github.run_number}}
+          name: csound-${{env.CSOUND_VERSION}}-${{github.run_number}}-windows-x64-binaries
           path: |
             ./build/Release/*.exe
             ./build/Release/*.dll
