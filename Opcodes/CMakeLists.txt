@@ -268,7 +268,5 @@ endif()
 #endforeach(TARG)
 #endif()
 
-
-add_subdirectory(hdf5)
 add_subdirectory(framebuffer)
 add_subdirectory(emugens)
