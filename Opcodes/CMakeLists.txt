@@ -151,14 +151,41 @@ if(LINUX)
     make_plugin(joystick linuxjoystick.c)
 endif()
 
-## OPCODES WITH EXTERNAL DEPENDENCIES ##
-
 check_deps(BUILD_DSSI_OPCODES LINUX)
 if(BUILD_DSSI_OPCODES)
     set(dssi_SRC dssi4cs/src/load.c dssi4cs/src/dssi4cs.c)
     make_plugin(dssi4cs "${dssi_SRC}" dl)
 endif()
 
+if(BUILD_EXCITER_OPCODES)
+    make_plugin(exciter exciter.c)
+endif()
+
+if(BUILD_BUCHLA_OPCODES)
+    make_plugin(buchla buchla.c)
+endif()
+
+check_deps(BUILD_P5GLOVE_OPCODES P5GLOVE_H)
+if(BUILD_P5GLOVE_OPCODES)
+    make_plugin(p5g p5glove.c ${P5GLOVE_LIB})
+endif()
+
+if(BUILD_SELECT_OPCODE)
+    make_plugin(select select.c)
+endif()
+
+if(BUILD_STACK_OPCODES)
+    make_plugin(stackops stackops.c)
+endif()
+
+if(BUILD_PVSGENDY_OPCODES)
+    make_plugin(pvsgendy pvsgendy.c)
+endif()
+
+add_subdirectory(framebuffer)
+add_subdirectory(emugens)
+
+## OPCODES WITH EXTERNAL DEPENDENCIES ##
 if(BUILD_FLUID_OPCODES AND FLUIDSYNTH_FOUND)
     make_plugin(fluidOpcodes fluidOpcodes/fluidOpcodes.cpp)
     target_include_directories(fluidOpcodes PRIVATE ${FLUIDSYNTH_INCLUDE_DIR})
@@ -221,52 +248,9 @@ if(BUILD_WIIMOTE_OPCODES)
     make_plugin(wiimote wiimote.c ${WIIUSE_LIB})
 endif()
 
-if(BUILD_EXCITER_OPCODES)
-    make_plugin(exciter exciter.c)
-endif()
-
-if(BUILD_BUCHLA_OPCODES)
-    make_plugin(buchla buchla.c)
-endif()
-
-check_deps(BUILD_P5GLOVE_OPCODES P5GLOVE_H)
-if(BUILD_P5GLOVE_OPCODES)
-    make_plugin(p5g p5glove.c ${P5GLOVE_LIB})
-endif()
-
-if(BUILD_SELECT_OPCODE)
-    make_plugin(select select.c)
-endif()
-
-if(BUILD_STACK_OPCODES)
-    make_plugin(stackops stackops.c)
-endif()
-
-if(BUILD_PVSGENDY_OPCODES)
-    make_plugin(pvsgendy pvsgendy.c)
-endif()
-
 check_deps(BUILD_MP3OUT_OPCODE LAME_HEADER)
 if(BUILD_MP3OUT_OPCODE)
     make_plugin(mp3out lame.c ${LAME_LIB})
 endif()
 
 
-# OGG Opcode previously was built only for OLPC
-#if(VORBISFILE_LIBRARY)
-#    set(vorbis_LIBS ${libcsound_LIBS} ${VORBISFILE_LIBRARY})
-#    make_plugin(ogg ogg.c "${vorbis_LIBS}")
-#endif()
-
-
-#if(APPLE)
-#foreach(TARG ampmidid doppler mixer signalflowgraph arrayops pvsops
-#ftsamplebank padsynth)
-#set_target_properties(${TARG} PROPERTIES COMPILE_FLAGS "-std=c++11
-#-stdlib=libc++"
-#   LINK_FLAGS "-std=c++11 -stdlib=libc++")
-#endforeach(TARG)
-#endif()
-
-add_subdirectory(framebuffer)
-add_subdirectory(emugens)
