@@ -270,6 +270,5 @@ endif()
 
 
 add_subdirectory(hdf5)
-add_subdirectory(websockets)
 add_subdirectory(framebuffer)
 add_subdirectory(emugens)
