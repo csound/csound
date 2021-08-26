@@ -128,11 +128,11 @@ jobs:
         with:
           name: csound-windows_x86_64-${{env.CSOUND_VERSION}}-${{env.GITHUB_RUN_NUMBER}}.zip
           path: |
-            /build/Release/*.exe
-            /build/Release/csound64.lib
-            /build/include/
-            /build/Release/*.dll
-            /build/Release/*.pyd
-            /build/*.jar
-            /build/*.py
+            ./build/Release/*.exe
+            ./build/Release/csound64.lib
+            ./build/include/
+            ./build/Release/*.dll
+            ./build/Release/*.pyd
+            ./build/*.jar
+            ./build/*.py
           if-no-files-found: error
