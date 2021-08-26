@@ -639,7 +639,7 @@ cd to csound build directory and run mingw32-make
 
 Windows Visual Studio <a name="msvs">
 --------------
-Instructions can be found [here](https://github.com/csound/csound/blob/develop/msvc).
+Instructions can be found [here](https://github.com/csound/csound/blob/develop/platform/windows/README.md).
 
 Android <a name="android">
 -------------- 
