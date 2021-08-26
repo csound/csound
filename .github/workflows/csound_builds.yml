@@ -125,10 +125,8 @@ jobs:
           if-no-files-found: error
       - name: Upload zip
         uses: actions/upload-artifact@v2
-        env:
-          GITHUB_RUN_NUMBER: ${GITHUB_RUN_NUMBER}
         with:
-          name: csound-windows_x86_64-${{env.CSOUND_VERSION}}-${{env.GITHUB_RUN_NUMBER}}
+          name: csound-windows_x86_64-${{env.CSOUND_VERSION}}-${{github.run_number}}
           path: |
             ./build/Release/*.exe
             ./build/Release/*.dll
