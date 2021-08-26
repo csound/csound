@@ -126,13 +126,13 @@ jobs:
       - name: Upload zip
         uses: actions/upload-artifact@v2
         with:
-          name: csound-windows_x86_64-${{env.CSOUND_VERSION}}-${env.GITHUB_RUN_NUMBER}.zip
+          name: csound-windows_x86_64-${{env.CSOUND_VERSION}}-${{env.GITHUB_RUN_NUMBER}}.zip
           path: |
-            build\Release\*.exe
-            build\Release\csound64.lib
-            build\include\*
-            build\Release\*.dll
-            build\Release\*.pyd
-            build\*.jar
-            build\*.py
+            ${{Env:GITHUB_WORKSPACE}}\build\Release\*.exe
+            ${{Env:GITHUB_WORKSPACE}}\build\Release\csound64.lib
+            ${{Env:GITHUB_WORKSPACE}}\build\include\*
+            ${{Env:GITHUB_WORKSPACE}}\build\Release\*.dll
+            ${{Env:GITHUB_WORKSPACE}}\build\Release\*.pyd
+            ${{Env:GITHUB_WORKSPACE}}\build\*.jar
+            ${{Env:GITHUB_WORKSPACE}}\build\*.py
           if-no-files-found: error
