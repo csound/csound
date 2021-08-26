@@ -13,7 +13,6 @@ option(BUILD_PADSYNTH_OPCODES "Build the Padsynth opcode" ON)
 option(BUILD_SCANSYN_OPCODES "Build the scansyn opcodes" ON)
 option(BUILD_SELECT_OPCODE "Build the select opcode" ON)
 option(BUILD_STACK_OPCODES "Build the stack opcodes" ON)
-option(BUILD_LINEAR_ALGEBRA_OPCODES "Build the linear algebra opcodes" ON)
 option(BUILD_PVSGENDY_OPCODE "Build the pvsgendy opcode" OFF)
 option(BUILD_MP3OUT_OPCODE "Build the mp3out opcode" ON)
 option(BUILD_COUNTER_OPCODES "Build the serial opcode" ON)
@@ -27,8 +26,6 @@ check_include_file(jack/jack.h JACK_HEADER)
 
 find_package(FLUIDSYNTH)
 find_package(LIBLO)
-find_package(ZLIB)
-find_package(PNG)
 
 check_include_file(wiiuse.h WIIUSE_H)
 find_library(WIIUSE_LIB wiiuse)
@@ -38,8 +35,6 @@ check_include_file(lame.h LAME_HEADER)
 find_library(LAME_LIB mp3lame)
 
 ## OPCODE LIBS WITH NO EXTERNAL DEPENDENCIES ##
-
-
 make_plugin(sterrain sterrain.c)
 make_plugin(cs_date date.c)
 make_plugin(system_call system_call.c)
@@ -48,11 +43,9 @@ make_plugin(fractalnoise tl/fractalnoise.cpp)
 make_plugin(ftsamplebank ftsamplebank.cpp)
 make_plugin(getftargs getftargs.c)
 make_plugin(liveconv liveconv.c)
-##make_plugin(zak zak.c)
 make_plugin(gtf gammatone.c)
 make_plugin(lfsr lfsr.cpp)
 make_plugin(bformdec2 bformdec2.cpp)
-
 make_plugin(fareygen fareygen.c)
 make_plugin(quadbezier quadbezier.c)
 
@@ -209,18 +202,6 @@ if(BUILD_JACK_OPCODES)
     set_target_properties(jacko PROPERTIES COMPILE_FLAGS
    "-std=c++11")
     make_plugin(jackTransport jackTransport.c "${jack_LIBS}")
-endif()
-
-check_deps(BUILD_LINEAR_ALGEBRA_OPCODES USE_DOUBLE)
-
-find_package(GMM)
-if(BUILD_LINEAR_ALGEBRA_OPCODES AND GMM_FOUND)
-    make_plugin(linear_algebra linear_algebra.cpp)
-    target_include_directories(linear_algebra PRIVATE ${GMM_INCLUDE_DIR})
-    if (MSVC)
-        target_compile_options(linear_algebra PRIVATE "/D_SCL_SECURE_NO_DEPRECATE")
-    endif()
-    message(STATUS "Building linear algebra opcodes")
 endif()
 
 if(BUILD_OSC_OPCODES AND LIBLO_FOUND)
