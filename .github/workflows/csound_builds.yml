@@ -126,11 +126,11 @@ jobs:
       - name: Upload zip
         uses: actions/upload-artifact@v2
         with:
-          name: csound-windows_x86_64-${{env.CSOUND_VERSION}}-${{env.GITHUB_RUN_NUMBER}}.zip
+          name: csound-windows_x86_64-${{env.CSOUND_VERSION}}-${{env.GITHUB_RUN_NUMBER}}
           path: |
             ./build/Release/*.exe
             ./build/Release/csound64.lib
-            ./build/include/
+            ./include/
             ./build/Release/*.dll
             ./build/Release/*.pyd
             ./build/*.jar
