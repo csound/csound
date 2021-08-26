@@ -1,4 +1,5 @@
 {
+    "$schema": "https://raw.githubusercontent.com/microsoft/vcpkg/master/scripts/vcpkg.schema.json",
     "name": "csound",
     "version-string": "6.16.2",
     "builtin-baseline": "261c458af6e3eed5d099144aff95d2b5035f656b",
