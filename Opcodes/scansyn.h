@@ -56,6 +56,13 @@ typedef struct {
     PSCSNU      *p;
 } PSCSNS;
 
+typedef struct {
+    OPDS        h;
+    MYFLT       *k_pos, *k_vel;
+    MYFLT       *i_id, *k_pamp, *k_vamp, *k_which;
+    PSCSNU      *p;
+} PSCSNMAP;
+
 /* *********************************** */
 /* *********************************** */
 /* EXPERIMENTAL VERSION -- John ffitch */
@@ -117,8 +124,7 @@ struct SCANSYN_GLOBALS_ {
     void        *scsnx_list;
 };
 
-extern int32_t
-scansynx_init_(CSOUND *);
+extern int32_t scansynx_init_(CSOUND *);
 
 static CS_NOINLINE SCANSYN_GLOBALS * scansyn_allocGlobals(CSOUND *csound)
 {

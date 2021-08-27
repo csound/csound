@@ -730,6 +730,35 @@ static int32_t scsns_play(CSOUND *csound, PSCSNS *p)
     return OK;
 }
 
+//======================================
+static int32_t scsnmap_init(CSOUND *csound, PSCSNMAP *p)
+{
+    /* Get corresponding update */
+    p->p = listget(csound, (int32_t)*p->i_id);
+    if (p->p == NULL) return NOTOK;
+    return OK;
+}
+
+static int32_t scsnmap(CSOUND *csound, PSCSNMAP *p)
+{
+    IGN(csound);
+    PSCSNU *pp = p->p;
+    *p->k_pos = *p->k_pamp * pp->x0[(int32_t)(*p->k_which)];
+    *p->k_vel = *p->k_vamp * pp->v[(int32_t)(*p->k_which)];
+    return OK;
+}
+
+static int32_t scsnsmap(CSOUND *csound, PSCSNMAP *p)
+{
+    IGN(csound);
+    PSCSNU *pp = p->p;
+    pp->x0[(int32_t)(*p->k_which)] = *p->k_pos/(*p->k_pamp);
+    pp->v[(int32_t)(*p->k_which)]  = *p->k_vel/(*p->k_vamp);
+    return OK;
+}
+
+//========================================================
+
 #define S(x)    sizeof(x)
 
 static OENTRY localops[] =
@@ -738,7 +767,12 @@ static OENTRY localops[] =
      (SUBR)scsnu_init1, (SUBR)scsnu_play},
    { "scanu2", S(PSCSNU),TR, 3, "", "iiiiiiikkkkiikkaii",
      (SUBR)scsnu_init2, (SUBR)scsnu_play },
-   { "scans", S(PSCSNS),TR, 3, "a","kkiio", (SUBR)scsns_init, (SUBR)scsns_play}
+   { "scans", S(PSCSNS),TR, 3, "a","kkiio", (SUBR)scsns_init, (SUBR)scsns_play},
+   { "scanmap", S(PSCSNMAP),TR, 3, "kk", "ikko",        (SUBR)scsnmap_init,
+     (SUBR)scsnmap,NULL },
+   { "scansmap", S(PSCSNMAP),TR, 3,"",   "kkikko",      (SUBR)scsnmap_init,
+     (SUBR)scsnsmap,NULL }
+
 };
 
 static int32_t scansyn_init_(CSOUND *csound)
@@ -746,6 +780,7 @@ static int32_t scansyn_init_(CSOUND *csound)
     return csound->AppendOpcodes(csound, &(localops[0]),
                                  (int32_t) (sizeof(localops) / sizeof(OENTRY)));
 }
+
 
 PUBLIC int32_t csoundModuleCreate(CSOUND *csound)
 {
