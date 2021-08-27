@@ -27,8 +27,6 @@ check_include_file(jack/jack.h JACK_HEADER)
 find_package(FLUIDSYNTH)
 find_package(LIBLO)
 
-check_include_file(wiiuse.h WIIUSE_H)
-find_library(WIIUSE_LIB wiiuse)
 check_include_file(p5glove.h P5GLOVE_H)
 find_library(P5GLOVE_LIB p5glove)
 
@@ -222,9 +220,5 @@ if(BUILD_OSC_OPCODES AND LIBLO_FOUND)
     endif()
 endif()
 
-check_deps(BUILD_WIIMOTE_OPCODES WIIUSE_H WIIUSE_LIB)
-if(BUILD_WIIMOTE_OPCODES)
-    make_plugin(wiimote wiimote.c ${WIIUSE_LIB})
-endif()
 
 
