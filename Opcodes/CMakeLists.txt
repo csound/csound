@@ -31,8 +31,6 @@ check_include_file(wiiuse.h WIIUSE_H)
 find_library(WIIUSE_LIB wiiuse)
 check_include_file(p5glove.h P5GLOVE_H)
 find_library(P5GLOVE_LIB p5glove)
-check_include_file(lame.h LAME_HEADER)
-find_library(LAME_LIB mp3lame)
 
 ## OPCODE LIBS WITH NO EXTERNAL DEPENDENCIES ##
 make_plugin(sterrain sterrain.c)
@@ -227,11 +225,6 @@ endif()
 check_deps(BUILD_WIIMOTE_OPCODES WIIUSE_H WIIUSE_LIB)
 if(BUILD_WIIMOTE_OPCODES)
     make_plugin(wiimote wiimote.c ${WIIUSE_LIB})
-endif()
-
-check_deps(BUILD_MP3OUT_OPCODE LAME_HEADER)
-if(BUILD_MP3OUT_OPCODE)
-    make_plugin(mp3out lame.c ${LAME_LIB})
 endif()
 
 
