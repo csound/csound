@@ -492,13 +492,21 @@ int32_t pvcross(CSOUND *csound, PVCROSS *p)
     /* accumulate phase and wrap to range -PI to PI */
     RewrapPhase(buf, asize, p->lastPhase);
 
-    if (specwp == 0 || (p->prFlg)++ == -(int32_t) specwp) {
+    //if (specwp == 0 || (p->prFlg)++ == -(int32_t) specwp) {
       /* ?screws up when prFlg used */
       /* specwp=0 => normal; specwp = -n => just nth frame */
-#ifdef BETA
-     if (specwp < 0)
-        csound->Message(csound, Str("PVOC debug: one frame gets through\n"));
-#endif
+
+    // #ifdef BETA
+    //  if (specwp < 0)
+    //    csound->Message(csound, Str("PVOC debug: one frame gets through\n"));
+    // #endif
+
+    /* Since the code just above is plain wrong, I am assuming
+      p->prFlg is only used to check if we are at the last frame
+      and we are trying to warp the spectrum.
+      Therefore I have adjusted the code accordingly
+    */
+    if(specwp == 0 || ((p->prFlg)++ != 0 && (int32_t) specwp)) {
       if (specwp > 0)
         PreWarpSpec(buf, asize, pex, (MYFLT *)p->memenv.auxp);
 
@@ -513,10 +521,10 @@ int32_t pvcross(CSOUND *csound, PVCROSS *p)
                sizeof(MYFLT) * buf2Size);
       if (specwp >= 0)
         ApplyHalfWin(buf2, p->window, buf2Size);
-    }
-    else {
-      memset(buf2, 0, buf2Size*sizeof(MYFLT));
-    }
+      }
+      else {
+        memset(buf2, 0, buf2Size*sizeof(MYFLT));
+      }
 
     addToCircBuf(buf2, p->outBuf, p->opBpos, CS_KSMPS, circBufSize);
     writeClrFromCircBuf(p->outBuf, ar, p->opBpos, CS_KSMPS, circBufSize);
