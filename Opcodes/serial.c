@@ -45,7 +45,8 @@
 #include "windows.h"
 #endif
 
-#include "csdl.h"
+#include "csoundCore.h"
+#include "interlocks.h"
 
 /* **************************************************
    As far as I can tell his should work on Windows

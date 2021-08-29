@@ -804,6 +804,7 @@ set(libcsound_SRCS
     Opcodes/exciter.c
     Opcodes/buchla.c
     Opcodes/select.c
+    Opcodes/serial.c
     Top/argdecode.c
     Top/csdebug.c
     Top/cscore_internal.c

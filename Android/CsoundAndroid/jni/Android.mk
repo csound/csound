@@ -245,6 +245,7 @@ $(CSOUND_SRC_ROOT)/Opcodes/cellular.c \
 $(CSOUND_SRC_ROOT)/Opcodes/exciter.c \
 $(CSOUND_SRC_ROOT)/Opcodes/buchla.c \
 $(CSOUND_SRC_ROOT)/Opcodes/select.c \
+$(CSOUND_SRC_ROOT)/Opcodes/serial.c \
 $(CSOUND_SRC_ROOT)/Engine/csound_orc_semantics.c \
 $(CSOUND_SRC_ROOT)/Engine/csound_orc_expressions.c \
 $(CSOUND_SRC_ROOT)/Engine/csound_orc_optimize.c \
