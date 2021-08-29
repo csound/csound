@@ -799,7 +799,8 @@ set(libcsound_SRCS
     Opcodes/gammatone.c
     Opcodes/fareygen.c
     Opcodes/quadbezier.c
-     Opcodes/framebuffer.c
+    Opcodes/framebuffer.c
+    Opcodes/cellular.c
     Top/argdecode.c
     Top/csdebug.c
     Top/cscore_internal.c

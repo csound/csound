@@ -4,7 +4,6 @@ option(BUILD_JACK_OPCODES "Build the JACK related opcodes" ON)
 option(BUILD_OSC_OPCODES "Build the OSC Opcodes" ON)
 option(BUILD_SERIAL_OPCODES "Build the serial opcode" ON)
 option(BUILD_PLATEREV_OPCODES "Build the platerev opcode" ON)
-option(BUILD_VST4CS_OPCODES "Build the vst4cs opcodes" OFF)
 option(BUILD_EXCITER_OPCODES "Build the exciter opcode" ON)
 option(BUILD_BUCHLA_OPCODES "Build the Buchla filter opcode" ON)
 option(BUILD_PADSYNTH_OPCODES "Build the Padsynth opcode" ON)
@@ -97,7 +96,25 @@ endif()
 endif()
 
 
-make_plugin(cellular cellular.c)
+if(BUILD_EXCITER_OPCODES)
+    make_plugin(exciter exciter.c)
+endif()
+
+if(BUILD_BUCHLA_OPCODES)
+    make_plugin(buchla buchla.c)
+endif()
+
+if(BUILD_SELECT_OPCODE)
+    make_plugin(select select.c)
+endif()
+
+if(BUILD_STACK_OPCODES)
+    make_plugin(stackops stackops.c)
+endif()
+
+if(BUILD_PVSGENDY_OPCODES)
+    make_plugin(pvsgendy pvsgendy.c)
+endif()
 
 if(BUILD_COUNTER_OPCODES)
    make_plugin(counter counter.c)
@@ -132,25 +149,7 @@ if(BUILD_DSSI_OPCODES)
     make_plugin(dssi4cs "${dssi_SRC}" dl)
 endif()
 
-if(BUILD_EXCITER_OPCODES)
-    make_plugin(exciter exciter.c)
-endif()
 
-if(BUILD_BUCHLA_OPCODES)
-    make_plugin(buchla buchla.c)
-endif()
-
-if(BUILD_SELECT_OPCODE)
-    make_plugin(select select.c)
-endif()
-
-if(BUILD_STACK_OPCODES)
-    make_plugin(stackops stackops.c)
-endif()
-
-if(BUILD_PVSGENDY_OPCODES)
-    make_plugin(pvsgendy pvsgendy.c)
-endif()
 
 add_subdirectory(emugens)
 
