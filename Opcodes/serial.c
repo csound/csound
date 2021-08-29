@@ -42,7 +42,7 @@
 #include <termios.h>  /* POSIX terminal control definitions */
 #include <sys/ioctl.h>
 #else
-#include "windows.h"
+#include "winsock2.h"
 #endif
 
 #include "csoundCore.h"
