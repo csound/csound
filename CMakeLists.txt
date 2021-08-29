@@ -808,6 +808,8 @@ set(libcsound_SRCS
     Opcodes/counter.c
     Opcodes/platerev.c
     Opcodes/pvsgendy.c
+    Opcodes/emugens/emugens.c
+    Opcodes/emugens/scugens.c
     Top/argdecode.c
     Top/csdebug.c
     Top/cscore_internal.c

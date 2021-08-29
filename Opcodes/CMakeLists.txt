@@ -111,9 +111,6 @@ if(BUILD_DSSI_OPCODES)
     make_plugin(dssi4cs "${dssi_SRC}" dl)
 endif()
 
-## opcodes contributed by third-party ##
-add_subdirectory(emugens)
-
 ## OPCODES WITH EXTERNAL DEPENDENCIES ##
 include(CheckIncludeFiles)
 
