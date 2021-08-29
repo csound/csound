@@ -7,9 +7,9 @@ option(BUILD_SCANSYN_OPCODES "Build the scansyn opcodes" ON)
 option(BUILD_STACK_OPCODES "Build the stack opcodes" ON)
 
 
-message(STATUS "## Building Opcodes ##")
+message(STATUS "## Building Plugin Opcodes ##")
 include(CheckIncludeFiles)
-check_include_file(ladspa.h LADSPA_H)
+
 find_library(JACK_LIBRARY jack)
 find_library(JACKDMP_LIBRARY jackdmp)
 check_include_file(jack/jack.h JACK_HEADER)
@@ -17,7 +17,7 @@ check_include_file(jack/jack.h JACK_HEADER)
 find_package(FLUIDSYNTH)
 find_package(LIBLO)
 
-## OPCODE LIBS WITH NO EXTERNAL DEPENDENCIES ##
+## CPP OPCODE LIBS WITH NO EXTERNAL DEPENDENCIES ##
 make_plugin(doppler doppler.cpp)
 make_plugin(fractalnoise tl/fractalnoise.cpp)
 make_plugin(ftsamplebank ftsamplebank.cpp)
@@ -88,17 +88,14 @@ else()
 endif()
 endif()
 
-
-if(BUILD_STACK_OPCODES)
-    make_plugin(stackops stackops.c)
-endif()
-
+## opcodes with special licence conditions ##
 if(BUILD_SCANSYN_OPCODES)
     set(scansyn_SRCS
         scansyn.c scansynx.c)
     make_plugin(scansyn "${scansyn_SRCS}" ${MATH_LIBRARY})
 endif()
 
+## platform-dependent opcodes ##
 if(UNIX)
     make_plugin(control control.c)
     make_plugin(urandom urandom.c)
@@ -110,12 +107,12 @@ endif()
 
 check_deps(BUILD_DSSI_OPCODES LINUX)
 if(BUILD_DSSI_OPCODES)
+    check_include_file(ladspa.h LADSPA_H)
     set(dssi_SRC dssi4cs/src/load.c dssi4cs/src/dssi4cs.c)
     make_plugin(dssi4cs "${dssi_SRC}" dl)
 endif()
 
-
-
+## opcodes contributed by third-party ##
 add_subdirectory(emugens)
 
 ## OPCODES WITH EXTERNAL DEPENDENCIES ##
@@ -164,5 +161,7 @@ if(BUILD_OSC_OPCODES AND LIBLO_FOUND)
     endif()
 endif()
 
-
-
+## deprecated opcodes ##
+if(BUILD_STACK_OPCODES)
+    make_plugin(stackops stackops.c)
+endif()
