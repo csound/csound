@@ -135,6 +135,8 @@ Source: "{#ReleaseDir}\csdebugger.exe"; DestDir: "{#APP_BIN}"; Flags: ignorevers
 Source: "{#ReleaseDir}\csnd6.dll"; DestDir: "{#APP_BIN}"; Flags: ignoreversion; Components: core;
 Source: "{#ReleaseDir}\csound.exe"; DestDir: "{#APP_BIN}"; Flags: ignoreversion; Components: core;
 Source: "{#ReleaseDir}\csnd6.dll"; DestDir: "{#APP_BIN}"; Flags: ignoreversion; Components: core;
+Source: "{#ReleaseDir}\csnd6.lib"; DestDir: "{#APP_LIB}"; Flags: ignoreversion; Components: core;
+Source: "{#ReleaseDir}\libcsnd6.lib"; DestDir: "{#APP_LIB}"; Flags: ignoreversion; Components: core;
 Source: "{#ReleaseDir}\csound64.dll"; DestDir: "{#APP_BIN}"; Flags: ignoreversion; Components: core;
 Source: "{#ReleaseDir}\csound64.lib"; DestDir: "{#APP_LIB}"; Flags: ignoreversion; Components: core;
 Source: "{#ReleaseDir}\libcsound64.lib"; DestDir: "{#APP_LIB}"; Flags: ignoreversion; Components: core;
@@ -216,6 +218,7 @@ Source: "samples\*.*"; DestDir: "{#APP_SAMPLES}"; Flags: ignoreversion recursesu
 
 Source: "build\vcpkg_installed\x64-windows-csound\share\libstk\rawwaves\*.*"; DestDir: "{#APP_SAMPLES}"; Flags: ignoreversion recursesubdirs;  Components: core
 Source: "{#BuildRoot}\include\float-version.h"; DestDir: "{#APP_INCLUDE}\csound"; Flags: ignoreversion;  Components: core
+Source: "{#BuildRoot}\include\version.h"; DestDir: "{#APP_INCLUDE}\csound"; Flags: ignoreversion;  Components: core
 Source: "{#ManualSourceDir}\*.*"; DestDir: "{#APP_MANUAL}"; Flags: ignoreversion recursesubdirs; Components: core
 
 [Icons]
