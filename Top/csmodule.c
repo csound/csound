@@ -1091,6 +1091,7 @@ extern long framebuffer_localops_init(CSOUND *, void *);
 extern long cell_localops_init(CSOUND *, void *);
 extern long exciter_localops_init(CSOUND *, void *);
 extern long buchla_localops_init(CSOUND *, void *);
+extern long select_localops_init(CSOUND *, void *);
 
 extern int stdopc_ModuleInit(CSOUND *csound);
 extern int pvsopc_ModuleInit(CSOUND *csound);
@@ -1133,6 +1134,7 @@ const INITFN staticmodules[] = { hrtfopcodes_localops_init, babo_localops_init,
                                  liveconv_localops_init, gamma_localops_init,
                                  framebuffer_localops_init, cell_localops_init,
                                  exciter_localops_init, buchla_localops_init,
+                                 select_localops_init,
                                  NULL };
 
 typedef NGFENS* (*FGINITFN)(CSOUND *);

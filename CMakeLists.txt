@@ -803,6 +803,7 @@ set(libcsound_SRCS
     Opcodes/cellular.c
     Opcodes/exciter.c
     Opcodes/buchla.c
+    Opcodes/select.c
     Top/argdecode.c
     Top/csdebug.c
     Top/cscore_internal.c

@@ -6,7 +6,6 @@ option(BUILD_SERIAL_OPCODES "Build the serial opcode" ON)
 option(BUILD_PLATEREV_OPCODES "Build the platerev opcode" ON)
 option(BUILD_PADSYNTH_OPCODES "Build the Padsynth opcode" ON)
 option(BUILD_SCANSYN_OPCODES "Build the scansyn opcodes" ON)
-option(BUILD_SELECT_OPCODE "Build the select opcode" ON)
 option(BUILD_STACK_OPCODES "Build the stack opcodes" ON)
 option(BUILD_PVSGENDY_OPCODE "Build the pvsgendy opcode" OFF)
 option(BUILD_COUNTER_OPCODES "Build the serial opcode" ON)
@@ -92,10 +91,6 @@ else()
 endif()
 endif()
 
-
-if(BUILD_SELECT_OPCODE)
-    make_plugin(select select.c)
-endif()
 
 if(BUILD_STACK_OPCODES)
     make_plugin(stackops stackops.c)
