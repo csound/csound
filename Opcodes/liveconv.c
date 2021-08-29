@@ -23,7 +23,8 @@
 
 /* The implementation is indebted to the ftconv opcode by Istvan Varga 2005 */
 
-#include "csdl.h"
+#include "csoundCore.h"
+#include "interlocks.h"
 #include <math.h>
 
 /*
@@ -506,7 +507,7 @@ static int32_t liveconv_perf(CSOUND *csound, liveconv_t *p)
 
 /* module interface functions */
 
-static OENTRY localops[] = {
+static OENTRY liveconv_localops[] = {
   {
     "liveconv",             // name of opcode
     sizeof(liveconv_t),     // data size of state block
@@ -518,4 +519,4 @@ static OENTRY localops[] = {
   }
 };
 
-LINKAGE
+LINKAGE_BUILTIN(liveconv_localops)

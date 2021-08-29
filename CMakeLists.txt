@@ -794,6 +794,7 @@ set(libcsound_SRCS
     Opcodes/lufs.c
     Opcodes/date.c
     Opcodes/system_call.c
+    Opcodes/liveconv.c
     Opcodes/sterrain.c
     Top/argdecode.c
     Top/csdebug.c
