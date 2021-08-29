@@ -1,7 +1,5 @@
 /*
-    stackops.c:
-
-    Copyright (C) 2006 Istvan Varga
+    deprecated.c: various deprecated opcodes 
 
     This file is part of Csound.
 
@@ -25,6 +23,9 @@
 #include "interlocks.h"
 #include "pstream.h"
 
+/**    
+ stackops: copyright (C) 2006 Istvan Varga
+*/
 static int32_t STR_ARG_P(CSOUND *csound, void* arg) {
     CS_TYPE *cs_type = csound->GetTypeForArg(arg);
     if (strcmp("S", cs_type->varTypeName) == 0) {

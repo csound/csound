@@ -4,19 +4,22 @@ option(BUILD_JACK_OPCODES "Build the JACK related opcodes" ON)
 option(BUILD_OSC_OPCODES "Build the OSC Opcodes" ON)
 option(BUILD_PADSYNTH_OPCODES "Build the Padsynth opcode" ON)
 option(BUILD_SCANSYN_OPCODES "Build the scansyn opcodes" ON)
-option(BUILD_STACK_OPCODES "Build the stack opcodes" ON)
+option(BUILD_DEPRECATED_OPCODES "Build deprecated opcodes" ON)
 
+##########################################
+## Plugin opcodes are in the following categories ##
+# 1) opcodes in C++ with no external dependencies
+# 2) opcodes with special licensing conditions
+# 3) platform-specific opcodes
+# 4) opcodes with external dependencies
+# 5) deprecated opcodes
+#
+#  if an opcode is not in one of the categories above,
+#  it should be added with BUILTIN linkage
+#  (i.e. not as plugins)
+##########################################
 
 message(STATUS "## Building Plugin Opcodes ##")
-include(CheckIncludeFiles)
-
-find_library(JACK_LIBRARY jack)
-find_library(JACKDMP_LIBRARY jackdmp)
-check_include_file(jack/jack.h JACK_HEADER)
-
-find_package(FLUIDSYNTH)
-find_package(LIBLO)
-
 ## CPP OPCODE LIBS WITH NO EXTERNAL DEPENDENCIES ##
 make_plugin(doppler doppler.cpp)
 make_plugin(fractalnoise tl/fractalnoise.cpp)
@@ -26,10 +29,6 @@ make_plugin(bformdec2 bformdec2.cpp)
 make_plugin(mixer mixer.cpp)
 make_plugin(signalflowgraph signalflowgraph.cpp)
 make_plugin(ampmidid ampmidid.cpp)
-
-
-## Experimental opcode -- JPFF
-## make_plugin(mverb MV.c)
 
 if(APPLE)
    make_plugin(arrayops arrayops.cpp)
@@ -116,12 +115,18 @@ endif()
 add_subdirectory(emugens)
 
 ## OPCODES WITH EXTERNAL DEPENDENCIES ##
+include(CheckIncludeFiles)
+
+find_package(FLUIDSYNTH)
 if(BUILD_FLUID_OPCODES AND FLUIDSYNTH_FOUND)
     make_plugin(fluidOpcodes fluidOpcodes/fluidOpcodes.cpp)
     target_include_directories(fluidOpcodes PRIVATE ${FLUIDSYNTH_INCLUDE_DIR})
     target_link_libraries(fluidOpcodes ${FLUIDSYNTH_LIBRARIES})
 endif()
 
+find_library(JACK_LIBRARY jack)
+find_library(JACKDMP_LIBRARY jackdmp)
+check_include_file(jack/jack.h JACK_HEADER)
 set(JACK_LIB ${JACK_LIBRARY})
 if(NOT JACK_LIB)
   set(JACK_LIB ${JACKDMP_LIBRARY})
@@ -141,6 +146,7 @@ if(BUILD_JACK_OPCODES)
     make_plugin(jackTransport jackTransport.c "${jack_LIBS}")
 endif()
 
+find_package(LIBLO)
 if(BUILD_OSC_OPCODES AND LIBLO_FOUND)
     make_plugin(osc OSC.c)
     if(WIN32)
@@ -162,6 +168,6 @@ if(BUILD_OSC_OPCODES AND LIBLO_FOUND)
 endif()
 
 ## deprecated opcodes ##
-if(BUILD_STACK_OPCODES)
-    make_plugin(stackops stackops.c)
+if(BUILD_DEPRECATED_OPCODES)
+    make_plugin(deprecated deprecated.c)
 endif()
