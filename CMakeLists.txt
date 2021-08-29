@@ -798,6 +798,8 @@ set(libcsound_SRCS
     Opcodes/sterrain.c
     Opcodes/gammatone.c
     Opcodes/fareygen.c
+    Opcodes/quadbezier.c
+     Opcodes/framebuffer.c
     Top/argdecode.c
     Top/csdebug.c
     Top/cscore_internal.c

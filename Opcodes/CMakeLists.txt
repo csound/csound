@@ -30,7 +30,6 @@ make_plugin(fractalnoise tl/fractalnoise.cpp)
 make_plugin(ftsamplebank ftsamplebank.cpp)
 make_plugin(lfsr lfsr.cpp)
 make_plugin(bformdec2 bformdec2.cpp)
-make_plugin(quadbezier quadbezier.c)
 
 ## Experimental opcode -- JPFF
 ## make_plugin(mverb MV.c)
@@ -153,7 +152,6 @@ if(BUILD_PVSGENDY_OPCODES)
     make_plugin(pvsgendy pvsgendy.c)
 endif()
 
-add_subdirectory(framebuffer)
 add_subdirectory(emugens)
 
 ## OPCODES WITH EXTERNAL DEPENDENCIES ##
