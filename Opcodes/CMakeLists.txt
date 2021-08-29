@@ -2,7 +2,6 @@ option(BUILD_DSSI_OPCODES "Build the DSSI opcodes" ON)
 option(BUILD_FLUID_OPCODES "Build the fluidsynth opcodes" ON)
 option(BUILD_JACK_OPCODES "Build the JACK related opcodes" ON)
 option(BUILD_OSC_OPCODES "Build the OSC Opcodes" ON)
-option(BUILD_PLATEREV_OPCODES "Build the platerev opcode" ON)
 option(BUILD_PADSYNTH_OPCODES "Build the Padsynth opcode" ON)
 option(BUILD_SCANSYN_OPCODES "Build the scansyn opcodes" ON)
 option(BUILD_STACK_OPCODES "Build the stack opcodes" ON)
@@ -98,9 +97,6 @@ if(BUILD_PVSGENDY_OPCODES)
     make_plugin(pvsgendy pvsgendy.c)
 endif()
 
-if(BUILD_PLATEREV_OPCODES)
-  make_plugin(platerev platerev.c ${MATH_LIBRARY})
-endif()
 
 if(BUILD_SCANSYN_OPCODES)
     set(scansyn_SRCS
