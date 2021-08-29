@@ -1073,17 +1073,17 @@ extern long pvlock_localops_init(CSOUND *, void *);
 extern long fareyseq_localops_init(CSOUND *, void *);
 extern long cpumeter_localops_init(CSOUND *, void *);
 extern long scnoise_localops_init(CSOUND *, void *);
-#ifndef NACL
 extern long socksend_localops_init(CSOUND *, void *);
 extern long mp3in_localops_init(CSOUND *, void *);
 extern long sockrecv_localops_init(CSOUND *, void *);
-#endif
 extern long afilts_localops_init(CSOUND *, void *);
 extern long pinker_localops_init(CSOUND *, void *);
 extern long paulstretch_localops_init(CSOUND *, void *);
 extern long wpfilters_localops_init(CSOUND *, void *);
 extern long zak_localops_init(CSOUND *, void *);
 extern long lufs_localops_init(CSOUND *, void *);
+extern long sterrain_localops_init(CSOUND *, void *);
+
 
 extern int stdopc_ModuleInit(CSOUND *csound);
 extern int pvsopc_ModuleInit(CSOUND *csound);
