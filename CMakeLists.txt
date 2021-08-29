@@ -807,6 +807,7 @@ set(libcsound_SRCS
     Opcodes/serial.c
     Opcodes/counter.c
     Opcodes/platerev.c
+    Opcodes/pvsgendy.c
     Top/argdecode.c
     Top/csdebug.c
     Top/cscore_internal.c

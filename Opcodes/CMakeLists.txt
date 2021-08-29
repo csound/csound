@@ -5,7 +5,7 @@ option(BUILD_OSC_OPCODES "Build the OSC Opcodes" ON)
 option(BUILD_PADSYNTH_OPCODES "Build the Padsynth opcode" ON)
 option(BUILD_SCANSYN_OPCODES "Build the scansyn opcodes" ON)
 option(BUILD_STACK_OPCODES "Build the stack opcodes" ON)
-option(BUILD_PVSGENDY_OPCODE "Build the pvsgendy opcode" OFF)
+
 
 message(STATUS "## Building Opcodes ##")
 include(CheckIncludeFiles)
@@ -92,11 +92,6 @@ endif()
 if(BUILD_STACK_OPCODES)
     make_plugin(stackops stackops.c)
 endif()
-
-if(BUILD_PVSGENDY_OPCODES)
-    make_plugin(pvsgendy pvsgendy.c)
-endif()
-
 
 if(BUILD_SCANSYN_OPCODES)
     set(scansyn_SRCS
