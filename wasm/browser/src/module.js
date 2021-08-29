@@ -152,7 +152,8 @@ export default async function ({ wasmDataURI, withPlugins = [], messagePort }) {
       0,
     ) / PAGE_SIZE,
   );
-  const totalInitialMemory = initialMemory + pluginsMemory + fixedMemoryBase;
+  const stackSize = 4 * 1024 / 64
+  const totalInitialMemory = initialMemory + pluginsMemory + fixedMemoryBase + stackSize;
 
   const memory = new WebAssembly.Memory({
     initial: totalInitialMemory,
@@ -162,7 +163,7 @@ export default async function ({ wasmDataURI, withPlugins = [], messagePort }) {
 
   const stackPointer = new WebAssembly.Global(
     { value: "i32", mutable: true },
-    totalInitialMemory * PAGE_SIZE,
+    (totalInitialMemory - stackSize) * PAGE_SIZE,
   );
   const heapBase = new WebAssembly.Global(
     { value: "i32", mutable: true },
