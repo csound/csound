@@ -1030,6 +1030,17 @@ void print_opcodedir_warning(CSOUND *p)
 #endif
 }
 
+/**
+ Builtin linkage for C opcodes - Instructions:
+ - use csoundCore.h instead of csdl.h.
+ - name the OENTRY array <name>, where <name> is any arbitrary name.
+ - add the macro LINKAGE_BUILTIN(<name>) to the end of the file.
+ - append the init function prototype below
+   extern long <name>_init(CSOUND *, void *);
+ - append the init function name <name>_init to the
+   staticmodules[] array initialisation.
+ - insert source code to libcsound_SRCS in../CMakeLists.txt 
+*/
 typedef long (*INITFN)(CSOUND *, void *);
 
 extern long babo_localops_init(CSOUND *, void *);
@@ -1146,6 +1157,17 @@ const INITFN staticmodules[] = { hrtfopcodes_localops_init, babo_localops_init,
                                  scugens_localops_init,
                                  NULL };
 
+/**
+ Builtin linkage for C fgens - Instructions:
+ - use csoundCore.h instead of csdl.h.
+ - name the NGFENS array <name>, where <name> is any arbitrary name.
+ - add the macro FLINKAGE_BUILTIN(<name>) to the end of the file.
+ - append the init function prototype below
+   NGFENS* <name>_init(CSOUND *);
+ - append the init function name <name>_init to the
+   ftgenab[] array initialisation.
+ - insert source code to libcsound_SRCS in../CMakeLists.txt 
+*/
 typedef NGFENS* (*FGINITFN)(CSOUND *);
 
 NGFENS *ftest_fgens_init(CSOUND *);

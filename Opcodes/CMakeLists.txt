@@ -17,6 +17,7 @@ option(BUILD_DEPRECATED_OPCODES "Build deprecated opcodes" ON)
 #  if an opcode is not in one of the categories above,
 #  it should be added with BUILTIN linkage
 #  (i.e. not as plugins)
+#  See instructions in ../Top/csmodule.c
 ##########################################
 
 message(STATUS "## Building Plugin Opcodes ##")
