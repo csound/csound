@@ -25,11 +25,9 @@ find_package(FLUIDSYNTH)
 find_package(LIBLO)
 
 ## OPCODE LIBS WITH NO EXTERNAL DEPENDENCIES ##
-make_plugin(system_call system_call.c)
 make_plugin(doppler doppler.cpp)
 make_plugin(fractalnoise tl/fractalnoise.cpp)
 make_plugin(ftsamplebank ftsamplebank.cpp)
-make_plugin(getftargs getftargs.c)
 make_plugin(liveconv liveconv.c)
 make_plugin(gtf gammatone.c)
 make_plugin(lfsr lfsr.cpp)
