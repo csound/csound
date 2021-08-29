@@ -30,7 +30,6 @@ make_plugin(fractalnoise tl/fractalnoise.cpp)
 make_plugin(ftsamplebank ftsamplebank.cpp)
 make_plugin(lfsr lfsr.cpp)
 make_plugin(bformdec2 bformdec2.cpp)
-make_plugin(fareygen fareygen.c)
 make_plugin(quadbezier quadbezier.c)
 
 ## Experimental opcode -- JPFF

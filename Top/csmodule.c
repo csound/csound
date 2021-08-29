@@ -1086,6 +1086,7 @@ extern long date_localops_init(CSOUND *, void *);
 extern long system_localops_init(CSOUND *, void *);
 extern long liveconv_localops_init(CSOUND *, void *);
 extern long gamma_localops_init(CSOUND *, void *);
+extern long farey_fgens_init(CSOUND *, void *);
 
 extern int stdopc_ModuleInit(CSOUND *csound);
 extern int pvsopc_ModuleInit(CSOUND *csound);
@@ -1126,6 +1127,7 @@ const INITFN staticmodules[] = { hrtfopcodes_localops_init, babo_localops_init,
                                  lufs_localops_init, sterrain_localops_init,
                                  date_localops_init, system_localops_init,
                                  liveconv_localops_init, gamma_localops_init,
+                                 farey_fgens_init,
                                  NULL };
 
 typedef NGFENS* (*FGINITFN)(CSOUND *);

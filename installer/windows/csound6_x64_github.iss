@@ -146,8 +146,7 @@ Source: "{#ReleaseDir}\emugens.dll"; DestDir: "{#APP_PLUGINS64}"; Flags: ignorev
 Source: "{#ReleaseDir}\envext.exe"; DestDir: "{#APP_BIN}"; Flags: ignoreversion; Components: core;
 Source: "{#ReleaseDir}\exciter.dll"; DestDir: "{#APP_PLUGINS64}"; Flags: ignoreversion; Components: core;
 Source: "{#ReleaseDir}\extract.exe"; DestDir: "{#APP_BIN}"; Flags: ignoreversion; Components: core;
-Source: "{#ReleaseDir}\extractor.exe"; DestDir: "{#APP_BIN}"; Flags: ignoreversion; Components: core;
-Source: "{#ReleaseDir}\fareygen.dll"; DestDir: "{#APP_PLUGINS64}"; Flags: ignoreversion; Components: core;
+Source: "{#ReleaseDir}\extractor.exe"; DestDir: "{#APP_BIN}"; Flags: ignoreversion; Components: core
 Source: "{#ReleaseDir}\fluidOpcodes.dll"; DestDir: "{#APP_PLUGINS64}"; Flags: ignoreversion; Components: core;
 Source: "{#ReleaseDir}\fractalnoise.dll"; DestDir: "{#APP_PLUGINS64}"; Flags: ignoreversion; Components: core;
 Source: "{#ReleaseDir}\framebuffer.dll"; DestDir: "{#APP_PLUGINS64}"; Flags: ignoreversion; Components: core;
