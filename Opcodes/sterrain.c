@@ -199,13 +199,9 @@ static int32_t wtPerf(CSOUND *csound, SUPERTER *p)
 
 #define S(x)    sizeof(x)
 
-static OENTRY localops[] = {
+static OENTRY sterrain_localops[] = {
   { "sterrain", S(SUPERTER), TR, 3,  "a", "kkkkkkkkkkkkkkkkk",
     (SUBR)wtinit, (SUBR)wtPerf },
 };
 
-int32_t sterrain_localops_init(CSOUND *csound)
-{
-  return csound->AppendOpcodes(csound, &(localops[0]),
-                               (int32_t) (sizeof(localops) / sizeof(OENTRY)));
-}
+LINKAGE_BUILTIN(sterrain_localops)

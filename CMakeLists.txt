@@ -792,6 +792,7 @@ set(libcsound_SRCS
     Opcodes/wpfilters.c
     Opcodes/zak.c
     Opcodes/lufs.c
+    Opcodes/date.c
     Opcodes/sterrain.c
     Top/argdecode.c
     Top/csdebug.c
