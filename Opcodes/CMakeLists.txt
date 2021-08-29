@@ -4,7 +4,6 @@ option(BUILD_JACK_OPCODES "Build the JACK related opcodes" ON)
 option(BUILD_OSC_OPCODES "Build the OSC Opcodes" ON)
 option(BUILD_SERIAL_OPCODES "Build the serial opcode" ON)
 option(BUILD_PLATEREV_OPCODES "Build the platerev opcode" ON)
-option(BUILD_BUCHLA_OPCODES "Build the Buchla filter opcode" ON)
 option(BUILD_PADSYNTH_OPCODES "Build the Padsynth opcode" ON)
 option(BUILD_SCANSYN_OPCODES "Build the scansyn opcodes" ON)
 option(BUILD_SELECT_OPCODE "Build the select opcode" ON)
@@ -65,8 +64,6 @@ else()
       endif()
 endif()
 
-
-
 if(BUILD_PADSYNTH_OPCODES)
 if(APPLE)
   make_plugin(padsynth padsynth_gen.cpp)
@@ -95,9 +92,6 @@ else()
 endif()
 endif()
 
-if(BUILD_BUCHLA_OPCODES)
-    make_plugin(buchla buchla.c)
-endif()
 
 if(BUILD_SELECT_OPCODE)
     make_plugin(select select.c)
