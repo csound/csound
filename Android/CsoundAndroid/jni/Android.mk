@@ -233,6 +233,10 @@ $(CSOUND_SRC_ROOT)/Opcodes/wpfilters.c \
 $(CSOUND_SRC_ROOT)/Opcodes/zak.c \
 $(CSOUND_SRC_ROOT)/Opcodes/lufs.c \
 $(CSOUND_SRC_ROOT)/Opcodes/wterrain2.c \
+$(CSOUND_SRC_ROOT)/Opcodes/sterrain.c \
+$(CSOUND_SRC_ROOT)/Opcodes/date.c \
+$(CSOUND_SRC_ROOT)/Opcodes/liveconv.c \
+$(CSOUND_SRC_ROOT)/Opcodes/system_call.c \
 $(CSOUND_SRC_ROOT)/Engine/csound_orc_semantics.c \
 $(CSOUND_SRC_ROOT)/Engine/csound_orc_expressions.c \
 $(CSOUND_SRC_ROOT)/Engine/csound_orc_optimize.c \
