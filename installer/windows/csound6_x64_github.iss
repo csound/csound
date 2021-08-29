@@ -191,7 +191,6 @@ Source: "{#ReleaseDir}\stackops.dll"; DestDir: "{#APP_PLUGINS64}"; Flags: ignore
 Source: "{#ReleaseDir}\stdutil.dll"; DestDir: "{#APP_PLUGINS64}"; Flags: ignoreversion; Components: core;
 
 Source: "{#ReleaseDir}\glib-2.0-0.dll"; DestDir: "{#APP_BIN}"; Flags: ignoreversion; Components: core;
-Source: "{#ReleaseDir}\gtf.dll"; DestDir: "{#APP_BIN}"; Flags: ignoreversion; Components: core;
 Source: "{#ReleaseDir}\lfsr.dll"; DestDir: "{#APP_BIN}"; Flags: ignoreversion; Components: core;
 Source: "{#ReleaseDir}\libfluidsynth-3.dll"; DestDir: "{#APP_BIN}"; Flags: ignoreversion; Components: core;
 Source: "{#ReleaseDir}\iconv-2.dll"; DestDir: "{#APP_BIN}"; Flags: ignoreversion; Components: core;

@@ -796,6 +796,7 @@ set(libcsound_SRCS
     Opcodes/system_call.c
     Opcodes/liveconv.c
     Opcodes/sterrain.c
+    Opcodes/gammatone.c
     Top/argdecode.c
     Top/csdebug.c
     Top/cscore_internal.c
