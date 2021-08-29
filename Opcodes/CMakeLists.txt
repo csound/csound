@@ -4,7 +4,6 @@ option(BUILD_JACK_OPCODES "Build the JACK related opcodes" ON)
 option(BUILD_OSC_OPCODES "Build the OSC Opcodes" ON)
 option(BUILD_SERIAL_OPCODES "Build the serial opcode" ON)
 option(BUILD_PLATEREV_OPCODES "Build the platerev opcode" ON)
-option(BUILD_EXCITER_OPCODES "Build the exciter opcode" ON)
 option(BUILD_BUCHLA_OPCODES "Build the Buchla filter opcode" ON)
 option(BUILD_PADSYNTH_OPCODES "Build the Padsynth opcode" ON)
 option(BUILD_SCANSYN_OPCODES "Build the scansyn opcodes" ON)
@@ -29,6 +28,10 @@ make_plugin(fractalnoise tl/fractalnoise.cpp)
 make_plugin(ftsamplebank ftsamplebank.cpp)
 make_plugin(lfsr lfsr.cpp)
 make_plugin(bformdec2 bformdec2.cpp)
+make_plugin(mixer mixer.cpp)
+make_plugin(signalflowgraph signalflowgraph.cpp)
+make_plugin(ampmidid ampmidid.cpp)
+
 
 ## Experimental opcode -- JPFF
 ## make_plugin(mverb MV.c)
@@ -62,9 +65,6 @@ else()
       endif()
 endif()
 
-make_plugin(mixer mixer.cpp)
-make_plugin(signalflowgraph signalflowgraph.cpp)
-make_plugin(ampmidid ampmidid.cpp)
 
 
 if(BUILD_PADSYNTH_OPCODES)
@@ -93,11 +93,6 @@ else()
         LINK_FLAGS "-std=gnu++11")
     endif()
 endif()
-endif()
-
-
-if(BUILD_EXCITER_OPCODES)
-    make_plugin(exciter exciter.c)
 endif()
 
 if(BUILD_BUCHLA_OPCODES)
