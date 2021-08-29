@@ -21,8 +21,8 @@
     02110-1301 USA
 */
 
-#include "csdl.h"       /*                              COUNTER.C         */
-
+#include "csoundCore.h"       /*                              COUNTER.C         */
+#include "interlocks.h"
 
 /* Structure of a counter */
 typedef struct {

@@ -805,6 +805,7 @@ set(libcsound_SRCS
     Opcodes/buchla.c
     Opcodes/select.c
     Opcodes/serial.c
+    Opcodes/counter.c
     Top/argdecode.c
     Top/csdebug.c
     Top/cscore_internal.c

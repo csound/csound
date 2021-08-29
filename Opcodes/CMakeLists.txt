@@ -7,7 +7,6 @@ option(BUILD_PADSYNTH_OPCODES "Build the Padsynth opcode" ON)
 option(BUILD_SCANSYN_OPCODES "Build the scansyn opcodes" ON)
 option(BUILD_STACK_OPCODES "Build the stack opcodes" ON)
 option(BUILD_PVSGENDY_OPCODE "Build the pvsgendy opcode" OFF)
-option(BUILD_COUNTER_OPCODES "Build the serial opcode" ON)
 
 message(STATUS "## Building Opcodes ##")
 include(CheckIncludeFiles)
@@ -98,11 +97,6 @@ endif()
 if(BUILD_PVSGENDY_OPCODES)
     make_plugin(pvsgendy pvsgendy.c)
 endif()
-
-if(BUILD_COUNTER_OPCODES)
-   make_plugin(counter counter.c)
-endif()
-
 
 if(BUILD_PLATEREV_OPCODES)
   make_plugin(platerev platerev.c ${MATH_LIBRARY})
