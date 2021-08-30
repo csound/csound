@@ -757,15 +757,15 @@ static int32_t scsnsmapx(CSOUND *csound, PSCSNMAPX *p)
 
 static OENTRY localops[] =
   {
-   { "xscanu", S(PSCSNUX),TR, 3, "", "iiiiSiikkkkiikkaii", (SUBR)scsnux_init_S,
+   { "xscanu", S(PSCSNUX),_QQ|TR, 3, "", "iiiiSiikkkkiikkaii", (SUBR)scsnux_init_S,
      (SUBR)scsnux },
-   { "xscanu", S(PSCSNUX),TR, 3, "", "iiiiiiikkkkiikkaii", (SUBR)scsnux_init,
+   { "xscanu", S(PSCSNUX),_QQ|TR, 3, "", "iiiiiiikkkkiikkaii", (SUBR)scsnux_init,
      (SUBR)scsnux },
-   { "xscans", S(PSCSNSX),  TR, 3,  "a", "kkiio",         (SUBR)scsnsx_init,
+   { "xscans", S(PSCSNSX),  _QQ|TR, 3,  "a", "kkiio",         (SUBR)scsnsx_init,
      (SUBR)scsnsx},
-   { "xscanmap", S(PSCSNMAPX),TR, 3, "kk", "ikko",        (SUBR)scsnmapx_init,
+   { "xscanmap", S(PSCSNMAPX),_QQ|TR, 3, "kk", "ikko",        (SUBR)scsnmapx_init,
      (SUBR)scsnmapx,NULL },
-   { "xscansmap", S(PSCSNMAPX),TR, 3,"",   "kkikko",      (SUBR)scsnmapx_init,
+   { "xscansmap", S(PSCSNMAPX),_QQ|TR, 3,"",   "kkikko",      (SUBR)scsnmapx_init,
      (SUBR)scsnsmapx,NULL }
 };
 
