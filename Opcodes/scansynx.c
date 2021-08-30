@@ -746,7 +746,7 @@ static int32_t scsnmapx(CSOUND *csound, PSCSNMAPX *p)
 
 static int32_t scsnsmapx(CSOUND *csound, PSCSNMAPX *p)
 {
-     IGN(csound);
+    IGN(csound);
     PSCSNUX *pp = p->p;
     pp->x0[(int32_t)(*p->k_which)] = *p->k_pos/(*p->k_pamp);
     pp->v[(int32_t)(*p->k_which)]  = *p->k_vel/(*p->k_vamp);

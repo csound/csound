@@ -19,7 +19,8 @@
     02110-1301 USA
 */
 
-#include <csdl.h>
+#include "csoundCore.h"
+#include "interlocks.h"
 #include <math.h>
 
 /*  Wave-terrain synthesis opcode
@@ -198,9 +199,9 @@ static int32_t wtPerf(CSOUND *csound, SUPERTER *p)
 
 #define S(x)    sizeof(x)
 
-static OENTRY localops[] = {
+static OENTRY sterrain_localops[] = {
   { "sterrain", S(SUPERTER), TR, 3,  "a", "kkkkkkkkkkkkkkkkk",
     (SUBR)wtinit, (SUBR)wtPerf },
 };
 
-LINKAGE
+LINKAGE_BUILTIN(sterrain_localops)

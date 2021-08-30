@@ -23,8 +23,6 @@
 */
 
 #include <math.h>
-#include "csdl.h"
-
 #include "emugens_common.h"
 
 #define LOG001 FL(-6.907755278982137)
@@ -619,7 +617,7 @@ phasor_k_kk(CSOUND *csound, Phasor *p) {
 
 #define S(x)    sizeof(x)
 
-static OENTRY localops[] = {
+static OENTRY scugens_localops[] = {
     {"sc_lag",    S(LAG0),   0, 3, "k", "kk",
      (SUBR)lag0_init_no_initial_value, (SUBR)lag0k_next},
     {"lag",    S(LAG0),   0, 3, "k", "kk",
@@ -689,4 +687,4 @@ static OENTRY localops[] = {
      (SUBR)phasor_init, (SUBR)phasor_a_kk }
 };
 
-LINKAGE
+LINKAGE_BUILTIN(scugens_localops)

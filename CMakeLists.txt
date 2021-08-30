@@ -792,6 +792,24 @@ set(libcsound_SRCS
     Opcodes/wpfilters.c
     Opcodes/zak.c
     Opcodes/lufs.c
+    Opcodes/date.c
+    Opcodes/system_call.c
+    Opcodes/liveconv.c
+    Opcodes/sterrain.c
+    Opcodes/gammatone.c
+    Opcodes/fareygen.c
+    Opcodes/quadbezier.c
+    Opcodes/framebuffer.c
+    Opcodes/cellular.c
+    Opcodes/exciter.c
+    Opcodes/buchla.c
+    Opcodes/select.c
+    Opcodes/serial.c
+    Opcodes/counter.c
+    Opcodes/platerev.c
+    Opcodes/pvsgendy.c
+    Opcodes/emugens/emugens.c
+    Opcodes/emugens/scugens.c
     Top/argdecode.c
     Top/csdebug.c
     Top/cscore_internal.c

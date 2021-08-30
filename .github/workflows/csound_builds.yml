@@ -2,7 +2,7 @@ name: csound_builds
 
 env:
   VCPKG_BINARY_SOURCES: "clear;nuget,GitHub,readwrite"
-  CSOUND_VERSION: 6.16.2
+  CSOUND_VERSION: 6.17.0
 
 on:
   push:
@@ -85,8 +85,7 @@ jobs:
           submodules: true
       - name: Install system dependencies
         run: |
-          choco install swig -y --version=4.0.1 --allow-downgrade
-          choco install winflexbison -y
+          choco install -y winflexbison
       - name: Bootstrap VCPKG
         run: .\vcpkg\bootstrap-vcpkg.bat
       - name: Setup NuGet Credentials
@@ -118,17 +117,22 @@ jobs:
           $Env:VCREDIST_CXXAMP_DIR="C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Redist\MSVC\${Env:RedistVersion}\x64\Microsoft.VC142.CXXAMP"
           $Env:VCREDIST_OPENMP_DIR="C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Redist\MSVC\${Env:RedistVersion}\x64\Microsoft.VC142.OpenMP"
           iscc /o. installer\\windows\\csound6_x64_github.iss
-          7z a csound-windows_x86_64-${{env.CSOUND_VERSION}}-${GITHUB_RUN_ID}.zip ${Env:GITHUB_WORKSPACE}\build\Release\*.exe ${Env:GITHUB_WORKSPACE}\build\Release\csound64.lib ${Env:GITHUB_WORKSPACE}\build\include\ ${Env:GITHUB_WORKSPACE}\build\Release\*.dll ${Env:GITHUB_WORKSPACE}\build\Release\*.pyd ${Env:GITHUB_WORKSPACE}\build\*.jar ${Env:GITHUB_WORKSPACE}\build\*.py
-          7z l csound-windows_x86_64-${{env.CSOUND_VERSION}}-${GITHUB_RUN_ID}.zip
       - name: Upload installer
         uses: actions/upload-artifact@v2
         with:
-          name: csound-windows_x86_64-${{env.CSOUND_VERSION}}.exe
+          name: csound-${{env.CSOUND_VERSION}}.${{github.run_number}}-windows-x64-installer
           path: ./csound-windows_x86_64-*.exe
           if-no-files-found: error
       - name: Upload zip
         uses: actions/upload-artifact@v2
         with:
-          name: csound-windows_x86_64-${{env.CSOUND_VERSION}}-binaries.zip
-          path: ./csound-windows_x86_64-*.zip
+          name: csound-${{env.CSOUND_VERSION}}-${{github.run_number}}-windows-x64-binaries
+          path: |
+            ./build/Release/*.exe
+            ./build/Release/*.dll
+            ./build/Release/*.pyd
+            ./build/Release/csound64.lib
+            ./build/*.jar
+            ./build/*.py
+            ./include/
           if-no-files-found: error
