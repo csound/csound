@@ -7,6 +7,7 @@ import { dlinit } from "@root/dlinit";
 import { csoundWasiJsMessageCallback, initFS } from "@root/filesystem/worker-fs";
 import { logWasmModule as log } from "@root/logger";
 
+const BYTES_PER_MB = 1048576;
 const PAGE_SIZE = 65536;
 
 const assertPluginExports = (pluginInstance) => {
@@ -152,7 +153,8 @@ export default async function ({ wasmDataURI, withPlugins = [], messagePort }) {
       0,
     ) / PAGE_SIZE,
   );
-  const totalInitialMemory = initialMemory + pluginsMemory + fixedMemoryBase;
+  const stackSize = 4 * BYTES_PER_MB / PAGE_SIZE;
+  const totalInitialMemory = initialMemory + pluginsMemory + fixedMemoryBase + stackSize;
 
   const memory = new WebAssembly.Memory({
     initial: totalInitialMemory,
@@ -162,7 +164,7 @@ export default async function ({ wasmDataURI, withPlugins = [], messagePort }) {
 
   const stackPointer = new WebAssembly.Global(
     { value: "i32", mutable: true },
-    totalInitialMemory * PAGE_SIZE,
+    (totalInitialMemory - stackSize) * PAGE_SIZE,
   );
   const heapBase = new WebAssembly.Global(
     { value: "i32", mutable: true },
