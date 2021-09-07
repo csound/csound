@@ -316,7 +316,12 @@ void dbfs_init(CSOUND *csound, MYFLT dbfs)
     csound->dbfs_to_float = FL(1.0) / dbfs;
     csound->e0dbfs = dbfs;
     /* probably want this message written just before note messages start... */
-    csound->Message(csound, Str("0dBFS level = %.1f\n"), dbfs);
+    // csound should not print before setting options, so that it is possible to turn
+    // printing off, but this function is called before any options can be set...
+    if(csound->GetEnv(csound, "CSNOMESSAGES"))
+        csound->DebugMsg(csound, Str("0dBFS level = %.1f\n"), dbfs);
+    else
+        csound->Message(csound, Str("0dBFS level = %.1f\n"), dbfs);
 }
 
 char *type2string(int x)

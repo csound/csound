@@ -57,6 +57,7 @@ static const char *envVar_list[] = {
     "SNAPDIR",
     "SSDIR",
     "MFDIR",
+    "CSNOMESSAGES",
     NULL
 };
 

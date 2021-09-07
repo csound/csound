@@ -1061,7 +1061,8 @@ static int decode_long(CSOUND *csound, char *s, int argc, char **argv)
       return 1;
     }
     else if (!(strcmp(s, "version"))) {
-      //print_csound_version(csound); // as already printed!
+      if(csound->GetEnv(csound, "CSNOMESSAGES")!=NULL)
+        print_csound_version(csound); // as already printed!
       csound->LongJmp(csound, 0);
     }
     else if (!(strcmp(s, "help"))) {

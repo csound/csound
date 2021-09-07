@@ -3515,8 +3515,8 @@ PUBLIC void csoundReset(CSOUND *csound)
       csoundInitTimerStruct(csound->csRtClock);
       csound->engineStatus |= /*CS_STATE_COMP |*/ CS_STATE_CLN;
 
-      print_csound_version(csound);
-      {
+      if(csound->GetEnv(csound, "CSNOMESSAGES")==NULL) {
+        print_csound_version(csound);
         char buffer[128];
         sf_command(NULL, SFC_GET_LIB_VERSION, buffer, 128);
         csound->Message(csound, "%s\n", buffer);

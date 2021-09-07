@@ -546,6 +546,8 @@ PUBLIC int csoundCleanup(CSOUND *csound)
 
     /* print stats only if musmon was actually run */
     /* NOT SURE HOW   ************************** */
+    // if(csound->oparms_.msglevel > 0)
+    if(csound->GetEnv(csound, "CSNOMESSAGES")==NULL)
     {
       csound->Message(csound, Str("end of score.\t\t   overall amps:"));
       corfile_rm(csound, &csound->expanded_sco);
