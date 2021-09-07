@@ -1,5 +1,4 @@
 option(BUILD_DSSI_OPCODES "Build the DSSI opcodes" ON)
-option(BUILD_FLUID_OPCODES "Build the fluidsynth opcodes" ON)
 option(BUILD_OSC_OPCODES "Build the OSC Opcodes" ON)
 option(BUILD_PADSYNTH_OPCODES "Build the Padsynth opcode" ON)
 option(BUILD_SCANSYN_OPCODES "Build the scansyn opcodes" ON)
@@ -112,16 +111,6 @@ if(BUILD_DSSI_OPCODES)
 endif()
 
 ## OPCODES WITH EXTERNAL DEPENDENCIES ##
-include(CheckIncludeFiles)
-
-find_package(FLUIDSYNTH)
-if(BUILD_FLUID_OPCODES AND FLUIDSYNTH_FOUND)
-    make_plugin(fluidOpcodes fluidOpcodes/fluidOpcodes.cpp)
-    target_include_directories(fluidOpcodes PRIVATE ${FLUIDSYNTH_INCLUDE_DIR})
-    target_link_libraries(fluidOpcodes ${FLUIDSYNTH_LIBRARIES})
-endif()
-
-
 find_package(LIBLO)
 if(BUILD_OSC_OPCODES AND LIBLO_FOUND)
     make_plugin(osc OSC.c)
