@@ -41,9 +41,7 @@ done
 
 rm -r pluginlibs/luajit-2.0
 rm -r pluginlibs/libsndfile-android
-rm -r pluginlibs/fluidsynth-android
 rm -r pluginlibs/liblo-android
-rm -r pluginlibs/stk
 rm -r pluginlibs/patches
 
 cd ..

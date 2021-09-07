@@ -22,7 +22,7 @@
 ./Engine/insert.c
 ./Engine/linevent.c
 ./Engine/memalloc.c
-./Engine/memfiles.c./plugins/AbletonLinkOpcodes/AbletonLinkOpcodes/AbletonLinkOpcodes.sln
+./Engine/memfiles.c
 ./Engine/musmon.c
 ./Engine/namedins.c
 ./Engine/new_orc_parser.c
@@ -104,7 +104,6 @@
 ./H/vdelay.h
 ./H/winEPS.h
 ./H/windin.h
-./InOut/FL_graph.cpp
 ./InOut/HaikuAudio.cpp
 ./InOut/HaikuMidi.cpp
 ./InOut/circularbuffer.c
@@ -205,8 +204,6 @@
 ./Opcodes/cross2.c
 ./Opcodes/crossfm.c
 ./Opcodes/crossfm.h
-./Opcodes/cuda/adsyn.cu
-./Opcodes/cuda/pvsops.cu
 ./Opcodes/dam.c
 ./Opcodes/dam.h
 ./Opcodes/date.c
@@ -242,11 +239,6 @@
 ./Opcodes/follow.h
 ./Opcodes/fout.c
 ./Opcodes/fout.h
-./Opcodes/framebuffer/Framebuffer.c
-./Opcodes/framebuffer/Framebuffer.h
-./Opcodes/framebuffer/OLABuffer.c
-./Opcodes/framebuffer/OLABuffer.h
-./Opcodes/framebuffer/OpcodeEntries.c
 ./Opcodes/freeverb.c
 ./Opcodes/ftconv.c
 ./Opcodes/ftest.c
@@ -263,14 +255,11 @@
 ./Opcodes/gab/vectorial.h
 ./Opcodes/gammatone.c
 ./Opcodes/gendy.c
-./Opcodes/getftargs.c
 ./Opcodes/grain.c
 ./Opcodes/grain.h
 ./Opcodes/grain4.c
 ./Opcodes/grain4.h
 ./Opcodes/harmon.c
-./Opcodes/hdf5/HDF5IO.c
-./Opcodes/hdf5/HDF5IO.h
 ./Opcodes/hrtfearly.c
 ./Opcodes/hrtferX.c
 ./Opcodes/hrtferx.h
@@ -280,7 +269,6 @@
 ./Opcodes/jackTransport.c
 ./Opcodes/jacko.cpp
 ./Opcodes/lame.c
-./Opcodes/linear_algebra.cpp
 ./Opcodes/linuxjoystick.c
 ./Opcodes/linuxjoystick.h
 ./Opcodes/liveconv.c
@@ -311,10 +299,8 @@
 ./Opcodes/newfils.h
 ./Opcodes/nlfilt.c
 ./Opcodes/nlfilt.h
-./Opcodes/opencl/cladsynth.c
 ./Opcodes/oscbnk.c
 ./Opcodes/oscbnk.h
-./Opcodes/p5glove.c
 ./Opcodes/padsynth_gen.cpp
 ./Opcodes/pan2.c
 ./Opcodes/partials.c
@@ -392,7 +378,6 @@
 ./Opcodes/spectra.c
 ./Opcodes/spectra.h
 ./Opcodes/squinewave.c
-./Opcodes/stackops.c
 ./Opcodes/stdopcod.c
 ./Opcodes/stdopcod.h
 ./Opcodes/sterrain.c
@@ -433,10 +418,6 @@
 ./Opcodes/wave-terrain.c
 ./Opcodes/wave-terrain.h
 ./Opcodes/wavegde.h
-./Opcodes/websockets/WebSocketOpcode.c
-./Opcodes/websockets/WebSocketOpcode.h
-./Opcodes/wii_mac.h
-./Opcodes/wiimote.c
 ./Opcodes/wpfilters.c
 ./Opcodes/wpfilters.h
 ./Opcodes/wterrain2.c
@@ -609,7 +590,7 @@
 ./plugins/p5glove/p5glove.c
 ./plugins/wiimote/wii_mac.h
 ./plugins/wiimote/wiimote.c
-./plugins/CUDA.adsyn11.cu
+./plugins/CUDA/adsyn11.cu
 ./plugins/CUDA/adsyn.cu
 ./plugins/CUDA/conv.cu
 ./plugins/CUDA/convf.cu
