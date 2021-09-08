@@ -250,7 +250,7 @@ instrdecl : INSTR_TOKEN
           | INSTR_TOKEN NEWLINE error
                 {
                     namedInstrFlag = 0;
-                    csound->Message(csound, Str("No number following instr\n"));
+                    csoundErrorMsg(csound, Str("No number following instr\n"));
                     csp_orc_sa_instr_finalize(csound);
                     $$ = NULL;
                 }
@@ -555,14 +555,16 @@ ans       : ident               { $$ = $1; }
           | arrayident          { $$ = $1; }
           | arrayexpr           { $$ = $1; }
           | T_IDENT error
-              { csound->Message(csound,
+              {
+                 csoundErrorMsg(csound,
                       "Unexpected untyped word %s when expecting a variable\n",
                       ((ORCTOKEN*)$1)->lexeme);
                 $$ = NULL;
               }
           | ans ',' ident     { $$ = appendToTree(csound, $1, $3); }
           | ans ',' T_IDENT error
-              { csound->Message(csound,
+              { 
+                 csoundErrorMsg(csound,
                       "Unexpected untyped word %s when expecting a variable\n",
                                ((ORCTOKEN*)$3)->lexeme);
                 $$ = appendToTree(csound, $1, NULL);

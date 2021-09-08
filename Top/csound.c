@@ -2659,8 +2659,7 @@ PUBLIC void csoundMessageS(CSOUND *csound, int attr, const char *format, ...)
     va_end(args);
 }
 
-void csoundDie(CSOUND *csound, const char *msg, ...)
-{
+void csoundDie(CSOUND *csound, const char *msg, ...){
     va_list args;
     va_start(args, msg);
     csound->ErrMsgV(csound, (char*) 0, msg, args);
@@ -2694,20 +2693,26 @@ void csoundDebugMsg(CSOUND *csound, const char *msg, ...)
 
 void csoundErrorMsg(CSOUND *csound, const char *msg, ...)
 {
+      // VL 08.09.21 : suppress messages if requested
+  if(csound->oparms->msglevel || csound->oparms->odebug) {
     va_list args;
     va_start(args, msg);
     csoundMessageV(csound, CSOUNDMSG_ERROR, msg, args);
     va_end(args);
     csound->MessageS(csound, CSOUNDMSG_ERROR, "\n");
+   } 
 }
 
 void csoundErrMsgV(CSOUND *csound,
                    const char *hdr, const char *msg, va_list args)
 {
+    // VL 08.09.21 : suppress messages if requested
+  if(csound->oparms->msglevel || csound->oparms->odebug) {
     if (hdr != NULL)
       csound->MessageS(csound, CSOUNDMSG_ERROR, "%s", hdr);
     csoundMessageV(csound, CSOUNDMSG_ERROR, msg, args);
     csound->MessageS(csound, CSOUNDMSG_ERROR, "\n");
+  }
 }
 
 void csoundLongJmp(CSOUND *csound, int retval)
