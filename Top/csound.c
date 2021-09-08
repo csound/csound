@@ -149,11 +149,11 @@ void print_sndfile_version(CSOUND* csound) {
 }
 
 void print_engine_parameters(CSOUND *csound) {
-      csound->Message(csound, Str("sr = %.1f\n"), csound->esr);
-      csound->Message(csound, Str("kr = %.1f\n"), csound->ekr);
-      csound->Message(csound, Str("ksmps = %d\n"), csound->ksmps);
-      csound->Message(csound, Str("0dBFS level = %.1f\n"), csound->e0dbfs);
-      csound->Message(csound, Str("A4 = %.1f\n"), csound->A4);
+      csound->Message(csound, Str("sr = %.1f,"), csound->esr);
+      csound->Message(csound, Str(" kr = %.3f,"), csound->ekr);
+      csound->Message(csound, Str(" ksmps = %d\n"), csound->ksmps);
+      csound->Message(csound, Str("0dBFS level = %.1f,"), csound->e0dbfs);
+      csound->Message(csound, Str(" A4 tuning = %.1f\n"), csound->A4);
 }
 
 
