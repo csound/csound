@@ -213,8 +213,7 @@ static void freeWheelCallback(int starting, void *arg)
     if (starting) {
       if (UNLIKELY(sched_getscheduler(0) != SCHED_OTHER)) {
         struct sched_param sp;
-        csound->Message(csound, "%s", Str(" *** WARNING: "
-                                    "disabling --sched in freewheel mode\n"));
+        csound->Warning(csound, "%s", Str("disabling --sched in freewheel mode\n"));
         memset(&sp, 0, sizeof(struct sched_param));
         sp.sched_priority = 0;
         sched_setscheduler(0, SCHED_OTHER, &sp);
@@ -394,6 +393,9 @@ static void openJackStreams(RtJackGlobals *p)
     char    buf[256];
     int     i, j, k;
     CSOUND *csound = p->csound;
+    OPARMS oparms;
+    csound->GetOParms(csound, &oparms);
+
 
     /* connect to JACK server */
     p->client = jack_client_open(&(p->clientName[0]), JackNoStartServer, NULL);
@@ -401,7 +403,8 @@ static void openJackStreams(RtJackGlobals *p)
       rtJack_Error(csound, -1, Str("could not connect to JACK server"));
 
     csound->system_sr(csound, jack_get_sample_rate(p->client));
-    csound->Message(csound, "system sr: %f\n", csound->system_sr(csound,0));
+    if(oparms.msglevel || oparms.odebug)
+      csound->Message(csound, "system sr: %f\n", csound->system_sr(csound,0));
     if(p->sampleRate < 0) p->sampleRate = jack_get_sample_rate(p->client);
 
     /* check consistency of parameters */
@@ -414,10 +417,14 @@ static void openJackStreams(RtJackGlobals *p)
     if (UNLIKELY(p->sampleRate < 1000 || p->sampleRate > 768000))
       rtJack_Error(csound, -1, Str("invalid sample rate"));
     if (UNLIKELY(p->sampleRate != (int) jack_get_sample_rate(p->client))) {
-      snprintf(&(buf[0]), 256, Str("sample rate %d does not match "
-                                   "JACK sample rate %d"),
-               p->sampleRate, (int) jack_get_sample_rate(p->client));
-      rtJack_Error(p->csound, -1, &(buf[0]));
+      if(oparms.sr_override != 0.) {
+        p->sampleRate = (int) jack_get_sample_rate(p->client);
+      } else {
+        snprintf(&(buf[0]), 256, Str("sample rate %d does not match "
+                                     "JACK sample rate %d"),
+                 p->sampleRate, (int) jack_get_sample_rate(p->client));
+        rtJack_Error(p->csound, -1, &(buf[0]));
+      }
     }
     if (UNLIKELY(p->bufSize < 8 || p->bufSize > 32768))
       rtJack_Error(csound, -1, Str("invalid period size (-b)"));
@@ -510,8 +517,9 @@ static void openJackStreams(RtJackGlobals *p)
             break;
           }
           if (portNames[num+i] != NULL){
-            csound->Message(csound, Str("connecting channel %d to %s\n"),
-                            i, portNames[num+i]);
+            if(csound->GetMessageLevel(csound) || csound->GetDebug(csound))
+              csound->Message(csound, Str("connecting channel %d to %s\n"),
+                              i, portNames[num+i]);
             if (jack_connect(p->client, portNames[num+i],
                              jack_port_name(p->inPorts[i])) != 0) {
               csound->Warning(csound,
@@ -551,12 +559,13 @@ static void openJackStreams(RtJackGlobals *p)
               // snprintf(sp, 128-(dev-sp), "%d", i + 1);
               dev_final = portNames[i];
               if(dev_final == NULL) {
-                csound->Message(csound, Str("Not enough ports to connect all out channels,"
+                csound->Warning(csound, Str("Not enough ports to connect all out channels,"
                                             "only connected %d channels\n"), i);
                 break;
               }
-              csound->Message(csound, Str("connecting channel %d to %s\n"),
-                              i, dev_final);
+              if(csound->GetMessageLevel(csound) || csound->GetDebug(csound))
+                csound->Message(csound, Str("connecting channel %d to %s\n"),
+                                i, dev_final);
               if (UNLIKELY(jack_connect(p->client, dev_final,
                                         jack_port_name(p->inPorts[i])) != 0)) {
                 csound->Warning(csound,
@@ -588,13 +597,14 @@ static void openJackStreams(RtJackGlobals *p)
           for(; portNames[numPorts] != NULL; numPorts++);
         for (i = 0; i < p->nChannels; i++) {
           if (num+i+1 >= (int)numPorts){
-            csound->Message(csound, Str("Trying to connect channel %d but there are "
+            csound->Warning(csound, Str("Trying to connect channel %d but there are "
                                         "no ports available\n"), num+i);
             break;
           }
           if (portNames[num+i] != NULL) {
-            csound->Message(csound, Str("connecting channel %d to %s\n"),
-                            i,portNames[num+i]);
+            if(csound->GetMessageLevel(csound) || csound->GetDebug(csound))
+              csound->Message(csound, Str("connecting channel %d to %s\n"),
+                              i,portNames[num+i]);
             if (jack_connect(p->client, jack_port_name(p->outPorts[i]),
                              portNames[num+i]) != 0) {
               csound->Warning(csound,
@@ -633,12 +643,13 @@ static void openJackStreams(RtJackGlobals *p)
               // snprintf(sp, 128-(dev-sp), "%d", i + 1);
               dev_final = portNames[i];
               if(dev_final == NULL) {
-                csound->Message(csound, Str("Not enough ports to connect all out channels,"
+                csound->Warning(csound, Str("Not enough ports to connect all out channels,"
                                             "only connected %d channels\n"), i);
                 break;
               }
-              csound->Message(csound, Str("connecting channel %d to %s\n"),
-                              i, dev_final);
+              if(csound->GetMessageLevel(csound) || csound->GetDebug(csound))
+                csound->Message(csound, Str("connecting channel %d to %s\n"),
+                                i, dev_final);
               if (UNLIKELY(jack_connect(p->client, jack_port_name(p->outPorts[i]),
                                         dev_final) != 0)) {
                   csound->Warning(csound, Str("failed to autoconnect output channel "

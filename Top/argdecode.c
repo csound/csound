@@ -1061,7 +1061,7 @@ static int decode_long(CSOUND *csound, char *s, int argc, char **argv)
       return 1;
     }
     else if (!(strcmp(s, "version"))) {
-      //print_csound_version(csound); // as already printed!
+      print_csound_version(csound);
       csound->LongJmp(csound, 0);
     }
     else if (!(strcmp(s, "help"))) {
@@ -1200,15 +1200,17 @@ static int decode_long(CSOUND *csound, char *s, int argc, char **argv)
         /* these are default values to get the
            backend to open successfully */
         set_output_format(O, 'f');
+        O->sr_override = FL(-1.0);
         O->inbufsamps = O->outbufsamps = 256;
         O->oMaxLag = 1024;
         csoundLoadExternals(csound);
         if (csoundInitModules(csound) != 0)
           csound->LongJmp(csound, 1);
         sfopenout(csound);
-        csound->MessageS(csound,CSOUNDMSG_STDOUT,
+        csound->MessageS(csound, CSOUNDMSG_STDOUT,
                          "system sr: %f\n", csound->system_sr(csound,0));
         sfcloseout(csound);
+        // csound->LongJmp(csound, 0);
       }
       csound->info_message_request = 1;
       return 1;
