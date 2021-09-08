@@ -2047,11 +2047,14 @@ static void insprep(CSOUND *csound, INSTRTXT *tp, ENGINE_STATE *engineState) {
         ARG *inArgs = ttp->inArgs;
         // CS_VARIABLE* var;
 
-        if (tp->insname)
-          csound->Message(csound, "PSET: isname=\"%s\", pmax=%d\n", tp->insname,
-                          tp->pmax);
-        else
-          csound->Message(csound, "PSET: isno=??, pmax=%d\n", tp->pmax);
+        if (tp->insname) {
+          if(csound->oparms_.msglevel || csound->oparms_.odebug)
+              csound->Message(csound, "PSET: isname=\"%s\", pmax=%d\n", tp->insname,
+                              tp->pmax);
+        } else {
+          if(csound->oparms_.msglevel || csound->oparms_.odebug)
+            csound->Message(csound, "PSET: isno=??, pmax=%d\n", tp->pmax);
+        }
         if (UNLIKELY((n = ttp->inArgCount) != tp->pmax)) {
           // csound->Warning(csound, Str("i%d pset args != pmax"), (int) insno);
           csound->Warning(csound, Str("i[fixme] pset args != pmax"));
