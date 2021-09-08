@@ -1105,8 +1105,10 @@ void orcompact(CSOUND *csound)          /* free all inactive instr spaces */
       }
     }
   }
-  if (UNLIKELY(cnt))
-    csound->Message(csound, Str("inactive allocs returned to freespace\n"));
+  if (UNLIKELY(cnt)) {
+    if(csound->oparms->msglevel ||csound->oparms->odebug)
+     csound->Message(csound, Str("inactive allocs returned to freespace\n"));
+  }
 }
 
 void infoff(CSOUND *csound, MYFLT p1)   /* turn off an indef copy of instr p1 */

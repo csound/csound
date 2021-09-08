@@ -119,7 +119,8 @@ MYFLT csoundInitialiseIO(CSOUND *csound) {
       }
       O->inbufsamps = O->outbufsamps;
     }
-    csound->Message(csound, Str("audio buffered in %d sample-frame blocks\n"),
+    if(O->msglevel || O->odebug)
+     csound->Message(csound, Str("audio buffered in %d sample-frame blocks\n"),
                     (int) O->outbufsamps);
     O->inbufsamps  *= csound->inchnls;    /* now adjusted for n channels  */
     O->outbufsamps *= csound->nchnls;
@@ -246,32 +247,18 @@ static void print_maxamp(CSOUND *csound, MYFLT x)
     }
 }
 
+void print_engine_parameters(CSOUND *csound);
+void print_sndfile_version(CSOUND* csound);
+
 int musmon(CSOUND *csound)
 {
     OPARMS  *O = csound->oparms;
-    /* VL - 20-10-16 this is already printed in csound.c */
-    /*
-      #ifdef USE_DOUBLE
-      #ifdef BETA
-      csound->Message(csound,
-      Str("--Csound version %s beta (double samples) %s\n[%s]\n"),
-      CS_PACKAGE_VERSION, CS_PACKAGE_DATE, GIT_HASH_VALUE_ST);
-      #else
-      csound->Message(csound,
-                      Str("--Csound version %s (double samples) %s\n[%s]\n"),
-      CS_PACKAGE_VERSION, CS_PACKAGE_DATE, GIT_HASH_VALUE_ST);
-      #endif
-      #else
-      #ifdef BETA
-      csound->Message(csound,
-      Str("--Csound version %s beta (float samples) %s\n[%s]\n"),
-      CS_PACKAGE_VERSION, CS_PACKAGE_DATE, GIT_HASH_VALUE_ST);
-      #else
-      csound->Message(csound, Str("--Csound version %s (float samples) %s\n[%s]\n"),
-      CS_PACKAGE_VERSION, CS_PACKAGE_DATE, GIT_HASH_VALUE_ST);
-      #endif
-      #endif
-    */
+    /* VL - 08-07-21 messages moved here so we can switch them off */
+    if(O->msglevel || O->odebug) {
+     print_csound_version(csound);
+     print_sndfile_version(csound);
+    }
+
     /* initialise search path cache */
     csoundGetSearchPathFromEnv(csound, "SNAPDIR");
     csoundGetSearchPathFromEnv(csound, "SFDIR;SSDIR;INCDIR");
@@ -330,7 +317,10 @@ int musmon(CSOUND *csound)
       O->FMidioutname = NULL;
     if (O->Midioutname != NULL || O->FMidioutname != NULL)
       openMIDIout(csound);
-    csound->Message(csound, Str("orch now loaded\n"));
+    if(O->msglevel) {
+      print_engine_parameters(csound);
+      csound->Message(csound, Str("orch now loaded\n"));
+    }   
 
     csound->multichan = (csound->nchnls > 1 ? 1 : 0);
     STA(segamps) = O->msglevel & SEGAMPS;
@@ -396,8 +386,8 @@ int musmon(CSOUND *csound)
       csound->Message(csound, Str("playing from cscore.srt\n"));
       O->usingcscore = 0;
     }
-
-    csound->Message(csound, Str("SECTION %d:\n"), ++STA(sectno));
+    if(csound->oparms->msglevel ||csound->oparms->odebug)
+     csound->Message(csound, Str("SECTION %d:\n"), ++STA(sectno));
     /* apply score offset if non-zero */
     if (csound->csoundScoreOffsetSeconds_ > FL(0.0))
       csoundSetScoreOffsetSeconds(csound, csound->csoundScoreOffsetSeconds_);
@@ -546,6 +536,7 @@ PUBLIC int csoundCleanup(CSOUND *csound)
 
     /* print stats only if musmon was actually run */
     /* NOT SURE HOW   ************************** */
+    if(csound->oparms->msglevel)
     {
       csound->Message(csound, Str("end of score.\t\t   overall amps:"));
       corfile_rm(csound, &csound->expanded_sco);
@@ -578,8 +569,10 @@ PUBLIC int csoundCleanup(CSOUND *csound)
     if (!csound->enableHostImplementedAudioIO) {
       sfclosein(csound);
       sfcloseout(csound);
-      if (UNLIKELY(!csound->oparms->sfwrite))
-        csound->Message(csound, Str("no sound written to disk\n"));
+      if (UNLIKELY(!csound->oparms->sfwrite)) {
+        if(csound->oparms->msglevel ||csound->oparms->odebug)
+         csound->Message(csound, Str("no sound written to disk\n"));
+      }
     }
     /* close any remote.c sockets */
     if (csound->remoteGlobals) remote_Cleanup(csound);
@@ -595,8 +588,10 @@ int lplay(CSOUND *csound, EVLIST *a)    /* cscore re-entry into musmon */
   /* if (csound->musmonGlobals == NULL) */
   /*  csound->musmonGlobals = csound->Calloc(csound, sizeof(MUSMON_GLOBALS)); */
   STA(lplayed) = 1;
-  if (!STA(sectno))
+  if (!STA(sectno)) {
+    if(csound->oparms->msglevel ||csound->oparms->odebug)
     csound->Message(csound, Str("SECTION %d:\n"), ++STA(sectno));
+    }
   STA(ep) = &a->e[1];                  /* from 1st evlist member */
   STA(epend) = STA(ep) + a->nevents;    /*   to last              */
   while (csoundPerform(csound) == 0)  /* play list members      */
@@ -1255,7 +1250,8 @@ int sensevents(CSOUND *csound)
     orcompact(csound);                      /*   rtn inactiv spc */
     if (csound->actanchor.nxtact == NULL)   /*   if no indef ins */
       rlsmemfiles(csound);                  /*    purge memfiles */
-    csound->Message(csound, Str("SECTION %d:\n"), ++STA(sectno));
+    if(csound->oparms->msglevel ||csound->oparms->odebug)
+     csound->Message(csound, Str("SECTION %d:\n"), ++STA(sectno));
     RT_SPIN_UNLOCK
     goto retest;                            /*   & back for more */
   }
@@ -1492,7 +1488,8 @@ void musmon_rewind_score(CSOUND *csound)
     /* update section/overall amplitudes, reset to section 1 */
     section_amps(csound, 1);
     STA(sectno) = 1;
-    csound->Message(csound, Str("SECTION %d:\n"), STA(sectno));
+    if(csound->oparms->msglevel ||csound->oparms->odebug)
+     csound->Message(csound, Str("SECTION %d:\n"), STA(sectno));
   }
 
   /* apply score offset if non-zero */
