@@ -1154,7 +1154,7 @@ int csoundInitError(CSOUND *csound, const char *s, ...)
     csound->LongJmp(csound, 1);
   }
   if (csound->mode != 1)
-    csound->Message(csound, Str("InitError in wrong mode %d\n"), csound->mode);
+    csoundErrorMsg(csound, Str("InitError in wrong mode %d\n"), csound->mode);
   /* IV - Oct 16 2002: check for subinstr and user opcode */
   ip = csound->ids->insdshead;
   if (ip->opcod_iobufs) {
@@ -1189,7 +1189,7 @@ int csoundPerfError(CSOUND *csound, OPDS *h, const char *s, ...)
   INSDS *ip = h->insdshead;
   TEXT t = h->optext->t;
   if (csound->mode != 2)
-    csound->Message(csound, Str("PerfError in wrong mode %d\n"), csound->mode);
+    csoundErrorMsg(csound, Str("PerfError in wrong mode %d\n"), csound->mode);
   if (ip->opcod_iobufs) {
     OPCODINFO *op = ((OPCOD_IOBUFS*) ip->opcod_iobufs)->opcode_info;
     /* find top level instrument instance */
@@ -1212,7 +1212,7 @@ int csoundPerfError(CSOUND *csound, OPDS *h, const char *s, ...)
   do_baktrace(csound, t.locn);
   if (ip->pds)
     putop(csound, &(ip->pds->optext->t));
-  csoundMessage(csound, Str("   note aborted\n"));
+  csoundErrorMsg(csound, "%s",  Str("   note aborted\n"));
   csound->perferrcnt++;
   xturnoff_now((CSOUND*) csound, ip);       /* rm ins fr actlist */
   return csound->perferrcnt;                /* contin from there */
