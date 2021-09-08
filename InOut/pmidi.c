@@ -53,11 +53,14 @@ static  const   int     datbyts[8] = { 2, 2, 2, 2, 1, 1, 2, 0 };
 
 static int portMidiErrMsg(CSOUND *csound, const char *msg, ...)
 {
+     OPARMS O;
+    csound->GetOParms(csound, &O);
+    if(O.msglevel || O.odebug) {
     va_list args;
-
     va_start(args, msg);
     csound->ErrMsgV(csound, " *** PortMIDI: ", msg, args);
     va_end(args);
+    }
     return -1;
 }
 
@@ -207,9 +210,14 @@ static void portMidi_listDevices(CSOUND *csound, int output)
     CS_MIDIDEVICE *devs =
       (CS_MIDIDEVICE *) csound->Malloc(csound, n*sizeof(CS_MIDIDEVICE));
     listDevices(csound, devs, output);
+    {
+     OPARMS O;
+    csound->GetOParms(csound, &O);
+    if(O.msglevel || O.odebug)
     for(i=0; i < n; i++)
       csound->Message(csound, "%s: %s (%s)\n",
                       devs[i].device_id, devs[i].device_name, devs[i].midi_module);
+    }
     csound->Free(csound, devs);
 }
 
@@ -271,7 +279,12 @@ static int OpenMidiInDevice_(CSOUND *csound, void **userData, const char *dev)
           opendevs++;
         }
         info = portMidi_getDeviceInfo(i, 0);
-        if (info->interf != NULL) {
+        {
+        OPARMS O;
+        csound->GetOParms(csound, &O);
+        if(O.msglevel || O.odebug) {
+         if (info->interf != NULL) {
+
           csound->Message(csound,
                           Str("PortMIDI: Activated input device %d: '%s' (%s)\n"),
                           i, info->name, info->interf);
@@ -287,6 +300,8 @@ static int OpenMidiInDevice_(CSOUND *csound, void **userData, const char *dev)
             csound->Message(csound,Str("Device mapped to channels %d to %d \n"),
                                        port*16+1, (port+1)*16);
           }
+        }
+        }
         /* set multiport mapping if asked */
         if(dev[0] == 'm') next->multiport_flag = 1;
         else next->multiport_flag = 0;
@@ -535,6 +550,8 @@ PUBLIC int csoundModuleCreate(CSOUND *csound)
 PUBLIC int csoundModuleInit(CSOUND *csound)
 {
     char    *drv;
+    OPARMS O;
+    csound->GetOParms(csound, &O);
     csound->module_list_add(csound, "portmidi", "midi");
     drv = (char*) (csound->QueryGlobalVariable(csound, "_RTMIDI"));
     if (drv == NULL)
@@ -542,7 +559,8 @@ PUBLIC int csoundModuleInit(CSOUND *csound)
     if (!(strcmp(drv, "portmidi") == 0 || strcmp(drv, "PortMidi") == 0 ||
           strcmp(drv, "PortMIDI") == 0 || strcmp(drv, "pm") == 0))
       return 0;
-    csound->Message(csound, "%s", Str("rtmidi: PortMIDI module enabled\n"));
+    if(O.msglevel || O.odebug)
+     csound->Message(csound, "%s", Str("rtmidi: PortMIDI module enabled\n"));
     csound->SetExternalMidiInOpenCallback(csound, OpenMidiInDevice_);
     csound->SetExternalMidiReadCallback(csound, ReadMidiData_);
     csound->SetExternalMidiInCloseCallback(csound, CloseMidiInDevice_);

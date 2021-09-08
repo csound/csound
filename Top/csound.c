@@ -142,6 +142,22 @@ void print_csound_version(CSOUND* csound)
 #endif
 }
 
+void print_sndfile_version(CSOUND* csound) {
+        char buffer[128];
+        sf_command(NULL, SFC_GET_LIB_VERSION, buffer, 128);
+        csound->Message(csound, "%s\n", buffer);
+}
+
+void print_engine_parameters(CSOUND *csound) {
+      csound->Message(csound, Str("sr = %.1f\n"), csound->esr);
+      csound->Message(csound, Str("kr = %.1f\n"), csound->ekr);
+      csound->Message(csound, Str("ksmps = %d\n"), csound->ksmps);
+      csound->Message(csound, Str("0dBFS level = %.1f\n"), csound->e0dbfs);
+      csound->Message(csound, Str("A4 = %.1f\n"), csound->A4);
+}
+
+
+
 static void free_opcode_table(CSOUND* csound) {
     int i;
     CS_HASH_TABLE_ITEM* bucket;
@@ -2198,7 +2214,8 @@ PUBLIC int csoundPerformKsmps(CSOUND *csound)
       if (UNLIKELY(done)) {
         if(!csound->oparms->realtime) // no API lock in realtime mode
          csoundUnlockMutex(csound->API_lock);
-        csoundMessage(csound,
+        if(csound->oparms->msglevel ||csound->oparms->odebug)
+         csoundMessage(csound,
                       Str("Score finished in csoundPerformKsmps() with %d.\n"),
                       done);
         return done;
@@ -2230,6 +2247,7 @@ static int csoundPerformKsmpsInternal(CSOUND *csound)
     }
    do {
      if (UNLIKELY((done = sensevents(csound)))) {
+       if(csound->oparms->msglevel ||csound->oparms->odebug)
        csoundMessage(csound,
                      Str("Score finished in csoundPerformKsmpsInternal().\n"));
         return done;
@@ -2305,7 +2323,8 @@ PUBLIC int csoundPerform(CSOUND *csound)
            csoundLockMutex(csound->API_lock);
       do {
         if (UNLIKELY((done = sensevents(csound)))) {
-          csoundMessage(csound, Str("Score finished in csoundPerform().\n"));
+          if(csound->oparms->msglevel ||csound->oparms->odebug)
+           csoundMessage(csound, Str("Score finished in csoundPerform().\n"));
           if(!csound->oparms->realtime)
             csoundUnlockMutex(csound->API_lock);
           if (csound->oparms->numThreads > 1) {
@@ -3515,12 +3534,11 @@ PUBLIC void csoundReset(CSOUND *csound)
       csoundInitTimerStruct(csound->csRtClock);
       csound->engineStatus |= /*CS_STATE_COMP |*/ CS_STATE_CLN;
 
-      print_csound_version(csound);
-      {
-        char buffer[128];
-        sf_command(NULL, SFC_GET_LIB_VERSION, buffer, 128);
-        csound->Message(csound, "%s\n", buffer);
-      }
+      /* 
+        this was moved to musmon();
+        print_csound_version(csound);
+        print_sndfile_version(csound);
+      */
 
       /* do not know file type yet */
       O->filetyp = -1;
@@ -3923,7 +3941,7 @@ static int getTimeResolution(void)
 #else
     timeResolutionSeconds = 1.0;
 #endif
-#ifdef BETA
+#ifdef CHECK_TIME_RESOLUTION // BETA
     fprintf(stderr, "time resolution is %.3f ns\n",
             1.0e9 * timeResolutionSeconds);
 #endif
