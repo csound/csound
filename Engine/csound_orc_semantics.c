@@ -1963,13 +1963,11 @@ void csound_orcerror(PARSE_PARM *pp, void *yyscanner,
     uint64_t files = csound_orcget_locn(yyscanner);
     if (UNLIKELY(*p=='\0' || *p=='\n')) line--;
     //printf("LINE: %d\n", line);
-    if(csound->oparms->msglevel || csound->oparms->odebug) {
-      csound->Message(csound, Str("\nerror: %s  (token \"%s\")"),
+    csoundErrorMsg(csound, Str("\nerror: %s  (token \"%s\")\n"),
                     str, csound_orcget_text(yyscanner));
-    }
+    
     do_baktrace(csound, files);
-    if(csound->oparms->msglevel || csound->oparms->odebug)
-       csound->Message(csound, Str(" line %d:\n>>>"), line);
+    csoundErrorMsg(csound, Str(" line %d:\n >>> "), line);
     while ((ch=*--p) != '\n' && ch != '\0');
     do {
       ch = *++p;
@@ -1979,21 +1977,18 @@ void csound_orcerror(PARSE_PARM *pp, void *yyscanner,
         p+=7; while (isdigit(*p)) p++;
       }
       else {
-        if(csound->oparms->msglevel || csound->oparms->odebug)
-           csound->Message(csound, "%c", ch);
+          csoundErrorMsg(csound, "%c", ch);
       }
     } while (ch != '\n' && ch != '\0');
-    if(csound->oparms->msglevel || csound->oparms->odebug)
-      csound->Message(csound, " <<<\n");
+      csoundErrorMsg(csound, " <<<\n");
 }
 
 void do_baktrace(CSOUND *csound, uint64_t files)
 {
     while (files) {
       unsigned int ff = files&0xff;
-      files = files >>8;
-      if(csound->oparms->msglevel || csound->oparms->odebug)
-        csound->Message(csound, Str(" from file %s (%d)\n"),
+      files = files >>8;  
+      csoundErrorMsg(csound, Str(" from file %s (%d),"),
                       csound->filedir[ff], ff);
     }
 }

@@ -2699,7 +2699,7 @@ void csoundErrorMsg(CSOUND *csound, const char *msg, ...)
     va_start(args, msg);
     csoundMessageV(csound, CSOUNDMSG_ERROR, msg, args);
     va_end(args);
-    csound->MessageS(csound, CSOUNDMSG_ERROR, "\n");
+    //csound->MessageS(csound, CSOUNDMSG_ERROR, "\n");
    } 
 }
 
