@@ -297,6 +297,10 @@ int musmon(CSOUND *csound)
     csound->cyclesRemaining = 0;
     memset(&(csound->evt), 0, sizeof(EVTBLK));
 
+    
+    if(O->msglevel) 
+     print_engine_parameters(csound);
+
     /* run instr 0 inits */
     if (UNLIKELY(init0(csound) != 0))
       csoundDie(csound, Str("header init errors"));
@@ -318,7 +322,6 @@ int musmon(CSOUND *csound)
     if (O->Midioutname != NULL || O->FMidioutname != NULL)
       openMIDIout(csound);
     if(O->msglevel) {
-      print_engine_parameters(csound);
       csound->Message(csound, Str("orch now loaded\n"));
     }   
 
