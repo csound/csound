@@ -374,17 +374,16 @@ int insert_event(CSOUND *csound, int insno, EVTBLK *newevtp)
       if (UNLIKELY(O->msglevel & RNGEMSG)) {
         char *name = csound->engineState.instrtxtp[insno]->insname;
         if (UNLIKELY(name))
-          csound->Message(csound, Str("new alloc for instr %s:\n"), name);
+          csound->ErrorMsg(csound, Str("new alloc for instr %s:\n"), name);
         else
-          csound->Message(csound, Str("new alloc for instr %d:\n"), insno);
+          csound->ErrorMsg(csound, Str("new alloc for instr %d:\n"), insno);
       }
       instance(csound, insno);
       tp->isNew=0;
     }
 
     /* pop from free instance chain */
-    if (UNLIKELY(csound->oparms->odebug))
-      csoundMessage(csound, "insert(): tp->act_instance = %p\n", tp->act_instance);
+    csoundDebugMsg(csound, "insert(): tp->act_instance = %p\n", tp->act_instance);
     ip = tp->act_instance;
     ATOMIC_SET(ip->init_done, 0);
     tp->act_instance = ip->nxtact;
@@ -2407,8 +2406,7 @@ static void instance(CSOUND *csound, int insno)
   ip->nxtact = tp->act_instance;
   tp->act_instance = ip;
   ip->insno = insno;
-  if (UNLIKELY(csound->oparms->odebug))
-    csoundMessage(csound,"instance(): tp->act_instance = %p\n",
+  csoundDebugMsg(csound,"instance(): tp->act_instance = %p\n",
                   tp->act_instance);
 
 
