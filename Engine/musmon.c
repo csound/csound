@@ -254,10 +254,8 @@ int musmon(CSOUND *csound)
 {
     OPARMS  *O = csound->oparms;
     /* VL - 08-07-21 messages moved here so we can switch them off */
-    if(O->msglevel || O->odebug) {
-     print_csound_version(csound);
-     print_sndfile_version(csound);
-    }
+    print_csound_version(csound);
+    print_sndfile_version(csound);
 
     /* initialise search path cache */
     csoundGetSearchPathFromEnv(csound, "SNAPDIR");
@@ -298,8 +296,7 @@ int musmon(CSOUND *csound)
     memset(&(csound->evt), 0, sizeof(EVTBLK));
 
     
-    if(O->msglevel) 
-     print_engine_parameters(csound);
+    print_engine_parameters(csound);
 
     /* run instr 0 inits */
     if (UNLIKELY(init0(csound) != 0))
