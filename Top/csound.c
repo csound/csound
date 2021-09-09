@@ -2715,6 +2715,21 @@ void csoundErrMsgV(CSOUND *csound,
   }
 }
 
+void csoundErrorMsgS(CSOUND *csound, int attr,
+                     const char *msg, ...)
+{
+      // VL 08.09.21 : suppress messages if requested
+  if(csound->oparms->msglevel || csound->oparms->odebug) {
+    va_list args;
+    va_start(args, msg);
+    csoundMessageV(csound, CSOUNDMSG_ERROR | attr, msg, args);
+    va_end(args);
+    //csound->MessageS(csound, CSOUNDMSG_ERROR, "\n");
+   } 
+}
+
+
+
 void csoundLongJmp(CSOUND *csound, int retval)
 {
     int   n = CSOUND_EXITJMP_SUCCESS;
