@@ -1027,15 +1027,7 @@ testFiles = [
 "zkwm",
 ]
 
-<<<<<<< HEAD
-if len(sys.argv) == 2:
-    csound = sys.argv[1]
-else:
-    print("Testing git version")
 
-
-print("Using Csound Command: " + csound)    
-=======
 if(len(sys.argv) > 1):
     for arg in sys.argv:
         if (arg == "--help"):
@@ -1051,7 +1043,7 @@ if(len(sys.argv) > 1):
             print("source dir = " + source_dir)
 
 print("Using Csound Command: " + csound)
->>>>>>> develop
+
 
 try:
     os.remove("Old_Output")
