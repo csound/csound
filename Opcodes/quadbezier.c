@@ -21,7 +21,7 @@
     02110-1301 USA
 */
 
-#include "csdl.h"
+#include "csoundCore.h"
 #include <math.h>
 
 static MYFLT SolveQuadratic(MYFLT a, MYFLT b, MYFLT c);

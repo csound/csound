@@ -555,6 +555,7 @@ INSTRTXT *create_instrument0(CSOUND *csound, TREE *root,
   int krdef = 0; //, ksmpsdef = 0, srdef = 0;
   double A4 = 0.0;
   CS_TYPE *rType = (CS_TYPE *)&CS_VAR_TYPE_R;
+  OPARMS *O = csound->oparms;
 
   addGlobalVariable(csound, engineState, rType, "sr", NULL);
   addGlobalVariable(csound, engineState, rType, "kr", NULL);
@@ -660,14 +661,14 @@ INSTRTXT *create_instrument0(CSOUND *csound, TREE *root,
   /* Deal with defaults and consistency */
   if (ksmps == FL(-1.0)) {
     if (sr == FL(-1.0))
-      sr = DFLT_SR;
+      sr = csound->oparms->sr_default;//   DFLT_SR;
     if (kr == FL(-1.0))
-      kr = DFLT_KR;
+      kr = csound->oparms->kr_default;//  DFLT_KR;
     ksmps = (MYFLT)((int)(sr / kr + FL(0.5)));
     kr = sr / ksmps; /* VL - avoid inconsistency */
   } else if (kr == FL(-1.0)) {
     if (sr == FL(-1.0))
-      sr = DFLT_SR;
+      sr = csound->oparms->sr_default;//  DFLT_SR;
     kr = sr / ksmps;
   } else if (sr == FL(-1.0)) {
     sr = kr * ksmps;
@@ -695,9 +696,11 @@ INSTRTXT *create_instrument0(CSOUND *csound, TREE *root,
                       "sr = %.7g, kr = %.7g, ksmps = %.7g", sr, kr,
                       ksmps);
     }
-    else if (UNLIKELY(FLOAT_COMPARE(sr, (double)kr * ksmps)))
+    else if (UNLIKELY(FLOAT_COMPARE(sr, (double)kr * ksmps)
+                      && !(O->ksmps_override || O->sr_override ||
+                            O->kr_override)))
       synterr(p, Str("%s inconsistent sr, kr, ksmps\n"), err_msg);
-    else if (UNLIKELY(ksmps > sr))
+    else if (UNLIKELY((ksmps > sr) && !(O->ksmps_override || O->sr_override)))
       synterr(p, Str("%s inconsistent sr, kr, ksmps\n"), err_msg);
   }
 
@@ -720,13 +723,12 @@ INSTRTXT *create_instrument0(CSOUND *csound, TREE *root,
     csound->A4 = A4;
     csound_aops_init_tables(csound);
   }
-  if (UNLIKELY(csound->e0dbfs <= FL(0.0))) {
+  /* if (UNLIKELY(csound->e0dbfs <= FL(0.0))) {
     csound->Warning(csound, Str("bad value for 0dbfs: must be positive. "
                                 "Setting default value."));
     csound->e0dbfs = DFLT_DBFS;
-  }
+    }*/
 
-  OPARMS *O = csound->oparms;
   if (O->nchnls_override > 0)
     csound->nchnls = csound->inchnls = O->nchnls_override;
   if (O->nchnls_i_override > 0)
@@ -744,9 +746,12 @@ INSTRTXT *create_instrument0(CSOUND *csound, TREE *root,
     MYFLT tmp_sr = csound->esr;
     csound->esr = -1.0;
     O->sr_override = csoundInitialiseIO(csound);
-    if(O->sr_override > 0)
-      csound->Message(csound, "Using system sampling rate %.1f\n", O->sr_override);
+    if(O->sr_override > 0) {
+     if(O->msglevel || O->odebug)  
+     csound->Message(csound, "Using system sampling rate %.1f\n", O->sr_override);
+    }
     else {
+      if(O->msglevel || O->odebug)  
       csound->Message(csound, "System sr not available\n");
       O->sr_override = FL(0.0);
     }
@@ -778,7 +783,7 @@ INSTRTXT *create_instrument0(CSOUND *csound, TREE *root,
       csound->ksmps = (ensmps = O->ksmps_override);
       if (O->sr_override) {
         csound->ekr = O->sr_override / csound->ksmps;
-        csound->esr = O->sr_override;
+        csound->esr = csound->ekr * ensmps; // force SR
       } else if (O->kr_override) {
         csound->esr = O->kr_override * csound->ksmps;
         csound->ekr = O->kr_override;
@@ -809,6 +814,7 @@ INSTRTXT *create_instrument0(CSOUND *csound, TREE *root,
       if (UNLIKELY(FLOAT_COMPARE(csound->esr, (double)csound->ekr * ensmps)))
         csoundDie(csound, Str("%s inconsistent sr, kr, ksmps"), s);
     }
+    if(O->odebug)  
     csound->Message(csound, Str("sample rate overrides: "
                                 "esr = %7.4f, ekr = %7.4f, ksmps = %d\n"),
                     csound->esr, csound->ekr, csound->ksmps);
@@ -1136,8 +1142,8 @@ void add_to_deadpool(CSOUND *csound, INSTRTXT *instrtxt) {
                     csound->dead_instr_no - 1);
 }
 
-int32 named_instr_find(CSOUND *csound, char *s);
-int32  named_instr_find_in_engine(CSOUND *csound, char *s,
+MYFLT named_instr_find(CSOUND *csound, char *s);
+MYFLT named_instr_find_in_engine(CSOUND *csound, char *s,
                                   ENGINE_STATE *engineState);
 /**
    allocate entry for named instrument ip with name s
@@ -1260,18 +1266,26 @@ void named_instr_assign_numbers(CSOUND *csound, ENGINE_STATE *engineState) {
 
   while (--insno_priority > -3) {
     if (insno_priority == -2) {
+      int found = 0;
       /* check both this state & current state */
-      num = engineState->maxinsno >
-        csound->engineState.maxinsno ?
-        engineState->maxinsno :
-        csound->engineState.maxinsno; /* find last used instr number */
-
-      /* check both this state & current state */
-      while ((!engineState->instrtxtp[num] ||
-              !csound->engineState.instrtxtp[num]) &&
-             --num)
-        ;
-
+      if(engineState->maxinsno > csound->engineState.maxinsno) {
+        for(num=engineState->maxinsno; num > csound->engineState.maxinsno; num--) {
+          if(engineState->instrtxtp[num]) {
+            found = 1;
+            break;
+          }
+        }
+      } else {
+        for(num=csound->engineState.maxinsno; num > engineState->maxinsno; num--) {
+          if(csound->engineState.instrtxtp[num]) {
+            found = 1;
+            break;
+          }
+        }
+      }
+      if(!found) {
+        while(!engineState->instrtxtp[num] && !csound->engineState.instrtxtp[num] && --num);
+      }
     }
     for (inm = inm_first; inm; inm = inm->next) {
       INSTRNAME *temp = (INSTRNAME *)inm->name;
@@ -1300,23 +1314,22 @@ void named_instr_assign_numbers(CSOUND *csound, ENGINE_STATE *engineState) {
             engineState->instrtxtp[m] = NULL;
         }
         inum = num;
-      } else
+
+      } else {
         inum = no; // else use existing number
+      }
       /* hack: "name" actually points to the corresponding INSTRNAME */
       inm2 = (INSTRNAME *)(inm->name); /* entry in the table */
 
       inm2->instno = (int32)inum;
       engineState->instrtxtp[inum] = inm2->ip;
-
-      //if(&csound->engineState == engineState) {
-      /* print message only after merge */
       if (UNLIKELY((csound->oparms->odebug) || (csound->oparms->msglevel > 0)))
         csound->Message(csound, Str("instr %s uses instrument number %d\n"),
                         inm2->name, inum);
-      //}
     }
   }
   /* clear temporary chains */
+
   inm = inm_first;
   while (inm) {
     INSTRNAME *nxtinm = inm->next;
@@ -1861,6 +1874,7 @@ PUBLIC int csoundCompileTreeInternal(CSOUND *csound, TREE *root, int async)
   current = current->next;
 }
 
+
 if (UNLIKELY(csound->synterrcnt)) {
   print_opcodedir_warning(csound);
   csound->Warning(csound, Str("%d syntax errors in orchestra.  "
@@ -1870,14 +1884,15 @@ if (UNLIKELY(csound->synterrcnt)) {
   return CSOUND_ERROR;
  }
 
-/* now add the instruments with names, assigning them fake instr numbers */
-named_instr_assign_numbers(csound, engineState);
+
 if (engineState != &csound->engineState) {
   OPDS *ids = csound->ids;
   /* any compilation other than the first one */
   /* merge ENGINE_STATE */
   /* lock to ensure thread-safety */
   if (!async) {
+    /* now add the instruments with names, assigning them fake instr numbers */
+    named_instr_assign_numbers(csound, engineState);
     if (!csound->oparms->realtime)
       csoundLockMutex(csound->API_lock);
     merge_state(csound, engineState, typeTable, ids);
@@ -1891,6 +1906,8 @@ if (engineState != &csound->engineState) {
       csoundSpinUnLock(&csound->alloc_spinlock);
   }
  } else {
+  /* now add the instruments with names, assigning them fake instr numbers */
+  named_instr_assign_numbers(csound, engineState);
   /* first compilation */
   insert_opcodes(csound, csound->opcodeInfo, engineState);
   ip = engineState->instxtanchor.nxtinstxt;

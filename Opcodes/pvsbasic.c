@@ -1031,13 +1031,14 @@ static int32_t pvsfreezeprocess(CSOUND *csound, PVSFREEZE *p)
   fout = (float *) p->fout->frame.auxp;
   fin = (float *) p->fin->frame.auxp;
   freez = (float *) p->freez.auxp;
+   int32    N = p->fin->N;
 
   framesize = p->fin->N + 2;
 
   if (p->lastframe < p->fin->framecount) {
-
+    memset(fout, 0, sizeof(float)*(N+2));
     for (i = 0; i < framesize; i += 2) {
-      if (freeza < 1)
+      if (freeza < 1) 
         freez[i] = fin[i];
       if (freezf < 1)
         freez[i + 1] = fin[i + 1];
@@ -2674,6 +2675,9 @@ int32_t pvs2tab_init(CSOUND *csound, PVS2TAB_T *p)
                    (p->fsig->format == PVS_AMP_PHASE))))
     return csound->InitError(csound, Str("pvs2tab: signal format "
                                          "must be amp-phase or amp-freq."));
+    if (UNLIKELY(p->fsig->sliding))
+        return csound->InitError(csound, Str("pvs2tab: cannot use sliding PVS"));
+    
   if (LIKELY(p->ans->data)) return OK;
   return csound->InitError(csound, Str("array-variable not initialised"));
 }
@@ -2702,7 +2706,10 @@ int32_t pvs2tabsplit_init(CSOUND *csound, PVS2TABSPLIT_T *p)
                    (p->fsig->format == PVS_AMP_PHASE))))
     return csound->InitError(csound, Str("pvs2tab: signal format "
                                          "must be amp-phase or amp-freq."));
-
+    
+    if (UNLIKELY(p->fsig->sliding))
+        return csound->InitError(csound, Str("pvs2tab: cannot use sliding PVS"));
+    
   if (LIKELY(p->mags->data) && LIKELY(p->freqs->data))
     return OK;
 

@@ -1,10 +1,11 @@
-#!/usr/bin/python
+#!/usr/bin/python3
 
 import os
 import sys
 
 csound = "../../csound"
 flags = "-d -W -m0"
+source_dir = "."
 
 testFiles = [
 "0dbfs",
@@ -1026,6 +1027,7 @@ testFiles = [
 "zkwm",
 ]
 
+<<<<<<< HEAD
 if len(sys.argv) == 2:
     csound = sys.argv[1]
 else:
@@ -1033,6 +1035,23 @@ else:
 
 
 print("Using Csound Command: " + csound)    
+=======
+if(len(sys.argv) > 1):
+    for arg in sys.argv:
+        if (arg == "--help"):
+            showHelp()
+            sys.exit(0)
+        elif arg.startswith("--csound-executable="):
+            csound = arg[20:]
+        elif arg.startswith("--opcode6dir64="):
+            os.environ['OPCODE6DIR64'] = arg[15:]
+            print("OPCODE6DIR64 = " + os.environ['OPCODE6DIR64'])
+        elif arg.startswith("--source-dir="):
+            source_dir = arg[13:]
+            print("source dir = " + source_dir)
+
+print("Using Csound Command: " + csound)
+>>>>>>> develop
 
 try:
     os.remove("Old_Output")
@@ -1051,8 +1070,8 @@ except OSError:
 
 for filename in testFiles:
 
-    replaceText = (csound, flags, filename, filename)
-    csCommand = "%s %s %s.csd -o ./%s.wav >> Output 2>&1"%replaceText
+    replaceText = (csound, flags, source_dir, filename, filename)
+    csCommand = "%s %s %s/%s.csd -o ./%s.wav >> Output 2>&1"%replaceText
   
     md5sumCommand = "md5sum -b %s.wav >> CheckSums"%filename
 
@@ -1066,6 +1085,6 @@ for filename in testFiles:
         print("Error: %s.wav was not generated"%filename)
     
 print("********Comparing checksums")
-os.system("diff CheckSums SAFESums")
+os.system("diff CheckSums %s/Sample_CheckSums"%source_dir)
 print("********Comparing output")
 os.system("diff Output Old_Output")

@@ -238,14 +238,14 @@ TREE *csoundParseOrc(CSOUND *csound, const char *str)
       }
       else {
         if (err == 1){
-          csound->Message(csound, Str("Parsing failed due to invalid input!\n"));
+          csoundErrorMsg(csound, Str("Parsing failed due to invalid input!\n"));
         }
         else if (err == 2){
-          csound->Message(csound,
+          csoundErrorMsg(csound,
                           Str("Parsing failed due to memory exhaustion!\n"));
         }
         else if (err == 3){
-          csound->Message(csound, Str("Parsing failed due to %d syntax error%s!\n"),
+          csoundErrorMsg(csound, Str("Parsing failed due to %d syntax error%s!\n"),
                           csound->synterrcnt, csound->synterrcnt==1?"":"s");
         }
         goto ending;

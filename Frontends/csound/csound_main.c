@@ -317,24 +317,25 @@ int main(int argc, char **argv)
       csoundSetDefaultMessageCallback(msg_callback);
     else if (nomessages)
       csoundSetDefaultMessageCallback(nomsg_callback);
-
+  
     /*  Create Csound. */
     csound = csoundCreate(NULL);
     _csound = csound;
-
     /*  One complete performance cycle. */
     result = csoundCompile(csound, argc, (const char **)argv);
 
      if (!result) result = csoundPerform(csound);
-     //printf("**** result = %d\n", result);
+     // csoundMessage(csound, "**** result = %d\n", result);
      errs = csoundErrCnt(csound);
     /* delete Csound instance */
+     
      csoundDestroy(csound);
+     //fprintf(stdout, "**** return %d\n",  (result >= 0 ? errs : -result));
      _csound = NULL;
     /* close log file */
     if (logFile != NULL)
       fclose(logFile);
-
+       
     if (result == 0 && _result != 0) result = _result;
     //printf("csound returned with value: %d \n", result);
 #if 0

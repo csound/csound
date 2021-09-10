@@ -2615,10 +2615,10 @@ void csound_orcerror(PARSE_PARM *pp, void *yyscanner,
   if (UNLIKELY(*p=='\0' || *p=='\n')) line--;
   //printf("LINE: %d\n", line);
 
-  csound->Message(csound, Str("\nerror: %s  (token \"%s\")"),
+  csound->ErrorMsg(csound, Str("\nerror: %s  (token \"%s\")"),
                   str, csound_orcget_text(yyscanner));
   do_baktrace(csound, files);
-  csound->Message(csound, Str(" line %d:\n>>>"), line);
+  csound->ErrorMsg(csound, Str(" line %d:\n>>>"), line);
   while ((ch=*--p) != '\n' && ch != '\0');
   do {
     ch = *++p;
@@ -2627,9 +2627,10 @@ void csound_orcerror(PARSE_PARM *pp, void *yyscanner,
     if (ch=='#' && strncmp(p,"sline ",6)) {
       p+=7; while (isdigit(*p)) p++;
     }
-    else csound->Message(csound, "%c", ch);
+    else csound->ErrorMsg(csound, "%c", ch);
   } while (ch != '\n' && ch != '\0');
-  csound->Message(csound, " <<<\n");
+  csound->ErrorMsg(csound, " <<<\n");
+
 }
 
 void do_baktrace(CSOUND *csound, uint64_t files)
@@ -2637,7 +2638,7 @@ void do_baktrace(CSOUND *csound, uint64_t files)
   while (files) {
     unsigned int ff = files&0xff;
     files = files >>8;
-    csound->Message(csound, Str(" from file %s (%d)\n"),
+    csound->ErrorMsg(csound, Str(" from file %s (%d)\n"),
                     csound->filedir[ff], ff);
   }
 }

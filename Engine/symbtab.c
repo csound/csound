@@ -492,11 +492,10 @@ int add_udo_definition(CSOUND *csound, char *opname,
 void synterr(CSOUND *csound, const char *s, ...)
 {
     va_list args;
-
-    csound->MessageS(csound, CSOUNDMSG_ERROR, Str("error:  "));
     va_start(args, s);
-    csound->MessageV(csound, CSOUNDMSG_ERROR, s, args);
+    csoundErrMsgV(csound, Str("error:  "), s, args);
     va_end(args);
+
 
     /* FIXME - Removed temporarily for debugging
      * This function may not be necessary at all in the end if some of this is

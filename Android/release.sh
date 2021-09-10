@@ -1,6 +1,6 @@
 #!/bin/sh 
 
-export RELEASE_DIR=csound-android-6.15.0
+export RELEASE_DIR=csound-android-6.17.0
 
 #remove backup files ending with ~
 find . -name "*~" -exec rm {} \;
@@ -41,9 +41,7 @@ done
 
 rm -r pluginlibs/luajit-2.0
 rm -r pluginlibs/libsndfile-android
-rm -r pluginlibs/fluidsynth-android
 rm -r pluginlibs/liblo-android
-rm -r pluginlibs/stk
 rm -r pluginlibs/patches
 
 cd ..

@@ -22,7 +22,7 @@
 */
 
                                                         /* buchla.c */
-#include "csdl.h"
+#include "csoundCore.h"
 #ifdef MSVC
 #define _USE_MATH_DEFINES
 #include <math.h>

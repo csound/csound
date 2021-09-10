@@ -1,97 +1,62 @@
-option(BUILD_CHUA_OPCODES "Build the chua opcodes" ON)
 option(BUILD_DSSI_OPCODES "Build the DSSI opcodes" ON)
-option(BUILD_FLUID_OPCODES "Build the fluidsynth opcodes" ON)
-option(BUILD_JACK_OPCODES "Build the JACK related opcodes" ON)
 option(BUILD_OSC_OPCODES "Build the OSC Opcodes" ON)
-option(BUILD_IMAGE_OPCODES "Build the image opcodes" ON)
-#option(BUILD_PYTHON_OPCODES "Build the Python opcodes" OFF)
-option(BUILD_WIIMOTE_OPCODES "Build the Wiimote opcodes" ON)
-option(BUILD_P5GLOVE_OPCODES "Build the P5Glove opcodes" ON)
-option(BUILD_SERIAL_OPCODES "Build the serial opcode" ON)
-option(BUILD_PLATEREV_OPCODES "Build the platerev opcode" ON)
-option(BUILD_FAUST_OPCODES "Build the Faust opcodes" ON)
-option(BUILD_VST4CS_OPCODES "Build the vst4cs opcodes" OFF)
-option(BUILD_EXCITER_OPCODES "Build the exciter opcode" ON)
-option(BUILD_BUCHLA_OPCODES "Build the Buchla filter opcode" ON)
 option(BUILD_PADSYNTH_OPCODES "Build the Padsynth opcode" ON)
 option(BUILD_SCANSYN_OPCODES "Build the scansyn opcodes" ON)
-option(BUILD_SELECT_OPCODE "Build the select opcode" ON)
-option(BUILD_STACK_OPCODES "Build the stack opcodes" ON)
-option(BUILD_LINEAR_ALGEBRA_OPCODES "Build the linear algebra opcodes" ON)
-option(BUILD_PVSGENDY_OPCODE "Build the pvsgendy opcode" OFF)
-option(BUILD_MP3OUT_OPCODE "Build the mp3out opcode" ON)
-option(BUILD_COUNTER_OPCODES "Build the serial opcode" ON)
+option(BUILD_DEPRECATED_OPCODES "Build deprecated opcodes" ON)
 
-message(STATUS "## Building Opcodes ##")
-include(CheckIncludeFiles)
-check_include_file(ladspa.h LADSPA_H)
-find_library(JACK_LIBRARY jack)
-find_library(JACKDMP_LIBRARY jackdmp)
-check_include_file(jack/jack.h JACK_HEADER)
+##########################################
+## Plugin opcodes are in the following categories ##
+# 1) opcodes in C++ with no external dependencies
+# 2) opcodes with special licensing conditions
+# 3) platform-specific opcodes
+# 4) opcodes with external dependencies
+# 5) deprecated opcodes
+#
+#  if an opcode is not in one of the categories above,
+#  it should be added with BUILTIN linkage
+#  (i.e. not as plugins)
+#  See instructions in ../Top/csmodule.c
+##########################################
 
-find_package(FLUIDSYNTH)
-find_package(LIBLO)
-find_package(ZLIB)
-find_package(PNG)
-#set(PYTHON_INCLUDE_DIRS "/usr/include/Python2.7")
-#set(Python_ADDITIONAL_VERSIONS 2.7)
-#find_package(PythonLibs)
-
-check_include_file(wiiuse.h WIIUSE_H)
-find_library(WIIUSE_LIB wiiuse)
-check_include_file(p5glove.h P5GLOVE_H)
-find_library(P5GLOVE_LIB p5glove)
-check_include_file(lame.h LAME_HEADER)
-find_library(LAME_LIB mp3lame)
-
-## OPCODE LIBS WITH NO EXTERNAL DEPENDENCIES ##
-
-
-make_plugin(sterrain sterrain.c)
-make_plugin(cs_date date.c)
-make_plugin(system_call system_call.c)
+message(STATUS "## Building Plugin Opcodes ##")
+## CPP OPCODE LIBS WITH NO EXTERNAL DEPENDENCIES ##
 make_plugin(doppler doppler.cpp)
 make_plugin(fractalnoise tl/fractalnoise.cpp)
 make_plugin(ftsamplebank ftsamplebank.cpp)
-make_plugin(getftargs getftargs.c)
-make_plugin(liveconv liveconv.c)
-##make_plugin(zak zak.c)
-make_plugin(gtf gammatone.c)
 make_plugin(lfsr lfsr.cpp)
-
-make_plugin(fareygen fareygen.c)
-make_plugin(quadbezier quadbezier.c)
-
+make_plugin(bformdec2 bformdec2.cpp)
+make_plugin(mixer mixer.cpp)
+make_plugin(signalflowgraph signalflowgraph.cpp)
+make_plugin(ampmidid ampmidid.cpp)
 
 if(APPLE)
    make_plugin(arrayops arrayops.cpp)
    make_plugin(pvsops pvsops.cpp)
+   make_plugin(trigenvsegs trigEnvSegs.cpp)
 elseif(LINUX)
     include(CheckCXXCompilerFlag)
     CHECK_CXX_COMPILER_FLAG("-std=gnu++11" COMPILER_SUPPORTS_CXX11)
      if(COMPILER_SUPPORTS_CXX11)
        make_plugin(arrayops arrayops.cpp)
-       set_target_properties(arrayops PROPERTIES COMPILE_FLAGS
-   "-std=gnu++11")
+       set_target_properties(arrayops PROPERTIES COMPILE_FLAGS "-std=gnu++11")
        make_plugin(pvsops pvsops.cpp)
       set_target_properties(pvsops PROPERTIES COMPILE_FLAGS "-std=gnu++11")
+       make_plugin(trigenvsegs trigEnvSegs.cpp)
+      set_target_properties(trigenvsegs PROPERTIES COMPILE_FLAGS "-std=gnu++11")
      else()
         message(STATUS "Not building array operators as no C++11 support found.")
      endif()
 else()
     make_plugin(arrayops arrayops.cpp)
     make_plugin(pvsops pvsops.cpp)
+    make_plugin(trigenvsegs trigEnvSegs.cpp)
     if(WIN32 AND NOT MSVC)
       set_target_properties(arrayops PROPERTIES COMPILE_FLAGS
       "-std=gnu++11")
       set_target_properties(pvsops PROPERTIES COMPILE_FLAGS "-std=gnu++11")
+      set_target_properties(trigenvsegs PROPERTIES COMPILE_FLAGS "-std=gnu++11")
       endif()
 endif()
-
-make_plugin(mixer mixer.cpp)
-make_plugin(signalflowgraph signalflowgraph.cpp)
-make_plugin(ampmidid ampmidid.cpp)
-
 
 if(BUILD_PADSYNTH_OPCODES)
 if(APPLE)
@@ -121,27 +86,14 @@ else()
 endif()
 endif()
 
-
-make_plugin(cellular cellular.c)
-
-if(BUILD_COUNTER_OPCODES)
-   make_plugin(counter counter.c)
-endif()
-
-if(BUILD_SERIAL_OPCODES)
-   make_plugin(serial serial.c)
-endif()
-
-if(BUILD_PLATEREV_OPCODES)
-  make_plugin(platerev platerev.c ${MATH_LIBRARY})
-endif()
-
+## opcodes with special licence conditions ##
 if(BUILD_SCANSYN_OPCODES)
     set(scansyn_SRCS
         scansyn.c scansynx.c)
     make_plugin(scansyn "${scansyn_SRCS}" ${MATH_LIBRARY})
 endif()
 
+## platform-dependent opcodes ##
 if(UNIX)
     make_plugin(control control.c)
     make_plugin(urandom urandom.c)
@@ -151,58 +103,15 @@ if(LINUX)
     make_plugin(joystick linuxjoystick.c)
 endif()
 
-## OPCODES WITH EXTERNAL DEPENDENCIES ##
-
-check_deps(BUILD_CHUA_OPCODES EIGEN3_FOUND)
-if(BUILD_CHUA_OPCODES)
-    make_plugin(chua chua/ChuaOscillator.cpp)
-    target_link_libraries(chua PRIVATE Eigen3::Eigen)
- if(APPLE)
-   set_target_properties(chua PROPERTIES COMPILE_FLAGS "-Wno-unused-local-typedef")
- endif()
-endif()
-
 check_deps(BUILD_DSSI_OPCODES LINUX)
 if(BUILD_DSSI_OPCODES)
+    check_include_file(ladspa.h LADSPA_H)
     set(dssi_SRC dssi4cs/src/load.c dssi4cs/src/dssi4cs.c)
     make_plugin(dssi4cs "${dssi_SRC}" dl)
 endif()
 
-if(BUILD_FLUID_OPCODES AND FLUIDSYNTH_FOUND)
-    make_plugin(fluidOpcodes fluidOpcodes/fluidOpcodes.cpp)
-    target_include_directories(fluidOpcodes PRIVATE ${FLUIDSYNTH_INCLUDE_DIR})
-    target_link_libraries(fluidOpcodes ${FLUIDSYNTH_LIBRARIES})
-endif()
-
-set(JACK_LIB ${JACK_LIBRARY})
-if(NOT JACK_LIB) 
-  set(JACK_LIB ${JACKDMP_LIBRARY})
-endif()
-
-check_deps(BUILD_JACK_OPCODES JACK_HEADER JACK_LIB)
-if(BUILD_JACK_OPCODES)
-    set(jack_LIBS ${PTHREAD_LIBRARY})
-    if(JACKDMP_LIBRARY)
-        list(APPEND jack_LIBS ${JACKDMP_LIBRARY})
-    else()
-        list(APPEND jack_LIBS ${JACK_LIBRARY})
-    endif()
-    make_plugin(jacko jacko.cpp "${jack_LIBS}")
-    set_target_properties(jacko PROPERTIES COMPILE_FLAGS
-   "-std=c++11")
-    make_plugin(jackTransport jackTransport.c "${jack_LIBS}")
-endif()
-
-check_deps(BUILD_LINEAR_ALGEBRA_OPCODES USE_DOUBLE)
-if(BUILD_LINEAR_ALGEBRA_OPCODES AND GMM_FOUND)
-    make_plugin(linear_algebra linear_algebra.cpp)
-    target_include_directories(linear_algebra PRIVATE ${GMM_INCLUDE_DIR})
-    if (MSVC)
-        target_compile_options(linear_algebra PRIVATE "/D_SCL_SECURE_NO_DEPRECATE")
-    endif()
-    message(STATUS "Building linear algebra opcodes")
-endif()
-
+## OPCODES WITH EXTERNAL DEPENDENCIES ##
+find_package(LIBLO)
 if(BUILD_OSC_OPCODES AND LIBLO_FOUND)
     make_plugin(osc OSC.c)
     if(WIN32)
@@ -221,155 +130,9 @@ if(BUILD_OSC_OPCODES AND LIBLO_FOUND)
     else()
       target_link_libraries(osc ${LIBLO_LIBRARIES} pthread)
     endif()
-    add_dependency_to_framework(osc ${LIBLO_LIBRARIES})
 endif()
 
-check_deps(BUILD_IMAGE_OPCODES PNG_FOUND)
-if(BUILD_IMAGE_OPCODES)
-    make_plugin(image imageOpcodes.c)
-    target_include_directories(image PRIVATE ${PNG_INCLUDE_DIR})
-    target_link_libraries(image ${PNG_LIBRARIES})
-    target_compile_definitions(image PRIVATE ${PNG_DEFINITIONS})
-    add_dependency_to_framework(image ${PNG_LIBRARY})
+## deprecated opcodes ##
+if(BUILD_DEPRECATED_OPCODES)
+    make_plugin(deprecated deprecated.c)
 endif()
-
-#check_deps(BUILD_PYTHON_OPCODES PYTHONLIBS_FOUND)
-#if(BUILD_PYTHON_OPCODES)
-#    make_plugin(py py/pythonopcodes.c)
-#    target_include_directories(py PRIVATE ${PYTHON_INCLUDE_DIRS})
-#    target_include_directories(py PRIVATE ${CMAKE_HOME_DIRECTORY}/include)
-#  target_link_libraries(py ${PYTHON_LIBRARIES})
-#endif()
-
-check_deps(BUILD_WIIMOTE_OPCODES WIIUSE_H WIIUSE_LIB)
-if(BUILD_WIIMOTE_OPCODES)
-    make_plugin(wiimote wiimote.c ${WIIUSE_LIB})
-    add_dependency_to_framework(wiimote ${WIIUSE_LIB})
-
-endif()
-
-if(BUILD_EXCITER_OPCODES)
-    make_plugin(exciter exciter.c)
-endif()
-
-if(BUILD_BUCHLA_OPCODES)
-    make_plugin(buchla buchla.c)
-endif()
-
-check_deps(BUILD_P5GLOVE_OPCODES P5GLOVE_H)
-if(BUILD_P5GLOVE_OPCODES)
-    make_plugin(p5g p5glove.c ${P5GLOVE_LIB})
-endif()
-
-if(BUILD_SELECT_OPCODE)
-    make_plugin(select select.c)
-endif()
-
-if(BUILD_STACK_OPCODES)
-    make_plugin(stackops stackops.c)
-endif()
-
-if(BUILD_PVSGENDY_OPCODES)
-    make_plugin(pvsgendy pvsgendy.c)
-endif()
-
-check_deps(BUILD_MP3OUT_OPCODE LAME_HEADER)
-if(BUILD_MP3OUT_OPCODE)
-    make_plugin(mp3out lame.c ${LAME_LIB})
-endif()
-
-
-check_deps(BUILD_FAUST_OPCODES FAUST_FOUND)
-if(BUILD_FAUST_OPCODES)
-  make_plugin(faustcsound faustgen.cpp)
-if(APPLE)
-  target_link_libraries(faustcsound -lcrypto)
-  target_link_libraries(faustcsound -lncurses)
-  target_link_libraries(faustcsound -lz)
-else()
-  target_link_libraries(faustcsound -Wl,-no-as-needed -lcrypto)
-  target_link_libraries(faustcsound -Wl,-no-as-needed -lncurses)
-  target_link_libraries(faustcsound -Wl,-no-as-needed -lz)
-endif()
-  target_link_libraries(faustcsound ${PTHREAD_LIBRARY})
-  target_compile_definitions(faustcsound PRIVATE "-DFAUSTFLOAT=MYFLT")
-
-if(PTHREAD_LIBRARY)
-  target_compile_definitions(faustcsound PRIVATE "-DHAVE_PTHREAD")
-endif()
-
- if(APPLE)
- if(${OSX_VERSION} STREQUAL "10.6")
-    target_link_libraries(faustcsound ${FAUST_LIBRARIES} -ldl -L$ENV{HOME}/lib -L/usr/local/lib ${LLVM_LIBS})
-  else()
-      target_compile_options(faustcsound PRIVATE "-stdlib=libc++")
-
-     target_link_libraries(faustcsound ${FAUST_LIBRARIES} -stdlib=libc++ -ldl -L$ENV{HOME}/lib -L/usr/local/lib ${LLVM_LIBS})
-  endif()
-  else()
-    target_link_libraries(faustcsound ${FAUST_LIBRARIES} -ldl -L$ENV{HOME}/lib -L/usr/local/lib ${LLVM_LIBS})
-   endif()
-
-  target_include_directories(faustcsound PRIVATE ${LLVM_DIR})
-endif()
-
-
-# OGG Opcode previously was built only for OLPC
-#if(VORBISFILE_LIBRARY)
-#    set(vorbis_LIBS ${libcsound_LIBS} ${VORBISFILE_LIBRARY})
-#    make_plugin(ogg ogg.c "${vorbis_LIBS}")
-#endif()
-
-check_deps(BUILD_ABLETON_LINK_OPCODES ABLETON_LINK_HOME)
-if(BUILD_ABLETON_LINK_OPCODES)
-    message(STATUS "Ableton Link home: ${ABLETON_LINK_HOME}")
-    if(APPLE)
-      make_plugin(ableton_link_opcodes ableton_link_opcodes.cpp)
-      set_target_properties(ableton_link_opcodes PROPERTIES COMPILE_FLAGS "-std=c++11 -stdlib=libc++ -Wno-multichar -DLINK_PLATFORM_MACOSX=1"
-        LINK_FLAGS "-std=c++11 -stdlib=libc++")
-    elseif(LINUX)
-        include(CheckCXXCompilerFlag)
-        CHECK_CXX_COMPILER_FLAG("-std=gnu++11" COMPILER_SUPPORTS_CXX11)
-        if(COMPILER_SUPPORTS_CXX11)
-            make_plugin(ableton_link_opcodes ableton_link_opcodes.cpp)
-            set_target_properties(ableton_link_opcodes PROPERTIES COMPILE_FLAGS "-std=gnu++11 -Wno-multichar -DLINK_PLATFORM_LINUX=1")
-        else()
-            message(STATUS "Not building ableton_link_opcodes as no C++11 support found.")
-        endif()
-    else()
-        make_plugin(ableton_link_opcodes ableton_link_opcodes.cpp)
-        if(WIN32)
-            if(MSVC)
-                include_directories($ENV{INCLUDE})
-                include(${ABLETON_LINK_HOME}\\AbletonLinkConfig.cmake)
-                target_link_libraries(ableton_link_opcodes Ableton::Link)
-            else()
-                set_target_properties(ableton_link_opcodes PROPERTIES COMPILE_FLAGS "-std=gnu++11 -Wno-multichar -DLINK_PLATFORM_WINDOWS=1"
-                    LINK_FLAGS "-std=gnu++11")
-                target_link_libraries(ableton_link_opcodes wsock32 ws2_32 iphlpapi)
-            endif()
-        endif()
-    endif()
-    target_include_directories(ableton_link_opcodes PRIVATE ${ABLETON_LINK_HOME}/include)
-    target_include_directories(ableton_link_opcodes PRIVATE ${ABLETON_LINK_HOME}/modules/asio-standalone/asio/include)
-    install(TARGETS ableton_link_opcodes
-        LIBRARY DESTINATION ${PLUGIN_INSTALL_DIR}
-        ARCHIVE DESTINATION ${LIBRARY_INSTALL_DIR})
-endif()
-
-#if(APPLE)
-#foreach(TARG ampmidid doppler mixer signalflowgraph arrayops pvsops
-#ftsamplebank padsynth)
-#set_target_properties(${TARG} PROPERTIES COMPILE_FLAGS "-std=c++11
-#-stdlib=libc++"
-#   LINK_FLAGS "-std=c++11 -stdlib=libc++")
-#endforeach(TARG)
-#endif()
-
-add_subdirectory(stk)
-add_subdirectory(cuda)
-add_subdirectory(opencl)
-add_subdirectory(hdf5)
-add_subdirectory(websockets)
-add_subdirectory(framebuffer)
-add_subdirectory(emugens)

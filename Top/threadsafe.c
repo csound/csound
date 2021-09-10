@@ -50,6 +50,8 @@ int csoundScoreEventAbsoluteInternal(CSOUND *csound, char type,
 void set_channel_data_ptr(CSOUND *csound, const char *name,
                           void *ptr, int newSize);
 
+void named_instr_assign_numbers(CSOUND *csound, ENGINE_STATE *engineState);
+
 enum {INPUT_MESSAGE=1, READ_SCORE, SCORE_EVENT, SCORE_EVENT_ABS,
       TABLE_COPY_OUT, TABLE_COPY_IN, TABLE_SET, MERGE_STATE, KILL_INSTANCE};
 
@@ -222,6 +224,7 @@ void message_dequeue(CSOUND *csound) {
                  sizeof(TYPE_TABLE *));
           memcpy(&ids, msg->args + 2*ARG_ALIGN,
                  sizeof(OPDS *));
+          named_instr_assign_numbers(csound, e);
           merge_state(csound, e, t, ids);
         }
         break;

@@ -1,7 +1,7 @@
 #ifndef EMUGENS_COMMON_H
 #define EMUGENS_COMMON_H
 
-#include "csdl.h"
+#include "csoundCore.h"
 
 
 #define INITERR(m) (csound->InitError(csound, "%s", m))
@@ -20,7 +20,7 @@
 
 // This must be called for each array at each perf pass
 // (at init call tabinit)
-#define ARRAY_ENSURESIZE(csound, arr, size) tabcheck(csound, arr, size, &(p->h))
+#define ARRAY_ENSURESIZE_PERF(csound, arr, size) tabcheck(csound, arr, size, &(p->h))
 
 
 // This is deprecated, we use the new methods (6.13) tabinit and tabcheck

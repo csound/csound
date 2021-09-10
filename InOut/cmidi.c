@@ -129,15 +129,20 @@ static int MidiInDeviceOpen(CSOUND *csound, void **userData, const char *dev)
       if (!ret){
         /* sources, we connect to all available input sources */
         endpoints = MIDIGetNumberOfSources();
+       OPARMS O;
+       csound->GetOParms(csound, &O);
+       if(O.msglevel || O.odebug)
         csound->Message(csound, Str("%d MIDI sources in system\n"), endpoints);
         if (!strcmp(dev,"all")) {
-          csound->Message(csound, "%s", Str("receiving from all sources\n"));
+          if(O.msglevel || O.odebug)
+           csound->Message(csound, "%s", Str("receiving from all sources\n"));
           for(k=0; k < endpoints; k++){
             endpoint = MIDIGetSource(k);
             long srcRefCon = (long) endpoint;
             MIDIPortConnectSource(mport, endpoint, (void *) srcRefCon);
             MIDIObjectGetStringProperty(endpoint, kMIDIPropertyName, &name);
-            csound->Message(csound, Str("connecting midi device %d: %s\n"), k,
+            if(O.msglevel || O.odebug)
+             csound->Message(csound, Str("connecting midi device %d: %s\n"), k,
                             CFStringGetCStringPtr(name, defaultEncoding));
           }
         }
@@ -148,13 +153,16 @@ static int MidiInDeviceOpen(CSOUND *csound, void **userData, const char *dev)
             long srcRefCon = (long) endpoint;
             MIDIPortConnectSource(mport, endpoint, (void *) srcRefCon);
             MIDIObjectGetStringProperty(endpoint, kMIDIPropertyName, &name);
-            csound->Message(csound, Str("connecting midi device %d: %s\n"), k,
+            if(O.msglevel || O.odebug)
+             csound->Message(csound, Str("connecting midi device %d: %s\n"), k,
                             CFStringGetCStringPtr(name, defaultEncoding));
           }
-          else
+          else {
+            if(O.msglevel || O.odebug)
             csound->Message(csound,
                             Str("MIDI device number %d is out-of-range, "
                                 "not connected\n"), k);
+          }
         }
 
       }
@@ -283,7 +291,12 @@ PUBLIC int csoundModuleInit(CSOUND *csound)
     if (!(strcmp(drv, "coremidi") == 0 || strcmp(drv, "CoreMidi") == 0 ||
           strcmp(drv, "CoreMIDI") == 0 || strcmp(drv, "cm") == 0))
       return 0;
-    csound->Message(csound, "%s", Str("rtmidi: CoreMIDI module enabled\n"));
+    {
+    OPARMS O;
+    csound->GetOParms(csound, &O);
+    if(O.msglevel || O.odebug)
+     csound->Message(csound, "%s", Str("rtmidi: CoreMIDI module enabled\n"));
+    }
     csound->SetExternalMidiInOpenCallback(csound, MidiInDeviceOpen);
     csound->SetExternalMidiReadCallback(csound, MidiDataRead);
     csound->SetExternalMidiInCloseCallback(csound, MidiInDeviceClose);

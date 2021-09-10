@@ -89,7 +89,7 @@ static int32_t midic7set(CSOUND *csound, MIDICTL2 *p)
 
 static int32_t midic7(CSOUND *csound, MIDICTL2 *p)
 {
-     IGN(csound);
+    IGN(csound);
     MYFLT value;
     INSDS *lcurip = p->h.insdshead;
 

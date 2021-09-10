@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/python3
 
 # Csound Test Suite
 # By Steven Yi <stevenyi at gmail dot com>
@@ -6,19 +6,28 @@
 import os
 import sys
 
-# from testUI import TestApplication
+
+# test_ui = False
 
 # try:
 #     # Python 3
 #     from tkinter import *
+#     from testUI import TestApplication
+#     test_ui = True
 # except:
+#     try:
 #     # Python 2
-#     from Tkinter import *
+#      from Tkinter import *
+#      from testUI import TestApplication
+#      test_ui = True
+#     except:
+#      pass
 
 parserType = ""
-showUIatClose = False
+# showUIatClose = False
 ##csoundExecutable = r"C:/Users/new/csound-csound6-git/csound.exe "
 csoundExecutable =""
+sourceDirectory = "."
 
 class Test:
     def __init__(self, fileName, description, expected=True):
@@ -27,11 +36,13 @@ class Test:
         self.expected = expected
 
 # def showUI(results):
-#     root = Tk()
-#     app = TestApplication(master=root)
-#     app.setResults(results)
-#     app.mainloop()
-#     root.destroy()
+#     if test_ui is True:
+#      root = Tk()
+#      app = TestApplication(master=root)
+#      app.setResults(results)
+#      app.mainloop()
+#      root.destroy()
+
 
 def showHelp():
     message = """Csound Test Suite by Steven Yi<stevenyi@gmail.com>
@@ -144,11 +155,13 @@ def runTest():
 	["test_udo_2d_array.csd", "test udo with 2d-array"],
         ["test_udo_string_array_join.csd", "test udo with S[] arg returning S"],
         ["test_array_function_call.csd", "test synthesizing an array arg from a function-call"],
+
         ["test_explicit_types.csd", "test typed identifiers (i.e. signals:a[], sigLeft:a)"],
         ["test_parser3_opcall_ambiguities.csd", "test T_OPCALL ambiguities"],
         ["test_new_udo_syntax.csd", "test new-style UDO syntax"],
         ["test_new_udo_syntax_explicit_types.csd", "test new-style UDO syntax with explicit types"],
         ["test_multiple_return.csd", "test multiple return from express (i.. a1,a2 = xx())"],
+        ["test_array_operations.csd", "test multiple operations on multiple array types"],
         ["prints_number_no_crash.csd", "test prints does not crash when given a number arguments", 1],
         ["test_newlines_within_function_calls.csd", "test newlines allowed within function calls"],
 
@@ -184,7 +197,7 @@ def runTest():
     tests += udoTests
 
     output = ""
-    tempfile = 'csound_test_output.txt' if (os.name == 'nt') else '/tmp/csound_test_output.txt'
+    tempfile = 'csound_test_output.txt'
     counter = 1
 
     retVals = []
@@ -200,14 +213,18 @@ def runTest():
 
         if(os.sep == '\\' or os.name == 'nt'):
             executable = (csoundExecutable == "") and "..\csound.exe" or csoundExecutable
-            command = "%s %s %s %s 2> %s"%(executable, parserType, runArgs, filename, tempfile)
+            command = "%s %s %s %s/%s 2> %s"%(executable, parserType, runArgs, sourceDirectory, filename, tempfile)
             print(command)
             retVal = os.system(command)
         else:
             executable = (csoundExecutable == "") and "../../csound" or csoundExecutable
-            command = "%s %s %s %s 2> %s"%(executable, parserType, runArgs, filename, tempfile)
+            command = "%s %s %s %s/%s 2> %s"%(executable, parserType, runArgs, sourceDirectory, filename, tempfile)
             print(command)
             retVal = os.system(command)
+
+
+        if hasattr(os, 'WIFEXITED') and os.WIFEXITED(retVal):
+            retVal = os.WEXITSTATUS(retVal)
 
         out = ""
         if (retVal == 0) == (expectedResult == 0):
@@ -272,6 +289,8 @@ if __name__ == "__main__":
             elif arg.startswith("--opcode6dir64="):
                 os.environ['OPCODE6DIR64'] = arg[15:]
                 print(os.environ['OPCODE6DIR64'])
+            elif arg.startswith("--source-dir="):
+                sourceDirectory = arg[13:]
     results = runTest()
     # if (showUIatClose):
     #     showUI(results)

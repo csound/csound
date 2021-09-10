@@ -4,7 +4,6 @@ Opcodes: internal and plugin opcodes
 - LuaCsound.cpp: lua-language opcodes
 - OSC.c: open sound control
 - Vosim.c: VOSIM opcode
-- ableton_link_opcodes.cpp: ableton link opcodes
 - afilters.c: miscellaneous filters
 - ambicode.c: original ambisonics opcodes 
 - ambicode1.c: ambisonics (new decoding algorithms)
@@ -34,7 +33,6 @@ Opcodes: internal and plugin opcodes
 - exciter.c: exciter 
 - fareygen.c: Farey GEN routines
 - fareyseq.c: Farey sequence opcodes
-- faustgen.cpp: Faust JIT opcodes
 - filter.c: miscellaneous filters
 - flanger.c: flanger
 - fm4op.c: 4-op FM synthesis
@@ -46,7 +44,6 @@ Opcodes: internal and plugin opcodes
 - ftgen.c: ftgen opcode
 - ftsamplebank.cpp: sample bank loading opcode
 - gendy.c: GENDY GEN routines
-- getftargs.c: retrieving function table arguments
 - grain.c: granular synthesis
 - grain4.c: granular synthesis
 - harmon.c: harmonisers
@@ -55,7 +52,6 @@ Opcodes: internal and plugin opcodes
 - hrtfopcodes.c: HRTF opcodes (new algorithms)
 - hrtfreverb.c: binaural reverb
 - ifd.c: instantaneous frequency distribution
-- imageOpcodes.c: image opcodes
 - jackTransport.c: jack transport control
 - jacko.cpp: jack output opcodes
 - linear_algebra.cpp: linear algebra opcodes
@@ -77,7 +73,6 @@ Opcodes: internal and plugin opcodes
 - newfils.c: new filter algorithms
 - nlfilt.c: non-linear filter
 - oscbnk.c: oscillator bank and virtual analogue oscillator
-- p5glove.c: P5 glove opcodes
 - padsynth_gen.cpp: padsynth GEN routine
 - pan2.c: panning
 - partials.c: spectral partial tracking
@@ -151,5 +146,4 @@ Opcodes: internal and plugin opcodes
 - vbap_zak.c: vbap opcodes with zak output
 - vpvoc.c: phase vocoder opcodes
 - wave-terrain.c: wave terrain synthesis
-- wiimote.c: wiimote control input
 - wpfilters.c: zero-delay filters

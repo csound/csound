@@ -33,12 +33,14 @@ typedef struct {
     MYFLT       *a_ext, *i_disp, *i_id;
     AUXCH       aux_f;
     AUXCH       aux_x;
-    MYFLT       *x0, *x1, *x2, *x3, *ext, *v, rate;
+    MYFLT       *x0, *x1, *x2, *x3, *ext, *v;
     MYFLT       *m, *f, *c, *d, *out;
-    int32        idx, len, exti;
-    int32_t      id;
+    int32       idx, len, exti, rate;
+    int32_t     id;
     void        *win;
+    FUNC        *fi;
     SCANSYN_GLOBALS *pp;
+    int         revised;
 } PSCSNU;
 
 /* Data structure for scanning opcode */
@@ -49,10 +51,17 @@ typedef struct {
     MYFLT       *interp;
     AUXCH       aux_t;
     MYFLT       fix, phs;
-    int32        tlen, *t;
+    int32       tlen, *t;
     int32_t     oscil_interp;
     PSCSNU      *p;
 } PSCSNS;
+
+typedef struct {
+    OPDS        h;
+    MYFLT       *k_pos, *k_vel;
+    MYFLT       *i_id, *k_pamp, *k_vamp, *k_which;
+    PSCSNU      *p;
+} PSCSNMAP;
 
 /* *********************************** */
 /* *********************************** */
@@ -78,8 +87,9 @@ typedef struct {
 #endif
     int32       idx, exti;
     uint32_t    len;
-    int32_t         id;
+    int32_t       id;
     void        *win;
+    FUNC        *fi;
     SCANSYN_GLOBALS *pp;
 } PSCSNUX;
 
@@ -93,7 +103,7 @@ typedef struct {
     AUXCH       aux_t;
     MYFLT       fix, phs;
     int32       tlen, *t;
-    int32_t         oscil_interp;
+    int32_t     oscil_interp;
     PSCSNUX     *p;
 } PSCSNSX;
 
@@ -114,8 +124,7 @@ struct SCANSYN_GLOBALS_ {
     void        *scsnx_list;
 };
 
-extern int32_t
-scansynx_init_(CSOUND *);
+extern int32_t scansynx_init_(CSOUND *);
 
 static CS_NOINLINE SCANSYN_GLOBALS * scansyn_allocGlobals(CSOUND *csound)
 {

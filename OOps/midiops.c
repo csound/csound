@@ -121,6 +121,35 @@ int32_t ctrlinit(CSOUND *csound, CTLINIT *p)
     }
 }
 
+int32_t ctrlnameinit(CSOUND *csound, CTLINITS *p)
+{
+    int16 chnl = strarg2insno(csound, ((STRINGDAT *)p->iname)->data, 1);
+    int16 nargs = p->INOCOUNT;
+    if (UNLIKELY(chnl > 63)) {
+      return NOTOK;
+    }
+    {
+      MCHNBLK *chn;
+      MYFLT **argp = p->ctrls;
+      int16 ctlno, nctls = nargs >> 1;
+      chn = csound->m_chnbp[chnl];
+      do {
+        MYFLT val;
+        ctlno = (int16)**argp++;
+        if (UNLIKELY(ctlno < 0 || ctlno > 127)) {
+          return csound->InitError(csound, Str("illegal ctrl no"));
+        }
+        val = **argp++;
+        if (val < FL(0.0) || val > FL(127.0))
+          return csound->InitError(csound, Str("Value out of range [0,127]\n"));
+        chn->ctl_val[ctlno] = val;
+      } while (--nctls);
+      return OK;
+    }
+}
+
+
+
 int32_t notnum(CSOUND *csound, MIDIKMB *p)       /* valid only at I-time */
 {
     *p->r = csound->curip->m_pitch;
@@ -498,7 +527,13 @@ int32_t kbndset(CSOUND *csound, MIDIKMAP *p)
 {
     IGN(csound);
     p->lo = *p->ilo;
-    p->scale = *p->ihi - *p->ilo;
+    p->scale = (*p->ihi - p->lo);
+    /* { */
+    /*   printf("lo hi =%f %f\tr=-1 v = %f / r=0 v = %f / r=1 v = %f\n", */
+    /*          p->lo, *p->ihi, p->lo + (-1) * p->scale, */
+    /*          p->lo + 0 * p->scale, */
+    /*          p->lo + 1 * p->scale);  */
+    /* } */
     return OK;
 }
 
@@ -615,7 +650,7 @@ int32_t midiarp_set(CSOUND *csound, MIDIARP *p)
 {
     int32_t cnt;
     srand(time(NULL));
-    p->flag=1, *p->arpMode=0, p->direction=2, p->noteIndex=9;
+    p->flag=1, p->direction=2, p->noteIndex=9;
     p->maxNumNotes=10, p->noteCnt=0, p->status=0, p->chan=0;
     p->data1=0, p->data2=0;
 
@@ -686,7 +721,7 @@ int32_t midiarp(CSOUND *csound, MIDIARP *p)
         p->data2  = (MYFLT) *++temp;
 
         if (p->status==144 && p->data2>0) {
-          p->notes[p->noteCnt] = p->data1;
+          p->notes[p->noteCnt] = p->data2;
 
           for (i = 0 ; i < p->maxNumNotes ; i++)
             p->sortedNotes[i] = p->notes[i];
@@ -697,7 +732,7 @@ int32_t midiarp(CSOUND *csound, MIDIARP *p)
 
         }
         else if (p->status==128 || (p->status==144 && p->data2==0)) {
-          zeroNoteFromArray(p->notes, p->data1, p->maxNumNotes);
+          zeroNoteFromArray(p->notes, p->data2, p->maxNumNotes);
 
           for (i = 0 ; i < p->maxNumNotes ; i++)
             p->sortedNotes[i] = p->notes[i];
@@ -716,21 +751,22 @@ int32_t midiarp(CSOUND *csound, MIDIARP *p)
         if (p->noteIndex<p->maxNumNotes && p->sortedNotes[p->noteIndex]!=0)
           *p->noteOut = p->sortedNotes[p->noteIndex];
 
-        if (arpmode==0) {
+        if (arpmode==0)
+        {
           //up and down pattern
-          if (p->direction>0) {
-            p->noteIndex = (p->noteIndex < p->maxNumNotes-1
-                            ? p->noteIndex+1 : p->maxNumNotes - p->noteCnt);
-            if (p->noteIndex==p->maxNumNotes-1)
-              p->direction = -2;
-          }
-          else {
-            p->noteIndex = (p->noteIndex > p->maxNumNotes - p->noteCnt
-                            ? p->noteIndex-1 : p->maxNumNotes-1);
-            if (p->noteIndex==p->maxNumNotes-p->noteCnt)
-              p->direction = 2;
+            if(p->direction>0) {
+                p->noteIndex = (p->noteIndex < p->maxNumNotes-1
+                                ? p->noteIndex+1 : p->maxNumNotes - p->noteCnt);
+                if(p->noteIndex==p->maxNumNotes-1)
+                    p->direction = -2;
+            }
+            else{
+                p->noteIndex = (p->noteIndex >= p->maxNumNotes - p->noteCnt
+                                ? p->noteIndex-1 : p->maxNumNotes-1);
+                if(p->noteIndex==p->maxNumNotes-p->noteCnt)
+                    p->direction = 2;
 
-          }
+            }
         }
         else if (arpmode==1) {
           //up only pattern
@@ -818,7 +854,7 @@ int printctrl(CSOUND *csound, PRINTCTRL *p)
 {
     MYFLT *d = p->arr->data;
     int n = (int)d[0], i;
-    fprintf(p->fout, "\n; ctrlinit\t%d", (int)d[1]);
+    fprintf(p->fout, "\n ctrlinit\t%d", (int)d[1]);
     for (i=0; i<n; i++)
       fprintf(p->fout, ", %d,%d", (int)d[2+2*i], (int)d[3+2*i]);
     fprintf(p->fout, "\n\n");
@@ -917,8 +953,8 @@ int presetctrl1_perf(CSOUND *csound, PRESETCTRL1 *p)
       int** tt = q->presets;
       int size = tag-q->max_num;
       if (size<10) size = 10;
-     tt = (int**)csound->ReAlloc(csound,
-                                    tt, (q->max_num+size)*sizeof(int*));
+      tt = (int**)csound->ReAlloc(csound,
+                                  tt, (q->max_num+size)*sizeof(int*));
       if (tt == NULL)
         return csound->InitError(csound, "%s",
                                  Str("Failed to allocate presets\n"));
@@ -933,8 +969,8 @@ int presetctrl1_perf(CSOUND *csound, PRESETCTRL1 *p)
     slot = q->presets[tag];
     slot[0] = p->arr->sizes[0];
     slot[1] = (int)(p->arr->data[1]);
-    for (i=0; i<slot[0]-1; i++)
-      slot[i+2]= (int)p->arr->data[i];
+    for (i=2; i<=slot[0]; i++)
+      slot[i]= (int)p->arr->data[i];
     /* for (i=0; i<slot[0];i++) printf("%d ", slot[i]); */
     /* printf("\n"); */
     *p->inum = (MYFLT)tag+1;
@@ -957,8 +993,8 @@ int selectctrl_perf(CSOUND *csound, SELECTCTRL *p)
     PRESET_GLOB *q = p->q;
     int tag = (int)*p->inum-1;
     int i;
-    int* slot = q->presets[tag];
-    if (slot == NULL) {
+    int* slot;
+    if (tag>=q->max_num ||NULL==(slot = q->presets[tag])) {
       return csound->PerfError(csound, &p->h, Str("No such preset %d\n"), tag+1);
     }
     {
@@ -987,11 +1023,12 @@ int printpresets_perf(CSOUND *csound, PRINTPRESETS *p)
       if (q->presets[j]) {
         int i;
         int *slot = q->presets[j];
-        fprintf(ff, "\n;; kpre%d ctrlpreset\t%d ", j+1, j+1);
+        fprintf(ff, "\n kpre%d ctrlpreset\t%d ", j+1, j+1);
         for (i=1; i<slot[0]; i++)
           fprintf(ff, ", %d", slot[i]);
         fprintf(ff, "\n");
       }
+    fprintf(ff, "\n\n");
     fflush(ff);
     return OK;
 }

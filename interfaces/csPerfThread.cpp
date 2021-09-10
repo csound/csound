@@ -221,6 +221,18 @@ public:
       return 0;
     }
     ~CsPerfThreadMsg_Record() {
+      /* VL: This appears to break the recording process
+         needs to be investigated.
+       */
+       /*
+        CsoundPerformanceThreadMessage::lockRecord();
+        recordData_t *recordData = CsoundPerformanceThreadMessage::getRecordData();
+        if (recordData->sfile) {
+            sf_close((SNDFILE *) recordData->sfile);
+            recordData->sfile = NULL;
+        }
+        CsoundPerformanceThreadMessage::unlockRecord();
+      */
     }
 private:
     std::string filename;
@@ -239,7 +251,16 @@ public:
       if (recordData->running) {
           recordData->running = false;
           csoundJoinThread(recordData->thread);
+         /* VL: This appears to break the recording process
+          needs to be investigated. I'm reverting the old code for now.
+           */
           sf_close((SNDFILE *) recordData->sfile);
+          /*
+          if (recordData->sfile) {
+            sf_close((SNDFILE *) recordData->sfile);
+            recordData->sfile = NULL;
+          }
+          */
       }
 
       CsoundPerformanceThreadMessage::unlockRecord();

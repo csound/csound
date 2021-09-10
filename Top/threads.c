@@ -177,6 +177,25 @@ typedef struct barrier {
 #endif
 #endif
 
+
+PUBLIC void *csoundCreateThread2(uintptr_t (*threadRoutine)(void *),
+                                 unsigned int stack,
+                                 void *userdata)
+{
+    pthread_attr_t attr;
+    pthread_attr_init(&attr);
+    pthread_attr_setstacksize(&attr, stack);
+    pthread_t *pthread = (pthread_t *) malloc(sizeof(pthread_t));
+    if (!pthread_create(pthread, (pthread_attr_t*) NULL,
+                        (void *(*)(void *))(void*)threadRoutine, userdata)) {
+      return (void*) pthread;
+    }
+    free(pthread);
+    return NULL;
+
+}
+
+
 PUBLIC void *csoundCreateThread(uintptr_t (*threadRoutine)(void *),
                                 void *userdata)
 {
@@ -590,6 +609,25 @@ static unsigned int __stdcall threadRoutineWrapper(void *p)
   return (unsigned int) threadRoutine(userData);
 }
 
+PUBLIC void *csoundCreateThread2(uintptr_t (*threadRoutine)(void *), unsigned int stack, void *userdata) {
+  threadParams  p;
+  void          *h;
+  unsigned int  threadID;
+
+  p.func = threadRoutine;
+  p.userdata = userdata;
+  p.threadLock = CreateEvent(0, 0, 0, 0);
+  if (p.threadLock == (HANDLE) 0)
+    return NULL;
+  h = (void*) _beginthreadex(NULL, stack, threadRoutineWrapper,
+      (void*) &p, (unsigned) 0, &threadID);
+  if (h != NULL)
+    WaitForSingleObject(p.threadLock, INFINITE);
+  CloseHandle(p.threadLock);
+  return h;
+  
+}
+
 PUBLIC void *csoundCreateThread(uintptr_t (*threadRoutine)(void *),
     void *userdata)
 {
@@ -864,6 +902,14 @@ PUBLIC int csoundWaitBarrier(void *barrier)
 /* ------------------------------------------------------------------------ */
 
 #else
+
+PUBLIC void *csoundCreateThread2(uintptr_t (*threadRoutine)(void *), unsigned int stack,
+                                void *userdata)
+{
+    //notImplementedWarning_("csoundCreateThread");
+    return NULL;
+}
+
 
 PUBLIC void *csoundCreateThread(uintptr_t (*threadRoutine)(void *),
                                 void *userdata)

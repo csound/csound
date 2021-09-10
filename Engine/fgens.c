@@ -1,5 +1,5 @@
 /*
-    fgens.c:
+   fgens.c:
 
     Copyright (C) 1991, 1994, 1995, 1998, 2000, 2004
                   Barry Vercoe, John ffitch, Paris Smaragdis,
@@ -74,7 +74,7 @@ static int gen30(FGDATA *, FUNC *), gen31(FGDATA *, FUNC *);
 static int gen32(FGDATA *, FUNC *), gen33(FGDATA *, FUNC *);
 static int gen34(FGDATA *, FUNC *), gen40(FGDATA *, FUNC *);
 static int gen41(FGDATA *, FUNC *), gen42(FGDATA *, FUNC *);
-static int gen43(FGDATA *, FUNC *);
+static int gen43(FGDATA *, FUNC *), gen44(FGDATA *, FUNC *);
 static int gn1314(FGDATA *, FUNC *, MYFLT, MYFLT);
 static int gen51(FGDATA *, FUNC *), gen52(FGDATA *, FUNC *);
 static int gen53(FGDATA *, FUNC *);
@@ -89,7 +89,7 @@ static const GEN or_sub[GENMAX + 1] = {
     gen11, gen12, gen13, gen14, gen15, gen16, gen17, gen18, gen19, gen20,
     gen21, GENUL, gen23, gen24, gen25, GENUL, gen27, gen28, GENUL, gen30,
     gen31, gen32, gen33, gen34, GENUL, GENUL, GENUL, GENUL, GENUL, gen40,
-    gen41, gen42, gen43, GENUL, GENUL, GENUL, GENUL, GENUL,
+    gen41, gen42, gen43, gen44, GENUL, GENUL, GENUL, GENUL,
 #ifndef NACL
     gen49,
 #else
@@ -228,7 +228,7 @@ int hfgens(CSOUND *csound, FUNC **ftpp, const EVTBLK *evtblkp, int mode)
       /* defer alloc to gen01|gen23|gen28 */
       ff.guardreq = 1;
       if (UNLIKELY(genum != 1 && genum != 2 && genum != 23 &&
-                   genum != 28 && genum != 49 && genum<=GENMAX)) {
+                   genum != 28 && genum != 44 && genum != 49 && genum<=GENMAX)) {
         return fterror(&ff, Str("deferred size for GENs 1, 2, 23, 28 or 49 only"));
       }
       if (UNLIKELY(msg_enabled))
@@ -1370,7 +1370,7 @@ static MYFLT nextval(FILE *f)
       } while (isdigit(c) || c=='e' || c=='E' || c=='+' || c=='-' || c=='.');
       buff[j]='\0';
       d = atof(buff);
-      if (c==';' || c=='#') {             /* If exended with comment clear it now */
+      if (c==';' || c=='#') {             /* If extended with comment clear it now */
         while ((c = getc(f)) != '\n');
       }
       return (MYFLT)d;
@@ -2203,16 +2203,22 @@ static int gen41(FGDATA *ff, FUNC *ftp)   /*gab d5*/
     MYFLT    tot_prob = FL(0.0);
     int     nargs = ff->e.pcnt - 4;
 
+    //printf("*** nargs = %d, len = %d, number = %d\n", nargs, ftp->flen, ftp->fno);
     for (j=0; j < nargs; j+=2) {
       if (UNLIKELY(pp[j+1]<0))
         return fterror(ff, Str("Gen41: negative probability not allowed"));
       tot_prob += pp[j+1];
     }
     //printf("total prob = %g\n", tot_prob);
+    if (nargs&1)
+      return fterror(ff, Str("Gen41: Must have even numer of arguments"));
     for (i=0, j=0; j< nargs; j+=2) {
       width = (int) ((pp[j+1]/tot_prob) * ff->flen +.5);
       for ( k=0; k < width; k++,i++) {
-        fp[i] = pp[j];
+        if (i<ff->flen) {
+          //printf("*** i=%d, j=%d, pp]j] = %f\n", i, j, pp[j]);
+          fp[i] = pp[j];
+        } //else printf("%d out of range\n", i);
       }
     }
     //printf("GEN41: i=%d le=%d\n", i, ff->flen);
@@ -2818,8 +2824,8 @@ typedef struct _pvstabledat {
     int32    fftsize;
     int32    overlap;
     int32    winsize;
-    int     wintype;
-    int     chans;
+    int      wintype;
+    int      chans;
     int32    format;
     int32    blockalign;
     uint32 frames;
@@ -2894,6 +2900,57 @@ static int gen43(FGDATA *ff, FUNC *ftp)
     }
     return OK;
 }
+
+static int gen44(FGDATA *ff, FUNC *ftp)
+{
+    /*
+      This Gen routine calculates a stiffness matrix for scanu/scanu2.
+    */
+
+    MYFLT   *fp;
+    CSOUND  *csound = ff->csound;
+    FILE    *filp;
+    void    *fd;
+    char buff[80];
+    int len;
+    int i, j, n;
+    MYFLT stiffness;
+    
+    if (isstrcod(ff->e.p[5]))
+      strncpy(buff, (char *)(&ff->e.strarg[0]), 79);
+    else
+      csound->strarg2name(csound, buff, &(ff->e.p[5]), "stiff.", 0);
+    fd = csound->FileOpen2(csound, &filp, CSFILE_STD, buff, "r",
+                           "SFDIR;SSDIR;INCDIR", CSFTYPE_FLOATS_TEXT, 0);
+    if (UNLIKELY(fd == NULL))
+      return fterror(ff, Str("GEN44: Failed to open file %s\n"), buff);
+    if (UNLIKELY(NULL==fgets(buff, 80, filp)))
+      return fterror(ff, Str("GEN44; Failed to read matrix file\n"));
+    if (1!=sscanf(buff, "<MATRIX size=%d", &len))
+      return fterror(ff, Str("GEN44: No header in matrix file\n"));
+    if (ftp==NULL) {
+      ff->flen = len*len;
+      ftp = ftalloc(ff);
+      fp = ftp->ftable;
+    }
+    else if (ff->e.p[3]<len*len) {
+      fp = ftp->ftable = csound->Calloc(csound, len*len*sizeof(MYFLT));
+      ftp->flen = len*len;
+    }
+    else memset(fp = ftp->ftable, '\0', sizeof(MYFLT)*ff->e.p [3]);
+    while (NULL!=  fgets(buff, 80, filp)) {
+      if (strncmp(buff, "</MATRIX>", 8)==0) break;
+      n = sscanf(buff, " %d %d %lf \n", &i, &j, &stiffness);
+      if (n==2)stiffness = FL(1.0);
+      else if (n!=3) return fterror(ff, Str("GEN44: format error\n"));
+      if (i<1 || i>len || j<1 || j>len)
+        return fterror(ff, Str("GEN44: Out of range\n"));
+      fp[(i-1)*len+j-1] = stiffness;
+    }
+    if (ff->e.p[4]>0) ff->e.p[4] = -44;
+    return OK;
+}
+
 #ifndef NACL
 #include "mp3dec.h"
 

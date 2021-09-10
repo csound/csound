@@ -263,6 +263,8 @@ typedef struct CORFIL {
     int     ksmps_override;
     int     fft_lib;
     int     echo;
+    MYFLT   limiter;
+    float   sr_default, kr_default;
   } OPARMS;
 
   typedef struct arglst {
@@ -1396,18 +1398,19 @@ typedef struct _message_queue_t_ {
     int (*GetErrorCnt)(CSOUND *);
     FUNC* (*FTnp2Finde)(CSOUND*, MYFLT *);
     INSTRTXT *(*GetInstrument)(CSOUND*, int, const char *);
-    MYFLT* (*AutoCorrelation)(CSOUND *, MYFLT*, MYFLT*, int);
+    MYFLT* (*AutoCorrelation)(CSOUND *, MYFLT*, MYFLT*, int, MYFLT*, int);
     void * (*LPsetup)(CSOUND *csound, int N, int M);
     void (*LPfree)(CSOUND *csound, void *);
     MYFLT* (*LPred)(CSOUND *, void *, MYFLT *);
     MYFLT* (*LPCeps)(CSOUND *, MYFLT *, MYFLT *, int, int);
     MYFLT* (*CepsLP)(CSOUND *, MYFLT *, MYFLT *, int, int);
     MYFLT (*LPrms)(CSOUND *, void *);
+    void *(*CreateThread2)(uintptr_t (*threadRoutine)(void *), unsigned int, void *userdata);
     /**@}*/
     /** @name Placeholders
         To allow the API to grow while maintining backward binary compatibility. */
     /**@{ */
-    SUBR dummyfn_2[23];
+    SUBR dummyfn_2[22];
     /**@}*/
 #ifdef __BUILDING_LIBCSOUND
     /* ------- private data (not to be used by hosts or externals) ------- */

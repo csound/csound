@@ -185,6 +185,7 @@ orcfile : root_statement_list
           }
           ;
 
+
 root_statement_list : root_statement_list root_statement
                       { $$ = appendToTree(csound, $1, $2); }
                     | root_statement
@@ -219,7 +220,7 @@ instr_definition : INSTR_TOKEN instr_id_list NEWLINE
                                   csound_orcget_ilocn(scanner), INSTR_TOKEN,
                                   $2, $5); }
                 | INSTR_TOKEN NEWLINE error
-                   { csound->Message(csound, Str("No number following instr\n")); }
+                   { csound->ErrorMsg(csound, Str("No number following instr\n")); }
                 ;
 
 

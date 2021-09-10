@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/python3
 
 # Csound6 Regresson Test Suite
 # By Steven Yi<stevenyi at gmail dot com>John ffitch
@@ -7,10 +7,19 @@ import os
 import sys
 
 # from testUI import TestApplication
-# from Tkinter import *
+
+
+# try:
+#     # Python 3
+#     from tkinter import *
+# except:
+#     # Python 2
+#     from Tkinter import *
+
 
 # showUIatClose = False
 csoundExecutable = ""
+sourceDirectory = "."
 
 class Test:
     def __init__(self, fileName, description, expected=True):
@@ -84,7 +93,7 @@ def runTest():
     ]
 
     output = ""
-    tempfile = 'csound_test_output.txt' if (os.name == 'nt') else '/tmp/csound_test_output.txt'
+    tempfile = "csound_test_output.txt"
     counter = 1
 
     retVals = TestResults()
@@ -101,9 +110,12 @@ def runTest():
             retVal = os.system(command)
         else:
             executable = (csoundExecutable == "") and "../../csound" or csoundExecutable
-            command = "%s %s %s 2> %s"%(executable, runArgs, filename, tempfile)
+            command = "%s %s %s/%s 2> %s"%(executable, runArgs, sourceDirectory, filename, tempfile)
             print(command)
             retVal = os.system(command)
+
+        if hasattr(os, 'WIFEXITED') and os.WIFEXITED(retVal):
+            retVal = os.WEXITSTATUS(retVal)
 
         out = ""
         if (retVal == 0) == (expectedResult == 0):
@@ -135,7 +147,7 @@ def runTest():
         output += "\n\n"
         counter += 1
 
-#    print output
+#    print(output)
 
     print("%s\n\n"%("=" * 80))
     print("Tests Passed: %i\nTests Failed: %i\n"%(retVals.tests_passsed, retVals.tests_failed))
@@ -171,6 +183,9 @@ if __name__ == "__main__":
             elif arg.startswith("--opcode6dir64="):
                 os.environ['OPCODE6DIR64'] = arg[15:]
                 print(os.environ['OPCODE6DIR64'])
+            elif arg.startswith("--source-dir="):
+                sourceDirectory = arg[13:]
+
     results = runTest()
     # if (showUIatClose):
     #     showUI(results)

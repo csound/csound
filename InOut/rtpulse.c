@@ -106,6 +106,12 @@ static int pulse_playopen(CSOUND *csound, const csRtAudioParams *parm)
       (float *) csound->Malloc(csound,
                                sizeof(float)*parm->bufSamp_SW*pulse->spec.channels);
 
+    if(!pa_sample_spec_valid(&(pulse->spec))) {
+        csound->ErrorMsg(csound,Str("Pulse audio module error: invalid sample spec, "
+                                    "check number of output channels (%d)\n"),
+                         csound->GetNchnls(csound));
+        return -1;
+    }
     /*
       attr.maxlength = parm->bufSamp_HW;
       attr.prebuf = parm->bufSamp_SW;
@@ -127,13 +133,13 @@ static int pulse_playopen(CSOUND *csound, const csRtAudioParams *parm)
     }
 
     pulse->ps = pa_simple_new (server,
-                               "csound",
-                               PA_STREAM_PLAYBACK,
-                               parm->devName,
-                               &(pg->oname[0]),
-                               &(pulse->spec),
-                               NULL,
-                               /*&attrib*/ NULL,
+                               "csound",             // client name
+                               PA_STREAM_PLAYBACK,   // stream direction
+                               parm->devName,        // device name
+                               &(pg->oname[0]),      // stream name
+                               &(pulse->spec),       // sample spec
+                               NULL,                 // channel map (NULL=default)
+                               /*&attrib*/ NULL,     // buffer attribute
                                &pulserror
                                ) ;
 
@@ -193,7 +199,6 @@ static int pulse_recopen(CSOUND *csound, const csRtAudioParams *parm)
     const char *server;
     /*pa_buffer_attr attr;*/
     int pulserror;
-
     pulse = (pulse_params *) csound->Malloc(csound, sizeof(pulse_params));
     *(csound->GetRtRecordUserData(csound))  = (void *) pulse;
     pulse->spec.rate = csound->GetSr(csound);
@@ -202,7 +207,6 @@ static int pulse_recopen(CSOUND *csound, const csRtAudioParams *parm)
     pulse->buf =
       (float *) csound->Malloc(csound,
                                sizeof(float)*parm->bufSamp_SW*pulse->spec.channels);
-
     /*
       attr.maxlength = parm->bufSamp_HW;
       attr.prebuf = 0;
@@ -224,13 +228,13 @@ static int pulse_recopen(CSOUND *csound, const csRtAudioParams *parm)
     }
 
     pulse->ps = pa_simple_new (server,
-                               "csound",
-                               PA_STREAM_RECORD,
-                               parm->devName,
-                               &(pg->iname[0]),
-                               &(pulse->spec),
-                               NULL,
-                               /*&attr*/ NULL,
+                               "csound",          // client name
+                               PA_STREAM_RECORD,  // stream direction
+                               parm->devName,     // device name
+                               &(pg->iname[0]),   // stream name
+                               &(pulse->spec),    // sample spec
+                               NULL,              // channel map (NULL=default)
+                               /*&attr*/ NULL,    // buffer attribute
                                &pulserror );
 
     if (LIKELY(pulse->ps)) return 0;
@@ -263,6 +267,7 @@ static int pulse_record(CSOUND *csound, MYFLT *inbuf, int nbytes)
     }
 
 }
+
 
 PUBLIC int csoundModuleInit(CSOUND *csound)
 {

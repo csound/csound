@@ -69,6 +69,8 @@ int get_next_char(char *, int, struct yyguts_t*);
 %option outfile="Engine/csound_orclex.c"
 %option stdout
 %option 8bit
+   /* to avoid unused function errors */  
+%option nounput
 
 IDENT           [a-zA-Z_][a-zA-Z0-9_]*
 TYPED_IDENTIFIER  [a-zA-Z_][a-zA-Z0-9_]*:[a-zA-Z_][a-zA-Z0-9_]*
@@ -447,6 +449,7 @@ ORCTOKEN *make_label(CSOUND *csound, char *s)
     return ans;
 }
 
+/*
 static void check_newline_for_label(char*s, void* yyscanner) {
     char *ps = s;
     while (*ps != ':') ps++;
@@ -456,6 +459,7 @@ static void check_newline_for_label(char*s, void* yyscanner) {
       ps++;
     }
 }
+*/
 
 ORCTOKEN *make_string(CSOUND *csound, char *s)
 {

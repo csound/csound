@@ -354,6 +354,10 @@ int insert_event(CSOUND *csound, int insno, EVTBLK *newevtp)
                               "instr maxalloc"));
     return(0);
   }
+  /* If named ensure we have the fraction */
+  if (csound->engineState.instrtxtp[insno]->insname && newevtp->strarg)
+    newevtp->p[1] = named_instr_find(csound, newevtp->strarg);
+
   /* if find this insno, active, with indef (tie) & matching p1 */
   for (ip = tp->instance; ip != NULL; ip = ip->nxtinstance) {
     if (ip->actflg && ip->offtim < 0.0 && ip->p1.value == newevtp->p[1]) {
@@ -371,17 +375,16 @@ int insert_event(CSOUND *csound, int insno, EVTBLK *newevtp)
       if (UNLIKELY(O->msglevel & RNGEMSG)) {
         char *name = csound->engineState.instrtxtp[insno]->insname;
         if (UNLIKELY(name))
-          csound->Message(csound, Str("new alloc for instr %s:\n"), name);
+          csound->ErrorMsg(csound, Str("new alloc for instr %s:\n"), name);
         else
-          csound->Message(csound, Str("new alloc for instr %d:\n"), insno);
+          csound->ErrorMsg(csound, Str("new alloc for instr %d:\n"), insno);
       }
       instance(csound, insno);
       tp->isNew=0;
     }
 
     /* pop from free instance chain */
-    if (UNLIKELY(csound->oparms->odebug))
-      csoundMessage(csound, "insert(): tp->act_instance = %p\n", tp->act_instance);
+    csoundDebugMsg(csound, "insert(): tp->act_instance = %p\n", tp->act_instance);
     ip = tp->act_instance;
     ATOMIC_SET(ip->init_done, 0);
     tp->act_instance = ip->nxtact;
@@ -930,8 +933,9 @@ static void deact(CSOUND *csound, INSDS *ip)
       csound->Message(csound, Str("removed instance of instr %d\n"), ip->insno);
   }
   /* IV - Oct 24 2002: ip->prvact may be NULL, so need to check */
-  if (ip->prvact && (nxtp = ip->prvact->nxtact = ip->nxtact) != NULL)
+  if (ip->prvact && (nxtp = ip->prvact->nxtact = ip->nxtact) != NULL) {
     nxtp->prvact = ip->prvact;
+  }
   ip->actflg = 0;
   /* link into free instance chain */
   /* This also destroys ip->nxtact causing loops */
@@ -1107,8 +1111,10 @@ void orcompact(CSOUND *csound)          /* free all inactive instr spaces */
       }
     }
   }
-  if (UNLIKELY(cnt))
-    csound->Message(csound, Str("inactive allocs returned to freespace\n"));
+  if (UNLIKELY(cnt)) {
+    if(csound->oparms->msglevel ||csound->oparms->odebug)
+     csound->Message(csound, Str("inactive allocs returned to freespace\n"));
+  }
 }
 
 void infoff(CSOUND *csound, MYFLT p1)   /* turn off an indef copy of instr p1 */
@@ -1154,7 +1160,7 @@ int csoundInitError(CSOUND *csound, const char *s, ...)
     csound->LongJmp(csound, 1);
   }
   if (csound->mode != 1)
-    csound->Message(csound, Str("InitError in wrong mode %d\n"), csound->mode);
+    csoundErrorMsg(csound, Str("InitError in wrong mode %d\n"), csound->mode);
   /* IV - Oct 16 2002: check for subinstr and user opcode */
   ip = csound->ids->insdshead;
   if (ip->opcod_iobufs) {
@@ -1189,7 +1195,7 @@ int csoundPerfError(CSOUND *csound, OPDS *h, const char *s, ...)
   INSDS *ip = h->insdshead;
   TEXT t = h->optext->t;
   if (csound->mode != 2)
-    csound->Message(csound, Str("PerfError in wrong mode %d\n"), csound->mode);
+    csoundErrorMsg(csound, Str("PerfError in wrong mode %d\n"), csound->mode);
   if (ip->opcod_iobufs) {
     OPCODINFO *op = ((OPCOD_IOBUFS*) ip->opcod_iobufs)->opcode_info;
     /* find top level instrument instance */
@@ -1212,7 +1218,7 @@ int csoundPerfError(CSOUND *csound, OPDS *h, const char *s, ...)
   do_baktrace(csound, t.locn);
   if (ip->pds)
     putop(csound, &(ip->pds->optext->t));
-  csoundMessage(csound, Str("   note aborted\n"));
+  csoundErrorMsg(csound, "%s",  Str("   note aborted\n"));
   csound->perferrcnt++;
   xturnoff_now((CSOUND*) csound, ip);       /* rm ins fr actlist */
   return csound->perferrcnt;                /* contin from there */
@@ -1477,7 +1483,7 @@ int useropcdset(CSOUND *csound, UOPCODE *p)
       lcurip->ekr = csound->esr / (MYFLT) local_ksmps;
       lcurip->onedkr = FL(1.0) / lcurip->ekr;
       lcurip->kicvt = (MYFLT) FMAXLEN /lcurip->ekr;
-      lcurip->kcounter *= ksmps_scale;
+      lcurip->kcounter = (CS_KCNT)*ksmps_scale;
     } else {
       lcurip->ksmps = CS_KSMPS;
       lcurip->kcounter = CS_KCNT;
@@ -1722,9 +1728,13 @@ int nstrnumset_S(CSOUND *csound, NSTRNUM *p)
 
 int nstrstr(CSOUND *csound, NSTRSTR *p)
 {
-    char *ss = cs_inverse_hash_get(csound,
-                                   csound->engineState.instrumentNames,
-                                   (int)*p->num);
+    char *ss;
+    if (csound->engineState.instrumentNames) {
+      ss = cs_inverse_hash_get(csound,
+                               csound->engineState.instrumentNames,
+                               (int)*p->num);
+    }
+    else ss= "";
     mfree(csound,p->ans->data);
     p->ans->data = cs_strdup(csound, ss);
     p->ans->size = strlen(ss);
@@ -1840,6 +1850,7 @@ int subinstr(CSOUND *csound, SUBINST *p)
   /*  run each opcode  */
   if (csound->ksmps == ip->ksmps) {
     int error = 0;
+    ip->kcounter++;
     if ((CS_PDS = (OPDS *) (ip->nxtp)) != NULL) {
       CS_PDS->insdshead->pds = NULL;
       do {
@@ -1850,7 +1861,7 @@ int subinstr(CSOUND *csound, SUBINST *p)
         }
       } while (error == 0 && (CS_PDS = CS_PDS->nxtp));
     }
-    ip->kcounter++;
+
   }
   else {
     int i, n = csound->nspout, start = 0;
@@ -1876,6 +1887,7 @@ int subinstr(CSOUND *csound, SUBINST *p)
     }
 
     for (i=start; i < n; i+=incr, ip->spin+=incr, ip->spout+=incr) {
+      ip->kcounter++;
       if ((CS_PDS = (OPDS *) (ip->nxtp)) != NULL) {
         int error = 0;
         CS_PDS->insdshead->pds = NULL;
@@ -1891,7 +1903,6 @@ int subinstr(CSOUND *csound, SUBINST *p)
           }
         } while (error == 0 && (CS_PDS = CS_PDS->nxtp));
       }
-      ip->kcounter++;
     }
     ip->spout = (MYFLT*) p->saved_spout.auxp;
   }
@@ -1927,6 +1938,7 @@ int useropcd1(CSOUND *csound, UOPCODE *p)
   MYFLT** internal_ptrs = p->buf->iobufp_ptrs;
   MYFLT** external_ptrs = p->ar;
   int done;
+  
 
   done = ATOMIC_GET(p->ip->init_done);
   if (UNLIKELY(!done)) /* init not done, exit */
@@ -1954,6 +1966,7 @@ int useropcd1(CSOUND *csound, UOPCODE *p)
 
   if (this_instr->ksmps == 1) {           /* special case for local kr == sr */
     do {
+      this_instr->kcounter++; /*kcounter needs to be incremented BEFORE perf */
       /* copy inputs */
       current = inm->in_arg_pool->head;
       for (i = 0; i < inm->inchns; i++) {
@@ -2040,8 +2053,6 @@ int useropcd1(CSOUND *csound, UOPCODE *p)
         current = current->next;
       }
 
-
-      this_instr->kcounter++;
       this_instr->spout += csound->nchnls;
       this_instr->spin  += csound->nchnls;
     } while (++ofs < g_ksmps);
@@ -2062,6 +2073,7 @@ int useropcd1(CSOUND *csound, UOPCODE *p)
     ofs = start;
     if (UNLIKELY(early)) this_instr->ksmps_no_end = early % lksmps;
     do {
+      this_instr->kcounter++;
       /* copy a-sig inputs, accounting for offset */
       size_t asigSize = (this_instr->ksmps * sizeof(MYFLT));
       current = inm->in_arg_pool->head;
@@ -2152,7 +2164,7 @@ int useropcd1(CSOUND *csound, UOPCODE *p)
 
       this_instr->spout += csound->nchnls*lksmps;
       this_instr->spin  += csound->nchnls*lksmps;
-      this_instr->kcounter++;
+      
     } while ((ofs += this_instr->ksmps) < g_ksmps);
   }
 
@@ -2226,10 +2238,10 @@ int useropcd2(CSOUND *csound, UOPCODE *p)
 {
   OPDS    *saved_pds = CS_PDS;
   MYFLT   **tmp;
-  INSDS    *this_instr = p->ip;
   OPCODINFO   *inm;
   CS_VARIABLE* current;
   int i, done;
+  
 
   inm = (OPCODINFO*) p->h.optext->t.oentry->useropinfo; /* FIXME value not used */
   done = ATOMIC_GET(p->ip->init_done);
@@ -2239,10 +2251,10 @@ int useropcd2(CSOUND *csound, UOPCODE *p)
 
   p->ip->spin = p->parent_ip->spin;
   p->ip->spout = p->parent_ip->spout;
+  p->ip->kcounter++;  /* kcount should be incremented BEFORE perf */
 
   if (UNLIKELY(!(CS_PDS = (OPDS*) (p->ip->nxtp))))
     goto endop; /* no perf code */
-
 
   /* IV - Nov 16 2002: update release flag */
   p->ip->relesing = p->parent_ip->relesing;
@@ -2287,7 +2299,7 @@ int useropcd2(CSOUND *csound, UOPCODE *p)
   } while (error == 0 && p->ip != NULL
            && (CS_PDS = CS_PDS->nxtp));
   }
-  this_instr->kcounter++;
+  
 
   /* copy outputs */
   current = inm->out_arg_pool->head;
@@ -2397,8 +2409,7 @@ static void instance(CSOUND *csound, int insno)
   ip->nxtact = tp->act_instance;
   tp->act_instance = ip;
   ip->insno = insno;
-  if (UNLIKELY(csound->oparms->odebug))
-    csoundMessage(csound,"instance(): tp->act_instance = %p\n",
+  csoundDebugMsg(csound,"instance(): tp->act_instance = %p\n",
                   tp->act_instance);
 
 
@@ -2765,8 +2776,8 @@ int csoundKillInstanceInternal(CSOUND *csound, MYFLT instr, char *instrName,
   int   insno;
 
   if (instrName) {
-    insno = named_instr_find(csound, instrName);
-    instr = (MYFLT) insno;
+    instr = named_instr_find(csound, instrName);
+    insno = (int) instr;
   } else insno = instr;
 
   if (UNLIKELY(insno < 1 || insno > (int) csound->engineState.maxinsno ||

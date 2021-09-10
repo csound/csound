@@ -33,6 +33,7 @@ typedef struct {
 typedef struct {
         OPDS    h;
         MYFLT   *ihandle;
+        STRINGDAT *Sprefix;
 } SFPLIST;
 
 typedef struct {

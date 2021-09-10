@@ -116,31 +116,47 @@ void print_csound_version(CSOUND* csound)
 {
 #ifdef USE_DOUBLE
 #ifdef BETA
-    csound->Message(csound,
+    csoundErrorMsg(csound,
                     Str("--Csound version %s beta (double samples) %s\n"
                         "[commit: %s]\n"),
                     CS_PACKAGE_VERSION, CS_PACKAGE_DATE,
                     STRING_HASH(GIT_HASH_VALUE));
 #else
-    csound->Message(csound, Str("--Csound version %s (double samples) %s\n"
+    csoundErrorMsg(csound, Str("--Csound version %s (double samples) %s\n"
                                 "[commit: %s]\n"),
                     CS_PACKAGE_VERSION, CS_PACKAGE_DATE
                     , STRING_HASH(GIT_HASH_VALUE));
 #endif
 #else
 #ifdef BETA
-    csound->Message(csound, Str("--Csound version %s beta (float samples) %s\n"
+    csoundErrorMsg(csound, Str("--Csound version %s beta (float samples) %s\n"
                                 "[commit: %s]\n"),
                     CS_PACKAGE_VERSION, CS_PACKAGE_DATE,
                     STRING_HASH(GIT_HASH_VALUE));
 #else
-    csound->Message(csound, Str("--Csound version %s (float samples) %s\n"
+    csoundErrorMsg(csound, Str("--Csound version %s (float samples) %s\n"
                                 "[commit: %s]\n"),
                     CS_PACKAGE_VERSION, CS_PACKAGE_DATE,
                     STRING_HASH(GIT_HASH_VALUE));
 #endif
 #endif
 }
+
+void print_sndfile_version(CSOUND* csound) {
+        char buffer[128];
+        sf_command(NULL, SFC_GET_LIB_VERSION, buffer, 128);
+        csoundErrorMsg(csound, "%s\n", buffer);
+}
+
+void print_engine_parameters(CSOUND *csound) {
+      csoundErrorMsg(csound, Str("sr = %.1f,"), csound->esr);
+      csoundErrorMsg(csound, Str(" kr = %.3f,"), csound->ekr);
+      csoundErrorMsg(csound, Str(" ksmps = %d\n"), csound->ksmps);
+      csoundErrorMsg(csound, Str("0dBFS level = %.1f,"), csound->e0dbfs);
+      csoundErrorMsg(csound, Str(" A4 tuning = %.1f\n"), csound->A4);
+}
+
+
 
 static void free_opcode_table(CSOUND* csound) {
     int i;
@@ -517,10 +533,11 @@ static const CSOUND cenviron_ = {
     csoundLPCeps,
     csoundCepsLP,
     csoundLPrms,
+    csoundCreateThread2,
     {
       NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
       NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
-      NULL, NULL, NULL
+      NULL, NULL
     },
     /* ------- private data (not to be used by hosts or externals) ------- */
     /* callback function pointers */
@@ -923,9 +940,10 @@ static const CSOUND cenviron_ = {
       0.4,          /*    vbr quality  */
       0,            /*    ksmps_override */
       0,             /*    fft_lib */
-      0
+      0,             /* echo */
+      0.0,           /* limiter */
+      DFLT_SR, DFLT_KR  /* defaults */
     },
-
     {0, 0, {0}}, /* REMOT_BUF */
     NULL,           /* remoteGlobals        */
     0, 0,           /* nchanof, nchanif     */
@@ -997,7 +1015,7 @@ static const CSOUND cenviron_ = {
     NULL,           /* op */
     0,              /* mode */
     NULL,           /* opcodedir */
-    NULL            /* score_srt */
+    NULL           /* score_srt */
 };
 
 void csound_aops_init_tables(CSOUND *cs);
@@ -1306,7 +1324,8 @@ PUBLIC int csoundInitialize(int flags)
 static char *opcodedir = NULL;
 
 PUBLIC void csoundSetOpcodedir(const char *s) {
-  opcodedir = (char *) s;
+  if(opcodedir != NULL) free(opcodedir);
+  opcodedir = strdup(s);
 }
 
 
@@ -1334,7 +1353,6 @@ PUBLIC CSOUND *csoundCreate(void *hostdata)
     p->csound = csound;
     p->nxt = (csInstance_t*) instance_list;
     instance_list = p;
-    csound->opcodedir = cs_strdup(csound, opcodedir);
     csoundUnLock();
     csoundReset(csound);
     csound->API_lock = csoundCreateMutex(1);
@@ -1343,7 +1361,6 @@ PUBLIC CSOUND *csoundCreate(void *hostdata)
        address of the pointer to CSOUND inside
        the struct, so it can be cleared later */
     //csound->self = &csound;
-
     return csound;
 }
 
@@ -1748,7 +1765,7 @@ int kperf_nodebug(CSOUND *csound)
         double time_end = (csound->ksmps+csound->icurTime)/csound->esr;
 
         while (ip != NULL) {                /* for each instr active:  */
-          INSDS *nxt = ip->nxtact;
+          INSDS *nxt = ip->nxtact; 
           if (UNLIKELY(csound->oparms->sampleAccurate &&
                        ip->offtim > 0                 &&
                        time_end > ip->offtim)) {
@@ -1786,7 +1803,7 @@ int kperf_nodebug(CSOUND *csound)
                 OPDS  *opstart;
                 ip->spin = csound->spin;
                 ip->spout = csound->spraw;
-                ip->kcounter =  csound->kcounter*csound->ksmps/lksmps;
+                ip->kcounter = (csound->kcounter-1)*csound->ksmps/lksmps;
 
                 /* we have to deal with sample-accurate code
                    whole CS_KSMPS blocks are offset here, the
@@ -1803,6 +1820,7 @@ int kperf_nodebug(CSOUND *csound)
                 }
 
                 for (i=start; i < n; i+=incr, ip->spin+=incr, ip->spout+=incr) {
+                  ip->kcounter++;
                   opstart = (OPDS*) ip;
                   csound->mode = 2;
                   while (error ==  0 && (opstart = opstart->nxtp) != NULL
@@ -1812,9 +1830,10 @@ int kperf_nodebug(CSOUND *csound)
                     //csound->ids->optext->t.oentry->opname;
                     error = (*opstart->opadr)(csound, opstart); /* run each opcode */
                     opstart = opstart->insdshead->pds;
+                    
                   }
                   csound->mode = 0;
-                  ip->kcounter++;
+                  
                 }
             }
           }
@@ -1822,7 +1841,17 @@ int kperf_nodebug(CSOUND *csound)
                                  csound->kcounter/csound->ekr);*/
           ip->ksmps_offset = 0; /* reset sample-accuracy offset */
           ip->ksmps_no_end = 0; /* reset end of loop samples */
-          ip = nxt; /* but this does not allow for all deletions */
+          if(nxt == NULL)
+             ip = ip->nxtact;
+          /* VL 13.04.21 this allows for deletions to operate 
+                              correctly on the active 
+                              list at perf time
+                              this allows for turnoff2 to work correctly
+                              */
+          else
+            ip = nxt; /* now check again if there is nothing nxt
+                                       in the chain making sure turnoff also
+                                       works */
         }
       }
     }
@@ -2183,7 +2212,8 @@ PUBLIC int csoundPerformKsmps(CSOUND *csound)
       if (UNLIKELY(done)) {
         if(!csound->oparms->realtime) // no API lock in realtime mode
          csoundUnlockMutex(csound->API_lock);
-        csoundMessage(csound,
+        if(csound->oparms->msglevel ||csound->oparms->odebug)
+         csoundMessage(csound,
                       Str("Score finished in csoundPerformKsmps() with %d.\n"),
                       done);
         return done;
@@ -2215,6 +2245,7 @@ static int csoundPerformKsmpsInternal(CSOUND *csound)
     }
    do {
      if (UNLIKELY((done = sensevents(csound)))) {
+       if(csound->oparms->msglevel ||csound->oparms->odebug)
        csoundMessage(csound,
                      Str("Score finished in csoundPerformKsmpsInternal().\n"));
         return done;
@@ -2290,7 +2321,8 @@ PUBLIC int csoundPerform(CSOUND *csound)
            csoundLockMutex(csound->API_lock);
       do {
         if (UNLIKELY((done = sensevents(csound)))) {
-          csoundMessage(csound, Str("Score finished in csoundPerform().\n"));
+          if(csound->oparms->msglevel ||csound->oparms->odebug)
+           csoundMessage(csound, Str("Score finished in csoundPerform().\n"));
           if(!csound->oparms->realtime)
             csoundUnlockMutex(csound->API_lock);
           if (csound->oparms->numThreads > 1) {
@@ -2591,12 +2623,12 @@ PUBLIC void csoundSetMessageCallback(CSOUND *csound,
 PUBLIC void csoundMessageV(CSOUND *csound,
                            int attr, const char *format, va_list args)
 {
-  if(csound->csoundMessageCallback_) {
-    csound->csoundMessageCallback_(csound, attr, format, args);
-  } else {
-    vsnprintf(csound->message_string, MAX_MESSAGE_STR, format, args);
-    csound->csoundMessageStringCallback(csound, attr, csound->message_string);
-  }
+    if(csound->csoundMessageCallback_) {
+      csound->csoundMessageCallback_(csound, attr, format, args);
+    } else {
+      vsnprintf(csound->message_string, MAX_MESSAGE_STR, format, args);
+      csound->csoundMessageStringCallback(csound, attr, csound->message_string);
+    }
 }
 
 PUBLIC void csoundMessage(CSOUND *csound, const char *format, ...)
@@ -2604,10 +2636,10 @@ PUBLIC void csoundMessage(CSOUND *csound, const char *format, ...)
     va_list args;
     va_start(args, format);
     if(csound->csoundMessageCallback_)
-    csound->csoundMessageCallback_(csound, 0, format, args);
+      csound->csoundMessageCallback_(csound, 0, format, args);
     else {
-    vsnprintf(csound->message_string, MAX_MESSAGE_STR, format, args);
-    csound->csoundMessageStringCallback(csound, 0, csound->message_string);
+      vsnprintf(csound->message_string, MAX_MESSAGE_STR, format, args);
+      csound->csoundMessageStringCallback(csound, 0, csound->message_string);
     }
     va_end(args);
 }
@@ -2617,16 +2649,15 @@ PUBLIC void csoundMessageS(CSOUND *csound, int attr, const char *format, ...)
     va_list args;
     va_start(args, format);
     if(csound->csoundMessageCallback_)
-    csound->csoundMessageCallback_(csound, attr, format, args);
+      csound->csoundMessageCallback_(csound, attr, format, args);
     else {
-    vsnprintf(csound->message_string, MAX_MESSAGE_STR, format, args);
-    csound->csoundMessageStringCallback(csound, attr, csound->message_string);
+      vsnprintf(csound->message_string, MAX_MESSAGE_STR, format, args);
+      csound->csoundMessageStringCallback(csound, attr, csound->message_string);
     }
     va_end(args);
 }
 
-void csoundDie(CSOUND *csound, const char *msg, ...)
-{
+void csoundDie(CSOUND *csound, const char *msg, ...){
     va_list args;
     va_start(args, msg);
     csound->ErrMsgV(csound, (char*) 0, msg, args);
@@ -2660,21 +2691,42 @@ void csoundDebugMsg(CSOUND *csound, const char *msg, ...)
 
 void csoundErrorMsg(CSOUND *csound, const char *msg, ...)
 {
+      // VL 08.09.21 : suppress messages if requested
+  if(csound->oparms->msglevel || csound->oparms->odebug) {
     va_list args;
     va_start(args, msg);
     csoundMessageV(csound, CSOUNDMSG_ERROR, msg, args);
     va_end(args);
-    csound->MessageS(csound, CSOUNDMSG_ERROR, "\n");
+    //csound->MessageS(csound, CSOUNDMSG_ERROR, "\n");
+   } 
 }
 
 void csoundErrMsgV(CSOUND *csound,
                    const char *hdr, const char *msg, va_list args)
 {
+    // VL 08.09.21 : suppress messages if requested
+  if(csound->oparms->msglevel || csound->oparms->odebug) {
     if (hdr != NULL)
       csound->MessageS(csound, CSOUNDMSG_ERROR, "%s", hdr);
     csoundMessageV(csound, CSOUNDMSG_ERROR, msg, args);
     csound->MessageS(csound, CSOUNDMSG_ERROR, "\n");
+  }
 }
+
+void csoundErrorMsgS(CSOUND *csound, int attr,
+                     const char *msg, ...)
+{
+      // VL 08.09.21 : suppress messages if requested
+  if(csound->oparms->msglevel || csound->oparms->odebug) {
+    va_list args;
+    va_start(args, msg);
+    csoundMessageV(csound, CSOUNDMSG_ERROR | attr, msg, args);
+    va_end(args);
+    //csound->MessageS(csound, CSOUNDMSG_ERROR, "\n");
+   } 
+}
+
+
 
 void csoundLongJmp(CSOUND *csound, int retval)
 {
@@ -3337,6 +3389,7 @@ static void reset(CSOUND *csound)
     csound->enableHostImplementedMIDIIO = saved_env->enableHostImplementedMIDIIO;
     memcpy(&(csound->exitjmp), &(saved_env->exitjmp), sizeof(jmp_buf));
     csound->memalloc_db = saved_env->memalloc_db;
+    csound->message_buffer = saved_env->message_buffer; /*VL 19.06.21 keep msg buffer */
     //csound->self = self;
     free(saved_env);
 
@@ -3358,9 +3411,9 @@ PUBLIC void csoundSetRTAudioModule(CSOUND *csound, const char *module){
       csound->SetRtcloseCallback(csound, rtclose_dummy);
       csound->SetAudioDeviceListCallback(csound, audio_dev_list_dummy);
       return;
-  }
-   if (csoundInitModules(csound) != 0)
-             csound->LongJmp(csound, 1);
+    }
+    if (csoundInitModules(csound) != 0)
+      csound->LongJmp(csound, 1);
 }
 
 
@@ -3398,9 +3451,9 @@ PUBLIC int csoundGetModule(CSOUND *csound, int no, char **module, char **type){
 
 PUBLIC int csoundLoadPlugins(CSOUND *csound, const char *dir){
   if (dir != NULL) {
+   csound->Message(csound, "loading plugins from %s\n", dir); 
    int err = csoundLoadAndInitModules(csound, dir);
    if(!err) {
-     csound->Message(csound, "loaded plugins from %s\n", dir);
      return CSOUND_SUCCESS;
   }
   else return err;
@@ -3413,7 +3466,7 @@ PUBLIC void csoundReset(CSOUND *csound)
     char    *s;
     int     i, max_len;
     OPARMS  *O = csound->oparms;
-    char *opdir = csound->opcodedir;
+
 
     if (csound->engineStatus & CS_STATE_COMP ||
         csound->engineStatus & CS_STATE_PRE) {
@@ -3470,7 +3523,11 @@ PUBLIC void csoundReset(CSOUND *csound)
      memset(modules, 0, sizeof(MODULE_INFO *)*MAX_MODULES);
 
      /* VL now load modules has opcodedir override */
-     csound->opcodedir = opdir;
+     if(opcodedir) 
+      csound->opcodedir = cs_strdup(csound, opcodedir);
+     else
+       csound->opcodedir = NULL;
+
      err = csoundLoadModules(csound);
       if (csound->delayederrormessages &&
           csound->printerrormessagesflag==NULL) {
@@ -3492,12 +3549,11 @@ PUBLIC void csoundReset(CSOUND *csound)
       csoundInitTimerStruct(csound->csRtClock);
       csound->engineStatus |= /*CS_STATE_COMP |*/ CS_STATE_CLN;
 
-      print_csound_version(csound);
-      {
-        char buffer[128];
-        sf_command(NULL, SFC_GET_LIB_VERSION, buffer, 128);
-        csound->Message(csound, "%s\n", buffer);
-      }
+      /* 
+        this was moved to musmon();
+        print_csound_version(csound);
+        print_sndfile_version(csound);
+      */
 
       /* do not know file type yet */
       O->filetyp = -1;
@@ -3900,7 +3956,7 @@ static int getTimeResolution(void)
 #else
     timeResolutionSeconds = 1.0;
 #endif
-#ifdef BETA
+#ifdef CHECK_TIME_RESOLUTION // BETA
     fprintf(stderr, "time resolution is %.3f ns\n",
             1.0e9 * timeResolutionSeconds);
 #endif

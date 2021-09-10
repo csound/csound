@@ -34,8 +34,8 @@ CS_NORETURN void    dieu(CSOUND *, char *, ...);
   int     init_pvsys(CSOUND *);
 //  char    *get_sconame(CSOUND *);
   void    print_benchmark_info(CSOUND *, const char *);
-  int     read_unified_file(CSOUND *, char **, char **);
-  int     read_unified_file2(CSOUND *csound, char *csd);
+//  int     read_unified_file(CSOUND *, char **, char **);
+//  int     read_unified_file2(CSOUND *csound, char *csd);
   int     read_unified_file4(CSOUND *csound, CORFIL *csd);
   uintptr_t  kperfThread(void * cs);
 //void cs_init_math_constants_macros(CSOUND *csound, PRE_PARM *yyscanner);
@@ -204,7 +204,8 @@ PUBLIC int csoundCompileArgs(CSOUND *csound, int argc, const char **argv)
              && csound->orchname[0] != '\0') {
       /* FIXME: allow orc/sco/csd name in CSD file: does this work ? */
       csound->orcname_mode = 0;
-      csound->Message(csound, "UnifiedCSD:  %s\n", csound->orchname);
+      if(O->msglevel || O->odebug)
+       csound->Message(csound, "UnifiedCSD:  %s\n", csound->orchname);
 
       /* Add directory of CSD file to search paths before orchname gets
        * replaced with temp orch name if default paths is enabled */
@@ -258,7 +259,7 @@ PUBLIC int csoundCompileArgs(CSOUND *csound, int argc, const char **argv)
       // csound->scorestr = corfile_create_r("f0 800000000000.0\n");
       // VL 21-09-2016: it looks like #exit is needed for the
       // new score parser to work.
-      // was "\n#exit\n" but seemed to have zero affect;
+      // was "\n#exit\n" but seemed to have zero effect;
       csound->scorestr = corfile_create_r(csound, "\n\n\ne\n#exit\n");
       corfile_flush(csound, csound->scorestr);
       if (O->RTevents)
@@ -351,7 +352,8 @@ PUBLIC int csoundCompileArgs(CSOUND *csound, int argc, const char **argv)
         if (UNLIKELY(csound->scorestr==NULL))
           csoundDie(csound, Str("cannot open scorefile %s"), csound->scorename);
       }
-      csound->Message(csound, Str("sorting score ...\n"));
+      if(O->msglevel || O->odebug)
+       csound->Message(csound, Str("sorting score ...\n"));
       //printf("score:\n%s", corfile_current(csound->scorestr));
       scsortstr(csound, csound->scorestr);
       //printf("*** keep_tmp = %d\n", csound->keep_tmp);
@@ -369,12 +371,14 @@ PUBLIC int csoundCompileArgs(CSOUND *csound, int argc, const char **argv)
         csoundDie(csound, Str("cannot open extract file %s"),csound->xfilename);
       csoundNotifyFileOpened(csound, csound->xfilename,
                              CSFTYPE_EXTRACT_PARMS, 0, 0);
-      csound->Message(csound, Str("  ... extracting ...\n"));
+       if(O->msglevel || O->odebug)
+         csound->Message(csound, Str("  ... extracting ...\n"));
       scxtract(csound, csound->scstr, xfile);
       fclose(xfile);
       csound->tempStatus &= ~csPlayScoMask;
     }
-    csound->Message(csound, Str("\t... done\n"));
+     if(O->msglevel || O->odebug)
+       csound->Message(csound, Str("\t... done\n"));
     /* copy sorted score name */
     O->playscore = csound->scstr;
     /* IV - Jan 28 2005 */
@@ -579,28 +583,54 @@ PUBLIC int csoundCompileCsdText(CSOUND *csound, const char *csd_text)
 {
     //csound->oparms->odebug = 1; /* *** SWITCH ON EXTRA DEBUGGING *** */
     int res = read_unified_file4(csound, corfile_create_r(csound, csd_text));
+    //printf("file read res = %d\n", res);
     if (LIKELY(res)) {
       if (csound->csdname != NULL) csound->Free(csound, csound->csdname);
       csound->csdname = cs_strdup(csound, "*string*"); /* Mark as from text. */
       res = csoundCompileOrcInternal(csound, NULL, 0);
+      //printf("internalread res = %d\n", res);
       if (res == CSOUND_SUCCESS){
         if ((csound->engineStatus & CS_STATE_COMP) != 0) {
-          char *sc = scsortstr(csound, csound->scorestr);
-          if (sc) {
-            if(csound->oparms->odebug)
-              csound->Message(csound,
-                              Str("Real-time score events (engineStatus: %d).\n"),
-                              csound->engineStatus);
-            csoundInputMessage(csound, (const char *) sc);
+          /* if (csound->scorestr==NULL) { */
+          /*   printf("*** no score\n"); */
+          /*   csound->scorestr = corfile_create_w(csound); */
+          /*   corfile_puts(csound, "\nf0 800000000000.0\ne\n#exit\n",csound->scorestr); */
+          /*   //corfile_puts(csound, "e\n#exit\n",csound->scorestr); */
+          /* } */
+          {                     /* Ned to exsure tere is no e opcode before '#exit'.  Thiscode is flacky */
+            char *sc;
+            if (csound->scorestr==NULL)
+              sc = "#exit";
+            else {
+              //printf("INPUT STRING %s\n", csound->scorestr->body+csound->scorestr->len-9);
+              csound->scorestr->body[+csound->scorestr->len-9] = ' ';
+              //printf("Mangld >>%s<<\n", csound->scorestr->body);
+              //corfile_puts(csound, "\n#exit\n", csound->scorestr);
+              //printf("*** in score >>%s<<<\n", corfile_body(csound->scorestr));
+              sc = scsortstr(csound, csound->scorestr);
+            }
+            //printf("*** Out score >>>%s<<<\n", sc);
+            if (sc) {
+              if (csound->oparms->odebug)
+                csound->Message(csound,
+                                Str("Real-time score events (engineStatus: %d).\n"),
+                                csound->engineStatus);
+              csoundInputMessage(csound, (const char *) sc);
+            }
           }
         } else {
-            scsortstr(csound, csound->scorestr);
-            if(csound->oparms->odebug)
-              csound->Message(csound,
-                              Str("Compiled score "
-                                  "(engineStatus: %d).\n"), csound->engineStatus);
+          if (csound->scorestr==NULL) {
+            csound->scorestr = corfile_create_w(csound);
+            corfile_puts(csound, "\n\n\ne\n#exit\n",csound->scorestr);
           }
+          scsortstr(csound, csound->scorestr);
+          if (csound->oparms->odebug)
+            csound->Message(csound,
+                            Str("Compiled score "
+                                "(engineStatus: %d).\n"), csound->engineStatus);
         }
-       return res;
-    } else return CSOUND_ERROR;
+      }
+      return res;
+    }
+    else return CSOUND_ERROR;
 }

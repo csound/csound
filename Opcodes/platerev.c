@@ -22,7 +22,7 @@
     02110-1301 USA
 */
 
-#include "csdl.h"
+#include "csoundCore.h"
 #include <math.h>
 
 /* #undef CS_KSMPS */
@@ -126,7 +126,6 @@ static int32_t platerev(CSOUND *csound, PLATE *p)
            t00 = p->t00, t10 = p->t10, t01 = p->t01;
     double dt = p->dt, dy = p->dy;
     uint32_t n, qq;
-    MYFLT *uin;
     double wi[40], wo[40], sdi[40], cdi[40], sdo[40], cdo[40];
 
     if (UNLIKELY(early)) nsmps -= early;
@@ -208,13 +207,13 @@ static int32_t platerev(CSOUND *csound, PLATE *p)
         double xf = xid-(double)(xi-2);
         double yf = yid-(double)(yi-2);
         double xyf = xf*yf;
-        uin=p->ain[qq];
+        double uin=(p->ain[qq])[n];
         p->ci[qq] = cv; p->si[qq] = sv;
         yi = Nx5*yi + xi;
-        u[yi]       += (1.0-xf-yf+xyf)*uin[n];
-        u[1+yi]     += (xf-xyf)*uin[n];
-        u[1+Nx5+yi] += xyf*uin[n];
-        u[Nx5+yi]   += (yf-xyf)*uin[n];
+        u[yi]       += (1.0-xf-yf+xyf)*uin;
+        u[1+yi]     += (xf-xyf)*uin;
+        u[1+Nx5+yi] += xyf*uin;
+        u[Nx5+yi]   += (yf-xyf)*uin;
       }
       /*        %%%% readout */
       for (qq=0; qq<p->nout; qq++) {
@@ -246,7 +245,7 @@ static int32_t platerev(CSOUND *csound, PLATE *p)
     return OK;
 }
 
-static OENTRY localops[] =
+static OENTRY platerev_localops[] =
   {
    { "platerev", sizeof(PLATE), 0, 3, "mmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmm",
      "iikiiiiy",
@@ -254,4 +253,4 @@ static OENTRY localops[] =
   },
 };
 
-LINKAGE
+LINKAGE_BUILTIN(platerev_localops)

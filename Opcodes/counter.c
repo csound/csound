@@ -21,8 +21,8 @@
     02110-1301 USA
 */
 
-#include "csdl.h"       /*                              COUNTER.C         */
-
+#include "csoundCore.h"       /*                              COUNTER.C         */
+#include "interlocks.h"
 
 /* Structure of a counter */
 typedef struct {
@@ -127,6 +127,14 @@ static int32_t count_init(CSOUND *csound, COUNTER *p)
     return OK;
 }
 
+static int32_t count_init0(CSOUND *csound, COUNTER *p)
+{
+    COUNT* q = find_counter(csound, (int)*p->res);
+    if (q==NULL) return NOTOK;
+    p->cnt = q;
+    return OK;
+}
+
 static int32_t count_perf(CSOUND *csound, COUNTER *p)
 {
     COUNT *q = p->cnt;
@@ -207,7 +215,7 @@ static OENTRY counter_localops[] = {
   { "count_i", S(COUNTER), SK, 1, "i", "o", (SUBR)count_init_perf, NULL },
   { "cntCycles", S(COUNTER), SK, 3, "k", "o", (SUBR)count_init, (SUBR)count_cycles },
   { "cntRead", S(COUNTER), SK, 3, "k", "o", (SUBR)count_init, (SUBR)count_read },
-  { "cntReset", S(COUNTER), SK, 3, "", "o", (SUBR)count_init, (SUBR)count_reset },
+  { "cntReset", S(COUNTER), SK, 3, "", "o", (SUBR)count_init0, (SUBR)count_reset },
   { "cntState", S(CNTSTATE), SK, 3, "kkk", "o", (SUBR)count_init3, (SUBR)count_state },
   { "cntDelete", S(COUNTER), SK, 2, "k", "k", NULL, (SUBR)count_del, NULL },
   { "cntDelete_i", S(COUNTER), SK, 1, "i", "i", (SUBR)count_del, NULL, NULL },
