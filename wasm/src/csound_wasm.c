@@ -67,9 +67,7 @@ void freeCsoundParams(CSOUND_PARAMS* ptr) {
 __attribute__((used))
 double* allocFloatArray(int length) {
   double *ptr = NULL;
-  ptr = malloc((length * sizeof(double)) + 1);
-  // NULL Terminate
-  ptr[length * sizeof(double)] = '\0';
+  ptr = malloc(length * sizeof(double));
   return ptr;
 }
 
