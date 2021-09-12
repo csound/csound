@@ -164,7 +164,7 @@ def runTest():
         ["test_array_operations.csd", "test multiple operations on multiple array types"],
         ["prints_number_no_crash.csd", "test prints does not crash when given a number arguments", 1],
         ["test_newlines_within_function_calls.csd", "test newlines allowed within function calls"],
-        ["test_comma_newline.csd", "test commas followed by newlines"]
+        ["test_comma_newline.csd", "test commas followed by newlines"],
 
     ["test_declare.csd", "test declare keyword (CS7)"], 
     ]
