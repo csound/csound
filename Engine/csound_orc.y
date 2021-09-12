@@ -483,6 +483,8 @@ declare_definition : DECLARE_TOKEN identifier udo_arg_list ':' udo_out_arg_list 
 
 expr_list : expr_list ',' expr
               { $$ = appendToTree(csound, $1, $3); }
+         | expr_list ',' NEWLINE expr
+              { $$ = appendToTree(csound, $1, $4); }
          | expr
          ;
 
