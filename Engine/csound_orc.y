@@ -172,7 +172,10 @@
 
 /* TODO
 
- - add csp_orc_sa_instr_add calls in later csp analyze phase
+ - add csp_orc_sa_instr_add calls in later csp analyze phase 
+   => these seem to be done now below, in the instr_definition rules
+ - add csp_orc_sa_global_read_write_add_list etc 
+   => not sure where exactly?
 */
 
 orcfile : root_statement_list
@@ -218,20 +221,24 @@ instr_definition : INSTR_TOKEN instr_id_list NEWLINE
                   statement_list ENDIN_TOKEN NEWLINE
                  {  $$ = make_node(csound, csound_orcget_iline(scanner),
                                   csound_orcget_ilocn(scanner), INSTR_TOKEN,
-                                  $2, $5); }
+                                  $2, $5);
+                    csp_orc_sa_instr_finalize(csound);
+                 }
                 | INSTR_TOKEN NEWLINE error
-                   { csound->ErrorMsg(csound, Str("No number following instr\n")); }
+                   { csound->ErrorMsg(csound, Str("No number following instr\n"));
+                     csp_orc_sa_instr_finalize(csound);
+                   }
                 ;
 
 
 instr_id_list : instr_id_list ',' instr_id
                   { $$ = appendToTree(csound, $1, $3); }
-              | instr_id
+              | instr_id  { csp_orc_sa_instr_add_tree(csound, $1); }             
               ;
 
 instr_id : integer
-          | identifier
-          | plus_identifier
+          | identifier 
+          | plus_identifier 
           ;
 
 

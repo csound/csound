@@ -2592,9 +2592,9 @@ TREE* verify_tree(CSOUND * csound, TREE *root, TYPE_TABLE* typeTable)
 int csound_orcwrap(void* dummy)
 {
   IGN(dummy);
-#ifdef DEBUG
-  printf("\n === END OF INPUT ===\n");
-#endif
+  //#ifdef DEBUG
+  //printf("\n === END OF INPUT ===\n");
+  //#endif
   return (1);
 }
 
@@ -2756,7 +2756,7 @@ TREE* make_leaf(CSOUND *csound, int line, int locn, int type, ORCTOKEN *v)
   ans->locn  = locn;
   ans->markup = NULL;
   //if (ans->value)
-  // printf("make leaf %p %p (%s)\n", ans, ans->value, ans->value->lexeme);
+  //printf("make leaf %p %p (%s)\n", ans, ans->value, ans->value->lexeme);
   csound->DebugMsg(csound, "csound_orc_semantics(%d) line = %d\n",
                    __LINE__, line);
   return ans;
@@ -3147,7 +3147,7 @@ void handle_optional_args(CSOUND *csound, TREE *l)
     char** inArgParts = NULL;
 
     if (UNLIKELY(ep==NULL)) { /* **** FIXME **** */
-      printf("THIS SHOULD NOT HAPPEN -- ep NULL csound_orc-semantics(%d)\n",
+      csoundErrorMsg(csound, "THIS SHOULD NOT HAPPEN -- ep NULL csound_orc-semantics(%d)\n",
              __LINE__);
     }
     if (ep->intypes != NULL) {
