@@ -9,9 +9,11 @@ on:
     branches:
       - develop
       - master
+      - cs7
   pull_request:
     branches:
       - develop
+      - cs7
 
 jobs:
   linux_build:
