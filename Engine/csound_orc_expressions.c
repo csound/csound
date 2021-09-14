@@ -269,6 +269,7 @@ int is_expression_node(TREE *node)
   case '^':
   case T_FUNCTION:
   case S_UMINUS:
+  case S_UPLUS:  
   case '|':
   case '&':
   case S_BITSHIFT_RIGHT:
@@ -672,6 +673,17 @@ static TREE *create_expression(CSOUND *csound, TREE *root, int line, int locn,
                                            root->right, typeTable);
 
     break;
+   case S_UPLUS:
+    if (UNLIKELY(PARSER_DEBUG))
+      csound->Message(csound, "HANDLING UNARY PLUS!");
+    root->left = create_minus_token(csound);
+    //      arg1 = 'i';
+    strNcpy(op, "##mul", 80);
+    outarg = create_out_arg_for_expression(csound, op, root->left,
+                                           root->right, typeTable);
+
+    break;
+    
   case '|':
     strNcpy(op, "##or", 80);
     outarg = create_out_arg_for_expression(csound, op, root->left,

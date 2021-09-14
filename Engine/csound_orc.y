@@ -109,6 +109,7 @@
 %left '#'
 %right S_UNOT
 %right S_UMINUS
+%right S_UPLUS
 %token S_GOTO
 %token T_HIGHEST
 
@@ -556,13 +557,28 @@ unary_expr : '~' expr %prec S_UMINUS
               $$ = make_node(csound,LINE,LOCN, S_UMINUS, NULL, $2);
           }
         | '-' error           { $$ = NULL; }
-        | '+' expr %prec S_UMINUS
+        | '+' expr %prec S_UPLUS
+          /* { */
+          /*     $$ = $2; */
+          /*     /\* added to left for disambiguation of opcall in semantic analyzer *\/ */
+          /*     /\*$2->next = make_leaf(csound, LINE, LOCN, '+', (ORCTOKEN *) $1); *\/ */
+          /*     $2->markup = &UNARY_PLUS; */
+          /* } */
+        
+          /* VL 14 Sep 21: the only way I could find to make this rule correctly
+              parse a statement such as 
+                 out a1 + (a1 * 2)
+             was to abandon the code above and invent and implement a S_UPLUS type 
+             (here and in the semantics, expression and optimize code)
+             otherwise the rule did not create an expression at all and was
+             parsed as if the variable following 'out' was an OPCALL
+             This comment can be removed once the rule has been reviewed and
+             accepted.  
+          */
           {
-              $$ = $2;
-              /* added to left for disambiguation of opcall in semantic analyzer */
-              /*$2->next = make_leaf(csound, LINE, LOCN, '+', (ORCTOKEN *) $1); */
-              $2->markup = &UNARY_PLUS;
+              $$ = make_node(csound,LINE,LOCN, S_UPLUS, NULL, $2);
           }
+        
         | '+' error           { $$ = NULL; }
         ;
 

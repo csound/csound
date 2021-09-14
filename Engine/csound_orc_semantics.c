@@ -118,6 +118,8 @@ char* get_expression_opcode_type(CSOUND* csound, TREE* tree) {
     return "##pow";
   case S_UMINUS:
     return "##mul";
+  case S_UPLUS:
+    return "##mul";  
   case '|':
     return "##or";
   case '&':
@@ -1597,7 +1599,7 @@ TREE* get_initial_unary_operator(TREE* tree) {
   while (current->left != NULL) {
     current = current->left;
   }
-  if (current->type == S_UMINUS || current->markup == &UNARY_PLUS) {
+  if (current->type == S_UMINUS || current->type == S_UPLUS) {
     return current;
   }
   return NULL;
@@ -1615,14 +1617,14 @@ TREE* get_left_parent(TREE* root, TREE* node) {
 }
 
 TREE* convert_unary_op_to_binary(CSOUND* csound, TREE* new_left, TREE* unary_op) {
-  TREE* retVal;
+  TREE* retVal = NULL;
   new_left->type = T_IDENT;
 
   if (unary_op->type == S_UMINUS) {
     retVal = make_node(csound, unary_op->line, unary_op->locn, '-', new_left, unary_op->right);
-  } else {
-    retVal = make_node(csound, unary_op->line, unary_op->locn, '+', new_left, unary_op);
-    unary_op->markup = NULL;
+  } else if (unary_op->type == S_UPLUS) {
+    retVal = make_node(csound, unary_op->line, unary_op->locn, '+', new_left, unary_op->right);
+    //unary_op->markup = NULL;
   }
 
   return retVal;
@@ -2937,6 +2939,9 @@ void print_tree_i(CSOUND *csound, TREE *l, int n)
   case S_UMINUS:
     csound->Message(csound,"S_UMINUS:(%d:%s)\n",
                     l->line, csound->filedir[(l->locn)&0xff]); break;
+  case S_UPLUS:
+    csound->Message(csound,"S_UPLUS:(%d:%s)\n",
+                    l->line, csound->filedir[(l->locn)&0xff]); break;  
   case '[':
     csound->Message(csound,"[:(%d:%s)\n",
                     l->line, csound->filedir[(l->locn)&0xff]); break;
@@ -3075,6 +3080,9 @@ static void print_tree_xml(CSOUND *csound, TREE *l, int n, int which)
                     l->value->lexeme); break;
   case S_UMINUS:
     csound->Message(csound,"name=\"S_UMINUS\""); break;
+  case S_UPLUS:
+    csound->Message(csound,"name=\"S_UPLUS\""); break;
+    
   case UDO_TOKEN:
     csound->Message(csound,"name=\"UDO_TOKEN\""); break;
   case UDO_ANS_TOKEN:

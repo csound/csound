@@ -338,6 +338,7 @@ TREE* constant_fold(CSOUND *csound, TREE* root)
             }
         break;
       case S_UMINUS:
+      case S_UPLUS:  
       case '~':
         //print_tree(csound, "Folding case?\n", current);
         current->right = constant_fold(csound, current->right);
@@ -356,6 +357,8 @@ TREE* constant_fold(CSOUND *csound, TREE* root)
           case '~':
             lval = (MYFLT)(~(int)lval);
             break;
+          case S_UPLUS:
+            break;  
           }
           current->value = current->right->value;
           current->type = NUMBER_TOKEN;
