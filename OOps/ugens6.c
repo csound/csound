@@ -934,7 +934,6 @@ int32_t cmbset(CSOUND *csound, COMB *p)
       p->coef = FL(0.0);
     }
     else if (!(*p->istor)) {
-      /* Does this assume sizeof(MYFLT)==sizeof(int32_t)?? */
       p->pntr = (MYFLT *) p->auxch.auxp;
       memset(p->auxch.auxp, '\0', nbytes);
       p->prvt = FL(0.0);
