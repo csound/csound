@@ -38,6 +38,7 @@
 ./Engine/swritestr.c
 ./Engine/symbtab.c
 ./Engine/twarp.c
+./Engine/ugen.c
 ./Frontends/csound/csound_main.c
 ./Frontends/csound/sched.c
 ./Frontends/debugger/csdebugger.cpp
