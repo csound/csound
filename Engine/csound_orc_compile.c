@@ -1991,8 +1991,10 @@ int csoundCompileOrcInternal(CSOUND *csound, const char *str, int async) {
   root = csoundParseOrc(csound, str);
   if (LIKELY(root != NULL)) {
     retVal = csoundCompileTreeInternal(csound, root, async);
+#ifdef PARCS    
     // Sanitise semantic sets here
     sanitize(csound);
+#endif    
     csoundDeleteTree(csound, root);
   } else {
     // csoundDeleteTree(csound, root);
