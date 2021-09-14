@@ -1465,12 +1465,12 @@ PUBLIC void csoundSetHostData(CSOUND *csound, void *hostData)
 
 extern int sensevents(CSOUND *);
 
+#ifdef PARCS
 /**
  * perform currently active instrs for one kperiod
  *      & send audio result to output buffer
  * returns non-zero if this kperiod was skipped
  */
-
 static int getThreadIndex(CSOUND *csound, void *threadId)
 {
     int index = 0;
@@ -1497,6 +1497,7 @@ static int getThreadIndex(CSOUND *csound, void *threadId)
     }
     return -1;
 }
+#endif
 
 #if 0
 static int getNumActive(INSDS *start, INSDS *end)
@@ -1532,8 +1533,9 @@ int dag_end_task(CSOUND *csound, int task);
 void dag_build(CSOUND *csound, INSDS *chain);
 void dag_reinit(CSOUND *csound);
 
+#ifdef PARCS
 inline static int nodePerf(CSOUND *csound, int index, int numThreads)
-{
+{  
     INSDS *insds = NULL;
     OPDS  *opstart = NULL;
     int played_count = 0;
@@ -1627,6 +1629,7 @@ inline static int nodePerf(CSOUND *csound, int index, int numThreads)
     }
     return played_count;
 }
+#endif //PARCS
 
 inline static void make_interleave(CSOUND *csound, uint32_t lksmps)
 {
@@ -1660,7 +1663,7 @@ inline static void make_interleave(CSOUND *csound, uint32_t lksmps)
     }
 }
 
-
+#ifdef PARCS
 unsigned long kperfThread(void * cs)
 {
     //INSDS *start;
@@ -1708,6 +1711,7 @@ unsigned long kperfThread(void * cs)
       csound->WaitBarrier(csound->barrier2);
     }
 }
+#endif
 
 int kperf_nodebug(CSOUND *csound)
 {
@@ -1750,6 +1754,7 @@ int kperf_nodebug(CSOUND *csound)
       /* There are 2 partitions of work: 1st by inso,
          2nd by inso count / thread count. */
       if (csound->multiThreadedThreadInfo != NULL) {
+#ifdef PARCS        
         if (csound->dag_changed) dag_build(csound, ip);
         else dag_reinit(csound);     /* set to initial state */
 
@@ -1760,6 +1765,7 @@ int kperf_nodebug(CSOUND *csound)
 
         /* wait until partition is complete */
         csound->WaitBarrier(csound->barrier2);
+#endif        
         csound->multiThreadedDag = NULL;
       }
       else {
@@ -2028,6 +2034,7 @@ int kperf_debug(CSOUND *csound)
       /* There are 2 partitions of work: 1st by inso,
          2nd by inso count / thread count. */
       if (csound->multiThreadedThreadInfo != NULL) {
+#ifdef PARCS        
         if (csound->dag_changed) dag_build(csound, ip);
         else dag_reinit(csound);     /* set to initial state */
 
@@ -2038,6 +2045,7 @@ int kperf_debug(CSOUND *csound)
 
         /* wait until partition is complete */
         csound->WaitBarrier(csound->barrier2);
+#endif        
         csound->multiThreadedDag = NULL;
       }
       else {

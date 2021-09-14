@@ -141,7 +141,7 @@
 #include "csound_orc.h"
 #include "parse_param.h"
 
-#ifndef __EMSCRIPTEN__
+#ifdef PARCS
 #include "cs_par_base.h"
 #include "cs_par_orc_semantics.h"
 #else
