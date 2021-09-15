@@ -29,6 +29,10 @@
 #include <stdlib.h>
 #include <ctype.h>
 #include "csoundCore.h"
+// to shut up the lexer writing to stdout   
+#define ECHO if(csound->oparms->odebug) { csoundErrorMsg(csound, "%s", "--lexer echo:"); \
+             fwrite(yytext, (size_t) yyleng, 1, stderr); \
+             csoundErrorMsg(csound, "%s", "--\n");}
 #define YYSTYPE TREE*
 #define YYLTYPE ORCTOKEN*
 #define YY_DECL int yylex (YYLTYPE *lvalp, CSOUND *csound, yyscan_t yyscanner)

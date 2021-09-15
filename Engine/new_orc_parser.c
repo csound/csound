@@ -278,9 +278,9 @@ TREE *csoundParseOrc(CSOUND *csound, const char *str)
                           Str("Parsing failed due to %d semantic error%s!\n"),
                           csound->synterrcnt, csound->synterrcnt==1?"":"s");
         else if (csound->synterrcnt)
-          csound->Message(csound, Str("Parsing failed due to syntax errors\n"));
+          csoundErrorMsg(csound, Str("Parsing failed due to syntax errors\n"));
         else
-          csound->Message(csound, Str("Parsing failed due to no input!\n"));
+          csoundErrorMsg(csound, Str("Parsing failed due to no input!\n"));
         goto ending;
       }
       err = 0;
@@ -296,7 +296,7 @@ TREE *csoundParseOrc(CSOUND *csound, const char *str)
     ending:
       csound_orclex_destroy(pp.yyscanner);
       if (UNLIKELY(err)) {
-        csound->ErrorMsg(csound, Str("Stopping on parser failure"));
+        csound->ErrorMsg(csound, "%s", Str("Stopping on parser failure\n"));
         csoundDeleteTree(csound, astTree);
         if (typeTable != NULL) {
           csoundFreeVarPool(csound, typeTable->globalPool);
