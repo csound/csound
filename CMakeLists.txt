@@ -43,9 +43,9 @@ if(NOT MSVC)
 endif()
 
 # Project definitions
-set(APIVERSION "6.0")
-set(CS_VERSION "6")
-set(CS_SUBVER "17")
+set(APIVERSION "7.0")
+set(CS_VERSION "7")
+set(CS_SUBVER "0")
 set(CS_PATCHLEVEL "0")
 
 message(STATUS "Csound version: ${CS_VERSION}.${CS_SUBVER}.${CS_PATCHLEVEL}")
