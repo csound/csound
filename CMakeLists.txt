@@ -183,6 +183,7 @@ option(USE_CURL "Use CURL library" ON)
 option(BUILD_RELEASE "Build for release" ON)
 option(BUILD_INSTALLER "Build installer" OFF)
 option(BUILD_TESTS "Build tests" ON)
+option(LEXER_DEBUG "Build lexer with debug option" OFF)
 option(USE_GIT_COMMIT "Show the git commit in version information" ON)
 option(REQUIRE_PTHREADS "For non-Windows systems, set whether Csound will use threads or not" ON)
 
@@ -952,11 +953,24 @@ set(PRELEX_SRC ${CMAKE_CURRENT_SOURCE_DIR}/Engine/csound_pre.lex)
 set(PRELEX_OUT ${CMAKE_CURRENT_BINARY_DIR}/csound_prelex.c)
 set_source_files_properties(${CMAKE_CURRENT_BINARY_DIR}/csound_prelex.c
 PROPERTIES COMPILE_FLAGS "-Wno-implicit-fallthrough")
+
+if(LEXER_DEBUG)
+message(STATUS "Building lexer with debug option")
 add_custom_command(
     OUTPUT ${LEX_OUT}
     DEPENDS ${LEX_SRC}
-    COMMAND ${FLEX_EXECUTABLE} ARGS -B -t ${LEX_SRC} > ${LEX_OUT}
+    COMMAND ${FLEX_EXECUTABLE} ARGS -d -B -t ${LEX_SRC} > ${LEX_OUT}
     )
+
+else()
+add_custom_command(
+    OUTPUT ${LEX_OUT}
+    DEPENDS ${LEX_SRC}
+    COMMAND ${FLEX_EXECUTABLE} ARGS -B -t  ${LEX_SRC} > ${LEX_OUT}
+    )
+endif()
+
+
 
 add_custom_command(
     DEPENDS ${PRELEX_SRC}
