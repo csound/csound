@@ -754,7 +754,7 @@ typedef struct CORFIL {
     /** amplitude scale factor        */
     double          scaleFac;
     /** interleaved sample data       */
-    float           data[1];
+    MYFLT           data[1];
   } SNDMEMFILE;
 
   typedef struct pvx_memfile_ {

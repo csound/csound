@@ -625,7 +625,7 @@ SNDMEMFILE *csoundLoadSoundFile(CSOUND *csound, const char *fileName, void *sfi)
     }
     p = (SNDMEMFILE*)
             csound->Malloc(csound, sizeof(SNDMEMFILE)
-                           + (size_t)  sfinfo->frames * sizeof(float));
+                           + (size_t)  sfinfo->frames * sizeof(MYFLT));
     /* set parameters */
     p->name = (char*) csound->Malloc(csound, strlen(fileName) + 1);
     strcpy(p->name, fileName);
@@ -664,7 +664,7 @@ SNDMEMFILE *csoundLoadSoundFile(CSOUND *csound, const char *fileName, void *sfi)
         p->scaleFac = pow(10.0, (double) lpd.gain * 0.05);
       }
     }
-    if (UNLIKELY((size_t) sflib_readf_float(sf, &(p->data[0]), (sf_count_t) p->nFrames)
+    if (UNLIKELY((size_t) sflib_readf_MYFLT(sf, &(p->data[0]), (sf_count_t) p->nFrames)
                  != p->nFrames)) {
       csound->FileClose(csound, fd);
       csound->Free(csound, p->name);

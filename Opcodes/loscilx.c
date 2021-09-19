@@ -724,7 +724,7 @@ static int32_t loscilx_opcode_perf(CSOUND *csound, LOSCILX_OPCODE *p)
           else
 #endif
           {
-            ar += ((MYFLT) ((float*) p->dataPtr)[ndx] * (MYFLT) winBuf[j]);
+            ar += ((MYFLT) ((MYFLT*) p->dataPtr)[ndx] * (MYFLT) winBuf[j]);
           }
         } while (++j < winSmps);
         /* scale output */
@@ -756,9 +756,9 @@ static int32_t loscilx_opcode_perf(CSOUND *csound, LOSCILX_OPCODE *p)
           else
 #endif
           {
-            ar1 += ((MYFLT) ((float*) p->dataPtr)[ndx + ndx]
+            ar1 += ((MYFLT) ((MYFLT*) p->dataPtr)[ndx + ndx]
                     * (MYFLT) winBuf[j]);
-            ar2 += ((MYFLT) ((float*) p->dataPtr)[ndx + ndx + 1L]
+            ar2 += ((MYFLT) ((MYFLT*) p->dataPtr)[ndx + ndx + 1L]
                     * (MYFLT) winBuf[j]);
           }
         } while (++j < winSmps);
@@ -799,7 +799,7 @@ static int32_t loscilx_opcode_perf(CSOUND *csound, LOSCILX_OPCODE *p)
           else
 #endif
           {
-            float *fp = &(((float*) p->dataPtr)[ndx * (int32) p->nChannels]);
+            MYFLT *fp = &(((MYFLT*) p->dataPtr)[ndx * (int32) p->nChannels]);
 
             k = 0;
             do {
@@ -1065,7 +1065,7 @@ static int32_t loscilxa_opcode_perf(CSOUND *csound, LOSCILXA_OPCODE *p)
           else
 #endif
           {
-            float *fp = &(((float*) p->dataPtr)[ndx * (int32) p->nChannels]);
+            MYFLT *fp = &(((MYFLT*) p->dataPtr)[ndx * (int32) p->nChannels]);
 
             k = 0;
             do {

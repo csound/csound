@@ -227,10 +227,12 @@ typedef long sf_count_t;
 #define sflib_write_MYFLT  sflib_write_double
 #define sflib_writef_MYFLT  sflib_writef_double
 #define sflib_read_MYFLT   sflib_read_double
+#define sflib_readf_MYFLT   sflib_readf_double
 #else
 #define sflib_write_MYFLT  sflib_write_float
 #define sflib_writef_MYFLT  sflib_writef_float
 #define sflib_read_MYFLT   sflib_read_float
+#define sflib_readf_MYFLT   sflib_readf_float
 #endif
   
 typedef struct sflib_info {
