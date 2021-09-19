@@ -383,6 +383,7 @@ SYMBOL          [\[\]+\-*/%\^\?:.,!]
 {LINE}          { BEGIN(line); }
 
 <line>{
+  [ \t]*     /* eat the whitespace */
   {INTGR}   { csound_orcset_lineno(atoi(yytext), yyscanner); }
   "\n"      {BEGIN(INITIAL);}
 }
@@ -390,6 +391,7 @@ SYMBOL          [\[\]+\-*/%\^\?:.,!]
 {FILE}          { BEGIN(src); }
 
 <src>{
+  [ \t]*     /* eat the whitespace */
   {FNAME}    { PARM->locn = atoll(yytext); }
   "\n"       { BEGIN(INITIAL); }
 }
