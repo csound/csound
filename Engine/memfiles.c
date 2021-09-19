@@ -29,7 +29,6 @@
 #include "lpc.h"
 #include "pstream.h"
 #include "namedins.h"
-#include <sndfile.h>
 #include <string.h>
 #include <inttypes.h>
 
@@ -582,11 +581,11 @@ int PVOCEX_LoadFile(CSOUND *csound, const char *fname, PVOCEX_MEMFILE *p)
 
 SNDMEMFILE *csoundLoadSoundFile(CSOUND *csound, const char *fileName, void *sfi)
 {
-    SF_INFO       *sfinfo = sfi;
+    SFLIB_INFO    *sfinfo = sfi;
     SNDFILE       *sf;
     void          *fd;
     SNDMEMFILE    *p = NULL;
-    SF_INFO       tmp;
+    SFLIB_INFO       tmp;
 
 
     if (UNLIKELY(fileName == NULL || fileName[0] == '\0'))
@@ -603,7 +602,7 @@ SNDMEMFILE *csoundLoadSoundFile(CSOUND *csound, const char *fileName, void *sfi)
     if (p != NULL) {
       /* if file was loaded earlier: */
       if (sfinfo != NULL) {
-        memset(sfinfo, 0, sizeof(SF_INFO));
+        memset(sfinfo, 0, sizeof(SFLIB_INFO));
         sfinfo->frames = (sf_count_t) p->nFrames;
         sfinfo->samplerate = ((int) p->sampleRate + 0.5);
         sfinfo->channels = p->nChannels;
@@ -613,7 +612,7 @@ SNDMEMFILE *csoundLoadSoundFile(CSOUND *csound, const char *fileName, void *sfi)
     }
     /* open file */
     if (sfinfo == NULL) {
-      memset(&tmp, 0, sizeof(SF_INFO));
+      memset(&tmp, 0, sizeof(SFLIB_INFO));
       sfinfo = &tmp;
     }
     fd = csound->FileOpen2(csound, &sf, CSFILE_SND_R, fileName, sfinfo,
@@ -621,7 +620,7 @@ SNDMEMFILE *csoundLoadSoundFile(CSOUND *csound, const char *fileName, void *sfi)
     if (UNLIKELY(fd == NULL)) {
       csound->ErrorMsg(csound,
                        Str("csoundLoadSoundFile(): failed to open '%s' %s"),
-                       fileName, Str(sf_strerror(NULL)));
+                       fileName, Str(sflib_strerror(NULL)));
       return NULL;
     }
     p = (SNDMEMFILE*)
@@ -646,8 +645,8 @@ SNDMEMFILE *csoundLoadSoundFile(CSOUND *csound, const char *fileName, void *sfi)
     p->baseFreq = 1.0;
     p->scaleFac = 1.0;
     {
-      SF_INSTRUMENT lpd;
-      if (sf_command(sf, SFC_GET_INSTRUMENT, &lpd, sizeof(SF_INSTRUMENT))
+      SFLIB_INSTRUMENT lpd;
+      if (sflib_command(sf, SFC_GET_INSTRUMENT, &lpd, sizeof(SFLIB_INSTRUMENT))
           != 0) {
         if (lpd.loop_count > 0 && lpd.loops[0].mode != SF_LOOP_NONE) {
           /* set loop mode and loop points */
@@ -665,7 +664,7 @@ SNDMEMFILE *csoundLoadSoundFile(CSOUND *csound, const char *fileName, void *sfi)
         p->scaleFac = pow(10.0, (double) lpd.gain * 0.05);
       }
     }
-    if (UNLIKELY((size_t) sf_readf_float(sf, &(p->data[0]), (sf_count_t) p->nFrames)
+    if (UNLIKELY((size_t) sflib_readf_float(sf, &(p->data[0]), (sf_count_t) p->nFrames)
                  != p->nFrames)) {
       csound->FileClose(csound, fd);
       csound->Free(csound, p->name);

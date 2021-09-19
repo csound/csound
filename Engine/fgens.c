@@ -2723,8 +2723,8 @@ static int gen01raw(FGDATA *ff, FUNC *ftp)
     ftp->gen01args.sample_rate = (MYFLT) p->sr;
     ftp->cvtbas = LOFACT * p->sr * csound->onedsr;
     {
-      SF_INSTRUMENT lpd;
-      int ans = sf_command(fd, SFC_GET_INSTRUMENT, &lpd, sizeof(SF_INSTRUMENT));
+      SFLIB_INSTRUMENT lpd;
+      int ans = sflib_command(fd, SFC_GET_INSTRUMENT, &lpd, sizeof(SFLIB_INSTRUMENT));
       if (ans) {
         double natcps;
 #ifdef BETA

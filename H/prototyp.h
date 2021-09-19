@@ -24,7 +24,6 @@
 #if defined(__BUILDING_LIBCSOUND) && !defined(_CSOUND_PROTO_H)
 #define _CSOUND_PROTO_H
 #include <sysdep.h>
-#include <sndfile.h>
 #ifdef __cplusplus
 extern "C" {
 #endif

@@ -47,6 +47,7 @@
 #include "csound_data_structures.h"
 #include "csound_standard_types.h"
 #include "pools.h"
+#include "soundfile.h"
 
 #ifndef CSOUND_CSDL_H
 /* VL not sure if we need to check for SSE */
@@ -1667,8 +1668,8 @@ typedef struct _message_queue_t_ {
       EVENT   *lsect;
     } musmonStatics;
     struct libsndStatics__ {
-      SNDFILE       *outfile;
-      SNDFILE       *infile;
+      void       *outfile;
+      void       *infile;
       char          *sfoutname;           /* soundout filename            */
       MYFLT         *inbuf;
       MYFLT         *outbuf;              /* contin sndio buffers         */

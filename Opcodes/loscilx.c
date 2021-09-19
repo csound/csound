@@ -40,7 +40,7 @@ static int32_t sndload_opcode_init_(CSOUND *csound, SNDLOAD_OPCODE *p,
 {
     char        *fname;
     SNDMEMFILE  *sf;
-    SF_INFO     sfinfo;
+    SFLIB_INFO     sfinfo;
     int32_t         sampleFormat, loopMode;
 
     if (isstring) fname = ((STRINGDAT *)p->Sfname)->data;
@@ -50,7 +50,7 @@ static int32_t sndload_opcode_init_(CSOUND *csound, SNDLOAD_OPCODE *p,
       else
         fname = csound->strarg2name(csound, (char*) NULL, p->Sfname, "soundin.", 0);
     }
-    memset(&sfinfo, 0, sizeof(SF_INFO));
+    memset(&sfinfo, 0, sizeof(SFLIB_INFO));
     sampleFormat = (int32_t) MYFLT2LRND(*(p->iFormat));
     sfinfo.format = (int32_t) TYPE2SF(TYP_RAW);
     switch (sampleFormat) {
@@ -219,7 +219,7 @@ static int32_t loscilx_opcode_init(CSOUND *csound, LOSCILX_OPCODE *p)
       p->usingFtable = 0;
       sf = csound->LoadSoundFile(csound,
                                  (char*) get_arg_string(csound, *p->ifn),
-                                 (SF_INFO *) NULL);
+                                 (SFLIB_INFO *) NULL);
       if (UNLIKELY(sf == NULL))
         return csound->InitError(csound, Str("could not load '%s'"),
                                          (char*) p->ifn);
@@ -368,7 +368,7 @@ static int32_t loscilxa_opcode_init(CSOUND *csound, LOSCILXA_OPCODE *p)
       p->usingFtable = 0;
       sf = csound->LoadSoundFile(csound,
                                  (char*) get_arg_string(csound, *p->ifn),
-                                 (SF_INFO *) NULL);
+                                 (SFLIB_INFO *) NULL);
       if (UNLIKELY(sf == NULL))
         return csound->InitError(csound, Str("could not load '%s'"),
                                          (char*) p->ifn);

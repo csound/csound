@@ -143,9 +143,13 @@ void print_csound_version(CSOUND* csound)
 }
 
 void print_sndfile_version(CSOUND* csound) {
+#ifdef USE_LIBSNDFILE
         char buffer[128];
-        sf_command(NULL, SFC_GET_LIB_VERSION, buffer, 128);
+        sflib_command(NULL, SFC_GET_LIB_VERSION, buffer, 128);
         csoundErrorMsg(csound, "%s\n", buffer);
+#else
+        csoundErrorMsg(csound, "%s\n", "No soundfile IO");
+#endif
 }
 
 void print_engine_parameters(CSOUND *csound) {

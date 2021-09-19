@@ -137,7 +137,7 @@ static int32_t scale(CSOUND *csound, int32_t argc, char **argv)
     void        *fd;
     char        outformch = 's', c, *s;
     const char  *envoutyp;
-    SF_INFO     sfinfo;
+    SFLIB_INFO     sfinfo;
     OPARMS      O;
     SCALE       sc;
     unsigned    outbufsiz;
@@ -271,7 +271,7 @@ static int32_t scale(CSOUND *csound, int32_t argc, char **argv)
       csound->SetUtilSr(csound, (MYFLT)sc.p->sr);
       csound->SetUtilNchnls(csound, sc.p->nchanls);
 
-      memset(&sfinfo, 0, sizeof(SF_INFO));
+      memset(&sfinfo, 0, sizeof(SFLIB_INFO));
       //sfinfo.frames = 0/*was -1*/;
       sfinfo.samplerate = (int32_t) ( sc.p->sr); // p->sr is int already
       sfinfo.channels = sc.p->nchanls;
@@ -280,12 +280,12 @@ static int32_t scale(CSOUND *csound, int32_t argc, char **argv)
       fd = NULL;
       if (strcmp(O.outfilename, "stdout") == 0 ||
           strcmp(O.outfilename, "-") == 0) {
-        outfile = sf_open_fd(1, SFM_WRITE, &sfinfo, 0);
+        outfile = sflib_open_fd(1, SFM_WRITE, &sfinfo, 0);
         if (outfile != NULL) {
           if (UNLIKELY((fd =
                         csound->CreateFileHandle(csound, &outfile,
                                                  CSFILE_SND_W, "stdout")) == NULL)) {
-            sf_close(outfile);
+            sflib_close(outfile);
             csound->Die(csound, "%s", Str("Memory allocation failure"));
           }
         }
@@ -296,7 +296,7 @@ static int32_t scale(CSOUND *csound, int32_t argc, char **argv)
                        csound->type2csfiletype(O.filetyp, O.outformat), 0);
       if (UNLIKELY(fd == NULL))
         csound->Die(csound, Str("Failed to open output file %s: %s"),
-                    O.outfilename, Str(sf_strerror(NULL)));
+                    O.outfilename, Str(sflib_strerror(NULL)));
       outbufsiz = 1024 * O.sfsampsize;    /* calc outbuf size  */
       csound->Message(csound, Str("writing %d-byte blks of %s to %s %s\n"),
                               (int32_t) outbufsiz,
@@ -442,7 +442,7 @@ ScaleSound(CSOUND *csound, SCALE *thissc, SNDFILE *infile,
           min = buffer[i], minpos = i + bufferLenSamples * block, mintimes = 1;
         buffer[i] *= (1.0/csound->Get0dBFS(csound));
       }
-      sf_write_MYFLT(outfd, buffer, read_in);
+      sflib_write_MYFLT(outfd, buffer, read_in);
       block++;
       if (oparms->heartbeat) {
         csound->MessageS(csound, CSOUNDMSG_REALTIME, "%c\b", "|/-\\"[block&3]);

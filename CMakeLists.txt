@@ -172,6 +172,7 @@ endif()
 ## USER OPTIONS ##
 # Optional targets, they should all default to ON (check_deps will disable them if not possible to build)
 option(USE_DOUBLE "Set to use double-precision floating point for audio samples." ON)
+option(USE_LIBSNDFILE "Use libsndfile for sndfile IO, if available" ON)
 option(BUILD_UTILITIES "Build stand-alone executables for utilities that can also be used with -U" ON)
 option(NEW_PARSER_DEBUG "Enable tracing of new parser" OFF)
 option(BUILD_MULTI_CORE "Enable building for multicore system" ON)
@@ -455,14 +456,18 @@ SET(BUILD_SHARED_LIBS ON)
 
 ## HEADER/LIBRARY/OTHER CHECKS ##
 # First, required stuff
-if(MSVC)
+if(USE_LIBSNDFILE)
+ set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -DUSE_LIBSNDFILE")
+ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DUSE_LIBSNDFILE")
+ if(MSVC)
     find_package(SndFile CONFIG REQUIRED)
-else()
+ else()
     find_library(LIBSNDFILE_LIBRARY NAMES sndfile libsndfile-1 libsndfile)
 
-    if(NOT LIBSNDFILE_LIBRARY)
+  if(NOT LIBSNDFILE_LIBRARY)
         message(FATAL_ERROR "Csound requires the sndfile library")
-    endif()
+   endif()
+ endif()
 endif()
 
 find_package(CURL)
@@ -695,6 +700,7 @@ set(libcsound_SRCS
     Engine/csound_data_structures.c
     Engine/pools.c
     Engine/ugen.c
+    InOut/soundfile.c
     InOut/libsnd.c
     InOut/libsnd_u.c
     InOut/midifile.c
