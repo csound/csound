@@ -45,7 +45,7 @@ if(BUILD_JAVA_INTERFACE)
         SET_SOURCE_FILES_PROPERTIES(java_interface.i PROPERTIES SWIG_FLAGS "${javaSwigOptions}")
 
         set(SWIG_MODULE__jcsound6_EXTRA_DEPS ../include/csound.h ../include/cfgvar.h ../include/csound.hpp
-                                        cs_glue.hpp ../include/csPerfThread.hpp)
+                                        ../H/cs_glue.hpp ../include/csPerfThread.hpp)
 
         if(COMMAND SWIG_ADD_LIBRARY)
             SWIG_ADD_LIBRARY(_jcsound6 
