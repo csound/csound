@@ -935,7 +935,7 @@ list(APPEND libcsound_SRCS ${stdopcod_SRCS} ${cs_pvs_ops_SRCS}
 ${oldpvoc_SRCS} ${mp3in_SRCS})
 
 if(BUILD_PERFTHREAD_CLASS)
- list(APPEND libcsound_SRCS "top/csPerfThread.cpp")
+ list(APPEND libcsound_SRCS "Top/csPerfThread.cpp")
 endif()
 
 if(INIT_STATIC_MODULES)
