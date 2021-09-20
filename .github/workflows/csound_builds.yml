@@ -23,6 +23,8 @@ jobs:
         with:
           fetch-depth: 1
           submodules: true
+      - name: Bootstrap VCPKG
+        run: ./vcpkg/bootstrap-vcpkg.sh
       - name: Setup NuGet Credentials
         shell: bash
         run: >
