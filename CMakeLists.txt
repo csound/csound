@@ -173,6 +173,7 @@ endif()
 # Optional targets, they should all default to ON (check_deps will disable them if not possible to build)
 option(USE_DOUBLE "Set to use double-precision floating point for audio samples." ON)
 option(USE_LIBSNDFILE "Use libsndfile for sndfile IO, if available" ON)
+option(BUILD_PERFTHREAD_CLASS "Include the Csound performance thread support (C++) " ON)
 option(BUILD_UTILITIES "Build stand-alone executables for utilities that can also be used with -U" ON)
 option(NEW_PARSER_DEBUG "Enable tracing of new parser" OFF)
 option(BUILD_MULTI_CORE "Enable building for multicore system" ON)
@@ -930,7 +931,12 @@ set(mp3in_SRCS
     InOut/libmpadec/mpadec.c
     InOut/libmpadec/mp3dec.c)
 
-list(APPEND libcsound_SRCS ${stdopcod_SRCS} ${cs_pvs_ops_SRCS} ${oldpvoc_SRCS} ${mp3in_SRCS})
+list(APPEND libcsound_SRCS ${stdopcod_SRCS} ${cs_pvs_ops_SRCS}
+${oldpvoc_SRCS} ${mp3in_SRCS})
+
+if(BUILD_PERFTHREAD_CLASS)
+ list(APPEND libcsound_SRCS "top/csPerfThread.cpp")
+endif()
 
 if(INIT_STATIC_MODULES)
     set(static_modules_SRCS
@@ -1352,25 +1358,12 @@ if(BUILD_STATIC_LIBRARY)
         ARCHIVE DESTINATION "${LIBRARY_INSTALL_DIR}")
 endif()
 
-# VL -- this seems to be a duplicate instruction
-# and it's breaking the build. See lines 1088-95
-#install(TARGETS ${CSOUNDLIB}
-#    LIBRARY DESTINATION "${LIBRARY_INSTALL_DIR}"
-#   ARCHIVE DESTINATION "${LIBRARY_INSTALL_DIR}")
-
-
-## option(BUILD_CATALOG "Build the opcode/library catalog" OFF)
-## check_deps(BUILD_CATALOG)
-## if(BUILD_CATALOG)
-## make_executable(mkdb "mkdb" "dl")
-## set_target_properties(mkdb PROPERTIES LINKER_LANGUAGE C)
-## endif()
-
 
 add_subdirectory(Opcodes)
 add_subdirectory(InOut)
-add_subdirectory(interfaces)
 add_subdirectory(Frontends)
+add_subdirectory(Java)
+add_subdirectory(Python)
 add_subdirectory(Bela)
 add_subdirectory(util)
 add_subdirectory(util1)

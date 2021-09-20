@@ -33,13 +33,9 @@
 %feature("autodoc", "1");
 %{
     #include "csound.h"
-    #include "cfgvar.h"
     #include "csound.hpp"
     #include "cs_glue.hpp"
     #include "csPerfThread.hpp"
-    #include "CsoundFile.hpp"
-    #include "CppSound.hpp"
-    #include "Soundfile.hpp"
 %}
 
 %apply int { size_t };
@@ -78,8 +74,6 @@ typedef unsigned int uint32_t;
 
 %include "cs_glue.hpp"
 %include "csPerfThread.hpp"
-%include "CsoundFile.hpp"
-%include "CppSound.hpp"
-%include "Soundfile.hpp"
+
 
 

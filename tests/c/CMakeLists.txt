@@ -59,12 +59,12 @@ add_test(NAME testCircularBuffer
 #        COMMAND $<TARGET_FILE:testCscore> ${CMAKE_SOURCE_DIR}/tests/c/ -arg2 ${TEST_ARGS})
 
 add_executable(testPerfThread perfthread_test.cpp)
-target_link_libraries(testPerfThread ${CSOUNDLIB} ${CUNIT_LIBRARY} pthread libcsnd6)
+target_link_libraries(testPerfThread ${CSOUNDLIB} ${CUNIT_LIBRARY} pthread)
 add_test(NAME testPerfThread
         COMMAND $<TARGET_FILE:testPerfThread> ${CMAKE_SOURCE_DIR}/tests/c/ -arg2 ${TEST_ARGS})
 
 add_executable(testDebugger csound_debugger_test.c)
-target_link_libraries(testDebugger ${CSOUNDLIB} ${CUNIT_LIBRARY} pthread libcsnd6)
+target_link_libraries(testDebugger ${CSOUNDLIB} ${CUNIT_LIBRARY} pthread)
 add_test(NAME testDebugger
         COMMAND $<TARGET_FILE:testDebugger> ${CMAKE_SOURCE_DIR}/tests/c/ -arg2 ${TEST_ARGS})
 
@@ -76,8 +76,7 @@ add_test(NAME testEngine
 	-arg2 ${TEST_ARGS})
 
 add_executable(testServer server_test.cpp)
-target_link_libraries(testServer ${CSOUNDLIB} ${CUNIT_LIBRARY} pthread
-libcsnd6)
+target_link_libraries(testServer ${CSOUNDLIB} ${CUNIT_LIBRARY} pthread)
 add_test(NAME testServer
         COMMAND $<TARGET_FILE:testServer> ${CMAKE_SOURCE_DIR}/tests/c/ -arg2 ${TEST_ARGS})
 
