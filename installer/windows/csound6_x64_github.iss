@@ -186,9 +186,7 @@ Source: "{#ReleaseDir}\portmidi.dll"; DestDir: "{#APP_BIN}"; Flags: ignoreversio
 Source: "include\*.h"; DestDir: "{#APP_INCLUDE}\csound"; Flags: ignoreversion;  Components: core
 Source: "include\*.hpp"; DestDir: "{#APP_INCLUDE}\csound"; Flags: ignoreversion;  Components: core
 Source: "H\pffft.h"; DestDir: "{#APP_INCLUDE}\csound"; Flags: ignoreversion;  Components: core
-Source: "interfaces\*.h*"; DestDir: "{#APP_INCLUDE}\csound"; Flags: ignoreversion;  Components: core
-Source: "interfaces\csPerfThread.*"; DestDir: "{#APP_INCLUDE}\csound"; Flags: ignoreversion;  Components: core
-Source: "interfaces\*.py"; DestDir: "{#APP_BIN}"; Flags: ignoreversion;  Components: core
+Source: "Python\*.py"; DestDir: "{#APP_BIN}"; Flags: ignoreversion;  Components: core
 Source: "examples\*.*"; DestDir: "{#APP_EXAMPLES}"; Excludes: "*.wav *.html"; Flags: ignoreversion recursesubdirs;  Components: core
 Source: "samples\*.*"; DestDir: "{#APP_SAMPLES}"; Flags: ignoreversion recursesubdirs;  Components: core
 

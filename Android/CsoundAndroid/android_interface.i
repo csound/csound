@@ -35,9 +35,6 @@
     #include "AndroidCsound.hpp"
     #include "cs_glue.hpp"
     #include "csPerfThread.hpp"
-    #include "CsoundFile.hpp"
-    #include "CppSound.hpp"
-    #include "Soundfile.hpp" 
 %}
 
 %apply int { size_t };
@@ -72,7 +69,7 @@ typedef unsigned int uint32_t;
   }
 %}
 
-%include "interfaces/exclusions.i"
+%include "Java/exclusions.i"
 
 %include "csound.h"
 %include "cfgvar.h"
@@ -80,7 +77,4 @@ typedef unsigned int uint32_t;
 %include "AndroidCsound.hpp"
 %include "cs_glue.hpp"
 %include "csPerfThread.hpp"
-%include "CsoundFile.hpp"
-%include "CppSound.hpp"
-%include "Soundfile.hpp"
 

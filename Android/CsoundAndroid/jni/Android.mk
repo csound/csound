@@ -274,12 +274,8 @@ csound_prslex.c \
 csound_orcparse.c \
 rtopensl.c \
 AndroidCsound.cpp \
-$(CSOUND_SRC_ROOT)/interfaces/CppSound.cpp \
-$(CSOUND_SRC_ROOT)/interfaces/CsoundFile.cpp \
-$(CSOUND_SRC_ROOT)/interfaces/Soundfile.cpp \
-$(CSOUND_SRC_ROOT)/interfaces/csPerfThread.cpp \
-$(CSOUND_SRC_ROOT)/interfaces/cs_glue.cpp \
-$(CSOUND_SRC_ROOT)/interfaces/filebuilding.cpp \
+$(CSOUND_SRC_ROOT)/Top/csPerfThread.cpp \
+$(CSOUND_SRC_ROOT)/Java/cs_glue.cpp \
 java_interfaceJAVA_wrap.cpp \
 $(CSOUND_SRC_ROOT)/Opcodes/paulstretch.c
 
