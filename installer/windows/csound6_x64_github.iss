@@ -129,11 +129,7 @@ Source: "{#ReleaseDir}\csanalyze.exe"; DestDir: "{#APP_BIN}"; Flags: ignoreversi
 Source: "{#ReleaseDir}\csb64enc.exe"; DestDir: "{#APP_BIN}"; Flags: ignoreversion skipifsourcedoesntexist; Components: core;
 Source: "{#ReleaseDir}\csbeats.exe"; DestDir: "{#APP_BIN}"; Flags: ignoreversion skipifsourcedoesntexist; Components: core;
 Source: "{#ReleaseDir}\csdebugger.exe"; DestDir: "{#APP_BIN}"; Flags: ignoreversion; Components: core;
-Source: "{#ReleaseDir}\csnd6.dll"; DestDir: "{#APP_BIN}"; Flags: ignoreversion; Components: core;
 Source: "{#ReleaseDir}\csound.exe"; DestDir: "{#APP_BIN}"; Flags: ignoreversion; Components: core;
-Source: "{#ReleaseDir}\csnd6.dll"; DestDir: "{#APP_BIN}"; Flags: ignoreversion; Components: core;
-Source: "{#ReleaseDir}\csnd6.lib"; DestDir: "{#APP_LIB}"; Flags: ignoreversion; Components: core;
-Source: "{#ReleaseDir}\libcsnd6.lib"; DestDir: "{#APP_LIB}"; Flags: ignoreversion; Components: core;
 Source: "{#ReleaseDir}\csound64.dll"; DestDir: "{#APP_BIN}"; Flags: ignoreversion; Components: core;
 Source: "{#ReleaseDir}\csound64.lib"; DestDir: "{#APP_LIB}"; Flags: ignoreversion; Components: core;
 Source: "{#ReleaseDir}\libcsound64.lib"; DestDir: "{#APP_LIB}"; Flags: ignoreversion; Components: core;
