@@ -467,7 +467,8 @@ SET(BUILD_SHARED_LIBS ON)
 if(USE_LIBSNDFILE)
  set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -DUSE_LIBSNDFILE")
  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DUSE_LIBSNDFILE")
- if(MSVC)
+ 
+ if(MSVC OR USE_VCPKG)
     find_package(SndFile CONFIG REQUIRED)
  else()
     find_library(LIBSNDFILE_LIBRARY NAMES sndfile libsndfile-1 libsndfile)
@@ -1361,9 +1362,13 @@ endif()
 
 target_compile_options(${CSOUNDLIB} PRIVATE ${libcsound_CFLAGS})
 if(MSVC)
-    target_link_libraries(${CSOUNDLIB} PRIVATE SndFile::sndfile ws2_32)
+    target_link_libraries(${CSOUNDLIB} PRIVATE ws2_32)
 else()
     target_link_libraries(${CSOUNDLIB} PRIVATE ${libcsound_LIBS})
+endif()
+
+if(USE_VCPKG)
+    target_link_libraries(${CSOUNDLIB} PRIVATE SndFile::sndfile)
 endif()
 
 set_target_properties(${CSOUNDLIB} PROPERTIES
