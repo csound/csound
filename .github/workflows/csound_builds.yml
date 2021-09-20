@@ -23,6 +23,16 @@ jobs:
         with:
           fetch-depth: 1
           submodules: true
+      - name: Setup NuGet Credentials
+        shell: bash
+        run: >
+          mono `./vcpkg/vcpkg fetch nuget | tail -n 1`
+          sources add
+          -source "https://nuget.pkg.github.com/csound/index.json"
+          -storepasswordincleartext
+          -name "GitHub"
+          -username "csound"
+          -password "${{ secrets.GITHUB_TOKEN }}"
       - name: Install Dependencies
         run: |
           sudo apt-get update
@@ -32,7 +42,7 @@ jobs:
       - name: Build Csound
         run: cmake --build build --config Release
       - name: Run tests
-        run: cd build && make test csdtests
+        run: cmake --build build --target test csdtests
 
   macos_build:
     name: MacOS build
