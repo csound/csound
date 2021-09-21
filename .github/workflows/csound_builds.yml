@@ -39,11 +39,11 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install cmake libsndfile1-dev libasound2-dev libjack-dev portaudio19-dev libportmidi-dev libpulse-dev swig liblua5.1-0-dev default-jdk libfltk1.1-dev libfluidsynth-dev liblo-dev fluid ladspa-sdk libpng-dev dssi-dev libstk0-dev libgmm++-dev bison flex libportsmf-dev libeigen3-dev libcunit1-dev
-      - name: Configure build
+      - name: Configure Build
         run: cmake -B build -S . -DUSE_VCPKG=1 -DUSE_MP3=0 -DBUILD_STATIC_LIBRARY=1
       - name: Build Csound
         run: cmake --build build --config Release
-      - name: Run tests
+      - name: Run Tests
         run: cmake --build build --target test csdtests
 
   macos_build:
@@ -60,7 +60,7 @@ jobs:
         run: export PATH="/usr/local/opt/bison/bin:$PATH" && export PATH="/usr/local/opt/flex/bin:$PATH" && bison --version && mkdir build && cd build && cmake .. -DCMAKE_VERBOSE_MAKEFILE=1 -DBUILD_STATIC_LIBRARY=1
       - name: Build Csound
         run: cd build && make
-      - name: Run tests
+      - name: Run Tests
         run: cd build && make test csdtests
 
   #  android_build:
