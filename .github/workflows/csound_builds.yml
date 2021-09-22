@@ -87,7 +87,7 @@ jobs:
           submodules: true
       - name: Install system dependencies
         run: |
-          choco install -y winflexbison
+          choco install -y winflexbison3
       - name: Bootstrap VCPKG
         run: .\vcpkg\bootstrap-vcpkg.bat
       - name: Setup NuGet Credentials
