@@ -42,7 +42,7 @@ jobs:
         with:
           fetch-depth: 1
       - name: Install Dependencies
-        run: brew install cmake bison flex swig asio libsndfile portaudio portmidi libsamplerate liblo jack openjdk gettext 
+        run: brew install cmake bison flex swig asio libsndfile portaudio portmidi libsamplerate liblo jack openjdk gettext && echo 'export PATH="/usr/local/opt/bison/bin:$PATH"' >> /Users/runner/.bash_profile && echo 'export PATH="/usr/local/opt/flex/bin:$PATH"' >> /Users/runner/.bash_profile 
       - name: Configure build
         run: mkdir build && cd build && cmake ..
       - name: Build Csound
