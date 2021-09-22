@@ -1011,14 +1011,15 @@ int32_t lpcpvs(CSOUND *csound, LPCPVS *p){
 
 int32_t pvscoefs_init(CSOUND *csound, PVSCFS *p) {
   unsigned int Nbytes = (p->fin->N+2)*sizeof(MYFLT);
-  unsigned int Mbytes = (p->M+1)*sizeof(MYFLT);
+  unsigned int Mbytes; 
   p->N = p->fin->N;
   p->M = *p->iord;
+  Mbytes = (p->M+1)*sizeof(MYFLT);
   p->setup = csound->LPsetup(csound,0,p->M);
   if(p->buf.auxp == NULL || Nbytes > p->buf.size)
     csound->AuxAlloc(csound, Nbytes, &p->buf);
   if(p->coef.auxp == NULL || Mbytes > p->coef.size)
-    csound->AuxAlloc(csound, Nbytes, &p->coef);
+    csound->AuxAlloc(csound, Mbytes, &p->coef);
   tabinit(csound,p->out,p->M);
   p->mod = *p->imod;
   p->framecount = 0;
