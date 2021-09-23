@@ -689,6 +689,8 @@ OENTRY opcodlst_1[] = {
   { "filebit.i", S(SNDINFO),0,  1,     "i",   "ip",   filebit, NULL, NULL        },
   { "filepeak.i", S(SNDINFOPEAK),0, 1, "i",   "io",   filepeak, NULL, NULL       },
   { "filevalid.i", S(FILEVALID),0, 1,  "i",   "i",    filevalid, NULL, NULL      },
+  { "filevalid.k", S(FILEVALID),0, 2,  "k",   "S",    NULL, filevalid_S, NULL    },
+  { "filevalid.k", S(FILEVALID),0, 2,  "k",   "i",    NULL, filevalid, NULL    },
   /*  { "nlalp", S(NLALP),0,     3,     "a",  "akkoo", nlalp_set, nlalp }, */
   { "ptableiw",  S(TABLEW),TW|_QQ, 1, "", "iiiooo", (SUBR)tablew_init, NULL, NULL},
   { "ptablew.kk", S(TABLEW),TB,  3,  "", "kkiooo",(SUBR)tabl_setup,
