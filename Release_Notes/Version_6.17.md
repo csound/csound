@@ -14,17 +14,28 @@ drctory.  This is in part a prearation for Csound7.
 - scanmap and scansmap are like the xscanmap/xscansmap opcodes but
   work with the mainstream scan opcodes.
 
+- trigexpseg, triglinseg ae aliases for trigExpseg, trigLinseg.
+
+- xscan opcodes are deprecated as tey add nothing to thescan opcodes
+
 ### New gen
 
 ### Orchestra
 
+- Message printing has een revisedso -m0 suppresses (neary) all
+  messages
+  
 ### Score
 
 ### Options
 
 ### Modified Opcodes and Gens
 
+- event opcode does not bail out ifthe instrunet caleddoes nt exist.
+
 ### Utilities
+
+- cvanal now uses the SADIR environment to look for analysis files
 
 ### Frontends
 
@@ -32,11 +43,13 @@ drctory.  This is in part a prearation for Csound7.
 
 ## Bugs Fixed
 
-- fareylen called a non-existent functionleading to a crash.  Removed typo.
+- fareylen called a non-existent function leading to a crash.  Removed typo.
 
 # SYSTEM LEVEL CHANGES
 
 ### System Changes
+
+- winsoud has been removed
 
 ### Translations
 
@@ -50,8 +63,6 @@ drctory.  This is in part a prearation for Csound7.
 commit 15fed58bd13353197c401d90eb47b79e46743498
 Author: John ffitch <jpff@codemist.co.uk>
 Date:   Wed Sep 22 21:27:56 2021 +0100
-
-    Strings
 
 commit 91b3480cafe6209b1ded101762114df98b6ed969
 Author: vlazzarini <victor.lazzarini@mu.ie>
@@ -77,30 +88,11 @@ Date:   Mon Sep 20 09:07:36 2021 +0100
 
     printing version
 
-commit af28d890a7edd4af01e283429ebbf89ac5f7ed8a
-Author: vlazzarini <victor.lazzarini@mu.ie>
-Date:   Tue Sep 14 17:20:08 2021 +0100
-
-    fixing messages
-
 Author: Eduardo Moguillansky <eduardo.moguillansky@gmail.com>
 Date:   Wed Sep 8 14:54:25 2021 +0200
 
     fix --version; fix samplerate mismatch in jack with --get-system-sr; change some warning messages to Warning; make more printing depend on msglevel
 
-commit eb0dcb240d890b277b402d0c72bcf30292c45d2d
-Author: vlazzarini <victor.lazzarini@mu.ie>
-Date:   Wed Sep 8 12:21:45 2021 +0100
-
-    suppressing error messages with -m0 and not -v
-
-commit ad924f478a322bc6ebbceb69316a817ebc118082
-Author: vlazzarini <victor.lazzarini@mu.ie>
-Date:   Tue Sep 7 22:33:24 2021 +0100
-
-    removed fluid opcodes
-
-commit daad3ef9b02914b7bfbaa73d53d3bbed36615879
 Author: Eduardo Moguillansky <eduardo.moguillansky@gmail.com>
 Date:   Thu Sep 2 11:53:36 2021 +0200
 
@@ -113,32 +105,11 @@ Date:   Wed Sep 1 17:07:49 2021 +0100
 
     fixed kflag parameter
 
-commit 8c6bd9ef7b3a8d9dcc3f17391d41f66517b14076
-Author: John ffitch <jpff@codemist.co.uk>
-Date:   Mon Aug 30 21:02:12 2021 +0100
-
-    deprecate xscan opcodes
-
-commit 8dffe026d7d85879fccb8ae55285c34f85734ea9
-Author: Rory Walsh <rorywalsh@ear.ie>
-Date:   Mon Aug 30 13:44:58 2021 +0100
-
-    adding lower case aliases to trigExpseg, trigLinseg
-
 commit 1a7a98b533a6972a4c4cd253793d120d616cc1aa
 Author: vlazzarini <victor.lazzarini@mu.ie>
 Date:   Fri Aug 27 14:27:43 2021 +0100
 
     fixed bug in pvcross
-
-commit fce81057804660605b69eb800310bc74ac31db6c
-Author: vlazzarini <victor.lazzarini@mu.ie>
-Date:   Fri Aug 27 10:06:01 2021 +0100
-
-    event now does not bail out when an instr is not found
-
-
-    removal of winsound
 
 commit a488a56a4825c91fae1936eda269b54950521db1
 Author: vlazzarini <victor.lazzarini@mu.ie>
@@ -173,23 +144,11 @@ Date:   Wed Jul 28 18:06:51 2021 +0100
 
     fix for hrtfmove
 
-commit 0307d537276411a710e36364262797b5e0f6037a
-Author: John ffitch <jpff@codemist.co.uk>
-Date:   Sun Jul 25 18:32:49 2021 +0100
-
-    Quieten midi messages
-
 commit a5d9b9e30e52a2cd399aa4b32ddd31aff45e94c6
 Author: John ffitch <jpff@codemist.co.uk>
 Date:   Fri Jul 23 21:46:33 2021 +0100
 
     fix one problem in ATS cde but may have revrtd an earlier fix
-
-commit ba16b7555a25d58997ba677e91da239256cbcf2c
-Author: Eduardo Moguillansky <eduardo.moguillansky@gmail.com>
-Date:   Wed Jul 14 09:17:32 2021 +0200
-
-    optimize sum
 
 commit 2f2e91ac9f79b5d3fe8be09e5807aa962309caa2
 Author: vlazzarini <victor.lazzarini@mu.ie>
@@ -202,12 +161,6 @@ Author: vlazzarini <victor.lazzarini@mu.ie>
 Date:   Sun Jul 4 19:40:47 2021 +0100
 
     issue #1488
-
-commit b2355f4544456e49868de5e0eecce2c8584ad56d
-Author: John ffitch <jpff@codemist.co.uk>
-Date:   Sun Jul 4 17:40:02 2021 +0100
-
-    cvanal to SADIR
 
 Author: Eduardo Moguillansky <eduardo.moguillansky@gmail.com>
 Date:   Sat Jul 3 20:24:46 2021 +0200
