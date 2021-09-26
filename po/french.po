@@ -387,17 +387,16 @@ msgid "error: opcode %s with output type %s not found, line %d"
 msgstr "erreur : opcode %s sans type de retour %s introuvable, ligne %d"
 
 #: Engine/csound_orc_expressions.c:758 Engine/csound_orc_expressions.c:1169
-#, fuzzy, c-format
+#, c-format
 msgid "unable to find array sub-type for var %s line %d\n"
 msgstr ""
-"impossible de trouver un opérateur de tableau pour les types '%s ligne %d\n"
+"impossible de trouver le sous-type de tableau pour la var %s ligne %d\n"
 
 #: Engine/csound_orc_expressions.c:767 Engine/csound_orc_expressions.c:1178
 #: Engine/csound_orc_semantics.c:301
-#, fuzzy, c-format
+#, c-format
 msgid "invalid array type %s line %d\n"
-msgstr ""
-"impossible de trouver un opérateur de tableau pour les types '%s ligne %d\n"
+msgstr "type de tableau %s non valide ligne %d\n"
 
 #: Engine/csound_orc_expressions.c:1365
 #, c-format
@@ -415,10 +414,10 @@ msgid "Unknown boolean expression type found: %d\n"
 msgstr "Type d'expression booléenne inconnue détecté : %d\n"
 
 #: Engine/csound_orc_semantics.c:291
-#, fuzzy, c-format
+#, c-format
 msgid "unable to find array operator for var %s line %d\n"
 msgstr ""
-"impossible de trouver un opérateur de tableau pour les types '%s ligne %d\n"
+"impossible de trouver un opérateur de tableau pour la var %s ligne %d\n"
 
 #: Engine/csound_orc_semantics.c:313
 #, c-format
@@ -451,13 +450,13 @@ msgstr ""
 "ligne %d\n"
 
 #: Engine/csound_orc_semantics.c:390
-#, fuzzy, c-format
+#, c-format
 msgid ""
 "error: opcode '%s' for expression with arg types %s returns out-args != 1, "
 "line %d\n"
 msgstr ""
-"erreur : opcode '%s' dans l'expression avec types d'arg %s introuvable, "
-"ligne %d\n"
+"erreur : l'opcode '%s' dans l'expression avec types d'arg %s retourne "
+"une valeur != 1, ligne %d\n"
 
 #: Engine/csound_orc_semantics.c:414
 #, c-format
@@ -503,16 +502,14 @@ msgid "Line: %d\n"
 msgstr "Ligne : %d\n"
 
 #: Engine/csound_orc_semantics.c:603
-#, fuzzy, c-format
+#, c-format
 msgid "Variable '%s' used before defined\n"
-msgstr ""
-"Variable '%s' utilisée avant d'être définie\n"
-"Ligne %d"
+msgstr "Variable '%s' utilisée avant d'être définie\n"
 
 #: Engine/csound_orc_semantics.c:622
 #, c-format
 msgid "No member '%s' found for variable 'xxx'\n"
-msgstr ""
+msgstr "Aucun membre '%s' trouvé pour la variable 'xxx'\n"
 
 #: Engine/csound_orc_semantics.c:659
 #, c-format
@@ -542,15 +539,17 @@ msgstr ""
 msgid ""
 "Internal Error: convert_statement_to_opcall received a non T_OPCALL TREE\n"
 msgstr ""
+"Erreur interne : convert_statement_to_opcall a reçu un TREE non T_OPCALL\n"
 
 #: Engine/csound_orc_semantics.c:1710
 msgid "Internal Error: convert_statement_to_opcall received an empty OPCALL\n"
-msgstr ""
+msgstr "Erreur interne : convert_statement_to_opcall a reçu un OPCALL vide\n"
 
 #: Engine/csound_orc_semantics.c:1760 Engine/csound_orc_semantics.c:1769
 #: Engine/csound_orc_semantics.c:1780
 msgid "Internal Error: convert_statement_to_opcall received invalid OPCALL\n"
 msgstr ""
+"Erreur interne : convert_statement_to_opcall a reçu un OPCALL non valide\n"
 
 #: Engine/csound_orc_semantics.c:1850
 #, c-format
@@ -564,24 +563,30 @@ msgstr ""
 "Aucune entrée pour l'opcode '%s' avec les types d'argument correspondants :\n"
 
 #: Engine/csound_orc_semantics.c:1872
-#, fuzzy, c-format
+#, c-format
 msgid ""
 "Found:\n"
 "  %s %s %s\n"
-msgstr "Trouvé : %s %s %s\n"
+msgstr ""
+"Trouvé :\n"
+"  %s %s %s\n"
 
 #: Engine/csound_orc_semantics.c:1875
 msgid ""
 "\n"
 "Candidates:\n"
 msgstr ""
+"\n"
+"Candidats :\n"
 
 #: Engine/csound_orc_semantics.c:1882
-#, fuzzy, c-format
+#, c-format
 msgid ""
 "\n"
 "Line: %d\n"
-msgstr "Ligne : %d\n"
+msgstr ""
+"\n"
+"Ligne : %d\n"
 
 #: Engine/csound_orc_semantics.c:2065
 #, c-format
@@ -871,6 +876,7 @@ msgstr "impossible de créer la variable %s : type NULL"
 #, c-format
 msgid "error: = opcode given variables with two different types: %s : %s\n"
 msgstr ""
+"erreur : l'opcode = a reçu deux variables de types différents : %s : %s\n"
 
 #: Engine/envvar.c:222
 #, c-format
@@ -1630,9 +1636,9 @@ msgstr ""
 "évènements \"i\", \"d\" et \"q\""
 
 #: Engine/linevent.c:491 Engine/linevent.c:574
-#, fuzzy, c-format
+#, c-format
 msgid "WARNING: Cannot Find Instrument %d. No action."
-msgstr "AVERTISSEMENT : impossible de trouver l'instrument %d\n"
+msgstr "AVERTISSEMENT : impossible de trouver l'instrument %d. Aucune action."
 
 #: Engine/linevent.c:509
 #, c-format
@@ -2035,9 +2041,8 @@ msgid "Parsing failed due to no input!\n"
 msgstr "Echec de l'analyse par manque d'entrée !\n"
 
 #: Engine/new_orc_parser.c:299
-#, fuzzy
 msgid "Stopping on parser failure\n"
-msgstr "Arrêt sur échec du parseur"
+msgstr "Arrêt sur échec du parseur\n"
 
 #: Engine/rdscor.c:117
 #, c-format
@@ -3485,9 +3490,8 @@ msgid "rtmidi: Haiku module enabled\n"
 msgstr "rtmidi : module Haiku activé\n"
 
 #: InOut/rtjack.c:216
-#, fuzzy
 msgid "disabling --sched in freewheel mode\n"
-msgstr " *** AVERTISSEMENT : désactivation de --sched dans le mode freewheel\n"
+msgstr "désactivation de --sched dans le mode freewheel\n"
 
 #: InOut/rtjack.c:281 InOut/rtjack.c:294 InOut/rtjack.c:299 InOut/rtjack.c:699
 #: InOut/rtjack.c:750 InOut/rtjack.c:756 InOut/rtjack.c:777 InOut/rtjack.c:783
@@ -3568,6 +3572,8 @@ msgstr "erreur à l'activation du client JACK"
 msgid ""
 "Trying to connect input channel %d but there are not enough ports available\n"
 msgstr ""
+"Tentative de connexion du canal d'entrée %d mais il n'y a pas suffisamment "
+"de ports disponibles\n"
 
 #: InOut/rtjack.c:521 InOut/rtjack.c:567 InOut/rtjack.c:606 InOut/rtjack.c:651
 #, c-format
@@ -3595,15 +3601,17 @@ msgstr ""
 "(il faut une connexion manuelle)"
 
 #: InOut/rtjack.c:552 InOut/rtjack.c:636
-#, fuzzy, c-format
+#, c-format
 msgid "Failed to autoconnect, no ports match pattern %s\n"
-msgstr "L'ouverture d'un port d'écoute a échoué"
+msgstr "Echec de l'autoconnexion, aucun port ne correspond à %s\n"
 
 #: InOut/rtjack.c:562 InOut/rtjack.c:646
 #, c-format
 msgid ""
 "Not enough ports to connect all out channels,only connected %d channels\n"
 msgstr ""
+"Pas assez de ports pour connecter tous les canaux, seulement %d canaux "
+"connectés\n"
 
 #: InOut/rtjack.c:579
 msgid "input ports not connected\n"
@@ -3613,6 +3621,7 @@ msgstr "ports d'entrée non connectés\n"
 #, c-format
 msgid "Trying to connect channel %d but there are no ports available\n"
 msgstr ""
+"Tentative de connexion du canal %d mais aucun port n'est disponible\n"
 
 #: InOut/rtjack.c:611 InOut/rtjack.c:655
 #, c-format
@@ -6469,41 +6478,48 @@ msgid "Filter order out of bounds: (1 <= nb < 51, 0 <= na <= 50)"
 msgstr "Ordre du filtre hors limites : (1 <= nb < 51, 0 <= na <= 50)"
 
 #: Opcodes/bformdec2.cpp:944
-#, fuzzy
 msgid "illegal number of inputs"
-msgstr "nombre illégal de fichiers"
+msgstr "nombre illégal d'entrées"
 
 #: Opcodes/bformdec2.cpp:948
 msgid "Stereo configuration only works with first order"
-msgstr ""
+msgstr "La configuration stéréo ne fonctionne qu'avec le premier ordre"
 
 #: Opcodes/bformdec2.cpp:951
 msgid "Quad configuration only works with first order"
-msgstr ""
+msgstr "La configuration quadro ne fonctionne qu'avec le premier ordre"
 
 #: Opcodes/bformdec2.cpp:955
 msgid "5.0 configuration only works with first and second order"
 msgstr ""
+"La configuration 5.0 ne fonctionne qu'avec le premier et le second ordre"
 
 #: Opcodes/bformdec2.cpp:959
 msgid "Octagon configuration only works with first, second and third order"
 msgstr ""
+"La configuration octogone ne fonctionne qu'avec le premier, le second et "
+"le troisième ordre"
 
 #: Opcodes/bformdec2.cpp:963
 msgid "Cube configuration only works wivvvth first order"
-msgstr ""
+msgstr "La configuration cube ne fonctionne qu'avec le premier ordre"
 
 #: Opcodes/bformdec2.cpp:967
 msgid "Hexagon configuration only works with first and second order"
 msgstr ""
+"La configuration hexagone ne fonctionne qu'avec le premier et le second ordre"
 
 #: Opcodes/bformdec2.cpp:971
 msgid "2D Binaural configuration only works with first, second and third order"
 msgstr ""
+"La configuration 2D binaural ne fonctionne qu'avec le premier, le second et "
+"le troisième ordre"
 
 #: Opcodes/bformdec2.cpp:975
 msgid "3D Binaural configuration only works with first, second and third order"
 msgstr ""
+"La configuration 3D binaural ne fonctionne qu'avec le premier, le second et "
+"le troisième ordre"
 
 #: Opcodes/bilbar.c:116
 msgid "Ends must be clamped(1), pivoting(2) or free(3)"
@@ -11840,27 +11856,27 @@ msgstr ""
 #: Top/csound.c:152
 #, c-format
 msgid "sr = %.1f,"
-msgstr ""
+msgstr "sr = %.1f,"
 
 #: Top/csound.c:153
 #, c-format
 msgid " kr = %.3f,"
-msgstr ""
+msgstr " kr = %.3f,"
 
 #: Top/csound.c:154
-#, fuzzy, c-format
+#, c-format
 msgid " ksmps = %d\n"
-msgstr "Insno = %d\n"
+msgstr "ksmps = %d\n"
 
 #: Top/csound.c:155
-#, fuzzy, c-format
+#, c-format
 msgid "0dBFS level = %.1f,"
-msgstr "Niveau 0dBFS = %.1f\n"
+msgstr "Niveau 0dBFS = %.1f,"
 
 #: Top/csound.c:156
 #, c-format
 msgid " A4 tuning = %.1f\n"
-msgstr ""
+msgstr " A4 = %.1f\n"
 
 #: Top/csound.c:192
 msgid "Error allocating opcode list"
