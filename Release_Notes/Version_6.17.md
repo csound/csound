@@ -76,7 +76,7 @@ the last release using the current parser (v.2).
 
 - fixes in the jack backend relating --get-system-sr
 
-- pvcross bug with lpslot access fixed.
+- pvcross frequency warp mode fixed.
 
 - lpcfilter/lpcanal bug where processing could not be restarted after
   a freeze fixed.
