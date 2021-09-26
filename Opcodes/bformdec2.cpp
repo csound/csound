@@ -960,7 +960,7 @@ static int32_t ihoambdec(CSOUND *csound, HOAMBDEC* p)
     }
 
     if ((isetup == 5) & (p->order >= 2)) {
-        return csound->InitError(csound, "%s", Str("Cube configuration only works wivvvth first order"));
+        return csound->InitError(csound, "%s", Str("Cube configuration only works with first order"));
     }
 
     if ((isetup == 6) & (p->order >= 3)) {
