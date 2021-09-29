@@ -407,10 +407,10 @@ msgid "Unknown boolean expression type found: %d\n"
 msgstr "Type d'expression booléenne inconnue détecté : %d\n"
 
 #: Engine/csound_orc_semantics.c:277
-#, fuzzy, c-format
+#, c-format
 msgid "unable to find array operator for types %s line %d\n"
 msgstr ""
-"impossible de trouver un opérateur de tableau pour la var %s ligne %d\n"
+"impossible de trouver un opérateur de tableau pour les types %s ligne %d\n"
 
 #: Engine/csound_orc_semantics.c:297
 #, c-format
@@ -521,11 +521,9 @@ msgstr ""
 "Aucune entrée pour l'opcode '%s' avec les types d'argument correspondants :\n"
 
 #: Engine/csound_orc_semantics.c:1496
-#, fuzzy, c-format
+#, c-format
 msgid "Found: %s %s %s\n"
-msgstr ""
-"Trouvé :\n"
-"  %s %s %s\n"
+msgstr "Trouvé : %s %s %s\n"
 
 #: Engine/csound_orc_semantics.c:1499
 #, c-format
@@ -558,27 +556,27 @@ msgid "invalid xout statement for UDO: defined '%s', found '%s'\n"
 msgstr "instruction xout non valide pour un UDO : '%s' défini, '%s' trouvé\n"
 
 #: Engine/csound_orc_semantics.c:1966
-#, fuzzy, c-format
+#, c-format
 msgid ""
 "\n"
 "error: %s  (token \"%s\")\n"
 msgstr ""
 "\n"
-"erreur : %s (symbole \"%s\")"
+"erreur : %s (symbole \"%s\")\n"
 
 #: Engine/csound_orc_semantics.c:1970
-#, fuzzy, c-format
+#, c-format
 msgid ""
 " line %d:\n"
 " >>> "
 msgstr ""
 " ligne %d :\n"
-">>>"
+" >>> "
 
 #: Engine/csound_orc_semantics.c:1991
-#, fuzzy, c-format
+#, c-format
 msgid " from file %s (%d),"
-msgstr " depuis le fichier %s (%d)\n"
+msgstr " depuis le fichier %s (%d),"
 
 #: Engine/csound_orc_semantics.c:2575
 #, c-format
@@ -6443,7 +6441,6 @@ msgstr ""
 "troisième ordre"
 
 #: Opcodes/bformdec2.cpp:963
-#, fuzzy
 msgid "Cube configuration only works with first order"
 msgstr "La configuration cube ne fonctionne qu'avec le premier ordre"
 
@@ -11491,14 +11488,12 @@ msgid "--help                  long help"
 msgstr "--help                  aide détaillée"
 
 #: Top/argdecode.c:329
-#, fuzzy
 msgid ""
 "\n"
 "Short options format:\n"
 msgstr ""
 "\n"
-"Format court :\n"
-"\n"
+"Format d'options court :\n"
 
 #: Top/argdecode.c:335
 #, c-format
