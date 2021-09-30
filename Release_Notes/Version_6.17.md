@@ -66,9 +66,9 @@ the last release using the current parser (v.2).
 
 - pvscfs frame counting issue fixed.
 
-- --sample-accurate fixed in a-rateform of tabsum.
+- --sample-accurate fixed in a-rate form of tabsum.
 
-- Problem in atssinnoi fixed; did read ouside allocated memory.
+- Problem in atssinnoi fixed; did read outside allocated memory.
 
 - hrtfmove fixed; it could use the wrong value for sr.
 
@@ -83,13 +83,13 @@ the last release using the current parser (v.2).
 
 - the emugens collection of opcode, a large group incorporation mainly
   array operations awere not made availaable due to a small editing
-  error 
+  error.
 
 # SYSTEM LEVEL CHANGES
 
 ### System Changes
 
-- winsoud has been removed
+- winsound has been removed
 
 ### Translations
 
