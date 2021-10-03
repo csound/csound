@@ -74,7 +74,7 @@ the last release using the current parser (v.2).
 
 - Named instruments could use wrong structure in redefinition.
 
-- fixes in the jack backend relating --get-system-sr
+- fixes in the jack backend relating to --get-system-sr.
 
 - pvcross frequency warp mode fixed.
 
@@ -82,8 +82,11 @@ the last release using the current parser (v.2).
   a freeze fixed.
 
 - the emugens collection of opcode, a large group incorporation mainly
-  array operations awere not made availaable due to a small editing
+  array operations were not made available due to a small editing
   error.
+
+- If using a float build (rather than a double) array access could be
+  wrong.
 
 # SYSTEM LEVEL CHANGES
 
@@ -103,9 +106,7 @@ user-defined stack size.
 ==END==
     
 ========================================================================
-commit 15fed58bd13353197c401d90eb47b79e46743498
-Author: John ffitch <jpff@codemist.co.uk>
-Date:   Wed Sep 22 21:27:56 2021 +0100
+
 
 
 
