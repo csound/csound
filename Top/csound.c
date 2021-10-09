@@ -33,10 +33,12 @@
 #if defined(HAVE_UNISTD_H) || defined (__unix) || defined(__unix__)
 #include <unistd.h>
 #endif
+
 #include "csoundCore.h"
 #include "csmodule.h"
 #include "corfile.h"
 #include "csGblMtx.h"
+#include <stdio.h>
 #include <stdarg.h>
 #include <signal.h>
 #include <time.h>
@@ -3249,6 +3251,7 @@ PUBLIC int csoundAppendOpcode(CSOUND *csound,
     err = opcode_list_new_oentry(csound, &tmpEntry);
     if (UNLIKELY(err))
       csoundErrorMsg(csound, Str("Failed to allocate new opcode entry."));
+ 
     return err;
 }
 

@@ -179,7 +179,7 @@ typedef uint_least16_t uint16;
   #define MODF modff
 #endif
 
-#include <stdio.h>
+// #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
 #include <string.h>
