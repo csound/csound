@@ -616,7 +616,6 @@ char* get_opcode_short_name(CSOUND* csound, char* opname) {
 
 /* find opcode with the specified name in opcode list */
 /* returns index to opcodlst[], or zero if the opcode cannot be found */
-void list_opcodes(CSOUND *csound, int level);
 OENTRY* find_opcode(CSOUND *csound, char *opname)
 {
     char *shortName;
@@ -632,9 +631,6 @@ OENTRY* find_opcode(CSOUND *csound, char *opname)
 
     retVal = (head != NULL) ? head->value : NULL;
     if (shortName != opname) csound->Free(csound, shortName);
-
-
-
     return retVal;
 }
 
@@ -670,9 +666,6 @@ OENTRIES* find_opcode2(CSOUND* csound, char* opname)
     if (shortName != opname) {
       csound->Free(csound, shortName);
     }
-
-        if(strcmp("testgain", opname) == 0)
-       list_opcodes(csound, 0);
 
     return retVal;
 

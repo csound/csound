@@ -3195,6 +3195,7 @@ PUBLIC void csoundSetExitGraphCallback(CSOUND *csound,
 /*
  * OPCODES
  */
+void add_to_symbtab(CSOUND *csound, OENTRY *ep);
 
 static CS_NOINLINE int opcode_list_new_oentry(CSOUND *csound,
                                               const OENTRY *ep)
@@ -3249,6 +3250,7 @@ PUBLIC int csoundAppendOpcode(CSOUND *csound,
     tmpEntry.kopadr     = kopadr;
     tmpEntry.aopadr     = aopadr;
     err = opcode_list_new_oentry(csound, &tmpEntry);
+    add_to_symbtab(csound, &tmpEntry);
     if (UNLIKELY(err))
       csoundErrorMsg(csound, Str("Failed to allocate new opcode entry."));
  

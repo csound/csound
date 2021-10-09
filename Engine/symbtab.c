@@ -111,6 +111,20 @@ void init_symbtab(CSOUND *csound)
     }
 }
 
+void add_to_symbtab(CSOUND *csound, OENTRY *ep) {
+  if (csound->symbtab != NULL) {
+   char *shortName; 
+   if (ep->dsblksiz < 0xfffb) {
+          shortName = get_opcode_short_name(csound, ep->opname);
+          add_token(csound, shortName, get_opcode_type(ep));
+
+          if (shortName != ep->opname) {
+            csound->Free(csound, shortName);
+          }
+   }
+  }
+}
+
 ORCTOKEN *add_token(CSOUND *csound, char *s, int type)
 {
     //printf("Hash value for %s: %i\n", s, h);
