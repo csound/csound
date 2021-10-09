@@ -117,10 +117,10 @@ void add_to_symbtab(CSOUND *csound, OENTRY *ep) {
    if (ep->dsblksiz < 0xfffb) {
           shortName = get_opcode_short_name(csound, ep->opname);
           add_token(csound, shortName, get_opcode_type(ep));
-
           if (shortName != ep->opname) {
             csound->Free(csound, shortName);
           }
+          csound->DebugMsg(csound, "opcode %s added to symbtab\n", ep->opname);   
    }
   }
 }
