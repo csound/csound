@@ -230,8 +230,8 @@
 ./Opcodes/filter.h
 ./Opcodes/flanger.c
 ./Opcodes/flanger.h
-./Opcodes/fluidOpcodes/fluidOpcodes.cpp
-./Opcodes/fluidOpcodes/fluidOpcodes.h
+./plugins/fluidOpcodes/fluidOpcodes.cpp
+./plugins/fluidOpcodes/fluidOpcodes.h
 ./Opcodes/flute.h
 ./Opcodes/fm4op.c
 ./Opcodes/fm4op.h
@@ -266,9 +266,8 @@
 ./Opcodes/hrtfopcodes.c
 ./Opcodes/hrtfreverb.c
 ./Opcodes/ifd.c
-./Opcodes/jackTransport.c
-./Opcodes/jacko.cpp
-./Opcodes/lame.c
+./plugins/jackops/jackTransport.c
+./plugins/jackops/jacko.cpp
 ./Opcodes/linuxjoystick.c
 ./Opcodes/linuxjoystick.h
 ./Opcodes/liveconv.c
@@ -381,7 +380,7 @@
 ./Opcodes/stdopcod.c
 ./Opcodes/stdopcod.h
 ./Opcodes/sterrain.c
-./Opcodes/stk/stkOpcodes.cpp
+./plugins/stk/stkOpcodes.cpp
 ./Opcodes/syncgrain.c
 ./Opcodes/syncgrain.h
 ./Opcodes/system_call.c
@@ -542,6 +541,7 @@
 ./plugins/faustcsound/faustgen.cpp
 ./plugins/image/imageOpcodes.h
 ./plugins/image/imageOpcodes.c
+./plugins/mp3/mp3out.c
 ./plugins/py/src/pycall.auto.c
 ./plugins/py/src/pycall.auto.h
 ./plugins/py/src/pythonhelper.h
