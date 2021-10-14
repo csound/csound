@@ -117,7 +117,7 @@ Source: "{#VCREDIST_CRT_DIR}\*"; DestDir: "{#APP_BIN}"; Flags: recursesubdirs; C
 Source: "{#VCREDIST_CXXAMP_DIR}\*"; DestDir: "{#APP_BIN}"; Flags: recursesubdirs; Components: core;
 Source: "{#VCREDIST_OPENMP_DIR}\*"; DestDir: "{#APP_BIN}"; Flags: recursesubdirs; Components: core;
 
-Source: "interfaces\ctcsound.py"; DestDir: "{#APP_BIN}"; Flags: ignoreversion; Components: core;
+Source: "Python\ctcsound.py"; DestDir: "{#APP_BIN}"; Flags: ignoreversion; Components: core;
 Source: "{#BuildRoot}\csnd6.jar"; DestDir: "{#APP_BIN}"; Flags: ignoreversion; Components: core;
 
 Source: "{#ReleaseDir}\_jcsound6.dll"; DestDir: "{#APP_BIN}"; Flags: ignoreversion; Components: core;
