@@ -1,4 +1,4 @@
-; C S O U N D   6   I N N O   S E T U P   S C R I P T
+; C S O U N D   7   I N N O   S E T U P   S C R I P T
 ;
 ; Copyright (C) 2013 by Michael Gogins.
 ; This software is licensed under the terms of the
@@ -14,14 +14,14 @@
 ;     doc (copy tree)
 ;     examples (copy tree but exclude .wav files)
 ;     include
-;         csound (copy include and interfaces dirs *.h and *.hpp)
+;         csound (copy include dirs *.h and *.hpp)
 ;     plugins64 (all Csound plugin opcodes)
 ;     samples (copy tree)
 ;
 
 [setup]
 #define AppName "csound"
-#define AppVersion "6"
+#define AppVersion "7"
 #define AppMinVersion GetEnv("CSOUND_VERSION")
 #define BuildNumber GetEnv("GITHUB_RUN_NUMBER")
 #define AppPublisher "Csound"
