@@ -126,9 +126,10 @@ static int32_t load_atsfile(CSOUND *csound, void *p, MEMFIL **mfp, char *fname,
     /* load memfile */
     if (UNLIKELY((*mfp = csound->ldmemfile2withCB(csound, fname,
                                                   CSFTYPE_ATS, NULL)) == NULL)) {
-      return  csound->InitError(csound,
+      (void)csound->InitError(csound,
                                 Str("%s: Ats file %s not read (does it exist?)"),
                                 opname, fname);
+      return NOTOK;
     }
     atsh = (ATSSTRUCT*) (*mfp)->beginp;
 
@@ -137,9 +138,10 @@ static int32_t load_atsfile(CSOUND *csound, void *p, MEMFIL **mfp, char *fname,
       return 0;
     /* check to see if it is byteswapped */
     if (UNLIKELY((int32_t) bswap(&(atsh->magic)) != 123)) {
-      return csound->InitError(csound, Str("%s: either %s is not an ATS file "
+      (void)csound->InitError(csound, Str("%s: either %s is not an ATS file "
                                            "or the byte endianness is wrong"),
                                opname, fname);
+      return NOTOK;
     }
     pp = (STDOPCOD_GLOBALS*) csound->stdOp_Env;
     if (pp->swapped_warning)
@@ -1057,6 +1059,7 @@ static void FetchADDNZbands(int32_t ptls, int32_t firstband, double *datastart,
     /* we should not try to interpolate */
     if (UNLIKELY(frame == maxFr)) {
       for (i = 0; i < ptls; i++) {
+        /* printf("Line %d: i = %d\n", __LINE__, i); */
         buf[i] = (swapped == 1 ? bswap(&frm_0[firstband + i])
                                     : frm_0[firstband + i]); /* output value */
       }
@@ -1557,6 +1560,7 @@ static int32_t atssinnoiset(CSOUND *csound, ATSSINNOI *p)
     if (UNLIKELY(p->swapped < 0)){
       return NOTOK;
     }
+
     atsh = (ATSSTRUCT*) p->atsmemfile->beginp;
     p->atshead = atsh;
 
@@ -1741,6 +1745,7 @@ static int32_t atssinnoiset_S(CSOUND *csound, ATSSINNOI *p)
     if (UNLIKELY(p->swapped < 0)){
       return NOTOK;
     }
+
     atsh = (ATSSTRUCT*) p->atsmemfile->beginp;
     p->atshead = atsh;
 
@@ -1751,6 +1756,7 @@ static int32_t atssinnoiset_S(CSOUND *csound, ATSSINNOI *p)
                                                         + sizeof(RANDIATS));
     /* allocate space if we need it */
     /* need room for a buffer and an array of oscillator phase increments */
+     /* printf("line %d: msize = %d\n", __LINE__, memsize); */
     if (p->auxch.auxp != NULL || memsize > (int32_t)p->auxch.size)
       csound->AuxAlloc(csound, (size_t) memsize, &p->auxch);
 
@@ -1759,7 +1765,8 @@ static int32_t atssinnoiset_S(CSOUND *csound, ATSSINNOI *p)
     p->randinoise = (RANDIATS *) (p->oscbuf + (int32_t) (*p->iptls));
     p->oscphase = (double *) (p->randinoise + (int32_t) (*p->iptls));
     p->nzbuf = (double *) (p->oscphase + (int32_t) (*p->iptls));
-
+    /* printf("Line %d: oscbuf, randnoise, oscphase, nzbuf = %p, %p,%p, %p\n", */
+    /*        __LINE__,p->oscbuf,p->randinoise, p->oscphase, p->nzbuf); */
     if (p->swapped == 1) {
       p->maxFr = (int32_t) bswap(&atsh->nfrms) - 1;
       p->timefrmInc = bswap(&atsh->nfrms) / bswap(&atsh->dur);
@@ -1935,7 +1942,7 @@ static int32_t atssinnoi(CSOUND *csound, ATSSINNOI *p)
 
     fetchSINNOIpartials(p, frIndx);
 
-    FetchADDNZbands(25/* *p->iptls*/, p->firstband, p->datastart, p->frmInc, p->maxFr,
+    FetchADDNZbands(/*25*/ *p->iptls, p->firstband, p->datastart, p->frmInc, p->maxFr,
                     p->swapped, p->nzbuf, frIndx);
 
 
