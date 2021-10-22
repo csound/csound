@@ -26,8 +26,9 @@
 
 typedef struct {
         OPDS    h;
-        MYFLT   *sr, *xcps, *iphs;
+        MYFLT   *sr, *xcps, *iphs, *kgate;
         double  curphs;
+        double  gate;
         int32_t flag;
 } METRO;
 
@@ -85,6 +86,27 @@ static int32_t metro(CSOUND *csound, METRO *p)
       p->flag = 0;
     }
     else
+      *p->sr = FL(0.0);
+    p->curphs = phs;
+    return OK;
+}
+
+/* John ffitch Oct 2021; for beginers */
+static int32_t metrobpm(CSOUND *csound, METRO *p)
+{
+    double      phs= p->curphs;
+    IGN(csound);
+    p->gate = *p->kgate;
+    if (phs == 0.0 && p->flag) {
+      *p->sr = FL(1.0);
+      p->flag = 0;
+    }
+    else if ((phs += *p->xcps * CS_ONEDKR/60) >= 1.0) {
+      *p->sr = FL(1.0);
+      phs -= 1.0;
+      p->flag = 0;
+    }
+    else if (phs>= p->gate)
       *p->sr = FL(0.0);
     p->curphs = phs;
     return OK;
@@ -324,8 +346,9 @@ static int32_t timeseq(CSOUND *csound, TIMEDSEQ *p)
 #define S(x)    sizeof(x)
 
 static OENTRY localops[] = {
-  { "metro",  S(METRO),  0,  3,      "k", "ko",  (SUBR)metro_set, (SUBR)metro     },
+  { "metro",  S(METRO),  0,  3,      "k", "ko0",  (SUBR)metro_set, (SUBR)metro    },
   { "metro2", S(METRO2), 0,  3,      "k", "kkpo", (SUBR)metro2_set, (SUBR)metro2  },
+  { "metrobpm",S(METRO), 0,  3,      "k", "koO",  (SUBR)metro_set, (SUBR)metrobpm },
   { "splitrig", S(SPLIT_TRIG), 0, 3, "",  "kkiiz",
                                         (SUBR)split_trig_set, (SUBR)split_trig },
   { "timedseq",S(TIMEDSEQ), TR, 3, "k", "kiz", (SUBR)timeseq_set, (SUBR)timeseq }

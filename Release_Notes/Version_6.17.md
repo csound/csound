@@ -101,13 +101,20 @@ the last release using the current parser (v.2).
 CreateThread2 is a new API function that allows threads to be given a
 user-defined stack size.
 
+### External Plugin Code
+
+For a variety of reasons, including licences, plugin opcodes that
+allows csound to be a host for VST plugins is available from
+https://github.com/gogins/csound-vst3-opcodes.git where installation
+instructions can be found.  It has been shown to work on Linux, MacOS
+and Windows.
+
+
 ### Platform Specific
 
 ==END==
     
 ========================================================================
-
-
 
 
 
