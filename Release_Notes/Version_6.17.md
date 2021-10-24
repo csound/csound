@@ -22,6 +22,9 @@ the last release using the current parser (v.2).
 
 - bformdec2 provides more ambisonic decoding of bformat audio.
 
+- metrobpm is like metro but te tiing is inbeats per minute and the
+  signal can be help on for a proportion of the cycle.
+
 ### New gen
 
 ### Orchestra
