@@ -880,6 +880,7 @@ public:
   /** returns 1-D numeric array data
    */
   myfltvec &myfltvec_data(int n) { return (myfltvec &)*ptrs[n]; }
+
 };
 
 /** InPlug template base class:
