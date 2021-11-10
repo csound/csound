@@ -181,7 +181,7 @@ int32_t turnoff(CSOUND *csound, LINK *p)/* terminate the current instrument  */
 /* turnoff2 opcode */
 int32_t turnoff2(CSOUND *csound, TURNOFF2 *p, int32_t isStringArg)
 {
-  MYFLT p1;
+  MYFLT p1;                     /* Shoud e a float */
   INSDS *ip, *ip2, *nip;
   int32_t   mode, insno, allow_release;
 
