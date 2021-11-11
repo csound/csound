@@ -928,6 +928,12 @@ public:
   {
     return csoundGetInputName(csound);
   }
+  virtual void SetAudioChannel(const char *name, MYFLT *samples) {
+    csoundSetAudioChannel(csound, name, samples);
+  }
+  virtual MYFLT SystemSr(MYFLT value) {
+    return csoundSystemSr(csound, value);
+  }
 };
 
 class CsoundThreadLock {
