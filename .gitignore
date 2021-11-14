@@ -220,7 +220,7 @@ CMakeLists.txt.user
 \#*\#
 
 
-# cmake / doxygen 
+# cmake / doxygen
 CMakeDoxy*
 CPackConfig.cmake
 CPackSourceConfig.cmake
@@ -228,3 +228,7 @@ Doxyfile
 
 # vscode
 .vscode/
+
+html
+manual.zip
+dist

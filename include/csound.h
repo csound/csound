@@ -309,11 +309,13 @@
 #  include "sysdep.h"
 #  include "text.h"
 #  include <stdarg.h>
+#  include <stdio.h>    
       %}
 #else
 #  include "sysdep.h"
 #  include "text.h"
 #  include <stdarg.h>
+#  include <stdio.h>
 #endif
 
 #ifdef __cplusplus
@@ -463,7 +465,7 @@ extern "C" {
   /*
    * Forward declarations.
    */
-
+   
   typedef struct CSOUND_  CSOUND;
   typedef struct windat_  WINDAT;
   typedef struct xyindat_ XYINDAT;
@@ -2139,6 +2141,17 @@ extern "C" {
    */
   PUBLIC void *csoundCreateThread(uintptr_t (*threadRoutine)(void *),
                                   void *userdata);
+
+  /**
+   * Creates and starts a new thread of execution
+   * with a user-defined stack size.
+   * Returns an opaque pointer that represents the thread on success,
+   * or NULL for failure.
+   * The userdata pointer is passed to the thread routine.
+   */
+  PUBLIC void *csoundCreateThread2(uintptr_t (*threadRoutine)(void *),
+                                   unsigned int stack,
+                                   void *userdata);
 
   /**
    * Returns the ID of the currently executing thread,

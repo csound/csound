@@ -65,6 +65,9 @@ int csoundAddUtility(CSOUND *csound, const char *name,
     return 0;
 }
 
+void print_csound_version(CSOUND *csound);
+void print_sndfile_version(CSOUND* csound);
+
 PUBLIC int csoundRunUtility(CSOUND *csound, const char *name,
                             int argc, char **argv)
 {
@@ -75,6 +78,12 @@ PUBLIC int csoundRunUtility(CSOUND *csound, const char *name,
 
     if (UNLIKELY(csound == NULL))
       return -1;
+
+   /* VL - 08-07-21 messages moved here so we can switch them off */
+    if(csound->oparms->msglevel || csound->oparms->odebug) {
+      print_csound_version(csound);
+      print_sndfile_version(csound);
+    }
 
     saved_exitjmp = (void*) csound->Malloc(csound, sizeof(jmp_buf));
     if (UNLIKELY(saved_exitjmp == NULL))

@@ -483,6 +483,7 @@ INSTRTXT *create_instrument0(CSOUND *csound, TREE *root,
   int krdef = 0; //, ksmpsdef = 0, srdef = 0;
   double A4 = 0.0;
   CS_TYPE *rType = (CS_TYPE *)&CS_VAR_TYPE_R;
+  OPARMS *O = csound->oparms;
 
   addGlobalVariable(csound, engineState, rType, "sr", NULL);
   addGlobalVariable(csound, engineState, rType, "kr", NULL);
@@ -614,9 +615,11 @@ INSTRTXT *create_instrument0(CSOUND *csound, TREE *root,
                  "sr = %.7g, kr = %.7g, ksmps = %.7g", sr, kr,
                  ksmps);
     }
-    else if (UNLIKELY(FLOAT_COMPARE(sr, (double)kr * ksmps)))
+    else if (UNLIKELY(FLOAT_COMPARE(sr, (double)kr * ksmps)
+                      && !(O->ksmps_override || O->sr_override ||
+                            O->kr_override)))
       synterr(p, Str("%s inconsistent sr, kr, ksmps\n"), err_msg);
-    else if (UNLIKELY(ksmps > sr))
+    else if (UNLIKELY((ksmps > sr) && !(O->ksmps_override || O->sr_override)))
       synterr(p, Str("%s inconsistent sr, kr, ksmps\n"), err_msg);
   }
 
@@ -639,13 +642,12 @@ INSTRTXT *create_instrument0(CSOUND *csound, TREE *root,
     csound->A4 = A4;
     csound_aops_init_tables(csound);
   }
-  if (UNLIKELY(csound->e0dbfs <= FL(0.0))) {
+  /* if (UNLIKELY(csound->e0dbfs <= FL(0.0))) {
     csound->Warning(csound, Str("bad value for 0dbfs: must be positive. "
                                 "Setting default value."));
     csound->e0dbfs = DFLT_DBFS;
-  }
+    }*/
 
-  OPARMS *O = csound->oparms;
   if (O->nchnls_override > 0)
     csound->nchnls = csound->inchnls = O->nchnls_override;
   if (O->nchnls_i_override > 0)
@@ -663,9 +665,13 @@ INSTRTXT *create_instrument0(CSOUND *csound, TREE *root,
     MYFLT tmp_sr = csound->esr;
     csound->esr = -1.0;
     O->sr_override = csoundInitialiseIO(csound);
-    if(O->sr_override > 0)
+    
+    if(O->sr_override > 0) {
+     if(O->msglevel || O->odebug)  
      csound->Message(csound, "Using system sampling rate %.1f\n", O->sr_override);
+    }
     else {
+      if(O->msglevel || O->odebug)  
       csound->Message(csound, "System sr not available\n");
       O->sr_override = FL(0.0);
     }
@@ -697,7 +703,7 @@ INSTRTXT *create_instrument0(CSOUND *csound, TREE *root,
       csound->ksmps = (ensmps = O->ksmps_override);
       if (O->sr_override) {
         csound->ekr = O->sr_override / csound->ksmps;
-        csound->esr = O->sr_override;
+        csound->esr = csound->ekr * ensmps; // force SR
       } else if (O->kr_override) {
         csound->esr = O->kr_override * csound->ksmps;
         csound->ekr = O->kr_override;
@@ -728,6 +734,7 @@ INSTRTXT *create_instrument0(CSOUND *csound, TREE *root,
       if (UNLIKELY(FLOAT_COMPARE(csound->esr, (double)csound->ekr * ensmps)))
         csoundDie(csound, Str("%s inconsistent sr, kr, ksmps"), s);
     }
+    if(O->odebug)  
     csound->Message(csound, Str("sample rate overrides: "
                                 "esr = %7.4f, ekr = %7.4f, ksmps = %d\n"),
                     csound->esr, csound->ekr, csound->ksmps);
@@ -1836,14 +1843,15 @@ int csoundCompileTreeInternal(CSOUND *csound, TREE *root, int async) {
     return CSOUND_ERROR;
   }
 
-  /* now add the instruments with names, assigning them fake instr numbers */
-  named_instr_assign_numbers(csound, engineState);
+
   if (engineState != &csound->engineState) {
     OPDS *ids = csound->ids;
     /* any compilation other than the first one */
     /* merge ENGINE_STATE */
     /* lock to ensure thread-safety */
     if (!async) {
+      /* now add the instruments with names, assigning them fake instr numbers */
+      named_instr_assign_numbers(csound, engineState);
       if (!csound->oparms->realtime)
         csoundLockMutex(csound->API_lock);
       merge_state(csound, engineState, typeTable, ids);
@@ -1857,6 +1865,8 @@ int csoundCompileTreeInternal(CSOUND *csound, TREE *root, int async) {
         csoundSpinUnLock(&csound->alloc_spinlock);
     }
   } else {
+    /* now add the instruments with names, assigning them fake instr numbers */
+    named_instr_assign_numbers(csound, engineState);
     /* first compilation */
     insert_opcodes(csound, csound->opcodeInfo, engineState);
     ip = engineState->instxtanchor.nxtinstxt;
@@ -1940,8 +1950,10 @@ int csoundCompileOrcInternal(CSOUND *csound, const char *str, int async) {
   root = csoundParseOrc(csound, str);
   if (LIKELY(root != NULL)) {
     retVal = csoundCompileTreeInternal(csound, root, async);
+#ifdef PARCS    
     // Sanitise semantic sets here
     sanitize(csound);
+#endif    
     csoundDeleteTree(csound, root);
   } else {
     // csoundDeleteTree(csound, root);

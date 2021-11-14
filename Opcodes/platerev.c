@@ -22,7 +22,7 @@
     02110-1301 USA
 */
 
-#include "csdl.h"
+#include "csoundCore.h"
 #include <math.h>
 
 /* #undef CS_KSMPS */
@@ -245,7 +245,7 @@ static int32_t platerev(CSOUND *csound, PLATE *p)
     return OK;
 }
 
-static OENTRY localops[] =
+static OENTRY platerev_localops[] =
   {
    { "platerev", sizeof(PLATE), 0, 3, "mmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmm",
      "iikiiiiy",
@@ -253,4 +253,4 @@ static OENTRY localops[] =
   },
 };
 
-LINKAGE
+LINKAGE_BUILTIN(platerev_localops)

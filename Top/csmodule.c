@@ -1030,6 +1030,17 @@ void print_opcodedir_warning(CSOUND *p)
 #endif
 }
 
+/**
+ Builtin linkage for C opcodes - Instructions:
+ - use csoundCore.h instead of csdl.h.
+ - name the OENTRY array <name>, where <name> is any arbitrary name.
+ - add the macro LINKAGE_BUILTIN(<name>) to the end of the file.
+ - append the init function prototype below
+   extern long <name>_init(CSOUND *, void *);
+ - append the init function name <name>_init to the
+   staticmodules[] array initialisation.
+ - insert source code to libcsound_SRCS in../CMakeLists.txt 
+*/
 typedef long (*INITFN)(CSOUND *, void *);
 
 extern long babo_localops_init(CSOUND *, void *);
@@ -1056,7 +1067,6 @@ extern long hrtfreverb_localops_init(CSOUND *, void *);
 extern long hrtfearly_localops_init(CSOUND *, void *);
 extern long minmax_localops_init(CSOUND *, void *);
 extern long gendy_localops_init(CSOUND *, void *);
-//extern long stackops_localops_init(CSOUND *, void *);
 extern long vbap_localops_init(CSOUND *, void *);
 extern long vaops_localops_init(CSOUND *, void*);
 extern long ugakbari_localops_init(CSOUND *, void *);
@@ -1073,17 +1083,32 @@ extern long pvlock_localops_init(CSOUND *, void *);
 extern long fareyseq_localops_init(CSOUND *, void *);
 extern long cpumeter_localops_init(CSOUND *, void *);
 extern long scnoise_localops_init(CSOUND *, void *);
-#ifndef NACL
 extern long socksend_localops_init(CSOUND *, void *);
 extern long mp3in_localops_init(CSOUND *, void *);
 extern long sockrecv_localops_init(CSOUND *, void *);
-#endif
 extern long afilts_localops_init(CSOUND *, void *);
 extern long pinker_localops_init(CSOUND *, void *);
 extern long paulstretch_localops_init(CSOUND *, void *);
 extern long wpfilters_localops_init(CSOUND *, void *);
 extern long zak_localops_init(CSOUND *, void *);
 extern long lufs_localops_init(CSOUND *, void *);
+extern long sterrain_localops_init(CSOUND *, void *);
+extern long date_localops_init(CSOUND *, void *);
+extern long system_localops_init(CSOUND *, void *);
+extern long liveconv_localops_init(CSOUND *, void *);
+extern long gamma_localops_init(CSOUND *, void *);
+extern long quadbezier_localops_init(CSOUND *, void *);
+extern long framebuffer_localops_init(CSOUND *, void *);
+extern long cell_localops_init(CSOUND *, void *);
+extern long exciter_localops_init(CSOUND *, void *);
+extern long buchla_localops_init(CSOUND *, void *);
+extern long select_localops_init(CSOUND *, void *);
+extern long serial_localops_init(CSOUND *, void *);
+extern long counter_localops_init(CSOUND *, void *);
+extern long platerev_localops_init(CSOUND *, void *);
+extern long pvsgendy_localops_init(CSOUND *, void *);
+extern long scugens_localops_init(CSOUND *, void *);
+extern long emugens_localops_init(CSOUND *, void *);
 
 extern int stdopc_ModuleInit(CSOUND *csound);
 extern int pvsopc_ModuleInit(CSOUND *csound);
@@ -1121,14 +1146,34 @@ const INITFN staticmodules[] = { hrtfopcodes_localops_init, babo_localops_init,
                                  scnoise_localops_init, afilts_localops_init,
                                  pinker_localops_init, gendy_localops_init,
                                  wpfilters_localops_init, zak_localops_init,
-                                 lufs_localops_init,
+                                 lufs_localops_init, sterrain_localops_init,
+                                 date_localops_init, system_localops_init,
+                                 liveconv_localops_init, gamma_localops_init,
+                                 framebuffer_localops_init, cell_localops_init,
+                                 exciter_localops_init, buchla_localops_init,
+                                 select_localops_init, serial_localops_init,
+                                 counter_localops_init,platerev_localops_init,
+                                 pvsgendy_localops_init, scugens_localops_init,
+                                 emugens_localops_init,
                                  NULL };
 
+/**
+ Builtin linkage for C fgens - Instructions:
+ - use csoundCore.h instead of csdl.h.
+ - name the NGFENS array <name>, where <name> is any arbitrary name.
+ - add the macro FLINKAGE_BUILTIN(<name>) to the end of the file.
+ - append the init function prototype below
+   NGFENS* <name>_init(CSOUND *);
+ - append the init function name <name>_init to the
+   ftgenab[] array initialisation.
+ - insert source code to libcsound_SRCS in../CMakeLists.txt 
+*/
 typedef NGFENS* (*FGINITFN)(CSOUND *);
 
 NGFENS *ftest_fgens_init(CSOUND *);
+NGFENS *farey_fgens_init(CSOUND *);
 
-const FGINITFN fgentab[] = {  ftest_fgens_init, NULL };
+const FGINITFN fgentab[] = {  ftest_fgens_init, farey_fgens_init, NULL };
 
 CS_NOINLINE int csoundInitStaticModules(CSOUND *csound)
 {

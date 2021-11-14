@@ -1,0 +1,23 @@
+{
+    "$schema": "https://raw.githubusercontent.com/microsoft/vcpkg/master/scripts/vcpkg.schema.json",
+    "name": "csound",
+    "version-string": "6.16.2",
+    "builtin-baseline": "70033dbb31527fb3e69654731f540f59c87787f9",
+    "dependencies": [
+        "eigen3",
+        "fltk",
+        "zlib",
+        "libflac",
+        "libogg",
+        "libvorbis",
+        "libsndfile",
+        "libsamplerate",
+        "portmidi",
+        "portaudio",
+        "liblo",
+        "hdf5",
+        "dirent",
+        "libstk",
+        "fluidsynth"
+    ]
+}

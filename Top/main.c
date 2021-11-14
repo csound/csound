@@ -204,7 +204,8 @@ PUBLIC int csoundCompileArgs(CSOUND *csound, int argc, const char **argv)
              && csound->orchname[0] != '\0') {
       /* FIXME: allow orc/sco/csd name in CSD file: does this work ? */
       csound->orcname_mode = 0;
-      csound->Message(csound, "UnifiedCSD:  %s\n", csound->orchname);
+      if(O->msglevel || O->odebug)
+       csound->Message(csound, "UnifiedCSD:  %s\n", csound->orchname);
 
       /* Add directory of CSD file to search paths before orchname gets
        * replaced with temp orch name if default paths is enabled */
@@ -351,7 +352,8 @@ PUBLIC int csoundCompileArgs(CSOUND *csound, int argc, const char **argv)
         if (UNLIKELY(csound->scorestr==NULL))
           csoundDie(csound, Str("cannot open scorefile %s"), csound->scorename);
       }
-      csound->Message(csound, Str("sorting score ...\n"));
+      if(O->msglevel || O->odebug)
+       csound->Message(csound, Str("sorting score ...\n"));
       //printf("score:\n%s", corfile_current(csound->scorestr));
       scsortstr(csound, csound->scorestr);
       //printf("*** keep_tmp = %d\n", csound->keep_tmp);
@@ -369,12 +371,14 @@ PUBLIC int csoundCompileArgs(CSOUND *csound, int argc, const char **argv)
         csoundDie(csound, Str("cannot open extract file %s"),csound->xfilename);
       csoundNotifyFileOpened(csound, csound->xfilename,
                              CSFTYPE_EXTRACT_PARMS, 0, 0);
-      csound->Message(csound, Str("  ... extracting ...\n"));
+       if(O->msglevel || O->odebug)
+         csound->Message(csound, Str("  ... extracting ...\n"));
       scxtract(csound, csound->scstr, xfile);
       fclose(xfile);
       csound->tempStatus &= ~csPlayScoMask;
     }
-    csound->Message(csound, Str("\t... done\n"));
+     if(O->msglevel || O->odebug)
+       csound->Message(csound, Str("\t... done\n"));
     /* copy sorted score name */
     O->playscore = csound->scstr;
     /* IV - Jan 28 2005 */
@@ -521,7 +525,7 @@ PUBLIC int csoundStart(CSOUND *csound) // DEBUG
     O->sfsampsize = sfsampsize(FORMAT2SF(O->outformat));
     O->informat = O->outformat;             /* informat default */
 
-
+#ifdef PARCS
     if (O->numThreads > 1) {
       void csp_barrier_alloc(CSOUND *, void **, int);
       int i;
@@ -549,6 +553,7 @@ PUBLIC int csoundStart(CSOUND *csound) // DEBUG
 
       csound->WaitBarrier(csound->barrier2);
     }
+#endif    
     csound->engineStatus |= CS_STATE_COMP;
     if (csound->oparms->daemon > 1)
       csoundUDPServerStart(csound,csound->oparms->daemon);

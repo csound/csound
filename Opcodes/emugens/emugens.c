@@ -22,9 +22,9 @@
     02110-1301 USA
 */
 
-#include "csdl.h"
-#include "arrays.h"
 #include "emugens_common.h"
+#include "interlocks.h"
+#include "arrays.h"
 #include <ctype.h>
 
 #define SAMPLE_ACCURATE \
@@ -2982,7 +2982,7 @@ int32_t printsk_perf(CSOUND *csound, PRINTLN *p) {
 
 #define S(x) sizeof(x)
 
-static OENTRY localops[] = {
+static OENTRY emugens_localops[] = {
     { "linlin", S(LINLIN1), 0, 2, "k", "kkkkk", NULL, (SUBR)linlin1_perf },
     { "linlin", S(LINLIN1), 0, 2, "k", "kkkop", NULL, (SUBR)linlin1_perf },
     { "linlin", S(LINLIN1), 0, 1, "i", "iiiop", (SUBR)linlin1_perf},
@@ -3145,4 +3145,4 @@ static OENTRY localops[] = {
       (SUBR)printsk_init, (SUBR)printsk_perf}
 };
 
-LINKAGE
+LINKAGE_BUILTIN(emugens_localops)

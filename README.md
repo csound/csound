@@ -1,8 +1,7 @@
 # CSOUND
-Version 6.16.0
+Version 6.17.0 (beta)
 
-[![Build Status](https://travis-ci.org/csound/csound.svg?branch=develop)](https://travis-ci.org/csound/csound)
-[![Build status](https://ci.appveyor.com/api/projects/status/1qamc986774rsbjq/branch/develop?svg=true)](https://ci.appveyor.com/project/csound/csound/branch/develop)
+![Build Status](https://github.com/csound/csound/actions/workflows/csound_builds.yml/badge.svg?branch=develop)
 <!--- ![Coverity Status](https://scan.coverity.com/projects/1822/badge.svg) --->
 A sound and music computing system.
 

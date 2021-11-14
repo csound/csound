@@ -705,15 +705,17 @@ int32_t lpfil2_perf(CSOUND *csound, LPCFIL2 *p) {
   for(n=offset; n < nsmps; n++) {
     cbuf[bp] = sig[n];
     bp = bp != N - 1 ? bp + 1 : 0;
-    if(--cp == 0 && flag) {
+    if(--cp == 0) {
       MYFLT *c, k, incr = p->wlen/N;
       int32_t j,i;
+      if(flag) {
       for (j=bp,i=0, k=0; i < N; j++,i++,k+=incr) {
         buf[i] = p->win == NULL ? cbuf[j%N] : p->win[(int)k]*cbuf[j%N];
       }
       c = csound->LPred(csound,p->setup,buf);
       memcpy(p->coefs.auxp, &c[1], M*sizeof(MYFLT));
       g = p->g = csoundLPrms(csound,p->setup)*SQRT(c[0]);
+      }
       cp = (int32_t) (*p->prd > 1 ? *p->prd : 1);
     }
     pp = rp;
@@ -836,13 +838,15 @@ int32_t lpred_run2(CSOUND *csound, LPREDA2 *p) {
   for(n=offset; n < nsmps; n++) {
     cbuf[bp] = in[n];
     bp = bp != N - 1 ? bp + 1 : 0;
-    if(--cp == 0 && flag) {
+    if(--cp == 0) {
       MYFLT k, incr = p->wlen/N;
       int32_t j,i;
+      if(flag) {
       for (j=bp,i=0, k=0; i < N; j++,i++,k+=incr) {
         buf[i] = p->win == NULL ? cbuf[j%N] : p->win[(int)k]*cbuf[j%N];
       }
       c = csound->LPred(csound,p->setup,buf);
+      }
       cp = (int32_t) (*p->prd > 1 ? *p->prd : 1);
     }
   }
@@ -1007,16 +1011,18 @@ int32_t lpcpvs(CSOUND *csound, LPCPVS *p){
 
 int32_t pvscoefs_init(CSOUND *csound, PVSCFS *p) {
   unsigned int Nbytes = (p->fin->N+2)*sizeof(MYFLT);
-  unsigned int Mbytes = (p->M+1)*sizeof(MYFLT);
+  unsigned int Mbytes; 
   p->N = p->fin->N;
   p->M = *p->iord;
+  Mbytes = (p->M+1)*sizeof(MYFLT);
   p->setup = csound->LPsetup(csound,0,p->M);
   if(p->buf.auxp == NULL || Nbytes > p->buf.size)
     csound->AuxAlloc(csound, Nbytes, &p->buf);
   if(p->coef.auxp == NULL || Mbytes > p->coef.size)
-    csound->AuxAlloc(csound, Nbytes, &p->coef);
+    csound->AuxAlloc(csound, Mbytes, &p->coef);
   tabinit(csound,p->out,p->M);
   p->mod = *p->imod;
+  p->framecount = 0;
   return OK;
 }
 

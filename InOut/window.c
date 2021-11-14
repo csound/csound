@@ -73,7 +73,8 @@ void dispinit(CSOUND *csound)
         return;         /* provided by window driver: is this session able? */
     }
     if (!O.displays) {
-      csound->Message(csound, Str("displays suppressed\n"));
+      if(csound->oparms->msglevel || csound->oparms->odebug)
+       csound->Message(csound, Str("displays suppressed\n"));
       csound->csoundMakeGraphCallback_ = DummyFn1;
       csound->csoundDrawGraphCallback_ = DummyFn2;
       csound->csoundKillGraphCallback_ = DummyFn2;
@@ -81,7 +82,8 @@ void dispinit(CSOUND *csound)
     else {
       if (csound->csoundDrawGraphCallback_ == NULL){
         // if callbacks are not set by host
-        csound->Message(csound, Str("graphics %s, ascii substituted\n"),
+        if(csound->oparms->msglevel ||csound->oparms->odebug)
+         csound->Message(csound, Str("graphics %s, ascii substituted\n"),
                         ((O.graphsoff || O.postscript) ?
                          Str("suppressed")
                          : Str("not supported on this terminal")));

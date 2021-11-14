@@ -234,7 +234,9 @@ TREE *csoundParseOrc(CSOUND *csound, const char *str)
       //print_tree(csound, "AST - AFTER csound_orcparse()\n", astTree);
       //csp_orc_sa_cleanup(csound);
       corfile_rm(csound, &csound->expanded_orc);
+#ifdef PARCS      
       if (UNLIKELY(csound->oparms->odebug)) csp_orc_sa_print_list(csound);
+#endif      
       if (UNLIKELY(csound->synterrcnt)) err = 3;
       if (LIKELY(err == 0)) {
         if (csound->oparms->odebug) csound->Message(csound,
@@ -242,14 +244,14 @@ TREE *csoundParseOrc(CSOUND *csound, const char *str)
       }
       else {
         if (err == 1){
-          csound->Message(csound, Str("Parsing failed due to invalid input!\n"));
+          csoundErrorMsg(csound, Str("Parsing failed due to invalid input!\n"));
         }
         else if (err == 2){
-          csound->Message(csound,
+          csoundErrorMsg(csound,
                           Str("Parsing failed due to memory exhaustion!\n"));
         }
         else if (err == 3){
-          csound->Message(csound, Str("Parsing failed due to %d syntax error%s!\n"),
+          csoundErrorMsg(csound, Str("Parsing failed due to %d syntax error%s!\n"),
                           csound->synterrcnt, csound->synterrcnt==1?"":"s");
         }
         goto ending;
@@ -280,9 +282,9 @@ TREE *csoundParseOrc(CSOUND *csound, const char *str)
                           Str("Parsing failed due to %d semantic error%s!\n"),
                           csound->synterrcnt, csound->synterrcnt==1?"":"s");
         else if (csound->synterrcnt)
-          csound->Message(csound, Str("Parsing failed due to syntax errors\n"));
+          csoundErrorMsg(csound, Str("Parsing failed due to syntax errors\n"));
         else
-          csound->Message(csound, Str("Parsing failed due to no input!\n"));
+          csoundErrorMsg(csound, Str("Parsing failed due to no input!\n"));
         goto ending;
       }
       err = 0;
@@ -298,7 +300,7 @@ TREE *csoundParseOrc(CSOUND *csound, const char *str)
     ending:
       csound_orclex_destroy(pp.yyscanner);
       if (UNLIKELY(err)) {
-        csound->ErrorMsg(csound, Str("Stopping on parser failure"));
+        csound->ErrorMsg(csound, "%s", Str("Stopping on parser failure\n"));
         csoundDeleteTree(csound, astTree);
         if (typeTable != NULL) {
           csoundFreeVarPool(csound, typeTable->globalPool);

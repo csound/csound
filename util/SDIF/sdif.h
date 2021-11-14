@@ -52,7 +52,7 @@ Music and Audio Technologies, University of California, Berkeley.
 #define CSOUND_SDIF_H
 
 #include "sysdep.h"
-
+#include <stdio.h>
 /****************************************************/
 /* Create 32-bit and 64-bit int and float typedefs. */
 /****************************************************/

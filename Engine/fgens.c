@@ -2940,7 +2940,11 @@ static int gen44(FGDATA *ff, FUNC *ftp)
     else memset(fp = ftp->ftable, '\0', sizeof(MYFLT)*ff->e.p [3]);
     while (NULL!=  fgets(buff, 80, filp)) {
       if (strncmp(buff, "</MATRIX>", 8)==0) break;
+#if defined(USE_DOUBLE)
       n = sscanf(buff, " %d %d %lf \n", &i, &j, &stiffness);
+#else
+      n = sscanf(buff, " %d %d %f \n", &i, &j, &stiffness);
+#endif
       if (n==2)stiffness = FL(1.0);
       else if (n!=3) return fterror(ff, Str("GEN44: format error\n"));
       if (i<1 || i>len || j<1 || j>len)

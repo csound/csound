@@ -325,6 +325,8 @@ void print_short_usage(CSOUND *csound)
     char    buf[256];
     int     i;
     i = -1;
+    print_csound_version(csound);
+    csound->Message(csound, Str("\nShort options format:\n"));
     while (shortUsageList[++i] != NULL) {
       snprintf(buf, 256, "%s\n", shortUsageList[i]);
       csound->Message(csound, "%s", Str(buf));
@@ -337,14 +339,13 @@ void print_short_usage(CSOUND *csound)
 static void longusage(CSOUND *p)
 {
     const char **sp;
+    print_short_usage(p);
     p->Message(p, Str("Usage:     csound [-flags] orchfile scorefile\n"));
     p->Message(p, Str("Legal flags are:\n"));
     p->Message(p, Str("Long format:\n\n"));
     for (sp = &(longUsageList[0]); *sp != NULL; sp++)
       p->Message(p, "%s\n", Str(*sp));
     dump_cfg_variables(p);
-    p->Message(p, Str("\nShort format:\n\n"));
-    print_short_usage(p);
 }
 
 CS_NORETURN void dieu(CSOUND *csound, char *s, ...)
@@ -1061,7 +1062,7 @@ static int decode_long(CSOUND *csound, char *s, int argc, char **argv)
       return 1;
     }
     else if (!(strcmp(s, "version"))) {
-      //print_csound_version(csound); // as already printed!
+      print_csound_version(csound);
       csound->LongJmp(csound, 0);
     }
     else if (!(strcmp(s, "help"))) {
@@ -1200,15 +1201,17 @@ static int decode_long(CSOUND *csound, char *s, int argc, char **argv)
         /* these are default values to get the
            backend to open successfully */
         set_output_format(O, 'f');
+        O->sr_override = FL(-1.0);
         O->inbufsamps = O->outbufsamps = 256;
         O->oMaxLag = 1024;
         csoundLoadExternals(csound);
         if (csoundInitModules(csound) != 0)
           csound->LongJmp(csound, 1);
         sfopenout(csound);
-        csound->MessageS(csound,CSOUNDMSG_STDOUT,
+        csound->MessageS(csound, CSOUNDMSG_STDOUT,
                          "system sr: %f\n", csound->system_sr(csound,0));
         sfcloseout(csound);
+        // csound->LongJmp(csound, 0);
       }
       csound->info_message_request = 1;
       return 1;
@@ -1863,9 +1866,15 @@ static void list_audio_devices(CSOUND *csound, int output){
       csound->MessageS(csound, CSOUNDMSG_STDOUT,
                        Str("%d audio input devices\n"), n);
     csoundGetAudioDevList(csound,devs,output);
-    for (i=0; i < n; i++)
-      csound->Message(csound, " %d: %s (%s)\n",
-                      i, devs[i].device_id, devs[i].device_name);
+    for (i=0; i < n; i++) {
+      int nchnls = devs[i].max_nchnls;
+      if(nchnls > 0)
+        csound->Message(csound, " %d: %s (%s) [ch:%d]\n",
+                        i, devs[i].device_id, devs[i].device_name, nchnls);
+      else
+        csound->Message(csound, " %d: %s (%s)\n",
+                        i, devs[i].device_id, devs[i].device_name);
+    }
     csound->Free(csound, devs);
 }
 

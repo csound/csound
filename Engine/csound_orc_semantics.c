@@ -616,7 +616,6 @@ char* get_opcode_short_name(CSOUND* csound, char* opname) {
 
 /* find opcode with the specified name in opcode list */
 /* returns index to opcodlst[], or zero if the opcode cannot be found */
-
 OENTRY* find_opcode(CSOUND *csound, char *opname)
 {
     char *shortName;
@@ -632,7 +631,6 @@ OENTRY* find_opcode(CSOUND *csound, char *opname)
 
     retVal = (head != NULL) ? head->value : NULL;
     if (shortName != opname) csound->Free(csound, shortName);
-
     return retVal;
 }
 
@@ -1164,6 +1162,8 @@ OENTRY* find_opcode_new(CSOUND* csound, char* opname,
     OENTRY* retVal = resolve_opcode(csound, opcodes, outArgsFound, inArgsFound);
 
     csound->Free(csound, opcodes);
+
+   
 
     return retVal;
 }
@@ -1963,11 +1963,11 @@ void csound_orcerror(PARSE_PARM *pp, void *yyscanner,
     uint64_t files = csound_orcget_locn(yyscanner);
     if (UNLIKELY(*p=='\0' || *p=='\n')) line--;
     //printf("LINE: %d\n", line);
-
-    csound->Message(csound, Str("\nerror: %s  (token \"%s\")"),
+    csoundErrorMsg(csound, Str("\nerror: %s  (token \"%s\")\n"),
                     str, csound_orcget_text(yyscanner));
+    
     do_baktrace(csound, files);
-    csound->Message(csound, Str(" line %d:\n>>>"), line);
+    csoundErrorMsg(csound, Str(" line %d:\n >>> "), line);
     while ((ch=*--p) != '\n' && ch != '\0');
     do {
       ch = *++p;
@@ -1976,17 +1976,19 @@ void csound_orcerror(PARSE_PARM *pp, void *yyscanner,
       if (ch=='#' && strncmp(p,"sline ",6)) {
         p+=7; while (isdigit(*p)) p++;
       }
-      else csound->Message(csound, "%c", ch);
+      else {
+          csoundErrorMsg(csound, "%c", ch);
+      }
     } while (ch != '\n' && ch != '\0');
-    csound->Message(csound, " <<<\n");
+      csoundErrorMsg(csound, " <<<\n");
 }
 
 void do_baktrace(CSOUND *csound, uint64_t files)
 {
     while (files) {
       unsigned int ff = files&0xff;
-      files = files >>8;
-      csound->Message(csound, Str(" from file %s (%d)\n"),
+      files = files >>8;  
+      csoundErrorMsg(csound, Str(" from file %s (%d),"),
                       csound->filedir[ff], ff);
     }
 }

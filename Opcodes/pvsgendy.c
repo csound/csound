@@ -22,8 +22,7 @@
     02110-1301 USA
 */
 
-#include "csdl.h"
-//#include "csoundCore.h"
+#include "csoundCore.h"
 #include "pstream.h"
 
 typedef struct {
@@ -114,12 +113,12 @@ static int32_t pvsgendy(CSOUND *csound, PVSGENDY *p)
                              Str("pvsgendy: not initialised"));
 }
 
-static OENTRY localops[] = {
+static OENTRY pvsgendy_localops[] = {
   { "pvsgendy", sizeof(PVSGENDY), 0, 3, "f", "fkk",
                 (SUBR) pvsgendyinit, (SUBR) pvsgendy, (SUBR) NULL }
 };
 
-LINKAGE
+LINKAGE_BUILTIN(pvsgendy_localops)
 
 
 

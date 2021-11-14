@@ -111,6 +111,20 @@ void init_symbtab(CSOUND *csound)
     }
 }
 
+void add_to_symbtab(CSOUND *csound, OENTRY *ep) {
+  if (csound->symbtab != NULL) {
+   char *shortName; 
+   if (ep->dsblksiz < 0xfffb) {
+          shortName = get_opcode_short_name(csound, ep->opname);
+          add_token(csound, shortName, get_opcode_type(ep));
+          if (shortName != ep->opname) {
+            csound->Free(csound, shortName);
+          }
+          csound->DebugMsg(csound, "opcode %s added to symbtab\n", ep->opname);   
+   }
+  }
+}
+
 ORCTOKEN *add_token(CSOUND *csound, char *s, int type)
 {
     //printf("Hash value for %s: %i\n", s, h);
@@ -610,11 +624,10 @@ int add_udo_definition(CSOUND *csound, char *opname,
 void synterr(CSOUND *csound, const char *s, ...)
 {
     va_list args;
-
-    csound->MessageS(csound, CSOUNDMSG_ERROR, Str("error:  "));
     va_start(args, s);
-    csound->MessageV(csound, CSOUNDMSG_ERROR, s, args);
+    csoundErrMsgV(csound, Str("error:  "), s, args);
     va_end(args);
+
 
     /* FIXME - Removed temporarily for debugging
      * This function may not be necessary at all in the end if some of this is

@@ -63,7 +63,7 @@ MYFLT  named_instr_find_in_engine(CSOUND *csound, char *s,
       buff[len] = '\0';
       inm = cs_hash_table_get(csound, engineState->instrumentNames, buff);
       frac = atof(tt);
-      printf("** fraction found %f\n", frac);
+      // printf("** fraction found %f\n", frac);
       return (inm == NULL) ? 0L : (ss ? -(inm->instno+frac) : inm->instno+frac);
     }
 }

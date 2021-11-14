@@ -420,6 +420,8 @@ libcsound.csoundSetYieldCallback.argtypes = [ct.c_void_p, YIELDFUNC]
 THREADFUNC = ct.CFUNCTYPE(ct.POINTER(ct.c_uint), ct.py_object)
 libcsound.csoundCreateThread.restype = ct.c_void_p
 libcsound.csoundCreateThread.argtypes = [THREADFUNC, ct.py_object]
+libcsound.csoundCreateThread2.restype = ct.c_void_p
+libcsound.csoundCreateThread2.argtypes = [THREADFUNC, ct.c_uint, ct.py_object]
 libcsound.csoundGetCurrentThreadId.restype = ct.c_void_p
 libcsound.csoundJoinThread.restype = ct.POINTER(ct.c_uint)
 libcsound.csoundJoinThread.argtypes = [ct.c_void_p]
@@ -2200,6 +2202,20 @@ class Csound:
             return ret
         return None
     
+    def createThread2(self, function, stack, userdata):
+        """Creates and starts a new thread of execution with a user-defined
+        stack size.
+        
+        Returns an opaque pointer that represents the thread on success,
+        or :code:`None` for failure.
+        The *userdata* pointer is passed to the thread routine.
+        """
+        ret = libcsound.csoundCreateThread2(THREADFUNC(function),
+        	ct.c_uint(stack), ct.py_object(userdata))
+        if (ret):
+            return ret
+        return None
+    
     def currentThreadId(self):
         """Returns the ID of the currently executing thread, or :code:`None`
         for failure.
@@ -2698,7 +2714,7 @@ elif sys.platform.startswith('win'):
     else:
         libcspt = ct.CDLL(ctypes.util.find_library("csnd6"))
 elif sys.platform.startswith('darwin'):
-    libcspt = ct.CDLL(ctypes.util.find_library('csnd6'))
+    libcspt = ct.CDLL(ctypes.util.find_library('csnd6.6.0'))
 else:
     sys.exit("Don't know your system! Exiting...")
 
