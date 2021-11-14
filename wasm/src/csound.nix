@@ -88,15 +88,26 @@ let
     '';
   };
 
-  gitignoreSource =
-    (import (pkgs.fetchFromGitHub {
-      owner = "hercules-ci";
-      repo = "gitignore.nix";
-      rev = "211907489e9f198594c0eb0ca9256a1949c9d412";
-      sha256 = "sha256-qHu3uZ/o9jBHiA3MEKHJ06k7w4heOhA+4HCSIvflRxo=";
-    }) { inherit lib; }).gitignoreSource;
-
-  csoundSrc = gitignoreSource ../..;
+  csoundSrc = builtins.path {
+    path = ./. + "../../../";
+    filter = path: type:
+      ((builtins.match ".*/Engine.*" path != null ||
+        builtins.match ".*/H.*" path != null ||
+        builtins.match ".*/InOut.*" path != null ||
+        builtins.match ".*/OOps.*" path != null ||
+        builtins.match ".*/Opcodes.*" path != null ||
+        builtins.match ".*/Top.*" path != null ||
+        builtins.match ".*/include.*" path != null) &&
+      (lib.strings.hasSuffix ".c" path ||
+       lib.strings.hasSuffix ".cpp" path ||
+       lib.strings.hasSuffix ".h" path ||
+       lib.strings.hasSuffix ".h.in" path ||
+       lib.strings.hasSuffix ".hpp" path ||
+       lib.strings.hasSuffix ".hpp.in" path ||
+       lib.strings.hasSuffix ".y" path ||
+       lib.strings.hasSuffix ".lex" path ||
+       type == "directory"));
+  };
 
   preprocFlags = ''
     -DGIT_HASH_VALUE=HEAD \
@@ -114,25 +125,7 @@ let
 in pkgs.stdenvNoCC.mkDerivation rec {
 
   name = "csound-wasm";
-
-  src = builtins.path {
-    path = ./. + "../../../";
-    filter = path: type:
-      ((builtins.match ".*/Engine.*" path != null ||
-        builtins.match ".*/H.*" path != null ||
-        builtins.match ".*/InOut.*" path != null ||
-        builtins.match ".*/OOps.*" path != null ||
-        builtins.match ".*/Opcodes.*" path != null ||
-        builtins.match ".*/Top.*" path != null ||
-        builtins.match ".*/include.*" path != null) &&
-       (lib.strings.hasSuffix ".c" path ||
-        lib.strings.hasSuffix ".cpp" path ||
-        lib.strings.hasSuffix ".h" path ||
-        lib.strings.hasSuffix ".hpp" path ||
-        lib.strings.hasSuffix ".y" path ||
-        lib.strings.hasSuffix ".lex" path ||
-        type == "directory"));
-  };
+  src = csoundSrc;
 
   buildInputs = [ pkgs.flex pkgs.bison ];
 
@@ -187,6 +180,12 @@ in pkgs.stdenvNoCC.mkDerivation rec {
     ${patchClock}/bin/patchClock Top/csound.c
 
     mv include/version.h.in include/version.h
+    # see CMakeLists.txt
+    substituteInPlace include/version.h \
+      --replace "\''${CS_VERSION}" "6" \
+      --replace "\''${CS_SUBVER}" "17" \
+      --replace "\''${CS_PATCHLEVEL}" "0"
+
     substituteInPlace Top/csmodule.c \
       --replace '#include <dlfcn.h>' ""
     substituteInPlace Engine/csound_orc.y \
@@ -372,7 +371,6 @@ in pkgs.stdenvNoCC.mkDerivation rec {
   '';
 
   buildPhase = ''
-    cp ${ ./csdl_with_proposal.h } include/csdl.h
     mkdir -p build && cd build
     cp ${./csound_wasm.c} ./csound_wasm.c
     cp ${./unsupported_opcodes.c} ./unsupported_opcodes.c
