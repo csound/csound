@@ -502,6 +502,11 @@ void sfopenin(CSOUND *csound)           /* init for continuous soundin */
     int     fileType = (int) TYP_RAW;
     int     isfd = 0;   /* stdin */
 
+    if(csound->inchnls < 1) 
+       csound->Die(csound,
+                 Str("error: cannot run input audio with nchnls_i=0"));
+    
+
     alloc_globals(csound);
     STA(inbufrem) = (uint32) 0;    /* start with empty buffer */
     sfname = O->infilename;

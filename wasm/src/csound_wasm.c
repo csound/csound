@@ -16,7 +16,6 @@ extern int scansyn_init_(CSOUND *csound);
 extern int scansynx_init_(CSOUND *csound);
 extern int emugens_init_(CSOUND *csound);
 extern int scugens_init_(CSOUND *csound);
-extern int beosc_init_(CSOUND *csound);
 extern int pvsops_init_(CSOUND *csound);
 extern int liveconv_init_(CSOUND *csound);
 extern int unsupported_opdoces_init_(CSOUND *csound);
@@ -29,7 +28,6 @@ int init_static_modules(CSOUND *csound) {
   scansynx_init_(csound);
   emugens_init_(csound);
   scugens_init_(csound);
-  beosc_init_(csound);
   pvsops_init_(csound);
   liveconv_init_(csound);
   dateops_init_(csound);
@@ -69,9 +67,7 @@ void freeCsoundParams(CSOUND_PARAMS* ptr) {
 __attribute__((used))
 double* allocFloatArray(int length) {
   double *ptr = NULL;
-  ptr = malloc((length * sizeof(double)) + 1);
-  // NULL Terminate
-  ptr[length * sizeof(double)] = '\0';
+  ptr = malloc(length * sizeof(double));
   return ptr;
 }
 

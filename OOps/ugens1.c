@@ -787,14 +787,14 @@ int32_t xdsrset(CSOUND *csound, EXXPSEG *p)
     attack -= FL(0.001);
     if (attack > len) {attack = len; len -= attack;}
     if (decay > len) {decay = len; len -= decay;}
-    sus = len;
-    segp[0].val = FL(0.0001);   /* Like zero start, but exponential */
+    sus = len-attack-decay;
+    segp[0].val = FL(0.001);   /* Like zero start, but exponential */
     segp[0].mlt = FL(1.0);
     segp[0].cnt = (int32_t) (delay*CS_EKR + FL(0.5));
     segp[0].amlt =  FL(1.0);
     segp[0].acnt = (int32_t) (delay*CS_ESR + FL(0.5));
     dur = attack*CS_EKR;
-    segp[1].val = FL(0.0001);
+    segp[1].val = FL(0.001);
     segp[1].mlt = POWER(FL(1000.0), FL(1.0)/dur);
     segp[1].cnt = (int32_t) (dur + FL(0.5));
     dur = attack*CS_ESR;

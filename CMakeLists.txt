@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 2.8.12)
+cmake_minimum_required(VERSION 3.5)
 # silence RPATH cmake warning
 set(CMAKE_MACOSX_RPATH 1)
 set(CMAKE_EXPORT_COMPILE_COMMANDS 1)
@@ -368,14 +368,28 @@ if(APPLE)
 
     add_definitions("-DCS_DEFAULT_PLUGINDIR=\"${CS_FRAMEWORK_FULL_PATH}\"")
     set(DEFAULT_OPCODEDIR ${CS_FRAMEWORK_FULL_PATH})
+
+    # dir relative to $HOME
+    set(DEFAULT_USER_PLUGINDIR "Library/csound/${APIVERSION}/plugins64")
+    add_definitions("-DCS_DEFAULT_USER_PLUGINDIR=\"${DEFAULT_USER_PLUGINDIR}\"")
+endif()
+
+if(LINUX)
+    set(DEFAULT_OPCODEDIR "${PLUGIN_INSTALL_DIR}")
+    add_definitions("-DCS_DEFAULT_PLUGINDIR=\"${DEFAULT_OPCODEDIR}\"")
+    # dir relative to $HOME
+    set(DEFAULT_USER_PLUGINDIR ".local/lib/csound/${APIVERSION}/plugins64")
+    add_definitions("-DCS_DEFAULT_USER_PLUGINDIR=\"${DEFAULT_USER_PLUGINDIR}\"")
+endif()
+
+if(WIN32)
+    # dir relaive to %LOCALAPPDATA%
+    set(DEFAULT_USER_PLUGINDIR "csound/${APIVERSION}/plugins64")
+    add_definitions("-DCS_DEFAULT_USER_PLUGINDIR=\"${DEFAULT_USER_PLUGINDIR}\"")
 endif()
 
 if(BUILD_RELEASE)
     add_definitions("-D_CSOUND_RELEASE_")
-    if(LINUX)
-        set(DEFAULT_OPCODEDIR "${PLUGIN_INSTALL_DIR}")
-        add_definitions("-DCS_DEFAULT_PLUGINDIR=\"${DEFAULT_OPCODEDIR}\"")
-    endif()
 else()
     add_definitions("-DBETA")
 endif()
@@ -437,7 +451,7 @@ find_package(FLTK)
 #        LIST_REPLACE(FLTK_LIBRARIES 2 "fltk_images_SHARED")
 #    endif()
 #endif()
-find_package(FAUST)
+
 find_package(Java)
 find_package(JNI)
 find_package(MUSICXML)

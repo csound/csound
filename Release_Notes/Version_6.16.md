@@ -1,30 +1,14 @@
-<!---
-
-To maintain this document use the following markdown:
-
-# First level heading
-## Second level heading
-### Third level heading
-
-- First level bullet point
-  - Second level bullet point
-    - Third level bullet point
-
-`inline code`
-
-``` pre-formatted text etc.  ```
-
-[hyperlink](url for the hyperlink)
-
-Any valid HTML can also be used.
-
- --->
 
 # CSOUND VERSION 6.16 RELEASE NOTES - DRAFT - DRAFT - DRAFT - DRAFT 
 
-This is mainly a bug fixing release but there are new opcodes, including
-support for simpler use of MIDI controls and a new opcode to connect
-to an Arduino.  Also there is an optional limiter in the sound output chain.
+This delayed release is mainly a bug fixing release, but there
+are significant new opcodes, including support for simpler use of MIDI
+controls and a new opcode to connect to an Arduino.  Also there is an
+optional limiter in the sound output chain.
+
+There are a number of new filters, including including the final
+opcode written by the 'father of computer music' Max Mathews (with
+Julius Smith!), ported by Joel Ross.
 
 -- The Developers
 
@@ -34,10 +18,10 @@ to an Arduino.  Also there is an optional limiter in the sound output chain.
 
 - cntDelete deletes a counter object
 
-- lfsr, a linear feedback shift register opcode for psuedo random
+- lfsr, a linear feedback shift register opcode for pseudo random
   number generation.
 
-- ctrlsave stores the currrent values of MIDI controllers in an array.
+- ctrlsave stores the current values of MIDI controllers in an array.
 
 - turnoff3 extends tuning off to remove instrument instances that are
   queued via scheduling but not yet active.
@@ -56,7 +40,7 @@ to an Arduino.  Also there is an optional limiter in the sound output chain.
 - scale2 is similar to scale but has different argument order and has
   an optional port filter.
 
-- aduinoReadF extends the arduino family to transfer floating point
+- arduinoReadF extends the arduino family to transfer floating point
   values.
 
 - triglinseg and trigexpseg are triggered versions of linseg and
@@ -79,7 +63,19 @@ and optional user-defined non-linear map.
 
 - turnoff2_i is init-time version of turnoff2.
 
+- scanu2 is a revision of scanu to make it closer to the original
+  concept.  Damping now a positive value and plucking initialisation
+  totally rewritten, plus various code improvements.
 
+- st2ms and ms2st are stereo to MS and vice-versa conversion opcodes
+with stereo width control.
+
+- mvmfilter is a filter with pronounced resonance and controllable decay time.
+
+### New gen
+
+- gen44 allows the writing of stiffness matrices for scanu/scanu2 in a
+  textual format.
 
 ### Orchestra
 
@@ -91,117 +87,144 @@ and optional user-defined non-linear map.
 
 - An instance of a named instrument can have a decimal fraction added
   to the name to allow for tied notes and other facilities that were
-  only avaiable for numbered instruments.
+  only avaliable for numbered instruments.
 
 ### Options
 
 - New options --limiter and --limiter=num (where num is in range (0,1]
 inserts a tanh limiter (see clip version2) at the end of each k-cycle.
-This can be used when exerimenting or trying some alien inputs to save
+This can be used when experimenting or trying some alien inputs to save
 your ears or speakers.  The default value in the first form is 0.5
 
 - A typing error meant that the tag <CsShortLicense> was not recognised,
 although the English spelling (CsSortLicence) was.  Corrected.
 
-- New option --default-ksmps=num changes the fafault valuefron the
-  internal fixed number.
+- New option --default-ksmps=num changes the default value from the
+internal fixed number.
+
+- New environment variable `CS_USER_PLUGINDIR` has been added to
+indicate a user plugin dir path (in addition to the system plugin
+directory). This added search path defaults to standard locations
+on different platforms (documented in the manual).
+
 
 ### Modified Opcodes and Gens
 
 - slicearray_i now works for string arrays.
 
-- OSCsend aways runs on the first call regardless of the value of kwhen.
+- OSCsend always runs on the first call regardless of the value of kwhen.
 
 - pvadd can access the internal ftable -1.
 
 - pan2 efficiency improved in many cases.
 
-- add version of pow for the case kout[] = kx ^ ivalues[]
+- Add version of pow for the case kout[] = kx ^ ivalues[]
 
 - expcurve and logcurve now incorporate range checks and corrects end
   values.
   
-- streaming lpc opcodes have had a major improvement in performance
+- Streaming LPC opcodes have had a major improvement in performance
   (>10x speedup for some cases), due to a new autocorrelation routine.
 
-- restriction on size of directory name size in ftsamplebank removed.
+- Restriction on size of directory name size in ftsamplebank removed.
 
-- if a non string is passed to sprintf t be formatted as a %s an error
+- If a non string is passed to sprintf to be formatted as a %s an error
   is signalled.
 
-- readk family of opcodes now support comments in the input whix is inored.
+- readk family of opcodes now support comments in the input which is ignored.
 
+- Added iflag parameter to sflooper.
+
+- Opcodes beosc, beadsynt, tabrowl, and getrowlin removed.
 
 ### Utilities
 
-
 ### Frontends
-
 
 ### General Usage
 
-- Csound no longer supports Python2 opcodes following end of life.
+- Csound no longer supports Python2 opcodes, following end of life for Python 2.
 
 ## Bugs Fixed
 
-- the wterrain2 opcode was not correctly compiled on some platforms.
+- The wterrain2 opcode was not correctly compiled on some platforms.
 
 - fprintks opcode crashed when format contains one %s.
 
-- bug in rtjack when number of outputs differed from the number in
+- Bug in rtjack when number of outputs differed from the number in
   inputs.
 
 - FLsetVal now works properly with "inverted range" FLsliders.
 
-- conditional expressiond with a-rate output now work corrctly.
+- Conditional expressions with a-rate output now work correctly.
 
-- bug in --opcode-dir option fixed.
+- Bug in --opcode-dir option fixed.
 
-- sfpassign failed to remember the number of presets causng
+- sfpassign failed to remember the number of presets causing
   confusion.  This also affects sfplay ad sfinstrplay.
 
-- midiarp opcode fixed (issue 1365)
+- midiarp opcode fixed (issue 1365).
 
-- a bug in moogladder where the value of 0dbfs affected the outout is
+- A bug in moogladder where the value of 0dbfs affected the output is
   now fixed.
  
-- bugs in several filters where istor was defaulting to 1 instead of 0
+- Bugs in several filters where istor was defaulting to 1 instead of 0
   as described in the manual have been fixed.
 
-- bug in assigning numbers to named instruments fixed.  This
-  articularly affected dynamic definitions of instruments.
+- Bug in assigning numbers to named instruments fixed.  This
+  particularly affected dynamic definitions of instruments.
 
-- use of %s format in sprintf crashed if the corresponding item was not a
+- Use of %s format in sprintf crashed if the corresponding item was not a
   string.  Thus now gives an error.
 
-- fix bug in ftprint where trigger was not working as advertised.
+- Fix bug in ftprint where trigger was not working as advertised.
 
-- aynchronous use of diskin2 fixed.
+- Asynchronous use of diskin2 fixed.
 
 - pvs2tab does not crash in the sliding case but gives a error.
 
-- in some circumstances turnoff2 could cause the silencing of another
+- In some circumstances turnoff2 could cause the silencing of another
   instrument for one k-cycle. This is now fixed.
 
-- timeinstk behaved diferently in a UDO to normal use.  This has been
+- timeinstk behaved differently in a UDO to normal use.  This has been
   corrected.
+
+- Fixed midiarp init method as it was causing an issue with one of the arp modes.
+
+- Fixed scaling of attack stage of xadsr.
+
+- Fix printarray behaviour for string arrays (default is to print at
+  every cycle); added a variant without trigger.
+
+- Bug with named instrument merging in new compilations fixed.
+
+- ATSA opcode atsinnoi could cause memory problems.  The 6.16 release is better but not yet verified.
 
 # SYSTEM LEVEL CHANGES
 
-
 ### System Changes
 
- - new autocorrelation routine can compute in the frequency or
-in the time domain. Thanks to Patrick Ropohl for the improvement suggestion.
+ - New autocorrelation routine can compute in the frequency or
+in the time domain. Thanks to Patrick Ropohl for the improvement
+suggestion.
+
+- Minimum cmake version bumped to 3.5.
+
+- Image opcodes removed, now in plugin repo.
+
+- faust opcodes removed, now in plugin repo.
+
+- Python opcodes removed, now in plugin repo.
+
+- Ableton Link opcodes removed, now on plugins repo.
 
 ### Translations
 
 ### API
 
-
 ### Platform Specific
 
-- WebAudio: 
+- WebAudio
  
 - iOS
 
@@ -209,70 +232,17 @@ in the time domain. Thanks to Patrick Ropohl for the improvement suggestion.
 
 - Windows
 
-- MacOS
-
+- MacOS:
+    
+   Some opcode libs with dependencies have been removed from release. Image
+   opcodes, Python opcodes, Faust opcodes, and FLTK Widget opcodes have
+   been moved to a separate repository and are not included anymore.
+   
 - GNU/Linux
 
 - Haiku port
 
 - Bela
 
-
 ==END==
-
-commit 670d093eb1d04bd7eb510af83d597473300546fd (HEAD -> develop, origin/develop, origin/HEAD)
-Merge: fb29f9af2 d24373f4a
-Author: John ffitch <jpff@codemist.co.uk>
-Date:   Sun May 2 18:22:01 2021 +0100
-
-commit 6616350b8c352d816405eb1f530f9ce672f36782
-Author: vlazzarini <victor.lazzarini@mu.ie>
-Date:   Wed Apr 14 10:57:41 2021 +0100
-
-    removing python and image dlls from build list
-    image opcodes removed, now in plugin repo
-    faust opcodes removed, now in plugin repo
-    Python opcodes are now in plugin repo
-    Ableton Link opcodes moved to plugins repo
-
-commit bd23a6f356a1c48061bb29f92a582898d9b57c4d
-Author: vlazzarini <victor.lazzarini@mu.ie>
-Date:   Sat Apr 10 20:34:12 2021 +0100
-
-    ms opcodes
-
-    Fix printarray behaviour for string arrays (default is to print at every cycle, S arrays were wrong)
-
-commit 206b528c88d6e90b6a90575cf3316be2b019480e
-Author: Eduardo Moguillansky <eduardo.moguillansky@gmail.com>
-Date:   Fri Apr 9 12:18:34 2021 +0200
-
-    fixed printarray behaviour for string arrays (default is to print at every cycle); added a variant without trigger; manual should be corrected
-
-commit 3f7f142aa7aaac91d522bed458c3e3cfc2be09d5
-Author: vlazzarini <victor.lazzarini@mu.ie>
-Date:   Wed Apr 7 15:30:56 2021 +0100
-
-    correctly merge both engine states when assigning an instrument number to a named instr
-
-commit 96e895a02774e34f3b04526306ffe05442d7d0f5
-Author: vlazzarini <victor.lazzarini@mu.ie>
-Date:   Wed Mar 3 18:07:08 2021 +0000
-
-    sflooper iflag
-
-
-Author: vlazzarini <victor.lazzarini@mu.ie>
-Date:   Wed Feb 17 20:53:29 2021 +0000
-
-    vcf filter
-
-commit 6061124ed9b6d60579f287ab1f98702e097cb5b0
-Author: vlazzarini <victor.lazzarini@mu.ie>
-Date:   Tue Feb 16 22:57:51 2021 +0000
-
-    refactoring and incorporting DFT autocorr to the interface
-
-
-**END**
-
+    

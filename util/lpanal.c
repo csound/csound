@@ -53,6 +53,7 @@ typedef struct {
   // for new lpred method
   int32_t newmethod;
   void *setup;
+  uint32_t storePoles;
 } LPC;
 
 #ifdef TRACE
@@ -627,6 +628,9 @@ static int32_t lpanal(CSOUND *csound, int32_t argc, char **argv)
 
     // for new lpred method
     lpc.setup = csound->LPsetup(csound,lpc.WINDIN,lpc.poleCount);
+    if(lpc.newmethod)
+      csound->Message(csound, "using Durbin method \n");
+    lpc.storePoles = storePoles;
 
     /* Do the analysis */
     do {
@@ -797,6 +801,11 @@ static void lpdieu(CSOUND *csound, char *msg)
     csound->Die(csound, "lpanal: %s\n", msg);
 }
 
+
+static MYFLT noise(MYFLT a) {
+  return a*((MYFLT) rand()/RAND_MAX - 0.5); 
+}
+
 /*
  *
  *  This is where the frame analysis is done
@@ -804,7 +813,7 @@ static void lpdieu(CSOUND *csound, char *msg)
  */
 
 static void alpol(CSOUND *csound, LPC *thislp, MYFLT *sig, double *errn,
-                  double *rms1, double *rms2, double b[MAXPOLES])
+                  double *rms1, double *rms2, double *b)
                                         /* sig now MYFLT */
                                         /* b filled here */
 {
@@ -816,7 +825,9 @@ static void alpol(CSOUND *csound, LPC *thislp, MYFLT *sig, double *errn,
 
    /* Transfer signal in x array */
     for (xp=thislp->x; xp-thislp->x < thislp->WINDIN;++xp,++sig) {
-      *xp = (double) *sig;
+      /* VL 24.06.21 - adding a little noise to allow pole analysis
+         to be carried out with silences */
+      *xp = (double) *sig + (thislp->storePoles ? noise(0.0001) : 0.);
     }
 
    /* Build system to be solved */

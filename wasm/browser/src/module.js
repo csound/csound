@@ -10,6 +10,7 @@ goog.require("csound.filesystem.WASI");
 goog.require("csound.utils.transform_imports");
 
 const PAGE_SIZE = 65536;
+const PAGES_PER_MB = 16; // 1048576 bytes per MB / PAGE_SIZE
 
 const assertPluginExports = (pluginInstance) => {
   if (
@@ -165,7 +166,15 @@ export default async function ({
     return accumulator_;
   }, []);
 
-  const fixedMemoryBase = 512;
+  // The `fixedMemoryBase` is equivalent to the stack size. Note that the stack size grows down towards the code
+  // section. This means that if the stack overflows then it will write over the Csound and plugin code which will
+  // cause all kinds of strange behavior including errors that make no sense, no output of sound, or sound output will
+  // be horrendously loud static and garbage sounds.
+  //
+  // TODO: Investigate using the --stack-first linker flag to move the stack to the beginning of memory so it doesn't
+  // write over anything if it overflows.
+  //
+  const fixedMemoryBase = 128 * PAGES_PER_MB;
   const initialMemory = Math.ceil((memorySize + memoryAlign) / PAGE_SIZE);
   const pluginsMemory = Math.ceil(
     withPlugins.reduce(
@@ -173,10 +182,13 @@ export default async function ({
       0
     ) / PAGE_SIZE
   );
+
   const totalInitialMemory = initialMemory + pluginsMemory + fixedMemoryBase;
 
+  // Request a max of 1gb of memory so devices use less CPU when growing memory. This has a noticeable effect on low-
+  // powered devices like the Oculus Quest 2.
   const memory = new WebAssembly.Memory({
-    initial: totalInitialMemory,
+    initial: totalInitialMemory, maximum: 1024 * PAGES_PER_MB
   });
 
   const table = new WebAssembly.Table({ initial: tableSize + 1, element: "anyfunc" });

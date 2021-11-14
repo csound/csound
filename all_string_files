@@ -202,6 +202,7 @@
 ./Opcodes/babo.h
 ./Opcodes/bbcut.c
 ./Opcodes/bbcut.h
+./Opcodes/bformdec2.cpp
 ./Opcodes/bilbar.c
 ./Opcodes/biquad.c
 ./Opcodes/biquad.h
@@ -239,7 +240,6 @@
 ./Opcodes/dssi4cs/src/ladspa.h
 ./Opcodes/dssi4cs/src/load.c
 ./Opcodes/dssi4cs/src/utils.h
-./Opcodes/emugens/beosc.c
 ./Opcodes/emugens/emugens.c
 ./Opcodes/emugens/emugens_common.h
 ./Opcodes/emugens/scugens.c

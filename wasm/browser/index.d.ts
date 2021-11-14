@@ -63,7 +63,7 @@ declare interface CsoundObj {
     /**
      * Alias for removeListener()
      */
-    off(eventName: PublicEvents, listener: EventEmitter.EventListener<PublicEvents, any>) => EventEmitter;
+    off: (eventName: PublicEvents, listener: EventEmitter.EventListener<PublicEvents, any>) => EventEmitter;
     /**
      * Adds the listener to the end of the listeners array for the event named eventName.
      * No checks are made to see if the listener has already been added.
@@ -91,7 +91,7 @@ declare interface CsoundObj {
     /**
      * Removes the specified listener from the listener array for the event named eventName.
      */
-    removeListener: (eventName: PublicEvents,  listener: EventEmitter.EventListener<PublicEvents, any>)) => EventEmitter;
+    removeListener: (eventName: PublicEvents,  listener: EventEmitter.EventListener<PublicEvents, any>) => EventEmitter;
     /**
      * The in-browser filesystem based on nodejs's
      * built-in module "fs"
@@ -374,9 +374,8 @@ declare interface CsoundObj {
      * Copy the contents of an Array or TypedArray from javascript into a given csound table.
      * The table number is assumed to be valid, and the table needs to have sufficient space
      * to receive all the array contents.
-     * The table number and index are assumed to be valid.
      */
-    tableCopyIn: (tableNum: string, tableIndex: string, array: number[] | ArrayLike<number>) => Promise<undefined>;
+    tableCopyIn: (tableNum: string, array: number[] | ArrayLike<number>) => Promise<undefined>;
     /**
      * Copies the contents of a table from csound into Float64Array.
      * The returns a Float64Array if the table exists, otherwise

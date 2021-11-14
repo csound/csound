@@ -507,8 +507,10 @@ static int32 bpfx_i(CSOUND *csound, BPFX *p) {
 
 
 static inline int32_t bpfx_find(MYFLT **data, MYFLT x, int32_t datalen, int32_t lastidx) {
+    // returns -1 if x is less than the lowest breakpoint
     if (x <= *data[0])
         return -1;
+    // -2 if x is higher than the highest breakpoint
     if (x>=*data[datalen-2])
         return -2;
     if(lastidx >= 0 && lastidx < datalen-4 && *data[lastidx] <= x && x < *data[lastidx+2])
@@ -552,8 +554,11 @@ static int32_t bpfx_k(CSOUND *csound, BPFX *p) {
 
     x0 = *data[idx];
     x1 = *data[idx+2];
-    if(UNLIKELY(x0 > x || x >= x1))
+    if(UNLIKELY(x < x0 || x > x1)) {
+        printf("Bug in bpfx_k. x: %f should be between %f and %f\n", x, x0, x1);
         return NOTOK;
+    }
+
     y0 = *data[idx+1];
     y1 = *data[idx+3];
     *p->r = (x-x0)/(x1-x0)*(y1-y0)+y0;
@@ -1769,7 +1774,6 @@ ftset_init(CSOUND *csound, FTSET *p) {
 static int32_t
 ftset_common(CSOUND *csound, FTSET *p) {
     IGN(csound);
-    printf("ftset common\n");
     FUNC *tab = p->tab;
     MYFLT *data = tab->ftable;
     int tablen = tab->flen;
@@ -1785,7 +1789,6 @@ ftset_common(CSOUND *csound, FTSET *p) {
 
     if(step == 1 && value == 0) {
         // special case: clear the table, use memset
-        printf("memset %d \n", end-start);
         memset(data + start, '\0', sizeof(MYFLT) * (end - start));
         return OK;
     }

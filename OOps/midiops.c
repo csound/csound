@@ -650,7 +650,7 @@ int32_t midiarp_set(CSOUND *csound, MIDIARP *p)
 {
     int32_t cnt;
     srand(time(NULL));
-    p->flag=1, *p->arpMode=0, p->direction=2, p->noteIndex=9;
+    p->flag=1, p->direction=2, p->noteIndex=9;
     p->maxNumNotes=10, p->noteCnt=0, p->status=0, p->chan=0;
     p->data1=0, p->data2=0;
 

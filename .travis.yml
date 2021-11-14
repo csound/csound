@@ -2,10 +2,6 @@ language: cpp
 matrix:
   include:
     - os: linux
-      dist: trusty
-      sudo: false
-      compiler: gcc
-    - os: linux
       dist: xenial 
       sudo: false
       compiler: clang 

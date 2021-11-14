@@ -122,13 +122,13 @@ typedef struct {
         MYFLT   *islot1 ;
         MYFLT   *islot2 ; /* Assume sizeof(pointer)== sizeof(MYFLT) */
         MYFLT   *kmix  ;
-        MYFLT   *fpad[5]; /* Pad for kcoef correctly put (Mighty dangerous) */
+ MYFLT   *fpad[5]; /* Pad for kcoef correctly put (Mighty dangerous) */
         int32    lpad,npoles ;
         LPREAD  *lp1,*lp2 ;
         int32    lastmsg;
         MYFLT   *kcoefs/*[MAXPOLES*2]*/, framrat16;
         int             storePoles ;
-        AUXCH    aux;
+        AUXCH    aux, slotaux;
 } LPINTERPOL ;
 
 typedef struct {
