@@ -88,10 +88,18 @@ let
     '';
   };
 
-  csoundSrc = with builtins; pkgs.fetchFromGitHub (fromJSON (readFile ./version.json));
+  gitignoreSource =
+    (import (pkgs.fetchFromGitHub {
+      owner = "hercules-ci";
+      repo = "gitignore.nix";
+      rev = "211907489e9f198594c0eb0ca9256a1949c9d412";
+      sha256 = "sha256-qHu3uZ/o9jBHiA3MEKHJ06k7w4heOhA+4HCSIvflRxo=";
+    }) { inherit lib; }).gitignoreSource;
+
+  csoundSrc = gitignoreSource ../..;
 
   preprocFlags = ''
-    -DGIT_HASH_VALUE=${csoundSrc.rev} \
+    -DGIT_HASH_VALUE=HEAD \
     -DUSE_DOUBLE=1 \
     -DLINUX=0 \
     -DO_NDELAY=O_NONBLOCK \
@@ -178,7 +186,7 @@ in pkgs.stdenvNoCC.mkDerivation rec {
     # Patch 64bit integer clock
     ${patchClock}/bin/patchClock Top/csound.c
 
-    touch include/float-version.h
+    mv include/version.h.in include/version.h
     substituteInPlace Top/csmodule.c \
       --replace '#include <dlfcn.h>' ""
     substituteInPlace Engine/csound_orc.y \
@@ -311,27 +319,27 @@ in pkgs.stdenvNoCC.mkDerivation rec {
 
     # link emugens statically
     substituteInPlace Opcodes/emugens/emugens.c \
-      --replace 'LINKAGE' \
+      --replace 'LINKAGE_BUILTIN(emugens_localops)' \
        'int32_t emugens_init_(CSOUND *csound) {
            return csound->AppendOpcodes(csound,
-             &(localops[0]), (int32_t) (sizeof(localops) / sizeof(OENTRY))); }'
+             &(emugens_localops[0]), (int32_t) (sizeof(emugens_localops) / sizeof(OENTRY))); }'
     echo 'extern int32_t emugens_init_(CSOUND *);' >> \
       Opcodes/emugens/emugens_common.h
 
     substituteInPlace Opcodes/emugens/scugens.c \
-      --replace 'LINKAGE' \
+      --replace 'LINKAGE_BUILTIN(scugens_localops)' \
        'int32_t scugens_init_(CSOUND *csound) {
            return csound->AppendOpcodes(csound,
-             &(localops[0]), (int32_t) (sizeof(localops) / sizeof(OENTRY))); }'
+             &(scugens_localops[0]), (int32_t) (sizeof(scugens_localops) / sizeof(OENTRY))); }'
     echo 'extern int32_t scugens_init_(CSOUND *);' >> \
       Opcodes/emugens/emugens_common.h
 
     # opcode-lib: liveconv
     substituteInPlace Opcodes/liveconv.c \
-      --replace 'LINKAGE' \
+      --replace 'LINKAGE_BUILTIN(liveconv_localops)' \
        'int32_t liveconv_init_(CSOUND *csound) {
            return csound->AppendOpcodes(csound,
-             &(localops[0]), (int32_t) (sizeof(localops) / sizeof(OENTRY))); }'
+             &(liveconv_localops[0]), (int32_t) (sizeof(liveconv_localops) / sizeof(OENTRY))); }'
 
     # date and fs
     sed -i '1s/^/#include <unistd.h>\n/' Opcodes/date.c
@@ -365,8 +373,6 @@ in pkgs.stdenvNoCC.mkDerivation rec {
 
   buildPhase = ''
     cp ${ ./csdl_with_proposal.h } include/csdl.h
-    cp ${ ./csmodule_with_proposal.c } Top/csmodule.c
-    cp ${ ./modload_with_proposal.h } include/modload.h
     mkdir -p build && cd build
     cp ${./csound_wasm.c} ./csound_wasm.c
     cp ${./unsupported_opcodes.c} ./unsupported_opcodes.c
@@ -518,9 +524,7 @@ in pkgs.stdenvNoCC.mkDerivation rec {
       ../Opcodes/fm4op.c \
       ../Opcodes/follow.c \
       ../Opcodes/fout.c \
-      ../Opcodes/framebuffer/Framebuffer.c \
-      ../Opcodes/framebuffer/OLABuffer.c \
-      ../Opcodes/framebuffer/OpcodeEntries.c \
+      ../Opcodes/framebuffer.c \
       ../Opcodes/freeverb.c \
       ../Opcodes/ftconv.c \
       ../Opcodes/ftest.c \
@@ -533,7 +537,6 @@ in pkgs.stdenvNoCC.mkDerivation rec {
       ../Opcodes/gab/vectorial.c \
       ../Opcodes/gammatone.c \
       ../Opcodes/gendy.c \
-      ../Opcodes/getftargs.c \
       ../Opcodes/grain.c \
       ../Opcodes/grain4.c \
       ../Opcodes/harmon.c \
@@ -546,6 +549,7 @@ in pkgs.stdenvNoCC.mkDerivation rec {
       ../Opcodes/locsig.c \
       ../Opcodes/loscilx.c \
       ../Opcodes/lowpassr.c \
+      ../Opcodes/lufs.c \
       ../Opcodes/mandolin.c \
       ../Opcodes/metro.c \
       ../Opcodes/midiops2.c \
@@ -603,7 +607,6 @@ in pkgs.stdenvNoCC.mkDerivation rec {
       ../Opcodes/spat3d.c \
       ../Opcodes/spectra.c \
       ../Opcodes/squinewave.c \
-      ../Opcodes/stackops.c \
       ../Opcodes/stdopcod.c \
       ../Opcodes/syncgrain.c \
       ../Opcodes/tabaudio.c \

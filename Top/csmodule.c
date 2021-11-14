@@ -73,7 +73,10 @@
 #include <stdlib.h>
 #include <string.h>
 #include <errno.h>
+
+#if !(defined (__wasi__))
 #include <setjmp.h>
+#endif
 
 #include "csoundCore.h"
 #include "csmodule.h"
@@ -88,7 +91,7 @@
 #endif
 #endif
 
-#if !(defined (NACL))
+#if !(defined (NACL)) && !(defined (__wasi__))
 #if defined(LINUX) || defined(NEW_MACH_CODE) || defined(__HAIKU__)
 #include <dlfcn.h>
 #elif defined(WIN32)
@@ -135,7 +138,7 @@ static  const   char    *plugindir_envvar =   "OPCODE6DIR";
 static  const   char    *plugindir64_envvar = "OPCODE6DIR64";
 
 /* default directory to load plugins from if environment variable is not set */
-#if !(defined (NACL))
+#if !(defined (NACL)) && !(defined (__wasi__))
 #ifdef __HAIKU__
 # ifndef USE_DOUBLE
    static char haikudirs[] = "/boot/system/lib/csound6/plugins:"
@@ -231,6 +234,99 @@ static int check_plugin_compatibility(CSOUND *csound, const char *fname, int n)
     }
     return 0;
 }
+
+#ifdef __wasi__
+
+__attribute__((used))
+void csoundWasiLoadPlugin(CSOUND *csound, void *preInitFunc, void *initFunc, void *destFunc, void *errCodeToStr) {
+    csoundModule_t *module = csound->Malloc(csound, sizeof(csoundModule_t) + 1);
+    module->h = (void*) NULL;
+
+    // The javascript host must assert that this is provided
+    module->PreInitFunc = (int (*)(CSOUND *)) preInitFunc;
+    if (initFunc) {
+        module->fn.p.InitFunc = (int (*)(CSOUND *)) initFunc;
+    }
+    if (destFunc) {
+        module->fn.p.DestFunc = (int (*)(CSOUND *)) destFunc;
+    }
+    if (errCodeToStr) {
+        module->fn.p.ErrCodeToStr = (const char *(*)(int)) errCodeToStr;
+    }
+
+    module->nxt = (csoundModule_t*) csound->csmodule_db;
+    csound->csmodule_db = module;
+
+    module->PreInitFunc(csound);
+}
+
+__attribute__((used))
+void csoundWasiLoadOpcodeLibrary(CSOUND *csound, void *fgenInitFunc, void *opcodeInitFunc) {
+    csoundModule_t *module = csound->Malloc(csound, sizeof(csoundModule_t) + 1);
+    module->h = (void*) NULL;
+
+    if (fgenInitFunc) {
+        module->fn.o.fgen_init = (NGFENS *(*)(CSOUND *)) fgenInitFunc;
+    }
+
+    if (opcodeInitFunc) {
+        module->fn.o.opcode_init = (int64_t (*)(CSOUND *, OENTRY **)) opcodeInitFunc;
+    }
+
+    module->nxt = (csoundModule_t*) csound->csmodule_db;
+    csound->csmodule_db = module;
+}
+
+int csoundDestroyModules(CSOUND *csound) {
+    csoundModule_t  *m;
+    int i;
+    int retval = CSOUND_SUCCESS;
+
+    while (csound->csmodule_db != NULL) {
+      m = (csoundModule_t*) csound->csmodule_db;
+      /* call destructor functions */
+      if (m->PreInitFunc != NULL && m->fn.p.DestFunc != NULL) {
+        i = m->fn.p.DestFunc(csound);
+        if (UNLIKELY(i != 0)) {
+          print_module_error(csound, Str("Error de-initialising module '%s'"),
+                                     &(m->name[0]), m, i);
+          retval = CSOUND_ERROR;
+        }
+      }
+      csound->csmodule_db = (void*) m->nxt;
+      /* free memory used by database */
+      csound->Free(csound, (void*) m);
+    }
+    /* return with error code */
+    return retval;
+}
+
+int csoundInitModules(CSOUND *csound) {
+    csoundModule_t  *m;
+    int i, retval = CSOUND_SUCCESS;
+    for (m = (csoundModule_t*) csound->csmodule_db; m != NULL; m = m->nxt) {
+      i = csoundInitModule(csound, m);
+      if (UNLIKELY(i != CSOUND_SUCCESS && i < retval))
+        retval = i;
+    }
+    /* return with error code */
+    return retval;
+}
+
+// In browser-wasi, this function is replaced
+// by the js-host.
+// extern int csoundLoadModules(CSOUND *csound);
+
+int csoundLoadExternals(CSOUND *csound) {
+    return 0;
+}
+
+int csoundLoadAndInitModules(CSOUND *csound, const char *opdir) {
+    return 0;
+}
+
+#else /* __wasi__ */
+
 
 /* load a single plugin library, and run csoundModuleCreate() if present */
 /* returns zero on success */
@@ -934,6 +1030,8 @@ int csoundDestroyModules(CSOUND *csound)
     return retval;
 }
 
+#endif /* __wasi__ */
+
  /* ------------------------------------------------------------------------ */
 
 #if defined(WIN32)
@@ -954,7 +1052,7 @@ PUBLIC void *csoundGetLibrarySymbol(void *library, const char *procedureName)
     return (void*) GetProcAddress((HMODULE) library, procedureName);
 }
 
-#elif !(defined(NACL)) && (defined(LINUX) || defined(NEW_MACH_CODE) || defined(__HAIKU__))
+#elif !(defined(NACL)) && !(defined(__wasi__)) && (defined(LINUX) || defined(NEW_MACH_CODE) || defined(__HAIKU__))
 
 PUBLIC int csoundOpenLibrary(void **library, const char *libraryPath)
 {
@@ -1039,7 +1137,7 @@ void print_opcodedir_warning(CSOUND *p)
    extern long <name>_init(CSOUND *, void *);
  - append the init function name <name>_init to the
    staticmodules[] array initialisation.
- - insert source code to libcsound_SRCS in../CMakeLists.txt 
+ - insert source code to libcsound_SRCS in../CMakeLists.txt
 */
 typedef long (*INITFN)(CSOUND *, void *);
 
@@ -1138,7 +1236,7 @@ const INITFN staticmodules[] = { hrtfopcodes_localops_init, babo_localops_init,
 #ifdef LINUX
                                  cpumeter_localops_init,
 #endif
-#ifndef NACL
+#if !defined(NACL) && !defined(__wasi__)
                                  mp3in_localops_init,
                                  sockrecv_localops_init,
                                  socksend_localops_init,
@@ -1166,7 +1264,7 @@ const INITFN staticmodules[] = { hrtfopcodes_localops_init, babo_localops_init,
    NGFENS* <name>_init(CSOUND *);
  - append the init function name <name>_init to the
    ftgenab[] array initialisation.
- - insert source code to libcsound_SRCS in../CMakeLists.txt 
+ - insert source code to libcsound_SRCS in../CMakeLists.txt
 */
 typedef NGFENS* (*FGINITFN)(CSOUND *);
 
