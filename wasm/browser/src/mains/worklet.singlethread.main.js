@@ -201,6 +201,7 @@ class SingleThreadAudioWorkletMainThread {
       "csoundInitialize",
       this.currentPlayState,
     )(0);
+
     this.exportApi.pause = this.csoundPause.bind(this);
     this.exportApi.resume = this.csoundResume.bind(this);
     this.exportApi.terminateInstance = this.terminateInstance.bind(this);

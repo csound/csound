@@ -60,7 +60,7 @@ class WorkletSinglethreadWorker extends AudioWorkletProcessor {
     this.port.start();
     Comlink.expose(this, this.port);
     this.workerMessagePort = new MessagePortState();
-    this.openTx = (tx) => console.log("openTX", tx);
+
     this.initializeMessagePort = ({ messagePort, rtmidiPort }) => {
       this.workerMessagePort.post = (messageLog) => messagePort.postMessage({ log: messageLog });
       this.workerMessagePort.broadcastPlayState = (playStateChange) => {
