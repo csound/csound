@@ -340,6 +340,12 @@ in pkgs.stdenvNoCC.mkDerivation rec {
            return csound->AppendOpcodes(csound,
              &(liveconv_localops[0]), (int32_t) (sizeof(liveconv_localops) / sizeof(OENTRY))); }'
 
+    substituteInPlace Opcodes/sterrain.c \
+      --replace 'LINKAGE_BUILTIN(sterrain_localops)' \
+       'int32_t sterrain_init_(CSOUND *csound) {
+           return csound->AppendOpcodes(csound,
+             &(sterrain_localops[0]), (int32_t) (sizeof(sterrain_localops) / sizeof(OENTRY))); }'
+
     # date and fs
     sed -i '1s/^/#include <unistd.h>\n/' Opcodes/date.c
     sed -i -e 's/LINUX/1/g' Opcodes/date.c
@@ -606,6 +612,7 @@ in pkgs.stdenvNoCC.mkDerivation rec {
       ../Opcodes/spectra.c \
       ../Opcodes/squinewave.c \
       ../Opcodes/stdopcod.c \
+      ../Opcodes/sterrain.c \
       ../Opcodes/syncgrain.c \
       ../Opcodes/tabaudio.c \
       ../Opcodes/tabsum.c \

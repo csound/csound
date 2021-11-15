@@ -23,7 +23,7 @@ const assertPluginExports = (pluginInstance) => {
   } else if (!pluginInstance.exports.__wasm_call_ctors) {
     console.error(
       "A csound plugin didn't export __wasm_call_ctors.\n" +
-        "Please re-run wasm-ld with either --export-all or include --export=__wasm_call_ctors"
+        "Please re-run wasm-ld with either --export-all or include --export=__wasm_call_ctors",
     );
     return false;
   } else if (
@@ -33,7 +33,7 @@ const assertPluginExports = (pluginInstance) => {
   ) {
     console.error(
       "A csound plugin turns out to be neither a plugin, opcode or module.\n" +
-        "Perhaps csdl.h or module.h wasn't imported correctly?"
+        "Perhaps csdl.h or module.h wasn't imported correctly?",
     );
     return false;
   } else {
@@ -128,9 +128,10 @@ export default async function ({
   const wasmZlib = new Zlib.Inflate(wasmCompressed);
 
   const wasmInflated = wasmZlib.decompress();
+  console.log({ wasmInflated });
   const wasmBytes = await csound.utils.transform_imports.lowerI64Imports(
     wasmInflated,
-    wasmTransformerDataURI
+    wasmTransformerDataURI,
   );
 
   // const wasmBytes =
@@ -179,8 +180,8 @@ export default async function ({
   const pluginsMemory = Math.ceil(
     withPlugins.reduce(
       (accumulator, { headerData: { memorySize } }) => accumulator + (memorySize + memoryAlign),
-      0
-    ) / PAGE_SIZE
+      0,
+    ) / PAGE_SIZE,
   );
 
   const totalInitialMemory = initialMemory + pluginsMemory + fixedMemoryBase;
@@ -188,7 +189,8 @@ export default async function ({
   // Request a max of 1gb of memory so devices use less CPU when growing memory. This has a noticeable effect on low-
   // powered devices like the Oculus Quest 2.
   const memory = new WebAssembly.Memory({
-    initial: totalInitialMemory, maximum: 1024 * PAGES_PER_MB
+    initial: totalInitialMemory,
+    maximum: 1024 * PAGES_PER_MB,
   });
 
   const table = new WebAssembly.Table({ initial: tableSize + 1, element: "anyfunc" });
@@ -197,11 +199,11 @@ export default async function ({
 
   const stackPointer = new WebAssembly.Global(
     { value: "i32", mutable: true },
-    totalInitialMemory * PAGE_SIZE
+    totalInitialMemory * PAGE_SIZE,
   );
   const heapBase = new WebAssembly.Global(
     { value: "i32", mutable: true },
-    totalInitialMemory * PAGE_SIZE
+    totalInitialMemory * PAGE_SIZE,
   );
   const memoryBase = new WebAssembly.Global({ value: "i32", mutable: false }, fixedMemoryBase);
   const tableBase = new WebAssembly.Global({ value: "i32", mutable: false }, 1);
@@ -265,7 +267,7 @@ export default async function ({
       const pluginOptions = {};
       const pluginMemoryBase = new WebAssembly.Global(
         { value: "i32", mutable: false },
-        currentMemorySegment * PAGE_SIZE
+        currentMemorySegment * PAGE_SIZE,
       );
 
       table.grow(pluginTableSize);

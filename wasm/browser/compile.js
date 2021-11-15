@@ -3,13 +3,13 @@ import JarPath from "google-closure-compiler-java";
 import prettier from "prettier";
 import { Readable } from "stream";
 import { fileURLToPath } from "url";
+import rimraf from "rimraf";
 import fs from "fs";
 import path from "path";
 import * as R from "ramda";
 const { compiler: ClosureCompiler } = goog;
 import { inlineWebworker } from "./goog/generate-webworker-module.js";
 import { inlineArraybuffer } from "./goog/inline-arraybuffer.js";
-// const ClosureCompiler = goog();
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -18,6 +18,7 @@ const nodeModulesDir = path.join(rootDir, "node_modules");
 const externsDir = path.join(rootDir, "externs");
 const srcDir = path.join(rootDir, "src");
 const googDir = path.join(rootDir, "goog");
+const distDir = path.join(rootDir, "dist");
 
 function trimString(a) {
   return a
@@ -27,26 +28,17 @@ function trimString(a) {
     .join("\n");
 }
 
-// console.log(Object.keys(ClosureCompiler), ClosureCompiler, typeof ClosureCompiler);
-// npx google-closure-compiler --js=dist/csound.esm.js --platform=java --compilation_level=SIMPLE_OPTIMIZATIONS --language_in=ECMASCRIPT_NEXT --assume_function_wrapper=true --transform_amd_modules=true --module_resolution=NODE --js='node_modules/buffer-es6/index.js' > out.js
-
 const monkeyPatches = (code) => {
   return R.pipe(R.replace("cwd = process.cwd();", "cwd = '/';"))(code);
 };
 
-// const prettyCode = prettier.format(monkeyPatches(code), {
-//   trailingComma: "es5",
-//   arrowParens: "always",
-//   parser: "babel",
-// });
-//
-// const tmpInFileName = path.join(rootDir, "dist", chunk.fileName.replace(/\.js$/g, ".nomin.js"));
 const inputFile = path.join(srcDir, "workers/sab.worker.js");
 const tmpOutFileName = path.join(rootDir, "dist", "test.min.js");
 
-if (!fs.existsSync(path.join(rootDir, "dist"))) {
-  fs.mkdirSync(path.join(rootDir, "dist"));
+if (fs.existsSync(distDir)) {
+  rimraf.sync(distDir);
 }
+fs.mkdirSync(distDir);
 
 if (!fs.existsSync(path.join(rootDir, "dist", "package.json"))) {
   const fakePackageJson = `{
@@ -157,8 +149,6 @@ const compilationSequence = [
     js_output_file: path.join(rootDir, "dist", "__compiled.old-spn.worker.js"),
     create_source_map: path.join(rootDir, "dist", "__compiled.old-spn.worker.js.map"),
     source_map_location_mapping: "./src|/dist/src",
-    // source_map_input: [`./src/index.js|/dist/__compiled.old-spn.worker.sourcemaps.js`],
-    // isolation_mode: "IIFE",
     output_wrapper: trimString(`(function(){%output%}).call(this);
                     //# sourceMappingURL=/dist/__compiled.old-spn.worker.js.map`),
     postbuild: () => inlineWebworker("old-spn.worker.js", "worker.old_spn", false, []),
@@ -167,9 +157,6 @@ const compilationSequence = [
     entry_point: "./src/index.js",
     js_output_file: path.join(rootDir, "dist", "csound.js"),
     create_source_map: path.join(rootDir, "dist", "csound.js.map"),
-    // source_map_location_mapping: "./src|./dist",
-    // source_map_location_mapping: "./dist/dist|./dist",
-    // js: [path.join(rootDir, "dist", "package.json")],
     output_manifest: "output.manifest.txt",
     output_wrapper: trimString(`%output%
       const Csound = Csound$$module$src$index;
@@ -260,7 +247,7 @@ const compile = async (config) => {
     // compilation_level: "WHITESPACE_ONLY",
     // compilation_level: "BUNDLE",
     language_in: "ECMASCRIPT_2020",
-    language_out: "ECMASCRIPT_2020",
+    // language_out: "ECMASCRIPT_2020",
     process_common_js_modules: true,
     rewrite_polyfills: false,
     module_resolution: "NODE",

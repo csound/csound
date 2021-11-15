@@ -235,6 +235,51 @@ static int check_plugin_compatibility(CSOUND *csound, const char *fname, int n)
     return 0;
 }
 
+/**
+ * Initialise a single module.
+ * Return value is CSOUND_SUCCESS if there was no error.
+ */
+static CS_NOINLINE int csoundInitModule(CSOUND *csound, csoundModule_t *m)
+{
+    int     i;
+
+    if (m->PreInitFunc != NULL) {
+      if (m->fn.p.InitFunc != NULL) {
+        i = m->fn.p.InitFunc(csound);
+        if (UNLIKELY(i != 0)) {
+          print_module_error(csound, Str("Error starting module '%s'"),
+                                     &(m->name[0]), m, i);
+          return CSOUND_ERROR;
+        }
+      }
+    }
+    else {
+      /* deal with fgens if there are any */
+      if (m->fn.o.fgen_init != NULL) {
+        NGFENS  *names = m->fn.o.fgen_init(csound);
+        for (i = 0; names[i].name != NULL; i++)
+          allocgen(csound, names[i].name, names[i].fn);
+      }
+      if (m->fn.o.opcode_init != NULL) {
+        OENTRY  *opcodlst_n;
+        long    length;
+        /* load opcodes */
+        if (UNLIKELY((length = m->fn.o.opcode_init(csound, &opcodlst_n)) < 0L))
+          return CSOUND_ERROR;
+        else {
+          length /= (long) sizeof(OENTRY);
+          if (length) {
+            if (UNLIKELY(csoundAppendOpcodes(csound, opcodlst_n,
+                                               (int) length) != 0))
+              return CSOUND_ERROR;
+          }
+        }
+      }
+    }
+    return CSOUND_SUCCESS;
+}
+
+
 #ifdef __wasi__
 
 __attribute__((used))
@@ -270,13 +315,14 @@ void csoundWasiLoadOpcodeLibrary(CSOUND *csound, void *fgenInitFunc, void *opcod
     }
 
     if (opcodeInitFunc) {
-        module->fn.o.opcode_init = (int64_t (*)(CSOUND *, OENTRY **)) opcodeInitFunc;
+        module->fn.o.opcode_init = (long (*)(CSOUND *, OENTRY **)) opcodeInitFunc;
     }
 
     module->nxt = (csoundModule_t*) csound->csmodule_db;
     csound->csmodule_db = module;
 }
 
+__attribute__((used))
 int csoundDestroyModules(CSOUND *csound) {
     csoundModule_t  *m;
     int i;
@@ -301,6 +347,7 @@ int csoundDestroyModules(CSOUND *csound) {
     return retval;
 }
 
+__attribute__((used))
 int csoundInitModules(CSOUND *csound) {
     csoundModule_t  *m;
     int i, retval = CSOUND_SUCCESS;
@@ -750,50 +797,6 @@ int csoundLoadExternals(CSOUND *csound)
 }
 
 /**
- * Initialise a single module.
- * Return value is CSOUND_SUCCESS if there was no error.
- */
-static CS_NOINLINE int csoundInitModule(CSOUND *csound, csoundModule_t *m)
-{
-    int     i;
-
-    if (m->PreInitFunc != NULL) {
-      if (m->fn.p.InitFunc != NULL) {
-        i = m->fn.p.InitFunc(csound);
-        if (UNLIKELY(i != 0)) {
-          print_module_error(csound, Str("Error starting module '%s'"),
-                                     &(m->name[0]), m, i);
-          return CSOUND_ERROR;
-        }
-      }
-    }
-    else {
-      /* deal with fgens if there are any */
-      if (m->fn.o.fgen_init != NULL) {
-        NGFENS  *names = m->fn.o.fgen_init(csound);
-        for (i = 0; names[i].name != NULL; i++)
-          allocgen(csound, names[i].name, names[i].fn);
-      }
-      if (m->fn.o.opcode_init != NULL) {
-        OENTRY  *opcodlst_n;
-        long    length;
-        /* load opcodes */
-        if (UNLIKELY((length = m->fn.o.opcode_init(csound, &opcodlst_n)) < 0L))
-          return CSOUND_ERROR;
-        else {
-          length /= (long) sizeof(OENTRY);
-          if (length) {
-            if (UNLIKELY(csoundAppendOpcodes(csound, opcodlst_n,
-                                               (int) length) != 0))
-              return CSOUND_ERROR;
-          }
-        }
-      }
-    }
-    return CSOUND_SUCCESS;
-}
-
-/**
  * Call initialisation functions of all loaded modules that have a
  * csoundModuleInit symbol, for Csound instance 'csound'.
  * Return value is CSOUND_SUCCESS if there was no error, and CSOUND_ERROR if
@@ -1237,22 +1240,21 @@ const INITFN staticmodules[] = { hrtfopcodes_localops_init, babo_localops_init,
                                  cpumeter_localops_init,
 #endif
 #if !defined(NACL) && !defined(__wasi__)
-                                 mp3in_localops_init,
-                                 sockrecv_localops_init,
-                                 socksend_localops_init,
+                                 counter_localops_init, date_localops_init,
+                                 emugens_localops_init, mp3in_localops_init,
+                                 serial_localops_init, sterrain_localops_init,
+                                 sockrecv_localops_init, socksend_localops_init,
+                                 system_localops_init, liveconv_localops_init,
+                                 scugens_localops_init,
 #endif
                                  scnoise_localops_init, afilts_localops_init,
                                  pinker_localops_init, gendy_localops_init,
                                  wpfilters_localops_init, zak_localops_init,
-                                 lufs_localops_init, sterrain_localops_init,
-                                 date_localops_init, system_localops_init,
-                                 liveconv_localops_init, gamma_localops_init,
+                                 lufs_localops_init, gamma_localops_init,
                                  framebuffer_localops_init, cell_localops_init,
                                  exciter_localops_init, buchla_localops_init,
-                                 select_localops_init, serial_localops_init,
-                                 counter_localops_init,platerev_localops_init,
-                                 pvsgendy_localops_init, scugens_localops_init,
-                                 emugens_localops_init,
+                                 select_localops_init, platerev_localops_init,
+                                 pvsgendy_localops_init,
                                  NULL };
 
 /**
