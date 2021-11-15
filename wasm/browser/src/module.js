@@ -32,6 +32,7 @@ const assertPluginExports = (pluginInstance) => {
     !pluginInstance.exports.csound_fgen_init
   ) {
     console.error(
+      pluginInstance.exports,
       "A csound plugin turns out to be neither a plugin, opcode or module.\n" +
         "Perhaps csdl.h or module.h wasn't imported correctly?",
     );
@@ -103,47 +104,25 @@ export default async function ({
   withPlugins = [],
   messagePort,
 }) {
-  const wasmFs = {}; // new WasmFs();
-
-  // const bindings = {
-  //   // ...WASI.defaultBindings,
-  //   fs: wasmFs.fs,
-  //   path,
-  // };
-
-  // {
-  //   // --dir <wasm path>:<host path>
-  //   preopens: {
-  //     "/": "/",
-  //   },
-  //   env: {},
-  //   // bindings,
-  // }
+  const wasmFs = {};
 
   const wasi = new csound.filesystem.WASI({ preopens: { "/": "/" } });
-  await wasi.initDb();
-  // await wasmFs.volume.mkdirpSync("/sandbox");
 
   const wasmCompressed = new Uint8Array(wasmDataURI);
   const wasmZlib = new Zlib.Inflate(wasmCompressed);
 
   const wasmInflated = wasmZlib.decompress();
-  console.log({ wasmInflated });
   const wasmBytes = await csound.utils.transform_imports.lowerI64Imports(
     wasmInflated,
     wasmTransformerDataURI,
   );
-
-  // const wasmBytes =
-  //   typeof BigUint64Array === "undefined"
-  //     ? await csound.utils.transform_imports.lowerI64Imports(wasmInflated, wasmTransformerDataURI)
-  //       : wasmInflated;
 
   const magicData = getBinaryHeaderData(wasmInflated);
   if (magicData === "static") {
     return [await loadStaticWasm({ messagePort, wasmBytes, wasmFs, wasi }), wasmFs];
   }
   const { memorySize, memoryAlign, tableSize } = magicData;
+
   // get the header data from plugins which we need before
   // initializing the main module
   withPlugins = await withPlugins.reduce(async (accumulator, wasmPlugin) => {
@@ -208,7 +187,7 @@ export default async function ({
   const memoryBase = new WebAssembly.Global({ value: "i32", mutable: false }, fixedMemoryBase);
   const tableBase = new WebAssembly.Global({ value: "i32", mutable: false }, 1);
   const __dummy = new WebAssembly.Global({ value: "i32", mutable: true }, 0);
-
+  console.log({ wasmBytes });
   const module = await WebAssembly.compile(wasmBytes);
   const options = wasi.getImports(module);
   let withPlugins_ = [];

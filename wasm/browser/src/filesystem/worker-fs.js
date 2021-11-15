@@ -93,7 +93,7 @@ export const csoundWasiJsMessageCallback = ({ memory, streamBuffer }) => {
       return;
     }
     const buf = new Uint8Array(memory.buffer, offset, length_);
-    const string = csound.utils.text_encoders.uint2String(buf);
+    const string = uint2String(buf);
     const endsWithNewline = /\n$/g.test(string);
     const startsWithNewline = /^\n/g.test(string);
     const chunks = string.split("\n").filter((item) => item.length > 0);

@@ -25,139 +25,137 @@ const generateAudioFrames = (arguments_, workerMessagePort) => {
   }
 };
 
-const createRealtimeAudioThread = ({
-  libraryCsound,
-  wasm,
-  wasi,
-  workerMessagePort,
-  audioInputs,
-  inputChannelCount,
-  outputChannelCount,
-  sampleRate,
-}) => ({ csound }) => {
-  // Prompt for midi-input on demand
-  // const isRequestingRtMidiInput = libraryCsound._isRequestingRtMidiInput(csound);
+const createRealtimeAudioThread =
+  ({
+    libraryCsound,
+    wasm,
+    wasi,
+    workerMessagePort,
+    audioInputs,
+    inputChannelCount,
+    outputChannelCount,
+    sampleRate,
+  }) =>
+  ({ csound }) => {
+    // Prompt for midi-input on demand
+    // const isRequestingRtMidiInput = libraryCsound._isRequestingRtMidiInput(csound);
 
-  // Prompt for microphone only on demand!
-  const isExpectingInput = libraryCsound.csoundGetInputName(csound).includes("adc");
+    // Prompt for microphone only on demand!
+    const isExpectingInput = libraryCsound.csoundGetInputName(csound).includes("adc");
 
-  // Store Csound AudioParams for upcoming performance
-  sampleRate && libraryCsound.csoundSetOption(csound, `--sr=${sampleRate}`);
-  outputChannelCount && libraryCsound.csoundSetOption(csound, `--nchnls=${outputChannelCount}`);
-  inputChannelCount && libraryCsound.csoundSetOption(csound, `--nchnls_i=${inputChannelCount}`);
-  const nchnls = libraryCsound.csoundGetNchnls(csound);
-  const nchnlsInput =
-    inputChannelCount > 0
-      ? inputChannelCount
-      : isExpectingInput
-      ? libraryCsound.csoundGetNchnlsInput(csound)
-      : 0;
+    // Store Csound AudioParams for upcoming performance
+    sampleRate && libraryCsound.csoundSetOption(csound, `--sr=${sampleRate}`);
+    outputChannelCount && libraryCsound.csoundSetOption(csound, `--nchnls=${outputChannelCount}`);
+    inputChannelCount && libraryCsound.csoundSetOption(csound, `--nchnls_i=${inputChannelCount}`);
+    const nchnls = libraryCsound.csoundGetNchnls(csound);
+    const nchnlsInput =
+      inputChannelCount > 0
+        ? inputChannelCount
+        : isExpectingInput
+        ? libraryCsound.csoundGetNchnlsInput(csound)
+        : 0;
 
-  const zeroDecibelFullScale = libraryCsound.csoundGet0dBFS(csound);
+    const zeroDecibelFullScale = libraryCsound.csoundGet0dBFS(csound);
 
-  // const { buffer } = wasm.exports.memory;
-  const inputBufferPtr = libraryCsound.csoundGetSpin(csound);
-  const outputBufferPtr = libraryCsound.csoundGetSpout(csound);
-  const ksmps = libraryCsound.csoundGetKsmps(csound);
+    // const { buffer } = wasm.exports.memory;
+    const inputBufferPtr = libraryCsound.csoundGetSpin(csound);
+    const outputBufferPtr = libraryCsound.csoundGetSpout(csound);
+    const ksmps = libraryCsound.csoundGetKsmps(csound);
 
-  let csoundInputBuffer = new Float64Array(
-    wasm.exports.memory.buffer,
-    inputBufferPtr,
-    ksmps * nchnlsInput
-  );
+    let csoundInputBuffer = new Float64Array(
+      wasm.exports.memory.buffer,
+      inputBufferPtr,
+      ksmps * nchnlsInput,
+    );
 
-  let csoundOutputBuffer = new Float64Array(
-    wasm.exports.memory.buffer,
-    outputBufferPtr,
-    ksmps * nchnls
-  );
+    let csoundOutputBuffer = new Float64Array(
+      wasm.exports.memory.buffer,
+      outputBufferPtr,
+      ksmps * nchnls,
+    );
 
-  let lastPerformance = 0;
-  let currentCsoundBufferPos = 0;
-  workerMessagePort.broadcastPlayState("realtimePerformanceStarted");
+    let lastPerformance = 0;
+    let currentCsoundBufferPos = 0;
+    workerMessagePort.broadcastPlayState("realtimePerformanceStarted");
 
-  audioProcessCallback = ({ numFrames }) => {
-    const outputAudioPacket = instantiateAudioPacket(nchnls, numFrames);
-    const hasInput = audioInputs.buffers.length > 0 && audioInputs.availableFrames >= numFrames;
+    audioProcessCallback = ({ numFrames }) => {
+      const outputAudioPacket = instantiateAudioPacket(nchnls, numFrames);
+      const hasInput = audioInputs.buffers.length > 0 && audioInputs.availableFrames >= numFrames;
 
-    if (rtmidiQueue.length > 0) {
-      rtmidiQueue.forEach((event) => {
-        libraryCsound.csoundPushMidiMessage(csound, event[0], event[1], event[2]);
-      });
-      clearArray(rtmidiQueue);
-    }
-
-    for (let index = 0; index < numFrames; index++) {
-      currentCsoundBufferPos = (currentCsoundBufferPos + 1) % ksmps;
-      if (workerMessagePort.vanillaWorkerState === "realtimePerformanceEnded") {
-        if (lastPerformance === 0) {
-          libraryCsound.csoundStop(csound);
-          lastPerformance = libraryCsound.csoundPerformKsmps(csound);
-        }
-        wasi
-          .syncDbAfterEnd()
-          .then((db) => workerMessagePort.broadcastPlayState("realtimePerformanceEnded"));
-
-        audioProcessCallback = () => {};
+      if (rtmidiQueue.length > 0) {
+        rtmidiQueue.forEach((event) => {
+          libraryCsound.csoundPushMidiMessage(csound, event[0], event[1], event[2]);
+        });
         clearArray(rtmidiQueue);
-        audioInputs.port = undefined;
-        return { framesLeft: index };
       }
-      if (currentCsoundBufferPos === 0 && lastPerformance === 0) {
-        lastPerformance = libraryCsound.csoundPerformKsmps(csound);
-        if (lastPerformance !== 0) {
-          wasi
-            .syncDbAfterEnd()
-            .then((db) => workerMessagePort.broadcastPlayState("realtimePerformanceEnded"));
+
+      for (let index = 0; index < numFrames; index++) {
+        currentCsoundBufferPos = (currentCsoundBufferPos + 1) % ksmps;
+        if (workerMessagePort.vanillaWorkerState === "realtimePerformanceEnded") {
+          if (lastPerformance === 0) {
+            libraryCsound.csoundStop(csound);
+            lastPerformance = libraryCsound.csoundPerformKsmps(csound);
+          }
+          workerMessagePort.broadcastPlayState("realtimePerformanceEnded");
+
           audioProcessCallback = () => {};
           clearArray(rtmidiQueue);
           audioInputs.port = undefined;
           return { framesLeft: index };
         }
-      }
-
-      // MEMGROW KILLS REFERENCES!
-      // https://github.com/emscripten-core/emscripten/issues/6747#issuecomment-400081465
-      if (csoundInputBuffer.length === 0) {
-        csoundInputBuffer = new Float64Array(
-          wasm.exports.memory.buffer,
-          libraryCsound.csoundGetSpin(csound),
-          ksmps * nchnlsInput
-        );
-      }
-      if (csoundOutputBuffer.length === 0) {
-        csoundOutputBuffer = new Float64Array(
-          wasm.exports.memory.buffer,
-          libraryCsound.csoundGetSpout(csound),
-          ksmps * nchnls
-        );
-      }
-
-      outputAudioPacket.forEach((channel, channelIndex) => {
-        if (csoundOutputBuffer.length > 0) {
-          channel[index] =
-            (csoundOutputBuffer[currentCsoundBufferPos * nchnls + channelIndex] || 0) /
-            zeroDecibelFullScale;
+        if (currentCsoundBufferPos === 0 && lastPerformance === 0) {
+          lastPerformance = libraryCsound.csoundPerformKsmps(csound);
+          if (lastPerformance !== 0) {
+            workerMessagePort.broadcastPlayState("realtimePerformanceEnded");
+            audioProcessCallback = () => {};
+            clearArray(rtmidiQueue);
+            audioInputs.port = undefined;
+            return { framesLeft: index };
+          }
         }
-      });
+
+        // MEMGROW KILLS REFERENCES!
+        // https://github.com/emscripten-core/emscripten/issues/6747#issuecomment-400081465
+        if (csoundInputBuffer.length === 0) {
+          csoundInputBuffer = new Float64Array(
+            wasm.exports.memory.buffer,
+            libraryCsound.csoundGetSpin(csound),
+            ksmps * nchnlsInput,
+          );
+        }
+        if (csoundOutputBuffer.length === 0) {
+          csoundOutputBuffer = new Float64Array(
+            wasm.exports.memory.buffer,
+            libraryCsound.csoundGetSpout(csound),
+            ksmps * nchnls,
+          );
+        }
+
+        outputAudioPacket.forEach((channel, channelIndex) => {
+          if (csoundOutputBuffer.length > 0) {
+            channel[index] =
+              (csoundOutputBuffer[currentCsoundBufferPos * nchnls + channelIndex] || 0) /
+              zeroDecibelFullScale;
+          }
+        });
+
+        if (hasInput) {
+          for (let ii = 0; ii < nchnlsInput; ii++) {
+            csoundInputBuffer[currentCsoundBufferPos * nchnlsInput + ii] =
+              (audioInputs.buffers[ii][index + (audioInputs.inputReadIndex % RING_BUFFER_SIZE)] ||
+                0) * zeroDecibelFullScale;
+          }
+        }
+      }
 
       if (hasInput) {
-        for (let ii = 0; ii < nchnlsInput; ii++) {
-          csoundInputBuffer[currentCsoundBufferPos * nchnlsInput + ii] =
-            (audioInputs.buffers[ii][index + (audioInputs.inputReadIndex % RING_BUFFER_SIZE)] ||
-              0) * zeroDecibelFullScale;
-        }
+        audioInputs.availableFrames -= numFrames;
+        audioInputs.inputReadIndex += numFrames % RING_BUFFER_SIZE;
       }
-    }
 
-    if (hasInput) {
-      audioInputs.availableFrames -= numFrames;
-      audioInputs.inputReadIndex += numFrames % RING_BUFFER_SIZE;
-    }
-
-    return { audioPacket: outputAudioPacket, framesLeft: 0 };
+      return { audioPacket: outputAudioPacket, framesLeft: 0 };
+    };
   };
-};
 
 const callUncloned = async (k, arguments_) => {
   const caller = combined.get(k);
@@ -227,29 +225,29 @@ const initRtMidiEventPort = ({ rtmidiPort }) => {
   return rtmidiPort;
 };
 
-const renderFunction = ({ libraryCsound, workerMessagePort, wasi }) => async ({ csound }) => {
-  let endResolve;
+const renderFunction =
+  ({ libraryCsound, workerMessagePort, wasi }) =>
+  async ({ csound }) => {
+    let endResolve;
 
-  const endPromise = new Promise((resolve) => {
-    endResolve = resolve;
-  });
-  const performKsmps = () => {
-    if (
-      workerMessagePort.vanillaWorkerState === "renderStarted" &&
-      libraryCsound.csoundPerformKsmps(csound) === 0
-    ) {
-      // this is immediately executed, but allows events to be picked up
-      setTimeout(performKsmps, 0);
-    } else {
-      wasi
-        .syncDbAfterEnd()
-        .then((db) => workerMessagePort.broadcastPlayState("realtimePerformanceEnded"));
-      endResolve();
-    }
+    const endPromise = new Promise((resolve) => {
+      endResolve = resolve;
+    });
+    const performKsmps = () => {
+      if (
+        workerMessagePort.vanillaWorkerState === "renderStarted" &&
+        libraryCsound.csoundPerformKsmps(csound) === 0
+      ) {
+        // this is immediately executed, but allows events to be picked up
+        setTimeout(performKsmps, 0);
+      } else {
+        workerMessagePort.broadcastPlayState("realtimePerformanceEnded");
+        endResolve();
+      }
+    };
+    performKsmps();
+    await endPromise;
   };
-  performKsmps();
-  await endPromise;
-};
 
 const initialize = async ({
   audioInputPort,
@@ -260,6 +258,7 @@ const initialize = async ({
   rtmidiPort,
   sampleRate,
   wasmDataURI,
+  wasmTransformerDataURI,
   withPlugins = [],
 }) => {
   log(`initializing wasm and exposing csoundAPI functions from worker to main`)();
@@ -274,6 +273,7 @@ const initialize = async ({
 
   const [wasm, wasi] = await loadWasm({
     wasmDataURI,
+    wasmTransformerDataURI,
     withPlugins,
     messagePort: workerMessagePort,
   });
@@ -281,29 +281,27 @@ const initialize = async ({
   const libraryCsound = libcsoundFactory(wasm);
 
   const startHandler = (_, args) =>
-    wasi.syncDbBeforeStart().then(() => {
-      handleCsoundStart(
-        workerMessagePort,
+    handleCsoundStart(
+      workerMessagePort,
+      libraryCsound,
+      wasi,
+      createRealtimeAudioThread({
+        audioInputs,
+        inputChannelCount,
         libraryCsound,
+        outputChannelCount,
+        wasm,
         wasi,
-        createRealtimeAudioThread({
-          audioInputs,
-          inputChannelCount,
-          libraryCsound,
-          outputChannelCount,
-          wasm,
-          wasi,
-          workerMessagePort,
-        }),
-        renderFunction({
-          inputChannelCount,
-          libraryCsound,
-          outputChannelCount,
-          wasm,
-          workerMessagePort,
-        })
-      )(args);
-    });
+        workerMessagePort,
+      }),
+      renderFunction({
+        inputChannelCount,
+        libraryCsound,
+        outputChannelCount,
+        wasm,
+        workerMessagePort,
+      }),
+    )(args);
 
   const allAPI = pipe(assoc("csoundStart", startHandler), assoc("wasm", wasm))(libraryCsound);
   combined = new Map(Object.entries(allAPI));

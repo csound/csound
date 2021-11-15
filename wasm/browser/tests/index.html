@@ -14,26 +14,25 @@
     </script>
     <div id="mocha"></div>
     <script src="https://cdn.jsdelivr.net/npm/mocha-webdriver-runner@0.6.3/dist/mocha-webdriver-client.js"></script>
-    <!-- <script type="module" src="tests.js"></script> -->
-    <script type="module">
-      const url = "/dist/csound.js";
-      const runIt = async () => {
-        const All = await import(url);
-        console.log("ALL");
-        const { Csound } = All;
-        const csoundObj = await Csound({
-          useWorker: true,
-          useSPN: false,
-          useSAB: true,
-          outputChannelCount: 2,
-        });
-      };
+    <script type="module" src="tests.js"></script>
+    <!-- <script type="module">
+         const url = "/dist/csound.js";
+         const runIt = async () => {
+         const All = await import(url);
+         const { Csound } = All;
+         const csoundObj = await Csound({
+         useWorker: true,
+         useSPN: false,
+         useSAB: true,
+         outputChannelCount: 2,
+         });
+         };
 
-      const triggerEvent = "ontouchstart" in document.documentElement ? "touchend" : "click";
-      document.querySelector("#all_tests").addEventListener(triggerEvent, async function () {
-        await runIt();
-      });
-    </script>
+         const triggerEvent = "ontouchstart" in document.documentElement ? "touchend" : "click";
+         document.querySelector("#all_tests").addEventListener(triggerEvent, async function () {
+         await runIt();
+         });
+         </script> -->
     <button id="all_tests">Run All Tests</button>
   </body>
 </html>

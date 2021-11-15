@@ -3,7 +3,7 @@
    https://csound.com/docs/api/modules.html
 */
 
-import { trimNull } from "../utils/trim-null";
+const { trimNull } = goog.require("csound.utils.trim_null");
 const { uint2string } = goog.require("csound.utils.text_encoders");
 
 /**

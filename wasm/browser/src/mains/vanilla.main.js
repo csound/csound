@@ -8,7 +8,6 @@ import { IPCMessagePorts, messageEventHandler } from "./messages.main";
 import { EventPromises } from "../utils/event-promises";
 import { PublicEventAPI } from "../events";
 
-const PersistentFs = goog.require("csound.filesystem.PersistentFs");
 const VanillaWorker = goog.require("worker.vanilla");
 
 class VanillaWorkerMainThread {
@@ -16,11 +15,11 @@ class VanillaWorkerMainThread {
     audioContext,
     audioWorker,
     wasmDataURI,
+    wasmTransformerDataURI,
     audioContextIsProvided,
     inputChannelCount,
     outputChannelCount,
   }) {
-    this.fs = new PersistentFs();
     this.ipcMessagePorts = new IPCMessagePorts();
     this.eventPromises = new EventPromises();
     this.publicEvents = new PublicEventAPI(this);
@@ -30,6 +29,7 @@ class VanillaWorkerMainThread {
     this.audioWorker = audioWorker;
     this.audioContextIsProvided = audioContextIsProvided;
     this.wasmDataURI = wasmDataURI();
+    this.wasmTransformerDataURI = wasmTransformerDataURI();
 
     if (audioContextIsProvided) {
       this.sampleRate = audioContext.sampleRate;
@@ -90,7 +90,7 @@ class VanillaWorkerMainThread {
       await this.exportApi.getInputName(this.csoundInstance)
     ).includes("adc");
     this.audioWorker.isRequestingMidi = await this.exportApi._isRequestingRtMidiInput(
-      this.csoundInstance
+      this.csoundInstance,
     );
     this.audioWorker.outputsCount = await this.exportApi.getNchnls(this.csoundInstance);
     // TODO fix upstream: await this.exportApi.csoundGetNchnlsInput(this.csound);
@@ -185,10 +185,12 @@ class VanillaWorkerMainThread {
 
     const proxyPort = Comlink.wrap(this.csoundWorker);
     this.proxyPort = proxyPort;
+
     this.csoundInstance = await proxyPort.initialize(
       Comlink.transfer(
         {
           wasmDataURI: this.wasmDataURI,
+          wasmTransformerDataURI: this.wasmTransformerDataURI,
           messagePort: this.ipcMessagePorts.workerMessagePort,
           requestPort: this.ipcMessagePorts.csoundWorkerFrameRequestPort,
           audioInputPort: this.ipcMessagePorts.csoundWorkerAudioInputPort,
@@ -207,8 +209,8 @@ class VanillaWorkerMainThread {
           this.ipcMessagePorts.csoundWorkerAudioInputPort,
           this.ipcMessagePorts.csoundWorkerRtMidiPort,
           this.ipcMessagePorts.workerFilesystemPort,
-        ]
-      )
+        ],
+      ),
     );
 
     this.exportApi.pause = this.csoundPause.bind(this);
@@ -232,13 +234,12 @@ class VanillaWorkerMainThread {
     this.exportApi = this.publicEvents.decorateAPI(this.exportApi);
     this.exportApi.enableAudioInput = () =>
       console.warn(
-        `enableAudioInput was ignored: please use -iadc option before calling start with useWorker=true`
+        `enableAudioInput was ignored: please use -iadc option before calling start with useWorker=true`,
       );
 
     // the default message listener
     this.exportApi.addListener("message", console.log);
-    await this.fs.initDb();
-    this.exportApi.fs = this.fs;
+    // this.exportApi.fs = this.fs;
 
     for (const apiK of Object.keys(API)) {
       const reference = API[apiK];
@@ -246,7 +247,7 @@ class VanillaWorkerMainThread {
         proxyPort,
         this.csoundInstance,
         apiK,
-        this.currentPlayState
+        this.currentPlayState,
       );
       switch (apiK) {
         case "csoundCreate": {

@@ -1,8 +1,10 @@
-import { trimNull } from "./trim-null";
-import { sizeOfPrimitive } from "./native-sizes";
-const { uint2String } = goog.require("csound.utils.text_encoders");
+goog.provide("csound.utils.structure_buffer_to_object");
 
-export const structBufferToObject = (jsStruct, buffer) => {
+goog.require("csound.utils.native_sizes");
+goog.require("csound.utils.text_encoders");
+goog.require("csound.utils.trim_null");
+
+const structBufferToObject = (jsStruct, buffer) => {
   const [result] = jsStruct.reduce(
     ([parameters, offset], [parameterName, primitive, ...rest]) => {
       const currentSize =
@@ -18,3 +20,5 @@ export const structBufferToObject = (jsStruct, buffer) => {
   );
   return result;
 };
+
+csound.utils.struct_buffer_to_object = { structBufferToObject };

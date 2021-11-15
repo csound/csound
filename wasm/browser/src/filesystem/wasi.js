@@ -7,9 +7,6 @@ goog.require("goog.fs");
 goog.require("goog.fs.DirectoryEntry.Behavior");
 goog.require("goog.string");
 goog.require("goog.string.path");
-goog.require("goog.db");
-goog.require("goog.db.IndexedDb");
-goog.require("goog.db.Transaction");
 
 /** @define {boolean} */
 const DEBUG_WASI = goog.define("DEBUG_WASI", false);
@@ -47,122 +44,6 @@ csound.filesystem.WASI = function ({ preopens }) {
   this.getHandle = this.getHandle.bind(this);
   this.CPUTIME_START = 0;
 };
-
-csound.filesystem.WASI.prototype.initDb = async function () {
-  if (typeof AudioWorkletGlobalScope === "undefined") {
-    const lastDb = this.db || (await goog.db.openDatabase("csound"));
-    // +2 because we open and close once in between
-    this.nextDbVersion = lastDb ? lastDb.getVersion() + 2 : 1;
-    lastDb && lastDb.close();
-    delete this.db;
-  }
-};
-
-csound.filesystem.WASI.prototype.syncDbBeforeStart = async function () {
-  // TODO not to include entire db on performance (cwd scopes)
-  if (typeof AudioWorkletGlobalScope === "undefined") {
-    this.db = this.db || (await goog.db.openDatabase("csound"));
-    const dbAssets = this.db.getObjectStoreNames();
-    this.tx = await this.db.createTransaction(
-      dbAssets,
-      goog.db.Transaction.TransactionMode.READ_ONLY
-    );
-
-    for (const dbAsset of dbAssets) {
-      const handle = await this.tx.objectStore(dbAsset).getAll();
-      this.dbFs[dbAsset] = handle;
-    }
-  }
-};
-
-csound.filesystem.WASI.prototype.syncDbAfterEnd = function () {
-  const defered = new goog.async.Deferred();
-
-  if (this.db) {
-    if (this.tx) {
-      this.tx.removeAllListeners();
-      this.tx.dispose();
-    }
-
-    this.db.close();
-    delete this.db;
-    delete this.tx;
-  }
-
-  const onUpgradeNeeded = (ev, db, tx) => {
-    const currentStores = db.getObjectStoreNames();
-    const userFds = Object.keys(this.fd).filter((k) => k > 3);
-
-    for (const fd of userFds) {
-      const fdPath = this.fd[fd].path;
-      if (!currentStores.contains(fdPath)) {
-        db.createObjectStore(fdPath);
-      }
-    }
-  };
-
-  const onBlocked = (evt) =>
-    console.error(`Upgrade to version ${this.nextDbVersion} is blocked.`, evt, this.db);
-
-  goog.db.openDatabase("csound", this.nextDbVersion, onUpgradeNeeded, onBlocked).then((db) => {
-    const userFds = Object.keys(this.fd).filter((k) => k > 3);
-    const currentStores = db.getObjectStoreNames();
-    const deferedTx = new goog.async.Deferred();
-
-    userFds.forEach((fd) => {
-      const fdPath = this.fd[fd].path;
-      if (currentStores.contains(fdPath)) {
-        const putTx = db.createTransaction(
-          [fdPath],
-          goog.db.Transaction.TransactionMode.READ_WRITE
-        );
-        const store = putTx.objectStore(fdPath);
-
-        store.clear();
-
-        if (this.fd[fd].buffers) {
-          this.fd[fd].buffers.forEach((buffer, index) => store.put(buffer, index + 1));
-        }
-        deferedTx.awaitDeferred(putTx.wait());
-      }
-    });
-    deferedTx.addFinally(() => defered.callback());
-    deferedTx.callback({});
-    db.close();
-  });
-
-  return defered;
-};
-
-// csound.filesystem.WASI.prototype.createFs = async function (size = 2e9) {
-//   // 2gb
-//   this.fsHandle = await goog.fs.getTemporary(size);
-//   this.fs = this.fsHandle.getBrowserFileSystem();
-//   this.fsRoot = await this.fsHandle
-//     .getRoot()
-//     .getDirectory("csound", goog.fs.DirectoryEntry.Behavior.CREATE);
-//   // the root sandbox is the /csound dir handle
-//   // this.fd[3].handle = this.fsRoot;
-// };
-
-/**
- * @function
- * @param {!LibcsoundUncloned} csound
- * @return {Boolean}
- */
-// csound.filesystem.WASI.prototype.sensevents = async function (csound) {
-//   if (this.senseventsNative) {
-//     const done = this.senseventsNative(csound);
-//     console.log("done", done);
-//     if (done !== 0) {
-//       return false;
-//     } else {
-//       return done;
-//     }
-//   } else {
-//     return false;
-//   }
-// };
 
 /**
  * @function
@@ -315,7 +196,7 @@ csound.filesystem.WASI.prototype.fd_fdstat_set_flags = function (fd, flags) {
 csound.filesystem.WASI.prototype.fd_fdstat_set_rights = function (
   fd,
   fsRightsBase,
-  fsRightsInheriting
+  fsRightsInheriting,
 ) {
   if (DEBUG_WASI) {
     console.log("fd_fdstat_set_rights", fd, fsRightsBase, fsRightsInheriting, arguments);
@@ -365,7 +246,7 @@ csound.filesystem.WASI.prototype.fd_filestat_set_times = function (
   fd,
   stAtim,
   stMtim,
-  filestatFags
+  filestatFags,
 ) {
   if (DEBUG_WASI) {
     console.log("fd_filestat_set_times", fd, stAtim, stMtim, filestatFags, arguments);
@@ -386,7 +267,8 @@ csound.filesystem.WASI.prototype.fd_prestat_dir_name = function (fd, pathPtr, pa
   const { path: dirName } = this.fd[fd];
 
   const memory = this.getMemory();
-  const dirNameBuf = csound.utils.text_encoders.encoder.encode(dirName);
+
+  const dirNameBuf = encoder.encode(dirName);
   new Uint8Array(this.memory.buffer).set(dirNameBuf, pathPtr);
 
   return csound.filesystem.constants.WASI_ESUCCESS;
@@ -397,8 +279,8 @@ csound.filesystem.WASI.prototype.fd_prestat_get = function (fd, bufPtr) {
   }
   const { path: dirName } = this.fd[fd];
   const memory = this.getMemory();
-
-  const dirNameBuf = csound.utils.text_encoders.encoder.encode(dirName);
+  console.log({ encoder, ns: csound.utils.text_encoders });
+  const dirNameBuf = encoder.encode(dirName);
   memory.setUint8(bufPtr, csound.filesystem.constants.WASI_PREOPENTYPE_DIR);
   memory.setUint32(bufPtr + 4, dirNameBuf.byteLength, true);
   return csound.filesystem.constants.WASI_ESUCCESS;
@@ -463,7 +345,7 @@ csound.filesystem.WASI.prototype.fd_read = function (fd, iovs, iovsLen, nread) {
 
         return [currChunkIndex, currChunkOffset];
       },
-      [0, 0]
+      [0, 0],
     );
     read += bufLen;
   }
@@ -570,7 +452,7 @@ csound.filesystem.WASI.prototype.path_filestat_get = function (
   flags,
   pathPtr,
   pathLen,
-  bufPtr
+  bufPtr,
 ) {
   if (DEBUG_WASI) {
     console.log("path_filestat_get", fd, flags, pathPtr, pathLen, bufPtr, arguments);
@@ -584,7 +466,7 @@ csound.filesystem.WASI.prototype.path_filestat_set_times = function (
   pathLen,
   stAtim,
   stMtim,
-  fstflags
+  fstflags,
 ) {
   if (DEBUG_WASI) {
     console.log(
@@ -596,7 +478,7 @@ csound.filesystem.WASI.prototype.path_filestat_set_times = function (
       stAtim,
       stMtim,
       fstflags,
-      arguments
+      arguments,
     );
   }
   return csound.filesystem.constants.WASI_ESUCCESS;
@@ -608,7 +490,7 @@ csound.filesystem.WASI.prototype.path_link = function (
   oldPathLen,
   newFd,
   newPath,
-  newPathLen
+  newPathLen,
 ) {
   if (DEBUG_WASI) {
     console.log(
@@ -620,7 +502,7 @@ csound.filesystem.WASI.prototype.path_link = function (
       newFd,
       newPath,
       newPathLen,
-      arguments
+      arguments,
     );
   }
   return csound.filesystem.constants.WASI_ESUCCESS;
@@ -635,7 +517,7 @@ csound.filesystem.WASI.prototype.path_open = function (
   fsRightsBase,
   fsRightsInheriting,
   fsFlags,
-  fd
+  fd,
 ) {
   if (DEBUG_WASI) {
     console.log(
@@ -649,7 +531,7 @@ csound.filesystem.WASI.prototype.path_open = function (
       fsRightsInheriting,
       fsFlags,
       fd,
-      arguments
+      arguments,
     );
   }
   const memory = this.getMemory();
@@ -657,7 +539,7 @@ csound.filesystem.WASI.prototype.path_open = function (
   const pathOpenBytes = new Uint8Array(this.memory.buffer, pathPtr, pathLen);
   const pathOpenStr = decoder.decode(pathOpenBytes);
   const pathOpen = goog.string.path.normalizePath(
-    goog.string.path.join(dirfd === 3 ? "" : dirPath, pathOpenStr)
+    goog.string.path.join(dirfd === 3 ? "" : dirPath, pathOpenStr),
   );
 
   if (DEBUG_WASI) {
@@ -709,7 +591,7 @@ csound.filesystem.WASI.prototype.path_readlink = function (
   pathLen,
   buf,
   bufLen,
-  bufused
+  bufused,
 ) {
   if (DEBUG_WASI) {
     console.log("path_readlink", fd, pathPtr, pathLen, buf, bufLen, bufused, arguments);
@@ -728,7 +610,7 @@ csound.filesystem.WASI.prototype.path_rename = function (
   oldPathLen,
   newFd,
   newPath,
-  newPathLen
+  newPathLen,
 ) {
   if (DEBUG_WASI) {
     console.log("path_rename", oldFd, oldPath, oldPathLen, newFd, newPath, newPathLen, arguments);
@@ -740,7 +622,7 @@ csound.filesystem.WASI.prototype.path_symlink = function (
   oldPathLen,
   fd,
   newPath,
-  newPathLen
+  newPathLen,
 ) {
   if (DEBUG_WASI) {
     console.log("path_symlink", oldPath, oldPathLen, fd, newPath, newPathLen, arguments);

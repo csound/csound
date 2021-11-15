@@ -15,7 +15,6 @@ import { csoundApiRename, fetchPlugins, makeProxyCallback, stopableStates } from
 import { EventPromises } from "../utils/event-promises";
 import { PublicEventAPI } from "../events";
 
-const PersistentFs = goog.require("csound.filesystem.PersistentFs");
 const SABWorker = goog.require("worker.sab");
 
 class SharedArrayBufferMainThread {
@@ -28,7 +27,6 @@ class SharedArrayBufferMainThread {
     inputChannelCount,
     outputChannelCount,
   }) {
-    this.fs = new PersistentFs();
     this.hasSharedArrayBuffer = true;
     this.ipcMessagePorts = new IPCMessagePorts();
     this.eventPromises = new EventPromises();
@@ -325,18 +323,7 @@ class SharedArrayBufferMainThread {
     this.exportApi.pause = this.csoundPause.bind(this);
     this.exportApi.resume = this.csoundResume.bind(this);
     this.exportApi.terminateInstance = this.terminateInstance.bind(this);
-    await this.fs.initDb();
-    this.exportApi.fs = this.fs;
-    // this.exportApi.fs = persistentFilesystem;
-
-    // sync/getWorkerFs is only for internal usage
-    // this.getWorkerFs = makeProxyCallback(
-    //   proxyPort,
-    //   csoundInstance,
-    //   "getWorkerFs",
-    //   this.currentPlayState,
-    // );
-    // this.getWorkerFs = this.getWorkerFs.bind(this);
+    // this.exportApi.fs = this.fs;
 
     this.exportApi.enableAudioInput = () =>
       console.warn(

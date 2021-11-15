@@ -1,10 +1,10 @@
-import { CS_MIDIDEVICE } from "../structures";
-import { structBufferToObject } from "../utils/structure-buffer-to-object";
-import { freeStringPtr } from "../utils/string-pointers";
-import { sizeofStruct } from "../utils/native-sizes";
-import { trimNull } from "../utils/trim-null";
 import { range } from "rambda/dist/rambda.esm.js";
-const { uint2string } = goog.require("csound.utils.text_encoders");
+
+goog.require("csound.utils.native_sizes");
+goog.require("csound.utils.string_pointers");
+goog.require("csound.utils.structure_buffer_to_object");
+goog.require("csound.utils.trim_null");
+goog.require("csound.structures");
 
 export const csoundSetMidiCallbacks = (wasm) => (csound) => {
   wasm.exports.csoundSetMidiCallbacks(csound);

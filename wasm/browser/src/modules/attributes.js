@@ -5,10 +5,10 @@
 
 /* eslint-disable unicorn/prevent-abbreviations */
 
-import { sizeofStruct } from "../utils/native-sizes";
-import { freeStringPtr, string2ptr } from "../utils/string-pointers";
-import { structBufferToObject } from "../utils/structure-buffer-to-object";
-import { CSOUND_PARAMS } from "../structures";
+goog.require("csound.utils.native_sizes");
+goog.require("csound.utils.string_pointers");
+goog.require("csound.utils.structure_buffer_to_object");
+goog.require("csound.structures");
 
 /**
  * Returns the sample rate from Csound instance

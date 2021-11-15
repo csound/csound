@@ -32,16 +32,12 @@ import { enableAudioInput } from "./io.utils";
 import { requestMidi } from "../utils/request-midi";
 import { EventPromises } from "../utils/event-promises";
 
-const PersistentFs = goog.require("csound.filesystem.PersistentFs");
 const WorkletWorker = goog.require("worklet.singlethread.worker");
 
 const initializeModule = async (audioContext) => {
   log("Initialize Module")();
   try {
-    // console.log("workletworker", WorkletWorker, WorkletWorker());
-    console.log("pre");
     await audioContext.audioWorklet.addModule(WorkletWorker());
-    console.log("post");
   } catch (error) {
     console.error("Error calling audioWorklet.addModule", error);
     return false;
@@ -51,7 +47,6 @@ const initializeModule = async (audioContext) => {
 
 class SingleThreadAudioWorkletMainThread {
   constructor({ audioContext, inputChannelCount = 1, outputChannelCount = 2 }) {
-    this.fs = new PersistentFs();
     this.exportApi = {};
     this.ipcMessagePorts = new IPCMessagePorts();
     this.publicEvents = new PublicEventAPI(this);
@@ -186,8 +181,8 @@ class SingleThreadAudioWorkletMainThread {
           messagePort: this.ipcMessagePorts.workerMessagePort,
           rtmidiPort: this.ipcMessagePorts.csoundWorkerRtMidiPort,
         },
-        [this.ipcMessagePorts.workerMessagePort, this.ipcMessagePorts.csoundWorkerRtMidiPort]
-      )
+        [this.ipcMessagePorts.workerMessagePort, this.ipcMessagePorts.csoundWorkerRtMidiPort],
+      ),
     );
     this.ipcMessagePorts.mainMessagePort.addEventListener("message", messageEventHandler(this));
     this.ipcMessagePorts.mainMessagePort.start();
@@ -197,14 +192,14 @@ class SingleThreadAudioWorkletMainThread {
       this.workletProxy,
       undefined,
       "csoundCreate",
-      this.currentPlayState
+      this.currentPlayState,
     )();
     this.csoundInstance = csoundInstance;
     await makeProxyCallback(
       this.workletProxy,
       csoundInstance,
       "csoundInitialize",
-      this.currentPlayState
+      this.currentPlayState,
     )(0);
     this.exportApi.pause = this.csoundPause.bind(this);
     this.exportApi.resume = this.csoundResume.bind(this);
@@ -218,8 +213,7 @@ class SingleThreadAudioWorkletMainThread {
     this.exportApi = this.publicEvents.decorateAPI(this.exportApi);
     // the default message listener
     this.exportApi.addListener("message", console.log);
-    await this.fs.initDb();
-    this.exportApi.fs = this.fs;
+    // this.exportApi.fs = this.fs;
 
     for (const apiK of Object.keys(API)) {
       const reference = API[apiK];
@@ -227,7 +221,7 @@ class SingleThreadAudioWorkletMainThread {
         this.workletProxy,
         csoundInstance,
         apiK,
-        this.currentPlayState
+        this.currentPlayState,
       );
       switch (apiK) {
         case "csoundCreate": {
@@ -237,13 +231,7 @@ class SingleThreadAudioWorkletMainThread {
         case "csoundStart": {
           const csoundStart = async function () {
             this.eventPromises.createStartPromise();
-            const { data, buffers } = await this.fs.transferDbBeforeStart();
-            console.log({ data, buffers });
-            const tx = Comlink.transfer(data, buffers);
-            console.log({ tx });
-            await this.workletProxy.openTx(tx);
             const startResult = await proxyCallback({ csound: csoundInstance });
-
             if (await this.exportApi._isRequestingRtMidiInput(csoundInstance)) {
               requestMidi({
                 onMidiMessage: this.handleMidiInput.bind(this),

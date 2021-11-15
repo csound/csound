@@ -3,7 +3,7 @@
    https://csound.com/docs/api/modules.html
 */
 
-import { freeStringPtr, ptr2string, string2ptr } from "../utils/string-pointers";
+goog.require("csound.utils.string_pointers");
 
 /**
  * Inputs an immediate score event

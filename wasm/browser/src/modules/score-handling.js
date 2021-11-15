@@ -1,9 +1,9 @@
+goog.require("csound.utils.string_pointers");
+
 /*
    csound Score Handling module from <csound.h>
    https://csound.com/docs/api/modules.html
 */
-
-import { freeStringPtr, string2ptr } from "../utils/string-pointers";
 
 /**
  * Sees whether Csound score events are performed or not,

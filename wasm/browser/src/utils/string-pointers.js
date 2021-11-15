@@ -1,18 +1,19 @@
-import { trimNull } from "./trim-null";
-const { encoder, uint2String } = goog.require("csound.utils.text_encoders");
+goog.provide("csound.utils.string_pointers");
+goog.require("csound.utils.trim_null");
+goog.require("csound.utils.text_encoders");
 
-export const freeStringPtr = (wasm, ptr) => {
+const freeStringPtr = (wasm, ptr) => {
   wasm.exports.freeStringMem(ptr);
 };
 
-export const ptr2string = (wasm, stringPtr) => {
+const ptr2string = (wasm, stringPtr) => {
   const { buffer } = wasm.exports.memory;
   const intArray = new Uint8Array(buffer, stringPtr);
   const result = uint2String(intArray);
-  return trimNull(result);
+  return csound.utils.trim_null.trimNull(result);
 };
 
-export const string2ptr = (wasm, string) => {
+const string2ptr = (wasm, string) => {
   if (typeof string !== "string") {
     console.error("Expected string but got", typeof string);
     return;
@@ -24,4 +25,10 @@ export const string2ptr = (wasm, string) => {
   const outBuf = new Uint8Array(buffer, offset, stringBuf.length + 1);
   outBuf.set(stringBuf);
   return offset;
+};
+
+csound.utils.text_encoders = {
+  freeStringPtr,
+  ptr2string,
+  string2ptr,
 };

@@ -7,7 +7,6 @@ import AudioWorkletMainThread from "./mains/worklet.main";
 import ScriptProcessorNodeMainThread from "./mains/old-spn.main";
 import ScriptProcessorNodeSingleThread from "./mains/spn.main";
 import SingleThreadAudioWorkletMainThread from "./mains/worklet.singlethread.main";
-// import wasmDataURI from "@csound/wasm-bin/lib/csound.dylib.wasm.z";
 import { logIndex as log } from "./logger";
 import {
   areWorkletsSupported,
@@ -18,7 +17,7 @@ import {
 
 const wasmDataURI = goog.require("binary.wasm");
 const wasmTransformerDataURI = goog.require("transformer.wasm");
-console.log(wasmDataURI, wasmTransformerDataURI);
+
 /**
  * CsoundObj API.
  * @async
@@ -57,8 +56,6 @@ async function Csound({
         inputChannelCount: inputChannelCount || 2,
         outputChannelCount: outputChannelCount || 2,
       });
-      // const instance = await createSingleThreadAudioWorkletAPI({audioContext, withPlugins});
-      // return instance;
       return instance.initialize({ wasmDataURI, wasmTransformerDataURI, withPlugins, autoConnect });
     } else if (spnSupport) {
       log("Single Thread ScriptProcessorNode")();
@@ -120,6 +117,7 @@ async function Csound({
       ? new SharedArrayBufferMainThread({
           audioWorker,
           wasmDataURI,
+          wasmTransformerDataURI,
           audioContext,
           audioContextIsProvided,
           inputChannelCount,

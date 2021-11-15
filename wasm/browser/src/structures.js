@@ -1,3 +1,5 @@
+goog.provide("csound.structures");
+
 /**
  * @typedef CSOUND_PARAMS
  * @property {number} debug_mode
@@ -19,7 +21,7 @@
  * @property {number} midi_key_pch
  * @property {number} midi_velocity
  */
-export const CSOUND_PARAMS = [
+const CSOUND_PARAMS = [
   /* debug mode, 0 or 1 */
   ["debug_mode", "int"],
   /* number of frames in in/out buffers */
@@ -98,7 +100,7 @@ export const CSOUND_PARAMS = [
  * @property {string} midi_module
  * @property {number} isOutput
  */
-export const CS_MIDIDEVICE = [
+const CS_MIDIDEVICE = [
   /* debug mode, 0 or 1 */
   ["device_name", "char", 64],
   ["interface_name", "char", 64],
@@ -106,3 +108,5 @@ export const CS_MIDIDEVICE = [
   ["midi_module", "char", 64],
   ["isOutput", "int"],
 ];
+
+csound.utils.structures = { CSOUND_PARAMS, CS_MIDIDEVICE };

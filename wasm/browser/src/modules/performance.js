@@ -3,7 +3,9 @@
    https://csound.com/docs/api/modules.html
 */
 
-import { freeStringPtr, string2ptr } from "../utils/string-pointers";
+goog.require("csound.utils.string_pointers");
+
+const { freeStringPtr, string2ptr } = csound.utils.string_pointers;
 
 /**
  * Parses a csound orchestra string
