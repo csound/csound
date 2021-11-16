@@ -26,6 +26,15 @@
          useSAB: true,
          outputChannelCount: 2,
          });
+         await csoundObj.setOption("-odac");
+         await csoundObj.compileOrc(`
+         ksmps=64
+         instr 1
+         out oscili(.25, 110)
+         endin
+         schedule(1,0,1)
+         `);
+         const startReturn = await csoundObj.start();
          };
 
          const triggerEvent = "ontouchstart" in document.documentElement ? "touchend" : "click";

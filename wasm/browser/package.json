@@ -63,7 +63,7 @@
     "build": "node compile.js",
     "build:readme": "node --experimental-modules script/generate-readme.mjs > README.md",
     "test:ci": "node tests/selenium_runner.js",
-    "test:open": "http-server ./tests -c-1 --no-dotfiles"
+    "test:open": "http-server ./tests -c-1 --cors --no-dotfiles"
   },
   "devDependencies": {
     "@babel/core": "^7.16.0",

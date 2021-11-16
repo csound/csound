@@ -117,7 +117,7 @@ csound.filesystem.WASI.prototype.now = function (clockId) {
 
 csound.filesystem.WASI.prototype.args_get = function (argv, argvBuf) {
   if (DEBUG_WASI) {
-    console.log("args_get", argv, argvBuf);
+    console.log("args_get", argv, argvBuf, csound.filesystem.constants);
   }
   return csound.filesystem.constants.WASI_ESUCCESS;
 };
@@ -260,6 +260,9 @@ csound.filesystem.WASI.prototype.fd_pread = function (fd, iovs, iovsLen, offset,
   return csound.filesystem.constants.WASI_ESUCCESS;
 };
 csound.filesystem.WASI.prototype.fd_prestat_dir_name = function (fd, pathPtr, pathLen) {
+  if (DEBUG_WASI) {
+    console.log("fd_prestat_dir_name", fd, pathPtr, pathLen);
+  }
   if (!this.fd[fd] && !this.fd[fd - 1]) {
     return csound.filesystem.constants.WASI_EBADF;
   }
@@ -279,7 +282,7 @@ csound.filesystem.WASI.prototype.fd_prestat_get = function (fd, bufPtr) {
   }
   const { path: dirName } = this.fd[fd];
   const memory = this.getMemory();
-  console.log({ encoder, ns: csound.utils.text_encoders });
+
   const dirNameBuf = encoder.encode(dirName);
   memory.setUint8(bufPtr, csound.filesystem.constants.WASI_PREOPENTYPE_DIR);
   memory.setUint32(bufPtr + 4, dirNameBuf.byteLength, true);

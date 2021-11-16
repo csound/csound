@@ -1,6 +1,6 @@
 goog.provide("csound.utils.trim_null");
 
-csound.utils.trim_null.trimNull = function (a) {
+const trimNull = (a) => {
   const c = a.indexOf("\0");
   if (c > -1) {
     // eslint-disable-next-line unicorn/prefer-string-slice
@@ -8,3 +8,5 @@ csound.utils.trim_null.trimNull = function (a) {
   }
   return a;
 };
+
+csound.utils.trim_null = { trimNull };

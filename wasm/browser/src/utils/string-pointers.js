@@ -10,7 +10,7 @@ const ptr2string = (wasm, stringPtr) => {
   const { buffer } = wasm.exports.memory;
   const intArray = new Uint8Array(buffer, stringPtr);
   const result = uint2String(intArray);
-  return csound.utils.trim_null.trimNull(result);
+  return trimNull(result);
 };
 
 const string2ptr = (wasm, string) => {

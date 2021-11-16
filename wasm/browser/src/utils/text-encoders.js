@@ -12,7 +12,6 @@ function TextEncoderPoly(encoding) {
   } else {
     this.encoding = "utf-8";
     return this;
-    // this.encode
   }
 }
 
@@ -75,7 +74,7 @@ const decoder = WITH_TEXT_ENCODER_POLYFILL
 
 const encoder = WITH_TEXT_ENCODER_POLYFILL
   ? new TextEncoderPoly("utf-8")
-  : new TextDecoder("utf-8");
+  : new TextEncoder("utf-8");
 
 const uint2String = (uint) => decoder.decode(uint);
 
