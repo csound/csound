@@ -77,7 +77,7 @@ static int32_t scale_process(CSOUND *csound, scale *p)
     /* if (kmax < kmin) { kmax = kmin ; kmin = *p->kmax; } */
     /* if (val > max) val = max; */
     /* else if (val < min) val = min; */
-    
+
     //if (max>min && /* fmax>=fmin && */ *p->kinval<= max && *p->kinval >= min) {
       *p->koutval = ((val - min)/(max-min))* (kmax - kmin) + kmin;
     /* } else { */
@@ -129,7 +129,7 @@ static int32_t expcurve_perf(CSOUND *csound, expcurve *p)
     MYFLT ki = *p->kin;
     MYFLT ks = *p->ksteepness;
     if (ks <= FL(1.0)) *p->kout = ki;
-    else 
+    else
       *p->kout = EXPCURVE(ki, ks);
 
     return OK;
@@ -143,7 +143,7 @@ static int32_t logcurve_perf(CSOUND *csound, logcurve *p)
     MYFLT ki = *p->kin;
     MYFLT ks = *p->ksteepness;
     if (ks == FL(1.0)) *p->kout = ki;
-    else 
+    else
       *p->kout = LOGCURVE(ki, ks);
 
     return OK;

@@ -66,6 +66,8 @@ static int32_t sequencer(CSOUND *csound, SEQ *p)
     int i = p->next;
     int mode = (int)*p->mode;
 
+    if (len<=0) len = 1;
+    if (len>=p->max_length) len= p->max_length;
     if (p->time > 0) {         /* Not yet time to act */
       p->time -= csound->ksmps;
       *p->res = -FL(1.0);
@@ -75,32 +77,33 @@ static int32_t sequencer(CSOUND *csound, SEQ *p)
     // First check mode for next state
     if (i >= len && mode >= 0) { // End of cycle
       i = p->next = 0;
-      p->cnt++;
     }
     else if (i < 0 && mode == -1) {
       p->next = i = len-1;
-      p->cnt++;
     }
     else if (i>=len && mode == -2) {
       *p->res = -FL(1.0);
       return OK;
     }
     {
-      char buff[30];
-      sprintf(buff, "i %d 0 %f\n",
-              (int)p->instr->data[p->seq[i]],
-              60.0/(*p->kbpm)*p->riff->data[p->seq[i]]);
-      printf(buff);
-      csoundReadScore(csound, buff);
+
+      MYFLT inst = p->instr->data[p->seq[i]];
+      if (inst != 0) {
+        char buff[30];
+        sprintf(buff, "i %0.2f 0 %f\n",
+                inst, 60.0/(*p->kbpm)*p->riff->data[p->seq[i]]);
+        //printf("%s", buff);
+        csoundReadScore(csound, buff);
+      }
       p->time = (p->riff->data[i] * csound->esr * 60.0) / *p->kbpm;
       printf("Step %d riff %d instr %d len %f\n",
              i,p->seq[i], (int)(p->instr->data[p->seq[i]]), p->riff->data[p->seq[i]]);
-      // Mutate every mode cycles
-      if (mode > 0 && p->next == 0 && p->cnt%mode == 0) {
+      // Mutate every mode events
+      if (mode > 0 && len>1 && p->cnt%mode == 0) {
         int r1, r2;
         do {
-        r1 = random()%len;
-        r2 = random()%len;
+          r1 = random()%len;
+          r2 = random()%len;
         } while (r1==r2);
         {
           int tm = p->seq[r1];
@@ -111,7 +114,8 @@ static int32_t sequencer(CSOUND *csound, SEQ *p)
       }
       *p->res = (MYFLT)i;
       if (*p->mode >=0) p->next++;
-      else p->next--;
+      else if (mode == -1) p->next--;
+      if (mode != -2) p->cnt++;
     }
     printf("Next Step %d time = %d samples\n", p->next, p->time);
     return OK;
