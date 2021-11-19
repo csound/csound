@@ -107,6 +107,7 @@ static int SoundFontLoad(CSOUND *csound, char *fname)
     SFBANK *soundFont;
     sfontg *globals;
     globals = (sfontg *) (csound->QueryGlobalVariable(csound, "::sfontg"));
+    
     //soundFont = globals->soundFont;
     fd = csound->FileOpen2(csound, &fil, CSFILE_STD, fname, "rb",
                              "SFDIR;SSDIR", CSFTYPE_SOUNDFONT, 0);
@@ -116,11 +117,13 @@ static int SoundFontLoad(CSOUND *csound, char *fname)
                   fname, strerror(errno));
       return -1;
     }
-    for (i=0; i<globals->currSFndx-1; i++)
+    for (i=0; i<globals->currSFndx+1; i++) {
+      //printf("name[%d]: %s \n",  i, globals->sfArray[i].name);
       if (strcmp(fname, globals->sfArray[i].name)==0) {
-        csound->Warning(csound, "%s already loaded\n", fname);
+        csound->Warning(csound, "%s already loaded", fname);
         return i;
       }
+    }
     soundFont = &globals->sfArray[globals->currSFndx];
     /* if (UNLIKELY(soundFont==NULL)){ */
     /*   csound->ErrorMsg(csound, Str("Sfload: cannot use globals")); */
@@ -186,6 +189,7 @@ static int32_t SfLoad_(CSOUND *csound, SFLOAD *p, int32_t istring)
         csound->Warning(csound, Str("Extending soundfonts"));
         if (globals->sfArray  == NULL) return NOTOK;
       }
+      //printf("curr sf: %d \n", globals->currSFndx);
     }
     else *p->ihandle=hand;
     return OK;
