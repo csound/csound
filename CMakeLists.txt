@@ -808,6 +808,7 @@ set(libcsound_SRCS
     Opcodes/serial.c
     Opcodes/counter.c
     Opcodes/platerev.c
+    Opcodes/sequencer.c
     Opcodes/pvsgendy.c
     Opcodes/emugens/emugens.c
     Opcodes/emugens/scugens.c
