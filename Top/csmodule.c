@@ -1106,6 +1106,7 @@ extern long select_localops_init(CSOUND *, void *);
 extern long serial_localops_init(CSOUND *, void *);
 extern long counter_localops_init(CSOUND *, void *);
 extern long platerev_localops_init(CSOUND *, void *);
+extern long sequencer_localops_init(CSOUND *, void *);
 extern long pvsgendy_localops_init(CSOUND *, void *);
 extern long scugens_localops_init(CSOUND *, void *);
 extern long emugens_localops_init(CSOUND *, void *);
@@ -1154,7 +1155,7 @@ const INITFN staticmodules[] = { hrtfopcodes_localops_init, babo_localops_init,
                                  select_localops_init, serial_localops_init,
                                  counter_localops_init,platerev_localops_init,
                                  pvsgendy_localops_init, scugens_localops_init,
-                                 emugens_localops_init,
+                                 emugens_localops_init, sequencer_localops_init,
                                  NULL };
 
 /**
