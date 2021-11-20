@@ -24,32 +24,39 @@
 #include "csoundCore.h"
 #include <math.h>
 
-//#define MODE
-
 typedef struct {
     OPDS        h;
     MYFLT       *res;           /*  state */
     ARRAYDAT    *riff;          /* initial note row */
-    ARRAYDAT    *instr;         /* renderers fir each note */
+    ARRAYDAT    *instr;         /* renderers for each note */
+    ARRAYDAT    *data;          /* extra data for pitch info */
     MYFLT       *kbpm;          /* speed of sequence */
     MYFLT       *klen;          /* Length of sequece to use */
-    MYFLT       *mode;          /* Mode; -1 backward, 0 loop frward; +ve mutate*/
+    MYFLT       *mode;          /* Mode; -1 backward,
+                                   0 loop frward;
+                                   +ve mutate
+                                   -2 pause
+                                   -3 random
+                                */
+    MYFLT       *verbos;
  // Internals
     int32_t     max_length;
     int         cnt;            /* Count loops for mi=uator */
     int         next;           /* net step nuber */
     int         time;           /* time in samples to nxt step */
-    int         seq[32];
+    int         seq[64];
 } SEQ;
 
 static int32_t sequencer_init(CSOUND *csound, SEQ *p)
 {
     int i;
-    if (p->riff->sizes[0] != p->instr->sizes[0] || p->riff->sizes[0] >= 32) {
+    p->max_length = p->riff->sizes[0];
+    if (p->max_length != p->instr->sizes[0] ||
+        p->max_length != p->data->sizes[0] ||
+        p->max_length >= 64) {
             return csound->InitError(csound, Str("Format error"));
     }
     p->time = 0;
-    p->max_length = p->riff->sizes[0];
     p->next = 0;
     p->cnt = 1;
     for (i = 0; i<p->riff->sizes[0]; i++)
@@ -85,19 +92,22 @@ static int32_t sequencer(CSOUND *csound, SEQ *p)
       *p->res = -FL(1.0);
       return OK;
     }
+    else if (mode == -3) i = random()%len;
     {
 
       MYFLT inst = p->instr->data[p->seq[i]];
       if (inst != 0) {
         char buff[30];
-        sprintf(buff, "i %0.2f 0 %f\n",
-                inst, 60.0/(*p->kbpm)*p->riff->data[p->seq[i]]);
+        sprintf(buff, "i %0.2f 0 %f %f\n",
+                inst, 60.0/(*p->kbpm)*p->riff->data[p->seq[i]],
+                p->data->data[p->seq[i]]);
         //printf("%s", buff);
         csoundReadScore(csound, buff);
       }
       p->time = (p->riff->data[i] * csound->esr * 60.0) / *p->kbpm;
-      printf("Step %d riff %d instr %d len %f\n",
-             i,p->seq[i], (int)(p->instr->data[p->seq[i]]), p->riff->data[p->seq[i]]);
+      if (*p->verbos)
+        printf("Step %d riff %d instr %d len %f\n",
+               i,p->seq[i], (int)(p->instr->data[p->seq[i]]), p->riff->data[p->seq[i]]);
       // Mutate every mode events
       if (mode > 0 && len>1 && p->cnt%mode == 0) {
         int r1, r2;
@@ -109,7 +119,8 @@ static int32_t sequencer(CSOUND *csound, SEQ *p)
           int tm = p->seq[r1];
           p->seq[r1] = p->seq[r2];
           p->seq[r2] = tm;
-          printf("swap %d and %d\n", r1, r2);
+          if (*p->verbos)
+            printf("swap %d and %d\n", r1, r2);
         }
       }
       *p->res = (MYFLT)i;
@@ -117,14 +128,15 @@ static int32_t sequencer(CSOUND *csound, SEQ *p)
       else if (mode == -1) p->next--;
       if (mode != -2) p->cnt++;
     }
-    printf("Next Step %d time = %d samples\n", p->next, p->time);
+    if (*p->verbos)
+      printf("Next Step %d time = %d samples\n", p->next, p->time);
     return OK;
     }
 
 static OENTRY sequencer_localops[] =
   {
    { "sequ", sizeof(SEQ), 0, 3, "k",
-     "i[]i[]kkO",
+     "i[]i[]i[]kkOo",
      (SUBR) sequencer_init, (SUBR) sequencer
   },
 };
