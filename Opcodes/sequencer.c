@@ -92,7 +92,7 @@ static int32_t sequencer(CSOUND *csound, SEQ *p)
       *p->res = -FL(1.0);
       return OK;
     }
-    else if (mode == -3) i = random()%len;
+    else if (mode == -3) i = rand()%len;
     {
 
       MYFLT inst = p->instr->data[p->seq[i]];
@@ -112,8 +112,8 @@ static int32_t sequencer(CSOUND *csound, SEQ *p)
       if (mode > 0 && len>1 && p->cnt%mode == 0) {
         int r1, r2;
         do {
-          r1 = random()%len;
-          r2 = random()%len;
+          r1 = rand()%len;
+          r2 = rand()%len;
         } while (r1==r2);
         {
           int tm = p->seq[r1];
