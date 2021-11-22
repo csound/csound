@@ -1036,7 +1036,7 @@ void print_opcodedir_warning(CSOUND *p)
  - name the OENTRY array <name>, where <name> is any arbitrary name.
  - add the macro LINKAGE_BUILTIN(<name>) to the end of the file.
  - append the init function prototype below
-   extern long <name>_init(CSOUND *, void *);
+   extern int64_t <name>_init(CSOUND *, void *);
  - append the init function name <name>_init to the
    staticmodules[] array initialisation.
  - insert source code to libcsound_SRCS in../CMakeLists.txt 
@@ -1107,6 +1107,7 @@ extern int64_t select_localops_init(CSOUND *, void *);
 extern int64_t serial_localops_init(CSOUND *, void *);
 extern int64_t counter_localops_init(CSOUND *, void *);
 extern int64_t platerev_localops_init(CSOUND *, void *);
+extern int64_t sequencer_localops_init(CSOUND *, void *);
 extern int64_t pvsgendy_localops_init(CSOUND *, void *);
 extern int64_t scugens_localops_init(CSOUND *, void *);
 extern int64_t emugens_localops_init(CSOUND *, void *);
@@ -1155,7 +1156,7 @@ const INITFN staticmodules[] = { hrtfopcodes_localops_init, babo_localops_init,
                                  select_localops_init, serial_localops_init,
                                  counter_localops_init,platerev_localops_init,
                                  pvsgendy_localops_init, scugens_localops_init,
-                                 emugens_localops_init,
+                                 emugens_localops_init, sequencer_localops_init,
                                  NULL };
 
 /**
