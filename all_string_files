@@ -353,6 +353,7 @@
 ./Opcodes/scoreline.c
 ./Opcodes/select.c
 ./Opcodes/seqtime.c
+./Opcodes/sequencer.c
 ./Opcodes/serial.c
 ./Opcodes/sf.h
 ./Opcodes/sfenum.h
