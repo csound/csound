@@ -25,12 +25,17 @@
 #ifndef OPCODE_BASE_H
 #define OPCODE_BASE_H
 
+/**
+ * There is a conflict between the preprocessor definition "_CR" in the 
+ * standard C++ library and in Csound. To work around this, undefine "_CR" and 
+ * include ALL standard library include files BEFORE including ANY Csound 
+ * include files.
+ */
 #if defined(_CR)
 #undef _CR
 #endif
 
 #include <algorithm>
-#include <cmath>
 #include <cstdarg>
 #include <map>
 #include <mutex>
