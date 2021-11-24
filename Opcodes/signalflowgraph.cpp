@@ -122,9 +122,6 @@
  * causes the creation of a new function table.
  */
 
-#include "OpcodeBase.hpp"
-#include "sysdep.h"
-#include "text.h"
 #include <algorithm>
 #include <cmath>
 #include <cstdio>
@@ -132,9 +129,12 @@
 #include <functional>
 #include <iostream>
 #include <map>
-#include <pstream.h>
 #include <string>
 #include <vector>
+#include "OpcodeBase.hpp"
+#include "sysdep.h"
+#include "text.h"
+#include <pstream.h>
 
 #define SIGNALFLOWGRAPH_DEBUG 0
 
