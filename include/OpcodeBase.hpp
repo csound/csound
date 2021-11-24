@@ -21,9 +21,7 @@
     Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
     02110-1301 USA
 */
-
-#ifndef OPCODE_BASE_H
-#define OPCODE_BASE_H
+#pragma once
 
 /**
  * There is a conflict between the preprocessor definition "_CR" in the 
@@ -78,8 +76,7 @@
  * };
  */
 
-namespace csound
-{
+namespace csound {
     
 static bool diagnostics_enabled = true;
 
@@ -488,10 +485,9 @@ public:
         }
 };
 
-};
-
 #endif
 
-};
+}
 
-#endif
+
+
