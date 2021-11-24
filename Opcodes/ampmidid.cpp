@@ -24,12 +24,6 @@
 
 using namespace csound;
 
-#if defined(_CR)
-#undef _CR
-#endif
-
-#include <cmath>
-
 /**
  * Musically map MIDI velocity to peak amplitude
  * within a specified dynamic range in decibels:
