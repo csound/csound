@@ -492,4 +492,6 @@ public:
 
 #endif
 
+};
+
 #endif
