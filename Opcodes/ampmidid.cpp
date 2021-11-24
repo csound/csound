@@ -24,6 +24,10 @@
 
 using namespace csound;
 
+#if defined(_CR)
+#undef _CR
+#endif
+
 #include <cmath>
 
 /**
