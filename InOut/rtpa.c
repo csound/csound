@@ -874,8 +874,10 @@ PUBLIC int csoundModuleCreate(CSOUND *csound)
 
 PUBLIC int csoundModuleInit(CSOUND *csound)
 {
-  char    *s, drv[12];
+  char    *s = NULL;
+  char    drv[12];
   int     i;
+  memset(drv, '\0', 12);
   csound->module_list_add(csound, "pa_bl", "audio");
   csound->module_list_add(csound, "pa_cb", "audio");
   if ((s = (char*) csound->QueryGlobalVariable(csound, "_RTAUDIO")) == NULL)
