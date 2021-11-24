@@ -30,6 +30,7 @@
 #endif
 
 #include <algorithm>
+#include <cmath>
 #include <cstdarg>
 #include <map>
 #include <mutex>
