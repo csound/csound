@@ -78,7 +78,7 @@
 
 namespace csound {
     
-static bool diagnostics_enabled = true;
+static bool diagnostics_enabled = false;
 
 /**
  * Use this to guard against data races in opcode functions. The mutex should
@@ -463,7 +463,7 @@ public:
                 return nullptr;
             }
             O *object = objects_for_csound_[handle];
-            if (diagnostics_enabled) std::fprintf(stderr, "heap_object_manager_t::object_%p for_handle: %d (of %d)\n", object, handle, objects_for_csound_.size());
+            if (diagnostics_enabled) std::fprintf(stderr, "heap_object_manager_t::object_for_handle: %p %d (of %d)\n", object, handle, objects_for_csound_.size());
             return object;
         }
         /**
