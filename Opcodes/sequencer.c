@@ -1,3 +1,4 @@
+
 /*
     sequencer.c:
 
@@ -37,13 +38,14 @@ typedef struct {
                                    +ve mutate
                                    -2 pause
                                    -3 random
+                                   -5 reset
                                 */
     MYFLT       *verbos;
  // Internals
     int32_t     max_length;
-    int         cnt;            /* Count loops for mi=uator */
-    int         next;           /* net step nuber */
-    int         time;           /* time in samples to nxt step */
+    int         cnt;            /* Count loops for mutator */
+    int         next;           /* next step nuber */
+    int         time;           /* time in samples to next step */
     int         seq[64];
 } SEQ;
 
@@ -85,16 +87,23 @@ static int32_t sequencer(CSOUND *csound, SEQ *p)
     if (i >= len && mode >= 0) { // End of cycle
       i = p->next = 0;
     }
-    else if (i < 0 && mode == -1) {
+    else if (i < 0 && mode == -1) { /* backward and end of loop */
       p->next = i = len-1;
     }
-    else if (i>=len && mode == -2) {
+    else if (i>=len && mode == -2) { /* pause */
       *p->res = -FL(1.0);
       return OK;
     }
-    else if (mode == -3) i = rand()%len;
+    else if (mode == -3) i = rand()%len; /* random selection */
+    else if (mode == -5) {       /* reset */
+      p->time = 0;
+      p->cnt = 1;
+      for (i = 0; i<p->riff->sizes[0]; i++)
+        p->seq[i] = i;
+      i = p->next = 0;
+    }
+    
     {
-
       MYFLT inst = p->instr->data[p->seq[i]];
       if (inst != 0) {
         char buff[30];
@@ -102,12 +111,12 @@ static int32_t sequencer(CSOUND *csound, SEQ *p)
                 inst, 60.0/(*p->kbpm)*p->riff->data[p->seq[i]],
                 p->data->data[p->seq[i]]);
         //printf("%s", buff);
-        csoundReadScore(csound, buff);
+        csoundReadScore(csound, buff); /* schedule instr for event */
       }
       p->time = (p->riff->data[i] * csound->esr * 60.0) / *p->kbpm;
       if (*p->verbos)
-        printf("Step %d riff %d instr %d len %f\n",
-               i,p->seq[i], (int)(p->instr->data[p->seq[i]]), p->riff->data[p->seq[i]]);
+        printf("Step %d riff %d instr %0.2f len %f\n",
+               i,p->seq[i], p->instr->data[p->seq[i]], p->riff->data[p->seq[i]]);
       // Mutate every mode events
       if (mode > 0 && len>1 && p->cnt%mode == 0) {
         int r1, r2;
