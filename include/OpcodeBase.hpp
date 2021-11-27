@@ -474,14 +474,12 @@ public:
         void module_destroy(CSOUND *csound) {
             std::lock_guard<std::recursive_mutex> lock(mutex);
             auto &objects_for_csound_ = objects_for_csound(csound);
-            for (auto object : objects_for_csound_) {
-                if (object != nullptr) {
-                    delete object;
-                    object = nullptr;
-                }
+            for (int i = 0, n = objects_for_csound_.size(); i < n; ++i) {
+                delete objects_for_csound_[i];
+                objects_for_csound_[i] == nullptr;
             }
             objects_for_csound_.clear();
-            objects_.erase(csound);
+            objects().erase(csound);
         }
 };
 
