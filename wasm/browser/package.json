@@ -97,6 +97,7 @@
     "prettier": "^2.4.1",
     "selenium-webdriver": "^4.0.0",
     "serve-static": "^1.14.1",
+    "sinon": "^12.0.1",
     "zlibjs": "^0.3.1"
   },
   "dependencies": {
