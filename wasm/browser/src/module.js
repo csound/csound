@@ -1,6 +1,7 @@
 import { dlinit } from "./dlinit";
 import { WASI } from "./filesystem/wasi";
-import { csoundWasiJsMessageCallback } from "./filesystem/worker-fs";
+import { clearArray } from "./utils/clear-array";
+import { uint2String } from "./utils/text-encoders.js";
 import { logWasmModule as log } from "./logger";
 
 goog.require("Zlib");
@@ -10,6 +11,47 @@ const { assert } = goog.require("goog.asserts");
 
 const PAGE_SIZE = 65536;
 const PAGES_PER_MB = 16; // 1048576 bytes per MB / PAGE_SIZE
+
+export const csoundWasiJsMessageCallback = ({ memory, streamBuffer }) => {
+  return function (csound_, attribute, length_, offset) {
+    if (!memory) {
+      return;
+    }
+    const buf = new Uint8Array(memory.buffer, offset, length_);
+    const string = uint2String(buf);
+    const endsWithNewline = /\n$/g.test(string);
+    const startsWithNewline = /^\n/g.test(string);
+    const chunks = string.split("\n").filter((item) => item.length > 0);
+    const printableChunks = [];
+    if ((chunks.length === 0 && endsWithNewline) || startsWithNewline) {
+      printableChunks.push(streamBuffer.join(""));
+      clearArray(streamBuffer);
+    }
+    chunks.forEach((chunk, index) => {
+      // if it's last chunk
+      if (index + 1 === chunks.length) {
+        if (endsWithNewline) {
+          if (index === 0) {
+            printableChunks.push(streamBuffer.join("") + chunk);
+            clearArray(streamBuffer);
+          } else {
+            printableChunks.push(chunk);
+          }
+        } else {
+          streamBuffer.push(chunk);
+        }
+      } else if (index === 0) {
+        printableChunks.push(streamBuffer.join("") + chunk);
+        clearArray(streamBuffer);
+      } else {
+        printableChunks.push(chunk);
+      }
+    });
+    printableChunks.forEach((chunk) => {
+      console.log(chunk.replace(/(\r\n|\n|\r)/gm, ""));
+    });
+  };
+};
 
 const assertPluginExports = (pluginInstance) => {
   if (
@@ -80,13 +122,17 @@ const getBinaryHeaderData = (wasmBytes) => {
   next++;
   assert(wasmBytes[next] === "k".charCodeAt(0));
   next++;
-  // 6, size of "dylink" string = 7
-  // next += 8;
+  assert(wasmBytes[next] === ".".charCodeAt(0));
+  next++;
+  assert(wasmBytes[next] === "0".charCodeAt(0));
+  next += 3;
+
   const memorySize = getLEB();
   const memoryAlign = getLEB();
   const tableSize = getLEB();
   const tableAlign = getLEB();
   const neededDynlibsCount = getLEB();
+
   return { sectionSize, memorySize, memoryAlign, neededDynlibsCount, tableSize, tableAlign };
 };
 
@@ -125,14 +171,13 @@ export default async function ({ wasmDataURI, withPlugins = [], messagePort }) {
   if (magicData === "static") {
     return [await loadStaticWasm({ messagePort, wasmBytes, wasmFs, wasi }), wasmFs];
   }
-  const { memorySize, memoryAlign } = magicData;
-  // console.log({ magicData });
+  const { memorySize, memoryAlign, tableSize } = magicData;
 
   // get the header data from plugins which we need before
   // initializing the main module
   withPlugins = await withPlugins.reduce(async (accumulator, wasmPlugin) => {
     const accumulator_ = await accumulator;
-    let loweredWasmPluginBytes;
+
     let wasmPluginBytes;
     let pluginHeaderData;
     try {
@@ -142,7 +187,7 @@ export default async function ({ wasmDataURI, withPlugins = [], messagePort }) {
       console.error("Error in plugin", error);
     }
     if (pluginHeaderData) {
-      accumulator_.push({ headerData: pluginHeaderData, wasmPluginBytes: loweredWasmPluginBytes });
+      accumulator_.push({ headerData: pluginHeaderData, wasmPluginBytes });
     }
     return accumulator_;
   }, []);
@@ -173,11 +218,7 @@ export default async function ({ wasmDataURI, withPlugins = [], messagePort }) {
     maximum: 1024 * PAGES_PER_MB,
   });
 
-  // arbitrary value, atm no idea how to tell
-  // ahead of time exactly how large it nedds to be
-  const initialTableSize = 4225;
-
-  const table = new WebAssembly.Table({ initial: initialTableSize, element: "anyfunc" });
+  const table = new WebAssembly.Table({ initial: tableSize + 1, element: "anyfunc" });
 
   wasi.setMemory(memory);
 
@@ -232,7 +273,6 @@ export default async function ({ wasmDataURI, withPlugins = [], messagePort }) {
   options["GOT.func"] = options["GOT.func"] || {};
 
   const instance = await WebAssembly.instantiate(module, options);
-
   const moduleExports = Object.assign({}, instance.exports);
   const instance_ = {};
   instance_.exports = Object.assign(moduleExports, {

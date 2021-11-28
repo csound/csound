@@ -302,7 +302,9 @@ e
           test,
         );
         const cs = await Csound(testWithPlugin);
-        assert.equal(0, await cs.compileCsdText(cxxPluginTest));
+        console.log(testWithPlugin);
+        // assert.equal(0, await cs.compileCsdText(cxxPluginTest));
+        assert.equal(0, await cs.compileCsdText(stringChannelTest));
         await cs.start();
         await cs.stop();
         await cs.terminateInstance();

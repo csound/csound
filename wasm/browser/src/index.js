@@ -1,3 +1,4 @@
+/* eslint-disable no-unused-vars */
 import VanillaWorkerMainThread from "./mains/vanilla.main";
 import unmuteIosAudio from "unmute-ios-audio/index.js";
 import SharedArrayBufferMainThread from "./mains/sab.main";
@@ -13,8 +14,6 @@ import {
   WebkitAudioContext,
 } from "./utils";
 
-import("google-closure-library/closure/goog/base.js");
-
 const wasmDataURI = goog.require("binary.wasm");
 
 /**
@@ -24,7 +23,7 @@ const wasmDataURI = goog.require("binary.wasm");
  * @return {Promise.<CsoundObj|undefined>}
  * @suppress {misplacedTypeAnnotation}
  */
-export default async function ({
+const Csound = async function ({
   audioContext,
   inputChannelCount,
   outputChannelCount,
@@ -136,4 +135,4 @@ export default async function ({
   }
 
   return csoundWasmApi;
-}
+};

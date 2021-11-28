@@ -69,7 +69,7 @@ const compilationSequence = [
     source_map_location_mapping: "./src|/dist/src",
     postbuild: () => inlineWebworker("sab.worker.js", "worker.sab", false, []),
     output_wrapper: trimString(`(function(){%output%}).call(this);
-                    //# sourceMappingURL=/dist/__compiled.sab.worker.js.map`),
+                    //# sourceMappingURL=__compiled.sab.worker.js.map`),
   },
   {
     entry_point: "./src/workers/vanilla.worker.js",
@@ -78,7 +78,7 @@ const compilationSequence = [
     source_map_location_mapping: "./src|/dist/src",
     postbuild: () => inlineWebworker("vanilla.worker.js", "worker.vanilla", false, []),
     output_wrapper: trimString(`(function(){%output%}).call(this);
-                    //# sourceMappingURL=/dist/__compiled.vanilla.worker.js.map`),
+                    //# sourceMappingURL=__compiled.vanilla.worker.js.map`),
   },
   {
     entry_point: "./src/workers/worklet.worker.js",
@@ -89,7 +89,7 @@ const compilationSequence = [
     output_wrapper: trimString(`
     let self = AudioWorkletGlobalScope;
     %output%
-    //# sourceMappingURL=/dist/__compiled.worklet.worker.js.map`),
+    //# sourceMappingURL=__compiled.worklet.worker.js.map`),
     postbuild: () => inlineWebworker("worklet.worker.js", "worker.worklet", true, []),
     // postbuild: () => {
     //   // monkey patch away non existing self
@@ -118,7 +118,7 @@ const compilationSequence = [
     output_wrapper: trimString(`
     let self = AudioWorkletGlobalScope;
     %output%
-    //# sourceMappingURL=/dist/__compiled.worklet.singlethread.worker.js.map`),
+    //# sourceMappingURL=__compiled.worklet.singlethread.worker.js.map`),
     postbuild: () =>
       inlineWebworker("worklet.singlethread.worker.js", "worklet.singlethread.worker", true, []),
     // postbuild: () => {
@@ -142,7 +142,7 @@ const compilationSequence = [
     create_source_map: path.join(rootDir, "dist", "__compiled.old-spn.worker.js.map"),
     source_map_location_mapping: "./src|/dist/src",
     output_wrapper: trimString(`(function(){%output%}).call(this);
-                    //# sourceMappingURL=/dist/__compiled.old-spn.worker.js.map`),
+                    //# sourceMappingURL=__compiled.old-spn.worker.js.map`),
     postbuild: () => inlineWebworker("old-spn.worker.js", "worker.old_spn", false, []),
   },
   {
@@ -155,7 +155,7 @@ const compilationSequence = [
       Csound.toString = () => 'async (options) => CsoundObj;';
       export { Csound }
       export default Csound
-      //# sourceMappingURL=/dist/csound.js.map`),
+      //# sourceMappingURL=csound.js.map`),
   },
 ];
 
@@ -240,7 +240,7 @@ const compile = async (config) => {
     rewrite_polyfills: false,
     module_resolution: "NODE",
     dependency_mode: "PRUNE",
-    // force_inject_library: "base",
+    force_inject_library: "base",
     // js_module_root: "./goog/mocks",
     // js_output_file: tmpOutFileName,
     // define: "\"__LOGGER__=export * from './logger.production';\"",

@@ -82,6 +82,7 @@ class WorkletSinglethreadWorker extends AudioWorkletProcessor {
 
   async initialize(wasmDataURI, withPlugins) {
     log("initializing worklet.singlethread.worker")();
+
     let resolver;
     const waiter = new Promise((resolve) => {
       resolver = resolve;
@@ -151,7 +152,7 @@ class WorkletSinglethreadWorker extends AudioWorkletProcessor {
     libraryCsound.csoundSetMidiCallbacks(cs);
     libraryCsound.csoundSetOption(cs, "-iadc");
     libraryCsound.csoundSetOption(cs, "-odac");
-    libraryCsound.csoundSetOption(cs, "--sample-rate=" + this.sampleRate);
+    this.sampleRate && libraryCsound.csoundSetOption(cs, "--sample-rate=" + this.sampleRate);
     this.nchnls = -1;
     this.nchnls_i = -1;
     delete this.csoundOutputBuffer;

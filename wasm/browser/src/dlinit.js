@@ -1,5 +1,4 @@
 export const dlinit = (hostInstance, pluginInstance, table, csoundInstance) => {
-  console.log(pluginInstance.exports, hostInstance.exports);
   if (pluginInstance.exports.csoundModuleInit) {
     const csoundModuleCreate = new WebAssembly.Global({ value: "i32", mutable: true }, 0);
     const csoundModuleInit = new WebAssembly.Global({ value: "i32", mutable: true }, 0);
@@ -65,18 +64,12 @@ export const dlinit = (hostInstance, pluginInstance, table, csoundInstance) => {
       table.set(tableEnd, pluginInstance.exports.csound_fgen_init);
       tableEnd += 1;
     }
-    console.log(hostInstance.exports.csoundWasiLoadOpcodeLibrary, {
-      csoundInstance,
-      csoundFgenInit,
-      csoundOpcodeInit,
-    });
 
     hostInstance.exports.csoundWasiLoadOpcodeLibrary(
       csoundInstance,
       csoundFgenInit,
       csoundOpcodeInit,
     );
-    console.log("GOOD?");
   } else {
     console.error("Plugin doesn't export nececcary functions to quality as csound plugin.");
   }
