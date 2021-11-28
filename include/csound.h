@@ -265,6 +265,11 @@
 #    define PUBLIC          __declspec(dllexport)
 #    define PUBLIC_DATA     __declspec(dllimport)
 #  endif
+#elif defined(__wasi__)
+#  define PUBLIC            __attribute__((used))
+#  if !defined(PUBLIC_DATA)
+#  define PUBLIC_DATA
+#  endif
 #elif defined(__GNUC__) && (__GNUC__ >= 4) /* && !defined(__MACH__) */
 #  define PUBLIC            __attribute__ ( (visibility("default")) )
 #  define PUBLIC_DATA       __attribute__ ( (visibility("default")) )
@@ -309,7 +314,7 @@
 #  include "sysdep.h"
 #  include "text.h"
 #  include <stdarg.h>
-#  include <stdio.h>    
+#  include <stdio.h>
       %}
 #else
 #  include "sysdep.h"
@@ -465,7 +470,7 @@ extern "C" {
   /*
    * Forward declarations.
    */
-   
+
   typedef struct CSOUND_  CSOUND;
   typedef struct windat_  WINDAT;
   typedef struct xyindat_ XYINDAT;

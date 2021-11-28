@@ -1537,7 +1537,7 @@ void dag_reinit(CSOUND *csound);
 
 #ifdef PARCS
 inline static int nodePerf(CSOUND *csound, int index, int numThreads)
-{  
+{
     INSDS *insds = NULL;
     OPDS  *opstart = NULL;
     int played_count = 0;
@@ -1756,7 +1756,7 @@ int kperf_nodebug(CSOUND *csound)
       /* There are 2 partitions of work: 1st by inso,
          2nd by inso count / thread count. */
       if (csound->multiThreadedThreadInfo != NULL) {
-#ifdef PARCS        
+#ifdef PARCS
         if (csound->dag_changed) dag_build(csound, ip);
         else dag_reinit(csound);     /* set to initial state */
 
@@ -1767,7 +1767,7 @@ int kperf_nodebug(CSOUND *csound)
 
         /* wait until partition is complete */
         csound->WaitBarrier(csound->barrier2);
-#endif        
+#endif
         csound->multiThreadedDag = NULL;
       }
       else {
@@ -1775,7 +1775,7 @@ int kperf_nodebug(CSOUND *csound)
         double time_end = (csound->ksmps+csound->icurTime)/csound->esr;
 
         while (ip != NULL) {                /* for each instr active:  */
-          INSDS *nxt = ip->nxtact; 
+          INSDS *nxt = ip->nxtact;
           if (UNLIKELY(csound->oparms->sampleAccurate &&
                        ip->offtim > 0                 &&
                        time_end > ip->offtim)) {
@@ -1840,10 +1840,10 @@ int kperf_nodebug(CSOUND *csound)
                     //csound->ids->optext->t.oentry->opname;
                     error = (*opstart->opadr)(csound, opstart); /* run each opcode */
                     opstart = opstart->insdshead->pds;
-                    
+
                   }
                   csound->mode = 0;
-                  
+
                 }
             }
           }
@@ -1853,8 +1853,8 @@ int kperf_nodebug(CSOUND *csound)
           ip->ksmps_no_end = 0; /* reset end of loop samples */
           if(nxt == NULL)
              ip = ip->nxtact;
-          /* VL 13.04.21 this allows for deletions to operate 
-                              correctly on the active 
+          /* VL 13.04.21 this allows for deletions to operate
+                              correctly on the active
                               list at perf time
                               this allows for turnoff2 to work correctly
                               */
@@ -2036,7 +2036,7 @@ int kperf_debug(CSOUND *csound)
       /* There are 2 partitions of work: 1st by inso,
          2nd by inso count / thread count. */
       if (csound->multiThreadedThreadInfo != NULL) {
-#ifdef PARCS        
+#ifdef PARCS
         if (csound->dag_changed) dag_build(csound, ip);
         else dag_reinit(csound);     /* set to initial state */
 
@@ -2047,7 +2047,7 @@ int kperf_debug(CSOUND *csound)
 
         /* wait until partition is complete */
         csound->WaitBarrier(csound->barrier2);
-#endif        
+#endif
         csound->multiThreadedDag = NULL;
       }
       else {
@@ -2710,7 +2710,7 @@ void csoundErrorMsg(CSOUND *csound, const char *msg, ...)
     csoundMessageV(csound, CSOUNDMSG_ERROR, msg, args);
     va_end(args);
     //csound->MessageS(csound, CSOUNDMSG_ERROR, "\n");
-   } 
+   }
 }
 
 void csoundErrMsgV(CSOUND *csound,
@@ -2735,7 +2735,7 @@ void csoundErrorMsgS(CSOUND *csound, int attr,
     csoundMessageV(csound, CSOUNDMSG_ERROR | attr, msg, args);
     va_end(args);
     //csound->MessageS(csound, CSOUNDMSG_ERROR, "\n");
-   } 
+   }
 }
 
 
@@ -3253,7 +3253,7 @@ PUBLIC int csoundAppendOpcode(CSOUND *csound,
     add_to_symbtab(csound, &tmpEntry);
     if (UNLIKELY(err))
       csoundErrorMsg(csound, Str("Failed to allocate new opcode entry."));
- 
+
     return err;
 }
 
@@ -3466,7 +3466,7 @@ PUBLIC int csoundGetModule(CSOUND *csound, int no, char **module, char **type){
 
 PUBLIC int csoundLoadPlugins(CSOUND *csound, const char *dir){
   if (dir != NULL) {
-   csound->Message(csound, "loading plugins from %s\n", dir); 
+   csound->Message(csound, "loading plugins from %s\n", dir);
    int err = csoundLoadAndInitModules(csound, dir);
    if(!err) {
      return CSOUND_SUCCESS;
@@ -3524,7 +3524,12 @@ PUBLIC void csoundReset(CSOUND *csound)
     /* now load and pre-initialise external modules for this instance */
     /* this function returns an error value that may be worth checking */
     {
+#ifndef __wasi__ /* wasi calls csoundInitStaticModules elsewhere */
       int err = csoundInitStaticModules(csound);
+#else
+      int err = 0;
+#endif
+
       if (csound->delayederrormessages &&
           csound->printerrormessagesflag==NULL) {
         csound->Warning(csound, "%s",csound->delayederrormessages);
@@ -3541,7 +3546,7 @@ PUBLIC void csoundReset(CSOUND *csound)
      memset(modules, 0, sizeof(MODULE_INFO *)*MAX_MODULES);
 
      /* VL now load modules has opcodedir override */
-     if(opcodedir) 
+     if(opcodedir)
       csound->opcodedir = cs_strdup(csound, opcodedir);
      else
        csound->opcodedir = NULL;
@@ -3567,7 +3572,7 @@ PUBLIC void csoundReset(CSOUND *csound)
       csoundInitTimerStruct(csound->csRtClock);
       csound->engineStatus |= /*CS_STATE_COMP |*/ CS_STATE_CLN;
 
-      /* 
+      /*
         this was moved to musmon();
         print_csound_version(csound);
         print_sndfile_version(csound);

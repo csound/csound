@@ -41,6 +41,9 @@
 ./src/mains/old-spn.main.js
 ./src/dlinit.js
 ./src/filesystem/worker-fs.js
+./node_modules/google-closure-library/closure/goog/debug/error.js
+./node_modules/google-closure-library/closure/goog/dom/nodetype.js
+./node_modules/google-closure-library/closure/goog/asserts/asserts.js
 ./src/zlib/zlib.js
 ./src/zlib/util.js
 ./src/zlib/adler32.js
@@ -49,9 +52,6 @@
 ./src/zlib/inflate.js
 ./src/filesystem/constants.js
 ./node_modules/google-closure-library/closure/goog/promise/thenable.js
-./node_modules/google-closure-library/closure/goog/debug/error.js
-./node_modules/google-closure-library/closure/goog/dom/nodetype.js
-./node_modules/google-closure-library/closure/goog/asserts/asserts.js
 ./node_modules/google-closure-library/closure/goog/async/freelist.js
 ./node_modules/google-closure-library/closure/goog/async/workqueue.js
 ./node_modules/google-closure-library/closure/goog/debug/entrypointregistry.js

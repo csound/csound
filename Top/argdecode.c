@@ -83,9 +83,11 @@ void do_logging(char *s)
     if (!strcmp(s, "NULL") || !strcmp(s, "null"))
       nomessages = 1;
     else if ((logFile = fopen(s, "w")) == NULL) {
+      #ifndef __wasi__
       fprintf(stderr, Str("Error opening log file '%s': %s\n"),
               s, strerror(errno));
       exit(1);
+      #endif
     }
     /* if logging to file, set message callback */
     if (logFile != NULL)
@@ -1226,7 +1228,7 @@ static int decode_long(CSOUND *csound, char *s, int argc, char **argv)
       O->kr_default = O->sr_default/atof(s);
       return 1;
     }
-    
+
     else if (!(strcmp(s, "aft-zero"))) {
       csound->aftouch = 0;
       return 1;

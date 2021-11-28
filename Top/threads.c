@@ -156,8 +156,10 @@ PUBLIC void csoundSleep(size_t milliseconds)
 
 #endif
 
-
+#ifndef __wasi__
 #include <errno.h>
+#endif
+
 #include <pthread.h>
 #include <time.h>
 #include <unistd.h>
@@ -625,7 +627,7 @@ PUBLIC void *csoundCreateThread2(uintptr_t (*threadRoutine)(void *), unsigned in
     WaitForSingleObject(p.threadLock, INFINITE);
   CloseHandle(p.threadLock);
   return h;
-  
+
 }
 
 PUBLIC void *csoundCreateThread(uintptr_t (*threadRoutine)(void *),

@@ -2,18 +2,20 @@
 <html>
   <head>
     <title>Tests for @csound/browser</title>
-    <link rel="stylesheet" href="https://unpkg.com/mocha/mocha.css" />
+    <link rel="stylesheet" href="/mocha/mocha.css" />
   </head>
   <body>
-    <script src="https://unpkg.com/chai/chai.js"></script>
-    <script src="https://unpkg.com/mocha/mocha.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/sinon@3/pkg/sinon.js"></script>
+      <!-- <script src="https://unpkg.com/chai/chai.js"></script> -->
+      <!-- <script src="https://unpkg.com/mocha/mocha.js"></script> -->
+      <!-- <script src="https://cdn.jsdelivr.net/npm/sinon@3/pkg/sinon.js"></script> -->
+      <script src="/mocha/mocha.js"></script>
+      <script src="/chai/chai.js"></script>
 
     <script>
       window.assert = chai.assert;
     </script>
     <div id="mocha"></div>
-    <script src="https://cdn.jsdelivr.net/npm/mocha-webdriver-runner@0.6.3/dist/mocha-webdriver-client.js"></script>
+    <!-- <script src="https://cdn.jsdelivr.net/npm/mocha-webdriver-runner@0.6.3/dist/mocha-webdriver-client.js"></script> -->
     <script type="module" src="tests.js"></script>
     <!-- <script type="module">
          const url = "/dist/csound.js";

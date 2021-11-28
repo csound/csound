@@ -72,10 +72,10 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <errno.h>
 
 #if !(defined (__wasi__))
 #include <setjmp.h>
+#include <errno.h>
 #endif
 
 #include "csoundCore.h"
@@ -316,7 +316,7 @@ void csoundWasiLoadOpcodeLibrary(CSOUND *csound, void *fgenInitFunc, void *opcod
     }
 
     if (opcodeInitFunc) {
-        module->fn.o.opcode_init = (long (*)(CSOUND *, OENTRY **)) opcodeInitFunc;
+        module->fn.o.opcode_init = (int64_t (*)(CSOUND *, OENTRY **)) opcodeInitFunc;
     }
 
     module->nxt = (csoundModule_t*) csound->csmodule_db;
@@ -1214,11 +1214,11 @@ extern int64_t pvsgendy_localops_init(CSOUND *, void *);
 extern int64_t scugens_localops_init(CSOUND *, void *);
 extern int64_t emugens_localops_init(CSOUND *, void *);
 
-extern int stdopc_ModuleInit(CSOUND *csound);
-extern int pvsopc_ModuleInit(CSOUND *csound);
-extern int sfont_ModuleInit(CSOUND *csound);
-extern int sfont_ModuleCreate(CSOUND *csound);
-extern int newgabopc_ModuleInit(CSOUND *csound);
+extern int32_t stdopc_ModuleInit(CSOUND *csound);
+extern int32_t pvsopc_ModuleInit(CSOUND *csound);
+extern int32_t sfont_ModuleInit(CSOUND *csound);
+extern int32_t sfont_ModuleCreate(CSOUND *csound);
+extern int32_t newgabopc_ModuleInit(CSOUND *csound);
 
 const INITFN staticmodules[] = { hrtfopcodes_localops_init, babo_localops_init,
                                  bilbar_localops_init, vosim_localops_init,
@@ -1242,23 +1242,28 @@ const INITFN staticmodules[] = { hrtfopcodes_localops_init, babo_localops_init,
 #ifdef LINUX
                                  cpumeter_localops_init,
 #endif
+
 #if !defined(NACL) && !defined(__wasi__)
-                                 counter_localops_init, date_localops_init,
-                                 emugens_localops_init, mp3in_localops_init,
-                                 serial_localops_init, sterrain_localops_init,
-                                 sockrecv_localops_init, socksend_localops_init,
-                                 system_localops_init, liveconv_localops_init,
-                                 scugens_localops_init,
+                                 counter_localops_init,
+                                 sockrecv_localops_init,
+                                 socksend_localops_init,
+                                 system_localops_init,
+                                 serial_localops_init,
+                                 mp3in_localops_init,
 #endif
                                  scnoise_localops_init, afilts_localops_init,
                                  pinker_localops_init, gendy_localops_init,
                                  wpfilters_localops_init, zak_localops_init,
-                                 lufs_localops_init, gamma_localops_init,
+                                 lufs_localops_init, sterrain_localops_init,
+                                 date_localops_init,
+                                 liveconv_localops_init, gamma_localops_init,
                                  framebuffer_localops_init, cell_localops_init,
                                  exciter_localops_init, buchla_localops_init,
-                                 select_localops_init, counter_localops_init,
-                                 platerev_localops_init, pvsgendy_localops_init,
-                                 sequencer_localops_init, NULL };
+                                 select_localops_init,
+                                 platerev_localops_init,
+                                 pvsgendy_localops_init, scugens_localops_init,
+                                 emugens_localops_init, sequencer_localops_init,
+                                 NULL };
 
 /**
  Builtin linkage for C fgens - Instructions:
@@ -1282,16 +1287,17 @@ CS_NOINLINE int csoundInitStaticModules(CSOUND *csound)
 {
     int     i;
     OENTRY  *opcodlst_n;
-    int64_t    length;
+    int32_t length;
 
     for (i=0; staticmodules[i]!=NULL; i++) {
+      csoundMessage(csound, Str("NUMBER '%i'\n"), (int) staticmodules[i]);
       length = (staticmodules[i])(csound, &opcodlst_n);
 
       if (UNLIKELY(length <= 0L)) return CSOUND_ERROR;
-      length /= (int64_t) sizeof(OENTRY);
+      length /= (int32_t) sizeof(OENTRY);
       if (length) {
-        if (UNLIKELY(csoundAppendOpcodes(csound, opcodlst_n,
-                                           (int) length) != 0))
+        csoundMessage(csound, Str("LENGTH '%i' OCDLISTN '%i'\n"), (int) opcodlst_n, (int) length);
+        if (UNLIKELY(csoundAppendOpcodes(csound, opcodlst_n, length) != 0))
           return CSOUND_ERROR;
       }
     }

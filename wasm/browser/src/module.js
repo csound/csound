@@ -4,6 +4,7 @@
 import { dlinit } from "./dlinit";
 import { csoundWasiJsMessageCallback } from "./filesystem/worker-fs";
 import { logWasmModule as log } from "./logger";
+const { assert } = goog.require("goog.asserts");
 goog.require("Zlib");
 goog.require("Zlib.Inflate");
 goog.require("csound.filesystem.WASI");
@@ -66,9 +67,23 @@ const getBinaryHeaderData = (wasmBytes) => {
     }
     return returnValue;
   }
+
   const sectionSize = getLEB();
+  next++; // size of "dylink" string
+  assert(wasmBytes[next] === "d".charCodeAt(0));
+  next++;
+  assert(wasmBytes[next] === "y".charCodeAt(0));
+  next++;
+  assert(wasmBytes[next] === "l".charCodeAt(0));
+  next++;
+  assert(wasmBytes[next] === "i".charCodeAt(0));
+  next++;
+  assert(wasmBytes[next] === "n".charCodeAt(0));
+  next++;
+  assert(wasmBytes[next] === "k".charCodeAt(0));
+  next++;
   // 6, size of "dylink" string = 7
-  next += 7;
+  // next += 8;
   const memorySize = getLEB();
   const memoryAlign = getLEB();
   const tableSize = getLEB();
@@ -111,17 +126,18 @@ export default async function ({
   const wasmCompressed = new Uint8Array(wasmDataURI);
   const wasmZlib = new Zlib.Inflate(wasmCompressed);
 
-  const wasmInflated = wasmZlib.decompress();
-  const wasmBytes = await csound.utils.transform_imports.lowerI64Imports(
-    wasmInflated,
-    wasmTransformerDataURI,
-  );
+  const wasmBytes = wasmZlib.decompress();
+  // const wasmBytes = await csound.utils.transform_imports.lowerI64Imports(
+  //   wasmInflated,
+  //   wasmTransformerDataURI,
+  // );
 
-  const magicData = getBinaryHeaderData(wasmInflated);
+  const magicData = getBinaryHeaderData(wasmBytes);
   if (magicData === "static") {
     return [await loadStaticWasm({ messagePort, wasmBytes, wasmFs, wasi }), wasmFs];
   }
-  const { memorySize, memoryAlign, tableSize } = magicData;
+  let { memorySize, memoryAlign } = magicData;
+  // console.log({ magicData });
 
   // get the header data from plugins which we need before
   // initializing the main module
@@ -172,7 +188,11 @@ export default async function ({
     maximum: 1024 * PAGES_PER_MB,
   });
 
-  const table = new WebAssembly.Table({ initial: tableSize + 1, element: "anyfunc" });
+  // arbitrary value, atm no idea how to tell
+  // ahead of time exactly how large it nedds to be
+  const initialTableSize = 4225;
+
+  const table = new WebAssembly.Table({ initial: initialTableSize, element: "anyfunc" });
 
   wasi.setMemory(memory);
 
@@ -193,6 +213,7 @@ export default async function ({
   let withPlugins_ = [];
 
   const csoundLoadModules = (csoundInstance) => {
+    console.log("CALL", withPlugins_);
     withPlugins_.forEach((pluginInstance) => {
       if (typeof instance !== "undefined") {
         dlinit(instance, pluginInstance, table, csoundInstance);
@@ -211,6 +232,9 @@ export default async function ({
   options.env.__table_base = tableBase;
   options.env.csoundLoadModules = csoundLoadModules;
 
+  // TODO find out what's leaking this thread-local errno (cpp?)
+  options.env._ZTH5errno = function () {};
+
   const streamBuffer = [];
   options.env.csoundWasiJsMessageCallback = csoundWasiJsMessageCallback({
     memory,
@@ -222,7 +246,7 @@ export default async function ({
   options["GOT.mem"].__heap_base = heapBase;
 
   options["GOT.func"] = options["GOT.func"] || {};
-
+  console.log({ module, options });
   const instance = await WebAssembly.instantiate(module, options);
 
   const moduleExports = Object.assign({}, instance.exports);

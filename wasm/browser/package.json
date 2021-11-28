@@ -63,7 +63,7 @@
     "build": "node compile.js",
     "build:readme": "node --experimental-modules script/generate-readme.mjs > README.md",
     "test:ci": "node tests/selenium_runner.js",
-    "test:open": "http-server ./tests -c-1 --cors --no-dotfiles"
+    "test:open": "node tests/server.cjs"
   },
   "devDependencies": {
     "@babel/core": "^7.16.0",
@@ -71,6 +71,7 @@
     "@babel/plugin-transform-destructuring": "^7.16.0",
     "@csound/wasm-bin": "6.16.0-beta4",
     "browser-or-node": "^2.0.0",
+    "chai": "^4.3.4",
     "cross-env": "^7.0.3",
     "eslint": "^8.2.0",
     "eslint-config-prettier": "^8.3.0",
@@ -83,6 +84,7 @@
     "eslint-plugin-ramda": "^2.5.1",
     "eslint-plugin-standard": "^5.0.0",
     "eslint-plugin-unicorn": "^38.0.1",
+    "finalhandler": "^1.1.2",
     "http-server": "^14.0.0",
     "jsdoc": "^3.6.7",
     "jsdoc-export-default-interop": "^0.3.1",
@@ -94,11 +96,11 @@
     "mocha-webdriver-runner": "^0.6.3",
     "prettier": "^2.4.1",
     "selenium-webdriver": "^4.0.0",
+    "serve-static": "^1.14.1",
     "zlibjs": "^0.3.1"
   },
   "dependencies": {
     "@wasmer/wasm-transformer": "^0.12.0",
-    "buffer-es6": "^4.9.3",
     "comlink": "^4.3.1",
     "eventemitter3": "^4.0.7",
     "google-closure-compiler": "^20211107.0.0",

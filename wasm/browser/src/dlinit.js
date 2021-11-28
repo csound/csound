@@ -1,4 +1,5 @@
 export const dlinit = (hostInstance, pluginInstance, table, csoundInstance) => {
+  console.log(pluginInstance.exports, hostInstance.exports);
   if (pluginInstance.exports.csoundModuleInit) {
     const csoundModuleCreate = new WebAssembly.Global({ value: "i32", mutable: true }, 0);
     const csoundModuleInit = new WebAssembly.Global({ value: "i32", mutable: true }, 0);
@@ -48,27 +49,35 @@ export const dlinit = (hostInstance, pluginInstance, table, csoundInstance) => {
   } else if (pluginInstance.exports.csound_opcode_init || pluginInstance.exports.csound_fgen_init) {
     const csoundOpcodeInit = new WebAssembly.Global({ value: "i32", mutable: true }, 0);
     const csoundFgenInit = new WebAssembly.Global({ value: "i32", mutable: true }, 0);
-    let tableEnd = table.length;
 
+    let tableEnd = table.length;
+    console.log(pluginInstance.exports.csound_opcode_init);
+    console.log(pluginInstance.exports.csound_opcode_init(csoundInstance, null));
     if (typeof pluginInstance.exports.csound_opcode_init === "function") {
-      table.grow(1);
       csoundOpcodeInit.value = tableEnd;
+      table.grow(1);
       table.set(tableEnd, pluginInstance.exports.csound_opcode_init);
       tableEnd += 1;
     }
 
     if (typeof pluginInstance.exports.csound_fgen_init === "function") {
-      table.grow(1);
       csoundFgenInit.value = tableEnd;
+      table.grow(1);
       table.set(tableEnd, pluginInstance.exports.csound_fgen_init);
       tableEnd += 1;
     }
+    console.log(hostInstance.exports.csoundWasiLoadOpcodeLibrary, {
+      csoundInstance,
+      csoundFgenInit,
+      csoundOpcodeInit,
+    });
 
     hostInstance.exports.csoundWasiLoadOpcodeLibrary(
       csoundInstance,
       csoundFgenInit,
       csoundOpcodeInit,
     );
+    console.log("GOOD?");
   } else {
     console.error("Plugin doesn't export nececcary functions to quality as csound plugin.");
   }
