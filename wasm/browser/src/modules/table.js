@@ -1,9 +1,8 @@
+import { uint2String } from "../utils/text-encoders.js";
 /*
    csound table module from <csound.h>
    https://csound.com/docs/api/group___t_a_b_l_e.html
 */
-
-goog.require("csound.utils.text_encoders");
 
 /**
  * Returns the length of a function table

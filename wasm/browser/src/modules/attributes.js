@@ -1,18 +1,13 @@
+/* eslint-disable unicorn/prevent-abbreviations */
+import { freeStringPtr, string2ptr } from "../utils/string-pointers.js";
+import { structBufferToObject } from "../utils/structure-buffer-to-object.js";
+import { sizeofStruct } from "../utils/native-sizes.js";
+import { CSOUND_PARAMS } from "../structures.js";
+
 /*
    csound attribute module from <csound.h>
    https://csound.com/docs/api/modules.html
 */
-
-/* eslint-disable unicorn/prevent-abbreviations */
-
-goog.require('csound.structures');
-goog.require('csound.utils.native_sizes');
-goog.require('csound.utils.string_pointers');
-goog.require('csound.utils.structure_buffer_to_object');
-;
-;
-;
-;
 
 /**
  * Returns the sample rate from Csound instance

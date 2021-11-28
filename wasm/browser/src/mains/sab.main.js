@@ -1,4 +1,3 @@
-goog.require('worker.sab');
 import * as Comlink from "comlink/dist/esm/comlink.mjs";
 import { api as API } from "../libcsound";
 import { messageEventHandler, IPCMessagePorts } from "./messages.main";
@@ -162,10 +161,8 @@ class SharedArrayBufferMainThread {
           `event: realtimePerformanceStarted received,` +
             ` proceeding to call prepareRealtimePerformance`,
         )();
-        this.prepareRealtimePerformance
-          .call(this)
-          .then(() => this.publicEvents.triggerRealtimePerformanceStarted(this))
-          .catch(console.error);
+        await this.prepareRealtimePerformance.catch(console.error);
+        this.publicEvents.triggerRealtimePerformanceStarted(this);
 
         break;
       }
@@ -184,6 +181,7 @@ class SharedArrayBufferMainThread {
         initialSharedState.forEach((value, index) => {
           Atomics.store(this.audioStatePointer, index, value);
         });
+        break;
       }
       case "realtimePerformancePaused": {
         this.publicEvents.triggerRealtimePerformancePaused(this);
@@ -211,8 +209,7 @@ class SharedArrayBufferMainThread {
 
     // forward the message from worker to the audioWorker
     try {
-      // console.log("this?", this);
-      await this.audioWorker.onPlayStateChange.call(this.audioWorker, newPlayState);
+      await this.audioWorker.onPlayStateChange(newPlayState);
     } catch (error) {
       console.error(error);
     }
@@ -280,6 +277,7 @@ class SharedArrayBufferMainThread {
               apiKey: this.callbackBuffer[id].apiKey,
               argumentz: this.callbackBuffer[id].argumentz,
             })),
+            "*",
           );
       } else if (event.data === "releaseStop") {
         this.onPlayStateChange(
@@ -382,7 +380,7 @@ class SharedArrayBufferMainThread {
             await this.eventPromises.waitForStart();
 
             this.ipcMessagePorts &&
-              this.ipcMessagePorts.sabMainCallbackReply.postMessage({ unlock: true });
+              this.ipcMessagePorts.sabMainCallbackReply.postMessage({ unlock: true }, "*");
 
             return startResult;
           };
@@ -484,7 +482,7 @@ class SharedArrayBufferMainThread {
                     reject(
                       new Error(`Worker timed out so ${csoundApiRename(apiKey)}() wasn't called!`),
                     ),
-                  10_000,
+                  10000,
                 );
                 const resolveCallback = (answer) => {
                   clearTimeout(timeout);

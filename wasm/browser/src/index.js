@@ -1,4 +1,3 @@
-import * as Comlink from "comlink/dist/esm/comlink.mjs";
 import VanillaWorkerMainThread from "./mains/vanilla.main";
 import unmuteIosAudio from "unmute-ios-audio/index.js";
 import SharedArrayBufferMainThread from "./mains/sab.main";
@@ -14,7 +13,7 @@ import {
   WebkitAudioContext,
 } from "./utils";
 
-require("google-closure-library/closure/goog/base.js");
+import("google-closure-library/closure/goog/base.js");
 
 const wasmDataURI = goog.require("binary.wasm");
 
@@ -25,7 +24,7 @@ const wasmDataURI = goog.require("binary.wasm");
  * @return {Promise.<CsoundObj|undefined>}
  * @suppress {misplacedTypeAnnotation}
  */
-async function Csound({
+export default async function ({
   audioContext,
   inputChannelCount,
   outputChannelCount,

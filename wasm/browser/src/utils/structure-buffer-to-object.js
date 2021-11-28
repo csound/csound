@@ -1,12 +1,8 @@
-/* global csound:writable */
+import { sizeOfPrimitive } from "./native-sizes.js";
+import { uint2String } from "./text-encoders.js";
+import { trimNull } from "./trim-null.js";
 
-goog.provide("csound.utils.structure_buffer_to_object");
-
-goog.require("csound.utils.native_sizes");
-goog.require("csound.utils.text_encoders");
-goog.require("csound.utils.trim_null");
-
-const structBufferToObject = (jsStruct, buffer) => {
+export const structBufferToObject = (jsStruct, buffer) => {
   const [result] = jsStruct.reduce(
     ([parameters, offset], [parameterName, primitive, ...rest]) => {
       const currentSize =
@@ -22,5 +18,3 @@ const structBufferToObject = (jsStruct, buffer) => {
   );
   return result;
 };
-
-csound.utils.struct_buffer_to_object = { structBufferToObject };

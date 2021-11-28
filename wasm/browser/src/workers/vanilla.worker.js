@@ -1,3 +1,4 @@
+/* eslint-disable unicorn/require-post-message-target-origin */
 import { expose } from "comlink/dist/esm/comlink.mjs";
 import MessagePortState from "../utils/message-port-state";
 // import { initFS, getWorkerFs, syncWorkerFs } from "../filesystem/worker-fs";
@@ -166,10 +167,10 @@ const initMessagePort = ({ port }) => {
   log(`initMessagePort`)();
   const workerMessagePort = new MessagePortState();
   workerMessagePort.port = port;
-  workerMessagePort.post = (messageLog) => port.postMessage({ log: messageLog }, "*");
+  workerMessagePort.post = (messageLog) => port.postMessage({ log: messageLog });
   workerMessagePort.broadcastPlayState = (playStateChange) => {
     workerMessagePort.vanillaWorkerState = playStateChange;
-    port.postMessage({ playStateChange }, "*");
+    port.postMessage({ playStateChange });
   };
   workerMessagePort.ready = true;
   return workerMessagePort;
@@ -180,14 +181,11 @@ const initRequestPort = ({ csoundWorkerFrameRequestPort, workerMessagePort }) =>
   csoundWorkerFrameRequestPort.addEventListener("message", (requestEvent) => {
     const { framesLeft = 0, audioPacket } =
       generateAudioFrames(requestEvent.data, workerMessagePort) || {};
-    csoundWorkerFrameRequestPort.postMessage(
-      {
-        numFrames: requestEvent.data.numFrames - framesLeft,
-        audioPacket,
-        ...requestEvent.data,
-      },
-      "*",
-    );
+    csoundWorkerFrameRequestPort.postMessage({
+      numFrames: requestEvent.data.numFrames - framesLeft,
+      audioPacket,
+      ...requestEvent.data,
+    });
   });
   csoundWorkerFrameRequestPort.start();
   return csoundWorkerFrameRequestPort;

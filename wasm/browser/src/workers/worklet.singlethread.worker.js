@@ -1,3 +1,4 @@
+/* eslint-disable unicorn/require-post-message-target-origin */
 /*
     worklet.singlethread.worker.js
 
@@ -62,13 +63,12 @@ class WorkletSinglethreadWorker extends AudioWorkletProcessor {
     this.workerMessagePort = new MessagePortState();
 
     this.initializeMessagePort = ({ messagePort, rtmidiPort }) => {
-      this.workerMessagePort.post = (messageLog) =>
-        messagePort.postMessage({ log: messageLog }, "*");
+      this.workerMessagePort.post = (messageLog) => messagePort.postMessage({ log: messageLog });
       this.workerMessagePort.broadcastPlayState = (playStateChange) => {
         if (this.workerMessagePort.workerState !== playStateChange) {
           this.workerMessagePort.workerState = playStateChange;
         }
-        messagePort.postMessage({ playStateChange }, "*");
+        messagePort.postMessage({ playStateChange });
       };
       this.workerMessagePort.ready = true;
       log(`initRtMidiEventPort`)();
@@ -80,7 +80,7 @@ class WorkletSinglethreadWorker extends AudioWorkletProcessor {
     };
   }
 
-  async initialize(wasmDataURI, wasmTransformerDataURI, withPlugins) {
+  async initialize(wasmDataURI, withPlugins) {
     log("initializing worklet.singlethread.worker")();
     let resolver;
     const waiter = new Promise((resolve) => {
@@ -89,7 +89,6 @@ class WorkletSinglethreadWorker extends AudioWorkletProcessor {
 
     loadWasm({
       wasmDataURI,
-      wasmTransformerDataURI,
       withPlugins,
       messagePort: this.workerMessagePort,
     }).then(([wasm, wasi]) => {

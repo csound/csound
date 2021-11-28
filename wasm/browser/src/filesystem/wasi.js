@@ -1,7 +1,6 @@
-goog.provide("csound.filesystem.WASI");
+import { encoder, decoder } from "../utils/text-encoders.js";
+import * as constants from "./constants.js";
 
-goog.require("csound.filesystem.constants");
-goog.require("csound.utils.text_encoders");
 goog.require("goog.async.Deferred");
 goog.require("goog.fs");
 goog.require("goog.fs.DirectoryEntry.Behavior");
@@ -13,9 +12,7 @@ const DEBUG_WASI = goog.define("DEBUG_WASI", false);
 
 function shouldOpenReader(rights) {
   return (
-    (rights &
-      (csound.filesystem.constants.WASI_RIGHT_FD_READ |
-        csound.filesystem.constants.WASI_RIGHT_FD_READDIR)) !==
+    (rights & (constants.WASI_RIGHT_FD_READ | constants.WASI_RIGHT_FD_READDIR)) !==
     goog.global.BigInt(0)
   );
 }
@@ -29,7 +26,7 @@ function performanceNowPoly() {
   }
 }
 
-csound.filesystem.WASI = function ({ preopens }) {
+export const WASI = function ({ preopens }) {
   this.fd = {
     0: { fd: 0, path: "/dev/stdin", seekPos: goog.global.BigInt(0) },
     1: { fd: 1, path: "/dev/stdout", seekPos: goog.global.BigInt(0) },
@@ -49,7 +46,7 @@ csound.filesystem.WASI = function ({ preopens }) {
  * @function
  * @param {!WebAssembly.Instance} instance
  */
-csound.filesystem.WASI.prototype.start = function (instance) {
+WASI.prototype.start = function (instance) {
   this.CPUTIME_START = performanceNowPoly();
   const exports = instance.exports;
   exports._start();
@@ -59,7 +56,7 @@ csound.filesystem.WASI.prototype.start = function (instance) {
  * @function
  * @param {!WebAssembly.Module} instance
  */
-csound.filesystem.WASI.prototype.getImports = function (module) {
+WASI.prototype.getImports = function (module) {
   const options = {};
   const neededImports = WebAssembly.Module.imports(module);
 
@@ -79,7 +76,7 @@ csound.filesystem.WASI.prototype.getImports = function (module) {
  * @function
  * @param {!WebAssembly.Memory} memory
  */
-csound.filesystem.WASI.prototype.setMemory = function (memory) {
+WASI.prototype.setMemory = function (memory) {
   this.memory = memory;
 };
 
@@ -87,29 +84,29 @@ csound.filesystem.WASI.prototype.setMemory = function (memory) {
  * @function
  * @return {DataView}
  */
-csound.filesystem.WASI.prototype.getMemory = function () {
+WASI.prototype.getMemory = function () {
   if (!this.view || this.view.buffer.byteLength === 0) {
     this.view = new DataView(this.memory.buffer);
   }
   return this.view;
 };
 
-csound.filesystem.WASI.prototype.msToNs = function (ms) {
+WASI.prototype.msToNs = function (ms) {
   const msInt = Math.trunc(ms);
   const decimal = goog.global.BigInt(Math.round((ms - msInt) * 1000000));
   const ns = goog.global.BigInt(msInt) * goog.global.BigInt(1000000);
   return ns + decimal;
 };
 
-csound.filesystem.WASI.prototype.now = function (clockId) {
+WASI.prototype.now = function (clockId) {
   switch (clockId) {
-    case csound.filesystem.constants.WASI_CLOCK_MONOTONIC:
-      // case csound.filesystem.constants.WASI_CLOCK_REALTIME:
+    case constants.WASI_CLOCK_MONOTONIC:
+      // case constants.WASI_CLOCK_REALTIME:
       return Math.floor(performanceNowPoly());
-    case csound.filesystem.constants.WASI_CLOCK_REALTIME:
+    case constants.WASI_CLOCK_REALTIME:
       return this.msToNs(Date.now());
-    case csound.filesystem.constants.WASI_CLOCK_PROCESS_CPUTIME_ID:
-    case csound.filesystem.constants.WASI_CLOCK_THREAD_CPUTIME_ID:
+    case constants.WASI_CLOCK_PROCESS_CPUTIME_ID:
+    case constants.WASI_CLOCK_THREAD_CPUTIME_ID:
       // return bindings.hrtime(CPUTIME_START)
       return Math.floor(performanceNowPoly() - this.CPUTIME_START);
     default:
@@ -117,96 +114,92 @@ csound.filesystem.WASI.prototype.now = function (clockId) {
   }
 };
 
-csound.filesystem.WASI.prototype.args_get = function (argv, argvBuf) {
+WASI.prototype.args_get = function (argv, argvBuf) {
   if (DEBUG_WASI) {
-    console.log("args_get", argv, argvBuf, csound.filesystem.constants);
+    console.log("args_get", argv, argvBuf, constants);
   }
-  return csound.filesystem.constants.WASI_ESUCCESS;
+  return constants.WASI_ESUCCESS;
 };
-csound.filesystem.WASI.prototype.args_sizes_get = function (argc, argvBufSize) {
+WASI.prototype.args_sizes_get = function (argc, argvBufSize) {
   if (DEBUG_WASI) {
     console.log("args_sizes_get", argc, argvBufSize, arguments);
   }
-  return csound.filesystem.constants.WASI_ESUCCESS;
+  return constants.WASI_ESUCCESS;
 };
-csound.filesystem.WASI.prototype.clock_res_get = function (clockId, resolution) {
+WASI.prototype.clock_res_get = function (clockId, resolution) {
   if (DEBUG_WASI) {
     console.log("args_get", clockId, resolution, arguments);
   }
-  return csound.filesystem.constants.WASI_ESUCCESS;
+  return constants.WASI_ESUCCESS;
 };
-csound.filesystem.WASI.prototype.clock_time_get = function (clockId, precision, time) {
+WASI.prototype.clock_time_get = function (clockId, precision, time) {
   if (DEBUG_WASI) {
     console.log("clock_time_get", clockId, precision, time, arguments);
   }
   const memory = this.getMemory();
   const nextTime = this.now(clockId);
   memory.setBigUint64(time, goog.global.BigInt(nextTime), true);
-  return csound.filesystem.constants.WASI_ESUCCESS;
+  return constants.WASI_ESUCCESS;
 };
-csound.filesystem.WASI.prototype.environ_get = function (environ, environBuf) {
+WASI.prototype.environ_get = function (environ, environBuf) {
   if (DEBUG_WASI) {
     console.log("environ_get", environ, environBuf, arguments);
   }
-  return csound.filesystem.constants.WASI_ESUCCESS;
+  return constants.WASI_ESUCCESS;
 };
-csound.filesystem.WASI.prototype.environ_sizes_get = function (environCount, environBufSize) {
+WASI.prototype.environ_sizes_get = function (environCount, environBufSize) {
   if (DEBUG_WASI) {
     console.log("environ_sizes_get", environCount, environBufSize, arguments);
   }
-  return csound.filesystem.constants.WASI_ESUCCESS;
+  return constants.WASI_ESUCCESS;
 };
-csound.filesystem.WASI.prototype.fd_advise = function (fd, offset, length_, advice) {
+WASI.prototype.fd_advise = function (fd, offset, length_, advice) {
   if (DEBUG_WASI) {
     console.log("fd_advise", fd, offset, length_, advice, arguments);
   }
-  return csound.filesystem.constants.WASI_ENOSYS;
+  return constants.WASI_ENOSYS;
 };
-csound.filesystem.WASI.prototype.fd_allocate = function (fd, offset, length_) {
+WASI.prototype.fd_allocate = function (fd, offset, length_) {
   if (DEBUG_WASI) {
     console.log("fd_allocate", fd, offset, length_, arguments);
   }
-  return csound.filesystem.constants.WASI_ENOSYS;
+  return constants.WASI_ENOSYS;
 };
-csound.filesystem.WASI.prototype.fd_close = function (fd) {
+WASI.prototype.fd_close = function (fd) {
   if (DEBUG_WASI) {
     console.log("fd_close", fd, arguments);
   }
 
-  return csound.filesystem.constants.WASI_ESUCCESS;
+  return constants.WASI_ESUCCESS;
 };
-csound.filesystem.WASI.prototype.fd_datasync = function (fd) {
+WASI.prototype.fd_datasync = function (fd) {
   if (DEBUG_WASI) {
     console.log("fd_datasync", fd, arguments);
   }
-  return csound.filesystem.constants.WASI_ESUCCESS;
+  return constants.WASI_ESUCCESS;
 };
 
 // always write access in browser scope
-csound.filesystem.WASI.prototype.fd_fdstat_get = function (fd, bufPtr) {
+WASI.prototype.fd_fdstat_get = function (fd, bufPtr) {
   if (DEBUG_WASI) {
     console.log("fd_fdstat_get", fd, bufPtr, arguments);
   }
-  return csound.filesystem.constants.WASI_ESUCCESS;
+  return constants.WASI_ESUCCESS;
 };
-csound.filesystem.WASI.prototype.fd_fdstat_set_flags = function (fd, flags) {
+WASI.prototype.fd_fdstat_set_flags = function (fd, flags) {
   if (DEBUG_WASI) {
     console.log("fd_fdstat_set_flags", fd, flags, arguments);
   }
-  return csound.filesystem.constants.WASI_ENOSYS;
+  return constants.WASI_ENOSYS;
 };
-csound.filesystem.WASI.prototype.fd_fdstat_set_rights = function (
-  fd,
-  fsRightsBase,
-  fsRightsInheriting,
-) {
+WASI.prototype.fd_fdstat_set_rights = function (fd, fsRightsBase, fsRightsInheriting) {
   if (DEBUG_WASI) {
     console.log("fd_fdstat_set_rights", fd, fsRightsBase, fsRightsInheriting, arguments);
   }
-  return csound.filesystem.constants.WASI_ESUCCESS;
+  return constants.WASI_ESUCCESS;
 };
 
-csound.filesystem.WASI.prototype.fd_filestat_get = function (fd, bufPtr) {
+WASI.prototype.fd_filestat_get = function (fd, bufPtr) {
   if (DEBUG_WASI) {
     console.log("fd_filestat_get", fd, bufPtr, arguments);
   }
@@ -223,7 +216,7 @@ csound.filesystem.WASI.prototype.fd_filestat_get = function (fd, bufPtr) {
   bufPtr += 8;
   memory.setBigUint64(bufPtr, goog.global.BigInt(fd), true);
   bufPtr += 8;
-  memory.setUint8(bufPtr, csound.filesystem.constants.WASI_FILETYPE_REGULAR_FILE);
+  memory.setUint8(bufPtr, constants.WASI_FILETYPE_REGULAR_FILE);
   bufPtr += 8;
   memory.setBigUint64(bufPtr, goog.global.BigInt(1), true);
   bufPtr += 8;
@@ -235,66 +228,67 @@ csound.filesystem.WASI.prototype.fd_filestat_get = function (fd, bufPtr) {
   bufPtr += 8;
   memory.setBigUint64(bufPtr, this.msToNs(this.CPUTIME_START), true);
 
-  return csound.filesystem.constants.WASI_ESUCCESS;
+  return constants.WASI_ESUCCESS;
 };
 
-csound.filesystem.WASI.prototype.fd_filestat_set_size = function (fd, newSize) {
+WASI.prototype.fd_filestat_set_size = function (fd, newSize) {
   if (DEBUG_WASI) {
     console.log("fd_filestat_set_size", fd, newSize, arguments);
   }
-  return csound.filesystem.constants.WASI_ESUCCESS;
+  return constants.WASI_ESUCCESS;
 };
-csound.filesystem.WASI.prototype.fd_filestat_set_times = function (
-  fd,
-  stAtim,
-  stMtim,
-  filestatFags,
-) {
+
+WASI.prototype.fd_filestat_set_times = function (fd, stAtim, stMtim, filestatFags) {
   if (DEBUG_WASI) {
     console.log("fd_filestat_set_times", fd, stAtim, stMtim, filestatFags, arguments);
   }
-  return csound.filesystem.constants.WASI_ESUCCESS;
+  return constants.WASI_ESUCCESS;
 };
-csound.filesystem.WASI.prototype.fd_pread = function (fd, iovs, iovsLength, offset, nread) {
+
+WASI.prototype.fd_pread = function (fd, iovs, iovsLength, offset, nread) {
   if (DEBUG_WASI) {
     console.log("fd_pread", fd, iovs, iovsLength, offset, nread, arguments);
   }
-  return csound.filesystem.constants.WASI_ESUCCESS;
+  return constants.WASI_ESUCCESS;
 };
-csound.filesystem.WASI.prototype.fd_prestat_dir_name = function (fd, pathPtr, pathLength) {
+
+WASI.prototype.fd_prestat_dir_name = function (fd, pathPtr, pathLength) {
   if (DEBUG_WASI) {
     console.log("fd_prestat_dir_name", fd, pathPtr, pathLength);
   }
   if (!this.fd[fd] && !this.fd[fd - 1]) {
-    return csound.filesystem.constants.WASI_EBADF;
+    return constants.WASI_EBADF;
   }
 
-  const { path: dirName } = this.fd[fd];
+  const { path: directoryName } = this.fd[fd];
 
   const memory = this.getMemory();
 
-  const dirNameBuf = encoder.encode(dirName);
-  new Uint8Array(this.memory.buffer).set(dirNameBuf, pathPtr);
+  const directoryNameBuffer = encoder.encode(directoryName);
+  new Uint8Array(memory.buffer).set(directoryNameBuffer, pathPtr);
 
-  return csound.filesystem.constants.WASI_ESUCCESS;
+  return constants.WASI_ESUCCESS;
 };
-csound.filesystem.WASI.prototype.fd_prestat_get = function (fd, bufPtr) {
+
+WASI.prototype.fd_prestat_get = function (fd, bufPtr) {
   if (!this.fd[fd]) {
-    return csound.filesystem.constants.WASI_EBADF;
+    return constants.WASI_EBADF;
   }
-  const { path: dirName } = this.fd[fd];
+  const { path: directoryName } = this.fd[fd];
   const memory = this.getMemory();
 
-  const dirNameBuf = encoder.encode(dirName);
-  memory.setUint8(bufPtr, csound.filesystem.constants.WASI_PREOPENTYPE_DIR);
-  memory.setUint32(bufPtr + 4, dirNameBuf.byteLength, true);
-  return csound.filesystem.constants.WASI_ESUCCESS;
+  const directoryNameBuffer = encoder.encode(directoryName);
+  memory.setUint8(bufPtr, constants.WASI_PREOPENTYPE_DIR);
+  memory.setUint32(bufPtr + 4, directoryNameBuffer.byteLength, true);
+  return constants.WASI_ESUCCESS;
 };
-csound.filesystem.WASI.prototype.fd_pwrite = function (fd, iovs, iovsLength, offset, nwritten) {
+
+WASI.prototype.fd_pwrite = function (fd, iovs, iovsLength, offset, nwritten) {
   console.log("fd_pwrite", fd, iovs, iovsLength, offset, nwritten, arguments);
-  return csound.filesystem.constants.WASI_ESUCCESS;
+  return constants.WASI_ESUCCESS;
 };
-csound.filesystem.WASI.prototype.fd_read = function (fd, iovs, iovsLength, nread) {
+
+WASI.prototype.fd_read = function (fd, iovs, iovsLength, nread) {
   if (DEBUG_WASI) {
     console.log("fd_read", fd, iovs, iovsLength, nread, arguments);
   }
@@ -357,55 +351,59 @@ csound.filesystem.WASI.prototype.fd_read = function (fd, iovs, iovsLength, nread
 
   this.fd[fd].seekPos = goog.global.BigInt(read);
   memory.setUint32(nread, thisRead, true);
-  return csound.filesystem.constants.WASI_ESUCCESS;
+  return constants.WASI_ESUCCESS;
 };
 
-csound.filesystem.WASI.prototype.fd_readdir = function (fd, bufPtr, bufLength, cookie, bufusedPtr) {
+WASI.prototype.fd_readdir = function (fd, bufPtr, bufLength, cookie, bufusedPtr) {
   if (DEBUG_WASI) {
     console.log("fd_readdir", fd, bufPtr, bufLength, cookie, bufusedPtr, arguments);
   }
-  return csound.filesystem.constants.WASI_ESUCCESS;
+  return constants.WASI_ESUCCESS;
 };
-csound.filesystem.WASI.prototype.fd_renumber = function (from, to) {
+WASI.prototype.fd_renumber = function (from, to) {
   if (DEBUG_WASI) {
     console.log("fd_renumber", from, to, arguments);
   }
-  return csound.filesystem.constants.WASI_ESUCCESS;
+  return constants.WASI_ESUCCESS;
 };
-csound.filesystem.WASI.prototype.fd_seek = function (fd, offset, whence, newOffsetPtr) {
+WASI.prototype.fd_seek = function (fd, offset, whence, newOffsetPtr) {
   if (DEBUG_WASI) {
     console.log("fd_seek", fd, offset, whence, newOffsetPtr, arguments);
   }
   const memory = this.getMemory();
 
   switch (whence) {
-    case csound.filesystem.constants.WASI_WHENCE_CUR:
+    case constants.WASI_WHENCE_CUR: {
       this.fd[fd].seekPos =
         (this.fd[fd].seekPos ? this.fd[fd].seekPos : goog.global.BigInt(0)) +
         goog.global.BigInt(offset);
       break;
-    case csound.filesystem.constants.WASI_WHENCE_END:
-      const currentLength_ = this.fd[fd].writer
+    }
+    case constants.WASI_WHENCE_END: {
+      const currentLength = this.fd[fd].writer
         ? goog.global.BigInt(this.fd[fd].writer.length)
         : goog.global.BigInt(0);
       this.fd[fd].seekPos = currentLength + BigInt(offset);
       break;
-    case csound.filesystem.constants.WASI_WHENCE_SET:
+    }
+
+    case constants.WASI_WHENCE_SET: {
       this.fd[fd].seekPos = BigInt(offset);
       break;
+    }
   }
 
   memory.setBigUint64(newOffsetPtr, this.fd[fd].seekPos, true);
 
-  return csound.filesystem.constants.WASI_ESUCCESS;
+  return constants.WASI_ESUCCESS;
 };
-csound.filesystem.WASI.prototype.fd_sync = function (fd) {
+WASI.prototype.fd_sync = function (fd) {
   if (DEBUG_WASI) {
     console.log("fd_sync", fd, arguments);
   }
-  return csound.filesystem.constants.WASI_ESUCCESS;
+  return constants.WASI_ESUCCESS;
 };
-csound.filesystem.WASI.prototype.fd_tell = function (fd, offsetPtr) {
+WASI.prototype.fd_tell = function (fd, offsetPtr) {
   if (DEBUG_WASI) {
     console.log("fd_tell", fd, offsetPtr, arguments);
   }
@@ -417,10 +415,10 @@ csound.filesystem.WASI.prototype.fd_tell = function (fd, offsetPtr) {
 
   memory.setBigUint64(offsetPtr, this.fd[fd].seekPos, true);
 
-  return csound.filesystem.constants.WASI_ESUCCESS;
+  return constants.WASI_ESUCCESS;
 };
 
-csound.filesystem.WASI.prototype.fd_write = function (fd, iovs, iovsLength, nwritten) {
+WASI.prototype.fd_write = function (fd, iovs, iovsLength, nwritten) {
   const memory = this.getMemory();
   this.fd[fd].buffers = this.fd[fd].buffers || [];
 
@@ -442,29 +440,23 @@ csound.filesystem.WASI.prototype.fd_write = function (fd, iovs, iovsLength, nwri
 
   this.fd[fd].seekPos += goog.global.BigInt(written);
   memory.setUint32(nwritten, written, true);
-  return csound.filesystem.constants.WASI_ESUCCESS;
+  return constants.WASI_ESUCCESS;
 };
 
-csound.filesystem.WASI.prototype.path_create_directory = function (fd, pathPtr, pathLength) {
+WASI.prototype.path_create_directory = function (fd, pathPtr, pathLength) {
   if (DEBUG_WASI) {
     console.log("path_create_directory", fd, pathPtr, pathLength, arguments);
   }
-  return csound.filesystem.constants.WASI_ESUCCESS;
+  return constants.WASI_ESUCCESS;
 };
 
-csound.filesystem.WASI.prototype.path_filestat_get = function (
-  fd,
-  flags,
-  pathPtr,
-  pathLength,
-  bufPtr,
-) {
+WASI.prototype.path_filestat_get = function (fd, flags, pathPtr, pathLength, bufPtr) {
   if (DEBUG_WASI) {
     console.log("path_filestat_get", fd, flags, pathPtr, pathLength, bufPtr, arguments);
   }
-  return csound.filesystem.constants.WASI_ESUCCESS;
+  return constants.WASI_ESUCCESS;
 };
-csound.filesystem.WASI.prototype.path_filestat_set_times = function (
+WASI.prototype.path_filestat_set_times = function (
   fd,
   dirflags,
   pathPtr,
@@ -486,9 +478,9 @@ csound.filesystem.WASI.prototype.path_filestat_set_times = function (
       arguments,
     );
   }
-  return csound.filesystem.constants.WASI_ESUCCESS;
+  return constants.WASI_ESUCCESS;
 };
-csound.filesystem.WASI.prototype.path_link = function (
+WASI.prototype.path_link = function (
   oldFd,
   oldFlags,
   oldPath,
@@ -510,10 +502,10 @@ csound.filesystem.WASI.prototype.path_link = function (
       arguments,
     );
   }
-  return csound.filesystem.constants.WASI_ESUCCESS;
+  return constants.WASI_ESUCCESS;
 };
 
-csound.filesystem.WASI.prototype.path_open = function (
+WASI.prototype.path_open = function (
   dirfd,
   dirflags,
   pathPtr,
@@ -540,11 +532,11 @@ csound.filesystem.WASI.prototype.path_open = function (
     );
   }
   const memory = this.getMemory();
-  const dirPath = (this.fd[dirfd] || { path: "/" }).path;
-  const pathOpenBytes = new Uint8Array(this.memory.buffer, pathPtr, pathLength);
+  const directoryPath = (this.fd[dirfd] || { path: "/" }).path;
+  const pathOpenBytes = new Uint8Array(memory.buffer, pathPtr, pathLength);
   const pathOpenString = decoder.decode(pathOpenBytes);
   const pathOpen = goog.string.path.normalizePath(
-    goog.string.path.join(dirfd === 3 ? "" : dirPath, pathOpenString),
+    goog.string.path.join(dirfd === 3 ? "" : directoryPath, pathOpenString),
   );
 
   if (DEBUG_WASI) {
@@ -552,7 +544,7 @@ csound.filesystem.WASI.prototype.path_open = function (
   }
 
   if (pathOpen.startsWith("..") || pathOpen === "._" || pathOpen === ".AppleDouble") {
-    return csound.filesystem.constants.WASI_EBADF;
+    return constants.WASI_EBADF;
   }
 
   const alreadyExists = Object.values(this.fd).find((entry) => entry.path === pathOpen);
@@ -574,7 +566,7 @@ csound.filesystem.WASI.prototype.path_open = function (
     seekPos: goog.global.BigInt(0),
   };
 
-  if ((oflags & csound.filesystem.constants.WASI_O_DIRECTORY) !== 0) {
+  if ((oflags & constants.WASI_O_DIRECTORY) !== 0) {
     fileType = "dir";
   } else {
     this.fd[actualFd].buffers = [];
@@ -586,28 +578,21 @@ csound.filesystem.WASI.prototype.path_open = function (
 
   memory.setUint32(fd, actualFd, true);
 
-  return csound.filesystem.constants.WASI_ESUCCESS;
+  return constants.WASI_ESUCCESS;
 };
-csound.filesystem.WASI.prototype.path_readlink = function (
-  fd,
-  pathPtr,
-  pathLength,
-  buf,
-  bufLength,
-  bufused,
-) {
+WASI.prototype.path_readlink = function (fd, pathPtr, pathLength, buf, bufLength, bufused) {
   if (DEBUG_WASI) {
     console.log("path_readlink", fd, pathPtr, pathLength, buf, bufLength, bufused, arguments);
   }
-  return csound.filesystem.constants.WASI_ESUCCESS;
+  return constants.WASI_ESUCCESS;
 };
-csound.filesystem.WASI.prototype.path_remove_directory = function (fd, pathPtr, pathLength) {
+WASI.prototype.path_remove_directory = function (fd, pathPtr, pathLength) {
   if (DEBUG_WASI) {
     console.log("path_remove_directory", fd, pathPtr, pathLength);
   }
-  return csound.filesystem.constants.WASI_ESUCCESS;
+  return constants.WASI_ESUCCESS;
 };
-csound.filesystem.WASI.prototype.path_rename = function (
+WASI.prototype.path_rename = function (
   oldFd,
   oldPath,
   oldPathLength,
@@ -627,82 +612,76 @@ csound.filesystem.WASI.prototype.path_rename = function (
       arguments,
     );
   }
-  return csound.filesystem.constants.WASI_ESUCCESS;
+  return constants.WASI_ESUCCESS;
 };
-csound.filesystem.WASI.prototype.path_symlink = function (
-  oldPath,
-  oldPathLength,
-  fd,
-  newPath,
-  newPathLength,
-) {
+WASI.prototype.path_symlink = function (oldPath, oldPathLength, fd, newPath, newPathLength) {
   if (DEBUG_WASI) {
     console.log("path_symlink", oldPath, oldPathLength, fd, newPath, newPathLength, arguments);
   }
-  return csound.filesystem.constants.WASI_ESUCCESS;
+  return constants.WASI_ESUCCESS;
 };
 
-csound.filesystem.WASI.prototype.path_unlink_file = function (fd, pathPtr, pathLength) {
+WASI.prototype.path_unlink_file = function (fd, pathPtr, pathLength) {
   if (fd > 3 && DEBUG_WASI) {
-      console.log("path_unlink_file", fd, pathPtr, pathLength, arguments);
-    }
-    // actual file removal goes here
+    console.log("path_unlink_file", fd, pathPtr, pathLength, arguments);
+  }
+  // actual file removal goes here
 
-  return csound.filesystem.constants.WASI_ESUCCESS;
+  return constants.WASI_ESUCCESS;
 };
 
-csound.filesystem.WASI.prototype.poll_oneoff = function (sin, sout, nsubscriptions, nevents) {
+WASI.prototype.poll_oneoff = function (sin, sout, nsubscriptions, nevents) {
   if (DEBUG_WASI) {
     console.log("poll_oneoff", sin, sout, nsubscriptions, nevents, arguments);
   }
-  return csound.filesystem.constants.WASI_ESUCCESS;
+  return constants.WASI_ESUCCESS;
 };
-csound.filesystem.WASI.prototype.proc_exit = function (rval) {
+WASI.prototype.proc_exit = function (rval) {
   if (DEBUG_WASI) {
     console.log("proc_exit", rval, arguments);
   }
-  return csound.filesystem.constants.WASI_ESUCCESS;
+  return constants.WASI_ESUCCESS;
 };
-csound.filesystem.WASI.prototype.proc_raise = function (sig) {
+WASI.prototype.proc_raise = function (sig) {
   if (DEBUG_WASI) {
     console.log("proc_raise", sig, arguments);
   }
-  return csound.filesystem.constants.WASI_ESUCCESS;
+  return constants.WASI_ESUCCESS;
 };
-csound.filesystem.WASI.prototype.random_get = function (bufPtr, bufLength) {
+WASI.prototype.random_get = function (bufPtr, bufLength) {
   if (DEBUG_WASI) {
     console.log("random_get", bufPtr, bufLength);
   }
-  return csound.filesystem.constants.WASI_ESUCCESS;
+  return constants.WASI_ESUCCESS;
 };
-csound.filesystem.WASI.prototype.sched_yield = function () {
+WASI.prototype.sched_yield = function () {
   if (DEBUG_WASI) {
     console.log("sched_yield", arguments);
   }
-  return csound.filesystem.constants.WASI_ESUCCESS;
+  return constants.WASI_ESUCCESS;
 };
-csound.filesystem.WASI.prototype.sock_recv = function () {
+WASI.prototype.sock_recv = function () {
   if (DEBUG_WASI) {
     console.log("sock_recv", arguments);
   }
-  return csound.filesystem.constants.WASI_ENOSYS;
+  return constants.WASI_ENOSYS;
 };
-csound.filesystem.WASI.prototype.sock_send = function () {
+WASI.prototype.sock_send = function () {
   if (DEBUG_WASI) {
     console.log("sock_send", arguments);
   }
-  return csound.filesystem.constants.WASI_ENOSYS;
+  return constants.WASI_ENOSYS;
 };
-csound.filesystem.WASI.prototype.sock_shutdown = function () {
+WASI.prototype.sock_shutdown = function () {
   if (DEBUG_WASI) {
     console.log("sock_shutdown", arguments);
   }
-  return csound.filesystem.constants.WASI_ENOSYS;
+  return constants.WASI_ENOSYS;
 };
 
 // helpers
 
-csound.filesystem.WASI.prototype.getHandle = function (fd) {
+WASI.prototype.getHandle = function (fd) {
   if (this.fd[fd]) {
     const assetKey = this.fd[fd].path;
     const handle = assetKey && this.dbFs[assetKey];

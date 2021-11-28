@@ -1,3 +1,4 @@
+/* eslint-disable unicorn/require-post-message-target-origin */
 import { expose } from "comlink/dist/esm/comlink.mjs";
 import MessagePortState from "../utils/message-port-state";
 import { AUDIO_STATE, RING_BUFFER_SIZE } from "../constants";
@@ -357,9 +358,10 @@ function initMessagePort({ port }) {
   log(`initMessagePort in worker`)();
   const workerMessagePort = new MessagePortState();
 
-  workerMessagePort.post = (logMessage) => port.postMessage({ log: logMessage }, "*");
-  workerMessagePort.broadcastPlayState = (playStateChange) =>
-    port.postMessage({ playStateChange }, "*");
+  // eslint-disable-next-line unicorn/require-post-message-target-origin
+  workerMessagePort.post = (logMessage) => port.postMessage({ log: logMessage });
+  // eslint-disable-next-line unicorn/require-post-message-target-origin
+  workerMessagePort.broadcastPlayState = (playStateChange) => port.postMessage({ playStateChange });
   workerMessagePort.ready = true;
   return workerMessagePort;
 }
@@ -370,7 +372,7 @@ function initRequestPort({ requestPort, audioNode }) {
     const { audioPacket, readIndex, numFrames } = requestPortEvent.data;
     audioNode.updateVanillaFrames({ audioPacket, numFrames, readIndex });
   });
-  const requestFrames = (arguments_) => requestPort.postMessage(arguments_, "*");
+  const requestFrames = (arguments_) => requestPort.postMessage(arguments_);
 
   requestPort.start();
   return {
@@ -383,7 +385,7 @@ function initAudioInputPort({ inputPort }) {
   log(`initAudioInputPort in worker`)();
   return {
     ready: false,
-    transferInputFrames: (frames) => inputPort.postMessage(frames, "*"),
+    transferInputFrames: (frames) => inputPort.postMessage(frames),
   };
 }
 

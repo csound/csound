@@ -14,7 +14,6 @@ class VanillaWorkerMainThread {
     audioContext,
     audioWorker,
     wasmDataURI,
-    wasmTransformerDataURI,
     audioContextIsProvided,
     inputChannelCount,
     outputChannelCount,
@@ -28,7 +27,6 @@ class VanillaWorkerMainThread {
     this.audioWorker = audioWorker;
     this.audioContextIsProvided = audioContextIsProvided;
     this.wasmDataURI = wasmDataURI();
-    this.wasmTransformerDataURI = wasmTransformerDataURI();
 
     if (audioContextIsProvided) {
       this.sampleRate = audioContext.sampleRate;
@@ -75,7 +73,7 @@ class VanillaWorkerMainThread {
 
   handleMidiInput({ data: payload }) {
     this.ipcMessagePorts.csoundMainRtMidiPort.postMessage &&
-      this.ipcMessagePorts.csoundMainRtMidiPort.postMessage(payload);
+      this.ipcMessagePorts.csoundMainRtMidiPort.postMessage(payload, "*");
   }
 
   async prepareRealtimePerformance() {
@@ -189,7 +187,6 @@ class VanillaWorkerMainThread {
       Comlink.transfer(
         {
           wasmDataURI: this.wasmDataURI,
-          wasmTransformerDataURI: this.wasmTransformerDataURI,
           messagePort: this.ipcMessagePorts.workerMessagePort,
           requestPort: this.ipcMessagePorts.csoundWorkerFrameRequestPort,
           audioInputPort: this.ipcMessagePorts.csoundWorkerAudioInputPort,
@@ -276,12 +273,15 @@ class VanillaWorkerMainThread {
               return -1;
             } else {
               this.eventPromises.createStopPromise();
-              this.ipcMessagePorts.mainMessagePort.postMessage({
-                newPlayState:
-                  this.currentPlayState === "renderStarted"
-                    ? "renderEnded"
-                    : "realtimePerformanceEnded",
-              });
+              this.ipcMessagePorts.mainMessagePort.postMessage(
+                {
+                  newPlayState:
+                    this.currentPlayState === "renderStarted"
+                      ? "renderEnded"
+                      : "realtimePerformanceEnded",
+                },
+                "*",
+              );
               await this.eventPromises.waitForStop();
               return 0;
             }

@@ -1,6 +1,5 @@
-goog.require("csound.utils.string_pointers");
-
 /* eslint-disable unicorn/prevent-abbreviations */
+import { freeStringPtr, string2ptr } from "../utils/string-pointers.js";
 
 /**
  * Append 'value' to environment variable 'name'

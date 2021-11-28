@@ -21,7 +21,6 @@
     02110-1301 USA
 */
 
-// import WorkletWorker from "dist/worklet.singlethread.worker";
 import * as Comlink from "comlink/dist/esm/comlink.mjs";
 import { logSinglethreadWorkletMain as log } from "../logger";
 import { csoundApiRename, fetchPlugins, makeProxyCallback } from "../utils";
@@ -149,10 +148,10 @@ class SingleThreadAudioWorkletMainThread {
 
   handleMidiInput({ data: payload }) {
     this.ipcMessagePorts.csoundMainRtMidiPort.postMessage &&
-      this.ipcMessagePorts.csoundMainRtMidiPort.postMessage(payload);
+      this.ipcMessagePorts.csoundMainRtMidiPort.postMessage(payload, "*");
   }
 
-  async initialize({ wasmDataURI, wasmTransformerDataURI, withPlugins, autoConnect }) {
+  async initialize({ wasmDataURI, withPlugins, autoConnect }) {
     if (withPlugins && withPlugins.length > 0) {
       withPlugins = await fetchPlugins(withPlugins);
     }
@@ -187,7 +186,7 @@ class SingleThreadAudioWorkletMainThread {
     this.ipcMessagePorts.mainMessagePort.addEventListener("message", messageEventHandler(this));
     this.ipcMessagePorts.mainMessagePort.start();
 
-    await this.workletProxy.initialize(wasmDataURI(), wasmTransformerDataURI(), withPlugins);
+    await this.workletProxy.initialize(wasmDataURI(), withPlugins);
     const csoundInstance = await makeProxyCallback(
       this.workletProxy,
       undefined,

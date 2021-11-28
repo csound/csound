@@ -331,13 +331,7 @@ const renderFunction =
     releaseStop();
   };
 
-const initialize = async ({
-  wasmDataURI,
-  wasmTransformerDataURI,
-  withPlugins = [],
-  messagePort,
-  callbackPort,
-}) => {
+const initialize = async ({ wasmDataURI, withPlugins = [], messagePort, callbackPort }) => {
   log(`initializing SABWorker and WASM`)();
   const workerMessagePort = initMessagePort({ port: messagePort });
   const callbacksRequest = () => callbackPort.postMessage("poll", "*");
@@ -345,7 +339,6 @@ const initialize = async ({
 
   const [wasm, wasi] = await loadWasm({
     wasmDataURI,
-    wasmTransformerDataURI,
     withPlugins,
     messagePort: workerMessagePort,
   });

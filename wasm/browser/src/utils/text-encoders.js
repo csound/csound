@@ -1,7 +1,3 @@
-/* global csound:writable */
-
-goog.provide("csound.utils.text_encoders");
-
 /** @define {boolean} */
 const WITH_TEXT_ENCODER_POLYFILL = goog.define("WITH_TEXT_ENCODER_POLYFILL", false);
 
@@ -70,14 +66,12 @@ function TextDecoderPoly(encoding, options) {
   };
 }
 
-const decoder = WITH_TEXT_ENCODER_POLYFILL
+export const decoder = WITH_TEXT_ENCODER_POLYFILL
   ? new TextDecoderPoly("utf-8")
   : new TextDecoder("utf-8");
 
-const encoder = WITH_TEXT_ENCODER_POLYFILL
+export const encoder = WITH_TEXT_ENCODER_POLYFILL
   ? new TextEncoderPoly("utf-8")
   : new TextEncoder("utf-8");
 
-const uint2String = (uint) => decoder.decode(uint);
-
-csound.utils.text_encoders = { encoder, decoder, uint2String };
+export const uint2String = (uint) => decoder.decode(uint);

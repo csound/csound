@@ -1,6 +1,4 @@
-goog.require('worker.old_spn');
 import * as Comlink from "comlink/dist/esm/comlink.mjs";
-// import ScriptProcessorNodeWorker from "../workers/old-spn.worker";
 import { logOldSpnMain as log } from "../logger";
 import { messageEventHandler } from "./messages.main";
 import { WebkitAudioContext } from "../utils";
@@ -221,7 +219,7 @@ class ScriptProcessorNodeMainThread {
       Comlink.transfer(
         {
           contextUid,
-          hardwareBufferSize: 32_768,
+          hardwareBufferSize: 32768,
           softwareBufferSize: 2048,
           inputsCount: this.inputsCount,
           outputsCount: this.outputsCount,

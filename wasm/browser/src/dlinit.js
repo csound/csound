@@ -51,8 +51,7 @@ export const dlinit = (hostInstance, pluginInstance, table, csoundInstance) => {
     const csoundFgenInit = new WebAssembly.Global({ value: "i32", mutable: true }, 0);
 
     let tableEnd = table.length;
-    console.log(pluginInstance.exports.csound_opcode_init);
-    console.log(pluginInstance.exports.csound_opcode_init(csoundInstance, null));
+
     if (typeof pluginInstance.exports.csound_opcode_init === "function") {
       csoundOpcodeInit.value = tableEnd;
       table.grow(1);

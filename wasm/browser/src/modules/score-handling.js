@@ -1,5 +1,4 @@
-goog.require("csound.utils.string_pointers");
-
+import { freeStringPtr, string2ptr } from "../utils/string-pointers.js";
 /*
    csound Score Handling module from <csound.h>
    https://csound.com/docs/api/modules.html

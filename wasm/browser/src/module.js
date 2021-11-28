@@ -1,11 +1,12 @@
 import { dlinit } from "./dlinit";
+import { WASI } from "./filesystem/wasi";
 import { csoundWasiJsMessageCallback } from "./filesystem/worker-fs";
 import { logWasmModule as log } from "./logger";
 
 goog.require("Zlib");
 goog.require("Zlib.Inflate");
-goog.require("csound.filesystem.WASI");
-goog.require("goog.asserts");
+
+const { assert } = goog.require("goog.asserts");
 
 const PAGE_SIZE = 65536;
 const PAGES_PER_MB = 16; // 1048576 bytes per MB / PAGE_SIZE
@@ -113,7 +114,7 @@ const loadStaticWasm = async ({ wasmBytes, wasmFs, wasi, messagePort }) => {
 export default async function ({ wasmDataURI, withPlugins = [], messagePort }) {
   const wasmFs = {};
 
-  const wasi = new csound.filesystem.WASI({ preopens: { "/": "/" } });
+  const wasi = new WASI({ preopens: { "/": "/" } });
 
   const wasmCompressed = new Uint8Array(wasmDataURI);
   const wasmZlib = new Zlib.Inflate(wasmCompressed);
@@ -136,10 +137,6 @@ export default async function ({ wasmDataURI, withPlugins = [], messagePort }) {
     let pluginHeaderData;
     try {
       wasmPluginBytes = new Uint8Array(wasmPlugin);
-      loweredWasmPluginBytes =
-        typeof BigUint64Array === "undefined"
-          ? await lowerI64Imports(wasmPluginBytes)
-          : wasmPluginBytes;
       pluginHeaderData = getBinaryHeaderData(wasmPluginBytes);
     } catch (error) {
       console.error("Error in plugin", error);

@@ -1,9 +1,9 @@
+import { freeStringPtr, ptr2string, string2ptr } from "../utils/string-pointers.js";
+
 /*
    csound control-events module from <csound.h>
    https://csound.com/docs/api/modules.html
 */
-
-goog.require("csound.utils.string_pointers");
 
 /**
  * Inputs an immediate score event
