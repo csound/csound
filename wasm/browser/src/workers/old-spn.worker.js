@@ -182,10 +182,13 @@ class CsoundScriptNodeProcessor {
       // this minimizes startup glitches
       const firstTransferSize = this.softwareBufferSize * PERIODS;
 
-      this.requestPort.postMessage({
-        readIndex: 0,
-        numFrames: firstTransferSize,
-      });
+      this.requestPort.postMessage(
+        {
+          readIndex: 0,
+          numFrames: firstTransferSize,
+        },
+        "*",
+      );
 
       this.pendingFrames += firstTransferSize;
       this.vanillaInitialized = true;
@@ -262,7 +265,7 @@ class CsoundScriptNodeProcessor {
     } else {
       // minimize noise
       if (this.bufferUnderrunCount > 1 && this.bufferUnderrunCount < 12) {
-        this.workerMessagePort.post("Buffer underrun");
+        this.workerMessagePort.post("Buffer underrun", "*");
         this.bufferUnderrunCount += 1;
       }
 
@@ -283,21 +286,27 @@ class CsoundScriptNodeProcessor {
         (this.vanillaAvailableFrames + nextOutputReadIndex + this.pendingFrames) %
         this.hardwareBufferSize;
 
-      this.requestPort.postMessage({
-        readIndex: futureOutputReadIndex,
-        numFrames: this.softwareBufferSize * PERIODS,
-      });
+      this.requestPort.postMessage(
+        {
+          readIndex: futureOutputReadIndex,
+          numFrames: this.softwareBufferSize * PERIODS,
+        },
+        "*",
+      );
       this.pendingFrames += this.softwareBufferSize * PERIODS;
     }
 
     return true;
   }
 }
-const initAudioInputPort = ({ audioInputPort }) => (frames) => audioInputPort.postMessage(frames);
+const initAudioInputPort =
+  ({ audioInputPort }) =>
+  (frames) =>
+    audioInputPort.postMessage(frames, "*");
 
 const initMessagePort = ({ port }) => {
   const workerMessagePort = new MessagePortState();
-  workerMessagePort.post = (messageLog) => port.postMessage({ log: messageLog });
+  workerMessagePort.post = (messageLog) => port.postMessage({ log: messageLog }, "*");
   workerMessagePort.broadcastPlayState = (playStateChange) => {
     if (
       workerMessagePort.vanillaWorkerState === "realtimePerformanceStarted" &&
@@ -305,7 +314,7 @@ const initMessagePort = ({ port }) => {
     ) {
       return;
     }
-    port.postMessage({ playStateChange });
+    port.postMessage({ playStateChange }, "*");
   };
   workerMessagePort.ready = true;
   return workerMessagePort;

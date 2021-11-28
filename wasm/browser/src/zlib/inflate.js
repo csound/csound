@@ -1,3 +1,4 @@
+/* eslint-disable unicorn/numeric-separators-style,camelcase,no-unused-expressions */
 goog.provide("Zlib.Inflate");
 
 goog.require("Zlib.Adler32");
@@ -16,16 +17,7 @@ goog.scope(function () {
    *   - bufferType: Zlib.Inflate.BufferType の値によってバッファの管理方法を指定する.
    *       Zlib.Inflate.BufferType は Zlib.RawInflate.BufferType のエイリアス.
    */
-  Zlib.Inflate = function (input, opt_params) {
-    /** @type {number} */
-    var bufferSize;
-    /** @type {Zlib.Inflate.BufferType} */
-    var bufferType;
-    /** @type {number} */
-    var cmf;
-    /** @type {number} */
-    var flg;
-
+  Zlib.Inflate = function (input, opt_parameters) {
     /** @type {!(Uint8Array|Array)} */
     this.input = input;
     /** @type {number} */
@@ -36,18 +28,20 @@ goog.scope(function () {
     this.verify;
 
     // option parameters
-    if (opt_params || !(opt_params = {})) {
-      if (opt_params["index"]) {
-        this.ip = opt_params["index"];
+    if (opt_parameters || !(opt_parameters = {})) {
+      if (opt_parameters.index) {
+        this.ip = opt_parameters.index;
       }
-      if (opt_params["verify"]) {
-        this.verify = opt_params["verify"];
+      if (opt_parameters.verify) {
+        this.verify = opt_parameters.verify;
       }
     }
 
     // Compression Method and Flags
-    cmf = input[this.ip++];
-    flg = input[this.ip++];
+    /** @type {number} */
+    const cmf = input[this.ip++];
+    /** @type {number} */
+    const flg = input[this.ip++];
 
     // compression method
     switch (cmf & 0x0f) {
@@ -71,9 +65,9 @@ goog.scope(function () {
     // RawInflate
     this.rawinflate = new Zlib.RawInflate(input, {
       index: this.ip,
-      bufferSize: opt_params["bufferSize"],
-      bufferType: opt_params["bufferType"],
-      resize: opt_params["resize"],
+      bufferSize: opt_parameters.bufferSize,
+      bufferType: opt_parameters.bufferType,
+      resize: opt_parameters.resize,
     });
   };
 
@@ -88,13 +82,11 @@ goog.scope(function () {
    */
   Zlib.Inflate.prototype.decompress = function () {
     /** @type {!(Array|Uint8Array)} input buffer. */
-    var input = this.input;
-    /** @type {!(Uint8Array|Array)} inflated buffer. */
-    var buffer;
+    const input = this.input;
     /** @type {number} adler-32 checksum */
-    var adler32;
-
-    buffer = this.rawinflate.decompress();
+    let adler32;
+    /** @type {!(Uint8Array|Array)} inflated buffer. */
+    const buffer = this.rawinflate.decompress();
     this.ip = this.rawinflate.ip;
 
     // verify adler-32

@@ -1,6 +1,9 @@
-goog.provide("csound.utils.string_pointers");
-goog.require("csound.utils.trim_null");
-goog.require("csound.utils.text_encoders");
+goog.provide('csound.utils.string_pointers');
+goog.require('csound.utils.text_encoders');
+goog.require('csound.utils.trim_null');
+;
+;
+;
 
 const freeStringPtr = (wasm, ptr) => {
   wasm.exports.freeStringMem(ptr);

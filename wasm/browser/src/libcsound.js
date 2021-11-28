@@ -1,5 +1,3 @@
-goog.declareModuleId("libcsound");
-
 import {
   csoundCreate,
   csoundDestroy,
@@ -33,8 +31,8 @@ import {
   csoundGetCurrentTimeSamples,
   csoundGetSizeOfMYFLT,
   csoundSetOption,
-  csoundSetParams,
-  csoundGetParams,
+  csoundSetParams as csoundSetParameters,
+  csoundGetParams as csoundGetParameters,
   csoundGetDebug,
   csoundSetDebug,
 } from "./modules/attributes";
@@ -47,7 +45,7 @@ import {
   csoundGetSpout,
 } from "./modules/rtaudio";
 import {
-  csoundGetMIDIDevList,
+  csoundGetMIDIDevList as csoundGetMIDIDevelopmentList,
   csoundSetMidiCallbacks,
   csoundGetRtMidiName,
   csoundGetMidiOutFileName,
@@ -63,7 +61,7 @@ import {
   csoundSetStringChannel,
 } from "./modules/control-events";
 import { csoundGetInputName, csoundGetOutputName } from "./modules/general-io";
-import { csoundAppendEnv, csoundShouldDaemonize } from "./modules/extra";
+import { csoundAppendEnv as csoundAppendEnvironment, csoundShouldDaemonize } from "./modules/extra";
 import {
   csoundIsScorePending,
   csoundSetScorePending,
@@ -80,11 +78,13 @@ import {
   csoundTableCopyIn,
   csoundTableCopyOut,
   csoundGetTable,
-  csoundGetTableArgs,
+  csoundGetTableArgs as csoundGetTableArguments,
   csoundIsNamedGEN,
   csoundGetNamedGEN,
 } from "./modules/table";
 import { assoc, keys, reduce } from "rambda/dist/rambda.esm.js";
+
+goog.declareModuleId("libcsound");
 // const { assoc, keys, reduce } = require("rambda/dist/rambda.esm.js");
 /*
    Don't call these functions directly.
@@ -124,8 +124,8 @@ export const api = {
   csoundGetCurrentTimeSamples,
   csoundGetSizeOfMYFLT,
   csoundSetOption,
-  csoundSetParams,
-  csoundGetParams,
+  csoundSetParams: csoundSetParameters,
+  csoundGetParams: csoundGetParameters,
   csoundGetDebug,
   csoundSetDebug,
   // @module/rtaudio
@@ -136,7 +136,7 @@ export const api = {
   csoundGetSpin,
   csoundGetSpout,
   // @module/rtmidi
-  csoundGetMIDIDevList,
+  csoundGetMIDIDevList: csoundGetMIDIDevelopmentList,
   csoundSetMidiCallbacks,
   csoundGetRtMidiName,
   csoundGetMidiOutFileName,
@@ -153,7 +153,7 @@ export const api = {
   csoundGetInputName,
   csoundGetOutputName,
   // @module/extra
-  csoundAppendEnv,
+  csoundAppendEnv: csoundAppendEnvironment,
   csoundShouldDaemonize,
   // @module/score-handling
   csoundIsScorePending,
@@ -170,7 +170,7 @@ export const api = {
   csoundTableCopyIn,
   csoundTableCopyOut,
   csoundGetTable,
-  csoundGetTableArgs,
+  csoundGetTableArgs: csoundGetTableArguments,
   csoundIsNamedGEN,
   csoundGetNamedGEN,
 };

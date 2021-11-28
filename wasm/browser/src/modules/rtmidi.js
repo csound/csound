@@ -1,10 +1,9 @@
 import { range } from "rambda/dist/rambda.esm.js";
-
+goog.require("csound.structures");
 goog.require("csound.utils.native_sizes");
 goog.require("csound.utils.string_pointers");
 goog.require("csound.utils.structure_buffer_to_object");
 goog.require("csound.utils.trim_null");
-goog.require("csound.structures");
 
 export const csoundSetMidiCallbacks = (wasm) => (csound) => {
   wasm.exports.csoundSetMidiCallbacks(csound);

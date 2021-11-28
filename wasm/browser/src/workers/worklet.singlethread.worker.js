@@ -62,12 +62,13 @@ class WorkletSinglethreadWorker extends AudioWorkletProcessor {
     this.workerMessagePort = new MessagePortState();
 
     this.initializeMessagePort = ({ messagePort, rtmidiPort }) => {
-      this.workerMessagePort.post = (messageLog) => messagePort.postMessage({ log: messageLog });
+      this.workerMessagePort.post = (messageLog) =>
+        messagePort.postMessage({ log: messageLog }, "*");
       this.workerMessagePort.broadcastPlayState = (playStateChange) => {
         if (this.workerMessagePort.workerState !== playStateChange) {
           this.workerMessagePort.workerState = playStateChange;
         }
-        messagePort.postMessage({ playStateChange });
+        messagePort.postMessage({ playStateChange }, "*");
       };
       this.workerMessagePort.ready = true;
       log(`initRtMidiEventPort`)();

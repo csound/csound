@@ -1,3 +1,5 @@
+/* global csound:writable */
+
 goog.provide("csound.utils.structure_buffer_to_object");
 
 goog.require("csound.utils.native_sizes");

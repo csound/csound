@@ -1,4 +1,3 @@
-require("google-closure-library/closure/goog/base.js");
 import * as Comlink from "comlink/dist/esm/comlink.mjs";
 import VanillaWorkerMainThread from "./mains/vanilla.main";
 import unmuteIosAudio from "unmute-ios-audio/index.js";
@@ -15,8 +14,9 @@ import {
   WebkitAudioContext,
 } from "./utils";
 
+require("google-closure-library/closure/goog/base.js");
+
 const wasmDataURI = goog.require("binary.wasm");
-const wasmTransformerDataURI = goog.require("transformer.wasm");
 
 /**
  * CsoundObj API.
@@ -56,7 +56,7 @@ async function Csound({
         inputChannelCount: inputChannelCount || 2,
         outputChannelCount: outputChannelCount || 2,
       });
-      return instance.initialize({ wasmDataURI, wasmTransformerDataURI, withPlugins, autoConnect });
+      return instance.initialize({ wasmDataURI, withPlugins, autoConnect });
     } else if (spnSupport) {
       log("Single Thread ScriptProcessorNode")();
       const instance = new ScriptProcessorNodeSingleThread({
@@ -66,7 +66,6 @@ async function Csound({
       });
       return await instance.initialize({
         wasmDataURI,
-        wasmTransformerDataURI,
         withPlugins,
         autoConnect,
       });
@@ -117,7 +116,6 @@ async function Csound({
       ? new SharedArrayBufferMainThread({
           audioWorker,
           wasmDataURI,
-          wasmTransformerDataURI,
           audioContext,
           audioContextIsProvided,
           inputChannelCount,
@@ -126,7 +124,6 @@ async function Csound({
       : new VanillaWorkerMainThread({
           audioWorker,
           wasmDataURI,
-          wasmTransformerDataURI,
           audioContextIsProvided,
         });
 

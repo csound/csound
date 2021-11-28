@@ -4,6 +4,7 @@ import { logWorkletMain as log } from "../logger";
 import { WebkitAudioContext } from "../utils";
 // import { requestMicrophoneNode } from "./io.utils";
 import { requestMidi } from "../utils/request-midi";
+
 const WorkletWorker = goog.require("worker.worklet");
 
 let UID = 0;
@@ -103,7 +104,7 @@ class AudioWorkletMainThread {
         log(
           "event received: realtimePerformanceEnded" + !this.csoundWorkerMain.hasSharedArrayBuffer
             ? ` cleaning up ports`
-            : ""
+            : "",
         )();
         if (
           !this.audioContextIsProvided &&
@@ -211,7 +212,7 @@ class AudioWorkletMainThread {
           const newNode = this.createWorkletNode(
             this.audioContext,
             liveInput.channelCount,
-            contextUid
+            contextUid,
           );
           this.audioWorkletNode = newNode;
           if (this.autoConnect) {
@@ -245,7 +246,7 @@ class AudioWorkletMainThread {
               },
             },
             microphoneCallback,
-            console.error
+            console.error,
           );
     } else {
       const newNode = this.createWorkletNode(this.audioContext, 0, contextUid);
@@ -271,8 +272,8 @@ class AudioWorkletMainThread {
           this.ipcMessagePorts.workerMessagePortAudio,
           this.ipcMessagePorts.audioWorkerFrameRequestPort,
           this.ipcMessagePorts.audioWorkerAudioInputPort,
-        ]
-      )
+        ],
+      ),
     );
 
     log("initialization finished in main")();

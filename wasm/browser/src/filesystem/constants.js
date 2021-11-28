@@ -33,11 +33,7 @@ if (typeof goog.global === "undefined") {
 }
 
 if (typeof goog.global.BigInt === "undefined") {
-  if (typeof BigInt !== "undefined") {
-    goog.global.BigInt = BigInt;
-  } else {
-    goog.global.BigInt = Number;
-  }
+  goog.global.BigInt = typeof BigInt !== "undefined" ? BigInt : Number;
 }
 
 csound.filesystem.constants.WASI_ESUCCESS = 0;
@@ -311,12 +307,12 @@ csound.filesystem.constants.WASI_EVENTTYPE_CLOCK = 0;
 csound.filesystem.constants.WASI_EVENTTYPE_FD_READ = 1;
 csound.filesystem.constants.WASI_EVENTTYPE_FD_WRITE = 2;
 
-csound.filesystem.constants.WASI_FILESTAT_SET_ATIM = 1 << 0;
+csound.filesystem.constants.WASI_FILESTAT_SET_ATIM = Math.trunc(1);
 csound.filesystem.constants.WASI_FILESTAT_SET_ATIM_NOW = 1 << 1;
 csound.filesystem.constants.WASI_FILESTAT_SET_MTIM = 1 << 2;
 csound.filesystem.constants.WASI_FILESTAT_SET_MTIM_NOW = 1 << 3;
 
-csound.filesystem.constants.WASI_O_CREAT = 1 << 0;
+csound.filesystem.constants.WASI_O_CREAT = Math.trunc(1);
 csound.filesystem.constants.WASI_O_DIRECTORY = 1 << 1;
 csound.filesystem.constants.WASI_O_EXCL = 1 << 2;
 csound.filesystem.constants.WASI_O_TRUNC = 1 << 3;

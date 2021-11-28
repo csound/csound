@@ -85,7 +85,6 @@
     "eslint-plugin-standard": "^5.0.0",
     "eslint-plugin-unicorn": "^38.0.1",
     "finalhandler": "^1.1.2",
-    "http-server": "^14.0.0",
     "jsdoc": "^3.6.7",
     "jsdoc-export-default-interop": "^0.3.1",
     "jsdoc-plugin-typescript": "^2.0.6",
@@ -101,7 +100,6 @@
     "zlibjs": "^0.3.1"
   },
   "dependencies": {
-    "@wasmer/wasm-transformer": "^0.12.0",
     "comlink": "^4.3.1",
     "eventemitter3": "^4.0.7",
     "google-closure-compiler": "^20211107.0.0",

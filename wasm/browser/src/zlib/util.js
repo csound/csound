@@ -9,19 +9,19 @@ goog.scope(function () {
    * @param {!string} str byte string.
    * @return {!Array.<number>} byte array.
    */
-  Zlib.Util.stringToByteArray = function (str) {
+  Zlib.Util.stringToByteArray = function (string_) {
     /** @type {!Array.<(string|number)>} */
-    var tmp = str.split("");
+    const temporary = [...string_];
     /** @type {number} */
-    var i;
+    let index;
     /** @type {number} */
-    var il;
+    let il;
 
-    for (i = 0, il = tmp.length; i < il; i++) {
-      tmp[i] = (tmp[i].charCodeAt(0) & 0xff) >>> 0;
+    for (index = 0, il = temporary.length; index < il; index++) {
+      temporary[index] = (temporary[index].charCodeAt(0) & 0xff) >>> 0;
     }
 
-    return tmp;
+    return temporary;
   };
 
   // end of scope

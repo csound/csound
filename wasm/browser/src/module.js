@@ -1,10 +1,11 @@
 import { dlinit } from "./dlinit";
 import { csoundWasiJsMessageCallback } from "./filesystem/worker-fs";
 import { logWasmModule as log } from "./logger";
-const { assert } = goog.require("goog.asserts");
+
 goog.require("Zlib");
 goog.require("Zlib.Inflate");
 goog.require("csound.filesystem.WASI");
+goog.require("goog.asserts");
 
 const PAGE_SIZE = 65536;
 const PAGES_PER_MB = 16; // 1048576 bytes per MB / PAGE_SIZE
@@ -123,7 +124,7 @@ export default async function ({ wasmDataURI, withPlugins = [], messagePort }) {
   if (magicData === "static") {
     return [await loadStaticWasm({ messagePort, wasmBytes, wasmFs, wasi }), wasmFs];
   }
-  let { memorySize, memoryAlign } = magicData;
+  const { memorySize, memoryAlign } = magicData;
   // console.log({ magicData });
 
   // get the header data from plugins which we need before

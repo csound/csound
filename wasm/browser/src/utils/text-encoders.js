@@ -1,3 +1,5 @@
+/* global csound:writable */
+
 goog.provide("csound.utils.text_encoders");
 
 /** @define {boolean} */
@@ -15,13 +17,13 @@ function TextEncoderPoly(encoding) {
   }
 }
 
-TextEncoderPoly.prototype.encode = function (str) {
-  if (typeof str !== "string") {
-    throw new TypeError("passed argument must be of type string " + str + " " + typeof str);
+TextEncoderPoly.prototype.encode = function (string_) {
+  if (typeof string_ !== "string") {
+    throw new TypeError("passed argument must be of type string " + string_ + " " + typeof string_);
   }
-  const binstr = unescape(encodeURIComponent(str));
+  const binstr = unescape(encodeURIComponent(string_));
   const array = new Uint8Array(binstr.length);
-  binstr.split("").forEach(function (char, index) {
+  [...binstr].forEach(function (char, index) {
     array[index] = char.charCodeAt(0);
   });
   return array;
@@ -59,7 +61,7 @@ function TextDecoderPoly(encoding, options) {
       throw new TypeError("passed argument must be an array buffer view");
     } else {
       const array = new Uint8Array(view.buffer, view.byteOffset, view.byteLength);
-      const charArray = new Array(array.length);
+      const charArray = Array.from({ length: array.length });
       array.forEach(function (charcode, index) {
         charArray[index] = String.fromCharCode(charcode);
       });

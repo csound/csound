@@ -1,4 +1,5 @@
 /** @license zlib.js 2012 - imaya [ https://github.com/imaya/zlib.js ] The MIT License */
+/* eslint-disable unicorn/numeric-separators-style,camelcase,no-unused-expressions */
 goog.provide("Zlib.Huffman");
 
 goog.scope(function () {
@@ -9,55 +10,53 @@ goog.scope(function () {
    */
   Zlib.Huffman.buildHuffmanTable = function (lengths) {
     /** @type {number} length list size. */
-    var listSize = lengths.length;
+    const listSize = lengths.length;
     /** @type {number} max code length for table size. */
-    var maxCodeLength = 0;
+    let maxCodeLength = 0;
     /** @type {number} min code length for table size. */
-    var minCodeLength = Number.POSITIVE_INFINITY;
-    /** @type {number} table size. */
-    var size;
-    /** @type {Uint8Array|Uint16Array|Uint32Array} huffman code table. */
-    var table;
+    let minCodeLength = Number.POSITIVE_INFINITY;
     /** @type {number} bit length. */
-    var bitLength;
+    let bitLength;
     /** @type {number} huffman code. */
-    var code;
+    let code;
     /**
      * @type {number} skip length for table filling.
      */
-    var skip;
+    let skip;
     /** @type {number} reversed code. */
-    var reversed;
+    let reversed;
     /** @type {number} reverse temp. */
-    var rtemp;
+    let rtemp;
     /** @type {number} loop counter. */
-    var i;
+    let index;
     /** @type {number} loop limit. */
-    var il;
+    let il;
     /** @type {number} loop counter. */
-    var j;
+    let index_;
     /** @type {number} table value. */
-    var value;
+    let value;
 
     // Math.max は遅いので最長の値は for-loop で取得する
-    for (i = 0, il = listSize; i < il; ++i) {
-      if (lengths[i] > maxCodeLength) {
-        maxCodeLength = lengths[i];
+    for (index = 0, il = listSize; index < il; ++index) {
+      if (lengths[index] > maxCodeLength) {
+        maxCodeLength = lengths[index];
       }
-      if (lengths[i] < minCodeLength) {
-        minCodeLength = lengths[i];
+      if (lengths[index] < minCodeLength) {
+        minCodeLength = lengths[index];
       }
     }
 
-    size = 1 << maxCodeLength;
-    table = new Uint32Array(size);
+    /** @type {number} table size. */
+    const size = 1 << maxCodeLength;
+    /** @type {Uint8Array|Uint16Array|Uint32Array} huffman code table. */
+    const table = new Uint32Array(size);
 
     // ビット長の短い順からハフマン符号を割り当てる
     for (bitLength = 1, code = 0, skip = 2; bitLength <= maxCodeLength; ) {
-      for (i = 0; i < listSize; ++i) {
-        if (lengths[i] === bitLength) {
+      for (index = 0; index < listSize; ++index) {
+        if (lengths[index] === bitLength) {
           // ビットオーダーが逆になるためビット長分並びを反転する
-          for (reversed = 0, rtemp = code, j = 0; j < bitLength; ++j) {
+          for (reversed = 0, rtemp = code, index_ = 0; index_ < bitLength; ++index_) {
             reversed = (reversed << 1) | (rtemp & 1);
             rtemp >>= 1;
           }
@@ -66,9 +65,9 @@ goog.scope(function () {
           // 最大ビット長以外では 0 / 1 どちらでも良い箇所ができる
           // そのどちらでも良い場所は同じ値で埋めることで
           // 本来のビット長以上のビット数取得しても問題が起こらないようにする
-          value = (bitLength << 16) | i;
-          for (j = reversed; j < size; j += skip) {
-            table[j] = value;
+          value = (bitLength << 16) | index;
+          for (index_ = reversed; index_ < size; index_ += skip) {
+            table[index_] = value;
           }
 
           ++code;

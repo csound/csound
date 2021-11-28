@@ -1,9 +1,9 @@
 export const DEFAULT_BUFFER_LEN = 128;
 export const MAX_CHANNELS = 32;
-export const RING_BUFFER_SIZE = 16384;
+export const RING_BUFFER_SIZE = 16_384;
 export const MIDI_BUFFER_SIZE = 1024;
 export const MIDI_BUFFER_PAYLOAD_SIZE = 3;
-export const CALLBACK_DATA_BUFFER_SIZE = 16384;
+export const CALLBACK_DATA_BUFFER_SIZE = 16_384;
 
 export const initialSharedState = [
   0, // 1 = csound worker is locked

@@ -3,8 +3,10 @@
    https://csound.com/docs/api/modules.html
 */
 
-goog.require("csound.utils.trim_null");
-goog.require("csound.utils.text_encoders");
+goog.require('csound.utils.text_encoders');
+goog.require('csound.utils.trim_null');
+;
+;
 
 /**
  * Returns the audio output name (-o)

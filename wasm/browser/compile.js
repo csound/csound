@@ -54,14 +54,6 @@ fs.writeFileSync(
   inlineArraybuffer("./node_modules/@csound/wasm-bin/lib/csound.dylib.wasm.z", "binary.wasm"),
 );
 
-fs.writeFileSync(
-  path.join(rootDir, "dist", "__wasmer_wasm_transformer.inline.js"),
-  inlineArraybuffer(
-    "./node_modules/@wasmer/wasm-transformer/lib/wasm-transformer.wasm",
-    "transformer.wasm",
-  ),
-);
-
 const polyfills = {
   fetch_noop: fs.readFileSync("polyfills/fetch-noop.js", "utf-8"),
   set_timeout_noop: fs.readFileSync("polyfills/set-timeout-noop.js", "utf-8"),
@@ -195,10 +187,6 @@ const compile = async (config) => {
       "./node_modules/rambda/dist/rambda.esm.js",
       "./node_modules/path-browserify/package.json",
       "./node_modules/path-browserify/index.js",
-      // "./node_modules/@wasmer/wasi/package.json",
-      // "./node_modules/@wasmer/wasi/lib/index.esm.js",
-      "./node_modules/@wasmer/wasm-transformer/package.json",
-      "./node_modules/@wasmer/wasm-transformer/lib/unoptimized/wasm-transformer.esm.js",
       "./node_modules/comlink/package.json",
       "./node_modules/comlink/dist/esm/comlink.mjs",
       "./node_modules/zlibjs/bin/inflate.min.js",
@@ -246,7 +234,7 @@ const compile = async (config) => {
     compilation_level: "SIMPLE_OPTIMIZATIONS",
     // compilation_level: "WHITESPACE_ONLY",
     // compilation_level: "BUNDLE",
-    language_in: "ECMASCRIPT_2020",
+    language_in: "ECMASCRIPT_2021",
     // language_out: "ECMASCRIPT_2020",
     process_common_js_modules: true,
     rewrite_polyfills: false,
@@ -284,44 +272,3 @@ const compile = async (config) => {
     postbuild && postbuild();
   }
 })();
-
-// closureCompiler.spawnOptions = { stdio: "inherit" };
-
-// let outputResolver, outputRejecter;
-// const codePromise = new Promise((resolve, reject) => {
-//   outputResolver = resolve;
-//   outputRejecter = reject;
-// });
-//
-
-// const closureCompiler = new ClosureCompiler({
-//   js: [
-//     path.join(rootDir, "dist/csound.cjs.js"),
-//     // path.join(nodeModulesDir, "assert/build/assert.js"),
-//     path.join(nodeModulesDir, "buffer-es6/index.js"),
-//     path.join(nodeModulesDir, "buffer-es6/base64.js"),
-//     path.join(nodeModulesDir, "buffer-es6/ieee754.js"),
-//     path.join(nodeModulesDir, "buffer-es6/isArray.js"),
-//   ],
-//   externs: [path.join(rootDir, "externs.js")],
-//   // entry_point: path.join(rootDir, "dist/csound.esm.js"),
-//
-//   compilation_level: "ADVANCED",
-//   // compilation_level: "SIMPLE_OPTIMIZATIONS",
-//   transform_amd_modules: true,
-//   module_resolution: "NODE",
-//   js_output_file: "out.js",
-//   debug: true,
-// });
-//
-// console.log(closureCompiler, Object.keys(closureCompiler));
-
-// closureCompiler.javaPath = `${process.env.JAVA_HOME}/bin/java`;
-// closureCompiler.JAR_PATH = JarPath;
-// closureCompiler.spawnOptions = { stdio: "inherit" };
-//
-// closureCompiler.run((exitCode, outputCode, stderr) => {
-//   console.log(stdout);
-//   console.log(stderr);
-//   process.exitCode = exitCode;
-// });

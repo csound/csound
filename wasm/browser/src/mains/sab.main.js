@@ -1,3 +1,4 @@
+goog.require('worker.sab');
 import * as Comlink from "comlink/dist/esm/comlink.mjs";
 import { api as API } from "../libcsound";
 import { messageEventHandler, IPCMessagePorts } from "./messages.main";
@@ -483,7 +484,7 @@ class SharedArrayBufferMainThread {
                     reject(
                       new Error(`Worker timed out so ${csoundApiRename(apiKey)}() wasn't called!`),
                     ),
-                  10000,
+                  10_000,
                 );
                 const resolveCallback = (answer) => {
                   clearTimeout(timeout);

@@ -1,3 +1,4 @@
+/* eslint-disable unicorn/numeric-separators-style,camelcase,no-unused-expressions */
 /**
  * @fileoverview Adler32 checksum 実装.
  */
@@ -26,21 +27,22 @@ goog.scope(function () {
    */
   Zlib.Adler32.update = function (adler, array) {
     /** @type {number} */
-    var s1 = adler & 0xffff;
+    let s1 = adler & 0xffff;
     /** @type {number} */
-    var s2 = (adler >>> 16) & 0xffff;
+    let s2 = (adler >>> 16) & 0xffff;
     /** @type {number} array length */
-    var len = array.length;
+    let length_ = array.length;
     /** @type {number} loop length (don't overflow) */
-    var tlen;
+    let tlen;
     /** @type {number} array index */
-    var i = 0;
+    let index = 0;
 
-    while (len > 0) {
-      tlen = len > Zlib.Adler32.OptimizationParameter ? Zlib.Adler32.OptimizationParameter : len;
-      len -= tlen;
+    while (length_ > 0) {
+      tlen =
+        length_ > Zlib.Adler32.OptimizationParameter ? Zlib.Adler32.OptimizationParameter : length_;
+      length_ -= tlen;
       do {
-        s1 += array[i++];
+        s1 += array[index++];
         s2 += s1;
       } while (--tlen);
 

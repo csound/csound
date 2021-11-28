@@ -1,3 +1,5 @@
+/* global csound:writable */
+
 goog.provide("csound.utils.trim_null");
 
 const trimNull = (a) => {

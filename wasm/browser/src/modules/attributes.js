@@ -5,10 +5,14 @@
 
 /* eslint-disable unicorn/prevent-abbreviations */
 
-goog.require("csound.utils.native_sizes");
-goog.require("csound.utils.string_pointers");
-goog.require("csound.utils.structure_buffer_to_object");
-goog.require("csound.structures");
+goog.require('csound.structures');
+goog.require('csound.utils.native_sizes');
+goog.require('csound.utils.string_pointers');
+goog.require('csound.utils.structure_buffer_to_object');
+;
+;
+;
+;
 
 /**
  * Returns the sample rate from Csound instance

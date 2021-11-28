@@ -22,7 +22,7 @@ function shouldOpenReader(rights) {
 
 function performanceNowPoly() {
   if (typeof performance === "undefined" || typeof performance.now === "undefined") {
-    var nowOffset = Date.now();
+    const nowOffset = Date.now();
     return Date.now() - nowOffset;
   } else {
     return performance.now();
@@ -156,15 +156,15 @@ csound.filesystem.WASI.prototype.environ_sizes_get = function (environCount, env
   }
   return csound.filesystem.constants.WASI_ESUCCESS;
 };
-csound.filesystem.WASI.prototype.fd_advise = function (fd, offset, len, advice) {
+csound.filesystem.WASI.prototype.fd_advise = function (fd, offset, length_, advice) {
   if (DEBUG_WASI) {
-    console.log("fd_advise", fd, offset, len, advice, arguments);
+    console.log("fd_advise", fd, offset, length_, advice, arguments);
   }
   return csound.filesystem.constants.WASI_ENOSYS;
 };
-csound.filesystem.WASI.prototype.fd_allocate = function (fd, offset, len) {
+csound.filesystem.WASI.prototype.fd_allocate = function (fd, offset, length_) {
   if (DEBUG_WASI) {
-    console.log("fd_allocate", fd, offset, len, arguments);
+    console.log("fd_allocate", fd, offset, length_, arguments);
   }
   return csound.filesystem.constants.WASI_ENOSYS;
 };
@@ -213,8 +213,8 @@ csound.filesystem.WASI.prototype.fd_filestat_get = function (fd, bufPtr) {
   let filesize = 0;
   const handle = this.getHandle(fd);
   if (handle) {
-    filesize = handle.reduce(function (acc, uintArray) {
-      return acc + uintArray.byteLength;
+    filesize = handle.reduce(function (accumulator, uintArray) {
+      return accumulator + uintArray.byteLength;
     }, 0);
   }
 
@@ -255,15 +255,15 @@ csound.filesystem.WASI.prototype.fd_filestat_set_times = function (
   }
   return csound.filesystem.constants.WASI_ESUCCESS;
 };
-csound.filesystem.WASI.prototype.fd_pread = function (fd, iovs, iovsLen, offset, nread) {
+csound.filesystem.WASI.prototype.fd_pread = function (fd, iovs, iovsLength, offset, nread) {
   if (DEBUG_WASI) {
-    console.log("fd_pread", fd, iovs, iovsLen, offset, nread, arguments);
+    console.log("fd_pread", fd, iovs, iovsLength, offset, nread, arguments);
   }
   return csound.filesystem.constants.WASI_ESUCCESS;
 };
-csound.filesystem.WASI.prototype.fd_prestat_dir_name = function (fd, pathPtr, pathLen) {
+csound.filesystem.WASI.prototype.fd_prestat_dir_name = function (fd, pathPtr, pathLength) {
   if (DEBUG_WASI) {
-    console.log("fd_prestat_dir_name", fd, pathPtr, pathLen);
+    console.log("fd_prestat_dir_name", fd, pathPtr, pathLength);
   }
   if (!this.fd[fd] && !this.fd[fd - 1]) {
     return csound.filesystem.constants.WASI_EBADF;
@@ -290,13 +290,13 @@ csound.filesystem.WASI.prototype.fd_prestat_get = function (fd, bufPtr) {
   memory.setUint32(bufPtr + 4, dirNameBuf.byteLength, true);
   return csound.filesystem.constants.WASI_ESUCCESS;
 };
-csound.filesystem.WASI.prototype.fd_pwrite = function (fd, iovs, iovsLen, offset, nwritten) {
-  console.log("fd_pwrite", fd, iovs, iovsLen, offset, nwritten, arguments);
+csound.filesystem.WASI.prototype.fd_pwrite = function (fd, iovs, iovsLength, offset, nwritten) {
+  console.log("fd_pwrite", fd, iovs, iovsLength, offset, nwritten, arguments);
   return csound.filesystem.constants.WASI_ESUCCESS;
 };
-csound.filesystem.WASI.prototype.fd_read = function (fd, iovs, iovsLen, nread) {
+csound.filesystem.WASI.prototype.fd_read = function (fd, iovs, iovsLength, nread) {
   if (DEBUG_WASI) {
-    console.log("fd_read", fd, iovs, iovsLen, nread, arguments);
+    console.log("fd_read", fd, iovs, iovsLength, nread, arguments);
   }
   const handle = this.getHandle(fd);
 
@@ -310,49 +310,49 @@ csound.filesystem.WASI.prototype.fd_read = function (fd, iovs, iovsLen, nread) {
   let read = Number(this.fd[fd].seekPos);
   let thisRead = 0;
 
-  for (let i = 0; i < iovsLen; i++) {
-    const ptr = iovs + i * 8;
+  for (let index = 0; index < iovsLength; index++) {
+    const ptr = iovs + index * 8;
     const buf = memory.getUint32(ptr, true);
-    const bufLen = memory.getUint32(ptr + 4, true);
-    thisRead += bufLen;
+    const bufLength = memory.getUint32(ptr + 4, true);
+    thisRead += bufLength;
 
-    Array.from({ length: bufLen }, (_, i) => i).reduce(
-      (acc, currRead) => {
-        const [chunkIdx, chunkOffset] = acc;
-        let currChunkIndex = 0;
-        let currChunkOffset = 0;
+    Array.from({ length: bufLength }, (_, index) => index).reduce(
+      (accumulator, currentRead) => {
+        const [chunkIndex, chunkOffset] = accumulator;
+        let currentChunkIndex = 0;
+        let currentChunkOffset = 0;
 
-        if (currRead === 0) {
+        if (currentRead === 0) {
           let found = false;
           let leadup = 0;
           while (!found) {
-            if (leadup <= read && handle[currChunkIndex].byteLength + leadup > read) {
+            if (leadup <= read && handle[currentChunkIndex].byteLength + leadup > read) {
               found = true;
-              currChunkOffset = read - leadup;
+              currentChunkOffset = read - leadup;
             } else {
-              leadup += handle[currChunkIndex].byteLength;
-              currChunkIndex += 1;
+              leadup += handle[currentChunkIndex].byteLength;
+              currentChunkIndex += 1;
             }
           }
         } else {
-          currChunkIndex = chunkIdx;
-          currChunkOffset = chunkOffset;
+          currentChunkIndex = chunkIndex;
+          currentChunkOffset = chunkOffset;
         }
 
-        memory.setUint8(buf + currRead, handle[currChunkIndex][currChunkOffset]);
+        memory.setUint8(buf + currentRead, handle[currentChunkIndex][currentChunkOffset]);
 
-        if (currChunkOffset + 1 >= handle[currChunkIndex].byteLength) {
-          currChunkIndex = chunkIdx + 1;
-          currChunkOffset = 0;
+        if (currentChunkOffset + 1 >= handle[currentChunkIndex].byteLength) {
+          currentChunkIndex = chunkIndex + 1;
+          currentChunkOffset = 0;
         } else {
-          currChunkOffset += 1;
+          currentChunkOffset += 1;
         }
 
-        return [currChunkIndex, currChunkOffset];
+        return [currentChunkIndex, currentChunkOffset];
       },
       [0, 0],
     );
-    read += bufLen;
+    read += bufLength;
   }
 
   this.fd[fd].seekPos = goog.global.BigInt(read);
@@ -360,9 +360,9 @@ csound.filesystem.WASI.prototype.fd_read = function (fd, iovs, iovsLen, nread) {
   return csound.filesystem.constants.WASI_ESUCCESS;
 };
 
-csound.filesystem.WASI.prototype.fd_readdir = function (fd, bufPtr, bufLen, cookie, bufusedPtr) {
+csound.filesystem.WASI.prototype.fd_readdir = function (fd, bufPtr, bufLength, cookie, bufusedPtr) {
   if (DEBUG_WASI) {
-    console.log("fd_readdir", fd, bufPtr, bufLen, cookie, bufusedPtr, arguments);
+    console.log("fd_readdir", fd, bufPtr, bufLength, cookie, bufusedPtr, arguments);
   }
   return csound.filesystem.constants.WASI_ESUCCESS;
 };
@@ -385,7 +385,7 @@ csound.filesystem.WASI.prototype.fd_seek = function (fd, offset, whence, newOffs
         goog.global.BigInt(offset);
       break;
     case csound.filesystem.constants.WASI_WHENCE_END:
-      const currLength = this.fd[fd].writer
+      const currentLength_ = this.fd[fd].writer
         ? goog.global.BigInt(this.fd[fd].writer.length)
         : goog.global.BigInt(0);
       this.fd[fd].seekPos = currentLength + BigInt(offset);
@@ -420,7 +420,7 @@ csound.filesystem.WASI.prototype.fd_tell = function (fd, offsetPtr) {
   return csound.filesystem.constants.WASI_ESUCCESS;
 };
 
-csound.filesystem.WASI.prototype.fd_write = function (fd, iovs, iovsLen, nwritten) {
+csound.filesystem.WASI.prototype.fd_write = function (fd, iovs, iovsLength, nwritten) {
   const memory = this.getMemory();
   this.fd[fd].buffers = this.fd[fd].buffers || [];
 
@@ -431,13 +431,13 @@ csound.filesystem.WASI.prototype.fd_write = function (fd, iovs, iovsLen, nwritte
   }
   let written = 0;
 
-  for (let i = 0; i < iovsLen; i++) {
-    const ptr = iovs + i * 8;
+  for (let index = 0; index < iovsLength; index++) {
+    const ptr = iovs + index * 8;
     const buf = memory.getUint32(ptr, true);
-    const bufLen = memory.getUint32(ptr + 4, true);
-    written += bufLen;
-    const chunk = new Uint8Array(memory.buffer, buf, bufLen);
-    this.fd[fd].buffers.push(chunk.slice(0, bufLen));
+    const bufLength = memory.getUint32(ptr + 4, true);
+    written += bufLength;
+    const chunk = new Uint8Array(memory.buffer, buf, bufLength);
+    this.fd[fd].buffers.push(chunk.slice(0, bufLength));
   }
 
   this.fd[fd].seekPos += goog.global.BigInt(written);
@@ -445,9 +445,9 @@ csound.filesystem.WASI.prototype.fd_write = function (fd, iovs, iovsLen, nwritte
   return csound.filesystem.constants.WASI_ESUCCESS;
 };
 
-csound.filesystem.WASI.prototype.path_create_directory = function (fd, pathPtr, pathLen) {
+csound.filesystem.WASI.prototype.path_create_directory = function (fd, pathPtr, pathLength) {
   if (DEBUG_WASI) {
-    console.log("path_create_directory", fd, pathPtr, pathLen, arguments);
+    console.log("path_create_directory", fd, pathPtr, pathLength, arguments);
   }
   return csound.filesystem.constants.WASI_ESUCCESS;
 };
@@ -456,11 +456,11 @@ csound.filesystem.WASI.prototype.path_filestat_get = function (
   fd,
   flags,
   pathPtr,
-  pathLen,
+  pathLength,
   bufPtr,
 ) {
   if (DEBUG_WASI) {
-    console.log("path_filestat_get", fd, flags, pathPtr, pathLen, bufPtr, arguments);
+    console.log("path_filestat_get", fd, flags, pathPtr, pathLength, bufPtr, arguments);
   }
   return csound.filesystem.constants.WASI_ESUCCESS;
 };
@@ -468,7 +468,7 @@ csound.filesystem.WASI.prototype.path_filestat_set_times = function (
   fd,
   dirflags,
   pathPtr,
-  pathLen,
+  pathLength,
   stAtim,
   stMtim,
   fstflags,
@@ -479,7 +479,7 @@ csound.filesystem.WASI.prototype.path_filestat_set_times = function (
       fd,
       dirflags,
       pathPtr,
-      pathLen,
+      pathLength,
       stAtim,
       stMtim,
       fstflags,
@@ -492,10 +492,10 @@ csound.filesystem.WASI.prototype.path_link = function (
   oldFd,
   oldFlags,
   oldPath,
-  oldPathLen,
+  oldPathLength,
   newFd,
   newPath,
-  newPathLen,
+  newPathLength,
 ) {
   if (DEBUG_WASI) {
     console.log(
@@ -503,10 +503,10 @@ csound.filesystem.WASI.prototype.path_link = function (
       oldFd,
       oldFlags,
       oldPath,
-      oldPathLen,
+      oldPathLength,
       newFd,
       newPath,
-      newPathLen,
+      newPathLength,
       arguments,
     );
   }
@@ -517,7 +517,7 @@ csound.filesystem.WASI.prototype.path_open = function (
   dirfd,
   dirflags,
   pathPtr,
-  pathLen,
+  pathLength,
   oflags,
   fsRightsBase,
   fsRightsInheriting,
@@ -530,7 +530,7 @@ csound.filesystem.WASI.prototype.path_open = function (
       dirfd,
       dirflags,
       pathPtr,
-      pathLen,
+      pathLength,
       oflags,
       fsRightsBase,
       fsRightsInheriting,
@@ -540,11 +540,11 @@ csound.filesystem.WASI.prototype.path_open = function (
     );
   }
   const memory = this.getMemory();
-  const dirPath = (this.fd[dirfd] || { path: "/" })["path"];
-  const pathOpenBytes = new Uint8Array(this.memory.buffer, pathPtr, pathLen);
-  const pathOpenStr = decoder.decode(pathOpenBytes);
+  const dirPath = (this.fd[dirfd] || { path: "/" }).path;
+  const pathOpenBytes = new Uint8Array(this.memory.buffer, pathPtr, pathLength);
+  const pathOpenString = decoder.decode(pathOpenBytes);
   const pathOpen = goog.string.path.normalizePath(
-    goog.string.path.join(dirfd === 3 ? "" : dirPath, pathOpenStr),
+    goog.string.path.join(dirfd === 3 ? "" : dirPath, pathOpenString),
   );
 
   if (DEBUG_WASI) {
@@ -580,10 +580,8 @@ csound.filesystem.WASI.prototype.path_open = function (
     this.fd[actualFd].buffers = [];
   }
 
-  if (shouldOpenReader(fsRightsBase)) {
-    if (DEBUG_WASI) {
-      console.log("should open a read handle for", pathOpen);
-    }
+  if (shouldOpenReader(fsRightsBase) && DEBUG_WASI) {
+    console.log("should open a read handle for", pathOpen);
   }
 
   memory.setUint32(fd, actualFd, true);
@@ -593,55 +591,62 @@ csound.filesystem.WASI.prototype.path_open = function (
 csound.filesystem.WASI.prototype.path_readlink = function (
   fd,
   pathPtr,
-  pathLen,
+  pathLength,
   buf,
-  bufLen,
+  bufLength,
   bufused,
 ) {
   if (DEBUG_WASI) {
-    console.log("path_readlink", fd, pathPtr, pathLen, buf, bufLen, bufused, arguments);
+    console.log("path_readlink", fd, pathPtr, pathLength, buf, bufLength, bufused, arguments);
   }
   return csound.filesystem.constants.WASI_ESUCCESS;
 };
-csound.filesystem.WASI.prototype.path_remove_directory = function (fd, pathPtr, pathLen) {
+csound.filesystem.WASI.prototype.path_remove_directory = function (fd, pathPtr, pathLength) {
   if (DEBUG_WASI) {
-    console.log("path_remove_directory", fd, pathPtr, pathLen);
+    console.log("path_remove_directory", fd, pathPtr, pathLength);
   }
   return csound.filesystem.constants.WASI_ESUCCESS;
 };
 csound.filesystem.WASI.prototype.path_rename = function (
   oldFd,
   oldPath,
-  oldPathLen,
+  oldPathLength,
   newFd,
   newPath,
-  newPathLen,
+  newPathLength,
 ) {
   if (DEBUG_WASI) {
-    console.log("path_rename", oldFd, oldPath, oldPathLen, newFd, newPath, newPathLen, arguments);
+    console.log(
+      "path_rename",
+      oldFd,
+      oldPath,
+      oldPathLength,
+      newFd,
+      newPath,
+      newPathLength,
+      arguments,
+    );
   }
   return csound.filesystem.constants.WASI_ESUCCESS;
 };
 csound.filesystem.WASI.prototype.path_symlink = function (
   oldPath,
-  oldPathLen,
+  oldPathLength,
   fd,
   newPath,
-  newPathLen,
+  newPathLength,
 ) {
   if (DEBUG_WASI) {
-    console.log("path_symlink", oldPath, oldPathLen, fd, newPath, newPathLen, arguments);
+    console.log("path_symlink", oldPath, oldPathLength, fd, newPath, newPathLength, arguments);
   }
   return csound.filesystem.constants.WASI_ESUCCESS;
 };
 
-csound.filesystem.WASI.prototype.path_unlink_file = function (fd, pathPtr, pathLen) {
-  if (fd > 3) {
-    if (DEBUG_WASI) {
-      console.log("path_unlink_file", fd, pathPtr, pathLen, arguments);
+csound.filesystem.WASI.prototype.path_unlink_file = function (fd, pathPtr, pathLength) {
+  if (fd > 3 && DEBUG_WASI) {
+      console.log("path_unlink_file", fd, pathPtr, pathLength, arguments);
     }
     // actual file removal goes here
-  }
 
   return csound.filesystem.constants.WASI_ESUCCESS;
 };
@@ -664,9 +669,9 @@ csound.filesystem.WASI.prototype.proc_raise = function (sig) {
   }
   return csound.filesystem.constants.WASI_ESUCCESS;
 };
-csound.filesystem.WASI.prototype.random_get = function (bufPtr, bufLen) {
+csound.filesystem.WASI.prototype.random_get = function (bufPtr, bufLength) {
   if (DEBUG_WASI) {
-    console.log("random_get", bufPtr, bufLen);
+    console.log("random_get", bufPtr, bufLength);
   }
   return csound.filesystem.constants.WASI_ESUCCESS;
 };

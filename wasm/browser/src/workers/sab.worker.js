@@ -266,9 +266,10 @@ const sabCreateRealtimeAudioThread =
 
 const initMessagePort = ({ port }) => {
   const workerMessagePort = new MessagePortState();
-  workerMessagePort.post = (messageLog) => port.postMessage({ log: messageLog });
-  workerMessagePort.broadcastPlayState = (playStateChange) => port.postMessage({ playStateChange });
-  workerMessagePort.broadcastSabUnlocked = () => port.postMessage({ sabWorker: "unlocked" });
+  workerMessagePort.post = (messageLog) => port.postMessage({ log: messageLog }, "*");
+  workerMessagePort.broadcastPlayState = (playStateChange) =>
+    port.postMessage({ playStateChange }, "*");
+  workerMessagePort.broadcastSabUnlocked = () => port.postMessage({ sabWorker: "unlocked" }, "*");
   workerMessagePort.ready = true;
   return workerMessagePort;
 };
@@ -291,7 +292,7 @@ const initCallbackReplyPort = ({ port }) => {
         }
         return accumulator;
       }, []);
-      port.postMessage(answers);
+      port.postMessage(answers, "*");
       const pollPromise_ = pollPromise;
       pollPromise = undefined;
       pollPromise_ && pollPromise_(callbacks);
@@ -339,7 +340,7 @@ const initialize = async ({
 }) => {
   log(`initializing SABWorker and WASM`)();
   const workerMessagePort = initMessagePort({ port: messagePort });
-  const callbacksRequest = () => callbackPort.postMessage("poll");
+  const callbacksRequest = () => callbackPort.postMessage("poll", "*");
   initCallbackReplyPort({ port: callbackPort });
 
   const [wasm, wasi] = await loadWasm({
@@ -351,7 +352,7 @@ const initialize = async ({
 
   const libraryCsound = libcsoundFactory(wasm);
 
-  const startHandler = (_, args) =>
+  const startHandler = (_, arguments_) =>
     handleCsoundStart(
       workerMessagePort,
       libraryCsound,
@@ -368,7 +369,7 @@ const initialize = async ({
         workerMessagePort,
         wasi,
       }),
-    )(args);
+    )(arguments_);
 
   const allAPI = pipe(assoc("csoundStart", startHandler), assoc("wasm", wasm))(libraryCsound);
   combined = new Map(Object.entries(allAPI));
@@ -379,6 +380,6 @@ const initialize = async ({
   return csoundInstance;
 };
 
-export const sab_worker = { initialize, callUncloned };
+export const sabWorker = { initialize, callUncloned };
 
-expose({ initialize: sab_worker.initialize, callUncloned: sab_worker.callUncloned });
+expose({ initialize: sabWorker.initialize, callUncloned: sabWorker.callUncloned });
