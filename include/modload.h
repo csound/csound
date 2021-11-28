@@ -28,10 +28,9 @@
 
 #include <plugin.h>
 
-#ifdef __wasi__
-  #define PUBLIC_ extern __attribute__((used))
-#else
-  #define PUBLIC_ PUBLIC
+#if defined(__wasi__)
+  #undef PUBLIC
+  #define PUBLIC extern __attribute__((used))
 #endif
 
 namespace csnd {
@@ -41,15 +40,15 @@ void on_load(Csound *);
 }
 
 extern "C" {
-PUBLIC_ int csoundModuleCreate(CSOUND *csound) {
+PUBLIC int csoundModuleCreate(CSOUND *csound) {
   IGN(csound);
   return 0;
 }
-PUBLIC_ int csoundModuleDestroy(CSOUND *csound) {
+PUBLIC int csoundModuleDestroy(CSOUND *csound) {
   IGN(csound);
   return 0;
 }
-PUBLIC_ int csoundModuleInit(CSOUND *csound) {
+PUBLIC int csoundModuleInit(CSOUND *csound) {
   csnd::on_load((csnd::Csound *)csound);
   return 0;
 }

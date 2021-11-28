@@ -1,6 +1,3 @@
-// import path from "path-browserify";
-// import { lowerI64Imports } from "@wasmer/wasm-transformer/lib/unoptimized/wasm-transformer.esm.js";
-// import { WasmFs } from "./filesystem/memfs/index";
 import { dlinit } from "./dlinit";
 import { csoundWasiJsMessageCallback } from "./filesystem/worker-fs";
 import { logWasmModule as log } from "./logger";
@@ -8,7 +5,6 @@ const { assert } = goog.require("goog.asserts");
 goog.require("Zlib");
 goog.require("Zlib.Inflate");
 goog.require("csound.filesystem.WASI");
-goog.require("csound.utils.transform_imports");
 
 const PAGE_SIZE = 65536;
 const PAGES_PER_MB = 16; // 1048576 bytes per MB / PAGE_SIZE
@@ -113,12 +109,7 @@ const loadStaticWasm = async ({ wasmBytes, wasmFs, wasi, messagePort }) => {
   return instance;
 };
 
-export default async function ({
-  wasmDataURI,
-  wasmTransformerDataURI,
-  withPlugins = [],
-  messagePort,
-}) {
+export default async function ({ wasmDataURI, withPlugins = [], messagePort }) {
   const wasmFs = {};
 
   const wasi = new csound.filesystem.WASI({ preopens: { "/": "/" } });
@@ -127,10 +118,6 @@ export default async function ({
   const wasmZlib = new Zlib.Inflate(wasmCompressed);
 
   const wasmBytes = wasmZlib.decompress();
-  // const wasmBytes = await csound.utils.transform_imports.lowerI64Imports(
-  //   wasmInflated,
-  //   wasmTransformerDataURI,
-  // );
 
   const magicData = getBinaryHeaderData(wasmBytes);
   if (magicData === "static") {
@@ -207,13 +194,12 @@ export default async function ({
   const memoryBase = new WebAssembly.Global({ value: "i32", mutable: false }, fixedMemoryBase);
   const tableBase = new WebAssembly.Global({ value: "i32", mutable: false }, 1);
   const __dummy = new WebAssembly.Global({ value: "i32", mutable: true }, 0);
-  console.log({ wasmBytes });
+
   const module = await WebAssembly.compile(wasmBytes);
   const options = wasi.getImports(module);
   let withPlugins_ = [];
 
   const csoundLoadModules = (csoundInstance) => {
-    console.log("CALL", withPlugins_);
     withPlugins_.forEach((pluginInstance) => {
       if (typeof instance !== "undefined") {
         dlinit(instance, pluginInstance, table, csoundInstance);
@@ -246,7 +232,7 @@ export default async function ({
   options["GOT.mem"].__heap_base = heapBase;
 
   options["GOT.func"] = options["GOT.func"] || {};
-  console.log({ module, options });
+
   const instance = await WebAssembly.instantiate(module, options);
 
   const moduleExports = Object.assign({}, instance.exports);
@@ -267,15 +253,16 @@ export default async function ({
       } = headerData;
 
       const plugin = await WebAssembly.compile(wasmPluginBytes);
-      const pluginOptions = {};
+      const pluginOptions = wasi.getImports(plugin);
+
       const pluginMemoryBase = new WebAssembly.Global(
         { value: "i32", mutable: false },
         currentMemorySegment * PAGE_SIZE,
       );
 
       table.grow(pluginTableSize);
-      pluginOptions.wasi_snapshot_preview1 = options.wasi_snapshot_preview1 || {};
-      pluginOptions.env = Object.assign(pluginOptions.env || {}, {});
+
+      pluginOptions.env = Object.assign({}, pluginOptions.env);
       pluginOptions.env.memory = memory;
       pluginOptions.env.__indirect_function_table = table;
       pluginOptions.env.__memory_base = pluginMemoryBase;
@@ -285,7 +272,9 @@ export default async function ({
       delete pluginOptions.env.csoundWasiJsMessageCallback;
 
       currentMemorySegment += Math.ceil((pluginMemorySize + pluginMemoryAlign) / PAGE_SIZE);
+
       const pluginInstance = await WebAssembly.instantiate(plugin, pluginOptions);
+
       if (assertPluginExports(pluginInstance)) {
         pluginInstance.exports.__wasm_call_ctors();
         accumulator.push(pluginInstance);

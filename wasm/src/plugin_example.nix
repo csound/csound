@@ -25,7 +25,7 @@ in pkgs.stdenv.mkDerivation {
       -D_WASI_EMULATED_MMAN \
       -I${csound-wasm}/include \
       -c  plugin_example.c \
-      -o obj.o
+      -o plugin_example.o
 
     echo "Link togeather plugin_example.wasm"
     ${wasi-sdk}/bin/wasm-ld \
@@ -35,13 +35,13 @@ in pkgs.stdenv.mkDerivation {
       --export-all \
       --no-entry \
       -L${wasi-sdk}/share/wasi-sysroot/lib/wasm32-unknown-emscripten \
+      -L${csound-wasm}/lib -lcsound-wasm \
       -lc -lwasi-emulated-signal -lwasi-emulated-mman \
-      obj.o -o plugin_example.wasm
+      plugin_example.o -o plugin_example.wasm
   '';
 
   installPhase = ''
     mkdir -p $out/lib
     cp ./plugin_example.wasm $out/lib
-    cp ./*.o $out/lib
   '';
 }

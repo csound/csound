@@ -9,14 +9,17 @@ let
     echo "Create libcsound.wasm standalone"
     ${wasi-sdk}/bin/wasm-ld --lto-O2 \
       --entry=_start \
-      --export-all \
-      -L${wasi-sdk}/share/wasi-sysroot/lib/wasm32-wasi \
+      ${
+         pkgs.lib.concatMapStrings (x: " --export=" + x + " ")
+         (with builtins; fromJSON (readFile ./exports.json))
+       } \
+      -L${wasi-sdk}/share/wasi-sysroot/lib/wasm32-unknown-emscripten \
       -L${libsndfile}/lib -L${libflac}/lib -L${libogg}/lib -L${libvorbis}/lib \
-      -lc  -lc++ -lc++abi -lflac -logg -lvorbis \
-      -lsndfile -lwasi-emulated-signal -lwasi-emulated-mman \
-      -lxnet -lwasi-emulated-process-clocks \
+      -lc -lc++ -lc++abi -lrt -lutil -lxnet -lresolv -lc-printscan-long-double \
+      -lflac -logg -lvorbis -lsndfile -lwasi-emulated-getpid \
+      -lwasi-emulated-signal -lwasi-emulated-mman -lwasi-emulated-process-clocks \
       ${wasi-sdk}/share/wasi-sysroot/lib/wasm32-unknown-emscripten/crt1.o \
-       *.o -o csound.wasm
+       *.o -o csound.static.wasm
   '';
 
   dyn-link = ''
@@ -74,19 +77,6 @@ let
   libogg = pkgs.callPackage ./libogg.nix { inherit static; };
   libflac = pkgs.callPackage ./libflac.nix { inherit static; };
   libvorbis = pkgs.callPackage ./libvorbis.nix { inherit static; };
-
-  csoundModLoadPatch = pkgs.writeTextFile {
-    name = "csoundModLoadPatch";
-    text = ''
-      #ifndef __MODLOAD__H
-      #define __MODLOAD__H
-      #include <plugin.h>
-      namespace csnd {
-        void on_load(Csound *);
-      }
-      #endif
-    '';
-  };
 
   csoundSrc = builtins.path {
     path = ./. + "../../../";
@@ -159,8 +149,6 @@ in pkgs.stdenvNoCC.mkDerivation rec {
 
 
     sed -i -e 's/csoundUDPConsole.*//g' Top/argdecode.c
-
-    cat ${csoundModLoadPatch} > include/modload.h
 
     # Patch 64bit integer clock
     ${patchClock}/bin/patchClock Top/csound.c
@@ -590,7 +578,8 @@ in pkgs.stdenvNoCC.mkDerivation rec {
     #TODO fix ../Opcodes/ftsamplebank.cpp (why does it import thread-local?)
     ${if (static == true) then static-link else dyn-link}
 
-    ${wasi-sdk}/bin/llvm-ar rcs libcsound${lib.optionalString (static == false) "-dylib" }.a ./*.o
+    ${wasi-sdk}/bin/llvm-ar -x ${libsndfile}/lib/libsndfile.a
+    ${wasi-sdk}/bin/llvm-ar rcs libcsound-wasm.a ./*.o
   '';
 
   installPhase = ''

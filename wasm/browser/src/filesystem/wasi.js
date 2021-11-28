@@ -61,7 +61,9 @@ csound.filesystem.WASI.prototype.start = function (instance) {
  */
 csound.filesystem.WASI.prototype.getImports = function (module) {
   const options = {};
-  for (const neededImport of WebAssembly.Module.imports(module)) {
+  const neededImports = WebAssembly.Module.imports(module);
+
+  for (const neededImport of neededImports) {
     if (neededImport.kind === "function" && neededImport.module.startsWith("wasi_")) {
       if (typeof options[neededImport.module] !== "object") {
         options[neededImport.module] = {};
