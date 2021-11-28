@@ -3524,11 +3524,8 @@ PUBLIC void csoundReset(CSOUND *csound)
     /* now load and pre-initialise external modules for this instance */
     /* this function returns an error value that may be worth checking */
     {
-#ifndef __wasi__ /* wasi calls csoundInitStaticModules elsewhere */
+
       int err = csoundInitStaticModules(csound);
-#else
-      int err = 0;
-#endif
 
       if (csound->delayederrormessages &&
           csound->printerrormessagesflag==NULL) {

@@ -25,7 +25,6 @@
     -odac
 </CsOptions>
 <CsInstruments>
-    0dbfs = 1
 
     chnset(1, "test1")
     chnset(2, "test2")
