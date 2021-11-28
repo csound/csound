@@ -20,10 +20,10 @@
     Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
     02110-1301 USA
  */
-#include <OpcodeBase.hpp>
 #include <cmath>
 #include <list>
 #include <vector>
+#include <OpcodeBase.hpp>
 
 #ifndef M_PI
 #define M_PI 3.14159265358979323846

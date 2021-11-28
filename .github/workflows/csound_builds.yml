@@ -10,6 +10,7 @@ on:
       - develop
       - master
       - cs7
+      - PluginBase-heap
   pull_request:
     branches:
       - develop
