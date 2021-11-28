@@ -60,7 +60,8 @@
   "scripts": {
     "lint": "eslint 'src/**/*.js'",
     "lint:ci": "cross-env ESLINT_JUNIT_OUTPUT=tests/eslint.junit.xml eslint -f ./node_modules/eslint-junit/index.js 'src/**/*.js'",
-    "build": "node compile.js",
+    "build": "cross-env NODE_ENV=development node compile.js",
+    "build:prod": "cross-env NODE_ENV=production node compile.js",
     "build:readme": "node --experimental-modules script/generate-readme.mjs > README.md",
     "test:ci": "node tests/selenium_runner.js",
     "test:open": "node tests/server.cjs"

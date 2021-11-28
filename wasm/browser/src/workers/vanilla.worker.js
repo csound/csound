@@ -79,7 +79,7 @@ const createRealtimeAudioThread =
     let currentCsoundBufferPos = 0;
     workerMessagePort.broadcastPlayState("realtimePerformanceStarted");
 
-    audioProcessCallback = ({ numFrames }) => {
+    audioProcessCallback = ({ numFrames /** number */ }) => {
       const outputAudioPacket = instantiateAudioPacket(nchnls, numFrames);
       const hasInput = audioInputs.buffers.length > 0 && audioInputs.availableFrames >= numFrames;
 

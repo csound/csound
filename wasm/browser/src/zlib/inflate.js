@@ -7,8 +7,8 @@ goog.require("Zlib.RawInflate");
 goog.scope(function () {
   /**
    * @constructor
-   * @param {!(Uint8Array|Array)} input deflated buffer.
-   * @param {Object=} opt_params option parameters.
+   * @param {Uint8Array} input
+   * @param {Object} [opt_parameters]
    *
    * opt_params は以下のプロパティを指定する事ができます。
    *   - index: input buffer の deflate コンテナの開始位置.
@@ -18,7 +18,7 @@ goog.scope(function () {
    *       Zlib.Inflate.BufferType は Zlib.RawInflate.BufferType のエイリアス.
    */
   Zlib.Inflate = function (input, opt_parameters) {
-    /** @type {!(Uint8Array|Array)} */
+    /** @type {Uint8Array} */
     this.input = input;
     /** @type {number} */
     this.ip = 0;
@@ -78,14 +78,14 @@ goog.scope(function () {
 
   /**
    * decompress.
-   * @return {!(Uint8Array|Array)} inflated buffer.
+   * @return {Uint8Array} inflated buffer.
    */
   Zlib.Inflate.prototype.decompress = function () {
-    /** @type {!(Array|Uint8Array)} input buffer. */
+    /** @type {Uint8Array} input buffer. */
     const input = this.input;
     /** @type {number} adler-32 checksum */
     let adler32;
-    /** @type {!(Uint8Array|Array)} inflated buffer. */
+    /** @type {Uint8Array} inflated buffer. */
     const buffer = this.rawinflate.decompress();
     this.ip = this.rawinflate.ip;
 

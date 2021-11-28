@@ -31,14 +31,6 @@ Buffer.from = function (arrayBuffer, byteOffset, length) {};
 Buffer.concat = function (arrayBuffer, length) {};
 
 /**
- * @param {Array.<Buffer|ArrayBuffer|SharedArrayBuffer>} arrayBuffer
- * @param {number=} length
- * @return {Buffer}
- * @nosideeffects
- */
-Buffer.toString = function (type) {};
-
-/**
  * @typedef {{value:string, mutable:boolean}}
  */
 var WasmGlobalMeta;
@@ -74,6 +66,23 @@ var LibcsoundUncloned;
 
 // not sure if this hack is a good idea
 var process = { cwd: () => "/" };
+
+/** @typedef {number}  */
+var CsoundInst;
+
+/** @typedef {{
+ * freeStringMem: function(number): void,
+ * csoundGetSpout: function(CsoundInst): number,
+ * csoundGetSpin: function(CsoundInst): number,
+ * csoundGetInputBuffer: function(CsoundInst): number,
+ * csoundGetOutputBuffer: function(CsoundInst): number,
+ * }}  */
+var WasmExports;
+
+/** @typedef {{
+ * exports: WasmExports
+ * }}  */
+var WasmInst;
 
 /** @typedef {{
  * start: function(): Promise.<number>,

@@ -4,6 +4,7 @@ const WITH_TEXT_ENCODER_POLYFILL = goog.define("WITH_TEXT_ENCODER_POLYFILL", fal
 // FROM https://gitlab.com/PseudoPsycho/text-encoding-shim/-/blob/master/index.js
 const utf8Encodings = new Set(["utf8", "utf-8", "unicode-1-1-utf-8"]);
 
+/** @constructor */
 function TextEncoderPoly(encoding) {
   if (!utf8Encodings.has(encoding) && typeof encoding !== "undefined" && encoding !== null) {
     throw new RangeError("Invalid encoding type. Only utf-8 is supported");
@@ -25,16 +26,14 @@ TextEncoderPoly.prototype.encode = function (string_) {
   return array;
 };
 
-function TextDecoderPoly(encoding, options) {
+/** @constructor */
+function TextDecoderPoly(encoding) {
   if (!utf8Encodings.has(encoding) && typeof encoding !== "undefined" && encoding !== null) {
     throw new RangeError("Invalid encoding type. Only utf-8 is supported");
   }
   this.encoding = "utf-8";
   this.ignoreBOM = false;
-  this.fatal = typeof options !== "undefined" && "fatal" in options ? options.fatal : false;
-  if (typeof this.fatal !== "boolean") {
-    throw new TypeError("fatal flag must be boolean");
-  }
+
   this.trimNull = (a) => {
     const c = a.indexOf("\0");
     if (c > -1) {

@@ -11,6 +11,7 @@ const { compiler: ClosureCompiler } = goog;
 import { inlineWebworker } from "./goog/generate-webworker-module.js";
 import { inlineArraybuffer } from "./goog/inline-arraybuffer.js";
 
+const DEV = process.env.NODE_ENV === "development";
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const rootDir = __dirname; //path.resolve(__dirname, ".");
@@ -226,24 +227,14 @@ const compile = async (config) => {
       // "./node_modules/@wasmer/wasi/lib/index.esm.js",
       // "./node_modules/buffer-es6/index.js",
     ],
-    // entry_point: "./src/workers/sab.worker",
-    // entry_point: "sab.worker",
     assume_function_wrapper: true,
-    // isolation_mode: "NONE",
-    // compilation_level: "ADVANCED",
-    compilation_level: "SIMPLE_OPTIMIZATIONS",
-    // compilation_level: "WHITESPACE_ONLY",
-    // compilation_level: "BUNDLE",
+    compilation_level: DEV ? "SIMPLE_OPTIMIZATIONS" : "ADVANCED",
     language_in: "ECMASCRIPT_2021",
-    // language_out: "ECMASCRIPT_2020",
     process_common_js_modules: true,
     rewrite_polyfills: false,
     module_resolution: "NODE",
     dependency_mode: "PRUNE",
     force_inject_library: "base",
-    // js_module_root: "./goog/mocks",
-    // js_output_file: tmpOutFileName,
-    // define: "\"__LOGGER__=export * from './logger.production';\"",
     debug: false,
     source_map_include_content: true,
   };

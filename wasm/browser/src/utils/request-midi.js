@@ -2,7 +2,7 @@ import { logMidiRequest as log } from "../logger";
 
 const connectedMidiDevices = new Set();
 
-export async function requestMidi({ onMidiMessage }) {
+export async function requestMidi({ onMidiMessage /** function(number,number,number):void */ }) {
   log("requesting for web-midi connection");
   if (navigator && navigator.requestMIDIAccess) {
     try {

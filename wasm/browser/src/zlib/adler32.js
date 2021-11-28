@@ -9,8 +9,8 @@ goog.require("Zlib.Util");
 goog.scope(function () {
   /**
    * Adler32 ハッシュ値の作成
-   * @param {!(Array|Uint8Array|string)} array 算出に使用する byte array.
-   * @return {number} Adler32 ハッシュ値.
+   * @param {Uint8Array|string} array
+   * @return {number} Adler32
    */
   Zlib.Adler32 = function (array) {
     if (typeof array === "string") {
@@ -21,9 +21,9 @@ goog.scope(function () {
 
   /**
    * Adler32 ハッシュ値の更新
-   * @param {number} adler 現在のハッシュ値.
-   * @param {!(Array|Uint8Array)} array 更新に使用する byte array.
-   * @return {number} Adler32 ハッシュ値.
+   * @param {number} adler
+   * @param {Uint8Array} array
+   * @return {number} Adler32
    */
   Zlib.Adler32.update = function (adler, array) {
     /** @type {number} */

@@ -15,8 +15,8 @@ goog.scope(function () {
 
   /**
    * @constructor
-   * @param {!(Uint8Array)} input input buffer.
-   * @param {Object} opt_params option parameter.
+   * @param {!(Uint8Array)} input
+   * @param {Object} [opt_parameters]
    *
    * opt_params は以下のプロパティを指定する事ができます。
    *   - index: input buffer の deflate コンテナの開始位置.
@@ -465,9 +465,9 @@ goog.scope(function () {
     }
 
     // decode length table
-    /** @type {Array.<number>|Uint8Array|null} code lengths table. */
+    /** @type {Array.<number,number,number>} code lengths table. */
     const codeLengthsTable = buildHuffmanTable(codeLengths);
-    /** @type {Array.<number>|Uint8Array} code length table. */
+    /** @type {Uint8Array} code length table. */
     const lengthTable = new Uint8Array(hlit + hdist);
     for (index = 0, il = hlit + hdist; index < il; ) {
       code = this.readCodeByTable(codeLengthsTable);
@@ -660,7 +660,7 @@ goog.scope(function () {
 
   /**
    * expand output buffer.
-   * @param {Object=} opt_param option parameters.
+   * @param {Object} [opt_parameter]
    * @return {!(Uint8Array)} output buffer.
    */
   Zlib.RawInflate.prototype.expandBufferBlock = function (opt_parameter) {
@@ -687,7 +687,7 @@ goog.scope(function () {
 
   /**
    * expand output buffer. (adaptive)
-   * @param {Object=} opt_param option parameters.
+   * @param {Object=} opt_parameter
    * @return {!(Uint8Array)} output buffer pointer.
    */
   Zlib.RawInflate.prototype.expandBufferAdaptive = function (opt_parameter) {

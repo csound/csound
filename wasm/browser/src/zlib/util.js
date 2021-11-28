@@ -6,8 +6,8 @@ goog.provide("Zlib.Util");
 goog.scope(function () {
   /**
    * Byte String から Byte Array に変換.
-   * @param {!string} str byte string.
-   * @return {!Array.<number>} byte array.
+   * @param {!string} string_
+   * @return {Uint8Array} byte array.
    */
   Zlib.Util.stringToByteArray = function (string_) {
     /** @type {!Array.<(string|number)>} */
@@ -21,7 +21,7 @@ goog.scope(function () {
       temporary[index] = (temporary[index].charCodeAt(0) & 0xff) >>> 0;
     }
 
-    return temporary;
+    return new Uint8Array([temporary]);
   };
 
   // end of scope
