@@ -60,7 +60,8 @@ static int32_t sequencer_init(CSOUND *csound, SEQ *p)
     int i;
     p->max_length = p->riff->sizes[0];
     if (p->max_length != p->instr->sizes[0] ||
-        p->max_length != p->data->sizes[0] ||
+        (p->data->dimensions == 2 && p->max_length != p->data->sizes[1]) ||
+        (p->data->dimensions == 1 && p->max_length != p->data->sizes[0]) ||
         p->max_length >= 128) {
             return csound->InitError(csound, Str("Format error"));
     }
@@ -167,10 +168,20 @@ static int32_t sequencer(CSOUND *csound, SEQ *p)
     {
       MYFLT inst = p->instr->data[p->seq[i]];
       if (inst != 0) {
-        char buff[30];
-        sprintf(buff, "i %0.2f 0 %f %f\n",
-                inst, 60.0/(*p->kbpm)*p->riff->data[p->seq[i]],
-                p->data->data[p->seq[i]]);
+        char buff[100];
+        if (p->data->dimensions==2) {
+          int j;
+          snprintf(buff, 99, "i %0.2f 0 %f ",
+                  inst, 60.0/(*p->kbpm)*p->riff->data[p->seq[i]]);
+          for (j=0; j< p->data->sizes[0]; j++)
+            snprintf(buff+strlen(buff), 99-strlen(buff), "%f ",
+                    p->data->data[(j*p->max_length)+p->seq[i]]);
+          snprintf(buff+strlen(buff), 99-strlen(buff), "\n");
+        }
+        else 
+          sprintf(buff, "i %0.2f 0 %f %f\n",
+                  inst, 60.0/(*p->kbpm)*p->riff->data[p->seq[i]],
+                  p->data->data[p->seq[i]]);
         printf("%s", buff);
         csoundReadScore(csound, buff); /* schedule instr for event */
       }
