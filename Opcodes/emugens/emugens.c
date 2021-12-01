@@ -2522,7 +2522,7 @@ lastcycle_init(CSOUND *csound, LASTCYCLE *p) {
     if(p->extracycles == 0) {
         p->h.insdshead->xtratim = 1;
         p->extracycles = 1;
-        MSG(Str("lastcycle: adding an extra cycle to the duration of the event\n"));
+        // MSG(Str("lastcycle: adding an extra cycle to the duration of the event\n"));
     }
     p->numcycles += p->extracycles;
     if(p3 < 0) {
