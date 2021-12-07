@@ -63,7 +63,7 @@ static int32_t sequencer_init(CSOUND *csound, SEQ *p)
         (p->data->dimensions == 2 && p->max_length != p->data->sizes[1]) ||
         (p->data->dimensions == 1 && p->max_length != p->data->sizes[0]) ||
         p->max_length >= 128) {
-            return csound->InitError(csound, Str("Format error"));
+      return csound->InitError(csound, Str("sequ: arrays have differing sizes"));
     }
     p->time = 0;
     p->next = 0;
@@ -72,7 +72,7 @@ static int32_t sequencer_init(CSOUND *csound, SEQ *p)
     for (i = 0; i<p->riff->sizes[0]; i++)
       p->seq[i] = i;
     /* for (i=0; i<p->riff->sizes[0]; i++) */
-    /*   printf("%d: %d %f\n", i, (int)(p->instr->data[i]), p->riff->data[i]);b */
+    /*   printf("%d: %d %f\n", i, (int)(p->instr->data[i]), p->riff->data[i]); */
     return OK;
 }
 
@@ -86,7 +86,7 @@ static int32_t sequencer(CSOUND *csound, SEQ *p)
     if (len<=0) len = 1;
     if (len>=p->max_length) len= p->max_length;
     if (*p->step!=FL(0.0)) {    /* Step style so no clock */
-      if (*p->step>=FL(0.0)) {  /* a user call to mve on */
+      if (*p->step>=FL(0.0)) {  /* a user call to move on */
         p->time = 0;
       }
       else {

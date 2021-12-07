@@ -25,6 +25,8 @@ the last release using the current parser (v.2).
 - metrobpm is like metro but te tiing is inbeats per minute and the
   signal can be help on for a proportion of the cycle.
 
+- sequ is a csound version of ahardware sequencer.  It has many modes and options.
+
 ### New gen
 
 ### Orchestra
