@@ -96,12 +96,12 @@ static int32_t sequencer(CSOUND *csound, SEQ *p)
         return OK;
       }
     }
+    else if (*p->reset!= FL(0.0)) goto minus7;
     else if (p->time > 0) {         /* Not yet time to act */
       p->time -= csound->ksmps;
       *p->res = -FL(1.0);
       return OK;
     }
-    if (*p->reset!= FL(0.0)) goto minus7;
     /* Time for an event */
     if (mode >= 0) {
       if (i >= len) { // End of cycle
@@ -221,7 +221,7 @@ static int32_t sequencer(CSOUND *csound, SEQ *p)
 static OENTRY sequencer_localops[] =
   {
    { "sequ", sizeof(SEQ), 0, 3, "k",
-     "i[]i[]i[]kkOOOo",
+     "i[]i[]i[]kkOoOOo",
      (SUBR) sequencer_init, (SUBR) sequencer
   },
 };
