@@ -45,6 +45,7 @@ typedef struct {
                                    -7 reset
                                 */
     MYFLT       *step;          /* Step mode in force */
+    MYFLT       *reset;         /* Reser key */
     MYFLT       *verbos;
  // Internals
     int32_t     max_length;
@@ -100,6 +101,7 @@ static int32_t sequencer(CSOUND *csound, SEQ *p)
       *p->res = -FL(1.0);
       return OK;
     }
+    if (*p->reset!= FL(0.0)) goto minus7;
     /* Time for an event */
     if (mode >= 0) {
       if (i >= len) { // End of cycle
@@ -153,6 +155,7 @@ static int32_t sequencer(CSOUND *csound, SEQ *p)
         }
         break;
       case -7:
+        minus7:
         p->time = 0;
         p->cnt = 1;
         for (i = 0; i<p->riff->sizes[0]; i++)
@@ -218,7 +221,7 @@ static int32_t sequencer(CSOUND *csound, SEQ *p)
 static OENTRY sequencer_localops[] =
   {
    { "sequ", sizeof(SEQ), 0, 3, "k",
-     "i[]i[]i[]kkOOo",
+     "i[]i[]i[]kkOOOo",
      (SUBR) sequencer_init, (SUBR) sequencer
   },
 };
