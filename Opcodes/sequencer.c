@@ -96,7 +96,10 @@ static int32_t sequencer(CSOUND *csound, SEQ *p)
         return OK;
       }
     }
-    else if (*p->reset!= FL(0.0)) goto minus7;
+    else if (*p->reset!= FL(0.0)) {
+      if (*p->verbos) printf("RESET!!\n");
+      goto minus7;
+    }
     else if (p->time > 0) {         /* Not yet time to act */
       p->time -= csound->ksmps;
       *p->res = -FL(1.0);
