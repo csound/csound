@@ -441,10 +441,11 @@ e
 
       it("can play a sample, write a sample and read the output file", async function () {
         const csoundObj = await Csound(test);
-        const response = await fetch("/tiny_test_sample.wav");
+        console.log({ csoundObj });
+        const response = await fetch("tiny_test_sample.wav");
         const testSampleArrayBuffer = await response.arrayBuffer();
         const testSample = new Uint8Array(testSampleArrayBuffer);
-        csoundObj.fs.writeFileSync("tiny_test_sample.wav", testSample);
+        await csoundObj.fs.writeFile("tiny_test_sample.wav", testSample);
 
         // allow the example to play until the end
         let endResolver;
@@ -454,7 +455,7 @@ e
         csoundObj.on("realtimePerformanceEnded", endResolver);
 
         assert.include(
-          csoundObj.fs.readdirSync("/"),
+          await csoundObj.fs.readdir("/"),
           "tiny_test_sample.wav",
           "The sample was written into the root dir",
         );
@@ -468,7 +469,7 @@ e
 
         await waitUntilEnd;
         assert.include(
-          csoundObj.fs.readdirSync("/"),
+          await csoundObj.fs.readdir("/"),
           "monitor_out.wav",
           "The sample which csound wrote with fout, is accessible after the end of performance",
         );
@@ -480,12 +481,12 @@ e
         const response = await fetch("/tiny_test_sample.wav");
         const testSampleArrayBuffer = await response.arrayBuffer();
         const testSample = new Uint8Array(testSampleArrayBuffer);
-        csoundObj.fs.writeFileSync("tiny_test_sample.wav", testSample);
+        await csoundObj.fs.writeFile("tiny_test_sample.wav", testSample);
 
         // Writing the csd to disk
         const csdPath = "/somedir/anycsd.csd";
-        csoundObj.fs.mkdirpSync("/somedir");
-        csoundObj.fs.writeFileSync(csdPath, samplesTest);
+        await csoundObj.fs.mkdir("/somedir");
+        await csoundObj.fs.writeFile(csdPath, samplesTest);
 
         // allow the example to play until the end
         let endResolver;
@@ -493,9 +494,9 @@ e
           endResolver = resolve;
         });
         csoundObj.on("realtimePerformanceEnded", endResolver);
-
+        console.log("LLOOKK", await csoundObj.fs.readdir("/"));
         assert.include(
-          csoundObj.fs.readdirSync("/"),
+          await csoundObj.fs.readdir("/"),
           "tiny_test_sample.wav",
           "The sample was written into the root dir",
         );
@@ -509,7 +510,7 @@ e
 
         await waitUntilEnd;
         assert.include(
-          csoundObj.fs.readdirSync("/"),
+          await csoundObj.fs.readdir("/"),
           "monitor_out.wav",
           "The sample which csound wrote with fout, is accessible after the end of performance",
         );

@@ -82,10 +82,12 @@ import {
   csoundIsNamedGEN,
   csoundGetNamedGEN,
 } from "./modules/table";
-import { assoc, keys, reduce } from "rambda/dist/rambda.esm.js";
+import * as fs from "./filesystem/worker-fs";
+
+import { assoc, dissoc, keys, mergeAll, reduce } from "rambda/dist/rambda.esm.js";
 
 goog.declareModuleId("libcsound");
-// const { assoc, keys, reduce } = require("rambda/dist/rambda.esm.js");
+
 /*
    Don't call these functions directly.
    They are closures that take wasm instance as
@@ -173,8 +175,13 @@ export const api = {
   csoundGetTableArgs: csoundGetTableArguments,
   csoundIsNamedGEN,
   csoundGetNamedGEN,
+  // filesystem
+  fs,
 };
 
 export default function (wasm) {
-  return reduce((accumulator, k) => assoc(k, api[k](wasm), accumulator), {}, keys(api));
+  return mergeAll([
+    reduce((accumulator, k) => assoc(k, api[k](wasm), accumulator), {}, keys(dissoc("fs")(api))),
+    reduce((accumulator, k) => assoc(k, api.fs[k](wasm), accumulator), {}, keys(fs)),
+  ]);
 }

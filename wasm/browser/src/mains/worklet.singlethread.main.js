@@ -22,14 +22,14 @@
 */
 
 import * as Comlink from "comlink/dist/esm/comlink.mjs";
-import { logSinglethreadWorkletMain as log } from "../logger";
-import { csoundApiRename, fetchPlugins, makeProxyCallback } from "../utils";
-import { messageEventHandler, IPCMessagePorts } from "./messages.main";
-import { api as API } from "../libcsound";
-import { PublicEventAPI } from "../events";
-import { enableAudioInput } from "./io.utils";
-import { requestMidi } from "../utils/request-midi";
-import { EventPromises } from "../utils/event-promises";
+import { logSinglethreadWorkletMain as log } from "../logger.js";
+import { csoundApiRename, fetchPlugins, makeProxyCallback } from "../utils.js";
+import { messageEventHandler, IPCMessagePorts } from "./messages.main.js";
+import { api as API } from "../libcsound.js";
+import { PublicEventAPI } from "../events.js";
+import { enableAudioInput } from "./io.utils.js";
+import { requestMidi } from "../utils/request-midi.js";
+import { EventPromises } from "../utils/event-promises.js";
 
 const WorkletWorker = goog.require("worklet.singlethread.worker");
 
@@ -213,7 +213,14 @@ class SingleThreadAudioWorkletMainThread {
     this.exportApi = this.publicEvents.decorateAPI(this.exportApi);
     // the default message listener
     this.exportApi.addListener("message", console.log);
-    // this.exportApi.fs = this.fs;
+    // this.exportApi.fs = fsOperations.reduce((acc, operand) => {
+    //   acc[operand] = (...arguments_) =>
+    //     makeProxyCallback(this.workletProxy, csoundInstance, operand, this.currentPlayState).apply(
+    //       undefined,
+    //       arguments_,
+    //     );
+    //   return acc;
+    // }, {});
 
     for (const apiK of Object.keys(API)) {
       const reference = API[apiK];
@@ -262,6 +269,22 @@ class SingleThreadAudioWorkletMainThread {
           this.exportApi.stop = csoundStop.bind(this);
           break;
         }
+
+        case "fs": {
+          this.exportApi.fs = {};
+          Object.keys(reference).forEach((method) => {
+            const proxyFsCallback = makeProxyCallback(
+              this.workletProxy,
+              csoundInstance,
+              method,
+              this.currentPlayState,
+            );
+            proxyFsCallback.toString = () => reference[method].toString();
+            this.exportApi.fs[method] = proxyFsCallback;
+          });
+          break;
+        }
+
         default: {
           proxyCallback.toString = () => reference.toString();
           this.exportApi[csoundApiRename(apiK)] = proxyCallback;

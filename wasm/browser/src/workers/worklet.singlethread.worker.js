@@ -95,6 +95,7 @@ class WorkletSinglethreadWorker extends AudioWorkletProcessor {
     }).then(([wasm, wasi]) => {
       this.wasm = wasm;
       this.wasi = wasi;
+      wasm.wasi = wasi;
 
       libraryCsound = libcsoundFactory(wasm);
       this.callUncloned = callUncloned;
@@ -107,6 +108,7 @@ class WorkletSinglethreadWorker extends AudioWorkletProcessor {
       const csoundCreate = async (v) => {
         return this.csound;
       };
+
       const allAPI = pipe(
         assoc("csoundCreate", csoundCreate),
         assoc("csoundReset", this.resetCsound.bind(this)),
@@ -114,6 +116,7 @@ class WorkletSinglethreadWorker extends AudioWorkletProcessor {
         assoc("csoundStop", this.stop.bind(this)),
         assoc("wasm", wasm),
       )(libraryCsound);
+
       combined = new Map(Object.entries(allAPI));
       log("wasm initialized and api generated")();
       resolver();
