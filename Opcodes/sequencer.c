@@ -224,7 +224,7 @@ static int32_t sequencer(CSOUND *csound, SEQ *p)
 static OENTRY sequencer_localops[] =
   {
    { "sequ", sizeof(SEQ), 0, 3, "k",
-     "i[]i[]i[]kkOoOOo",
+     "i[]i[]i[]kkOOOo",
      (SUBR) sequencer_init, (SUBR) sequencer
   },
 };
