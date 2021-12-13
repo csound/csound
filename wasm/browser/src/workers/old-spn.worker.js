@@ -5,7 +5,7 @@ import { newAudioContext } from "../utils/new-audio-context";
 import { logOldSpnWorker as log } from "../logger";
 import { range } from "rambda/dist/rambda.esm.js";
 
-const startPromizes = {};
+let startPromize;
 
 const getAudioContext = (contextUid) => {
   return (
@@ -164,9 +164,8 @@ class CsoundScriptNodeProcessor {
     }
     if (!this.vanillaFirstTransferDone) {
       this.vanillaFirstTransferDone = true;
-      if (startPromizes[this.contextUid]) {
-        startPromizes[this.contextUid]();
-        delete startPromizes[this.contextUid];
+      if (startPromize) {
+        startPromize();
       }
     }
   }
@@ -182,13 +181,10 @@ class CsoundScriptNodeProcessor {
       // this minimizes startup glitches
       const firstTransferSize = this.softwareBufferSize * PERIODS;
 
-      this.requestPort.postMessage(
-        {
-          readIndex: 0,
-          numFrames: firstTransferSize,
-        },
-        "*",
-      );
+      this.requestPort.postMessage({
+        readIndex: 0,
+        numFrames: firstTransferSize,
+      });
 
       this.pendingFrames += firstTransferSize;
       this.vanillaInitialized = true;
@@ -265,7 +261,7 @@ class CsoundScriptNodeProcessor {
     } else {
       // minimize noise
       if (this.bufferUnderrunCount > 1 && this.bufferUnderrunCount < 12) {
-        this.workerMessagePort.post("Buffer underrun", "*");
+        this.workerMessagePort.post("Buffer underrun");
         this.bufferUnderrunCount += 1;
       }
 
@@ -286,13 +282,10 @@ class CsoundScriptNodeProcessor {
         (this.vanillaAvailableFrames + nextOutputReadIndex + this.pendingFrames) %
         this.hardwareBufferSize;
 
-      this.requestPort.postMessage(
-        {
-          readIndex: futureOutputReadIndex,
-          numFrames: this.softwareBufferSize * PERIODS,
-        },
-        "*",
-      );
+      this.requestPort.postMessage({
+        readIndex: futureOutputReadIndex,
+        numFrames: this.softwareBufferSize * PERIODS,
+      });
       this.pendingFrames += this.softwareBufferSize * PERIODS;
     }
 
@@ -302,11 +295,11 @@ class CsoundScriptNodeProcessor {
 const initAudioInputPort =
   ({ audioInputPort }) =>
   (frames) =>
-    audioInputPort.postMessage(frames, "*");
+    audioInputPort.postMessage(frames);
 
 const initMessagePort = ({ port }) => {
   const workerMessagePort = new MessagePortState();
-  workerMessagePort.post = (messageLog) => port.postMessage({ log: messageLog }, "*");
+  workerMessagePort.post = (messageLog) => port.postMessage({ log: messageLog });
   workerMessagePort.broadcastPlayState = (playStateChange) => {
     if (
       workerMessagePort.vanillaWorkerState === "realtimePerformanceStarted" &&
@@ -314,7 +307,7 @@ const initMessagePort = ({ port }) => {
     ) {
       return;
     }
-    port.postMessage({ playStateChange }, "*");
+    port.postMessage({ playStateChange });
   };
   workerMessagePort.ready = true;
   return workerMessagePort;
@@ -386,7 +379,7 @@ const initialize = async ({
 }) => {
   log("initializing old-spn worker in iframe")();
   const audioContext = getAudioContext(contextUid);
-  console.log("audioContext", audioContext);
+
   const spnClassInstance = new CsoundScriptNodeProcessor({
     audioContext,
     contextUid,
@@ -407,11 +400,11 @@ const initialize = async ({
 
   if (initialPlayState === "realtimePerformanceStarted") {
     const startPromise = new Promise((resolve, reject) => {
-      startPromizes[contextUid] = resolve;
+      startPromize = resolve;
       setTimeout(() => {
         if (typeof startPromizes[contextUid] === "function") {
           reject(new Error(`a call to start() timed out`));
-          delete startPromizes[contextUid];
+          startPromize = undefined;
           return -1;
         }
         // 10 second timeout

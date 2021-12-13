@@ -279,6 +279,8 @@ const initialize = async ({
     messagePort: workerMessagePort,
   });
 
+  wasm.wasi = wasi;
+
   const libraryCsound = libcsoundFactory(wasm);
 
   const startHandler = (_, arguments_) =>

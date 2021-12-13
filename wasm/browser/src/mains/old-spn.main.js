@@ -32,9 +32,6 @@ class ScriptProcessorNodeMainThread {
     this.hardwareBufferSize = undefined;
     this.softwareBufferSize = undefined;
 
-    this.initIframe = this.initIframe.bind(this);
-    this.initialize = this.initialize.bind(this);
-    this.onPlayStateChange = this.onPlayStateChange.bind(this);
     this.scriptProcessorNode = true;
     log("ScriptProcessorNodeMainThread was constructed")();
   }
@@ -75,17 +72,8 @@ class ScriptProcessorNodeMainThread {
         log("event received: realtimePerformanceStarted")();
         this.currentPlayState = newPlayState;
         await this.initialize();
-        if (this.csoundWorkerMain.startPromiz) {
-          // hacky SAB timing fix when starting
-          // eventually, replace this spaghetti with
-          // private/internal event emitters
-          const startPromiz = this.csoundWorkerMain.startPromiz;
-          setTimeout(() => {
-            startPromiz();
-          }, 0);
-          delete this.csoundWorkerMain.startPromiz;
-        }
-
+        await this.csoundWorkerMain.eventPromises.releaseStartPromises();
+        this.publicEvents.triggerRealtimePerformanceStarted(this.csoundWorkerMain);
         break;
       }
       case "realtimePerformanceEnded": {
@@ -169,7 +157,6 @@ class ScriptProcessorNodeMainThread {
         return;
       }
     }
-
     const contextUid = `audioWorklet${UID}`;
     this.contextUid = contextUid;
     UID += 1;
@@ -200,7 +187,6 @@ class ScriptProcessorNodeMainThread {
     // leaking globals indeed
     spnWorker[contextUid] = this.audioContext;
     window[`__csound_wasm_iframe_parent_${contextUid}`] = this.audioContext;
-    // const { port1: mainMessagePort, port2: workerMessagePort } = new MessageChannel();
 
     let liveInput;
     if (this.isRequestingInput) {
@@ -215,6 +201,8 @@ class ScriptProcessorNodeMainThread {
       });
     }
 
+    log("initializing proxyPort")();
+
     await proxyPort.initialize(
       Comlink.transfer(
         {
@@ -225,7 +213,7 @@ class ScriptProcessorNodeMainThread {
           outputsCount: this.outputsCount,
           sampleRate: this.sampleRate,
           audioInputPort: this.ipcMessagePorts.audioWorkerAudioInputPort,
-          messagePort: this.ipcMessagePorts.workerMessagePort,
+          messagePort: this.ipcMessagePorts.workerMessagePort2,
           requestPort: this.ipcMessagePorts.audioWorkerFrameRequestPort,
           audioContextIsProvided: this.audioContextIsProvided,
           autoConnect: this.autoConnect,
@@ -233,31 +221,24 @@ class ScriptProcessorNodeMainThread {
         },
         [
           this.ipcMessagePorts.audioWorkerAudioInputPort,
-          this.ipcMessagePorts.workerMessagePort,
+          this.ipcMessagePorts.workerMessagePort2,
           this.ipcMessagePorts.audioWorkerFrameRequestPort,
         ],
       ),
     );
-
+    log("done initializing proxyPort")();
+    this.ipcMessagePorts.mainMessagePort2.start();
+    this.ipcMessagePorts.mainMessagePort2.addEventListener("message", messageEventHandler(this));
     this.ipcMessagePorts.mainMessagePort.addEventListener("message", messageEventHandler(this));
-    this.ipcMessagePorts.mainMessagePort.start();
 
-    if (this.csoundWorkerMain && this.csoundWorkerMain.publicEvents) {
-      const audioNode =
-        spnWorker[`${contextUid}Node`] || window[`__csound_wasm_iframe_parent_${contextUid}Node`];
-      audioNode && liveInput && liveInput.connect(audioNode);
+    const audioNode =
+      spnWorker[`${contextUid}Node`] || window[`__csound_wasm_iframe_parent_${contextUid}Node`];
+    audioNode && liveInput && liveInput.connect(audioNode);
 
-      if (
-        audioNode &&
-        this.csoundWorkerMain &&
-        this.csoundWorkerMain.publicEvents &&
-        this.csoundWorkerMain.publicEvents.triggerOnAudioNodeCreated
-      ) {
-        this.csoundWorkerMain.publicEvents.triggerOnAudioNodeCreated(audioNode);
-      }
-    }
+    this.publicEvents.triggerOnAudioNodeCreated(audioNode);
+
     if (this.isRequestingMidi && this.csoundWorkerMain && this.csoundWorkerMain.handleMidiInput) {
-      log("requesting for web-midi connection");
+      log("requesting for web-midi connection")();
       requestMidi({
         onMidiMessage: this.csoundWorkerMain.handleMidiInput.bind(this.csoundWorkerMain),
       });

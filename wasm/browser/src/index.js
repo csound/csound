@@ -113,7 +113,6 @@ const Csound = async function ({
     hasSABSupport && workletSupport && useSAB
       ? new SharedArrayBufferMainThread({
           audioWorker,
-          wasmDataURI,
           audioContext,
           audioContextIsProvided,
           inputChannelCount,
@@ -121,13 +120,12 @@ const Csound = async function ({
         })
       : new VanillaWorkerMainThread({
           audioWorker,
-          wasmDataURI,
           audioContextIsProvided,
         });
 
   if (worker) {
     log(`starting Csound thread initialization via WebWorker`)();
-    await worker.initialize({ withPlugins });
+    await worker.initialize({ wasmDataURI, withPlugins });
     csoundWasmApi = worker.api;
   } else {
     console.error("No detectable WebAssembly support in current environment");

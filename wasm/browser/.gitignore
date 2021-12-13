@@ -23,3 +23,4 @@ tests/debug.html
 tests/results.junit.xml
 tests/eslint.junit.xml
 *.manifest.txt
+!./tests/dist

@@ -1,5 +1,4 @@
 import { expose } from "comlink/dist/esm/comlink.mjs";
-// import { initFS, getWorkerFs, syncWorkerFs } from "../filesystem/worker-fs";
 import MessagePortState from "../utils/message-port-state";
 import libcsoundFactory from "../libcsound.js";
 import loadWasm from "../module";
@@ -266,10 +265,9 @@ const sabCreateRealtimeAudioThread =
 
 const initMessagePort = ({ port }) => {
   const workerMessagePort = new MessagePortState();
-  workerMessagePort.post = (messageLog) => port.postMessage({ log: messageLog }, "*");
-  workerMessagePort.broadcastPlayState = (playStateChange) =>
-    port.postMessage({ playStateChange }, "*");
-  workerMessagePort.broadcastSabUnlocked = () => port.postMessage({ sabWorker: "unlocked" }, "*");
+  workerMessagePort.post = (messageLog) => port.postMessage({ log: messageLog });
+  workerMessagePort.broadcastPlayState = (playStateChange) => port.postMessage({ playStateChange });
+  workerMessagePort.broadcastSabUnlocked = () => port.postMessage({ sabWorker: "unlocked" });
   workerMessagePort.ready = true;
   return workerMessagePort;
 };
@@ -292,7 +290,7 @@ const initCallbackReplyPort = ({ port }) => {
         }
         return accumulator;
       }, []);
-      port.postMessage(answers, "*");
+      port.postMessage(answers);
       const pollPromise_ = pollPromise;
       pollPromise = undefined;
       pollPromise_ && pollPromise_(callbacks);
@@ -334,7 +332,9 @@ const renderFunction =
 const initialize = async ({ wasmDataURI, withPlugins = [], messagePort, callbackPort }) => {
   log(`initializing SABWorker and WASM`)();
   const workerMessagePort = initMessagePort({ port: messagePort });
-  const callbacksRequest = () => callbackPort.postMessage("poll", "*");
+  const callbacksRequest = () => callbackPort.postMessage("poll");
+  const releaseStop = () => callbackPort.postMessage("releaseStop");
+
   initCallbackReplyPort({ port: callbackPort });
 
   const [wasm, wasi] = await loadWasm({
@@ -342,6 +342,8 @@ const initialize = async ({ wasmDataURI, withPlugins = [], messagePort, callback
     withPlugins,
     messagePort: workerMessagePort,
   });
+
+  wasm.wasi = wasi;
 
   const libraryCsound = libcsoundFactory(wasm);
 
@@ -355,12 +357,14 @@ const initialize = async ({ wasmDataURI, withPlugins = [], messagePort, callback
         callbacksRequest,
         wasm,
         workerMessagePort,
+        releaseStop,
       }),
       renderFunction({
         libraryCsound,
         callbacksRequest,
         workerMessagePort,
         wasi,
+        releaseStop,
       }),
     )(arguments_);
 

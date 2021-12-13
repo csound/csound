@@ -13,7 +13,6 @@ class VanillaWorkerMainThread {
   constructor({
     audioContext,
     audioWorker,
-    wasmDataURI,
     audioContextIsProvided,
     inputChannelCount,
     outputChannelCount,
@@ -21,12 +20,13 @@ class VanillaWorkerMainThread {
     this.ipcMessagePorts = new IPCMessagePorts();
     this.eventPromises = new EventPromises();
     this.publicEvents = new PublicEventAPI(this);
-    audioWorker.ipcMessagePorts = this.ipcMessagePorts;
 
+    audioWorker.ipcMessagePorts = this.ipcMessagePorts;
     audioWorker.csoundWorkerMain = this;
+    audioWorker.publicEvents = this.publicEvents;
+
     this.audioWorker = audioWorker;
     this.audioContextIsProvided = audioContextIsProvided;
-    this.wasmDataURI = wasmDataURI();
 
     if (audioContextIsProvided) {
       this.sampleRate = audioContext.sampleRate;
@@ -73,7 +73,7 @@ class VanillaWorkerMainThread {
 
   handleMidiInput({ data: payload }) {
     this.ipcMessagePorts.csoundMainRtMidiPort.postMessage &&
-      this.ipcMessagePorts.csoundMainRtMidiPort.postMessage(payload, "*");
+      this.ipcMessagePorts.csoundMainRtMidiPort.postMessage(payload);
   }
 
   async prepareRealtimePerformance() {
@@ -149,6 +149,9 @@ class VanillaWorkerMainThread {
     }
 
     // forward the message from worker to the audioWorker
+    if (!this.audioWorker.ipcMessagePorts) {
+      this.audioWorker.ipcMessagePorts = this.ipcMessagePorts;
+    }
     await this.audioWorker.onPlayStateChange(newPlayState);
   }
 
@@ -166,7 +169,8 @@ class VanillaWorkerMainThread {
     this.onPlayStateChange("realtimePerformanceResumed");
   }
 
-  async initialize({ withPlugins }) {
+  async initialize({ wasmDataURI, withPlugins }) {
+    const wasmBytes = wasmDataURI();
     if (typeof this.audioWorker.initIframe === "function") {
       await this.audioWorker.initIframe();
     }
@@ -176,8 +180,8 @@ class VanillaWorkerMainThread {
     }
     log(`vanilla.main: initialize`)();
     this.csoundWorker = this.csoundWorker || new Worker(VanillaWorker());
-
     this.ipcMessagePorts.mainMessagePort.addEventListener("message", messageEventHandler(this));
+    this.ipcMessagePorts.mainMessagePort2.addEventListener("message", messageEventHandler(this));
     this.ipcMessagePorts.mainMessagePort.start();
 
     const proxyPort = Comlink.wrap(this.csoundWorker);
@@ -186,12 +190,11 @@ class VanillaWorkerMainThread {
     this.csoundInstance = await proxyPort.initialize(
       Comlink.transfer(
         {
-          wasmDataURI: this.wasmDataURI,
+          wasmDataURI: wasmBytes,
           messagePort: this.ipcMessagePorts.workerMessagePort,
           requestPort: this.ipcMessagePorts.csoundWorkerFrameRequestPort,
           audioInputPort: this.ipcMessagePorts.csoundWorkerAudioInputPort,
           rtmidiPort: this.ipcMessagePorts.csoundWorkerRtMidiPort,
-          fsPort: this.ipcMessagePorts.workerFilesystemPort,
           // these values are only set if the user provided them
           // during init or by passing audioContext
           sampleRate: this.sampleRate,
@@ -200,11 +203,11 @@ class VanillaWorkerMainThread {
           withPlugins,
         },
         [
+          wasmBytes,
           this.ipcMessagePorts.workerMessagePort,
           this.ipcMessagePorts.csoundWorkerFrameRequestPort,
           this.ipcMessagePorts.csoundWorkerAudioInputPort,
           this.ipcMessagePorts.csoundWorkerRtMidiPort,
-          this.ipcMessagePorts.workerFilesystemPort,
         ],
       ),
     );
@@ -273,21 +276,18 @@ class VanillaWorkerMainThread {
               return -1;
             } else {
               this.eventPromises.createStopPromise();
-              this.ipcMessagePorts.mainMessagePort.postMessage(
-                {
-                  newPlayState:
-                    this.currentPlayState === "renderStarted"
-                      ? "renderEnded"
-                      : "realtimePerformanceEnded",
-                },
-                "*",
-              );
+              this.ipcMessagePorts.mainMessagePort.postMessage({
+                newPlayState:
+                  this.currentPlayState === "renderStarted"
+                    ? "renderEnded"
+                    : "realtimePerformanceEnded",
+              });
               await this.eventPromises.waitForStop();
               return 0;
             }
           };
           this.exportApi.stop = csoundStop.bind(this);
-          csoundStop.toString = () => reference.toString();
+          csoundStop.toString = reference.toString;
           break;
         }
 
@@ -311,12 +311,27 @@ class VanillaWorkerMainThread {
             return resetResult;
           };
           this.exportApi.reset = csoundReset.bind(this);
-          csoundReset.toString = () => reference.toString();
+          csoundReset.toString = reference.toString;
+          break;
+        }
+
+        case "fs": {
+          this.exportApi.fs = {};
+          Object.keys(reference).forEach((method) => {
+            const proxyFsCallback = makeProxyCallback(
+              proxyPort,
+              this.csoundInstance,
+              method,
+              this.currentPlayState,
+            );
+            proxyFsCallback.toString = reference[method].toString;
+            this.exportApi.fs[method] = proxyFsCallback;
+          });
           break;
         }
 
         default: {
-          proxyCallback.toString = () => reference.toString();
+          proxyCallback.toString = reference.toString;
           this.exportApi[csoundApiRename(apiK)] = proxyCallback;
           break;
         }

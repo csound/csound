@@ -148,7 +148,7 @@ class SingleThreadAudioWorkletMainThread {
 
   handleMidiInput({ data: payload }) {
     this.ipcMessagePorts.csoundMainRtMidiPort.postMessage &&
-      this.ipcMessagePorts.csoundMainRtMidiPort.postMessage(payload, "*");
+      this.ipcMessagePorts.csoundMainRtMidiPort.postMessage(payload);
   }
 
   async initialize({ wasmDataURI, withPlugins, autoConnect }) {

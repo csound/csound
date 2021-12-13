@@ -21,8 +21,6 @@ class SharedArrayBufferMainThread {
   constructor({
     audioContext,
     audioWorker,
-    wasmDataURI,
-    wasmTransformerDataURI,
     audioContextIsProvided,
     inputChannelCount,
     outputChannelCount,
@@ -37,8 +35,6 @@ class SharedArrayBufferMainThread {
     this.audioWorker = audioWorker;
     this.audioWorker.onPlayStateChange = this.audioWorker.onPlayStateChange.bind(audioWorker);
     this.csoundInstance = undefined;
-    this.wasmDataURI = wasmDataURI();
-    this.wasmTransformerDataURI = wasmTransformerDataURI();
     this.currentPlayState = undefined;
     this.currentDerivedPlayState = "stop";
     this.exportApi = {};
@@ -161,15 +157,18 @@ class SharedArrayBufferMainThread {
           `event: realtimePerformanceStarted received,` +
             ` proceeding to call prepareRealtimePerformance`,
         )();
-        await this.prepareRealtimePerformance.catch(console.error);
+        try {
+          await this.prepareRealtimePerformance();
+        } catch (error) {
+          console.error(error);
+        }
+
         this.publicEvents.triggerRealtimePerformanceStarted(this);
 
         break;
       }
       case "realtimePerformanceEnded": {
         this.eventPromises.createStopPromise();
-        // syncPersistentStorage(await this.getWorkerFs());
-        // clearFsLastmods();
 
         // flush out events sent during the time which the worker was stopping
         Object.values(this.callbackBuffer).forEach(({ argumentz, apiKey, resolveCallback }) =>
@@ -196,9 +195,6 @@ class SharedArrayBufferMainThread {
         break;
       }
       case "renderEnded": {
-        // syncPersistentStorage(await this.getWorkerFs());
-        // this.publicEvents.triggerRenderEnded(this);
-        // clearFsLastmods();
         log(`event: renderEnded received, beginning cleanup`)();
         break;
       }
@@ -238,7 +234,7 @@ class SharedArrayBufferMainThread {
     this.audioWorker.outputsCount = outputsCount;
   }
 
-  async initialize({ withPlugins }) {
+  async initialize({ wasmDataURI, withPlugins }) {
     if (withPlugins && !isEmpty(withPlugins)) {
       withPlugins = await fetchPlugins(withPlugins);
     }
@@ -277,7 +273,6 @@ class SharedArrayBufferMainThread {
               apiKey: this.callbackBuffer[id].apiKey,
               argumentz: this.callbackBuffer[id].argumentz,
             })),
-            "*",
           );
       } else if (event.data === "releaseStop") {
         this.onPlayStateChange(
@@ -295,18 +290,19 @@ class SharedArrayBufferMainThread {
     this.ipcMessagePorts.sabMainCallbackReply.start();
 
     const proxyPort = Comlink.wrap(csoundWorker);
+    const wasmBytes = wasmDataURI();
     this.proxyPort = proxyPort;
     const csoundInstance = await proxyPort.initialize(
       Comlink.transfer(
         {
-          wasmDataURI: this.wasmDataURI,
+          wasmDataURI: wasmBytes,
           wasmTransformerDataURI: this.wasmTransformerDataURI,
           messagePort: this.ipcMessagePorts.workerMessagePort,
           callbackPort: this.ipcMessagePorts.sabWorkerCallbackReply,
           withPlugins,
         },
         [
-          this.wasmDataURI,
+          wasmBytes,
           this.ipcMessagePorts.workerMessagePort,
           this.ipcMessagePorts.sabWorkerCallbackReply,
         ],
@@ -380,7 +376,7 @@ class SharedArrayBufferMainThread {
             await this.eventPromises.waitForStart();
 
             this.ipcMessagePorts &&
-              this.ipcMessagePorts.sabMainCallbackReply.postMessage({ unlock: true }, "*");
+              this.ipcMessagePorts.sabMainCallbackReply.postMessage({ unlock: true });
 
             return startResult;
           };
@@ -460,6 +456,21 @@ class SharedArrayBufferMainThread {
           };
           this.exportApi.midiMessage = midiMessage.bind(this);
           midiMessage.toString = () => reference.toString();
+          break;
+        }
+
+        case "fs": {
+          this.exportApi.fs = {};
+          Object.keys(reference).forEach((method) => {
+            const proxyFsCallback = makeProxyCallback(
+              proxyPort,
+              csoundInstance,
+              method,
+              this.currentPlayState,
+            );
+            proxyFsCallback.toString = () => reference[method].toString();
+            this.exportApi.fs[method] = proxyFsCallback;
+          });
           break;
         }
 

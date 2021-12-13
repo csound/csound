@@ -361,6 +361,7 @@ e
 
         assert.equal(123, await csoundObj.tableGet(1, 0, "The first index was modified to 123"));
         assert.equal(666, await csoundObj.tableGet(1, 1, "The second index was modified to 666"));
+
         await csoundObj.stop();
         await csoundObj.terminateInstance();
       });
