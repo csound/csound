@@ -119,7 +119,8 @@ const compilationSequence = [
     output_wrapper: trimString(`
     let self = AudioWorkletGlobalScope;
     %output%
-    //# sourceMappingURL=__compiled.worklet.singlethread.worker.js.map`),
+    //# sourceURL=/dist/__compiled.worklet.singlethread.worker.js
+    //# sourceMappingURL=/dist/__compiled.worklet.singlethread.worker.js.map`),
     postbuild: () =>
       inlineWebworker("worklet.singlethread.worker.js", "worklet.singlethread.worker", true, []),
     // postbuild: () => {

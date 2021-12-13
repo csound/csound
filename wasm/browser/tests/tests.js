@@ -10,7 +10,7 @@
 </CsOptions>
 <CsInstruments>
     instr 1
-    prints "Hello World!\n"
+    prints "Hello World!\\n"
     endin
 </CsInstruments>
 <CsScore>
@@ -302,8 +302,7 @@ e
           test,
         );
         const cs = await Csound(testWithPlugin);
-        console.log(testWithPlugin);
-        // assert.equal(0, await cs.compileCsdText(cxxPluginTest));
+
         assert.equal(0, await cs.compileCsdText(stringChannelTest));
         await cs.start();
         await cs.stop();
@@ -481,11 +480,11 @@ e
         const response = await fetch("/tiny_test_sample.wav");
         const testSampleArrayBuffer = await response.arrayBuffer();
         const testSample = new Uint8Array(testSampleArrayBuffer);
-        await csoundObj.fs.writeFile("tiny_test_sample.wav", testSample);
 
         // Writing the csd to disk
-        const csdPath = "/somedir/anycsd.csd";
+        const csdPath = "/anycsd.csd";
         await csoundObj.fs.mkdir("/somedir");
+        await csoundObj.fs.writeFile("tiny_test_sample.wav", testSample);
         await csoundObj.fs.writeFile(csdPath, samplesTest);
 
         // allow the example to play until the end
@@ -494,7 +493,7 @@ e
           endResolver = resolve;
         });
         csoundObj.on("realtimePerformanceEnded", endResolver);
-        console.log("LLOOKK", await csoundObj.fs.readdir("/"));
+
         assert.include(
           await csoundObj.fs.readdir("/"),
           "tiny_test_sample.wav",

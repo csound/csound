@@ -103,7 +103,13 @@ csoundStart.toString = () => "start = async () => Number;";
  */
 export const csoundCompileCsd = (wasm) => (csound, path) => {
   const stringPtr = string2ptr(wasm, path);
-  const result = wasm.exports.csoundCompileCsd(csound, stringPtr);
+
+  let result;
+  try {
+    result = wasm.exports.csoundCompileCsd(csound, stringPtr);
+  } catch (error) {
+    console.error(error);
+  }
   freeStringPtr(wasm, stringPtr);
   return result;
 };

@@ -213,14 +213,6 @@ class SingleThreadAudioWorkletMainThread {
     this.exportApi = this.publicEvents.decorateAPI(this.exportApi);
     // the default message listener
     this.exportApi.addListener("message", console.log);
-    // this.exportApi.fs = fsOperations.reduce((acc, operand) => {
-    //   acc[operand] = (...arguments_) =>
-    //     makeProxyCallback(this.workletProxy, csoundInstance, operand, this.currentPlayState).apply(
-    //       undefined,
-    //       arguments_,
-    //     );
-    //   return acc;
-    // }, {});
 
     for (const apiK of Object.keys(API)) {
       const reference = API[apiK];

@@ -8,7 +8,7 @@ goog.require("goog.string");
 const { normalizePath } = goog.require("goog.string.path");
 
 /** @define {boolean} */
-const DEBUG_WASI = goog.define("DEBUG_WASI", true);
+const DEBUG_WASI = goog.define("DEBUG_WASI", false);
 
 function assertLeadingSlash(path) {
   return /^\//g.test(path) ? path : `/${path}`;
@@ -310,58 +310,80 @@ WASI.prototype.fd_read = function (fd, iovs, iovsLength, nread) {
 
   let read = Number(this.fd[fd].seekPos);
   let thisRead = 0;
+  let reduced = false;
+
+  if (read >= totalBuffersLength) {
+    return constants.WASI_EINVAL;
+  }
 
   for (let index = 0; index < iovsLength; index++) {
     const ptr = iovs + index * 8;
     const buf = memory.getUint32(ptr, true);
-    const bufLength = Math.min(totalBuffersLength, memory.getUint32(ptr + 4, true));
-    // console.log({ bufLength, read, thisRead, buffers });
+    const bufLength = memory.getUint32(ptr + 4, true);
+
     thisRead += bufLength;
 
-    Array.from({ length: bufLength }, (_, index) => index).reduce(
-      (accumulator, currentRead) => {
-        const [chunkIndex, chunkOffset] = accumulator;
-        let currentChunkIndex = 0;
-        let currentChunkOffset = 0;
+    if (!reduced) {
+      Array.from({ length: bufLength }, (_, index) => index).reduce(
+        (accumulator, currentRead) => {
+          if (reduced) {
+            return accumulator;
+          }
+          const [chunkIndex, chunkOffset] = accumulator;
+          let currentChunkIndex = 0;
+          let currentChunkOffset = 0;
 
-        if (currentRead === 0) {
           let found = false;
           let leadup = 0;
-          while (!found) {
-            const currentBufferChunkLength = buffers[currentChunkIndex]
-              ? buffers[currentChunkIndex].byteLength
-              : 0;
-            if (leadup <= read && currentBufferChunkLength + leadup > read) {
-              found = true;
-              currentChunkOffset = read - leadup;
-            } else {
-              leadup += currentBufferChunkLength;
-              currentChunkIndex += 1;
+
+          let currentBufferChunkLength = buffers[currentChunkIndex]
+            ? buffers[currentChunkIndex].byteLength
+            : 0;
+
+          if (currentRead === 0) {
+            while (!found) {
+              currentBufferChunkLength = buffers[currentChunkIndex]
+                ? buffers[currentChunkIndex].byteLength
+                : 0;
+              if (leadup <= read && currentBufferChunkLength + leadup > read) {
+                found = true;
+                currentChunkOffset = read - leadup;
+              } else {
+                leadup += currentBufferChunkLength;
+                currentChunkIndex += 1;
+              }
             }
+          } else {
+            currentChunkIndex = chunkIndex;
+            currentChunkOffset = chunkOffset;
           }
-        } else {
-          currentChunkIndex = chunkIndex;
-          currentChunkOffset = chunkOffset;
-        }
 
-        memory.setUint8(buf + currentRead, buffers[currentChunkIndex][currentChunkOffset]);
+          if (buffers[currentChunkIndex]) {
+            memory.setUint8(buf + currentRead, buffers[currentChunkIndex][currentChunkOffset]);
 
-        if (currentChunkOffset + 1 >= buffers[currentChunkIndex].byteLength) {
-          currentChunkIndex = chunkIndex + 1;
-          currentChunkOffset = 0;
-        } else {
-          currentChunkOffset += 1;
-        }
+            if (currentChunkOffset + 1 >= buffers[currentChunkIndex].byteLength) {
+              currentChunkIndex = chunkIndex + 1;
+              currentChunkOffset = 0;
+            } else {
+              currentChunkOffset += 1;
+            }
+          } else {
+            memory.setUint8(buf + currentRead, "\0");
+            read += currentRead;
+            reduced = true;
+          }
 
-        return [currentChunkIndex, currentChunkOffset];
-      },
-      [0, 0],
-    );
-    read += bufLength;
+          return [currentChunkIndex, currentChunkOffset];
+        },
+        [0, 0],
+      );
+      if (!reduced) {
+        read += bufLength;
+      }
+    }
   }
 
   this.fd[fd].seekPos = goog.global.BigInt(read);
-  console.log({ thisRead, nread, read });
   memory.setUint32(nread, thisRead, true);
   return constants.WASI_ESUCCESS;
 };
@@ -599,6 +621,7 @@ WASI.prototype.path_open = function (
 
   return constants.WASI_ESUCCESS;
 };
+
 WASI.prototype.path_readlink = function (fd, pathPtr, pathLength, buf, bufLength, bufused) {
   if (DEBUG_WASI) {
     console.log("path_readlink", fd, pathPtr, pathLength, buf, bufLength, bufused, arguments);
@@ -719,7 +742,7 @@ WASI.prototype.readdir = function (dirname /* string */) {
     // });
     return !/\//g.test(path.replace(prefixPath, "")) && files.push(path);
   });
-  return files.map(removeLeadingSlash).filter((p) => !!p);
+  return files.map((p) => removeLeadingSlash(p.replace(prefixPath, ""))).filter((p) => !!p);
 };
 
 WASI.prototype.writeFile = function (fname /* string */, data /* Uint8Array */) {
