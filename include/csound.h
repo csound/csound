@@ -309,7 +309,7 @@
 #  include "sysdep.h"
 #  include "text.h"
 #  include <stdarg.h>
-#  include <stdio.h>    
+#  include <stdio.h>
       %}
 #else
 #  include "sysdep.h"
@@ -465,7 +465,7 @@ extern "C" {
   /*
    * Forward declarations.
    */
-   
+
   typedef struct CSOUND_  CSOUND;
   typedef struct windat_  WINDAT;
   typedef struct xyindat_ XYINDAT;

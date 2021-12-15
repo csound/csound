@@ -1932,7 +1932,7 @@ int useropcd1(CSOUND *csound, UOPCODE *p)
   MYFLT** internal_ptrs = p->buf->iobufp_ptrs;
   MYFLT** external_ptrs = p->ar;
   int done;
-  
+
 
   done = ATOMIC_GET(p->ip->init_done);
   if (UNLIKELY(!done)) /* init not done, exit */
@@ -1961,8 +1961,7 @@ int useropcd1(CSOUND *csound, UOPCODE *p)
   if (this_instr->ksmps == 1) {           /* special case for local kr == sr */
     do {
       this_instr->kcounter++; /*kcounter needs to be incremented BEFORE perf */
-      /* copy inputs */
-      current = inm->in_arg_pool->head;
+      /* copy inputs */      current = inm->in_arg_pool->head;
       for (i = 0; i < inm->inchns; i++) {
         // this hardcoded type check for non-perf time vars needs to change
         //to use generic code...
@@ -2160,7 +2159,7 @@ int useropcd1(CSOUND *csound, UOPCODE *p)
 
       this_instr->spout += csound->nchnls*lksmps;
       this_instr->spin  += csound->nchnls*lksmps;
-      
+
     } while ((ofs += this_instr->ksmps) < g_ksmps);
   }
 
@@ -2238,7 +2237,7 @@ int useropcd2(CSOUND *csound, UOPCODE *p)
   OPCODINFO   *inm;
   CS_VARIABLE* current;
   int i, done;
-  
+
 
   inm = (OPCODINFO*) p->h.optext->t.oentry->useropinfo; /* FIXME value not used */
   done = ATOMIC_GET(p->ip->init_done);
@@ -2296,7 +2295,7 @@ int useropcd2(CSOUND *csound, UOPCODE *p)
   } while (error == 0 && p->ip != NULL
            && (CS_PDS = CS_PDS->nxtp));
   }
-  
+
 
   /* copy outputs */
   current = inm->out_arg_pool->head;

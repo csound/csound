@@ -422,14 +422,14 @@ static int paBlockingReadWriteStreamCallback(const void *input,
   IGN(statusFlags);
   IGN(timeInfo);
 
-  //#ifndef __MACH__    
+  //#ifndef __MACH__
   if (pabs->complete == 1) {
     if (pabs->mode & 2)
       paClearOutputBuffer(pabs, paOutput);
     return paContinue;
   }
   //#endif
- 
+
 #ifdef WIN32
   if (pabs->paStream == NULL
       || pabs->paused
@@ -454,7 +454,7 @@ static int paBlockingReadWriteStreamCallback(const void *input,
     csound->WaitThreadLock(pabs->paLock, (size_t) 500);
     err = 0;
     #endif*/
- 
+
   if (pabs->mode & 1) {
   int n = pabs->inBufSamples;
   int i = 0;

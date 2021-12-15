@@ -107,7 +107,7 @@ static int SoundFontLoad(CSOUND *csound, char *fname)
     SFBANK *soundFont;
     sfontg *globals;
     globals = (sfontg *) (csound->QueryGlobalVariable(csound, "::sfontg"));
-    
+
     //soundFont = globals->soundFont;
     fd = csound->FileOpen2(csound, &fil, CSFILE_STD, fname, "rb",
                              "SFDIR;SSDIR", CSFTYPE_SOUNDFONT, 0);
@@ -2359,12 +2359,12 @@ static int32_t sflooper_init(CSOUND *csound, sflooper *p)
               p->freq[spltNum]= (freq/(orgfreq*orgfreq))*
                                sample->dwSampleRate*csound->onedsr;
             }
-            else {            
+            else {
               freq = orgfreq * pow(2.0, ONETWELTH * tuneCorrection) *
                 pow(2.0, ONETWELTH * (split->scaleTuning*0.01) * (notnum-orgkey));
               p->freq[spltNum]= (freq/orgfreq) * sample->dwSampleRate*csound->onedsr;
             }
-            
+
             attenuation = (MYFLT) (layer->initialAttenuation +
                                    split->initialAttenuation);
             attenuation = POWER(FL(2.0), (-FL(1.0)/FL(60.0)) * attenuation )

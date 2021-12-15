@@ -294,7 +294,6 @@ int musmon(CSOUND *csound)
     csound->cyclesRemaining = 0;
     memset(&(csound->evt), 0, sizeof(EVTBLK));
 
-    
     print_engine_parameters(csound);
 
     /* run instr 0 inits */
@@ -319,7 +318,7 @@ int musmon(CSOUND *csound)
       openMIDIout(csound);
     if(O->msglevel) {
       csound->ErrorMsg(csound, Str("orch now loaded\n"));
-    }   
+    }
 
     csound->multichan = (csound->nchnls > 1 ? 1 : 0);
     STA(segamps) = O->msglevel & SEGAMPS;
@@ -385,7 +384,7 @@ int musmon(CSOUND *csound)
       csound->ErrorMsg(csound, Str("playing from cscore.srt\n"));
       O->usingcscore = 0;
     }
-   
+
      csound->ErrorMsg(csound, Str("SECTION %d:\n"), ++STA(sectno));
     /* apply score offset if non-zero */
     if (csound->csoundScoreOffsetSeconds_ > FL(0.0))

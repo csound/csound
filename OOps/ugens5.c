@@ -620,7 +620,7 @@ int32_t lprdset_(CSOUND *csound, LPREAD *p, int32_t stringname)
     }
     ((LPREAD**) csound->lprdaddr)[csound->currentLPCSlot] = p;
     //printf("*** slot %d has value %p\n", csound->currentLPCSlot, p);
-    
+
     /* Build file name */
     if (stringname) strNcpy(lpfilname, ((STRINGDAT*)p->ifilcod)->data, MAXNAME-1);
     else if (csound->ISSTRCOD(*p->ifilcod))
@@ -1025,7 +1025,7 @@ int32_t lprsnset(CSOUND *csound, LPRESON *p)
 
    /* connect to previously loaded lpc analysis */
    /* get adr lpread struct */
-    
+
     p->lpread = q = ((LPREAD**) csound->lprdaddr)[csound->currentLPCSlot];
     csound->AuxAlloc(csound, (int32)((q->npoles<<1)*sizeof(MYFLT)), &p->aux);
    /* Initialize pointer to circular buffer (for filtering) */
@@ -1056,7 +1056,7 @@ int32_t lpreson(CSOUND *csound, LPRESON *p)
 
     jp = p->circjp;
     jp2 = jp + q->npoles;
-    
+
     /* If we were using poles, we have to compute filter coefs now */
     if (q->storePoles) {
       coefp = q->kcoefs;

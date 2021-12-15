@@ -665,14 +665,15 @@ INSTRTXT *create_instrument0(CSOUND *csound, TREE *root,
     MYFLT tmp_sr = csound->esr;
     csound->esr = -1.0;
     O->sr_override = csoundInitialiseIO(csound);
-    
+
     if(O->sr_override > 0) {
-     if(O->msglevel || O->odebug)  
-     csound->Message(csound, "Using system sampling rate %.1f\n", O->sr_override);
+      if(O->msglevel || O->odebug)
+        csound->Message(csound,
+                        Str("Using system sampling rate %.1f\n", O->sr_override));
     }
     else {
-      if(O->msglevel || O->odebug)  
-      csound->Message(csound, "System sr not available\n");
+      if(O->msglevel || O->odebug)
+        csound->Message(csound, Str("System sr not available\n"));
       O->sr_override = FL(0.0);
     }
     csound->esr = tmp_sr;
@@ -1950,10 +1951,10 @@ int csoundCompileOrcInternal(CSOUND *csound, const char *str, int async) {
   root = csoundParseOrc(csound, str);
   if (LIKELY(root != NULL)) {
     retVal = csoundCompileTreeInternal(csound, root, async);
-#ifdef PARCS    
+#ifdef PARCS
     // Sanitise semantic sets here
     sanitize(csound);
-#endif    
+#endif
     csoundDeleteTree(csound, root);
   } else {
     // csoundDeleteTree(csound, root);
@@ -1969,7 +1970,8 @@ int csoundCompileOrcInternal(CSOUND *csound, const char *str, int async) {
 
 /* prep an instr template for efficient allocs  */
 /* repl arg refs by offset ndx to lcl/gbl space */
-static void insprep(CSOUND *csound, INSTRTXT *tp, ENGINE_STATE *engineState) {
+static void insprep(CSOUND *csound, INSTRTXT *tp, ENGINE_STATE *engineState)
+{
   OPARMS *O = csound->oparms;
   OPTXT *optxt;
   OENTRY *ep;

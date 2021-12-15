@@ -3058,7 +3058,7 @@ static OENTRY emugens_localops[] = {
 
     { "mton.i", S(MTON), 0, 1, "S", "i", (SUBR)mton },
     { "mton.k", S(MTON), 0, 3, "S", "k", (SUBR)mton, (SUBR)mton },
-    
+
     { "ntof.i", S(NTOM), 0, 1, "i", "S", (SUBR)ntof },
     { "ntof.k", S(NTOM), 0, 3, "k", "S", (SUBR)ntof, (SUBR)ntof },
 

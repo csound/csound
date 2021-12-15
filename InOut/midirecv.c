@@ -404,7 +404,7 @@ void m_chn_init_all(CSOUND *csound)
           csound->Message(csound, Str("midi channel %d is muted\n"), chan + 1);
         //else
         //  csound->Message(csound, Str("midi channel %d using instr %d\n"),
-        //                  chan + 1, chn->insno); 
+        //                  chan + 1, chn->insno);
       }
     }
 }

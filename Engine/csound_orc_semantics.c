@@ -1163,7 +1163,7 @@ OENTRY* find_opcode_new(CSOUND* csound, char* opname,
 
     csound->Free(csound, opcodes);
 
-   
+
 
     return retVal;
 }
@@ -1965,7 +1965,6 @@ void csound_orcerror(PARSE_PARM *pp, void *yyscanner,
     //printf("LINE: %d\n", line);
     csoundErrorMsg(csound, Str("\nerror: %s  (token \"%s\")\n"),
                     str, csound_orcget_text(yyscanner));
-    
     do_baktrace(csound, files);
     csoundErrorMsg(csound, Str(" line %d:\n >>> "), line);
     while ((ch=*--p) != '\n' && ch != '\0');
@@ -1987,7 +1986,7 @@ void do_baktrace(CSOUND *csound, uint64_t files)
 {
     while (files) {
       unsigned int ff = files&0xff;
-      files = files >>8;  
+      files = files >>8;
       csoundErrorMsg(csound, Str(" from file %s (%d),"),
                       csound->filedir[ff], ff);
     }

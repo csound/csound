@@ -1226,7 +1226,7 @@ static int decode_long(CSOUND *csound, char *s, int argc, char **argv)
       O->kr_default = O->sr_default/atof(s);
       return 1;
     }
-    
+
     else if (!(strcmp(s, "aft-zero"))) {
       csound->aftouch = 0;
       return 1;

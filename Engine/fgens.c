@@ -2915,7 +2915,7 @@ static int gen44(FGDATA *ff, FUNC *ftp)
     int len;
     int i, j, n;
     MYFLT stiffness;
-    
+
     if (isstrcod(ff->e.p[5]))
       strncpy(buff, (char *)(&ff->e.strarg[0]), 79);
     else

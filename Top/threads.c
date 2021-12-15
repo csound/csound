@@ -625,7 +625,7 @@ PUBLIC void *csoundCreateThread2(uintptr_t (*threadRoutine)(void *), unsigned in
     WaitForSingleObject(p.threadLock, INFINITE);
   CloseHandle(p.threadLock);
   return h;
-  
+
 }
 
 PUBLIC void *csoundCreateThread(uintptr_t (*threadRoutine)(void *),

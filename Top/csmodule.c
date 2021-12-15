@@ -1039,7 +1039,7 @@ void print_opcodedir_warning(CSOUND *p)
    extern int64_t <name>_init(CSOUND *, void *);
  - append the init function name <name>_init to the
    staticmodules[] array initialisation.
- - insert source code to libcsound_SRCS in../CMakeLists.txt 
+ - insert source code to libcsound_SRCS in../CMakeLists.txt
 */
 
 typedef int64_t (*INITFN)(CSOUND *, void *);
@@ -1168,7 +1168,7 @@ const INITFN staticmodules[] = { hrtfopcodes_localops_init, babo_localops_init,
    NGFENS* <name>_init(CSOUND *);
  - append the init function name <name>_init to the
    ftgenab[] array initialisation.
- - insert source code to libcsound_SRCS in../CMakeLists.txt 
+ - insert source code to libcsound_SRCS in../CMakeLists.txt
 */
 typedef NGFENS* (*FGINITFN)(CSOUND *);
 

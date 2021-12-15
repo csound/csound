@@ -130,7 +130,7 @@ static int32_t pvsdemix_process(CSOUND *csound, PVSDEMIX *p)
         n2 = n << 1;
         for (i=framesize; i<=imax; i+=framesize){
           g = (float) i/imax;
-          sig = sigl[n2] -  g*sigr[n2]; 
+          sig = sigl[n2] -  g*sigr[n2];
           left[n+(imax - i)] = sig = sig < 0 ? -sig : sig;
           maxl[n] =  maxl[n] > sig ? maxl[n] : sig;
           minl[n] =  minl[n] <  sig ? minl[n] : sig;
@@ -139,10 +139,10 @@ static int32_t pvsdemix_process(CSOUND *csound, PVSDEMIX *p)
           maxr[n] = maxr[n] >  sig ? maxr[n] : sig;
           minr[n] = minr[n] <  sig ? minr[n] : sig;
         }
-      
+
         /* reverse the nulls into peaks */
         for (i=imax - framesize; i >= 0; i-=framesize) {
-          
+
           left[n+i] = left[n+i] == minl[n] ? maxl[n] - minl[n] : 0.f;
           right[n+i] = right[n+i] == minr[n] ? maxr[n] - minr[n] : 0.f;
 
@@ -150,10 +150,10 @@ static int32_t pvsdemix_process(CSOUND *csound, PVSDEMIX *p)
 
         /* the issue: a source found somewhere in one channel
            will cause an image to be found in the opposite channel
-           around 0. 
+           around 0.
         */
-        
-        
+
+
         /* resynthesise the signal
            azimuth <= 0 => pos incrs right to left
            azimuth >  0 => pos incrs left to right
@@ -166,15 +166,15 @@ static int32_t pvsdemix_process(CSOUND *csound, PVSDEMIX *p)
            sum += (azimuth <= 0 ? right[n+i*framesize]
                    :  left[n+i*framesize]);
          }
-       
+
         out[n2] = sum;
         out[n2+1] = (azimuth < 0 ? sigl[n2+1] :
                      sigr[n2+1]);
-        
+
 
         sum=0.f;
       }
- 
+
       p->fout->framecount = p->lastframe = p->finleft->framecount;
     }
 

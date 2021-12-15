@@ -83,7 +83,7 @@ static void spoutsf(CSOUND *csound)
       // built inlimiter start ****
       // There is a rather awkward problem in reporting out of range not being
       // confused by the limited value but passing the clipped values to the
-      // output.  Current solution is nasty and should be easier 
+      // output.  Current solution is nasty and should be easier
       if (O->limiter) {
         MYFLT x = *sp;
         absamp = x;
@@ -502,10 +502,10 @@ void sfopenin(CSOUND *csound)           /* init for continuous soundin */
     int     fileType = (int) TYP_RAW;
     int     isfd = 0;   /* stdin */
 
-    if(csound->inchnls < 1) 
+    if(csound->inchnls < 1)
        csound->Die(csound,
                  Str("error: cannot run input audio with nchnls_i=0"));
-    
+
 
     alloc_globals(csound);
     STA(inbufrem) = (uint32) 0;    /* start with empty buffer */
@@ -981,7 +981,7 @@ void sfcloseout(CSOUND *csound)
 
  report:
     if (STA(pipdevout) == 2) {
-     if(csound->oparms->msglevel ||csound->oparms->odebug) 
+     if(csound->oparms->msglevel ||csound->oparms->odebug)
       csound->Message(csound,
                       "%"PRIi32" %d %s%lu%s%s\n",
                       csound->nrecs, O->outbufsamps, Str("sample blks of "),

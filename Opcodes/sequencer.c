@@ -184,7 +184,7 @@ static int32_t sequencer(CSOUND *csound, SEQ *p)
                     p->data->data[(j*p->max_length)+p->seq[i]]);
           snprintf(buff+strlen(buff), 99-strlen(buff), "\n");
         }
-        else 
+        else
           sprintf(buff, "i %0.2f 0 %f %f\n",
                   inst, 60.0/(*p->kbpm)*p->riff->data[p->seq[i]],
                   p->data->data[p->seq[i]]);

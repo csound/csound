@@ -1620,7 +1620,6 @@ PUBLIC int csoundModuleInit(CSOUND *csound)
       return 0;
     if(O.msglevel || O.odebug)
      csound->Message(csound, "%s", Str("rtmidi: JACK module enabled\n"));
-    
     {
       csound->SetExternalMidiInOpenCallback(csound, midi_in_open);
       csound->SetExternalMidiReadCallback(csound, midi_in_read);

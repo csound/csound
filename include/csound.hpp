@@ -84,7 +84,7 @@ struct Spinlocker
 {
     Spinlock &spinlock;
     #if (__cplusplus >= 201103L)
-    explicit 
+    explicit
     #endif
     Spinlocker(Spinlock &spinlock_) : spinlock(spinlock_)
     {
@@ -849,8 +849,8 @@ public:
     #endif
   }
   #if (__cplusplus >= 201103L)
-  Csound(const Csound &other) = delete; 
-  explicit 
+  Csound(const Csound &other) = delete;
+  explicit
   #endif
   Csound(CSOUND *csound_) : csound(csound_)
   {
@@ -865,7 +865,7 @@ public:
 
   }
     #if (__cplusplus >= 201103L)
-    explicit 
+    explicit
     #endif
     Csound(void *hostData)
     {
@@ -997,7 +997,7 @@ public:
     mutex_ = csoundCreateMutex(1);
   }
   #if (__cplusplus >= 201103L)
-  explicit 
+  explicit
   #endif
   CsoundMutex(int isRecursive)
   {
@@ -1032,7 +1032,7 @@ public:
     csoundSeedRandMT(&mt, (uint32_t*) 0, csoundGetRandomSeedFromTime());
   }
   #if (__cplusplus >= 201103L)
-  explicit 
+  explicit
   #endif
   CsoundRandMT(uint32_t seedVal)
   {
