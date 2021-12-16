@@ -669,7 +669,7 @@ INSTRTXT *create_instrument0(CSOUND *csound, TREE *root,
     if(O->sr_override > 0) {
       if(O->msglevel || O->odebug)
         csound->Message(csound,
-                        Str("Using system sampling rate %.1f\n", O->sr_override));
+                        Str("Using system sampling rate %.1f\n"), O->sr_override);
     }
     else {
       if(O->msglevel || O->odebug)
@@ -735,7 +735,7 @@ INSTRTXT *create_instrument0(CSOUND *csound, TREE *root,
       if (UNLIKELY(FLOAT_COMPARE(csound->esr, (double)csound->ekr * ensmps)))
         csoundDie(csound, Str("%s inconsistent sr, kr, ksmps"), s);
     }
-    if(O->odebug)  
+    if(O->odebug)
     csound->Message(csound, Str("sample rate overrides: "
                                 "esr = %7.4f, ekr = %7.4f, ksmps = %d\n"),
                     csound->esr, csound->ekr, csound->ksmps);
@@ -758,6 +758,7 @@ INSTRTXT *create_instrument0(CSOUND *csound, TREE *root,
   }
   close_instrument(csound, engineState, ip);
 
+  csound->inZero = 0;
   return ip;
 }
 
@@ -774,7 +775,7 @@ INSTRTXT *create_global_instrument(CSOUND *csound, TREE *root,
   OPTXT *op;
   TREE *current;
 
-  // csound->inZero = 1;
+  //csound->inZero = 1;
   find_or_add_constant(csound, engineState->constantsPool, "0", 0);
 
   ip = (INSTRTXT *)csound->Calloc(csound, sizeof(INSTRTXT));
@@ -821,7 +822,7 @@ INSTRTXT *create_global_instrument(CSOUND *csound, TREE *root,
   }
 
   close_instrument(csound, engineState, ip);
-  // csound->inZero = 0;
+  //csound->inZero = 0;
   return ip;
 }
 
@@ -1642,8 +1643,10 @@ int csoundCompileTreeInternal(CSOUND *csound, TREE *root, int async) {
         csound, (1 + engineState->maxinsno) * sizeof(INSTRTXT *));
     /* VL: allowing global code to be evaluated in
        subsequent compilations */
+    //csound->inZero = 1;
     csound->instr0 = create_global_instrument(csound, current, engineState,
                                               typeTable->instr0LocalPool);
+    //csound->inZero = 0;
 
     insert_instrtxt(csound, csound->instr0, 0, engineState, 1);
 

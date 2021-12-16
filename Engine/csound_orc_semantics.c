@@ -1769,7 +1769,7 @@ TREE* verify_tree(CSOUND * csound, TREE *root, TYPE_TABLE* typeTable)
 
     CONS_CELL* parentLabelList = typeTable->labelList;
     typeTable->labelList = get_label_list(csound, root);
-
+    csound->inZero = 1;
     //if (root->value)
     //printf("###verify %p %p (%s)\n", root, root->value, root->value->lexeme);
 
@@ -1848,10 +1848,12 @@ TREE* verify_tree(CSOUND * csound, TREE *root, TYPE_TABLE* typeTable)
         if (!verify_until_statement(csound, current, typeTable)) {
           return 0;
         }
-
+#ifdef JPFF
+        printf("***Expand until/while %d\n", csound->inZero);
+#endif
         current = expand_until_statement(csound, current,
                                          typeTable, current->type==WHILE_TOKEN);
-
+        print_tree(csound, "until/while\b", current);
         if (previous != NULL) {
           previous->next = current;
         }
@@ -1900,7 +1902,7 @@ TREE* verify_tree(CSOUND * csound, TREE *root, TYPE_TABLE* typeTable)
         break;
       case ENDIN_TOKEN:
       case UDOEND_TOKEN:
-        csound->inZero = 1;
+        csound->inZero = 1;     /* ****Is this right??????? */
         /* fall through */
       default:
         if (!verify_opcode(csound, current, typeTable)) {
