@@ -74,7 +74,7 @@ the last release using the current parser (v.2).
 - --sample-accurate fixed in a-rate form of tabsum.
 
 - Problem in atssinnoi fixed; did read outside allocated memory.
-
+  
 - hrtfmove fixed; it could use the wrong value for sr.
 
 - Named instruments could use wrong structure in redefinition.
@@ -92,6 +92,10 @@ the last release using the current parser (v.2).
 
 - If using a float build (rather than a double) array access could be
   wrong.
+
+- In some cases instr0 code could ignore loops after an incorrect warning.  No fixed.
+
+- Bugs in mp3len and siilar fixed.
 
 # SYSTEM LEVEL CHANGES
 
