@@ -1853,7 +1853,7 @@ TREE* verify_tree(CSOUND * csound, TREE *root, TYPE_TABLE* typeTable)
 #endif
         current = expand_until_statement(csound, current,
                                          typeTable, current->type==WHILE_TOKEN);
-        print_tree(csound, "until/while\b", current);
+        //print_tree(csound, "until/while\b", current);
         if (previous != NULL) {
           previous->next = current;
         }
