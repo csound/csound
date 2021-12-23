@@ -616,7 +616,6 @@ char* get_opcode_short_name(CSOUND* csound, char* opname) {
 
 /* find opcode with the specified name in opcode list */
 /* returns index to opcodlst[], or zero if the opcode cannot be found */
-
 OENTRY* find_opcode(CSOUND *csound, char *opname)
 {
     char *shortName;
@@ -632,7 +631,6 @@ OENTRY* find_opcode(CSOUND *csound, char *opname)
 
     retVal = (head != NULL) ? head->value : NULL;
     if (shortName != opname) csound->Free(csound, shortName);
-
     return retVal;
 }
 
@@ -1164,6 +1162,8 @@ OENTRY* find_opcode_new(CSOUND* csound, char* opname,
     OENTRY* retVal = resolve_opcode(csound, opcodes, outArgsFound, inArgsFound);
 
     csound->Free(csound, opcodes);
+
+
 
     return retVal;
 }
@@ -1769,7 +1769,7 @@ TREE* verify_tree(CSOUND * csound, TREE *root, TYPE_TABLE* typeTable)
 
     CONS_CELL* parentLabelList = typeTable->labelList;
     typeTable->labelList = get_label_list(csound, root);
-
+    csound->inZero = 1;
     //if (root->value)
     //printf("###verify %p %p (%s)\n", root, root->value, root->value->lexeme);
 
@@ -1848,10 +1848,12 @@ TREE* verify_tree(CSOUND * csound, TREE *root, TYPE_TABLE* typeTable)
         if (!verify_until_statement(csound, current, typeTable)) {
           return 0;
         }
-
+#ifdef JPFF
+        printf("***Expand until/while %d\n", csound->inZero);
+#endif
         current = expand_until_statement(csound, current,
                                          typeTable, current->type==WHILE_TOKEN);
-
+        //print_tree(csound, "until/while\b", current);
         if (previous != NULL) {
           previous->next = current;
         }
@@ -1900,7 +1902,7 @@ TREE* verify_tree(CSOUND * csound, TREE *root, TYPE_TABLE* typeTable)
         break;
       case ENDIN_TOKEN:
       case UDOEND_TOKEN:
-        csound->inZero = 1;
+        csound->inZero = 1;     /* ****Is this right??????? */
         /* fall through */
       default:
         if (!verify_opcode(csound, current, typeTable)) {
@@ -1965,7 +1967,6 @@ void csound_orcerror(PARSE_PARM *pp, void *yyscanner,
     //printf("LINE: %d\n", line);
     csoundErrorMsg(csound, Str("\nerror: %s  (token \"%s\")\n"),
                     str, csound_orcget_text(yyscanner));
-    
     do_baktrace(csound, files);
     csoundErrorMsg(csound, Str(" line %d:\n >>> "), line);
     while ((ch=*--p) != '\n' && ch != '\0');
@@ -1987,7 +1988,7 @@ void do_baktrace(CSOUND *csound, uint64_t files)
 {
     while (files) {
       unsigned int ff = files&0xff;
-      files = files >>8;  
+      files = files >>8;
       csoundErrorMsg(csound, Str(" from file %s (%d),"),
                       csound->filedir[ff], ff);
     }

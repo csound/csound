@@ -309,11 +309,13 @@
 #  include "sysdep.h"
 #  include "text.h"
 #  include <stdarg.h>
+#  include <stdio.h>
       %}
 #else
 #  include "sysdep.h"
 #  include "text.h"
 #  include <stdarg.h>
+#  include <stdio.h>
 #endif
 
 #ifdef __cplusplus

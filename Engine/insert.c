@@ -374,17 +374,16 @@ int insert_event(CSOUND *csound, int insno, EVTBLK *newevtp)
       if (UNLIKELY(O->msglevel & RNGEMSG)) {
         char *name = csound->engineState.instrtxtp[insno]->insname;
         if (UNLIKELY(name))
-          csound->Message(csound, Str("new alloc for instr %s:\n"), name);
+          csound->ErrorMsg(csound, Str("new alloc for instr %s:\n"), name);
         else
-          csound->Message(csound, Str("new alloc for instr %d:\n"), insno);
+          csound->ErrorMsg(csound, Str("new alloc for instr %d:\n"), insno);
       }
       instance(csound, insno);
       tp->isNew=0;
     }
 
     /* pop from free instance chain */
-    if (UNLIKELY(csound->oparms->odebug))
-      csoundMessage(csound, "insert(): tp->act_instance = %p\n", tp->act_instance);
+    csoundDebugMsg(csound, "insert(): tp->act_instance = %p\n", tp->act_instance);
     ip = tp->act_instance;
     ATOMIC_SET(ip->init_done, 0);
     tp->act_instance = ip->nxtact;
@@ -1933,7 +1932,7 @@ int useropcd1(CSOUND *csound, UOPCODE *p)
   MYFLT** internal_ptrs = p->buf->iobufp_ptrs;
   MYFLT** external_ptrs = p->ar;
   int done;
-  
+
 
   done = ATOMIC_GET(p->ip->init_done);
   if (UNLIKELY(!done)) /* init not done, exit */
@@ -1962,8 +1961,7 @@ int useropcd1(CSOUND *csound, UOPCODE *p)
   if (this_instr->ksmps == 1) {           /* special case for local kr == sr */
     do {
       this_instr->kcounter++; /*kcounter needs to be incremented BEFORE perf */
-      /* copy inputs */
-      current = inm->in_arg_pool->head;
+      /* copy inputs */      current = inm->in_arg_pool->head;
       for (i = 0; i < inm->inchns; i++) {
         // this hardcoded type check for non-perf time vars needs to change
         //to use generic code...
@@ -2161,7 +2159,7 @@ int useropcd1(CSOUND *csound, UOPCODE *p)
 
       this_instr->spout += csound->nchnls*lksmps;
       this_instr->spin  += csound->nchnls*lksmps;
-      
+
     } while ((ofs += this_instr->ksmps) < g_ksmps);
   }
 
@@ -2239,7 +2237,7 @@ int useropcd2(CSOUND *csound, UOPCODE *p)
   OPCODINFO   *inm;
   CS_VARIABLE* current;
   int i, done;
-  
+
 
   inm = (OPCODINFO*) p->h.optext->t.oentry->useropinfo; /* FIXME value not used */
   done = ATOMIC_GET(p->ip->init_done);
@@ -2297,7 +2295,7 @@ int useropcd2(CSOUND *csound, UOPCODE *p)
   } while (error == 0 && p->ip != NULL
            && (CS_PDS = CS_PDS->nxtp));
   }
-  
+
 
   /* copy outputs */
   current = inm->out_arg_pool->head;
@@ -2407,8 +2405,7 @@ static void instance(CSOUND *csound, int insno)
   ip->nxtact = tp->act_instance;
   tp->act_instance = ip;
   ip->insno = insno;
-  if (UNLIKELY(csound->oparms->odebug))
-    csoundMessage(csound,"instance(): tp->act_instance = %p\n",
+  csoundDebugMsg(csound,"instance(): tp->act_instance = %p\n",
                   tp->act_instance);
 
 

@@ -325,6 +325,8 @@ void print_short_usage(CSOUND *csound)
     char    buf[256];
     int     i;
     i = -1;
+    print_csound_version(csound);
+    csound->Message(csound, Str("\nShort options format:\n"));
     while (shortUsageList[++i] != NULL) {
       snprintf(buf, 256, "%s\n", shortUsageList[i]);
       csound->Message(csound, "%s", Str(buf));
@@ -337,14 +339,13 @@ void print_short_usage(CSOUND *csound)
 static void longusage(CSOUND *p)
 {
     const char **sp;
+    print_short_usage(p);
     p->Message(p, Str("Usage:     csound [-flags] orchfile scorefile\n"));
     p->Message(p, Str("Legal flags are:\n"));
     p->Message(p, Str("Long format:\n\n"));
     for (sp = &(longUsageList[0]); *sp != NULL; sp++)
       p->Message(p, "%s\n", Str(*sp));
     dump_cfg_variables(p);
-    p->Message(p, Str("\nShort format:\n\n"));
-    print_short_usage(p);
 }
 
 CS_NORETURN void dieu(CSOUND *csound, char *s, ...)
@@ -1225,7 +1226,7 @@ static int decode_long(CSOUND *csound, char *s, int argc, char **argv)
       O->kr_default = O->sr_default/atof(s);
       return 1;
     }
-    
+
     else if (!(strcmp(s, "aft-zero"))) {
       csound->aftouch = 0;
       return 1;

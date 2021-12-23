@@ -1896,9 +1896,10 @@ static int listDevicesM(CSOUND *csound, CS_MIDIDEVICE *list, int isOutput){
 
 PUBLIC int csoundModuleInit(CSOUND *csound)
 {
-    char    *s;
     int     i;
     char    buf[9];
+    char    *s = NULL;
+    memset(buf, '\0', 9);
     OPARMS oparms;
     csound->GetOParms(csound, &oparms);
 

@@ -9,9 +9,12 @@ on:
     branches:
       - develop
       - master
+      - cs7
+      - PluginBase-heap
   pull_request:
     branches:
       - develop
+      - cs7
 
 jobs:
   linux_build:

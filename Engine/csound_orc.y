@@ -141,7 +141,7 @@
 #include "csound_orc.h"
 #include "parse_param.h"
 
-#ifndef __EMSCRIPTEN__
+#ifdef PARCS
 #include "cs_par_base.h"
 #include "cs_par_orc_semantics.h"
 #else
@@ -563,7 +563,7 @@ ans       : ident               { $$ = $1; }
               }
           | ans ',' ident     { $$ = appendToTree(csound, $1, $3); }
           | ans ',' T_IDENT error
-              { 
+              {
                  csoundErrorMsg(csound,
                       "Unexpected untyped word %s when expecting a variable\n",
                                ((ORCTOKEN*)$3)->lexeme);

@@ -46,7 +46,7 @@ template <MYFLT (*op)(MYFLT)> struct ArrayOp : csnd::Plugin<1, 1> {
                    [](MYFLT f) { return op(f); });
     return OK;
   }
-  
+
   int init() {
     csnd::myfltvec &out = outargs.myfltvec_data(0);
     csnd::myfltvec &in = inargs.myfltvec_data(0);

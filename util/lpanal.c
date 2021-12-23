@@ -803,7 +803,7 @@ static void lpdieu(CSOUND *csound, char *msg)
 
 
 static MYFLT noise(MYFLT a) {
-  return a*((MYFLT) rand()/RAND_MAX - 0.5); 
+  return a*((MYFLT) rand()/RAND_MAX - 0.5);
 }
 
 /*

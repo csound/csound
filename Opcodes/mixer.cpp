@@ -20,9 +20,9 @@
     Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
     02110-1301 USA
 */
-#include "OpcodeBase.hpp"
 #include <map>
 #include <vector>
+#include "OpcodeBase.hpp"
 
 using namespace csound;
 

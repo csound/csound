@@ -780,7 +780,7 @@ void do_include(CSOUND *csound, int term, yyscan_t yyscanner)
       csound->Warning(csound, Str("%s is a directory; not including"), buffer);
     if (PARM->path && buffer[0]!= DIRSEP) { // if nested included directories
       char tmp[1024];
-      printf("using path %s\n", PARM->path);
+      csound->DebugMsg(csound, "using path %s\n", PARM->path);
       strncpy(tmp, PARM->path, 1023);
       strcat(tmp, "/");
       strncat(tmp, buffer, 1022-strlen(tmp));

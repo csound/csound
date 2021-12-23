@@ -525,7 +525,7 @@ PUBLIC int csoundStart(CSOUND *csound) // DEBUG
     O->sfsampsize = sfsampsize(FORMAT2SF(O->outformat));
     O->informat = O->outformat;             /* informat default */
 
-
+#ifdef PARCS
     if (O->numThreads > 1) {
       void csp_barrier_alloc(CSOUND *, void **, int);
       int i;
@@ -553,6 +553,7 @@ PUBLIC int csoundStart(CSOUND *csound) // DEBUG
 
       csound->WaitBarrier(csound->barrier2);
     }
+#endif
     csound->engineStatus |= CS_STATE_COMP;
     if (csound->oparms->daemon > 1)
       csoundUDPServerStart(csound,csound->oparms->daemon);

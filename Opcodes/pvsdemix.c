@@ -128,48 +128,53 @@ static int32_t pvsdemix_process(CSOUND *csound, PVSDEMIX *p)
         maxl[n] = maxr[n] = 0.0f;
         minl[n] = minr[n] = FLOATMAX_;
         n2 = n << 1;
-
-        for (i=framesize; i <= imax; i+=framesize){
-          g = (float)i/imax;
+        for (i=framesize; i<=imax; i+=framesize){
+          g = (float) i/imax;
           sig = sigl[n2] -  g*sigr[n2];
-          left[n+(imax - i)]  =  sig < 0 ? -sig : sig;
-          maxl[n] = (maxl[n] > left[n+(imax - i)] ?
-                     maxl[n] : left[n+(imax - i)]);
-          minl[n] = (minl[n] <  left[n+(imax - i)] ?
-                     minl[n] : left[n+(imax - i)]);
+          left[n+(imax - i)] = sig = sig < 0 ? -sig : sig;
+          maxl[n] =  maxl[n] > sig ? maxl[n] : sig;
+          minl[n] =  minl[n] <  sig ? minl[n] : sig;
           sig = sigr[n2] -  g*sigl[n2];
-          right[n+(imax - i)] =  sig < 0 ? -sig : sig;
-          maxr[n] = (maxr[n] >  right[n+(imax - i)] ?
-                     maxr[n] : right[n+(imax - i)]);
-          minr[n] = (minr[n] <  right[n+(imax - i)] ?
-                     minr[n] : right[n+(imax - i)]);
+          right[n+(imax - i)] = sig =  sig < 0 ? -sig : sig;
+          maxr[n] = maxr[n] >  sig ? maxr[n] : sig;
+          minr[n] = minr[n] <  sig ? minr[n] : sig;
         }
 
         /* reverse the nulls into peaks */
-        for (i=0; i < imax; i+=framesize) {
-          left[n+i] = (left[n+i] == minl[n] ?
-                       maxl[n] - minl[n] : 0.f);
-          right[n+i] = (right[n+i] == minr[n] ?
-                        maxr[n] - minr[n] : 0.f);
+        for (i=imax - framesize; i >= 0; i-=framesize) {
+
+          left[n+i] = left[n+i] == minl[n] ? maxl[n] - minl[n] : 0.f;
+          right[n+i] = right[n+i] == minr[n] ? maxr[n] - minr[n] : 0.f;
+
         }
+
+        /* the issue: a source found somewhere in one channel
+           will cause an image to be found in the opposite channel
+           around 0.
+        */
+
 
         /* resynthesise the signal
            azimuth <= 0 => pos incrs right to left
            azimuth >  0 => pos incrs left to right
         */
-        for (i = (int32_t) (pos-range); i < pos+range; i++) {
-          if (i < 0)
-            sum  += (azimuth <= 0 ? right[n+(beta+i)*framesize]
-                     :  left[n+(beta+i)*framesize]);
+         for (i = (int32_t)(pos - range); i < (pos+range); i++) {
+         if (i < 0)
+           sum  += (azimuth <= 0 ? right[n+(beta+i)*framesize]
+               :  left[n+(beta+i)*framesize]);
           else if (i < beta)
-            sum +=(azimuth <= 0 ? right[n+i*framesize]
+           sum += (azimuth <= 0 ? right[n+i*framesize]
                    :  left[n+i*framesize]);
-        }
+         }
+
         out[n2] = sum;
         out[n2+1] = (azimuth < 0 ? sigl[n2+1] :
                      sigr[n2+1]);
+
+
         sum=0.f;
       }
+
       p->fout->framecount = p->lastframe = p->finleft->framecount;
     }
 

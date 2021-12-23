@@ -691,7 +691,7 @@ static int32_t ftgen_list_i(CSOUND *csound, FTGEN *p){
     return ftgen_list(csound,p,0);
 }
 
-/* 
+/*
  gtftargs (c) 2016 Guillermo Senna.
 */
 
@@ -799,7 +799,7 @@ static OENTRY localops[] = {
     (SUBR) ftload_kS, NULL       },
     { "getftargs",   sizeof(FTARGS),  0, 3, "S", "ik",
     (SUBR)getftargs_init, (SUBR)getftargs_process }
-  
+
 };
 
 int32_t ftgen_init_(CSOUND *csound)

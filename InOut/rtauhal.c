@@ -299,7 +299,7 @@ int AuHAL_open(CSOUND *csound, const csRtAudioParams * parm,
                                      0, NULL, sizeof(AudioDeviceID), &dev);
         }
         else {
-       if(O.msglevel || O.odebug) 
+       if(O.msglevel || O.odebug)
           csound->Warning(csound, Str("requested device %d out of range"),
                              devnum);
         }
@@ -317,7 +317,7 @@ int AuHAL_open(CSOUND *csound, const csRtAudioParams * parm,
 
         }
         else {
-          if(O.msglevel || O.odebug) 
+          if(O.msglevel || O.odebug)
           csound->Warning(csound, Str("requested device %d (%s) out of range"),
                              devnum, devinfo[CoreAudioDev].name);
         }
@@ -328,7 +328,7 @@ int AuHAL_open(CSOUND *csound, const csRtAudioParams * parm,
       if(sysdevs[i] == dev){
         if(isInput) {
           if(devinfo[i].inchannels < parm->nChannels) {
-            if(O.msglevel || O.odebug) 
+            if(O.msglevel || O.odebug)
             csound->ErrorMsg(csound,
                              Str(" *** CoreAudio: Device has not enough"
                                  " inputs (%d, requested %d)\n"),
@@ -339,7 +339,7 @@ int AuHAL_open(CSOUND *csound, const csRtAudioParams * parm,
         }
         else {
           if(devinfo[i].outchannels < parm->nChannels) {
-            if(O.msglevel || O.odebug) 
+            if(O.msglevel || O.odebug)
             csound->ErrorMsg(csound,
                              Str(" *** CoreAudio: Device has not enough"
                                  " outputs (%d, requested %d)\n"),
@@ -655,8 +655,8 @@ static int recopen_(CSOUND *csound, const csRtAudioParams * parm)
     cdata->incb =
       csound->CreateCircularBuffer(csound,
                                    parm->bufSamp_HW*parm->nChannels, sizeof(MYFLT));
-    
-    
+
+
     int ret = AuHAL_open(csound, parm, cdata, 1);
     return ret;
 }
@@ -849,7 +849,7 @@ static void rtclose_(CSOUND *csound)
       csound->Free(csound,cdata);
       OPARMS O;
       csound->GetOParms(csound, &O);
-      if(O.msglevel || O.odebug) 
+      if(O.msglevel || O.odebug)
        csound->Message(csound, "%s", Str("AuHAL module: device closed\n"));
     }
 }
