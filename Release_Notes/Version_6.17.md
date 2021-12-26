@@ -1,7 +1,7 @@
 
-# CSOUND VERSION 6.17 RELEASE NOTES - DRAFT - DRAFT - DRAFT - DRAFT 
+# CSOUND VERSION 6.17 RELEASE NOTES - DRAFT - DRAFT - DRAFT - DRAFT
 
-Mainly a bug-fixing release, but also a major re-organisation of the
+Mainly a bug-fixing release but also a major re-organisation of the
 libraries to move all opcodes with dependencies into a separate plugins
 repository. The only exception to this is the OSC opcodes (which
 depend on liblo). This is in part a preparation for Csound7. This is
@@ -13,7 +13,7 @@ the last release using the current parser (v.2).
 
 ### New opcodes
 
-- scanmap and scansmap are like the xscanmap/xscansmap opcodes, but
+- scanmap and scansmap are like the xscanmap/xscansmap opcodes but
   work with the mainstream scan opcodes.
 
 - trigexpseg, triglinseg are aliases for trigExpseg, trigLinseg.
@@ -22,10 +22,10 @@ the last release using the current parser (v.2).
 
 - bformdec2 provides more ambisonic decoding of bformat audio.
 
-- metrobpm is like metro, but the timing is in beats per minute and the
+- metrobpm is like metro but the timing is in beats per minute and the
   signal can be offset by a proportion of the cycle.
 
-- sequ is a csound version of ahardware sequencer.  It has many modes and options.
+- sequ is a csound version of an hardware sequencer.  It has many modes and options.
 
 ### New gen
 
@@ -74,7 +74,7 @@ the last release using the current parser (v.2).
 - --sample-accurate fixed in a-rate form of tabsum.
 
 - Problem in atssinnoi fixed; did read outside allocated memory.
-  
+
 - hrtfmove fixed; it could use the wrong value for sr.
 
 - Named instruments could use wrong structure in redefinition.
@@ -87,15 +87,15 @@ the last release using the current parser (v.2).
   a freeze fixed.
 
 - the emugens collection of opcode, a large group incorporation mainly
-  array operations were not made available due to a small editing
+  array operations, were not made available due to a small editing
   error.
 
-- If using a float build (rather than a double), array access could be
+- If using a float build (rather than a double) array access could be
   wrong.
 
 - In some cases instr0 code could ignore loops after an incorrect warning.  Now fixed.
 
-- Bugs in mp3len and siilar fixed.
+- Bugs in mp3len and similar fixed.
 
 # SYSTEM LEVEL CHANGES
 
@@ -112,7 +112,7 @@ user-defined stack size.
 
 ### External Plugin Code
 
-For a variety of reasons, including licences, plugin opcodes that
+For a variety of reasons including licences, plugin opcodes that
 allow csound to be a host for VST plugins is available from
 https://github.com/gogins/csound-vst3-opcodes.git where installation
 instructions can be found.  It has been shown to work on Linux, MacOS
@@ -121,9 +121,5 @@ and Windows.
 ### Platform Specific
 
 ==END==
-    
+
 ========================================================================
-
-
-
-

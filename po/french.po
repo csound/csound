@@ -210,12 +210,12 @@ msgstr ""
 msgid "create_opcode: No rule to handle statement of type %d\n"
 msgstr "create_opcode : aucune règle pour traiter une instruction de type %d\n"
 
-#: Engine/csound_orc_compile.c:602 Engine/csound_orc_compile.c:731
+#: Engine/csound_orc_compile.c:602 Engine/csound_orc_compile.c:732
 #, c-format
 msgid "%s invalid sample rate"
 msgstr "%s taux d'échantillonnage non valide"
 
-#: Engine/csound_orc_compile.c:604 Engine/csound_orc_compile.c:733
+#: Engine/csound_orc_compile.c:604 Engine/csound_orc_compile.c:734
 #, c-format
 msgid "%s invalid control rate"
 msgstr "%s taux de contrôle non valide"
@@ -225,7 +225,7 @@ msgstr "%s taux de contrôle non valide"
 msgid "%s invalid number of samples"
 msgstr "%s nombre d'échantillons non valide"
 
-#: Engine/csound_orc_compile.c:610 Engine/csound_orc_compile.c:723
+#: Engine/csound_orc_compile.c:610 Engine/csound_orc_compile.c:724
 #, c-format
 msgid "%s invalid ksmps value, needs to be integral."
 msgstr "%s valeur de ksmps non valide, doit être entière."
@@ -235,144 +235,154 @@ msgstr "%s valeur de ksmps non valide, doit être entière."
 msgid "%s inconsistent sr, kr, ksmps\n"
 msgstr "%s sr, kr, ksmps contradictoires\n"
 
-#: Engine/csound_orc_compile.c:718
+#: Engine/csound_orc_compile.c:672
+#, fuzzy, c-format
+msgid "Using system sampling rate %.1f\n"
+msgstr "pas de taux d'échantillonnage"
+
+#: Engine/csound_orc_compile.c:676
+#, fuzzy
+msgid "System sr not available\n"
+msgstr "'%s' n'est pas disponible.\n"
+
+#: Engine/csound_orc_compile.c:719
 #, c-format
 msgid "sr = %.7g, kr = %.7g, ksmps = %.7g\n"
 msgstr "sr = %.7g, kr = %.7g, ksmps = %.7g\n"
 
-#: Engine/csound_orc_compile.c:726
+#: Engine/csound_orc_compile.c:727
 #, c-format
 msgid "resetting orc parameters to: sr = %.7g, kr = %.7g, ksmps = %u"
 msgstr ""
 "réinitialiasation des paramètres d'orc à : sr = %.7g, kr = %.7g, ksmps = %u"
 
-#: Engine/csound_orc_compile.c:735
+#: Engine/csound_orc_compile.c:736
 #, c-format
 msgid "%s inconsistent sr, kr, ksmps"
 msgstr "%s sr, kr, ksmps contradictoires"
 
-#: Engine/csound_orc_compile.c:738
+#: Engine/csound_orc_compile.c:739
 #, c-format
 msgid "sample rate overrides: esr = %7.4f, ekr = %7.4f, ksmps = %d\n"
 msgstr ""
 "redéfinition des taux d'échantillonnage : esr = %7.4f, ekr = %7.4f, ksmps = "
 "%d\n"
 
-#: Engine/csound_orc_compile.c:813
+#: Engine/csound_orc_compile.c:815
 msgid "system constants can only be set once\n"
 msgstr "les constantes du système ne peuvent être fixées qu'une fois\n"
 
-#: Engine/csound_orc_compile.c:898
+#: Engine/csound_orc_compile.c:900
 #, c-format
 msgid "create_instrument: instr num %<PRIi32>\n"
 msgstr "create_instrument : numéro d'instrument %<PRIi32>\n"
 
-#: Engine/csound_orc_compile.c:1013
+#: Engine/csound_orc_compile.c:1015
 msgid "-- deleted instr from deadpool\n"
 msgstr "-- instr supprimé de deadpool\n"
 
-#: Engine/csound_orc_compile.c:1038
+#: Engine/csound_orc_compile.c:1040
 #, c-format
 msgid " -- free instr def %p %p\n"
 msgstr " -- déf libre d'instr %p %p\n"
 
-#: Engine/csound_orc_compile.c:1052 Engine/csound_orc_compile.c:1062
+#: Engine/csound_orc_compile.c:1054 Engine/csound_orc_compile.c:1064
 #, c-format
 msgid " -- added to deadpool slot %d\n"
 msgstr " -- ajout du slot %d au deadpool\n"
 
-#: Engine/csound_orc_compile.c:1092
+#: Engine/csound_orc_compile.c:1094
 #, c-format
 msgid "named instr %<PRIi32> redefined, replacing previous definition"
 msgstr "instr nommé %<PRIi32> redéfini, précédente définition remplacée"
 
-#: Engine/csound_orc_compile.c:1126
+#: Engine/csound_orc_compile.c:1128
 msgid "no active instances\n"
 msgstr "pas d'instances actives\n"
 
-#: Engine/csound_orc_compile.c:1250
+#: Engine/csound_orc_compile.c:1252
 #, c-format
 msgid "instr %s uses instrument number %d\n"
 msgstr "l'instr %s utilise le numéro d'instrument %d\n"
 
-#: Engine/csound_orc_compile.c:1299
+#: Engine/csound_orc_compile.c:1301
 #, c-format
 msgid "instr %d redefined\n"
 msgstr "instr %d redéfini\n"
 
-#: Engine/csound_orc_compile.c:1301
+#: Engine/csound_orc_compile.c:1303
 #, c-format
 msgid "instr %<PRIi32> redefined, replacing previous definition"
 msgstr "instr %<PRIi32> redéfini, précédente définition remplacée"
 
-#: Engine/csound_orc_compile.c:1336
+#: Engine/csound_orc_compile.c:1338
 #, c-format
 msgid "no active instances of instr %d\n"
 msgstr "aucune instance active de l'instr %d\n"
 
-#: Engine/csound_orc_compile.c:1382
+#: Engine/csound_orc_compile.c:1384
 msgid "!!! csound->opcodeInfo is NULL !!!\n"
 msgstr "!!! csound->opcodeInfo est NULL !!!\n"
 
-#: Engine/csound_orc_compile.c:1430
+#: Engine/csound_orc_compile.c:1432
 #, c-format
 msgid " merging %p %d) %s:%s\n"
 msgstr " fusion de %p %d) %s : %s\n"
 
-#: Engine/csound_orc_compile.c:1446
+#: Engine/csound_orc_compile.c:1448
 #, c-format
 msgid " adding %p %d) %s:%s\n"
 msgstr " ajout de %p %d) %s : %s\n"
 
-#: Engine/csound_orc_compile.c:1476
+#: Engine/csound_orc_compile.c:1478
 #, c-format
 msgid "merging instr %d\n"
 msgstr "fusion de l'instr %d\n"
 
-#: Engine/csound_orc_compile.c:1483
+#: Engine/csound_orc_compile.c:1485
 #, c-format
 msgid "merging named instr %s\n"
 msgstr "fusion de l'instr nommé %s\n"
 
-#: Engine/csound_orc_compile.c:1703 Engine/csound_orc_compile.c:1742
-#: Engine/csound_orc_compile.c:1774
+#: Engine/csound_orc_compile.c:1707 Engine/csound_orc_compile.c:1746
+#: Engine/csound_orc_compile.c:1778
 msgid "invalid name for instrument"
 msgstr "nom d'instrument non valide"
 
-#: Engine/csound_orc_compile.c:1808
+#: Engine/csound_orc_compile.c:1812
 #, c-format
 msgid "ERROR: Could not find OPCODINFO for opname: %s\n"
 msgstr "ERREUR : impossible de trouver l'OPCODINFO pour : %s\n"
 
-#: Engine/csound_orc_compile.c:1829
+#: Engine/csound_orc_compile.c:1833
 #, c-format
 msgid "Unknown TREE node of type %d (%s) found in root.\n"
 msgstr "Noeud inconnu de type %d (%s) trouvé à la racine.\n"
 
-#: Engine/csound_orc_compile.c:1839
+#: Engine/csound_orc_compile.c:1843
 #, c-format
 msgid "%d syntax errors in orchestra.  compilation invalid\n"
 msgstr "%d erreurs de syntaxe dans l'orchestre. Compilation non valide\n"
 
-#: Engine/csound_orc_compile.c:1892
+#: Engine/csound_orc_compile.c:1896
 #, c-format
 msgid "%s: perf-time code in global space, ignored"
 msgstr "%s : code d'exécution dans l'espace global, ignoré"
 
-#: Engine/csound_orc_compile.c:2066
+#: Engine/csound_orc_compile.c:2071
 msgid "i[fixme] pset args != pmax"
 msgstr "i[fixme] pset args != pmax"
 
-#: Engine/csound_orc_compile.c:2216
+#: Engine/csound_orc_compile.c:2221
 #, c-format
 msgid "Missing local arg: %s\n"
 msgstr "Argument local manquant : %s\n"
 
-#: Engine/csound_orc_compile.c:2276
+#: Engine/csound_orc_compile.c:2281
 msgid "**unrecorded**"
 msgstr "**non enregistré**"
 
-#: Engine/csound_orc_compile.c:2348
+#: Engine/csound_orc_compile.c:2353
 #, c-format
 msgid "Opcode \"%s\" is deprecated\n"
 msgstr "L'opcode \"%s\" est obsolète\n"
@@ -555,7 +565,7 @@ msgstr "instruction xin non valide pour un UDO : '%s' défini, '%s' trouvé\n"
 msgid "invalid xout statement for UDO: defined '%s', found '%s'\n"
 msgstr "instruction xout non valide pour un UDO : '%s' défini, '%s' trouvé\n"
 
-#: Engine/csound_orc_semantics.c:1966
+#: Engine/csound_orc_semantics.c:1968
 #, c-format
 msgid ""
 "\n"
@@ -564,7 +574,7 @@ msgstr ""
 "\n"
 "erreur : %s (symbole \"%s\")\n"
 
-#: Engine/csound_orc_semantics.c:1970
+#: Engine/csound_orc_semantics.c:1971
 #, c-format
 msgid ""
 " line %d:\n"
@@ -573,12 +583,12 @@ msgstr ""
 " ligne %d :\n"
 " >>> "
 
-#: Engine/csound_orc_semantics.c:1991
+#: Engine/csound_orc_semantics.c:1992
 #, c-format
 msgid " from file %s (%d),"
 msgstr " depuis le fichier %s (%d),"
 
-#: Engine/csound_orc_semantics.c:2575
+#: Engine/csound_orc_semantics.c:2576
 #, c-format
 msgid "insufficient required arguments for opcode %s on line %d:\n"
 msgstr "arguments requis manquants pour l'opcode %s ligne %d :\n"
@@ -1217,7 +1227,7 @@ msgid "GEN44: Out of range\n"
 msgstr "GEN44 : hors limites\n"
 
 #: Engine/fgens.c:3020 Opcodes/mp3in.c:95 Opcodes/mp3in.c:276
-#: Opcodes/mp3in.c:458 Top/cscorfns.c:176 Top/cscorfns.c:207
+#: Opcodes/mp3in.c:457 Top/cscorfns.c:176 Top/cscorfns.c:207
 msgid "Not enough memory\n"
 msgstr "Pas assez de mémoire\n"
 
@@ -1450,7 +1460,7 @@ msgstr "setksmps : valeur de ksmps non valide : %d, valeur originale : %d"
 msgid "subinstr: not initialised"
 msgstr "subinstr : non initialisé"
 
-#: Engine/insert.c:2432
+#: Engine/insert.c:2431
 #, c-format
 msgid ""
 "instr %d allocated at %p\n"
@@ -1459,39 +1469,39 @@ msgstr ""
 "instr %d alloué à %p\n"
 "\tlclbas %p, opds %p\n"
 
-#: Engine/insert.c:2459
+#: Engine/insert.c:2458
 #, c-format
 msgid "op (%s) allocated at %p\n"
 msgstr "op (%s) alloué à %p\n"
 
-#: Engine/insert.c:2485
+#: Engine/insert.c:2484
 msgid "null iopadr"
 msgstr "iopadr null"
 
-#: Engine/insert.c:2496
+#: Engine/insert.c:2495
 msgid "null opadr"
 msgstr "opadr null"
 
-#: Engine/insert.c:2519
+#: Engine/insert.c:2518
 #, c-format
 msgid "FIXME: Unhandled out-arg type: %d\n"
 msgstr "A CORRIGER : type d'arg en sortie non supporté : %d\n"
 
-#: Engine/insert.c:2558
+#: Engine/insert.c:2557
 #, c-format
 msgid "FIXME: instance unexpected arg: %d\n"
 msgstr "A CORRIGER : argument inattendu : %d\n"
 
-#: Engine/insert.c:2582
+#: Engine/insert.c:2581
 msgid "inconsistent opds total"
 msgstr "total d'opds non cohérent"
 
-#: Engine/insert.c:2643
+#: Engine/insert.c:2642
 #, c-format
 msgid "Instrument %s is still active"
 msgstr "L'instrument %s est toujours actif"
 
-#: Engine/insert.c:2646
+#: Engine/insert.c:2645
 #, c-format
 msgid "Instrument %d is still active"
 msgstr "L'instrument %d est toujours actif"
@@ -1735,58 +1745,58 @@ msgstr "valeur illégale du tempo de départ"
 msgid "Beat mode not in force"
 msgstr "Le mode beat n'est pas en vigueur"
 
-#: Engine/musmon.c:302
+#: Engine/musmon.c:301
 msgid "header init errors"
 msgstr "Erreurs dans l'initialisation de l'en-tête"
 
-#: Engine/musmon.c:321
+#: Engine/musmon.c:320
 msgid "orch now loaded\n"
 msgstr "l'orchestre est maintenant chargé\n"
 
-#: Engine/musmon.c:344
+#: Engine/musmon.c:343
 msgid "using Cscore processing\n"
 msgstr "utilisation du traitement Cscore\n"
 
-#: Engine/musmon.c:347
+#: Engine/musmon.c:346
 msgid "cannot create cscore.out"
 msgstr "impossible de créer cscore.out"
 
-#: Engine/musmon.c:363
+#: Engine/musmon.c:362
 msgid "cannot reopen cscore.out"
 msgstr "impossible de réouvrir cscore.out"
 
-#: Engine/musmon.c:376
+#: Engine/musmon.c:375
 msgid "cannot reopen cscore.srt"
 msgstr "impossible de réouvrir cscore.srt"
 
-#: Engine/musmon.c:378
+#: Engine/musmon.c:377
 msgid "sorting cscore.out ..\n"
 msgstr "tri de cscore.out ..\n"
 
-#: Engine/musmon.c:384 Top/main.c:381
+#: Engine/musmon.c:383 Top/main.c:381
 msgid "\t... done\n"
 msgstr "\t... fait\n"
 
-#: Engine/musmon.c:385
+#: Engine/musmon.c:384
 msgid "playing from cscore.srt\n"
 msgstr "exécution à partir de cscore.srt\n"
 
-#: Engine/musmon.c:389 Engine/musmon.c:592 Engine/musmon.c:1252
-#: Engine/musmon.c:1489
+#: Engine/musmon.c:388 Engine/musmon.c:591 Engine/musmon.c:1251
+#: Engine/musmon.c:1488
 #, c-format
 msgid "SECTION %d:\n"
 msgstr "SECTION %d :\n"
 
-#: Engine/musmon.c:478
+#: Engine/musmon.c:477
 #, c-format
 msgid "%c\tbeep!\n"
 msgstr "%c\tsignal sonore !\n"
 
-#: Engine/musmon.c:540
+#: Engine/musmon.c:539
 msgid "end of score.\t\t   overall amps:"
 msgstr "fin de la partition.\t\t   amplitudes maximales :"
 
-#: Engine/musmon.c:552
+#: Engine/musmon.c:551
 msgid ""
 "\n"
 "\t   overall samples out of range:"
@@ -1794,7 +1804,7 @@ msgstr ""
 "\n"
 "\t   Nombre d'échantillons hors limites :"
 
-#: Engine/musmon.c:556
+#: Engine/musmon.c:555
 #, c-format
 msgid ""
 "\n"
@@ -1803,113 +1813,113 @@ msgstr ""
 "\n"
 "%d erreurs dans l'exécution\n"
 
-#: Engine/musmon.c:558
+#: Engine/musmon.c:557
 msgid "end of performance"
 msgstr "fin de l'exécution"
 
-#: Engine/musmon.c:573
+#: Engine/musmon.c:572
 msgid "no sound written to disk\n"
 msgstr "aucun son n'a été écrit sur le disque\n"
 
-#: Engine/musmon.c:670 Engine/musmon.c:716
+#: Engine/musmon.c:669 Engine/musmon.c:715
 msgid "\t number of samples out of range:"
 msgstr "\t nombre d'échantillons hors limites :"
 
-#: Engine/musmon.c:709
+#: Engine/musmon.c:708
 #, c-format
 msgid "end of section %d\t sect peak amps:"
 msgstr "fin de la section %d\tamplitudes maximales de la section :"
 
-#: Engine/musmon.c:711
+#: Engine/musmon.c:710
 msgid "end of lplay event list\t      peak amps:"
 msgstr "fin de la liste d'évènements lplay\t      amplitudes maximales :"
 
-#: Engine/musmon.c:779 Engine/musmon.c:809
+#: Engine/musmon.c:778 Engine/musmon.c:808
 #, c-format
 msgid " - note deleted. instr %s undefined"
 msgstr " - note affacée. instr %s non défini"
 
-#: Engine/musmon.c:784
+#: Engine/musmon.c:783
 #, c-format
 msgid "Setting instrument %s %s\n"
 msgstr "Lancement de l'instrument  %s %s\n"
 
-#: Engine/musmon.c:785 Engine/musmon.c:799
+#: Engine/musmon.c:784 Engine/musmon.c:798
 msgid "off"
 msgstr "arrêt"
 
-#: Engine/musmon.c:785 Engine/musmon.c:799
+#: Engine/musmon.c:784 Engine/musmon.c:798
 msgid "on"
 msgstr "marche"
 
-#: Engine/musmon.c:794 Engine/musmon.c:843
+#: Engine/musmon.c:793 Engine/musmon.c:842
 #, c-format
 msgid " - note deleted. instr %d(%d) undefined"
 msgstr " - note affacée. instr %d(%d) non défini"
 
-#: Engine/musmon.c:798
+#: Engine/musmon.c:797
 #, c-format
 msgid "Setting instrument %d %s\n"
 msgstr "Lancement de l'instrument %d %s\n"
 
-#: Engine/musmon.c:833
+#: Engine/musmon.c:832
 #, c-format
 msgid " - note deleted.  i%d (%s) had %d init errors"
 msgstr " - note affacée.  i%d (%s) a eu %d erreurs d'initialisation"
 
-#: Engine/musmon.c:864
+#: Engine/musmon.c:863
 #, c-format
 msgid " - note deleted.  i%d had %d init errors"
 msgstr " - note affacée.  i%d a eu %d erreurs d'initialisation"
 
-#: Engine/musmon.c:885
+#: Engine/musmon.c:884
 #, c-format
 msgid "time advanced %5.3f beats by score request\n"
 msgstr "le temps a avancé de %5.3f pulsations à la demande de la partition\n"
 
-#: Engine/musmon.c:903
+#: Engine/musmon.c:902
 #, c-format
 msgid "\t\t   T%7.3f - note deleted. "
 msgstr "\t\t   T%7.3f - note affacée. "
 
-#: Engine/musmon.c:907
+#: Engine/musmon.c:906
 #, c-format
 msgid "instr %s had %d init errors\n"
 msgstr "l'instr %s a eu %d erreurs d'initialisation\n"
 
-#: Engine/musmon.c:910
+#: Engine/musmon.c:909
 #, c-format
 msgid "instr %d had %d init errors\n"
 msgstr "l'instr %d a eu %d erreurs d'initialisation\n"
 
-#: Engine/musmon.c:1007
+#: Engine/musmon.c:1006
 msgid "terminating.\n"
 msgstr "terminaison.\n"
 
-#: Engine/musmon.c:1113
+#: Engine/musmon.c:1112
 #, c-format
 msgid "error in score.  illegal opcode %c (ASCII %d)\n"
 msgstr "erreur dans la partition.  L'opcode %c (ASCII %d) est illégal\n"
 
-#: Engine/musmon.c:1398
+#: Engine/musmon.c:1397
 msgid "insert_score_event(): invalid named instrument\n"
 msgstr "insert_score_event() : instrument nommé non valide\n"
 
-#: Engine/musmon.c:1400
+#: Engine/musmon.c:1399
 #, c-format
 msgid "insert_score_event(): invalid instrument number or name %d\n"
 msgstr "insert_score_event() : numéro ou nom d'instrument non valide %d\n"
 
-#: Engine/musmon.c:1421
+#: Engine/musmon.c:1420
 #, c-format
 msgid "insert_score_event(): unknown opcode: %c\n"
 msgstr "insert_score_event() : opcode inconnu : %c\n"
 
-#: Engine/musmon.c:1444
+#: Engine/musmon.c:1443
 msgid "insert_score_event(): insufficient p-fields\n"
 msgstr "insert_score_event() : pas assez de p-champs\n"
 
-#: Engine/musmon.c:1498
+#: Engine/musmon.c:1497
 msgid "cannot rewind score: no score in memory\n"
 msgstr "impossible de remonter la partition : pas de partition en mémoire\n"
 
@@ -8328,38 +8338,38 @@ msgid "mp3in: file sample rate (%d) != orchestra sr (%d)\n"
 msgstr ""
 "mp3in : taux d'échantillonnage du fichier (%d) != sr de l'orchestre (%d)\n"
 
-#: Opcodes/mp3in.c:470
+#: Opcodes/mp3in.c:469
 #, c-format
 msgid "mp3scale: %s: failed to open file"
 msgstr "mp3scale : %s : l'ouverture du fichier a échoué"
 
-#: Opcodes/mp3in.c:939 Opcodes/mp3in.c:1203
+#: Opcodes/mp3in.c:938 Opcodes/mp3in.c:1202
 msgid "could not set priority\n"
 msgstr "impossible de fixer la priorité\n"
 
-#: Opcodes/mp3in.c:1177 Opcodes/mp3in.c:2058
+#: Opcodes/mp3in.c:1176 Opcodes/mp3in.c:2057
 #, c-format
 msgid "mp3scal_load error: %s\n"
 msgstr "erreur de mp3scal_load : %s\n"
 
-#: Opcodes/mp3in.c:1181 Opcodes/mp3in.c:2062
+#: Opcodes/mp3in.c:1180 Opcodes/mp3in.c:2061
 #, c-format
 msgid "mp3scal_load error: could not open %s\n"
 msgstr "erreur de mp3scal_load : impossible d'ouvrir %s\n"
 
-#: Opcodes/mp3in.c:1194
+#: Opcodes/mp3in.c:1193
 msgid "failed to start thread\n"
 msgstr "le démarrage du thread a échoué\n"
 
-#: Opcodes/mp3in.c:1206 Opcodes/mp3in.c:2087
+#: Opcodes/mp3in.c:1205 Opcodes/mp3in.c:2086
 msgid "cannot load: player still active\n"
 msgstr "chargement impossible : le lecteur est toujours actif\n"
 
-#: Opcodes/mp3in.c:1229 Opcodes/mp3in.c:1278
+#: Opcodes/mp3in.c:1228 Opcodes/mp3in.c:1277
 msgid "invalid handle\n"
 msgstr "descripteur non valide\n"
 
-#: Opcodes/mp3in.c:1459
+#: Opcodes/mp3in.c:1458
 msgid "not init\n"
 msgstr "pas d'initialisation\n"
 
@@ -9304,7 +9314,7 @@ msgstr "seqtime : numéro de table incorrect"
 msgid "seqtim: incorrect table number"
 msgstr "seqtim : numéro de table incorrect"
 
-#: Opcodes/sequencer.c:66
+#: Opcodes/sequencer.c:67
 #, fuzzy
 msgid "sequ: arrays have differing sizes"
 msgstr "les entrées ont des tailles différentes"
