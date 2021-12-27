@@ -2479,6 +2479,11 @@ typedef struct {
 
 static int32_t
 ftexists_init(CSOUND *csound, FTEXISTS *p) {
+    int ifn = (int)*p->ifn;
+    if(ifn == 0) {
+        csound->DebugMsg(csound, Str("ftexists: table number is 0"));
+        *p->iout = 0.;
+    }
     FUNC *ftp = csound->FTnp2Find(csound, p->ifn);
     *p->iout = (ftp != NULL) ? 1.0 : 0.0;
     return OK;
@@ -2517,7 +2522,7 @@ lastcycle_init(CSOUND *csound, LASTCYCLE *p) {
     if(p->extracycles == 0) {
         p->h.insdshead->xtratim = 1;
         p->extracycles = 1;
-        MSG(Str("lastcycle: adding an extra cycle to the duration of the event\n"));
+        // MSG(Str("lastcycle: adding an extra cycle to the duration of the event\n"));
     }
     p->numcycles += p->extracycles;
     if(p3 < 0) {
@@ -2526,7 +2531,7 @@ lastcycle_init(CSOUND *csound, LASTCYCLE *p) {
     else if (p->extracycles > 0) {
         p->mode = 2;
     } else {
-        MSG(Str("lastcycle: no extra time defined, turnoff2 will not be detected\n"));
+    	csound->Warning(csound, "%s", Str("lastcycle: no extra time defined, turnoff2 will not be detected\n"));
         p->mode = 1;
     }
     *p->out = 0;

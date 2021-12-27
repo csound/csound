@@ -1860,11 +1860,9 @@ static void list_audio_devices(CSOUND *csound, int output){
     CS_AUDIODEVICE *devs = (CS_AUDIODEVICE *)
       csound->Malloc(csound, n*sizeof(CS_AUDIODEVICE));
     if (output)
-      csound->MessageS(csound,CSOUNDMSG_STDOUT,
-                       Str("%d audio output devices\n"), n);
+      csound->Message(csound, Str("%d audio output devices\n"), n);
     else
-      csound->MessageS(csound, CSOUNDMSG_STDOUT,
-                       Str("%d audio input devices\n"), n);
+      csound->Message(csound, Str("%d audio input devices\n"), n);
     csoundGetAudioDevList(csound,devs,output);
     for (i=0; i < n; i++) {
       int nchnls = devs[i].max_nchnls;
