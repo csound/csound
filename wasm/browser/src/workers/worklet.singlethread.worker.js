@@ -1,3 +1,4 @@
+/* eslint-disable unicorn/require-post-message-target-origin */
 /*
     worklet.singlethread.worker.js
 
@@ -21,14 +22,13 @@
     02110-1301 USA
 */
 
-import * as Comlink from "comlink";
-import MessagePortState from "@utils/message-port-state";
-import { getWorkerFs, syncWorkerFs } from "@root/filesystem/worker-fs";
-import libcsoundFactory from "@root/libcsound";
-import loadWasm from "@root/module";
-import { assoc, pipe } from "ramda";
-import { clearArray } from "@utils/clear-array";
-import { logSinglethreadWorkletWorker as log } from "@root/logger";
+import * as Comlink from "comlink/dist/esm/comlink.mjs";
+import MessagePortState from "../utils/message-port-state";
+import libcsoundFactory from "../libcsound";
+import loadWasm from "../module";
+import { assoc, pipe } from "rambda/dist/rambda.esm.js";
+import { clearArray } from "../utils/clear-array";
+import { logSinglethreadWorkletWorker as log } from "../logger";
 
 let libraryCsound;
 let combined;
@@ -48,7 +48,7 @@ class WorkletSinglethreadWorker extends AudioWorkletProcessor {
   constructor(options) {
     super(options);
     // eslint-disable-next-line no-undef
-    this.sampleRate = sampleRate;
+    this.sampleRate = AudioWorkletGlobalScope.sampleRate;
     this.options = options;
     this.initialize = this.initialize.bind(this);
     this.pause = this.pause.bind(this);
@@ -61,6 +61,7 @@ class WorkletSinglethreadWorker extends AudioWorkletProcessor {
     this.port.start();
     Comlink.expose(this, this.port);
     this.workerMessagePort = new MessagePortState();
+
     this.initializeMessagePort = ({ messagePort, rtmidiPort }) => {
       this.workerMessagePort.post = (messageLog) => messagePort.postMessage({ log: messageLog });
       this.workerMessagePort.broadcastPlayState = (playStateChange) => {
@@ -81,40 +82,45 @@ class WorkletSinglethreadWorker extends AudioWorkletProcessor {
 
   async initialize(wasmDataURI, withPlugins) {
     log("initializing worklet.singlethread.worker")();
+
     let resolver;
     const waiter = new Promise((resolve) => {
       resolver = resolve;
     });
-    loadWasm({ wasmDataURI, withPlugins, messagePort: this.workerMessagePort }).then(
-      ([wasm, wasmFs]) => {
-        this.wasm = wasm;
-        this.wasmFs = wasmFs;
 
-        libraryCsound = libcsoundFactory(wasm);
-        this.callUncloned = callUncloned;
-        this.csound = libraryCsound.csoundCreate(0);
-        this.result = 0;
-        this.running = false;
-        this.started = false;
-        this.resetCsound(false);
+    loadWasm({
+      wasmDataURI,
+      withPlugins,
+      messagePort: this.workerMessagePort,
+    }).then(([wasm, wasi]) => {
+      this.wasm = wasm;
+      this.wasi = wasi;
+      wasm.wasi = wasi;
 
-        const csoundCreate = async (v) => {
-          return this.csound;
-        };
-        const allAPI = pipe(
-          assoc("getWorkerFs", getWorkerFs(wasmFs)),
-          assoc("syncWorkerFs", syncWorkerFs(wasm.exports.memory, wasmFs)),
-          assoc("csoundCreate", csoundCreate),
-          assoc("csoundReset", this.resetCsound.bind(this)),
-          assoc("csoundStart", this.start.bind(this)),
-          assoc("csoundStop", this.stop.bind(this)),
-          assoc("wasm", wasm),
-        )(libraryCsound);
-        combined = new Map(Object.entries(allAPI));
-        log("wasm initialized and api generated")();
-        resolver();
-      },
-    );
+      libraryCsound = libcsoundFactory(wasm);
+      this.callUncloned = callUncloned;
+      this.csound = libraryCsound.csoundCreate(0);
+      this.result = 0;
+      this.running = false;
+      this.started = false;
+      this.resetCsound(false);
+
+      const csoundCreate = async (v) => {
+        return this.csound;
+      };
+
+      const allAPI = pipe(
+        assoc("csoundCreate", csoundCreate),
+        assoc("csoundReset", this.resetCsound.bind(this)),
+        assoc("csoundStart", this.start.bind(this)),
+        assoc("csoundStop", this.stop.bind(this)),
+        assoc("wasm", wasm),
+      )(libraryCsound);
+
+      combined = new Map(Object.entries(allAPI));
+      log("wasm initialized and api generated")();
+      resolver();
+    });
     log("waiting on wasm initialization to complete")();
     await waiter;
   }
@@ -149,17 +155,17 @@ class WorkletSinglethreadWorker extends AudioWorkletProcessor {
     libraryCsound.csoundSetMidiCallbacks(cs);
     libraryCsound.csoundSetOption(cs, "-iadc");
     libraryCsound.csoundSetOption(cs, "-odac");
-    libraryCsound.csoundSetOption(cs, "--sample-rate=" + this.sampleRate);
+    this.sampleRate && libraryCsound.csoundSetOption(cs, "--sample-rate=" + this.sampleRate);
     this.nchnls = -1;
     this.nchnls_i = -1;
     delete this.csoundOutputBuffer;
   }
 
   stop() {
-    this.workerMessagePort.broadcastPlayState("realtimePerformanceEnded");
     if (this.csound) {
       libraryCsound.csoundStop(this.csound);
     }
+    this.workerMessagePort.broadcastPlayState("realtimePerformanceEnded");
   }
 
   pause() {

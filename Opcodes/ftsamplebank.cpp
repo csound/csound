@@ -19,15 +19,15 @@
     02110-1301 USA
  */
 
-#include "OpcodeBase.hpp"
 #include <algorithm>
 #include <cmath>
-#include <dirent.h>
 #include <iostream>
 #include <sstream>
 #include <string>
-#include <sys/types.h>
 #include <vector>
+#include "OpcodeBase.hpp"
+#include <dirent.h>
+#include <sys/types.h>
 
 using namespace std;
 using namespace csound;

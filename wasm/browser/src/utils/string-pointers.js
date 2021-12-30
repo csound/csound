@@ -1,6 +1,10 @@
-import { encoder, uint2String } from "@utils/text-encoders";
-import { trimNull } from "@utils/trim-null";
+import { encoder, uint2String } from "./text-encoders.js";
+import { trimNull } from "./trim-null.js";
 
+/**
+ * @param {WasmInst} wasm
+ * @param {number} ptr
+ */
 export const freeStringPtr = (wasm, ptr) => {
   wasm.exports.freeStringMem(ptr);
 };

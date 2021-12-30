@@ -1,10 +1,10 @@
+import { uint2String } from "../utils/text-encoders.js";
+import { trimNull } from "../utils/trim-null.js";
+
 /*
    csound general i/o module from <csound.h>
    https://csound.com/docs/api/modules.html
 */
-
-import { uint2String } from "@utils/text-encoders";
-import { trimNull } from "@utils/trim-null";
 
 /**
  * Returns the audio output name (-o)

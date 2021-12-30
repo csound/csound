@@ -1,12 +1,12 @@
-import { range } from "ramda";
-import { CS_MIDIDEVICE } from "@root/structures";
-import { structBufferToObject } from "@utils/structure-buffer-to-object";
-import { freeStringPtr } from "@utils/string-pointers";
-import { uint2String } from "@utils/text-encoders";
-import { sizeofStruct } from "@utils/native-sizes";
-import { trimNull } from "@utils/trim-null";
+import { range } from "rambda/dist/rambda.esm.js";
+import { freeStringPtr } from "../utils/string-pointers.js";
+import { trimNull } from "../utils/trim-null.js";
+import { structBufferToObject } from "../utils/structure-buffer-to-object.js";
+import { sizeofStruct } from "../utils/native-sizes.js";
+import { uint2String } from "../utils/text-encoders.js";
+import { CS_MIDIDEVICE } from "../structures.js";
 
-export const csoundSetMidiCallbacks = (wasm) => (csound) => {
+export const csoundSetMidiCallbacks = (wasm) => (csound /* CsoundInst */) => {
   wasm.exports.csoundSetMidiCallbacks(csound);
 };
 
@@ -14,15 +14,10 @@ export const csoundSetMidiCallbacks = (wasm) => (csound) => {
  * This function can be called to obtain a list of available input or output midi devices.
  * If list is NULL, the function will only return the number of devices
  * (isOutput=1 for out devices, 0 for in devices).
- * @async
  * @function
- * @name getMIDIDevList
- * @memberof CsoundObj
- * @param {number} isOutput
- * @return {Promise.<CS_MIDIDEVICE>}
  */
 // eslint-disable-next-line unicorn/prevent-abbreviations
-export const csoundGetMIDIDevList = (wasm) => (csound, isOutput) => {
+export const csoundGetMIDIDevList = (wasm) => (csound /* CsoundInst */, isOutput /* number */) => {
   const { buffer } = wasm.exports.memory;
   const numberOfDevices = wasm.exports.csoundGetMIDIDevList(csound, undefined, isOutput ? 1 : 0);
   if (numberOfDevices === 0) return [];
@@ -30,6 +25,7 @@ export const csoundGetMIDIDevList = (wasm) => (csound, isOutput) => {
   const structOffset = wasm.exports.allocCsMidiDeviceStruct(numberOfDevices);
   wasm.exports.csoundGetMIDIDevList(csound, structOffset, isOutput ? 1 : 0);
   const structBuffer = new Uint8Array(buffer, structOffset, structLength * numberOfDevices);
+  /** @type CS_MIDIDEVICE */
   const out = range(0, numberOfDevices).map((index) =>
     structBufferToObject(CS_MIDIDEVICE, structBuffer.subarray(index * structLength, structLength)),
   );
@@ -43,13 +39,9 @@ csoundGetMIDIDevList.toString = () => "getMIDIDevList = async (isOutput) => Obje
  * This function can be called to obtain a list of available input or output midi devices.
  * If list is NULL, the function will only return the number of devices
  * (isOutput=1 for out devices, 0 for in devices).
- * @async
  * @function
- * @name getRtMidiName
- * @memberof CsoundObj
- * @return {Promise.<string>}
  */
-export const csoundGetRtMidiName = (wasm) => (csound) => {
+export const csoundGetRtMidiName = (wasm) => (csound /* CsoundInst */) => {
   const { buffer } = wasm.exports.memory;
   const ptr = wasm.exports.getRtMidiName(csound);
   const stringBuffer = new Uint8Array(buffer, ptr, 128);
@@ -58,33 +50,28 @@ export const csoundGetRtMidiName = (wasm) => (csound) => {
 
 csoundGetRtMidiName.toString = () => "getRtMidiName = async () => String;";
 
-export const csoundGetMidiOutFileName = (wasm) => (csound) => {
+export const csoundGetMidiOutFileName = (wasm) => (csound /* CsoundInst */) => {
   const { buffer } = wasm.exports.memory;
   const ptr = wasm.exports.getMidiOutFileName(csound);
   const stringBuffer = new Uint8Array(buffer, ptr, 128);
-  ptr && ptr.length > 0 && freeStringPtr(ptr);
+  ptr && ptr.length > 0 && freeStringPtr(wasm, ptr);
   return trimNull(uint2String(stringBuffer)) || "";
 };
 
-export const _isRequestingRtMidiInput = (wasm) => (csound) => {
+export const _isRequestingRtMidiInput = (wasm) => (csound /* CsoundInst */) => {
   return wasm.exports.isRequestingRtMidiInput(csound);
 };
 
 /**
  * Emit a midi message with a given triplet of values
  * in the range of 0 to 127.
- * @async
  * @function
- * @name midiMessage
- * @memberof CsoundObj
- * @param {number} midi status value
- * @param {number} midi data1
- * @param {number} midi data2
- * @return {Promise.<void>}
  */
-export const csoundPushMidiMessage = (wasm) => (csound, status, data1, data2) => {
-  wasm.exports.pushMidiMessage(csound, status, data1, data2);
-};
+export const csoundPushMidiMessage =
+  (wasm) =>
+  (csound /* CsoundInst */, status /* number */, data1 /* number */, data2 /* number */) => {
+    wasm.exports.pushMidiMessage(csound, status, data1, data2);
+  };
 
 csoundPushMidiMessage.toString = () => "midiMessage = async (status, data1, data2) => undefined;";
 

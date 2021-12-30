@@ -33,10 +33,12 @@
 #if defined(HAVE_UNISTD_H) || defined (__unix) || defined(__unix__)
 #include <unistd.h>
 #endif
+
 #include "csoundCore.h"
 #include "csmodule.h"
 #include "corfile.h"
 #include "csGblMtx.h"
+#include <stdio.h>
 #include <stdarg.h>
 #include <signal.h>
 #include <time.h>
@@ -116,31 +118,47 @@ void print_csound_version(CSOUND* csound)
 {
 #ifdef USE_DOUBLE
 #ifdef BETA
-    csound->Message(csound,
+    csoundErrorMsg(csound,
                     Str("--Csound version %s beta (double samples) %s\n"
                         "[commit: %s]\n"),
                     CS_PACKAGE_VERSION, CS_PACKAGE_DATE,
                     STRING_HASH(GIT_HASH_VALUE));
 #else
-    csound->Message(csound, Str("--Csound version %s (double samples) %s\n"
+    csoundErrorMsg(csound, Str("--Csound version %s (double samples) %s\n"
                                 "[commit: %s]\n"),
                     CS_PACKAGE_VERSION, CS_PACKAGE_DATE
                     , STRING_HASH(GIT_HASH_VALUE));
 #endif
 #else
 #ifdef BETA
-    csound->Message(csound, Str("--Csound version %s beta (float samples) %s\n"
+    csoundErrorMsg(csound, Str("--Csound version %s beta (float samples) %s\n"
                                 "[commit: %s]\n"),
                     CS_PACKAGE_VERSION, CS_PACKAGE_DATE,
                     STRING_HASH(GIT_HASH_VALUE));
 #else
-    csound->Message(csound, Str("--Csound version %s (float samples) %s\n"
+    csoundErrorMsg(csound, Str("--Csound version %s (float samples) %s\n"
                                 "[commit: %s]\n"),
                     CS_PACKAGE_VERSION, CS_PACKAGE_DATE,
                     STRING_HASH(GIT_HASH_VALUE));
 #endif
 #endif
 }
+
+void print_sndfile_version(CSOUND* csound) {
+        char buffer[128];
+        sf_command(NULL, SFC_GET_LIB_VERSION, buffer, 128);
+        csoundErrorMsg(csound, "%s\n", buffer);
+}
+
+void print_engine_parameters(CSOUND *csound) {
+      csoundErrorMsg(csound, Str("sr = %.1f,"), csound->esr);
+      csoundErrorMsg(csound, Str(" kr = %.3f,"), csound->ekr);
+      csoundErrorMsg(csound, Str(" ksmps = %d\n"), csound->ksmps);
+      csoundErrorMsg(csound, Str("0dBFS level = %.1f,"), csound->e0dbfs);
+      csoundErrorMsg(csound, Str(" A4 tuning = %.1f\n"), csound->A4);
+}
+
+
 
 static void free_opcode_table(CSOUND* csound) {
     int i;
@@ -517,10 +535,11 @@ static const CSOUND cenviron_ = {
     csoundLPCeps,
     csoundCepsLP,
     csoundLPrms,
+    csoundCreateThread2,
     {
       NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
       NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
-      NULL, NULL, NULL
+      NULL, NULL
     },
     /* ------- private data (not to be used by hosts or externals) ------- */
     /* callback function pointers */
@@ -1000,7 +1019,7 @@ static const CSOUND cenviron_ = {
     NULL,           /* op */
     0,              /* mode */
     NULL,           /* opcodedir */
-    NULL            /* score_srt */
+    NULL           /* score_srt */
 };
 
 void csound_aops_init_tables(CSOUND *cs);
@@ -1448,12 +1467,12 @@ PUBLIC void csoundSetHostData(CSOUND *csound, void *hostData)
 
 extern int sensevents(CSOUND *);
 
+#ifdef PARCS
 /**
  * perform currently active instrs for one kperiod
  *      & send audio result to output buffer
  * returns non-zero if this kperiod was skipped
  */
-
 static int getThreadIndex(CSOUND *csound, void *threadId)
 {
     int index = 0;
@@ -1480,6 +1499,7 @@ static int getThreadIndex(CSOUND *csound, void *threadId)
     }
     return -1;
 }
+#endif
 
 #if 0
 static int getNumActive(INSDS *start, INSDS *end)
@@ -1515,6 +1535,7 @@ int dag_end_task(CSOUND *csound, int task);
 void dag_build(CSOUND *csound, INSDS *chain);
 void dag_reinit(CSOUND *csound);
 
+#ifdef PARCS
 inline static int nodePerf(CSOUND *csound, int index, int numThreads)
 {
     INSDS *insds = NULL;
@@ -1610,6 +1631,7 @@ inline static int nodePerf(CSOUND *csound, int index, int numThreads)
     }
     return played_count;
 }
+#endif //PARCS
 
 inline static void make_interleave(CSOUND *csound, uint32_t lksmps)
 {
@@ -1643,7 +1665,7 @@ inline static void make_interleave(CSOUND *csound, uint32_t lksmps)
     }
 }
 
-
+#ifdef PARCS
 unsigned long kperfThread(void * cs)
 {
     //INSDS *start;
@@ -1691,6 +1713,7 @@ unsigned long kperfThread(void * cs)
       csound->WaitBarrier(csound->barrier2);
     }
 }
+#endif
 
 int kperf_nodebug(CSOUND *csound)
 {
@@ -1733,6 +1756,7 @@ int kperf_nodebug(CSOUND *csound)
       /* There are 2 partitions of work: 1st by inso,
          2nd by inso count / thread count. */
       if (csound->multiThreadedThreadInfo != NULL) {
+#ifdef PARCS
         if (csound->dag_changed) dag_build(csound, ip);
         else dag_reinit(csound);     /* set to initial state */
 
@@ -1743,6 +1767,7 @@ int kperf_nodebug(CSOUND *csound)
 
         /* wait until partition is complete */
         csound->WaitBarrier(csound->barrier2);
+#endif
         csound->multiThreadedDag = NULL;
       }
       else {
@@ -1750,7 +1775,7 @@ int kperf_nodebug(CSOUND *csound)
         double time_end = (csound->ksmps+csound->icurTime)/csound->esr;
 
         while (ip != NULL) {                /* for each instr active:  */
-          INSDS *nxt = ip->nxtact; 
+          INSDS *nxt = ip->nxtact;
           if (UNLIKELY(csound->oparms->sampleAccurate &&
                        ip->offtim > 0                 &&
                        time_end > ip->offtim)) {
@@ -1815,10 +1840,10 @@ int kperf_nodebug(CSOUND *csound)
                     //csound->ids->optext->t.oentry->opname;
                     error = (*opstart->opadr)(csound, opstart); /* run each opcode */
                     opstart = opstart->insdshead->pds;
-                    
+
                   }
                   csound->mode = 0;
-                  
+
                 }
             }
           }
@@ -1828,8 +1853,8 @@ int kperf_nodebug(CSOUND *csound)
           ip->ksmps_no_end = 0; /* reset end of loop samples */
           if(nxt == NULL)
              ip = ip->nxtact;
-          /* VL 13.04.21 this allows for deletions to operate 
-                              correctly on the active 
+          /* VL 13.04.21 this allows for deletions to operate
+                              correctly on the active
                               list at perf time
                               this allows for turnoff2 to work correctly
                               */
@@ -2011,6 +2036,7 @@ int kperf_debug(CSOUND *csound)
       /* There are 2 partitions of work: 1st by inso,
          2nd by inso count / thread count. */
       if (csound->multiThreadedThreadInfo != NULL) {
+#ifdef PARCS
         if (csound->dag_changed) dag_build(csound, ip);
         else dag_reinit(csound);     /* set to initial state */
 
@@ -2021,6 +2047,7 @@ int kperf_debug(CSOUND *csound)
 
         /* wait until partition is complete */
         csound->WaitBarrier(csound->barrier2);
+#endif
         csound->multiThreadedDag = NULL;
       }
       else {
@@ -2197,7 +2224,8 @@ PUBLIC int csoundPerformKsmps(CSOUND *csound)
       if (UNLIKELY(done)) {
         if(!csound->oparms->realtime) // no API lock in realtime mode
          csoundUnlockMutex(csound->API_lock);
-        csoundMessage(csound,
+        if(csound->oparms->msglevel ||csound->oparms->odebug)
+         csoundMessage(csound,
                       Str("Score finished in csoundPerformKsmps() with %d.\n"),
                       done);
         return done;
@@ -2229,6 +2257,7 @@ static int csoundPerformKsmpsInternal(CSOUND *csound)
     }
    do {
      if (UNLIKELY((done = sensevents(csound)))) {
+       if(csound->oparms->msglevel ||csound->oparms->odebug)
        csoundMessage(csound,
                      Str("Score finished in csoundPerformKsmpsInternal().\n"));
         return done;
@@ -2304,7 +2333,8 @@ PUBLIC int csoundPerform(CSOUND *csound)
            csoundLockMutex(csound->API_lock);
       do {
         if (UNLIKELY((done = sensevents(csound)))) {
-          csoundMessage(csound, Str("Score finished in csoundPerform().\n"));
+          if(csound->oparms->msglevel ||csound->oparms->odebug)
+           csoundMessage(csound, Str("Score finished in csoundPerform().\n"));
           if(!csound->oparms->realtime)
             csoundUnlockMutex(csound->API_lock);
           if (csound->oparms->numThreads > 1) {
@@ -2639,8 +2669,7 @@ PUBLIC void csoundMessageS(CSOUND *csound, int attr, const char *format, ...)
     va_end(args);
 }
 
-void csoundDie(CSOUND *csound, const char *msg, ...)
-{
+void csoundDie(CSOUND *csound, const char *msg, ...){
     va_list args;
     va_start(args, msg);
     csound->ErrMsgV(csound, (char*) 0, msg, args);
@@ -2674,21 +2703,42 @@ void csoundDebugMsg(CSOUND *csound, const char *msg, ...)
 
 void csoundErrorMsg(CSOUND *csound, const char *msg, ...)
 {
+      // VL 08.09.21 : suppress messages if requested
+  if(csound->oparms->msglevel || csound->oparms->odebug) {
     va_list args;
     va_start(args, msg);
     csoundMessageV(csound, CSOUNDMSG_ERROR, msg, args);
     va_end(args);
-    csound->MessageS(csound, CSOUNDMSG_ERROR, "\n");
+    //csound->MessageS(csound, CSOUNDMSG_ERROR, "\n");
+   }
 }
 
 void csoundErrMsgV(CSOUND *csound,
                    const char *hdr, const char *msg, va_list args)
 {
+    // VL 08.09.21 : suppress messages if requested
+  if(csound->oparms->msglevel || csound->oparms->odebug) {
     if (hdr != NULL)
       csound->MessageS(csound, CSOUNDMSG_ERROR, "%s", hdr);
     csoundMessageV(csound, CSOUNDMSG_ERROR, msg, args);
     csound->MessageS(csound, CSOUNDMSG_ERROR, "\n");
+  }
 }
+
+void csoundErrorMsgS(CSOUND *csound, int attr,
+                     const char *msg, ...)
+{
+      // VL 08.09.21 : suppress messages if requested
+  if(csound->oparms->msglevel || csound->oparms->odebug) {
+    va_list args;
+    va_start(args, msg);
+    csoundMessageV(csound, CSOUNDMSG_ERROR | attr, msg, args);
+    va_end(args);
+    //csound->MessageS(csound, CSOUNDMSG_ERROR, "\n");
+   }
+}
+
+
 
 void csoundLongJmp(CSOUND *csound, int retval)
 {
@@ -3145,6 +3195,7 @@ PUBLIC void csoundSetExitGraphCallback(CSOUND *csound,
 /*
  * OPCODES
  */
+void add_to_symbtab(CSOUND *csound, OENTRY *ep);
 
 static CS_NOINLINE int opcode_list_new_oentry(CSOUND *csound,
                                               const OENTRY *ep)
@@ -3199,8 +3250,10 @@ PUBLIC int csoundAppendOpcode(CSOUND *csound,
     tmpEntry.kopadr     = kopadr;
     tmpEntry.aopadr     = aopadr;
     err = opcode_list_new_oentry(csound, &tmpEntry);
+    add_to_symbtab(csound, &tmpEntry);
     if (UNLIKELY(err))
       csoundErrorMsg(csound, Str("Failed to allocate new opcode entry."));
+
     return err;
 }
 
@@ -3373,9 +3426,9 @@ PUBLIC void csoundSetRTAudioModule(CSOUND *csound, const char *module){
       csound->SetRtcloseCallback(csound, rtclose_dummy);
       csound->SetAudioDeviceListCallback(csound, audio_dev_list_dummy);
       return;
-  }
-   if (csoundInitModules(csound) != 0)
-             csound->LongJmp(csound, 1);
+    }
+    if (csoundInitModules(csound) != 0)
+      csound->LongJmp(csound, 1);
 }
 
 
@@ -3413,7 +3466,7 @@ PUBLIC int csoundGetModule(CSOUND *csound, int no, char **module, char **type){
 
 PUBLIC int csoundLoadPlugins(CSOUND *csound, const char *dir){
   if (dir != NULL) {
-   csound->Message(csound, "loading plugins from %s\n", dir); 
+   csound->Message(csound, "loading plugins from %s\n", dir);
    int err = csoundLoadAndInitModules(csound, dir);
    if(!err) {
      return CSOUND_SUCCESS;
@@ -3471,7 +3524,9 @@ PUBLIC void csoundReset(CSOUND *csound)
     /* now load and pre-initialise external modules for this instance */
     /* this function returns an error value that may be worth checking */
     {
+
       int err = csoundInitStaticModules(csound);
+
       if (csound->delayederrormessages &&
           csound->printerrormessagesflag==NULL) {
         csound->Warning(csound, "%s",csound->delayederrormessages);
@@ -3488,7 +3543,7 @@ PUBLIC void csoundReset(CSOUND *csound)
      memset(modules, 0, sizeof(MODULE_INFO *)*MAX_MODULES);
 
      /* VL now load modules has opcodedir override */
-     if(opcodedir) 
+     if(opcodedir)
       csound->opcodedir = cs_strdup(csound, opcodedir);
      else
        csound->opcodedir = NULL;
@@ -3514,12 +3569,11 @@ PUBLIC void csoundReset(CSOUND *csound)
       csoundInitTimerStruct(csound->csRtClock);
       csound->engineStatus |= /*CS_STATE_COMP |*/ CS_STATE_CLN;
 
-      print_csound_version(csound);
-      {
-        char buffer[128];
-        sf_command(NULL, SFC_GET_LIB_VERSION, buffer, 128);
-        csound->Message(csound, "%s\n", buffer);
-      }
+      /*
+        this was moved to musmon();
+        print_csound_version(csound);
+        print_sndfile_version(csound);
+      */
 
       /* do not know file type yet */
       O->filetyp = -1;
@@ -3922,7 +3976,7 @@ static int getTimeResolution(void)
 #else
     timeResolutionSeconds = 1.0;
 #endif
-#ifdef BETA
+#ifdef CHECK_TIME_RESOLUTION // BETA
     fprintf(stderr, "time resolution is %.3f ns\n",
             1.0e9 * timeResolutionSeconds);
 #endif

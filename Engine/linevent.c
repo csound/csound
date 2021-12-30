@@ -488,9 +488,9 @@ int eventOpcode_(CSOUND *csound, LINEVENT *p, int insname, char p1)
           if (UNLIKELY((opcod == 'i' || opcod == 'd') && (insno ==0 ||
                        insno > csound->engineState.maxinsno ||
                        !csound->engineState.instrtxtp[(int)insno]))) {
-            csound->Message(csound, Str("WARNING: Cannot Find Instrument %d\n"),
+            csound->Message(csound, Str("WARNING: Cannot Find Instrument %d. No action."),
                            (int) insno);
-            return NOTOK;
+            return OK;
           }
         }
         evt.strarg = NULL; evt.scnt = 0;
@@ -571,9 +571,9 @@ int eventOpcodeI_(CSOUND *csound, LINEVENT *p, int insname, char p1)
           if (UNLIKELY((opcod == 'i' || opcod == 'd') && (insno ==0 ||
                        insno > csound->engineState.maxinsno ||
                        !csound->engineState.instrtxtp[(int)insno]))) {
-            csound->Message(csound, Str("WARNING: Cannot Find Instrument %d\n"),
+            csound->Message(csound, Str("WARNING: Cannot Find Instrument %d. No action."),
                            (int) insno);
-            return NOTOK;
+            return OK;
           }
           evt.strarg = NULL; evt.scnt = 0;
         }

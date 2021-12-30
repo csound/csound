@@ -1,7 +1,7 @@
-import EE3 from "eventemitter3";
+import EE3 from "eventemitter3/umd/eventemitter3.min.js";
 
 /**
- * @typedef PublicEvents
+ * @template PublicEvents
  * @readonly
  * @enum {number}
  * @property {string} "play" called anytime performance goes from pause/stop to a running state.
@@ -18,6 +18,7 @@ import EE3 from "eventemitter3";
  * @property {string} "message" the main entrypoint to csound's messaging (-m) system,
  * a default event listener will print the message to the browser console, this default
  * listener can be removed by the user.
+ * @suppress {misplacedTypeAnnotation}
  */
 
 export class PublicEventAPI {
@@ -133,7 +134,7 @@ export class PublicEventAPI {
      * @name listeners
      * @memberof CsoundObj
      * @param {PublicEvents} eventName
-     * @return {Array<function>}
+     * @return {Array.<function()>}
      */
     exportApi.listeners = this.eventEmitter.listeners.bind(this.eventEmitter);
     /**
@@ -142,8 +143,8 @@ export class PublicEventAPI {
      * @name off
      * @memberof CsoundObj
      * @param {PublicEvents} eventName
-     * @param {function} listener
-     * @return {external:EventEmitter}
+     * @param {function()} listener
+     * @return {EventEmitter}
      */
     exportApi.off = this.eventEmitter.off.bind(this.eventEmitter);
     /**
@@ -155,8 +156,8 @@ export class PublicEventAPI {
      * @name on
      * @memberof CsoundObj
      * @param {PublicEvents} eventName
-     * @param {function} listener
-     * @return {external:EventEmitter}
+     * @param {function()} listener
+     * @return {EventEmitter}
      */
     exportApi.on = this.eventEmitter.on.bind(this.eventEmitter);
     /**
@@ -165,8 +166,8 @@ export class PublicEventAPI {
      * @name addListener
      * @memberof CsoundObj
      * @param {PublicEvents} eventName
-     * @param {function} listener
-     * @return {external:EventEmitter}
+     * @param {function()} listener
+     * @return {EventEmitter}
      */
     exportApi.addListener = this.eventEmitter.on.bind(this.eventEmitter);
     /**
@@ -176,8 +177,8 @@ export class PublicEventAPI {
      * @name once
      * @memberof CsoundObj
      * @param {PublicEvents} eventName
-     * @param {function} listener
-     * @return {external:EventEmitter}
+     * @param {function()} listener
+     * @return {EventEmitter}
      */
     exportApi.once = this.eventEmitter.once.bind(this.eventEmitter);
     /**
@@ -190,7 +191,7 @@ export class PublicEventAPI {
      * @name removeAllListeners
      * @memberof CsoundObj
      * @param {PublicEvents} eventName
-     * @return {external:EventEmitter}
+     * @return {EventEmitter}
      */
     exportApi.removeAllListeners = this.eventEmitter.removeAllListeners.bind(this.eventEmitter);
     /**
@@ -203,8 +204,8 @@ export class PublicEventAPI {
      * @name removeListener
      * @memberof CsoundObj
      * @param {PublicEvents} eventName
-     * @param {function} listener
-     * @return {external:EventEmitter}
+     * @param {function()} listener
+     * @return {EventEmitter}
      */
     exportApi.removeListener = this.eventEmitter.removeListener.bind(this.eventEmitter);
     return exportApi;

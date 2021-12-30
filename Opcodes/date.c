@@ -21,9 +21,12 @@
     02110-1301 USA
 */
 
-#include "csdl.h"
+#include "csoundCore.h"
 #include <time.h>
+
+#ifndef __wasi__
 #include <errno.h>
+#endif
 
 #if defined(WIN32)
 #include "direct.h"
@@ -125,9 +128,13 @@ static int32_t getcurdir(CSOUND *csound, GETCWD *p)
 #endif
       {
         strncpy(p->Scd->data, Str("**Unknown**"), p->Scd->size);
+        #ifndef __wasi__
         return csound->InitError(csound,
                                  Str("cannot determine current directory: %s\n"),
                                  strerror(errno));
+        #else
+        return -1;
+        #endif
       }
     return OK;
 }

@@ -10,31 +10,7 @@
 #include <string.h>
 #include <unistd.h>
 
-#ifdef INIT_STATIC_MODULES
-extern int init_static_modules(CSOUND *csound);
-extern int scansyn_init_(CSOUND *csound);
-extern int scansynx_init_(CSOUND *csound);
-extern int emugens_init_(CSOUND *csound);
-extern int scugens_init_(CSOUND *csound);
-extern int pvsops_init_(CSOUND *csound);
-extern int liveconv_init_(CSOUND *csound);
-extern int unsupported_opdoces_init_(CSOUND *csound);
-extern int dateops_init_(CSOUND *csound);
-#endif
-
-/* int init_static_modules(CSOUND *csound) { } */
-int init_static_modules(CSOUND *csound) {
-  scansyn_init_(csound);
-  scansynx_init_(csound);
-  emugens_init_(csound);
-  scugens_init_(csound);
-  pvsops_init_(csound);
-  liveconv_init_(csound);
-  dateops_init_(csound);
-  unsupported_opdoces_init_(csound);
-  return 0;
-};
-
+/* extern int csoundInitStaticModules(CSOUND *csound); */
 
 // returns the address of a string
 // pointer which is writable from js
@@ -266,7 +242,6 @@ void csoundSetMidiCallbacks(CSOUND *csound) {
 __attribute__((used))
 CSOUND *csoundCreateWasi() {
   CSOUND *csound = csoundCreate(NULL);
-  init_static_modules(csound);
   csoundSetMidiCallbacks(csound);
   return csound;
 }
@@ -277,7 +252,6 @@ CSOUND *csoundCreateWasi() {
 int csoundResetWasi(CSOUND *csound) {
   int cleanResult = csoundCleanup(csound);
   csoundReset(csound);
-  init_static_modules(csound);
   csoundSetMidiCallbacks(csound);
   return cleanResult;
 }
@@ -382,11 +356,17 @@ int32_t __getf2(int64_t x, int64_t y, int64_t z, int64_t zz) {
   }
 }
 
+int32_t __netf2(int64_t b, int64_t c, int64_t d, int64_t e) {
+  return __getf2(b, c, d, e);
+}
+
+int32_t __gttf2(int64_t b, int64_t c, int64_t d, int64_t e) {
+  return __getf2(b, c, d, e);
+}
+
 void __extenddftf2(int32_t x, double y) {}
 
-void __multi3(int32_t a, int64_t b, int64_t c, int64_t d, int64_t e) {
-  // return a * b;
-}
+void __multi3(int32_t a, int64_t b, int64_t c, int64_t d, int64_t e) {}
 
 void __muloti4(int32_t a, int64_t b, int64_t c, int64_t d, int64_t d_, int32_t e) {}
 

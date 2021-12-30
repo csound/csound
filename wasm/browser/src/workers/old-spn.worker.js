@@ -1,11 +1,11 @@
-import * as Comlink from "comlink";
-import { instantiateAudioPacket } from "@root/workers/common.utils";
-import MessagePortState from "@utils/message-port-state";
-import { newAudioContext } from "@utils/new-audio-context";
-import { logOldSpnWorker as log } from "@root/logger";
-import { range } from "ramda";
+import * as Comlink from "comlink/dist/esm/comlink.mjs";
+import { instantiateAudioPacket } from "./common.utils";
+import MessagePortState from "../utils/message-port-state";
+import { newAudioContext } from "../utils/new-audio-context";
+import { logOldSpnWorker as log } from "../logger";
+import { range } from "rambda/dist/rambda.esm.js";
 
-const startPromizes = {};
+let startPromize;
 
 const getAudioContext = (contextUid) => {
   return (
@@ -164,9 +164,8 @@ class CsoundScriptNodeProcessor {
     }
     if (!this.vanillaFirstTransferDone) {
       this.vanillaFirstTransferDone = true;
-      if (startPromizes[this.contextUid]) {
-        startPromizes[this.contextUid]();
-        delete startPromizes[this.contextUid];
+      if (startPromize) {
+        startPromize();
       }
     }
   }
@@ -293,7 +292,10 @@ class CsoundScriptNodeProcessor {
     return true;
   }
 }
-const initAudioInputPort = ({ audioInputPort }) => (frames) => audioInputPort.postMessage(frames);
+const initAudioInputPort =
+  ({ audioInputPort }) =>
+  (frames) =>
+    audioInputPort.postMessage(frames);
 
 const initMessagePort = ({ port }) => {
   const workerMessagePort = new MessagePortState();
@@ -377,7 +379,7 @@ const initialize = async ({
 }) => {
   log("initializing old-spn worker in iframe")();
   const audioContext = getAudioContext(contextUid);
-  console.log("audioContext", audioContext);
+
   const spnClassInstance = new CsoundScriptNodeProcessor({
     audioContext,
     contextUid,
@@ -398,11 +400,11 @@ const initialize = async ({
 
   if (initialPlayState === "realtimePerformanceStarted") {
     const startPromise = new Promise((resolve, reject) => {
-      startPromizes[contextUid] = resolve;
+      startPromize = resolve;
       setTimeout(() => {
         if (typeof startPromizes[contextUid] === "function") {
           reject(new Error(`a call to start() timed out`));
-          delete startPromizes[contextUid];
+          startPromize = undefined;
           return -1;
         }
         // 10 second timeout

@@ -10,7 +10,9 @@
   "globals": {
     "Atomics": "readonly",
     "SharedArrayBuffer": "readonly",
-    "__PROD__": "readonly"
+    "__PROD__": "readonly",
+    "goog": "readonly",
+    "Zlib": "writable"
   },
   "rules": {
     "unicorn/no-reduce": "off",
@@ -18,6 +20,7 @@
     "unicorn/prefer-optional-catch-binding": "off",
     "unicorn/no-nested-ternary": "off",
     "unicorn/no-array-callback-reference": "off",
-    "unicorn/no-array-for-each": "off"
+    "unicorn/no-array-for-each": "off",
+    "unicorn/numeric-separators-style": "off"
   }
 }

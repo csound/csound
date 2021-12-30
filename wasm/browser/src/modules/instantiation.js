@@ -6,7 +6,6 @@
 /**
  * creates Csound instance
  * (inferred in @csound/wasm/browser)
- * @private
  */
 export const csoundCreate = (wasm) => () => wasm.exports.csoundCreateWasi();
 

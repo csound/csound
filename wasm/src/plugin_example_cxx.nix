@@ -38,24 +38,29 @@ in pkgs.stdenv.mkDerivation {
       -D__wasm32__=1 \
       -D_WASI_EMULATED_SIGNAL \
       -D_WASI_EMULATED_MMAN \
-      -D__wasilibc_printscan_no_long_double \
-      -D__wasilibc_printscan_no_floating_point \
       -DUSE_DOUBLE=1 \
       -I${csound-wasm}/include \
+      -I${wasi-sdk}/share/wasi-sysroot/include \
+      -I${wasi-sdk}/share/wasi-sysroot/include/c++/v1 \
       -I./src \
       -c src/const.cpp \
       src/tube.cpp \
       src/opcode_registers.cpp \
       resonators/resontube.cpp
 
-    echo "Link togeather plugin_example_cxx.wasm"
-    ${wasi-sdk}/bin/wasm-ld --shared \
-      --import-table --import-memory \
-      --export-all \
-      --no-entry \
-      -L${csound-wasm}/lib \
+    echo "Link together plugin_example_cxx.wasm"
+    ${wasi-sdk}/bin/wasm-ld -pie --no-entry \
+      --experimental-pic \
+      --import-table \
+      --import-memory \
+      --export=__wasm_call_ctors \
+      --export=csoundModuleInit \
+      --export-if-defined=csoundModuleCreate \
+      --export-if-defined=csoundModuleDestroy \
       -L${wasi-sdk}/share/wasi-sysroot/lib/wasm32-unknown-emscripten \
-      -lcsound-dylib -lc -lc++ -lc++abi -lwasi-emulated-signal -lwasi-emulated-mman \
+      -L${csound-wasm}/lib -lcsound-wasm \
+      -lc -lc++ -lc++abi -lrt -lutil -lxnet -lresolv -lc-printscan-long-double \
+      -lwasi-emulated-getpid -lwasi-emulated-signal -lwasi-emulated-mman -lwasi-emulated-process-clocks \
       *.o -o plugin_example_cxx.wasm
   '';
 

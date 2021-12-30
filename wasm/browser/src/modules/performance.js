@@ -1,9 +1,9 @@
+import { freeStringPtr, string2ptr } from "../utils/string-pointers.js";
+
 /*
    csound performance module from <csound.h>
    https://csound.com/docs/api/modules.html
 */
-
-import { freeStringPtr, string2ptr } from "@utils/string-pointers";
 
 /**
  * Parses a csound orchestra string
@@ -102,9 +102,14 @@ csoundStart.toString = () => "start = async () => Number;";
  * @return {Promise.<number>}
  */
 export const csoundCompileCsd = (wasm) => (csound, path) => {
-  const sandboxedPath = /^\//i.test(path) ? `/sandbox${path}` : `/sandbox/${path}`;
-  const stringPtr = string2ptr(wasm, sandboxedPath);
-  const result = wasm.exports.csoundCompileCsd(csound, stringPtr);
+  const stringPtr = string2ptr(wasm, path);
+
+  let result;
+  try {
+    result = wasm.exports.csoundCompileCsd(csound, stringPtr);
+  } catch (error) {
+    console.error(error);
+  }
   freeStringPtr(wasm, stringPtr);
   return result;
 };

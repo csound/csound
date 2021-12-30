@@ -11,9 +11,12 @@ in pkgs.stdenv.mkDerivation {
   dontStrip = true;
 
   buildPhase = ''
+
+    cp ${./plugin_example.c} ./plugin_example.c
+
     echo "Compile plugin_example.wasm"
-    ${wasi-sdk}/bin/clang  \
-      -fPIC -fno-exceptions -fno-rtti \
+    ${wasi-sdk}/bin/clang \
+       -fPIC -fno-exceptions -fno-rtti \
       --target=wasm32-unknown-emscripten \
       --sysroot=${wasi-sdk}/share/wasi-sysroot \
       -D__wasi__=1 \
@@ -22,17 +25,20 @@ in pkgs.stdenv.mkDerivation {
       -D_WASI_EMULATED_MMAN \
       -DUSE_DOUBLE=1 \
       -I${csound-wasm}/include \
-      -c ${./plugin_example.c}
+      -c  plugin_example.c \
+      -o plugin_example.o
 
     echo "Link togeather plugin_example.wasm"
-    ${wasi-sdk}/bin/wasm-ld --shared \
-      --import-table --import-memory \
-      --export=__wasm_call_ctors \
+    ${wasi-sdk}/bin/wasm-ld \
+      --shared \
+      --import-table \
+      --import-memory \
+      --export-all \
       --no-entry \
-      -L${csound-wasm}/lib \
       -L${wasi-sdk}/share/wasi-sysroot/lib/wasm32-unknown-emscripten \
-      -lcsound-dylib -lc -lwasi-emulated-signal -lwasi-emulated-mman \
-      *.o -o plugin_example.wasm
+      -L${csound-wasm}/lib -lcsound-wasm \
+      -lc -lwasi-emulated-signal -lwasi-emulated-mman \
+      plugin_example.o -o plugin_example.wasm
   '';
 
   installPhase = ''

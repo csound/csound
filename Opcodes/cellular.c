@@ -22,7 +22,8 @@
     02110-1301 USA
 */
 
-#include "csdl.h"
+#include "csoundCore.h"
+#include "interlocks.h"
 
 // classical 1-D Cellular Automaton by Gleb Rogozinsky.
 // It is the modified version of vcella opcode by Gabriel Maldonado
@@ -122,10 +123,10 @@ static int32_t cell(CSOUND *csound,CELL *p)
 
 #define S sizeof
 
-static OENTRY localops[] = {
+static OENTRY cell_localops[] = {
   {"cell",  S(CELL),  TB, 3, "",  "kkiiii",(SUBR)cell_set, (SUBR)cell        }
 };
 
-LINKAGE
+LINKAGE_BUILTIN(cell_localops)
 
 // Author: Gleb Rogozinsky, October 2011

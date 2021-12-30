@@ -13,13 +13,15 @@ let
          pkgs.lib.concatMapStrings (x: " --export=" + x + " ")
          (with builtins; fromJSON (readFile ./exports.json))
        } \
-      -L${wasi-sdk}/share/wasi-sysroot/lib/wasm32-wasi \
+      -L${wasi-sdk}/share/wasi-sysroot/lib/wasm32-unknown-emscripten \
       -L${libsndfile}/lib -L${libflac}/lib -L${libogg}/lib -L${libvorbis}/lib \
-      -lc  -lc++ -lc++abi -lflac -logg -lvorbis \
-      -lsndfile -lwasi-emulated-signal -lwasi-emulated-mman \
-      ${wasi-sdk}/share/wasi-sysroot/lib/wasm32-wasi/crt1.o \
-       *.o -o csound.wasm
+      -lc -lc++ -lc++abi -lrt -lutil -lxnet -lresolv -lc-printscan-long-double \
+      -lflac -logg -lvorbis -lsndfile -lwasi-emulated-getpid \
+      -lwasi-emulated-signal -lwasi-emulated-mman -lwasi-emulated-process-clocks \
+      ${wasi-sdk}/share/wasi-sysroot/lib/wasm32-unknown-emscripten/crt1.o \
+       *.o -o csound.static.wasm
   '';
+
   dyn-link = ''
     echo "Create libcsound.wasm pie"
     ${wasi-sdk}/bin/wasm-ld --lto-O2 \
@@ -31,12 +33,13 @@ let
        } \
       -L${wasi-sdk}/share/wasi-sysroot/lib/wasm32-unknown-emscripten \
       -L${libsndfile}/lib -L${libflac}/lib -L${libogg}/lib -L${libvorbis}/lib \
-      -lc  -lc++ -lc++abi -lflac -logg -lvorbis \
-      -lsndfile -lwasi-emulated-signal -lwasi-emulated-mman \
+      -lc -lc++ -lc++abi -lrt -lutil -lxnet -lresolv -lc-printscan-long-double \
+      -lflac -logg -lvorbis -lsndfile -lwasi-emulated-getpid \
+      -lwasi-emulated-signal -lwasi-emulated-mman -lwasi-emulated-process-clocks \
       ${wasi-sdk}/share/wasi-sysroot/lib/wasm32-unknown-emscripten/crt1.o \
        *.o -o csound.dylib.wasm
-
   '';
+
   exports = with builtins; (fromJSON (readFile ./exports.json));
   patchClock = pkgs.writeTextFile {
     name = "patchClock";
@@ -75,27 +78,34 @@ let
   libflac = pkgs.callPackage ./libflac.nix { inherit static; };
   libvorbis = pkgs.callPackage ./libvorbis.nix { inherit static; };
 
-  csoundModLoadPatch = pkgs.writeTextFile {
-    name = "csoundModLoadPatch";
-    text = ''
-      #ifndef __MODLOAD__H
-      #define __MODLOAD__H
-      #include <plugin.h>
-      namespace csnd {
-        void on_load(Csound *);
-      }
-      #endif
-    '';
+  csoundSrc = builtins.path {
+    path = ./. + "../../../";
+    filter = path: type:
+      ((builtins.match ".*/Engine.*" path != null ||
+        builtins.match ".*/H.*" path != null ||
+        builtins.match ".*/InOut.*" path != null ||
+        builtins.match ".*/OOps.*" path != null ||
+        builtins.match ".*/Opcodes.*" path != null ||
+        builtins.match ".*/Top.*" path != null ||
+        builtins.match ".*/include.*" path != null) &&
+      (lib.strings.hasSuffix ".c" path ||
+       lib.strings.hasSuffix ".cpp" path ||
+       lib.strings.hasSuffix ".h" path ||
+       lib.strings.hasSuffix ".h.in" path ||
+       lib.strings.hasSuffix ".hpp" path ||
+       lib.strings.hasSuffix ".hpp.in" path ||
+       lib.strings.hasSuffix ".y" path ||
+       lib.strings.hasSuffix ".lex" path ||
+       type == "directory"));
   };
 
-  csoundSrc = with builtins; pkgs.fetchFromGitHub (fromJSON (readFile ./version.json));
-
   preprocFlags = ''
-    -DGIT_HASH_VALUE=${csoundSrc.rev} \
+    -DGIT_HASH_VALUE=HEAD \
     -DUSE_DOUBLE=1 \
     -DLINUX=0 \
     -DO_NDELAY=O_NONBLOCK \
     -DHAVE_STRLCAT=1 \
+    -D__thread='^-^' \
     -Wno-unknown-attributes \
     -Wno-shift-op-parentheses \
     -Wno-bitwise-op-parentheses \
@@ -106,25 +116,7 @@ let
 in pkgs.stdenvNoCC.mkDerivation rec {
 
   name = "csound-wasm";
-
-  src = builtins.path {
-    path = ./. + "../../../";
-    filter = path: type:
-      ((builtins.match ".*/Engine.*" path != null ||
-        builtins.match ".*/H.*" path != null ||
-        builtins.match ".*/InOut.*" path != null ||
-        builtins.match ".*/OOps.*" path != null ||
-        builtins.match ".*/Opcodes.*" path != null ||
-        builtins.match ".*/Top.*" path != null ||
-        builtins.match ".*/include.*" path != null) &&
-       (lib.strings.hasSuffix ".c" path ||
-        lib.strings.hasSuffix ".cpp" path ||
-        lib.strings.hasSuffix ".h" path ||
-        lib.strings.hasSuffix ".hpp" path ||
-        lib.strings.hasSuffix ".y" path ||
-        lib.strings.hasSuffix ".lex" path ||
-        type == "directory"));
-  };
+  src = csoundSrc;
 
   buildInputs = [ pkgs.flex pkgs.bison ];
 
@@ -155,28 +147,18 @@ in pkgs.stdenvNoCC.mkDerivation rec {
     find ./ -type f -exec sed -i -e 's/if (LINUX)/if(_NOT_LINUX_)/g' {} \;
     find ./ -type f -exec sed -i -e 's/defined(LINUX)/defined(_NOT_LINUX_)/g' {} \;
 
-    # don't export dynamic modules
-    find ./ -type f -exec sed -i -e 's/PUBLIC.*int.*csoundModuleCreate /static int csoundModuleCreate/g' {} \;
-    find ./ -type f -exec sed -i -e 's/PUBLIC.*int32_t.*csoundModuleCreate /static int32_t csoundModuleCreate/g' {} \;
-    find ./ -type f -exec sed -i -e 's/PUBLIC.*int.*csound_opcode_init/static int csound_opcode_init/g' {} \;
-    find ./ -type f -exec sed -i -e 's/PUBLIC.*int32_t.*csound_opcode_init/static int32_t csound_opcode_init/g' {} \;
-    find ./ -type f -exec sed -i -e 's/PUBLIC.*int.*csoundModuleInfo/static int csoundModuleInfo/g' {} \;
-    find ./ -type f -exec sed -i -e 's/PUBLIC.*int32_t.*csoundModuleInfo/static int32_t csoundModuleInfo/g' {} \;
-    find ./ -type f -exec sed -i -e 's/PUBLIC.*NGFENS.*\*csound_fgen_init/static NGFENS *csound_fgen_init/g' {} \;
 
     sed -i -e 's/csoundUDPConsole.*//g' Top/argdecode.c
 
-    cat ${csoundModLoadPatch} > include/modload.h
-
-    # Todo: add this to csound proper
-    substituteInPlace H/csmodule.h \
-      --replace 'int csoundLoadModules(CSOUND *csound);' \
-                'int csoundLoadModules(CSOUND *csound)
-                 __attribute__((__import_module__("env"),
-                                __import_name__("csoundLoadModules")));'
-
     # Patch 64bit integer clock
     ${patchClock}/bin/patchClock Top/csound.c
+
+    mv include/version.h.in include/version.h
+    # see CMakeLists.txt
+    substituteInPlace include/version.h \
+      --replace "\''${CS_VERSION}" "6" \
+      --replace "\''${CS_SUBVER}" "17" \
+      --replace "\''${CS_PATCHLEVEL}" "0"
 
     touch include/float-version.h
     substituteInPlace Top/csmodule.c \
@@ -222,8 +204,7 @@ in pkgs.stdenvNoCC.mkDerivation rec {
           #include <string.h>
           #include <stdlib.h>
           #include <unistd.h>
-          #include <fcntl.h>
-          #include <errno.h>'
+          #include <fcntl.h>'
 
     substituteInPlace Opcodes/urandom.c \
       --replace '__HAIKU__' \
@@ -255,27 +236,6 @@ in pkgs.stdenvNoCC.mkDerivation rec {
       --replace 'static double timeResolutionSeconds = -1.0;' \
                 'static double timeResolutionSeconds = 0.000001;'
 
-    substituteInPlace Engine/envvar.c \
-       --replace 'return name;' \
-                 'char* fsPrefix = csound->Malloc(
-                   csound, (size_t) strlen(name) + 10);
-                 strcpy(fsPrefix, (name[0] == DIRSEP) ? "/sandbox\0" : "/sandbox/\0");
-                 strcat(fsPrefix, name);
-                 csound->Free(csound, name);
-                 return fsPrefix;' \
-      --replace '#include <math.h>' \
-                '#include <math.h>
-                 #include <string.h>
-                 #include <stdlib.h>
-                 #include <unistd.h>
-                 #include <fcntl.h>
-                 #include <errno.h>
-                 #define getcwd(x,y) "/"
-                 '
-
-    substituteInPlace Engine/csound_pre.lex \
-      --replace 'PARM->path = ".";' 'PARM->path = "/sandbox/";'
-
     # since we recommend n^2 number,
     # let's make sure that it's default too
     substituteInPlace include/csoundCore.h \
@@ -288,59 +248,16 @@ in pkgs.stdenvNoCC.mkDerivation rec {
       --replace 'csoundUDPServerStart(csound,csound->oparms->daemon);' "" \
       --replace 'static void put_sorted_score' \
                 'extern void put_sorted_score'
+
     substituteInPlace Engine/musmon.c \
       --replace 'csoundUDPServerClose(csound);' ""
 
     substituteInPlace Engine/new_orc_parser.c \
       --replace 'csound_orcdebug = O->odebug;' ""
 
-    substituteInPlace Top/init_static_modules.c \
-      --replace 'csoundMessage(csound, "init_static_modules...\n");' ""
-
-    # expose scansyn_init_ via extern
-    # also hardcode away graph console logs
-    # as they seem to freeze the browser environment
-    substituteInPlace Opcodes/scansyn.c \
-      --replace 'static int32_t scansyn_init_' \
-                'extern int32_t scansyn_init_' \
-      --replace '*p->i_disp' '0'
-    substituteInPlace Opcodes/scansyn.h \
-      --replace 'extern int32_t' \
-                'extern int32_t scansyn_init_(CSOUND *);
-                 extern int32_t'
-
-    # link emugens statically
-    substituteInPlace Opcodes/emugens/emugens.c \
-      --replace 'LINKAGE' \
-       'int32_t emugens_init_(CSOUND *csound) {
-           return csound->AppendOpcodes(csound,
-             &(localops[0]), (int32_t) (sizeof(localops) / sizeof(OENTRY))); }'
-    echo 'extern int32_t emugens_init_(CSOUND *);' >> \
-      Opcodes/emugens/emugens_common.h
-
-    substituteInPlace Opcodes/emugens/scugens.c \
-      --replace 'LINKAGE' \
-       'int32_t scugens_init_(CSOUND *csound) {
-           return csound->AppendOpcodes(csound,
-             &(localops[0]), (int32_t) (sizeof(localops) / sizeof(OENTRY))); }'
-    echo 'extern int32_t scugens_init_(CSOUND *);' >> \
-      Opcodes/emugens/emugens_common.h
-
-    # opcode-lib: liveconv
-    substituteInPlace Opcodes/liveconv.c \
-      --replace 'LINKAGE' \
-       'int32_t liveconv_init_(CSOUND *csound) {
-           return csound->AppendOpcodes(csound,
-             &(localops[0]), (int32_t) (sizeof(localops) / sizeof(OENTRY))); }'
-
     # date and fs
     sed -i '1s/^/#include <unistd.h>\n/' Opcodes/date.c
     sed -i -e 's/LINUX/1/g' Opcodes/date.c
-    substituteInPlace Opcodes/date.c \
-      --replace 'LINKAGE_BUILTIN(date_localops)' \
-       'int32_t dateops_init_(CSOUND *csound) {
-           return csound->AppendOpcodes(csound,
-             &(date_localops[0]), (int32_t) (sizeof(date_localops) / sizeof(OENTRY))); }'
 
     echo 'extern "C" {
      extern int pvsops_init_(CSOUND *csound) {
@@ -363,10 +280,22 @@ in pkgs.stdenvNoCC.mkDerivation rec {
     # ${pkgs.flex}/bin/flex -B ./Engine/csound_sco.lex > ./Engine/csound_scolex.c
   '';
 
+  # ../Opcodes/scansyn.c \
+  #   ../Opcodes/scansynx.c \
+    # expose scansyn_init_ via extern
+    # also hardcode away graph console logs
+    # as they seem to freeze the browser environment
+    # substituteInPlace Opcodes/scansyn.c \
+    #   --replace 'static int32_t scansyn_init_' \
+    #             'extern int32_t scansyn_init_' \
+    #   --replace '*p->i_disp' '0'
+    # substituteInPlace Opcodes/scansyn.h \
+    #   --replace 'extern int32_t' \
+    #             'extern int32_t scansyn_init_(CSOUND *);
+    #              extern int32_t'
+
+
   buildPhase = ''
-    cp ${ ./csdl_with_proposal.h } include/csdl.h
-    cp ${ ./csmodule_with_proposal.c } Top/csmodule.c
-    cp ${ ./modload_with_proposal.h } include/modload.h
     mkdir -p build && cd build
     cp ${./csound_wasm.c} ./csound_wasm.c
     cp ${./unsupported_opcodes.c} ./unsupported_opcodes.c
@@ -377,11 +306,12 @@ in pkgs.stdenvNoCC.mkDerivation rec {
     ${wasi-sdk}/bin/clang \
       ${lib.optionalString (static == false) "--target=wasm32-unknown-emscripten" } \
       --sysroot=${wasi-sdk}/share/wasi-sysroot \
-      -fno-force-enable-int128 \
+      -fno-force-enable-int128 -femulated-tls \
       ${lib.optionalString (static == false) "-fPIC" } -fno-exceptions -fno-rtti -Oz \
       -I../H -I../Engine -I../include -I../ \
       -I../InOut/libmpadec -I../Opcodes/emugens \
       -I${libsndfile}/include \
+      -I${wasi-sdk}/share/wasi-sysroot/include \
       -I${wasi-sdk}/share/wasi-sysroot/include/c++/v1 \
       -DINIT_STATIC_MODULES=1 \
       -U__MACH__ \
@@ -391,17 +321,13 @@ in pkgs.stdenvNoCC.mkDerivation rec {
       -D__wasm32__=1 \
       -D_WASI_EMULATED_SIGNAL \
       -D_WASI_EMULATED_MMAN \
-      -D__wasilibc_printscan_no_long_double \
-      -D__wasilibc_printscan_no_floating_point \
+      -D_WASI_EMULATED_PROCESS_CLOCKS \
       -D__BUILDING_LIBCSOUND \
       -DWASM_BUILD=1 ${preprocFlags} -c \
       unsupported_opcodes.c \
       ../Engine/auxfd.c \
       ../Engine/cfgvar.c \
       ../Engine/corfiles.c \
-      ../Engine/cs_new_dispatch.c \
-      ../Engine/cs_par_base.c \
-      ../Engine/cs_par_orc_semantic_analysis.c \
       ../Engine/csound_data_structures.c \
       ../Engine/csound_orclex.c \
       ../Engine/csound_orc_compile.c \
@@ -518,9 +444,7 @@ in pkgs.stdenvNoCC.mkDerivation rec {
       ../Opcodes/fm4op.c \
       ../Opcodes/follow.c \
       ../Opcodes/fout.c \
-      ../Opcodes/framebuffer/Framebuffer.c \
-      ../Opcodes/framebuffer/OLABuffer.c \
-      ../Opcodes/framebuffer/OpcodeEntries.c \
+      ../Opcodes/framebuffer.c \
       ../Opcodes/freeverb.c \
       ../Opcodes/ftconv.c \
       ../Opcodes/ftest.c \
@@ -533,7 +457,6 @@ in pkgs.stdenvNoCC.mkDerivation rec {
       ../Opcodes/gab/vectorial.c \
       ../Opcodes/gammatone.c \
       ../Opcodes/gendy.c \
-      ../Opcodes/getftargs.c \
       ../Opcodes/grain.c \
       ../Opcodes/grain4.c \
       ../Opcodes/harmon.c \
@@ -546,6 +469,7 @@ in pkgs.stdenvNoCC.mkDerivation rec {
       ../Opcodes/locsig.c \
       ../Opcodes/loscilx.c \
       ../Opcodes/lowpassr.c \
+      ../Opcodes/lufs.c \
       ../Opcodes/mandolin.c \
       ../Opcodes/metro.c \
       ../Opcodes/midiops2.c \
@@ -588,11 +512,10 @@ in pkgs.stdenvNoCC.mkDerivation rec {
       ../Opcodes/quadbezier.c \
       ../Opcodes/repluck.c \
       ../Opcodes/reverbsc.c \
-      ../Opcodes/scansyn.c \
-      ../Opcodes/scansynx.c \
       ../Opcodes/scoreline.c \
       ../Opcodes/select.c \
       ../Opcodes/seqtime.c \
+      ../Opcodes/sequencer.c \
       ../Opcodes/sfont.c \
       ../Opcodes/shaker.c \
       ../Opcodes/shape.c \
@@ -603,8 +526,8 @@ in pkgs.stdenvNoCC.mkDerivation rec {
       ../Opcodes/spat3d.c \
       ../Opcodes/spectra.c \
       ../Opcodes/squinewave.c \
-      ../Opcodes/stackops.c \
       ../Opcodes/stdopcod.c \
+      ../Opcodes/sterrain.c \
       ../Opcodes/syncgrain.c \
       ../Opcodes/tabaudio.c \
       ../Opcodes/tabsum.c \
@@ -635,6 +558,7 @@ in pkgs.stdenvNoCC.mkDerivation rec {
       ../Top/csdebug.c \
       ../Top/csmodule.c \
       ../Top/getstring.c \
+      ../Top/init_static_modules.c \
       ../Top/main.c \
       ../Top/new_opts.c \
       ../Top/one_file.c \
@@ -654,9 +578,8 @@ in pkgs.stdenvNoCC.mkDerivation rec {
     #TODO fix ../Opcodes/ftsamplebank.cpp (why does it import thread-local?)
     ${if (static == true) then static-link else dyn-link}
 
-    echo "Archiving the objects"
-    ${wasi-sdk}/bin/llvm-ar crS libcsound${lib.optionalString (static == false) "-dylib" }.a ./*.o
-    ${wasi-sdk}/bin/llvm-ranlib -U libcsound${lib.optionalString (static == false) "-dylib" }.a
+    ${wasi-sdk}/bin/llvm-ar -x ${libsndfile}/lib/libsndfile.a
+    ${wasi-sdk}/bin/llvm-ar rcs libcsound-wasm.a ./*.o
   '';
 
   installPhase = ''

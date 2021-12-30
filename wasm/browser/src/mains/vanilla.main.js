@@ -1,23 +1,18 @@
-import * as Comlink from "comlink";
-import { logVANMain as log } from "@root/logger";
-import { api as API } from "@root/libcsound";
-import VanillaWorker from "@root/workers/vanilla.worker";
-import { isEmpty } from "ramda";
-import { csoundApiRename, fetchPlugins, makeProxyCallback, stopableStates } from "@root/utils";
-import { IPCMessagePorts, messageEventHandler } from "@root/mains/messages.main";
-import { EventPromises } from "@utils/event-promises";
-import { PublicEventAPI } from "@root/events";
-import {
-  clearFsLastmods,
-  persistentFilesystem,
-  syncPersistentStorage,
-} from "@root/filesystem/persistent-fs";
+import * as Comlink from "comlink/dist/esm/comlink.mjs";
+import { logVANMain as log } from "../logger";
+import { api as API } from "../libcsound";
+import { isEmpty } from "rambda/dist/rambda.esm.js";
+import { csoundApiRename, fetchPlugins, makeProxyCallback, stopableStates } from "../utils";
+import { IPCMessagePorts, messageEventHandler } from "./messages.main";
+import { EventPromises } from "../utils/event-promises";
+import { PublicEventAPI } from "../events";
+
+const VanillaWorker = goog.require("worker.vanilla");
 
 class VanillaWorkerMainThread {
   constructor({
     audioContext,
     audioWorker,
-    wasmDataURI,
     audioContextIsProvided,
     inputChannelCount,
     outputChannelCount,
@@ -25,12 +20,13 @@ class VanillaWorkerMainThread {
     this.ipcMessagePorts = new IPCMessagePorts();
     this.eventPromises = new EventPromises();
     this.publicEvents = new PublicEventAPI(this);
-    audioWorker.ipcMessagePorts = this.ipcMessagePorts;
 
+    audioWorker.ipcMessagePorts = this.ipcMessagePorts;
     audioWorker.csoundWorkerMain = this;
+    audioWorker.publicEvents = this.publicEvents;
+
     this.audioWorker = audioWorker;
     this.audioContextIsProvided = audioContextIsProvided;
-    this.wasmDataURI = wasmDataURI;
 
     if (audioContextIsProvided) {
       this.sampleRate = audioContext.sampleRate;
@@ -122,8 +118,6 @@ class VanillaWorkerMainThread {
         log(`event: realtimePerformanceEnded`)();
         // a noop if the stop promise already exists
         this.eventPromises.createStopPromise();
-        clearFsLastmods();
-        syncPersistentStorage(await this.getWorkerFs());
         this.midiPortStarted = false;
         this.publicEvents.triggerRealtimePerformanceEnded(this);
         await this.eventPromises.releaseStopPromises();
@@ -144,8 +138,6 @@ class VanillaWorkerMainThread {
       }
       case "renderEnded": {
         log(`event: renderEnded received, beginning cleanup`)();
-        syncPersistentStorage(await this.getWorkerFs());
-        clearFsLastmods();
         this.publicEvents.triggerRenderEnded(this);
         await this.eventPromises.releaseStopPromises();
         break;
@@ -157,6 +149,9 @@ class VanillaWorkerMainThread {
     }
 
     // forward the message from worker to the audioWorker
+    if (!this.audioWorker.ipcMessagePorts) {
+      this.audioWorker.ipcMessagePorts = this.ipcMessagePorts;
+    }
     await this.audioWorker.onPlayStateChange(newPlayState);
   }
 
@@ -174,7 +169,8 @@ class VanillaWorkerMainThread {
     this.onPlayStateChange("realtimePerformanceResumed");
   }
 
-  async initialize({ withPlugins }) {
+  async initialize({ wasmDataURI, withPlugins }) {
+    const wasmBytes = wasmDataURI();
     if (typeof this.audioWorker.initIframe === "function") {
       await this.audioWorker.initIframe();
     }
@@ -183,23 +179,22 @@ class VanillaWorkerMainThread {
       withPlugins = await fetchPlugins(withPlugins);
     }
     log(`vanilla.main: initialize`)();
-    clearFsLastmods();
     this.csoundWorker = this.csoundWorker || new Worker(VanillaWorker());
-
     this.ipcMessagePorts.mainMessagePort.addEventListener("message", messageEventHandler(this));
+    this.ipcMessagePorts.mainMessagePort2.addEventListener("message", messageEventHandler(this));
     this.ipcMessagePorts.mainMessagePort.start();
 
     const proxyPort = Comlink.wrap(this.csoundWorker);
     this.proxyPort = proxyPort;
+
     this.csoundInstance = await proxyPort.initialize(
       Comlink.transfer(
         {
-          wasmDataURI: this.wasmDataURI,
+          wasmDataURI: wasmBytes,
           messagePort: this.ipcMessagePorts.workerMessagePort,
           requestPort: this.ipcMessagePorts.csoundWorkerFrameRequestPort,
           audioInputPort: this.ipcMessagePorts.csoundWorkerAudioInputPort,
           rtmidiPort: this.ipcMessagePorts.csoundWorkerRtMidiPort,
-          fsPort: this.ipcMessagePorts.workerFilesystemPort,
           // these values are only set if the user provided them
           // during init or by passing audioContext
           sampleRate: this.sampleRate,
@@ -208,11 +203,11 @@ class VanillaWorkerMainThread {
           withPlugins,
         },
         [
+          wasmBytes,
           this.ipcMessagePorts.workerMessagePort,
           this.ipcMessagePorts.csoundWorkerFrameRequestPort,
           this.ipcMessagePorts.csoundWorkerAudioInputPort,
           this.ipcMessagePorts.csoundWorkerRtMidiPort,
-          this.ipcMessagePorts.workerFilesystemPort,
         ],
       ),
     );
@@ -220,16 +215,6 @@ class VanillaWorkerMainThread {
     this.exportApi.pause = this.csoundPause.bind(this);
     this.exportApi.resume = this.csoundResume.bind(this);
     this.exportApi.terminateInstance = this.terminateInstance.bind(this);
-    this.exportApi.fs = persistentFilesystem;
-
-    // sync/getWorkerFs is only for internal usage
-    this.getWorkerFs = makeProxyCallback(
-      proxyPort,
-      this.csoundInstance,
-      "getWorkerFs",
-      this.currentPlayState,
-    );
-    this.getWorkerFs = this.getWorkerFs.bind(this);
 
     this.exportApi.getAudioContext = async () => this.audioWorker.audioContext;
 
@@ -253,6 +238,7 @@ class VanillaWorkerMainThread {
 
     // the default message listener
     this.exportApi.addListener("message", console.log);
+    // this.exportApi.fs = this.fs;
 
     for (const apiK of Object.keys(API)) {
       const reference = API[apiK];
@@ -301,7 +287,7 @@ class VanillaWorkerMainThread {
             }
           };
           this.exportApi.stop = csoundStop.bind(this);
-          csoundStop.toString = () => reference.toString();
+          csoundStop.toString = reference.toString;
           break;
         }
 
@@ -325,12 +311,27 @@ class VanillaWorkerMainThread {
             return resetResult;
           };
           this.exportApi.reset = csoundReset.bind(this);
-          csoundReset.toString = () => reference.toString();
+          csoundReset.toString = reference.toString;
+          break;
+        }
+
+        case "fs": {
+          this.exportApi.fs = {};
+          Object.keys(reference).forEach((method) => {
+            const proxyFsCallback = makeProxyCallback(
+              proxyPort,
+              this.csoundInstance,
+              method,
+              this.currentPlayState,
+            );
+            proxyFsCallback.toString = reference[method].toString;
+            this.exportApi.fs[method] = proxyFsCallback;
+          });
           break;
         }
 
         default: {
-          proxyCallback.toString = () => reference.toString();
+          proxyCallback.toString = reference.toString;
           this.exportApi[csoundApiRename(apiK)] = proxyCallback;
           break;
         }

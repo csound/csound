@@ -750,7 +750,7 @@ static int32_t osc_send2(CSOUND *csound, OSCSEND2 *p)
             out = (char *) p->aux.auxp;
             bsize = p->aux.size;
           }
-          memcpy(out+buffersize, s->data, s->size);
+          memcpy(out+buffersize, s->data, strlen(s->data)+1);
           buffersize += size;
           break;
         case 'G':
@@ -839,11 +839,12 @@ static int32_t osc_send2(CSOUND *csound, OSCSEND2 *p)
       }
       if (UNLIKELY(sendto(p->sock, (void*)out, buffersize, 0, to,
                           sizeof(p->server_addr)) < 0)) {
-        if(p->err_state == 0)
+        if(p->err_state == 0) {
           csound->Warning(csound, Str("OSCsend failed to send "
                                       "message with destination %s to %s:%d\n"),
                                       p->dest->data, p->ipaddress->data,
                           (int) *p->port);
+        }
         p->err_state = 1;
         return OK;
       }

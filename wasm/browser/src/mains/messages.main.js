@@ -45,16 +45,12 @@ export class IPCMessagePorts {
     const { port1: mainMessagePortAudio, port2: workerMessagePortAudio } = new MessageChannel();
     this.mainMessagePortAudio = mainMessagePortAudio;
     this.workerMessagePortAudio = workerMessagePortAudio;
-    const {
-      port1: csoundWorkerFrameRequestPort,
-      port2: audioWorkerFrameRequestPort,
-    } = new MessageChannel();
+    const { port1: csoundWorkerFrameRequestPort, port2: audioWorkerFrameRequestPort } =
+      new MessageChannel();
     this.csoundWorkerFrameRequestPort = csoundWorkerFrameRequestPort;
     this.audioWorkerFrameRequestPort = audioWorkerFrameRequestPort;
-    const {
-      port1: csoundWorkerAudioInputPort,
-      port2: audioWorkerAudioInputPort,
-    } = new MessageChannel();
+    const { port1: csoundWorkerAudioInputPort, port2: audioWorkerAudioInputPort } =
+      new MessageChannel();
     this.csoundWorkerAudioInputPort = csoundWorkerAudioInputPort;
     this.audioWorkerAudioInputPort = audioWorkerAudioInputPort;
     const { port1: csoundWorkerRtMidiPort, port2: csoundMainRtMidiPort } = new MessageChannel();
@@ -65,9 +61,10 @@ export class IPCMessagePorts {
     this.sabWorkerCallbackReply = sabWorkerCallbackReply;
     this.sabMainCallbackReply = sabMainCallbackReply;
 
-    const { port1: mainFilesystemPort, port2: workerFilesystemPort } = new MessageChannel();
-    this.mainFilesystemPort = mainFilesystemPort;
-    this.workerFilesystemPort = workerFilesystemPort;
+    // old-spn worker-port
+    const { port1: mainMessagePort2, port2: workerMessagePort2 } = new MessageChannel();
+    this.mainMessagePort2 = mainMessagePort2;
+    this.workerMessagePort2 = workerMessagePort2;
 
     this.restartAudioWorkerPorts = this.restartAudioWorkerPorts.bind(this);
   }
@@ -80,9 +77,10 @@ export class IPCMessagePorts {
     [this.mainMessagePortAudio, this.workerMessagePortAudio] = iterableMessageChannel();
 
     safelyClosePorts([this.csoundWorkerFrameRequestPort, this.audioWorkerFrameRequestPort]);
-    [
-      this.csoundWorkerFrameRequestPort,
-      this.audioWorkerFrameRequestPort,
-    ] = iterableMessageChannel();
+    [this.csoundWorkerFrameRequestPort, this.audioWorkerFrameRequestPort] =
+      iterableMessageChannel();
+
+    safelyClosePorts([this.mainMessagePort2, this.workerMessagePort2]);
+    [this.mainMessagePort2, this.workerMessagePort2] = iterableMessageChannel();
   }
 }

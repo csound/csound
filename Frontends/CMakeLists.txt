@@ -1,5 +1,4 @@
 option(BUILD_CSBEATS "Build the beats score frontend" ON)
-option(BUILD_WINSOUND "Build the Winsound frontend. Requires FLTK headers and libs." OFF)
 
 if (NOT MSVC)
     find_package(FLEX)
@@ -42,37 +41,6 @@ if(BUILD_CSBEATS)
 
     target_include_directories(csbeats PRIVATE ${CMAKE_CURRENT_BINARY_DIR})
     target_include_directories(csbeats PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/beats)
-endif()
-
-#WinSound
-check_deps(BUILD_WINSOUND FLTK_FOUND)
-if(BUILD_WINSOUND)
-    set(WINSOUND_FL ${CMAKE_CURRENT_SOURCE_DIR}/winsound/winsound.fl)
-    set(WINSOUND_CXX ${CMAKE_CURRENT_BINARY_DIR}/winsound.cxx)
-    set(WINSOUND_H ${CMAKE_CURRENT_BINARY_DIR}/winsound.h)
-    set_source_files_properties(${WINSOUND_CXX} GENERATED)
-    set_source_files_properties(${WINSOUND_H} GENERATED)
-
-	find_program(FLUID_BIN NAMES fluid)
-	if(FLUID_BIN)
-		add_custom_target(winsound_fl COMMAND ${FLUID_BIN} -c -o ${WINSOUND_CXX} -h  ${WINSOUND_H} ${WINSOUND_FL})
-	else()
-		message(WARNING "Could not find fluid executable")
-	endif()
-
-    set(WINSOUND_SRCS ${WINSOUND_CXX} winsound/main.cxx)
-
-    make_executable(winsound "${WINSOUND_SRCS}" "${FLTK_LIBRARIES}")
-    if(NOT MSVC)
-       set_target_properties(winsound
-            PROPERTIES COMPILE_FLAGS "-Wno-nonportable-include-path")
-       target_link_libraries(winsound -ldl)
-    endif()
-    target_link_libraries (winsound ${CSOUNDLIB})
-    add_dependencies(winsound winsound_fl)
-    target_include_directories(winsound PRIVATE ${FLTK_INCLUDE_DIR})
-    target_include_directories(winsound PRIVATE ${CMAKE_CURRENT_BINARY_DIR})
-    target_include_directories(winsound PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/winsound)
 endif()
 
 # debugger command line app

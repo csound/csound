@@ -1,11 +1,10 @@
-import { assoc, keys, reduce } from "ramda";
 import {
   csoundCreate,
   csoundDestroy,
   csoundGetAPIVersion,
   csoundGetVersion,
   csoundInitialize,
-} from "@module/instantiation";
+} from "./modules/instantiation";
 import {
   csoundParseOrc,
   csoundCompileTree,
@@ -20,7 +19,7 @@ import {
   csoundStop,
   csoundCleanup,
   csoundReset,
-} from "@module/performance";
+} from "./modules/performance";
 import {
   csoundGetSr,
   csoundGetKr,
@@ -32,11 +31,11 @@ import {
   csoundGetCurrentTimeSamples,
   csoundGetSizeOfMYFLT,
   csoundSetOption,
-  csoundSetParams,
-  csoundGetParams,
+  csoundSetParams as csoundSetParameters,
+  csoundGetParams as csoundGetParameters,
   csoundGetDebug,
   csoundSetDebug,
-} from "@module/attributes";
+} from "./modules/attributes";
 import {
   csoundGetInputBufferSize,
   csoundGetOutputBufferSize,
@@ -44,15 +43,15 @@ import {
   csoundGetOutputBuffer,
   csoundGetSpin,
   csoundGetSpout,
-} from "@module/rtaudio";
+} from "./modules/rtaudio";
 import {
-  csoundGetMIDIDevList,
+  csoundGetMIDIDevList as csoundGetMIDIDevelopmentList,
   csoundSetMidiCallbacks,
   csoundGetRtMidiName,
   csoundGetMidiOutFileName,
   csoundPushMidiMessage,
   _isRequestingRtMidiInput,
-} from "@module/rtmidi";
+} from "./modules/rtmidi";
 import {
   csoundInputMessage,
   csoundInputMessageAsync,
@@ -60,9 +59,9 @@ import {
   csoundSetControlChannel,
   csoundGetStringChannel,
   csoundSetStringChannel,
-} from "@module/control-events";
-import { csoundGetInputName, csoundGetOutputName } from "@module/general-io";
-import { csoundAppendEnv, csoundShouldDaemonize } from "@module/extra";
+} from "./modules/control-events";
+import { csoundGetInputName, csoundGetOutputName } from "./modules/general-io";
+import { csoundAppendEnv as csoundAppendEnvironment, csoundShouldDaemonize } from "./modules/extra";
 import {
   csoundIsScorePending,
   csoundSetScorePending,
@@ -71,7 +70,7 @@ import {
   csoundGetScoreOffsetSeconds,
   csoundSetScoreOffsetSeconds,
   csoundRewindScore,
-} from "@module/score-handling";
+} from "./modules/score-handling";
 import {
   csoundTableLength,
   csoundTableGet,
@@ -79,10 +78,15 @@ import {
   csoundTableCopyIn,
   csoundTableCopyOut,
   csoundGetTable,
-  csoundGetTableArgs,
+  csoundGetTableArgs as csoundGetTableArguments,
   csoundIsNamedGEN,
   csoundGetNamedGEN,
-} from "@module/table";
+} from "./modules/table";
+import * as fs from "./filesystem/worker-fs";
+
+import { assoc, dissoc, keys, mergeAll, reduce } from "rambda/dist/rambda.esm.js";
+
+goog.declareModuleId("libcsound");
 
 /*
    Don't call these functions directly.
@@ -122,8 +126,8 @@ export const api = {
   csoundGetCurrentTimeSamples,
   csoundGetSizeOfMYFLT,
   csoundSetOption,
-  csoundSetParams,
-  csoundGetParams,
+  csoundSetParams: csoundSetParameters,
+  csoundGetParams: csoundGetParameters,
   csoundGetDebug,
   csoundSetDebug,
   // @module/rtaudio
@@ -134,7 +138,7 @@ export const api = {
   csoundGetSpin,
   csoundGetSpout,
   // @module/rtmidi
-  csoundGetMIDIDevList,
+  csoundGetMIDIDevList: csoundGetMIDIDevelopmentList,
   csoundSetMidiCallbacks,
   csoundGetRtMidiName,
   csoundGetMidiOutFileName,
@@ -151,7 +155,7 @@ export const api = {
   csoundGetInputName,
   csoundGetOutputName,
   // @module/extra
-  csoundAppendEnv,
+  csoundAppendEnv: csoundAppendEnvironment,
   csoundShouldDaemonize,
   // @module/score-handling
   csoundIsScorePending,
@@ -168,11 +172,16 @@ export const api = {
   csoundTableCopyIn,
   csoundTableCopyOut,
   csoundGetTable,
-  csoundGetTableArgs,
+  csoundGetTableArgs: csoundGetTableArguments,
   csoundIsNamedGEN,
   csoundGetNamedGEN,
+  // filesystem
+  fs,
 };
 
 export default function (wasm) {
-  return reduce((accumulator, k) => assoc(k, api[k](wasm), accumulator), {}, keys(api));
+  return mergeAll([
+    reduce((accumulator, k) => assoc(k, api[k](wasm), accumulator), {}, keys(dissoc("fs")(api))),
+    reduce((accumulator, k) => assoc(k, api.fs[k](wasm), accumulator), {}, keys(fs)),
+  ]);
 }

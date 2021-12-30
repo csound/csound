@@ -2526,7 +2526,7 @@ static int32_t tabsuma(CSOUND *csound, TABQUERY1 *p)
       return csound->PerfError(csound, &(p->h),
                                Str("array-variable not a vector"));
 
-    
+
     if (UNLIKELY(offset)) memset(ans, '\0', offset*sizeof(MYFLT));
     if (UNLIKELY(early)) {
         nsmps -= early;
@@ -4580,7 +4580,7 @@ static OENTRY arrayvars_localops[] =
      (SUBR)tabarithset2, (SUBR)tabiapow },
     {"##pow.ki[",  sizeof(TABARITH2), 0, 3, "k[]", "ki[]",
      (SUBR)tabarithset2, (SUBR)tabiapow },
-     
+
     {"##pow.[ak",  sizeof(TABARITH1), 0, 3, "a[]", "a[]k",
      (SUBR)tabarithset1, (SUBR)tabarkpow },
     {"##pow.a[k[", sizeof(TABARITH), 0, 3, "a[]", "a[]k[]",

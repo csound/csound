@@ -181,7 +181,7 @@ int32_t turnoff(CSOUND *csound, LINK *p)/* terminate the current instrument  */
 /* turnoff2 opcode */
 int32_t turnoff2(CSOUND *csound, TURNOFF2 *p, int32_t isStringArg)
 {
-  MYFLT p1;
+  MYFLT p1;                     /* Shoud e a float */
   INSDS *ip, *ip2, *nip;
   int32_t   mode, insno, allow_release;
 
@@ -202,9 +202,9 @@ int32_t turnoff2(CSOUND *csound, TURNOFF2 *p, int32_t isStringArg)
     if(p->h.iopadr == NULL)
       return csoundPerfError(csound, &(p->h),
                              Str("turnoff2: invalid instrument number"));
-    else return csoundInitError(csound, 
+    else return csoundInitError(csound,
                                 Str("turnoff2: invalid instrument number"));
-        
+
   }
   mode = (int32_t) (*(p->kFlags) + FL(0.5));
   allow_release = (*(p->kRelease) == FL(0.0) ? 0 : 1);
@@ -256,8 +256,8 @@ int32_t turnoff2(CSOUND *csound, TURNOFF2 *p, int32_t isStringArg)
       xturnoff_now(csound, ip2);
     }
 
-    
-    
+
+
     if (!p->h.insdshead->actflg) {  /* if current note was deactivated: */
       while (CS_PDS->nxtp != NULL)
         CS_PDS = CS_PDS->nxtp;            /* loop to last opds */

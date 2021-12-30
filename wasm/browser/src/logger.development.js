@@ -1,12 +1,13 @@
 // catches chromium and chrome
 
-import { LoggerFactory } from "lines-logger";
+import LoggerFactoryNS from "lines-logger/lib/index.js";
 
+// console.log("LOGGERF", LoggerFactory);
 // const hasColors =
 //   typeof chrome !== "undefined" ||
 //   (typeof navigator === "object" && navigator.vendor && navigator.vendor.includes("Google"));
 
-const loggerFactory = new LoggerFactory();
+const loggerFactory = new LoggerFactoryNS.LoggerFactory();
 // const noStyleLoggerFactory = new LoggerFactory();
 
 // noStyleLoggerFactory.getColorStyle = () => "";
@@ -45,4 +46,7 @@ export const logCommonUtils = commonUtilsLogger.log;
 export const logWasmModule = wasmModuleLogger.log;
 export const logMidiRequest = midiRequestLogger.log;
 
-export default () => () => {};
+/**
+ * @supress JSC_WRONG_ARGUMENT_COUNT
+ */
+export default () => (ignore) => {};

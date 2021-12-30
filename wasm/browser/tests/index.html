@@ -2,19 +2,45 @@
 <html>
   <head>
     <title>Tests for @csound/browser</title>
-    <link rel="stylesheet" href="https://unpkg.com/mocha/mocha.css" />
+    <link rel="stylesheet" href="/mocha/mocha.css" />
   </head>
   <body>
-    <script src="https://unpkg.com/chai/chai.js"></script>
-    <script src="https://unpkg.com/mocha/mocha.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/sinon@3/pkg/sinon.js"></script>
-
+      <script src="/mocha/mocha.js"></script>
+      <script src="/chai/chai.js"></script>
+      <script src="/sinon/sinon.js"></script>
     <script>
       window.assert = chai.assert;
     </script>
     <div id="mocha"></div>
-    <script src="https://cdn.jsdelivr.net/npm/mocha-webdriver-runner@0.6.3/dist/mocha-webdriver-client.js"></script>
+    <!-- <script src="https://cdn.jsdelivr.net/npm/mocha-webdriver-runner@0.6.3/dist/mocha-webdriver-client.js"></script> -->
     <script type="module" src="tests.js"></script>
+    <!-- <script type="module">
+         const url = "/dist/csound.js";
+         const runIt = async () => {
+         const All = await import(url);
+         const { Csound } = All;
+         const csoundObj = await Csound({
+         useWorker: true,
+         useSPN: false,
+         useSAB: true,
+         outputChannelCount: 2,
+         });
+         await csoundObj.setOption("-odac");
+         await csoundObj.compileOrc(`
+         ksmps=64
+         instr 1
+         out oscili(.25, 110)
+         endin
+         schedule(1,0,1)
+         `);
+         const startReturn = await csoundObj.start();
+         };
+
+         const triggerEvent = "ontouchstart" in document.documentElement ? "touchend" : "click";
+         document.querySelector("#all_tests").addEventListener(triggerEvent, async function () {
+         await runIt();
+         });
+         </script> -->
     <button id="all_tests">Run All Tests</button>
   </body>
 </html>

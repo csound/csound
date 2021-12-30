@@ -880,6 +880,7 @@ public:
   /** returns 1-D numeric array data
    */
   myfltvec &myfltvec_data(int n) { return (myfltvec &)*ptrs[n]; }
+
 };
 
 /** InPlug template base class:
@@ -992,13 +993,13 @@ template <std::size_t N> struct InPlug : OPDS {
     return (const INSDS *) ((CSOUND *)csound)->GetMidiChannel(this)->kinsptr;
   }
 
- /** check if this opcode runs at init time 
+ /** check if this opcode runs at init time
   */
   bool is_init() {
     return this->iopadr ? true : false;
   }
-  
-  /** check if this opcode runs at perf time 
+
+  /** check if this opcode runs at perf time
   */
   bool is_perf() {
       return this->opaddr ? true : false;
@@ -1124,18 +1125,18 @@ template <std::size_t N, std::size_t M> struct Plugin : OPDS {
     return (const INSDS *) ((CSOUND *)csound)->GetMidiChannel(this)->kinsptr;
   }
 
-  /** check if this opcode runs at init time 
+  /** check if this opcode runs at init time
   */
   bool is_init() {
     return this->iopadr ? true : false;
   }
-  
-  /** check if this opcode runs at perf time 
+
+  /** check if this opcode runs at perf time
   */
   bool is_perf() {
       return this->opadr ? true : false;
   }
-    
+
 };
 
 

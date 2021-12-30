@@ -48,18 +48,19 @@ export const dlinit = (hostInstance, pluginInstance, table, csoundInstance) => {
   } else if (pluginInstance.exports.csound_opcode_init || pluginInstance.exports.csound_fgen_init) {
     const csoundOpcodeInit = new WebAssembly.Global({ value: "i32", mutable: true }, 0);
     const csoundFgenInit = new WebAssembly.Global({ value: "i32", mutable: true }, 0);
+
     let tableEnd = table.length;
 
     if (typeof pluginInstance.exports.csound_opcode_init === "function") {
-      table.grow(1);
       csoundOpcodeInit.value = tableEnd;
+      table.grow(1);
       table.set(tableEnd, pluginInstance.exports.csound_opcode_init);
       tableEnd += 1;
     }
 
     if (typeof pluginInstance.exports.csound_fgen_init === "function") {
-      table.grow(1);
       csoundFgenInit.value = tableEnd;
+      table.grow(1);
       table.set(tableEnd, pluginInstance.exports.csound_fgen_init);
       tableEnd += 1;
     }

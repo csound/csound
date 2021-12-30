@@ -21,25 +21,26 @@
     02110-1301 USA
 */
 
-import WorkletWorker from "@root/workers/worklet.singlethread.worker";
-import * as Comlink from "comlink";
-import { logSinglethreadWorkletMain as log } from "@root/logger";
-import { csoundApiRename, fetchPlugins, makeProxyCallback } from "@root/utils";
-import { messageEventHandler, IPCMessagePorts } from "@root/mains/messages.main";
-import { api as API } from "@root/libcsound";
-import { PublicEventAPI } from "@root/events";
-import { enableAudioInput } from "./io.utils";
-import { requestMidi } from "@utils/request-midi";
-import { EventPromises } from "@utils/event-promises";
-import {
-  clearFsLastmods,
-  persistentFilesystem,
-  syncPersistentStorage,
-} from "@root/filesystem/persistent-fs";
+import * as Comlink from "comlink/dist/esm/comlink.mjs";
+import { logSinglethreadWorkletMain as log } from "../logger.js";
+import { csoundApiRename, fetchPlugins, makeProxyCallback } from "../utils.js";
+import { messageEventHandler, IPCMessagePorts } from "./messages.main.js";
+import { api as API } from "../libcsound.js";
+import { PublicEventAPI } from "../events.js";
+import { enableAudioInput } from "./io.utils.js";
+import { requestMidi } from "../utils/request-midi.js";
+import { EventPromises } from "../utils/event-promises.js";
+
+const WorkletWorker = goog.require("worklet.singlethread.worker");
 
 const initializeModule = async (audioContext) => {
   log("Initialize Module")();
-  await audioContext.audioWorklet.addModule(WorkletWorker());
+  try {
+    await audioContext.audioWorklet.addModule(WorkletWorker());
+  } catch (error) {
+    console.error("Error calling audioWorklet.addModule", error);
+    return false;
+  }
   return true;
 };
 
@@ -100,8 +101,6 @@ class SingleThreadAudioWorkletMainThread {
       }
 
       case "realtimePerformanceEnded": {
-        syncPersistentStorage(await this.getWorkerFs());
-        clearFsLastmods();
         this.midiPortStarted = false;
         this.currentPlayState = undefined;
         this.publicEvents && this.publicEvents.triggerRealtimePerformanceEnded(this);
@@ -125,8 +124,6 @@ class SingleThreadAudioWorkletMainThread {
         break;
       }
       case "renderEnded": {
-        syncPersistentStorage(await this.getWorkerFs());
-        clearFsLastmods();
         this.publicEvents.triggerRenderEnded(this);
         break;
       }
@@ -160,7 +157,6 @@ class SingleThreadAudioWorkletMainThread {
     }
 
     await initializeModule(this.audioContext);
-    clearFsLastmods();
 
     this.node = new AudioWorkletNode(this.audioContext, "csound-singlethread-worklet-processor", {
       inputChannelCount: this.inputChannelCount ? [this.inputChannelCount] : 0,
@@ -190,7 +186,7 @@ class SingleThreadAudioWorkletMainThread {
     this.ipcMessagePorts.mainMessagePort.addEventListener("message", messageEventHandler(this));
     this.ipcMessagePorts.mainMessagePort.start();
 
-    await this.workletProxy.initialize(wasmDataURI, withPlugins);
+    await this.workletProxy.initialize(wasmDataURI(), withPlugins);
     const csoundInstance = await makeProxyCallback(
       this.workletProxy,
       undefined,
@@ -204,19 +200,10 @@ class SingleThreadAudioWorkletMainThread {
       "csoundInitialize",
       this.currentPlayState,
     )(0);
+
     this.exportApi.pause = this.csoundPause.bind(this);
     this.exportApi.resume = this.csoundResume.bind(this);
     this.exportApi.terminateInstance = this.terminateInstance.bind(this);
-    this.exportApi.fs = persistentFilesystem;
-
-    // sync/getWorkerFs is only for internal usage
-    this.getWorkerFs = makeProxyCallback(
-      this.workletProxy,
-      csoundInstance,
-      "getWorkerFs",
-      this.currentPlayState,
-    );
-    this.getWorkerFs = this.getWorkerFs.bind(this);
 
     this.exportApi.getAudioContext = async () => this.audioContext;
     this.exportApi.getNode = async () => this.node;
@@ -243,11 +230,7 @@ class SingleThreadAudioWorkletMainThread {
         case "csoundStart": {
           const csoundStart = async function () {
             this.eventPromises.createStartPromise();
-
-            const startResult = await proxyCallback({
-              csound: csoundInstance,
-            });
-
+            const startResult = await proxyCallback({ csound: csoundInstance });
             if (await this.exportApi._isRequestingRtMidiInput(csoundInstance)) {
               requestMidi({
                 onMidiMessage: this.handleMidiInput.bind(this),
@@ -278,6 +261,22 @@ class SingleThreadAudioWorkletMainThread {
           this.exportApi.stop = csoundStop.bind(this);
           break;
         }
+
+        case "fs": {
+          this.exportApi.fs = {};
+          Object.keys(reference).forEach((method) => {
+            const proxyFsCallback = makeProxyCallback(
+              this.workletProxy,
+              csoundInstance,
+              method,
+              this.currentPlayState,
+            );
+            proxyFsCallback.toString = () => reference[method].toString();
+            this.exportApi.fs[method] = proxyFsCallback;
+          });
+          break;
+        }
+
         default: {
           proxyCallback.toString = () => reference.toString();
           this.exportApi[csoundApiRename(apiK)] = proxyCallback;

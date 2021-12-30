@@ -24,8 +24,8 @@
 #include "csoundCore.h"
 #include "csmodule.h"
 
-/* Do not declare these in header files; just define them in the module file 
- * as extern "C", and declare them here as extern. 
+/* Do not declare these in header files; just define them in the module file
+ * as extern "C", and declare them here as extern.
  */
 extern int csoundModuleCreate_mixer(CSOUND *csound);
 extern int csoundModuleCreate_signalflowgraph(CSOUND *csound);
@@ -39,32 +39,34 @@ extern int csoundModuleInit_signalflowgraph(CSOUND *);
 
 
 /**
- * Called from the beginning of csoundInitModules to initialize opcodes and 
- * other modules that normally are dynamically loaded (e.g., C++ opcodes), 
+ * Called from the beginning of csoundInitModules to initialize opcodes and
+ * other modules that normally are dynamically loaded (e.g., C++ opcodes),
  * but that on other platforms (e.g. PNaCl) are statically linked.
- * 
- * The pattern here is to define in the module source code a 
- * "csoundModuleInit_XXX" function, where XXX is the basename of the 
+ *
+ * The pattern here is to define in the module source code a
+ * "csoundModuleInit_XXX" function, where XXX is the basename of the
  * module file, and to call that function here.
  *
  * PLEASE NOTE: csoundModuleInit MUST call csoundModuleInit_XXX;
  * csoundModuleInit_XXX MUST NOT call csoundModuleInit.
  *
- * A similar pattern must be used if it is necessary to call 
+ * A similar pattern must be used if it is necessary to call
  * csoundModuleCreate, etc.
  */
-int init_static_modules(CSOUND *csound) 
+int init_static_modules(CSOUND *csound)
 {
-    int result = 0;
+    int32_t result = 0;
     csoundMessage(csound, "init_static_modules...\n");
-    result |= csoundModuleInit_ampmidid(csound);    
-    result |= csoundModuleInit_doppler(csound);    
+    result |= csoundModuleInit_ampmidid(csound);
+    result |= csoundModuleInit_doppler(csound);
     result |= csoundModuleInit_fractalnoise(csound);
-    result |= csoundModuleInit_ftsamplebank(csound);    
     result |= csoundModuleCreate_mixer(csound);
     result |= csoundModuleInit_mixer(csound);
     result |= csoundModuleCreate_signalflowgraph(csound);
     result |= csoundModuleInit_signalflowgraph(csound);
+    #ifndef __wasi__
+    result |= csoundModuleInit_ftsamplebank(csound);
+    #endif
     //#    result |= csoundModuleInit_ableton_link_opcodes(csound);
     return result;
 }

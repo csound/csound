@@ -1,6 +1,6 @@
-import { trimNull } from "@utils/trim-null";
-import { sizeOfPrimitive } from "@utils/native-sizes";
-import { uint2String } from "@utils/text-encoders";
+import { sizeOfPrimitive } from "./native-sizes.js";
+import { uint2String } from "./text-encoders.js";
+import { trimNull } from "./trim-null.js";
 
 export const structBufferToObject = (jsStruct, buffer) => {
   const [result] = jsStruct.reduce(

@@ -783,27 +783,40 @@ static int32_t lposc3(CSOUND *csound, LPOSC *p)
     return OK;
 }
 
-static int32_t sum(CSOUND *csound, SUM *p)
+static int32_t sum_(CSOUND *csound, SUM *p)
 {
-     IGN(csound);
+    IGN(csound);
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t k, nsmps = CS_KSMPS;
     int32_t   count = (int32_t) p->INOCOUNT;
     MYFLT *ar = p->ar, **args = p->argums;
     MYFLT *ag = *args;
+    MYFLT *in0, *in1, *in2, *in3;
     if (UNLIKELY(offset)) memset(ar, '\0', offset*sizeof(MYFLT));
     if (UNLIKELY(early)) {
       nsmps -= early;
       memset(&ar[nsmps], '\0', early*sizeof(MYFLT));
     }
     memcpy(&ar[offset], &ag[offset], sizeof(MYFLT)*(nsmps-offset));
-    while (--count) {
-      ag = *(++args);                   /* over all arguments */
-      for (k=offset; k<nsmps; k++) {
-        ar[k] += ag[k];                 /* Over audio vector */
+
+    int count4 = count - (count % 4);
+    for(int i=0; i<count4; i+= 4) {
+      in0 = *(args+i);
+      in1 = *(args+i+1);
+      in2 = *(args+i+2);
+      in3 = *(args+i+3);
+      for(k=offset; k<nsmps; k++) {
+        ar[k] += in0[k] + in1[k] +in2[k] + in3[k];
       }
     }
+    for(int i=count4; i<count; i++) {
+      in0 = *(args + i);
+      for(k=offset; k<nsmps; k++) {
+        ar[k] += in0[k];
+      }
+    }
+
     return OK;
 }
 
@@ -2123,7 +2136,7 @@ static OENTRY localops[] = {
 { "poscil3.aa", S(POSC), TR,3, "a", "aajo", (SUBR)posc_set, (SUBR)posc3aa },
 { "lposcil3", S(LPOSC), TR, 3, "a", "kkkkjo", (SUBR)lposc_set,(SUBR)lposc3},
 { "trigger",  S(TRIG),  0,3, "k", "kkk",  (SUBR)trig_set, (SUBR)trig,   NULL  },
-{ "sum",      S(SUM),   0,2, "a", "y",    NULL, (SUBR)sum               },
+{ "sum",      S(SUM),   0,2, "a", "y",    NULL, (SUBR)sum_               },
 { "product",  S(SUM),   0,2, "a", "y",    NULL, (SUBR)product           },
 { "resony",  S(RESONY), 0,3, "a", "akkikooo", (SUBR)rsnsety, (SUBR)resony }
 };

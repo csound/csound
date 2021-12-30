@@ -1,5 +1,5 @@
 #!/bin/sh
-
+# usage: ./release-build.sh <branch> <csound_version>
 set -x
 
 if [ $# == 0 ]; then
@@ -129,38 +129,29 @@ echo "copying apps..."
 cp $DIST/bin/* $APPS64_DIR
 
 echo "copying support libs..."
-#cp $DEPS_BASE/lib/libfltk.1.3.dylib $SUPPORT_LIBS_DIR
-#cp $DEPS_BASE/lib/libfltk_images.1.3.dylib $SUPPORT_LIBS_DIR
-#cp $DEPS_BASE/lib/libfltk_forms.1.3.dylib $SUPPORT_LIBS_DIR
 cp $DEPS_BASE/lib/liblo.7.dylib $SUPPORT_LIBS_DIR
 cp $DEPS_BASE/lib/libsndfile.1.dylib $SUPPORT_LIBS_DIR
 cp $DEPS_BASE/lib/libsamplerate.0.dylib $SUPPORT_LIBS_DIR
 cp $DEPS_BASE/lib/libportaudio.2.dylib $SUPPORT_LIBS_DIR
 cp $DEPS_BASE/lib/libportmidi.dylib $SUPPORT_LIBS_DIR
-#cp $DEPS_BASE/lib/libpng16.16.dylib $SUPPORT_LIBS_DIR
 cp $DEPS_BASE/lib/libFLAC.8.dylib $SUPPORT_LIBS_DIR
 cp $DEPS_BASE/lib/libvorbisenc.2.dylib $SUPPORT_LIBS_DIR
 cp $DEPS_BASE/lib/libvorbis.0.dylib $SUPPORT_LIBS_DIR
 cp $DEPS_BASE/lib/libogg.0.dylib $SUPPORT_LIBS_DIR
 cp $DEPS_BASE/lib/libfluidsynth.1.dylib $SUPPORT_LIBS_DIR
-cp $DEPS_BASE/lib/libwiiuse.dylib $SUPPORT_LIBS_DIR
  
 # chnage IDs
-#install_name_tool -id libfltk.1.3.dylib $SUPPORT_LIBS_DIR/libfltk.1.3.dylib
-#install_name_tool -id libfltk_images.1.3.dylib $SUPPORT_LIBS_DIR/libfltk_images.1.3.dylib
-#install_name_tool -id libfltk_forms.1.3.dylib $SUPPORT_LIBS_DIR/libfltk_forms.1.3.dylib
 install_name_tool -id liblo.7.dylib $SUPPORT_LIBS_DIR/liblo.7.dylib
 install_name_tool -id libsndfile.1.dylib $SUPPORT_LIBS_DIR/libsndfile.1.dylib
 install_name_tool -id libsamplerate.0.dylib $SUPPORT_LIBS_DIR/libsamplerate.0.dylib
 install_name_tool -id libportaudio.2.dylib $SUPPORT_LIBS_DIR/libportaudio.2.dylib
 install_name_tool -id libportmidi.dylib $SUPPORT_LIBS_DIR/libportmidi.dylib
-#install_name_tool -id libpng16.16.dylib $SUPPORT_LIBS_DIR/libpng16.16.dylib
 install_name_tool -id libFLAC.8.dylib $SUPPORT_LIBS_DIR/libFLAC.8.dylib
 install_name_tool -id libvorbisenc.2.dylib $SUPPORT_LIBS_DIR/libvorbisenc.2.dylib
 install_name_tool -id libvorbis.0.dylib $SUPPORT_LIBS_DIR/libvorbis.0.dylib
 install_name_tool -id libogg.0.dylib $SUPPORT_LIBS_DIR/libogg.0.dylib
 install_name_tool -id libfluidsynth.1.dylib $SUPPORT_LIBS_DIR/libfluidsynth.1.dylib
-install_name_tool -id libwiiuse.dylib $SUPPORT_LIBS_DIR/libwiiuse.dylib
+
 
 # change deps for libsndfile
 export OLD_VORBISENC_LIB=$DEPS_BASE/lib/libvorbisenc.2.dylib
@@ -188,50 +179,23 @@ install_name_tool -change $DEPS_BASE/lib/libsamplerate.0.dylib @loader_path/libs
 # and for src_conv (NEEDS CHECKING!)
 install_name_tool -change $DEPS_BASE/lib/libsamplerate.0.dylib $SUPPORT_LIBS_DIR/libsamplerate.0.dylib $APPS64_DIR/src_conv
 install_name_tool -change $DEPS_BASE/lib/libsndfile.1.dylib $SUPPORT_LIBS_DIR/libsndfile.1.dylib $APPS64_DIR/src_conv
-
-#install_name_tool -change $DEPS_BASE/lib/libfltk.1.3.dylib @loader_path/libfltk.1.3.dylib  $SUPPORT_LIBS_DIR/libfltk_images.1.3.dylib
-#install_name_tool -change $DEPS_BASE/lib/libfltk.1.3.dylib @loader_path/libfltk.1.3.dylib  $SUPPORT_LIBS_DIR/libfltk_forms.1.3.dylib
-#install_name_tool -change $DEPS_BASE/lib/libpng16.16.dylib @loader_path/libpng16.16.dylib  $SUPPORT_LIBS_DIR/libfltk_images.1.3.dylib
 install_name_tool -change $DEPS_BASE/lib/libportaudio.2.dylib @loader_path/libportaudio.2.dylib $SUPPORT_LIBS_DIR/libfluidsynth.1.dylib
 
 # install name changes for libs under framework, luajit not included here
 # will make libsndfile location absolute to avoid linking problems for API clients using flat namespace.
 # @loader_path/../../ => /Library/Frameworks/CsoundLib64.framework/
 install_name_tool -change libsndfile.1.dylib @loader_path/../../libs/libsndfile.1.dylib $FRAMEWORK64_DIR/CsoundLib64
-#install_name_tool -change $DEPS_BASE/lib/libsndfile.1.dylib @loader_path/../../libs/libsndfile.1.dylib $FRAMEWORK64_DIR/Versions/6.0/libcsnd6.6.0.dylib
 install_name_tool -change libsndfile.1.dylib @loader_path/../../libs/libsndfile.1.dylib $FRAMEWORK64_DIR/Versions/6.0/libcsnd6.6.0.dylib
-
-#install_name_tool -change $DEPS_BASE/lib/libsndfile.1.dylib @loader_path/../../../../../libs/libsndfile.1.dylib $FRAMEWORK64_DIR/Versions/6.0/Resources/Python/Current/_csnd6.so
-
-# absolute path in _csnd6.so
-#install_name_tool -change $BUILD_DIR/libcsnd6.6.0.dylib /Library/Frameworks/CsoundLib64.framework/Versions/6.0/libcsnd6.6.0.dylib $FRAMEWORK64_DIR/Versions/6.0/Resources/Python/Current/_csnd6.so
-
-# absolute path in _csnd6.so
-#install_name_tool -change $BUILD_DIR/CsoundLib64.framework/Versions/6.0/CsoundLib64 /Library/Frameworks/CsoundLib64.framework/Versions/6.0/CsoundLib64 $FRAMEWORK64_DIR/Versions/6.0/Resources/Python/Current/_csnd6.so
+install_name_tool -change $DEPS_BASE/lib/libsndfile.1.dylib @loader_path/../../../../libs/libsndfile.1.dylib $FRAMEWORK64_DIR/Versions/6.0/Resources/Java/lib_jcsound6.jnilib
+install_name_tool -change $DEPS_BASE/lib/libsndfile.1.dylib @loader_path/../../../../libs/libsndfile.1.dylib $FRAMEWORK64_DIR/Resources/Opcodes64/libstdutil.dylib
+install_name_tool -change libsndfile.1.dylib @loader_path/../../../../libs/libsndfile.1.dylib $FRAMEWORK64_DIR/Resources/Opcodes64/libstdutil.dylib
 
 # absolute path in libcsnd6.6.0.dylib (not @rpath)
 install_name_tool -change @rpath/CsoundLib64.framework/Versions/6.0/CsoundLib64  /Library/Frameworks/CsoundLib64.framework/Versions/6.0/CsoundLib64  $FRAMEWORK64_DIR/Versions/6.0/libcsnd6.6.0.dylib
 install_name_tool -id libcsnd6.6.0.dylib  $FRAMEWORK64_DIR/Versions/6.0/libcsnd6.6.0.dylib
-
-#install_name_tool -change /System/Library/Frameworks/Python.framework/Versions/2.7/Python Python.framework/Versions/2.7/Python $FRAMEWORK64_DIR/Resources/Opcodes64/libpy.dylib
-
-install_name_tool -change $DEPS_BASE/lib/libsndfile.1.dylib @loader_path/../../../../libs/libsndfile.1.dylib $FRAMEWORK64_DIR/Versions/6.0/Resources/Java/lib_jcsound6.jnilib
-
-# Python Library now needs to be re-set to /Library/Frameworks 
-#install_name_tool -change /System/Library/Frameworks/Python.framework/Versions/2.7/Python /Library/Frameworks/Python.framework/Versions/2.7/Python $FRAMEWORK64_DIR/Resources/Opcodes64/libpy.dylib
-install_name_tool -change $DEPS_BASE/lib/libsndfile.1.dylib @loader_path/../../../../libs/libsndfile.1.dylib $FRAMEWORK64_DIR/Resources/Opcodes64/libstdutil.dylib
-#install_name_tool -change $DEPS_BASE/lib/libfltk.1.3.dylib @loader_path/../../../../libs/libfltk.1.3.dylib $FRAMEWORK64_DIR/Resources/Opcodes64/libwidgets.dylib
-#install_name_tool -change $DEPS_BASE/lib/libfltk_images.1.3.dylib @loader_path/../../../../libs/libfltk_images.1.3.dylib $FRAMEWORK64_DIR/Resources/Opcodes64/libwidgets.dylib
-#install_name_tool -change $DEPS_BASE/lib/libfltk_forms.1.3.dylib @loader_path/../../../../libs/libfltk_forms.1.3.dylib $FRAMEWORK64_DIR/Resources/Opcodes64/libwidgets.dylib
-#install_name_tool -change $DEPS_BASE/lib/libfltk.1.3.dylib @loader_path/../../../../libs/libfltk.1.3.dylib $FRAMEWORK64_DIR/Resources/Opcodes64/libvirtual.dylib
-#install_name_tool -change $DEPS_BASE/lib/libfltk_images.1.3.dylib @loader_path/../../../../libs/libfltk_images.1.3.dylib $FRAMEWORK64_DIR/Resources/Opcodes64/libvirtual.dylib
-#install_name_tool -change $DEPS_BASE/lib/libfltk_forms.1.3.dylib @loader_path/../../../../libs/libfltk_forms.1.3.dylib $FRAMEWORK64_DIR/Resources/Opcodes64/libvirtual.dylib
 install_name_tool -change $DEPS_BASE/lib/liblo.7.dylib @loader_path/../../../../libs/liblo.7.dylib $FRAMEWORK64_DIR/Resources/Opcodes64/libosc.dylib
 install_name_tool -change $DEPS_BASE/lib/libportaudio.2.dylib @loader_path/../../../../libs/libportaudio.2.dylib $FRAMEWORK64_DIR/Resources/Opcodes64/librtpa.dylib
-install_name_tool -change $DEPS_BASE/lib/libwiiuse.dylib @loader_path/../../../../libs/libwiiuse.dylib $FRAMEWORK64_DIR/Resources/Opcodes64/libwiimote.dylib
-#install_name_tool -change $DEPS_BASE/lib/libpng16.16.dylib @loader_path/../../../../libs/libpng16.16.dylib $FRAMEWORK64_DIR/Resources/Opcodes64/libimage.dylib
-#install_name_tool -change $DEPS_BASE/lib/libpng16.16.dylib @loader_path/../../../../libs/libpng16.16.dylib $FRAMEWORK64_DIR/Resources/Opcodes64/libwidgets.dylib
-install_name_tool -change $DEPS_BASE/lib/libfluidsynth.1.dylib @loader_path/../../../../libs/libfluidsynth.1.dylib $FRAMEWORK64_DIR/Resources/Opcodes64/libfluidOpcodes.dylib
+#install_name_tool -change $DEPS_BASE/lib/libfluidsynth.1.dylib @loader_path/../../../../libs/libfluidsynth.1.dylib $FRAMEWORK64_DIR/Resources/Opcodes64/libfluidOpcodes.dylib
 install_name_tool -change libportmidi.dylib @loader_path/../../../../libs/libportmidi.dylib $FRAMEWORK64_DIR/Resources/Opcodes64/libpmidi.dylib
 
 echo "...setting permissions..."
@@ -249,12 +213,12 @@ sudo chmod -R 755    CsoundApps64/Package_Contents/usr
 
 echo "building packages ..."
 
-pkgbuild --identifier com.csound.csound6Environment.csoundLib64 --root CsoundLib64/Package_Contents/ --version 1 --scripts ../../PkgResources/CsoundLib64 CsoundLib64.pkg
-pkgbuild --identifier com.csound.csound6Environment.csoundApps64 --root CsoundApps64/Package_Contents/ --version 1 --scripts ../../PkgResources/CsoundApps64 CsoundApps64.pkg
+pkgbuild --identifier com.csound.csound6Environment.csoundLib64 --root CsoundLib64/Package_Contents/ --version $CS_VERSION --scripts ../../PkgResources/CsoundLib64 CsoundLib64.pkg
+pkgbuild --identifier com.csound.csound6Environment.csoundApps64 --root CsoundApps64/Package_Contents/ --version $CS_VERSION --scripts ../../PkgResources/CsoundApps64 CsoundApps64.pkg
 
 echo "building product..."
 
-productbuild --distribution ../../Distribution2.dist --resources ../../PkgResources/en.lproj $PACKAGE_NAME
+productbuild --distribution ../../Distribution2.dist --resources ../../PkgResources/en.lproj --version $CS_VERSION  $PACKAGE_NAME
 
 echo "assembling DMG..."
 

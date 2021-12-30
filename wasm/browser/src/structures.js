@@ -91,12 +91,7 @@ export const CSOUND_PARAMS = [
 ];
 
 /**
- * @typedef CS_MIDIDEVICE
- * @property {string} device_name
- * @property {string} interface_name
- * @property {string} device_id
- * @property {string} midi_module
- * @property {number} isOutput
+ * @typedef CS_MIDIDEVICE Array<Array.<string | number>>>
  */
 export const CS_MIDIDEVICE = [
   /* debug mode, 0 or 1 */

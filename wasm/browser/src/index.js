@@ -1,45 +1,29 @@
-// eslint-disable-next-line no-unused-vars
-import * as Comlink from "comlink";
-import VanillaWorkerMainThread from "@root/mains/vanilla.main";
-import unmuteIosAudio from "unmute-ios-audio";
-import SharedArrayBufferMainThread from "@root/mains/sab.main";
-import AudioWorkletMainThread from "@root/mains/worklet.main";
-import ScriptProcessorNodeMainThread from "@root/mains/old-spn.main";
-import ScriptProcessorNodeSingleThread from "@root/mains/spn.main";
-import SingleThreadAudioWorkletMainThread from "@root/mains/worklet.singlethread.main";
-import wasmDataURI from "@csound/wasm-bin/lib/csound.dylib.wasm.z";
-import { logIndex as log } from "@root/logger";
+/* eslint-disable no-unused-vars */
+import VanillaWorkerMainThread from "./mains/vanilla.main";
+import unmuteIosAudio from "unmute-ios-audio/index.js";
+import SharedArrayBufferMainThread from "./mains/sab.main";
+import AudioWorkletMainThread from "./mains/worklet.main";
+import ScriptProcessorNodeMainThread from "./mains/old-spn.main";
+import ScriptProcessorNodeSingleThread from "./mains/spn.main";
+import SingleThreadAudioWorkletMainThread from "./mains/worklet.singlethread.main";
+import { logIndex as log } from "./logger";
 import {
   areWorkletsSupported,
   isSabSupported,
   isScriptProcessorNodeSupported,
   WebkitAudioContext,
-} from "@root/utils";
+} from "./utils";
+
+const wasmDataURI = goog.require("binary.wasm");
 
 /**
  * CsoundObj API.
- * @namespace CsoundObj
- */
-/**
- * The default entry for @csound/wasm/browser module.
- * If loaded successfully, it returns CsoundObj,
- * otherwise undefined.
- *
- * @param {Object} [params] Initialization parameters
- * @param {AudioContext} [params.audioContext] - Optional AudioContext to use; if none given, an AudioContext will be created.
- * @param {Number} [params.inputChannelCount] - Optional input channel count for AudioNode used with WebAudio graph.
- * Defaults to the value of nchnls_i in useWorker but 2 otherwise.
- * @param {Number} [params.outputChannelCount] - Optional output channel count AudioNode used with WebAudio graph.
- * Defaults to the value of nchnls in useWorker but 2 otherwise.
- * @param {Boolean} [params.autoConnect=true] - Set to configure Csound to automatically connect to the audioContext.destination output.
- * @param {Object[]} [params.withPlugins] - Array of WebAssembly Csound plugin libraries to use with Csound.
- * @param {Boolean} [params.useWorker=false] - Configure to use backend using Web Workers to run Csound in a thread separate from audio callback.
- * @param {Boolean} [params.useSAB=true] - Configure to use SharedArrayBuffers for WebWorker communications if platform supports it.
- * @param {Boolean} [params.useSPN=false] - Configure to use explicitly request ScriptProcessorNode rather than AudioWorklet. Recommended only for debug testing purposes.
  * @async
+ * @export
  * @return {Promise.<CsoundObj|undefined>}
+ * @suppress {misplacedTypeAnnotation}
  */
-export async function Csound({
+const Csound = async function ({
   audioContext,
   inputChannelCount,
   outputChannelCount,
@@ -70,8 +54,6 @@ export async function Csound({
         inputChannelCount: inputChannelCount || 2,
         outputChannelCount: outputChannelCount || 2,
       });
-      // const instance = await createSingleThreadAudioWorkletAPI({audioContext, withPlugins});
-      // return instance;
       return instance.initialize({ wasmDataURI, withPlugins, autoConnect });
     } else if (spnSupport) {
       log("Single Thread ScriptProcessorNode")();
@@ -80,7 +62,11 @@ export async function Csound({
         inputChannelCount: inputChannelCount || 2,
         outputChannelCount: outputChannelCount || 2,
       });
-      return await instance.initialize({ wasmDataURI, withPlugins, autoConnect });
+      return await instance.initialize({
+        wasmDataURI,
+        withPlugins,
+        autoConnect,
+      });
     } else {
       console.error("No detectable WebAudioAPI in current environment");
       return;
@@ -88,8 +74,10 @@ export async function Csound({
   }
 
   if (workletSupport) {
+    // closure-compiler keepme
     log(`worklet support detected`)();
   } else if (spnSupport) {
+    // closure-compiler keepme
     log(`scriptProcessorNode support detected`)();
   } else {
     console.error(`No WebAudio Support detected`);
@@ -125,17 +113,19 @@ export async function Csound({
     hasSABSupport && workletSupport && useSAB
       ? new SharedArrayBufferMainThread({
           audioWorker,
-          wasmDataURI,
           audioContext,
           audioContextIsProvided,
           inputChannelCount,
           outputChannelCount,
         })
-      : new VanillaWorkerMainThread({ audioWorker, wasmDataURI, audioContextIsProvided });
+      : new VanillaWorkerMainThread({
+          audioWorker,
+          audioContextIsProvided,
+        });
 
   if (worker) {
     log(`starting Csound thread initialization via WebWorker`)();
-    await worker.initialize({ withPlugins });
+    await worker.initialize({ wasmDataURI, withPlugins });
     csoundWasmApi = worker.api;
   } else {
     console.error("No detectable WebAssembly support in current environment");
@@ -143,6 +133,4 @@ export async function Csound({
   }
 
   return csoundWasmApi;
-}
-
-export default Csound;
+};

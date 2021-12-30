@@ -345,23 +345,31 @@ non-free rpi `
 
 (This can be done with nano)
 
-After adding that to the sources.list, you should run `sudo apt-get update ` and retry the `sudo apt-get build-dep csound` command.
+It might appear that this repository is not available anymore. 
+In this case, you can try adding the following repository (and equivalent deb-src) to /etc/apt/sources.list : 
+` deb http://legacy.raspbian.org/raspbian/ wheezy main contrib non-free rpi`
 
-1.  `cd ~ `
+After adding that to the sources.list, you should run `sudo apt-get
+update ` and retry the `sudo apt-get build-dep csound` command.
 
-2.  `mkdir csound`
+Following this, you can build as in other linux systems,
 
-3.  `cd csound`
+1.  `mkdir csound`
 
-4.  `git clone https://github.com/csound/csound.git csound`
+2.  `cd csound`
 
-5.  `mkdir cs6make`
+3.  `git clone https://github.com/csound/csound.git csound`
 
-6.  `cd cs6make`
+4.  `mkdir cs6make`
 
-7.  `cmake ../csound -DCMAKE_BUILD_TYPE="Release"` 
+5.  `cd cs6make`
 
-8.  `make -j6`
+6.  `cmake ../csound -DCMAKE_BUILD_TYPE="Release"` 
+
+7.  `make -j6`
+
+If this last step fails, check he section "NEON support for PFFFT lib"
+below. Once you are past it, you can complete the installation,
 
 9.  `sudo make install`
 
@@ -375,9 +383,7 @@ Enabling the Python Bindings requires swig and python-dev packages to be install
 
 `sudo apt-get install swig python-dev`
 
-
 ### NEON support for PFFFT lib
-
 
 From 6.07, Csound includes a choice of FFT libraries. One of these is
 PFFFT, which can avail of NEON vector operations on arm, where these
@@ -389,24 +395,24 @@ options exist.
 by editing the top-level file Custom.cmake.ex, and saving it as
 Custom.cmake. In that file, the line
 
-   set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -W -Wall -mtune=core2")
+   `set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -W -Wall -mtune=core2")`
 
    should be changed to
 
-   set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -mfloat-abi=hard -mfpu=neon")
+   `set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -mfloat-abi=hard -mfpu=neon")`
 
-2. If step 1 fails, there might be no NEON support for your arm chip,
+2. If this step fails, there might be no NEON support for your arm chip,
 or there might be a compiler issue, in which case, you need to change the line above to
 
-    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -DPFFFT_SIMD_DISABLE")
+    `set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -DPFFFT_SIMD_DISABLE")`
 
     in order to disable the vectorial code and use standard C scalar
     operations.
 
-There is no support for NEON on rpi 1 or zero. This is available for
-rpi 2 and 3, though.
+**There is no support for NEON on rpi 1 or zero. This is available for
+rpi 2 and 3, though.**
 
-3. Remember to run cmake again (step 7 above) after any changes to Custom.cmake
+3. Remember to run cmake again (step 6 above) after any changes to Custom.cmake
 
 Fedora 18 <a name="fedora">
 ---------
@@ -633,7 +639,7 @@ cd to csound build directory and run mingw32-make
 
 Windows Visual Studio <a name="msvs">
 --------------
-Instructions can be found [here](https://github.com/csound/csound/blob/develop/msvc).
+Instructions can be found [here](https://github.com/csound/csound/blob/develop/platform/windows/README.md).
 
 Android <a name="android">
 -------------- 

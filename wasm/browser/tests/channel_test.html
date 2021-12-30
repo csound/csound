@@ -5,7 +5,7 @@
   </head>
   <body>
     <script type="module">
-      const url = "/libcsound.dev.mjs";
+      const url = "/dist/csound.js";
 
       const testMono = `
       <CsoundSynthesizer>
@@ -21,7 +21,7 @@
           endin
         </CsInstruments>
         <CsScore>
-          i1 0 4 
+          i1 0 4
         </CsScore>
       </CsoundSynthesizer>
      `;
@@ -38,11 +38,11 @@
           instr 1
             asig = oscili(.5, 440) * linen:a(1, 0, p3, 0.1)
             a0, a1 pan2 asig, line:k(0, p3, 1)
-            out(a0, a1) 
+            out(a0, a1)
           endin
         </CsInstruments>
         <CsScore>
-          i1 0 4 
+          i1 0 4
         </CsScore>
       </CsoundSynthesizer>
      `;
