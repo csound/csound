@@ -228,6 +228,7 @@ Doxyfile
 
 # vscode
 .vscode/
+.cache
 
 html
 manual.zip

@@ -23,6 +23,7 @@ in pkgs.stdenv.mkDerivation {
       -D__wasm32__=1 \
       -D_WASI_EMULATED_SIGNAL \
       -D_WASI_EMULATED_MMAN \
+      -DUSE_DOUBLE=1 \
       -I${csound-wasm}/include \
       -c  plugin_example.c \
       -o plugin_example.o

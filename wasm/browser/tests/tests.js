@@ -67,11 +67,15 @@
 <CsInstruments>
     0dbfs = 1
 
-    chnset("test0", "strChannel")
+    instr 1
+      chnset("test0", "strChannel")
+      turnoff
+    endin
 
 </CsInstruments>
 <CsScore>
     i 1 0 2
+    e 2 0
 </CsScore>
 </CsoundSynthesizer>
 `;
@@ -303,7 +307,7 @@ e
         );
         const cs = await Csound(testWithPlugin);
 
-        assert.equal(0, await cs.compileCsdText(stringChannelTest));
+        assert.equal(0, await cs.compileCsdText(cxxPluginTest));
         await cs.start();
         await cs.stop();
         await cs.terminateInstance();
