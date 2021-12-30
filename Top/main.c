@@ -553,7 +553,7 @@ PUBLIC int csoundStart(CSOUND *csound) // DEBUG
 
       csound->WaitBarrier(csound->barrier2);
     }
-#endif    
+#endif
     csound->engineStatus |= CS_STATE_COMP;
     if (csound->oparms->daemon > 1)
       csoundUDPServerStart(csound,csound->oparms->daemon);

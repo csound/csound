@@ -522,19 +522,20 @@ extern "C" {
   /**
    * Device information
    */
+
   typedef struct {
-    char device_name[64];
-    char device_id[64];
-    char rt_module[64];
+    char device_name[128];
+    char device_id[128];
+    char rt_module[128];
     int max_nchnls;
     int isOutput;
   } CS_AUDIODEVICE;
 
   typedef struct {
-    char device_name[64];
-    char interface_name[64];
-    char device_id[64];
-    char midi_module[64];
+    char device_name[128];
+    char interface_name[128];
+    char device_id[128];
+    char midi_module[128];
     int isOutput;
   } CS_MIDIDEVICE;
 

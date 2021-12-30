@@ -1,3 +1,4 @@
+
 /*
     sequencer.c:
 
@@ -35,16 +36,24 @@ typedef struct {
     MYFLT       *mode;          /* Mode; -1 backward,
                                    0 loop frward;
                                    +ve mutate
-                                   -2 pause
+                                   -1 backward
+                                   -2 back & forth
                                    -3 random
+                                   -4 frward 1-shot
+                                   -5 backward 1-shot
+                                   -6 shuffle
+                                   -7 reset
                                 */
+    MYFLT       *step;          /* Step mode in force */
+    MYFLT       *reset;         /* Reser key */
     MYFLT       *verbos;
  // Internals
     int32_t     max_length;
-    int         cnt;            /* Count loops for mi=uator */
-    int         next;           /* net step nuber */
-    int         time;           /* time in samples to nxt step */
-    int         seq[64];
+    int         cnt;            /* Count loops for mutator */
+    int         next;           /* next step nuber */
+    int         time;           /* time in samples to next step */
+    int         direction;      /* direction of steps */
+    int         seq[128];
 } SEQ;
 
 static int32_t sequencer_init(CSOUND *csound, SEQ *p)
@@ -52,17 +61,19 @@ static int32_t sequencer_init(CSOUND *csound, SEQ *p)
     int i;
     p->max_length = p->riff->sizes[0];
     if (p->max_length != p->instr->sizes[0] ||
-        p->max_length != p->data->sizes[0] ||
-        p->max_length >= 64) {
-            return csound->InitError(csound, Str("Format error"));
+        (p->data->dimensions == 2 && p->max_length != p->data->sizes[1]) ||
+        (p->data->dimensions == 1 && p->max_length != p->data->sizes[0]) ||
+        p->max_length >= 128) {
+      return csound->InitError(csound, Str("sequ: arrays have differing sizes"));
     }
     p->time = 0;
     p->next = 0;
     p->cnt = 1;
+    p->direction = 1;            /* forwards */
     for (i = 0; i<p->riff->sizes[0]; i++)
       p->seq[i] = i;
     /* for (i=0; i<p->riff->sizes[0]; i++) */
-    /*   printf("%d: %d %f\n", i, (int)(p->instr->data[i]), p->riff->data[i]);b */
+    /*   printf("%d: %d %f\n", i, (int)(p->instr->data[i]), p->riff->data[i]); */
     return OK;
 }
 
@@ -75,39 +86,115 @@ static int32_t sequencer(CSOUND *csound, SEQ *p)
 
     if (len<=0) len = 1;
     if (len>=p->max_length) len= p->max_length;
-    if (p->time > 0) {         /* Not yet time to act */
+    if (*p->step!=FL(0.0)) {    /* Step style so no clock */
+      if (*p->step>=FL(0.0)) {  /* a user call to move on */
+        p->time = 0;
+      }
+      else {
+        p->time = csound->ksmps;
+        *p->res = -FL(1.0);
+        return OK;
+      }
+    }
+    else if (*p->reset!= FL(0.0)) {
+      if (*p->verbos) printf("RESET!!\n");
+      goto minus7;
+    }
+    else if (p->time > 0) {         /* Not yet time to act */
       p->time -= csound->ksmps;
       *p->res = -FL(1.0);
       return OK;
     }
     /* Time for an event */
-    // First check mode for next state
-    if (i >= len && mode >= 0) { // End of cycle
-      i = p->next = 0;
+    if (mode >= 0) {
+      if (i >= len) { // End of cycle
+        i = p->next = 0; p->direction = 1;
+      }
     }
-    else if (i < 0 && mode == -1) {
-      p->next = i = len-1;
+    else {
+      switch (mode) {
+      case -1:
+        if (p->cnt==1 || i < 0) { /* backward and end of loop */
+          p->next = i = len-1;
+          p->direction = -1;
+        }
+        break;
+      case -2:
+        if (i<0|| i>=len) {
+          p->direction = -p->direction;
+          p->next = i += p->direction;
+        }
+        break;
+      case -3:
+        i = rand()%len; /* random selection */
+        break;
+      case -4:
+        p->direction = 1;
+        if (i>=len) {
+          *p->res = -1;
+          return OK;
+        }
+        break;
+      case -5:
+        p->direction = -1;
+        if (p->cnt==1) {
+          i = p->next = len-1;
+        }
+        else if (i<0) {
+          *p->res = -1;
+          return OK;
+        }
+        break;
+      case -6:
+        if (i>=len) {
+          int j, k = 0;
+          for (j =0; j<len; j++) {
+            k = rand() % (j+1);
+            if (k != j) p->seq[j] = p->seq[k];
+            p->seq[k] =  j;
+          }
+          p->next = i = 0;
+          p->direction = 1;
+        }
+        break;
+      case -7:
+        minus7:
+        p->time = 0;
+        p->cnt = 1;
+        for (i = 0; i<p->riff->sizes[0]; i++)
+          p->seq[i] = i;
+        i = p->next = 0;
+        break;
+      case -8:
+        *p->res = -1;
+        return OK;
+        break;
+      }
     }
-    else if (i>=len && mode == -2) {
-      *p->res = -FL(1.0);
-      return OK;
-    }
-    else if (mode == -3) i = rand()%len;
     {
-
       MYFLT inst = p->instr->data[p->seq[i]];
       if (inst != 0) {
-        char buff[30];
-        sprintf(buff, "i %0.2f 0 %f %f\n",
-                inst, 60.0/(*p->kbpm)*p->riff->data[p->seq[i]],
-                p->data->data[p->seq[i]]);
-        //printf("%s", buff);
-        csoundReadScore(csound, buff);
+        char buff[100];
+        if (p->data->dimensions==2) {
+          int j;
+          snprintf(buff, 99, "i %0.2f 0 %f ",
+                  inst, 60.0/(*p->kbpm)*p->riff->data[p->seq[i]]);
+          for (j=0; j< p->data->sizes[0]; j++)
+            snprintf(buff+strlen(buff), 99-strlen(buff), "%f ",
+                    p->data->data[(j*p->max_length)+p->seq[i]]);
+          snprintf(buff+strlen(buff), 99-strlen(buff), "\n");
+        }
+        else
+          sprintf(buff, "i %0.2f 0 %f %f\n",
+                  inst, 60.0/(*p->kbpm)*p->riff->data[p->seq[i]],
+                  p->data->data[p->seq[i]]);
+        printf("%s", buff);
+        csoundReadScore(csound, buff); /* schedule instr for event */
       }
       p->time = (p->riff->data[i] * csound->esr * 60.0) / *p->kbpm;
       if (*p->verbos)
-        printf("Step %d riff %d instr %d len %f\n",
-               i,p->seq[i], (int)(p->instr->data[p->seq[i]]), p->riff->data[p->seq[i]]);
+        printf("Step %d riff %d instr %0.2f len %f\n",
+               i,p->seq[i], p->instr->data[p->seq[i]], p->riff->data[p->seq[i]]);
       // Mutate every mode events
       if (mode > 0 && len>1 && p->cnt%mode == 0) {
         int r1, r2;
@@ -124,19 +211,20 @@ static int32_t sequencer(CSOUND *csound, SEQ *p)
         }
       }
       *p->res = (MYFLT)i;
-      if (*p->mode >=0) p->next++;
-      else if (mode == -1) p->next--;
-      if (mode != -2) p->cnt++;
+      p->next += p->direction;
+      //if (*p->mode >=0) p->next++;
+      //else if (mode == -1) p->next--;
+      if (mode != -8) p->cnt++;
     }
     if (*p->verbos)
       printf("Next Step %d time = %d samples\n", p->next, p->time);
     return OK;
-    }
+}
 
 static OENTRY sequencer_localops[] =
   {
    { "sequ", sizeof(SEQ), 0, 3, "k",
-     "i[]i[]i[]kkOo",
+     "i[]i[]i[]kkOOOo",
      (SUBR) sequencer_init, (SUBR) sequencer
   },
 };

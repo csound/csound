@@ -41,21 +41,21 @@ typedef struct LPCparam_ {
 } LPCparam;
 
 
-/** autocorrelation 
+/** autocorrelation
     computes autocorr out-of-place using spectral or
     time-domain methods.
     r - output
     s - input
     size - input size
     buf - FFT buffer (if NULL, time-domain autocorr is used)
-    N - FFT size (power-of-two >= size*2-1) 
+    N - FFT size (power-of-two >= size*2-1)
     returns r
 */
 MYFLT *csoundAutoCorrelation(CSOUND *csound, MYFLT *r, MYFLT *s, int size,
                              MYFLT *buf, int N){
   if(buf != NULL) {
     int32_t i;
-    MYFLT ai,ar; 
+    MYFLT ai,ar;
     memset(buf, 0, sizeof(MYFLT)*N);
     memcpy(buf,s,sizeof(MYFLT)*size);
     csoundRealFFT(csound,buf,N);
@@ -98,7 +98,7 @@ void *csoundLPsetup(CSOUND *csound, int N, int M) {
     p->E = csound->Calloc(csound, sizeof(MYFLT)*(M+1));
     p->k = csound->Calloc(csound, sizeof(MYFLT)*(M+1));
     p->b = csound->Calloc(csound, sizeof(MYFLT)*(M+1)*(M+1));
-    for(fn=2; fn < N*2-1; fn*=2); 
+    for(fn=2; fn < N*2-1; fn*=2);
     p->ftbuf = csound->Calloc(csound, sizeof(MYFLT)*fn);
   }
 
@@ -1011,7 +1011,7 @@ int32_t lpcpvs(CSOUND *csound, LPCPVS *p){
 
 int32_t pvscoefs_init(CSOUND *csound, PVSCFS *p) {
   unsigned int Nbytes = (p->fin->N+2)*sizeof(MYFLT);
-  unsigned int Mbytes; 
+  unsigned int Mbytes;
   p->N = p->fin->N;
   p->M = *p->iord;
   Mbytes = (p->M+1)*sizeof(MYFLT);

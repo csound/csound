@@ -799,7 +799,7 @@ static int32_t sum_(CSOUND *csound, SUM *p)
       memset(&ar[nsmps], '\0', early*sizeof(MYFLT));
     }
     memcpy(&ar[offset], &ag[offset], sizeof(MYFLT)*(nsmps-offset));
-    
+
     int count4 = count - (count % 4);
     for(int i=0; i<count4; i+= 4) {
       in0 = *(args+i);
@@ -814,9 +814,9 @@ static int32_t sum_(CSOUND *csound, SUM *p)
       in0 = *(args + i);
       for(k=offset; k<nsmps; k++) {
         ar[k] += in0[k];
-      }  
+      }
     }
-    
+
     return OK;
 }
 

@@ -129,15 +129,19 @@ int listDevices(CSOUND *csound, CS_AUDIODEVICE *list, int isOutput){
       if ((isOutput && dev_info->maxOutputChannels > 0) ||
           (!isOutput && dev_info->maxInputChannels > 0)) {
         //strncpy(list[j].device_name, dev_info->name, 63);
-        snprintf(list[j].device_name, 63, "%s [%s, %d in, %d out]",
+        snprintf(list[j].device_name, sizeof(list[j].device_name)-1, "%s [%s, %d in, %d out]",
                  dev_info->name, api_info->name, dev_info->maxInputChannels, dev_info->maxOutputChannels);
         if (isOutput) {
           snprintf(tmp, 256, "dac%d", j);
         } else {
           snprintf(tmp, 256, "adc%d", j);
         }
-        strncpy(list[j].device_id, tmp, 63); list[j].device_id[63]='\0';
-        strncpy(list[j].rt_module, s, 63); list[j].rt_module[63]='\0';
+        strncpy(list[j].device_id, tmp, sizeof(list[j].device_id)-1);
+        list[j].device_id[sizeof(list[j].device_id)-1]='\0';
+
+        strncpy(list[j].rt_module, s, sizeof(list[j].rt_module)-1);
+        list[j].rt_module[sizeof(list[j].rt_module)-1]='\0';
+
         list[j].max_nchnls =
           isOutput ?  dev_info->maxOutputChannels : dev_info->maxInputChannels;
         list[j].isOutput = isOutput;
@@ -422,14 +426,14 @@ static int paBlockingReadWriteStreamCallback(const void *input,
   IGN(statusFlags);
   IGN(timeInfo);
 
-  //#ifndef __MACH__    
+  //#ifndef __MACH__
   if (pabs->complete == 1) {
     if (pabs->mode & 2)
       paClearOutputBuffer(pabs, paOutput);
     return paContinue;
   }
   //#endif
- 
+
 #ifdef WIN32
   if (pabs->paStream == NULL
       || pabs->paused
@@ -454,7 +458,7 @@ static int paBlockingReadWriteStreamCallback(const void *input,
     csound->WaitThreadLock(pabs->paLock, (size_t) 500);
     err = 0;
     #endif*/
- 
+
   if (pabs->mode & 1) {
   int n = pabs->inBufSamples;
   int i = 0;

@@ -304,14 +304,13 @@ int32_t mp3len_(CSOUND *csound, MP3LEN *p, int32_t stringname)
       return csound->InitError(csound, "%s", mp3dec_error(r));
     }
     close(fd);
-
-    if(!strcmp(csound->GetOpcodeName(&p->h), "mp3len"))
+    if(!strcmp(csound->GetOpcodeName(&p->h), "mp3len.i"))
       *p->ir = (MYFLT)mpainfo.duration;
-    else if(!strcmp(csound->GetOpcodeName(&p->h), "mp3sr"))
+    else if(!strcmp(csound->GetOpcodeName(&p->h), "mp3sr.i"))
       *p->ir = (MYFLT) mpainfo.frequency;
-    else if(!strcmp(csound->GetOpcodeName(&p->h), "mp3bitrate"))
+    else if(!strcmp(csound->GetOpcodeName(&p->h), "mp3bitrate.i"))
       *p->ir = (MYFLT) mpainfo.bitrate;
-    else if(!strcmp(csound->GetOpcodeName(&p->h), "mp3nchnls"))
+    else if(!strcmp(csound->GetOpcodeName(&p->h), "mp3nchnls.i"))
       *p->ir = (MYFLT) mpainfo.channels;
 
     mp3dec_uninit(mpa);

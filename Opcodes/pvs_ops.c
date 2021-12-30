@@ -48,7 +48,7 @@ int32_t pvsopc_ModuleInit(CSOUND *csound)
 
 /*
 PUBLIC int32_t csoundModuleInfo(void)
-{
+{s
     return ((CS_APIVERSION << 16) + (CS_APISUBVER << 8) + (int32_t
 ) sizeof(MYFLT));
 }

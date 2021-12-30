@@ -323,17 +323,17 @@ static void rtJack_AllocateBuffers(RtJackGlobals *p)
 }
 
 static void listPorts(CSOUND *csound, int isOutput){
-    int i,n = listDevices(csound,NULL,isOutput);
-    CS_AUDIODEVICE *devs = (CS_AUDIODEVICE *)
-      csound->Malloc(csound, n*sizeof(CS_AUDIODEVICE));
-    listDevices(csound,devs,isOutput);
-    csound->Message(csound, "Jack %s ports:\n",
-                    isOutput ? "output" : "input");
-    for(i=0; i < n; i++)
-      csound->Message(csound, " %d: %s (%s:%s)\n",
-                      i, devs[i].device_id,
-                      isOutput ? "dac" : "adc",
-                      devs[i].device_name);
+    int i, n = listDevices(csound, NULL, isOutput);
+    CS_AUDIODEVICE *devs = csound->Malloc(csound, (size_t)n*sizeof(CS_AUDIODEVICE));
+    listDevices(csound, devs, isOutput);
+    if(csound->GetMessageLevel(csound) || csound->GetDebug(csound)) {
+      csound->Message(csound, "Jack %s ports:\n", isOutput ? "output" : "input");
+      for(i=0; i < n; i++)
+        csound->Message(csound, " %d: %s (%s:%s)\n",
+                        i, devs[i].device_id,
+                        isOutput ? "dac" : "adc",
+                        devs[i].device_name);
+    }
     csound->Free(csound,devs);
 }
 
@@ -373,16 +373,9 @@ static void rtJack_RegisterPorts(RtJackGlobals *p)
 }
 
 
-// static DonnaSortOptions sort_options_natural = DONNA_SORT_NATURAL_ORDER;
-
-
 static int strcmp_natural (const void *s1, const void *s2)
 {
-    /* by default we invert results (reverse==-1), because we actually print
-     * then in reversed order */
-    // return reverse * strcmp_ext (* (char **) s1, * (char **) s2, sort_options);
     return alphanum_cmp(* (char **) s1, * (char **) s2);
-    // return strcmp_ext (* (char **) s1, * (char **) s2, sort_options_natural);
 }
 
 /* connect to JACK server, set up ports and ring buffers, */
@@ -497,8 +490,8 @@ static void openJackStreams(RtJackGlobals *p)
 
     /* connect ports if requested */
     int sortPorts = 1;   // this could be a command line flag (--unsorted-devices)
-    if (p->inputEnabled) {
-      listPorts(csound,0);
+    if (p->inputEnabled) {  
+      listPorts(csound, 0);
       if (p->inDevNum >= 0){
         int num = p->inDevNum;
         unsigned long portFlags =  JackPortIsOutput;
@@ -512,7 +505,7 @@ static void openJackStreams(RtJackGlobals *p)
 
         for (i = 0; i < p->nChannels_i; i++) {
           if (num+i+1 >= (int)numPorts){
-            csound->Message(csound, Str("Trying to connect input channel %d but there are "
+            csound->Warning(csound, Str("Trying to connect input channel %d but there are "
                                         "not enough ports available\n"), num+i);
             break;
           }
@@ -585,13 +578,13 @@ static void openJackStreams(RtJackGlobals *p)
       if (p->outDevNum >= 0) {
         int num = p->outDevNum;
         unsigned long portFlags =  JackPortIsInput;
-        // gibing NULL as the regex selection, all ports will be returned.
+        // giving NULL as the regex selection, all ports will be returned.
         // the NN in dacNN is used to determine the first port
         char **portNames = (char**) jack_get_ports(p->client,
                                                    (char*) NULL,
                                                    JACK_DEFAULT_AUDIO_TYPE,
                                                    portFlags);
-        // jack_get_ports returned a NULL terminated array of strings
+        // jack_get_ports returns a NULL terminated array of strings
         size_t numPorts = 0;
         if (portNames != NULL)
           for(; portNames[numPorts] != NULL; numPorts++);
@@ -1620,7 +1613,6 @@ PUBLIC int csoundModuleInit(CSOUND *csound)
       return 0;
     if(O.msglevel || O.odebug)
      csound->Message(csound, "%s", Str("rtmidi: JACK module enabled\n"));
-    
     {
       csound->SetExternalMidiInOpenCallback(csound, midi_in_open);
       csound->SetExternalMidiReadCallback(csound, midi_in_read);

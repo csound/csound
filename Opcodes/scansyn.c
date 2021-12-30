@@ -314,7 +314,7 @@ static int32_t scsnu_init(CSOUND *csound, PSCSNU *p)
       // random fill
       int i;
       MYFLT *x1 = p->x1;
-      for (i=0; i<p->len; i++) 
+      for (i=0; i<p->len; i++)
         x1[i] = temp*(MYFLT)(rand()-(RAND_MAX/2))/(RAND_MAX/2);
     }
     else if ((int32_t)*p->i_init < 0) {

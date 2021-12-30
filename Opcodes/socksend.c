@@ -844,7 +844,7 @@ static int32_t osc_send2(CSOUND *csound, OSCSEND2 *p)
                                       "message with destination %s to %s:%d\n"),
                                       p->dest->data, p->ipaddress->data,
                           (int) *p->port);
-        }  
+        }
         p->err_state = 1;
         return OK;
       }
