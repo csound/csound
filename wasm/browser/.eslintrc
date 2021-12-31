@@ -21,6 +21,7 @@
     "unicorn/no-nested-ternary": "off",
     "unicorn/no-array-callback-reference": "off",
     "unicorn/no-array-for-each": "off",
-    "unicorn/numeric-separators-style": "off"
+    "unicorn/numeric-separators-style": "off",
+    "unicorn/require-post-message-target-origin": "off"
   }
 }

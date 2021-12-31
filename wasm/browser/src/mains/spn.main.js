@@ -25,7 +25,7 @@ import libcsoundFactory from "../libcsound";
 import loadWasm from "../module";
 import MessagePortState from "../utils/message-port-state";
 import { isEmpty } from "rambda/dist/rambda.esm.js";
-import { csoundApiRename, fetchPlugins, makeSingleThreadCallback, stopableStates } from "../utils";
+import { csoundApiRename, fetchPlugins, makeSingleThreadCallback } from "../utils";
 import { messageEventHandler } from "./messages.main";
 import { PublicEventAPI } from "../events";
 import { EventPromises } from "../utils/event-promises";

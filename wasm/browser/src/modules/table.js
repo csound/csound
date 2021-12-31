@@ -1,3 +1,4 @@
+/* eslint-disable unicorn/prevent-abbreviations */
 import { uint2String } from "../utils/text-encoders.js";
 /*
    csound table module from <csound.h>

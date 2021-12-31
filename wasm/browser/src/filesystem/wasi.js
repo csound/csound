@@ -300,7 +300,7 @@ WASI.prototype.fd_read = function (fd, iovs, iovsLength, nread) {
     console.log("fd_read", fd, iovs, iovsLength, nread, arguments);
   }
   const buffers = this.fd[fd] && this.fd[fd].buffers;
-  const totalBuffersLength = buffers.reduce((acc, b) => acc + b.length, 0);
+  const totalBuffersLength = buffers.reduce((accumulator, b) => accumulator + b.length, 0);
   const memory = this.getMemory();
 
   if (!buffers || buffers.length === 0) {
@@ -748,7 +748,7 @@ WASI.prototype.readdir = function (dirname /* string */) {
 WASI.prototype.writeFile = function (fname /* string */, data /* Uint8Array */) {
   const filePath = assertLeadingSlash(normalizePath(fname));
 
-  let buffers = this.findBuffers(filePath);
+  const buffers = this.findBuffers(filePath);
 
   if (!buffers) {
     const nextFd = Object.keys(this.fd).length;

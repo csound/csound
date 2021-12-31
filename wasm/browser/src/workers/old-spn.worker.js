@@ -402,7 +402,7 @@ const initialize = async ({
     const startPromise = new Promise((resolve, reject) => {
       startPromize = resolve;
       setTimeout(() => {
-        if (typeof startPromizes[contextUid] === "function") {
+        if (typeof startPromize === "function") {
           reject(new Error(`a call to start() timed out`));
           startPromize = undefined;
           return -1;
