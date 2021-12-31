@@ -3,7 +3,7 @@ import { spawn } from "child_process";
 import MochaWebdriverRunner from "mocha-webdriver-runner";
 const { runMochaWebDriverTest } = MochaWebdriverRunner;
 
-const httpServerPs = spawn(`npx http-server ./tests -c-1 --no-dotfiles -p 8081`, { shell: true });
+const httpServerPs = spawn(`node tests/server.cjs`, { shell: true, env: { PORT: "8081" } });
 
 const webDriverCapabilities = {
   browserName: "chrome",
@@ -28,6 +28,7 @@ if (CI_BIN && fs.existsSync(CI_BIN)) {
 
 (async function () {
   let result;
+  await new Promise((resolve) => setTimeout(resolve, 1000));
   try {
     result = await runMochaWebDriverTest(
       webDriverCapabilities,

@@ -17,6 +17,8 @@ const server = http.createServer(function onRequest(req, res) {
   serve(req, res, finalhandler(req, res));
 });
 
+const PORT = process.env.PORT || "8080";
+
 // Listen
-console.log("Test server open on localhost:8080");
-server.listen(8080);
+console.log(`Test server open on localhost:${PORT}`);
+server.listen(PORT);
