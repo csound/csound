@@ -67,6 +67,13 @@ var LibcsoundUncloned;
 // not sure if this hack is a good idea
 var process = { cwd: () => "/" };
 
+/**
+ * @suppress JSC_DUP_VAR_DECLARATION_TYPE_MISMATCH
+ * @param {!(function(!MIDIInput))}
+ * @return {IteratorIterable<string>}
+ */
+MIDIInputMap.prototype.values = function () {};
+
 /** @typedef {number}  */
 var CsoundInst;
 

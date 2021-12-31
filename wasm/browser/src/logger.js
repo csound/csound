@@ -1,8 +1,3 @@
-// __LOGGER__;
-/**
- * @supress JSC_WRONG_ARGUMENT_COUNT
- */
-
 import LoggerFactoryNS from "lines-logger/lib/index.js";
 
 let logWorkletMain,
@@ -26,63 +21,63 @@ const isProd = goog.define("PRODUCTION", false);
 
 if (isProd) {
   /**
-   * @supress JSC_WRONG_ARGUMENT_COUNT
+   * @suppress JSC_WRONG_ARGUMENT_COUNT
    */
   logWorkletMain = (ignore1) => (ignore2) => {};
   /**
-   * @supress JSC_WRONG_ARGUMENT_COUNT
+   * @suppress JSC_WRONG_ARGUMENT_COUNT
    */
   logWorkletWorker = (ignore1) => (ignore2) => {};
   /**
-   * @supress JSC_WRONG_ARGUMENT_COUNT
+   * @suppress JSC_WRONG_ARGUMENT_COUNT
    */
   logSABMain = (ignore1) => (ignore2) => {};
   /**
-   * @supress JSC_WRONG_ARGUMENT_COUNT
+   * @suppress JSC_WRONG_ARGUMENT_COUNT
    */
   logSABWorker = (ignore1) => (ignore2) => {};
   /**
-   * @supress JSC_WRONG_ARGUMENT_COUNT
+   * @suppress JSC_WRONG_ARGUMENT_COUNT
    */
   logVANMain = (ignore1) => (ignore2) => {};
   /**
-   * @supress JSC_WRONG_ARGUMENT_COUNT
+   * @suppress JSC_WRONG_ARGUMENT_COUNT
    */
   logVANWorker = (ignore1) => (ignore2) => {};
   /**
-   * @supress JSC_WRONG_ARGUMENT_COUNT
+   * @suppress JSC_WRONG_ARGUMENT_COUNT
    */
   logOldSpnMain = (ignore1) => (ignore2) => {};
   /**
-   * @supress JSC_WRONG_ARGUMENT_COUNT
+   * @suppress JSC_WRONG_ARGUMENT_COUNT
    */
   logOldSpnWorker = (ignore1) => (ignore2) => {};
   /**
-   * @supress JSC_WRONG_ARGUMENT_COUNT
+   * @suppress JSC_WRONG_ARGUMENT_COUNT
    */
   logIndex = (ignore1) => (ignore2) => {};
   /**
-   * @supress JSC_WRONG_ARGUMENT_COUNT
+   * @suppress JSC_WRONG_ARGUMENT_COUNT
    */
   logSPNMainSingle = (ignore1) => (ignore2) => {};
   /**
-   * @supress JSC_WRONG_ARGUMENT_COUNT
+   * @suppress JSC_WRONG_ARGUMENT_COUNT
    */
   logSinglethreadWorkletMain = (ignore1) => (ignore2) => {};
   /**
-   * @supress JSC_WRONG_ARGUMENT_COUNT
+   * @suppress JSC_WRONG_ARGUMENT_COUNT
    */
   logSinglethreadWorkletWorker = (ignore1) => (ignore2) => {};
   /**
-   * @supress JSC_WRONG_ARGUMENT_COUNT
+   * @suppress JSC_WRONG_ARGUMENT_COUNT
    */
   logCommonUtils = (ignore1) => (ignore2) => {};
   /**
-   * @supress JSC_WRONG_ARGUMENT_COUNT
+   * @suppress JSC_WRONG_ARGUMENT_COUNT
    */
   logWasmModule = (ignore1) => (ignore2) => {};
   /**
-   * @supress JSC_WRONG_ARGUMENT_COUNT
+   * @suppress JSC_WRONG_ARGUMENT_COUNT
    */
   logMidiRequest = (ignore1) => (ignore2) => {};
 } else {
@@ -132,7 +127,7 @@ if (isProd) {
 }
 
 /**
- * @supress JSC_WRONG_ARGUMENT_COUNT
+ * @suppress JSC_WRONG_ARGUMENT_COUNT
  */
 export default (ignore1) => (ignore2) => {};
 
