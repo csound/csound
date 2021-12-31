@@ -71,6 +71,7 @@ const compilationSequence = [
     postbuild: () => inlineWebworker("sab.worker.js", "worker.sab", false, []),
     output_wrapper: trimString(`(function(){%output%}).call(this);
                     //# sourceMappingURL=__compiled.sab.worker.js.map`),
+    define: DEV ? [] : ["PRODUCTION=1"],
   },
   {
     entry_point: "./src/workers/vanilla.worker.js",
@@ -80,32 +81,19 @@ const compilationSequence = [
     postbuild: () => inlineWebworker("vanilla.worker.js", "worker.vanilla", false, []),
     output_wrapper: trimString(`(function(){%output%}).call(this);
                     //# sourceMappingURL=__compiled.vanilla.worker.js.map`),
+    define: DEV ? [] : ["PRODUCTION=1"],
   },
   {
     entry_point: "./src/workers/worklet.worker.js",
     js_output_file: path.join(rootDir, "dist", "__compiled.worklet.worker.js"),
     create_source_map: path.join(rootDir, "dist", "__compiled.worklet.worker.js.map"),
     source_map_location_mapping: "./src|/dist/src",
-    // define: ["WITH_TEXT_ENCODER_POLYFILL"],
     output_wrapper: trimString(`
     let self = AudioWorkletGlobalScope;
     %output%
     //# sourceMappingURL=__compiled.worklet.worker.js.map`),
     postbuild: () => inlineWebworker("worklet.worker.js", "worker.worklet", true, []),
-    // postbuild: () => {
-    //   // monkey patch away non existing self
-    //   const loc = path.join(rootDir, "dist", "__compiled.worklet.worker.js");
-    //   fs.writeFileSync(
-    //     loc,
-    //     fs
-    //       .readFileSync(loc)
-    //       .toString()
-    //       .replace("global=this||self", "global=AudioWorkletGlobalScope")
-    //       .replace(/TextDecoder/g, "this.TextDecoder")
-    //       .replace(/TextEncoder/g, "this.TextEncoder")
-    //   );
-    //   inlineWebworker("worklet.worker.js", "worker.worklet", true, []);
-    // },
+    define: DEV ? [] : ["PRODUCTION=1"],
   },
   {
     entry_point: "./src/workers/worklet.singlethread.worker.js",
@@ -115,7 +103,7 @@ const compilationSequence = [
       path.join(rootDir, "dist", "__compiled.worklet.singlethread.worker.js") +
       "|" +
       "dist/src/workers/worklet.singlethread.worker.js",
-    define: ["WITH_TEXT_ENCODER_POLYFILL"],
+    define: ["WITH_TEXT_ENCODER_POLYFILL=1", "PRODUCTION=1"],
     output_wrapper: trimString(`
     let self = AudioWorkletGlobalScope;
     %output%
@@ -123,20 +111,6 @@ const compilationSequence = [
     //# sourceMappingURL=/dist/__compiled.worklet.singlethread.worker.js.map`),
     postbuild: () =>
       inlineWebworker("worklet.singlethread.worker.js", "worklet.singlethread.worker", true, []),
-    // postbuild: () => {
-    //   // monkey patch away non existing self
-    //   const loc = path.join(rootDir, "dist", "__compiled.worklet.singlethread.worker.js");
-    //   fs.writeFileSync(
-    //     loc,
-    //     fs
-    //       .readFileSync(loc)
-    //       .toString()
-    //       // .replace("global=this||self", "global=AudioWorkletGlobalScope")
-    //       .replace(/TextDecoder/g, "goog.global.TextDecoder")
-    //       .replace(/TextEncoder/g, "goog.global.TextEncoder")
-    //   );
-    //   inlineWebworker("worklet.singlethread.worker.js", "worklet.singlethread.worker", true, []);
-    // },
   },
   {
     entry_point: "./src/workers/old-spn.worker.js",
@@ -146,11 +120,13 @@ const compilationSequence = [
     output_wrapper: trimString(`(function(){%output%}).call(this);
                     //# sourceMappingURL=__compiled.old-spn.worker.js.map`),
     postbuild: () => inlineWebworker("old-spn.worker.js", "worker.old_spn", false, []),
+    define: DEV ? [] : ["PRODUCTION=1"],
   },
   {
     entry_point: "./src/index.js",
     js_output_file: path.join(rootDir, "dist", "csound.js"),
     create_source_map: path.join(rootDir, "dist", "csound.js.map"),
+    define: DEV ? [] : ["PRODUCTION=1"],
     output_manifest: "output.manifest.txt",
     output_wrapper: trimString(`%output%
       const Csound = Csound$$module$src$index;
