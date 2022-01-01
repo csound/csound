@@ -25,7 +25,9 @@
 #include <stdlib.h>
 int mkstemp(char *);
 #include <ctype.h>
+#ifndef __wasi__
 #include <errno.h>
+#endif
 #include <stdlib.h>
 #include "corfile.h"
 

@@ -72,8 +72,11 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <errno.h>
+
+#if !(defined (__wasi__))
 #include <setjmp.h>
+#include <errno.h>
+#endif
 
 #include "csoundCore.h"
 #include "csmodule.h"
@@ -88,7 +91,7 @@
 #endif
 #endif
 
-#if !(defined (NACL))
+#if !(defined (NACL)) && !(defined (__wasi__))
 #if defined(LINUX) || defined(NEW_MACH_CODE) || defined(__HAIKU__)
 #include <dlfcn.h>
 #elif defined(WIN32)
@@ -135,7 +138,7 @@ static  const   char    *plugindir_envvar =   "OPCODE6DIR";
 static  const   char    *plugindir64_envvar = "OPCODE6DIR64";
 
 /* default directory to load plugins from if environment variable is not set */
-#if !(defined (NACL))
+#if !(defined (NACL)) && !(defined (__wasi__))
 #ifdef __HAIKU__
 # ifndef USE_DOUBLE
    static char haikudirs[] = "/boot/system/lib/csound6/plugins:"
@@ -231,6 +234,147 @@ static int check_plugin_compatibility(CSOUND *csound, const char *fname, int n)
     }
     return 0;
 }
+
+
+/**
+ * Initialise a single module.
+ * Return value is CSOUND_SUCCESS if there was no error.
+ */
+static CS_NOINLINE int csoundInitModule(CSOUND *csound, csoundModule_t *m)
+{
+    int     i;
+
+    if (m->PreInitFunc != NULL) {
+      if (m->fn.p.InitFunc != NULL) {
+        i = m->fn.p.InitFunc(csound);
+        if (UNLIKELY(i != 0)) {
+          print_module_error(csound, Str("Error starting module '%s'"),
+                                     &(m->name[0]), m, i);
+          return CSOUND_ERROR;
+        }
+      }
+    }
+    else {
+      /* deal with fgens if there are any */
+      if (m->fn.o.fgen_init != NULL) {
+        NGFENS  *names = m->fn.o.fgen_init(csound);
+        for (i = 0; names[i].name != NULL; i++)
+          allocgen(csound, names[i].name, names[i].fn);
+      }
+      if (m->fn.o.opcode_init != NULL) {
+        OENTRY  *opcodlst_n;
+        int64_t    length;
+        /* load opcodes */
+        if (UNLIKELY((length = m->fn.o.opcode_init(csound, &opcodlst_n)) < 0L))
+          return CSOUND_ERROR;
+        else {
+          length /= (long) sizeof(OENTRY);
+          if (length) {
+            if (UNLIKELY(csoundAppendOpcodes(csound, opcodlst_n,
+                                               (int) length) != 0))
+              return CSOUND_ERROR;
+          }
+        }
+      }
+    }
+    return CSOUND_SUCCESS;
+}
+
+
+#ifdef __wasi__
+
+__attribute__((used))
+void csoundWasiLoadPlugin(CSOUND *csound, void *preInitFunc, void *initFunc, void *destFunc, void *errCodeToStr) {
+    csoundModule_t *module = csound->Malloc(csound, sizeof(csoundModule_t) + 1);
+    module->h = (void*) NULL;
+
+    // The javascript host must assert that this is provided
+    module->PreInitFunc = (int (*)(CSOUND *)) preInitFunc;
+    if (initFunc) {
+        module->fn.p.InitFunc = (int (*)(CSOUND *)) initFunc;
+    }
+    if (destFunc) {
+        module->fn.p.DestFunc = (int (*)(CSOUND *)) destFunc;
+    }
+    if (errCodeToStr) {
+        module->fn.p.ErrCodeToStr = (const char *(*)(int)) errCodeToStr;
+    }
+
+    module->nxt = (csoundModule_t*) csound->csmodule_db;
+    csound->csmodule_db = module;
+
+    module->PreInitFunc(csound);
+}
+
+__attribute__((used))
+void csoundWasiLoadOpcodeLibrary(CSOUND *csound, void *fgenInitFunc, void *opcodeInitFunc) {
+    csoundModule_t *module = csound->Malloc(csound, sizeof(csoundModule_t) + 1);
+    module->h = (void*) NULL;
+
+    if (fgenInitFunc) {
+        module->fn.o.fgen_init = (NGFENS *(*)(CSOUND *)) fgenInitFunc;
+    }
+
+    if (opcodeInitFunc) {
+        module->fn.o.opcode_init = (int64_t (*)(CSOUND *, OENTRY **)) opcodeInitFunc;
+    }
+
+    module->nxt = (csoundModule_t*) csound->csmodule_db;
+    csound->csmodule_db = module;
+}
+
+__attribute__((used))
+int csoundDestroyModules(CSOUND *csound) {
+    csoundModule_t  *m;
+    int i;
+    int retval = CSOUND_SUCCESS;
+
+    while (csound->csmodule_db != NULL) {
+      m = (csoundModule_t*) csound->csmodule_db;
+      /* call destructor functions */
+      if (m->PreInitFunc != NULL && m->fn.p.DestFunc != NULL) {
+        i = m->fn.p.DestFunc(csound);
+        if (UNLIKELY(i != 0)) {
+          print_module_error(csound, Str("Error de-initialising module '%s'"),
+                                     &(m->name[0]), m, i);
+          retval = CSOUND_ERROR;
+        }
+      }
+      csound->csmodule_db = (void*) m->nxt;
+      /* free memory used by database */
+      csound->Free(csound, (void*) m);
+    }
+    /* return with error code */
+    return retval;
+}
+
+__attribute__((used))
+int csoundInitModules(CSOUND *csound) {
+    csoundModule_t  *m;
+    int i, retval = CSOUND_SUCCESS;
+    for (m = (csoundModule_t*) csound->csmodule_db; m != NULL; m = m->nxt) {
+      i = csoundInitModule(csound, m);
+      if (UNLIKELY(i != CSOUND_SUCCESS && i < retval))
+        retval = i;
+    }
+    /* return with error code */
+    return retval;
+}
+
+// In browser-wasi, this function is replaced
+// by the js-host.
+// extern int csoundLoadModules(CSOUND *csound);
+
+int csoundLoadExternals(CSOUND *csound) {
+    return 0;
+}
+
+int csoundLoadAndInitModules(CSOUND *csound, const char *opdir) {
+    return 0;
+}
+
+#else /* __wasi__ */
+
 
 /* load a single plugin library, and run csoundModuleCreate() if present */
 /* returns zero on success */
@@ -654,50 +798,6 @@ int csoundLoadExternals(CSOUND *csound)
 }
 
 /**
- * Initialise a single module.
- * Return value is CSOUND_SUCCESS if there was no error.
- */
-static CS_NOINLINE int csoundInitModule(CSOUND *csound, csoundModule_t *m)
-{
-    int     i;
-
-    if (m->PreInitFunc != NULL) {
-      if (m->fn.p.InitFunc != NULL) {
-        i = m->fn.p.InitFunc(csound);
-        if (UNLIKELY(i != 0)) {
-          print_module_error(csound, Str("Error starting module '%s'"),
-                                     &(m->name[0]), m, i);
-          return CSOUND_ERROR;
-        }
-      }
-    }
-    else {
-      /* deal with fgens if there are any */
-      if (m->fn.o.fgen_init != NULL) {
-        NGFENS  *names = m->fn.o.fgen_init(csound);
-        for (i = 0; names[i].name != NULL; i++)
-          allocgen(csound, names[i].name, names[i].fn);
-      }
-      if (m->fn.o.opcode_init != NULL) {
-        OENTRY  *opcodlst_n;
-        int64_t    length;
-        /* load opcodes */
-        if (UNLIKELY((length = m->fn.o.opcode_init(csound, &opcodlst_n)) < 0L))
-          return CSOUND_ERROR;
-        else {
-          length /= (long) sizeof(OENTRY);
-          if (length) {
-            if (UNLIKELY(csoundAppendOpcodes(csound, opcodlst_n,
-                                               (int) length) != 0))
-              return CSOUND_ERROR;
-          }
-        }
-      }
-    }
-    return CSOUND_SUCCESS;
-}
-
-/**
  * Call initialisation functions of all loaded modules that have a
  * csoundModuleInit symbol, for Csound instance 'csound'.
  * Return value is CSOUND_SUCCESS if there was no error, and CSOUND_ERROR if
@@ -934,6 +1034,8 @@ int csoundDestroyModules(CSOUND *csound)
     return retval;
 }
 
+#endif /* __wasi__ */
+
  /* ------------------------------------------------------------------------ */
 
 #if defined(WIN32)
@@ -954,7 +1056,7 @@ PUBLIC void *csoundGetLibrarySymbol(void *library, const char *procedureName)
     return (void*) GetProcAddress((HMODULE) library, procedureName);
 }
 
-#elif !(defined(NACL)) && (defined(LINUX) || defined(NEW_MACH_CODE) || defined(__HAIKU__))
+#elif !(defined(NACL)) && !(defined(__wasi__)) && (defined(LINUX) || defined(NEW_MACH_CODE) || defined(__HAIKU__))
 
 PUBLIC int csoundOpenLibrary(void **library, const char *libraryPath)
 {
@@ -1042,81 +1144,81 @@ void print_opcodedir_warning(CSOUND *p)
  - insert source code to libcsound_SRCS in../CMakeLists.txt
 */
 
-typedef int64_t (*INITFN)(CSOUND *, void *);
+typedef int32_t (*INITFN)(CSOUND *, void *);
 
-extern int64_t babo_localops_init(CSOUND *, void *);
-extern int64_t bilbar_localops_init(CSOUND *, void *);
-extern int64_t compress_localops_init(CSOUND *, void *);
-extern int64_t pvsbuffer_localops_init(CSOUND *, void *);
-extern int64_t vosim_localops_init(CSOUND *, void *);
-extern int64_t eqfil_localops_init(CSOUND *, void *);
-extern int64_t modal4_localops_init(CSOUND *, void *);
-extern int64_t scoreline_localops_init(CSOUND *, void *);
-extern int64_t physmod_localops_init(CSOUND *, void *);
-extern int64_t modmatrix_localops_init(CSOUND *, void *);
-extern int64_t spectra_localops_init(CSOUND *, void *);
-extern int64_t ambicode1_localops_init(CSOUND *, void *);
-extern int64_t grain4_localops_init(CSOUND *, void *);
-extern int64_t hrtferX_localops_init(CSOUND *, void *);
-extern int64_t loscilx_localops_init(CSOUND *, void *);
-extern int64_t pan2_localops_init(CSOUND *, void *);
-extern int64_t arrayvars_localops_init(CSOUND *, void *);
-extern int64_t phisem_localops_init(CSOUND *, void *);
-extern int64_t pvoc_localops_init(CSOUND *, void *);
-extern int64_t hrtfopcodes_localops_init(CSOUND *, void *);
-extern int64_t hrtfreverb_localops_init(CSOUND *, void *);
-extern int64_t hrtfearly_localops_init(CSOUND *, void *);
-extern int64_t minmax_localops_init(CSOUND *, void *);
-extern int64_t gendy_localops_init(CSOUND *, void *);
-extern int64_t vbap_localops_init(CSOUND *, void *);
-extern int64_t vaops_localops_init(CSOUND *, void*);
-extern int64_t ugakbari_localops_init(CSOUND *, void *);
-extern int64_t harmon_localops_init(CSOUND *, void *);
-extern int64_t pitchtrack_localops_init(CSOUND *, void *);
-extern int64_t squinewave_localops_init(CSOUND *, void *);
+extern int32_t babo_localops_init(CSOUND *, void *);
+extern int32_t bilbar_localops_init(CSOUND *, void *);
+extern int32_t compress_localops_init(CSOUND *, void *);
+extern int32_t pvsbuffer_localops_init(CSOUND *, void *);
+extern int32_t vosim_localops_init(CSOUND *, void *);
+extern int32_t eqfil_localops_init(CSOUND *, void *);
+extern int32_t modal4_localops_init(CSOUND *, void *);
+extern int32_t scoreline_localops_init(CSOUND *, void *);
+extern int32_t physmod_localops_init(CSOUND *, void *);
+extern int32_t modmatrix_localops_init(CSOUND *, void *);
+extern int32_t spectra_localops_init(CSOUND *, void *);
+extern int32_t ambicode1_localops_init(CSOUND *, void *);
+extern int32_t grain4_localops_init(CSOUND *, void *);
+extern int32_t hrtferX_localops_init(CSOUND *, void *);
+extern int32_t loscilx_localops_init(CSOUND *, void *);
+extern int32_t pan2_localops_init(CSOUND *, void *);
+extern int32_t arrayvars_localops_init(CSOUND *, void *);
+extern int32_t phisem_localops_init(CSOUND *, void *);
+extern int32_t pvoc_localops_init(CSOUND *, void *);
+extern int32_t hrtfopcodes_localops_init(CSOUND *, void *);
+extern int32_t hrtfreverb_localops_init(CSOUND *, void *);
+extern int32_t hrtfearly_localops_init(CSOUND *, void *);
+extern int32_t minmax_localops_init(CSOUND *, void *);
+extern int32_t gendy_localops_init(CSOUND *, void *);
+extern int32_t vbap_localops_init(CSOUND *, void *);
+extern int32_t vaops_localops_init(CSOUND *, void*);
+extern int32_t ugakbari_localops_init(CSOUND *, void *);
+extern int32_t harmon_localops_init(CSOUND *, void *);
+extern int32_t pitchtrack_localops_init(CSOUND *, void *);
+extern int32_t squinewave_localops_init(CSOUND *, void *);
 
-extern int64_t partikkel_localops_init(CSOUND *, void *);
-extern int64_t shape_localops_init(CSOUND *, void *);
-extern int64_t tabaudio_localops_init(CSOUND *, void *);
-extern int64_t tabsum_localops_init(CSOUND *, void *);
-extern int64_t crossfm_localops_init(CSOUND *, void *);
-extern int64_t pvlock_localops_init(CSOUND *, void *);
-extern int64_t fareyseq_localops_init(CSOUND *, void *);
-extern int64_t cpumeter_localops_init(CSOUND *, void *);
-extern int64_t scnoise_localops_init(CSOUND *, void *);
-extern int64_t socksend_localops_init(CSOUND *, void *);
-extern int64_t mp3in_localops_init(CSOUND *, void *);
-extern int64_t sockrecv_localops_init(CSOUND *, void *);
-extern int64_t afilts_localops_init(CSOUND *, void *);
-extern int64_t pinker_localops_init(CSOUND *, void *);
-extern int64_t paulstretch_localops_init(CSOUND *, void *);
-extern int64_t wpfilters_localops_init(CSOUND *, void *);
-extern int64_t zak_localops_init(CSOUND *, void *);
-extern int64_t lufs_localops_init(CSOUND *, void *);
-extern int64_t sterrain_localops_init(CSOUND *, void *);
-extern int64_t date_localops_init(CSOUND *, void *);
-extern int64_t system_localops_init(CSOUND *, void *);
-extern int64_t liveconv_localops_init(CSOUND *, void *);
-extern int64_t gamma_localops_init(CSOUND *, void *);
-extern int64_t quadbezier_localops_init(CSOUND *, void *);
-extern int64_t framebuffer_localops_init(CSOUND *, void *);
-extern int64_t cell_localops_init(CSOUND *, void *);
-extern int64_t exciter_localops_init(CSOUND *, void *);
-extern int64_t buchla_localops_init(CSOUND *, void *);
-extern int64_t select_localops_init(CSOUND *, void *);
-extern int64_t serial_localops_init(CSOUND *, void *);
-extern int64_t counter_localops_init(CSOUND *, void *);
-extern int64_t platerev_localops_init(CSOUND *, void *);
-extern int64_t sequencer_localops_init(CSOUND *, void *);
-extern int64_t pvsgendy_localops_init(CSOUND *, void *);
-extern int64_t scugens_localops_init(CSOUND *, void *);
-extern int64_t emugens_localops_init(CSOUND *, void *);
+extern int32_t partikkel_localops_init(CSOUND *, void *);
+extern int32_t shape_localops_init(CSOUND *, void *);
+extern int32_t tabaudio_localops_init(CSOUND *, void *);
+extern int32_t tabsum_localops_init(CSOUND *, void *);
+extern int32_t crossfm_localops_init(CSOUND *, void *);
+extern int32_t pvlock_localops_init(CSOUND *, void *);
+extern int32_t fareyseq_localops_init(CSOUND *, void *);
+extern int32_t cpumeter_localops_init(CSOUND *, void *);
+extern int32_t scnoise_localops_init(CSOUND *, void *);
+extern int32_t socksend_localops_init(CSOUND *, void *);
+extern int32_t mp3in_localops_init(CSOUND *, void *);
+extern int32_t sockrecv_localops_init(CSOUND *, void *);
+extern int32_t afilts_localops_init(CSOUND *, void *);
+extern int32_t pinker_localops_init(CSOUND *, void *);
+extern int32_t paulstretch_localops_init(CSOUND *, void *);
+extern int32_t wpfilters_localops_init(CSOUND *, void *);
+extern int32_t zak_localops_init(CSOUND *, void *);
+extern int32_t lufs_localops_init(CSOUND *, void *);
+extern int32_t sterrain_localops_init(CSOUND *, void *);
+extern int32_t date_localops_init(CSOUND *, void *);
+extern int32_t system_localops_init(CSOUND *, void *);
+extern int32_t liveconv_localops_init(CSOUND *, void *);
+extern int32_t gamma_localops_init(CSOUND *, void *);
+extern int32_t quadbezier_localops_init(CSOUND *, void *);
+extern int32_t framebuffer_localops_init(CSOUND *, void *);
+extern int32_t cell_localops_init(CSOUND *, void *);
+extern int32_t exciter_localops_init(CSOUND *, void *);
+extern int32_t buchla_localops_init(CSOUND *, void *);
+extern int32_t select_localops_init(CSOUND *, void *);
+extern int32_t serial_localops_init(CSOUND *, void *);
+extern int32_t counter_localops_init(CSOUND *, void *);
+extern int32_t platerev_localops_init(CSOUND *, void *);
+extern int32_t sequencer_localops_init(CSOUND *, void *);
+extern int32_t pvsgendy_localops_init(CSOUND *, void *);
+extern int32_t scugens_localops_init(CSOUND *, void *);
+extern int32_t emugens_localops_init(CSOUND *, void *);
 
-extern int stdopc_ModuleInit(CSOUND *csound);
-extern int pvsopc_ModuleInit(CSOUND *csound);
-extern int sfont_ModuleInit(CSOUND *csound);
-extern int sfont_ModuleCreate(CSOUND *csound);
-extern int newgabopc_ModuleInit(CSOUND *csound);
+extern int32_t stdopc_ModuleInit(CSOUND *csound);
+extern int32_t pvsopc_ModuleInit(CSOUND *csound);
+extern int32_t sfont_ModuleInit(CSOUND *csound);
+extern int32_t sfont_ModuleCreate(CSOUND *csound);
+extern int32_t newgabopc_ModuleInit(CSOUND *csound);
 
 const INITFN staticmodules[] = { hrtfopcodes_localops_init, babo_localops_init,
                                  bilbar_localops_init, vosim_localops_init,
@@ -1140,21 +1242,25 @@ const INITFN staticmodules[] = { hrtfopcodes_localops_init, babo_localops_init,
 #ifdef LINUX
                                  cpumeter_localops_init,
 #endif
-#ifndef NACL
-                                 mp3in_localops_init,
+
+#if !(defined(NACL)) && !(defined(__wasi__))
+                                 counter_localops_init,
                                  sockrecv_localops_init,
                                  socksend_localops_init,
+                                 system_localops_init,
+                                 serial_localops_init,
+                                 mp3in_localops_init,
 #endif
                                  scnoise_localops_init, afilts_localops_init,
                                  pinker_localops_init, gendy_localops_init,
                                  wpfilters_localops_init, zak_localops_init,
                                  lufs_localops_init, sterrain_localops_init,
-                                 date_localops_init, system_localops_init,
+                                 date_localops_init,
                                  liveconv_localops_init, gamma_localops_init,
                                  framebuffer_localops_init, cell_localops_init,
                                  exciter_localops_init, buchla_localops_init,
-                                 select_localops_init, serial_localops_init,
-                                 counter_localops_init,platerev_localops_init,
+                                 select_localops_init,
+                                 platerev_localops_init,
                                  pvsgendy_localops_init, scugens_localops_init,
                                  emugens_localops_init, sequencer_localops_init,
                                  NULL };
@@ -1181,16 +1287,15 @@ CS_NOINLINE int csoundInitStaticModules(CSOUND *csound)
 {
     int     i;
     OENTRY  *opcodlst_n;
-    int64_t    length;
+    int32_t length;
 
     for (i=0; staticmodules[i]!=NULL; i++) {
       length = (staticmodules[i])(csound, &opcodlst_n);
 
       if (UNLIKELY(length <= 0L)) return CSOUND_ERROR;
-      length /= (int64_t) sizeof(OENTRY);
+      length /= (int32_t) sizeof(OENTRY);
       if (length) {
-        if (UNLIKELY(csoundAppendOpcodes(csound, opcodlst_n,
-                                           (int) length) != 0))
+        if (UNLIKELY(csoundAppendOpcodes(csound, opcodlst_n, length) != 0))
           return CSOUND_ERROR;
       }
     }

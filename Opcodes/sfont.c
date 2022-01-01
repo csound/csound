@@ -36,7 +36,9 @@
 #include <stdlib.h>
 #include <math.h>
 #include <ctype.h>
+#ifndef __wasi__
 #include <errno.h>
+#endif
 #include "sfenum.h"
 #include "sfont.h"
 
@@ -112,9 +114,13 @@ static int SoundFontLoad(CSOUND *csound, char *fname)
     fd = csound->FileOpen2(csound, &fil, CSFILE_STD, fname, "rb",
                              "SFDIR;SSDIR", CSFTYPE_SOUNDFONT, 0);
     if (UNLIKELY(fd == NULL)) {
+      #ifndef __wasi__
       csound->ErrorMsg(csound,
                   Str("sfload: cannot open SoundFont file \"%s\" (error %s)"),
                   fname, strerror(errno));
+      #else
+      csound->ErrorMsg(csound, Str("sfload: cannot open SoundFont file \"%s\""), fname);
+      #endif
       return -1;
     }
     for (i=0; i<globals->currSFndx+1; i++) {

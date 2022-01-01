@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>debug @csound/browser</title>
+  </head>
+  <body>
+    <script type="module">
+      const url = "/dist/csound.js";
+
+      const testMono = `
+      <CsoundSynthesizer>
+        <CsOptions>
+        -odac
+        </CsOptions>
+        <CsInstruments>
+          0dbfs=1
+          nchnls=1
+
+          instr 1
+            out oscili(.5, 440) * linen:a(1, 0, p3, 0.1)
+          endin
+        </CsInstruments>
+        <CsScore>
+          i1 0 4
+        </CsScore>
+      </CsoundSynthesizer>
+     `;
+
+      const testStereo = `
+      <CsoundSynthesizer>
+        <CsOptions>
+        -odac
+        </CsOptions>
+        <CsInstruments>
+          0dbfs=1
+          nchnls=2
+
+          instr 1
+            asig = oscili(.5, 440) * linen:a(1, 0, p3, 0.1)
+            a0, a1 pan2 asig, line:k(0, p3, 1)
+            out(a0, a1)
+          endin
+        </CsInstruments>
+        <CsScore>
+          i1 0 4
+        </CsScore>
+      </CsoundSynthesizer>
+     `;
+
+      const runIt = async () => {
+        const { Csound } = await import(url);
+        const csoundObj = await Csound({
+          useWorker: false,
+          useSPN: false,
+          outputChannelCount: 2
+        });
+
+        const compileReturn = await csoundObj.compileCsdText(testMono);
+        const startReturn = await csoundObj.start();
+        const n = await csoundObj.getNode();
+        const ctx = await csoundObj.getAudioContext();
+      };
+
+      const triggerEvent = "ontouchstart" in document.documentElement ? "touchend" : "click";
+      document.querySelector("#all_tests").addEventListener(triggerEvent, async function () {
+        await runIt();
+      });
+    </script>
+    <button id="all_tests">Run All Tests</button>
+  </body>
+</html>

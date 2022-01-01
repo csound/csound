@@ -1,0 +1,27 @@
+{
+  "env": { "es6": true, "node": true, "browser": true },
+  "ignorePatterns": ["**/coverage", "**/dist", "**/node_modules", "**/*.config.js", "logger*.js"],
+  "extends": ["standard", "plugin:unicorn/recommended", "plugin:ramda/recommended", "prettier"],
+  "parserOptions": {
+    "ecmaVersion": 2020,
+    "sourceType": "module"
+  },
+  "plugins": ["unicorn", "ramda"],
+  "globals": {
+    "Atomics": "readonly",
+    "SharedArrayBuffer": "readonly",
+    "__PROD__": "readonly",
+    "goog": "readonly",
+    "Zlib": "writable"
+  },
+  "rules": {
+    "unicorn/no-reduce": "off",
+    "unicorn/no-array-reduce": "off",
+    "unicorn/prefer-optional-catch-binding": "off",
+    "unicorn/no-nested-ternary": "off",
+    "unicorn/no-array-callback-reference": "off",
+    "unicorn/no-array-for-each": "off",
+    "unicorn/numeric-separators-style": "off",
+    "unicorn/require-post-message-target-origin": "off"
+  }
+}

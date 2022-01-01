@@ -36,10 +36,11 @@
 #include <algorithm>
 #include <cstdarg>
 #include <map>
+#if !(defined(__wasi__))
 #include <mutex>
+#endif
 #include <string>
 #include <vector>
-
 #include <interlocks.h>
 #include <csdl.h>
 
@@ -372,7 +373,7 @@ public:
     OPDS opds;
 };
 
-#if (__cplusplus >= 201103L)
+#if (__cplusplus >= 201103L) && !(defined(__wasi__))
 
 /**
  * The memory of non-POD C++ or C objects allocated on the heap by Csound

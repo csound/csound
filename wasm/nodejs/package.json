@@ -1,0 +1,37 @@
+{
+  "name": "@csound/nodejs",
+  "version": "0.0.0",
+  "main": "./src/index.js",
+  "type": "module",
+  "keywords": [
+    "csound",
+    "csound-wasm",
+    "wasm",
+    "webassembly",
+    "audio",
+    "webaudio",
+    "wasi"
+  ],
+  "engines": {
+    "node": ">=14"
+  },
+  "scripts": {
+    "test": "jest"
+  },
+  "jest": {
+    "verbose": true,
+    "testRegex": "tests/.*.js"
+  },
+  "dependencies": {
+    "@csound/browser": "../browser",
+    "@csound/wasm": "../",
+    "@wasmer/wasi": "^0.12.0",
+    "@wasmer/wasm-transformer": "^0.12.0",
+    "@wasmer/wasmfs": "^0.12.0",
+    "easymidi": "^2.0.1",
+    "speaker": "^0.5.2"
+  },
+  "devDependencies": {
+    "jest": "^26.6.3"
+  }
+}

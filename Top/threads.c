@@ -156,8 +156,10 @@ PUBLIC void csoundSleep(size_t milliseconds)
 
 #endif
 
-
+#ifndef __wasi__
 #include <errno.h>
+#endif
+
 #include <pthread.h>
 #include <time.h>
 #include <unistd.h>

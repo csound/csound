@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>debug @csound/browser</title>
+    </head>
+    <body>
+        <script type="module">
+         const url = "/csound.dev.esm.js";
+
+         const testMidi = `
+<CsoundSynthesizer>
+<CsOptions>
+-odac -Ma
+</CsOptions>
+<CsInstruments>
+sr = 44100
+ksmps = 32
+nchnls = 1
+0dbfs = 1
+
+  instr 1
+    out(oscili(0.5, 440))
+  endin
+
+  schedule(1, 0, -1)
+
+</CsInstruments>
+<CsScore>
+</CsScore>
+<CsoundSynthesizer>
+         `;
+
+        const csoundVariations = [
+            { useWorker: false, useSPN: false, name: "SINGLE THREAD, AW" },
+            { useWorker: false, useSPN: true, name: "SINGLE THREAD, SPN" },
+            { useWorker: true, useSAB: true, name: "WORKER, AW, SAB" },
+            { useWorker: true, useSAB: false, name: "WORKER, AW, Messageport" },
+            { useWorker: true, useSAB: false, useSPN: true, name: "WORKER, SPN, MessagePort" },
+        ];
+
+         let Csound;
+         let csoundObj;
+
+        const listenerText = document.querySelector("#listener_text");
+
+        const appendEvent = (args) => {
+            let p = document.createElement("p");
+            p.innerText = `Event: ${args}`;
+            listenerText.appendChild(p);
+        };
+
+         const play = async () => {
+            Csound  = Csound || (await import(url)).Csound;
+
+            const version = document.querySelector("#version").value;
+            const params = csoundVariations[version];
+
+            listenerText.innerHTML = "";
+            appendEvent(`Using: ${ params.name}`)
+            csoundObj = await Csound(params);
+
+            csoundObj.on("play", () => appendEvent("Play"));
+            csoundObj.on("realtimePerformanceStarted", () => appendEvent("realtimePerformanceStarted"));
+            csoundObj.on("pause", () => appendEvent("pause"));
+            csoundObj.on("stop", () => appendEvent("stop"));
+            csoundObj.on("onAudioNodeCreated", () => appendEvent("node created"));
+
+             const compileReturn = await csoundObj.compileCsdText(testMidi);
+             const startReturn = await csoundObj.start();
+
+         };
+
+         const triggerEvent = "ontouchstart" in document.documentElement ? "touchend" : "click";
+         document.querySelector("#start").addEventListener(triggerEvent, async function () {
+             await play();
+         });
+
+         document.querySelector("#stop").addEventListener(triggerEvent, async function () {
+             csoundObj.stop();
+         });
+         document.querySelector("#pause").addEventListener(triggerEvent, async function () {
+             csoundObj.pause();
+         });
+         document.querySelector("#resume").addEventListener(triggerEvent, async function () {
+             csoundObj.resume();
+         });
+         document.querySelector("#version").addEventListener(triggerEvent, async function () {
+            console.log(document.querySelector("#version").value);
+         });
+        </script>
+        <button id="start">Start</button>
+        <button id="stop">Stop</button>
+        <button id="pause">Pause</button>
+        <button id="resume">Resume</button>
+        <select id="version">
+            <optgroup label="Single-Thread">
+                <option value="0">Audio Worklet</option>
+                <option value="1">SPN</option>
+            </optgroup>
+            <optgroup label="Worker">
+                <option value="2">Audio Worklet | SAB</option>
+                <option value="3">Audio Worklet | MessagePort</option>
+                <option value="4">SPN | MessagePort</option>
+            </optgroup>
+        </select>
+        <div id="listener_text"></div>
+    </body>
+</html>

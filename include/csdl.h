@@ -115,6 +115,11 @@ LINKAGE(localops)
 extern "C" {
 #endif
 
+#if defined(__wasi__)
+  #undef PUBLIC
+  #define PUBLIC extern
+#endif
+
 /* Use the Str() macro for translations of strings */
 #undef Str
 
@@ -143,7 +148,7 @@ PUBLIC  int     csoundModuleInfo(void);
 
 #define LINKAGE                                                         \
 PUBLIC int64_t csound_opcode_init(CSOUND *csound, OENTRY **ep)             \
-{   (void) csound; *ep = localops; return (int64_t) sizeof(localops);  }   \
+{ (void) csound; *ep = localops; return (int64_t) sizeof(localops);  } \
 PUBLIC int csoundModuleInfo(void)                                       \
 { return ((CS_APIVERSION << 16) + (CS_APISUBVER << 8) + (int) sizeof(MYFLT)); }
 

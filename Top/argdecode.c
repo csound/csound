@@ -83,9 +83,11 @@ void do_logging(char *s)
     if (!strcmp(s, "NULL") || !strcmp(s, "null"))
       nomessages = 1;
     else if ((logFile = fopen(s, "w")) == NULL) {
+      #ifndef __wasi__
       fprintf(stderr, Str("Error opening log file '%s': %s\n"),
               s, strerror(errno));
       exit(1);
+      #endif
     }
     /* if logging to file, set message callback */
     if (logFile != NULL)
