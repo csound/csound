@@ -33,12 +33,13 @@
 #undef _CR
 #endif
 
+#include <interlocks.h>
+
 #include <algorithm>
 #include <cstdarg>
 #include <map>
 #include <string>
 #include <vector>
-#include <interlocks.h>
 #if !(defined(__wasi__))
 #include <mutex>
 #endif
