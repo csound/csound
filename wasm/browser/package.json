@@ -1,19 +1,9 @@
 {
   "name": "@csound/browser",
   "version": "6.17.0-beta1",
-  "module": true,
+  "module": "./dist/csound.js",
   "typings": "index.d.ts",
   "type": "module",
-  "exports": {
-    ".": {
-      "import": "./dist/csound.js",
-      "default": "./dist/csound.js"
-    },
-    "./dev": {
-      "import": "./dist/csound.dev.js",
-      "default": "./dist/csound.dev.js"
-    }
-  },
   "files": [
     "dist/csound*",
     "dist/factory*",
@@ -22,8 +12,7 @@
     "src",
     "tests/index.html",
     "tests/*.js",
-    "index.d.ts",
-    "rollup.config.js"
+    "index.d.ts"
   ],
   "license": "LGPL-2.1",
   "bugs": {
@@ -93,8 +82,7 @@
     "prettier": "^2.5.1",
     "selenium-webdriver": "^4.1.0",
     "serve-static": "^1.14.2",
-    "sinon": "^12.0.1",
-    "zlibjs": "^0.3.1"
+    "sinon": "^12.0.1"
   },
   "dependencies": {
     "comlink": "^4.3.1",
