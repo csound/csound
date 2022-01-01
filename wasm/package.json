@@ -1,12 +1,9 @@
 {
   "name": "@csound/wasm-bin",
-  "version": "6.16.0-beta4",
+  "version": "6.17.0-beta1",
   "description": "A package containing csound wasm binaries which can be bundled into other csound packages 📂",
   "main": "./lib/csound.wasm",
-  "files": [
-    "src",
-    "lib"
-  ],
+  "files": ["src", "lib"],
   "license": "LGPL-2.1",
   "bugs": {
     "url": "https://github.com/csound/csound/issues"

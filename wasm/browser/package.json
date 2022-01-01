@@ -1,6 +1,6 @@
 {
   "name": "@csound/browser",
-  "version": "6.16.0-beta4",
+  "version": "6.17.0-beta1",
   "module": true,
   "typings": "index.d.ts",
   "type": "module",
