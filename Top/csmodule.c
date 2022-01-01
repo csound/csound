@@ -1243,7 +1243,7 @@ const INITFN staticmodules[] = { hrtfopcodes_localops_init, babo_localops_init,
                                  cpumeter_localops_init,
 #endif
 
-#if !defined(NACL) && !defined(__wasi__)
+#if !(defined(NACL)) && !(defined(__wasi__))
                                  counter_localops_init,
                                  sockrecv_localops_init,
                                  socksend_localops_init,
