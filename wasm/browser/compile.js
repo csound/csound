@@ -205,7 +205,7 @@ const compile = async (config) => {
       // "./node_modules/buffer-es6/index.js",
     ],
     assume_function_wrapper: true,
-    compilation_level: DEV ? "SIMPLE_OPTIMIZATIONS" : "ADVANCED",
+    compilation_level: "SIMPLE_OPTIMIZATIONS", //DEV ? "SIMPLE_OPTIMIZATIONS" : "ADVANCED",
     language_in: "ECMASCRIPT_2021",
     process_common_js_modules: true,
     rewrite_polyfills: false,
