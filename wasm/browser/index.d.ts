@@ -1,7 +1,7 @@
 import { EventEmitter } from "eventemitter3";
 
 declare interface CsoundFs {
-  writeFile: (file: UInt8Array, path: string) => Promise<void>;
+  writeFile: (path: string, file: UInt8Array) => Promise<void>;
   readdir: (path: string) => Promise<string[]>;
   mkdir: (path: string) => Promise<void>;
 }
