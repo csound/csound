@@ -36,16 +36,16 @@ function performanceNowPoly() {
 
 function concatUint8Arrays(arrays) {
   // sum of individual array lengths
-  const totalLength = arrays.reduce((acc, value) => acc + value.length, 0);
+  const totalLength = arrays.reduce((accumulator, value) => accumulator + value.length, 0);
 
-  if (!arrays.length) return;
+  if (arrays.length === 0) return;
 
   const result = new Uint8Array(totalLength);
 
   // for each array - copy it over result
   // next array is copied right after the previous one
   let length = 0;
-  for (let array of arrays) {
+  for (const array of arrays) {
     result.set(array, length);
     length += array.length;
   }
