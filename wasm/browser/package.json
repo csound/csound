@@ -1,7 +1,7 @@
 {
   "name": "@csound/browser",
   "version": "6.16.0-beta4",
-  "module": "./dist/csound.esm.js",
+  "module": true,
   "typings": "index.d.ts",
   "type": "module",
   "exports": {
