@@ -110,21 +110,21 @@ const getBinaryHeaderData = (wasmBytes) => {
 
   const sectionSize = getLEB();
   next++; // size of "dylink" string
-  assert(wasmBytes[next] === "d".charCodeAt(0));
+  assert(wasmBytes[next] === "d".codePointAt(0));
   next++;
-  assert(wasmBytes[next] === "y".charCodeAt(0));
+  assert(wasmBytes[next] === "y".codePointAt(0));
   next++;
-  assert(wasmBytes[next] === "l".charCodeAt(0));
+  assert(wasmBytes[next] === "l".codePointAt(0));
   next++;
-  assert(wasmBytes[next] === "i".charCodeAt(0));
+  assert(wasmBytes[next] === "i".codePointAt(0));
   next++;
-  assert(wasmBytes[next] === "n".charCodeAt(0));
+  assert(wasmBytes[next] === "n".codePointAt(0));
   next++;
-  assert(wasmBytes[next] === "k".charCodeAt(0));
+  assert(wasmBytes[next] === "k".codePointAt(0));
   next++;
-  assert(wasmBytes[next] === ".".charCodeAt(0));
+  assert(wasmBytes[next] === ".".codePointAt(0));
   next++;
-  assert(wasmBytes[next] === "0".charCodeAt(0));
+  assert(wasmBytes[next] === "0".codePointAt(0));
   next += 3;
 
   const memorySize = getLEB();

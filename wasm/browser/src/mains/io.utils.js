@@ -29,7 +29,8 @@ export async function enableAudioInput() {
   console.log("enabling audio input");
   requestMicrophoneNode(async (stream) => {
     if (stream) {
-      const liveInput = (await this.getAudioContext()).createMediaStreamSource(stream);
+      const audioContext = await this.getAudioContext();
+      const liveInput = audioContext.createMediaStreamSource(stream);
       this.inputsCount = liveInput.channelCount;
 
       // if (this.autoConnect) {

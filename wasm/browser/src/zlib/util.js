@@ -18,7 +18,7 @@ goog.scope(function () {
     let il;
 
     for (index = 0, il = temporary.length; index < il; index++) {
-      temporary[index] = (temporary[index].charCodeAt(0) & 0xff) >>> 0;
+      temporary[index] = (temporary[index].charPointAt(0) & 0xff) >>> 0;
     }
 
     return new Uint8Array([temporary]);

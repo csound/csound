@@ -21,7 +21,7 @@ TextEncoderPoly.prototype.encode = function (string_) {
   const binstr = unescape(encodeURIComponent(string_));
   const array = new Uint8Array(binstr.length);
   [...binstr].forEach(function (char, index) {
-    array[index] = char.charCodeAt(0);
+    array[index] = char.codePointAt(0);
   });
   return array;
 };
@@ -58,7 +58,7 @@ function TextDecoderPoly(encoding) {
       const array = new Uint8Array(view.buffer, view.byteOffset, view.byteLength);
       const charArray = Array.from({ length: array.length });
       array.forEach(function (charcode, index) {
-        charArray[index] = String.fromCharCode(charcode);
+        charArray[index] = String.fromCodePoint(charcode);
       });
       return this.trimNull(charArray.join(""));
     }
