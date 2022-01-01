@@ -34,6 +34,25 @@ function performanceNowPoly() {
   }
 }
 
+function concatUint8Arrays(arrays) {
+  // sum of individual array lengths
+  const totalLength = arrays.reduce((acc, value) => acc + value.length, 0);
+
+  if (!arrays.length) return;
+
+  const result = new Uint8Array(totalLength);
+
+  // for each array - copy it over result
+  // next array is copied right after the previous one
+  let length = 0;
+  for (let array of arrays) {
+    result.set(array, length);
+    length += array.length;
+  }
+
+  return result;
+}
+
 export const WASI = function ({ preopens }) {
   this.fd = Array.from({ length: 4 });
 
@@ -760,6 +779,27 @@ WASI.prototype.writeFile = function (fname /* string */, data /* Uint8Array */) 
     };
   } else {
     buffers.push(data);
+  }
+};
+
+WASI.prototype.readFile = function (fname /* string */) {
+  const filePath = assertLeadingSlash(normalizePath(fname));
+
+  const buffers = this.findBuffers(filePath);
+
+  if (buffers) {
+    return concatUint8Arrays(buffers);
+  }
+};
+
+WASI.prototype.unlink = function (fname /* string */) {
+  const filePath = assertLeadingSlash(normalizePath(fname));
+  const maybeFd = Object.values(this.fd).find(({ path }) => path === fname);
+
+  if (maybeFd) {
+    delete this.fd[maybeFd];
+  } else {
+    console.error(`While trying to unlink ${filePath}, path not found`);
   }
 };
 

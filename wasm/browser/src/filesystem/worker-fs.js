@@ -9,6 +9,22 @@ export function writeFile(wasm) {
 
 writeFile.toString = () => "async (path, data) => void";
 
+export function readFile(wasm) {
+  return (_, path) => {
+    return wasm.wasi.readFile(path);
+  };
+}
+
+readFile.toString = () => "async (path) => ?UInt8Array";
+
+export function unlink(wasm) {
+  return (_, path) => {
+    return wasm.wasi.unlink(path);
+  };
+}
+
+unlink.toString = () => "async (path) => void";
+
 export function readdir(wasm) {
   return (_, path) => wasm.wasi.readdir(path);
 }
