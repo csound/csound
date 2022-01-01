@@ -38,8 +38,8 @@
 #include <map>
 #include <string>
 #include <vector>
-#if !(defined(__wasi__))
 #include <interlocks.h>
+#if !(defined(__wasi__))
 #include <mutex>
 #endif
 #include <csdl.h>
