@@ -2,20 +2,16 @@
   "name": "@csound/browser",
   "version": "6.16.0-beta4",
   "module": "./dist/csound.esm.js",
-  "main": "./dist/csound.cjs.js",
-  "iife": "./dist/csound.iife.js",
   "typings": "index.d.ts",
   "type": "module",
   "exports": {
     ".": {
-      "require": "./dist/csound.cjs.js",
-      "import": "./dist/csound.esm.js",
-      "default": "./dist/csound.esm.js"
+      "import": "./dist/csound.js",
+      "default": "./dist/csound.js"
     },
     "./dev": {
-      "require": "./dist/csound.dev.esm.js",
-      "import": "./dist/csound.dev.esm.js",
-      "default": "./dist/csound.dev.esm.js"
+      "import": "./dist/csound.dev.js",
+      "default": "./dist/csound.dev.js"
     }
   },
   "files": [
