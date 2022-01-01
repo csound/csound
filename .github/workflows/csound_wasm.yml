@@ -2,9 +2,10 @@ name: csound_wasm
 env:
   nix_path: nixpkgs=https://github.com/NixOS/nixpkgs/archive/3876561795a7111dac8fd4b71e0279e46b08eed8.tar.gz
 on:
+  pull_request:
+    branches: ["**"]
   push:
-    branches:
-      - feature/webaudio-csound
+    branches: ["develop"]
 jobs:
   csound-wasm:
     env:
@@ -20,7 +21,7 @@ jobs:
       - uses: cachix/cachix-action@v10
         with:
           name: csound
-          authToken: "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJjJDIzMTgiLCJqdGkiOiJhNDQzZmMwMi1mMDBjLTQzNDUtYjA3YS1jYzJjYjIzYjE2OTAiLCJzY29wZXMiOiJjYWNoZSJ9.UOQEV1Hd1ZEQdNF1STxbt0wcCrIrihsv4KThD_wHk3E"
+          authToken: ${{ secrets.CACHIX_TOKEN }}
       - name: Compile wasm binaries
         run: cd $wasm_bin_dir && yarn build
       - name: Zip the compilation output
