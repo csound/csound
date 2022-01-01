@@ -41,15 +41,6 @@ if (fs.existsSync(distDir)) {
 }
 fs.mkdirSync(distDir);
 
-if (!fs.existsSync(path.join(rootDir, "dist", "package.json"))) {
-  const fakePackageJson = `{
-    "name": "dist",
-    "version": "0.0.0",
-    "description": "this file is only a temporary transient file to fool closure compiler, plz ignore",
-  }`;
-  fs.writeFileSync(path.join(rootDir, "dist", "package.json"), fakePackageJson);
-}
-
 fs.writeFileSync(
   path.join(rootDir, "dist", "__csound_wasm.inline.js"),
   inlineArraybuffer("./node_modules/@csound/wasm-bin/lib/csound.dylib.wasm.z", "binary.wasm"),
