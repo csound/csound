@@ -38,7 +38,7 @@
 #include <map>
 #include <string>
 #include <vector>
-#ifndef __wasi__
+#if !(defined(__wasi__))
 #include <interlocks.h>
 #include <mutex>
 #endif
