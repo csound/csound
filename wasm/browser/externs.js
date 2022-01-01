@@ -68,7 +68,7 @@ var LibcsoundUncloned;
 var process = { cwd: () => "/" };
 
 /**
- * @suppress JSC_DUP_VAR_DECLARATION_TYPE_MISMATCH
+ * @suppress {duplicate}
  * @param {!(function(!MIDIInput))}
  * @return {IteratorIterable<string>}
  */

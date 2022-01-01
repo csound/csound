@@ -21,63 +21,63 @@ const isProd = goog.define("PRODUCTION", false);
 
 if (isProd) {
   /**
-   * @suppress JSC_WRONG_ARGUMENT_COUNT
+   * @suppress {checkTypes}
    */
   logWorkletMain = (ignore1) => (ignore2) => {};
   /**
-   * @suppress JSC_WRONG_ARGUMENT_COUNT
+   * @suppress {checkTypes}
    */
   logWorkletWorker = (ignore1) => (ignore2) => {};
   /**
-   * @suppress JSC_WRONG_ARGUMENT_COUNT
+   * @suppress {checkTypes}
    */
   logSABMain = (ignore1) => (ignore2) => {};
   /**
-   * @suppress JSC_WRONG_ARGUMENT_COUNT
+   * @suppress {checkTypes}
    */
   logSABWorker = (ignore1) => (ignore2) => {};
   /**
-   * @suppress JSC_WRONG_ARGUMENT_COUNT
+   * @suppress {checkTypes}
    */
   logVANMain = (ignore1) => (ignore2) => {};
   /**
-   * @suppress JSC_WRONG_ARGUMENT_COUNT
+   * @suppress {checkTypes}
    */
   logVANWorker = (ignore1) => (ignore2) => {};
   /**
-   * @suppress JSC_WRONG_ARGUMENT_COUNT
+   * @suppress {checkTypes}
    */
   logOldSpnMain = (ignore1) => (ignore2) => {};
   /**
-   * @suppress JSC_WRONG_ARGUMENT_COUNT
+   * @suppress {checkTypes}
    */
   logOldSpnWorker = (ignore1) => (ignore2) => {};
   /**
-   * @suppress JSC_WRONG_ARGUMENT_COUNT
+   * @suppress {checkTypes}
    */
   logIndex = (ignore1) => (ignore2) => {};
   /**
-   * @suppress JSC_WRONG_ARGUMENT_COUNT
+   * @suppress {checkTypes}
    */
   logSPNMainSingle = (ignore1) => (ignore2) => {};
   /**
-   * @suppress JSC_WRONG_ARGUMENT_COUNT
+   * @suppress {checkTypes}
    */
   logSinglethreadWorkletMain = (ignore1) => (ignore2) => {};
   /**
-   * @suppress JSC_WRONG_ARGUMENT_COUNT
+   * @suppress {checkTypes}
    */
   logSinglethreadWorkletWorker = (ignore1) => (ignore2) => {};
   /**
-   * @suppress JSC_WRONG_ARGUMENT_COUNT
+   * @suppress {checkTypes}
    */
   logCommonUtils = (ignore1) => (ignore2) => {};
   /**
-   * @suppress JSC_WRONG_ARGUMENT_COUNT
+   * @suppress {checkTypes}
    */
   logWasmModule = (ignore1) => (ignore2) => {};
   /**
-   * @suppress JSC_WRONG_ARGUMENT_COUNT
+   * @suppress {checkTypes}
    */
   logMidiRequest = (ignore1) => (ignore2) => {};
 } else {
@@ -127,7 +127,7 @@ if (isProd) {
 }
 
 /**
- * @suppress JSC_WRONG_ARGUMENT_COUNT
+ * @suppress {checkTypes}
  */
 export default (ignore1) => (ignore2) => {};
 
