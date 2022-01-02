@@ -63,7 +63,7 @@
    W       begins indef list of Strings (any count)
    y       begins indef list of aargs (any count)
    z       begins indef list of kargs (any count)
-   Z       begins alternating kakaka...list (any count)    
+   Z       begins alternating kakaka...list (any count)
 */
 
 /* outarg types include:
@@ -78,8 +78,8 @@
  F       multiple args (f-rate)#
 */
 
-/* inargs and outargs may also be arrays, e.g. "a[]" is an array of 
-   arate vectors. Then for polymorphic opcode entries, "opcode.a" is 
+/* inargs and outargs may also be arrays, e.g. "a[]" is an array of
+   arate vectors. Then for polymorphic opcode entries, "opcode.a" is
    for arate vectors, and "opcode.A" is for arrays of arate vectors.
 */
 

@@ -490,7 +490,7 @@ static void openJackStreams(RtJackGlobals *p)
 
     /* connect ports if requested */
     int sortPorts = 1;   // this could be a command line flag (--unsorted-devices)
-    if (p->inputEnabled) {  
+    if (p->inputEnabled) {
       listPorts(csound, 0);
       if (p->inDevNum >= 0){
         int num = p->inDevNum;
