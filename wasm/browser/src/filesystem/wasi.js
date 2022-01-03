@@ -328,6 +328,7 @@ WASI.prototype.fd_read = function (fd, iovs, iovsLength, nread) {
   }
 
   let read = Number(this.fd[fd].seekPos);
+
   let thisRead = 0;
   let reduced = false;
 
@@ -387,8 +388,8 @@ WASI.prototype.fd_read = function (fd, iovs, iovsLength, nread) {
               currentChunkOffset += 1;
             }
           } else {
-            memory.setUint8(buf + currentRead, "\0");
-            read += currentRead;
+            memory.setUint8(buf + currentRead + 1, "\0");
+            read += currentRead + 1;
             reduced = true;
           }
 
@@ -767,16 +768,28 @@ WASI.prototype.readdir = function (dirname /* string */) {
 WASI.prototype.writeFile = function (fname /* string */, data /* Uint8Array */) {
   const filePath = assertLeadingSlash(normalizePath(fname));
 
+  const nextFd = Object.keys(this.fd).length;
+  const maybeOldFd = Object.values(this.fd).find(({ path }) => path === filePath);
+
+  this.fd[nextFd] = {
+    fd: nextFd,
+    path: filePath,
+    seekPos: goog.global.BigInt(0),
+    buffers: [data],
+  };
+
+  if (maybeOldFd) {
+    delete this.fd[maybeOldFd];
+  }
+};
+
+WASI.prototype.appendFile = function (fname /* string */, data /* Uint8Array */) {
+  const filePath = assertLeadingSlash(normalizePath(fname));
+
   const buffers = this.findBuffers(filePath);
 
   if (!buffers) {
-    const nextFd = Object.keys(this.fd).length;
-    this.fd[nextFd] = {
-      fd: nextFd,
-      path: filePath,
-      seekPos: goog.global.BigInt(0),
-      buffers: [data],
-    };
+    console.error(`Can't append to non-existing file ${fname}`);
   } else {
     buffers.push(data);
   }
@@ -794,7 +807,7 @@ WASI.prototype.readFile = function (fname /* string */) {
 
 WASI.prototype.unlink = function (fname /* string */) {
   const filePath = assertLeadingSlash(normalizePath(fname));
-  const maybeFd = Object.values(this.fd).find(({ path }) => path === fname);
+  const maybeFd = Object.values(this.fd).find(({ path }) => path === filePath);
 
   if (maybeFd) {
     delete this.fd[maybeFd];

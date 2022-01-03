@@ -1,17 +1,10 @@
 /** @define {boolean} */
 const WITH_TEXT_ENCODER_POLYFILL = goog.define("WITH_TEXT_ENCODER_POLYFILL", false);
 
-// FROM https://gitlab.com/PseudoPsycho/text-encoding-shim/-/blob/master/index.js
-const utf8Encodings = new Set(["utf8", "utf-8", "unicode-1-1-utf-8"]);
-
 /** @constructor */
-function TextEncoderPoly(encoding) {
-  if (!utf8Encodings.has(encoding) && typeof encoding !== "undefined" && encoding !== null) {
-    throw new RangeError("Invalid encoding type. Only utf-8 is supported");
-  } else {
-    this.encoding = "utf-8";
-    return this;
-  }
+function TextEncoderPoly() {
+  this.encoding = "utf8";
+  return this;
 }
 
 TextEncoderPoly.prototype.encode = function (string_) {
@@ -27,10 +20,7 @@ TextEncoderPoly.prototype.encode = function (string_) {
 };
 
 /** @constructor */
-function TextDecoderPoly(encoding) {
-  if (!utf8Encodings.has(encoding) && typeof encoding !== "undefined" && encoding !== null) {
-    throw new RangeError("Invalid encoding type. Only utf-8 is supported");
-  }
+function TextDecoderPoly() {
   this.encoding = "utf-8";
   this.ignoreBOM = false;
 
@@ -65,12 +55,8 @@ function TextDecoderPoly(encoding) {
   };
 }
 
-export const decoder = WITH_TEXT_ENCODER_POLYFILL
-  ? new TextDecoderPoly("utf-8")
-  : new TextDecoder("utf-8");
+export const decoder = WITH_TEXT_ENCODER_POLYFILL ? new TextDecoderPoly() : new TextDecoder("utf8");
 
-export const encoder = WITH_TEXT_ENCODER_POLYFILL
-  ? new TextEncoderPoly("utf-8")
-  : new TextEncoder("utf-8");
+export const encoder = WITH_TEXT_ENCODER_POLYFILL ? new TextEncoderPoly() : new TextEncoder("utf8");
 
 export const uint2String = (uint) => decoder.decode(uint);
