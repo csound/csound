@@ -9,6 +9,15 @@ export function writeFile(wasm) {
 
 writeFile.toString = () => "async (path, data) => void";
 
+export function appendFile(wasm) {
+  return (_, path, data_) => {
+    const data = typeof data_ === "string" ? encoder.encode(data_) : data_;
+    wasm.wasi.appendFile(path, data);
+  };
+}
+
+appendFile.toString = () => "async (path, data) => void";
+
 export function readFile(wasm) {
   return (_, path) => {
     return wasm.wasi.readFile(path);

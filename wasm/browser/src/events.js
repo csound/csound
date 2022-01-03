@@ -106,7 +106,7 @@ export class PublicEventAPI {
     this.eventEmitter.emit("onAudioNodeCreated", audioNode);
   }
 
-  triggerMessage(log) {
+  triggerMessage({ log }) {
     this.eventEmitter.emit("message", log);
   }
 

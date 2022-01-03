@@ -12,7 +12,7 @@ const { assert } = goog.require("goog.asserts");
 const PAGE_SIZE = 65536;
 const PAGES_PER_MB = 16; // 1048576 bytes per MB / PAGE_SIZE
 
-export const csoundWasiJsMessageCallback = ({ memory, streamBuffer }) => {
+export const csoundWasiJsMessageCallback = ({ memory, messagePort, streamBuffer }) => {
   return function (csound_, attribute, length_, offset) {
     if (!memory) {
       return;
@@ -48,7 +48,10 @@ export const csoundWasiJsMessageCallback = ({ memory, streamBuffer }) => {
       }
     });
     printableChunks.forEach((chunk) => {
-      console.log(chunk.replace(/(\r\n|\n|\r)/gm, ""));
+      const maybePrintable = chunk.replace(/(\r\n|\n|\r)/gm, "");
+      if (maybePrintable) {
+        messagePort.post({ log: chunk });
+      }
     });
   };
 };
@@ -263,8 +266,8 @@ export default async function ({ wasmDataURI, withPlugins = [], messagePort }) {
   const streamBuffer = [];
   options.env.csoundWasiJsMessageCallback = csoundWasiJsMessageCallback({
     memory,
-    streamBuffer,
     messagePort,
+    streamBuffer,
   });
 
   options["GOT.mem"] = options["GOT.mem"] || {};
