@@ -97,7 +97,6 @@ find_package(Java)
 
 # This is for Lua 5.1, it may also be possible to change 
 # this to use current Lua 5.2.
-
 find_library(LUA_LIBRARY lua5.1)
 if(NOT LUA_LIBRARY AND WIN32)
     find_library(LUA_LIBRARY lua51)
