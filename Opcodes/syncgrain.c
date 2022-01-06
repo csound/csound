@@ -53,17 +53,14 @@ static int32_t syncgrain_init(CSOUND *csound, syncgrain *p)
     if (UNLIKELY(p->olaps < 2))
       p->olaps = 2;
 
+    // VL checks are not needed because AuxAlloc takes care of it.
     size =  (p->olaps) * sizeof(double);
-    if (p->index.auxp == NULL || p->index.size < (uint32_t)size)
-      csound->AuxAlloc(csound, size, &p->index);
-    if (p->envindex.auxp == NULL || p->envindex.size < (uint32_t)size)
-      csound->AuxAlloc(csound, size, &p->envindex);
-    if (p->envincr.auxp == NULL || p->envincr.size < (uint32_t)size)
-      csound->AuxAlloc(csound, size, &p->envincr);
-
+    csound->AuxAlloc(csound, size, &p->index);
+    csound->AuxAlloc(csound, size, &p->envindex);
+    csound->AuxAlloc(csound, size, &p->envincr);
     size = (p->olaps) * sizeof(int32_t);
-    if (p->streamon.auxp == NULL || p->streamon.size < (uint32_t)size)
-      csound->AuxAlloc(csound, size, &p->streamon);
+    csound->AuxAlloc(csound, size, &p->streamon);
+ 
 
     p->count = 0;                  /* sampling period counter */
 
@@ -84,11 +81,12 @@ static int32_t syncgrain_process(CSOUND *csound, syncgrain *p)
     MYFLT   *output = p->output;
     MYFLT   *datap = p->sfunc->ftable;
     MYFLT   *ftable = p->efunc->ftable;
-    int32_t     *streamon = (int32_t *) p->streamon.auxp;
+
     float   start = p->start, frac = p->frac;
     double  *index = (double *) p->index.auxp;
     double  *envindex = (double *) p->envindex.auxp;
     double  *envincrn = (double *) p->envincr.auxp;
+    int32_t     *streamon = (int32_t *) p->streamon.auxp;
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t vecpos, vecsize=CS_KSMPS;
