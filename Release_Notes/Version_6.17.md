@@ -97,6 +97,8 @@ the last release using the current parser (v.2).
 
 - Bugs in mp3len and similar fixed.
 
+- Crash in syncgrain issue #1773 fixed
+
 # SYSTEM LEVEL CHANGES
 
 ### System Changes
