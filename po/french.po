@@ -236,14 +236,13 @@ msgid "%s inconsistent sr, kr, ksmps\n"
 msgstr "%s sr, kr, ksmps contradictoires\n"
 
 #: Engine/csound_orc_compile.c:672
-#, fuzzy, c-format
+#, c-format
 msgid "Using system sampling rate %.1f\n"
-msgstr "pas de taux d'échantillonnage"
+msgstr "Utilisation du taux d'échantillonnage système %.lf\n"
 
 #: Engine/csound_orc_compile.c:676
-#, fuzzy
 msgid "System sr not available\n"
-msgstr "'%s' n'est pas disponible.\n"
+msgstr "sr système non disponible\n"
 
 #: Engine/csound_orc_compile.c:719
 #, c-format
@@ -4034,9 +4033,9 @@ msgid "non-looping sample"
 msgstr "son échantillonné sans boucle"
 
 #: OOps/aops.c:1129
-#, fuzzy, c-format
+#, c-format
 msgid "MIDI note %f out of range"
-msgstr "Le numéro du périphérique est hors limites"
+msgstr "Note MIDI %f hors limites"
 
 #: OOps/aops.c:1171 OOps/aops.c:1199
 #, c-format
@@ -6929,9 +6928,8 @@ msgid "Could not handle end index: %d"
 msgstr "Impossible de traiter l'index de fin : %d"
 
 #: Opcodes/emugens/emugens.c:2484
-#, fuzzy
 msgid "ftexists: table number is 0"
-msgstr "ftsave : pas de numéros de table"
+msgstr "ftexists : le numéro de table est 0"
 
 #: Opcodes/emugens/emugens.c:2535
 msgid "lastcycle: no extra time defined, turnoff2 will not be detected\n"
@@ -9316,9 +9314,8 @@ msgid "seqtim: incorrect table number"
 msgstr "seqtim : numéro de table incorrect"
 
 #: Opcodes/sequencer.c:67
-#, fuzzy
 msgid "sequ: arrays have differing sizes"
-msgstr "les entrées ont des tailles différentes"
+msgstr "sequ : les tableaux ont des tailles différentes"
 
 #: Opcodes/serial.c:114
 msgid "No ports available"
@@ -9375,9 +9372,9 @@ msgid "sfload: cannot open SoundFont file \"%s\" (error %s)"
 msgstr "sfload : impossible d'ouvrir le fichier SoundFont \"%s\" (erreur %s)"
 
 #: Opcodes/sfont.c:122
-#, fuzzy, c-format
+#, c-format
 msgid "sfload: cannot open SoundFont file \"%s\""
-msgstr "sfload : impossible d'ouvrir le fichier SoundFont \"%s\" (erreur %s)"
+msgstr "sfload : impossible d'ouvrir le fichier SoundFont \"%s\""
 
 #: Opcodes/sfont.c:141
 msgid "sfont: failed to read file\n"

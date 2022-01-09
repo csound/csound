@@ -87,20 +87,20 @@ class CsoundParams(ct.Structure):
                 ("ksmps_override", ct.c_int),    # ksmps override
                 ("FFT_library", ct.c_int)]       # fft_lib
 
-string64 = ct.c_char * 64
+string128 = ct.c_char * 128
 
 class CsoundAudioDevice(ct.Structure):
-    _fields_ = [("device_name", string64),
-                ("device_id", string64),
-                ("rt_module", string64),
+    _fields_ = [("device_name", string128),
+                ("device_id", string128),
+                ("rt_module", string128),
                 ("max_nchnls", ct.c_int),
                 ("isOutput", ct.c_int)]
 
 class CsoundMidiDevice(ct.Structure):
-    _fields_ = [("device_name", string64),
-                ("interface_name", string64),
-                ("device_id", string64),
-                ("midi_module", string64),
+    _fields_ = [("device_name", string128),
+                ("interface_name", string128),
+                ("device_id", string128),
+                ("midi_module", string128),
                 ("isOutput", ct.c_int)]
 
 class CsoundRtAudioParams(ct.Structure):
