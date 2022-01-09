@@ -238,7 +238,7 @@ msgstr "%s sr, kr, ksmps contradictoires\n"
 #: Engine/csound_orc_compile.c:672
 #, c-format
 msgid "Using system sampling rate %.1f\n"
-msgstr "Utilisation du taux d'échantillonnage système %.lf\n"
+msgstr "Utilisation du taux d'échantillonnage système %.1f\n"
 
 #: Engine/csound_orc_compile.c:676
 msgid "System sr not available\n"
