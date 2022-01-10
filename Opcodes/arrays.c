@@ -2577,16 +2577,37 @@ static int32_t tabclear(CSOUND *csound, TABCLEAR *p)
     ARRAYDAT *t = p->tab;
     int32_t i;
     int32_t nsmps = CS_KSMPS;
-
+    int32_t size = 1;
+    
     if (UNLIKELY(t->data == NULL))
       return csound->PerfError(csound, &(p->h),
                                Str("array-variable not initialised"));
-    if (UNLIKELY(t->dimensions!=1))
-      return csound->PerfError(csound, &(p->h),
-                               Str("array-variable not a vector"));
+    /* if (UNLIKELY(t->dimensions!=1)) */
+    /*   return csound->PerfError(csound, &(p->h), */
+    /*                            Str("array-variable not a vector")); */
 
-    for(i = 0; i < t->sizes[0]; i++)
-      memset(t->data+i*nsmps, 0, sizeof(MYFLT)*nsmps);
+    for(i = 0; i < t->dimensions; i++) size *= t->sizes[i];
+    memset(t->data, 0, sizeof(MYFLT)*nsmps*size);
+    
+    return OK;
+}
+
+
+static int32_t tabcleark(CSOUND *csound, TABCLEAR *p)
+{
+    ARRAYDAT *t = p->tab;
+    int32_t i;
+    int32_t size = 1;
+    
+    if (UNLIKELY(t->data == NULL))
+      return csound->PerfError(csound, &(p->h),
+                               Str("array-variable not initialised"));
+    /* if (UNLIKELY(t->dimensions!=1)) */
+    /*   return csound->PerfError(csound, &(p->h), */
+    /*                            Str("array-variable not a vector")); */
+
+    for(i = 0; i < t->dimensions; i++) size *= t->sizes[i];
+    memset(t->data, 0, sizeof(MYFLT)*size);
     
     return OK;
 }
@@ -4802,7 +4823,8 @@ static OENTRY arrayvars_localops[] =
     { "taninv2.Ak", sizeof(TABARITH), 0, 2, "k[]", "k[]k[]", (SUBR)tabarithset, (SUBR)taninv2_A  },
     { "taninv2.Aa", sizeof(TABARITH), 0, 2, "a[]", "a[]a[]", (SUBR)tabarithset, (SUBR)taninv2_Aa  },
     { "autocorr", sizeof(AUTOCORR), 0, 3, "k[]", "k[]", (SUBR) init_autocorr, (SUBR) perf_autocorr },
-    { "clear", sizeof(TABCLEAR), 0, 3, "", "a[]", (SUBR)tabclearset, (SUBR)tabclear  }
+    { "clear", sizeof(TABCLEAR), 0, 3, "", "a[]", (SUBR)tabclearset, (SUBR)tabclear  },
+    { "clear", sizeof(TABCLEAR), 0, 3, "", "k[]", (SUBR)tabclearset, (SUBR)tabcleark  }
   };
 
 LINKAGE_BUILTIN(arrayvars_localops)
