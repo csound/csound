@@ -1848,12 +1848,12 @@ TREE* verify_tree(CSOUND * csound, TREE *root, TYPE_TABLE* typeTable)
         if (!verify_until_statement(csound, current, typeTable)) {
           return 0;
         }
-#ifdef JPFF
-        printf("***Expand until/while %d\n", csound->inZero);
-#endif
+/* #ifdef JPFF */
+/*         printf("***Expand until/while %d\n", csound->inZero); */
+/* #endif */
         current = expand_until_statement(csound, current,
                                          typeTable, current->type==WHILE_TOKEN);
-        //print_tree(csound, "until/while\b", current);
+        //print_tree(csound, "until/while", current);
         if (previous != NULL) {
           previous->next = current;
         }
