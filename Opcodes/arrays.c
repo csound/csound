@@ -428,6 +428,11 @@ typedef struct {
   MYFLT  *kstart, *kend;
 } TABSCALE;
 
+typedef struct {
+  OPDS h;
+  ARRAYDAT *tab;
+} TABCLEAR;
+
 static int32_t tabarithset(CSOUND *csound, TABARITH *p)
 {
     if (LIKELY(p->left->data && p->right->data)) {
@@ -2509,6 +2514,7 @@ static int32_t tabmin1(CSOUND *csound, TABQUERY *p)
     else return NOTOK;
 }
 
+
 static int32_t tabsuma(CSOUND *csound, TABQUERY1 *p)
 {
     ARRAYDAT *t = p->tab;
@@ -2558,6 +2564,34 @@ static int32_t tabsuma(CSOUND *csound, TABQUERY1 *p)
     }
     return OK;
 }
+
+static int32_t tabclearset(CSOUND *csound, TABCLEAR *p)
+{
+    if (LIKELY(p->tab->data)) return OK;
+    return csound->InitError(csound, "%s", Str("array-variable not initialised"));
+}
+
+
+static int32_t tabclear(CSOUND *csound, TABCLEAR *p)
+{
+    ARRAYDAT *t = p->tab;
+    int32_t i;
+    int32_t nsmps = CS_KSMPS;
+
+    if (UNLIKELY(t->data == NULL))
+      return csound->PerfError(csound, &(p->h),
+                               Str("array-variable not initialised"));
+    if (UNLIKELY(t->dimensions!=1))
+      return csound->PerfError(csound, &(p->h),
+                               Str("array-variable not a vector"));
+
+    for(i = 0; i < t->sizes[0]; i++)
+      memset(t->data+i*nsmps, 0, sizeof(MYFLT)*nsmps);
+    
+    return OK;
+}
+
+
 
 static int32_t tabsum(CSOUND *csound, TABQUERY1 *p)
 {
@@ -4767,7 +4801,8 @@ static OENTRY arrayvars_localops[] =
     { "taninv2.Ai", sizeof(TABARITH), 0, 1, "i[]", "i[]i[]", (SUBR)taninv2_A  },
     { "taninv2.Ak", sizeof(TABARITH), 0, 2, "k[]", "k[]k[]", (SUBR)tabarithset, (SUBR)taninv2_A  },
     { "taninv2.Aa", sizeof(TABARITH), 0, 2, "a[]", "a[]a[]", (SUBR)tabarithset, (SUBR)taninv2_Aa  },
-    { "autocorr", sizeof(AUTOCORR), 0, 3, "k[]", "k[]", (SUBR) init_autocorr, (SUBR) perf_autocorr }
+    { "autocorr", sizeof(AUTOCORR), 0, 3, "k[]", "k[]", (SUBR) init_autocorr, (SUBR) perf_autocorr },
+    { "clear", sizeof(TABCLEAR), 0, 3, "", "a[]", (SUBR)tabclearset, (SUBR)tabclear  }
   };
 
 LINKAGE_BUILTIN(arrayvars_localops)

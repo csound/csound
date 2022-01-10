@@ -53,7 +53,6 @@ static int32_t syncgrain_init(CSOUND *csound, syncgrain *p)
     if (UNLIKELY(p->olaps < 2))
       p->olaps = 2;
 
-    // VL checks are not needed because AuxAlloc takes care of it.
     size =  (p->olaps) * sizeof(double);
     csound->AuxAlloc(csound, size, &p->index);
     csound->AuxAlloc(csound, size, &p->envindex);
