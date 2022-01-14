@@ -603,14 +603,12 @@ void sfopenin(CSOUND *csound)           /* init for continuous soundin */
     STA(inbuf) = (MYFLT*) csound->Calloc(csound,
                                          STA(inbufsiz)); /* alloc inbuf space */
     if (STA(pipdevout) == 2) {
-      if(csound->oparms->msglevel ||csound->oparms->odebug)
        csound->Message(csound,
                       Str("reading %d sample blks of %lu-bit floats from %s\n"),
                       O->inbufsamps * O->sfsampsize,
                       (unsigned long) sizeof(MYFLT)*8, sfname);
     }
     else {
-      if(csound->oparms->msglevel ||csound->oparms->odebug)
        csound->Message(csound,
                       Str("reading %d-byte blks of %s from %s (%s)\n"),
                       O->inbufsamps * (int) sfsampsize(FORMAT2SF(O->informat)),
@@ -901,7 +899,6 @@ void sfopenout(CSOUND *csound)                  /* init for sound out       */
     STA(outbufsiz) = O->outbufsamps * sizeof(MYFLT);
     STA(outbufp)   = STA(outbuf) = csound->Malloc(csound, STA(outbufsiz));
     if (STA(pipdevout) == 2) {
-      if(csound->oparms->msglevel ||csound->oparms->odebug)
       csound->Message(csound,
                       Str("writing %d sample blks of %lu-bit floats to %s\n"),
                       O->outbufsamps, (unsigned long) sizeof(MYFLT)*8,
@@ -909,7 +906,6 @@ void sfopenout(CSOUND *csound)                  /* init for sound out       */
 
     }
     else {
-      if(csound->oparms->msglevel || O->odebug) {
       csound->Message(csound, Str("writing %d-byte blks of %s to %s"),
                     O->outbufsamps * O->sfsampsize,
                     getstrformat(O->outformat), STA(sfoutname));
@@ -918,7 +914,6 @@ void sfopenout(CSOUND *csound)                  /* init for sound out       */
       csound->Message(csound, Str(" (raw)\n"));
     else
       csound->Message(csound, " (%s)\n", type2string(O->filetyp));
-      }
     }
     STA(osfopen)   = 1;
     STA(outbufrem) = O->outbufsamps;
@@ -981,7 +976,6 @@ void sfcloseout(CSOUND *csound)
 
  report:
     if (STA(pipdevout) == 2) {
-     if(csound->oparms->msglevel ||csound->oparms->odebug)
       csound->Message(csound,
                       "%"PRIi32" %d %s%lu%s%s\n",
                       csound->nrecs, O->outbufsamps, Str("sample blks of "),
@@ -989,7 +983,6 @@ void sfcloseout(CSOUND *csound)
                       STA(sfoutname));
     }
     else {
-      if(csound->oparms->msglevel ||csound->oparms->odebug) {
       csound->Message(csound, Str("%"PRIi32" %d sample blks of %s written to %s"),
                       O->outbufsamps, O->outbufsamps * O->sfsampsize,
                       getstrformat(O->outformat), STA(sfoutname));
@@ -997,7 +990,7 @@ void sfcloseout(CSOUND *csound)
         csound->Message(csound, Str(" (raw)\n"));
       else
         csound->Message(csound, " (%s)\n", type2string(O->filetyp));
-      }
+      
     }
     STA(osfopen) = 0;
 }
@@ -1020,9 +1013,8 @@ static void sndwrterr(CSOUND *csound, int nret, int nput)
 void sfnopenout(CSOUND *csound)
 {
     alloc_globals(csound);
-    if(csound->oparms->msglevel ||csound->oparms->odebug) {
-     csound->Message(csound, Str("not writing to sound disk\n"));
-    }
+    csound->Message(csound, Str("not writing to sound disk\n"));
+    
     /* init counter, though not writing */
     STA(outbufrem) = csound->oparms->outbufsamps;
 }

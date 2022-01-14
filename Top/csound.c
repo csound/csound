@@ -2224,7 +2224,6 @@ PUBLIC int csoundPerformKsmps(CSOUND *csound)
       if (UNLIKELY(done)) {
         if(!csound->oparms->realtime) // no API lock in realtime mode
          csoundUnlockMutex(csound->API_lock);
-        if ((csound->oparms->msglevel&(~NOQQ)) ||csound->oparms->odebug)
          csoundMessage(csound,
                       Str("Score finished in csoundPerformKsmps() with %d.\n"),
                       done);
@@ -2257,7 +2256,6 @@ static int csoundPerformKsmpsInternal(CSOUND *csound)
     }
    do {
      if (UNLIKELY((done = sensevents(csound)))) {
-       if ((csound->oparms->msglevel&(~NOQQ)) ||csound->oparms->odebug)
        csoundMessage(csound,
                      Str("Score finished in csoundPerformKsmpsInternal().\n"));
         return done;
@@ -2333,7 +2331,6 @@ PUBLIC int csoundPerform(CSOUND *csound)
            csoundLockMutex(csound->API_lock);
       do {
         if (UNLIKELY((done = sensevents(csound)))) {
-          if ((csound->oparms->msglevel&(~NOQQ)) ||csound->oparms->odebug)
            csoundMessage(csound, Str("Score finished in csoundPerform().\n"));
           if(!csound->oparms->realtime)
             csoundUnlockMutex(csound->API_lock);
@@ -2632,19 +2629,24 @@ PUBLIC void csoundSetMessageCallback(CSOUND *csound,
     }
 }
 
+#define NOMSG 0x10
+
 PUBLIC void csoundMessageV(CSOUND *csound,
                            int attr, const char *format, va_list args)
 {
+  if(!(csound->oparms->msglevel & NOMSG)) {
     if(csound->csoundMessageCallback_) {
       csound->csoundMessageCallback_(csound, attr, format, args);
     } else {
       vsnprintf(csound->message_string, MAX_MESSAGE_STR, format, args);
       csound->csoundMessageStringCallback(csound, attr, csound->message_string);
     }
+  }
 }
 
 PUBLIC void csoundMessage(CSOUND *csound, const char *format, ...)
 {
+  if(!(csound->oparms->msglevel & NOMSG)) {
     va_list args;
     va_start(args, format);
     if(csound->csoundMessageCallback_)
@@ -2654,10 +2656,12 @@ PUBLIC void csoundMessage(CSOUND *csound, const char *format, ...)
       csound->csoundMessageStringCallback(csound, 0, csound->message_string);
     }
     va_end(args);
+  }
 }
 
 PUBLIC void csoundMessageS(CSOUND *csound, int attr, const char *format, ...)
 {
+  if(!(csound->oparms->msglevel & NOMSG)) {
     va_list args;
     va_start(args, format);
     if(csound->csoundMessageCallback_)
@@ -2667,6 +2671,7 @@ PUBLIC void csoundMessageS(CSOUND *csound, int attr, const char *format, ...)
       csound->csoundMessageStringCallback(csound, attr, csound->message_string);
     }
     va_end(args);
+    }
 }
 
 void csoundDie(CSOUND *csound, const char *msg, ...){
@@ -2703,39 +2708,29 @@ void csoundDebugMsg(CSOUND *csound, const char *msg, ...)
 
 void csoundErrorMsg(CSOUND *csound, const char *msg, ...)
 {
-      // VL 08.09.21 : suppress messages if requested
-  //if ((csound->oparms->msglevel&(~NOQQ)) || csound->oparms->odebug) {
     va_list args;
     va_start(args, msg);
     csoundMessageV(csound, CSOUNDMSG_ERROR, msg, args);
     va_end(args);
-    //csound->MessageS(csound, CSOUNDMSG_ERROR, "\n");
-    //}
 }
 
 void csoundErrMsgV(CSOUND *csound,
                    const char *hdr, const char *msg, va_list args)
 {
-    // VL 08.09.21 : suppress messages if requested
-    //if ((csound->oparms->msglevel&(~NOQQ)) || csound->oparms->odebug) {
     if (hdr != NULL)
       csound->MessageS(csound, CSOUNDMSG_ERROR, "%s", hdr);
     csoundMessageV(csound, CSOUNDMSG_ERROR, msg, args);
     csound->MessageS(csound, CSOUNDMSG_ERROR, "\n");
-    //}
+ 
 }
 
 void csoundErrorMsgS(CSOUND *csound, int attr,
                      const char *msg, ...)
 {
-      // VL 08.09.21 : suppress messages if requested
-  //if ((csound->oparms->msglevel&(~NOQQ)) || csound->oparms->odebug) {
     va_list args;
     va_start(args, msg);
     csoundMessageV(csound, CSOUNDMSG_ERROR | attr, msg, args);
     va_end(args);
-    //csound->MessageS(csound, CSOUNDMSG_ERROR, "\n");
-    //}
 }
 
 

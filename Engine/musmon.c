@@ -211,21 +211,21 @@ static void print_maxamp(CSOUND *csound, MYFLT x)
         }
       }
       if (csound->e0dbfs > FL(3000.0))
-        csoundErrorMsgS(csound, attr, "%9.1f", x);
+        csoundMessageS(csound, attr, "%9.1f", x);
       else if (csound->e0dbfs < FL(3.0))
-        csoundErrorMsgS(csound, attr, "%9.5f", x);
+        csoundMessageS(csound, attr, "%9.5f", x);
       else if (csound->e0dbfs > FL(300.0))
-       csoundErrorMsgS(csound, attr, "%9.2f", x);
+       csoundMessageS(csound, attr, "%9.2f", x);
       else if (csound->e0dbfs > FL(30.0))
-        csoundErrorMsgS(csound, attr, "%9.3f", x);
+        csoundMessageS(csound, attr, "%9.3f", x);
       else
-        csoundErrorMsgS(csound, attr, "%9.4f", x);
+        csoundMessageS(csound, attr, "%9.4f", x);
     }
     else {                              /* dB values */
       MYFLT y = x / csound->e0dbfs;     /* relative level */
       if (UNLIKELY(y < FL(1.0e-10))) {
         /* less than -200 dB: print zero */
-        csound->ErrorMsg(csound, "      0  ");
+        csound->Message(csound, "      0  ");
         return;
       }
       y = FL(20.0) * (MYFLT) log10((double) y);
@@ -241,7 +241,7 @@ static void print_maxamp(CSOUND *csound, MYFLT x)
             attr = CSOUNDMSG_FG_BOLD | CSOUNDMSG_FG_BLUE;
         }
       }
-      csoundErrorMsgS(csound, attr, "%+9.2f", y);
+      csoundMessageS(csound, attr, "%+9.2f", y);
     }
 }
 
