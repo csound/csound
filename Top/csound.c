@@ -2223,8 +2223,8 @@ PUBLIC int csoundPerformKsmps(CSOUND *csound)
       done = sensevents(csound);
       if (UNLIKELY(done)) {
         if(!csound->oparms->realtime) // no API lock in realtime mode
-         csoundUnlockMutex(csound->API_lock);
-         csoundMessage(csound,
+          csoundUnlockMutex(csound->API_lock);
+        csoundMessage(csound,
                       Str("Score finished in csoundPerformKsmps() with %d.\n"),
                       done);
         return done;
@@ -2628,8 +2628,6 @@ PUBLIC void csoundSetMessageCallback(CSOUND *csound,
       csound->csoundMessageCallback_ = csoundDefaultMessageCallback;
     }
 }
-
-#define NOMSG 0x10
 
 PUBLIC void csoundMessageV(CSOUND *csound,
                            int attr, const char *format, va_list args)
