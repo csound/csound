@@ -2639,6 +2639,8 @@ PUBLIC void csoundSetMessageCallback(CSOUND *csound,
     }
 }
 
+#define NOMSG   0x10
+
 PUBLIC void csoundMessageV(CSOUND *csound,
                            int attr, const char *format, va_list args)
 {
