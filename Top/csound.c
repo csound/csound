@@ -2632,7 +2632,7 @@ PUBLIC void csoundSetMessageCallback(CSOUND *csound,
 PUBLIC void csoundMessageV(CSOUND *csound,
                            int attr, const char *format, va_list args)
 {
-  if(!(csound->oparms->msglevel & NO_MSG)) {
+  if(!(csound->oparms->msglevel & CS_NOMSG)) {
     if(csound->csoundMessageCallback_) {
       csound->csoundMessageCallback_(csound, attr, format, args);
     } else {
@@ -2644,7 +2644,7 @@ PUBLIC void csoundMessageV(CSOUND *csound,
 
 PUBLIC void csoundMessage(CSOUND *csound, const char *format, ...)
 {
-  if(!(csound->oparms->msglevel & NO_MSG)) {
+  if(!(csound->oparms->msglevel & CS_NOMSG)) {
     va_list args;
     va_start(args, format);
     if(csound->csoundMessageCallback_)
@@ -2659,7 +2659,7 @@ PUBLIC void csoundMessage(CSOUND *csound, const char *format, ...)
 
 PUBLIC void csoundMessageS(CSOUND *csound, int attr, const char *format, ...)
 {
-  if(!(csound->oparms->msglevel & NO_MSG)) {
+  if(!(csound->oparms->msglevel & CS_NOMSG)) {
     va_list args;
     va_start(args, format);
     if(csound->csoundMessageCallback_)
@@ -2684,7 +2684,7 @@ void csoundDie(CSOUND *csound, const char *msg, ...){
 void csoundWarning(CSOUND *csound, const char *msg, ...)
 {
     va_list args;
-    if (!(csound->oparms_.msglevel & WARNMSG))
+    if (!(csound->oparms_.msglevel & CS_WARNMSG))
       return;
     csoundMessageS(csound, CSOUNDMSG_WARNING, Str("WARNING: "));
     va_start(args, msg);
@@ -2696,7 +2696,7 @@ void csoundWarning(CSOUND *csound, const char *msg, ...)
 void csoundDebugMsg(CSOUND *csound, const char *msg, ...)
 {
     va_list args;
-    if (!(csound->oparms_.odebug&(~NOQQ)))
+    if (!(csound->oparms_.odebug&(~CS_NOQQ)))
       return;
     va_start(args, msg);
     csoundMessageV(csound, 0, msg, args);

@@ -745,8 +745,8 @@ static int decode_long(CSOUND *csound, char *s, int argc, char **argv)
       s += 7;
       if (UNLIKELY(*s=='\0')) dieu(csound, Str("no message amps"));
       sscanf(s, "%d", &n);
-      if (n) O->msglevel |= AMPLMSG;
-      else O->msglevel &= ~AMPLMSG;
+      if (n) O->msglevel |= CS_AMPLMSG;
+      else O->msglevel &= ~CS_AMPLMSG;
       return 1;
     }
     else if (!(strncmp (s, "m-range=",8))) {
@@ -754,8 +754,8 @@ static int decode_long(CSOUND *csound, char *s, int argc, char **argv)
       s += 8;
       if (UNLIKELY(*s=='\0')) dieu(csound, Str("no message range"));
       sscanf(s, "%d", &n);
-      if (n) O->msglevel |= RNGEMSG;
-      else O->msglevel &= ~RNGEMSG;
+      if (n) O->msglevel |= CS_RNGEMSG;
+      else O->msglevel &= ~CS_RNGEMSG;
       return 1;
      }
     else if (!(strncmp (s, "m-warnings=",11))) {
@@ -763,8 +763,8 @@ static int decode_long(CSOUND *csound, char *s, int argc, char **argv)
       s += 11;
       if (UNLIKELY(*s=='\0')) dieu(csound, Str("no message warnings"));
       sscanf(s, "%d", &n);
-      if (n) O->msglevel |= WARNMSG;
-      else O->msglevel &= ~WARNMSG;
+      if (n) O->msglevel |= CS_WARNMSG;
+      else O->msglevel &= ~CS_WARNMSG;
       return 1;
     }
     else if (!(strncmp (s, "m-raw=",6))) {
@@ -781,8 +781,8 @@ static int decode_long(CSOUND *csound, char *s, int argc, char **argv)
       s += 5;
       if (UNLIKELY(*s=='\0')) dieu(csound, Str("no message dB"));
       sscanf(s, "%d", &n);
-      if (n) O->msglevel |= RAWMSG;
-      else O->msglevel &= ~RAWMSG;
+      if (n) O->msglevel |= CS_RAWMSG;
+      else O->msglevel &= ~CS_RAWMSG;
       return 1;
     }
     else if (!(strncmp (s, "m-colours=",10)) || !(strncmp (s, "m-colors=",9))) {
@@ -799,8 +799,8 @@ static int decode_long(CSOUND *csound, char *s, int argc, char **argv)
       s += 13;
       if (UNLIKELY(*s=='\0')) dieu(csound, Str("no benchmark level"));
       sscanf(s, "%d", &n);
-      if (n) O->msglevel |= TIMEMSG;
-      else O->msglevel &= ~TIMEMSG;
+      if (n) O->msglevel |= CS_TIMEMSG;
+      else O->msglevel &= ~CS_TIMEMSG;
       return 1;
     }
     else if (!(strncmp (s, "csd-line-nums=",14))) {

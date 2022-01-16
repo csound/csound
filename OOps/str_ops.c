@@ -86,7 +86,7 @@ static void str_set(CSOUND *csound, int32_t ndx, const char *s)
     if (csound->strsets[ndx] != NULL) {
       if (strcmp(s, csound->strsets[ndx]) == 0)
         return;
-      if (UNLIKELY(csound->oparms->msglevel & WARNMSG)) {
+      if (UNLIKELY(csound->oparms->msglevel & CS_WARNMSG)) {
         csound->Warning(csound, Str("strset index conflict at %d"), ndx);
         csound->Warning(csound, Str("previous value: '%s', replaced with '%s'"),
                                 csound->strsets[ndx], s);

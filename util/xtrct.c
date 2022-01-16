@@ -131,7 +131,7 @@ static int32_t xtrct(CSOUND *csound, int32_t argc, char **argv)
             xtrc.sample = atoi(s);
             while (*++s);
             if (xtrc.stime >= FL(0.0)) {
-              if (UNLIKELY(Omsg & WARNMSG))
+              if (UNLIKELY(Omsg & CS_WARNMSG))
                 csound->Message(csound,"%s", Str("-S overriding -T"));
               xtrc.stime = -1.0;
             }
@@ -141,7 +141,7 @@ static int32_t xtrct(CSOUND *csound, int32_t argc, char **argv)
             xtrc.stime = (MYFLT) atof(s);
             while (*++s);
             if (xtrc.sample >= 0) {
-              if (UNLIKELY(Omsg & WARNMSG))
+              if (UNLIKELY(Omsg & CS_WARNMSG))
                 csound->Message(csound,"%s", Str("-T overriding -S"));
               xtrc.sample = -1;
             }
@@ -151,17 +151,17 @@ static int32_t xtrct(CSOUND *csound, int32_t argc, char **argv)
             xtrc.stop = atoi(s);
             while (*++s);
             if (xtrc.endtime >= FL(0.0)) {
-              if (UNLIKELY(Omsg & WARNMSG))
+              if (UNLIKELY(Omsg & CS_WARNMSG))
                 csound->Message(csound,"%s", Str("-Z overriding -E"));
               xtrc.endtime = -1.0;
             }
             if (xtrc.dur >= FL(0.0)) {
-              if (UNLIKELY(Omsg & WARNMSG))
+              if (UNLIKELY(Omsg & CS_WARNMSG))
                 csound->Message(csound,"%s", Str("-Z overriding -D"));
               xtrc.dur = FL(0.1);
             }
             if (xtrc.numsamps >=0) {
-              if (UNLIKELY(Omsg & WARNMSG))
+              if (UNLIKELY(Omsg & CS_WARNMSG))
                 csound->Message(csound,"%s", Str("-Z overriding -Q"));
               xtrc.numsamps = -1;
             }
@@ -171,17 +171,17 @@ static int32_t xtrct(CSOUND *csound, int32_t argc, char **argv)
             xtrc.endtime = (MYFLT) atof(s);
             while (*++s);
             if (xtrc.dur >= 0.0) {
-              if (UNLIKELY(Omsg & WARNMSG))
+              if (UNLIKELY(Omsg & CS_WARNMSG))
                 csound->Message(csound,"%s", Str("-E overriding -D"));
               xtrc.dur = FL(0.1);
             }
             if (xtrc.numsamps >=0) {
-              if (UNLIKELY(Omsg & WARNMSG))
+              if (UNLIKELY(Omsg & CS_WARNMSG))
                 csound->Message(csound,"%s", Str("-E overriding -Q"));
               xtrc.numsamps = -1;
             }
             if (xtrc.stop >= 0) {
-              if (UNLIKELY(Omsg & WARNMSG))
+              if (UNLIKELY(Omsg & CS_WARNMSG))
                 csound->Message(csound,"%s", Str("-E overriding -Z"));
               xtrc.stop = -1;
             }
@@ -191,17 +191,17 @@ static int32_t xtrct(CSOUND *csound, int32_t argc, char **argv)
             xtrc.dur = (MYFLT) atof(s);
             while (*++s);
             if (xtrc.endtime >= FL(0.0)) {
-              if (UNLIKELY(Omsg & WARNMSG))
+              if (UNLIKELY(Omsg & CS_WARNMSG))
                 csound->Message(csound,"%s", Str("-D overriding -E"));
               xtrc.endtime = -1.0;
             }
             if (xtrc.numsamps >=0) {
-              if (UNLIKELY(Omsg & WARNMSG))
+              if (UNLIKELY(Omsg & CS_WARNMSG))
                 csound->Message(csound,"%s", Str("-D overriding -Q"));
               xtrc.numsamps = -1;
             }
             if (xtrc.stop >= 0) {
-              if (UNLIKELY(Omsg & WARNMSG))
+              if (UNLIKELY(Omsg & CS_WARNMSG))
                 csound->Message(csound,"%s", Str("-D overriding -Z"));
               xtrc.stop = -1;
             }
@@ -211,17 +211,17 @@ static int32_t xtrct(CSOUND *csound, int32_t argc, char **argv)
             xtrc.numsamps = atoi(s);
             while (*++s);
             if (xtrc.endtime >= FL(0.0)) {
-              if (UNLIKELY(Omsg & WARNMSG))
+              if (UNLIKELY(Omsg & CS_WARNMSG))
                 csound->Message(csound,"%s", Str("-Q overriding -E"));
               xtrc.endtime = -1.0;
             }
             if (xtrc.dur >= FL(0.0)) {
-              if (UNLIKELY(Omsg & WARNMSG))
+              if (UNLIKELY(Omsg & CS_WARNMSG))
                 csound->Message(csound,"%s", Str("-Q overriding -D"));
               xtrc.dur = FL(0.1);
             }
             if (xtrc.stop >= 0) {
-              if (UNLIKELY(Omsg & WARNMSG))
+              if (UNLIKELY(Omsg & CS_WARNMSG))
                 csound->Message(csound,"%s", Str("-Q overriding -Z"));
               xtrc.stop = -1;
             }
