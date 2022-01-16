@@ -199,7 +199,7 @@ extern int ISSTRCOD(MYFLT);
 #define AMPLMSG 01
 #define RNGEMSG 02
 #define WARNMSG 04
-#define NOMSG   0x10
+#define NO_MSG   0x10
 #define RAWMSG  0x40
 #define TIMEMSG 0x80
 #define NOQQ    0x400

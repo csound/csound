@@ -2632,7 +2632,7 @@ PUBLIC void csoundSetMessageCallback(CSOUND *csound,
 PUBLIC void csoundMessageV(CSOUND *csound,
                            int attr, const char *format, va_list args)
 {
-  if(!(csound->oparms->msglevel & NOMSG)) {
+  if(!(csound->oparms->msglevel & NO_MSG)) {
     if(csound->csoundMessageCallback_) {
       csound->csoundMessageCallback_(csound, attr, format, args);
     } else {
@@ -2644,7 +2644,7 @@ PUBLIC void csoundMessageV(CSOUND *csound,
 
 PUBLIC void csoundMessage(CSOUND *csound, const char *format, ...)
 {
-  if(!(csound->oparms->msglevel & NOMSG)) {
+  if(!(csound->oparms->msglevel & NO_MSG)) {
     va_list args;
     va_start(args, format);
     if(csound->csoundMessageCallback_)
@@ -2659,7 +2659,7 @@ PUBLIC void csoundMessage(CSOUND *csound, const char *format, ...)
 
 PUBLIC void csoundMessageS(CSOUND *csound, int attr, const char *format, ...)
 {
-  if(!(csound->oparms->msglevel & NOMSG)) {
+  if(!(csound->oparms->msglevel & NO_MSG)) {
     va_list args;
     va_start(args, format);
     if(csound->csoundMessageCallback_)
@@ -2719,7 +2719,7 @@ void csoundErrMsgV(CSOUND *csound,
       csound->MessageS(csound, CSOUNDMSG_ERROR, "%s", hdr);
     csoundMessageV(csound, CSOUNDMSG_ERROR, msg, args);
     csound->MessageS(csound, CSOUNDMSG_ERROR, "\n");
- 
+
 }
 
 void csoundErrorMsgS(CSOUND *csound, int attr,
