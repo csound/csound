@@ -221,7 +221,7 @@ TEST_F (DebuggerTests, testLineBreakpointAddRemove)
     csoundDebuggerClean(csound);
     csoundDestroyMessageBuffer(csound);
     csoundDestroy(csound);
-    CU_ASSERT_EQUAL(count, 2);
+    ASSERT_EQ(count, 2);
 }
 
 static void brkpt_cb6(CSOUND *csound, debug_bkpt_info_t *bkpt_info, void *userdata)
@@ -289,7 +289,7 @@ TEST_F (DebuggerTests, testLineBreakpoint)
     csoundDestroyMessageBuffer(csound);
     csoundDestroy(csound);
 
-    CU_ASSERT_EQUAL(count, 3);
+    ASSERT_EQ(count, 3);
 }
 
 static void brkpt_cb7(CSOUND *csound, debug_bkpt_info_t *bkpt_info, void *line_)
@@ -356,7 +356,7 @@ TEST_F (DebuggerTests, testLineBreakpointOrcFile)
 //    csoundPerformKsmps(csound);
 
     csoundDebuggerClean(csound);
-    CU_ASSERT_EQUAL(count, 2);
+    ASSERT_EQ(count, 2);
     csoundDestroyMessageBuffer(csound);
     csoundDestroy(csound);
 }
@@ -481,46 +481,5 @@ TEST_F (DebuggerTests, testNext)
     csoundDebuggerClean(csound);
     csoundDestroyMessageBuffer(csound);
     csoundDestroy(csound);
-    CU_ASSERT_EQUAL(count, 5);
-}
-
-int main()
-{
-    CU_pSuite pSuite = NULL;
-    
-    /* initialize the CUnit test registry */
-    if (CUE_SUCCESS != CU_initialize_registry())
-        return CU_get_error();
-
-    /* add a suite to the registry */
-    pSuite = CU_add_suite("csound_orc_semantics function tests", init_suite1, clean_suite1);
-    if (NULL == pSuite) {
-        CU_cleanup_registry();
-        return CU_get_error();
-    }
-    
-    /* add the tests to the suite */
-    if ( (NULL == CU_add_test(pSuite, "Test Next Command", test_next))
-         || (NULL == CU_add_test(pSuite, "Test Line breakpoints for orc file", test_line_breakpoint_orc_file))
-         || (NULL == CU_add_test(pSuite, "Test no callback", test_no_callback))
-         || (NULL == CU_add_test(pSuite, "Test Line breakpoints", test_line_breakpoint))
-         || (NULL == CU_add_test(pSuite, "Test Line breakpoints add/remove", test_line_breakpoint_add_remove))
-         || (NULL == CU_add_test(pSuite, "Test Breakpoint instrument", test_bkpt_instrument))
-         ||(NULL == CU_add_test(pSuite, "Test variables", test_variables))
-         || (NULL == CU_add_test(pSuite, "Test debugger init", test_debugger_init))
-         || (NULL == CU_add_test(pSuite, "Test add breakpoint", test_add_bkpt))
-         || (NULL == CU_add_test(pSuite, "Test add callback", test_add_callback))
-         || (NULL == CU_add_test(pSuite, "Test breakpoint", test_breakpoint_once))
-         || (NULL == CU_add_test(pSuite, "Test breakpoint remove", test_breakpoint_remove))
-         )
-    {
-        CU_cleanup_registry();
-        return CU_get_error();
-    }
-    
-    /* Run all tests using the CUnit Basic interface */
-    CU_basic_set_mode(CU_BRM_VERBOSE);
-    CU_basic_run_tests();
-    CU_cleanup_registry();
-    return CU_get_error();
+    ASSERT_EQ(count, 5);
 }
