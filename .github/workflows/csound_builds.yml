@@ -38,7 +38,7 @@ jobs:
       - name: Install Dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install cmake libsndfile1-dev libasound2-dev libjack-dev portaudio19-dev libportmidi-dev libpulse-dev swig liblua5.1-0-dev default-jdk libfltk1.1-dev libfluidsynth-dev liblo-dev fluid ladspa-sdk libpng-dev dssi-dev libstk0-dev libgmm++-dev bison flex libportsmf-dev libeigen3-dev libcunit1-dev
+          sudo apt-get install cmake libasound2-dev libjack-dev libpulse-dev liblua5.1-0-dev default-jdk ladspa-sdk libpng-dev dssi-dev libgmm++-dev libcunit1-dev
       - name: Configure Build
         run: cmake -B build -S . -DUSE_VCPKG=1 -DUSE_MP3=0 -DBUILD_STATIC_LIBRARY=1
       - name: Build Csound
