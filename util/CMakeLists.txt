@@ -8,7 +8,7 @@ set(stdutil_SRCS
     sndinfo.c       srconv.c        std_util.c  xtrct.c
     SDIF/sdif.c   ../InOut/soundfile.c)
 
-if(MSVC)
+if(USE_VCPKG)
     set(LIBSNDFILE_LIBRARY SndFile::sndfile)
 endif()
 
@@ -36,9 +36,12 @@ if(BUILD_UTILITIES)
     make_utility(sndinfo     sndinfo_main.c)
     make_utility(srconv      srconv_main.c)
 
-
-    #find_library(LIBSNDFILE_LIBRARY sndfile libsndfile-1)
-    find_library(LIBSAMPLERATE_LIBRARY NAMES samplerate libsamplerate-0)
+    if (USE_VCPKG)
+        find_package(SampleRate REQUIRED)
+        set(LIBSAMPLERATE_LIBRARY SampleRate::samplerate)
+    else ()
+        find_library(LIBSAMPLERATE_LIBRARY NAMES samplerate libsamplerate-0)
+    endif()
 
     if(LIBSNDFILE_LIBRARY AND LIBSAMPLERATE_LIBRARY)
         make_executable(src_conv new_srconv.c "${LIBSNDFILE_LIBRARY};${LIBSAMPLERATE_LIBRARY}")

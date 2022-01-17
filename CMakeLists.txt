@@ -412,8 +412,6 @@ else()
     set(LINUX NO)
 endif()
 
-
-
 if(LINUX)
     set(DEFAULT_OPCODEDIR "${PLUGIN_INSTALL_DIR}")
     add_definitions("-DCS_DEFAULT_PLUGINDIR=\"${DEFAULT_OPCODEDIR}\"")
@@ -467,8 +465,8 @@ SET(BUILD_SHARED_LIBS ON)
 if(USE_LIBSNDFILE)
  set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -DUSE_LIBSNDFILE")
  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DUSE_LIBSNDFILE")
- 
- if(MSVC OR USE_VCPKG)
+
+ if(USE_VCPKG)
     find_package(SndFile CONFIG REQUIRED)
  else()
     find_library(LIBSNDFILE_LIBRARY NAMES sndfile libsndfile-1 libsndfile)
@@ -511,27 +509,8 @@ endif()
 
 
 find_package(CURL)
-#set(FLTK_SKIP_OPENGL true)
-#find_package(FLTK)
 find_package(Java)
 find_package(JNI)
-#find_package(MUSICXML)
-#find_package(Python)
-#find_package(VSTSDK2X)
-
-# TODO should this work for MSVC also?
-if(WIN32)
-  find_library(FLAC_LIB NAMES FLAC flac)
-  find_library(OGG_LIB ogg)
-  find_library(SPEEX_LIB speex)
-  find_library(VORBIS_LIB vorbis)
-  find_library(VORBISENC_LIB vorbisenc)
-  set(LIBSNDFILE_SUPPORT_LIBS ${VORBIS_LIB} ${VORBISENC_LIB} ${FLAC_LIB} ${OGG_LIB})
-  if(SPEEX_LIB)
-    list(APPEND LIBSNDFILE_SUPPORT_LIBS ${SPEEX_LIB} )
-  endif()
-  #message(STATUS "${LIBSNDFILE_SUPPORT_LIBS}")
-endif()
 
 
 if(NOT MSVC AND REQUIRE_PTHREADS)
@@ -1216,7 +1195,6 @@ endif()
 
 if(WIN32)
     list(APPEND libcsound_LIBS "${CSOUND_WINDOWS_LIBRARIES}")
-    list(APPEND libcsound_LIBS "${LIBSNDFILE_SUPPORT_LIBS}")
 endif()
 
 if(USE_CURL AND CURL_FOUND)

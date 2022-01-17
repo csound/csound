@@ -26,9 +26,9 @@ if(USE_PORTAUDIO)
     # if(MSVC)
         # find_package(PORTAUDIO CONFIG REQUIRED)
     # else()
-        find_package(PORTAUDIO)
+    find_package(portaudio REQUIRED)
     # endif()
-    
+
     # find_path(PORTAUDIO_INCLUDE_PATH portaudio.h)
     # find_library(PORTAUDIO_LIBRARY NAMES portaudio portaudio_x64)
 
@@ -131,10 +131,8 @@ if(PORTAUDIO_FOUND)
     message(STATUS "Building rtpa module.")
     make_plugin(rtpa rtpa.c)
 
-    if(MSVC)
-        # FIXME should be able to use VCPKG export but not working currently
-        # target_link_libraries(rtpa PRIVATE portaudio portaudio_static)
-        target_link_libraries(rtpa PRIVATE ${PORTAUDIO_LIBRARIES})
+    if(USE_VCPKG)
+        target_link_libraries(rtpa PRIVATE portaudio_static)
     else()
         target_include_directories(rtpa PRIVATE ${PORTAUDIO_INCLUDE_DIRS})
         target_link_libraries(rtpa ${PORTAUDIO_LIBRARIES})
