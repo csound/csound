@@ -33,8 +33,8 @@
 
 #include "csdebug.h"
 
-#define SEGAMPS AMPLMSG
-#define SORMSG  RNGEMSG
+#define SEGAMPS CS_AMPLMSG
+#define SORMSG  CS_RNGEMSG
 
 int     MIDIinsert(CSOUND *, int, MCHNBLK*, MEVENT*);
   int     insert(CSOUND *, int, EVTBLK*);
@@ -143,7 +143,7 @@ void print_benchmark_info(CSOUND *csound, const char *s)
 {
   double  rt, ct;
 
-  if ((csound->oparms->msglevel & TIMEMSG) == 0 || csound->csRtClock == NULL)
+  if ((csound->oparms->msglevel & CS_TIMEMSG) == 0 || csound->csRtClock == NULL)
     return;
   rt = csoundGetRealTime(csound->csRtClock);
   ct = csoundGetCPUTime(csound->csRtClock);

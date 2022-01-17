@@ -196,13 +196,16 @@ extern int ISSTRCOD(MYFLT);
 #define INF     (2147483647.0)
 #define ROOT2   (1.414213562373095048801688724209698078569)
 
-#define AMPLMSG 01
-#define RNGEMSG 02
-#define WARNMSG 04
-#define NOMSG   0x10
-#define RAWMSG  0x40
-#define TIMEMSG 0x80
-#define NOQQ    0x400
+/* CONSTANTS FOR USE IN MSGLEVEL */
+#define CS_AMPLMSG 01
+#define CS_RNGEMSG 02
+#define CS_WARNMSG 04
+  //#define CS_UNUSED1 08
+#define CS_NOMSG   0x10
+  //#define CS_UNUSED2 0x20
+#define CS_RAWMSG  0x40
+#define CS_TIMEMSG 0x80
+#define CS_NOQQ    0x400
 
 #define IGN(X)  (void) X
 

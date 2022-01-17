@@ -283,12 +283,12 @@ int32_t marimbaset(CSOUND *csound, MARIMBA *p)
       itemp = csound->Rand31(&(csound->randSeed1)) % 100;
       if (itemp < triples) {
         p->multiStrike = 2;
-        if (csound->oparms->msglevel & RNGEMSG)
+        if (csound->oparms->msglevel & CS_RNGEMSG)
           csound->Message(csound, Str("striking three times here!!!\n"));
       }
       else if (itemp < doubles) {
         p->multiStrike = 1;
-        if (csound->oparms->msglevel & RNGEMSG)
+        if (csound->oparms->msglevel & CS_RNGEMSG)
           csound->Message(csound, Str("striking twice here!!\n"));
       }
       else p->multiStrike = 0;

@@ -371,7 +371,7 @@ int insert_event(CSOUND *csound, int insno, EVTBLK *newevtp)
   if(!tie) {
     /* alloc new dspace if needed */
     if (tp->act_instance == NULL || tp->isNew) {
-      if (UNLIKELY(O->msglevel & RNGEMSG)) {
+      if (UNLIKELY(O->msglevel & CS_RNGEMSG)) {
         char *name = csound->engineState.instrtxtp[insno]->insname;
         if (UNLIKELY(name))
           csound->ErrorMsg(csound, Str("new alloc for instr %s:\n"), name);
@@ -630,7 +630,7 @@ int insert_midi(CSOUND *csound, int insno, MCHNBLK *chn, MEVENT *mep)
   ipp = &chn->kinsptr[mep->dat1];       /* key insptr ptr           */
   /* alloc new dspace if needed */
   if (tp->act_instance == NULL || tp->isNew) {
-    if (UNLIKELY(O->msglevel & RNGEMSG)) {
+    if (UNLIKELY(O->msglevel & CS_RNGEMSG)) {
       char *name = csound->engineState.instrtxtp[insno]->insname;
       if (UNLIKELY(name))
         csound->Message(csound, Str("new MIDI alloc for instr %s:\n"), name);
@@ -715,7 +715,7 @@ int insert_midi(CSOUND *csound, int insno, MCHNBLK *chn, MEVENT *mep)
     MYFLT value = (MYFLT) ip->m_pitch;
     pfield->value = value;
 
-    if (UNLIKELY(O->msglevel & WARNMSG)) {
+    if (UNLIKELY(O->msglevel & CS_WARNMSG)) {
       csound->Message(csound, "  midiKey:         pfield: %3d  value: %3d\n",
                       pfield_index, (int) pfield->value);
     }
@@ -730,7 +730,7 @@ int insert_midi(CSOUND *csound, int insno, MCHNBLK *chn, MEVENT *mep)
     value = (MYFLT) CPSOCTL((int32) value);
     pfield->value = value;
 
-    if (UNLIKELY(O->msglevel & WARNMSG)) {
+    if (UNLIKELY(O->msglevel & CS_WARNMSG)) {
       csound->Message(csound, "  midiKeyCps:      pfield: %3d  value: %3d\n",
                       pfield_index, (int) pfield->value);
     }
@@ -742,7 +742,7 @@ int insert_midi(CSOUND *csound, int insno, MCHNBLK *chn, MEVENT *mep)
     MYFLT value = (MYFLT) ip->m_pitch;
     value = value / FL(12.0) + FL(3.0);
     pfield->value = value;
-    if (UNLIKELY(O->msglevel & WARNMSG)) {
+    if (UNLIKELY(O->msglevel & CS_WARNMSG)) {
       csound->Message(csound, "  midiKeyOct:      pfield: %3d  value: %3d\n",
                       pfield_index, (int) pfield->value);
     }
@@ -759,7 +759,7 @@ int insert_midi(CSOUND *csound, int insno, MCHNBLK *chn, MEVENT *mep)
     fraction *= 0.12;
     value = octave + fraction;
     pfield->value = value;
-    if (UNLIKELY(O->msglevel & WARNMSG)) {
+    if (UNLIKELY(O->msglevel & CS_WARNMSG)) {
       csound->Message(csound, "  midiKeyPch:      pfield: %3d  value: %3d\n",
                       pfield_index, (int) pfield->value);
     }
@@ -770,7 +770,7 @@ int insert_midi(CSOUND *csound, int insno, MCHNBLK *chn, MEVENT *mep)
     CS_VAR_MEM* pfield = (pfields + pfield_index);
     MYFLT value = (MYFLT) ip->m_veloc;
     pfield->value = value;
-    if (UNLIKELY(O->msglevel & WARNMSG)) {
+    if (UNLIKELY(O->msglevel & CS_WARNMSG)) {
       csound->Message(csound, "  midiVelocity:    pfield: %3d  value: %3d\n",
                       pfield_index, (int) pfield->value);
     }
@@ -783,7 +783,7 @@ int insert_midi(CSOUND *csound, int insno, MCHNBLK *chn, MEVENT *mep)
     value = value * value / FL(16239.0);
     value = value * csound->e0dbfs;
     pfield->value = value;
-    if (UNLIKELY(O->msglevel & WARNMSG)) {
+    if (UNLIKELY(O->msglevel & CS_WARNMSG)) {
       csound->Message(csound, "  midiVelocityAmp: pfield: %3d  value: %.3f\n",
                       pfield_index, pfield->value);
     }

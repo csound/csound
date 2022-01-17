@@ -229,7 +229,7 @@ public:
     void warn(CSOUND *csound, const char *format,...)
     {
         if(csound) {
-            if(csound->GetMessageLevel(csound) & WARNMSG) {
+            if(csound->GetMessageLevel(csound) & CS_WARNMSG) {
                 va_list args;
                 va_start(args, format);
                 csound->MessageV(csound, CSOUNDMSG_WARNING, format, args);
@@ -349,7 +349,7 @@ public:
     void warn(CSOUND *csound, const char *format,...)
     {
         if(csound) {
-            if(csound->GetMessageLevel(csound) & WARNMSG) {
+            if(csound->GetMessageLevel(csound) & CS_WARNMSG) {
                 va_list args;
                 va_start(args, format);
                 csound->MessageV(csound, CSOUNDMSG_WARNING, format, args);

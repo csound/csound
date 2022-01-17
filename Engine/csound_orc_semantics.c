@@ -1769,13 +1769,14 @@ TREE* verify_tree(CSOUND * csound, TREE *root, TYPE_TABLE* typeTable)
 
     CONS_CELL* parentLabelList = typeTable->labelList;
     typeTable->labelList = get_label_list(csound, root);
-    csound->inZero = 1;
+    //csound->inZero = 1;
     //if (root->value)
     //printf("###verify %p %p (%s)\n", root, root->value, root->value->lexeme);
 
     if (UNLIKELY(PARSER_DEBUG)) csound->Message(csound, "Verifying AST\n");
 
     while (current != NULL) {
+      //printf("*** line %d inZero %d\n", __LINE__, csound->inZero);
       switch(current->type) {
       case INSTR_TOKEN:
         csound->inZero = 0;
@@ -1802,7 +1803,8 @@ TREE* verify_tree(CSOUND * csound, TREE *root, TYPE_TABLE* typeTable)
         break;
       case UDO_TOKEN:
         csound->inZero = 0;
-        if (UNLIKELY(PARSER_DEBUG)) csound->Message(csound, "UDO found\n");
+        if (UNLIKELY(PARSER_DEBUG))
+          csound->Message(csound, "UDO found\n");
 
         typeTable->localPool = csoundCreateVarPool(csound);
         current->markup = typeTable->localPool;
