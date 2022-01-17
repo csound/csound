@@ -308,7 +308,7 @@ struct TVConv : csnd::Plugin<1, 6> {
 };
 
 
-struct Gadsr : public csnd::Plugin<1,6> {
+struct Gtadsr : public csnd::Plugin<1,6> {
   uint64_t a,d;
   MYFLT e,ainc,dfac;
   uint64_t t;
@@ -470,7 +470,7 @@ void csnd::on_load(Csound *csound) {
   csnd::plugin<PVTrace>(csound, "pvstrace",  csnd::thread::ik);
   csnd::plugin<PVTrace2>(csound, "pvstrace", csnd::thread::ik);
   csnd::plugin<TVConv>(csound, "tvconv", "a", "aaxxii", csnd::thread::ia);
-  csnd::plugin<Gadsr>(csound, "gadsr", "k", "kkkkkk", csnd::thread::ik);
-  csnd::plugin<Gadsr>(csound, "gadsr", "a", "akkkkk", csnd::thread::ia);
-  csnd::plugin<Gadsr>(csound, "gadsr", "a", "kkkkkk", csnd::thread::ia);
+  csnd::plugin<Gtadsr>(csound, "gtadsr", "k", "kkkkkk", csnd::thread::ik);
+  csnd::plugin<Gtadsr>(csound, "gtadsr", "a", "akkkkk", csnd::thread::ia);
+  csnd::plugin<Gtadsr>(csound, "gtadsr", "a", "kkkkkk", csnd::thread::ia);
 }
