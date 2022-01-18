@@ -744,11 +744,13 @@ int32_t diskin2_perf_synchronous(CSOUND *csound, DISKIN2 *p)
     return NOTOK;
 }
 
+int checkspace(void *p, int writeCheck);
 
 int32_t diskin_file_read(CSOUND *csound, DISKIN2 *p)
 {
     /* nsmps is bufsize in frames */
-    int32_t nsmps = p->aOut_bufsize;// - p->h.insdshead->ksmps_offset;
+  int32_t nsmps = checkspace(p->cb,1); // suggest in issue #1535 (no patch supplied though, but seems to work)
+   //p->aOut_bufsize;// - p->h.insdshead->ksmps_offset;
     int32_t i, nn;
     int32_t chn, chans = p->nChannels;
     double  d, frac_d, x, c, v, pidwarp_d;
