@@ -197,7 +197,7 @@ static void print_maxamp(CSOUND *csound, MYFLT x)
 {
     int   attr = 0;
     if (!(csound->oparms->msglevel & 0x60)) {   /* 0x00: raw amplitudes */
-      if (csound->oparms->msglevel & 0x100) {
+      if (csound->oparms->msglevel & 0x300) {
         MYFLT y = x / csound->e0dbfs;     /* relative level */
         if (UNLIKELY(y >= FL(1.0)))                    /* >= 0 dB: red */
           attr = CSOUNDMSG_FG_BOLD | CSOUNDMSG_FG_RED;
