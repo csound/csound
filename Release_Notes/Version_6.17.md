@@ -27,11 +27,13 @@ the last release using the current parser (v.2).
 
 - sequ is a csound version of an hardware sequencer.  It has many modes and options.
 
+- gtadsr inlements a gated ADSR envelope
+
 ### New gen
 
 ### Orchestra
 
-- Message printing has been revised so -m0 suppresses (nearly) all
+- Message printing has been revised so -m16 suppresses all
     messages.
 
 - add channel count to list_audio_devices (called when the flag
@@ -93,7 +95,8 @@ the last release using the current parser (v.2).
 - If using a float build (rather than a double) array access could be
   wrong.
 
-- In some cases instr0 code could ignore loops after an incorrect warning.  Now fixed.
+- In some cases instr0 code could ignore loops after an incorrect
+  warning.  Now fixed.
 
 - Bugs in mp3len and similar fixed.
 
