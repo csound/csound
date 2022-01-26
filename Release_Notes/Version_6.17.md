@@ -27,7 +27,7 @@ the last release using the current parser (v.2).
 
 - sequ is a csound version of an hardware sequencer.  It has many modes and options.
 
-- gtadsr inlements a gated ADSR envelope
+- gtadsr implements a gated ADSR envelope
 
 ### New gen
 
