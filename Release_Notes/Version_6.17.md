@@ -25,7 +25,7 @@ the last release using the current parser (v.2).
 - metrobpm is like metro but the timing is in beats per minute and the
   signal can be offset by a proportion of the cycle.
 
-- sequ is a csound version of an hardware sequencer.  It has many modes and options.
+- sequ is a csound version of a hardware sequencer.  It has many modes and options.
 
 - gtadsr implements a gated ADSR envelope
 
