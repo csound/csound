@@ -49,7 +49,7 @@ OPDS and has the following members:
 * offset: the starting position of an audio vector (for audio opcodes).
 * nsmps: the size of an audio vector (also for audio opcodes only).
 * init(), kperf() and aperf() non-op methods, to be reimplemented as needed.
-* sa_offset((MYFLT *v) method to be used in audio processsing to calculate offset and
+* sa_offset((MYFLT *v) method to be used in audio processing to calculate offset and
 nsmps for sample-accurate behaviour. It takes an audio output vector
 as input and returns the updated nsmps value. This method should be
 called for each output in the case of multiple channels.
@@ -267,7 +267,7 @@ struct DelayLine : csnd::Plugin<1,2> {
 };
 ```
 
-In this example, we use an AuxMem interator to access the
+In this example, we use an AuxMem iterator to access the
 delay vector. It is equally possible to access each element with
 an array-style subscript. The memory allocated by this class is
 managed by Csound, so we do not need to be concerned about
