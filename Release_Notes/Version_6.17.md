@@ -1,5 +1,5 @@
 
-# CSOUND VERSION 6.17 RELEASE NOTES - DRAFT - DRAFT - DRAFT - DRAFT
+# CSOUND VERSION 6.17 RELEASE NOTES
 
 Mainly a bug-fixing release but also a major re-organisation of the
 libraries to move all opcodes with dependencies into a separate plugins
