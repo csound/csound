@@ -102,6 +102,8 @@ the last release using the current parser (v.2).
 
 - Crash in syncgrain issue #1773 fixed
 
+- UDO Fsig output is fixed.
+
 # SYSTEM LEVEL CHANGES
 
 ### System Changes
