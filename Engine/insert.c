@@ -1632,9 +1632,10 @@ int xoutset(CSOUND *csound, XOUT *p)
     void* in = (void*)p->args[i];
     void* out = (void*)bufs[i];
     tmp[i] = in;
-    // DO NOT COPY K or A or F vars
+    // DO NOT COPY K or A vars
+    // Fsigs need to be copied for initialization purposes.
     if (csoundGetTypeForArg(in) != &CS_VAR_TYPE_K &&
-        csoundGetTypeForArg(in) != &CS_VAR_TYPE_F &&
+        /*csoundGetTypeForArg(in) != &CS_VAR_TYPE_F &&*/
         csoundGetTypeForArg(in) != &CS_VAR_TYPE_A)
       current->varType->copyValue(csound, out, in);
     current = current->next;
