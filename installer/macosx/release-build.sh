@@ -138,6 +138,7 @@ cp $DEPS_BASE/lib/libFLAC.8.dylib $SUPPORT_LIBS_DIR
 cp $DEPS_BASE/lib/libvorbisenc.2.dylib $SUPPORT_LIBS_DIR
 cp $DEPS_BASE/lib/libvorbis.0.dylib $SUPPORT_LIBS_DIR
 cp $DEPS_BASE/lib/libogg.0.dylib $SUPPORT_LIBS_DIR
+cp $DEPS_BASE/lib/libopus.0.dylib $SUPPORT_LIBS_DIR
 cp $DEPS_BASE/lib/libfluidsynth.1.dylib $SUPPORT_LIBS_DIR
  
 # chnage IDs
@@ -150,13 +151,18 @@ install_name_tool -id libFLAC.8.dylib $SUPPORT_LIBS_DIR/libFLAC.8.dylib
 install_name_tool -id libvorbisenc.2.dylib $SUPPORT_LIBS_DIR/libvorbisenc.2.dylib
 install_name_tool -id libvorbis.0.dylib $SUPPORT_LIBS_DIR/libvorbis.0.dylib
 install_name_tool -id libogg.0.dylib $SUPPORT_LIBS_DIR/libogg.0.dylib
+install_name_tool -id libopus.0.dylib $SUPPORT_LIBS_DIR/libopus.0.dylib
 install_name_tool -id libfluidsynth.1.dylib $SUPPORT_LIBS_DIR/libfluidsynth.1.dylib
 
 
 # change deps for libsndfile
 export OLD_VORBISENC_LIB=$DEPS_BASE/lib/libvorbisenc.2.dylib
 export NEW_VORBISENC_LIB=@loader_path/libvorbisenc.2.dylib
+export OLD_OPUS_LIB=$DEPS_BASE/lib/libopus.0.dylib
+export NEW_OPUS_LIB=@loader_path/libopus.0.dylib
 install_name_tool -change $OLD_VORBISENC_LIB $NEW_VORBISENC_LIB $SUPPORT_LIBS_DIR/libsndfile.1.dylib
+install_name_tool -change $OLD_OPUS_LIB $NEW_OPUS_LIB $SUPPORT_LIBS_DIR/libsndfile.1.dylib
+
 
 export OLD_VORBIS_LIB=$DEPS_BASE/lib/libvorbis.0.dylib
 export NEW_VORBIS_LIB=@loader_path/libvorbis.0.dylib
@@ -165,9 +171,10 @@ install_name_tool -change $OLD_VORBIS_LIB $NEW_VORBIS_LIB $SUPPORT_LIBS_DIR/libv
 
 export OLD_OGG_LIB=$DEPS_BASE/lib/libogg.0.dylib
 export NEW_OGG_LIB=@loader_path/libogg.0.dylib
+export OPT_OGG_LIB=/usr/local/opt/libogg/lib/libogg.0.dylib
 install_name_tool -change $OLD_OGG_LIB $NEW_OGG_LIB $SUPPORT_LIBS_DIR/libsndfile.1.dylib
-install_name_tool -change $OLD_OGG_LIB $NEW_OGG_LIB $SUPPORT_LIBS_DIR/libvorbis.0.dylib
-install_name_tool -change $OLD_OGG_LIB $NEW_OGG_LIB $SUPPORT_LIBS_DIR/libvorbisenc.2.dylib
+install_name_tool -change $OPT_OGG_LIB $NEW_OGG_LIB $SUPPORT_LIBS_DIR/libvorbis.0.dylib
+install_name_tool -change $OPT_OGG_LIB $NEW_OGG_LIB $SUPPORT_LIBS_DIR/libvorbisenc.2.dylib
 
 export OLD_FLAC_LIB=$DEPS_BASE/lib/libFLAC.8.dylib
 export NEW_FLAC_LIB=@loader_path/libFLAC.8.dylib
@@ -184,8 +191,8 @@ install_name_tool -change $DEPS_BASE/lib/libportaudio.2.dylib @loader_path/libpo
 # install name changes for libs under framework, luajit not included here
 # will make libsndfile location absolute to avoid linking problems for API clients using flat namespace.
 # @loader_path/../../ => /Library/Frameworks/CsoundLib64.framework/
-install_name_tool -change libsndfile.1.dylib @loader_path/../../libs/libsndfile.1.dylib $FRAMEWORK64_DIR/CsoundLib64
-install_name_tool -change libsndfile.1.dylib @loader_path/../../libs/libsndfile.1.dylib $FRAMEWORK64_DIR/Versions/6.0/libcsnd6.6.0.dylib
+install_name_tool -change /usr/local/lib/libsndfile.1.dylib @loader_path/../../libs/libsndfile.1.dylib $FRAMEWORK64_DIR/CsoundLib64
+install_name_tool -change /usr/local/lib/libsndfile.1.dylib @loader_path/../../libs/libsndfile.1.dylib $FRAMEWORK64_DIR/Versions/6.0/libcsnd6.6.0.dylib
 install_name_tool -change $DEPS_BASE/lib/libsndfile.1.dylib @loader_path/../../../../libs/libsndfile.1.dylib $FRAMEWORK64_DIR/Versions/6.0/Resources/Java/lib_jcsound6.jnilib
 install_name_tool -change $DEPS_BASE/lib/libsndfile.1.dylib @loader_path/../../../../libs/libsndfile.1.dylib $FRAMEWORK64_DIR/Resources/Opcodes64/libstdutil.dylib
 install_name_tool -change libsndfile.1.dylib @loader_path/../../../../libs/libsndfile.1.dylib $FRAMEWORK64_DIR/Resources/Opcodes64/libstdutil.dylib
