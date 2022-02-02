@@ -428,6 +428,11 @@ typedef struct {
   MYFLT  *kstart, *kend;
 } TABSCALE;
 
+typedef struct {
+  OPDS h;
+  ARRAYDAT *tab;
+} TABCLEAR;
+
 static int32_t tabarithset(CSOUND *csound, TABARITH *p)
 {
     if (LIKELY(p->left->data && p->right->data)) {
@@ -2509,11 +2514,12 @@ static int32_t tabmin1(CSOUND *csound, TABQUERY *p)
     else return NOTOK;
 }
 
+
 static int32_t tabsuma(CSOUND *csound, TABQUERY1 *p)
 {
     ARRAYDAT *t = p->tab;
-    int32_t i, size = 0;
-    MYFLT *ans = p->ans, *in;
+    int32_t i, numarrays = 0;
+    MYFLT *ans = p->ans, *in0, *in1, *in2, *in3;
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     int32_t nsmps = CS_KSMPS;
@@ -2526,22 +2532,87 @@ static int32_t tabsuma(CSOUND *csound, TABQUERY1 *p)
       return csound->PerfError(csound, &(p->h),
                                Str("array-variable not a vector"));
 
+
     if (UNLIKELY(offset)) memset(ans, '\0', offset*sizeof(MYFLT));
     if (UNLIKELY(early)) {
+        nsmps -= early;
         memset(&ans[nsmps], '\0', early*sizeof(MYFLT));
     }
 
-    memcpy(ans,&(t->data[0]) + offset,
-           sizeof(MYFLT)*nsmps);
-    for (i=0; i<t->dimensions; i++) size += t->sizes[i];
-    for (i=1; i<size; i++) {
-      int j, k = i*span;
-      in = &(t->data[k]);
-      for(j=offset; j < nsmps; j++)
-        ans[j] += in[j];
+    for (i=0; i<t->dimensions; i++) numarrays += t->sizes[i];
+
+    memset(&ans[offset], '\0', nsmps*sizeof(MYFLT));
+
+    int numarrays4 = numarrays - (numarrays % 4);
+
+    for (i=0; i<numarrays4; i+=4) {
+        in0 = &(t->data[i*span]);
+        in1 = &(t->data[(i+1)*span]);
+        in2 = &(t->data[(i+2)*span]);
+        in3 = &(t->data[(i+3)*span]);
+
+        for(int j=offset; j < nsmps; j++) {
+            ans[j] += in0[j] + in1[j] + in2[j] + in3[j];
         }
+    }
+
+    for (i=numarrays4;i<numarrays; i++) {
+        in0 = &(t->data[i*span]);
+        for(int j=offset; j < nsmps; j++) {
+            ans[j] += in0[j];
+        }
+    }
     return OK;
 }
+
+static int32_t tabclearset(CSOUND *csound, TABCLEAR *p)
+{
+    if (LIKELY(p->tab->data)) return OK;
+    return csound->InitError(csound, "%s", Str("array-variable not initialised"));
+}
+
+
+static int32_t tabclear(CSOUND *csound, TABCLEAR *p)
+{
+    ARRAYDAT *t = p->tab;
+    int32_t i;
+    int32_t nsmps = CS_KSMPS;
+    int32_t size = 1;
+    
+    if (UNLIKELY(t->data == NULL))
+      return csound->PerfError(csound, &(p->h),
+                               Str("array-variable not initialised"));
+    /* if (UNLIKELY(t->dimensions!=1)) */
+    /*   return csound->PerfError(csound, &(p->h), */
+    /*                            Str("array-variable not a vector")); */
+
+    for(i = 0; i < t->dimensions; i++) size *= t->sizes[i];
+    memset(t->data, 0, sizeof(MYFLT)*nsmps*size);
+    
+    return OK;
+}
+
+
+static int32_t tabcleark(CSOUND *csound, TABCLEAR *p)
+{
+    ARRAYDAT *t = p->tab;
+    int32_t i;
+    int32_t size = 1;
+    
+    if (UNLIKELY(t->data == NULL))
+      return csound->PerfError(csound, &(p->h),
+                               Str("array-variable not initialised"));
+    /* if (UNLIKELY(t->dimensions!=1)) */
+    /*   return csound->PerfError(csound, &(p->h), */
+    /*                            Str("array-variable not a vector")); */
+
+    for(i = 0; i < t->dimensions; i++) size *= t->sizes[i];
+    memset(t->data, 0, sizeof(MYFLT)*size);
+    
+    return OK;
+}
+
+
 
 static int32_t tabsum(CSOUND *csound, TABQUERY1 *p)
 {
@@ -4564,7 +4635,7 @@ static OENTRY arrayvars_localops[] =
      (SUBR)tabarithset2, (SUBR)tabiapow },
     {"##pow.ki[",  sizeof(TABARITH2), 0, 3, "k[]", "ki[]",
      (SUBR)tabarithset2, (SUBR)tabiapow },
-     
+
     {"##pow.[ak",  sizeof(TABARITH1), 0, 3, "a[]", "a[]k",
      (SUBR)tabarithset1, (SUBR)tabarkpow },
     {"##pow.a[k[", sizeof(TABARITH), 0, 3, "a[]", "a[]k[]",
@@ -4751,7 +4822,9 @@ static OENTRY arrayvars_localops[] =
     { "taninv2.Ai", sizeof(TABARITH), 0, 1, "i[]", "i[]i[]", (SUBR)taninv2_A  },
     { "taninv2.Ak", sizeof(TABARITH), 0, 2, "k[]", "k[]k[]", (SUBR)tabarithset, (SUBR)taninv2_A  },
     { "taninv2.Aa", sizeof(TABARITH), 0, 2, "a[]", "a[]a[]", (SUBR)tabarithset, (SUBR)taninv2_Aa  },
-    { "autocorr", sizeof(AUTOCORR), 0, 3, "k[]", "k[]", (SUBR) init_autocorr, (SUBR) perf_autocorr }
+    { "autocorr", sizeof(AUTOCORR), 0, 3, "k[]", "k[]", (SUBR) init_autocorr, (SUBR) perf_autocorr },
+    { "clear", sizeof(TABCLEAR), 0, 3, "", "a[]", (SUBR)tabclearset, (SUBR)tabclear  },
+    { "clear", sizeof(TABCLEAR), 0, 3, "", "k[]", (SUBR)tabclearset, (SUBR)tabcleark  }
   };
 
 LINKAGE_BUILTIN(arrayvars_localops)

@@ -26,6 +26,7 @@
 #include <jack/midiport.h>
 #include <ctype.h>
 #include <sys/time.h>
+#include "alphanumcmp.h"
 
 /* no #ifdef, should always have these on systems where JACK is available */
 #include <unistd.h>
@@ -38,6 +39,7 @@
 #ifdef LINUX
 #include <sched.h>
 #endif
+
 
 /* Modified from BSD sources for strlcpy */
 /*
@@ -211,8 +213,7 @@ static void freeWheelCallback(int starting, void *arg)
     if (starting) {
       if (UNLIKELY(sched_getscheduler(0) != SCHED_OTHER)) {
         struct sched_param sp;
-        csound->Message(csound, "%s", Str(" *** WARNING: "
-                                    "disabling --sched in freewheel mode\n"));
+        csound->Warning(csound, "%s", Str("disabling --sched in freewheel mode\n"));
         memset(&sp, 0, sizeof(struct sched_param));
         sp.sched_priority = 0;
         sched_setscheduler(0, SCHED_OTHER, &sp);
@@ -322,17 +323,17 @@ static void rtJack_AllocateBuffers(RtJackGlobals *p)
 }
 
 static void listPorts(CSOUND *csound, int isOutput){
-    int i,n = listDevices(csound,NULL,isOutput);
-    CS_AUDIODEVICE *devs = (CS_AUDIODEVICE *)
-      csound->Malloc(csound, n*sizeof(CS_AUDIODEVICE));
-    listDevices(csound,devs,isOutput);
-    csound->Message(csound, "Jack %s ports:\n",
-                    isOutput ? "output" : "input");
-    for(i=0; i < n; i++)
-      csound->Message(csound, " %d: %s (%s:%s)\n",
-                      i, devs[i].device_id,
-                      isOutput ? "dac" : "adc",
-                      devs[i].device_name);
+    int i, n = listDevices(csound, NULL, isOutput);
+    CS_AUDIODEVICE *devs = csound->Malloc(csound, (size_t)n*sizeof(CS_AUDIODEVICE));
+    listDevices(csound, devs, isOutput);
+    if(csound->GetMessageLevel(csound) || csound->GetDebug(csound)) {
+      csound->Message(csound, "Jack %s ports:\n", isOutput ? "output" : "input");
+      for(i=0; i < n; i++)
+        csound->Message(csound, " %d: %s (%s:%s)\n",
+                        i, devs[i].device_id,
+                        isOutput ? "dac" : "adc",
+                        devs[i].device_name);
+    }
     csound->Free(csound,devs);
 }
 
@@ -372,6 +373,11 @@ static void rtJack_RegisterPorts(RtJackGlobals *p)
 }
 
 
+static int strcmp_natural (const void *s1, const void *s2)
+{
+    return alphanum_cmp(* (char **) s1, * (char **) s2);
+}
+
 /* connect to JACK server, set up ports and ring buffers, */
 /* activate client, and connect ports if requested */
 
@@ -380,6 +386,9 @@ static void openJackStreams(RtJackGlobals *p)
     char    buf[256];
     int     i, j, k;
     CSOUND *csound = p->csound;
+    OPARMS oparms;
+    csound->GetOParms(csound, &oparms);
+
 
     /* connect to JACK server */
     p->client = jack_client_open(&(p->clientName[0]), JackNoStartServer, NULL);
@@ -387,7 +396,8 @@ static void openJackStreams(RtJackGlobals *p)
       rtJack_Error(csound, -1, Str("could not connect to JACK server"));
 
     csound->system_sr(csound, jack_get_sample_rate(p->client));
-    csound->Message(csound, "system sr: %f\n", csound->system_sr(csound,0));
+    if(oparms.msglevel || oparms.odebug)
+      csound->Message(csound, "system sr: %f\n", csound->system_sr(csound,0));
     if(p->sampleRate < 0) p->sampleRate = jack_get_sample_rate(p->client);
 
     /* check consistency of parameters */
@@ -400,10 +410,14 @@ static void openJackStreams(RtJackGlobals *p)
     if (UNLIKELY(p->sampleRate < 1000 || p->sampleRate > 768000))
       rtJack_Error(csound, -1, Str("invalid sample rate"));
     if (UNLIKELY(p->sampleRate != (int) jack_get_sample_rate(p->client))) {
-      snprintf(&(buf[0]), 256, Str("sample rate %d does not match "
-                                   "JACK sample rate %d"),
-               p->sampleRate, (int) jack_get_sample_rate(p->client));
-      rtJack_Error(p->csound, -1, &(buf[0]));
+      if(oparms.sr_override != 0.) {
+        p->sampleRate = (int) jack_get_sample_rate(p->client);
+      } else {
+        snprintf(&(buf[0]), 256, Str("sample rate %d does not match "
+                                     "JACK sample rate %d"),
+                 p->sampleRate, (int) jack_get_sample_rate(p->client));
+        rtJack_Error(p->csound, -1, &(buf[0]));
+      }
     }
     if (UNLIKELY(p->bufSize < 8 || p->bufSize > 32768))
       rtJack_Error(csound, -1, Str("invalid period size (-b)"));
@@ -475,8 +489,9 @@ static void openJackStreams(RtJackGlobals *p)
       rtJack_Error(csound, -1, Str("error activating JACK client"));
 
     /* connect ports if requested */
+    int sortPorts = 1;   // this could be a command line flag (--unsorted-devices)
     if (p->inputEnabled) {
-      listPorts(csound,0);
+      listPorts(csound, 0);
       if (p->inDevNum >= 0){
         int num = p->inDevNum;
         unsigned long portFlags =  JackPortIsOutput;
@@ -484,11 +499,20 @@ static void openJackStreams(RtJackGlobals *p)
                                                    (char*) NULL,
                                                    JACK_DEFAULT_AUDIO_TYPE,
                                                    portFlags);
+        size_t numPorts = 0;
+        if (portNames != NULL)
+          for(; portNames[numPorts] != NULL; numPorts++);
 
         for (i = 0; i < p->nChannels_i; i++) {
+          if (num+i+1 >= (int)numPorts){
+            csound->Warning(csound, Str("Trying to connect input channel %d but there are "
+                                        "not enough ports available\n"), num+i);
+            break;
+          }
           if (portNames[num+i] != NULL){
-            csound->Message(csound, Str("connecting channel %d to %s\n"),
-                            i,portNames[num+i]);
+            if(csound->GetMessageLevel(csound) || csound->GetDebug(csound))
+              csound->Message(csound, Str("connecting channel %d to %s\n"),
+                              i, portNames[num+i]);
             if (jack_connect(p->client, portNames[num+i],
                              jack_port_name(p->inPorts[i])) != 0) {
               csound->Warning(csound,
@@ -510,15 +534,37 @@ static void openJackStreams(RtJackGlobals *p)
           dev_final = dev;
           sp = strchr(dev_final, '\0');
           if (!isalpha(dev_final[0])) dev_final++;
-          for (i = 0; i < p->nChannels_i; i++) {
-            snprintf(sp, 128-(dev-sp), "%d", i + 1);
-            csound->Message(csound, Str("connecting channel %d to %s\n"),
-                            i, dev_final);
-            if (UNLIKELY(jack_connect(p->client, dev_final,
-                                      jack_port_name(p->inPorts[i])) != 0)) {
-              csound->Warning(csound,
-                              Str("failed to autoconnect input channel %d\n"
-                                  "(needs manual connection)"), i+1);
+          char **portNames = (char**) jack_get_ports(p->client,
+                                                     p->inDevName,
+                                                     JACK_DEFAULT_AUDIO_TYPE,
+                                                     JackPortIsOutput);
+          size_t numPorts = 0;
+          if (portNames != NULL)
+            for(; portNames[numPorts] != NULL; numPorts++);
+          if (numPorts == 0) {
+            csound->Warning(csound, Str("Failed to autoconnect, no ports match pattern %s\n"),
+                                        p->inDevName);
+          }
+          else {
+            if (sortPorts)
+              qsort (portNames, numPorts, sizeof (*portNames), strcmp_natural);
+            for (i = 0; i < p->nChannels_i; i++) {
+              // snprintf(sp, 128-(dev-sp), "%d", i + 1);
+              dev_final = portNames[i];
+              if(dev_final == NULL) {
+                csound->Warning(csound, Str("Not enough ports to connect all out channels,"
+                                            "only connected %d channels\n"), i);
+                break;
+              }
+              if(csound->GetMessageLevel(csound) || csound->GetDebug(csound))
+                csound->Message(csound, Str("connecting channel %d to %s\n"),
+                                i, dev_final);
+              if (UNLIKELY(jack_connect(p->client, dev_final,
+                                        jack_port_name(p->inPorts[i])) != 0)) {
+                csound->Warning(csound,
+                                Str("failed to autoconnect input channel %d\n"
+                                    "(needs manual connection)"), i+1);
+              }
             }
           }
           *sp = (char) 0;
@@ -532,15 +578,26 @@ static void openJackStreams(RtJackGlobals *p)
       if (p->outDevNum >= 0) {
         int num = p->outDevNum;
         unsigned long portFlags =  JackPortIsInput;
+        // giving NULL as the regex selection, all ports will be returned.
+        // the NN in dacNN is used to determine the first port
         char **portNames = (char**) jack_get_ports(p->client,
                                                    (char*) NULL,
                                                    JACK_DEFAULT_AUDIO_TYPE,
                                                    portFlags);
-
+        // jack_get_ports returns a NULL terminated array of strings
+        size_t numPorts = 0;
+        if (portNames != NULL)
+          for(; portNames[numPorts] != NULL; numPorts++);
         for (i = 0; i < p->nChannels; i++) {
+          if (num+i+1 >= (int)numPorts){
+            csound->Warning(csound, Str("Trying to connect channel %d but there are "
+                                        "no ports available\n"), num+i);
+            break;
+          }
           if (portNames[num+i] != NULL) {
-            csound->Message(csound, Str("connecting channel %d to %s\n"),
-                            i,portNames[num+i]);
+            if(csound->GetMessageLevel(csound) || csound->GetDebug(csound))
+              csound->Message(csound, Str("connecting channel %d to %s\n"),
+                              i,portNames[num+i]);
             if (jack_connect(p->client, jack_port_name(p->outPorts[i]),
                              portNames[num+i]) != 0) {
               csound->Warning(csound,
@@ -552,7 +609,6 @@ static void openJackStreams(RtJackGlobals *p)
                                         "failed to autoconnect output channel %d\n"
                                         "(needs manual connection)"), num+i, i+1);
         }
-
         jack_free(portNames);
       }
       else {
@@ -562,18 +618,40 @@ static void openJackStreams(RtJackGlobals *p)
           dev_final = dev;
           sp = strchr(dev_final, '\0');
           if (!isalpha(dev_final[0])) dev_final++;
-          for (i = 0; i < p->nChannels; i++) {
-            snprintf(sp, 128-(dev-sp), "%d", i + 1);
-            csound->Message(csound, Str("connecting channel %d to %s\n"),
-                            i, dev_final);
-            if (UNLIKELY(jack_connect(p->client, jack_port_name(p->outPorts[i]),
-                                      dev_final) != 0)) {
-              csound->Warning(csound, Str("failed to autoconnect output channel "
-                                          "%d\n(needs manual connection)"), i+1);
-
+          char **portNames = (char**) jack_get_ports(p->client,
+                                                     p->outDevName,
+                                                     JACK_DEFAULT_AUDIO_TYPE,
+                                                     JackPortIsInput);
+          size_t numPorts = 0;
+          if (portNames != NULL)
+            for(; portNames[numPorts] != NULL; numPorts++);
+          if (numPorts == 0) {
+            csound->Warning(csound, Str("Failed to autoconnect, no ports match pattern %s\n"),
+                                        p->outDevName);
+          }
+          else {
+            if (sortPorts)
+              qsort (portNames, numPorts, sizeof (*portNames), strcmp_natural);
+            for (i = 0; i < p->nChannels; i++) {
+              // snprintf(sp, 128-(dev-sp), "%d", i + 1);
+              dev_final = portNames[i];
+              if(dev_final == NULL) {
+                csound->Warning(csound, Str("Not enough ports to connect all out channels,"
+                                            "only connected %d channels\n"), i);
+                break;
+              }
+              if(csound->GetMessageLevel(csound) || csound->GetDebug(csound))
+                csound->Message(csound, Str("connecting channel %d to %s\n"),
+                                i, dev_final);
+              if (UNLIKELY(jack_connect(p->client, jack_port_name(p->outPorts[i]),
+                                        dev_final) != 0)) {
+                  csound->Warning(csound, Str("failed to autoconnect output channel "
+                                              "%d\n(needs manual connection)"), i+1);
+              }
             }
           }
           *sp = (char) 0;
+          jack_free(portNames);
         } else
           csound->Message(csound, "%s", Str("output ports not connected\n"));
       }
@@ -1506,6 +1584,8 @@ PUBLIC int csoundModuleDestroy(CSOUND *csound)
 PUBLIC int csoundModuleInit(CSOUND *csound)
 {
     char    *drv;
+   OPARMS O;
+    csound->GetOParms(csound, &O);
     csound->module_list_add(csound,"jack", "audio");
     drv = (char*) csound->QueryGlobalVariable(csound, "_RTAUDIO");
     if (drv == NULL)
@@ -1513,7 +1593,8 @@ PUBLIC int csoundModuleInit(CSOUND *csound)
     if (!(strcmp(drv, "jack") == 0 || strcmp(drv, "Jack") == 0 ||
           strcmp(drv, "JACK") == 0))
       return 0;
-    csound->Message(csound, "%s", Str("rtaudio: JACK module enabled\n"));
+    if(O.msglevel || O.odebug)
+     csound->Message(csound, "%s", Str("rtaudio: JACK module enabled\n"));
     {
       /* register Csound interface functions */
       csound->SetPlayopenCallback(csound, playopen_);
@@ -1530,8 +1611,8 @@ PUBLIC int csoundModuleInit(CSOUND *csound)
     if (!(strcmp(drv, "jack") == 0 || strcmp(drv, "Jack") == 0 ||
           strcmp(drv, "JACK") == 0))
       return 0;
-
-    csound->Message(csound, "%s", Str("rtmidi: JACK module enabled\n"));
+    if(O.msglevel || O.odebug)
+     csound->Message(csound, "%s", Str("rtmidi: JACK module enabled\n"));
     {
       csound->SetExternalMidiInOpenCallback(csound, midi_in_open);
       csound->SetExternalMidiReadCallback(csound, midi_in_read);

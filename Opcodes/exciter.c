@@ -21,7 +21,7 @@
     02110-1301 USA
 */
 
-#include "csdl.h"       /*                    EXCITER.C         */
+#include "csoundCore.h"       /*                    EXCITER.C         */
 #include <math.h>
 
 /**********************************************************************
@@ -286,9 +286,9 @@ int32_t exciter_perf(CSOUND *csound, EXCITER *p)
 
 #define S(x)    sizeof(x)
 
-static OENTRY excite_localops[] = {
+static OENTRY exciter_localops[] = {
   { "exciter", S(EXCITER),   0, 3, "a", "akkkk",
                              (SUBR)exciter_init, (SUBR)exciter_perf },
 };
 
-LINKAGE_BUILTIN(excite_localops)
+LINKAGE_BUILTIN(exciter_localops)

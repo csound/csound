@@ -21,7 +21,8 @@
   02110-1301 USA
 */
 
-#include "csdl.h"
+
+#include "csoundCore.h"
 
 typedef struct {
   OPDS  h;
@@ -62,9 +63,17 @@ static int32_t call_system(CSOUND *csound, SYSTEM *p)
 #else
 #include <unistd.h>
 
+#ifdef __APPLE__  
+#include <TargetConditionals.h>
+#endif
+
 static int32_t call_system(CSOUND *csound, SYSTEM *p)
 {
     IGN(csound);
+
+#if TARGET_OS_IPHONE
+return OK;
+#else
     if ((int32_t)*p->nowait!=0) {
       if ((*p->res = fork()))
         return OK;
@@ -77,6 +86,9 @@ static int32_t call_system(CSOUND *csound, SYSTEM *p)
       *p->res = (MYFLT)system((char*)p->commandLine->data);
       return OK;
     }
+#endif
+
+
 }
 
 #endif

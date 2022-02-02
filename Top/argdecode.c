@@ -83,9 +83,11 @@ void do_logging(char *s)
     if (!strcmp(s, "NULL") || !strcmp(s, "null"))
       nomessages = 1;
     else if ((logFile = fopen(s, "w")) == NULL) {
+      #ifndef __wasi__
       fprintf(stderr, Str("Error opening log file '%s': %s\n"),
               s, strerror(errno));
       exit(1);
+      #endif
     }
     /* if logging to file, set message callback */
     if (logFile != NULL)
@@ -325,6 +327,8 @@ void print_short_usage(CSOUND *csound)
     char    buf[256];
     int     i;
     i = -1;
+    print_csound_version(csound);
+    csound->Message(csound, Str("\nShort options format:\n"));
     while (shortUsageList[++i] != NULL) {
       snprintf(buf, 256, "%s\n", shortUsageList[i]);
       csound->Message(csound, "%s", Str(buf));
@@ -337,14 +341,13 @@ void print_short_usage(CSOUND *csound)
 static void longusage(CSOUND *p)
 {
     const char **sp;
+    print_short_usage(p);
     p->Message(p, Str("Usage:     csound [-flags] orchfile scorefile\n"));
     p->Message(p, Str("Legal flags are:\n"));
     p->Message(p, Str("Long format:\n\n"));
     for (sp = &(longUsageList[0]); *sp != NULL; sp++)
       p->Message(p, "%s\n", Str(*sp));
     dump_cfg_variables(p);
-    p->Message(p, Str("\nShort format:\n\n"));
-    print_short_usage(p);
 }
 
 CS_NORETURN void dieu(CSOUND *csound, char *s, ...)
@@ -742,8 +745,8 @@ static int decode_long(CSOUND *csound, char *s, int argc, char **argv)
       s += 7;
       if (UNLIKELY(*s=='\0')) dieu(csound, Str("no message amps"));
       sscanf(s, "%d", &n);
-      if (n) O->msglevel |= AMPLMSG;
-      else O->msglevel &= ~AMPLMSG;
+      if (n) O->msglevel |= CS_AMPLMSG;
+      else O->msglevel &= ~CS_AMPLMSG;
       return 1;
     }
     else if (!(strncmp (s, "m-range=",8))) {
@@ -751,8 +754,8 @@ static int decode_long(CSOUND *csound, char *s, int argc, char **argv)
       s += 8;
       if (UNLIKELY(*s=='\0')) dieu(csound, Str("no message range"));
       sscanf(s, "%d", &n);
-      if (n) O->msglevel |= RNGEMSG;
-      else O->msglevel &= ~RNGEMSG;
+      if (n) O->msglevel |= CS_RNGEMSG;
+      else O->msglevel &= ~CS_RNGEMSG;
       return 1;
      }
     else if (!(strncmp (s, "m-warnings=",11))) {
@@ -760,8 +763,8 @@ static int decode_long(CSOUND *csound, char *s, int argc, char **argv)
       s += 11;
       if (UNLIKELY(*s=='\0')) dieu(csound, Str("no message warnings"));
       sscanf(s, "%d", &n);
-      if (n) O->msglevel |= WARNMSG;
-      else O->msglevel &= ~WARNMSG;
+      if (n) O->msglevel |= CS_WARNMSG;
+      else O->msglevel &= ~CS_WARNMSG;
       return 1;
     }
     else if (!(strncmp (s, "m-raw=",6))) {
@@ -778,8 +781,8 @@ static int decode_long(CSOUND *csound, char *s, int argc, char **argv)
       s += 5;
       if (UNLIKELY(*s=='\0')) dieu(csound, Str("no message dB"));
       sscanf(s, "%d", &n);
-      if (n) O->msglevel |= RAWMSG;
-      else O->msglevel &= ~RAWMSG;
+      if (n) O->msglevel |= CS_RAWMSG;
+      else O->msglevel &= ~CS_RAWMSG;
       return 1;
     }
     else if (!(strncmp (s, "m-colours=",10)) || !(strncmp (s, "m-colors=",9))) {
@@ -796,8 +799,8 @@ static int decode_long(CSOUND *csound, char *s, int argc, char **argv)
       s += 13;
       if (UNLIKELY(*s=='\0')) dieu(csound, Str("no benchmark level"));
       sscanf(s, "%d", &n);
-      if (n) O->msglevel |= TIMEMSG;
-      else O->msglevel &= ~TIMEMSG;
+      if (n) O->msglevel |= CS_TIMEMSG;
+      else O->msglevel &= ~CS_TIMEMSG;
       return 1;
     }
     else if (!(strncmp (s, "csd-line-nums=",14))) {
@@ -1061,7 +1064,7 @@ static int decode_long(CSOUND *csound, char *s, int argc, char **argv)
       return 1;
     }
     else if (!(strcmp(s, "version"))) {
-      //print_csound_version(csound); // as already printed!
+      print_csound_version(csound);
       csound->LongJmp(csound, 0);
     }
     else if (!(strcmp(s, "help"))) {
@@ -1200,15 +1203,17 @@ static int decode_long(CSOUND *csound, char *s, int argc, char **argv)
         /* these are default values to get the
            backend to open successfully */
         set_output_format(O, 'f');
+        O->sr_override = FL(-1.0);
         O->inbufsamps = O->outbufsamps = 256;
         O->oMaxLag = 1024;
         csoundLoadExternals(csound);
         if (csoundInitModules(csound) != 0)
           csound->LongJmp(csound, 1);
         sfopenout(csound);
-        csound->MessageS(csound,CSOUNDMSG_STDOUT,
+        csound->MessageS(csound, CSOUNDMSG_STDOUT,
                          "system sr: %f\n", csound->system_sr(csound,0));
         sfcloseout(csound);
+        // csound->LongJmp(csound, 0);
       }
       csound->info_message_request = 1;
       return 1;
@@ -1223,7 +1228,7 @@ static int decode_long(CSOUND *csound, char *s, int argc, char **argv)
       O->kr_default = O->sr_default/atof(s);
       return 1;
     }
-    
+
     else if (!(strcmp(s, "aft-zero"))) {
       csound->aftouch = 0;
       return 1;
@@ -1857,15 +1862,19 @@ static void list_audio_devices(CSOUND *csound, int output){
     CS_AUDIODEVICE *devs = (CS_AUDIODEVICE *)
       csound->Malloc(csound, n*sizeof(CS_AUDIODEVICE));
     if (output)
-      csound->MessageS(csound,CSOUNDMSG_STDOUT,
-                       Str("%d audio output devices\n"), n);
+      csound->Message(csound, Str("%d audio output devices\n"), n);
     else
-      csound->MessageS(csound, CSOUNDMSG_STDOUT,
-                       Str("%d audio input devices\n"), n);
+      csound->Message(csound, Str("%d audio input devices\n"), n);
     csoundGetAudioDevList(csound,devs,output);
-    for (i=0; i < n; i++)
-      csound->Message(csound, " %d: %s (%s)\n",
-                      i, devs[i].device_id, devs[i].device_name);
+    for (i=0; i < n; i++) {
+      int nchnls = devs[i].max_nchnls;
+      if(nchnls > 0)
+        csound->Message(csound, " %d: %s (%s) [ch:%d]\n",
+                        i, devs[i].device_id, devs[i].device_name, nchnls);
+      else
+        csound->Message(csound, " %d: %s (%s)\n",
+                        i, devs[i].device_id, devs[i].device_name);
+    }
     csound->Free(csound, devs);
 }
 

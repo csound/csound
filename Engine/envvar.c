@@ -24,6 +24,7 @@
 #include "csoundCore.h"
 #include "soundio.h"
 #include "envvar.h"
+#include <stdio.h>
 #include <ctype.h>
 #include <math.h>
 

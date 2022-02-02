@@ -288,11 +288,9 @@ your $HOME directories, you can run cmake again to re-build
 Csound. Check the printed output to see if the added dependency has
 switched on the build of the desired component.
 
-NB: Since the EOL for Python 2, the Python opcodes build has been
-disabled by default. If you have the Python 2 headers and libraries
-and wishes to build these, use the CMake option
-`-DBUILD_PYTHON_OPCODES=1`. Python 3 opcodes are now available
-separately from the csound/plugins repository.
+NB: Since the EOL for Python 2, the Python opcodes have been removed
+from the main library repository. A new set of opcodes for Python 3 is
+found in the plugin opcodes repository.
 
 #### OSC opcodes
 
@@ -303,43 +301,6 @@ liblo - http://liblo.sourceforge.net/ NB: the build for version 0.28 seems to be
 Fluidsynth - http://sourceforge.net/apps/trac/fluidsynth/ NB: cmake might need to be coerced into finding the fluidsynth headers once it is built. For that, you can use the following cmake command (see step 5):
 
 `cmake -DCMAKE_INSTALL_PREFIX=$HOME -DFLUIDSYNTH_H=$HOME/include ..`
-
-#### Widget opcodes
-
-FLTK - http://www.fltk.org/index.php NB: make sure you configure the FLTK build with --enable-shared, otherwise there could be problems linking to libfltk on 64bit linux.
-
-#### Faust opcodes
-
-libfaust - use faust2 branch of Faust git sources:
-
-```
-$ git clone git://git.code.sf.net/p/faudiostream/code faust
-$ cd faust
-$ git checkout faust2
-```
-
-NB: libfaust also requires LLVM 3.0, 3.1, 3.2, 3.3 or 3.4 - http://llvm.org/ LLVM can be built with CMake (as in step 5 above). To build faust, use the following make command (replacing LLVM_32 for LLVM_3* depending on the version you are using, if it is not 3.2)
-
-`$ make LLVM_VERSION=LLVM_32 LLVM_CONFIG=llvm-config LLVM_CLANG=g++ CXX=g++ ARCHFLAGS=-fPIC`
-
-To install it, you should run
-
-`$ make PREFIX=$HOME`
-
-To switch the faust opcodes build on and coerce cmake into finding the faust library use:
-
-`cmake -DCMAKE_INSTALL_PREFIX=$HOME -DBUILD_FAUST_OPCODES=1 -DFAUST_LIBRARY=$HOME/lib/faust/libfaust.a ..`
-
-NB: Ubuntu users should be aware that LLVM 3.4 and 3.5 packages seem broken. It is probably recommended to build LLVM by oneself. Otherwise, LLVM 3.3 package is enough for building csound 6.05 with Faust opcodes assuming that
-
-- LLVMConfig.cmake is correctly spelled in /usr/share/llvm-3.3/cmake (otherwise create a symbolic link with that name : ln -s /usr/share/llvm-3.3/cmake/LLVM-Config.cmake /usr/share/llvm-3.3/cmake/LLVMConfig.cmake) 
-- llvm-config is correctly spelled in /usr/bin
-- faust2 is built with LLVM 3.3
-- cmake version > 2.8.7 (version 3.3.0 builds easily for instance)
-
-Then some additional environment variables may have to be set during the configuration step:
-
-`cmake -DLLVM_DIR=/usr/share/llvm-3.3/cmake -DCMAKE_MODULE_LINKER_FLAGS="-L/usr/lib/llvm-3.3/lib" -DBUILD_FAUST_OPCODES=1 -DFAUST_LIBRARY=pathTo/libfaust.a ../csound-develop/ `
 
 #### Portaudio module
 
@@ -355,7 +316,7 @@ Jack connection kit - http://jackaudio.org/
 
 #### Python bindings
 
-swig - http://www.swig.org/ Python headers / library - http://www.python.org
+Python headers / library - http://www.python.org
 
 #### Java bindings
 
@@ -384,23 +345,31 @@ non-free rpi `
 
 (This can be done with nano)
 
-After adding that to the sources.list, you should run `sudo apt-get update ` and retry the `sudo apt-get build-dep csound` command.
+It might appear that this repository is not available anymore. 
+In this case, you can try adding the following repository (and equivalent deb-src) to /etc/apt/sources.list : 
+` deb http://legacy.raspbian.org/raspbian/ wheezy main contrib non-free rpi`
 
-1.  `cd ~ `
+After adding that to the sources.list, you should run `sudo apt-get
+update ` and retry the `sudo apt-get build-dep csound` command.
 
-2.  `mkdir csound`
+Following this, you can build as in other linux systems,
 
-3.  `cd csound`
+1.  `mkdir csound`
 
-4.  `git clone https://github.com/csound/csound.git csound`
+2.  `cd csound`
 
-5.  `mkdir cs6make`
+3.  `git clone https://github.com/csound/csound.git csound`
 
-6.  `cd cs6make`
+4.  `mkdir cs6make`
 
-7.  `cmake ../csound -DCMAKE_BUILD_TYPE="Release"` 
+5.  `cd cs6make`
 
-8.  `make -j6`
+6.  `cmake ../csound -DCMAKE_BUILD_TYPE="Release"` 
+
+7.  `make -j6`
+
+If this last step fails, check he section "NEON support for PFFFT lib"
+below. Once you are past it, you can complete the installation,
 
 9.  `sudo make install`
 
@@ -414,9 +383,7 @@ Enabling the Python Bindings requires swig and python-dev packages to be install
 
 `sudo apt-get install swig python-dev`
 
-
 ### NEON support for PFFFT lib
-
 
 From 6.07, Csound includes a choice of FFT libraries. One of these is
 PFFFT, which can avail of NEON vector operations on arm, where these
@@ -428,24 +395,24 @@ options exist.
 by editing the top-level file Custom.cmake.ex, and saving it as
 Custom.cmake. In that file, the line
 
-   set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -W -Wall -mtune=core2")
+   `set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -W -Wall -mtune=core2")`
 
    should be changed to
 
-   set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -mfloat-abi=hard -mfpu=neon")
+   `set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -mfloat-abi=hard -mfpu=neon")`
 
-2. If step 1 fails, there might be no NEON support for your arm chip,
+2. If this step fails, there might be no NEON support for your arm chip,
 or there might be a compiler issue, in which case, you need to change the line above to
 
-    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -DPFFFT_SIMD_DISABLE")
+    `set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -DPFFFT_SIMD_DISABLE")`
 
     in order to disable the vectorial code and use standard C scalar
     operations.
 
-There is no support for NEON on rpi 1 or zero. This is available for
-rpi 2 and 3, though.
+**There is no support for NEON on rpi 1 or zero. This is available for
+rpi 2 and 3, though.**
 
-3. Remember to run cmake again (step 7 above) after any changes to Custom.cmake
+3. Remember to run cmake again (step 6 above) after any changes to Custom.cmake
 
 Fedora 18 <a name="fedora">
 ---------
@@ -496,8 +463,7 @@ In the source directory what gets compiled is controlled by the file
 CMakeLists.txt. By default lots of stuff will get built, as long as you have the
 required dependencies installed.
 
-The following commands will add most required packages (but note that lua
-interfaces and faust opcodes may still not work):
+The following commands will add most required packages:
 
 `su - `
 
@@ -536,10 +502,6 @@ interfaces and faust opcodes may still not work):
 `yum install wiiuse wiiuse-devel `
 
 `yum install bluez-libs-devel `
-
-yum install llvm-devel
-
-`yum install faust faust-tools`
 
 `exit `
 
@@ -677,7 +639,7 @@ cd to csound build directory and run mingw32-make
 
 Windows Visual Studio <a name="msvs">
 --------------
-Instructions can be found [here](https://github.com/csound/csound/blob/develop/msvc).
+Instructions can be found [here](https://github.com/csound/csound/blob/develop/platform/windows/README.md).
 
 Android <a name="android">
 -------------- 

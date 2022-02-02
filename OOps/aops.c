@@ -1124,9 +1124,11 @@ int32_t cpspch(CSOUND *csound, EVAL *p)
 
 int32_t cpsmidinn(CSOUND *csound, EVAL *p)
 {
-    IGN(csound);
-    *p->r = pow(FL(2.0),
-                (*p->a - FL(69.0)) / FL(12.0)) * (MYFLT)(csound->A4);
+    MYFLT note = *p->a;         /* (note-69)>12* */
+    if (note > 12*32+69 || note < 0)
+      return csound->InitError(csound, Str("MIDI note %f out of range"), note);
+    *p->r = POWER(FL(2.0),
+                  (note - FL(69.0)) / FL(12.0)) * (MYFLT)(csound->A4);
     return OK;
 }
 
@@ -1929,8 +1931,8 @@ inline static int32_t outn(CSOUND *csound, uint32_t n, OUTX *p)
     MYFLT *spout = CS_SPOUT; ///csound->spraw;
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
-        if (UNLIKELY((offset|early))) {
-          printf("OUT; spout=%p early=%d offset=%d\n", spout, early, offset);}
+    //        if (UNLIKELY((offset|early))) {
+    //          printf("OUT; spout=%p early=%d offset=%d\n", spout, early, offset);}
     early = nsmps - early;
     CSOUND_SPOUT_SPINLOCK
 

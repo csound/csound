@@ -1,16 +1,12 @@
 # CUSTOM PROPERTIES TO SET
 
 # GLOBAL
-
 set(CMAKE_VERBOSE_MAKEFILE ON)
 #### NOTE the processor type needs setting
-set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wno-error")
 include(CheckCCompilerFlag)
-check_c_compiler_flag(-ffast-math HAS_FAST_MATH)
-if (HAS_FAST_MATH)
-    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -ffast-math")
-    set(CMAKE_CXX_FLAGS "${CMAKE_C_FLAGS} -ffast-math")
-endif()
+set(CMAKE_C_FLAGS "")
+set(CMAKE_CXX_FLAGS "")
+
 
 
 

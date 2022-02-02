@@ -36,7 +36,9 @@
 #include <stdlib.h>
 #include <math.h>
 #include <ctype.h>
+#ifndef __wasi__
 #include <errno.h>
+#endif
 #include "sfenum.h"
 #include "sfont.h"
 
@@ -107,20 +109,27 @@ static int SoundFontLoad(CSOUND *csound, char *fname)
     SFBANK *soundFont;
     sfontg *globals;
     globals = (sfontg *) (csound->QueryGlobalVariable(csound, "::sfontg"));
+
     //soundFont = globals->soundFont;
     fd = csound->FileOpen2(csound, &fil, CSFILE_STD, fname, "rb",
                              "SFDIR;SSDIR", CSFTYPE_SOUNDFONT, 0);
     if (UNLIKELY(fd == NULL)) {
+      #ifndef __wasi__
       csound->ErrorMsg(csound,
                   Str("sfload: cannot open SoundFont file \"%s\" (error %s)"),
                   fname, strerror(errno));
+      #else
+      csound->ErrorMsg(csound, Str("sfload: cannot open SoundFont file \"%s\""), fname);
+      #endif
       return -1;
     }
-    for (i=0; i<globals->currSFndx-1; i++)
+    for (i=0; i<globals->currSFndx+1; i++) {
+      //printf("name[%d]: %s \n",  i, globals->sfArray[i].name);
       if (strcmp(fname, globals->sfArray[i].name)==0) {
-        csound->Warning(csound, "%s already loaded\n", fname);
+        csound->Warning(csound, "%s already loaded", fname);
         return i;
       }
+    }
     soundFont = &globals->sfArray[globals->currSFndx];
     /* if (UNLIKELY(soundFont==NULL)){ */
     /*   csound->ErrorMsg(csound, Str("Sfload: cannot use globals")); */
@@ -186,6 +195,7 @@ static int32_t SfLoad_(CSOUND *csound, SFLOAD *p, int32_t istring)
         csound->Warning(csound, Str("Extending soundfonts"));
         if (globals->sfArray  == NULL) return NOTOK;
       }
+      //printf("curr sf: %d \n", globals->currSFndx);
     }
     else *p->ihandle=hand;
     return OK;
@@ -298,6 +308,29 @@ static int32_t Sfilist(CSOUND *csound, SFPLIST *p)
     csound->Message(csound, "\n");
     return OK;
 }
+
+static int32_t Sfilist_prefix(CSOUND *csound, SFPLIST *p)
+{
+    sfontg *globals;
+    SFBANK *sf;
+    int32_t j;
+    char *prefix = p->Sprefix->data;
+    globals = (sfontg *) (csound->QueryGlobalVariable(csound, "::sfontg"));
+    if (UNLIKELY( *p->ihandle<0 || *p->ihandle>=globals->currSFndx))
+      return csound->InitError(csound, Str("invalid soundfont"));
+    /* if (UNLIKELY(globals->soundFont==NULL)) */
+    /*   return csound->InitError(csound, Str("invalid sound font")); */
+
+    sf = &globals->sfArray[(int32_t) *p->ihandle];
+    csound->Message(csound, Str("\nInstrument list of \"%s\"\n"), sf->name);
+    for (j =0; j < sf->instrs_num; j++) {
+      instrType *inst = &sf->instr[j];
+      csound->Message(csound, "%s%03d: %-20s\n", prefix, j, inst->name);
+    }
+    csound->Message(csound, "\n");
+    return OK;
+}
+
 
 static int32_t SfPreset(CSOUND *csound, SFPRESET *p)
 {
@@ -2332,12 +2365,12 @@ static int32_t sflooper_init(CSOUND *csound, sflooper *p)
               p->freq[spltNum]= (freq/(orgfreq*orgfreq))*
                                sample->dwSampleRate*csound->onedsr;
             }
-            else {            
+            else {
               freq = orgfreq * pow(2.0, ONETWELTH * tuneCorrection) *
                 pow(2.0, ONETWELTH * (split->scaleTuning*0.01) * (notnum-orgkey));
               p->freq[spltNum]= (freq/orgfreq) * sample->dwSampleRate*csound->onedsr;
             }
-            
+
             attenuation = (MYFLT) (layer->initialAttenuation +
                                    split->initialAttenuation);
             attenuation = POWER(FL(2.0), (-FL(1.0)/FL(60.0)) * attenuation )
@@ -2676,6 +2709,8 @@ static OENTRY localops[] = {
     (SUBR)SfPlayMono_set, (SUBR)SfPlayMono },
   { "sfplist",S(SFPLIST),   0, 1,    "",     "i",      (SUBR)Sfplist          },
   { "sfilist",S(SFPLIST),   0, 1,    "",     "i",      (SUBR)Sfilist          },
+  { "sfilist.prefix",S(SFPLIST),   0, 1,    "",     "iS",      (SUBR)Sfilist_prefix},
+
   { "sfpassign",S(SFPASSIGN), 0, 1,  "",     "iip",    (SUBR)SfAssignAllPresets },
   { "sfinstrm", S(SFIPLAYMONO),0, 3, "a", "iixxiiooo",
     (SUBR)SfInstrPlayMono_set, (SUBR)SfInstrPlayMono },

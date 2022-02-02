@@ -93,6 +93,14 @@ strNcpy(char *dst, const char *src, size_t siz)
 }
 
 
+#define MSG(csound, fmt, ...) {                                        \
+    if(csound->GetMessageLevel(csound) || csound->GetDebug(csound)) {  \
+      csound->Message(csound, fmt, __VA_ARGS__);                       \
+    }                                                                  \
+ }
+
+
+
 typedef struct devparams_ {
     snd_pcm_t       *handle;        /* handle                           */
     void            *buf;           /* sample conversion buffer         */
@@ -471,7 +479,7 @@ static int set_device_params(CSOUND *csound, DEVPARAMS *dev, int play)
         if(hwsr == 0) hwsr = 44100;
         csound->system_sr(csound, hwsr);
         target = dev->srate = hwsr;
-        p->Message(p, "alsa hw sampling rate: %d\n", hwsr);
+        MSG(p, "alsa hw sampling rate: %d\n", hwsr);
       }
       else target = (unsigned int) dev->srate;
 
@@ -874,7 +882,7 @@ static alsaMidiInputDevice* open_midi_device(CSOUND *csound, const char  *s)
       csound->Free(csound,dev);
       return NULL;
     }
-    csound->Message(csound, Str("ALSA: opened MIDI input device '%s'\n"), s);
+    MSG(csound, Str("ALSA: opened MIDI input device '%s'\n"), s);
     return dev;
 }
 
@@ -897,7 +905,8 @@ static int midi_in_open(CSOUND *csound, void **userData, const char *devName)
       exit(1);                  /* what should happen here???????? */
     }
     else if (devName[0] == 'a') {
-      csound->Message(csound, Str("ALSA midi: Using all devices.\n"));
+      if(csound->GetMessageLevel(csound) || csound->GetDebug(csound))
+        csound->Message(csound, Str("ALSA midi: Using all devices.\n"));
       card = -1;
       if (snd_card_next(&card) >= 0 && card >= 0) {
         do {
@@ -1052,7 +1061,7 @@ static int midi_out_open(CSOUND *csound, void **userData, const char *devName)
                        Str("ALSA: error opening MIDI output device '%s'"),s);
       return 0;
     }
-    csound->Message(csound, Str("ALSA: opened MIDI output device '%s'\n"), s);
+    MSG(csound, Str("ALSA: opened MIDI output device '%s'\n"), s);
     (*userData) = (void*) dev;
     return 0;
 }
@@ -1129,7 +1138,7 @@ static int midi_in_open_file(CSOUND *csound, void **userData,
         return -1;
       }
     }
-    csound->Message(csound, Str("Opened MIDI input device file '%s'\n"), s);
+    MSG(csound, Str("Opened MIDI input device file '%s'\n"), s);
     (*userData) = (void*) dev;
 
     return 0;
@@ -1240,8 +1249,7 @@ static int midi_out_open_file(CSOUND *csound, void **userData,
                          devName);
         return -1;
       }
-      csound->Message(csound, Str("Opened MIDI output device file '%s'\n"),
-                      devName);
+      MSG(csound, Str("Opened MIDI output device file '%s'\n"), devName);
     }
     (*userData) = (void*) ((uintptr_t) fd);
 
@@ -1888,9 +1896,10 @@ static int listDevicesM(CSOUND *csound, CS_MIDIDEVICE *list, int isOutput){
 
 PUBLIC int csoundModuleInit(CSOUND *csound)
 {
-    char    *s;
     int     i;
     char    buf[9];
+    char    *s = NULL;
+    memset(buf, '\0', 9);
     OPARMS oparms;
     csound->GetOParms(csound, &oparms);
 
@@ -1916,7 +1925,8 @@ PUBLIC int csoundModuleInit(CSOUND *csound)
     }
     buf[i] = (char) 0;
     if (strcmp(&(buf[0]), "alsa") == 0) {
-      csound->Message(csound, Str("rtaudio: ALSA module enabled\n"));
+      if (oparms.msglevel & 0x400 || oparms.odebug)
+        csound->Message(csound, Str("rtaudio: ALSA module enabled\n"));
       csound->SetPlayopenCallback(csound, playopen_);
       csound->SetRecopenCallback(csound, recopen_);
       csound->SetRtplayCallback(csound, rtplay_);
@@ -1933,7 +1943,8 @@ PUBLIC int csoundModuleInit(CSOUND *csound)
     }
     buf[i] = (char) 0;
     if (strcmp(&(buf[0]), "alsaraw") == 0 || strcmp(&(buf[0]), "alsa") == 0) {
-      csound->Message(csound, Str("rtmidi: ALSA Raw MIDI module enabled\n"));
+      if (oparms.msglevel & 0x400 || oparms.odebug)
+        csound->Message(csound, Str("rtmidi: ALSA Raw MIDI module enabled\n"));
       csound->SetExternalMidiInOpenCallback(csound, midi_in_open);
       csound->SetExternalMidiReadCallback(csound, midi_in_read);
       csound->SetExternalMidiInCloseCallback(csound, midi_in_close);
@@ -1944,7 +1955,7 @@ PUBLIC int csoundModuleInit(CSOUND *csound)
 
     }
     else if (strcmp(&(buf[0]), "alsaseq") == 0) {
-      if (oparms.msglevel & 0x400)
+      if (oparms.msglevel & 0x400 || oparms.odebug)
         csound->Message(csound, Str("rtmidi: ALSASEQ module enabled\n"));
       csound->SetExternalMidiInOpenCallback(csound, alsaseq_in_open);
       csound->SetExternalMidiReadCallback(csound, alsaseq_in_read);
@@ -1955,7 +1966,8 @@ PUBLIC int csoundModuleInit(CSOUND *csound)
       csound->SetMIDIDeviceListCallback(csound,listDevicesM);
     }
     else if (strcmp(&(buf[0]), "devfile") == 0) {
-      csound->Message(csound, Str("rtmidi: devfile module enabled\n"));
+      if (oparms.msglevel & 0x400)
+        csound->Message(csound, Str("rtmidi: devfile module enabled\n"));
       csound->SetExternalMidiInOpenCallback(csound, midi_in_open_file);
       csound->SetExternalMidiReadCallback(csound, midi_in_read_file);
       csound->SetExternalMidiInCloseCallback(csound, midi_in_close_file);

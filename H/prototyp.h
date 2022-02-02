@@ -52,6 +52,7 @@ CS_PRINTF3  int     csoundPerfError(CSOUND *, OPDS *h, const char *, ...);
 CS_PRINTF2  void    csoundWarning(CSOUND *, const char *, ...);
 CS_PRINTF2  void    csoundDebugMsg(CSOUND *, const char *, ...);
 CS_PRINTF2  void    csoundErrorMsg(CSOUND *, const char *, ...);
+void    csoundErrorMsgS(CSOUND *, int attr, const char *, ...);
 void    csoundErrMsgV(CSOUND *, const char *, const char *, va_list);
 CS_NORETURN void    csoundLongJmp(CSOUND *, int retval);
 TEXT    *getoptxt(CSOUND *, int *);

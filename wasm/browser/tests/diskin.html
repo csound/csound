@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html>
+  <head></head>
+  <body>
+    <script type="module">
+      import("/dist/csound.js").then(async (module) => {
+        const Csound = await module.Csound;
+        const csound = await Csound({ useWorker: true, useSAB: false });
+        const response = await fetch(
+          "https://upload.wikimedia.org/wikipedia/commons/a/a1/Audio_Sample_-_The_Quick_Brown_Fox_Jumps_Over_The_Lazy_Dog.ogg",
+        );
+        const testSampleArrayBuffer = await response.arrayBuffer();
+        const testSample = new Uint8Array(testSampleArrayBuffer);
+        await csound.fs.writeFile("tiny_test_sample.wav", testSample);
+        await csound.setOption("-odac");
+        await csound.compileCsdText(`
+  <CsoundSynthesizer>
+<CsOptions>
+    -odac
+</CsOptions>
+<CsInstruments>
+    0dbfs = 1
+    instr 1
+      ktrans linseg 1, 5, 2, 10, -2
+      a1, a2 diskin2 "tiny_test_sample.wav", ktrans, 0, 1, 0, 32
+      prints "HELLO!\\n"
+      outs a1, a2
+    endin
+</CsInstruments>
+<CsScore>
+    i 1 0 15
+    i 1 + .
+</CsScore>
+</CsoundSynthesizer>
+             `);
+        await csound.start();
+      });
+    </script>
+  </body>
+</html>

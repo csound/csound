@@ -22,9 +22,9 @@
     02110-1301 USA
 */
 
-#include "csdl.h"
-#include "arrays.h"
 #include "emugens_common.h"
+#include "interlocks.h"
+#include "arrays.h"
 #include <ctype.h>
 
 #define SAMPLE_ACCURATE \
@@ -507,8 +507,10 @@ static int32 bpfx_i(CSOUND *csound, BPFX *p) {
 
 
 static inline int32_t bpfx_find(MYFLT **data, MYFLT x, int32_t datalen, int32_t lastidx) {
+    // returns -1 if x is less than the lowest breakpoint
     if (x <= *data[0])
         return -1;
+    // -2 if x is higher than the highest breakpoint
     if (x>=*data[datalen-2])
         return -2;
     if(lastidx >= 0 && lastidx < datalen-4 && *data[lastidx] <= x && x < *data[lastidx+2])
@@ -552,8 +554,11 @@ static int32_t bpfx_k(CSOUND *csound, BPFX *p) {
 
     x0 = *data[idx];
     x1 = *data[idx+2];
-    if(UNLIKELY(x0 > x || x >= x1))
+    if(UNLIKELY(x < x0 || x > x1)) {
+        printf("Bug in bpfx_k. x: %f should be between %f and %f\n", x, x0, x1);
         return NOTOK;
+    }
+
     y0 = *data[idx+1];
     y1 = *data[idx+3];
     *p->r = (x-x0)/(x1-x0)*(y1-y0)+y0;
@@ -1769,7 +1774,6 @@ ftset_init(CSOUND *csound, FTSET *p) {
 static int32_t
 ftset_common(CSOUND *csound, FTSET *p) {
     IGN(csound);
-    printf("ftset common\n");
     FUNC *tab = p->tab;
     MYFLT *data = tab->ftable;
     int tablen = tab->flen;
@@ -1785,7 +1789,6 @@ ftset_common(CSOUND *csound, FTSET *p) {
 
     if(step == 1 && value == 0) {
         // special case: clear the table, use memset
-        printf("memset %d \n", end-start);
         memset(data + start, '\0', sizeof(MYFLT) * (end - start));
         return OK;
     }
@@ -2355,8 +2358,8 @@ static int32_t
 ftprint_perf(CSOUND *csound, FTPRINT *p) {
     int32_t trig = (int32_t)*p->ktrig;
     if(trig == 0) {
-    	p->lasttrig = 0;
-    	return OK;
+      p->lasttrig = 0;
+      return OK;
     }
     if(trig > 0 && p->lasttrig > 0)
         return OK;
@@ -2476,6 +2479,11 @@ typedef struct {
 
 static int32_t
 ftexists_init(CSOUND *csound, FTEXISTS *p) {
+    int ifn = (int)*p->ifn;
+    if(ifn == 0) {
+        csound->DebugMsg(csound, Str("ftexists: table number is 0"));
+        *p->iout = 0.;
+    }
     FUNC *ftp = csound->FTnp2Find(csound, p->ifn);
     *p->iout = (ftp != NULL) ? 1.0 : 0.0;
     return OK;
@@ -2514,7 +2522,7 @@ lastcycle_init(CSOUND *csound, LASTCYCLE *p) {
     if(p->extracycles == 0) {
         p->h.insdshead->xtratim = 1;
         p->extracycles = 1;
-        MSG(Str("lastcycle: adding an extra cycle to the duration of the event\n"));
+        // MSG(Str("lastcycle: adding an extra cycle to the duration of the event\n"));
     }
     p->numcycles += p->extracycles;
     if(p3 < 0) {
@@ -2523,7 +2531,9 @@ lastcycle_init(CSOUND *csound, LASTCYCLE *p) {
     else if (p->extracycles > 0) {
         p->mode = 2;
     } else {
-        MSG(Str("lastcycle: no extra time defined, turnoff2 will not be detected\n"));
+      csound->Warning(csound, "%s",
+                      Str("lastcycle: no extra time defined, turnoff2 will"
+                          " not be detected\n"));
         p->mode = 1;
     }
     *p->out = 0;
@@ -2979,7 +2989,7 @@ int32_t printsk_perf(CSOUND *csound, PRINTLN *p) {
 
 #define S(x) sizeof(x)
 
-static OENTRY localops[] = {
+static OENTRY emugens_localops[] = {
     { "linlin", S(LINLIN1), 0, 2, "k", "kkkkk", NULL, (SUBR)linlin1_perf },
     { "linlin", S(LINLIN1), 0, 2, "k", "kkkop", NULL, (SUBR)linlin1_perf },
     { "linlin", S(LINLIN1), 0, 1, "i", "iiiop", (SUBR)linlin1_perf},
@@ -3055,7 +3065,7 @@ static OENTRY localops[] = {
 
     { "mton.i", S(MTON), 0, 1, "S", "i", (SUBR)mton },
     { "mton.k", S(MTON), 0, 3, "S", "k", (SUBR)mton, (SUBR)mton },
-    
+
     { "ntof.i", S(NTOM), 0, 1, "i", "S", (SUBR)ntof },
     { "ntof.k", S(NTOM), 0, 3, "k", "S", (SUBR)ntof, (SUBR)ntof },
 
@@ -3142,4 +3152,4 @@ static OENTRY localops[] = {
       (SUBR)printsk_init, (SUBR)printsk_perf}
 };
 
-LINKAGE
+LINKAGE_BUILTIN(emugens_localops)

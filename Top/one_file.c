@@ -25,7 +25,9 @@
 #include <stdlib.h>
 int mkstemp(char *);
 #include <ctype.h>
+#ifndef __wasi__
 #include <errno.h>
+#endif
 #include <stdlib.h>
 #include "corfile.h"
 
@@ -392,7 +394,8 @@ static int createOrchestra(CSOUND *csound, CORFIL *cf)
       if (state == 0 &&
           (q = strstr(p, "</CsInstruments>")) &&
           all_blank(buffer,q)) {
-        csound->Message(csound, "closing tag\n");
+        if(csound->oparms->odebug)
+          csound->Message(csound, "closing tag\n");
         //corfile_flush(incore);
         corfile_puts(csound, "\n#exit\n", incore);
         corfile_putc(csound, '\0', incore);
@@ -1121,7 +1124,8 @@ int read_unified_file4(CSOUND *csound, CORFIL *cf)
       while (isblank(*p)) p++;
       if (strstr(p, "<CsoundSynthesizer>") == p ||
           strstr(p, "<CsoundSynthesiser>") == p) {
-        csoundMessage(csound, Str("STARTING FILE\n"));
+        if(csound->oparms->odebug)
+          csoundMessage(csound, Str("STARTING FILE\n"));
         started = TRUE;
       }
       else if (strstr(p, "</CsoundSynthesizer>") == p ||
@@ -1137,6 +1141,7 @@ int read_unified_file4(CSOUND *csound, CORFIL *cf)
       }
       else if (strstr(p, "<CsOptions>") == p) {
         if (!notrunning) {
+          if(csound->oparms->odebug)
           csoundMessage(csound, Str("Creating options\n"));
           csound->orchname = NULL;  /* allow orchestra/score name in CSD file */
           r = readOptions(csound, cf, 1);
@@ -1157,12 +1162,14 @@ int read_unified_file4(CSOUND *csound, CORFIL *cf)
         }
       }
       else if (strstr(p, "<CsInstruments>") == p) {
-        csoundMessage(csound, Str("Creating orchestra\n"));
+        if(csound->oparms->odebug)
+         csoundMessage(csound, Str("Creating orchestra\n"));
         r = createOrchestra(csound, cf);
         result = r && result;
       }
       else if (strstr(p, "<CsScore") == p) {
-        csoundMessage(csound, Str("Creating score\n"));
+        if(csound->oparms->odebug)
+         csoundMessage(csound, Str("Creating score\n"));
         if (strstr(p, "<CsScore>") == p)
           r = createScore(csound, cf);
         else

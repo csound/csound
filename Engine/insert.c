@@ -371,20 +371,19 @@ int insert_event(CSOUND *csound, int insno, EVTBLK *newevtp)
   if(!tie) {
     /* alloc new dspace if needed */
     if (tp->act_instance == NULL || tp->isNew) {
-      if (UNLIKELY(O->msglevel & RNGEMSG)) {
+      if (UNLIKELY(O->msglevel & CS_RNGEMSG)) {
         char *name = csound->engineState.instrtxtp[insno]->insname;
         if (UNLIKELY(name))
-          csound->Message(csound, Str("new alloc for instr %s:\n"), name);
+          csound->ErrorMsg(csound, Str("new alloc for instr %s:\n"), name);
         else
-          csound->Message(csound, Str("new alloc for instr %d:\n"), insno);
+          csound->ErrorMsg(csound, Str("new alloc for instr %d:\n"), insno);
       }
       instance(csound, insno);
       tp->isNew=0;
     }
 
     /* pop from free instance chain */
-    if (UNLIKELY(csound->oparms->odebug))
-      csoundMessage(csound, "insert(): tp->act_instance = %p\n", tp->act_instance);
+    csoundDebugMsg(csound, "insert(): tp->act_instance = %p\n", tp->act_instance);
     ip = tp->act_instance;
     ATOMIC_SET(ip->init_done, 0);
     tp->act_instance = ip->nxtact;
@@ -631,7 +630,7 @@ int insert_midi(CSOUND *csound, int insno, MCHNBLK *chn, MEVENT *mep)
   ipp = &chn->kinsptr[mep->dat1];       /* key insptr ptr           */
   /* alloc new dspace if needed */
   if (tp->act_instance == NULL || tp->isNew) {
-    if (UNLIKELY(O->msglevel & RNGEMSG)) {
+    if (UNLIKELY(O->msglevel & CS_RNGEMSG)) {
       char *name = csound->engineState.instrtxtp[insno]->insname;
       if (UNLIKELY(name))
         csound->Message(csound, Str("new MIDI alloc for instr %s:\n"), name);
@@ -716,7 +715,7 @@ int insert_midi(CSOUND *csound, int insno, MCHNBLK *chn, MEVENT *mep)
     MYFLT value = (MYFLT) ip->m_pitch;
     pfield->value = value;
 
-    if (UNLIKELY(O->msglevel & WARNMSG)) {
+    if (UNLIKELY(O->msglevel & CS_WARNMSG)) {
       csound->Message(csound, "  midiKey:         pfield: %3d  value: %3d\n",
                       pfield_index, (int) pfield->value);
     }
@@ -731,7 +730,7 @@ int insert_midi(CSOUND *csound, int insno, MCHNBLK *chn, MEVENT *mep)
     value = (MYFLT) CPSOCTL((int32) value);
     pfield->value = value;
 
-    if (UNLIKELY(O->msglevel & WARNMSG)) {
+    if (UNLIKELY(O->msglevel & CS_WARNMSG)) {
       csound->Message(csound, "  midiKeyCps:      pfield: %3d  value: %3d\n",
                       pfield_index, (int) pfield->value);
     }
@@ -743,7 +742,7 @@ int insert_midi(CSOUND *csound, int insno, MCHNBLK *chn, MEVENT *mep)
     MYFLT value = (MYFLT) ip->m_pitch;
     value = value / FL(12.0) + FL(3.0);
     pfield->value = value;
-    if (UNLIKELY(O->msglevel & WARNMSG)) {
+    if (UNLIKELY(O->msglevel & CS_WARNMSG)) {
       csound->Message(csound, "  midiKeyOct:      pfield: %3d  value: %3d\n",
                       pfield_index, (int) pfield->value);
     }
@@ -760,7 +759,7 @@ int insert_midi(CSOUND *csound, int insno, MCHNBLK *chn, MEVENT *mep)
     fraction *= 0.12;
     value = octave + fraction;
     pfield->value = value;
-    if (UNLIKELY(O->msglevel & WARNMSG)) {
+    if (UNLIKELY(O->msglevel & CS_WARNMSG)) {
       csound->Message(csound, "  midiKeyPch:      pfield: %3d  value: %3d\n",
                       pfield_index, (int) pfield->value);
     }
@@ -771,7 +770,7 @@ int insert_midi(CSOUND *csound, int insno, MCHNBLK *chn, MEVENT *mep)
     CS_VAR_MEM* pfield = (pfields + pfield_index);
     MYFLT value = (MYFLT) ip->m_veloc;
     pfield->value = value;
-    if (UNLIKELY(O->msglevel & WARNMSG)) {
+    if (UNLIKELY(O->msglevel & CS_WARNMSG)) {
       csound->Message(csound, "  midiVelocity:    pfield: %3d  value: %3d\n",
                       pfield_index, (int) pfield->value);
     }
@@ -784,7 +783,7 @@ int insert_midi(CSOUND *csound, int insno, MCHNBLK *chn, MEVENT *mep)
     value = value * value / FL(16239.0);
     value = value * csound->e0dbfs;
     pfield->value = value;
-    if (UNLIKELY(O->msglevel & WARNMSG)) {
+    if (UNLIKELY(O->msglevel & CS_WARNMSG)) {
       csound->Message(csound, "  midiVelocityAmp: pfield: %3d  value: %.3f\n",
                       pfield_index, pfield->value);
     }
@@ -1105,8 +1104,10 @@ void orcompact(CSOUND *csound)          /* free all inactive instr spaces */
       }
     }
   }
-  if (UNLIKELY(cnt))
-    csound->Message(csound, Str("inactive allocs returned to freespace\n"));
+  if (UNLIKELY(cnt)) {
+    if(csound->oparms->msglevel ||csound->oparms->odebug)
+     csound->Message(csound, Str("inactive allocs returned to freespace\n"));
+  }
 }
 
 void infoff(CSOUND *csound, MYFLT p1)   /* turn off an indef copy of instr p1 */
@@ -1152,7 +1153,7 @@ int csoundInitError(CSOUND *csound, const char *s, ...)
     csound->LongJmp(csound, 1);
   }
   if (csound->mode != 1)
-    csound->Message(csound, Str("InitError in wrong mode %d\n"), csound->mode);
+    csoundErrorMsg(csound, Str("InitError in wrong mode %d\n"), csound->mode);
   /* IV - Oct 16 2002: check for subinstr and user opcode */
   ip = csound->ids->insdshead;
   if (ip->opcod_iobufs) {
@@ -1187,7 +1188,7 @@ int csoundPerfError(CSOUND *csound, OPDS *h, const char *s, ...)
   INSDS *ip = h->insdshead;
   TEXT t = h->optext->t;
   if (csound->mode != 2)
-    csound->Message(csound, Str("PerfError in wrong mode %d\n"), csound->mode);
+    csoundErrorMsg(csound, Str("PerfError in wrong mode %d\n"), csound->mode);
   if (ip->opcod_iobufs) {
     OPCODINFO *op = ((OPCOD_IOBUFS*) ip->opcod_iobufs)->opcode_info;
     /* find top level instrument instance */
@@ -1210,7 +1211,7 @@ int csoundPerfError(CSOUND *csound, OPDS *h, const char *s, ...)
   do_baktrace(csound, t.locn);
   if (ip->pds)
     putop(csound, &(ip->pds->optext->t));
-  csoundMessage(csound, Str("   note aborted\n"));
+  csoundErrorMsg(csound, "%s",  Str("   note aborted\n"));
   csound->perferrcnt++;
   xturnoff_now((CSOUND*) csound, ip);       /* rm ins fr actlist */
   return csound->perferrcnt;                /* contin from there */
@@ -1631,9 +1632,10 @@ int xoutset(CSOUND *csound, XOUT *p)
     void* in = (void*)p->args[i];
     void* out = (void*)bufs[i];
     tmp[i] = in;
-    // DO NOT COPY K or A or F vars
+    // DO NOT COPY K or A vars
+    // Fsigs need to be copied for initialization purposes.
     if (csoundGetTypeForArg(in) != &CS_VAR_TYPE_K &&
-        csoundGetTypeForArg(in) != &CS_VAR_TYPE_F &&
+        /*csoundGetTypeForArg(in) != &CS_VAR_TYPE_F &&*/
         csoundGetTypeForArg(in) != &CS_VAR_TYPE_A)
       current->varType->copyValue(csound, out, in);
     current = current->next;
@@ -1931,7 +1933,7 @@ int useropcd1(CSOUND *csound, UOPCODE *p)
   MYFLT** internal_ptrs = p->buf->iobufp_ptrs;
   MYFLT** external_ptrs = p->ar;
   int done;
-  
+
 
   done = ATOMIC_GET(p->ip->init_done);
   if (UNLIKELY(!done)) /* init not done, exit */
@@ -1960,8 +1962,7 @@ int useropcd1(CSOUND *csound, UOPCODE *p)
   if (this_instr->ksmps == 1) {           /* special case for local kr == sr */
     do {
       this_instr->kcounter++; /*kcounter needs to be incremented BEFORE perf */
-      /* copy inputs */
-      current = inm->in_arg_pool->head;
+      /* copy inputs */      current = inm->in_arg_pool->head;
       for (i = 0; i < inm->inchns; i++) {
         // this hardcoded type check for non-perf time vars needs to change
         //to use generic code...
@@ -2159,7 +2160,7 @@ int useropcd1(CSOUND *csound, UOPCODE *p)
 
       this_instr->spout += csound->nchnls*lksmps;
       this_instr->spin  += csound->nchnls*lksmps;
-      
+
     } while ((ofs += this_instr->ksmps) < g_ksmps);
   }
 
@@ -2237,7 +2238,7 @@ int useropcd2(CSOUND *csound, UOPCODE *p)
   OPCODINFO   *inm;
   CS_VARIABLE* current;
   int i, done;
-  
+
 
   inm = (OPCODINFO*) p->h.optext->t.oentry->useropinfo; /* FIXME value not used */
   done = ATOMIC_GET(p->ip->init_done);
@@ -2295,7 +2296,7 @@ int useropcd2(CSOUND *csound, UOPCODE *p)
   } while (error == 0 && p->ip != NULL
            && (CS_PDS = CS_PDS->nxtp));
   }
-  
+
 
   /* copy outputs */
   current = inm->out_arg_pool->head;
@@ -2405,8 +2406,7 @@ static void instance(CSOUND *csound, int insno)
   ip->nxtact = tp->act_instance;
   tp->act_instance = ip;
   ip->insno = insno;
-  if (UNLIKELY(csound->oparms->odebug))
-    csoundMessage(csound,"instance(): tp->act_instance = %p\n",
+  csoundDebugMsg(csound,"instance(): tp->act_instance = %p\n",
                   tp->act_instance);
 
 

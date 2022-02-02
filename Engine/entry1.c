@@ -29,10 +29,9 @@
    1 =     1
    2 =             2
    3 =     1  AND  2
- */
+*/
 
 /* inarg types include the following:
-
    i       irate scalar
    k       krate scalar
    a       arate vector
@@ -64,7 +63,8 @@
    W       begins indef list of Strings (any count)
    y       begins indef list of aargs (any count)
    z       begins indef list of kargs (any count)
-   Z       begins alternating kakaka...list (any count)    */
+   Z       begins alternating kakaka...list (any count)
+*/
 
 /* outarg types include:
  i, k, a, S as  above
@@ -76,8 +76,12 @@
  X       multiple args (a, k, or i-rate)     IV - Sep 1 2002
  N       multiple args (a, k, i, or S-rate)
  F       multiple args (f-rate)#
- */
+*/
 
+/* inargs and outargs may also be arrays, e.g. "a[]" is an array of
+   arate vectors. Then for polymorphic opcode entries, "opcode.a" is
+   for arate vectors, and "opcode.A" is for arrays of arate vectors.
+*/
 
 OENTRY opcodlst_1[] = {
   /* opcode   dspace  flags  thread  outarg  inargs  isub    ksub    asub    */
@@ -689,6 +693,8 @@ OENTRY opcodlst_1[] = {
   { "filebit.i", S(SNDINFO),0,  1,     "i",   "ip",   filebit, NULL, NULL        },
   { "filepeak.i", S(SNDINFOPEAK),0, 1, "i",   "io",   filepeak, NULL, NULL       },
   { "filevalid.i", S(FILEVALID),0, 1,  "i",   "i",    filevalid, NULL, NULL      },
+  { "filevalid.k", S(FILEVALID),0, 2,  "k",   "S",    NULL, filevalid_S, NULL    },
+  { "filevalid.k", S(FILEVALID),0, 2,  "k",   "i",    NULL, filevalid, NULL    },
   /*  { "nlalp", S(NLALP),0,     3,     "a",  "akkoo", nlalp_set, nlalp }, */
   { "ptableiw",  S(TABLEW),TW|_QQ, 1, "", "iiiooo", (SUBR)tablew_init, NULL, NULL},
   { "ptablew.kk", S(TABLEW),TB,  3,  "", "kkiooo",(SUBR)tabl_setup,

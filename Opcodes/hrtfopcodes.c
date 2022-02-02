@@ -253,11 +253,13 @@ static int32_t hrtfmove_init(CSOUND *csound, hrtfmove *p)
     p->fade = fade;
 
     /* sr, default 44100 */
-    //    if(sr != 44100 && sr != 48000 && sr != 96000)
-    //  sr = 44100;
-    if (sr==0) sr = CS_ESR;
+    //if(sr != 44100 && sr != 48000 && sr != 96000)
+    //sr = 44100;
 
-    if (UNLIKELY(CS_ESR != sr))
+      if (sr==0) sr = CS_ESR;
+      p->sr = sr;
+
+      if (UNLIKELY(CS_ESR != sr))
       csound->Message(csound,
                       Str("\n\nWARNING!!:\nOrchestra SR not compatible"
                           " with HRTF processing SR of: %.0f\n\n"), sr);

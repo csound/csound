@@ -48,7 +48,7 @@ void *csoundCreateCircularBuffer(CSOUND *csound, int numelem, int elemsize){
     return (void *)p;
 }
 
-static int checkspace(circular_buffer *p, int writeCheck){
+int checkspace(circular_buffer *p, int writeCheck){
     int wp = p->wp, rp = p->rp, numelem = p->numelem;
     if(writeCheck){
       if (wp > rp) return rp - wp + numelem - 1;

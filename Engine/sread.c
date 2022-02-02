@@ -362,7 +362,7 @@ int sread(CSOUND *csound)       /*  called from main,  reads from SCOREIN   */
             (csound->sread.clock_base) +=
               stof(csound, (csound->sread.sp));
 
-          if (csound->oparms->msglevel & TIMEMSG)
+          if (csound->oparms->msglevel & CS_TIMEMSG)
             csound->Message(csound,Str("Clockbase = %f\n"),
                             csound->sread.clock_base);
           flushlin(csound);
@@ -453,7 +453,7 @@ int sread(CSOUND *csound)       /*  called from main,  reads from SCOREIN   */
           }
           buff[i] = '\0';
           if (c != EOF && c != '\n') flushlin(csound);
-          if (csound->oparms->msglevel & TIMEMSG)
+          if (csound->oparms->msglevel & CS_TIMEMSG)
             csound->Message(csound,Str("m Named section >>>%s<<<\n"), buff);
             //printf("*** last_name = %d\n", (csound->sread.last_name));
           for (j=0; j<(csound->sread.last_name); j++) {
@@ -470,7 +470,7 @@ int sread(CSOUND *csound)       /*  called from main,  reads from SCOREIN   */
           //printf("posit=%d\n", (csound->sread.names)[j].posit);
           (csound->sread.names)[j].line = (csound->sread.str)->line;
           //printf("line-%d\n",(csound->sread.names)[j].line);
-          if (csound->oparms->msglevel & TIMEMSG)
+          if (csound->oparms->msglevel & CS_TIMEMSG)
             csound->Message(csound,Str("%d: %s position %"PRIi32"\n"),
                             j, (csound->sread.names)[j].name,
                             (csound->sread.names)[j].posit);
@@ -540,7 +540,7 @@ int sread(CSOUND *csound)       /*  called from main,  reads from SCOREIN   */
           getpfld(csound,0);
           (csound->sread.warp_factor) =
             stof(csound, (csound->sread.sp));
-          if (csound->oparms->msglevel & TIMEMSG)
+          if (csound->oparms->msglevel & CS_TIMEMSG)
             csound->Message(csound, Str("Warp_factor = %f\n"),
                             (csound->sread.warp_factor));
           flushlin(csound);

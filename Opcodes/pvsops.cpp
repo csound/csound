@@ -1,3 +1,4 @@
+
 /*
   pvsops.c: pvs and other spectral-based opcodes
 
@@ -306,6 +307,94 @@ struct TVConv : csnd::Plugin<1, 6> {
   }
 };
 
+
+struct Gtadsr : public csnd::Plugin<1,6> {
+  uint64_t a,d;
+  MYFLT e,ainc,dfac;
+  uint64_t t;
+
+  int init() {
+    t = 0;
+    e = MYFLT(0);
+    return OK;
+  }
+
+  int kperf() {
+    MYFLT gate = inargs[5];
+    MYFLT s = inargs[3];
+    s = s  > 0  ? (s < 1 ? s : 1.) : 0.;
+    if(gate > 0) {
+      if(t == 0) {
+        a = inargs[1]*csound->kr();
+	d = inargs[2]*csound->kr();
+	if(a < 1) a = 1;
+	if(d < 1) d = 1;
+	ainc = 1./a;
+	dfac = 1./d;
+      }
+      if (t < a && e < (1 - ainc))
+       e +=  ainc;
+     else if (t < a + d && e > s)
+       e += (s - 1) * dfac;
+     else
+       e = s;
+      t += 1;
+    } else {
+      if (e < 0.00001)
+        e = 0;
+      else
+        e *= pow(0.001, 1. / (inargs[4]*csound->kr()));
+      t = 0;   
+    }
+    outargs[0] = e*inargs[0];
+    return OK;
+  }
+
+  int aperf() {
+    MYFLT gate = inargs[5];
+    MYFLT s = inargs[3];
+    s = s > 0 ? (s < 1 ? s : 1.) : 0.;
+    MYFLT *sig  = NULL, amp = MYFLT(0);
+    if(csound->is_asig(inargs(0)))
+       sig = inargs(0);
+    else
+      amp = inargs[0];
+    MYFLT *out = outargs(0);
+
+    for(auto n = offset; n < nsmps; n++) {
+       if(gate > 0) {
+      if(t == 0) {
+        a = inargs[1]*csound->sr();
+	d = inargs[2]*csound->sr();
+	if(a < 1) a = 1;
+	if(d < 1) d = 1;
+	ainc = 1./a;
+	dfac = 1./d;
+      }
+      if (t < a && e < (1 - ainc))
+       e +=  ainc;
+     else if (t < a + d && e > s)
+       e += (s - 1) * dfac;
+     else
+       e = s;
+      t += 1;
+    } else {
+      if (e < 0.00001)
+        e = 0;
+      else
+        e *= pow(0.001, 1. / (inargs[4]*csound->sr()));
+      t = 0;   
+    }
+       out[n] = sig ? sig[n]*e : amp*e;
+ 
+    }
+    return OK;
+  }
+  
+};
+
+
+
 /*
 class PrintThread : public csnd::Thread {
   std::atomic_bool splock;
@@ -381,4 +470,7 @@ void csnd::on_load(Csound *csound) {
   csnd::plugin<PVTrace>(csound, "pvstrace",  csnd::thread::ik);
   csnd::plugin<PVTrace2>(csound, "pvstrace", csnd::thread::ik);
   csnd::plugin<TVConv>(csound, "tvconv", "a", "aaxxii", csnd::thread::ia);
+  csnd::plugin<Gtadsr>(csound, "gtadsr", "k", "kkkkkk", csnd::thread::ik);
+  csnd::plugin<Gtadsr>(csound, "gtadsr", "a", "akkkkk", csnd::thread::ia);
+  csnd::plugin<Gtadsr>(csound, "gtadsr", "a", "kkkkkk", csnd::thread::ia);
 }

@@ -222,7 +222,7 @@ void m_chanmsg(CSOUND *csound, MEVENT *mep)
           csound->engineState.instrtxtp[n] != NULL) {   /* assign as insno  */
         chn->insno = n;                         /* else ignore prog. change */
         csound->Message(csound, Str("midi channel %d now using instr %d\n"),
-                                mep->chan + 1, chn->insno);
+                        mep->chan + 1, chn->insno);
       }
       break;
     case POLYAFT_TYPE:
@@ -400,11 +400,11 @@ void m_chn_init_all(CSOUND *csound)
       for (n = 0; n < 128; n++)
         chn->pgm2ins[n] = (int16) (n + 1);
       if (csound->oparms->Midiin || csound->oparms->FMidiin) {
-        if (chn->insno > 0)
-          csound->Message(csound, Str("midi channel %d using instr %d\n"),
-                                  chan + 1, chn->insno);
-        else
+        if (chn->insno < 0)
           csound->Message(csound, Str("midi channel %d is muted\n"), chan + 1);
+        //else
+        //  csound->Message(csound, Str("midi channel %d using instr %d\n"),
+        //                  chan + 1, chn->insno);
       }
     }
 }

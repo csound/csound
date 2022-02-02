@@ -189,11 +189,17 @@ static TREE * create_goto_token(CSOUND *csound, char * booleanVar,
     strNcpy(op, "cigoto", 8);
     break;
   case ITHEN_TOKEN:
+    // *** yi ***
   icase:
     strNcpy(op, "cingoto", 8);
     break;
   case THEN_TOKEN:
+    // *** yi ***
     if (csound->inZero) goto icase;
+    /* if (csound->inZero) { */
+    /*   printf("**** Odd case in instr0 %d\n", csound->inZero); */
+    /*   print_tree(csound, "goto token\n", gotoNode); */
+    /* } */
     /* fall through */
   case KTHEN_TOKEN:
     strNcpy(op, "cngoto", 8);
@@ -204,7 +210,10 @@ static TREE * create_goto_token(CSOUND *csound, char * booleanVar,
     case 0x8001: strNcpy(op, "cnkgoto", 8); break;
     case 0: strNcpy(op, "cggoto", 8); break;
     case 0x8000:
-      strNcpy(op,csound->inZero?"cingoto":"cngoto", 8); break;
+      // *** yi ***
+      strNcpy(op,csound->inZero?"cingoto":"cngoto", 8);
+      //strNcpy(op,"cngoto", 8);
+      break;
     default: printf("Whooops %d\n", type);
     }
   }

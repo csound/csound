@@ -21,7 +21,7 @@
     02110-1301 USA
 */
 
-#include "csdl.h"
+#include "csoundCore.h"
 
 typedef struct Select {
   OPDS        h;
@@ -55,8 +55,8 @@ static int32_t selecter(CSOUND *csound, Selecter* p)
 
 #define S(x)    sizeof(x)
 
-static OENTRY localops[] = {
+static OENTRY select_localops[] = {
   { "select", S(Selecter), 0, 2, "a", "aaaaa", NULL, (SUBR)selecter}
 };
 
-LINKAGE
+LINKAGE_BUILTIN(select_localops)

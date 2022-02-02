@@ -122,9 +122,6 @@
  * causes the creation of a new function table.
  */
 
-#include "OpcodeBase.hpp"
-#include "sysdep.h"
-#include "text.h"
 #include <algorithm>
 #include <cmath>
 #include <cstdio>
@@ -132,9 +129,12 @@
 #include <functional>
 #include <iostream>
 #include <map>
-#include <pstream.h>
 #include <string>
 #include <vector>
+#include "OpcodeBase.hpp"
+#include "sysdep.h"
+#include "text.h"
+#include <pstream.h>
 
 #define SIGNALFLOWGRAPH_DEBUG 0
 
@@ -288,7 +288,7 @@ struct Outleta : public OpcodeNoteoffBase<Outleta> {
   SignalFlowGraphState *sfg_globals;
   int init(CSOUND *csound) {
     // warn(csound, "BEGAN Outleta::init()...\n");
-    csound::QueryGlobalPointer(csound, "sfg_globals", sfg_globals);
+    QueryGlobalPointer(csound, "sfg_globals", sfg_globals);
     LockGuard guard(csound, sfg_globals->signal_flow_ports_lock);
     sourceOutletId[0] = 0;
     const char *insname =
@@ -339,7 +339,7 @@ struct Inleta : public OpcodeBase<Inleta> {
   int sampleN;
   SignalFlowGraphState *sfg_globals;
   int init(CSOUND *csound) {
-    csound::QueryGlobalPointer(csound, "sfg_globals", sfg_globals);
+    QueryGlobalPointer(csound, "sfg_globals", sfg_globals);
     LockGuard guard(csound, sfg_globals->signal_flow_ports_lock);
     warn(csound, "BEGAN Inleta::init()...\n");
     sampleN = opds.insdshead->ksmps;
@@ -434,7 +434,7 @@ struct Outletk : public OpcodeNoteoffBase<Outletk> {
   char sourceOutletId[0x100];
   SignalFlowGraphState *sfg_globals;
   int init(CSOUND *csound) {
-    csound::QueryGlobalPointer(csound, "sfg_globals", sfg_globals);
+    QueryGlobalPointer(csound, "sfg_globals", sfg_globals);
     LockGuard guard(csound, sfg_globals->signal_flow_ports_lock);
     const char *insname =
         csound->GetInstrumentList(csound)[opds.insdshead->insno]->insname;
@@ -483,7 +483,7 @@ struct Inletk : public OpcodeBase<Inletk> {
   int ksmps;
   SignalFlowGraphState *sfg_globals;
   int init(CSOUND *csound) {
-    csound::QueryGlobalPointer(csound, "sfg_globals", sfg_globals);
+    QueryGlobalPointer(csound, "sfg_globals", sfg_globals);
     LockGuard guard(csound, sfg_globals->signal_flow_ports_lock);
     ksmps = opds.insdshead->ksmps;
     if (std::find(sfg_globals->koutletVectors.begin(),
@@ -565,7 +565,7 @@ struct Outletf : public OpcodeNoteoffBase<Outletf> {
   char sourceOutletId[0x100];
   SignalFlowGraphState *sfg_globals;
   int init(CSOUND *csound) {
-    csound::QueryGlobalPointer(csound, "sfg_globals", sfg_globals);
+    QueryGlobalPointer(csound, "sfg_globals", sfg_globals);
     LockGuard guard(csound, sfg_globals->signal_flow_ports_lock);
     const char *insname =
         csound->GetInstrumentList(csound)[opds.insdshead->insno]->insname;
@@ -615,7 +615,7 @@ struct Inletf : public OpcodeBase<Inletf> {
   bool fsignalInitialized;
   SignalFlowGraphState *sfg_globals;
   int init(CSOUND *csound) {
-    csound::QueryGlobalPointer(csound, "sfg_globals", sfg_globals);
+    QueryGlobalPointer(csound, "sfg_globals", sfg_globals);
     LockGuard guard(csound, sfg_globals->signal_flow_ports_lock);
     ksmps = opds.insdshead->ksmps;
     lastframe = 0;
@@ -762,7 +762,7 @@ struct Outletv : public OpcodeNoteoffBase<Outletv> {
   SignalFlowGraphState *sfg_globals;
   int init(CSOUND *csound) {
     warn(csound, "BEGAN Outletv::init()...\n");
-    csound::QueryGlobalPointer(csound, "sfg_globals", sfg_globals);
+    QueryGlobalPointer(csound, "sfg_globals", sfg_globals);
     LockGuard guard(csound, sfg_globals->signal_flow_ports_lock);
     sourceOutletId[0] = 0;
     const char *insname =
@@ -820,7 +820,7 @@ struct Inletv : public OpcodeBase<Inletv> {
   SignalFlowGraphState *sfg_globals;
   int init(CSOUND *csound) {
     warn(csound, "BEGAN Inletv::init()...\n");
-    csound::QueryGlobalPointer(csound, "sfg_globals", sfg_globals);
+    QueryGlobalPointer(csound, "sfg_globals", sfg_globals);
     LockGuard guard(csound, sfg_globals->signal_flow_ports_lock);
     sampleN = opds.insdshead->ksmps;
     // The array elements may be krate (1 MYFLT) or arate (ksmps MYFLT).
@@ -928,7 +928,7 @@ struct Outletkid : public OpcodeNoteoffBase<Outletkid> {
   char *instanceId;
   SignalFlowGraphState *sfg_globals;
   int init(CSOUND *csound) {
-    csound::QueryGlobalPointer(csound, "sfg_globals", sfg_globals);
+    QueryGlobalPointer(csound, "sfg_globals", sfg_globals);
     LockGuard guard(csound, sfg_globals->signal_flow_ports_lock);
     const char *insname =
         csound->GetInstrumentList(csound)[opds.insdshead->insno]->insname;
@@ -987,7 +987,7 @@ struct Inletkid : public OpcodeBase<Inletkid> {
   int ksmps;
   SignalFlowGraphState *sfg_globals;
   int init(CSOUND *csound) {
-    csound::QueryGlobalPointer(csound, "sfg_globals", sfg_globals);
+    QueryGlobalPointer(csound, "sfg_globals", sfg_globals);
     LockGuard guard(csound, sfg_globals->signal_flow_ports_lock);
     ksmps = opds.insdshead->ksmps;
     if (std::find(sfg_globals->kidoutletVectors.begin(),
@@ -1072,7 +1072,7 @@ struct Connect : public OpcodeBase<Connect> {
   MYFLT *gain;
   SignalFlowGraphState *sfg_globals;
   int init(CSOUND *csound) {
-    csound::QueryGlobalPointer(csound, "sfg_globals", sfg_globals);
+    QueryGlobalPointer(csound, "sfg_globals", sfg_globals);
     LockGuard guard(csound, sfg_globals->signal_flow_ports_lock);
     std::string sourceOutletId = csound->strarg2name(
         csound, (char *)0,
@@ -1108,7 +1108,7 @@ struct Connecti : public OpcodeBase<Connecti> {
   MYFLT *gain;
   SignalFlowGraphState *sfg_globals;
   int init(CSOUND *csound) {
-    csound::QueryGlobalPointer(csound, "sfg_globals", sfg_globals);
+    QueryGlobalPointer(csound, "sfg_globals", sfg_globals);
     LockGuard guard(csound, sfg_globals->signal_flow_ports_lock);
     std::string sourceOutletId = csound->strarg2name(
         csound, (char *)0,
@@ -1141,7 +1141,7 @@ struct Connectii : public OpcodeBase<Connectii> {
   MYFLT *gain;
   SignalFlowGraphState *sfg_globals;
   int init(CSOUND *csound) {
-    csound::QueryGlobalPointer(csound, "sfg_globals", sfg_globals);
+    QueryGlobalPointer(csound, "sfg_globals", sfg_globals);
     LockGuard guard(csound, sfg_globals->signal_flow_ports_lock);
     std::string sourceOutletId =
         csound->strarg2name(csound, (char *)0, Source->data, (char *)"", 1);
@@ -1174,7 +1174,7 @@ struct ConnectS : public OpcodeBase<ConnectS> {
   MYFLT *gain;
   SignalFlowGraphState *sfg_globals;
   int init(CSOUND *csound) {
-    csound::QueryGlobalPointer(csound, "sfg_globals", sfg_globals);
+    QueryGlobalPointer(csound, "sfg_globals", sfg_globals);
     LockGuard guard(csound, sfg_globals->signal_flow_ports_lock);
     std::string sourceOutletId =
         csound->strarg2name(csound, (char *)0, Source->data, (char *)"", 1);
@@ -1286,7 +1286,7 @@ static void log(CSOUND *csound, const char *format,...)
 */
 static void warn(CSOUND *csound, const char *format, ...) {
   if (csound) {
-    if (csound->GetMessageLevel(csound) & WARNMSG) {
+    if (csound->GetMessageLevel(csound) & CS_WARNMSG) {
       va_list args;
       va_start(args, format);
       csound->MessageV(csound, CSOUNDMSG_WARNING, format, args);
@@ -1311,7 +1311,7 @@ static void warn(CSOUND *csound, const char *format, ...) {
 static int ftgenonce_(CSOUND *csound, FTGEN *p, bool isNamedGenerator,
                       bool hasStringParameter) {
   SignalFlowGraphState *sfg_globals;
-  csound::QueryGlobalPointer(csound, "sfg_globals", sfg_globals);
+  QueryGlobalPointer(csound, "sfg_globals", sfg_globals);
   LockGuard guard(csound, sfg_globals->signal_flow_ftables_lock);
   int result = OK;
   EventBlock eventBlock;
@@ -1485,7 +1485,7 @@ PUBLIC int csoundModuleCreate_signalflowgraph(CSOUND *csound) {
   }
   isstrcod = csound->ISSTRCOD;
   SignalFlowGraphState *sfg_globals = new SignalFlowGraphState(csound);
-  csound::CreateGlobalPointer(csound, "sfg_globals", sfg_globals);
+  CreateGlobalPointer(csound, "sfg_globals", sfg_globals);
   return 0;
 }
 
@@ -1520,7 +1520,7 @@ PUBLIC int csoundModuleDestroy(CSOUND *csound) {
                     csound);
   }
   SignalFlowGraphState *sfg_globals = 0;
-  csound::QueryGlobalPointer(csound, "sfg_globals", sfg_globals);
+  QueryGlobalPointer(csound, "sfg_globals", sfg_globals);
   if (sfg_globals != 0) {
     sfg_globals->clear();
     if (sfg_globals->signal_flow_ports_lock != 0) {

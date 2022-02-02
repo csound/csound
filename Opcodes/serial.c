@@ -42,10 +42,11 @@
 #include <termios.h>  /* POSIX terminal control definitions */
 #include <sys/ioctl.h>
 #else
-#include "windows.h"
+#include "winsock2.h"
 #endif
 
-#include "csdl.h"
+#include "csoundCore.h"
+#include "interlocks.h"
 
 /* **************************************************
    As far as I can tell his should work on Windows
@@ -353,7 +354,7 @@ int32_t serialEnd(CSOUND *csound, SERIALEND *p)
                                                       "serialGlobals_");
     if (UNLIKELY(q = NULL))
       return csound->PerfError(csound, &(p->h), Str("Nothing to close"));
-    CloseHandle((HANDLE)q->handles[(int32_t)p->port]);
+    CloseHandle((HANDLE)q->handles[(int32_t)*p->port]);
     q->handles[(int32_t)*p->port] = NULL;
 #else
     close((int32_t)*p->port);

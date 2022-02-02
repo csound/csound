@@ -619,6 +619,7 @@ int32_t lprdset_(CSOUND *csound, LPREAD *p, int32_t stringname)
                                   csound->max_lpc_slot * sizeof(LPREAD*));
     }
     ((LPREAD**) csound->lprdaddr)[csound->currentLPCSlot] = p;
+    //printf("*** slot %d has value %p\n", csound->currentLPCSlot, p);
 
     /* Build file name */
     if (stringname) strNcpy(lpfilname, ((STRINGDAT*)p->ifilcod)->data, MAXNAME-1);
@@ -644,7 +645,8 @@ int32_t lprdset_(CSOUND *csound, LPREAD *p, int32_t stringname)
     if (LIKELY((magic==LP_MAGIC)||(magic==LP_MAGIC2))) {
       p->storePoles = (magic==LP_MAGIC2);
 
-      csound->Warning(csound, Str("Using %s type of file.\n"),
+      if(csound->oparms->odebug)
+      csound->Message(csound, Str("Using %s type of file.\n"),
                       p->storePoles?Str("pole"):Str("filter coefficient"));
       /* Store header length */
       p->headlen = lph->headersize;
@@ -885,6 +887,7 @@ int32_t lpread(CSOUND *csound, LPREAD *p)
     MYFLT   *polePhas2 = poleMagn2 + p->npoles;
     MYFLT   *interMagn = polePhas2 + p->npoles;
     MYFLT   *interPhas = interMagn + p->npoles;
+    //printf("*** Line %d: q = %p  q->kcoefs=%p\n", __LINE__, p, p->kcoefs);
 
 
     if (UNLIKELY(p->mfp==NULL)) {
@@ -1022,10 +1025,10 @@ int32_t lprsnset(CSOUND *csound, LPRESON *p)
 
    /* connect to previously loaded lpc analysis */
    /* get adr lpread struct */
-    p->lpread = q = ((LPREAD**) csound->lprdaddr)[csound->currentLPCSlot];
 
+    p->lpread = q = ((LPREAD**) csound->lprdaddr)[csound->currentLPCSlot];
     csound->AuxAlloc(csound, (int32)((q->npoles<<1)*sizeof(MYFLT)), &p->aux);
-   /* Initialize pointer to circulat buffer (for filtering) */
+   /* Initialize pointer to circular buffer (for filtering) */
     p->circjp = p->circbuf = (MYFLT*)p->aux.auxp;
     p->jp2lim = p->circbuf + (q->npoles << 1);  /* npoles det circbuflim */
     return OK;
@@ -1054,7 +1057,7 @@ int32_t lpreson(CSOUND *csound, LPRESON *p)
     jp = p->circjp;
     jp2 = jp + q->npoles;
 
-    /* If we where using poles, we have to compute filter coefs now */
+    /* If we were using poles, we have to compute filter coefs now */
     if (q->storePoles) {
       coefp = q->kcoefs;
       for (i=0; i<q->npoles; i++) {
@@ -1460,7 +1463,24 @@ int32_t lpitpset(CSOUND *csound, LPINTERPOL *p)
     csound->AuxAlloc(csound, (int32)(p->npoles*8*sizeof(MYFLT)), &p->aux);
     p->kcoefs = (MYFLT*)p->aux.auxp;
     p->storePoles = 1;
-    ((LPREAD**) csound->lprdaddr)[csound->currentLPCSlot] = (LPREAD*) p;
+    {
+      LPREAD *q;
+      csound->AuxAlloc(csound, sizeof(LPREAD), &p->slotaux);
+      q = (LPREAD*)p->slotaux.auxp;
+      memcpy(q, p, sizeof(LPREAD));
+      q->kcoefs = p->kcoefs;
+      q->storePoles = 1;
+      //csound->currentLPCSlot++; ?? Or othr way to create a slot
+      // Following code shoukd not be necessary
+      if (csound->lprdaddr == NULL ||
+        csound->currentLPCSlot >= csound->max_lpc_slot) {
+      csound->max_lpc_slot = csound->currentLPCSlot + MAX_LPC_SLOT;
+      csound->lprdaddr = csound->ReAlloc(csound,
+                                  csound->lprdaddr,
+                                  csound->max_lpc_slot * sizeof(LPREAD*));
+      }
+      ((LPREAD**) csound->lprdaddr)[csound->currentLPCSlot] = q;
+    }
     return OK;
 }
 

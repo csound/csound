@@ -73,15 +73,15 @@ static int32_t scale_process(CSOUND *csound, scale *p)
     MYFLT kmax = *p->kmax;
     MYFLT kmin = *p->kmin;
     MYFLT val = *p->kinval;
-    if (max < min) { max = min ; min = *p->imax; }
-    if (kmax < kmin) { kmax = kmin ; kmin = *p->kmax; }
-    if (val > max) val = max;
-    else if (val < min) val = min;
+    /* if (max < min) { max = min ; min = *p->imax; } */
+    /* if (kmax < kmin) { kmax = kmin ; kmin = *p->kmax; } */
+    /* if (val > max) val = max; */
+    /* else if (val < min) val = min; */
 
     //if (max>min && /* fmax>=fmin && */ *p->kinval<= max && *p->kinval >= min) {
       *p->koutval = ((val - min)/(max-min))* (kmax - kmin) + kmin;
     /* } else { */
-    /*   //printf("** input (%g,%g) output (%g,%g) val %g\n", */
+    /*   //printf("** input *%g,%ginput (%g,%g) output (%g,%g) val %g\n", */
     /*   //       min, max, kmin, kmax, *p->kinval); */
     /*   //printf("%d %d %d %d\n", */
     /*   //       max>min, fmax>fmin, *p->kinval<= max, *p->kinval >= min); */
@@ -93,8 +93,8 @@ static int32_t scale_process(CSOUND *csound, scale *p)
 static int32_t scale2_init(CSOUND *csound, SCALE2 *p)
 {
     if (*p->ihtim != FL(0.0)) {
-      p->c2 = pow(0.5, (double)CS_ONEDKR / *p->ihtim);
-      p->c1 = 1.0 - p->c2;
+      p->c2 = POWER(FL(0.5), CS_ONEDKR / *p->ihtim);
+      p->c1 = FL(1.0) - p->c2;
       p->yt1 = FL(0.0);
     } else {
       p->c2 = FL(0.0); p->c1 = FL(1.0);
@@ -129,7 +129,7 @@ static int32_t expcurve_perf(CSOUND *csound, expcurve *p)
     MYFLT ki = *p->kin;
     MYFLT ks = *p->ksteepness;
     if (ks <= FL(1.0)) *p->kout = ki;
-    else 
+    else
       *p->kout = EXPCURVE(ki, ks);
 
     return OK;
@@ -143,7 +143,7 @@ static int32_t logcurve_perf(CSOUND *csound, logcurve *p)
     MYFLT ki = *p->kin;
     MYFLT ks = *p->ksteepness;
     if (ks == FL(1.0)) *p->kout = ki;
-    else 
+    else
       *p->kout = LOGCURVE(ki, ks);
 
     return OK;

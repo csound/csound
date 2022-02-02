@@ -4,7 +4,8 @@
 
 option(BUILD_CXX_INTERFACE "Build the C++ interface library" ON)
 option(BUILD_JAVA_INTERFACE "Build the Java interface (needs BUILD_CXX_INTERFACE)" ON)
-option(BUILD_LUA_INTERFACE "Build the Lua interface (needs BUILD_CXX_INTERFACE)" ON)
+option(BUILD_LUA_INTERFACE "Build the Lua interface (needs
+BUILD_CXX_INTERFACE)" ON)
 
 if(BUILD_CXX_INTERFACE)
     message(STATUS "Building C++ interface library.")
@@ -60,11 +61,33 @@ if(BUILD_CXX_INTERFACE)
     install(TARGETS libcsnd6
         LIBRARY DESTINATION "${LIBRARY_INSTALL_DIR}"
         ARCHIVE DESTINATION "${LIBRARY_INSTALL_DIR}")
-else()
- message(STATUS "NOT Building C++ interface library.")
+
+if(BUILD_STATIC_LIBRARY)
+   add_library(libcsnd6-static STATIC ${libcsnd6_SRCS})
+    SET_TARGET_PROPERTIES(libcsnd6-static PROPERTIES OUTPUT_NAME csnd6)
+    SET_TARGET_PROPERTIES(libcsnd6-static PROPERTIES PREFIX "lib")
+    target_compile_options(libcsnd6-static PRIVATE ${libcsnd6_CFLAGS})
+    
+      if(APPLE)
+       target_compile_options(libcsnd6-static PRIVATE "-std=c++11")
+      endif()
+
+    set_target_properties(libcsnd6-static  PROPERTIES
+        RUNTIME_OUTPUT_DIRECTORY ${BUILD_BIN_DIR}
+        LIBRARY_OUTPUT_DIRECTORY ${BUILD_LIB_DIR}
+        ARCHIVE_OUTPUT_DIRECTORY ${BUILD_LIB_DIR})
+
+    # Add the install target
+    install(TARGETS libcsnd6-static
+        LIBRARY DESTINATION "${LIBRARY_INSTALL_DIR}"
+        ARCHIVE DESTINATION "${LIBRARY_INSTALL_DIR}")
 endif()
 
 
+
+else()
+ message(STATUS "NOT Building C++ interface library.")
+endif()
 
 
 # SWIG INTERFACES
@@ -74,7 +97,6 @@ find_package(Java)
 
 # This is for Lua 5.1, it may also be possible to change 
 # this to use current Lua 5.2.
-
 find_library(LUA_LIBRARY lua5.1)
 if(NOT LUA_LIBRARY AND WIN32)
     find_library(LUA_LIBRARY lua51)
@@ -104,8 +126,7 @@ if(NOT APPLE)
 endif(NOT APPLE)
 
 
-
-if(BUILD_PYTHON_INTERFACE OR BUILD_JAVA_INTERFACE OR BUILD_LUA_INTERFACE)
+if(BUILD_JAVA_INTERFACE OR BUILD_LUA_INTERFACE)
     message(STATUS "SWIG_USE_FILE: " ${SWIG_USE_FILE})
     include(${SWIG_USE_FILE})
     set(CMAKE_SWIG_FLAGS ${libcsound_CFLAGS})
@@ -116,10 +137,18 @@ if(BUILD_PYTHON_INTERFACE OR BUILD_JAVA_INTERFACE OR BUILD_LUA_INTERFACE)
     set(CMAKE_SWIG_OUTDIR ${BUILD_LIB_DIR})
    
     if(BUILD_JAVA_INTERFACE)
-        # The java package needs this unset or it will litter us with .java files
-        unset(CMAKE_SWIG_OUTDIR)
+         # The java package needs this unset or it will litter us with .java files
+          unset(CMAKE_SWIG_OUTDIR)
 
-       message(STATUS "JNI INCLUDE set to ${JNI_INCLUDE_DIRS}.")
+         if(APPLE) 
+             get_filename_component(JAVA_MODULE_INSTALL_DIR_DEFAULT "~/Library/Java/Extensions" ABSOLUTE)
+        else()
+            set(JAVA_MODULE_INSTALL_DIR_DEFAULT ${LIBRARY_INSTALL_DIR})
+        endif()
+         set(JAVA_MODULE_INSTALL_DIR ${JAVA_MODULE_INSTALL_DIR_DEFAULT} CACHE PATH "Java module install
+         dir")
+         message(STATUS "JAVA_MODULE_INSTALL_DIR: ${JAVA_MODULE_INSTALL_DIR}")
+         message(STATUS "JNI INCLUDE set to ${JNI_INCLUDE_DIRS}.")
 
         if(WIN32)
              set(swigjava_LIBS ${JNI_LIBRARIES} ${CSOUNDLIB}
@@ -187,13 +216,13 @@ if(BUILD_PYTHON_INTERFACE OR BUILD_JAVA_INTERFACE OR BUILD_LUA_INTERFACE)
     endif()
 
     if(BUILD_LUA_INTERFACE)
+        set(LUA_MODULE_INSTALL_DIR ${LIBRARY_INSTALL_DIR} CACHE PATH "Lua  module install dir")
         set(swiglua_LIBS ${LUA_LIBRARY} ${CSOUNDLIB} libcsnd6)
 
         SET_SOURCE_FILES_PROPERTIES(lua_interface.i
             PROPERTIES CPLUSPLUS ON
             SWIG_MODULE_NAME luaCsnd6)
-
-
+            
         set(SWIG_MODULE_luaCsnd6_EXTRA_DEPS ../include/csound.h ../include/cfgvar.h ../include/csound.hpp
                                         cs_glue.hpp csPerfThread.hpp CsoundFile.hpp
                                         CppSound.hpp filebuilding.h Soundfile.hpp)

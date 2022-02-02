@@ -1,0 +1,6 @@
+{
+  "plugins": ["./node_modules/jsdoc-export-default-interop/dist/index", "jsdoc-plugin-typescript"],
+  "typescript": {
+    "moduleRoot": "./"
+  }
+}

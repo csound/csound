@@ -1601,11 +1601,11 @@ int mvmfilterset(CSOUND *csound, MVMFILT *p)
 }
 
 int mvmfilter(CSOUND *csound, MVMFILT *p) {
-  uint32_t	offset	 = p->h.insdshead->ksmps_offset;
-  uint32_t	early	 = p->h.insdshead->ksmps_no_end;
-  MYFLT	fs	 = csound->GetSr(csound);
-  uint32_t	n, nsmps = CS_KSMPS;
-  int32_t	asigtau, asigf0;
+  uint32_t      offset   = p->h.insdshead->ksmps_offset;
+  uint32_t      early    = p->h.insdshead->ksmps_no_end;
+  MYFLT fs       = csound->GetSr(csound);
+  uint32_t      n, nsmps = CS_KSMPS;
+  int32_t       asigtau, asigf0;
   asigtau = IS_ASIG_ARG(p->tau);
   asigf0  = IS_ASIG_ARG(p->f0);
 

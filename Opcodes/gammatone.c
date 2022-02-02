@@ -22,7 +22,7 @@
     02110-1301 USA
 */
 
-#include "csdl.h"
+#include "csoundCore.h"
 #include "interlocks.h"
 
 typedef struct {
@@ -122,8 +122,8 @@ static int32_t gammatone_perf(CSOUND *csound, GAMMA *p)
 
 #define S(x) sizeof(x)
 
-static OENTRY localops[] = {
+static OENTRY gamma_localops[] = {
 { "gtf", S(GAMMA), 0, 3, "a", "akioo", (SUBR)gammatone_init, (SUBR)gammatone_perf }
 };
 
-LINKAGE
+LINKAGE_BUILTIN(gamma_localops)

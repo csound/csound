@@ -27,6 +27,12 @@
 #define __MODLOAD__H
 
 #include <plugin.h>
+
+#if defined(__wasi__)
+  #undef PUBLIC
+  #define PUBLIC extern __attribute__((used))
+#endif
+
 namespace csnd {
 /** Plugin library entry point
  */

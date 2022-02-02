@@ -265,6 +265,11 @@
 #    define PUBLIC          __declspec(dllexport)
 #    define PUBLIC_DATA     __declspec(dllimport)
 #  endif
+#elif defined(__wasi__)
+#  define PUBLIC            __attribute__((used))
+#  if !defined(PUBLIC_DATA)
+#  define PUBLIC_DATA
+#  endif
 #elif defined(__GNUC__) && (__GNUC__ >= 4) /* && !defined(__MACH__) */
 #  define PUBLIC            __attribute__ ( (visibility("default")) )
 #  define PUBLIC_DATA       __attribute__ ( (visibility("default")) )
@@ -309,11 +314,13 @@
 #  include "sysdep.h"
 #  include "text.h"
 #  include <stdarg.h>
+#  include <stdio.h>
       %}
 #else
 #  include "sysdep.h"
 #  include "text.h"
 #  include <stdarg.h>
+#  include <stdio.h>
 #endif
 
 #ifdef __cplusplus
@@ -515,19 +522,20 @@ extern "C" {
   /**
    * Device information
    */
+
   typedef struct {
-    char device_name[64];
-    char device_id[64];
-    char rt_module[64];
+    char device_name[128];
+    char device_id[128];
+    char rt_module[128];
     int max_nchnls;
     int isOutput;
   } CS_AUDIODEVICE;
 
   typedef struct {
-    char device_name[64];
-    char interface_name[64];
-    char device_id[64];
-    char midi_module[64];
+    char device_name[128];
+    char interface_name[128];
+    char device_id[128];
+    char midi_module[128];
     int isOutput;
   } CS_MIDIDEVICE;
 
@@ -2139,6 +2147,17 @@ extern "C" {
    */
   PUBLIC void *csoundCreateThread(uintptr_t (*threadRoutine)(void *),
                                   void *userdata);
+
+  /**
+   * Creates and starts a new thread of execution
+   * with a user-defined stack size.
+   * Returns an opaque pointer that represents the thread on success,
+   * or NULL for failure.
+   * The userdata pointer is passed to the thread routine.
+   */
+  PUBLIC void *csoundCreateThread2(uintptr_t (*threadRoutine)(void *),
+                                   unsigned int stack,
+                                   void *userdata);
 
   /**
    * Returns the ID of the currently executing thread,

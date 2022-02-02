@@ -744,7 +744,7 @@ static OENTRY fareyseq_localops[] = {
     {"tablefilter", S(TABFILT), TB, 3, "k", "kkkk",
                                 (SUBR) tablefilterset, (SUBR) tablefilter, NULL},
     {"fareyleni", S(FAREYLEN), TR, 1, "i", "i", (SUBR) fareylen, NULL, NULL},
-    {"fareylen", S(FAREYLEN), TR, 3, "k", "k", NULL, (SUBR) fareylen, NULL},
+    {"fareylen", S(FAREYLEN), TR, 2, "k", "k", NULL, (SUBR) fareylen, NULL},
     {"tableshufflei", S(TABSHUFFLE), TB, 1, "", "i",
                                       (SUBR) tableishuffle, NULL, NULL},
     {"tableshuffle", S(TABSHUFFLE), TB, 3, "", "k",
