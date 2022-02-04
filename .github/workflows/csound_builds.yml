@@ -50,19 +50,6 @@ jobs:
       - name: Run tests
         run: cd build && make test csdtests
 
-  emscripten_build:
-    name: EMscripten build
-    runs-on: ubuntu-latest
-    steps:
-      - name: run the Docker image
-        run: docker run --name csound_test_run -i sjamble/csound_emscripten
-      - name: copying build out of container
-        run: docker cp csound_test_run:/csound/Emscripten/csound-web-6.17.0.zip .
-      - uses: actions/upload-artifact@v2
-        with:
-          name: csound-web-6.17.0.zip
-          path: .
-
   android_build:
     name: Android build
     runs-on: ubuntu-latest
