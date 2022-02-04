@@ -194,10 +194,15 @@ Engine/csound\_orc.y (Bison file)
 
 The parsing phase uses the tokens generated from the lexing phase and
 uses rules defined in a \emph{grammar} to structure the tokens into a
-TREE. The parsing code was originally done with hand-written code, but
-is now generated using the
-\href{http://www.gnu.org/software/bison/}{Bison} parser-generator tool.
-The source for this is found in Engine/csound\_orc.y.
+TREE.  The source for this is found in Engine/csound\_orc.y.
+
+\subsubsection{History}
+The parsing code was originally done with hand-written code. This parser was maintained until Csound 5.  While Csound 5 continued stable releases, work began on a new parser using the \href{http://www.gnu.org/software/bison/}{Bison} paser-generator tool. In Csound 5.17 (EDIT: Need to check this), thew new parser was enabled by default. For the duration of Csound 5, the old parser could still be used using a command-line flag. 
+
+In Csound 6, the old parser was removed. The parser and compiler were further developed, though some language issues appeared due to ambiguities between opcodes and function calls.Also, the design of the parser had aspects of semantic analysis intertwined, such as knowledge of if an identifier referred to an opcode or not.  Because of the parser's design, it also made some aspects of language changes difficult.
+
+In Csound 6.xx, a new parser, parser3, was developed.  This parser seeked to remove some of the ambiguities of the previous parser as well as make it easier to extend the language. The premise of the design was to remove semantic knowledge from the parser and move it completely to the semantic analysis phase.  
+
 
 
 \subsection{Semantic Analysis}
@@ -208,6 +213,12 @@ Engine/csound\_orc\_semantics.c
 Engine/csound\_type\_system.c 
 Engine/csound\_standard\_types.c 
 \end{bclogo}
+
+\subsubsection{Top-Level Statements}
+
+
+
+\subsubsection {Statements}
 
 \subsubsection{Type System}
 

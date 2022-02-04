@@ -33,6 +33,7 @@ void test_args_required(void) {
     CU_ASSERT_EQUAL(3, argsRequired("a[]ka"));
     CU_ASSERT_EQUAL(4, argsRequired("a[]k[]ka"));
     CU_ASSERT_EQUAL(4, argsRequired("a[][]k[][]ka"));
+    CU_ASSERT_EQUAL(3, argsRequired(":MyType;ak"));
     CU_ASSERT_EQUAL(0, argsRequired(NULL));
 }
 
@@ -60,6 +61,16 @@ void test_split_args(void) {
     CU_ASSERT_STRING_EQUAL("[[k]", results[1]);
     CU_ASSERT_STRING_EQUAL("k", results[2]);
     CU_ASSERT_STRING_EQUAL("a", results[3]);
+    
+    results = splitArgs(csound, ":MyType;");
+    CU_ASSERT_STRING_EQUAL("MyType", results[0]);
+
+    results = splitArgs(csound, ":MyType;ak:MyType;");
+    CU_ASSERT_STRING_EQUAL("MyType", results[0]);
+    CU_ASSERT_STRING_EQUAL("a", results[1]);
+    CU_ASSERT_STRING_EQUAL("k", results[2]);
+    CU_ASSERT_STRING_EQUAL("MyType", results[3]);
+    
     csound->Free(csound, results);
     
     csoundDestroy(csound);
@@ -186,7 +197,7 @@ int main() {
             (NULL == CU_add_test(pSuite, "Test splitArgs", test_split_args)) ||
             (NULL == CU_add_test(pSuite, "Test Compilation", test_compile)) ||
             (NULL == CU_add_test(pSuite, "Test Reuse Instance", test_reuse)) ||
-        (NULL == CU_add_test(pSuite, "Test Line Numbers", test_linenum))) {
+            (NULL == CU_add_test(pSuite, "Test Line Numbers", test_linenum))) {
         CU_cleanup_registry();
         return CU_get_error();
     }

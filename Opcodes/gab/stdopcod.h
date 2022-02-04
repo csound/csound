@@ -26,8 +26,6 @@
 
 //#include "csdl.h"
 #include "csoundCore.h"
-#include <sndfile.h>
-
 
 #include "interlocks.h"
 

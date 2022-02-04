@@ -89,8 +89,9 @@ OENTRY opcodlst_1[] = {
   { "instr",  0,    0,      0,      "",     "",   NULL, NULL, NULL, NULL },
   { "endin",  0,    0,      0,      "",     "",   NULL, NULL, NULL, NULL },
   /* IV - Sep 8 2002 */
-  { "opcode", 0,    0,      0,      "",     "",   NULL, NULL, NULL, NULL },
-  { "endop",  0,    0,      0,      "",     "",   NULL, NULL, NULL, NULL },
+  { "opcode",  0,    0,      0,      "",     "",   NULL, NULL, NULL, NULL },
+  { "endop",   0,    0,      0,      "",     "",   NULL, NULL, NULL, NULL },
+  { "declare", 0,    0,      0,      "",     "",   NULL, NULL, NULL, NULL },
   { "$label", S(LBLBLK),  0,0,      "",     "",   NULL, NULL, NULL, NULL },
   { "pset",   S(PVSET),   0,0,      "",     "m",  NULL, NULL, NULL, NULL },
 
@@ -1206,6 +1207,7 @@ OENTRY opcodlst_1[] = {
   { "readscore",  S(COMPILE), 0, 1, "i", "S",  (SUBR) read_score_i, NULL, NULL },
   { "return",  S(RETVAL), 0, 1, "", "i",  (SUBR) retval_i, NULL, NULL },
   /* ----------------------------------------------------------------------- */
+  { "=.generic", S(ASSIGN), 0,1, ".", ".", (SUBR)copyVarGeneric, NULL, NULL},
   { "monitor",  sizeof(MONITOR_OPCODE), IB, 3,  "mmmmmmmmmmmmmmmmmmmmmmmm", "",
     (SUBR) monitor_opcode_init, (SUBR) notinit_opcode_stub,  NULL },
   { "outrg", S(OUTRANGE), IR,3, "", "ky",

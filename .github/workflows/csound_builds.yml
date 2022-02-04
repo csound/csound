@@ -43,9 +43,9 @@ jobs:
         with:
           fetch-depth: 1
       - name: Install Dependencies
-        run: brew install cmake swig eigen asio libsndfile portaudio portmidi libsamplerate liblo jack openjdk hdf5 gettext fluid-synth fltk stk wiiuse
+        run: brew install cmake bison flex swig asio libsndfile portaudio portmidi libsamplerate liblo jack openjdk gettext
       - name: Configure build
-        run: mkdir build && cd build && cmake ..
+        run: export PATH="/usr/local/opt/bison/bin:$PATH" && export PATH="/usr/local/opt/flex/bin:$PATH" && bison --version && mkdir build && cd build && cmake .. -DCMAKE_VERBOSE_MAKEFILE=1
       - name: Build Csound
         run: cd build && make
       - name: Run tests
@@ -88,7 +88,7 @@ jobs:
           submodules: true
       - name: Install system dependencies
         run: |
-          choco install -y winflexbison
+          choco install -y winflexbison3
       - name: Bootstrap VCPKG
         run: .\vcpkg\bootstrap-vcpkg.bat
       - name: Setup NuGet Credentials

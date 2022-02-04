@@ -40,7 +40,7 @@
 #include "pvfileio.h"
 #include <math.h>
 #include <ctype.h>
-#include <sndfile.h>
+
 
 typedef struct pvocex_ch {
         double  rratio;

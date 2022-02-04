@@ -19,33 +19,61 @@
 * License along with this software; if not, write to the Free Software
 * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
-/* module is now luaCsnd6 */
-%module luaCsnd6
+
+/* module is now csnd6 */
+%module(directors="1") csnd6
+
+%feature("director") CsoundCallbackWrapper;
+%feature("nodirector") Csound;
+%include "typemaps.i"
+%include "arrays_java.i"
+%include "various.i" 
 %include "std_string.i"
 %include "std_vector.i"
 %feature("autodoc", "1");
 %{
-        #include "csound.h"
-        #include "cfgvar.h"
-        #include "csound.hpp"
-        #include "cs_glue.hpp"
-        #include "csPerfThread.hpp"
-        #include "CsoundFile.hpp"
-        #include "CppSound.hpp"
-        #include "Soundfile.hpp"
+    #include "csound.h"
+    #include "csound.hpp"
+    #include "cs_glue.hpp"
+    #include "csPerfThread.hpp"
 %}
 
 %apply int { size_t };
+
 typedef unsigned int uint32_t;
+
+/* %typemap(freearg) char ** {
+  free((char *) $1);
+} */
+
+// Enable the JNI class to load the required native library.
+%pragma(java) jniclasscode=%{
+  static {
+    try {
+        java.lang.System.loadLibrary("_jcsound6");
+    } catch (UnsatisfiedLinkError e) {
+        java.lang.System.err.println("_jcsound6 native code library failed to load.\n" + e);
+        java.lang.System.exit(1);
+    }
+  }
+%}
+
+%apply char **STRING_ARRAY { char **argv };
 
 %include "exclusions.i"
 
 %include "csound.h"
 %include "cfgvar.h"
+
+%apply MYFLT *OUTPUT { MYFLT *dest };
+%apply MYFLT *INPUT { MYFLT *src };
 %include "csound.hpp"
+
+
+%ignore CsoundPerformanceThread::SetProcessCallback(void (*Callback)(void *), void *cbdata);
+
 %include "cs_glue.hpp"
 %include "csPerfThread.hpp"
-%include "CsoundFile.hpp"
-%include "CppSound.hpp"
-%include "Soundfile.hpp"
+
+
 

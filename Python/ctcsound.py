@@ -2705,19 +2705,8 @@ class Csound:
         """Platform-independent function to get a symbol address in a shared library."""
         return libcsound.csoundGetLibrarySymbol(library, cstring(symbolName))
 
-
-if sys.platform.startswith('linux'):
-    libcspt = ct.CDLL("libcsnd6.so")
-elif sys.platform.startswith('win'):
-    if sys.version_info.major <=3 and sys.version_info.minor < 8:
-        libcspt = ct.cdll.csnd6
-    else:
-        libcspt = ct.CDLL(ctypes.util.find_library("csnd6"))
-elif sys.platform.startswith('darwin'):
-    libcspt = ct.CDLL(ctypes.util.find_library('csnd6.6.0'))
-else:
-    sys.exit("Don't know your system! Exiting...")
-
+# VL 20.09.21 now csPerfThread is part of CsoundLib
+libcspt = libcsound
 libcspt.NewCsoundPT.restype = ct.c_void_p
 libcspt.NewCsoundPT.argtypes = [ct.c_void_p]
 libcspt.DeleteCsoundPT.argtypes = [ct.c_void_p]

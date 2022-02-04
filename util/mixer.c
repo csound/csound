@@ -169,7 +169,7 @@ static int mixer_main(CSOUND *csound, int argc, char **argv)
     char        outformch='s', c, *s;
     const char  *envoutyp;
     int32_t         n = 0;
-    SF_INFO     sfinfo;
+    SFLIB_INFO     sfinfo;
     MIXER_GLOBALS *pp = (MIXER_GLOBALS*) csound->Calloc(csound,
                                                         sizeof(MIXER_GLOBALS));
     inputs      *mixin = &(pp->mixin[0]);
@@ -387,18 +387,18 @@ static int mixer_main(CSOUND *csound, int argc, char **argv)
     }
 #endif
     csound->SetUtilSr(csound, (MYFLT)mixin[0].p->sr);
-    memset(&sfinfo, 0, sizeof(SF_INFO));
+    memset(&sfinfo, 0, sizeof(SFLIB_INFO));
     //sfinfo.frames = 0/*was -1*/;
     sfinfo.samplerate = mixin[0].p->sr;
     sfinfo.channels /*= csound->nchnls*/ = (int32_t) mixin[0].p->nchanls;
     sfinfo.format = TYPE2SF(O.filetyp) | FORMAT2SF(O.outformat);
     if (strcmp(O.outfilename, "stdout") == 0) {
-      outfd = sf_open_fd(1, SFM_WRITE, &sfinfo, 0);
+      outfd = sflib_open_fd(1, SFM_WRITE, &sfinfo, 0);
       if (outfd != NULL) {
         if (UNLIKELY(csound->CreateFileHandle(csound,
                                               &outfd, CSFILE_SND_W,
                                               "stdout") == NULL)) {
-          sf_close(outfd);
+          sflib_close(outfd);
           return -1;
         }
       }
@@ -409,11 +409,11 @@ static int mixer_main(CSOUND *csound, int argc, char **argv)
       outfd = NULL;
     if (UNLIKELY(outfd == NULL)) {
       csound->ErrorMsg(csound, Str("mixer: error opening output file '%s': %s"),
-                       O.outfilename, Str(sf_strerror(NULL)));
+                       O.outfilename, Str(sflib_strerror(NULL)));
       return -1;
     }
     if (UNLIKELY(O.rewrt_hdr))
-      sf_command(outfd, SFC_SET_UPDATE_HEADER_AUTO, NULL, 0);
+      sflib_command(outfd, SFC_SET_UPDATE_HEADER_AUTO, NULL, 0);
     /* calc outbuf size & alloc bufspace */
     pp->outbufsiz = NUMBER_OF_SAMPLES * pp->outputs;
     pp->out_buf = csound->Malloc(csound, pp->outbufsiz * sizeof(MYFLT));
@@ -624,7 +624,7 @@ static SNDFILE *MXsndgetset(CSOUND *csound, inputs *ddd)
         if (buffer[j] > max) max = buffer[j], lmaxpos = sample+j, maxtimes=1;
         if (buffer[j] < min) min = buffer[j], lminpos = sample+j, mintimes=1;
       }
-      sf_write_MYFLT(outfd, buffer, this_block * outputs);
+      sflib_write_MYFLT(outfd, buffer, this_block * outputs);
       block++;
       bytes += O->sfsampsize * this_block * outputs;
       switch (O->heartbeat) {

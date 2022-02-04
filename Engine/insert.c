@@ -33,6 +33,7 @@
 #include "interlocks.h"
 #include "csound_type_system.h"
 #include "csound_standard_types.h"
+#include "csound_orc_semantics.h"
 #include <inttypes.h>
 
 static  void    showallocs(CSOUND *);
@@ -1028,6 +1029,12 @@ void free_instr_var_memory(CSOUND* csound, INSDS* ip) {
   CS_VAR_POOL* pool = instrDef->varPool;
   CS_VARIABLE* current = pool->head;
 
+  if (ip->lclbas == NULL) {
+      // This seems to be the case when freeing instr 0...
+      return;
+  }
+
+  
   while (current != NULL) {
     CS_TYPE* varType = current->varType;
     if (varType->freeVariableMemory != NULL) {
@@ -1605,7 +1612,7 @@ int xinset(CSOUND *csound, XIN *p)
     void* in = (void*)bufs[i];
     void* out = (void*)p->args[i];
     tmp[i + inm->outchns] = out;
-    current->varType->copyValue(csound, out, in);
+    current->varType->copyValue(csound, current->varType, out, in);
     current = current->next;
   }
 
@@ -1637,10 +1644,9 @@ int xoutset(CSOUND *csound, XOUT *p)
     if (csoundGetTypeForArg(in) != &CS_VAR_TYPE_K &&
         /*csoundGetTypeForArg(in) != &CS_VAR_TYPE_F &&*/
         csoundGetTypeForArg(in) != &CS_VAR_TYPE_A)
-      current->varType->copyValue(csound, out, in);
+      current->varType->copyValue(csound, current->varType, out, in);
     current = current->next;
   }
-
   return OK;
 }
 
@@ -1975,7 +1981,7 @@ int useropcd1(CSOUND *csound, UOPCODE *p)
           // This one checks if an array has a subtype of 'i'
           void* in = (void*)external_ptrs[i + inm->outchns];
           void* out = (void*)internal_ptrs[i + inm->outchns];
-          current->varType->copyValue(csound, out, in);
+          current->varType->copyValue(csound, current->varType, out, in);
         } else if (current->varType == &CS_VAR_TYPE_A) {
           MYFLT* in = (void*)external_ptrs[i + inm->outchns];
           MYFLT* out = (void*)internal_ptrs[i + inm->outchns];
@@ -2066,7 +2072,6 @@ int useropcd1(CSOUND *csound, UOPCODE *p)
     this_instr->ksmps_offset = ofs;
     ofs = start;
     if (UNLIKELY(early)) this_instr->ksmps_no_end = early % lksmps;
-
     do {
       this_instr->kcounter++;
       /* copy a-sig inputs, accounting for offset */
@@ -2084,7 +2089,7 @@ int useropcd1(CSOUND *csound, UOPCODE *p)
           // This one checks if an array has a subtype of 'i'
           void* in = (void*)external_ptrs[i + inm->outchns];
           void* out = (void*)internal_ptrs[i + inm->outchns];
-          current->varType->copyValue(csound, out, in);
+          current->varType->copyValue(csound, current->varType, out, in);
         } else if (current->varType == &CS_VAR_TYPE_A) {
           MYFLT* in = (void*)external_ptrs[i + inm->outchns];
           MYFLT* out = (void*)internal_ptrs[i + inm->outchns];
@@ -2145,7 +2150,6 @@ int useropcd1(CSOUND *csound, UOPCODE *p)
               count *= src->sizes[j];
             }
           }
-
           for (j = 0; j < count; j++) {
             int memberOffset = j * (src->arrayMemberSize / sizeof(MYFLT));
             MYFLT* in = src->data + memberOffset;
@@ -2214,9 +2218,8 @@ int useropcd1(CSOUND *csound, UOPCODE *p)
             }
           }
         }
-
       } else {
-        current->varType->copyValue(csound, out, in);
+        current->varType->copyValue(csound, current->varType, out, in);
       }
     }
     current = current->next;
@@ -2274,7 +2277,7 @@ int useropcd2(CSOUND *csound, UOPCODE *p)
       } else {
         void* in = (void*)external_ptrs[i + inm->outchns];
         void* out = (void*)internal_ptrs[i + inm->outchns];
-        current->varType->copyValue(csound, out, in);
+        current->varType->copyValue(csound, current->varType, out, in);
         //                memcpy(out, in, p->buf->in_arg_sizes[i]);
       }
     }
@@ -2312,7 +2315,7 @@ int useropcd2(CSOUND *csound, UOPCODE *p)
         void* in = (void*)internal_ptrs[i];
         void* out = (void*)external_ptrs[i];
         //            memcpy(out, in, p->buf->out_arg_sizes[i]);
-        current->varType->copyValue(csound, out, in);
+        current->varType->copyValue(csound, current->varType, out, in);
       }
     }
     current = current->next;
@@ -2455,6 +2458,7 @@ static void instance(CSOUND *csound, int insno)
       ip->p1.value = (MYFLT) insno;
       continue;
     }
+
     if (UNLIKELY(odebug))
       csound->Message(csound, Str("op (%s) allocated at %p\n"),
                       ep->opname, opds);
@@ -2510,6 +2514,30 @@ static void instance(CSOUND *csound, int insno)
       }
       else if (arg->type == ARG_LOCAL) {
         fltp = lclbas + var->memBlockIndex;
+
+        if (arg->structPath != NULL) {
+          char* path = cs_strdup(csound, arg->structPath);
+          char *next, *th;
+
+          next = cs_strtok_r(path, ".", &th);
+          while (next != NULL) {
+            CS_TYPE* type = csoundGetTypeForArg(fltp);
+            CS_STRUCT_VAR* structVar = (CS_STRUCT_VAR*)fltp;
+            CONS_CELL* members = type->members;
+            int i = 0;
+            while(members != NULL) {
+              CS_VARIABLE* member = (CS_VARIABLE*)members->value;
+              if (!strcmp(member->varName, next)) {
+                fltp = &(structVar->members[i]->value);
+                break;
+              }
+
+              i++;
+              members = members->next;
+            }
+            next = cs_strtok_r(NULL, ".", &th);
+          }
+        }
       }
       else if (arg->type == ARG_PFIELD) {
         CS_VAR_MEM* pfield = lcloffbas + arg->index;
@@ -2549,6 +2577,29 @@ static void instance(CSOUND *csound, int insno)
       }
       else if (arg->type == ARG_LOCAL){
         argpp[n] = lclbas + var->memBlockIndex;
+        if (arg->structPath != NULL) {
+          char* path = cs_strdup(csound, arg->structPath);
+          char *next, *th;
+
+          next = cs_strtok_r(path, ".", &th);
+            while (next != NULL) {
+              CS_STRUCT_VAR* structVar = (CS_STRUCT_VAR*)argpp[n];
+              CS_TYPE* type = csoundGetTypeForArg(argpp[n]);
+              CONS_CELL* members = type->members;
+              int i = 0;
+              while(members != NULL) {
+                CS_VARIABLE* member = (CS_VARIABLE*)members->value;
+                  if (!strcmp(member->varName, next)) {
+                    argpp[n] = &(structVar->members[i]->value);
+                    break;
+                  }
+
+                  i++;
+                  members = members->next;
+              }
+              next = cs_strtok_r(NULL, ".", &th);
+            }
+        }
       }
       else if (arg->type == ARG_LABEL) {
         argpp[n] = (MYFLT*)(opMemStart +
@@ -2559,7 +2610,6 @@ static void instance(CSOUND *csound, int insno)
                         arg->type);
       }
     }
-
   }
 
   /* VL 13-12-13: point the memory to the local ksmps & kr variables,

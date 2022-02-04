@@ -8,12 +8,14 @@ import sys
 
 # from testUI import TestApplication
 
+
 # try:
 #     # Python 3
 #     from tkinter import *
 # except:
 #     # Python 2
 #     from Tkinter import *
+
 
 # showUIatClose = False
 csoundExecutable = ""
@@ -101,7 +103,7 @@ def runTest():
         desc = t[1]
         expectedResult = (len(t) == 3) and 1 or 0
 
-        if(os.sep == '\\'):
+        if(os.sep == '\\' or os.name == 'nt'):
             executable = (csoundExecutable == "") and "..\..\csound.exe" or csoundExecutable
             command = "%s %s %s 2> %s"%(executable, runArgs, filename, tempfile)
             print(command)
@@ -183,6 +185,7 @@ if __name__ == "__main__":
                 print(os.environ['OPCODE6DIR64'])
             elif arg.startswith("--source-dir="):
                 sourceDirectory = arg[13:]
+
     results = runTest()
     # if (showUIatClose):
     #     showUI(results)

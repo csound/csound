@@ -26,7 +26,7 @@
 
 #include "csound.hpp"
 #include "csPerfThread.hpp"
-#include <sndfile.h>
+#include "soundio.h"
 
 // ----------------------------------------------------------------------------
 
@@ -138,10 +138,10 @@ extern "C" {
             sampsread = csoundReadCircularBuffer(NULL, recordData->cbuf,
                                                  buf, bufsize);
 #ifdef USE_DOUBLE
-            sf_write_double((SNDFILE *) recordData->sfile,
+            sflib_write_double((SNDFILE *) recordData->sfile,
                             buf, sampsread);
 #else
-            sf_write_float((SNDFILE *) recordData->sfile,
+            sflib_write_float((SNDFILE *) recordData->sfile,
                            buf, sampsread);
 #endif
         } while(sampsread != 0);
@@ -181,34 +181,34 @@ public:
           return;
         }
 
-        SF_INFO sf_info;
-        sf_info.samplerate = csoundGetSr(csound);
-        sf_info.channels = csoundGetNchnls(csound);
+        SFLIB_INFO sflib_info;
+        sflib_info.samplerate = csoundGetSr(csound);
+        sflib_info.channels = csoundGetNchnls(csound);
         switch (samplebits) {
         case 32:
-            sf_info.format = SF_FORMAT_FLOAT;
+            sflib_info.format = AE_FLOAT;
             break;
         case 24:
-            sf_info.format = SF_FORMAT_PCM_24;
+            sflib_info.format = AE_24INT;
             break;
         case 16:
         default:
-            sf_info.format = SF_FORMAT_PCM_16;
+            sflib_info.format = AE_SHORT;
             break;
         }
 
-        sf_info.format |= SF_FORMAT_WAV;
+        sflib_info.format |= TYPE2SF(TYP_WAV);
 
-        recordData->sfile = (void *) sf_open(filename.c_str(),
+        recordData->sfile = (void *) sflib_open(filename.c_str(),
                                                  SFM_WRITE,
-                                                 &sf_info);
+                                                 &sflib_info);
         if (!recordData->sfile) {
           csoundMessage(csound, "Could not open file for recording.");
           csoundDestroyCircularBuffer(csound, recordData->cbuf);
           return;
         }
-        sf_command((SNDFILE *) recordData->sfile, SFC_SET_CLIPPING,
-                   NULL, SF_TRUE);
+        sflib_command((SNDFILE *) recordData->sfile, SFC_SET_CLIPPING,
+                   NULL, SFLIB_TRUE);
 
         recordData->running = true;
         recordData->thread = csoundCreateThread(recordThread_, (void*) recordData);
@@ -228,7 +228,7 @@ public:
         CsoundPerformanceThreadMessage::lockRecord();
         recordData_t *recordData = CsoundPerformanceThreadMessage::getRecordData();
         if (recordData->sfile) {
-            sf_close((SNDFILE *) recordData->sfile);
+            sflib_close((SNDFILE *) recordData->sfile);
             recordData->sfile = NULL;
         }
         CsoundPerformanceThreadMessage::unlockRecord();
@@ -254,10 +254,10 @@ public:
          /* VL: This appears to break the recording process
           needs to be investigated. I'm reverting the old code for now.
            */
-          sf_close((SNDFILE *) recordData->sfile);
+          sflib_close((SNDFILE *) recordData->sfile);
           /*
           if (recordData->sfile) {
-            sf_close((SNDFILE *) recordData->sfile);
+            sflib_close((SNDFILE *) recordData->sfile);
             recordData->sfile = NULL;
           }
           */

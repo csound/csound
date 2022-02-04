@@ -1,4 +1,4 @@
-; C S O U N D   6   I N N O   S E T U P   S C R I P T
+; C S O U N D   7   I N N O   S E T U P   S C R I P T
 ;
 ; Copyright (C) 2013 by Michael Gogins.
 ; This software is licensed under the terms of the
@@ -14,14 +14,14 @@
 ;     doc (copy tree)
 ;     examples (copy tree but exclude .wav files)
 ;     include
-;         csound (copy include and interfaces dirs *.h and *.hpp)
+;         csound (copy include dirs *.h and *.hpp)
 ;     plugins64 (all Csound plugin opcodes)
 ;     samples (copy tree)
 ;
 
 [setup]
 #define AppName "csound"
-#define AppVersion "6"
+#define AppVersion "7"
 #define AppMinVersion GetEnv("CSOUND_VERSION")
 #define BuildNumber GetEnv("GITHUB_RUN_NUMBER")
 #define AppPublisher "Csound"
@@ -117,7 +117,7 @@ Source: "{#VCREDIST_CRT_DIR}\*"; DestDir: "{#APP_BIN}"; Flags: recursesubdirs; C
 Source: "{#VCREDIST_CXXAMP_DIR}\*"; DestDir: "{#APP_BIN}"; Flags: recursesubdirs; Components: core;
 Source: "{#VCREDIST_OPENMP_DIR}\*"; DestDir: "{#APP_BIN}"; Flags: recursesubdirs; Components: core;
 
-Source: "interfaces\ctcsound.py"; DestDir: "{#APP_BIN}"; Flags: ignoreversion; Components: core;
+Source: "Python\ctcsound.py"; DestDir: "{#APP_BIN}"; Flags: ignoreversion; Components: core;
 Source: "{#BuildRoot}\csnd6.jar"; DestDir: "{#APP_BIN}"; Flags: ignoreversion; Components: core;
 
 Source: "{#ReleaseDir}\_jcsound6.dll"; DestDir: "{#APP_BIN}"; Flags: ignoreversion; Components: core;
@@ -129,11 +129,7 @@ Source: "{#ReleaseDir}\csanalyze.exe"; DestDir: "{#APP_BIN}"; Flags: ignoreversi
 Source: "{#ReleaseDir}\csb64enc.exe"; DestDir: "{#APP_BIN}"; Flags: ignoreversion skipifsourcedoesntexist; Components: core;
 Source: "{#ReleaseDir}\csbeats.exe"; DestDir: "{#APP_BIN}"; Flags: ignoreversion skipifsourcedoesntexist; Components: core;
 Source: "{#ReleaseDir}\csdebugger.exe"; DestDir: "{#APP_BIN}"; Flags: ignoreversion; Components: core;
-Source: "{#ReleaseDir}\csnd6.dll"; DestDir: "{#APP_BIN}"; Flags: ignoreversion; Components: core;
 Source: "{#ReleaseDir}\csound.exe"; DestDir: "{#APP_BIN}"; Flags: ignoreversion; Components: core;
-Source: "{#ReleaseDir}\csnd6.dll"; DestDir: "{#APP_BIN}"; Flags: ignoreversion; Components: core;
-Source: "{#ReleaseDir}\csnd6.lib"; DestDir: "{#APP_LIB}"; Flags: ignoreversion; Components: core;
-Source: "{#ReleaseDir}\libcsnd6.lib"; DestDir: "{#APP_LIB}"; Flags: ignoreversion; Components: core;
 Source: "{#ReleaseDir}\csound64.dll"; DestDir: "{#APP_BIN}"; Flags: ignoreversion; Components: core;
 Source: "{#ReleaseDir}\csound64.lib"; DestDir: "{#APP_LIB}"; Flags: ignoreversion; Components: core;
 Source: "{#ReleaseDir}\libcsound64.lib"; DestDir: "{#APP_LIB}"; Flags: ignoreversion; Components: core;
@@ -186,9 +182,7 @@ Source: "{#ReleaseDir}\portmidi.dll"; DestDir: "{#APP_BIN}"; Flags: ignoreversio
 Source: "include\*.h"; DestDir: "{#APP_INCLUDE}\csound"; Flags: ignoreversion;  Components: core
 Source: "include\*.hpp"; DestDir: "{#APP_INCLUDE}\csound"; Flags: ignoreversion;  Components: core
 Source: "H\pffft.h"; DestDir: "{#APP_INCLUDE}\csound"; Flags: ignoreversion;  Components: core
-Source: "interfaces\*.h*"; DestDir: "{#APP_INCLUDE}\csound"; Flags: ignoreversion;  Components: core
-Source: "interfaces\csPerfThread.*"; DestDir: "{#APP_INCLUDE}\csound"; Flags: ignoreversion;  Components: core
-Source: "interfaces\*.py"; DestDir: "{#APP_BIN}"; Flags: ignoreversion;  Components: core
+Source: "Python\*.py"; DestDir: "{#APP_BIN}"; Flags: ignoreversion;  Components: core
 Source: "examples\*.*"; DestDir: "{#APP_EXAMPLES}"; Excludes: "*.wav *.html"; Flags: ignoreversion recursesubdirs;  Components: core
 Source: "samples\*.*"; DestDir: "{#APP_SAMPLES}"; Flags: ignoreversion recursesubdirs;  Components: core
 

@@ -1117,7 +1117,7 @@ static int32_t sinit3(CSOUND *csound, DATASPACE *p)
 {
     uint32_t size,i;
     char *name;
-    SF_INFO sfinfo;
+    SFLIB_INFO sfinfo;
     // open file
     void *fd;
     name = ((STRINGDAT *)p->knum)->data;
@@ -1176,7 +1176,7 @@ void fillbuf(CSOUND *csound, DATASPACE *p, int32_t nsmps) {
     IGN(csound);
     sf_count_t sampsread;
     // fill p->curbuf
-    sampsread = sf_read_MYFLT(p->sf, p->indata[p->curbuf],
+    sampsread = sflib_read_MYFLT(p->sf, p->indata[p->curbuf],
                               nsmps);
     if (sampsread < nsmps)
       memset(p->indata[p->curbuf]+sampsread, 0,

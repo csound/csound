@@ -26,7 +26,6 @@
 
 //#include "csdl.h"
 #include "csoundCore.h"
-#include <sndfile.h>
 
 
 #include "interlocks.h"
@@ -34,7 +33,7 @@
 /* file structure for fout opcodes */
 
 struct fileinTag {
-    SNDFILE     *file;        /* Used in audio cases */
+    void     *file;        /* Used in audio cases */
     FILE        *raw;         /* Only used if text file */
     void        *fd;          /* file handle returned by CSOUND::FileOpen */
     char        *name;        /* short name */

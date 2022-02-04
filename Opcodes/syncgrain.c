@@ -402,7 +402,7 @@ static int32_t filegrain_init(CSOUND *csound, filegrain *p)
     int32_t size;
     void *fd;
     MYFLT *buffer;
-    SF_INFO sfinfo;
+    SFLIB_INFO sfinfo;
     char *fname = p->fname->data;
 
     p->nChannels = (int32_t) (p->OUTOCOUNT);
@@ -442,7 +442,7 @@ static int32_t filegrain_init(CSOUND *csound, filegrain *p)
     memset(buffer, 0,p->buffer.size);
     if (UNLIKELY(fd == NULL)) {
       return csound->InitError(csound, Str("diskgrain: could not open file: %s\n"),
-                               Str(sf_strerror(NULL)));
+                               Str(sflib_strerror(NULL)));
     }
     if (UNLIKELY(sfinfo.channels != p->nChannels)) {
       return
@@ -454,9 +454,9 @@ static int32_t filegrain_init(CSOUND *csound, filegrain *p)
     p->pscale = p->sr/CS_ESR;
 
     if (*p->ioff >= 0)
-      sf_seek(p->sf,*p->ioff * p->sr, SEEK_SET);
+      sflib_seek(p->sf,*p->ioff * p->sr, SEEK_SET);
 
-    if (LIKELY(sf_read_MYFLT(p->sf,buffer,p->dataframes*p->nChannels/2) != 0)) {
+    if (LIKELY(sflib_read_MYFLT(p->sf,buffer,p->dataframes*p->nChannels/2) != 0)) {
       p->read1 = 1;
       p->read2 = 0;
     }
@@ -553,12 +553,12 @@ static int32_t filegrain_process(CSOUND *csound, filegrain *p)
 
             if (!read1) {
               pos += hdataframes;
-              sf_seek(p->sf,pos,SEEK_SET);
+              sflib_seek(p->sf,pos,SEEK_SET);
 
-              items = sf_read_MYFLT(p->sf,datap,hdatasize);
+              items = sflib_read_MYFLT(p->sf,datap,hdatasize);
               if (items < hdatasize) {
-                sf_seek(p->sf, 0, 0);
-                sf_read_MYFLT(p->sf,datap+items, hdatasize-items);
+                sflib_seek(p->sf, 0, 0);
+                sflib_read_MYFLT(p->sf,datap+items, hdatasize-items);
               }
               for (n=0; n < chans; n++)
                 datap[hdatasize+n] = datap[hdatasize-chans+n];
@@ -572,12 +572,12 @@ static int32_t filegrain_process(CSOUND *csound, filegrain *p)
             if (!read2) {
 
               pos += hdataframes;
-              sf_seek(p->sf,pos,SEEK_SET);
+              sflib_seek(p->sf,pos,SEEK_SET);
 
-              items = sf_read_MYFLT(p->sf,datap+hdatasize, hdatasize);
+              items = sflib_read_MYFLT(p->sf,datap+hdatasize, hdatasize);
               if (items < hdatasize) {
-                  sf_seek(p->sf, 0, SEEK_SET);
-                  sf_read_MYFLT(p->sf,datap+items+hdatasize, hdatasize-items);
+                  sflib_seek(p->sf, 0, SEEK_SET);
+                  sflib_read_MYFLT(p->sf,datap+items+hdatasize, hdatasize-items);
               }
               for (n=0; n < chans; n++)
                 datap[datasize+n] = datap[datasize-chans+n];
@@ -611,11 +611,11 @@ static int32_t filegrain_process(CSOUND *csound, filegrain *p)
                 if (pos < 0)  pos += flen;
               */
 
-              sf_seek(p->sf,pos,SEEK_SET);
-              items = sf_read_MYFLT(p->sf,datap+hdatasize,hdatasize);
+              sflib_seek(p->sf,pos,SEEK_SET);
+              items = sflib_read_MYFLT(p->sf,datap+hdatasize,hdatasize);
               if (items < hdatasize) {
-                sf_seek(p->sf,items-hdatasize,SEEK_END);
-                sf_read_MYFLT(p->sf,datap+hdatasize+items, hdatasize-items);
+                sflib_seek(p->sf,items-hdatasize,SEEK_END);
+                sflib_read_MYFLT(p->sf,datap+hdatasize+items, hdatasize-items);
               }
 
               for (n=0; n < chans; n++)
@@ -638,11 +638,11 @@ static int32_t filegrain_process(CSOUND *csound, filegrain *p)
                 pos -= hdataframes;
                 if (pos < 0)  pos += flen;
               */
-              sf_seek(p->sf,pos,SEEK_SET);
-              items = sf_read_MYFLT(p->sf,datap,hdatasize);
+              sflib_seek(p->sf,pos,SEEK_SET);
+              items = sflib_read_MYFLT(p->sf,datap,hdatasize);
               if (items < hdatasize) {
-                sf_seek(p->sf,items-hdatasize,SEEK_END);
-                (void) sf_read_MYFLT(p->sf,datap+items,hdatasize-items);
+                sflib_seek(p->sf,items-hdatasize,SEEK_END);
+                (void) sflib_read_MYFLT(p->sf,datap+items,hdatasize-items);
               }
               for (n=0; n < chans; n++)
                 datap[hdatasize+n] = datap[hdatasize-chans+n];

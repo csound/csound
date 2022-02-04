@@ -69,7 +69,7 @@ static  void    usage(CSOUND *);
 static int writebuffer(CSOUND *csound, MYFLT *out_buf, int *block,
                        SNDFILE *outfd, int length, OPARMS *oparms)
 {
-    sf_write_MYFLT(outfd, out_buf, length);
+    sflib_write_MYFLT(outfd, out_buf, length);
     (*block)++;
     if (oparms->rewrt_hdr)
       csound->rewriteheader((struct SNDFILE *)outfd);
@@ -464,9 +464,9 @@ static int srconv(CSOUND *csound, int argc, char **argv)
     }
 #endif
     {
-      SF_INFO sfinfo;
+      SFLIB_INFO sfinfo;
       char    *name;
-      memset(&sfinfo, 0, sizeof(SF_INFO));
+      memset(&sfinfo, 0, sizeof(SFLIB_INFO));
       sfinfo.samplerate = (int) ((double) Rout + 0.5);
       sfinfo.channels = (int) p->nchanls;
       //printf("filetyp=%x outformat=%x\n", O.filetyp, O.outformat);
@@ -477,20 +477,20 @@ static int srconv(CSOUND *csound, int argc, char **argv)
           snprintf(err_msg, 256, Str("cannot open %s."), O.outfilename);
           goto err_rtn_msg;
         }
-        outfd = sf_open(name, SFM_WRITE, &sfinfo);
+        outfd = sflib_open(name, SFM_WRITE, &sfinfo);
         if (outfd != NULL)
           csound->NotifyFileOpened(csound, name,
                                    csound->type2csfiletype(O.filetyp,
                                                            O.outformat),
                                    1, 0);
         else {
-          snprintf(err_msg, 256, Str("libsndfile error: %s\n"), sf_strerror(NULL));
+          snprintf(err_msg, 256, Str("libsndfile error: %s\n"), sflib_strerror(NULL));
           goto err_rtn_msg;
         }
         csound->Free(csound, name);
       }
       else
-        outfd = sf_open_fd(1, SFM_WRITE, &sfinfo, 1);
+        outfd = sflib_open_fd(1, SFM_WRITE, &sfinfo, 1);
       if (outfd == NULL) {
         snprintf(err_msg, 256, Str("cannot open %s."), O.outfilename);
         goto err_rtn_msg;
@@ -498,7 +498,7 @@ static int srconv(CSOUND *csound, int argc, char **argv)
       /* register file to be closed by csoundReset() */
       (void) csound->CreateFileHandle(csound, &outfd, CSFILE_SND_W,
                                       O.outfilename);
-      sf_command(outfd, SFC_SET_CLIPPING, NULL, SF_TRUE);
+      sflib_command(outfd, SFC_SET_CLIPPING, NULL, SFLIB_TRUE);
     }
     csound->SetUtilSr(csound, (MYFLT)p->sr);
     csound->SetUtilNchnls(csound, Chans = p->nchanls);

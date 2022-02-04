@@ -163,7 +163,7 @@ FindEnvelope(CSOUND *csound, SNDFILE *infd, SOUNDIN *p,
               block*window+(double)mxpos*tpersample, max/SHORTMAX);
       block++;
     }
-    sf_close(infd);
+    sflib_close(infd);
     fclose(outfile);
 }
 

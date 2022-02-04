@@ -38,6 +38,7 @@
 ./Engine/swritestr.c
 ./Engine/symbtab.c
 ./Engine/twarp.c
+./Engine/ugen.c
 ./Frontends/csound/csound_main.c
 ./Frontends/csound/sched.c
 ./Frontends/debugger/csdebugger.cpp
@@ -48,7 +49,6 @@
 ./H/convolve.h
 ./H/corfile.h
 ./H/csGblMtx.h
-./H/cs_jack.h
 ./H/cs_par_base.h
 ./H/cs_par_ops.h
 ./H/cs_par_orc_semantics.h
@@ -230,8 +230,6 @@
 ./Opcodes/filter.h
 ./Opcodes/flanger.c
 ./Opcodes/flanger.h
-./plugins/fluidOpcodes/fluidOpcodes.cpp
-./plugins/fluidOpcodes/fluidOpcodes.h
 ./Opcodes/flute.h
 ./Opcodes/fm4op.c
 ./Opcodes/fm4op.h
@@ -266,8 +264,11 @@
 ./Opcodes/hrtfopcodes.c
 ./Opcodes/hrtfreverb.c
 ./Opcodes/ifd.c
+<<<<<<< HEAD
 ./plugins/jackops/jackTransport.c
 ./plugins/jackops/jacko.cpp
+=======
+>>>>>>> cs7
 ./Opcodes/linuxjoystick.c
 ./Opcodes/linuxjoystick.h
 ./Opcodes/liveconv.c
@@ -381,7 +382,6 @@
 ./Opcodes/stdopcod.c
 ./Opcodes/stdopcod.h
 ./Opcodes/sterrain.c
-./plugins/stk/stkOpcodes.cpp
 ./Opcodes/syncgrain.c
 ./Opcodes/syncgrain.h
 ./Opcodes/system_call.c
@@ -537,6 +537,8 @@
 ./util1/scot/scot_main.c
 ./util1/sortex/smain.c
 ./util1/sortex/xmain.c
+./plugins/fluidOpcodes/fluidOpcodes.cpp
+./plugins/fluidOpcodes/fluidOpcodes.h
 ./plugins/AbletonLinkOpcodes/ableton_link_opcodes.cpp
 ./plugins/chua/ChuaOscillator.cpp
 ./plugins/faustcsound/faustgen.cpp
@@ -601,3 +603,6 @@
 ./plugins/CUDA/pvsops.cu
 ./plugins/CUDA/pvsopsf.cu
 ./plugins/CUDA/slidingm.cu
+./plugins/jackops/cs_jack.h
+./plugins/jackops/jacko.cpp
+./plugins/jackops/jackTransport.c

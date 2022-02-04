@@ -23,7 +23,6 @@
 */
 
 #include "std_util.h"                               /*  SNDINFO.C  */
-#include <sndfile.h>
 #include "soundio.h"
 
 /* Some of the information is borrowed from libsndfile's sndfile-info code */
@@ -35,7 +34,7 @@ static int32_t sndinfo(CSOUND *csound, int32_t argc, char **argv)
     int32_t     retval = 0;
     int32_t     instr_info = 0;
     int32_t     bcast_info = 0;
-    SF_INFO sf_info;
+    SFLIB_INFO sflib_info;
     SNDFILE *hndl;
 
     while (--argc) {
@@ -67,8 +66,8 @@ static int32_t sndinfo(CSOUND *csound, int32_t argc, char **argv)
         retval = -1;
         continue;
       }
-      memset(&sf_info, 0, sizeof(SF_INFO));
-      hndl = sf_open(fname, SFM_READ, &sf_info);
+      memset(&sflib_info, 0, sizeof(SFLIB_INFO));
+      hndl = sflib_open(fname, SFM_READ, &sflib_info);
       if (UNLIKELY(hndl == NULL)) {
         csound->Message(csound, Str("%s: Not a sound file\n"), fname);
         csound->Free(csound, fname);
@@ -77,10 +76,10 @@ static int32_t sndinfo(CSOUND *csound, int32_t argc, char **argv)
       }
       else {
         csound->NotifyFileOpened(csound, fname,
-                            csound->sftype2csfiletype(sf_info.format), 0, 0);
+                            csound->sftype2csfiletype(sflib_info.format), 0, 0);
         csound->Message(csound, "%s:\n", fname);
         csound->Free(csound, fname);
-        switch (sf_info.channels) {
+        switch (sflib_info.channels) {
         case 1:
           strncpy(channame, Str("monaural"), 30);
           break;
@@ -97,23 +96,23 @@ static int32_t sndinfo(CSOUND *csound, int32_t argc, char **argv)
           strncpy(channame, Str("oct"),30);
           break;
         default:
-          snprintf(channame, 30, "%d-channel", sf_info.channels);
+          snprintf(channame, 30, "%d-channel", sflib_info.channels);
           break;
         }
         channame[31] = '\0';
         csound->Message(csound,
                         Str("\tsrate %ld, %s, %ld bit %s, %5.3f seconds\n"),
-                        (long) sf_info.samplerate, channame,
-                        (long) (csound->sfsampsize(sf_info.format) * 8),
-                        csound->type2string(SF2TYPE(sf_info.format)),
-                        (MYFLT) sf_info.frames / sf_info.samplerate);
+                        (long) sflib_info.samplerate, channame,
+                        (long) (csound->sfsampsize(sflib_info.format) * 8),
+                        csound->type2string(SF2TYPE(sflib_info.format)),
+                        (MYFLT) sflib_info.frames / sflib_info.samplerate);
         csound->Message(csound, Str("\t(%ld sample frames)\n"),
-                                (long) sf_info.frames);
+                                (long) sflib_info.frames);
         if (instr_info) {
-          SF_INSTRUMENT inst;
+          SFLIB_INSTRUMENT inst;
           int32_t     k;
 
-          if (sf_command(hndl, SFC_GET_INSTRUMENT, &inst, sizeof (inst)) != 0) {
+          if (sflib_command(hndl, SFC_GET_INSTRUMENT, &inst, sizeof (inst)) != 0) {
             csound->Message(csound, Str("  Gain        : %d\n"),
                             inst.gain);
             csound->Message(csound, Str("  Base note   : %d\n"),
@@ -140,10 +139,12 @@ static int32_t sndinfo(CSOUND *csound, int32_t argc, char **argv)
             csound->Message(csound, "\n");
           }
         }
+#ifdef USE_LIBSNDFILE        
         if (bcast_info) {
+          
           SF_BROADCAST_INFO bext;
 
-          if (sf_command(hndl, SFC_GET_BROADCAST_INFO, &bext, sizeof (bext))
+          if (sflib_command(hndl, SFC_GET_BROADCAST_INFO, &bext, sizeof (bext))
               != 0) {
             csound->Message(csound, Str("Description      : %.*s\n"),
                             (int32_t) sizeof (bext.description), bext.description);
@@ -166,7 +167,8 @@ static int32_t sndinfo(CSOUND *csound, int32_t argc, char **argv)
                             bext.coding_history_size, bext.coding_history);
           }
         }
-        sf_close(hndl);
+#endif
+        sflib_close(hndl);
       }
     }
 

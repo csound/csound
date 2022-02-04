@@ -34,7 +34,7 @@
 #include "std_util.h"
 #include "soundio.h"
 #include <ctype.h>
-#include <sndfile.h>
+
 
 /* Constants */
 #define NUMBER_OF_SAMPLES       (4096)
@@ -98,7 +98,7 @@ static int32_t xtrct(CSOUND *csound, int32_t argc, char **argv)
     SNDFILE*    outfd;
     void        *fd;
     char        c, *s;
-    SF_INFO     sfinfo;
+    SFLIB_INFO     sfinfo;
     int32_t         debug   = 0;
     int32_t         Omsg;
     XTRC        xtrc;
@@ -283,7 +283,7 @@ static int32_t xtrct(CSOUND *csound, int32_t argc, char **argv)
 
     csound->SetUtilSr(csound, (MYFLT)xtrc.p->sr);
     csound->SetUtilNchnls(csound, xtrc.outputs);
-    memset(&sfinfo, 0, sizeof(SF_INFO));
+    memset(&sfinfo, 0, sizeof(SFLIB_INFO));
     //sfinfo.frames = 0/*was -1*/;
     sfinfo.samplerate = (int32_t) ((MYFLT)xtrc.p->sr + FL(0.5));
     sfinfo.channels = xtrc.outputs;
@@ -292,11 +292,11 @@ static int32_t xtrct(CSOUND *csound, int32_t argc, char **argv)
     fd = NULL;
     if (strcmp(O.outfilename, "stdout") == 0 ||
         strcmp(O.outfilename, "-") == 0) {
-      outfd = sf_open_fd(1, SFM_WRITE, &sfinfo, 0);
+      outfd = sflib_open_fd(1, SFM_WRITE, &sfinfo, 0);
       if (outfd != NULL) {
         fd = csound->CreateFileHandle(csound, &outfd, CSFILE_SND_W, "stdout");
         if (UNLIKELY(fd == NULL)) {
-          sf_close(outfd);
+          sflib_close(outfd);
           csound->Die(csound, "%s", Str("Memory allocation failure"));
         }
       }
@@ -307,7 +307,7 @@ static int32_t xtrct(CSOUND *csound, int32_t argc, char **argv)
                        csound->type2csfiletype(O.filetyp, O.outformat), 0);
     if (UNLIKELY(fd == NULL))
       csound->Die(csound, Str("Failed to open output file %s: %s"),
-                  O.outfilename, Str(sf_strerror(NULL)));
+                  O.outfilename, Str(sflib_strerror(NULL)));
     ExtractSound(csound, &xtrc, infd, outfd, &O);
     if (O.ringbell)
       csound->MessageS(csound, CSOUNDMSG_REALTIME, "%c", '\007');
@@ -342,26 +342,26 @@ ExtractSound(CSOUND *csound, XTRC *x, SNDFILE* infd, SNDFILE* outfd, OPARMS *opa
     long  frames = 0;
     int32_t   block = 0;
 
-    sf_seek(infd, x->sample, SEEK_CUR);
+    sflib_seek(infd, x->sample, SEEK_CUR);
     while (x->numsamps>0) {
       int32_t num = NUMBER_OF_SAMPLES / x->outputs;
       if (x->numsamps < num)
         num = x->numsamps;
       x->numsamps -= num;
-      read_in = sf_readf_double(infd, buffer, num);
-      sf_writef_double(outfd, buffer, read_in);
+      read_in = sflib_readf_double(infd, buffer, num);
+      sflib_writef_double(outfd, buffer, read_in);
       block++;
       frames += read_in;
       if (oparms->rewrt_hdr) {
-        sf_command(outfd, SFC_UPDATE_HEADER_NOW, NULL, 0);
-        sf_seek(outfd, 0L, SEEK_END); /* Place at end again */
+        sflib_command(outfd, SFC_UPDATE_HEADER_NOW, NULL, 0);
+        sflib_seek(outfd, 0L, SEEK_END); /* Place at end again */
       }
       if (oparms->heartbeat) {
         csound->MessageS(csound, CSOUNDMSG_REALTIME, "%c\b", "|/-\\"[block&3]);
       }
       if (read_in < num) break;
     }
-    sf_command(outfd, SFC_UPDATE_HEADER_NOW, NULL, 0);
+    sflib_command(outfd, SFC_UPDATE_HEADER_NOW, NULL, 0);
     return;
 }
 

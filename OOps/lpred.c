@@ -1021,6 +1021,7 @@ int32_t pvscoefs_init(CSOUND *csound, PVSCFS *p) {
   if(p->coef.auxp == NULL || Mbytes > p->coef.size)
     csound->AuxAlloc(csound, Mbytes, &p->coef);
   tabinit(csound,p->out,p->M);
+  p->framecount = 0;
   p->mod = *p->imod;
   p->framecount = 0;
   return OK;

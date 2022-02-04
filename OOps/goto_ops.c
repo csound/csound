@@ -60,10 +60,10 @@ int32_t kcgoto(CSOUND *csound, CGOTO *p)
 /* an 'if-then' variant of 'if-goto' */
 int32_t ingoto(CSOUND *csound, CGOTO *p)
 {
-  /* Make sure we have an i-time conditional */
-  if (p->h.optext->t.intype == 'b' && !*p->cond)
-    csound->ids = p->lblblk->prvi;
-  return OK;
+    /* Make sure we have an i-time conditional */
+    if (csoundGetTypeForArg(p->cond) == &CS_VAR_TYPE_b && !*p->cond)
+      csound->ids = p->lblblk->prvi;
+    return OK;
 }
 
 int32_t kngoto(CSOUND *csound, CGOTO *p)

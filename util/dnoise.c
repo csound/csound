@@ -475,9 +475,9 @@ static int32_t dnoise(CSOUND *csound, int32_t argc, char **argv)
     if (O.outfilename == NULL)
       O.outfilename = "test";
     {
-      SF_INFO sfinfo;
+      SFLIB_INFO sfinfo;
       char    *name;
-      memset(&sfinfo, 0, sizeof(SF_INFO));
+      memset(&sfinfo, 0, sizeof(SFLIB_INFO));
       sfinfo.samplerate = (int32_t) p->sr;
       sfinfo.channels = (int32_t) p->nchanls;
       sfinfo.format = TYPE2SF(O.filetyp) | FORMAT2SF(O.outformat);
@@ -487,14 +487,14 @@ static int32_t dnoise(CSOUND *csound, int32_t argc, char **argv)
           csound->Message(csound, Str("cannot open %s.\n"), O.outfilename);
           return -1;
         }
-        outfd = sf_open(name, SFM_WRITE, &sfinfo);
+        outfd = sflib_open(name, SFM_WRITE, &sfinfo);
         if (outfd != NULL)
           csound->NotifyFileOpened(csound, name,
                       csound->type2csfiletype(O.filetyp, O.outformat), 1, 0);
         csound->Free(csound, name);
       }
       else
-        outfd = sf_open_fd(1, SFM_WRITE, &sfinfo, 1);
+        outfd = sflib_open_fd(1, SFM_WRITE, &sfinfo, 1);
       if (UNLIKELY(outfd == NULL)) {
         csound->Message(csound, Str("cannot open %s."), O.outfilename);
         return -1;
@@ -502,7 +502,7 @@ static int32_t dnoise(CSOUND *csound, int32_t argc, char **argv)
       /* register file to be closed by csoundReset() */
       (void)csound->CreateFileHandle(csound, &outfd, CSFILE_SND_W,
                                      O.outfilename);
-      sf_command(outfd, SFC_SET_CLIPPING, NULL, SF_TRUE);
+      sflib_command(outfd, SFC_SET_CLIPPING, NULL, SFLIB_TRUE);
     }
 
     csound->SetUtilSr(csound, (MYFLT)p->sr);
@@ -1237,9 +1237,9 @@ static int32_t writebuffer(CSOUND *csound, SNDFILE *outfd,
     int32_t n;
 
     if (UNLIKELY(outfd == NULL)) return 0;
-    n = sf_write_MYFLT(outfd, outbuf, nsmps);
+    n = sflib_write_MYFLT(outfd, outbuf, nsmps);
     if (UNLIKELY(n < nsmps)) {
-      sf_close(outfd);
+      sflib_close(outfd);
       sndwrterr(csound, n, nsmps);
       return -1;
     }

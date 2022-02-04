@@ -1,3 +1,4 @@
+
 /*
     symbtab.c:
 
@@ -38,198 +39,41 @@
 #define PARSER_DEBUG (0)
 #endif
 
+#if defined(_WIN32) || defined(_WIN64)
+# define strtok_r strtok_s
+#endif
 
-// FIXME - this is global...
-// VL moved to csound struct
-//CS_HASH_TABLE* symbtab;
-
-#define udoflag csound->parserUdoflag
 #define namedInstrFlag csound->parserNamedInstrFlag
 
-ORCTOKEN *add_token(CSOUND *csound, char *s, int type);
-//static ORCTOKEN *add_token_p(CSOUND *csound, char *s, int type, int val);
 extern int csound_orcget_lineno(void*);
 
 /* from csound_orc_compile.c */
 extern char** splitArgs(CSOUND* csound, char* argString);
 
-int get_opcode_type(OENTRY *ep)
-{
-    int retVal = 0;
-
-    if (ep->outypes == NULL || strlen(ep->outypes) == 0) {
-      retVal = T_OPCODE0;
-    }
-    else {
-      retVal = T_OPCODE;
-    }
-    return retVal;
-}
-
-void init_symbtab(CSOUND *csound)
-{
-    OENTRY *ep;
-    CONS_CELL *top, *head, *items;
-
-    char *shortName;
-
-
-    if (csound->symbtab == NULL) {
-      /* VL 27 02 2015 -- if symbtab exists, do not create it again
-        to avoid memory consumption.
-       */
-      //printf("init symbtab\n");
-      csound->symbtab = cs_hash_table_create(csound);
-    /* Now we need to populate with basic words */
-    /* Add token types for opcodes to symbtab.  If a polymorphic opcode
-     * definition is found (dsblksiz >= 0xfffb), look for implementations
-     * of that opcode to correctly mark the type of opcode it is (T_OPCODE,
-     * T_OPCODE0, or T_OPCODE00)
-     */
-
-    top = head = cs_hash_table_values(csound, csound->opcodes);
-
-    while (head != NULL) {
-      items = head->value;
-      while (items != NULL) {
-        ep = items->value;
-
-        if (ep->dsblksiz < 0xfffb) {
-          shortName = get_opcode_short_name(csound, ep->opname);
-
-          add_token(csound, shortName, get_opcode_type(ep));
-
-          if (shortName != ep->opname) {
-            csound->Free(csound, shortName);
-          }
-        }
-        items = items->next;
-      }
-      head = head->next;
-    }
-    csound->Free(csound, top);
-    }
-}
-
-void add_to_symbtab(CSOUND *csound, OENTRY *ep) {
-  if (csound->symbtab != NULL) {
-   char *shortName;
-   if (ep->dsblksiz < 0xfffb) {
-          shortName = get_opcode_short_name(csound, ep->opname);
-          add_token(csound, shortName, get_opcode_type(ep));
-          if (shortName != ep->opname) {
-            csound->Free(csound, shortName);
-          }
-          csound->DebugMsg(csound, "opcode %s added to symbtab\n", ep->opname);
-   }
-  }
-}
-
-ORCTOKEN *add_token(CSOUND *csound, char *s, int type)
-{
-    //printf("Hash value for %s: %i\n", s, h);
-
-    ORCTOKEN *a = cs_hash_table_get(csound, csound->symbtab, s);
-
-    ORCTOKEN *ans;
-    if (a!=NULL) {
-      if (type == a->type) return a;
-      if (UNLIKELY((type!=T_FUNCTION || a->type!=T_OPCODE)))
-        csound->Warning(csound,
-                        Str("Type confusion for %s (%d,%d), replacing\n"),
-                        s, type, a->type);
-      a->type = type;
-      return a;
-    }
-    ans = new_token(csound, T_IDENT);
-    ans->lexeme = (char*)csound->Malloc(csound, 1+strlen(s));
-    strcpy(ans->lexeme, s);
-    ans->type = type;
-
-    cs_hash_table_put(csound, csound->symbtab, s, ans);
-
-    return ans;
-}
-
-/* static ORCTOKEN *add_token_p(CSOUND *csound, char *s, int type, int val) */
-/* { */
-/*     ORCTOKEN *ans = add_token(csound, s, type); */
-/*     ans->value = val; */
-/*     return ans; */
-/* } */
-
-int isUDOArgList(char *s)
-{
-    int len = strlen(s) - 1;
-
-    while (len >= 0) {
-      if (UNLIKELY(strchr("aijkftKOJVPopS[]0", s[len]) == NULL)) {
-        /* printf("Invalid char '%c' in '%s'", *p, s); */
-        return 0;
-      }
-      len--;
-    }
-    return 1;
-}
-
-int isUDOAnsList(char *s)
-{
-    int len = strlen(s) - 1;
-
-    while (len >= 0) {
-      if (UNLIKELY(strchr("aikftSK[]0", s[len]) == NULL)) {
-        return 0;
-      }
-      len--;
-    }
-    return 1;
-}
-
 ORCTOKEN *lookup_token(CSOUND *csound, char *s, void *yyscanner)
 {
     IGN(yyscanner);
     int type = T_IDENT;
-    ORCTOKEN *a;
     ORCTOKEN *ans;
 
     if (UNLIKELY(PARSER_DEBUG))
       csound->Message(csound, "Looking up token for: %s\n", s);
 
-    if (udoflag == 0) {
-      if (isUDOAnsList(s)) {
-        ans = new_token(csound, UDO_ANS_TOKEN);
-        ans->lexeme = (char*)csound->Malloc(csound, 1+strlen(s));
-        strcpy(ans->lexeme, s);
-        return ans;
-      }
-    }
-
-    if (udoflag == 1) {
-      if (UNLIKELY(csound->oparms->odebug)) printf("Found UDO Arg List\n");
-      if (isUDOArgList(s)) {
-        ans = new_token(csound, UDO_ARGS_TOKEN);
-        ans->lexeme = (char*)csound->Malloc(csound, 1+strlen(s));
-        strcpy(ans->lexeme, s);
-        return ans;
-      }
-    }
-
-    a = cs_hash_table_get(csound, csound->symbtab, s);
-
-    if (a != NULL) {
-      ans = (ORCTOKEN*)csound->Malloc(csound, sizeof(ORCTOKEN));
-      memcpy(ans, a, sizeof(ORCTOKEN));
-      ans->next = NULL;
-      ans->lexeme = (char *)csound->Malloc(csound, strlen(a->lexeme) + 1);
-      strcpy(ans->lexeme, a->lexeme);
-      return ans;
-    }
-
     ans = new_token(csound, T_IDENT);
-    ans->lexeme = (char*)csound->Malloc(csound, 1+strlen(s));
-    strcpy(ans->lexeme, s);
 
-    if (udoflag == -2 || namedInstrFlag == 1) {
+    if (strchr(s, ':') != NULL) {
+        char* th;
+        char* baseName = strtok_r(s, ":", &th);
+        char* annotation = strtok_r(NULL, ":", &th);
+        ans->lexeme = cs_strdup(csound, baseName);
+        ans->optype = cs_strdup(csound, annotation);
+        type = T_TYPED_IDENT;
+    } else {
+        ans->lexeme = cs_strdup(csound, s);
+    }
+
+//    if (udoflag == -2 || namedInstrFlag == 1) {
+    if (namedInstrFlag == 1) {
         return ans;
     }
 
@@ -238,30 +82,33 @@ ORCTOKEN *lookup_token(CSOUND *csound, char *s, void *yyscanner)
     return ans;
 }
 
-
-//static int is_optional_udo_in_arg(char* argtype) {
-//    return strchr("jOPVop", *argtype) != NULL;
-//}
-
-static char map_udo_in_arg_type(char in) {
-    if (strchr("ijop", in) != NULL) {
-        return 'i';
-    } else if (strchr("kKOJPV", in) != NULL) {
-        return 'k';
+static char* map_udo_in_arg_type(char* in) {
+    if(strlen(in) == 1) {
+      if (strchr("ijop", *in) != NULL) {
+          return "i";
+      } else if (strchr("kKOJPV", *in) != NULL) {
+          return "k";
+      }
     }
     return in;
 }
 
-static char map_udo_out_arg_type(char in) {
-    if (in == 'K') {
-        return 'k';
+static char* map_udo_out_arg_type(char* in) {
+    if (strlen(in) == 1 && *in == 'K') {
+        return "k";
     }
     return in;
 }
 
 static void map_args(char* args) {
     while (*args != '\0') {
-      *args = map_udo_out_arg_type(*args);
+      if (*args == ':') {
+        while(*args != 0 && *args != ';') {
+          args++;
+        }
+      } else if (*args == 'K'){
+        *args = 'k';
+      }
       args++;
     }
 }
@@ -298,7 +145,7 @@ static int parse_opcode_args(CSOUND *csound, OENTRY *opc)
     char** in_args;
     char** out_args;
     char intypes[256];
-    char typeSpecifier[2];
+    char typeSpecifier[256];
     char tempName[20];
     int i = 0, err = 0;
     int n=0;
@@ -336,6 +183,7 @@ static int parse_opcode_args(CSOUND *csound, OENTRY *opc)
     if (*in_args[0] != '0') {
       while (in_args[i] != NULL) {
         char* in_arg = in_args[i];
+        char* end;
         snprintf(tempName, 20, "in%d", i);
 
         if (*in_arg == '[') {
@@ -344,7 +192,14 @@ static int parse_opcode_args(CSOUND *csound, OENTRY *opc)
             dimensions += 1;
             in_arg += 1;
           }
-          typeSpecifier[0] = *in_arg;
+
+          end = in_arg;
+          while(*end != ']') {
+            end++;
+          }
+          memcpy(typeSpecifier, in_arg, end - in_arg);
+
+          typeSpecifier[(end - in_arg)] = 0;
 // printf("Dimensions: %d SubArgType: %s\n", dimensions, typeSpecifier);
           CS_TYPE* type =
             csoundGetTypeWithVarTypeName(csound->typePool, typeSpecifier);
@@ -352,6 +207,7 @@ static int parse_opcode_args(CSOUND *csound, OENTRY *opc)
           if (UNLIKELY(type == NULL)) {
             synterr(csound, Str("invalid input type for opcode %s\n"), in_arg);
             err++;
+            i++;
             continue;
           }
 
@@ -363,21 +219,21 @@ static int parse_opcode_args(CSOUND *csound, OENTRY *opc)
           var->dimensions = dimensions;
           csoundAddVariable(csound, inm->in_arg_pool, var);
         } else {
-          char c = map_udo_in_arg_type(*in_arg);
+          char *c = map_udo_in_arg_type(in_arg);
           //                printf("found arg type %s -> %c\n", in_arg, c);
 
-          typeSpecifier[0] = c;
           CS_TYPE* type =
-            csoundGetTypeWithVarTypeName(csound->typePool, typeSpecifier);
+            csoundGetTypeWithVarTypeName(csound->typePool, c);
 
           if (UNLIKELY(type == NULL)) {
-            synterr(csound, Str("invalid input type for opcode %s\n"), in_arg);
+            synterr(csound, Str("invalid input type for opcode %s\n"), in_args[i]);
             err++;
+            i++;
             continue;
           }
 
           CS_VARIABLE* var = csoundCreateVariable(csound, csound->typePool,
-                                                  type, tempName, NULL);
+                                                  type, tempName, type);
           csoundAddVariable(csound, inm->in_arg_pool, var);
         }
         i++;
@@ -390,6 +246,7 @@ static int parse_opcode_args(CSOUND *csound, OENTRY *opc)
     if (*out_args[0] != '0') {
       while(out_args[i] != NULL) {
         char* out_arg = out_args[i];
+        char* end;
         snprintf(tempName, 20, "out%d", i);
 
         if (*out_arg == '[') {
@@ -398,14 +255,22 @@ static int parse_opcode_args(CSOUND *csound, OENTRY *opc)
             dimensions += 1;
             out_arg += 1;
           }
-          typeSpecifier[0] = *out_arg;
+
+          end = out_arg;
+          while(*end != ']') {
+            end++;
+          }
+          memcpy(typeSpecifier, out_arg, end - out_arg);
+
+          typeSpecifier[(end - out_arg) + 1] = 0;
           //printf("Dimensions: %d SubArgType: %s\n", dimensions, typeSpecifier);
           CS_TYPE* type =
             csoundGetTypeWithVarTypeName(csound->typePool, typeSpecifier);
 
           if (UNLIKELY(type == NULL)) {
-            synterr(csound, Str("invalid output type for opcode %s"), out_arg);
+            synterr(csound, Str("invalid output type for opcode %s"), out_args[i]);
             err++;
+            i++;
             continue;
           }
 
@@ -417,20 +282,20 @@ static int parse_opcode_args(CSOUND *csound, OENTRY *opc)
           var->dimensions = dimensions;
           csoundAddVariable(csound, inm->out_arg_pool, var);
         } else {
-          char c = map_udo_out_arg_type(*out_arg);
+          char* c = map_udo_out_arg_type(out_arg);
           //                printf("found arg type %s -> %c\n", out_arg, c);
-          typeSpecifier[0] = c;
           CS_TYPE* type =
-            csoundGetTypeWithVarTypeName(csound->typePool, typeSpecifier);
+            csoundGetTypeWithVarTypeName(csound->typePool, c);
 
           if (UNLIKELY(type == NULL)) {
             synterr(csound, Str("invalid output type for opcode %s"), out_arg);
             err++;
+            i++;
             continue;
           }
 
           CS_VARIABLE* var = csoundCreateVariable(csound, csound->typePool, type,
-                                                  tempName, NULL);
+                                                  tempName, type);
           csoundAddVariable(csound, inm->out_arg_pool, var);
         }
         i++;
@@ -451,6 +316,7 @@ static int parse_opcode_args(CSOUND *csound, OENTRY *opc)
 
     map_args(opc->intypes);
     map_args(opc->outypes);
+
 //    /* count the number of arguments, and check types */
 //      default:
 //        synterr(csound, Str("invalid input type for opcode %s"), inm->name);
@@ -488,6 +354,7 @@ early_exit:
       }
       csound->Free(csound, out_args);
     }
+
     return err;
 }
 
@@ -531,7 +398,8 @@ OENTRY* csound_find_internal_oentry(CSOUND* csound, OENTRY* oentry) {
  * verification time the opcode can be looked up to get its signature.
  */
 int add_udo_definition(CSOUND *csound, char *opname,
-        char *outtypes, char *intypes) {
+                       char *outtypes, char *intypes,
+                       int flags) {
 
     OENTRY    tmpEntry, *opc, *newopc;
     OPCODINFO *inm;
@@ -554,6 +422,13 @@ int add_udo_definition(CSOUND *csound, char *opname,
 
     /* check if opcode is already defined */
     if (UNLIKELY(opc != NULL)) {
+
+      // check if the opcode is already declared
+      if (opc->flags & UNDEFINED) {
+        opc->flags = 0x0000;
+        return 0;
+      }
+
       /* IV - Oct 31 2002: redefine old opcode if possible */
       if (UNLIKELY(!strcmp(opname, "instr") ||
                    !strcmp(opname, "endin") ||
@@ -588,7 +463,6 @@ int add_udo_definition(CSOUND *csound, char *opname,
       opc->useropinfo = inm;
       newopc = opc;
     } else {
-      //printf("****New UDO: %s %s %s\n", inm->name, inm->outtypes, inm->intypes);
       /* IV - Oct 31 2002: */
       /* create a fake opcode so we can call it as such */
       opc = find_opcode(csound, "##userOpcode");
@@ -605,13 +479,7 @@ int add_udo_definition(CSOUND *csound, char *opname,
       newopc->outypes = csound->Malloc(csound, strlen(outtypes) + 1
                                        + strlen(intypes) + 2);
       newopc->intypes = &(newopc->outypes[strlen(outtypes) + 1]);
-
-      if (strcmp(outtypes, "0")==0) {
-        add_token(csound, opname, T_OPCODE0);
-      } else {
-        add_token(csound, opname, T_OPCODE);
-      }
-
+      newopc->flags = flags | newopc->flags;
     }
 
     //printf("****Calling parse_opcode_args\n");

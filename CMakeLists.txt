@@ -43,12 +43,15 @@ if(NOT MSVC)
 endif()
 
 # Project definitions
-set(APIVERSION "6.0")
-set(CS_VERSION "6")
-set(CS_SUBVER "17")
+set(APIVERSION "7.0")
+set(CS_VERSION "7")
+set(CS_SUBVER "0")
 set(CS_PATCHLEVEL "0")
 
-message(STATUS "Csound version: ${CS_VERSION}.${CS_SUBVER}.${CS_PATCHLEVEL}")
+message(STATUS "Csound version:
+${CS_VERSION}.${CS_SUBVER}.${CS_PATCHLEVEL}")
+
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/README.md.in ${CMAKE_CURRENT_SOURCE_DIR}/README.md)
 
 set(MACOSX_FRAMEWORK_BUNDLE_VERSION
 "${CS_VERSION}.${CS_SUBVER}.${CS_PATCHLEVEL}")
@@ -170,6 +173,8 @@ endif()
 ## USER OPTIONS ##
 # Optional targets, they should all default to ON (check_deps will disable them if not possible to build)
 option(USE_DOUBLE "Set to use double-precision floating point for audio samples." ON)
+option(USE_LIBSNDFILE "Use libsndfile for sndfile IO, if available" ON)
+option(BUILD_PERFTHREAD_CLASS "Include the Csound performance thread support (C++) " ON)
 option(BUILD_UTILITIES "Build stand-alone executables for utilities that can also be used with -U" ON)
 option(NEW_PARSER_DEBUG "Enable tracing of new parser" OFF)
 option(BUILD_MULTI_CORE "Enable building for multicore system" ON)
@@ -181,6 +186,7 @@ option(USE_CURL "Use CURL library" ON)
 option(BUILD_RELEASE "Build for release" ON)
 option(BUILD_INSTALLER "Build installer" OFF)
 option(BUILD_TESTS "Build tests" ON)
+option(LEXER_DEBUG "Build lexer with debug option" OFF)
 option(USE_GIT_COMMIT "Show the git commit in version information" ON)
 option(REQUIRE_PTHREADS "For non-Windows systems, set whether Csound will use threads or not" ON)
 
@@ -452,14 +458,18 @@ SET(BUILD_SHARED_LIBS ON)
 
 ## HEADER/LIBRARY/OTHER CHECKS ##
 # First, required stuff
-if(MSVC)
+if(USE_LIBSNDFILE)
+ set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -DUSE_LIBSNDFILE")
+ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DUSE_LIBSNDFILE")
+ if(MSVC)
     find_package(SndFile CONFIG REQUIRED)
-else()
+ else()
     find_library(LIBSNDFILE_LIBRARY NAMES sndfile libsndfile-1 libsndfile)
 
-    if(NOT LIBSNDFILE_LIBRARY)
+  if(NOT LIBSNDFILE_LIBRARY)
         message(FATAL_ERROR "Csound requires the sndfile library")
-    endif()
+   endif()
+ endif()
 endif()
 
 find_package(CURL)
@@ -691,6 +701,8 @@ set(libcsound_SRCS
     Engine/csound_standard_types.c
     Engine/csound_data_structures.c
     Engine/pools.c
+    Engine/ugen.c
+    InOut/soundfile.c
     InOut/libsnd.c
     InOut/libsnd_u.c
     InOut/midifile.c
@@ -921,7 +933,12 @@ set(mp3in_SRCS
     InOut/libmpadec/mpadec.c
     InOut/libmpadec/mp3dec.c)
 
-list(APPEND libcsound_SRCS ${stdopcod_SRCS} ${cs_pvs_ops_SRCS} ${oldpvoc_SRCS} ${mp3in_SRCS})
+list(APPEND libcsound_SRCS ${stdopcod_SRCS} ${cs_pvs_ops_SRCS}
+${oldpvoc_SRCS} ${mp3in_SRCS})
+
+if(BUILD_PERFTHREAD_CLASS)
+ list(APPEND libcsound_SRCS "Top/csPerfThread.cpp")
+endif()
 
 if(INIT_STATIC_MODULES)
     set(static_modules_SRCS
@@ -950,11 +967,24 @@ set(PRELEX_SRC ${CMAKE_CURRENT_SOURCE_DIR}/Engine/csound_pre.lex)
 set(PRELEX_OUT ${CMAKE_CURRENT_BINARY_DIR}/csound_prelex.c)
 set_source_files_properties(${CMAKE_CURRENT_BINARY_DIR}/csound_prelex.c
 PROPERTIES COMPILE_FLAGS "-Wno-implicit-fallthrough")
+
+if(LEXER_DEBUG)
+message(STATUS "Building lexer with debug option")
 add_custom_command(
     OUTPUT ${LEX_OUT}
     DEPENDS ${LEX_SRC}
-    COMMAND ${FLEX_EXECUTABLE} ARGS -B -t ${LEX_SRC} > ${LEX_OUT}
+    COMMAND ${FLEX_EXECUTABLE} ARGS -d -B -t ${LEX_SRC} > ${LEX_OUT}
     )
+
+else()
+add_custom_command(
+    OUTPUT ${LEX_OUT}
+    DEPENDS ${LEX_SRC}
+    COMMAND ${FLEX_EXECUTABLE} ARGS -B -t  ${LEX_SRC} > ${LEX_OUT}
+    )
+endif()
+
+
 
 add_custom_command(
     DEPENDS ${PRELEX_SRC}
@@ -1330,25 +1360,12 @@ if(BUILD_STATIC_LIBRARY)
         ARCHIVE DESTINATION "${LIBRARY_INSTALL_DIR}")
 endif()
 
-# VL -- this seems to be a duplicate instruction
-# and it's breaking the build. See lines 1088-95
-#install(TARGETS ${CSOUNDLIB}
-#    LIBRARY DESTINATION "${LIBRARY_INSTALL_DIR}"
-#   ARCHIVE DESTINATION "${LIBRARY_INSTALL_DIR}")
-
-
-## option(BUILD_CATALOG "Build the opcode/library catalog" OFF)
-## check_deps(BUILD_CATALOG)
-## if(BUILD_CATALOG)
-## make_executable(mkdb "mkdb" "dl")
-## set_target_properties(mkdb PROPERTIES LINKER_LANGUAGE C)
-## endif()
-
 
 add_subdirectory(Opcodes)
 add_subdirectory(InOut)
-add_subdirectory(interfaces)
 add_subdirectory(Frontends)
+add_subdirectory(Java)
+add_subdirectory(Python)
 add_subdirectory(Bela)
 add_subdirectory(util)
 add_subdirectory(util1)

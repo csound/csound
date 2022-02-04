@@ -6,6 +6,7 @@
 import os
 import sys
 
+
 # test_ui = False
 
 # try:
@@ -21,7 +22,6 @@ import sys
 #      test_ui = True
 #     except:
 #      pass
-
 
 parserType = ""
 # showUIatClose = False
@@ -42,6 +42,7 @@ class Test:
 #      app.setResults(results)
 #      app.mainloop()
 #      root.destroy()
+
 
 def showHelp():
     message = """Csound Test Suite by Steven Yi<stevenyi@gmail.com>
@@ -111,6 +112,7 @@ def runTest():
         ["test38.csd", "Testing simple macro"],
         ["test39.csd", "Testing macro with argument"],
         ["test40.csd", "Testing i^j"],
+#        ["test41.csd", "if statement with = instead of == gives a failure", 1],
         ["test41.csd", "if statement with = instead of =="],
         ["test42.csd", "extended string"],
 	["test44.csd", "expected failure with in-arg given to in opcode", 1],
@@ -131,6 +133,7 @@ def runTest():
 	["test_arrays_multi.csd", "test multi-dimensionsl k-array, assigment to number and expression"],
 	["test_arrays_string.csd", "test string-array"],
 	["test_arrays_string2.csd", "test simple string-array assignment"],
+	["test_arrays_static_init.csd", "test arrays initialized with static initializer (i.e. kvals = [0,1,2])"],
 	["test_asig_as_array.csd", "test using a-sig with array get/set syntax"],
 	["test_arrays_negative_dimension_fail.csd",
              "test expected failure with negative dimension size and array", 1],
@@ -153,8 +156,18 @@ def runTest():
 	["test_udo_2d_array.csd", "test udo with 2d-array"],
         ["test_udo_string_array_join.csd", "test udo with S[] arg returning S"],
         ["test_array_function_call.csd", "test synthesizing an array arg from a function-call"],
+
+        ["test_explicit_types.csd", "test typed identifiers (i.e. signals:a[], sigLeft:a)"],
+        ["test_parser3_opcall_ambiguities.csd", "test T_OPCALL ambiguities"],
+        ["test_new_udo_syntax.csd", "test new-style UDO syntax"],
+        ["test_new_udo_syntax_explicit_types.csd", "test new-style UDO syntax with explicit types"],
+        ["test_multiple_return.csd", "test multiple return from express (i.. a1,a2 = xx())"],
         ["test_array_operations.csd", "test multiple operations on multiple array types"],
         ["prints_number_no_crash.csd", "test prints does not crash when given a number arguments", 1],
+        ["test_newlines_within_function_calls.csd", "test newlines allowed within function calls"],
+        ["test_comma_newline.csd", "test commas followed by newlines"],
+
+    ["test_declare.csd", "test declare keyword (CS7)"], 
     ]
 
     arrayTests = [["arrays/arrays_i_local.csd", "local i[]"],
@@ -168,6 +181,12 @@ def runTest():
     ]
 
 
+    structTests = [
+        ["structs/test_structs.csd", "basic struct test"],
+        ["structs/test_sub_structs.csd", "read/write to struct member of struct"],
+        ["structs/test_struct_arrays.csd", "arrays of structs"],
+    ]
+
     udoTests = [["udo/fail_no_xin.csd", "fail due to no xin", 1],
         ["udo/fail_no_xout.csd", "fail due to no xout", 1],
         ["udo/fail_invalid_xin.csd", "fail due to invalid xin", 1],
@@ -176,6 +195,7 @@ def runTest():
     ]
 
     tests += arrayTests
+    tests += structTests
     tests += udoTests
 
     output = ""
@@ -186,6 +206,7 @@ def runTest():
 
     testPass = 0
     testFail = 0
+    testFailMessages = ""
 
     for t in tests:
         filename = t[0]
@@ -203,6 +224,7 @@ def runTest():
             print(command)
             retVal = os.system(command)
 
+
         if hasattr(os, 'WIFEXITED') and os.WIFEXITED(retVal):
             retVal = os.WEXITSTATUS(retVal)
 
@@ -217,6 +239,8 @@ def runTest():
         out += "Test %i: %s (%s)\n\tReturn Code: %i\tExpected: %d\n"%(counter, desc, filename, retVal, expectedResult
 )
         print(out)
+        if (out.startswith("[FAIL]")):
+            testFailMessages += out
         output += "%s\n"%("=" * 80)
         output += "Test %i: %s (%s)\nReturn Code: %i\n"%(counter, desc, filename, retVal)
         output += "%s\n\n"%("=" * 80)
@@ -241,6 +265,8 @@ def runTest():
     print("%s\n\n"%("=" * 80))
     print("Tests Passed: %i\nTests Failed: %i\n"%(testPass, testFail))
 
+    if (testFail > 0):
+        print("[FAILED TESTS]\n\n%s"%testFailMessages)
 
     f = open("results.txt", "w")
     f.write(output)

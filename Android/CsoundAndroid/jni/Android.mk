@@ -50,6 +50,7 @@ $(CSOUND_SRC_ROOT)/Engine/csound_type_system.c \
 $(CSOUND_SRC_ROOT)/Engine/csound_standard_types.c \
 $(CSOUND_SRC_ROOT)/Engine/csound_data_structures.c \
 $(CSOUND_SRC_ROOT)/Engine/pools.c \
+$(CSOUND_SRC_ROOT)/InOut/soundfile.c \
 $(CSOUND_SRC_ROOT)/InOut/libsnd.c \
 $(CSOUND_SRC_ROOT)/InOut/libsnd_u.c \
 $(CSOUND_SRC_ROOT)/InOut/midifile.c \
@@ -274,12 +275,8 @@ csound_prslex.c \
 csound_orcparse.c \
 rtopensl.c \
 AndroidCsound.cpp \
-$(CSOUND_SRC_ROOT)/interfaces/CppSound.cpp \
-$(CSOUND_SRC_ROOT)/interfaces/CsoundFile.cpp \
-$(CSOUND_SRC_ROOT)/interfaces/Soundfile.cpp \
-$(CSOUND_SRC_ROOT)/interfaces/csPerfThread.cpp \
-$(CSOUND_SRC_ROOT)/interfaces/cs_glue.cpp \
-$(CSOUND_SRC_ROOT)/interfaces/filebuilding.cpp \
+$(CSOUND_SRC_ROOT)/Top/csPerfThread.cpp \
+$(CSOUND_SRC_ROOT)/Java/cs_glue.cpp \
 java_interfaceJAVA_wrap.cpp \
 $(CSOUND_SRC_ROOT)/Opcodes/paulstretch.c
 
