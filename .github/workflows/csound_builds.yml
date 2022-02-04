@@ -2,19 +2,18 @@ name: csound_builds
 
 env:
   VCPKG_BINARY_SOURCES: "clear;nuget,GitHub,readwrite"
-  CSOUND_VERSION: 6.17.0
+  CSOUND_VERSION: 6.18.0
 
 on:
   push:
     branches:
       - develop
       - master
-      - cs7
-      - PluginBase-heap
+      - csound6
   pull_request:
     branches:
       - develop
-      - cs7
+      - csound6
 
 jobs:
   linux_build:
