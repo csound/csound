@@ -1,4 +1,5 @@
-#!/bin/sh 
+#!/bin/sh
+set -x
 export RELEASE_DIR=csound-android-6.18.0
 
 #remove backup files ending with ~
