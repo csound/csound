@@ -7,12 +7,10 @@ env:
 on:
   push:
     branches:
-      - develop
       - master
       - csound6
   pull_request:
     branches:
-      - develop
       - csound6
 
 jobs:
