@@ -45,4 +45,4 @@ RUN apt-get install texlive-full -y
 #RUN apt-get build-dep csound -y 
 
 
-CMD ["/bin/bash" , "-c" , "git clone https://github.com/csound/csound.git && cd csound && git checkout csound6 && export ANDROID_NDK_ROOT=\"/opt/android-sdk-linux/ndk-bundle\" && export NDK_MODULE_PATH=\"/csound/Android/\" &&  cd Android/ && ./downloadDependencies.sh && ./build-all.sh &&./release.sh"]
+CMD ["/bin/bash" , "-c" , "git clone -b csound6 https://github.com/csound/csound.git && cd csound && export ANDROID_NDK_ROOT=\"/opt/android-sdk-linux/ndk-bundle\" && export NDK_MODULE_PATH=\"/csound/Android/\" &&  cd Android/ && ./downloadDependencies.sh && ./build-all.sh &&./release.sh"]
