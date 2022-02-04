@@ -1,4 +1,4 @@
-xf#ifdef SWIG
+#ifdef SWIG
 %module csnd
 #endif
 #include "csound.hpp"
