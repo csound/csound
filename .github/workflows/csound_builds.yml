@@ -73,7 +73,7 @@ jobs:
 
       - name: Install system dependencies
         run: |
-          choco install -y winflexbison3
+          choco install -y winflexbison3 innosetup
 
       - name: Bootstrap VCPKG
         run: .\vcpkg\bootstrap-vcpkg.bat
