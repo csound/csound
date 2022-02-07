@@ -63,7 +63,7 @@ jobs:
 
   windows_build:
     name: Windows build
-    runs-on: windows-latest
+    runs-on: windows-2022
     steps:
       - name: Checkout Source Code
         uses: actions/checkout@v1
