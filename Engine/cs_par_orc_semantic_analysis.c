@@ -315,7 +315,7 @@ void csp_orc_sa_instr_add_tree(CSOUND *csound, TREE *x)
         return;
       }
      if (x->type == T_PLUS_IDENT) {
-        csp_orc_sa_instr_add(csound, x->value->lexeme+1);
+        csp_orc_sa_instr_add(csound, x->value->lexeme);
         return;
       }
       

@@ -582,7 +582,7 @@ unary_expr : '~' expr %prec S_UMINUS
           {
               $$ = make_node(csound,LINE,LOCN, S_UPLUS, NULL, $2);
           }
-        
+
         | '+' error           { $$ = NULL; }
         ;
 
@@ -712,9 +712,13 @@ integer : INTEGER_TOKEN
         { $$ = make_leaf(csound, LINE, LOCN, INTEGER_TOKEN, (ORCTOKEN *)$1); }
         ;
 
-plus_identifier : T_PLUS_IDENT
+/* VL 8.2.22 this rule is only used in instr definition
+   it can't use a lexer token because that is ambiguous with expressions
+   so we have to construct it as the concatentation of two tokens
+*/
+plus_identifier : '+' T_IDENT
         { 
-	  $$ = make_leaf(csound, LINE, LOCN, T_PLUS_IDENT, (ORCTOKEN *)$1);
+	  $$ = make_leaf(csound, LINE, LOCN, T_PLUS_IDENT, (ORCTOKEN *)$2);
 	}
         ;
 

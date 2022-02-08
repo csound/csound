@@ -77,7 +77,6 @@ int get_next_char(char *, int, struct yyguts_t*);
 %option nounput
 
 IDENT           [a-zA-Z_][a-zA-Z0-9_]*
-PLUS_IDENT      \+[a-zA-Z_][a-zA-Z0-9_]*
 TYPED_IDENTIFIER  [a-zA-Z_][a-zA-Z0-9_]*:[a-zA-Z_][a-zA-Z0-9_]*
 XIDENT          0|[aijkftKOJVPopS\[\]]+
 INTGR           [0-9]+
@@ -357,11 +356,6 @@ SYMBOL          [\[\]+\-*/%\^\?:.,!]
 {IDENT}         { *lvalp = lookup_token(csound, yytext, yyscanner);
                   /* csound->Message(csound,"%s -> %d\n",
                                      yytext, (*lvalp)->type); */
-                  return (*lvalp)->type; }
-
-{PLUS_IDENT}     { *lvalp = lookup_token(csound, yytext, yyscanner);
-                     csound->Message(csound,"%s -> %d\n",
-		       yytext, (*lvalp)->type);
                   return (*lvalp)->type; }
 
 {TYPED_IDENTIFIER} { *lvalp = lookup_token(csound, yytext, yyscanner);

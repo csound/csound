@@ -1784,7 +1784,6 @@ PUBLIC int csoundCompileTreeInternal(CSOUND *csound, TREE *root, int async)
             c = p->left->value->lexeme;
 	    printf("%s \n", c);
             if (UNLIKELY(p->left->type == T_PLUS_IDENT)) {
-	      c = p->left->value->lexeme+1;
               insno_priority--;
             }
             if (UNLIKELY(!check_instr_name(c))) {
@@ -1815,7 +1814,6 @@ PUBLIC int csoundCompileTreeInternal(CSOUND *csound, TREE *root, int async)
           char *c;
           c = p->value->lexeme;
           if (UNLIKELY(p->type == T_PLUS_IDENT)) {
-	     c = p->value->lexeme+1;
             insno_priority--;
           }
           if (UNLIKELY(!check_instr_name(c))) {
