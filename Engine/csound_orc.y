@@ -713,7 +713,10 @@ integer : INTEGER_TOKEN
         ;
 
 plus_identifier : T_PLUS_IDENT
-        { $$ = make_leaf(csound, LINE, LOCN, T_PLUS_IDENT, (ORCTOKEN *)$1); }
+        { 
+	  $$ = make_leaf(csound, LINE, LOCN, T_PLUS_IDENT, (ORCTOKEN *)$1);
+          $1->left->rate = '+';
+	}
         ;
 
 typed_identifier : T_TYPED_IDENT
