@@ -167,7 +167,8 @@ def runTest():
         ["test_newlines_within_function_calls.csd", "test newlines allowed within function calls"],
         ["test_comma_newline.csd", "test commas followed by newlines"],
 
-    ["test_declare.csd", "test declare keyword (CS7)"], 
+    ["test_declare.csd", "test declare keyword (CS7)"],
+    ["test_plusname.csd", "test +Name for instr name"],
     ]
 
     arrayTests = [["arrays/arrays_i_local.csd", "local i[]"],

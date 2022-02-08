@@ -715,7 +715,6 @@ integer : INTEGER_TOKEN
 plus_identifier : T_PLUS_IDENT
         { 
 	  $$ = make_leaf(csound, LINE, LOCN, T_PLUS_IDENT, (ORCTOKEN *)$1);
-          $1->left->rate = '+';
 	}
         ;
 
