@@ -248,6 +248,7 @@ static int parse_opcode_args(CSOUND *csound, OENTRY *opc)
         i++;
       }
     }
+    
 //    inm->inchns = i + 1; /* Add one for optional local ksmps */
 //    inm->inchns = i - 1;
     inm->inchns = i;     // this feature is removed from 7.0
@@ -321,7 +322,8 @@ static int parse_opcode_args(CSOUND *csound, OENTRY *opc)
 
     // this feature is removed from 7.0
     // opc->intypes = cs_strdup(csound, intypes);
-    opc->intypes = cs_strdup(csound, inm->intypes);
+    opc->intypes = cs_strdup(csound, (inm->intypes[0] == '0') ? "" :
+                                                                 inm->intypes);
     opc->outypes = cs_strdup(csound, (inm->outtypes[0] == '0') ? "" :
                                                                  inm->outtypes);
 
