@@ -132,8 +132,9 @@ OENTRY opcodlst_1[] = {
   { "midglobal",S(MIDGLOBAL),0,1,   "",     "Sm", midglobal, NULL, NULL, NULL},
   { "ihold",  S(LINK),0,    1,      "",     "",     ihold, NULL, NULL, NULL  },
   { "turnoff",S(LINK),0,    2,      "",     "",     NULL,   turnoff, NULL, NULL },
-  {  "=.S",   S(STRCPY_OP),0,   1,  "S",    "S",
-     (SUBR) strcpy_opcode_S, NULL, (SUBR) NULL, NULL    },
+  /* VL: 10.2.22 this was thread 1, but with parser3 we need to make string assignment on threads 1 & 2 */ 
+  {  "=.S",   S(STRCPY_OP),0,   3,  "S",    "S",
+     (SUBR) strcpy_opcode_S, (SUBR) strcpy_opcode_S, (SUBR) NULL, NULL    },
   {  "#=.S",   S(STRCPY_OP),0,   2,  "S",    "S",
      NULL, (SUBR) strcpy_opcode_S, (SUBR) NULL, NULL    },
   {  "=.T",   S(STRGET_OP),0,   1,  "S",    "i",

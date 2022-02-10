@@ -769,6 +769,7 @@ static TREE *create_expression(CSOUND *csound, TREE *root, int line, int locn,
       } else {
         if (var->varType == &CS_VAR_TYPE_ARRAY) {
           outype = strdup(var->subType->varTypeName);
+	  
 
 	  /* VL: 9.2.22 pulled code from 6.x to check for array index type
              to provide the correct outype
@@ -800,7 +801,6 @@ static TREE *create_expression(CSOUND *csound, TREE *root, int line, int locn,
 
       outarg = create_out_arg(csound, outype,
                               typeTable->localPool->synthArgCount++, typeTable);
-
     }
 
     break;
