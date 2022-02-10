@@ -1778,11 +1778,12 @@ PUBLIC int csoundCompileTreeInternal(CSOUND *csound, TREE *root, int async)
             int32 instrNum = (int32)p->left->value->value;
             insert_instrtxt(csound, instrtxt, instrNum, engineState,0);
           }
-          else if (p->left->type == T_IDENT) {
+          else if (p->left->type == T_IDENT || p->left->type == T_PLUS_IDENT) {
             int32  insno_priority = -1L;
             char *c;
             c = p->left->value->lexeme;
-            if (UNLIKELY(p->left->rate == (int) '+')) {
+	    printf("%s \n", c);
+            if (UNLIKELY(p->left->type == T_PLUS_IDENT)) {
               insno_priority--;
             }
             if (UNLIKELY(!check_instr_name(c))) {
@@ -1807,19 +1808,18 @@ PUBLIC int csoundCompileTreeInternal(CSOUND *csound, TREE *root, int async)
 
           insert_instrtxt(csound, instrtxt, p->value->value, engineState,
                           0);
-        } else if (p->type == T_IDENT) {
+        } else if (p->type == T_IDENT  || p->type == T_PLUS_IDENT) {
 
           int32 insno_priority = -1L;
           char *c;
           c = p->value->lexeme;
-
-          if (UNLIKELY(p->rate == (int)'+')) {
+          if (UNLIKELY(p->type == T_PLUS_IDENT)) {
             insno_priority--;
           }
           if (UNLIKELY(!check_instr_name(c))) {
             synterr(csound, Str("invalid name for instrument"));
           }
-          // VL 25.05.2018
+	            // VL 25.05.2018
           // this should only be run here in the
           // first compilation
           // if(engineState == &csound->engineState)

@@ -63,18 +63,21 @@ jobs:
 
   windows_build:
     name: Windows build
-    runs-on: windows-latest
+    runs-on: windows-2022
     steps:
       - name: Checkout Source Code
         uses: actions/checkout@v1
         with:
           fetch-depth: 1
           submodules: true
+
       - name: Install system dependencies
         run: |
-          choco install -y winflexbison3
+          choco install -y winflexbison3 innosetup
+
       - name: Bootstrap VCPKG
         run: .\vcpkg\bootstrap-vcpkg.bat
+
       - name: Setup NuGet Credentials
         shell: bash
         run: >
@@ -85,31 +88,38 @@ jobs:
           -name "GitHub"
           -username "csound"
           -password "${{ secrets.GITHUB_TOKEN }}"
+
       - name: Configure build
         run: cmake -B build -S . -DUSE_VCPKG=1 -DCUSTOM_CMAKE="./platform/windows/Custom-vs.cmake"
+
       - name: Build Csound
         run: cmake --build build --config Release
+
       - name: Run tests
         run: cmake --build build --target csdtests
+
       - name: Acquire Csound manual
         shell: powershell
         run: |
           Invoke-WebRequest -Uri "https://github.com/csound/manual/releases/download/6.16.0/Csound6.16.0_manual_html.zip" -OutFile "./manual.zip"
           7z x manual.zip
+
       - name: Build installer
         shell: powershell
         run: |
-          $Env:RedistVersion=Get-Content "C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Auxiliary\Build\Microsoft.VCRedistVersion.default.txt"
-          $Env:VCREDIST_CRT_DIR="C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Redist\MSVC\${Env:RedistVersion}\x64\Microsoft.VC142.CRT"
-          $Env:VCREDIST_CXXAMP_DIR="C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Redist\MSVC\${Env:RedistVersion}\x64\Microsoft.VC142.CXXAMP"
-          $Env:VCREDIST_OPENMP_DIR="C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Redist\MSVC\${Env:RedistVersion}\x64\Microsoft.VC142.OpenMP"
+          $Env:RedistVersion=Get-Content "C:\Program Files\Microsoft Visual Studio\2022\Enterprise\VC\Auxiliary\Build\Microsoft.VCRedistVersion.default.txt"
+          $Env:VCREDIST_CRT_DIR="C:\Program Files\Microsoft Visual Studio\2022\Enterprise\VC\Redist\MSVC\${Env:RedistVersion}\x64\Microsoft.VC143.CRT"
+          $Env:VCREDIST_CXXAMP_DIR="C:\Program Files\Microsoft Visual Studio\2022\Enterprise\VC\Redist\MSVC\${Env:RedistVersion}\x64\Microsoft.VC143.CXXAMP"
+          $Env:VCREDIST_OPENMP_DIR="C:\Program Files\Microsoft Visual Studio\2022\Enterprise\VC\Redist\MSVC\${Env:RedistVersion}\x64\Microsoft.VC143.OpenMP"
           iscc /o. installer\\windows\\csound6_x64_github.iss
+
       - name: Upload installer
         uses: actions/upload-artifact@v2
         with:
           name: csound-${{env.CSOUND_VERSION}}.${{github.run_number}}-windows-x64-installer
           path: ./csound-windows_x86_64-*.exe
           if-no-files-found: error
+
       - name: Upload zip
         uses: actions/upload-artifact@v2
         with:

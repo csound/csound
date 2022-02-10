@@ -64,7 +64,8 @@ installing Csound:
 
 3.  `cd csound`
 
-4.  `git clone https://github.com/csound/csound.git csound`
+4.  `git clone https://github.com/csound/csound.git csound`  
+    (Add `git checkout master` for building the latest stable version.) 
 
 5.  `mkdir cs6make `
 

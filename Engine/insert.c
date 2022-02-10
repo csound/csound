@@ -1419,8 +1419,10 @@ int useropcdset(CSOUND *csound, UOPCODE *p)
       return csound->InitError(csound, Str("Cannot find instr %d (UDO %s)\n"),
                                instno, inm->name);
     /* set local ksmps if defined by user */
+    /* VL: 9.2.22 we are disabling this unused and confusing feature of 
+       a hidden local sampling rate parameter on 7.x */
+    /*
     n = p->OUTOCOUNT + p->INCOUNT - 1;
-
     if (*(p->ar[n]) != FL(0.0)) {
       i = (unsigned int) *(p->ar[n]);
       if (UNLIKELY(i < 1 || i > csound->ksmps ||
@@ -1429,7 +1431,10 @@ int useropcdset(CSOUND *csound, UOPCODE *p)
                                inm->name, i);
       }
       local_ksmps = i;
-    }
+      } 
+    */
+    n = p->OUTOCOUNT + p->INCOUNT - 1;
+  
 
     if (!p->ip) {
 
@@ -1607,7 +1612,6 @@ int xinset(CSOUND *csound, XIN *p)
   tmp = buf->iobufp_ptrs; // this is used to record the UDO's internal vars
   // for copying at perf-time
   current = inm->in_arg_pool->head;
-
   for (i = 0; i < inm->inchns; i++) {
     void* in = (void*)bufs[i];
     void* out = (void*)p->args[i];
