@@ -78,7 +78,7 @@
  F       multiple args (f-rate)#
 */
 
-/* inargs and outargs may also be arrays, e.g. "a[]" is an array of
+/* inargs and outargs may also be arrays, e.g. "a[b]" is an array of
    arate vectors. Then for polymorphic opcode entries, "opcode.a" is
    for arate vectors, and "opcode.A" is for arrays of arate vectors.
 */
@@ -482,7 +482,7 @@ OENTRY opcodlst_1[] = {
   { "randi.k",  S(RANDI),0, 3,      "k",    "xxvoo", riset, krandi    },
   { "randc",  S(RANDC),0,   3,      "a",    "xxvoo", rcset, randc     },
   { "randc.k",  S(RANDC),0, 3,      "k",    "xxvoo", rcset, krandc    },
-  { "port",   S(PORT),0,    3,      "k",    "kio",  porset, port            },
+  { "port",   S(PORT),0,    3,      "k",    "kio",  porset, port      },
   { "tone.k", S(TONE),0,    3,      "a",    "ako",  tonset,   tone    },
   { "tonex.k",S(TONEX),0,   3,      "a",    "akoo", tonsetx,  tonex   },
   { "atone.k",  S(TONE),0,  3,      "a",    "ako",  tonset,   atone   },
@@ -762,16 +762,17 @@ OENTRY opcodlst_1[] = {
   { "prints.i",S(PRINTS),0,   1,   "",   "iN",   (SUBR)printsset, NULL, NULL },
   { "printk2", S(PRINTK2), WR, 3, "",   "koo",
     (SUBR)printk2set, (SUBR)printk2, NULL },
-  { "portk",  S(KPORT),0,   3, "k",     "kko",  (SUBR)kporset, (SUBR)kport, NULL },
-  { "tonek",  S(KTONE),0,   3, "k",     "kko",  (SUBR)ktonset, (SUBR)ktone, NULL },
-  { "atonek", S(KTONE),0,   3, "k",     "kko",  (SUBR)ktonset, (SUBR)katone, NULL},
-  { "resonk", S(KRESON),0,  3, "k",     "kkkpo",(SUBR)krsnset, (SUBR)kreson, NULL},
-  { "aresonk",S(KRESON),0,  3, "k",     "kkkpo",(SUBR)krsnset, (SUBR)kareson, NULL},
+  { "portk",  S(PORT),0,    3, "k",     "kko",  (SUBR)porset,  (SUBR)kport, NULL },
+  { "tonek",  S(TONE),0,    3, "k",     "kko",  (SUBR)tonset,  (SUBR)ktone, NULL },
+  { "atonek", S(TONE),0,    3, "k",     "kko",  (SUBR)tonset,  (SUBR)katone, NULL},
+  { "resonk", S(RESON),0,   3, "k",     "kkkpo",(SUBR)rsnset,  (SUBR)kreson, NULL},
+  { "aresonk",S(RESON),0,   3, "k",     "kkkpo",(SUBR)rsnset,  (SUBR)kreson, NULL},
+  { "aresonk",S(RESON),0,   3, "k",     "kkkpo",(SUBR)rsnset,  (SUBR)kareson, NULL},
   { "limit.i", S(LIMIT),0,  1, "i",     "iii",  (SUBR)klimit,  NULL,    NULL      },
   { "limit.k",  S(LIMIT),0, 2, "k",     "kkk",  NULL,          (SUBR)klimit, NULL },
   { "limit.a",  S(LIMIT),0, 2, "a",     "akk",  NULL,  (SUBR)limit },
   { "prealloc", S(AOP),0,   1, "",      "iio",  (SUBR)prealloc, NULL, NULL  },
-   { "prealloc", S(AOP),0,   1, "",      "Sio",  (SUBR)prealloc_S, NULL, NULL  },
+  { "prealloc.S", S(AOP),0, 1, "",      "Sio",  (SUBR)prealloc_S, NULL, NULL  },
   /* opcode   dspace      thread  outarg  inargs  isub    ksub    asub    */
   { "inh",    S(INH),0,     2,      "aaaaaa","",    NULL,   inh     },
   { "ino",    S(INO),0,     2,      "aaaaaaaa","",  NULL,   ino     },
