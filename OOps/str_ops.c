@@ -209,10 +209,10 @@ static int32_t strcpy_S(CSOUND *csound, STRCPY_OP *p) {
 /* strcpy perf */
 int32_t strcpy_opcode_S(CSOUND *csound, STRCPY_OP *p)
 {
-
   if (p->str->updatecount > p->updatecount) {
     strcpy_S(csound,p);
     p->r->updatecount = p->updatecount = p->str->updatecount;
+    printf("copy\n");
    }
    return OK;
 }
@@ -222,6 +222,8 @@ int32_t strcpy_opcode_init_S(CSOUND *csound, STRCPY_OP *p)
 {
    /* always run the opcode at i-time */
    p->updatecount = 0;
+   /* set the update count */
+   p->r->updatecount = 1;
    return strcpy_S(csound,p);
 }
 
