@@ -211,8 +211,9 @@ int32_t strcpy_opcode_S(CSOUND *csound, STRCPY_OP *p)
 {
   if (p->str->updatecount > p->updatecount) {
     strcpy_S(csound,p);
-    p->r->updatecount = p->updatecount = p->str->updatecount;
-    //printf("copy\n");
+    p->r->updatecount++;
+    p->updatecount = p->str->updatecount;
+    printf("copy\n");
    }
    return OK;
 }
