@@ -43,7 +43,6 @@ int32_t porset(CSOUND *csound, PORT *p)
     p->ihtim_old = *p->ihtim;
     return OK;
 }
-int32_t kporset(CSOUND *csound, PORT *p) { return porset(csound, p); }
 
 int32_t port(CSOUND *csound, PORT *p)
 {
@@ -53,7 +52,7 @@ int32_t port(CSOUND *csound, PORT *p)
     return OK;
 }
 
-int32_t kport(CSOUND *csound, KPORT *p)
+int32_t kport(CSOUND *csound, PORT *p)
 {
     IGN(csound);
     if (p->ihtim_old != *p->ihtim) {
@@ -78,19 +77,6 @@ int32_t tonset(CSOUND *csound, TONE *p)
       p->yt1 = 0.0;
     return OK;
 }
-
-int32_t ktonset(CSOUND *csound, TONE *p) {
-    IGN(csound);
-    double b;
-    p->prvhp = (double)*p->khp;
-    b = 2.0 - cos((double)(p->prvhp * CS_ONEDKR *TWOPI));
-    p->c2 = b - sqrt(b * b - 1.0);
-    p->c1 = 1.0 - p->c2;
-
-    if (LIKELY(!(*p->istor)))
-      p->yt1 = 0.0;
-    return OK;
- }
 
 int32_t ktone(CSOUND *csound, TONE *p)
 {
