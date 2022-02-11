@@ -4447,6 +4447,8 @@ static OENTRY arrayvars_localops[] =
     { "##array_init", sizeof(ARRAY_SET), 0, 1, "", ".[].m", (SUBR)array_set },
     { "##array_set.k", sizeof(ARRAY_SET), 0, 2, "", "k[]km", NULL,(SUBR)array_set},
     { "##array_set.a", sizeof(ARRAY_SET), 0, 2, "", "a[]am", NULL, (SUBR)array_set},
+    // VL: 11.2.22 I think array set S needs to be added running at thread 3 for parser3
+    { "##array_set.S", sizeof(ARRAY_SET), 0, 3, "", "S[].m", (SUBR)array_set , (SUBR)array_set },
     { "##array_set.i", sizeof(ARRAY_SET), 0, 1, "", ".[].m", (SUBR)array_set },
     { "##array_set.e", sizeof(ARRAY_SET), 0, 1, "", "i[].z", (SUBR)array_err },
     { "##array_set.x", sizeof(ARRAY_SET), 0, 2, "", ".[].z", NULL, (SUBR)array_set},

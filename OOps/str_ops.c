@@ -214,6 +214,7 @@ int32_t strcpy_opcode_S(CSOUND *csound, STRCPY_OP *p)
     p->r->updatecount++;
     p->updatecount = p->str->updatecount;
     //printf("copy\n");
+    //printf("str:%p %p %s \n", p->r, p->str, p->r->data);
    }
    return OK;
 }
@@ -227,29 +228,6 @@ int32_t strcpy_opcode_init_S(CSOUND *csound, STRCPY_OP *p)
    p->r->updatecount = 1;
    return strcpy_S(csound,p);
 }
-
-
-
-/*
-VL these appear not be used anywhere. Should we remove them?
-int32_t strassign_opcode_S(CSOUND *csound, STRCPY_OP *p)
-{
-   IGN(csound);
-    p->r->data = p->str->data;
-    p->r->size = p->str->size;
-    return OK;
-}
-int32_t strassign_opcode_Sk(CSOUND *csound, STRCPY_OP *p)
-{
-    IGN(csound);
-    if (strcmp(p->r->data, p->str->data)!=0){
-      p->r->data = p->str->data;
-      p->r->size = p->str->size;
-    }
-    //csound->Message(csound, p->r->data);
-    return OK;
-}
-*/
 
 int32_t str_changed(CSOUND *csound, STRCHGD *p)
 {
@@ -271,6 +249,9 @@ int32_t str_changed_k(CSOUND *csound, STRCHGD *p)
     return OK;
 }
 
+/* this opcode is i-time only, so no need to make
+   any adjustments regarding update counts 
+*/
 extern char* get_strarg(CSOUND *csound, MYFLT p, char *strarg);
 int32_t strcpy_opcode_p(CSOUND *csound, STRGET_OP *p)
 {
