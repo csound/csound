@@ -178,9 +178,9 @@ static CS_NOINLINE int32_t StrOp_ErrMsg(void *p, const char *msg)
 
     return NOTOK;
 }
-/* strcpy */
-int32_t strcpy_opcode_S(CSOUND *csound, STRCPY_OP *p)
-{
+
+static int32_t strcpy_S(CSOUND *csound, STRCPY_OP *p) {
+   
     char  *newVal = p->str->data;
     if (p->r->data == NULL) {
       p->r->data =  cs_strdup(csound, newVal);
@@ -203,9 +203,30 @@ int32_t strcpy_opcode_S(CSOUND *csound, STRCPY_OP *p)
       p->r->size = strlen(newVal) + 1;
       //printf("str:%p %p \n", p->r, p->r->data);
     }
-
-    return OK;
+    return  OK;
 }
+
+/* strcpy perf */
+int32_t strcpy_opcode_S(CSOUND *csound, STRCPY_OP *p)
+{
+
+  if (p->str->updatecount > p->updatecount) {
+    strcpy_S(csound,p);
+    p->r->updatecount = p->updatecount = p->str->updatecount;
+   }
+   return OK;
+}
+
+/* strcpy init */
+int32_t strcpy_opcode_init_S(CSOUND *csound, STRCPY_OP *p)
+{
+   /* always run the opcode at i-time */
+   p->updatecount = 0;
+   return strcpy_S(csound,p);
+}
+
+
+
 
 int32_t strassign_opcode_S(CSOUND *csound, STRCPY_OP *p)
 {

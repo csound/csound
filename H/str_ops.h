@@ -58,6 +58,7 @@ typedef struct {
     OPDS    h;
     STRINGDAT  *r;
     STRINGDAT   *str;
+    size_t   updatecount;
 } STRCPY_OP;
 
 typedef struct {
@@ -149,6 +150,7 @@ int     strset_init(CSOUND *, void *);
 int     strget_init(CSOUND *, void *);
 int     strcpy_opcode_p(CSOUND *, void *);
 int     strcpy_opcode_S(CSOUND *, void *);
+int     strcpy_opcode_init_S(CSOUND *, void *);  
 int     strassign_opcode_S(CSOUND *, void *);
 int     strassign_opcode_Sk(CSOUND *, void *);
 int     strcat_opcode(CSOUND *, void *);

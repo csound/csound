@@ -89,6 +89,9 @@ void string_copy_value(CSOUND* csound, CS_TYPE* cstype, void* dest, void* src) {
     //sDest->size = sSrc->size;
     //fprintf(stderr, "out:srcsize=%d >>>%s<<<dstsize=%d dst->data=%p\n",
     //        sSrc->size, sSrc->data, sDest->size, sDest->data);
+    /* VL Feb 22 - update count for 7.0 */
+    sDest->updatecount = sSrc->updatecount + 1;
+    //printf("%lu %lu \n", sSrc->updatecount, sDest->updatecount);
 }
 
 static size_t array_get_num_members(ARRAYDAT* aSrc) {

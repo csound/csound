@@ -26,7 +26,7 @@ import sys
 parserType = ""
 # showUIatClose = False
 ##csoundExecutable = r"C:/Users/new/csound-csound6-git/csound.exe "
-csoundExecutable =""
+csoundExecutable = ""
 sourceDirectory = "."
 
 class Test:
@@ -220,7 +220,7 @@ def runTest():
             print(command)
             retVal = os.system(command)
         else:
-            executable = (csoundExecutable == "") and "../../csound" or csoundExecutable
+            executable = (csoundExecutable == "") and "csound" or csoundExecutable
             command = "%s %s %s %s/%s 2> %s"%(executable, parserType, runArgs, sourceDirectory, filename, tempfile)
             print(command)
             retVal = os.system(command)

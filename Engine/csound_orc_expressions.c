@@ -1476,6 +1476,9 @@ int is_statement_expansion_required(TREE* root) {
     current = current->next;
   }
 
+  /*  VL: do we  need  to always expand  ARRAY expressions?
+      would this lead to unecessary copying at times?
+   */
   current = root->left;
   while (current != NULL) {
     if (current->type == T_ARRAY) {
