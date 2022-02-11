@@ -213,7 +213,7 @@ int32_t strcpy_opcode_S(CSOUND *csound, STRCPY_OP *p)
     strcpy_S(csound,p);
     p->r->updatecount++;
     p->updatecount = p->str->updatecount;
-    printf("copy\n");
+    //printf("copy\n");
    }
    return OK;
 }
@@ -230,7 +230,8 @@ int32_t strcpy_opcode_init_S(CSOUND *csound, STRCPY_OP *p)
 
 
 
-
+/*
+VL these appear not be used anywhere. Should we remove them?
 int32_t strassign_opcode_S(CSOUND *csound, STRCPY_OP *p)
 {
    IGN(csound);
@@ -248,6 +249,7 @@ int32_t strassign_opcode_Sk(CSOUND *csound, STRCPY_OP *p)
     //csound->Message(csound, p->r->data);
     return OK;
 }
+*/
 
 int32_t str_changed(CSOUND *csound, STRCHGD *p)
 {
