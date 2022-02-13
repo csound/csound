@@ -90,7 +90,8 @@ void string_copy_value(CSOUND* csound, CS_TYPE* cstype, void* dest, void* src) {
     //fprintf(stderr, "out:srcsize=%d >>>%s<<<dstsize=%d dst->data=%p\n",
     //        sSrc->size, sSrc->data, sDest->size, sDest->data);
     /* VL Feb 22 - update count for 7.0 */
-    sDest->updatecount = sSrc->updatecount;
+    //if(strcmp(sSrc->data, sDest->data))
+      sDest->updatecount++;// = sSrc->updatecount + 2;
     //printf("%s %s %p\n", sSrc->data, sDest->data, sDest);
 }
 
