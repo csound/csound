@@ -422,7 +422,7 @@ typedef struct CORFIL {
   typedef struct {
     char *data;
     int size;
-    size_t updatecount;    /*  VL: Feb 22 starting in 7.0 we have an update count */
+    int64_t timestamp;    /*  VL: Feb 22 starting in 7.0 we have a timestamp */
   } STRINGDAT;
 
   typedef struct monblk {

@@ -62,6 +62,8 @@ void string_copy_value(CSOUND* csound, CS_TYPE* cstype, void* dest, void* src) {
     STRINGDAT* sSrc = (STRINGDAT*)src;
     CSOUND* cs = (CSOUND*)csound;
 
+    if(sSrc->timestamp == 0 || sSrc->timestamp == csound->GetKcounter(csound)) {
+    
     if (UNLIKELY(src == NULL)) return;
     if (UNLIKELY(dest == NULL)) return;
 
@@ -75,24 +77,13 @@ void string_copy_value(CSOUND* csound, CS_TYPE* cstype, void* dest, void* src) {
       if (sDest->data == NULL) {
         sDest->data = cs_strdup(csound, sSrc->data);
         sDest->size = strlen(sDest->data)+1;
-      } else {//breaks here
-        //fprintf(stderr, "\n in:src %p size=%d >>>%s<<<dstsize=%d dst->data=%p\n",
-        //   sSrc->data, sSrc->size, sSrc->data, sDest->size, sDest->data);
-        //memcpy(sDest->data, sSrc->data, sDest->size);
-        //memset(sDest->data,0,sDest->size);
+      } else {
         strncpy(sDest->data, sSrc->data, sDest->size-1);
-
-        //cs->Free(cs, sDest->data); sDest->data = cs_strdup(csound, sSrc->data);
-        //sDest->size = strlen(sDest->data)+1;
       }
     }
-    //sDest->size = sSrc->size;
-    //fprintf(stderr, "out:srcsize=%d >>>%s<<<dstsize=%d dst->data=%p\n",
-    //        sSrc->size, sSrc->data, sDest->size, sDest->data);
     /* VL Feb 22 - update count for 7.0 */
-    //if(strcmp(sSrc->data, sDest->data))
-      sDest->updatecount++;// = sSrc->updatecount + 2;
-    //printf("%s %s %p\n", sSrc->data, sDest->data, sDest);
+    sDest->timestamp = csound->GetKcounter(csound);
+    }
 }
 
 static size_t array_get_num_members(ARRAYDAT* aSrc) {
@@ -177,6 +168,7 @@ void varInitMemoryString(CSOUND *csound, CS_VARIABLE* var, MYFLT* memblock) {
     STRINGDAT *str = (STRINGDAT *)memblock;
     str->data = (char *) csound->Calloc(csound, 8);
     str->size = 8;
+    str->timestamp = 0;
     //printf("initialised %s %p %s %d\n", var->varName, str,  str->data, str->size);
 }
 
