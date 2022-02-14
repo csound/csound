@@ -25,9 +25,13 @@
 #include "ugens4.h"
 #include <math.h>
 #include <inttypes.h>
+#include <math.h>
+#include <inttypes.h>
+#include "opcodes.h"
 
 /* The branch prediction slows it down!! */
 
+#ifdef INC_BUZZ
 int32_t bzzset(CSOUND *csound, BUZZ *p)
 {
     FUNC        *ftp;
@@ -99,7 +103,9 @@ int32_t buzz(CSOUND *csound, BUZZ *p)
  err1:
     return csound->PerfError(csound, &(p->h), Str("buzz: not initialised"));
 }
+#endif
 
+#ifdef INC_GBUZZ
 int32_t gbzset(CSOUND *csound, GBUZZ *p)
 {
     FUNC        *ftp;
@@ -211,7 +217,9 @@ int32_t gbuzz(CSOUND *csound, GBUZZ *p)
  err1:
     return csound->PerfError(csound, &(p->h), Str("gbuzz: not initialised"));
 }
+#endif
 
+#ifdef INC_PLUCK
 #define PLUKMIN 64
 
 static  int16   rand15(CSOUND *);
@@ -219,8 +227,8 @@ static  int16   rand16(CSOUND *);
 
 int plukset(CSOUND *csound, PLUCK *p)
 {
-    int32_t         n;
-    int32_t       npts, iphs;
+    int32_t     n;
+    int32_t     npts, iphs;
     char        *auxp;
     FUNC        *ftp;
     MYFLT       *ap, *fp;
@@ -417,6 +425,7 @@ static int16 rand15(CSOUND *csound)
     csound->ugens4_rand_15 = (csound->ugens4_rand_15 * RNDMUL + 1) & MASK15;
     return (int16) csound->ugens4_rand_15;
 }
+#endif
 
 /*=========================================================================
  *
@@ -443,6 +452,9 @@ static int16 rand15(CSOUND *csound)
 #define RIM 0x7FFFFFFFL         /* 2**31 - 1 */
 
 #define dv2_31          (FL(4.656612873077392578125e-10))
+#ifndef RNDMUL
+#define RNDMUL  15625
+#endif
 
 int32 randint31(int32 seed31)
 {
@@ -463,6 +475,7 @@ int32 randint31(int32 seed31)
     return (int32_t)rilo;
 }
 
+#if defined(INC_RAND)||defined(INC_RAND_K)
 int32_t rndset(CSOUND *csound, RAND *p)
 {
     p->new = (*p->sel!=FL(0.0));
@@ -494,7 +507,9 @@ int32_t rndset(CSOUND *csound, RAND *p)
 
     return OK;
 }
+#endif
 
+#ifdef INC_RAND_K
 int32_t krand(CSOUND *csound, RAND *p)
 {
     IGN(csound);
@@ -514,6 +529,9 @@ int32_t krand(CSOUND *csound, RAND *p)
     }
     return OK;
 }
+#endif
+
+#ifdef INC_RAND
 
 int32_t arand(CSOUND *csound, RAND *p)
 {
@@ -575,6 +593,7 @@ int32_t arand(CSOUND *csound, RAND *p)
 
     return OK;
 }
+#endif
 
 int32_t rhset(CSOUND *csound, RANDH *p)
 {

@@ -25,9 +25,11 @@
 #include "csoundCore.h" /*                              UGENS6.C        */
 #include "ugens6.h"
 #include <math.h>
+#include "opcodes.h"
 
 #define log001 (-FL(6.9078))    /* log(.001) */
 
+#ifdef INC_DOWNSAMP
 int32_t downset(CSOUND *csound, DOWNSAMP *p)
 {
     if (UNLIKELY((p->len = (uint32_t)*p->ilen) > CS_KSMPS))
@@ -57,7 +59,9 @@ int32_t downsamp(CSOUND *csound, DOWNSAMP *p)
     }
     return OK;
 }
+#endif
 
+#ifdef INC_UPSAMP
 int32_t upsamp(CSOUND *csound, UPSAMP *p)
 {
     IGN(csound);
@@ -76,6 +80,9 @@ int32_t upsamp(CSOUND *csound, UPSAMP *p)
       ar[n] = kval;
     return OK;
 }
+#endif
+
+#ifdef INC_A_K
 
 int32_t a_k_set(CSOUND *csound, INTERP *p)
 {
@@ -84,17 +91,26 @@ int32_t a_k_set(CSOUND *csound, INTERP *p)
     p->init_k = 0;              /* IV - Sep 5 2002 */
     return OK;
 }
+#endif
+
+#ifdef INC_INTERP
 
 int32_t interpset(CSOUND *csound, INTERP *p)
 {
     IGN(csound);
     if (*p->istor == FL(0.0)) {
       p->prev = (*p->imode == FL(0.0) ? *p->istart : FL(0.0));
-      p->init_k = (*p->imode == FL(0.0) ? 0 : 1);       /* IV - Sep 5 2002 */
+      p->init_k = (*p->imode == FL(0.0) ? 0 : 1);
+
+
+       /* IV - Sep 5 2002 */
     }
 
     return OK;
 }
+#endif
+
+#if defined(INC_INTERP)||defined(INC_A_K)
 
 int32_t interp(CSOUND *csound, INTERP *p)
 {
@@ -122,6 +138,9 @@ int32_t interp(CSOUND *csound, INTERP *p)
     p->prev = val;
     return OK;
 }
+#endif
+
+#if defined(INC_INTEG)||defined(INC_INTEG_K)||defined(INC_DIFF)||defined(INC_DIFF_K)
 
 int32_t indfset(CSOUND *csound, INDIFF *p)
 {
@@ -130,14 +149,18 @@ int32_t indfset(CSOUND *csound, INDIFF *p)
       p->prev = FL(0.0);
     return OK;
 }
+#endif
 
+#ifdef IENC_INTEG_K
 int32_t kntegrate(CSOUND *csound, INDIFF *p)
 {
     IGN(csound);
     *p->rslt = p->prev += *p->xsig;
     return OK;
 }
+#endif
 
+#ifdef INC_INTEG
 int32_t integrate(CSOUND *csound, INDIFF *p)
 {
     IGN(csound);
@@ -160,7 +183,9 @@ int32_t integrate(CSOUND *csound, INDIFF *p)
     p->prev = sum;
     return OK;
 }
+#endif
 
+#ifdef INC_DIFF_K
 int32_t kdiff(CSOUND *csound, INDIFF *p)
 {
     IGN(csound);
@@ -170,7 +195,9 @@ int32_t kdiff(CSOUND *csound, INDIFF *p)
     p->prev = tmp;              /* output argument is the same  */
     return OK;
 }
+#endif
 
+#ifdef INC_DIFF
 int32_t diff(CSOUND *csound, INDIFF *p)
 {
     IGN(csound);
@@ -195,7 +222,9 @@ int32_t diff(CSOUND *csound, INDIFF *p)
     p->prev = prev;
     return OK;
 }
+#endif
 
+#if defined(INC_SAMPHOLD)||defined(INC_SAMPHOLD_K)
 int32_t samphset(CSOUND *csound, SAMPHOLD *p)
 {
     IGN(csound);
@@ -204,7 +233,9 @@ int32_t samphset(CSOUND *csound, SAMPHOLD *p)
     p->audiogate = IS_ASIG_ARG(p->xgate) ? 1 : 0;
     return OK;
 }
+#endif
 
+#ifdef INC_IC_SAMOHOLD_K
 int32_t ksmphold(CSOUND *csound, SAMPHOLD *p)
 {
     IGN(csound);
@@ -213,7 +244,9 @@ int32_t ksmphold(CSOUND *csound, SAMPHOLD *p)
     *p->xr = p->state;
     return OK;
 }
+#endif
 
+#ifdef INC_SAMPHOLD
 int32_t samphold(CSOUND *csound, SAMPHOLD *p)
 {
     IGN(csound);
@@ -253,6 +286,7 @@ int32_t samphold(CSOUND *csound, SAMPHOLD *p)
     p->state = state;
     return OK;
 }
+#endif
 
 int32_t delset(CSOUND *csound, DELAY *p)
 {
@@ -1066,6 +1100,7 @@ int32_t alpass(CSOUND *csound, COMB *p)
                              Str("alpass: not initialised"));
 }
 
+#ifdef INC_REVERB
 static const MYFLT revlptimes[6] = {FL(0.0297), FL(0.0371), FL(0.0411),
                                     FL(0.0437), FL(0.0050), FL(0.0017)};
 
@@ -1073,7 +1108,7 @@ void reverbinit(CSOUND *csound)         /* called once by oload */
 {                                       /*  to init reverb data */
     const MYFLT *lptimp = revlptimes;
     int32_t     *lpsizp = csound->revlpsiz;
-    int32_t n = 6;
+    int32_t     n = 6;
 
     if (csound->revlpsum==0) {
       csound->revlpsum = 0;
@@ -1190,7 +1225,9 @@ int32_t reverb(CSOUND *csound, REVERB *p)
     return csound->PerfError(csound, &(p->h),
                              Str("reverb: not initialised"));
 }
+#endif
 
+#ifdef INC_PAN
 int32_t panset(CSOUND *csound, PAN *p)
 {
     FUNC  *ftp;
@@ -1264,3 +1301,4 @@ int32_t pan(CSOUND *csound, PAN *p)
     return csound->PerfError(csound, &(p->h),
                              Str("pan: not initialised"));
 }
+#endif
