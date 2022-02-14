@@ -112,9 +112,10 @@ static int init_pass(CSOUND *csound, INSDS *ip) {
   csound->ids = (OPDS *)ip;
   csound->mode = 1;
   while (error == 0 && (csound->ids = csound->ids->nxti) != NULL) {
+    if (UNLIKELY(csound->oparms->odebug)) {
     csound->op = csound->ids->optext->t.oentry->opname;
-    if (UNLIKELY(csound->oparms->odebug))
       csound->Message(csound, "init %s:\n", csound->op);
+    }
     error = (*csound->ids->iopadr)(csound, csound->ids);
   }
   csound->mode = 0;

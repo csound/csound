@@ -360,13 +360,13 @@ int32_t strcat_opcode(CSOUND *csound, STRCAT_OP *p)
 
 int32_t strcmp_opcode(CSOUND *csound, STRCMP_OP *p)
 {
-  int64_t kcnt = csound->GetKcounter(csound);
+   int64_t kcnt = csound->GetKcounter(csound);
   
   if(!init_done(&(p->h))) {
-    /* always run the opcode at i-time */
+    // always run the opcode at i-time 
     p->str1->timestamp = 0;
   }
-  
+ 
   if (p->str1->timestamp == 0 ||
       p->str1->timestamp == kcnt ||
       p->str2->timestamp == kcnt) {    
@@ -391,7 +391,7 @@ int32_t strcmp_opcode(CSOUND *csound, STRCMP_OP *p)
       p->str2->timestamp = kcnt;
     }
     p->res = *(p->r);
-  }  else *(p->r) = p->res; 
+  } else *(p->r) = p->res;
   return OK;
 }
 

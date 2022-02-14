@@ -1022,7 +1022,7 @@ OENTRY opcodlst_1[] = {
      (SUBR) strcat_opcode, (SUBR) strcat_opcode, NULL             },
   {  "strcmp",   S(STRCMP_OP),0,   1,  "i",    "SS",
      (SUBR) strcmp_opcode, NULL, NULL                      },
-  {  "strcmpk",  S(STRCAT_OP),0,   3,  "k",    "SS",
+  {  "strcmpk",  S(STRCMP_OP),0,   3,  "k",    "SS",
      (SUBR) strcmp_opcode, (SUBR) strcmp_opcode, NULL             },
   {  "sprintf",  S(SPRINTF_OP),0,  1,  "S",    "STN",
      (SUBR) sprintf_opcode, NULL, NULL                     },
