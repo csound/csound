@@ -62,7 +62,8 @@ void string_copy_value(CSOUND* csound, CS_TYPE* cstype, void* dest, void* src) {
     STRINGDAT* sSrc = (STRINGDAT*)src;
     CSOUND* cs = (CSOUND*)csound;
 
-    if(sSrc->timestamp == 0 || sSrc->timestamp == csound->GetKcounter(csound)) {
+    //printf("--%s %lld\n", sSrc->data, sSrc->timestamp);
+    //if(sSrc->timestamp == 0 || sSrc->timestamp == csound->GetKcounter(csound)) {
       
     if (UNLIKELY(src == NULL)) return;
     if (UNLIKELY(dest == NULL)) return;
@@ -81,9 +82,10 @@ void string_copy_value(CSOUND* csound, CS_TYPE* cstype, void* dest, void* src) {
         strncpy(sDest->data, sSrc->data, sDest->size-1);
       }
     }
+    
     /* VL Feb 22 - update count for 7.0 */
     sDest->timestamp = sSrc->timestamp; //csound->GetKcounter(csound);
-    }
+    //}
 }
 
 static size_t array_get_num_members(ARRAYDAT* aSrc) {

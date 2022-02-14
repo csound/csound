@@ -219,11 +219,14 @@ int32_t strcpy_opcode_S(CSOUND *csound, STRCPY_OP *p) {
       strcpy((char*) p->r->data, newVal);
       p->r->size = strlen(newVal) + 1;
     }
+
     update_timestamp(p->r, kcnt);
     /* init-time, update timestamp */
-    if(p->str->timestamp == 0)
+    if(p->str->timestamp == 0) {
       p->str->timestamp = kcnt;
-    // printf("copy\n");
+    } 
+    //printf("copy\n");
+   
   }
   return  OK;
 }
