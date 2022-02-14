@@ -264,6 +264,7 @@ int32_t strcpy_opcode_p(CSOUND *csound, STRGET_OP *p)
     p->r->size = strlen(p->r->data) + 1;
   }
   p->r->timestamp = 0;
+  
   return OK;
 }
 
@@ -386,12 +387,13 @@ int32_t strcmp_opcode(CSOUND *csound, STRCMP_OP *p)
     else if (i > 0)
       *(p->r) = FL(1.0);
     /* init-time, update timestamp */
+
     if(p->str1->timestamp == 0) {
       p->str1->timestamp = kcnt;
       p->str2->timestamp = kcnt;
     }
-    p->res = *(p->r);
-  } else *(p->r) = p->res;
+     p->res = *(p->r);
+     }  else *(p->r) = p->res; 
   return OK;
 }
 

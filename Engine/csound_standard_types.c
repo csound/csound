@@ -63,7 +63,7 @@ void string_copy_value(CSOUND* csound, CS_TYPE* cstype, void* dest, void* src) {
     CSOUND* cs = (CSOUND*)csound;
 
     if(sSrc->timestamp == 0 || sSrc->timestamp == csound->GetKcounter(csound)) {
-    
+      
     if (UNLIKELY(src == NULL)) return;
     if (UNLIKELY(dest == NULL)) return;
 
@@ -82,7 +82,7 @@ void string_copy_value(CSOUND* csound, CS_TYPE* cstype, void* dest, void* src) {
       }
     }
     /* VL Feb 22 - update count for 7.0 */
-    sDest->timestamp = csound->GetKcounter(csound);
+    sDest->timestamp = sSrc->timestamp; //csound->GetKcounter(csound);
     }
 }
 

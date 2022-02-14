@@ -138,7 +138,7 @@ OENTRY opcodlst_1[] = {
   /* VL: 11.2.22 this was thread 2, but with an update count, we need to be initialised */
   {  "#=.S",   S(STRCPY_OP),0,   3,  "S",    "S",
      (SUBR) strcpy_opcode_S, (SUBR) strcpy_opcode_S, (SUBR) NULL, NULL    },
-  {  "=.T",   S(STRGET_OP),0,   1,  "S",    "i",
+  {  "=.T",   S(STRCPY_OP),0,   1,  "S",    "i",
      (SUBR) strcpy_opcode_p, (SUBR) NULL, (SUBR) NULL, NULL                 },
   { "=.r",    S(ASSIGN),0,  1,      "r",    "i",    rassign, NULL, NULL, NULL },
   { "=.i",    S(ASSIGNM),0, 1,      "IIIIIIIIIIIIIIIIIIIIIIII", "m",
