@@ -887,6 +887,12 @@ typedef struct CORFIL {
   int kperf_nodebug(CSOUND *csound);
   int kperf_debug(CSOUND *csound);
 
+  /*
+    check if code is running at init time. 
+    result may not be valid in realtime mode
+   */  
+int csoundIsInitThread(CSOUND *csound);  
+
 #endif  /* __BUILDING_LIBCSOUND */
 
 #define MARGS   (3)

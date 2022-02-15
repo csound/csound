@@ -41,16 +41,6 @@
 #endif
 #endif
 
-static inline void update_timestamp(STRINGDAT *out, int64_t kcnt) {
-  // always update the output timestamp
-  out->timestamp = kcnt;
-}
-
-static inline int init_done(OPDS *h) {
-  return h->insdshead->init_done ? 1 : 0;
-}
-
-
 int32_t s_opcode(CSOUND *csound, STRGET_OP *p){
   if (p->r->data == NULL){
     p->r->data = (char *) csound->Malloc(csound, 15);
@@ -194,13 +184,9 @@ static CS_NOINLINE int32_t StrOp_ErrMsg(void *p, const char *msg)
 int32_t strcpy_opcode_S(CSOUND *csound, STRCPY_OP *p) {
 
   int64_t kcnt = csound->GetKcounter(csound);
-  
-  if(!init_done(&(p->h))) {
-    /* always run the opcode at i-time */
-    p->str->timestamp = 0;
-  }
-  
-  if (p->str->timestamp == 0 || p->str->timestamp == kcnt) {  
+  int check = csoundIsInitThread(csound); 
+  if (check || p->str->timestamp == 0
+      || p->str->timestamp == kcnt) {  
     char  *newVal = p->str->data;
     if (p->r->data == NULL) {
       p->r->data =  cs_strdup(csound, newVal);
@@ -220,13 +206,14 @@ int32_t strcpy_opcode_S(CSOUND *csound, STRCPY_OP *p) {
       p->r->size = strlen(newVal) + 1;
     }
 
-   if(init_done(&(p->h))) 
-    update_timestamp(p->r, kcnt);
-    /* init-time, update timestamp */
-    if(p->str->timestamp == 0) {
+   if(!check) {
+      p->r->timestamp = kcnt;
       p->str->timestamp = kcnt;
-    } 
-    // printf("copy\n");
+    }
+   else
+     p->r->timestamp = 0;
+   
+   //printf("copy %lld\n", p->r->timestamp);
    
   }
   return  OK;
@@ -291,7 +278,8 @@ int32_t str_changed_k(CSOUND *csound, STRCHGD *p)
     }
     else *p->r = 0;
   */
-  if (p->str->timestamp == csound->GetKcounter(csound)) 
+  if (p->str->timestamp == 0  ||
+      p->str->timestamp == csound->GetKcounter(csound)) 
     *p->r = 1;
   else *p->r = 0;
   return OK;
@@ -303,15 +291,12 @@ int32_t str_changed_k(CSOUND *csound, STRCHGD *p)
 int32_t strcat_opcode(CSOUND *csound, STRCAT_OP *p)
 {
   int64_t kcnt = csound->GetKcounter(csound);
-  
-  if(!init_done(&(p->h))) {
-    /* always run the opcode at i-time */
-    p->str1->timestamp = 0;
-  }
-  
-  if (p->str1->timestamp == 0 ||
-      p->str1->timestamp == kcnt ||
-      p->str2->timestamp == kcnt) {  
+  int check = csoundIsInitThread(csound); 
+  if (check || p->str1->timestamp == 0
+      || p->str2->timestamp == 0
+      || p->str1->timestamp == kcnt
+      || p->str2->timestamp == kcnt) {
+    
     int32_t size;
     char *str1 = cs_strdup(csound, p->str1->data),
       *str2 = cs_strdup(csound, p->str2->data);
@@ -347,12 +332,13 @@ int32_t strcat_opcode(CSOUND *csound, STRCAT_OP *p)
     strNcpy((char*) p->r->data,  str1, p->r->size);
     strcat((char*) p->r->data, str2);
 
-    update_timestamp(p->r, kcnt);
-    /* init-time, update timestamp */
-    if(p->str1->timestamp == 0) {
+    if(!check) {
+      p->r->timestamp = kcnt;
       p->str1->timestamp = kcnt;
       p->str2->timestamp = kcnt;
     }
+   else
+     p->r->timestamp = 0;
     
     csound->Free(csound, str2);                 /* not needed anymore */
     csound->Free(csound, str1);
@@ -365,16 +351,12 @@ int32_t strcat_opcode(CSOUND *csound, STRCAT_OP *p)
 
 int32_t strcmp_opcode(CSOUND *csound, STRCMP_OP *p)
 {
-   int64_t kcnt = csound->GetKcounter(csound);
-  
-  if(!init_done(&(p->h))) {
-    // always run the opcode at i-time 
-    p->str1->timestamp = 0;
-  }
- 
-  if (p->str1->timestamp == 0 ||
-      p->str1->timestamp == kcnt ||
-      p->str2->timestamp == kcnt) {    
+  int64_t kcnt = csound->GetKcounter(csound);
+  int check = csoundIsInitThread(csound); 
+  if (check || p->str1->timestamp == 0
+      || p->str2->timestamp == 0
+      || p->str1->timestamp == kcnt
+      || p->str2->timestamp == kcnt) {    
     int32_t     i;
     if (p->str1->data == NULL || p->str2->data == NULL){
       if (UNLIKELY(((OPDS*) p)->insdshead->pds != NULL))
@@ -390,9 +372,8 @@ int32_t strcmp_opcode(CSOUND *csound, STRCMP_OP *p)
       *(p->r) = FL(-1.0);
     else if (i > 0)
       *(p->r) = FL(1.0);
-    /* init-time, update timestamp */
-
-    if(p->str1->timestamp == 0) {
+    
+    if(!check) {
       p->str1->timestamp = kcnt;
       p->str2->timestamp = kcnt;
     }
@@ -605,9 +586,7 @@ int32_t sprintf_opcode(CSOUND *csound, SPRINTF_OP *p)
     return NOTOK;
   }
   /* always run */
-  if(init_done(&(p->h))) 
   p->r->timestamp = csound->GetKcounter(csound);
-  else p->r->timestamp = 0;
   return OK;
 }
 
@@ -848,13 +827,9 @@ int32_t strtol_opcode_p(CSOUND *csound, STRTOD_OP *p)
 int32_t strsub_opcode(CSOUND *csound, STRSUB_OP *p)
 {
   int64_t kcnt = csound->GetKcounter(csound);
-  
-  if(!init_done(&(p->h))) {
-    /* always run the opcode at i-time */
-    p->Ssrc->timestamp = 0;
-  }
-  
-  if (p->Ssrc->timestamp == 0 || p->Ssrc->timestamp == kcnt) {
+  int check = csoundIsInitThread(csound); 
+  if (check || p->Ssrc->timestamp == 0
+      || p->Ssrc->timestamp == kcnt) {
     const char  *src;
     char        *dst;
     int32_t         i, len, strt, end, rev = 0;
@@ -931,10 +906,12 @@ int32_t strsub_opcode(CSOUND *csound, STRSUB_OP *p)
       dst[i] = '\0';
     }
 
-    update_timestamp(p->Sdst, kcnt);
-    /* init-time, update timestamp */
-    if(p->Ssrc->timestamp == 0)
+   if(!check) {
+      p->Sdst->timestamp = kcnt;
       p->Ssrc->timestamp = kcnt;
+    }
+   else
+     p->Sdst->timestamp = 0;
   }
   return OK;
 }
@@ -993,13 +970,9 @@ int32_t strlen_opcode(CSOUND *csound, STRLEN_OP *p)
 int32_t strupper_opcode(CSOUND *csound, STRUPPER_OP *p)
 {
   int64_t kcnt = csound->GetKcounter(csound);
-  
-  if(!init_done(&(p->h))) {
-    /* always run the opcode at i-time */
-    p->Ssrc->timestamp = 0;
-  }
-  
-  if (p->Ssrc->timestamp == 0 || p->Ssrc->timestamp == kcnt) {
+  int check = csoundIsInitThread(csound); 
+  if (check || p->Ssrc->timestamp == 0
+      || p->Ssrc->timestamp == kcnt) {
   
     const char  *src;
     char        *dst;
@@ -1021,10 +994,12 @@ int32_t strupper_opcode(CSOUND *csound, STRUPPER_OP *p)
       dst[i] = (char) (islower(tmp) ? (unsigned char) toupper(tmp) : tmp);
     }
 
-    update_timestamp(p->Sdst, kcnt);
-    /* init-time, update timestamp */
-    if(p->Ssrc->timestamp == 0)
+    if(!check) {
+      p->Sdst->timestamp = kcnt;
       p->Ssrc->timestamp = kcnt;
+    }
+   else
+     p->Sdst->timestamp = 0;
   }
   return OK;
 }
@@ -1033,13 +1008,9 @@ int32_t strlower_opcode(CSOUND *csound, STRUPPER_OP *p)
 {
 
   int64_t kcnt = csound->GetKcounter(csound);
-  
-  if(!init_done(&(p->h))) {
-    /* always run the opcode at i-time */
-    p->Ssrc->timestamp = 0;
-  }
-  
-  if (p->Ssrc->timestamp == 0 || p->Ssrc->timestamp == kcnt) { 
+  int check = csoundIsInitThread(csound); 
+  if (check || p->Ssrc->timestamp == 0
+      || p->Ssrc->timestamp == kcnt) {
     const char  *src;
     char        *dst;
     int32_t         i;
@@ -1060,10 +1031,12 @@ int32_t strlower_opcode(CSOUND *csound, STRUPPER_OP *p)
       dst[i] = (char) (isupper(tmp) ? (unsigned char) tolower(tmp) : tmp);
     }
     
-    update_timestamp(p->Sdst, kcnt);
-    /* init-time, update timestamp */
-    if(p->Ssrc->timestamp == 0)
+    if(!check) {
+      p->Sdst->timestamp = kcnt;
       p->Ssrc->timestamp = kcnt;
+    }
+   else
+     p->Sdst->timestamp = 0;
   }
   return OK;
 }
@@ -1242,6 +1215,7 @@ int32_t str_from_url(CSOUND *csound, STRCPY_OP *p)
     else strcpy((char*) p->r->data, corfile_body(mm));
   cleanup:
     corfile_rm(csound, &mm);
+    p->r->timestamp = 0;
     return OK;
   }
 }

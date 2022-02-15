@@ -114,6 +114,14 @@ extern OENTRY opcodlst_1[];
 #define STRING_HASH(arg) STRSH(arg)
 #define STRSH(arg) #arg
 
+/* return 1 if the current op thread is init-time,
+   zero if not.
+   return value may be incorrect in realtime mode
+*/
+int csoundIsInitThread(CSOUND *csound) {
+  return csound->ids ? 1 : 0;
+}
+
 void print_csound_version(CSOUND* csound)
 {
 #ifdef USE_DOUBLE

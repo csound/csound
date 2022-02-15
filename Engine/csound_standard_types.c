@@ -65,6 +65,11 @@ void string_copy_value(CSOUND* csound, CS_TYPE* cstype, void* dest, void* src) {
     if (UNLIKELY(src == NULL)) return;
     if (UNLIKELY(dest == NULL)) return;
 
+    int64_t kcnt = csound->GetKcounter(csound);
+    int check = csoundIsInitThread(csound); 
+    if (check || sSrc->timestamp == 0
+	  || sSrc->timestamp == kcnt) {
+
     if (sSrc->size > sDest->size) {
       cs->Free(cs, sDest->data);
       sDest->data = csound->Calloc(csound, sSrc->size); 
@@ -74,7 +79,13 @@ void string_copy_value(CSOUND* csound, CS_TYPE* cstype, void* dest, void* src) {
         strncpy(sDest->data, sSrc->data, sDest->size-1);
     }
     /* VL Feb 22 - update count for 7.0 */
-    sDest->timestamp = sSrc->timestamp; 
+    if(!check) {
+     sDest->timestamp = kcnt;
+     sSrc->timestamp = kcnt;
+    }
+   else
+     sDest->timestamp = 0; 
+  }
 }
 
 static size_t array_get_num_members(ARRAYDAT* aSrc) {
