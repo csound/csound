@@ -226,7 +226,7 @@ int32_t strcpy_opcode_S(CSOUND *csound, STRCPY_OP *p) {
     if(p->str->timestamp == 0) {
       p->str->timestamp = kcnt;
     } 
-    printf("copy\n");
+    // printf("copy\n");
    
   }
   return  OK;
