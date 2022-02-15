@@ -220,12 +220,13 @@ int32_t strcpy_opcode_S(CSOUND *csound, STRCPY_OP *p) {
       p->r->size = strlen(newVal) + 1;
     }
 
+   if(init_done(&(p->h))) 
     update_timestamp(p->r, kcnt);
     /* init-time, update timestamp */
     if(p->str->timestamp == 0) {
       p->str->timestamp = kcnt;
     } 
-    //printf("copy\n");
+    printf("copy\n");
    
   }
   return  OK;

@@ -61,31 +61,20 @@ void string_copy_value(CSOUND* csound, CS_TYPE* cstype, void* dest, void* src) {
     STRINGDAT* sDest = (STRINGDAT*)dest;
     STRINGDAT* sSrc = (STRINGDAT*)src;
     CSOUND* cs = (CSOUND*)csound;
-
-    //printf("--%s %lld\n", sSrc->data, sSrc->timestamp);
-    //if(sSrc->timestamp == 0 || sSrc->timestamp == csound->GetKcounter(csound)) {
-      
+    
     if (UNLIKELY(src == NULL)) return;
     if (UNLIKELY(dest == NULL)) return;
 
     if (sSrc->size > sDest->size) {
-      if (sDest->data != NULL) {
-        cs->Free(cs, sDest->data);
-      }
-      sDest->data = cs_strdup(csound, sSrc->data);
-      sDest->size = strlen(sDest->data)+1;
+      cs->Free(cs, sDest->data);
+      sDest->data = csound->Calloc(csound, sSrc->size); 
+      memcpy(sDest->data, sSrc->data, sSrc->size); 
+      sDest->size = sSrc->size;
     } else {
-      if (sDest->data == NULL) {
-        sDest->data = cs_strdup(csound, sSrc->data);
-        sDest->size = strlen(sDest->data)+1;
-      } else {
         strncpy(sDest->data, sSrc->data, sDest->size-1);
-      }
     }
-    
     /* VL Feb 22 - update count for 7.0 */
-    sDest->timestamp = sSrc->timestamp; //csound->GetKcounter(csound);
-    //}
+    sDest->timestamp = sSrc->timestamp; 
 }
 
 static size_t array_get_num_members(ARRAYDAT* aSrc) {
