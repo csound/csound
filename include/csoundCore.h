@@ -97,6 +97,8 @@ typedef struct {
 #define OK        (0)
 #define NOTOK     (-1)
 
+#define DEFAULT_STRING_SIZE 64
+
 #define CSFILE_FD_R     1
 #define CSFILE_FD_W     2
 #define CSFILE_STD      3

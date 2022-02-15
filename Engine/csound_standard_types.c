@@ -168,7 +168,7 @@ void arrayInitMemory(CSOUND *csound, CS_VARIABLE* var, MYFLT* memblock) {
 
 void varInitMemoryString(CSOUND *csound, CS_VARIABLE* var, MYFLT* memblock) {
     STRINGDAT *str = (STRINGDAT *)memblock;
-    str->data = (char *) csound->Calloc(csound, 8);
+    str->data = (char *) csound->Calloc(csound, DEFAULT_STRING_SIZE);
     str->size = 8;
     str->timestamp = 0;
     //printf("initialised %s %p %s %d\n", var->varName, str,  str->data, str->size);
