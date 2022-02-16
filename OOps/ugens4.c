@@ -26,6 +26,7 @@
 #include <math.h>
 #include <inttypes.h>
 
+#ifdef INC_BUZZ
 /* The branch prediction slows it down!! */
 
 int32_t bzzset(CSOUND *csound, BUZZ *p)
@@ -99,7 +100,9 @@ int32_t buzz(CSOUND *csound, BUZZ *p)
  err1:
     return csound->PerfError(csound, &(p->h), Str("buzz: not initialised"));
 }
+#endif
 
+#ifdef INC_GBUZZ
 int32_t gbzset(CSOUND *csound, GBUZZ *p)
 {
     FUNC        *ftp;
@@ -211,7 +214,9 @@ int32_t gbuzz(CSOUND *csound, GBUZZ *p)
  err1:
     return csound->PerfError(csound, &(p->h), Str("gbuzz: not initialised"));
 }
+#endif
 
+#ifdef INC_PLUCK
 #define PLUKMIN 64
 
 static  int16   rand15(CSOUND *);
@@ -397,6 +402,7 @@ int32_t pluck(CSOUND *csound, PLUCK *p)
     return csound->PerfError(csound, &(p->h),
                              Str("pluck: kcps more than sample rate"));
 }
+#endif
 
 #define RNDMUL  15625
 #define MASK16  0xFFFF
@@ -417,6 +423,7 @@ static int16 rand15(CSOUND *csound)
     csound->ugens4_rand_15 = (csound->ugens4_rand_15 * RNDMUL + 1) & MASK15;
     return (int16) csound->ugens4_rand_15;
 }
+
 
 /*=========================================================================
  *
@@ -443,6 +450,7 @@ static int16 rand15(CSOUND *csound)
 #define RIM 0x7FFFFFFFL         /* 2**31 - 1 */
 
 #define dv2_31          (FL(4.656612873077392578125e-10))
+#if defined(INC_RAND)||defined(INC_RAND_K||defined(INC_RANDH)||defined(INC_RANDH_K)||defined(INC_RANDI)||defined(INC_RANDI_K)
 
 int32 randint31(int32 seed31)
 {
@@ -494,7 +502,9 @@ int32_t rndset(CSOUND *csound, RAND *p)
 
     return OK;
 }
+#endif
 
+#ifdef INC_RAND_K
 int32_t krand(CSOUND *csound, RAND *p)
 {
     IGN(csound);
@@ -514,7 +524,8 @@ int32_t krand(CSOUND *csound, RAND *p)
     }
     return OK;
 }
-
+#endif
+#ifdef INC_RAND
 int32_t arand(CSOUND *csound, RAND *p)
 {
     IGN(csound);
@@ -575,7 +586,9 @@ int32_t arand(CSOUND *csound, RAND *p)
 
     return OK;
 }
+#endif
 
+#if defined(INC_RANDH)||defined(INC_RANDH_K)
 int32_t rhset(CSOUND *csound, RANDH *p)
 {
     p->new = (*p->sel!=FL(0.0));
@@ -611,7 +624,9 @@ int32_t rhset(CSOUND *csound, RANDH *p)
     p->cpscod = IS_ASIG_ARG(p->xcps) ? 1 : 0;
     return OK;
 }
+#endif
 
+#ifdef INC_RANDH_K
 int32_t krandh(CSOUND *csound, RANDH *p)
 {
     IGN(csound);
@@ -635,7 +650,9 @@ int32_t krandh(CSOUND *csound, RANDH *p)
     }
     return OK;
 }
+#endif
 
+#ifdef INC_RANDH
 int32_t randh(CSOUND *csound, RANDH *p)
 {
     int64_t      phs = p->phs, inc;
@@ -681,7 +698,9 @@ int32_t randh(CSOUND *csound, RANDH *p)
     p->phs = phs;
     return OK;
 }
+#endif
 
+#if defined(INC_RANDI)||defined(INC_RANDI_K)
 int32_t riset(CSOUND *csound, RANDI *p)
 {
     p->new = (*p->sel!=FL(0.0));
@@ -736,7 +755,9 @@ int32_t riset(CSOUND *csound, RANDI *p)
     p->cpscod = IS_ASIG_ARG(p->xcps) ? 1 : 0;
     return OK;
 }
+#endif
 
+#ifdef INC_RANDI_K
 int32_t krandi(CSOUND *csound, RANDI *p)
 {                                       /* rslt = (num1 + diff*phs) * amp */
    IGN(csound);
@@ -762,7 +783,9 @@ int32_t krandi(CSOUND *csound, RANDI *p)
     }
     return OK;
 }
+#endif
 
+#ifdef INC_RANDI
 int32_t randi(CSOUND *csound, RANDI *p)
 {
     int64_t       phs = p->phs, inc;
@@ -812,7 +835,9 @@ int32_t randi(CSOUND *csound, RANDI *p)
     p->phs = phs;
     return OK;
 }
+#endif
 
+#if defined(INC_RANDC)||defined(INC_RANDC_K)
 /* Cubic interpolation between random values -- JPff 2019 */
 
 int32_t rcset(CSOUND *csound, RANDC *p)
@@ -884,8 +909,9 @@ int32_t rcset(CSOUND *csound, RANDC *p)
     p->phs = 0;
     return OK;
 }
+#endf
 
-
+#ifdef INC_RANDC_K
 int32_t krandc(CSOUND *csound, RANDC *p)
 {                                       /* rslt = (num1 + diff*phs) * amp */
     IGN(csound);
@@ -919,7 +945,9 @@ int32_t krandc(CSOUND *csound, RANDC *p)
     }
     return OK;
 }
+#endif
 
+#ifdef INC_RANDC
 int32_t randc(CSOUND *csound, RANDC *p)
 {
     int64_t       phs = p->phs, inc;
@@ -985,4 +1013,4 @@ int32_t randc(CSOUND *csound, RANDC *p)
     p->phs = phs;
     return OK;
 }
-
+#endif

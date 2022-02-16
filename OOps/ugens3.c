@@ -25,6 +25,7 @@
 #include "ugens3.h"
 #include <math.h>
 
+#if defined(INC_FOSCIL)||defined(INC_FOSCILI)
 int32_t foscset(CSOUND *csound, FOSC *p)
 {
     FUNC    *ftp;
@@ -40,7 +41,9 @@ int32_t foscset(CSOUND *csound, FOSC *p)
     }
     return NOTOK;
 }
+#endif
 
+#ifdef INC_FOSCIL
 int32_t foscil(CSOUND *csound, FOSC *p)
 {
     FUNC    *ftp;
@@ -117,7 +120,9 @@ int32_t foscil(CSOUND *csound, FOSC *p)
     return csound->PerfError(csound, &(p->h),
                              Str("foscil: not initialised"));
 }
+#endif
 
+#ifdef INC_FOSCILI
 int32_t foscili(CSOUND *csound, FOSC *p)
 {
     FUNC   *ftp;
@@ -205,8 +210,9 @@ int32_t foscili(CSOUND *csound, FOSC *p)
     return csound->PerfError(csound, &(p->h),
                              Str("foscili: not initialised"));
 }
+#endif
 
-
+#if defined(INC_LOSCIL)||defined(INC_LOSIL3)
 int32_t losset(CSOUND *csound, LOSC *p)
 {
     FUNC    *ftp;
@@ -303,7 +309,9 @@ int32_t losset(CSOUND *csound, LOSC *p)
  lerr3:
     return csound->InitError(csound, Str("illegal release loop data"));
 }
+#endif
 
+#if defined(INC_LOSCILPHS)||defined(INC_LOSCIL3PHS)
 int32_t losset_phs(CSOUND *csound, LOSCPHS *p)
 {
     FUNC    *ftp;
@@ -404,7 +412,9 @@ int32_t losset_phs(CSOUND *csound, LOSCPHS *p)
  lerr3:
     return csound->InitError(csound, Str("illegal release loop data"));
 }
+#endif
 
+#if defined(INC_LOSCIL)||defined(INC_LOSCILPHS)
 static inline void loscil_linear_interp_mono(MYFLT *ar,
                                              MYFLT *ftbl, MYFLT phs, int32_t flen)
 {
@@ -434,7 +444,9 @@ static inline void loscil_linear_interp_stereo(MYFLT *arL, MYFLT *arR,
     *arL = tmpL + ((ftbl[x] - tmpL) * fract);
     *arR = tmpR + ((ftbl[x + 1] - tmpR) * fract);
 }
+#edif
 
+#if defined(INC_LOSCIL3)||defined(INC_LOSCIL3PHS)
 static inline void loscil_cubic_interp_mono(MYFLT *ar,
                                             MYFLT *ftbl, MYFLT phs, int32_t flen)
 {
@@ -485,7 +497,9 @@ static CS_NOINLINE void
     *arL = tmpL;
     *arR = tmpR;
 }
+#endif
 
+#ifdef INC_LOSCIL
 /* *********************** needs total rewrite **************** */
 int32_t loscil(CSOUND *csound, LOSC *p)
 {
@@ -700,8 +714,9 @@ put0:
     memset(&ar2[n], '\0', sizeof(MYFLT)*(nsmps-n));
     return OK;
 }
+#endif
 
-
+#ifdef INC_LOSCILPHS
 int32_t loscil_phs(CSOUND *csound, LOSCPHS *p)
 {
     IGN(csound);
@@ -923,9 +938,10 @@ put0:
     memset(&ar2[n], '\0', sizeof(MYFLT)*(nsmps-n));
     return OK;
 }
+#endif
 
 
-
+#ifdef INC_LOSCIL3PS
 int32_t loscil3_phs(CSOUND *csound, LOSCPHS *p)
 {
     IGN(csound);
@@ -1144,8 +1160,9 @@ int32_t loscil3_phs(CSOUND *csound, LOSCPHS *p)
     memset(&ar2[n], '\0', sizeof(MYFLT)*(nsmps-n));
     return OK;
 }
+#endif
 
-
+#ifdef INC_LOSCIL3
 int32_t loscil3(CSOUND *csound, LOSC *p)
 {
     IGN(csound);
@@ -1355,9 +1372,10 @@ int32_t loscil3(CSOUND *csound, LOSC *p)
     memset(&ar2[n], '\0', sizeof(MYFLT)*(nsmps-n));
     return OK;
 }
+#endif
 
 
-
+#ifdef INC_ADSYN
 #define ISINSIZ 32768L
 #define ADMASK  32767L
 
@@ -1508,4 +1526,5 @@ int32_t adsyn(CSOUND *csound, ADSYN *p)
     }
     p->mksecs += timkincr;                  /* advance the time */
     return OK;
-}
+``}
+#endif

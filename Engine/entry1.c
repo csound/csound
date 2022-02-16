@@ -144,9 +144,11 @@ OENTRY opcodlst_1[] = {
     NULL, minit, NULL, NULL },
   { "=.a",    S(ASSIGN),0,  2,      "a",    "a",    NULL, gaassign, NULL },
   { "=.l",    S(ASSIGN),0,  2,      "a",    "a",    NULL,   laassign, NULL },
+#ifdef INC_UPSAMP
   { "=.up",   S(UPSAMP),0,  2,      "a",    "k",  NULL, (SUBR)upsamp, NULL },
+#endif
   { "=.down",   S(DOWNSAMP),0,  3,  "k",    "ao",   (SUBR)downset,(SUBR)downsamp },
-  //  { "=.t",    S(ASSIGNT),0, 2,      "t",    "kk",   NULL,   tassign, NULL   },
+  //{ "=.t",    S(ASSIGNT),0, 2,      "t",    "kk",   NULL,   tassign, NULL   },
   { "init.S", S(STRCPY_OP),0, 1,      "S", "S", (SUBR) strcpy_opcode_S  },
   { "init.Si", S(STRCPY_OP),0, 1,      "S", "i", (SUBR) strcpy_opcode_p  },
   { "init.i", S(ASSIGNM),0, 1,      "IIIIIIIIIIIIIIIIIIIIIIII", "m", minit  },
@@ -175,6 +177,7 @@ OENTRY opcodlst_1[] = {
   { ":cond.a",     S(CONVAL),0,  2,      "a",    "Bxx",  NULL,   aconval },
   { ":cond.s",     S(CONVAL),0,  1,      "S",    "bSS",  conval, NULL         },
   { ":cond.S",     S(CONVAL),0,  3,      "S",    "BSS",  conval, conval       },
+#endif
   { "##add.ii",  S(AOP),0,    1,      "i",    "ii",   addkk                   },
   { "##sub.ii",  S(AOP),0,    1,      "i",    "ii",   subkk                   },
   { "##mul.ii",  S(AOP),0,    1,      "i",    "ii",   mulkk                   },
@@ -199,7 +202,7 @@ OENTRY opcodlst_1[] = {
   { "##sub.aa",  S(AOP),0,    2,      "a",    "aa",   NULL,   subaa   },
   { "##mul.aa",  S(AOP),0,    2,      "a",    "aa",   NULL,   mulaa   },
   { "##div.aa",  S(AOP),0,    2,      "a",    "aa",   NULL,   divaa   },
-  { "##mod.aa",  S(AOP),0,    2,      "a",    "aa",   NULL,   modaa   },
+   { "##mod.aa",  S(AOP),0,    2,      "a",    "aa",   NULL,   modaa   },
   { "##addin.i", S(ASSIGN),0, 1,      "i",    "i",    addin,  NULL    },
   { "##addin.k", S(ASSIGN),0, 2,      "k",    "k",    NULL,   addin   },
   { "##addin.K", S(ASSIGN),0, 2,      "a",    "k",    NULL,   addinak },
@@ -208,14 +211,17 @@ OENTRY opcodlst_1[] = {
   { "##subin.k", S(ASSIGN),0, 2,      "k",    "k",    NULL,   subin   },
   { "##subin.K", S(ASSIGN),0, 2,      "a",    "k",    NULL,   subinak },
   { "##subin.a", S(ASSIGN),0, 2,      "a",    "a",    NULL,   subina  },
-  //{ "divz",   0xfffc                                                      },
+#if 0
+  { "divz",   0xfffc                                                      },
   { "divz.ii", S(DIVZ),0,   1,      "i",    "iii",  divzkk, NULL,   NULL    },
   { "divz.kk", S(DIVZ),0,   2,      "k",    "kkk",  NULL,   divzkk, NULL    },
   { "divz.ak", S(DIVZ),0,   2,      "a",    "akk",  NULL,   divzak  },
   { "divz.ka", S(DIVZ),0,   2,      "a",    "kak",  NULL,   divzka  },
   { "divz.aa", S(DIVZ),0,   2,      "a",    "aak",  NULL,   divzaa  },
+#endif
   { "int.i",  S(EVAL),0,    1,      "i",    "i",    int1                    },
   { "frac.i", S(EVAL),0,    1,      "i",    "i",    frac1                   },
+#if 0
   { "round.i",S(EVAL),0,    1,      "i",    "i",    int1_round              },
   { "floor.i",S(EVAL),0,    1,      "i",    "i",    int1_floor              },
   { "ceil.i", S(EVAL),0,    1,      "i",    "i",    int1_ceil               },
@@ -305,11 +311,14 @@ OENTRY opcodlst_1[] = {
   { "ftlptim.i",S(EVAL),0,  1,      "i",    "i",    ftlptim                 },
   { "ftchnls.i",S(EVAL),0,  1,      "i",    "i",    ftchnls                 },
   { "ftcps.i",S(EVAL),0,    1,      "i",    "i",    ftcps                   },
-  { "i.i",   S(ASSIGN),0,   1,      "i",    "i",    assign                  },
+#endif
+{ "i.i",   S(ASSIGN),0,   1,      "i",    "i",    assign                  },
   { "i.k",   S(ASSIGN),0,   1,      "i",    "k",    assign                  },
+#if 0
   { "k.i",   S(ASSIGN),0,   1,      "k",    "i",    assign                  },
   { "k.a",   S(DOWNSAMP),0, 3,      "k",    "ao",   (SUBR)downset,(SUBR)downsamp },
   { "cpsoct.i",S(EVAL),0,   1,      "i",    "i",    cpsoct                  },
+#endif
   { "octpch.i",S(EVAL),0,   1,      "i",    "i",    octpch                  },
   { "cpspch.i",S(EVAL),0,   1,      "i",    "i",    cpspch                  },
   { "pchoct.i",S(EVAL),0,   1,      "i",    "i",    pchoct                  },
@@ -317,6 +326,7 @@ OENTRY opcodlst_1[] = {
   { "cpsoct.k",S(EVAL),0,   2,      "k",    "k",    NULL,   cpsoct          },
   { "octpch.k",S(EVAL),0,   2,      "k",    "k",    NULL,   octpch          },
   { "cpspch.k",S(EVAL),0,   2,      "k",    "k",    NULL,   cpspch          },
+#if 0
   { "pchoct.k",S(EVAL),0,   2,      "k",    "k",    NULL,   pchoct          },
   { "octcps.k",S(EVAL),0,   2,      "k",    "k",    NULL,   octcps          },
   { "cpsoct.a",S(EVAL),0,   2,      "a",    "a",    NULL,   acpsoct },
@@ -347,6 +357,7 @@ OENTRY opcodlst_1[] = {
   { "polyaft.k",S(MIDICTL),0,3,     "k",    "ioh",  maftset, midiaft        },
   { "chanctrl.i",S(CHANCTL),0,1,    "i",    "iioh", ichanctl                },
   { "chanctrl.k",S(CHANCTL),0,3,    "k",    "iioh", chctlset,chanctl        },
+#endif
   { "line",   S(LINE),0,    3,      "k",    "iii",  linset, kline,  NULL  },
   { "line.a",   S(LINE),0,    3,    "a",    "iii",  linset,  aline   },
   { "expon",  S(EXPON),0,   3,      "k",    "iii",  expset, kexpon, NULL   },
@@ -363,16 +374,20 @@ OENTRY opcodlst_1[] = {
   { "linsegb.a", S(LINSEG),0,  3,     "a",    "iim", lsgset_bkpt, linseg  },
   { "linsegr",S(LINSEG),0,  3,      "k",    "iim",  lsgrset,klnsegr,NULL },
   { "linsegr.a",S(LINSEG),0,  3,      "a",    "iim",  lsgrset,linsegr },
+#endif
   { "expseg", S(EXXPSEG),0,  3,     "k",    "iim",  xsgset, kxpseg, NULL  },
   { "expseg.a", S(EXXPSEG),0,  3,     "a",    "iim",  xsgset, expseg  },
+#if 0
   { "expsegb", S(EXXPSEG),0,  3,     "k",    "iim",  xsgset_bkpt, kxpseg, NULL },
   { "expsegb.a", S(EXXPSEG),0, 3,     "a",    "iim",  xsgset_bkpt, expseg },
   { "expsega",S(EXPSEG2),0,  3,     "a",    "iim",  xsgset2, expseg2  },
   { "expsegba",S(EXPSEG2),0,  3,     "a",    "iim",  xsgset2b, expseg2 },
   { "expsegr",S(EXPSEG),0,  3,      "k",    "iim",  xsgrset,kxpsegr,NULL },
   { "expsegr.a",S(EXPSEG),0,  3,      "a",    "iim",  xsgrset,expsegr },
+#endif
   { "linen",  S(LINEN),0,   3,      "k",    "kiii", lnnset, klinen, NULL   },
   { "linen.a",  S(LINEN),0,   3,      "a",    "aiii", alnnset, linen   },
+#if 0
   { "linen.x",  S(LINEN),0,   3,      "a",    "kiii", alnnset, linen   },
   { "linenr", S(LINENR),0,  3,      "k",    "kiii", lnrset, klinenr,NULL },
   { "linenr.a", S(LINENR),0,  3,      "a",    "aiii", alnrset,linenr  },
@@ -383,13 +398,16 @@ OENTRY opcodlst_1[] = {
   { "envlpxr.a", S(ENVLPR),TR, 3,     "a","aiiiiioo", aevrset,envlpxr },
   { "envlpx.x", S(ENVLPX), TR, 3,     "a","kiiiiiio", aevxset,envlpx  },
   { "envlpxr.x", S(ENVLPR),TR, 3,     "a","kiiiiioo", aevrset,envlpxr },
+#endif
   { "phasor", S(PHSOR),0,   3,       "a",   "xo",   phsset, phsor   },
   { "phasor.k", S(PHSOR),0,   3,     "k",   "ko",   phsset, kphsor, NULL  },
+#if 0
   { "ephasor", S(EPHSOR), 0,  3,     "aa",  "xko",  ephsset, ephsor },
   { "signum.i", S(ASSIGN), 0, 1,     "i",   "i", signum, NULL, NULL       },
   { "signum.k", S(ASSIGN), 0, 3,     "k",   "k", signum, signum, NULL     },
   { "signum.a", S(ASSIGN), 0, 2,     "a",   "a", NULL, asignum      },
   { "table.i",  S(TABL),TR, 1,      "i",    "iiooo",(SUBR)tabler_init       },
+#endif
   { "table.k",  S(TABL),TR, 3,      "k",    "xiooo",(SUBR)tabl_setup,
     (SUBR)tabler_kontrol        },
   { "table.a",  S(TABL),TR, 3,      "a",    "xiooo",(SUBR)tabl_setup,
@@ -397,6 +415,7 @@ OENTRY opcodlst_1[] = {
   { "tablei.i", S(TABL),TR, 1,      "i",    "iiooo",(SUBR)tableir_init      },
   { "tablei.k", S(TABL),TR, 3,      "k",    "xiooo",(SUBR)tabl_setup,
     (SUBR)tableir_kontrol                                                   },
+#if 0
   { "tablei.a", S(TABL),TR, 3,      "a",    "xiooo",(SUBR)tabl_setup,
     (SUBR)tableir_audio                                                     },
   { "table3.i", S(TABL),TR, 1,      "i",    "iiooo",(SUBR)table3r_init      },
@@ -422,8 +441,10 @@ OENTRY opcodlst_1[] = {
   { "oscil1", S(OSCIL1), TR, 3,     "k",    "ikij", ko1set, kosc1          },
   { "oscil1i",S(OSCIL1), TR, 3,     "k",    "ikij", ko1set, kosc1i         },
   { "osciln", S(OSCILN), TR, 3,     "a",    "kiii", oscnset,   osciln },
+#endif
   { "oscil.a",S(OSC),TR,    3,       "a",    "kkjo", oscset,   osckk  },
   { "oscil.kkk",S(OSC),TR,   3,      "k",    "kkjo", oscset, koscil  },
+#if 0
   { "oscil.kka",S(OSC),TR,   3,      "a",    "kkjo", oscset, osckk  },
   { "oscil.ka",S(OSC),TR,    3,      "a",    "kajo", oscset,   oscka  },
   { "oscil.ak",S(OSC),TR,    3,      "a",    "akjo", oscset,   oscak  },
@@ -441,7 +462,9 @@ OENTRY opcodlst_1[] = {
      { "oscil.aa", S(POSC),TR, 3, "a", "aajo", posc_set,  poscaa },
      { "oscil3.kk",  S(POSC),TR,  7, "s", "kkjo", posc_set, kposc3, posc3 },
   */
+#endif
   { "oscili.a",S(OSC),TR,   3,      "a",    "kkjo", oscset, osckki  },
+#if 0
   { "oscili.kk",S(OSC),TR,   3,      "k",   "kkjo", oscset, koscli, NULL  },
   { "oscili.ka",S(OSC),TR,   3,      "a",   "kajo", oscset,   osckai  },
   { "oscili.ak",S(OSC),TR,   3,      "a",   "akjo", oscset,   oscaki  },
@@ -462,44 +485,117 @@ OENTRY opcodlst_1[] = {
   { "oscil3.akA",S(OSC),0,   3,      "a",  "aki[]o", oscsetA, oscak3 },
   { "oscil3.aaA",S(OSC),0,   3,      "a",  "aai[]o", oscsetA, oscaa3 },
   /* end change */
+#endif
+#ifdef INC_FOSCIL
   { "foscil", S(FOSC),TR,  3,      "a",  "xkxxkjo",foscset,   foscil  },
+#endif
+#ifdef INC_FOSCILI
   { "foscili",S(FOSC),TR,  3,      "a",  "xkxxkjo",foscset,   foscili },
+#endif
+#ifdef INC_LOSCIL
   { "loscil", S(LOSC),TR,  3,      "mm","xkjojoojoo",losset, loscil   },
+#endif
+#ifdef INC_LOSCILPHS 
   { "loscilphs", S(LOSCPHS),TR,  3, "amm","xkjojoojoo",losset_phs, loscil_phs   },
+  #ndif
+#ifdef INC_LOSCIL3PHS
   { "loscil3phs", S(LOSCPHS),TR,  3,"amm","xkjojoojoo",losset_phs, loscil3_phs  },
+#endif
+  #ifdef INC_LOSCIL3
   { "loscil3", S(LOSC),TR,  3,      "mm","xkjojoojoo",losset, loscil3  },
+#endif
+#ifdef INC_ADSYN
   { "adsyn",  S(ADSYN),0,   3,      "a",    "kkkSo", adset_S,   adsyn   },
   { "adsyn.i",  S(ADSYN),0,   3,      "a",    "kkkio", adset,   adsyn   },
+#endif
+#ifdef INC_BUZZ
   { "buzz",   S(BUZZ),TR,  3,      "a",  "xxkio",  bzzset,   buzz    },
+#endif
+#ifdef INC_GBUZZ
   { "gbuzz",  S(GBUZZ),TR,  3,      "a",  "xxkkkio",gbzset,   gbuzz   },
+#endif
+#ifdef INC_PLUCK
   { "pluck",  S(PLUCK), TR, 3,      "a",  "kkiiioo",plukset,   pluck   },
+#endif
+#ifdef INC_RAND
   { "rand",   S(RAND),0,    3,      "a",    "xvoo", rndset,  arand   },
-  { "rand.k",   S(RAND),0,    3,      "k",    "xvoo", rndset, krand,  NULL  },
+#endif
+#ifdef INC_RAND_K
+  { "rand.k",   S(RAND),0,  3,      "k",    "xvoo", rndset, krand,  NULL  },
+#endif
+#ifdef INC_RANDH
   { "randh",  S(RANDH),0,   3,      "a",    "xxvoo", rhset, randh   },
-  { "randh.k",  S(RANDH),0,   3,      "k",    "xxvoo", rhset, krandh, NULL   },
+#endif
+  #ifdef INC_RANDH_K
+  { "randh.k",  S(RANDH),0, 3,      "k",    "xxvoo", rhset, krandh, NULL   },
+#endif
+  #ifdef INC_RAND_I
   { "randi",  S(RANDI),0,   3,      "a",    "xxvoo", riset, randi     },
+#endif
+#ifef INC_RANDI_K
   { "randi.k",  S(RANDI),0, 3,      "k",    "xxvoo", riset, krandi    },
+#endif
+#ifdef INC_RANDC
   { "randc",  S(RANDC),0,   3,      "a",    "xxvoo", rcset, randc     },
+#endif
+  #ifdef IC_RANDC_K
   { "randc.k",  S(RANDC),0, 3,      "k",    "xxvoo", rcset, krandc    },
+#endif
+#ifdef  INC_PORT
   { "port",   S(PORT),0,    3,      "k",    "kio",  porset, port            },
+#endif
+#ifdef  INC_TONE
   { "tone.k", S(TONE),0,    3,      "a",    "ako",  tonset,   tone    },
+#endif
+#ifdef  INC_TONEX
   { "tonex.k",S(TONEX),0,   3,      "a",    "akoo", tonsetx,  tonex   },
+#endif
+#ifdef  INC_ATONE
   { "atone.k",  S(TONE),0,  3,      "a",    "ako",  tonset,   atone   },
+#endif
+#ifdef  INC_ATONEX
   { "atonex.k", S(TONEX),0, 3,      "a",    "akoo", tonsetx,  atonex  },
+#endif
+  #ifdef  INC_RESON
   { "reson", S(RESON),   0, 3,      "a",    "axxoo", rsnset,  reson   },
+#endif
+#ifdef  INC_RESONX
   { "resonx", S(RESONX),0,  3,      "a",    "axxooo", rsnsetx, resonx },
+#endif
+#ifdef  INC_ARESON
   { "areson.kk", S(RESON),0,3,      "a",    "akkoo",rsnset,   areson  },
+#endif
+#ifdef  INC_LPREAD
   { "lpread", S(LPREAD),0,  3,      "kkkk", "kSoo", lprdset_S,lpread          },
   { "lpread.i", S(LPREAD),0,  3,      "kkkk", "kioo", lprdset,lpread          },
+#endif
+#ifdef  INC_LPFORM
   { "lpform", S(LPFORM),0,  3,      "kk", "k",     lpformantset,lpformant   },
+#endif
+#ifdef  INC_LPRESON
   { "lpreson",S(LPRESON),0, 3,      "a",    "a",    lprsnset,  lpreson },
+#endif
+#ifdef  INC_LPFRESON
   { "lpfreson",S(LPFRESON),0,3,     "a",    "ak",   lpfrsnset, lpfreson},
+#endif
+#ifdef  INC_LPSLOT
   { "lpslot"  ,  S(LPSLOT),0,  1,   "",     "i",    lpslotset, NULL, NULL   },
+#endif
+#ifdef(LPINTERP
   { "lpinterp", S(LPINTERPOL),0, 3, "",     "iik",  lpitpset, lpinterpol, NULL},
+#endif
+#ifdef  INC_RMS
   { "rms",    S(RMS),0,     3,      "k",    "aqo",  rmsset, rms             },
+#endif
+#ifdef  INC_GAIN
   { "gain",   S(GAIN),0,    3,      "a",    "akqo", gainset,   gain    },
+#endif
+#ifdef  INC_BALANCE
   { "balance",S(BALANCE),0, 3,      "a",    "aaqo", balnset,   balance },
+#endif
+#ifdef  INC_BALANCE2
   { "balance2",S(BALANCE),0, 3,      "a",    "aaqo", balnset,   balance2 },
+#endif
   { "pan",    S(PAN),0,   3, "aaaa", "akkioo",(SUBR)panset, (SUBR)pan  },
   { "soundin",S(DISKIN2),0,3,"mmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmm","Soooo",
     sndinset_S, soundin   },
@@ -516,7 +612,9 @@ OENTRY opcodlst_1[] = {
   { "inq",    S(INQ),0,     2,      "aaaa", "",     NULL,   inq     },
   { "out.a",  S(OUTX),IR,     3,      "",     "y",    ochn,   outall },
   { "out.A",  S(OUTARRAY),IR, 3,      "",     "a[]",  outarr_init,  outarr },
+#endif
   { "outs",   S(OUTX),IR,     3,      "",     "y",    ochn,   outall },
+#if 0
   { "outq",   S(OUTX),IR,     3,      "",     "y",    ochn,   outall },
   { "outh",   S(OUTX),IR,     3,      "",     "y",    ochn,   outall },
   { "outo",   S(OUTX),IR,     3,      "",     "y",    ochn,   outall },
@@ -761,14 +859,26 @@ OENTRY opcodlst_1[] = {
   { "prints.i",S(PRINTS),0,   1,   "",   "iN",   (SUBR)printsset, NULL, NULL },
   { "printk2", S(PRINTK2), WR, 3, "",   "koo",
     (SUBR)printk2set, (SUBR)printk2, NULL },
-  { "portk",  S(KPORT),0,   3, "k",     "kko",  (SUBR)kporset, (SUBR)kport, NULL },
+#ifdef  INC_PORTK
+  { "portk",  S(PORT),0,   3, "k",     "kko",  (SUBR)kporset, (SUBR)kport, NULL },
+#endif
+#ifdef  INC_TONEK
   { "tonek",  S(KTONE),0,   3, "k",     "kko",  (SUBR)ktonset, (SUBR)ktone, NULL },
+#endif
+#ifdef  INC_ATONEK
   { "atonek", S(KTONE),0,   3, "k",     "kko",  (SUBR)ktonset, (SUBR)katone, NULL},
-  { "resonk", S(KRESON),0,  3, "k",     "kkkpo",(SUBR)krsnset, (SUBR)kreson, NULL},
+#endif
+#ifdef  INC_RESONK
+{ "resonk", S(KRESON),0,  3, "k",     "kkkpo",(SUBR)krsnset, (SUBR)kreson, NULL},
+#endif
+#ifdef  INC_ARESONK
   { "aresonk",S(KRESON),0,  3, "k",     "kkkpo",(SUBR)krsnset, (SUBR)kareson, NULL},
+#endif
+#ifdef  INC_LIMIT
   { "limit.i", S(LIMIT),0,  1, "i",     "iii",  (SUBR)klimit,  NULL,    NULL      },
   { "limit.k",  S(LIMIT),0, 2, "k",     "kkk",  NULL,          (SUBR)klimit, NULL },
   { "limit.a",  S(LIMIT),0, 2, "a",     "akk",  NULL,  (SUBR)limit },
+#endif
   { "prealloc", S(AOP),0,   1, "",      "iio",  (SUBR)prealloc, NULL, NULL  },
    { "prealloc", S(AOP),0,   1, "",      "Sio",  (SUBR)prealloc_S, NULL, NULL  },
   /* opcode   dspace      thread  outarg  inargs  isub    ksub    asub    */
@@ -907,7 +1017,7 @@ OENTRY opcodlst_1[] = {
   { "midipitchbend", S(MIDIPITCHBEND),0,3, "", "xoh",
     midipitchbend, midipitchbend },
   { "mididefault", S(MIDIDEFAULT),0, 3, "", "xx",   mididefault, mididefault },
-  //{ "invalue",   0xFFFF,   _CR,    0,   NULL,   NULL, NULL, NULL },
+  { "invalue",   0xFFFF,   _CR,    0,   NULL,   NULL, NULL, NULL },
   { "invalue.k", S(INVAL),_CR, 3, "k", "i", (SUBR) invalset,(SUBR)kinval, NULL },
   { "invalue.i", S(INVAL),_CR, 1, "i", "i", (SUBR) invalsetgo, NULL, NULL },
   { "invalue.iS", S(INVAL),_CR, 1, "i", "S", (SUBR) invalsetSgo, NULL, NULL },
@@ -935,7 +1045,7 @@ OENTRY opcodlst_1[] = {
   { "nstrnum.i", S(NSTRNUM),0, 1,     "i",    "i",    nstrnumset, NULL, NULL      },
   { "nstrstr", S(NSTRSTR),0, 1,       "S",    "i",    nstrstr, NULL, NULL      },
   { "nstrstr.k", S(NSTRSTR),0, 2,     "S",    "k",    NULL, nstrstr, NULL      },
-  //{ "turnoff2",   0xFFFB,   _CW,    0, NULL,   NULL,   NULL, NULL, NULL          },
+  { "turnoff2",   0xFFFB,   _CW,    0, NULL,   NULL,   NULL, NULL, NULL          },
   { "turnoff2_i.S",S(TURNOFF2),_CW,1,     "",     "Soo",  turnoff2S, NULL     },
   { "turnoff2_i.i",S(TURNOFF2),_CW,1,     "",     "ioo",  turnoff2k, NULL     },
   { "turnoff2.S",S(TURNOFF2),_CW,2,     "",     "Skk",  NULL, turnoff2S, NULL     },
@@ -967,7 +1077,9 @@ OENTRY opcodlst_1[] = {
     (SUBR)samphset,(SUBR)samphold    },
   { "samphold.k",S(SAMPHOLD),0,3, "k", "xxoo",
     (SUBR)samphset,(SUBR)ksmphold,NULL  },
+#endif
   { "delay",  S(DELAY),0,   3,  "a", "aio",  (SUBR)delset,   (SUBR)delay   },
+#if 0
   { "delayr", S(DELAYR),0,  3,  "aX","io",   (SUBR)delrset,   (SUBR)delayr  },
   { "delayw", S(DELAYW),0,  3,  "",  "a",    (SUBR)delwset,   (SUBR)delayw  },
   { "delay1", S(DELAY1),0,  3,  "a", "ao",   (SUBR)del1set,   (SUBR)delay1  },
@@ -1108,7 +1220,7 @@ OENTRY opcodlst_1[] = {
     (SUBR) chnget_opcode_init_S, (SUBR) chnget_opcode_perf_S, NULL},
   { "chngetks",    S(CHNGET),_CR,           2,      "S",            "S",
     NULL, (SUBR) chnget_opcode_perf_S, NULL},
-  //{ "chnset",      0xFFFB,              _CW                               },
+  { "chnset",      0xFFFB,              _CW                               },
 
   { "chnseti.i",    S(CHNGET),_CW,          1,      "",             "i[]S[]",
     (SUBR) chnset_array_opcode_init_i, NULL, NULL               },
@@ -1121,10 +1233,10 @@ OENTRY opcodlst_1[] = {
 
   { "chnset.i",    S(CHNGET),_CW,          1,      "",             "iS",
     (SUBR) chnset_opcode_init_i, NULL, NULL               },
-  //  { "chnset.r",    S(CHNGET),0,           1,      "",             "iS",
-  //    (SUBR) chnset_opcode_init_i, NULL, NULL               },
-  //  { "chnset.c",    S(CHNGET),0,           1,      "",             "iS",
-  //    (SUBR) chnset_opcode_init_i, NULL, NULL               },
+    { "chnset.r",    S(CHNGET),0,           1,      "",             "iS",
+      (SUBR) chnset_opcode_init_i, NULL, NULL               },
+    { "chnset.c",    S(CHNGET),0,           1,      "",             "iS",
+      (SUBR) chnset_opcode_init_i, NULL, NULL               },
   { "chnset.k",    S(CHNGET),_CW,           3,      "",             "kS",
     (SUBR) chnset_opcode_init_k, (SUBR) notinit_opcode_stub, NULL },
   { "chnset.a",    S(CHNGET),_CW,           3,      "",             "aS",
@@ -1145,7 +1257,7 @@ OENTRY opcodlst_1[] = {
     (SUBR) chn_a_opcode_init, NULL, NULL                  },
   { "chn_S",       S(CHN_OPCODE),      _CW, 1,      "",             "Si",
     (SUBR) chn_S_opcode_init, NULL, NULL                  },
-  //{ "chnexport",   0xFFFF,  0,    0,   NULL,   NULL, NULL, NULL },
+  { "chnexport",   0xFFFF,  0,    0,   NULL,   NULL, NULL, NULL },
   { "chnexport.i", S(CHNEXPORT_OPCODE),0, 1,      "i",            "Sioooo",
     (SUBR) chnexport_opcode_init, NULL, NULL              },
   { "chnexport.k", S(CHNEXPORT_OPCODE),0, 1,      "k",            "Sioooo",
@@ -1162,14 +1274,14 @@ OENTRY opcodlst_1[] = {
       { "chnsend",     S(CHNSEND),0,          3,      "",             "So",
       (SUBR) chnsend_opcode_init, (SUBR) notinit_opcode_stub, NULL },
   */
-  //{ "chano",       0xFFFD,  _CW, 0,      NULL, NULL, NULL, NULL },
+  { "chano",       0xFFFD,  _CW, 0,      NULL, NULL, NULL, NULL },
   { "chano.k",     S(ASSIGN),_CW,           2,      "",             "kk",
     NULL, (SUBR) chano_opcode_perf_k, NULL                },
   { "chano.a",     S(ASSIGN),_CW,           2,      "",             "ak",
     NULL, (SUBR) chano_opcode_perf_a                },
   { "pvsout",     S(FCHAN),0,           3,      "",             "fk",
     (SUBR) pvsout_init, (SUBR) pvsout_perf, NULL                        },
-  //{ "chani",      0xFFFF,  _CR,      0,   NULL, NULL, NULL, NULL },
+  { "chani",      0xFFFF,  _CR,      0,   NULL, NULL, NULL, NULL },
   { "chani.k",     S(ASSIGN),_CR,           2,      "k",            "k",
     NULL, (SUBR) chani_opcode_perf_k, NULL                },
   { "chani.a",     S(ASSIGN),_CR,           2,      "a",            "k",
@@ -1234,6 +1346,8 @@ OENTRY opcodlst_1[] = {
     (SUBR) coef2parm_init, (SUBR) coef2parm},
    {"resonbnk", S(RESONB), 0, 3, "a", "ak[]kkipoo",
    (SUBR) resonbnk_init, (SUBR) resonbnk},
-  /* terminate list */
+#endif
+   /*t erminate list */
   {  NULL, 0, 0, 0, NULL, NULL, NULL, NULL, NULL       }
 };
+
