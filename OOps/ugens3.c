@@ -444,7 +444,7 @@ static inline void loscil_linear_interp_stereo(MYFLT *arL, MYFLT *arR,
     *arL = tmpL + ((ftbl[x] - tmpL) * fract);
     *arR = tmpR + ((ftbl[x + 1] - tmpR) * fract);
 }
-#edif
+#endif
 
 #if defined(INC_LOSCIL3)||defined(INC_LOSCIL3PHS)
 static inline void loscil_cubic_interp_mono(MYFLT *ar,

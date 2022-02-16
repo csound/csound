@@ -1,3 +1,4 @@
+
 /*
   entry1.c:
 
@@ -177,7 +178,6 @@ OENTRY opcodlst_1[] = {
   { ":cond.a",     S(CONVAL),0,  2,      "a",    "Bxx",  NULL,   aconval },
   { ":cond.s",     S(CONVAL),0,  1,      "S",    "bSS",  conval, NULL         },
   { ":cond.S",     S(CONVAL),0,  3,      "S",    "BSS",  conval, conval       },
-#endif
   { "##add.ii",  S(AOP),0,    1,      "i",    "ii",   addkk                   },
   { "##sub.ii",  S(AOP),0,    1,      "i",    "ii",   subkk                   },
   { "##mul.ii",  S(AOP),0,    1,      "i",    "ii",   mulkk                   },
@@ -374,20 +374,16 @@ OENTRY opcodlst_1[] = {
   { "linsegb.a", S(LINSEG),0,  3,     "a",    "iim", lsgset_bkpt, linseg  },
   { "linsegr",S(LINSEG),0,  3,      "k",    "iim",  lsgrset,klnsegr,NULL },
   { "linsegr.a",S(LINSEG),0,  3,      "a",    "iim",  lsgrset,linsegr },
-#endif
   { "expseg", S(EXXPSEG),0,  3,     "k",    "iim",  xsgset, kxpseg, NULL  },
   { "expseg.a", S(EXXPSEG),0,  3,     "a",    "iim",  xsgset, expseg  },
-#if 0
   { "expsegb", S(EXXPSEG),0,  3,     "k",    "iim",  xsgset_bkpt, kxpseg, NULL },
   { "expsegb.a", S(EXXPSEG),0, 3,     "a",    "iim",  xsgset_bkpt, expseg },
   { "expsega",S(EXPSEG2),0,  3,     "a",    "iim",  xsgset2, expseg2  },
   { "expsegba",S(EXPSEG2),0,  3,     "a",    "iim",  xsgset2b, expseg2 },
   { "expsegr",S(EXPSEG),0,  3,      "k",    "iim",  xsgrset,kxpsegr,NULL },
   { "expsegr.a",S(EXPSEG),0,  3,      "a",    "iim",  xsgrset,expsegr },
-#endif
   { "linen",  S(LINEN),0,   3,      "k",    "kiii", lnnset, klinen, NULL   },
   { "linen.a",  S(LINEN),0,   3,      "a",    "aiii", alnnset, linen   },
-#if 0
   { "linen.x",  S(LINEN),0,   3,      "a",    "kiii", alnnset, linen   },
   { "linenr", S(LINENR),0,  3,      "k",    "kiii", lnrset, klinenr,NULL },
   { "linenr.a", S(LINENR),0,  3,      "a",    "aiii", alnrset,linenr  },
@@ -398,16 +394,13 @@ OENTRY opcodlst_1[] = {
   { "envlpxr.a", S(ENVLPR),TR, 3,     "a","aiiiiioo", aevrset,envlpxr },
   { "envlpx.x", S(ENVLPX), TR, 3,     "a","kiiiiiio", aevxset,envlpx  },
   { "envlpxr.x", S(ENVLPR),TR, 3,     "a","kiiiiioo", aevrset,envlpxr },
-#endif
   { "phasor", S(PHSOR),0,   3,       "a",   "xo",   phsset, phsor   },
   { "phasor.k", S(PHSOR),0,   3,     "k",   "ko",   phsset, kphsor, NULL  },
-#if 0
   { "ephasor", S(EPHSOR), 0,  3,     "aa",  "xko",  ephsset, ephsor },
   { "signum.i", S(ASSIGN), 0, 1,     "i",   "i", signum, NULL, NULL       },
   { "signum.k", S(ASSIGN), 0, 3,     "k",   "k", signum, signum, NULL     },
   { "signum.a", S(ASSIGN), 0, 2,     "a",   "a", NULL, asignum      },
   { "table.i",  S(TABL),TR, 1,      "i",    "iiooo",(SUBR)tabler_init       },
-#endif
   { "table.k",  S(TABL),TR, 3,      "k",    "xiooo",(SUBR)tabl_setup,
     (SUBR)tabler_kontrol        },
   { "table.a",  S(TABL),TR, 3,      "a",    "xiooo",(SUBR)tabl_setup,
@@ -415,7 +408,6 @@ OENTRY opcodlst_1[] = {
   { "tablei.i", S(TABL),TR, 1,      "i",    "iiooo",(SUBR)tableir_init      },
   { "tablei.k", S(TABL),TR, 3,      "k",    "xiooo",(SUBR)tabl_setup,
     (SUBR)tableir_kontrol                                                   },
-#if 0
   { "tablei.a", S(TABL),TR, 3,      "a",    "xiooo",(SUBR)tabl_setup,
     (SUBR)tableir_audio                                                     },
   { "table3.i", S(TABL),TR, 1,      "i",    "iiooo",(SUBR)table3r_init      },
@@ -441,10 +433,8 @@ OENTRY opcodlst_1[] = {
   { "oscil1", S(OSCIL1), TR, 3,     "k",    "ikij", ko1set, kosc1          },
   { "oscil1i",S(OSCIL1), TR, 3,     "k",    "ikij", ko1set, kosc1i         },
   { "osciln", S(OSCILN), TR, 3,     "a",    "kiii", oscnset,   osciln },
-#endif
   { "oscil.a",S(OSC),TR,    3,       "a",    "kkjo", oscset,   osckk  },
   { "oscil.kkk",S(OSC),TR,   3,      "k",    "kkjo", oscset, koscil  },
-#if 0
   { "oscil.kka",S(OSC),TR,   3,      "a",    "kkjo", oscset, osckk  },
   { "oscil.ka",S(OSC),TR,    3,      "a",    "kajo", oscset,   oscka  },
   { "oscil.ak",S(OSC),TR,    3,      "a",    "akjo", oscset,   oscak  },
@@ -462,9 +452,7 @@ OENTRY opcodlst_1[] = {
      { "oscil.aa", S(POSC),TR, 3, "a", "aajo", posc_set,  poscaa },
      { "oscil3.kk",  S(POSC),TR,  7, "s", "kkjo", posc_set, kposc3, posc3 },
   */
-#endif
   { "oscili.a",S(OSC),TR,   3,      "a",    "kkjo", oscset, osckki  },
-#if 0
   { "oscili.kk",S(OSC),TR,   3,      "k",   "kkjo", oscset, koscli, NULL  },
   { "oscili.ka",S(OSC),TR,   3,      "a",   "kajo", oscset,   osckai  },
   { "oscili.ak",S(OSC),TR,   3,      "a",   "akjo", oscset,   oscaki  },
@@ -485,7 +473,6 @@ OENTRY opcodlst_1[] = {
   { "oscil3.akA",S(OSC),0,   3,      "a",  "aki[]o", oscsetA, oscak3 },
   { "oscil3.aaA",S(OSC),0,   3,      "a",  "aai[]o", oscsetA, oscaa3 },
   /* end change */
-#endif
 #ifdef INC_FOSCIL
   { "foscil", S(FOSC),TR,  3,      "a",  "xkxxkjo",foscset,   foscil  },
 #endif
@@ -581,7 +568,7 @@ OENTRY opcodlst_1[] = {
 #ifdef  INC_LPSLOT
   { "lpslot"  ,  S(LPSLOT),0,  1,   "",     "i",    lpslotset, NULL, NULL   },
 #endif
-#ifdef(LPINTERP
+#ifdef INC_LPINTERP
   { "lpinterp", S(LPINTERPOL),0, 3, "",     "iik",  lpitpset, lpinterpol, NULL},
 #endif
 #ifdef  INC_RMS
@@ -612,9 +599,7 @@ OENTRY opcodlst_1[] = {
   { "inq",    S(INQ),0,     2,      "aaaa", "",     NULL,   inq     },
   { "out.a",  S(OUTX),IR,     3,      "",     "y",    ochn,   outall },
   { "out.A",  S(OUTARRAY),IR, 3,      "",     "a[]",  outarr_init,  outarr },
-#endif
   { "outs",   S(OUTX),IR,     3,      "",     "y",    ochn,   outall },
-#if 0
   { "outq",   S(OUTX),IR,     3,      "",     "y",    ochn,   outall },
   { "outh",   S(OUTX),IR,     3,      "",     "y",    ochn,   outall },
   { "outo",   S(OUTX),IR,     3,      "",     "y",    ochn,   outall },
@@ -869,10 +854,10 @@ OENTRY opcodlst_1[] = {
   { "atonek", S(KTONE),0,   3, "k",     "kko",  (SUBR)ktonset, (SUBR)katone, NULL},
 #endif
 #ifdef  INC_RESONK
-{ "resonk", S(KRESON),0,  3, "k",     "kkkpo",(SUBR)krsnset, (SUBR)kreson, NULL},
+{ "resonk", S(KRESON),0,  3, "k",     "kkkpo",(SUBR)rsnset, (SUBR)kreson, NULL},
 #endif
 #ifdef  INC_ARESONK
-  { "aresonk",S(KRESON),0,  3, "k",     "kkkpo",(SUBR)krsnset, (SUBR)kareson, NULL},
+  { "aresonk",S(KRESON),0,  3, "k",     "kkkpo",(SUBR)rsnset, (SUBR)kareson, NULL},
 #endif
 #ifdef  INC_LIMIT
   { "limit.i", S(LIMIT),0,  1, "i",     "iii",  (SUBR)klimit,  NULL,    NULL      },
@@ -1018,7 +1003,7 @@ OENTRY opcodlst_1[] = {
     midipitchbend, midipitchbend },
   { "mididefault", S(MIDIDEFAULT),0, 3, "", "xx",   mididefault, mididefault },
   { "invalue",   0xFFFF,   _CR,    0,   NULL,   NULL, NULL, NULL },
-  { "invalue.k", S(INVAL),_CR, 3, "k", "i", (SUBR) invalset,(SUBR)kinval, NULL },
+{ "invalue.k", S(INVAL),_CR, 3, "k", "i", (SUBR) invalset,(SUBR)kinval, NULL },
   { "invalue.i", S(INVAL),_CR, 1, "i", "i", (SUBR) invalsetgo, NULL, NULL },
   { "invalue.iS", S(INVAL),_CR, 1, "i", "S", (SUBR) invalsetSgo, NULL, NULL },
   { "invalue.kS", S(INVAL),_CR, 3, "k", "S",(SUBR) invalset_S,(SUBR)kinval, NULL },
@@ -1077,9 +1062,7 @@ OENTRY opcodlst_1[] = {
     (SUBR)samphset,(SUBR)samphold    },
   { "samphold.k",S(SAMPHOLD),0,3, "k", "xxoo",
     (SUBR)samphset,(SUBR)ksmphold,NULL  },
-#endif
   { "delay",  S(DELAY),0,   3,  "a", "aio",  (SUBR)delset,   (SUBR)delay   },
-#if 0
   { "delayr", S(DELAYR),0,  3,  "aX","io",   (SUBR)delrset,   (SUBR)delayr  },
   { "delayw", S(DELAYW),0,  3,  "",  "a",    (SUBR)delwset,   (SUBR)delayw  },
   { "delay1", S(DELAY1),0,  3,  "a", "ao",   (SUBR)del1set,   (SUBR)delay1  },
@@ -1346,7 +1329,6 @@ OENTRY opcodlst_1[] = {
     (SUBR) coef2parm_init, (SUBR) coef2parm},
    {"resonbnk", S(RESONB), 0, 3, "a", "ak[]kkipoo",
    (SUBR) resonbnk_init, (SUBR) resonbnk},
-#endif
    /*t erminate list */
   {  NULL, 0, 0, 0, NULL, NULL, NULL, NULL, NULL       }
 };

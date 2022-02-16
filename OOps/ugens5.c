@@ -32,8 +32,47 @@
 
 #define MAX_LPC_SLOT 20
 
-#if defined(PORT)||defined(PORTK)
+#if defined(INC_PORT)||defined(INC_PORTK)
+int32_t porset(CSOUND *csound, PORT *p)
+{
+   IGN(csound);
+    p->c2 = pow(0.5, (double)CS_ONEDKR / *p->ihtim);
+    p->c1 = 1.0 - p->c2;
+    if (LIKELY(*p->isig >= FL(0.0)))
+      p->yt1 = (double)(*p->isig);
+    p->ihtim_old = *p->ihtim;
+    return OK;
+}
+#endif
 
+#ifdef INC_PORT
+int32_t port(CSOUND *csound, PORT *p)
+{
+    IGN(csound);
+    p->yt1 = p->c1 * (double)*p->ksig + p->c2 * p->yt1;
+    *p->kr = (MYFLT)p->yt1;
+    return OK;
+}
+#endif
+
+#ifdef INC_PORTK
+int32_t kport(CSOUND *csound, KPORT *p)
+{
+x    IGN(csound);
+    if (p->ihtim_old != *p->ihtim) {
+      p->c2 = pow(0.5, (double)CS_ONEDKR / *p->ihtim);
+      p->c1 = 1.0 - p->c2;
+      p->ihtim_old = *p->ihtim;
+    }
+    p->yt1 = p->c1 * (double)*p->ksig + p->c2 * p->yt1;
+    *p->kr = (MYFLT)p->yt1;
+    return OK;
+}
+#endif
+
+
+
+#if defined(INC_TONE)||defined(INC_ATONE)
 int32_t tonset(CSOUND *csound, TONE *p)
 {
     double b;
@@ -47,6 +86,216 @@ int32_t tonset(CSOUND *csound, TONE *p)
     return OK;
 }
 #endif
+
+#ifdef INC_TONE
+int32_t ktone(CSOUND *csound, TONE *p)
+{
+    IGN(csound);
+    double      c1 = p->c1, c2 = p->c2;
+    double      yt1 = p->yt1;
+
+    if (*p->khp != (MYFLT)p->prvhp) {
+      double b;
+      p->prvhp = (double)*p->khp;
+      b = 2.0 - cos((double)(p->prvhp * CS_ONEDKR *TWOPI));
+      p->c2 = c2 = b - sqrt(b * b - 1.0);
+      p->c1 = c1 = 1.0 - c2;
+    }
+    yt1 = c1 * (double)(*p->asig) + c2 * yt1;
+    *p->ar = (MYFLT)yt1;
+    p->yt1 = yt1;
+    return OK;
+}
+#endif
+
+#ifdef INC_TONE
+int32_t tone(CSOUND *csound, TONE *p)
+{
+    IGN(csound);
+    MYFLT       *ar, *asig;
+    uint32_t offset = p->h.insdshead->ksmps_offset;
+    uint32_t early  = p->h.insdshead->ksmps_no_end;
+    uint32_t n, nsmps = CS_KSMPS;
+    double      c1 = p->c1, c2 = p->c2;
+    double      yt1 = p->yt1;
+
+    if (*p->khp != (MYFLT)p->prvhp) {
+      double b;
+      p->prvhp = (double)*p->khp;
+      b = 2.0 - cos((double)(p->prvhp * csound->tpidsr));
+      p->c2 = c2 = b - sqrt(b * b - 1.0);
+      p->c1 = c1 = 1.0 - c2;
+    }
+    ar = p->ar;
+    asig = p->asig;
+    if (UNLIKELY(offset)) memset(ar, '\0', offset*sizeof(MYFLT));
+    if (UNLIKELY(early)) {
+      nsmps -= early;
+      memset(&ar[nsmps], '\0', early*sizeof(MYFLT));
+    }
+    for (n=offset; n<nsmps; n++) {
+      yt1 = c1 * (double)(asig[n]) + c2 * yt1;
+      ar[n] = (MYFLT)yt1;
+    }
+    p->yt1 = yt1;
+    return OK;
+}
+#endif
+
+#ifdef INC_ATONEK
+int32_t katone(CSOUND *csound, TONE *p)
+{
+    IGN(csound);
+    double     sig, x;
+    double      c2 = p->c2, yt1 = p->yt1;
+
+    if (*p->khp != p->prvhp) {
+      double b;
+      p->prvhp = *p->khp;
+      b = 2.0 - cos((double)(*p->khp * CS_ONEDKR *TWOPI));
+      p->c2 = c2 = b - sqrt(b * b - 1.0);
+/*      p->c1 = c1 = 1.0 - c2; */
+    }
+      sig = *p->asig;
+      x = yt1 = c2 * (yt1 + sig);
+      *p->ar = (MYFLT)x;
+      yt1 -= sig;               /* yt1 contains yt1-xt1 */
+
+`    p->yt1 = yt1;
+    return OK;
+}
+
+#endif
+
+#ifdef INC_ATONE
+int32_t atone(CSOUND *csound, TONE *p)
+{
+    MYFLT       *ar, *asig;
+    uint32_t    offset = p->h.insdshead->ksmps_offset;
+    uint32_t    early  = p->h.insdshead->ksmps_no_end;
+    uint32_t    n, nsmps = CS_KSMPS;
+    double      c2 = p->c2, yt1 = p->yt1;
+
+    if (*p->khp != p->prvhp) {
+      double b;
+      p->prvhp = *p->khp;
+      b = 2.0 - cos((double)(*p->khp * csound->tpidsr));
+      p->c2 = c2 = b - sqrt(b * b - 1.0);
+/*      p->c1 = c1 = 1.0 - c2; */
+    }
+    ar = p->ar;
+    if (UNLIKELY(offset)) memset(ar, '\0', offset*sizeof(MYFLT));
+    if (UNLIKELY(early)) {
+      nsmps -= early;
+      memset(&ar[nsmps], '\0', early*sizeof(MYFLT));
+    }
+    asig = p->asig;
+    for (n=offset; n<nsmps; n++) {
+      double sig = (double)asig[n];
+      double x = yt1 = c2 * (yt1 + sig);
+      ar[n] = (MYFLT)x;
+      yt1 -= sig;               /* yt1 contains yt1-xt1 */
+    }
+    p->yt1 = yt1;
+    return OK;
+}
+#endif
+
+#if defined(INC_TONEX)||defined(INC_ATONEX)
+
+int32_t tonsetx(CSOUND *csound, TONEX *p)
+{                   /* From Gabriel Maldonado, modified for arbitrary order */
+    {
+      double b;
+      p->prvhxp = *p->khp;
+      b = 2.0 - cos((double)(*p->khp * csound->tpidsr));
+      p->c2 = b - sqrt(b * b - 1.0);
+      p->c1 = 1.0 - p->c2;
+    }
+    if (UNLIKELY((p->loop = (int32_t) (*p->ord + FL(0.5))) < 1)) p->loop = 4;
+    if (!*p->istor && (p->aux.auxp == NULL ||
+                    (uint32_t)(p->loop*sizeof(double)) > p->aux.size))
+        csound->AuxAlloc(csound, (int32_t)(p->loop*sizeof(double)), &p->aux);
+    p->yt1 = (double*)p->aux.auxp;
+    if (LIKELY(!(*p->istor))) {
+    memset(p->yt1, 0, p->loop*sizeof(double)); /* Punning zero and 0.0 */
+    }
+    return OK;
+}
+#endif
+
+#ifdef INC_TONEX
+int32_t tonex(CSOUND *csound, TONEX *p)      /* From Gabriel Maldonado, modified */
+{
+    MYFLT       *ar = p->ar;
+    double      c2 = p->c2, *yt1 = p->yt1,c1 = p->c1;
+    uint32_t    offset = p->h.insdshead->ksmps_offset;
+    uint32_t    early  = p->h.insdshead->ksmps_no_end;
+    uint32_t    n, nsmps = CS_KSMPS;
+    int32_t     j, lp = p->loop;
+
+    if (*p->khp != p->prvhp) {
+      double b;
+      p->prvhp = (double)*p->khp;
+      b = 2.0 - cos(p->prvhp * (double)csound->tpidsr);
+      p->c2 = b - sqrt(b * b - 1.0);
+      p->c1 = 1.0 - p->c2;
+    }
+
+    memmove(ar,p->asig,sizeof(MYFLT)*nsmps);
+    if (UNLIKELY(offset))  memset(ar, '\0', offset*sizeof(MYFLT));
+    if (UNLIKELY(early)) {
+      nsmps -= early;
+      memset(&ar[nsmps], '\0', early*sizeof(MYFLT));
+    }
+    for (j=0; j< lp; j++) {
+      /* Should *yt1 be reset to something?? */
+      for (n=0; n<nsmps; n++) {
+        double x = c1 * ar[n] + c2 * yt1[j];
+        yt1[j] = x;
+        ar[n] = (MYFLT)x;
+      }
+    }
+    return OK;
+}
+#endif
+
+#ifdef INC_ATONEX
+int32_t atonex(CSOUND *csound, TONEX *p)      /* Gabriel Maldonado, modified */
+{
+    MYFLT       *ar = p->ar;
+    double      c2 = p->c2, *yt1 = p->yt1;
+    uint32_t    offset = p->h.insdshead->ksmps_offset;
+    uint32_t    early  = p->h.insdshead->ksmps_no_end;
+    uint32_t    n, nsmps = CS_KSMPS;
+    int32_t     j, lp = p->loop;
+
+    if (*p->khp != p->prvhp) {
+      double b;
+      p->prvhp = *p->khp;
+      b = 2.0 - cos((double)(*p->khp * csound->tpidsr));
+      p->c2 = b - sqrt(b * b - 1.0);
+      /*p->c1 = 1. - p->c2;*/
+    }
+
+    memmove(ar,p->asig,sizeof(MYFLT)*nsmps);
+    if (UNLIKELY(offset)) memset(ar, '\0', offset*sizeof(MYFLT));
+    if (UNLIKELY(early)) {
+      nsmps -= early;
+      memset(&ar[nsmps], '\0', early*sizeof(MYFLT));
+    }
+    for (j=1; j<lp; j++) {
+      for (n=offset; n<nsmps; n++) {
+        double sig = (double)ar[n];
+        double x = c2 * (yt1[j] + sig);
+        yt1[j] = x - sig;            /* yt1 contains yt1-xt1 */
+        ar[n] = (MYFLT)x;
+      }
+    }
+    return OK;
+}
+#endif
+
 
 #ifdef INC_TONEK
 int32_t ktone(CSOUND *csound, TONE *p)
@@ -164,26 +413,6 @@ int32_t atone(CSOUND *csound, TONE *p)
 
 #ifdef INC_TONEX
 
-int32_t tonsetx(CSOUND *csound, TONEX *p)
-{                   /* From Gabriel Maldonado, modified for arbitrary order */
-    {
-      double b;
-      p->prvhxp = *p->khp;
-      b = 2.0 - cos((double)(*p->khp * csound->tpidsr));
-      p->c2 = b - sqrt(b * b - 1.0);
-      p->c1 = 1.0 - p->c2;
-    }
-    if (UNLIKELY((p->loop = (int32_t) (*p->ord + FL(0.5))) < 1)) p->loop = 4;
-    if (!*p->istor && (p->aux.auxp == NULL ||
-                    (uint32_t)(p->loop*sizeof(double)) > p->aux.size))
-        csound->AuxAlloc(csound, (int32_t)(p->loop*sizeof(double)), &p->aux);
-    p->yt1 = (double*)p->aux.auxp;
-    if (LIKELY(!(*p->istor))) {
-    memset(p->yt1, 0, p->loop*sizeof(double)); /* Punning zero and 0.0 */
-    }
-    return OK;
-}
-
 int32_t tonex(CSOUND *csound, TONEX *p)      /* From Gabriel Maldonado, modified */
 {
     MYFLT       *ar = p->ar;
@@ -255,225 +484,21 @@ int32_t atonex(CSOUND *csound, TONEX *p)      /* Gabriel Maldonado, modified */
 }
 #endif
 
-
-#if defined(TONE)||defined(TONE)||defined(ATONE)||defined(TONEX)
-
-int32_t tonset(CSOUND *csound, TONE *p)
+#if defined(INC_RESONK)||defined(INC_ARESONK)||defined(INC_RESON)||defined(INC_ARESON)
+int32_t rsnset(CSOUND *csound, RESON *p)
 {
-    double b;
-    p->prvhp = (double)*p->khp;
-    b = 2.0 - cos((double)(p->prvhp * csound->tpidsr));
-    p->c2 = b - sqrt(b * b - 1.0);
-    p->c1 = 1.0 - p->c2;
-
-    if (LIKELY(!(*p->istor)))
-      p->yt1 = 0.0;
-    return OK;
-}
-
-#ifdef INC_TONEK
-int32_t ktone(CSOUND *csound, TONE *p)
-{
-    IGN(csound);
-    double      c1 = p->c1, c2 = p->c2;
-    double      yt1 = p->yt1;
-
-    if (*p->khp != (MYFLT)p->prvhp) {
-      double b;
-      p->prvhp = (double)*p->khp;
-      b = 2.0 - cos((double)(p->prvhp * CS_ONEDKR *TWOPI));
-      p->c2 = c2 = b - sqrt(b * b - 1.0);
-      p->c1 = c1 = 1.0 - c2;
+    int32_t scale;
+    p->scale = scale = (int32_t)*p->iscl;
+    if (UNLIKELY(scale && scale != 1 && scale != 2)) {
+      return csound->InitError(csound, Str("illegal reson iscl value, %f"),
+                                       *p->iscl);
     }
-    yt1 = c1 * (double)(*p->asig) + c2 * yt1;
-    *p->ar = (MYFLT)yt1;
-    p->yt1 = yt1;
-    return OK;
-}
-#endif
+    p->prvcf = p->prvbw = -100.0;
+    if (!(*p->istor))
+      p->yt1 = p->yt2 = 0.0;
+    p->asigf = IS_ASIG_ARG(p->kcf);
+    p->asigw = IS_ASIG_ARG(p->kbw);
 
-#ifdef INC_TONE
-int32_t tone(CSOUND *csound, TONE *p)
-{
-    IGN(csound);
-    MYFLT       *ar, *asig;
-    uint32_t offset = p->h.insdshead->ksmps_offset;
-    uint32_t early  = p->h.insdshead->ksmps_no_end;
-    uint32_t n, nsmps = CS_KSMPS;
-    double      c1 = p->c1, c2 = p->c2;
-    double      yt1 = p->yt1;
-
-    if (*p->khp != (MYFLT)p->prvhp) {
-      double b;
-      p->prvhp = (double)*p->khp;
-      b = 2.0 - cos((double)(p->prvhp * csound->tpidsr));
-      p->c2 = c2 = b - sqrt(b * b - 1.0);
-      p->c1 = c1 = 1.0 - c2;
-    }
-    ar = p->ar;
-    asig = p->asig;
-    if (UNLIKELY(offset)) memset(ar, '\0', offset*sizeof(MYFLT));
-    if (UNLIKELY(early)) {
-      nsmps -= early;
-      memset(&ar[nsmps], '\0', early*sizeof(MYFLT));
-    }
-    for (n=offset; n<nsmps; n++) {
-      yt1 = c1 * (double)(asig[n]) + c2 * yt1;
-      ar[n] = (MYFLT)yt1;
-    }
-    p->yt1 = yt1;
-    return OK;
-}
-#endif
-
-#ifdef INC_ATONEK
-int32_t katone(CSOUND *csound, TONE *p)
-{
-    IGN(csound);
-    double     sig, x;
-    double      c2 = p->c2, yt1 = p->yt1;
-
-    if (*p->khp != p->prvhp) {
-      double b;
-      p->prvhp = *p->khp;
-      b = 2.0 - cos((double)(*p->khp * CS_ONEDKR *TWOPI));
-      p->c2 = c2 = b - sqrt(b * b - 1.0);
-/*      p->c1 = c1 = 1.0 - c2; */
-    }
-      sig = *p->asig;
-      x = yt1 = c2 * (yt1 + sig);
-      *p->ar = (MYFLT)x;
-      yt1 -= sig;               /* yt1 contains yt1-xt1 */
-
-`    p->yt1 = yt1;
-    return OK;
-}
-
-#endif
-
-#ifdef INC_ATONE
-int32_t atone(CSOUND *csound, TONE *p)
-{
-    MYFLT       *ar, *asig;
-    uint32_t    offset = p->h.insdshead->ksmps_offset;
-    uint32_t    early  = p->h.insdshead->ksmps_no_end;
-    uint32_t    n, nsmps = CS_KSMPS;
-    double      c2 = p->c2, yt1 = p->yt1;
-
-    if (*p->khp != p->prvhp) {
-      double b;
-      p->prvhp = *p->khp;
-      b = 2.0 - cos((double)(*p->khp * csound->tpidsr));
-      p->c2 = c2 = b - sqrt(b * b - 1.0);
-/*      p->c1 = c1 = 1.0 - c2; */
-    }
-    ar = p->ar;
-    if (UNLIKELY(offset)) memset(ar, '\0', offset*sizeof(MYFLT));
-    if (UNLIKELY(early)) {
-      nsmps -= early;
-      memset(&ar[nsmps], '\0', early*sizeof(MYFLT));
-    }
-    asig = p->asig;
-    for (n=offset; n<nsmps; n++) {
-      double sig = (double)asig[n];
-      double x = yt1 = c2 * (yt1 + sig);
-      ar[n] = (MYFLT)x;
-      yt1 -= sig;               /* yt1 contains yt1-xt1 */
-    }
-    p->yt1 = yt1;
-    return OK;
-}
-#endif
-
-#ifdef INC_TONEX
-
-int32_t tonsetx(CSOUND *csound, TONEX *p)
-{                   /* From Gabriel Maldonado, modified for arbitrary order */
-    {
-      double b;
-      p->prvhxp = *p->khp;
-      b = 2.0 - cos((double)(*p->khp * csound->tpidsr));
-      p->c2 = b - sqrt(b * b - 1.0);
-      p->c1 = 1.0 - p->c2;
-    }
-    if (UNLIKELY((p->loop = (int32_t) (*p->ord + FL(0.5))) < 1)) p->loop = 4;
-    if (!*p->istor && (p->aux.auxp == NULL ||
-                    (uint32_t)(p->loop*sizeof(double)) > p->aux.size))
-        csound->AuxAlloc(csound, (int32_t)(p->loop*sizeof(double)), &p->aux);
-    p->yt1 = (double*)p->aux.auxp;
-    if (LIKELY(!(*p->istor))) {
-    memset(p->yt1, 0, p->loop*sizeof(double)); /* Punning zero and 0.0 */
-    }
-    return OK;
-}
-
-int32_t tonex(CSOUND *csound, TONEX *p)      /* From Gabriel Maldonado, modified */
-{
-    MYFLT       *ar = p->ar;
-    double      c2 = p->c2, *yt1 = p->yt1,c1 = p->c1;
-    uint32_t    offset = p->h.insdshead->ksmps_offset;
-    uint32_t    early  = p->h.insdshead->ksmps_no_end;
-    uint32_t    n, nsmps = CS_KSMPS;
-    int32_t     j, lp = p->loop;
-
-    if (*p->khp != p->prvhp) {
-      double b;
-      p->prvhp = (double)*p->khp;
-      b = 2.0 - cos(p->prvhp * (double)csound->tpidsr);
-      p->c2 = b - sqrt(b * b - 1.0);
-      p->c1 = 1.0 - p->c2;
-    }
-
-    memmove(ar,p->asig,sizeof(MYFLT)*nsmps);
-    if (UNLIKELY(offset))  memset(ar, '\0', offset*sizeof(MYFLT));
-    if (UNLIKELY(early)) {
-      nsmps -= early;
-      memset(&ar[nsmps], '\0', early*sizeof(MYFLT));
-    }
-    for (j=0; j< lp; j++) {
-      /* Should *yt1 be reset to something?? */
-      for (n=0; n<nsmps; n++) {
-        double x = c1 * ar[n] + c2 * yt1[j];
-        yt1[j] = x;
-        ar[n] = (MYFLT)x;
-      }
-    }
-    return OK;
-}
-#endif
-
-#ifdef INC_ATONEX
-int32_t atonex(CSOUND *csound, TONEX *p)      /* Gabriel Maldonado, modified */
-{
-    MYFLT       *ar = p->ar;
-    double      c2 = p->c2, *yt1 = p->yt1;
-    uint32_t    offset = p->h.insdshead->ksmps_offset;
-    uint32_t    early  = p->h.insdshead->ksmps_no_end;
-    uint32_t    n, nsmps = CS_KSMPS;
-    int32_t     j, lp = p->loop;
-
-    if (*p->khp != p->prvhp) {
-      double b;
-      p->prvhp = *p->khp;
-      b = 2.0 - cos((double)(*p->khp * csound->tpidsr));
-      p->c2 = b - sqrt(b * b - 1.0);
-      /*p->c1 = 1. - p->c2;*/
-    }
-
-    memmove(ar,p->asig,sizeof(MYFLT)*nsmps);
-    if (UNLIKELY(offset)) memset(ar, '\0', offset*sizeof(MYFLT));
-    if (UNLIKELY(early)) {
-      nsmps -= early;
-      memset(&ar[nsmps], '\0', early*sizeof(MYFLT));
-    }
-    for (j=1; j<lp; j++) {
-      for (n=offset; n<nsmps; n++) {
-        double sig = (double)ar[n];
-        double x = c2 * (yt1[j] + sig);
-        yt1[j] = x - sig;            /* yt1 contains yt1-xt1 */
-        ar[n] = (MYFLT)x;
-      }
-    }
     return OK;
 }
 #endif
@@ -577,8 +602,7 @@ int32_t reson(CSOUND *csound, RESON *p)
 #endif
 
 
-#if defined(RESON)||defined(RESONK)
-
+#if defined(RESONX)||defined(ARESONX)
 
 int32_t rsnsetx(CSOUND *csound, RESONX *p)
 {                               /* Gabriel Maldonado, modifies for arb order */
@@ -668,7 +692,7 @@ int32_t resonx(CSOUND *csound, RESONX *p)   /* Gabriel Maldonado, modified  */
 }
 #endif
 
-#ifdef INC_RESONK
+#ifdef INC_ARESONK
 int32_t kareson(CSOUND *csound, RESON *p)
 {
     uint32_t    flag = 0;
@@ -845,6 +869,63 @@ int32_t lprdset_(CSOUND *csound, LPREAD *p, int32_t stringname)
       }
       /* Check orc/analysis sample rate compatibility */
       if (lph->srate != csound->esr) {
+    if (*p->khp != p->prvhp) {
+      double b;
+      p->prvhp = *p->khp;
+      b = 2.0 - cos((double)(*p->khp * csound->tpidsr));
+      p->c2 = c2 = b - sqrt(b * b - 1.0);
+/*      p->c1 = c1 = 1.0 - c2; */
+    }
+    ar = p->ar;
+    if (UNLIKELY(offset)) memset(ar, '\0', offset*sizeof(MYFLT));
+    if (UNLIKELY(early)) {
+      nsmps -= early;
+      memset(&ar[nsmps], '\0', early*sizeof(MYFLT));
+    }
+    asig = p->asig;
+    for (n=offset; n<nsmps; n++) {
+      double sig = (double)asig[n];
+      double x = yt1 = c2 * (yt1 + sig);
+      ar[n] = (MYFLT)x;
+      yt1 -= sig;               /* yt1 contains yt1-xt1 */
+    }
+    p->yt1 = yt1;
+    return OK;
+}
+
+int32_t atonex(CSOUND *csound, TONEX *p)      /* Gabriel Maldonado, modified */
+{
+    MYFLT       *ar = p->ar;
+    double      c2 = p->c2, *yt1 = p->yt1;
+    uint32_t    offset = p->h.insdshead->ksmps_offset;
+    uint32_t    early  = p->h.insdshead->ksmps_no_end;
+    uint32_t    n, nsmps = CS_KSMPS;
+    int32_t     j, lp = p->loop;
+
+    if (*p->khp != p->prvhp) {
+      double b;
+      p->prvhp = *p->khp;
+      b = 2.0 - cos((double)(*p->khp * csound->tpidsr));
+      p->c2 = b - sqrt(b * b - 1.0);
+      /*p->c1 = 1. - p->c2;*/
+    }
+
+    memmove(ar,p->asig,sizeof(MYFLT)*nsmps);
+    if (UNLIKELY(offset)) memset(ar, '\0', offset*sizeof(MYFLT));
+    if (UNLIKELY(early)) {
+      nsmps -= early;
+      memset(&ar[nsmps], '\0', early*sizeof(MYFLT));
+    }
+    for (j=1; j<lp; j++) {
+      for (n=offset; n<nsmps; n++) {
+        double sig = (double)ar[n];
+        double x = c2 * (yt1[j] + sig);
+        yt1[j] = x - sig;            /* yt1 contains yt1-xt1 */
+        ar[n] = (MYFLT)x;
+      }
+    }
+    return OK;
+}
         csound->Warning(csound, Str("lpfile srate != orch sr"));
       }
       p->npoles = lph->npoles;                /* note npoles, etc. */
@@ -999,6 +1080,7 @@ static int32_t DoPoleInterpolation(int poleCount,
     return(1);
 }
 
+#fdef LPRESON
 static inline void InvertPoles(int32_t count, double *real, double *imag)
 {
     int32_t    i;
@@ -1057,6 +1139,8 @@ static inline void
     for (j=0; j<=poleCount; j++)
       polyReal[j] /= pr;
 }
+#endif
+
 
 /*
  *
@@ -1151,7 +1235,7 @@ int32_t lpread(CSOUND *csound, LPREAD *p)
 }
 #endif
 
-#rfdef LPFOMAN
+#ifdef LPFOMAN
 int32_t lpformantset(CSOUND *csound, LPFORM *p)
 {
     LPREAD *q;
@@ -1204,7 +1288,7 @@ int32_t lpformant(CSOUND *csound, LPFORM *p)
 
 #endif
 
-#fdef LPRESON
+#ifdef LPRESON
 /*
  *
  * LPRESON: initialisation time

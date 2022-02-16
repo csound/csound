@@ -121,6 +121,7 @@ int32_t gbzset(CSOUND *csound, GBUZZ *p)
     }
     return NOTOK;
 }
+#endif
 
 static inline MYFLT intpow1(MYFLT x, int32_t n) /* Binary positive power function */
 {
@@ -142,6 +143,7 @@ MYFLT intpow(MYFLT x, int32_t n)   /* Binary power function */
     return intpow1(x, n);
 }
 
+#ifdef INC_GBUZZ
 int32_t gbuzz(CSOUND *csound, GBUZZ *p)
 {
     FUNC        *ftp;
@@ -450,7 +452,7 @@ static int16 rand15(CSOUND *csound)
 #define RIM 0x7FFFFFFFL         /* 2**31 - 1 */
 
 #define dv2_31          (FL(4.656612873077392578125e-10))
-#if defined(INC_RAND)||defined(INC_RAND_K||defined(INC_RANDH)||defined(INC_RANDH_K)||defined(INC_RANDI)||defined(INC_RANDI_K)
+#if defined(INC_RAND)||defined(INC_RAND_K)||defined(INC_RANDH)||defined(INC_RANDH_K)||defined(INC_RANDI)||defined(INC_RANDI_K)
 
 int32 randint31(int32 seed31)
 {
@@ -470,6 +472,9 @@ int32 randint31(int32 seed31)
     }
     return (int32_t)rilo;
 }
+#endif
+
+#if defined(INC_RAND) || defined(INC_RAND_K)
 
 int32_t rndset(CSOUND *csound, RAND *p)
 {
@@ -909,7 +914,7 @@ int32_t rcset(CSOUND *csound, RANDC *p)
     p->phs = 0;
     return OK;
 }
-#endf
+#endif
 
 #ifdef INC_RANDC_K
 int32_t krandc(CSOUND *csound, RANDC *p)
