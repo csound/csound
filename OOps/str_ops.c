@@ -181,16 +181,20 @@ static CS_NOINLINE int32_t StrOp_ErrMsg(void *p, const char *msg)
 }
 
 int32_t strassign_k(CSOUND *csound, STRCPY_OP *p) {
+  if(p->r != p->str) {
   if(p->str->timestamp == csound->GetKcounter(csound)) {
   CS_TYPE *strType = csound->GetTypeForArg(p->str);    
   strType->copyValue(csound, strType, p->r, p->str);
+  }
   }
   return  OK;
 }
 
 int32_t strcpy_opcode_S(CSOUND *csound, STRCPY_OP *p) {
+  if(p->r != p->str) {
   CS_TYPE *strType = csound->GetTypeForArg(p->str);
   strType->copyValue(csound, strType, p->r, p->str);
+  }
   return  OK;
 }
 
