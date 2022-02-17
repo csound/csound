@@ -185,6 +185,7 @@ int32_t strassign_k(CSOUND *csound, STRCPY_OP *p) {
   if(p->str->timestamp == csound->GetKcounter(csound)) {
   CS_TYPE *strType = csound->GetTypeForArg(p->str);    
   strType->copyValue(csound, strType, p->r, p->str);
+  //printf("copy \n");
   }
   }
   return  OK;

@@ -783,7 +783,7 @@ static TREE *create_expression(CSOUND *csound, TREE *root, int line, int locn,
             }
             inds = inds->next;
           }
-        }	  
+        }
         } else if (var->varType == &CS_VAR_TYPE_A) {
           outype = "k";
         } else {
