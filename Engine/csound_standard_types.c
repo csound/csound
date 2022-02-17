@@ -67,8 +67,6 @@ void string_copy_value(CSOUND* csound, CS_TYPE* cstype, void* dest, void* src) {
 
     int64_t kcnt = csound->GetKcounter(csound);
     int check = csoundIsInitThread(csound); 
-    if (check || sSrc->timestamp == 0
-	  || sSrc->timestamp == kcnt) {
 
     if (sSrc->size > sDest->size) {
       cs->Free(cs, sDest->data);
@@ -81,11 +79,10 @@ void string_copy_value(CSOUND* csound, CS_TYPE* cstype, void* dest, void* src) {
     /* VL Feb 22 - update count for 7.0 */
     if(!check) {
      sDest->timestamp = kcnt;
-     sSrc->timestamp = kcnt;
+ 
     }
    else
      sDest->timestamp = 0; 
-  }
 }
 
 static size_t array_get_num_members(ARRAYDAT* aSrc) {
@@ -159,6 +156,7 @@ void varInitMemory(CSOUND *csound, CS_VARIABLE* var, MYFLT* memblock) {
     IGN(csound);
     memset(memblock, 0, var->memBlockSize);
 }
+
 
 void arrayInitMemory(CSOUND *csound, CS_VARIABLE* var, MYFLT* memblock) {
     IGN(csound);

@@ -769,17 +769,14 @@ static TREE *create_expression(CSOUND *csound, TREE *root, int line, int locn,
       } else {
         if (var->varType == &CS_VAR_TYPE_ARRAY) {
           outype = strdup(var->subType->varTypeName);
-	  
-
 	  /* VL: 9.2.22 pulled code from 6.x to check for array index type
-             to provide the correct outype
-             NB: needs to be checked for explicit types 
+             to provide the correct outype. Works with explicity types
 	  */ 
          if (outype[0]== 'i') {
           TREE* inds = root->right;
           while (inds) {
             char *xx = get_arg_string_from_tree(csound, inds, typeTable);
-            //printf("**** type=%s right %s\n", outype, inds->value->lexeme);
+            //printf("****array type:%s index type=%s right %s\n", outype, xx, inds->value->lexeme);
             if (xx[0]=='k') {
               outype[0] = 'k';
               break;
