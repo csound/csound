@@ -211,11 +211,7 @@ int32_t strcpy_opcode_p(CSOUND *csound, STRGET_OP *p)
       else
         return csoundInitError(csound, Str("NULL string\n"));
     }
-    if (p->r->data == NULL) {
-      p->r->data = cs_strdup(csound, ss);
-      p->r->size = strlen(ss)+1;
-    }
-    else if ((int32_t) strlen(ss) >= p->r->size) {
+   if ((int32_t) strlen(ss) >= p->r->size) {
       csound->Free(csound, p->r->data);
       p->r->data = cs_strdup(csound, ss);
       p->r->size = strlen(ss) + 1;
@@ -226,6 +222,7 @@ int32_t strcpy_opcode_p(CSOUND *csound, STRGET_OP *p)
     }
   }
   else {
+    csound->Free(csound, p->r->data);
     p->r->data = csound->strarg2name(csound, NULL, p->indx, "soundin.", 0);
     p->r->size = strlen(p->r->data) + 1;
   }
