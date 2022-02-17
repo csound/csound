@@ -421,9 +421,11 @@ typedef struct CORFIL {
       AUXCH   aux;
    } TABDAT;
 
+  #define MAX_STRINGDAT_SIZE 0xFFFFFFFF
+  
   typedef struct {
     char *data;
-    int size;
+    size_t size;
     int64_t timestamp;    /*  VL: Feb 22 starting in 7.0 we have a timestamp */
   } STRINGDAT;
 

@@ -184,7 +184,6 @@ int32_t strassign_k(CSOUND *csound, STRCPY_OP *p) {
   if(p->str->timestamp == csound->GetKcounter(csound)) {
   CS_TYPE *strType = csound->GetTypeForArg(p->str);    
   strType->copyValue(csound, strType, p->r, p->str);
-  //printf("copy\n")
   }
   return  OK;
 }
@@ -253,57 +252,68 @@ int32_t str_changed_k(CSOUND *csound, STRCHGD *p)
   return OK;
 }
 
-
-
 /* strcat */
+/* rewritten VL Feb 22 */
 int32_t strcat_opcode(CSOUND *csound, STRCAT_OP *p)
 {
   int64_t kcnt = csound->GetKcounter(csound);
-    int32_t size;
-    char *str1 = cs_strdup(csound, p->str1->data),
-      *str2 = cs_strdup(csound, p->str2->data);
-
-    if (str1 == NULL || str2 == NULL){
-      csound->Free(csound,str1);
-      csound->Free(csound,str2);
-      if (UNLIKELY(((OPDS*) p)->insdshead->pds != NULL))
-        return csoundPerfError(csound, (OPDS*)p, Str("NULL string\n"));
-      else return csoundInitError(csound, Str("NULL string\n"));
+  size_t size = strlen(p->str1->data) + strlen(p->str2->data);
+  if(size >= MAX_STRINGDAT_SIZE) {
+     if(is_perf_thread(&p->h))
+     return csound->PerfError(csound, &p->h,
+		       "strcatk: requested alloc size exceeds max (%u bytes)",
+		       MAX_STRINGDAT_SIZE);
+     else
+     return csound->InitError(csound,
+		       "strcat: requested alloc size exceeds max (%u bytes)",
+		       MAX_STRINGDAT_SIZE);
+   }
+  p->r->timestamp = kcnt;
+  if(p->str1 != p->r && p->str2 != p->r) {
+    // VL: simple case, inputs are not the output
+    if(size >= p->r->size) {
+      csound->Free(csound, p->r->data); 
+      p->r->data =
+	csound->Calloc(csound, size + 1);
     }
-
-    size = strlen(str1) + strlen(str2);
-
-    if (p->r->data == NULL) {
-      p->r->data = csound->Calloc(csound, size+1);
-      p->r->size = size+1;
+    strncpy((char*) p->r->data, p->str1->data, strlen(p->str1->data));
+    strcat((char*) p->r->data, p->str2->data);
+    return OK;
+  }
+  else if(p->str1 == p->r && p->str2 != p->r) {
+     if(size >= p->r->size) {
+       p->r->data =
+ 	csound->ReAlloc(csound, p->r->data, size + 1);
+       p->r->size = size + 1;
+    }      
+     strcat((char*) p->r->data, p->str2->data);
+     return OK;
     }
-    else if (UNLIKELY((int32_t) size >= p->r->size)) {
-      char *nstr =  csound->ReAlloc(csound, p->r->data, size + 1);
-      if (p->r->data == p->str1->data){
-	p->str1->data = nstr;
-	p->str1->size = size + 1;
-      }
-      if (p->r->data == p->str2->data){
-	p->str2->data = nstr;
-	p->str2->size = size + 1;
-      }
-      p->r->data = nstr;
-      p->r->size = size + 1;
+  else if(p->str1 != p->r && p->str2 != p->r) {
+   if(size >= p->r->size) {
+       p->r->data =
+	csound->ReAlloc(csound, p->r->data, size + 1);
+       p->r->size = size + 1;
+    }      
+     strcat((char*) p->r->data, p->str1->data);
+     return OK;
     }
-
-    strNcpy((char*) p->r->data,  str1, p->r->size);
-    strcat((char*) p->r->data, str2);
-
-      p->r->timestamp = kcnt;
- 
-    
-    csound->Free(csound, str2);                 /* not needed anymore */
-    csound->Free(csound, str1);
-  return OK;
+  else {
+    // the bad case where str1 = str2 = r
+   char *ostr = cs_strdup(csound, p->str2->data);
+   if(size >= p->r->size) {
+       p->str1->data = p->str2->data = p->r->data =
+	csound->Calloc(csound, size + 1);
+       p->str1->size = p->str2->size = p->r->size = size + 1;
+       strcpy((char*) p->r->data, ostr);
+    }
+   strncat((char*) p->r->data, ostr, size);
+   csound->Free(csound, ostr);
+   return OK;
+  }
 }
 
 /* strcmp */
-
 int32_t strcmp_opcode(CSOUND *csound, STRCMP_OP *p)
 {  
     int32_t     i;
