@@ -66,8 +66,6 @@ void string_copy_value(CSOUND* csound, CS_TYPE* cstype, void* dest, void* src) {
     if (UNLIKELY(dest == NULL)) return;
 
     int64_t kcnt = csound->GetKcounter(csound);
-    int check = csoundIsInitThread(csound); 
-
     if (sSrc->size > sDest->size) {
       cs->Free(cs, sDest->data);
       sDest->data = csound->Calloc(csound, sSrc->size); 
@@ -77,12 +75,7 @@ void string_copy_value(CSOUND* csound, CS_TYPE* cstype, void* dest, void* src) {
         strncpy(sDest->data, sSrc->data, sDest->size-1);
     }
     /* VL Feb 22 - update count for 7.0 */
-    if(!check) {
-     sDest->timestamp = kcnt;
- 
-    }
-   else
-     sDest->timestamp = 0; 
+   sDest->timestamp = kcnt;
 }
 
 static size_t array_get_num_members(ARRAYDAT* aSrc) {
@@ -167,7 +160,7 @@ void arrayInitMemory(CSOUND *csound, CS_VARIABLE* var, MYFLT* memblock) {
 void varInitMemoryString(CSOUND *csound, CS_VARIABLE* var, MYFLT* memblock) {
     STRINGDAT *str = (STRINGDAT *)memblock;
     str->data = (char *) csound->Calloc(csound, DEFAULT_STRING_SIZE);
-    str->size = 8;
+    str->size = DEFAULT_STRING_SIZE;
     str->timestamp = 0;
     //printf("initialised %s %p %s %d\n", var->varName, str,  str->data, str->size);
 }
