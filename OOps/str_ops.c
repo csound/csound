@@ -274,14 +274,13 @@ int32_t strcat_opcode(CSOUND *csound, STRCAT_OP *p)
   if(p->str1 != p->r && p->str2 != p->r) {
     // VL: simple case, inputs are not the output
     if(size >= p->r->size) {
-     
       csound->Free(csound, p->r->data); 
       p->r->data =
 	csound->Calloc(csound, 2*size);
       p->r->size = 2*size;
     }
-    strncpy((char*) p->r->data, p->str1->data, p->r->size - 1);
-    strcat((char*) p->r->data, p->str2->data);
+    memcpy(p->r->data, p->str1->data, p->r->size - 1);
+    strcat(p->r->data, p->str2->data);
     return OK;
   }
   else if(p->str1 == p->r && p->str2 != p->r) {
@@ -293,25 +292,29 @@ int32_t strcat_opcode(CSOUND *csound, STRCAT_OP *p)
      strcat((char*) p->r->data, p->str2->data);
      return OK;
     }
-  else if(p->str1 != p->r && p->str2 != p->r) {
+  else if(p->str1 != p->r && p->str2 == p->r) {
+    // the bad case where str2 == r
+    char *ostr = cs_strdup(csound, p->str2->data);
    if(size >= p->r->size) {
        p->r->data =
 	csound->ReAlloc(csound, p->r->data, 2*size);
        p->r->size = 2*size;
-    }      
-     strcat((char*) p->r->data, p->str1->data);
+    }
+     memcpy(p->r->data, p->str1->data, p->r->size - 1);
+     strcat(p->r->data,ostr);
+     csound->Free(csound, ostr);
      return OK;
     }
   else {
-    // the bad case where str1 = str2 = r
+    // the bad case where (str1 == str2) == r
    char *ostr = cs_strdup(csound, p->str2->data);
    if(size >= p->r->size) {
-       p->str1->data = p->str2->data = p->r->data =
+        p->r->data =
 	csound->Calloc(csound, 2*size);
-       p->str1->size = p->str2->size = p->r->size = 2*size;
-       strcpy((char*) p->r->data, ostr);
+        p->r->size = 2*size;
+       strcpy(p->r->data, ostr);
     }
-   strcat((char*) p->r->data, ostr);
+   strcat(p->r->data, ostr);
    csound->Free(csound, ostr);
    return OK;
   }
