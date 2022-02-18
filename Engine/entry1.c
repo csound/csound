@@ -376,12 +376,24 @@ OENTRY opcodlst_1[] = {
   { "cossegb.a", S(COSSEG),0, 3,      "a",    "iim",  csgset_bkpt, cosseg  },
   { "cossegr", S(COSSEG),0,  3,     "k",    "iim",  csgrset, kcssegr, NULL  },
   { "cossegr.a", S(COSSEG),0,  3,     "a",    "iim",  csgrset, cossegr  },
+  #ifdef LINSEG
   { "linseg", S(LINSEG),0,  3,      "k",    "iim",  lsgset, klnseg, NULL },
-  { "linseg.a", S(LINSEG),0,  3,      "a",    "iim",  lsgset, linseg  },
+  #ndif
+  #Ifdef INC_LINSEG_A
+  { "linseg.a", S(LINESEG),0,  3,      "a",    "iim",  lsgset, linseg  },
+  #endif
+  #ifdef INC_LINSEGB
   { "linsegb", S(LINSEG),0,  3,     "k",    "iim", lsgset_bkpt, klnseg, NULL  },
+  #endif
+  #ifdef INC_LINSEGB_A
   { "linsegb.a", S(LINSEG),0,  3,     "a",    "iim", lsgset_bkpt, linseg  },
+  #endif
+  #ifdef INC_LINSEGR
   { "linsegr",S(LINSEG),0,  3,      "k",    "iim",  lsgrset,klnsegr,NULL },
+  #endif
+  #ifdef INC_LINSEGR_A
   { "linsegr.a",S(LINSEG),0,  3,      "a",    "iim",  lsgrset,linsegr },
+  #endif
   { "expseg", S(EXXPSEG),0,  3,     "k",    "iim",  xsgset, kxpseg, NULL  },
   { "expseg.a", S(EXXPSEG),0,  3,     "a",    "iim",  xsgset, expseg  },
   { "expsegb", S(EXXPSEG),0,  3,     "k",    "iim",  xsgset_bkpt, kxpseg, NULL },
@@ -974,8 +986,12 @@ OENTRY opcodlst_1[] = {
   { "cpstun", S(CPSTUN),  TR, 2,      "k",    "kkk",   NULL,   cpstun         },
   { "cpstuni",S(CPSTUNI), TR, 1,      "i",    "ii",   cpstun_i,               },
   { "cpstmid", S(CPSTABLE),0, 1, "i", "i",    (SUBR)cpstmid                    },
+  #ifdef INC_ADSR
   { "adsr", S(LINSEG),0,     3,     "k",    "iiiio",adsrset,klnseg, NULL },
+  #endif
+  #ifdef INC_ADSR_A
   { "adsr.a", S(LINSEG),0,     3,     "a",    "iiiio",adsrset, linseg     },
+  #endif
   { "madsr", S(LINSEG),0,    3,     "k",    "iiiioj", madsrset,klnsegr,NULL },
   { "madsr.a", S(LINSEG),0,    3,     "a",    "iiiioj", madsrset, linsegr },
   { "xadsr", S(EXXPSEG),0,   3,     "k",    "iiiio", xdsrset, kxpseg, NULL   },

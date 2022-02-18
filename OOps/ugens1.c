@@ -147,6 +147,7 @@ int32_t expon(CSOUND *csound, EXPON *p)
 #endif
 
 /* *********************** HERE ************************* */
+#if defined(INC_LINSEG)||defined(INC_LINESEG_A)
 int32_t lsgset(CSOUND *csound, LINSEG *p)
 {
     SEG *segp;
@@ -194,7 +195,9 @@ int32_t lsgset(CSOUND *csound, LINSEG *p)
     return OK;
 
 }
+#endif
 
+#if defined(INC_LINSEGB)||defined(INC_LINSEGB_A)
 int32_t lsgset_bkpt(CSOUND *csound, LINSEG *p)
 {
     int32_t cnt = 0, bkpt = 0;
@@ -215,8 +218,9 @@ int32_t lsgset_bkpt(CSOUND *csound, LINSEG *p)
     } while (--nsegs);
     return OK;
 }
+#endif
 
-
+#if defined(INC_LINSEG)||defined(INC_LINSEGB)||defined(INC_ADSR)
 int32_t klnseg(CSOUND *csound, LINSEG *p)
 {
     IGN(csound);
@@ -249,7 +253,9 @@ int32_t klnseg(CSOUND *csound, LINSEG *p)
  err1:
     return csound->InitError(csound, Str("linseg not initialised (krate)\n"));
 }
+#endif
 
+#if defined(INC_LINSEG_A)||defined(INC_LINSEGB_A)||defined(INC_ADSR_A)
 int32_t linseg(CSOUND *csound, LINSEG *p)
 {
     double val, ainc;
@@ -303,11 +309,12 @@ int32_t linseg(CSOUND *csound, LINSEG *p)
     return csound->PerfError(csound, &(p->h),
                              Str("linseg: not initialised (arate)\n"));
 }
-
+#endif
 /* **** ADSR is just a construction and use of linseg */
 
 #define MAXSEGDUR (INT_MAX/CS_ESR)
 
+#ifdef INC_ADSR
 static int32_t adsrset1(CSOUND *csound, LINSEG *p, int32_t midip)
 {
     SEG         *segp;
@@ -397,15 +404,22 @@ static int32_t adsrset1(CSOUND *csound, LINSEG *p, int32_t midip)
 int32_t adsrset(CSOUND *csound, LINSEG *p)
 {
     return adsrset1(csound, p, 0);
-}
+} 
+#endif
+
+#if defined(INC_MADSR)||defined(INC_MADSR_A)
 
 int32_t madsrset(CSOUND *csound, LINSEG *p)
 {
     return adsrset1(csound, p, 1);
 }
+#endif
+
+
 
 /* End of ADSR */
 
+#if defined(INC_LINSEGR)||defined(IC_LINSEGR_A)
 int32_t lsgrset(CSOUND *csound, LINSEG *p)
 {
     int32_t relestim;
@@ -421,7 +435,9 @@ int32_t lsgrset(CSOUND *csound, LINSEG *p)
     }
     else return NOTOK;
 }
+#endif
 
+#ifdef INC_LINSEGR
 int32_t klnsegr(CSOUND *csound, LINSEG *p)
 {
     IGN(csound);
@@ -452,7 +468,9 @@ int32_t klnsegr(CSOUND *csound, LINSEG *p)
     }
     return OK;
 }
+#endif
 
+#ifdef INC_LINSEGR_A
 int32_t linsegr(CSOUND *csound, LINSEG *p)
 {
     IGN(csound);
@@ -506,7 +524,8 @@ int32_t linsegr(CSOUND *csound, LINSEG *p)
     p->curval = val;
     return OK;
 }
-
+#endif
+  
 int32_t xsgset(CSOUND *csound, EXXPSEG *p)
 {
     XSEG        *segp;

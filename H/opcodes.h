@@ -1,3 +1,5 @@
+#define INC_ADSR
+#define INC_ADSR_A
 #define INC_ADSYN
 #define INC_ADSYN
 #define INC_ARESON
@@ -22,6 +24,8 @@
 #define INC_DIFF_K
 #define INC_DOWNSAMP
 #define INC_EPHASOR
+#define INC_EXPON
+#define INC_EXPONA
 #define INC_EXPSEG
 #define INC_EXPSEG_A
 #define INC_FOSCIL
@@ -37,6 +41,14 @@
 #define INC_INTERP
 #define INC_LIMIT
 #define INC_LIMIT
+#define INC_LINE
+#define INC_LINEA
+#define INC_LINSED_A
+#define INC_LINSEG
+#define INC_LINSEGB
+#define INC_LINSEGB_A
+#define INC_LINSEGR
+#define INC_LINSEGR_A
 #define INC_LOSCIL
 #define INC_LOSCIL
 #define INC_LOSCIL3
@@ -57,8 +69,9 @@
 #define INC_LPRESON
 #define INC_LPSLOT
 #define INC_LPSLOT
+#define INC_MADSR
+#define INC_MADSR_A
 #define INC_OSCIL1
-#define INC_OSCILI
 #define INC_OSCIL3
 #define INC_OSCIL3_a
 #define INC_OSCIL3aa
@@ -69,6 +82,7 @@
 #define INC_OSCIL3kk
 #define INC_OSCIL3kkA
 #define INC_OSCIL3kkA
+#define INC_OSCILI
 #define INC_OSCILI_A
 #define INC_OSCILIaa
 #define INC_OSCILIaaA
@@ -87,12 +101,12 @@
 #define INC_OSCILaaA
 #define INC_OSCILak
 #define INC_OSCILakA
+#define INC_OSCILka
 #define INC_OSCILkkA
 #define INC_OSCILkkA
 #define INC_OSCILkka
 #define INC_OSCILkkk
 #define INC_OSCILlkaA
-#define INC_OSCILka
 #define INC_OSCSET
 #define INC_OSCSETA
 #define INC_OUTS
@@ -123,8 +137,17 @@
 #define INC_TONEX
 #define INC_UPSAMP
 #define INC_UPSAMPLE
-
-#define INC_LINE
-#define INC_LINEA
-#define INC_EXPON
-#define INC_EXPONA
+/*
+  #define INC_
+#define INC_
+#define INC_
+#define INC_
+#define INC_
+#define INC_
+#define INC_
+#define INC_
+#define INC_
+#define INC_
+#define INC_
+#define INC_
+*/
