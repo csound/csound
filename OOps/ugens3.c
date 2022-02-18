@@ -24,6 +24,7 @@
 #include "csoundCore.h"         /*                              UGENS3.C    */
 #include "ugens3.h"
 #include <math.h>
+#include "opcodes.h"
 
 #if defined(INC_FOSCIL)||defined(INC_FOSCILI)
 int32_t foscset(CSOUND *csound, FOSC *p)
@@ -1526,5 +1527,5 @@ int32_t adsyn(CSOUND *csound, ADSYN *p)
     }
     p->mksecs += timkincr;                  /* advance the time */
     return OK;
-``}
+}
 #endif

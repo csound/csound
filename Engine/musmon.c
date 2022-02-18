@@ -30,6 +30,7 @@
 #include "remote.h"
 #include <math.h>
 #include "corfile.h"
+#include "opcodes.h"
 
 #include "csdebug.h"
 
@@ -265,7 +266,7 @@ int musmon(CSOUND *csound)
     m_chn_init_all(csound);     /* allocate MIDI channels */
     dispinit(csound);           /* initialise graphics or character display */
 
-#ifdef inc_REVERB
+#ifdef INC_REVERB
     reverbinit(csound);
 #endif
     dbfs_init(csound, csound->e0dbfs);

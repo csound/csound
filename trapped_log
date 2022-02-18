@@ -1,0 +1,55 @@
+OPCODES IN TRAPPED
+
+##add.aa
+##add.ii
+##add.ka
+##add.kk
+##addin.a
+##div.kk
+##mul.ak
+##mul.ii
+##mul.ka
+##mul.kk
+##sub.ii
+##sub.kk
+        =.i
+        =.up
+        balance
+        buzz
+        cpsoct.k
+        cpspch.
+        cpspch.i
+        delay
+        expon
+        expseg
+        expsefg.a
+        foscil
+        frac.i
+        gbuzz
+i
+        init.a
+        int.i
+        line
+        linen
+        oscil.kkk
+        oscili.a
+        outs
+        phasor
+        phasor.k
+        rand
+        randh.k
+        randi.k
+        reson
+        reverb
+        table.a
+        table.k
+        tablei.k
+
+
+
+GENS
+ 10
+ 9 
+ 5 
+ 2 
+

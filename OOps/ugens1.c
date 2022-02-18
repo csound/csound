@@ -24,10 +24,10 @@
 #include "csoundCore.h"         /*                      UGENS1.C        */
 #include "ugens1.h"
 #include <math.h>
-
+#include "opcodes.h"
 #define FHUND (FL(100.0))
 
-
+#if defined(INC_LINE)||defined(INC_LINEA)
 int32_t linset(CSOUND *csound, LINE *p)
 {
     double       dur;
@@ -38,7 +38,9 @@ int32_t linset(CSOUND *csound, LINE *p)
     }
     return OK;
 }
+#endif
 
+#ifdef INC_LINE
 int32_t kline(CSOUND *csound, LINE *p)
 {
     IGN(csound);
@@ -46,7 +48,9 @@ int32_t kline(CSOUND *csound, LINE *p)
     p->val += p->kincr;          /* val += incr  */
     return OK;
 }
+#endif
 
+#ifdef INC_LINEA
 int32_t aline(CSOUND *csound, LINE *p)
 {
     IGN(csound);
@@ -74,6 +78,9 @@ int32_t aline(CSOUND *csound, LINE *p)
     p->val = val;
     return OK;
 }
+#endif
+
+#if defined(INC_EXPON)||defined(INC_EXPONA)
 
 int32_t expset(CSOUND *csound, EXPON *p)
 {
@@ -95,7 +102,9 @@ int32_t expset(CSOUND *csound, EXPON *p)
     }
     return OK;
 }
+#endif
 
+#ifdef INC_EXPON
 int32_t kexpon(CSOUND *csound, EXPON *p)
 {
    IGN(csound);
@@ -103,6 +112,9 @@ int32_t kexpon(CSOUND *csound, EXPON *p)
     p->val *= p->kmlt;           /* val *= mlt  */
     return OK;
 }
+#endif
+
+#ifdef INC_EXPONA
 
 int32_t expon(CSOUND *csound, EXPON *p)
 {
@@ -132,7 +144,9 @@ int32_t expon(CSOUND *csound, EXPON *p)
     p->val = val;
     return OK;
 }
+#endif
 
+/* *********************** HERE ************************* */
 int32_t lsgset(CSOUND *csound, LINSEG *p)
 {
     SEG *segp;

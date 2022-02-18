@@ -24,6 +24,7 @@
 #include "csoundCore.h" /*                              UGENS2.C        */
 #include "ugens2.h"
 #include <math.h>
+#include "opcodes.h"
 
 /* Macro form of Istvan's speedup ; constant should be 3fefffffffffffff */
 /* #define FLOOR(x) (x >= FL(0.0) ? (int64_t)x                          */
@@ -38,7 +39,7 @@
 /* part would then be exactly 1.0, still giving a correct output value */
 #define MYFLOOR(x) (x >= FL(0.0) ? (int32_t)x : (int32_t)((double)x - 0.99999999))
 
-
+#if defined(INC_PHASOR)||defined(INC_PHASOR_K)
 
 int32_t phsset(CSOUND *csound, PHSOR *p)
 {
@@ -52,7 +53,9 @@ int32_t phsset(CSOUND *csound, PHSOR *p)
     }
     return OK;
 }
+#endif
 
+#ifdef INC_EPHASOR
 int32_t ephsset(CSOUND *csound, EPHSOR *p)
 {
     MYFLT       phs;
@@ -124,7 +127,9 @@ int32_t ephsor(CSOUND *csound, EPHSOR *p)
     p->b = b;
     return OK;
 }
+#endif
 
+#ifdef INC_PHASOR_K
 int32_t kphsor(CSOUND *csound, PHSOR *p)
 {
     IGN(csound);
@@ -137,7 +142,9 @@ int32_t kphsor(CSOUND *csound, PHSOR *p)
     p->curphs = phs;
     return OK;
 }
+#endif
 
+#ifdef INC_PHASOR
 int32_t phsor(CSOUND *csound, PHSOR *p)
 {
     double      phase;
@@ -183,6 +190,7 @@ int32_t phsor(CSOUND *csound, PHSOR *p)
     p->curphs = phase;
     return OK;
 }
+#endif
 
 #ifdef SOME_FINE_DAY
 /*****************************************************************************/
@@ -266,7 +274,7 @@ static int32_t ptblchk(CSOUND *csound, TABLE *p)
     IGN(csound);                /* Argument is needed to fit structure */
     /* TABLE has an integer variable for the previous table number
      * (p->pfn).
-     *
+\     *
      * Now (at init time) we do not know the function table number
      * which will be provided at perf time, so set p->pfn to 0, so
      * that the k or a rate code will recognise that the first table
@@ -1002,6 +1010,7 @@ int32_t    tabl3kt(CSOUND *csound, TABLE *p)
 }
 #endif /* SOME_FINE_DAY */
 
+#if defined(INC_OSCIL1)||defined(INC_OSCIL1I)
 int32_t ko1set(CSOUND *csound, OSCIL1 *p)
 {
     FUNC        *ftp;
@@ -1020,7 +1029,9 @@ int32_t ko1set(CSOUND *csound, OSCIL1 *p)
 
     return OK;
 }
+#endif
 
+#ifdef INC_OSCIL1
 int32_t kosc1(CSOUND *csound, OSCIL1 *p)
 {
     FUNC *ftp;
@@ -1049,7 +1060,9 @@ int32_t kosc1(CSOUND *csound, OSCIL1 *p)
     return csound->PerfError(csound, &(p->h),
                              Str("oscil1(krate): not initialised"));
 }
+#endif
 
+#ifdef INC_OSCIL1I
 int32_t kosc1i(CSOUND *csound, OSCIL1   *p)
 {
     FUNC        *ftp;
@@ -1084,7 +1097,9 @@ int32_t kosc1i(CSOUND *csound, OSCIL1   *p)
     return csound->PerfError(csound, &(p->h),
                              Str("oscil1i(krate): not initialised"));
 }
+#endif
 
+#ifdef INC_OSCILN
 int32_t oscnset(CSOUND *csound, OSCILN *p)
 {
     FUNC        *ftp;
@@ -1133,7 +1148,7 @@ int32_t osciln(CSOUND *csound, OSCILN *p)
     }
     else {
       n=0;              /* Can jump out of previous loop into this one */
-    putz:
+     putz:
       memset(&rs[n], 0, (nsmps-n)*sizeof(MYFLT));
       /* for (; n<nsmps; n++) { */
       /*   rs[n] = FL(0.0); */
@@ -1144,6 +1159,9 @@ int32_t osciln(CSOUND *csound, OSCILN *p)
     return csound->PerfError(csound, &(p->h),
                              Str("osciln: not initialised"));
 }
+#endif
+
+#ifdef INC_OSCSETA
 
 static int32_t fill_func_from_array(ARRAYDAT *a, FUNC *f)
 {
@@ -1190,7 +1208,9 @@ int32_t oscsetA(CSOUND *csound, OSC *p)
       }
     else return csound->InitError(csound, Str("array size not pow-of-two\n"));
 }
+#endif
 
+#ifdef INC_OSCSET
 int32_t oscset(CSOUND *csound, OSC *p)
 {
     FUNC        *ftp;
@@ -1202,7 +1222,9 @@ int32_t oscset(CSOUND *csound, OSC *p)
     }
     return NOTOK;
 }
+#endif
 
+#if defined(INC_OSCILkkk)||defined(INC_OSCILkkA)
 int32_t koscil(CSOUND *csound, OSC *p)
 {
     FUNC    *ftp;
@@ -1221,7 +1243,9 @@ int32_t koscil(CSOUND *csound, OSC *p)
     return csound->PerfError(csound, &(p->h),
                              Str("oscil(krate): not initialised"));
 }
+#endif
 
+#if defined(INC_OSCIL_kka)||defined(INC_OSCILkkA)
 int32_t osckk(CSOUND *csound, OSC *p)
 {
     FUNC    *ftp;
@@ -1257,7 +1281,9 @@ int32_t osckk(CSOUND *csound, OSC *p)
     return csound->PerfError(csound, &(p->h),
                              Str("oscil: not initialised"));
 }
+#endif
 
+#if defined(INC_OSCILka)||defined(INC_OXKLkaA)
 int32_t oscka(CSOUND *csound, OSC *p)
 {
     FUNC    *ftp;
@@ -1293,7 +1319,9 @@ int32_t oscka(CSOUND *csound, OSC *p)
     return csound->PerfError(csound, &(p->h),
                              Str("oscil: not initialised"));
 }
+#endif
 
+#if defined(INC_OSCILak)||defined(INC_OSCILakA)
 int32_t oscak(CSOUND *csound, OSC *p)
 {
     FUNC    *ftp;
@@ -1326,7 +1354,9 @@ int32_t oscak(CSOUND *csound, OSC *p)
     return csound->PerfError(csound, &(p->h),
                              Str("oscil: not initialised"));
 }
+#endif
 
+#if defined(INC_OSCILaa)||defined(INC_OSCILaaA)
 int32_t oscaa(CSOUND *csound, OSC *p)
 {
     FUNC    *ftp;
@@ -1361,7 +1391,9 @@ int32_t oscaa(CSOUND *csound, OSC *p)
     return csound->PerfError(csound, &(p->h),
                              Str("oscil: not initialised"));
 }
+#endif
 
+#if defined(INC_OSCIL_a)||defined(INC_OSCILI_A)
 int32_t koscli(CSOUND *csound, OSC   *p)
 {
     FUNC    *ftp;
@@ -1384,7 +1416,9 @@ int32_t koscli(CSOUND *csound, OSC   *p)
     return csound->PerfError(csound, &(p->h),
                              Str("oscili(krate): not initialised"));
 }
+#endif
 
+#if defined(INC_OSCILIkk)||defined(INC_OSCILIkkA)
 int32_t osckki(CSOUND *csound, OSC   *p)
 {
     FUNC    *ftp;
@@ -1419,7 +1453,9 @@ int32_t osckki(CSOUND *csound, OSC   *p)
     return csound->PerfError(csound, &(p->h),
                              Str("oscili: not initialised"));
 }
+#endif
 
+#if defined(INC_OSCILIka)||defined(INC_OSCILIkaA)
 int32_t osckai(CSOUND *csound, OSC   *p)
 {
     FUNC    *ftp;
@@ -1459,7 +1495,9 @@ int32_t osckai(CSOUND *csound, OSC   *p)
     return csound->PerfError(csound, &(p->h),
                              Str("oscili: not initialised"));
 }
+#endif
 
+#if defined(INC_OSCILIak)||defined(INC_OSCILIakA)
 int32_t oscaki(CSOUND *csound, OSC   *p)
 {
     FUNC    *ftp;
@@ -1495,7 +1533,9 @@ int32_t oscaki(CSOUND *csound, OSC   *p)
     return csound->PerfError(csound, &(p->h),
                              Str("oscili: not initialised"));
 }
+#endif
 
+#if defined(INC_OSCILIaa)||defined(INC_OSCILIaaA)
 int32_t oscaai(CSOUND *csound, OSC   *p)
 {
     FUNC    *ftp;
@@ -1534,7 +1574,9 @@ int32_t oscaai(CSOUND *csound, OSC   *p)
     return csound->PerfError(csound, &(p->h),
                              Str("oscili: not initialised"));
 }
+#endif
 
+#if defined(INC_OSCIL3kk)||defined(INC_OSCIL3kkA)
 int32_t koscl3(CSOUND *csound, OSC   *p)
 {
     FUNC    *ftp;
@@ -1575,7 +1617,9 @@ int32_t koscl3(CSOUND *csound, OSC   *p)
     return csound->PerfError(csound, &(p->h),
                              Str("oscil3(krate): not initialised"));
 }
+#endif
 
+#if defined(INC_OSCIL3_a)||defined(INC_OSCIL3_A)
 int32_t osckk3(CSOUND *csound, OSC   *p)
 {
     FUNC    *ftp;
@@ -1634,7 +1678,9 @@ int32_t osckk3(CSOUND *csound, OSC   *p)
     return csound->PerfError(csound, &(p->h),
                              Str("oscil3: not initialised"));
 }
+#endif
 
+#if defined(INC_OSCIL3ka)||defined(INC_OSCIL3kaA)
 int32_t oscka3(CSOUND *csound, OSC   *p)
 {
     FUNC    *ftp;
@@ -1690,7 +1736,9 @@ int32_t oscka3(CSOUND *csound, OSC   *p)
     return csound->PerfError(csound, &(p->h),
                              Str("oscil3: not initialised"));
 }
+#endif
 
+#if defined(INC_OSCIL3ak)||defined(INC_OSCIL3akA)
 int32_t oscak3(CSOUND *csound, OSC   *p)
 {
     FUNC    *ftp;
@@ -1743,7 +1791,9 @@ int32_t oscak3(CSOUND *csound, OSC   *p)
     return csound->PerfError(csound, &(p->h),
                              Str("oscil3: not initialised"));
 }
+#endif
 
+#if defined(INC_OSCIL3aa)||defined(INC_OSCIL3aaA)
 int32_t oscaa3(CSOUND *csound, OSC   *p)
 {
     FUNC    *ftp;
@@ -1798,3 +1848,4 @@ int32_t oscaa3(CSOUND *csound, OSC   *p)
     return csound->PerfError(csound, &(p->h),
                              Str("oscil3: not initialised"));
 }
+#endif

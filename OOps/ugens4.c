@@ -25,6 +25,7 @@
 #include "ugens4.h"
 #include <math.h>
 #include <inttypes.h>
+#include "opcodes.h"
 
 #ifdef INC_BUZZ
 /* The branch prediction slows it down!! */

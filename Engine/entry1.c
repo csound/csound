@@ -1,4 +1,3 @@
-
 /*
   entry1.c:
 
@@ -8,7 +7,7 @@
 
   The Csound Library is free software; you can redistribute it
   and/or modify it under the terms of the GNU Lesser General Public
-  License as published by the Free Software Foundation; either
+ndf  License as published by the Free Software Foundation; either
   version 2.1 of the License, or (at your option) any later version.
 
   Csound is distributed in the hope that it will be useful,
@@ -24,6 +23,7 @@
 
 #include "entry1.h"             /*                      ENTRY1.C        */
 #include "interlocks.h"
+#include "opcodes.h"
 
 /* thread vals, where isub=1, ksub=2:
    0 =     1  OR   2  (B out only)
@@ -358,10 +358,18 @@ OENTRY opcodlst_1[] = {
   { "chanctrl.i",S(CHANCTL),0,1,    "i",    "iioh", ichanctl                },
   { "chanctrl.k",S(CHANCTL),0,3,    "k",    "iioh", chctlset,chanctl        },
 #endif
+  #ifdef INC_LINE
   { "line",   S(LINE),0,    3,      "k",    "iii",  linset, kline,  NULL  },
+  #endif
+  #ifdef INC_LINEA
   { "line.a",   S(LINE),0,    3,    "a",    "iii",  linset,  aline   },
+  #endif
+#ifdef INC_EXPON
   { "expon",  S(EXPON),0,   3,      "k",    "iii",  expset, kexpon, NULL   },
+  #endif
+  #ifdef INC_EXPONA
   { "expon.a",  S(EXPON),0,   3,      "a",    "iii",  expset, expon   },
+  #endif
   { "cosseg", S(COSSEG),0,  3,      "k",    "iim",  csgset, kosseg, NULL  },
   { "cosseg.a", S(COSSEG),0,  3,      "a",    "iim",  csgset, cosseg  },
   { "cossegb", S(COSSEG),0, 3,      "k",    "iim",  csgset_bkpt, kosseg, NULL  },
@@ -394,9 +402,15 @@ OENTRY opcodlst_1[] = {
   { "envlpxr.a", S(ENVLPR),TR, 3,     "a","aiiiiioo", aevrset,envlpxr },
   { "envlpx.x", S(ENVLPX), TR, 3,     "a","kiiiiiio", aevxset,envlpx  },
   { "envlpxr.x", S(ENVLPR),TR, 3,     "a","kiiiiioo", aevrset,envlpxr },
+  #ifdef INC_PHASOR
   { "phasor", S(PHSOR),0,   3,       "a",   "xo",   phsset, phsor   },
+  #endif
+  #ifdef INC_PHASOR_K
   { "phasor.k", S(PHSOR),0,   3,     "k",   "ko",   phsset, kphsor, NULL  },
+  #endif
+  #ifdef INC_EPHASOR
   { "ephasor", S(EPHSOR), 0,  3,     "aa",  "xko",  ephsset, ephsor },
+  #endif
   { "signum.i", S(ASSIGN), 0, 1,     "i",   "i", signum, NULL, NULL       },
   { "signum.k", S(ASSIGN), 0, 3,     "k",   "k", signum, signum, NULL     },
   { "signum.a", S(ASSIGN), 0, 2,     "a",   "a", NULL, asignum      },
@@ -430,20 +444,48 @@ OENTRY opcodlst_1[] = {
     (SUBR)table3r_kontrol                                                   },
   { "ptable3.a", S(TABLE),TR|_QQ, 3,     "a",    "xiooo",(SUBR)tabl_setup,
     (SUBR)table3r_audio         },
+  #ifdef INC_OSCIL1
   { "oscil1", S(OSCIL1), TR, 3,     "k",    "ikij", ko1set, kosc1          },
+  #endif
+  #ifdef INC_OSCIL1I
   { "oscil1i",S(OSCIL1), TR, 3,     "k",    "ikij", ko1set, kosc1i         },
+  #endif
+  #ifdef INC_OSCILN
   { "osciln", S(OSCILN), TR, 3,     "a",    "kiii", oscnset,   osciln },
+  #endif
+  #ifdef INC_OSCILa
   { "oscil.a",S(OSC),TR,    3,       "a",    "kkjo", oscset,   osckk  },
+  #endif
+  #ifdef INC_OSCILkkk
   { "oscil.kkk",S(OSC),TR,   3,      "k",    "kkjo", oscset, koscil  },
+  #endif
+  #ifdef INC_OSCILkka
   { "oscil.kka",S(OSC),TR,   3,      "a",    "kkjo", oscset, osckk  },
+  #endif
+  #ifdef INC_OSCILka
   { "oscil.ka",S(OSC),TR,    3,      "a",    "kajo", oscset,   oscka  },
+  #endif
+  #ifdef INC_OSCILak
   { "oscil.ak",S(OSC),TR,    3,      "a",    "akjo", oscset,   oscak  },
+  #endif
+  #ifdef INC_OSCILaa
   { "oscil.aa",S(OSC),TR,    3,      "a",    "aajo", oscset,   oscaa  },
+  #endif
+  #ifdef INC_OSCILkkA
   { "oscil.kkA",S(OSC),0,   3,      "k",    "kki[]o", oscsetA, koscil       },
+  #endif
+#ifdef INC_OSCILkkA
   { "oscil.kkA",S(OSC),0,   3,      "a",    "kki[]o", oscsetA, osckk },
+  #endif
+#ifdef INC_OSCILlkaA
   { "oscil.kaA",S(OSC),0,   3,      "a",    "kai[]o", oscsetA, oscka },
+  #endif
+#ifdef INC_OSCILakA
   { "oscil.akA",S(OSC),0,   3,      "a",    "aki[]o", oscsetA, oscak },
+#endif
+#ifdef INC_OSCILaaA
   { "oscil.aaA",S(OSC),0,   3,      "a",    "aai[]o", oscsetA,oscaa  },
+#endif
   /* Change these to
      { "oscil.kkk", S(POSC),TR, 3, "k", "kkjo", posc_set, kposc         },
      { "oscil.kka", S(POSC),TR, 3,, "a", "kkjo"_set, NULL, posckk },
@@ -452,26 +494,68 @@ OENTRY opcodlst_1[] = {
      { "oscil.aa", S(POSC),TR, 3, "a", "aajo", posc_set,  poscaa },
      { "oscil3.kk",  S(POSC),TR,  7, "s", "kkjo", posc_set, kposc3, posc3 },
   */
+#ifdef INC_OSCIL_a
   { "oscili.a",S(OSC),TR,   3,      "a",    "kkjo", oscset, osckki  },
+#endif
+#ifdef INC_OSCILIkk
   { "oscili.kk",S(OSC),TR,   3,      "k",   "kkjo", oscset, koscli, NULL  },
+#endif
+#ifdef INC_OSCILIka  
   { "oscili.ka",S(OSC),TR,   3,      "a",   "kajo", oscset,   osckai  },
+#endif
+#ifdef INC_OSCILIak
   { "oscili.ak",S(OSC),TR,   3,      "a",   "akjo", oscset,   oscaki  },
+#endif
+#ifdef INC_OSCILIaa
   { "oscili.aa",S(OSC),TR,   3,      "a",   "aajo", oscset,   oscaai  },
+#endif
+#ifdef INC_OSCILIkkA
   { "oscili.aA",S(OSC),0,   3,      "a",   "kki[]o", oscsetA, osckki  },
+#endif
+#ifdef INC_OSCILIkkA
   { "oscili.kkA",S(OSC),0,   3,      "k",  "kki[]o", oscsetA, koscli, NULL  },
+#endif
+#ifdef INC_OSCILIlaA
+#endif
+#ifdef INC_OSCILIkaA
   { "oscili.kaA",S(OSC),0,   3,      "a",  "kai[]o", oscsetA,   osckai  },
+#endif
+#ifdef INC_OSCILIakA
   { "oscili.akA",S(OSC),0,   3,      "a",  "aki[]o", oscsetA,   oscaki  },
+#endif
+#ifdef INC_OSCILIaaA
   { "oscili.aaA",S(OSC),0,   3,      "a",  "aai[]o", oscsetA,   oscaai  },
+#endif
+#ifdef INC_OSCIL3_a
   { "oscil3.a",S(OSC),TR,   3,      "a",    "kkjo", oscset, osckk3  },
+#endif
+#ifdef INC_OSCIL3kk
   { "oscil3.kk",S(OSC),TR,   3,      "k",   "kkjo", oscset, koscl3, NULL  },
+#endif
+#ifdef INC_OSCIL3ka
   { "oscil3.ka",S(OSC),TR,   3,      "a",   "kajo", oscset,   oscka3  },
+#endif
+#ifdef INC_OSCIL3ak
   { "oscil3.ak",S(OSC),TR,   3,      "a",   "akjo", oscset,   oscak3  },
+#endif
+#ifdef INC_OSCIL3aa
   { "oscil3.aa",S(OSC),TR,   3,      "a",   "aajo", oscset,   oscaa3  },
+#endif
+#ifdef INC_OSCIL3kkA
   { "oscil3.aA",S(OSC),0,   3,      "a",   "kki[]o", oscsetA, osckk3 },
+#endif
+#ifdef INC_OSCIL3kkA
   { "oscil3.kkA",S(OSC),0,   3,      "k",  "kki[]o", oscsetA, koscl3, NULL },
+#endif
+#ifdef INC_OSCIL3kaA
   { "oscil3.kaA",S(OSC),0,   3,      "a",  "kai[]o", oscsetA, oscka3 },
+#endif
+#ifdef INC_OSCIL3akA
   { "oscil3.akA",S(OSC),0,   3,      "a",  "aki[]o", oscsetA, oscak3 },
+#endif
+#ifdef INC_OSCIL3
   { "oscil3.aaA",S(OSC),0,   3,      "a",  "aai[]o", oscsetA, oscaa3 },
+#endif
   /* end change */
 #ifdef INC_FOSCIL
   { "foscil", S(FOSC),TR,  3,      "a",  "xkxxkjo",foscset,   foscil  },
@@ -484,7 +568,7 @@ OENTRY opcodlst_1[] = {
 #endif
 #ifdef INC_LOSCILPHS 
   { "loscilphs", S(LOSCPHS),TR,  3, "amm","xkjojoojoo",losset_phs, loscil_phs   },
-  #ndif
+#endif
 #ifdef INC_LOSCIL3PHS
   { "loscil3phs", S(LOSCPHS),TR,  3,"amm","xkjojoojoo",losset_phs, loscil3_phs  },
 #endif
@@ -516,16 +600,16 @@ OENTRY opcodlst_1[] = {
   #ifdef INC_RANDH_K
   { "randh.k",  S(RANDH),0, 3,      "k",    "xxvoo", rhset, krandh, NULL   },
 #endif
-  #ifdef INC_RAND_I
+#ifdef INC_RAND_I
   { "randi",  S(RANDI),0,   3,      "a",    "xxvoo", riset, randi     },
 #endif
-#ifef INC_RANDI_K
+#ifdef INC_RANDI_K
   { "randi.k",  S(RANDI),0, 3,      "k",    "xxvoo", riset, krandi    },
 #endif
 #ifdef INC_RANDC
   { "randc",  S(RANDC),0,   3,      "a",    "xxvoo", rcset, randc     },
 #endif
-  #ifdef IC_RANDC_K
+#ifdef INC_RANDC_K
   { "randc.k",  S(RANDC),0, 3,      "k",    "xxvoo", rcset, krandc    },
 #endif
 #ifdef  INC_PORT
@@ -845,7 +929,7 @@ OENTRY opcodlst_1[] = {
   { "printk2", S(PRINTK2), WR, 3, "",   "koo",
     (SUBR)printk2set, (SUBR)printk2, NULL },
 #ifdef  INC_PORTK
-  { "portk",  S(PORT),0,   3, "k",     "kko",  (SUBR)kporset, (SUBR)kport, NULL },
+  { "portk",  S(PORT),0,   3, "k",     "kko",  (SUBR)porset, (SUBR)kport, NULL },
 #endif
 #ifdef  INC_TONEK
   { "tonek",  S(KTONE),0,   3, "k",     "kko",  (SUBR)ktonset, (SUBR)ktone, NULL },
