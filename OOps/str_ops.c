@@ -274,13 +274,13 @@ int32_t strcat_opcode(CSOUND *csound, STRCAT_OP *p)
   if(p->str1 != p->r && p->str2 != p->r) {
     // VL: simple case, inputs are not the output
     if(size >= p->r->size) {
-      printf("%zu %zu\n", size, p->r->size);
+     
       csound->Free(csound, p->r->data); 
       p->r->data =
 	csound->Calloc(csound, 2*size);
       p->r->size = 2*size;
     }
-    strncpy((char*) p->r->data, p->str1->data, p->r->size);
+    strncpy((char*) p->r->data, p->str1->data, p->r->size - 1);
     strcat((char*) p->r->data, p->str2->data);
     return OK;
   }
@@ -311,7 +311,7 @@ int32_t strcat_opcode(CSOUND *csound, STRCAT_OP *p)
        p->str1->size = p->str2->size = p->r->size = 2*size;
        strcpy((char*) p->r->data, ostr);
     }
-   strncat((char*) p->r->data, ostr, size);
+   strcat((char*) p->r->data, ostr);
    csound->Free(csound, ostr);
    return OK;
   }
