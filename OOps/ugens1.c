@@ -1,10 +1,10 @@
- /*
+/*
     gens1.c:
 
     Copyright (C) 1991 Barry Vercoe, John ffitch
 
     This file is part of Csound.
-
+o
     The Csound Library is free software; you can redistribute it
     and/or modify it under the terms of the GNU Lesser General Public
     License as published by the Free Software Foundation; either
@@ -146,7 +146,6 @@ int32_t expon(CSOUND *csound, EXPON *p)
 }
 #endif
 
-/* *********************** HERE ************************* */
 #if defined(INC_LINSEG)||defined(INC_LINESEG_A)
 int32_t lsgset(CSOUND *csound, LINSEG *p)
 {
@@ -525,7 +524,8 @@ int32_t linsegr(CSOUND *csound, LINSEG *p)
     return OK;
 }
 #endif
-  
+
+#if defined(INC_EXPSEG)||defined(INC_EXPSEG_A)
 int32_t xsgset(CSOUND *csound, EXXPSEG *p)
 {
     XSEG        *segp;
@@ -579,6 +579,9 @@ int32_t xsgset(CSOUND *csound, EXXPSEG *p)
     return csound->InitError(csound, Str("ival%d sign conflict"), n+1);
 }
 
+#endif
+
+#if defined(INC_EXPSEGB)||defined(INC_EXPSEGB_A)
 int32_t xsgset_bkpt(CSOUND *csound, EXXPSEG *p)
 {
    XSEG        *segp;
@@ -637,8 +640,9 @@ int32_t xsgset_bkpt(CSOUND *csound, EXXPSEG *p)
       return csound->InitError(csound, Str("ival%d is zero"), n+1);
     return csound->InitError(csound, Str("ival%d sign conflict"), n+1);
 }
+#endif
 
-
+#ifdef INC_EXPSEGBA
 int32_t xsgset2b(CSOUND *csound, EXPSEG2 *p)
 {
     XSEG        *segp;
@@ -699,7 +703,9 @@ int32_t xsgset2b(CSOUND *csound, EXPSEG2 *p)
       return csound->InitError(csound, Str("ival%d is zero"), n+1);
     return csound->InitError(csound, Str("ival%d sign conflict"), n+1);
 }
+#endif
 
+#ifdef INC_EXPSEGA
 int32_t xsgset2(CSOUND *csound, EXPSEG2 *p)   /*gab-A1 (G.Maldonado) */
 {
     XSEG        *segp;
@@ -755,7 +761,6 @@ int32_t xsgset2(CSOUND *csound, EXPSEG2 *p)   /*gab-A1 (G.Maldonado) */
       return csound->InitError(csound, Str("ival%d is zero"), n+1);
     return csound->InitError(csound, Str("ival%d sign conflict"), n+1);
 }
-
 /***************************************/
 
 int32_t expseg2(CSOUND *csound, EXPSEG2 *p)             /* gab-A1 (G.Maldonado) */
@@ -785,9 +790,10 @@ int32_t expseg2(CSOUND *csound, EXPSEG2 *p)             /* gab-A1 (G.Maldonado) 
     segp->val = val;
     return OK;
 }
+#endif
 
 /* **** XDSR is just a construction and use of expseg */
-
+#if defined(INC_XADSR)||defined(INC_XADSR_A)
 int32_t xdsrset(CSOUND *csound, EXXPSEG *p)
 {
     XSEG    *segp;
@@ -864,9 +870,9 @@ int32_t xdsrset(CSOUND *csound, EXXPSEG *p)
     //       segp[4].val,segp[4].mlt,segp[4].cnt,segp[4].amlt, segp[4].acnt);
     return OK;
 }
-
+#endif
 /* end of XDSR */
-
+#if defined(INC_EXPSEG)||defined(INC_XADSR)
 int32_t kxpseg(CSOUND *csound, EXXPSEG *p)
 {
     XSEG        *segp;
@@ -883,8 +889,9 @@ int32_t kxpseg(CSOUND *csound, EXXPSEG *p)
     return csound->PerfError(csound, &(p->h),
                              Str("expseg (krate): not initialised"));
 }
+#endif
 
-
+#if defined(INC_XADSR_A)||defined(INC_EXPSEG_A)
 int32_t expseg(CSOUND *csound, EXXPSEG *p)
 {
     XSEG        *segp;
@@ -917,7 +924,9 @@ int32_t expseg(CSOUND *csound, EXXPSEG *p)
     return csound->PerfError(csound, &(p->h),
                              Str("expseg (arate): not initialised"));
 }
+#endif
 
+#if defined(INC_EXPSEG)||defined(INC_EXPSEG_A)
 int32_t xsgrset(CSOUND *csound, EXPSEG *p)
 {
     int32_t     relestim;
@@ -971,7 +980,9 @@ int32_t xsgrset(CSOUND *csound, EXPSEG *p)
       return csound->InitError(csound, Str("ival%d is zero"), n+1);
     return csound->InitError(csound, Str("ival%d sign conflict"), n+1);
 }
+#endif
 
+#if defined(INC_MXADSR)||defined(INC_MXADSR_A)
 /* **** MXDSR is just a construction and use of expseg */
 
 int32_t mxdsrset(CSOUND *csound, EXPSEG *p)
@@ -1014,9 +1025,10 @@ int32_t mxdsrset(CSOUND *csound, EXPSEG *p)
       p->h.insdshead->xtratim = relestim;
     return OK;
 }
-
+#endif
 /* end of MXDSR */
 
+#if defined(INC_EXPSEGR)||defined(INC_EXPESEGR_A)
 int32_t kxpsegr(CSOUND *csound, EXPSEG *p)
 {
     IGN(csound);
@@ -1049,7 +1061,9 @@ int32_t kxpsegr(CSOUND *csound, EXPSEG *p)
     }
     return OK;
 }
+#endif
 
+#if defined(INC_EXPSEGR_A)||defined(INC_MXADSR_A)
 int32_t expsegr(CSOUND *csound, EXPSEG *p)
 {
     IGN(csound);
@@ -1113,7 +1127,9 @@ int32_t expsegr(CSOUND *csound, EXPSEG *p)
     p->curval = val;
     return OK;
 }
+#endif
 
+#ifdef INC_LINEN
 int32_t lnnset(CSOUND *csound, LINEN *p)
 {
     MYFLT a,b,dur;
@@ -1144,7 +1160,9 @@ int32_t lnnset(CSOUND *csound, LINEN *p)
     }
     return OK;
 }
+#endif
 
+#ifdef INC_LINEN_X
 int32_t alnnset(CSOUND *csound, LINEN *p)
 {
     MYFLT a,b,dur;
@@ -1174,7 +1192,9 @@ int32_t alnnset(CSOUND *csound, LINEN *p)
     }
     return OK;
 }
+#endif
 
+#ifdef INC_LINEN
 int32_t klinen(CSOUND *csound, LINEN *p)
 {
     IGN(csound);
@@ -1185,16 +1205,17 @@ int32_t klinen(CSOUND *csound, LINEN *p)
       p->lin1 += p->inc1;
       p->cnt1--;
     }
-    if (p->cnt2 > 0)
+    if (p->cnt2 > 0) {
       p->cnt2--;
-    else {
       fact *= p->lin2;
       p->lin2 -= p->inc2;
     }
     *p->rslt = *p->sig * fact;
     return OK;
 }
+#endif
 
+#ifdef INC_LINEN_X
 int32_t linen(CSOUND *csound, LINEN *p)
 {
     IGN(csound);
@@ -1254,8 +1275,8 @@ int32_t linen(CSOUND *csound, LINEN *p)
     p->lin2 = lin2;
     return OK;
 }
-
-
+#endif
+/* ************************** HERE ********************* */
 
 int32_t lnrset(CSOUND *csound, LINENR *p)
 {

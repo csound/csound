@@ -137,17 +137,20 @@
 #define INC_TONEX
 #define INC_UPSAMP
 #define INC_UPSAMPLE
-/*
-  #define INC_
-#define INC_
-#define INC_
-#define INC_
-#define INC_
-#define INC_
-#define INC_
-#define INC_
-#define INC_
-#define INC_
-#define INC_
-#define INC_
-*/
+#define INC_EXPSEGB
+#define INC_EXPSEGB_A
+#define INC_EXPSEGA
+#define INC_EXPSEGBA
+#define INC_MAXADSR
+#define INC_MADSR_A
+#define INC_MXADSR
+#define INC_MXADSR_A
+#define INC_EXPSEGR
+#define INC_EXPSEGR_A
+#define INC_EXPSEG
+#define INC_EXPSEG_A
+#define INC_LINEN
+#define INC_LINEN_X
+#define INC_XADSR
+#define INC_XADSR_A
+

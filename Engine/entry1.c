@@ -394,17 +394,37 @@ OENTRY opcodlst_1[] = {
   #ifdef INC_LINSEGR_A
   { "linsegr.a",S(LINSEG),0,  3,      "a",    "iim",  lsgrset,linsegr },
   #endif
+  #ifdef INC_EXPSEG
   { "expseg", S(EXXPSEG),0,  3,     "k",    "iim",  xsgset, kxpseg, NULL  },
+  #endif
+#ifdef INC_EXPSEG_A
   { "expseg.a", S(EXXPSEG),0,  3,     "a",    "iim",  xsgset, expseg  },
+#endif
+  #ifdef INC_EXPSEGB
   { "expsegb", S(EXXPSEG),0,  3,     "k",    "iim",  xsgset_bkpt, kxpseg, NULL },
+  #endif
+  #ifdef INC_EXPSEGB_A
   { "expsegb.a", S(EXXPSEG),0, 3,     "a",    "iim",  xsgset_bkpt, expseg },
+  #endif
+  #ifdef INC_EXPSEGA
   { "expsega",S(EXPSEG2),0,  3,     "a",    "iim",  xsgset2, expseg2  },
+  #endif
+  #ifdef INC_EXPSEGBA
   { "expsegba",S(EXPSEG2),0,  3,     "a",    "iim",  xsgset2b, expseg2 },
+  #endif
+  #ifdef INC_EXPSEGR
   { "expsegr",S(EXPSEG),0,  3,      "k",    "iim",  xsgrset,kxpsegr,NULL },
+  #endif
+  #ifdef INC_EXPSEGR_A
   { "expsegr.a",S(EXPSEG),0,  3,      "a",    "iim",  xsgrset,expsegr },
+  #endif
+  #ifdef INC_LINEN
   { "linen",  S(LINEN),0,   3,      "k",    "kiii", lnnset, klinen, NULL   },
+  #endif
+  #ifdef INC_LINEN_X
   { "linen.a",  S(LINEN),0,   3,      "a",    "aiii", alnnset, linen   },
   { "linen.x",  S(LINEN),0,   3,      "a",    "kiii", alnnset, linen   },
+  #endif
   { "linenr", S(LINENR),0,  3,      "k",    "kiii", lnrset, klinenr,NULL },
   { "linenr.a", S(LINENR),0,  3,      "a",    "aiii", alnrset,linenr  },
   { "linenr.x", S(LINENR),0,  3,      "a",    "kiii", alnrset,linenr  },
@@ -992,12 +1012,24 @@ OENTRY opcodlst_1[] = {
   #ifdef INC_ADSR_A
   { "adsr.a", S(LINSEG),0,     3,     "a",    "iiiio",adsrset, linseg     },
   #endif
+#ifdef INC_MADSR
   { "madsr", S(LINSEG),0,    3,     "k",    "iiiioj", madsrset,klnsegr,NULL },
+  #endif
+  #ifdef INC_MADSR_A
   { "madsr.a", S(LINSEG),0,    3,     "a",    "iiiioj", madsrset, linsegr },
+  #endif
+  #ifdef INC_XADSR
   { "xadsr", S(EXXPSEG),0,   3,     "k",    "iiiio", xdsrset, kxpseg, NULL   },
+  #endif
+  #ifdef INC_XADSR_A
   { "xadsr.a", S(EXXPSEG),0,   3,     "a",    "iiiio", xdsrset, expseg    },
+  #endif
+  #ifdef INC_MXADSR
   { "mxadsr", S(EXPSEG),0,   3,     "k",    "iiiioj", mxdsrset, kxpsegr, NULL},
+  #endif
+#ifdef INC_MXADSR_A
   { "mxadsr.a", S(EXPSEG),0,   3,     "a",    "iiiioj", mxdsrset, expsegr},
+  #endif
   { "schedule", S(SCHED),0,  1,     "",     "iiim",
     schedule, NULL, NULL },
   { "schedule.N", S(SCHED),0,  1,     "",     "iiiN",
