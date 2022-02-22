@@ -459,24 +459,46 @@ OENTRY opcodlst_1[] = {
   #ifdef INC_EPHASOR
   { "ephasor", S(EPHSOR), 0,  3,     "aa",  "xko",  ephsset, ephsor },
   #endif
+  #ifdef INC_SIGNUM
   { "signum.i", S(ASSIGN), 0, 1,     "i",   "i", signum, NULL, NULL       },
   { "signum.k", S(ASSIGN), 0, 3,     "k",   "k", signum, signum, NULL     },
+  #endif
+  #ifdef IC_SIGNU_A
   { "signum.a", S(ASSIGN), 0, 2,     "a",   "a", NULL, asignum      },
+  #endif
+  #ifdef INC_TALE_I
   { "table.i",  S(TABL),TR, 1,      "i",    "iiooo",(SUBR)tabler_init       },
+  #endif
+  #ifdef INC_TABLE_K
   { "table.k",  S(TABL),TR, 3,      "k",    "xiooo",(SUBR)tabl_setup,
     (SUBR)tabler_kontrol        },
+  #endif
+  #ifdef INC_TABLE_A
   { "table.a",  S(TABL),TR, 3,      "a",    "xiooo",(SUBR)tabl_setup,
     (SUBR)tabler_audio                                                      },
+  #endif
+  #ifdef INC_TABLEI_I
   { "tablei.i", S(TABL),TR, 1,      "i",    "iiooo",(SUBR)tableir_init      },
+#endif
+  #ifdef INC_TABLEI_K
   { "tablei.k", S(TABL),TR, 3,      "k",    "xiooo",(SUBR)tabl_setup,
     (SUBR)tableir_kontrol                                                   },
+  #endif
+  #ifdef INC_TALBEI_A
   { "tablei.a", S(TABL),TR, 3,      "a",    "xiooo",(SUBR)tabl_setup,
     (SUBR)tableir_audio                                                     },
+  #endif
+  #ifdef INC_TABLE3_I
   { "table3.i", S(TABL),TR, 1,      "i",    "iiooo",(SUBR)table3r_init      },
+  #endif
+  #ifdef INC_TABLE3_K
   { "table3.k", S(TABL),TR, 3,      "k",    "xiooo",(SUBR)tabl_setup,
     (SUBR)table3r_kontrol                                                   },
+  #endif
+  #ifdef INC_TABLE3_A
   { "table3.a", S(TABL),TR, 3,      "a",    "xiooo",(SUBR)tabl_setup,
     (SUBR)table3r_audio                                                     },
+  #endif
   { "ptable.i",  S(TABLE),TR|_QQ, 1,"i",    "iiooo",(SUBR)tabler_init       },
   { "ptable.k",  S(TABLE),TR|_QQ, 3,     "k",    "xiooo",(SUBR)tabl_setup,
     (SUBR)tabler_kontrol                                                    },
@@ -922,10 +944,14 @@ OENTRY opcodlst_1[] = {
     (SUBR)tablew_kontrol, NULL          },
   { "tablew.aa", S(TABL),TW,  3,    "", "aaiooo",(SUBR)tabl_setup,
     (SUBR)tablew_audio               },
+  #ifdef INC_TABLEWKT_K
   { "tablewkt.kk", S(TABL),TW,3, "",  "kkkooo",
     (SUBR)tablkt_setup,(SUBR)tablewkt_kontrol,NULL},
+  #endif
+#ifdef INC_TABLEWKT_A
   { "tablewkt.aa", S(TABL),TW,3, "",  "aakooo",
     (SUBR)tablkt_setup,(SUBR)tablewkt_audio},
+#endif
   { "tableng.i", S(TLEN),TR,1,     "i",  "i",    (SUBR)table_length, NULL,  NULL},
   { "tableng.k",  S(TLEN),TR,2,    "k",  "k",    NULL,  (SUBR)table_length, NULL},
   { "tableigpw",S(TGP), TB, 1,     "",  "i",    (SUBR)table_gpw, NULL,  NULL},

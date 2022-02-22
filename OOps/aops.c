@@ -24,6 +24,7 @@
 #include "aops.h"
 #include <math.h>
 #include <time.h>
+#include "opcodes.h"
 
 #define POW2TABSIZI 4096
 #if ULONG_MAX == 18446744073709551615UL
@@ -189,7 +190,7 @@ int32_t mainit(CSOUND *csound, ASSIGNM *p)
     return OK;
 }
 
-
+#ifdef INC_SIGNUM
 int32_t signum(CSOUND *csound, ASSIGN *p)
 {
     IGN(csound);
@@ -198,7 +199,9 @@ int32_t signum(CSOUND *csound, ASSIGN *p)
     *p->r = (MYFLT) ans;
     return OK;
 }
+#endif
 
+#ifdef INC_SIGNUM_A
 int32_t asignum(CSOUND *csound, ASSIGN *p)
 {
     IGN(csound);
@@ -215,6 +218,7 @@ int32_t asignum(CSOUND *csound, ASSIGN *p)
     }
     return OK;
 }
+#endif
 
 #define RELATN(OPNAME,OP)                                \
   int32_t OPNAME(CSOUND *csound, RELAT *p)               \

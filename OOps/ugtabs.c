@@ -25,6 +25,7 @@
 #include "ugtabs.h"
 #include "ugens2.h"
 #include <math.h>
+#include "opcodes.h"
 
 //(x >= FL(0.0) ? (int32_t)x : (int32_t)((double)x - 0.99999999))
 #define MYFLOOR(x) FLOOR(x)
@@ -33,6 +34,7 @@ static inline unsigned int isPowerOfTwo (unsigned int x) {
   return (x > 0) && !(x & (x - 1)) ? 1 : 0;
 }
 
+#ifdef INC_TABLE_I
 int32_t tabler_init(CSOUND *csound, TABL *p) {
 
     int32_t ndx, len;
@@ -65,8 +67,9 @@ int32_t tabler_init(CSOUND *csound, TABL *p) {
     *p->sig = p->ftp->ftable[ndx];
     return OK;
 }
+#endif
 
-
+#if defined(INC_TABLE_K)||defined(INC_TABLE_A)||defined(INC_TABLE3_K)||defined(INC_TABLE3_A)
 int32_t tabl_setup(CSOUND *csound, TABL *p) {
     if(p->ftp == NULL) {
       /* check for this only on first allocation */
@@ -92,7 +95,9 @@ int32_t tabl_setup(CSOUND *csound, TABL *p) {
     p->iwrap = (int32_t) *p->wrap;
     return OK;
 }
+#endif
 
+#if defined(INC_TABLE_K)||defined(INC_TABLEWKT_K)
 int32_t tabler_kontrol(CSOUND *csound, TABL *p) {
     int32_t ndx, len = p->len;
     int32_t mask = p->ftp->lenmask;
@@ -112,9 +117,10 @@ int32_t tabler_kontrol(CSOUND *csound, TABL *p) {
     *p->sig = p->ftp->ftable[ndx];
     return OK;
 }
+#endif
 
 
-
+#ifdef INC_TABLE_A
 int32_t tabler_audio(CSOUND *csound, TABL *p)
 {
     IGN(csound);
@@ -152,7 +158,9 @@ int32_t tabler_audio(CSOUND *csound, TABL *p)
 
     return OK;
 }
+#endif
 
+#ifdef INC_TABLEI_I
 int32_t tableir_init(CSOUND *csound, TABL *p) {
 
     int32_t ndx, len;
@@ -192,9 +200,9 @@ int32_t tableir_init(CSOUND *csound, TABL *p) {
     *p->sig = x1 + (x2 - x1)*frac;
     return OK;
 }
+#endif
 
-
-
+#ifdef INC_TABLEI_K
 int32_t tableir_kontrol(CSOUND *csound, TABL *p) {
     int32_t ndx, len = p->len;
     int32_t mask = p->ftp->lenmask;
@@ -221,7 +229,9 @@ int32_t tableir_kontrol(CSOUND *csound, TABL *p) {
     *p->sig = x1 + (x2 - x1)*frac;
     return OK;
 }
+#endif
 
+#ifdef INC_TABLEI_A
 int32_t tableir_audio(CSOUND *csound, TABL *p)
 {
     IGN(csound);
@@ -264,7 +274,10 @@ int32_t tableir_audio(CSOUND *csound, TABL *p)
 
     return OK;
 }
+#endif
 
+
+#ifdef INC_TABLE3_I
 int32_t table3r_init(CSOUND *csound, TABL *p) {
 
     int32_t ndx, len;
@@ -320,9 +333,9 @@ int32_t table3r_init(CSOUND *csound, TABL *p) {
     }
     return OK;
 }
+#endif
 
-
-
+#ifdef INC_TABLE3_K
 int32_t table3r_kontrol(CSOUND *csound, TABL *p) {
     int32_t ndx, len = p->len;
     int32_t mask = p->ftp->lenmask;
@@ -365,7 +378,9 @@ int32_t table3r_kontrol(CSOUND *csound, TABL *p) {
     }
     return OK;
 }
+#endif
 
+#ifdef INC_TABLE3_A
 int32_t table3r_audio(CSOUND *csound, TABL *p)
 {
     IGN(csound);
@@ -421,7 +436,10 @@ int32_t table3r_audio(CSOUND *csound, TABL *p)
     }
     return OK;
 }
+#endif
 
+/* ***************************** HERE *************************** */
+#if defined(INC_TABLEWKT_K)||defined(INC_TABLEWKT_A)
 int32_t tablkt_setup(CSOUND *csound, TABL *p) {
 
     if (UNLIKELY(IS_ASIG_ARG(p->ndx) != IS_ASIG_ARG(p->sig))) {
@@ -434,7 +452,9 @@ int32_t tablkt_setup(CSOUND *csound, TABL *p) {
     p->iwrap = (int32_t) *p->wrap;
     return OK;
 }
+#endif
 
+#ifdef INC_TABLEWKT_K
 int32_t tablerkt_kontrol(CSOUND *csound, TABL *p) {
 
     if (UNLIKELY((p->ftp = csound->FTnp2Find(csound, p->ftable)) == NULL))
@@ -450,8 +470,9 @@ int32_t tablerkt_kontrol(CSOUND *csound, TABL *p) {
 
     return tabler_kontrol(csound,p);
 }
+#endif
 
-
+#ifdef INC_TABLEWKT_A
 int32_t tablerkt_audio(CSOUND *csound, TABL *p) {
 
     if (UNLIKELY((p->ftp = csound->FTnp2Find(csound, p->ftable)) == NULL))
@@ -467,6 +488,7 @@ int32_t tablerkt_audio(CSOUND *csound, TABL *p) {
 
     return tabler_audio(csound,p);
 }
+#endif
 
 int32_t tableirkt_kontrol(CSOUND *csound, TABL *p) {
 

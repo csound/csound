@@ -165,3 +165,16 @@
 #define INC_COSSEGB_A
 #define INC_COSSEGR
 #define INC_COSSEG_A
+#define INC_SIGNUM
+#define INC_SIGNUM_A
+#define INC_TABLE_I
+#define INC_TABLE_K
+#define INC_TABLE_A
+#define INC_TABLEI_I
+#define INC_TABLEI_K
+#define INC_TABLEI_A
+#define INC_TABLE3_I
+#define INC_TABLE3_K
+#define INC_TABLE3_A
+#define INC_TABLEWKT_K
+#define INC_TABLEWKT_A
