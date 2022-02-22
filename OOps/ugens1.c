@@ -1276,8 +1276,8 @@ int32_t linen(CSOUND *csound, LINEN *p)
     return OK;
 }
 #endif
-/* ************************** HERE ********************* */
 
+#ifdef INC_LINENR
 int32_t lnrset(CSOUND *csound, LINENR *p)
 {
     p->cnt1 = (int32_t)(*p->iris * CS_EKR + FL(0.5));
@@ -1301,7 +1301,9 @@ int32_t lnrset(CSOUND *csound, LINENR *p)
     p->val2 = FL(1.0);
     return OK;
 }
+#endif
 
+#ifdef INC_LINENR_X
 int32_t alnrset(CSOUND *csound, LINENR *p)
 {
     p->cnt1 = (int32_t)(*p->iris * CS_ESR);
@@ -1324,8 +1326,9 @@ int32_t alnrset(CSOUND *csound, LINENR *p)
     p->val2 = FL(1.0);
     return OK;
 }
+#endif
 
-
+#ifdef INC_LINENR
 int32_t klinenr(CSOUND *csound, LINENR *p)
 {
    IGN(csound);
@@ -1343,7 +1346,9 @@ int32_t klinenr(CSOUND *csound, LINENR *p)
     *p->rslt = *p->sig * fact;
     return OK;
 }
+#endif
 
+#ifdef INC_LINENR_X
 int32_t linenr(CSOUND *csound, LINENR *p)
 {
     IGN(csound);
@@ -1388,7 +1393,9 @@ int32_t linenr(CSOUND *csound, LINENR *p)
     p->val2 = val2;
     return OK;
 }
+#endif
 
+#if defined(INC_ENVLPXR)||defined(INC_ENVLPX)
 int32_t evxset(CSOUND *csound, ENVLPX *p)
 {
     FUNC        *ftp;
@@ -1459,7 +1466,9 @@ int32_t evxset(CSOUND *csound, ENVLPX *p)
     }
     return OK;
 }
+#endif
 
+#ifdef INC_ENVLPX
 int32_t knvlpx(CSOUND *csound, ENVLPX *p)
 {
     FUNC        *ftp;
@@ -1503,7 +1512,9 @@ int32_t knvlpx(CSOUND *csound, ENVLPX *p)
     return csound->PerfError(csound, &(p->h),
                              Str("envlpx(krate): not initialised"));
 }
+#endif
 
+#if defined(INC_ENVLPX_X)||defined(INC_ENVLPXR_X)
 int32_t aevxset(CSOUND *csound, ENVLPX *p)
 {
     FUNC        *ftp;
@@ -1575,8 +1586,9 @@ int32_t aevxset(CSOUND *csound, ENVLPX *p)
     }
     return OK;
 }
+#endif
 
-
+#ifdef INC_ENVLPX_X
 int32_t envlpx(CSOUND *csound, ENVLPX *p)
 {
     int32_t       phs;
@@ -1645,7 +1657,9 @@ int32_t envlpx(CSOUND *csound, ENVLPX *p)
     p->val = val;
     return OK;
 }
+#endif
 
+#if defined(INC_ENVLPX)||defined(INC_ENVLPXR)
 int32_t evrset(CSOUND *csound, ENVLPR *p)
 {
     FUNC        *ftp;
@@ -1704,7 +1718,9 @@ int32_t evrset(CSOUND *csound, ENVLPR *p)
     p->rlsing = 0;
     return OK;
 }
+#endif
 
+#ifdef INC_ENVLPXR_X
 int32_t aevrset(CSOUND *csound, ENVLPR *p)
 {
     FUNC        *ftp;
@@ -1763,8 +1779,9 @@ int32_t aevrset(CSOUND *csound, ENVLPR *p)
     p->rlsing = 0;
     return OK;
 }
+#endif
 
-
+#ifdef INC_ENVLPXR
 int32_t knvlpxr(CSOUND *csound, ENVLPR *p)
 {
     IGN(csound);
@@ -1806,7 +1823,9 @@ int32_t knvlpxr(CSOUND *csound, ENVLPR *p)
     *p->rslt = *p->xamp * fact;
     return OK;
 }
+#endif
 
+#ifdef INC_ENVLPXR_X
 int32_t envlpxr(CSOUND *csound, ENVLPR *p)
 {
     uint32_t offset = p->h.insdshead->ksmps_offset;
@@ -1884,7 +1903,9 @@ int32_t envlpxr(CSOUND *csound, ENVLPR *p)
     p->val = val;
     return OK;
 }
+#endif
 
+#if defined(INC_COSSEG)||defined(INC_COSSEG_A)||defined(INC_COSSEGB)||defined(INC_COSSEGB_A)
 int32_t csgset(CSOUND *csound, COSSEG *p)
 {
     SEG *segp, *sp;
@@ -1942,7 +1963,9 @@ int32_t csgset(CSOUND *csound, COSSEG *p)
     p->val = p->y1;
     return OK;
 }
+#endif
 
+#if defined(INC_COSSEGB)||defined(INC_COSSEGB_A)
 int32_t csgset_bkpt(CSOUND *csound, COSSEG *p)
 {
     int32_t cnt, bkpt = 0;
@@ -1977,7 +2000,9 @@ int32_t csgset_bkpt(CSOUND *csound, COSSEG *p)
 
     return OK;
 }
+#endif
 
+#if defined(INC_COSSEGR)||defined(INCCOSSEGB_A)
 int32_t csgrset(CSOUND *csound, COSSEG *p)
 {
     int32_t relestim;
@@ -1988,7 +2013,9 @@ int32_t csgrset(CSOUND *csound, COSSEG *p)
       p->h.insdshead->xtratim = (int32_t)relestim;
     return OK;
 }
+#endif
 
+#ifdef INC_COSSEG
 int32_t kosseg(CSOUND *csound, COSSEG *p)
 {
     double val1 = p->y1, val2 = p->y2, x = p->x;
@@ -2031,7 +2058,9 @@ int32_t kosseg(CSOUND *csound, COSSEG *p)
  err1:
     return csound->InitError(csound, Str("cosseg not initialised (krate)\n"));
 }
+#endif
 
+#ifdef INC_COSSEG_A
 int32_t cosseg(CSOUND *csound, COSSEG *p)
 {
     double val1 = p->y1, val2 = p->y2, x = p->x;
@@ -2090,7 +2119,9 @@ int32_t cosseg(CSOUND *csound, COSSEG *p)
     return csound->PerfError(csound, &(p->h),
                              Str("cosseg: not initialised (arate)\n"));
 }
+#endif
 
+#if defined(iNC_COSSEGR)||defined(INC_COSSEGR_S)
 int32_t cossegr(CSOUND *csound, COSSEG *p)
 {
     double val1 = p->y1, val2 = p->y2, x = p->x, val = p->val;
@@ -2161,9 +2192,9 @@ int32_t cossegr(CSOUND *csound, COSSEG *p)
     return csound->PerfError(csound, &(p->h),
                              Str("cossegr: not initialised (arate)\n"));
 }
+#endif
 
-
-#if 0
+#if defined(INC_COSSEGR)||defined(IN_COSSEGR_A)
 int32_t cossegr(CSOUND *csound, COSSEG *p)
 {
     double val1 = p->y1, val2 = p->y2, x = p->x;
@@ -2230,6 +2261,7 @@ int32_t cossegr(CSOUND *csound, COSSEG *p)
 }
 #endif
 
+#ifdef INC_COSSEGR
 int32_t kcssegr(CSOUND *csound, COSSEG *p)
 {
     double val1 = p->y1, val2 = p->y2, x = p->x, val = p->val;
@@ -2286,3 +2318,4 @@ int32_t kcssegr(CSOUND *csound, COSSEG *p)
  err1:
     return csound->InitError(csound, Str("cosseg not initialised (krate)\n"));
 }
+#endif

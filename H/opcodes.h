@@ -149,8 +149,19 @@
 #define INC_EXPSEGR_A
 #define INC_EXPSEG
 #define INC_EXPSEG_A
-#define INC_LINEN
-#define INC_LINEN_X
 #define INC_XADSR
 #define INC_XADSR_A
-
+#define INC_LINEN
+#define INC_LINEN_X
+#define INC_LINENR
+#define INC_LINENR_X
+#define INC_ENVLPX
+#define INC_ENVLPXR
+#define INC_ENVLPX_X
+#define INC_ENVLPXR_X
+#define INC_COSSEG
+#define INC_COSSEG_A
+#define INC_COSSEGB
+#define INC_COSSEGB_A
+#define INC_COSSEGR
+#define INC_COSSEG_A
