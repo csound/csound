@@ -524,8 +524,6 @@ int32_t tableirkt_audio(CSOUND *csound, TABL *p)
 }
 #endif
 
-/* *************************** HERE ******************* */
-
 #ifdef INC_TABLE3KT
 int32_t table3rkt_kontrol(CSOUND *csound, TABL *p) {
 
