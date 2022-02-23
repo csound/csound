@@ -526,6 +526,7 @@ int32_t tableirkt_audio(CSOUND *csound, TABL *p)
 
 /* *************************** HERE ******************* */
 
+#ifdef INC_TABLE3KT
 int32_t table3rkt_kontrol(CSOUND *csound, TABL *p) {
 
     if (UNLIKELY((p->ftp = csound->FTnp2Find(csound, p->ftable)) == NULL))
@@ -540,7 +541,9 @@ int32_t table3rkt_kontrol(CSOUND *csound, TABL *p) {
     p->len = p->ftp->flen;
     return table3r_kontrol(csound,p);;
 }
+#endif
 
+#ifdef INC_TABLE3KT_A
 int32_t table3rkt_audio(CSOUND *csound, TABL *p) {
 
     if (UNLIKELY((p->ftp = csound->FTnp2Find(csound, p->ftable)) == NULL))
@@ -555,9 +558,10 @@ int32_t table3rkt_audio(CSOUND *csound, TABL *p) {
     p->len = p->ftp->flen;
     return table3r_audio(csound,p);
 }
+#endif
 
+#if defined(INC_TABLEIW)||defined(INC_TABLEW)
 int32_t tablew_init(CSOUND *csound, TABL *p) {
-
     int32_t ndx, len;
     int32_t mask;
     MYFLT *func;
@@ -593,7 +597,9 @@ int32_t tablew_init(CSOUND *csound, TABL *p) {
     if (ndx == 0 && iwrap==2) func[len] = func[ndx];
     return OK;
 }
+#endif
 
+#ifdef INC_TABLEW_KK
 int32_t tablew_kontrol(CSOUND *csound, TABL *p) {
     int32_t ndx, len = p->len;
     int32_t mask = p->ftp->lenmask;
@@ -616,7 +622,9 @@ int32_t tablew_kontrol(CSOUND *csound, TABL *p) {
     if (ndx == 0 && iwrap==2) func[len] = func[ndx];
     return OK;
 }
+#endif
 
+#ifdef INC_TABLEW_AA
 int32_t tablew_audio(CSOUND *csound, TABL *p) {
     IGN(csound);
     int32_t ndx, len = p->len, n, nsmps = CS_KSMPS;
@@ -649,7 +657,9 @@ int32_t tablew_audio(CSOUND *csound, TABL *p) {
     }
     return OK;
 }
+#endif
 
+#ifdef INC_TABLEWKT_K
 int32_t tablewkt_kontrol(CSOUND *csound, TABL *p) {
 
     if (UNLIKELY((p->ftp = csound->FTnp2Find(csound, p->ftable)) == NULL))
@@ -665,8 +675,9 @@ int32_t tablewkt_kontrol(CSOUND *csound, TABL *p) {
 
     return tablew_kontrol(csound,p);
 }
+#endif
 
-
+#ifdef INC_TABLEWKT_A
 int32_t tablewkt_audio(CSOUND *csound, TABL *p) {
 
     if (UNLIKELY((p->ftp = csound->FTnp2Find(csound, p->ftable)) == NULL))
@@ -681,7 +692,9 @@ int32_t tablewkt_audio(CSOUND *csound, TABL *p) {
     p->len = p->ftp->flen;
     return tablew_audio(csound,p);;
 }
+#endif
 
+#ifdef INC_TABLENG
 int32_t table_length(CSOUND *csound, TLEN *p) {
     FUNC *ftp;
     if (UNLIKELY((ftp = csound->FTnp2Find(csound, p->ftable)) == NULL)) {
@@ -693,7 +706,9 @@ int32_t table_length(CSOUND *csound, TLEN *p) {
     else *p->ans = (MYFLT) ftp->flen;
     return OK;
 }
+#endif
 
+#ifdef INC_TABLEIGPW
 int32_t table_gpw(CSOUND *csound, TGP *p) {
     FUNC *ftp;
     if (UNLIKELY((ftp = csound->FTnp2Find(csound, p->ftable)) == NULL)) {
@@ -705,7 +720,10 @@ int32_t table_gpw(CSOUND *csound, TGP *p) {
     ftp->ftable[ftp->flen] = ftp->ftable[0];
     return OK;
 }
+#endif
 
+
+#ifdef INC_TABLECOPY
 int32_t table_copy(CSOUND *csound, TGP *p) {
     FUNC *dest, *src;
     int32 len1, len2, i, rp;
@@ -724,7 +742,9 @@ int32_t table_copy(CSOUND *csound, TGP *p) {
     }
     return OK;
 }
+#endif
 
+#ifdef INC_TABLEMIX
 int32_t table_mix(CSOUND *csound, TABLMIX *p) {
     int32 np2, np21, np22;
     FUNC *ftp, *ftp1, *ftp2;
@@ -815,12 +835,14 @@ int32_t table_mix(CSOUND *csound, TABLMIX *p) {
     }
     return OK;
 }
+#endif
 
-int32_t table_ra_set(CSOUND *csound, TABLRA *p) {
-    IGN(csound);
-    IGN(p);
-    return OK;
-}
+#ifdef INC_TABLERA
+/* int32_t table_ra_set(CSOUND *csound, TABLRA *p) { */
+/*     IGN(csound); */
+/*     IGN(p); */
+/*     return OK; */
+/* } */
 
 int32_t table_ra(CSOUND *csound, TABLRA *p) {
     int32 pos, np2, nsmps, len, i;
@@ -861,7 +883,9 @@ int32_t table_ra(CSOUND *csound, TABLRA *p) {
 
     return OK;
 }
+#endif
 
+#ifdef INC_TABLEWA
 int32_t table_wa_set(CSOUND *csound, TABLWA *p) {
     IGN(csound);
     if(!*p->skipinit) p->pos = 0;
@@ -905,3 +929,4 @@ int32_t table_wa(CSOUND *csound, TABLWA *p) {
     *p->strt = pos;
     return OK;
 }
+#endif

@@ -185,3 +185,16 @@
 #define INC_MINIT
 #define INC_MINIT_A
 #define INC_BOOLNOT
+#define INC_TABLE3KT
+#define INC_TABLE3KT_A
+#define INC_TABLEIKT
+#define INC_TABLE3KT
+#define INC_TABLE3KT_A
+#define INC_TABLEW_KK
+#define INC_TABLEW_AA
+#define INC_TABLENG
+#define INC_TABLEIGPW
+#define INC_TABLECOPY
+#define INC_TABLEMIX
+#define INC_TABLERA
+#define INC_TABLEWA
