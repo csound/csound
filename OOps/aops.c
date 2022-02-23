@@ -76,6 +76,7 @@ MYFLT csoundPow2(CSOUND *csound, MYFLT a)
     return ((MYFLT) (1 << (n >> 12)) * powerof2[n & (POW2TABSIZI-1)]);
 }*/
 
+#ifdef INC_RASSIGN
 int32_t rassign(CSOUND *csound, ASSIGN *p)
 {
     /* already assigned by otran */
@@ -83,14 +84,18 @@ int32_t rassign(CSOUND *csound, ASSIGN *p)
     IGN(p);
     return OK;
 }
+#endif
 
+#ifdef INC_ASSIGN
 int32_t assign(CSOUND *csound, ASSIGN *p)
 {
     IGN(csound);
     *p->r = *p->a;
     return OK;
 }
+#endif
 
+#ifdef INC_AASIGN
 int32_t aassign(CSOUND *csound, ASSIGN *p, int32_t islocal)
 {
     IGN(csound);
@@ -118,6 +123,7 @@ int32_t gaassign(CSOUND *csound, ASSIGN *p)
 
 int32_t laassign(CSOUND *csound, ASSIGN *p)
 {   return aassign(csound, p, 1); }
+#endif
 
 int32_t ainit(CSOUND *csound, ASSIGN *p)
 {
@@ -136,6 +142,7 @@ int32_t ainit(CSOUND *csound, ASSIGN *p)
     return OK;
 }
 
+#ifdef INC_MINIT
 int32_t minit(CSOUND *csound, ASSIGNM *p)
 {
     uint32_t nargs = p->INCOUNT;
@@ -160,7 +167,9 @@ int32_t minit(CSOUND *csound, ASSIGNM *p)
     csound->Free(csound, tmp);
     return OK;
 }
+#endif
 
+#ifdef INC_MINIT_A
 int32_t mainit(CSOUND *csound, ASSIGNM *p)
 {
     uint32_t nargs = p->INCOUNT;
@@ -189,6 +198,7 @@ int32_t mainit(CSOUND *csound, ASSIGNM *p)
 
     return OK;
 }
+#endif
 
 #ifdef INC_SIGNUM
 int32_t signum(CSOUND *csound, ASSIGN *p)
@@ -232,9 +242,11 @@ RELATN(le,<=)
 RELATN(eq,==)
 RELATN(ne,!=)
 
+#ifdef INC_BOOLNOT
 int32_t b_not(CSOUND *csound, LOGCL *p)
 {
     IGN(csound); *p->rbool = (*p->ibool) ? 0 : 1; return OK; }
+#endif
 
 #define LOGCLX(OPNAME,OP)                                       \
   int32_t OPNAME(CSOUND *csound, LOGCL *p)                      \
@@ -1929,6 +1941,7 @@ int32_t outq4(CSOUND *csound, OUTM *p)
     return OK;
 }
 
+#ifdef INC_OUT
 inline static int32_t outn(CSOUND *csound, uint32_t n, OUTX *p)
 {
     uint32_t nsmps = CS_KSMPS,  i, j, k=0;
@@ -2003,7 +2016,7 @@ int32_t outall(CSOUND *csound, OUTX *p)             /* Output a list of channels
     uint32_t nch = p->INOCOUNT;
     return outn(csound, (nch <= csound->nchnls ? nch : csound->nchnls), p);
 }
-
+#endif
 int32_t outarr_init(CSOUND *csound, OUTARRAY *p)
 {
     IGN(csound);

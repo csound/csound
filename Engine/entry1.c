@@ -138,23 +138,32 @@ OENTRY opcodlst_1[] = {
      NULL, (SUBR) strcpy_opcode_S, (SUBR) NULL, NULL    },
   {  "=.T",   S(STRGET_OP),0,   1,  "S",    "i",
      (SUBR) strcpy_opcode_p, (SUBR) NULL, (SUBR) NULL, NULL                 },
+  #ifdef INC_RASSIGN
   { "=.r",    S(ASSIGN),0,  1,      "r",    "i",    rassign, NULL, NULL, NULL },
+  #endif
+  #ifdef INC_MINIT
   { "=.i",    S(ASSIGNM),0, 1,      "IIIIIIIIIIIIIIIIIIIIIIII", "m",
     minit, NULL, NULL, NULL  },
   { "=.k",    S(ASSIGNM),0, 2,      "zzzzzzzzzzzzzzzzzzzzzzzz", "z",
     NULL, minit, NULL, NULL },
+  #endif
+  #ifdef INC_AASIGN
   { "=.a",    S(ASSIGN),0,  2,      "a",    "a",    NULL, gaassign, NULL },
   { "=.l",    S(ASSIGN),0,  2,      "a",    "a",    NULL,   laassign, NULL },
+  #endif
 #ifdef INC_UPSAMP
   { "=.up",   S(UPSAMP),0,  2,      "a",    "k",  NULL, (SUBR)upsamp, NULL },
 #endif
   { "=.down",   S(DOWNSAMP),0,  3,  "k",    "ao",   (SUBR)downset,(SUBR)downsamp },
-  //{ "=.t",    S(ASSIGNT),0, 2,      "t",    "kk",   NULL,   tassign, NULL   },
   { "init.S", S(STRCPY_OP),0, 1,      "S", "S", (SUBR) strcpy_opcode_S  },
   { "init.Si", S(STRCPY_OP),0, 1,      "S", "i", (SUBR) strcpy_opcode_p  },
+  #ifdef MINIT
   { "init.i", S(ASSIGNM),0, 1,      "IIIIIIIIIIIIIIIIIIIIIIII", "m", minit  },
   { "init.k", S(ASSIGNM),0, 1,      "zzzzzzzzzzzzzzzzzzzzzzzz", "m", minit  },
+  #endif
+  #ifdef INC_MINIT_A
   { "init.a", S(ASSIGNM),0, 1,      "mmmmmmmmmmmmmmmmmmmmmmmm", "m", mainit },
+  #endif
   { ">",      S(RELAT),0,   0,      "b",    "ii",   gt,     gt              },
   { ">.0",      S(RELAT),0,   0,      "B",    "kk",   gt,     gt              },
   { ">=",     S(RELAT),0,   0,      "b",    "ii",   ge,     ge              },
@@ -167,8 +176,10 @@ OENTRY opcodlst_1[] = {
   { "==.0",     S(RELAT),0,   0,      "B",    "kk",   eq,     eq              },
   { "!=",     S(RELAT),0,   0,      "b",    "ii",   ne,     ne              },
   { "!=.0",     S(RELAT),0,   0,      "B",    "kk",   ne,     ne              },
+  #ifdef INC_BOOLNOT
   { "!",      S(LOGCL),0,   0,      "b",    "b",    b_not,    b_not         },
   { "!.0",      S(LOGCL),0, 0,      "B",    "B",    b_not,    b_not         },
+  #endif
   { "&&",     S(LOGCL),0,   0,      "b",    "bb",   and,    and             },
   { "&&.0",     S(LOGCL),0,   0,      "B",    "BB",   and,    and             },
   { "||",     S(LOGCL),0,   0,      "b",    "bb",   or,     or              },
@@ -211,7 +222,6 @@ OENTRY opcodlst_1[] = {
   { "##subin.k", S(ASSIGN),0, 2,      "k",    "k",    NULL,   subin   },
   { "##subin.K", S(ASSIGN),0, 2,      "a",    "k",    NULL,   subinak },
   { "##subin.a", S(ASSIGN),0, 2,      "a",    "a",    NULL,   subina  },
-  { "divz",   0xfffc                                                      },
   { "divz.ii", S(DIVZ),0,   1,      "i",    "iii",  divzkk, NULL,   NULL    },
   { "divz.kk", S(DIVZ),0,   2,      "k",    "kkk",  NULL,   divzkk, NULL    },
   { "divz.ak", S(DIVZ),0,   2,      "a",    "akk",  NULL,   divzak  },
@@ -308,10 +318,12 @@ OENTRY opcodlst_1[] = {
   { "ftlptim.i",S(EVAL),0,  1,      "i",    "i",    ftlptim                 },
   { "ftchnls.i",S(EVAL),0,  1,      "i",    "i",    ftchnls                 },
   { "ftcps.i",S(EVAL),0,    1,      "i",    "i",    ftcps                   },
+  #ifdef INC_ASSIGN
 { "i.i",   S(ASSIGN),0,   1,      "i",    "i",    assign                  },
   { "i.k",   S(ASSIGN),0,   1,      "i",    "k",    assign                  },
   { "k.i",   S(ASSIGN),0,   1,      "k",    "i",    assign                  },
   { "k.a",   S(DOWNSAMP),0, 3,      "k",    "ao",   (SUBR)downset,(SUBR)downsamp },
+  #endif
   { "cpsoct.i",S(EVAL),0,   1,      "i",    "i",    cpsoct                  },
   { "octpch.i",S(EVAL),0,   1,      "i",    "i",    octpch                  },
   { "cpspch.i",S(EVAL),0,   1,      "i",    "i",    cpspch                  },
@@ -753,12 +765,14 @@ OENTRY opcodlst_1[] = {
   { "inq",    S(INQ),0,     2,      "aaaa", "",     NULL,   inq     },
   { "out.a",  S(OUTX),IR,     3,      "",     "y",    ochn,   outall },
   { "out.A",  S(OUTARRAY),IR, 3,      "",     "a[]",  outarr_init,  outarr },
+#ifdef INC_OUT
   { "outs",   S(OUTX),IR,     3,      "",     "y",    ochn,   outall },
   { "outq",   S(OUTX),IR,     3,      "",     "y",    ochn,   outall },
   { "outh",   S(OUTX),IR,     3,      "",     "y",    ochn,   outall },
   { "outo",   S(OUTX),IR,     3,      "",     "y",    ochn,   outall },
   { "outx",   S(OUTX),IR,     3,      "",     "y",    ochn,   outall },
   { "out32",  S(OUTX),IR,     3,      "",     "y",    ochn,   outall },
+#endif
   { "outs1",  S(OUTM),IR,    2,      "",     "a",    NULL,   outs1   },
   { "outs2",  S(OUTM),IR,    3,      "",     "a",    och2,   outs2   },
   { "outq1",  S(OUTM),IR,    2,      "",     "a",    NULL,   outs1   },
@@ -951,7 +965,7 @@ OENTRY opcodlst_1[] = {
 #ifdef INC_TABLEWKT_A
   { "tablewkt.aa", S(TABL),TW,3, "",  "aakooo",
     (SUBR)tablkt_setup,(SUBR)tablewkt_audio},
-#endif
+  #endif
   { "tableng.i", S(TLEN),TR,1,     "i",  "i",    (SUBR)table_length, NULL,  NULL},
   { "tableng.k",  S(TLEN),TR,2,    "k",  "k",    NULL,  (SUBR)table_length, NULL},
   { "tableigpw",S(TGP), TB, 1,     "",  "i",    (SUBR)table_gpw, NULL,  NULL},
@@ -968,12 +982,16 @@ OENTRY opcodlst_1[] = {
     (SUBR)tablerkt_kontrol,
     NULL         },
   { "tablekt.a",  S(TABL),TR, 3,   "a",  "xkooo",  (SUBR)tablkt_setup,
-    (SUBR)tablerkt_audio           },
-  { "tableikt", S(TABL),TR, 3,    "k",  "xkooo", (SUBR)tablkt_setup,
+    (SUBR)tablerkt_audio         },
+  #ifdef INC_TABLEIKT
+    { "tableikt", S(TABL),TR, 3,    "k",  "xkooo", (SUBR)tablkt_setup,
     (SUBR)tableirkt_kontrol,
     NULL          },
+  #endif
+  #ifdef INC_TABLEIRKT_A
   { "tableikt.a", S(TABL),TR, 3,    "a",  "xkooo", (SUBR)tablkt_setup,
     (SUBR)tableirkt_audio          },
+  #endif
   { "table3kt", S(TABL),TR, 3,  "k",  "xkooo", (SUBR)tablkt_setup,
     (SUBR)table3rkt_kontrol,
     NULL         },

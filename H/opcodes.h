@@ -178,3 +178,10 @@
 #define INC_TABLE3_A
 #define INC_TABLEWKT_K
 #define INC_TABLEWKT_A
+#define INC_OUT
+#define INC_RASSIGN
+#define INC_ASSIGN
+#define INC_AASIGN
+#define INC_MINIT
+#define INC_MINIT_A
+#define INC_BOOLNOT

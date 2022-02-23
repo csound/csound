@@ -202,7 +202,7 @@ int32_t tableir_init(CSOUND *csound, TABL *p) {
 }
 #endif
 
-#ifdef INC_TABLEI_K
+#if defined(INC_TABLEI_K)||defined(INC_TABLEIKT)
 int32_t tableir_kontrol(CSOUND *csound, TABL *p) {
     int32_t ndx, len = p->len;
     int32_t mask = p->ftp->lenmask;
@@ -438,7 +438,6 @@ int32_t table3r_audio(CSOUND *csound, TABL *p)
 }
 #endif
 
-/* ***************************** HERE *************************** */
 #if defined(INC_TABLEWKT_K)||defined(INC_TABLEWKT_A)
 int32_t tablkt_setup(CSOUND *csound, TABL *p) {
 
@@ -485,13 +484,14 @@ int32_t tablerkt_audio(CSOUND *csound, TABL *p) {
     else
       p->mul = 1;
     p->len = p->ftp->flen;
-
+    
     return tabler_audio(csound,p);
 }
 #endif
 
+#ifdef INC_TABLEIKT
 int32_t tableirkt_kontrol(CSOUND *csound, TABL *p) {
-
+    
     if (UNLIKELY((p->ftp = csound->FTnp2Find(csound, p->ftable)) == NULL))
       return csound->PerfError(csound, &(p->h),
                                Str("table: could not find ftable %d"),
@@ -502,14 +502,15 @@ int32_t tableirkt_kontrol(CSOUND *csound, TABL *p) {
     else
       p->mul = 1;
     p->len = p->ftp->flen;
-
+    
     return tableir_kontrol(csound,p);
 }
+#endif
 
+#ifdef INC_TABLEIKT_A
 int32_t tableirkt_audio(CSOUND *csound, TABL *p)
 {
-
-    if (UNLIKELY((p->ftp = csound->FTnp2Find(csound, p->ftable)) == NULL))
+      if (UNLIKELY((p->ftp = csound->FTnp2Find(csound, p->ftable)) == NULL))
       return csound->PerfError(csound, &(p->h),
                                Str("table: could not find ftable %d"),
                                (int32_t) *p->ftable);
@@ -521,6 +522,9 @@ int32_t tableirkt_audio(CSOUND *csound, TABL *p)
     p->len = p->ftp->flen;
     return tableir_audio(csound,p);
 }
+#endif
+
+/* *************************** HERE ******************* */
 
 int32_t table3rkt_kontrol(CSOUND *csound, TABL *p) {
 
