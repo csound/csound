@@ -1205,8 +1205,9 @@ int32_t klinen(CSOUND *csound, LINEN *p)
       p->lin1 += p->inc1;
       p->cnt1--;
     }
-    if (p->cnt2 > 0) {
+    if (p->cnt2 > 0)
       p->cnt2--;
+    else {
       fact *= p->lin2;
       p->lin2 -= p->inc2;
     }

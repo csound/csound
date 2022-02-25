@@ -177,10 +177,10 @@ option(FAIL_MISSING "Fail when a required external dependency is not present (us
 option(USE_GETTEXT "Use the Gettext internationalization library" ON)
 option(BUILD_STATIC_LIBRARY "Also build a static version of the csound library" OFF)
 option(USE_LRINT "Use lrint/lrintf for converting floating point values to integers." ON)
-option(USE_CURL "Use CURL library" ON)
-option(BUILD_RELEASE "Build for release" ON)
+option(USE_CURL "Use CURL library" OFF)
+option(BUILD_RELEASE "Build for release" OFF)
 option(BUILD_INSTALLER "Build installer" OFF)
-option(BUILD_TESTS "Build tests" ON)
+option(BUILD_TESTS "Build tests" OFF)
 option(USE_GIT_COMMIT "Show the git commit in version information" ON)
 option(REQUIRE_PTHREADS "For non-Windows systems, set whether Csound will use threads or not" ON)
 
@@ -431,7 +431,7 @@ if(BUILD_RELEASE)
 else()
     add_definitions("-DBETA")
 endif()
-
+add_definitions("-DTRAP")
 if(APPLE OR LINUX)
 message(STATUS "default plugin dir set to ${DEFAULT_OPCODEDIR}")
 endif()
@@ -749,70 +749,70 @@ set(libcsound_SRCS
     Opcodes/grain4.c
     Opcodes/hrtferX.c
     Opcodes/loscilx.c
-    Opcodes/minmax.c
-    Opcodes/pan2.c
-    Opcodes/arrays.c
-    Opcodes/phisem.c
-    Opcodes/hrtfopcodes.c
-    Opcodes/vbap.c
-    Opcodes/vbap1.c
-    Opcodes/vbap_n.c
-    Opcodes/vbap_zak.c
-    Opcodes/vaops.c
-    Opcodes/ugakbari.c
-    Opcodes/harmon.c
-    Opcodes/pitchtrack.c
-    Opcodes/partikkel.c
-    Opcodes/shape.c
-    Opcodes/tabaudio.c
-    Opcodes/tabsum.c
-    Opcodes/crossfm.c
-    Opcodes/pvlock.c
-    Opcodes/fareyseq.c
-    Opcodes/modmatrix.c
-    Opcodes/scoreline.c
-    Opcodes/modal4.c
-    Opcodes/physutil.c
-    Opcodes/physmod.c
-    Opcodes/mandolin.c
-    Opcodes/singwave.c
-    Opcodes/fm4op.c
-    Opcodes/moog1.c
-    Opcodes/shaker.c
-    Opcodes/bowedbar.c
-    Opcodes/gab/tabmorph.c
-    Opcodes/gab/hvs.c
-    Opcodes/gab/sliderTable.c
-    Opcodes/gab/newgabopc.c
-    Opcodes/ftest.c
-    Opcodes/hrtfearly.c
-    Opcodes/hrtfreverb.c
-    Opcodes/cpumeter.c
-    Opcodes/gendy.c
-    Opcodes/tl/sc_noise.c
-    Opcodes/afilters.c
-    Opcodes/wpfilters.c
-    Opcodes/zak.c
-    Opcodes/lufs.c
-    Opcodes/date.c
-    Opcodes/system_call.c
-    Opcodes/liveconv.c
-    Opcodes/sterrain.c
-    Opcodes/gammatone.c
-    Opcodes/fareygen.c
-    Opcodes/quadbezier.c
-    Opcodes/framebuffer.c
-    Opcodes/cellular.c
-    Opcodes/exciter.c
-    Opcodes/buchla.c
-    Opcodes/select.c
-    Opcodes/serial.c
-    Opcodes/counter.c
-    Opcodes/platerev.c
-    Opcodes/sequencer.c
-    Opcodes/pvsgendy.c
-    Opcodes/emugens/emugens.c
-    Opcodes/emugens/scugens.c
+     Opcodes/minmax.c
+     Opcodes/pan2.c
+     Opcodes/arrays.c
+     Opcodes/phisem.c
+     Opcodes/hrtfopcodes.c
+     Opcodes/vbap.c
+     Opcodes/vbap1.c
+     Opcodes/vbap_n.c
+     Opcodes/vbap_zak.c
+     Opcodes/vaops.c
+     Opcodes/ugakbari.c
+     Opcodes/harmon.c
+     Opcodes/pitchtrack.c
+     Opcodes/partikkel.c
+     Opcodes/shape.c
+     Opcodes/tabaudio.c
+     Opcodes/tabsum.c
+     Opcodes/crossfm.c
+     Opcodes/pvlock.c
+     Opcodes/fareyseq.c
+     Opcodes/modmatrix.c
+     Opcodes/scoreline.c
+     Opcodes/modal4.c
+     Opcodes/physutil.c
+     Opcodes/physmod.c
+     Opcodes/mandolin.c
+     Opcodes/singwave.c
+     Opcodes/fm4op.c
+     Opcodes/moog1.c
+     Opcodes/shaker.c
+     Opcodes/bowedbar.c
+     Opcodes/gab/tabmorph.c
+     Opcodes/gab/hvs.c
+     Opcodes/gab/sliderTable.c
+     Opcodes/gab/newgabopc.c
+     Opcodes/ftest.c
+     Opcodes/hrtfearly.c
+     Opcodes/hrtfreverb.c
+     Opcodes/cpumeter.c
+     Opcodes/gendy.c
+     Opcodes/tl/sc_noise.c
+     Opcodes/afilters.c
+     Opcodes/wpfilters.c
+     Opcodes/zak.c
+     Opcodes/lufs.c
+     Opcodes/date.c
+     Opcodes/system_call.c
+     Opcodes/liveconv.c
+     Opcodes/sterrain.c
+     Opcodes/gammatone.c
+     Opcodes/fareygen.c
+     Opcodes/quadbezier.c
+     Opcodes/framebuffer.c
+     Opcodes/cellular.c
+     Opcodes/exciter.c
+     Opcodes/buchla.c
+     Opcodes/select.c
+     Opcodes/serial.c
+     Opcodes/counter.c
+     Opcodes/platerev.c
+     Opcodes/sequencer.c
+     Opcodes/pvsgendy.c
+     Opcodes/emugens/emugens.c
+     Opcodes/emugens/scugens.c
     Top/argdecode.c
     Top/csdebug.c
     Top/cscore_internal.c

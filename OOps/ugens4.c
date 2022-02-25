@@ -30,6 +30,7 @@
 #ifdef INC_BUZZ
 /* The branch prediction slows it down!! */
 
+#ifdef INC_BUZZ
 int32_t bzzset(CSOUND *csound, BUZZ *p)
 {
     FUNC        *ftp;
@@ -227,8 +228,8 @@ static  int16   rand16(CSOUND *);
 
 int plukset(CSOUND *csound, PLUCK *p)
 {
-    int32_t         n;
-    int32_t       npts, iphs;
+    int32_t     n;
+    int32_t     npts, iphs;
     char        *auxp;
     FUNC        *ftp;
     MYFLT       *ap, *fp;
@@ -426,6 +427,7 @@ static int16 rand15(CSOUND *csound)
     csound->ugens4_rand_15 = (csound->ugens4_rand_15 * RNDMUL + 1) & MASK15;
     return (int16) csound->ugens4_rand_15;
 }
+#endif
 
 
 /*=========================================================================
@@ -454,6 +456,9 @@ static int16 rand15(CSOUND *csound)
 
 #define dv2_31          (FL(4.656612873077392578125e-10))
 #if defined(INC_RAND)||defined(INC_RAND_K)||defined(INC_RANDH)||defined(INC_RANDH_K)||defined(INC_RANDI)||defined(INC_RANDI_K)
+#ifndef RNDMUL
+#define RNDMUL  15625
+#endif
 
 int32 randint31(int32 seed31)
 {
@@ -475,8 +480,8 @@ int32 randint31(int32 seed31)
 }
 #endif
 
-#if defined(INC_RAND) || defined(INC_RAND_K)
 
+#if defined(INC_RAND)||defined(INC_RAND_K)
 int32_t rndset(CSOUND *csound, RAND *p)
 {
     p->new = (*p->sel!=FL(0.0));
@@ -531,7 +536,9 @@ int32_t krand(CSOUND *csound, RAND *p)
     return OK;
 }
 #endif
+
 #ifdef INC_RAND
+
 int32_t arand(CSOUND *csound, RAND *p)
 {
     IGN(csound);

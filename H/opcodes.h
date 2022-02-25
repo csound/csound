@@ -198,3 +198,4 @@
 #define INC_TABLEMIX
 #define INC_TABLERA
 #define INC_TABLEWA
+#define INC_TABLEW

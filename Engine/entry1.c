@@ -157,7 +157,7 @@ OENTRY opcodlst_1[] = {
   { "=.down",   S(DOWNSAMP),0,  3,  "k",    "ao",   (SUBR)downset,(SUBR)downsamp },
   { "init.S", S(STRCPY_OP),0, 1,      "S", "S", (SUBR) strcpy_opcode_S  },
   { "init.Si", S(STRCPY_OP),0, 1,      "S", "i", (SUBR) strcpy_opcode_p  },
-  #ifdef MINIT
+  #ifdef INC_MINIT
   { "init.i", S(ASSIGNM),0, 1,      "IIIIIIIIIIIIIIIIIIIIIIII", "m", minit  },
   { "init.k", S(ASSIGNM),0, 1,      "zzzzzzzzzzzzzzzzzzzzzzzz", "m", minit  },
   #endif
@@ -767,12 +767,12 @@ OENTRY opcodlst_1[] = {
   { "out.A",  S(OUTARRAY),IR, 3,      "",     "a[]",  outarr_init,  outarr },
 #ifdef INC_OUT
   { "outs",   S(OUTX),IR,     3,      "",     "y",    ochn,   outall },
+#endif
   { "outq",   S(OUTX),IR,     3,      "",     "y",    ochn,   outall },
   { "outh",   S(OUTX),IR,     3,      "",     "y",    ochn,   outall },
   { "outo",   S(OUTX),IR,     3,      "",     "y",    ochn,   outall },
   { "outx",   S(OUTX),IR,     3,      "",     "y",    ochn,   outall },
   { "out32",  S(OUTX),IR,     3,      "",     "y",    ochn,   outall },
-#endif
   { "outs1",  S(OUTM),IR,    2,      "",     "a",    NULL,   outs1   },
   { "outs2",  S(OUTM),IR,    3,      "",     "a",    och2,   outs2   },
   { "outq1",  S(OUTM),IR,    2,      "",     "a",    NULL,   outs1   },
@@ -1208,7 +1208,7 @@ OENTRY opcodlst_1[] = {
     midipitchbend, midipitchbend },
   { "mididefault", S(MIDIDEFAULT),0, 3, "", "xx",   mididefault, mididefault },
   { "invalue",   0xFFFF,   _CR,    0,   NULL,   NULL, NULL, NULL },
-{ "invalue.k", S(INVAL),_CR, 3, "k", "i", (SUBR) invalset,(SUBR)kinval, NULL },
+  { "invalue.k", S(INVAL),_CR, 3, "k", "i", (SUBR) invalset,(SUBR)kinval, NULL },
   { "invalue.i", S(INVAL),_CR, 1, "i", "i", (SUBR) invalsetgo, NULL, NULL },
   { "invalue.iS", S(INVAL),_CR, 1, "i", "S", (SUBR) invalsetSgo, NULL, NULL },
   { "invalue.kS", S(INVAL),_CR, 3, "k", "S",(SUBR) invalset_S,(SUBR)kinval, NULL },
@@ -1252,21 +1252,41 @@ OENTRY opcodlst_1[] = {
   { "cnkgoto", S(CGOTO),0,   2,      "",     "Bl",   NULL,  kngoto, NULL     },
   { "cingoto", S(CGOTO),0,   1,      "",     "Bl",   ingoto, NULL, NULL     },
   { "tempoval", S(GTEMPO),0, 2,  "k", "",      NULL, (SUBR)gettempo, NULL    },
+#ifdef INC_DOWNSAMP
   { "downsamp",S(DOWNSAMP),0,3, "k", "ao",   (SUBR)downset,(SUBR)downsamp        },
+#endif
+#ifdef INC_UPSAMP
   { "upsamp", S(UPSAMP),0,  2,  "a", "k",    NULL,   (SUBR)upsamp        },
+#endif
   /* IV - Sep 5 2002 */
+#ifdef INC_INTERP
   { "interp", S(INTERP),0,  3,  "a", "kooo", (SUBR)interpset, (SUBR)interp  },
+#endif
+#ifdef INC_A_K
   { "a.k",    S(INTERP),0,  3,  "a", "k",    (SUBR)a_k_set,   (SUBR)interp  },
+#endif
+#ifdef INC_INTEG
   { "integ", S(INDIFF),  0, 3,  "a", "xo",
     (SUBR)indfset,(SUBR)integrate},
+#endif
+#ifdef INC_INTEG_K
   { "integ.k", S(INDIFF),  0, 3,  "k", "xo",
     (SUBR)indfset,(SUBR)kntegrate, NULL},
+#endif
+#ifdef INC_DIFF
   { "diff",   S(INDIFF),0,  3,  "a", "xo", (SUBR)indfset, (SUBR)diff },
+#endif
+#ifdef INC_DIFF_K
   { "diff.k",   S(INDIFF),0,  3,  "k", "xo", (SUBR)indfset,(SUBR)kdiff, NULL },
+#endif
+#ifdef INC_SAMPHOLD
   { "samphold",S(SAMPHOLD),0,3, "a", "xxoo",
     (SUBR)samphset,(SUBR)samphold    },
+#endif
+#ifdef INC_SAMPOLD_K
   { "samphold.k",S(SAMPHOLD),0,3, "k", "xxoo",
     (SUBR)samphset,(SUBR)ksmphold,NULL  },
+#endif
   { "delay",  S(DELAY),0,   3,  "a", "aio",  (SUBR)delset,   (SUBR)delay   },
   { "delayr", S(DELAYR),0,  3,  "aX","io",   (SUBR)delrset,   (SUBR)delayr  },
   { "delayw", S(DELAYW),0,  3,  "",  "a",    (SUBR)delwset,   (SUBR)delayw  },
@@ -1275,7 +1295,9 @@ OENTRY opcodlst_1[] = {
   { "deltapi",S(DELTAP),0,  3,  "a", "xo",   (SUBR)tapset,   (SUBR)deltapi },
   { "deltapn",S(DELTAP),0,  3,  "a", "xo",   (SUBR)tapset,   (SUBR)deltapn },
   { "deltap3",S(DELTAP),0,  3,  "a", "xo",   (SUBR)tapset,   (SUBR)deltap3 },
+#ifdef INC_REVERB
   { "reverb", S(REVERB),0,  3,  "a", "ako",  (SUBR)rvbset,   (SUBR)reverb  },
+#endif
   { "vdelay",   S(VDEL),0,  3,  "a", "axio", (SUBR)vdelset,  (SUBR)vdelay  },
   { "vdelay3",  S(VDEL),0,  3,  "a", "axio", (SUBR)vdelset,  (SUBR)vdelay3 },
   { "vdelayxwq",S(VDELXQ),0,3,  "aaaa", "aaaaaiio",
@@ -1482,10 +1504,10 @@ OENTRY opcodlst_1[] = {
     NULL, (SUBR) sensekey_perf, NULL                      },
   { "remove",      S(DELETEIN),0,         1,      "",             "T",
     (SUBR) delete_instr, NULL, NULL                       },
-  //  { "##globallock",   S(GLOBAL_LOCK_UNLOCK),0, 3, "", "i",
-  //    globallock,   globallock,   NULL},
-  //  { "##globalunlock", S(GLOBAL_LOCK_UNLOCK),0, 3, "", "i",
-  //    globalunlock, globalunlock, NULL},
+    { "##globallock",   S(GLOBAL_LOCK_UNLOCK),0, 3, "", "i",
+      globallock,   globallock,   NULL},
+    { "##globalunlock", S(GLOBAL_LOCK_UNLOCK),0, 3, "", "i",
+      globalunlock, globalunlock, NULL},
   { "##error",S(ERRFN),0, 1,          "i",     "i",   error_fn, NULL,    NULL    },
   { "exprandi.i",S(PRANDI),0, 1,      "i",    "kxx",  iexprndi, NULL,    NULL    },
   { "exprandi.k",S(PRANDI),0, 3,      "k",    "kxx",  exprndiset, kexprndi, NULL },
