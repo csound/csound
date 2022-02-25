@@ -1388,13 +1388,13 @@ class Csound:
         to get meaningful information.
         """
         n = libcsound.csoundGetMIDIDevList(self.cs, None, ct.c_int(isOutput))
-        devs = (csoundMidiDevice * n)()
+        devs = (CsoundMidiDevice * n)()
         libcsound.csoundGetMIDIDevList(self.cs, ct.byref(devs), ct.c_int(isOutput))
         lst = []
         for dev in devs:
             d = {}
             d["device_name"] = pstring(dev.device_name)
-            d["interface_name"] = pstring(dev.max_nchnlsinterface_name)
+            d["interface_name"] = pstring(dev.interface_name)
             d["device_id"] = pstring(dev.device_id)
             d["midi_module"] = pstring(dev.midi_module)
             d["isOutput"] = (dev.isOutput == 1)
