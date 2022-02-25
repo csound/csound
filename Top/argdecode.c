@@ -1884,11 +1884,9 @@ static void list_midi_devices(CSOUND *csound, int output){
     CS_MIDIDEVICE *devs =
       (CS_MIDIDEVICE *) csound->Malloc(csound, n*sizeof(CS_MIDIDEVICE));
     if (output)
-      csound->MessageS(csound, CSOUNDMSG_STDOUT,
-                       Str("%d MIDI output devices\n"), n);
+      csound->Message(csound, Str("%d MIDI output devices\n"), n);
     else
-      csound->MessageS(csound, CSOUNDMSG_STDOUT,
-                       Str("%d MIDI input devices\n"), n);
+      csound->Message(csound, Str("%d MIDI input devices\n"), n);
     csoundGetMIDIDevList(csound,devs,output);
     for (i=0; i < n; i++)
       csound->Message(csound, " %d: %s (%s)\n",
