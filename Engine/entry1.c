@@ -217,7 +217,7 @@ OENTRY opcodlst_1[] = {
   { "##sub.aa",  S(AOP),0,    2,      "a",    "aa",   NULL,   subaa   },
   { "##mul.aa",  S(AOP),0,    2,      "a",    "aa",   NULL,   mulaa   },
   { "##div.aa",  S(AOP),0,    2,      "a",    "aa",   NULL,   divaa   },
-   { "##mod.aa",  S(AOP),0,    2,      "a",    "aa",   NULL,   modaa   },
+  { "##mod.aa",  S(AOP),0,    2,      "a",    "aa",   NULL,   modaa   },
   { "##addin.i", S(ASSIGN),0, 1,      "i",    "i",    addin,  NULL    },
   { "##addin.k", S(ASSIGN),0, 2,      "k",    "k",    NULL,   addin   },
   { "##addin.K", S(ASSIGN),0, 2,      "a",    "k",    NULL,   addinak },
@@ -234,13 +234,27 @@ OENTRY opcodlst_1[] = {
   #ifdef INC_INT
   { "int.i",  S(EVAL),0,    1,      "i",    "i",    int1                    },
   #endif
+  #ifdef INC_FRAC
   { "frac.i", S(EVAL),0,    1,      "i",    "i",    frac1                   },
+  #endif
+  #ifdef INC_ROUND
   { "round.i",S(EVAL),0,    1,      "i",    "i",    int1_round              },
+  #endif
+  #ifdef INC_FLOOR
   { "floor.i",S(EVAL),0,    1,      "i",    "i",    int1_floor              },
+  #endif
+  #ifdef INC_CEIL
   { "ceil.i", S(EVAL),0,    1,      "i",    "i",    int1_ceil               },
+  #endif
+  #ifdef INC_RNDSEED
   { "rndseed", S(EVAL),0,    1,      "",    "i",    rnd1seed                },
+  #endif
+  #ifdef INC_RND
   { "rnd.i",  S(EVAL),0,    1,      "i",    "i",    rnd1                    },
+  #endif
+  #ifdef INC_BIRND
   { "birnd.i",S(EVAL),0,    1,      "i",    "i",    birnd1                  },
+  #endif
   { "abs.i",  S(EVAL),0,    1,      "i",    "i",    abs1                    },
   { "exp.i",  S(EVAL),0,    1,      "i",    "i",    exp01                   },
   { "log.i",  S(EVAL),0,    1,      "i",    "i",    log01                   },
@@ -262,12 +276,24 @@ OENTRY opcodlst_1[] = {
 #ifdef INC_INT
   { "int.k",  S(EVAL),0,    2,      "k",    "k",    NULL,   int1            },
 #endif
+#ifdef INC_FRAC
   { "frac.k", S(EVAL),0,    2,      "k",    "k",    NULL,   frac1           },
+  #endif
+  #ifdef INC_ROUND
   { "round.k",S(EVAL),0,    2,      "k",    "k",    NULL,   int1_round      },
+  #endif
+  #ifdef INC_FLOOR
   { "floor.k",S(EVAL),0,    2,      "k",    "k",    NULL,   int1_floor      },
+  #endif
+  #ifdef INC_CEIL
   { "ceil.k", S(EVAL),0,    2,      "k",    "k",    NULL,   int1_ceil       },
+  #endif
+  #ifdef INC_RND
   { "rnd.k",  S(EVAL),0,    2,      "k",    "k",    NULL,   rnd1            },
+  #endif
+  #ifdef INC_BIRND
   { "birnd.k",S(EVAL),0,    2,      "k",    "k",    NULL,   birnd1          },
+  #endif
   { "abs.k",  S(EVAL),0,    2,      "k",    "k",    NULL,   abs1            },
   { "exp.k",  S(EVAL),0,    2,      "k",    "k",    NULL,   exp01           },
   { "log.k",  S(EVAL),0,    2,      "k",    "k",    NULL,   log01           },
@@ -289,10 +315,18 @@ OENTRY opcodlst_1[] = {
   #ifdef INC_INT_A
   { "int.a",  S(EVAL),0,    2,      "a",    "a",    NULL, int1a       },
   #endif
+  #ifdef INC_FRAC_A
   { "frac.a", S(EVAL),0,    2,      "a",    "a",    NULL, frac1a      },
+  #endif
+  #ifdef INC_ROUND_A
   { "round.a",S(EVAL),0,    2,      "a",    "a",    NULL, int1a_round },
+  #endif
+  #ifdef INC_FLOOR_A
   { "floor.a",S(EVAL),0,    2,      "a",    "a",    NULL, int1a_floor },
+  #endif
+#ifdef INC_CEIL_A
   { "ceil.a", S(EVAL),0,    2,      "a",    "a",    NULL, int1a_ceil  },
+  #endif
   { "abs.a",  S(EVAL),0,    2,      "a",    "a",    NULL,   absa    },
   { "exp.a",  S(EVAL),0,    2,      "a",    "a",    NULL,   expa    },
   { "log.a",  S(EVAL),0,    2,      "a",    "a",    NULL,   loga    },
@@ -311,30 +345,53 @@ OENTRY opcodlst_1[] = {
   { "tanh.a", S(EVAL),0,    2,      "a",    "a",    NULL,   tanha   },
   { "log10.a",S(EVAL),0,    2,      "a",    "a",    NULL,   log10a  },
   { "log2.a", S(EVAL),0,    2,      "a",    "a",    NULL,   log2a   },
+  #ifdef INC_AMPDB_A
   { "ampdb.a",S(EVAL),0,    2,      "a",    "a",    NULL,   aampdb  },
+  #endif
+  #ifdef INC_AMPDB
   { "ampdb.i",S(EVAL),0,    1,      "i",    "i",    ampdb                   },
   { "ampdb.k",S(EVAL),0,    2,      "k",    "k",    NULL,   ampdb           },
+  #endif
+  #ifdef INC_AMPDBFS_A
   { "ampdbfs.a",S(EVAL),0,  2,      "a",    "a",    NULL,   aampdbfs },
+  #endif
+  #ifdef INC_AMPDBFS
   { "ampdbfs.i",S(EVAL),0,  1,      "i",    "i",    ampdbfs                 },
   { "ampdbfs.k",S(EVAL),0,  2,      "k",    "k",    NULL,   ampdbfs         },
+  #endif
+  #ifdef INC_DBAMP
   { "dbamp.i",S(EVAL),0,    1,      "i",    "i",    dbamp                   },
   { "dbamp.k",S(EVAL),0,    2,      "k",    "k",    NULL,   dbamp           },
+  #endif
+  #ifdef INC_DBFSAMP
   { "dbfsamp.i",S(EVAL),0,  1,      "i",    "i",    dbfsamp                 },
   { "dbfsamp.k",S(EVAL),0,  2,      "k",    "k",    NULL,   dbfsamp         },
+  #endif
+  #ifdef INC_RTCLOCK
   { "rtclock.i",S(EVAL),0,  1,      "i",    "",     rtclock                 },
   { "rtclock.k",S(EVAL),0,  2,      "k",    "",     NULL,   rtclock         },
+  #endif
+  #ifdef INC_FTLEN
   { "ftlen.i",S(EVAL),0,    1,      "i",    "i",    ftlen                   },
+  #endif
+  #ifdef INC_FTSR
   { "ftsr.i",S(EVAL),0,     1,      "i",    "i",    ftsr                    },
+  #endif
+  #ifdef INC_FTLPTIM
   { "ftlptim.i",S(EVAL),0,  1,      "i",    "i",    ftlptim                 },
+  #endif
+  #ifdef INC_FTCHNLS
   { "ftchnls.i",S(EVAL),0,  1,      "i",    "i",    ftchnls                 },
+  #endif
+  #ifdef INC_CPS
   { "ftcps.i",S(EVAL),0,    1,      "i",    "i",    ftcps                   },
+  #endif
   #ifdef INC_ASSIGN
 { "i.i",   S(ASSIGN),0,   1,      "i",    "i",    assign                  },
   { "i.k",   S(ASSIGN),0,   1,      "i",    "k",    assign                  },
   { "k.i",   S(ASSIGN),0,   1,      "k",    "i",    assign                  },
   { "k.a",   S(DOWNSAMP),0, 3,      "k",    "ao",   (SUBR)downset,(SUBR)downsamp },
   #endif
-  { "cpsoct.i",S(EVAL),0,   1,      "i",    "i",    cpsoct                  },
   #ifdef INC_OCTPCH
   { "octpch.i",S(EVAL),0,   1,      "i",    "i",    octpch                  },
   #endif
@@ -946,7 +1003,9 @@ OENTRY opcodlst_1[] = {
   { "midion2", S(KON2),0,    3,     "",     "kkkk", kon2_set, kon2,   NULL     },
   { "nrpn",   S(NRPN),0,     2,     "",     "kkk",  NULL,  nrpn ,NULL          },
   { "mdelay", S(MDELAY),0,   3,     "",     "kkkkk",mdelay_set, mdelay,   NULL },
+  #ifdef INC_NSAMP
   { "nsamp.i", S(EVAL),0,    1,     "i",    "i",    numsamp                    },
+  #endif
   { "powoftwo.i",S(EVAL),0,  1,     "i",    "i",    powoftwo                   },
   { "powoftwo.k",S(EVAL),0,  2,     "k",    "k",    NULL, powoftwo             },
   { "powoftwo.a",S(EVAL),0,  2,     "a",    "a",    NULL, powoftwoa      },

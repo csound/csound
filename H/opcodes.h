@@ -206,4 +206,25 @@
 #define INC_CONVAL_A
 #define INC_INT
 #define INC_INT_A
-
+#define INC_FRAC
+#define INC_FRAC_A
+#define INC_ROUND
+#define INC_ROUND_A
+#define INC_FLOOR
+#define INC_FLOOR_A
+#define INC_CEIL
+#define INC_CEIL_A
+#define INC_RNDSEED
+#define INC_RND
+#define INC_BIRND
+#define INC_DBAMP
+#define INC_AMPD
+#define INC_AMPDBFS_A
+#define INC_AMPDBFS_A
+#define INC_DBFSAMP
+#define INC_FTLEN
+#define INC_FTCHNLS
+#define INC_FTCPS
+#define INC_FPLPTIM
+#define INC_NSAMP
+#define INC_RTCLOCK

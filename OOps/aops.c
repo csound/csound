@@ -707,7 +707,8 @@ int32_t int1a(CSOUND *csound, EVAL *p)              /* returns signed whole no. 
     return OK;
 }
 #endif
-/* ********************** HERE ******************* */
+
+#ifdef INC_FRAC
 int32_t frac1(CSOUND *csound, EVAL *p)              /* returns positive frac part */
 {
     MYFLT intpart, fracpart;
@@ -716,7 +717,9 @@ int32_t frac1(CSOUND *csound, EVAL *p)              /* returns positive frac par
     *p->r = fracpart;
     return OK;
 }
+#endif
 
+#ifdef INC_FRAC_A
 int32_t frac1a(CSOUND *csound, EVAL *p)             /* returns positive frac part */
 {
     MYFLT intpart, fracpart, *r = p->r, *a = p->a;
@@ -736,6 +739,7 @@ int32_t frac1a(CSOUND *csound, EVAL *p)             /* returns positive frac par
     }
     return OK;
 }
+#endif
 
 #ifdef MYFLOOR
 #undef MYFLOOR
@@ -747,13 +751,16 @@ int32_t frac1a(CSOUND *csound, EVAL *p)             /* returns positive frac par
 #endif
 #define MYCEIL(x) ((int32_t)((double)(x) >= 0.0 ? (x) + 0.99999999 : (x)))
 
+#ifdef INC_ROUND
 int32_t int1_round(CSOUND *csound, EVAL *p)         /* round to nearest integer */
 {
     IGN(csound);
     *p->r = (MYFLT) MYFLT2LRND(*p->a);
     return OK;
 }
+#endif
 
+#ifdef INC_ROUND_A
 int32_t int1a_round(CSOUND *csound, EVAL *p)        /* round to nearest integer */
 {
     uint32_t offset = p->h.insdshead->ksmps_offset;
@@ -771,14 +778,18 @@ int32_t int1a_round(CSOUND *csound, EVAL *p)        /* round to nearest integer 
       r[n] = (MYFLT)MYFLT2LRND(a[n]);
     return OK;
 }
+#endif
 
+#ifdef INC_FLOOR
 int32_t int1_floor(CSOUND *csound, EVAL *p)         /* round down */
 {
     IGN(csound);
     *p->r = (MYFLT)(MYFLOOR(*p->a));
     return OK;
 }
+#endif
 
+#ifdef INC_FLOOR_A
 int32_t int1a_floor(CSOUND *csound, EVAL *p)        /* round down */
 {
     MYFLT    *a=p->a, *r=p->r;
@@ -796,14 +807,18 @@ int32_t int1a_floor(CSOUND *csound, EVAL *p)        /* round down */
       r[n] = (MYFLT)(MYFLOOR(a[n]));
     return OK;
 }
+#endif
 
+#ifdef INC_CEIL
 int32_t int1_ceil(CSOUND *csound, EVAL *p)          /* round up */
 {
     IGN(csound);
     *p->r = (MYFLT)(MYCEIL(*p->a));
     return OK;
 }
+#endif
 
+#ifdef INC_CEIL_A
 int32_t int1a_ceil(CSOUND *csound, EVAL *p)         /* round up */
 {
     MYFLT    *a=p->a, *r=p->r;
@@ -821,16 +836,20 @@ int32_t int1a_ceil(CSOUND *csound, EVAL *p)         /* round up */
       r[n] = (MYFLT)(MYCEIL(a[n]));
     return OK;
 }
+#endif
 
 #define rndmlt (105.947)
 
+#ifdef INC_RNDSEED
 int32_t rnd1seed(CSOUND *csound, INM *p)
 {
     double intpart;
     csound->rndfrac = modf(*p->ar, &intpart);
     return OK;
 }
+#endif
 
+#ifdef INC_RND
 int32_t rnd1(CSOUND *csound, EVAL *p)               /* returns unipolar rand(x) */
 {
     double intpart;
@@ -838,7 +857,9 @@ int32_t rnd1(CSOUND *csound, EVAL *p)               /* returns unipolar rand(x) 
     *p->r = *p->a * (MYFLT)csound->rndfrac;
     return OK;
 }
+#endif
 
+#ifdef INC_BIRND
 int32_t birnd1(CSOUND *csound, EVAL *p)             /* returns bipolar rand(x) */
 {
     double intpart;
@@ -846,6 +867,7 @@ int32_t birnd1(CSOUND *csound, EVAL *p)             /* returns bipolar rand(x) *
     *p->r = *p->a * (FL(2.0) * (MYFLT)csound->rndfrac - FL(1.0));
     return OK;
 }
+#endif
 
 #define LIB1(OPNAME,LIBNAME)  int32_t OPNAME(CSOUND *csound, EVAL *p)       \
   {  IGN(csound); *p->r = LIBNAME(*p->a); return OK; }
@@ -925,20 +947,25 @@ int32_t atan2aa(CSOUND *csound, AOP *p)
     return OK;
 }
 
+#ifdef INC_DBAMP
 int32_t dbamp(CSOUND *csound, EVAL *p)
 {
     IGN(csound);
     *p->r = LOG(FABS(*p->a)) / LOG10D20;
     return OK;
 }
+#endif
 
+#ifdef INC_AMPDB
 int32_t ampdb(CSOUND *csound, EVAL *p)
 {
     IGN(csound);
     *p->r = EXP(*p->a * LOG10D20);
     return OK;
 }
+#endif
 
+#ifdef INC_AMPDB_A
 int32_t aampdb(CSOUND *csound, EVAL *p)
 {
     uint32_t offset = p->h.insdshead->ksmps_offset;
@@ -956,19 +983,25 @@ int32_t aampdb(CSOUND *csound, EVAL *p)
       r[n] = EXP(a[n] * LOG10D20);
     return OK;
 }
+#endif
 
+#ifdef INC_DBFSAMP
 int32_t dbfsamp(CSOUND *csound, EVAL *p)
 {
     *p->r = LOG(FABS(*p->a) / csound->e0dbfs) / LOG10D20;
     return OK;
 }
+#endif
 
+#ifdef INC_AMPDBFS
 int32_t ampdbfs(CSOUND *csound, EVAL *p)
 {
     *p->r =  csound->e0dbfs * EXP(*p->a * LOG10D20);
     return OK;
 }
+#endif
 
+#ifdef INC_AMPDBFS_A
 int32_t aampdbfs(CSOUND *csound, EVAL *p)
 {
     uint32_t offset = p->h.insdshead->ksmps_offset;
@@ -987,7 +1020,9 @@ int32_t aampdbfs(CSOUND *csound, EVAL *p)
       r[n] = csound->e0dbfs * EXP(a[n] * LOG10D20);
     return OK;
 }
+#endif
 
+#ifdef INC_FTLEN
 int32_t ftlen(CSOUND *csound, EVAL *p)
 {
     FUNC    *ftp;
@@ -1000,7 +1035,9 @@ int32_t ftlen(CSOUND *csound, EVAL *p)
 
     return OK;
 }
+#endif
 
+#ifdef INC_FTCHNLS
 int32_t ftchnls(CSOUND *csound, EVAL *p)
 {
     FUNC    *ftp;
@@ -1013,7 +1050,9 @@ int32_t ftchnls(CSOUND *csound, EVAL *p)
 
     return OK;
 }
+#endif
 
+#ifdef INC_FTCPS
 int32_t ftcps(CSOUND *csound, EVAL *p)
 {
     FUNC    *ftp;
@@ -1027,9 +1066,9 @@ int32_t ftcps(CSOUND *csound, EVAL *p)
 
     return OK;
 }
+#endif
 
-
-
+#ifdef INC_FTLPTIM
 int32_t ftlptim(CSOUND *csound, EVAL *p)
 {
     FUNC    *ftp;
@@ -1044,7 +1083,9 @@ int32_t ftlptim(CSOUND *csound, EVAL *p)
     }
     return OK;
 }
+#endif
 
+#ifdef INC_NSAMP
 int32_t numsamp(CSOUND *csound, EVAL *p)        /***** nsamp by G.Maldonado ****/
 {
     FUNC    *ftp;
@@ -1060,7 +1101,9 @@ int32_t numsamp(CSOUND *csound, EVAL *p)        /***** nsamp by G.Maldonado ****
 
     return OK;
 }
+#endif
 
+#ifdef INC_FTSR
 int32_t ftsr(CSOUND *csound, EVAL *p)               /**** ftsr by G.Maldonado ****/
 {
     FUNC    *ftp;
@@ -1073,12 +1116,15 @@ int32_t ftsr(CSOUND *csound, EVAL *p)               /**** ftsr by G.Maldonado **
 
     return OK;
 }
+#endif
 
+#ifdef INC_RTCLOCK
 int32_t rtclock(CSOUND *csound, EVAL *p)
 {
     *p->r = (MYFLT)csoundGetRealTime(csound->csRtClock);
     return OK;
 }
+#endif
 
 #ifdef INC_OCTPCH
 int32_t octpch(CSOUND *csound, EVAL *p)
@@ -1091,7 +1137,7 @@ int32_t octpch(CSOUND *csound, EVAL *p)
     return OK;
 }
 #endif
-
+/* ************************* HERE ************************ */
 int32_t pchoct(CSOUND *csound, EVAL *p)
 {
     IGN(csound);
