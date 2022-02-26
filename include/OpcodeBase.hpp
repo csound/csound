@@ -444,7 +444,7 @@ public:
             if (iterator == objects_for_csound_.end()) {
                 int handle = objects_for_csound_.size();
                 objects_for_csound_.push_back(object);
-                 if (diagnostics_enabled) std::fprintf(stderr, "heap_object_manager_t::handle_for_object %p: new object handle: %d (of %d)\n", object, handle, objects_for_csound_.size());
+                 if (diagnostics_enabled) std::fprintf(stderr, "heap_object_manager_t::handle_for_object %p: new object handle: %d (of %ld)\n", object, handle, objects_for_csound_.size());
                 return handle;
             } else {
                 int handle = static_cast<int>(iterator - objects_for_csound_.begin());
@@ -464,7 +464,7 @@ public:
                 return nullptr;
             }
             O *object = objects_for_csound_[handle];
-            if (diagnostics_enabled) std::fprintf(stderr, "heap_object_manager_t::object_for_handle: %p %d (of %d)\n", object, handle, objects_for_csound_.size());
+            if (diagnostics_enabled) std::fprintf(stderr, "heap_object_manager_t::object_for_handle: %p %d (of %ld)\n", object, handle, objects_for_csound_.size());
             return object;
         }
         /**
@@ -477,7 +477,7 @@ public:
             auto &objects_for_csound_ = objects_for_csound(csound);
             for (int i = 0, n = objects_for_csound_.size(); i < n; ++i) {
                 delete objects_for_csound_[i];
-                objects_for_csound_[i] == nullptr;
+                objects_for_csound_[i] = nullptr;
             }
             objects_for_csound_.clear();
             objects().erase(csound);
