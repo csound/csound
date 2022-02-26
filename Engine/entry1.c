@@ -184,11 +184,15 @@ OENTRY opcodlst_1[] = {
   { "&&.0",     S(LOGCL),0,   0,      "B",    "BB",   and,    and             },
   { "||",     S(LOGCL),0,   0,      "b",    "bb",   or,     or              },
   { "||.0",     S(LOGCL),0,   0,      "B",    "BB",   or,     or              },
-  { ":cond.i",     S(CONVAL),0,  1,      "i",    "bii",  conval                  },
-  { ":cond.k",     S(CONVAL),0,  2,      "k",    "Bkk",  NULL,   conval          },
-  { ":cond.a",     S(CONVAL),0,  2,      "a",    "Bxx",  NULL,   aconval },
-  { ":cond.s",     S(CONVAL),0,  1,      "S",    "bSS",  conval, NULL         },
-  { ":cond.S",     S(CONVAL),0,  3,      "S",    "BSS",  conval, conval       },
+  #ifdef INC_CONVAL
+  { ":cond.i",  S(CONVAL),0,  1,      "i",    "bii",  conval                  },
+  { ":cond.k",  S(CONVAL),0,  2,      "k",    "Bkk",  NULL,   conval          },
+  { ":cond.s",  S(CONVAL),0,  1,      "S",    "bSS",  conval, NULL         },
+  { ":cond.S",  S(CONVAL),0,  3,      "S",    "BSS",  conval, conval       },
+  #endif
+  #ifdef INC_CONVAL_A
+  { ":cond.a",  S(CONVAL),0,  2,      "a",    "Bxx",  NULL,   aconval },
+  #endif
   { "##add.ii",  S(AOP),0,    1,      "i",    "ii",   addkk                   },
   { "##sub.ii",  S(AOP),0,    1,      "i",    "ii",   subkk                   },
   { "##mul.ii",  S(AOP),0,    1,      "i",    "ii",   mulkk                   },
@@ -227,7 +231,9 @@ OENTRY opcodlst_1[] = {
   { "divz.ak", S(DIVZ),0,   2,      "a",    "akk",  NULL,   divzak  },
   { "divz.ka", S(DIVZ),0,   2,      "a",    "kak",  NULL,   divzka  },
   { "divz.aa", S(DIVZ),0,   2,      "a",    "aak",  NULL,   divzaa  },
+  #ifdef INC_INT
   { "int.i",  S(EVAL),0,    1,      "i",    "i",    int1                    },
+  #endif
   { "frac.i", S(EVAL),0,    1,      "i",    "i",    frac1                   },
   { "round.i",S(EVAL),0,    1,      "i",    "i",    int1_round              },
   { "floor.i",S(EVAL),0,    1,      "i",    "i",    int1_floor              },
@@ -253,7 +259,9 @@ OENTRY opcodlst_1[] = {
   { "sinh.i", S(EVAL),0,    1,      "i",    "i",    sinh1                   },
   { "cosh.i", S(EVAL),0,    1,      "i",    "i",    cosh1                   },
   { "tanh.i", S(EVAL),0,    1,      "i",    "i",    tanh1                   },
+#ifdef INC_INT
   { "int.k",  S(EVAL),0,    2,      "k",    "k",    NULL,   int1            },
+#endif
   { "frac.k", S(EVAL),0,    2,      "k",    "k",    NULL,   frac1           },
   { "round.k",S(EVAL),0,    2,      "k",    "k",    NULL,   int1_round      },
   { "floor.k",S(EVAL),0,    2,      "k",    "k",    NULL,   int1_floor      },
@@ -278,7 +286,9 @@ OENTRY opcodlst_1[] = {
   { "tanh.k", S(EVAL),0,    2,      "k",    "k",    NULL,   tanh1           },
   { "log10.k",S(EVAL),0,    2,      "k",    "k",    NULL,   log101          },
   { "log2.k", S(EVAL),0,    2,      "k",    "k",    NULL,   log21           },
+  #ifdef INC_INT_A
   { "int.a",  S(EVAL),0,    2,      "a",    "a",    NULL, int1a       },
+  #endif
   { "frac.a", S(EVAL),0,    2,      "a",    "a",    NULL, frac1a      },
   { "round.a",S(EVAL),0,    2,      "a",    "a",    NULL, int1a_round },
   { "floor.a",S(EVAL),0,    2,      "a",    "a",    NULL, int1a_floor },
@@ -325,14 +335,26 @@ OENTRY opcodlst_1[] = {
   { "k.a",   S(DOWNSAMP),0, 3,      "k",    "ao",   (SUBR)downset,(SUBR)downsamp },
   #endif
   { "cpsoct.i",S(EVAL),0,   1,      "i",    "i",    cpsoct                  },
+  #ifdef INC_OCTPCH
   { "octpch.i",S(EVAL),0,   1,      "i",    "i",    octpch                  },
+  #endif
+  #ifdef INC_CPSPCH
   { "cpspch.i",S(EVAL),0,   1,      "i",    "i",    cpspch                  },
+  #endif
   { "pchoct.i",S(EVAL),0,   1,      "i",    "i",    pchoct                  },
+#ifdef INC_OCTCPS
   { "octcps.i",S(EVAL),0,   1,      "i",    "i",    octcps                  },
+  #endif
   { "cpsoct.k",S(EVAL),0,   2,      "k",    "k",    NULL,   cpsoct          },
+#ifdef INC_OCTPCH
   { "octpch.k",S(EVAL),0,   2,      "k",    "k",    NULL,   octpch          },
+  #endif
+  #ifdef INC_CPSPCH
   { "cpspch.k",S(EVAL),0,   2,      "k",    "k",    NULL,   cpspch          },
+  #endif
+  #ifdef INC_PCHOCT
   { "pchoct.k",S(EVAL),0,   2,      "k",    "k",    NULL,   pchoct          },
+  #endif
   { "octcps.k",S(EVAL),0,   2,      "k",    "k",    NULL,   octcps          },
   { "cpsoct.a",S(EVAL),0,   2,      "a",    "a",    NULL,   acpsoct },
   { "cpsmidinn.i",S(EVAL),0,1,      "i",    "i",    cpsmidinn               },
@@ -1283,7 +1305,7 @@ OENTRY opcodlst_1[] = {
   { "samphold",S(SAMPHOLD),0,3, "a", "xxoo",
     (SUBR)samphset,(SUBR)samphold    },
 #endif
-#ifdef INC_SAMPOLD_K
+#ifdef INC_SAMPHOLD_K
   { "samphold.k",S(SAMPHOLD),0,3, "k", "xxoo",
     (SUBR)samphset,(SUBR)ksmphold,NULL  },
 #endif
@@ -1504,10 +1526,6 @@ OENTRY opcodlst_1[] = {
     NULL, (SUBR) sensekey_perf, NULL                      },
   { "remove",      S(DELETEIN),0,         1,      "",             "T",
     (SUBR) delete_instr, NULL, NULL                       },
-    { "##globallock",   S(GLOBAL_LOCK_UNLOCK),0, 3, "", "i",
-      globallock,   globallock,   NULL},
-    { "##globalunlock", S(GLOBAL_LOCK_UNLOCK),0, 3, "", "i",
-      globalunlock, globalunlock, NULL},
   { "##error",S(ERRFN),0, 1,          "i",     "i",   error_fn, NULL,    NULL    },
   { "exprandi.i",S(PRANDI),0, 1,      "i",    "kxx",  iexprndi, NULL,    NULL    },
   { "exprandi.k",S(PRANDI),0, 3,      "k",    "kxx",  exprndiset, kexprndi, NULL },

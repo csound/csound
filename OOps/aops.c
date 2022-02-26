@@ -125,22 +125,23 @@ int32_t laassign(CSOUND *csound, ASSIGN *p)
 {   return aassign(csound, p, 1); }
 #endif
 
-int32_t ainit(CSOUND *csound, ASSIGN *p)
-{
-    IGN(csound);
-    uint32_t offset = p->h.insdshead->ksmps_offset;
-    uint32_t early  = p->h.insdshead->ksmps_no_end;
-    MYFLT aa = *p->a;
-    int32_t   n, nsmps = CS_KSMPS;
-    if (UNLIKELY(offset)) memset(p->r, '\0', offset*sizeof(MYFLT));
-    if (UNLIKELY(early)) {
-      nsmps -= early;
-      memset(&p->r[nsmps], '\0', early*sizeof(MYFLT));
-    }
-    for (n = offset; n < nsmps; n++)
-      p->r[n] = aa;
-    return OK;
-}
+/* This fnction does not seem to be used */
+/* int32_t ainit(CSOUND *csound, ASSIGN *p) */
+/* { */
+/*     IGN(csound); */
+/*     uint32_t off52set = p->h.insdshead->ksmps_offset; */
+/*     uint32_t early  = p->h.insdshead->ksmps_no_end; */
+/*     MYFLT aa = *p->a; */
+/*     int32_t   n, nsmps = CS_KSMPS; */
+/*     if (UNLIKELY(offset)) memset(p->r, '\0', offset*sizeof(MYFLT)); */
+/*     if (UNLIKELY(early)) { */
+/*       nsmps -= early; */
+/*       memset(&p->r[nsmps], '\0', early*sizeof(MYFLT)); */
+/*     } */
+/*     for (n = offset; n < nsmps; n++) */
+/*       p->r[n] = aa; */
+/*     return OK; */
+/* } */
 
 #ifdef INC_MINIT
 int32_t minit(CSOUND *csound, ASSIGNM *p)
@@ -641,6 +642,7 @@ int32_t divzaa(CSOUND *csound, DIVZ *p)
     return OK;
 }
 
+#ifdef INC_CONVAL
 int32_t conval(CSOUND *csound, CONVAL *p)
 {
     IGN(csound);
@@ -650,7 +652,9 @@ int32_t conval(CSOUND *csound, CONVAL *p)
       *p->r = *p->b;
     return OK;
 }
+#endif
 
+#ifdef INC_CONVAL_A
 int32_t aconval(CSOUND *csound, CONVAL *p)
 {
     uint32_t offset = p->h.insdshead->ksmps_offset*sizeof(MYFLT);
@@ -669,7 +673,9 @@ int32_t aconval(CSOUND *csound, CONVAL *p)
     }
     return OK;
 }
+#endif
 
+#ifdef INC_INT
 int32_t int1(CSOUND *csound, EVAL *p)               /* returns signed whole no. */
 {
     MYFLT intpart;
@@ -678,7 +684,9 @@ int32_t int1(CSOUND *csound, EVAL *p)               /* returns signed whole no. 
     *p->r = intpart;
     return OK;
 }
+#endif
 
+#ifdef INC_INT_A
 int32_t int1a(CSOUND *csound, EVAL *p)              /* returns signed whole no. */
 {
     MYFLT        intpart, *a=p->a, *r=p->r;
@@ -698,7 +706,8 @@ int32_t int1a(CSOUND *csound, EVAL *p)              /* returns signed whole no. 
     }
     return OK;
 }
-
+#endif
+/* ********************** HERE ******************* */
 int32_t frac1(CSOUND *csound, EVAL *p)              /* returns positive frac part */
 {
     MYFLT intpart, fracpart;
@@ -1071,6 +1080,7 @@ int32_t rtclock(CSOUND *csound, EVAL *p)
     return OK;
 }
 
+#ifdef INC_OCTPCH
 int32_t octpch(CSOUND *csound, EVAL *p)
 {
     IGN(csound);
@@ -1080,6 +1090,7 @@ int32_t octpch(CSOUND *csound, EVAL *p)
     *p->r = (MYFLT)(oct + fract);
     return OK;
 }
+#endif
 
 int32_t pchoct(CSOUND *csound, EVAL *p)
 {
@@ -1120,13 +1131,16 @@ int32_t acpsoct(CSOUND *csound, EVAL *p)
     return OK;
 }
 
+#ifdef INC_OCTCPS
 int32_t octcps(CSOUND *csound, EVAL *p)
 {
     IGN(csound);
     *p->r = (LOG(*p->a /(MYFLT)ONEPT) / (MYFLT)LOGTWO);
     return OK;
 }
+#endif
 
+#ifdef INC_CPSPCH
 int32_t cpspch(CSOUND *csound, EVAL *p)
 {
     double fract, oct;
@@ -1137,7 +1151,7 @@ int32_t cpspch(CSOUND *csound, EVAL *p)
     *p->r = (MYFLT)CPSOCTL(loct);
     return OK;
 }
-
+#endif
 int32_t cpsmidinn(CSOUND *csound, EVAL *p)
 {
     MYFLT note = *p->a;         /* (note-69)>12* */

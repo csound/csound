@@ -199,3 +199,11 @@
 #define INC_TABLERA
 #define INC_TABLEWA
 #define INC_TABLEW
+#define INC_CPSPCH
+#define INC_OCTCPS
+#define INC_OCTPCH
+#define INC_CONVAL
+#define INC_CONVAL_A
+#define INC_INT
+#define INC_INT_A
+

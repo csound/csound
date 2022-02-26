@@ -151,7 +151,7 @@ int32_t indfset(CSOUND *csound, INDIFF *p)
 }
 #endif
 
-#ifdef IENC_INTEG_K
+#ifdef INC_INTEG_K
 int32_t kntegrate(CSOUND *csound, INDIFF *p)
 {
     IGN(csound);
