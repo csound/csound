@@ -398,9 +398,12 @@ OENTRY opcodlst_1[] = {
   #ifdef INC_CPSPCH
   { "cpspch.i",S(EVAL),0,   1,      "i",    "i",    cpspch                  },
   #endif
+  #ifdef INC_PCHOCT
   { "pchoct.i",S(EVAL),0,   1,      "i",    "i",    pchoct                  },
+  #endif
 #ifdef INC_OCTCPS
   { "octcps.i",S(EVAL),0,   1,      "i",    "i",    octcps                  },
+  { "octcps.k",S(EVAL),0,   2,      "k",    "k",    NULL,   octcps          },
   #endif
   { "cpsoct.k",S(EVAL),0,   2,      "k",    "k",    NULL,   cpsoct          },
 #ifdef INC_OCTPCH
@@ -412,14 +415,21 @@ OENTRY opcodlst_1[] = {
   #ifdef INC_PCHOCT
   { "pchoct.k",S(EVAL),0,   2,      "k",    "k",    NULL,   pchoct          },
   #endif
-  { "octcps.k",S(EVAL),0,   2,      "k",    "k",    NULL,   octcps          },
+#ifdef INC_CPSOCT_A
   { "cpsoct.a",S(EVAL),0,   2,      "a",    "a",    NULL,   acpsoct },
+  #endif
+  #ifdef INC_CPSMIDINN
   { "cpsmidinn.i",S(EVAL),0,1,      "i",    "i",    cpsmidinn               },
-  { "octmidinn.i",S(EVAL),0,1,      "i",    "i",    octmidinn               },
-  { "pchmidinn.i",S(EVAL),0,1,      "i",    "i",    pchmidinn               },
   { "cpsmidinn.k",S(EVAL),0,2,      "k",    "k",    NULL,   cpsmidinn       },
+  #endif
+  #ifdef INC_OCTMIDINN
+  { "octmidinn.i",S(EVAL),0,1,      "i",    "i",    octmidinn               },
   { "octmidinn.k",S(EVAL),0,2,      "k",    "k",    NULL,   octmidinn       },
+  #endif
+  #ifdef INC_PCHMIDINN
+  { "pchmidinn.i",S(EVAL),0,1,      "i",    "i",    pchmidinn               },
   { "pchmidinn.k",S(EVAL),0,2,      "k",    "k",    NULL,   pchmidinn       },
+  #endif
   { "notnum", S(MIDIKMB),0, 1,      "i",    "",     notnum                  },
   { "veloc",  S(MIDIMAP),0, 1,      "i",    "oh",   veloc                   },
   { "pchmidi",S(MIDIKMB),0, 1,      "i",    "",     pchmidi                 },
@@ -837,13 +847,25 @@ OENTRY opcodlst_1[] = {
   { "soundout.i",S(SNDOUT), _QQ, 3,   "",    "aio",  sndoutset, soundout  },
   { "soundouts",S(SNDOUTS),_QQ, 3,  "",    "aaSo", sndoutset_S, soundouts },
   { "soundouts.i",S(SNDOUTS),_QQ, 3,  "",    "aaio", sndoutset, soundouts },
+  #ifdef INC_IN
   { "in.a",   S(INM),0,     2,      "a",    "",     NULL,   in      },
+  #endif
+  #ifdef ICN_INS
   { "in.s",   S(INS),0,     2,      "aa",    "",     NULL,   ins      },
-  { "in.A",   S(INA),0,     2,      "a[]",  "",     NULL,   inarray },
   { "ins",    S(INS),0,     2,      "aa",   "",     NULL,   ins     },
+  #endif
+  #ifdef INC_INARRAY
+  { "in.A",   S(INA),0,     2,      "a[]",  "",     NULL,   inarray },
+  #endif
+  #ifdef INC_INQ
   { "inq",    S(INQ),0,     2,      "aaaa", "",     NULL,   inq     },
+  #endif
+  #ifdef INC_OUT_A
   { "out.a",  S(OUTX),IR,     3,      "",     "y",    ochn,   outall },
+  #endif
+  #ifdef INC_OUT_ARRAY
   { "out.A",  S(OUTARRAY),IR, 3,      "",     "a[]",  outarr_init,  outarr },
+  #endif
 #ifdef INC_OUT
   { "outs",   S(OUTX),IR,     3,      "",     "y",    ochn,   outall },
 #endif
@@ -852,13 +874,27 @@ OENTRY opcodlst_1[] = {
   { "outo",   S(OUTX),IR,     3,      "",     "y",    ochn,   outall },
   { "outx",   S(OUTX),IR,     3,      "",     "y",    ochn,   outall },
   { "out32",  S(OUTX),IR,     3,      "",     "y",    ochn,   outall },
+  #ifdef INC_OUTS1
   { "outs1",  S(OUTM),IR,    2,      "",     "a",    NULL,   outs1   },
+  #endif
+  #ifdef INC_OUTS2
   { "outs2",  S(OUTM),IR,    3,      "",     "a",    och2,   outs2   },
+  #endif
+  #ifdef INC_OUTS1
   { "outq1",  S(OUTM),IR,    2,      "",     "a",    NULL,   outs1   },
+  #endif
+  #ifdef INC_OUTS2
   { "outq2",  S(OUTM),IR,    3,      "",     "a",    och2,   outs2   },
+#endif
+  #ifdef INC_OUT
   { "outq3",  S(OUTM),IR,    3,      "",     "a",    och3,   outq3   },
+  #endif
+  #ifdef INC_OUT4
   { "outq4",  S(OUTM),IR,    3,      "",     "a",    och2,   outq4   },
+  #endif
+  #ifdef INC_OUTALL
   { "outall", S(OUTM),IR,    2,      "",     "a",    NULL,   outrep  },
+  #endif
   { "igoto",  S(GOTO),0,    1,      "",     "l",    igoto                   },
   { "kgoto",  S(GOTO),0,    2,      "",     "l",    NULL,   kgoto           },
   { "goto",   S(GOTO),0,    3,      "",     "l",    igoto,  kgoto           },
@@ -1137,29 +1173,57 @@ OENTRY opcodlst_1[] = {
   { "prealloc", S(AOP),0,   1, "",      "iio",  (SUBR)prealloc, NULL, NULL  },
    { "prealloc", S(AOP),0,   1, "",      "Sio",  (SUBR)prealloc_S, NULL, NULL  },
   /* opcode   dspace      thread  outarg  inargs  isub    ksub    asub    */
+   #ifdef IC_INH
   { "inh",    S(INH),0,     2,      "aaaaaa","",    NULL,   inh     },
+  #endif
+  #ifdef INC_INO
   { "ino",    S(INO),0,     2,      "aaaaaaaa","",  NULL,   ino     },
+  #endif
+  #ifdef INC_INX
   { "inx",    S(INALL),0,   2,      "aaaaaaaaaaaaaaaa","",  NULL,   in16 },
+  #endif
+  #ifdef INC_IN32
   { "in32",   S(INALL),0,   2,      "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
     "",     NULL,   in32 },
+  #endif
+  #ifdef INC_INCH
   { "inch",   S(INCH1),0,    3,      "a",
     "k",    inch1_set,   (SUBR) inch_opcode1 },
+  #endif
+  #ifdef INC_INCH_M
   { "inch.m",   S(INCH),0,    3,      "mmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmm",
     "z",    inch_set,   inch_opcode },
+  #endif
+  #ifdef INC_INALL
   { "_in",    S(INALL),0,   3,      "mmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmm",
     "",     inch_set,   inall_opcode },
+  #endif
   /* Note that there is code in rdorch.c that assumes that opcodes starting
      with the characters out followed by a s, q, h, o or x are in this group
      ***BEWARE***
      CODE REMOVED 2011-Dec-14
   */
+  #ifdef INC_OUTCH
   { "outch",  S(OUTCH),IR,   2,      "",     "Z",    NULL,   outch   },
+  #endif
+  #ifdef INC_OUTC
   { "outc",   S(OUTX),IR,    2,      "",     "y",    ochn,   outall  },
+  #endif
+  #ifdef INC_CPSXPCH
   { "cpsxpch", S(XENH),TR, 1,      "i",    "iiii", cpsxpch, NULL,  NULL    },
+  #endif
+  #ifdef INC_CPS2PCH
   { "cps2pch", S(XENH),TR, 1,      "i",    "ii",   cps2pch, NULL,  NULL    },
+  #endif
+  #ifdef INC_CPSTUN
   { "cpstun", S(CPSTUN),  TR, 2,      "k",    "kkk",   NULL,   cpstun         },
+  #endif
+  #ifdef CPSTUNI
   { "cpstuni",S(CPSTUNI), TR, 1,      "i",    "ii",   cpstun_i,               },
+  #endif
+  #ifdef INC_CPSTMID
   { "cpstmid", S(CPSTABLE),0, 1, "i", "i",    (SUBR)cpstmid                    },
+  #endif
   #ifdef INC_ADSR
   { "adsr", S(LINSEG),0,     3,     "k",    "iiiio",adsrset,klnseg, NULL },
   #endif
@@ -1605,10 +1669,14 @@ OENTRY opcodlst_1[] = {
   { "readscore",  S(COMPILE), 0, 1, "i", "S",  (SUBR) read_score_i, NULL, NULL },
   { "return",  S(RETVAL), 0, 1, "", "i",  (SUBR) retval_i, NULL, NULL },
   /* ----------------------------------------------------------------------- */
-  { "monitor",  sizeof(MONITOR_OPCODE), IB, 3,  "mmmmmmmmmmmmmmmmmmmmmmmm", "",
+  #ifdef INC_MONITOR
+  { "monitor",  sizeof(MONITOR_OPCODE), IB, 3,  "mmmmmmmmmmmmmmmmmmmmxsmmmm", "",
     (SUBR) monitor_opcode_init, (SUBR) notinit_opcode_stub,  NULL },
+  #endif
+  #ifdef INC_OUTRG
   { "outrg", S(OUTRANGE), IR,3, "", "ky",
     (SUBR)outRange_i, (SUBR)outRange},
+  #endif
   { "nchnls_hw", S(ASSIGN), 0,1, "ii", "",
     (SUBR)hw_channels},
    { "midiarp",   S(MIDIARP),0,  3,    "kk", "kO",

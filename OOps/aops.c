@@ -1137,7 +1137,8 @@ int32_t octpch(CSOUND *csound, EVAL *p)
     return OK;
 }
 #endif
-/* ************************* HERE ************************ */
+
+#ifdef INC_PCHOCT
 int32_t pchoct(CSOUND *csound, EVAL *p)
 {
     IGN(csound);
@@ -1147,14 +1148,18 @@ int32_t pchoct(CSOUND *csound, EVAL *p)
     *p->r = (MYFLT)(oct + fract);
     return OK;
 }
+#endif
 
+#ifdef INC_CPSOCT
 int32_t cpsoct(CSOUND *csound, EVAL *p)
 {
     int32_t loct = (int32_t)(*p->a * OCTRES);
     *p->r = (MYFLT)CPSOCTL(loct);
     return OK;
 }
+#endif
 
+#ifdef INC_CPSOCT_A
 int32_t acpsoct(CSOUND *csound, EVAL *p)
 {
     MYFLT   *r, *a;
@@ -1176,6 +1181,7 @@ int32_t acpsoct(CSOUND *csound, EVAL *p)
     }
     return OK;
 }
+#endif
 
 #ifdef INC_OCTCPS
 int32_t octcps(CSOUND *csound, EVAL *p)
@@ -1198,6 +1204,8 @@ int32_t cpspch(CSOUND *csound, EVAL *p)
     return OK;
 }
 #endif
+
+#ifdef INC_CPSMIDINN
 int32_t cpsmidinn(CSOUND *csound, EVAL *p)
 {
     MYFLT note = *p->a;         /* (note-69)>12* */
@@ -1207,7 +1215,9 @@ int32_t cpsmidinn(CSOUND *csound, EVAL *p)
                   (note - FL(69.0)) / FL(12.0)) * (MYFLT)(csound->A4);
     return OK;
 }
+#endif
 
+#ifdef INC_OCTMIDINN
 int32_t octmidinn(CSOUND *csound, EVAL *p)
 {
     IGN(csound);
@@ -1215,7 +1225,9 @@ int32_t octmidinn(CSOUND *csound, EVAL *p)
     *p->r = (*p->a / FL(12.0)) + FL(MIDINOTE0);
     return OK;
 }
+#endif
 
+#ifdef INC_PCHMIDINN
 int32_t pchmidinn(CSOUND *csound, EVAL *p)
 {
     IGN(csound);
@@ -1228,7 +1240,9 @@ int32_t pchmidinn(CSOUND *csound, EVAL *p)
     *p->r = (MYFLT)(oct + fract);
     return OK;
 }
+#endif
 
+#ifdef INC_CPSXPCH
 int32_t cpsxpch(CSOUND *csound, XENH *p)
 {                               /* This may be too expensive */
     double  fract;
@@ -1256,7 +1270,10 @@ int32_t cpsxpch(CSOUND *csound, XENH *p)
     }
     return OK;
 }
+#endif
 
+/* ************************* HERE ******************* */
+#ifdef INC_CPS2PCH
 int32_t cps2pch(CSOUND *csound, XENH *p)
 {
     double  fract;
@@ -1288,7 +1305,9 @@ int32_t cps2pch(CSOUND *csound, XENH *p)
     /*  double ref = 261.62561 / pow(2.0, 8.0); */
     return OK;
 }
+#endif
 
+#ifdef INC_CPSTUNI
 int32_t cpstun_i(CSOUND *csound, CPSTUNI *p)
 {
     FUNC  *ftp;
@@ -1321,7 +1340,9 @@ int32_t cpstun_i(CSOUND *csound, CPSTUNI *p)
  err1:
     return csound->PerfError(csound, &(p->h),Str("cpstun: invalid table"));
 }
+#endif
 
+#ifdef INC_CPSTUN
 int32_t cpstun(CSOUND *csound, CPSTUN *p)
 {
     if (*p->ktrig) {
@@ -1359,6 +1380,7 @@ int32_t cpstun(CSOUND *csound, CPSTUN *p)
  err1:
     return csound->PerfError(csound, &(p->h),Str("cpstun: invalid table"));
 }
+#endif
 
 int32_t logbasetwo_set(CSOUND *csound, EVAL *p)
 {
@@ -1524,6 +1546,7 @@ int32_t ilogbasetwo(CSOUND *csound, EVAL *p)
     return OK;
 }
 
+#ifdef INC_IN
 int32_t in(CSOUND *csound, INM *p)
 {
     uint32_t offset = p->h.insdshead->ksmps_offset*sizeof(MYFLT);
@@ -1540,7 +1563,9 @@ int32_t in(CSOUND *csound, INM *p)
     CSOUND_SPIN_SPINUNLOCK
     return OK;
 }
+#endif
 
+#ifdef INC_INARRAY
 int32_t inarray(CSOUND *csound, INA *p)
 {
     MYFLT *data = p->tabout->data;
@@ -1568,7 +1593,9 @@ int32_t inarray(CSOUND *csound, INA *p)
     CSOUND_SPIN_SPINUNLOCK
     return OK;
 }
+#endif
 
+#ifdef INC_INS
 int32_t ins(CSOUND *csound, INS *p)
 {
     MYFLT       *sp, *ar1, *ar2;
@@ -1598,7 +1625,9 @@ int32_t ins(CSOUND *csound, INS *p)
     CSOUND_SPIN_SPINUNLOCK
     return OK;
 }
+#endif
 
+#ifdef INC_INQ
 int32_t inq(CSOUND *csound, INQ *p)
 {
     MYFLT       *sp = CS_SPIN, *ar1 = p->ar1, *ar2 = p->ar2,
@@ -1633,7 +1662,9 @@ int32_t inq(CSOUND *csound, INQ *p)
     CSOUND_SPIN_SPINUNLOCK
     return OK;
 }
+#endif
 
+#ifdef INC_INH
 int32_t inh(CSOUND *csound, INH *p)
 {
     MYFLT       *sp = CS_SPIN, *ar1 = p->ar1, *ar2 = p->ar2, *ar3 = p->ar3,
@@ -1674,7 +1705,9 @@ int32_t inh(CSOUND *csound, INH *p)
     CSOUND_SPIN_SPINUNLOCK
     return OK;
 }
+#endif
 
+#ifdef INC_INO
 int32_t ino(CSOUND *csound, INO *p)
 {
     MYFLT       *sp = CS_SPIN, *ar1 = p->ar1, *ar2 = p->ar2, *ar3 = p->ar3,
@@ -1722,7 +1755,9 @@ int32_t ino(CSOUND *csound, INO *p)
     CSOUND_SPIN_SPINUNLOCK
     return OK;
 }
+#endif
 
+#if defined(INC_INX) || defined(INC_IN32)
 static int32_t inn(CSOUND *csound, INALL *p, uint32_t n)
 {
     MYFLT *sp = CS_SPIN, **ara = p->ar;
@@ -1750,17 +1785,23 @@ static int32_t inn(CSOUND *csound, INALL *p, uint32_t n)
     CSOUND_SPIN_SPINUNLOCK
     return OK;
 }
+#endif
 
+#ifdef INC_INX
 int32_t in16(CSOUND *csound, INALL *p)
 {
     return inn(csound, p, 16u);
 }
+#endif
 
+#ifdef INC_IN32
 int32_t in32(CSOUND *csound, INALL *p)
 {
     return inn(csound, p, 32u);
 }
+#endif
 
+#ifdef INC_INCH
 int32_t inch1_set(CSOUND *csound, INCH1 *p)
 {
     IGN(csound);
@@ -1804,14 +1845,17 @@ int32_t inch_opcode1(CSOUND *csound, INCH1 *p)
 
     return OK;
 }
-
+#endif
+#if defined(INC_INCH)||defined(INC_INALL)
 int32_t inch_set(CSOUND *csound, INCH *p)
 {
     IGN(csound);
     p->init = 1;
     return OK;
 }
+#endif
 
+#ifdef INC_INCH_M
 int32_t inch_opcode(CSOUND *csound, INCH *p)
 {                               /* Rewritten to allow multiple args upto 40 */
     uint32_t nc, nChannels = p->INCOUNT;
@@ -1853,8 +1897,9 @@ int32_t inch_opcode(CSOUND *csound, INCH *p)
     }
     return OK;
 }
+#endif
 
-
+#ifdef INC_INALL
 int32_t inall_opcode(CSOUND *csound, INALL *p)
 {
     uint32_t n = (int32_t)p->OUTOCOUNT, m;
@@ -1881,7 +1926,9 @@ int32_t inall_opcode(CSOUND *csound, INALL *p)
     CSOUND_SPIN_SPINUNLOCK
     return OK;
 }
+#endif
 
+#ifdef INC_OUTS1
 int32_t outs1(CSOUND *csound, OUTM *p)
 {
     MYFLT       *sp=  CS_SPOUT /*csound->spraw*/, *ap1= p->asig;
@@ -1909,16 +1956,15 @@ int32_t outs1(CSOUND *csound, OUTM *p)
     CSOUND_SPOUT_SPINUNLOCK
     return OK;
 }
+#endif
 
 #define OUTCN(n)  if (n>csound->nchnls) return          \
                                           csound->InitError(csound, "%s", \
                                               Str("Channel greater than nchnls")); \
   return OK;
 
+#ifdef INC_OUTS2
 int32_t och2(CSOUND *csound, OUTM *p) { IGN(p); OUTCN(2) }
-int32_t och3(CSOUND *csound, OUTM *p) { IGN(p); OUTCN(3) }
-int32_t och4(CSOUND *csound, OUTM *p) { IGN(p); OUTCN(4) }
-
 int32_t outs2(CSOUND *csound, OUTM *p)
 {
     MYFLT       *sp =  CS_SPOUT /*csound->spraw*/, *ap2 = p->asig;
@@ -1946,7 +1992,10 @@ int32_t outs2(CSOUND *csound, OUTM *p)
     CSOUND_SPOUT_SPINUNLOCK
     return OK;
 }
+#endif
 
+#ifdef INC_OUTQ3
+int32_t och3(CSOUND *csound, OUTM *p) { IGN(p); OUTCN(3) }
 int32_t outq3(CSOUND *csound, OUTM *p)
 {
     MYFLT       *sp = CS_SPOUT /*csound->spraw*/, *ap3 = p->asig;
@@ -1973,7 +2022,10 @@ int32_t outq3(CSOUND *csound, OUTM *p)
     CSOUND_SPOUT_SPINUNLOCK
     return OK;
 }
+#endif
 
+#ifdef INC_OUTQ4
+int32_t och4(CSOUND *csound, OUTM *p) { IGN(p); OUTCN(4) }
 int32_t outq4(CSOUND *csound, OUTM *p)
 {
     MYFLT       *sp = CS_SPOUT /*csound->spraw*/, *ap4 = p->asig;
@@ -2000,8 +2052,9 @@ int32_t outq4(CSOUND *csound, OUTM *p)
     CSOUND_SPOUT_SPINUNLOCK
     return OK;
 }
+#endif
 
-#ifdef INC_OUT
+#ifdef INC_OUTC
 inline static int32_t outn(CSOUND *csound, uint32_t n, OUTX *p)
 {
     uint32_t nsmps = CS_KSMPS,  i, j, k=0;
@@ -2077,6 +2130,8 @@ int32_t outall(CSOUND *csound, OUTX *p)             /* Output a list of channels
     return outn(csound, (nch <= csound->nchnls ? nch : csound->nchnls), p);
 }
 #endif
+
+#ifdef INC_OUT_ARRAY
 int32_t outarr_init(CSOUND *csound, OUTARRAY *p)
 {
     IGN(csound);
@@ -2141,7 +2196,9 @@ int32_t outarr(CSOUND *csound, OUTARRAY *p)
     }
     return OK;
 }
+#endif
 
+#ifdef INC_OUTCH
 int32_t outch(CSOUND *csound, OUTCH *p)
 {
     uint32_t    ch;
@@ -2179,7 +2236,9 @@ int32_t outch(CSOUND *csound, OUTCH *p)
     CSOUND_SPOUT_SPINUNLOCK
     return OK;
 }
+#endif
 
+#ifdef INC_OUTALL
 int32_t outrep(CSOUND *csound, OUTM *p)
 {
     uint32_t nsmps = CS_KSMPS,  i, j, k=0;
@@ -2216,6 +2275,7 @@ int32_t outrep(CSOUND *csound, OUTM *p)
     CSOUND_SPOUT_SPINUNLOCK
     return OK;
 }
+#endif
 
 /* For parallel mixin template */
 int32_t addina(CSOUND *csound, ASSIGN *p)
@@ -2351,6 +2411,7 @@ int32_t error_fn(CSOUND *csound, ERRFN *p)
 
  /* ------------------------------------------------------------------------ */
 
+#ifdef INC_MONITOR
 int32_t monitor_opcode_perf(CSOUND *csound, MONITOR_OPCODE *p)
 {
     uint32_t offset = p->h.insdshead->ksmps_offset;
@@ -2383,9 +2444,10 @@ int32_t monitor_opcode_init(CSOUND *csound, MONITOR_OPCODE *p)
     p->h.opadr = (SUBR) monitor_opcode_perf;
     return OK;
 }
-
+#endif
 /* -------------------------------------------------------------------- */
 
+#ifdef INC_OUTRG
 int32_t outRange_i(CSOUND *csound, OUTRANGE *p)
 {
     IGN(csound);
@@ -2393,7 +2455,9 @@ int32_t outRange_i(CSOUND *csound, OUTRANGE *p)
 
     return OK;
 }
+#endif
 
+/* ******** Aparently not used ********************* */
 int32_t outRange(CSOUND *csound, OUTRANGE *p)
 {
     int32_t j;
