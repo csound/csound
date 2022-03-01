@@ -43,7 +43,7 @@
 #define INC_LIMIT
 #define INC_LINE
 #define INC_LINEA
-#define INC_LINSED_A
+#define INC_LINSEG_A
 #define INC_LINSEG
 #define INC_LINSEGB
 #define INC_LINSEGB_A

@@ -483,9 +483,9 @@ OENTRY opcodlst_1[] = {
   #endif 
   #ifdef LINSEG
   { "linseg", S(LINSEG),0,  3,      "k",    "iim",  lsgset, klnseg, NULL },
-  #ndif
-  #Ifdef INC_LINSEG_A
-  { "linseg.a", S(LINESEG),0,  3,      "a",    "iim",  lsgset, linseg  },
+  #endif
+  #ifdef INC_LINSEG_A
+  { "linseg.a", S(LINSEG),0,  3,      "a",    "iim",  lsgset, linseg  },
   #endif
   #ifdef INC_LINSEGB
   { "linsegb", S(LINSEG),0,  3,     "k",    "iim", lsgset_bkpt, klnseg, NULL  },
@@ -771,7 +771,7 @@ OENTRY opcodlst_1[] = {
   #ifdef INC_RANDH_K
   { "randh.k",  S(RANDH),0, 3,      "k",    "xxvoo", rhset, krandh, NULL   },
 #endif
-#ifdef INC_RAND_I
+#ifdef INC_RANDI
   { "randi",  S(RANDI),0,   3,      "a",    "xxvoo", riset, randi     },
 #endif
 #ifdef INC_RANDI_K
