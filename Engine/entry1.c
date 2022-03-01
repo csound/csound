@@ -457,7 +457,7 @@ OENTRY opcodlst_1[] = {
   #ifdef INC_LINEA
   { "line.a",   S(LINE),0,    3,    "a",    "iii",  linset,  aline   },
   #endif
-#ifdef INC_EXPON
+  #ifdef INC_EXPON
   { "expon",  S(EXPON),0,   3,      "k",    "iii",  expset, kexpon, NULL   },
   #endif
   #ifdef INC_EXPONA
@@ -481,7 +481,7 @@ OENTRY opcodlst_1[] = {
   #ifdef INC_COSSEGR_A
   { "cossegr.a", S(COSESEG),0,  3,     "a",    "iim",  csgrset, cossegr  },
   #endif 
-  #ifdef LINSEG
+  #ifdef INC_LINSEG
   { "linseg", S(LINSEG),0,  3,      "k",    "iim",  lsgset, klnseg, NULL },
   #endif
   #ifdef INC_LINSEG_A

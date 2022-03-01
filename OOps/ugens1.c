@@ -146,7 +146,7 @@ int32_t expon(CSOUND *csound, EXPON *p)
 }
 #endif
 
-#if defined(INC_LINSEG)||defined(INC_LINESEG_A)
+#if defined(INC_LINSEG)||defined(INC_LINSEG_A)
 int32_t lsgset(CSOUND *csound, LINSEG *p)
 {
     SEG *segp;
