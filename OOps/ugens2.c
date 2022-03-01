@@ -1161,8 +1161,7 @@ int32_t osciln(CSOUND *csound, OSCILN *p)
 }
 #endif
 
-#ifdef INC_OSCSETA
-
+#if defined(INC_OSCILIkkA)||defined(INC_OSCILkkA)||defined(INC_OSCILIkaA)||defined(INC_OSCILIakA)||defined(INC_OSCIKaaA)
 static int32_t fill_func_from_array(ARRAYDAT *a, FUNC *f)
 {
     int32_t     lobits, ltest, flen, i;
@@ -1210,7 +1209,8 @@ int32_t oscsetA(CSOUND *csound, OSC *p)
 }
 #endif
 
-#ifdef INC_OSCSET
+#if defined(INC_OSCILa)||defined(INC_OSCILkkk)||defined(OSCILkka)||defined(INC_OSCILka)||defined(INC_OSCILak)||defined(INC_OSCILaa)
+
 int32_t oscset(CSOUND *csound, OSC *p)
 {
     FUNC        *ftp;

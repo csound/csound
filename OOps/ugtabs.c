@@ -597,7 +597,7 @@ int32_t tablew_init(CSOUND *csound, TABL *p) {
 }
 #endif
 
-#ifdef INC_TABLEW_KK
+#if defined(INC_TABLEW_KK)||defined(INC_TALEWKT_KK)
 int32_t tablew_kontrol(CSOUND *csound, TABL *p) {
     int32_t ndx, len = p->len;
     int32_t mask = p->ftp->lenmask;

@@ -27,7 +27,7 @@
 #include <inttypes.h>
 #include "opcodes.h"
 
-#ifdef INC_BUZZ
+//#ifdef INC_BUZZ
 /* The branch prediction slows it down!! */
 
 #ifdef INC_BUZZ
@@ -427,7 +427,6 @@ static int16 rand15(CSOUND *csound)
     csound->ugens4_rand_15 = (csound->ugens4_rand_15 * RNDMUL + 1) & MASK15;
     return (int16) csound->ugens4_rand_15;
 }
-#endif
 
 
 /*=========================================================================

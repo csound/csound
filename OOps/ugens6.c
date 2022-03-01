@@ -58,7 +58,7 @@ int32_t downsamp(CSOUND *csound, DOWNSAMP *p)
       *p->kr = sum / p->len;
     }
     return OK;
-}
+}b
 #endif
 
 #ifdef INC_UPSAMP

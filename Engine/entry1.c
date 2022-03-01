@@ -154,7 +154,9 @@ OENTRY opcodlst_1[] = {
 #ifdef INC_UPSAMP
   { "=.up",   S(UPSAMP),0,  2,      "a",    "k",  NULL, (SUBR)upsamp, NULL },
 #endif
+  #ifdef INC_DOWNSAMP
   { "=.down",   S(DOWNSAMP),0,  3,  "k",    "ao",   (SUBR)downset,(SUBR)downsamp },
+  #endif
   { "init.S", S(STRCPY_OP),0, 1,      "S", "S", (SUBR) strcpy_opcode_S  },
   { "init.Si", S(STRCPY_OP),0, 1,      "S", "i", (SUBR) strcpy_opcode_p  },
   #ifdef INC_MINIT
@@ -390,6 +392,8 @@ OENTRY opcodlst_1[] = {
 { "i.i",   S(ASSIGN),0,   1,      "i",    "i",    assign                  },
   { "i.k",   S(ASSIGN),0,   1,      "i",    "k",    assign                  },
   { "k.i",   S(ASSIGN),0,   1,      "k",    "i",    assign                  },
+  #endif
+#ifdef INC_DOWNSAMP
   { "k.a",   S(DOWNSAMP),0, 3,      "k",    "ao",   (SUBR)downset,(SUBR)downsamp },
   #endif
   #ifdef INC_OCTPCH
@@ -560,61 +564,61 @@ OENTRY opcodlst_1[] = {
   #ifdef INC_EPHASOR
   { "ephasor", S(EPHSOR), 0,  3,     "aa",  "xko",  ephsset, ephsor },
   #endif
-  #ifdef INC_SIGNUM
+#ifdef INC_SIGNUM
   { "signum.i", S(ASSIGN), 0, 1,     "i",   "i", signum, NULL, NULL       },
   { "signum.k", S(ASSIGN), 0, 3,     "k",   "k", signum, signum, NULL     },
   #endif
   #ifdef IC_SIGNU_A
   { "signum.a", S(ASSIGN), 0, 2,     "a",   "a", NULL, asignum      },
   #endif
-  #ifdef INC_TALE_I
+  #ifdef INC_TABLE_I
   { "table.i",  S(TABL),TR, 1,      "i",    "iiooo",(SUBR)tabler_init       },
+  { "ptable.i",  S(TABLE),TR|_QQ, 1,"i",    "iiooo",(SUBR)tabler_init       },
   #endif
   #ifdef INC_TABLE_K
   { "table.k",  S(TABL),TR, 3,      "k",    "xiooo",(SUBR)tabl_setup,
     (SUBR)tabler_kontrol        },
+  { "ptable.k",  S(TABLE),TR|_QQ, 3,     "k",    "xiooo",(SUBR)tabl_setup,
+    (SUBR)tabler_kontrol                                                    },
   #endif
   #ifdef INC_TABLE_A
   { "table.a",  S(TABL),TR, 3,      "a",    "xiooo",(SUBR)tabl_setup,
     (SUBR)tabler_audio                                                      },
+  { "ptable.a",  S(TABLE),TR|_QQ, 3,     "a",    "xiooo",(SUBR)tabl_setup,
+    (SUBR)tabler_audio                                                      },
   #endif
   #ifdef INC_TABLEI_I
   { "tablei.i", S(TABL),TR, 1,      "i",    "iiooo",(SUBR)tableir_init      },
+  { "ptablei.i", S(TABLE),TR|_QQ, 1,"i",    "iiooo",(SUBR)tableir_init      },
 #endif
   #ifdef INC_TABLEI_K
   { "tablei.k", S(TABL),TR, 3,      "k",    "xiooo",(SUBR)tabl_setup,
+    (SUBR)tableir_kontrol                                                   },
+  { "ptablei.k", S(TABLE),TR|_QQ, 3,     "k",    "xiooo",(SUBR)tabl_setup,
     (SUBR)tableir_kontrol                                                   },
   #endif
   #ifdef INC_TALBEI_A
   { "tablei.a", S(TABL),TR, 3,      "a",    "xiooo",(SUBR)tabl_setup,
     (SUBR)tableir_audio                                                     },
+  { "ptablei.a", S(TABLE),TR|_QQ, 3,     "a",    "xiooo",(SUBR)tabl_setup,
+    (SUBR)tableir_audio                                                     },
   #endif
   #ifdef INC_TABLE3_I
   { "table3.i", S(TABL),TR, 1,      "i",    "iiooo",(SUBR)table3r_init      },
+  { "ptable3.i", S(TABLE),TR|_QQ, 1,"i",    "iiooo",(SUBR)table3r_init      },
   #endif
   #ifdef INC_TABLE3_K
   { "table3.k", S(TABL),TR, 3,      "k",    "xiooo",(SUBR)tabl_setup,
+    (SUBR)table3r_kontrol                                                   },
+  { "ptable3.k", S(TABLE),TR|_QQ, 3,     "k",    "xiooo",(SUBR)tabl_setup,
     (SUBR)table3r_kontrol                                                   },
   #endif
   #ifdef INC_TABLE3_A
   { "table3.a", S(TABL),TR, 3,      "a",    "xiooo",(SUBR)tabl_setup,
     (SUBR)table3r_audio                                                     },
-  #endif
-  { "ptable.i",  S(TABLE),TR|_QQ, 1,"i",    "iiooo",(SUBR)tabler_init       },
-  { "ptable.k",  S(TABLE),TR|_QQ, 3,     "k",    "xiooo",(SUBR)tabl_setup,
-    (SUBR)tabler_kontrol                                                    },
-  { "ptable.a",  S(TABLE),TR|_QQ, 3,     "a",    "xiooo",(SUBR)tabl_setup,
-    (SUBR)tabler_audio                                                      },
-  { "ptablei.i", S(TABLE),TR|_QQ, 1,"i",    "iiooo",(SUBR)tableir_init      },
-  { "ptablei.k", S(TABLE),TR|_QQ, 3,     "k",    "xiooo",(SUBR)tabl_setup,
-    (SUBR)tableir_kontrol                                                   },
-  { "ptablei.a", S(TABLE),TR|_QQ, 3,     "a",    "xiooo",(SUBR)tabl_setup,
-    (SUBR)tableir_audio                                                     },
-  { "ptable3.i", S(TABLE),TR|_QQ, 1,"i",    "iiooo",(SUBR)table3r_init      },
-  { "ptable3.k", S(TABLE),TR|_QQ, 3,     "k",    "xiooo",(SUBR)tabl_setup,
-    (SUBR)table3r_kontrol                                                   },
   { "ptable3.a", S(TABLE),TR|_QQ, 3,     "a",    "xiooo",(SUBR)tabl_setup,
     (SUBR)table3r_audio         },
+  #endif
   #ifdef INC_OSCIL1
   { "oscil1", S(OSCIL1), TR, 3,     "k",    "ikij", ko1set, kosc1          },
   #endif
@@ -623,6 +627,7 @@ OENTRY opcodlst_1[] = {
   #endif
   #ifdef INC_OSCILN
   { "osciln", S(OSCILN), TR, 3,     "a",    "kiii", oscnset,   osciln },
+  { "oscilx",   S(OSCILN), TR, 3,   "a",    "kiii", oscnset,   osciln  },
   #endif
   #ifdef INC_OSCILa
   { "oscil.a",S(OSC),TR,    3,       "a",    "kkjo", oscset,   osckk  },
@@ -686,8 +691,6 @@ OENTRY opcodlst_1[] = {
 #ifdef INC_OSCILIkkA
   { "oscili.kkA",S(OSC),0,   3,      "k",  "kki[]o", oscsetA, koscli, NULL  },
 #endif
-#ifdef INC_OSCILIlaA
-#endif
 #ifdef INC_OSCILIkaA
   { "oscili.kaA",S(OSC),0,   3,      "a",  "kai[]o", oscsetA,   osckai  },
 #endif
@@ -702,7 +705,7 @@ OENTRY opcodlst_1[] = {
 #endif
 #ifdef INC_OSCIL3kk
   { "oscil3.kk",S(OSC),TR,   3,      "k",   "kkjo", oscset, koscl3, NULL  },
-#endif
+#endif)
 #ifdef INC_OSCIL3ka
   { "oscil3.ka",S(OSC),TR,   3,      "a",   "kajo", oscset,   oscka3  },
 #endif
@@ -838,7 +841,9 @@ OENTRY opcodlst_1[] = {
 #ifdef  INC_BALANCE2
   { "balance2",S(BALANCE),0, 3,      "a",    "aaqo", balnset,   balance2 },
 #endif
+  #ifdef INC_PAN
   { "pan",    S(PAN),0,   3, "aaaa", "akkioo",(SUBR)panset, (SUBR)pan  },
+  #endif
   { "soundin",S(DISKIN2),0,3,"mmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmm","Soooo",
     sndinset_S, soundin   },
   { "soundin.i",S(DISKIN2),0,3,"mmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmm","ioooo",
@@ -868,12 +873,12 @@ OENTRY opcodlst_1[] = {
   #endif
 #ifdef INC_OUT
   { "outs",   S(OUTX),IR,     3,      "",     "y",    ochn,   outall },
-#endif
   { "outq",   S(OUTX),IR,     3,      "",     "y",    ochn,   outall },
   { "outh",   S(OUTX),IR,     3,      "",     "y",    ochn,   outall },
   { "outo",   S(OUTX),IR,     3,      "",     "y",    ochn,   outall },
   { "outx",   S(OUTX),IR,     3,      "",     "y",    ochn,   outall },
   { "out32",  S(OUTX),IR,     3,      "",     "y",    ochn,   outall },
+#endif
   #ifdef INC_OUTS1
   { "outs1",  S(OUTM),IR,    2,      "",     "a",    NULL,   outs1   },
   #endif
@@ -885,7 +890,7 @@ OENTRY opcodlst_1[] = {
   #endif
   #ifdef INC_OUTS2
   { "outq2",  S(OUTM),IR,    3,      "",     "a",    och2,   outs2   },
-#endif
+  #endif
   #ifdef INC_OUT
   { "outq3",  S(OUTM),IR,    3,      "",     "a",    och3,   outq3   },
   #endif
@@ -895,7 +900,7 @@ OENTRY opcodlst_1[] = {
   #ifdef INC_OUTALL
   { "outall", S(OUTM),IR,    2,      "",     "a",    NULL,   outrep  },
   #endif
-  { "igoto",  S(GOTO),0,    1,      "",     "l",    igoto                   },
+  { "igoto",  S(GOTO),0,    1,      "",     "l",    igoto                  },
   { "kgoto",  S(GOTO),0,    2,      "",     "l",    NULL,   kgoto           },
   { "goto",   S(GOTO),0,    3,      "",     "l",    igoto,  kgoto           },
   { "cigoto", S(CGOTO),0,   1,      "",     "Bl",   icgoto                  },
@@ -944,7 +949,6 @@ OENTRY opcodlst_1[] = {
   { "pow.a",    S(POW),0,   2,      "a",    "akp",  NULL,  apow    },
   { "##pow.a",  S(POW),0,   2,      "a",    "akp",  NULL,  apow    },
   #endif
-  { "oscilx",   S(OSCILN), TR, 3,   "a",    "kiii", oscnset,   osciln  },
   #ifdef INC_LINRAND
   { "linrand.i",S(PRAND),0, 1,      "i",    "k",    iklinear, NULL, NULL    },
   { "linrand.k",S(PRAND),0, 2,      "k",    "k",    NULL, iklinear, NULL    },
