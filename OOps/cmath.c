@@ -27,7 +27,9 @@
 #include "csoundCore.h"
 #include "cmath.h"
 #include <math.h>
+#include "opcodes.h"
 
+#ifdef INC_POW
 int32_t ipow(CSOUND *csound, POW *p)        /*      Power for i-rate */
 {
     MYFLT in = *p->in;
@@ -40,7 +42,9 @@ int32_t ipow(CSOUND *csound, POW *p)        /*      Power for i-rate */
       *p->sr = POWER(in, powerOf);
     return OK;
 }
+#endif
 
+#ifdef INC_POW_A
 int32_t apow(CSOUND *csound, POW *p)        /* Power routine for a-rate  */
 {
     uint32_t offset = p->h.insdshead->ksmps_offset;
@@ -72,7 +76,9 @@ int32_t apow(CSOUND *csound, POW *p)        /* Power routine for a-rate  */
     }
     return OK;
 }
+#endif
 
+#ifdef INC_SEED
 int32_t seedrand(CSOUND *csound, PRAND *p)
 {
     uint32_t  seedVal = (uint32_t)0;
@@ -96,13 +102,15 @@ int32_t seedrand(CSOUND *csound, PRAND *p)
 
     return OK;
 }
+#endif
 
+#ifdef INC_GETSEED
 int32_t getseed(CSOUND *csound, GETSEED *p)
 {
     *p->ans = csound->randSeed1;
     return OK;
 }
-
+#endif
 /* * * * * * RANDOM NUMBER GENERATORS * * * * * */
 
 #define UInt32toFlt(x) ((double)(x) * (1.0 / 4294967295.03125))
@@ -278,7 +286,7 @@ static MYFLT poissrand(CSOUND *csound, MYFLT lambda)
 }
 
  /* ------------------------------------------------------------------------ */
-
+#ifdef INC_UNIRAND_A
 int32_t auniform(CSOUND *csound, PRAND *p)  /* Uniform distribution */
 {
     MYFLT   *out = p->out;
@@ -297,13 +305,17 @@ int32_t auniform(CSOUND *csound, PRAND *p)  /* Uniform distribution */
     }
     return OK;
 }
+#endif
 
+#ifdef INC_UNIRAND
 int32_t ikuniform(CSOUND *csound, PRAND *p)
 {
     *p->out = unifrand(csound, *p->arg1);
     return OK;
 }
+#endif
 
+#ifdef INC_LINRAND_A
 int32_t alinear(CSOUND *csound, PRAND *p)   /* Linear random functions      */
 {
     uint32_t offset = p->h.insdshead->ksmps_offset;
@@ -322,13 +334,17 @@ int32_t alinear(CSOUND *csound, PRAND *p)   /* Linear random functions      */
     return OK;
 
 }
+#endif
 
+#ifdef INC_LINRAND
 int32_t iklinear(CSOUND *csound, PRAND *p)
 {
     *p->out = linrand(csound, *p->arg1);
     return OK;
 }
+#endif
 
+#ifdef INC_TRIRAND_A
 int32_t atrian(CSOUND *csound, PRAND *p)    /* Triangle random functions  */
 {
     uint32_t offset = p->h.insdshead->ksmps_offset;
@@ -346,13 +362,17 @@ int32_t atrian(CSOUND *csound, PRAND *p)    /* Triangle random functions  */
       out[n] = trirand(csound, arg1);
     return OK;
 }
+#endif
 
+#ifdef INC_TRIRAND
 int32_t iktrian(CSOUND *csound, PRAND *p)
 {
     *p->out = trirand(csound, *p->arg1);
     return OK;
 }
+#endif
 
+#if defined(INC_EXPRANDI)||defined(INC_EXPRANDI_A)
 int32_t exprndiset(CSOUND *csound, PRANDI *p)
 {
     p->num1 = exprand(csound, *p->arg1);
@@ -363,7 +383,9 @@ int32_t exprndiset(CSOUND *csound, PRANDI *p)
     p->cpscod = IS_ASIG_ARG(p->xcps) ? 1 : 0;
     return OK;
 }
+#endif
 
+#ifdef INC_EXPRANDI
 int kexprndi(CSOUND *csound, PRANDI *p)
 {                                       /* rslt = (num1 + diff*phs) * amp */
     /* IV - Jul 11 2002 */
@@ -383,7 +405,9 @@ int32_t iexprndi(CSOUND *csound, PRANDI *p)
     exprndiset(csound, p);
     return kexprndi(csound, p);
 }
+#endif
 
+#ifdef INC_EXPRANDI_A
 int32_t aexprndi(CSOUND *csound, PRANDI *p)
 {
    int32_t       phs = p->phs, inc;
@@ -420,7 +444,8 @@ int32_t aexprndi(CSOUND *csound, PRANDI *p)
     p->phs = phs;
     return OK;
 }
-
+#endif
+//************************ HERE ****************
 int32_t aexp(CSOUND *csound, PRAND *p)      /* Exponential random functions */
 {
     uint32_t offset = p->h.insdshead->ksmps_offset;

@@ -934,19 +934,31 @@ OENTRY opcodlst_1[] = {
   { "xyin",   S(XYIN), _QQ, 1,      "kk",   "iiiiioo",xyinset,NULL          },
   { "tempest",  S(TEMPEST),0, 3,    "k","kiiiiiiiiiop",tempeset,tempest},
   { "tempo",    S(TEMPO),0,   3,    "",     "ki",   tempset,tempo           },
+  #ifdef INC_POW
   { "pow.i",    S(POW),0,   1,      "i",    "iip",  ipow,    NULL,  NULL    },
   { "pow.k",    S(POW),0,   2,      "k",    "kkp",  NULL,    ipow,  NULL    },
-  { "pow.a",    S(POW),0,   2,      "a",    "akp",  NULL,  apow    },
   { "##pow.i",  S(POW),0,   1,      "i",    "iip",  ipow,    NULL,  NULL    },
   { "##pow.k",  S(POW),0,   2,      "k",    "kkp",  NULL,    ipow,  NULL    },
+  #endif
+  #ifdef INC_POW_A
+  { "pow.a",    S(POW),0,   2,      "a",    "akp",  NULL,  apow    },
   { "##pow.a",  S(POW),0,   2,      "a",    "akp",  NULL,  apow    },
+  #endif
   { "oscilx",   S(OSCILN), TR, 3,   "a",    "kiii", oscnset,   osciln  },
+  #ifdef INC_LINRAND
   { "linrand.i",S(PRAND),0, 1,      "i",    "k",    iklinear, NULL, NULL    },
   { "linrand.k",S(PRAND),0, 2,      "k",    "k",    NULL, iklinear, NULL    },
+  #endif
+#ifdef INC_LINRAND_A
   { "linrand.a",S(PRAND),0, 2,      "a",    "k",    NULL,     alinear },
+  #endif
+  #ifdef INC_TRIRAND
   { "trirand.i",S(PRAND),0, 1,      "i",    "k",    iktrian, NULL,  NULL    },
   { "trirand.k",S(PRAND),0, 2,      "k",    "k",    NULL, iktrian,  NULL    },
+  #endif
+  #ifdef INC_TRIRAND_A
   { "trirand.a",S(PRAND),0, 2,      "a",    "k",    NULL,     atrian  },
+  #endif
   { "exprand.i",S(PRAND),0, 1,      "i",    "k",    ikexp, NULL,    NULL    },
   { "exprand.k",S(PRAND),0, 2,      "k",    "k",    NULL,    ikexp, NULL    },
   { "exprand.a",S(PRAND),0, 2,      "a",    "k",    NULL,     aexp    },
@@ -974,12 +986,20 @@ OENTRY opcodlst_1[] = {
   { "betarand.i",S(PRAND),0,1,      "i",    "kkk",  ikbeta, NULL,  NULL     },
   { "betarand.k",S(PRAND),0,2,      "k",    "kkk",  NULL,   ikbeta,NULL     },
   { "betarand.a",S(PRAND),0,2,      "a",    "kkk",  NULL,  abeta    },
+  #ifdef INC_SEED
   { "seed",     S(PRAND),0, 1,      "",     "i",    seedrand, NULL, NULL    },
+  #endif
+  #ifdef GETSEED
   { "getseed.i",S(GETSEED),0, 1,    "i",     "",    getseed, NULL, NULL     },
   { "getseed.k",S(GETSEED),0, 3,    "k",     "",    getseed, getseed, NULL  },
+  #endif
+  #ifdef INC_UNIRAND
   { "unirand.i",S(PRAND),0, 1,     "i",     "k",    ikuniform, NULL,  NULL  },
   { "unirand.k",S(PRAND),0, 2,     "k",     "k",    NULL,    ikuniform, NULL},
+  #endif
+  #ifdef INC_UNIRAND_A
   { "unirand.a",S(PRAND),0, 2,     "a",     "k",    NULL, auniform },
+  #endif
   { "diskin",S(DISKIN2_ARRAY),0, 3,    "a[]",
     "SPooooooo",
     (SUBR) diskin_init_array_S,
@@ -1650,9 +1670,13 @@ OENTRY opcodlst_1[] = {
   { "remove",      S(DELETEIN),0,         1,      "",             "T",
     (SUBR) delete_instr, NULL, NULL                       },
   { "##error",S(ERRFN),0, 1,          "i",     "i",   error_fn, NULL,    NULL    },
+  #ifdef INC_EXPRANDI
   { "exprandi.i",S(PRANDI),0, 1,      "i",    "kxx",  iexprndi, NULL,    NULL    },
   { "exprandi.k",S(PRANDI),0, 3,      "k",    "kxx",  exprndiset, kexprndi, NULL },
+  #endif
+  #ifdef INC_EXPRANDI_A
   { "exprandi.a",S(PRANDI),0, 2,      "a",    "kxx",  exprndiset, aexprndi },
+  #endif
   { "cauchyi.i", S(PRANDI),0, 1,      "i",    "kxx",  icauchyi, NULL,    NULL    },
   { "cauchyi.k", S(PRANDI),0, 3,      "k",    "kxx",  cauchyiset, kcauchyi, NULL },
   { "cauchyi.a", S(PRANDI),0, 2,      "a",    "kxx",  cauchyiset, acauchyi },

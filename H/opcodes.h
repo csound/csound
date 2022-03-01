@@ -258,3 +258,29 @@
 #define INC_OUTALL
 #define INC_MONITOR
 #define INC_OUTRG
+#define INC_POW
+#define INC_POW_A
+#define INC_SEED
+#define INC_GETSEED
+#define INC_UNIRAND
+#define INC_UNIRAND_A
+#define INC_LINRAND
+#define INC_LINRAND_A
+#define INC_TRIRAND
+#define INC_TRIRAND_A
+#define INC_EXPRANDI
+#define INC_EXPRANDI_A
+/*
+#define INC_
+#define INC_
+#define INC_
+#define INC_
+#define INC_
+#define INC_
+#define INC_
+#define INC_
+#define INC_
+#define INC_
+#define INC_
+#define INC_
+*/
