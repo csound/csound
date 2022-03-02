@@ -1245,7 +1245,7 @@ int32_t koscil(CSOUND *csound, OSC *p)
 }
 #endif
 
-#if defined(INC_OSCIL_kka)||defined(INC_OSCILkkA)
+#if defined(INC_OSCIL_kka)||defined(INC_OSCILkkA)||defined(INC_OSCILa)
 int32_t osckk(CSOUND *csound, OSC *p)
 {
     FUNC    *ftp;
@@ -1418,7 +1418,7 @@ int32_t koscli(CSOUND *csound, OSC   *p)
 }
 #endif
 
-#if defined(INC_OSCILIkk)||defined(INC_OSCILIkkA)
+#if defined(INC_OSCILIkk)||defined(INC_OSCILIkkA)||defined(INC_OSCILIkki)
 int32_t osckki(CSOUND *csound, OSC   *p)
 {
     FUNC    *ftp;

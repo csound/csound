@@ -95,7 +95,7 @@ int32_t assign(CSOUND *csound, ASSIGN *p)
 }
 #endif
 
-#ifdef INC_AASIGN
+#ifdef INC_AASSIGN
 int32_t aassign(CSOUND *csound, ASSIGN *p, int32_t islocal)
 {
     IGN(csound);
@@ -2054,7 +2054,7 @@ int32_t outq4(CSOUND *csound, OUTM *p)
 }
 #endif
 
-#ifdef INC_OUTC
+#if defined(INC_OUT)||defined(INC_OUT)
 inline static int32_t outn(CSOUND *csound, uint32_t n, OUTX *p)
 {
     uint32_t nsmps = CS_KSMPS,  i, j, k=0;

@@ -147,7 +147,7 @@ OENTRY opcodlst_1[] = {
   { "=.k",    S(ASSIGNM),0, 2,      "zzzzzzzzzzzzzzzzzzzzzzzz", "z",
     NULL, minit, NULL, NULL },
   #endif
-  #ifdef INC_AASIGN
+  #ifdef INC_AASSIGN
   { "=.a",    S(ASSIGN),0,  2,      "a",    "a",    NULL, gaassign, NULL },
   { "=.l",    S(ASSIGN),0,  2,      "a",    "a",    NULL,   laassign, NULL },
   #endif
@@ -409,7 +409,9 @@ OENTRY opcodlst_1[] = {
   { "octcps.i",S(EVAL),0,   1,      "i",    "i",    octcps                  },
   { "octcps.k",S(EVAL),0,   2,      "k",    "k",    NULL,   octcps          },
   #endif
+  #ifdef INC_CPSOCT
   { "cpsoct.k",S(EVAL),0,   2,      "k",    "k",    NULL,   cpsoct          },
+  #endif
 #ifdef INC_OCTPCH
   { "octpch.k",S(EVAL),0,   2,      "k",    "k",    NULL,   octpch          },
   #endif
@@ -670,7 +672,7 @@ OENTRY opcodlst_1[] = {
      { "oscil.aa", S(POSC),TR, 3, "a", "aajo", posc_set,  poscaa },
      { "oscil3.kk",  S(POSC),TR,  7, "s", "kkjo", posc_set, kposc3, posc3 },
   */
-#ifdef INC_OSCIL_a
+#ifdef INC_OSCILIkki
   { "oscili.a",S(OSC),TR,   3,      "a",    "kkjo", oscset, osckki  },
 #endif
 #ifdef INC_OSCILIkk
@@ -685,7 +687,7 @@ OENTRY opcodlst_1[] = {
 #ifdef INC_OSCILIaa
   { "oscili.aa",S(OSC),TR,   3,      "a",   "aajo", oscset,   oscaai  },
 #endif
-#ifdef INC_OSCILIkkA
+#ifdef INC_OSCILIkkAbbbbb
   { "oscili.aA",S(OSC),0,   3,      "a",   "kki[]o", oscsetA, osckki  },
 #endif
 #ifdef INC_OSCILIkkA
@@ -865,13 +867,11 @@ OENTRY opcodlst_1[] = {
   #ifdef INC_INQ
   { "inq",    S(INQ),0,     2,      "aaaa", "",     NULL,   inq     },
   #endif
-  #ifdef INC_OUT_A
-  { "out.a",  S(OUTX),IR,     3,      "",     "y",    ochn,   outall },
-  #endif
   #ifdef INC_OUT_ARRAY
   { "out.A",  S(OUTARRAY),IR, 3,      "",     "a[]",  outarr_init,  outarr },
   #endif
 #ifdef INC_OUT
+  { "out.a",  S(OUTX),IR,     3,      "",     "y",    ochn,   outall },
   { "outs",   S(OUTX),IR,     3,      "",     "y",    ochn,   outall },
   { "outq",   S(OUTX),IR,     3,      "",     "y",    ochn,   outall },
   { "outh",   S(OUTX),IR,     3,      "",     "y",    ochn,   outall },
@@ -891,7 +891,7 @@ OENTRY opcodlst_1[] = {
   #ifdef INC_OUTS2
   { "outq2",  S(OUTM),IR,    3,      "",     "a",    och2,   outs2   },
   #endif
-  #ifdef INC_OUT
+  #ifdef INC_OUT3
   { "outq3",  S(OUTM),IR,    3,      "",     "a",    och3,   outq3   },
   #endif
   #ifdef INC_OUT4
@@ -1092,10 +1092,14 @@ OENTRY opcodlst_1[] = {
   { "tableiw",  S(TABL),TW|_QQ, 1, "",   "iiiooo", (SUBR)tablew_init, NULL, NULL},
   { "tablew",  S(TABL),TW, 1,    "",   "iiiooo", (SUBR)tablew_init, NULL, NULL},
     #endif
+  #ifdef INC_TABLEW_KK
   { "tablew.kk", S(TABL),TW,  3,    "", "kkiooo",(SUBR)tabl_setup,
     (SUBR)tablew_kontrol, NULL          },
+  #endif
+  #ifdef INC_TABLEW_AA
   { "tablew.aa", S(TABL),TW,  3,    "", "aaiooo",(SUBR)tabl_setup,
     (SUBR)tablew_audio               },
+  #endif
   #ifdef INC_TABLEWKT_K
   { "tablewkt.kk", S(TABL),TW,3, "",  "kkkooo",
     (SUBR)tablkt_setup,(SUBR)tablewkt_kontrol,NULL},
@@ -1115,11 +1119,11 @@ OENTRY opcodlst_1[] = {
 #ifdef INC_TABLEMIX
   { "tableimix",S(TABLMIX),TB, 1,  "",  "iiiiiiiii", (SUBR)table_mix, NULL, NULL},
   { "tablemix", S(TABLMIX),TB, 2,  "",  "kkkkkkkkk", NULL, (SUBR)table_mix, NULL},
-    #endif
-    #ifdef INC_TABLECOPY
+#endif
+#ifdef INC_TABLECOPY
   { "tableicopy",S(TGP),TB, 1, "", "ii",   (SUBR)table_copy, NULL, NULL},
   { "tablecopy", S(TGP),TB, 2, "", "kk", NULL, (SUBR)table_copy, NULL},
-    #endif
+#endif
     #ifdef INC_TABLERA
   { "tablera", S(TABLRA),TR, 2,   "a",  "kkk",
         NULL/*(SUBR)table_ra_set*/, (SUBR)table_ra},
@@ -1128,11 +1132,15 @@ OENTRY opcodlst_1[] = {
   { "tablewa", S(TABLWA),TW, 3,   "k",  "kakp",
     (SUBR)table_wa_set, (SUBR)table_wa},
     #endif
+#ifdef INC_TABLEKT
   { "tablekt",  S(TABL),TR, 3,   "k",  "xkooo",  (SUBR)tablkt_setup,
     (SUBR)tablerkt_kontrol,
     NULL         },
+  #endif
+  #ifdef INC_TABLEKT_A
   { "tablekt.a",  S(TABL),TR, 3,   "a",  "xkooo",  (SUBR)tablkt_setup,
     (SUBR)tablerkt_audio         },
+  #endif
   #ifdef INC_TABLEIKT
     { "tableikt", S(TABL),TR, 3,    "k",  "xkooo", (SUBR)tablkt_setup,
     (SUBR)tableirkt_kontrol,

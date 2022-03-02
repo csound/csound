@@ -69,7 +69,7 @@ int32_t tabler_init(CSOUND *csound, TABL *p) {
 }
 #endif
 
-#if defined(INC_TABLE_K)||defined(INC_TABLE_A)||defined(INC_TABLE3_K)||defined(INC_TABLE3_A)
+#if defined(INC_TABLE_K)||defined(INC_TABLE_A)||defined(INC_TABLE3_K)||defined(INC_TABLE3_A)||defined(INC_TABLEW_KK)||defined(INC_TABLEW_KK)
 int32_t tabl_setup(CSOUND *csound, TABL *p) {
     if(p->ftp == NULL) {
       /* check for this only on first allocation */
@@ -438,7 +438,7 @@ int32_t table3r_audio(CSOUND *csound, TABL *p)
 }
 #endif
 
-#if defined(INC_TABLEWKT_K)||defined(INC_TABLEWKT_A)
+#if defined(INC_TABLEWKT_K)||defined(INC_TABLEWKT_A)||defined(INC_TABLKT)||defined(INC_TALWT_A)
 int32_t tablkt_setup(CSOUND *csound, TABL *p) {
 
     if (UNLIKELY(IS_ASIG_ARG(p->ndx) != IS_ASIG_ARG(p->sig))) {
@@ -598,7 +598,7 @@ int32_t tablew_init(CSOUND *csound, TABL *p) {
 #endif
 
 #if defined(INC_TABLEW_KK)||defined(INC_TALEWKT_KK)
-int32_t tablew_kontrol(CSOUND *csound, TABL *p) {
+int32_t tablew_kontroly(CSOUND *csound, TABL *p) {
     int32_t ndx, len = p->len;
     int32_t mask = p->ftp->lenmask;
     MYFLT *func = p->ftp->ftable;
