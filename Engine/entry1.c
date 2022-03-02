@@ -110,7 +110,9 @@ OENTRY opcodlst_1[] = {
     "****************************************************************", "",
     xinset,  NULL, NULL },*/
   { "xout", S(XOUT_MAX),0,  1,  "",         "*", xoutset, NULL, NULL, NULL },
+  #ifdef INC_SETKSMPS
   { "setksmps", S(SETKSMPS),0,  1,  "",   "i", setksmpsset, NULL, NULL },
+  #endif
   { "ctrlinit",S(CTLINIT),0,1,      "",  "im", ctrlinit, NULL, NULL, NULL},
   { "ctrlinit.S",S(CTLINITS),0,1,      "",  "Sm", ctrlnameinit, NULL, NULL, NULL},
   { "ctrlsave",S(SAVECTRL),0,3,       "k[]","im", savectrl_init, savectrl_perf, NULL, NULL},
@@ -228,11 +230,19 @@ OENTRY opcodlst_1[] = {
   { "##subin.k", S(ASSIGN),0, 2,      "k",    "k",    NULL,   subin   },
   { "##subin.K", S(ASSIGN),0, 2,      "a",    "k",    NULL,   subinak },
   { "##subin.a", S(ASSIGN),0, 2,      "a",    "a",    NULL,   subina  },
+  #ifdef INC_DIVZ
   { "divz.ii", S(DIVZ),0,   1,      "i",    "iii",  divzkk, NULL,   NULL    },
   { "divz.kk", S(DIVZ),0,   2,      "k",    "kkk",  NULL,   divzkk, NULL    },
+  #endif
+  #ifdef INC_DIVZ_AK
   { "divz.ak", S(DIVZ),0,   2,      "a",    "akk",  NULL,   divzak  },
+  #endif
+  #ifdef INC_DIVZ_KA
   { "divz.ka", S(DIVZ),0,   2,      "a",    "kak",  NULL,   divzka  },
-  { "divz.aa", S(DIVZ),0,   2,      "a",    "aak",  NULL,   divzaa  },
+  #endif
+  #ifdef INC_DIV_AA
+  { "divz.aa", S(DIEVZ),0,   2,      "a",    "aak",  NULL,   divzaa  },
+  #endif
   #ifdef INC_INT
   { "int.i",  S(EVAL),0,    1,      "i",    "i",    int1                    },
   #endif
@@ -257,24 +267,60 @@ OENTRY opcodlst_1[] = {
   #ifdef INC_BIRND
   { "birnd.i",S(EVAL),0,    1,      "i",    "i",    birnd1                  },
   #endif
+  #ifdef INC_ABS
   { "abs.i",  S(EVAL),0,    1,      "i",    "i",    abs1                    },
+  #endif
+  #ifdef INC_EXP
   { "exp.i",  S(EVAL),0,    1,      "i",    "i",    exp01                   },
+  #endif
+  #ifdef INC_LOG
   { "log.i",  S(EVAL),0,    1,      "i",    "i",    log01                   },
+  #endif
+  #ifdef INC_SQRT
   { "sqrt.i", S(EVAL),0,    1,      "i",    "i",    sqrt1                   },
+  #endif
+  #ifdef INC_SIN
   { "sin.i",  S(EVAL),0,    1,      "i",    "i",    sin1                    },
+  #endif
+  #ifdef INC_COS
   { "cos.i",  S(EVAL),0,    1,      "i",    "i",    cos1                    },
+  #endif
+  #ifdef INC_TAN
   { "tan.i",  S(EVAL),0,    1,      "i",    "i",    tan1                    },
+  #endif
+  #ifdef INC_QINF
   { "qinf.i", S(EVAL),0,    1,      "i",    "i",    is_inf                  },
+  #endif
+  #ifdef INC_QNAN
   { "qnan.i", S(EVAL),0,    1,      "i",    "i",    is_NaN                  },
+  #endif
+  #ifdef INC_ASIN
   { "sininv.i", S(EVAL),0,  1,      "i",    "i",    asin1                   },
+  #endif
+  #ifdef INC_ACOS
   { "cosinv.i", S(EVAL),0,  1,      "i",    "i",    acos1                   },
+  #endif
+  #ifdef INC_ATAN
   { "taninv.i", S(EVAL),0,  1,      "i",    "i",    atan1                   },
+  #endif
+  #ifdef INC_ATAN
   { "taninv2.i",S(AOP),0,   1,      "i",    "ii",   atan21                  },
+  #endif
+  #ifdef INC_LOG10
   { "log10.i",S(EVAL),0,    1,      "i",    "i",    log101                  },
+  #endif
+  #ifdef INC_LOG2
   { "log2.i", S(EVAL),0,    1,      "i",    "i",    log21                   },
+  #endif
+  #ifdef INC_SIN
   { "sinh.i", S(EVAL),0,    1,      "i",    "i",    sinh1                   },
+  #endif
+  #ifdef INC_COSH
   { "cosh.i", S(EVAL),0,    1,      "i",    "i",    cosh1                   },
+  #endif
+  #ifdef INC_TAN
   { "tanh.i", S(EVAL),0,    1,      "i",    "i",    tanh1                   },
+  #endif
 #ifdef INC_INT
   { "int.k",  S(EVAL),0,    2,      "k",    "k",    NULL,   int1            },
 #endif
@@ -296,24 +342,60 @@ OENTRY opcodlst_1[] = {
   #ifdef INC_BIRND
   { "birnd.k",S(EVAL),0,    2,      "k",    "k",    NULL,   birnd1          },
   #endif
+  #ifdef INC_ABS
   { "abs.k",  S(EVAL),0,    2,      "k",    "k",    NULL,   abs1            },
+  #endif
+  #ifdef INC_EXP
   { "exp.k",  S(EVAL),0,    2,      "k",    "k",    NULL,   exp01           },
+  #endif
+  #ifdef INC_LOG
   { "log.k",  S(EVAL),0,    2,      "k",    "k",    NULL,   log01           },
+  #endif
+  #ifdef INC_SQRT
   { "sqrt.k", S(EVAL),0,    2,      "k",    "k",    NULL,   sqrt1           },
+  #endif
+  #ifdef INC_SIN
   { "sin.k",  S(EVAL),0,    2,      "k",    "k",    NULL,   sin1            },
+  #endif
+  #ifdef INC_COS
   { "cos.k",  S(EVAL),0,    2,      "k",    "k",    NULL,   cos1            },
+  #endif
+  #ifdef INC_TAN
   { "tan.k",  S(EVAL),0,    2,      "k",    "k",    NULL,   tan1            },
+  #endif
+  #ifdef INC_QINF
   { "qinf.k", S(EVAL),0,    2,      "k",    "k",    NULL,   is_inf          },
+  #endif
+  #ifdef INC_QNAN
   { "qnan.k", S(EVAL),0,    2,      "k",    "k",    NULL,   is_NaN          },
+  #endif
+  #ifdef INC_ASIN
   { "sininv.k", S(EVAL),0,  2,      "k",    "k",    NULL,   asin1           },
+  #endif
+  #ifdef INC_ACOS
   { "cosinv.k", S(EVAL),0,  2,      "k",    "k",    NULL,   acos1           },
+  #endif
+  #ifdef INC_ATAN
   { "taninv.k", S(EVAL),0,  2,      "k",    "k",    NULL,   atan1           },
+  #endif
+  #ifdef INC_ATAN2
   { "taninv2.k",S(AOP),0,   2,      "k",    "kk",   NULL,   atan21          },
+  #endif
+  #ifdef INC_SINH
   { "sinh.k", S(EVAL),0,    2,      "k",    "k",    NULL,   sinh1           },
+  #endif
+  #ifdef INC_COSH
   { "cosh.k", S(EVAL),0,    2,      "k",    "k",    NULL,   cosh1           },
+  #endif
+  #ifdef INC_TANH
   { "tanh.k", S(EVAL),0,    2,      "k",    "k",    NULL,   tanh1           },
+  #endif
+  #ifdef INC_LOG10
   { "log10.k",S(EVAL),0,    2,      "k",    "k",    NULL,   log101          },
+  #endif
+  #ifdef INC_LOG2
   { "log2.k", S(EVAL),0,    2,      "k",    "k",    NULL,   log21           },
+  #endif
   #ifdef INC_INT_A
   { "int.a",  S(EVAL),0,    2,      "a",    "a",    NULL, int1a       },
   #endif
@@ -329,24 +411,60 @@ OENTRY opcodlst_1[] = {
 #ifdef INC_CEIL_A
   { "ceil.a", S(EVAL),0,    2,      "a",    "a",    NULL, int1a_ceil  },
   #endif
+  #ifdef INC_ABS_A
   { "abs.a",  S(EVAL),0,    2,      "a",    "a",    NULL,   absa    },
+  #endif
+  #ifdef INC_EXP_A
   { "exp.a",  S(EVAL),0,    2,      "a",    "a",    NULL,   expa    },
+  #endif
+  #ifdef INC_LOG_A
   { "log.a",  S(EVAL),0,    2,      "a",    "a",    NULL,   loga    },
+  #endif
+  #ifdef INC_SQRT_A
   { "sqrt.a", S(EVAL),0,    2,      "a",    "a",    NULL,   sqrta   },
+  #endif
+  #ifdef INC_SIN_A
   { "sin.a",  S(EVAL),0,    2,      "a",    "a",    NULL,   sina    },
+  #endif
+  #ifdef INC_COS_A
   { "cos.a",  S(EVAL),0,    2,      "a",    "a",    NULL,   cosa    },
+  #endif
+  #ifdef INC_TAN_A
   { "tan.a",  S(EVAL),0,    2,      "a",    "a",    NULL,   tana    },
+  #endif
+  #ifdef INC_QINF_A
   { "qinf.a", S(EVAL),0,    2,      "a",    "a",    NULL,   is_infa },
+  #endif
+  #ifdef INC_QNAN_A
   { "qnan.a", S(EVAL),0,    2,      "a",    "a",    NULL,   is_NaNa },
+  #endif
+  #ifdef INC_ASIN_A
   { "sininv.a", S(EVAL),0,  2,      "a",    "a",    NULL,   asina   },
+  #endif
+  #ifdef INC_ACOS_A
   { "cosinv.a", S(EVAL),0,  2,      "a",    "a",    NULL,   acosa   },
+  #endif
+  #ifdef INC_ATAN_A
   { "taninv.a", S(EVAL),0,  2,      "a",    "a",    NULL,   atana   },
+  #endif
+  #ifdef INC_ATAN2_A
   { "taninv2.a",S(AOP),0,   2,      "a",    "aa",   NULL,   atan2aa },
+  #endif
+  #ifdef INC_SINH_A
   { "sinh.a", S(EVAL),0,    2,      "a",    "a",    NULL,   sinha   },
+  #endif
+  #ifdef INC_COSH_A
   { "cosh.a", S(EVAL),0,    2,      "a",    "a",    NULL,   cosha   },
+  #endif
+  #ifdef INC_TANH_A
   { "tanh.a", S(EVAL),0,    2,      "a",    "a",    NULL,   tanha   },
+  #endif
+  #ifdef INC_LOG10_A
   { "log10.a",S(EVAL),0,    2,      "a",    "a",    NULL,   log10a  },
+  #endif
+  #ifdef INC_LOG2_A
   { "log2.a", S(EVAL),0,    2,      "a",    "a",    NULL,   log2a   },
+  #endif
   #ifdef INC_AMPDB_A
   { "ampdb.a",S(EVAL),0,    2,      "a",    "a",    NULL,   aampdb  },
   #endif
@@ -572,7 +690,7 @@ OENTRY opcodlst_1[] = {
   #endif
   #ifdef IC_SIGNU_A
   { "signum.a", S(ASSIGN), 0, 2,     "a",   "a", NULL, asignum      },
-  #endif
+#endif
   #ifdef INC_TABLE_I
   { "table.i",  S(TABL),TR, 1,      "i",    "iiooo",(SUBR)tabler_init       },
   { "ptable.i",  S(TABLE),TR|_QQ, 1,"i",    "iiooo",(SUBR)tabler_init       },
@@ -707,7 +825,7 @@ OENTRY opcodlst_1[] = {
 #endif
 #ifdef INC_OSCIL3kk
   { "oscil3.kk",S(OSC),TR,   3,      "k",   "kkjo", oscset, koscl3, NULL  },
-#endif)
+#endif
 #ifdef INC_OSCIL3ka
   { "oscil3.ka",S(OSC),TR,   3,      "a",   "kajo", oscset,   oscka3  },
 #endif

@@ -1653,6 +1653,7 @@ int xoutset(CSOUND *csound, XOUT *p)
 */
 //#include "typetabl.h"
 #include "csound_standard_types.h"
+#ifdef IC_SETKSAMPS
 int setksmpsset(CSOUND *csound, SETKSMPS *p)
 {
 
@@ -1693,6 +1694,7 @@ int setksmpsset(CSOUND *csound, SETKSMPS *p)
 
   return OK;
 }
+#endif
 
 /* IV - Oct 16 2002: nstrnum opcode (returns the instrument number of a */
 /* named instrument) */

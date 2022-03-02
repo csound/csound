@@ -558,13 +558,16 @@ int32_t divaa(CSOUND *csound, AOP *p)
     return OK;
 }
 
+#ifdef INC_DIVZ
 int32_t divzkk(CSOUND *csound, DIVZ *p)
 {
     IGN(csound);
     *p->r = (*p->b != FL(0.0) ? *p->a / *p->b : *p->def);
     return OK;
 }
+#endif
 
+#ifdef INC_DIVZ_KA
 int32_t divzka(CSOUND *csound, DIVZ *p)
 {
     uint32_t n;
@@ -589,7 +592,9 @@ int32_t divzka(CSOUND *csound, DIVZ *p)
     }
     return OK;
 }
+#endif
 
+#ifdef INC_DIVZ_AK
 int32_t divzak(CSOUND *csound, DIVZ *p)
 {
     uint32_t n;
@@ -616,7 +621,9 @@ int32_t divzak(CSOUND *csound, DIVZ *p)
     }
     return OK;
 }
+#endif
 
+#ifdef INC_DIVZ_AA
 int32_t divzaa(CSOUND *csound, DIVZ *p)
 {
     uint32_t n;
@@ -641,6 +648,7 @@ int32_t divzaa(CSOUND *csound, DIVZ *p)
     }
     return OK;
 }
+#endif
 
 #ifdef INC_CONVAL
 int32_t conval(CSOUND *csound, CONVAL *p)
@@ -871,28 +879,60 @@ int32_t birnd1(CSOUND *csound, EVAL *p)             /* returns bipolar rand(x) *
 
 #define LIB1(OPNAME,LIBNAME)  int32_t OPNAME(CSOUND *csound, EVAL *p)       \
   {  IGN(csound); *p->r = LIBNAME(*p->a); return OK; }
+#ifdef INC_ABS
 LIB1(abs1,FABS)
+#endif
+#ifdef INC_EXP
 LIB1(exp01,EXP)
+#endif
+#ifdef INC_LOG
 LIB1(log01,LOG)
+#endif
+#ifdef INC_SQRT
 LIB1(sqrt1,SQRT)
+#endif
+#ifdef INC_SIN
 LIB1(sin1,SIN)
+#endif
+#ifdef INC_COS
 LIB1(cos1,COS)
+#endif
+#ifdef INC_TAN
 LIB1(tan1,TAN)
+#endif
+#ifdef INC_ASIN
 LIB1(asin1,ASIN)
+#endif
+#ifdef INC_ACOS
 LIB1(acos1,ACOS)
+#endif
+#ifdef INC_ATAN
 LIB1(atan1,ATAN)
+#endif
+#ifdef INC_SINH
 LIB1(sinh1,SINH)
+#endif
+#ifdef INC_COSH
 LIB1(cosh1,COSH)
+#endif
+#ifdef INC_TANH
 LIB1(tanh1,TANH)
+#endif
+#ifdef INC_LOG10
 LIB1(log101,LOG10)
+#endif
+#ifdef INC_LOG2
 LIB1(log21,LOG2)
+#endif
 
+#ifdef INC_ATAN2
 int32_t atan21(CSOUND *csound, AOP *p)
 {
     IGN(csound);
     *p->r = ATAN2(*p->a, *p->b);
     return OK;
 }
+#endif
 
 #define LIBA(OPNAME,LIBNAME) int32_t OPNAME(CSOUND *csound, EVAL *p) {      \
     IGN(csound); \
@@ -911,22 +951,53 @@ int32_t atan21(CSOUND *csound, AOP *p)
       r[n] = LIBNAME(a[n]);                                             \
     return OK;                                                          \
   }
+#ifdef INC_ABS_A
 LIBA(absa,FABS)
+#endif
+#ifdef INC_EXP_A
 LIBA(expa,EXP)
+#endif
+#ifdef INC_LOG_A
 LIBA(loga,LOG)
+#endif
+#ifdef INC_SQRT_A
 LIBA(sqrta,SQRT)
+#endif
+#ifdef INC_SIN_A
 LIBA(sina,SIN)
+#endif
+#ifdef INC_COS_A
 LIBA(cosa,COS)
+#endif
+#ifdef INC_TAN_A
 LIBA(tana,TAN)
+#endif
+#ifdef INC_ASIN_A
 LIBA(asina,ASIN)
+#endif
+#ifdef INC_ACOS_A
 LIBA(acosa,ACOS)
+#endif
+#ifdef INC_ATAN_A
 LIBA(atana,ATAN)
+#endif
+#ifdef INC_SINH_A
 LIBA(sinha,SINH)
+#endif
+#ifdef INC_COSH_A
 LIBA(cosha,COSH)
+#endif
+#ifdef INC_TANH_A
 LIBA(tanha,TANH)
+#endif
+#ifdef INC_LOG10_a
 LIBA(log10a,LOG10)
+#endif
+#ifdef INC_lOG2_A
 LIBA(log2a,LOG2)
+#endif
 
+#ifdef INC_ATAN2_A
 int32_t atan2aa(CSOUND *csound, AOP *p)
 {
     MYFLT   *r, *a, *b;
@@ -946,6 +1017,7 @@ int32_t atan2aa(CSOUND *csound, AOP *p)
       r[n] = ATAN2(a[n], b[n]);
     return OK;
 }
+#endif
 
 #ifdef INC_DBAMP
 int32_t dbamp(CSOUND *csound, EVAL *p)
