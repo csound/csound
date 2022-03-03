@@ -53,6 +53,7 @@ int32_t midibset(CSOUND*, MIDIKMB*);
 
 /* IV - Oct 31 2002: modified to allow named instruments */
 
+#ifdef INC_MASDIGN_p
 int32_t massign_p(CSOUND *csound, MASSIGN *p)
 {
     int32_t   chnl = (int32_t)(*p->chnl + FL(0.5));
@@ -70,7 +71,9 @@ int32_t massign_p(CSOUND *csound, MASSIGN *p)
     }
     return retval;
 }
+#endif
 
+#ifdef INC_MASSIGN_S
 int32_t massign_S(CSOUND *csound, MASSIGNS *p)
 {
     int32_t   chnl = (int32_t)(*p->chnl + FL(0.5));
@@ -92,8 +95,9 @@ int32_t massign_S(CSOUND *csound, MASSIGNS *p)
     }
     return retval;
 }
+#endif
 
-
+#ifdef INC_CTRLINIT
 int32_t ctrlinit(CSOUND *csound, CTLINIT *p)
 {
     int16 chnl = (int16)(*p->chnl - FL(0.5));
@@ -120,7 +124,9 @@ int32_t ctrlinit(CSOUND *csound, CTLINIT *p)
       return OK;
     }
 }
+#endif
 
+#ifdef INC_CTRLINIT_S
 int32_t ctrlnameinit(CSOUND *csound, CTLINITS *p)
 {
     int16 chnl = strarg2insno(csound, ((STRINGDAT *)p->iname)->data, 1);
@@ -147,15 +153,17 @@ int32_t ctrlnameinit(CSOUND *csound, CTLINITS *p)
       return OK;
     }
 }
+#endif
 
-
-
+#ifdef INC_NOTNUM
 int32_t notnum(CSOUND *csound, MIDIKMB *p)       /* valid only at I-time */
 {
     *p->r = csound->curip->m_pitch;
     return OK;
 }
+#endif
 
+#ifdef INC_CPSTMID
 /* cpstmid by G.Maldonado */
 int32_t cpstmid(CSOUND *csound, CPSTABLE *p)
 {
@@ -190,13 +198,17 @@ int32_t cpstmid(CSOUND *csound, CPSTABLE *p)
     *p->r = func[grade] * factor * basefreq;
     return OK;
 }
+#endif
 
+#ifdef INC_VELOC
 int32_t veloc(CSOUND *csound, MIDIMAP *p)           /* valid only at I-time */
 {
     *p->r = *p->ilo + csound->curip->m_veloc*(*p->ihi - *p->ilo) * dv127;
     return OK;
 }
+#endif
 
+#ifdef INC_PCHMIDI
 int32_t pchmidi(CSOUND *csound, MIDIKMB *p)
 {
     IGN(csound);
@@ -208,6 +220,7 @@ int32_t pchmidi(CSOUND *csound, MIDIKMB *p)
     *p->r = (MYFLT)(ioct + fract);
     return OK;
 }
+#endif
 
 int32_t pchmidib(CSOUND *csound, MIDIKMB *p)
 {
@@ -229,6 +242,7 @@ int32_t pchmidib_i(CSOUND *csound, MIDIKMB *p)
     return OK;
 }
 
+#ifdef INC_OCTMIDI
 int32_t octmidi(CSOUND *csound, MIDIKMB *p)
 {
     IGN(csound);
@@ -236,7 +250,9 @@ int32_t octmidi(CSOUND *csound, MIDIKMB *p)
     *p->r = lcurip->m_pitch / FL(12.0) + FL(3.0);
     return OK;
 }
+#endif
 
+#ifdef INC_OCTMIDIB
 int32_t octmidib(CSOUND *csound, MIDIKMB *p)
 {
     IGN(csound);
@@ -245,14 +261,18 @@ int32_t octmidib(CSOUND *csound, MIDIKMB *p)
                                 p->scale)) / FL(12.0) + FL(3.0);
     return OK;
 }
+#endif
 
+#ifdef INC_OCTMIDIB_I
 int32_t octmidib_i(CSOUND *csound, MIDIKMB *p)
 {
     midibset(csound, p);
     octmidib(csound, p);
     return OK;
 }
+#endif
 
+#ifdef INC_CPSMIDI
 int32_t cpsmidi(CSOUND *csound, MIDIKMB *p)
 {
     INSDS *lcurip = p->h.insdshead;
@@ -264,6 +284,7 @@ int32_t cpsmidi(CSOUND *csound, MIDIKMB *p)
     *p->r = CPSOCTL(loct);
     return OK;
 }
+#endif
 
 int32_t icpsmidib(CSOUND *csound, MIDIKMB *p)
 {
