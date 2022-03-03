@@ -4014,8 +4014,8 @@ int32_t set_cols_perf(CSOUND *csound, FFT *p) {
                                  Str("Error: New column too short\n"));
 
 
-    int32_t j,i,len =  p->out->sizes[0];
-    for (j=0,i=start; j < len; i+=len+1, j++)
+    int32_t j,i,row = p->out->sizes[1], col = p->out->sizes[0];
+    for (j=0,i=start; j < col; i+=row, j++)
         p->out->data[i] = p->in->data[j];
     return OK;
 }
@@ -4029,8 +4029,8 @@ int32_t set_cols_i(CSOUND *csound, FFT *p) {
     if (UNLIKELY(p->in->dimensions != 1 || p->in->sizes[0]<p->out->sizes[0]))
       return csound->InitError(csound, "%s",
                                  Str("Error: New column too short\n"));
-    int32_t j,i,len =  p->out->sizes[0];
-    for (j=0,i=start; j < len; i+=len+1, j++)
+    int32_t j,i,row = p->out->sizes[1], col = p->out->sizes[0];
+    for (j=0,i=start; j < col; i+=row, j++)
         p->out->data[i] = p->in->data[j];
     return OK;
 }
