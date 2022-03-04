@@ -119,14 +119,24 @@ OENTRY opcodlst_1[] = {
   #ifdef INC_CTRLINIT_S
   { "ctrlinit.S",S(CTLINITS),0,1,      "",  "Sm", ctrlnameinit, NULL, NULL, NULL},
   #endif
+  #ifdef INC_CTRLSAVE
   { "ctrlsave",S(SAVECTRL),0,3,       "k[]","im", savectrl_init, savectrl_perf, NULL, NULL},
+  #endif
+  #ifdef INC_CTRLPRINT
   { "ctrlprint.S",S(PRINTCTRL),0,3, "", "k[]S", printctrl_init1, printctrl, NULL},
   { "ctrlprint",S(PRINTCTRL),0,3,       "", "k[]", printctrl_init, printctrl, NULL},
+  #endif
+  #ifdef CTRLPRESET
   { "ctrlpreset", S(PRESETCTRL1), 0,3, "k", "kk[]", presetctrl1_init, presetctrl1_perf, NULL},
   { "ctrlpreset", S(PRESETCTRL), 0,3, "k", "kim", presetctrl_init, presetctrl_perf, NULL},
+  #endif
+  #ifdef INC_CTRLSELECT
   { "ctrlselect", S(SELECTCTRL), 0,3,"",   "k", selectctrl_init, selectctrl_perf, NULL },
+  #endif
+  #ifdef INC_CTRLPRINTPRESETS
   { "ctrlprintpresets", S(PRINTPRESETS), 0,3, "", "", printpresets_init, printpresets_perf, NULL},
-  { "ctrlprintpresets.S", S(PRINTPRESETS), 0,3, "", "S", printpresets_init1, printpresets_perf, NULL},
+  { "ctrlprintpresets.S", S(PRINTPRESETS), 0,3, "", "S", printpresets_init1, printpresets_perf, NULL}
+  #endif
   #ifdef INC_MASSIGN_P
   { "massign",S(MASSIGN), 0,1,      "",  "iip",massign_p, NULL, NULL, NULL},
   #endif
@@ -551,7 +561,7 @@ OENTRY opcodlst_1[] = {
   { "cpsoct.a",S(EVAL),0,   2,      "a",    "a",    NULL,   acpsoct },
   #endif
   #ifdef INC_CPSMIDINN
-  { "cpsmidinn.i",S(EVAL),0,1,      "i",    "i",    cpsmidinn               },
+  { "csmidinn.i",S(EVAL),0,1,      "i",    "i",    cpsmidinn               },
   { "cpsmidinn.k",S(EVAL),0,2,      "k",    "k",    NULL,   cpsmidinn       },
   #endif
   #ifdef INC_OCTMIDINN
@@ -577,26 +587,54 @@ OENTRY opcodlst_1[] = {
   #ifdef INC_CPSMIDI
   { "cpsmidi",S(MIDIKMB),0, 1,      "i",    "",     cpsmidi                 },
   #endif
+  #ifdef INC_PCHMIDIB_I
   { "pchmidib.i",S(MIDIKMB),0,1,    "i",    "o",    pchmidib_i              },
+  #endif
   #ifdef INC_OCTMIDIB_I
   { "octmidib.i",S(MIDIKMB),0,1,    "i",    "o",    octmidib_i              },
   #endif
+  #ifdef CPSMMIDIB_I
   { "cpsmidib.i",S(MIDIKMB),0,1,    "i",    "o",    icpsmidib_i             },
+  #endif
+  #ifdef INC_PCHMIDIB_K
   { "pchmidib.k",S(MIDIKMB),0,3,    "k",    "o",    midibset, pchmidib      },
-  #ifdef INC_OCTMIDIB
+  #endif
+#ifdef INC_OCTMIDIB
   { "octmidib.k",S(MIDIKMB),0,3,    "k",    "o",    midibset, octmidib      },
   #endif
+  #ifdef INC_CPSMIDIB_K
   { "cpsmidib.k",S(MIDIKMB),0,3,    "k",    "o",    midibset, icpsmidib     },
+  #endif
+  #ifdef INC_AMPMIDI
   { "ampmidi",S(MIDIAMP),0, 1,      "i",    "io",   ampmidi                 },
+  #endif
+  #ifdef INC_AFTOUCH
   { "aftouch",S(MIDIKMAP),0, 3,     "k",    "oh",   aftset, aftouch         },
+  #endif
+  #ifdef INC_PCHBEND_I
   { "pchbend.i",S(MIDIMAP),0,1,     "i",    "jp",   ipchbend                },
+  #endif
+  #ifdef INC_PCHBEND
   { "pchbend.k",S(MIDIKMAP),0,3,    "k",    "jp",   kbndset,kpchbend        },
+  #endif
+  #ifdef INC_MIDICTRL_I
   { "midictrl.i",S(MIDICTL),0,1,    "i",    "ioh",  imidictl                },
+  #endif
+  #ifdef INC_MIDICTRL_K
   { "midictrl.k",S(MIDICTL),0,3,    "k",    "ioh",  mctlset, midictl        },
+  #endif
+  #ifdef INC_POLYAFT_I
   { "polyaft.i",S(MIDICTL),0,1,     "i",    "ioh",  imidiaft                },
+  #endif
+  #ifdef INC_POLYAFT_K
   { "polyaft.k",S(MIDICTL),0,3,     "k",    "ioh",  maftset, midiaft        },
+  #endif
+#ifdef INC_CHANCTRL_I
   { "chanctrl.i",S(CHANCTL),0,1,    "i",    "iioh", ichanctl                },
+#endif
+#ifdef INC_CHANCTRL
   { "chanctrl.k",S(CHANCTL),0,3,    "k",    "iioh", chctlset,chanctl        },
+#endif
   #ifdef INC_LINE
   { "line",   S(LINE),0,    3,      "k",    "iii",  linset, kline,  NULL  },
   #endif
@@ -1498,12 +1536,22 @@ OENTRY opcodlst_1[] = {
   { "db.i",     S(EVAL),0,    1,    "i",    "i",     db                     },
   { "db.k",     S(EVAL),0,    2,    "k",    "k",     NULL, db               },
   { "db.a",     S(EVAL),0,    2,    "a",    "a",     NULL, dba        },
+#ifdef INC_MIDICHN
   { "midichn",  S(MIDICHN),0, 1,    "i",    "",      midichn, NULL, NULL    },
+#endif
+#ifdef INC_PGMASSIGN
   { "pgmassign",S(PGMASSIGN),0, 1,  "",     "iio",   pgmassign, NULL, NULL  },
   { "pgmassign.S",S(PGMASSIGN),0, 1, "",    "iSo",   pgmassign_S, NULL, NULL  },
+#endif
+#ifdef INC_MIDIIN
   { "midiin",   S(MIDIIN),0,  3,    "kkkk", "",      midiin_set, midiin, NULL },
+#endif
+#ifdef INC_PGMCHN
   { "pgmchn",   S(PGMIN),0,  3,     "kk",   "o",     pgmin_set, pgmin, NULL },
+#endif
+#ifdef INC_CTLCHN
   { "ctlchn",   S(CTLIN),0,  3,     "kkk",  "oo",    ctlin_set, ctlin, NULL },
+#endif
   { "miditempo", S(MIDITEMPO),0, 3, "k",    "",
     (SUBR) midiTempoOpcode, (SUBR) midiTempoOpcode, NULL    },
   { "midifilestatus", S(MIDITEMPO),0, 2, "k",    "",
@@ -1855,8 +1903,10 @@ OENTRY opcodlst_1[] = {
   #endif
   { "nchnls_hw", S(ASSIGN), 0,1, "ii", "",
     (SUBR)hw_channels},
+#ifdef INC_MIDIARP
    { "midiarp",   S(MIDIARP),0,  3,    "kk", "kO",
      midiarp_set, midiarp, NULL },
+#endif
    {"lpcfilter", S(LPCFIL), 0, 3, "a", "akkiiio",
    (SUBR) lpfil_init, (SUBR) lpfil_perf},
    {"lpcfilter", S(LPCFIL2), 0, 3, "a", "aakkiio",

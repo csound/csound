@@ -222,6 +222,7 @@ int32_t pchmidi(CSOUND *csound, MIDIKMB *p)
 }
 #endif
 
+#if defined(INC_PCHMIDIB_K)||defined(INC_PCHMIDIB_I)
 int32_t pchmidib(CSOUND *csound, MIDIKMB *p)
 {
     INSDS *lcurip = p->h.insdshead;
@@ -234,13 +235,16 @@ int32_t pchmidib(CSOUND *csound, MIDIKMB *p)
     *p->r = (MYFLT)(ioct + fract);
     return OK;
 }
+#endif
 
+#ifdef INC_PCHMIDIB_I
 int32_t pchmidib_i(CSOUND *csound, MIDIKMB *p)
 {
     midibset(csound, p);
     pchmidib(csound, p);
     return OK;
 }
+#endif
 
 #ifdef INC_OCTMIDI
 int32_t octmidi(CSOUND *csound, MIDIKMB *p)
@@ -286,6 +290,8 @@ int32_t cpsmidi(CSOUND *csound, MIDIKMB *p)
 }
 #endif
 
+ 
+#if defined(INC_CPSMIDIB_K)||defined(INC_CPSMIDIB_I)
 int32_t icpsmidib(CSOUND *csound, MIDIKMB *p)
 {
     INSDS *lcurip = p->h.insdshead;
@@ -297,14 +303,18 @@ int32_t icpsmidib(CSOUND *csound, MIDIKMB *p)
     *p->r = CPSOCTL(loct);
     return OK;
 }
+#endif
 
+#ifdef INC_CPSMIDIB_I
 int32_t icpsmidib_i(CSOUND *csound, MIDIKMB *p)
 {
     midibset(csound, p);
     icpsmidib(csound, p);
     return OK;
 }
+#endif
 
+#ifdef INC_PCHMIDIB_K
 int32_t kcpsmidib(CSOUND *csound, MIDIKMB *p)
 {
     INSDS *lcurip = p->h.insdshead;
@@ -321,7 +331,9 @@ int32_t kcpsmidib(CSOUND *csound, MIDIKMB *p)
     }
     return OK;
 }
+#endif
 
+#ifdef INC_AMPMIDI
 int32_t ampmidi(CSOUND *csound, MIDIAMP *p)   /* convert midi veloc to amplitude */
 {                                         /*   valid only at I-time          */
     MYFLT amp;
@@ -337,9 +349,11 @@ int32_t ampmidi(CSOUND *csound, MIDIAMP *p)   /* convert midi veloc to amplitude
     *p->r = amp * *p->imax;                       /* now scale the output   */
     return OK;
 }
+#endif
 
 /*      MWB 2/11/97  New optional field to set pitch bend range
         I also changed each of the xxxmidib opcodes, adding * p->scale */
+#if defined(INC_PCHMIDIB_K)||defined(INC_OCTMIDIB)||defined(INC_CPSMIDIB_K)||defined(INC_PCHMIDIB_I)
 int32_t midibset(CSOUND *csound, MIDIKMB *p)
 {
     MCHNBLK *chn;
@@ -358,7 +372,9 @@ int32_t midibset(CSOUND *csound, MIDIKMB *p)
       p->prvbend = FL(0.0);
     return OK;
 }
+#endif
 
+#ifdef INC_AFTOUCH
 int32_t aftset(CSOUND *csound, MIDIKMAP *p)
 {
     IGN(csound);
@@ -374,7 +390,9 @@ int32_t aftouch(CSOUND *csound, MIDIKMAP *p)
     *p->r = p->lo + MIDI_VALUE(lcurip->m_chnbp, aftouch) * p->scale;
     return OK;
 }
+#endif
 
+#ifdef INC_MIDICTRL_I
 int32_t imidictl(CSOUND *csound, MIDICTL *p)
 {
     int32_t  ctlno;
@@ -384,7 +402,9 @@ int32_t imidictl(CSOUND *csound, MIDICTL *p)
            * (*p->ihi - *p->ilo) * dv127 + *p->ilo;
     return OK;
 }
+#endif
 
+#ifdef INC_MIDICTRL_K
 int32_t mctlset(CSOUND *csound, MIDICTL *p)
 {
     int32_t  ctlno;
@@ -405,7 +425,9 @@ int32_t midictl(CSOUND *csound, MIDICTL *p)
     *p->r = MIDI_VALUE(lcurip->m_chnbp, ctl_val[p->ctlno]) * p->scale + p->lo;
     return OK;
 }
+#endif
 
+#ifdef INC_POLYAFT_I
 int32_t imidiaft(CSOUND *csound, MIDICTL *p)
 {
     int32_t  ctlno;
@@ -415,7 +437,9 @@ int32_t imidiaft(CSOUND *csound, MIDICTL *p)
            * (*p->ihi - *p->ilo) * dv127 + *p->ilo;
     return OK;
 }
+#endif
 
+#ifdef INC_POLYAFT_K
 int32_t maftset(CSOUND *csound, MIDICTL *p)
 {
     int32_t  ctlno;
@@ -436,18 +460,22 @@ int32_t midiaft(CSOUND *csound, MIDICTL *p)
     *p->r = MIDI_VALUE(lcurip->m_chnbp, polyaft[p->ctlno]) * p->scale + p->lo;
     return OK;
 }
+#endif
 
 /* midichn opcode - get MIDI channel number or 0 for score notes */
 /* written by Istvan Varga, May 2002 */
 
+#ifdef INC_MIDICHN
 int32_t midichn(CSOUND *csound, MIDICHN *p)
 {
     *(p->ichn) = (MYFLT) (csound->GetMidiChannelNumber(p) + 1);
     return OK;
 }
+#endif
 
 /* pgmassign - assign MIDI program to instrument */
 
+#ifdef INC_PGMASSIGN
 int32_t pgmassign_(CSOUND *csound, PGMASSIGN *p, int32_t instname)
 {
     int32_t pgm, ins, chn;
@@ -499,7 +527,9 @@ int32_t pgmassign_S(CSOUND *csound, PGMASSIGN *p) {
 int32_t pgmassign(CSOUND *csound, PGMASSIGN *p) {
     return pgmassign_(csound,p,0);
 }
+#endif
 
+#ifdef INC_CHANCTRL_I
 int32_t ichanctl(CSOUND *csound, CHANCTL *p)
 {
     int32_t  ctlno, chan = (int32_t)(*p->ichano - FL(1.0));
@@ -511,7 +541,9 @@ int32_t ichanctl(CSOUND *csound, CHANCTL *p)
            * dv127 + *p->ilo;
     return OK;
 }
+#endif
 
+#ifdef INC_CANCTRL
 int32_t chctlset(CSOUND *csound, CHANCTL *p)
 {
     int32_t  ctlno, chan = (int32_t)(*p->ichano - FL(1.0));
@@ -535,7 +567,9 @@ int32_t chanctl(CSOUND *csound, CHANCTL *p)
     *p->r = csound->m_chnbp[p->chano]->ctl_val[p->ctlno] * p->scale + p->lo;
     return OK;
 }
+#endif
 
+#ifdef INC_PCHBEND_I
 int32_t ipchbend(CSOUND *csound, MIDIMAP *p)
 {
     IGN(csound);
@@ -543,7 +577,9 @@ int32_t ipchbend(CSOUND *csound, MIDIMAP *p)
       pitchbend_value(p->h.insdshead->m_chnbp);
     return OK;
 }
+#endif
 
+#ifdef INC_PCHBEND
 int32_t kbndset(CSOUND *csound, MIDIKMAP *p)
 {
     IGN(csound);
@@ -565,7 +601,9 @@ int32_t kpchbend(CSOUND *csound, MIDIKMAP *p)
     *p->r = p->lo + pitchbend_value(lcurip->m_chnbp) * p->scale;
     return OK;
 }
+#endif
 
+#ifdef INC_MIDIIN
 int32_t midiin_set(CSOUND *csound, MIDIIN *p)
 {
     p->local_buf_index = MGLOB(MIDIINbufIndex) & MIDIINBUFMSK;
@@ -586,7 +624,9 @@ int32_t midiin(CSOUND *csound, MIDIIN *p)
     else *p->status = FL(0.0);
     return OK;
 }
+#endif
 
+#ifdef INC_PMGCHN
 int32_t pgmin_set(CSOUND *csound, PGMIN *p)
 {
     p->local_buf_index = MGLOB(MIDIINbufIndex) & MIDIINBUFMSK;
@@ -620,7 +660,9 @@ int32_t pgmin(CSOUND *csound, PGMIN *p)
     }
     return OK;
 }
+#endif
 
+#ifdef INC_CTLCHN
 int32_t ctlin_set(CSOUND *csound, CTLIN *p)
 {
     p->local_buf_index = MGLOB(MIDIINbufIndex) & MIDIINBUFMSK;
@@ -661,11 +703,12 @@ int32_t ctlin(CSOUND *csound, CTLIN *p)
     return OK;
 
 }
-
+#endif
 
 /* MIDIARP by Rory Walsh, 2016
  */
 
+#ifdef INC_MIDIARP
 int32_t midiarp_set(CSOUND *csound, MIDIARP *p)
 /* MIDI Arp - Jan 2017 - RW */
 {
@@ -815,11 +858,12 @@ int32_t midiarp(CSOUND *csound, MIDIARP *p)
 
     return OK;
 }
+#endif
 
 /* The internal data structure is an array onanin
  * length, chan, ctrl1, val1, ctrl2, val2, .....
  */
-
+#ifdef INC_CTRLSAVE
 int savectrl_init(CSOUND *csound, SAVECTRL *p)
 {
     int16 chnl = (int16)(*p->chnl - FL(0.5));
@@ -855,7 +899,9 @@ int savectrl_perf(CSOUND *csound, SAVECTRL *p)
     }
     return OK;
 }
+#endif
 
+#ifdef INC_CTRLPRINT
 int printctrl_init(CSOUND *csound, PRINTCTRL *p)
 {
     p->fout = stdout;
@@ -882,7 +928,9 @@ int printctrl(CSOUND *csound, PRINTCTRL *p)
     fflush(p->fout);
     return OK;
 }
+#endif
 
+#ifdef INC_CTRLPRESET
 int presetctrl_init(CSOUND *csound, PRESETCTRL *p)
 {
     PRESET_GLOB *q =
@@ -997,7 +1045,9 @@ int presetctrl1_perf(CSOUND *csound, PRESETCTRL1 *p)
     *p->inum = (MYFLT)tag+1;
     return OK;
 }
+#endif
 
+#ifdef INC_CTRLSELCT
 int selectctrl_init(CSOUND *csound, SELECTCTRL *p)
 {
     PRESET_GLOB *q =
@@ -1030,7 +1080,9 @@ int selectctrl_perf(CSOUND *csound, SELECTCTRL *p)
     }
     return OK;
 }
+#endif
 
+#ifdef INC_CTRLPRINTPRESETS
 int printpresets_perf(CSOUND *csound, PRINTPRESETS *p)
 {
     int j;
@@ -1068,3 +1120,4 @@ int printpresets_init1(CSOUND *csound, PRINTPRESETS *p)
     return OK;
 }
 
+#endif
