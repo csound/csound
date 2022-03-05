@@ -48,6 +48,7 @@ int32_t fsigs_equal(const PVSDAT *f1, const PVSDAT *f2)
 
 }
 
+#ifdef INC_FASSIGN
 /* Pandora's box opcode, but we can make it at least plausible,
    by forbidding copy to different format. */
 
@@ -109,9 +110,11 @@ int32_t fassign(CSOUND *csound, FASSIGN *p)
 
     return OK;
 }
+#endif
 
 /************* OSCBANK SYNTH ***********/
 
+#ifdef INC_PVSADSYN
 int32_t pvadsynset(CSOUND *csound, PVADS *p)
 {
     /* get params from input fsig */
@@ -180,6 +183,7 @@ int32_t pvadsynset(CSOUND *csound, PVADS *p)
 
     return OK;
 }
+
 /* c/o John Lazzaro, for SAOL, and many other sources */
 static inline MYFLT fastoscil(MYFLT *a, MYFLT *x, MYFLT *y)
 {
@@ -278,7 +282,9 @@ int32_t pvadsyn(CSOUND *csound, PVADS *p)
       aout[i] = adsyn_tick(csound, p);
     return OK;
 }
+#endif
 
+#ifdef INC_PVSCROSS
 /******* PVSCROSS ***********/
 
 int32_t pvscrosset(CSOUND *csound, PVSCROSS *p)
@@ -371,6 +377,9 @@ int32_t pvscross(CSOUND *csound, PVSCROSS *p)
     return OK;
 }
 
+#endif
+
+#ifdef INC_PVSFREAD
 /******** PVSFREAD ************/
 
 static int32_t pvsfreadset_(CSOUND *csound, PVSFREAD *p, int32_t stringname)
@@ -504,7 +513,9 @@ int32_t pvsfread(CSOUND *csound, PVSFREAD *p)
 
     return OK;
 }
+#endif
 
+#ifdef INC_PVSMASKA
 /************* PVSMASKA ****************/
 int32_t pvsmaskaset(CSOUND *csound, PVSMASKA *p)
 {
@@ -635,7 +646,9 @@ int32_t pvsmaska(CSOUND *csound, PVSMASKA *p)
     }
     return OK;
 }
+#endif
 
+#ifdef INC_PVSFTW
 /**************PVSFTW ******************/
 
 int32_t pvsftwset(CSOUND *csound, PVSFTW *p)
@@ -739,7 +752,9 @@ int32_t pvsftw(CSOUND *csound, PVSFTW *p)
       *p->kflag = FL(0.0);
     return OK;
 }
+#endif
 
+#ifdef INC_PVSFTR
 /************ PVSFTR ****************/
 
 int32_t pvsftrset(CSOUND *csound, PVSFTR *p)
@@ -831,9 +846,11 @@ int32_t pvsftr(CSOUND *csound, PVSFTR *p)
     }
     return OK;
 }
+#endif
 
 /************** PVSINFO ***********/
 
+#ifdef INC_PVSINFO
 int32_t pvsinfo(CSOUND *csound, PVSINFO *p)
 {
    IGN(csound);
@@ -847,3 +864,4 @@ int32_t pvsinfo(CSOUND *csound, PVSINFO *p)
     *p->iformat  = (MYFLT) p->fsrc->format;
     return OK;
 }
+#endif

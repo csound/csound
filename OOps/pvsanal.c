@@ -29,6 +29,7 @@
 #include <math.h>
 #include "csoundCore.h"
 #include "pstream.h"
+#include "opcodes.h"
 
         double  besseli(double x);
 static  void    hamming(MYFLT *win, int32_t winLen, int32_t even);
@@ -38,7 +39,7 @@ static  void    generate_frame(CSOUND *, PVSANAL *p);
 static  void    process_frame(CSOUND *, PVSYNTH *p);
 
 /* generate half-window */
-
+#if defined(INC_PVSANAL)||defined(INC_PVSYNTH)
 static CS_NOINLINE int32_t PVS_CreateWindow(CSOUND *csound, MYFLT *buf,
                                         int32_t type, int32_t winLen)
 {
@@ -92,7 +93,9 @@ static CS_NOINLINE int32_t PVS_CreateWindow(CSOUND *csound, MYFLT *buf,
     buf[n] = (even ? FL(0.0) : ftable[flen]);
     return OK;
 }
+#endif
 
+#ifdef INC_PVSANAL
 
 int32_t pvssanalset(CSOUND *csound, PVSANAL *p)
 {
@@ -411,7 +414,7 @@ static void generate_frame(CSOUND *csound, PVSANAL *p)
       p->Ii = /*I*/p->fsig->overlap;
     else
       if (p->nI > synWinLen)
-        p->Ii = p->nI - synWinLen;
+        p->Ii = p->nI -u synWinLen;
       else {
         p->Ii = 0;
 
@@ -694,7 +697,9 @@ int32_t pvsanal(CSOUND *csound, PVSANAL *p)
       anal_tick(csound,p,ain[i]);
     return OK;
 }
+#endif
 
+#ifdef INC_PVSYNTH
 int32_t pvsynthset(CSOUND *csound, PVSYNTH *p)
 {
     MYFLT *analwinhalf;
@@ -1136,3 +1141,4 @@ static void vonhann(MYFLT *win, int32_t winLen, int32_t even)
         win[i] = (MYFLT)(0.5 + 0.5 * cos(ftmp*(double)i));
     }
 }
+#endif

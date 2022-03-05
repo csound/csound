@@ -1454,6 +1454,7 @@ int32_t cpstun(CSOUND *csound, CPSTUN *p)
 }
 #endif
 
+#ifdef INC_OCTAVE_A
 int32_t logbasetwo_set(CSOUND *csound, EVAL *p)
 {
     IGN(p);
@@ -1467,12 +1468,6 @@ int32_t logbasetwo_set(CSOUND *csound, EVAL *p)
         x += ((INTERVAL - 1.0 / INTERVAL) / (double)STEPS);
       }
     }
-    return OK;
-}
-
-int32_t powoftwo(CSOUND *csound, EVAL *p)
-{
-    *p->r = POWER(FL(2.0), *p->a);
     return OK;
 }
 
@@ -1491,17 +1486,29 @@ int32_t powoftwoa(CSOUND *csound, EVAL *p)
       r[n] = POWER(FL(2.0), a[n]);
     return OK;
 }
+#endif
+
+#ifdef INC_OCTAVE_A
+int32_t powoftwo(CSOUND *csound, EVAL *p)
+{
+    *p->r = POWER(FL(2.0), *p->a);
+    return OK;
+}
+#endif
 
 #define ONEd12          (FL(0.08333333333333333333333))
 #define ONEd1200        (FL(0.00083333333333333333333))
 
+#ifdef INC_SEMITONE
 int32_t semitone(CSOUND *csound, EVAL *p)
 {
     MYFLT a = *p->a*ONEd12;
     *p->r = POWER(FL(2.0), a);
     return OK;
 }
+#endif
 
+#ifdef INC_SEMITONE_A
 int32_t asemitone(CSOUND *csound, EVAL *p)            /* JPff */
 {
     MYFLT *r, *a;
@@ -1521,14 +1528,18 @@ int32_t asemitone(CSOUND *csound, EVAL *p)            /* JPff */
     }
     return OK;
 }
+#endif
 
+#ifdef INC_CENT
 int32_t cent(CSOUND *csound, EVAL *p)
 {
     MYFLT a = *p->a;
     *p->r = POWER(FL(2.0), a/FL(1200.0));
     return OK;
 }
+#endif
 
+#ifdef INC_CENT_A
 int32_t acent(CSOUND *csound, EVAL *p)        /* JPff */
 {
     MYFLT *r, *a;
@@ -1548,15 +1559,19 @@ int32_t acent(CSOUND *csound, EVAL *p)        /* JPff */
   }
   return OK;
 }
+#endif
 
 #define LOG2_10D20      (FL(0.166096404744368117393515971474))
 
+#ifdef INC_DB
 int32_t db(CSOUND *csound, EVAL *p)
 {
     *p->r = POWER(FL(2.0), *p->a*LOG2_10D20);
     return OK;
 }
+#endif
 
+#ifdef INC_DB_A
 int32_t dba(CSOUND *csound, EVAL *p)          /* JPff */
 {
     MYFLT *r, *a;
@@ -1576,7 +1591,9 @@ int32_t dba(CSOUND *csound, EVAL *p)          /* JPff */
     }
     return OK;
 }
+#endif
 
+#ifdef INC_LOGBASE2
 int32_t logbasetwo(CSOUND *csound, EVAL *p)
 {
     int32_t n = (int32_t)((*p->a -(FL(1.0)/INTERVAL)) / (INTERVAL-FL(1.0)/INTERVAL)
@@ -1587,7 +1604,9 @@ int32_t logbasetwo(CSOUND *csound, EVAL *p)
       *p->r = csound->logbase2[n];
     return OK;
 }
+#endif
 
+#ifdef INC_LOGBASE2_A
 int32_t logbasetwoa(CSOUND *csound, EVAL *p)
 {                                   /* by G.Maldonado liberalised by JPff */
     MYFLT *r, *a;
@@ -1617,6 +1636,7 @@ int32_t ilogbasetwo(CSOUND *csound, EVAL *p)
     logbasetwo(csound, p);
     return OK;
 }
+#endif
 
 #ifdef INC_IN
 int32_t in(CSOUND *csound, INM *p)

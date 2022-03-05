@@ -1244,13 +1244,24 @@ OENTRY opcodlst_1[] = {
   #ifdef INC_NSAMP
   { "nsamp.i", S(EVAL),0,    1,     "i",    "i",    numsamp                    },
   #endif
+  #ifdef INC_OCTAVE
+  { "octave.i", S(EVAL),0,    1,    "i",    "i",     powoftwo               },
+  { "octave.k", S(EEVAL),0,    2,    "k",    "k",     NULL,  powoftwo        },
   { "powoftwo.i",S(EVAL),0,  1,     "i",    "i",    powoftwo                   },
   { "powoftwo.k",S(EVAL),0,  2,     "k",    "k",    NULL, powoftwo             },
+  #endif
+  #ifdef INC_POCTVE_A
   { "powoftwo.a",S(EVAL),0,  2,     "a",    "a",    NULL, powoftwoa      },
+  { "octave.a", S(EVAL),0,    2,    "a",    "a",     NULL, powoftwoa  },
+  #endif
+  #ifdef INC_LOGBASE2
   { "logbtwo.i",S(EVAL),0,   1,     "i",    "i",    ilogbasetwo                },
   { "logbtwo.k",S(EVAL),0,   3,     "k",    "k",    logbasetwo_set, logbasetwo },
+  #endif
+  #ifdef INC_LOGBASE2_A
   { "logbtwo.a",S(EVAL),0,   3,     "a",    "a",
     logbasetwo_set, logbasetwoa },
+  #endif
   { "filelen", S(SNDINFO),0, 1,     "i",    "Sp",   filelen_S, NULL, NULL        },
   { "filenchnls", S(SNDINFO),0, 1,  "i",    "Sp",   filenchnls_S, NULL, NULL     },
   { "filesr", S(SNDINFO),0,  1,     "i",    "Sp",   filesr_S, NULL, NULL         },
@@ -1512,30 +1523,59 @@ OENTRY opcodlst_1[] = {
     (SUBR)reverbx_set,(SUBR)reverbx  },
   { "nreverb",  S(NREV2),0,  3,     "a",    "akkoojoj",
     (SUBR)reverbx_set,(SUBR) reverbx },
+  #ifdef INC_FASSIGN
   { "=.f",      S(FASSIGN),0, 3,    "f",   "f", (SUBR)fassign_set, (SUBR)fassign },
   { "init.f",   S(FASSIGN),0, 1,    "f",   "f", (SUBR)fassign_set, NULL, NULL    },
+  #endif
+  #ifdef INC_PVSANAL
   { "pvsanal",  S(PVSANAL), 0, 3,   "f",   "aiiiioo", pvsanalset, pvsanal   },
+  #endif
+  #ifdef INC_PVSYNTH
   { "pvsynth",  S(PVSYNTH),0, 3,    "a",   "fo",     pvsynthset, pvsynth },
+  #endif
+#ifdef INC_PVSADSYN  
   { "pvsadsyn", S(PVADS),0,   3,    "a",   "fikopo", pvadsynset, pvadsyn, NULL },
+  #endif
+  #ifdef INC_PVSCROSS
   { "pvscross", S(PVSCROSS),0,3,    "f",   "ffkk",   pvscrosset, pvscross, NULL },
+  #endif
+  #ifdef INC_PVSFREAD
   { "pvsfread", S(PVSFREAD),0,3,    "f",   "kSo",    pvsfreadset_S, pvsfread, NULL},
   { "pvsfread.i", S(PVSFREAD),0,3,  "f",   "kio",    pvsfreadset, pvsfread, NULL},
+  #endif
+  #ifdef INC_PVSMASKA
   { "pvsmaska", S(PVSMASKA),0,3,    "f",   "fik",    pvsmaskaset, pvsmaska, NULL  },
+  #endif
+  #ifdef INC_PVSFTW
   { "pvsftw",   S(PVSFTW),  TW, 3,  "k",   "fio",    pvsftwset, pvsftw, NULL  },
+  #endif
+  #ifdef INC_PVSFTR
   { "pvsftr",   S(PVSFTR),TR, 3,    "",    "fio",    pvsftrset, pvsftr, NULL  },
+  #endif
+  #ifdef INC_PVSINFO
   { "pvsinfo",  S(PVSINFO),0, 1,    "iiii","f",      pvsinfo, NULL, NULL    },
-  { "octave.i", S(EVAL),0,    1,    "i",    "i",     powoftwo               },
-  { "octave.k", S(EVAL),0,    2,    "k",    "k",     NULL,  powoftwo        },
-  { "octave.a", S(EVAL),0,    2,    "a",    "a",     NULL, powoftwoa  },
+  #endif
+  #ifdef INC_SEMITONE
   { "semitone.i",S(EVAL),0,   1,    "i",    "i",     semitone               },
   { "semitone.k",S(EVAL),0,   2,    "k",    "k",     NULL,  semitone        },
+  #endif
+  #ifdef INC_SEMITONE_A
   { "semitone.a",S(EVAL),0,   2,    "a",    "a",     NULL, asemitone  },
+  #endif
+  #ifdef INC_CENT
   { "cent.i",   S(EVAL),0,    1,    "i",    "i",     cent                   },
+  #endif
+#ifdef INC_CENT_A
   { "cent.k",   S(EVAL),0,    2,    "k",    "k",     NULL,  cent            },
   { "cent.a",   S(EVAL),0,    2,    "a",    "a",     NULL, acent      },
+  #endif
+  #ifdef INC_DB
   { "db.i",     S(EVAL),0,    1,    "i",    "i",     db                     },
   { "db.k",     S(EVAL),0,    2,    "k",    "k",     NULL, db               },
+  #endif
+  #ifdef INC_DB_A
   { "db.a",     S(EVAL),0,    2,    "a",    "a",     NULL, dba        },
+  #endif
 #ifdef INC_MIDICHN
   { "midichn",  S(MIDICHN),0, 1,    "i",    "",      midichn, NULL, NULL    },
 #endif
