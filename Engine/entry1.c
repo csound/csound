@@ -1024,14 +1024,18 @@ OENTRY opcodlst_1[] = {
   #ifdef INC_PAN
   { "pan",    S(PAN),0,   3, "aaaa", "akkioo",(SUBR)panset, (SUBR)pan  },
   #endif
+  #ifdef INC_DISKIN
   { "soundin",S(DISKIN2),0,3,"mmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmm","Soooo",
     sndinset_S, soundin   },
   { "soundin.i",S(DISKIN2),0,3,"mmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmm","ioooo",
     sndinset, soundin   },
+  #endif
+  #ifdef INC_SOUNDOUT
   { "soundout",S(SNDOUT), _QQ, 3,   "",    "aSo",  sndoutset_S, soundout  },
   { "soundout.i",S(SNDOUT), _QQ, 3,   "",    "aio",  sndoutset, soundout  },
   { "soundouts",S(SNDOUTS),_QQ, 3,  "",    "aaSo", sndoutset_S, soundouts },
   { "soundouts.i",S(SNDOUTS),_QQ, 3,  "",    "aaio", sndoutset, soundouts },
+  #endif
   #ifdef INC_IN
   { "in.a",   S(INM),0,     2,      "a",    "",     NULL,   in      },
   #endif
@@ -1090,33 +1094,69 @@ OENTRY opcodlst_1[] = {
   { "rireturn",S(LINK),0,   1,      "",     "",     rireturn                },
   { "tigoto", S(GOTO),0,    1,      "",     "l",    tigoto                  },
   { "tival",  S(EVAL),0,    1,      "i",    "",     tival                   },
+  #ifdef INC_PRINT
   { "print",  S(PRINTV),WR, 1,      "",     "m",    printv                  },
+#endif
+  #ifdef INC_DISPLAY
   { "display.k",S(DSPLAY),0,  3,    "",     "kioo", dspset, kdsplay,NULL    },
+  #endif
+  #ifdef INC_DISPLAY_A
   { "display.a",S(DSPLAY),0,  3,    "",     "aioo", dspset ,dsplay    },
+  #endif
+  #ifdef INC_PVSDISP
   { "pvsdisp",S(FSIGDISP),0,  3,    "",     "foo", fdspset, fdsplay,NULL    },
+  #endif
+  #ifdef INC_DISPFFT
   { "dispfft.k",S(DSPFFT),0,  3,    "",     "kiiooooo",fftset,kdspfft,NULL  },
+  #endif
+  #ifdef INC_DISPFFT_A
   { "dispfft.a",S(DSPFFT),0,  3,    "",     "aiiooooo",fftset,dspfft   },
+  #endif
+  #ifdef INC_DUMPK
   { "dumpk",  S(KDUMP),0,   3,      "",     "kSii", kdmpset_S,kdump          },
-  { "dumpk2", S(KDUMP2),0,  3,      "",     "kkSii",kdmp2set_S,kdump2        },
-  { "dumpk3", S(KDUMP3),0,  3,      "",     "kkkSii",kdmp3set_S,kdump3       },
-  { "dumpk4", S(KDUMP4),0,  3,      "",     "kkkkSii",kdmp4set_S,kdump4      },
   { "dumpk.i",  S(KDUMP),0,   3,      "",     "kiii", kdmpset_p,kdump        },
+  #endif
+  #ifdef INC_DUMPK2
+  { "dumpk2", S(KDUMP2),0,  3,      "",     "kkSii",kdmp2set_S,kdump2        },
   { "dumpk2.i", S(KDUMP2),0,  3,      "",     "kkiii",kdmp2set_p,kdump2      },
+  #endif
+  #ifdef INC_DUMPK3
+  { "dumpk3", S(KDUMP3),0,  3,      "",     "kkkSii",kdmp3set_S,kdump3       },
   { "dumpk3.i", S(KDUMP3),0,  3,      "",     "kkkiii",kdmp3set_p,kdump3     },
+  #endif
+  #ifdef INC_DUMPK4
+  { "dumpk4", S(KDUMP4),0,  3,      "",     "kkkkSii",kdmp4set_S,kdump4      },
   { "dumpk4.i", S(KDUMP4),0,  3,      "",     "kkkkiii",kdmp4set_p,kdump4    },
+  #endif
+  #ifdef INC_READK
   { "readk",  S(KREAD),0,   3,      "k",    "Sii",   krdset_S, kread         },
-  { "readk2", S(KREAD2),0,  3,      "kk",   "Sii",   krd2set_S, kread2       },
-  { "readk3", S(KREAD3),0,  3,      "kkk",  "Sii",   krd3set_S, kread3       },
-  { "readk4", S(KREAD4),0,  3,      "kkkk", "Sii",   krd4set_S, kread4       },
   { "readk.i",  S(KREAD),0,   3,      "k",    "iii",   krdset_p, kread       },
+  #endif
+  #ifdef INC_READK2
+  { "readk2", S(KREAD2),0,  3,      "kk",   "Sii",   krd2set_S, kread2       },
   { "readk2.i", S(KREAD2),0,  3,      "kk",   "iii",   krd2set_p, kread2     },
+  #endif
+  #ifdef INC_READK3
+  { "readk3", S(KREAD3),0,  3,      "kkk",  "Sii",   krd3set_S, kread3       },
   { "readk3.i", S(KREAD3),0,  3,      "kkk",  "iii",   krd3set_p, kread3     },
+  #endif
+  #ifdef INC_READK4
+  { "readk4", S(KREAD4),0,  3,      "kkkk", "Sii",   krd4set_S, kread4       },
   { "readk4.i", S(KREAD4),0,  3,      "kkkk", "iii",   krd4set_p, kread4     },
+  #endif
+  #ifdef INC_READKS
   { "readks", S(KREADS),0,  3,      "S",    "Si",    krdsset_S, kreads       },
   { "readks.i", S(KREADS),0,  3,      "S",    "ii",    krdsset_p, kreads     },
+  #endif
+  #ifdef DEPRECATED
   { "xyin",   S(XYIN), _QQ, 1,      "kk",   "iiiiioo",xyinset,NULL          },
+  #endif
+  #ifdef INC_TEMPEST
   { "tempest",  S(TEMPEST),0, 3,    "k","kiiiiiiiiiop",tempeset,tempest},
+  #endif
+  #ifdef INC_TEMPO
   { "tempo",    S(TEMPO),0,   3,    "",     "ki",   tempset,tempo           },
+  #endif
   #ifdef INC_POW
   { "pow.i",    S(POW),0,   1,      "i",    "iip",  ipow,    NULL,  NULL    },
   { "pow.k",    S(POW),0,   2,      "k",    "kkp",  NULL,    ipow,  NULL    },
@@ -1182,6 +1222,7 @@ OENTRY opcodlst_1[] = {
   #ifdef INC_UNIRAND_A
   { "unirand.a",S(PRAND),0, 2,     "a",     "k",    NULL, auniform },
   #endif
+  #ifdef INC_DISKIN
   { "diskin",S(DISKIN2_ARRAY),0, 3,    "a[]",
     "SPooooooo",
     (SUBR) diskin_init_array_S,
@@ -1214,6 +1255,7 @@ OENTRY opcodlst_1[] = {
     "iPooooooo",
     (SUBR) diskin2_init,
     (SUBR) diskin2_perf                         },
+  #endif
   { "noteon", S(OUT_ON),0,  1,      "",     "iii",  iout_on, NULL,   NULL    },
   { "noteoff", S(OUT_ON),0, 1,      "",     "iii",  iout_off, NULL,    NULL  },
   { "noteondur",S(OUT_ON_DUR),0,3,  "", "iiii", iout_on_dur_set,iout_on_dur,NULL},
@@ -1592,7 +1634,7 @@ OENTRY opcodlst_1[] = {
 #ifdef INC_CTLCHN
   { "ctlchn",   S(CTLIN),0,  3,     "kkk",  "oo",    ctlin_set, ctlin, NULL },
 #endif
-  { "miditempo", S(MIDITEMPO),0, 3, "k",    "",
+  { "miditemptempoo", S(MIDITEMPO),0, 3, "k",    "",
     (SUBR) midiTempoOpcode, (SUBR) midiTempoOpcode, NULL    },
   { "midifilestatus", S(MIDITEMPO),0, 2, "k",    "",
    NULL, (SUBR) midiFileStatus, NULL },

@@ -171,6 +171,7 @@ int gettempo(CSOUND *csound, GTEMPO *p)
     return OK;
 }
 
+#ifdef INC_TEMPO
 int tempset(CSOUND *csound, TEMPO *p)
 {
     double tempo;
@@ -193,6 +194,7 @@ int tempo(CSOUND *csound, TEMPO *p)
     }
     return OK;
 }
+#endif
 
 static void print_maxamp(CSOUND *csound, MYFLT x)
 {

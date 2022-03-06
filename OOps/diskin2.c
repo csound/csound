@@ -26,7 +26,9 @@
 #include "diskin2.h"
 #include <math.h>
 #include <inttypes.h>
+#include "opcodes.h"
 
+#ifdef INC_DISKIN
 typedef struct DISKIN_INST_ {
   CSOUND *csound;
   DISKIN2 *diskin;
@@ -1000,7 +1002,9 @@ int32_t diskin2_perf(CSOUND *csound, DISKIN2 *p) {
     else return diskin2_perf_asynchronous(csound, p);
 }
 
+#endif
 
+#ifdef INC_SOUNDOUT
 
 static int32_t soundout_deinit(CSOUND *csound, void *pp)
 {
@@ -1161,6 +1165,9 @@ int32_t soundouts(CSOUND *csound, SNDOUTS *p)
     return OK;
 }
 
+#endif
+
+#ifdef INC_DISKIN
 static CS_NOINLINE void diskin2_read_buffer_array(CSOUND *csound,
                                                   DISKIN2_ARRAY *p,
                                                   int32_t bufReadPos)
@@ -2300,4 +2307,6 @@ int32_t soundin(CSOUND *csound, SOUNDIN_ *p)
     }
     return OK;
 }
+#endif
+
 #endif

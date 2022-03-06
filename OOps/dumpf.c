@@ -25,6 +25,7 @@
 #include "dumpf.h"
 #include <ctype.h>
 #include <inttypes.h>
+#include "opcodes.h"
 
 static const int32_t dumpf_format_table[9] = {
   0,
@@ -38,6 +39,7 @@ static const int32_t dumpf_format_table[9] = {
   CSFTYPE_FLOATS_TEXT,
 };
 
+#ifdef INC_DUMPK
 int32_t kdmpset_S(CSOUND *csound, KDUMP *p) {
     /* open in curdir or pathname */
     char soundoname[1024];
@@ -90,7 +92,9 @@ int32_t kdmpset_p(CSOUND *csound, KDUMP *p)
     p->countdown = p->timcount;
     return OK;
 }
+#endif
 
+#ifdef INC_DUMPK2
 int32_t kdmp2set_S(CSOUND *csound, KDUMP2 *p)
 {
     /* open in curdir or pathname */
@@ -143,8 +147,9 @@ int32_t kdmp2set_p(CSOUND *csound, KDUMP2 *p)
     p->countdown = p->timcount;
     return OK;
 }
+#endif
 
-
+#ifdef INC_DUMPK3
 int32_t kdmp3set_S(CSOUND *csound, KDUMP3 *p)
 {
     /* open in curdir or pathname */
@@ -198,7 +203,9 @@ int32_t kdmp3set_p(CSOUND *csound, KDUMP3 *p)
     p->countdown = p->timcount;
     return OK;
 }
+#endif
 
+#ifdef INC_DUMPK4
 int32_t kdmp4set_S(CSOUND *csound, KDUMP4 *p)
 {
     /* open in curdir or pathname */
@@ -250,6 +257,10 @@ int32_t kdmp4set_p(CSOUND *csound, KDUMP4 *p)
     p->countdown = p->timcount;
     return OK;
 }
+#endif
+
+
+#if defined(INC_DUMPK)||defined(INC_DUMPK2)||defined(INC_DUMPK3)||defined(INC_DUMPK4)
 
 static void nkdump(CSOUND *csound, MYFLT *kp, FILE *ofd, int32_t format,
                    int32_t nk, void *p)
@@ -314,7 +325,9 @@ static void nkdump(CSOUND *csound, MYFLT *kp, FILE *ofd, int32_t format,
                         Str("write failure in dumpk"));
     }
 }
+#endif
 
+#ifdef INC_DUMPK
 int32_t kdump(CSOUND *csound, KDUMP *p)
 {
     MYFLT kval[4];
@@ -326,7 +339,9 @@ int32_t kdump(CSOUND *csound, KDUMP *p)
     }
     return OK;
 }
+#endif
 
+#ifdef INC_DUMPK2
 int32_t kdump2(CSOUND *csound, KDUMP2 *p)
 {
     MYFLT kval[4];
@@ -339,7 +354,9 @@ int32_t kdump2(CSOUND *csound, KDUMP2 *p)
     }
     return OK;
 }
+#endif
 
+#ifdef INC_DUMPK3
 int32_t kdump3(CSOUND *csound, KDUMP3 *p)
 {
     MYFLT kval[4];
@@ -353,6 +370,9 @@ int32_t kdump3(CSOUND *csound, KDUMP3 *p)
     }
     return OK;
 }
+#endif
+
+#ifdef INC_DUMPK4
 
 int32_t kdump4(CSOUND *csound, KDUMP4 *p)
 {
@@ -368,11 +388,12 @@ int32_t kdump4(CSOUND *csound, KDUMP4 *p)
     }
     return OK;
 }
-
+#endif
 /* ******************************************************************** */
 /* ******** READK and friends; new code 1999 Feb 14 by JPff    ******** */
 /* ******************************************************************** */
 
+#ifdef INC_READK
 int32_t krdset_p(CSOUND *csound, KREAD *p)
 {
     /* open in curdir or pathname */
@@ -426,7 +447,9 @@ int32_t krdset_S(CSOUND *csound, KREAD *p)
     p->k[0] = p->k[1] = p->k[2] = p->k[3] = FL(0.0);
     return OK;
 }
+#endif
 
+#ifdef INC_READK2
 int32_t krd2set_S(CSOUND *csound, KREAD2 *p)
 {
     /* open in curdir or pathname */
@@ -480,6 +503,9 @@ int32_t krd2set_p(CSOUND *csound, KREAD2 *p)
     p->k[0] = p->k[1] = p->k[2] = p->k[3] = FL(0.0);
     return OK;
 }
+#endif
+
+#ifdef INC_READK3
 
 int32_t krd3set_S(CSOUND *csound, KREAD3 *p)
 {
@@ -534,6 +560,9 @@ int32_t krd3set_p(CSOUND *csound, KREAD3 *p)
     p->k[0] = p->k[1] = p->k[2] = p->k[3] = FL(0.0);
     return OK;
 }
+#endif
+
+#ifdef INC_READK4
 
 int32_t krd4set_S(CSOUND *csound, KREAD4 *p)
 {
@@ -588,8 +617,9 @@ int32_t krd4set_p(CSOUND *csound, KREAD4 *p)
     p->k[0] = p->k[1] = p->k[2] = p->k[3] = FL(0.0);
     return OK;
 }
+#endif
 
-
+#if defined(INC_READK)||defined(INC_READK2)||defined(INC_READK3)||defined(INC_READK4)
 static void nkread(CSOUND *csound, MYFLT *kp, FILE *ifd, int32_t format, int32_t nk)
 {
     int32_t   len;
@@ -694,7 +724,9 @@ static void nkread(CSOUND *csound, MYFLT *kp, FILE *ifd, int32_t format, int32_t
     default: csound->Warning(csound,Str("unknown kdump format"));
     }
 }
+#endif
 
+#ifdef INC_READK
 int32_t kread(CSOUND *csound, KREAD *p)
 {
     MYFLT kval[4];
@@ -707,6 +739,9 @@ int32_t kread(CSOUND *csound, KREAD *p)
     else *p->k1 = p->k[0];
     return OK;
 }
+#endif
+
+#ifdef INC_READK2
 
 int32_t kread2(CSOUND *csound, KREAD2 *p)
 {
@@ -724,6 +759,9 @@ int32_t kread2(CSOUND *csound, KREAD2 *p)
     }
     return OK;
 }
+#endif
+
+#ifdef INC_READK3
 
 int32_t kread3(CSOUND *csound, KREAD3 *p)
 {
@@ -744,6 +782,9 @@ int32_t kread3(CSOUND *csound, KREAD3 *p)
     return OK;
 }
 
+#endif
+
+#ifdef INC_READK4
 int32_t kread4(CSOUND *csound, KREAD4 *p)
 {
     MYFLT kval[4];
@@ -764,8 +805,10 @@ int32_t kread4(CSOUND *csound, KREAD4 *p)
     }
     return OK;
 }
-
+#endif
 #define INITSIZE 1024
+
+#ifdef INC_READK
 
 int32_t krdsset_S(CSOUND *csound, KREADS *p)
 {
@@ -791,7 +834,9 @@ int32_t krdsset_S(CSOUND *csound, KREADS *p)
     return OK;
 }
 
+#endif
 
+#ifdef INC_READKS
 int32_t krdsset_p(CSOUND *csound, KREADS *p)
 {
     /* open in curdir or pathname */
@@ -830,3 +875,5 @@ int32_t kreads(CSOUND *csound, KREADS *p)
     strNcpy((char*) p->str->data, p->lasts, INITSIZE);
     return OK;
 }
+#endif
+

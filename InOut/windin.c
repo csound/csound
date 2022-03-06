@@ -1,3 +1,4 @@
+#ifdef DEPRECATED
 /*
     windin.c:
 
@@ -95,3 +96,4 @@ int xyinset(CSOUND *csound, XYIN *p)
 /*     return OK; */
 /* } */
 
+#endif

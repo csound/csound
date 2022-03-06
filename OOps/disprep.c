@@ -31,6 +31,7 @@
 # define hypot _hypot
 #endif
 
+#ifdef INC_PRINT
 int32_t printv(CSOUND *csound, PRINTV *p)
 {
     int32_t    nargs = p->INOCOUNT;
@@ -46,7 +47,9 @@ int32_t printv(CSOUND *csound, PRINTV *p)
     csound->MessageS(csound, CSOUNDMSG_ORCH, "\n");
     return OK;
 }
+#endif
 
+#ifdef INC_PVSDISP
 int32_t fdspset(CSOUND *csound, FSIGDISP *p){
     char strmsg[256];
     p->size = p->fin->N/2 + 1;
@@ -79,7 +82,9 @@ int32_t fdsplay(CSOUND *csound, FSIGDISP *p)
     }
     return OK;
  }
+#endif
 
+#if defined(INC_DISPLAY)||defined(INC_DISPLAY_A)
 int32_t dspset(CSOUND *csound, DSPLAY *p)
 {
     int32_t  npts, nprds, bufpts, totpts;
@@ -120,7 +125,9 @@ int32_t dspset(CSOUND *csound, DSPLAY *p)
             (int32_t) *p->iwtflg, Str("display"));
     return OK;
 }
+#endif
 
+#ifdef INC_DISPLAY
 int32_t kdsplay(CSOUND *csound, DSPLAY *p)
 {
     MYFLT  *fp = p->nxtp;
@@ -153,7 +160,9 @@ int32_t kdsplay(CSOUND *csound, DSPLAY *p)
     return csound->PerfError(csound, &(p->h),
                              Str("display: not initialised"));
 }
+#endif
 
+#ifdef INC_DISPLAY_A
 int32_t dsplay(CSOUND *csound, DSPLAY *p)
 {
     MYFLT  *fp = p->nxtp, *sp = p->signal, *endp = p->endp;
@@ -190,6 +199,9 @@ int32_t dsplay(CSOUND *csound, DSPLAY *p)
     p->nxtp = fp;
     return OK;
 }
+#endif
+
+#if defined(INC_DISPFFT)||defined(INC_DISPFFT_A)
 
 /* Write window coefs into buffer, don't malloc */
 static void FillHalfWin(MYFLT *wBuf, int32_t size, MYFLT max, int32_t hannq)
@@ -365,7 +377,9 @@ static void d_fft(      /* perform an FFT as reqd below */
     if (dbq)
       Lin2DB(dst, (size >> 1) + 1);
 }
+#endif
 
+#ifdef INC_DISPFFT
 int32_t kdspfft(CSOUND *csound, DSPFFT *p)
 {
     MYFLT *bufp = p->bufp, *endp = p->endp;
@@ -406,7 +420,9 @@ int32_t kdspfft(CSOUND *csound, DSPFFT *p)
     return csound->PerfError(csound, &(p->h),
                              Str("dispfft: not initialised"));
 }
+#endif
 
+#ifdef INC_DISPFFT_A
 int32_t dspfft(CSOUND *csound, DSPFFT *p)
 {
     MYFLT *sigp = p->signal, *bufp = p->bufp, *endp = p->endp;
@@ -458,10 +474,12 @@ int32_t dspfft(CSOUND *csound, DSPFFT *p)
     return csound->PerfError(csound, &(p->h),
                              Str("dispfft: not initialised"));
 }
+#endif
 
 #define NTERMS  4
 #define NCROSS  (NTERMS * (NTERMS-1))
 
+#ifdef INC_TEMPEST
 int32_t tempeset(CSOUND *csound, TEMPEST *p)
 {
     int32_t   npts = 0, nptsm1, minlam = 0, maxlam, lamspan, auxsiz;
@@ -741,3 +759,4 @@ int32_t tempest(CSOUND *csound, TEMPEST *p)
     return csound->PerfError(csound, &(p->h),
                                Str("tempest: not initialised"));
 }
+#endif
