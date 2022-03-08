@@ -1,3 +1,4 @@
+#define MINTITLE	"Nothing excluded"
 #define INC_AASIGN
 #define INC_ABS
 #define INC_ABS_A
@@ -379,5 +380,22 @@
 #define INC_READK3
 #define INC_READK4
 #define INC_READKS
+#define INC_EXPRAND
+#define INC_EXPRAND_A
+#define INC_BEXPRAND
+#define INC_BEXPRAND_A
+#define INC_TRIRAND
+#define INC_TRIRAND_A
 #define INC_
 #define INC_
+#define INC_
+#define INC_
+#define INC_
+#define INC_
+#define INC_
+#define INC_
+#define INC_
+#define INC_
+#define INC_
+#define INC_
+

@@ -37,6 +37,7 @@
 #include "csoundCore.h"
 #include "csmodule.h"
 #include "corfile.h"
+#include "opcodes.h"
 #include "csGblMtx.h"
 #include <stdio.h>
 #include <stdarg.h>
@@ -142,6 +143,7 @@ void print_csound_version(CSOUND* csound)
                     STRING_HASH(GIT_HASH_VALUE));
 #endif
 #endif
+    csoundErrorMsg(csound, "%s\n", MINTITLE);
 }
 
 void print_sndfile_version(CSOUND* csound) {

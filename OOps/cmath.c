@@ -135,7 +135,7 @@ static inline MYFLT linrand(CSOUND *csound, MYFLT range)
 }
 
 /* triangle distribution routine */
-
+#ifdef INC_TRIRAND
 static inline MYFLT trirand(CSOUND *csound, MYFLT range)
 {
     uint64_t  r1;
@@ -146,9 +146,9 @@ static inline MYFLT trirand(CSOUND *csound, MYFLT range)
     return ((MYFLT) ((double)((int64_t)r1 - (int64_t)0xFFFFFFFFU)
                      * (1.0 / 4294967295.03125)) * range);
 }
-
+#endif
 /* exponential distribution routine */
-
+#if defined(INC_EXPRAND)||defined(INC_EXPRNDI)||defined(INC_EXPRANDI_A)
 static MYFLT exprand(CSOUND *csound, MYFLT lambda)
 {
     uint32_t  r1;
@@ -161,9 +161,10 @@ static MYFLT exprand(CSOUND *csound, MYFLT lambda)
 
     return -((MYFLT)log(UInt32toFlt(r1)) * lambda);
 }
-
+#endif
 /* bilateral exponential distribution routine */
 
+#if defined(INC_BEXPRAND)||defined(INC_BEXPRAND_A)||defined(INC_EXPRANDI)||defined(INC_EXPRANDI_A)
 static MYFLT biexprand(CSOUND *csound, MYFLT range)
 {
     int32_t r1;
@@ -177,7 +178,7 @@ static MYFLT biexprand(CSOUND *csound, MYFLT range)
     }
     return (LOG(r1 * (FL(1.0) / FL(2147483648.0))) * range);
 }
-
+#endif
 /* gaussian distribution routine */
 
 static MYFLT gaussrand(CSOUND *csound, MYFLT s)
@@ -446,6 +447,7 @@ int32_t aexprndi(CSOUND *csound, PRANDI *p)
 }
 #endif
 //************************ HERE ****************
+#ifdef INC_EXPRAND_A
 int32_t aexp(CSOUND *csound, PRAND *p)      /* Exponential random functions */
 {
     uint32_t offset = p->h.insdshead->ksmps_offset;
@@ -463,13 +465,17 @@ int32_t aexp(CSOUND *csound, PRAND *p)      /* Exponential random functions */
       out[n] = exprand(csound, arg1);
     return OK;
 }
+#endif
 
+#ifdef INC_EXPRAND
 int32_t ikexp(CSOUND *csound, PRAND *p)
 {
     *p->out = exprand(csound, *p->arg1);
     return OK;
 }
+#endif
 
+#ifdef INC_EXPRANDA
 int32_t abiexp(CSOUND *csound, PRAND *p)    /* Bilateral exponential rand */
 {                                       /* functions */
     uint32_t offset = p->h.insdshead->ksmps_offset;
@@ -487,12 +493,15 @@ int32_t abiexp(CSOUND *csound, PRAND *p)    /* Bilateral exponential rand */
       out[n] = biexprand(csound, arg1);
     return OK;
 }
+#endif
 
+#ifdef INC_BEXPRAND
 int32_t ikbiexp(CSOUND *csound, PRAND *p)
 {
     *p->out = biexprand(csound, *p->arg1);
     return OK;
 }
+#endif
 
 int32_t agaus(CSOUND *csound, PRAND *p)     /* Gaussian random functions */
 {
@@ -801,18 +810,24 @@ int32_t gen21_rand(FGDATA *ff, FUNC *ftp)
       for (i = 0 ; i < n ; i++)
         ft[i] = linrand(csound, scale);
       break;
+#ifdef INC_TRIRAND
     case 3:                     /* Triangular about 0.5 */
       for (i = 0 ; i < n ; i++)
         ft[i] = trirand(csound, scale);
       break;
+#endif
+#ifdef INC_EXPRAND
     case 4:                     /* Exponential */
       for (i = 0 ; i < n ; i++)
         ft[i] = exprand(csound, scale);
       break;
+#endif
+#ifdef INC_BEXPRAND
     case 5:                     /* Bilateral exponential */
       for (i = 0 ; i < n ; i++)
         ft[i] = biexprand(csound, scale);
       break;
+#endif
     case 6:                     /* Gaussian distribution */
       for (i = 0 ; i < n ; i++)
         ft[i] = gaussrand(csound, scale);

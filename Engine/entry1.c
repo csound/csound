@@ -1181,12 +1181,20 @@ OENTRY opcodlst_1[] = {
   #ifdef INC_TRIRAND_A
   { "trirand.a",S(PRAND),0, 2,      "a",    "k",    NULL,     atrian  },
   #endif
+  #ifdef INC_EXPRAND
   { "exprand.i",S(PRAND),0, 1,      "i",    "k",    ikexp, NULL,    NULL    },
   { "exprand.k",S(PRAND),0, 2,      "k",    "k",    NULL,    ikexp, NULL    },
+  #endif
+  #ifdef INC_EXPRAND_A
   { "exprand.a",S(PRAND),0, 2,      "a",    "k",    NULL,     aexp    },
+  #endif
+  #ifdef INC_BEXPRAND
   { "bexprnd.i",S(PRAND),0, 1,      "i",    "k",    ikbiexp, NULL,  NULL    },
   { "bexprnd.k",S(PRAND),0, 2,      "k",    "k",    NULL, ikbiexp,  NULL    },
+  #endif
+  #ifdef INC_BEXPRAND_A
   { "bexprnd.a",S(PRAND),0, 2,      "a",    "k",    NULL,     abiexp  },
+  #endif
   { "cauchy.i", S(PRAND),0, 1,      "i",    "k",    ikcauchy, NULL, NULL    },
   { "cauchy.k", S(PRAND),0, 2,      "k",    "k",    NULL, ikcauchy, NULL    },
   { "cauchy.a", S(PRAND),0, 2,      "a",    "k",    NULL,  acauchy },
@@ -2009,6 +2017,7 @@ OENTRY opcodlst_1[] = {
     (SUBR) coef2parm_init, (SUBR) coef2parm},
    {"resonbnk", S(RESONB), 0, 3, "a", "ak[]kkipoo",
    (SUBR) resonbnk_init, (SUBR) resonbnk},
+   {"zzzmin7ffitch", S(EVAL), 0, 0, NULL},
    /*t erminate list */
   {  NULL, 0, 0, 0, NULL, NULL, NULL, NULL, NULL       }
 };
