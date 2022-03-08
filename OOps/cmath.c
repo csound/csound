@@ -181,6 +181,7 @@ static MYFLT biexprand(CSOUND *csound, MYFLT range)
 #endif
 /* gaussian distribution routine */
 
+#if defined(INC_GAUSSRAND)||defined(INC_GAUSSRAND_A)
 static MYFLT gaussrand(CSOUND *csound, MYFLT s)
 {
     int64_t   r1 = -((int64_t)0xFFFFFFFFU * 6);
@@ -193,6 +194,7 @@ static MYFLT gaussrand(CSOUND *csound, MYFLT s)
     x = (double)r1;
     return (MYFLT)(x * ((double)s * (1.0 / (3.83 * 4294967295.03125))));
 }
+#endif
 
 /* cauchy distribution routine */
 
@@ -503,6 +505,7 @@ int32_t ikbiexp(CSOUND *csound, PRAND *p)
 }
 #endif
 
+#ifdef INC_GAUSSRAND_A
 int32_t agaus(CSOUND *csound, PRAND *p)     /* Gaussian random functions */
 {
     uint32_t offset = p->h.insdshead->ksmps_offset;
@@ -520,13 +523,17 @@ int32_t agaus(CSOUND *csound, PRAND *p)     /* Gaussian random functions */
       out[n] = gaussrand(csound, arg1);
     return OK;
 }
+#endif
 
+#ifdef INC_GAUSSRAND
 int32_t ikgaus(CSOUND *csound, PRAND *p)
 {
     *p->out = gaussrand(csound, *p->arg1);
     return OK;
 }
+#endif
 
+#ifdef INC_CAUCHYRAD_A
 int32_t acauchy(CSOUND *csound, PRAND *p)   /* Cauchy random functions */
 {
     uint32_t offset = p->h.insdshead->ksmps_offset;
@@ -544,7 +551,9 @@ int32_t acauchy(CSOUND *csound, PRAND *p)   /* Cauchy random functions */
       out[n] = cauchrand(csound, arg1);
     return OK;
 }
+#endif
 
+#if defined(INC_GAUSSRAND)||defined(INC_GAUSSRAND_A)
 int32_t gaussiset(CSOUND *csound, PRANDI *p)
 {
     p->num1 = gaussrand(csound, *p->arg1);
@@ -555,7 +564,9 @@ int32_t gaussiset(CSOUND *csound, PRANDI *p)
     p->cpscod = IS_ASIG_ARG(p->xcps) ? 1 : 0;
     return OK;
 }
+#endif
 
+#ifdef INC_GAUSSRAND
 int32_t kgaussi(CSOUND *csound, PRANDI *p)
 {                                       /* rslt = (num1 + diff*phs) * amp */
     /* IV - Jul 11 2002 */
@@ -576,6 +587,9 @@ int32_t igaussi(CSOUND *csound, PRANDI *p)
     return kgaussi(csound, p);
 }
 
+#endif
+
+#ifdef INC_GAUSSRAND_A
 int32_t agaussi(CSOUND *csound, PRANDI *p)
 {
    int32_t       phs = p->phs, inc;
@@ -612,13 +626,17 @@ int32_t agaussi(CSOUND *csound, PRANDI *p)
     p->phs = phs;
     return OK;
 }
+#endif
 
+#ifdef INC_CAUCHYRAND
 int32_t ikcauchy(CSOUND *csound, PRAND *p)
 {
     *p->out = cauchrand(csound, *p->arg1);
     return OK;
 }
+#endif
 
+#ifdef INC_PCAUCHYRAND_A
 int32_t apcauchy(CSOUND *csound, PRAND *p)  /* +ve Cauchy random functions */
 {
     uint32_t offset = p->h.insdshead->ksmps_offset;
@@ -636,12 +654,15 @@ int32_t apcauchy(CSOUND *csound, PRAND *p)  /* +ve Cauchy random functions */
       out[n] = pcauchrand(csound, arg1);
     return OK;
 }
+#endif
 
+#ifdef INC_PCAUCYRAND
 int32_t ikpcauchy(CSOUND *csound, PRAND *p)
 {
     *p->out = pcauchrand(csound, *p->arg1);
     return OK;
 }
+#endif
 
 int32_t cauchyiset(CSOUND *csound, PRANDI *p)
 {
@@ -828,18 +849,24 @@ int32_t gen21_rand(FGDATA *ff, FUNC *ftp)
         ft[i] = biexprand(csound, scale);
       break;
 #endif
+#ifdef INC_GAUSSRAND
     case 6:                     /* Gaussian distribution */
       for (i = 0 ; i < n ; i++)
         ft[i] = gaussrand(csound, scale);
       break;
+#endif
+#ifdef INC_CAUCHYRAND
     case 7:                     /* Cauchy distribution */
       for (i = 0 ; i < n ; i++)
         ft[i] = cauchrand(csound, scale);
       break;
+#endif
+#ifdef INC_PCAUCHYRAND
     case 8:                     /* Positive Cauchy */
       for (i = 0 ; i < n ; i++)
         ft[i] = pcauchrand(csound, scale);
       break;
+#endif
     case 9:                     /* Beta distribution */
       if (UNLIKELY(nargs < 3)) {
         return -1;
@@ -854,10 +881,12 @@ int32_t gen21_rand(FGDATA *ff, FUNC *ftp)
       for (i = 0 ; i < n ; i++)
         ft[i] = weibrand(csound, scale, (MYFLT) ff->e.p[7]);
       break;
+      #ifdef INC_POISSONRAND
     case 11:                    /* Poisson Distribution */
       for (i = 0 ; i < n ; i++)
         ft[i] = poissrand(csound, scale);
       break;
+      #endif
     default:
       return -2;
     }

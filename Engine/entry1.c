@@ -1096,14 +1096,14 @@ OENTRY opcodlst_1[] = {
   { "tival",  S(EVAL),0,    1,      "i",    "",     tival                   },
   #ifdef INC_PRINT
   { "print",  S(PRINTV),WR, 1,      "",     "m",    printv                  },
-#endif
+  #endif
   #ifdef INC_DISPLAY
   { "display.k",S(DSPLAY),0,  3,    "",     "kioo", dspset, kdsplay,NULL    },
   #endif
   #ifdef INC_DISPLAY_A
   { "display.a",S(DSPLAY),0,  3,    "",     "aioo", dspset ,dsplay    },
   #endif
-  #ifdef INC_PVSDISP
+  #ifdef INC_PVSDISPb
   { "pvsdisp",S(FSIGDISP),0,  3,    "",     "foo", fdspset, fdsplay,NULL    },
   #endif
   #ifdef INC_DISPFFT
@@ -1195,18 +1195,34 @@ OENTRY opcodlst_1[] = {
   #ifdef INC_BEXPRAND_A
   { "bexprnd.a",S(PRAND),0, 2,      "a",    "k",    NULL,     abiexp  },
   #endif
+  #ifdef INC_CAUCHYRAND
   { "cauchy.i", S(PRAND),0, 1,      "i",    "k",    ikcauchy, NULL, NULL    },
   { "cauchy.k", S(PRAND),0, 2,      "k",    "k",    NULL, ikcauchy, NULL    },
+  #endif
+  #ifdef INC_CAUCHYRAND_A
   { "cauchy.a", S(PRAND),0, 2,      "a",    "k",    NULL,  acauchy },
+  #endif
+  #ifdef INC_PCAUCHYRAND
   { "pcauchy.i",S(PRAND),0, 1,      "i",    "k",    ikpcauchy, NULL,NULL    },
   { "pcauchy.k",S(PRAND),0, 2,      "k",    "k",    NULL, ikpcauchy,NULL    },
+  #endif
+  #ifdef INC_PCAUCHYRAND_A
   { "pcauchy.a",S(PRAND),0, 2,      "a",    "k",    NULL,  apcauchy},
+  #endif
+  #ifdef INC_POISONRAND
   { "poisson.i",S(PRAND),0, 1,      "i",    "k",    ikpoiss, NULL,  NULL    },
   { "poisson.k",S(PRAND),0, 2,      "k",    "k",    NULL, ikpoiss,  NULL    },
+  #endif
+  #ifdef INC_POISSONRAND_A
   { "poisson.a",S(PRAND),0, 2,      "a",    "k",    NULL,  apoiss  },
+  #endif
+  #ifdef INC_GAUSSRAND
   { "gauss.i" , S(PRAND),0, 1,      "i",    "k",    ikgaus,  NULL,  NULL    },
   { "gauss.k" , S(PRAND),0, 2,      "k",    "k",    NULL, ikgaus,   NULL    },
+  #endif
+  #ifdef INC_GAUSSRAND_A
   { "gauss.a" , S(PRAND),0, 2,      "a",    "k",    NULL,  agaus   },
+  #endif
   { "gauss.iii" , S(GAUSS),0, 1,      "i",    "ii",    gauss_scalar,  NULL,  NULL    },
   { "gauss.kkk" , S(GAUSS),0, 2,      "k",    "kk",    NULL, gauss_scalar,   NULL    },
   { "gauss.akk" , S(GAUSS),0, 2,      "a",    "kk",    NULL, gauss_vector   },
@@ -1970,9 +1986,13 @@ OENTRY opcodlst_1[] = {
   { "cauchyi.i", S(PRANDI),0, 1,      "i",    "kxx",  icauchyi, NULL,    NULL    },
   { "cauchyi.k", S(PRANDI),0, 3,      "k",    "kxx",  cauchyiset, kcauchyi, NULL },
   { "cauchyi.a", S(PRANDI),0, 2,      "a",    "kxx",  cauchyiset, acauchyi },
+  #ifdef INC_GAUSSRAND
   { "gaussi.i", S(PRANDI),0, 1,      "i",    "kxx",  igaussi, NULL,    NULL    },
   { "gaussi.k", S(PRANDI),0, 3,      "k",    "kxx",  gaussiset, kgaussi, NULL },
+  #endif
+  #ifdef INC_GAUSSRAND_A
   { "gaussi.a", S(PRANDI),0, 2,      "a",    "kxx",  gaussiset, agaussi },
+  #endif
   { "ftresizei", S(RESIZE), TB, 1, "i", "ii", (SUBR) resize_table, NULL, NULL },
   { "ftresize",  S(RESIZE), TB, 2, "k", "kk", NULL, (SUBR) resize_table, NULL },
   { "compileorc",  S(COMPILE), 0, 1, "i", "S",  (SUBR) compile_orc_i, NULL, NULL },
