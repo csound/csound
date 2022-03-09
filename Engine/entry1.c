@@ -1223,15 +1223,27 @@ OENTRY opcodlst_1[] = {
   #ifdef INC_GAUSSRAND_A
   { "gauss.a" , S(PRAND),0, 2,      "a",    "k",    NULL,  agaus   },
   #endif
+  #ifdef INC_GAUSSRAND
   { "gauss.iii" , S(GAUSS),0, 1,      "i",    "ii",    gauss_scalar,  NULL,  NULL    },
   { "gauss.kkk" , S(GAUSS),0, 2,      "k",    "kk",    NULL, gauss_scalar,   NULL    },
+  #endif
+  #ifdef INC_GAUSSRANS_A
   { "gauss.akk" , S(GAUSS),0, 2,      "a",    "kk",    NULL, gauss_vector   },
+  #endif
+  #ifdef INC_WEIBILLRAND
   { "weibull.i",S(PRAND),0, 1,      "i",    "kk",   ikweib,  NULL,  NULL    },
   { "weibull.k",S(PRAND),0, 2,      "k",    "kk",   NULL, ikweib,   NULL    },
+  #endif
+  #ifdef INC_WEIBULLRAND_A
   { "weibull.a",S(PRAND),0, 2,      "a",    "kk",   NULL,  aweib   },
+  #endif
+  #ifdef INC_BETARAND
   { "betarand.i",S(PRAND),0,1,      "i",    "kkk",  ikbeta, NULL,  NULL     },
   { "betarand.k",S(PRAND),0,2,      "k",    "kkk",  NULL,   ikbeta,NULL     },
+  #endif
+  #ifdef INC_BETARAND_A
   { "betarand.a",S(PRAND),0,2,      "a",    "kkk",  NULL,  abeta    },
+  #endif
   #ifdef INC_SEED
   { "seed",     S(PRAND),0, 1,      "",     "i",    seedrand, NULL, NULL    },
   #endif
@@ -1983,9 +1995,13 @@ OENTRY opcodlst_1[] = {
   #ifdef INC_EXPRANDI_A
   { "exprandi.a",S(PRANDI),0, 2,      "a",    "kxx",  exprndiset, aexprndi },
   #endif
-  { "cauchyi.i", S(PRANDI),0, 1,      "i",    "kxx",  icauchyi, NULL,    NULL    },
+  #ifdef CAUCHYRAND
+  { "cauchyi.i", S(PRANDI),0, 1,      "i",    "kxx",  icauchyi, NULL,    NULL    }<
   { "cauchyi.k", S(PRANDI),0, 3,      "k",    "kxx",  cauchyiset, kcauchyi, NULL },
+  #endif
+  #ifdef INC_CAUCHYRAND_A
   { "cauchyi.a", S(PRANDI),0, 2,      "a",    "kxx",  cauchyiset, acauchyi },
+  #endif
   #ifdef INC_GAUSSRAND
   { "gaussi.i", S(PRANDI),0, 1,      "i",    "kxx",  igaussi, NULL,    NULL    },
   { "gaussi.k", S(PRANDI),0, 3,      "k",    "kxx",  gaussiset, kgaussi, NULL },
@@ -2008,11 +2024,13 @@ OENTRY opcodlst_1[] = {
     (SUBR) monitor_opcode_init, (SUBR) notinit_opcode_stub,  NULL },
   #endif
   #ifdef INC_OUTRG
-  { "outrg", S(OUTRANGE), IR,3, "", "ky",
+  { "outrg", S(OUTSRANGE), IR,3, "", "ky",
     (SUBR)outRange_i, (SUBR)outRange},
   #endif
+  #ifdef INC_HW_CHANNELS
   { "nchnls_hw", S(ASSIGN), 0,1, "ii", "",
     (SUBR)hw_channels},
+  #endif
 #ifdef INC_MIDIARP
    { "midiarp",   S(MIDIARP),0,  3,    "kk", "kO",
      midiarp_set, midiarp, NULL },

@@ -1344,7 +1344,6 @@ int32_t cpsxpch(CSOUND *csound, XENH *p)
 }
 #endif
 
-/* ************************* HERE ******************* */
 #ifdef INC_CPS2PCH
 int32_t cps2pch(CSOUND *csound, XENH *p)
 {
@@ -2547,9 +2546,7 @@ int32_t outRange_i(CSOUND *csound, OUTRANGE *p)
 
     return OK;
 }
-#endif
 
-/* ******** Aparently not used ********************* */
 int32_t outRange(CSOUND *csound, OUTRANGE *p)
 {
     int32_t j;
@@ -2591,8 +2588,9 @@ int32_t outRange(CSOUND *csound, OUTRANGE *p)
     }
     return OK;
 }
+#endif
 /* -------------------------------------------------------------------- */
-
+#ifdef INC_HW_CHANNELS
 int32_t hw_channels(CSOUND *csound, ASSIGN *p){
 
     int32_t *dachans =
@@ -2610,3 +2608,4 @@ int32_t hw_channels(CSOUND *csound, ASSIGN *p){
     else *p->a = *dachans;
     return OK;
 }
+#endif

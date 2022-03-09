@@ -448,7 +448,7 @@ int32_t aexprndi(CSOUND *csound, PRANDI *p)
     return OK;
 }
 #endif
-//************************ HERE ****************
+
 #ifdef INC_EXPRAND_A
 int32_t aexp(CSOUND *csound, PRAND *p)      /* Exponential random functions */
 {
@@ -533,7 +533,7 @@ int32_t ikgaus(CSOUND *csound, PRAND *p)
 }
 #endif
 
-#ifdef INC_CAUCHYRAD_A
+#ifdef INC_CAUCHYRAND_A
 int32_t acauchy(CSOUND *csound, PRAND *p)   /* Cauchy random functions */
 {
     uint32_t offset = p->h.insdshead->ksmps_offset;
@@ -664,6 +664,7 @@ int32_t ikpcauchy(CSOUND *csound, PRAND *p)
 }
 #endif
 
+#ifdef INC_CAUCHYRAND
 int32_t cauchyiset(CSOUND *csound, PRANDI *p)
 {
     p->num1 = cauchrand(csound, *p->arg1);
@@ -731,7 +732,9 @@ int32_t acauchyi(CSOUND *csound, PRANDI *p)
     p->phs = phs;
     return OK;
 }
+#endif
 
+#ifdef INC_BETARAND_A
 int32_t abeta(CSOUND *csound, PRAND *p)     /* Beta random functions   */
 {
     uint32_t offset = p->h.insdshead->ksmps_offset;
@@ -751,13 +754,17 @@ int32_t abeta(CSOUND *csound, PRAND *p)     /* Beta random functions   */
       out[n] = betarand(csound, arg1, arg2, arg3);
     return OK;
 }
+#endif
 
+#ifdef INC_BETARAND
 int32_t ikbeta(CSOUND *csound, PRAND *p)
 {
     *p->out = betarand(csound, *p->arg1, *p->arg2, *p->arg3);
     return OK;
 }
+#endif
 
+#ifdef INC_WEIBULLRAND_A
 int32_t aweib(CSOUND *csound, PRAND *p)     /* Weibull randon functions */
 {
     uint32_t offset = p->h.insdshead->ksmps_offset;
@@ -776,15 +783,19 @@ int32_t aweib(CSOUND *csound, PRAND *p)     /* Weibull randon functions */
       out[n] = weibrand(csound, arg1, arg2);
     return OK;
 }
+#endif
 
+#ifdef NC_WEILBULLRAND
 int32_t ikweib(CSOUND *csound, PRAND *p)
 {
     *p->out = weibrand(csound, *p->arg1, *p->arg2);
     return OK;
 }
+#endif
 
+#ifdef INC_POISSONRAND_A
 int32_t apoiss(CSOUND *csound, PRAND *p)    /*      Poisson random funcions */
-{
+
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t n, nsmps = CS_KSMPS;
@@ -801,12 +812,15 @@ int32_t apoiss(CSOUND *csound, PRAND *p)    /*      Poisson random funcions */
     return OK;
 }
 
+#endif
+
+#ifdef INC_POISSONRAND
 int32_t ikpoiss(CSOUND *csound, PRAND *p)
 {
     *p->out = poissrand(csound, *p->arg1);
     return OK;
 }
-
+#endif
  /* ------------------------------------------------------------------------ */
 
 int32_t gen21_rand(FGDATA *ff, FUNC *ftp)
@@ -867,6 +881,7 @@ int32_t gen21_rand(FGDATA *ff, FUNC *ftp)
         ft[i] = pcauchrand(csound, scale);
       break;
 #endif
+#ifdef INC_BETARAND
     case 9:                     /* Beta distribution */
       if (UNLIKELY(nargs < 3)) {
         return -1;
@@ -874,6 +889,8 @@ int32_t gen21_rand(FGDATA *ff, FUNC *ftp)
       for (i = 0 ; i < n ; i++)
         ft[i] = betarand(csound, scale, (MYFLT) ff->e.p[7], (MYFLT) ff->e.p[8]);
       break;
+#endif
+#ifdef INC_WEIBULLRAND
     case 10:                    /* Weibull Distribution */
       if (UNLIKELY(nargs < 2)) {
         return -1;
@@ -881,12 +898,13 @@ int32_t gen21_rand(FGDATA *ff, FUNC *ftp)
       for (i = 0 ; i < n ; i++)
         ft[i] = weibrand(csound, scale, (MYFLT) ff->e.p[7]);
       break;
-      #ifdef INC_POISSONRAND
+#endif
+#ifdef INC_POISSONRAND
     case 11:                    /* Poisson Distribution */
       for (i = 0 ; i < n ; i++)
         ft[i] = poissrand(csound, scale);
       break;
-      #endif
+#endif
     default:
       return -2;
     }
@@ -898,7 +916,7 @@ int32_t gen21_rand(FGDATA *ff, FUNC *ftp)
 /* New Gauss generator using Box-Mueller transform
    VL April 2020
  */
-
+#if defined(INC_GAUSSRAND)||defined(GAUSSRAND_A)
 MYFLT gausscompute(CSOUND *csound, GAUSS *p) {
   if(p->flag == 0) {
     MYFLT u1 = unirand(csound);
@@ -913,14 +931,17 @@ MYFLT gausscompute(CSOUND *csound, GAUSS *p) {
   }
   return OK;
 }
+#endif
 
-
+#ifdef INC_GAUSSRAND
 int32_t gauss_scalar(CSOUND *csound, GAUSS *p){
   *p->a = gausscompute(csound,p);
   return OK;
 
 }
+#endif
 
+#ifdef INC_GAUSSRAND_A
 int32_t gauss_vector(CSOUND *csound, GAUSS *p) {
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
@@ -935,7 +956,7 @@ int32_t gauss_vector(CSOUND *csound, GAUSS *p) {
       out[n] = gausscompute(csound,p);
     return OK;
 }
-
+#endif
 
 
 

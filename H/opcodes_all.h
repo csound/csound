@@ -1,4 +1,4 @@
-#define MINTITLE	"Nothing excluded"
+b#define MINTITLE	"Nothing excluded"
 #define INC_AASIGN
 #define INC_ABS
 #define INC_ABS_A
@@ -394,8 +394,10 @@
 #define INC_PCAUCHYRAND
 #define INC_POISSONRAND
 #define INC_POISSONRAND_A
-#define INC_
-#define INC_
-#define INC_
-#define INC_
+#define INC_HW_CHANNELS
+#define INC_WEIBULLRAND
+#define INC_WEIBULLRAND_A
+#define INC_BETARAND
+#define INC_BETARAND_A
+
 
