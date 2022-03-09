@@ -399,5 +399,24 @@ b#define MINTITLE	"Nothing excluded"
 #define INC_WEIBULLRAND_A
 #define INC_BETARAND
 #define INC_BETARAND_A
+#define INC_FILELEN
+#define INC_FILELEN_S
+#define INC_FILENCHNLS
+#define INC_FILENCHNLS_S
+#define INC_FILEPEAK
+#define INC_FILESR
+#define INC_FILESR_S
+#define INC_FILEVALID
+#define INC_FILEVALID_S
+#define INC_FILEBIT
+#define INC_FILEBIT_S
+#define INC_TIMEK
+#define INC_TIMESR
+#define INC_TIMEINSTK
+#define INC_TIMEINSTS
+#define INC_PRINTK
+#define INC_
+#define INC_
+
 
 

@@ -48,7 +48,7 @@
 #include "ugrw1.h"
 #include <math.h>
 #include <ctype.h>
-
+#include "opcodes.h"
 /*****************************************************************************/
 /*****************************************************************************/
 /*****************************************************************************/
@@ -66,6 +66,7 @@
  * Actually moved to the glob structure -- JPff march 2002
  */
 
+#ifdef INC_TIMEK
 int32_t timek(CSOUND *csound, RDTIME *p)
 {
     IGN(csound);
@@ -73,7 +74,9 @@ int32_t timek(CSOUND *csound, RDTIME *p)
     *p->rslt = (MYFLT) CS_KCNT;
     return OK;
 }
+#endif
 
+#ifdef INC_TIMESR
 /* timesr() */
 int32_t timesr(CSOUND *csound, RDTIME *p)
 {
@@ -82,9 +85,10 @@ int32_t timesr(CSOUND *csound, RDTIME *p)
     *p->rslt = (MYFLT) CS_KCNT * CS_ONEDKR;
     return OK;
 }
-
+#endif
 /*-----------------------------------*/
 
+#if defined(INC_TIMEINSTK)||defined(INC_TIMEINSTS)
 /* Subroutines to read time for this instance of the instrument. */
 
 /* instimset() runs at init time and keeps a record of the time then
@@ -98,7 +102,9 @@ int32_t instimset(CSOUND *csound, RDTIME *p)
     *p->rslt = FL(0.0);
     return OK;
 }
+#endif
 
+#ifdef INC_TIMEINSTK
 /* instimek()
  *
  * Read difference between the global variable kcounter and the starting
@@ -110,7 +116,9 @@ int32_t instimek(CSOUND *csound, RDTIME *p)
     *p->rslt = (MYFLT) (CS_KCNT - p->instartk);
     return OK;
 }
+#endif
 
+#ifdef INC_TIMEINSTS
 /* insttimes()
  *
  * Read difference between the global variable kcounter and the starting
@@ -122,9 +130,10 @@ int32_t instimes(CSOUND *csound, RDTIME *p)
     *p->rslt = (MYFLT) (CS_KCNT - p->instartk) * CS_ONEDKR;
     return OK;
 }
-
+#endif
 /*****************************************************************************/
 /*****************************************************************************/
+#ifdef INC_PRINTK
 
 /* Printing at k rate - printk. */
 
@@ -194,9 +203,9 @@ int32_t printk(CSOUND *csound, PRINTK *p)
     }
     return OK;
 }
-
+#endif
 /*---------------------------------------------------------------------------*/
-
+// *********************** HERE **********************************
 /* printks() and printksset() */
 
 /* Printing at k rate with a string * and up to four variables - printks. */

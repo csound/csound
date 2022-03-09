@@ -1340,20 +1340,46 @@ OENTRY opcodlst_1[] = {
   { "logbtwo.a",S(EVAL),0,   3,     "a",    "a",
     logbasetwo_set, logbasetwoa },
   #endif
+  #ifdef INC_FILELEN_S
   { "filelen", S(SNDINFO),0, 1,     "i",    "Sp",   filelen_S, NULL, NULL        },
+  #endif
+  #ifdef INC_FILENCHNLS_S
   { "filenchnls", S(SNDINFO),0, 1,  "i",    "Sp",   filenchnls_S, NULL, NULL     },
+  #endif
+  #ifdef INC_FILESR_S
   { "filesr", S(SNDINFO),0,  1,     "i",    "Sp",   filesr_S, NULL, NULL         },
+  #endif
+  #ifdef INC_FILEBIT_S
   { "filebit", S(SNDINFO),0,  1,     "i",   "Sp",   filebit_S, NULL, NULL        },
+  #endif
+  #ifdef INC_FILEPEAK
   { "filepeak", S(SNDINFOPEAK),0, 1, "i",   "So",   filepeak_S, NULL, NULL       },
+  #endif
+  #ifdef INC_FILEVALID_S
   { "filevalid", S(FILEVALID),0, 1,  "i",   "S",    filevalid_S, NULL, NULL      },
+  #endif
+  #ifdef INC_FILELEN
   { "filelen.i", S(SNDINFO),0, 1,     "i",    "ip",   filelen, NULL, NULL        },
+  #endif
+  #ifdef INC_FILENCHNLS
   { "filenchnls.i", S(SNDINFO),0, 1,  "i",    "ip",   filenchnls, NULL, NULL     },
+  #endif
+  #ifdef INC_FILESR
   { "filesr.i", S(SNDINFO),0,  1,     "i",    "ip",   filesr, NULL, NULL         },
+  #endif
+  #ifdef INC_FILEBIT
   { "filebit.i", S(SNDINFO),0,  1,     "i",   "ip",   filebit, NULL, NULL        },
+  #endif
+  #ifdef INC_FILEPEAK
   { "filepeak.i", S(SNDINFOPEAK),0, 1, "i",   "io",   filepeak, NULL, NULL       },
+  #endif
+  #ifdef INC_FILEVALID
   { "filevalid.i", S(FILEVALID),0, 1,  "i",   "i",    filevalid, NULL, NULL      },
-  { "filevalid.k", S(FILEVALID),0, 2,  "k",   "S",    NULL, filevalid_S, NULL    },
   { "filevalid.k", S(FILEVALID),0, 2,  "k",   "i",    NULL, filevalid, NULL    },
+  #endif
+  #ifdef INC_FILEVALID_S
+  { "filevalid.k", S(FILEVALID),0, 2,  "k",   "S",    NULL, filevalid_S, NULL    },
+  #endif
   /*  { "nlalp", S(NLALP),0,     3,     "a",  "akkoo", nlalp_set, nlalp }, */
 #ifdef INC_TABLEW
   { "tableiw",  S(TABL),TW|_QQ, 1, "",   "iiiooo", (SUBR)tablew_init, NULL, NULL},
@@ -1428,18 +1454,28 @@ OENTRY opcodlst_1[] = {
   #endif
   { "inz",    S(IOZ),    ZW, 2,   "",   "k",  NULL,   (SUBR)inz  },
   { "outz",   S(IOZ),ZR|IR,  2,   "",   "k",    NULL,   (SUBR)outz },
+  #ifdef INC_TIMEK
   { "timek.i", S(RDTIME),0, 1,   "i",  "",     (SUBR)timek,   NULL,  NULL },
-  { "times.i", S(RDTIME),0, 1,   "i",  "",     (SUBR)timesr,  NULL,  NULL },
   { "timek.k",  S(RDTIME),0, 2,  "k",  "",     NULL,    (SUBR)timek, NULL },
+  #endif
+  #ifdef INC_TIMESR
+  { "times.i", S(RDTIME),0, 1,   "i",  "",     (SUBR)timesr,  NULL,  NULL },
   { "times.k",  S(RDTIME),0, 2,  "k",  "",     NULL,    (SUBR)timesr,NULL },
+  #endif
+  #ifdef INC_TIMEINSTK
   { "timeinstk", S(RDTIME),0, 3, "k",  "",
     (SUBR)instimset, (SUBR)instimek, NULL },
+  #endif
+  #ifdef INC_TIMEINSTS
   { "timeinsts", S(RDTIME),0, 3, "k",  "",
     (SUBR)instimset, (SUBR)instimes, NULL },
+  #endif
   { "peak.k",  S(PEAK),0,   2,   "k",  "k",    NULL,    (SUBR)peakk,    NULL    },
   { "peak.a",   S(PEAK),0,  2,   "k",  "a",    NULL,     (SUBR)peaka   },
+  #ifdef INC_PRINTK
   { "printk", S(PRINTK),WR,  3,"",     "ikoooo",
     (SUBR)printkset, (SUBR)printk, NULL },
+  #endif
   { "printks",S(PRINTKS),WR, 3,   "",   "SiN",
     (SUBR)printksset_S,(SUBR)printks, NULL },
   { "printks2", sizeof(PRINTK3),0, 3, "", "Sk", (SUBR)printk3set, (SUBR)printk3 },

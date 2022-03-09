@@ -27,12 +27,13 @@
 
 #include "csoundCore.h"
 #include <sndfile.h>
-
 #include "soundio.h"
 #include "sndinfUG.h"
 #include "pvfileio.h"
 #include "convolve.h"
+#include "opcodes.h"
 
+#if defined(INC_FILELEN)||defined(INC_FILELEN_S)||defined(INC_FILENCHNLS)||defined(INC_FULENCHNLS_S)||defined(INC_FILESR)||defined(INC_FILESR_S)||defined(INC_FILEBIT)||defined(INC_FILEBIT_S)
 static int32_t getsndinfo(CSOUND *csound, SNDINFO *p, SF_INFO *hdr, int32_t strin)
 {
     char    *sfname, *s, soundiname[1024];
@@ -141,7 +142,9 @@ static int32_t getsndinfo(CSOUND *csound, SNDINFO *p, SF_INFO *hdr, int32_t stri
     csound->Free(csound, sfname);
     return 1;
 }
+#endif
 
+#ifdef INC_FILELEN
 int32_t filelen(CSOUND *csound, SNDINFO *p)
 {
     SF_INFO hdr;
@@ -153,7 +156,9 @@ int32_t filelen(CSOUND *csound, SNDINFO *p)
 
     return OK;
 }
+#endif
 
+#ifdef INC_FILELEN_S
 int32_t filelen_S(CSOUND *csound, SNDINFO *p)
 {
     SF_INFO hdr;
@@ -165,7 +170,9 @@ int32_t filelen_S(CSOUND *csound, SNDINFO *p)
 
     return OK;
 }
+#endif
 
+#ifdef INC_FILECHLS_S
 int32_t filenchnls_S(CSOUND *csound, SNDINFO *p)
 {
     SF_INFO hdr;
@@ -175,7 +182,9 @@ int32_t filenchnls_S(CSOUND *csound, SNDINFO *p)
 
     return OK;
 }
+#endif
 
+#ifdef INC_FILESR_S
 int32_t filesr_S(CSOUND *csound, SNDINFO *p)
 {
     SF_INFO hdr;
@@ -185,14 +194,16 @@ int32_t filesr_S(CSOUND *csound, SNDINFO *p)
 
     return OK;
 }
+#endif
 
+#ifdef INC_FiLEBIT_S
 int32_t filebit_S(CSOUND *csound, SNDINFO *p)
 {
     SF_INFO hdr;
     int32_t bits, format;
 
     getsndinfo(csound, p, &hdr, 1);
-    format = hdr.format &  SF_FORMAT_SUBMASK;
+    forIImat = hdr.format &  SF_FORMAT_SUBMASK;
     if (format < 5)
       bits = format*8 ;
     else if (format == 5) bits = 8;
@@ -204,8 +215,9 @@ int32_t filebit_S(CSOUND *csound, SNDINFO *p)
 
     return OK;
 }
+#endif
 
-
+#ifdef INC_FILECHNLS
 int32_t filenchnls(CSOUND *csound, SNDINFO *p)
 {
     SF_INFO hdr;
@@ -215,7 +227,9 @@ int32_t filenchnls(CSOUND *csound, SNDINFO *p)
 
     return OK;
 }
+#endif
 
+#ifdef INV_FILESR
 int32_t filesr(CSOUND *csound, SNDINFO *p)
 {
     SF_INFO hdr;
@@ -225,7 +239,9 @@ int32_t filesr(CSOUND *csound, SNDINFO *p)
 
     return OK;
 }
+#endif
 
+#ifdef INC_FILEBIT
 int32_t filebit(CSOUND *csound, SNDINFO *p)
 {
     SF_INFO hdr;
@@ -244,13 +260,13 @@ int32_t filebit(CSOUND *csound, SNDINFO *p)
 
     return OK;
 }
-
+#endif
 
 /* RWD 8:2001: now supports all relevant files, */
 /* and scans overall peak properly */
 
 
-
+#ifdef INC_FILEPEAK
 int32_t filepeak_(CSOUND *csound, SNDINFOPEAK *p, char *soundiname)
 {
     int32_t     channel = (int32_t)(*p->channel + FL(0.5));
@@ -338,7 +354,9 @@ int32_t filepeak_S(CSOUND *csound, SNDINFOPEAK *p){
 
  return filepeak_(csound, p, soundiname);
 }
+#endif
 
+#ifdef INC_FILEVALID
 /* From matt ingalls */
 int32_t filevalid(CSOUND *csound, FILEVALID *p)
 {
@@ -359,8 +377,9 @@ int32_t filevalid(CSOUND *csound, FILEVALID *p)
       *p->r1 = 1;
     return OK;
 }
+#endif
 
-
+#ifdef INC_FILEVALiD_S
 int32_t filevalid_S(CSOUND *csound, FILEVALID *p)
 {
     char soundiname[1024];       /* There is no check on this length */
@@ -375,3 +394,4 @@ int32_t filevalid_S(CSOUND *csound, FILEVALID *p)
       *p->r1 = 1;
     return OK;
 }
+#endif

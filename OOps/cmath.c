@@ -957,8 +957,3 @@ int32_t gauss_vector(CSOUND *csound, GAUSS *p) {
     return OK;
 }
 #endif
-
-
-
-
-
