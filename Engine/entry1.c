@@ -1210,7 +1210,9 @@ OENTRY opcodlst_1[] = {
   { "readscore",  S(COMPILE), 0, 1, "i", "S",  (SUBR) read_score_i, NULL, NULL },
   { "return",  S(RETVAL), 0, 1, "", "i",  (SUBR) retval_i, NULL, NULL },
   /* ----------------------------------------------------------------------- */
-  { "=.generic", S(ASSIGN), 0,1, ".", ".", (SUBR)copyVarGeneric, NULL, NULL},
+  // VL: 9.3.22 this is causing a problem in parsing arrays
+  // I am modifying it to accept only i-time inputs
+  { "=.generic", S(ASSIGN), 0,1, ".", "i", (SUBR)copyVarGeneric, NULL, NULL},
   { "monitor",  sizeof(MONITOR_OPCODE), IB, 3,  "mmmmmmmmmmmmmmmmmmmmmmmm", "",
     (SUBR) monitor_opcode_init, (SUBR) notinit_opcode_stub,  NULL },
   { "outrg", S(OUTRANGE), IR,3, "", "ky",
