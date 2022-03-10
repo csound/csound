@@ -25,7 +25,7 @@ jobs:
       - name: Install Dependencies
         run: sudo apt-get update && sudo apt-get install cmake libsndfile1-dev libasound2-dev libjack-dev portaudio19-dev libportmidi-dev libpulse-dev swig liblua5.1-0-dev default-jdk libfltk1.1-dev libfluidsynth-dev liblo-dev fluid ladspa-sdk libpng-dev dssi-dev libstk0-dev libgmm++-dev bison flex libportsmf-dev libeigen3-dev libgtest-dev
       - name: Configure build
-        run: mkdir build && cd build && cmake ..
+        run: mkdir build && cd build && cmake .. -DBUILD_STATIC_LIBRARY=1
       - name: Build Csound
         run: cd build && make
       - name: Run tests
@@ -42,7 +42,7 @@ jobs:
       - name: Install Dependencies
         run: brew install cmake bison flex swig asio libsndfile portaudio portmidi libsamplerate liblo jack openjdk gettext googletest
       - name: Configure build
-        run: export PATH="/usr/local/opt/bison/bin:$PATH" && export PATH="/usr/local/opt/flex/bin:$PATH" && bison --version && mkdir build && cd build && cmake .. -DCMAKE_VERBOSE_MAKEFILE=1
+        run: export PATH="/usr/local/opt/bison/bin:$PATH" && export PATH="/usr/local/opt/flex/bin:$PATH" && bison --version && mkdir build && cd build && cmake .. -DCMAKE_VERBOSE_MAKEFILE=1 -DBUILD_STATIC_LIBRARY=1
       - name: Build Csound
         run: cd build && make
       - name: Run tests
