@@ -1,6 +1,7 @@
-#include "csound.h"
 #include <stdio.h>
 #include "gtest/gtest.h"
+
+#include "csound.h"
 
 class IOTests : public ::testing::Test {
 public:
@@ -91,8 +92,7 @@ TEST_F (IOTests, testDeviceList)
     }
 }
 
-int key_callback_evt(void *userData, void *p,
-                     unsigned int type)
+int key_callback_evt(void *userData, void *p, unsigned int type)
 {
     int *prev = (int *) userData;
     *((int *) p) = *prev;
@@ -100,8 +100,7 @@ int key_callback_evt(void *userData, void *p,
     return CSOUND_SUCCESS;
 }
 
-int key_callback_txt(void *userData, void *p,
-                     unsigned int type)
+int key_callback_txt(void *userData, void *p, unsigned int type)
 {
     int *prev = (int *) userData;
     *((int *) p) =  *prev;
