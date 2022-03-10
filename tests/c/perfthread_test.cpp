@@ -10,7 +10,7 @@
 #include "csPerfThread.hpp"
 
 TEST(PerfThreadsTests, PerfThread) {
-    const char  *instrument =
+    const char *instrument =
         "instr 1 \n"
         "k1 expon p4, p3, p4*0.001 \n"
         "a1 randi  k1, p5   \n"
@@ -43,7 +43,7 @@ TEST(PerfThreadsTests, PerfThread) {
 }
 
 TEST(PerfThreadsTests, Record) {
-    const char  *instrument =
+    const char *instrument =
         "0dbfs = 1.0\n"
         "ksmps = 64\n"
         "instr 1 \n"
