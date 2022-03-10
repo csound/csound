@@ -99,7 +99,7 @@ jobs:
         run: cmake --build build --target csdtests
 
       - name: Run unit test framework
-        run: cmake --build build --target RUN_TESTS
+        run: cmake --build build --target RUN_TESTS --config Release
 
       - name: Acquire Csound manual
         shell: powershell
