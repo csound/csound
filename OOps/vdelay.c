@@ -30,9 +30,12 @@
 
 #include <math.h>
 #include "vdelay.h"
+#include "opcodes.h"
 
 //#define ESR     (csound->esr/FL(1000.0))
 #define ESR     (csound->esr*FL(0.001))
+
+#if defined(INC_VDELAY)||defined(INC_VDELAY3)
 
 int32_t vdelset(CSOUND *csound, VDEL *p)            /*  vdelay set-up   */
 {
@@ -50,6 +53,9 @@ int32_t vdelset(CSOUND *csound, VDEL *p)            /*  vdelay set-up   */
     p->maxd = n - 1;
     return OK;
 }
+#endif
+
+#ifdef INC_VDELAY
 
 int32_t vdelay(CSOUND *csound, VDEL *p)               /*      vdelay  routine */
 {
@@ -143,6 +149,9 @@ int32_t vdelay(CSOUND *csound, VDEL *p)               /*      vdelay  routine */
     return csound->PerfError(csound, &(p->h),
                              Str("vdelay: not initialised"));
 }
+#endif
+
+#ifdef INC_VDELAY3
 
 int32_t vdelay3(CSOUND *csound, VDEL *p)    /*  vdelay routine with cubic interp */
 {
@@ -254,7 +263,8 @@ int32_t vdelay3(CSOUND *csound, VDEL *p)    /*  vdelay routine with cubic interp
     return csound->PerfError(csound, &(p->h),
                              Str("vdelay3: not initialised"));
 }
-
+#endif
+/* ************************* HERE *********************************** */
 /* vdelayx, vdelayxs, vdelayxq, vdelayxw, vdelayxws, vdelayxwq */
 /* coded by Istvan Varga, Mar 2001 */
 
@@ -887,6 +897,8 @@ int32_t multitap_play(CSOUND *csound, MDEL *p)
                              Str("multitap: not initialised"));
 }
 
+#ifdef INC_REVERB2
+
 /*      nreverb coded by Paris Smaragdis 1994 and Richard Karpen 1998 */
 
 #define LOG001  (-6.9077552789821370521)       /* log(.001) */
@@ -1238,3 +1250,4 @@ int32_t reverbx(CSOUND *csound, NREV2 *p)
                              Str("reverbx: not initialised"));
 }
 
+#endif

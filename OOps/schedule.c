@@ -32,8 +32,8 @@
 #else
 #include "schedule.h"
 #endif
+#include "opcodes.h"
 
-extern void csoundInputMessageInternal(CSOUND *, const char *);
 int32_t eventOpcodeI_(CSOUND *csound, LINEVENT *p, int32_t s, char p1);
 int32_t eventOpcode_(CSOUND *csound, LINEVENT *p, int32_t s, char p1);
 
@@ -210,6 +210,9 @@ int32_t kschedule(CSOUND *csound, WSCHED *p)
 
 #define MAXPHASE 0x1000000
 #define MAXMASK  0x0ffffff
+
+#if defined(INC_LFO)||defined(INC_LFOA)
+
 int32_t lfoset(CSOUND *csound, LFO *p)
 {
   /* Types: 0:  sine
@@ -238,7 +241,9 @@ int32_t lfoset(CSOUND *csound, LFO *p)
     p->phs = 0;
     return OK;
 }
+#endif
 
+#ifdef INC_LFO
 int32_t lfok(CSOUND *csound, LFO *p)
 {
     int32_t     phs;
@@ -289,6 +294,9 @@ int32_t lfok(CSOUND *csound, LFO *p)
     *p->res = *p->kamp * res;
     return OK;
 }
+#endif
+
+#ifdef INC_LFOA
 
 int32_t lfoa(CSOUND *csound, LFO *p)
 {
@@ -354,31 +362,16 @@ int32_t lfoa(CSOUND *csound, LFO *p)
     p->phs = phs;
     return OK;
 }
-
+#endif
 /******************************************************************************/
 /* triginstr - Ignite instrument events at k-rate from orchestra.             */
 /* August 1999 by rasmus ekman.                                               */
 /* Changes made also to Cs.h, Musmon.c and Insert.c; look for "(re Aug 1999)" */
 /******************************************************************************/
 
-/******************************************************************************/
-/* triginstr - Ignite instrument events at k-rate from orchestra.             */
-/* August 1999 by rasmus ekman.                                               */
-/******************************************************************************/
-
-static void unquote(char *dst, char *src, int32_t maxsize)
-{
-    if (src[0] == '"') {
-      //int32_t len = (int32_t) strlen(src) - 2;
-      strNcpy(dst, src + 1, maxsize-1);
-      //if (len >= 0 && dst[len] == '"') dst[len] = '\0';
-    }
-    else
-      strNcpy(dst, src, maxsize);
-}
-
 static int32_t ktriginstr_(CSOUND *csound, TRIGINSTR *p, int32_t stringname);
 
+#ifdef INC_SCHEDKWHEN
 int32_t triginset(CSOUND *csound, TRIGINSTR *p)
 {
     p->prvmintim = *p->mintime;
@@ -401,7 +394,9 @@ int32_t triginset(CSOUND *csound, TRIGINSTR *p)
       ktriginstr_(csound, p,0);
     return OK;
 }
+#endif
 
+#ifdef INC_SCHEDKWHEN_S
 int32_t triginset_S(CSOUND *csound, TRIGINSTR *p)
 {
     p->prvmintim = *p->mintime;
@@ -424,6 +419,7 @@ int32_t triginset_S(CSOUND *csound, TRIGINSTR *p)
       ktriginstr_(csound, p, 1);
     return OK;
 }
+#endif
 
 
 static int32_t get_absinsno(CSOUND *csound, TRIGINSTR *p, int32_t stringname)
@@ -449,6 +445,18 @@ static int32_t get_absinsno(CSOUND *csound, TRIGINSTR *p, int32_t stringname)
       return -1;
     }
     return insno;
+}
+
+#if defined(INC_SCHEDKWHEN)||defined(INC_SCHEDKWHEN_S)
+static void unquote(char *dst, char *src, int32_t maxsize)
+{
+    if (src[0] == '"') {
+      //int32_t len = (int32_t) strlen(src) - 2;
+      strNcpy(dst, src + 1, maxsize-1);
+      //if (len >= 0 && dst[len] == '"') dst[len] = '\0';
+    }
+    else
+      strNcpy(dst, src, maxsize);
 }
 
 static int32_t ktriginstr_(CSOUND *csound, TRIGINSTR *p, int32_t stringname)
@@ -537,17 +545,22 @@ static int32_t ktriginstr_(CSOUND *csound, TRIGINSTR *p, int32_t stringname)
     return
       (insert_score_event_at_sample(csound, &evt, starttime) == 0 ? OK : NOTOK);
 }
+#endif
 
+#ifdef INC_SCHEDKWHEN_S
 int32_t ktriginstr_S(CSOUND *csound, TRIGINSTR *p){
   return ktriginstr_(csound,p,1);
 }
+#endif
 
+#ifdef INC_SCHEDKWHEN
 int32_t ktriginstr(CSOUND *csound, TRIGINSTR *p){
   return ktriginstr_(csound,p,0);
 }
+#endif
 
 /* Maldonado triggering of events */
-
+#ifdef INC_TRIGSEQ
 int32_t trigseq_set(CSOUND *csound, TRIGSEQ *p)      /* by G.Maldonado */
 {
     FUNC *ftp;
@@ -610,3 +623,4 @@ int32_t trigseq(CSOUND *csound, TRIGSEQ *p)
     }
     return OK;
 }
+#endif

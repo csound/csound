@@ -27,6 +27,7 @@
 #include <math.h>
 #define CSOUND_OSCILS_C 1
 #include "oscils.h"
+#include "opcodes.h"
 
 /* ------------- set up fast sine generator ------------- */
 /* Input args:                                            */
@@ -48,8 +49,9 @@
 /*          generated, respectively.                      */
 /* -------- written by Istvan Varga, Jan 28 2002 -------- */
 
+#if defined(INC_OSCILS)||defined(INC_TABLEXKT)
 static void init_sine_gen(double a, double f, double p,
-                           double *x, double *c, double *v)
+                          double *x, double *c, double *v)
 {
     double  y0, y1;                 /* these should be doubles */
 
@@ -61,7 +63,9 @@ static void init_sine_gen(double a, double f, double p,
     /* amp. scale */
     *x *= a; *v *= a;
 }
+#endif
 
+#ifdef INC_OSCILS
 /* -------- oscils set-up -------- */
 
 int32_t oscils_set(CSOUND *csound, OSCILS *p)
@@ -121,7 +125,9 @@ int32_t oscils(CSOUND *csound, OSCILS *p)
     }
     return OK;
 }
+#endif
 
+#ifdef INC_LPHASOR
 /* -------- lphasor set-up -------- */
 
 int32_t lphasor_set(CSOUND *csound, LPHASOR *p)
@@ -189,7 +195,9 @@ int32_t lphasor(CSOUND *csound, LPHASOR *p)
     p->phs = phs;
     return OK;
 }
+#endif
 
+#ifdef INC_TABLEXKT
 /* -------- tablexkt set-up -------- */
 
 int32_t tablexkt_set(CSOUND *csound, TABLEXKT *p)
@@ -418,3 +426,4 @@ int32_t tablexkt(CSOUND *csound, TABLEXKT *p)
     }
     return OK;
 }
+#endif

@@ -1647,13 +1647,23 @@ OENTRY opcodlst_1[] = {
   { "schedwhen", S(WSCHED),0,3,     "",     "kkkkm",ifschedule, kschedule, NULL },
   { "schedwhen", S(WSCHED),0,3,     "",     "kSkkm",ifschedule, kschedule, NULL },
   #endif
+  #ifdef INC_SCHEDKWHEN
   { "schedkwhen", S(TRIGINSTR),0, 3,"",     "kkkkkz",triginset, ktriginstr, NULL },
+  #endif
+  #ifdef INC_SCHEDKWHEN_S
   { "schedkwhen.S", S(TRIGINSTR),0, 3,"",    "kkkSkz",
                                              triginset_S, ktriginstr_S, NULL },
+  #endif
+  #ifdef INC_SCHEDKWHEN
   { "schedkwhennamed", S(TRIGINSTR),0, 3,"", "kkkkkz",triginset, ktriginstr, NULL },
+  #endif
+  #ifdef INC_SCHEDKWHEN_S
   { "schedkwhennamed.S", S(TRIGINSTR),0, 3,"",
                                         "kkkSkz",triginset_S, ktriginstr_S, NULL },
+  #endif
+  #ifdef INC_TRIGSEQ
   { "trigseq", S(TRIGSEQ),0, 3,     "",     "kkkkkz", trigseq_set, trigseq, NULL },
+  #endif
   { "event", S(LINEVENT),0,  2,     "",     "Skz",  NULL, eventOpcode, NULL   },
   { "event_i", S(LINEVENT),0,1,     "",     "Sim",  eventOpcodeI, NULL, NULL  },
   { "event.S", S(LINEVENT),0,  2,     "",    "SSz",  NULL, eventOpcode_S, NULL   },
@@ -1664,18 +1674,30 @@ OENTRY opcodlst_1[] = {
   { "nstance.S", S(LINEVENT2),0, 1,  "i",  "Siim",  instanceOpcode_S, NULL, NULL},
   { "turnoff.i", S(KILLOP),0,1,     "",     "i", kill_instance, NULL, NULL  },
   { "turnoff.k", S(KILLOP),0,2,     "",     "k", NULL, kill_instance, NULL},
+  #ifdef INC_LFO
   { "lfo", S(LFO),0,         3,     "k",    "kko",  lfoset,   lfok,   NULL   },
+  #endif
+  #ifdef LFOA
   { "lfo.a", S(LFO),0,         3,     "a",    "kko",  lfoset,   lfoa    },
+  #endif
+  #ifdef INC_OSCILS
   { "oscils",   S(OSCILS),0, 3,     "a", "iiio",
     (SUBR)oscils_set, (SUBR)oscils  },
+  #endif
+  #ifdef INC_LPHASOR
   { "lphasor",  S(LPHASOR),0,3,     "a", "xooooooo" ,
     (SUBR)lphasor_set, (SUBR)lphasor },
+  #endif
+  #ifdef INC_TABLEXKT
   { "tablexkt", S(TABLEXKT),TR, 3, "a", "xkkiooo", (SUBR)tablexkt_set,
     (SUBR)tablexkt              },
+  #endif
+  #ifdef INC_REVERB2
   { "reverb2",  S(NREV2),0,  3,     "a",    "akkoojoj",
     (SUBR)reverbx_set,(SUBR)reverbx  },
   { "nreverb",  S(NREV2),0,  3,     "a",    "akkoojoj",
     (SUBR)reverbx_set,(SUBR) reverbx },
+  #endif
   #ifdef INC_FASSIGN
   { "=.f",      S(FASSIGN),0, 3,    "f",   "f", (SUBR)fassign_set, (SUBR)fassign },
   { "init.f",   S(FASSIGN),0, 1,    "f",   "f", (SUBR)fassign_set, NULL, NULL    },
@@ -1853,11 +1875,15 @@ OENTRY opcodlst_1[] = {
   { "deltapi",S(DELTAP),0,  3,  "a", "xo",   (SUBR)tapset,   (SUBR)deltapi },
   { "deltapn",S(DELTAP),0,  3,  "a", "xo",   (SUBR)tapset,   (SUBR)deltapn },
   { "deltap3",S(DELTAP),0,  3,  "a", "xo",   (SUBR)tapset,   (SUBR)deltap3 },
-#ifdef INC_REVERB
+  #ifdef INC_REVERB
   { "reverb", S(REVERB),0,  3,  "a", "ako",  (SUBR)rvbset,   (SUBR)reverb  },
-#endif
+  #endif
+  #ifdef INC_VDELAY
   { "vdelay",   S(VDEL),0,  3,  "a", "axio", (SUBR)vdelset,  (SUBR)vdelay  },
+  #endif
+  #ifdef INC_VDELAY3
   { "vdelay3",  S(VDEL),0,  3,  "a", "axio", (SUBR)vdelset,  (SUBR)vdelay3 },
+  #endif
   { "vdelayxwq",S(VDELXQ),0,3,  "aaaa", "aaaaaiio",
     (SUBR)vdelxqset, (SUBR)vdelayxwq},
   { "vdelayxws",S(VDELXS),0,3,  "aa", "aaaiio", (SUBR)vdelxsset,
