@@ -206,6 +206,8 @@ int32_t printk(CSOUND *csound, PRINTK *p)
 #endif
 /*---------------------------------------------------------------------------*/
 // *********************** HERE **********************************
+
+#if defined(INC_PRINTKS)||defined(INC_PRINTKS_S)
 /* printks() and printksset() */
 
 /* Printing at k rate with a string * and up to four variables - printks. */
@@ -335,15 +337,19 @@ int32_t printksset_(CSOUND *csound, PRINTKS *p, char *sarg)
     p->initialised = -1;
     return OK;
 }
+#endif
 
-int32_t printksset_S(CSOUND *csound, PRINTKS *p){
+#ifdef INC_PRINTKS_S
+int32_ot printksset_S(CSOUND *csound, PRINTKS *p){
     char *sarg;
     sarg = ((STRINGDAT*)p->ifilcod)->data;
     if (sarg == NULL) return csoundInitError(csound, Str("null string\n"));
     p->old = cs_strdup(csound, sarg);
     return printksset_(csound, p, sarg);
 }
+#endif
 
+#if defined(INC_PRINTKS)
 int32_t printksset(CSOUND *csound, PRINTKS *p){
     char* arg_string = get_arg_string(csound, *p->ifilcod);
 
@@ -352,7 +358,7 @@ int32_t printksset(CSOUND *csound, PRINTKS *p){
     }
     return printksset_(csound, p, arg_string);
 }
-
+#endif
 
 //perform a sprintf-style format  -- matt ingalls
 /* void sprints_local(char *outstring, char *fmt, MYFLT **kvals, int32_t numVals) */
@@ -449,6 +455,8 @@ int32_t printksset(CSOUND *csound, PRINTKS *p){
 /* VL - rewritten 1/16
    escaping %% correctly now.
  */
+#if defined(INC_PRINTKS)||defined(INC_PRINTS)||defined(INC_PRINTS_S)||defined(INC_PRINTK2)||defined(INC_PRINTKS2)||defined(INC_PRINTKS_S)
+
 static int32_t sprints(char *outstring,  char *fmt, MYFLT **kvals, int32_t numVals)
 {
     char tmp[8],cc;
@@ -523,10 +531,10 @@ static int32_t sprints(char *outstring,  char *fmt, MYFLT **kvals, int32_t numVa
     }
     return OK;
 }
-
+#endif
 
 /*************************************/
-
+#ifdef INC_PRINTKS_S
 /* printks is called on every k cycle
  * It must decide when to do a
  * print operation.
@@ -562,7 +570,9 @@ int32_t printks(CSOUND *csound, PRINTKS *p)
     }
     return OK;
 }
+#endif
 
+#ifdef INC_PRINTS_S
 /* matt ingalls --  i-rate prints */
 int32_t printsset(CSOUND *csound, PRINTS *p)
 {
@@ -583,7 +593,9 @@ int32_t printsset(CSOUND *csound, PRINTS *p)
     csound->MessageS(csound, CSOUNDMSG_ORCH, "%s", string);
     return OK;
 }
+#endif
 
+#ifdef INC_PRINTS_S
 int32_t printsset_S(CSOUND *csound, PRINTS *p)
 {
     PRINTKS pk;
@@ -607,9 +619,11 @@ int32_t printsset_S(CSOUND *csound, PRINTS *p)
     }
     return OK;
 }
+#endif
 
 /*****************************************************************************/
 
+#ifdef INC_PEAK
 /* peakk and peak ugens */
 
 /* peakk()
@@ -624,7 +638,9 @@ int32_t peakk(CSOUND *csound, PEAK *p)
     }
     return OK;
 }
+#endif
 
+#ifdef INC_PEAKA
 /* peaka()
  *
  * Similar to peakk, but looks at an a rate input variable. */
@@ -648,9 +664,11 @@ int32_t peaka(CSOUND *csound, PEAK *p)
     *peak = pp;
     return OK;
 }
+#endif
 
 /*****************************************************************************/
 
+#ifdef INC_PRINTK2
 /* Gab 21-8-97 */
 /* print a k variable each time it changes (useful for MIDI control sliders) */
 
@@ -691,7 +709,9 @@ int32_t printk2(CSOUND *csound, PRINTK2 *p)
     }
     return OK;
 }
+#endif
 
+#ifdef INC_PRINTKS2
 int32_t printk3set(CSOUND *csound, PRINTK3 *p)
 {
     IGN(csound);
@@ -719,7 +739,9 @@ int32_t printk3(CSOUND *csound, PRINTK3 *p)
     //else printf("....%f %f\n", p->oldvalue, value);
     return OK;
 }
+#endif
 
+#ifdef INC_INZ 
 /* inz writes to za space at a rate as many channels as can. */
 int32_t inz(CSOUND *csound, IOZ *p)
 {
@@ -752,7 +774,9 @@ int32_t inz(CSOUND *csound, IOZ *p)
     return csound->PerfError(csound, &(p->h),
                              Str("inz index < 0. Not writing."));
 }
+#endif
 
+#ifdef INC_OUTZ
 /* outz reads from za space at a rate to output. */
 int32_t outz(CSOUND *csound, IOZ *p)
 {
@@ -801,3 +825,4 @@ int32_t outz(CSOUND *csound, IOZ *p)
     return csound->PerfError(csound, &(p->h),
                              Str("outz index < 0. No output."));
 }
+#endif

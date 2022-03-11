@@ -37,7 +37,7 @@ extern void csoundInputMessageInternal(CSOUND *, const char *);
 int32_t eventOpcodeI_(CSOUND *csound, LINEVENT *p, int32_t s, char p1);
 int32_t eventOpcode_(CSOUND *csound, LINEVENT *p, int32_t s, char p1);
 
-
+#ifdef INC_SCHEDULE_ARRAY
 int32_t schedule_array(CSOUND *csound, SCHED *p)
 {
     LINEVENT pp;
@@ -54,9 +54,9 @@ int32_t schedule_array(CSOUND *csound, SCHED *p)
     pp.flag = 1;
     return eventOpcodeI_(csound, &pp, 0, 'i');
 }
+#endif
 
-
-
+#ifdef INC_SCHEDULE
 int32_t schedule(CSOUND *csound, SCHED *p)
 {
     LINEVENT pp;
@@ -74,7 +74,9 @@ int32_t schedule(CSOUND *csound, SCHED *p)
     pp.flag = 1;
     return eventOpcodeI_(csound, &pp, 0, 'i');
 }
+#endif
 
+#if defined(INC_SCHEDULE_N)||defined(INC_SCEDULE_SN)
 static void add_string_arg(char *s, const char *arg) {
   int32_t offs = strlen(s) ;
   //char *c = s;
@@ -92,8 +94,9 @@ static void add_string_arg(char *s, const char *arg) {
   *s = '\0';
   //printf("%s \n", c);
 }
+#endif
 
-
+#ifdef INC_SCHEDULE_N
 int32_t schedule_N(CSOUND *csound, SCHED *p)
 {
     int32_t i;
@@ -117,7 +120,9 @@ int32_t schedule_N(CSOUND *csound, SCHED *p)
     csoundInputMessageInternal(csound, s);
     return OK;
 }
+#endif
 
+#ifdef INC_SCHEDULE_SN
 int32_t schedule_SN(CSOUND *csound, SCHED *p)
 {
     int32_t i;
@@ -140,8 +145,9 @@ int32_t schedule_SN(CSOUND *csound, SCHED *p)
     csoundInputMessageInternal(csound, s);
     return OK;
 }
+#endif
 
-
+#ifdef INC_SCHEDULE_S
 int32_t schedule_S(CSOUND *csound, SCHED *p)
 {
     LINEVENT pp;
@@ -159,15 +165,16 @@ int32_t schedule_S(CSOUND *csound, SCHED *p)
     pp.flag = 1;
     return eventOpcodeI_(csound, &pp, 1, 'i');
 }
+#endif
 
-
-
+#ifdef INC_SCHEDWHEN
 int32_t ifschedule(CSOUND *csound, WSCHED *p)
 {                       /* All we need to do is ensure the trigger is set */
     IGN(csound);
     p->todo = 1;
     return OK;
 }
+
 
 int32_t kschedule(CSOUND *csound, WSCHED *p)
 {
@@ -196,6 +203,8 @@ int32_t kschedule(CSOUND *csound, WSCHED *p)
     }
     else return OK;
 }
+#endif
+/* *************************** HERE ************************ */
 
 /* tables are 4096 entries always */
 

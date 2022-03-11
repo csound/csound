@@ -1452,8 +1452,12 @@ OENTRY opcodlst_1[] = {
   { "table3kt.a", S(TABL),TR, 3,  "a",  "xkooo", (SUBR)tablkt_setup,
     (SUBR)table3rkt_audio          },
   #endif
+  #ifdef INC_INZ
   { "inz",    S(IOZ),    ZW, 2,   "",   "k",  NULL,   (SUBR)inz  },
+  #endif
+  #ifdef INC_OUTZ
   { "outz",   S(IOZ),ZR|IR,  2,   "",   "k",    NULL,   (SUBR)outz },
+  #endif
   #ifdef INC_TIMEK
   { "timek.i", S(RDTIME),0, 1,   "i",  "",     (SUBR)timek,   NULL,  NULL },
   { "timek.k",  S(RDTIME),0, 2,  "k",  "",     NULL,    (SUBR)timek, NULL },
@@ -1470,21 +1474,37 @@ OENTRY opcodlst_1[] = {
   { "timeinsts", S(RDTIME),0, 3, "k",  "",
     (SUBR)instimset, (SUBR)instimes, NULL },
   #endif
+  #ifdef INC_PEAK
   { "peak.k",  S(PEAK),0,   2,   "k",  "k",    NULL,    (SUBR)peakk,    NULL    },
+  #endif
+  #ifdef INC_PEAKA
   { "peak.a",   S(PEAK),0,  2,   "k",  "a",    NULL,     (SUBR)peaka   },
+  #endif
   #ifdef INC_PRINTK
   { "printk", S(PRINTK),WR,  3,"",     "ikoooo",
     (SUBR)printkset, (SUBR)printk, NULL },
   #endif
+  #ifdef INC_PRINTKS_S
   { "printks",S(PRINTKS),WR, 3,   "",   "SiN",
     (SUBR)printksset_S,(SUBR)printks, NULL },
+  #endif
+  #ifdef INC_PRINTKS2
   { "printks2", sizeof(PRINTK3),0, 3, "", "Sk", (SUBR)printk3set, (SUBR)printk3 },
+  #endif
+  #ifdef INC_PRINTKS
   { "printks.i",S(PRINTKS),WR, 3,   "",   "iiN",
     (SUBR)printksset,(SUBR)printks, NULL },
+  #endif
+  #ifdef INC_PRINTS_S
   { "prints",S(PRINTS),0,   1,   "",   "SN",   (SUBR)printsset_S, NULL, NULL },
+  #endif
+  #ifdef INC_PRINTS
   { "prints.i",S(PRINTS),0,   1,   "",   "iN",   (SUBR)printsset, NULL, NULL },
+  #endif
+  #ifdef INC_PRINTK2
   { "printk2", S(PRINTK2), WR, 3, "",   "koo",
     (SUBR)printk2set, (SUBR)printk2, NULL },
+  #endif
 #ifdef  INC_PORTK
   { "portk",  S(PORT),0,   3, "k",     "kko",  (SUBR)porset, (SUBR)kport, NULL },
 #endif
@@ -1583,31 +1603,50 @@ OENTRY opcodlst_1[] = {
 #ifdef INC_MXADSR_A
   { "mxadsr.a", S(EXPSEG),0,   3,     "a",    "iiiioj", mxdsrset, expsegr},
   #endif
+  #ifdef INC_SCHEDULE
   { "schedule", S(SCHED),0,  1,     "",     "iiim",
     schedule, NULL, NULL },
+  #endif
+  #ifdef INC_SCHEDULE_N
   { "schedule.N", S(SCHED),0,  1,     "",     "iiiN",
     schedule_N, NULL, NULL },
+  #endif
+  #ifdef INC_SCHEDULE_S
   { "schedule.S", S(SCHED),0,  1,     "",     "Siim",
     schedule_S, NULL, NULL },
-  { "schedule.SN", S(SCHED),0,  1,     "",     "SiiN",
+  #endif
+  #ifdef INC_SCHEDULE_SN
+  { "schedule.SN", US(SCHED),0,  1,     "",     "SiiN",
     schedule_SN, NULL, NULL },
+  #endif
+  #ifdef INC_SCHEDULE_ARRAY
   { "schedule.array", S(SCHED),0,  1,     "",     "i[]",
     schedule_array, NULL, NULL },
+  #endif
   /* **** Experimental schedulek opcodes **** */
+  #ifdef INC_SCHEDULE
   { "schedulek",   S(SCHED),0,  2,     "",     "kkkM",
     NULL, schedule, NULL },
+  #endif
+  #ifdef INC_SCHEDULE_N
   { "schedulek.N", S(SCHED),0,  2,     "",     "kkkN",
     NULL, schedule_N, NULL },
+  #endif
+  #ifdef INC_SCHEDULE_S
   { "schedulek.S", S(SCHED),0,  2,     "",     "SkkM",
     NULL, schedule_S, NULL },
+  #endif
+  #ifdef INC_SCHEDULE_SN  
   { "schedulek.SN", S(SCHED),0, 2,     "",     "SkkN",
     NULL, schedule_SN, NULL },
   { "schedulek.array",   S(SCHED),0,  2,     "",     "k[]",
     NULL, schedule_array, NULL },
-
+  #endif
   /* **** End of schedulek **** */
+  #ifdef INC_SCHEEDWHEN
   { "schedwhen", S(WSCHED),0,3,     "",     "kkkkm",ifschedule, kschedule, NULL },
   { "schedwhen", S(WSCHED),0,3,     "",     "kSkkm",ifschedule, kschedule, NULL },
+  #endif
   { "schedkwhen", S(TRIGINSTR),0, 3,"",     "kkkkkz",triginset, ktriginstr, NULL },
   { "schedkwhen.S", S(TRIGINSTR),0, 3,"",    "kkkSkz",
                                              triginset_S, ktriginstr_S, NULL },

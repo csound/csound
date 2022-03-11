@@ -415,8 +415,47 @@ b#define MINTITLE	"Nothing excluded"
 #define INC_TIMEINSTK
 #define INC_TIMEINSTS
 #define INC_PRINTK
+#define INC_PRINTKS
+#define INC_PRINTKS_S
+#define INC_PRINTS
+#define INC_PRINTS_S
+#define INC_PRINTKS2
+#define INC_PRINTS_S
+#define INC_PRINTK2
+#define INC_PRINTKS2
+#define INC_PEAK
+#define INC_PEAKA
+#define INC_INZ
+#define INC_OUTZ
+#define INC_SCHEDULE_ARRAY
+#define INC_SCHEDULE
+#define INC_SCHEDULE_N
+#define INC_SCHEDULE_S
+#define INC_SCHEDULE_SN
+#define INC_SCHEDULEK_ARRAY
+#define INC_SCHEDULEK
+#define INC_SCHEDULEK_N
+#define INC_SCHEDULEK_S
+#define INC_SCHEDULEK_SN
+#define INC_SCHEDWHEN
+#define INC_    
 #define INC_
 #define INC_
+#define INC_
+#define INC_
+#define INC_
+#define INC_
+#define INC_
+#define INC_
+#define INC_
+#define INC_
+#define INC_
+#define INC_
+#define INC_
+#define INC_
+#define INC_
+#define INC_
+
 
 
 
