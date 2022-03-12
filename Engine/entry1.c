@@ -1867,14 +1867,30 @@ OENTRY opcodlst_1[] = {
   { "samphold.k",S(SAMPHOLD),0,3, "k", "xxoo",
     (SUBR)samphset,(SUBR)ksmphold,NULL  },
 #endif
+  #ifdef INC_DELAY
   { "delay",  S(DELAY),0,   3,  "a", "aio",  (SUBR)delset,   (SUBR)delay   },
+  #endif
+  #ifdef INC_DELAYR
   { "delayr", S(DELAYR),0,  3,  "aX","io",   (SUBR)delrset,   (SUBR)delayr  },
+  #endif
+  #ifdef INC_DELAYW
   { "delayw", S(DELAYW),0,  3,  "",  "a",    (SUBR)delwset,   (SUBR)delayw  },
+  #endif
+  #ifdef INC_DELAY1
   { "delay1", S(DELAY1),0,  3,  "a", "ao",   (SUBR)del1set,   (SUBR)delay1  },
+  #endif
+  #ifdef INC_DELTAP
   { "deltap", S(DELTAP),0,  3,  "a", "ko",   (SUBR)tapset,   (SUBR)deltap  },
+  #endif
+  #ifdef INC_DELTEIAP
   { "deltapi",S(DELTAP),0,  3,  "a", "xo",   (SUBR)tapset,   (SUBR)deltapi },
+  #endif
+  #ifdef INC_DELTAPN
   { "deltapn",S(DELTAP),0,  3,  "a", "xo",   (SUBR)tapset,   (SUBR)deltapn },
+  #endif
+  #ifdef INC_DELTAP3
   { "deltap3",S(DELTAP),0,  3,  "a", "xo",   (SUBR)tapset,   (SUBR)deltap3 },
+  #endif
   #ifdef INC_REVERB
   { "reverb", S(REVERB),0,  3,  "a", "ako",  (SUBR)rvbset,   (SUBR)reverb  },
   #endif
@@ -1887,7 +1903,7 @@ OENTRY opcodlst_1[] = {
   #ifdef INC_VDELAYXWS
   { "vdelayxwq",S(VDELXQ),0,3,  "aaaa", "aaaaaiio",
         (SUBR)vdelxqset, (SUBR)vdelayxwq},
-  #endif
+  #endif/
   #ifdef INC_VDELAYXWS
   { "vdelayxws",S(VDELXS),0,3,  "aa", "aaaiio", (SUBR)vdelxsset,
     (SUBR)vdelayxws                  },
@@ -1907,15 +1923,25 @@ OENTRY opcodlst_1[] = {
   #ifdef INC_VDELAYX
   { "vdelayx",  S(VDELX),0, 3,  "a",  "aaiio", (SUBR)vdelxset, (SUBR)vdelayx},
   #endif
+  #ifdef INC_DELTAPX
   { "deltapx",  S(DELTAPX),0,3, "a",  "aio",  (SUBR)tapxset,  (SUBR)deltapx },
+  #endif
+  #ifdef INC_DELTAPXW
   { "deltapxw", S(DELTAPX),0,3,  "",  "aaio", (SUBR)tapxset, (SUBR)deltapxw },
+  #endif
   #ifdef INC_MULTITAP
   { "multitap", S(MDEL),0,  3,   "a", "am",
     (SUBR)multitap_set,(SUBR)multitap_play},
   #endif
+  #ifdef INC_COMB
   { "comb",   S(COMB),0,    3,  "a",  "akioo", (SUBR)cmbset, (SUBR)comb    },
+  #endif
+  #ifdef INC_COMINV
   { "combinv",S(COMB),0,    3,  "a",  "akioo", (SUBR)cmbset, (SUBR)invcomb },
+  #endif
+  #ifdef INC_ALPASS
   { "alpass", S(COMB),0,    3,  "a",  "axioo", (SUBR)cmbset, (SUBR)alpass  },
+  #endif
   { "strset",   S(STRSET_OP),0,   1,  "",     "iS",
      (SUBR) strset_init, NULL, NULL                        },
   { "strget",   S(STRGET_OP),0,   1,  "S",    "i",

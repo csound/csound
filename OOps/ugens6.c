@@ -288,6 +288,7 @@ int32_t samphold(CSOUND *csound, SAMPHOLD *p)
 }
 #endif
 
+#ifdef INC_DELAY
 int32_t delset(CSOUND *csound, DELAY *p)
 {
     int32_t      npts;
@@ -313,7 +314,9 @@ int32_t delset(CSOUND *csound, DELAY *p)
 
     return OK;
 }
+#endif
 
+#ifdef INC_DELAYR
 int32_t delrset(CSOUND *csound, DELAYR *p)
 {
     uint32_t    npts;
@@ -353,7 +356,9 @@ int32_t delrset(CSOUND *csound, DELAYR *p)
     p->curp = auxp;
     return OK;
 }
+#endif
 
+#ifdef INC_DELAYW
 int32_t delwset(CSOUND *csound, DELAYW *p)
 {
    /* fifo for delayr pointers by Jens Groh: */
@@ -371,7 +376,9 @@ int32_t delwset(CSOUND *csound, DELAYW *p)
     csound->delayr_stack_depth--;
     return OK;
 }
+#endif
 
+#if defined(INC_DELTAP)||defined(INC_DELTAPI)||defined(INC_DELTAPN)||defined(INC_DELTAP3)||defined(INC_DELTAPX)||defined(INC_DELTAPXW)
 static DELAYR *delayr_find(CSOUND *csound, MYFLT *ndx)
 {
     DELAYR  *d = (DELAYR*) csound->first_delayr;
@@ -404,7 +411,9 @@ int32_t tapset(CSOUND *csound, DELTAP *p)
     p->delayr = delayr_find(csound, p->indx);
     return (p->delayr != NULL ? OK : NOTOK);
 }
+#endif
 
+#ifdef INC_DELAY
 int32_t delay(CSOUND *csound, DELAY *p)
 {
     MYFLT       *ar, *asig, *curp, *endp;
@@ -440,7 +449,9 @@ int32_t delay(CSOUND *csound, DELAY *p)
     return csound->PerfError(csound, &(p->h),
                              Str("delay: not initialised"));
 }
+#endif
 
+#ifdef INC_DELAYR
 int32_t delayr(CSOUND *csound, DELAYR *p)
 {
     MYFLT       *ar, *curp, *endp;
@@ -467,7 +478,9 @@ int32_t delayr(CSOUND *csound, DELAYR *p)
     return csound->PerfError(csound, &(p->h),
                              Str("delayr: not initialised"));
 }
+#endif
 
+#ifdef INC_DELAYW
 int32_t delayw(CSOUND *csound, DELAYW *p)
 {
     DELAYR      *q = p->delayr;
@@ -492,7 +505,9 @@ int32_t delayw(CSOUND *csound, DELAYW *p)
     return csound->PerfError(csound, &(p->h),
                              Str("delayw: not initialised"));
 }
+#edif
 
+#ifdef INC_DELTAP
 int32_t deltap(CSOUND *csound, DELTAP *p)
 {
     DELAYR      *q = p->delayr;
@@ -522,7 +537,9 @@ int32_t deltap(CSOUND *csound, DELTAP *p)
     return csound->PerfError(csound, &(p->h),
                              Str("deltap: not initialised"));
 }
+#endif
 
+#ifdef INC_DELTAPI
 int32_t deltapi(CSOUND *csound, DELTAP *p)
 {
     DELAYR      *q = p->delayr;
@@ -582,7 +599,9 @@ int32_t deltapi(CSOUND *csound, DELTAP *p)
     return csound->PerfError(csound, &(p->h),
                               Str("deltapi: INF delaytime"));
 }
+#endif
 
+#ifdef INC_DELTAPN
 /* ***** From Hans Mikelson ************* */
 /* Delay N samples */
 int32_t deltapn(CSOUND *csound, DELTAP *p)
@@ -635,7 +654,9 @@ int32_t deltapn(CSOUND *csound, DELTAP *p)
     return csound->PerfError(csound, &(p->h),
                              Str("deltapn: not initialised"));
 }
+#endif
 
+#ifdef INC_DELTAP3
 /* **** JPff **** */
 int32_t deltap3(CSOUND *csound, DELTAP *p)
 {
@@ -725,10 +746,12 @@ int32_t deltap3(CSOUND *csound, DELTAP *p)
                               Str("deltapi: INF delaytime"));
 
 }
+#endif
 
 
 /* deltapx and deltapxw opcodes by Istvan Varga */
 
+#if defined(INC_DELTAPX)||deied(INC_DETABXW)
 int32_t tapxset(CSOUND *csound, DELTAPX *p)
 {
     p->delayr = delayr_find(csound, p->indx);
@@ -743,7 +766,9 @@ int32_t tapxset(CSOUND *csound, DELTAPX *p)
     p->d2x /= (double)((p->wsize * p->wsize) >> 2);
     return OK;
 }
+#endif
 
+#ifdef INC_DELTAPX
 int32_t deltapx(CSOUND *csound, DELTAPX *p)                 /* deltapx opcode */
 {
     DELAYR  *q = p->delayr;
@@ -832,7 +857,9 @@ int32_t deltapx(CSOUND *csound, DELTAPX *p)                 /* deltapx opcode */
     return csound->PerfError(csound, &(p->h),
                              Str("deltap: not initialised"));
 }
+#endif
 
+ifdef INC_DELTAPXW
 int32_t deltapxw(CSOUND *csound, DELTAPX *p)                /* deltapxw opcode */
 {
     DELAYR  *q = p->delayr;
@@ -917,7 +944,9 @@ int32_t deltapxw(CSOUND *csound, DELTAPX *p)                /* deltapxw opcode *
     return csound->PerfError(csound, &(p->h),
                              Str("deltap: not initialised"));
 }
+#endif
 
+#ifdef INC_DELAY1
 int32_t del1set(CSOUND *csound, DELAY1 *p)
 {
     IGN(csound);
@@ -947,7 +976,9 @@ int32_t delay1(CSOUND *csound, DELAY1 *p)
     p->sav1 = asig[nsmps-1];
     return OK;
 }
+#endif
 
+#if defined(INC_COMB)||defined(INC_COMBINV)||defined(INC_ALPASS)
 int32_t cmbset(CSOUND *csound, COMB *p)
 {
     int32_t       lpsiz, nbytes;
@@ -976,7 +1007,9 @@ int32_t cmbset(CSOUND *csound, COMB *p)
     }
     return OK;
 }
+#endif
 
+#ifdef INC_COMB
 int32_t comb(CSOUND *csound, COMB *p)
 {
     uint32_t offset = p->h.insdshead->ksmps_offset;
@@ -1023,7 +1056,9 @@ int32_t comb(CSOUND *csound, COMB *p)
     return csound->PerfError(csound, &(p->h),
                              Str("comb: not initialised"));
 }
+#endif
 
+#ifdef INC_COMBINV
 int32_t invcomb(CSOUND *csound, COMB *p)
 {
     int32_t n, nsmps = csound->ksmps;
@@ -1062,7 +1097,9 @@ int32_t invcomb(CSOUND *csound, COMB *p)
     return csound->PerfError(csound, &(p->h),
                              Str("combinv: not initialised"));
 }
+#endif
 
+#ifdef INC_ALPASS
 int32_t alpass(CSOUND *csound, COMB *p)
 {
     uint32_t    offset = p->h.insdshead->ksmps_offset;
@@ -1099,6 +1136,7 @@ int32_t alpass(CSOUND *csound, COMB *p)
     return csound->PerfError(csound, &(p->h),
                              Str("alpass: not initialised"));
 }
+#endif
 
 #ifdef INC_REVERB
 static const MYFLT revlptimes[6] = {FL(0.0297), FL(0.0371), FL(0.0411),
