@@ -1884,21 +1884,35 @@ OENTRY opcodlst_1[] = {
   #ifdef INC_VDELAY3
   { "vdelay3",  S(VDEL),0,  3,  "a", "axio", (SUBR)vdelset,  (SUBR)vdelay3 },
   #endif
+  #ifdef INC_VDELAYXWS
   { "vdelayxwq",S(VDELXQ),0,3,  "aaaa", "aaaaaiio",
-    (SUBR)vdelxqset, (SUBR)vdelayxwq},
+        (SUBR)vdelxqset, (SUBR)vdelayxwq},
+  #endif
+  #ifdef INC_VDELAYXWS
   { "vdelayxws",S(VDELXS),0,3,  "aa", "aaaiio", (SUBR)vdelxsset,
     (SUBR)vdelayxws                  },
+  #endif
+  #ifdef INC_VDELAYXW
   { "vdelayxw", S(VDELX),0, 3,  "a",  "aaiio",
     (SUBR)vdelxset, (SUBR)vdelayxw},
+  #endif
+  #ifdef INC_VDELAYXQ
   { "vdelayxq", S(VDELXQ),0,3,  "aaaa", "aaaaaiio",
     (SUBR)vdelxqset, (SUBR)vdelayxq},
-  { "vdelayxs", S(VDELXS),0,3,  "aa", "aaaiio",
+  #endif
+  #ifdef INC_VDELAYXS
+  { "velayxs", S(VDELXS),0,3,  "aa", "aaaiio",
     (SUBR)vdelxsset, (SUBR)vdelayxs},
+  #endif
+  #ifdef INC_VDELAYX
   { "vdelayx",  S(VDELX),0, 3,  "a",  "aaiio", (SUBR)vdelxset, (SUBR)vdelayx},
+  #endif
   { "deltapx",  S(DELTAPX),0,3, "a",  "aio",  (SUBR)tapxset,  (SUBR)deltapx },
   { "deltapxw", S(DELTAPX),0,3,  "",  "aaio", (SUBR)tapxset, (SUBR)deltapxw },
+  #ifdef INC_MULTITAP
   { "multitap", S(MDEL),0,  3,   "a", "am",
     (SUBR)multitap_set,(SUBR)multitap_play},
+  #endif
   { "comb",   S(COMB),0,    3,  "a",  "akioo", (SUBR)cmbset, (SUBR)comb    },
   { "combinv",S(COMB),0,    3,  "a",  "akioo", (SUBR)cmbset, (SUBR)invcomb },
   { "alpass", S(COMB),0,    3,  "a",  "axioo", (SUBR)cmbset, (SUBR)alpass  },

@@ -268,6 +268,7 @@ int32_t vdelay3(CSOUND *csound, VDEL *p)    /*  vdelay routine with cubic interp
 /* vdelayx, vdelayxs, vdelayxq, vdelayxw, vdelayxws, vdelayxwq */
 /* coded by Istvan Varga, Mar 2001 */
 
+#ifdef INC_VDELAYXWQ
 int32_t vdelxset(CSOUND *csound, VDELX *p)      /*  vdelayx set-up (1 channel) */
 {
     uint32_t n = (int32_t)(*p->imaxd * csound->esr);
@@ -288,7 +289,9 @@ int32_t vdelxset(CSOUND *csound, VDELX *p)      /*  vdelayx set-up (1 channel) *
     p->maxd = (uint32) n;
     return OK;
 }
+#endif
 
+#ifdef INC_VDELAYXWS
 int32_t vdelxsset(CSOUND *csound, VDELXS *p)    /*  vdelayxs set-up (stereo) */
 {
     uint32_t n = (int32_t)(*p->imaxd * csound->esr);
@@ -314,7 +317,9 @@ int32_t vdelxsset(CSOUND *csound, VDELXS *p)    /*  vdelayxs set-up (stereo) */
     p->maxd = (uint32) n;
     return OK;
 }
+#endif
 
+#ifdef INC_VDELAYXQ
 int32_t vdelxqset(CSOUND *csound, VDELXQ *p) /* vdelayxq set-up (quad channels) */
 {
     uint32_t n = (int32_t)(*p->imaxd * csound->esr);
@@ -348,7 +353,9 @@ int32_t vdelxqset(CSOUND *csound, VDELXQ *p) /* vdelayxq set-up (quad channels) 
     p->maxd = (uint32) n;
     return OK;
 }
+#endif
 
+#ifdef INC_VDELAYX
 int32_t vdelayx(CSOUND *csound, VDELX *p)               /*      vdelayx routine  */
 {
     uint32_t offset = p->h.insdshead->ksmps_offset;
@@ -419,7 +426,9 @@ int32_t vdelayx(CSOUND *csound, VDELX *p)               /*      vdelayx routine 
     return csound->PerfError(csound, &(p->h),
                              Str("vdelay: not initialised"));
 }
+#endif
 
+#ifdef INC_VDELAYXW
 int32_t vdelayxw(CSOUND *csound, VDELX *p)      /*      vdelayxw routine  */
 {
     uint32_t offset = p->h.insdshead->ksmps_offset;
@@ -488,7 +497,9 @@ int32_t vdelayxw(CSOUND *csound, VDELX *p)      /*      vdelayxw routine  */
     return csound->PerfError(csound, &(p->h),
                              Str("vdelay: not initialised"));
 }
+#endif
 
+#ifdef INC_VDELAYXS
 int32_t vdelayxs(CSOUND *csound, VDELXS *p)     /*      vdelayxs routine  */
 {
     int32_t  maxd, indx;
@@ -566,7 +577,9 @@ int32_t vdelayxs(CSOUND *csound, VDELXS *p)     /*      vdelayxs routine  */
     return csound->PerfError(csound, &(p->h),
                              Str("vdelay: not initialised"));
 }
+#endif
 
+#ifdef INC_VDELAYXWS
 int32_t vdelayxws(CSOUND *csound, VDELXS *p)    /*      vdelayxws routine  */
 {
     uint32_t offset = p->h.insdshead->ksmps_offset;
@@ -643,7 +656,9 @@ int32_t vdelayxws(CSOUND *csound, VDELXS *p)    /*      vdelayxws routine  */
     return csound->PerfError(csound, &(p->h),
                              Str("vdelay: not initialised"));
 }
+#endif
 
+#ifdef INC_VDELAYXQ
 int32_t vdelayxq(CSOUND *csound, VDELXQ *p)     /*      vdelayxq routine  */
 {
     uint32_t offset = p->h.insdshead->ksmps_offset;
@@ -738,7 +753,9 @@ int32_t vdelayxq(CSOUND *csound, VDELXQ *p)     /*      vdelayxq routine  */
     return csound->PerfError(csound, &(p->h),
                              Str("vdelay: not initialised"));
 }
+#endif
 
+#ifdef INC_VDELAYXWQ
 int32_t vdelayxwq(CSOUND *csound, VDELXQ *p)    /*      vdelayxwq routine  */
 {
     uint32_t offset = p->h.insdshead->ksmps_offset;
@@ -833,7 +850,9 @@ int32_t vdelayxwq(CSOUND *csound, VDELXQ *p)    /*      vdelayxwq routine  */
     return csound->PerfError(csound, &(p->h),
                              Str("vdelay: not initialised"));
 }
+#endif
 
+#ifdef INC_MULTITAP
 int32_t multitap_set(CSOUND *csound, MDEL *p)
 {
     uint32_t n, i;
@@ -896,6 +915,8 @@ int32_t multitap_play(CSOUND *csound, MDEL *p)
     return csound->PerfError(csound, &(p->h),
                              Str("multitap: not initialised"));
 }
+#endif
+
 
 #ifdef INC_REVERB2
 
