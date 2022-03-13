@@ -205,7 +205,6 @@ int32_t printk(CSOUND *csound, PRINTK *p)
 }
 #endif
 /*---------------------------------------------------------------------------*/
-// *********************** HERE **********************************
 
 #if defined(INC_PRINTKS)||defined(INC_PRINTKS_S)
 /* printks() and printksset() */

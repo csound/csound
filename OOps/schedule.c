@@ -204,7 +204,6 @@ int32_t kschedule(CSOUND *csound, WSCHED *p)
     else return OK;
 }
 #endif
-/* *************************** HERE ************************ */
 
 /* tables are 4096 entries always */
 

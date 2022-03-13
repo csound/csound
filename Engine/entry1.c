@@ -152,12 +152,14 @@ OENTRY opcodlst_1[] = {
   { "midglobal",S(MIDGLOBAL),0,1,   "",     "Sm", midglobal, NULL, NULL, NULL},
   { "ihold",  S(LINK),0,    1,      "",     "",     ihold, NULL, NULL, NULL  },
   { "turnoff",S(LINK),0,    2,      "",     "",     NULL,   turnoff, NULL, NULL },
+  #ifdef INC_STRCPY
   {  "=.S",   S(STRCPY_OP),0,   1,  "S",    "S",
      (SUBR) strcpy_opcode_S, NULL, (SUBR) NULL, NULL    },
   {  "#=.S",   S(STRCPY_OP),0,   2,  "S",    "S",
      NULL, (SUBR) strcpy_opcode_S, (SUBR) NULL, NULL    },
   {  "=.T",   S(STRGET_OP),0,   1,  "S",    "i",
-     (SUBR) strcpy_opcode_p, (SUBR) NULL, (SUBR) NULL, NULL                 },
+     (SUBR) strcpy_opcode_p, (SUBR) NULL, (SUBR) NULL, NULL                 }, 
+  #endif
   #ifdef INC_RASSIGN
   { "=.r",    S(ASSIGN),0,  1,      "r",    "i",    rassign, NULL, NULL, NULL },
   #endif
@@ -177,8 +179,10 @@ OENTRY opcodlst_1[] = {
   #ifdef INC_DOWNSAMP
   { "=.down",   S(DOWNSAMP),0,  3,  "k",    "ao",   (SUBR)downset,(SUBR)downsamp },
   #endif
+  #ifdef INC_STRCPY
   { "init.S", S(STRCPY_OP),0, 1,      "S", "S", (SUBR) strcpy_opcode_S  },
   { "init.Si", S(STRCPY_OP),0, 1,      "S", "i", (SUBR) strcpy_opcode_p  },
+  #endif
   #ifdef INC_MINIT
   { "init.i", S(ASSIGNM),0, 1,      "IIIIIIIIIIIIIIIIIIIIIIII", "m", minit  },
   { "init.k", S(ASSIGNM),0, 1,      "zzzzzzzzzzzzzzzzzzzzzzzz", "m", minit  },
@@ -1903,7 +1907,7 @@ OENTRY opcodlst_1[] = {
   #ifdef INC_VDELAYXWS
   { "vdelayxwq",S(VDELXQ),0,3,  "aaaa", "aaaaaiio",
         (SUBR)vdelxqset, (SUBR)vdelayxwq},
-  #endif/
+  #endif
   #ifdef INC_VDELAYXWS
   { "vdelayxws",S(VDELXS),0,3,  "aa", "aaaiio", (SUBR)vdelxsset,
     (SUBR)vdelayxws                  },
@@ -1942,14 +1946,21 @@ OENTRY opcodlst_1[] = {
   #ifdef INC_ALPASS
   { "alpass", S(COMB),0,    3,  "a",  "axioo", (SUBR)cmbset, (SUBR)alpass  },
   #endif
+  #ifdef INC_STRSET
   { "strset",   S(STRSET_OP),0,   1,  "",     "iS",
      (SUBR) strset_init, NULL, NULL                        },
+  #endif
+  #ifdef INC_STRGET
   { "strget",   S(STRGET_OP),0,   1,  "S",    "i",
      (SUBR) strget_init, NULL, NULL                        },
+  #endif
+  #ifdef INC_S
   {  "S",   S(STRGET_OP),0,   1,  "S",    "i",
      (SUBR) s_opcode, NULL, NULL                           },
   {  "S",   S(STRGET_OP),0,   3,  "S",    "k",
      (SUBR) s_opcode,(SUBR) s_opcode_k, NULL                       },
+  #endif
+  #ifdef INC_STRCPY
   {  "strcpy",   S(STRCPY_OP),0,   1,  "S",    "S",
      (SUBR) strcpy_opcode_S, NULL, NULL                     },
   {  "strcpy",   S(STRGET_OP),0,   1,  "S",    "i",
@@ -1958,75 +1969,110 @@ OENTRY opcodlst_1[] = {
      (SUBR) strcpy_opcode_S, (SUBR) strcpy_opcode_S, NULL          },
   {  "strcpyk.k",  S(STRGET_OP),0,   3,  "S",    "k",
      (SUBR) strcpy_opcode_p, (SUBR) strcpy_opcode_p, NULL          },
+  #endif
+  #ifdef INC_STRCAT
   {  "strcat",   S(STRCAT_OP),0,   1,  "S",    "SS",
      (SUBR) strcat_opcode, NULL, NULL                      },
   {  "strcatk",  S(STRCAT_OP),0,   3,  "S",    "SS",
      (SUBR) strcat_opcode, (SUBR) strcat_opcode, NULL             },
+  #endif
+  #ifdef INC_STRCMP
   {  "strcmp",   S(STRCMP_OP),0,   1,  "i",    "SS",
      (SUBR) strcmp_opcode, NULL, NULL                      },
   {  "strcmpk",  S(STRCAT_OP),0,   3,  "k",    "SS",
      (SUBR) strcmp_opcode, (SUBR) strcmp_opcode, NULL             },
+  #endif
+  #ifdef INC_SPRINTF
   {  "sprintf",  S(SPRINTF_OP),0,  1,  "S",    "STN",
      (SUBR) sprintf_opcode, NULL, NULL                     },
   {  "sprintfk", S(SPRINTF_OP),WR,  3,  "S",    "SUN",
      (SUBR) sprintf_opcode, (SUBR) sprintf_opcode, NULL           },
+  #endif
+  #ifdef INC_PRINTF
   {  "printf_i", S(PRINTF_OP),0,   1,  "",     "SiN", /* SiTN */
      (SUBR) printf_opcode_init, NULL, NULL                 },
   {  "printf",   S(PRINTF_OP),WR,   3,  "",     "SkN", /* SkUN */
      (SUBR) printf_opcode_set, (SUBR) printf_opcode_perf, NULL    },
+  #endif
+  #ifdef INC_PUTS
   {  "puts",     S(PUTS_OP),WR,     3,  "",     "Sko",
      (SUBR) puts_opcode_init, (SUBR) puts_opcode_perf, NULL       },
+  #endif
+  #ifdef INC_STRTOD
   {  "strtod",   S(STRSET_OP),0,   1,  "i",    "S",
      (SUBR) strtod_opcode_S, NULL, NULL                      },
   {  "strtod",   S(STRTOD_OP),0,   1,  "i",    "i",
      (SUBR) strtod_opcode_p, NULL, NULL                      },
   {  "strtodk",  S(STRSET_OP),0,   3,  "k",    "S",
      (SUBR) strtod_opcode_S, (SUBR) strtod_opcode_S, NULL          },
+  #endif
+  #ifdef INC_STRTOL
   {  "strtol",   S(STRSET_OP),0,   1,  "i",    "S",
      (SUBR) strtol_opcode_S, NULL, NULL                      },
   {  "strtol",   S(STRTOD_OP),0,   1,  "i",    "i",
      (SUBR) strtol_opcode_p, NULL, NULL                      },
   {  "strtolk",  S(STRSET_OP),0,   3,  "k",    "S",
      (SUBR) strtol_opcode_S, (SUBR) strtol_opcode_S, NULL         },
+  #endif
+  #ifdef INC_STRSUB
   {  "strsub",   S(STRSUB_OP),0,   1,  "S",    "Soj",
      (SUBR) strsub_opcode, NULL, NULL                      },
   {  "strsubk",  S(STRSUB_OP),0,   3,  "S",    "Skk",
      (SUBR) strsub_opcode, (SUBR) strsub_opcode, NULL             },
+  #endif
+  #ifdef INC_STRCHAR
   {  "strchar",  S(STRCHAR_OP),0,  1,  "i",    "So",
      (SUBR) strchar_opcode, NULL, NULL                     },
   {  "strchark", S(STRCHAR_OP),0,  3,  "k",    "SO",
      (SUBR) strchar_opcode, (SUBR) strchar_opcode, NULL           },
+  #endif
+  #ifdef INC_STRLEN
   {  "strlen",   S(STRLEN_OP),0,   1,  "i",    "S",
      (SUBR) strlen_opcode, NULL, NULL                      },
   {  "strlenk",  S(STRLEN_OP),0,   3,  "k",    "S",
      (SUBR) strlen_opcode, (SUBR) strlen_opcode, NULL             },
+  #endif
+  #ifdef STRUPPER
   {  "strupper", S(STRUPPER_OP),0, 1,  "S",    "S",
      (SUBR) strupper_opcode, NULL, NULL                    },
   {  "strupperk", S(STRUPPER_OP),0, 3, "S",    "S",
      (SUBR) strupper_opcode, (SUBR) strupper_opcode, NULL         },
+  #endif
+  #ifdef STRLOWER
   {  "strlower", S(STRUPPER_OP),0, 1,  "S",    "S",
      (SUBR) strlower_opcode, NULL, NULL                    },
   {  "strlowerk", S(STRUPPER_OP),0, 3, "S",    "S",
      (SUBR) strlower_opcode, (SUBR) strlower_opcode, NULL         },
+  #endif
+  #ifdef INC_GETCFG
   {  "getcfg",   S(GETCFG_OP),0,   1,  "S",    "i",
      (SUBR) getcfg_opcode, NULL, NULL                      },
+  #endif
+  #ifdef STRINDEX
   {  "strindex", S(STRINDEX_OP),0, 1,  "i",    "SS",
      (SUBR) strindex_opcode, NULL, NULL                    },
   {  "strindexk", S(STRINDEX_OP),0, 3, "k",    "SS",
      (SUBR) strindex_opcode, (SUBR) strindex_opcode, NULL         },
+  #endif
+  #ifdef STRRINDEX
   {  "strrindex", S(STRINDEX_OP),0, 1, "i",    "SS",
      (SUBR) strrindex_opcode, NULL, NULL                   },
   {  "strrindexk", S(STRINDEX_OP),0, 3, "k",   "SS",
      (SUBR) strrindex_opcode, (SUBR) strrindex_opcode, NULL       },
+  #endif
+  #ifdef INC_PRINT_TYPE
   {  "print_type", S(PRINT_TYPE_OP),0, 1, "",   ".",
      (SUBR) print_type_opcode, NULL, NULL       },
+  #endif
 #ifdef HAVE_CURL
   {  "strfromurl", S(STRCPY_OP), 0, 1, "S", "S", (SUBR) str_from_url     },
 #endif
+  #ifdef INC_CHANGED_S
   {  "changed.S", S(STRCHGD),0, 3, "k",   "S",
      (SUBR) str_changed, (SUBR) str_changed_k, NULL       },
   {  "changed2.S", S(STRCHGD),0, 3, "k",   "S",
      (SUBR) str_changed, (SUBR) str_changed_k, NULL       },
+  #endif
   { "loop_lt.i", S(LOOP_OPS),0,  1,  "", "iiil", (SUBR) loop_l_i, NULL, NULL   },
   { "loop_le.i", S(LOOP_OPS),0,  1,  "", "iiil", (SUBR) loop_le_i, NULL, NULL  },
   { "loop_gt.i", S(LOOP_OPS),0,  1,  "", "iiil", (SUBR) loop_g_i, NULL, NULL   },

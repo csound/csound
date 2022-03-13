@@ -31,7 +31,7 @@
 #include <curl/curl.h>
 #include "corfile.h"
 #endif
-
+#include "opcodes.h"
 #define STRSMAX 8
 
 #ifndef HAVE_SNPRINTF
@@ -41,6 +41,7 @@
 #endif
 #endif
 
+#ifdef INC_S
 int32_t s_opcode(CSOUND *csound, STRGET_OP *p){
     if (p->r->data == NULL){
       p->r->data = (char *) csound->Malloc(csound, 15);
@@ -58,6 +59,7 @@ int32_t s_opcode_k(CSOUND *csound, STRGET_OP *p){
     snprintf(p->r->data, p->r->size, "%f", *p->indx);
     return OK;
 }
+#endif
 
 /* strset by John ffitch */
 
@@ -104,7 +106,6 @@ int32_t strset_init(CSOUND *csound, STRSET_OP *p)
     str_set(csound, (int32_t) MYFLT2LRND(*p->indx), p->str->data);
     return OK;
 }
-
 /* for argdecode.c */
 
 void strset_option(CSOUND *csound, char *s)
@@ -112,8 +113,8 @@ void strset_option(CSOUND *csound, char *s)
     int32_t indx = 0;
 
     if (UNLIKELY(!isdigit(*s))) {
-       csound->Warning(csound, Str("--strset: invalid format"));
-       return;
+      csound->Warning(csound, "%s", Str("--strset: invalid format"));
+      return;
     }
     do {
       indx = (indx * 10) + (int32_t) (*s++ - '0');
@@ -178,6 +179,8 @@ static CS_NOINLINE int32_t StrOp_ErrMsg(void *p, const char *msg)
 
     return NOTOK;
 }
+
+#ifdef INC_STRCPY
 /* strcpy */
 int32_t strcpy_opcode_S(CSOUND *csound, STRCPY_OP *p)
 {
@@ -206,7 +209,10 @@ int32_t strcpy_opcode_S(CSOUND *csound, STRCPY_OP *p)
 
     return OK;
 }
+#endif
 
+// ******************* NOT REFERNCED *********************** */
+#if 0
 int32_t strassign_opcode_S(CSOUND *csound, STRCPY_OP *p)
 {
    IGN(csound);
@@ -224,7 +230,9 @@ int32_t strassign_opcode_Sk(CSOUND *csound, STRCPY_OP *p)
     //csound->Message(csound, p->r->data);
     return OK;
 }
+#endif
 
+#ifdef INC_CHANGED_S
 int32_t str_changed(CSOUND *csound, STRCHGD *p)
 {
     if (p->mem != NULL)
@@ -245,6 +253,9 @@ int32_t str_changed_k(CSOUND *csound, STRCHGD *p)
     return OK;
 }
 
+#endif
+
+#ifdef INC_STRCPY
 extern char* get_strarg(CSOUND *csound, MYFLT p, char *strarg);
 int32_t strcpy_opcode_p(CSOUND *csound, STRGET_OP *p)
 {
@@ -279,7 +290,8 @@ int32_t strcpy_opcode_p(CSOUND *csound, STRGET_OP *p)
 
     return OK;
 }
-
+#endif
+#ifdef INC_STRCAT
 
 /* strcat */
 int32_t strcat_opcode(CSOUND *csound, STRCAT_OP *p)
@@ -323,7 +335,9 @@ int32_t strcat_opcode(CSOUND *csound, STRCAT_OP *p)
     csound->Free(csound, str1);
     return OK;
 }
+#endif
 
+#ifdef INC_STRCMP
 /* strcmp */
 
 int32_t strcmp_opcode(CSOUND *csound, STRCMP_OP *p)
@@ -346,7 +360,9 @@ int32_t strcmp_opcode(CSOUND *csound, STRCMP_OP *p)
 
     return OK;
 }
+#endif
 
+#if defined(INC_SPRINTF)||defined(INC_PRINTF)
 /* perform a sprintf-style format -- based on code by Matt J. Ingalls */
 
 static CS_NOINLINE int32_t
@@ -534,7 +550,9 @@ sprintf_opcode_(CSOUND *csound,
     csound->Free(csound, strseg);
     return OK;
 }
+#endif
 
+#ifdef INC_SPRINTF
 int32_t sprintf_opcode(CSOUND *csound, SPRINTF_OP *p)
 {
     int32_t size = p->sfmt->size+ 18*((int32_t) p->INOCOUNT);
@@ -552,7 +570,9 @@ int32_t sprintf_opcode(CSOUND *csound, SPRINTF_OP *p)
     }
     return OK;
 }
+#endif
 
+#ifdef INC_PRINTF
 static CS_NOINLINE int32_t printf_opcode_(CSOUND *csound, PRINTF_OP *p)
 {
     STRINGDAT buf;
@@ -593,7 +613,9 @@ int32_t printf_opcode_perf(CSOUND *csound, PRINTF_OP *p)
       return (printf_opcode_(csound, p));
     return OK;
 }
+#endif
 
+#ifdef INC_PUTS
 int32_t puts_opcode_init(CSOUND *csound, PUTS_OP *p)
 {
     p->noNewLine = (*p->no_newline == FL(0.0) ? 0 : 1);
@@ -620,7 +642,9 @@ int32_t puts_opcode_perf(CSOUND *csound, PUTS_OP *p)
 
     return OK;
 }
+#endif
 
+#ifdef INC_STRTOD
 int32_t strtod_opcode_p(CSOUND *csound, STRTOD_OP *p)
 {
     char    *s = NULL, *tmp;
@@ -662,7 +686,9 @@ int32_t strtod_opcode_S(CSOUND *csound, STRSET_OP *p)
 
     return OK;
 }
+#endif
 
+#ifdef INC_STRTOL
 int32_t strtol_opcode_S(CSOUND *csound, STRSET_OP *p)
 {
     IGN(csound);
@@ -775,7 +801,9 @@ int32_t strtol_opcode_p(CSOUND *csound, STRTOD_OP *p)
 
     return OK;
 }
+#endif
 
+#ifdef INC_STRSUB
 /**
  * Sdst    strsub      Ssrc[, istart[, iend]]
  * Sdst    strsubk     Ssrc, kstart, kend
@@ -865,7 +893,9 @@ int32_t strsub_opcode(CSOUND *csound, STRSUB_OP *p)
     }
     return OK;
 }
+#endif
 
+#ifdef INC_STRCHAR
 /**
  * ichr    strchar     Sstr[, ipos]
  * kchr    strchark    Sstr[, kpos]
@@ -891,7 +921,9 @@ int32_t strchar_opcode(CSOUND *csound, STRCHAR_OP *p)
 
     return OK;
 }
+#endif
 
+#ifdef INC_STRLEN
 /**
  * ilen    strlen      Sstr
  * klen    strlenk     Sstr
@@ -908,6 +940,7 @@ int32_t strlen_opcode(CSOUND *csound, STRLEN_OP *p)
     return OK;
 }
 
+#endif
 /**
  * Sdst    strupper    Ssrc
  * Sdst    strupperk   Ssrc
@@ -917,6 +950,7 @@ int32_t strlen_opcode(CSOUND *csound, STRLEN_OP *p)
  * Convert a string to upper or lower case.
  */
 
+#ifdef INC_STRUPPER
 int32_t strupper_opcode(CSOUND *csound, STRUPPER_OP *p)
 {
     const char  *src;
@@ -941,7 +975,9 @@ int32_t strupper_opcode(CSOUND *csound, STRUPPER_OP *p)
 
     return OK;
 }
+#endif
 
+#ifdef INC_STRLOWER
 int32_t strlower_opcode(CSOUND *csound, STRUPPER_OP *p)
 {
     const char  *src;
@@ -966,7 +1002,9 @@ int32_t strlower_opcode(CSOUND *csound, STRUPPER_OP *p)
 
     return OK;
 }
+#endif
 
+#ifdef INC_GETCFG
 /**
  * Sval    getcfg      iopt
  *
@@ -1051,7 +1089,9 @@ int32_t getcfg_opcode(CSOUND *csound, GETCFG_OP *p)
     }
     return OK;
 }
+#endif
 
+#ifdef INC_STRINDEX
 /**
  * ipos    strindex    Sstr1, Sstr2
  * kpos    strindexk   Sstr1, Sstr2
@@ -1082,7 +1122,9 @@ int32_t strindex_opcode(CSOUND *csound, STRINDEX_OP *p)
 
     return OK;
 }
+#endif
 
+#ifdef INC_STRRINDEX
 /**
  * ipos    strrindex   Sstr1, Sstr2
  * kpos    strrindexk  Sstr1, Sstr2
@@ -1117,6 +1159,7 @@ int32_t strrindex_opcode(CSOUND *csound, STRINDEX_OP *p)
 
     return OK;
 }
+#endif
 
 #ifdef HAVE_CURL
 int32_t str_from_url(CSOUND *csound, STRCPY_OP *p)
@@ -1216,6 +1259,7 @@ strNcpy(char *dst, const char *src, size_t siz)
     return dst;        /* count does not include NUL */
 }
 
+#ifdef INC_PRINT_TYPEb
 /* Debugging opcode for testing runtime type identification */
 int32_t print_type_opcode(CSOUND* csound, PRINT_TYPE_OP* p) {
     char* ptr = (char*)p->inVar;
@@ -1225,3 +1269,4 @@ int32_t print_type_opcode(CSOUND* csound, PRINT_TYPE_OP* p) {
 
     return OK;
 }
+#endif

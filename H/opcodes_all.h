@@ -467,6 +467,27 @@ b#define MINTITLE	"Nothing excluded"
 #define INC_COMB
 #define INC_COMBINV
 #define INC_ALPASS
+#define INC_S
+#define INC_STRSET
+#define INC_STRGET
+#define INC_STRCPY
+#define INC_STRCAT
+#define INC_CHANGED_S
+#define INC_ASSIGN_T
+#define INC_STRCMP
+#define INC_SPRINTF
+#define INC_PRINTF
+#define INC_PUTS
+#define INC_STRTOD
+#define INC_STRTOL
+#define INC_STRSUB
+#define INC_STRCHAR
+#define INC_STRLEN
+#define INC_STRUPPER
+#define INC_STRLOWER
+#define INC_GETCFG
+#define INC_STRINDEX
+#define INC_PRINT_TYPE
 #define INC_
 #define INC_
 #define INC_
@@ -477,17 +498,3 @@ b#define MINTITLE	"Nothing excluded"
 #define INC_
 #define INC_
 #define INC_
-#define INC_
-#define INC_
-#define INC_
-#define INC_
-#define INC_
-#define INC_
-#define INC_
-#define INC_
-#define INC_
-#define INC_
-
-
-
-

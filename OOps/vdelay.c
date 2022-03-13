@@ -264,7 +264,7 @@ int32_t vdelay3(CSOUND *csound, VDEL *p)    /*  vdelay routine with cubic interp
                              Str("vdelay3: not initialised"));
 }
 #endif
-/* ************************* HERE *********************************** */
+
 /* vdelayx, vdelayxs, vdelayxq, vdelayxw, vdelayxws, vdelayxwq */
 /* coded by Istvan Varga, Mar 2001 */
 
