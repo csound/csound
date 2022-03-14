@@ -874,7 +874,7 @@ int32_t pitchamdfset(CSOUND *csound, PITCHAMDF *p)
     }
 
     size = maxperi + interval;
-    bufsize = sizeof(MYFLT)*(size + maxperi + 2);
+    bufsize = sizeof(MYFLT)*(size + interval + 2);
 
     p->srate = srate;
     p->downsamp = downsamp;
