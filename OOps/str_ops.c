@@ -1259,7 +1259,7 @@ strNcpy(char *dst, const char *src, size_t siz)
     return dst;        /* count does not include NUL */
 }
 
-#ifdef INC_PRINT_TYPEb
+#ifdef INC_PRINT_TYPE
 /* Debugging opcode for testing runtime type identification */
 int32_t print_type_opcode(CSOUND* csound, PRINT_TYPE_OP* p) {
     char* ptr = (char*)p->inVar;

@@ -143,15 +143,33 @@ OENTRY opcodlst_1[] = {
   #ifdef INC_MASSIG_S
   { "massign.S",S(MASSIGNS), 0,1,  "",  "iSp",massign_S, NULL, NULL, NULL},
   #endif
+  #ifdef INC_TURNON
   { "turnon", S(TURNON),  0,1,      "",     "io", turnon, NULL, NULL, NULL},
+  #endif
+  #ifdef INC_TURNON_S
   { "turnon.S", S(TURNON),  0,1,    "",     "So", turnon_S, NULL, NULL, NULL},
+  #endif
+  #ifdef INC_REMOTEPORT
   { "remoteport", S(REMOTEPORT), 0,1, "",  "i", remoteport, NULL, NULL, NULL},
+  #endif
+  #ifdef INC_INSREMOT
   { "insremot",S(INSREMOT),0,1,     "",     "SSm",insremot, NULL, NULL, NULL},
+  #endif
+  #ifdef INC_MIDREMOT
   { "midremot",S(MIDREMOT),0,1,     "",     "SSm",midremot, NULL, NULL, NULL},
+  #endif
+  #ifdef INC_INSGLOBAL
   { "insglobal",S(INSGLOBAL),0,1,   "",     "Sm", insglobal, NULL, NULL, NULL},
+  #endif
+  #ifdef INC_MIDGLOAL
   { "midglobal",S(MIDGLOBAL),0,1,   "",     "Sm", midglobal, NULL, NULL, NULL},
+  #endif
+  #ifdef INC_IHOLD
   { "ihold",  S(LINK),0,    1,      "",     "",     ihold, NULL, NULL, NULL  },
+  #endif
+  #ifdef INC_TURNOFF
   { "turnoff",S(LINK),0,    2,      "",     "",     NULL,   turnoff, NULL, NULL },
+  #endif
   #ifdef INC_STRCPY
   {  "=.S",   S(STRCPY_OP),0,   1,  "S",    "S",
      (SUBR) strcpy_opcode_S, NULL, (SUBR) NULL, NULL    },
@@ -1086,12 +1104,24 @@ OENTRY opcodlst_1[] = {
   #ifdef INC_OUTALL
   { "outall", S(OUTM),IR,    2,      "",     "a",    NULL,   outrep  },
   #endif
+  #ifdef INC_IGOTO
   { "igoto",  S(GOTO),0,    1,      "",     "l",    igoto                  },
+  #endif
+  #ifdef INC_KGOTO
   { "kgoto",  S(GOTO),0,    2,      "",     "l",    NULL,   kgoto           },
+  #endif
+  #ifdef INC_GOTO
   { "goto",   S(GOTO),0,    3,      "",     "l",    igoto,  kgoto           },
+  #endif
+  #ifdef INC_CIGOTO
   { "cigoto", S(CGOTO),0,   1,      "",     "Bl",   icgoto                  },
+  #endif
+  #ifdef INC_CKGOTO
   { "ckgoto", S(CGOTO),0,   2,      "",     "Bl",   NULL,   kcgoto          },
+  #endif
+  #ifdef INC_CGGOTO
   { "cggoto.0", S(CGOTO),0, 3,      "",     "Bl",   icgoto, kcgoto          },
+  #endif
   { "timout", S(TIMOUT),0,  3,      "",     "iil",  timset, timout          },
   { "reinit", S(GOTO),0,    2,      "",     "l",    NULL,   reinit          },
   { "rigoto", S(GOTO),0,    1,      "",     "l",    rigoto                  },
@@ -1107,7 +1137,7 @@ OENTRY opcodlst_1[] = {
   #ifdef INC_DISPLAY_A
   { "display.a",S(DSPLAY),0,  3,    "",     "aioo", dspset ,dsplay    },
   #endif
-  #ifdef INC_PVSDISPb
+  #ifdef INC_PVSDISP
   { "pvsdisp",S(FSIGDISP),0,  3,    "",     "foo", fdspset, fdsplay,NULL    },
   #endif
   #ifdef INC_DISPFFT
@@ -1819,7 +1849,8 @@ OENTRY opcodlst_1[] = {
   { "nstrnum.i", S(NSTRNUM),0, 1,     "i",    "i",    nstrnumset, NULL, NULL      },
   { "nstrstr", S(NSTRSTR),0, 1,       "S",    "i",    nstrstr, NULL, NULL      },
   { "nstrstr.k", S(NSTRSTR),0, 2,     "S",    "k",    NULL, nstrstr, NULL      },
-  { "turnoff2",   0xFFFB,   _CW,    0, NULL,   NULL,   NULL, NULL, NULL          },
+  //  { "turnoff2",   0xFFFB,   _CW,    0, NULL,   NULL,   NULL, NULL, NULL          },
+  #ifdef INC_TURNOFF2
   { "turnoff2_i.S",S(TURNOFF2),_CW,1,     "",     "Soo",  turnoff2S, NULL     },
   { "turnoff2_i.i",S(TURNOFF2),_CW,1,     "",     "ioo",  turnoff2k, NULL     },
   { "turnoff2.S",S(TURNOFF2),_CW,2,     "",     "Skk",  NULL, turnoff2S, NULL     },
@@ -1827,14 +1858,23 @@ OENTRY opcodlst_1[] = {
   { "turnoff2.k",S(TURNOFF2),_CW,2,     "",     "kkk",  NULL, turnoff2k, NULL     },
   { "turnoff2.i",S(TURNOFF2),_CW,2,     "",     "ikk",  NULL, turnoff2k, NULL     },
   { "turnoff2.r",S(TURNOFF2),_CW,2,     "",     "ikk",  NULL, turnoff2k, NULL     },
+  #endif
+  #ifdef INC_TURNOFF3
   { "turnoff3.S",S(TURNOFF2),_CW,2,     "",     "S",  NULL, turnoff3S, NULL     },
   { "turnoff3.c",S(TURNOFF2),_CW,2,     "",     "i",  NULL, turnoff3k, NULL     },
   { "turnoff3.k",S(TURNOFF2),_CW,2,     "",     "k",  NULL, turnoff3k, NULL     },
   { "turnoff3.i",S(TURNOFF2),_CW,2,     "",     "i",  NULL, turnoff3k, NULL     },
   { "turnoff3.r",S(TURNOFF2),_CW,2,     "",     "i",  NULL, turnoff3k, NULL     },
+  #endif
+  #ifdef INC_CNGOTO
   { "cngoto", S(CGOTO),0,   3,      "",     "Bl",   ingoto, kngoto, NULL     },
+  #endif
+  #ifdef INC_NKGOTO
   { "cnkgoto", S(CGOTO),0,   2,      "",     "Bl",   NULL,  kngoto, NULL     },
+  #endif
+  #ifdef INC_CINGOTO
   { "cingoto", S(CGOTO),0,   1,      "",     "Bl",   ingoto, NULL, NULL     },
+  #endif
   { "tempoval", S(GTEMPO),0, 2,  "k", "",      NULL, (SUBR)gettempo, NULL    },
 #ifdef INC_DOWNSAMP
   { "downsamp",S(DOWNSAMP),0,3, "k", "ao",   (SUBR)downset,(SUBR)downsamp        },
@@ -2073,15 +2113,31 @@ OENTRY opcodlst_1[] = {
   {  "changed2.S", S(STRCHGD),0, 3, "k",   "S",
      (SUBR) str_changed, (SUBR) str_changed_k, NULL       },
   #endif
+  #ifdef INC_LOOP_LT
   { "loop_lt.i", S(LOOP_OPS),0,  1,  "", "iiil", (SUBR) loop_l_i, NULL, NULL   },
-  { "loop_le.i", S(LOOP_OPS),0,  1,  "", "iiil", (SUBR) loop_le_i, NULL, NULL  },
+  #endif
+  #ifdef INC_LOOP_LE
+  { "loop_le.i", S(LEOOP_OPS),0,  1,  "", "iiil", (SUBR) loop_le_i, NULL, NULL  },
+  #endif
+  #ifdef INC_LOOP_GT
   { "loop_gt.i", S(LOOP_OPS),0,  1,  "", "iiil", (SUBR) loop_g_i, NULL, NULL   },
+  #endif
+  #ifdef INC_LOOP_GE
   { "loop_ge.i", S(LOOP_OPS),0,  1,  "", "iiil", (SUBR) loop_ge_i, NULL, NULL  },
+  #endif
+  #ifdef INC_LOOP_LT_K
   { "loop_lt.k", S(LOOP_OPS),0,  2,  "", "kkkl", NULL, (SUBR) loop_l_p, NULL   },
+  #endif
+  #ifdef INC_LOOP_LE_K
   { "loop_le.k", S(LOOP_OPS),0,  2,  "", "kkkl", NULL, (SUBR) loop_le_p, NULL  },
+  #endif
+  #ifdef INC_LOOP_GT_K
   { "loop_gt.k", S(LOOP_OPS),0,  2,  "", "kkkl", NULL, (SUBR) loop_g_p, NULL   },
+  #endif
+  #ifdef INC_LOOP_GE_K
   { "loop_ge.k", S(LOOP_OPS),0,  2,  "", "kkkl", NULL, (SUBR) loop_ge_p, NULL  },
-  { "chnget",      0xFFFF,    _CR                                             },
+  #endif
+  //{ "chnget",      0xFFFF,    _CR                                             },
   { "chnget.i",    S(CHNGET),_CR,           1,      "i",            "S",
     (SUBR) chnget_opcode_init_i, NULL, NULL               },
   { "chnget.k",    S(CHNGET),_CR,           3,      "k",            "S",
@@ -2100,7 +2156,7 @@ OENTRY opcodlst_1[] = {
     (SUBR) chnget_opcode_init_S, (SUBR) chnget_opcode_perf_S, NULL},
   { "chngetks",    S(CHNGET),_CR,           2,      "S",            "S",
     NULL, (SUBR) chnget_opcode_perf_S, NULL},
-  { "chnset",      0xFFFB,              _CW                               },
+  //{ "chnset",      0xFFFB,              _CW                               },
 
   { "chnseti.i",    S(CHNGET),_CW,          1,      "",             "i[]S[]",
     (SUBR) chnset_array_opcode_init_i, NULL, NULL               },
@@ -2242,7 +2298,7 @@ OENTRY opcodlst_1[] = {
     (SUBR) coef2parm_init, (SUBR) coef2parm},
    {"resonbnk", S(RESONB), 0, 3, "a", "ak[]kkipoo",
    (SUBR) resonbnk_init, (SUBR) resonbnk},
-   {"zzzmin7ffitch", S(EVAL), 0, 0, NULL},
+   {"zzzmin7ffitch", S(EVAL), 0, 0,"", "", NULL},
    /*t erminate list */
   {  NULL, 0, 0, 0, NULL, NULL, NULL, NULL, NULL       }
 };

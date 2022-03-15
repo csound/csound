@@ -411,6 +411,7 @@ int32_t SVrecv(CSOUND *csound, int32_t conn, void *data, int32_t length)
 
 /* /////////////  INSTR 0 opcodes ///////////////////// */
 
+#ifdef INC_REMOTEPORT
 int32_t remoteport(CSOUND *csound, REMOTEPORT *p)
 {
     if (csound->remoteGlobals==NULL) {
@@ -428,7 +429,9 @@ int32_t remoteport(CSOUND *csound, REMOTEPORT *p)
     }
     return NOTOK;
 }
+#endif
 
+#ifdef INC_INSREMOT
 int32_t insremot(CSOUND *csound, INSREMOT *p)
 /* declare certain instrs for remote Csounds */
 {   /*      INSTR 0 opcode  */
@@ -477,7 +480,9 @@ int32_t insremot(CSOUND *csound, INSREMOT *p)
     }
     return OK;
 }
+#endif
 
+#ifdef INC_INSGLOBAL
 int32_t insglobal(CSOUND *csound, INSGLOBAL *p)
 /* declare certain instrs global remote Csounds */
 {   /*      INSTR 0 opcode  */
@@ -510,7 +515,9 @@ int32_t insglobal(CSOUND *csound, INSGLOBAL *p)
     }
     return OK;
 }
+#endif
 
+#ifdef INC_MIDREMOT
 int32_t midremot(CSOUND *csound, MIDREMOT *p)    /* declare certain channels for
                                                 remote Csounds */
 {                                            /* INSTR 0 opcode  */
@@ -556,7 +563,9 @@ int32_t midremot(CSOUND *csound, MIDREMOT *p)    /* declare certain channels for
     }
     return OK;
 }
+#endif
 
+#ifdef INC_MIDGLOBAL
 int32_t midglobal(CSOUND *csound, MIDGLOBAL *p)
 /* declare certain chnls global remote Csounds */
 {                                         /*       INSTR 0 opcode  */
@@ -589,6 +598,7 @@ int32_t midglobal(CSOUND *csound, MIDGLOBAL *p)
     }
     return OK;
 }
+#endif
 
 /* ////////////////       MUSMON SERVICES //////////////// */
 

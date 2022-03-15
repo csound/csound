@@ -604,6 +604,7 @@ int lplay(CSOUND *csound, EVLIST *a)    /* cscore re-entry into musmon */
 /* make list to turn on instrs for indef */
 /* perf called from i0 for execution in playevents */
 
+#ifdef INC_TURNON
 int turnon(CSOUND *csound, TURNON *p)
 {
   EVTBLK  evt;
@@ -625,9 +626,12 @@ int turnon(CSOUND *csound, TURNON *p)
   evt.c.extra = NULL;
   return insert_score_event_at_sample(csound, &evt, csound->icurTime);
 }
+#endif
 
 /* make list to turn on instrs for indef */
 /* perf called from i0 for execution in playevents */
+
+#ifdef INC_TURNON_S
 
 int turnon_S(CSOUND *csound, TURNON *p)
 {
@@ -646,6 +650,7 @@ int turnon_S(CSOUND *csound, TURNON *p)
   evt.c.extra = NULL;
   return insert_score_event_at_sample(csound, &evt, csound->icurTime);
 }
+#endif
 
 /* Print current amplitude values, and update section amps. */
 

@@ -26,28 +26,37 @@
 #include "csoundCore.h" /*                            GOTO_OPS.C        */
 #include "insert.h"     /* for goto's */
 #include "aops.h"       /* for cond's */
+#include "opcodes.h"
+
 extern int32_t strarg2insno(CSOUND *, void *p, int32_t is_string);
 
+#if defined(INC_IGOTO)||defined(INC_GOTO)
 int32_t igoto(CSOUND *csound, GOTO *p)
 {
   csound->ids = p->lblblk->prvi;
   return OK;
 }
+#endif
 
+#if defined(INC_KGOTO)||defined(INC_GOTO)
 int32_t kgoto(CSOUND *csound, GOTO *p)
 {
   IGN(csound);
   CS_PDS = p->lblblk->prvp;
   return OK;
 }
+#endif
 
+#if defined(INC_CIGOTO)||defined(INC_CGGOTO)
 int32_t icgoto(CSOUND *csound, CGOTO *p)
 {
   if (*p->cond)
     csound->ids = p->lblblk->prvi;
   return OK;
 }
+#endif
 
+#if defined(INC_CKGOTO)||defined(INC_CGGOTO)
 int32_t kcgoto(CSOUND *csound, CGOTO *p)
 {
   IGN(csound);
@@ -56,8 +65,10 @@ int32_t kcgoto(CSOUND *csound, CGOTO *p)
 
   return OK;
 }
+#endif
 
 /* an 'if-then' variant of 'if-goto' */
+#if defined(INC_CINGOTO)||defined(INC_CNGOTO)
 int32_t ingoto(CSOUND *csound, CGOTO *p)
 {
   /* Make sure we have an i-time conditional */
@@ -65,7 +76,9 @@ int32_t ingoto(CSOUND *csound, CGOTO *p)
     csound->ids = p->lblblk->prvi;
   return OK;
 }
+#endif
 
+#if defined(INC_CNKGOTO)||defined(INC_CNGOTO)
 int32_t kngoto(CSOUND *csound, CGOTO *p)
 {
   IGN(csound);
@@ -73,7 +86,9 @@ int32_t kngoto(CSOUND *csound, CGOTO *p)
     CS_PDS = p->lblblk->prvp;
   return OK;
 }
+#endif
 
+// ****************** HERE ******************* */
 int32_t timset(CSOUND *csound, TIMOUT *p)
 {
   if (UNLIKELY((p->cnt1 = (int32_t)(*p->idel * CS_EKR + FL(0.5))) < 0L ||
@@ -147,6 +162,7 @@ int32_t tival(CSOUND *csound, EVAL *p)      /* I-time only, NOP at reinit */
   return OK;
 }
 
+#ifdef INC_IHOLD
 int32_t ihold(CSOUND *csound, LINK *p)  /* make this note indefinit duration */
 {                                       /* called by ihold statmnt at Itime  */
   IGN(csound);
@@ -156,7 +172,9 @@ int32_t ihold(CSOUND *csound, LINK *p)  /* make this note indefinit duration */
   }
   return OK;
 }
+#endif
 
+#ifdef INC_TURNOFF
 int32_t turnoff(CSOUND *csound, LINK *p)/* terminate the current instrument  */
 {                                       /* called by turnoff statmt at Ptime */
   IGN(csound);
@@ -177,11 +195,13 @@ int32_t turnoff(CSOUND *csound, LINK *p)/* terminate the current instrument  */
   }
   return OK;
 }
+#endif
 
+#ifdef INC_TURNOFF2
 /* turnoff2 opcode */
 int32_t turnoff2(CSOUND *csound, TURNOFF2 *p, int32_t isStringArg)
 {
-  MYFLT p1;                     /* Shoud e a float */
+  MYFLT p1;                     /* Should be a float */
   INSDS *ip, *ip2, *nip;
   int32_t   mode, insno, allow_release;
 
@@ -273,7 +293,9 @@ int32_t turnoff2S(CSOUND *csound, TURNOFF2 *p){
 int32_t turnoff2k(CSOUND *csound, TURNOFF2 *p){
   return turnoff2(csound, p, 0);
 }
+#endif
 
+#ifdef INC_TURNOFF3
 extern void delete_selected_rt_events(CSOUND*, MYFLT);
 int32_t turnoff3(CSOUND *csound, TURNOFF2 *p, int32_t isStringArg)
 {
@@ -309,7 +331,9 @@ int32_t turnoff3S(CSOUND *csound, TURNOFF2 *p){
 int32_t turnoff3k(CSOUND *csound, TURNOFF2 *p){
   return turnoff3(csound, p, 0);
 }
+#endif
 
+#ifdef INC_LOOP_LT
 int32_t loop_l_i(CSOUND *csound, LOOP_OPS *p)
 {
   /* if ((indxvar += iincr) < ilimit) igoto l */
@@ -318,7 +342,9 @@ int32_t loop_l_i(CSOUND *csound, LOOP_OPS *p)
     csound->ids = p->l->prvi;
   return OK;
 }
+#endif
 
+#ifdef INC_LOOP_LE
 int32_t loop_le_i(CSOUND *csound, LOOP_OPS *p)
 {
   /* if ((indxvar += iincr) <= ilimit) igoto l */
@@ -327,7 +353,9 @@ int32_t loop_le_i(CSOUND *csound, LOOP_OPS *p)
     csound->ids = p->l->prvi;
   return OK;
 }
+#endif
 
+#ifdef INC_LOOP_GT
 int32_t loop_g_i(CSOUND *csound, LOOP_OPS *p)
 {
   /* if ((indxvar -= idecr) > ilimit) igoto l */
@@ -336,7 +364,9 @@ int32_t loop_g_i(CSOUND *csound, LOOP_OPS *p)
     csound->ids = p->l->prvi;
   return OK;
 }
+#endif
 
+#ifdef INC_LOOP_GE
 int32_t loop_ge_i(CSOUND *csound, LOOP_OPS *p)
 {
   /* if ((indxvar -= idecr) >= ilimit) igoto l */
@@ -345,7 +375,9 @@ int32_t loop_ge_i(CSOUND *csound, LOOP_OPS *p)
     csound->ids = p->l->prvi;
   return OK;
 }
+#endif
 
+#ifdef INC_LOOP_LT_K
 int32_t loop_l_p(CSOUND *csound, LOOP_OPS *p)
 {
   /* if ((kndxvar += kincr) < klimit) kgoto l */
@@ -355,7 +387,9 @@ int32_t loop_l_p(CSOUND *csound, LOOP_OPS *p)
     CS_PDS = p->l->prvp;
   return OK;
 }
+#endif
 
+#ifdef INC_LOOP_LE_K
 int32_t loop_le_p(CSOUND *csound, LOOP_OPS *p)
 {
   /* if ((kndxvar += kincr) <= klimit) kgoto l */
@@ -365,7 +399,9 @@ int32_t loop_le_p(CSOUND *csound, LOOP_OPS *p)
     CS_PDS = p->l->prvp;
   return OK;
 }
+#endif
 
+#ifdef INC_LOOP_LT_K
 int32_t loop_g_p(CSOUND *csound, LOOP_OPS *p)
 {
   /* if ((kndxvar -= kdecr) > klimit) kgoto l */
@@ -375,7 +411,9 @@ int32_t loop_g_p(CSOUND *csound, LOOP_OPS *p)
     CS_PDS = p->l->prvp;
   return OK;
 }
+#endif
 
+#ifdef INC_LOOP_GE_K
 int32_t loop_ge_p(CSOUND *csound, LOOP_OPS *p)
 {
   /* if ((kndxvar -= kdecr) >= klimit) kgoto l */
@@ -383,5 +421,6 @@ int32_t loop_ge_p(CSOUND *csound, LOOP_OPS *p)
   *(p->ndxvar) -= *(p->incr);
   if (*(p->ndxvar) >= *(p->limit))
     CS_PDS = p->l->prvp;
-  return OK;
+  return OK;,
 }
+#endif
