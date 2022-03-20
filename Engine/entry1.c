@@ -1082,7 +1082,7 @@ OENTRY opcodlst_1[] = {
   { "outo",   S(OUTX),IR,     3,      "",     "y",    ochn,   outall },
   { "outx",   S(OUTX),IR,     3,      "",     "y",    ochn,   outall },
   { "out32",  S(OUTX),IR,     3,      "",     "y",    ochn,   outall },
-#endif
+  #endif
   #ifdef INC_OUTS1
   { "outs1",  S(OUTM),IR,    2,      "",     "a",    NULL,   outs1   },
   #endif
@@ -1122,12 +1122,22 @@ OENTRY opcodlst_1[] = {
   #ifdef INC_CGGOTO
   { "cggoto.0", S(CGOTO),0, 3,      "",     "Bl",   icgoto, kcgoto          },
   #endif
+  #ifdef INC_TIMOUT
   { "timout", S(TIMOUT),0,  3,      "",     "iil",  timset, timout          },
-  { "reinit", S(GOTO),0,    2,      "",     "l",    NULL,   reinit          },
+  #endif
+  #ifdef INC_REINIT
+  { "reinit", S(GOTEO),0,    2,      "",     "l",    NULL,   reinit          },
+  #endif
+  #ifdef INC_RIGOTO
   { "rigoto", S(GOTO),0,    1,      "",     "l",    rigoto                  },
+  #endif
   { "rireturn",S(LINK),0,   1,      "",     "",     rireturn                },
+  #ifdef INC_TIGOTOb
   { "tigoto", S(GOTO),0,    1,      "",     "l",    tigoto                  },
+  #endif
+  #ifdef INC_TIVAL
   { "tival",  S(EVAL),0,    1,      "i",    "",     tival                   },
+  #endif
   #ifdef INC_PRINT
   { "print",  S(PRINTV),WR, 1,      "",     "m",    printv                  },
   #endif
@@ -1326,14 +1336,28 @@ OENTRY opcodlst_1[] = {
     (SUBR) diskin2_init,
     (SUBR) diskin2_perf                         },
   #endif
+  #ifdef INC_NOTEON
   { "noteon", S(OUT_ON),0,  1,      "",     "iii",  iout_on, NULL,   NULL    },
+  #edif
+  #ifde INC_NOTEOFF
   { "noteoff", S(OUT_ON),0, 1,      "",     "iii",  iout_off, NULL,    NULL  },
+  #endif
+  #ifdef INC_NOTEONDUR
   { "noteondur",S(OUT_ON_DUR),0,3,  "", "iiii", iout_on_dur_set,iout_on_dur,NULL},
+  #endif
+  #ifdef INC_NOTEONDUR2
   { "noteondur2",S(OUT_ON_DUR),0,3, "", "iiii", iout_on_dur_set,iout_on_dur2,NULL},
+  #endif
+  #ifdef INC_MOSCIL
   { "moscil",S(MOSCIL),0,   3,      "",     "kkkkk",moscil_set, moscil, NULL},
+  #endif
+  #ifdef INC_MIDION
   { "midion",S(KOUT_ON),0,  3,      "", "kkk", kvar_out_on_set,kvar_out_on,NULL},
+  #endif
+  #ifdef INC_OUTIC
   { "outic",S(OUT_CONTR),0, 1,      "",     "iiiii", out_controller, NULL, NULL},
   { "outkc",S(OUT_CONTR),0, 2,      "",     "kkkkk", NULL, out_controller, NULL},
+  #endif
   { "outic14",S(OUT_CONTR14),0,1,   "",     "iiiiii",out_controller14, NULL,NULL},
   { "outkc14",S(OUT_CONTR14),0,2,   "",     "kkkkkk",NULL, out_controller14, NULL},
   { "outipb",S(OUT_PB),0,   1,      "",     "iiii", out_pitch_bend, NULL , NULL},
@@ -1344,11 +1368,21 @@ OENTRY opcodlst_1[] = {
   { "outkpc",S(OUT_PCHG),0, 2,      "",     "kkkk", NULL,  out_progchange, NULL},
   { "outipat",S(OUT_POLYATOUCH),0,1,"",    "iiiii", out_poly_aftertouch, NULL,NULL},
   { "outkpat",S(OUT_POLYATOUCH),0,2,"",    "kkkkk", NULL, out_poly_aftertouch,NULL},
+  #ifdef INC_RELEASE
   { "release",S(REL),0,     3,      "k",    "",     release_set, release, NULL },
+  #endif
+  #ifdef INC_XTRATIM
   { "xtratim",S(XTRADUR),0, 1,      "",     "i",    xtratim,    NULL,     NULL },
+  #endif
+  #ifdef INC_MCLOCK
   { "mclock", S(MCLOCK),0,  3,      "",     "i",    mclock_set, mclock,   NULL },
+  #endif
+  #ifdef INC_MRTMSG
   { "mrtmsg", S(XTRADUR),0, 1,      "",     "i",    mrtmsg,     NULL,     NULL },
+  #endif
+  #ifdef INC_MIDIOUT
   { "midiout",S(MIDIOUT),0,  2,     "",     "kkkk", NULL, midiout,   NULL      },
+  #endif
   { "midiout_i",S(MIDIOUT), 0,  1,     "",     "iiii", midiout,   NULL, NULL     },
   { "midion2", S(KON2),0,    3,     "",     "kkkk", kon2_set, kon2,   NULL     },
   { "nrpn",   S(NRPN),0,     2,     "",     "kkk",  NULL,  nrpn ,NULL          },

@@ -30,6 +30,7 @@
 #include <math.h>
 #include "csoundCore.h"
 #include "midiout.h"
+#include "opcodes.h"
 
 #define MGLOB(x) (((CSOUND*)csound)->midiGlobals->x)
 
@@ -47,6 +48,7 @@ void pitch_bend(CSOUND *, int32_t chan, int32_t lsb, int32_t msb);
 void poly_after_touch(CSOUND *, int32_t chan, int32_t note_num, int32_t value);
 void send_midi_message(CSOUND *, int32_t status, int32_t data1, int32_t data2);
 
+#ifdef INC_RELEASE
 int32_t release_set(CSOUND *csound, REL *p)
 {
     IGN(csound);
@@ -65,7 +67,9 @@ int32_t release(CSOUND *csound, REL *p)
       *p->r = FL(0.0); /* FALSE */
     return OK;
 }
+#endif
 
+#ifdef INC_XTRATIM
 int32_t xtratim(CSOUND *csound, XTRADUR *p)
 {
     IGN(csound);
@@ -75,7 +79,9 @@ int32_t xtratim(CSOUND *csound, XTRADUR *p)
       *xtra = tim;
     return OK;
 }
+#endif
 
+#ifdef INC_MCLOCK
 int32_t mclock_set(CSOUND *csound, MCLOCK *p)
 {
     IGN(csound);
@@ -98,7 +104,9 @@ int32_t mclock(CSOUND *csound, MCLOCK *p)
     }
     return OK;
 }
+#endif
 
+#ifdef INC_MRTMSG
 int32_t mrtmsg(CSOUND *csound, MRT *p)
 {
     switch ((int32_t)*p->message) {
@@ -122,19 +130,24 @@ int32_t mrtmsg(CSOUND *csound, MRT *p)
     }
     return OK;
 }
+#endif
 
+#ifdef INC_NOTEON
 int32_t iout_on(CSOUND *csound, OUT_ON *p)
 {
     note_on(csound, (int32_t)*p->ichn-1,(int32_t)*p->inum,(int32_t)*p->ivel);
     return OK;
 }
+#endif
 
+#ifdef INC_NOTEOFF
 int32_t iout_off(CSOUND *csound, OUT_ON *p)
 {
     note_off(csound, (int32_t)*p->ichn-1,(int32_t)*p->inum,(int32_t)*p->ivel);
     return OK;
 }
 
+#if defined(INC_NOTEONDUR)||defined(INC_NOTEONDUR2)
 int32_t iout_on_dur_set(CSOUND *csound, OUT_ON_DUR *p)
 {
     int32_t temp;
@@ -152,7 +165,9 @@ int32_t iout_on_dur_set(CSOUND *csound, OUT_ON_DUR *p)
     p->fl_extra_dur = FALSE;
     return OK;
 }
+#endif
 
+ifdef INC_NOTEONDUR
 int32_t iout_on_dur(CSOUND *csound, OUT_ON_DUR *p)
 {
     if (!(p->fl_expired)) {
@@ -170,7 +185,9 @@ int32_t iout_on_dur(CSOUND *csound, OUT_ON_DUR *p)
     }
     return OK;
 }
+#endif
 
+#ifdef INC_NOTEONDUR2
 int32_t iout_on_dur2(CSOUND *csound, OUT_ON_DUR *p)
 {
     if (!(p->fl_expired)) {
@@ -196,7 +213,9 @@ int32_t iout_on_dur2(CSOUND *csound, OUT_ON_DUR *p)
     }
     return OK;
 }
+#endif
 
+#ifdef INC_MOSCIL
 int32_t moscil_set(CSOUND *csound, MOSCIL *p)
 {
     IGN(csound);
@@ -252,7 +271,9 @@ int32_t moscil(CSOUND *csound, MOSCIL *p)
     }
     return OK;
 }
+#endif
 
+#ifdef INC_MIDION
 int32_t kvar_out_on_set(CSOUND *csound, KOUT_ON *p)
 {
     IGN(csound);
@@ -304,7 +325,9 @@ int32_t kvar_out_on(CSOUND *csound, KOUT_ON *p)
     }
     return OK;
 }
+#endif
 
+#ifdef INC_OUTIC
 int32_t out_controller (CSOUND *csound, OUT_CONTR *p)
 {
     /* if (!(p->h.insdshead->prvinstance)) JPff/VL */ {
@@ -326,7 +349,9 @@ int32_t out_controller (CSOUND *csound, OUT_CONTR *p)
     }
     return OK;
 }
+#endif
 
+// *********************  HERE  *********************************
 int32_t out_aftertouch (CSOUND *csound, OUT_ATOUCH *p)
 {
     /* if (!(p->h.insdshead->prvinstance)) JPff/VL */ {

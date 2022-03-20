@@ -88,7 +88,7 @@ int32_t kngoto(CSOUND *csound, CGOTO *p)
 }
 #endif
 
-// ****************** HERE ******************* */
+#ifdef INC_TIMOUR
 int32_t timset(CSOUND *csound, TIMOUT *p)
 {
   if (UNLIKELY((p->cnt1 = (int32_t)(*p->idel * CS_EKR + FL(0.5))) < 0L ||
@@ -106,7 +106,9 @@ int32_t timout(CSOUND *csound, TIMOUT *p)
     CS_PDS = p->lblblk->prvp;
   return OK;
 }
+#endif
 
+// Used in insert.c
 int32_t rireturn(CSOUND *csound, LINK *p)
 {
   IGN(p);
@@ -114,6 +116,7 @@ int32_t rireturn(CSOUND *csound, LINK *p)
   return OK;
 }
 
+#if defined(INC_REINIT)||defined(INC_RIRETURN)
 int32_t reinit(CSOUND *csound, GOTO *p)
 {
   csound->reinitflag = p->h.insdshead->reinitflag = 1;
@@ -138,21 +141,27 @@ int32_t reinit(CSOUND *csound, GOTO *p)
   }
   return OK;
 }
+#endif
 
+#ifdef INC_RIGOTO
 int32_t rigoto(CSOUND *csound, GOTO *p)
 {
   if (p->h.insdshead->reinitflag)
     csound->ids = p->lblblk->prvi;
   return OK;
 }
+#endif
 
+#ifdef INC_TIGOTO
 int32_t tigoto(CSOUND *csound, GOTO *p)     /* I-time only, NOP at reinit */
 {
   if (p->h.insdshead->tieflag && !p->h.insdshead->reinitflag)
     csound->ids = p->lblblk->prvi;
   return OK;
 }
+#endif
 
+#ifdef INC_TIVAL
 int32_t tival(CSOUND *csound, EVAL *p)      /* I-time only, NOP at reinit */
 {
   IGN(csound);
@@ -161,6 +170,7 @@ int32_t tival(CSOUND *csound, EVAL *p)      /* I-time only, NOP at reinit */
   /* *p->r = (csound->tieflag ? FL(1.0) : FL(0.0)); */
   return OK;
 }
+#endif
 
 #ifdef INC_IHOLD
 int32_t ihold(CSOUND *csound, LINK *p)  /* make this note indefinit duration */

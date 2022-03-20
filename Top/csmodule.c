@@ -1220,7 +1220,10 @@ extern int32_t sfont_ModuleInit(CSOUND *csound);
 extern int32_t sfont_ModuleCreate(CSOUND *csound);
 extern int32_t newgabopc_ModuleInit(CSOUND *csound);
 
-const INITFN staticmodules[] = { hrtfopcodes_localops_init, babo_localops_init,
+const INITFN staticmodules[] = { hrtfopcodes_localops_init,
+#ifdef INC_BABO
+                                 babo_localops_init,
+#endif
                                  bilbar_localops_init, vosim_localops_init,
                                  compress_localops_init, pvsbuffer_localops_init,
                                  eqfil_localops_init, modal4_localops_init,
