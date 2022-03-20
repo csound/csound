@@ -127,7 +127,7 @@ OENTRY opcodlst_1[] = {
   { "ctrlprint",S(PRINTCTRL),0,3,       "", "k[]", printctrl_init, printctrl, NULL},
   #endif
   #ifdef CTRLPRESET
-  { "ctrlpreset", S(PRESETCTRL1), 0,3, "k", "kk[]", presetctrl1_init, presetctrl1_perf, NULL},
+  { "ctrlpreset.V", S(PRESETCTRL1), 0,3, "k", "kk[]", presetctrl1_init, presetctrl1_perf, NULL},
   { "ctrlpreset", S(PRESETCTRL), 0,3, "k", "kim", presetctrl_init, presetctrl_perf, NULL},
   #endif
   #ifdef INC_CTRLSELECT
@@ -1358,16 +1358,26 @@ OENTRY opcodlst_1[] = {
   { "outic",S(OUT_CONTR),0, 1,      "",     "iiiii", out_controller, NULL, NULL},
   { "outkc",S(OUT_CONTR),0, 2,      "",     "kkkkk", NULL, out_controller, NULL},
   #endif
+  #ifdef INC_OUTC14
   { "outic14",S(OUT_CONTR14),0,1,   "",     "iiiiii",out_controller14, NULL,NULL},
   { "outkc14",S(OUT_CONTR14),0,2,   "",     "kkkkkk",NULL, out_controller14, NULL},
+  #endif
+  #ifdef INC_OUTPB
   { "outipb",S(OUT_PB),0,   1,      "",     "iiii", out_pitch_bend, NULL , NULL},
   { "outkpb",S(OUT_PB),0,   2,      "",     "kkkk", NULL,  out_pitch_bend, NULL},
+  #endif
+  #ifdef INC_OUTAT
   { "outiat",S(OUT_ATOUCH),0,1,     "",     "iiii", out_aftertouch, NULL , NULL},
   { "outkat",S(OUT_ATOUCH),0,2,     "",     "kkkk", NULL,  out_aftertouch, NULL},
+  #endif
+  #ifdef INC_OUTPC
   { "outipc",S(OUT_PCHG),0, 1,      "",     "iiii", out_progchange, NULL , NULL},
   { "outkpc",S(OUT_PCHG),0, 2,      "",     "kkkk", NULL,  out_progchange, NULL},
+  #endif
+#ifdef INC_OUTPAT
   { "outipat",S(OUT_POLYATOUCH),0,1,"",    "iiiii", out_poly_aftertouch, NULL,NULL},
   { "outkpat",S(OUT_POLYATOUCH),0,2,"",    "kkkkk", NULL, out_poly_aftertouch,NULL},
+  #endif
   #ifdef INC_RELEASE
   { "release",S(REL),0,     3,      "k",    "",     release_set, release, NULL },
   #endif
@@ -1382,11 +1392,17 @@ OENTRY opcodlst_1[] = {
   #endif
   #ifdef INC_MIDIOUT
   { "midiout",S(MIDIOUT),0,  2,     "",     "kkkk", NULL, midiout,   NULL      },
-  #endif
   { "midiout_i",S(MIDIOUT), 0,  1,     "",     "iiii", midiout,   NULL, NULL     },
+  #endif
+  #ifdef INC_MIDION2
   { "midion2", S(KON2),0,    3,     "",     "kkkk", kon2_set, kon2,   NULL     },
+  #endif
+  #ifdef INC_NRPN
   { "nrpn",   S(NRPN),0,     2,     "",     "kkk",  NULL,  nrpn ,NULL          },
+  #endif
+  #ifdef INC_MDELAY
   { "mdelay", S(MDELAY),0,   3,     "",     "kkkkk",mdelay_set, mdelay,   NULL },
+  #endif
   #ifdef INC_NSAMP
   { "nsamp.i", S(EVAL),0,    1,     "i",    "i",    numsamp                    },
   #endif
@@ -1734,7 +1750,7 @@ OENTRY opcodlst_1[] = {
   #endif
   { "event", S(LINEVENT),0,  2,     "",     "Skz",  NULL, eventOpcode, NULL   },
   { "event_i", S(LINEVENT),0,1,     "",     "Sim",  eventOpcodeI, NULL, NULL  },
-  { "event.S", S(LINEVENT),0,  2,     "",    "SSz",  NULL, eventOpcode_S, NULL   },
+  { "event.S", S(LINEVENT),0,2,     "",    "SSz",  NULL, eventOpcode_S, NULL   },
   { "event_i.S", S(LINEVENT),0,1,     "",    "SSm",  eventOpcodeI_S, NULL, NULL  },
   { "nstance", S(LINEVENT2),0,2,     "k",  "kkz",  NULL, instanceOpcode, NULL   },
   { "nstance.i", S(LINEVENT2),0,1,   "i",  "iiim",  instanceOpcode, NULL, NULL  },

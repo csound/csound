@@ -351,7 +351,7 @@ int32_t out_controller (CSOUND *csound, OUT_CONTR *p)
 }
 #endif
 
-// *********************  HERE  *********************************
+#ifdef INC_OUTAT
 int32_t out_aftertouch (CSOUND *csound, OUT_ATOUCH *p)
 {
     /* if (!(p->h.insdshead->prvinstance)) JPff/VL */ {
@@ -369,7 +369,9 @@ int32_t out_aftertouch (CSOUND *csound, OUT_ATOUCH *p)
     }
     return OK;
 }
+#endif
 
+#ifdef INC_OUTPAT
 int32_t out_poly_aftertouch (CSOUND *csound, OUT_POLYATOUCH *p)
 {
     int32_t value;
@@ -384,11 +386,13 @@ int32_t out_poly_aftertouch (CSOUND *csound, OUT_POLYATOUCH *p)
       p->last_value = value;
       p->lastchn = *p->chn;
       p->lastctrl = *p->num;
-}
+    }
 
     return OK;
 }
+#endif
 
+#ifdef OUTPC
 int32_t out_progchange (CSOUND *csound, OUT_PCHG *p)
 {
     /* if (!(p->h.insdshead->prvinstance)) JPff/VL */ {
@@ -406,7 +410,9 @@ int32_t out_progchange (CSOUND *csound, OUT_PCHG *p)
     }
     return OK;
 }
+#endif
 
+#ifdef INC_OUTC14
 int32_t out_controller14 (CSOUND *csound, OUT_CONTR14 *p)
 {
     /* if (!(p->h.insdshead->prvinstance)) JPff/VL */ {
@@ -433,7 +439,9 @@ int32_t out_controller14 (CSOUND *csound, OUT_CONTR14 *p)
     }
     return OK;
 }
+#endif
 
+#ifdef INC_OUTPB
 int32_t out_pitch_bend(CSOUND *csound, OUT_PB *p)
 {
     /* if (p->h.insdshead->prvinstance) { */
@@ -457,7 +465,9 @@ int32_t out_pitch_bend(CSOUND *csound, OUT_PB *p)
     }
     return OK;
 }
+#endif
 
+#ifdef INC_MIDION2
 int32_t kon2_set(CSOUND *csound, KON2 *p)
 {
    IGN(csound);
@@ -516,7 +526,9 @@ int32_t kon2(CSOUND *csound, KON2 *p)
     }
     return OK;
 }
+#endif
 
+#ifdef INC_MIDIOUT
 int32_t midiout(CSOUND *csound, MIDIOUT *p)         /*gab-A6 fixed*/
 {
     int32_t st, ch, d1, d2;
@@ -531,7 +543,9 @@ int32_t midiout(CSOUND *csound, MIDIOUT *p)         /*gab-A6 fixed*/
     send_midi_message(csound, st | ch, d1, d2);
     return OK;
 }
+#endif
 
+#ifdef INC_NRPN
 int32_t nrpn(CSOUND *csound, NRPN *p)
 {
     int32_t chan = (int32_t)*p->chan-1, parm = (int32_t)*p->parm_num;
@@ -554,7 +568,9 @@ int32_t nrpn(CSOUND *csound, NRPN *p)
     }
     return OK;
 }
+#endif
 
+#ifdef INC_MDELAY
 int32_t mdelay_set(CSOUND *csound, MDELAY *p)
 {
    IGN(csound);
@@ -589,3 +605,4 @@ int32_t mdelay(CSOUND *csound, MDELAY *p)                   /*gab-A6 fixed*/
     }
     return OK;
 }
+#endif

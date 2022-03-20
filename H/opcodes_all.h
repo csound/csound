@@ -533,5 +533,13 @@
 #define INC_NOTEONDUR2
 #define INC_MOSCIL
 #define INC_MIDION
+#define INC_OUTAT
+#define INC_OUTPAT
+#define INC_OUTPC
+#define INC_OUTC14
+#define INC_OUTPB
+#define INC_MIDIOUT
+#define INC_
+#define INC_
 #define INC_
 #define INC_OUTIC
