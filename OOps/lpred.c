@@ -23,6 +23,7 @@
 #include "csound.h"
 #include "fftlib.h"
 #include "lpred.h"
+#include "opcodes.h"
 
 static inline MYFLT magc(MYCMPLX c) {
   return HYPOT(c.re, c.im);
@@ -534,6 +535,7 @@ MYFLT *csoundStabiliseAllpole(CSOUND *csound, void *parm, MYFLT *c, int mode){
 }
 
 /* opcodes */
+#ifdef INC_LPCFILTER
 /* lpcfilter - take lpred input from table */
 int32_t lpfil_init(CSOUND *csound, LPCFIL *p) {
 
@@ -642,8 +644,9 @@ int32_t lpfil_perf(CSOUND *csound, LPCFIL *p) {
   p->rp = rp;
   return OK;
 }
+#endif
 
-
+#ifdef INC_LPFILTER2
 /* lpcfilter - take lpred input from sig */
 int32_t lpfil2_init(CSOUND *csound, LPCFIL2 *p) {
   uint32_t Nbytes = *p->isiz*sizeof(MYFLT);
@@ -733,11 +736,13 @@ int32_t lpfil2_perf(CSOUND *csound, LPCFIL2 *p) {
   p->cp = cp;
   return OK;
 }
+#endif
 
 /* linear prediction analysis
  */
 #include "arrays.h"
 
+#ifdef INC_ALLPOLE
 /* function table input */
 int32_t lpred_alloc(CSOUND *csound, LPREDA *p) {
   FUNC *ft = csound->FTnp2Find(csound, p->ifn);
@@ -788,14 +793,18 @@ int32_t lpred_run(CSOUND *csound, LPREDA *p) {
   *p->cps = csoundLPcps(csound,p->setup);
   return OK;
 }
+#endif
 
+#ifdef INC_LPCANAL
 /* i-time version */
 int32_t lpred_i(CSOUND *csound, LPREDA *p) {
   if(lpred_alloc(csound,p) == OK)
     return lpred_run(csound,p);
   else return NOTOK;
 }
+#endif
 
+#ifdef INC_LPCANAL2
 /* audio signal input */
 int32_t lpred_alloc2(CSOUND *csound, LPREDA2 *p) {
   int N = *p->isiz;
@@ -859,7 +868,9 @@ int32_t lpred_run2(CSOUND *csound, LPREDA2 *p) {
   p->cp = cp;
   return OK;
 }
+#endif
 
+#ifdef INC_ALLPOLE
 /* allpole - take lpred input from array */
 int32_t lpfil3_init(CSOUND *csound, LPCFIL3 *p) {
   p->M = p->coefs->sizes[0];
@@ -905,9 +916,10 @@ int32_t lpfil3_perf(CSOUND *csound, LPCFIL3 *p) {
   p->rp = rp;
   return OK;
 }
+#endif
 
 /* pvs <-> lpc */
-
+#ifdef INC_PVSLPC
 int32_t lpcpvs_init(CSOUND *csound, LPCPVS *p) {
   int N = *p->isiz;
   uint32_t Nbytes = N*sizeof(MYFLT);
@@ -1008,7 +1020,9 @@ int32_t lpcpvs(CSOUND *csound, LPCPVS *p){
   p->cp = cp;
   return OK;
 }
+#endif
 
+#ifdef INC_PVSCFS
 int32_t pvscoefs_init(CSOUND *csound, PVSCFS *p) {
   unsigned int Nbytes = (p->fin->N+2)*sizeof(MYFLT);
   unsigned int Mbytes;
@@ -1053,7 +1067,9 @@ int pvscoefs(CSOUND *csound, PVSCFS *p){
   *p->krms = p->rms;
   return OK;
 }
+#endif
 
+#ifdef INC_APOLEPARAMS
 /* coefficients to filter CF/BW */
 int32_t coef2parm_init(CSOUND *csound, CF2P *p) {
   p->M = p->in->sizes[0];
@@ -1099,8 +1115,9 @@ int32_t coef2parm(CSOUND *csound, CF2P *p) {
   p->sum = sum;
   return OK;
 }
+#endif
 
-
+#ifdef INC_RESONBNK
 /* resonator bank */
 int32_t resonbnk_init(CSOUND *csound, RESONB *p)
 {
@@ -1215,3 +1232,4 @@ int32_t resonbnk(CSOUND *csound, RESONB *p)
   p->kcnt = kcnt;
   return OK;
 }
+#endif

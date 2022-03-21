@@ -2302,15 +2302,31 @@ OENTRY opcodlst_1[] = {
   #ifdef INC_GAUSSRAND_A
   { "gaussi.a", S(PRANDI),0, 2,      "a",    "kxx",  gaussiset, agaussi },
   #endif
+  #ifdef INC_FTRESIZE
   { "ftresizei", S(RESIZE), TB, 1, "i", "ii", (SUBR) resize_table, NULL, NULL },
-  { "ftresize",  S(RESIZE), TB, 2, "k", "kk", NULL, (SUBR) resize_table, NULL },
+  { "ftresize",  ES(RESIZE), TB, 2, "k", "kk", NULL, (SUBR) resize_table, NULL },
+  #endif
+  #ifdef INC_COMPILEORC
   { "compileorc",  S(COMPILE), 0, 1, "i", "S",  (SUBR) compile_orc_i, NULL, NULL },
+  #endif
+  #ifdef INC_COMPILECSD
   { "compilecsd",  S(COMPILE), 0, 1, "i", "S",  (SUBR) compile_csd_i, NULL, NULL },
+  #endif
+#ifdef INC_COMPILESTR
   { "compilestr",  S(COMPILE), 0, 1, "i", "S",  (SUBR) compile_str_i, NULL, NULL },
+  #endif
+  #ifdef INC_EVALSTR
   { "evalstr",  S(COMPILE), 0, 1, "i", "S",  (SUBR) eval_str_i, NULL, NULL },
+  #endif
+  #ifdef INC_EVALSTR_K
   { "evalstr",  S(COMPILE), 0, 2, "k", "Sk",  NULL, (SUBR) eval_str_k, NULL },
-  { "readscore",  S(COMPILE), 0, 1, "i", "S",  (SUBR) read_score_i, NULL, NULL },
+  #endif
+  #ifdef INC_READSCORE
+  { "readscore",  S(COMPILE), 0, 1, "i"o, "S",  (SUBR) read_score_i, NULL, NULL },
+  #endif
+  #ifdef INC_RETURN
   { "return",  S(RETVAL), 0, 1, "", "i",  (SUBR) retval_i, NULL, NULL },
+  #endif
   /* ----------------------------------------------------------------------- */
   #ifdef INC_MONITOR
   { "monitor",  sizeof(MONITOR_OPCODE), IB, 3,  "mmmmmmmmmmmmmmmmmmmmxsmmmm", "",
@@ -2328,28 +2344,47 @@ OENTRY opcodlst_1[] = {
    { "midiarp",   S(MIDIARP),0,  3,    "kk", "kO",
      midiarp_set, midiarp, NULL },
 #endif
-   {"lpcfilter", S(LPCFIL), 0, 3, "a", "akkiiio",
-   (SUBR) lpfil_init, (SUBR) lpfil_perf},
-   {"lpcfilter", S(LPCFIL2), 0, 3, "a", "aakkiio",
+    #ifdef INC_LPCFILTER
+   { "lpcfilter.1", S(LPCFIL), 0, 3, "a", "akkiiio",
+         (SUBR) lpfil_init, (SUBR) lpfil_perf},
+   #endif
+   #ifdef INC_LPFILTER2
+   { "lpcfilter.2", S(LPCFIL2), 0, 3, "a", "aakkiio",
    (SUBR) lpfil2_init, (SUBR) lpfil2_perf},
-   {"allpole", S(LPCFIL3), 0, 3, "a", "ak[]",
+   #endif
+   #ifdef INC_ALLPOLE
+   { "allpole", S(LPCFIL3), 0, 3, "a", "ak[]",
    (SUBR) lpfil3_init, (SUBR) lpfil3_perf},
-   {"lpcanal", S(LPREDA), 0, 3, "k[]kkk", "kkiiio",
+   #endif
+   #ifdef INC_LPCANAL
+   { "lpcanal", S(LPREDA), 0, 3, "k[]kkk", "kkiiio",
    (SUBR) lpred_alloc, (SUBR) lpred_run},
-   {"lpcanal", S(LPREDA2), 0, 3, "k[]kkk", "akkiio",
+   #endif
+   #ifdef INC_LPCANAL2
+   { "lpcanal.2", S(LPREDA2), 0, 3, "k[]kkk", "akkiio",
    (SUBR) lpred_alloc2, (SUBR) lpred_run2},
-   {"lpcanal", S(LPREDA), 0, 1, "i[]iii", "iiii",
+   #endif
+   #ifdef INC_LPCANAL
+   { "lpcanal", S(LPREDA), 0, 1, "i[]iii", "iiii",
    (SUBR) lpred_i, NULL},
-   {"pvslpc", S(LPCPVS), 0, 3, "f", "aiiio",
+   #endif
+   #ifdef INC_PVSLPC
+   { "pvslpck", S(LPCPVS), 0, 3, "f", "aiiio",
     (SUBR) lpcpvs_init, (SUBR) lpcpvs},
-   {"pvscfs", S(PVSCFS), 0, 3, "k[]kk", "fip",
+   #endif
+   #ifdef INC_PVSCFS
+   { "pvscfs", S(PVSCFS), 0, 3, "k[]kk", "fip",
     (SUBR) pvscoefs_init, (SUBR) pvscoefs},
-   {"apoleparams", S(CF2P), 0, 3, "k[]", "k[]",
+   #endif
+   #ifdef INC_APOLEPARAMS
+   { "apoleparams", S(CF2P), 0, 3, "k[]", "k[]",
     (SUBR) coef2parm_init, (SUBR) coef2parm},
-   {"resonbnk", S(RESONB), 0, 3, "a", "ak[]kkipoo",
+   #endif
+   #ifdef INC_RESONBNK
+   { "resonbnk", S(RESONB), 0, 3, "a", "ak[]kkipoo",
    (SUBR) resonbnk_init, (SUBR) resonbnk},
-   {"zzzmin7ffitch", S(EVAL), 0, 0,"", "", NULL},
-   /*t erminate list */
+   #endif
+  /*t erminate list */
   {  NULL, 0, 0, 0, NULL, NULL, NULL, NULL, NULL       }
 };
 

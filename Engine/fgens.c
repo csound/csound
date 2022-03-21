@@ -34,7 +34,7 @@
 //#include "pvfileio.h"
 #include <stdlib.h>
 /* #undef ISSTRCOD */
-
+#include "opcodes.h"
 
 int isstrcod(MYFLT xx)
 {
@@ -3468,6 +3468,8 @@ void csoundGetNamedGEN(CSOUND *csound, int num, char *name, int len) {
 #include "resize.h"
 
 static int warned = 0;          /* Thread Safe */
+
+#ifdef INC_FTRESIZE
 int resize_table(CSOUND *csound, RESIZE *p)
 {
     unsigned int fsize  = (unsigned int) MYFLT2LRND(*p->nsize);
@@ -3487,6 +3489,7 @@ int resize_table(CSOUND *csound, RESIZE *p)
     csound->flist[fno] = ftp;
     return OK;
 }
+#endif
 
 static CS_NOINLINE FUNC *gen01_defer_load(CSOUND *csound, int fno)
 {
