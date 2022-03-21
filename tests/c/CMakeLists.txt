@@ -29,7 +29,11 @@ if(BUILD_TESTS AND BUILD_STATIC_LIBRARY)
     else ()
         find_package(GTest REQUIRED)
 
-        set(CMAKE_CXX_FLAGS "-fpermissive -Wwrite-strings -std=c++0x -stdlib=libc++")
+        set(CMAKE_CXX_FLAGS "-fpermissive -Wwrite-strings -std=c++0x")
+
+        if (APPLE) {
+            set(CMAKE_CXX_FLAGS "-stdlib=libc++")
+        }
 
         target_include_directories(unittests PRIVATE
             ${GTEST_INCLUDE_DIRS})
