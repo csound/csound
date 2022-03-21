@@ -17,6 +17,10 @@
             "name": "libsndfile",
             "features": ["external-libs"]
         },
-        "gtest"
+        "gtest",
+        {
+            "name": "gettext",
+            "platform": "osx"
+        }
     ]
 }
