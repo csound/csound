@@ -27,6 +27,7 @@
 
 extern int32_t rsnset(CSOUND *csound, RESON *p);
 
+#ifdef INC_ARESON_AA
 static int32_t aresonaa(CSOUND *csound, RESON *p)
 {
     uint32_t offset = p->h.insdshead->ksmps_offset;
@@ -112,7 +113,9 @@ static int32_t aresonaa(CSOUND *csound, RESON *p)
     p->yt1 = yt1; p->yt2 = yt2;
     return OK;
 }
+#endif
 
+#ifdef INC_ARESON_AK
 static int32_t aresonak(CSOUND *csound, RESON *p)
 {
     uint32_t offset = p->h.insdshead->ksmps_offset;
@@ -196,7 +199,9 @@ static int32_t aresonak(CSOUND *csound, RESON *p)
     p->yt1 = yt1; p->yt2 = yt2;
     return OK;
 }
+#endif
 
+#ifdef INC_ARESON_KA
 static int32_t aresonka(CSOUND *csound, RESON *p)
 {
     uint32_t offset = p->h.insdshead->ksmps_offset;
@@ -280,10 +285,12 @@ static int32_t aresonka(CSOUND *csound, RESON *p)
     p->yt1 = yt1; p->yt2 = yt2;
     return OK;
 }
+#endif
 
 extern int32_t tonset(CSOUND*, TONE*);
 extern int32_t tonsetx(CSOUND *csound, TONEX *p);
 
+#ifdef INC_ATONEX
 static int32_t atonea(CSOUND *csound, TONE *p)
 {
     MYFLT       *ar, *asig;
@@ -316,7 +323,9 @@ static int32_t atonea(CSOUND *csound, TONE *p)
     p->yt1 = yt1;
     return OK;
 }
+#endif
 
+#ifdef INC_TONE
 static int32_t tonea(CSOUND *csound, TONE *p)
 {
     MYFLT       *ar, *asig;
@@ -351,7 +360,9 @@ static int32_t tonea(CSOUND *csound, TONE *p)
     p->c2 = c2;
     return OK;
 }
+#endif
 
+#ifdef INC_TONEX
 static int32_t tonexa(CSOUND *csound, TONEX *p) /* From G Maldonado, modified */
 {
     MYFLT       *ar = p->ar;
@@ -385,7 +396,9 @@ static int32_t tonexa(CSOUND *csound, TONEX *p) /* From G Maldonado, modified */
     }
     return OK;
 }
+#endif
 
+#ifdef INC_ATONEX
 static int32_t atonexa(CSOUND *csound, TONEX *p) /* Gabriel Maldonado, modified */
 {
     MYFLT       *ar = p->ar;
@@ -421,7 +434,7 @@ static int32_t atonexa(CSOUND *csound, TONEX *p) /* Gabriel Maldonado, modified 
     p->prvhp = prvhp;
     return OK;
 }
-
+#endif
 
 typedef struct  {
         OPDS    h;
@@ -441,6 +454,7 @@ typedef struct  {
 
 extern int32_t butset(CSOUND *csound, BFIL *p);
 
+#if defined(INC_BUTTERBP)||defined(INC_BUTTERBR)
 static int32_t bbutset(CSOUND *csound, BBFIL *p)    /*      Band set-up         */
 {
     IGN(csound);
@@ -451,8 +465,9 @@ static int32_t bbutset(CSOUND *csound, BBFIL *p)    /*      Band set-up         
     }
     return OK;
 }
+#endif
 
-
+#ifdef INC_BUTTERHP
 static int32_t hibuta(CSOUND *csound, BFIL *p) /*      Hipass filter       */
 {
     MYFLT    *out, *in;
@@ -508,7 +523,9 @@ static int32_t hibuta(CSOUND *csound, BFIL *p) /*      Hipass filter       */
     }
     return OK;
 }
+#endif
 
+#ifdef INC_BUTTERLP
 static int32_t lobuta(CSOUND *csound, BFIL *p)       /*      Lopass filter       */
 {
     MYFLT    *out, *in;
@@ -563,7 +580,9 @@ static int32_t lobuta(CSOUND *csound, BFIL *p)       /*      Lopass filter      
     }
     return OK;
 }
+#endif
 
+#ifdef INC_BUTTERBP
 static int32_t bppasxx(CSOUND *csound, BBFIL *p)      /*      Bandpass filter     */
 {
     uint32_t offset = p->h.insdshead->ksmps_offset;
@@ -623,7 +642,9 @@ static int32_t bppasxx(CSOUND *csound, BBFIL *p)      /*      Bandpass filter   
     }
     return OK;
 }
+#endif
 
+#ifdef INC_BUTTERR
 static int32_t bpcutxx(CSOUND *csound, BBFIL *p)      /*      Band reject filter  */
 {
     uint32_t offset = p->h.insdshead->ksmps_offset;
@@ -674,18 +695,24 @@ static int32_t bpcutxx(CSOUND *csound, BBFIL *p)      /*      Band reject filter
     }
     return OK;
 }
-
+#endif
 
 
 static OENTRY afilts_localops[] =
 {
+  #ifdef INC_ARESON_AA
   { "areson.aa", sizeof(RESON), 0,3,"a","aaaoo",(SUBR)rsnset,(SUBR)aresonaa},
+  #endif
+  #ifdef INC_ARESON_AK
   { "areson.ak", sizeof(RESON), 0,3,"a","aakoo",(SUBR)rsnset,(SUBR)aresonak},
+  #endif
+  #ifdef INC_ARESON_KA
   { "areson.ka", sizeof(RESON), 0,3,"a","akaoo",(SUBR)rsnset,(SUBR)aresonka},
-#ifdef INC_ATONEX
+  #endif
+#ifdef INC_ATONEA
   { "atone.a",  sizeof(TONE),   0,3,"a","ako",  (SUBR)tonset,(SUBR)atonea  },
   #endif
-  #ifdef AINC_ATONEX
+  #ifdef INC_ATONEX
   { "atonex.a", sizeof(TONEX),  0,3, "a","aaoo",(SUBR)tonsetx,(SUBR)atonexa},
   #endif
   #ifdef INC_TONE
@@ -694,14 +721,22 @@ static OENTRY afilts_localops[] =
   #ifdef INC_TONEX
   { "tonex.a", sizeof(TONEX),   0,3,"a","aaoo", (SUBR)tonsetx,(SUBR)tonexa },
   #endif
+  #ifdef INC_BUTTERHP
   { "butterhp.a", sizeof(BFIL), 0,3,"a","aao",  (SUBR)butset,(SUBR)hibuta  },
-  { "butterlp.a", sizeof(BFIL), 0,3,"a","aao",  (SUBR)butset,(SUBR)lobuta  },
   { "buthp.a",    sizeof(BFIL), 0,3,"a","aao",  (SUBR)butset,(SUBR)hibuta  },
+  #endif
+  #ifdef INC_BUTTERLP
+  { "butterlp.a", sizeof(BFIL), 0,3,"a","aao",  (SUBR)butset,(SUBR)lobuta  },
   { "butlp.a",    sizeof(BFIL), 0,3,"a","aao",  (SUBR)butset,(SUBR)lobuta  },
+  #endif
+  #ifdef INC_BUTTERBP
   { "butterbp",   sizeof(BBFIL),0,3,"a","axxo", (SUBR)bbutset,(SUBR)bppasxx},
   { "butbp",      sizeof(BBFIL),0,3,"a","axxo", (SUBR)bbutset,(SUBR)bppasxx},
+  #endif
+  #ifdef INC_BUTTERBR
   { "butterbr",   sizeof(BBFIL),0,3,"a","axxo", (SUBR)bbutset,(SUBR)bpcutxx},
   { "butbr",      sizeof(BBFIL),0,3,"a","axxo", (SUBR)bbutset,(SUBR)bpcutxx},
+  #endif
 };
 
 LINKAGE_BUILTIN(afilts_localops)

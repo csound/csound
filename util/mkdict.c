@@ -68,9 +68,11 @@ int main(void)
     fprintf(outp, "typedef struct {\n\tchar* opcode;\n\tchar* tag; } DICTIONARY;");
     fprintf(outp, "\nDICTIONARY dict[] = {\n");
     process_file("Engine/entry1.c", outp);
+    process_file("Opcodes/afilters.c", outp);
     process_file("Opcodes/babo.c", outp);
+    process_file("Opcodes/uggab.c", outp);
 
     fprintf(outp, "\t{ NULL, NULL } };\n\n");
     fclose(outp);
 }
-        
+

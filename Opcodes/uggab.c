@@ -31,6 +31,7 @@
 #include "uggab.h"
 #include <math.h>
 
+#ifdef INC_WRAP_A
 static int32_t wrap(CSOUND *csound, WRAP *p)
 {
     IGN(csound);
@@ -62,7 +63,9 @@ static int32_t wrap(CSOUND *csound, WRAP *p)
       }
     return OK;
 }
+#endif
 
+#ifdef INC_WRAP
 static int32_t kwrap(CSOUND *csound, WRAP *p)
 {
     IGN(csound);
@@ -78,9 +81,10 @@ static int32_t kwrap(CSOUND *csound, WRAP *p)
     }
     return OK;
 }
-
+#endif
 /*---------------------------------------------------------------------*/
 
+#ifdef INC_MIRROR
 static int32_t kmirror(CSOUND *csound, WRAP *p)
 {
     IGN(csound);
@@ -101,7 +105,9 @@ static int32_t kmirror(CSOUND *csound, WRAP *p)
     }
     return OK;
 }
+#endif
 
+#ifdef INC_MIRROR_A
 static int32_t mirror(CSOUND *csound, WRAP *p)
 {
     IGN(csound);
@@ -141,7 +147,9 @@ static int32_t mirror(CSOUND *csound, WRAP *p)
     }
     return OK;
 }
+#endif
 
+#ifdef INC_TRIGGER
 static int32_t trig_set(CSOUND *csound, TRIG *p)
 {
     IGN(csound);
@@ -184,8 +192,11 @@ static int32_t trig(CSOUND *csound, TRIG *p)
     p->old_sig = sig;
     return OK;
 }
-
+#endif
 /*-------------------------------*/
+
+
+#ifdef INC_NTRPOL_I
 
 static int32_t interpol(CSOUND *csound, INTERPOL *p)
 {
@@ -194,7 +205,9 @@ static int32_t interpol(CSOUND *csound, INTERPOL *p)
     *p->r = point_value * (*p->val2 - *p->val1) + *p->val1;
     return OK;
 }
+#endif
 
+#if defined(INC_NTRPOL_K)||defined(INC_NTPOL_A)
 static int32_t nterpol_init(CSOUND *csound, INTERPOL *p)
 {
     if (LIKELY(*p->imax != *p->imin))
@@ -203,7 +216,9 @@ static int32_t nterpol_init(CSOUND *csound, INTERPOL *p)
       return csound->InitError(csound, Str("Min and max the same"));
     return OK;
  }
+#endif
 
+#ifdef INC_NTERPOL_K
 static int32_t knterpol(CSOUND *csound, INTERPOL *p)
 {
     IGN(csound);
@@ -211,7 +226,9 @@ static int32_t knterpol(CSOUND *csound, INTERPOL *p)
     *p->r = point_value * (*p->val2 - *p->val1) + *p->val1;
     return OK;
 }
+#endif
 
+#ifdef NTRPO_A
 static int32_t anterpol(CSOUND *csound, INTERPOL *p)
 {
     IGN(csound);
@@ -231,9 +248,9 @@ static int32_t anterpol(CSOUND *csound, INTERPOL *p)
     }
     return OK;
 }
-
+#endif
 /* Oscilators */
-
+// ********************** HERE **********************
 static int32_t posc_set(CSOUND *csound, POSC *p)
 {
     FUNC *ftp;
@@ -2061,17 +2078,29 @@ static int32_t random3a(CSOUND *csound, RANDOM3 *p)
 #define S(x)    sizeof(x)
 
 static OENTRY localops[] = {
-{ "wrap",   0xffff                                                          },
+#ifdef INC_WRAP
 { "wrap.i", S(WRAP),     0,1,  "i", "iii",  (SUBR)kwrap, NULL,    NULL        },
 { "wrap.k", S(WRAP),     0,2,  "k", "kkk",  NULL,  (SUBR)kwrap,   NULL        },
+#endif
+#ifdef INC_WRAP_A
 { "wrap.a", S(WRAP),     0,2,  "a", "akk",  NULL,          (SUBR)wrap  },
-{ "mirror", 0xffff                                                          },
+#endif
+#ifdef INC_MIRROR
 { "mirror.i", S(WRAP),   0,1,  "i", "iii",  (SUBR)kmirror, NULL,  NULL        },
 { "mirror.k", S(WRAP),   0,2,  "k", "kkk",  NULL,  (SUBR)kmirror, NULL        },
+#endif
+#ifdef INC_MIRROR_A
 { "mirror.a", S(WRAP),   0,2,  "a", "akk",  NULL,         (SUBR)mirror },
+#endif
+#ifdef INC_NTRPOL_I
 { "ntrpol.i",S(INTERPOL), 0,1, "i", "iiiop",(SUBR)interpol                     },
+#endif
+#ifdef INC_NTRPOL_K
 { "ntrpol.k",S(INTERPOL), 0,3, "k", "kkkop",(SUBR)nterpol_init, (SUBR)knterpol },
+#endif
+#ifdef INC_NTRPOL_A
 { "ntrpol.a",S(INTERPOL), 0,3, "a", "aakop",(SUBR)nterpol_init,(SUBR)anterpol},
+#endif
 { "fold",    S(FOLD),     0,3, "a", "ak",   (SUBR)fold_set, (SUBR)fold      },
 { "lineto",   S(LINETO),  0,3, "k", "kk",   (SUBR)lineto_set,  (SUBR)lineto, NULL },
 { "tlineto",  S(LINETO2), 0,3, "k", "kkk",  (SUBR)tlineto_set, (SUBR)tlineto, NULL},
@@ -2135,7 +2164,9 @@ static OENTRY localops[] = {
 { "poscil3.ka", S(POSC), TR,3, "a", "kajo", (SUBR)posc_set, (SUBR)posc3ka },
 { "poscil3.aa", S(POSC), TR,3, "a", "aajo", (SUBR)posc_set, (SUBR)posc3aa },
 { "lposcil3", S(LPOSC), TR, 3, "a", "kkkkjo", (SUBR)lposc_set,(SUBR)lposc3},
+  #ifdef INC_TRIGGER
 { "trigger",  S(TRIG),  0,3, "k", "kkk",  (SUBR)trig_set, (SUBR)trig,   NULL  },
+  #endif
 { "sum",      S(SUM),   0,2, "a", "y",    NULL, (SUBR)sum_               },
 { "product",  S(SUM),   0,2, "a", "y",    NULL, (SUBR)product           },
 { "resony",  S(RESONY), 0,3, "a", "akkikooo", (SUBR)rsnsety, (SUBR)resony }

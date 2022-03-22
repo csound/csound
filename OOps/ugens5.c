@@ -315,7 +315,7 @@ int32_t atonex(CSOUND *csound, TONEX *p)      /* Gabriel Maldonado, modified */
 #endif
 
 
-#if defined(INC_RESONK)||defined(INC_ARESONK)||defined(INC_RESON)||defined(INC_ARESON)
+#if defined(INC_RESONK)||defined(INC_ARESONK)||defined(INC_RESON)||defined(INC_ARESON)||defined(INC_ARESONAA)||defined(INC_ARESONAK)||defined(INC_ARESONKA)
 int32_t rsnset(CSOUND *csound, RESON *p)
 {
     int32_t scale;

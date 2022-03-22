@@ -833,14 +833,15 @@ babo(CSOUND *csound, void *entry)
     }
     return OK;
 }
+#endif
 
 #define S(x)    sizeof(x)
 
 static OENTRY babo_localops[] = {
+  #ifdef INC_BABO
   { "babo",   S(BABO), TR, 3, "aa", "akkkiiijj",(SUBR)baboset, (SUBR)babo   },
+#endif
 };
 
 LINKAGE_BUILTIN(babo_localops)
-
-#endif
 
