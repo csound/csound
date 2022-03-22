@@ -31,9 +31,9 @@ if(BUILD_TESTS AND BUILD_STATIC_LIBRARY)
 
         set(CMAKE_CXX_FLAGS "-fpermissive -Wwrite-strings -std=c++0x")
 
-        if (APPLE) {
+        if (APPLE)
             set(CMAKE_CXX_FLAGS "-stdlib=libc++")
-        }
+        endif()
 
         target_include_directories(unittests PRIVATE
             ${GTEST_INCLUDE_DIRS})
