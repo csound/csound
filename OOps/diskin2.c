@@ -70,9 +70,9 @@ static CS_NOINLINE void diskin2_read_buffer(CSOUND *csound,
         if (nsmps > (int32_t) p->bufSize)
           nsmps = (int32_t) p->bufSize;
         nsmps *= (int32_t) p->nChannels;
-        sf_seek(p->sf, (sf_count_t) p->bufStartPos, SEEK_SET);
+        sflib_seek(p->sf, (sf_count_t) p->bufStartPos, SEEK_SET);
         /* convert sample count to mono samples and read file */
-        i = (int32_t)sf_read_MYFLT(p->sf, p->buf, (sf_count_t) nsmps);
+        i = (int32_t)sflib_read_MYFLT(p->sf, p->buf, (sf_count_t) nsmps);
         if (UNLIKELY(i < 0))  /* error ? */
           i = 0;    /* clear entire buffer to zero */
       }
@@ -212,16 +212,16 @@ static int32_t diskin2_calc_buffer_size(DISKIN2 *p, int32_t n_monoSamps)
 
 static const int32_t diskin2_format_table[11] = {
   0,
-  SF_FORMAT_RAW | SF_FORMAT_PCM_16,
-  SF_FORMAT_RAW | SF_FORMAT_PCM_S8,
-  SF_FORMAT_RAW | SF_FORMAT_ALAW,
-  SF_FORMAT_RAW | SF_FORMAT_ULAW,
-  SF_FORMAT_RAW | SF_FORMAT_PCM_16,
-  SF_FORMAT_RAW | SF_FORMAT_PCM_32,
-  SF_FORMAT_RAW | SF_FORMAT_FLOAT,
-  SF_FORMAT_RAW | SF_FORMAT_PCM_U8,
-  SF_FORMAT_RAW | SF_FORMAT_PCM_24,
-  SF_FORMAT_RAW | SF_FORMAT_DOUBLE
+  TYPE2SF(TYP_RAW)  | AE_SHORT,
+  TYPE2SF(TYP_RAW)  | AE_CHAR,
+  TYPE2SF(TYP_RAW)  | AE_ALAW,
+  TYPE2SF(TYP_RAW)  | AE_ULAW,
+  TYPE2SF(TYP_RAW)  | AE_SHORT,
+  TYPE2SF(TYP_RAW)  | AE_LONG,
+  TYPE2SF(TYP_RAW)  | AE_FLOAT,
+  TYPE2SF(TYP_RAW)  | AE_UNCH,
+  TYPE2SF(TYP_RAW)  | AE_24INT,
+  TYPE2SF(TYP_RAW)  | AE_DOUBLE
 };
 
 static int32_t diskin2_init_(CSOUND *csound, DISKIN2 *p, int32_t stringname);
@@ -303,7 +303,7 @@ static int32_t diskin2_init_(CSOUND *csound, DISKIN2 *p, int32_t stringname)
     double  pos;
     char    name[1024];
     void    *fd;
-    SF_INFO sfinfo;
+    SFLIB_INFO sfinfo;
     int32_t     n;
 
     /* check number of channels */
@@ -320,7 +320,7 @@ static int32_t diskin2_init_(CSOUND *csound, DISKIN2 *p, int32_t stringname)
       csound_fd_close(csound, &(p->fdch));
     }
     /* set default format parameters */
-    memset(&sfinfo, 0, sizeof(SF_INFO));
+    memset(&sfinfo, 0, sizeof(SFLIB_INFO));
     sfinfo.samplerate = MYFLT2LONG(csound->esr);
     sfinfo.channels = p->nChannels;
     /* check for user specified sample format */
@@ -1076,7 +1076,7 @@ static int32_t sndo1set_(CSOUND *csound, void *pp, int32_t stringname)
     else strNcpy(name, ((STRINGDAT *)ifilcod)->data, 1023);
 
     sfname = name;
-    memset(&sfinfo, 0, sizeof(SF_INFO));
+    memset(&sfinfo, 0, sizeof(SFLIB_INFO));
     //sfinfo.frames = 0;
     sfinfo.samplerate = MYFLT2LONG(csound->esr);
     sfinfo.channels = nchns;
@@ -1096,13 +1096,13 @@ static int32_t sndo1set_(CSOUND *csound, void *pp, int32_t stringname)
     }
     sfname = csound->GetFileName(q->fd);
     if (format != AE_FLOAT)
-      sf_command(q->sf, SFC_SET_CLIPPING, NULL, SF_TRUE);
+      sflib_command(q->sf, SFC_SET_CLIPPING, NULL, SFLIB_TRUE);
     else
-      sf_command(q->sf, SFC_SET_CLIPPING, NULL, SF_FALSE);
+      sflib_command(q->sf, SFC_SET_CLIPPING, NULL, SFLIB_FALSE);
 #ifdef USE_DOUBLE
-    sf_command(q->sf, SFC_SET_NORM_DOUBLE, NULL, SF_FALSE);
+    sflib_command(q->sf, SFC_SET_NORM_DOUBLE, NULL, SFLIB_FALSE);
 #else
-    sf_command(q->sf, SFC_SET_NORM_FLOAT, NULL, SF_FALSE);
+    sflib_command(q->sf, SFC_SET_NORM_FLOAT, NULL, SFLIB_FALSE);
 #endif
     csound->Warning(csound, Str("%s: opening RAW outfile %s\n"),
                     opname, sfname);
@@ -1134,7 +1134,7 @@ int32_t soundout(CSOUND *csound, SNDOUT *p)
     for (nn = offset; nn < nsmps; nn++) {
       if (UNLIKELY(p->c.outbufp >= p->c.bufend)) {
 
-        sf_write_MYFLT(p->c.sf, p->c.outbuf, p->c.bufend - p->c.outbuf);
+        sflib_write_MYFLT(p->c.sf, p->c.outbuf, p->c.bufend - p->c.outbuf);
         p->c.outbufp = p->c.outbuf;
       }
       *(p->c.outbufp++) = p->asig[nn];
@@ -1203,9 +1203,9 @@ static CS_NOINLINE void diskin2_read_buffer_array(CSOUND *csound,
         if (nsmps > (int32_t) p->bufSize)
           nsmps = (int32_t) p->bufSize;
         nsmps *= (int32_t) p->nChannels;
-        sf_seek(p->sf, (sf_count_t) p->bufStartPos, SEEK_SET);
+        sflib_seek(p->sf, (sf_count_t) p->bufStartPos, SEEK_SET);
         /* convert sample count to mono samples and read file */
-        i = (int32_t)sf_read_MYFLT(p->sf, p->buf, (sf_count_t) nsmps);
+        i = (int32_t)sflib_read_MYFLT(p->sf, p->buf, (sf_count_t) nsmps);
         if (UNLIKELY(i < 0))  /* error ? */
           i = 0;    /* clear entire buffer to zero */
       }
@@ -1573,7 +1573,7 @@ static int32_t diskin2_init_array(CSOUND *csound, DISKIN2_ARRAY *p,
     double  pos;
     char    name[1024];
     void    *fd;
-    SF_INFO sfinfo;
+    SFLIB_INFO sfinfo;
     int32_t     n;
     ARRAYDAT *t = p->aOut;
 
@@ -1587,7 +1587,7 @@ static int32_t diskin2_init_array(CSOUND *csound, DISKIN2_ARRAY *p,
     // to handle raw files number of channels
     if (t->data) p->nChannels = t->sizes[0];
     /* set default format parameters */
-    memset(&sfinfo, 0, sizeof(SF_INFO));
+    memset(&sfinfo, 0, sizeof(SFLIB_INFO));
     sfinfo.samplerate = MYFLT2LONG(csound->esr);
     sfinfo.channels = p->nChannels;
     /* check for user specified sample format */
@@ -1612,7 +1612,7 @@ static int32_t diskin2_init_array(CSOUND *csound, DISKIN2_ARRAY *p,
     if (UNLIKELY(fd == NULL)) {
       return csound->InitError(csound,
                                Str("diskin2: %s: failed to open file: %s"),
-                               name, Str(sf_strerror(NULL)));
+                               name, Str(sflib_strerror(NULL)));
     }
     /* record file handle so that it will be closed at note-off */
     memset(&(p->fdch), 0, sizeof(FDCH));
@@ -2091,8 +2091,8 @@ static void soundin_read_buffer(CSOUND *csound, SOUNDIN_ *p, int32_t bufReadPos)
         /* convert sample count to mono samples and read file */
         nsmps *= (int32_t) p->nChannels;
         if (csound->oparms->realtime==0){
-          sf_seek(p->sf, (sf_count_t) p->bufStartPos, SEEK_SET);
-          i = (int32_t) sf_read_MYFLT(p->sf, p->buf, (sf_count_t) nsmps);
+          sflib_seek(p->sf, (sf_count_t) p->bufStartPos, SEEK_SET);
+          i = (int32_t) sflib_read_MYFLT(p->sf, p->buf, (sf_count_t) nsmps);
         }
         else
           i = (int32_t) csound->ReadAsync(csound, p->fdch.fd, p->buf,
@@ -2134,7 +2134,7 @@ static int32_t sndinset_(CSOUND *csound, SOUNDIN_ *p, int32_t stringname)
     double  pos;
     char    name[1024];
     void    *fd;
-    SF_INFO sfinfo;
+    SFLIB_INFO sfinfo;
     int32_t     n, fmt, typ;
 
     /* check number of channels */
@@ -2152,13 +2152,13 @@ static int32_t sndinset_(CSOUND *csound, SOUNDIN_ *p, int32_t stringname)
       csound_fd_close(csound, &(p->fdch));
     }
     /* set default format parameters */
-    memset(&sfinfo, 0, sizeof(SF_INFO));
+    memset(&sfinfo, 0, sizeof(SFLIB_INFO));
     sfinfo.samplerate = MYFLT2LONG(csound->esr);
     sfinfo.channels = p->nChannels;
     /* check for user specified sample format */
     n = MYFLT2LONG(*p->iSampleFormat);
     if (n == 1) {
-      sfinfo.format = SF_FORMAT_RAW
+      sfinfo.format = TYPE2SF(TYP_RAW) 
         | (int32_t) FORMAT2SF(csound->oparms_.outformat);
     }
     else {
@@ -2189,7 +2189,7 @@ static int32_t sndinset_(CSOUND *csound, SOUNDIN_ *p, int32_t stringname)
       if (csound->oparms->realtime==0)
         return csound->InitError(csound,
                                Str("soundin: %s: failed to open file: %s"),
-                                 name, Str(sf_strerror(NULL)));
+                                 name, Str(sflib_strerror(NULL)));
       else
         return csound->InitError(csound,
                                  Str("soundin: %s: failed to open file"), name);
@@ -2222,10 +2222,10 @@ static int32_t sndinset_(CSOUND *csound, SOUNDIN_ *p, int32_t stringname)
       csound->Warning(csound, Str("soundin: file sample rate (%d) "
                                   "!= orchestra sr (%d)\n"),
                       sfinfo.samplerate, MYFLT2LONG(csound->esr));
-    fmt = sfinfo.format & SF_FORMAT_SUBMASK;
-    typ = sfinfo.format & SF_FORMAT_TYPEMASK;
-    if ((fmt != SF_FORMAT_FLOAT && fmt != SF_FORMAT_DOUBLE) ||
-        (typ == SF_FORMAT_WAV || typ == SF_FORMAT_W64 || typ == SF_FORMAT_AIFF))
+    fmt = TYPE2ENC(sfinfo.format);
+    typ = SF2TYPE(sfinfo.format);
+    if ((fmt != AE_FLOAT && fmt != AE_DOUBLE) ||
+        (typ == TYP_WAV || typ == TYP_W64 || typ == TYP_AIFF))
       p->scaleFac = csound->e0dbfs;
     else
       p->scaleFac = FL(1.0);    /* do not scale "raw" float files */

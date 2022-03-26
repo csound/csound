@@ -25,6 +25,7 @@
 #include <string.h>
 #include <stdio.h>
 #include "csoundCore.h"
+#include "aops.h"
 
 int csTypeExistsWithSameName(TYPE_POOL* pool, CS_TYPE* typeInstance) {
     CS_TYPE_ITEM* current = pool->head;
@@ -47,20 +48,6 @@ CS_TYPE* csoundGetTypeWithVarTypeName(TYPE_POOL* pool, char* typeName) {
     CS_TYPE_ITEM* current = pool->head;
     while (current != NULL) {
       if (strcmp(typeName, current->cstype->varTypeName) == 0) {
-        return current->cstype;
-      }
-      current = current->next;
-    }
-    return NULL;
-}
-
-CS_TYPE* csoundGetTypeForVarName(TYPE_POOL* pool, char* varName) {
-    CS_TYPE_ITEM* current = pool->head;
-    char temp[2];
-    temp[0] = varName[0];
-    temp[1] = 0;
-    while (current != NULL) {
-      if (strcmp(temp, current->cstype->varTypeName) == 0) {
         return current->cstype;
       }
       current = current->next;
@@ -93,6 +80,7 @@ int csoundAddVariableType(CSOUND* csound, TYPE_POOL* pool, CS_TYPE* typeInstance
 
     return 1;
 }
+
 
 /* VAR POOL FUNCTIONS */
 
@@ -147,7 +135,7 @@ char* getVarSimpleName(CSOUND* csound, const char* varName) {
     return retVal;
 }
 
-CS_VARIABLE* csoundCreateVariable(void* csound, TYPE_POOL* pool,
+CS_VARIABLE* csoundCreateVariable(CSOUND* csound, TYPE_POOL* pool,
                                   CS_TYPE* type, char* name, void* typeArg)
 {
     CS_TYPE_ITEM* current = pool->head;
@@ -229,7 +217,7 @@ int csoundAddVariable(CSOUND* csound, CS_VAR_POOL* pool, CS_VARIABLE* var) {
   } else return -1;
 }
 
-void recalculateVarPoolMemory(void* csound, CS_VAR_POOL* pool)
+void recalculateVarPoolMemory(CSOUND* csound, CS_VAR_POOL* pool)
 {
     CS_VARIABLE* current = pool->head;
     int varCount = 1;
@@ -251,7 +239,7 @@ void recalculateVarPoolMemory(void* csound, CS_VAR_POOL* pool)
     }
 }
 
-void reallocateVarPoolMemory(void* csound, CS_VAR_POOL* pool) {
+void reallocateVarPoolMemory(CSOUND* csound, CS_VAR_POOL* pool) {
     CS_VARIABLE* current = pool->head;
     CS_VAR_MEM* varMem = NULL;
     size_t memSize;
@@ -277,9 +265,8 @@ void reallocateVarPoolMemory(void* csound, CS_VAR_POOL* pool) {
     }
 }
 
-void deleteVarPoolMemory(void* csnd, CS_VAR_POOL* pool) {
+void deleteVarPoolMemory(CSOUND* csound, CS_VAR_POOL* pool) {
     CS_VARIABLE* current = pool->head, *tmp;
-    CSOUND *csound = (CSOUND *)csnd;
     CS_TYPE* type;
     while (current != NULL) {
       tmp = current;
@@ -295,7 +282,7 @@ void deleteVarPoolMemory(void* csnd, CS_VAR_POOL* pool) {
 
 
 
-void initializeVarPool(void *csound, MYFLT* memBlock, CS_VAR_POOL* pool) {
+void initializeVarPool(CSOUND* csound, MYFLT* memBlock, CS_VAR_POOL* pool) {
     CS_VARIABLE* current = pool->head;
     int varNum = 1;
 
@@ -317,4 +304,23 @@ void debug_print_varpool(CSOUND* csound, CS_VAR_POOL* pool) {
                       gVar->varName, gVar->varType->varTypeName);
       gVar = gVar->next;
     }
+}
+
+/* GENERIC VARIABLE COPYING */
+
+
+int copyVarGeneric(CSOUND *csound, void *p) {
+    ASSIGN* assign = (ASSIGN*)p;
+    CS_TYPE* typeR = csoundGetTypeForArg(assign->r);
+    CS_TYPE* typeA = csoundGetTypeForArg(assign->a);
+    
+    if(typeR != typeA) {
+        csound->Warning(csound,
+                        Str("error: = opcode given variables with two different types: %s : %s\n"),
+                        typeR->varTypeName, typeA->varTypeName);
+        return NOTOK;
+    }
+    
+    typeR->copyValue(csound, typeR, assign->r, assign->a);
+    return OK;
 }

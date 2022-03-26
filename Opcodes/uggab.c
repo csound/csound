@@ -250,7 +250,8 @@ static int32_t anterpol(CSOUND *csound, INTERPOL *p)
 }
 #endif
 /* Oscilators */
-// ********************** HERE **********************
+
+#if defined(INC_POSCIL_A)||defined(INC_POSCIL_KK)||defined(INC_POSCIL_KA)||defined(INC_POSCIL_AK)||defined(INC_POSCIL_AA)||defined(INC_POSCIL3_A)||defined(INC_POSCIL3_kk)||defined(INC_POSCIL3_KA)||defined(INC_POSCIL3_AK)||defined(INC_POSCIL3_AA)
 static int32_t posc_set(CSOUND *csound, POSC *p)
 {
     FUNC *ftp;
@@ -266,7 +267,9 @@ static int32_t posc_set(CSOUND *csound, POSC *p)
       p->phs     -= p->tablen;
     return OK;
 }
+#endif
 
+#ifdef INC_POSCIL_KK
 static int32_t posckk(CSOUND *csound, POSC *p)
 {
     FUNC        *ftp = p->ftp;
@@ -297,7 +300,9 @@ static int32_t posckk(CSOUND *csound, POSC *p)
     p->phs = phs;
     return OK;
 }
+#endif
 
+#ifdef INC_POSCIL_AA
 static int32_t poscaa(CSOUND *csound, POSC *p)
 {
     FUNC        *ftp = p->ftp;
@@ -334,7 +339,9 @@ static int32_t poscaa(CSOUND *csound, POSC *p)
     p->phs = phs;
     return OK;
 }
+#endif
 
+#ifdef INC_POSCIL_KA
 static int32_t poscka(CSOUND *csound, POSC *p)
 {
     FUNC        *ftp = p->ftp;
@@ -370,7 +377,9 @@ static int32_t poscka(CSOUND *csound, POSC *p)
     p->phs = phs;
     return OK;
 }
+#endif
 
+#ifdef INC_POSCIL_AK
 static int32_t poscak(CSOUND *csound, POSC *p)
 {
 
@@ -407,10 +416,12 @@ static int32_t poscak(CSOUND *csound, POSC *p)
     p->phs = phs;
     return OK;
 }
+#endif
 
+#ifdef INC_POSCEIL_KK
 static int32_t kposc(CSOUND *csound, POSC *p)
 {
-     IGN(csound);
+    IGN(csound);
     double      phs = p->phs;
     double      si = *p->freq * p->tablen * CS_ONEDKR;
     MYFLT       *curr_samp = p->ftp->ftable + (int32)phs;
@@ -425,7 +436,9 @@ static int32_t kposc(CSOUND *csound, POSC *p)
     p->phs = phs;
     return OK;
 }
+#endif
 
+#ifdef INC_POSIL3_KK
 static int32_t posc3kk(CSOUND *csound, POSC *p)
 {
     FUNC        *ftp = p->ftp;
@@ -480,7 +493,9 @@ static int32_t posc3kk(CSOUND *csound, POSC *p)
     p->phs = phs;
     return OK;
 }
+#endif
 
+#ifdef INC_POSCIL3_AK
 static int32_t posc3ak(CSOUND *csound, POSC *p)
 {
     FUNC        *ftp = p->ftp;
@@ -535,7 +550,9 @@ static int32_t posc3ak(CSOUND *csound, POSC *p)
     p->phs = phs;
     return OK;
 }
+#endif
 
+#ifdef INC_POSCIL3_KA
 static int32_t posc3ka(CSOUND *csound, POSC *p)
 {
     FUNC        *ftp = p->ftp;
@@ -592,7 +609,9 @@ static int32_t posc3ka(CSOUND *csound, POSC *p)
     p->phs = phs;
     return OK;
 }
+#endif
 
+#ifdef INC_POSCIL3_AA
 static int32_t posc3aa(CSOUND *csound, POSC *p)
 {
     FUNC        *ftp = p->ftp;
@@ -649,7 +668,9 @@ static int32_t posc3aa(CSOUND *csound, POSC *p)
     p->phs = phs;
     return OK;
 }
+#endif
 
+#ifdef INC_POSCIL3_KK
 static int32_t kposc3(CSOUND *csound, POSC *p)
 {
     IGN(csound);
@@ -688,7 +709,9 @@ static int32_t kposc3(CSOUND *csound, POSC *p)
     p->phs = phs;
     return OK;
 }
+#endif
 
+#if defined(INC_LPOSCIL)||defined(INC_LPOSCIL3)
 static int32_t lposc_set(CSOUND *csound, LPOSC *p)
 {
     FUNC   *ftp;
@@ -717,7 +740,9 @@ static int32_t lposc_set(CSOUND *csound, LPOSC *p)
        p->phs -= looplength;
      return OK;
 }
+#endif
 
+#ifdef INC_LPOSCIL
 static int32_t lposc(CSOUND *csound, LPOSC *p)
 {
     MYFLT       *out = p->out, *ft = p->ftp->ftable;
@@ -749,7 +774,9 @@ static int32_t lposc(CSOUND *csound, LPOSC *p)
     p->phs = phs;
     return OK;
 }
+#endif
 
+#ifdef INC_LPOSCIL3
 static int32_t lposc3(CSOUND *csound, LPOSC *p)
 {
     MYFLT       *out = p->out, *ftab = p->ftp->ftable;
@@ -799,7 +826,8 @@ static int32_t lposc3(CSOUND *csound, LPOSC *p)
     p->phs = phs;
     return OK;
 }
-
+#endif
+// ********************** HERE **********************
 static int32_t sum_(CSOUND *csound, SUM *p)
 {
     IGN(csound);
@@ -2149,21 +2177,42 @@ static OENTRY localops[] = {
 { "duserrnd.a", S(DURAND),0,2, "a", "k",
                                 (SUBR)Cuserrnd_set,(SUBR)aDiscreteUserRand },
 //{ "poscil", 0xfffe, TR                                                          },
+  #ifdef INC_POSCIL_A
 { "poscil.a", S(POSC), TR,3, "a", "kkjo", (SUBR)posc_set,(SUBR)posckk },
+  #endif
+  #ifdef INC_POSCIL_KK
 { "poscil.kk", S(POSC), TR,3, "k", "kkjo", (SUBR)posc_set,(SUBR)kposc,NULL },
+  #endif
+  #ifdef INC_POSCIL_KA
 { "poscil.ka", S(POSC), TR,3, "a", "kajo", (SUBR)posc_set,  (SUBR)poscka },
+  #endif
+  #ifdef INC_POSCIL_AK
 { "poscil.ak", S(POSC), TR,3, "a", "akjo", (SUBR)posc_set,  (SUBR)poscak },
+  #endif
+  #ifdef INC_POSCIL_AA
 { "poscil.aa", S(POSC), TR,3, "a", "aajo", (SUBR)posc_set,  (SUBR)poscaa },
+  #endif
+  #ifdef INC_LPOSCIL
 { "lposcil",  S(LPOSC), TR, 3, "a", "kkkkjo", (SUBR)lposc_set, (SUBR)lposc},
+  #endif
 //{ "poscil3", 0xfffe, TR                                                     },
+  #ifdef INC_POSCIL3_A
 { "poscil3.a",S(POSC), TR,3, "a", "kkjo",
                                      (SUBR)posc_set,(SUBR)posc3kk },
-{ "poscil3.kk",S(POSC), TR,3, "k", "kkjo",
                                      (SUBR)posc_set,(SUBR)kposc3,NULL},
+  #endif
+  #ifdef INC_POSCIL3_AK
 { "poscil3.ak", S(POSC), TR,3, "a", "akjo", (SUBR)posc_set, (SUBR)posc3ak },
+  #endif
+  #ifdef INC_POSCIL3_KA
 { "poscil3.ka", S(POSC), TR,3, "a", "kajo", (SUBR)posc_set, (SUBR)posc3ka },
+  #endif
+  #ifdef INC_POSCIL3_AA
 { "poscil3.aa", S(POSC), TR,3, "a", "aajo", (SUBR)posc_set, (SUBR)posc3aa },
+  #endif
+  #ifdef INC_LPOSCIL3
 { "lposcil3", S(LPOSC), TR, 3, "a", "kkkkjo", (SUBR)lposc_set,(SUBR)lposc3},
+  #endif
   #ifdef INC_TRIGGER
 { "trigger",  S(TRIG),  0,3, "k", "kkk",  (SUBR)trig_set, (SUBR)trig,   NULL  },
   #endif

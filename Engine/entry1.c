@@ -7,7 +7,7 @@
 
   The Csound Library is free software; you can redistribute it
   and/or modify it under the terms of the GNU Lesser General Public
-ndf  License as published by the Free Software Foundation; either
+  License as published by the Free Software Foundation; either
   version 2.1 of the License, or (at your option) any later version.
 
   Csound is distributed in the hope that it will be useful,
@@ -79,7 +79,7 @@ ndf  License as published by the Free Software Foundation; either
  F       multiple args (f-rate)#
 */
 
-/* inargs and outargs may also be arrays, e.g. "a[]" is an array of
+/* inargs and outargs may also be arrays, e.g. "a[b]" is an array of
    arate vectors. Then for polymorphic opcode entries, "opcode.a" is
    for arate vectors, and "opcode.A" is for arrays of arate vectors.
 */
@@ -92,6 +92,7 @@ OENTRY opcodlst_1[] = {
   /* IV - Sep 8 2002 */
   { "opcode", 0,    0,      0,      "",     "",   NULL, NULL, NULL, NULL },
   { "endop",  0,    0,      0,      "",     "",   NULL, NULL, NULL, NULL },
+  { "declare", 0,    0,      0,      "",     "",   NULL, NULL, NULL, NULL },
   { "$label", S(LBLBLK),  0,0,      "",     "",   NULL, NULL, NULL, NULL },
   { "pset",   S(PVSET),   0,0,      "",     "m",  NULL, NULL, NULL, NULL },
 
@@ -140,7 +141,7 @@ OENTRY opcodlst_1[] = {
   #ifdef INC_MASSIGN_P
   { "massign",S(MASSIGN), 0,1,      "",  "iip",massign_p, NULL, NULL, NULL},
   #endif
-  #ifdef INC_MASSIG_S
+  #ifdef INC_MASSIGN_S
   { "massign.S",S(MASSIGNS), 0,1,  "",  "iSp",massign_S, NULL, NULL, NULL},
   #endif
   #ifdef INC_TURNON
@@ -171,9 +172,10 @@ OENTRY opcodlst_1[] = {
   { "turnoff",S(LINK),0,    2,      "",     "",     NULL,   turnoff, NULL, NULL },
   #endif
   #ifdef INC_STRCPY
-  {  "=.S",   S(STRCPY_OP),0,   1,  "S",    "S",
+  /* VL: 10.2.22 this was thread 1, but with parser3 we need to make string assignment on threads 1 & 2 */
+  {  "=.S",   S(STRCPY_OP),0,   3,  "S",    "S",
      (SUBR) strcpy_opcode_S, NULL, (SUBR) NULL, NULL    },
-  {  "#=.S",   S(STRCPY_OP),0,   2,  "S",    "S",
+  {  "#=.S",   S(STRCPY_OP),0,   3,  "S",    "S",
      NULL, (SUBR) strcpy_opcode_S, (SUBR) NULL, NULL    },
   {  "=.T",   S(STRGET_OP),0,   1,  "S",    "i",
      (SUBR) strcpy_opcode_p, (SUBR) NULL, (SUBR) NULL, NULL                 }, 
@@ -1609,7 +1611,7 @@ OENTRY opcodlst_1[] = {
   { "limit.k",  S(LIMIT),0, 2, "k",     "kkk",  NULL,          (SUBR)klimit, NULL },
   { "limit.a",  S(LIMIT),0, 2, "a",     "akk",  NULL,  (SUBR)limit },
 #endif
-  { "prealloc", S(AOP),0,   1, "",      "iio",  (SUBR)prealloc, NULL, NULL  },
+  { "prealloc.S", S(AOP),0,   1, "",      "iio",  (SUBR)prealloc, NULL, NULL  },
    { "prealloc", S(AOP),0,   1, "",      "Sio",  (SUBR)prealloc_S, NULL, NULL  },
   /* opcode   dspace      thread  outarg  inargs  isub    ksub    asub    */
    #ifdef IC_INH
@@ -2155,7 +2157,9 @@ OENTRY opcodlst_1[] = {
      (SUBR) print_type_opcode, NULL, NULL       },
   #endif
 #ifdef HAVE_CURL
+#ifdef INC_STRCPY
   {  "strfromurl", S(STRCPY_OP), 0, 1, "S", "S", (SUBR) str_from_url     },
+  #endif
 #endif
   #ifdef INC_CHANGED_S
   {  "changed.S", S(STRCHGD),0, 3, "k",   "S",
@@ -2328,6 +2332,9 @@ OENTRY opcodlst_1[] = {
   { "return",  S(RETVAL), 0, 1, "", "i",  (SUBR) retval_i, NULL, NULL },
   #endif
   /* ----------------------------------------------------------------------- */
+  // VL: 9.3.22 this is causing a problem in parsing arrays
+  // I am modifying it to accept only i-time inputs
+  { "=.generic", S(ASSIGN), 0,1, ".", "i", (SUBR)copyVarGeneric, NULL, NULL},
   #ifdef INC_MONITOR
   { "monitor",  sizeof(MONITOR_OPCODE), IB, 3,  "mmmmmmmmmmmmmmmmmmmmxsmmmm", "",
     (SUBR) monitor_opcode_init, (SUBR) notinit_opcode_stub,  NULL },

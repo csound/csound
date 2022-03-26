@@ -37,7 +37,6 @@
 #include "csoundCore.h"
 #include "csmodule.h"
 #include "corfile.h"
-#include "opcodes.h"
 #include "csGblMtx.h"
 #include <stdio.h>
 #include <stdarg.h>
@@ -115,6 +114,14 @@ extern OENTRY opcodlst_1[];
 #define STRING_HASH(arg) STRSH(arg)
 #define STRSH(arg) #arg
 
+/* return 1 if the current op thread is init-time,
+   zero if not.
+   return value may be incorrect in realtime mode
+*/
+int csoundIsInitThread(CSOUND *csound) {
+  return csound->ids ? 1 : 0;
+}
+
 void print_csound_version(CSOUND* csound)
 {
 #ifdef USE_DOUBLE
@@ -143,13 +150,16 @@ void print_csound_version(CSOUND* csound)
                     STRING_HASH(GIT_HASH_VALUE));
 #endif
 #endif
-    csoundErrorMsg(csound, "%s\n", MINTITLE);
 }
 
 void print_sndfile_version(CSOUND* csound) {
+#ifdef USE_LIBSNDFILE
         char buffer[128];
-        sf_command(NULL, SFC_GET_LIB_VERSION, buffer, 128);
+        sflib_command(NULL, SFC_GET_LIB_VERSION, buffer, 128);
         csoundErrorMsg(csound, "%s\n", buffer);
+#else
+        csoundErrorMsg(csound, "%s\n", "No soundfile IO");
+#endif
 }
 
 void print_engine_parameters(CSOUND *csound) {
@@ -588,7 +598,7 @@ static const CSOUND cenviron_ = {
           NULL, NULL, NULL, NULL,
           0,0,
           NULL,
-          0,0,0},
+          0,0},
         0,0,0,
         //0,
         NULL,
@@ -977,7 +987,6 @@ static const CSOUND cenviron_ = {
     1,              /* orcLineOffset */
     0,              /* scoLineOffset */
     NULL,           /* csdname */
-    -1,             /*  parserUdoflag */
     0,              /*  parserNamedInstrFlag */
     0,              /*  tran_nchnlsi */
     0,              /* Count of score strings */
@@ -997,7 +1006,6 @@ static const CSOUND cenviron_ = {
     0,              /* csdebug_data */
     kperf_nodebug,  /* current kperf function - nodebug by default */
     0,              /* which score parser */
-    NULL,           /* symbtab */
     0,              /* print_version */
     1,              /* inZero */
     NULL,           /* msg_queue */
@@ -3190,7 +3198,7 @@ PUBLIC void csoundSetExitGraphCallback(CSOUND *csound,
 /*
  * OPCODES
  */
-void add_to_symbtab(CSOUND *csound, OENTRY *ep);
+//void add_to_symbtab(CSOUND *csound, OENTRY *ep);
 
 static CS_NOINLINE int opcode_list_new_oentry(CSOUND *csound,
                                               const OENTRY *ep)
@@ -3245,7 +3253,7 @@ PUBLIC int csoundAppendOpcode(CSOUND *csound,
     tmpEntry.kopadr     = kopadr;
     tmpEntry.aopadr     = aopadr;
     err = opcode_list_new_oentry(csound, &tmpEntry);
-    add_to_symbtab(csound, &tmpEntry);
+    //add_to_symbtab(csound, &tmpEntry);
     if (UNLIKELY(err))
       csoundErrorMsg(csound, Str("Failed to allocate new opcode entry."));
 
@@ -3510,9 +3518,6 @@ PUBLIC void csoundReset(CSOUND *csound)
 
     csound->engineState.stringPool = cs_hash_table_create(csound);
     csound->engineState.constantsPool = cs_hash_table_create(csound);
-    if (csound->symbtab != NULL)
-      cs_hash_table_mfree_complete(csound, csound->symbtab);
-    csound->symbtab = NULL;
     csound->engineStatus |= CS_STATE_PRE;
     csound_aops_init_tables(csound);
     create_opcode_table(csound);

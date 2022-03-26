@@ -47,6 +47,7 @@
 #include "csound_data_structures.h"
 #include "csound_standard_types.h"
 #include "pools.h"
+#include "soundfile.h"
 
 #ifndef CSOUND_CSDL_H
 /* VL not sure if we need to check for SSE */
@@ -95,6 +96,8 @@ typedef struct {
 
 #define OK        (0)
 #define NOTOK     (-1)
+
+#define DEFAULT_STRING_SIZE 64
 
 #define CSFILE_FD_R     1
 #define CSFILE_FD_W     2
@@ -281,6 +284,7 @@ typedef struct CORFIL {
     int type;
     void* argPtr;
     int index;
+    char* structPath;
     struct arg* next;
   } ARG;
 //  typedef struct argoffs {
@@ -315,7 +319,7 @@ typedef struct CORFIL {
     unsigned int    inArgCount;
     ARG             *outArgs;
     unsigned        int outArgCount;
-    char            intype;         /* Type of first input argument (g,k,a,w etc) */
+//    char            intype;         /* Type of first input argument (g,k,a,w etc) */
     char            pftype;         /* Type of output argument (k,a etc) */
   } TEXT;
 
@@ -417,9 +421,12 @@ typedef struct CORFIL {
       AUXCH   aux;
    } TABDAT;
 
+  #define MAX_STRINGDAT_SIZE 0xFFFFFFFF
+  
   typedef struct {
     char *data;
-    int size;
+    size_t size;
+    int64_t timestamp;    /*  VL: Feb 22 starting in 7.0 we have a timestamp */
   } STRINGDAT;
 
   typedef struct monblk {
@@ -757,7 +764,7 @@ typedef struct CORFIL {
     /** amplitude scale factor        */
     double          scaleFac;
     /** interleaved sample data       */
-    float           data[1];
+    MYFLT           data[1];
   } SNDMEMFILE;
 
   typedef struct pvx_memfile_ {
@@ -883,6 +890,12 @@ typedef struct CORFIL {
  * and nodebug kperf functions */
   int kperf_nodebug(CSOUND *csound);
   int kperf_debug(CSOUND *csound);
+
+  /*
+    check if code is running at init time. 
+    result may not be valid in realtime mode
+   */  
+int csoundIsInitThread(CSOUND *csound);  
 
 #endif  /* __BUILDING_LIBCSOUND */
 
@@ -1671,8 +1684,8 @@ typedef struct _message_queue_t_ {
       EVENT   *lsect;
     } musmonStatics;
     struct libsndStatics__ {
-      SNDFILE       *outfile;
-      SNDFILE       *infile;
+      void          *outfile;
+      void          *infile;
       char          *sfoutname;           /* soundout filename            */
       MYFLT         *inbuf;
       MYFLT         *outbuf;              /* contin sndio buffers         */
@@ -1790,7 +1803,6 @@ typedef struct _message_queue_t_ {
     int           scoLineOffset; /* 1 less than 1st score line in the CSD */
     char*         csdname;
   /* original CSD name; do not free() */
-    int           parserUdoflag;
     int           parserNamedInstrFlag;
     int           tran_nchnlsi;
     int           scnt;         /* Count of strings */
@@ -1811,7 +1823,6 @@ typedef struct _message_queue_t_ {
     int (*kperf)(CSOUND *); /* kperf function pointer, to switch between debug
                                and nodebug function */
     int           score_parser;
-    CS_HASH_TABLE* symbtab;
     int           print_version;
     int           inZero;       /* flag compilation of instr0 */
     struct _message_queue **msg_queue;

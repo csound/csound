@@ -23,8 +23,6 @@
 
 #include "csoundCore.h"
 #include "interlocks.h"
-//#include <pthread.h>
-#include <sndfile.h>
 #include "soundio.h"
 
 typedef struct {
@@ -63,36 +61,37 @@ typedef struct {
 
 static const int32_t format_table[51] = {
     /* 0 - 9 */
-    (SF_FORMAT_FLOAT | SF_FORMAT_RAW), (SF_FORMAT_PCM_16 | SF_FORMAT_RAW),
-    SF_FORMAT_PCM_16, SF_FORMAT_ULAW, SF_FORMAT_PCM_16, SF_FORMAT_PCM_32,
-    SF_FORMAT_FLOAT, SF_FORMAT_PCM_U8, SF_FORMAT_PCM_24, SF_FORMAT_DOUBLE,
+    (AE_FLOAT | TYP2SF(TYP_RAW)), (AE_SHORT | TYP2SF(TYP_RAW)),
+    AE_SHORT, AE_ULAW, AE_SHORT, AE_LONG,
+    AE_FLOAT, AE_UNCH, AE_24INT, AE_DOUBLE,
     /* 10 - 19 */
-    SF_FORMAT_WAV, (SF_FORMAT_PCM_S8 | SF_FORMAT_WAV),
-    (SF_FORMAT_ALAW | SF_FORMAT_WAV), (SF_FORMAT_ULAW | SF_FORMAT_WAV),
-    (SF_FORMAT_PCM_16 | SF_FORMAT_WAV), (SF_FORMAT_PCM_32 | SF_FORMAT_WAV),
-    (SF_FORMAT_FLOAT | SF_FORMAT_WAV), (SF_FORMAT_PCM_U8 | SF_FORMAT_WAV),
-    (SF_FORMAT_PCM_24 | SF_FORMAT_WAV), (SF_FORMAT_DOUBLE | SF_FORMAT_WAV),
+    TYP2SF(TYP_WAV), (AE_CHAR | TYP2SF(TYP_WAV)),
+    (AE_ALAW | TYP2SF(TYP_WAV)), (AE_ULAW | TYP2SF(TYP_WAV)),
+    (AE_SHORT | TYP2SF(TYP_WAV)), (AE_LONG | TYP2SF(TYP_WAV)),
+    (AE_FLOAT | TYP2SF(TYP_WAV)), (AE_UNCH | TYP2SF(TYP_WAV)),
+    (AE_24INT | TYP2SF(TYP_WAV)), (AE_DOUBLE | TYP2SF(TYP_WAV)),
     /* 20 - 29 */
-    SF_FORMAT_AIFF, (SF_FORMAT_PCM_S8 | SF_FORMAT_AIFF),
-    (SF_FORMAT_ALAW | SF_FORMAT_AIFF), (SF_FORMAT_ULAW | SF_FORMAT_AIFF),
-    (SF_FORMAT_PCM_16 | SF_FORMAT_AIFF), (SF_FORMAT_PCM_32 | SF_FORMAT_AIFF),
-    (SF_FORMAT_FLOAT | SF_FORMAT_AIFF), (SF_FORMAT_PCM_U8 | SF_FORMAT_AIFF),
-    (SF_FORMAT_PCM_24 | SF_FORMAT_AIFF), (SF_FORMAT_DOUBLE | SF_FORMAT_AIFF),
+    TYP2SF(TYP_AIFF), (AE_CHAR | TYP2SF(TYP_AIFF)),
+    (AE_ALAW | TYP2SF(TYP_AIFF)), (AE_ULAW | TYP2SF(TYP_AIFF)),
+    (AE_SHORT | TYP2SF(TYP_AIFF)), (AE_LONG | TYP2SF(TYP_AIFF)),
+    (AE_FLOAT | TYP2SF(TYP_AIFF)), (AE_UNCH | TYP2SF(TYP_AIFF)),
+    (AE_24INT | TYP2SF(TYP_AIFF)), (AE_DOUBLE | TYP2SF(TYP_AIFF)),
     /* 30 - 39 */
-    SF_FORMAT_RAW, (SF_FORMAT_PCM_S8 | SF_FORMAT_RAW),
-    (SF_FORMAT_ALAW | SF_FORMAT_RAW), (SF_FORMAT_ULAW | SF_FORMAT_RAW),
-    (SF_FORMAT_PCM_16 | SF_FORMAT_RAW), (SF_FORMAT_PCM_32 | SF_FORMAT_RAW),
-    (SF_FORMAT_FLOAT | SF_FORMAT_RAW), (SF_FORMAT_PCM_U8 | SF_FORMAT_RAW),
-    (SF_FORMAT_PCM_24 | SF_FORMAT_RAW), (SF_FORMAT_DOUBLE | SF_FORMAT_RAW),
+    TYP2SF(TYP_RAW), (AE_CHAR | TYP2SF(TYP_RAW)),
+    (AE_ALAW | TYP2SF(TYP_RAW)), (AE_ULAW | TYP2SF(TYP_RAW)),
+    (AE_SHORT | TYP2SF(TYP_RAW)), (AE_LONG | TYP2SF(TYP_RAW)),
+    (AE_FLOAT | TYP2SF(TYP_RAW)), (AE_UNCH | TYP2SF(TYP_RAW)),
+    (AE_24INT | TYP2SF(TYP_RAW)), (AE_DOUBLE | TYP2SF(TYP_RAW)),
     /* 40 - 49 */
-    SF_FORMAT_IRCAM, (SF_FORMAT_PCM_S8 | SF_FORMAT_IRCAM),
-    (SF_FORMAT_ALAW | SF_FORMAT_IRCAM), (SF_FORMAT_ULAW | SF_FORMAT_IRCAM),
-    (SF_FORMAT_PCM_16 | SF_FORMAT_IRCAM), (SF_FORMAT_PCM_32 | SF_FORMAT_IRCAM),
-    (SF_FORMAT_FLOAT | SF_FORMAT_IRCAM), (SF_FORMAT_PCM_U8 | SF_FORMAT_IRCAM),
-    (SF_FORMAT_PCM_24 | SF_FORMAT_IRCAM), (SF_FORMAT_DOUBLE | SF_FORMAT_IRCAM),
+    TYP2SF(TYP_IRCAM), (AE_CHAR | TYP2SF(TYP_IRCAM)),
+    (AE_ALAW | TYP2SF(TYP_IRCAM)), (AE_ULAW | TYP2SF(TYP_IRCAM)),
+    (AE_SHORT | TYP2SF(TYP_IRCAM)), (AE_LONG | TYP2SF(TYP_IRCAM)),
+    (AE_FLOAT | TYP2SF(TYP_IRCAM)), (AE_UNCH | TYP2SF(TYP_IRCAM)),
+    (AE_24INT | TYP2SF(TYP_IRCAM)), (AE_DOUBLE | TYP2SF(TYP_IRCAM)),
     /* 50 */
-    (SF_FORMAT_OGG | SF_FORMAT_VORBIS)
+    (TYP2SF(TYP_OGG) | AE_VORBIS)
 };
+
 
 static uintptr_t write_tab(void* pp)
 {
@@ -105,14 +104,14 @@ static uintptr_t write_tab(void* pp)
     OPDS     *h = p->h;
     //free(pp);
     //printf("t=%p size=%d ff=%p\n", t, size, ff);
-    if (sf_writef_MYFLT(ff, t, size) != size) {
-      sf_close(ff);
+    if (sflib_writef_MYFLT(ff, t, size) != size) {
+      sflib_close(ff);
       csound->PerfError(csound, h,
                            Str("tabaudio: failed to write data %d"),size);
       *ans = -FL(1.0);
     }
     else *ans = FL(1.0);
-    sf_close(ff);
+    sflib_close(ff);
     return 0;
 }
 
@@ -130,7 +129,7 @@ static int32_t tabaudiok(CSOUND *csound, TABAUDIOK *p)
       MYFLT *t;
       int32_t size, n;
       SNDFILE *ff;
-      SF_INFO sfinfo;
+      SFLIB_INFO sfinfo;
       int32_t  format = MYFLT2LRND(*p->format);
       int32_t  skip = MYFLT2LRND(*p->beg);
       int32_t  end = MYFLT2LRND(*p->end);
@@ -145,9 +144,9 @@ static int32_t tabaudiok(CSOUND *csound, TABAUDIOK *p)
       else size = end - skip;
       if (UNLIKELY(size<0 || size>ftp->flenfrms))
         return csound->PerfError(csound, &(p->h), Str("ftudio: ilegal size"));
-      memset(&sfinfo, 0, sizeof(SF_INFO));
+      memset(&sfinfo, 0, sizeof(SFLIB_INFO));
       if (format >= 51)
-        sfinfo.format = SF_FORMAT_PCM_16 | SF_FORMAT_RAW;
+        sfinfo.format = AE_SHORT | TYP2SF(TYP_RAW);
       else if (format < 0) {
         sfinfo.format = FORMAT2SF(csound->oparms->outformat);
         sfinfo.format |= TYPE2SF(csound->oparms->filetyp);
@@ -159,20 +158,20 @@ static int32_t tabaudiok(CSOUND *csound, TABAUDIOK *p)
         sfinfo.format |= TYPE2SF(csound->oparms->filetyp);
       sfinfo.samplerate = (int32_t) MYFLT2LRND(CS_ESR);
       sfinfo.channels = ftp->nchanls;
-      ff = sf_open(p->file->data, SFM_WRITE, &sfinfo);
+      ff = sflib_open(p->file->data, SFM_WRITE, &sfinfo);
       if (ff==NULL)
         return csound->PerfError(csound, &(p->h),
                                  Str("tabaudio: failed to open file %s"),
                                  p->file->data);
       if (*p->sync==FL(0.0)) {  /* write in perf thread */
-        if ((n=sf_writef_MYFLT(ff, t, size)) != size) {
-          printf("%s\n", sf_strerror(ff));
-          sf_close(ff);
+        if ((n=sflib_writef_MYFLT(ff, t, size)) != size) {
+          printf("%s\n", sflib_strerror(ff));
+          sflib_close(ff);
           return csound->PerfError(csound, &(p->h),
                                    Str("tabaudio: failed to write data %d %d"),
                                    n,size);
         }
-        sf_close(ff);
+        sflib_close(ff);
       }
       else {                    /* Use a helper thread */
         SAVE_THREAD *q = (SAVE_THREAD*)csound->Malloc(csound, sizeof(SAVE_THREAD));
@@ -190,18 +189,18 @@ static int32_t tabaudiok(CSOUND *csound, TABAUDIOK *p)
         }
         csound->RegisterResetCallback(csound, (void*)q, on_reset_audio);
         /* if (fork() == 0) { */
-        /*   ff = sf_open(p->file->data, SFM_WRITE, &sfinfo); */
+        /*   ff = sflib_open(p->file->data, SFM_WRITE, &sfinfo); */
         /*   if (ff==NULL) { */
         /*     printf(Str("tabaudio: failed to open file %s"), p->file->data); */
         /*     exit(1); */
         /*   } */
-        /*   if ((n=sf_writef_MYFLT(ff, t, size)) != size) { */
-        /*     sf_close(ff); */
+        /*   if ((n=sflib_writef_MYFLT(ff, t, size)) != size) { */
+        /*     sflib_close(ff); */
         /*     printf("%s %s", Str("tabaudio: failed to write data:"), */
-        /*            sf_strerror(ff)); */
+        /*            sflib_strerror(ff)); */
         /*     exit(1); */
         /*   } */
-        /*   sf_close(ff); */
+        /*   sflib_close(ff); */
         /*   exit(0); */
         /* } */
       }
@@ -217,7 +216,7 @@ static int32_t tabaudioi(CSOUND *csound, TABAUDIO *p)
     MYFLT *t;
     int32_t size, n;
     SNDFILE *ff;
-    SF_INFO sfinfo;
+    SFLIB_INFO sfinfo;
     int32_t  format = MYFLT2LRND(*p->format);
     int32_t  skip = MYFLT2LRND(*p->beg);
     int32_t  end = MYFLT2LRND(*p->end);
@@ -232,9 +231,9 @@ static int32_t tabaudioi(CSOUND *csound, TABAUDIO *p)
     else size = end - skip;
     if (UNLIKELY(size<0 || size>ftp->flenfrms))
       return csound->InitError(csound, Str("ftudio: ilegal size"));
-    memset(&sfinfo, 0, sizeof(SF_INFO));
+    memset(&sfinfo, 0, sizeof(SFLIB_INFO));
     if (format >= 51)
-      sfinfo.format = SF_FORMAT_PCM_16 | SF_FORMAT_RAW;
+      sfinfo.format = AE_SHORT | TYP2SF(TYP_RAW);
     else if (format < 0) {
       sfinfo.format = FORMAT2SF(csound->oparms->outformat);
       sfinfo.format |= TYPE2SF(csound->oparms->filetyp);
@@ -247,18 +246,18 @@ static int32_t tabaudioi(CSOUND *csound, TABAUDIO *p)
     sfinfo.samplerate = (int32_t) MYFLT2LRND(CS_ESR);
     sfinfo.channels = ftp->nchanls;
 
-    ff = sf_open(p->file->data, SFM_WRITE, &sfinfo);
+    ff = sflib_open(p->file->data, SFM_WRITE, &sfinfo);
     if (ff==NULL)
       return csound->InitError(csound, Str("tabaudio: failed to open file %s"),
                                p->file->data);
-    if ((n=sf_writef_MYFLT(ff, t, size)) != size) {
-      printf("%s\n", sf_strerror(ff));
-      sf_close(ff);
+    if ((n=sflib_writef_MYFLT(ff, t, size)) != size) {
+      printf("%s\n", sflib_strerror(ff));
+      sflib_close(ff);
       return csound->InitError(csound, Str("tabaudio: failed to write data: %s"),
-                               sf_strerror(ff));
+                               sflib_strerror(ff));
     }
     *p->kans = FL(1.0);
-    sf_close(ff);
+    sflib_close(ff);
     return OK;
 }
 

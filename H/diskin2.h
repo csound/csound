@@ -24,7 +24,7 @@
 #ifndef CSOUND_DISKIN2_H
 #define CSOUND_DISKIN2_H
 
-#include <sndfile.h>
+#include "soundio.h"
 
 #define DISKIN2_MAXCHN  40              /* for consistency with soundin   */
 #define POS_FRAC_SHIFT  28              /* allows pitch accuracy of 2^-28 */
@@ -64,7 +64,7 @@ typedef struct {
     MYFLT   prv_kTranspose;
     MYFLT   winFact;
     double  warpScale;
-    SNDFILE *sf;
+    void    *sf;
     FDCH    fdch;
     AUXCH   auxData;            /* for dynamically allocated buffers */
     AUXCH   auxData2;
@@ -107,7 +107,7 @@ typedef struct {
     MYFLT   prv_kTranspose;
     MYFLT   winFact;
     double  warpScale;
-    SNDFILE *sf;
+    void    *sf;
     FDCH    fdch;
     AUXCH   auxData;            /* for dynamically allocated buffers */
     AUXCH   auxData2;
@@ -136,7 +136,7 @@ typedef struct {
     int_least64_t   bufStartPos;
     int_least64_t   read_pos;   /* current sample frame being read */
     MYFLT   *buf;
-    SNDFILE *sf;
+    void    *sf;
     MYFLT   scaleFac;
     FDCH    fdch;
     AUXCH   auxData;            /* for dynamically allocated buffers */
@@ -145,7 +145,7 @@ typedef struct {
 #define SNDOUTSMPS  (1024)
 
 typedef struct {
-    SNDFILE *sf;
+    void    *sf;
     void    *fd;
     MYFLT   *outbufp, *bufend;
     MYFLT   outbuf[SNDOUTSMPS];

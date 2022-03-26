@@ -379,6 +379,7 @@ int32_t semitone(CSOUND *, void *), asemitone(CSOUND *, void *);
 int32_t cent(CSOUND *, void *), acent(CSOUND *, void *);
 int32_t midichn(CSOUND *, void *), pgmassign(CSOUND *, void *),
         pgmassign_S(CSOUND *, void *);
+int32_t copyVarGeneric(CSOUND *csound, void *p);
 int32_t midiin_set(CSOUND *, void *), midiin(CSOUND *, void *);
 int32_t pgmin_set(CSOUND *, void *), pgmin(CSOUND *, void *);
 int32_t ctlin_set(CSOUND *, void *), ctlin(CSOUND *, void *);

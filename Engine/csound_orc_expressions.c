@@ -39,8 +39,8 @@ extern char* resolve_opcode_get_outarg(CSOUND* , OENTRIES* , char*);
 extern TREE* appendToTree(CSOUND * csound, TREE *first, TREE *newlast);
 extern  char* get_arg_string_from_tree(CSOUND* csound, TREE* tree,
                                        TYPE_TABLE* typeTable);
-extern void add_arg(CSOUND* csound, char* varName, TYPE_TABLE* typeTable);
-extern void add_array_arg(CSOUND* csound, char* varName, int dimensions,
+extern void add_arg(CSOUND* csound, char* varName, char* annotation, TYPE_TABLE* typeTable);
+extern void add_array_arg(CSOUND* csound, char* varName, char* annotation, int dimensions,
                           TYPE_TABLE* typeTable);
 
 extern char* get_array_sub_type(CSOUND* csound, char*);
@@ -73,26 +73,40 @@ TREE* tree_tail(TREE* node) {
 char *create_out_arg(CSOUND *csound, char* outype, int argCount,
                      TYPE_TABLE* typeTable)
 {
-  char* s = (char *)csound->Malloc(csound, 16);
-
-  switch(*outype) {
-  case 'a': snprintf(s, 16, "#a%d", argCount); break;
-  case 'K':
-  case 'k': snprintf(s, 16, "#k%d", argCount); break;
-  case 'B': snprintf(s, 16, "#B%d", argCount); break;
-  case 'b': snprintf(s, 16, "#b%d", argCount); break;
-  case 'f': snprintf(s, 16, "#f%d", argCount); break;
-  case 't': snprintf(s, 16, "#k%d", argCount); break;
-  case 'S': snprintf(s, 16, "#S%d", argCount); break;
-  case '[': snprintf(s, 16, "#%c%d[]", outype[1], argCount);
-    break;
-  default:  snprintf(s, 16, "#i%d", argCount); break;
-  }
-
-  if (*outype == '[') {
-    add_array_arg(csound, s, 1, typeTable);
+  char* s = (char *)csound->Malloc(csound, 256);
+  if (strlen(outype) == 1) {
+    switch(*outype) {
+    case 'a': snprintf(s, 16, "#a%d", argCount); break;
+    case 'K':
+    case 'k': snprintf(s, 16, "#k%d", argCount); break;
+    case 'B': snprintf(s, 16, "#B%d", argCount); break;
+    case 'b': snprintf(s, 16, "#b%d", argCount); break;
+    case 'f': snprintf(s, 16, "#f%d", argCount); break;
+    case 't': snprintf(s, 16, "#k%d", argCount); break;
+    case 'S': snprintf(s, 16, "#S%d", argCount); break;
+    case '[': snprintf(s, 16, "#%c%d[]", outype[1], argCount);
+      break;
+    default:  snprintf(s, 16, "#i%d", argCount); break;
+    }
+    add_arg(csound, s, NULL, typeTable);
   } else {
-    add_arg(csound, s, typeTable);
+    // FIXME - struct arrays
+    if (*outype == '[') {
+      snprintf(s, 16, "#%c%d[]", outype[1], argCount);
+      add_array_arg(csound, s, NULL, 1, typeTable);
+    } else {
+      //            char* argType = cs_strndup(csound, outype + 1, strlen(outype) - 2);
+      snprintf(s, 256, "#%s%d", outype, argCount);
+      add_arg(csound, s, outype, typeTable);
+    }
+    //        } else if(*outype == ':') {
+    //            char* argType = cs_strndup(csound, outype + 1, strlen(outype) - 2);
+    //            snprintf(s, 256, "#%s%d", argType, argCount);
+    //            add_arg(csound, s, argType, typeTable);
+    //        } else {
+    //            csound->Warning(csound, "ERROR: unknown outype found for out arg synthesis: %s\n", outype);
+    //            return NULL;
+    //        }
   }
 
   return s;
@@ -151,13 +165,14 @@ static TREE *create_minus_token(CSOUND *csound)
   return ans;
 }
 
-static TREE * create_opcode_token(CSOUND *csound, char* op)
+// also used in csound_orc_semantics.c
+TREE * create_opcode_token(CSOUND *csound, char* op)
 {
   TREE *ans = create_empty_token(csound);
 
-  ans->type = T_OPCODE;
+  ans->type = T_OPCALL;
   ans->value = make_token(csound, op);
-  ans->value->type = T_OPCODE;
+  ans->value->type = T_OPCALL;
 
   return ans;
 }
@@ -263,6 +278,7 @@ int is_expression_node(TREE *node)
   case '^':
   case T_FUNCTION:
   case S_UMINUS:
+  case S_UPLUS:  
   case '|':
   case '&':
   case S_BITSHIFT_RIGHT:
@@ -525,6 +541,8 @@ static TREE *create_expression(CSOUND *csound, TREE *root, int line, int locn,
   TREE *anchor = NULL, *last;
   TREE * opTree, *current, *newArgList;
   OENTRIES* opentries;
+  CS_VARIABLE* var;
+
   /* HANDLE SUB EXPRESSIONS */
 
   if (root->type=='?') return create_cond_expression(csound, root, line,
@@ -664,6 +682,17 @@ static TREE *create_expression(CSOUND *csound, TREE *root, int line, int locn,
                                            root->right, typeTable);
 
     break;
+   case S_UPLUS:
+    if (UNLIKELY(PARSER_DEBUG))
+      csound->Message(csound, "HANDLING UNARY PLUS!");
+    root->left = create_minus_token(csound);
+    //      arg1 = 'i';
+    strNcpy(op, "##mul", 80);
+    outarg = create_out_arg_for_expression(csound, op, root->left,
+                                           root->right, typeTable);
+
+    break;
+    
   case '|':
     strNcpy(op, "##or", 80);
     outarg = create_out_arg_for_expression(csound, op, root->left,
@@ -717,61 +746,58 @@ static TREE *create_expression(CSOUND *csound, TREE *root, int line, int locn,
     }
     break;
   case T_ARRAY:
-    strNcpy(op, "##array_get", 80);
+    {
+      char* outype;
+      strNcpy(op, "##array_get", 80);
 
-    char* leftArgType =
-      get_arg_string_from_tree(csound, root->left, typeTable);
-    //print_tree(csound, "bad case\n", root);
+      char *varBaseName = root->left->value->lexeme;
 
-    //FIXME: this is sort of hackish as it's checking and arg
-    // string; should use a function to get the CS_TYPE of the var
-    // instead
-    //printf("leftArgType = %s\n", leftArgType);
-    if (strlen(leftArgType) > 1 && leftArgType[1] == '[') {
-      if(root->left) {  // VL: quieten start analysis
-        char *type = get_array_sub_type(csound, root->left->value->lexeme);
-        if (type[0]== 'i') {
+      if (*varBaseName == 'g') {
+        var = csoundFindVariableWithName(csound, csound->engineState.varPool,
+                                         varBaseName);
+        if(var == NULL)
+          var = csoundFindVariableWithName(csound, typeTable->globalPool,
+                                           varBaseName);
+      } else
+        var = csoundFindVariableWithName(csound, typeTable->localPool,
+                                         varBaseName);
+
+      if (var == NULL) {
+        synterr(csound,
+                Str("unable to find array sub-type for var %s line %d\n"), varBaseName, current->line);
+        return NULL;
+      } else {
+        if (var->varType == &CS_VAR_TYPE_ARRAY) {
+          outype = strdup(var->subType->varTypeName);
+	  /* VL: 9.2.22 pulled code from 6.x to check for array index type
+             to provide the correct outype. Works with explicity types
+	  */ 
+         if (outype[0]== 'i') {
           TREE* inds = root->right;
           while (inds) {
             char *xx = get_arg_string_from_tree(csound, inds, typeTable);
-            //printf("**** type=%s right %s\n", type, inds->value->lexeme);
+            //printf("****array type:%s index type=%s right %s\n", outype, xx, inds->value->lexeme);
             if (xx[0]=='k') {
-              type[0] = 'k';
+              outype[0] = 'k';
               break;
             }
             inds = inds->next;
           }
         }
-        outarg = create_out_arg(csound,
-                                type,
-                                typeTable->localPool->synthArgCount++,
-                                typeTable);
+        } else if (var->varType == &CS_VAR_TYPE_A) {
+          outype = "k";
+        } else {
+          synterr(csound,
+                  Str("invalid array type %s line %d\n"), var->varType->varTypeName, current->line);
+          return NULL;
+        }
       }
-    }
-    else {
-
-      opentries = find_opcode2(csound, op);
-
-      char* rightArgType = get_arg_string_from_tree(csound, root->right,
-                                                    typeTable);
-
-      leftArgType =csound->ReAlloc(csound, leftArgType, strlen(leftArgType) +
-                                   strlen(rightArgType) + 1);
-
-      char* argString = strcat(leftArgType, rightArgType);
-
-      char* outype = resolve_opcode_get_outarg(csound, opentries,
-                                               argString);
-      csound->Free(csound, rightArgType);
-      csound->Free(csound, leftArgType);
-      csound->Free(csound, opentries);
       if (outype == NULL) {
         return NULL;
       }
 
       outarg = create_out_arg(csound, outype,
                               typeTable->localPool->synthArgCount++, typeTable);
-
     }
 
     break;
@@ -952,7 +978,7 @@ static TREE *create_boolean_expression(CSOUND *csound, TREE *root,
                              argtyp2( root->left->value->lexeme) =='B' ||
                              argtyp2( root->right->value->lexeme)=='B');
 
-  add_arg(csound, outarg, typeTable);
+  add_arg(csound, outarg, NULL, typeTable);
   opTree = create_opcode_token(csound, op);
   opTree->right = root->left;
   opTree->right->next = root->right;
@@ -1147,44 +1173,34 @@ TREE* expand_statement(CSOUND* csound, TREE* current, TYPE_TABLE* typeTable)
 
     if (currentArg->type == T_ARRAY) {
       char *outType;
-      char* leftArgType =
-        get_arg_string_from_tree(csound, currentArg->left, typeTable);
+      CS_VARIABLE* var;
 
-      //FIXME: this is sort of hackish as it's checking and arg
-      // string; should use a function to get the CS_TYPE of the
-      // var instead
-      if (strlen(leftArgType) > 1 && leftArgType[1] == '[') {
-        outType = get_array_sub_type(csound,
-                                     currentArg->left->value->lexeme);
-        if (init) outType = "i";
-      }
-      else {
-        // FIXME - this is hardcoded to "k" for now.  The problem
-        // here is that this body of code is essentially looking
-        // for what type to use for the synthesized in-type.  I
-        // think the solution is to use the types from the opcode
-        // that this LHS array_set is being used with, but this is
-        // not implemented.
-        //              OENTRIES* opentries = find_opcode2(csound, "##array_set");
-        //
-        //              char* rightArgType = get_arg_string_from_tree(csound,
-        //                                                            currentArg->right,
-        //                                                            typeTable);
-        //
-        //              char* argString = strcat(leftArgType, rightArgType);
-        //              argString = strcat(argString, "k");
-        // FIXME - this is hardcoding a k input for what would be the in arg type
-        //
-        //              outType = resolve_opcode_get_outarg(csound, opentries,
-        //                                                       argString);
+      char *varBaseName = currentArg->left->value->lexeme;
 
-        outType = init ? "i":"k";
-        // free(argString);
+      if (*varBaseName == 'g') {
+        var = csoundFindVariableWithName(csound, csound->engineState.varPool,
+                                         varBaseName);
+        if(var == NULL)
+          var = csoundFindVariableWithName(csound, typeTable->globalPool,
+                                           varBaseName);
+      } else
+        var = csoundFindVariableWithName(csound, typeTable->localPool,
+                                         varBaseName);
 
-        //              if (outType == NULL) {
-        //                  return NULL;
-        //              }
-
+      if (var == NULL) {
+        synterr(csound,
+                Str("unable to find array sub-type for var %s line %d\n"), varBaseName, current->line);
+        return NULL;
+      } else {
+        if (var->varType == &CS_VAR_TYPE_ARRAY) {
+          outType = strdup(var->subType->varTypeName);
+        } else if (var->varType == &CS_VAR_TYPE_A) {
+          outType = "k";
+        } else {
+          synterr(csound,
+                  Str("invalid array type %s line %d\n"), var->varType->varTypeName, current->line);
+          return NULL;
+        }
       }
 
       temp =
@@ -1215,7 +1231,6 @@ TREE* expand_statement(CSOUND* csound, TREE* current, TYPE_TABLE* typeTable)
       anchor = appendToTree(csound, anchor, arraySet);
       //print_tree(csound, "anchor", anchor);
       currentArg = temp;
-      csound->Free(csound, leftArgType);
     }
     previousArg = currentArg;
     currentArg = currentArg->next;
@@ -1419,6 +1434,7 @@ TREE* expand_until_statement(CSOUND* csound, TREE* current,
   gotoType =
     last->left->value->lexeme[1] == 'B'; // checking for #B... var name
 
+  // printf("%s\n", last->left->value->lexeme); 
   //printf("gottype = %d ; dowhile = %d\n", gotoType, dowhile);
   gotoToken =
     create_goto_token(csound,
@@ -1457,6 +1473,9 @@ int is_statement_expansion_required(TREE* root) {
     current = current->next;
   }
 
+  /*  VL: do we  need  to always expand  ARRAY expressions?
+      would this lead to unecessary copying at times?
+   */
   current = root->left;
   while (current != NULL) {
     if (current->type == T_ARRAY) {

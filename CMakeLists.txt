@@ -43,12 +43,15 @@ if(NOT MSVC)
 endif()
 
 # Project definitions
-set(APIVERSION "6.0")
-set(CS_VERSION "6")
-set(CS_SUBVER "17")
+set(APIVERSION "7.0")
+set(CS_VERSION "7")
+set(CS_SUBVER "0")
 set(CS_PATCHLEVEL "0")
 
-message(STATUS "Csound version: ${CS_VERSION}.${CS_SUBVER}.${CS_PATCHLEVEL}")
+message(STATUS "Csound version:
+${CS_VERSION}.${CS_SUBVER}.${CS_PATCHLEVEL}")
+
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/README.md.in ${CMAKE_CURRENT_SOURCE_DIR}/README.md)
 
 set(MACOSX_FRAMEWORK_BUNDLE_VERSION
 "${CS_VERSION}.${CS_SUBVER}.${CS_PATCHLEVEL}")
@@ -170,6 +173,8 @@ endif()
 ## USER OPTIONS ##
 # Optional targets, they should all default to ON (check_deps will disable them if not possible to build)
 option(USE_DOUBLE "Set to use double-precision floating point for audio samples." ON)
+option(USE_LIBSNDFILE "Use libsndfile for sndfile IO, if available" ON)
+option(BUILD_PERFTHREAD_CLASS "Include the Csound performance thread support (C++) " ON)
 option(BUILD_UTILITIES "Build stand-alone executables for utilities that can also be used with -U" ON)
 option(NEW_PARSER_DEBUG "Enable tracing of new parser" OFF)
 option(BUILD_MULTI_CORE "Enable building for multicore system" ON)
@@ -177,10 +182,11 @@ option(FAIL_MISSING "Fail when a required external dependency is not present (us
 option(USE_GETTEXT "Use the Gettext internationalization library" ON)
 option(BUILD_STATIC_LIBRARY "Also build a static version of the csound library" OFF)
 option(USE_LRINT "Use lrint/lrintf for converting floating point values to integers." ON)
-option(USE_CURL "Use CURL library" OFF)
-option(BUILD_RELEASE "Build for release" OFF)
+option(USE_CURL "Use CURL library" ON)
+option(BUILD_RELEASE "Build for release" ON)
 option(BUILD_INSTALLER "Build installer" OFF)
-option(BUILD_TESTS "Build tests" OFF)
+option(BUILD_TESTS "Build tests" ON)
+option(LEXER_DEBUG "Build lexer with debug option" OFF)
 option(USE_GIT_COMMIT "Show the git commit in version information" ON)
 option(REQUIRE_PTHREADS "For non-Windows systems, set whether Csound will use threads or not" ON)
 
@@ -431,7 +437,7 @@ if(BUILD_RELEASE)
 else()
     add_definitions("-DBETA")
 endif()
-add_definitions("-DTRAP")
+
 if(APPLE OR LINUX)
 message(STATUS "default plugin dir set to ${DEFAULT_OPCODEDIR}")
 endif()
@@ -452,14 +458,18 @@ SET(BUILD_SHARED_LIBS ON)
 
 ## HEADER/LIBRARY/OTHER CHECKS ##
 # First, required stuff
-if(MSVC)
+if(USE_LIBSNDFILE)
+ set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -DUSE_LIBSNDFILE")
+ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DUSE_LIBSNDFILE")
+ if(MSVC)
     find_package(SndFile CONFIG REQUIRED)
-else()
+ else()
     find_library(LIBSNDFILE_LIBRARY NAMES sndfile libsndfile-1 libsndfile)
 
-    if(NOT LIBSNDFILE_LIBRARY)
+  if(NOT LIBSNDFILE_LIBRARY)
         message(FATAL_ERROR "Csound requires the sndfile library")
-    endif()
+   endif()
+ endif()
 endif()
 
 find_package(CURL)
@@ -532,8 +542,8 @@ else()
 endif()
 
 find_library(VORBISFILE_LIBRARY vorbisfile)
-check_include_file(libintl.h LIBINTL_HEADER)
-find_library(LIBINTL_LIBRARY intl)
+#check_include_file(libintl.h LIBINTL_HEADER)
+find_library(LIBINTL_LIBRARY intl HINTS /usr/local/lib)
 find_package(Gettext)
 find_library(MATH_LIBRARY m)
 if (NOT MATH_LIBRARY)
@@ -691,6 +701,8 @@ set(libcsound_SRCS
     Engine/csound_standard_types.c
     Engine/csound_data_structures.c
     Engine/pools.c
+    Engine/ugen.c
+    InOut/soundfile.c
     InOut/libsnd.c
     InOut/libsnd_u.c
     InOut/midifile.c
@@ -749,70 +761,70 @@ set(libcsound_SRCS
     Opcodes/grain4.c
     Opcodes/hrtferX.c
     Opcodes/loscilx.c
-     Opcodes/minmax.c
-     Opcodes/pan2.c
-     Opcodes/arrays.c
-     Opcodes/phisem.c
-     Opcodes/hrtfopcodes.c
-     Opcodes/vbap.c
-     Opcodes/vbap1.c
-     Opcodes/vbap_n.c
-     Opcodes/vbap_zak.c
-     Opcodes/vaops.c
-     Opcodes/ugakbari.c
-     Opcodes/harmon.c
-     Opcodes/pitchtrack.c
-     Opcodes/partikkel.c
-     Opcodes/shape.c
-     Opcodes/tabaudio.c
-     Opcodes/tabsum.c
-     Opcodes/crossfm.c
-     Opcodes/pvlock.c
-     Opcodes/fareyseq.c
-     Opcodes/modmatrix.c
-     Opcodes/scoreline.c
-     Opcodes/modal4.c
-     Opcodes/physutil.c
-     Opcodes/physmod.c
-     Opcodes/mandolin.c
-     Opcodes/singwave.c
-     Opcodes/fm4op.c
-     Opcodes/moog1.c
-     Opcodes/shaker.c
-     Opcodes/bowedbar.c
-     Opcodes/gab/tabmorph.c
-     Opcodes/gab/hvs.c
-     Opcodes/gab/sliderTable.c
-     Opcodes/gab/newgabopc.c
-     Opcodes/ftest.c
-     Opcodes/hrtfearly.c
-     Opcodes/hrtfreverb.c
-     Opcodes/cpumeter.c
-     Opcodes/gendy.c
-     Opcodes/tl/sc_noise.c
-     Opcodes/afilters.c
-     Opcodes/wpfilters.c
-     Opcodes/zak.c
-     Opcodes/lufs.c
-     Opcodes/date.c
-     Opcodes/system_call.c
-     Opcodes/liveconv.c
-     Opcodes/sterrain.c
-     Opcodes/gammatone.c
-     Opcodes/fareygen.c
-     Opcodes/quadbezier.c
-     Opcodes/framebuffer.c
-     Opcodes/cellular.c
-     Opcodes/exciter.c
-     Opcodes/buchla.c
-     Opcodes/select.c
-     Opcodes/serial.c
-     Opcodes/counter.c
-     Opcodes/platerev.c
-     Opcodes/sequencer.c
-     Opcodes/pvsgendy.c
-     Opcodes/emugens/emugens.c
-     Opcodes/emugens/scugens.c
+    Opcodes/minmax.c
+    Opcodes/pan2.c
+    Opcodes/arrays.c
+    Opcodes/phisem.c
+    Opcodes/hrtfopcodes.c
+    Opcodes/vbap.c
+    Opcodes/vbap1.c
+    Opcodes/vbap_n.c
+    Opcodes/vbap_zak.c
+    Opcodes/vaops.c
+    Opcodes/ugakbari.c
+    Opcodes/harmon.c
+    Opcodes/pitchtrack.c
+    Opcodes/partikkel.c
+    Opcodes/shape.c
+    Opcodes/tabaudio.c
+    Opcodes/tabsum.c
+    Opcodes/crossfm.c
+    Opcodes/pvlock.c
+    Opcodes/fareyseq.c
+    Opcodes/modmatrix.c
+    Opcodes/scoreline.c
+    Opcodes/modal4.c
+    Opcodes/physutil.c
+    Opcodes/physmod.c
+    Opcodes/mandolin.c
+    Opcodes/singwave.c
+    Opcodes/fm4op.c
+    Opcodes/moog1.c
+    Opcodes/shaker.c
+    Opcodes/bowedbar.c
+    Opcodes/gab/tabmorph.c
+    Opcodes/gab/hvs.c
+    Opcodes/gab/sliderTable.c
+    Opcodes/gab/newgabopc.c
+    Opcodes/ftest.c
+    Opcodes/hrtfearly.c
+    Opcodes/hrtfreverb.c
+    Opcodes/cpumeter.c
+    Opcodes/gendy.c
+    Opcodes/tl/sc_noise.c
+    Opcodes/afilters.c
+    Opcodes/wpfilters.c
+    Opcodes/zak.c
+    Opcodes/lufs.c
+    Opcodes/date.c
+    Opcodes/system_call.c
+    Opcodes/liveconv.c
+    Opcodes/sterrain.c
+    Opcodes/gammatone.c
+    Opcodes/fareygen.c
+    Opcodes/quadbezier.c
+    Opcodes/framebuffer.c
+    Opcodes/cellular.c
+    Opcodes/exciter.c
+    Opcodes/buchla.c
+    Opcodes/select.c
+    Opcodes/serial.c
+    Opcodes/counter.c
+    Opcodes/platerev.c
+    Opcodes/sequencer.c
+    Opcodes/pvsgendy.c
+    Opcodes/emugens/emugens.c
+    Opcodes/emugens/scugens.c
     Top/argdecode.c
     Top/csdebug.c
     Top/cscore_internal.c
@@ -921,7 +933,12 @@ set(mp3in_SRCS
     InOut/libmpadec/mpadec.c
     InOut/libmpadec/mp3dec.c)
 
-list(APPEND libcsound_SRCS ${stdopcod_SRCS} ${cs_pvs_ops_SRCS} ${oldpvoc_SRCS} ${mp3in_SRCS})
+list(APPEND libcsound_SRCS ${stdopcod_SRCS} ${cs_pvs_ops_SRCS}
+${oldpvoc_SRCS} ${mp3in_SRCS})
+
+if(BUILD_PERFTHREAD_CLASS)
+ list(APPEND libcsound_SRCS "Top/csPerfThread.cpp")
+endif()
 
 if(INIT_STATIC_MODULES)
     set(static_modules_SRCS
@@ -950,11 +967,24 @@ set(PRELEX_SRC ${CMAKE_CURRENT_SOURCE_DIR}/Engine/csound_pre.lex)
 set(PRELEX_OUT ${CMAKE_CURRENT_BINARY_DIR}/csound_prelex.c)
 set_source_files_properties(${CMAKE_CURRENT_BINARY_DIR}/csound_prelex.c
 PROPERTIES COMPILE_FLAGS "-Wno-implicit-fallthrough")
+
+if(LEXER_DEBUG)
+message(STATUS "Building lexer with debug option")
 add_custom_command(
     OUTPUT ${LEX_OUT}
     DEPENDS ${LEX_SRC}
-    COMMAND ${FLEX_EXECUTABLE} ARGS -B -t ${LEX_SRC} > ${LEX_OUT}
+    COMMAND ${FLEX_EXECUTABLE} ARGS -d -B -t ${LEX_SRC} > ${LEX_OUT}
     )
+
+else()
+add_custom_command(
+    OUTPUT ${LEX_OUT}
+    DEPENDS ${LEX_SRC}
+    COMMAND ${FLEX_EXECUTABLE} ARGS -B -t  ${LEX_SRC} > ${LEX_OUT}
+    )
+endif()
+
+
 
 add_custom_command(
     DEPENDS ${PRELEX_SRC}
@@ -1168,7 +1198,7 @@ endif()
 
 # Linux does not have a separate libintl, it is part of libc
 set(LIBINTL_AVAIL (LIBINTL_LIBRARY OR LINUX))
-check_deps(USE_GETTEXT LIBINTL_HEADER LIBINTL_AVAIL GETTEXT_MSGFMT_EXECUTABLE)
+check_deps(USE_GETTEXT LIBINTL_AVAIL GETTEXT_MSGFMT_EXECUTABLE)
 if(USE_GETTEXT)
     message(STATUS "Using GNU gettext.")
     if(NOT LINUX)
@@ -1330,25 +1360,12 @@ if(BUILD_STATIC_LIBRARY)
         ARCHIVE DESTINATION "${LIBRARY_INSTALL_DIR}")
 endif()
 
-# VL -- this seems to be a duplicate instruction
-# and it's breaking the build. See lines 1088-95
-#install(TARGETS ${CSOUNDLIB}
-#    LIBRARY DESTINATION "${LIBRARY_INSTALL_DIR}"
-#   ARCHIVE DESTINATION "${LIBRARY_INSTALL_DIR}")
-
-
-## option(BUILD_CATALOG "Build the opcode/library catalog" OFF)
-## check_deps(BUILD_CATALOG)
-## if(BUILD_CATALOG)
-## make_executable(mkdb "mkdb" "dl")
-## set_target_properties(mkdb PROPERTIES LINKER_LANGUAGE C)
-## endif()
-
 
 add_subdirectory(Opcodes)
 add_subdirectory(InOut)
-add_subdirectory(interfaces)
 add_subdirectory(Frontends)
+add_subdirectory(Java)
+add_subdirectory(Python)
 add_subdirectory(Bela)
 add_subdirectory(util)
 add_subdirectory(util1)

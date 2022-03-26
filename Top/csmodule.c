@@ -134,22 +134,22 @@ static  const   char    *ErrCodeToStr_Name =  "csoundModuleErrorCodeToString";
 static  const   char    *InfoFunc_Name =      "csoundModuleInfo";
 
 /* environment variable storing path to plugin libraries */
-static  const   char    *plugindir_envvar =   "OPCODE6DIR";
-static  const   char    *plugindir64_envvar = "OPCODE6DIR64";
+static  const   char    *plugindir_envvar =   "OPCODE7DIR";
+static  const   char    *plugindir64_envvar = "OPCODE7DIR64";
 
 /* default directory to load plugins from if environment variable is not set */
 #if !(defined (NACL)) && !(defined (__wasi__))
 #ifdef __HAIKU__
 # ifndef USE_DOUBLE
-   static char haikudirs[] = "/boot/system/lib/csound6/plugins:"
-        "/boot/home/config/lib/csound6/plugins:"
-        "/boot/system/non-packaged/lib/csound6/plugins:"
-        "/boot/home/config/non-packaged/lib/csound6/plugins";
+   static char haikudirs[] = "/boot/system/lib/csound7/plugins:"
+        "/boot/home/config/lib/csound7/plugins:"
+        "/boot/system/non-packaged/lib/csound7/plugins:"
+        "/boot/home/config/non-packaged/lib/csound7/plugins";
 # else
-   static char haikudirs[] = "/boot/system/lib/csound6/plugins64:"
-        "/boot/home/config/lib/csound6/plugins64:"
-        "/boot/system/non-packaged/lib/csound6/plugins64:"
-        "/boot/home/config/non-packaged/lib/csound6/plugins64";
+   static char haikudirs[] = "/boot/system/lib/csound7/plugins64:"
+        "/boot/home/config/lib/csound7/plugins64:"
+        "/boot/system/non-packaged/lib/csound7/plugins64:"
+        "/boot/home/config/non-packaged/lib/csound7/plugins64";
 # endif
 # define CS_DEFAULT_PLUGINDIR  haikudirs
 #elif !(defined(_CSOUND_RELEASE_) && (defined(LINUX) || defined(__MACH__)))
@@ -1107,9 +1107,9 @@ void *csoundGetLibrarySymbol(void *library, const char *procedureName)
 static const char *opcodedirWarnMsg[] = {
     "################################################################",
 #ifndef USE_DOUBLE
-    "#               WARNING: OPCODE6DIR IS NOT SET !               #",
+    "#               WARNING: OPCODE7DIR IS NOT SET !               #",
 #else
-    "#              WARNING: OPCODE6DIR64 IS NOT SET !              #",
+    "#              WARNING: OPCODE7DIR64 IS NOT SET !              #",
 #endif
     "# Csound requires this environment variable to be set to find  #",
     "# its plugin libraries. If it is not set, you may experience   #",
@@ -1220,10 +1220,7 @@ extern int32_t sfont_ModuleInit(CSOUND *csound);
 extern int32_t sfont_ModuleCreate(CSOUND *csound);
 extern int32_t newgabopc_ModuleInit(CSOUND *csound);
 
-const INITFN staticmodules[] = { hrtfopcodes_localops_init,
-#ifdef INC_BABO
-                                 babo_localops_init,
-#endif
+const INITFN staticmodules[] = { hrtfopcodes_localops_init, babo_localops_init,
                                  bilbar_localops_init, vosim_localops_init,
                                  compress_localops_init, pvsbuffer_localops_init,
                                  eqfil_localops_init, modal4_localops_init,
@@ -1295,7 +1292,8 @@ CS_NOINLINE int csoundInitStaticModules(CSOUND *csound)
     for (i=0; staticmodules[i]!=NULL; i++) {
       length = (staticmodules[i])(csound, &opcodlst_n);
 
-      if (UNLIKELY(length <= 0L)) return CSOUND_ERROR;
+      if (UNLIKELY(length==0)) continue;
+      if (UNLIKELY(length <0L)) return CSOUND_ERROR;
       length /= (int32_t) sizeof(OENTRY);
       if (length) {
         if (UNLIKELY(csoundAppendOpcodes(csound, opcodlst_n, length) != 0))

@@ -27,7 +27,6 @@
    AIFF and WAV, and close files neatly.  Also bugs fixed */
 
 #include "stdopcod.h"
-#include <sndfile.h>
 #include "fout.h"
 #include "soundio.h"
 #include <ctype.h>
@@ -182,7 +181,7 @@ static CS_NOINLINE int32_t fout_open_file(CSOUND *csound, FOUT_FILE *p, void *fp
       int32_t     do_scale = 0;
 
       if (fileType == CSFILE_SND_W) {
-        do_scale = ((SF_INFO*) fileParams)->format;
+        do_scale = ((SFLIB_INFO*) fileParams)->format;
         csFileType = csound->sftype2csfiletype(do_scale);
         if (csound->oparms->realtime == 0 || forceSync == 1) {
           fd = csound->FileOpen2(csound, &sf, fileType, name, fileParams,
@@ -196,7 +195,7 @@ static CS_NOINLINE int32_t fout_open_file(CSOUND *csound, FOUT_FILE *p, void *fp
                                              p->bufsize,  0);
           p->async = 1;
         }
-        p->nchnls = ((SF_INFO*) fileParams)->channels;
+        p->nchnls = ((SFLIB_INFO*) fileParams)->channels;
       }
       else {
         if (csound->oparms->realtime == 0 || forceSync == 1) {
@@ -211,8 +210,8 @@ static CS_NOINLINE int32_t fout_open_file(CSOUND *csound, FOUT_FILE *p, void *fp
                                              p->bufsize,  0);
           p->async = 1;
         }
-        p->nchnls = ((SF_INFO*) fileParams)->channels;
-        do_scale = ((SF_INFO*) fileParams)->format;
+        p->nchnls = ((SFLIB_INFO*) fileParams)->channels;
+        do_scale = ((SFLIB_INFO*) fileParams)->format;
       }
       do_scale = (SF2TYPE(do_scale) == TYP_RAW ? 0 : 1);
       if (UNLIKELY(fd == NULL)) {
@@ -222,16 +221,16 @@ static CS_NOINLINE int32_t fout_open_file(CSOUND *csound, FOUT_FILE *p, void *fp
       }
       if (!do_scale) {
 #ifdef USE_DOUBLE
-        sf_command(sf, SFC_SET_NORM_DOUBLE, NULL, SF_FALSE);
+        sflib_command(sf, SFC_SET_NORM_DOUBLE, NULL, SFLIB_FALSE);
 #else
-        sf_command(sf, SFC_SET_NORM_FLOAT, NULL, SF_FALSE);
+        sflib_command(sf, SFC_SET_NORM_FLOAT, NULL, SFLIB_FALSE);
 #endif
       }
       /* if (CS_KSMPS >= 512)
-        buf_reqd = CS_KSMPS * ((SF_INFO*) fileParams)->channels;
+        buf_reqd = CS_KSMPS * ((SFLIB_INFO*) fileParams)->channels;
       else
         buf_reqd = (1 + (int32_t)(512 / CS_KSMPS)) * CS_KSMPS
-                   * ((SF_INFO*) fileParams)->channels;
+                   * ((SFLIB_INFO*) fileParams)->channels;
       if (UNLIKELY(buf_reqd > pp->buf_size)) {
         pp->buf_size = buf_reqd;
         pp->buf = (MYFLT*) csound->ReAlloc(csound, pp->buf, sizeof(MYFLT)
@@ -300,13 +299,13 @@ static int32_t outfile(CSOUND *csound, OUTFILE *p)
       if (p->buf_pos >= p->guard_pos) {
 
         //#ifndef USE_DOUBLE
-        //sf_write_float(p->f.sf, buf, p->buf_pos);
+        //sflib_write_float(p->f.sf, buf, p->buf_pos);
         //#else
-        //sf_write_double(p->f.sf, buf, p->buf_pos);
+        //sflib_write_double(p->f.sf, buf, p->buf_pos);
         //#endif
         if (p->f.async==1)
           csound->WriteAsync(csound, p->f.fd, buf, p->buf_pos);
-        else sf_write_MYFLT(p->f.sf, buf, p->buf_pos);
+        else sflib_write_MYFLT(p->f.sf, buf, p->buf_pos);
         p->buf_pos = 0;
       }
 
@@ -342,14 +341,14 @@ static int32_t outfile_array(CSOUND *csound, OUTFILEA *p)
       if (p->buf_pos >= p->guard_pos) {
 
         //#ifndef USE_DOUBLE
-        //sf_write_float(p->f.sf, buf, p->buf_pos);
+        //sflib_write_float(p->f.sf, buf, p->buf_pos);
         //#else
-        //sf_write_double(p->f.sf, buf, p->buf_pos);
+        //sflib_write_double(p->f.sf, buf, p->buf_pos);
         //#endif
         if (p->f.async==1)
           csound->WriteAsync(csound, p->f.fd, buf, p->buf_pos);
         else
-          sf_write_MYFLT(p->f.sf, buf, p->buf_pos);
+          sflib_write_MYFLT(p->f.sf, buf, p->buf_pos);
         p->buf_pos = 0;
        }
 
@@ -359,35 +358,35 @@ static int32_t outfile_array(CSOUND *csound, OUTFILEA *p)
 
 static const int32_t fout_format_table[51] = {
     /* 0 - 9 */
-    (SF_FORMAT_FLOAT | SF_FORMAT_RAW), (SF_FORMAT_PCM_16 | SF_FORMAT_RAW),
-    SF_FORMAT_PCM_16, SF_FORMAT_ULAW, SF_FORMAT_PCM_16, SF_FORMAT_PCM_32,
-    SF_FORMAT_FLOAT, SF_FORMAT_PCM_U8, SF_FORMAT_PCM_24, SF_FORMAT_DOUBLE,
+    (AE_FLOAT | TYP2SF(TYP_RAW)), (AE_SHORT | TYP2SF(TYP_RAW)),
+    AE_SHORT, AE_ULAW, AE_SHORT, AE_LONG,
+    AE_FLOAT, AE_UNCH, AE_24INT, AE_DOUBLE,
     /* 10 - 19 */
-    SF_FORMAT_WAV, (SF_FORMAT_PCM_S8 | SF_FORMAT_WAV),
-    (SF_FORMAT_ALAW | SF_FORMAT_WAV), (SF_FORMAT_ULAW | SF_FORMAT_WAV),
-    (SF_FORMAT_PCM_16 | SF_FORMAT_WAV), (SF_FORMAT_PCM_32 | SF_FORMAT_WAV),
-    (SF_FORMAT_FLOAT | SF_FORMAT_WAV), (SF_FORMAT_PCM_U8 | SF_FORMAT_WAV),
-    (SF_FORMAT_PCM_24 | SF_FORMAT_WAV), (SF_FORMAT_DOUBLE | SF_FORMAT_WAV),
+    TYP2SF(TYP_WAV), (AE_CHAR | TYP2SF(TYP_WAV)),
+    (AE_ALAW | TYP2SF(TYP_WAV)), (AE_ULAW | TYP2SF(TYP_WAV)),
+    (AE_SHORT | TYP2SF(TYP_WAV)), (AE_LONG | TYP2SF(TYP_WAV)),
+    (AE_FLOAT | TYP2SF(TYP_WAV)), (AE_UNCH | TYP2SF(TYP_WAV)),
+    (AE_24INT | TYP2SF(TYP_WAV)), (AE_DOUBLE | TYP2SF(TYP_WAV)),
     /* 20 - 29 */
-    SF_FORMAT_AIFF, (SF_FORMAT_PCM_S8 | SF_FORMAT_AIFF),
-    (SF_FORMAT_ALAW | SF_FORMAT_AIFF), (SF_FORMAT_ULAW | SF_FORMAT_AIFF),
-    (SF_FORMAT_PCM_16 | SF_FORMAT_AIFF), (SF_FORMAT_PCM_32 | SF_FORMAT_AIFF),
-    (SF_FORMAT_FLOAT | SF_FORMAT_AIFF), (SF_FORMAT_PCM_U8 | SF_FORMAT_AIFF),
-    (SF_FORMAT_PCM_24 | SF_FORMAT_AIFF), (SF_FORMAT_DOUBLE | SF_FORMAT_AIFF),
+    TYP2SF(TYP_AIFF), (AE_CHAR | TYP2SF(TYP_AIFF)),
+    (AE_ALAW | TYP2SF(TYP_AIFF)), (AE_ULAW | TYP2SF(TYP_AIFF)),
+    (AE_SHORT | TYP2SF(TYP_AIFF)), (AE_LONG | TYP2SF(TYP_AIFF)),
+    (AE_FLOAT | TYP2SF(TYP_AIFF)), (AE_UNCH | TYP2SF(TYP_AIFF)),
+    (AE_24INT | TYP2SF(TYP_AIFF)), (AE_DOUBLE | TYP2SF(TYP_AIFF)),
     /* 30 - 39 */
-    SF_FORMAT_RAW, (SF_FORMAT_PCM_S8 | SF_FORMAT_RAW),
-    (SF_FORMAT_ALAW | SF_FORMAT_RAW), (SF_FORMAT_ULAW | SF_FORMAT_RAW),
-    (SF_FORMAT_PCM_16 | SF_FORMAT_RAW), (SF_FORMAT_PCM_32 | SF_FORMAT_RAW),
-    (SF_FORMAT_FLOAT | SF_FORMAT_RAW), (SF_FORMAT_PCM_U8 | SF_FORMAT_RAW),
-    (SF_FORMAT_PCM_24 | SF_FORMAT_RAW), (SF_FORMAT_DOUBLE | SF_FORMAT_RAW),
+    TYP2SF(TYP_RAW), (AE_CHAR | TYP2SF(TYP_RAW)),
+    (AE_ALAW | TYP2SF(TYP_RAW)), (AE_ULAW | TYP2SF(TYP_RAW)),
+    (AE_SHORT | TYP2SF(TYP_RAW)), (AE_LONG | TYP2SF(TYP_RAW)),
+    (AE_FLOAT | TYP2SF(TYP_RAW)), (AE_UNCH | TYP2SF(TYP_RAW)),
+    (AE_24INT | TYP2SF(TYP_RAW)), (AE_DOUBLE | TYP2SF(TYP_RAW)),
     /* 40 - 49 */
-    SF_FORMAT_IRCAM, (SF_FORMAT_PCM_S8 | SF_FORMAT_IRCAM),
-    (SF_FORMAT_ALAW | SF_FORMAT_IRCAM), (SF_FORMAT_ULAW | SF_FORMAT_IRCAM),
-    (SF_FORMAT_PCM_16 | SF_FORMAT_IRCAM), (SF_FORMAT_PCM_32 | SF_FORMAT_IRCAM),
-    (SF_FORMAT_FLOAT | SF_FORMAT_IRCAM), (SF_FORMAT_PCM_U8 | SF_FORMAT_IRCAM),
-    (SF_FORMAT_PCM_24 | SF_FORMAT_IRCAM), (SF_FORMAT_DOUBLE | SF_FORMAT_IRCAM),
+    TYP2SF(TYP_IRCAM), (AE_CHAR | TYP2SF(TYP_IRCAM)),
+    (AE_ALAW | TYP2SF(TYP_IRCAM)), (AE_ULAW | TYP2SF(TYP_IRCAM)),
+    (AE_SHORT | TYP2SF(TYP_IRCAM)), (AE_LONG | TYP2SF(TYP_IRCAM)),
+    (AE_FLOAT | TYP2SF(TYP_IRCAM)), (AE_UNCH | TYP2SF(TYP_IRCAM)),
+    (AE_24INT | TYP2SF(TYP_IRCAM)), (AE_DOUBLE | TYP2SF(TYP_IRCAM)),
     /* 50 */
-    (SF_FORMAT_OGG | SF_FORMAT_VORBIS)
+    (TYP2SF(TYP_OGG) | AE_VORBIS)
 };
 
 static int32_t fout_flush_callback(CSOUND *csound, void *p_)
@@ -396,14 +395,14 @@ static int32_t fout_flush_callback(CSOUND *csound, void *p_)
 
     if (p->f.sf != NULL && p->buf_pos > 0) {
       //#ifndef USE_DOUBLE
-      //sf_write_float(p->f.sf, (float*) p->buf.auxp, p->buf_pos);
+      //sflib_write_float(p->f.sf, (float*) p->buf.auxp, p->buf_pos);
       //#else
-      //sf_write_double(p->f.sf, (double*) p->buf.auxp, p->buf_pos);
+      //sflib_write_double(p->f.sf, (double*) p->buf.auxp, p->buf_pos);
       //#endif
       if (p->f.async == 1)
         csound->WriteAsync(csound, p->f.fd, (MYFLT *) p->buf.auxp, p->buf_pos);
       else
-        sf_write_MYFLT(p->f.sf, (MYFLT *) p->buf.auxp, p->buf_pos);
+        sflib_write_MYFLT(p->f.sf, (MYFLT *) p->buf.auxp, p->buf_pos);
     }
     return OK;
 }
@@ -414,28 +413,28 @@ static int32_t fouta_flush_callback(CSOUND *csound, void *p_)
 
     if (p->f.sf != NULL && p->buf_pos > 0) {
       //#ifndef USE_DOUBLE
-      //sf_write_float(p->f.sf, (float*) p->buf.auxp, p->buf_pos);
+      //sflib_write_float(p->f.sf, (float*) p->buf.auxp, p->buf_pos);
       //#else
-      //sf_write_double(p->f.sf, (double*) p->buf.auxp, p->buf_pos);
+      //sflib_write_double(p->f.sf, (double*) p->buf.auxp, p->buf_pos);
       //#endif
       if (p->f.async == 1)
         csound->WriteAsync(csound, p->f.fd, (MYFLT *) p->buf.auxp, p->buf_pos);
       else
-        sf_write_MYFLT(p->f.sf, (MYFLT *) p->buf.auxp, p->buf_pos);
+        sflib_write_MYFLT(p->f.sf, (MYFLT *) p->buf.auxp, p->buf_pos);
     }
     return OK;
 }
 
 static int32_t outfile_set_S(CSOUND *csound, OUTFILE *p/*, int32_t istring*/)
 {
-    SF_INFO sfinfo;
+    SFLIB_INFO sfinfo;
     int32_t     format_, n, buf_reqd;
     int32_t istring = 1;
 
-    memset(&sfinfo, 0, sizeof(SF_INFO));
+    memset(&sfinfo, 0, sizeof(SFLIB_INFO));
     format_ = (int32_t) MYFLT2LRND(*p->iflag);
     if (format_ >= 51)
-      sfinfo.format = SF_FORMAT_PCM_16 | SF_FORMAT_RAW;
+      sfinfo.format = AE_SHORT | TYP2SF(TYP_RAW);
     else if (format_ < 0) {
       sfinfo.format = FORMAT2SF(csound->oparms->outformat);
       sfinfo.format |= TYPE2SF(csound->oparms->filetyp);
@@ -487,14 +486,14 @@ static int32_t outfile_set_S(CSOUND *csound, OUTFILE *p/*, int32_t istring*/)
 
 static int32_t outfile_set_A(CSOUND *csound, OUTFILEA *p)
 {
-    SF_INFO sfinfo;
+    SFLIB_INFO sfinfo;
     int32_t     format_, n, buf_reqd;
     int32_t len = p->tabin->sizes[0];
 
-    memset(&sfinfo, 0, sizeof(SF_INFO));
+    memset(&sfinfo, 0, sizeof(SFLIB_INFO));
     format_ = (int32_t) MYFLT2LRND(*p->iflag);
      if (format_ >=  51)
-      sfinfo.format = SF_FORMAT_PCM_16 | SF_FORMAT_RAW;
+      sfinfo.format = AE_SHORT | TYP2SF(TYP_RAW);
     else if (format_ < 0) {
       sfinfo.format = FORMAT2SF(csound->oparms->outformat);
       sfinfo.format |= TYPE2SF(csound->oparms->filetyp);
@@ -547,13 +546,13 @@ static int32_t koutfile(CSOUND *csound, KOUTFILE *p)
     p->buf_pos = k;
     if (p->buf_pos >= p->guard_pos) {
         //#ifndef USE_DOUBLE
-        //sf_write_float(p->f.sf, buf, p->buf_pos);
+        //sflib_write_float(p->f.sf, buf, p->buf_pos);
         //#else
-        //sf_write_double(p->f.sf, buf, p->buf_pos);
+        //sflib_write_double(p->f.sf, buf, p->buf_pos);
         //#endif
       if (p->f.async==1)
         csound->WriteAsync(csound, p->f.fd, buf, p->buf_pos);
-      else sf_write_MYFLT(p->f.sf, buf, p->buf_pos);
+      else sflib_write_MYFLT(p->f.sf, buf, p->buf_pos);
       p->buf_pos = 0;
     }
     return OK;
@@ -561,10 +560,10 @@ static int32_t koutfile(CSOUND *csound, KOUTFILE *p)
 
 static int32_t koutfile_set_(CSOUND *csound, KOUTFILE *p, int32_t istring)
 {
-    SF_INFO sfinfo;
+    SFLIB_INFO sfinfo;
     int32_t     format_, n, buf_reqd;
 
-    memset(&sfinfo, 0, sizeof(SF_INFO));
+    memset(&sfinfo, 0, sizeof(SFLIB_INFO));
     p->nargs = p->INOCOUNT - 2;
     p->buf_pos = 0;
 
@@ -577,9 +576,9 @@ static int32_t koutfile_set_(CSOUND *csound, KOUTFILE *p, int32_t istring)
     sfinfo.samplerate = (int32_t) MYFLT2LRND(CS_EKR);
     format_ = (int32_t) MYFLT2LRND(*p->iflag);
     if ((uint32_t) format_ >= 10ul)
-      sfinfo.format = SF_FORMAT_PCM_16 | SF_FORMAT_RAW;
+      sfinfo.format = AE_SHORT | TYP2SF(TYP_RAW);
     else
-      sfinfo.format = fout_format_table[format_] | SF_FORMAT_RAW;
+      sfinfo.format = fout_format_table[format_] | TYP2SF(TYP_RAW);
 
     if (CS_KSMPS >= 512)
       buf_reqd = CS_KSMPS *  p->nargs;
@@ -851,12 +850,12 @@ static int32_t ioutfile_r(CSOUND *csound, IOUTFILE_R *p)
 
 static int32_t infile_set_(CSOUND *csound, INFILE *p, int32_t istring)
 {
-    SF_INFO sfinfo;
+    SFLIB_INFO sfinfo;
     int32_t     n, buf_reqd;
     p->nargs = p->INOCOUNT - 3;
     p->currpos = MYFLT2LRND(*p->iskpfrms);
     p->flag = 1;
-    memset(&sfinfo, 0, sizeof(SF_INFO));
+    memset(&sfinfo, 0, sizeof(SFLIB_INFO));
     sfinfo.samplerate = (int32_t) MYFLT2LRND(CS_ESR);
     /* Following code is seriously broken*/
     if ((int32_t) MYFLT2LRND(*p->iflag) == -2)
@@ -912,11 +911,11 @@ static int32_t infile_set_S(CSOUND *csound, INFILE *p){
 
 static int32_t infile_set_A(CSOUND *csound, INFILEA *p)
 {
-    SF_INFO sfinfo;
+    SFLIB_INFO sfinfo;
     int32_t     n, buf_reqd;
     p->currpos = MYFLT2LRND(*p->iskpfrms);
     p->flag = 1;
-    memset(&sfinfo, 0, sizeof(SF_INFO));
+    memset(&sfinfo, 0, sizeof(SFLIB_INFO));
     sfinfo.samplerate = (int32_t) MYFLT2LRND(CS_ESR);
     if ((int32_t) MYFLT2LRND(*p->iflag) == -2)
       sfinfo.format = FORMAT2SF(AE_FLOAT) | TYPE2SF(TYP_RAW);
@@ -978,8 +977,8 @@ static int32_t infile_act(CSOUND *csound, INFILE *p)
     if (p->flag) {
       if (p->buf_pos >= p->guard_pos) {
         if (UNLIKELY(p->f.async == 0)) {
-          sf_seek(p->f.sf, p->currpos*p->f.nchnls, SEEK_SET);
-          p->remain = (uint32_t) sf_read_MYFLT(p->f.sf, (MYFLT*) buf,
+          sflib_seek(p->f.sf, p->currpos*p->f.nchnls, SEEK_SET);
+          p->remain = (uint32_t) sflib_read_MYFLT(p->f.sf, (MYFLT*) buf,
                                                p->frames*p->f.nchnls);
           p->remain /= p->f.nchnls;
         } else {
@@ -1033,8 +1032,8 @@ static int32_t infile_arr(CSOUND *csound, INFILEA *p)
     if (p->flag) {
       if (p->buf_pos >= p->guard_pos) {
         if (UNLIKELY(p->f.async == 0)) {
-          sf_seek(p->f.sf, p->currpos*p->f.nchnls, SEEK_SET);
-          p->remain = (uint32_t) sf_read_MYFLT(p->f.sf, (MYFLT*) buf,
+          sflib_seek(p->f.sf, p->currpos*p->f.nchnls, SEEK_SET);
+          p->remain = (uint32_t) sflib_read_MYFLT(p->f.sf, (MYFLT*) buf,
                                                p->frames*p->f.nchnls);
           p->remain /= p->f.nchnls;
         } else {
@@ -1071,10 +1070,10 @@ static int32_t infile_arr(CSOUND *csound, INFILEA *p)
 
 static int32_t kinfile_set_(CSOUND *csound, KINFILE *p, int32_t istring)
 {
-    SF_INFO sfinfo;
+    SFLIB_INFO sfinfo;
     int32_t     n, buf_reqd;
 
-    memset(&sfinfo, 0, sizeof(SF_INFO));
+    memset(&sfinfo, 0, sizeof(SFLIB_INFO));
     sfinfo.samplerate = (int32_t) MYFLT2LRND(CS_EKR);
     if ((int32_t) MYFLT2LRND(*p->iflag) == -2)
       sfinfo.format = FORMAT2SF(AE_FLOAT) | TYPE2SF(TYP_RAW);
@@ -1138,8 +1137,8 @@ static int32_t kinfile(CSOUND *csound, KINFILE *p)
     if (p->flag) {
       if (p->buf_pos >= p->guard_pos) {
         if (UNLIKELY(p->f.async == 0)) {
-          sf_seek(p->f.sf, p->currpos*p->f.nchnls, SEEK_SET);
-          p->remain = (uint32_t) sf_read_MYFLT(p->f.sf, (MYFLT*) buf,
+          sflib_seek(p->f.sf, p->currpos*p->f.nchnls, SEEK_SET);
+          p->remain = (uint32_t) sflib_read_MYFLT(p->f.sf, (MYFLT*) buf,
                                                p->frames*p->f.nchnls);
           p->remain /= p->f.nchnls;
         } else {

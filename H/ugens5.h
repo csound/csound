@@ -136,10 +136,6 @@ typedef struct {
         MYFLT   *ans, *sig, *min, *max;
 } LIMIT;
 
-typedef PORT KPORT;
-typedef TONE KTONE;
-typedef RESON KRESON;
-
 int kporset(CSOUND*,PORT *p);
 int kport(CSOUND*,PORT *p);
 int ktonset(CSOUND*,TONE *p);

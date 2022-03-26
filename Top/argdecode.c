@@ -266,7 +266,7 @@ static const char *longUsageList[] = {
   Str_noop("--utility=NAME          run utility program"),
   Str_noop("--verbose               verbose orch translation"),
   Str_noop("--list-opcodes          list opcodes in this version"),
-   Str_noop("--list-opcodesN         list opcodes in style N in this version"),
+  Str_noop("--list-opcodesN         list opcodes in style N in this version"),
   Str_noop("--dither                dither output"),
   Str_noop("--dither-triangular     dither output with triangular distribution"),
   Str_noop("--dither-uniform        dither output with rectanular distribution"),

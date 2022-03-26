@@ -644,7 +644,7 @@ static int32_t bppasxx(CSOUND *csound, BBFIL *p)      /*      Bandpass filter   
 }
 #endif
 
-#ifdef INC_BUTTERR
+#ifdef INC_BUTTERBR
 static int32_t bpcutxx(CSOUND *csound, BBFIL *p)      /*      Band reject filter  */
 {
     uint32_t offset = p->h.insdshead->ksmps_offset;
@@ -652,7 +652,7 @@ static int32_t bpcutxx(CSOUND *csound, BBFIL *p)      /*      Band reject filter
     uint32_t nsmps = CS_KSMPS;
     MYFLT       *out, *in;
     double *a = p->a;
-    double t, y;
+    double t, y;/*
     uint32_t nn;
     int32_t
       asgbw = IS_ASIG_ARG(p->kbw), asgfr = IS_ASIG_ARG(p->kfo);

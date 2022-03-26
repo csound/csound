@@ -113,7 +113,7 @@ static int32_t array_init(CSOUND *csound, ARRAYINIT *p)
     }
 
     {
-      CS_VARIABLE* var = arrayDat->arrayType->createVariable(csound,NULL);
+      CS_VARIABLE* var = arrayDat->arrayType->createVariable(csound,arrayDat->arrayType);
       char *mem;
       arrayDat->arrayMemberSize = var->memBlockSize;
       arrayDat->data = csound->Calloc(csound,
@@ -124,7 +124,6 @@ static int32_t array_init(CSOUND *csound, ARRAYINIT *p)
                                       (MYFLT*)(mem+i*var->memBlockSize));
       }
     }
-
     return OK;
 }
 
@@ -147,6 +146,7 @@ static int32_t tabfill(CSOUND *csound, TABFILL *p)
     memMyfltSize = p->ans->arrayMemberSize / sizeof(MYFLT);
     for (i=0; i<nargs; i++) {
       p->ans->arrayType->copyValue(csound,
+                                   p->ans->arrayType,
                                    p->ans->data + (i * memMyfltSize),
                                    valp[i]);
     }
@@ -319,7 +319,7 @@ static int32_t array_set(CSOUND* csound, ARRAY_SET *p)
     incr = (index * (dat->arrayMemberSize / sizeof(MYFLT)));
     mem += incr;
     //memcpy(mem, p->value, dat->arrayMemberSize);
-    dat->arrayType->copyValue(csound, mem, p->value);
+    dat->arrayType->copyValue(csound, dat->arrayType, mem, p->value);
     /* printf("array_set: mem = %p, incr = %d, value = %f\n", */
     /*         mem, incr, *((MYFLT*)p->value)); */
     return OK;
@@ -360,7 +360,8 @@ static int32_t array_get(CSOUND* csound, ARRAY_GET *p)
 
     incr = (index * (dat->arrayMemberSize / sizeof(MYFLT)));
     mem += incr;
-    dat->arrayType->copyValue(csound, (void*)p->out, (void*)mem);
+    //    memcpy(p->out, &mem[incr], dat->arrayMemberSize);
+    dat->arrayType->copyValue(csound, dat->arrayType, (void*)p->out, (void*)mem);
     return OK;
 }
 
@@ -2757,7 +2758,7 @@ static int32_t tabcopy(CSOUND *csound, TABCPY *p)
 
     for (i = 0; i < arrayTotalSize; i++) {
       int32_t index = (i * memMyfltSize);
-      p->dst->arrayType->copyValue(csound,
+      p->dst->arrayType->copyValue(csound, p->dst->arrayType,
                                    (void*)(p->dst->data + index),
                                    (void*)(p->src->data + index));
     }
@@ -2805,6 +2806,7 @@ static int32_t tabcopy1(CSOUND *csound, TABCPY *p)
     for (i = 0; i < arrayTotalSize; i++) {
       int32_t index = (i * memMyfltSize);
       p->dst->arrayType->copyValue(csound,
+                                   p->dst->arrayType,
                                    (void*)(p->dst->data + index),
                                    (void*)(p->src->data + index));
     }
@@ -3102,7 +3104,7 @@ static int32_t tabslice(CSOUND *csound, TABSLICE *p) {
     tabinit(csound, p->tab, size);
 
     for (i = start, destIndex = 0; i < end + 1; i+=inc, destIndex++) {
-      p->tab->arrayType->copyValue(csound,
+      p->tab->arrayType->copyValue(csound, p->tab->arrayType,
                                    p->tab->data + (destIndex * memMyfltSize),
                                    tabin + (memMyfltSize * i));
     }
@@ -4012,8 +4014,8 @@ int32_t set_cols_perf(CSOUND *csound, FFT *p) {
                                  Str("Error: New column too short\n"));
 
 
-    int32_t j,i,len =  p->out->sizes[0];
-    for (j=0,i=start; j < len; i+=len+1, j++)
+    int32_t j,i,row = p->out->sizes[1], col = p->out->sizes[0];
+    for (j=0,i=start; j < col; i+=row, j++)
         p->out->data[i] = p->in->data[j];
     return OK;
 }
@@ -4027,8 +4029,8 @@ int32_t set_cols_i(CSOUND *csound, FFT *p) {
     if (UNLIKELY(p->in->dimensions != 1 || p->in->sizes[0]<p->out->sizes[0]))
       return csound->InitError(csound, "%s",
                                  Str("Error: New column too short\n"));
-    int32_t j,i,len =  p->out->sizes[0];
-    for (j=0,i=start; j < len; i+=len+1, j++)
+    int32_t j,i,row = p->out->sizes[1], col = p->out->sizes[0];
+    for (j=0,i=start; j < col; i+=row, j++)
         p->out->data[i] = p->in->data[j];
     return OK;
 }
@@ -4431,6 +4433,7 @@ static OENTRY arrayvars_localops[] =
     { "init.k", sizeof(ARRAYINIT), 0, 1, "k[]", "m", (SUBR)array_init },
     { "init.a", sizeof(ARRAYINIT), 0, 1, "a[]", "m", (SUBR)array_init },
     { "init.S", sizeof(ARRAYINIT), 0, 1, "S[]", "m", (SUBR)array_init },
+    { "init.0", sizeof(ARRAYINIT), 0, 1, ".[]", "m", (SUBR)array_init },
     { "fillarray.k", sizeof(TABFILL), 0, 1, "k[]", "m", (SUBR)tabfill },
     { "fillarray.i", sizeof(TABFILL), 0, 1, "i[]", "m", (SUBR)tabfill },
     { "fillarray.s", sizeof(TABFILL), 0, 1, "S[]", "W", (SUBR)tabfill },
@@ -4444,6 +4447,8 @@ static OENTRY arrayvars_localops[] =
     { "##array_init", sizeof(ARRAY_SET), 0, 1, "", ".[].m", (SUBR)array_set },
     { "##array_set.k", sizeof(ARRAY_SET), 0, 2, "", "k[]km", NULL,(SUBR)array_set},
     { "##array_set.a", sizeof(ARRAY_SET), 0, 2, "", "a[]am", NULL, (SUBR)array_set},
+    // VL: 11.2.22 I think array set S needs to be added running at thread 3 for parser3
+    { "##array_set.S", sizeof(ARRAY_SET), 0, 3, "", "S[].m", (SUBR)array_set , (SUBR)array_set },
     { "##array_set.i", sizeof(ARRAY_SET), 0, 1, "", ".[].m", (SUBR)array_set },
     { "##array_set.e", sizeof(ARRAY_SET), 0, 1, "", "i[].z", (SUBR)array_err },
     { "##array_set.x", sizeof(ARRAY_SET), 0, 2, "", ".[].z", NULL, (SUBR)array_set},

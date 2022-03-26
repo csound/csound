@@ -72,6 +72,7 @@ typedef struct {
     MYFLT   *r;
     STRINGDAT   *str1;
     STRINGDAT   *str2;
+    MYFLT res;
 } STRCMP_OP;
 
 typedef struct {

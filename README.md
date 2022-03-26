@@ -1,5 +1,5 @@
 # CSOUND
-Version 6.17.0 (beta)
+Version 7.0.0 (beta)
 
 ![Build Status](https://github.com/csound/csound/actions/workflows/csound_builds.yml/badge.svg?branch=develop)
 <!--- ![Coverity Status](https://scan.coverity.com/projects/1822/badge.svg) --->

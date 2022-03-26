@@ -25,7 +25,7 @@
 #define CSOUND_VERSION_H
 
 /* Version string generated from CMake variables */
-#define VERSION "6.17"
+#define VERSION "7.0"
 
 /* Define to the full name of this package. */
 #define CS_PACKAGE_NAME     "Csound"
@@ -38,8 +38,8 @@
 
 /* Define to the version of this package. Generated from CMake variables */
 #define CS_PACKAGE_VERSION  VERSION
-#define CS_VERSION          (6)
-#define CS_SUBVER           (17)
+#define CS_VERSION          (7)
+#define CS_SUBVER           (0)
 #define CS_PATCHLEVEL       (0)
 
 
