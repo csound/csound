@@ -30,6 +30,7 @@
 #include <stdlib.h>
 #include <math.h>
 #include "cwindow.h"
+#include "arrays.h"
 
 /* #undef CS_KSMPS */
 /* #define CS_KSMPS     (csound->GetKsmps(csound)) */
@@ -743,8 +744,13 @@ static int32_t scsnmap(CSOUND *csound, PSCSNMAP *p)
 {
     IGN(csound);
     PSCSNU *pp = p->p;
-    *p->k_pos = *p->k_pamp * pp->x0[(int32_t)(*p->k_which)];
-    *p->k_vel = *p->k_vamp * pp->v[(int32_t)(*p->k_which)];
+    int32 which = (int32)*p->k_which;
+    if (which>=pp->len|| which<0)
+      return csound->PerfError(csound, &(p->h),
+                               Str("scan map %d out of range [0,%d]\n"),
+                               which, pp->len);
+    *p->k_pos = *p->k_pamp * pp->x0[which];
+    *p->k_vel = *p->k_vamp * pp->v[which];
     return OK;
 }
 
@@ -752,8 +758,36 @@ static int32_t scsnsmap(CSOUND *csound, PSCSNMAP *p)
 {
     IGN(csound);
     PSCSNU *pp = p->p;
-    pp->x0[(int32_t)(*p->k_which)] = *p->k_pos/(*p->k_pamp);
-    pp->v[(int32_t)(*p->k_which)]  = *p->k_vel/(*p->k_vamp);
+    int32 which = (int32)*p->k_which;
+    if (which>=pp->len|| which<0)
+      return csound->PerfError(csound, &(p->h),
+                               Str("scan map %d out of range [0,%d]\n"),
+                               which, pp->len);
+ 
+    pp->x0[which] = *p->k_pos/(*p->k_pamp);
+    pp->v[which]  = *p->k_vel/(*p->k_vamp);
+    return OK;
+}
+
+//scsnmap to a vector
+
+static int32_t scsnmapV_init(CSOUND *csound, PSCSNMAPV *p)
+{
+    /* Get corresponding update */
+    p->p = listget(csound, (int32_t)*p->i_id);
+    if (p->p == NULL) return NOTOK;
+    tabinit(csound, p->k_pos,(p->p)->len);
+    tabinit(csound, p->k_vel,(p->p)->len);
+    return OK;
+}
+
+static int32_t scsnmapV(CSOUND *csound, PSCSNMAPV *p)
+{
+    IGN(csound);
+    PSCSNU *pp = p->p;
+    int32 len = pp->len*sizeof(MYFLT);
+    memcpy(p->k_pos->data, pp->x0, len);
+    memcpy(p->k_vel->data, pp->v, len);
     return OK;
 }
 
@@ -763,13 +797,15 @@ static int32_t scsnsmap(CSOUND *csound, PSCSNMAP *p)
 
 static OENTRY localops[] =
   {
-   { "scanu", S(PSCSNU),TR, 3, "", "iiiiiiikkkkiikkaii",
+    { "scanu", S(PSCSNU),TR, 3, "", "iiiiiiikkkkiikkaii",
      (SUBR)scsnu_init1, (SUBR)scsnu_play},
    { "scanu2", S(PSCSNU),TR, 3, "", "iiiiiiikkkkiikkaii",
      (SUBR)scsnu_init2, (SUBR)scsnu_play },
    { "scans", S(PSCSNS),TR, 3, "a","kkiio", (SUBR)scsns_init, (SUBR)scsns_play},
    { "scanmap", S(PSCSNMAP),TR, 3, "kk", "ikko",        (SUBR)scsnmap_init,
      (SUBR)scsnmap,NULL },
+   { "scanmap.A", S(PSCSNMAPV),0, 3, "k[]k[]", "i",        (SUBR)scsnmapV_init,
+     (SUBR)scsnmapV,NULL },
    { "scansmap", S(PSCSNMAP),TR, 3,"",   "kkikko",      (SUBR)scsnmap_init,
      (SUBR)scsnsmap,NULL }
 
