@@ -63,6 +63,13 @@ typedef struct {
     PSCSNU      *p;
 } PSCSNMAP;
 
+typedef struct {
+    OPDS        h;
+    ARRAYDAT    *k_pos, *k_vel;
+    MYFLT       *i_id;
+    PSCSNU      *p;
+} PSCSNMAPV;
+
 /* *********************************** */
 /* *********************************** */
 /* EXPERIMENTAL VERSION -- John ffitch */
