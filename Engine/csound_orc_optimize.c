@@ -137,7 +137,7 @@ static inline int same_type(char *var, char ty)
     else return var[0]==ty;
 }
 
-#define PARSER_DEBUG1 (1)  
+#define PARSER_DEBUG1 (0)  
 static TREE* remove_excess_assigns(CSOUND *csound, TREE* root)
 {
     TREE* current = root;
@@ -430,7 +430,6 @@ TREE* constant_fold(CSOUND *csound, TREE* root)
     return root;
 }
 
-
 /* Optimizes tree (expressions, etc.) */
 TREE * csound_orc_optimize(CSOUND *csound, TREE *root)
 {
@@ -448,3 +447,4 @@ TREE * csound_orc_optimize(CSOUND *csound, TREE *root)
     //    return original;
     return remove_excess_assigns(csound,original);
 }
+

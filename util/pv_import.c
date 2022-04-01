@@ -40,7 +40,7 @@ static void pv_import_usage(CSOUND *csound)
     csound->Message(csound, "%s", Str("Usage: pv_import cstext_file pv_file\n"));
 }
 
-static float getnum(FILE* inf, char *term)
+static float getnum(FILE* inf, int *term)
 {
     char buff[100];
     int32_t  cc;
@@ -136,7 +136,7 @@ static int32_t pv_import(CSOUND *csound, int32_t argc, char **argv)
       for (i=1;;i++) {
         uint32_t j;
         for (j=0; j<data.nAnalysisBins*2; j++) {
-          char term;
+          int term;
           frame[j] = getnum(inf, &term);
           if (term==EOF) goto ending;
           if (feof(inf)) goto ending;

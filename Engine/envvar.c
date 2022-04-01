@@ -44,13 +44,13 @@
 
 static const char *envVar_list[] = {
     "CSNOSTOP",
-    "CSOUND6RC",
+    "CSOUND7RC",
     "CSSTRNGS",
     "CS_LANG",
     "HOME",
     "INCDIR",
-    "OPCODE6DIR",
-    "OPCODE6DIR64",
+    "OPCODE7DIR",
+    "OPCODE7DIR64",
     "RAWWAVE_PATH",
     "SADIR",
     "SFDIR",
