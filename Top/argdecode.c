@@ -1568,7 +1568,7 @@ PUBLIC int argdecode(CSOUND *csound, int argc, const char **argv_)
         /* 0: normal, 1: ignore, 2: fail */
         if (csound->orcname_mode == 2) {
           csound->Die(csound, Str("error: orchestra and score name not "
-                                  "allowed in .csound6rc"));
+                                  "allowed in .csound7rc"));
         }
         else if (csound->orcname_mode == 0) {
           if (csound->orchname == NULL) /* VL dec 2016: better duplicate these */

@@ -50,7 +50,7 @@ int process_file(char *input, FILE* outp)
       q = strchr(p+1,'"');
       if (q) *(q+1) = '\0';
       if (verbose) printf("opcode>>%s<<\n", p+1);
-      fprintf(outp, "\t{\"%s, \"INC_%s\" },\n", p+1, tag);
+      fprintf(outp, "\t{\"%s, \"INC_%s\", 0 },\n", p+1, tag);
       goto opcode;
     }
     goto opcode;
@@ -65,14 +65,15 @@ int main(void)
       fprintf(stderr, "Failed to open output\n");
       exit(1);
     }
-    fprintf(outp, "typedef struct {\n\tchar* opcode;\n\tchar* tag; } DICTIONARY;");
+    fprintf(outp, "typedef struct {\n\tchar* opcode;\n\tchar* tag;\n\tint data; } DICTIONARY;");
     fprintf(outp, "\nDICTIONARY dict[] = {\n");
     process_file("Engine/entry1.c", outp);
     process_file("Opcodes/afilters.c", outp);
     process_file("Opcodes/babo.c", outp);
     process_file("Opcodes/uggab.c", outp);
+    process_file("Opcodes/scansyn.c", outp);
 
-    fprintf(outp, "\t{ NULL, NULL } };\n\n");
+    fprintf(outp, "\t{ NULL, NULL, 0 } };\n\n");
     fclose(outp);
 }
 

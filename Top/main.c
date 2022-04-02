@@ -51,29 +51,29 @@ static void checkOptions(CSOUND *csound)
     void        *fd = NULL;
     char        *s = NULL;
     /* IV - Feb 17 2005 */
-    csrcname = csoundGetEnv(csound, "CSOUND6RC");
+    csrcname = csoundGetEnv(csound, "CSOUND7RC");
     if (csrcname != NULL && csrcname[0] != '\0') {
       fd = csound->FileOpen2(csound, &csrc, CSFILE_STD, csrcname, "r", NULL,
                              CSFTYPE_OPTIONS, 0);
       if (UNLIKELY(fd == NULL)) {
-          csoundMessage(csound, Str("WARNING: cannot open csound6rc file %s\n"),
+          csoundMessage(csound, Str("WARNING: cannot open csound7rc file %s\n"),
               csrcname);
       } else {
-          csound->Message(csound, Str("Reading options from $CSOUND6RC: %s\n"),
+          csound->Message(csound, Str("Reading options from $CSOUND7RC: %s\n"),
               csrcname);
           s = csound->Strdup(csound, (char*)csrcname);
       }
     }
     if (fd == NULL && ((home_dir = csoundGetEnv(csound, "HOME")) != NULL &&
                        home_dir[0] != '\0')) {
-      s = csoundConcatenatePaths(csound, home_dir, ".csound6rc");
+      s = csoundConcatenatePaths(csound, home_dir, ".csound7rc");
       fd = csound->FileOpen2(csound, &csrc, CSFILE_STD, s, "r", NULL,
                              CSFTYPE_OPTIONS, 0);
       if (fd != NULL)
-        csound->Message(csound, Str("Reading options from $HOME/.csound6rc\n"));
+        csound->Message(csound, Str("Reading options from $HOME/.csound7rc\n"));
       //csound->Free(csound, s);
     }
-    /* read global .csound6rc file (if exists) */
+    /* read global .csound7rc file (if exists) */
     if (fd != NULL) {
       CORFIL *cf = copy_to_corefile(csound, s, NULL, 0);
       corfile_rewind(cf);
@@ -82,15 +82,15 @@ static void checkOptions(CSOUND *csound)
       csound->FileClose(csound, fd);
       csound->Free(csound, s);
     }
-    /* check for .csound6rc in current directory */
-     fd = csound->FileOpen2(csound, &csrc, CSFILE_STD, ".csound6rc", "r", NULL,
+    /* check for .csound7rc in current directory */
+     fd = csound->FileOpen2(csound, &csrc, CSFILE_STD, ".csound7rc", "r", NULL,
                            CSFTYPE_OPTIONS, 0);
     if (fd != NULL) {
-      CORFIL *cf = copy_to_corefile(csound, ".csound6rc", NULL, 0);
+      CORFIL *cf = copy_to_corefile(csound, ".csound7rc", NULL, 0);
       corfile_rewind(cf);
       readOptions(csound, cf, 0);
       csound->Message(csound,
-                      Str("Reading options from local directory .csound6rc\n"));
+                      Str("Reading options from local directory .csound7rc\n"));
       corfile_rm(csound, &cf);
       csound->FileClose(csound, fd);
     }
@@ -179,7 +179,7 @@ PUBLIC int csoundCompileArgs(CSOUND *csound, int argc, const char **argv)
     csound->orcname_mode = 0;   /* 0: normal, 1: ignore, 2: fail */
     if (UNLIKELY(argdecode(csound, argc, argv) == 0))
       csound->LongJmp(csound, 1);
-    /* do not allow orc/sco/csd name in .csound6rc */
+    /* do not allow orc/sco/csd name in .csound7rc */
     csound->orcname_mode = 2;
     checkOptions(csound);
     if (csound->delayederrormessages) {
@@ -251,7 +251,7 @@ PUBLIC int csoundCompileArgs(CSOUND *csound, int argc, const char **argv)
        (csound->stdout_assign_flg & (csound->stdout_assign_flg - 1)) != 0)) {
       csound->Die(csound, Str("error: multiple uses of stdout"));
     }
-    /* done parsing csound6rc, CSD, and command line options */
+    /* done parsing csound7rc, CSD, and command line options */
 
     if (csound->scorename == NULL && csound->scorestr==NULL) {
       /* No scorename yet */

@@ -2012,7 +2012,27 @@ int csoundCompileOrcInternal(CSOUND *csound, const char *str, int async) {
   return retVal;
 }
 
-/* prep an instr template for efficient allocs  */
+ /* *********  For minimal 7 */
+#include "./Dictionary.c"
+
+void get_tagname(CSOUND* csound, char* opname)
+{
+    int i;
+
+    for (i=0; dict[i].opcode!=NULL; i++) {
+      if (dict[i].data) continue;
+      if (strcmp(opname, dict[i].opcode)==0) {
+        //printf("TAG >>%s<<\n", dict[i].tag);
+        printf("#define %s\n", dict[i].tag);
+        dict[i].data = 1;
+        return;
+      }
+    }
+    return;
+}
+
+
+  /* prep an instr template for efficient allocs  */
 /* repl arg refs by offset ndx to lcl/gbl space */
 static void insprep(CSOUND *csound, INSTRTXT *tp, ENGINE_STATE *engineState)
 {
@@ -2031,7 +2051,9 @@ static void insprep(CSOUND *csound, INSTRTXT *tp, ENGINE_STATE *engineState)
   while ((optxt = optxt->nxtop) != NULL) { /* for each op in instr */
     TEXT *ttp = &optxt->t;
     ep = ttp->oentry;
-
+    // Is this the right place??
+    //printf("****Opcode >>%s<<\n", ep->opname);
+    get_tagname(csound, ep->opname);
     if (strcmp(ep->opname, "endin") == 0 /*    (until ENDIN)     */
         || strcmp(ep->opname, "endop") == 0)
       break;

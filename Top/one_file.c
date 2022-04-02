@@ -356,7 +356,7 @@ int readOptions(CSOUND *csound, CORFIL *cf, int readingCsOptions)
           csoundErrorMsg(csound, Str("Invalid arguments in <CsOptions>: %s"),
                          buffer);
         else csoundErrorMsg(csound,
-                         Str("Invalid arguments in .csound6rc or -@ file: %s"),
+                         Str("Invalid arguments in .csound7rc or -@ file: %s"),
                          buffer);
       }
       else argdecode(csound, argc, argv);

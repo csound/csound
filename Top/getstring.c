@@ -82,10 +82,10 @@ void init_getstring(void *cs)
 /*       setlocale (LC_MESSAGES, ""); */
 /*     else  */
 /*       setlocale (LC_MESSAGES, s);    /\* Set to particular value *\/ */
-/*    textdomain("csound6"); */  /* This is not needed when using dgettext */
-    /* bind_textdomain_codeset("csound6", "UTF-8"); */
+/*    textdomain("csound7"); */  /* This is not needed when using dgettext */
+    /* bind_textdomain_codeset("csound7", "UTF-8"); */
 #if defined(CSOUND_TEXTDOMAIN)
-    bindtextdomain("csound6", CSOUND_TEXTDOMAIN);
+    bindtextdomain("csound7", CSOUND_TEXTDOMAIN);
 #endif
 #ifndef HAVE_STRTOD_L
     setlocale(LC_NUMERIC, "C"); /* Ensure C syntax */
@@ -98,7 +98,7 @@ void init_getstring(void *cs)
 
 PUBLIC char *csoundLocalizeString(const char *s)
 {
-    return dgettext("csound6", s);
+    return dgettext("csound7", s);
 }
 
 static const char *language_names[] = {"", /* Default */
