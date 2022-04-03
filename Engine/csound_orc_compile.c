@@ -2022,9 +2022,8 @@ void get_tagname(CSOUND* csound, char* opname)
     for (i=0; dict[i].opcode!=NULL; i++) {
       if (dict[i].data) continue;
       if (strcmp(opname, dict[i].opcode)==0) {
-        //printf("TAG >>%s<<\n", dict[i].tag);
-        printf("#define %s\n", dict[i].tag);
-        dict[i].data = 1;
+        fprintf(csound->minilist, "#define %s\n", dict[i].tag);
+        dict[i].data++;
         return;
       }
     }
@@ -2051,15 +2050,15 @@ static void insprep(CSOUND *csound, INSTRTXT *tp, ENGINE_STATE *engineState)
   while ((optxt = optxt->nxtop) != NULL) { /* for each op in instr */
     TEXT *ttp = &optxt->t;
     ep = ttp->oentry;
-    // Is this the right place??
-    //printf("****Opcode >>%s<<\n", ep->opname);
-    get_tagname(csound, ep->opname);
     if (strcmp(ep->opname, "endin") == 0 /*    (until ENDIN)     */
         || strcmp(ep->opname, "endop") == 0)
       break;
     if (strcmp(ep->opname, "$label") == 0) {
       continue;
     }
+    // Is this the right place??
+    if (csound->minilist)
+      get_tagname(csound, ep->opname);
 
     if (UNLIKELY(O->odebug))
       csound->Message(csound, "%s args:", ep->opname);

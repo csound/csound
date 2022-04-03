@@ -1248,6 +1248,13 @@ static int decode_long(CSOUND *csound, char *s, int argc, char **argv)
       O->limiter = 0.5;
       return 1;
     }
+    else if (!(strncmp(s, "minilist=", 9))) {
+      s += 9;
+      if (csound->minilist==NULL)
+        csound->minilist = fopen(s, "w");
+      printf("*** minilistis %s valued %p\n", s, csound->minilist);
+      return 1;
+    }
     csoundErrorMsg(csound, Str("unknown long option: '--%s'"), s);
     return 0;
 }
@@ -1487,6 +1494,10 @@ PUBLIC int argdecode(CSOUND *csound, int argc, const char **argv_)
           case 'K':
             csound->peakchunks = 0;       /* Do not write peak information */
             break;
+            //           case 'y':
+            //            FIND(Str("no opcode file"));
+            //            csound->minilist = fopen(s, "w");
+            //            break;
           case 'z':
             {
               int full = 0;

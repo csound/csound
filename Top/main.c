@@ -220,7 +220,9 @@ PUBLIC int csoundCompileArgs(CSOUND *csound, int argc, const char **argv)
 
       if (csound->orchname != NULL) {
         csound->csdname = csound->orchname; /* save original CSD name */
-      {
+        if (csound->minilist)
+          fprintf(csound->minilist, "#define MINITITLE \"%s\"\n\n", csound->csdname);
+        {
         CORFIL *cf = copy_to_corefile(csound, csound->csdname, NULL, 0);
         if (UNLIKELY(cf == NULL)) {
           csound->Die(csound, Str("Reading CSD failed (%s)... stopping"),

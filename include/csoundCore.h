@@ -1849,6 +1849,7 @@ typedef struct _message_queue_t_ {
     int  mode;
     char *opcodedir;
     char *score_srt;
+    FILE *minilist;
     /*struct CSOUND_ **self;*/
     /**@}*/
 #endif  /* __BUILDING_LIBCSOUND */
