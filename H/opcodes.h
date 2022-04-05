@@ -1,5 +1,5 @@
 //OPCODES IN TRAPPED
-#define MINTITLE  "Minimal for Trapped"
+#define MINITITLE  "Minimal for Trapped"
 // ##add.aa
 // ##add.ii
 // ##add.ka

@@ -827,7 +827,8 @@ static int32_t lposc3(CSOUND *csound, LPOSC *p)
     return OK;
 }
 #endif
-// ********************** HERE **********************
+
+#ifdef INC_SUM
 static int32_t sum_(CSOUND *csound, SUM *p)
 {
     IGN(csound);
@@ -864,7 +865,9 @@ static int32_t sum_(CSOUND *csound, SUM *p)
 
     return OK;
 }
+#endif
 
+#ifdef INC_PRODUCT
 /* Actually by JPff but after Gabriel */
 static int32_t product(CSOUND *csound, SUM *p)
 {
@@ -890,7 +893,9 @@ static int32_t product(CSOUND *csound, SUM *p)
     }
     return OK;
 }
+#endif
 
+#ifdef INC_RESONY
 static int32_t rsnsety(CSOUND *csound, RESONY *p)
 {
     int32_t scale;
@@ -979,7 +984,9 @@ static int32_t resony(CSOUND *csound, RESONY *p)
       return OK;
     }
 }
+#endif
 
+#ifdef INC_FOLD
 static int32_t fold_set(CSOUND *csound, FOLD *p)
 {
     IGN(csound);
@@ -1019,10 +1026,12 @@ static int32_t fold(CSOUND *csound, FOLD *p)
     p->value = value;
     return OK;
 }
+#endif
 
 /* by Gab Maldonado. Under GNU license with a special exception for
    Canonical Csound addition */
 
+#if defined(INC_LOOPSEG)||defined(INC_LOOPXSEG)||defined(INC_LPSHOLD)
 static int32_t loopseg_set(CSOUND *csound, LOOPSEG *p)
 {
     p->nsegs   = p->INOCOUNT-3;
@@ -1033,7 +1042,9 @@ static int32_t loopseg_set(CSOUND *csound, LOOPSEG *p)
     p->phs     = *p->iphase;
     return OK;
 }
+#endif
 
+#ifdef INC_LOOSEG
 static int32_t loopseg(CSOUND *csound, LOOPSEG *p)
 {
     IGN(csound);
@@ -1075,7 +1086,9 @@ static int32_t loopseg(CSOUND *csound, LOOPSEG *p)
     p->phs = phs;
     return OK;
 }
+#endif
 
+#ifdef INC_LOOPXSEG
 static int32_t loopxseg(CSOUND *csound, LOOPSEG *p)
 {
     IGN(csound);
@@ -1118,7 +1131,9 @@ static int32_t loopxseg(CSOUND *csound, LOOPSEG *p)
     p->phs = phs;
     return OK;
 }
+#endif
 
+#ifdef INC_LOOPTSEG
 static int32_t looptseg_set(CSOUND *csound, LOOPTSEG *p)
 {
     IGN(csound);
@@ -1167,7 +1182,9 @@ static int32_t looptseg(CSOUND *csound, LOOPTSEG *p)
     p->phs = phs;
     return OK;
 }
+#endif
 
+#ifdef INC_LPSHOLD
 static int32_t lpshold(CSOUND *csound, LOOPSEG *p)
 {
     IGN(csound);
@@ -1206,7 +1223,9 @@ static int32_t lpshold(CSOUND *csound, LOOPSEG *p)
     p->phs = phs;
     return OK;
 }
+#endif
 
+#if defined(INC_LOOPSEGP)||defined(INC_LPSHOLDP)
 static int32_t loopsegp_set(CSOUND *csound, LOOPSEGP *p)
 {
     IGN(csound);
@@ -1214,7 +1233,9 @@ static int32_t loopsegp_set(CSOUND *csound, LOOPSEGP *p)
     p->args[0] = FL(0.0);
     return OK;
 }
+#endif
 
+#ifdef INC_LOOPSEGP
 static int32_t loopsegp(CSOUND *csound, LOOPSEGP *p)
 {
     IGN(csound);
@@ -1253,7 +1274,9 @@ static int32_t loopsegp(CSOUND *csound, LOOPSEGP *p)
     }
     return OK;
 }
+#endif
 
+#ifdef INC_LPSHOLDP
 static int32_t lpsholdp(CSOUND *csound, LOOPSEGP *p)
 {
     IGN(csound);
@@ -1290,7 +1313,9 @@ static int32_t lpsholdp(CSOUND *csound, LOOPSEGP *p)
     }
     return OK;
 }
+#endif
 
+#ifdef INC_LINETO
 /* by Gab Maldonado. Under GNU license with a special exception
    for Canonical Csound addition */
 
@@ -1330,7 +1355,9 @@ static int32_t lineto(CSOUND *csound, LINETO *p)
     *p->kr = p->val_incremented;
     return OK;
 }
+#endif
 
+#ifdef INC_TLINETO
 static int32_t tlineto_set(CSOUND *csound, LINETO2 *p)
 {
     IGN(csound);
@@ -1363,10 +1390,12 @@ static int32_t tlineto(CSOUND *csound, LINETO2 *p)
     *p->kr = p->val_incremented;
     return OK;
 }
+#endif
 
 /* by Gabriel Maldonado. Under GNU license with a special exception
    for Canonical Csound addition */
 
+#ifdef INC_VIBRATO
 static int32_t vibrato_set(CSOUND *csound, VIBRATO *p)
 {
     FUNC        *ftp;
@@ -1438,7 +1467,9 @@ static int32_t vibrato(CSOUND *csound, VIBRATO *p)
     return csound->PerfError(csound, &(p->h),
                              Str("vibrato(krate): not initialised"));
 }
+#endif
 
+#ifdef INC_VIBR
 static int32_t vibr_set(CSOUND *csound, VIBR *p)
   /* faster and easier to use than vibrato, but less flexible */
 {
@@ -1520,7 +1551,9 @@ static int32_t vibr(CSOUND *csound, VIBR *p)
 #undef  iphs
     return OK;
 }
+#endif
 
+#ifdef INC_JITTER2
 static int32_t jitter2_set(CSOUND *csound, JITTER2 *p)
 {
     if (*p->cps1==FL(0.0) && *p->cps2==FL(0.0) && /* accept default values */
@@ -1585,7 +1618,9 @@ static int32_t jitter2(CSOUND *csound, JITTER2 *p)
     }
     return OK;
 }
+#endif
 
+#ifdef INC_JITTER
 static int32_t jitter_set(CSOUND *csound, JITTER *p)
 {
     p->num2     = BiRandGab;
@@ -1614,7 +1649,10 @@ static int32_t jitter(CSOUND *csound, JITTER *p)
     }
     return OK;
 }
+#endif
 
+
+#if defined(INC_JSPLINE)||defined(INC_JSPLINE_A)
 static int32_t jitters_set(CSOUND *csound, JITTERS *p)
 {
     p->num1     = BiRandGab;
@@ -1625,7 +1663,9 @@ static int32_t jitters_set(CSOUND *csound, JITTERS *p)
     p->phs      = 0;
     return OK;
 }
+#endif
 
+#ifdef INC_JSPLINE
 static int32_t jitters(CSOUND *csound, JITTERS *p)
 {
     MYFLT       x, c3= p->c3, c2= p->c2;
@@ -1658,7 +1698,9 @@ static int32_t jitters(CSOUND *csound, JITTERS *p)
     *p->ar = (((c3 * x + c2) * x + df0) * x + f0) * *p->amp;
     return OK;
 }
+#endif
 
+#ifdef INC_JSPLINE_A
 static int32_t jittersa(CSOUND *csound, JITTERS *p)
 {
     MYFLT   x, c3=p->c3, c2=p->c2;
@@ -1709,7 +1751,9 @@ static int32_t jittersa(CSOUND *csound, JITTERS *p)
     p->si =si;
     return OK;
 }
+#endif
 
+//*********************** HERE ***************************
 static int32_t kDiscreteUserRand(CSOUND *csound, DURAND *p)
 { /* gab d5*/
     if (p->pfn != (int32)*p->tableNum) {
@@ -2129,24 +2173,52 @@ static OENTRY localops[] = {
 #ifdef INC_NTRPOL_A
 { "ntrpol.a",S(INTERPOL), 0,3, "a", "aakop",(SUBR)nterpol_init,(SUBR)anterpol},
 #endif
+#ifdef INC_FOLD
 { "fold",    S(FOLD),     0,3, "a", "ak",   (SUBR)fold_set, (SUBR)fold      },
+#endif
+#ifdef INC_LINETO
 { "lineto",   S(LINETO),  0,3, "k", "kk",   (SUBR)lineto_set,  (SUBR)lineto, NULL },
+#endif
+#ifdef INC_TLINETO
 { "tlineto",  S(LINETO2), 0,3, "k", "kkk",  (SUBR)tlineto_set, (SUBR)tlineto, NULL},
+#endif
+#ifdef INC_VIBRATO
 { "vibrato",  S(VIBRATO), TR, 3, "k", "kkkkkkkkio",
                                         (SUBR)vibrato_set, (SUBR)vibrato, NULL   },
+#endif
+  #ifdef INC_VIBR
 { "vibr",     S(VIBRATO), TR, 3, "k", "kki",  (SUBR)vibr_set, (SUBR)vibr, NULL   },
+  #endif
+  #ifdef INC_JITTER2
 { "jitter2",  S(JITTER2), 0,3, "k", "kkkkkkko", (SUBR)jitter2_set, (SUBR)jitter2 },
+  #endif
+#ifdef INC_JITTER
 { "jitter",   S(JITTER),  0,3, "k", "kkk",  (SUBR)jitter_set, (SUBR)jitter, NULL },
-{ "jspline",  S(JITTERS), 0,3, "k", "xkk",
-                                (SUBR)jitters_set, (SUBR)jitters, NULL },
-{ "jspline.a",  S(JITTERS), 0,3, "a", "xkk",
-    (SUBR)jitters_set, (SUBR)jittersa },
+  #endif
+  #ifdef INC_JSPLINE
+{ "jspline",  S(JITTERS), 0,3, "k", "xkk", (SUBR)jitters_set, (SUBR)jitters, NULL },
+  #endif
+  #ifdef INC_JSPLINE_A
+{ "jspline.a",  S(JITTERS), 0,3, "a", "xkk",(SUBR)jitters_set, (SUBR)jittersa },
+  #endif
+  #ifdef INC_LOOPSEG
 { "loopseg",  S(LOOPSEG), 0,3, "k", "kkiz", (SUBR)loopseg_set, (SUBR)loopseg, NULL},
+  #endif
+  #ifdef INC_LOOPXSEG
 { "loopxseg", S(LOOPSEG), 0,3, "k", "kkiz", (SUBR)loopseg_set,(SUBR)loopxseg, NULL},
-{ "looptseg", S(LOOPSEG), 0,3, "k", "kkiz",(SUBR)looptseg_set,(SUBR)looptseg, NULL},
+  #endif
+  #ifdef INC_LOOPTSEG
+{ "looptseg", S(LOOPSEG), 0,3, "k", "kkiz",(SUBR) looptseg_set,(SUBR)looptseg, NULL},
+  #endif
+  #ifdef INC_LPSHOLD
 { "lpshold",  S(LOOPSEG), 0,3, "k", "kkiz",(SUBR)loopseg_set, (SUBR)lpshold, NULL },
+  #endif
+  #ifdef INC_LOOPSEGP
 { "loopsegp", S(LOOPSEGP), 0,3,"k", "kz",  (SUBR)loopsegp_set,(SUBR)loopsegp, NULL},
+  #endif
+  #ifdef INC_LPSHOLDP
 { "lpsholdp", S(LOOPSEGP), 0,3,"k", "kz",  (SUBR)loopsegp_set,(SUBR)lpsholdp, NULL},
+  #endif
 { "cuserrnd.i", S(CURAND),0,1,"i",  "iii",  (SUBR)iContinuousUserRand, NULL, NULL },
 { "cuserrnd.k", S(CURAND),0,2,"k",  "kkk",
                             (SUBR)Cuserrnd_set, (SUBR)kContinuousUserRand, NULL },
@@ -2216,9 +2288,15 @@ static OENTRY localops[] = {
   #ifdef INC_TRIGGER
 { "trigger",  S(TRIG),  0,3, "k", "kkk",  (SUBR)trig_set, (SUBR)trig,   NULL  },
   #endif
+  #ifdef INC_SUM
 { "sum",      S(SUM),   0,2, "a", "y",    NULL, (SUBR)sum_               },
+  #endif
+  #ifdef INC_PRODUCT
 { "product",  S(SUM),   0,2, "a", "y",    NULL, (SUBR)product           },
+  #endif
+  #ifdef INC_RESONY
 { "resony",  S(RESONY), 0,3, "a", "akkikooo", (SUBR)rsnsety, (SUBR)resony }
+  #endif
 };
 
 int32_t uggab_init_(CSOUND *csound)

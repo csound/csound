@@ -1,4 +1,4 @@
-#define MINTITLE	"all Opcodes"
+#define MINITITLE	"all Opcodes"
 #define INC_SETKSMPS
 #define INC_CTRLINIT
 #define INC_CTRLINIT_S

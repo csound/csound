@@ -1,5 +1,5 @@
 //OPCODES IN TRAPPED
-#define MINTITLE	"For trapped.csd"
+#define MINITITLE	"For trapped.csd"
 
 // ##add.aa
 // ##add.ii

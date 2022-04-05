@@ -63,6 +63,7 @@
 #include "namedins.h"
 //#include "cs_par_dispatch.h"
 #include "find_opcode.h"
+#include "opcodes.h"
 
 #if defined(linux)||defined(__HAIKU__)|| defined(__EMSCRIPTEN__)||defined(__CYGWIN__)
 #define PTHREAD_SPINLOCK_INITIALIZER 0
@@ -150,6 +151,9 @@ void print_csound_version(CSOUND* csound)
                     STRING_HASH(GIT_HASH_VALUE));
 #endif
 #endif
+    #ifdef MINITITLE
+    csoundErrorMsg(csound, "[%s]\n", MINITITLE);
+    #endif
 }
 
 void print_sndfile_version(CSOUND* csound) {
@@ -1029,7 +1033,8 @@ static const CSOUND cenviron_ = {
     NULL,           /* op */
     0,              /* mode */
     NULL,           /* opcodedir */
-    NULL           /* score_srt */
+    NULL,           /* score_srt */
+    NULL            /* minilist */
 };
 
 void csound_aops_init_tables(CSOUND *cs);
