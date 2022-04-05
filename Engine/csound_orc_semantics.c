@@ -2928,6 +2928,8 @@ void print_tree_i(CSOUND *csound, TREE *l, int n)
     csound->Message(csound,"STRING_TOKEN: %s\n", l->value->lexeme); break;
   case T_IDENT:
     csound->Message(csound,"T_IDENT: %s\n", l->value->lexeme); break;
+  case T_OPCALL:
+    csound->Message(csound,"T_OPCALL: %s\n", l->value->lexeme); break;
   case INTEGER_TOKEN:
     csound->Message(csound,"INTEGER_TOKEN: %d\n", l->value->value); break;
   case NUMBER_TOKEN:
@@ -3058,6 +3060,9 @@ static void print_tree_xml(CSOUND *csound, TREE *l, int n, int which)
                     l->value->lexeme); break;
   case T_IDENT:
     csound->Message(csound,"name=\"T_IDENT\" varname=\"%s\"",
+                    l->value->lexeme); break;
+  case T_OPCALL:
+    csound->Message(csound,"name=\"T_OPCALL\" varname=\"%s\"",
                     l->value->lexeme); break;
 
   case T_DECLARE:

@@ -30,7 +30,7 @@
  * ====================                                                       *
  *                                                                            *
  * Plugin libraries are loaded from the directory defined by the environment  *
- * variable OPCODE6DIR (or the current directory if OPCODE6DIR is unset) by   *
+ * variable OPCODE7DIR (or the current directory if OPCODE7DIR is unset) by   *
  * csoundPreCompile() while initialising a Csound instance, and are unloaded  *
  * at the end of performance by csoundReset().                                *
  * A library may export any of the following five interface functions,        *

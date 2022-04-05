@@ -144,7 +144,7 @@ static TREE* remove_excess_assigns(CSOUND *csound, TREE* root)
     print_tree(csound, "AssignTest", root);
     while (current) {
       //      if (PARSER_DEBUG1) printf("in loop: current->type = %d\n", current->type);
-      if ((current->type == OPCODE || current->type == '=') &&
+      if ((current->type == T_OPCALL || current->type == T_ASSIGNMENT) &&
           current->left != NULL &&
           //current->right != NULL &&  no one looks at current->right
           current->left->value->lexeme[0]=='#') {
