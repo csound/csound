@@ -374,6 +374,7 @@ public:
 };
 
 #if (__cplusplus >= 201103L) && !(defined(__wasi__))
+#pragma message("Defining heap_object_manager_t.")
 
 /**
  * The memory of non-POD C++ or C objects allocated on the heap by Csound
@@ -484,6 +485,8 @@ public:
         }
 };
 
+#else
+#pragma message("Not defining heap_manager_t.")
 #endif
 
 }
