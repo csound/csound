@@ -373,9 +373,8 @@ public:
     OPDS opds;
 };
 
-#if (__cplusplus >= 201103L) && !(defined(__wasi__))
+#if __cplusplus >= 201103L
 #pragma message("Defining heap_object_manager_t.")
-
 /**
  * The memory of non-POD C++ or C objects allocated on the heap by Csound
  * plugins is managed not by Csound, but by the plugin module. This class
