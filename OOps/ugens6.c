@@ -58,7 +58,7 @@ int32_t downsamp(CSOUND *csound, DOWNSAMP *p)
       *p->kr = sum / p->len;
     }
     return OK;
-}b
+}
 #endif
 
 #ifdef INC_UPSAMP
@@ -505,7 +505,7 @@ int32_t delayw(CSOUND *csound, DELAYW *p)
     return csound->PerfError(csound, &(p->h),
                              Str("delayw: not initialised"));
 }
-#edif
+#endif
 
 #ifdef INC_DELTAP
 int32_t deltap(CSOUND *csound, DELTAP *p)
@@ -751,7 +751,7 @@ int32_t deltap3(CSOUND *csound, DELTAP *p)
 
 /* deltapx and deltapxw opcodes by Istvan Varga */
 
-#if defined(INC_DELTAPX)||deied(INC_DETABXW)
+#if defined(INC_DELTAPX)||defined(INC_DETABXW)
 int32_t tapxset(CSOUND *csound, DELTAPX *p)
 {
     p->delayr = delayr_find(csound, p->indx);
@@ -859,7 +859,7 @@ int32_t deltapx(CSOUND *csound, DELTAPX *p)                 /* deltapx opcode */
 }
 #endif
 
-ifdef INC_DELTAPXW
+#ifdef INC_DELTAPXW
 int32_t deltapxw(CSOUND *csound, DELTAPX *p)                /* deltapxw opcode */
 {
     DELAYR  *q = p->delayr;

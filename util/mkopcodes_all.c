@@ -16,9 +16,9 @@ int main(void)
       fprintf(stderr, "Failed to open output\n");
       exit(1);
     }
-    printf("#define MINITITLE\t\"all Opcodes\"\n");
+    fprintf(outp, "#define MINITITLE\t\"all Opcodes\"\n");
     for (i=0; dict[i].tag!=NULL; i++) {
-      printf("#define %s\n", dict[i].tag);
+      fprintf(outp, "#define %s\n", dict[i].tag);
     }
     fclose(outp);
 }

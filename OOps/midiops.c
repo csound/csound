@@ -53,7 +53,7 @@ int32_t midibset(CSOUND*, MIDIKMB*);
 
 /* IV - Oct 31 2002: modified to allow named instruments */
 
-#ifdef INC_MASDIGN_p
+#ifdef INC_MASSIGN_P
 int32_t massign_p(CSOUND *csound, MASSIGN *p)
 {
     int32_t   chnl = (int32_t)(*p->chnl + FL(0.5));
@@ -290,7 +290,7 @@ int32_t cpsmidi(CSOUND *csound, MIDIKMB *p)
 }
 #endif
 
- 
+
 #if defined(INC_CPSMIDIB_K)||defined(INC_CPSMIDIB_I)
 int32_t icpsmidib(CSOUND *csound, MIDIKMB *p)
 {

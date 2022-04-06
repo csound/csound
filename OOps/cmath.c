@@ -795,7 +795,7 @@ int32_t ikweib(CSOUND *csound, PRAND *p)
 
 #ifdef INC_POISSONRAND_A
 int32_t apoiss(CSOUND *csound, PRAND *p)    /*      Poisson random funcions */
-
+{
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t n, nsmps = CS_KSMPS;

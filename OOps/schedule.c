@@ -34,6 +34,7 @@
 #endif
 #include "opcodes.h"
 
+extern void csoundInputMessageInternal(CSOUND *, const char *);
 int32_t eventOpcodeI_(CSOUND *csound, LINEVENT *p, int32_t s, char p1);
 int32_t eventOpcode_(CSOUND *csound, LINEVENT *p, int32_t s, char p1);
 

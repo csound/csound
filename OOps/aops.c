@@ -1453,7 +1453,7 @@ int32_t cpstun(CSOUND *csound, CPSTUN *p)
 }
 #endif
 
-#ifdef INC_OCTAVE_A
+#if defined(INC_OCTAVE_A)||defined(INC_OCTAVE)
 int32_t logbasetwo_set(CSOUND *csound, EVAL *p)
 {
     IGN(p);
@@ -1469,7 +1469,9 @@ int32_t logbasetwo_set(CSOUND *csound, EVAL *p)
     }
     return OK;
 }
+#endif
 
+#ifdef INC_OCTAVE_A
 int32_t powoftwoa(CSOUND *csound, EVAL *p)
 {                                   /* by G.Maldonado, liberalised by JPff */
     MYFLT    *a=p->a, *r=p->r;

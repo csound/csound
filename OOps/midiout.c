@@ -146,6 +146,7 @@ int32_t iout_off(CSOUND *csound, OUT_ON *p)
     note_off(csound, (int32_t)*p->ichn-1,(int32_t)*p->inum,(int32_t)*p->ivel);
     return OK;
 }
+#endif
 
 #if defined(INC_NOTEONDUR)||defined(INC_NOTEONDUR2)
 int32_t iout_on_dur_set(CSOUND *csound, OUT_ON_DUR *p)
@@ -167,7 +168,7 @@ int32_t iout_on_dur_set(CSOUND *csound, OUT_ON_DUR *p)
 }
 #endif
 
-ifdef INC_NOTEONDUR
+#ifdef INC_NOTEONDUR
 int32_t iout_on_dur(CSOUND *csound, OUT_ON_DUR *p)
 {
     if (!(p->fl_expired)) {

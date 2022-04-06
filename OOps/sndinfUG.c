@@ -196,7 +196,7 @@ int32_t filesr_S(CSOUND *csound, SNDINFO *p)
 #endif
 
 #ifdef INC_FiLEBIT_S
-int32_t filebit_S(CSOUND *csound, SNDINFO *p)
+int32_t filebit_s(CSOUND *csound, SNDINFO *p)
 {
     SFLIB_INFO hdr;
     int32_t bits, format;
@@ -228,7 +228,7 @@ int32_t filenchnls(CSOUND *csound, SNDINFO *p)
 }
 #endif
 
-#ifdef INV_FILESR
+#ifdef INC_FILESR
 int32_t filesr(CSOUND *csound, SNDINFO *p)
 {
     SFLIB_INFO hdr;

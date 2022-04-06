@@ -339,7 +339,7 @@ int32_t printksset_(CSOUND *csound, PRINTKS *p, char *sarg)
 #endif
 
 #ifdef INC_PRINTKS_S
-int32_ot printksset_S(CSOUND *csound, PRINTKS *p){
+int32_t printksset_S(CSOUND *csound, PRINTKS *p){
     char *sarg;
     sarg = ((STRINGDAT*)p->ifilcod)->data;
     if (sarg == NULL) return csoundInitError(csound, Str("null string\n"));

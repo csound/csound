@@ -1804,7 +1804,7 @@ static int32_t aDiscreteUserRand(CSOUND *csound, DURAND *p)
                              Str("Invalid ftable no. %f"),
                              *p->tableNum);
 }
-
+#ifdef INC_CUSERRND
 static int32_t kContinuousUserRand(CSOUND *csound, CURAND *p)
 { /* gab d5*/
     int32 indx;
@@ -1833,13 +1833,16 @@ static int32_t iContinuousUserRand(CSOUND *csound, CURAND *p)
     kContinuousUserRand(csound,p);
     return OK;
 }
+#endif
 
+//#if defined(INC_CUSERRND)||defined(CUSERRND_A)
 static int32_t Cuserrnd_set(CSOUND *csound, CURAND *p)
 {
     IGN(csound);
     p->pfn = 0;
     return OK;
 }
+//#endif
 
 static int32_t aContinuousUserRand(CSOUND *csound, CURAND *p)
 { /* gab d5*/
@@ -1881,12 +1884,15 @@ static int32_t aContinuousUserRand(CSOUND *csound, CURAND *p)
                              *p->tableNum);
 }
 
+#ifdef INC_RANDOM
 static int32_t ikRangeRand(CSOUND *csound, RANGERAND *p)
 { /* gab d5*/
     *p->out = randGab * (*p->max - *p->min) + *p->min;
     return OK;
 }
+#endif
 
+#ifdef INC_RADOM_A
 static int32_t aRangeRand(CSOUND *csound, RANGERAND *p)
 { /* gab d5*/
     MYFLT min = *p->min, max = *p->max, *out = p->out;
@@ -1905,7 +1911,7 @@ static int32_t aRangeRand(CSOUND *csound, RANGERAND *p)
     }
     return OK;
 }
-
+#endif
 /* mode and fstval arguments added */
 /* by Francois Pinot, jan. 2011    */
 static int32_t randomi_set(CSOUND *csound, RANDOMI *p)
@@ -2219,14 +2225,22 @@ static OENTRY localops[] = {
   #ifdef INC_LPSHOLDP
 { "lpsholdp", S(LOOPSEGP), 0,3,"k", "kz",  (SUBR)loopsegp_set,(SUBR)lpsholdp, NULL},
   #endif
+  #ifdef INC_CUSERRND
 { "cuserrnd.i", S(CURAND),0,1,"i",  "iii",  (SUBR)iContinuousUserRand, NULL, NULL },
 { "cuserrnd.k", S(CURAND),0,2,"k",  "kkk",
                             (SUBR)Cuserrnd_set, (SUBR)kContinuousUserRand, NULL },
+  #endif
+  #ifdef INC_CUSERRND_A
 { "cuserrnd.a",S(CURAND),0,2, "a", "kkk",
                             (SUBR)Cuserrnd_set, (SUBR)aContinuousUserRand },
+  #endif
+  #ifdef INC_RANDOM
 { "random.i", S(RANGERAND), 0,1, "i", "ii",    (SUBR)ikRangeRand, NULL, NULL      },
 { "random.k", S(RANGERAND), 0,2, "k", "kk",    NULL, (SUBR)ikRangeRand, NULL      },
+  #endif
+  #ifdef INC_RANDOM_A
 { "random.a", S(RANGERAND), 0,2, "a", "kk",    NULL,  (SUBR)aRangeRand      },
+  #endif
 { "rspline",  S(RANDOM3), 0,3, "k", "xxkk",
                                (SUBR)random3_set, (SUBR)random3, NULL },
 { "rspline.a",  S(RANDOM3), 0,3, "a", "xxkk",

@@ -57,7 +57,7 @@ int32_t port(CSOUND *csound, PORT *p)
 #endif
 
 #ifdef INC_PORTK
-int32_t kport(CSOUND *csound, KPORT *p)
+int32_t kport(CSOUND *csound, PORT *p)
 {
     IGN(csound);
     if (p->ihtim_old != *p->ihtim) {
@@ -773,6 +773,7 @@ static void SortPoles(int32_t poleCount, MYFLT *poleMagn, MYFLT *polePhas)
 {
     int32_t i, j;
     MYFLT   diff, fTemp;
+
     int32_t shouldSwap;
 
     /*  DumpPolesF(poleCount, poleMagn, polePhas, 1, "Before sort"); */

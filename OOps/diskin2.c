@@ -1021,7 +1021,7 @@ static int32_t soundout_deinit(CSOUND *csound, void *pp)
       MYFLT *p0 = (MYFLT*) &(q->outbuf[0]);
       MYFLT *p1 = (MYFLT*) q->outbufp;
       if (p1 > p0) {
-        sf_write_MYFLT(q->sf, p0, (sf_count_t) ((MYFLT*) p1 - (MYFLT*) p0));
+        sflib_write_MYFLT(q->sf, p0, (sf_count_t) ((MYFLT*) p1 - (MYFLT*) p0));
         q->outbufp = (MYFLT*) &(q->outbuf[0]);
       }
       /* close file */
@@ -1155,7 +1155,7 @@ int32_t soundouts(CSOUND *csound, SNDOUTS *p)
     if (UNLIKELY(early)) nsmps -= early;
     for (nn = offset; nn < nsmps; nn++) {
       if (UNLIKELY(p->c.outbufp >= p->c.bufend)) {
-        sf_write_MYFLT(p->c.sf, p->c.outbuf, p->c.bufend - p->c.outbuf);
+        sflib_write_MYFLT(p->c.sf, p->c.outbuf, p->c.bufend - p->c.outbuf);
         p->c.outbufp = p->c.outbuf;
       }
       *(p->c.outbufp++) = p->asig1[nn];

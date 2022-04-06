@@ -72,9 +72,9 @@ int32_t kcgoto(CSOUND *csound, CGOTO *p)
 int32_t ingoto(CSOUND *csound, CGOTO *p)
 {
   /* Make sure we have an i-time conditional */
-  if (p->h.optext->t.intype == 'b' && !*p->cond)
-    csound->ids = p->lblblk->prvi;
-  return OK;
+    if (csoundGetTypeForArg(p->cond) == &CS_VAR_TYPE_b && !*p->cond)
+      csound->ids = p->lblblk->prvi;
+    return OK;
 }
 #endif
 
@@ -88,7 +88,7 @@ int32_t kngoto(CSOUND *csound, CGOTO *p)
 }
 #endif
 
-#ifdef INC_TIMOUR
+#ifdef INC_TIMOUT
 int32_t timset(CSOUND *csound, TIMOUT *p)
 {
   if (UNLIKELY((p->cnt1 = (int32_t)(*p->idel * CS_EKR + FL(0.5))) < 0L ||
@@ -431,6 +431,6 @@ int32_t loop_ge_p(CSOUND *csound, LOOP_OPS *p)
   *(p->ndxvar) -= *(p->incr);
   if (*(p->ndxvar) >= *(p->limit))
     CS_PDS = p->l->prvp;
-  return OK;,
+  return OK;
 }
 #endif

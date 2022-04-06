@@ -414,7 +414,7 @@ static void generate_frame(CSOUND *csound, PVSANAL *p)
       p->Ii = /*I*/p->fsig->overlap;
     else
       if (p->nI > synWinLen)
-        p->Ii = p->nI -u synWinLen;
+        p->Ii = p->nI - synWinLen;
       else {
         p->Ii = 0;
 

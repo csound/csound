@@ -117,7 +117,7 @@ OENTRY opcodlst_1[] = {
 #ifdef INC_CTRLINIT
   { "ctrlinit",S(CTLINIT),0,1,      "",  "im", ctrlinit, NULL, NULL, NULL},
   #endif
-  #ifdef INC_CTRLINIT_S
+#ifdef INC_CTRLINIT_S
   { "ctrlinit.S",S(CTLINITS),0,1,      "",  "Sm", ctrlnameinit, NULL, NULL, NULL},
   #endif
   #ifdef INC_CTRLSAVE
@@ -136,7 +136,7 @@ OENTRY opcodlst_1[] = {
   #endif
   #ifdef INC_CTRLPRINTPRESETS
   { "ctrlprintpresets", S(PRINTPRESETS), 0,3, "", "", printpresets_init, printpresets_perf, NULL},
-  { "ctrlprintpresets.S", S(PRINTPRESETS), 0,3, "", "S", printpresets_init1, printpresets_perf, NULL}
+  { "ctrlprintpresets.S", S(PRINTPRESETS), 0,3, "", "S", printpresets_init1, printpresets_perf, NULL},
   #endif
   #ifdef INC_MASSIGN_P
   { "massign",S(MASSIGN), 0,1,      "",  "iip",massign_p, NULL, NULL, NULL},
@@ -178,7 +178,7 @@ OENTRY opcodlst_1[] = {
   {  "#=.S",   S(STRCPY_OP),0,   3,  "S",    "S",
      NULL, (SUBR) strcpy_opcode_S, (SUBR) NULL, NULL    },
   {  "=.T",   S(STRGET_OP),0,   1,  "S",    "i",
-     (SUBR) strcpy_opcode_p, (SUBR) NULL, (SUBR) NULL, NULL                 }, 
+     (SUBR) strcpy_opcode_p, (SUBR) NULL, (SUBR) NULL, NULL                 },
   #endif
   #ifdef INC_RASSIGN
   { "=.r",    S(ASSIGN),0,  1,      "r",    "i",    rassign, NULL, NULL, NULL },
@@ -283,7 +283,7 @@ OENTRY opcodlst_1[] = {
   { "divz.ka", S(DIVZ),0,   2,      "a",    "kak",  NULL,   divzka  },
   #endif
   #ifdef INC_DIV_AA
-  { "divz.aa", S(DIEVZ),0,   2,      "a",    "aak",  NULL,   divzaa  },
+  { "divz.aa", S(DIVZ),0,   2,      "a",    "aak",  NULL,   divzaa  },
   #endif
   #ifdef INC_INT
   { "int.i",  S(EVAL),0,    1,      "i",    "i",    int1                    },
@@ -617,7 +617,7 @@ OENTRY opcodlst_1[] = {
   #ifdef INC_OCTMIDIB_I
   { "octmidib.i",S(MIDIKMB),0,1,    "i",    "o",    octmidib_i              },
   #endif
-  #ifdef CPSMMIDIB_I
+  #ifdef CPSMIDIB_I
   { "cpsmidib.i",S(MIDIKMB),0,1,    "i",    "o",    icpsmidib_i             },
   #endif
   #ifdef INC_PCHMIDIB_K
@@ -687,8 +687,8 @@ OENTRY opcodlst_1[] = {
   { "cossegr", S(COSSEG),0,  3,     "k",    "iim",  csgrset, kcssegr, NULL  },
   #endif
   #ifdef INC_COSSEGR_A
-  { "cossegr.a", S(COSESEG),0,  3,     "a",    "iim",  csgrset, cossegr  },
-  #endif 
+  { "cossegr.a", S(COSSEG),0,  3,     "a",    "iim",  csgrset, cossegr  },
+  #endif
   #ifdef INC_LINSEG
   { "linseg", S(LINSEG),0,  3,      "k",    "iim",  lsgset, klnseg, NULL },
   #endif
@@ -880,7 +880,7 @@ OENTRY opcodlst_1[] = {
 #ifdef INC_OSCILIkk
   { "oscili.kk",S(OSC),TR,   3,      "k",   "kkjo", oscset, koscli, NULL  },
 #endif
-#ifdef INC_OSCILIka  
+#ifdef INC_OSCILIka
   { "oscili.ka",S(OSC),TR,   3,      "a",   "kajo", oscset,   osckai  },
 #endif
 #ifdef INC_OSCILIak
@@ -889,7 +889,7 @@ OENTRY opcodlst_1[] = {
 #ifdef INC_OSCILIaa
   { "oscili.aa",S(OSC),TR,   3,      "a",   "aajo", oscset,   oscaai  },
 #endif
-#ifdef INC_OSCILIkkAbbbbb
+#ifdef INC_OSCILIaA
   { "oscili.aA",S(OSC),0,   3,      "a",   "kki[]o", oscsetA, osckki  },
 #endif
 #ifdef INC_OSCILIkkA
@@ -944,7 +944,7 @@ OENTRY opcodlst_1[] = {
 #ifdef INC_LOSCIL
   { "loscil", S(LOSC),TR,  3,      "mm","xkjojoojoo",losset, loscil   },
 #endif
-#ifdef INC_LOSCILPHS 
+#ifdef INC_LOSCILPHS
   { "loscilphs", S(LOSCPHS),TR,  3, "amm","xkjojoojoo",losset_phs, loscil_phs   },
 #endif
 #ifdef INC_LOSCIL3PHS
@@ -990,59 +990,59 @@ OENTRY opcodlst_1[] = {
 #ifdef INC_RANDC_K
   { "randc.k",  S(RANDC),0, 3,      "k",    "xxvoo", rcset, krandc    },
 #endif
-#ifdef  INC_PORT
+#ifdef INC_PORT
   { "port",   S(PORT),0,    3,      "k",    "kio",  porset, port            },
 #endif
-#ifdef  INC_TONE
+#ifdef INC_TONE
   { "tone.k", S(TONE),0,    3,      "a",    "ako",  tonset,   tone    },
 #endif
-#ifdef  INC_TONEX
+#ifdef INC_TONEX
   { "tonex.k",S(TONEX),0,   3,      "a",    "akoo", tonsetx,  tonex   },
 #endif
-#ifdef  INC_ATONE
+#ifdef INC_ATONE
   { "atone.k",  S(TONE),0,  3,      "a",    "ako",  tonset,   atone   },
 #endif
-#ifdef  INC_ATONEX
+#ifdef INC_ATONEX
   { "atonex.k", S(TONEX),0, 3,      "a",    "akoo", tonsetx,  atonex  },
 #endif
-  #ifdef  INC_RESON
+  #ifdef INC_RESON
   { "reson", S(RESON),   0, 3,      "a",    "axxoo", rsnset,  reson   },
 #endif
-#ifdef  INC_RESONX
+#ifdef INC_RESONX
   { "resonx", S(RESONX),0,  3,      "a",    "axxooo", rsnsetx, resonx },
 #endif
-#ifdef  INC_ARESON
+#ifdef INC_ARESON
   { "areson.kk", S(RESON),0,3,      "a",    "akkoo",rsnset,   areson  },
 #endif
-#ifdef  INC_LPREAD
+#ifdef INC_LPREAD
   { "lpread", S(LPREAD),0,  3,      "kkkk", "kSoo", lprdset_S,lpread          },
   { "lpread.i", S(LPREAD),0,  3,      "kkkk", "kioo", lprdset,lpread          },
 #endif
-#ifdef  INC_LPFORM
+#ifdef INC_LPFORM
   { "lpform", S(LPFORM),0,  3,      "kk", "k",     lpformantset,lpformant   },
 #endif
-#ifdef  INC_LPRESON
+#ifdef INC_LPRESON
   { "lpreson",S(LPRESON),0, 3,      "a",    "a",    lprsnset,  lpreson },
 #endif
-#ifdef  INC_LPFRESON
+#ifdef INC_LPFRESON
   { "lpfreson",S(LPFRESON),0,3,     "a",    "ak",   lpfrsnset, lpfreson},
 #endif
-#ifdef  INC_LPSLOT
+#ifdef INC_LPSLOT
   { "lpslot"  ,  S(LPSLOT),0,  1,   "",     "i",    lpslotset, NULL, NULL   },
 #endif
 #ifdef INC_LPINTERP
   { "lpinterp", S(LPINTERPOL),0, 3, "",     "iik",  lpitpset, lpinterpol, NULL},
 #endif
-#ifdef  INC_RMS
+#ifdef INC_RMS
   { "rms",    S(RMS),0,     3,      "k",    "aqo",  rmsset, rms             },
 #endif
-#ifdef  INC_GAIN
+#ifdef INC_GAIN
   { "gain",   S(GAIN),0,    3,      "a",    "akqo", gainset,   gain    },
 #endif
-#ifdef  INC_BALANCE
+#ifdef INC_BALANCE
   { "balance",S(BALANCE),0, 3,      "a",    "aaqo", balnset,   balance },
 #endif
-#ifdef  INC_BALANCE2
+#ifdef INC_BALANCE2
   { "balance2",S(BALANCE),0, 3,      "a",    "aaqo", balnset,   balance2 },
 #endif
   #ifdef INC_PAN
@@ -1128,7 +1128,7 @@ OENTRY opcodlst_1[] = {
   { "timout", S(TIMOUT),0,  3,      "",     "iil",  timset, timout          },
   #endif
   #ifdef INC_REINIT
-  { "reinit", S(GOTEO),0,    2,      "",     "l",    NULL,   reinit          },
+  { "reinit", S(GOTO),0,    2,      "",     "l",    NULL,   reinit          },
   #endif
   #ifdef INC_RIGOTO
   { "rigoto", S(GOTO),0,    1,      "",     "l",    rigoto                  },
@@ -1340,8 +1340,8 @@ OENTRY opcodlst_1[] = {
   #endif
   #ifdef INC_NOTEON
   { "noteon", S(OUT_ON),0,  1,      "",     "iii",  iout_on, NULL,   NULL    },
-  #edif
-  #ifde INC_NOTEOFF
+  #endif
+  #ifdef INC_NOTEOFF
   { "noteoff", S(OUT_ON),0, 1,      "",     "iii",  iout_off, NULL,    NULL  },
   #endif
   #ifdef INC_NOTEONDUR
@@ -1410,7 +1410,7 @@ OENTRY opcodlst_1[] = {
   #endif
   #ifdef INC_OCTAVE
   { "octave.i", S(EVAL),0,    1,    "i",    "i",     powoftwo               },
-  { "octave.k", S(EEVAL),0,    2,    "k",    "k",     NULL,  powoftwo        },
+  { "octave.k", S(EVAL),0,    2,    "k",    "k",     NULL,  powoftwo        },
   { "powoftwo.i",S(EVAL),0,  1,     "i",    "i",    powoftwo                   },
   { "powoftwo.k",S(EVAL),0,  2,     "k",    "k",    NULL, powoftwo             },
   #endif
@@ -1448,7 +1448,7 @@ OENTRY opcodlst_1[] = {
   { "filelen.i", S(SNDINFO),0, 1,     "i",    "ip",   filelen, NULL, NULL        },
   #endif
   #ifdef INC_FILENCHNLS
-  { "filenchnls.i", S(SNDINFO),0, 1,  "i",    "ip",   filenchnls, NULL, NULL     },
+  { "filenchnls.i", S(SNDINFO),0, 1,  "i",    "oscilip",   filenchnls, NULL, NULL     },
   #endif
   #ifdef INC_FILESR
   { "filesr.i", S(SNDINFO),0,  1,     "i",    "ip",   filesr, NULL, NULL         },
@@ -1591,22 +1591,22 @@ OENTRY opcodlst_1[] = {
   { "printk2", S(PRINTK2), WR, 3, "",   "koo",
     (SUBR)printk2set, (SUBR)printk2, NULL },
   #endif
-#ifdef  INC_PORTK
+#ifdef INC_PORTK
   { "portk",  S(PORT),0,   3, "k",     "kko",  (SUBR)porset, (SUBR)kport, NULL },
 #endif
-#ifdef  INC_TONEK
-  { "tonek",  S(KTONE),0,   3, "k",     "kko",  (SUBR)ktonset, (SUBR)ktone, NULL },
+#ifdef INC_TONEK
+  { "tonek",  S(TONE),0,   3, "k",     "kko",  (SUBR)ktonset, (SUBR)ktone, NULL },
 #endif
-#ifdef  INC_ATONEK
-  { "atonek", S(KTONE),0,   3, "k",     "kko",  (SUBR)ktonset, (SUBR)katone, NULL},
+#ifdef INC_ATONEK
+  { "atonek", S(TONE),0,   3, "k",     "kko",  (SUBR)ktonset, (SUBR)katone, NULL},
 #endif
-#ifdef  INC_RESONK
-{ "resonk", S(KRESON),0,  3, "k",     "kkkpo",(SUBR)rsnset, (SUBR)kreson, NULL},
+#ifdef INC_RESONK
+{ "resonk", S(RESON),0,  3, "k",     "kkkpo",(SUBR)rsnset, (SUBR)kreson, NULL},
 #endif
-#ifdef  INC_ARESONK
-  { "aresonk",S(KRESON),0,  3, "k",     "kkkpo",(SUBR)rsnset, (SUBR)kareson, NULL},
+#ifdef INC_ARESONK
+  { "aresonk",S(RESON),0,  3, "k",     "kkkpo",(SUBR)rsnset, (SUBR)kareson, NULL},
 #endif
-#ifdef  INC_LIMIT
+#ifdef INC_LIMIT
   { "limit.i", S(LIMIT),0,  1, "i",     "iii",  (SUBR)klimit,  NULL,    NULL      },
   { "limit.k",  S(LIMIT),0, 2, "k",     "kkk",  NULL,          (SUBR)klimit, NULL },
   { "limit.a",  S(LIMIT),0, 2, "a",     "akk",  NULL,  (SUBR)limit },
@@ -1614,7 +1614,7 @@ OENTRY opcodlst_1[] = {
   { "prealloc.S", S(AOP),0,   1, "",      "iio",  (SUBR)prealloc, NULL, NULL  },
    { "prealloc", S(AOP),0,   1, "",      "Sio",  (SUBR)prealloc_S, NULL, NULL  },
   /* opcode   dspace      thread  outarg  inargs  isub    ksub    asub    */
-   #ifdef IC_INH
+   #ifdef INC_INH
   { "inh",    S(INH),0,     2,      "aaaaaa","",    NULL,   inh     },
   #endif
   #ifdef INC_INO
@@ -1702,7 +1702,7 @@ OENTRY opcodlst_1[] = {
     schedule_S, NULL, NULL },
   #endif
   #ifdef INC_SCHEDULE_SN
-  { "schedule.SN", US(SCHED),0,  1,     "",     "SiiN",
+  { "schedule.SN", S(SCHED),0,  1,     "",     "SiiN",
     schedule_SN, NULL, NULL },
   #endif
   #ifdef INC_SCHEDULE_ARRAY
@@ -1722,7 +1722,7 @@ OENTRY opcodlst_1[] = {
   { "schedulek.S", S(SCHED),0,  2,     "",     "SkkM",
     NULL, schedule_S, NULL },
   #endif
-  #ifdef INC_SCHEDULE_SN  
+  #ifdef INC_SCHEDULE_SN
   { "schedulek.SN", S(SCHED),0, 2,     "",     "SkkN",
     NULL, schedule_SN, NULL },
   { "schedulek.array",   S(SCHED),0,  2,     "",     "k[]",
@@ -1794,7 +1794,7 @@ OENTRY opcodlst_1[] = {
   #ifdef INC_PVSYNTH
   { "pvsynth",  S(PVSYNTH),0, 3,    "a",   "fo",     pvsynthset, pvsynth },
   #endif
-#ifdef INC_PVSADSYN  
+#ifdef INC_PVSADSYN
   { "pvsadsyn", S(PVADS),0,   3,    "a",   "fikopo", pvadsynset, pvadsyn, NULL },
   #endif
   #ifdef INC_PVSCROSS
@@ -2171,7 +2171,7 @@ OENTRY opcodlst_1[] = {
   { "loop_lt.i", S(LOOP_OPS),0,  1,  "", "iiil", (SUBR) loop_l_i, NULL, NULL   },
   #endif
   #ifdef INC_LOOP_LE
-  { "loop_le.i", S(LEOOP_OPS),0,  1,  "", "iiil", (SUBR) loop_le_i, NULL, NULL  },
+  { "loop_le.i", S(LOOP_OPS),0,  1,  "", "iiil", (SUBR) loop_le_i, NULL, NULL  },
   #endif
   #ifdef INC_LOOP_GT
   { "loop_gt.i", S(LOOP_OPS),0,  1,  "", "iiil", (SUBR) loop_g_i, NULL, NULL   },
@@ -2308,7 +2308,7 @@ OENTRY opcodlst_1[] = {
   #endif
   #ifdef INC_FTRESIZE
   { "ftresizei", S(RESIZE), TB, 1, "i", "ii", (SUBR) resize_table, NULL, NULL },
-  { "ftresize",  ES(RESIZE), TB, 2, "k", "kk", NULL, (SUBR) resize_table, NULL },
+  { "ftresize",  S(RESIZE), TB, 2, "k", "kk", NULL, (SUBR) resize_table, NULL },
   #endif
   #ifdef INC_COMPILEORC
   { "compileorc",  S(COMPILE), 0, 1, "i", "S",  (SUBR) compile_orc_i, NULL, NULL },
@@ -2326,7 +2326,7 @@ OENTRY opcodlst_1[] = {
   { "evalstr",  S(COMPILE), 0, 2, "k", "Sk",  NULL, (SUBR) eval_str_k, NULL },
   #endif
   #ifdef INC_READSCORE
-  { "readscore",  S(COMPILE), 0, 1, "i"o, "S",  (SUBR) read_score_i, NULL, NULL },
+  { "readscore",  S(COMPILE), 0, 1, "i", "S",  (SUBR) read_score_i, NULL, NULL },
   #endif
   #ifdef INC_RETURN
   { "return",  S(RETVAL), 0, 1, "", "i",  (SUBR) retval_i, NULL, NULL },
@@ -2340,7 +2340,7 @@ OENTRY opcodlst_1[] = {
     (SUBR) monitor_opcode_init, (SUBR) notinit_opcode_stub,  NULL },
   #endif
   #ifdef INC_OUTRG
-  { "outrg", S(OUTSRANGE), IR,3, "", "ky",
+  { "outrg", S(OUTRANGE), IR,3, "", "ky",
     (SUBR)outRange_i, (SUBR)outRange},
   #endif
   #ifdef INC_HW_CHANNELS
@@ -2394,4 +2394,3 @@ OENTRY opcodlst_1[] = {
   /*t erminate list */
   {  NULL, 0, 0, 0, NULL, NULL, NULL, NULL, NULL       }
 };
-
