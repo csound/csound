@@ -35,6 +35,7 @@
 #include "csound_standard_types.h"
 #include "csound_orc_semantics.h"
 #include <inttypes.h>
+#include "opcodes.h"
 
 static  void    showallocs(CSOUND *);
 static  void    deact(CSOUND *, INSDS *);

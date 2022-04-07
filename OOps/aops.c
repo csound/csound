@@ -1489,7 +1489,7 @@ int32_t powoftwoa(CSOUND *csound, EVAL *p)
 }
 #endif
 
-#ifdef INC_OCTAVE_A
+#ifdef INC_OCTAVE
 int32_t powoftwo(CSOUND *csound, EVAL *p)
 {
     *p->r = POWER(FL(2.0), *p->a);

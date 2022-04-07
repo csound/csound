@@ -302,6 +302,7 @@
 #define INC_NTRPOL_I
 #define INC_NTRPOL_K
 #define INC_OCTAVE
+#define INC_OCTAVE_A
 #define INC_OCTCPS
 #define INC_OCTMIDI
 #define INC_OCTMIDIB

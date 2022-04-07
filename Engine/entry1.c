@@ -1414,7 +1414,7 @@ OENTRY opcodlst_1[] = {
   { "powoftwo.i",S(EVAL),0,  1,     "i",    "i",    powoftwo                   },
   { "powoftwo.k",S(EVAL),0,  2,     "k",    "k",    NULL, powoftwo             },
   #endif
-  #ifdef INC_POCTVE_A
+  #ifdef INC_OCTAVE_A
   { "powoftwo.a",S(EVAL),0,  2,     "a",    "a",    NULL, powoftwoa      },
   { "octave.a", S(EVAL),0,    2,    "a",    "a",     NULL, powoftwoa  },
   #endif
