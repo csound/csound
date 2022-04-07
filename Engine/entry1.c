@@ -127,7 +127,7 @@ OENTRY opcodlst_1[] = {
   { "ctrlprint.S",S(PRINTCTRL),0,3, "", "k[]S", printctrl_init1, printctrl, NULL},
   { "ctrlprint",S(PRINTCTRL),0,3,       "", "k[]", printctrl_init, printctrl, NULL},
   #endif
-  #ifdef CTRLPRESET
+  #ifdef INC_CTRLPRESET
   { "ctrlpreset.V", S(PRESETCTRL1), 0,3, "k", "kk[]", presetctrl1_init, presetctrl1_perf, NULL},
   { "ctrlpreset", S(PRESETCTRL), 0,3, "k", "kim", presetctrl_init, presetctrl_perf, NULL},
   #endif
@@ -282,7 +282,7 @@ OENTRY opcodlst_1[] = {
   #ifdef INC_DIVZ_KA
   { "divz.ka", S(DIVZ),0,   2,      "a",    "kak",  NULL,   divzka  },
   #endif
-  #ifdef INC_DIV_AA
+  #ifdef INC_DIVZ_AA
   { "divz.aa", S(DIVZ),0,   2,      "a",    "aak",  NULL,   divzaa  },
   #endif
   #ifdef INC_INT
@@ -1097,10 +1097,10 @@ OENTRY opcodlst_1[] = {
   #ifdef INC_OUTS2
   { "outq2",  S(OUTM),IR,    3,      "",     "a",    och2,   outs2   },
   #endif
-  #ifdef INC_OUT3
+  #ifdef INC_OUTQ3
   { "outq3",  S(OUTM),IR,    3,      "",     "a",    och3,   outq3   },
   #endif
-  #ifdef INC_OUT4
+  #ifdef INC_OUTQ4
   { "outq4",  S(OUTM),IR,    3,      "",     "a",    och2,   outq4   },
   #endif
   #ifdef INC_OUTALL
@@ -1134,7 +1134,7 @@ OENTRY opcodlst_1[] = {
   { "rigoto", S(GOTO),0,    1,      "",     "l",    rigoto                  },
   #endif
   { "rireturn",S(LINK),0,   1,      "",     "",     rireturn                },
-  #ifdef INC_TIGOTOb
+  #ifdef INC_TIGOTO
   { "tigoto", S(GOTO),0,    1,      "",     "l",    tigoto                  },
   #endif
   #ifdef INC_TIVAL
@@ -1729,9 +1729,9 @@ OENTRY opcodlst_1[] = {
     NULL, schedule_array, NULL },
   #endif
   /* **** End of schedulek **** */
-  #ifdef INC_SCHEEDWHEN
+  #ifdef INC_SCHEDWHEN
   { "schedwhen", S(WSCHED),0,3,     "",     "kkkkm",ifschedule, kschedule, NULL },
-  { "schedwhen", S(WSCHED),0,3,     "",     "kSkkm",ifschedule, kschedule, NULL },
+  { "schedwhen.S", S(WSCHED),0,3,     "",     "kSkkm",ifschedule, kschedule, NULL },
   #endif
   #ifdef INC_SCHEDKWHEN
   { "schedkwhen", S(TRIGINSTR),0, 3,"",     "kkkkkz",triginset, ktriginstr, NULL },
@@ -2032,7 +2032,7 @@ OENTRY opcodlst_1[] = {
   #ifdef INC_COMB
   { "comb",   S(COMB),0,    3,  "a",  "akioo", (SUBR)cmbset, (SUBR)comb    },
   #endif
-  #ifdef INC_COMINV
+  #ifdef INC_COMBINV
   { "combinv",S(COMB),0,    3,  "a",  "akioo", (SUBR)cmbset, (SUBR)invcomb },
   #endif
   #ifdef INC_ALPASS

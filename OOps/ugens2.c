@@ -1393,7 +1393,7 @@ int32_t oscaa(CSOUND *csound, OSC *p)
 }
 #endif
 
-#if defined(INC_OSCIL_a)||defined(INC_OSCILI_A)
+#if defined(INC_OSCILIkkA)||defined(INC_OSCILIkA)
 int32_t koscli(CSOUND *csound, OSC   *p)
 {
     FUNC    *ftp;

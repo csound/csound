@@ -24,6 +24,7 @@
 
 #include "csoundCore.h"
 #include "remote.h"
+#include "opcodes.h"
 
 /* Somewhat revised from the original.  Pete G. Nov 2012
    More correct, I think, but I could be wrong... (:-/)

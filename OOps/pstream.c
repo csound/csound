@@ -29,6 +29,7 @@
 #include "csoundCore.h"
 #include "pstream.h"
 #include "pvfileio.h"
+#include "opcodes.h"
 
 #ifdef _DEBUG
 #include <assert.h>

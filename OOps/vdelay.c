@@ -291,7 +291,7 @@ int32_t vdelxset(CSOUND *csound, VDELX *p)      /*  vdelayx set-up (1 channel) *
 }
 #endif
 
-#ifdef INC_VDELAYXWS
+#ifdef INC_VDELAYXS
 int32_t vdelxsset(CSOUND *csound, VDELXS *p)    /*  vdelayxs set-up (stereo) */
 {
     uint32_t n = (int32_t)(*p->imaxd * csound->esr);

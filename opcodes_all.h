@@ -5,6 +5,8 @@
 #define INC_CTRLSAVE
 #define INC_CTRLPRINT
 #define INC_CTRLPRINT
+#define INC_CTRLPRESET
+#define INC_CTRLPRESET
 #define INC_CTRLSELECT
 #define INC_CTRLPRINTPRESETS
 #define INC_CTRLPRINTPRESETS
@@ -45,7 +47,7 @@
 #define INC_DIVZ
 #define INC_DIVZ_AK
 #define INC_DIVZ_KA
-#define INC_DIV_AA
+#define INC_DIVZ_AA
 #define INC_INT
 #define INC_FRAC
 #define INC_ROUND
@@ -331,8 +333,8 @@
 #define INC_OUTS2
 #define INC_OUTS1
 #define INC_OUTS2
-#define INC_OUT3
-#define INC_OUT4
+#define INC_OUTQ3
+#define INC_OUTQ4
 #define INC_OUTALL
 #define INC_IGOTO
 #define INC_KGOTO
@@ -343,7 +345,7 @@
 #define INC_TIMOUT
 #define INC_REINIT
 #define INC_RIGOTO
-#define INC_TIGOTOb
+#define INC_TIGOTO
 #define INC_TIVAL
 #define INC_PRINT
 #define INC_DISPLAY
@@ -563,8 +565,8 @@
 #define INC_SCHEDULE_S
 #define INC_SCHEDULE_SN
 #define INC_SCHEDULE_SN
-#define INC_SCHEEDWHEN
-#define INC_SCHEEDWHEN
+#define INC_SCHEDWHEN
+#define INC_SCHEDWHEN
 #define INC_SCHEDKWHEN
 #define INC_SCHEDKWHEN_S
 #define INC_SCHEDKWHEN
@@ -650,7 +652,7 @@
 #define INC_DELTAPXW
 #define INC_MULTITAP
 #define INC_COMB
-#define INC_COMINV
+#define INC_COMBINV
 #define INC_ALPASS
 #define INC_STRSET
 #define INC_STRGET

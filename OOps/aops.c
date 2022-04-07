@@ -990,7 +990,7 @@ LIBA(cosha,COSH)
 #ifdef INC_TANH_A
 LIBA(tanha,TANH)
 #endif
-#ifdef INC_LOG10_a
+#ifdef INC_LOG10_A
 LIBA(log10a,LOG10)
 #endif
 #ifdef INC_lOG2_A

@@ -32,7 +32,7 @@
 #include "convolve.h"
 #include "opcodes.h"
 
-#if defined(INC_FILELEN)||defined(INC_FILELEN_S)||defined(INC_FILENCHNLS)||defined(INC_FULENCHNLS_S)||defined(INC_FILESR)||defined(INC_FILESR_S)||defined(INC_FILEBIT)||defined(INC_FILEBIT_S)
+#if defined(INC_FILELEN)||defined(INC_FILELEN_S)||defined(INC_FILENCHNLS)||defined(INC_FILENCHNLS_S)||defined(INC_FILESR)||defined(INC_FILESR_S)||defined(INC_FILEBIT)||defined(INC_FILEBIT_S)
 static int32_t getsndinfo(CSOUND *csound, SNDINFO *p, SFLIB_INFO *hdr, int32_t strin)
 {
     char    *sfname, *s, soundiname[1024];
@@ -171,7 +171,7 @@ int32_t filelen_S(CSOUND *csound, SNDINFO *p)
 }
 #endif
 
-#ifdef INC_FILECHLS_S
+#ifdef INC_FILENCHNLS_S
 int32_t filenchnls_S(CSOUND *csound, SNDINFO *p)
 {
     SFLIB_INFO hdr;
@@ -195,8 +195,8 @@ int32_t filesr_S(CSOUND *csound, SNDINFO *p)
 }
 #endif
 
-#ifdef INC_FiLEBIT_S
-int32_t filebit_s(CSOUND *csound, SNDINFO *p)
+#ifdef INC_FILEBIT_S
+int32_t filebit_S(CSOUND *csound, SNDINFO *p)
 {
     SFLIB_INFO hdr;
     int32_t bits, format;
@@ -216,7 +216,7 @@ int32_t filebit_s(CSOUND *csound, SNDINFO *p)
 }
 #endif
 
-#ifdef INC_FILECHNLS
+#ifdef INC_FILENCHNLS
 int32_t filenchnls(CSOUND *csound, SNDINFO *p)
 {
     SFLIB_INFO hdr;

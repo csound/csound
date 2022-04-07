@@ -61,7 +61,7 @@
 #define INC_CKGOTO
 #define INC_CNGOTO
 #define INC_COMB
-#define INC_COMINV
+#define INC_COMBINV
 #define INC_COMPILECSD
 #define INC_COMPILEORC
 #define INC_COMPILESTR
@@ -91,6 +91,7 @@
 #define INC_CTLCHN
 #define INC_CTRLINIT
 #define INC_CTRLINIT_S
+#define INC_CTRLPRESET
 #define INC_CTRLPRINT
 #define INC_CTRLPRINTPRESETS
 #define INC_CTRLSAVE
@@ -118,8 +119,8 @@
 #define INC_DISPFFT_A
 #define INC_DISPLAY
 #define INC_DISPLAY_A
-#define INC_DIV_AA
 #define INC_DIVZ
+#define INC_DIVZ_AA
 #define INC_DIVZ_AK
 #define INC_DIVZ_KA
 #define INC_DOWNSAMP
@@ -341,8 +342,6 @@
 #define INC_OSCILN
 #define INC_OSCILS
 #define INC_OUT
-#define INC_OUT3
-#define INC_OUT4
 #define INC_OUTALL
 #define INC_OUT_ARRAY
 #define INC_OUTAT
@@ -353,6 +352,8 @@
 #define INC_OUTPAT
 #define INC_OUTPB
 #define INC_OUTPC
+#define INC_OUTQ3
+#define INC_OUTQ4
 #define INC_OUTRG
 #define INC_OUTS1
 #define INC_OUTS2
@@ -468,7 +469,7 @@
 #define INC_SCHEDULE_N
 #define INC_SCHEDULE_S
 #define INC_SCHEDULE_SN
-#define INC_SCHEEDWHEN
+#define INC_SCHEDWHEN
 #define INC_SEED
 #define INC_SEMITONE
 #define INC_SEMITONE_A
@@ -526,7 +527,7 @@
 #define INC_TANH_A
 #define INC_TEMPEST
 #define INC_TEMPO
-#define INC_TIGOTOb
+#define INC_TIGOTO
 #define INC_TIMEINSTK
 #define INC_TIMEINSTS
 #define INC_TIMEK

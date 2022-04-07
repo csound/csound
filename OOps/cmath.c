@@ -656,7 +656,7 @@ int32_t apcauchy(CSOUND *csound, PRAND *p)  /* +ve Cauchy random functions */
 }
 #endif
 
-#ifdef INC_PCAUCYRAND
+#ifdef INC_PCAUCHYRAND
 int32_t ikpcauchy(CSOUND *csound, PRAND *p)
 {
     *p->out = pcauchrand(csound, *p->arg1);

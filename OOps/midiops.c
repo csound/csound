@@ -28,7 +28,7 @@
 #include <time.h>
 #include "namedins.h"           /* IV - Oct 31 2002 */
 #include "arrays.h"
-
+#include "opcodes.h"
 #define dv127   (FL(1.0)/FL(127.0))
 
 extern int32_t m_chinsno(CSOUND *csound, int32_t chan,
@@ -1047,7 +1047,7 @@ int presetctrl1_perf(CSOUND *csound, PRESETCTRL1 *p)
 }
 #endif
 
-#ifdef INC_CTRLSELCT
+#ifdef INC_CTRLSELECT
 int selectctrl_init(CSOUND *csound, SELECTCTRL *p)
 {
     PRESET_GLOB *q =
