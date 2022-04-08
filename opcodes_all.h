@@ -18,7 +18,7 @@
 #define INC_INSREMOT
 #define INC_MIDREMOT
 #define INC_INSGLOBAL
-#define INC_MIDGLOAL
+#define INC_MIDGLOBAL
 #define INC_IHOLD
 #define INC_TURNOFF
 #define INC_STRCPY
@@ -138,7 +138,7 @@
 #define INC_FTSR
 #define INC_FTLPTIM
 #define INC_FTCHNLS
-#define INC_CPS
+#define INC_FTCPS
 #define INC_ASSIGN
 #define INC_ASSIGN
 #define INC_ASSIGN
@@ -230,8 +230,8 @@
 #define INC_TABLEI_I
 #define INC_TABLEI_K
 #define INC_TABLEI_K
-#define INC_TALBEI_A
-#define INC_TALBEI_A
+#define INC_TABLEI_A
+#define INC_TABLEI_A
 #define INC_TABLE3_I
 #define INC_TABLE3_I
 #define INC_TABLE3_K
@@ -397,8 +397,8 @@
 #define INC_PCAUCHYRAND
 #define INC_PCAUCHYRAND
 #define INC_PCAUCHYRAND_A
-#define INC_POISONRAND
-#define INC_POISONRAND
+#define INC_POISSONRAND
+#define INC_POISSONRAND
 #define INC_POISSONRAND_A
 #define INC_GAUSSRAND
 #define INC_GAUSSRAND
@@ -406,8 +406,8 @@
 #define INC_GAUSSRAND
 #define INC_GAUSSRAND
 #define INC_GAUSSRANS_A
-#define INC_WEIBILLRAND
-#define INC_WEIBILLRAND
+#define INC_WEIBULLRAND
+#define INC_WEIBULLRAND
 #define INC_WEIBULLRAND_A
 #define INC_BETARAND
 #define INC_BETARAND
@@ -464,8 +464,8 @@
 #define INC_OCTAVE
 #define INC_OCTAVE
 #define INC_OCTAVE
-#define INC_POCTVE_A
-#define INC_POCTVE_A
+#define INC_OCTAVE_A
+#define INC_OCTAVE_A
 #define INC_LOGBASE2
 #define INC_LOGBASE2
 #define INC_LOGBASE2_A
@@ -502,7 +502,7 @@
 #define INC_TABLEKT
 #define INC_TABLEKT_A
 #define INC_TABLEIKT
-#define INC_TABLEIEKT_A
+#define INC_TABLEIKT_A
 #define INC_TABLE3KT
 #define INC_TABLE3KT_A
 #define INC_INZ
@@ -636,13 +636,13 @@
 #define INC_DELAYW
 #define INC_DELAY1
 #define INC_DELTAP
-#define INC_DELTEIAP
+#define INC_DELTAPI
 #define INC_DELTAPN
 #define INC_DELTAP3
 #define INC_REVERB
 #define INC_VDELAY
 #define INC_VDELAY3
-#define INC_VDELAYXWS
+#define INC_VDELAYXWQ
 #define INC_VDELAYXWS
 #define INC_VDELAYXW
 #define INC_VDELAYXQ

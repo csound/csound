@@ -268,7 +268,7 @@ int32_t vdelay3(CSOUND *csound, VDEL *p)    /*  vdelay routine with cubic interp
 /* vdelayx, vdelayxs, vdelayxq, vdelayxw, vdelayxws, vdelayxwq */
 /* coded by Istvan Varga, Mar 2001 */
 
-#ifdef INC_VDELAYXWQ
+#if defined(INC_VDELAYXW)||defined(INC_VDELAYX)
 int32_t vdelxset(CSOUND *csound, VDELX *p)      /*  vdelayx set-up (1 channel) */
 {
     uint32_t n = (int32_t)(*p->imaxd * csound->esr);

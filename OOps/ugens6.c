@@ -235,7 +235,7 @@ int32_t samphset(CSOUND *csound, SAMPHOLD *p)
 }
 #endif
 
-#ifdef INC_IC_SAMOHOLD_K
+#ifdef INC_SAMPHOLD_K
 int32_t ksmphold(CSOUND *csound, SAMPHOLD *p)
 {
     IGN(csound);

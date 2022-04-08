@@ -162,7 +162,7 @@ OENTRY opcodlst_1[] = {
   #ifdef INC_INSGLOBAL
   { "insglobal",S(INSGLOBAL),0,1,   "",     "Sm", insglobal, NULL, NULL, NULL},
   #endif
-  #ifdef INC_MIDGLOAL
+  #ifdef INC_MIDGLOBAL
   { "midglobal",S(MIDGLOBAL),0,1,   "",     "Sm", midglobal, NULL, NULL, NULL},
   #endif
   #ifdef INC_IHOLD
@@ -545,7 +545,7 @@ OENTRY opcodlst_1[] = {
   #ifdef INC_FTCHNLS
   { "ftchnls.i",S(EVAL),0,  1,      "i",    "i",    ftchnls                 },
   #endif
-  #ifdef INC_CPS
+  #ifdef INC_FTCPS
   { "ftcps.i",S(EVAL),0,    1,      "i",    "i",    ftcps                   },
   #endif
   #ifdef INC_ASSIGN
@@ -801,7 +801,7 @@ OENTRY opcodlst_1[] = {
   { "ptablei.k", S(TABLE),TR|_QQ, 3,     "k",    "xiooo",(SUBR)tabl_setup,
     (SUBR)tableir_kontrol                                                   },
   #endif
-  #ifdef INC_TALBEI_A
+  #ifdef INC_TABLEI_A
   { "tablei.a", S(TABL),TR, 3,      "a",    "xiooo",(SUBR)tabl_setup,
     (SUBR)tableir_audio                                                     },
   { "ptablei.a", S(TABLE),TR|_QQ, 3,     "a",    "xiooo",(SUBR)tabl_setup,
@@ -1255,7 +1255,7 @@ OENTRY opcodlst_1[] = {
   #ifdef INC_PCAUCHYRAND_A
   { "pcauchy.a",S(PRAND),0, 2,      "a",    "k",    NULL,  apcauchy},
   #endif
-  #ifdef INC_POISONRAND
+  #ifdef INC_POISSONRAND
   { "poisson.i",S(PRAND),0, 1,      "i",    "k",    ikpoiss, NULL,  NULL    },
   { "poisson.k",S(PRAND),0, 2,      "k",    "k",    NULL, ikpoiss,  NULL    },
   #endif
@@ -1276,7 +1276,7 @@ OENTRY opcodlst_1[] = {
   #ifdef INC_GAUSSRANS_A
   { "gauss.akk" , S(GAUSS),0, 2,      "a",    "kk",    NULL, gauss_vector   },
   #endif
-  #ifdef INC_WEIBILLRAND
+  #ifdef INC_WEIBULLRAND
   { "weibull.i",S(PRAND),0, 1,      "i",    "kk",   ikweib,  NULL,  NULL    },
   { "weibull.k",S(PRAND),0, 2,      "k",    "kk",   NULL, ikweib,   NULL    },
   #endif
@@ -1525,7 +1525,7 @@ OENTRY opcodlst_1[] = {
     (SUBR)tableirkt_kontrol,
     NULL          },
   #endif
-  #ifdef INC_TABLEIEKT_A
+  #ifdef INC_TABLEIKT_A
   { "tableikt.a", S(TABL),TR, 3,    "a",  "xkooo", (SUBR)tablkt_setup,
     (SUBR)tableirkt_audio          },
   #endif
@@ -1978,7 +1978,7 @@ OENTRY opcodlst_1[] = {
   #ifdef INC_DELTAP
   { "deltap", S(DELTAP),0,  3,  "a", "ko",   (SUBR)tapset,   (SUBR)deltap  },
   #endif
-  #ifdef INC_DELTEIAP
+  #ifdef INC_DELTAPI
   { "deltapi",S(DELTAP),0,  3,  "a", "xo",   (SUBR)tapset,   (SUBR)deltapi },
   #endif
   #ifdef INC_DELTAPN
@@ -1996,7 +1996,7 @@ OENTRY opcodlst_1[] = {
   #ifdef INC_VDELAY3
   { "vdelay3",  S(VDEL),0,  3,  "a", "axio", (SUBR)vdelset,  (SUBR)vdelay3 },
   #endif
-  #ifdef INC_VDELAYXWS
+  #ifdef INC_VDELAYXWQ
   { "vdelayxwq",S(VDELXQ),0,3,  "aaaa", "aaaaaiio",
         (SUBR)vdelxqset, (SUBR)vdelayxwq},
   #endif

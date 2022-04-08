@@ -378,7 +378,7 @@ int32_t filevalid(CSOUND *csound, FILEVALID *p)
 }
 #endif
 
-#ifdef INC_FILEVALiD_S
+#ifdef INC_FILEVALID_S
 int32_t filevalid_S(CSOUND *csound, FILEVALID *p)
 {
     char soundiname[1024];       /* There is no check on this length */

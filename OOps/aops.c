@@ -993,7 +993,7 @@ LIBA(tanha,TANH)
 #ifdef INC_LOG10_A
 LIBA(log10a,LOG10)
 #endif
-#ifdef INC_lOG2_A
+#ifdef INC_LOG2_A
 LIBA(log2a,LOG2)
 #endif
 

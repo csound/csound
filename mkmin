@@ -1,0 +1,8 @@
+./mkdict
+gcc -g -I. util/mkopcodes_all.c -o mkopcodes_all
+./mkopcodes_all
+sort -u < opcodes_all.h > /tmp/oo
+wc /tmp/oo
+cp /tmp/oo H/opcodes.h
+cp /tmp/oo H/opcodes_all.h
+make

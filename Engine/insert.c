@@ -1667,7 +1667,7 @@ int xoutset(CSOUND *csound, XOUT *p)
 */
 //#include "typetabl.h"
 #include "csound_standard_types.h"
-#ifdef INC_SETKSAMPS
+#ifdef INC_SETKSMPS
 int setksmpsset(CSOUND *csound, SETKSMPS *p)
 {
 

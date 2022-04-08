@@ -477,7 +477,7 @@ int32_t ikexp(CSOUND *csound, PRAND *p)
 }
 #endif
 
-#ifdef INC_EXPRANDA
+#ifdef INC_BEXPRAND_A
 int32_t abiexp(CSOUND *csound, PRAND *p)    /* Bilateral exponential rand */
 {                                       /* functions */
     uint32_t offset = p->h.insdshead->ksmps_offset;
@@ -785,7 +785,7 @@ int32_t aweib(CSOUND *csound, PRAND *p)     /* Weibull randon functions */
 }
 #endif
 
-#ifdef NC_WEILBULLRAND
+#ifdef INC_WEIBULLRAND
 int32_t ikweib(CSOUND *csound, PRAND *p)
 {
     *p->out = weibrand(csound, *p->arg1, *p->arg2);

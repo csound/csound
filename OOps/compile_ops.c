@@ -23,6 +23,7 @@
 #include "compile_ops.h"
 #include <stdio.h>
 #include "opcodes.h"
+
 int32_t csoundCompileOrcInternal(CSOUND *csound, const char *str, int32_t async);
 int32_t csoundReadScoreInternal(CSOUND *csound, const char *str);
 
@@ -72,7 +73,7 @@ int32_t compile_csd_i(CSOUND *csound, COMPILE *p){
 }
 #endif
 
-#ifdef INCCOMPILESTR
+#ifdef INC_COMPILESTR
 int32_t compile_str_i(CSOUND *csound, COMPILE *p){
   //void csp_orc_sa_print_list(CSOUND*);
     //printf("START\n");

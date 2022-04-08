@@ -393,7 +393,7 @@ int32_t out_poly_aftertouch (CSOUND *csound, OUT_POLYATOUCH *p)
 }
 #endif
 
-#ifdef OUTPC
+#ifdef INC_OUTPC
 int32_t out_progchange (CSOUND *csound, OUT_PCHG *p)
 {
     /* if (!(p->h.insdshead->prvinstance)) JPff/VL */ {

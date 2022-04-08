@@ -543,7 +543,7 @@ int32_t ichanctl(CSOUND *csound, CHANCTL *p)
 }
 #endif
 
-#ifdef INC_CANCTRL
+#ifdef INC_CHANCTRL
 int32_t chctlset(CSOUND *csound, CHANCTL *p)
 {
     int32_t  ctlno, chan = (int32_t)(*p->ichano - FL(1.0));
@@ -626,7 +626,7 @@ int32_t midiin(CSOUND *csound, MIDIIN *p)
 }
 #endif
 
-#ifdef INC_PMGCHN
+#ifdef INC_PGMCHN
 int32_t pgmin_set(CSOUND *csound, PGMIN *p)
 {
     p->local_buf_index = MGLOB(MIDIINbufIndex) & MIDIINBUFMSK;

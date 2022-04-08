@@ -942,7 +942,7 @@ put0:
 #endif
 
 
-#ifdef INC_LOSCIL3PS
+#ifdef INC_LOSCIL3PHS
 int32_t loscil3_phs(CSOUND *csound, LOSCPHS *p)
 {
     IGN(csound);
