@@ -36,6 +36,9 @@
 
 #include "stdopcod.h"
 #include <math.h>
+#include "opcodes.h"
+
+#ifdef INC_REVERBSC
 
 #define DEFAULT_SRATE   44100.0
 #define MIN_SRATE       5000.0
@@ -306,15 +309,19 @@ static int32_t sc_reverb_perf(CSOUND *csound, SC_REVERB *p)
     return csound->PerfError(csound, &(p->h),
                              Str("reverbsc: not initialised"));
 }
-
+#endif
 /* module interface functions */
 
 int32_t reverbsc_init_(CSOUND *csound)
 {
+    #ifdef INC_REVERVSC
     return csound->AppendOpcode(csound, "reverbsc",
                                 (int32_t) sizeof(SC_REVERB), 0, 3, "aa", "aakkjpo",
                                 (int32_t (*)(CSOUND *, void *)) sc_reverb_init,
                                 (int32_t (*)(CSOUND *, void *)) sc_reverb_perf,
                                 NULL);
+    #else
+    return 0;
+    #endif
 }
 

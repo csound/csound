@@ -26,6 +26,7 @@
 #include "ugmoss.h"
 #include "aops.h"
 #include <math.h>
+#include "opcodes.h"
 
 /******************************************************************************
   all this code was written by william 'pete' moss. <petemoss@petemoss.org>
@@ -33,6 +34,7 @@
   do what you want with the code, and credit me if you get the chance
 ******************************************************************************/
 
+#ifdef INC_DCONV
 /* rewritten code for dconv, includes speedup tip from
    Moore: Elements of Computer Music */
 static int32_t dconvset(CSOUND *csound, DCONV *p)
@@ -97,6 +99,7 @@ static int32_t dconv(CSOUND *csound, DCONV *p)
     p->curp = curp;                             /* save state */
     return OK;
 }
+#endif
 
 static int32_t and_kk(CSOUND *csound, AOP *p)
 {
@@ -504,6 +507,7 @@ static int32_t not_a(CSOUND *csound, AOP *p)
 /* all the vcomb and valpass stuff adapted from comb() and alpass()
    with additional insight from me (petemoss@petemoss.org)  */
 
+#ifdef INC_VCOMB
 static int32_t vcombset(CSOUND *csound, VCOMB *p)
 {
     int32_t        lpsiz, nbytes;
@@ -600,7 +604,9 @@ static int32_t vcomb(CSOUND *csound, VCOMB *p)
     return csound->PerfError(csound, &(p->h),
                              Str("vcomb: not initialised"));
 }
+#endif
 
+#ifdef INC_VALPASS
 static int32_t valpass(CSOUND *csound, VCOMB *p)
 {
     uint32_t offset = p->h.insdshead->ksmps_offset;
@@ -661,7 +667,9 @@ static int32_t valpass(CSOUND *csound, VCOMB *p)
     return csound->PerfError(csound, &(p->h),
                              Str("valpass: not initialised"));
 }
+#endif
 
+#ifdef INC_FTMORF
 static int32_t ftmorfset(CSOUND *csound, FTMORF *p)
 {
     FUNC *ftp;
@@ -721,16 +729,25 @@ static int32_t ftmorf(CSOUND *csound, FTMORF *p)
     }
     return OK;
 }
+#endif
 
 /* end of ugmoss.c */
 #define S(x)    sizeof(x)
 
 static OENTRY localops[] =
   {
+    #ifdef INC_DCONV
    { "dconv",  S(DCONV), TR, 3, "a", "aii",   (SUBR)dconvset, (SUBR)dconv },
+   #endif
+   #ifdef INC_VCOMB
    { "vcomb", S(VCOMB),  0,3, "a", "akxioo", (SUBR)vcombset, (SUBR)vcomb   },
+   #endif
+   #ifdef INC_VALPASS
    { "valpass", S(VCOMB),0,3, "a", "akxioo", (SUBR)vcombset, (SUBR)valpass },
+   #endif
+   #ifdef INC_FTMORF
    { "ftmorf", S(FTMORF),TR, 3, "",  "kii",  (SUBR)ftmorfset,  (SUBR)ftmorf,    },
+   #endif
    { "##and.ii",  S(AOP),  0,1, "i", "ii",   (SUBR)and_kk                  },
    { "##and.kk",  S(AOP),  0,2, "k", "kk",   NULL,   (SUBR)and_kk          },
    { "##and.ka",  S(AOP),  0,2, "a", "ka",   NULL,   (SUBR)and_ka  },

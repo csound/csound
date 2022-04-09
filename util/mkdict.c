@@ -56,8 +56,6 @@ int process_file(char *input, FILE* outp)
     goto opcode;
 }
 
-
-
 int main(void)
 {
     FILE* outp = fopen("Dictionary.c", "w");
@@ -76,8 +74,11 @@ int main(void)
     process_file("Opcodes/bbcut.c", outp);
     process_file("Opcodes/bilbar.c", outp);
     process_file("Opcodes/biquad.c", outp);
+    process_file("Opcodes/ugmoss.c", outp);
+    /* reverbsc */
+    fprintf(outp, "\t{\"reverbsc\", \"INC_REVERBSC\", 0 },\n");
+    process_file("Opcodes/ugsc.c", outp);
 
-    fprintf(outp, "\t{ NULL, NULL, 0 } };\n\n");
-    fclose(outp);
+    fprintf(outp, "\t{ NULL, NULL}\n};\n");
 }
 

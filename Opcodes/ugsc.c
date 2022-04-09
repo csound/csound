@@ -25,6 +25,7 @@
 
 #include "stdopcod.h"
 #include "ugsc.h"
+#include "opcodes.h"
 
 /* svfilter.c
  *
@@ -38,6 +39,7 @@
  *
  */
 
+#ifdef INC_SVFILTER
 static int32_t svfset(CSOUND *csound, SVF *p)
 {
     IGN(csound);
@@ -107,7 +109,9 @@ static int32_t svf(CSOUND *csound, SVF *p)
     p->ynm2 = ynm2;
     return OK;
 }
+#endif
 
+#ifdef INC_HILBERT
 /* hilbert.c
  *
  * Copyright 1999, by Sean M. Costello
@@ -195,6 +199,9 @@ static int32_t hilbert(CSOUND *csound, HILBERT *p)
     }
     return OK;
 }
+#endif
+
+#if defined(INC_RESONR)||defined(INC_REASONZ)
 
 /* resonrz.c
  *
@@ -220,7 +227,9 @@ static int32_t resonzset(CSOUND *csound, RESONZ *p)
       p->xnm1 = p->xnm2 = p->ynm1 = p->ynm2 = 0.0;
     return OK;
 }
+#endif
 
+#ifdef INC_RESONR
 static int32_t resonr(CSOUND *csound, RESONZ *p)
 {
     /*
@@ -284,7 +293,9 @@ static int32_t resonr(CSOUND *csound, RESONZ *p)
     p->ynm2 = ynm2;
     return OK;
 }
+#endif
 
+#ifdef INC_RESONZ
 static int32_t resonz(CSOUND *csound, RESONZ *p)
 {
     /*
@@ -353,7 +364,9 @@ static int32_t resonz(CSOUND *csound, RESONZ *p)
     p->ynm2 = ynm2;
     return OK;
 }
+#endif
 
+#ifdef INC_PHASER1
 static int32_t phaser1set(CSOUND *csound, PHASER1 *p)
 {
     int32_t  loop = (int32_t) MYFLT2LONG(*p->iorder);
@@ -434,7 +447,9 @@ static int32_t phaser1(CSOUND *csound, PHASER1 *p)
     p->feedback = feedback;
     return OK;
 }
+#endif
 
+#ifdef INC_PHASER2
 static int32_t phaser2set(CSOUND *csound, PHASER2 *p)
 {
     int32_t modetype;
@@ -536,7 +551,9 @@ static int32_t phaser2(CSOUND *csound, PHASER2 *p)
     p->feedback = feedback;
     return OK;
 }
+#endif
 
+#if defined(INC_LP2)||defined(INC_LP2_AA)||defined(INC_LP2_AK)||defined(INC_LP2_KA)
 /* initialization for 2nd-order lowpass filter */
 static int32_t lp2_set(CSOUND *csound, LP2 *p)
 {
@@ -545,7 +562,9 @@ static int32_t lp2_set(CSOUND *csound, LP2 *p)
       p->ynm1 = p->ynm2 = 0.0;
     return OK;
 }
+#endif
 
+#ifdef INC_LP2
 /* k-time code for 2nd-order lowpass filter. Derived from code in
 Hal Chamberlin's "Musical Applications of Microprocessors." */
 static int32_t lp2(CSOUND *csound, LP2 *p)
@@ -583,7 +602,9 @@ static int32_t lp2(CSOUND *csound, LP2 *p)
     p->ynm2 = ynm2;
     return OK;
 }
+#endif
 
+#ifdef INC_LP2_AA
 static int32_t lp2aa(CSOUND *csound, LP2 *p)
 {
     double a, b, c, temp;
@@ -628,7 +649,9 @@ static int32_t lp2aa(CSOUND *csound, LP2 *p)
     p->ynm2 = ynm2;
     return OK;
 }
+#endif
 
+#ifdef INC_LP2_KA
 static int32_t lp2ka(CSOUND *csound, LP2 *p)
 {
     double a, b, c, temp;
@@ -673,7 +696,9 @@ static int32_t lp2ka(CSOUND *csound, LP2 *p)
     p->ynm2 = ynm2;
     return OK;
 }
+#endif
 
+#ifdef INC_LP2_AK
 static int32_t lp2ak(CSOUND *csound, LP2 *p)
 {
     double a, b, c, temp;
@@ -718,21 +743,42 @@ static int32_t lp2ak(CSOUND *csound, LP2 *p)
     p->ynm2 = ynm2;
     return OK;
 }
+#endif
 
 #define S(x)    sizeof(x)
 
 static OENTRY localops[] =
   {
+   #ifdef INC_SVFILTER
    { "svfilter", S(SVF),    0, 3, "aaa", "axxoo", (SUBR)svfset, (SUBR)svf    },
+   #endif
+   #ifdef INC_HILBERT
    { "hilbert", S(HILBERT), 0,3, "aa", "a", (SUBR)hilbertset, (SUBR)hilbert },
+   #endif
+   #ifdef INC_RESONR
    { "resonr", S(RESONZ),   0,3, "a", "axxoo", (SUBR)resonzset, (SUBR)resonr},
+   #endif
+   #ifdef INC_RESONZ
    { "resonz", S(RESONZ),   0,3, "a", "axxoo", (SUBR)resonzset, (SUBR)resonz},
+   #endif
+   #ifdef INC_LP2
    { "lowpass2.kk", S(LP2), 0,3, "a", "akko",  (SUBR)lp2_set, (SUBR)lp2     },
+   #endif
+   #ifdef INC_LP2_AA
    { "lowpass2.aa", S(LP2), 0,3, "a", "aaao",  (SUBR)lp2_set, (SUBR)lp2aa   },
+   #endif
+   #ifdef INC_LP2_AK
    { "lowpass2.ak", S(LP2), 0,3, "a", "aakao", (SUBR)lp2_set, (SUBR)lp2ak   },
+   #endif
+   #ifdef INC_LP2_KA
    { "lowpass2.ka", S(LP2), 0,3, "a", "akao",  (SUBR)lp2_set, (SUBR)lp2ka   },
+   #endif
+   #ifdef INC_PHASER2
    { "phaser2", S(PHASER2), 0,3, "a", "akkkkkk",(SUBR)phaser2set,(SUBR)phaser2},
+   #endif
+   #ifdef INC_PHASER1
    { "phaser1", S(PHASER1), 0,3, "a", "akkko", (SUBR)phaser1set,(SUBR)phaser1}
+   #endif
 };
 
 int32_t ugsc_init_(CSOUND *csound)
