@@ -77,6 +77,7 @@
 #define INC_COMPILESTR
 #define INC_CONVAL
 #define INC_CONVAL_A
+#define INC_CONVOLVE 
 #define INC_COS
 #define INC_COS_A
 #define INC_COSH
@@ -176,6 +177,9 @@
 #define INC_FILEVALID_S
 #define INC_FLOOR
 #define INC_FLOOR_A
+#define INC_FOF
+#define INC_FOF2
+#define INC_FOG
 #define INC_FOLD
 #define INC_FOSCIL
 #define INC_FOSCILI
@@ -195,6 +199,7 @@
 #define INC_GBUZZ
 #define INC_GETCFG
 #define INC_GOTO
+#define INC_HARMON
 #define INC_HILBERT
 #define INC_HW_CHANNELS
 #define INC_IGOTO
@@ -393,6 +398,7 @@
 #define INC_PCHMIDIB_K
 #define INC_PCHMIDINN
 #define INC_PCHOCT
+#define INC_PCONVOLVE
 #define INC_PEAK
 #define INC_PEAKA
 #define INC_PGMASSIGN
@@ -491,8 +497,10 @@
 #define INC_S
 #define INC_SAMPHOLD
 #define INC_SAMPHOLD_K
+#define INC_SCANHAMMER
 #define INC_SCANMAP
 #define INC_SCANS
+#define INC_SCANTABLE
 #define INC_SCANU
 #define INC_SCHEDKWHEN
 #define INC_SCHEDKWHEN_S
@@ -511,10 +519,18 @@
 #define INC_SIN_A
 #define INC_SINH
 #define INC_SINH_A
+#define INC_SNDWARP
+#define INC_SNDWARPS
 #define INC_SOUNDOUT
+#define INC_SPACE
+#define INC_SPAT3
+#define INC_SPDIST
 #define INC_SPRINTF
+#define INC_SPSEND
 #define INC_SQRT
 #define INC_SQRT_A
+#define INC_SQUINEWAVE
+#define INC_STERRAIN
 #define INC_STRCAT
 #define INC_STRCHAR
 #define INC_STRCMP
@@ -584,7 +600,11 @@
 #define INC_UNIRAND
 #define INC_UNIRAND_A
 #define INC_UPSAMP
+#define INC_VAGET
 #define INC_VALPASS
+#define INC_VASET
+#define INC_VASIGGET
+#define INC_VASIGSET
 #define INC_VCO
 #define INC_VCOMB
 #define INC_VDELAY
@@ -602,6 +622,8 @@
 #define INC_WEIBULLRAND_A
 #define INC_WRAP
 #define INC_WRAP_A
+#define INC_WTERRAIN
+#define INC_WTERRAIN2
 #define INC_XADSR
 #define INC_XADSR_A
 #define INC_XTRATIM

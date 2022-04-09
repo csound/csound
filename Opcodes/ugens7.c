@@ -25,11 +25,13 @@
 #include "stdopcod.h"               /*                      UGENS7.C        */
 #include "ugens7.h"
 #include <math.h>
+#include "opcodes.h"
 
 /* loosely based on code of Michael Clarke, University of Huddersfield */
 
 static   int32_t    newpulse(CSOUND *, FOFS *, OVRLAP *, MYFLT *, MYFLT *, MYFLT *);
 
+#if defined(INC_FOF)||defined(INC_FOF2)
 static int32_t fofset0(CSOUND *csound, FOFS *p, int32_t flag)
 {
     int32_t skip = (*p->iskip != FL(0.0) && p->auxch.auxp != 0);
@@ -73,17 +75,22 @@ static int32_t fofset0(CSOUND *csound, FOFS *p, int32_t flag)
     p->foftype = flag;
     return OK;
 }
+#endif
 
+#ifdef INC_FOF
 static int32_t fofset(CSOUND *csound, FOFS *p)
 {
     return fofset0(csound, p, 1);
 }
-
+#endif
+#ifdef INC_FOF2
 static int32_t fofset2(CSOUND *csound, FOFS *p)
 {
     return fofset0(csound, p, 0);
 }
+#endif
 
+#if defined(INC_FOF)||defined(INC_FOF2)
 static int32_t fof(CSOUND *csound, FOFS *p)
 {
     OVRLAP  *ovp;
@@ -249,11 +256,13 @@ static int32_t newpulse(CSOUND *csound,
     }
     return(1);
 }
+#endif
 
 #if 0
 static int32_t hrngflg=0;
 #endif
 
+#ifdef INC_HARMON
 static int32_t harmset(CSOUND *csound, HARMON *p)
 {
     MYFLT minfrq = *p->ilowest;
@@ -611,14 +620,21 @@ static int32_t harmon(CSOUND *csound, HARMON *p)
     p->prvq = qval;
     return OK;
 }
+#endif
 
 #define S(x)    sizeof(x)
 
 static OENTRY localops[] =
   {
+    #ifdef INC_FOF
    { "fof",    S(FOFS),   TR, 3, "a","xxxkkkkkiiiiooo",(SUBR)fofset,(SUBR)fof   },
+   #endif
+   #ifdef INC_FOF2
    { "fof2",   S(FOFS),   TR, 3, "a","xxxkkkkkiiiikko",(SUBR)fofset2,(SUBR)fof  },
+   #endif
+   #ifdef INC_HARMON
    { "harmon", S(HARMON), 0,3, "a",  "akkkkiii",(SUBR)harmset,  (SUBR)harmon  }
+   #endif
 };
 
 int32_t ugens7_init_(CSOUND *csound)

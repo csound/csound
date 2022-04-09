@@ -27,8 +27,9 @@
 #include <math.h>
 
 #include "csoundCore.h"
+#include "opcodes.h"
 
-
+#ifdef INC_SQUINEWAVE
 /* ================================================================== */
 
 typedef struct {
@@ -378,7 +379,7 @@ int32_t squinewave_gen(CSOUND* csound, SQUINEWAVE *p)
     return OK;
 }
 
-
+#endif
 
 /* ================================================================== */
 
@@ -387,10 +388,13 @@ int32_t squinewave_gen(CSOUND* csound, SQUINEWAVE *p)
 
 static OENTRY squinewave_localops[] =
   {
-   { "squinewave", sizeof(SQUINEWAVE), 0, 3, "am", "aaaaoj",
+#ifdef INC_SQUINEWAVE
+    { "squinewave", sizeof(SQUINEWAVE), 0, 3, "am", "aaaaoj",
      (SUBR)squinewave_init, (SUBR)squinewave_gen },
    { "squinewave", sizeof(SQUINEWAVE), 0, 3, "am", "aaaOoj",
      (SUBR)squinewave_init, (SUBR)squinewave_gen },
+   #endif
 };
 
 LINKAGE_BUILTIN(squinewave_localops)
+

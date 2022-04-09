@@ -31,9 +31,11 @@
 
 #include "stdopcod.h"
 #include "sndwarp.h"
+#include "opcodes.h"
 
 #define unirand(x) ((MYFLT) (x->Rand31(&(x->randSeed1)) - 1) / FL(2147483645.0))
 
+#ifdef INC_SNDWARP
 static int32_t sndwarpgetset(CSOUND *csound, SNDWARP *p)
 {
     int32_t         i;
@@ -196,11 +198,12 @@ static int32_t sndwarp(CSOUND *csound, SNDWARP *p)
     return csound->PerfError(csound, &(p->h),
                              Str("sndwarp: not initialised"));
 }
-
+#endif
 /****************************************************************/
 /**************STEREO VERSION OF SNDWARP*************************/
 /****************************************************************/
 
+#ifdef INC_SNDWARPS
 static int32_t sndwarpstgetset(CSOUND *csound, SNDWARPST *p)
 {
     int32_t         i;
@@ -371,15 +374,20 @@ static int32_t sndwarpst(CSOUND *csound, SNDWARPST *p)
     return csound->PerfError(csound, &(p->h),
                              Str("sndwarpst: not initialised"));
 }
+#endif
 
 #define S(x)    sizeof(x)
 
 static OENTRY localops[] =
   {
+#ifdef INC_SNDWARP
    { "sndwarp", S(SNDWARP), TR, 3, "mm", "xxxiiiiiii",
     (SUBR)sndwarpgetset, (SUBR)sndwarp},
+   #endif
+   #ifdef INC_SNDWARPS
    { "sndwarpst", S(SNDWARPST), TR, 3, "mmmm","xxxiiiiiii",
     (SUBR)sndwarpstset,(SUBR)sndwarpst}
+   #endif
 };
 
 int32_t sndwarp_init_(CSOUND *csound)

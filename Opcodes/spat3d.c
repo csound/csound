@@ -28,11 +28,13 @@
 #include <stdio.h>
 #include <math.h>
 #include <time.h>
+#include "opcodes.h"
 
 #define CSOUND_SPAT3D_C 1
 
 #include "spat3d.h"
 
+#ifdef INC_SPAT3
 /* ----------------------- initialisation functions ------------------------ */
 
 /* initialise FIR filter for downsampling */
@@ -880,17 +882,20 @@ static int32_t    spat3dt(CSOUND *csound, SPAT3D *p)
     csound->Free(csound, ir);               /* free tmp memory */
     return OK;
 }
+#endif
 
 #define S(x)    sizeof(x)
 
 static OENTRY localops[] =
   {
+    #ifdef INC_SPAT3
    { "spat3d", S(SPAT3D), 0, 3, "aaaa", "akkkiiiiio",
      (SUBR) spat3dset,   (SUBR) spat3d   },
    { "spat3di",S(SPAT3D), 0, 3, "aaaa", "aiiiiiio",
      (SUBR) spat3diset,   (SUBR) spat3di  },
    { "spat3dt",S(SPAT3D), 0, 1, "", "iiiiiiiio",
      (SUBR) spat3dt,     NULL,   NULL            }
+   #endif
 };
 
 int32_t spat3d_init_(CSOUND *csound)

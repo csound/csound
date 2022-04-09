@@ -26,6 +26,7 @@
 
 #include <csdl.h>
 #include <math.h>
+#include "opcodes.h"
 
 /*  Wave-terrain synthesis opcode
  *
@@ -66,6 +67,7 @@ typedef struct {
 
 } WAVETER;
 
+#ifdef INC_WTERRAIN2
 static void rotate_point(MYFLT  cx, MYFLT  cy, MYFLT  angle, MYFLT *x, MYFLT *y)
 {
   if(angle == 0) return;
@@ -221,12 +223,15 @@ static int32_t wtPerf(CSOUND *csound, WAVETER *p)
     p->theta = theta;
     return OK;
 }
+#endif
 
 #define S(x)    sizeof(x)
 
 static OENTRY wter_localops[] = {
+  #ifdef INC_WTERRAIN2
   { "wterrain2", S(WAVETER), TR, 3,  "a", "kkkkkkkkkkk",
     (SUBR)wtinit, (SUBR)wtPerf },
+  #endif
 };
 
 //LINKAGE

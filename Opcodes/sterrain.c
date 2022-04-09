@@ -22,6 +22,7 @@
 #include "csoundCore.h"
 #include "interlocks.h"
 #include <math.h>
+#include "opcodes.h"
 
 /*  Wave-terrain synthesis opcode
  *
@@ -68,6 +69,8 @@ typedef struct {
   double theta;
 
 } SUPERTER;
+
+#ifdef INC_STERRAIN
 
 static void rotate_point(MYFLT  cx, MYFLT  cy, MYFLT  angle, MYFLT *x, MYFLT *y)
 {
@@ -196,12 +199,15 @@ static int32_t wtPerf(CSOUND *csound, SUPERTER *p)
     p->theta = theta;
     return OK;
 }
+#endif
 
 #define S(x)    sizeof(x)
 
 static OENTRY sterrain_localops[] = {
+   #ifdef INC_STERRAIN
   { "sterrain", S(SUPERTER), TR, 3,  "a", "kkkkkkkkkkkkkkkkk",
     (SUBR)wtinit, (SUBR)wtPerf },
+  #endif
 };
 
 LINKAGE_BUILTIN(sterrain_localops)

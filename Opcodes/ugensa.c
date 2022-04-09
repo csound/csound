@@ -25,9 +25,11 @@
 #include "ugensa.h"
 #include "ugens7.h"
 #include <math.h>
+#include "opcodes.h"
 
 /* FOG generator */
 
+#ifdef INC_FOG
 static int32_t newpulse(CSOUND *, FOGS *, OVERLAP *, MYFLT *, MYFLT *, MYFLT *);
 
 static int32_t fogset(CSOUND *csound, FOGS *p)
@@ -223,12 +225,15 @@ static int32_t newpulse(CSOUND *csound, FOGS *p, OVERLAP *ovp, MYFLT   *amp,
     ovp->decphs = PHMASK;
     return(1);
 }
+#endif
 
 /* JMC test additional UG */
 #define S(x)    sizeof(x)
 
 static OENTRY localops[] = {
+  #ifdef INC_FOG
   { "fog",  S(FOGS), TR, 3, "a","xxxakkkkkiiiiooo",(SUBR)fogset,(SUBR)fog}
+  #endif
 };
 
 int32_t ugensa_init_(CSOUND *csound)

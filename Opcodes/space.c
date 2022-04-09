@@ -30,9 +30,11 @@
 #include "stdopcod.h"
 #include "space.h"
 #include <math.h>
+#include "opcodes.h"
 
 #define RESOLUTION 100
 
+#ifdef INC_SPACE
 static int32_t spaceset(CSOUND *csound, SPACE *p)
 {
     STDOPCOD_GLOBALS  *pp;
@@ -179,7 +181,10 @@ static int32_t space(CSOUND *csound, SPACE *p)
     return csound->PerfError(csound, &(p->h),
                              Str("space: not initialised"));
 }
+#endif
 
+
+#ifdef INC_SPSEND
 static int32_t spsendset(CSOUND *csound, SPSEND *p)
 {
     STDOPCOD_GLOBALS  *pp;
@@ -201,7 +206,9 @@ static int32_t spsend(CSOUND *csound, SPSEND *p)
     memmove(p->r4, q->rrev4, nbytes);
     return OK;
 }
+#endif
 
+#ifdef INC_SPDIST
 static int32_t spdistset(CSOUND *csound, SPDIST *p)
 {
    FUNC *ftp;
@@ -263,14 +270,21 @@ static int32_t spdist(CSOUND *csound, SPDIST *p)
     return csound->PerfError(csound, &(p->h),
                              Str("spdist: not initialised"));
 }
+#endif
 
 #define S(x)    sizeof(x)
 
 static OENTRY localops[] =
   {
+    #ifdef INC_SPACE
    { "space",  S(SPACE), TR,3, "aaaa", "aikkkk",(SUBR)spaceset, (SUBR)space },
+   #endif
+   #ifdef INC_SPSEND
    { "spsend", S(SPSEND), 0,3, "aaaa", "",     (SUBR)spsendset, (SUBR)spsend },
+   #endif
+   #ifdef INC_SPDIST
    { "spdist", S(SPDIST), 0,3,    "k", "ikkk", (SUBR)spdistset, (SUBR)spdist }
+   #endif
 };
 
 int32_t space_init_(CSOUND *csound)

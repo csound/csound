@@ -75,9 +75,19 @@ int main(void)
     process_file("Opcodes/bilbar.c", outp);
     process_file("Opcodes/biquad.c", outp);
     process_file("Opcodes/ugmoss.c", outp);
-    /* reverbsc */
-    fprintf(outp, "\t{\"reverbsc\", \"INC_REVERBSC\", 0 },\n");
+    /* reverbsc */ fprintf(outp, "\t{\"reverbsc\", \"INC_REVERBSC\", 0 },\n");
     process_file("Opcodes/ugsc.c", outp);
+    process_file("Opcodes/ugens7.c", outp);
+    process_file("Opcodes/ugens9.c", outp);
+    process_file("Opcodes/ugensa.c", outp);
+    process_file("Opcodes/space.c", outp);
+    process_file("Opcodes/spat3d.c", outp);
+    process_file("Opcodes/squinewave.c", outp);
+    process_file("Opcodes/vaops.c", outp);
+    process_file("Opcodes/wave-terrain.c", outp);
+    process_file("Opcodes/wterrain2.c", outp);
+    process_file("Opcodes/sterrain.c", outp);
+    process_file("Opcodes/sndwarp.c", outp);
 
     fprintf(outp, "\t{ NULL, NULL}\n};\n");
 }

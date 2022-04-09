@@ -23,6 +23,7 @@
 
 #include "csoundCore.h"
 #include "interlocks.h"
+#include "opcodes.h"
 
 #define MYFLOOR(x) (x >= FL(0.0) ? (int32)x : (int32)((double)x - 0.99999999))
 
@@ -47,6 +48,7 @@ typedef struct {
         MYFLT   *avar, *kval, *kindx;
 } VASIG_SET;
 
+#ifdef INC_VAGET
 static int32_t vaget(CSOUND *csound, VA_GET *p)
 {
     int32 ndx = (int32) MYFLOOR((double)*p->kindx);
@@ -58,7 +60,9 @@ static int32_t vaget(CSOUND *csound, VA_GET *p)
     *p->kout = p->avar[ndx];
     return OK;
 }
+#endif
 
+#ifdef INC_VASET
 static int32_t vaset(CSOUND *csound, VA_SET *p)
 {
     int32 ndx = (int32) MYFLOOR((double)*p->kindx);
@@ -70,8 +74,9 @@ static int32_t vaset(CSOUND *csound, VA_SET *p)
     p->avar[ndx] = *p->kval;
     return OK;
 }
+#endif
 
-
+#ifdef INC_VASIGGET
 static int32_t vasigget(CSOUND *csound, VASIG_GET *p)
 {
     int32 ndx = (int32) MYFLOOR((double)*p->kindx);
@@ -83,7 +88,9 @@ static int32_t vasigget(CSOUND *csound, VASIG_GET *p)
     *p->kout = p->avar[ndx];
     return OK;
 }
+#endif
 
+#ifdef INC_VASIGSET
 static int32_t vasigset(CSOUND *csound, VASIG_SET *p)
 {
     int32 ndx = (int32) MYFLOOR((double)*p->kindx);
@@ -95,14 +102,23 @@ static int32_t vasigset(CSOUND *csound, VASIG_SET *p)
     p->avar[ndx] = *p->kval;
     return OK;
 }
+#endif
 
 #define S(x)    sizeof(x)
 
 static OENTRY vaops_localops[] = {
+  #ifdef INC_VAGET
   { "vaget", S(VA_GET),    0, 2,      "k", "ka",  NULL, (SUBR)vaget },
+  #endif
+  #ifdef INC_VASET
   { "vaset", S(VA_SET),    WI, 2,      "",  "kka", NULL, (SUBR)vaset },
+  #endif
+  #ifdef INC_VASIGGET
   { "##array_get", S(VASIG_GET),    0, 2,      "k", "ak",  NULL, (SUBR)vasigget },
+  #endif
+  #ifdef INC_VASIGSET
   { "##array_set", S(VASIG_SET),    0, 2,      "",  "akk", NULL, (SUBR)vasigset }
+  #endif
 };
 
 

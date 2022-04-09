@@ -27,7 +27,10 @@
 #include "ugens9.h"
 #include "soundio.h"
 #include <inttypes.h>
+#include "opcodes.h"
 
+
+#ifdef INC_CONVOLVE
 static int32_t cvset_(CSOUND *csound, CONVOLVE *p, int32_t stringname)
 {
     char     cvfilnam[MAXNAME];
@@ -367,6 +370,7 @@ static int32_t convolve(CSOUND *csound, CONVOLVE *p)
     return csound->PerfError(csound, &(p->h),
                              Str("convolve: not initialised"));
 }
+#endif
 
 /* partitioned (low latency) overlap-save convolution.
    we break up the IR into separate blocks, then perform
@@ -377,6 +381,7 @@ static int32_t convolve(CSOUND *csound, CONVOLVE *p)
    allow this opcode to accept .con files.
    -ma++ april 2004 */
 
+#ifdef INC_PCONVOLVE
 static int32_t pconvset_(CSOUND *csound, PCONVOLVE *p, int32_t stringname)
 {
     int32_t     channel = (*(p->channel) <= 0 ? ALLCHNLS : (int32_t) *(p->channel));
@@ -649,21 +654,26 @@ static int32_t pconvolve(CSOUND *csound, PCONVOLVE *p)
     p->workWrite = workWrite;
     return OK;
 }
+#endif
 
 static OENTRY localops[] =
   {
+    #ifdef INC_CONVOLVE 
    { "convolve", sizeof(CONVOLVE),   0, 3, "mmmm", "aSo",
             (SUBR) cvset_S,    (SUBR) convolve   },
    { "convle",   sizeof(CONVOLVE),   0, 3, "mmmm", "aSo",
             (SUBR) cvset_S,    (SUBR) convolve   },
-   { "pconvolve",sizeof(PCONVOLVE),  0, 3, "mmmm", "aSoo",
-      (SUBR) pconvset_S,    (SUBR) pconvolve  },
    { "convolve.i", sizeof(CONVOLVE),   0, 3, "mmmm", "aio",
             (SUBR) cvset,    (SUBR) convolve   },
    { "convle.i",   sizeof(CONVOLVE),   0, 3, "mmmm", "aio",
             (SUBR) cvset,    (SUBR) convolve   },
+   #endif
+   #ifdef INC_PCONVOLVE
+   { "pconvolve",sizeof(PCONVOLVE),  0, 3, "mmmm", "aSoo",
+      (SUBR) pconvset_S,    (SUBR) pconvolve  },
    { "pconvolve.i",sizeof(PCONVOLVE),  0, 3, "mmmm", "aioo",
             (SUBR) pconvset,    (SUBR) pconvolve  }
+   #endif
 };
 
 int32_t ugens9_init_(CSOUND *csound)

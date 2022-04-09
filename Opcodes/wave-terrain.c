@@ -24,6 +24,7 @@
 #include "stdopcod.h"
 #include "wave-terrain.h"
 #include <math.h>
+#include "opcodes.h"
 
 /*  Wave-terrain synthesis opcode
  *
@@ -31,6 +32,7 @@
  *          en6mjg@bath.ac.uk
  */
 
+#ifdef INC_WTERRAIN
 static int32_t wtinit(CSOUND *csound, WAVETER *p)
 {
     /* DECLARE */
@@ -97,6 +99,7 @@ static int32_t wtPerf(CSOUND *csound, WAVETER *p)
     p->theta = FMOD(theta,TWOPI_F);
     return OK;
 }
+#endif
 
 /* ------------------------------------------------------------ */
 
@@ -109,6 +112,7 @@ static int32_t wtPerf(CSOUND *csound, WAVETER *p)
  *          en6mjg@bath.ac.uk
  */
 
+#ifdef INC_SCANHAMMER
 static int32_t scanhinit(CSOUND *csound, SCANHAMMER *p)
 {
   uint32_t srcpos = 0;
@@ -132,6 +136,7 @@ static int32_t scanhinit(CSOUND *csound, SCANHAMMER *p)
   }
   return OK;
 }
+#endif
 
 /* ------------------------------------------------------------ */
 /*  Simple scanned synthesis opcode
@@ -143,6 +148,7 @@ static int32_t scanhinit(CSOUND *csound, SCANHAMMER *p)
  *          en6mjg@bath.ac.uk
  */
 
+#ifdef INC_SCANTABLE
 static int32_t scantinit(CSOUND *csound, SCANTABLE *p)
 {
     /* DECLARE */
@@ -287,15 +293,22 @@ static int32_t scantPerf(CSOUND *csound, SCANTABLE *p)
     memcpy(fvel->ftable, p->newvel, p->size*sizeof(MYFLT));
     return OK;
 }
+#endif
 
 #define S(x)    sizeof(x)
 
 static OENTRY localops[] = {
+  #ifdef INC_WTERRAIN
   { "wterrain", S(WAVETER), TR, 3,  "a", "kkkkkkii",
     (SUBR)wtinit, (SUBR)wtPerf },
+  #endif
+  #ifdef INC_SCANTABLE
   { "scantable", S(SCANTABLE),TR, 3,"a", "kkiiiii",
     (SUBR)scantinit,(SUBR)scantPerf},
+  #endif
+  #ifdef INC_SCANHAMMER
   { "scanhammer",S(SCANHAMMER),TB, 1,"", "iiii", (SUBR)scanhinit, NULL, NULL    }
+  #endif
 };
 
 int32_t wave_terrain_init_(CSOUND *csound)
