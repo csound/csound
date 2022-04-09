@@ -34,6 +34,7 @@
 #include <math.h>
 #include "biquad.h"
 #include "csound_standard_types.h"
+#include "opcodes.h"
 
 /***************************************************************************/
 /* The biquadratic filter computes the digital filter two x components and */
@@ -41,6 +42,7 @@
 /* Coded by Hans Mikelson October 1998                                     */
 /***************************************************************************/
 
+#if defined(INC_BIQUAD)||defined(INC_BIQUADA)
 static int32_t biquadset(CSOUND *csound, BIQUAD *p)
 {
      IGN(csound);
@@ -50,10 +52,12 @@ static int32_t biquadset(CSOUND *csound, BIQUAD *p)
     }
     return OK;
 } /* end biquadset(p) */
+#endif
 
+#ifdef INC_BIQUAD
 static int32_t biquad(CSOUND *csound, BIQUAD *p)
 {
-     IGN(csound);
+    IGN(csound);
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t n, nsmps = CS_KSMPS;
@@ -79,12 +83,14 @@ static int32_t biquad(CSOUND *csound, BIQUAD *p)
     p->xnm1 = xnm1; p->xnm2 = xnm2; p->ynm1 = ynm1; p->ynm2 = ynm2;
     return OK;
 }
+#endif
 
 /* A-rate version of above -- JPff August 2001 */
+#ifdef INC_BIQUADA
 
 static int32_t biquada(CSOUND *csound, BIQUAD *p)
 {
-     IGN(csound);
+    IGN(csound);
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t n, nsmps = CS_KSMPS;
@@ -113,6 +119,7 @@ static int32_t biquada(CSOUND *csound, BIQUAD *p)
     p->xnm1 = xnm1; p->xnm2 = xnm2; p->ynm1 = ynm1; p->ynm2 = ynm2;
     return OK;
 }
+#endif
 
 /***************************************************************************/
 /* begin MoogVCF by Stilson & Smith of CCRMA,  *****************************/
@@ -120,6 +127,7 @@ static int32_t biquada(CSOUND *csound, BIQUAD *p)
 /* translated to C by Hans Mikelson            *****************************/
 /***************************************************************************/
 
+#ifdef INC_MOOGVCF
 static int32_t moogvcfset(CSOUND *csound, MOOGVCF *p)
 {
     if (*p->iskip==FL(0.0)) {
@@ -213,7 +221,9 @@ static int32_t moogvcf(CSOUND *csound, MOOGVCF *p)
     p->y1n  = y1n;  p->y2n  = y2n; p->y3n = y3n; p->y4n = y4n;
     return OK;
 }
+#endif
 
+#ifdef INC_REZZY
 /***************************************************************/
 /* This filter is the Mikelson low pass resonant 2-pole filter */
 /* Coded by Hans Mikelson October 1998                         */
@@ -490,11 +500,13 @@ static int32_t rezzy(CSOUND *csound, REZZY *p)
     p->warn = warn;
     return OK;
 }
+#endif
+
 /***************************************************************************/
 /* The distortion opcode uses modified hyperbolic tangent distortion.      */
 /* Coded by Hans Mikelson November 1998                                    */
 /***************************************************************************/
-
+#ifdef INC_DISTORT1
 static int32_t distort(CSOUND *csound, DISTORT *p)
 {
     uint32_t offset = p->h.insdshead->ksmps_offset;
@@ -542,7 +554,7 @@ static int32_t distort(CSOUND *csound, DISTORT *p)
     }
     return OK;
 }
-
+#endif
 /***************************************************************************/
 /* The vco is an analog modeling opcode                                    */
 /* Generates bandlimited saw, square/PWM, triangle/Saw-Ramp-Mod            */
@@ -550,7 +562,7 @@ static int32_t distort(CSOUND *csound, DISTORT *p)
 /***************************************************************************/
 
 
-
+#ifdef INC_VCO
 static int32_t vcoset(CSOUND *csound, VCO *p)
 {
     /* Number of bytes in the delay */
@@ -800,12 +812,13 @@ static int32_t vco(CSOUND *csound, VCO *p)
  err1:
     return csound->PerfError(csound, &(p->h), Str("vco: not initialised"));
 }
+#endif
 
 /***************************************************************************/
 /* This is a simplified model of a planet orbiting in a binary star system */
 /* Coded by Hans Mikelson December 1998                                    */
 /***************************************************************************/
-
+#ifdef INC_PLANET
 static int32_t planetset(CSOUND *csound, PLANET *p)
 {
      IGN(csound);
@@ -896,11 +909,13 @@ static int32_t planet(CSOUND *csound, PLANET *p)
     }
     return OK;
 }
+#endif
 
 /* ************************************************** */
 /* ******** Parametric EQ *************************** */
 /* ************************************************** */
 
+#ifdef INC_PAREQ
 /* Implementation of Zoelzer's Parametric Equalizer Filters */
 static int32_t pareqset(CSOUND *csound, PAREQ *p)
 {
@@ -993,12 +1008,13 @@ static int32_t pareq(CSOUND *csound, PAREQ *p)
     }
     return OK;
 }
-
+#endif
 /* Nested all-pass filters useful for creating reverbs */
 /* Coded by Hans Mikelson January 1999                 */
 /* Derived from Csound's delay opcode                  */
 /* Set up nested all-pass filter                       */
 
+#ifdef INC_NESTEDAP
 static int32_t nestedapset(CSOUND *csound, NESTEDAP *p)
 {
     int32    npts, npts1=0, npts2=0, npts3=0;
@@ -1194,12 +1210,12 @@ static int32_t nestedap(CSOUND *csound, NESTEDAP *p)
  return csound->PerfError(csound, &(p->h),
                              Str("delay: not initialised"));
 }
-
+#endif
 /***************************************************************************/
 /* The Lorenz System                                                       */
 /* Coded by Hans Mikelson Jauarary 1999                                    */
 /***************************************************************************/
-
+#ifdef INC_LORENZ
 static int32_t lorenzset(CSOUND *csound, LORENZ *p)
 {
    IGN(csound);
@@ -1266,6 +1282,7 @@ static int32_t lorenz(CSOUND *csound, LORENZ *p)
     p->valz = z;
     return OK;
 }
+#endif
 
 /**************************************************************************/
 /* TBVCF by Hans Mikelson December 2000-January 2001                      */
@@ -1276,6 +1293,7 @@ static int32_t lorenz(CSOUND *csound, LORENZ *p)
 /* but frequency is only approximate.                                     */
 /**************************************************************************/
 
+#ifdef INC_TBVCF
 static int32_t tbvcfset(CSOUND *csound, TBVCF *p)
 {
     IGN(csound);
@@ -1356,7 +1374,9 @@ static int32_t tbvcf(CSOUND *csound, TBVCF *p)
     p->y = y; p->y1 = y1; p->y2 = y2;
     return OK;
 }
+#endif
 
+#ifdef INC_BQREZ
 /* bqrez by Matt Gerassimoff */
 static int32_t bqrezset(CSOUND *csound, REZZY *p)
 {
@@ -1509,12 +1529,14 @@ static int32_t bqrez(CSOUND *csound, REZZY *p)
     p->xnm1 = xnm1; p->xnm2 = xnm2; p->ynm1 = ynm1; p->ynm2 = ynm2;
     return OK;
 }
+#endif
 
+#ifdef INC_MODE
 /* mode opcode - original UDO code by François Blanc, rewritten in C by
  * Steven Yi
  */
 
- static int32_t modeset(CSOUND *csound, MODE *p)
+static int32_t modeset(CSOUND *csound, MODE *p)
 {
     IGN(csound);
     /* Initialize filter to zero if set to reinitialize.  */
@@ -1589,7 +1611,9 @@ static int32_t mode(CSOUND *csound, MODE *p)
     p->a0 = a0;      p->a1 = a1;      p->a2 = a2;
     return OK;
 }
+#endif
 
+#ifdef INC_MVMFILTER
 int mvmfilterset(CSOUND *csound, MVMFILT *p)
 {
   IGN(csound);
@@ -1668,35 +1692,63 @@ int mvmfilter(CSOUND *csound, MVMFILT *p) {
 
   return OK;
 }
-
+#endif
 
 #define S(x)    sizeof(x)
 
 static OENTRY localops[] = {
+  #ifdef INC_BIQUAD
   { "biquad", S(BIQUAD),   0, 3, "a", "akkkkkko",
                                  (SUBR)biquadset,  (SUBR)biquad },
+#endif
+#ifdef INC_BIQUADA
 { "biquada", S(BIQUAD),  0, 3, "a", "aaaaaaao",
                                  (SUBR)biquadset, (SUBR)biquada },
+#endif
+#ifdef INC_MOOGVCF
 { "moogvcf", S(MOOGVCF), 0, 3, "a", "axxpo",
                                (SUBR)moogvcfset,  (SUBR)moogvcf },
 { "moogvcf2", S(MOOGVCF),0, 3, "a", "axxoo",
                                (SUBR)moogvcfset,  (SUBR)moogvcf },
+#endif
+#ifdef INC_REZZY
 { "rezzy", S(REZZY),     0, 3, "a", "axxoo", (SUBR)rezzyset,  (SUBR)rezzy },
+#endif
+    #ifdef INC_BQREZ
 { "bqrez", S(REZZY),     0, 3, "a", "axxoo", (SUBR)bqrezset,  (SUBR)bqrez },
+    #endif
+#ifdef INC_DISTORT1
 { "distort1", S(DISTORT),TR, 2, "a", "akkkko",  NULL,      (SUBR)distort   },
+#endif
+#ifdef INC_VCO
 { "vco", S(VCO),      TR, 3, "a", "xxiVppovoo",(SUBR)vcoset,  (SUBR)vco },
+#endif
+#ifdef INC_TBVCF
 { "tbvcf", S(TBVCF),     0, 3, "a", "axxkkp",
                                  (SUBR)tbvcfset,  (SUBR)tbvcf   },
+#endif
+#ifdef INC_PLANET
 { "planet", S(PLANET),0, 3,"aaa","kkkiiiiiiioo",
                                   (SUBR)planetset,  (SUBR)planet},
+#endif
+    #ifdef INC_PAREQ
 { "pareq", S(PAREQ),     0, 3, "a", "akkkoo",(SUBR)pareqset,  (SUBR)pareq },
+    #endif
+    #ifdef INC_NESTEDAP
 { "nestedap", S(NESTEDAP),0, 3,"a", "aiiiiooooo",
                                      (SUBR)nestedapset,  (SUBR)nestedap},
+    #endif
+    #ifdef INC_LORENZ
 { "lorenz", S(LORENZ),0,  3, "aaa", "kkkkiiiio",
                                   (SUBR)lorenzset,  (SUBR)lorenz},
+    #endif
+#ifdef INC_MODE
 { "mode",  S(MODE),   0, 3,      "a", "axxo", (SUBR)modeset,  (SUBR)mode   },
+#endif
+#ifdef INC_MVMFILTER
 { "mvmfilter", S(MVMFILT), 0, 3, "a", "axxo",
                                   (SUBR) mvmfilterset, (SUBR) mvmfilter },
+#endif
 };
 
 int32_t biquad_init_(CSOUND *csound)

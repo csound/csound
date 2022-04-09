@@ -32,6 +32,7 @@
 #include "interlocks.h"
 #include <assert.h>
 #include <math.h>
+#include "opcodes.h"
 
 /* ------------------------------------------------------------------------- */
 
@@ -96,6 +97,7 @@ typedef struct {
 #define ROOT27 (5.1961524227066318806)
 #define ROOT135d16 (0.72618437741389066597) /* sqrt(135.0/256.0) */
 
+#ifdef INC_BFORMENC1
 static int32_t ibformenc(CSOUND * csound, AMBIC * p)
 {
     /* All we do in here is police our parameters. */
@@ -109,7 +111,9 @@ static int32_t ibformenc(CSOUND * csound, AMBIC * p)
         (csound, Str("The numbers of input and output arguments are not valid."));
   }
 }
+#endif
 
+#ifdef INC_BFORMENC1_A
 static int32_t ibformenc_a(CSOUND * csound, AMBICA * p)
 {
     if (UNLIKELY(p->tabout->data==NULL || p->tabout->dimensions!=1))
@@ -127,9 +131,11 @@ static int32_t ibformenc_a(CSOUND * csound, AMBICA * p)
         (csound, Str("The numbers of input and output arguments are not valid."));
   }
 }
+#endif
 
-static int32_t
-abformenc(CSOUND * csound, AMBIC * p) {
+
+#ifdef INC_BFORMENC1
+static int32_t abformenc(CSOUND * csound, AMBIC * p) {
 
     IGN(csound);
     uint32_t offset = p->h.insdshead->ksmps_offset;
@@ -205,9 +211,10 @@ abformenc(CSOUND * csound, AMBIC * p) {
     }
 
     return OK;
-
 }
+#endif
 
+#ifdef INC_BFORMENC1_A
 static int32_t
 abformenc_a(CSOUND * csound, AMBICA * p) {
    IGN(csound);
@@ -286,6 +293,7 @@ abformenc_a(CSOUND * csound, AMBICA * p) {
     return OK;
 
 }
+#endif
 
 /* ------------------------------------------------------------------------- */
 
@@ -1084,14 +1092,22 @@ abformdec_a(CSOUND * csound, AMBIDA * p) {
 #define S(x) sizeof(x)
 
 static OENTRY ambicode1_localops[] = {
+#ifdef INC_BFORMENC1
   { "bformenc1.a", S(AMBIC), 0, 3, "mmmmmmmmmmmmmmmm", "akk",
                 (SUBR)ibformenc,  (SUBR)abformenc },
+  #endif
+  #ifdef INC_BFORMENC1_A
   { "bformenc1.A", S(AMBIC), 0, 3, "a[]", "akk",
                 (SUBR)ibformenc_a,  (SUBR)abformenc_a },
+  #endif
+  #ifdef INC_BFORMDEC1
   { "bformdec1.a", S(AMBID), 0, 3, "mmmmmmmm", "iy",
     (SUBR)ibformdec,  (SUBR)abformdec },
+  #endif
+  #ifdef INC_BFORMDEC1_A
   { "bformdec1.A", S(AMBIDA), 0, 3, "a[]", "ia[]",
     (SUBR)ibformdec_a,  (SUBR)abformdec_a },
+  #endif
 };
 
 LINKAGE_BUILTIN(ambicode1_localops)

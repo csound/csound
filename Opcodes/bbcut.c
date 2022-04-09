@@ -24,8 +24,11 @@
 #include "interlocks.h"
 #include "bbcut.h"
 #include <math.h>
+#include "opcodes.h"
 
 /* my auxilliary functions */
+
+#if defined(INC_BBCUTM)||defined(INC_BCUTS)
 
 static inline int32_t roundoffint(MYFLT x)
 {
@@ -49,7 +52,9 @@ static MYFLT myfltrandom(CSOUND *csound, MYFLT a, MYFLT b)
     x = (MYFLT) (csound->Rand31(&(csound->randSeed1)) - 1) / FL(2147483645.0);
     return (a + x * (b - a));
 }
+#endif
 
+#ifdef INC_BBCUTM
 static int32_t BBCutMonoInit(CSOUND *csound, BBCUTMONO *p)
 {
     /* call seed random at time now? */
@@ -277,7 +282,9 @@ static int32_t BBCutMono(CSOUND *csound, BBCUTMONO *p)
 
     return OK;
 }
+#endif
 
+#ifdef INC_BBCUTS
 /* Stereo versions */
 /* This following code is excatly the same as above, but */
 /* uses BBCUTSTEREO- changes are doubling of buffer size
@@ -532,14 +539,20 @@ static int32_t BBCutStereo(CSOUND *csound, BBCUTSTEREO *p)
     }
     return OK;
 }
+#endif
+
 
 #define S(x)    sizeof(x)
 
 static OENTRY localops[] = {
+  #ifdef INC_BBCUTM
   { "bbcutm",S(BBCUTMONO), 0, 3, "a","aiiiiipop",
                                  (SUBR)BBCutMonoInit, (SUBR)BBCutMono  },
+  #endif
+  #ifdef INC_BBCUTS
   { "bbcuts",S(BBCUTSTEREO), 0, 3, "aa","aaiiiiipop",
                                (SUBR)BBCutStereoInit, (SUBR)BBCutStereo}
+  #endif
 };
 
 int32_t bbcut_init_(CSOUND *csound)

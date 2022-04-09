@@ -72,6 +72,10 @@ int main(void)
     process_file("Opcodes/babo.c", outp);
     process_file("Opcodes/uggab.c", outp);
     process_file("Opcodes/scansyn.c", outp);
+    process_file("Opcodes/ambicode1.c", outp);
+    process_file("Opcodes/bbcut.c", outp);
+    process_file("Opcodes/bilbar.c", outp);
+    process_file("Opcodes/biquad.c", outp);
 
     fprintf(outp, "\t{ NULL, NULL, 0 } };\n\n");
     fclose(outp);

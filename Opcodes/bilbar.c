@@ -24,6 +24,7 @@
 //#include "csdl.h"
 #include "csoundCore.h"
 #include <math.h>
+#include "opcodes.h"
 
 /* %% bar sound synthesis translated from Mathlab and much changed */
 
@@ -44,6 +45,7 @@ typedef struct {
     AUXCH   w_aux;
 } BAR;
 
+#ifdef INC_BILBAR
 static int32_t bar_init(CSOUND *csound, BAR *p)
 {
     if (*p->iK >= FL(0.0) || p->w_aux.auxp == NULL) {
@@ -203,6 +205,8 @@ static int32_t bar_run(CSOUND *csound, BAR *p)
 
     return OK;
 }
+#endif
+
 
 /* Prepared Piano string */
 
@@ -255,6 +259,7 @@ typedef struct {
     RUBBER *rubber;
 } CSPP;
 
+#ifdef INC_PPIANO
 int32_t init_pp(CSOUND *csound, CSPP *p)
 {
     if (*p->K >= FL(0.0)) {
@@ -570,14 +575,19 @@ int32_t play_pp(CSOUND *csound, CSPP *p)
     p->step = step;
     return OK;
 }
+#endif
 
 #define S(x)    sizeof(x)
 
 static OENTRY bilbar_localops[] = {
+  #ifdef INC_BILBAR
   { "barmodel", S(BAR), 0, 3, "a", "kkiikiiii", (SUBR) bar_init,
                                                (SUBR) bar_run},
+  #endif
+  #ifdef INC_PPIANO
   { "prepiano", S(CSPP), 0, 3, "mm", "iiiiiikkiiiiiiioo",
                                 (SUBR)init_pp, (SUBR)play_pp },
+  #endif
 };
 
 LINKAGE_BUILTIN(bilbar_localops)
