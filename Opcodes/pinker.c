@@ -30,6 +30,7 @@
 */
 
 #include "csoundCore.h"       /*                              PINKER.C         */
+#include "opcodes.h"
 
 typedef struct {
   OPDS h;
@@ -41,6 +42,8 @@ typedef struct {
   unsigned char cnt;
   int offset;
 } PINKER;
+
+#ifdef INC_PINKER
 
 #define PINK_BIAS   FL(440.0)
 
@@ -170,10 +173,13 @@ static int pink_init(CSOUND *csound, PINKER *p)      // constructor
     p->offset =   0;
     return OK;
 }
+#endif
 
 static OENTRY pinker_localops[] =
 {
+  #ifdef INC_PINKER
  { "pinker", sizeof(PINKER),0,3, "a", "", (SUBR)pink_init, (SUBR)pink_perf }
+ #endif
 };
 
 LINKAGE_BUILTIN(pinker_localops)

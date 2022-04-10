@@ -23,6 +23,7 @@
 
 #include "csoundCore.h"
 #include "interlocks.h"
+#include "opcodes.h"
 
 typedef struct {
     OPDS    h;
@@ -34,6 +35,7 @@ typedef struct {
 } TABSUM;
 
 
+#ifdef INC_TABSUM
 static int32_t tabsuminit(CSOUND *csound, TABSUM *p)
 {
     if (UNLIKELY((p->ftp = csound->FTnp2Find(csound, p->itab)) == NULL)) {
@@ -41,8 +43,6 @@ static int32_t tabsuminit(CSOUND *csound, TABSUM *p)
     }
     return OK;
 }
-
-
 
 static int32_t tabsum(CSOUND *csound, TABSUM *p)
 {
@@ -67,12 +67,15 @@ static int32_t tabsum(CSOUND *csound, TABSUM *p)
     *p->kans = ans;
     return OK;
 }
+#endif
 
 #define S(x)    sizeof(x)
 
 static OENTRY tabsum_localops[] = {
-{ "tabsum",     S(TABSUM),     0, 3,     "k",    "iOO",
-                (SUBR)tabsuminit, (SUBR)tabsum },
+#ifdef INC_TABSUM
+  { "tabsum",     S(TABSUM),     0, 3,     "k",    "iOO",
+    (SUBR)tabsuminit, (SUBR)tabsum },
+  #endif
 };
 
 LINKAGE_BUILTIN(tabsum_localops)

@@ -30,7 +30,8 @@
 
 #include "stdopcod.h"
 #include "repluck.h"
-
+#include "opcodes.h"
+#ifdef INC_WGPLUCK2
 static int32_t wgpsetin(CSOUND *, WGPLUCK2 *);
 
 static int32_t wgpset(CSOUND *csound, WGPLUCK2 *p)
@@ -39,6 +40,9 @@ static int32_t wgpset(CSOUND *csound, WGPLUCK2 *p)
     wgpsetin(csound,p);
     return OK;
 }
+#endif
+
+#if defined(INC_REPLUCK)||defined(INC_WGPLUCK2)
 
 static int32_t wgpsetin(CSOUND *csound, WGPLUCK2 *p)
 {
@@ -231,6 +235,7 @@ static int32_t wgpluck(CSOUND *csound, WGPLUCK2 *p)
 
     return OK;
 } /* end wgpluck(p) */
+#endif
 
 /*******************************************************/
 /* streson.c : string resonator opcode                 */
@@ -239,7 +244,7 @@ static int32_t wgpluck(CSOUND *csound, WGPLUCK2 *p)
 /*             of a string tuned to a kfun fundamental */
 /*          Victor Lazzarini, 1998                     */
 /*******************************************************/
-
+#ifdef INC_STRESON
 static int32_t stresonset(CSOUND *csound, STRES *p)
 {
     p->size = (int32_t) (CS_ESR/20);   /* size of delay line */
@@ -299,14 +304,21 @@ static int32_t streson(CSOUND *csound, STRES *p)
     p->LPdelay = LPdelay; p->APdelay = APdelay;
     return OK;
 }
+#endif
 
 #define S(x)    sizeof(x)
 
 static OENTRY localops[] =
   {
+    #ifdef INC_REPLUCK
    { "repluck", S(WGPLUCK2), 0, 3, "a",  "ikikka",(SUBR)wgpsetin, (SUBR)wgpluck},
+   #endif
+   #ifdef INC_WGPLUCK2
    { "wgpluck2",S(WGPLUCK2), 0, 3, "a",  "ikikk", (SUBR)wgpset, (SUBR)wgpluck},
+   #endif
+   #ifdef INC_STRESON
    { "streson", S(STRES),    0, 3, "a",  "akk",  (SUBR)stresonset, (SUBR)streson}
+   #endif
 };
 
 int32_t repluck_init_(CSOUND *csound)

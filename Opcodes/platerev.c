@@ -24,6 +24,7 @@
 
 #include "csoundCore.h"
 #include <math.h>
+#include "opcodes.h"
 
 /* #undef CS_KSMPS */
 /* #define CS_KSMPS     (csound->GetKsmps(csound)) */
@@ -49,7 +50,7 @@ typedef struct {
     double       ci[40], si[40], co[40], so[40];
  } PLATE;
 
-
+#ifdef INC_PLATEREV
 static int32_t platerev_init(CSOUND *csound, PLATE *p)
 {
     FUNC *inp, *outp;
@@ -245,12 +246,16 @@ static int32_t platerev(CSOUND *csound, PLATE *p)
     return OK;
 }
 
+#endif
+
 static OENTRY platerev_localops[] =
   {
+    #ifdef INC_PLATEREV
    { "platerev", sizeof(PLATE), 0, 3, "mmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmm",
      "iikiiiiy",
      (SUBR) platerev_init, (SUBR) platerev
   },
+   #endif
 };
 
 LINKAGE_BUILTIN(platerev_localops)

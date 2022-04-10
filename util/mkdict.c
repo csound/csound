@@ -88,6 +88,9 @@ int main(void)
     process_file("Opcodes/wterrain2.c", outp);
     process_file("Opcodes/sterrain.c", outp);
     process_file("Opcodes/sndwarp.c", outp);
+    process_file("Opcodes/system_call.c", outp);
+    process_file("Opcodes/tabsum.c", outp);
+    process_file("Opcodes/repluck.c", outp);
 
     fprintf(outp, "\t{ NULL, NULL}\n};\n");
 }

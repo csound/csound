@@ -23,6 +23,7 @@
 
 
 #include "csoundCore.h"
+#include "opcodes.h"
 
 typedef struct {
   OPDS  h;
@@ -38,6 +39,7 @@ typedef struct {
 #if defined(WIN32)
 #include <process.h>
 
+#if defined(INC_SYSTEM)||defined(INC_SYSTEM_I)
 static void threadroutine(void *p)
 {
     SYSTEM *pp = (SYSTEM *) p;
@@ -59,6 +61,7 @@ static int32_t call_system(CSOUND *csound, SYSTEM *p)
     }
     return OK;
 }
+#endif
 
 #else
 #include <unistd.h>
@@ -67,6 +70,7 @@ static int32_t call_system(CSOUND *csound, SYSTEM *p)
 #include <TargetConditionals.h>
 #endif
 
+#if defined(INC_SYSTEM)|defined(INC_SYSTEM_I)
 static int32_t call_system(CSOUND *csound, SYSTEM *p)
 {
     IGN(csound);
@@ -92,7 +96,9 @@ return OK;
 }
 
 #endif
+#endif
 
+#ifdef INC_SYSTEM_I
 int32_t call_system_i(CSOUND *csound, SYSTEM *p)
 {
     if (*p->ktrig <= FL(0.0)) {
@@ -102,7 +108,9 @@ int32_t call_system_i(CSOUND *csound, SYSTEM *p)
     else
       return call_system(csound, p);
 }
+#endif
 
+#ifdef INC_SYSTEM
 int32_t call_system_set(CSOUND *csound, SYSTEM *p)
 {
     IGN(csound);
@@ -120,13 +128,18 @@ call_system_k(CSOUND *csound, SYSTEM *p)
       return (call_system(csound, p));
     return OK;
 }
+#endif
 
 #define S(x)    sizeof(x)
 
 static OENTRY system_localops[] = {
+  #ifdef INC_SYSTEM
   { "system", S(SYSTEM), 0, 3, "k", "kSO",
                        (SUBR)call_system_set,(SUBR)call_system_k},
+  #endif
+  #ifdef INC_SYSTEM_I
   { "system_i", S(SYSTEM), 0, 1, "i", "iSo", (SUBR)call_system_i}
+  #endif
 };
 
 LINKAGE_BUILTIN(system_localops)

@@ -475,6 +475,7 @@
 #define INC_REINIT
 #define INC_RELEASE
 #define INC_REMOTEPORT
+#define INC_REPLUCK
 #define INC_RESON
 #define INC_RESONBNK
 #define INC_RESONK
@@ -535,6 +536,7 @@
 #define INC_STRCHAR
 #define INC_STRCMP
 #define INC_STRCPY
+#define INC_STRESON
 #define INC_STRGET
 #define INC_STRLEN
 #define INC_STRSET
@@ -543,6 +545,8 @@
 #define INC_STRTOL
 #define INC_SUM
 #define INC_SVFILTER
+#define INC_SYSTEM
+#define INC_SYSTEM_I
 #define INC_TABLE3_A
 #define INC_TABLE3_I
 #define INC_TABLE3_K
@@ -570,6 +574,7 @@
 #define INC_TABLEWKT_A
 #define INC_TABLEWKT_K
 #define INC_TABLEXKT
+#define INC_TABSUM
 #define INC_TAN
 #define INC_TAN_A
 #define INC_TANH
@@ -620,6 +625,7 @@
 #define INC_VIBRATO
 #define INC_WEIBULLRAND
 #define INC_WEIBULLRAND_A
+#define INC_WGPLUCK2
 #define INC_WRAP
 #define INC_WRAP_A
 #define INC_WTERRAIN
