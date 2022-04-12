@@ -66,9 +66,10 @@ typedef struct {
 typedef struct {
     OPDS        h;
     ARRAYDAT    *k_pos, *k_vel;
-    MYFLT       *i_id;
+    MYFLT       *i_id, *k_pamp, *k_vamp;
     PSCSNU      *p;
 } PSCSNMAPV;
+
 
 /* *********************************** */
 /* *********************************** */
