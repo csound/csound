@@ -785,9 +785,15 @@ static int32_t scsnmapV(CSOUND *csound, PSCSNMAPV *p)
 {
     IGN(csound);
     PSCSNU *pp = p->p;
-    int32 len = pp->len*sizeof(MYFLT);
-    memcpy(p->k_pos->data, pp->x0, len);
-    memcpy(p->k_vel->data, pp->v, len);
+    int32 len = pp->len;
+    MYFLT pa = *p->k_pamp, va = *p->k_vamp;
+    int i;
+    for (i=0; i<len; i++) {
+      p->k_pos->data[i] = pp->x0[i]*pa;
+      p->k_vel->data[i] = pp->v[i]*va;
+    }
+    //memcpy(p->k_pos->data, pp->x0, len);
+    //memcpy(p->k_vel->data, pp->v, len);
     return OK;
 }
 
