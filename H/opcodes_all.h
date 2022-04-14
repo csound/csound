@@ -407,6 +407,7 @@
 #define INC_PHASER2
 #define INC_PHASOR
 #define INC_PHASOR_K
+#define INC_PINKER
 #define INC_PLANET
 #define INC_PLUCK
 #define INC_POISSONRAND

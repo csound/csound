@@ -91,6 +91,7 @@ int main(void)
     process_file("Opcodes/system_call.c", outp);
     process_file("Opcodes/tabsum.c", outp);
     process_file("Opcodes/repluck.c", outp);
+    process_file("Opcodes/pinker.c", outp);
 
     fprintf(outp, "\t{ NULL, NULL}\n};\n");
 }

@@ -2053,7 +2053,7 @@ int32_t outs1(CSOUND *csound, OUTM *p)
 
 #define OUTCN(n)  if (n>csound->nchnls) return          \
                                           csound->InitError(csound, "%s", \
-                                              Str("Channel greater than nchnls")); \
+                                             Str("Channel greater than nchnls")); \
   return OK;
 
 #ifdef INC_OUTS2
@@ -2147,7 +2147,7 @@ int32_t outq4(CSOUND *csound, OUTM *p)
 }
 #endif
 
-#if defined(INC_OUT)||defined(INC_OUT)
+#if defined(INC_OUT)||defined(INC_OUTC)
 inline static int32_t outn(CSOUND *csound, uint32_t n, OUTX *p)
 {
     uint32_t nsmps = CS_KSMPS,  i, j, k=0;

@@ -1092,6 +1092,26 @@ static void hamming(MYFLT *win, int32_t winLen, int32_t even)
 
 }
 
+static void vonhann(MYFLT *win, int32_t winLen, int32_t even)
+{
+    MYFLT ftmp;
+    int32_t i;
+
+    ftmp = PI_F/winLen;
+
+    if (even) {
+      for (i=0; i<winLen; i++)
+        win[i] = (MYFLT)(0.5 + 0.5 * cos(ftmp*((double)i+0.5)));
+      win[winLen] = FL(0.0);
+    }
+    else {
+      win[0] = FL(1.0);
+      for (i=1; i<=winLen; i++)
+        win[i] = (MYFLT)(0.5 + 0.5 * cos(ftmp*(double)i));
+    }
+}
+#endif
+
 double besseli(double x)
 {
     double ax, ans;
@@ -1123,22 +1143,3 @@ double besseli(double x)
     return ans;
 }
 
-static void vonhann(MYFLT *win, int32_t winLen, int32_t even)
-{
-    MYFLT ftmp;
-    int32_t i;
-
-    ftmp = PI_F/winLen;
-
-    if (even) {
-      for (i=0; i<winLen; i++)
-        win[i] = (MYFLT)(0.5 + 0.5 * cos(ftmp*((double)i+0.5)));
-      win[winLen] = FL(0.0);
-    }
-    else {
-      win[0] = FL(1.0);
-      for (i=1; i<=winLen; i++)
-        win[i] = (MYFLT)(0.5 + 0.5 * cos(ftmp*(double)i));
-    }
-}
-#endif

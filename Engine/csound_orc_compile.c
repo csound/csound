@@ -608,9 +608,10 @@ INSTRTXT *create_instrument0(CSOUND *csound, TREE *root,
       if (UNLIKELY(PARSER_DEBUG))
         csound->Message(csound, "In INSTR 0: %s\n", current->value->lexeme);
 
-      if (current->type == T_ASSIGNMENT
-          && strcmp(oentry->opname, "=.r") == 0) {
-
+      printf("**** Type = %d opcode %s\n", current->type, oentry->opname);
+      if (current->type == T_ASSIGNMENT &&
+          ((strcmp(oentry->opname, "=.r") == 0) ||
+           (strcmp(oentry->opname, "=.generic") == 0))) {
         // FIXME - perhaps should add check as it was in
         // constndx?  Not sure if necessary due to assumption
         // that tree will be verified
@@ -619,9 +620,10 @@ INSTRTXT *create_instrument0(CSOUND *csound, TREE *root,
         // compiled into i-time code
         find_or_add_constant(csound, csound->engineState.constantsPool,
                              (const char *)current->right->value->lexeme, val);
-
+        
         /* modify otran defaults*/
         /* removed assignments to csound->tran_* */
+        printf("****assignment to %s with val=%g\n", current->left->value->lexeme, val);
         if (strcmp("sr", current->left->value->lexeme) == 0) {
           sr = val;
           //srdef = 1;
@@ -638,6 +640,7 @@ INSTRTXT *create_instrument0(CSOUND *csound, TREE *root,
         else if (strcmp("nchnls", current->left->value->lexeme) == 0) {
           uval = (val<=0 ? 1u : (unsigned int)val);
           nchnls = uval;
+          printf("*** nchnls = %d\n", uval);
         }
         else if (strcmp("nchnls_i", current->left->value->lexeme) == 0) {
           uval = (val<=0 ? 1u : (unsigned int)val);

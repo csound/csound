@@ -30,8 +30,8 @@
 #include "cwindow.h"
 #include "cmath.h"
 #include "fgens.h"
-//#include "pstream.h"
-//#include "pvfileio.h"
+#include "pstream.h"
+#include "pvfileio.h"
 #include <stdlib.h>
 /* #undef ISSTRCOD */
 #include "opcodes.h"
@@ -55,7 +55,7 @@ int isstrcod(MYFLT xx)
 #endif
 }
 
-//extern double besseli(double);
+extern double besseli(double);
 FUNC *csoundFTnp2Findint(CSOUND *csound, MYFLT *argp, int verbose);static int gen01raw(FGDATA *, FUNC *);
 static int gen01(FGDATA *, FUNC *), gen02(FGDATA *, FUNC *);
 static int gen03(FGDATA *, FUNC *), gen04(FGDATA *, FUNC *);
@@ -85,13 +85,18 @@ static int gen49(FGDATA *, FUNC *);
 
 static const GEN or_sub[GENMAX + 1] = {
     GENUL,
-    GENUL, gen02, GENUL, GENUL, gen05, GENUL, GENUL, GENUL, gen09, gen10,
-    //gen11, gen12, gen13, gen14, gen15, gen16, gen17, gen18, gen19, gen20,
-    //gen21, GENUL, gen23, gen24, gen25, GENUL, gen27, gen28, GENUL, gen30,
-    //gen31, gen32, gen33, gen34, GENUL, GENUL, GENUL, GENUL, GENUL, gen40,
-    //gen41, gen42, gen43, gen44, GENUL, GENUL, GENUL, GENUL, GENUL, GENUL,
-    //gen51, gen52, gen53, GENUL, GENUL, GENUL, GENUL, GENUL, GENUL,
-    GENUL
+    gen01, gen02, gen03, gen04, gen05, gen06, gen07, gen08, gen09, gen10,
+    gen11, gen12, gen13, gen14, gen15, gen16, gen17, gen18, gen19, gen20,
+    gen21, GENUL, gen23, gen24, gen25, GENUL, gen27, gen28, GENUL, gen30,
+    gen31, gen32, gen33, gen34, GENUL, GENUL, GENUL, GENUL, GENUL, gen40,
+    gen41, gen42, gen43, gen44, GENUL, GENUL, GENUL, GENUL,
+#ifndef NACL
+    gen49,
+#else
+    GENUL,
+#endif
+    GENUL,
+    gen51, gen52, gen53, GENUL, GENUL, GENUL, GENUL, GENUL, GENUL, GENUL
 };
 
 typedef struct namedgen {
@@ -417,8 +422,7 @@ static int gen02(FGDATA *ff, FUNC *ftp)
     return OK;
 }
 
-#if 0
- static int gen03(FGDATA *ff, FUNC *ftp)
+static int gen03(FGDATA *ff, FUNC *ftp)
 {
     int     ncoefs, nargs = ff->e.pcnt - 4;
     MYFLT   xintvl, xscale;
@@ -513,7 +517,6 @@ static int gen04(FGDATA *ff, FUNC *ftp)
 
     return OK;
 }
-#endif
 
 static int gen05(FGDATA *ff, FUNC *ftp)
 {
@@ -567,7 +570,7 @@ static int gen05(FGDATA *ff, FUNC *ftp)
  gn5er2:
     return fterror(ff, Str("illegal input vals for gen call, beginning:"));
 }
-#if 0
+
 static int gen07(FGDATA *ff, FUNC *ftp)
 {
     int     nsegs, seglen;
@@ -753,7 +756,6 @@ static int gen08(FGDATA *ff, FUNC *ftp)
       *fp++ = f0;                       /* & repeat the last value      */
     return OK;
 }
-#endif
 
 static int gen09(FGDATA *ff, FUNC *ftp)
 {
@@ -831,7 +833,6 @@ static int gen10(FGDATA *ff, FUNC *ftp)
     return OK;
 }
 
-#if 0
 static int gen11(FGDATA *ff, FUNC *ftp)
 {
     MYFLT   *fp, *finp;
@@ -1614,7 +1615,7 @@ static int gen28(FGDATA *ff, FUNC *ftp)
     FILE    *filp;
     void    *fd;
     int     i=0, j=0;
-res    MYFLT   *x, *y, *z;
+    MYFLT   *x, *y, *z;
     int     arraysize = 1000;
     MYFLT   x1, y1, z1, x2, y2, z2, incrx, incry;
 
@@ -2273,8 +2274,6 @@ static int gen42(FGDATA *ff, FUNC *ftp) /*gab d5*/
     return OK;
 }
 
-#endif
-
 CS_NOINLINE int fterror(const FGDATA *ff, const char *s, ...)
 {
     CSOUND  *csound = ff->csound;
@@ -2724,8 +2723,8 @@ static int gen01raw(FGDATA *ff, FUNC *ftp)
     ftp->gen01args.sample_rate = (MYFLT) p->sr;
     ftp->cvtbas = LOFACT * p->sr * csound->onedsr;
     {
-      SF_INSTRUMENT lpd;
-      int ans = sf_command(fd, SFC_GET_INSTRUMENT, &lpd, sizeof(SFLIB_INSTRUMENT));
+      SFLIB_INSTRUMENT lpd;
+      int ans = sflib_command(fd, SFC_GET_INSTRUMENT, &lpd, sizeof(SFLIB_INSTRUMENT));
       if (ans) {
         double natcps;
 #ifdef BETA
@@ -2819,7 +2818,6 @@ static int gen01raw(FGDATA *ff, FUNC *ftp)
     return OK;
 }
 
-#if 0
 /* GEN 43 (c) Victor Lazzarini, 2004 */
 
 typedef struct _pvstabledat {
@@ -3411,7 +3409,7 @@ static int gen53(FGDATA *ff, FUNC *ftp)
     }
     return OK;
 }
-#endif
+
 int allocgen(CSOUND *csound, char *s, GEN fn)
 {
     NAMEDGEN *n = (NAMEDGEN*) csound->namedgen;

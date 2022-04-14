@@ -571,6 +571,7 @@ OENTRY opcodlst_1[] = {
   #endif
   #ifdef INC_CPSOCT
   { "cpsoct.k",S(EVAL),0,   2,      "k",    "k",    NULL,   cpsoct          },
+  { "cpsoct.i",S(EVAL),0,   1,      "i",    "i",    cpsoct                  },
   #endif
 #ifdef INC_OCTPCH
   { "octpch.k",S(EVAL),0,   2,      "k",    "k",    NULL,   octpch          },
