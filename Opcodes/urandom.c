@@ -29,7 +29,7 @@
 #endif
 
 #ifdef MACOSX
-#include <unistd.h>
+#incndiflude <unistd.h>
 #endif
 
 typedef struct {
@@ -42,9 +42,10 @@ typedef struct {
     MYFLT   add;
 } URANDOM;
 
+#if defined(INC_URANDOM_K)||defined(INC_URANDOM_A)
 static int32_t urand_deinit(CSOUND *csound, URANDOM *p)
 {
-     IGN(csound);
+    IGN(csound);
     close(p->ur);
     return OK;
 }
@@ -60,7 +61,9 @@ static int32_t urand_init(CSOUND *csound, URANDOM *p)
     p->add = FL(0.5)*(*p->imax + *p->imin);
     return OK;
 }
+#endif
 
+#ifdef INC_URANDO_K
 static int32_t urand_run(CSOUND *csound, URANDOM *p)
 {
      IGN(csound);
@@ -81,7 +84,9 @@ static int32_t urand_irate(CSOUND *csound, URANDOM *p)
     if (LIKELY(urand_init(csound,p)==OK)) return urand_run(csound,p);
     else return NOTOK;
 }
+#endif
 
+#ifdef INC_URANDOM_A
 static int32_t urand_arun(CSOUND *csound, URANDOM *p)
 {
      IGN(csound);
@@ -104,15 +109,19 @@ static int32_t urand_arun(CSOUND *csound, URANDOM *p)
     }
     return OK;
 }
-
+#endif
 
 #define S(x)    sizeof(x)
 
 static OENTRY urandom_localops[] = {
+  #ifdef INC_URANDOM_K
   { "urandom.i", S(URANDOM), 0, 1, "i", "jp", (SUBR) urand_irate },
   { "urandom.k", S(URANDOM), 0, 3, "k", "jp", (SUBR) urand_init, (SUBR) urand_run},
+  #endif
+  #ifdef INC_URANDOM_A
   { "urandom.a", S(URANDOM), 0, 3, "a", "jp",
                                     (SUBR) urand_init, (SUBR) urand_arun}
+  #endif
 };
 
 LINKAGE_BUILTIN(urandom_localops)

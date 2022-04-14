@@ -42,7 +42,9 @@ Csound C versions by Steven Yi
 */
 
 #include "wpfilters.h"
+#include "opcodes.h"
 
+#ifdef INC_ZDF_1pole_mode
 static int32_t zdf_1pole_mode_init(CSOUND* csound, ZDF_1POLE_MODE* p) {
      IGN(csound);
     if (*p->skip == 0) {
@@ -119,7 +121,9 @@ static int32_t zdf_1pole_mode_perf(CSOUND* csound, ZDF_1POLE_MODE* p) {
 
     return OK;
 }
+#endif
 
+#ifdef INC_ZDF_1pole
 static int32_t zdf_1pole_init(CSOUND* csound, ZDF_1POLE* p) {
    IGN(csound);
     if (*p->skip == 0) {
@@ -206,8 +210,9 @@ static int32_t zdf_1pole_perf(CSOUND* csound, ZDF_1POLE* p) {
 
     return OK;
 }
+#endif
 
-
+#ifdef INC_ZDF_2pole_mode
 static int32_t zdf_2pole_mode_init(CSOUND* csound, ZDF_2POLE_MODE* p) {
      IGN(csound);
     if (*p->skip == 0) {
@@ -304,8 +309,9 @@ static int32_t zdf_2pole_mode_perf(CSOUND* csound, ZDF_2POLE_MODE* p) {
 
     return OK;
 }
+#endif
 
-
+#ifdef INC_ZDF_2pole
 static int32_t zdf_2pole_init(CSOUND* csound, ZDF_2POLE* p) {
      IGN(csound);
     if (*p->skip == 0) {
@@ -418,7 +424,9 @@ static int32_t zdf_2pole_perf(CSOUND* csound, ZDF_2POLE* p) {
 
     return OK;
 }
+#endif
 
+#ifdef INC_ZDF_ladder
 static int32_t zdf_ladder_init(CSOUND* csound, ZDF_LADDER* p) {
      IGN(csound);
     if (*p->skip == 0) {
@@ -552,8 +560,9 @@ static int32_t zdf_ladder_perf(CSOUND* csound, ZDF_LADDER* p) {
 
     return OK;
 }
+#endif
 
-
+#ifdef INC_diode_ladder
 static int32_t diode_ladder_init(CSOUND* csound,
                              DIODE_LADDER* p) {
      IGN(csound);
@@ -774,10 +783,11 @@ static int32_t diode_ladder_perf(CSOUND* csound,
 
     return OK;
 }
+#endif
 
-
+#ifdef INC_K35_lpf
 static int32_t k35_lpf_init(CSOUND* csound, K35_LPF* p) {
-     IGN(csound);
+    IGN(csound);
     if (*p->skip == 0.0) {
       p->z1 = 0.0;
       p->z2 = 0.0;
@@ -913,8 +923,9 @@ static int32_t k35_lpf_perf(CSOUND* csound, K35_LPF* p) {
 
     return OK;
 }
+#endif
 
-
+#ifdef INC_K35_hpf
 static int32_t k35_hpf_init(CSOUND* csound, K35_HPF* p) {
      IGN(csound);
     if (*p->skip == 0.0) {
@@ -1053,26 +1064,42 @@ static int32_t k35_hpf_perf(CSOUND* csound, K35_HPF* p) {
 
     return OK;
 }
-
+#endif
 
 static OENTRY wpfilters_localops[] =
   {
+    #ifdef INC_ZDF_1pole
    { "zdf_1pole", sizeof(ZDF_1POLE), 0,3,"a","axOo",
       (SUBR)zdf_1pole_init,(SUBR)zdf_1pole_perf},
+   #endif
+    #ifdef INC_ZDF_1pole_mode
    { "zdf_1pole_mode", sizeof(ZDF_1POLE_MODE), 0,3,"aa","axo",
       (SUBR)zdf_1pole_mode_init,(SUBR)zdf_1pole_mode_perf},
+   #endif
+    #ifdef INC_ZDF_2pole  
    { "zdf_2pole", sizeof(ZDF_2POLE), 0,3,"a","axxOo",
       (SUBR)zdf_2pole_init,(SUBR)zdf_2pole_perf},
-   { "zdf_2pole_mode", sizeof(ZDF_2POLE_MODE), 0,3,"aaa","axxo",
+  #endif
+  #ifdef INC_ZDF_2pole_mode
+   { "zifdef INC_df_2pole_mode", sizeof(ZDF_2POLE_MODE), 0,3,"aaa","axxo",
       (SUBR)zdf_2pole_mode_init,(SUBR)zdf_2pole_mode_perf},
+  #endif
+  #ifdef INC_ZDF_ladder
    { "zdf_ladder", sizeof(ZDF_LADDER), 0,3,"a","axxo",
       (SUBR)zdf_ladder_init,(SUBR)zdf_ladder_perf},
+  #endif
+  #ifdef INC_diode_ladder
    { "diode_ladder", sizeof(DIODE_LADDER), 0,3,"a","axxOPo",
       (SUBR)diode_ladder_init,(SUBR)diode_ladder_perf},
+  #endif
+  #ifdef INC_K35_lpf
    { "K35_lpf", sizeof(K35_LPF), 0,3,"a","axxOPo",
       (SUBR)k35_lpf_init,(SUBR)k35_lpf_perf},
+  #endif
+  #ifdef INC_K35_hpf
    { "K35_hpf", sizeof(K35_LPF), 0,3,"a","axxOPo",(SUBR)
       k35_hpf_init,(SUBR)k35_hpf_perf},
+  #endif
   };
 
 LINKAGE_BUILTIN(wpfilters_localops)
