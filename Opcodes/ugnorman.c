@@ -67,6 +67,9 @@ kamp            ATSinterpread   kfreq
 #include "ugnorman.h"
 #include <ctype.h>
 #include "interlocks.h"
+#include "opcodes.h"
+
+#ifdef INC_ATS
 
 #define ATSA_NOISE_VARIANCE 0.04
 
@@ -2943,10 +2946,12 @@ static int32_t atscross(CSOUND *csound, ATSCROSS *p)
 }
 
 /* end of ugnorman.c */
+#endif
 
 #define S(x)    sizeof(x)
 
 static OENTRY localops[] = {
+  #ifdef INC_ATS
     { "ATSread",        S(ATSREAD),       0,  3,  "kk",   "kSi",
         (SUBR) atsreadset_S,          (SUBR) atsread,         (SUBR) NULL      },
     { "ATSread.i",        S(ATSREAD),       0,  3,  "kk",   "kii",
@@ -2983,6 +2988,7 @@ static OENTRY localops[] = {
         (SUBR) atscrossset,            (SUBR) atscross  },
     { "ATSinfo.i",        S(ATSINFO),         0,1,  "i",    "ii",
         (SUBR) atsinfo,             (SUBR) NULL,            (SUBR) NULL      }
+    #endif
 };
 
 int32_t ugnorman_init_(CSOUND *csound)

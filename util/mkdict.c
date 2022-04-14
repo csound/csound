@@ -94,6 +94,7 @@ int main(void)
     process_file("Opcodes/pinker.c", outp);
     process_file("Opcodes/wpfilters.c", outp);
     process_file("Opcodes/urandom.c", outp);
+    process_file("Opcodes/ugnorman.c", outp);
 
     fprintf(outp, "\t{ NULL, NULL}\n};\n");
 }
