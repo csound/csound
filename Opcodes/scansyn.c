@@ -785,9 +785,15 @@ static int32_t scsnmapV(CSOUND *csound, PSCSNMAPV *p)
 {
     IGN(csound);
     PSCSNU *pp = p->p;
-    int32 len = pp->len*sizeof(MYFLT);
-    memcpy(p->k_pos->data, pp->x0, len);
-    memcpy(p->k_vel->data, pp->v, len);
+    int32 len = pp->len;
+    MYFLT pa = *p->k_pamp, va = *p->k_vamp;
+    int i;
+    for (i=0; i<len; i++) {
+      p->k_pos->data[i] = pp->x0[i]*pa;
+      p->k_vel->data[i] = pp->v[i]*va;
+    }
+    //memcpy(p->k_pos->data, pp->x0, len);
+    //memcpy(p->k_vel->data, pp->v, len);
     return OK;
 }
 
@@ -804,7 +810,7 @@ static OENTRY localops[] =
    { "scans", S(PSCSNS),TR, 3, "a","kkiio", (SUBR)scsns_init, (SUBR)scsns_play},
    { "scanmap", S(PSCSNMAP),TR, 3, "kk", "ikko",        (SUBR)scsnmap_init,
      (SUBR)scsnmap,NULL },
-   { "scanmap.A", S(PSCSNMAPV),0, 3, "k[]k[]", "i",        (SUBR)scsnmapV_init,
+   { "scanmap.A", S(PSCSNMAPV),0, 3, "k[]k[]", "ipp",        (SUBR)scsnmapV_init,
      (SUBR)scsnmapV,NULL },
    { "scansmap", S(PSCSNMAP),TR, 3,"",   "kkikko",      (SUBR)scsnmap_init,
      (SUBR)scsnsmap,NULL }
