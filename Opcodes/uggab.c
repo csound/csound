@@ -789,17 +789,16 @@ static int32_t sum_(CSOUND *csound, SUM *p)
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t k, nsmps = CS_KSMPS;
-    int32_t   count = (int32_t) p->INOCOUNT - 1;
+    int32_t   count = (int32_t) p->INOCOUNT;
     MYFLT *ar = p->ar, **args = p->argums;
-    MYFLT *ag = *args;
     MYFLT *in0, *in1, *in2, *in3;
     if (UNLIKELY(offset)) memset(ar, '\0', offset*sizeof(MYFLT));
     if (UNLIKELY(early)) {
       nsmps -= early;
       memset(&ar[nsmps], '\0', early*sizeof(MYFLT));
     }
-    memcpy(&ar[offset], &ag[offset], sizeof(MYFLT)*(nsmps-offset));
 
+    memset(ar, '\0', nsmps*sizeof(MYFLT));
     int count4 = count - (count % 4);
     for(int i=0; i<count4; i+= 4) {
       in0 = *(args+i);
