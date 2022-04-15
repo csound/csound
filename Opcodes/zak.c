@@ -51,6 +51,7 @@
 #include "interlocks.h"
 #include <math.h>
 #include <ctype.h>
+#include "opcodes.h"
 
 #include "zak.h"
 
@@ -75,6 +76,7 @@
  * for zk and za spaces.
  */
 
+#ifdef INC_ZAKINIT
 int32_t zakinit(CSOUND *csound, ZAKINIT *p)
 {
     int32_t    length;
@@ -117,6 +119,7 @@ int32_t zakinit(CSOUND *csound, ZAKINIT *p)
     zak->zastart = (MYFLT*) csound->Calloc(csound, length);
     return OK;
 }
+#endif
 
 /*---------------------------------------------------------------------------*/
 
@@ -125,6 +128,7 @@ int32_t zakinit(CSOUND *csound, ZAKINIT *p)
 /* zkset() is called at the init time of the instance of the zir, zkr
  * zir and ziw ugens.  It complains if zk space has not been allocated yet.
  */
+#if defined(INC_ZKR)||defined(INC_ZIW)||defined(INC_ZKW)||defined(INC_ZKMOD)||defined(INC_ZKCL)
 int32_t zkset(CSOUND *csound, ZKR *p)
 {
     ZAK_GLOBALS* zak =
@@ -136,11 +140,12 @@ int32_t zkset(CSOUND *csound, ZKR *p)
     p->zz = zak;
     return OK;
 }
-
+#endif
 /*-----------------------------------*/
 
 /* k rate READ code. */
 
+#ifdef INC_ZKR
 /* zkr reads from zk space at k rate. */
 int32_t zkr(CSOUND *csound, ZKR *p)
 {
@@ -165,9 +170,10 @@ int32_t zkr(CSOUND *csound, ZKR *p)
     }
     return OK;
 }
-
+#endif
 /*-----------------------------------*/
 
+#ifdef INC_ZIR
 /* zir reads from zk space, but only  at init time.
  *
  * Call zkset() to check that zk space has been allocated, then do
@@ -204,9 +210,10 @@ int32_t zir(CSOUND *csound, ZKR *p)
     }
     return OK;
 }
+#endif
 
 /*-----------------------------------*/
-
+#ifdef INC_ZKW
 /* Now the i and k rate WRITE code.  zkw writes to zk space at k rate. */
 int32_t zkw(CSOUND *csound, ZKW *p)
 {
@@ -231,9 +238,11 @@ int32_t zkw(CSOUND *csound, ZKW *p)
     }
     return OK;
 }
+#endif
 
 /*-----------------------------------*/
 
+#ifdef INC_ZIW
 /* ziw writes to zk space, but only at init time.
  *
  * Call zkset() to check that zk space has been allocated, then use
@@ -264,9 +273,10 @@ int32_t ziw(CSOUND *csound, ZKW *p)
     }
     return OK;
 }
-
+#endif
 /*-----------------------------------*/
 
+#ifdef INC_ZKWM
 /* i and k rate zk WRITE code, with a mix option. */
 
 /* zkwm writes to zk space at k rate. */
@@ -299,9 +309,10 @@ int32_t zkwm(CSOUND *csound, ZKWM *p)
     }
     return OK;
 }
+#endif
 
 /*-----------------------------------*/
-
+#ifdef INC_ZIWM
 /* ziwm writes to zk space, but only at init time - with a mix option.
  *
  * Call zkset() to check that zk space has been allocated, then run
@@ -333,9 +344,11 @@ int32_t ziwm(CSOUND *csound, ZKWM *p)
     }
     return OK;
 }
+#endif
 
 /*-----------------------------------*/
 
+#ifdef INC_ZKMOD
 /* k rate ZKMOD subroutine.      */
 int32_t zkmod(CSOUND *csound, ZKMOD *p)
 {
@@ -379,9 +392,10 @@ int32_t zkmod(CSOUND *csound, ZKMOD *p)
     }
     return OK;
 }
+#endif
 
 /*-----------------------------------*/
-
+#ifdef INC_ZKCL
 /* zkcl clears a range of variables in zk space at k rate.       */
 int32_t zkcl(CSOUND *csound, ZKCL *p)
 {
@@ -410,12 +424,13 @@ int32_t zkcl(CSOUND *csound, ZKCL *p)
     }
     return OK;
 }
-
+#endif
 /*---------------------------------------------------------------------------*/
 
 /* AUDIO rate zak code.
  */
 
+#if defined(INC_ZAR)||defined(INC_ZARG)||defined(INC_ZAW)||defined(INC_ZAWM)||defined(INC_ZAMOD)||defined(INC_ZACL)
 /* zaset() is called at the init time of the instance of the zar or zaw ugens.
  * All it has to do is spit the dummy if za space has not been allocated yet.
  */
@@ -431,9 +446,10 @@ int32_t zaset(CSOUND *csound, ZAR *p)
     p->zz = zak;
     return (OK);
 }
-
+#endif
 /*-----------------------------------*/
 
+#ifdef INC_ZAR
 /* a rate READ code. */
 
 /* zar reads from za space at a rate. */
@@ -476,9 +492,10 @@ int32_t zar(CSOUND *csound, ZAR *p)
     }
     return OK;
 }
-
+#endif
 /*-----------------------------------*/
 
+#ifdef INC_ZARG
 /* zarg() reads from za space at audio rate, with gain controlled by a
  * k rate variable. Code is almost identical to zar() above. */
 int32_t zarg(CSOUND *csound, ZARG *p)
@@ -525,9 +542,10 @@ int32_t zarg(CSOUND *csound, ZARG *p)
     }
     return OK;
 }
-
+#endif
 /*-----------------------------------*/
 
+#ifdef INC_ZAW
 /* a rate WRITE code. */
 
 /* zaw writes to za space at a rate. */
@@ -564,9 +582,10 @@ int32_t zaw(CSOUND *csound, ZAW *p)
     }
     return OK;
 }
-
+#endif
 /*-----------------------------------*/
 
+#ifdef INC_ZAWM
 /* a rate WRITE code with mix facility. */
 
 /* zawm writes to za space at a rate. */
@@ -615,9 +634,10 @@ int32_t zawm(CSOUND *csound, ZAWM *p)
     }
     return OK;
 }
-
+#endif
 /*-----------------------------------*/
 
+#ifdef INC_ZAMOD
 /* audio rate ZAMOD subroutine.
  *
  * See zkmod() for fuller explanation of code.
@@ -673,9 +693,10 @@ int32_t zamod(CSOUND *csound, ZAMOD *p)
     }
     return OK;
 }
-
+#endif
 /*-----------------------------------*/
 
+#ifdef INC_ZACL
 /* zacl clears a range of variables in za space at k rate. */
 int32_t zacl(CSOUND *csound, ZACL *p)
 {
@@ -713,25 +734,56 @@ int32_t zacl(CSOUND *csound, ZACL *p)
     }
     return OK;
 }
+#endif
 
 #define S(x)    sizeof(x)
 
 static OENTRY zak_localops[] = {
+  #ifdef INC_ZAKINIT
   { "zakinit", S(ZAKINIT), ZB, 1,  "",   "ii",   (SUBR)zakinit, NULL,  NULL      },
+  #endif
+  #ifdef INC_ZIR
   { "zir",    S(ZKR),ZR,  1,   "i",  "i",    (SUBR)zir,     NULL,  NULL      },
+  #endif
+  #ifdef INC_ZKR
   { "zkr",    S(ZKR),ZR,  3,   "k",  "k",    (SUBR)zkset,   (SUBR)zkr,   NULL},
+  #endif
+  #ifdef INC_ZIW
   { "ziw",    S(ZKW),ZW, 1,   "",   "ii",   (SUBR)ziw,     NULL,  NULL      },
+  #endif
+  #ifdef INC_ZKW
   { "zkw",    S(ZKW),     ZW, 3,   "",   "kk",   (SUBR)zkset,   (SUBR)zkw,   NULL},
+  #endif
+  #ifdef INC_ZIWM
   { "ziwm",   S(ZKWM),    ZB, 1,   "",   "iip",  (SUBR)ziwm,    NULL,  NULL      },
+  #endif
+  #ifdef INC_ZKWM
   { "zkwm",   S(ZKWM),    ZB, 3,   "",   "kkp",  (SUBR)zkset,   (SUBR)zkwm,  NULL},
+  #endif
+  #ifdef INC_ZKMOD
   { "zkmod",  S(ZKMOD),   ZB, 3,   "k",  "kk",   (SUBR)zkset,   (SUBR)zkmod, NULL},
+  #endif
+  #ifdef INC_ZKCL
   { "zkcl",   S(ZKCL),    ZW, 3,   "",  "kk",   (SUBR)zkset,   (SUBR)zkcl,  NULL },
+  #endif
+  #ifdef INC_ZAR
   { "zar",    S(ZAR),ZR,  3,   "a", "k",    (SUBR)zaset,  (SUBR)zar  },
+  #endif
+  #ifdef INC_ZARG
   { "zarg",   S(ZARG),   ZB, 3,   "a", "kk",   (SUBR)zaset,  (SUBR)zarg },
+  #endif
+  #ifdef INC_ZAW
   { "zaw",    S(ZAW),    ZW, 3,   "",  "ak",   (SUBR)zaset,  (SUBR)zaw  },
+  #endif
+  #ifdef INC_ZAWM
   { "zawm",   S(ZAWM),   ZB, 3,   "",  "akp",  (SUBR)zaset,  (SUBR)zawm },
+  #endif
+  #ifdef INC_ZAMOD
   { "zamod",  S(ZAMOD),  ZB, 3,   "a", "ak",   (SUBR)zaset,  (SUBR)zamod},
+  #endif
+  #ifdef INC_ZACL
   { "zacl",   S(ZACL),   ZW, 3,   "",  "kJ",   (SUBR)zaset,  (SUBR)zacl}
+  #endif
 };
 
 LINKAGE_BUILTIN(zak_localops)

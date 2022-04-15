@@ -31,10 +31,10 @@
 #define _USE_MATH_DEFINES
 #endif
 #include <math.h>
-#include <math.h>
 #include "csoundCore.h"
 #include "interlocks.h"
 #include "H/fftlib.h"
+#include "opcodes.h"
 
 #ifdef ANDROID
 float crealf(_Complex float);
@@ -61,6 +61,7 @@ typedef struct {
     AUXCH m_tmp;
 } PAULSTRETCH;
 
+#ifdef INC_PAULSTRETCH
 static void compute_block(CSOUND *csound, PAULSTRETCH *p)
 {
     uint32_t istart_pos = floor(p->start_pos);
@@ -199,11 +200,14 @@ static int32_t paulstretch_perf(CSOUND* csound, PAULSTRETCH *p)
     }
     return OK;
 }
+#endif
 
 static OENTRY paulstretch_localops[] = {
+  #ifdef INC_PAULSTRETCH
   { "paulstretch", (int32_t) sizeof(PAULSTRETCH), TR, 3, "a", "iii",
     (int32_t (*)(CSOUND *, void *)) ps_init,
     (int32_t (*)(CSOUND *, void *)) paulstretch_perf}
+  #endif
 };
 
 LINKAGE_BUILTIN(paulstretch_localops)

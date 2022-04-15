@@ -94,7 +94,14 @@ int main(void)
     process_file("Opcodes/pinker.c", outp);
     process_file("Opcodes/wpfilters.c", outp);
     process_file("Opcodes/urandom.c", outp);
+    // ugnorman is not minimal; ATS code all together
     process_file("Opcodes/ugnorman.c", outp);
+    process_file("Opcodes/Vosim.c", outp);
+    process_file("Opcodes/zak.c", outp);
+    process_file("Opcodes/ugakbari.c", outp);
+    process_file("Opcodes/partikkel.c", outp);
+    process_file("Opcodes/paulstretch.c", outp);
+    process_file("Opcodes/flanger.c", outp);
 
     fprintf(outp, "\t{ NULL, NULL}\n};\n");
 }

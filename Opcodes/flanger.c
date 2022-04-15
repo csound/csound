@@ -25,7 +25,9 @@
                                    enhancements by JPff -- July 1998 */
 #include <math.h>
 #include "flanger.h"
+#include "opcodes.h"
 
+#ifdef INC_FLANGER
 static int32_t flanger_set (CSOUND *csound, FLANGER *p)
 {
         /*---------------- delay  -----------------------*/
@@ -61,6 +63,7 @@ static int32_t flanger(CSOUND *csound, FLANGER *p)
       nsmps -= early;
       memset(&out[nsmps], '\0', early*sizeof(MYFLT));
     }
+    freq_del += offset;
     for (n=offset; n<nsmps; n++) {
                 /*---------------- delay -----------------------*/
       buf[indx] = in[n] + (yt1 * feedback);
@@ -78,7 +81,9 @@ static int32_t flanger(CSOUND *csound, FLANGER *p)
     p->yt1 = yt1;
     return OK;
 }
+#endif
 
+#ifdef INC_WGUIDE1
 #define MAXDELAY        0.2 /* 5 Hz */
 
 static int32_t wguide1set (CSOUND *csound, WGUIDE1 *p)
@@ -174,7 +179,9 @@ static int32_t wguide1(CSOUND *csound, WGUIDE1 *p)
     p->yt1                   = yt1;
     return OK;
 }
+#endif
 
+#ifdef INC_WGUIDE2
 static int32_t wguide2set (CSOUND *csound, WGUIDE2 *p)
 {
         /*---------------- delay1 -----------------------*/
@@ -327,13 +334,20 @@ static int32_t wguide2(CSOUND *csound, WGUIDE2 *p)
     p->yt1_2 = yt1_2;
     return OK;
 }
+#endif
 
 #define S(x)    sizeof(x)
 
 static OENTRY localops[] = {
+  #ifdef INC_FLANGER
 { "flanger", S(FLANGER), 0, 3, "a", "aakv", (SUBR)flanger_set, (SUBR)flanger },
+#endif
+#ifdef INC_WGUIDE1
 { "wguide1", S(WGUIDE1), 0, 3, "a", "axkk",(SUBR) wguide1set, (SUBR)wguide1  },
+#endif
+#ifdef INC_WGUIDE2
 { "wguide2", S(WGUIDE2), 0, 3, "a", "axxkkkk",(SUBR)wguide2set, (SUBR)wguide2 }
+#endif
 };
 
 int32_t flanger_init_(CSOUND *csound)

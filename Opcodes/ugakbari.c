@@ -27,6 +27,7 @@
 #include "csoundCore.h"
 #include "interlocks.h"
 #include <math.h>
+#include "opcodes.h"
 
 #define LOGCURVE(x,y) ((LOG(x * (y-FL(1.0))+FL(1.0)))/(LOG(y)))
 #define EXPCURVE(x,y) ((EXP(x * LOG(y))-FL(1.0))/(y-FL(1.0)))
@@ -64,7 +65,7 @@ typedef struct _gainslider {
 } gainslider;
 
 /*  scale opcode  */
-
+#ifdef INC_SCALE
 static int32_t scale_process(CSOUND *csound, scale *p)
 {
     IGN(csound);
@@ -89,7 +90,9 @@ static int32_t scale_process(CSOUND *csound, scale *p)
     /* } */
     return OK;
 }
+#endif
 
+#ifdef INC_SCALE2
 static int32_t scale2_init(CSOUND *csound, SCALE2 *p)
 {
     if (*p->ihtim != FL(0.0)) {
@@ -120,9 +123,11 @@ static int32_t scale2_process(CSOUND *csound, SCALE2 *p)
     *p->koutval = p->yt1;
     return OK;
 }
+#endif
 
 /*  expcurve opcode  */
 
+#ifdef INC_EXPCURVE
 static int32_t expcurve_perf(CSOUND *csound, expcurve *p)
 {
     IGN(csound);
@@ -134,9 +139,10 @@ static int32_t expcurve_perf(CSOUND *csound, expcurve *p)
 
     return OK;
 }
+#endif
 
 /*  logcurve opcode  */
-
+#ifdef INC_LOGCURVE
 static int32_t logcurve_perf(CSOUND *csound, logcurve *p)
 {
     IGN(csound);
@@ -148,9 +154,9 @@ static int32_t logcurve_perf(CSOUND *csound, logcurve *p)
 
     return OK;
 }
-
+#endif
 /*  gainslider opcode  */
-
+#ifdef INC_GAINSLIDER
 static int32_t
 gainslider_perf(CSOUND *csound, gainslider *p)
 {
@@ -164,18 +170,29 @@ gainslider_perf(CSOUND *csound, gainslider *p)
 
     return OK;
 }
+#endif
 
 /* opcode library entries */
 
 static OENTRY ugakbari_localops[] = {
+  #ifdef INC_SCALE
   { "scale", sizeof(scale), 0, 2, "k", "kkkPO", NULL, (SUBR)scale_process, NULL },
+  #endif
+  #ifdef INC_SCALE2
   { "scale2", sizeof(SCALE2), 0, 3, "k", "kkkOPo", (SUBR)scale2_init, (SUBR)scale2_process, NULL },
+  #endif
+  #ifdef INC_EXPCURVE
   { "expcurve", sizeof(expcurve), 0, 2, "k", "kk", NULL,
     (SUBR)expcurve_perf, NULL },
+  #endif
+  #ifdef INC_LOGCURVE
   { "logcurve", sizeof(logcurve), 0, 2, "k", "kk", NULL,
     (SUBR)logcurve_perf, NULL },
+  #endif
+  #ifdef INC_GAINSLIDER
   { "gainslider", sizeof(gainslider), 0, 2, "k", "k", NULL,
     (SUBR)gainslider_perf, NULL }
+  #endif
 };
 
 LINKAGE_BUILTIN(ugakbari_localops)

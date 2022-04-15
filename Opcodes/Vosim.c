@@ -42,6 +42,7 @@
 #include "interlocks.h"
 #include <math.h>
 #include <limits.h>
+#include "opcodes.h"
 
 typedef struct {
         OPDS h;
@@ -57,7 +58,7 @@ typedef struct {
         MYFLT lenfact;   /* increase length of next pulse */
 } VOSIM;
 
-
+#ifdef INC_VOSIM
 /* Post: unless skipping init, timrem == 0 */
 int32_t vosimset(CSOUND* csound, VOSIM *p)
 {
@@ -186,6 +187,7 @@ int32_t vosim(CSOUND* csound, VOSIM *p)
     return csound->PerfError(csound, &(p->h),
                              Str("vosim: not initialised"));
 }
+#endif
 
 
 /* ar   vosim   kamp, kFund, kForm, kDamp, kPulseCount, kPulseFactor,
@@ -194,7 +196,9 @@ int32_t vosim(CSOUND* csound, VOSIM *p)
 #define S(x)    sizeof(x)
 
 static OENTRY vosim_localops[] = {
+  #ifdef INC_VOSIM
   { "vosim", S(VOSIM), TR, 3, "a", "kkkkkkio", (SUBR)vosimset, (SUBR)vosim }
+  #endif
 };
 
 

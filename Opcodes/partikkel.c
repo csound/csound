@@ -22,6 +22,9 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #include "partikkel.h"
 #include <limits.h>
 #include <math.h>
+#include "opcodes.h"
+
+#ifdef INC_PARTIKKEL
 
 #define INITERROR(x) csound->InitError(csound, Str("partikkel: " x))
 #define PERFERROR(x) csound->PerfError(csound, &(p->h),Str("partikkel: " x))
@@ -959,35 +962,33 @@ static int32_t partikkelset(CSOUND *csound, PARTIKKEL_SET *p)
     }
     return OK;
 }
+#endif
 
 static OENTRY partikkel_localops[] = {
     {
-     "partikkel", sizeof(PARTIKKEL), TR, 3,
-        "ammmmmmm",
-        "xkiakiiikkkkikkiiaikikkkikkkkkiaaaakkkkioj",
+      #ifdef INC_PARTIKKEL
+     "partikkel", sizeof(PARTIKKEL), TR, 3, "ammmmmmm", "xkiakiiikkkkikkiiaikikkkikkkkkiaaaakkkkioj",
         (SUBR)partikkel_init,
         (SUBR)partikkel
     },
     {
-     "partikkelsync", sizeof(PARTIKKEL_SYNC), TR, 3,
-        "am", "i",
+     "partikkelsync", sizeof(PARTIKKEL_SYNC), TR, 3, "am", "i",
         (SUBR)partikkelsync_init,
         (SUBR)partikkelsync
     },
     {
-        "partikkelget", sizeof(PARTIKKEL_GET), TR, 3,
-        "k", "ki",
+      "partikkelget", sizeof(PARTIKKEL_GET), TR, 3, "k", "ki",
         (SUBR)partikkelget_init,
         (SUBR)partikkelget,
         (SUBR)NULL
     },
     {
-        "partikkelset", sizeof(PARTIKKEL_SET), TR, 3,
-        "", "kki",
+        "partikkelset", sizeof(PARTIKKEL_SET), TR, 3, "", "kki",
         (SUBR)partikkelset_init,
         (SUBR)partikkelset,
         (SUBR)NULL
-    }
+    },
+    #endif
 };
 
 LINKAGE_BUILTIN(partikkel_localops)
