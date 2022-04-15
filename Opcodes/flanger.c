@@ -61,6 +61,8 @@ static int32_t flanger(CSOUND *csound, FLANGER *p)
       nsmps -= early;
       memset(&out[nsmps], '\0', early*sizeof(MYFLT));
     }
+
+    freq += offset;
     for (n=offset; n<nsmps; n++) {
                 /*---------------- delay -----------------------*/
       buf[indx] = in[n] + (yt1 * feedback);
