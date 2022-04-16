@@ -384,8 +384,6 @@ static int32_t gausstrig_process_arate(CSOUND* csound, GAUSSTRIG *p)
 }
 
 static OENTRY scnoise_localops[] = {
-  { "dust.k",      sizeof(DUST), 0,3, "k", "kk",
-    (SUBR)dust_init, (SUBR)dust_process_krate, NULL },
   { "dust.k",     sizeof(DUST), 0,3, "k", "kk",
     (SUBR)dust_init, (SUBR)dust_process_krate, NULL },
   { "dust.a",      sizeof(DUST), 0,3, "a", "kk",
