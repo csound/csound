@@ -165,7 +165,7 @@ in pkgs.stdenvNoCC.mkDerivation rec {
     # see CMakeLists.txt
     substituteInPlace include/version.h \
       --replace "\''${CS_VERSION}" "6" \
-      --replace "\''${CS_SUBVER}" "17" \
+      --replace "\''${CS_SUBVER}" "18" \
       --replace "\''${CS_PATCHLEVEL}" "0"
 
     touch include/float-version.h

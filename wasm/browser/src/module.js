@@ -158,6 +158,7 @@ const loadStaticWasm = async ({ wasmBytes, wasmFs, wasi, messagePort }) => {
 
   wasi.setMemory(memory);
   wasi.start(instance);
+  instance.exports.__wasi_js_csoundSetMessageStringCallback();
   return [instance, wasi];
 };
 

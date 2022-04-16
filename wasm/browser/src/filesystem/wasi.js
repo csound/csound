@@ -1,10 +1,6 @@
 import { encoder, decoder } from "../utils/text-encoders.js";
 import * as constants from "./constants.js";
 
-goog.require("goog.async.Deferred");
-goog.require("goog.fs");
-goog.require("goog.fs.DirectoryEntry.Behavior");
-goog.require("goog.string");
 const { normalizePath } = goog.require("goog.string.path");
 
 /** @define {boolean} */
@@ -333,7 +329,7 @@ WASI.prototype.fd_read = function (fd, iovs, iovsLength, nread) {
   let reduced = false;
 
   if (read >= totalBuffersLength) {
-    return constants.WASI_EINVAL;
+    return -1; // EOF
   }
 
   for (let index = 0; index < iovsLength; index++) {
@@ -341,9 +337,8 @@ WASI.prototype.fd_read = function (fd, iovs, iovsLength, nread) {
     const buf = memory.getUint32(ptr, true);
     const bufLength = memory.getUint32(ptr + 4, true);
 
-    thisRead += bufLength;
-
     if (!reduced) {
+      thisRead += bufLength;
       Array.from({ length: bufLength }, (_, index) => index).reduce(
         (accumulator, currentRead) => {
           if (reduced) {
@@ -388,8 +383,8 @@ WASI.prototype.fd_read = function (fd, iovs, iovsLength, nread) {
               currentChunkOffset += 1;
             }
           } else {
-            memory.setUint8(buf + currentRead + 1, "\0");
-            read += currentRead + 1;
+            memory.setUint8(buf + currentRead, "\0");
+            read += currentRead;
             reduced = true;
           }
 
@@ -405,6 +400,7 @@ WASI.prototype.fd_read = function (fd, iovs, iovsLength, nread) {
 
   this.fd[fd].seekPos = goog.global.BigInt(read);
   memory.setUint32(nread, thisRead, true);
+
   return constants.WASI_ESUCCESS;
 };
 
