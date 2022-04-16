@@ -5,6 +5,7 @@ let
   wasi-sdk-dyn = pkgs.callPackage ./wasi-sdk.nix { };
   wasi-sdk-static = pkgs.callPackage ./wasi-sdk-static.nix { };
   wasi-sdk = if static then wasi-sdk-static else wasi-sdk-dyn;
+
   static-link = ''
     echo "Create libcsound.wasm standalone"
     ${wasi-sdk}/bin/wasm-ld --lto-O2 \
@@ -13,18 +14,20 @@ let
          pkgs.lib.concatMapStrings (x: " --export=" + x + " ")
          (with builtins; fromJSON (readFile ./exports.json))
        } \
-      -L${wasi-sdk}/share/wasi-sysroot/lib/wasm32-unknown-emscripten \
+      -L${wasi-sdk}/share/wasi-sysroot/lib/wasm32-wasi \
       -L${libsndfile}/lib -L${libflac}/lib -L${libogg}/lib -L${libvorbis}/lib \
       -lc -lc++ -lc++abi -lrt -lutil -lxnet -lresolv -lc-printscan-long-double \
       -lflac -logg -lvorbis -lsndfile -lwasi-emulated-getpid \
       -lwasi-emulated-signal -lwasi-emulated-mman -lwasi-emulated-process-clocks \
-      ${wasi-sdk}/share/wasi-sysroot/lib/wasm32-unknown-emscripten/crt1.o \
+      ${wasi-sdk}/share/wasi-sysroot/lib/wasm32-wasi/crt1.o \
        *.o -o csound.static.wasm
   '';
 
   dyn-link = ''
     echo "Create libcsound.wasm pie"
     ${wasi-sdk}/bin/wasm-ld --lto-O2 \
+      -z stack-size=128 --stack-first \
+      --export=__data_end \
       --experimental-pic -pie --entry=_start \
       --import-table --import-memory \
       ${
@@ -111,6 +114,11 @@ let
     -Wno-bitwise-op-parentheses \
     -Wno-many-braces-around-scalar-init \
     -Wno-macro-redefined \
+  '';
+
+  staticPreprocFlags = ''
+    -DO_WRONLY='(0x10000000)' \
+    -DO_CREAT='(__WASI_OFLAGS_CREAT << 12)' \
   '';
 
 in pkgs.stdenvNoCC.mkDerivation rec {
@@ -303,11 +311,12 @@ in pkgs.stdenvNoCC.mkDerivation rec {
     # Why the wasm32-unknown-emscripten triplet:
     # https://bugs.llvm.org/show_bug.cgi?id=42714
     echo "Compile libcsound.wasm"
+
     ${wasi-sdk}/bin/clang \
-      ${lib.optionalString (static == false) "--target=wasm32-unknown-emscripten" } \
+      ${if (static == false) then "--target=wasm32-unknown-emscripten" else "--target=wasm32-wasi" } \
+      -fno-force-enable-int128 -femulated-tls -fno-exceptions -fno-rtti -Oz \
       --sysroot=${wasi-sdk}/share/wasi-sysroot \
-      -fno-force-enable-int128 -femulated-tls \
-      ${lib.optionalString (static == false) "-fPIC" } -fno-exceptions -fno-rtti -Oz \
+      ${lib.optionalString (static == false) "-fPIC" } \
       -I../H -I../Engine -I../include -I../ \
       -I../InOut/libmpadec -I../Opcodes/emugens \
       -I${libsndfile}/include \

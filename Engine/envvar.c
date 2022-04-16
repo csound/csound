@@ -28,13 +28,18 @@
 #include <ctype.h>
 #include <math.h>
 
-#if defined(MSVC)
+#if defined(MSVC) || defined(__wasi__)
 #include <fcntl.h>
 #endif
 
 #if defined(WIN32) && !defined(__CYGWIN__)
 #  include <direct.h>
 #  define getcwd(x,y) _getcwd(x,y)
+#endif
+
+#if defined(__wasi__)
+#  include <unistd.h>
+#  define getcwd(x,y) "/"
 #endif
 
 
