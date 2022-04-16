@@ -184,14 +184,14 @@ class ScriptProcessorNodeSingleThread {
 
       const outputPointer = this.csoundApi.csoundGetSpout(this.csoundInstance);
       this.csoundOutputBuffer = new Float64Array(
-        this.wasm.exports.memory.buffer,
+        this.wasm.wasi.memory.buffer,
         outputPointer,
         ksmps * this.nchnls,
       );
 
       const inputPointer = this.csoundApi.csoundGetSpin(this.csoundInstance);
       this.csoundInputBuffer = new Float64Array(
-        this.wasm.exports.memory.buffer,
+        this.wasm.wasi.memory.buffer,
         inputPointer,
         ksmps * this.nchnls_i,
       );
@@ -367,7 +367,7 @@ class ScriptProcessorNodeSingleThread {
       rest output ant input buffers to new pointer locations. */
       if (csOut.length === 0) {
         csOut = this.csoundOutputBuffer = new Float64Array(
-          this.wasm.exports.memory.buffer,
+          this.wasm.wasi.memory.buffer,
           this.csoundApi.csoundGetSpout(this.csoundInstance),
           ksmps * nchnls,
         );
@@ -375,7 +375,7 @@ class ScriptProcessorNodeSingleThread {
 
       if (csIn.length === 0) {
         csIn = this.csoundInputBuffer = new Float64Array(
-          this.wasm.exports.memory.buffer,
+          this.wasm.wasi.memory.buffer,
           this.csoundApi.csoundGetSpin(this.csoundInstance),
           ksmps * nchnlsIn,
         );

@@ -9,7 +9,7 @@ let
   static-link = ''
     echo "Create libcsound.wasm standalone"
     ${wasi-sdk}/bin/wasm-ld --lto-O2 \
-      --entry=_start \
+      --entry=_start --import-memory \
       ${
          pkgs.lib.concatMapStrings (x: " --export=" + x + " ")
          (with builtins; fromJSON (readFile ./exports.json))
@@ -602,7 +602,7 @@ in pkgs.stdenvNoCC.mkDerivation rec {
 
     # # make a compressed version for the browser bundle
     ${pkgs.zopfli}/bin/zopfli --zlib -c \
-      $out/lib/csound${lib.optionalString (static == false) ".dylib" }.wasm \
-        > $out/lib/csound${lib.optionalString (static == false) ".dylib" }.wasm.z
+      $out/lib/csound${if (static == true) then ".static" else ".dylib" }.wasm \
+        > $out/lib/csound${if (static == true) then ".static" else ".dylib" }.wasm.z
   '';
 }

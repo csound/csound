@@ -155,9 +155,10 @@ const loadStaticWasm = async ({ wasmBytes, wasmFs, wasi, messagePort }) => {
   });
 
   const instance = await WebAssembly.instantiate(module, options);
+
+  wasi.setMemory(memory);
   wasi.start(instance);
-  // await initFS(wasmFs, messagePort);
-  return instance;
+  return [instance, wasi];
 };
 
 export default async function ({ wasmDataURI, withPlugins = [], messagePort }) {
@@ -172,7 +173,7 @@ export default async function ({ wasmDataURI, withPlugins = [], messagePort }) {
 
   const magicData = getBinaryHeaderData(wasmBytes);
   if (magicData === "static") {
-    return [await loadStaticWasm({ messagePort, wasmBytes, wasmFs, wasi }), wasmFs];
+    return await loadStaticWasm({ messagePort, wasmBytes, wasmFs, wasi });
   }
   const { memorySize, memoryAlign, tableSize } = magicData;
 
