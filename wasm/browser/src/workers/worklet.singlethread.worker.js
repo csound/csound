@@ -48,7 +48,7 @@ class WorkletSinglethreadWorker extends AudioWorkletProcessor {
   constructor(options) {
     super(options);
     // eslint-disable-next-line no-undef
-    this.sampleRate = AudioWorkletGlobalScope.sampleRate;
+    this.sampleRate = sampleRate;
     this.options = options;
     this.initialize = this.initialize.bind(this);
     this.pause = this.pause.bind(this);
