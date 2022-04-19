@@ -454,7 +454,7 @@ typedef struct  {
 
 extern int32_t butset(CSOUND *csound, BFIL *p);
 
-#if defined(INC_BUTTERBP)||defined(INC_BUTTERBR)
+#if defined(INC_BUTTERBP_A)||defined(INC_BUTTERBR_A)
 static int32_t bbutset(CSOUND *csound, BBFIL *p)    /*      Band set-up         */
 {
     IGN(csound);
@@ -467,7 +467,7 @@ static int32_t bbutset(CSOUND *csound, BBFIL *p)    /*      Band set-up         
 }
 #endif
 
-#ifdef INC_BUTTERHP
+#ifdef INC_BUTTERHP_A
 static int32_t hibuta(CSOUND *csound, BFIL *p) /*      Hipass filter       */
 {
     MYFLT    *out, *in;
@@ -525,7 +525,7 @@ static int32_t hibuta(CSOUND *csound, BFIL *p) /*      Hipass filter       */
 }
 #endif
 
-#ifdef INC_BUTTERLP
+#ifdef INC_BUTTERLP_A
 static int32_t lobuta(CSOUND *csound, BFIL *p)       /*      Lopass filter       */
 {
     MYFLT    *out, *in;
@@ -582,7 +582,7 @@ static int32_t lobuta(CSOUND *csound, BFIL *p)       /*      Lopass filter      
 }
 #endif
 
-#ifdef INC_BUTTERBP
+#ifdef INC_BUTTERBP_A
 static int32_t bppasxx(CSOUND *csound, BBFIL *p)      /*      Bandpass filter     */
 {
     uint32_t offset = p->h.insdshead->ksmps_offset;
@@ -644,7 +644,7 @@ static int32_t bppasxx(CSOUND *csound, BBFIL *p)      /*      Bandpass filter   
 }
 #endif
 
-#ifdef INC_BUTTERBR
+#ifdef INC_BUTTERBR_A
 static int32_t bpcutxx(CSOUND *csound, BBFIL *p)      /*      Band reject filter  */
 {
     uint32_t offset = p->h.insdshead->ksmps_offset;
@@ -721,21 +721,21 @@ static OENTRY afilts_localops[] =
   #ifdef INC_TONEX
   { "tonex.a", sizeof(TONEX),   0,3,"a","aaoo", (SUBR)tonsetx,(SUBR)tonexa },
   #endif
-  #ifdef INC_BUTTERHP
+  #ifdef INC_BUTTERHP_A
   { "butterhp.a", sizeof(BFIL), 0,3,"a","aao",  (SUBR)butset,(SUBR)hibuta  },
   { "buthp.a",    sizeof(BFIL), 0,3,"a","aao",  (SUBR)butset,(SUBR)hibuta  },
   #endif
-  #ifdef INC_BUTTERLP
+  #ifdef INC_BUTTERLP_A
   { "butterlp.a", sizeof(BFIL), 0,3,"a","aao",  (SUBR)butset,(SUBR)lobuta  },
   { "butlp.a",    sizeof(BFIL), 0,3,"a","aao",  (SUBR)butset,(SUBR)lobuta  },
   #endif
-  #ifdef INC_BUTTERBP
-  { "butterbp",   sizeof(BBFIL),0,3,"a","axxo", (SUBR)bbutset,(SUBR)bppasxx},
-  { "butbp",      sizeof(BBFIL),0,3,"a","axxo", (SUBR)bbutset,(SUBR)bppasxx},
+  #ifdef INC_BUTTERBP_A
+  { "butterbp.a",   sizeof(BBFIL),0,3,"a","axxo", (SUBR)bbutset,(SUBR)bppasxx},
+  { "butbp.a",      sizeof(BBFIL),0,3,"a","axxo", (SUBR)bbutset,(SUBR)bppasxx},
   #endif
-  #ifdef INC_BUTTERBR
-  { "butterbr",   sizeof(BBFIL),0,3,"a","axxo", (SUBR)bbutset,(SUBR)bpcutxx},
-  { "butbr",      sizeof(BBFIL),0,3,"a","axxo", (SUBR)bbutset,(SUBR)bpcutxx},
+  #ifdef INC_BUTTERBR_A
+  { "butterbr.a",   sizeof(BBFIL),0,3,"a","axxo", (SUBR)bbutset,(SUBR)bpcutxx},
+  { "butbr.a",      sizeof(BBFIL),0,3,"a","axxo", (SUBR)bbutset,(SUBR)bpcutxx},
   #endif
 };
 

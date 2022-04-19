@@ -102,7 +102,12 @@ int main(void)
     process_file("Opcodes/partikkel.c", outp);
     process_file("Opcodes/paulstretch.c", outp);
     process_file("Opcodes/flanger.c", outp);
-
+    process_file("Opcodes/tl/sc_noise.c", outp);
+    process_file("Opcodes/date.c", outp);
+    process_file("Opcodes/dcblockr.c", outp);
+    process_file("Opcodes/dam.c", outp);
+    process_file("Opcodes/butter.c", outp);
+    
     fprintf(outp, "\t{ NULL, NULL}\n};\n");
 }
 

@@ -1,3 +1,4 @@
+
 /*
     sc_noise.c:
 
@@ -35,6 +36,7 @@
 */
 
 #include "csoundCore.h"
+#include "opcodes.h"
 
 typedef struct {
         OPDS    h;
@@ -52,6 +54,7 @@ typedef struct {
 #define BIPOLAR   0x7FFFFFFF    /* Constant to make bipolar */
 #define dv2_31    (FL(4.656612873077392578125e-10))
 
+#if defined(INC_DUST_K)||defined(INC_DUST_A)||defined(INC_DUST2_K)||defined(INC_DUST2_A)
 static int32_t dust_init(CSOUND *csound, DUST *p)
 {
     p->density0 = FL(0.0);
@@ -60,7 +63,9 @@ static int32_t dust_init(CSOUND *csound, DUST *p)
     p->rand     = csoundRand31(&csound->randSeed1);
     return OK;
 }
+#endif
 
+#ifdef INC_DUST_K
 static int32_t dust_process_krate(CSOUND *csound, DUST *p)
 {
     MYFLT   density, thresh, scale, r;
@@ -80,7 +85,9 @@ static int32_t dust_process_krate(CSOUND *csound, DUST *p)
     *p->out = *p->kamp * (r < thresh ? r*scale : FL(0.0));
     return OK;
 }
+#endif
 
+#ifdef INC_DUST_A
 static int32_t dust_process_arate(CSOUND *csound, DUST *p)
 {
     uint32_t offset = p->h.insdshead->ksmps_offset;
@@ -113,7 +120,9 @@ static int32_t dust_process_arate(CSOUND *csound, DUST *p)
     }
     return OK;
 }
+#endif
 
+#ifdef INC_DUST2_K
 static int32_t dust2_process_krate(CSOUND *csound, DUST *p)
 {
     MYFLT   density, thresh, scale, r;
@@ -133,7 +142,9 @@ static int32_t dust2_process_krate(CSOUND *csound, DUST *p)
     *p->out = *p->kamp * (r < thresh ? r*scale - FL(1.0) : FL(0.0));
     return OK;
 }
+#endif
 
+#ifdef INC_DUST2_A
 static int32_t dust2_process_arate(CSOUND *csound, DUST *p)
 {
     uint32_t offset = p->h.insdshead->ksmps_offset;
@@ -166,7 +177,9 @@ static int32_t dust2_process_arate(CSOUND *csound, DUST *p)
     }
     return OK;
 }
+#endif
 
+#ifdef INC_GAUSSTRIG_A
 /* gausstrig opcode based on Bhob Rainey's GaussTrig ugen */
 static int32_t gausstrig_init(CSOUND* csound, GAUSSTRIG *p)
 {
@@ -213,6 +226,9 @@ static int32_t gausstrig_init(CSOUND* csound, GAUSSTRIG *p)
     p->mmode = (*p->imode <= FL(0.0) ? 0 : 1);
     return OK;
 }
+#endif
+
+#ifdef INC_GAUSSTRIG_K
 /* a separate k-time init for proper work of gausstrig */
 static int32_t gausstrig_initk(CSOUND* csound, GAUSSTRIG *p)
 {
@@ -252,6 +268,9 @@ static int32_t gausstrig_initk(CSOUND* csound, GAUSSTRIG *p)
     p->mmode = (*p->imode <= FL(0.0) ? 0 : 1);
     return OK;
 }
+#endif
+
+#ifdef INC_GAUSSTRIG_K
 static int32_t gausstrig_process_krate(CSOUND* csound, GAUSSTRIG *p)
 {
     MYFLT frq, dev;
@@ -310,7 +329,9 @@ static int32_t gausstrig_process_krate(CSOUND* csound, GAUSSTRIG *p)
     p->count--;
     return OK;
 }
+#endif
 
+#ifdef INC_GAUSSTRIG_A
 static int32_t gausstrig_process_arate(CSOUND* csound, GAUSSTRIG *p)
 {
     uint32_t offset = p->h.insdshead->ksmps_offset;
@@ -382,22 +403,34 @@ static int32_t gausstrig_process_arate(CSOUND* csound, GAUSSTRIG *p)
     }
     return OK;
 }
+#endif
+
 
 static OENTRY scnoise_localops[] = {
+  #ifdef INC_DUST_K
   { "dust.k",      sizeof(DUST), 0,3, "k", "kk",
     (SUBR)dust_init, (SUBR)dust_process_krate, NULL },
-  { "dust.k",     sizeof(DUST), 0,3, "k", "kk",
-    (SUBR)dust_init, (SUBR)dust_process_krate, NULL },
+  #endif
+  #ifdef INC_DUST_A
   { "dust.a",      sizeof(DUST), 0,3, "a", "kk",
     (SUBR)dust_init, (SUBR)dust_process_arate },
+  #endif
+  #ifdef INC_DUST2_K
   { "dust2.k",     sizeof(DUST), 0,3, "k", "kk",
     (SUBR)dust_init, (SUBR)dust2_process_krate, NULL },
+  #endif
+  #ifdef INC_DUST2_A
   { "dust2.a",     sizeof(DUST), 0,3, "a", "kk",
     (SUBR)dust_init, (SUBR)dust2_process_arate },
+  #endif
+  #ifdef INC_GAUSSTRIG_K
   { "gausstrig.k", sizeof(GAUSSTRIG), 0,3, "k", "kkkoo",
     (SUBR)gausstrig_initk, (SUBR)gausstrig_process_krate, NULL },
+  #endif
+  #ifdef INC_GAUSSTRIG_A
   { "gausstrig.a", sizeof(GAUSSTRIG), 0,3, "a", "kkkoo",
     (SUBR)gausstrig_init, (SUBR)gausstrig_process_arate }
+  #endif
 };
 
 LINKAGE_BUILTIN(scnoise_localops)

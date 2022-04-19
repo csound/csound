@@ -23,6 +23,7 @@
 
 #include "csoundCore.h"
 #include <time.h>
+#include "opcodes.h"
 
 #ifndef __wasi__
 #include <errno.h>
@@ -48,6 +49,7 @@ typedef struct {
    MYFLT *timstmp;
 } DATESTRING;
 
+#ifdef INC_DATE
 static int32_t datemyfltset(CSOUND *csound, DATEMYFLT *p)
 {
     IGN(csound);
@@ -78,7 +80,9 @@ static int32_t datemyfltset(CSOUND *csound, DATEMYFLT *p)
 #endif
     return OK;
 }
+#endif
 
+#ifdef INC_DATES
 static int32_t datestringset(CSOUND *csound, DATESTRING *p)
 {
     time_t  temp_time;
@@ -104,12 +108,14 @@ static int32_t datestringset(CSOUND *csound, DATESTRING *p)
     p->Stime_->size = strlen(time_string)+1;
     return OK;
 }
+#endif
 
 typedef struct {
    OPDS       h;
    STRINGDAT *Scd;
 } GETCWD;
 
+#ifdef INC_PWD
 static int32_t getcurdir(CSOUND *csound, GETCWD *p)
 {
   if (p->Scd->size < 1024) {
@@ -138,6 +144,7 @@ static int32_t getcurdir(CSOUND *csound, GETCWD *p)
       }
     return OK;
 }
+#endif
 
 #ifndef MAXLINE
 #define MAXLINE 8192
@@ -161,6 +168,7 @@ static int32_t readf_delete(CSOUND *csound, void *p)
     return OK;
 }
 
+#if defined(INC_READFI)||defined(INC_READFI_S)||defined(INC_READF)||defined(INC_READF_S)
 static int32_t readf_init_(CSOUND *csound, READF *p, int32_t isstring)
 {
     char name[1024];
@@ -180,16 +188,21 @@ static int32_t readf_init_(CSOUND *csound, READF *p, int32_t isstring)
       return csound->InitError(csound, "%s", Str("readf: failed to open file"));
     return csound->RegisterDeinitCallback(csound, p, readf_delete);
 }
+#endif
 
+#ifdef INC_READF
 static int32_t readf_init(CSOUND *csound, READF *p){
     return readf_init_(csound,p,0);
 }
+#endif
 
+#ifdef INC_READF_S
 static int32_t readf_init_S(CSOUND *csound, READF *p){
     return readf_init_(csound,p,1);
 }
+#endif
 
-
+#if defined(INC_READFI)||defined(INC_READFI_S)||defined(INC_READF)||defined(INC_READF_S)
 static int32_t readf(CSOUND *csound, READF *p)
 {
     p->Sline->data[0] = '\0';
@@ -209,7 +222,9 @@ static int32_t readf(CSOUND *csound, READF *p)
     *p->line = ++p->lineno;
     return OK;
 }
+#endif
 
+#ifdef INC_READFI
 static int32_t readfi(CSOUND *csound, READF *p)
 {
     if (p->fd==NULL)
@@ -217,7 +232,10 @@ static int32_t readfi(CSOUND *csound, READF *p)
         return csound->InitError(csound, "%s", Str("readi failed to initialise"));
     return readf(csound, p);
 }
+#endif
 
+
+#ifdef INC_READFI_S
 static int32_t readfi_S(CSOUND *csound, READF *p)
 {
     if (p->fd==NULL)
@@ -225,22 +243,35 @@ static int32_t readfi_S(CSOUND *csound, READF *p)
         return csound->InitError(csound, "%s", Str("readi failed to initialise"));
     return readf(csound, p);
 }
-
+#endif
 
 static OENTRY date_localops[] =
 {
+  #ifdef INC_DATE
     { "date.i", sizeof(DATEMYFLT),  0, 1, "iI",   "", (SUBR)datemyfltset   },
     { "date.k", sizeof(DATEMYFLT),  0, 3, "kz",   "", (SUBR)datemyfltset,
       (SUBR)datemyfltset },
+    #endif
+    #ifdef INC_DATES
     { "dates",  sizeof(DATESTRING), 0, 1, "S",    "j", (SUBR)datestringset },
+    #endif
+    #ifdef INC_PWD
     { "pwd",    sizeof(GETCWD),     0, 1, "S",    "",  (SUBR)getcurdir     },
+    #endif
+    #ifdef INC_READFI
     { "readfi", sizeof(READF),      0, 1, "Si",   "i", (SUBR)readfi,       },
+    #endif
+    #ifdef INC_READFI_S
     { "readfi.S", sizeof(READF),    0, 1, "Si",   "S", (SUBR)readfi_S,     },
+    #endif
+    #ifdef INC_READF
     { "readf",  sizeof(READF),      0, 3, "Sk",   "i", (SUBR)readf_init,
       (SUBR)readf                                                          },
+    #endif
+    #ifdef INC_READF_S
     { "readf.S",  sizeof(READF),    0, 3, "Sk",   "S", (SUBR)readf_init_S,
                                                        (SUBR)readf         }
-
+    #endif
 };
 
 LINKAGE_BUILTIN(date_localops)

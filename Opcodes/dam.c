@@ -24,7 +24,7 @@
 #include "stdopcod.h"
 #include "dam.h"
 #include <math.h>
-
+#include "opcodes.h"
 
 /*
  *   Dynamic Amplitude Modifier.
@@ -37,6 +37,7 @@
  *   For bugs, question, please write to Marc.Resibois@ping.be
  */
 
+#ifdef INC_DAM
 /*
  *      Initialisation code
  */
@@ -63,7 +64,7 @@ static int32_t daminit(CSOUND *csound, DAM *p)
 
 static int32_t dam(CSOUND *csound, DAM *p)
 {
-     IGN(csound);
+    IGN(csound);
     MYFLT *ain,*aout;
     MYFLT threshold;
     MYFLT gain;
@@ -149,11 +150,14 @@ static int32_t dam(CSOUND *csound, DAM *p)
 
     return OK;
 }
+#endif
 
 #define S(x)    sizeof(x)
 
 static OENTRY localops[] = {
+#ifdef INC_DAM
 { "dam",     S(DAM),  0, 3,     "a",    "akiiii",(SUBR)daminit, (SUBR)dam },
+#endif
 };
 
 int32_t dam_init_(CSOUND *csound)

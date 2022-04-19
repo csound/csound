@@ -33,7 +33,9 @@
 
 #include "stdopcod.h"
 #include "dcblockr.h"
+#include "opcodes.h"
 
+#ifdef INC_DCBLOCK
 static int32_t dcblockrset(CSOUND *csound, DCBlocker* p)
 {
     IGN(csound);
@@ -72,6 +74,8 @@ static int32_t dcblockr(CSOUND *csound, DCBlocker* p)
     p->inputs = inputs;
     return OK;
 }
+#endif
+
 
 /*******************************************/
 /*  DC Blocking Filter                     */
@@ -90,7 +94,7 @@ typedef struct _dcblk2 {
   double  scaler;
 } DCBlock2;
 
-
+#ifdef INC_DCBLOCK2
 static int32_t dcblock2set(CSOUND *csound, DCBlock2* p)
 {
     int32_t order = (int32_t) *p->order;
@@ -190,16 +194,20 @@ static int32_t dcblock2(CSOUND *csound, DCBlock2* p)
     return OK;
 }
 
-
+#endif
 
 
 #define S(x)    sizeof(x)
 
 static OENTRY localops[] = {
+  #ifdef INC_DCBLOCK
   { "dcblock", S(DCBlocker), 0, 3, "a", "ao",
                                    (SUBR)dcblockrset, (SUBR)dcblockr},
+  #endif
+  #ifdef INC_DCBLOCK2
   { "dcblock2", S(DCBlock2), 0, 3, "a", "aoo",
                                    (SUBR)dcblock2set, (SUBR)dcblock2}
+  #endif
 };
 
 int32_t dcblockr_init_(CSOUND *csound)

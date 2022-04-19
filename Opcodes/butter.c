@@ -26,7 +26,7 @@
 /*              Copyright (c) May 1994.  All rights reserved            */
 
 #include "stdopcod.h"
-
+#include "opcodes.h"
 typedef struct  {
         OPDS    h;
         MYFLT   *sr, *ain, *kfc, *istor;
@@ -46,6 +46,7 @@ typedef struct  {
 
 static void butter_filter(uint32_t, uint32_t, MYFLT *, MYFLT *, double *);
 
+#if defined(INC_BUTTERLP)||defined(INC_BUTTERHP)
 int32_t butset(CSOUND *csound, BFIL *p)      /*      Hi/Lo pass set-up   */
 {
      IGN(csound);
@@ -55,7 +56,9 @@ int32_t butset(CSOUND *csound, BFIL *p)      /*      Hi/Lo pass set-up   */
     }
     return OK;
 }
+#endif
 
+#ifdef INC_BUTTERHP
 static int32_t hibut(CSOUND *csound, BFIL *p)       /*      Hipass filter       */
 {
     MYFLT       *out, *in;
@@ -92,7 +95,9 @@ static int32_t hibut(CSOUND *csound, BFIL *p)       /*      Hipass filter       
     butter_filter(nsmps, offset, in, out, p->a);
     return OK;
 }
+#endif
 
+#ifdef INC_BUTTERLP
 static int32_t lobut(CSOUND *csound, BFIL *p)       /*      Lopass filter       */
 {
     MYFLT       *out, *in;
@@ -129,9 +134,11 @@ static int32_t lobut(CSOUND *csound, BFIL *p)       /*      Lopass filter       
     butter_filter(nsmps, offset, in, out, p->a);
     return OK;
 }
+#endif
 
 /* Filter loop */
 
+#if defined(INC_BUTTERLP)||defined(INC_BUTTERHP)
 static void butter_filter(uint32_t n, uint32_t offset,
                           MYFLT *in, MYFLT *out, double *a)
 {
@@ -147,14 +154,19 @@ static void butter_filter(uint32_t n, uint32_t offset,
       out[nn] = (MYFLT)y;
     }
 }
+#endif
 
 #define S(x)    sizeof(x)
 
 static OENTRY localops[] = {
+  #ifdef INC_BUTTERHP
 { "butterhp.k", S(BFIL), 0, 3, "a",    "ako",  (SUBR)butset,   (SUBR)hibut  },
-{ "butterlp.k", S(BFIL), 0, 3, "a",    "ako",  (SUBR)butset,   (SUBR)lobut  },
 { "buthp.k",    S(BFIL),  0, 3, "a",   "ako",  (SUBR)butset,   (SUBR)hibut  },
+  #endif
+#ifdef INC_BUTTERLP
+{ "butterlp.k", S(BFIL), 0, 3, "a",    "ako",  (SUBR)butset,   (SUBR)lobut  },
 { "butlp.k",    S(BFIL),  0, 3, "a",   "ako",  (SUBR)butset,   (SUBR)lobut  },
+#endif
 };
 
 int32_t butter_init_(CSOUND *csound)
