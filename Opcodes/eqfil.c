@@ -24,6 +24,7 @@
 // #include "csdl.h"
 #include "csoundCore.h"
 #include "interlocks.h"
+#include "opcodes.h"
 
 typedef struct _equ {
   OPDS h;
@@ -35,6 +36,7 @@ typedef struct _equ {
 
 } equ;
 
+#ifdef INC_EQFIL
 static int32_t equ_init(CSOUND *csound, equ *p)
 {
     if (*p->ini==0) {
@@ -86,10 +88,13 @@ static int32_t equ_process(CSOUND *csound, equ *p)
 
     return OK;
 }
+#endif
+
 
 static OENTRY eqfil_localops[] = {
-  {"eqfil", sizeof(equ), 0, 3,
-   "a", "akkko", (SUBR)equ_init, (SUBR)equ_process},
+#ifdef INC_EQFIL
+  {"eqfil", sizeof(equ), 0, 3, "a", "akkko", (SUBR)equ_init, (SUBR)equ_process},
+  #endif
 };
 
 LINKAGE_BUILTIN(eqfil_localops)

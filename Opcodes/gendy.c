@@ -60,6 +60,7 @@ typedef struct {
 #define dv2_31       (FL(4.656612873077392578125e-10))
 #define GENDYMAXCPS  8192          /* Max number of control points */
 
+#if defined(INC_GENDY_K)||defined(INC_GENDY_A)||defined(INC_GENDYX_K)||defined(INC_GENDYX_A)||defined(INC_GENDYC_K)||defined(INC_GENDYC_A)
 static MYFLT gendy_distribution(CSOUND *csound, int32_t which, MYFLT a, int32 rnd)
 {
     IGN(csound);
@@ -104,7 +105,9 @@ static MYFLT gendy_distribution(CSOUND *csound, int32_t which, MYFLT a, int32 rn
     r = (MYFLT)((int32)((uint32_t)rnd<<1)-BIPOLAR) * dv2_31;
     return r;
 }
+#endif
 
+#if defined(INC_GENDY_K)||defined(INC_GENDY_A)
 static int32_t gendyset(CSOUND *csound, GENDY *p)
 {
     int32_t     i;
@@ -133,7 +136,9 @@ static int32_t gendyset(CSOUND *csound, GENDY *p)
     }
     return OK;
 }
+#endif
 
+#ifdef INC_GENDY_K
 static int32_t kgendy(CSOUND *csound, GENDY *p)
 {
     int32_t     knum;
@@ -180,7 +185,9 @@ static int32_t kgendy(CSOUND *csound, GENDY *p)
     p->phase += p->speed;
     return OK;
 }
+#endif
 
+#ifdef INC_GENDY_A
 static int32_t agendy(CSOUND *csound, GENDY *p)
 {
     int32_t     knum;
@@ -236,7 +243,9 @@ static int32_t agendy(CSOUND *csound, GENDY *p)
     }
     return OK;
 }
+#endif
 
+#if defined(INC_GENDYX_K)||defined(INC_GENDYX_A)
 static int32_t gendyxset(CSOUND *csound, GENDYX *p)
 {
     int32_t     i;
@@ -265,7 +274,9 @@ static int32_t gendyxset(CSOUND *csound, GENDYX *p)
     }
     return OK;
 }
+#endif
 
+#ifdef INC_GENDYX_K
 static int32_t kgendyx(CSOUND *csound, GENDYX *p)
 {
     int32_t     knum;
@@ -315,7 +326,9 @@ static int32_t kgendyx(CSOUND *csound, GENDYX *p)
     p->phase += p->speed;
     return OK;
 }
+#endif
 
+#ifdef INC_GENDYX_A
 static int32_t agendyx(CSOUND *csound, GENDYX *p)
 {
     int32_t     knum;
@@ -376,7 +389,9 @@ static int32_t agendyx(CSOUND *csound, GENDYX *p)
     }
     return OK;
 }
+#endif
 
+#if defined(INC_GENDYC_K)||defined(INC_GENDYC_A)
 /* version with cubic interpolation based from Bhob Rainey's Gendy4 */
 static int32_t gendycset(CSOUND *csound, GENDYC *p)
 {
@@ -408,7 +423,9 @@ static int32_t gendycset(CSOUND *csound, GENDYC *p)
     }
     return OK;
 }
+#endif
 
+#ifdef INC_GENDYC_K
 static int32_t kgendyc(CSOUND *csound, GENDYC *p)
 {
     int32_t     knum;
@@ -461,7 +478,9 @@ static int32_t kgendyc(CSOUND *csound, GENDYC *p)
 
     return OK;
 }
+#endif
 
+#ifdef INC_GENDYC_A
 static int32_t agendyc(CSOUND *csound, GENDYC *p)
 {
     uint32_t offset = p->h.insdshead->ksmps_offset;
@@ -525,27 +544,37 @@ static int32_t agendyc(CSOUND *csound, GENDYC *p)
                                           sample accurate */
         p->slope  += p->curve;
         p->midpnt += p->slope;
-      }
+      }i
     } while (remain);
     return OK;
 }
+#endif
 
 static OENTRY gendy_localops[] = {
-  { "gendy",    0xffff                                   },
-  { "gendyx",   0xffff                                   },
-  { "gendyc",   0xffff                                   },
+  #ifdef INC_GENDY_K
   { "gendy.k",  sizeof(GENDY),  0,3, "k", "kkkkkkkkkoO",
     (SUBR)gendyset,  (SUBR)kgendy,  (SUBR)NULL           },
+  #endif
+  #ifdef INC_GENDY_A
   { "gendy.a",  sizeof(GENDY),  0,3, "a", "kkkkkkkkkoO",
     (SUBR)gendyset,    (SUBR)agendy         },
+  #endif
+  #ifdef INC_GENDYX_K
   { "gendyx.k", sizeof(GENDYX), 0,3, "k", "kkkkkkkkkkkoO",
     (SUBR)gendyxset, (SUBR)kgendyx, (SUBR)NULL           },
+  #endif
+  #ifdef INC_GENDYX_A
   { "gendyx.a", sizeof(GENDYX), 0,3, "a", "kkkkkkkkkkkoO",
     (SUBR)gendyxset,    (SUBR)agendyx        },
+  #endif
+  #ifdef INC_GENDYC_K
   { "gendyc.k", sizeof(GENDYC), 0,3, "k", "kkkkkkkkkoO",
-    (SUBR)gendycset, (SUBR)kgendyc, (SUBR)NULL           },
+    (SUBR)gendycset, (SUBR)kgendyc, (SUBR)NULL           },#ifdef INC_GENDYC_K
+  #endif
+  #ifdef INC_GENDYC_A
   { "gendyc.a", sizeof(GENDYC), 0,3, "a", "kkkkkkkkkoO",
     (SUBR)gendycset,    (SUBR)agendyc        }
+  #endif
 };
 
 LINKAGE_BUILTIN(gendy_localops)

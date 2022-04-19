@@ -24,7 +24,9 @@
 
 #include "csoundCore.h"
 #include "interlocks.h"
+#include "opcodes.h"
 
+#ifdef INC_CELL
 // classical 1-D Cellular Automaton by Gleb Rogozinsky.
 // It is the modified version of vcella opcode by Gabriel Maldonado
 
@@ -119,12 +121,15 @@ static int32_t cell(CSOUND *csound,CELL *p)
     }
     return OK;
 }
+#endif
 
 
 #define S sizeof
 
 static OENTRY cell_localops[] = {
+  #ifdef INC_CELL
   {"cell",  S(CELL),  TB, 3, "",  "kkiiii",(SUBR)cell_set, (SUBR)cell        }
+  #endif
 };
 
 LINKAGE_BUILTIN(cell_localops)

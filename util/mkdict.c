@@ -107,6 +107,14 @@ int main(void)
     process_file("Opcodes/dcblockr.c", outp);
     process_file("Opcodes/dam.c", outp);
     process_file("Opcodes/butter.c", outp);
+    process_file("Opcodes/follow.c", outp);
+    process_file("Opcodes/pan2.c", outp);
+    process_file("Opcodes/eqfil.c", outp);
+    process_file("Opcodes/exciter.c", outp);
+    process_file("Opcodes/cellular.c", outp);
+    process_file("Opcodes/harmon.c", outp);
+    process_file("Opcodes/gammatone.c", outp);
+    process_file("Opcodes/gendy.c", outp);
     
     fprintf(outp, "\t{ NULL, NULL}\n};\n");
 }

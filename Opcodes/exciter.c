@@ -23,10 +23,12 @@
 
 #include "csoundCore.h"       /*                    EXCITER.C         */
 #include <math.h>
+#include "opcodes.h"
 
 /**********************************************************************
  * EXCITER by Markus Schmidt
  **********************************************************************/
+#ifdef INC_EXCITER
 
 typedef struct {
   OPDS        h;
@@ -283,12 +285,15 @@ int32_t exciter_perf(CSOUND *csound, EXCITER *p)
     } // cycle through samples
     return OK;
 }
+#endif
 
 #define S(x)    sizeof(x)
 
 static OENTRY exciter_localops[] = {
+  #ifdef INC_EXCITER
   { "exciter", S(EXCITER),   0, 3, "a", "akkkk",
                              (SUBR)exciter_init, (SUBR)exciter_perf },
+  #endif
 };
 
 LINKAGE_BUILTIN(exciter_localops)

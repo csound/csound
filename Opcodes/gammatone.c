@@ -24,6 +24,7 @@
 
 #include "csoundCore.h"
 #include "interlocks.h"
+#include "opcodes.h"
 
 typedef struct {
         OPDS    h;
@@ -43,6 +44,8 @@ typedef struct {
         AUXCH   aux;
         MYFLT   *xxr, *xxi;
 } GAMMA;
+
+#ifdef INC_GTF
 
 static int32_t gammatone_init(CSOUND *csound, GAMMA *p)
 {
@@ -118,12 +121,14 @@ static int32_t gammatone_perf(CSOUND *csound, GAMMA *p)
     }
     return OK;
 }
-
+#endif
 
 #define S(x) sizeof(x)
 
 static OENTRY gamma_localops[] = {
+#ifdef INC_GTF
 { "gtf", S(GAMMA), 0, 3, "a", "akioo", (SUBR)gammatone_init, (SUBR)gammatone_perf }
+#endif
 };
 
 LINKAGE_BUILTIN(gamma_localops)

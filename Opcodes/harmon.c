@@ -25,6 +25,7 @@
 #include "interlocks.h"
 
 #include <math.h>
+#include "opcodes.h"
 
 typedef struct {
         MYFLT   *srcp;
@@ -95,6 +96,7 @@ typedef struct {
 #define SLEN    256
 #define LCNT    75
 
+#if defined(INC_HARMON2)||defined(INC_HARMON3)||defined(INC_HARMOND4)
 static int32_t hm234set(CSOUND *csound, HARM234 *p)
 {
     MYFLT minoct = p->minoct;
@@ -409,7 +411,9 @@ static int32_t harmon234(CSOUND *csound, HARM234 *p)
     //print_data(p, 4);
     return OK;
 }
+#endif
 
+#ifdef INC_HARMON2
 int32_t harm2set(CSOUND *csound, HARM234 *p)
 {
     VOCDAT *vdp = p->vocdat;
@@ -421,7 +425,9 @@ int32_t harm2set(CSOUND *csound, HARM234 *p)
     p->cpsmode = ((*p->kfrq3 != FL(0.0)));
     return hm234set(csound, p);
 }
+#endif
 
+#ifdef INC_HARMON3
 int32_t harm3set(CSOUND *csound, HARM234 *p)
 {
     VOCDAT *vdp = p->vocdat;
@@ -438,7 +444,9 @@ int32_t harm3set(CSOUND *csound, HARM234 *p)
     //       p->cpsmode, p->minoct, p->ipolarity);
     return hm234set(csound, p);
 }
+#endif
 
+#ifdef INC_HARMON4
 int32_t harm4set(CSOUND *csound, HARM234 *p)
 {
     VOCDAT *vdp = p->vocdat;
@@ -452,14 +460,21 @@ int32_t harm4set(CSOUND *csound, HARM234 *p)
     p->cpsmode = (*p->icpsmode != FL(0.0));
     return hm234set(csound, p);
 }
+#endif
 
 #define S(x)    sizeof(x)
 
 static OENTRY harmon_localops[] =
   {
+   #ifdef INC_HARMON2
    { "harmon2",S(HARM234),0,3,"a","akkkiip",  (SUBR)harm2set, (SUBR)harmon234 },
+   #endif
+   #ifdef INC_HARMON3
    { "harmon3",S(HARM234),0,3,"a","akkkkiip", (SUBR)harm3set, (SUBR)harmon234 },
+   #endif
+   #ifdef INC_HARMON4
    { "harmon4",S(HARM234),0,3,"a","akkkkkiip",(SUBR)harm4set, (SUBR)harmon234 },
+   #endif
 };
 
 LINKAGE_BUILTIN(harmon_localops)

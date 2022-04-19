@@ -63,6 +63,7 @@
 #define INC_CAUCHYRAND_A
 #define INC_CEIL
 #define INC_CEIL_A
+#define INC_CELL
 #define INC_CENT
 #define INC_CENT_A
 #define INC_CGGOTO
@@ -158,8 +159,10 @@
 #define INC_ENVLPXR_X
 #define INC_ENVLPX_X
 #define INC_EPHASOR
+#define INC_EQFIL
 #define INC_EVALSTR
 #define INC_EVALSTR_K
+#define INC_EXCITER
 #define INC_EXP
 #define INC_EXP_A
 #define INC_EXPCURVE
@@ -196,6 +199,8 @@
 #define INC_FOF2
 #define INC_FOG
 #define INC_FOLD
+#define INC_FOLLOW
+#define INC_FOLLOW2
 #define INC_FOSCIL
 #define INC_FOSCILI
 #define INC_FRAC
@@ -215,9 +220,19 @@
 #define INC_GAUSSTRIG_A
 #define INC_GAUSSTRIG_K
 #define INC_GBUZZ
+#define INC_GENDY_A
+#define INC_GENDYC_A
+#define INC_GENDYC_K
+#define INC_GENDY_K
+#define INC_GENDYX_A
+#define INC_GENDYX_K
 #define INC_GETCFG
 #define INC_GOTO
+#define INC_GTF
 #define INC_HARMON
+#define INC_HARMON2
+#define INC_HARMON3
+#define INC_HARMON4
 #define INC_HILBERT
 #define INC_HW_CHANNELS
 #define INC_IGOTO
@@ -409,6 +424,7 @@
 #define INC_OUTS2
 #define INC_OUTZ
 #define INC_PAN
+#define INC_PAN2
 #define INC_PAREQ
 #define INC_PARTIKKEL
 #define INC_PAULSTRETCH

@@ -24,6 +24,7 @@
 // #include "csdl.h"
 #include "csoundCore.h"
 #include "interlocks.h"
+#include "opcodes.h"
 
 #include <math.h>
 
@@ -39,6 +40,7 @@ typedef struct {
 } PAN2;
 //#define SQRT2 FL(1.41421356237309504880)
 
+#ifdef INC_PAN2
 static int32_t pan2set(CSOUND *csound, PAN2 *p)
 {
     int32_t type = p->type = MYFLT2LRND(*p->itype);
@@ -165,11 +167,13 @@ static int32_t pan2run(CSOUND *csound, PAN2 *p)
     }
     return OK;
 }
-
+#endif
 
 static OENTRY pan2_localops[] =
 {
+  #ifdef INC_PAN2
  { "pan2", sizeof(PAN2), 0, 3, "aa", "axo", (SUBR) pan2set, (SUBR) pan2run },
+ #endif
 };
 
 LINKAGE_BUILTIN(pan2_localops)

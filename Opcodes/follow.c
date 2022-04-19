@@ -29,7 +29,9 @@
 #include "stdopcod.h"
 #include <math.h>
 #include "follow.h"
+#include "opcodes.h"
 
+#ifdef INC_FOLLOW
 static int32_t flwset(CSOUND *csound, FOL *p)
 {
     p->wgh = p->max = FL(0.0);
@@ -72,11 +74,13 @@ static int32_t follow(CSOUND *csound, FOL *p)
     p->count = count;
     return OK;
 }
+#endif
 
 /* The Jean-Marc Jot (IRCAM) envelope follower, from code by
    Bram.DeJong@rug.ac.be and James Maccartney posted on music-dsp;
    Transferred to csound by JPff, 2000 feb 12
 */
+#ifdef INC_FOLLOW2
 static int32_t envset(CSOUND *csound, ENV *p)
 {
                                 /* Note - 6.90775527898 -- log(0.001) */
@@ -140,12 +144,17 @@ static int32_t envext(CSOUND *csound, ENV *p)
     p->envelope = envelope;
     return OK;
 }
+#endif
 
 #define S(x)    sizeof(x)
 
 static OENTRY localops[] = {
+  #ifdef INC_FOLLOW
 { "follow",   S(FOL),   0, 3, "a",    "ai",   (SUBR)flwset,  (SUBR)follow  },
+#endif
+#ifdef INC_FOLLOW2
 { "follow2",  S(ENV),   0, 3, "a",    "akk",  (SUBR)envset,  (SUBR)envext  }
+#endif
 };
 
 int32_t follow_init_(CSOUND *csound)
