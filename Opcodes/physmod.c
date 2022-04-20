@@ -31,6 +31,7 @@
 #include "brass.h"
 #include <math.h>
 #include "interlocks.h"
+#include "opcodes.h"
 /* ************************************** */
 /*  Waveguide Clarinet model ala Smith    */
 /*  after McIntyre, Schumacher, Woodhouse */
@@ -985,6 +986,7 @@ static OENTRY physmod_localops[] =
    { "wgbrass", S(BRASS), TR, 3, "a", "kkkikkjo", (SUBR)brassset,    (SUBR)brass},
    { "mandol", S(MANDOL), TR, 3, "a", "kkkkkkio",(SUBR)mandolinset,(SUBR)mandolin},
    { "voice", S(VOICF),   TR, 3, "a", "kkkkkkii",(SUBR)voicformset,(SUBR)voicform},
+   #ifdef INC_FM4OP
    { "fmbell",  S(FM4OP), TR, 3, "a", "kkkkkkjjjjjo",
      (SUBR)tubebellset,(SUBR)tubebell},
    { "fmrhode", S(FM4OP), TR, 3, "a", "kkkkkkiiiii",(SUBR)rhodeset,(SUBR)tubebell},
@@ -996,10 +998,17 @@ static OENTRY physmod_localops[] =
      (SUBR)FMVoiceset,(SUBR)FMVoice},
    { "fmpercfl", S(FM4OP),TR, 3, "a", "kkkkkkjjjjj",
      (SUBR)percfluteset, (SUBR)percflute},
+   #endif
+#ifdef INC_MOOG
    { "moog", S(MOOG1),    TR, 3, "a", "kkkkkkiii", (SUBR)Moog1set, (SUBR)Moog1  },
+   #endif
+#ifdef INC_SHAKER
    { "shaker", S(SHAKER), 0, 3, "a", "kkkkko",  (SUBR)shakerset,   (SUBR)shaker},
+   #endif
+#ifdef INC_WGBOWEDBAR
    { "wgbowedbar", S(BOWEDBAR), 0, 3, "a","kkkkkoooo",
      (SUBR)bowedbarset,(SUBR) bowedbar },
+   #endif
 };
 
 LINKAGE_BUILTIN(physmod_localops)

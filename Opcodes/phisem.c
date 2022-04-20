@@ -50,11 +50,13 @@
 #include "interlocks.h"
 #include "phisem.h"
 #include <math.h>
+#include "opcodes.h"
 
 /* To do
    "10: Wrench", "12: CokeCan"};
 */
 
+#if defined(INC_CABASA)
 static inline int32_t my_random(CSOUND *csound, int32_t max)
 {                                   /* Return Random Int Between 0 and max */
     return (csound->Rand31(&(csound->randSeed1)) % (max + 1));
@@ -66,7 +68,7 @@ static MYFLT noise_tick(CSOUND *csound)
     temp = (MYFLT) csound->Rand31(&(csound->randSeed1)) - FL(1073741823.5);
     return (temp * (MYFLT) (1.0 / 1073741823.0));
 }
-
+#endif
 /************************* MARACA *****************************/
 #define MARA_SOUND_DECAY  FL(0.95)
 #define MARA_SYSTEM_DECAY FL(0.999)
@@ -187,6 +189,7 @@ static MYFLT noise_tick(CSOUND *csound)
 #define MAX_SHAKE FL(2000.0)
 #define MIN_ENERGY FL(0.0)          /* 0.1 or 0.3?? */
 
+#if defined(INC_CABASA)||defined(INC_CRUNCH)
 static int32_t cabasaset(CSOUND *csound, CABASA *p)
 {
     p->sndLevel = FL(0.0);
@@ -209,7 +212,9 @@ static int32_t cabasaset(CSOUND *csound, CABASA *p)
     p->last_num = FL(0.0);
     return OK;
 }
+#endif
 
+#ifdef INC_CABASA
 static int32_t cabasa(CSOUND *csound, CABASA *p)
 {
     MYFLT *ar = p->ar;
@@ -288,7 +293,9 @@ static int32_t cabasa(CSOUND *csound, CABASA *p)
     p->outputs1 = outputs1;
     return OK;
 }
+#endif
 
+#ifdef INC_SEKERE
 static int32_t sekereset(CSOUND *csound, SEKERE *p)
 {
     p->sndLevel = FL(0.0);
@@ -315,6 +322,10 @@ static int32_t sekereset(CSOUND *csound, SEKERE *p)
     p->last_num = FL(0.0);
     return OK;
 }
+#endif
+
+#if defined(INC_SEKERE)||defined(INC_SANDPAPER)||defined(INC_STIX)
+
 
 static int32_t sekere(CSOUND *csound, SEKERE *p)
 {
@@ -398,7 +409,9 @@ static int32_t sekere(CSOUND *csound, SEKERE *p)
     p->outputs1 = outputs1;
     return OK;
 }
+#endif
 
+#ifdef INC_SANDPAPER
 static int32_t sandset(CSOUND *csound, SEKERE *p)
 {
     p->sndLevel = FL(0.0);
@@ -426,7 +439,9 @@ static int32_t sandset(CSOUND *csound, SEKERE *p)
     p->last_num = FL(128.0);
     return OK;
 }
+#endif
 
+#ifdef INC_STIX
 static int32_t stixset(CSOUND *csound, SEKERE *p)
 {
     p->sndLevel = FL(0.0);
@@ -453,7 +468,9 @@ static int32_t stixset(CSOUND *csound, SEKERE *p)
     p->last_num = FL(30.0);
     return OK;
 }
+#endif
 
+#ifdef INC_CRUNCH
 static int32_t crunchset(CSOUND *csound, CABASA *p)
 {
     p->sndLevel = FL(0.0);
@@ -478,7 +495,9 @@ static int32_t crunchset(CSOUND *csound, CABASA *p)
     p->last_num = FL(0.0);
     return OK;
 }
+#endif
 
+#ifdef INC_GUIRO
 static int32_t guiroset(CSOUND *csound, GUIRO *p)
 {
     MYFLT temp;
@@ -650,7 +669,9 @@ static int32_t guiro(CSOUND *csound, GUIRO *p)
   }
     return OK;
 }
+#endif
 
+#ifdef INC_TAMBOURINE
 static int32_t tambourset(CSOUND *csound, TAMBOURINE *p)
 {
     MYFLT temp;
@@ -796,7 +817,9 @@ static int32_t tambourine(CSOUND *csound, TAMBOURINE *p)
     }
     return OK;
 }
+#endif
 
+#ifdef INC_BAMBOO
 static int32_t bambooset(CSOUND *csound, BAMBOO *p)
 {
     MYFLT temp;
@@ -939,7 +962,9 @@ static int32_t bamboo(CSOUND *csound, BAMBOO *p)
     }
     return OK;
 }
+#endif
 
+#ifdef INC_DRIPWATER
 static int32_t wuterset(CSOUND *csound, WUTER *p)
 {
     MYFLT temp;
@@ -1119,7 +1144,9 @@ static int32_t wuter(CSOUND *csound, WUTER *p)
     }
     return OK;
 }
+#endif
 
+#ifdef INC_SLEIGHBELLS
 static int32_t sleighset(CSOUND *csound, SLEIGHBELLS *p)
 {
     MYFLT temp;
@@ -1290,24 +1317,45 @@ static int32_t sleighbells(CSOUND *csound, SLEIGHBELLS *p)
     }
     return OK;
 }
+#endif
 
 #define S(x)    sizeof(x)
 
 static OENTRY phisem_localops[] =
   {
+    #ifdef INC_CABASA
    { "cabasa",  S(CABASA),  0, 3, "a", "iiooo",  (SUBR)cabasaset, (SUBR)cabasa},
+   #endif
+   #ifdef INC_CRUNCH
    { "crunch",  S(CABASA),  0, 3, "a", "iiooo",  (SUBR)crunchset, (SUBR)cabasa},
+   #endif
+   #ifdef INC_SEKERE
    { "sekere",  S(SEKERE),  0, 3, "a", "iiooo",  (SUBR)sekereset, (SUBR)sekere},
+   #endif
+   #ifdef INC_SANDPAPER
    { "sandpaper", S(SEKERE),0, 3, "a", "iiooo",  (SUBR)sandset,   (SUBR)sekere},
+   #endif
+   #ifdef INC_STIX
    { "stix", S(SEKERE),     0, 3, "a", "iiooo",  (SUBR)stixset,   (SUBR)sekere},
+   #endif
+   #ifdef INC_GUIRO
    { "guiro", S(GUIRO),     0, 3, "a", "kiooooo",(SUBR)guiroset,  (SUBR)guiro },
+   #endif
+   #ifdef INC_TAMBOURINE
    { "tambourine", S(TAMBOURINE),0, 3,"a", "kioooooo",
                                         (SUBR)tambourset, (SUBR)tambourine},
+   #endif
+   #ifdef INC_BAMBOO
    { "bamboo", S(BAMBOO),   0, 3, "a", "kioooooo",
                                         (SUBR)bambooset, (SUBR)bamboo },
+   #endif
+   #ifdef INC_DRIPWATER
    { "dripwater", S(WUTER), 0, 3, "a", "kioooooo", (SUBR)wuterset, (SUBR)wuter },
+   #endif
+   #ifdef INC_SLEIGHBELLS
    { "sleighbells", S(SLEIGHBELLS), 0, 3, "a","kioooooo",
                                        (SUBR)sleighset, (SUBR)sleighbells }
+   #endif
 };
 
 LINKAGE_BUILTIN(phisem_localops)

@@ -24,6 +24,7 @@
 //#include "csdl.h"
 #include "csoundCore.h"
 #include "interlocks.h"
+#include "opcodes.h"
 
 typedef struct {
         OPDS    h;
@@ -48,6 +49,7 @@ typedef struct {        /* this now added from 07/01 */
     FUNC    *ftp;
 } DIST;
 
+#if defined(INC_COMPRESS)||defined(INC_COMPRESS2)
 static int32_t compset(CSOUND *csound, CMPRS *p)
 {
     int32    delsmps;
@@ -74,7 +76,9 @@ static int32_t compset(CSOUND *csound, CMPRS *p)
     p->bias = FL(0.0);
     return OK;
 }
+#endif
 
+#ifdef INC_COMPRESS2
 /* compress2 is compress but with dB inputs in range [-90,0] rather
    than [0.90], by setting p->bias valuex -- JPff */
 static int32_t comp2set(CSOUND *csound, CMPRS *p)
@@ -83,7 +87,9 @@ static int32_t comp2set(CSOUND *csound, CMPRS *p)
     p->bias = FL(90.0);
     return ret;
 }
+#endif
 
+#if defined(INC_COMPRESS)||defined(INC_COMPRESS2)
 static int32_t compress(CSOUND *csound, CMPRS *p)
 {
     MYFLT       *ar, *ainp, *cinp;
@@ -201,7 +207,9 @@ static int32_t compress(CSOUND *csound, CMPRS *p)
     }
     return OK;
 }
+#endif
 
+#ifdef INC_DISTORT
 static int32_t distset(CSOUND *csound, DIST *p)
 {
     double  b;
@@ -278,13 +286,20 @@ static int32_t distort(CSOUND *csound, DIST *p)
 
     return OK;
 }
+#endif
 
 #define S(x)    sizeof(x)
 
 static OENTRY compress_localops[] = {
+  #ifdef INC_COMPRESS
   { "compress", S(CMPRS), 0, 3, "a", "aakkkkkki", (SUBR) compset, (SUBR) compress },
+  #endif
+  #ifdef INC_COMPRESS2
   { "compress2", S(CMPRS), 0, 3, "a", "aakkkkkki", (SUBR)comp2set,(SUBR) compress },
+  #endif
+  #ifdef INC_DISTORT
   { "distort", S(DIST), TR, 3, "a", "akiqo", (SUBR) distset, (SUBR) distort },
+  #endif
 };
 
 LINKAGE_BUILTIN(compress_localops)

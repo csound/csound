@@ -1081,7 +1081,7 @@ static OENTRY wpfilters_localops[] =
       (SUBR)zdf_2pole_init,(SUBR)zdf_2pole_perf},
   #endif
   #ifdef INC_ZDF_2pole_mode
-   { "zifdef INC_df_2pole_mode", sizeof(ZDF_2POLE_MODE), 0,3,"aaa","axxo",
+   { "zdf_2pole_mode", sizeof(ZDF_2POLE_MODE), 0,3,"aaa","axxo",
       (SUBR)zdf_2pole_mode_init,(SUBR)zdf_2pole_mode_perf},
   #endif
   #ifdef INC_ZDF_ladder

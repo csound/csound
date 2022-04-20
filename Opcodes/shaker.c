@@ -53,6 +53,9 @@ But we're smarter than that!!!  See below
 // #include "csdl.h"
 #include "csoundCore.h"
 #include "shaker.h"
+#include "opcodes.h"
+
+#ifdef INC_SHAKER
 
 int32_t shakerset(CSOUND *csound, SHAKER *p)
 {
@@ -160,3 +163,4 @@ int32_t shaker(CSOUND *csound, SHAKER *p)
     return OK;
 }
 
+#endif

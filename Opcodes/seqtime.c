@@ -22,6 +22,7 @@
 */
 
 #include "stdopcod.h"
+#include "opcodes.h"
 
 typedef struct {
     OPDS   h;
@@ -43,7 +44,7 @@ typedef struct {
     MYFLT  *table, curr_unit_time;
 } SEQTIM2;
 
-
+#ifdef INC_SEQTIME
 static int32_t seqtim_set(CSOUND *csound, SEQTIM *p)    /* by G.Maldonado */
 {
     FUNC *ftp;
@@ -146,9 +147,10 @@ static int32_t seqtim(CSOUND *csound, SEQTIM *p)
     return csound->PerfError(csound, &(p->h),
                              Str("seqtime: incorrect table number"));
 }
+#endif
 
 /**---------------------------------------**/
-
+#ifdef INC_SEQTIME2
 static int32_t seqtim2_set(CSOUND *csound, SEQTIM2 *p)
 {
     FUNC *ftp;
@@ -252,12 +254,17 @@ static int32_t seqtim2(CSOUND *csound, SEQTIM2 *p)
     return csound->PerfError(csound, &(p->h),
                              Str("seqtim: incorrect table number"));
 }
+#endif
 
 #define S(x)    sizeof(x)
 
 static OENTRY localops[] = {
+  #ifdef INC_SEQTIME
 { "seqtime", S(SEQTIM),  TR, 3, "k",    "kkkkk", (SUBR)seqtim_set, (SUBR)seqtim   },
+  #endif
+  #ifdef INC_SEQTIME2
 { "seqtime2", S(SEQTIM2),TR, 3, "k",    "kkkkkk", (SUBR)seqtim2_set, (SUBR)seqtim2}
+  #endif
 };
 
 int32_t seqtime_init_(CSOUND *csound)

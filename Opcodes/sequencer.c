@@ -24,6 +24,7 @@
 
 #include "csoundCore.h"
 #include <math.h>
+#include "opcodes.h"
 
 typedef struct {
     OPDS        h;
@@ -56,6 +57,7 @@ typedef struct {
     int         seq[128];
 } SEQ;
 
+#ifdef INC_SEQU
 static int32_t sequencer_init(CSOUND *csound, SEQ *p)
 {
     int i;
@@ -220,13 +222,16 @@ static int32_t sequencer(CSOUND *csound, SEQ *p)
       printf("Next Step %d time = %d samples\n", p->next, p->time);
     return OK;
 }
+#endif
+
 
 static OENTRY sequencer_localops[] =
   {
-   { "sequ", sizeof(SEQ), 0, 3, "k",
-     "i[]i[]i[]kkOOOo",
+    #ifdef INC_SEQU
+   { "sequ", sizeof(SEQ), 0, 3, "k", "i[]i[]i[]kkOOOo",
      (SUBR) sequencer_init, (SUBR) sequencer
   },
+   #endif
 };
 
 LINKAGE_BUILTIN(sequencer_localops)

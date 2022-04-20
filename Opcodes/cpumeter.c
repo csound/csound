@@ -19,6 +19,7 @@
 #ifndef WIN32
 
 #include "csoundCore.h"
+#include "opcodes.h"
 #include <time.h>
 #include <sys/resource.h>
 #include <sys/time.h>
@@ -40,6 +41,8 @@
 /*######  Miscellaneous global stuff  ####################################*/
 #define SMLBUFSIZ (512)
 #define TEST (0)
+
+
 
 typedef unsigned long long TIC_t;
 typedef          long long SIC_t;
@@ -67,6 +70,8 @@ typedef struct {
          *    cpus[0] thru cpus[n] == tics for each separate cpu
          *    cpus[Cpu_tot]        == tics from the 1st /proc/stat line */
 
+
+#ifdef INC_CPUMETER
 static int32_t deinit_cpupercent(CSOUND *csound, void *pdata)
 {
     CPUMETER *p = (CPUMETER *) pdata;
@@ -236,6 +241,7 @@ int32_t cpupercent(CSOUND *c, CPUMETER *p) {
   return OK;
 }
 #endif
+#endif
 
 typedef struct {
     OPDS   h;
@@ -259,10 +265,14 @@ systime(CSOUND *csound, SYST *p){
 #define S(x)    sizeof(x)
 
 static OENTRY cpumeter_localops[] = {
+#ifdef INC_CPUMETER
   { "cpumeter",   S(CPUMETER),   0,3, "kzzzzzzzz", "i",
     (SUBR)cpupercent_init, (SUBR)cpupercent   },
-{ "systime", S(SYST),0, 3, "k",    "", (SUBR)systime, (SUBR)systime},
-{ "systime", S(SYST),0, 1, "i",    "", (SUBR)systime}
+  #endif
+  #ifdef INC_SYSTIME
+{ "systime.k", S(SYST),0, 3, "k",    "", (SUBR)systime, (SUBR)systime},
+{ "systime.i", S(SYST),0, 1, "i",    "", (SUBR)systime}
+#endif
 };
 
 LINKAGE_BUILTIN(cpumeter_localops)

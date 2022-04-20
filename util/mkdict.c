@@ -115,6 +115,19 @@ int main(void)
     process_file("Opcodes/harmon.c", outp);
     process_file("Opcodes/gammatone.c", outp);
     process_file("Opcodes/gendy.c", outp);
+    process_file("Opcodes/cpumeter.c", outp);
+    process_file("Opcodes/metro.c", outp);
+    process_file("Opcodes/compress.c", outp);
+    process_file("Opcodes/linuxjoystick.c", outp);
+    process_file("Opcodes/select.c", outp);
+    process_file("Opcodes/seqtime.c", outp);
+    process_file("Opcodes/pluck.c", outp);
+    process_file("Opcodes/sequencer.c", outp);
+    process_file("Opcodes/scoreline.c", outp);
+    process_file("Opcodes/shape.c", outp);
+    process_file("Opcodes/physmod.c", outp); /* Incomplete */
+    process_file("Opcodes/phisem.c", outp);
+    process_file("Opcodes/buchla.c", outp);
     
     fprintf(outp, "\t{ NULL, NULL}\n};\n");
 }

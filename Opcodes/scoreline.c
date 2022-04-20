@@ -23,6 +23,8 @@
 
 //#include "csdl.h"
 #include "csoundCore.h"
+#include "opcodes.h"
+
 //extern void csoundInputMessageInternal(CSOUND *, const char *);
 
 typedef struct _inmess {
@@ -37,35 +39,49 @@ typedef struct _scorepos {
   MYFLT *spos;
 } SCOREPOS;
 
+#ifdef INC_SCORELINE_I
 int32_t messi(CSOUND *csound, INMESS *p)
 {
     csound->InputMessage(csound, (char *)p->SMess->data);
     return OK;
 }
+#endif
 
+#ifdef INC_SCORELINE
 int32_t messk(CSOUND *csound, INMESS *p){
     if (*p->ktrig) csound->InputMessage(csound, (char *)p->SMess->data);
     return OK;
 }
+#endif
 
+#ifdef INC_SETSCOREPOS
 int32_t setscorepos(CSOUND *csound, SCOREPOS *p){
     csound->SetScoreOffsetSeconds(csound, *p->spos);
     return OK;
 }
+#endif
 
-int32_t
-rewindscore(CSOUND *csound, SCOREPOS *p){
+#ifdef INC_REWINDSCORE
+int32_t rewindscore(CSOUND *csound, SCOREPOS *p){
     IGN(p);
     csound->RewindScore(csound);
     return OK;
 }
-
+#endif
 
 static OENTRY scoreline_localops[] = {
+  #ifdef INC_SCORELINE_I
   {"scoreline_i", sizeof(INMESS), 0, 1, "", "S", (SUBR)messi, NULL, NULL},
+  #endif
+  #ifdef INC_SCORELINE
   {"scoreline", sizeof(INMESS), 0, 2, "", "Sk", NULL, (SUBR)messk, NULL},
+  #endif
+  #ifdef INC_SETSCOREPOS
   {"setscorepos", sizeof(SCOREPOS), 0, 1, "", "i", (SUBR)setscorepos, NULL, NULL},
+  #endif
+  #ifdef INC_REWINDSCORE
   {"rewindscore", sizeof(SCOREPOS), 0, 1, "", "", (SUBR)rewindscore, NULL, NULL}
+  #endif
 };
 
 LINKAGE_BUILTIN(scoreline_localops)

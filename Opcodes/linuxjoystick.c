@@ -37,7 +37,9 @@
 
 #include "linuxjoystick.h"
 #include <errno.h>
+#include "opcodes.h"
 
+#ifdef INC_JOYSTICK
 static int32_t linuxjoystick (CSOUND *csound, LINUXJOYSTICK *stick)
 {
     static int32_t read_pos = 0;
@@ -139,11 +141,14 @@ static int32_t linuxjoystick (CSOUND *csound, LINUXJOYSTICK *stick)
     *stick->kresult = (MYFLT) evtmask;
     return OK;
 }
+#endif
 
 static OENTRY localops[] = {
+  #ifdef INC_JOYSTICK
   { "joystick", sizeof(LINUXJOYSTICK), 0, 2, "k", "kk",
     NULL, (SUBR) linuxjoystick, NULL
   },
+  #endif
 };
 
 LINKAGE

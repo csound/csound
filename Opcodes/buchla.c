@@ -44,6 +44,7 @@ typedef struct {
       double      f;
 } BUCHLA;
 
+#ifdef INC_BUCHLA
 static double kontrolconvert(CSOUND *csound, double in1, double in2);
 
 static int32_t warn = 0;
@@ -162,6 +163,7 @@ int32_t poly_LPG_perf(CSOUND* csound, BUCHLA *p)
     return OK;
 }
 //#endif
+#endif
 
 typedef struct {
       OPDS        h;
@@ -175,6 +177,7 @@ typedef struct {
       double      t_down;
 } VACTROL;
 
+#ifdef INC_VACTROL
 int32_t vactrol_init(CSOUND *csound, VACTROL* p)
 {
     p->s1 = 0;
@@ -225,11 +228,12 @@ int32_t vactrol_perf(CSOUND *csound, VACTROL* p)
 
     return OK;
 }
+#endif
 
 //#ifdef JPFF
 
 //Nonlinear control circuit maps V_b to R_f (Vactrol Resistance)
-
+#ifdef INC_BUCHLA
 static double kontrolconvert(CSOUND *csound, double in1, double in2)
 {
     double R1, R2;
@@ -314,7 +318,7 @@ static double kontrolconvert(CSOUND *csound, double in1, double in2)
     return ans;
 }
 //#endif
-
+#endif
 
 #define S       sizeof
 
@@ -323,8 +327,10 @@ static OENTRY buchla_localops[] = {
   { "buchla", S(BUCHLA), 0, 3, "a", "aakkaPP",
                             (SUBR)poly_LPG_init, (SUBR)poly_LPG_perf },
   #endif
+  #ifdef INC_VACTROL
   { "vactrol", S(VACTROL), 0, 3, "a", "ajj",
                                  (SUBR)vactrol_init, (SUBR)vactrol_perf }
+  #endif
 };
 
 LINKAGE_BUILTIN(buchla_localops)

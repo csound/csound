@@ -42,6 +42,7 @@ typedef struct {
     MYFLT   maxamplitude, one_over_maxamp;
 } POWER_SHAPE;
 
+#ifdef INC_POWERSHAPE
 static int32_t PowerShapeInit(CSOUND* csound, POWER_SHAPE* p)
 {
     p->maxamplitude = *p->ifullscale;
@@ -93,12 +94,14 @@ static int32_t PowerShape(CSOUND* csound, POWER_SHAPE* p)
     }
     return OK;
 }
+#endif
 
 typedef struct {
     OPDS    h;
     MYFLT   *aout, *ain, *kcoefficients[VARGMAX-1];
 } POLYNOMIAL;
 
+#ifdef INC_POLYNOMIAL
 /* Efficiently evaluates a polynomial of arbitrary order --   */
 /* coefficients are k-rate and in this order: a0, a1, a2, ... */
 static int32_t Polynomial(CSOUND* csound, POLYNOMIAL* p)
@@ -131,6 +134,7 @@ static int32_t Polynomial(CSOUND* csound, POLYNOMIAL* p)
 
     return OK;
 }
+#endif
 
 typedef struct {
     OPDS    h;
@@ -139,6 +143,7 @@ typedef struct {
     AUXCH   coeff;
 } CHEBPOLY;
 
+#ifdef INC_CHEBYSHEVPOLY
 static int32_t ChebyshevPolyInit(CSOUND* csound, CHEBPOLY* p)
 {
     int32_t     ncoeff = csound->GetInputArgCnt(p) - 1;
@@ -221,7 +226,7 @@ static int32_t ChebyshevPolynomial(CSOUND* csound, CHEBPOLY* p)
 
     return OK;
 }
-
+#endif
 
 /* Phase distortion opcodes */
 
@@ -230,6 +235,7 @@ typedef struct {
     MYFLT   *aout, *ain, *kwidth, *kcenter, *ibipolar, *ifullscale;
 } PD_CLIP;
 
+#ifdef INC_PDCLIP
 static int32_t PDClip(CSOUND* csound, PD_CLIP* p)
 {
     IGN(csound);
@@ -289,12 +295,14 @@ static int32_t PDClip(CSOUND* csound, PD_CLIP* p)
 
     return OK;
 }
+#endif
 
 typedef struct {
     OPDS    h;
     MYFLT   *aout, *ain, *kamount, *ibipolar, *ifullscale;
 } PD_HALF;
 
+#ifdef INC_PDHALF
 /* Casio-style phase distortion with "pivot point" on the X axis */
 static int32_t PDHalfX(CSOUND* csound, PD_HALF* p)
 {
@@ -353,7 +361,9 @@ static int32_t PDHalfX(CSOUND* csound, PD_HALF* p)
 
     return OK;
 }
+#endif
 
+#ifdef INC_PDHALFY
 /* Casio-style phase distortion with "pivot point" on the Y axis */
 static int32_t PDHalfY(CSOUND* csound, PD_HALF* p)
 {
@@ -408,7 +418,7 @@ static int32_t PDHalfY(CSOUND* csound, PD_HALF* p)
     }
     return OK;
 }
-
+#endif
 
 /* syncphasor: a phasor opcode with sync input and output */
 /* Code for syncphasor based on phasor from ugens2.c in Csound */
@@ -419,6 +429,7 @@ typedef struct {
     double  curphase;
 } SYNCPHASOR;
 
+#ifdef INC_SYNCPHASOR
 int32_t SyncPhasorInit(CSOUND *csound, SYNCPHASOR *p)
 {
     MYFLT  phs;
@@ -503,7 +514,7 @@ int32_t SyncPhasor(CSOUND *csound, SYNCPHASOR *p)
     p->curphase = phase;
     return OK;
 }
-
+#endif
 
 /* phasine is an experimental opcode that needs to be reconceptualized
    because it produces many discontinuities. */
@@ -567,16 +578,30 @@ static OENTRY shape_localops[] =
   {
   /* { "phasine", S(PHASINE), 0, 3, "a", "akp",
      (SUBR)PhasineInit, (SUBR)Phasine }, */
+   #ifdef INC_POWERSHAPE
    { "powershape", S(POWER_SHAPE), 0, 3, "a", "akp",
      (SUBR)PowerShapeInit, (SUBR)PowerShape },
+   #endif
+   #ifdef INC_POLYNOMIAL
    { "polynomial", S(POLYNOMIAL), 0, 2, "a", "az", NULL, (SUBR)Polynomial },
+   #endif
+   #ifdef INC_CHEBYSHEVPOLY
    { "chebyshevpoly", S(CHEBPOLY), 0, 3, "a", "az",
      (SUBR)ChebyshevPolyInit, (SUBR)ChebyshevPolynomial },
+   #endif
+   #ifdef INC_PDCLIP
    { "pdclip", S(PD_CLIP), 0, 2, "a", "akkop", NULL, (SUBR)PDClip },
+   #endif
+   #ifdef INC_PDHALF
    { "pdhalf", S(PD_HALF), 0, 2, "a", "akop", NULL, (SUBR)PDHalfX },
+   #endif
+   #ifdef INC_PDHALFY
    { "pdhalfy", S(PD_HALF), 0, 2, "a", "akop", NULL, (SUBR)PDHalfY },
+   #endif
+   #ifdef INC_SUNCPHASOR
    { "syncphasor", S(SYNCPHASOR), 0, 3, "aa", "xao",
      (SUBR)SyncPhasorInit, (SUBR)SyncPhasor },
+   #endif
 };
 
 LINKAGE_BUILTIN(shape_localops)

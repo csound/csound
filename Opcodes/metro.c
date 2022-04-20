@@ -23,6 +23,7 @@
 
 #include "stdopcod.h"
 #include <math.h>
+#include "opcodes.h"
 
 typedef struct {
         OPDS    h;
@@ -58,6 +59,7 @@ typedef struct  {
 
 } TIMEDSEQ;
 
+#if defined(INC_METRO)||defined(INC_METROBPM)
 static int32_t metro_set(CSOUND *csound, METRO *p)
 {
     double phs = *p->iphs;
@@ -71,7 +73,9 @@ static int32_t metro_set(CSOUND *csound, METRO *p)
     p->flag=1;
     return OK;
 }
+#endif
 
+#ifdef INC_METRO
 static int32_t metro(CSOUND *csound, METRO *p)
 {
     double      phs= p->curphs;
@@ -90,7 +94,9 @@ static int32_t metro(CSOUND *csound, METRO *p)
     p->curphs = phs;
     return OK;
 }
+#endif
 
+#ifdef INC_METROBPM
 /* John ffitch Oct 2021; for beginers */
 static int32_t metrobpm(CSOUND *csound, METRO *p)
 {
@@ -111,7 +117,9 @@ static int32_t metrobpm(CSOUND *csound, METRO *p)
     p->curphs = phs;
     return OK;
 }
+#endif
 
+#ifdef INC_METRO2
 /* GLEB ROGOZINSKY Oct 2019
    Opcode metro2 in addition to 'classic' metro opcode,
    allows swinging with possibiliy of setting its own amplitude value
@@ -171,8 +179,10 @@ static int32_t metro2(CSOUND *csound, METRO2 *p)
 
     return OK;
 }
-//
+#endif
 
+//
+#ifdef INC_SPLITRIG
 static int32_t split_trig_set(CSOUND *csound,   SPLIT_TRIG *p)
 {
 
@@ -205,7 +215,7 @@ static int32_t split_trig_set(CSOUND *csound,   SPLIT_TRIG *p)
 
 static int32_t split_trig(CSOUND *csound, SPLIT_TRIG *p)
 {
-     IGN(csound);
+    IGN(csound);
     int32_t j;
     int32_t numouts =  p->numouts;
     MYFLT **outargs = p->outargs;
@@ -236,7 +246,9 @@ static int32_t split_trig(CSOUND *csound, SPLIT_TRIG *p)
     }
     return OK;
 }
+#endif
 
+#ifdef INC_TIMESEQ
 static int32_t timeseq_set(CSOUND *csound, TIMEDSEQ *p)
 {
     FUNC *ftp;
@@ -258,7 +270,7 @@ static int32_t timeseq_set(CSOUND *csound, TIMEDSEQ *p)
 
 static int32_t timeseq(CSOUND *csound, TIMEDSEQ *p)
 {
-     IGN(csound);
+    IGN(csound);
     MYFLT *table = p->table, minDist = CS_ONEDKR;
     MYFLT phs = *p->kphs, endseq = p->endSeq;
     int32_t  j,k, numParm = p->numParm, endIndex = p->endIndex;
@@ -342,16 +354,27 @@ static int32_t timeseq(CSOUND *csound, TIMEDSEQ *p)
     }
     return OK;
 }
+#endif
 
 #define S(x)    sizeof(x)
 
 static OENTRY localops[] = {
+  #ifdef INC_METRO
   { "metro",  S(METRO),  0,  3,      "k", "ko",  (SUBR)metro_set, (SUBR)metro    },
+  #endif
+  #ifdef INC_METRO2
   { "metro2", S(METRO2), 0,  3,      "k", "kkpo", (SUBR)metro2_set, (SUBR)metro2  },
+  #endif
+  #ifdef INC_METROBPM
   { "metrobpm",S(METRO), 0,  3,      "k", "koO",  (SUBR)metro_set, (SUBR)metrobpm },
+  #endif
+  #ifdef INC_SPLITRIG
   { "splitrig", S(SPLIT_TRIG), 0, 3, "",  "kkiiz",
                                         (SUBR)split_trig_set, (SUBR)split_trig },
+  #endif
+#ifdef INC_TIMESEQ
   { "timedseq",S(TIMEDSEQ), TR, 3, "k", "kiz", (SUBR)timeseq_set, (SUBR)timeseq }
+  #endif
 };
 
 int32_t metro_init_(CSOUND *csound)

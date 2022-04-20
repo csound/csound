@@ -22,13 +22,14 @@
 */
 
 #include "csoundCore.h"
+#include "opcodes.h"
 
 typedef struct Select {
   OPDS        h;
   MYFLT       *ar, *in1, *in2, *less, *equal, *more;
 } Selecter;
 
-
+#ifdef INC_SELECT
 static int32_t selecter(CSOUND *csound, Selecter* p)
 {
     IGN(csound);
@@ -49,14 +50,16 @@ static int32_t selecter(CSOUND *csound, Selecter* p)
     }
     return OK;
 }
-
+#endif
 
 
 
 #define S(x)    sizeof(x)
 
 static OENTRY select_localops[] = {
+  #ifdef INC_SELECT
   { "select", S(Selecter), 0, 2, "a", "aaaaa", NULL, (SUBR)selecter}
+  #endif
 };
 
 LINKAGE_BUILTIN(select_localops)

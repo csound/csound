@@ -36,6 +36,7 @@
 #define INC_BABO
 #define INC_BALANCE
 #define INC_BALANCE2
+#define INC_BAMBOO
 #define INC_BBCUTM
 #define INC_BBCUTS
 #define INC_BETARAND
@@ -59,6 +60,7 @@
 #define INC_BUTTERLP
 #define INC_BUTTERLP_A
 #define INC_BUZZ
+#define INC_CABASA
 #define INC_CAUCHYRAND
 #define INC_CAUCHYRAND_A
 #define INC_CEIL
@@ -70,6 +72,7 @@
 #define INC_CHANCTRL
 #define INC_CHANCTRL_I
 #define INC_CHANGED_S
+#define INC_CHEBYSHEVPOLY
 #define INC_CIGOTO
 #define INC_CINGOTO
 #define INC_CKGOTO
@@ -79,6 +82,8 @@
 #define INC_COMPILECSD
 #define INC_COMPILEORC
 #define INC_COMPILESTR
+#define INC_COMPRESS
+#define INC_COMPRESS2
 #define INC_CONVAL
 #define INC_CONVAL_A
 #define INC_CONVOLVE 
@@ -102,6 +107,8 @@
 #define INC_CPSTMID
 #define INC_CPSTUN
 #define INC_CPSXPCH
+#define INC_CPUMETER
+#define INC_CRUNCH
 #define INC_CTLCHN
 #define INC_CTRLINIT
 #define INC_CTRLINIT_S
@@ -140,12 +147,14 @@
 #define INC_DISPFFT_A
 #define INC_DISPLAY
 #define INC_DISPLAY_A
+#define INC_DISTORT
 #define INC_DISTORT1
 #define INC_DIVZ
 #define INC_DIVZ_AA
 #define INC_DIVZ_AK
 #define INC_DIVZ_KA
 #define INC_DOWNSAMP
+#define INC_DRIPWATER
 #define INC_DUMPK
 #define INC_DUMPK2
 #define INC_DUMPK3
@@ -195,6 +204,7 @@
 #define INC_FLANGER
 #define INC_FLOOR
 #define INC_FLOOR_A
+#define INC_FM4OP
 #define INC_FOF
 #define INC_FOF2
 #define INC_FOG
@@ -229,6 +239,7 @@
 #define INC_GETCFG
 #define INC_GOTO
 #define INC_GTF
+#define INC_GUIRO
 #define INC_HARMON
 #define INC_HARMON2
 #define INC_HARMON3
@@ -257,6 +268,7 @@
 #define INC_INZ
 #define INC_JITTER
 #define INC_JITTER2
+#define INC_JOYSTICK
 #define INC_JSPLINE
 #define INC_JSPLINE_A
 #define INC_K35_hpf
@@ -330,6 +342,9 @@
 #define INC_MASSIGN_S
 #define INC_MCLOCK
 #define INC_MDELAY
+#define INC_METRO
+#define INC_METRO2
+#define INC_METROBPM
 #define INC_MIDGLOBAL
 #define INC_MIDIARP
 #define INC_MIDICHN
@@ -346,6 +361,7 @@
 #define INC_MIRROR_A
 #define INC_MODE
 #define INC_MONITOR
+#define INC_MOOG
 #define INC_MOOGVCF
 #define INC_MOSCIL
 #define INC_MRTMSG
@@ -438,6 +454,9 @@
 #define INC_PCHMIDINN
 #define INC_PCHOCT
 #define INC_PCONVOLVE
+#define INC_PDCLIP
+#define INC_PDHALF
+#define INC_PDHALFY
 #define INC_PEAK
 #define INC_PEAKA
 #define INC_PGMASSIGN
@@ -453,6 +472,7 @@
 #define INC_POISSONRAND_A
 #define INC_POLYAFT_I
 #define INC_POLYAFT_K
+#define INC_POLYNOMIAL
 #define INC_PORT
 #define INC_PORTK
 #define INC_POSCIL3_A
@@ -466,6 +486,7 @@
 #define INC_POSCIL_KK
 #define INC_POW
 #define INC_POW_A
+#define INC_POWERSHAPE
 #define INC_PPIANO
 #define INC_PRINT
 #define INC_PRINTF
@@ -532,6 +553,7 @@
 #define INC_REVERB
 #define INC_REVERB2
 #define INC_REVERBSC
+#define INC_REWINDSCORE
 #define INC_REZZY
 #define INC_RIGOTO
 #define INC_RMS
@@ -543,6 +565,7 @@
 #define INC_S
 #define INC_SAMPHOLD
 #define INC_SAMPHOLD_K
+#define INC_SANDPAPER
 #define INC_SCALE
 #define INC_SCALE2
 #define INC_SCANHAMMER
@@ -558,27 +581,39 @@
 #define INC_SCHEDULE_S
 #define INC_SCHEDULE_SN
 #define INC_SCHEDWHEN
+#define INC_SCORELINE
+#define INC_SCORELINE_I
 #define INC_SEED
+#define INC_SEKERE
+#define INC_SELECT
 #define INC_SEMITONE
 #define INC_SEMITONE_A
+#define INC_SEQTIME
+#define INC_SEQTIME2
+#define INC_SEQU
 #define INC_SETKSMPS
+#define INC_SETSCOREPOS
+#define INC_SHAKER
 #define INC_SIGNUM
 #define INC_SIN
 #define INC_SIN_A
 #define INC_SINH
 #define INC_SINH_A
+#define INC_SLEIGHBELLS
 #define INC_SNDWARP
 #define INC_SNDWARPS
 #define INC_SOUNDOUT
 #define INC_SPACE
 #define INC_SPAT3
 #define INC_SPDIST
+#define INC_SPLITRIG
 #define INC_SPRINTF
 #define INC_SPSEND
 #define INC_SQRT
 #define INC_SQRT_A
 #define INC_SQUINEWAVE
 #define INC_STERRAIN
+#define INC_STIX
 #define INC_STRCAT
 #define INC_STRCHAR
 #define INC_STRCMP
@@ -591,9 +626,11 @@
 #define INC_STRTOD
 #define INC_STRTOL
 #define INC_SUM
+#define INC_SUNCPHASOR
 #define INC_SVFILTER
 #define INC_SYSTEM
 #define INC_SYSTEM_I
+#define INC_SYSTIME
 #define INC_TABLE3_A
 #define INC_TABLE3_I
 #define INC_TABLE3_K
@@ -622,6 +659,7 @@
 #define INC_TABLEWKT_K
 #define INC_TABLEXKT
 #define INC_TABSUM
+#define INC_TAMBOURINE
 #define INC_TAN
 #define INC_TAN_A
 #define INC_TANH
@@ -633,6 +671,7 @@
 #define INC_TIMEINSTK
 #define INC_TIMEINSTS
 #define INC_TIMEK
+#define INC_TIMESEQ
 #define INC_TIMESR
 #define INC_TIMOUT
 #define INC_TIVAL
@@ -654,6 +693,7 @@
 #define INC_UPSAMP
 #define INC_URANDOM_A
 #define INC_URANDOM_K
+#define INC_VACTROL
 #define INC_VAGET
 #define INC_VALPASS
 #define INC_VASET
@@ -675,6 +715,8 @@
 #define INC_VOSIM
 #define INC_WEIBULLRAND
 #define INC_WEIBULLRAND_A
+#define INC_WGBOWEDBAR
+#define INC_WGPLUCK
 #define INC_WGPLUCK2
 #define INC_WGUIDE1
 #define INC_WGUIDE2

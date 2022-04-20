@@ -24,6 +24,9 @@
 // #include "csdl.h"
 #include "csoundCore.h"
 #include "moog1.h"
+#include "opcodes.h"
+
+#ifdef INC_MOOG
 
 extern void make_TwoZero(TwoZero *);
 extern void TwoZero_setZeroCoeffs(TwoZero *, MYFLT*);
@@ -295,3 +298,4 @@ int32_t Moog1(CSOUND *csound, MOOG1 *p)
     return OK;
 }
 
+#endif

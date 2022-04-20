@@ -823,7 +823,7 @@ static OENTRY localops[] =
    #ifdef INC_SCANMAP
    { "scanmap", S(PSCSNMAP),TR, 3, "kk", "ikko",        (SUBR)scsnmap_init,
      (SUBR)scsnmap,NULL },
-   { "scanmap.A", S(PSCSNMAPV),0, 3, "k[]k[]", "ipp",        (SUBR)scsnmapV_init,
+   { "scanmap.A", S(PSCSNMAPV),0, 3, "k[]k[]", "iPP",        (SUBR)scsnmapV_init,
      (SUBR)scsnmapV,NULL },
    { "scansmap", S(PSCSNMAP),TR, 3,"",   "kkikko",      (SUBR)scsnmap_init,
      (SUBR)scsnsmap,NULL }

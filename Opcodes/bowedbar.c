@@ -32,7 +32,9 @@
 // #include "csdl.h"
 #include "csoundCore.h"
 #include "bowedbar.h"
+#include "opcodes.h"
 
+#ifdef INC_WGBOWEDBAR
 /* Number of banded waveguide modes */
 
 static void make_DLineN(CSOUND *csound, DLINEN *p, int32 length)
@@ -228,5 +230,5 @@ int32_t bowedbar(CSOUND *csound, BOWEDBAR *p)
     }
     return OK;
 }
-
+#endif
 

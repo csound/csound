@@ -34,6 +34,9 @@
 #include "stdopcod.h"
 #include "wavegde.h"
 #include "pluck.h"
+#include "opcodes.h"
+
+#ifdef INC_WGPLUCK
 
 /* external prototypes */
 static void pluckSetFilters(CSOUND*, WGPLUCK*, MYFLT, MYFLT);
@@ -351,13 +354,17 @@ static void waveguideSetTuning(CSOUND *csound, waveguide* wg, MYFLT df)
     csound->Message(csound, "tuning :c=%f\n", wg->c);
 #endif
 }
+#endif
+
 
 #define S(x)    sizeof(x)
 
 static OENTRY localops[] =
   {
+   #ifdef INC_WGPLUCK
    { "wgpluck",S(WGPLUCK),0, 3,"a","iikiiia",
      (SUBR)pluckPluck,(SUBR)pluckGetSamps}
+   #endif
 };
 
 int32_t pluck_init_(CSOUND *csound)

@@ -36,6 +36,7 @@
 
 #include "csoundCore.h"
 #include "fm4op.h"
+#include "opcodes.h"
 
 /***********************************************************/
 /*  Two Zero Filter Class,                                 */
@@ -44,6 +45,7 @@
 /*  works.  Nothing out of the ordinary in this version.   */
 /***********************************************************/
 
+#if defined(INC_MOOG)||defined(INC_FM4OP)
 /* Used by moog1.c as well */
 void make_TwoZero(TwoZero *p)
 {
@@ -72,6 +74,9 @@ MYFLT TwoZero_tick(TwoZero *p, MYFLT sample)
     p->lastOutput = (lastOutput += p->inputs[0]);
     return lastOutput;
 }
+#endif
+
+#ifdef INC_FM4OP
 
 MYFLT Wave_tick(MYFLT *vTime, int32_t len, MYFLT *data, MYFLT rate, MYFLT phase)
 {                                /* Tick on vibrato table */
@@ -1145,3 +1150,4 @@ int32_t percflute(CSOUND *csound, FM4OP *p)
     return OK;
 }
 
+#endif
