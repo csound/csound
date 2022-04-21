@@ -128,6 +128,7 @@ int main(void)
     process_file("Opcodes/physmod.c", outp); /* Incomplete */
     process_file("Opcodes/phisem.c", outp);
     process_file("Opcodes/buchla.c", outp);
+    process_file("Opcodes/ambicode.c", outp);
     
     fprintf(outp, "\t{ NULL, NULL}\n};\n");
 }

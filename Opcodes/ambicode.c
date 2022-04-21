@@ -24,6 +24,7 @@
 #include "csoundCore.h"
 #include "interlocks.h"
 #include <math.h>
+#include "opcodes.h"
 
 typedef struct {
     OPDS    h;                                      /* required header */
@@ -43,6 +44,7 @@ typedef struct {
             v[8], k[8], l[8], m[8], n[8], o[8], p[8], q[8];
 } AMBID;
 
+#ifdef INC_BFORMENC
 static int32_t iambicode(CSOUND *csound, AMBIC *p)
 {
     csound->Warning(csound,
@@ -285,7 +287,9 @@ static int32_t aambicode(CSOUND *csound, AMBIC *p)
     }
     return OK;
 }
+#endif
 
+#ifdef INC_BFORMDEC
 static void ambideco_set_coefficients(AMBID *p, double alpha, double beta,
                                       int32_t index)
 {
@@ -731,14 +735,19 @@ static int32_t aambideco(CSOUND *csound, AMBID *p)
     }
     return OK;
 }
+#endif
 
 #define S(x)    sizeof(x)
 
 static OENTRY localops[] = {
+  #ifdef INC_BFORMENC
   { "bformenc", S(AMBIC), _QQ, 3, "mmmmmmmmmmmmmmmm", "akkPPPP",
                             (SUBR)iambicode,  (SUBR)aambicode },
+  #endif
+  #ifdef INC_BFORMDEC
   { "bformdec", S(AMBID), _QQ, 3, "mmmmmmmm", "iaaay",
                             (SUBR)iambideco, (SUBR)aambideco }
+  #endif
 };
 
 int32_t ambicode_init_(CSOUND *csound)

@@ -43,8 +43,10 @@
 #define INC_BETARAND_A
 #define INC_BEXPRAND
 #define INC_BEXPRAND_A
+#define INC_BFORMDEC
 #define INC_BFORMDEC1
 #define INC_BFORMDEC1_A
+#define INC_BFORMENC
 #define INC_BFORMENC1
 #define INC_BFORMENC1_A
 #define INC_BILBAR
