@@ -508,7 +508,7 @@ static int32_t osc_send2_init(CSOUND *csound, OSCSEND2 *p)
     memcpy(p->types.auxp, p->type->data, strlen(p->type->data));
 
     // todo: parse type to allocate memory
-    int32_t i, iarg = 0;
+    size_t i, iarg = 0;
     STRINGDAT *s;
     ARRAYDAT *ar;
     FUNC *ft;

@@ -304,7 +304,7 @@ static int32_t send_recv_k(CSOUND *csound, SOCKRECV *p)
 static int32_t send_recv_S(CSOUND *csound, SOCKRECVSTR *p)
 {
     STRINGDAT *str = p->ptr1;
-    int32_t len;
+    size_t len;
     if (p->outsamps >= p->rcvsamps) {
       p->outsamps =  0;
       p->rcvsamps =
@@ -653,7 +653,8 @@ static int32_t perf_raw_osc(CSOUND *csound, RAWOSC *p) {
 
     STRINGDAT *str = (STRINGDAT *) p->sout->data;
     char *buf = (char *) p->buffer.auxp;
-    int32_t len = 0, n = 0, j = 1;
+    int32_t n = 0, j = 1;
+    size_t len = 0;
     char c;
     memset(buf, 0, p->buffer.size);
     uint32_t size = 0;

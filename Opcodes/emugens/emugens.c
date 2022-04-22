@@ -2596,7 +2596,7 @@ lastcycle(CSOUND *csound, LASTCYCLE *p) {
 // make sure that the out string has enough allocated space
 // This can be run only at init time
 static int32_t _string_ensure(CSOUND *csound, STRINGDAT *s, int size) {
-    if (s->size >= size)
+    if (s->size >= (size_t)size)
         return OK;
     csound->ReAlloc(csound, s->data, size);
     s->size = size;
@@ -2613,7 +2613,7 @@ typedef struct {
 static int32_t
 stripl(CSOUND *csound, STR1_1 *p) {
     char *str = p->in->data;
-    int idx0;
+    size_t idx0;
     for(idx0=0; idx0 < p->in->size; idx0++) {
         if(!isspace(str[idx0]))
             break;
@@ -2748,10 +2748,10 @@ int32_t println_reset(CSOUND *csound, PRINTLN *p) {
 }
 
 int32_t printsk_init(CSOUND *csound, PRINTLN *p) {
-    int32_t bufsize = 2048;
-    int32_t fmtlen = strlen(p->sfmt->data);
+    size_t bufsize = 2048;
+    size_t fmtlen = strlen(p->sfmt->data);
     int32_t numVals = (int32_t)p->INOCOUNT - 1;
-    int32_t maxSegmentSize = fmtlen + numVals*7 + 1;
+    size_t maxSegmentSize = fmtlen + numVals*7 + 1;
 
     // Try to reuse memory from previous instances
     if(p->buf.size < bufsize || p->strseg.size < maxSegmentSize) {
