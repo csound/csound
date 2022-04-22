@@ -529,7 +529,7 @@ static int32_t OSC_handler(const char *path, const char *types,
             case 's':
               { // ***NO CHECK THAT m->args[i] IS A STRING
                 char  *src = (char*) &(argv[i]->s), *dst = m->args[i].string.data;
-                if (m->args[i].string.size <= (int32_t) strlen(src)) {
+                if (m->args[i].string.size <= strlen(src)) {
                   if (dst != NULL) csound->Free(csound, dst);
                   dst = csound->Strdup(csound, src);
                   // who sets m->args[i].string.size ??
@@ -811,7 +811,7 @@ static int32_t OSC_list(CSOUND *csound, OSCLISTEN *p)
           char *src = m->args[i].string.data;
           char *dst = ((STRINGDAT*) p->args[i])->data;
           if (src != NULL) {
-            if (((STRINGDAT*) p->args[i])->size <= (int32_t) strlen(src)){
+            if (((STRINGDAT*) p->args[i])->size <= strlen(src)){
               if (dst != NULL) csound->Free(csound, dst);
               dst = csound->Strdup(csound, src);
               ((STRINGDAT*) p->args[i])->size = strlen(dst) + 1;
