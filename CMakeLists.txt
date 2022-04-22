@@ -1166,12 +1166,12 @@ if(USE_CURL AND CURL_FOUND)
 
 endif()
 
-# Linux does not have a separate libintl, it is part of libc
+# Linux platforms may or may not have a separate libintl (may be a part of of libc)
 set(LIBINTL_AVAIL (LIBINTL_LIBRARY OR LINUX))
 check_deps(USE_GETTEXT LIBINTL_HEADER LIBINTL_AVAIL GETTEXT_MSGFMT_EXECUTABLE)
 if(USE_GETTEXT)
     message(STATUS "Using GNU gettext.")
-    if(NOT LINUX)
+    if(LIBINTL_LIBRARY)
         list(APPEND libcsound_LIBS ${LIBINTL_LIBRARY})
     endif()
     list(APPEND libcsound_CFLAGS -DGNU_GETTEXT)
