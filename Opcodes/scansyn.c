@@ -810,7 +810,7 @@ static OENTRY localops[] =
    { "scans", S(PSCSNS),TR, 3, "a","kkiio", (SUBR)scsns_init, (SUBR)scsns_play},
    { "scanmap", S(PSCSNMAP),TR, 3, "kk", "ikko",        (SUBR)scsnmap_init,
      (SUBR)scsnmap,NULL },
-   { "scanmap.A", S(PSCSNMAPV),0, 3, "k[]k[]", "ipp",        (SUBR)scsnmapV_init,
+   { "scanmap.A", S(PSCSNMAPV),0, 3, "k[]k[]", "iPP",        (SUBR)scsnmapV_init,
      (SUBR)scsnmapV,NULL },
    { "scansmap", S(PSCSNMAP),TR, 3,"",   "kkikko",      (SUBR)scsnmap_init,
      (SUBR)scsnsmap,NULL }

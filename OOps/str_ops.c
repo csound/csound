@@ -138,13 +138,13 @@ int32_t strget_init(CSOUND *csound, STRGET_OP *p)
       p->r->data = cs_strdup(csound, ss);
       p->r->size = strlen(ss)+1;
     }
-    else if ((int32_t) strlen(ss) >= p->r->size) {
+    else if (strlen(ss) >= p->r->size) {
       csound->Free(csound, p->r->data);
       p->r->data = cs_strdup(csound, ss);
       p->r->size = strlen(ss) + 1;
     }
     else {
-      int32_t n = strlen(ss)+1;
+      size_t n = strlen(ss)+1;
       p->r->size = n;
       strNcpy(p->r->data, ss, n);
       //p->r->data[p->r->size - 1] = '\0';
@@ -155,7 +155,7 @@ int32_t strget_init(CSOUND *csound, STRGET_OP *p)
   if (indx < 0 || indx > (int32_t) csound->strsmax ||
       csound->strsets == NULL || csound->strsets[indx] == NULL)
     return OK;
-  if (UNLIKELY((int32_t) strlen(csound->strsets[indx]) >= p->r->size)){
+  if (UNLIKELY(strlen(csound->strsets[indx]) >= p->r->size)){
     int32_t size = strlen(csound->strsets[indx]);
     p->r->data = csound->ReAlloc(csound, p->r->data, size + 1);
     p->r->size = size + 1;
@@ -182,7 +182,7 @@ static CS_NOINLINE int32_t StrOp_ErrMsg(void *p, const char *msg)
 
 int32_t strassign_k(CSOUND *csound, STRCPY_OP *p) {
   if(p->r != p->str) {
-  if(p->str->timestamp == csound->GetKcounter(csound)) {
+  if((uint64_t)p->str->timestamp == csound->GetKcounter(csound)) {
   CS_TYPE *strType = csound->GetTypeForArg(p->str);    
   strType->copyValue(csound, strType, p->r, p->str);
   //printf("copy \n");
@@ -216,7 +216,7 @@ int32_t strcpy_opcode_p(CSOUND *csound, STRGET_OP *p)
       else
         return csoundInitError(csound, Str("NULL string\n"));
     }
-   if ((int32_t) strlen(ss) >= p->r->size) {
+   if (strlen(ss) >= p->r->size) {
       csound->Free(csound, p->r->data);
       p->r->data = cs_strdup(csound, ss);
       p->r->size = strlen(ss) + 1;
@@ -423,7 +423,7 @@ sprintf_opcode_(CSOUND *csound,
       case 'u':
       case 'c':
 #ifdef HAVE_SNPRINTF
-	if ((int32_t)strlen(strseg) + 24 > (int32_t)maxChars) {
+	if (strlen(strseg) + 24 > (size_t)maxChars) {
 	  int32_t offs = outstring - str->data;
 	  str->data = csound->ReAlloc(csound, str->data,
 				      str->size  + 24);
@@ -532,7 +532,7 @@ sprintf_opcode_(CSOUND *csound,
 
 int32_t sprintf_opcode(CSOUND *csound, SPRINTF_OP *p)
 {
-  int32_t size = p->sfmt->size+ 18*((int32_t) p->INOCOUNT);
+  size_t size = p->sfmt->size+ 18*((size_t) p->INOCOUNT);
   //printf("%d %d \n", p->r->size, strlen(p->r->data));
   if (p->r->data == NULL || p->r->size < size) {
     /* this 10 is 1n incorrect guess which is OK with numbers*/
@@ -788,7 +788,8 @@ int32_t strsub_opcode(CSOUND *csound, STRSUB_OP *p)
   int64_t kcnt = csound->GetKcounter(csound);
     const char  *src;
     char        *dst;
-    int32_t         i, len, strt, end, rev = 0;
+    int32_t      strt, end, rev = 0;
+    size_t       len, i;
 
     if (p->Ssrc->data == NULL) return NOTOK;
     if (p->Sdst->data == NULL || p->Sdst->size < p->Ssrc->size) {
@@ -800,7 +801,7 @@ int32_t strsub_opcode(CSOUND *csound, STRSUB_OP *p)
 
     src = (char*) p->Ssrc->data;
     dst = (char*) p->Sdst->data;
-    len = (int32_t) strlen(src);
+    len = strlen(src);
 #if defined(MSVC) || (defined(__GNUC__) && defined(__i386__))
     strt = (int32_t) MYFLT2LRND(*(p->istart));
     end = (int32_t) MYFLT2LRND(*(p->iend));
@@ -808,9 +809,9 @@ int32_t strsub_opcode(CSOUND *csound, STRSUB_OP *p)
     strt = (int32_t) (*(p->istart) + FL(1.5)) - 1;
     end = (int32_t) (*(p->iend) + FL(1.5)) - 1;
 #endif
-    if (strt < 0 || strt > len)
+    if (strt < 0 || (size_t)strt > len)
       strt = len;
-    if (end < 0 || end > len)
+    if (end < 0 || (size_t)end > len)
       end = len;
     if (strt == end) {
       /* trivial case: empty output */
@@ -841,7 +842,7 @@ int32_t strsub_opcode(CSOUND *csound, STRSUB_OP *p)
       } while (++i < len);
       dst[i] = '\0';
       if (rev) {
-        int32_t   j;
+        size_t   j;
         /* if the destination string variable is the same as the source, */
         /* reversing needs to be handled in a special way */
         i = 0;
@@ -875,7 +876,7 @@ int32_t strsub_opcode(CSOUND *csound, STRSUB_OP *p)
 
 int32_t strchar_opcode(CSOUND *csound, STRCHAR_OP *p)
 {
-  int32_t     len = (int32_t) strlen((char*) p->Ssrc->data);
+  size_t     len = strlen((char*) p->Ssrc->data);
 #if defined(MSVC) || (defined(__GNUC__) && defined(__i386__))
   int32_t     pos = (int32_t) MYFLT2LRND(*(p->ipos));
 #else
@@ -883,7 +884,7 @@ int32_t strchar_opcode(CSOUND *csound, STRCHAR_OP *p)
 #endif
 
   (void) csound;
-  if (pos < 0 || pos >= len)
+  if (pos < 0 || (size_t)pos >= len)
     *(p->ichr) = FL(0.0);
   else
     *(p->ichr) = (MYFLT) ((int32_t)((unsigned char)((char*) p->Ssrc->data)[pos]));
@@ -1043,11 +1044,11 @@ int32_t getcfg_opcode(CSOUND *csound, GETCFG_OP *p)
   if (s != NULL) {
 
     if (p->Sdst->data == NULL) {
-      int32_t size = strlen(s) + 1;
+      size_t size = strlen(s) + 1;
       p->Sdst->data = csound->Calloc(csound, size);
       p->Sdst->size = size;
     }
-    else if (UNLIKELY((int32_t) strlen(s) >=  p->Sdst->size)) {
+    else if (UNLIKELY(strlen(s) >=  p->Sdst->size)) {
       p->Sdst->data = csound->ReAlloc(csound, p->Sdst->data, strlen(s) + 1);
       p->Sdst->size = strlen(s) + 1;
     }
@@ -1130,7 +1131,7 @@ int32_t str_from_url(CSOUND *csound, STRCPY_OP *p)
   if (strstr(newVal, ":/")==NULL) return strcpy_opcode_S(csound, p);
   {
     CORFIL *mm = copy_url_corefile(csound, newVal,0);
-    int32_t len = corfile_length(mm);
+    size_t len = corfile_length(mm);
     if (p->r->data == NULL) {
       p->r->data =  cs_strdup(csound, corfile_body(mm));
       p->r->size =  len + 1;
