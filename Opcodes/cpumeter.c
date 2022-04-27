@@ -223,11 +223,6 @@ static int32_t cpupercent(CSOUND *csound, CPUMETER* p)
 }
 
 #else
-typedef struct {
-        OPDS    h;
-        MYFLT   *k0, *kk[8], *itrig;
-} CPUMETER;
-
 
 int32_t cpupercent_init(CSOUND *csound, CPUMETER *p) {
    IGN(p);

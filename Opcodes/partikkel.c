@@ -965,8 +965,8 @@ static int32_t partikkelset(CSOUND *csound, PARTIKKEL_SET *p)
 #endif
 
 static OENTRY partikkel_localops[] = {
-    {
       #ifdef INC_PARTIKKEL
+    {
      "partikkel", sizeof(PARTIKKEL), TR, 3, "ammmmmmm", "xkiakiiikkkkikkiiaikikkkikkkkkiaaaakkkkioj",
         (SUBR)partikkel_init,
         (SUBR)partikkel

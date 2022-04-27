@@ -26,7 +26,6 @@
 #include "moog1.h"
 #include "opcodes.h"
 
-#ifdef INC_MOOG
 
 extern void make_TwoZero(TwoZero *);
 extern void TwoZero_setZeroCoeffs(TwoZero *, MYFLT*);
@@ -151,6 +150,7 @@ static MYFLT Samp_tick(Wave *p)
     /* End of vibrato tick */
     return lastOutput;
 }
+#ifdef INC_MOOG
 
 int32_t Moog1set(CSOUND *csound, MOOG1 *p)
 {
