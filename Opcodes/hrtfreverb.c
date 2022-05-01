@@ -23,6 +23,7 @@
 
 #include "csoundCore.h"
 #include "interlocks.h"
+#include "opcodes.h"
 
 #define SQUARE(X) ((X)*(X))
 
@@ -1336,10 +1337,13 @@ int32_t hrtfreverb_process(CSOUND *csound, hrtfreverb *p)
 }
 
 static OENTRY hrtfreverb_localops[] =
-{        {
+{
+  #ifdef INC_HRTF_REVER
+        {
           "hrtfreverb", sizeof(hrtfreverb), 0,3, "aai", "aiiSSoop",
                 (SUBR)hrtfreverb_init, (SUBR)hrtfreverb_process
         }
+  #endif
 };
 
 LINKAGE_BUILTIN(hrtfreverb_localops)

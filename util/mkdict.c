@@ -129,6 +129,10 @@ int main(void)
     process_file("Opcodes/phisem.c", outp);
     process_file("Opcodes/buchla.c", outp);
     process_file("Opcodes/ambicode.c", outp);
+    process_file("Opcodes/hrtfopcodes.c", outp);
+    process_file("Opcodes/hrtfreverb.c", outp);
+    process_file("Opcodes/hrtfearly.c", outp);
+    process_file("Opcodes/crossfm.c", outp);
     
     fprintf(outp, "\t{ NULL, NULL}\n};\n");
 }

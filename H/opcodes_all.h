@@ -110,6 +110,12 @@
 #define INC_CPSTUN
 #define INC_CPSXPCH
 #define INC_CPUMETER
+#define INC_CROSSFM
+#define INC_CROSSFMI
+#define INC_CROSSFMPM
+#define INC_CROSSFMPMI
+#define INC_CROSSPM
+#define INC_CROSSPMI
 #define INC_CRUNCH
 #define INC_CTLCHN
 #define INC_CTRLINIT
@@ -247,6 +253,11 @@
 #define INC_HARMON3
 #define INC_HARMON4
 #define INC_HILBERT
+#define INC_HRTF_EARLY
+#define INC_HRTF_MOVE
+#define INC_HRTF_MOVE2
+#define INC_HRTF_REVER
+#define INC_HRTF_STAT
 #define INC_HW_CHANNELS
 #define INC_IGOTO
 #define INC_IHOLD

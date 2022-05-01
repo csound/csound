@@ -25,7 +25,9 @@
 #include "interlocks.h"
 #include "crossfm.h"
 #include <math.h>
+#include "opcodes.h"
 
+#if defined(INC_CROSSFM)||defined(INC_CROSSFMI)||defined(INC_CROSSPM)||defined(INC_CROSSPMI)||defined(INC_CRISSFPM)||defined(INC_CROSSFMPMI)
 int32_t xfmset(CSOUND *csound, CROSSFM *p)
 {
     FUNC *ftp1 = csound->FTnp2Find(csound, p->ifn1);
@@ -51,7 +53,9 @@ int32_t xfmset(CSOUND *csound, CROSSFM *p)
     p->ndx2adv = IS_ASIG_ARG(p->xndx2) ? 1 : 0;
     return OK;
 }
+#endif
 
+#ifdef INC_CROSSFM
 int32_t xfm(CSOUND *csound, CROSSFM *p)
 {
     MYFLT *out1, *out2;
@@ -121,7 +125,9 @@ int32_t xfm(CSOUND *csound, CROSSFM *p)
     p->sig2 = sig2;
     return OK;
 }
+#endif
 
+#ifdef INC_CROSSFMI
 int32_t xfmi(CSOUND *csound, CROSSFM *p)
 {
     MYFLT *out1, *out2;
@@ -196,7 +202,9 @@ int32_t xfmi(CSOUND *csound, CROSSFM *p)
     p->sig2 = sig2;
     return OK;
 }
+#endif
 
+#ifdef INC_CROSSPM
 int32_t xpm(CSOUND *csound, CROSSFM *p)
 {
     MYFLT *out1, *out2;
@@ -266,7 +274,9 @@ int32_t xpm(CSOUND *csound, CROSSFM *p)
     p->sig2 = sig2;
     return OK;
 }
+#endif
 
+#ifdef INC_CROSSPMI
 int32_t xpmi(CSOUND *csound, CROSSFM *p)
 {
     MYFLT *out1, *out2;
@@ -341,7 +351,9 @@ int32_t xpmi(CSOUND *csound, CROSSFM *p)
     p->sig2 = sig2;
     return OK;
 }
+#endif
 
+#ifdef INC_CROSSFMPM
 int32_t xfmpm(CSOUND *csound, CROSSFM *p)
 {
     MYFLT *out1, *out2;
@@ -411,7 +423,9 @@ int32_t xfmpm(CSOUND *csound, CROSSFM *p)
     p->sig2 = sig2;
     return OK;
 }
+#endif
 
+#ifdef INC_CROSSFMPMI
 int32_t xfmpmi(CSOUND *csound, CROSSFM *p)
 {
     MYFLT *out1, *out2;
@@ -487,16 +501,29 @@ int32_t xfmpmi(CSOUND *csound, CROSSFM *p)
     p->sig2 = sig2;
     return OK;
 }
+#endif
 
 #define S sizeof
 
 static OENTRY crossfm_localops[] = {
+  #ifdef INC_CROSSFM
   { "crossfm", S(CROSSFM), TR, 3, "aa", "xxxxkiioo", (SUBR)xfmset, (SUBR)xfm },
+  #endif
+  #ifdef INC_CROSSFMI
   { "crossfmi", S(CROSSFM), TR, 3, "aa", "xxxxkiioo",(SUBR)xfmset, (SUBR)xfmi },
+  #endif
+  #ifdef INC_CROSSPM
   { "crosspm", S(CROSSFM), TR, 3, "aa", "xxxxkiioo", (SUBR)xfmset, (SUBR)xpm },
+  #endif
+  #ifdef INC_CROSSPMI
   { "crosspmi", S(CROSSFM), TR, 3, "aa", "xxxxkiioo",(SUBR)xfmset, (SUBR)xpmi },
+  #endif
+  #ifdef INC_CROSSFMPM
   { "crossfmpm", S(CROSSFM), TR, 3, "aa", "xxxxkiioo",(SUBR)xfmset,(SUBR)xfmpm},
+  #endif
+#ifdef INC_CROSSFMPMI
   { "crossfmpmi", S(CROSSFM),TR, 3, "aa", "xxxxkiioo",(SUBR)xfmset, (SUBR)xfmpmi },
+  #endif
 };
 
 LINKAGE_BUILTIN(crossfm_localops)

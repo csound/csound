@@ -23,6 +23,7 @@
 
 #include "csoundCore.h"
 #include "interlocks.h"
+#include "opcodes.h"
 
 #include <math.h>
 /* definitions */
@@ -219,6 +220,7 @@ typedef struct
 }
 hrtfmove;
 
+#ifdef INC_HRTF_MOVE
 static int32_t hrtfmove_init(CSOUND *csound, hrtfmove *p)
 {
     /* left and right data files: spectral mag, phase format. */
@@ -1336,6 +1338,7 @@ static int32_t hrtfmove_process(CSOUND *csound, hrtfmove *p)
 
     return OK;
 }
+#endif
 
 /* Csound hrtf magnitude interpolation, woodworth phase,
    static source: January 10 */
@@ -1386,6 +1389,7 @@ typedef struct
 }
 hrtfstat;
 
+#ifdef INC_HRTF_STAT
 static int32_t hrtfstat_init(CSOUND *csound, hrtfstat *p)
 {
     /* left and right data files: spectral mag, phase format. */
@@ -1985,6 +1989,7 @@ static int32_t hrtfstat_process(CSOUND *csound, hrtfstat *p)
 
     return OK;
 }
+#endif
 
 /* Csound hrtf magnitude interpolation, dynamic woodworth trajectory */
 /* stft from fft.cpp in sndobj... */
@@ -2049,7 +2054,7 @@ MYFLT *ooverlap, *oradius, *osr;
 
 }
 hrtfmove2;
-
+#ifdef INC_HRTF_MOVE2
 static int32_t hrtfmove2_init(CSOUND *csound, hrtfmove2 *p)
 {
     /* left and right data files: spectral mag, phase format. */
@@ -2660,16 +2665,23 @@ static int32_t hrtfmove2_process(CSOUND *csound, hrtfmove2 *p)
 
     return OK;
 }
+#endif
 
 /* see csound manual (extending csound) for details of below */
 static OENTRY hrtfopcodes_localops[] =
 {
+  #ifdef INC_HRTF_MOVE
  { "hrtfmove", sizeof(hrtfmove),0, 3, "aa", "akkSSooo",
     (SUBR)hrtfmove_init, (SUBR)hrtfmove_process },
+ #endif
+ #ifdef INC_HRTF_STAT
  { "hrtfstat", sizeof(hrtfstat),0, 3, "aa", "aiiSSoo",
     (SUBR)hrtfstat_init, (SUBR)hrtfstat_process },
+ #endif
+ #ifdef INC_HRTF_MOVE2
  { "hrtfmove2",  sizeof(hrtfmove2),0, 3, "aa", "akkSSooo",
     (SUBR)hrtfmove2_init, (SUBR)hrtfmove2_process }
+ #endif
 };
 
 LINKAGE_BUILTIN(hrtfopcodes_localops)

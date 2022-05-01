@@ -24,6 +24,7 @@
 /* #include "csdl.h" */
 #include "csoundCore.h"
 #include "interlocks.h"
+#include "opcodes.h"
 
 #ifdef __FAST_MATH__
 #undef __FAST_MATH__
@@ -39,6 +40,8 @@ static const int32_t elevationarray[14] =
   {56, 60, 72, 72, 72, 72, 72, 60, 56, 45, 36, 24, 12, 1 };
 
 /* for ppc byte switch */
+#ifdef INC_HRTF_EARLY
+
 #ifdef WORDS_BIGENDIAN
 static int32_t swap4bytes(CSOUND* csound, MEMFIL* mfp)
 {
@@ -1797,14 +1800,16 @@ static int32_t early_process(CSOUND *csound, early *p)
 
     return OK;
 }
+#endif
 
 static OENTRY hrtfearly_localops[] =
   {
+    #ifdef INC_HRTF_EARLY
     {
-     "hrtfearly",   sizeof(early), 0,3, "aaiii",
-                                         "axxxxxxSSioopoOoooooooooooooooooo",
+     "hrtfearly", sizeof(early), 0,3, "aaiii","axxxxxxSSioopoOoooooooooooooooooo",
       (SUBR)early_init, (SUBR)early_process
     }
+    #endif
   };
 
 LINKAGE_BUILTIN(hrtfearly_localops)
