@@ -133,6 +133,9 @@ int main(void)
     process_file("Opcodes/hrtfreverb.c", outp);
     process_file("Opcodes/hrtfearly.c", outp);
     process_file("Opcodes/crossfm.c", outp);
+    process_file("Opcodes/cross2.c", outp);
+    process_file("Opcodes/clfilt.c", outp);
+    process_file("Opcodes/bformdec2.cpp", outp);
     
     fprintf(outp, "\t{ NULL, NULL}\n};\n");
 }

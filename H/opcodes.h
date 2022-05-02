@@ -46,6 +46,7 @@
 #define INC_BFORMDEC
 #define INC_BFORMDEC1
 #define INC_BFORMDEC1_A
+#define INC_BFORMDEC2
 #define INC_BFORMENC
 #define INC_BFORMENC1
 #define INC_BFORMENC1_A
@@ -78,6 +79,7 @@
 #define INC_CIGOTO
 #define INC_CINGOTO
 #define INC_CKGOTO
+#define INC_CLFILT
 #define INC_CNGOTO
 #define INC_COMB
 #define INC_COMBINV
@@ -110,6 +112,7 @@
 #define INC_CPSTUN
 #define INC_CPSXPCH
 #define INC_CPUMETER
+#define INC_CROSS2
 #define INC_CROSSFM
 #define INC_CROSSFMI
 #define INC_CROSSFMPM

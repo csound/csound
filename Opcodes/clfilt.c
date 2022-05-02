@@ -36,7 +36,9 @@
 #include <math.h>
 #include "stdopcod.h"
 #include "clfilt.h"
+#include "opcodes.h"
 
+#ifdef INC_CLFILT
 static int32_t clfiltset(CSOUND *csound, CLFILT *p)
 {
     MYFLT tanfpi, tanfpi2, cotfpi, cotfpi2;
@@ -421,10 +423,14 @@ static int32_t clfilt(CSOUND *csound, CLFILT *p)
     return OK;
 } /* end clfilt(p) */
 
+#endif
+
 #define S sizeof
 
 static OENTRY localops[] = {
+  #ifdef INC_CLFILT
 { "clfilt", S(CLFILT),  0, 3, "a", "akiioppo",(SUBR)clfiltset, (SUBR)clfilt },
+#endif
 };
 
 int32_t clfilt_init_(CSOUND *csound)

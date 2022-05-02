@@ -28,7 +28,9 @@
 #include "csoundCore.h"
 #include <string.h>
 #include <new>
+#include "opcodes.h"
 
+#ifdef INC_BFORMDEC2
 
 /* Band-splitting constants */
 #define MAXZEROS 4
@@ -2145,12 +2147,15 @@ static void process_nfc(CSOUND *csound, HOAMBDEC* p, int signal_order, int n, in
     }
 
 }
+#endif
 
 #define S(x)    sizeof(x)
 
 static OENTRY localops[] = {
+  #ifdef INC_BFORMDEC2
   { (char*) "bformdec2.A", S(HOAMBDEC), 0, 3, (char*) "a[]", (char*) "ia[]ooooNN",
     (SUBR)ihoambdec, (SUBR)ahoambdec },
+  #endif
 };
 
 LINKAGE_BUILTIN(localops)

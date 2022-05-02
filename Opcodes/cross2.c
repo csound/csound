@@ -26,6 +26,9 @@
 #include "fhtfun.h"
 #include "interlocks.h"
 #include <math.h>
+#include "opcodes.h"
+
+#ifdef INC_CROSS2
 
 #define CH_THRESH       1.19209e-7
 #define CHOP(a) (a < CH_THRESH ? CH_THRESH : a)
@@ -437,11 +440,15 @@ static int32_t Xsynth(CSOUND *csound, CON *p)
     p->count = n;
     return OK;
 }
+#endif
+
 
 #define S(x)    sizeof(x)
 
 static OENTRY localops[] = {
+  #ifdef INC_CROSS2
   { "cross2",  S(CON), TR, 3, "a", "aaiiik",(SUBR)Xsynthset, (SUBR)Xsynth}
+  #endif
 };
 
 int32_t cross2_init_(CSOUND *csound)
