@@ -1259,7 +1259,7 @@ static int32_t chnset_opcode_perf_k(CSOUND *csound, CHNGET *p)
         }
         else
             print_chn_err_perf(p, err);
-    } else return csound->PerfError(csound, &p->h, "invalid channel name");
+    } // else return csound->PerfError(csound, &p->h, "invalid channel name");
 
 #if defined(MSVC)
     volatile union {
