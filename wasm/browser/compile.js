@@ -41,10 +41,17 @@ if (fs.existsSync(distDir)) {
 }
 fs.mkdirSync(distDir);
 
-fs.writeFileSync(
-  path.join(rootDir, "dist", "__csound_wasm.inline.js"),
-  inlineArraybuffer("./node_modules/@csound/wasm-bin/lib/csound.dylib.wasm.z", "binary.wasm"),
-);
+if (process.env.BUILD_STATIC) {
+  fs.writeFileSync(
+    path.join(rootDir, "dist", "__csound_wasm.inline.js"),
+    inlineArraybuffer("./node_modules/@csound/wasm-bin/lib/csound.static.wasm.z", "binary.wasm"),
+  );
+} else {
+  fs.writeFileSync(
+    path.join(rootDir, "dist", "__csound_wasm.inline.js"),
+    inlineArraybuffer("./node_modules/@csound/wasm-bin/lib/csound.dylib.wasm.z", "binary.wasm"),
+  );
+}
 
 const polyfills = {
   fetch_noop: fs.readFileSync("polyfills/fetch-noop.js", "utf-8"),

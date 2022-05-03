@@ -1,6 +1,6 @@
 {
   "name": "@csound/browser",
-  "version": "6.17.0-beta4",
+  "version": "6.17.0",
   "module": "./dist/csound.js",
   "typings": "index.d.ts",
   "type": "module",
@@ -47,6 +47,7 @@
     "lint:ci": "cross-env ESLINT_JUNIT_OUTPUT=tests/eslint.junit.xml npx eslint -f ./node_modules/eslint-junit/index.js 'src/**/*.js'",
     "build": "cross-env NODE_ENV=development node compile.js",
     "build:prod": "cross-env NODE_ENV=production node compile.js",
+    "build:static": "cross-env BUILD_STATIC=1 yarn run build",
     "build:readme": "node --experimental-modules script/generate-readme.mjs > README.md",
     "test:ci": "node tests/selenium_runner.js",
     "test:open": "node tests/server.cjs"
@@ -55,7 +56,7 @@
     "@babel/core": "^7.16.7",
     "@babel/plugin-proposal-object-rest-spread": "^7.16.7",
     "@babel/plugin-transform-destructuring": "^7.16.7",
-    "@csound/wasm-bin": "6.17.0-beta2",
+    "@csound/wasm-bin": "6.17.0",
     "browser-or-node": "^2.0.0",
     "chai": "^4.3.4",
     "cross-env": "^7.0.3",

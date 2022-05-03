@@ -4,8 +4,8 @@ let wasm = null;
 let cachegetInt32Memory = null;
 
 function getInt32Memory() {
-  if (cachegetInt32Memory === null || cachegetInt32Memory.buffer !== wasm.exports.memory.buffer) {
-    cachegetInt32Memory = new Int32Array(wasm.exports.memory.buffer);
+  if (cachegetInt32Memory === null || cachegetInt32Memory.buffer !== wasm.wasi.memory.buffer) {
+    cachegetInt32Memory = new Int32Array(wasm.wasi.memory.buffer);
   }
   return cachegetInt32Memory;
 }
@@ -14,8 +14,8 @@ let cachedTextDecoder = new TextDecoder("utf-8", { ignoreBOM: true, fatal: true 
 
 let cachegetUint8Memory = null;
 function getUint8Memory() {
-  if (cachegetUint8Memory === null || cachegetUint8Memory.buffer !== wasm.exports.memory.buffer) {
-    cachegetUint8Memory = new Uint8Array(wasm.exports.memory.buffer);
+  if (cachegetUint8Memory === null || cachegetUint8Memory.buffer !== wasm.wasi.memory.buffer) {
+    cachegetUint8Memory = new Uint8Array(wasm.wasi.memory.buffer);
   }
   return cachegetUint8Memory;
 }

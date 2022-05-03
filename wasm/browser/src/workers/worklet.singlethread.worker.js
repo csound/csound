@@ -48,7 +48,7 @@ class WorkletSinglethreadWorker extends AudioWorkletProcessor {
   constructor(options) {
     super(options);
     // eslint-disable-next-line no-undef
-    this.sampleRate = AudioWorkletGlobalScope.sampleRate;
+    this.sampleRate = sampleRate;
     this.options = options;
     this.initialize = this.initialize.bind(this);
     this.pause = this.pause.bind(this);
@@ -246,7 +246,7 @@ class WorkletSinglethreadWorker extends AudioWorkletProcessor {
       rest output ant input buffers to new pointer locations. */
       if (!csOut || csOut.length === 0) {
         csOut = this.csoundOutputBuffer = new Float64Array(
-          this.wasm.exports.memory.buffer,
+          this.wasm.wasi.memory.buffer,
           libraryCsound.csoundGetSpout(this.csound),
           ksmps * nchnls,
         );
@@ -254,7 +254,7 @@ class WorkletSinglethreadWorker extends AudioWorkletProcessor {
 
       if (!csIn || csIn.length === 0) {
         csIn = this.csoundInputBuffer = new Float64Array(
-          this.wasm.exports.memory.buffer,
+          this.wasm.wasi.memory.buffer,
           libraryCsound.csoundGetSpin(this.csound),
           ksmps * nchnlsIn,
         );
@@ -322,12 +322,12 @@ class WorkletSinglethreadWorker extends AudioWorkletProcessor {
       this.zerodBFS = libraryCsound.csoundGet0dBFS(cs);
 
       this.csoundOutputBuffer = new Float64Array(
-        this.wasm.exports.memory.buffer,
+        this.wasm.wasi.memory.buffer,
         libraryCsound.csoundGetSpout(cs),
         ksmps * this.nchnls,
       );
       this.csoundInputBuffer = new Float64Array(
-        this.wasm.exports.memory.buffer,
+        this.wasm.wasi.memory.buffer,
         libraryCsound.csoundGetSpin(cs),
         ksmps * this.nchnls_i,
       );
