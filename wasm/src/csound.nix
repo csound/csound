@@ -26,7 +26,7 @@ let
   dyn-link = ''
     echo "Create libcsound.wasm pie"
     ${wasi-sdk}/bin/wasm-ld --lto-O2 \
-      -z stack-size=128 --stack-first \
+      -z stack-size=128 \
       --export=__data_end \
       --experimental-pic -pie --entry=_start \
       --import-table --import-memory \

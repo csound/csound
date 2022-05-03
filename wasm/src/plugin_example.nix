@@ -30,7 +30,9 @@ in pkgs.stdenv.mkDerivation {
 
     echo "Link togeather plugin_example.wasm"
     ${wasi-sdk}/bin/wasm-ld \
-      --shared \
+      -z stack-size=128 \
+      --pie \
+      --experimental-pic \
       --import-table \
       --import-memory \
       --export-all \
