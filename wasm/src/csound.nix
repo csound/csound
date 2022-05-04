@@ -26,7 +26,7 @@ let
   dyn-link = ''
     echo "Create libcsound.wasm pie"
     ${wasi-sdk}/bin/wasm-ld --lto-O2 \
-      -z stack-size=128 --stack-first \
+      -z stack-size=128 \
       --export=__data_end \
       --experimental-pic -pie --entry=_start \
       --import-table --import-memory \
@@ -307,6 +307,7 @@ in pkgs.stdenvNoCC.mkDerivation rec {
     mkdir -p build && cd build
     cp ${./csound_wasm.c} ./csound_wasm.c
     cp ${./unsupported_opcodes.c} ./unsupported_opcodes.c
+    cp ${./staticfix.c} ./staticfix.c
 
     # Why the wasm32-unknown-emscripten triplet:
     # https://bugs.llvm.org/show_bug.cgi?id=42714
@@ -333,6 +334,7 @@ in pkgs.stdenvNoCC.mkDerivation rec {
       -D_WASI_EMULATED_PROCESS_CLOCKS \
       -D__BUILDING_LIBCSOUND \
       -DWASM_BUILD=1 ${preprocFlags} -c \
+      ${lib.optionalString (static == true) "./staticfix.c" } \
       unsupported_opcodes.c \
       ../Engine/auxfd.c \
       ../Engine/cfgvar.c \

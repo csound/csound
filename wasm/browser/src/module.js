@@ -209,7 +209,8 @@ export default async function ({ wasmDataURI, withPlugins = [], messagePort }) {
   const initialMemory = Math.ceil((memorySize + memoryAlign) / PAGE_SIZE);
   const pluginsMemory = Math.ceil(
     withPlugins.reduce(
-      (accumulator, { headerData: { memorySize } }) => accumulator + (memorySize + memoryAlign),
+      (accumulator, { headerData }) =>
+        headerData === "static" ? 0 : accumulator + (headerData.memorySize + memoryAlign),
       0,
     ) / PAGE_SIZE,
   );
@@ -242,6 +243,8 @@ export default async function ({ wasmDataURI, withPlugins = [], messagePort }) {
   const module = await WebAssembly.compile(wasmBytes);
   const options = wasi.getImports(module);
   let withPlugins_ = [];
+
+  let currentMemorySegment = initialMemory;
 
   const csoundLoadModules = (csoundInstance) => {
     withPlugins_.forEach((pluginInstance) => {
@@ -283,8 +286,6 @@ export default async function ({ wasmDataURI, withPlugins = [], messagePort }) {
   instance_.exports = Object.assign(moduleExports, {
     memory,
   });
-
-  let currentMemorySegment = initialMemory;
 
   withPlugins_ = await withPlugins.reduce(async (accumulator, { headerData, wasmPluginBytes }) => {
     accumulator = await accumulator;
