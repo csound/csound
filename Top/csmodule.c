@@ -363,6 +363,7 @@ int csoundInitModules(CSOUND *csound) {
 
 // In browser-wasi, this function is replaced
 // by the js-host.
+__attribute__((used))
 extern int csoundLoadModules(CSOUND *csound);
 
 int csoundLoadExternals(CSOUND *csound) {
