@@ -23,6 +23,7 @@
 
 #include "csoundCore.h"       /*                              COUNTER.C         */
 #include "interlocks.h"
+#include "opcodes.h"
 
 /* Structure of a counter */
 typedef struct {
@@ -63,7 +64,7 @@ typedef  struct {
   COUNT         **cnts;
 } CNT_GLOBALS;
 
-
+#ifdef INC_CNT_CREATE
 /* Create a counter */
 static int32_t setcnt(CSOUND *csound, CNTSET *p)
 {
@@ -109,7 +110,9 @@ static int32_t setcnt(CSOUND *csound, CNTSET *p)
     *p->res = (MYFLT)m;
     return OK;
 }
+#endif
 
+#if defined(INC_CNT_CREATE)
 COUNT* find_counter(CSOUND *csound, int n)
 {
     CNT_GLOBALS *q = (CNT_GLOBALS*)
@@ -118,7 +121,6 @@ COUNT* find_counter(CSOUND *csound, int n)
     if (n>q->max_num || n<0) return NULL;
     return q->cnts[n];
 }
-
 static int32_t count_init(CSOUND *csound, COUNTER *p)
 {
     COUNT* q = find_counter(csound, (int)*p->icnt);
@@ -156,25 +158,35 @@ static int32_t count_init_perf(CSOUND *csound, COUNTER *p)
     if (count_init(csound,p)==OK) return count_perf(csound,p);
     return NOTOK;
 }
+#endif
+
+#ifdef INC_CNT_CYCLES
 
 static int32_t count_cycles(CSOUND *csound, COUNTER* p)
 {
     *p->res = p->cnt->cycles;
     return OK;
 }
+#endif
+
+#ifdef INC_CNT_READ
 
 static int32_t count_read(CSOUND *csound, COUNTER* p)
 {
     *p->res = p->cnt->val;
     return OK;
 }
+#endif
 
+#ifdef INC_CNT_RESET
 static int32_t count_reset(CSOUND *csound, COUNTER* p)
 {
     p->cnt->val = p->cnt->min;
     return OK;
 }
+#endif
 
+#ifdef INC_CNT_STATE
 static int32_t count_init3(CSOUND *csound, CNTSTATE *p)
 {
     COUNT* q = find_counter(csound, (int)*p->icnt);
@@ -190,7 +202,9 @@ static int32_t count_state(CSOUND *csound, CNTSTATE *p)
     *p->inc = p->cnt->inc;
     return OK;
 }
+#endif
 
+#ifdef INC_CNT_DELETE
 static int32_t count_del(CSOUND *csound, COUNTER* p)
 {
     int n = (int)*p->icnt;
@@ -206,19 +220,32 @@ static int32_t count_del(CSOUND *csound, COUNTER* p)
     *p->res = (MYFLT)n;
     return OK;
 }
+#endif
 
 #define S(x)    sizeof(x)
 
 static OENTRY counter_localops[] = {
+  #ifdef INC_CNT_CREATE
   { "cntCreate", S(CNTSET), 0, 1, "i", "pop", (SUBR)setcnt, NULL, NULL   },
   { "count", S(COUNTER), SK, 3, "k", "o", (SUBR)count_init, (SUBR)count_perf },
   { "count_i", S(COUNTER), SK, 1, "i", "o", (SUBR)count_init_perf, NULL },
+  #endif
+  #ifdef INC_CNT_CYCLES
   { "cntCycles", S(COUNTER), SK, 3, "k", "o", (SUBR)count_init, (SUBR)count_cycles },
+  #endif
+  #ifdef INC_CNT_READ
   { "cntRead", S(COUNTER), SK, 3, "k", "o", (SUBR)count_init, (SUBR)count_read },
+  #endif
+  #ifdef INC_CNT_RESET
   { "cntReset", S(COUNTER), SK, 3, "", "o", (SUBR)count_init0, (SUBR)count_reset },
+  #endif
+  #ifdef INC_CNT_STATE
   { "cntState", S(CNTSTATE), SK, 3, "kkk", "o", (SUBR)count_init3, (SUBR)count_state },
+  #endif
+  #ifdef INC_CNT_DELETE
   { "cntDelete", S(COUNTER), SK, 2, "k", "k", NULL, (SUBR)count_del, NULL },
   { "cntDelete_i", S(COUNTER), SK, 1, "i", "i", (SUBR)count_del, NULL, NULL },
+  #endif
  };
 
 LINKAGE_BUILTIN(counter_localops)

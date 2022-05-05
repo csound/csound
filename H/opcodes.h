@@ -81,6 +81,12 @@
 #define INC_CKGOTO
 #define INC_CLFILT
 #define INC_CNGOTO
+#define INC_CNT_CREATE
+#define INC_CNT_CYCLES
+#define INC_CNT_DELETE
+#define INC_CNT_READ
+#define INC_CNT_RESET
+#define INC_CNT_STATE
 #define INC_COMB
 #define INC_COMBINV
 #define INC_COMPILECSD
@@ -212,9 +218,11 @@
 #define INC_FILESR_S
 #define INC_FILEVALID
 #define INC_FILEVALID_S
+#define INC_FILTER2_A
 #define INC_FLANGER
 #define INC_FLOOR
 #define INC_FLOOR_A
+#define INC_FLTER2_K
 #define INC_FM4OP
 #define INC_FOF
 #define INC_FOF2
@@ -226,7 +234,9 @@
 #define INC_FOSCILI
 #define INC_FRAC
 #define INC_FRAC_A
+#define INC_FREEVERB
 #define INC_FTCHNLS
+#define INC_FTCONV
 #define INC_FTCPS
 #define INC_FTLEN
 #define INC_FTLPTIM
@@ -387,6 +397,8 @@
 #define INC_MXADSR_A
 #define INC_NESTEDAP
 #define INC_NKGOTO
+#define INC_NLFILT
+#define INC_NLFILT2
 #define INC_NOTEOFF
 #define INC_NOTEON
 #define INC_NOTEONDUR
@@ -459,6 +471,7 @@
 #define INC_PAN2
 #define INC_PAREQ
 #define INC_PARTIKKEL
+#define INC_PASSIGN
 #define INC_PAULSTRETCH
 #define INC_PCAUCHYRAND
 #define INC_PCAUCHYRAND_A
@@ -470,6 +483,7 @@
 #define INC_PCHMIDINN
 #define INC_PCHOCT
 #define INC_PCONVOLVE
+#define INC_PCOUNT
 #define INC_PDCLIP
 #define INC_PDHALF
 #define INC_PDHALFY
@@ -481,6 +495,8 @@
 #define INC_PHASER2
 #define INC_PHASOR
 #define INC_PHASOR_K
+#define INC_PINDEX
+#define INC_PINDEX_S
 #define INC_PINKER
 #define INC_PLANET
 #define INC_PLUCK
@@ -755,6 +771,7 @@
 #define INC_ZDF_2pole  
 #define INC_ZDF_2pole_mode
 #define INC_ZDF_ladder
+#define INC_ZFILTER2
 #define INC_ZIR
 #define INC_ZIW
 #define INC_ZIWM

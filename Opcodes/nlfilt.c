@@ -62,6 +62,7 @@ typedef struct {
 #define MAX_DELAY   (1024)
 #define MAXAMP      (FL(64000.0))
 
+#ifdef INC_NLFILT
 static int32_t nlfiltset(CSOUND *csound, NLFILT *p)
 {
     if (p->delay.auxp == NULL ||
@@ -143,7 +144,10 @@ static int32_t nlfilt(CSOUND *csound, NLFILT *p)
     return csound->PerfError(csound, &(p->h),
                              Str("nlfilt: not initialised"));
 } /* end nlfilt(p) */
+#endif
 
+
+#ifdef INC_NLFILT2
 /* Y{n} = a Y{n-1} + b Y{n-2} + d Y^2{n-L} + X{n} - C */
 
 /* Revised version due to Risto Holopainen 12 Mar 2004 */
@@ -219,6 +223,7 @@ static int32_t nlfilt2(CSOUND *csound, NLFILT *p)
     return csound->PerfError(csound, &(p->h),
                              Str("nlfilt2: not initialised"));
 } /* end nlfilt2(p) */
+#endif
 
 /* ***************************************************************** */
 /* ***************************************************************** */
@@ -226,12 +231,16 @@ static int32_t nlfilt2(CSOUND *csound, NLFILT *p)
 /* ***************************************************************** */
 /*     icnt    pcnt */
 /*     ival    pfld indx */
+
+#ifdef INC_PCOUNT
 int32_t pcount(CSOUND *csound, PFIELD *p)
 {
     *p->ians = (MYFLT) csound->init_event->pcnt;
     return OK;
 }
+#endif
 
+#ifdef INC_PINDEX
 int32_t pvalue(CSOUND *csound, PFIELD *p)
 {
     int32_t n = (int32_t)(*p->index);
@@ -241,7 +250,9 @@ int32_t pvalue(CSOUND *csound, PFIELD *p)
     *p->ians = csound->init_event->p[n];
     return OK;
 }
+#endif
 
+#ifdef INC_PINDEX_S
 int32_t pvaluestr(CSOUND *csound, PFIELDSTR *p)
 {
     int32_t n = (int32_t)(*p->index);
@@ -258,7 +269,9 @@ int32_t pvaluestr(CSOUND *csound, PFIELDSTR *p)
     }
     return OK;
 }
+#endif
 
+#ifdef INC_PASSIGN
 int32_t pinit(CSOUND *csound, PINIT *p)
 {
     int32_t n;
@@ -286,6 +299,7 @@ int32_t pinit(CSOUND *csound, PINIT *p)
 }
 
 #include "arrays.h"
+
 int32_t painit(CSOUND *csound, PAINIT *p)
 {
     int32_t n;
@@ -301,24 +315,36 @@ int32_t painit(CSOUND *csound, PAINIT *p)
     }
     return OK;
 }
+#endif
 
 #define S(x)    sizeof(x)
 
-static OENTRY localops[] = {
+/*static*/ OENTRY localops[] = {
+  #ifdef INC_PCOUNT
 { "pcount", S(PFIELD),  0, 1, "i", "",       (SUBR)pcount,    NULL, NULL },
+#endif
+#ifdef INC_PINDEX
 { "pindex", S(PFIELD),  0, 1, "i", "i",      (SUBR)pvalue,    NULL, NULL },
+#endif
+#ifdef INC_PINDEX_S
 { "pindex.S", S(PFIELDSTR), 0, 1, "S", "i",  (SUBR)pvaluestr, NULL, NULL },
+#endif
+#ifdef INC_PASSIGN
 { "passign", S(PINIT),  0, 1, "IIIIIIIIIIIIIIIIIIIIIIII", "po",
                                              (SUBR)pinit,     NULL, NULL },
 { "passign.i", S(PAINIT), 0, 1, "i[]", "po",  (SUBR)painit,    NULL, NULL },
 { "passign.k", S(PAINIT), 0, 1, "k[]", "po",  (SUBR)painit,    NULL, NULL },
+#endif
+#ifdef INC_NLFILT
 { "nlfilt",  S(NLFILT), 0, 3, "a", "akkkkk", (SUBR)nlfiltset, (SUBR)nlfilt },
+#endif
+#ifdef INC_NLFILT2
 { "nlfilt2",  S(NLFILT), 0, 3, "a", "akkkkk", (SUBR)nlfiltset, (SUBR)nlfilt2 }
+#endif
 };
 
 int32_t nlfilt_init_(CSOUND *csound)
 {
     return csound->AppendOpcodes(csound, &(localops[0]),
-                                 (int32_t
-                                  ) (sizeof(localops) / sizeof(OENTRY)));
+                                 (int32_t) (sizeof(localops) / sizeof(OENTRY)));
 }

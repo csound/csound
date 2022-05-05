@@ -23,6 +23,7 @@
 
 #include "stdopcod.h"
 #include <math.h>
+#include "opcodes.h"
 
 #define DEFAULT_SRATE   44100.0
 #define STEREO_SPREAD   23.0
@@ -30,6 +31,8 @@
 
 #define NR_COMB         8
 #define NR_ALLPASS      4
+
+#ifdef INC_FREEVERB
 
 static const double comb_delays[NR_COMB][2] = {
     { 1116.0 / DEFAULT_SRATE, (1116.0 + STEREO_SPREAD) / DEFAULT_SRATE },
@@ -271,15 +274,21 @@ static int32_t freeverb_perf(CSOUND *csound, FREEVERB *p)
     return csound->PerfError(csound, &(p->h),
                              Str("freeverb: not initialised"));
 }
+#endif
 
 /* module interface functions */
+#define S(x)    sizeof(x)
 
+static OENTRY localops[] = {
+  #ifdef INC_FREEVERB
+  { "freeverb", S(FREEVERB), 0, 3, "aa", "aakkjo",
+    (SUBR)freeverb_init, (SUBR)freeverb_perf }
+  #endif
+};
+  
 int32_t freeverb_init_(CSOUND *csound)
 {
-    return csound->AppendOpcode(csound, "freeverb",
-                                (int32_t) sizeof(FREEVERB), 0, 3, "aa", "aakkjo",
-                                (int32_t (*)(CSOUND*, void*)) freeverb_init,
-                                (int32_t (*)(CSOUND*, void*)) freeverb_perf,
-                                NULL);
+    return csound->AppendOpcodes(csound, &(localops[0]),
+                                 (int32_t) (sizeof(localops) / sizeof(OENTRY)));
 }
 

@@ -23,6 +23,7 @@
 
 #include "stdopcod.h"
 #include <math.h>
+#include "opcodes.h"
 
 #define FTCONV_MAXCHN   8
 
@@ -50,6 +51,7 @@ typedef struct {
     AUXCH   auxData;
 } FTCONV;
 
+#ifdef INC_FTCONV
 static void multiply_fft_buffers(MYFLT *outBuf, MYFLT *ringBuf,
                                  MYFLT *IR_Data, int32_t partSize,
                                  int32_t nPartitions,
@@ -306,16 +308,22 @@ static int32_t ftconv_perf(CSOUND *csound, FTCONV *p)
     return csound->PerfError(csound, &(p->h),
                              Str("ftconv: not initialised"));
 }
+#endif
 
 /* module interface functions */
 
+#define S(x)    sizeof(x)
+
+static OENTRY localops[] = {
+  #ifdef INC_FTCONV
+  { "ftconv", S(FTCONV),  TR, 3, "mmmmmmmm", "aiiooo",
+    (SUBR)ftconv_init,(SUBR)ftconv_perf}
+#endif
+};
+
 int32_t ftconv_init_(CSOUND *csound)
 {
-    return csound->AppendOpcode(csound, "ftconv",
-                                (int32_t) sizeof(FTCONV), TR, 3,
-                                "mmmmmmmm", "aiiooo",
-                                (int32_t (*)(CSOUND *, void *)) ftconv_init,
-                                (int32_t (*)(CSOUND *, void *)) ftconv_perf,
-                                NULL);
+    return csound->AppendOpcodes(csound, &(localops[0]),
+                                 (int32_t) (sizeof(localops) / sizeof(OENTRY)));
 }
 

@@ -136,6 +136,11 @@ int main(void)
     process_file("Opcodes/cross2.c", outp);
     process_file("Opcodes/clfilt.c", outp);
     process_file("Opcodes/bformdec2.cpp", outp);
+    process_file("Opcodes/filter.c", outp);
+    process_file("Opcodes/counter.c", outp);
+    process_file("Opcodes/nlfilt.c", outp);
+    process_file("Opcodes/ftconv.c", outp);
+    process_file("Opcodes/freeverb.c", outp);
     
     fprintf(outp, "\t{ NULL, NULL}\n};\n");
 }

@@ -135,6 +135,7 @@
 #include "stdopcod.h"
 #include "filter.h"
 #include <math.h>
+#include "opcodes.h"
 
 typedef struct FCOMPLEX {double r,i;} fcomplex;
 
@@ -169,6 +170,7 @@ static double Cabs(fcomplex);
 static fcomplex Csqrt(fcomplex);
 static fcomplex RCmul(double, fcomplex);
 
+#if defined(INC_FILTER2_A)||defined(INC_FILTER2_K)
 /* Filter initialization routine */
 static int32_t ifilter(CSOUND *csound, FILTER* p)
 {
@@ -203,7 +205,9 @@ static int32_t ifilter(CSOUND *csound, FILTER* p)
       p->dcoeffs[i] = (double)*p->coeffs[i];
     return OK;
 }
+#endif
 
+#ifdef INC_ZFILTER2
 /* izfilter - initialize z-plane controllable filter */
 static int32_t izfilter(CSOUND *csound, ZFILTER *p)
 {
@@ -255,7 +259,9 @@ static int32_t izfilter(CSOUND *csound, ZFILTER *p)
     sortRoots(roots, dim);
     return OK;
 }
+#endif
 
+#ifdef INC_FILTER2_A
 /* a-rate filter routine
  *
  * Implements the following difference equation
@@ -310,7 +316,9 @@ static int32_t afilter(CSOUND *csound, FILTER* p)
     }
     return OK;
 }
+#endif
 
+#ifdef INC_FLTER2_K
 /* k-rate filter routine
  *
  * Implements the following difference equation at the k rate
@@ -353,7 +361,9 @@ static int32_t kfilter(CSOUND *csound, FILTER* p)
     insertFilter(p, poleSamp);
     return OK;
 }
+#endif
 
+#ifdef INC_ZFILTER2
 /* azfilter - a-rate controllable pole filter
  *
  * This filter allows control over the magnitude
@@ -431,6 +441,9 @@ static int32_t azfilter(CSOUND *csound, ZFILTER* p)
     }
     return OK;
 }
+#endif
+
+#if defined(INC_FILTER2_A)||defined(INC_FILTER2_K)||defined(ZFILTER2)
 
 /* readFilter -- delay-line access routine
  *
@@ -865,14 +878,20 @@ static fcomplex RCmul(double x, fcomplex a)
     c.i = x*a.i;
     return c;
 }
+#endif
 
 #define S(x)    sizeof(x)
 
 static OENTRY localops[] = {
-{ "filter2",0xffff,                                                     },
+  #ifdef INC_FILTER2_A
 { "filter2.a",  S(FILTER), 0, 3, "a", "aiim", (SUBR)ifilter, (SUBR)afilter},
+#endif
+#ifdef INC_FLTER2_K
 { "filter2.k", S(FILTER), 0, 3,  "k", "kiim", (SUBR)ifilter, (SUBR)kfilter,NULL },
+#endif
+#ifdef INC_ZFILTER2
 { "zfilter2", S(ZFILTER), 0, 3,  "a", "akkiim", (SUBR)izfilter, (SUBR)azfilter}
+#endif
 };
 
 int32_t filter_init_(CSOUND *csound)
