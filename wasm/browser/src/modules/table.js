@@ -53,7 +53,7 @@ csoundTableSet.toString = () => "tableSet = async (tableNum, tableIndex, value) 
 export const csoundTableCopyIn =
   (wasm) => (csound /* CsoundInst */, tableNumber /* string */, array /* ArrayLike<number> */) => {
     const arrayPtr = wasm.exports.allocFloatArray(array.length);
-    const buffer = new Float64Array(wasm.exports.memory.buffer, arrayPtr, array.length);
+    const buffer = new Float64Array(wasm.wasi.memory.buffer, arrayPtr, array.length);
     buffer.set(array);
     wasm.exports.csoundTableCopyIn(csound, tableNumber, arrayPtr);
     wasm.exports.freeFloatArrayMem(arrayPtr);
@@ -72,7 +72,7 @@ export const csoundTableCopyOut = (wasm) => (csound /* CsoundInst */, tableNumbe
   if (tableLength > 0) {
     const arrayPtr = wasm.exports.allocFloatArray(tableLength);
     wasm.exports.csoundTableCopyOut(csound, tableNumber, arrayPtr);
-    const { buffer } = wasm.exports.memory;
+    const { buffer } = wasm.wasi.memory;
     const jsArray = new Float64Array(buffer, arrayPtr, tableLength);
     wasm.exports.freeFloatArrayMem(arrayPtr);
     return Float64Array.from(jsArray);
@@ -98,7 +98,7 @@ csoundGetTable.toString = csoundTableCopyOut.toString;
 export const csoundGetTableArgs = (wasm) => (csound /* CsoundInst */, tableNumber /* string */) => {
   const arrayPtr = wasm.exports.allocFloatArray(1024);
   wasm.exports.csoundGetTableArgs(csound, arrayPtr, tableNumber);
-  const { buffer } = wasm.exports.memory;
+  const { buffer } = wasm.wasi.memory;
   const jsArray = new Float64Array(buffer, arrayPtr, 1024);
   wasm.exports.freeFloatArrayMem(arrayPtr);
   return jsArray;
@@ -126,7 +126,7 @@ export const csoundGetNamedGEN = (wasm) => (csound /* CsoundInst */, tableNumber
   if (stringLength > 0) {
     const offset = wasm.exports.allocStringMem(stringLength);
     wasm.exports.csoundGetNamedGEN(csound, offset, tableNumber, stringLength);
-    const { buffer } = wasm.exports.memory;
+    const { buffer } = wasm.wasi.memory;
     const stringBuffer = new Uint8Array(buffer, offset, stringLength);
     const result = uint2String(stringBuffer);
     return result;

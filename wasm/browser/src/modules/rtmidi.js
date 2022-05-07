@@ -18,7 +18,7 @@ export const csoundSetMidiCallbacks = (wasm) => (csound /* CsoundInst */) => {
  */
 // eslint-disable-next-line unicorn/prevent-abbreviations
 export const csoundGetMIDIDevList = (wasm) => (csound /* CsoundInst */, isOutput /* number */) => {
-  const { buffer } = wasm.exports.memory;
+  const { buffer } = wasm.wasi.memory;
   const numberOfDevices = wasm.exports.csoundGetMIDIDevList(csound, undefined, isOutput ? 1 : 0);
   if (numberOfDevices === 0) return [];
   const structLength = sizeofStruct(CS_MIDIDEVICE);
@@ -42,7 +42,7 @@ csoundGetMIDIDevList.toString = () => "getMIDIDevList = async (isOutput) => Obje
  * @function
  */
 export const csoundGetRtMidiName = (wasm) => (csound /* CsoundInst */) => {
-  const { buffer } = wasm.exports.memory;
+  const { buffer } = wasm.wasi.memory;
   const ptr = wasm.exports.getRtMidiName(csound);
   const stringBuffer = new Uint8Array(buffer, ptr, 128);
   return trimNull(uint2String(stringBuffer)) || "";
@@ -51,7 +51,7 @@ export const csoundGetRtMidiName = (wasm) => (csound /* CsoundInst */) => {
 csoundGetRtMidiName.toString = () => "getRtMidiName = async () => String;";
 
 export const csoundGetMidiOutFileName = (wasm) => (csound /* CsoundInst */) => {
-  const { buffer } = wasm.exports.memory;
+  const { buffer } = wasm.wasi.memory;
   const ptr = wasm.exports.getMidiOutFileName(csound);
   const stringBuffer = new Uint8Array(buffer, ptr, 128);
   ptr && ptr.length > 0 && freeStringPtr(wasm, ptr);

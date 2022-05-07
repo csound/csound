@@ -155,9 +155,11 @@ const loadStaticWasm = async ({ wasmBytes, wasmFs, wasi, messagePort }) => {
   });
 
   const instance = await WebAssembly.instantiate(module, options);
+
+  wasi.setMemory(memory);
   wasi.start(instance);
-  // await initFS(wasmFs, messagePort);
-  return instance;
+  instance.exports.__wasi_js_csoundSetMessageStringCallback();
+  return [instance, wasi];
 };
 
 export default async function ({ wasmDataURI, withPlugins = [], messagePort }) {
@@ -172,7 +174,7 @@ export default async function ({ wasmDataURI, withPlugins = [], messagePort }) {
 
   const magicData = getBinaryHeaderData(wasmBytes);
   if (magicData === "static") {
-    return [await loadStaticWasm({ messagePort, wasmBytes, wasmFs, wasi }), wasmFs];
+    return await loadStaticWasm({ messagePort, wasmBytes, wasmFs, wasi });
   }
   const { memorySize, memoryAlign, tableSize } = magicData;
 
@@ -207,7 +209,8 @@ export default async function ({ wasmDataURI, withPlugins = [], messagePort }) {
   const initialMemory = Math.ceil((memorySize + memoryAlign) / PAGE_SIZE);
   const pluginsMemory = Math.ceil(
     withPlugins.reduce(
-      (accumulator, { headerData: { memorySize } }) => accumulator + (memorySize + memoryAlign),
+      (accumulator, { headerData }) =>
+        headerData === "static" ? 0 : accumulator + (headerData.memorySize + memoryAlign),
       0,
     ) / PAGE_SIZE,
   );
@@ -240,6 +243,8 @@ export default async function ({ wasmDataURI, withPlugins = [], messagePort }) {
   const module = await WebAssembly.compile(wasmBytes);
   const options = wasi.getImports(module);
   let withPlugins_ = [];
+
+  let currentMemorySegment = initialMemory;
 
   const csoundLoadModules = (csoundInstance) => {
     withPlugins_.forEach((pluginInstance) => {
@@ -281,8 +286,6 @@ export default async function ({ wasmDataURI, withPlugins = [], messagePort }) {
   instance_.exports = Object.assign(moduleExports, {
     memory,
   });
-
-  let currentMemorySegment = initialMemory;
 
   withPlugins_ = await withPlugins.reduce(async (accumulator, { headerData, wasmPluginBytes }) => {
     accumulator = await accumulator;
