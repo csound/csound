@@ -287,10 +287,17 @@ char* get_arg_type2(CSOUND* csound, TREE* tree, TYPE_TABLE* typeTable)
       var = find_var_from_pools(csound, varBaseName, varBaseName, typeTable);
 
       if (var == NULL) {
-        synterr(csound,
-                Str("unable to find array operator for var %s line %d\n"), varBaseName, tree->line);
-        do_baktrace(csound, tree->locn);
-        return NULL;
+        char *fnReturn;
+        if (tree->left->type == T_FUNCTION &&
+            (fnReturn = get_arg_type2(csound, tree->left, typeTable)) &&
+            *fnReturn == '[') {
+          return cs_strdup(csound, &fnReturn[1]);
+        } else {
+          synterr(csound,
+                  Str("unable to find array operator for var %s line %d\n"), varBaseName, tree->line);
+          do_baktrace(csound, tree->locn);
+          return NULL;
+        }
       } else {
         if (var->varType == &CS_VAR_TYPE_ARRAY) {
           return cs_strdup(csound, var->subType->varTypeName);

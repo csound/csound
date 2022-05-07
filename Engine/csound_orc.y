@@ -533,6 +533,10 @@ array_expr :  array_expr '[' expr ']'
             $$ = make_node(csound, LINE, LOCN, T_ARRAY,
               	   make_leaf(csound, LINE, LOCN, T_IDENT, make_token(csound, arrayName)), $3);
           }
+          | function_call '[' expr ']'
+          {
+            $$ = make_node(csound, LINE, LOCN, T_ARRAY, $1, $3);
+          }
           ;
 
 struct_expr : struct_expr '.' identifier
