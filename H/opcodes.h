@@ -156,6 +156,7 @@
 #define INC_DELTAPN
 #define INC_DELTAPX
 #define INC_DELTAPXW
+#define INC_DENORM
 #define INC_DIFF
 #define INC_DIFF_K
 #define INC_diode_ladder
@@ -259,6 +260,8 @@
 #define INC_GENDYX_K
 #define INC_GETCFG
 #define INC_GOTO
+#define INC_GRAIN2
+#define INC_GRAIN3
 #define INC_GTF
 #define INC_GUIRO
 #define INC_HARMON
@@ -417,6 +420,7 @@
 #define INC_OCTMIDIB_I
 #define INC_OCTMIDINN
 #define INC_OCTPCH
+#define INC_OSCBNK
 #define INC_OSCIL1
 #define INC_OSCIL1I
 #define INC_OSCIL3
@@ -443,6 +447,7 @@
 #define INC_OSCILIkk
 #define INC_OSCILIkkA
 #define INC_OSCILIkki
+#define INC_OSCILIKT
 #define INC_OSCILka
 #define INC_OSCILkka
 #define INC_OSCILkkA
@@ -560,6 +565,7 @@
 #define INC_RANDOM
 #define INC_RANDOM_A
 #define INC_RASSIGN
+#define INC_RBJEQ
 #define INC_READF
 #define INC_READFI
 #define INC_READFI_S
@@ -590,6 +596,9 @@
 #define INC_RIGOTO
 #define INC_RMS
 #define INC_RND
+#define INC_RND31_A
+#define INC_RND31_I
+#define INC_RND31_K
 #define INC_RNDSEED
 #define INC_ROUND
 #define INC_ROUND_A
@@ -732,6 +741,9 @@
 #define INC_VASIGGET
 #define INC_VASIGSET
 #define INC_VCO
+#define INC_VCO2
+#define INC_VCO2FT
+#define INC_VCO2INIT
 #define INC_VCOMB
 #define INC_VDELAY
 #define INC_VDELAY3
@@ -741,6 +753,7 @@
 #define INC_VDELAYXW
 #define INC_VDELAYXWQ
 #define INC_VDELAYXWS
+#define INC_VDEL_K
 #define INC_VELOC
 #define INC_VIBR
 #define INC_VIBRATO

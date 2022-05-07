@@ -1,3 +1,4 @@
+
 /*
     oscbnk.c:
 
@@ -24,6 +25,10 @@
 #include "stdopcod.h"
 #include "oscbnk.h"
 #include <math.h>
+#include "opcodes.h"
+
+static void oscbnk_flen_setup(int32 flen, uint32 *mask,
+                              uint32 *lobits, MYFLT *pfrac);
 
 static inline STDOPCOD_GLOBALS *get_oscbnk_globals(CSOUND *csound)
 {
@@ -31,7 +36,7 @@ static inline STDOPCOD_GLOBALS *get_oscbnk_globals(CSOUND *csound)
 }
 
 /* ---- oscbnk, grain2, and grain3 - written by Istvan Varga, 2001 ---- */
-
+#if defined(INC_OSCBN)||defined(INC_RND31_I)||defined(INC_RND31_K)||defined(INC_RND31_A)
 /* update random seed */
 
 static CS_PURE int32 oscbnk_rand31(int32 seed)
@@ -106,11 +111,10 @@ static MYFLT oscbnk_rnd_bipolar(int32_t *seed, MYFLT rpow, int32_t rmode)
 
     return ((MYFLT) x * s);
 }
+#endif
 
 /* set ftable parameters (mask etc.) according to table length */
-
-static void oscbnk_flen_setup(int32 flen, uint32 *mask,
-                              uint32 *lobits, MYFLT *pfrac);
+#ifdef INC_OSCBNK
 
 /* Update random seed, and return next value from parameter table (if   */
 /* enabled) or random value between 0 and 1. If output table is present */
@@ -570,9 +574,10 @@ static int32_t oscbnk(CSOUND *csound, OSCBNK *p)
     return csound->PerfError(csound, &(p->h),
                              Str("oscbnk: not initialised"));
 }
+#endif
 
 /* ---------------- grain2 set-up ---------------- */
-
+#ifdef INC_GRAIN2
 static int32_t grain2set(CSOUND *csound, GRAIN2 *p)
 {
     int32_t  i;
@@ -769,8 +774,10 @@ static int32_t grain2(CSOUND *csound, GRAIN2 *p)
     return csound->PerfError(csound, &(p->h),
                              Str("grain2: not initialised"));
 }
-
+#endif
 /* ---------------- grain3 set-up ---------------- */
+
+#ifdef INC_GRAIN3
 
 static int32_t grain3set(CSOUND *csound, GRAIN3 *p)
 {
@@ -1025,18 +1032,20 @@ static int32_t grain3(CSOUND *csound, GRAIN3 *p)
     return csound->PerfError(csound, &(p->h),
                              Str("grain3 needs more overlaps"));
 }
+#endif
 
 /* ----------------------------- rnd31 opcode ------------------------------ */
 
+#if defined(INC_RND31_K)||defined(INC_RND31_A)
 static int32_t rnd31set(CSOUND *csound, RND31 *p)
 {
     /* initialise random seed */
     oscbnk_seedrand(csound, &(p->seed), *(p->iseed));
     return OK;
 }
-
+#endif
 /* ---- rnd31 / i-rate ---- */
-
+#ifdef INC_RND31_I
 static int32_t rnd31i(CSOUND *csound, RND31 *p)
 {
     MYFLT rpow;
@@ -1070,9 +1079,10 @@ static int32_t rnd31i(CSOUND *csound, RND31 *p)
     *(p->out) = *(p->scl) * oscbnk_rnd_bipolar(p->rnd31i_seed, rpow, rmode);
     return OK;
 }
+#endif
 
 /* ---- rnd31 / k-rate ---- */
-
+#ifdef INC_RND31_K
 static int32_t rnd31k(CSOUND *csound, RND31 *p)
 {
     MYFLT rpow;
@@ -1098,9 +1108,10 @@ static int32_t rnd31k(CSOUND *csound, RND31 *p)
     return csound->PerfError(csound, &(p->h),
                              Str("rnd31: not initialised"));
 }
-
+#endif
 /* ---- rnd31 / a-rate ---- */
 
+#ifdef INC_RND31_A
 static int32_t rnd31a(CSOUND *csound, RND31 *p)
 {
     MYFLT   scl, *out, rpow;
@@ -1143,12 +1154,13 @@ static int32_t rnd31a(CSOUND *csound, RND31 *p)
     return csound->PerfError(csound, &(p->h),
                              Str("rnd31: not initialised"));
 }
+#endif
 
 /* ---- oscilikt initialisation ---- */
-
+#ifdef INC_OSCILIKT
 static int32_t oscktset(CSOUND *csound, OSCKT *p)
 {
-     IGN(csound);
+    IGN(csound);
     MYFLT   phs;
 
     if (*(p->istor) != FL(0.0)) return OK;         /* skip initialisation */
@@ -1263,7 +1275,7 @@ static int32_t osckaikt(CSOUND *csound, OSCKT *p)
     p->phs = phs;
     return OK;
 }
-
+#endif
 static void oscbnk_flen_setup(int32 flen, uint32 *mask,
                               uint32 *lobits, MYFLT *pfrac)
 {
@@ -1278,6 +1290,7 @@ static void oscbnk_flen_setup(int32 flen, uint32 *mask,
     *pfrac = FL(1.0) / (MYFLT) *mask; (*mask)--;
 }
 
+#ifdef INC_OSCILIKT
 static int32_t oscakikt(CSOUND *csound, OSCKT *p)
 {
     FUNC    *ftp;
@@ -1499,7 +1512,7 @@ static int32_t osckts(CSOUND *csound, OSCKTS *p)
     p->phs = phs;
     return OK;
 }
-
+#endif
 /* ---- vco2init, vco2ft, and vco2 opcodes by Istvan Varga, Sep 2002 ---- */
 
 /* table arrays for vco2 opcode */
@@ -1682,6 +1695,8 @@ static int32_t vco2_table_size(int32_t npart, VCO2_TABLE_PARAMS *tp)
 /* from table number "base_ftable" if it is greater than zero.           */
 /* The return value is the first ftable number that is not allocated.    */
 
+
+#if defined(INC_VCO2INIT)||defined(INC_VCO2)
 static int32_t vco2_tables_create(CSOUND *csound, int32_t waveform,
                                   int32_t base_ftable,
                                   VCO2_TABLE_PARAMS *tp)
@@ -1785,7 +1800,9 @@ static int32_t vco2_tables_create(CSOUND *csound, int32_t waveform,
 
     return base_ftable;
 }
+#endif
 
+#ifdef INC_VCO2INIT
 /* ---- vco2init opcode ---- */
 
 static int32_t vco2init(CSOUND *csound, VCO2INIT *p)
@@ -1880,11 +1897,12 @@ static int32_t vco2init(CSOUND *csound, VCO2INIT *p)
     } while (w > 0 && w < 5);
     return OK;
 }
-
+#endif
 /* ---- vco2ft / vco2ift opcode (initialisation) ---- */
 
 static int32_t vco2ftp(CSOUND *, VCO2FT *);
 
+#ifdef INC_VCO2FT
 static int32_t vco2ftset(CSOUND *csound, VCO2FT *p)
 {
     int32_t     w;
@@ -1974,9 +1992,10 @@ static int32_t vco2ft(CSOUND *csound, VCO2FT *p)
     return csound->PerfError(csound, &(p->h),
                              Str("vco2ft: not initialised"));
 }
+#endif
 
 /* ---- vco2 opcode (initialisation) ---- */
-
+#ifdef INC_VCO2
 static int32_t vco2set(CSOUND *csound, VCO2 *p)
 {
     int32_t     mode, tnum;
@@ -2185,7 +2204,8 @@ static int32_t vco2(CSOUND *csound, VCO2 *p)
     p->phs = phs;
     return OK;
 }
-
+#endif
+    
 /* ---- denorm opcode ---- */
 
 #ifndef USE_DOUBLE
@@ -2224,6 +2244,7 @@ static int32_t denorms(CSOUND *csound, DENORMS *p)
 
 /* ---- delayk and vdel_k opcodes ---- */
 
+#ifdef INC_DELAYk
 static int32_t delaykset(CSOUND *csound, DELAYK *p)
 {
     int32_t npts, mode = (int32_t) MYFLT2LONG(*p->imode) & 3;
@@ -2263,7 +2284,9 @@ static int32_t delayk(CSOUND *csound, DELAYK *p)
       *(p->ar) = buf[p->readp];             /* read output signal */
     return OK;
 }
+#endif
 
+#ifdef INC_VDEL_K
 static int32_t vdelaykset(CSOUND *csound, VDELAYK *p)
 {
     int32_t npts, mode = (int32_t) MYFLT2LONG(*p->imode) & 3;
@@ -2320,7 +2343,8 @@ static int32_t vdelayk(CSOUND *csound, VDELAYK *p)
     }
     return OK;
 }
-
+#endif
+ 
 /* ------------ rbjeq opcode ------------ */
 
 /* original algorithm by Robert Bristow-Johnson */
@@ -2348,6 +2372,7 @@ static int32_t vdelayk(CSOUND *csound, VDELAYK *p)
 /* #undef IV_Q_CALC */
 #define IV_Q_CALC 1
 
+#ifdef INC_RBJEQ
 static int32_t rbjeqset(CSOUND *csound, RBJEQ *p)
 {
      IGN(csound);
@@ -2581,26 +2606,36 @@ static int32_t rbjeq(CSOUND *csound, RBJEQ *p)
     p->xnm1 = xnm1; p->xnm2 = xnm2; p->ynm1 = ynm1; p->ynm2 = ynm2;
     return OK;
 }
-
+#endif
 /* ------------------------------------------------------------------------- */
 
 static const OENTRY localops[] =
   {
+    #ifdef INC_OSCBNK
    { "oscbnk",     sizeof(OSCBNK),     TR, 3,  "a",  "kkkkiikkkkikkkkkkikooooooo",
      (SUBR) oscbnkset, (SUBR) oscbnk                },
+   #endif
+   #ifdef INC_GRAIN2
    { "grain2",     sizeof(GRAIN2),     TR, 3,      "a",    "kkkikiooo",
             (SUBR) grain2set, (SUBR) grain2                },
+   #endif
+   #ifdef INC_GRAIN3
    { "grain3",     sizeof(GRAIN3),     TR, 3,      "a",    "kkkkkkikikkoo",
             (SUBR) grain3set, (SUBR) grain3                },
-    { "rnd31",      0xFFFF,  0,            0,      NULL,   NULL,
-            (SUBR) NULL, (SUBR) NULL, (SUBR) NULL                       },
-    { "rnd31.i",    sizeof(RND31),  0,     1,      "i",    "iio",
+   #endif
+   #ifdef INC_RND31_I
+   { "rnd31.i",    sizeof(RND31),  0,     1,      "i",    "iio",
             (SUBR) rnd31i, (SUBR) NULL, (SUBR) NULL                     },
+   #endif
+   #ifdef INC_RND31_K
     { "rnd31.k",    sizeof(RND31),  0,     3,      "k",    "kko",
             (SUBR) rnd31set, (SUBR) rnd31k, (SUBR) NULL                 },
-   { "rnd31.a",    sizeof(RND31),  0,     3,      "a",    "kko",
-            (SUBR) rnd31set, (SUBR) rnd31a                 },
-    { "oscilikt",   0xFFFE,   TR                                       },
+    #endif
+    #ifdef INC_RND31_A
+    { "rnd31.a",    sizeof(RND31),  0,     3,      "a",    "kko",
+      (SUBR) rnd31set, (SUBR) rnd31a                 },
+    #endif
+    #ifdef INC_OSCILIKT
    { "oscilikt.a", sizeof(OSCKT),   0,   3,      "a",    "kkkoo",
       (SUBR) oscktset, (SUBR)osckkikt      },
     { "oscilikt.kk", sizeof(OSCKT),   0,   3,      "k",    "kkkoo",
@@ -2613,25 +2648,40 @@ static const OENTRY localops[] =
             (SUBR) oscktset, (SUBR) oscaaikt               },
    { "osciliktp",  sizeof(OSCKTP),     TR, 3,      "a",    "kkko",
             (SUBR) oscktpset, (SUBR) oscktp                },
-   { "oscilikts",  sizeof(OSCKTS),     TR, 3,      "a",    "xxkako",
+      { "oscilikts",  sizeof(OSCKTS),     TR, 3,      "a",    "xxkako",
             (SUBR) oscktsset, (SUBR) osckts                },
+      #endif
+      #ifdef INC_VCO2INIT
     { "vco2init",   sizeof(VCO2INIT),   TW, 1,      "i",    "ijjjjj",
             (SUBR) vco2init, (SUBR) NULL, (SUBR) NULL                   },
+    #endif
+    #ifdef INC_VCO2FT
     { "vco2ift",    sizeof(VCO2FT),     TW, 1,      "i",    "iov",
             (SUBR) vco2ftset, (SUBR) NULL, (SUBR) NULL                  },
     { "vco2ft",     sizeof(VCO2FT),     TW, 3,      "k",    "kov",
             (SUBR) vco2ftset, (SUBR) vco2ft, (SUBR) NULL                },
+  #endif
 //    { "vco2",       sizeof(VCO2),       TR, 3,      "a",    "kkoM",
+#ifdef INC_VCO2
    { "vco2",       sizeof(VCO2),       TR, 3,      "a",    "kkoOOo",
      (SUBR) vco2set, (SUBR) vco2                    },
+   #endif
+  #ifdef INC_DENORM
     { "denorm",     sizeof(DENORMS),   WI,  2,      "",     "y",
             (SUBR) NULL, (SUBR) denorms                    },
+  #endif
+  #ifdef IND_DELAYK
     { "delayk",     sizeof(DELAYK),    0,  3,      "k",    "kio",
             (SUBR) delaykset, (SUBR) delayk, (SUBR) NULL                },
+  #endif
+  #ifdef INC_VDEL_K
     { "vdel_k",     sizeof(VDELAYK),   0,  3,      "k",    "kkio",
             (SUBR) vdelaykset, (SUBR) vdelayk, (SUBR) NULL              },
+  #endif
+  #ifdef INC_RBJEQ
    { "rbjeq",      sizeof(RBJEQ),     0,  3,      "a",    "akkkko",
             (SUBR) rbjeqset, (SUBR) rbjeq                  }
+  #endif
 };
 
 int32_t oscbnk_init_(CSOUND *csound)
