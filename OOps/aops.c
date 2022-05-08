@@ -2219,11 +2219,24 @@ int32_t subinak(CSOUND *csound, ASSIGN *p)
     return OK;
 }
 
+
+static inline int _isnan(MYFLT x) {
+	#ifdef USE_DOUBLE
+	  const uint64_t u = *(uint64_t*)&x;
+	  return (u&0x7FF0000000000000ULL) == 0x7FF0000000000000ULL && (u&0xFFFFFFFFFFFFFULL);	
+	#else
+	  const uint32_t u = *(uint32_t*)&x;
+	  return (u&0x7F800000) == 0x7F800000 && (u&0x7FFFFF);    // Both NaN and qNan.
+	#endif
+}
+
+
 int32_t is_NaN(CSOUND *csound, ASSIGN *p)
 {
     IGN(csound);
-    *p->r = isnan(*p->a);
-    return OK;
+    // *p->r = isnan(*p->a);
+    *p->r = _isnan(*p->a);
+	return OK;
 }
 
 /* ********COULD BE IMPROVED******** */
@@ -2236,7 +2249,8 @@ int32_t is_NaNa(CSOUND *csound, ASSIGN *p)
     MYFLT *a = p->a;
     *p->r = FL(0.0);
     for (k=offset; k<early; k++)
-      *p->r += isnan(a[k]);
+      // *p->r += isnan(a[k]);
+      *p->r += _isnan(a[k]);
     return OK;
 }
 
