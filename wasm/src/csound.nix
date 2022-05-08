@@ -103,6 +103,7 @@ let
   };
 
   preprocFlags = ''
+    -DUSE_LIBSNDFILE=1 \
     -DGIT_HASH_VALUE=HEAD \
     -DUSE_DOUBLE=1 \
     -DLINUX=0 \
@@ -385,6 +386,7 @@ in pkgs.stdenvNoCC.mkDerivation rec {
       ../InOut/midifile.c \
       ../InOut/midirecv.c \
       ../InOut/midisend.c \
+      ../InOut/soundfile.c \
       ../InOut/winEPS.c \
       ../InOut/winascii.c \
       ../InOut/windin.c \
