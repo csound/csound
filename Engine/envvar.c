@@ -28,7 +28,7 @@
 #include <ctype.h>
 #include <math.h>
 
-#if defined(MSVC)
+#if defined(MSVC) || defined(__wasi__)
 #include <fcntl.h>
 #endif
 
@@ -37,6 +37,10 @@
 #  define getcwd(x,y) _getcwd(x,y)
 #endif
 
+#if defined(__wasi__)
+#  include <unistd.h>
+#  define getcwd(x,y) "/"
+#endif
 
 #include "namedins.h"
 

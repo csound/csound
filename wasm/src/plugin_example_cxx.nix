@@ -49,7 +49,9 @@ in pkgs.stdenv.mkDerivation {
       resonators/resontube.cpp
 
     echo "Link together plugin_example_cxx.wasm"
-    ${wasi-sdk}/bin/wasm-ld -pie --no-entry \
+    ${wasi-sdk}/bin/wasm-ld \
+      -z stack-size=128 \
+      -pie --no-entry \
       --experimental-pic \
       --import-table \
       --import-memory \

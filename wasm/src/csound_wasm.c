@@ -10,8 +10,6 @@
 #include <string.h>
 #include <unistd.h>
 
-/* extern int csoundInitStaticModules(CSOUND *csound); */
-
 // returns the address of a string
 // pointer which is writable from js
 __attribute__((used))

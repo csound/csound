@@ -24,7 +24,7 @@ export function readFile(wasm) {
   };
 }
 
-readFile.toString = () => "async (path) => ?UInt8Array";
+readFile.toString = () => "async (path) => ?Uint8Array";
 
 export function unlink(wasm) {
   return (_, path) => {

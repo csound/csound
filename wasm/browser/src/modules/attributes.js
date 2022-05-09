@@ -174,7 +174,7 @@ csoundSetParams.toString = () => "setParams = async (csoundParams) => undefined;
  * @return {Promise.<CSOUND_PARAMS>} - CSOUND_PARAMS object
  */
 export const csoundGetParams = (wasm) => (csound) => {
-  const { buffer } = wasm.exports.memory;
+  const { buffer } = wasm.wasi.memory;
   const structLength = sizeofStruct(CSOUND_PARAMS);
   const structOffset = wasm.exports.allocCsoundParamsStruct();
   const structBuffer = new Uint8Array(buffer, structOffset, structLength);

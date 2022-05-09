@@ -1,32 +1,32 @@
 { stdenv, fetchFromGitHub, fetchgit, fetchurl, lib, cmake, git, perl, ninja, python3 }:
 
 let wasilibc = fetchFromGitHub {
-      owner = "WebAssembly";
-      repo = "wasi-libc";
-      rev = "378fd4b21aab6d390f3a1c1817d53c422ad00a62";
-      sha256 = "0h5g0q5j9cni7jab0b6bzkw5xm1b1am0dws2skq3cc9c9rnbn1ga";
-    };
+  owner = "WebAssembly";
+  repo = "wasi-libc";
+  rev = "ad5133410f66b93a2381db5b542aad5e0964db96";
+  sha256 = "sha256-gw6flqJv4x//V3FdqDx6yXhYVQjJ2S2xx0tZShFjmsQ=";
+};
 
-    llvm-project = fetchFromGitHub {
-      owner = "llvm";
-      repo = "llvm-project";
-      rev = "9a6de74d5a9e11a7865ce4873ff3297b7efbb673";
-      sha256 = "1xcr16xk30a4zjz8fpqacqcfarl2dpv6jy1vnhqi1yl5i70zx6s4";
-    };
+llvm-project = fetchFromGitHub {
+  owner = "llvm";
+  repo = "llvm-project";
+  rev = "309f1e4ac8cca1ba1f0e28eeae8e2926dc387d04";
+  sha256 = "WwDcWRf7Gu7b2a17mHbke31xSHDYA7CHEi28gR+Zd90=";
+};
 
-    config = fetchgit {
-      url = "https://git.savannah.gnu.org/git/config.git";
-      rev = "2593751ef276497e312d7c4ce7fd049614c7bf80";
-      sha256 = "1sh410ncfs9fwxw03m1r4lcm10iv305g0jb2bb2yvgzlpb28lsz9";
-    };
+config = fetchgit {
+  url = "https://git.savannah.gnu.org/git/config.git";
+  rev = "2593751ef276497e312d7c4ce7fd049614c7bf80";
+  sha256 = "1sh410ncfs9fwxw03m1r4lcm10iv305g0jb2bb2yvgzlpb28lsz9";
+};
 
 in stdenv.mkDerivation {
   name = "wasi-sdk-0.0.0";
   src = fetchFromGitHub {
     owner = "WebAssembly";
     repo = "wasi-sdk";
-    rev = "b36c433738f0c29160a5ac1c1cee1b1b884bf4a0";
-    sha256 = "0dn0y1rzcmbzmymy5z73x234vwhg0qcjmw0yvhankc27z355f7ss";
+    rev = "77ba98a998cb9f2a63ab3a5f94bbabd069f65ff0";
+    sha256 = "sha256-IG0kxt6geu1Y7qHWSWjp0LrPevU8eC+kCS/yZD/j5YE=";
     fetchSubmodules = false;
   };
 

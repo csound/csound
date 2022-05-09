@@ -5,26 +5,29 @@ let
   wasi-sdk-dyn = pkgs.callPackage ./wasi-sdk.nix { };
   wasi-sdk-static = pkgs.callPackage ./wasi-sdk-static.nix { };
   wasi-sdk = if static then wasi-sdk-static else wasi-sdk-dyn;
+
   static-link = ''
     echo "Create libcsound.wasm standalone"
     ${wasi-sdk}/bin/wasm-ld --lto-O2 \
-      --entry=_start \
+      --entry=_start --import-memory \
       ${
          pkgs.lib.concatMapStrings (x: " --export=" + x + " ")
          (with builtins; fromJSON (readFile ./exports.json))
        } \
-      -L${wasi-sdk}/share/wasi-sysroot/lib/wasm32-unknown-emscripten \
+      -L${wasi-sdk}/share/wasi-sysroot/lib/wasm32-wasi \
       -L${libsndfile}/lib -L${libflac}/lib -L${libogg}/lib -L${libvorbis}/lib \
       -lc -lc++ -lc++abi -lrt -lutil -lxnet -lresolv -lc-printscan-long-double \
       -lflac -logg -lvorbis -lsndfile -lwasi-emulated-getpid \
       -lwasi-emulated-signal -lwasi-emulated-mman -lwasi-emulated-process-clocks \
-      ${wasi-sdk}/share/wasi-sysroot/lib/wasm32-unknown-emscripten/crt1.o \
+      ${wasi-sdk}/share/wasi-sysroot/lib/wasm32-wasi/crt1.o \
        *.o -o csound.static.wasm
   '';
 
   dyn-link = ''
     echo "Create libcsound.wasm pie"
     ${wasi-sdk}/bin/wasm-ld --lto-O2 \
+      -z stack-size=128 \
+      --export=__data_end \
       --experimental-pic -pie --entry=_start \
       --import-table --import-memory \
       ${
@@ -100,6 +103,7 @@ let
   };
 
   preprocFlags = ''
+    -DUSE_LIBSNDFILE=1 \
     -DGIT_HASH_VALUE=HEAD \
     -DUSE_DOUBLE=1 \
     -DLINUX=0 \
@@ -111,6 +115,11 @@ let
     -Wno-bitwise-op-parentheses \
     -Wno-many-braces-around-scalar-init \
     -Wno-macro-redefined \
+  '';
+
+  staticPreprocFlags = ''
+    -DO_WRONLY='(0x10000000)' \
+    -DO_CREAT='(__WASI_OFLAGS_CREAT << 12)' \
   '';
 
 in pkgs.stdenvNoCC.mkDerivation rec {
@@ -157,7 +166,7 @@ in pkgs.stdenvNoCC.mkDerivation rec {
     # see CMakeLists.txt
     substituteInPlace include/version.h \
       --replace "\''${CS_VERSION}" "6" \
-      --replace "\''${CS_SUBVER}" "17" \
+      --replace "\''${CS_SUBVER}" "18" \
       --replace "\''${CS_PATCHLEVEL}" "0"
 
     touch include/float-version.h
@@ -299,15 +308,17 @@ in pkgs.stdenvNoCC.mkDerivation rec {
     mkdir -p build && cd build
     cp ${./csound_wasm.c} ./csound_wasm.c
     cp ${./unsupported_opcodes.c} ./unsupported_opcodes.c
+    cp ${./staticfix.c} ./staticfix.c
 
     # Why the wasm32-unknown-emscripten triplet:
     # https://bugs.llvm.org/show_bug.cgi?id=42714
     echo "Compile libcsound.wasm"
+
     ${wasi-sdk}/bin/clang \
-      ${lib.optionalString (static == false) "--target=wasm32-unknown-emscripten" } \
+      ${if (static == false) then "--target=wasm32-unknown-emscripten" else "--target=wasm32-wasi" } \
+      -fno-force-enable-int128 -femulated-tls -fno-exceptions -fno-rtti -Oz \
       --sysroot=${wasi-sdk}/share/wasi-sysroot \
-      -fno-force-enable-int128 -femulated-tls \
-      ${lib.optionalString (static == false) "-fPIC" } -fno-exceptions -fno-rtti -Oz \
+      ${lib.optionalString (static == false) "-fPIC" } \
       -I../H -I../Engine -I../include -I../ \
       -I../InOut/libmpadec -I../Opcodes/emugens \
       -I${libsndfile}/include \
@@ -324,6 +335,7 @@ in pkgs.stdenvNoCC.mkDerivation rec {
       -D_WASI_EMULATED_PROCESS_CLOCKS \
       -D__BUILDING_LIBCSOUND \
       -DWASM_BUILD=1 ${preprocFlags} -c \
+      ${lib.optionalString (static == true) "./staticfix.c" } \
       unsupported_opcodes.c \
       ../Engine/auxfd.c \
       ../Engine/cfgvar.c \
@@ -374,6 +386,7 @@ in pkgs.stdenvNoCC.mkDerivation rec {
       ../InOut/midifile.c \
       ../InOut/midirecv.c \
       ../InOut/midisend.c \
+      ../InOut/soundfile.c \
       ../InOut/winEPS.c \
       ../InOut/winascii.c \
       ../InOut/windin.c \
@@ -593,7 +606,7 @@ in pkgs.stdenvNoCC.mkDerivation rec {
 
     # # make a compressed version for the browser bundle
     ${pkgs.zopfli}/bin/zopfli --zlib -c \
-      $out/lib/csound${lib.optionalString (static == false) ".dylib" }.wasm \
-        > $out/lib/csound${lib.optionalString (static == false) ".dylib" }.wasm.z
+      $out/lib/csound${if (static == true) then ".static" else ".dylib" }.wasm \
+        > $out/lib/csound${if (static == true) then ".static" else ".dylib" }.wasm.z
   '';
 }
