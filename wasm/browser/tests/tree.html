@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html>
+    <head></head>
+    <body>
+        <script type="module">
+         import("/dist/csound.js").then(async (module) => {
+             const Csound = await module.Csound;
+             const csound = await Csound({ useWorker: true, useSAB: false });
+             await csound.setOption("-odac");
+             const orc = `ksmps=32
+                          nchnls=2
+                          0dbfs=1
+                          instr 1
+                          aout vco2 0.5, 440
+                          outs aout, aout
+                          endin`
+             console.log(csound);
+
+             console.log(await csound.parseOrc(orc))
+             /* await csound.start(); */
+         });
+        </script>
+    </body>
+</html>

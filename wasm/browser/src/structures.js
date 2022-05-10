@@ -101,3 +101,25 @@ export const CS_MIDIDEVICE = [
   ["midi_module", "char", 64],
   ["isOutput", "int"],
 ];
+
+export const ORCTOKEN = [
+  ["type", "int"],
+  ["lexme", "ptr"],
+  ["value", "int"],
+  ["fvalue", "double"],
+  ["optype", "ptr"],
+  ["next", "ptr"],
+];
+
+export const TREE = [
+  ["type", "int"],
+  ["value", "ptr"],
+  ["rate", "int"],
+  ["len", "int"],
+  ["line", "int"],
+  ["locn", "uint64"],
+  ["left", "ptr"],
+  ["right", "ptr"],
+  ["next", "ptr"],
+  ["markup", "ptr"],
+];

@@ -1,4 +1,5 @@
 import { freeStringPtr, string2ptr } from "../utils/string-pointers.js";
+import { readTree } from "../utils/native-sizes.js";
 
 /*
    csound performance module from <csound.h>
@@ -14,7 +15,20 @@ import { freeStringPtr, string2ptr } from "../utils/string-pointers.js";
  * @param {string} orc
  * @return {Promise.<object>}
  */
-export const csoundParseOrc = (wasm) => (csound, orc) => wasm.exports.csoundParseOrc(csound, orc);
+export const csoundParseOrc = (wasm) => (csound, orc) => {
+  const stringPtr = string2ptr(wasm, orc);
+  const resultPtr = wasm.exports.csoundParseOrc(csound, stringPtr);
+
+  const { buffer } = wasm.wasi.memory;
+  const dataView = new DataView(buffer);
+
+  console.log(readTree(wasm, dataView, resultPtr));
+  // const intArray = new Uint8Array(buffer, resultPtr, TREE_SIZE);
+
+  freeStringPtr(wasm, stringPtr);
+
+  return resultPtr;
+};
 
 csoundParseOrc.toString = () => "parseOrc = async (orchestra) => Object;";
 

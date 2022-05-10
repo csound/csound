@@ -2,7 +2,7 @@ import { range } from "rambda/dist/rambda.esm.js";
 import { freeStringPtr } from "../utils/string-pointers.js";
 import { trimNull } from "../utils/trim-null.js";
 import { structBufferToObject } from "../utils/structure-buffer-to-object.js";
-import { sizeofStruct } from "../utils/native-sizes.js";
+import { CS_MIDIDEVICE_SIZE } from "../utils/native-sizes.js";
 import { uint2String } from "../utils/text-encoders.js";
 import { CS_MIDIDEVICE } from "../structures.js";
 
@@ -21,7 +21,7 @@ export const csoundGetMIDIDevList = (wasm) => (csound /* CsoundInst */, isOutput
   const { buffer } = wasm.wasi.memory;
   const numberOfDevices = wasm.exports.csoundGetMIDIDevList(csound, undefined, isOutput ? 1 : 0);
   if (numberOfDevices === 0) return [];
-  const structLength = sizeofStruct(CS_MIDIDEVICE);
+  const structLength = CS_MIDIDEVICE_SIZE;
   const structOffset = wasm.exports.allocCsMidiDeviceStruct(numberOfDevices);
   wasm.exports.csoundGetMIDIDevList(csound, structOffset, isOutput ? 1 : 0);
   const structBuffer = new Uint8Array(buffer, structOffset, structLength * numberOfDevices);

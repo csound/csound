@@ -3,6 +3,7 @@ import { WASI } from "./filesystem/wasi";
 import { clearArray } from "./utils/clear-array";
 import { uint2String } from "./utils/text-encoders.js";
 import { logWasmModule as log } from "./logger";
+import { importValuesOfTokens } from "./utils/native-sizes.js";
 
 goog.require("Zlib");
 goog.require("Zlib.Inflate");
@@ -264,6 +265,7 @@ export default async function ({ wasmDataURI, withPlugins = [], messagePort }) {
   options.env.__memory_base = memoryBase;
   options.env.__table_base = tableBase;
   options.env.csoundLoadModules = csoundLoadModules;
+  options.env.csoundLoadExternals = () => {};
 
   // TODO find out what's leaking this thread-local errno (cpp?)
   options.env._ZTH5errno = function () {};
@@ -329,6 +331,7 @@ export default async function ({ wasmDataURI, withPlugins = [], messagePort }) {
     return accumulator;
   }, []);
 
+  importValuesOfTokens(instance_);
   wasi.start(instance_);
   instance_.exports.__wasi_js_csoundSetMessageStringCallback();
   return [instance_, wasi];

@@ -28,7 +28,8 @@
 #include <ctype.h>
 #include <string.h>
 #include <stdio.h>
-#if defined(NACL)  || defined(__wasi__)
+
+#if defined(NACL) || defined(__wasi__)
 #include <sys/select.h>
 #endif
 

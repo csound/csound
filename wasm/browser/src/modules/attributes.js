@@ -1,8 +1,5 @@
 /* eslint-disable unicorn/prevent-abbreviations */
 import { freeStringPtr, string2ptr } from "../utils/string-pointers.js";
-import { structBufferToObject } from "../utils/structure-buffer-to-object.js";
-import { sizeofStruct } from "../utils/native-sizes.js";
-import { CSOUND_PARAMS } from "../structures.js";
 
 /*
    csound attribute module from <csound.h>
@@ -173,18 +170,18 @@ csoundSetParams.toString = () => "setParams = async (csoundParams) => undefined;
  * @memberof CsoundObj
  * @return {Promise.<CSOUND_PARAMS>} - CSOUND_PARAMS object
  */
-export const csoundGetParams = (wasm) => (csound) => {
-  const { buffer } = wasm.wasi.memory;
-  const structLength = sizeofStruct(CSOUND_PARAMS);
-  const structOffset = wasm.exports.allocCsoundParamsStruct();
-  const structBuffer = new Uint8Array(buffer, structOffset, structLength);
-  wasm.exports.csoundGetParams(csound, structOffset);
-  const currentCsoundParameters = structBufferToObject(CSOUND_PARAMS, structBuffer);
-  wasm.exports.freeCsoundParams(structOffset);
-  return currentCsoundParameters;
-};
+// export const csoundGetParams = (wasm) => (csound) => {
+//   const { buffer } = wasm.wasi.memory;
+//   const structLength = CSOUND_PARAMS_SIZE;
+//   const structOffset = wasm.exports.allocCsoundParamsStruct();
+//   const structBuffer = new Uint8Array(buffer, structOffset, structLength);
+//   wasm.exports.csoundGetParams(csound, structOffset);
+//   const currentCsoundParameters = structBufferToObject(CSOUND_PARAMS, structBuffer);
+//   wasm.exports.freeCsoundParams(structOffset);
+//   return currentCsoundParameters;
+// };
 
-csoundGetParams.toString = () => "getParams = async () => CSOUND_PARAMS;";
+// csoundGetParams.toString = () => "getParams = async () => CSOUND_PARAMS;";
 
 /**
  * Returns whether Csound is set to print debug messages
