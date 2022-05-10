@@ -19,7 +19,7 @@ declare interface CsoundFs {
  * @property "realtimePerformanceEnded" - called after end of performance or after a successful csound.stop().
  * @property "renderStarted" - called at the start of offline/non-realtime render to disk.
  * @property "renderEnded" - called at the end of offline/non-realtime render to disk.
- * @property "onAudioNodeCreated" - called when an audioNode is created from the AudioContext before realtime performance.
+ * @property "onAudioNodeCreated" - called when an audioNode is created from the AudioContext or OfflineAudioContext before realtime performance.
  * the event callback will include the audioNode itself, which is needed if autoConnect is set to false.
  * @property "message" - the main entrypoint to csound's messaging (-m) system,
  * a default event listener will print the message to the browser console, this default
@@ -42,10 +42,10 @@ declare type PublicEvents =
  * CsoundObj API.
  */
 declare interface CsoundObj {
-  /** Returns the AudioContext used to create AudioNodes. May be one passed as initialization parameters to
-   * Csound() or one created by Csound itself if none are provided.
+  /** Returns the AudioContext or OfflineAudioContext used to create AudioNodes. May be one passed as initialization
+   * parameters to Csound() or the AudioContext created by Csound itself if none are provided.
    */
-  getAudioContext: () => Promise<AudioContext | undefined>;
+  getAudioContext: () => Promise<AudioContext | OfflineAudioContext | undefined>;
 
   /** Returns the AudioNode used with Csound processing. May return undefined if node has not yet been created.
    * Single-thread (the default) backends will have nodes available right after initializing Csound, while worker-backed
@@ -436,7 +436,7 @@ declare interface CsoundObj {
  * If loaded successfully, it returns CsoundObj,
  * otherwise undefined.
  * @param [params] - Initialization parameters
- * @param [params.audioContext] - Optional AudioContext to use; if none given, an AudioContext will be created.
+ * @param [params.audioContext] - Optional AudioContext or OfflineAudioContext to use; if none given, an AudioContext will be created.
  * @param [params.inputChannelCount] - Optional input channel count for AudioNode used with WebAudio graph.
  * Defaults to the value of nchnls_i in useWorker but 2 otherwise.
  * @param [params.outputChannelCount] - Optional output channel count AudioNode used with WebAudio graph.
@@ -448,7 +448,7 @@ declare interface CsoundObj {
  * @param [params.useSPN = false] - Configure to use explicitly request ScriptProcessorNode rather than AudioWorklet. Recommended only for debug testing purposes.
  */
 declare function Csound(params?: {
-  audioContext?: AudioContext;
+  audioContext?: AudioContext | OfflineAudioContext;
   inputChannelCount?: number;
   outputChannelCount?: number;
   autoConnect?: boolean;
