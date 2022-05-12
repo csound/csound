@@ -38,6 +38,9 @@
 #include "interlocks.h"
 #include "grain4.h"
 #include <math.h>
+#include "opcodes.h"
+
+#ifdef INC_GRANULE
 
 #define        RNDMUL  15625L
 
@@ -439,16 +442,15 @@ static MYFLT grand( GRAINV4 *p)
    return ((MYFLT) p->grnd * DV32768);  /* IV - Jul 11 2002 */
 } /* end grand(p) */
 
+#endif
+
 #define S(x)    sizeof(x)
 
-
-
-
-
-
 static OENTRY grain4_localops[] = {
+  #ifdef INC_GRANULE
   { "granule", S(GRAINV4), TR, 3, "a", "xiiiiiiiiikikiiivppppo",
              (SUBR)grainsetv4, (SUBR)graingenv4},
+  #endif
 };
 
 LINKAGE_BUILTIN(grain4_localops)

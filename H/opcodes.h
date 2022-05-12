@@ -260,8 +260,10 @@
 #define INC_GENDYX_K
 #define INC_GETCFG
 #define INC_GOTO
+#define INC_GRAIN
 #define INC_GRAIN2
 #define INC_GRAIN3
+#define INC_GRANULE
 #define INC_GTF
 #define INC_GUIRO
 #define INC_HARMON
@@ -270,6 +272,7 @@
 #define INC_HARMON4
 #define INC_HILBERT
 #define INC_HRTF_EARLY
+#define INC_HRTFER
 #define INC_HRTF_MOVE
 #define INC_HRTF_MOVE2
 #define INC_HRTF_REVER

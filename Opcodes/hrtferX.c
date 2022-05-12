@@ -57,7 +57,9 @@
 #include <math.h>
 #include <stdlib.h>
 #include "hrtferx.h"
+#include "opcodes.h"
 
+#ifdef INC_HRTFER
 /* This array transferred here so as to be declared once.  Belongs to
    the structure of the HRTF data really in 3Dug.h */
 
@@ -441,11 +443,14 @@ static int32_t hrtferxk(CSOUND *csound, HRTFER *p)
     return csound->PerfError(csound, &(p->h),
                              Str("hrtfer: not initialised"));
 }
+#endif
 
 static OENTRY hrtferX_localops[] =
   {
+    #ifdef INC_HRTFER
    { "hrtfer",   sizeof(HRTFER), _QQ, 3, "aa", "akkS",
      (SUBR)hrtferxkSet, (SUBR)hrtferxk},
+   #endif
 };
 
 LINKAGE_BUILTIN(hrtferX_localops)

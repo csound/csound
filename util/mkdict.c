@@ -142,6 +142,9 @@ int main(void)
     process_file("Opcodes/ftconv.c", outp);
     process_file("Opcodes/freeverb.c", outp);
     process_file("Opcodes/oscbnk.c", outp); /* incomplete */
+    process_file("Opcodes/hrtferX.c", outp);
+    process_file("Opcodes/grain.c", outp);
+    process_file("Opcodes/grain4.c", outp);
     
     fprintf(outp, "\t{ NULL, NULL}\n};\n");
 }

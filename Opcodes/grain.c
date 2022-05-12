@@ -29,6 +29,9 @@
 
 #include "stdopcod.h"
 #include "grain.h"
+#include "opcodes.h"
+
+#ifdef INC_GRAIN
 
 static inline MYFLT Unirand(CSOUND *csound, MYFLT a)
 {
@@ -191,12 +194,15 @@ static int32_t ags(CSOUND *csound, PGRA *p) /*  Granular U.G. a-rate main routin
     return csound->PerfError(csound, &(p->h),
                              Str("grain: not initialised"));
 }
+#endif
 
 #define S(x)    sizeof(x)
 
 static OENTRY localops[] =
   {
+    #ifdef INC_GRAIN
    { "grain", S(PGRA),  TR, 3,   "a",    "xxxkkkiiio", (SUBR)agsset, (SUBR)ags }
+   #endif
   };
 
 int32_t grain_init_(CSOUND *csound)
