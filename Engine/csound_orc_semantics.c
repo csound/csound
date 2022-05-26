@@ -3062,7 +3062,8 @@ static void print_tree_xml(CSOUND *csound, TREE *l, int n, int which)
     csound->Message(csound,"name=\"T_IDENT\" varname=\"%s\"",
                     l->value->lexeme); break;
   case T_OPCALL:
-    csound->Message(csound,"name=\"T_OPCALL\""); break;
+    csound->Message(csound,"name=\"T_OPCALL\" varname=\"%s\"",
+                    l->left->value->lexeme); break;
 
   case T_DECLARE:
     csound->Message(csound,"name=\"T_DECLARE\" declvar=\"%s\"",
