@@ -3062,9 +3062,13 @@ static void print_tree_xml(CSOUND *csound, TREE *l, int n, int which)
     csound->Message(csound,"name=\"T_IDENT\" varname=\"%s\"",
                     l->value->lexeme); break;
   case T_OPCALL:
-    csound->Message(csound,"name=\"T_OPCALL\" varname=\"%s\"",
-                    l->left->value->lexeme); break;
-
+    if (l->left)
+      csound->Message(csound,"name=\"T_OPCALL\" varname=\"%s\"",
+                      l->left->value->lexeme);
+    else
+       csound->Message(csound,"name=\"T_OPCALL\" varname=\"%s\"",
+                       l->value->lexeme);
+    break;
   case T_DECLARE:
     csound->Message(csound,"name=\"T_DECLARE\" declvar=\"%s\"",
                     l->value->lexeme); break;
@@ -3121,6 +3125,8 @@ static void print_tree_xml(CSOUND *csound, TREE *l, int n, int which)
     //      csound->Message(csound,"name=\"T_TDIV\""); break;
     //    case T_TREM:
     //      csound->Message(csound,"name=\"T_TREM\""); break;
+  case '[':
+    csound->Message(csound,"name=\"[\""); break;
   default:
     csound->Message(csound,"name=\"unknown(%d)\"", l->type);
   }

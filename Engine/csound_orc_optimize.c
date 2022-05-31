@@ -141,9 +141,9 @@ static inline int same_type(char *var, char ty)
 static TREE* remove_excess_assigns(CSOUND *csound, TREE* root)
 {
     TREE* current = root;
-    print_tree(csound, "AssignTest", root);
+    //print_tree(csound, "AssignTest", root);
     while (current) {
-      //      if (PARSER_DEBUG1) printf("in loop: current->type = %d\n", current->type);
+      if (PARSER_DEBUG1) printf("in loop: current->type = %d\n", current->type);
       if ((current->type == T_OPCALL || current->type == T_ASSIGNMENT) &&
           current->left != NULL &&
           //current->right != NULL &&  no one looks at current->right
@@ -158,7 +158,7 @@ static TREE* remove_excess_assigns(CSOUND *csound, TREE* root)
         if (PARSER_DEBUG1) printf("test3: %c%c %c\n",
                    nxt->left->value->lexeme[0], nxt->left->value->lexeme[1],
                    nxt->right->value->lexeme[1]);
-        if (nxt && nxt->type == '=' &&
+        if (nxt && nxt->type == T_ASSIGNMENT /* '=' */ &&
             nxt->left != NULL &&
             !strcmp(current->left->value->lexeme,nxt->right->value->lexeme) &&
             same_type(nxt->left->value->lexeme, nxt->right->value->lexeme[1])) {
