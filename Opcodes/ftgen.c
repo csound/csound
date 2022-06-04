@@ -256,7 +256,7 @@ static int32_t ftload_(CSOUND *csound, FTLOAD *p, int32_t istring)
 
     if (strncmp(csound->GetOpcodeName(p), "ftloadk", 7) == 0) {
       nargs--;
-      ft_func = csound->FTFindP;
+      ft_func = csound->FTnp2Finde;
       err_func = csound->PerfError;
     }
     else {
@@ -422,6 +422,7 @@ static int32_t ftload_(CSOUND *csound, FTLOAD *p, int32_t istring)
           if (ftp->flen < header.flen){
              if (UNLIKELY(csound->FTAlloc(csound, fno, (int32_t) header.flen) != 0))
              goto err;
+	     ftp = ft_func(csound, &fno_f);
           }
         }
         else {
@@ -429,8 +430,12 @@ static int32_t ftload_(CSOUND *csound, FTLOAD *p, int32_t istring)
           goto err;
          ftp = ft_func(csound, &fno_f);
         }
+        ftp = ft_func(csound, &fno_f);
+        if(ftp->ftable) {
         memcpy(ftp, &header, sizeof(FUNC) - sizeof(MYFLT));
         memset(ftp->ftable, 0, sizeof(MYFLT) * (ftp->flen + 1));
+	} else goto err;
+        
         for (j = 0; j <= ftp->flen; j++) {
           if (UNLIKELY(NULL==fgets(s, 64, file))) goto err4;
           ftp->ftable[j] = (MYFLT) cs_strtod(s, &endptr);
