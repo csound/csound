@@ -350,6 +350,8 @@ int csoundFTAlloc(CSOUND *csound, int tableNum, int len)
       csound->flist[tableNum] = NULL;
       csound->Free(csound, ftp);
       csound->flist[tableNum] = (FUNC*) csound->Malloc(csound, (size_t) size);
+      csound->flist[tableNum]->ftable =
+        (MYFLT*)csound->Malloc(csound, sizeof(MYFLT)*(len+1));
     }
     /* initialise table header */
     ftp = csound->flist[tableNum];

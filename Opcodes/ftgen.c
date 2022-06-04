@@ -256,7 +256,7 @@ static int32_t ftload_(CSOUND *csound, FTLOAD *p, int32_t istring)
 
     if (strncmp(csound->GetOpcodeName(p), "ftloadk", 7) == 0) {
       nargs--;
-      ft_func = csound->FTFindP;
+      ft_func = csound->FTnp2Find;
       err_func = csound->PerfError;
     }
     else {
