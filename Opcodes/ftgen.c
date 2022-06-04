@@ -422,6 +422,7 @@ static int32_t ftload_(CSOUND *csound, FTLOAD *p, int32_t istring)
           if (ftp->flen < header.flen){
              if (UNLIKELY(csound->FTAlloc(csound, fno, (int32_t) header.flen) != 0))
              goto err;
+	     ftp = ft_func(csound, &fno_f);
           }
         }
         else {
