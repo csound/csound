@@ -350,6 +350,8 @@ int csoundFTAlloc(CSOUND *csound, int tableNum, int len)
       csound->flist[tableNum] = NULL;
       csound->Free(csound, ftp);
       csound->flist[tableNum] = (FUNC*) csound->Malloc(csound, (size_t) size);
+      csound->flist[tableNum]->ftable =
+        (MYFLT*)csound->Malloc(csound, sizeof(MYFLT)*(len+1));
     }
     /* initialise table header */
     ftp = csound->flist[tableNum];
@@ -367,7 +369,6 @@ int csoundFTAlloc(CSOUND *csound, int tableNum, int len)
     ftp->flenfrms = (int32) len;
     ftp->nchanls = 1L;
     ftp->fno = (int32) tableNum;
-
     return 0;
 }
 
@@ -2367,6 +2368,7 @@ static CS_NOINLINE FUNC *ftalloc(const FGDATA *ff)
     CSOUND  *csound = ff->csound;
     FUNC    *ftp = csound->flist[ff->fno];
 
+ 
     if (UNLIKELY(ftp != NULL)) {
       csound->Warning(csound, Str("replacing previous ftable %d"), ff->fno);
       if (ff->flen != (int32)ftp->flen) {       /* if redraw & diff len, */
