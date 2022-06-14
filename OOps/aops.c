@@ -2219,13 +2219,6 @@ int32_t subinak(CSOUND *csound, ASSIGN *p)
     return OK;
 }
 
-int32_t is_NaN(CSOUND *csound, ASSIGN *p)
-{
-    IGN(csound);
-    *p->r = _isnan(*p->a);
-    return OK;
-}
-
 /**
  * Identifies both signaling NaN (sNaN) and quiet NaN (qNaN).
  *
@@ -2251,6 +2244,7 @@ int32_t is_NaN(CSOUND *csound, ASSIGN *p)
  * 0x7FA00000
  * NOTE: Not all compilers permit type casting a type-punned pointer. So, we
  * must explicitly copy rather than assign the data to test.
+ * Or se a union type to treat the fpt bits as integers as elsewere 
  */
 static inline int _isnan(MYFLT x) {
     #ifdef USE_DOUBLE
