@@ -56,7 +56,8 @@ int isstrcod(MYFLT xx)
 }
 
 extern double besseli(double);
-FUNC *csoundFTnp2Findint(CSOUND *csound, MYFLT *argp, int verbose);static int gen01raw(FGDATA *, FUNC *);
+FUNC *csoundFTnp2Findint(CSOUND *csound, MYFLT *argp, int verbose);
+static int gen01raw(FGDATA *, FUNC *);
 static int gen01(FGDATA *, FUNC *), gen02(FGDATA *, FUNC *);
 static int gen03(FGDATA *, FUNC *), gen04(FGDATA *, FUNC *);
 static int gen05(FGDATA *, FUNC *), gen06(FGDATA *, FUNC *);
@@ -394,6 +395,7 @@ int csoundFTDelete(CSOUND *csound, int tableNum)
 /* read ftable values directly from p-args */
 
 static int gen02(FGDATA *ff, FUNC *ftp)
+  #ifdef INC_GEN02
 {
     MYFLT   *fp, *pp = &(ff->e.p[5]);
     int     nvals = ff->e.pcnt - 4;
@@ -421,8 +423,12 @@ static int gen02(FGDATA *ff, FUNC *ftp)
     }
     return OK;
 }
+#else
+{ return NOTOK; }
+#endif
 
 static int gen03(FGDATA *ff, FUNC *ftp)
+  #ifdef INC_GENO3
 {
     int     ncoefs, nargs = ff->e.pcnt - 4;
     MYFLT   xintvl, xscale;
@@ -453,8 +459,12 @@ static int gen03(FGDATA *ff, FUNC *ftp)
 
     return OK;
 }
+#else
+{ return NOTOK; }
+#endif
 
 static int gen04(FGDATA *ff, FUNC *ftp)
+#ifdef INC_GEN04
 {
     CSOUND  *csound = ff->csound;
     MYFLT   *valp, *rvalp, *fp = ftp->ftable;
@@ -517,8 +527,13 @@ static int gen04(FGDATA *ff, FUNC *ftp)
 
     return OK;
 }
+#else
+{ return NOTOK; }
+#endif
+
 
 static int gen05(FGDATA *ff, FUNC *ftp)
+#ifdef INC_GEN05
 {
     int     nsegs, seglen;
     MYFLT   *valp, *fp, *finp;
@@ -570,8 +585,13 @@ static int gen05(FGDATA *ff, FUNC *ftp)
  gn5er2:
     return fterror(ff, Str("illegal input vals for gen call, beginning:"));
 }
+#else
+{ return NOTOK; }
+#endif
+
 
 static int gen07(FGDATA *ff, FUNC *ftp)
+  #ifdef INC_GEN07
 {
     int     nsegs, seglen;
     MYFLT   *valp, *fp, *finp;
@@ -601,8 +621,13 @@ static int gen07(FGDATA *ff, FUNC *ftp)
  gn7err:
     return fterror(ff, Str("gen call has negative segment size:"));
 }
+#else
+{ return NOTOK; }
+#endif
+
 
 static int gen06(FGDATA *ff, FUNC *ftp)
+  #ifdef INC_GEN06
 {
     MYFLT   *segp, *extremp, *inflexp, *segptsp, *fp, *finp;
     MYFLT   y, diff2;
@@ -681,8 +706,13 @@ static int gen06(FGDATA *ff, FUNC *ftp)
 
     return OK;
 }
+#else
+{ return NOTOK; }
+#endif
+
 
 static int gen08(FGDATA *ff, FUNC *ftp)
+  #ifdef INC_GEN05
 {
     MYFLT   R, x, c3, c2, c1, c0, *fp, *fplim, *valp;
     MYFLT   f2 = FL(0.0), f1, f0, df1, df0, dx01, dx12 = FL(0.0), curx;
@@ -756,8 +786,13 @@ static int gen08(FGDATA *ff, FUNC *ftp)
       *fp++ = f0;                       /* & repeat the last value      */
     return OK;
 }
+#else
+{ return NOTOK; }
+#endif
+
 
 static int gen09(FGDATA *ff, FUNC *ftp)
+  #ifdef INC_GEN09
 {
     int     hcnt;
     MYFLT   *valp, *fp, *finp;
@@ -806,8 +841,13 @@ static int gen09(FGDATA *ff, FUNC *ftp)
 
     return OK;
 }
+#else
+{ return NOTOK; }
+#endif
+
 
 static int gen10(FGDATA *ff, FUNC *ftp)
+  #ifdef INC_GEN10
 {
     int32   phs, hcnt;
     MYFLT   amp, *fp, *finp;
@@ -832,8 +872,13 @@ static int gen10(FGDATA *ff, FUNC *ftp)
 
     return OK;
 }
+#else
+{ return NOTOK; }
+#endif
+
 
 static int gen11(FGDATA *ff, FUNC *ftp)
+  #ifdef INC_GEN11
 {
     MYFLT   *fp, *finp;
     int32    phs;
@@ -895,8 +940,13 @@ static int gen11(FGDATA *ff, FUNC *ftp)
     }
     return OK;
 }
+#else
+{ return NOTOK; }
+#endif
+
 
 static int gen12(FGDATA *ff, FUNC *ftp)
+  #ifdef INC_GEN12
 {
     static const double coefs[] = { 3.5156229, 3.0899424, 1.2067492,
                                     0.2659732, 0.0360768, 0.0045813 };
@@ -918,17 +968,31 @@ static int gen12(FGDATA *ff, FUNC *ftp)
     }
     return OK;
 }
+#else
+{ return NOTOK; }
+#endif
+
 
 static int gen13(FGDATA *ff, FUNC *ftp)
+  #ifdef INC_GEN13
 {
     return gn1314(ff, ftp, FL(2.0), FL(0.5));
 }
+#else
+{ return NOTOK; }
+#endif
+
 
 static int gen14(FGDATA *ff, FUNC *ftp)
+  #ifdef INC_GEN14
 {
     return gn1314(ff, ftp, FL(1.0), FL(1.0));
 }
+#else
+{ return NOTOK; }
+#endif
 
+#if defined(INC_GEN13)||defined(INC_GEN14)
 static int gn1314(FGDATA *ff, FUNC *ftp, MYFLT mxval, MYFLT mxscal)
 {
     CSOUND  *csound = ff->csound;
@@ -1004,8 +1068,10 @@ static int gn1314(FGDATA *ff, FUNC *ftp, MYFLT mxval, MYFLT mxscal)
     csound->Free(csound,mspace);
     return gen03(ff, ftp);                      /* then call gen03 to write */
 }
+#endif
 
 static int gen15(FGDATA *ff, FUNC *ftp)
+  #ifdef INC_GEN15
 {
     MYFLT   xint, xamp, *hsin, h, angle;
     MYFLT   *fp, *cosp, *sinp;
@@ -1072,8 +1138,13 @@ static int gen15(FGDATA *ff, FUNC *ftp)
                               /* is scaled and displayed by hfgens */
     return n;
 }
+#else
+{ return NOTOK; }
+#endif
+
 
 static int gen16(FGDATA *ff, FUNC *ftp)
+  #ifdef INC_GEN16
 {
     MYFLT   *fp, *valp, val;
     int     nargs = ff->e.pcnt - 4;
@@ -1111,8 +1182,13 @@ static int gen16(FGDATA *ff, FUNC *ftp)
     }
     return OK;
 }
+#else
+{ return NOTOK; }
+#endif
+
 
 static int gen17(FGDATA *ff, FUNC *ftp)
+  #ifdef INC_GEN17
 {
     int     nsegs, ndx, nxtndx;
     MYFLT   *valp, *fp, *finp;
@@ -1152,10 +1228,15 @@ static int gen17(FGDATA *ff, FUNC *ftp)
  gn17err:
     return fterror(ff, Str("gen call has illegal x-ordinate values:"));
 }
+#else
+{ return NOTOK; }
+#endif
+
 
 /* by pete moss (petemoss@petemoss.org), jan 2002 */
 
 static int gen18(FGDATA *ff, FUNC *ftp)
+  #ifdef INC_GEN18
 {
     CSOUND  *csound = ff->csound;
     int     cnt, start, finish, fnlen, j;
@@ -1206,8 +1287,13 @@ static int gen18(FGDATA *ff, FUNC *ftp)
     }
     return OK;
 }
+#else
+{ return NOTOK; }
+#endif
+
 
 static int gen19(FGDATA *ff, FUNC *ftp)
+  #ifdef INC_GEN19
 {
     int     hcnt;
     MYFLT   *valp, *fp, *finp;
@@ -1244,10 +1330,15 @@ static int gen19(FGDATA *ff, FUNC *ftp)
 
     return OK;
 }
+#else
+{ return NOTOK; }
+#endif
+
 
 /*  GEN20 and GEN21 by Paris Smaragdis 1994 B.C.M. Csound development team  */
 
 static int gen20(FGDATA *ff, FUNC *ftp)
+  #ifdef INC_GEN20
 {
     MYFLT   cf[4], *ft;
     double  arg, x, xarg, beta = 0.0,varian = 1.0;
@@ -1337,8 +1428,12 @@ static int gen20(FGDATA *ff, FUNC *ftp)
 
     return OK;
 }
+#else
+{ return NOTOK; }
+#endif
 
 static int gen21(FGDATA *ff, FUNC *ftp)
+  #ifdef INC_GEN21 
 {
     int     retval = gen21_rand(ff, ftp);
 
@@ -1350,7 +1445,12 @@ static int gen21(FGDATA *ff, FUNC *ftp)
     }
     return OK;
 }
+#else
+{ return NOTOK; }
+#endif
 
+
+#ifdef INC_GEN23
 static MYFLT nextval(FILE *f)
 {
     /* Read the next character; suppress multiple space and comments to a
@@ -1383,8 +1483,10 @@ static MYFLT nextval(FILE *f)
     if (isdigit(c) || c=='e' || c=='E' || c=='+' || c=='-' || c=='.') goto top1;
     goto top;
 }
+#endif
 
 static int gen23(FGDATA *ff, FUNC *ftp)
+  #ifdef INC_GEN23
                                 /* ASCII file table read Gab 17-feb-98*/
                                 /* Modified after Paris Smaragdis by JPff */
 {                               /* And further hacked 2009 by JPff */
@@ -1435,8 +1537,12 @@ static int gen23(FGDATA *ff, FUNC *ftp)
 
     return OK;
 }
+#else
+{ return NOTOK; }
+#endif
 
 static int gen24(FGDATA *ff, FUNC *ftp)
+  #ifdef INC_GEN24
 {
     CSOUND  *csound = ff->csound;
     MYFLT   *fp = ftp->ftable, *fp_source;
@@ -1478,8 +1584,14 @@ static int gen24(FGDATA *ff, FUNC *ftp)
 
     return OK;
 }
+#else
+{ return NOTOK; }
+#endif
+
+
 
 static int gen25(FGDATA *ff, FUNC *ftp)
+  #ifdef INC_GEN25
 {
     int     nsegs,  seglen;
     MYFLT   *valp, *fp, *finp;
@@ -1540,8 +1652,14 @@ static int gen25(FGDATA *ff, FUNC *ftp)
     return fterror(ff,
                    Str("illegal input val (y <= 0) for gen call, beginning:"));
 }
+#else
+{ return NOTOK; }
+#endif
+
+
 
 static int gen27(FGDATA *ff, FUNC *ftp)
+  #ifdef INC_GEN27
 {
     int     nsegs;
     MYFLT   *valp, *fp, *finp;
@@ -1599,15 +1717,22 @@ static int gen27(FGDATA *ff, FUNC *ftp)
     return OK;
 
  gn27err:
-    printf("nsegs=%d x1,y1 = %f,%f x2,y2 = %f,%f\n", nsegs, x1, y1, x2, y2);
+    printf("nsegs=%d x1,y1 = %f,%f x2,y2 = %f,%f\n", nsegs, x1, y1, x2,
+           y2);
     return fterror(ff, Str("x coordinates must all be in increasing order:"));
  gn27err2:
     return fterror(ff, Str("x coordinate greater than function size:"));
 }
+#else
+{ return NOTOK; }
+#endif
+
+
 
 /* read X Y values directly from ascii file */
 
 static int gen28(FGDATA *ff, FUNC *ftp)
+  #ifdef INC_GEN28
 {
     CSOUND  *csound = ff->csound;
     MYFLT   *fp, *finp;
@@ -1694,10 +1819,16 @@ static int gen28(FGDATA *ff, FUNC *ftp)
     csound->Free(csound,x); csound->Free(csound,y); csound->Free(csound,z);
     return fterror(ff, Str("Time values must be in increasing order"));
 }
+#else
+{ return NOTOK; }
+#endif
+
+
 
 /* gen30: extract a range of harmonic partials from source table */
 
 static int gen30(FGDATA *ff, FUNC *ftp)
+  #ifdef INC_GEN30
 {
     CSOUND  *csound = ff->csound;
     MYFLT   *x, *f1, *f2;
@@ -1775,10 +1906,16 @@ static int gen30(FGDATA *ff, FUNC *ftp)
 
     return OK;
 }
+#else
+{ return NOTOK; }
+#endif
+
+
 
 /* gen31: transpose, phase shift, and mix source table */
 
 static int gen31(FGDATA *ff, FUNC *ftp)
+  #ifdef INC_GEN31
 {
     CSOUND  *csound = ff->csound;
     MYFLT   *x, *y, *f1, *f2;
@@ -1854,16 +1991,24 @@ static int gen31(FGDATA *ff, FUNC *ftp)
 
     return OK;
 }
+#else
+{ return NOTOK; }
+#endif
+
+
 
 /* gen32: transpose, phase shift, and mix source tables */
 
+#ifdef INC_GEN32
 static inline MYFLT paccess(FGDATA *ff, int i)
 {
     if (LIKELY(i<PMAX)) return ff->e.p[i];
     else return ff->e.c.extra[i-PMAX+1];
 }
+#endif
 
 static int gen32(FGDATA *ff, FUNC *ftp)
+  #ifdef INC_GEN32
 {
     CSOUND  *csound = ff->csound;
     MYFLT   *x, *y, *f1, *f2;
@@ -1981,10 +2126,16 @@ static int gen32(FGDATA *ff, FUNC *ftp)
 
     return OK;
 }
+#else
+{ return NOTOK; }
+#endif
+
+
 
 /* GEN33 by Istvan Varga */
 
 static int gen33(FGDATA *ff, FUNC *ftp)
+  #ifdef INC_GEN33
 {
     CSOUND  *csound = ff->csound;
     MYFLT   fmode, *ft, *srcft, scl, amp, phs;
@@ -2061,10 +2212,17 @@ static int gen33(FGDATA *ff, FUNC *ftp)
 
     return OK;
 }
+#else
+{ return NOTOK; }
+#endif
+
+
+
 
 /* GEN34 by Istvan Varga */
 
 static int gen34(FGDATA *ff, FUNC *ftp)
+  #ifdef INC_GEN34
 {
     CSOUND  *csound = ff->csound;
     MYFLT   fmode, *ft, *srcft, scl;
@@ -2161,8 +2319,14 @@ static int gen34(FGDATA *ff, FUNC *ftp)
 
     return OK;
 }
+#else
+{ return NOTOK; }
+#endif
+
+
 
 static int gen40(FGDATA *ff, FUNC *ftp)               /*gab d5*/
+  #ifdef INC_GEN40
 {
     CSOUND  *csound = ff->csound;
     MYFLT   *fp = ftp->ftable, *fp_source, *fp_temp;
@@ -2195,8 +2359,14 @@ static int gen40(FGDATA *ff, FUNC *ftp)               /*gab d5*/
 
     return OK;
 }
+#else
+{ return NOTOK; }
+#endif
+
+
 
 static int gen41(FGDATA *ff, FUNC *ftp)   /*gab d5*/
+  #ifdef INC_GEN41
 {
     MYFLT   *fp = ftp->ftable, *pp = &ff->e.p[5];
     int     i, j, k, width;
@@ -2227,8 +2397,14 @@ static int gen41(FGDATA *ff, FUNC *ftp)   /*gab d5*/
 
     return OK;
 }
+#else
+{ return NOTOK; }
+#endif
+
+
 
 static int gen42(FGDATA *ff, FUNC *ftp) /*gab d5*/
+  #ifdef INC_GEN42
 {
     MYFLT   *fp = ftp->ftable, inc;
     int     j, k, width;
@@ -2273,6 +2449,11 @@ static int gen42(FGDATA *ff, FUNC *ftp) /*gab d5*/
 
     return OK;
 }
+#else
+{ return NOTOK; }
+#endif
+
+
 
 CS_NOINLINE int fterror(const FGDATA *ff, const char *s, ...)
 {
@@ -2585,6 +2766,7 @@ FUNC *csoundFTnp2Finde(CSOUND *csound, MYFLT *argp)
 /* stops reading when table is full     */
 
 static int gen01(FGDATA *ff, FUNC *ftp)
+  #ifdef inC_GEN01
 {
     if (UNLIKELY(ff->e.pcnt < 8)) {
       return fterror(ff, Str("insufficient arguments"));
@@ -2604,6 +2786,11 @@ static int gen01(FGDATA *ff, FUNC *ftp)
     }
     return gen01raw(ff, ftp);
 }
+#else
+{ return NOTOK; }
+#endif
+
+
 
 static void needsiz(CSOUND *csound, FGDATA *ff, int32 maxend)
 {
@@ -2818,6 +3005,7 @@ static int gen01raw(FGDATA *ff, FUNC *ftp)
     return OK;
 }
 
+
 /* GEN 43 (c) Victor Lazzarini, 2004 */
 
 typedef struct _pvstabledat {
@@ -2832,6 +3020,7 @@ typedef struct _pvstabledat {
 } PVSTABLEDAT;
 
 static int gen43(FGDATA *ff, FUNC *ftp)
+  #ifdef INC_GEN43
 {
     CSOUND          *csound = ff->csound;
     MYFLT           *fp = ftp->ftable;
@@ -2900,8 +3089,14 @@ static int gen43(FGDATA *ff, FUNC *ftp)
     }
     return OK;
 }
+#else
+{ return NOTOK; }
+#endif
+
+
 
 static int gen44(FGDATA *ff, FUNC *ftp)
+  #ifdef INC_GEN44
 {
     /*
       This Gen routine calculates a stiffness matrix for scanu/scanu2.
@@ -2954,9 +3149,15 @@ static int gen44(FGDATA *ff, FUNC *ftp)
     if (ff->e.p[4]>0) ff->e.p[4] = -44;
     return OK;
 }
+#else
+{ return NOTOK; }
+#endif
+
+
 
 #ifndef NACL
 #include "mp3dec.h"
+#ifdef INC_GEN49
 
 static int gen49raw(FGDATA *ff, FUNC *ftp)
 {
@@ -3114,8 +3315,10 @@ static int gen49raw(FGDATA *ff, FUNC *ftp)
     if (def) ftresdisp(ff, ftp);
     return ((r == MP3DEC_RETCODE_OK) ? OK : NOTOK);
 }
+#endif
 
 static int gen49(FGDATA *ff, FUNC *ftp)
+  #ifdef INC_GEN49
 {
     if (UNLIKELY(ff->e.pcnt < 7)) {
       return fterror(ff, Str("insufficient arguments"));
@@ -3135,9 +3338,14 @@ static int gen49(FGDATA *ff, FUNC *ftp)
     }
     return gen49raw(ff, ftp);
 }
+#else
+{ return NOTOK; }
+#endif
+
 #endif
 
 static int gen51(FGDATA *ff, FUNC *ftp)    /* Gab 1/3/2005 */
+  #ifdef INC_GEN51
 {
     int     j, notenum, grade, numgrades, basekeymidi, nvals;
     MYFLT   basefreq, factor, interval;
@@ -3178,8 +3386,13 @@ static int gen51(FGDATA *ff, FUNC *ftp)    /* Gab 1/3/2005 */
     }
     return OK;
 }
+#else
+{ return NOTOK; }
+#endif
+
 
 static int gen52(FGDATA *ff, FUNC *ftp)
+  #ifdef INC_GEN52
 {
     CSOUND  *csound = ff->csound;
     MYFLT   *src, *dst;
@@ -3228,7 +3441,11 @@ static int gen52(FGDATA *ff, FUNC *ftp)
     }
     return OK;
 }
+#else
+{ return NOTOK; }
+#endif
 
+#ifdef INC_GEN53
 static void gen53_apply_window(MYFLT *buf, MYFLT *w,
                                int npts, int wpts, int minphase)
 {
@@ -3259,7 +3476,9 @@ static void gen53_apply_window(MYFLT *buf, MYFLT *w,
       ph += ph_inc;
     }
 }
+#endif
 
+#ifdef INC_GEN53
 static void gen53_freq_response_to_ir(CSOUND *csound,
                                       MYFLT *obuf, MYFLT *ibuf, MYFLT *wbuf,
                                       int npts, int wpts, int mode)
@@ -3348,8 +3567,10 @@ static void gen53_freq_response_to_ir(CSOUND *csound,
     if (wbuf != NULL && !(mode & 8))    /* apply window if requested */
       gen53_apply_window(obuf, wbuf, npts, wpts, 1);
 }
+#endif
 
 static int gen53(FGDATA *ff, FUNC *ftp)
+  #ifdef INC_GEN53
 {
     CSOUND  *csound = ff->csound;
     MYFLT   *srcftp, *dstftp, *winftp = NULL;
@@ -3409,6 +3630,10 @@ static int gen53(FGDATA *ff, FUNC *ftp)
     }
     return OK;
 }
+#else
+{ return NOTOK; }
+#endif
+
 
 int allocgen(CSOUND *csound, char *s, GEN fn)
 {
