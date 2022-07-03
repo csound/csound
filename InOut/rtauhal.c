@@ -754,13 +754,24 @@ OSStatus  Csound_Render(void *inRefCon,
     IGN(inBusNumber);
 
     n = csound->ReadCircularBuffer(csound,cdata->outcb,outputBuffer,n);
-    for (k = 0; k < onchnls; k++) {
-      buffer = (Float32 *) ioData->mBuffers[k].mData;
-      for(j=0; (unsigned int) j < inNumberFrames; j++){
-        buffer[j] = (Float32) outputBuffer[j*onchnls+k] ;
-        outputBuffer[j*onchnls+k] = FL(0.0);
+    /* for (k = 0; k < onchnls; k++) { */
+    /*   buffer = (Float32 *) ioData->mBuffers[k].mData; */
+    /*   for(j=0; (unsigned int) j < inNumberFrames; j++){ */
+    /*     buffer[j] = (Float32) outputBuffer[j*onchnls+k] ; */
+    /*     outputBuffer[j*onchnls+k] = FL(0.0); */
+    /*   } */
+    /* } */
+    unsigned int i, l = 0, chns;
+    for (i = 0; i < ioData->mNumberBuffers; i++) {
+      buffer = (Float32 *) ioData->mBuffers[i].mData;
+      chns = ioData->mBuffers[i].mNumberChannels;
+      for(j=0, l=0; (unsigned int) j < inNumberFrames*chns; j+=chns, l++) {
+	for (k = 0; k < chns; k++) {
+	  buffer[j+k] = (Float32) outputBuffer[l*onchnls+(k+1)*i];
+	  outputBuffer[l*onchnls+k*(i+1)] = FL(0.0);
+	}
       }
-    }
+    }  
     return 0;
 }
 
