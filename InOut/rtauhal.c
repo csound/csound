@@ -708,12 +708,22 @@ OSStatus  Csound_Input(void *inRefCon,
 
     AudioUnitRender(cdata->inunit, ioActionFlags, inTimeStamp, inBusNumber,
                     inNumberFrames, cdata->inputdata);
-    for (k = 0; k < inchnls; k++){
+    /*for (k = 0; k < inchnls; k++){
       buffer = (Float32 *) cdata->inputdata->mBuffers[k].mData;
       for(j=0; (unsigned int) j < inNumberFrames; j++){
         inputBuffer[j*inchnls+k] = buffer[j];
       }
-    }
+      }*/
+    unsigned int i, chns;
+    for (i = 0; i <  cdata->inputdata->mNumberBuffers; i++) {
+      buffer = (Float32 *)  cdata->inputdata->mBuffers[i].mData;
+      chns =  cdata->inputdata->mBuffers[i].mNumberChannels;
+      for(j=0, l=0; (unsigned int) j < inNumberFrames*chns; j+=chns, l++) {
+	for (k = 0; k < chns; k++) {
+	  inputBuffer[l*inchnls+(k+1)*i] = buffer[j+k];
+	}
+      }
+    }      
     l = csound->WriteCircularBuffer(csound, cdata->incb,inputBuffer,n);
     return 0;
 }
@@ -723,14 +733,14 @@ static int rtrecord_(CSOUND *csound, MYFLT *inbuff_, int nbytes)
 {
     csdata  *cdata;
     int n = nbytes/sizeof(MYFLT);
-    int m = 0, l, w = n;
-    MYFLT sr = csound->GetSr(csound);
+    int m = 0, l;//, w = n;
+    //MYFLT sr = csound->GetSr(csound);
     cdata = (csdata *) *(csound->GetRtRecordUserData(csound));
     do{
       l = csound->ReadCircularBuffer(csound,cdata->incb,&inbuff_[m],n);
       m += l;
       n -= l;
-      if(n) usleep(MICROS*w/sr);
+      //if(n) usleep(MICROS*w/sr);
     } while(n);
     return nbytes;
 }
@@ -779,14 +789,14 @@ static void rtplay_(CSOUND *csound, const MYFLT *outbuff_, int nbytes)
 {
     csdata  *cdata;
     int n = nbytes/sizeof(MYFLT);
-    int m = 0, l, w = n;
-    MYFLT sr = csound->GetSr(csound);
+    int m = 0, l;//, w = n;
+    //MYFLT sr = csound->GetSr(csound);
     cdata = (csdata *) *(csound->GetRtPlayUserData(csound));
     do {
       l = csound->WriteCircularBuffer(csound, cdata->outcb,&outbuff_[m],n);
       m += l;
       n -= l;
-      if(n) usleep(MICROS*w/sr);
+      //if(n) usleep(MICROS*n/sr);
     } while(n);
 }
 
