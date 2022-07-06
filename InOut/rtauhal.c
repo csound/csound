@@ -708,12 +708,22 @@ OSStatus  Csound_Input(void *inRefCon,
 
     AudioUnitRender(cdata->inunit, ioActionFlags, inTimeStamp, inBusNumber,
                     inNumberFrames, cdata->inputdata);
-    for (k = 0; k < inchnls; k++){
+    /*for (k = 0; k < inchnls; k++){
       buffer = (Float32 *) cdata->inputdata->mBuffers[k].mData;
       for(j=0; (unsigned int) j < inNumberFrames; j++){
         inputBuffer[j*inchnls+k] = buffer[j];
       }
-    }
+      }*/
+    unsigned int i, chns;
+    for (i = 0; i <  cdata->inputdata->mNumberBuffers; i++) {
+      buffer = (Float32 *)  cdata->inputdata->mBuffers[i].mData;
+      chns =  cdata->inputdata->mBuffers[i].mNumberChannels;
+      for(j=0, l=0; (unsigned int) j < inNumberFrames*chns; j+=chns, l++) {
+	for (k = 0; k < chns; k++) {
+	  inputBuffer[l*inchnls+(k+1)*i] = buffer[j+k];
+	}
+      }
+    }      
     l = csound->WriteCircularBuffer(csound, cdata->incb,inputBuffer,n);
     return 0;
 }
