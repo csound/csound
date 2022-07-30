@@ -107,7 +107,7 @@ int32_t instimset(CSOUND *csound, RDTIME *p)
 int32_t instimek(CSOUND *csound, RDTIME *p)
 {
     IGN(csound);
-    *p->rslt = (MYFLT) (CS_KCNT - p->instartk);
+    *p->rslt = (MYFLT) (CS_KCNT - p->instartk - 1);
     return OK;
 }
 
@@ -119,7 +119,7 @@ int32_t instimek(CSOUND *csound, RDTIME *p)
 int32_t instimes(CSOUND *csound, RDTIME *p)
 {
     IGN(csound);
-    *p->rslt = (MYFLT) (CS_KCNT - p->instartk) * CS_ONEDKR;
+    *p->rslt = (MYFLT) (CS_KCNT - p->instartk - 1) * CS_ONEDKR;
     return OK;
 }
 
