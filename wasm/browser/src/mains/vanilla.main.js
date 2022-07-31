@@ -100,7 +100,7 @@ class VanillaWorkerMainThread {
   }
 
   async onPlayStateChange(newPlayState) {
-    if (!this.publicEvents || newPlayState === this.currentPlayState) {
+    if (!this.publicEvents) {
       // prevent error after termination
       return;
     }
@@ -237,7 +237,6 @@ class VanillaWorkerMainThread {
 
     // the default message listener
     this.exportApi.addListener("message", console.log);
-    // this.exportApi.fs = this.fs;
 
     for (const apiK of Object.keys(API)) {
       const reference = API[apiK];
