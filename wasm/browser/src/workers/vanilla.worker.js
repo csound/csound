@@ -239,8 +239,7 @@ const renderFunction =
         workerMessagePort.vanillaWorkerState === "renderStarted" &&
         libraryCsound.csoundPerformKsmps(csound) === 0
       ) {
-        // this is immediately executed, but allows events to be picked up
-        setTimeout(performKsmps, 0);
+        performKsmps();
       } else {
         workerMessagePort.broadcastPlayState("renderEnded");
         endResolve();
