@@ -242,7 +242,7 @@ const renderFunction =
         // this is immediately executed, but allows events to be picked up
         setTimeout(performKsmps, 0);
       } else {
-        workerMessagePort.broadcastPlayState("realtimePerformanceEnded");
+        workerMessagePort.broadcastPlayState("renderEnded");
         endResolve();
       }
     };

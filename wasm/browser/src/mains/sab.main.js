@@ -196,6 +196,7 @@ class SharedArrayBufferMainThread {
       }
       case "renderEnded": {
         log(`event: renderEnded received, beginning cleanup`)();
+        this.publicEvents.triggerRenderEnded(this);
         break;
       }
       default: {
