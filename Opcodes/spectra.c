@@ -963,7 +963,7 @@ int32_t specdiff(CSOUND *csound, SPECDIFF *p)
       MYFLT *newp = (MYFLT *) inspecp->auxch.auxp;
       MYFLT *prvp = (MYFLT *) p->specsave.auxch.auxp;
       MYFLT *difp = (MYFLT *) p->wdiff->auxch.auxp;
-      MYFLT newval, prvval, diff, possum = FL(0.0); /* possum not used! */
+      MYFLT newval, prvval, diff;//, possum = FL(0.0); /* possum not used! */
       int32_t   n,npts = inspecp->npts;
 
       for (n=0; n<npts;n++) {
@@ -971,7 +971,7 @@ int32_t specdiff(CSOUND *csound, SPECDIFF *p)
         prvval = prvp[n];
         if ((diff = newval-prvval) > FL(0.0)) {  /* if new coef > prv coef  */
           difp[n] = diff;
-          possum += diff;                     /*   enter & accum diff    */
+          // possum += diff;                     /*   enter & accum diff    */
         }
         else difp[n] = FL(0.0);               /* else enter zero         */
         prvp[n] = newval;                     /* sav newval for nxt time */
