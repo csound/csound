@@ -68,6 +68,7 @@
 #define AE_DPCM_8       SF_FORMAT_DPCM_8
 #define AE_DPCM_16      SF_FORMAT_DPCM_16
 #define AE_VORBIS       SF_FORMAT_VORBIS
+#define AE_MP3          SF_FORMAT_MPEG_LAYER_III
 
 #define AE_LAST   SF_FORMAT_DPCM_16     /* current last audio encoding value */
 

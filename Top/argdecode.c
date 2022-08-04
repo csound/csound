@@ -691,7 +691,7 @@ static int decode_long(CSOUND *csound, char *s, int argc, char **argv)
     }
     else if (!(strcmp (s, "mpeg"))) {
       O->filetyp = TYP_MPEG;             /* OGG output request   */
-      O->outformat = AE_VORBIS;         /* Xiph Vorbis encoding */
+      O->outformat = AE_MP3;         /* Xiph Vorbis encoding */
       return 1;
     }
     /*
