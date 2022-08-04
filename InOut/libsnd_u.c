@@ -349,7 +349,7 @@ char *type2string(int x)
       case TYP_OGG:   return "OGG";
       case TYP_MPC2K: return "MPC2K";
       case TYP_RF64:  return "RF64";
-      case TYP_MPEG:  return "MP3";
+      case TYP_MPEG:  return "MPEG";
       default:        return Str("unknown");
     }
 }
