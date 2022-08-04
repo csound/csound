@@ -96,6 +96,7 @@
 #define TYP_CAF   (SF_FORMAT_CAF >> 16)
 #define TYP_WVE   (SF_FORMAT_WVE >> 16)
 #define TYP_OGG   (SF_FORMAT_OGG >> 16)
+#define TYP_MPEG  (SF_FORMAT_MPEG >> 16)
 #define TYP_MPC2K (SF_FORMAT_MPC2K >> 16)
 #define TYP_RF64  (SF_FORMAT_RF64 >> 16)
 

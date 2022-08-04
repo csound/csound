@@ -703,6 +703,9 @@ void sfopenout(CSOUND *csound)                  /* init for sound out       */
       case TYP_OGG:
         O->outfilename = "test.ogg";
         break;
+      case TYP_MPEG:
+        O->outfilename = "test.mp3";
+        break;
       /* case TYP_MPC2K: */
       /*   O->outfilename = ""; */
       /*   break; */

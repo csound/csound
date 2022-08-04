@@ -412,6 +412,7 @@ extern "C" {
     CSFTYPE_SVX,
     CSFTYPE_VOC,
     CSFTYPE_XI,
+    CSFTYPE_MPEG,
     CSFTYPE_UNKNOWN_AUDIO,     /* used when opening audio file for reading
                                   or temp file written with <CsSampleB> */
 
