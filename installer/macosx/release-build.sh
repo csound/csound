@@ -124,6 +124,9 @@ mv $FRAMEWORK64_DIR/Resources/html $FRAMEWORK64_DIR/Resources/Manual
 
 #cp csound6/samples/*.dat $FRAMEWORK64_DIR/$SAMPLES_DIR
 
+cp  $BLD/libCsoundLib64.a $FRAMEWORK64_DIR/
+cp  $BLD/libcsnd6.a $FRAMEWORK64_DIR/
+
 echo "copying apps..."
 
 cp $DIST/bin/* $APPS64_DIR
