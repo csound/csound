@@ -558,7 +558,7 @@ static SNDFILE *MXsndgetset(CSOUND *csound, inputs *ddd)
     int32_t     maxtimes, mintimes;
     long    sample = 0;
     int32_t     i, j, k;
-    long    bytes = 0;
+    //    long    bytes = 0;
     int32_t     block = 0;
     int32_t     more_to_read = 1;
     int32_t     size;
@@ -626,7 +626,7 @@ static SNDFILE *MXsndgetset(CSOUND *csound, inputs *ddd)
       }
       sf_write_MYFLT(outfd, buffer, this_block * outputs);
       block++;
-      bytes += O->sfsampsize * this_block * outputs;
+      //      bytes += O->sfsampsize * this_block * outputs;
       switch (O->heartbeat) {
       case 1:
         csound->MessageS(csound, CSOUNDMSG_REALTIME, "%c\b", "|/-\\"[block&3]);
