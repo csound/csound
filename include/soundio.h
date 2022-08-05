@@ -26,6 +26,14 @@
 
 #include <sndfile.h>
 
+#ifndef SNDFILE_MP3
+// set missing tokens
+#define SF_FORMAT_MPEG 0x230000		/* MPEG-1/2 audio stream */
+#define	SF_FORMAT_MPEG_LAYER_I	0x0080		/* MPEG-1 Audio Layer I */
+#define SF_FORMAT_MPEG_LAYER_II	0x0081,		/* MPEG-1 Audio Layer II */
+#define SF_FORMAT_MPEG_LAYER_III 0x0082		/* MPEG-2 Audio Layer III */
+#endif
+
 #ifdef WIN32
 #define IOBUFSAMPS   4096   /* default sampframes in audio iobuf, -b settable */
 #define IODACSAMPS   16384  /* default samps in hardware buffer,  -B settable */
@@ -69,7 +77,6 @@
 #define AE_DPCM_16      SF_FORMAT_DPCM_16
 #define AE_VORBIS       SF_FORMAT_VORBIS
 #define AE_MPEG         SF_FORMAT_MPEG | SF_FORMAT_MPEG_LAYER_III
-
 
 #define AE_LAST   SF_FORMAT_DPCM_16     /* current last audio encoding value */
 

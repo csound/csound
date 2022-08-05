@@ -25,7 +25,7 @@ jobs:
       - name: Install Dependencies
         run: sudo apt-get update && sudo apt-get install cmake libsndfile1-dev libasound2-dev libjack-dev portaudio19-dev libportmidi-dev libpulse-dev swig liblua5.1-0-dev default-jdk libfltk1.1-dev libfluidsynth-dev liblo-dev fluid ladspa-sdk libpng-dev dssi-dev libstk0-dev libgmm++-dev bison flex libportsmf-dev libeigen3-dev libcunit1-dev
       - name: Configure build
-        run: mkdir build && cd build && cmake ..
+        run: mkdir build && cd build && cmake .. -DUSE_MP3=0
       - name: Build Csound
         run: cd build && make
       - name: Run tests
@@ -88,9 +88,9 @@ jobs:
       - name: Configure build
         run: cmake -B build -S . -DUSE_VCPKG=1 -DCUSTOM_CMAKE="./platform/windows/Custom-vs.cmake"
       - name: Build Csound
-        run: cmake --build build --config Release
+        run: cmake --build build --config Release -DUSE_MP3=0
       - name: Run tests
-        run: cmake --build build --target csdtests
+        run: cmake --build build --target csdtests -DUSE_MP3=0
       - name: Acquire Csound manual
         shell: powershell
         run: |
