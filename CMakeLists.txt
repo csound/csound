@@ -4,6 +4,9 @@ cmake_minimum_required(VERSION 3.5)
 set(CMAKE_MACOSX_RPATH 1)
 set(CMAKE_EXPORT_COMPILE_COMMANDS 1)
 
+
+
+
 option(USE_VCPKG "Use VCPKG to download and manage dependencies" OFF)
 
 if (USE_VCPKG)
@@ -226,6 +229,17 @@ if(APPLE)
         message(STATUS  "clock_gettime() not found")
     endif()
 endif()
+
+
+option(USE_MP3 "Use MP3 support in libsndfile" ON)
+
+if (USE_MP3)
+  message(STATUS  "Using libsndfile MP3 support")
+  set(CMAKE_C_FLAGS "-DSNDFILE_MP3")
+else()
+  message(STATUS  "NOT Using libsndfile MP3 support")
+endif()
+
 
 # library installation directories
 option(USE_LIB64 "Set to on to set installation directory for libraries to lib64" OFF)
