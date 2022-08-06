@@ -33,7 +33,7 @@ const uint32_t bitmask[17] = {
 const int32_t frequency_table[9] = {
   44100, 48000, 32000, 22050, 24000, 16000, 11025, 12000, 8000 };
 
-const int16_t bitrate_table[2][3][16] = {
+const int16_t mpa_bitrate_table[2][3][16] = {
   { { 0, 32, 64, 96, 128, 160, 192, 224, 256, 288, 320, 352, 384, 416, 448, 560 },
     { 0, 32, 48, 56,  64,  80,  96, 112, 128, 160, 192, 224, 256, 320, 384, 448 },
     { 0, 32, 40, 48,  56,  64,  80,  96, 112, 128, 160, 192, 224, 256, 320, 384 } },
@@ -47,7 +47,7 @@ extern void decode_layer1(mpadec_t mpadec, uint8_t *buffer);
 extern void decode_layer2(mpadec_t mpadec, uint8_t *buffer);
 extern void decode_layer3(mpadec_t mpadec, uint8_t *buffer);
 
-uint32_t getbits(mpadec_t mpadec, unsigned n)
+uint32_t mpa_getbits(mpadec_t mpadec, unsigned n)
 {
     register struct mpadec_t *mpa = (struct mpadec_t *)mpadec;
 
@@ -143,7 +143,7 @@ static int decode_header(mpadec_t mpadec, uint32_t header)
     } else mpa->frame.LSF = mpa->frame.MPEG25 = TRUE;
     mpa->frame.layer = (uint8_t)layer;
     mpa->frame.bitrate_index = bridx;
-    mpa->frame.bitrate = bitrate_table[mpa->frame.LSF][layer - 1][bridx];
+    mpa->frame.bitrate = mpa_bitrate_table[mpa->frame.LSF][layer - 1][bridx];
     mpa->frame.frequency_index = (fridx += 3*(mpa->frame.LSF + mpa->frame.MPEG25));
     mpa->frame.frequency = frequency_table[fridx];
     mpa->frame.decoded_frequency = mpa->frame.frequency >> mpa->config.quality;

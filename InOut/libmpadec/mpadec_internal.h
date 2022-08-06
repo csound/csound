@@ -210,6 +210,6 @@ struct mpadec2_t {
 
 #define GETBITS(n) ((mpa->bits_left >= (uint8_t)(n)) \
                     ? ((mpa->bit_buffer >> (mpa->bits_left -= \
-                       (uint8_t)(n))) & bitmask[n]) : getbits(mpa, n))
+                       (uint8_t)(n))) & bitmask[n]) : mpa_getbits(mpa, n))
 
 #endif

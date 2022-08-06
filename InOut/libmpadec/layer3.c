@@ -31,7 +31,7 @@ extern const MYFLT tfcos12[3];
 extern const MYFLT cs[8];
 extern const MYFLT ca[8];
 
-extern uint32_t getbits(mpadec_t mpadec, unsigned n);
+extern uint32_t mpa_getbits(mpadec_t mpadec, unsigned n);
 extern uint16_t update_crc(uint16_t init, uint8_t *buf, int length);
 
 static int decode_layer3_sideinfo(mpadec_t mpadec)
