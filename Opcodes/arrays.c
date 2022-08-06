@@ -3491,7 +3491,7 @@ int32_t perf_rfftmult(CSOUND *csound, FFT *p) {
 void csoundComplexFFTnp2(CSOUND *csound, MYFLT *buf, int32_t FFTsize);
 void csoundInverseComplexFFTnp2(CSOUND *csound, MYFLT *buf, int32_t FFTsize);
 
-int32_t init_fft(CSOUND *csound, FFT *p) {
+int32_t initialise_fft(CSOUND *csound, FFT *p) {
   int32_t   N2 = p->in->sizes[0];
   if (UNLIKELY(p->in->dimensions > 1))
     return csound->InitError(csound, "%s",
@@ -3512,7 +3512,7 @@ int32_t perf_fft(CSOUND *csound, FFT *p) {
 }
 
 int32_t fft_i(CSOUND *csound, FFT *p) {
-  if (init_fft(csound,p) == OK)
+  if (initialise_fft(csound,p) == OK)
     return perf_fft(csound, p);
   else return NOTOK;
 }
@@ -4734,7 +4734,7 @@ static OENTRY arrayvars_localops[] =
     {"cmplxprod", sizeof(FFT), 0, 3, "k[]","k[]k[]",
      (SUBR) init_rfftmult, (SUBR) perf_rfftmult, NULL},
     {"fft", sizeof(FFT), 0, 3, "k[]","k[]",
-     (SUBR) init_fft, (SUBR) perf_fft, NULL},
+     (SUBR) initialise_fft, (SUBR) perf_fft, NULL},
     {"fft", sizeof(FFT), 0, 1, "i[]","i[]",
      (SUBR) fft_i, NULL, NULL},
     {"fftinv", sizeof(FFT), 0, 3, "k[]","k[]",
