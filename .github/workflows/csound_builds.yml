@@ -58,8 +58,8 @@ jobs:
   #    run: docker cp csound_test_run:/csound/Android/csound-android-6.18.0.zip .
   #  - uses: actions/upload-artifact@v2
   #    with:
- #       name: csound-android-6.18.0.zip
- #      path: .
+  #       name: csound-android-6.18.0.zip
+  #      path: .
 
   windows_build:
     name: Windows build
@@ -88,9 +88,9 @@ jobs:
       - name: Configure build
         run: cmake -B build -S . -DUSE_VCPKG=1 -DCUSTOM_CMAKE="./platform/windows/Custom-vs.cmake"
       - name: Build Csound
-        run: cmake --build build --config Release -DUSE_MP3=0
+        run: cmake --build build --config Release
       - name: Run tests
-        run: cmake --build build --target csdtests -DUSE_MP3=0
+        run: cmake --build build --target csdtests
       - name: Acquire Csound manual
         shell: powershell
         run: |
