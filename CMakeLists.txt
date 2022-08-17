@@ -76,7 +76,6 @@ include(CMakeParseArguments)
 include(CheckCCompilerFlag)
 include(CheckCXXCompilerFlag)
 include(CMakePushCheckState)
-include(CheckSymbolExists)
 
 list(APPEND CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/cmake/Modules/)
 message(STATUS "CMake module path: ${CMAKE_MODULE_PATH}")
@@ -219,7 +218,7 @@ if(NOT MSVC AND NOT WASM)
 endif()
 
 if(APPLE)
-    list(APPEND CMAKE_REQUIRED_INCLUDES "time.h")
+    #list(APPEND CMAKE_REQUIRED_INCLUDES "time.h")
     CHECK_FUNCTION_EXISTS(clock_gettime CLOCK_GETTIME)
     if(${CLOCK_GETTIME})
         message(STATUS  "clock_gettime() found")
@@ -229,17 +228,6 @@ if(APPLE)
     endif()
 endif()
 
-
-option(USE_MP3 "Use MP3 support in libsndfile" ON)
-check_symbol_exists(SF_FORMAT_MPEG "sndfile.h" HAVE_SNDFILE_MP3)
-check_deps(USE_MP3 HAVE_SNDFILE_MP3)
-
-if (USE_MP3)
-  message(STATUS  "Using libsndfile MP3 support")
-  set(CMAKE_C_FLAGS "-DSNDFILE_MP3")
-else()
-  message(STATUS  "NOT Using libsndfile MP3 support")
-endif()
 
 
 # library installation directories
@@ -477,6 +465,37 @@ else()
     endif()
 endif()
 
+if(EMSCRIPTEN)
+  include_directories(emscripten/deps/libsndfile-1.0.25/src/)
+endif()
+find_path(SNDFILE_H_PATH sndfile.h)
+if(SNDFILE_H_PATH)
+    include_directories(${SNDFILE_H_PATH})
+else()
+    message(FATAL_ERROR "Could not find sndfile.h")
+endif()
+
+SET(CMAKE_REQUIRED_LIBRARIES ${LIBSNDFILE_LIBRARY})
+SET(CMAKE_REQUIRED_INCLUDES ${SNDFILE_H_PATH})
+
+check_c_source_compiles("#include <sndfile.h>
+int main(int argc, char** argv) {
+printf(\"SF_FORMAT_MPEG: %d\", SF_FORMAT_MPEG);
+return 0;
+}" HAVE_SF_FORMAT_MPEG)
+
+option(USE_MP3 "Use MP3 support in libsndfile" ON)
+check_deps(USE_MP3 HAVE_SF_FORMAT_MPEG)
+
+if (USE_MP3)
+  message(STATUS  "Using libsndfile MP3 support")
+  set(CMAKE_C_FLAGS "-DSNDFILE_MP3")
+else()
+  message(STATUS  "NOT Using libsndfile MP3 support")
+endif()
+
+
+
 find_package(CURL)
 #set(FLTK_SKIP_OPENGL true)
 #find_package(FLTK)
@@ -500,12 +519,6 @@ if(WIN32)
   #message(STATUS "${LIBSNDFILE_SUPPORT_LIBS}")
 endif()
 
-find_path(SNDFILE_H_PATH sndfile.h)
-if(SNDFILE_H_PATH)
-    include_directories(${SNDFILE_H_PATH})
-else()
-    message(FATAL_ERROR "Could not find sndfile.h")
-endif()
 
 if(NOT MSVC AND REQUIRE_PTHREADS)
   # Use ladder of if's to support older CMake versions (i.e., travis)
@@ -525,7 +538,7 @@ if(NOT MSVC AND REQUIRE_PTHREADS)
   #FIXME this variable is for required include directories, possible bug
   list(APPEND CMAKE_REQUIRED_INCLUDES pthread.h)
   if (NOT HAIKU)
-    set(CMAKE_REQUIRED_LIBRARIES pthread)
+    list(APPEND CMAKE_REQUIRED_LIBRARIES pthread)
   endif()
 endif()
 
@@ -1150,9 +1163,6 @@ else()
     FRAMEWORK DESTINATION "${CS_FRAMEWORK_DEST}")
 endif()
 
-if(EMSCRIPTEN)
-  include_directories(emscripten/deps/libsndfile-1.0.25/src/)
-endif()
 
 set(libcsound_LIBS ${LIBSNDFILE_LIBRARY})
 
