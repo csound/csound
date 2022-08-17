@@ -5,8 +5,6 @@ set(CMAKE_MACOSX_RPATH 1)
 set(CMAKE_EXPORT_COMPILE_COMMANDS 1)
 
 
-
-
 option(USE_VCPKG "Use VCPKG to download and manage dependencies" OFF)
 
 if (USE_VCPKG)
@@ -78,6 +76,7 @@ include(CMakeParseArguments)
 include(CheckCCompilerFlag)
 include(CheckCXXCompilerFlag)
 include(CMakePushCheckState)
+include(CheckSymbolExists)
 
 list(APPEND CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/cmake/Modules/)
 message(STATUS "CMake module path: ${CMAKE_MODULE_PATH}")
@@ -232,6 +231,8 @@ endif()
 
 
 option(USE_MP3 "Use MP3 support in libsndfile" ON)
+check_symbol_exists(SF_FORMAT_MPEG "sndfile.h" HAVE_SNDFILE_MP3)
+check_deps(USE_MP3 HAVE_SNDFILE_MP3)
 
 if (USE_MP3)
   message(STATUS  "Using libsndfile MP3 support")
