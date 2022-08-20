@@ -40,7 +40,7 @@ jobs:
           sudo apt-get update
           sudo apt-get install cmake libasound2-dev libjack-dev libpulse-dev ladspa-sdk dssi-dev libcunit1-dev
       - name: Configure Build
-        run: cmake -B build -S . -DUSE_VCPKG=1 -DUSE_MP3=0 -DBUILD_STATIC_LIBRARY=1
+        run: cmake -B build -S . -DUSE_VCPKG=1 -DUSE_MP3=0 -DBUILD_STATIC_LIBRARY=1 -DCUSTOM_CMAKE="./platform/linux/custom.cmake"
       - name: Build Csound
         run: cmake --build build --config Release
       - name: Run Tests
