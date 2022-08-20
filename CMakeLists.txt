@@ -14,7 +14,7 @@ if (USE_VCPKG)
     elseif(APPLE)
         set(VCPKG_TARGET_TRIPLET "x64-osx")
     elseif (UNIX)
-        set(VCPKG_TARGET_TRIPLET "x64-linux")
+        set(VCPKG_TARGET_TRIPLET "x64-linux-csound")
     endif()
 
     set(VCPKG_FEATURE_FLAGS versions)
