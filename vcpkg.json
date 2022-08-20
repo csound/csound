@@ -17,6 +17,10 @@
             "name": "libsndfile",
             "features": ["external-libs"]
         },
+        {
+            "name": "gettext",
+            "platform": "linux"
+        },
         "gtest",
         {
             "name": "gettext",
