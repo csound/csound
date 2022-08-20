@@ -11,6 +11,6 @@ index 122fe93..b571c38 100644
 -  SET(PA_LIBNAME_ADD_SUFFIX ON CACHE BOOL "Forcing use of suffix _static to avoid name conflict between static and import library" FORCE)
 -  MESSAGE(WARNING "PA_LIBNAME_ADD_SUFFIX was set to ON")
 -ENDIF()
- 
+
  SET(PA_TARGETS "")
- 
+

@@ -1,5 +1,3 @@
-vcpkg_fail_port_install(ON_TARGET "uwp")
-
 vcpkg_download_distfile(
     ASIO_SDK
     URLS "https://www.steinberg.net/asiosdk"

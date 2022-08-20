@@ -140,8 +140,7 @@ if(PORTAUDIO_FOUND OR USE_VCPKG)
     make_plugin(rtpa rtpa.c)
 
     if(USE_VCPKG)
-        # FIXME should be able to use 'portaudio' target but it's not using the proper path
-        target_link_libraries(rtpa PRIVATE portaudio_static)
+        target_link_libraries(rtpa PRIVATE portaudio)
     else()
         target_include_directories(rtpa PRIVATE ${PORTAUDIO_INCLUDE_DIRS})
         target_link_libraries(rtpa ${PORTAUDIO_LIBRARIES})
