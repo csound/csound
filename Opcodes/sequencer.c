@@ -242,15 +242,20 @@ static int32_t sequencer(CSOUND *csound, SEQ *p)
     return OK;
 }
 
-int sequStateInit(CSOUND *csound, SEQSTATE* p)
+static int sequState(CSOUND *csound, SEQSTATE* p);
+
+static int sequStateInit(CSOUND *csound, SEQSTATE* p)
 {
     int id = (int)*p->id;
     SEQ **r = (SEQ**)csound->QueryGlobalVariable(csound, "sequGlobals");
-    if (r==NULL || r[id]==NULL)
-      return csound->InitError(csound, Str("No sequs"));
+    if (r==NULL || r[id]==NULL) {
+      csound->Warning(csound, Str("No sequs"));
+      return OK;
+    }
     p->q = r[id];
     if (p->riff->sizes[0] != p->q->max_length)
       csound->InitError(csound, Str("sequstate: Wrong sizeof output array"));
+    sequState(csound, p);
     return OK;
 }
 
@@ -260,7 +265,7 @@ static int sequState(CSOUND *csound, SEQSTATE* p)
     int i;
     int len = (int)*q->klen;
     for (i=0; i<len; i++)
-      p->riff->data[i] = (MYFLT)q->seq[i];
+      p->riff->data[i] = q->riff->data[q->seq[i]];
     *p->res = (MYFLT)q->cnt;
     return OK;
 }
@@ -270,7 +275,9 @@ static OENTRY sequencer_localops[] =
    { "sequ", sizeof(SEQ), 0, 3, "k",
      "i[]i[]i[]kkOOOoo",
      (SUBR) sequencer_init, (SUBR) sequencer },
-   { "sequstate", sizeof(SEQSTATE), 0, 3, "kk[]", "o",
+   { "sequstate.i", sizeof(SEQSTATE), 0, 1, "ii[]", "o",
+     (SUBR) sequStateInit },
+   { "sequstate.k", sizeof(SEQSTATE), 0, 3, "kk[]", "o",
    (SUBR) sequStateInit, (SUBR) sequState
   }
 };
