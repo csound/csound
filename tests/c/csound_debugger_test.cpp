@@ -4,14 +4,14 @@
  */
 
 #include <stdio.h>
+#include "gtest/gtest.h"
 #include "csound.h"
 #include "csdebug.h"
-#include "gtest/gtest.h"
 
 class DebuggerTests : public ::testing::Test {
 public:
     DebuggerTests ()
-    {   
+    {
     }
 
     virtual ~DebuggerTests ()
@@ -31,6 +31,7 @@ public:
         csoundCleanup (csound);
         csoundDestroyMessageBuffer (csound);
         csoundDestroy (csound);
+        csound = nullptr;
     }
 
     CSOUND* csound {nullptr};
@@ -40,8 +41,6 @@ TEST_F (DebuggerTests, testDebuggerInit)
 {
     csoundDebuggerInit(csound);
     csoundDebuggerClean(csound);
-    csoundDestroyMessageBuffer(csound);
-    csoundDestroy(csound);
 }
 
 TEST_F (DebuggerTests, testAddBreakpoint)
@@ -53,8 +52,6 @@ TEST_F (DebuggerTests, testAddBreakpoint)
     csoundSetInstrumentBreakpoint(csound, 1.1, 0);
     csoundClearBreakpoints(csound);
     csoundDebuggerClean(csound);
-    csoundDestroyMessageBuffer(csound);
-    csoundDestroy(csound);
 }
 
 static void brkpt_cb(CSOUND *csound, debug_bkpt_info_t *bkpt_info, void *userdata)
@@ -68,8 +65,6 @@ TEST_F (DebuggerTests, testAddCallback)
     csoundDebuggerInit(csound);
     csoundSetBreakpointCallback(csound, brkpt_cb, NULL);
     csoundDebuggerClean(csound);
-    csoundDestroyMessageBuffer(csound);
-    csoundDestroy(csound);
 }
 
 TEST_F (DebuggerTests, testBreakpointOnce)
@@ -87,11 +82,9 @@ TEST_F (DebuggerTests, testBreakpointOnce)
     for (i = 0; i < 1000; i++) {
         csoundPerformKsmps(csound);
     }
-    ASSERT_EQ (break_count, 1);
 
+    ASSERT_EQ (break_count, 1);
     csoundDebuggerClean(csound);
-    csoundDestroyMessageBuffer(csound);
-    csoundDestroy(csound);
 }
 
 static void brkpt_cb2(CSOUND *csound, debug_bkpt_info_t *bkpt_info, void *userdata)
@@ -129,8 +122,6 @@ TEST_F (DebuggerTests, testBreakpointRemove)
     }
 
     csoundDebuggerClean(csound);
-    csoundDestroyMessageBuffer(csound);
-    csoundDestroy(csound);
 }
 
 static void brkpt_cb3(CSOUND *csound, debug_bkpt_info_t *bkpt_info, void *userdata)
@@ -157,8 +148,6 @@ TEST_F (DebuggerTests, testVariables)
     csoundSetInstrumentBreakpoint(csound, 1, 1);
     csoundPerformKsmps(csound);
     csoundDebuggerClean(csound);
-    csoundDestroyMessageBuffer(csound);
-    csoundDestroy(csound);
 }
 
 static void brkpt_cb4(CSOUND *csound, debug_bkpt_info_t *bkpt_info, void *userdata)
@@ -180,8 +169,6 @@ TEST_F (DebuggerTests, testBreakpointInstrument)
     csoundSetInstrumentBreakpoint(csound, 1, 0);
     csoundPerformKsmps(csound);
     csoundDebuggerClean(csound);
-    csoundDestroyMessageBuffer(csound);
-    csoundDestroy(csound);
 }
 
 int count = 0;
@@ -219,14 +206,13 @@ TEST_F (DebuggerTests, testLineBreakpointAddRemove)
     csoundPerformKsmps(csound);
 
     csoundDebuggerClean(csound);
-    csoundDestroyMessageBuffer(csound);
-    csoundDestroy(csound);
     ASSERT_EQ(count, 2);
 }
 
 static void brkpt_cb6(CSOUND *csound, debug_bkpt_info_t *bkpt_info, void *userdata)
 {
     debug_opcode_t *debug_opcode = bkpt_info->currentOpcode;
+
     if (count == 0) {
         ASSERT_STREQ (debug_opcode->opname, "oscils");
     } else if (count == 1) {
@@ -234,6 +220,7 @@ static void brkpt_cb6(CSOUND *csound, debug_bkpt_info_t *bkpt_info, void *userda
     } else if (count == 2) {
         ASSERT_STREQ (debug_opcode->opname, "line");
     }
+
     count++;
 }
 
@@ -286,8 +273,6 @@ TEST_F (DebuggerTests, testLineBreakpoint)
     ASSERT_EQ (count, 3);
 
     csoundDebuggerClean(csound);
-    csoundDestroyMessageBuffer(csound);
-    csoundDestroy(csound);
 
     ASSERT_EQ(count, 3);
 }
@@ -297,6 +282,7 @@ static void brkpt_cb7(CSOUND *csound, debug_bkpt_info_t *bkpt_info, void *line_)
     debug_opcode_t *debug_opcode = bkpt_info->currentOpcode;
     int *line = (int *) line_;
     ASSERT_EQ (debug_opcode->line, *line);
+
     if (*line == 5) {
         ASSERT_STREQ (debug_opcode->opname, "line");
     } else if (*line == 6) {
@@ -304,6 +290,7 @@ static void brkpt_cb7(CSOUND *csound, debug_bkpt_info_t *bkpt_info, void *line_)
     } else {
         ASSERT_EQ (0, 1); // Wrong line number
     }
+
     count++;
 }
 
@@ -357,8 +344,6 @@ TEST_F (DebuggerTests, testLineBreakpointOrcFile)
 
     csoundDebuggerClean(csound);
     ASSERT_EQ(count, 2);
-    csoundDestroyMessageBuffer(csound);
-    csoundDestroy(csound);
 }
 
 TEST_F (DebuggerTests, testNoCallback)
@@ -368,8 +353,6 @@ TEST_F (DebuggerTests, testNoCallback)
     csoundSetInstrumentBreakpoint(csound, 1, 0);
     csoundPerformKsmps(csound);
     csoundDebuggerClean(csound);
-    csoundDestroyMessageBuffer(csound);
-    csoundDestroy(csound);
 }
 
 static void brkpt_cb8(CSOUND *csound, debug_bkpt_info_t *bkpt_info, void *line_)
@@ -479,7 +462,6 @@ TEST_F (DebuggerTests, testNext)
     csoundPerformKsmps(csound);
 
     csoundDebuggerClean(csound);
-    csoundDestroyMessageBuffer(csound);
-    csoundDestroy(csound);
+
     ASSERT_EQ(count, 5);
 }
