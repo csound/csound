@@ -1169,6 +1169,7 @@ if(EMSCRIPTEN)
   include_directories(emscripten/deps/libsndfile-1.0.25/src/)
 endif()
 
+# TODO include target rather than libs to also bring in transitive dependencies
 set(libcsound_LIBS ${LIBSNDFILE_LIBRARY})
 
 if(REQUIRE_PTHREADS AND PTHREAD_LIBRARY)
