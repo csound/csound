@@ -265,7 +265,7 @@ static int sequState(CSOUND *csound, SEQSTATE* p)
     int i;
     int len = (int)*q->klen;
     for (i=0; i<len; i++)
-      p->riff->data[i] = q->riff->data[q->seq[i]];
+      p->riff->data[i] = /* q->riff->data[*/ q->seq[i]/*]*/;
     *p->res = (MYFLT)q->cnt;
     return OK;
 }
