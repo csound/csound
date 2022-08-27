@@ -270,6 +270,7 @@ typedef struct CORFIL {
     int     echo;
     MYFLT   limiter;
     float   sr_default, kr_default;
+    int     mp3_mode;
   } OPARMS;
 
   typedef struct arglst {

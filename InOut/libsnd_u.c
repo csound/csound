@@ -379,6 +379,7 @@ char *getstrformat(int format)  /* used here, and in sfheader.c */
       case  AE_DOUBLE:  return Str("double floats");
       case  AE_24INT:   return Str("24bit ints");     /* RWD 5:2001 */
       case  AE_VORBIS:  return Str("vorbis encoding");
+      case  AE_MPEG:    return Str("mpeg encoding");
     }
     return Str("unknown");
 }

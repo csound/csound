@@ -317,6 +317,7 @@ static const char *longUsageList[] = {
   Str_noop("--udp-echo              echo UDP commands on terminal"),
   Str_noop("--aft-zero              set aftertouch to zero, not 127 (default)"),
   Str_noop("--limiter[=num]         include clipping in audio output"),
+  Str_noop("--vbr                   set MPEG encoding to variable bitrate"),
   " ",
   Str_noop("--help                  long help"),
   NULL
@@ -1252,6 +1253,12 @@ static int decode_long(CSOUND *csound, char *s, int argc, char **argv)
     }
     else if (!(strcmp(s, "limiter"))) {
       O->limiter = 0.5;
+      return 1;
+    }
+     else if (!(strcmp(s, "vbr"))) {
+  #ifdef SNDFILE_MP3    
+      O->mp3_mode = SF_BITRATE_MODE_VARIABLE;
+  #endif    
       return 1;
     }
     csoundErrorMsg(csound, Str("unknown long option: '--%s'"), s);

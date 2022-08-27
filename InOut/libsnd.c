@@ -841,12 +841,11 @@ void sfopenout(CSOUND *csound)                  /* init for sound out       */
  #ifdef SNDFILE_MP3
     // VL: setting bitrate to constant improves quality
     if(O->filetyp == TYP_MPEG) {
-      csound->Message(csound, "Setting MP3 bitrate to constant\n");
-      int bitr = SF_BITRATE_MODE_CONSTANT;
+      csound->Message(csound, "Setting MP3 bitrate to %s\n", O->mp3_mode ? "variable" : "constant" );;
       sf_command(STA(outfile), SFC_SET_BITRATE_MODE,
-                 &bitr, sizeof(int));
+                 &(O->mp3_mode), sizeof(int));
     }
-#endif
+ #endif
     
     /* IV - Feb 22 2005: clip integer formats */
     if (O->outformat != AE_FLOAT && O->outformat != AE_DOUBLE)
