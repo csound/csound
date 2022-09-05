@@ -18,14 +18,16 @@ jobs:
     name: Linux/Ubuntu build
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout Source Code
+      - name: Checkout source code
         uses: actions/checkout@v1
         with:
           fetch-depth: 1
           submodules: true
+
       - name: Bootstrap VCPKG
         run: ./vcpkg/bootstrap-vcpkg.sh
-      - name: Setup NuGet Credentials
+
+      - name: Setup NuGet credentials
         shell: bash
         run: >
           mono `./vcpkg/vcpkg fetch nuget | tail -n 1`
@@ -35,15 +37,19 @@ jobs:
           -name "GitHub"
           -username "csound"
           -password "${{ secrets.GITHUB_TOKEN }}"
-      - name: Install Dependencies
+
+      - name: Install dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install cmake libasound2-dev libjack-dev libpulse-dev ladspa-sdk dssi-dev libcunit1-dev
+          sudo apt-get install cmake libasound2-dev libjack-dev libpulse-dev ladspa-sdk dssi-dev
+
       - name: Configure Build
         run: cmake -B build -S . -DUSE_VCPKG=1 -DUSE_MP3=0 -DBUILD_STATIC_LIBRARY=1 -DCUSTOM_CMAKE="./platform/linux/custom.cmake"
+
       - name: Build Csound
         run: cmake --build build --config Release
-      - name: Run Tests
+
+      - name: Run integration and unit tests
         run: cmake --build build --target test csdtests
 
   macos_build:
