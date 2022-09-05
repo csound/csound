@@ -1,4 +1,5 @@
 cmake_minimum_required(VERSION 3.5)
+cmake_policy(SET CMP0077 NEW)
 
 # silence RPATH cmake warning
 set(CMAKE_MACOSX_RPATH 1)
