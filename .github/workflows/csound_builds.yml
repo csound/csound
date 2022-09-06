@@ -61,6 +61,9 @@ jobs:
         with:
           fetch-depth: 1
 
+      - name: Bootstrap VCPKG
+        run: ./vcpkg/bootstrap-vcpkg.sh
+
       - name: Install dependencies
         run: brew install cmake bison flex swig asio jack openjdk
 
