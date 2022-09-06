@@ -65,6 +65,17 @@ jobs:
       - name: Bootstrap VCPKG
         run: ./vcpkg/bootstrap-vcpkg.sh
 
+      - name: Setup NuGet credentials
+        shell: bash
+        run: >
+          mono `./vcpkg/vcpkg fetch nuget | tail -n 1`
+          sources add
+          -source "https://nuget.pkg.github.com/csound/index.json"
+          -storepasswordincleartext
+          -name "GitHub"
+          -username "csound"
+          -password "${{ secrets.GITHUB_TOKEN }}"
+
       - name: Install dependencies
         run: brew install bison flex asio jack
 

@@ -23,7 +23,7 @@ if(BUILD_TESTS AND BUILD_STATIC_LIBRARY AND GTest_FOUND)
         ${CMAKE_CURRENT_BINARY_DIR}/../../H
         ${CMAKE_SOURCE_DIR}/interfaces)
 
-    if(MSVC)
+    if(USE_VCPKG)
         find_package(GTest CONFIG REQUIRED)
 
         target_link_libraries(unittests PRIVATE
