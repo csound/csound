@@ -66,7 +66,7 @@ jobs:
         run: ./vcpkg/bootstrap-vcpkg.sh
 
       - name: Install dependencies
-        run: brew install cmake bison flex swig asio jack openjdk
+        run: brew install bison flex asio jack
 
       - name: Configure build
         run: cmake -B build -S . -DUSE_VCPKG=1 -DCUSTOM_CMAKE="./platform/osx/custom-osx.cmake"
