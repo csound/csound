@@ -60,6 +60,7 @@ jobs:
         uses: actions/checkout@v1
         with:
           fetch-depth: 1
+          submodules: true
 
       - name: Bootstrap VCPKG
         run: ./vcpkg/bootstrap-vcpkg.sh
