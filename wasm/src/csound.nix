@@ -15,9 +15,9 @@ let
          (with builtins; fromJSON (readFile ./exports.json))
        } \
       -L${wasi-sdk}/share/wasi-sysroot/lib/wasm32-wasi \
-      -L${libsndfile}/lib -L${libflac}/lib -L${libogg}/lib -L${libvorbis}/lib \
+      -L${libsndfile}/lib -L${libflac}/lib -L${libogg}/lib -L${libvorbis}/lib -L${liblame}/lib \
       -lc -lc++ -lc++abi -lrt -lutil -lxnet -lresolv -lc-printscan-long-double \
-      -lflac -logg -lvorbis -lsndfile -lwasi-emulated-getpid \
+      -lflac -logg -lvorbis -llame -lsndfile -lwasi-emulated-getpid \
       -lwasi-emulated-signal -lwasi-emulated-mman -lwasi-emulated-process-clocks \
       ${wasi-sdk}/share/wasi-sysroot/lib/wasm32-wasi/crt1.o \
        *.o -o csound.static.wasm
@@ -35,9 +35,9 @@ let
          (with builtins; fromJSON (readFile ./exports.json))
        } \
       -L${wasi-sdk}/share/wasi-sysroot/lib/wasm32-unknown-emscripten \
-      -L${libsndfile}/lib -L${libflac}/lib -L${libogg}/lib -L${libvorbis}/lib \
+      -L${libsndfile}/lib -L${libflac}/lib -L${libogg}/lib -L${libvorbis}/lib -L${liblame}/lib \
       -lc -lc++ -lc++abi -lrt -lutil -lxnet -lresolv -lc-printscan-long-double \
-      -lflac -logg -lvorbis -lsndfile -lwasi-emulated-getpid \
+      -lflac -logg -lvorbis -llame -lsndfile -lwasi-emulated-getpid \
       -lwasi-emulated-signal -lwasi-emulated-mman -lwasi-emulated-process-clocks \
       ${wasi-sdk}/share/wasi-sysroot/lib/wasm32-unknown-emscripten/crt1.o \
        *.o -o csound.dylib.wasm
@@ -80,6 +80,7 @@ let
   libogg = pkgs.callPackage ./libogg.nix { inherit static; };
   libflac = pkgs.callPackage ./libflac.nix { inherit static; };
   libvorbis = pkgs.callPackage ./libvorbis.nix { inherit static; };
+  liblame = pkgs.callPackage ./liblame.nix { inherit static; };
 
   csoundSrc = builtins.path {
     path = ./. + "../../../";
