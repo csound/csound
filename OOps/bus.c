@@ -1484,7 +1484,7 @@ int32_t chnset_opcode_init_S(CSOUND* csound, CHNGET* p)
         else if (((STRINGDAT*) p->fp)->data!=NULL)
             strcpy(((STRINGDAT*) p->fp)->data, s);
         csoundSpinUnLock(lock);
-    } return print_chn_err(p, err);
+    } else return print_chn_err(p, err);
 
     return OK;
 }
