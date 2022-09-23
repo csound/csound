@@ -17,7 +17,7 @@ else
 fi
 echo "Version: $CS_VERSION"
 export MANUAL_DIR=`pwd`/../../../manual
-export PACKAGE_NAME=csound-MacOS_x86_64-${CS_VERSION}.pkg
+export PACKAGE_NAME=csound-MacOS-${CS_VERSION}.pkg
 export DMG_DIR="Csound${CS_VERSION}"
 export DMG_NAME="csound-MacOS_x86_64-${CS_VERSION}.dmg"
 
@@ -183,8 +183,8 @@ export OLD_OGG_LIB=$DEPS_BASE/lib/libogg.0.dylib
 export NEW_OGG_LIB=@loader_path/libogg.0.dylib
 export OPT_OGG_LIB=/usr/local/opt/libogg/lib/libogg.0.dylib
 install_name_tool -change $OLD_OGG_LIB $NEW_OGG_LIB $SUPPORT_LIBS_DIR/libsndfile.1.dylib
-install_name_tool -change $OPT_OGG_LIB $NEW_OGG_LIB $SUPPORT_LIBS_DIR/libvorbis.0.dylib
-install_name_tool -change $OPT_OGG_LIB $NEW_OGG_LIB $SUPPORT_LIBS_DIR/libvorbisenc.2.dylib
+install_name_tool -change $NEW_OGG_LIB $NEW_OGG_LIB $SUPPORT_LIBS_DIR/libvorbis.0.dylib
+install_name_tool -change $NEW_OGG_LIB $NEW_OGG_LIB $SUPPORT_LIBS_DIR/libvorbisenc.2.dylib
 
 export OLD_FLAC_LIB=$DEPS_BASE/lib/libFLAC.8.dylib
 export NEW_FLAC_LIB=@loader_path/libFLAC.8.dylib

@@ -1536,7 +1536,10 @@ int engineState_merge(CSOUND *csound, ENGINE_STATE *engineState) {
   }
   (&(current_state->instxtanchor))->nxtinstxt = csound->instr0;
   /* now free old instr 0 */
-  free_instrtxt(csound, old_instr0);
+  // VL 23-09-2022 this can't be done simply because we don't know if the
+  // instr0 has finished executing. I'll comment that out but have to figure out
+  // a solution to free it.
+  //  free_instrtxt(csound, old_instr0);
   return 0;
 }
 
