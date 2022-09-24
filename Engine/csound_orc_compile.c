@@ -1408,7 +1408,7 @@ OPCODINFO *find_opcode_info(CSOUND *csound, char *opname, char *outargs,
 int engineState_merge(CSOUND *csound, ENGINE_STATE *engineState) {
   int i, end = engineState->maxinsno;
   ENGINE_STATE *current_state = &csound->engineState;
-  INSTRTXT *current, *old_instr0;
+  INSTRTXT *current;//, *old_instr0;
   int count = 0;
 
   // cs_hash_table_merge(csound,
@@ -1466,7 +1466,8 @@ int engineState_merge(CSOUND *csound, ENGINE_STATE *engineState) {
      insert_opcodes(csound, csound->opcodeInfo, current_state);
   */
 
-  old_instr0 = current_state->instrtxtp[0];
+  // VL: don't want to free instr0
+  // old_instr0 = current_state->instrtxtp[0];
   insert_instrtxt(csound, engineState->instrtxtp[0], 0, current_state, 1);
   for (i = 1; i < end; i++) {
     current = engineState->instrtxtp[i];
@@ -1537,8 +1538,10 @@ int engineState_merge(CSOUND *csound, ENGINE_STATE *engineState) {
   (&(current_state->instxtanchor))->nxtinstxt = csound->instr0;
   /* now free old instr 0 */
   // VL 23-09-2022 this can't be done simply because we don't know if the
-  // instr0 has finished executing. I'll comment that out but have to figure out
-  // a solution to free it.
+  // instr0 has finished executing.
+  // At the moment, instr0 can't be freed anywhere because it may hold state
+  // that is referred to elsewhere by instrument instances.
+  // something to consider in 7.*
   //  free_instrtxt(csound, old_instr0);
   return 0;
 }
