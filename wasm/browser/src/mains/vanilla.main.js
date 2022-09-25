@@ -320,7 +320,9 @@ class VanillaWorkerMainThread {
                 await this.audioWorker.terminateInstance();
                 delete this.audioWorker.audioContext;
               }
+
               this.ipcMessagePorts.restartAudioWorkerPorts();
+
               return resetResult;
             }
           };

@@ -96,7 +96,6 @@ export class EventPromises {
           this.timeoutTimers = reject(equals(timer), this.timeoutTimers);
           if (this.startPromise) {
             console.warn("start promise timed out");
-            throw new Error("START TIME OUT");
             this.startResolver();
             delete this.startResolver;
             this.startPromise && delete this.startPromise;

@@ -37,7 +37,6 @@ class ScriptProcessorNodeMainThread {
   }
 
   async terminateInstance() {
-    delete this.onPlayStateChange;
     if (window[`__csound_wasm_iframe_parent_${this.contextUid}Node`]) {
       window[`__csound_wasm_iframe_parent_${this.contextUid}Node`].disconnect();
       delete window[`__csound_wasm_iframe_parent_${this.contextUid}Node`];
@@ -59,7 +58,6 @@ class ScriptProcessorNodeMainThread {
     }
     spnWorker = undefined;
     UID = 0;
-    Object.keys(this).forEach((key) => delete this[key]);
   }
 
   async onPlayStateChange(newPlayState) {
@@ -246,9 +244,6 @@ class ScriptProcessorNodeMainThread {
       ),
     );
     log("done initializing proxyPort")();
-    this.ipcMessagePorts.mainMessagePort2.start();
-    this.ipcMessagePorts.mainMessagePort2.addEventListener("message", messageEventHandler(this));
-    this.ipcMessagePorts.mainMessagePort.addEventListener("message", messageEventHandler(this));
 
     const audioNode =
       spnWorker[`${contextUid}Node`] || window[`__csound_wasm_iframe_parent_${contextUid}Node`];

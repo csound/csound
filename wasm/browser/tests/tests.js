@@ -445,7 +445,6 @@ e
 
       it("can play a sample, write a sample and read the output file", async function () {
         const csoundObj = await Csound(test);
-        console.log({ csoundObj });
         const response = await fetch("tiny_test_sample.wav");
         const testSampleArrayBuffer = await response.arrayBuffer();
         const testSample = new Uint8Array(testSampleArrayBuffer);

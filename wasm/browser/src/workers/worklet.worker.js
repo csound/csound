@@ -338,13 +338,11 @@ class CsoundWorkletProcessor extends AudioWorkletProcessor {
   }
 
   pause() {
-    console.log("worklet-worker pause called", this.isPaused);
     this.isPaused = true;
     this.workerMessagePort.broadcastPlayState("realtimePerformancePaused");
   }
 
   resume() {
-    console.log("worklet-worker resume called", this.isPaused);
     this.isPaused = false;
     this.workerMessagePort.broadcastPlayState("realtimePerformanceResumed");
   }
