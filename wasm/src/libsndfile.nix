@@ -10,8 +10,8 @@ in pkgs.stdenvNoCC.mkDerivation rec {
     src = pkgs.fetchFromGitHub {
       owner = "libsndfile";
       repo = "libsndfile";
-      rev = "ea3ac90e98c6a98cd52cae39010446fba368a2e3";
-      sha256 = "1fiffvcicb2ywga944m4lyg5qm6vxlqjr6lnncrpalmf49aif4kf";
+      rev = "3bd5048f8c2f7285743e9922c195c7a08f3f5551";
+      sha256 = "sha256-0yijstgNYlXHhGQwKknp19TqLuat41PPkAg3/ofDs5Q=";
     };
 
     AR = "${wasi-sdk}/bin/ar";
@@ -26,9 +26,6 @@ in pkgs.stdenvNoCC.mkDerivation rec {
     patches = [ ./libsndfile_disable_oggopus.patch ];
 
     postPatch = ''
-      # substituteInPlace src/sndfile.c \
-      #   --replace 'assert (sizeof (sf_count_t) == 8) ;' ""
-      mv include/sndfile.h.in include/sndfile.h
       mv src/g72x.c src/g72x_parent.c
       rm src/G72x/g72x_test.c
       rm src/test_file_io.c
