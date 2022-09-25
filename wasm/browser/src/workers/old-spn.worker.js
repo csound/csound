@@ -134,7 +134,6 @@ class CsoundScriptNodeProcessor {
       // firefox timing issue fix (starts suspended but goes then to running state)
       let retryCount = 0;
       while (retryCount < 100) {
-        console.log({ retryCount });
         await new Promise((resolve) => setTimeout(resolve, 100));
         if (this.audioContext.state === "suspended") {
           retryCount += 1;
