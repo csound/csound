@@ -232,7 +232,9 @@ const renderFunction =
     while (
       workerMessagePort.vanillaWorkerState === "renderStarted" &&
       libraryCsound.csoundPerformKsmps(csound) === 0
-    ) {}
+    ) {
+      /* eslint-disable-next-line no-empty */
+    }
     workerMessagePort.broadcastPlayState("renderEnded");
   };
 

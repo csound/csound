@@ -84,6 +84,25 @@ class ScriptProcessorNodeMainThread {
         }
         break;
       }
+
+      case "realtimePerformancePaused": {
+        if (this.csoundWorkerMain && this.csoundWorkerMain.eventPromises) {
+          this.csoundWorkerMain.publicEvents &&
+            this.csoundWorkerMain.publicEvents.triggerRealtimePerformancePaused(this);
+          await this.csoundWorkerMain.eventPromises.releasePausePromises();
+        }
+        break;
+      }
+
+      case "realtimePerformanceResumed": {
+        if (this.csoundWorkerMain && this.csoundWorkerMain.eventPromises) {
+          this.csoundWorkerMain.publicEvents &&
+            this.csoundWorkerMain.publicEvents.triggerRealtimePerformanceResumed(this);
+          await this.csoundWorkerMain.eventPromises.releaseResumePromises();
+        }
+        break;
+      }
+
       default: {
         break;
       }

@@ -122,14 +122,7 @@ class VanillaWorkerMainThread {
         await this.eventPromises.releaseStopPromises();
         break;
       }
-      case "realtimePerformancePaused": {
-        this.publicEvents.triggerRealtimePerformancePaused(this);
-        break;
-      }
-      case "realtimePerformanceResumed": {
-        this.publicEvents.triggerRealtimePerformanceResumed(this);
-        break;
-      }
+
       case "renderStarted": {
         await this.eventPromises.releaseStartPromises();
         this.publicEvents.triggerRenderStarted(this);
@@ -155,17 +148,32 @@ class VanillaWorkerMainThread {
   }
 
   async csoundPause() {
-    if (this.audioWorker && typeof this.audioWorker.workletProxy !== "undefined") {
-      await this.audioWorker.workletProxy.pause();
+    if (this.eventPromises.isWaiting("pause")) {
+      return -1;
+    } else {
+      this.eventPromises.createPausePromise();
+
+      this.audioWorker && typeof this.audioWorker.workletProxy !== "undefined"
+        ? await this.audioWorker.workletProxy.pause()
+        : await this.audioWorker.onPlayStateChange("realtimePerformancePaused");
+
+      await this.eventPromises.waitForPause();
+      return 0;
     }
-    this.onPlayStateChange("realtimePerformancePaused");
   }
 
   async csoundResume() {
-    if (this.audioWorker && typeof this.audioWorker.workletProxy !== "undefined") {
-      await this.audioWorker.workletProxy.resume();
+    if (this.eventPromises.isWaiting("resume")) {
+      return -1;
+    } else {
+      this.eventPromises.createResumePromise();
+      this.audioWorker && typeof this.audioWorker.workletProxy !== "undefined"
+        ? await this.audioWorker.workletProxy.resume()
+        : await this.audioWorker.onPlayStateChange("realtimePerformanceResumed");
+
+      await this.eventPromises.waitForResume();
+      return 0;
     }
-    this.onPlayStateChange("realtimePerformanceResumed");
   }
 
   async initialize({ wasmDataURI, withPlugins }) {
@@ -246,6 +254,7 @@ class VanillaWorkerMainThread {
         apiK,
         this.currentPlayState,
       );
+
       switch (apiK) {
         case "csoundCreate": {
           break;
@@ -253,14 +262,18 @@ class VanillaWorkerMainThread {
 
         case "csoundStart": {
           const csoundStart = async function () {
-            this.eventPromises.createStartPromise();
+            if (this.eventPromises.isWaiting("start")) {
+              return -1;
+            } else {
+              this.eventPromises.createStartPromise();
 
-            const startResult = await proxyCallback({
-              csound: this.csoundInstance,
-            });
-            await this.eventPromises.waitForStart();
+              const startResult = await proxyCallback({
+                csound: this.csoundInstance,
+              });
+              await this.eventPromises.waitForStart();
 
-            return startResult;
+              return startResult;
+            }
           };
 
           csoundStart.toString = () => reference.toString();
@@ -270,7 +283,7 @@ class VanillaWorkerMainThread {
 
         case "csoundStop": {
           const csoundStop = async function () {
-            if (this.eventPromises.isWaitingToStop()) {
+            if (this.eventPromises.isWaiting("stop")) {
               return -1;
             } else {
               this.eventPromises.createStopPromise();
@@ -295,18 +308,20 @@ class VanillaWorkerMainThread {
             if (!this.currentPlayState) {
               return;
             }
-            if (stopableStates.has(this.currentPlayState)) {
-              await this.exportApi.stop();
-            } else if (this.eventPromises.isWaitingToStop()) {
-              await this.eventPromises.waitForStop();
+            if (this.eventPromises.isWaiting("reset")) {
+              return -1;
+            } else {
+              if (stopableStates.has(this.currentPlayState)) {
+                await this.exportApi.stop();
+              }
+              const resetResult = await proxyCallback([]);
+              if (!this.audioContextIsProvided) {
+                await this.audioWorker.terminateInstance();
+                delete this.audioWorker.audioContext;
+              }
+              this.ipcMessagePorts.restartAudioWorkerPorts();
+              return resetResult;
             }
-            const resetResult = await proxyCallback([]);
-            if (!this.audioContextIsProvided) {
-              await this.audioWorker.terminateInstance();
-              delete this.audioWorker.audioContext;
-            }
-            this.ipcMessagePorts.restartAudioWorkerPorts();
-            return resetResult;
           };
           this.exportApi.reset = csoundReset.bind(this);
           csoundReset.toString = reference.toString;

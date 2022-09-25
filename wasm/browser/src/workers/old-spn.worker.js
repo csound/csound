@@ -123,7 +123,7 @@ class CsoundScriptNodeProcessor {
     this.initCallbacks = this.initCallbacks.bind(this);
   }
 
-  initCallbacks({ workerMessagePort, transferInputFrames, requestPort }) {
+  async initCallbacks({ workerMessagePort, transferInputFrames, requestPort }) {
     this.workerMessagePort = workerMessagePort;
 
     this.transferInputFrames = transferInputFrames;
@@ -131,8 +131,17 @@ class CsoundScriptNodeProcessor {
 
     // Safari autoplay cancer :(
     if (this.audioContext.state === "suspended") {
+      // firefox timing issue fix (starts suspended but goes then to running state)
+      let retryCount = 0;
+      while (retryCount < 100) {
+        await new Promise((resolve) => setTimeout(resolve, 100));
+        if (this.audioContext.state === "suspended") {
+          retryCount += 1;
+        } else {
+          return;
+        }
+      }
       this.workerMessagePort.broadcastPlayState("realtimePerformancePaused");
-      // this.workerMessagePort.vanillaWorkerState = "realtimePerformancePaused";
     }
   }
 
@@ -395,6 +404,7 @@ const initialize = async ({
   const workerMessagePort = initMessagePort({ port: messagePort });
   const transferInputFrames = initAudioInputPort({ audioInputPort, spnClassInstance });
   initRequestPort({ requestPort, spnClassInstance });
+  // don't await this promise!
   spnClassInstance.initCallbacks({ workerMessagePort, transferInputFrames, requestPort });
   spnInstances.set(contextUid, spnClassInstance);
 

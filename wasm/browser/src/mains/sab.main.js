@@ -119,13 +119,15 @@ class SharedArrayBufferMainThread {
   }
 
   async csoundPause() {
-    if (
-      Atomics.load(this.audioStatePointer, AUDIO_STATE.IS_PAUSED) !== 1 &&
-      Atomics.load(this.audioStatePointer, AUDIO_STATE.STOP) !== 1 &&
-      Atomics.load(this.audioStatePointer, AUDIO_STATE.IS_PERFORMING) === 1
-    ) {
+    if (this.eventPromises.isWaiting("pause")) {
+      return -1;
+    } else {
+      this.eventPromises.createPausePromise();
+
       Atomics.store(this.audioStatePointer, AUDIO_STATE.IS_PAUSED, 1);
+      await this.eventPromises.waitForPause();
       this.onPlayStateChange("realtimePerformancePaused");
+      return 0;
     }
   }
 
@@ -142,6 +144,7 @@ class SharedArrayBufferMainThread {
   }
 
   async onPlayStateChange(newPlayState) {
+    console.log({ newPlayState });
     if (typeof this === "undefined") {
       console.log("Failed to announce playstatechange", newPlayState);
       return;
@@ -184,6 +187,7 @@ class SharedArrayBufferMainThread {
       }
       case "realtimePerformancePaused": {
         this.publicEvents.triggerRealtimePerformancePaused(this);
+        this.eventPromises.releasePausePromises();
         break;
       }
       case "realtimePerformanceResumed": {
@@ -364,22 +368,26 @@ class SharedArrayBufferMainThread {
               console.error("starting csound failed because csound instance wasn't created");
               return -1;
             }
-            this.eventPromises.createStartPromise();
+            if (this.eventPromises.isWaiting("start")) {
+              return -1;
+            } else {
+              this.eventPromises.createStartPromise();
 
-            const startResult = await proxyCallback({
-              audioStateBuffer,
-              audioStreamIn,
-              audioStreamOut,
-              midiBuffer,
-              csound: csoundInstance,
-            });
+              const startResult = await proxyCallback({
+                audioStateBuffer,
+                audioStreamIn,
+                audioStreamOut,
+                midiBuffer,
+                csound: csoundInstance,
+              });
 
-            await this.eventPromises.waitForStart();
+              await this.eventPromises.waitForStart();
 
-            this.ipcMessagePorts &&
-              this.ipcMessagePorts.sabMainCallbackReply.postMessage({ unlock: true });
+              this.ipcMessagePorts &&
+                this.ipcMessagePorts.sabMainCallbackReply.postMessage({ unlock: true });
 
-            return startResult;
+              return startResult;
+            }
           };
 
           csoundStart.toString = () => reference.toString();
@@ -396,7 +404,7 @@ class SharedArrayBufferMainThread {
                 this.currentPlayState,
               ].join("\n"),
             )();
-            if (this.eventPromises.isWaitingToStop()) {
+            if (this.eventPromises.isWaiting("stop")) {
               log("already waiting to stop, doing nothing")();
               return -1;
             } else if (stopableStates.has(this.currentPlayState)) {
@@ -434,18 +442,21 @@ class SharedArrayBufferMainThread {
             if (!this.currentPlayState) {
               return;
             }
-            if (stopableStates.has(this.currentPlayState)) {
-              await this.exportApi.stop();
-            } else if (this.eventPromises.isWaitingToStop()) {
-              await this.eventPromises.waitForStop();
+
+            if (this.eventPromises.isWaiting("reset")) {
+              return -1;
+            } else {
+              if (stopableStates.has(this.currentPlayState)) {
+                await this.exportApi.stop();
+              }
+              this.ipcMessagePorts.restartAudioWorkerPorts();
+              if (!this.audioContextIsProvided) {
+                await this.audioWorker.terminateInstance();
+                delete this.audioWorker.audioContext;
+              }
+              const resetResult = await proxyCallback([]);
+              return resetResult;
             }
-            this.ipcMessagePorts.restartAudioWorkerPorts();
-            if (!this.audioContextIsProvided) {
-              await this.audioWorker.terminateInstance();
-              delete this.audioWorker.audioContext;
-            }
-            const resetResult = await proxyCallback([]);
-            return resetResult;
           };
           this.exportApi.reset = csoundReset.bind(this);
           csoundReset.toString = () => reference.toString();

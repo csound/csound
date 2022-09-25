@@ -338,15 +338,15 @@ class CsoundWorkletProcessor extends AudioWorkletProcessor {
   }
 
   pause() {
-    if (!this.isPaused) {
-      this.isPaused = true;
-    }
+    console.log("worklet-worker pause called", this.isPaused);
+    this.isPaused = true;
+    this.workerMessagePort.broadcastPlayState("realtimePerformancePaused");
   }
 
   resume() {
-    if (this.isPaused) {
-      this.isPaused = false;
-    }
+    console.log("worklet-worker resume called", this.isPaused);
+    this.isPaused = false;
+    this.workerMessagePort.broadcastPlayState("realtimePerformanceResumed");
   }
 
   process(inputs, outputs) {
@@ -357,11 +357,9 @@ class CsoundWorkletProcessor extends AudioWorkletProcessor {
 function initMessagePort({ port }) {
   log(`initMessagePort in worker`)();
   const workerMessagePort = new MessagePortState();
-
-  // eslint-disable-next-line unicorn/require-post-message-target-origin
   workerMessagePort.post = (logMessage) => port.postMessage({ log: logMessage });
-  // eslint-disable-next-line unicorn/require-post-message-target-origin
   workerMessagePort.broadcastPlayState = (playStateChange) => port.postMessage({ playStateChange });
+
   workerMessagePort.ready = true;
   return workerMessagePort;
 }
@@ -392,6 +390,8 @@ function initAudioInputPort({ inputPort }) {
 const initialize = async ({ contextUid, inputPort, messagePort, requestPort }) => {
   const nodeUid = `${contextUid}Node`;
   const audioNode = activeNodes.get(nodeUid);
+  console.log({ messagePort });
+
   const workerMessagePort = initMessagePort({ port: messagePort });
 
   const audioInputPort = initAudioInputPort({ inputPort });

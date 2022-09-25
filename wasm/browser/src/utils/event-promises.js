@@ -15,11 +15,20 @@ export class EventPromises {
     this.stopPromise = undefined;
     this.stopResolver = undefined;
 
-    this.createStartPromise = this.createStartPromise.bind(this);
-    this.releaseStartPromises = this.releaseStartPromises.bind(this);
+    this.pausePromise = undefined;
+    this.pauseResolver = undefined;
+
+    this.resumePromise = undefined;
+    this.resumeResolver = undefined;
+
+    this.createPausePromise = this.createPausePromise.bind(this);
+    this.releasePausePromises = this.releasePausePromises.bind(this);
 
     this.createStopPromise = this.createStopPromise.bind(this);
     this.releaseStopPromises = this.releaseStopPromises.bind(this);
+
+    this.createResumePromise = this.createResumePromise.bind(this);
+    this.releaseResumePromises = this.releaseResumePromises.bind(this);
 
     this.waitForStart = this.waitForStart.bind(this);
     this.waitForStop = this.waitForStop.bind(this);
@@ -36,12 +45,44 @@ export class EventPromises {
     return typeof this.stopPromise !== "undefined";
   }
 
+  isWaiting(eventAsking) {
+    if (typeof this.startPromise !== "undefined") {
+      console.error(`cannot ${eventAsking} while starting, did you forget to 'await'?`);
+      return true;
+    }
+
+    if (typeof this.stopPromise !== "undefined") {
+      console.error(`cannot ${eventAsking} while stopping, did you forget to 'await'?`);
+      return true;
+    }
+
+    if (typeof this.pausePromise !== "undefined") {
+      console.error(`cannot ${eventAsking} while pausing, did you forget to 'await'?`);
+      return true;
+    }
+
+    if (typeof this.resumePromise !== "undefined") {
+      console.error(`cannot ${eventAsking} while resuming, did you forget to 'await'?`);
+      return true;
+    }
+
+    return false;
+  }
+
   async waitForStart() {
     return this.startPromise ? await this.startPromise : -1;
   }
 
   async waitForStop() {
     return this.stopPromise ? this.stopPromise : -1;
+  }
+
+  async waitForPause() {
+    return this.pausePromise ? this.pausePromise : -1;
+  }
+
+  async waitForResume() {
+    return this.resumePromise ? this.resumePromise : -1;
   }
 
   createStartPromise() {
@@ -51,6 +92,7 @@ export class EventPromises {
         const timer = setTimeout(() => {
           this.timeoutTimers = reject(equals(timer), this.timeoutTimers);
           if (this.startPromise) {
+            console.warn("start promise timed out");
             this.startResolver();
             delete this.startResolver;
             this.startPromise && delete this.startPromise;
@@ -86,6 +128,7 @@ export class EventPromises {
         const timer = setTimeout(() => {
           this.timeoutTimers = reject(equals(timer), this.timeoutTimers);
           if (this.stopPromise) {
+            console.warn("stop promise timed out");
             this.stopResolver();
             delete this.stopResolver;
             this.stopPromise && delete this.stopPromise;
@@ -111,6 +154,78 @@ export class EventPromises {
     }
     if (this.stopPromise) {
       delete this.stopPromise;
+    }
+  }
+
+  createPausePromise() {
+    if (!this.pausePromise) {
+      this.pausePromise = new Promise((resolve) => {
+        this.pauseResolver = resolve;
+        const timer = setTimeout(() => {
+          this.timeoutTimers = reject(equals(timer), this.timeoutTimers);
+          if (this.pausePromise) {
+            console.warn("pause promise timed out");
+            this.pauseResolver();
+            delete this.pauseResolver;
+            this.pausePromise && delete this.pausePromise;
+          }
+        }, 2000);
+        this.timeoutTimers.push(timer);
+      });
+    }
+  }
+
+  releasePausePromises() {
+    // first timer cleanup
+    try {
+      this.timeoutTimers.forEach(clearTimeout);
+      clearArray(this.timeoutTimers);
+    } catch (error) {
+      console.error(error);
+    }
+    // then resolve
+    if (this.pauseResolver) {
+      this.pauseResolver();
+      delete this.pauseResolver;
+    }
+    if (this.pausePromise) {
+      delete this.pausePromise;
+    }
+  }
+
+  createResumePromise() {
+    if (!this.resumePromise) {
+      this.resumePromise = new Promise((resolve) => {
+        this.resumeResolver = resolve;
+        const timer = setTimeout(() => {
+          this.timeoutTimers = reject(equals(timer), this.timeoutTimers);
+          if (this.resumePromise) {
+            console.warn("resume promise timed out");
+            this.resumeResolver();
+            delete this.resumeResolver;
+            this.resumePromise && delete this.resumePromise;
+          }
+        }, 2000);
+        this.timeoutTimers.push(timer);
+      });
+    }
+  }
+
+  releaseResumePromises() {
+    // first timer cleanup
+    try {
+      this.timeoutTimers.forEach(clearTimeout);
+      clearArray(this.timeoutTimers);
+    } catch (error) {
+      console.error(error);
+    }
+    // then resolve
+    if (this.resumeResolver) {
+      this.resumeResolver();
+      delete this.resumeResolver;
+    }
+    if (this.resumePromise) {
+      delete this.resumePromise;
     }
   }
 }
