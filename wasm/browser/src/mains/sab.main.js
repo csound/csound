@@ -164,9 +164,6 @@ class SharedArrayBufferMainThread {
         } catch (error) {
           console.error(error);
         }
-
-        this.publicEvents.triggerRealtimePerformanceStarted(this);
-
         break;
       }
       case "realtimePerformanceEnded": {
@@ -184,22 +181,15 @@ class SharedArrayBufferMainThread {
         });
         break;
       }
-      case "realtimePerformancePaused": {
-        this.publicEvents.triggerRealtimePerformancePaused(this);
-        this.eventPromises.releasePausePromises();
-        break;
-      }
-      case "realtimePerformanceResumed": {
-        this.publicEvents.triggerRealtimePerformanceResumed(this);
-        break;
-      }
       case "renderStarted": {
         this.publicEvents.triggerRenderStarted(this);
+        this.eventPromises.releaseStartPromise();
         break;
       }
       case "renderEnded": {
         log(`event: renderEnded received, beginning cleanup`)();
         this.publicEvents.triggerRenderEnded(this);
+        this.eventPromises && this.eventPromises.releaseStopPromise();
         break;
       }
       default: {
@@ -282,8 +272,14 @@ class SharedArrayBufferMainThread {
         this.onPlayStateChange(
           this.currentPlayState === "renderStarted" ? "renderEnded" : "realtimePerformanceEnded",
         );
-        this.eventPromises.releaseStopPromises();
-        this.publicEvents.triggerRealtimePerformanceEnded(this);
+        this.eventPromises && this.eventPromises.releaseStopPromise();
+        this.publicEvents && this.publicEvents.triggerRealtimePerformanceEnded(this);
+      } else if (event.data === "releasePause") {
+        this.publicEvents.triggerRealtimePerformancePaused(this);
+        this.eventPromises.releasePausePromise();
+      } else if (event.data === "releaseResumed") {
+        this.publicEvents.triggerRealtimePerformanceResumed(this);
+        this.eventPromises.releaseResumePromise();
       } else {
         event.data.forEach(({ id, answer }) => {
           this.callbackBuffer[id].resolveCallback(answer);

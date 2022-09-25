@@ -390,8 +390,6 @@ function initAudioInputPort({ inputPort }) {
 const initialize = async ({ contextUid, inputPort, messagePort, requestPort }) => {
   const nodeUid = `${contextUid}Node`;
   const audioNode = activeNodes.get(nodeUid);
-  console.log({ messagePort });
-
   const workerMessagePort = initMessagePort({ port: messagePort });
 
   const audioInputPort = initAudioInputPort({ inputPort });

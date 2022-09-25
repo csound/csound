@@ -72,7 +72,7 @@ class ScriptProcessorNodeMainThread {
         log("event received: realtimePerformanceStarted")();
         this.currentPlayState = newPlayState;
         await this.initialize();
-        await this.csoundWorkerMain.eventPromises.releaseStartPromises();
+        await this.csoundWorkerMain.eventPromises.releaseStartPromise();
         this.publicEvents.triggerRealtimePerformanceStarted(this.csoundWorkerMain);
         break;
       }
@@ -89,7 +89,7 @@ class ScriptProcessorNodeMainThread {
         if (this.csoundWorkerMain && this.csoundWorkerMain.eventPromises) {
           this.csoundWorkerMain.publicEvents &&
             this.csoundWorkerMain.publicEvents.triggerRealtimePerformancePaused(this);
-          await this.csoundWorkerMain.eventPromises.releasePausePromises();
+          await this.csoundWorkerMain.eventPromises.releasePausePromise();
         }
         break;
       }
@@ -98,7 +98,7 @@ class ScriptProcessorNodeMainThread {
         if (this.csoundWorkerMain && this.csoundWorkerMain.eventPromises) {
           this.csoundWorkerMain.publicEvents &&
             this.csoundWorkerMain.publicEvents.triggerRealtimePerformanceResumed(this);
-          await this.csoundWorkerMain.eventPromises.releaseResumePromises();
+          await this.csoundWorkerMain.eventPromises.releaseResumePromise();
         }
         break;
       }

@@ -119,19 +119,19 @@ class VanillaWorkerMainThread {
         this.eventPromises.createStopPromise();
         this.midiPortStarted = false;
         this.publicEvents.triggerRealtimePerformanceEnded(this);
-        await this.eventPromises.releaseStopPromises();
+        await this.eventPromises.releaseStopPromise();
         break;
       }
 
       case "renderStarted": {
-        await this.eventPromises.releaseStartPromises();
+        await this.eventPromises.releaseStartPromise();
         this.publicEvents.triggerRenderStarted(this);
         break;
       }
       case "renderEnded": {
         log(`event: renderEnded received, beginning cleanup`)();
         this.publicEvents.triggerRenderEnded(this);
-        await this.eventPromises.releaseStopPromises();
+        await this.eventPromises.releaseStopPromise();
         break;
       }
 

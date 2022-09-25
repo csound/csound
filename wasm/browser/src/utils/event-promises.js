@@ -21,14 +21,17 @@ export class EventPromises {
     this.resumePromise = undefined;
     this.resumeResolver = undefined;
 
-    this.createPausePromise = this.createPausePromise.bind(this);
-    this.releasePausePromises = this.releasePausePromises.bind(this);
+    this.createStartPromise = this.createStartPromise.bind(this);
+    this.releaseStartPromise = this.releaseStartPromise.bind(this);
 
     this.createStopPromise = this.createStopPromise.bind(this);
-    this.releaseStopPromises = this.releaseStopPromises.bind(this);
+    this.releaseStopPromise = this.releaseStopPromise.bind(this);
+
+    this.createPausePromise = this.createPausePromise.bind(this);
+    this.releasePausePromise = this.releasePausePromise.bind(this);
 
     this.createResumePromise = this.createResumePromise.bind(this);
-    this.releaseResumePromises = this.releaseResumePromises.bind(this);
+    this.releaseResumePromise = this.releaseResumePromise.bind(this);
 
     this.waitForStart = this.waitForStart.bind(this);
     this.waitForStop = this.waitForStop.bind(this);
@@ -93,6 +96,7 @@ export class EventPromises {
           this.timeoutTimers = reject(equals(timer), this.timeoutTimers);
           if (this.startPromise) {
             console.warn("start promise timed out");
+            throw new Error("START TIME OUT");
             this.startResolver();
             delete this.startResolver;
             this.startPromise && delete this.startPromise;
@@ -103,7 +107,7 @@ export class EventPromises {
     }
   }
 
-  releaseStartPromises() {
+  releaseStartPromise() {
     // first timer cleanup
     try {
       this.timeoutTimers.forEach(clearTimeout);
@@ -139,7 +143,7 @@ export class EventPromises {
     }
   }
 
-  releaseStopPromises() {
+  releaseStopPromise() {
     // first timer cleanup
     try {
       this.timeoutTimers.forEach(clearTimeout);
@@ -175,7 +179,7 @@ export class EventPromises {
     }
   }
 
-  releasePausePromises() {
+  releasePausePromise() {
     // first timer cleanup
     try {
       this.timeoutTimers.forEach(clearTimeout);
@@ -211,7 +215,7 @@ export class EventPromises {
     }
   }
 
-  releaseResumePromises() {
+  releaseResumePromise() {
     // first timer cleanup
     try {
       this.timeoutTimers.forEach(clearTimeout);

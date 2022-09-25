@@ -82,16 +82,13 @@ class AudioWorkletMainThread {
     switch (newPlayState) {
       case "realtimePerformanceStarted": {
         log("event received: realtimePerformanceStarted")();
-        try {
-          await this.initialize();
-        } catch (error) {
-          console.error(error);
-        }
+        await this.initialize();
 
         if (this.csoundWorkerMain && this.csoundWorkerMain.eventPromises) {
           this.csoundWorkerMain.publicEvents &&
             this.csoundWorkerMain.publicEvents.triggerRealtimePerformanceStarted(this);
-          await this.csoundWorkerMain.eventPromises.releaseStartPromises();
+          this.csoundWorkerMain.eventPromises &&
+            (await this.csoundWorkerMain.eventPromises.releaseStartPromise());
         }
         break;
       }
@@ -139,7 +136,7 @@ class AudioWorkletMainThread {
         if (this.csoundWorkerMain && this.csoundWorkerMain.eventPromises) {
           this.csoundWorkerMain.publicEvents &&
             this.csoundWorkerMain.publicEvents.triggerRealtimePerformancePaused(this);
-          await this.csoundWorkerMain.eventPromises.releasePausePromises();
+          await this.csoundWorkerMain.eventPromises.releasePausePromise();
         }
         break;
       }
@@ -148,7 +145,7 @@ class AudioWorkletMainThread {
         if (this.csoundWorkerMain && this.csoundWorkerMain.eventPromises) {
           this.csoundWorkerMain.publicEvents &&
             this.csoundWorkerMain.publicEvents.triggerRealtimePerformanceResumed(this);
-          await this.csoundWorkerMain.eventPromises.releaseResumePromises();
+          await this.csoundWorkerMain.eventPromises.releaseResumePromise();
         }
         break;
       }
