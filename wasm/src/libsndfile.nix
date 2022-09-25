@@ -10,8 +10,8 @@ in pkgs.stdenvNoCC.mkDerivation rec {
     src = pkgs.fetchFromGitHub {
       owner = "libsndfile";
       repo = "libsndfile";
-      rev = "4fe1c6a0b370625bc4878aa24e0c1ad6fbc77072";
-      sha256 = "1pn7bv577hbgl6ncflc23xkkrjjlljp0rbl5agffaiq7qalfva7d";
+      rev = "ea3ac90e98c6a98cd52cae39010446fba368a2e3";
+      sha256 = "1fiffvcicb2ywga944m4lyg5qm6vxlqjr6lnncrpalmf49aif4kf";
     };
 
     AR = "${wasi-sdk}/bin/ar";
@@ -53,6 +53,8 @@ in pkgs.stdenvNoCC.mkDerivation rec {
          -I${pkgs.libogg.dev}/include \
          -I${pkgs.flac.dev}/include \
          -I${pkgs.libvorbis.dev}/include \
+         -I${pkgs.lame}/include \
+         -I${pkgs.mpg123}/include \
          -D__wasi__=1 \
          -D__wasm32__=1 \
          -DOS_IS_WIN32=0 \
@@ -63,13 +65,14 @@ in pkgs.stdenvNoCC.mkDerivation rec {
          -DSIZEOF_INT64_T=8 \
          -DSIZEOF_LONG_LONG=8 \
          -DHAVE_UNISTD_H=1 \
+         -DHAVE_MPEG=1 \
          -DCPU_CLIPS_POSITIVE=0 \
          -DCPU_CLIPS_NEGATIVE=1 \
          -DHAVE_EXTERNAL_XIPH_LIBS=1 \
          -DPACKAGE_NAME='"libsndfile"' \
-         -DPACKAGE_VERSION='"1.0.25"' \
+         -DPACKAGE_VERSION='"1.1.0"' \
          -DPACKAGE='"libsndfile"' \
-         -DVERSION='"1.0.25"' \
+         -DVERSION='"1.1.0"' \
          -D_WASI_EMULATED_SIGNAL \
          -D_WASI_EMULATED_MMAN \
          -fno-exceptions -c \
