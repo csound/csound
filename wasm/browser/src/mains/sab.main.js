@@ -144,7 +144,6 @@ class SharedArrayBufferMainThread {
   }
 
   async onPlayStateChange(newPlayState) {
-    console.log({ newPlayState });
     if (typeof this === "undefined") {
       console.log("Failed to announce playstatechange", newPlayState);
       return;

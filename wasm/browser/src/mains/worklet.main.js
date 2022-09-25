@@ -88,11 +88,7 @@ class AudioWorkletMainThread {
           console.error(error);
         }
 
-        if (
-          this.csoundWorkerMain &&
-          this.csoundWorkerMain.eventPromises &&
-          !this.csoundWorkerMain.hasSharedArrayBuffer
-        ) {
+        if (this.csoundWorkerMain && this.csoundWorkerMain.eventPromises) {
           this.csoundWorkerMain.publicEvents &&
             this.csoundWorkerMain.publicEvents.triggerRealtimePerformanceStarted(this);
           await this.csoundWorkerMain.eventPromises.releaseStartPromises();

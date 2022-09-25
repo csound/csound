@@ -293,6 +293,7 @@ class VanillaWorkerMainThread {
                     ? "renderEnded"
                     : "realtimePerformanceEnded",
               });
+
               await this.eventPromises.waitForStop();
               return 0;
             }
