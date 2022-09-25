@@ -1,6 +1,5 @@
 import * as Comlink from "comlink/dist/esm/comlink.mjs";
 import { logOldSpnMain as log } from "../logger";
-import { messageEventHandler } from "./messages.main";
 import { WebkitAudioContext } from "../utils";
 import { requestMidi } from "../utils/request-midi";
 import { requestMicrophoneNode } from "./io.utils";

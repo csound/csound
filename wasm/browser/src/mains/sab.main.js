@@ -259,32 +259,42 @@ class SharedArrayBufferMainThread {
     log(`(postMessage) making a message channel from SABMain to SABWorker via workerMessagePort`)();
 
     this.ipcMessagePorts.sabMainCallbackReply.addEventListener("message", (event) => {
-      if (event.data === "poll") {
-        this.ipcMessagePorts &&
-          this.ipcMessagePorts.sabMainCallbackReply.postMessage(
-            Object.keys(this.callbackBuffer).map((id) => ({
-              id,
-              apiKey: this.callbackBuffer[id].apiKey,
-              argumentz: this.callbackBuffer[id].argumentz,
-            })),
+      switch (event.data) {
+        case "poll": {
+          this.ipcMessagePorts &&
+            this.ipcMessagePorts.sabMainCallbackReply.postMessage(
+              Object.keys(this.callbackBuffer).map((id) => ({
+                id,
+                apiKey: this.callbackBuffer[id].apiKey,
+                argumentz: this.callbackBuffer[id].argumentz,
+              })),
+            );
+          break;
+        }
+        case "releaseStop": {
+          this.onPlayStateChange(
+            this.currentPlayState === "renderStarted" ? "renderEnded" : "realtimePerformanceEnded",
           );
-      } else if (event.data === "releaseStop") {
-        this.onPlayStateChange(
-          this.currentPlayState === "renderStarted" ? "renderEnded" : "realtimePerformanceEnded",
-        );
-        this.eventPromises && this.eventPromises.releaseStopPromise();
-        this.publicEvents && this.publicEvents.triggerRealtimePerformanceEnded(this);
-      } else if (event.data === "releasePause") {
-        this.publicEvents.triggerRealtimePerformancePaused(this);
-        this.eventPromises.releasePausePromise();
-      } else if (event.data === "releaseResumed") {
-        this.publicEvents.triggerRealtimePerformanceResumed(this);
-        this.eventPromises.releaseResumePromise();
-      } else {
-        event.data.forEach(({ id, answer }) => {
-          this.callbackBuffer[id].resolveCallback(answer);
-          delete this.callbackBuffer[id];
-        });
+          this.eventPromises && this.eventPromises.releaseStopPromise();
+          this.publicEvents && this.publicEvents.triggerRealtimePerformanceEnded(this);
+          break;
+        }
+        case "releasePause": {
+          this.publicEvents.triggerRealtimePerformancePaused(this);
+          this.eventPromises.releasePausePromise();
+          break;
+        }
+        case "releaseResumed": {
+          this.publicEvents.triggerRealtimePerformanceResumed(this);
+          this.eventPromises.releaseResumePromise();
+          break;
+        }
+        default: {
+          event.data.forEach(({ id, answer }) => {
+            this.callbackBuffer[id].resolveCallback(answer);
+            delete this.callbackBuffer[id];
+          });
+        }
       }
     });
     this.ipcMessagePorts.sabMainCallbackReply.start();
