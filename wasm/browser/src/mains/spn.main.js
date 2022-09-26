@@ -330,7 +330,7 @@ class ScriptProcessorNodeSingleThread {
     if (this.running && !this.started) {
       this.started = true;
       this.onPlayStateChange("realtimePerformanceStarted");
-      this.eventPromises && this.eventPromises.releaseStartPromises();
+      this.eventPromises && this.eventPromises.releaseStartPromise();
     }
 
     const input = event.inputBuffer;
@@ -359,7 +359,7 @@ class ScriptProcessorNodeSingleThread {
           this.running = false;
           this.started = false;
           this.onPlayStateChange("realtimePerformanceEnded");
-          this.eventPromises && this.eventPromises.releaseStopPromises();
+          this.eventPromises && this.eventPromises.releaseStopPromise();
         }
       }
 

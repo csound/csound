@@ -1,6 +1,5 @@
 import * as Comlink from "comlink/dist/esm/comlink.mjs";
 import { logOldSpnMain as log } from "../logger";
-import { messageEventHandler } from "./messages.main";
 import { WebkitAudioContext } from "../utils";
 import { requestMidi } from "../utils/request-midi";
 import { requestMicrophoneNode } from "./io.utils";
@@ -37,7 +36,6 @@ class ScriptProcessorNodeMainThread {
   }
 
   async terminateInstance() {
-    delete this.onPlayStateChange;
     if (window[`__csound_wasm_iframe_parent_${this.contextUid}Node`]) {
       window[`__csound_wasm_iframe_parent_${this.contextUid}Node`].disconnect();
       delete window[`__csound_wasm_iframe_parent_${this.contextUid}Node`];
@@ -59,7 +57,6 @@ class ScriptProcessorNodeMainThread {
     }
     spnWorker = undefined;
     UID = 0;
-    Object.keys(this).forEach((key) => delete this[key]);
   }
 
   async onPlayStateChange(newPlayState) {
@@ -72,7 +69,7 @@ class ScriptProcessorNodeMainThread {
         log("event received: realtimePerformanceStarted")();
         this.currentPlayState = newPlayState;
         await this.initialize();
-        await this.csoundWorkerMain.eventPromises.releaseStartPromises();
+        await this.csoundWorkerMain.eventPromises.releaseStartPromise();
         this.publicEvents.triggerRealtimePerformanceStarted(this.csoundWorkerMain);
         break;
       }
@@ -84,6 +81,25 @@ class ScriptProcessorNodeMainThread {
         }
         break;
       }
+
+      case "realtimePerformancePaused": {
+        if (this.csoundWorkerMain && this.csoundWorkerMain.eventPromises) {
+          this.csoundWorkerMain.publicEvents &&
+            this.csoundWorkerMain.publicEvents.triggerRealtimePerformancePaused(this);
+          await this.csoundWorkerMain.eventPromises.releasePausePromise();
+        }
+        break;
+      }
+
+      case "realtimePerformanceResumed": {
+        if (this.csoundWorkerMain && this.csoundWorkerMain.eventPromises) {
+          this.csoundWorkerMain.publicEvents &&
+            this.csoundWorkerMain.publicEvents.triggerRealtimePerformanceResumed(this);
+          await this.csoundWorkerMain.eventPromises.releaseResumePromise();
+        }
+        break;
+      }
+
       default: {
         break;
       }
@@ -227,9 +243,6 @@ class ScriptProcessorNodeMainThread {
       ),
     );
     log("done initializing proxyPort")();
-    this.ipcMessagePorts.mainMessagePort2.start();
-    this.ipcMessagePorts.mainMessagePort2.addEventListener("message", messageEventHandler(this));
-    this.ipcMessagePorts.mainMessagePort.addEventListener("message", messageEventHandler(this));
 
     const audioNode =
       spnWorker[`${contextUid}Node`] || window[`__csound_wasm_iframe_parent_${contextUid}Node`];

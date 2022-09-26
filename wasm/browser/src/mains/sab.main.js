@@ -119,13 +119,15 @@ class SharedArrayBufferMainThread {
   }
 
   async csoundPause() {
-    if (
-      Atomics.load(this.audioStatePointer, AUDIO_STATE.IS_PAUSED) !== 1 &&
-      Atomics.load(this.audioStatePointer, AUDIO_STATE.STOP) !== 1 &&
-      Atomics.load(this.audioStatePointer, AUDIO_STATE.IS_PERFORMING) === 1
-    ) {
+    if (this.eventPromises.isWaiting("pause")) {
+      return -1;
+    } else {
+      this.eventPromises.createPausePromise();
+
       Atomics.store(this.audioStatePointer, AUDIO_STATE.IS_PAUSED, 1);
+      await this.eventPromises.waitForPause();
       this.onPlayStateChange("realtimePerformancePaused");
+      return 0;
     }
   }
 
@@ -162,9 +164,6 @@ class SharedArrayBufferMainThread {
         } catch (error) {
           console.error(error);
         }
-
-        this.publicEvents.triggerRealtimePerformanceStarted(this);
-
         break;
       }
       case "realtimePerformanceEnded": {
@@ -182,21 +181,15 @@ class SharedArrayBufferMainThread {
         });
         break;
       }
-      case "realtimePerformancePaused": {
-        this.publicEvents.triggerRealtimePerformancePaused(this);
-        break;
-      }
-      case "realtimePerformanceResumed": {
-        this.publicEvents.triggerRealtimePerformanceResumed(this);
-        break;
-      }
       case "renderStarted": {
         this.publicEvents.triggerRenderStarted(this);
+        this.eventPromises.releaseStartPromise();
         break;
       }
       case "renderEnded": {
         log(`event: renderEnded received, beginning cleanup`)();
         this.publicEvents.triggerRenderEnded(this);
+        this.eventPromises && this.eventPromises.releaseStopPromise();
         break;
       }
       default: {
@@ -266,26 +259,42 @@ class SharedArrayBufferMainThread {
     log(`(postMessage) making a message channel from SABMain to SABWorker via workerMessagePort`)();
 
     this.ipcMessagePorts.sabMainCallbackReply.addEventListener("message", (event) => {
-      if (event.data === "poll") {
-        this.ipcMessagePorts &&
-          this.ipcMessagePorts.sabMainCallbackReply.postMessage(
-            Object.keys(this.callbackBuffer).map((id) => ({
-              id,
-              apiKey: this.callbackBuffer[id].apiKey,
-              argumentz: this.callbackBuffer[id].argumentz,
-            })),
+      switch (event.data) {
+        case "poll": {
+          this.ipcMessagePorts &&
+            this.ipcMessagePorts.sabMainCallbackReply.postMessage(
+              Object.keys(this.callbackBuffer).map((id) => ({
+                id,
+                apiKey: this.callbackBuffer[id].apiKey,
+                argumentz: this.callbackBuffer[id].argumentz,
+              })),
+            );
+          break;
+        }
+        case "releaseStop": {
+          this.onPlayStateChange(
+            this.currentPlayState === "renderStarted" ? "renderEnded" : "realtimePerformanceEnded",
           );
-      } else if (event.data === "releaseStop") {
-        this.onPlayStateChange(
-          this.currentPlayState === "renderStarted" ? "renderEnded" : "realtimePerformanceEnded",
-        );
-        this.eventPromises.releaseStopPromises();
-        this.publicEvents.triggerRealtimePerformanceEnded(this);
-      } else {
-        event.data.forEach(({ id, answer }) => {
-          this.callbackBuffer[id].resolveCallback(answer);
-          delete this.callbackBuffer[id];
-        });
+          this.eventPromises && this.eventPromises.releaseStopPromise();
+          this.publicEvents && this.publicEvents.triggerRealtimePerformanceEnded(this);
+          break;
+        }
+        case "releasePause": {
+          this.publicEvents.triggerRealtimePerformancePaused(this);
+          this.eventPromises.releasePausePromise();
+          break;
+        }
+        case "releaseResumed": {
+          this.publicEvents.triggerRealtimePerformanceResumed(this);
+          this.eventPromises.releaseResumePromise();
+          break;
+        }
+        default: {
+          event.data.forEach(({ id, answer }) => {
+            this.callbackBuffer[id].resolveCallback(answer);
+            delete this.callbackBuffer[id];
+          });
+        }
       }
     });
     this.ipcMessagePorts.sabMainCallbackReply.start();
@@ -364,22 +373,26 @@ class SharedArrayBufferMainThread {
               console.error("starting csound failed because csound instance wasn't created");
               return -1;
             }
-            this.eventPromises.createStartPromise();
+            if (this.eventPromises.isWaiting("start")) {
+              return -1;
+            } else {
+              this.eventPromises.createStartPromise();
 
-            const startResult = await proxyCallback({
-              audioStateBuffer,
-              audioStreamIn,
-              audioStreamOut,
-              midiBuffer,
-              csound: csoundInstance,
-            });
+              const startResult = await proxyCallback({
+                audioStateBuffer,
+                audioStreamIn,
+                audioStreamOut,
+                midiBuffer,
+                csound: csoundInstance,
+              });
 
-            await this.eventPromises.waitForStart();
+              await this.eventPromises.waitForStart();
 
-            this.ipcMessagePorts &&
-              this.ipcMessagePorts.sabMainCallbackReply.postMessage({ unlock: true });
+              this.ipcMessagePorts &&
+                this.ipcMessagePorts.sabMainCallbackReply.postMessage({ unlock: true });
 
-            return startResult;
+              return startResult;
+            }
           };
 
           csoundStart.toString = () => reference.toString();
@@ -396,7 +409,7 @@ class SharedArrayBufferMainThread {
                 this.currentPlayState,
               ].join("\n"),
             )();
-            if (this.eventPromises.isWaitingToStop()) {
+            if (this.eventPromises.isWaiting("stop")) {
               log("already waiting to stop, doing nothing")();
               return -1;
             } else if (stopableStates.has(this.currentPlayState)) {
@@ -434,18 +447,21 @@ class SharedArrayBufferMainThread {
             if (!this.currentPlayState) {
               return;
             }
-            if (stopableStates.has(this.currentPlayState)) {
-              await this.exportApi.stop();
-            } else if (this.eventPromises.isWaitingToStop()) {
-              await this.eventPromises.waitForStop();
+
+            if (this.eventPromises.isWaiting("reset")) {
+              return -1;
+            } else {
+              if (stopableStates.has(this.currentPlayState)) {
+                await this.exportApi.stop();
+              }
+              this.ipcMessagePorts.restartAudioWorkerPorts();
+              if (!this.audioContextIsProvided) {
+                await this.audioWorker.terminateInstance();
+                delete this.audioWorker.audioContext;
+              }
+              const resetResult = await proxyCallback([]);
+              return resetResult;
             }
-            this.ipcMessagePorts.restartAudioWorkerPorts();
-            if (!this.audioContextIsProvided) {
-              await this.audioWorker.terminateInstance();
-              delete this.audioWorker.audioContext;
-            }
-            const resetResult = await proxyCallback([]);
-            return resetResult;
           };
           this.exportApi.reset = csoundReset.bind(this);
           csoundReset.toString = () => reference.toString();
