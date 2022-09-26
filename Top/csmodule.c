@@ -632,6 +632,7 @@ int csoundLoadModules(CSOUND *csound)
 #elif defined(WIN32)
       char *prefix = getenv("LOCALAPPDATA");
 #endif
+      // VL: need to check so we don't get a segfault with NULL strings
       size_t prefixlen = prefix ? strlen(prefix) : 0;
       size_t userplugindirlen = userplugindir ? strlen(userplugindir) : 0;
 
@@ -649,7 +650,7 @@ int csoundLoadModules(CSOUND *csound)
       }
 #endif
     }
-    
+ 
     if(UNLIKELY(csound->oparms->odebug))
       csound->Message(csound, Str("Plugins search path: %s\n"), dname);
 
