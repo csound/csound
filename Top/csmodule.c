@@ -632,13 +632,15 @@ int csoundLoadModules(CSOUND *csound)
 #elif defined(WIN32)
       char *prefix = getenv("LOCALAPPDATA");
 #endif
-      size_t prefixlen = strlen(prefix);
-      size_t userplugindirlen = strlen(userplugindir);
+      size_t prefixlen = prefix ? strlen(prefix) : 0;
+      size_t userplugindirlen = userplugindir ? strlen(userplugindir) : 0;
+
       if(pos + prefixlen + 2 > searchpath_buflen - 1) {
         csound->ErrorMsg(csound, Str("Plugins search path too long\n"));
       } else if(userplugindirlen + prefixlen + 1 >= buflen) {
         csound->ErrorMsg(csound, Str("User plugin dir too long\n"));
       } else {
+      
         snprintf(buf, buflen, "%s/%s", prefix, userplugindir);
         if(_dir_exists(buf)) {
           snprintf(searchpath_buf, searchpath_buflen, "%s%c%s", dname, sep, buf);
@@ -647,7 +649,7 @@ int csoundLoadModules(CSOUND *csound)
       }
 #endif
     }
-
+    
     if(UNLIKELY(csound->oparms->odebug))
       csound->Message(csound, Str("Plugins search path: %s\n"), dname);
 
