@@ -21,9 +21,12 @@ in pkgs.stdenvNoCC.mkDerivation rec {
     mkdir -p include
     cp ${./libmpg123.config.in} include/config.h
     mv src/libmpg123/mpg123.h.in src/libmpg123/mpg123.h
+    rm src/libmpg123/lfs_alias.c
+    rm src/libmpg123/lfs_wrap.c
     rm src/libmpg123/calctables.c
     rm src/libmpg123/getcpuflags_arm.c
     rm src/libmpg123/dct64_altivec.c
+    rm src/libmpg123/dct64_i486.c
     rm src/libmpg123/synth_altivec.c
     rm src/libmpg123/synth_i486.c
     rm src/libmpg123/testcpu.c
@@ -55,16 +58,18 @@ in pkgs.stdenvNoCC.mkDerivation rec {
       -I src/libmpg123 \
       -D__wasi__=1 \
       -D__wasm32__=1 \
-      -Dlfs_alias_type=double \
-      -Dlfs_alias_t=double \
-      -DLFS_ALIAS_BITS=8 \
+      -DMPG123_NO_LARGENAME=1 \
+      -DOPT_GENERIC=1 \
+      -DREAL_IS_FLOAT=1 \
       -c \
       ./src/compat/*.c \
       ./src/libmpg123/*.c
   '';
 
   installPhase = ''
-    mkdir -p $out/lib
+    mkdir -p $out/lib $out/include
+    cp -rf include/* $out/include
+    cp src/libmpg123/*.h $out/include
     ${wasi-sdk}/bin/llvm-ar crS $out/lib/libmpg123.a ./*.o
     ${wasi-sdk}/bin/llvm-ranlib -U $out/lib/libmpg123.a
   '';

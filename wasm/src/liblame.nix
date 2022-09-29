@@ -4,6 +4,7 @@ let lib = pkgs.lib;
     wasi-sdk-dyn = pkgs.callPackage ./wasi-sdk.nix { };
     wasi-sdk-static = pkgs.callPackage ./wasi-sdk-static.nix { };
     wasi-sdk = if static then wasi-sdk-static else wasi-sdk-dyn;
+    libmpg123 = pkgs.callPackage ./libmpg123.nix { inherit static; };
 
 in pkgs.stdenvNoCC.mkDerivation rec {
     name = "liblame";
@@ -19,25 +20,19 @@ in pkgs.stdenvNoCC.mkDerivation rec {
          ${lib.optionalString (static == false) "-fPIC" } \
         -O3 \
         -I include \
+        -I ${libmpg123}/include \
         -D__wasi__=1 \
         -D__wasm32__=1 \
         -DHAVE_CONFIG_H=1 \
+        -DSTDC_HEADERS=1 \
+        -DHAVE_STRCHR=1 \
+        -DHAVE_MEMCPY=1 \
+        -DHAVE_ERRNO_H=1 \
+        -DHAVE_FCNTL_H=1 \
+        -DHAVE_INTTYPES_H=1 \
+        -DHAVE_STDINT_H=1 \
         -c \
         ./libmp3lame/*.c
-
-      ${wasi-sdk}/bin/clang \
-         --sysroot=${wasi-sdk}/share/wasi-sysroot \
-         ${lib.optionalString (static == false) "--target=wasm32-unknown-emscripten" } \
-         ${lib.optionalString (static == false) "-fPIC" } \
-        -O3 \
-        -I include \
-        -I libmp3lame \
-        -DHAVE_CONFIG_H=1 \
-        -D_WASI_EMULATED_SIGNAL=1 \
-        -D__wasi__=1 \
-        -D__wasm32__=1 \
-        -c \
-        ./mpglib/*.c
     '';
 
     installPhase = ''

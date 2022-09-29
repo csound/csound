@@ -3,21 +3,23 @@
   <head></head>
   <body>
     <script type="module">
+      const url = "/dist/csound.js";
       import("/dist/csound.js").then(async (module) => {
+          /* const [exampleUrl, fileName] = ["https://upload.wikimedia.org/wikipedia/commons/a/a1/Audio_Sample_-_The_Quick_Brown_Fox_Jumps_Over_The_Lazy_Dog.ogg", "test.ogg"] */
+          const [exampleUrl, fileName] = [
+          "https://csound.com/docs/manual/examples/beats.mp3",
+          "test.mp3",
+        ];
 
-        // const [exampleUrl, fileName] = ["https://upload.wikimedia.org/wikipedia/commons/a/a1/Audio_Sample_-_The_Quick_Brown_Fox_Jumps_Over_The_Lazy_Dog.ogg", "test.ogg"]
-        const [exampleUrl, fileName] = ["https://csound.com/docs/manual/examples/beats.mp3", "test.mp3"];
-
-        const Csound = await module.Csound;
-        const csound = await Csound({ useWorker: true, useSAB: false });
-        const response = await fetch(
-          exampleUrl,
-        );
-        const testSampleArrayBuffer = await response.arrayBuffer();
-        const testSample = new Uint8Array(testSampleArrayBuffer);
-        await csound.fs.writeFile(fileName, testSample);
-        await csound.setOption("-odac");
-        await csound.compileCsdText(`
+        const runIt = async () => {
+          const { Csound } = await import(url);
+          const csound = await Csound({ useWorker: false, useSAB: false });
+          const response = await fetch(exampleUrl);
+          const testSampleArrayBuffer = await response.arrayBuffer();
+          const testSample = new Uint8Array(testSampleArrayBuffer);
+          await csound.fs.writeFile(fileName, testSample);
+          await csound.setOption("-odac");
+          await csound.compileCsdText(`
   <CsoundSynthesizer>
 <CsOptions>
     -odac
@@ -26,9 +28,9 @@
     0dbfs = 1
     instr 1
       ktrans linseg 1, 5, 2, 10, -2
-      a1, a2 diskin2 "${fileName}", ktrans, 0, 1, 0, 32
+      a1  diskin2 "${fileName}", ktrans, 0, 1, 0, 32
       prints "HELLO!\\n"
-      outs a1, a2
+      outs a1
     endin
 </CsInstruments>
 <CsScore>
@@ -36,9 +38,17 @@
     i 1 + .
 </CsScore>
 </CsoundSynthesizer>
-             `);
-        await csound.start();
+               `);
+          await csound.start();
+        };
+
+        const triggerEvent = "ontouchstart" in document.documentElement ? "touchend" : "click";
+        document.querySelector("#all_tests").addEventListener(triggerEvent, async function () {
+          await runIt();
+        });
+        const Csound = await module.Csound;
       });
     </script>
+    <button id="all_tests">Run Diskin Test</button>
   </body>
 </html>
