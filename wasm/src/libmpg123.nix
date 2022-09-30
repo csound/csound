@@ -58,12 +58,35 @@ in pkgs.stdenvNoCC.mkDerivation rec {
       -I src/libmpg123 \
       -D__wasi__=1 \
       -D__wasm32__=1 \
-      -DMPG123_NO_LARGENAME=1 \
+      -DOPT_GENERIC_DITHER=1 \
       -DOPT_GENERIC=1 \
       -DREAL_IS_FLOAT=1 \
+      -DNO_ICY=1 \
+      -DNO_NTOM=1 \
+      -DNO_STRING=1 \
+      -DNO_DOWNSAMPLE=1 \
+      -DNO_ID3V2=1 \
+      -DNO_EQUALIZER=1 \
+      -DNO_8BIT=1 \
+      -DNO_16BIT=1 \
+      -DNO_32BIT=1 \
+      -DACCURATE_ROUNDING=1 \
+      -DINDEX_SIZE=0 \
       -c \
-      ./src/compat/*.c \
-      ./src/libmpg123/*.c
+      ./src/compat/compat.c \
+      ./src/libmpg123/parse.c \
+  	  ./src/libmpg123/frame.c \
+  	  ./src/libmpg123/format.c \
+  	  ./src/libmpg123/dct64.c \
+  	  ./src/libmpg123/id3.c \
+  	  ./src/libmpg123/optimize.c \
+  	  ./src/libmpg123/readers.c \
+  	  ./src/libmpg123/tabinit.c \
+  	  ./src/libmpg123/libmpg123.c \
+  	  ./src/libmpg123/layer1.c \
+  	  ./src/libmpg123/layer2.c \
+  	  ./src/libmpg123/layer3.c \
+  	  ./src/libmpg123/synth_real.c
   '';
 
   installPhase = ''
