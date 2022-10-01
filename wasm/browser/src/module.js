@@ -275,8 +275,8 @@ export default async function ({ wasmDataURI, withPlugins = [], messagePort }) {
     streamBuffer,
   });
 
-  options.env.printDebugCallback = (offset, len) => {
-    const buf = new Uint8Array(memory.buffer, offset, len);
+  options.env.printDebugCallback = (offset, length) => {
+    const buf = new Uint8Array(memory.buffer, offset, length);
     const string = uint2String(buf);
     console.log(string);
   };
