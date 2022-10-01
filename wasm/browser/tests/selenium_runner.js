@@ -50,6 +50,7 @@ if (CI_BIN && fs.existsSync(CI_BIN)) {
   if (result && result.success) {
     process.exit(0);
   } else {
+    console.error(JSON.stringify(result || {}, null, 2));
     process.exit(-1);
   }
 })();
