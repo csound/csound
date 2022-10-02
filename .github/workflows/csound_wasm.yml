@@ -107,4 +107,9 @@ jobs:
         with:
           report_paths: "**/tests/*.junit.xml"
           fail_on_failure: true
+          include_passed: false
+          detailed_summary: true
+          annotate_notice: true
           github_token: ${{ secrets.GITHUB_TOKEN }}
+          check_title_template: |-
+            {{FILE_NAME}} | {{SUITE_NAME}} | {{TEST_NAME}}
