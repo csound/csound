@@ -97,9 +97,9 @@ jobs:
           mv tests/results.junit.xml tests/_results.junit.xml
           mv tests/results-firefox.junit.xml tests/_results-firefox.junit.xml
           ex -s +'%s/<testsuite name=""[^>].\{-}>\n.*<\/testsuite>//ge' +%p +q! \
-            tests/_results.junit.xml > tests/results.junit.xml
+            tests/_results.junit.xml > tests/GOOGLE_CHROME.junit.xml
           ex -s +'%s/<testsuite name=""[^>].\{-}>\n.*<\/testsuite>//ge' +%p +q! \
-            tests/_results-firefox.junit.xml > tests/results-firefox.junit.xml
+            tests/_results-firefox.junit.xml > tests/FIREFOX.junit.xml
           rm tests/_results.junit.xml
           rm tests/_results-firefox.junit.xml
       - name: Publish Test Report
@@ -109,7 +109,6 @@ jobs:
           fail_on_failure: true
           include_passed: false
           detailed_summary: true
-          annotate_notice: true
           github_token: ${{ secrets.GITHUB_TOKEN }}
           check_title_template: |-
             {{FILE_NAME}} | {{SUITE_NAME}} | {{TEST_NAME}}
