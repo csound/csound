@@ -50,6 +50,7 @@
     "build:static": "cross-env BUILD_STATIC=1 yarn run build",
     "build:readme": "node --experimental-modules script/generate-readme.mjs > README.md",
     "test:ci": "node tests/selenium_runner.js",
+    "test:ci:firefox": "node tests/selenium_runner_firefox.js",
     "test:open": "node tests/server.cjs"
   },
   "devDependencies": {
