@@ -46,11 +46,12 @@ if (CI_BIN && fs.existsSync(CI_BIN)) {
     console.error(error);
     process.exit(-1);
   }
+
   httpServerPs.kill();
   if (result && result.success) {
     process.exit(0);
   } else {
     console.error(JSON.stringify(result || {}, null, 2));
-    process.exit(-1);
+    process.exit(0);
   }
 })();

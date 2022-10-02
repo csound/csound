@@ -1,5 +1,5 @@
 (async () => {
-  const isCI = location.port === "8081" && location.search.includes("ci=true");
+  const isCI = ["8081", "8082"].includes(location.port) && location.search.includes("ci=true");
   const url = "/dist/csound.js"; // isCI ? "/csound.esm.js" : "/csound.dev.esm.js";
   const { Csound } = await import(url);
 

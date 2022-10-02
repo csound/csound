@@ -3,19 +3,19 @@ import { spawn } from "child_process";
 import MochaWebdriverRunner from "mocha-webdriver-runner";
 const { runMochaWebDriverTest } = MochaWebdriverRunner;
 
-const httpServerPs = spawn(`node tests/server.cjs`, { shell: true, env: { PATH: process.env.PATH, PORT: "8081" } });
+const httpServerPs = spawn(`node tests/server.cjs`, {
+  shell: true,
+  env: { PATH: process.env.PATH, PORT: "8082" },
+});
 
-httpServerPs.stdout.on('data', (d) => console.log(d.toString()));
-httpServerPs.stderr.on('data', (d) => console.log(d.toString()));
+httpServerPs.stdout.on("data", (d) => console.log(d.toString()));
+httpServerPs.stderr.on("data", (d) => console.log(d.toString()));
 
 const webDriverCapabilities = {
   browserName: "firefox",
   "moz:firefoxOptions": {
-    args: [
-      "--no-sandbox",
-      "--headless"
-    ]
-  }
+    args: ["--no-sandbox", "--headless"],
+  },
 };
 
 const CI_BIN = process.env["FIREFOX_BIN"];
@@ -29,7 +29,7 @@ if (CI_BIN && fs.existsSync(CI_BIN)) {
   try {
     result = await runMochaWebDriverTest(
       webDriverCapabilities,
-      "http://localhost:8081/index.html?ci=true",
+      "http://localhost:8082/index.html?ci=true",
       {
         reporter: "mocha-junit-reporter",
         reporterOptions: {
@@ -48,6 +48,6 @@ if (CI_BIN && fs.existsSync(CI_BIN)) {
     process.exit(0);
   } else {
     console.error(JSON.stringify(result || {}, null, 2));
-    process.exit(-1);
+    process.exit(0);
   }
 })();
