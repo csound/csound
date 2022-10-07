@@ -20,7 +20,7 @@
 ;
 
 [setup]
-#define AppName "csound"
+#define AppName "Csound6_x64"
 #define AppVersion "6"
 #define AppMinVersion GetEnv("CSOUND_VERSION")
 #define BuildNumber GetEnv("GITHUB_RUN_NUMBER")

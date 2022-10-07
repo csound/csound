@@ -316,15 +316,18 @@ class ScriptProcessorNodeSingleThread {
   onaudioprocess(event) {
     if (this.csoundOutputBuffer === null || this.running === false) {
       const output = event.outputBuffer;
-      const bufferLength = output.getChannelData(0).length;
+      const channelData = output.getChannelData(0);
 
-      for (let index = 0; index < bufferLength; index++) {
-        for (let channel = 0; channel < output.numberOfChannels; channel++) {
-          const outputChannel = output.getChannelData(channel);
-          outputChannel[index] = 0;
+      if (channelData) {
+        const bufferLength = channelData.length;
+
+        for (let index = 0; index < bufferLength; index++) {
+          for (let channel = 0; channel < output.numberOfChannels; channel++) {
+            const outputChannel = output.getChannelData(channel);
+            outputChannel[index] = 0;
+          }
         }
       }
-      return;
     }
 
     if (this.running && !this.started) {

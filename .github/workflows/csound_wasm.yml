@@ -1,6 +1,6 @@
 name: csound_wasm
 env:
-  nix_path: nixpkgs=https://github.com/NixOS/nixpkgs/archive/3876561795a7111dac8fd4b71e0279e46b08eed8.tar.gz
+  nix_path: nixpkgs=https://github.com/NixOS/nixpkgs/archive/cb474e6c995aca315dd728d7c8f288cf8de8e2ae.tar.gz
 on:
   pull_request:
     branches: ["**"]
@@ -78,23 +78,37 @@ jobs:
           cd $wasm_browser_dir
           nix-shell --pure
           yarn lint:ci
-      - name: Run the unit-tests
+      - name: Run the unit-tests with google-chrome
         continue-on-error: true # allow the reporter to report the failures
         run: |
           cd $wasm_browser_dir
           nix-shell --pure
           yarn test:ci
+      - name: Run the unit-tests with firefox
+        continue-on-error: true # allow the reporter to report the failures
+        run: |
+          cd $wasm_browser_dir
+          nix-shell --pure
+          yarn test:ci:firefox
       - name: Fix the test report
         run: |
           cd $wasm_browser_dir
           nix-shell --pure
           mv tests/results.junit.xml tests/_results.junit.xml
+          mv tests/results-firefox.junit.xml tests/_results-firefox.junit.xml
           ex -s +'%s/<testsuite name=""[^>].\{-}>\n.*<\/testsuite>//ge' +%p +q! \
-            tests/_results.junit.xml > tests/results.junit.xml
+            tests/_results.junit.xml > tests/GOOGLE_CHROME.junit.xml
+          ex -s +'%s/<testsuite name=""[^>].\{-}>\n.*<\/testsuite>//ge' +%p +q! \
+            tests/_results-firefox.junit.xml > tests/FIREFOX.junit.xml
           rm tests/_results.junit.xml
+          rm tests/_results-firefox.junit.xml
       - name: Publish Test Report
-        uses: mikepenz/action-junit-report@v2
+        uses: mikepenz/action-junit-report@v3
         with:
           report_paths: "**/tests/*.junit.xml"
           fail_on_failure: true
+          include_passed: false
+          detailed_summary: true
           github_token: ${{ secrets.GITHUB_TOKEN }}
+          check_title_template: |-
+            {{FILE_NAME}} | {{SUITE_NAME}} | {{TEST_NAME}}

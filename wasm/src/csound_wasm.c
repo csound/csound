@@ -85,6 +85,7 @@ int csoundShouldDaemonize(CSOUND *csound) {
 __attribute__((used))
 int csoundStartWasi(CSOUND *csound) {
   const char* outputDev = csoundGetOutputName(csound);
+
   // detect realtime mode automatically
   if ((strncmp("dac", outputDev, 3) == 0) ||
       csoundShouldDaemonize(csound)) {
@@ -375,5 +376,21 @@ int __lttf2(long double a, long double b) {
     return 0;
   } else {
     return -1;
+  }
+}
+
+void printDebugCallback(
+    const char *str,
+    int len
+) __attribute__((
+     used,
+    __import_module__("env"),
+    __import_name__("printDebugCallback")
+));
+
+__attribute__((used))
+void printDebug(const char *log) {
+  if (strlen(log) > 0) {
+    (* printDebugCallback)(log, strlen(log));
   }
 }
