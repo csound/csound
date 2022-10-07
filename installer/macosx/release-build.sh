@@ -56,7 +56,7 @@ mkdir build
 cd build
 export BUILD_DIR=`pwd`
 # i386 is now deprecated, so we're not building it anymore
-cmake .. -DBUILD_INSTALLER=1 -DCMAKE_INSTALL_PREFIX=dist -DCMAKE_BUILD_TYPE=Release -DBUILD_TESTS=0  -DBUILD_LUA_INTERFACE=0 -DUSE_GETTEXT=0 -DUSE_FLTK=0
+cmake .. -DCMAKE_OSX_DEPLOYMENT_TARGET=10.9 -DBUILD_INSTALLER=1 -DCMAKE_INSTALL_PREFIX=dist -DCMAKE_BUILD_TYPE=Release -DBUILD_TESTS=0  -DBUILD_LUA_INTERFACE=0 -DUSE_GETTEXT=0 -DUSE_FLTK=0
 make -j6 install
 
 cd ../..
@@ -137,7 +137,7 @@ cp $DEPS_BASE/lib/libsndfile.1.dylib $SUPPORT_LIBS_DIR
 cp $DEPS_BASE/lib/libsamplerate.0.dylib $SUPPORT_LIBS_DIR
 cp $DEPS_BASE/lib/libportaudio.2.dylib $SUPPORT_LIBS_DIR
 cp $DEPS_BASE/lib/libportmidi.dylib $SUPPORT_LIBS_DIR
-cp $DEPS_BASE/lib/libFLAC.8.dylib $SUPPORT_LIBS_DIR
+cp $DEPS_BASE/lib/libFLAC.12.dylib $SUPPORT_LIBS_DIR
 cp $DEPS_BASE/lib/libvorbisenc.2.dylib $SUPPORT_LIBS_DIR
 cp $DEPS_BASE/lib/libvorbis.0.dylib $SUPPORT_LIBS_DIR
 cp $DEPS_BASE/lib/libogg.0.dylib $SUPPORT_LIBS_DIR
@@ -151,7 +151,7 @@ install_name_tool -id libsndfile.1.dylib $SUPPORT_LIBS_DIR/libsndfile.1.dylib
 install_name_tool -id libsamplerate.0.dylib $SUPPORT_LIBS_DIR/libsamplerate.0.dylib
 install_name_tool -id libportaudio.2.dylib $SUPPORT_LIBS_DIR/libportaudio.2.dylib
 install_name_tool -id libportmidi.dylib $SUPPORT_LIBS_DIR/libportmidi.dylib
-install_name_tool -id libFLAC.8.dylib $SUPPORT_LIBS_DIR/libFLAC.8.dylib
+install_name_tool -id libFLAC.12.dylib $SUPPORT_LIBS_DIR/libFLAC.12.dylib
 install_name_tool -id libvorbisenc.2.dylib $SUPPORT_LIBS_DIR/libvorbisenc.2.dylib
 install_name_tool -id libvorbis.0.dylib $SUPPORT_LIBS_DIR/libvorbis.0.dylib
 install_name_tool -id libogg.0.dylib $SUPPORT_LIBS_DIR/libogg.0.dylib
@@ -186,10 +186,10 @@ install_name_tool -change $OLD_OGG_LIB $NEW_OGG_LIB $SUPPORT_LIBS_DIR/libsndfile
 install_name_tool -change $OLD_OGG_LIB $NEW_OGG_LIB $SUPPORT_LIBS_DIR/libvorbis.0.dylib
 install_name_tool -change $OLD_OGG_LIB $NEW_OGG_LIB $SUPPORT_LIBS_DIR/libvorbisenc.2.dylib
 
-export OLD_FLAC_LIB=$DEPS_BASE/lib/libFLAC.8.dylib
-export NEW_FLAC_LIB=@loader_path/libFLAC.8.dylib
+export OLD_FLAC_LIB=$DEPS_BASE/lib/libFLAC.12.dylib
+export NEW_FLAC_LIB=@loader_path/libFLAC.12.dylib
 install_name_tool -change $OLD_FLAC_LIB $NEW_FLAC_LIB $SUPPORT_LIBS_DIR/libsndfile.1.dylib
-install_name_tool -change $OLD_OGG_LIB $NEW_OGG_LIB $SUPPORT_LIBS_DIR/libFLAC.8.dylib
+install_name_tool -change $OLD_OGG_LIB $NEW_OGG_LIB $SUPPORT_LIBS_DIR/libFLAC.12.dylib
 
 # change dep for libsamplerate
 install_name_tool -change $DEPS_BASE/lib/libsamplerate.0.dylib @loader_path/libsamplerate.0.dylib $SUPPORT_LIBS_DIR/libsamplerate.0.dylib

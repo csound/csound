@@ -3451,7 +3451,7 @@ int32_t init_rifft(CSOUND *csound, FFT *p) {
 }
 
 int32_t perf_rifft(CSOUND *csound, FFT *p) {
-    int32_t N = p->out->sizes[0];
+    int32_t N = p->in->sizes[0];
     memcpy(p->out->data,p->in->data,N*sizeof(MYFLT));
     if (isPowerOfTwo(N))
       csound->RealFFT2(csound,p->setup,p->out->data);
@@ -3581,8 +3581,8 @@ int32_t perf_poltorect(CSOUND *csound, FFT *p) {
 
 int32_t init_poltorect2(CSOUND *csound, FFT *p) {
     if (LIKELY(p->in2->sizes[0] == p->in->sizes[0])) {
-      int32_t   N = p->in2->sizes[0]-1;
-      tabinit(csound, p->out, N*2);
+      int32_t   N = p->in2->sizes[0];
+      tabinit(csound, p->out, N*2 - 2);
       return OK;
     } else return csound->InitError(csound,
                                     Str("in array sizes do not match: %d and %d\n"),
@@ -3602,8 +3602,8 @@ int32_t perf_poltorect2(CSOUND *csound, FFT *p) {
       im = mags[j]*SIN(phs[j]);
       out[i] = re; out[i+1] = im;
     }
-    out[0] = mags[0];
-    out[1] = mags[end];
+    out[0] = mags[0]*COS(phs[0]);
+    out[1] = mags[end]*COS(phs[end]);
     return OK;
 }
 
