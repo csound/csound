@@ -202,11 +202,11 @@ e
   }
 
   const csoundVariations = [
-    // { useWorker: false, useSPN: false, name: "SINGLE THREAD, AW" },
-    // { useWorker: false, useSPN: true, name: "SINGLE THREAD, SPN" },
+    { useWorker: false, useSPN: false, name: "SINGLE THREAD, AW" },
+    { useWorker: false, useSPN: true, name: "SINGLE THREAD, SPN" },
     { useWorker: true, useSAB: true, name: "WORKER, AW, SAB" },
-    // { useWorker: true, useSAB: false, name: "WORKER, AW, Messageport" },
-    // { useWorker: true, useSAB: false, useSPN: true, name: "WORKER, SPN, MessagePort" },
+    { useWorker: true, useSAB: false, name: "WORKER, AW, Messageport" },
+    { useWorker: true, useSAB: false, useSPN: true, name: "WORKER, SPN, MessagePort" },
   ];
 
   csoundVariations.forEach((test) => {
@@ -332,7 +332,9 @@ e
         await csoundObj.pause();
         await csoundObj.resume();
         await csoundObj.stop();
+
         console.log(JSON.stringify(eventStopSpy, null, 2));
+
         assert(eventPlaySpy.calledTwice, 'The "play" event was emitted twice');
         assert(eventPauseSpy.calledOnce, 'The "pause" event was emitted once');
         assert(eventStopSpy.calledOnce, 'The "stop" event was emitted once');
