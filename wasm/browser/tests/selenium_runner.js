@@ -42,7 +42,9 @@ if (CI_BIN && fs.existsSync(CI_BIN)) {
           mochaFile: "tests/results.junit.xml",
           useFullSuiteTitle: true,
           rootSuiteTitle: undefined,
+          outputs: true,
         },
+        captureConsoleLog: true,
       },
     );
   } catch (error) {
