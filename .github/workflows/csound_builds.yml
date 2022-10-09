@@ -107,8 +107,8 @@ jobs:
       - name: Upload installer
         uses: actions/upload-artifact@v2
         with:
-          name: Csoundx64-${{env.CSOUND_VERSION}}.${{github.run_number}}-windows-x64-installer
-          path: ./Csoundx64-windows_x86_64-*.exe
+          name: Csound6_x64-${{env.CSOUND_VERSION}}.${{github.run_number}}-windows-x64-installer
+          path: ./Csound6_x64-windows_x86_64-*.exe
           if-no-files-found: error
       - name: Upload zip
         uses: actions/upload-artifact@v2
