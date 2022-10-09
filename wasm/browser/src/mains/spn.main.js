@@ -311,6 +311,7 @@ class ScriptProcessorNodeSingleThread {
     this.nchnls = -1;
     this.nchnls_i = -1;
     delete this.csoundOutputBuffer;
+    delete this.csoundInputBuffer;
   }
 
   onaudioprocess(event) {
@@ -368,7 +369,7 @@ class ScriptProcessorNodeSingleThread {
 
       /* Check if MEMGROWTH occured from csoundPerformKsmps or otherwise. If so,
       rest output ant input buffers to new pointer locations. */
-      if (csOut.length === 0) {
+      if (!csOut || csOut.length === 0) {
         csOut = this.csoundOutputBuffer = new Float64Array(
           this.wasm.wasi.memory.buffer,
           this.csoundApi.csoundGetSpout(this.csoundInstance),
@@ -376,7 +377,7 @@ class ScriptProcessorNodeSingleThread {
         );
       }
 
-      if (csIn.length === 0) {
+      if (!csIn || csIn.length === 0) {
         csIn = this.csoundInputBuffer = new Float64Array(
           this.wasm.wasi.memory.buffer,
           this.csoundApi.csoundGetSpin(this.csoundInstance),
