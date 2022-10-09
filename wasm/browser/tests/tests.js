@@ -313,7 +313,7 @@ e
         await cs.terminateInstance();
       });
 
-      it.only("emits public events in realtime performance", async function () {
+      it("emits public events in realtime performance", async function () {
         const eventPlaySpy = sinon.spy();
         const eventPauseSpy = sinon.spy();
         const eventStopSpy = sinon.spy();
@@ -332,7 +332,7 @@ e
         await csoundObj.pause();
         await csoundObj.resume();
         await csoundObj.stop();
-
+        console.log(JSON.stringify(eventStopSpy, null, 2));
         assert(eventPlaySpy.calledTwice, 'The "play" event was emitted twice');
         assert(eventPauseSpy.calledOnce, 'The "pause" event was emitted once');
         assert(eventStopSpy.calledOnce, 'The "stop" event was emitted once');
