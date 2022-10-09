@@ -209,6 +209,12 @@ static int32_t osc_send(CSOUND *csound, OSCSEND *p)
     char *hh;
     int32_t cmpr = 0;
 
+    if(p->INOCOUNT > 4) {
+      if(strcmp(csound->GetTypeForArg(p->type)->varTypeName, "S")) 
+        return csound->InitError(csound,"%s",
+                             Str("Message type is not given as a string\n"));
+    }
+
     if (UNLIKELY(*p->port<0))
       pp = NULL;
     else

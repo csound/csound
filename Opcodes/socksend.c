@@ -471,6 +471,13 @@ static int32_t osc_send2_init(CSOUND *csound, OSCSEND2 *p)
       return OK;
     }
 
+    if(p->INOCOUNT > 4) {
+      if(!IS_STR_ARG(p->type)) 
+               return csound->InitError(csound,
+                             Str("Message type is not given as a string\n"));
+    }
+
+   
     if (UNLIKELY(p->INOCOUNT > 4 && p->INOCOUNT < (uint32_t) strlen(p->type->data) + 4))
        return csound->InitError(csound,
                              Str("insufficient number of arguments for "
