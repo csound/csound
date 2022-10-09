@@ -159,6 +159,7 @@ const sabCreateRealtimeAudioThread =
       if (Atomics.load(audioStatePointer, AUDIO_STATE.IS_PAUSED) === 1) {
         releasePause();
         Atomics.wait(audioStatePointer, AUDIO_STATE.IS_PAUSED, 0);
+        await new Promise((resolve) => setTimeout(resolve, 10));
         releaseResumed();
       }
 
