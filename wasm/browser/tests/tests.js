@@ -202,11 +202,11 @@ e
   }
 
   const csoundVariations = [
-    { useWorker: false, useSPN: false, name: "SINGLE THREAD, AW" },
-    { useWorker: false, useSPN: true, name: "SINGLE THREAD, SPN" },
+    // { useWorker: false, useSPN: false, name: "SINGLE THREAD, AW" },
+    // { useWorker: false, useSPN: true, name: "SINGLE THREAD, SPN" },
     { useWorker: true, useSAB: true, name: "WORKER, AW, SAB" },
-    { useWorker: true, useSAB: false, name: "WORKER, AW, Messageport" },
-    { useWorker: true, useSAB: false, useSPN: true, name: "WORKER, SPN, MessagePort" },
+    // { useWorker: true, useSAB: false, name: "WORKER, AW, Messageport" },
+    // { useWorker: true, useSAB: false, useSPN: true, name: "WORKER, SPN, MessagePort" },
   ];
 
   csoundVariations.forEach((test) => {
@@ -313,7 +313,7 @@ e
         await cs.terminateInstance();
       });
 
-      it("emits public events in realtime performance", async function () {
+      it.only("emits public events in realtime performance", async function () {
         const eventPlaySpy = sinon.spy();
         const eventPauseSpy = sinon.spy();
         const eventStopSpy = sinon.spy();
