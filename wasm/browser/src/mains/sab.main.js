@@ -275,8 +275,8 @@ class SharedArrayBufferMainThread {
           this.onPlayStateChange(
             this.currentPlayState === "renderStarted" ? "renderEnded" : "realtimePerformanceEnded",
           );
-          this.eventPromises && this.eventPromises.releaseStopPromise();
           this.publicEvents && this.publicEvents.triggerRealtimePerformanceEnded(this);
+          this.eventPromises && this.eventPromises.releaseStopPromise();
           break;
         }
         case "releasePause": {
