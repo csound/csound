@@ -1,7 +1,7 @@
 CSOUND VERSION 6.18 RELEASE NOTES
 
 Mainly a bug-fixing release.  Major new facility is MP3 (MPEG) audio
-files are supported both for input and output suppoted by libsndfile.
+files support is now implemented for both input and output with libsndfile.
 
 -- The Developers
 
@@ -12,7 +12,7 @@ files are supported both for input and output suppoted by libsndfile.
 - scanmap reads internal state of scanu
 
 - elapsedcycles, elapsedtime, eventcycles, and eventtime. See under
-  "bugs fied" for detials.
+  "bugs fixed" for details.
 
 ### New gen
 
@@ -24,7 +24,7 @@ files are supported both for input and output suppoted by libsndfile.
 
 ### Modified Opcodes and Gens
 
--     fix midi list printing to stdout part of the list.
+- Fixed midi list printing to stdout part of the list.
 
 ### Utilities
 
@@ -34,23 +34,23 @@ files are supported both for input and output suppoted by libsndfile.
 
 ## Bugs Fixed
 
-- bug in sum fixd
+- Fixed bug in sum.
 
 - 'pitchamd' opcode causes segmentation fault (macOS) (#1599)
 
-- fixed crash on channel setting with empty channel name
+- Fixed crash on channel setting with empty channel name
 
-- bug in ftloadk fixed (#1611)
+- Fixed bug in ftloadk (#1611).
 
-- qnan works even when compiled with fast arithmetic
+- Now, qnan works even when compiled with fast arithmetic.
 
-- Fix the flanger opcode for sample-accurate mode, where the xdel input was
+- Fixed the flanger opcode for sample-accurate mode, where the xdel input was
 not being correctly offset.
 
-- elapsedcycles, elapsedtime, eventcycles, and eventtime introducd as
-  fixed versions of timek, times, timeinstk and timeinsts but return
-  the correct values instead of being one cycle late.  This prserves
-  backward compatability
+- elapsedcycles, elapsedtime, eventcycles, and eventtime (introduced as
+  fixed versions of timek, times, timeinstk and timeinsts) now return
+  the correct values instead of being one cycle late.  This preserves
+  backward compatability.
 
 # SYSTEM LEVEL CHANGES
 
@@ -60,7 +60,7 @@ not being correctly offset.
    Fixes the rtauhal module for all cases of multichannel output. Previously the
    module would not work correctly with some devices.
 
--  Csound now supports MP3 files for input and output
+-  Csound now supports MP3 files for input and output.
 
 ### Translations
 
