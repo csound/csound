@@ -488,13 +488,13 @@ WASI.prototype.fd_write = function (fd, iovs, iovsLength, nwritten) {
     console.log("fd_write", { fd, iovs, iovsLength, nwritten });
   }
 
+  let append = false;
   const memory = this.getMemory();
   this.fd[fd].buffers = this.fd[fd].buffers || [];
 
   // append-only, if starting new write from beginning
-  // we are then assuming an overwrite (until this bites us)
   if (this.fd[fd].seekPos === goog.global.BigInt(0) && this.fd[fd].buffers.length > 0) {
-    this.fd[fd].buffers = [];
+    append = true;
   }
   let written = 0;
 
@@ -504,7 +504,11 @@ WASI.prototype.fd_write = function (fd, iovs, iovsLength, nwritten) {
     const bufLength = memory.getUint32(ptr + 4, true);
     written += bufLength;
     const chunk = new Uint8Array(memory.buffer, buf, bufLength);
-    this.fd[fd].buffers.push(chunk.slice(0, bufLength));
+    if (append) {
+      this.fd[fd].buffers.unshift(chunk.slice(0, bufLength));
+    } else {
+      this.fd[fd].buffers.push(chunk.slice(0, bufLength));
+    }
   }
 
   this.fd[fd].seekPos += goog.global.BigInt(written);
