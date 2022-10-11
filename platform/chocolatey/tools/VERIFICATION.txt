@@ -1,0 +1,5 @@
+﻿VERIFICATION
+Verification is intended to assist the Chocolatey moderators and community
+in verifying that this package's contents are trustworthy.
+
+Package should only contain installer from here: https://github.com/csound/csound/releases

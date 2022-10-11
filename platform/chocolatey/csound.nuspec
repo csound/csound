@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<!-- Do not remove this test for UTF-8: if “Ω” doesn’t appear as greek uppercase omega letter enclosed in quotation marks, you should use an editor that supports UTF-8, not this one. -->
+<package xmlns="http://schemas.microsoft.com/packaging/2015/06/nuspec.xsd">
+  <metadata>
+    <id>csound</id>
+    <version>6.17.0</version>
+    <packageSourceUrl>https://github.com/csound/csound</packageSourceUrl>
+    <owners>Stephen Kyne</owners>
+    <title>csound (Install)</title>
+    <authors>Csound Org.</authors>
+    <projectUrl>https://github.com/csound/csound</projectUrl>
+    <licenseUrl>https://github.com/csound/csound/blob/master/COPYING</licenseUrl>
+    <requireLicenseAcceptance>true</requireLicenseAcceptance>
+    <projectSourceUrl>https://github.com/csound/csound</projectSourceUrl>
+    <mailingListUrl>https://listserv.heanet.ie/cgi-bin/wa?A0=CSOUND</mailingListUrl>
+    <bugTrackerUrl>https://github.com/csound/csound/issues</bugTrackerUrl>
+    <tags>csound audio music programming language dsp</tags>
+    <summary>Csound is a sound and music computing system.</summary>
+    <description>Csound is a sound and music computing system.</description>
+  </metadata>
+  <files>
+    <file src="tools\**" target="tools" />
+  </files>
+</package>
