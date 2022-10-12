@@ -15,7 +15,9 @@
         },
         {
             "name": "libsndfile",
-            "features": ["external-libs"]
+            "features": [
+                "external-libs"
+            ]
         },
         {
             "name": "gettext",
