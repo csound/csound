@@ -80,6 +80,10 @@ jobs:
           -username "csound"
           -password "${{ secrets.GITHUB_TOKEN }}"
 
+          mono `./vcpkg/vcpkg fetch nuget | tail -n 1`
+          setapikey "${{ secrets.GITHUB_TOKEN }}"
+          -source "https://nuget.pkg.github.com/csound/index.json"
+
       - name: Install dependencies
         run: brew install bison@2.7 flex asio jack
 
