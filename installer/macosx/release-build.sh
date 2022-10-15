@@ -19,7 +19,7 @@ echo "Version: $CS_VERSION"
 export MANUAL_DIR=`pwd`/../../../manual
 export PACKAGE_NAME=csound-MacOS-${CS_VERSION}.pkg
 export DMG_DIR="Csound${CS_VERSION}"
-export DMG_NAME="csound-MacOS_x86_64-${CS_VERSION}.dmg"
+export DMG_NAME="csound-MacOS-${CS_VERSION}.dmg"
 
 #export SDK=/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.12.sdk/
 export TARGET=10.7
