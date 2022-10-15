@@ -75,6 +75,15 @@ not being correctly offset.
 
 ### Translations
 
+### WASM
+
+- Supports mp3 files
+
+- Offline rendering fixes when using worker mode
+
+- fout bug causing missing data is fixed
+
+
 ### API
 
 
