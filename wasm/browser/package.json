@@ -1,6 +1,6 @@
 {
   "name": "@csound/browser",
-  "version": "6.17.4",
+  "version": "6.18.0-beta1",
   "module": "./dist/csound.js",
   "typings": "index.d.ts",
   "type": "module",
@@ -57,7 +57,7 @@
     "@babel/core": "^7.16.7",
     "@babel/plugin-proposal-object-rest-spread": "^7.16.7",
     "@babel/plugin-transform-destructuring": "^7.16.7",
-    "@csound/wasm-bin": "6.17.0",
+    "@csound/wasm-bin": "6.18.0-beta1",
     "browser-or-node": "^2.0.0",
     "chai": "^4.3.4",
     "cross-env": "^7.0.3",
