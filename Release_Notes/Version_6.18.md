@@ -1,7 +1,8 @@
 CSOUND VERSION 6.18 RELEASE NOTES
 
 Mainly a bug-fixing release.  Major new facility is MP3 (MPEG) audio
-files support is now implemented for both input and output with libsndfile.
+files are supported both for input and output in platforms where this is 
+supported by libsndfile.
 
 -- The Developers
 
@@ -12,7 +13,7 @@ files support is now implemented for both input and output with libsndfile.
 - scanmap reads internal state of scanu
 
 - elapsedcycles, elapsedtime, eventcycles, and eventtime. See under
-  "bugs fixed" for details.
+  "bugs fied" for detials.
 
 ### New gen
 
@@ -24,7 +25,7 @@ files support is now implemented for both input and output with libsndfile.
 
 ### Modified Opcodes and Gens
 
-- Fixed midi list printing to stdout part of the list.
+- fix midi list printing to stdout part of the list.
 
 ### Utilities
 
@@ -45,23 +46,23 @@ files support is now implemented for both input and output with libsndfile.
 - OSCsend, OSCsend_lo and OSClisten can now work with OSC messages
   carrying no payload (as per spec and manual).
 
-- Fixed bug in sum.
+- bug in sum fixed
 
 - 'pitchamd' opcode causes segmentation fault (macOS) (#1599)
 
-- Fixed crash on channel setting with empty channel name
+- fixed crash on channel setting with empty channel name
 
-- Fixed bug in ftloadk (#1611).
+- bug in ftloadk fixed (#1611)
 
-- Now, qnan works even when compiled with fast arithmetic.
+- qnan works even when compiled with fast arithmetic
 
-- Fixed the flanger opcode for sample-accurate mode, where the xdel input was
+- Fix the flanger opcode for sample-accurate mode, where the xdel input was
 not being correctly offset.
 
-- elapsedcycles, elapsedtime, eventcycles, and eventtime (introduced as
-  fixed versions of timek, times, timeinstk and timeinsts) now return
-  the correct values instead of being one cycle late.  This preserves
-  backward compatability.
+- elapsedcycles, elapsedtime, eventcycles, and eventtime introducd as
+  fixed versions of timek, times, timeinstk and timeinsts but return
+  the correct values instead of being one cycle late.  This prserves
+  backward compatability
 
 # SYSTEM LEVEL CHANGES
 
@@ -71,28 +72,29 @@ not being correctly offset.
    Fixes the rtauhal module for all cases of multichannel output. Previously the
    module would not work correctly with some devices.
 
--  Csound now supports MP3 files for input and output.
+-  Csound now supports MP3 files for input and output through libsndfile (version 1.1.0 and higher).
 
 ### Translations
 
-### WASM
-
-- Supports mp3 files
-
-- Offline rendering fixes when using worker mode
-
-- fout bug causing missing data is fixed
-
-
 ### API
-
 
 ### External Plugin Code
 
-
 ### Platform Specific
 
+Bela:
+
 Many changes to Bela csound.  See bela web site for details
+
+MacOS:
+
+- Universal build for x86_64 and arm64, backward compatible to MacOS 10.9
+- Issue where the portaudio callback backend would fail to work in mono (e.g. laptop microphone) has been fixed.
+
+WASM:
+
+- fix sampleRate for single-thread worklet.
+
 
 ==END==
 
