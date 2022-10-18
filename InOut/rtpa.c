@@ -260,7 +260,12 @@ static int pa_SetStreamParameters(CSOUND *csound, PaStreamParameters *sp,
   if (dev < 0)
     return -1;
   sp->device = (PaDeviceIndex) dev;
+  // VL this is causing problems to open the microphone input
+#ifdef __APPLE__
+  sp->channelCount = parm->nChannels; //(parm->nChannels < 2 ? 2 : parm->nChannels);
+#else
   sp->channelCount = (parm->nChannels < 2 ? 2 : parm->nChannels);
+#endif  
   sp->sampleFormat = (PaSampleFormat) paFloat32;
   sp->suggestedLatency = (PaTime) ((double) parm->bufSamp_HW
                                    / (double) parm->sampleRate);
