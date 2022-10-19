@@ -513,8 +513,10 @@ static int paBlockingReadWriteStreamCallback(const void *input,
 
   do {
   buffer[i] = (MYFLT) pabs->inputBuffer[pabs->currentInputIndex++];
+#ifndef __APPLE__  
   if (pabs->inParm.nChannels == 1)
     pabs->currentInputIndex++;
+#endif  
   if (pabs->currentInputIndex >= pabs->inBufSamples) {
   if (pabs->mode == 1) {
 #if NO_FULLDUPLEX_PA_LOCK
@@ -546,8 +548,10 @@ static int paBlockingReadWriteStreamCallback(const void *input,
 
   do {
   pabs->outputBuffer[pabs->currentOutputIndex++] = (float) buffer[i];
+#ifndef __APPLE__  
   if (pabs->outParm.nChannels == 1)
     pabs->outputBuffer[pabs->currentOutputIndex++] = (float) buffer[i];
+#endif  
   if (pabs->currentOutputIndex >= pabs->outBufSamples) {
 #if NO_FULLDUPLEX_PA_LOCK
   if (!pabs->noPaLock)
