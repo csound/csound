@@ -23,13 +23,17 @@ if(BUILD_TESTS AND BUILD_STATIC_LIBRARY AND GTest_FOUND)
         ${CMAKE_CURRENT_BINARY_DIR}/../../H
         ${CMAKE_SOURCE_DIR}/interfaces)
 
+    # Required because we're compiling the tests written in C as C++
+    set(CMAKE_CXX_FLAGS "-fpermissive -Wwrite-strings -std=c++0x")
+
     if(USE_VCPKG)
         find_package(GTest CONFIG REQUIRED)
 
         target_link_libraries(unittests PRIVATE
-            GTest::gtest_main ${CSOUNDLIB_STATIC})
+            GTest::gtest_main ${CSOUNDLIB_STATIC} SndFile::sndfile)
     else ()
         set(CMAKE_CXX_FLAGS "-fpermissive -Wwrite-strings -std=c++0x")
+        find_package(GTest REQUIRED)
 
         if (APPLE)
             set(CMAKE_CXX_FLAGS "-stdlib=libc++")
