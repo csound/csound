@@ -121,9 +121,9 @@ typedef struct {
 #define CURTIME_inc (((double)csound->ksmps)/((double)csound->esr))
 
 #ifdef  B64BIT
-#define MAXLEN     0x40000000
+#define MAXLEN     0x10000000
 #define FMAXLEN    ((MYFLT)(MAXLEN))
-#define PHMASK     0x3fffffff
+#define PHMASK     0x0fffffff
 #else
 #define MAXLEN     0x1000000L
 #define FMAXLEN    ((MYFLT)(MAXLEN))
