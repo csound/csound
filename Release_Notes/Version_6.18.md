@@ -35,6 +35,9 @@ supported by libsndfile.
 
 ## Bugs Fixed
 
+- Fixed bug where fixed-point phase computation (in oscil family) was
+  incorrect resulting in slight freq deviations in very low freq cases.
+
 - Fixed bug where freeing instr 0 caused memory issues in new
   compilations. Instr 0 is not freed until reset now.
 
