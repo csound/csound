@@ -46,7 +46,7 @@ endif()
 # Project definitions
 set(APIVERSION "6.0")
 set(CS_VERSION "6")
-set(CS_SUBVER "18")
+set(CS_SUBVER "19")
 set(CS_PATCHLEVEL "0")
 
 message(STATUS "Csound version: ${CS_VERSION}.${CS_SUBVER}.${CS_PATCHLEVEL}")
@@ -489,7 +489,7 @@ check_deps(USE_MP3 HAVE_SF_FORMAT_MPEG)
 
 if (USE_MP3)
   message(STATUS  "Using libsndfile MP3 support")
-  set(CMAKE_C_FLAGS "-DSNDFILE_MP3")
+  set(CMAKE_C_FLAGS  "${CMAKE_C_FLAGS} -DSNDFILE_MP3")
 else()
   message(STATUS  "NOT Using libsndfile MP3 support")
 endif()
