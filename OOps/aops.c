@@ -265,8 +265,8 @@ MYFLT MOD(MYFLT a, MYFLT bb)
       MYFLT d = FMOD(a, b);
       while (d>b) d -= b;
       while (-d>b) d += b;
-      //      if (d>=b || d<0)
-      // printf("**** a,b = %f, %f => D %f\n", a,b, d);
+      if (d>=b || d<0)
+        printf("**** a,b = %f, %f => D %f\n", a,b, d);
       return d;
   }
 }
