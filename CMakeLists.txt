@@ -951,6 +951,7 @@ if(INIT_STATIC_MODULES)
         Opcodes/signalflowgraph.cpp)
     set_source_files_properties(${static_modules_SRCS} PROPERTIES COMPILE_FLAGS -DINIT_STATIC_MODULES)
     list(APPEND libcsound_SRCS ${static_modules_SRCS})
+    message(STATUS "Building static modules")
 endif()
 
 # Handling New Parser
@@ -1108,6 +1109,10 @@ endif()
 add_library(${CSOUNDLIB} SHARED ${libcsound_SRCS})
 set_target_properties(${CSOUNDLIB} PROPERTIES
     SOVERSION ${APIVERSION})
+
+if(INIT_STATIC_MODULES)
+    set_target_properties(${CSOUNDLIB} PROPERTIES COMPILE_FLAGS "-DINIT_STATIC_MODULES")
+endif()
 
 if(APPLE)
     set_target_properties(${CSOUNDLIB} PROPERTIES FRAMEWORK YES)
@@ -1343,6 +1348,10 @@ if(BUILD_STATIC_LIBRARY)
     SET_TARGET_PROPERTIES(${CSOUNDLIB_STATIC} PROPERTIES OUTPUT_NAME ${CSOUNDLIB})
     SET_TARGET_PROPERTIES(${CSOUNDLIB_STATIC} PROPERTIES PREFIX "lib")
     target_compile_options(${CSOUNDLIB_STATIC} PRIVATE ${libcsound_CFLAGS})
+
+    if(INIT_STATIC_MODULES)
+        set_target_properties(${CSOUNDLIB_STATIC} PROPERTIES COMPILE_FLAGS "-DINIT_STATIC_MODULES")
+    endif()
 
     if(MSVC)
         target_link_libraries(${CSOUNDLIB_STATIC} PRIVATE SndFile::sndfile ${CSOUND_WINDOWS_LIBRARIES})
