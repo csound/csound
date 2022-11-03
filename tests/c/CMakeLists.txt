@@ -1,7 +1,9 @@
 cmake_minimum_required(VERSION 3.5)
 
-# FIXME currently require static lib, this should include build static csound condition
-if(BUILD_TESTS AND BUILD_STATIC_LIBRARY)
+find_package(GTest)
+
+# FIXME currently requires static lib, this should include build static csound condition
+if(BUILD_TESTS AND BUILD_STATIC_LIBRARY AND GTest_FOUND)
     add_executable(unittests
         channel_tests.cpp
         cscore_tests.cpp
@@ -27,8 +29,6 @@ if(BUILD_TESTS AND BUILD_STATIC_LIBRARY)
         target_link_libraries(unittests PRIVATE
             GTest::gtest_main ${CSOUNDLIB_STATIC})
     else ()
-        find_package(GTest REQUIRED)
-
         set(CMAKE_CXX_FLAGS "-fpermissive -Wwrite-strings -std=c++0x")
 
         if (APPLE)
@@ -44,4 +44,7 @@ if(BUILD_TESTS AND BUILD_STATIC_LIBRARY)
 
     include(GoogleTest)
     gtest_discover_tests(unittests)
+    message(STATUS "Building unit tests")
+else()
+    message(STATUS "Not building unit tests")
 endif()
