@@ -13,6 +13,9 @@ export const isIos = () => /iPhone|iPad|iPod/.test(navigator.userAgent);
 
 const isFirefox = () => navigator.userAgent.toLowerCase().includes("firefox");
 
+export const isSafari = () =>
+  typeof navigator.vendor === "string" && navigator.vendor.includes("Apple");
+
 export const isSabSupported = () =>
   !isFirefox() &&
   typeof window.Atomics !== "undefined" &&
@@ -52,26 +55,28 @@ export const stopableStates = new Set([
   "renderStarted",
 ]);
 
-export const makeProxyCallback = (proxyPort, csoundInstance, apiK, playState) => async (
-  ...arguments_
-) => {
-  if (!playState || !stopableStates.has(playState)) {
-    const modifiedFs = {}; // getModifiedPersistentStorage();
-    Object.values(modifiedFs).length > 0 &&
-      (await proxyPort.callUncloned("syncWorkerFs", [csoundInstance, modifiedFs]));
-  }
-  return await proxyPort.callUncloned(apiK, [csoundInstance, ...arguments_]);
-};
+export const makeProxyCallback =
+  (proxyPort, csoundInstance, apiK, playState) =>
+  async (...arguments_) => {
+    if (!playState || !stopableStates.has(playState)) {
+      const modifiedFs = {}; // getModifiedPersistentStorage();
+      Object.values(modifiedFs).length > 0 &&
+        (await proxyPort.callUncloned("syncWorkerFs", [csoundInstance, modifiedFs]));
+    }
+    return await proxyPort.callUncloned(apiK, [csoundInstance, ...arguments_]);
+  };
 
-export const makeSingleThreadCallback = (csoundInstance, apiCallback) => async (...arguments_) => {
-  return await apiCallback.apply({}, [csoundInstance, ...arguments_]);
-};
+export const makeSingleThreadCallback =
+  (csoundInstance, apiCallback) =>
+  async (...arguments_) => {
+    return await apiCallback.apply({}, [csoundInstance, ...arguments_]);
+  };
 
 export const fetchPlugins = async (withPlugins) => {
   return await Promise.all(
     withPlugins.map(async (url) => {
       const response = await fetch(url);
       return response.arrayBuffer();
-    })
+    }),
   );
 };
