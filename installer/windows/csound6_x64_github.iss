@@ -118,9 +118,9 @@ Source: "{#VCREDIST_CXXAMP_DIR}\*"; DestDir: "{#APP_BIN}"; Flags: recursesubdirs
 Source: "{#VCREDIST_OPENMP_DIR}\*"; DestDir: "{#APP_BIN}"; Flags: recursesubdirs; Components: core;
 
 Source: "Python\ctcsound.py"; DestDir: "{#APP_BIN}"; Flags: ignoreversion; Components: core;
-Source: "{#BuildRoot}\csnd6.jar"; DestDir: "{#APP_BIN}"; Flags: ignoreversion; Components: core;
+Source: "{#BuildRoot}\csnd7.jar"; DestDir: "{#APP_BIN}"; Flags: ignoreversion; Components: core;
 
-Source: "{#ReleaseDir}\_jcsound6.dll"; DestDir: "{#APP_BIN}"; Flags: ignoreversion; Components: core;
+Source: "{#ReleaseDir}\_jcsound7.dll"; DestDir: "{#APP_BIN}"; Flags: ignoreversion; Components: core;
 Source: "{#ReleaseDir}\ampmidid.dll"; DestDir: "{#APP_PLUGINS64}"; Flags: ignoreversion; Components: core;
 Source: "{#ReleaseDir}\arrayops.dll"; DestDir: "{#APP_PLUGINS64}"; Flags: ignoreversion; Components: core;
 Source: "{#ReleaseDir}\atsa.exe"; DestDir: "{#APP_BIN}"; Flags: ignoreversion; Components: core;
@@ -148,7 +148,6 @@ Source: "{#ReleaseDir}\ipmidi.dll"; DestDir: "{#APP_PLUGINS64}"; Flags: ignoreve
 Source: "{#ReleaseDir}\lpanal.exe"; DestDir: "{#APP_BIN}"; Flags: ignoreversion; Components: core;
 Source: "{#ReleaseDir}\lpc_export.exe"; DestDir: "{#APP_BIN}"; Flags: ignoreversion; Components: core;
 Source: "{#ReleaseDir}\lpc_import.exe"; DestDir: "{#APP_BIN}"; Flags: ignoreversion; Components: core;
-Source: "{#ReleaseDir}\luaCsnd6.dll"; DestDir: "{#APP_BIN}"; Flags: ignoreversion skipifsourcedoesntexist; Components: core;
 Source: "{#ReleaseDir}\makecsd.exe"; DestDir: "{#APP_BIN}"; Flags: ignoreversion skipifsourcedoesntexist; Components: core;
 Source: "{#ReleaseDir}\mixer.dll"; DestDir: "{#APP_PLUGINS64}"; Flags: ignoreversion; Components: core;
 Source: "{#ReleaseDir}\mixer.exe"; DestDir: "{#APP_BIN}"; Flags: ignoreversion; Components: core;
