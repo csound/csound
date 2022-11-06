@@ -296,7 +296,7 @@ static int32_t scsnu_init(CSOUND *csound, PSCSNU *p)
 
     /* Initialize them ... */
     /* This relies on contiguous allocation of these vectors
-       but as they are allocated va AuxAlloc they are zeroed anyway!  */
+       but as they are allocated via AuxAlloc they are zeroed anyway!  */
     //memset(p->x0, '\0', 4*len+sizeof(MYFlT));
 #if PHASE_INTERP == 3
     //memset(p->x3, '\0', len+sizeof(MYFlT));

@@ -38,9 +38,10 @@ char* get_arg_string(CSOUND *csound, MYFLT p)
     {
       union {
         MYFLT d;
-        int32 i;
+        int32 i, j;
       } ch;
       ch.d = p; n = ch.i&0xffff;
+      printf("UNION %d %d\n", ch.i, ch.j);
       while (n-- > 0) {
         ss += strlen(ss)+1;
       }

@@ -45,7 +45,7 @@ typedef struct {
                                    -7 reset
                                 */
     MYFLT       *step;          /* Step mode in force */
-    MYFLT       *reset;         /* Reser key */
+    MYFLT       *reset;         /* Reset key */
     MYFLT       *verbos;
  // Internals
     int32_t     max_length;
