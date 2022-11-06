@@ -83,7 +83,7 @@ if(BUILD_JAVA_INTERFACE)
             ARCHIVE_OUTPUT_DIRECTORY ${BUILD_LIB_DIR})
         if(${CMAKE_COMPILER_IS_GNUCC})
             message(STATUS "setting compile options for lib_jcsound")
-            target_compile_options(_jcsound6 PRIVATE "-Wno-error")
+            target_compile_options(_jcsound7 PRIVATE "-Wno-error")
          endif()
 
         install(TARGETS _jcsound7
