@@ -237,10 +237,10 @@
     "@babel/helper-validator-identifier" "^7.16.7"
     to-fast-properties "^2.0.0"
 
-"@csound/wasm-bin@6.18.0-beta1":
-  version "6.18.0-beta1"
-  resolved "https://registry.yarnpkg.com/@csound/wasm-bin/-/wasm-bin-6.18.0-beta1.tgz#3553756cff4a8109199ceeeeb1e653d4a66c2166"
-  integrity sha512-9Pws7rCY97hWq2oX28CwSP7jB8oi4I5sf0xh0wJEZIillQqe4MAVcRVi+NJfFe8XvpCJD6iCkZRtx2u5TfPTeg==
+"@csound/wasm-bin@6.18.0":
+  version "6.18.0"
+  resolved "https://registry.yarnpkg.com/@csound/wasm-bin/-/wasm-bin-6.18.0.tgz#a035d5b8d5f3fd2f15e629500a97483d3140ccf7"
+  integrity sha512-IJ2QR3GCOoH8U+yKYbiStOy6xRiUFk93Ew+fR75ecbJh2XEwYC4XhQlg0lpoVsM36D4KujohBlQwXKuc+RUmBw==
 
 "@eslint/eslintrc@^1.2.1":
   version "1.2.1"
