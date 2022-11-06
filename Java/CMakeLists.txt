@@ -40,44 +40,44 @@ if(BUILD_JAVA_INTERFACE)
              set(swigjava_LIBS ${CSOUNDLIB} ${LIBSNDFILE_LIBRARY})
         endif()
 
-        list(APPEND javaSwigOptions -package csnd6 -includeall)
+        list(APPEND javaSwigOptions -package csnd7 -includeall)
         SET_SOURCE_FILES_PROPERTIES(java_interface.i PROPERTIES CPLUSPLUS ON)
         SET_SOURCE_FILES_PROPERTIES(java_interface.i PROPERTIES SWIG_FLAGS "${javaSwigOptions}")
 
-        set(SWIG_MODULE__jcsound6_EXTRA_DEPS ../include/csound.h ../include/cfgvar.h ../include/csound.hpp
+        set(SWIG_MODULE__jcsound7_EXTRA_DEPS ../include/csound.h ../include/cfgvar.h ../include/csound.hpp
                                         ../H/cs_glue.hpp ../include/csPerfThread.hpp)
 
         if(COMMAND SWIG_ADD_LIBRARY)
-            SWIG_ADD_LIBRARY(_jcsound6 
+            SWIG_ADD_LIBRARY(_jcsound7 
                 TYPE MODULE 
                 LANGUAGE java 
                 SOURCES java_interface.i cs_glue.cpp)
  	    else()
-	        SWIG_ADD_MODULE(_jcsound6 java java_interface.i)
+	        SWIG_ADD_MODULE(_jcsound7 java java_interface.i)
 	    endif()
-        SWIG_LINK_LIBRARIES(_jcsound6 ${swigjava_LIBS})
-        target_include_directories(${SWIG_MODULE__jcsound6_REAL_NAME}
+        SWIG_LINK_LIBRARIES(_jcsound7 ${swigjava_LIBS})
+        target_include_directories(${SWIG_MODULE__jcsound7_REAL_NAME}
         PRIVATE ${JNI_INCLUDE_DIRS})
         if(LINUX)
-        set_target_properties(${SWIG_MODULE__jcsound6_REAL_NAME}
+        set_target_properties(${SWIG_MODULE__jcsound7_REAL_NAME}
             PROPERTIES COMPILE_FLAGS "-Wno-unused-function"
             LINK_FLAGS "-Wl,-soname,lib_jcsound.so.1"
             )
          message(STATUS "Setting soname")   
          endif()
          if (APPLE)
-          set_target_properties(${SWIG_MODULE__jcsound6_REAL_NAME}
+          set_target_properties(${SWIG_MODULE__jcsound7_REAL_NAME}
             PROPERTIES COMPILE_FLAGS "-Wno-unused-function" )
          endif()
 
-        ADD_CUSTOM_COMMAND(TARGET _jcsound6
+        ADD_CUSTOM_COMMAND(TARGET _jcsound7
             POST_BUILD
-            COMMAND cmake -E make_directory ./csnd6
+            COMMAND cmake -E make_directory ./csnd7
             COMMAND ${JAVA_COMPILE} *.java -source 1.8 -target 1.8 -d .
-            COMMAND ${JAVA_ARCHIVE} cf ../csnd6.jar csnd6
-            COMMENT "Building JAVA package csnd6.jar")
+            COMMAND ${JAVA_ARCHIVE} cf ../csnd7.jar csnd7
+            COMMENT "Building JAVA package csnd7.jar")
 
-        set_target_properties(_jcsound6 PROPERTIES
+        set_target_properties(_jcsound7 PROPERTIES
             RUNTIME_OUTPUT_DIRECTORY ${BUILD_LIB_DIR}
             LIBRARY_OUTPUT_DIRECTORY ${BUILD_LIB_DIR}
             ARCHIVE_OUTPUT_DIRECTORY ${BUILD_LIB_DIR})
@@ -86,10 +86,10 @@ if(BUILD_JAVA_INTERFACE)
             target_compile_options(_jcsound6 PRIVATE "-Wno-error")
          endif()
 
-        install(TARGETS _jcsound6
+        install(TARGETS _jcsound7
             LIBRARY DESTINATION "${JAVA_MODULE_INSTALL_DIR}"
             ARCHIVE DESTINATION "${JAVA_MODULE_INSTALL_DIR}")
-        install(FILES ${BUILD_LIB_DIR}/csnd6.jar
+        install(FILES ${BUILD_LIB_DIR}/csnd7.jar
             DESTINATION ${JAVA_MODULE_INSTALL_DIR})
 
 endif()
