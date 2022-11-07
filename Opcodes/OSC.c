@@ -209,6 +209,12 @@ static int32_t osc_send(CSOUND *csound, OSCSEND *p)
     char *hh;
     int32_t cmpr = 0;
 
+    if(p->INOCOUNT > 4) {
+      if(strcmp(csound->GetTypeForArg(p->type)->varTypeName, "S")) 
+        return csound->InitError(csound,"%s",
+                             Str("Message type is not given as a string\n"));
+    }
+
     if (UNLIKELY(*p->port<0))
       pp = NULL;
     else
@@ -253,7 +259,7 @@ static int32_t osc_send(CSOUND *csound, OSCSEND *p)
     if (p->cnt++ ==0 || *p->kwhen!=p->last) {
       int32_t i=0;
       lo_message msg = lo_message_new();
-      char *type = (char*)p->type->data;
+      char *type = p->INOCOUNT > 4  ? (char*)p->type->data : "";
       MYFLT **arg = p->arg;
       p->last = *p->kwhen;
       for (i=0; type[i]!='\0'; i++) {
@@ -737,7 +743,7 @@ static int32_t OSC_list_init(CSOUND *csound, OSCLISTEN *p)
     strcpy(p->c.saved_path, (char*) p->dest->data);
     /* check for a valid argument list */
     n = csound->GetInputArgCnt(p) - 3;
-    if (UNLIKELY(n < 1 || n > ARG_CNT-4))
+    if (UNLIKELY(n < 0 || n > ARG_CNT-4))
       return csound->InitError(csound, "%s", Str("invalid number of arguments"));
     if (UNLIKELY((int32_t) strlen((char*) p->type->data) != n))
       return csound->InitError(csound,
@@ -1108,13 +1114,13 @@ static int32_t OSC_alist(CSOUND *csound, OSCLISTENA *p)
 #define S(x)    sizeof(x)
 
 static OENTRY localops[] = {
-  { "OSCsend_lo", S(OSCSEND), 0, 3, "", "kSkSS*",
+  { "OSCsend_lo", S(OSCSEND), 0, 3, "", "kSkSN",
     (SUBR)osc_send_set, (SUBR)osc_send, NULL,NULL },
   { "OSCinit", S(OSCINIT), 0, 1, "i", "i",
     (SUBR)osc_listener_init, NULL, NULL, NULL },
   { "OSCinitM", S(OSCINITM), 0, 1, "i", "Si",
     (SUBR)osc_listener_initMulti, NULL, NULL, NULL },
-  { "OSClisten", S(OSCLISTEN),0, 3, "k", "iSS*",
+  { "OSClisten", S(OSCLISTEN),0, 3, "k", "iSSN",
     (SUBR)OSC_list_init, (SUBR)OSC_list, NULL, NULL },
   { "OSClisten", S(OSCLISTEN),0, 3, "k", "iSS",
     (SUBR)OSC_list_init, (SUBR)OSC_list, NULL, NULL },

@@ -1,0 +1,15 @@
+#ifndef MPG123_CONFIG_H
+#define MPG123_CONFIG_H
+
+#undef HAVE_UNISTD_H
+
+#define REAL_IS_FLOAT 1
+
+#define HAVE_DIRENT_H 1
+#define HAVE_STRERROR 1
+#define HAVE_STDLIB_H 1
+#define HAVE_UNISTD_H 1
+#define HAVE_STRING_H 1
+#define HAVE_SYS_STAT_H 1
+
+#endif /* MPG123_CONFIG_H */

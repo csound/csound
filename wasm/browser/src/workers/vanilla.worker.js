@@ -229,25 +229,20 @@ const initRtMidiEventPort = ({ rtmidiPort }) => {
 const renderFunction =
   ({ libraryCsound, workerMessagePort, wasi }) =>
   async ({ csound }) => {
-    let endResolve;
+    const ksmps = libraryCsound.csoundGetKsmps(csound);
+    let lastResult = 0;
+    let cnt = 0;
 
-    const endPromise = new Promise((resolve) => {
-      endResolve = resolve;
-    });
-    const performKsmps = () => {
-      if (
-        workerMessagePort.vanillaWorkerState === "renderStarted" &&
-        libraryCsound.csoundPerformKsmps(csound) === 0
-      ) {
+    while (workerMessagePort.vanillaWorkerState === "renderStarted" && lastResult === 0) {
+      lastResult = libraryCsound.csoundPerformKsmps(csound);
+      cnt += 1;
+
+      if (lastResult === 0 && cnt % ksmps === 0) {
         // this is immediately executed, but allows events to be picked up
-        setTimeout(performKsmps, 0);
-      } else {
-        workerMessagePort.broadcastPlayState("realtimePerformanceEnded");
-        endResolve();
+        await new Promise((resolve) => setTimeout(resolve, 0));
       }
-    };
-    performKsmps();
-    await endPromise;
+    }
+    workerMessagePort.broadcastPlayState("renderEnded");
   };
 
 const initialize = async ({
@@ -327,6 +322,7 @@ const initialize = async ({
       workerMessagePort.vanillaWorkerState = event.data.newPlayState;
     }
   });
+
   workerMessagePort.port.start();
 
   return csoundInstance;

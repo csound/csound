@@ -702,7 +702,9 @@ static int32_t chnget_opcode_perf_a(CSOUND* csound, CHNGET* p)
             print_chn_err_perf(p, err);
             return OK;
         }
-    }
+    } 
+      
+    
 
     if (CS_KSMPS==(uint32_t) csound->ksmps){
         csoundSpinLock(p->lock);
@@ -1258,7 +1260,7 @@ static int32_t chnset_opcode_perf_k(CSOUND *csound, CHNGET *p)
         }
         else
             print_chn_err_perf(p, err);
-    }
+    } // else return csound->PerfError(csound, &p->h, "invalid channel name");
 
 #if defined(MSVC)
     volatile union {
@@ -1395,7 +1397,7 @@ int32_t chnset_opcode_init_k(CSOUND* csound, CHNGET* p)
                               CSOUND_CONTROL_CHANNEL | CSOUND_OUTPUT_CHANNEL);
     if (LIKELY(!err)) {
         p->lock = (spin_lock_t*) csoundGetChannelLock(csound, (char*) p->iname->data);
-    }
+    } else return print_chn_err(p, err);
 
     p->h.opadr = (SUBR) chnset_opcode_perf_k;
     return OK;
@@ -1411,7 +1413,7 @@ int32_t chnset_opcode_init_a(CSOUND* csound, CHNGET* p)
                               CSOUND_AUDIO_CHANNEL | CSOUND_OUTPUT_CHANNEL);
     if (!err) {
         p->lock = (spin_lock_t*) csoundGetChannelLock(csound, (char*) p->iname->data);
-    }
+    } else return print_chn_err(p, err);
 
     p->h.opadr = (SUBR) chnset_opcode_perf_a;
     return OK;
@@ -1483,7 +1485,7 @@ int32_t chnset_opcode_init_S(CSOUND* csound, CHNGET* p)
         else if (((STRINGDAT*) p->fp)->data!=NULL)
             strcpy(((STRINGDAT*) p->fp)->data, s);
         csoundSpinUnLock(lock);
-    }
+    } else return print_chn_err(p, err);
 
     return OK;
 }

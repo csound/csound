@@ -338,15 +338,13 @@ class CsoundWorkletProcessor extends AudioWorkletProcessor {
   }
 
   pause() {
-    if (!this.isPaused) {
-      this.isPaused = true;
-    }
+    this.isPaused = true;
+    this.workerMessagePort.broadcastPlayState("realtimePerformancePaused");
   }
 
   resume() {
-    if (this.isPaused) {
-      this.isPaused = false;
-    }
+    this.isPaused = false;
+    this.workerMessagePort.broadcastPlayState("realtimePerformanceResumed");
   }
 
   process(inputs, outputs) {
@@ -357,11 +355,9 @@ class CsoundWorkletProcessor extends AudioWorkletProcessor {
 function initMessagePort({ port }) {
   log(`initMessagePort in worker`)();
   const workerMessagePort = new MessagePortState();
-
-  // eslint-disable-next-line unicorn/require-post-message-target-origin
   workerMessagePort.post = (logMessage) => port.postMessage({ log: logMessage });
-  // eslint-disable-next-line unicorn/require-post-message-target-origin
   workerMessagePort.broadcastPlayState = (playStateChange) => port.postMessage({ playStateChange });
+
   workerMessagePort.ready = true;
   return workerMessagePort;
 }

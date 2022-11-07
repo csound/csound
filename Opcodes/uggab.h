@@ -65,6 +65,7 @@ typedef struct  {
 typedef struct {
     OPDS        h;
     MYFLT       *ar, *argums[VARGMAX];
+    AUXCH       aux;
 } SUM;
 
 typedef struct {

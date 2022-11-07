@@ -70,7 +70,6 @@ typedef struct {
     PSCSNU      *p;
 } PSCSNMAPV;
 
-
 /* *********************************** */
 /* *********************************** */
 /* EXPERIMENTAL VERSION -- John ffitch */

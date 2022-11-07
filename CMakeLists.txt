@@ -4,6 +4,7 @@ cmake_minimum_required(VERSION 3.5)
 set(CMAKE_MACOSX_RPATH 1)
 set(CMAKE_EXPORT_COMPILE_COMMANDS 1)
 
+
 option(USE_VCPKG "Use VCPKG to download and manage dependencies" OFF)
 
 if (USE_VCPKG)
@@ -43,10 +44,10 @@ if(NOT MSVC)
 endif()
 
 # Project definitions
-set(APIVERSION "7.0")
-set(CS_VERSION "7")
-set(CS_SUBVER "0")
-set(CS_PATCHLEVEL "0")
+set(APIVERSION "6.0")
+set(CS_VERSION "6")
+set(CS_SUBVER "18")
+set(CS_PATCHLEVEL "1")
 
 message(STATUS "Csound version:
 ${CS_VERSION}.${CS_SUBVER}.${CS_PATCHLEVEL}")
@@ -223,7 +224,7 @@ if(NOT MSVC AND NOT WASM)
 endif()
 
 if(APPLE)
-    list(APPEND CMAKE_REQUIRED_INCLUDES "time.h")
+    #list(APPEND CMAKE_REQUIRED_INCLUDES "time.h")
     CHECK_FUNCTION_EXISTS(clock_gettime CLOCK_GETTIME)
     if(${CLOCK_GETTIME})
         message(STATUS  "clock_gettime() found")
@@ -232,6 +233,8 @@ if(APPLE)
         message(STATUS  "clock_gettime() not found")
     endif()
 endif()
+
+
 
 # library installation directories
 option(USE_LIB64 "Set to on to set installation directory for libraries to lib64" OFF)
@@ -472,6 +475,37 @@ if(USE_LIBSNDFILE)
  endif()
 endif()
 
+if(EMSCRIPTEN)
+  include_directories(emscripten/deps/libsndfile-1.0.25/src/)
+endif()
+find_path(SNDFILE_H_PATH sndfile.h)
+if(SNDFILE_H_PATH)
+    include_directories(${SNDFILE_H_PATH})
+else()
+    message(FATAL_ERROR "Could not find sndfile.h")
+endif()
+
+SET(CMAKE_REQUIRED_LIBRARIES ${LIBSNDFILE_LIBRARY})
+SET(CMAKE_REQUIRED_INCLUDES ${SNDFILE_H_PATH})
+
+check_c_source_compiles("#include <sndfile.h>
+int main(int argc, char** argv) {
+printf(\"SF_FORMAT_MPEG: %d\", SF_FORMAT_MPEG);
+return 0;
+}" HAVE_SF_FORMAT_MPEG)
+
+option(USE_MP3 "Use MP3 support in libsndfile" ON)
+check_deps(USE_MP3 HAVE_SF_FORMAT_MPEG)
+
+if (USE_MP3)
+  message(STATUS  "Using libsndfile MP3 support")
+  set(CMAKE_C_FLAGS  "${CMAKE_C_FLAGS} -DSNDFILE_MP3")
+else()
+  message(STATUS  "NOT Using libsndfile MP3 support")
+endif()
+
+
+
 find_package(CURL)
 #set(FLTK_SKIP_OPENGL true)
 #find_package(FLTK)
@@ -495,12 +529,6 @@ if(WIN32)
   #message(STATUS "${LIBSNDFILE_SUPPORT_LIBS}")
 endif()
 
-find_path(SNDFILE_H_PATH sndfile.h)
-if(SNDFILE_H_PATH)
-    include_directories(${SNDFILE_H_PATH})
-else()
-    message(FATAL_ERROR "Could not find sndfile.h")
-endif()
 
 if(NOT MSVC AND REQUIRE_PTHREADS)
   # Use ladder of if's to support older CMake versions (i.e., travis)
@@ -520,7 +548,7 @@ if(NOT MSVC AND REQUIRE_PTHREADS)
   #FIXME this variable is for required include directories, possible bug
   list(APPEND CMAKE_REQUIRED_INCLUDES pthread.h)
   if (NOT HAIKU)
-    set(CMAKE_REQUIRED_LIBRARIES pthread)
+    list(APPEND CMAKE_REQUIRED_LIBRARIES pthread)
   endif()
 endif()
 
@@ -1170,9 +1198,6 @@ else()
     FRAMEWORK DESTINATION "${CS_FRAMEWORK_DEST}")
 endif()
 
-if(EMSCRIPTEN)
-  include_directories(emscripten/deps/libsndfile-1.0.25/src/)
-endif()
 
 # TODO include target rather than libs to also bring in transitive dependencies
 set(libcsound_LIBS ${LIBSNDFILE_LIBRARY})
@@ -1202,12 +1227,12 @@ if(USE_CURL AND CURL_FOUND)
 
 endif()
 
-# Linux does not have a separate libintl, it is part of libc
+# Linux platforms may or may not have a separate libintl (may be a part of of libc)
 set(LIBINTL_AVAIL (LIBINTL_LIBRARY OR LINUX))
 check_deps(USE_GETTEXT LIBINTL_AVAIL GETTEXT_MSGFMT_EXECUTABLE)
 if(USE_GETTEXT)
     message(STATUS "Using GNU gettext.")
-    if(NOT LINUX)
+    if(LIBINTL_LIBRARY)
         list(APPEND libcsound_LIBS ${LIBINTL_LIBRARY})
     endif()
     list(APPEND libcsound_CFLAGS -DGNU_GETTEXT)

@@ -1,8 +1,8 @@
 diff --git a/src/ogg.c b/src/ogg.c
-index 7a4a167f..64adc2df 100644
+index f8cb0a47..29e7d194 100644
 --- a/src/ogg.c
 +++ b/src/ogg.c
-@@ -732,9 +732,10 @@ ogg_open (SF_PRIVATE *psf)
+@@ -734,9 +734,10 @@ ogg_open (SF_PRIVATE *psf)
  			psf->container_data = NULL ;
  			psf->container_close = NULL ;
  			return flac_open (psf) ;
@@ -14,7 +14,7 @@ index 7a4a167f..64adc2df 100644
  
  #if ENABLE_EXPERIMENTAL_CODE
  		case SF_FORMAT_OGG | SF_FORMAT_SPEEX :
-@@ -794,11 +795,11 @@ ogg_stream_classify (SF_PRIVATE *psf, OGG_PRIVATE* odata)
+@@ -796,10 +797,11 @@ ogg_stream_classify (SF_PRIVATE *psf, OGG_PRIVATE* odata)
  		case OGG_SPEEX :
  			psf->sf.format = SF_FORMAT_OGG | SF_FORMAT_SPEEX ;
  			return 0 ;
@@ -23,12 +23,11 @@ index 7a4a167f..64adc2df 100644
  		case OGG_OPUS :
  			psf->sf.format = SF_FORMAT_OGG | SF_FORMAT_OPUS ;
  			return 0 ;
--
 +#endif
+ 
  		case OGG_PCM :
  			psf_log_printf (psf, "Detected Ogg/PCM data. This is not supported yet.\n") ;
- 			return SFE_UNIMPLEMENTED ;
-@@ -825,7 +826,9 @@ static struct
+@@ -827,7 +829,9 @@ static struct
  	{	"PCM     ",		"PCM",		8, OGG_PCM },
  	{	"Speex",		"Speex",	5, OGG_SPEEX },
  	{	"\001vorbis",	"Vorbis",	7, OGG_VORBIS },
@@ -39,7 +38,7 @@ index 7a4a167f..64adc2df 100644
  
  static int
 diff --git a/src/ogg.h b/src/ogg.h
-index 5c837a8e..bd743a29 100644
+index 8b2927a9..52947f51 100644
 --- a/src/ogg.h
 +++ b/src/ogg.h
 @@ -28,7 +28,9 @@ enum

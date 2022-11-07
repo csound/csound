@@ -83,6 +83,24 @@ int32_t timesr(CSOUND *csound, RDTIME *p)
     return OK;
 }
 
+int32_t elapsedcycles(CSOUND *csound, RDTIME *p)
+{
+    IGN(csound);
+    /* Read the global variable kcounter and turn it into a float.   */
+    *p->rslt = (MYFLT) CS_KCNT - 1;
+    return OK;
+}
+
+/* timesr() */
+int32_t elapsedtime(CSOUND *csound, RDTIME *p)
+{
+    /* Read the global variable kcounter divide it by the k rate.    */
+    IGN(csound);
+    *p->rslt = (MYFLT) (CS_KCNT - 1) * CS_ONEDKR;
+    return OK;
+}
+
+
 /*-----------------------------------*/
 
 /* Subroutines to read time for this instance of the instrument. */
@@ -111,6 +129,19 @@ int32_t instimek(CSOUND *csound, RDTIME *p)
     return OK;
 }
 
+
+/* eventcycles()
+ *
+ * Read difference between the global variable kcounter and the starting
+ * time of this instance. Return it as a float.
+ */
+int32_t eventcycles(CSOUND *csound, RDTIME *p)
+{
+    IGN(csound);
+    *p->rslt = (MYFLT) (CS_KCNT - p->instartk - 1);
+    return OK;
+}
+
 /* insttimes()
  *
  * Read difference between the global variable kcounter and the starting
@@ -120,6 +151,18 @@ int32_t instimes(CSOUND *csound, RDTIME *p)
 {
     IGN(csound);
     *p->rslt = (MYFLT) (CS_KCNT - p->instartk) * CS_ONEDKR;
+    return OK;
+}
+
+/* eventtime()
+ *
+ * Read difference between the global variable kcounter and the starting
+ * time of this instance.  Return it as a float in seconds.
+ */
+int32_t eventtime(CSOUND *csound, RDTIME *p)
+{
+    IGN(csound);
+    *p->rslt = (MYFLT) (CS_KCNT - p->instartk - 1) * CS_ONEDKR;
     return OK;
 }
 

@@ -471,7 +471,14 @@ static int32_t osc_send2_init(CSOUND *csound, OSCSEND2 *p)
       return OK;
     }
 
-    if (UNLIKELY(p->INOCOUNT > 4 && p->INOCOUNT < (uint32_t) p->type->size + 4))
+    if(p->INOCOUNT > 4) {
+      if(!IS_STR_ARG(p->type)) 
+               return csound->InitError(csound,
+                             Str("Message type is not given as a string\n"));
+    }
+
+   
+    if (UNLIKELY(p->INOCOUNT > 4 && p->INOCOUNT < (uint32_t) strlen(p->type->data) + 4))
        return csound->InitError(csound,
                              Str("insufficient number of arguments for "
                                  "OSC message types\n"));
@@ -1030,7 +1037,7 @@ static OENTRY socksend_localops[] =
      (SUBR) send_sendS },
    { "stsend", S(SOCKSEND), 0, 3, "", "aSi", (SUBR) init_ssend,
      (SUBR) send_ssend },
-   { "OSCsend", S(OSCSEND2), 0, 3, "", "kSkSS*", (SUBR)osc_send2_init,
+   { "OSCsend", S(OSCSEND2), 0, 3, "", "kSkSN", (SUBR)osc_send2_init,
      (SUBR)osc_send2 },
    { "OSCbundle", S(OSCBUNDLE), 0, 3, "", "kSkS[]S[]k[][]o", (SUBR)oscbundle_init,
      (SUBR)oscbundle_perf },

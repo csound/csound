@@ -5,8 +5,10 @@ let
 
 in pkgs.mkShell {
   CHROME_BIN = "${google_chrome_ci}/bin/google-chrome-stable";
+  FIREFOX_BIN = "${pkgs.firefox}/bin/firefox";
   buildInputs = with pkgs; [
     chromedriver
+    geckodriver
     google_chrome_ci
     nodejs
     selenium-server-standalone

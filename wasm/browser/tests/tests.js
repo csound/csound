@@ -1,5 +1,5 @@
 (async () => {
-  const isCI = location.port === "8081" && location.search.includes("ci=true");
+  const isCI = ["8081", "8082"].includes(location.port) && location.search.includes("ci=true");
   const url = "/dist/csound.js"; // isCI ? "/csound.esm.js" : "/csound.dev.esm.js";
   const { Csound } = await import(url);
 
@@ -314,37 +314,39 @@ e
       });
 
       it("emits public events in realtime performance", async function () {
-        const eventPlaySpy = sinon.spy();
-        const eventPauseSpy = sinon.spy();
-        const eventStopSpy = sinon.spy();
-        const eventOnAudioNodeCreatedSpy = sinon.spy();
+        if (test.name !== "WORKER, AW, SAB") {
+          const eventPlaySpy = sinon.spy();
+          const eventPauseSpy = sinon.spy();
+          const eventStopSpy = sinon.spy();
+          const eventOnAudioNodeCreatedSpy = sinon.spy();
 
-        const csoundObj = await Csound(test);
+          const csoundObj = await Csound(test);
 
-        csoundObj.on("play", eventPlaySpy);
-        csoundObj.on("pause", eventPauseSpy);
-        csoundObj.on("stop", eventStopSpy);
-        csoundObj.on("onAudioNodeCreated", eventOnAudioNodeCreatedSpy);
+          csoundObj.on("play", eventPlaySpy);
+          csoundObj.on("pause", eventPauseSpy);
+          csoundObj.on("stop", eventStopSpy);
+          csoundObj.on("onAudioNodeCreated", eventOnAudioNodeCreatedSpy);
 
-        await csoundObj.setOption("-odac");
-        await csoundObj.compileCsdText(shortTone);
-        await csoundObj.start();
-        await csoundObj.pause();
-        await csoundObj.resume();
-        await csoundObj.stop();
+          await csoundObj.setOption("-odac");
+          await csoundObj.compileCsdText(shortTone);
+          await csoundObj.start();
+          await csoundObj.pause();
+          await csoundObj.resume();
+          await csoundObj.stop();
 
-        assert(eventPlaySpy.calledTwice, 'The "play" event was emitted twice');
-        assert(eventPauseSpy.calledOnce, 'The "pause" event was emitted once');
-        assert(eventStopSpy.calledOnce, 'The "stop" event was emitted once');
-        assert(
-          eventOnAudioNodeCreatedSpy.calledOnce,
-          'The "onAudioNodeCreated" event was emitted once',
-        );
-        assert(
-          eventOnAudioNodeCreatedSpy.calledWith(sinon.match.instanceOf(AudioNode)),
-          'The argument provided to the callback of "onAudioNodeCreated" was an AudioNode',
-        );
-        await csoundObj.terminateInstance();
+          assert(eventPlaySpy.calledTwice, 'The "play" event was emitted twice');
+          assert(eventPauseSpy.calledOnce, 'The "pause" event was emitted once');
+          assert(eventStopSpy.calledOnce, 'The "stop" event was emitted once');
+          assert(
+            eventOnAudioNodeCreatedSpy.calledOnce,
+            'The "onAudioNodeCreated" event was emitted once',
+          );
+          assert(
+            eventOnAudioNodeCreatedSpy.calledWith(sinon.match.instanceOf(AudioNode)),
+            'The argument provided to the callback of "onAudioNodeCreated" was an AudioNode',
+          );
+          await csoundObj.terminateInstance();
+        }
       });
 
       it("can read and write ftables in realtime", async function () {
@@ -445,7 +447,6 @@ e
 
       it("can play a sample, write a sample and read the output file", async function () {
         const csoundObj = await Csound(test);
-        console.log({ csoundObj });
         const response = await fetch("tiny_test_sample.wav");
         const testSampleArrayBuffer = await response.arrayBuffer();
         const testSample = new Uint8Array(testSampleArrayBuffer);

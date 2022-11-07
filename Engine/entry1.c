@@ -743,14 +743,29 @@ OENTRY opcodlst_1[] = {
     (SUBR)table3rkt_audio          },
   { "inz",    S(IOZ),    ZW, 2,   "",   "k",  NULL,   (SUBR)inz  },
   { "outz",   S(IOZ),ZR|IR,  2,   "",   "k",    NULL,   (SUBR)outz },
-  { "timek.i", S(RDTIME),0, 1,   "i",  "",     (SUBR)timek,   NULL,  NULL },
-  { "times.i", S(RDTIME),0, 1,   "i",  "",     (SUBR)timesr,  NULL,  NULL },
+
   { "timek.k",  S(RDTIME),0, 2,  "k",  "",     NULL,    (SUBR)timek, NULL },
+  { "timek.i", S(RDTIME),0, 1,   "i",  "",     (SUBR)timek,   NULL,  NULL },
+
   { "times.k",  S(RDTIME),0, 2,  "k",  "",     NULL,    (SUBR)timesr,NULL },
+  { "times.i", S(RDTIME),0, 1,   "i",  "",     (SUBR)timesr,  NULL,  NULL },
+
+  { "elapsedcycles.k",  S(RDTIME),0, 2,  "k",  "",     NULL,    (SUBR)elapsedcycles, NULL },
+  { "elapsedcycles.i", S(RDTIME),0, 1,   "i",  "",     (SUBR)elapsedcycles,   NULL,  NULL },
+
+  { "elapsedtime.k",  S(RDTIME),0, 2,  "k",  "",     NULL,    (SUBR)elapsedtime,NULL },
+  { "elapsedtime.i", S(RDTIME),0, 1,   "i",  "",     (SUBR)elapsedtime,  NULL,  NULL },
+
   { "timeinstk", S(RDTIME),0, 3, "k",  "",
     (SUBR)instimset, (SUBR)instimek, NULL },
   { "timeinsts", S(RDTIME),0, 3, "k",  "",
     (SUBR)instimset, (SUBR)instimes, NULL },
+
+  { "eventcycles", S(RDTIME),0, 3, "k",  "",
+    (SUBR)instimset, (SUBR)eventcycles, NULL },
+  { "eventtime", S(RDTIME),0, 3, "k",  "",
+    (SUBR)instimset, (SUBR)eventtime, NULL },
+
   { "peak.k",  S(PEAK),0,   2,   "k",  "k",    NULL,    (SUBR)peakk,    NULL    },
   { "peak.a",   S(PEAK),0,  2,   "k",  "a",    NULL,     (SUBR)peaka   },
   { "printk", S(PRINTK),WR,  3,"",     "ikoooo",

@@ -339,7 +339,7 @@ ExtractSound(CSOUND *csound, XTRC *x, SNDFILE* infd, SNDFILE* outfd, OPARMS *opa
 {
     double buffer[NUMBER_OF_SAMPLES];
     long  read_in;
-    //long  frames = 0;
+    //    long  frames = 0;
     int32_t   block = 0;
 
     sflib_seek(infd, x->sample, SEEK_CUR);
@@ -351,7 +351,7 @@ ExtractSound(CSOUND *csound, XTRC *x, SNDFILE* infd, SNDFILE* outfd, OPARMS *opa
       read_in = sflib_readf_double(infd, buffer, num);
       sflib_writef_double(outfd, buffer, read_in);
       block++;
-      // frames += read_in;
+      //frames += read_in;
       if (oparms->rewrt_hdr) {
         sflib_command(outfd, SFC_UPDATE_HEADER_NOW, NULL, 0);
         sflib_seek(outfd, 0L, SEEK_END); /* Place at end again */
