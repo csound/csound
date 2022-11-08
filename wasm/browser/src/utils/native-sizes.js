@@ -14,9 +14,11 @@ export const sizeOfPrimitive = {
   void: 8,
 };
 
-const sizeOfStruct = (jsStruct) =>
+export const sizeOfStruct = (jsStruct) =>
   jsStruct.reduce((accumulator, [_, primitive]) => {
-    return sizeOfPrimitive[primitive] ? sizeOfPrimitive[primitive] + accumulator : sizeOfStruct({ TREE, ORCTOKEN }[primitive]) + accumulator;
+    return sizeOfPrimitive[primitive]
+      ? sizeOfPrimitive[primitive] + accumulator
+      : sizeOfStruct({ TREE, ORCTOKEN }[primitive]) + accumulator;
   }, 0);
 
 export const TREE_SIZE = sizeOfStruct(TREE);
