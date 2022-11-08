@@ -1,5 +1,8 @@
 /* eslint-disable unicorn/prevent-abbreviations */
 import { freeStringPtr, string2ptr } from "../utils/string-pointers.js";
+import { structBufferToObject } from "../utils/structure-buffer-to-object.js";
+import { sizeOfStruct } from "../utils/native-sizes.js";
+import { CSOUND_PARAMS } from "../structures.js";
 
 /*
    csound attribute module from <csound.h>
@@ -172,7 +175,7 @@ csoundSetParams.toString = () => "setParams = async (csoundParams) => undefined;
  */
 export const csoundGetParams = (wasm) => (csound) => {
   const { buffer } = wasm.wasi.memory;
-  const structLength = sizeofStruct(CSOUND_PARAMS);
+  const structLength = sizeOfStruct(CSOUND_PARAMS);
   const structOffset = wasm.exports.allocCsoundParamsStruct();
   const structBuffer = new Uint8Array(buffer, structOffset, structLength);
   wasm.exports.csoundGetParams(csound, structOffset);
