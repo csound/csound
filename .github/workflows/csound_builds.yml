@@ -119,7 +119,7 @@ jobs:
         uses: actions/upload-artifact@v2
         with:
           name: Csound_x64-${{env.CSOUND_VERSION}}.${{github.run_number}}-windows-x64-installer
-          path: ./Csound_x64-windows_x86_64-*.exe
+          path: ./csound-windows_x86_64-*.exe
           if-no-files-found: error
 
       - name: Upload zip
