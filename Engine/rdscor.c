@@ -25,6 +25,12 @@
 #include "corfile.h"
 #include "insert.h"
 
+static inline int32_t byte_order(void)
+{
+    const int32_t one = 1;
+    return (!*((char*) &one));
+}
+
 char* get_arg_string(CSOUND *csound, MYFLT p)
 {
     int32 n;
@@ -95,18 +101,41 @@ static int scanflt(CSOUND *csound, MYFLT *pfld)
         n++;
         if (n > csound->strsiz-10) {
           csound->sstrbuf = csound->ReAlloc(csound, csound->sstrbuf,
-                                     csound->strsiz+=SSTRSIZ);
+                                            csound->strsiz+=SSTRSIZ);
           sstrp = csound->sstrbuf+n;
         }
       }
       *sstrp++ = '\0';
       {
-        union {
-          MYFLT d;
-          int32 i;
-        } ch;
-        ch.d = SSTRCOD; ch.i += csound->scnt++;
-        *pfld = ch.d;           /* set as string with count */
+        if (byte_order()==0) { // little endian; double and float the same
+          union {
+            MYFLT d;
+            int32 i, j;
+          } ch;
+          ch.d = SSTRCOD; ch.i += csound->scnt++;
+          *pfld = ch.d;           /* set as string with count */
+        }
+        else {   // big endian; unknown layout
+#ifdef USING_DOUBLE
+          union {
+            MYFLT d;
+            int32 i, j;
+          } ch;
+          ch.d = SSTRCOD;
+          printf("**** %.8x %x.8\n", ch.i, ch.j);
+          ch.j += csound->scnt++;
+          *pfld = ch.d;           /* set as string with count */
+#else
+          union {
+            MYFLT d;
+            int32 j;
+          } ch;
+          ch.d = SSTRCOD;
+          printf("**** %x.8\n", ch.j);
+          ch.j += csound->scnt++;
+          *pfld = ch.d;           /* set as string with count */
+#endif            
+        }
       }
       csound->sstrlen = sstrp - csound->sstrbuf;  /*    & overall length  */
       //printf("csound->sstrlen = %d\n", csound->sstrlen);
