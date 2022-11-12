@@ -7,7 +7,6 @@ env:
 on:
   push:
     branches:
-      - develop
       - master
   pull_request:
     branches:
@@ -25,7 +24,7 @@ jobs:
       - name: Install Dependencies
         run: sudo apt-get update && sudo apt-get install cmake libsndfile1-dev libasound2-dev libjack-dev portaudio19-dev libportmidi-dev libpulse-dev swig liblua5.1-0-dev default-jdk libfltk1.1-dev libfluidsynth-dev liblo-dev fluid ladspa-sdk libpng-dev dssi-dev libstk0-dev libgmm++-dev bison flex libportsmf-dev libeigen3-dev libgtest-dev
       - name: Configure build
-        run: mkdir build && cd build && cmake .. -DBUILD_STATIC_LIBRARY=1
+        run: mkdir build && cd build && cmake .. -DBUILD_STATIC_LIBRARY=1 -DUSE_MP3=0
       - name: Build Csound
         run: cd build && make
       - name: Run tests
@@ -48,18 +47,18 @@ jobs:
       - name: Run tests
         run: cd build && make test csdtests
 
-#  android_build:
-#    name: Android build
-#    runs-on: ubuntu-latest
-#    steps:
-#      - name: run the Docker image
-#        run: docker run --name csound_test_run -i sjamble/csound_android
-#      - name: copying build out of container
-#        run: docker cp csound_test_run:/csound/Android/csound-android-7.0.0.zip .
-#      - uses: actions/upload-artifact@v2
-#        with:
-#         name: csound-android-7.0.0.zip
-#          path: .
+  #  android_build:
+  #    name: Android build
+  #    runs-on: ubuntu-latest
+  #    steps:
+  #      - name: run the Docker image
+  #        run: docker run --name csound_test_run -i sjamble/csound_android
+  #      - name: copying build out of container
+  #        run: docker cp csound_test_run:/csound/Android/csound-android-7.0.0.zip .
+  #      - uses: actions/upload-artifact@v2
+  #        with:
+  #         name: csound-android-7.0.0.zip
+  #          path: .
 
   windows_build:
     name: Windows build
@@ -104,7 +103,7 @@ jobs:
       - name: Acquire Csound manual
         shell: powershell
         run: |
-          Invoke-WebRequest -Uri "https://github.com/csound/manual/releases/download/6.16.0/Csound6.16.0_manual_html.zip" -OutFile "./manual.zip"
+          Invoke-WebRequest -Uri "https://github.com/csound/manual/releases/download/6.18.0/Csound6.18.0_manual_html.zip" -OutFile "./manual.zip"
           7z x manual.zip
 
       - name: Build installer
@@ -119,7 +118,7 @@ jobs:
       - name: Upload installer
         uses: actions/upload-artifact@v2
         with:
-          name: csound-${{env.CSOUND_VERSION}}.${{github.run_number}}-windows-x64-installer
+          name: Csound_x64-${{env.CSOUND_VERSION}}.${{github.run_number}}-windows-x64-installer
           path: ./csound-windows_x86_64-*.exe
           if-no-files-found: error
 

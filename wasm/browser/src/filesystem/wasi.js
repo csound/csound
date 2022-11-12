@@ -203,8 +203,22 @@ WASI.prototype.fd_fdstat_get = function (fd, bufPtr) {
   if (DEBUG_WASI) {
     console.log("fd_fdstat_get", fd, bufPtr, arguments);
   }
+
+  const memory = this.getMemory();
+
+  memory.setUint8(bufPtr + 4, constants.WASI_FILETYPE_REGULAR_FILE);
+  memory.setUint16(bufPtr + 2, 0, true);
+  memory.setUint16(bufPtr + 4, 0, true);
+  memory.setBigUint64(bufPtr + 8, goog.global.BigInt(constants.RIGHTS_REGULAR_FILE_BASE), true);
+  memory.setBigUint64(
+    bufPtr + 8 + 8,
+    goog.global.BigInt(constants.RIGHTS_REGULAR_FILE_INHERITING),
+    true,
+  );
+
   return constants.WASI_ESUCCESS;
 };
+
 WASI.prototype.fd_fdstat_set_flags = function (fd, flags) {
   if (DEBUG_WASI) {
     console.log("fd_fdstat_set_flags", fd, flags, arguments);
@@ -471,15 +485,16 @@ WASI.prototype.fd_tell = function (fd, offsetPtr) {
 
 WASI.prototype.fd_write = function (fd, iovs, iovsLength, nwritten) {
   if (DEBUG_WASI) {
-    console.log("fd_write", iovs, iovsLength, nwritten);
+    console.log("fd_write", { fd, iovs, iovsLength, nwritten });
   }
+
+  let append = false;
   const memory = this.getMemory();
   this.fd[fd].buffers = this.fd[fd].buffers || [];
 
   // append-only, if starting new write from beginning
-  // we are then assuming an overwrite (until this bites us)
   if (this.fd[fd].seekPos === goog.global.BigInt(0) && this.fd[fd].buffers.length > 0) {
-    this.fd[fd].buffers = [];
+    append = true;
   }
   let written = 0;
 
@@ -489,11 +504,21 @@ WASI.prototype.fd_write = function (fd, iovs, iovsLength, nwritten) {
     const bufLength = memory.getUint32(ptr + 4, true);
     written += bufLength;
     const chunk = new Uint8Array(memory.buffer, buf, bufLength);
-    this.fd[fd].buffers.push(chunk.slice(0, bufLength));
+    if (append) {
+      this.fd[fd].buffers.unshift(chunk.slice(0, bufLength));
+    } else {
+      this.fd[fd].buffers.push(chunk.slice(0, bufLength));
+    }
   }
 
   this.fd[fd].seekPos += goog.global.BigInt(written);
+
   memory.setUint32(nwritten, written, true);
+
+  if ([1, 2].includes(fd)) {
+    console.log(decoder.decode(concatUint8Arrays(this.fd[fd].buffers)));
+  }
+
   return constants.WASI_ESUCCESS;
 };
 
@@ -799,6 +824,12 @@ WASI.prototype.readFile = function (fname /* string */) {
   if (buffers) {
     return concatUint8Arrays(buffers);
   }
+};
+
+WASI.prototype.readStdOut = function () {
+  const maybeFd = Object.values(this.fd[0]);
+  const buffers = (maybeFd && maybeFd.buffers) || [];
+  return concatUint8Arrays(buffers);
 };
 
 WASI.prototype.unlink = function (fname /* string */) {

@@ -13,7 +13,7 @@ const { assert } = goog.require("goog.asserts");
 const PAGE_SIZE = 65536;
 const PAGES_PER_MB = 16; // 1048576 bytes per MB / PAGE_SIZE
 
-export const csoundWasiJsMessageCallback = ({ memory, messagePort, streamBuffer }) => {
+export const csoundWasiJsMessageCallback = ({ memory, messagePort, streamBuffer, wasi }) => {
   return function (csound_, attribute, length_, offset) {
     if (!memory) {
       return;
@@ -277,6 +277,12 @@ export default async function ({ wasmDataURI, withPlugins = [], messagePort }) {
     streamBuffer,
   });
 
+  options.env.printDebugCallback = (offset, length) => {
+    const buf = new Uint8Array(memory.buffer, offset, length);
+    const string = uint2String(buf);
+    console.log(string);
+  };
+
   options["GOT.mem"] = options["GOT.mem"] || {};
   options["GOT.mem"].__heap_base = heapBase;
 
@@ -333,6 +339,7 @@ export default async function ({ wasmDataURI, withPlugins = [], messagePort }) {
 
   importValuesOfTokens(instance_);
   wasi.start(instance_);
+
   instance_.exports.__wasi_js_csoundSetMessageStringCallback();
   return [instance_, wasi];
 }

@@ -348,6 +348,7 @@ char *type2string(int x)
       case TYP_OGG:   return "OGG";
       case TYP_MPC2K: return "MPC2K";
       case TYP_RF64:  return "RF64";
+      case TYP_MPEG:  return "MPEG";
       default:        return Str("unknown");
     }
 }
@@ -377,6 +378,7 @@ char *getstrformat(int format)  /* used here, and in sfheader.c */
       case  AE_DOUBLE:  return Str("double floats");
       case  AE_24INT:   return Str("24bit ints");     /* RWD 5:2001 */
       case  AE_VORBIS:  return Str("vorbis encoding");
+      case  AE_MPEG:    return Str("mpeg encoding");
     }
     return Str("unknown");
 }
@@ -417,6 +419,7 @@ int type2csfiletype(int type, int encoding)
       case TYP_CAF:    return CSFTYPE_CAF;
       case TYP_WVE:    return CSFTYPE_WVE;
       case TYP_OGG:    return CSFTYPE_OGG;
+      case TYP_MPEG:   return CSFTYPE_MPEG;
       case TYP_MPC2K:  return CSFTYPE_MPC2K;
       case TYP_RF64:   return CSFTYPE_RF64;
       default:         return CSFTYPE_UNKNOWN_AUDIO;

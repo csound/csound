@@ -703,6 +703,9 @@ void sfopenout(CSOUND *csound)                  /* init for sound out       */
       case TYP_OGG:
         O->outfilename = "test.ogg";
         break;
+      case TYP_MPEG:
+        O->outfilename = "test.mp3";
+        break;
       /* case TYP_MPC2K: */
       /*   O->outfilename = ""; */
       /*   break; */
@@ -834,6 +837,16 @@ void sfopenout(CSOUND *csound)                  /* init for sound out       */
       csoundNotifyFileOpened(csound, fullName,
                               type2csfiletype(O->filetyp, O->outformat), 1, 0);
     }
+
+ #ifdef SNDFILE_MP3
+    // VL: setting bitrate to constant improves quality
+    if(O->filetyp == TYP_MPEG) {
+      csound->Message(csound, "Setting MP3 bitrate to %s\n", O->mp3_mode ? "variable" : "constant" );;
+      sf_command(STA(outfile), SFC_SET_BITRATE_MODE,
+                 &(O->mp3_mode), sizeof(int));
+    }
+ #endif
+    
     /* IV - Feb 22 2005: clip integer formats */
     if (O->outformat != AE_FLOAT && O->outformat != AE_DOUBLE)
       sflib_command(STA(outfile), SFC_SET_CLIPPING, NULL, SFLIB_TRUE);
@@ -894,6 +907,7 @@ void sfopenout(CSOUND *csound)                  /* init for sound out       */
       sflib_set_string(STA(outfile), SF_STR_DATE, s);
     /* file is now open */
     STA(osfopen) = 1;
+
 
  outset:
     O->sfsampsize = (int) sfsampsize(FORMAT2SF(O->outformat));

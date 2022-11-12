@@ -783,6 +783,15 @@ static int32_t lposc3(CSOUND *csound, LPOSC *p)
     return OK;
 }
 
+
+static int32_t sum_init(CSOUND *csound, SUM *p) {
+    uint32_t nsmps = CS_KSMPS;
+    if (p->aux.auxp == NULL || p->aux.size < nsmps * sizeof(MYFLT))
+      csound->AuxAlloc(csound, (size_t)(nsmps*sizeof(MYFLT)), &p->aux);
+    return OK;
+}
+
+
 static int32_t sum_(CSOUND *csound, SUM *p)
 {
     IGN(csound);
@@ -790,15 +799,14 @@ static int32_t sum_(CSOUND *csound, SUM *p)
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t k, nsmps = CS_KSMPS;
     int32_t   count = (int32_t) p->INOCOUNT;
-    MYFLT *ar = p->ar, **args = p->argums;
+    MYFLT *accum = p->aux.auxp, **args = p->argums;
     MYFLT *in0, *in1, *in2, *in3;
-    if (UNLIKELY(offset)) memset(ar, '\0', offset*sizeof(MYFLT));
+    if (UNLIKELY(offset)) memset(accum, '\0', offset*sizeof(MYFLT));
     if (UNLIKELY(early)) {
       nsmps -= early;
-      memset(&ar[nsmps], '\0', early*sizeof(MYFLT));
+      memset(&accum[nsmps], '\0', early*sizeof(MYFLT));
     }
-    memset(&ar[offset], '\0', sizeof(MYFLT)*(nsmps-offset));
-
+    memset(accum, '\0', nsmps*sizeof(MYFLT));
     int count4 = count - (count % 4);
     for(int i=0; i<count4; i+= 4) {
       in0 = *(args+i);
@@ -806,15 +814,18 @@ static int32_t sum_(CSOUND *csound, SUM *p)
       in2 = *(args+i+2);
       in3 = *(args+i+3);
       for(k=offset; k<nsmps; k++) {
-        ar[k] += in0[k] + in1[k] +in2[k] + in3[k];
+        // ar[k] += in0[k] + in1[k] +in2[k] + in3[k];
+        accum[k] += in0[k] + in1[k] +in2[k] + in3[k];
       }
     }
     for(int i=count4; i<count; i++) {
       in0 = *(args + i);
       for(k=offset; k<nsmps; k++) {
-        ar[k] += in0[k];
+        // ar[k] += in0[k];
+        accum[k] += in0[k];
       }
     }
+    memcpy(p->ar+offset, accum+offset, (nsmps - offset)*sizeof(MYFLT));
 
     return OK;
 }
@@ -2135,7 +2146,7 @@ static OENTRY localops[] = {
 { "poscil3.aa", S(POSC), TR,3, "a", "aajo", (SUBR)posc_set, (SUBR)posc3aa },
 { "lposcil3", S(LPOSC), TR, 3, "a", "kkkkjo", (SUBR)lposc_set,(SUBR)lposc3},
 { "trigger",  S(TRIG),  0,3, "k", "kkk",  (SUBR)trig_set, (SUBR)trig,   NULL  },
-{ "sum",      S(SUM),   0,2, "a", "y",    NULL, (SUBR)sum_               },
+{ "sum",      S(SUM),   0,3, "a", "y",    (SUBR)sum_init, (SUBR)sum_               },
 { "product",  S(SUM),   0,2, "a", "y",    NULL, (SUBR)product           },
 { "resony",  S(RESONY), 0,3, "a", "akkikooo", (SUBR)rsnsety, (SUBR)resony }
 };

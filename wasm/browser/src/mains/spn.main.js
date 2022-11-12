@@ -311,26 +311,30 @@ class ScriptProcessorNodeSingleThread {
     this.nchnls = -1;
     this.nchnls_i = -1;
     delete this.csoundOutputBuffer;
+    delete this.csoundInputBuffer;
   }
 
   onaudioprocess(event) {
     if (this.csoundOutputBuffer === null || this.running === false) {
       const output = event.outputBuffer;
-      const bufferLength = output.getChannelData(0).length;
+      const channelData = output.getChannelData(0);
 
-      for (let index = 0; index < bufferLength; index++) {
-        for (let channel = 0; channel < output.numberOfChannels; channel++) {
-          const outputChannel = output.getChannelData(channel);
-          outputChannel[index] = 0;
+      if (channelData) {
+        const bufferLength = channelData.length;
+
+        for (let index = 0; index < bufferLength; index++) {
+          for (let channel = 0; channel < output.numberOfChannels; channel++) {
+            const outputChannel = output.getChannelData(channel);
+            outputChannel[index] = 0;
+          }
         }
       }
-      return;
     }
 
     if (this.running && !this.started) {
       this.started = true;
       this.onPlayStateChange("realtimePerformanceStarted");
-      this.eventPromises && this.eventPromises.releaseStartPromises();
+      this.eventPromises && this.eventPromises.releaseStartPromise();
     }
 
     const input = event.inputBuffer;
@@ -359,13 +363,13 @@ class ScriptProcessorNodeSingleThread {
           this.running = false;
           this.started = false;
           this.onPlayStateChange("realtimePerformanceEnded");
-          this.eventPromises && this.eventPromises.releaseStopPromises();
+          this.eventPromises && this.eventPromises.releaseStopPromise();
         }
       }
 
       /* Check if MEMGROWTH occured from csoundPerformKsmps or otherwise. If so,
       rest output ant input buffers to new pointer locations. */
-      if (csOut.length === 0) {
+      if (!csOut || csOut.length === 0) {
         csOut = this.csoundOutputBuffer = new Float64Array(
           this.wasm.wasi.memory.buffer,
           this.csoundApi.csoundGetSpout(this.csoundInstance),
@@ -373,7 +377,7 @@ class ScriptProcessorNodeSingleThread {
         );
       }
 
-      if (csIn.length === 0) {
+      if (!csIn || csIn.length === 0) {
         csIn = this.csoundInputBuffer = new Float64Array(
           this.wasm.wasi.memory.buffer,
           this.csoundApi.csoundGetSpin(this.csoundInstance),

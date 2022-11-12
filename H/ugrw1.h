@@ -238,6 +238,14 @@ typedef struct {
 int instimek(CSOUND*,RDTIME *p);
 int instimes(CSOUND*,RDTIME *p);
 int instimset(CSOUND*,RDTIME *p);
+
+int eventcycles(CSOUND*,RDTIME *p);
+int eventtime(CSOUND*,RDTIME *p);
+
+int elapsedcycles(CSOUND*,RDTIME *p);
+int elapsedtime(CSOUND*,RDTIME *p);
+
+
 //int itablecopy(CSOUND*,TABLECOPY *p);
 //int itablegpw(CSOUND*,TABLEGPW *p);
 //int itablemix(CSOUND*,TABLEMIX *p);

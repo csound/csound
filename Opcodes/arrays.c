@@ -3453,7 +3453,7 @@ int32_t init_rifft(CSOUND *csound, FFT *p) {
 }
 
 int32_t perf_rifft(CSOUND *csound, FFT *p) {
-    int32_t N = p->out->sizes[0];
+    int32_t N = p->in->sizes[0];
     memcpy(p->out->data,p->in->data,N*sizeof(MYFLT));
     if (isPowerOfTwo(N))
       csound->RealFFT2(csound,p->setup,p->out->data);
@@ -3493,7 +3493,7 @@ int32_t perf_rfftmult(CSOUND *csound, FFT *p) {
 void csoundComplexFFTnp2(CSOUND *csound, MYFLT *buf, int32_t FFTsize);
 void csoundInverseComplexFFTnp2(CSOUND *csound, MYFLT *buf, int32_t FFTsize);
 
-int32_t init_fft(CSOUND *csound, FFT *p) {
+int32_t initialise_fft(CSOUND *csound, FFT *p) {
   int32_t   N2 = p->in->sizes[0];
   if (UNLIKELY(p->in->dimensions > 1))
     return csound->InitError(csound, "%s",
@@ -3514,7 +3514,7 @@ int32_t perf_fft(CSOUND *csound, FFT *p) {
 }
 
 int32_t fft_i(CSOUND *csound, FFT *p) {
-  if (init_fft(csound,p) == OK)
+  if (initialise_fft(csound,p) == OK)
     return perf_fft(csound, p);
   else return NOTOK;
 }
@@ -3583,8 +3583,8 @@ int32_t perf_poltorect(CSOUND *csound, FFT *p) {
 
 int32_t init_poltorect2(CSOUND *csound, FFT *p) {
     if (LIKELY(p->in2->sizes[0] == p->in->sizes[0])) {
-      int32_t   N = p->in2->sizes[0]-1;
-      tabinit(csound, p->out, N*2);
+      int32_t   N = p->in2->sizes[0];
+      tabinit(csound, p->out, N*2 - 2);
       return OK;
     } else return csound->InitError(csound,
                                     Str("in array sizes do not match: %d and %d\n"),
@@ -3604,8 +3604,8 @@ int32_t perf_poltorect2(CSOUND *csound, FFT *p) {
       im = mags[j]*SIN(phs[j]);
       out[i] = re; out[i+1] = im;
     }
-    out[0] = mags[0];
-    out[1] = mags[end];
+    out[0] = mags[0]*COS(phs[0]);
+    out[1] = mags[end]*COS(phs[end]);
     return OK;
 }
 
@@ -4740,7 +4740,7 @@ static OENTRY arrayvars_localops[] =
     {"cmplxprod", sizeof(FFT), 0, 3, "k[]","k[]k[]",
      (SUBR) init_rfftmult, (SUBR) perf_rfftmult, NULL},
     {"fft", sizeof(FFT), 0, 3, "k[]","k[]",
-     (SUBR) init_fft, (SUBR) perf_fft, NULL},
+     (SUBR) initialise_fft, (SUBR) perf_fft, NULL},
     {"fft", sizeof(FFT), 0, 1, "i[]","i[]",
      (SUBR) fft_i, NULL, NULL},
     {"fftinv", sizeof(FFT), 0, 3, "k[]","k[]",

@@ -1,6 +1,6 @@
 {
   "name": "@csound/browser",
-  "version": "6.17.1",
+  "version": "7.0.0-alpha1",
   "module": "./dist/csound.js",
   "typings": "index.d.ts",
   "type": "module",
@@ -50,13 +50,14 @@
     "build:static": "cross-env BUILD_STATIC=1 yarn run build",
     "build:readme": "node --experimental-modules script/generate-readme.mjs > README.md",
     "test:ci": "node tests/selenium_runner.js",
+    "test:ci:firefox": "node tests/selenium_runner_firefox.js",
     "test:open": "node tests/server.cjs"
   },
   "devDependencies": {
     "@babel/core": "^7.16.7",
     "@babel/plugin-proposal-object-rest-spread": "^7.16.7",
     "@babel/plugin-transform-destructuring": "^7.16.7",
-    "@csound/wasm-bin": "6.17.0",
+    "@csound/wasm-bin": "7.0.0-alpha1",
     "browser-or-node": "^2.0.0",
     "chai": "^4.3.4",
     "cross-env": "^7.0.3",

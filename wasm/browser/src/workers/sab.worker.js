@@ -27,7 +27,16 @@ const callUncloned = async (k, arguments_) => {
 };
 
 const sabCreateRealtimeAudioThread =
-  ({ libraryCsound, callbacksRequest, releaseStop, wasm, wasi, workerMessagePort }) =>
+  ({
+    libraryCsound,
+    callbacksRequest,
+    releaseStop,
+    releasePause,
+    releaseResumed,
+    wasm,
+    wasi,
+    workerMessagePort,
+  }) =>
   async ({ audioStateBuffer, audioStreamIn, audioStreamOut, midiBuffer, csound }) => {
     const audioStatePointer = new Int32Array(audioStateBuffer);
 
@@ -143,11 +152,18 @@ const sabCreateRealtimeAudioThread =
           unlockPromise = resolve;
           workerMessagePort.broadcastSabUnlocked();
         });
+
         log(`Atomic.wait unlocked, performance started`)();
       }
 
       if (Atomics.load(audioStatePointer, AUDIO_STATE.IS_PAUSED) === 1) {
+        await new Promise((resolve) => setTimeout(resolve, 0));
+        releasePause();
+        await new Promise((resolve) => setTimeout(resolve, 0));
         Atomics.wait(audioStatePointer, AUDIO_STATE.IS_PAUSED, 0);
+        await new Promise((resolve) => setTimeout(resolve, 0));
+        releaseResumed();
+        await new Promise((resolve) => setTimeout(resolve, 0));
       }
 
       if (maybeStop()) {
@@ -187,8 +203,7 @@ const sabCreateRealtimeAudioThread =
       const outputBufferPtr = libraryCsound.csoundGetSpout(csound);
 
       const csoundInputBuffer =
-        hasInput &&
-        new Float64Array(wasm.wasi.memory.buffer, inputBufferPtr, ksmps * nchnlsInput);
+        hasInput && new Float64Array(wasm.wasi.memory.buffer, inputBufferPtr, ksmps * nchnlsInput);
 
       const csoundOutputBuffer = new Float64Array(
         wasm.wasi.memory.buffer,
@@ -300,11 +315,18 @@ const initCallbackReplyPort = ({ port }) => {
 };
 
 const renderFunction =
-  ({ libraryCsound, callbacksRequest, releaseStop, wasi, workerMessagePort }) =>
+  ({
+    libraryCsound,
+    callbacksRequest,
+    releaseStop,
+    releasePause,
+    releaseResumed,
+    wasi,
+    workerMessagePort,
+  }) =>
   async ({ audioStateBuffer, csound }) => {
     const audioStatePointer = new Int32Array(audioStateBuffer);
     Atomics.store(audioStatePointer, AUDIO_STATE.IS_RENDERING, 1);
-
     workerMessagePort.broadcastSabUnlocked();
 
     while (
@@ -312,8 +334,10 @@ const renderFunction =
       libraryCsound.csoundPerformKsmps(csound) === 0
     ) {
       if (Atomics.load(audioStatePointer, AUDIO_STATE.IS_PAUSED) === 1) {
+        releasePause();
         // eslint-disable-next-line no-unused-expressions
         Atomics.wait(audioStatePointer, AUDIO_STATE.IS_PAUSED, 0);
+        releaseResumed();
       }
       if (
         Atomics.compareExchange(audioStatePointer, AUDIO_STATE.HAS_PENDING_CALLBACKS, 1, 0) === 1
@@ -334,6 +358,8 @@ const initialize = async ({ wasmDataURI, withPlugins = [], messagePort, callback
   const workerMessagePort = initMessagePort({ port: messagePort });
   const callbacksRequest = () => callbackPort.postMessage("poll");
   const releaseStop = () => callbackPort.postMessage("releaseStop");
+  const releasePause = () => callbackPort.postMessage("releasePause");
+  const releaseResumed = () => callbackPort.postMessage("releaseResumed");
 
   initCallbackReplyPort({ port: callbackPort });
 
@@ -358,6 +384,8 @@ const initialize = async ({ wasmDataURI, withPlugins = [], messagePort, callback
         wasm,
         workerMessagePort,
         releaseStop,
+        releasePause,
+        releaseResumed,
       }),
       renderFunction({
         libraryCsound,
@@ -365,6 +393,8 @@ const initialize = async ({ wasmDataURI, withPlugins = [], messagePort, callback
         workerMessagePort,
         wasi,
         releaseStop,
+        releasePause,
+        releaseResumed,
       }),
     )(arguments_);
 

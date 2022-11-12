@@ -1,9 +1,8 @@
 import * as Comlink from "comlink/dist/esm/comlink.mjs";
-// import WorkletWorker from "@root/workers/worklet.worker";
 import { logWorkletMain as log } from "../logger";
 import { WebkitAudioContext } from "../utils";
-// import { requestMicrophoneNode } from "./io.utils";
 import { requestMidi } from "../utils/request-midi";
+import { messageEventHandler } from "./messages.main";
 
 const WorkletWorker = goog.require("worker.worklet");
 
@@ -83,20 +82,13 @@ class AudioWorkletMainThread {
     switch (newPlayState) {
       case "realtimePerformanceStarted": {
         log("event received: realtimePerformanceStarted")();
-        try {
-          await this.initialize();
-        } catch (error) {
-          console.error(error);
-        }
+        await this.initialize();
 
-        if (
-          this.csoundWorkerMain &&
-          this.csoundWorkerMain.eventPromises &&
-          !this.csoundWorkerMain.hasSharedArrayBuffer
-        ) {
+        if (this.csoundWorkerMain && this.csoundWorkerMain.eventPromises) {
           this.csoundWorkerMain.publicEvents &&
             this.csoundWorkerMain.publicEvents.triggerRealtimePerformanceStarted(this);
-          await this.csoundWorkerMain.eventPromises.releaseStartPromises();
+          this.csoundWorkerMain.eventPromises &&
+            (await this.csoundWorkerMain.eventPromises.releaseStartPromise());
         }
         break;
       }
@@ -139,6 +131,25 @@ class AudioWorkletMainThread {
         this.softwareBufferSize = undefined;
         break;
       }
+
+      case "realtimePerformancePaused": {
+        if (this.csoundWorkerMain && this.csoundWorkerMain.eventPromises) {
+          this.csoundWorkerMain.publicEvents &&
+            this.csoundWorkerMain.publicEvents.triggerRealtimePerformancePaused(this);
+          await this.csoundWorkerMain.eventPromises.releasePausePromise();
+        }
+        break;
+      }
+
+      case "realtimePerformanceResumed": {
+        if (this.csoundWorkerMain && this.csoundWorkerMain.eventPromises) {
+          this.csoundWorkerMain.publicEvents &&
+            this.csoundWorkerMain.publicEvents.triggerRealtimePerformanceResumed(this);
+          await this.csoundWorkerMain.eventPromises.releaseResumePromise();
+        }
+        break;
+      }
+
       default: {
         break;
       }
@@ -260,6 +271,13 @@ class AudioWorkletMainThread {
 
     microphonePromise && (await microphonePromise);
     this.workletProxy = Comlink.wrap(this.audioWorkletNode.port);
+
+    this.ipcMessagePorts.mainMessagePortAudio.addEventListener(
+      "message",
+      messageEventHandler(this),
+    );
+    this.ipcMessagePorts.mainMessagePortAudio.start();
+
     await this.workletProxy.initialize(
       Comlink.transfer(
         {

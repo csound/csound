@@ -188,7 +188,7 @@ static const char *shortUsageList[] = {
 
 static const char *longUsageList[] = {
   "--format={wav,aiff,au,raw,paf,svx,nist,voc,ircam,w64,mat4,mat5",
-  "          pvf,xi,htk,sds,avr,wavex,sd2,flac,caf,wve,ogg,mpc2k,rf64}",
+  "          pvf,xi,htk,sds,avr,wavex,sd2,flac,caf,wve,ogg,mpc2k,rf64,mpeg}",
   "--format={alaw,ulaw,schar,uchar,float,double,short,long,24bit,vorbis}",
   Str_noop("  Set output file format"),
   Str_noop("--aiff                  set AIFF format"),
@@ -196,6 +196,7 @@ static const char *longUsageList[] = {
   Str_noop("--wave                  set WAV format"),
   Str_noop("--ircam                 set IRCAM format"),
   Str_noop("--ogg                   set OGG/VORBIS format"),
+  Str_noop("--mpeg                  set MPEG format"),
   Str_noop("--noheader              raw format"),
   Str_noop("--nopeaks               do not write peak information"),
   " ",
@@ -316,6 +317,7 @@ static const char *longUsageList[] = {
   Str_noop("--udp-echo              echo UDP commands on terminal"),
   Str_noop("--aft-zero              set aftertouch to zero, not 127 (default)"),
   Str_noop("--limiter[=num]         include clipping in audio output"),
+  Str_noop("--vbr                   set MPEG encoding to variable bitrate"),
   " ",
   Str_noop("--help                  long help"),
   NULL
@@ -495,7 +497,7 @@ static const SOUNDFILE_TYPE_ENTRY file_type_map[] = {
     { "pvf",    TYP_PVF   },  { "xi",     TYP_XI    },
     { "htk",    TYP_HTK   },  { "sds",    TYP_SDS   },
     { "avr",    TYP_AVR   },  { "wavex",  TYP_WAVEX },
-    { "sd2",    TYP_SD2   },
+    { "sd2",    TYP_SD2   },  { "mpeg",   TYP_MPEG  },
     { "flac",   TYP_FLAC  },  { "caf",    TYP_CAF   },
     { "wve",    TYP_WVE   },  { "ogg",    TYP_OGG   },
     { "mpc2k",  TYP_MPC2K },  { "rf64",   TYP_RF64  },
@@ -686,6 +688,11 @@ static int decode_long(CSOUND *csound, char *s, int argc, char **argv)
     else if (!(strcmp (s, "ogg"))) {
       O->filetyp = TYP_OGG;             /* OGG output request   */
       O->outformat = AE_VORBIS;         /* Xiph Vorbis encoding */
+      return 1;
+    }
+    else if (!(strcmp (s, "mpeg"))) {
+      O->filetyp = TYP_MPEG;             /* OGG output request   */
+      O->outformat = AE_MPEG;         /* Xiph Vorbis encoding */
       return 1;
     }
     /*
@@ -1246,6 +1253,12 @@ static int decode_long(CSOUND *csound, char *s, int argc, char **argv)
     }
     else if (!(strcmp(s, "limiter"))) {
       O->limiter = 0.5;
+      return 1;
+    }
+     else if (!(strcmp(s, "vbr"))) {
+  #ifdef SNDFILE_MP3    
+      O->mp3_mode = SF_BITRATE_MODE_VARIABLE;
+  #endif    
       return 1;
     }
     csoundErrorMsg(csound, Str("unknown long option: '--%s'"), s);
@@ -1884,11 +1897,9 @@ static void list_midi_devices(CSOUND *csound, int output){
     CS_MIDIDEVICE *devs =
       (CS_MIDIDEVICE *) csound->Malloc(csound, n*sizeof(CS_MIDIDEVICE));
     if (output)
-      csound->MessageS(csound, CSOUNDMSG_STDOUT,
-                       Str("%d MIDI output devices\n"), n);
+      csound->Message(csound, Str("%d MIDI output devices\n"), n);
     else
-      csound->MessageS(csound, CSOUNDMSG_STDOUT,
-                       Str("%d MIDI input devices\n"), n);
+      csound->Message(csound, Str("%d MIDI input devices\n"), n);
     csoundGetMIDIDevList(csound,devs,output);
     for (i=0; i < n; i++)
       csound->Message(csound, " %d: %s (%s)\n",

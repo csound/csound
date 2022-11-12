@@ -24,7 +24,6 @@
 
 #include "csoundCore.h"
 #include <math.h>
-
 typedef struct {
     OPDS        h;
     MYFLT       *res;           /*  state */
@@ -47,6 +46,7 @@ typedef struct {
     MYFLT       *step;          /* Step mode in force */
     MYFLT       *reset;         /* Reset key */
     MYFLT       *verbos;
+    MYFLT       *id;            /* so can find it amonst others */
  // Internals
     int32_t     max_length;
     int         cnt;            /* Count loops for mutator */
@@ -55,6 +55,16 @@ typedef struct {
     int         direction;      /* direction of steps */
     int         seq[128];
 } SEQ;
+
+
+typedef struct {
+    OPDS        h;
+    MYFLT       *res;           /*  state */
+    ARRAYDAT    *riff;          /* opy intervnal array */
+    MYFLT       *id;
+    SEQ         *q;
+} SEQSTATE;
+
 
 static int32_t sequencer_init(CSOUND *csound, SEQ *p)
 {
@@ -74,6 +84,17 @@ static int32_t sequencer_init(CSOUND *csound, SEQ *p)
       p->seq[i] = i;
     /* for (i=0; i<p->riff->sizes[0]; i++) */
     /*   printf("%d: %d %f\n", i, (int)(p->instr->data[i]), p->riff->data[i]); */
+    SEQ **q;
+
+    if ((int)(*p->id)<0 || (int)(*p->id)>9)
+      return csound->InitError(csound, Str("sequ: id out of range"));
+    
+    q = (SEQ**)csound->QueryGlobalVariable(csound, "sequGlobals");
+    if (q == NULL) {
+      csound->CreateGlobalVariable(csound, "sequGlobals", 10*sizeof(SEQ*));
+      q = (SEQ**)csound->QueryGlobalVariable(csound, "sequGlobals");
+    }
+    q[(int)*p->id] = p;
     return OK;
 }
 
@@ -188,7 +209,7 @@ static int32_t sequencer(CSOUND *csound, SEQ *p)
           sprintf(buff, "i %0.2f 0 %f %f\n",
                   inst, 60.0/(*p->kbpm)*p->riff->data[p->seq[i]],
                   p->data->data[p->seq[i]]);
-        printf("%s", buff);
+        //printf("%s", buff);
         csoundReadScore(csound, buff); /* schedule instr for event */
       }
       p->time = (p->riff->data[i] * csound->esr * 60.0) / *p->kbpm;
@@ -221,12 +242,44 @@ static int32_t sequencer(CSOUND *csound, SEQ *p)
     return OK;
 }
 
+static int sequState(CSOUND *csound, SEQSTATE* p);
+
+static int sequStateInit(CSOUND *csound, SEQSTATE* p)
+{
+    int id = (int)*p->id;
+    SEQ **r = (SEQ**)csound->QueryGlobalVariable(csound, "sequGlobals");
+    if (r==NULL || r[id]==NULL) {
+      csound->Warning(csound, Str("No sequs"));
+      return OK;
+    }
+    p->q = r[id];
+    if (p->riff->sizes[0] != p->q->max_length)
+      csound->InitError(csound, Str("sequstate: Wrong sizeof output array"));
+    sequState(csound, p);
+    return OK;
+}
+
+static int sequState(CSOUND *csound, SEQSTATE* p)
+{
+    SEQ* q = p->q;
+    int i;
+    int len = (int)*q->klen;
+    for (i=0; i<len; i++)
+      p->riff->data[i] = /* q->riff->data[*/ q->seq[i]/*]*/;
+    *p->res = (MYFLT)q->cnt;
+    return OK;
+}
+
 static OENTRY sequencer_localops[] =
   {
    { "sequ", sizeof(SEQ), 0, 3, "k",
-     "i[]i[]i[]kkOOOo",
-     (SUBR) sequencer_init, (SUBR) sequencer
-  },
+     "i[]i[]i[]kkOOOoo",
+     (SUBR) sequencer_init, (SUBR) sequencer },
+   { "sequstate.i", sizeof(SEQSTATE), 0, 1, "ii[]", "o",
+     (SUBR) sequStateInit },
+   { "sequstate.k", sizeof(SEQSTATE), 0, 3, "kk[]", "o",
+   (SUBR) sequStateInit, (SUBR) sequState
+  }
 };
 
 LINKAGE_BUILTIN(sequencer_localops)

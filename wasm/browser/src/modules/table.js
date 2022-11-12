@@ -73,9 +73,14 @@ export const csoundTableCopyOut = (wasm) => (csound /* CsoundInst */, tableNumbe
     const arrayPtr = wasm.exports.allocFloatArray(tableLength);
     wasm.exports.csoundTableCopyOut(csound, tableNumber, arrayPtr);
     const { buffer } = wasm.wasi.memory;
-    const jsArray = new Float64Array(buffer, arrayPtr, tableLength);
+    const freeableArray = new Float64Array(buffer, arrayPtr, tableLength);
+    const clonedArray = new Float64Array(freeableArray.length);
+    /* eslint-disable-next-line unicorn/no-for-loop */
+    for (let i = 0; i < freeableArray.length; i++) {
+      clonedArray[i] = freeableArray[i];
+    }
     wasm.exports.freeFloatArrayMem(arrayPtr);
-    return Float64Array.from(jsArray);
+    return clonedArray;
   }
 };
 
