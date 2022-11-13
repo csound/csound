@@ -32,6 +32,14 @@
 
 #define SFLIB_INSTRUMENT SF_INSTRUMENT
 
+#ifndef SNDFILE_MP3
+// set missing tokens
+#define SF_FORMAT_MPEG 0x230000		/* MPEG-1/2 audio stream */
+#define	SF_FORMAT_MPEG_LAYER_I	0x0080		/* MPEG-1 Audio Layer I */
+#define SF_FORMAT_MPEG_LAYER_II	0x0081,		/* MPEG-1 Audio Layer II */
+#define SF_FORMAT_MPEG_LAYER_III 0x0082		/* MPEG-2 Audio Layer III */
+#endif
+
 
 /* standard audio encoding types */
 #define AE_CHAR         SF_FORMAT_PCM_S8
@@ -57,6 +65,7 @@
 #define AE_DPCM_8       SF_FORMAT_DPCM_8
 #define AE_DPCM_16      SF_FORMAT_DPCM_16
 #define AE_VORBIS       SF_FORMAT_VORBIS
+#define AE_MPEG         SF_FORMAT_MPEG | SF_FORMAT_MPEG_LAYER_III
 
 #define AE_LAST   SF_FORMAT_DPCM_16     /* current last audio encoding value */
 
@@ -84,6 +93,7 @@
 #define TYP_CAF   (SF_FORMAT_CAF >> 16)
 #define TYP_WVE   (SF_FORMAT_WVE >> 16)
 #define TYP_OGG   (SF_FORMAT_OGG >> 16)
+#define TYP_MPEG  (SF_FORMAT_MPEG >> 16)
 #define TYP_MPC2K (SF_FORMAT_MPC2K >> 16)
 #define TYP_RF64  (SF_FORMAT_RF64 >> 16)
 
