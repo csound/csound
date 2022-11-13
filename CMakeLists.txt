@@ -190,6 +190,9 @@ option(BUILD_TESTS "Build tests" ON)
 option(LEXER_DEBUG "Build lexer with debug option" OFF)
 option(USE_GIT_COMMIT "Show the git commit in version information" ON)
 option(REQUIRE_PTHREADS "For non-Windows systems, set whether Csound will use threads or not" ON)
+option(BUILD_DOCS "Build documentation (requires doxygen)" OFF)
+
+
 
 # Include this after the install path definitions so we can override them here.
 # Also after function definitions so we can use them there
@@ -1437,6 +1440,7 @@ set (CPACK_PACKAGE_VERSION_PATCH "0")
 include (CPack)
 
 # Documentation
+if(BUILD_DOCS) 
 find_package(Doxygen)
 if(DOXYGEN_FOUND)
     configure_file(${CMAKE_CURRENT_SOURCE_DIR}/config.doxygen
@@ -1448,6 +1452,10 @@ if(DOXYGEN_FOUND)
  else()
    message(STATUS "Not building documentation")
 endif(DOXYGEN_FOUND)
+else()
+message(STATUS "Not building documentation")
+endif()
+
 
 # install CMake module
 install(FILES ${CMAKE_SOURCE_DIR}/cmake/Modules/FindCsound.cmake
