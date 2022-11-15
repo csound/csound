@@ -41,13 +41,30 @@ char* get_arg_string(CSOUND *csound, MYFLT p)
     }
     ss = ip->strarg;  /* look at this instr's strarg */
 
-    {
+    if (byte_order()==0) {
       union {
         MYFLT d;
-        int32 i, j;
+        int32 i[2];
+      } ch;
+      ch.d = p; n = ch.i[1]&0xffff;
+      printf("UNION %.8x %.8x\n", ch.i[0], ch.i[1]);
+    }
+    else {
+#ifdef USING_DOUBLE
+      union {
+        MYFLT d;
+        int32 i[2];
+      } ch;
+      ch.d = p; n = ch.i[1]&0xffff;
+      printf("UNION %.8x %.8x\n", ch.i[0], ch.i[1]);
+#else
+      union {
+        MYFLT d;
+        int32 i;
       } ch;
       ch.d = p; n = ch.i&0xffff;
-      printf("UNION %d %d\n", ch.i, ch.j);
+      printf("UNION %.8x\n", ch.i);
+#endif
       while (n-- > 0) {
         ss += strlen(ss)+1;
       }
@@ -110,19 +127,19 @@ static int scanflt(CSOUND *csound, MYFLT *pfld)
         if (byte_order()==0) { // little endian; double and float the same
           union {
             MYFLT d;
-            int32 i, j;
+            int32 i[2];
           } ch;
-          ch.d = SSTRCOD; ch.i += csound->scnt++;
+          ch.d = SSTRCOD; ch.i[1] += csound->scnt++;
           *pfld = ch.d;           /* set as string with count */
         }
         else {   // big endian; unknown layout
 #ifdef USING_DOUBLE
           union {
             MYFLT d;
-            int32 i, j;
+            int32 i[2];
           } ch;
           ch.d = SSTRCOD;
-          printf("**** %.8x %x.8\n", ch.i, ch.j);
+          printf("**** %.8x %x.8\n", ch.i[0], ch.i[1]);
           ch.j += csound->scnt++;
           *pfld = ch.d;           /* set as string with count */
 #else
