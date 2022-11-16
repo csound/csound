@@ -218,7 +218,7 @@ class ScriptProcessorNodeSingleThread {
       withPlugins = await fetchPlugins(withPlugins);
     }
 
-    if (!this.wasm) {
+    if (!this.wasm || !this.wasm.wasi) {
       const [wasm, wasi] = await loadWasm({
         wasmDataURI: wasmDataURI(),
         withPlugins,
@@ -226,7 +226,7 @@ class ScriptProcessorNodeSingleThread {
       });
       this.wasm = wasm;
       this.wasi = wasi;
-      wasm.wasi = wasi;
+      this.wasm.wasi = wasi;
     }
 
     // libcsound
