@@ -1257,7 +1257,7 @@ static int decode_long(CSOUND *csound, char *s, int argc, char **argv)
     }
      else if (!(strcmp(s, "vbr"))) {
   #ifdef SNDFILE_MP3    
-      O->mp3_mode = SF_BITRATE_MODE_VARIABLE;
+      csound->mp3_mode = SF_BITRATE_MODE_VARIABLE;
   #endif    
       return 1;
     }

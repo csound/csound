@@ -944,8 +944,7 @@ static const CSOUND cenviron_ = {
       0,             /*    fft_lib */
       0,             /* echo */
       0.0,           /* limiter */
-      DFLT_SR, DFLT_KR,  /* defaults */
-      0   /* MP3 MODE */
+      DFLT_SR, DFLT_KR  /* defaults */
     },
     {0, 0, {0}}, /* REMOT_BUF */
     NULL,           /* remoteGlobals        */
@@ -1020,7 +1019,8 @@ static const CSOUND cenviron_ = {
     NULL,           /* op */
     0,              /* mode */
     NULL,           /* opcodedir */
-    NULL           /* score_srt */
+    NULL,           /* score_srt */
+    0               /* mp3 mode */
 };
 
 void csound_aops_init_tables(CSOUND *cs);
