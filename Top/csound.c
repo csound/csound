@@ -944,7 +944,8 @@ static const CSOUND cenviron_ = {
       0,             /*    fft_lib */
       0,             /* echo */
       0.0,           /* limiter */
-      DFLT_SR, DFLT_KR  /* defaults */
+      DFLT_SR, DFLT_KR,  /* defaults */
+      0   /* MP3 MODE */
     },
     {0, 0, {0}}, /* REMOT_BUF */
     NULL,           /* remoteGlobals        */
