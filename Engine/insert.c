@@ -1300,14 +1300,14 @@ int subinstrset_(CSOUND *csound, SUBINST *p, int instno)
     return csoundInitError(csound, Str("subinstr: too many p-fields"));
   union {
     MYFLT d;
-    int32 i;
+    int32 i[2];
   } ch;
   int str_cnt = 0, len = 0;
   char *argstr;
   for (n = 1; (unsigned int) n < p->INOCOUNT; n++){
     if (IS_STR_ARG(p->ar[inarg_ofs + n])) {
       ch.d = SSTRCOD;
-      ch.i = str_cnt & 0xffff;
+      ch.i[1] += str_cnt & 0xffff;
       (pfield + n)->value = ch.d;
       argstr = ((STRINGDAT *)p->ar[inarg_ofs + n])->data;
       if (str_cnt == 0)
