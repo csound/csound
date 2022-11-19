@@ -29,6 +29,7 @@ import loadWasm from "../module";
 import { assoc, pipe } from "rambda/dist/rambda.esm.js";
 import { clearArray } from "../utils/clear-array";
 import { logSinglethreadWorkletWorker as log } from "../logger";
+import { renderFunction } from "./common.utils";
 
 let libraryCsound;
 let combined;
@@ -102,6 +103,7 @@ class WorkletSinglethreadWorker extends AudioWorkletProcessor {
       this.csound = libraryCsound.csoundCreate(0);
       this.result = 0;
       this.running = false;
+      this.isRendering = false;
       this.started = false;
       this.resetCsound(false);
 
@@ -183,7 +185,7 @@ class WorkletSinglethreadWorker extends AudioWorkletProcessor {
   }
 
   process(inputs, outputs) {
-    if (this.isPaused || !this.csoundOutputBuffer || !this.running) {
+    if (!this.isRendering && (this.isPaused || !this.csoundOutputBuffer || !this.running)) {
       const output = outputs[0];
       const bufferLength = output[0].length;
       for (let index = 0; index < bufferLength; index++) {
@@ -321,20 +323,43 @@ class WorkletSinglethreadWorker extends AudioWorkletProcessor {
 
       this.zerodBFS = libraryCsound.csoundGet0dBFS(cs);
 
-      this.csoundOutputBuffer = new Float64Array(
-        this.wasm.wasi.memory.buffer,
-        libraryCsound.csoundGetSpout(cs),
-        ksmps * this.nchnls,
-      );
-      this.csoundInputBuffer = new Float64Array(
-        this.wasm.wasi.memory.buffer,
-        libraryCsound.csoundGetSpin(cs),
-        ksmps * this.nchnls_i,
-      );
       returnValueValue = libraryCsound.csoundStart(cs);
-      log("csoundStart called with {} return val", returnValueValue)();
-      this.started = true;
-      this.needsStartNotification = true;
+
+      if (returnValueValue !== 0) {
+        return returnValueValue;
+      }
+
+      const outputName = libraryCsound.csoundGetOutputName(cs) || "test.wav";
+      const isExpectingRealtimeOutput = outputName.includes("dac");
+
+      if (isExpectingRealtimeOutput) {
+        this.csoundOutputBuffer = new Float64Array(
+          this.wasm.wasi.memory.buffer,
+          libraryCsound.csoundGetSpout(cs),
+          ksmps * this.nchnls,
+        );
+        this.csoundInputBuffer = new Float64Array(
+          this.wasm.wasi.memory.buffer,
+          libraryCsound.csoundGetSpin(cs),
+          ksmps * this.nchnls_i,
+        );
+
+        log("csoundStart called with {} return val", returnValueValue)();
+        this.started = true;
+        this.needsStartNotification = true;
+      } else {
+        const renderer = renderFunction({
+          libraryCsound,
+          workerMessagePort: this.workerMessagePort,
+          wasi: this.wasi,
+        });
+        this.isRendering = true;
+        this.workerMessagePort.broadcastPlayState("renderStarted");
+        renderer({ csound: cs }).then(() => {
+          this.isRendering = false;
+        });
+        return 0;
+      }
     } else {
       log("worklet was asked to start but it already has!")();
     }
