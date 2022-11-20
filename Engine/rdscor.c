@@ -128,13 +128,13 @@ static int scanflt(CSOUND *csound, MYFLT *pfld)
           int32 i[2];
         } ch;
         ch.d = SSTRCOD;
-        printf("**** %.8x %.8x\n", ch.i[0], ch.i[1]);
+        //printf("**** %.8x %.8x\n", ch.i[0], ch.i[1]);
         if (byte_order()== 0)
           ch.i[1] += csound->scnt++;
         else
           ch.i[0] += csound->scnt++;
         *pfld = ch.d;           /* set as string with count */
-        printf("***  %.8x %.8x\n", ch.i[0], ch.i[1]);
+        //printf("***  %.8x %.8x\n", ch.i[0], ch.i[1]);
       }
 #else
       {
@@ -143,7 +143,7 @@ static int scanflt(CSOUND *csound, MYFLT *pfld)
           int32 j;
         } ch;
         ch.d = SSTRCOD;
-        printf("****** %.8x\n", ch.j);
+        //printf("****** %.8x\n", ch.j);
         ch.j += csound->scnt++;
         *pfld = ch.d;           /* set as string with count */
       }
