@@ -120,6 +120,10 @@ class SingleThreadAudioWorkletMainThread {
         break;
       }
       case "renderStarted": {
+        if (this.eventPromises.isWaitingToStart()) {
+          log("Start promise resolved")();
+          this.eventPromises.releaseStartPromise();
+        }
         this.publicEvents.triggerRenderStarted(this);
         break;
       }
