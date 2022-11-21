@@ -8,6 +8,7 @@ on:
   push:
     branches:
       - master
+      - develop 
   pull_request:
     branches:
       - develop
