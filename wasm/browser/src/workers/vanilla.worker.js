@@ -4,7 +4,7 @@ import MessagePortState from "../utils/message-port-state";
 // import { initFS, getWorkerFs, syncWorkerFs } from "../filesystem/worker-fs";
 import { logVANWorker as log } from "../logger";
 import { RING_BUFFER_SIZE } from "../constants.js";
-import { handleCsoundStart, instantiateAudioPacket } from "./common.utils";
+import { handleCsoundStart, instantiateAudioPacket, renderFunction } from "./common.utils";
 import libcsoundFactory from "../libcsound";
 import loadWasm from "../module";
 import { clearArray } from "../utils/clear-array";
@@ -225,25 +225,6 @@ const initRtMidiEventPort = ({ rtmidiPort }) => {
   rtmidiPort.start();
   return rtmidiPort;
 };
-
-const renderFunction =
-  ({ libraryCsound, workerMessagePort, wasi }) =>
-  async ({ csound }) => {
-    const ksmps = libraryCsound.csoundGetKsmps(csound);
-    let lastResult = 0;
-    let cnt = 0;
-
-    while (workerMessagePort.vanillaWorkerState === "renderStarted" && lastResult === 0) {
-      lastResult = libraryCsound.csoundPerformKsmps(csound);
-      cnt += 1;
-
-      if (lastResult === 0 && cnt % ksmps === 0) {
-        // this is immediately executed, but allows events to be picked up
-        await new Promise((resolve) => setTimeout(resolve, 0));
-      }
-    }
-    workerMessagePort.broadcastPlayState("renderEnded");
-  };
 
 const initialize = async ({
   audioInputPort,
