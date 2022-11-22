@@ -273,6 +273,7 @@ typedef struct CORFIL {
     int     echo;
     MYFLT   limiter;
     float   sr_default, kr_default;
+    int     mp3_mode;
   } OPARMS;
 
   typedef struct arglst {
@@ -1849,7 +1850,6 @@ typedef struct _message_queue_t_ {
     int  mode;
     char *opcodedir;
     char *score_srt;
-    int mp3_mode;
     /*struct CSOUND_ **self;*/
     /**@}*/
 #endif  /* __BUILDING_LIBCSOUND */

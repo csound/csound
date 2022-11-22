@@ -1030,8 +1030,7 @@ static const CSOUND cenviron_ = {
     NULL,           /* op */
     0,              /* mode */
     NULL,           /* opcodedir */
-    NULL,           /* score_srt */
-    0               /* mp3 mode */
+    NULL           /* score_srt */
 };
 
 void csound_aops_init_tables(CSOUND *cs);
