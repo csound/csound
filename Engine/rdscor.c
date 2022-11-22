@@ -67,6 +67,7 @@ char* get_arg_string(CSOUND *csound, MYFLT p)
     while (n-- > 0) {
       ss += strlen(ss)+1;
     }
+    printf("*** -> %s\n", ss);
     return ss;
 }
 
