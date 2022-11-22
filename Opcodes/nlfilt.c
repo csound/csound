@@ -219,7 +219,7 @@ static int32_t nlfilt2(CSOUND *csound, NLFILT *p)
     return csound->PerfError(csound, &(p->h),
                              Str("nlfilt2: not initialised"));
 } /* end nlfilt2(p) */
-
+  
 /* ***************************************************************** */
 /* ***************************************************************** */
 /* ***************************************************************** */
@@ -274,6 +274,7 @@ int32_t pinit(CSOUND *csound, PINIT *p)
       csound->Warning(csound, Str("More arguments than p fields"));
     pargs -= (int)*p->end;
     for (n=0; (n<nargs) && (n<=pargs-start); n++) {
+      printf("*** p%d %p\n", n+start, &(csound->init_event->p[n+start]));
       if (csound->ISSTRCOD(csound->init_event->p[n+start])) {
         ((STRINGDAT *)p->inits[n])->data =
           cs_strdup(csound, get_arg_string(csound, csound->init_event->p[n+start]));

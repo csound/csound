@@ -11,6 +11,8 @@ print iv3
 print iv4
 puts S5, 1
 puts S6, 1
+puts S5, 1
+puts S6, 1
 endin
 </CsInstruments>
 

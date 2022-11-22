@@ -134,7 +134,7 @@ static int scanflt(CSOUND *csound, MYFLT *pfld)
         else
           ch.i[0] += csound->scnt++;
         *pfld = ch.d;           /* set as string with count */
-        //printf("***  %.8x %.8x\n", ch.i[0], ch.i[1]);
+        printf("***  %.8x %.8x\n", ch.i[0], ch.i[1]);
       }
 #else
       {
