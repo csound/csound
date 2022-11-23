@@ -234,6 +234,11 @@ class SingleThreadAudioWorkletMainThread {
         case "csoundStart": {
           const csoundStart = async function () {
             this.eventPromises.createStartPromise();
+            const isRequestingInput = await this.workletProxy.isRequestingInput();
+            if (isRequestingInput) {
+              this.exportApi.enableAudioInput();
+            }
+
             const startResult = await proxyCallback({ csound: csoundInstance });
             const isRequestingMidi = await this.exportApi._isRequestingRtMidiInput(csoundInstance);
             if (isRequestingMidi) {
