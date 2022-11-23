@@ -26,7 +26,7 @@ import * as Comlink from "comlink/dist/esm/comlink.mjs";
 import MessagePortState from "../utils/message-port-state";
 import libcsoundFactory from "../libcsound";
 import loadWasm from "../module";
-import { assoc, pipe } from "rambda/dist/rambda.esm.js";
+import { assoc, pipe } from "rambda";
 import { clearArray } from "../utils/clear-array";
 import { logSinglethreadWorkletWorker as log } from "../logger";
 import { renderFunction } from "./common.utils";

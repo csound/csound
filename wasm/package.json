@@ -1,39 +1,23 @@
 {
-  "name": "@csound/wasm-bin",
-  "version": "7.0.0-alpha1",
-  "description": "A package containing csound wasm binaries which can be bundled into other csound packages 📂",
-  "main": "./lib/csound.wasm",
-  "files": ["src", "lib"],
-  "license": "LGPL-2.1",
-  "bugs": {
-    "url": "https://github.com/csound/csound/issues"
-  },
-  "homepage": "https://github.com/csound/csound/tree/master/wasm",
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/csound/csound"
-  },
-  "publishConfig": {
-    "access": "public"
-  },
-  "scripts": {
-    "build": "bash ./scripts/compile.sh",
-    "build:release": "bash ./scripts/compile.release.sh",
-    "build:nix": "nix-build -E '(with import <nixpkgs> {}; import ./src/csound.nix)' -o result",
-    "build:nix:plugin": "nix-build -E '(with import <nixpkgs> {}; pkgs.callPackage ./src/plugin_example.nix {})' -o result",
-    "build:docker": "docker build -t csound-wasm -f ./Dockerfile ."
-  },
-  "keywords": [
-    "@csound",
-    "audio",
-    "audioworklet",
-    "audiocontext",
-    "webmidi",
-    "csound",
-    "csound-wasm",
-    "wasi",
-    "wasm",
-    "webassembly",
-    "webaudio"
-  ]
+    "name": "csound-turbo-monrepo",
+    "version": "0.0.0",
+    "private": true,
+    "workspaces": [
+        "apps/*",
+        "packages/*"
+    ],
+    "scripts": {
+        "build": "turbo run build",
+        "lint": "turbo run lint",
+        "test": "turbo run test",
+        "clean": "turbo run clean"
+    },
+    "devDependencies": {
+        "turbo": "^1.6.3"
+    },
+    "engines": {
+        "npm": ">=7.0.0",
+        "node": ">=16.0.0"
+    },
+    "packageManager": "yarn@1.22.17"
 }

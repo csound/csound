@@ -86,7 +86,7 @@ let
   libmpg123 = pkgs.callPackage ./libmpg123.nix { inherit static; };
 
   csoundSrc = builtins.path {
-    path = ./. + "../../../";
+    path = ./. + "../../../../../";
     filter = path: type:
       ((builtins.match ".*/Engine.*" path != null ||
         builtins.match ".*/H.*" path != null ||

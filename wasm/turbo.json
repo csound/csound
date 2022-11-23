@@ -1,0 +1,32 @@
+{
+    "pipeline": {
+        "build": {
+            "dependsOn": ["^build"],
+            "outputs": ["dist/**", "lib/**", "build/**"]
+        },
+        "clean": {},
+        "dev": {
+            "cache": false,
+            "dependsOn": [
+                "@yaodigital/riffit-song-server#build",
+                "@yaodigital/riffit-video-song-renderer#build"
+            ]
+        },
+        "lint": {
+            "outputs": []
+        },
+        "package": {
+            "dependsOn": ["^build"]
+        },
+        "serve": {},
+        "start-test-composer": {},
+        "start-studio": {},
+        "start:pubsub": {},
+        "storybook": {
+            "dependsOn": ["^build"]
+        },
+        "test": {
+            "dependsOn": ["build", "RIFFIT#package"]
+        }
+    }
+}
