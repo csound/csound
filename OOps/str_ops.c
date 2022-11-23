@@ -592,7 +592,6 @@ int32_t printf_opcode_perf(CSOUND *csound, PRINTF_OP *p)
 
 int32_t puts_opcode_init(CSOUND *csound, PUTS_OP *p)
 {
-    printf("*** puts_opcode-int %s\n", p->str->data);
     if (*p->ktrig > FL(0.0)) {
         if (!p->noNewLine)
           csound->MessageS(csound, CSOUNDMSG_ORCH, "%s\n", (char*) p->str->data);

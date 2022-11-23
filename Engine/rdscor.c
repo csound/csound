@@ -52,7 +52,7 @@ char* get_arg_string(CSOUND *csound, MYFLT p)
         n = ch.i[1]&0xffff;
       else
         n = ch.i[0]&0xffff;
-      printf("UNION %.8x %.8x\n", ch.i[0], ch.i[1]);
+      //printf("UNION %.8x %.8x\n", ch.i[0], ch.i[1]);
     }
 #else
     {
@@ -61,13 +61,13 @@ char* get_arg_string(CSOUND *csound, MYFLT p)
         int32 j;
       } ch;
       ch.d = p; n = ch.j&0xffff;
-      printf("SUNION %.8x \n", ch.j);
+      //printf("SUNION %.8x \n", ch.j);
     }
 #endif
     while (n-- > 0) {
       ss += strlen(ss)+1;
     }
-    printf("*** -> %s\n", ss);
+    //printf("*** -> %s\n", ss);
     return ss;
 }
 
@@ -124,18 +124,16 @@ static int scanflt(CSOUND *csound, MYFLT *pfld)
       *sstrp++ = '\0';
 #ifdef USE_DOUBLE
       {
+        int sel = (byte_order()+1)&1;
         union {
           MYFLT d;
           int32 i[2];
         } ch;
         ch.d = SSTRCOD;
         //printf("**** %.8x %.8x\n", ch.i[0], ch.i[1]);
-        if (byte_order()== 0)
-          ch.i[1] += csound->scnt++;
-        else
-          ch.i[0] += csound->scnt++;
+        ch.i[sel] += csound->scnt++;
         *pfld = ch.d;           /* set as string with count */
-        printf("***  %.8x %.8x\n", ch.i[0], ch.i[1]);
+        //printf("***  %.8x %.8x\n", ch.i[0], ch.i[1]);
       }
 #else
       {
