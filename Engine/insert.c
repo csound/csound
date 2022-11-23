@@ -1290,43 +1290,16 @@ int subinstrset_(CSOUND *csound, SUBINST *p, int instno)
   if (UNLIKELY(p->INOCOUNT >
                (unsigned int)(csound->engineState.instrtxtp[instno]->pmax + 1)))
     return csoundInitError(csound, Str("subinstr: too many p-fields"));
-#ifdef USE_DOUBLE
   union {
     MYFLT d;
-    int32 i[2];
-  } ch;
-  int sel = byte_order()==0? 1 :0;
-  int str_cnt = 0, len = 0;
-  char *argstr;
-  for (n = 1; (unsigned int) n < p->INOCOUNT; n++){
-    if (IS_STR_ARG(p->ar[inarg_ofs + n])) {
-      ch.d = SSTRCOD;
-      ch.i[sel] += str_cnt & 0xffff;
-      (pfield + n)->value = ch.d;
-      argstr = ((STRINGDAT *)p->ar[inarg_ofs + n])->data;
-      if (str_cnt == 0)
-        p->ip->strarg = csound->Calloc(csound, strlen(argstr)+1);
-      else
-        p->ip->strarg = csound->ReAlloc(csound, p->ip->strarg,
-                                        len+strlen(argstr)+1);
-      strcpy(p->ip->strarg + len, argstr);
-      len += strlen(argstr)+1;
-      str_cnt++;
-    }
-
-    else (pfield + n)->value = *p->ar[inarg_ofs + n];
-  }
-  #else
-  union {
-    MYFLT d;
-    int32 j;
+    int32 i;
   } ch;
   int str_cnt = 0, len = 0;
   char *argstr;
   for (n = 1; (unsigned int) n < p->INOCOUNT; n++){
     if (IS_STR_ARG(p->ar[inarg_ofs + n])) {
       ch.d = SSTRCOD;
-      ch.j += str_cnt & 0xffff;
+      ch.i = str_cnt & 0xffff;
       (pfield + n)->value = ch.d;
       argstr = ((STRINGDAT *)p->ar[inarg_ofs + n])->data;
       if (str_cnt == 0)
@@ -1340,7 +1313,6 @@ int subinstrset_(CSOUND *csound, SUBINST *p, int instno)
     }
     else (pfield + n)->value = *p->ar[inarg_ofs + n];
   }
-#endif
   /* allocate memory for a temporary store of spout buffers */
   if (!init_op && !(pip->reinitflag | pip->tieflag))
     csoundAuxAlloc(csound,

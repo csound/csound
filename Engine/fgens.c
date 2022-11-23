@@ -35,29 +35,23 @@
 #include <stdlib.h>
 /* #undef ISSTRCOD */
 
-static inline int32_t byte_order(void)
-{
-    const int32_t one = 1;
-    return (!*((char*) &one));
-}
 
 int isstrcod(MYFLT xx)
 {
-    int sel = (byte_order()+1)&1;
 #ifdef USE_DOUBLE
     union {
       double d;
       int32_t i[2];
     } z;
     z.d = xx;
-    return ((z.i[sel]&0x7ff00000)==0x7ff00000);
+    return ((z.i[1]&0x7ff00000)==0x7ff00000);
 #else
     union {
       float f;
-      int32_t j;
+      int32_t i;
     } z;
     z.f = xx;
-    return ((z.j&0x7f800000) == 0x7f800000);
+    return ((z.i&0x7f800000) == 0x7f800000);
 #endif
 }
 
@@ -2731,8 +2725,8 @@ static int gen01raw(FGDATA *ff, FUNC *ftp)
     ftp->gen01args.sample_rate = (MYFLT) p->sr;
     ftp->cvtbas = LOFACT * p->sr * csound->onedsr;
     {
-      SFLIB_INSTRUMENT lpd;
-      int ans = sflib_command(fd, SFC_GET_INSTRUMENT, &lpd, sizeof(SFLIB_INSTRUMENT));
+      SF_INSTRUMENT lpd;
+      int ans = sf_command(fd, SFC_GET_INSTRUMENT, &lpd, sizeof(SF_INSTRUMENT));
       if (ans) {
         double natcps;
 #ifdef BETA

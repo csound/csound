@@ -25,12 +25,6 @@
 #include "corfile.h"
 #include "insert.h"
 
-static inline int32_t byte_order(void)
-{
-    const int32_t one = 1;
-    return (!*((char*) &one));
-}
-
 char* get_arg_string(CSOUND *csound, MYFLT p)
 {
     int32 n;
@@ -41,33 +35,16 @@ char* get_arg_string(CSOUND *csound, MYFLT p)
     }
     ss = ip->strarg;  /* look at this instr's strarg */
 
-#ifdef USE_DOUBLE
     {
       union {
         MYFLT d;
-        int32 i[2];
+        int32 i;
       } ch;
-      ch.d = p;
-      if (byte_order()==0)
-        n = ch.i[1]&0xffff;
-      else
-        n = ch.i[0]&0xffff;
-      //printf("UNION %.8x %.8x\n", ch.i[0], ch.i[1]);
-    }
-#else
-    {
-      union {
-        MYFLT d;
-        int32 j;
-      } ch;
-      ch.d = p; n = ch.j&0xffff;
-      //printf("SUNION %.8x \n", ch.j);
-    }
-#endif
+      ch.d = p; n = ch.i&0xffff;
       while (n-- > 0) {
         ss += strlen(ss)+1;
       }
-    //printf("*** -> %s\n", ss);
+    }
     return ss;
 }
 
@@ -122,31 +99,14 @@ static int scanflt(CSOUND *csound, MYFLT *pfld)
         }
       }
       *sstrp++ = '\0';
-#ifdef USE_DOUBLE
-      {
-        int sel = (byte_order()+1)&1;
-        union {
-          MYFLT d;
-          int32 i[2];
-        } ch;
-        ch.d = SSTRCOD;
-        //printf("**** %.8x %.8x\n", ch.i[0], ch.i[1]);
-        ch.i[sel] += csound->scnt++;
-        *pfld = ch.d;           /* set as string with count */
-        //printf("***  %.8x %.8x\n", ch.i[0], ch.i[1]);
-      }
-#else
       {
         union {
           MYFLT d;
-          int32 j;
+          int32 i;
         } ch;
-        ch.d = SSTRCOD;
-        //printf("****** %.8x\n", ch.j);
-        ch.j += csound->scnt++;
+        ch.d = SSTRCOD; ch.i += csound->scnt++;
         *pfld = ch.d;           /* set as string with count */
       }
-#endif
       csound->sstrlen = sstrp - csound->sstrbuf;  /*    & overall length  */
       //printf("csound->sstrlen = %d\n", csound->sstrlen);
       return(1);
