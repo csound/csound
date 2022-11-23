@@ -9,10 +9,13 @@ import SingleThreadAudioWorkletMainThread from "./mains/worklet.singlethread.mai
 import { logIndex as log } from "./logger";
 import {
   areWorkletsSupported,
+  isSafari,
   isSabSupported,
   isScriptProcessorNodeSupported,
   WebkitAudioContext,
 } from "./utils";
+
+unmuteIosAudio();
 
 const wasmDataURI = goog.require("binary.wasm");
 
@@ -33,8 +36,6 @@ const Csound = async function ({
   useSAB = true,
   useSPN = false,
 } = {}) {
-  unmuteIosAudio();
-
   const audioContextIsProvided =
     audioContext && WebkitAudioContext() && audioContext instanceof WebkitAudioContext();
 
@@ -42,6 +43,11 @@ const Csound = async function ({
     // default to creating an audio context for SingleThread
     audioContext = audioContext || new (WebkitAudioContext())({ latencyHint: "interactive" });
   }
+
+  if (isSafari()) {
+    audioContext.resume();
+  }
+
   const workletSupport = areWorkletsSupported();
   const spnSupport = isScriptProcessorNodeSupported();
 

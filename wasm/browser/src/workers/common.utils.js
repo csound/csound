@@ -53,3 +53,26 @@ export const instantiateAudioPacket = (numberChannels, numberFrames) => {
   }
   return channels;
 };
+
+export const renderFunction =
+  ({ libraryCsound, workerMessagePort, wasi }) =>
+  async ({ csound }) => {
+    const kr = libraryCsound.csoundGetKr(csound);
+    let lastResult = 0;
+    let cnt = 0;
+
+    while (
+      (workerMessagePort.vanillaWorkerState === "renderStarted" ||
+        workerMessagePort.workerState === "renderStarted") &&
+      lastResult === 0
+    ) {
+      lastResult = libraryCsound.csoundPerformKsmps(csound);
+      cnt += 1;
+
+      if (typeof setTimeout === "function" && lastResult === 0 && cnt % kr === 0) {
+        // this is immediately executed, but allows events to be picked up
+        await new Promise((resolve) => setTimeout(resolve, 0));
+      }
+    }
+    workerMessagePort.broadcastPlayState("renderEnded");
+  };

@@ -841,9 +841,9 @@ void sfopenout(CSOUND *csound)                  /* init for sound out       */
  #ifdef SNDFILE_MP3
     // VL: setting bitrate to constant improves quality
     if(O->filetyp == TYP_MPEG) {
-      csound->Message(csound, "Setting MP3 bitrate to %s\n", O->mp3_mode ? "variable" : "constant" );;
+      csound->Message(csound, "Setting MP3 bitrate to %s\n", csound->mp3_mode ? "variable" : "constant" );;
       sf_command(STA(outfile), SFC_SET_BITRATE_MODE,
-                 &(O->mp3_mode), sizeof(int));
+                 &(csound->mp3_mode), sizeof(int));
     }
  #endif
     

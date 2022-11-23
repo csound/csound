@@ -120,6 +120,10 @@ class SingleThreadAudioWorkletMainThread {
         break;
       }
       case "renderStarted": {
+        if (this.eventPromises.isWaitingToStart()) {
+          log("Start promise resolved")();
+          this.eventPromises.releaseStartPromise();
+        }
         this.publicEvents.triggerRenderStarted(this);
         break;
       }
@@ -230,8 +234,14 @@ class SingleThreadAudioWorkletMainThread {
         case "csoundStart": {
           const csoundStart = async function () {
             this.eventPromises.createStartPromise();
+            const isRequestingInput = await this.workletProxy.isRequestingInput();
+            if (isRequestingInput) {
+              this.exportApi.enableAudioInput();
+            }
+
             const startResult = await proxyCallback({ csound: csoundInstance });
-            if (await this.exportApi._isRequestingRtMidiInput(csoundInstance)) {
+            const isRequestingMidi = await this.exportApi._isRequestingRtMidiInput(csoundInstance);
+            if (isRequestingMidi) {
               requestMidi({
                 onMidiMessage: this.handleMidiInput.bind(this),
               });
