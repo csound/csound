@@ -58,7 +58,6 @@ export const renderFunction =
   ({ libraryCsound, workerMessagePort, wasi }) =>
   async ({ csound }) => {
     const kr = libraryCsound.csoundGetKr(csound);
-    const ksmps = libraryCsound.csoundGetKsmps(csound);
     let lastResult = 0;
     let cnt = 0;
 
