@@ -310,6 +310,12 @@ class WorkletSinglethreadWorker extends AudioWorkletProcessor {
     return true;
   }
 
+  async isRequestingInput() {
+    const cs = this.csound;
+    const inputName = libraryCsound.csoundGetInputName(cs) || "";
+    return inputName.includes("adc");
+  }
+
   async start() {
     let returnValueValue = -1;
     if (!this.started) {

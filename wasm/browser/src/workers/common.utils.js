@@ -57,6 +57,7 @@ export const instantiateAudioPacket = (numberChannels, numberFrames) => {
 export const renderFunction =
   ({ libraryCsound, workerMessagePort, wasi }) =>
   async ({ csound }) => {
+    const kr = libraryCsound.csoundGetKr(csound);
     const ksmps = libraryCsound.csoundGetKsmps(csound);
     let lastResult = 0;
     let cnt = 0;
@@ -69,7 +70,7 @@ export const renderFunction =
       lastResult = libraryCsound.csoundPerformKsmps(csound);
       cnt += 1;
 
-      if (typeof setTimeout === "function" && lastResult === 0 && cnt % ksmps === 0) {
+      if (typeof setTimeout === "function" && lastResult === 0 && cnt % kr === 0) {
         // this is immediately executed, but allows events to be picked up
         await new Promise((resolve) => setTimeout(resolve, 0));
       }
