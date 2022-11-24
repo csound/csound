@@ -87,7 +87,7 @@ class ScriptProcessorNodeSingleThread {
   }
 
   async onPlayStateChange(newPlayState) {
-    if (this.currentPlayState === newPlayState) {
+    if (!this.publicEvents || this.currentPlayState === newPlayState) {
       return;
     }
     this.currentPlayState = newPlayState;
@@ -167,10 +167,11 @@ class ScriptProcessorNodeSingleThread {
       return;
     }
 
-    if (this.currentPlayState !== "realtimePerformanceStarted") {
+    const outputName = this.csoundApi.csoundGetOutputName(this.csoundInstance) || "test.wav";
+    const isExpectingRealtimeOutput = outputName.includes("dac");
+
+    if (isExpectingRealtimeOutput && this.currentPlayState !== "realtimePerformanceStarted") {
       this.result = 0;
-      this.csoundApi.csoundSetOption(this.csoundInstance, "-odac");
-      this.csoundApi.csoundSetOption(this.csoundInstance, "-iadc");
       this.csoundApi.csoundSetOption(this.csoundInstance, "--sample-rate=" + this.sampleRate);
       this.nchnls = -1;
       this.nchnls_i = -1;
@@ -209,6 +210,26 @@ class ScriptProcessorNodeSingleThread {
       }
       this.running = true;
       await this.eventPromises.waitForStart();
+      return startResult;
+    } else if (!isExpectingRealtimeOutput && this.currentPlayState !== "renderStarted") {
+      const startResult = this.csoundApi.csoundStart(this.csoundInstance);
+      this.onPlayStateChange("renderStarted");
+
+      const csoundApi = this.csoundApi;
+      const onPlayStateChange = this.onPlayStateChange;
+      const that = this;
+
+      setTimeout(() => {
+        let lastResult = 0;
+        try {
+          while (lastResult === 0) {
+            lastResult = csoundApi.csoundPerformKsmps(that.csoundInstance);
+          }
+        } catch {}
+
+        onPlayStateChange("renderEnded");
+      }, 0);
+
       return startResult;
     }
   }
@@ -302,11 +323,6 @@ class ScriptProcessorNodeSingleThread {
       libraryCsound.csoundReset(cs);
     }
 
-    // FIXME:
-    // libraryCsound.csoundSetMidiCallbacks(cs);
-
-    libraryCsound.csoundSetOption(cs, "-odac");
-    libraryCsound.csoundSetOption(cs, "-iadc");
     libraryCsound.csoundSetOption(cs, "--sample-rate=" + this.sampleRate);
     this.nchnls = -1;
     this.nchnls_i = -1;
@@ -315,6 +331,9 @@ class ScriptProcessorNodeSingleThread {
   }
 
   onaudioprocess(event) {
+    if (!this.csoundApi || ["renderStarted", "renderEnded"].includes(this.currentPlayState)) {
+      return;
+    }
     if (this.csoundOutputBuffer === null || this.running === false) {
       const output = event.outputBuffer;
       const channelData = output.getChannelData(0);
