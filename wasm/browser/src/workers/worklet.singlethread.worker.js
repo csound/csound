@@ -310,6 +310,12 @@ class WorkletSinglethreadWorker extends AudioWorkletProcessor {
     return inputName.includes("adc");
   }
 
+  async isRequestingRealtimeOutput() {
+    const cs = this.csound;
+    const inputName = libraryCsound.csoundGetInputName(cs) || "";
+    return inputName.includes("adc");
+  }
+
   async start() {
     let returnValueValue = -1;
     if (!this.started) {
@@ -329,8 +335,7 @@ class WorkletSinglethreadWorker extends AudioWorkletProcessor {
         return returnValueValue;
       }
 
-      const outputName = libraryCsound.csoundGetOutputName(cs) || "test.wav";
-      const isExpectingRealtimeOutput = outputName.includes("dac");
+      const isExpectingRealtimeOutput = this.isRequestingRealtimeOutput();
 
       if (isExpectingRealtimeOutput) {
         this.csoundOutputBuffer = new Float64Array(
@@ -343,22 +348,26 @@ class WorkletSinglethreadWorker extends AudioWorkletProcessor {
           libraryCsound.csoundGetSpin(cs),
           ksmps * this.nchnls_i,
         );
-
         log("csoundStart called with {} return val", returnValueValue)();
         this.started = true;
         this.needsStartNotification = true;
       } else {
-        const renderer = renderFunction({
+        this.workerMessagePort.broadcastPlayState("renderStarted");
+        this.isRendering = true;
+        renderFunction({
           libraryCsound,
           workerMessagePort: this.workerMessagePort,
           wasi: this.wasi,
-        });
-        this.isRendering = true;
-        this.workerMessagePort.broadcastPlayState("renderStarted");
-        renderer({ csound: cs }).then(() => {
-          this.workerMessagePort.broadcastPlayState("renderEnded");
-          this.isRendering = false;
-        });
+        })({ csound: cs })
+          .then(() => {
+            this.workerMessagePort.broadcastPlayState("renderEnded");
+            this.isRendering = false;
+          })
+          .catch(() => {
+            this.workerMessagePort.broadcastPlayState("renderEnded");
+            this.isRendering = false;
+          });
+
         return 0;
       }
     } else {
