@@ -444,7 +444,7 @@ TREE * csound_orc_optimize(CSOUND *csound, TREE *root)
       last = root;
       root = root->next;
     }
-    //    return original;
-    return remove_excess_assigns(csound,original);
+    return original;
+    // return remove_excess_assigns(csound,original);
 }
 
