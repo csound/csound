@@ -87,7 +87,7 @@ class ScriptProcessorNodeSingleThread {
   }
 
   async onPlayStateChange(newPlayState) {
-    if (this.currentPlayState === newPlayState) {
+    if (!this.publicEvents || this.currentPlayState === newPlayState) {
       return;
     }
     this.currentPlayState = newPlayState;
@@ -211,14 +211,26 @@ class ScriptProcessorNodeSingleThread {
       this.running = true;
       await this.eventPromises.waitForStart();
       return startResult;
-    } else if (!isExpectingRealtimeOutput) {
+    } else if (!isExpectingRealtimeOutput && this.currentPlayState !== "renderStarted") {
+      const startResult = this.csoundApi.csoundStart(this.csoundInstance);
       this.onPlayStateChange("renderStarted");
 
-      let lastResult = 0;
-      while (lastResult === 0) {
-        lastResult = this.csoundApi.csoundPerformKsmps(this.csoundInstance);
-      }
-      this.onPlayStateChange("renderEnded");
+      const csoundApi = this.csoundApi;
+      const onPlayStateChange = this.onPlayStateChange;
+      const that = this;
+
+      setTimeout(() => {
+        let lastResult = 0;
+        try {
+          while (lastResult === 0) {
+            lastResult = csoundApi.csoundPerformKsmps(that.csoundInstance);
+          }
+        } catch {}
+
+        onPlayStateChange("renderEnded");
+      }, 0);
+
+      return startResult;
     }
   }
 
@@ -319,6 +331,9 @@ class ScriptProcessorNodeSingleThread {
   }
 
   onaudioprocess(event) {
+    if (!this.csoundApi || ["renderStarted", "renderEnded"].includes(this.currentPlayState)) {
+      return;
+    }
     if (this.csoundOutputBuffer === null || this.running === false) {
       const output = event.outputBuffer;
       const channelData = output.getChannelData(0);
