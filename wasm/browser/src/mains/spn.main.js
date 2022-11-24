@@ -167,10 +167,11 @@ class ScriptProcessorNodeSingleThread {
       return;
     }
 
-    if (this.currentPlayState !== "realtimePerformanceStarted") {
+    const outputName = this.csoundApi.csoundGetOutputName(this.csoundInstance) || "test.wav";
+    const isExpectingRealtimeOutput = outputName.includes("dac");
+
+    if (isExpectingRealtimeOutput && this.currentPlayState !== "realtimePerformanceStarted") {
       this.result = 0;
-      this.csoundApi.csoundSetOption(this.csoundInstance, "-odac");
-      this.csoundApi.csoundSetOption(this.csoundInstance, "-iadc");
       this.csoundApi.csoundSetOption(this.csoundInstance, "--sample-rate=" + this.sampleRate);
       this.nchnls = -1;
       this.nchnls_i = -1;
@@ -210,6 +211,14 @@ class ScriptProcessorNodeSingleThread {
       this.running = true;
       await this.eventPromises.waitForStart();
       return startResult;
+    } else if (!isExpectingRealtimeOutput) {
+      this.onPlayStateChange("renderStarted");
+
+      let lastResult = 0;
+      while (lastResult === 0) {
+        lastResult = this.csoundApi.csoundPerformKsmps(this.csoundInstance);
+      }
+      this.onPlayStateChange("renderEnded");
     }
   }
 
@@ -302,11 +311,6 @@ class ScriptProcessorNodeSingleThread {
       libraryCsound.csoundReset(cs);
     }
 
-    // FIXME:
-    // libraryCsound.csoundSetMidiCallbacks(cs);
-
-    libraryCsound.csoundSetOption(cs, "-odac");
-    libraryCsound.csoundSetOption(cs, "-iadc");
     libraryCsound.csoundSetOption(cs, "--sample-rate=" + this.sampleRate);
     this.nchnls = -1;
     this.nchnls_i = -1;

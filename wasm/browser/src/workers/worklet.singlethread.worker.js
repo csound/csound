@@ -155,8 +155,6 @@ class WorkletSinglethreadWorker extends AudioWorkletProcessor {
     }
 
     libraryCsound.csoundSetMidiCallbacks(cs);
-    libraryCsound.csoundSetOption(cs, "-iadc");
-    libraryCsound.csoundSetOption(cs, "-odac");
     this.sampleRate && libraryCsound.csoundSetOption(cs, "--sample-rate=" + this.sampleRate);
     this.nchnls = -1;
     this.nchnls_i = -1;
@@ -237,10 +235,6 @@ class WorkletSinglethreadWorker extends AudioWorkletProcessor {
           this.started = false;
           libraryCsound.csoundCleanup(this.csound);
           this.workerMessagePort.broadcastPlayState("realtimePerformanceEnded");
-          // if (this.stopPromiz) {
-          //   this.stopPromiz();
-          //   delete this.stopPromiz;
-          // }
         }
       }
 
@@ -362,6 +356,7 @@ class WorkletSinglethreadWorker extends AudioWorkletProcessor {
         this.isRendering = true;
         this.workerMessagePort.broadcastPlayState("renderStarted");
         renderer({ csound: cs }).then(() => {
+          this.workerMessagePort.broadcastPlayState("renderEnded");
           this.isRendering = false;
         });
         return 0;
