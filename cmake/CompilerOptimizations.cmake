@@ -35,10 +35,10 @@ endif()
 
 check_c_compiler_flag(-msse2 HAS_SSE2)
 check_cxx_compiler_flag(-msse2 HAS_CXX_SSE2)
-  if (HAS_SSE2 AND NOT IOS AND NOT WASM)
+if (HAS_SSE2 AND NOT IOS AND NOT WASM AND NOT APPLE)
     set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -msse2")
 endif()
-if (HAS_CXX_SSE2 AND NOT IOS AND NOT WASM)
+if (HAS_CXX_SSE2 AND NOT IOS AND NOT WASM AND NOT APPLE)
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -msse2")
 endif()
 
