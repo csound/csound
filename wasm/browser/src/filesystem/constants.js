@@ -30,8 +30,8 @@ if (goog.global !== undefined) {
   goog.global = {};
 }
 
-if (goog.global.BigInt !== undefined) {
-  goog.global.BigInt = BigInt ?? Number;
+if (!goog.global.BigInt) {
+  goog.global.BigInt = BigInt === undefined ? Number : BigInt;
 }
 
 export const WASI_ESUCCESS = 0;
