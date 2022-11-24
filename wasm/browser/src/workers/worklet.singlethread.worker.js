@@ -269,8 +269,7 @@ class WorkletSinglethreadWorker extends AudioWorkletProcessor {
       // handle 1->1, 1->2, 2->1, 2->2 output channel count mixing and nchnls
       if (this.nchnls === output.length) {
         for (const [channel, outputChannel] of output.entries()) {
-          if (result === 0) outputChannel[index] = csOut[cnt * nchnls + channel] / zerodBFS;
-          else outputChannel[index] = 0;
+          outputChannel[index] = result === 0 ? csOut[cnt * nchnls + channel] / zerodBFS : 0;
         }
       } else if (this.nchnls === 2 && output.length === 1) {
         const outputChannel = output[0];
@@ -318,7 +317,9 @@ class WorkletSinglethreadWorker extends AudioWorkletProcessor {
 
   async start() {
     let returnValueValue = -1;
-    if (!this.started) {
+    if (this.started) {
+      log("worklet was asked to start but it already has!")();
+    } else {
       log("worklet thread is starting..")();
       const cs = this.csound;
       const ksmps = libraryCsound.csoundGetKsmps(cs);
@@ -370,8 +371,6 @@ class WorkletSinglethreadWorker extends AudioWorkletProcessor {
 
         return 0;
       }
-    } else {
-      log("worklet was asked to start but it already has!")();
     }
     this.running = true;
     return returnValueValue;

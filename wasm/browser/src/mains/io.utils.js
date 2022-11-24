@@ -1,18 +1,12 @@
 export const requestMicrophoneNode = (microphoneCallback) => {
   const getUserMedia =
-    typeof navigator.mediaDevices !== "undefined"
-      ? navigator.mediaDevices.getUserMedia
-      : navigator.getUserMedia || navigator.webkitGetUserMedia || navigator.mozGetUserMedia;
+    navigator.mediaDevices === undefined
+      ? navigator.getUserMedia || navigator.webkitGetUserMedia || navigator.mozGetUserMedia
+      : navigator.mediaDevices.getUserMedia;
 
   console.log("requesting microphone access");
-  typeof navigator.mediaDevices !== "undefined"
-    ? getUserMedia
-        .call(navigator.mediaDevices, {
-          audio: { echoCancellation: false, sampleSize: 32 },
-        })
-        .then(microphoneCallback)
-        .catch(console.error)
-    : getUserMedia.call(
+  navigator.mediaDevices === undefined
+    ? getUserMedia.call(
         navigator,
         {
           audio: {
@@ -21,7 +15,13 @@ export const requestMicrophoneNode = (microphoneCallback) => {
         },
         microphoneCallback,
         console.error,
-      );
+      )
+    : getUserMedia
+        .call(navigator.mediaDevices, {
+          audio: { echoCancellation: false, sampleSize: 32 },
+        })
+        .then(microphoneCallback)
+        .catch(console.error);
 };
 
 // rebind this to exportApi instance to use

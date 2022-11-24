@@ -23,13 +23,13 @@ const iterableMessageChannel = () => {
 };
 
 const safelyClosePorts = ([p1, p2]) => {
-  if (typeof p1.close !== "undefined") {
+  if (p1.close !== undefined) {
     try {
       p1.close();
       // eslint-disable unicorn/prefer-optional-catch-binding
     } catch (_) {}
   }
-  if (typeof p2.close !== "undefined") {
+  if (p2.close !== undefined) {
     try {
       p2.close();
       // eslint-disable unicorn/prefer-optional-catch-binding

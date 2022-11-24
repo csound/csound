@@ -17,27 +17,21 @@ export const isSafari = () =>
   typeof navigator.vendor === "string" && navigator.vendor.includes("Apple");
 
 export const isSabSupported = () =>
-  !isFirefox() &&
-  typeof window.Atomics !== "undefined" &&
-  typeof window.SharedArrayBuffer !== "undefined";
+  !isFirefox() && window && window.Atomics !== undefined && window.SharedArrayBuffer !== undefined;
 
-export const areWorkletsSupported = () =>
-  typeof AudioNode !== "undefined" && typeof AudioWorkletNode !== "undefined";
+export const areWorkletsSupported = () => AudioNode !== undefined && AudioWorkletNode !== undefined;
 
 export const WebkitAudioContext = () => {
-  if (typeof window.webkitAudioContext !== "undefined") {
+  if (window.webkitAudioContext !== undefined) {
     return window.webkitAudioContext;
-  } else if (typeof window.AudioContext !== "undefined") {
+  } else if (window.AudioContext !== undefined) {
     return window.AudioContext;
   }
 };
 
 export const isScriptProcessorNodeSupported = () => {
   const audioContext = WebkitAudioContext();
-  return (
-    typeof audioContext !== "undefined" &&
-    typeof audioContext.prototype.createScriptProcessor !== "undefined"
-  );
+  return audioContext !== undefined && audioContext.prototype.createScriptProcessor !== undefined;
 };
 
 export const csoundApiRename = (apiName) => {

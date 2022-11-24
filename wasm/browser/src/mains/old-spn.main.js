@@ -119,7 +119,7 @@ class ScriptProcessorNodeMainThread {
   async initIframe() {
     // HACK FROM (but it works just fine when adding modern security models)
     // https://github.com/GoogleChromeLabs/audioworklet-polyfill/blob/274792e5e3d189e04c9496bed24129118539b4b5/src/realm.js#L18-L20
-    if (typeof window === "undefined" || typeof window.document === "undefined") {
+    if (window === undefined || window.document === undefined) {
       throw new TypeError("Can only run SPN in Browser scope");
     }
 

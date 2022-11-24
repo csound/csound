@@ -45,11 +45,13 @@ goog.scope(function () {
 
     // compression method
     switch (cmf & 0x0f) {
-      case Zlib.CompressionMethod.DEFLATE:
+      case Zlib.CompressionMethod.DEFLATE: {
         this.method = Zlib.CompressionMethod.DEFLATE;
         break;
-      default:
+      }
+      default: {
         throw new Error("unsupported compression method");
+      }
     }
 
     // fcheck

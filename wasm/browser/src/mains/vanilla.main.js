@@ -153,7 +153,7 @@ class VanillaWorkerMainThread {
     } else {
       this.eventPromises.createPausePromise();
 
-      this.audioWorker && typeof this.audioWorker.workletProxy !== "undefined"
+      this.audioWorker && this.audioWorker.workletProxy !== undefined
         ? await this.audioWorker.workletProxy.pause()
         : await this.audioWorker.onPlayStateChange("realtimePerformancePaused");
 
@@ -167,7 +167,7 @@ class VanillaWorkerMainThread {
       return -1;
     } else {
       this.eventPromises.createResumePromise();
-      this.audioWorker && typeof this.audioWorker.workletProxy !== "undefined"
+      this.audioWorker && this.audioWorker.workletProxy !== undefined
         ? await this.audioWorker.workletProxy.resume()
         : await this.audioWorker.onPlayStateChange("realtimePerformanceResumed");
 

@@ -217,13 +217,12 @@ class ScriptProcessorNodeSingleThread {
 
       const csoundApi = this.csoundApi;
       const onPlayStateChange = this.onPlayStateChange;
-      const that = this;
 
       setTimeout(() => {
         let lastResult = 0;
         try {
           while (lastResult === 0) {
-            lastResult = csoundApi.csoundPerformKsmps(that.csoundInstance);
+            lastResult = csoundApi.csoundPerformKsmps(this.csoundInstance);
           }
         } catch {}
 
@@ -418,8 +417,7 @@ class ScriptProcessorNodeSingleThread {
       if (this.nchnls === output.numberOfChannels) {
         for (let channel = 0; channel < output.numberOfChannels; channel++) {
           const outputChannel = output.getChannelData(channel);
-          if (result === 0) outputChannel[index] = csOut[cnt * nchnls + channel] / zerodBFS;
-          else outputChannel[index] = 0;
+          outputChannel[index] = result === 0 ? csOut[cnt * nchnls + channel] / zerodBFS : 0;
         }
       } else if (this.nchnls === 2 && output.numberOfChannels === 1) {
         const outputChannel = output.getChannelData(0);

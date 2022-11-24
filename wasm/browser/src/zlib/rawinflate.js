@@ -1,4 +1,4 @@
-/* eslint-disable unicorn/numeric-separators-style,camelcase,no-unused-expressions */
+/* eslint-disable unicorn/numeric-separators-style,camelcase,no-unused-expressions,unicorn/prevent-abbreviations */
 goog.provide("Zlib.RawInflate");
 
 goog.require("Zlib.Huffman");
@@ -70,18 +70,21 @@ goog.scope(function () {
 
     // initialize
     switch (this.bufferType) {
-      case Zlib.RawInflate.BufferType.BLOCK:
+      case Zlib.RawInflate.BufferType.BLOCK: {
         this.op = Zlib.RawInflate.MaxBackwardLength;
         this.output = new Uint8Array(
           Zlib.RawInflate.MaxBackwardLength + this.bufferSize + Zlib.RawInflate.MaxCopyLength,
         );
         break;
-      case Zlib.RawInflate.BufferType.ADAPTIVE:
+      }
+      case Zlib.RawInflate.BufferType.ADAPTIVE: {
         this.op = 0;
         this.output = new Uint8Array(this.bufferSize);
         break;
-      default:
+      }
+      default: {
         throw new Error("invalid inflate mode");
+      }
     }
   };
 
@@ -103,12 +106,15 @@ goog.scope(function () {
     }
 
     switch (this.bufferType) {
-      case Zlib.RawInflate.BufferType.BLOCK:
+      case Zlib.RawInflate.BufferType.BLOCK: {
         return this.concatBufferBlock();
-      case Zlib.RawInflate.BufferType.ADAPTIVE:
+      }
+      case Zlib.RawInflate.BufferType.ADAPTIVE: {
         return this.concatBufferDynamic();
-      default:
+      }
+      default: {
         throw new Error("invalid inflate mode");
+      }
     }
   };
 
@@ -236,20 +242,24 @@ goog.scope(function () {
     hdr >>>= 1;
     switch (hdr) {
       // uncompressed
-      case 0:
+      case 0: {
         this.parseUncompressedBlock();
         break;
+      }
       // fixed huffman
-      case 1:
+      case 1: {
         this.parseFixedHuffmanBlock();
         break;
+      }
       // dynamic huffman
-      case 2:
+      case 2: {
         this.parseDynamicHuffmanBlock();
         break;
+      }
       // reserved or other
-      default:
+      default: {
         throw new Error("unknown BTYPE: " + hdr);
+      }
     }
   };
 
@@ -381,7 +391,7 @@ goog.scope(function () {
 
     // expand buffer
     switch (this.bufferType) {
-      case Zlib.RawInflate.BufferType.BLOCK:
+      case Zlib.RawInflate.BufferType.BLOCK: {
         // pre copy
         while (op + length_ > output.length) {
           preCopy = olength - op;
@@ -395,13 +405,16 @@ goog.scope(function () {
           op = this.op;
         }
         break;
-      case Zlib.RawInflate.BufferType.ADAPTIVE:
+      }
+      case Zlib.RawInflate.BufferType.ADAPTIVE: {
         while (op + length_ > output.length) {
           output = this.expandBufferAdaptive({ fixRatio: 2 });
         }
         break;
-      default:
+      }
+      default: {
         throw new Error("invalid inflate mode");
+      }
     }
 
     // copy
@@ -419,20 +432,23 @@ goog.scope(function () {
    */
   Zlib.RawInflate.prototype.parseFixedHuffmanBlock = function () {
     switch (this.bufferType) {
-      case Zlib.RawInflate.BufferType.ADAPTIVE:
+      case Zlib.RawInflate.BufferType.ADAPTIVE: {
         this.decodeHuffmanAdaptive(
           Zlib.RawInflate.FixedLiteralLengthTable,
           Zlib.RawInflate.FixedDistanceTable,
         );
         break;
-      case Zlib.RawInflate.BufferType.BLOCK:
+      }
+      case Zlib.RawInflate.BufferType.BLOCK: {
         this.decodeHuffmanBlock(
           Zlib.RawInflate.FixedLiteralLengthTable,
           Zlib.RawInflate.FixedDistanceTable,
         );
         break;
-      default:
+      }
+      default: {
         throw new Error("invalid inflate mode");
+      }
     }
   };
 
@@ -472,30 +488,34 @@ goog.scope(function () {
     for (index = 0, il = hlit + hdist; index < il; ) {
       code = this.readCodeByTable(codeLengthsTable);
       switch (code) {
-        case 16:
+        case 16: {
           repeat = 3 + this.readBits(2);
           while (repeat--) {
             lengthTable[index++] = previous;
           }
           break;
-        case 17:
+        }
+        case 17: {
           repeat = 3 + this.readBits(3);
           while (repeat--) {
             lengthTable[index++] = 0;
           }
           previous = 0;
           break;
-        case 18:
+        }
+        case 18: {
           repeat = 11 + this.readBits(7);
           while (repeat--) {
             lengthTable[index++] = 0;
           }
           previous = 0;
           break;
-        default:
+        }
+        default: {
           lengthTable[index++] = code;
           previous = code;
           break;
+        }
       }
     }
 
@@ -505,14 +525,17 @@ goog.scope(function () {
     const distTable = buildHuffmanTable(lengthTable.subarray(hlit));
 
     switch (this.bufferType) {
-      case Zlib.RawInflate.BufferType.ADAPTIVE:
+      case Zlib.RawInflate.BufferType.ADAPTIVE: {
         this.decodeHuffmanAdaptive(litlenTable, distTable);
         break;
-      case Zlib.RawInflate.BufferType.BLOCK:
+      }
+      case Zlib.RawInflate.BufferType.BLOCK: {
         this.decodeHuffmanBlock(litlenTable, distTable);
         break;
-      default:
+      }
+      default: {
         throw new Error("invalid inflate mode");
+      }
     }
   };
 

@@ -144,13 +144,13 @@ class SingleThreadAudioWorkletMainThread {
   }
 
   async csoundPause() {
-    if (typeof this.workletProxy !== "undefined") {
+    if (this.workletProxy !== undefined) {
       await this.workletProxy.pause();
     }
   }
 
   async csoundResume() {
-    if (typeof this.workletProxy !== "undefined") {
+    if (this.workletProxy !== undefined) {
       await this.workletProxy.resume();
     }
   }

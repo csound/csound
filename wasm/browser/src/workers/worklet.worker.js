@@ -317,9 +317,7 @@ class CsoundWorkletProcessor extends AudioWorkletProcessor {
           framesLeft = RING_BUFFER_SIZE - readIndex;
         }
 
-        if (!hasLeftover) {
-          this.vanillaOutputChannels[channelIndex].set(audioPacket[channelIndex], readIndex);
-        } else {
+        if (hasLeftover) {
           this.vanillaOutputChannels[channelIndex].set(
             audioPacket[channelIndex].subarray(0, framesLeft),
             readIndex,
@@ -328,6 +326,8 @@ class CsoundWorkletProcessor extends AudioWorkletProcessor {
             audioPacket[channelIndex].subarray(framesLeft),
             0,
           );
+        } else {
+          this.vanillaOutputChannels[channelIndex].set(audioPacket[channelIndex], readIndex);
         }
       }
       this.vanillaAvailableFrames += numFrames;

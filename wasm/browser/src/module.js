@@ -248,10 +248,10 @@ export default async function ({ wasmDataURI, withPlugins = [], messagePort }) {
 
   const csoundLoadModules = (csoundInstance) => {
     withPlugins_.forEach((pluginInstance) => {
-      if (typeof instance !== "undefined") {
-        dlinit(instance, pluginInstance, table, csoundInstance);
-      } else {
+      if (instance === undefined) {
         console.error("csound-wasm internal: timing problem detected!");
+      } else {
+        dlinit(instance, pluginInstance, table, csoundInstance);
       }
     });
     return 0;

@@ -109,10 +109,10 @@ const Csound = async function ({
 
   const hasSABSupport = isSabSupported();
 
-  if (!hasSABSupport) {
-    log(`SharedArrayBuffers not found, falling back to Vanilla concurrency`)();
-  } else {
+  if (hasSABSupport) {
     useSAB && log(`using SharedArrayBuffers`)();
+  } else {
+    log(`SharedArrayBuffers not found, falling back to Vanilla concurrency`)();
   }
 
   const worker =
