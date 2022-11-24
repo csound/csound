@@ -1,7 +1,7 @@
 import * as Comlink from "comlink/dist/esm/comlink.mjs";
 import { logVANMain as log } from "../logger";
 import { api as API } from "../libcsound";
-import { isEmpty } from "rambda/dist/rambda.esm.js";
+import { isEmpty } from "rambda/dist/rambda.mjs";
 import { csoundApiRename, fetchPlugins, makeProxyCallback, stopableStates } from "../utils";
 import { IPCMessagePorts, messageEventHandler } from "./messages.main";
 import { EventPromises } from "../utils/event-promises";

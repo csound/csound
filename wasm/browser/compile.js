@@ -160,7 +160,7 @@ const compile = async (config) => {
       "./node_modules/lines-logger/lib/browser.js",
       "./node_modules/lines-logger/lib/index.js",
       "./node_modules/rambda/package.json",
-      "./node_modules/rambda/dist/rambda.esm.js",
+      "./node_modules/rambda/dist/rambda.mjs",
       "./node_modules/path-browserify/package.json",
       "./node_modules/path-browserify/index.js",
       "./node_modules/comlink/package.json",

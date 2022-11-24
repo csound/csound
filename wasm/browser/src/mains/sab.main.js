@@ -10,7 +10,7 @@ import {
   initialSharedState,
 } from "../constants";
 import { logSABMain as log } from "../logger";
-import { isEmpty } from "rambda/dist/rambda.esm.js";
+import { isEmpty } from "rambda/dist/rambda.mjs";
 import { csoundApiRename, fetchPlugins, makeProxyCallback, stopableStates } from "../utils";
 import { EventPromises } from "../utils/event-promises";
 import { PublicEventAPI } from "../events";

@@ -84,7 +84,7 @@ import {
 } from "./modules/table";
 import * as fs from "./filesystem/worker-fs";
 
-import { assoc, dissoc, keys, mergeAll, reduce } from "rambda/dist/rambda.esm.js";
+import { assoc, dissoc, keys, mergeAll, reduce } from "rambda/dist/rambda.mjs";
 
 goog.declareModuleId("libcsound");
 
