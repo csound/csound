@@ -202,7 +202,7 @@ e
   }
 
   const csoundVariations = [
-    { useWorker: false, useSPN: false, name: "SINGLE THREAD, AW" },
+    // { useWorker: false, useSPN: false, name: "SINGLE THREAD, AW" },
     { useWorker: false, useSPN: true, name: "SINGLE THREAD, SPN" },
     { useWorker: true, useSAB: true, name: "WORKER, AW, SAB" },
     { useWorker: true, useSAB: false, name: "WORKER, AW, Messageport" },
