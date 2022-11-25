@@ -2,7 +2,7 @@
 // promises which hold back releases
 // of certain async events
 // for internal usecases only
-import { equals, reject } from "rambda/dist/rambda.esm.js";
+import { equals, reject } from "rambda/dist/rambda.mjs";
 import { clearArray } from "./clear-array";
 
 export class EventPromises {
@@ -41,30 +41,30 @@ export class EventPromises {
   }
 
   isWaitingToStart() {
-    return typeof this.startPromise !== "undefined";
+    return this.startPromise !== undefined;
   }
 
   isWaitingToStop() {
-    return typeof this.stopPromise !== "undefined";
+    return this.stopPromise !== undefined;
   }
 
   isWaiting(eventAsking) {
-    if (typeof this.startPromise !== "undefined") {
+    if (this.startPromise !== undefined) {
       console.error(`cannot ${eventAsking} while starting, did you forget to 'await'?`);
       return true;
     }
 
-    if (typeof this.stopPromise !== "undefined") {
+    if (this.stopPromise !== undefined) {
       console.error(`cannot ${eventAsking} while stopping, did you forget to 'await'?`);
       return true;
     }
 
-    if (typeof this.pausePromise !== "undefined") {
+    if (this.pausePromise !== undefined) {
       console.error(`cannot ${eventAsking} while pausing, did you forget to 'await'?`);
       return true;
     }
 
-    if (typeof this.resumePromise !== "undefined") {
+    if (this.resumePromise !== undefined) {
       console.error(`cannot ${eventAsking} while resuming, did you forget to 'await'?`);
       return true;
     }
@@ -77,15 +77,15 @@ export class EventPromises {
   }
 
   async waitForStop() {
-    return this.stopPromise ? this.stopPromise : -1;
+    return this.stopPromise ?? -1;
   }
 
   async waitForPause() {
-    return this.pausePromise ? this.pausePromise : -1;
+    return this.pausePromise ?? -1;
   }
 
   async waitForResume() {
-    return this.resumePromise ? this.resumePromise : -1;
+    return this.resumePromise ?? -1;
   }
 
   createStartPromise() {

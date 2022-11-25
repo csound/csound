@@ -11,7 +11,7 @@ import {
   MIDI_BUFFER_PAYLOAD_SIZE,
   initialSharedState,
 } from "../constants";
-import { assoc, pipe } from "rambda/dist/rambda.esm.js";
+import { assoc, pipe } from "rambda/dist/rambda.mjs";
 
 /**
  * @type {Map.<LibcsoundUncloned>}

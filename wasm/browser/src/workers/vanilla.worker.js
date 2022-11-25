@@ -8,7 +8,7 @@ import { handleCsoundStart, instantiateAudioPacket, renderFunction } from "./com
 import libcsoundFactory from "../libcsound";
 import loadWasm from "../module";
 import { clearArray } from "../utils/clear-array";
-import { assoc, pipe } from "rambda/dist/rambda.esm.js";
+import { assoc, pipe } from "rambda/dist/rambda.mjs";
 
 let combined;
 let audioProcessCallback = () => {};

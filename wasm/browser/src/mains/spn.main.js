@@ -24,7 +24,7 @@
 import libcsoundFactory from "../libcsound";
 import loadWasm from "../module";
 import MessagePortState from "../utils/message-port-state";
-import { isEmpty } from "rambda/dist/rambda.esm.js";
+import { isEmpty } from "rambda/dist/rambda.mjs";
 import { csoundApiRename, fetchPlugins, makeSingleThreadCallback } from "../utils";
 import { messageEventHandler } from "./messages.main";
 import { PublicEventAPI } from "../events";
@@ -215,19 +215,13 @@ class ScriptProcessorNodeSingleThread {
       const startResult = this.csoundApi.csoundStart(this.csoundInstance);
       this.onPlayStateChange("renderStarted");
 
-      const csoundApi = this.csoundApi;
-      const onPlayStateChange = this.onPlayStateChange;
-      const that = this;
-
       setTimeout(() => {
         let lastResult = 0;
-        try {
-          while (lastResult === 0) {
-            lastResult = csoundApi.csoundPerformKsmps(that.csoundInstance);
-          }
-        } catch {}
+        while (lastResult === 0 && this.csoundApi && this.csoundInstance) {
+          lastResult = this.csoundApi.csoundPerformKsmps(this.csoundInstance);
+        }
 
-        onPlayStateChange("renderEnded");
+        this.onPlayStateChange && this.onPlayStateChange("renderEnded");
       }, 0);
 
       return startResult;
@@ -418,8 +412,7 @@ class ScriptProcessorNodeSingleThread {
       if (this.nchnls === output.numberOfChannels) {
         for (let channel = 0; channel < output.numberOfChannels; channel++) {
           const outputChannel = output.getChannelData(channel);
-          if (result === 0) outputChannel[index] = csOut[cnt * nchnls + channel] / zerodBFS;
-          else outputChannel[index] = 0;
+          outputChannel[index] = result === 0 ? csOut[cnt * nchnls + channel] / zerodBFS : 0;
         }
       } else if (this.nchnls === 2 && output.numberOfChannels === 1) {
         const outputChannel = output.getChannelData(0);

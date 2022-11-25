@@ -6,18 +6,12 @@ export function inlineWebworker(filename, modulename, asDataUrl = true) {
   writeFileSync(
     `./dist/__compiled.${filename.replace(/\.js$/g, ".inline.js")}`,
     asDataUrl
-      ? `goog.provide("${modulename}");
-         goog.scope(function () {
-             ${modulename} = () => "data:application/javascript;base64,${readFileSync(inputFile, {
+      ? `export default () => "data:application/javascript;base64,${readFileSync(inputFile, {
           encoding: "base64",
         })}";
-          })
             `
-      : `goog.provide("${modulename}");
-         goog.scope(function () {
-         ${modulename} = () => (window.URL || window.webkitURL).createObjectURL(new Blob([${JSON.stringify(
+      : `export default () => (window.URL || window.webkitURL).createObjectURL(new Blob([${JSON.stringify(
           readFileSync(inputFile).toString("utf8"),
-        )}]));
-         })`,
+        )}]));`,
   );
 }

@@ -1,4 +1,4 @@
-import { range } from "rambda/dist/rambda.esm.js";
+import { range } from "rambda/dist/rambda.mjs";
 import { freeStringPtr } from "../utils/string-pointers.js";
 import { trimNull } from "../utils/trim-null.js";
 import { structBufferToObject } from "../utils/structure-buffer-to-object.js";

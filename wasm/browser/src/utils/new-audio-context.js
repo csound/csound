@@ -1,7 +1,7 @@
 export const WebkitAudioContext = () => {
-  if (typeof window.webkitAudioContext !== "undefined") {
+  if (window.webkitAudioContext !== undefined) {
     return window.webkitAudioContext;
-  } else if (typeof window.AudioContext !== "undefined") {
+  } else if (window.AudioContext !== undefined) {
     return window.AudioContext;
   }
 };
@@ -11,4 +11,4 @@ export const newAudioContext = () => {
   if (AudioCTX) {
     return new AudioCTX();
   }
-}
+};

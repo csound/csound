@@ -22,6 +22,7 @@ function shouldOpenReader(rights) {
 }
 
 function performanceNowPoly() {
+  /* eslint-disable-next-line unicorn/no-typeof-undefined */
   if (typeof performance === "undefined" || typeof performance.now === "undefined") {
     const nowOffset = Date.now();
     return Date.now() - nowOffset;
@@ -119,17 +120,19 @@ WASI.prototype.msToNs = function (ms) {
 
 WASI.prototype.now = function (clockId) {
   switch (clockId) {
-    case constants.WASI_CLOCK_MONOTONIC:
-      // case constants.WASI_CLOCK_REALTIME:
+    case constants.WASI_CLOCK_MONOTONIC: {
       return Math.floor(performanceNowPoly());
-    case constants.WASI_CLOCK_REALTIME:
+    }
+    case constants.WASI_CLOCK_REALTIME: {
       return this.msToNs(Date.now());
+    }
     case constants.WASI_CLOCK_PROCESS_CPUTIME_ID:
-    case constants.WASI_CLOCK_THREAD_CPUTIME_ID:
-      // return bindings.hrtime(CPUTIME_START)
+    case constants.WASI_CLOCK_THREAD_CPUTIME_ID: {
       return Math.floor(performanceNowPoly() - this.CPUTIME_START);
-    default:
+    }
+    default: {
       return 0;
+    }
   }
 };
 
@@ -440,8 +443,7 @@ WASI.prototype.fd_seek = function (fd, offset, whence, newOffsetPtr) {
   switch (whence) {
     case constants.WASI_WHENCE_CUR: {
       this.fd[fd].seekPos =
-        (this.fd[fd].seekPos ? this.fd[fd].seekPos : goog.global.BigInt(0)) +
-        goog.global.BigInt(offset);
+        (this.fd[fd].seekPos ?? goog.global.BigInt(0)) + goog.global.BigInt(offset);
       break;
     }
     case constants.WASI_WHENCE_END: {
@@ -615,9 +617,7 @@ WASI.prototype.path_open = function (
   const pathOpenBytes = new Uint8Array(memory.buffer, pathPtr, pathLength);
   const pathOpenString = decoder.decode(pathOpenBytes);
   const pathOpen = assertLeadingSlash(
-    goog.string.path.normalizePath(
-      goog.string.path.join(dirfd === 3 ? "" : directoryPath, pathOpenString),
-    ),
+    normalizePath(goog.string.path.join(dirfd === 3 ? "" : directoryPath, pathOpenString)),
   );
 
   if (DEBUG_WASI) {
@@ -809,10 +809,10 @@ WASI.prototype.appendFile = function (fname /* string */, data /* Uint8Array */)
 
   const buffers = this.findBuffers(filePath);
 
-  if (!buffers) {
-    console.error(`Can't append to non-existing file ${fname}`);
-  } else {
+  if (buffers) {
     buffers.push(data);
+  } else {
+    console.error(`Can't append to non-existing file ${fname}`);
   }
 };
 

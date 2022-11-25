@@ -186,7 +186,7 @@ endin
 
 </CsInstruments>
 <CsScore>
-i 2 0 1
+i 2 0 0.3
 i 1 0 0.1
 i 1 + .
 i 1 + .
@@ -532,6 +532,7 @@ e
     mocha.run();
   });
   if (isCI) {
+    mocha.cleanReferencesAfterRun(true);
     mocha.run();
   }
 })();

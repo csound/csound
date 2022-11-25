@@ -3,8 +3,7 @@ import { logOldSpnMain as log } from "../logger";
 import { WebkitAudioContext } from "../utils";
 import { requestMidi } from "../utils/request-midi";
 import { requestMicrophoneNode } from "./io.utils";
-
-const ScriptProcessorNodeWorker = goog.require("worker.old_spn");
+import ScriptProcessorNodeWorker from "../../dist/__compiled.old-spn.worker.inline.js";
 
 // we reuse the spnWorker
 // since it handles multiple
@@ -119,7 +118,7 @@ class ScriptProcessorNodeMainThread {
   async initIframe() {
     // HACK FROM (but it works just fine when adding modern security models)
     // https://github.com/GoogleChromeLabs/audioworklet-polyfill/blob/274792e5e3d189e04c9496bed24129118539b4b5/src/realm.js#L18-L20
-    if (typeof window === "undefined" || typeof window.document === "undefined") {
+    if (window === undefined || window.document === undefined) {
       throw new TypeError("Can only run SPN in Browser scope");
     }
 

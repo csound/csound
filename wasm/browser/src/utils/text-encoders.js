@@ -21,7 +21,7 @@ TextEncoderPoly.prototype.encode = function (string_) {
 
 /** @constructor */
 function TextDecoderPoly() {
-  this.encoding = "utf-8";
+  this.encoding = "utf8";
   this.ignoreBOM = false;
 
   this.trimNull = (a) => {
@@ -33,24 +33,24 @@ function TextDecoderPoly() {
   };
 
   this.decode = function (view, options) {
-    if (typeof view === "undefined") {
+    if (view === undefined) {
       return "";
     }
 
-    const stream = typeof options !== "undefined" && "stream" in options ? options.stream : false;
+    const stream = options !== undefined && "stream" in options ? options.stream : false;
     if (typeof stream !== "boolean") {
       throw new TypeError("stream option must be boolean");
     }
 
-    if (!ArrayBuffer.isView(view)) {
-      throw new TypeError("passed argument must be an array buffer view");
-    } else {
+    if (ArrayBuffer.isView(view)) {
       const array = new Uint8Array(view.buffer, view.byteOffset, view.byteLength);
       const charArray = Array.from({ length: array.length });
       array.forEach(function (charcode, index) {
         charArray[index] = String.fromCodePoint(charcode);
       });
       return this.trimNull(charArray.join(""));
+    } else {
+      throw new TypeError("passed argument must be an array buffer view");
     }
   };
 }

@@ -1,13 +1,12 @@
 import * as Comlink from "comlink/dist/esm/comlink.mjs";
 import { logVANMain as log } from "../logger";
 import { api as API } from "../libcsound";
-import { isEmpty } from "rambda/dist/rambda.esm.js";
+import { isEmpty } from "rambda/dist/rambda.mjs";
 import { csoundApiRename, fetchPlugins, makeProxyCallback, stopableStates } from "../utils";
 import { IPCMessagePorts, messageEventHandler } from "./messages.main";
 import { EventPromises } from "../utils/event-promises";
 import { PublicEventAPI } from "../events";
-
-const VanillaWorker = goog.require("worker.vanilla");
+import VanillaWorker from "../../dist/__compiled.vanilla.worker.inline.js";
 
 class VanillaWorkerMainThread {
   constructor({
@@ -153,7 +152,7 @@ class VanillaWorkerMainThread {
     } else {
       this.eventPromises.createPausePromise();
 
-      this.audioWorker && typeof this.audioWorker.workletProxy !== "undefined"
+      this.audioWorker && this.audioWorker.workletProxy !== undefined
         ? await this.audioWorker.workletProxy.pause()
         : await this.audioWorker.onPlayStateChange("realtimePerformancePaused");
 
@@ -167,7 +166,7 @@ class VanillaWorkerMainThread {
       return -1;
     } else {
       this.eventPromises.createResumePromise();
-      this.audioWorker && typeof this.audioWorker.workletProxy !== "undefined"
+      this.audioWorker && this.audioWorker.workletProxy !== undefined
         ? await this.audioWorker.workletProxy.resume()
         : await this.audioWorker.onPlayStateChange("realtimePerformanceResumed");
 

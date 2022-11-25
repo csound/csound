@@ -3,7 +3,7 @@ import { instantiateAudioPacket } from "./common.utils";
 import MessagePortState from "../utils/message-port-state";
 import { newAudioContext } from "../utils/new-audio-context";
 import { logOldSpnWorker as log } from "../logger";
-import { range } from "rambda/dist/rambda.esm.js";
+import { range } from "rambda/dist/rambda.mjs";
 
 let startPromize;
 
