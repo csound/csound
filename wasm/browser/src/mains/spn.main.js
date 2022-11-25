@@ -215,18 +215,13 @@ class ScriptProcessorNodeSingleThread {
       const startResult = this.csoundApi.csoundStart(this.csoundInstance);
       this.onPlayStateChange("renderStarted");
 
-      const csoundApi = this.csoundApi;
-      const onPlayStateChange = this.onPlayStateChange;
-
       setTimeout(() => {
         let lastResult = 0;
-        try {
-          while (lastResult === 0) {
-            lastResult = csoundApi.csoundPerformKsmps(this.csoundInstance);
-          }
-        } catch {}
+        while (lastResult === 0 && this.csoundApi && this.csoundInstance) {
+          lastResult = this.csoundApi.csoundPerformKsmps(this.csoundInstance);
+        }
 
-        onPlayStateChange("renderEnded");
+        this.onPlayStateChange && this.onPlayStateChange("renderEnded");
       }, 0);
 
       return startResult;
