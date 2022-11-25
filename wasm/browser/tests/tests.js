@@ -186,7 +186,7 @@ endin
 
 </CsInstruments>
 <CsScore>
-i 2 0 1
+i 2 0 0.3
 i 1 0 0.1
 i 1 + .
 i 1 + .
@@ -434,7 +434,6 @@ e
       });
 
       it("can start() -> stop() -> reset() and start again", async function () {
-        await new Promise((resolve) => setTimeout(resolve, 100));
         const csoundObj = await Csound(test);
         await csoundObj.compileCsdText(helloWorld);
         await csoundObj.start();
@@ -447,7 +446,6 @@ e
       });
 
       it("can play a sample, write a sample and read the output file", async function () {
-        await new Promise((resolve) => setTimeout(resolve, 100));
         const csoundObj = await Csound(test);
         const response = await fetch("tiny_test_sample.wav");
         const testSampleArrayBuffer = await response.arrayBuffer();
@@ -484,7 +482,6 @@ e
       });
 
       it("can play a csd from a nested filesystem directory, with code requiring a sample", async function () {
-        await new Promise((resolve) => setTimeout(resolve, 100));
         const csoundObj = await Csound(test);
         const response = await fetch("/tiny_test_sample.wav");
         const testSampleArrayBuffer = await response.arrayBuffer();
