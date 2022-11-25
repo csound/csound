@@ -14,8 +14,7 @@ import { isEmpty } from "rambda/dist/rambda.mjs";
 import { csoundApiRename, fetchPlugins, makeProxyCallback, stopableStates } from "../utils";
 import { EventPromises } from "../utils/event-promises";
 import { PublicEventAPI } from "../events";
-
-const SABWorker = goog.require("worker.sab");
+import SABWorker from "../../dist/__compiled.sab.worker.inline.js";
 
 class SharedArrayBufferMainThread {
   constructor({

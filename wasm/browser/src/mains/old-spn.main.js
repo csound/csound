@@ -3,8 +3,7 @@ import { logOldSpnMain as log } from "../logger";
 import { WebkitAudioContext } from "../utils";
 import { requestMidi } from "../utils/request-midi";
 import { requestMicrophoneNode } from "./io.utils";
-
-const ScriptProcessorNodeWorker = goog.require("worker.old_spn");
+import ScriptProcessorNodeWorker from "../../dist/__compiled.old-spn.worker.inline.js";
 
 // we reuse the spnWorker
 // since it handles multiple

@@ -30,8 +30,7 @@ import { PublicEventAPI } from "../events.js";
 import { enableAudioInput } from "./io.utils.js";
 import { requestMidi } from "../utils/request-midi.js";
 import { EventPromises } from "../utils/event-promises.js";
-
-const WorkletWorker = goog.require("worklet.singlethread.worker");
+import WorkletWorker from "../../dist/__compiled.worklet.singlethread.worker.inline.js";
 
 const initializeModule = async (audioContext) => {
   log("Initialize Module")();

@@ -175,7 +175,7 @@ const compile = async (config) => {
       // "./node_modules/@wasmer/wasi/lib/index.esm.js",
       // "./node_modules/buffer-es6/index.js",
     ],
-    assume_function_wrapper: true,
+    assume_function_wrapper: false,
     compilation_level: "SIMPLE_OPTIMIZATIONS", //DEV ? "SIMPLE_OPTIMIZATIONS" : "ADVANCED",
     language_in: "ECMASCRIPT_2021",
     process_common_js_modules: true,

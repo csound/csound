@@ -3,8 +3,7 @@ import { logWorkletMain as log } from "../logger";
 import { WebkitAudioContext } from "../utils";
 import { requestMidi } from "../utils/request-midi";
 import { messageEventHandler } from "./messages.main";
-
-const WorkletWorker = goog.require("worker.worklet");
+import WorkletWorker from "../../dist/__compiled.worklet.worker.inline.js";
 
 let UID = 0;
 

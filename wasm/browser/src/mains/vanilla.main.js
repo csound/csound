@@ -6,8 +6,7 @@ import { csoundApiRename, fetchPlugins, makeProxyCallback, stopableStates } from
 import { IPCMessagePorts, messageEventHandler } from "./messages.main";
 import { EventPromises } from "../utils/event-promises";
 import { PublicEventAPI } from "../events";
-
-const VanillaWorker = goog.require("worker.vanilla");
+import VanillaWorker from "../../dist/__compiled.vanilla.worker.inline.js";
 
 class VanillaWorkerMainThread {
   constructor({

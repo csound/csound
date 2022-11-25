@@ -3,9 +3,7 @@ import { WASI } from "./filesystem/wasi";
 import { clearArray } from "./utils/clear-array";
 import { uint2String } from "./utils/text-encoders.js";
 import { logWasmModule as log } from "./logger";
-
-goog.require("Zlib");
-goog.require("Zlib.Inflate");
+import { Inflate } from "./zlib/inflate.js";
 
 const { assert } = goog.require("goog.asserts");
 
@@ -168,7 +166,7 @@ export default async function ({ wasmDataURI, withPlugins = [], messagePort }) {
   const wasi = new WASI({ preopens: { "/": "/" } });
 
   const wasmCompressed = new Uint8Array(wasmDataURI);
-  const wasmZlib = new Zlib.Inflate(wasmCompressed);
+  const wasmZlib = new Inflate(wasmCompressed);
 
   const wasmBytes = wasmZlib.decompress();
 

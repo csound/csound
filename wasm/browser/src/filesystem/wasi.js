@@ -22,7 +22,8 @@ function shouldOpenReader(rights) {
 }
 
 function performanceNowPoly() {
-  if (performance !== undefined || performance.now !== undefined) {
+  /* eslint-disable-next-line unicorn/no-typeof-undefined */
+  if (typeof performance === "undefined" || typeof performance.now === "undefined") {
     const nowOffset = Date.now();
     return Date.now() - nowOffset;
   } else {
@@ -616,9 +617,7 @@ WASI.prototype.path_open = function (
   const pathOpenBytes = new Uint8Array(memory.buffer, pathPtr, pathLength);
   const pathOpenString = decoder.decode(pathOpenBytes);
   const pathOpen = assertLeadingSlash(
-    goog.string.path.normalizePath(
-      goog.string.path.join(dirfd === 3 ? "" : directoryPath, pathOpenString),
-    ),
+    normalizePath(goog.string.path.join(dirfd === 3 ? "" : directoryPath, pathOpenString)),
   );
 
   if (DEBUG_WASI) {
