@@ -138,49 +138,49 @@ static inline int same_type(char *var, char ty)
 }
 
 #define PARSER_DEBUG1 (0)  
-static TREE* remove_excess_assigns(CSOUND *csound, TREE* root)
-{
-    TREE* current = root;
-    //print_tree(csound, "AssignTest", root);
-    while (current) {
-      if (PARSER_DEBUG1) printf("in loop: current->type = %d\n", current->type);
-      if ((current->type == T_OPCALL || current->type == T_ASSIGNMENT) &&
-          current->left != NULL &&
-          //current->right != NULL &&  no one looks at current->right
-          current->left->value->lexeme[0]=='#') {
-        TREE *nxt = current->next;
-        if (PARSER_DEBUG1) {
-          printf("****passes test1 %s type =%d\n",
-                 current->left->value->lexeme, current->type);
-          printf("next type = %d; lexeme %s\n",
-                 nxt->type, nxt->right->value->lexeme);
-        }
-        if (PARSER_DEBUG1) printf("test3: %c%c %c\n",
-                   nxt->left->value->lexeme[0], nxt->left->value->lexeme[1],
-                   nxt->right->value->lexeme[1]);
-        if (nxt && nxt->type == T_ASSIGNMENT /* '=' */ &&
-            nxt->left != NULL &&
-            !strcmp(current->left->value->lexeme,nxt->right->value->lexeme) &&
-            same_type(nxt->left->value->lexeme, nxt->right->value->lexeme[1])) {
-          if (PARSER_DEBUG1) {
-            printf("passes test2\n");
-            print_tree(csound, "optimise assignment\n", current);
-          }
-          csound->Free(csound, current->left->value);
-          current->left->value = nxt->left->value;
-          current->next = nxt->next;
-          csound->Free(csound,nxt);
-          if (PARSER_DEBUG1) print_tree(csound, "change to\n", current);
-        }
-      }
-      else {                    /* no need to check for NULL */
-          current->right = remove_excess_assigns(csound, current->right);
-          current->left = remove_excess_assigns(csound, current->left);
-      }
-      current = current->next;
-    }
-    return root;
-}
+//static TREE* remove_excess_assigns(CSOUND *csound, TREE* root)
+//{
+//    TREE* current = root;
+//    //print_tree(csound, "AssignTest", root);
+//    while (current) {
+//      if (PARSER_DEBUG1) printf("in loop: current->type = %d\n", current->type);
+//      if ((current->type == T_OPCALL || current->type == T_ASSIGNMENT) &&
+//          current->left != NULL &&
+//          //current->right != NULL &&  no one looks at current->right
+//          current->left->value->lexeme[0]=='#') {
+//        TREE *nxt = current->next;
+//        if (PARSER_DEBUG1) {
+//          printf("****passes test1 %s type =%d\n",
+//                 current->left->value->lexeme, current->type);
+//          printf("next type = %d; lexeme %s\n",
+//                 nxt->type, nxt->right->value->lexeme);
+//        }
+//        if (PARSER_DEBUG1) printf("test3: %c%c %c\n",
+//                   nxt->left->value->lexeme[0], nxt->left->value->lexeme[1],
+//                   nxt->right->value->lexeme[1]);
+//        if (nxt && nxt->type == T_ASSIGNMENT /* '=' */ &&
+//            nxt->left != NULL &&
+//            !strcmp(current->left->value->lexeme,nxt->right->value->lexeme) &&
+//            same_type(nxt->left->value->lexeme, nxt->right->value->lexeme[1])) {
+//          if (PARSER_DEBUG1) {
+//            printf("passes test2\n");
+//            print_tree(csound, "optimise assignment\n", current);
+//          }
+//          csound->Free(csound, current->left->value);
+//          current->left->value = nxt->left->value;
+//          current->next = nxt->next;
+//          csound->Free(csound,nxt);
+//          if (PARSER_DEBUG1) print_tree(csound, "change to\n", current);
+//        }
+//      }
+//      else {                    /* no need to check for NULL */
+//          current->right = remove_excess_assigns(csound, current->right);
+//          current->left = remove_excess_assigns(csound, current->left);
+//      }
+//      current = current->next;
+//    }
+//    return root;
+//}
 
 /* Called directly from the parser; constant fold and some alebraic identities */
 TREE* constant_fold(CSOUND *csound, TREE* root)
