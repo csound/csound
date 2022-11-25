@@ -445,82 +445,82 @@ e
         await csoundObj.terminateInstance();
       });
 
-      // it("can play a sample, write a sample and read the output file", async function () {
-      //   const csoundObj = await Csound(test);
-      //   const response = await fetch("tiny_test_sample.wav");
-      //   const testSampleArrayBuffer = await response.arrayBuffer();
-      //   const testSample = new Uint8Array(testSampleArrayBuffer);
-      //   await csoundObj.fs.writeFile("tiny_test_sample.wav", testSample);
+      it("can play a sample, write a sample and read the output file", async function () {
+        const csoundObj = await Csound(test);
+        const response = await fetch("tiny_test_sample.wav");
+        const testSampleArrayBuffer = await response.arrayBuffer();
+        const testSample = new Uint8Array(testSampleArrayBuffer);
+        await csoundObj.fs.writeFile("tiny_test_sample.wav", testSample);
 
-      //   // allow the example to play until the end
-      //   let endResolver;
-      //   const waitUntilEnd = new Promise((resolve) => {
-      //     endResolver = resolve;
-      //   });
-      //   csoundObj.on("realtimePerformanceEnded", endResolver);
+        // allow the example to play until the end
+        let endResolver;
+        const waitUntilEnd = new Promise((resolve) => {
+          endResolver = resolve;
+        });
+        csoundObj.on("realtimePerformanceEnded", endResolver);
 
-      //   assert.include(
-      //     await csoundObj.fs.readdir("/"),
-      //     "tiny_test_sample.wav",
-      //     "The sample was written into the root dir",
-      //   );
+        assert.include(
+          await csoundObj.fs.readdir("/"),
+          "tiny_test_sample.wav",
+          "The sample was written into the root dir",
+        );
 
-      //   assert.equal(0, await csoundObj.compileCsdText(samplesTest), "The test string is valid");
-      //   assert.equal(
-      //     0,
-      //     await csoundObj.start(),
-      //     "Csounds starts normally, indicating the sample was found",
-      //   );
+        assert.equal(0, await csoundObj.compileCsdText(samplesTest), "The test string is valid");
+        assert.equal(
+          0,
+          await csoundObj.start(),
+          "Csounds starts normally, indicating the sample was found",
+        );
 
-      //   await waitUntilEnd;
-      //   assert.include(
-      //     await csoundObj.fs.readdir("/"),
-      //     "monitor_out.wav",
-      //     "The sample which csound wrote with fout, is accessible after the end of performance",
-      //   );
-      //   await csoundObj.terminateInstance();
-      // });
+        await waitUntilEnd;
+        assert.include(
+          await csoundObj.fs.readdir("/"),
+          "monitor_out.wav",
+          "The sample which csound wrote with fout, is accessible after the end of performance",
+        );
+        await csoundObj.terminateInstance();
+      });
 
-      // it("can play a csd from a nested filesystem directory, with code requiring a sample", async function () {
-      //   const csoundObj = await Csound(test);
-      //   const response = await fetch("/tiny_test_sample.wav");
-      //   const testSampleArrayBuffer = await response.arrayBuffer();
-      //   const testSample = new Uint8Array(testSampleArrayBuffer);
+      it("can play a csd from a nested filesystem directory, with code requiring a sample", async function () {
+        const csoundObj = await Csound(test);
+        const response = await fetch("/tiny_test_sample.wav");
+        const testSampleArrayBuffer = await response.arrayBuffer();
+        const testSample = new Uint8Array(testSampleArrayBuffer);
 
-      //   // Writing the csd to disk
-      //   const csdPath = "/anycsd.csd";
-      //   await csoundObj.fs.mkdir("/somedir");
-      //   await csoundObj.fs.writeFile("tiny_test_sample.wav", testSample);
-      //   await csoundObj.fs.writeFile(csdPath, samplesTest);
+        // Writing the csd to disk
+        const csdPath = "/anycsd.csd";
+        await csoundObj.fs.mkdir("/somedir");
+        await csoundObj.fs.writeFile("tiny_test_sample.wav", testSample);
+        await csoundObj.fs.writeFile(csdPath, samplesTest);
 
-      //   // allow the example to play until the end
-      //   let endResolver;
-      //   const waitUntilEnd = new Promise((resolve) => {
-      //     endResolver = resolve;
-      //   });
-      //   csoundObj.on("realtimePerformanceEnded", endResolver);
+        // allow the example to play until the end
+        let endResolver;
+        const waitUntilEnd = new Promise((resolve) => {
+          endResolver = resolve;
+        });
+        csoundObj.on("realtimePerformanceEnded", endResolver);
 
-      //   assert.include(
-      //     await csoundObj.fs.readdir("/"),
-      //     "tiny_test_sample.wav",
-      //     "The sample was written into the root dir",
-      //   );
+        assert.include(
+          await csoundObj.fs.readdir("/"),
+          "tiny_test_sample.wav",
+          "The sample was written into the root dir",
+        );
 
-      //   assert.equal(0, await csoundObj.compileCsd(csdPath), "The test Csd is valid");
-      //   assert.equal(
-      //     0,
-      //     await csoundObj.start(),
-      //     "Csounds starts normally, indicating the sample was found",
-      //   );
+        assert.equal(0, await csoundObj.compileCsd(csdPath), "The test Csd is valid");
+        assert.equal(
+          0,
+          await csoundObj.start(),
+          "Csounds starts normally, indicating the sample was found",
+        );
 
-      //   await waitUntilEnd;
-      //   assert.include(
-      //     await csoundObj.fs.readdir("/"),
-      //     "monitor_out.wav",
-      //     "The sample which csound wrote with fout, is accessible after the end of performance",
-      //   );
-      //   await csoundObj.terminateInstance();
-      // });
+        await waitUntilEnd;
+        assert.include(
+          await csoundObj.fs.readdir("/"),
+          "monitor_out.wav",
+          "The sample which csound wrote with fout, is accessible after the end of performance",
+        );
+        await csoundObj.terminateInstance();
+      });
     });
   });
 
@@ -532,6 +532,7 @@ e
     mocha.run();
   });
   if (isCI) {
+    mocha.cleanReferencesAfterRun(true);
     mocha.run();
   }
 })();
