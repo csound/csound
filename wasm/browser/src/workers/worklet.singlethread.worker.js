@@ -336,7 +336,7 @@ class WorkletSinglethreadWorker extends AudioWorkletProcessor {
         return returnValueValue;
       }
 
-      const isExpectingRealtimeOutput = this.isRequestingRealtimeOutput();
+      const isExpectingRealtimeOutput = await this.isRequestingRealtimeOutput();
 
       if (isExpectingRealtimeOutput) {
         this.csoundOutputBuffer = new Float64Array(
