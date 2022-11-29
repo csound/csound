@@ -447,10 +447,11 @@ WASI.prototype.fd_seek = function (fd, offset, whence, newOffsetPtr) {
       break;
     }
     case constants.WASI_WHENCE_END: {
-      const currentLength = this.fd[fd].writer
-        ? goog.global.BigInt(this.fd[fd].writer.length)
-        : goog.global.BigInt(0);
-      this.fd[fd].seekPos = currentLength + BigInt(offset);
+      const currentLength = (this.fd[fd].buffers || []).reduce(
+        (accumulator, value) => accumulator + value.length,
+        0,
+      );
+      this.fd[fd].seekPos = BigInt(currentLength) + BigInt(offset);
       break;
     }
 
