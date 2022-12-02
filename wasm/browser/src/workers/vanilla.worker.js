@@ -22,7 +22,7 @@ const createAudioInputBuffers = (audioInputs, inputsCount) => {
 
 const generateAudioFrames = (arguments_, workerMessagePort) => {
   if (workerMessagePort.vanillaWorkerState !== "realtimePerformanceEnded") {
-    return audioProcessCallback(arguments_);
+    return audioProcessCallback({ numFrames: arguments_["numFrames"] });
   }
 };
 
@@ -37,7 +37,8 @@ const createRealtimeAudioThread =
     outputChannelCount,
     sampleRate,
   }) =>
-  ({ csound }) => {
+  (payload) => {
+    const csound = payload["csound"];
     // Prompt for midi-input on demand
     // const isRequestingRtMidiInput = libraryCsound._isRequestingRtMidiInput(csound);
 
@@ -170,22 +171,25 @@ const initMessagePort = ({ port }) => {
   workerMessagePort.post = (messageLog) => port.postMessage({ log: messageLog });
   workerMessagePort.broadcastPlayState = (playStateChange) => {
     workerMessagePort.vanillaWorkerState = playStateChange;
-    port.postMessage({ playStateChange });
+    const playStateChangePayload = {};
+    playStateChangePayload["playStateChange"] = playStateChange;
+    port.postMessage(playStateChangePayload);
   };
   workerMessagePort.ready = true;
   return workerMessagePort;
 };
 
-const initRequestPort = ({ csoundWorkerFrameRequestPort, workerMessagePort }) => {
+const initRequestPort = (csoundWorkerFrameRequestPort, workerMessagePort) => {
   log(`initRequestPort`)();
   csoundWorkerFrameRequestPort.addEventListener("message", (requestEvent) => {
     const { framesLeft = 0, audioPacket } =
       generateAudioFrames(requestEvent.data, workerMessagePort) || {};
-    csoundWorkerFrameRequestPort.postMessage({
-      numFrames: requestEvent.data.numFrames - framesLeft,
-      audioPacket,
-      ...requestEvent.data,
-    });
+
+    const frameRequestPayload = {};
+    frameRequestPayload["numFrames"] = requestEvent.data.numFrames - framesLeft;
+    frameRequestPayload["audioPacket"] = audioPacket;
+
+    csoundWorkerFrameRequestPort.postMessage({ ...frameRequestPayload, ...requestEvent.data });
   });
   csoundWorkerFrameRequestPort.start();
   return csoundWorkerFrameRequestPort;
@@ -217,7 +221,7 @@ const initAudioInputPort = ({ port }) => {
   return audioInputs;
 };
 
-const initRtMidiEventPort = ({ rtmidiPort }) => {
+const initRtMidiEventPort = (rtmidiPort) => {
   log(`initRtMidiEventPort`)();
   rtmidiPort.addEventListener("message", ({ data: payload }) => {
     rtmidiQueue.push(payload);
@@ -226,27 +230,24 @@ const initRtMidiEventPort = ({ rtmidiPort }) => {
   return rtmidiPort;
 };
 
-const initialize = async ({
-  audioInputPort,
-  inputChannelCount,
-  messagePort,
-  outputChannelCount,
-  requestPort,
-  rtmidiPort,
-  sampleRate,
-  wasmDataURI,
-  wasmTransformerDataURI,
-  withPlugins = [],
-}) => {
+const initialize = async (payload) => {
+  const audioInputPort = payload["audioInputPort"];
+  const inputChannelCount = payload["inputChannelCount"];
+  const messagePort = payload["messagePort"];
+  const outputChannelCount = payload["outputChannelCount"];
+  const requestPort = payload["requestPort"];
+  const rtmidiPort = payload["rtmidiPort"];
+  const sampleRate = payload["sampleRate"];
+  const wasmDataURI = payload["wasmDataURI"];
+  const wasmTransformerDataURI = payload["wasmTransformerDataURI"];
+  const withPlugins = payload["withPlugins"] || [];
+
   log(`initializing wasm and exposing csoundAPI functions from worker to main`)();
   const workerMessagePort = initMessagePort({ port: messagePort });
 
   const audioInputs = initAudioInputPort({ port: audioInputPort });
-  initRequestPort({
-    csoundWorkerFrameRequestPort: requestPort,
-    workerMessagePort,
-  });
-  initRtMidiEventPort({ rtmidiPort });
+  initRequestPort(requestPort, workerMessagePort);
+  initRtMidiEventPort(rtmidiPort);
 
   const [wasm, wasi] = await loadWasm({
     wasmDataURI,

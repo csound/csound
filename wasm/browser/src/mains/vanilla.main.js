@@ -196,57 +196,55 @@ class VanillaWorkerMainThread {
     const proxyPort = Comlink.wrap(this.csoundWorker, undefined);
     this.proxyPort = proxyPort;
 
-    this.csoundInstance = await proxyPort.initialize(
-      Comlink.transfer(
-        {
-          wasmDataURI: wasmBytes,
-          messagePort: this.ipcMessagePorts.workerMessagePort,
-          requestPort: this.ipcMessagePorts.csoundWorkerFrameRequestPort,
-          audioInputPort: this.ipcMessagePorts.csoundWorkerAudioInputPort,
-          rtmidiPort: this.ipcMessagePorts.csoundWorkerRtMidiPort,
-          // these values are only set if the user provided them
-          // during init or by passing audioContext
-          sampleRate: this.sampleRate,
-          inputChannelCount: this.inputChannelCount,
-          outputChannelCount: this.outputChannelCount,
-          withPlugins,
-        },
-        [
-          wasmBytes,
-          this.ipcMessagePorts.workerMessagePort,
-          this.ipcMessagePorts.csoundWorkerFrameRequestPort,
-          this.ipcMessagePorts.csoundWorkerAudioInputPort,
-          this.ipcMessagePorts.csoundWorkerRtMidiPort,
-        ],
-      ),
+    const initializePayload = {};
+    initializePayload["wasmDataURI"] = wasmBytes;
+    initializePayload["messagePort"] = this.ipcMessagePorts.workerMessagePort;
+    initializePayload["requestPort"] = this.ipcMessagePorts.csoundWorkerFrameRequestPort;
+    initializePayload["audioInputPort"] = this.ipcMessagePorts.csoundWorkerAudioInputPort;
+    initializePayload["rtmidiPort"] = this.ipcMessagePorts.csoundWorkerRtMidiPort;
+    // these values are only set if the user provided them
+    // during init or by passing audioContext
+    initializePayload["sampleRate"] = this.sampleRate;
+    initializePayload["inputChannelCount"] = this.inputChannelCount;
+    initializePayload["outputChannelCount"] = this.outputChannelCount;
+    initializePayload["withPlugins"] = withPlugins;
+
+    this.csoundInstance = await proxyPort["initialize"](
+      Comlink.transfer(initializePayload, [
+        wasmBytes,
+        this.ipcMessagePorts.workerMessagePort,
+        this.ipcMessagePorts.csoundWorkerFrameRequestPort,
+        this.ipcMessagePorts.csoundWorkerAudioInputPort,
+        this.ipcMessagePorts.csoundWorkerRtMidiPort,
+      ]),
     );
 
-    this.exportApi.pause = this.csoundPause.bind(this);
-    this.exportApi.resume = this.csoundResume.bind(this);
-    this.exportApi.terminateInstance = this.terminateInstance.bind(this);
+    this.exportApi["pause"] = this.csoundPause.bind(this);
+    this.exportApi["resume"] = this.csoundResume.bind(this);
+    this.exportApi["terminateInstance"] = this.terminateInstance.bind(this);
 
-    this.exportApi.getAudioContext = async () => this.audioWorker.audioContext;
+    this.exportApi["getAudioContext"] = async () => this.audioWorker.audioContext;
 
-    this.exportApi.getNode = async () => {
+    this.exportApi["getNode"] = async () => {
       const maybeNode = this.audioWorker.audioWorkletNode;
       if (maybeNode) {
         return maybeNode;
       } else {
         const node = await new Promise((resolve) => {
-          this.exportApi.once("onAudioNodeCreated", resolve);
+          this.exportApi["once"]("onAudioNodeCreated", resolve);
         });
         return node;
       }
     };
 
     this.exportApi = this.publicEvents.decorateAPI(this.exportApi);
-    this.exportApi.enableAudioInput = () =>
+    this.exportApi["enableAudioInput"] = () =>
       console.warn(
         `enableAudioInput was ignored: please use -iadc option before calling start with useWorker=true`,
       );
 
     // the default message listener
-    this.exportApi.addListener("message", console.log);
+    this.exportApi["addListener"]("message", console.log);
 
     for (const apiK of Object.keys(API)) {
       const reference = API[apiK];
@@ -268,10 +266,10 @@ class VanillaWorkerMainThread {
               return -1;
             } else {
               this.eventPromises.createStartPromise();
+              const startPayload = {};
+              startPayload["csound"] = this.csoundInstance;
 
-              const startResult = await proxyCallback({
-                csound: this.csoundInstance,
-              });
+              const startResult = await proxyCallback(startPayload);
               await this.eventPromises.waitForStart();
 
               return startResult;
@@ -289,12 +287,12 @@ class VanillaWorkerMainThread {
               return -1;
             } else {
               this.eventPromises.createStopPromise();
-              this.ipcMessagePorts.mainMessagePort.postMessage({
-                newPlayState:
-                  this.currentPlayState === "renderStarted"
-                    ? "renderEnded"
-                    : "realtimePerformanceEnded",
-              });
+              const stopMessagePayload = {};
+              stopMessagePayload["newPlayState"] =
+                this.currentPlayState === "renderStarted"
+                  ? "renderEnded"
+                  : "realtimePerformanceEnded";
+              this.ipcMessagePorts.mainMessagePort.postMessage(stopMessagePayload);
 
               await this.eventPromises.waitForStop();
               return 0;
@@ -334,7 +332,7 @@ class VanillaWorkerMainThread {
         }
 
         case "fs": {
-          this.exportApi.fs = {};
+          this.exportApi["fs"] = {};
           Object.keys(reference).forEach((method) => {
             const proxyFsCallback = makeProxyCallback(
               proxyPort,

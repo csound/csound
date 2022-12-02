@@ -56,7 +56,8 @@ export const instantiateAudioPacket = (numberChannels, numberFrames) => {
 
 export const renderFunction =
   ({ libraryCsound, workerMessagePort, wasi }) =>
-  async ({ csound }) => {
+  async (payload) => {
+    const csound = payload["csound"];
     const kr = libraryCsound.csoundGetKr(csound);
     let lastResult = 0;
     let cnt = 0;

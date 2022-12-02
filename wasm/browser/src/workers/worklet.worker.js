@@ -129,10 +129,12 @@ function processVanillaBuffers(inputs, outputs) {
   if (!this.vanillaInitialized) {
     // this minimizes startup glitches
     const firstTransferSize = 8192;
-    this.audioFramePort.requestFrames({
-      readIndex: 0,
-      numFrames: firstTransferSize,
-    });
+
+    const requestFramesPayload = {};
+    requestFramesPayload["readIndex"] = 0;
+    requestFramesPayload["numFrames"] = firstTransferSize;
+
+    this.audioFramePort.requestFrames(requestFramesPayload);
     this.pendingFrames += firstTransferSize;
     this.vanillaInitialized = true;
     if (this.startPromiz) {
@@ -217,10 +219,10 @@ function processVanillaBuffers(inputs, outputs) {
     const futureOutputReadIndex =
       (this.vanillaAvailableFrames + nextOutputReadIndex + this.pendingFrames) % RING_BUFFER_SIZE;
 
-    this.audioFramePort.requestFrames({
-      readIndex: futureOutputReadIndex,
-      numFrames: framesRequest,
-    });
+    const requestFramesPayload = {};
+    requestFramesPayload["readIndex"] = futureOutputReadIndex;
+    requestFramesPayload["numFrames"] = framesRequest;
+    this.audioFramePort.requestFrames(requestFramesPayload);
     this.pendingFrames += framesRequest;
   }
 
@@ -382,9 +384,12 @@ function initMessagePort(payload) {
 function initRequestPort({ requestPort, audioNode }) {
   log(`initRequestPort in worker`)();
   requestPort.addEventListener("message", (requestPortEvent) => {
-    const { audioPacket, readIndex, numFrames } = requestPortEvent.data;
+    const audioPacket = requestPortEvent.data["audioPacket"];
+    const readIndex = requestPortEvent.data["readIndex"];
+    const numFrames = requestPortEvent.data["numFrames"];
     audioNode.updateVanillaFrames({ audioPacket, numFrames, readIndex });
   });
+
   const requestFrames = (arguments_) => requestPort.postMessage(arguments_);
 
   requestPort.start();
