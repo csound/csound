@@ -1,7 +1,7 @@
 /* eslint-disable unicorn/require-post-message-target-origin */
-import { expose } from "comlink/dist/esm/comlink.min.mjs";
+
+import * as Comlink from "../utils/comlink.js";
 import MessagePortState from "../utils/message-port-state";
-// import { initFS, getWorkerFs, syncWorkerFs } from "../filesystem/worker-fs";
 import { logVANWorker as log } from "../logger";
 import { RING_BUFFER_SIZE } from "../constants.js";
 import { handleCsoundStart, instantiateAudioPacket, renderFunction } from "./common.utils";
@@ -309,7 +309,7 @@ const initialize = async ({
   return csoundInstance;
 };
 
-expose({
+Comlink.expose({
   initialize,
   callUncloned,
 });

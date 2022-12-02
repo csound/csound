@@ -1,4 +1,4 @@
-import * as Comlink from "comlink/dist/esm/comlink.min.mjs";
+import * as Comlink from "../utils/comlink.js";
 import { api as API } from "../libcsound";
 import { messageEventHandler, IPCMessagePorts } from "./messages.main";
 import {
@@ -177,7 +177,7 @@ class SharedArrayBufferMainThread {
 
         // flush out events sent during the time which the worker was stopping
         Object.values(this.callbackBuffer).forEach(({ argumentz, apiKey, resolveCallback }) =>
-          this.proxyPort.callUncloned(apiKey, argumentz).then(resolveCallback),
+          this.proxyPort["callUncloned"](apiKey, argumentz).then(resolveCallback),
         );
         this.callbackBuffer = {};
         log(`event: realtimePerformanceEnded received, beginning cleanup`)();
@@ -240,7 +240,6 @@ class SharedArrayBufferMainThread {
     }
 
     log(`initialization: instantiate the SABWorker Thread`)();
-    // clearFsLastmods();
     const csoundWorker = new Worker(SABWorker());
     this.csoundWorker = csoundWorker;
     const audioStateBuffer = this.audioStateBuffer;
@@ -261,6 +260,7 @@ class SharedArrayBufferMainThread {
       "message",
       messageEventHandler(this),
     );
+
     this.ipcMessagePorts.mainMessagePortAudio.start();
     log(`(postMessage) making a message channel from SABMain to SABWorker via workerMessagePort`)();
 
@@ -303,26 +303,26 @@ class SharedArrayBufferMainThread {
         }
       }
     });
+
     this.ipcMessagePorts.sabMainCallbackReply.start();
 
     const proxyPort = Comlink.wrap(csoundWorker, undefined);
     const wasmBytes = wasmDataURI();
     this.proxyPort = proxyPort;
-    const csoundInstance = await proxyPort.initialize(
-      Comlink.transfer(
-        {
-          wasmDataURI: wasmBytes,
-          wasmTransformerDataURI: this.wasmTransformerDataURI,
-          messagePort: this.ipcMessagePorts.workerMessagePort,
-          callbackPort: this.ipcMessagePorts.sabWorkerCallbackReply,
-          withPlugins,
-        },
-        [
-          wasmBytes,
-          this.ipcMessagePorts.workerMessagePort,
-          this.ipcMessagePorts.sabWorkerCallbackReply,
-        ],
-      ),
+
+    const initializePayload = {};
+    initializePayload["wasmDataURI"] = wasmBytes;
+    initializePayload["wasmTransformerDataURI"] = this.wasmTransformerDataURI;
+    initializePayload["messagePort"] = this.ipcMessagePorts.workerMessagePort;
+    initializePayload["callbackPort"] = this.ipcMessagePorts.sabWorkerCallbackReply;
+    initializePayload["withPlugins"] = withPlugins;
+
+    const csoundInstance = await proxyPort["initialize"](
+      Comlink.transfer(initializePayload, [
+        wasmBytes,
+        this.ipcMessagePorts.workerMessagePort,
+        this.ipcMessagePorts.sabWorkerCallbackReply,
+      ]),
     );
     this.csoundInstance = csoundInstance;
 
@@ -331,9 +331,9 @@ class SharedArrayBufferMainThread {
 
     log(`A proxy port from SABMain to SABWorker established`)();
 
-    this.exportApi.pause = this.csoundPause.bind(this);
-    this.exportApi.resume = this.csoundResume.bind(this);
-    this.exportApi.terminateInstance = this.terminateInstance.bind(this);
+    this.exportApi["pause"] = this.csoundPause.bind(this);
+    this.exportApi["resume"] = this.csoundResume.bind(this);
+    this.exportApi["terminateInstance"] = this.terminateInstance.bind(this);
     // this.exportApi.fs = this.fs;
 
     this.exportApi.enableAudioInput = () =>
@@ -384,13 +384,14 @@ class SharedArrayBufferMainThread {
             } else {
               this.eventPromises.createStartPromise();
 
-              const startResult = await proxyCallback({
-                audioStateBuffer,
-                audioStreamIn,
-                audioStreamOut,
-                midiBuffer,
-                csound: csoundInstance,
-              });
+              const startPayload = {};
+              startPayload["audioStateBuffer"] = audioStateBuffer;
+              startPayload["audioStreamIn"] = audioStreamIn;
+              startPayload["audioStreamOut"] = audioStreamOut;
+              startPayload["midiBuffer"] = midiBuffer;
+              startPayload["csound"] = csoundInstance;
+
+              const startResult = await proxyCallback(startPayload);
 
               await this.eventPromises.waitForStart();
 

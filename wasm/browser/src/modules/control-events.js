@@ -11,6 +11,7 @@ import { freeStringPtr, ptr2string, string2ptr } from "../utils/string-pointers.
  * @function
  */
 export const csoundInputMessage = (wasm) => (csound, scoEvent) => {
+  console.log("wasm", wasm, "csound", csound, "scoEvent", scoEvent);
   const stringPtr = string2ptr(wasm, scoEvent);
   const result = wasm.exports.csoundInputMessage(csound, stringPtr);
   freeStringPtr(wasm, stringPtr);

@@ -1,4 +1,4 @@
-import * as Comlink from "comlink/dist/esm/comlink.min.mjs";
+import * as Comlink from "../utils/comlink.js";
 import { logOldSpnMain as log } from "../logger";
 import { WebkitAudioContext } from "../utils";
 import { requestMidi } from "../utils/request-midi";

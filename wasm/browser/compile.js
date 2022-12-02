@@ -36,15 +36,10 @@ const monkeyPatches = (code) => {
 const inputFile = path.join(srcDir, "workers/sab.worker.js");
 const tmpOutFileName = path.join(rootDir, "dist", "test.min.js");
 
-const comlinkJs = fs
-  .readFileSync(path.join(nodeModulesDir, "comlink", "dist", "esm", "comlink.min.mjs"))
-  .toString();
-
-const defaultIncludeVars = [`COMLINK_JS=${comlinkJs}`];
-
 const makeModuleExportsHack = () => {
   const data = fs.readFileSync(path.join(rootDir, "dist", "csound.js")).toString();
-  const uglifiedVar = data.match(/[A-Za-z]+\.execScript/g)[0].replace(".execScript", "");
+  const matchResults = data.match(/[A-Za-z]+\.execScript/g);
+  const uglifiedVar = matchResults[matchResults.length - 1].replace(".execScript", "");
 
   const hackedData = data.replace(
     "__GOOGLE_CLOSURE_REPLACEME__",
@@ -177,8 +172,6 @@ const compile = async (config) => {
       "./node_modules/lines-logger/package.json",
       "./node_modules/lines-logger/lib/browser.js",
       "./node_modules/lines-logger/lib/index.js",
-      "./node_modules/comlink/package.json",
-      "./node_modules/comlink/dist/esm/comlink.min.mjs",
       "./node_modules/unmute-ios-audio/package.json",
       "./node_modules/unmute-ios-audio/index.js",
       "./node_modules/eventemitter3/umd/eventemitter3.min.js",
@@ -187,7 +180,6 @@ const compile = async (config) => {
     ],
     hide_warnings_for: [
       "./node_modules/eventemitter3/umd/eventemitter3.min.js",
-      "./node_modules/comlink/dist/esm/comlink.min.mjs",
       "./node_modules/lines-logger/lib/index.js",
     ],
     jscomp_off: ["accessControls"],

@@ -1,10 +1,10 @@
 /* eslint-disable unicorn/require-post-message-target-origin */
 
+import * as Comlink from "../utils/comlink.js";
 import MessagePortState from "../utils/message-port-state";
 import { AUDIO_STATE, RING_BUFFER_SIZE } from "../constants";
 import { instantiateAudioPacket } from "./common.utils";
 import { logWorkletWorker as log } from "../logger";
-import * as Comlink from "comlink/dist/esm/comlink.min.mjs";
 
 const VANILLA_INPUT_WRITE_BUFFER_LEN = 2048;
 
@@ -228,19 +228,16 @@ function processVanillaBuffers(inputs, outputs) {
 }
 
 class CsoundWorkletProcessor extends AudioWorkletProcessor {
-  constructor({
-    processorOptions: {
-      contextUid,
-      inputsCount,
-      outputsCount,
-      ksmps,
-      // sampleRate,
-      maybeSharedArrayBuffer,
-      maybeSharedArrayBufferAudioIn,
-      maybeSharedArrayBufferAudioOut,
-    },
-  }) {
+  constructor({ processorOptions }) {
     super();
+
+    const contextUid = processorOptions["contextUid"];
+    const inputsCount = processorOptions["inputsCount"];
+    const outputsCount = processorOptions["outputsCount"];
+    const ksmps = processorOptions["ksmps"];
+    const maybeSharedArrayBuffer = processorOptions["maybeSharedArrayBuffer"];
+    const maybeSharedArrayBufferAudioIn = processorOptions["maybeSharedArrayBufferAudioIn"];
+    const maybeSharedArrayBufferAudioOut = processorOptions["maybeSharedArrayBufferAudioOut"];
 
     this.workerMessagePort = undefined;
     this.startPromiz = undefined;
@@ -371,7 +368,8 @@ class CsoundWorkletProcessor extends AudioWorkletProcessor {
   }
 }
 
-function initMessagePort({ port }) {
+function initMessagePort(payload) {
+  const port = payload["port"];
   log(`initMessagePort in worker`)();
   const workerMessagePort = new MessagePortState();
   workerMessagePort.post = (logMessage) => port.postMessage({ log: logMessage });
@@ -396,7 +394,7 @@ function initRequestPort({ requestPort, audioNode }) {
   };
 }
 
-function initAudioInputPort({ inputPort }) {
+function initAudioInputPort(inputPort) {
   log(`initAudioInputPort in worker`)();
   return {
     ready: false,
@@ -404,12 +402,17 @@ function initAudioInputPort({ inputPort }) {
   };
 }
 
-const initialize = async ({ contextUid, inputPort, messagePort, requestPort }) => {
+const initialize = async (payload) => {
+  const contextUid = payload["contextUid"];
+  const inputPort = payload["inputPort"];
+  const messagePort = payload["messagePort"];
+  const requestPort = payload["requestPort"];
+
   const nodeUid = `${contextUid}Node`;
   const audioNode = activeNodes.get(nodeUid);
   const workerMessagePort = initMessagePort({ port: messagePort });
 
-  const audioInputPort = initAudioInputPort({ inputPort });
+  const audioInputPort = initAudioInputPort(inputPort);
   const audioFramePort = initRequestPort({ requestPort, audioNode });
   let startPromiz;
   const startPromise = new Promise((resolve) => {

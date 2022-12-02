@@ -1,4 +1,4 @@
-import * as Comlink from "comlink/dist/esm/comlink.min.mjs";
+import * as Comlink from "../utils/comlink.js";
 import { logWorkletMain as log } from "../logger";
 import { WebkitAudioContext } from "../utils";
 import { requestMidi } from "../utils/request-midi";
@@ -59,22 +59,24 @@ class AudioWorkletMainThread {
   }
 
   createWorkletNode(audioContext, inputsCount, contextUid) {
+    const processorOptions = {};
+
+    processorOptions["contextUid"] = contextUid;
+    processorOptions["isRequestingInput"] = this.isRequestingInput;
+    processorOptions["inputsCount"] = inputsCount;
+    processorOptions["outputsCount"] = this.outputsCount;
+    processorOptions["ksmps"] = this.ksmps;
+    processorOptions["maybeSharedArrayBuffer"] =
+      this.csoundWorkerMain.hasSharedArrayBuffer && this.csoundWorkerMain.audioStatePointer;
+    processorOptions["maybeSharedArrayBufferAudioIn"] =
+      this.csoundWorkerMain.hasSharedArrayBuffer && this.csoundWorkerMain.audioStreamIn;
+    processorOptions["maybeSharedArrayBufferAudioOut"] =
+      this.csoundWorkerMain.hasSharedArrayBuffer && this.csoundWorkerMain.audioStreamOut;
+
     const audioNode = new AudioWorkletNode(audioContext, "csound-worklet-processor", {
       inputChannelCount: inputsCount ? [inputsCount] : 0,
       outputChannelCount: [this.outputsCount || 2],
-      processorOptions: {
-        contextUid,
-        isRequestingInput: this.isRequestingInput,
-        inputsCount,
-        outputsCount: this.outputsCount,
-        ksmps: this.ksmps,
-        maybeSharedArrayBuffer:
-          this.csoundWorkerMain.hasSharedArrayBuffer && this.csoundWorkerMain.audioStatePointer,
-        maybeSharedArrayBufferAudioIn:
-          this.csoundWorkerMain.hasSharedArrayBuffer && this.csoundWorkerMain.audioStreamIn,
-        maybeSharedArrayBufferAudioOut:
-          this.csoundWorkerMain.hasSharedArrayBuffer && this.csoundWorkerMain.audioStreamOut,
-      },
+      processorOptions,
     });
     this.csoundWorkerMain.publicEvents.triggerOnAudioNodeCreated(audioNode);
     return audioNode;
@@ -280,22 +282,21 @@ class AudioWorkletMainThread {
       "message",
       messageEventHandler(this),
     );
+
     this.ipcMessagePorts.mainMessagePortAudio.start();
 
-    await this.workletProxy.initialize(
-      Comlink.transfer(
-        {
-          contextUid,
-          messagePort: this.ipcMessagePorts.workerMessagePortAudio,
-          requestPort: this.ipcMessagePorts.audioWorkerFrameRequestPort,
-          inputPort: this.ipcMessagePorts.audioWorkerAudioInputPort,
-        },
-        [
-          this.ipcMessagePorts.workerMessagePortAudio,
-          this.ipcMessagePorts.audioWorkerFrameRequestPort,
-          this.ipcMessagePorts.audioWorkerAudioInputPort,
-        ],
-      ),
+    const initializePayload = {};
+    initializePayload["contextUid"] = contextUid;
+    initializePayload["messagePort"] = this.ipcMessagePorts.workerMessagePortAudio;
+    initializePayload["requestPort"] = this.ipcMessagePorts.audioWorkerFrameRequestPort;
+    initializePayload["inputPort"] = this.ipcMessagePorts.audioWorkerAudioInputPort;
+
+    await this.workletProxy["initialize"](
+      Comlink.transfer(initializePayload, [
+        this.ipcMessagePorts.workerMessagePortAudio,
+        this.ipcMessagePorts.audioWorkerFrameRequestPort,
+        this.ipcMessagePorts.audioWorkerAudioInputPort,
+      ]),
     );
 
     log("initialization finished in main")();

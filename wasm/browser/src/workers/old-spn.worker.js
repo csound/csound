@@ -1,4 +1,4 @@
-import * as Comlink from "comlink/dist/esm/comlink.min.mjs";
+import * as Comlink from "../utils/comlink.js";
 import { instantiateAudioPacket } from "./common.utils";
 import MessagePortState from "../utils/message-port-state";
 import { newAudioContext } from "../utils/new-audio-context";

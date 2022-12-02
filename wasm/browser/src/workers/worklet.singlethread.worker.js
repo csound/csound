@@ -22,7 +22,6 @@
     02110-1301 USA
 */
 
-// import * as Comlink from "comlink/dist/esm/comlink.min.mjs";
 import * as Comlink from "../utils/comlink.js";
 import MessagePortState from "../utils/message-port-state";
 import libcsoundFactory from "../libcsound";

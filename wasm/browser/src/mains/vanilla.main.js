@@ -1,4 +1,4 @@
-import * as Comlink from "comlink/dist/esm/comlink.min.mjs";
+import * as Comlink from "../utils/comlink.js";
 import { logVANMain as log } from "../logger";
 import { api as API } from "../libcsound";
 import { csoundApiRename, fetchPlugins, makeProxyCallback, stopableStates } from "../utils";
