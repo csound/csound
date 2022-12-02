@@ -1,4 +1,4 @@
-import * as Comlink from "comlink/dist/esm/comlink.mjs";
+import * as Comlink from "comlink/dist/esm/comlink.min.mjs";
 import { logWorkletMain as log } from "../logger";
 import { WebkitAudioContext } from "../utils";
 import { requestMidi } from "../utils/request-midi";
@@ -11,12 +11,17 @@ class AudioWorkletMainThread {
   constructor({ audioContext, audioContextIsProvided, autoConnect }) {
     this.autoConnect = autoConnect;
     this.audioContextIsProvided = audioContextIsProvided;
+    /** @type {({ mainMessagePortAudio: EventTarget } | undefined)} */
     this.ipcMessagePorts = undefined;
     this.audioContext = audioContext;
     this.audioWorkletNode = undefined;
     this.currentPlayState = undefined;
+    /** @type {({ hasSharedArrayBuffer: boolean } | undefined)} */
     this.csoundWorkerMain = undefined;
+    this.workletWorkerUrl = undefined;
     this.workletProxy = undefined;
+    this.isRequestingMidi = false;
+    this.isRequestingInput = false;
 
     // never default these, get it from
     // csound-worker before starting
@@ -269,7 +274,7 @@ class AudioWorkletMainThread {
     }
 
     microphonePromise && (await microphonePromise);
-    this.workletProxy = Comlink.wrap(this.audioWorkletNode.port);
+    this.workletProxy = Comlink.wrap(this.audioWorkletNode.port, undefined);
 
     this.ipcMessagePorts.mainMessagePortAudio.addEventListener(
       "message",

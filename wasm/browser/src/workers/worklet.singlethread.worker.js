@@ -22,11 +22,11 @@
     02110-1301 USA
 */
 
-import * as Comlink from "comlink/dist/esm/comlink.mjs";
+// import * as Comlink from "comlink/dist/esm/comlink.min.mjs";
+import * as Comlink from "../utils/comlink.js";
 import MessagePortState from "../utils/message-port-state";
 import libcsoundFactory from "../libcsound";
 import loadWasm from "../module";
-import { assoc, pipe } from "rambda/dist/rambda.mjs";
 import { clearArray } from "../utils/clear-array";
 import { logSinglethreadWorkletWorker as log } from "../logger";
 import { renderFunction } from "./common.utils";
@@ -48,16 +48,42 @@ class WorkletSinglethreadWorker extends AudioWorkletProcessor {
 
   constructor(options) {
     super(options);
-    // eslint-disable-next-line no-undef
-    this.sampleRate = sampleRate;
+    this.wasi = undefined;
+    this.wasm = undefined;
+    this.csoundInputBuffer = undefined;
+    this.csoundOutputBuffer = undefined;
+    /** @type {(number | undefined)} */
+    this.zerodBFS = undefined;
+    /** @type {(number | undefined)} */
+    this.nchnls = undefined;
+    /** @type {(number | undefined)} */
+    this.nchnls_i = undefined;
+    /** @type {(number | undefined)} */
+    this.cnt = undefined;
+    /** @type {(number | undefined)} */
+    this.ksmps = undefined;
+    /** @type {(number | undefined)} */
+    this.csound = undefined;
+    /** @type {(number | undefined)} */
+    this.result = undefined;
+
+    this.rtmidiPort = undefined;
+
+    /** @suppress {checkTypes} */
+    this.sampleRate = globalThis.sampleRate;
     this.options = options;
+    /** @export {function(string, (Array<*> | null)): Promise.<undefined>} */
     this.initialize = this.initialize.bind(this);
+    /** @export {function(): Promise.<undefined>} */
     this.pause = this.pause.bind(this);
     this.process = this.process.bind(this);
     this.resume = this.resume.bind(this);
     this.start = this.start.bind(this);
     this.needsStartNotification = false;
+    this.isRendering = false;
     this.isPaused = false;
+    this.running = false;
+    this.started = false;
     this.callUncloned = () => console.error("Csound worklet thread is still uninitialized!");
     this.port.start();
     Comlink.expose(this, this.port);
@@ -111,13 +137,14 @@ class WorkletSinglethreadWorker extends AudioWorkletProcessor {
         return this.csound;
       };
 
-      const allAPI = pipe(
-        assoc("csoundCreate", csoundCreate),
-        assoc("csoundReset", this.resetCsound.bind(this)),
-        assoc("csoundStart", this.start.bind(this)),
-        assoc("csoundStop", this.stop.bind(this)),
-        assoc("wasm", wasm),
-      )(libraryCsound);
+      const allAPI = {
+        ...libraryCsound,
+        csoundCreate,
+        csoundReset: this.resetCsound.bind(this),
+        csoundStop: this.stop.bind(this),
+        csoundStart: this.start.bind(this),
+        wasm,
+      };
 
       combined = new Map(Object.entries(allAPI));
       log("wasm initialized and api generated")();
@@ -187,7 +214,7 @@ class WorkletSinglethreadWorker extends AudioWorkletProcessor {
       const output = outputs[0];
       const bufferLength = output[0].length;
       for (let index = 0; index < bufferLength; index++) {
-        for (let channel = 0; channel < output.numberOfChannels; channel++) {
+        for (let channel = 0; channel < this.nchnls; channel++) {
           const outputChannel = output[channel];
           outputChannel[index] = 0;
         }
@@ -217,7 +244,8 @@ class WorkletSinglethreadWorker extends AudioWorkletProcessor {
     let csOut = this.csoundOutputBuffer;
     let csIn = this.csoundInputBuffer;
     const ksmps = this.ksmps;
-    const zerodBFS = this.zerodBFS;
+    /** @type {number} */
+    const zerodBFS = this.zerodBFS || 1;
 
     let cnt = this.cnt;
     const nchnls = this.nchnls;
@@ -269,6 +297,7 @@ class WorkletSinglethreadWorker extends AudioWorkletProcessor {
       // handle 1->1, 1->2, 2->1, 2->2 output channel count mixing and nchnls
       if (this.nchnls === output.length) {
         for (const [channel, outputChannel] of output.entries()) {
+          /** @suppress {checkTypes} */
           outputChannel[index] = result === 0 ? csOut[cnt * nchnls + channel] / zerodBFS : 0;
         }
       } else if (this.nchnls === 2 && output.length === 1) {

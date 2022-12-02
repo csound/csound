@@ -1,4 +1,4 @@
-import { expose } from "comlink/dist/esm/comlink.mjs";
+import { expose } from "comlink/dist/esm/comlink.min.mjs";
 import MessagePortState from "../utils/message-port-state";
 import libcsoundFactory from "../libcsound.js";
 import loadWasm from "../module";
@@ -11,7 +11,6 @@ import {
   MIDI_BUFFER_PAYLOAD_SIZE,
   initialSharedState,
 } from "../constants";
-import { assoc, pipe } from "rambda/dist/rambda.mjs";
 
 /**
  * @type {Map.<LibcsoundUncloned>}
@@ -398,7 +397,7 @@ const initialize = async ({ wasmDataURI, withPlugins = [], messagePort, callback
       }),
     )(arguments_);
 
-  const allAPI = pipe(assoc("csoundStart", startHandler), assoc("wasm", wasm))(libraryCsound);
+  const allAPI = { ...libraryCsound, csoundStart: startHandler, wasm };
   combined = new Map(Object.entries(allAPI));
 
   libraryCsound.csoundInitialize(0);

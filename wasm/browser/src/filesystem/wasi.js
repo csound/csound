@@ -15,10 +15,11 @@ function removeLeadingSlash(path) {
 }
 
 function shouldOpenReader(rights) {
-  return (
-    (rights & (constants.WASI_RIGHT_FD_READ | constants.WASI_RIGHT_FD_READDIR)) !==
-    goog.global.BigInt(0)
-  );
+  /** @suppress {checkTypes} */
+  const bor = constants.WASI_RIGHT_FD_READ | constants.WASI_RIGHT_FD_READDIR;
+  /** @suppress {suspiciousCode} */
+  const result = (rights & bor) !== goog.global.BigInt(0);
+  return result;
 }
 
 function performanceNowPoly() {
@@ -50,6 +51,10 @@ function concatUint8Arrays(arrays) {
   return result;
 }
 
+/**
+ * @constructor
+ * @this {WasiThis}
+ */
 export const WASI = function ({ preopens }) {
   this.fd = Array.from({ length: 4 });
 
@@ -64,7 +69,7 @@ export const WASI = function ({ preopens }) {
 
 /**
  * @function
- * @param {!WebAssembly.Instance} instance
+ * @param {!WasmInst} instance
  */
 WASI.prototype.start = function (instance) {
   this.CPUTIME_START = performanceNowPoly();
@@ -74,18 +79,18 @@ WASI.prototype.start = function (instance) {
 
 /**
  * @function
- * @param {!WebAssembly.Module} instance
+ * @param {!WebAssembly.Module} module
  */
 WASI.prototype.getImports = function (module) {
   const options = {};
   const neededImports = WebAssembly.Module.imports(module);
 
   for (const neededImport of neededImports) {
-    if (neededImport.kind === "function" && neededImport.module.startsWith("wasi_")) {
-      if (typeof options[neededImport.module] !== "object") {
-        options[neededImport.module] = {};
+    if (neededImport["kind"] === "function" && neededImport.module.startsWith("wasi_")) {
+      if (typeof options[neededImport["module"]] !== "object") {
+        options[neededImport["module"]] = {};
       }
-      options[neededImport.module][neededImport.name] = this[neededImport.name].bind(this);
+      options[neededImport["module"]][neededImport["name"]] = this[neededImport["name"]].bind(this);
     }
   }
 
@@ -136,24 +141,43 @@ WASI.prototype.now = function (clockId) {
   }
 };
 
+/**
+ * @export
+ * @return {number}
+ */
 WASI.prototype.args_get = function (argv, argvBuf) {
   if (DEBUG_WASI) {
     console.log("args_get", argv, argvBuf, constants);
   }
   return constants.WASI_ESUCCESS;
 };
+
+/**
+ * @export
+ * @return {number}
+ */
 WASI.prototype.args_sizes_get = function (argc, argvBufSize) {
   if (DEBUG_WASI) {
     console.log("args_sizes_get", argc, argvBufSize, arguments);
   }
   return constants.WASI_ESUCCESS;
 };
+
+/**
+ * @export
+ * @return {number}
+ */
 WASI.prototype.clock_res_get = function (clockId, resolution) {
   if (DEBUG_WASI) {
     console.log("args_get", clockId, resolution, arguments);
   }
   return constants.WASI_ESUCCESS;
 };
+
+/**
+ * @export
+ * @return {number}
+ */
 WASI.prototype.clock_time_get = function (clockId, precision, time) {
   if (DEBUG_WASI) {
     console.log("clock_time_get", clockId, precision, time, arguments);
@@ -163,30 +187,55 @@ WASI.prototype.clock_time_get = function (clockId, precision, time) {
   memory.setBigUint64(time, goog.global.BigInt(nextTime), true);
   return constants.WASI_ESUCCESS;
 };
+
+/**
+ * @export
+ * @return {number}
+ */
 WASI.prototype.environ_get = function (environ, environBuf) {
   if (DEBUG_WASI) {
     console.log("environ_get", environ, environBuf, arguments);
   }
   return constants.WASI_ESUCCESS;
 };
+
+/**
+ * @export
+ * @return {number}
+ */
 WASI.prototype.environ_sizes_get = function (environCount, environBufSize) {
   if (DEBUG_WASI) {
     console.log("environ_sizes_get", environCount, environBufSize, arguments);
   }
   return constants.WASI_ESUCCESS;
 };
+
+/**
+ * @export
+ * @return {number}
+ */
 WASI.prototype.fd_advise = function (fd, offset, length_, advice) {
   if (DEBUG_WASI) {
     console.log("fd_advise", fd, offset, length_, advice, arguments);
   }
   return constants.WASI_ENOSYS;
 };
+
+/**
+ * @export
+ * @return {number}
+ */
 WASI.prototype.fd_allocate = function (fd, offset, length_) {
   if (DEBUG_WASI) {
     console.log("fd_allocate", fd, offset, length_, arguments);
   }
   return constants.WASI_ENOSYS;
 };
+
+/**
+ * @export
+ * @return {number}
+ */
 WASI.prototype.fd_close = function (fd) {
   if (DEBUG_WASI) {
     console.log("fd_close", fd, arguments);
@@ -194,6 +243,11 @@ WASI.prototype.fd_close = function (fd) {
 
   return constants.WASI_ESUCCESS;
 };
+
+/**
+ * @export
+ * @return {number}
+ */
 WASI.prototype.fd_datasync = function (fd) {
   if (DEBUG_WASI) {
     console.log("fd_datasync", fd, arguments);
@@ -202,6 +256,10 @@ WASI.prototype.fd_datasync = function (fd) {
 };
 
 // always write access in browser scope
+/**
+ * @export
+ * @return {number}
+ */
 WASI.prototype.fd_fdstat_get = function (fd, bufPtr) {
   if (DEBUG_WASI) {
     console.log("fd_fdstat_get", fd, bufPtr, arguments);
@@ -222,12 +280,21 @@ WASI.prototype.fd_fdstat_get = function (fd, bufPtr) {
   return constants.WASI_ESUCCESS;
 };
 
+/**
+ * @export
+ * @return {number}
+ */
 WASI.prototype.fd_fdstat_set_flags = function (fd, flags) {
   if (DEBUG_WASI) {
     console.log("fd_fdstat_set_flags", fd, flags, arguments);
   }
   return constants.WASI_ENOSYS;
 };
+
+/**
+ * @export
+ * @return {number}
+ */
 WASI.prototype.fd_fdstat_set_rights = function (fd, fsRightsBase, fsRightsInheriting) {
   if (DEBUG_WASI) {
     console.log("fd_fdstat_set_rights", fd, fsRightsBase, fsRightsInheriting, arguments);
@@ -235,6 +302,10 @@ WASI.prototype.fd_fdstat_set_rights = function (fd, fsRightsBase, fsRightsInheri
   return constants.WASI_ESUCCESS;
 };
 
+/**
+ * @export
+ * @return {number}
+ */
 WASI.prototype.fd_filestat_get = function (fd, bufPtr) {
   if (DEBUG_WASI) {
     console.log("fd_filestat_get", fd, bufPtr, arguments);
@@ -267,6 +338,10 @@ WASI.prototype.fd_filestat_get = function (fd, bufPtr) {
   return constants.WASI_ESUCCESS;
 };
 
+/**
+ * @export
+ * @return {number}
+ */
 WASI.prototype.fd_filestat_set_size = function (fd, newSize) {
   if (DEBUG_WASI) {
     console.log("fd_filestat_set_size", fd, newSize, arguments);
@@ -274,6 +349,10 @@ WASI.prototype.fd_filestat_set_size = function (fd, newSize) {
   return constants.WASI_ESUCCESS;
 };
 
+/**
+ * @export
+ * @return {number}
+ */
 WASI.prototype.fd_filestat_set_times = function (fd, stAtim, stMtim, filestatFags) {
   if (DEBUG_WASI) {
     console.log("fd_filestat_set_times", fd, stAtim, stMtim, filestatFags, arguments);
@@ -281,6 +360,10 @@ WASI.prototype.fd_filestat_set_times = function (fd, stAtim, stMtim, filestatFag
   return constants.WASI_ESUCCESS;
 };
 
+/**
+ * @export
+ * @return {number}
+ */
 WASI.prototype.fd_pread = function (fd, iovs, iovsLength, offset, nread) {
   if (DEBUG_WASI) {
     console.log("fd_pread", fd, iovs, iovsLength, offset, nread, arguments);
@@ -288,6 +371,10 @@ WASI.prototype.fd_pread = function (fd, iovs, iovsLength, offset, nread) {
   return constants.WASI_ESUCCESS;
 };
 
+/**
+ * @export
+ * @return {number}
+ */
 WASI.prototype.fd_prestat_dir_name = function (fd, pathPtr, pathLength) {
   if (DEBUG_WASI) {
     console.log("fd_prestat_dir_name", fd, pathPtr, pathLength, this.fd[fd]);
@@ -306,6 +393,10 @@ WASI.prototype.fd_prestat_dir_name = function (fd, pathPtr, pathLength) {
   return constants.WASI_ESUCCESS;
 };
 
+/**
+ * @export
+ * @return {number}
+ */
 WASI.prototype.fd_prestat_get = function (fd, bufPtr) {
   if (DEBUG_WASI) {
     console.log("fd_prestat_get", fd, bufPtr, this.fd[fd]);
@@ -322,11 +413,19 @@ WASI.prototype.fd_prestat_get = function (fd, bufPtr) {
   return constants.WASI_ESUCCESS;
 };
 
+/**
+ * @export
+ * @return {number}
+ */
 WASI.prototype.fd_pwrite = function (fd, iovs, iovsLength, offset, nwritten) {
   console.log("fd_pwrite", fd, iovs, iovsLength, offset, nwritten, arguments);
   return constants.WASI_ESUCCESS;
 };
 
+/**
+ * @export
+ * @return {(number | undefined)}
+ */
 WASI.prototype.fd_read = function (fd, iovs, iovsLength, nread) {
   if (DEBUG_WASI) {
     console.log("fd_read", fd, iovs, iovsLength, nread, arguments);
@@ -400,7 +499,7 @@ WASI.prototype.fd_read = function (fd, iovs, iovsLength, nread) {
               currentChunkOffset += 1;
             }
           } else {
-            memory.setUint8(buf + currentRead, "\0");
+            memory.setUint8(buf + currentRead, 0);
             read += currentRead;
             reduced = true;
           }
@@ -421,6 +520,10 @@ WASI.prototype.fd_read = function (fd, iovs, iovsLength, nread) {
   return constants.WASI_ESUCCESS;
 };
 
+/**
+ * @export
+ * @return {number}
+ */
 WASI.prototype.fd_readdir = function (fd, bufPtr, bufLength, cookie, bufusedPtr) {
   if (DEBUG_WASI) {
     console.log("fd_readdir", fd, bufPtr, bufLength, cookie, bufusedPtr, arguments);
@@ -428,12 +531,21 @@ WASI.prototype.fd_readdir = function (fd, bufPtr, bufLength, cookie, bufusedPtr)
   return constants.WASI_ESUCCESS;
 };
 
+/**
+ * @export
+ * @return {number}
+ */
 WASI.prototype.fd_renumber = function (from, to) {
   if (DEBUG_WASI) {
     console.log("fd_renumber", from, to, arguments);
   }
   return constants.WASI_ESUCCESS;
 };
+
+/**
+ * @export
+ * @return {number}
+ */
 WASI.prototype.fd_seek = function (fd, offset, whence, newOffsetPtr) {
   if (DEBUG_WASI) {
     console.log("fd_seek", fd, offset, whence, newOffsetPtr, arguments);
@@ -442,6 +554,7 @@ WASI.prototype.fd_seek = function (fd, offset, whence, newOffsetPtr) {
 
   switch (whence) {
     case constants.WASI_WHENCE_CUR: {
+      /** @suppress {checkTypes} */
       this.fd[fd].seekPos =
         (this.fd[fd].seekPos ?? goog.global.BigInt(0)) + goog.global.BigInt(offset);
       break;
@@ -465,12 +578,22 @@ WASI.prototype.fd_seek = function (fd, offset, whence, newOffsetPtr) {
 
   return constants.WASI_ESUCCESS;
 };
+
+/**
+ * @export
+ * @return {number}
+ */
 WASI.prototype.fd_sync = function (fd) {
   if (DEBUG_WASI) {
     console.log("fd_sync", fd, arguments);
   }
   return constants.WASI_ESUCCESS;
 };
+
+/**
+ * @export
+ * @return {number}
+ */
 WASI.prototype.fd_tell = function (fd, offsetPtr) {
   if (DEBUG_WASI) {
     console.log("fd_tell", fd, offsetPtr, arguments);
@@ -486,6 +609,10 @@ WASI.prototype.fd_tell = function (fd, offsetPtr) {
   return constants.WASI_ESUCCESS;
 };
 
+/**
+ * @export
+ * @return {number}
+ */
 WASI.prototype.fd_write = function (fd, iovs, iovsLength, nwritten) {
   if (DEBUG_WASI) {
     console.log("fd_write", { fd, iovs, iovsLength, nwritten });
@@ -514,6 +641,7 @@ WASI.prototype.fd_write = function (fd, iovs, iovsLength, nwritten) {
     }
   }
 
+  /** @suppress {checkTypes} */
   this.fd[fd].seekPos += goog.global.BigInt(written);
 
   memory.setUint32(nwritten, written, true);
@@ -525,6 +653,10 @@ WASI.prototype.fd_write = function (fd, iovs, iovsLength, nwritten) {
   return constants.WASI_ESUCCESS;
 };
 
+/**
+ * @export
+ * @return {number}
+ */
 WASI.prototype.path_create_directory = function (fd, pathPtr, pathLength) {
   if (DEBUG_WASI) {
     console.log("path_create_directory", fd, pathPtr, pathLength, arguments);
@@ -532,6 +664,10 @@ WASI.prototype.path_create_directory = function (fd, pathPtr, pathLength) {
   return constants.WASI_ESUCCESS;
 };
 
+/**
+ * @export
+ * @return {number}
+ */
 WASI.prototype.path_filestat_get = function (fd, flags, pathPtr, pathLength, bufPtr) {
   if (DEBUG_WASI) {
     console.log("path_filestat_get", fd, flags, pathPtr, pathLength, bufPtr, arguments);
@@ -562,6 +698,11 @@ WASI.prototype.path_filestat_set_times = function (
   }
   return constants.WASI_ESUCCESS;
 };
+
+/**
+ * @export
+ * @return {number}
+ */
 WASI.prototype.path_link = function (
   oldFd,
   oldFlags,
@@ -587,6 +728,10 @@ WASI.prototype.path_link = function (
   return constants.WASI_ESUCCESS;
 };
 
+/**
+ * @export
+ * @return {number}
+ */
 WASI.prototype.path_open = function (
   dirfd,
   dirflags,
@@ -664,18 +809,32 @@ WASI.prototype.path_open = function (
   return constants.WASI_ESUCCESS;
 };
 
+/**
+ * @export
+ * @return {number}
+ */
 WASI.prototype.path_readlink = function (fd, pathPtr, pathLength, buf, bufLength, bufused) {
   if (DEBUG_WASI) {
     console.log("path_readlink", fd, pathPtr, pathLength, buf, bufLength, bufused, arguments);
   }
   return constants.WASI_ESUCCESS;
 };
+
+/**
+ * @export
+ * @return {number}
+ */
 WASI.prototype.path_remove_directory = function (fd, pathPtr, pathLength) {
   if (DEBUG_WASI) {
     console.log("path_remove_directory", fd, pathPtr, pathLength);
   }
   return constants.WASI_ESUCCESS;
 };
+
+/**
+ * @export
+ * @return {number}
+ */
 WASI.prototype.path_rename = function (
   oldFd,
   oldPath,
@@ -698,6 +857,11 @@ WASI.prototype.path_rename = function (
   }
   return constants.WASI_ESUCCESS;
 };
+
+/**
+ * @export
+ * @return {number}
+ */
 WASI.prototype.path_symlink = function (oldPath, oldPathLength, fd, newPath, newPathLength) {
   if (DEBUG_WASI) {
     console.log("path_symlink", oldPath, oldPathLength, fd, newPath, newPathLength, arguments);
@@ -705,6 +869,10 @@ WASI.prototype.path_symlink = function (oldPath, oldPathLength, fd, newPath, new
   return constants.WASI_ESUCCESS;
 };
 
+/**
+ * @export
+ * @return {number}
+ */
 WASI.prototype.path_unlink_file = function (fd, pathPtr, pathLength) {
   if (fd > 3 && DEBUG_WASI) {
     console.log("path_unlink_file", fd, pathPtr, pathLength, arguments);
@@ -714,48 +882,87 @@ WASI.prototype.path_unlink_file = function (fd, pathPtr, pathLength) {
   return constants.WASI_ESUCCESS;
 };
 
+/**
+ * @export
+ * @return {number}
+ */
 WASI.prototype.poll_oneoff = function (sin, sout, nsubscriptions, nevents) {
   if (DEBUG_WASI) {
     console.log("poll_oneoff", sin, sout, nsubscriptions, nevents, arguments);
   }
   return constants.WASI_ESUCCESS;
 };
+
+/**
+ * @export
+ * @return {number}
+ */
 WASI.prototype.proc_exit = function (rval) {
   if (DEBUG_WASI) {
     console.log("proc_exit", rval, arguments);
   }
   return constants.WASI_ESUCCESS;
 };
+
+/**
+ * @export
+ * @return {number}
+ */
 WASI.prototype.proc_raise = function (sig) {
   if (DEBUG_WASI) {
     console.log("proc_raise", sig, arguments);
   }
   return constants.WASI_ESUCCESS;
 };
+
+/**
+ * @export
+ * @return {number}
+ */
 WASI.prototype.random_get = function (bufPtr, bufLength) {
   if (DEBUG_WASI) {
     console.log("random_get", bufPtr, bufLength);
   }
   return constants.WASI_ESUCCESS;
 };
+
+/**
+ * @export
+ * @return {number}
+ */
 WASI.prototype.sched_yield = function () {
   if (DEBUG_WASI) {
     console.log("sched_yield", arguments);
   }
   return constants.WASI_ESUCCESS;
 };
+
+/**
+ * @export
+ * @return {number}
+ */
 WASI.prototype.sock_recv = function () {
   if (DEBUG_WASI) {
     console.log("sock_recv", arguments);
   }
   return constants.WASI_ENOSYS;
 };
+
+/**
+ * @export
+ * @return {number}
+ */
 WASI.prototype.sock_send = function () {
   if (DEBUG_WASI) {
     console.log("sock_send", arguments);
   }
   return constants.WASI_ENOSYS;
 };
+
+/**
+ * @export
+ * @return {number}
+ */
 WASI.prototype.sock_shutdown = function () {
   if (DEBUG_WASI) {
     console.log("sock_shutdown", arguments);

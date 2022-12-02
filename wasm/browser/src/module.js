@@ -3,7 +3,6 @@ import { WASI } from "./filesystem/wasi";
 import { clearArray } from "./utils/clear-array";
 import { uint2String } from "./utils/text-encoders.js";
 import { logWasmModule as log } from "./logger";
-import { importValuesOfTokens } from "./utils/native-sizes.js";
 import { Inflate } from "./zlib/inflate.js";
 
 const { assert } = goog.require("goog.asserts");
@@ -153,6 +152,9 @@ const loadStaticWasm = async ({ wasmBytes, wasmFs, wasi, messagePort }) => {
     messagePort,
   });
 
+  /**
+   * @suppress {checkTypes}
+   * @type {WasmInst} */
   const instance = await WebAssembly.instantiate(module, options);
 
   wasi.setMemory(memory);
@@ -239,6 +241,7 @@ export default async function ({ wasmDataURI, withPlugins = [], messagePort }) {
   const tableBase = new WebAssembly.Global({ value: "i32", mutable: false }, 1);
   const __dummy = new WebAssembly.Global({ value: "i32", mutable: true }, 0);
 
+  /** @suppress {checkTypes} */
   const module = await WebAssembly.compile(wasmBytes);
   const options = wasi.getImports(module);
   let withPlugins_ = [];
@@ -256,42 +259,50 @@ export default async function ({ wasmDataURI, withPlugins = [], messagePort }) {
     return 0;
   };
 
-  options.env = options.env || {};
-  options.env.memory = memory;
-  options.env.__indirect_function_table = table;
-  options.env.__stack_pointer = stackPointer;
-  options.env.__memory_base = memoryBase;
-  options.env.__table_base = tableBase;
-  options.env.csoundLoadModules = csoundLoadModules;
-  options.env.csoundLoadExternals = () => {};
+  options["env"] = options["env"] || {};
+  options["env"]["memory"] = memory;
+  options["env"]["__indirect_function_table"] = table;
+  options["env"]["__stack_pointer"] = stackPointer;
+  options["env"]["__memory_base"] = memoryBase;
+  options["env"]["__table_base"] = tableBase;
+  options["env"]["csoundLoadModules"] = csoundLoadModules;
+  options["env"]["csoundLoadExternals"] = () => {};
 
   // TODO find out what's leaking this thread-local errno (cpp?)
-  options.env._ZTH5errno = function () {};
+  options["env"]["_ZTH5errno"] = function () {};
 
   const streamBuffer = [];
-  options.env.csoundWasiJsMessageCallback = csoundWasiJsMessageCallback({
+  options["env"]["csoundWasiJsMessageCallback"] = csoundWasiJsMessageCallback({
     memory,
     messagePort,
     streamBuffer,
   });
 
-  options.env.printDebugCallback = (offset, length) => {
+  options["env"]["printDebugCallback"] = (offset, length) => {
     const buf = new Uint8Array(memory.buffer, offset, length);
     const string = uint2String(buf);
     console.log(string);
   };
 
   options["GOT.mem"] = options["GOT.mem"] || {};
-  options["GOT.mem"].__heap_base = heapBase;
+  options["GOT.mem"]["__heap_base"] = heapBase;
 
   options["GOT.func"] = options["GOT.func"] || {};
 
+  /**
+   * @suppress {checkTypes}
+   * @type {WasmInst} */
   const instance = await WebAssembly.instantiate(module, options);
-  const moduleExports = Object.assign({}, instance.exports);
+  const moduleExports = Object.assign({}, instance["exports"]);
+  /**
+   * @suppress {checkTypes}
+   * @type {WasmInst} */
   const instance_ = {};
-  instance_.exports = Object.assign(moduleExports, {
-    memory,
-  });
+
+  moduleExports["memory"] = memory;
+
+  /** @suppress {checkTypes} */
+  instance_.exports = moduleExports;
 
   withPlugins_ = await withPlugins.reduce(async (accumulator, { headerData, wasmPluginBytes }) => {
     accumulator = await accumulator;
@@ -302,6 +313,7 @@ export default async function ({ wasmDataURI, withPlugins = [], messagePort }) {
         tableSize: pluginTableSize,
       } = headerData;
 
+      /** @suppress {checkTypes} */
       const plugin = await WebAssembly.compile(wasmPluginBytes);
       const pluginOptions = wasi.getImports(plugin);
 
@@ -323,6 +335,9 @@ export default async function ({ wasmDataURI, withPlugins = [], messagePort }) {
 
       currentMemorySegment += Math.ceil((pluginMemorySize + pluginMemoryAlign) / PAGE_SIZE);
 
+      /**
+       * @suppress {checkTypes}
+       * @type {WasmInst} */
       const pluginInstance = await WebAssembly.instantiate(plugin, pluginOptions);
 
       if (assertPluginExports(pluginInstance)) {
@@ -335,7 +350,6 @@ export default async function ({ wasmDataURI, withPlugins = [], messagePort }) {
     return accumulator;
   }, []);
 
-  importValuesOfTokens(instance_);
   wasi.start(instance_);
 
   instance_.exports.__wasi_js_csoundSetMessageStringCallback();

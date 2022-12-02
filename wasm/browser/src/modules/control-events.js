@@ -8,12 +8,7 @@ import { freeStringPtr, ptr2string, string2ptr } from "../utils/string-pointers.
 /**
  * Inputs an immediate score event
  * without any pre-process parsing
- * @async
  * @function
- * @name inputMessage
- * @memberof CsoundObj
- * @param {string} scoreEvent
- * @return {Promise.<number>}
  */
 export const csoundInputMessage = (wasm) => (csound, scoEvent) => {
   const stringPtr = string2ptr(wasm, scoEvent);
@@ -27,12 +22,7 @@ csoundInputMessage.toString = () => "inputMessage = async (scoreEvent) => Number
 /**
  * Inputs an immediate score event
  * without any pre-process parsing
- * @async
  * @function
- * @name inputMessageAsync
- * @memberof CsoundObj
- * @param {string} scoreEvent
- * @return {Promise.<number>}
  */
 export const csoundInputMessageAsync = (wasm) => (csound, scoEvent) => {
   const stringPtr = string2ptr(wasm, scoEvent);
@@ -47,12 +37,7 @@ csoundInputMessageAsync.toString = () => "inputMessageAsync = async (scoreEvent)
  * Retrieves the value of control channel identified by channelName.
  * If the err argument is not NULL, the error (or success) code finding
  * or accessing the channel is stored in it.
- * @async
  * @function
- * @name getControlChannel
- * @memberof CsoundObj
- * @param {string} channelName
- * @return {Promise.<undefined>}
  */
 export const csoundGetControlChannel = (wasm) => (csound, channelName) => {
   const stringPtr = string2ptr(wasm, channelName);
@@ -65,13 +50,7 @@ csoundGetControlChannel.toString = () => "getControlChannel = async (channelName
 
 /**
  * Sets the value of control channel identified by channelName
- * @async
  * @function
- * @name setControlChannel
- * @memberof CsoundObj
- * @param {string} channelName
- * @param {number} value
- * @return {Promise.<undefined>}
  */
 export const csoundSetControlChannel = (wasm) => (csound, channelName, value) => {
   const stringPtr = string2ptr(wasm, channelName);
@@ -83,12 +62,7 @@ csoundSetControlChannel.toString = () => "setControlChannel = async (channelName
 
 /**
  * Retrieves the string channel identified by channelName
- * @async
  * @function
- * @name getStringChannel
- * @memberof CsoundObj
- * @param {string} channelName
- * @return {Promise.<undefined>}
  */
 export const csoundGetStringChannel = (wasm) => (csound, channelName) => {
   const stringPtr = string2ptr(wasm, channelName);
@@ -104,13 +78,7 @@ csoundGetStringChannel.toString = () => "getStringChannel = async (channelName) 
 
 /**
  * Sets the string channel value identified by channelName
- * @async
  * @function
- * @name setStringChannel
- * @memberof CsoundObj
- * @param {string} channelName
- * @param {string} value
- * @return {Promise.<undefined>}
  */
 export const csoundSetStringChannel = (wasm) => (csound, channelName, value) => {
   const stringPtr = string2ptr(wasm, channelName);

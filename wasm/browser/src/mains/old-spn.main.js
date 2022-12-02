@@ -1,4 +1,4 @@
-import * as Comlink from "comlink/dist/esm/comlink.mjs";
+import * as Comlink from "comlink/dist/esm/comlink.min.mjs";
 import { logOldSpnMain as log } from "../logger";
 import { WebkitAudioContext } from "../utils";
 import { requestMidi } from "../utils/request-midi";
@@ -15,11 +15,38 @@ let UID = 0;
 
 class ScriptProcessorNodeMainThread {
   constructor({ audioContext, audioContextIsProvided, autoConnect }) {
+    this.isRequestingMidi = false;
+    this.isRequestingInput = false;
+    this.contextUid = undefined;
+    this.iFrameElement = undefined;
+
+    /**
+     * @suppress {checkTypes}
+     * @type {{triggerRealtimePerformanceStarted: function(Object): void}}
+     */
+    this.publicEvents = undefined;
+
+    /**
+     * @suppress {checkTypes}
+     * @type {{audioWorkerFrameRequestPort: function(): void}}
+     */
+    this.ipcMessagePorts = undefined;
+
     this.autoConnect = autoConnect;
     this.audioContextIsProvided = audioContextIsProvided;
 
     this.audioContext = audioContext;
     this.currentPlayState = undefined;
+
+    /**
+     * @suppress {checkTypes}
+     * @type {{eventPromises: {
+     * releaseStartPromise: function(): Promise.<void>,
+     * releasePausePromise: function(): Promise.<void>,
+     * releaseResumePromise: function(): Promise.<void>,
+     * }
+     * }}
+     */
     this.csoundWorkerMain = undefined;
 
     // never default these, get it from
@@ -177,7 +204,7 @@ class ScriptProcessorNodeMainThread {
     UID += 1;
 
     if (!proxyPort) {
-      proxyPort = Comlink.wrap(Comlink.windowEndpoint(spnWorker));
+      proxyPort = Comlink.wrap(Comlink.windowEndpoint(spnWorker), undefined);
     }
 
     if (!this.audioContext) {

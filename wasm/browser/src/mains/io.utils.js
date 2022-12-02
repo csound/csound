@@ -25,6 +25,13 @@ export const requestMicrophoneNode = (microphoneCallback) => {
 };
 
 // rebind this to exportApi instance to use
+/**
+ * @function
+ * @this {{
+ * getNode: function(): Promise.<Object>,
+ * getAudioContext: function(): Promise.<Object>,
+ * }}
+ */
 export async function enableAudioInput() {
   console.log("enabling audio input");
   requestMicrophoneNode(async (stream) => {
@@ -33,10 +40,8 @@ export async function enableAudioInput() {
       const liveInput = audioContext.createMediaStreamSource(stream);
       this.inputsCount = liveInput.channelCount;
 
-      // if (this.autoConnect) {
       const node = await this.getNode();
       liveInput.connect(node);
-      // }
     }
   });
 }

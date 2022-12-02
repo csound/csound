@@ -51,7 +51,6 @@ export class PublicEventAPI {
       "onAudioNodeCreated",
       "message",
     ]);
-    Object.keys(this).forEach((key) => delete this[key]);
   }
 
   triggerRealtimePerformanceStarted() {
@@ -144,7 +143,7 @@ export class PublicEventAPI {
      * @memberof CsoundObj
      * @param {PublicEvents} eventName
      * @param {function()} listener
-     * @return {EventEmitter}
+     * @return {EventTarget}
      */
     exportApi.off = this.eventEmitter.off.bind(this.eventEmitter);
     /**
@@ -157,7 +156,7 @@ export class PublicEventAPI {
      * @memberof CsoundObj
      * @param {PublicEvents} eventName
      * @param {function()} listener
-     * @return {EventEmitter}
+     * @return {EventTarget}
      */
     exportApi.on = this.eventEmitter.on.bind(this.eventEmitter);
     /**
@@ -167,7 +166,7 @@ export class PublicEventAPI {
      * @memberof CsoundObj
      * @param {PublicEvents} eventName
      * @param {function()} listener
-     * @return {EventEmitter}
+     * @return {EventTarget}
      */
     exportApi.addListener = this.eventEmitter.on.bind(this.eventEmitter);
     /**
@@ -178,7 +177,7 @@ export class PublicEventAPI {
      * @memberof CsoundObj
      * @param {PublicEvents} eventName
      * @param {function()} listener
-     * @return {EventEmitter}
+     * @return {EventTarget}
      */
     exportApi.once = this.eventEmitter.once.bind(this.eventEmitter);
     /**
@@ -191,7 +190,7 @@ export class PublicEventAPI {
      * @name removeAllListeners
      * @memberof CsoundObj
      * @param {PublicEvents} eventName
-     * @return {EventEmitter}
+     * @return {EventTarget}
      */
     exportApi.removeAllListeners = this.eventEmitter.removeAllListeners.bind(this.eventEmitter);
     /**
@@ -205,7 +204,7 @@ export class PublicEventAPI {
      * @memberof CsoundObj
      * @param {PublicEvents} eventName
      * @param {function()} listener
-     * @return {EventEmitter}
+     * @return {EventTarget}
      */
     exportApi.removeListener = this.eventEmitter.removeListener.bind(this.eventEmitter);
     return exportApi;

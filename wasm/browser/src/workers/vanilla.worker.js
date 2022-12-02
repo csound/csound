@@ -1,5 +1,5 @@
 /* eslint-disable unicorn/require-post-message-target-origin */
-import { expose } from "comlink/dist/esm/comlink.mjs";
+import { expose } from "comlink/dist/esm/comlink.min.mjs";
 import MessagePortState from "../utils/message-port-state";
 // import { initFS, getWorkerFs, syncWorkerFs } from "../filesystem/worker-fs";
 import { logVANWorker as log } from "../logger";
@@ -8,10 +8,10 @@ import { handleCsoundStart, instantiateAudioPacket, renderFunction } from "./com
 import libcsoundFactory from "../libcsound";
 import loadWasm from "../module";
 import { clearArray } from "../utils/clear-array";
-import { assoc, pipe } from "rambda/dist/rambda.mjs";
 
 let combined;
-let audioProcessCallback = () => {};
+
+let audioProcessCallback = ({ numFrames /** number */ }) => {};
 const rtmidiQueue = [];
 
 const createAudioInputBuffers = (audioInputs, inputsCount) => {
@@ -282,7 +282,7 @@ const initialize = async ({
       }),
     )(arguments_);
 
-  const allAPI = pipe(assoc("csoundStart", startHandler), assoc("wasm", wasm))(libraryCsound);
+  const allAPI = { ...libraryCsound, csoundStart: startHandler, wasm };
   combined = new Map(Object.entries(allAPI));
 
   libraryCsound.csoundInitialize(0);

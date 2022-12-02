@@ -27,6 +27,7 @@ IN THE SOFTWARE.
 */
 
 if (goog.global !== undefined) {
+  /** @suppress {checkTypes} */
   goog.global = {};
 }
 
@@ -183,6 +184,8 @@ export const WASI_RIGHT_PATH_UNLINK_FILE = goog.global.BigInt(0x0000000004000000
 export const WASI_RIGHT_POLL_FD_READWRITE = goog.global.BigInt(0x0000000008000000);
 export const WASI_RIGHT_SOCK_SHUTDOWN = goog.global.BigInt(0x0000000010000000);
 
+/** @suppress {checkTypes}
+ *  @type {bigint} */
 export const RIGHTS_ALL =
   WASI_RIGHT_FD_DATASYNC |
   WASI_RIGHT_FD_READ |
@@ -214,12 +217,24 @@ export const RIGHTS_ALL =
   WASI_RIGHT_POLL_FD_READWRITE |
   WASI_RIGHT_SOCK_SHUTDOWN;
 
+/** @suppress {checkTypes}
+ *  @type {bigint} */
 export const RIGHTS_BLOCK_DEVICE_BASE = RIGHTS_ALL;
+
+/** @suppress {checkTypes}
+ *  @type {bigint} */
 export const RIGHTS_BLOCK_DEVICE_INHERITING = RIGHTS_ALL;
 
+/** @suppress {checkTypes}
+ *  @type {bigint} */
 export const RIGHTS_CHARACTER_DEVICE_BASE = RIGHTS_ALL;
+
+/** @suppress {checkTypes}
+ *  @type {bigint} */
 export const RIGHTS_CHARACTER_DEVICE_INHERITING = RIGHTS_ALL;
 
+/** @suppress {checkTypes}
+ *  @type {bigint} */
 export const RIGHTS_REGULAR_FILE_BASE =
   WASI_RIGHT_FD_DATASYNC |
   WASI_RIGHT_FD_READ |
@@ -237,6 +252,8 @@ export const RIGHTS_REGULAR_FILE_BASE =
 
 export const RIGHTS_REGULAR_FILE_INHERITING = goog.global.BigInt(0);
 
+/** @suppress {checkTypes}
+ *  @type {bigint} */
 export const RIGHTS_DIRECTORY_BASE =
   WASI_RIGHT_FD_FDSTAT_SET_FLAGS |
   WASI_RIGHT_FD_SYNC |
@@ -260,8 +277,12 @@ export const RIGHTS_DIRECTORY_BASE =
   WASI_RIGHT_PATH_REMOVE_DIRECTORY |
   WASI_RIGHT_POLL_FD_READWRITE;
 
+/** @suppress {checkTypes}
+ *  @type {bigint} */
 export const RIGHTS_DIRECTORY_INHERITING = RIGHTS_DIRECTORY_BASE | RIGHTS_REGULAR_FILE_BASE;
 
+/** @suppress {checkTypes}
+ *  @type {bigint} */
 export const RIGHTS_SOCKET_BASE =
   WASI_RIGHT_FD_READ |
   WASI_RIGHT_FD_FDSTAT_SET_FLAGS |
@@ -270,8 +291,12 @@ export const RIGHTS_SOCKET_BASE =
   WASI_RIGHT_POLL_FD_READWRITE |
   WASI_RIGHT_SOCK_SHUTDOWN;
 
+/** @suppress {checkTypes}
+ *  @type {bigint} */
 export const RIGHTS_SOCKET_INHERITING = RIGHTS_ALL;
 
+/** @suppress {checkTypes}
+ *  @type {bigint} */
 export const RIGHTS_TTY_BASE =
   WASI_RIGHT_FD_READ |
   WASI_RIGHT_FD_FDSTAT_SET_FLAGS |

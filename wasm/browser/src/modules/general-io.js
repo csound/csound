@@ -9,9 +9,6 @@ import { trimNull } from "../utils/trim-null.js";
 /**
  * Returns the audio output name (-o)
  * @function
- * @name getOutputName
- * @memberof CsoundObj
- * @return {Promise.<string>}
  */
 export const csoundGetOutputName = (wasm) => (csound) => {
   const { buffer } = wasm.wasi.memory;
@@ -25,9 +22,6 @@ csoundGetOutputName.toString = () => "getOutputName = async () => String;";
 /**
  * Returns the audio input name (-i)
  * @function
- * @name getInputName
- * @memberof CsoundObj
- * @return {Promise.<string>}
  */
 export const csoundGetInputName = (wasm) => (csound) => {
   const { buffer } = wasm.wasi.memory;

@@ -24,7 +24,6 @@
 import libcsoundFactory from "../libcsound";
 import loadWasm from "../module";
 import MessagePortState from "../utils/message-port-state";
-import { isEmpty } from "rambda/dist/rambda.mjs";
 import { csoundApiRename, fetchPlugins, makeSingleThreadCallback } from "../utils";
 import { messageEventHandler } from "./messages.main";
 import { PublicEventAPI } from "../events";
@@ -33,6 +32,28 @@ import { requestMidi } from "../utils/request-midi";
 
 class ScriptProcessorNodeSingleThread {
   constructor({ audioContext, inputChannelCount = 1, outputChannelCount = 2 }) {
+    // just initializers for google-closure to detect the types faster
+    this.result = 0;
+    this.zerodBFS = 0;
+    this.cnt = 0;
+    this.nchnls = 0;
+    this.nchnls_i = 0;
+    this.ksmps = 0;
+    this.csoundInputBuffer = undefined;
+    this.csoundOutputBuffer = undefined;
+
+    /**
+     * @type {WasmInst}
+     * @suppress {checkTypes}
+     */
+    this.wasi = undefined;
+    /**
+     * @type {{wasi: WasmInst}}
+     * @suppress {checkTypes}
+     */
+    this.wasm = undefined;
+    this.plugins = undefined;
+
     this.publicEvents = new PublicEventAPI(this);
     this.eventPromises = new EventPromises();
     this.audioContext = audioContext;
@@ -43,8 +64,13 @@ class ScriptProcessorNodeSingleThread {
     this.stop = this.stop.bind(this);
     this.pause = this.pause.bind(this);
     this.resume = this.resume.bind(this);
-    this.wasm = undefined;
+
+    /**
+     * @type {CsoundInst}
+     * @suppress {checkTypes}
+     */
     this.csoundInstance = undefined;
+    /** @type {(WasmExports | undefined)} */
     this.csoundApi = undefined;
     this.exportApi = {};
     this.spn = audioContext.createScriptProcessor(0, inputChannelCount, outputChannelCount);
@@ -83,7 +109,6 @@ class ScriptProcessorNodeSingleThread {
       delete this.publicEvents;
     }
     Object.keys(this.exportApi).forEach((key) => delete this.exportApi[key]);
-    Object.keys(this).forEach((key) => delete this[key]);
   }
 
   async onPlayStateChange(newPlayState) {
@@ -93,28 +118,28 @@ class ScriptProcessorNodeSingleThread {
     this.currentPlayState = newPlayState;
     switch (newPlayState) {
       case "realtimePerformanceStarted": {
-        this.publicEvents.triggerRealtimePerformanceStarted(this);
+        this.publicEvents.triggerRealtimePerformanceStarted();
         break;
       }
 
       case "realtimePerformanceEnded": {
-        this.publicEvents.triggerRealtimePerformanceEnded(this);
+        this.publicEvents.triggerRealtimePerformanceEnded();
         break;
       }
       case "realtimePerformancePaused": {
-        this.publicEvents.triggerRealtimePerformancePaused(this);
+        this.publicEvents.triggerRealtimePerformancePaused();
         break;
       }
       case "realtimePerformanceResumed": {
-        this.publicEvents.triggerRealtimePerformanceResumed(this);
+        this.publicEvents.triggerRealtimePerformanceResumed();
         break;
       }
       case "renderStarted": {
-        this.publicEvents.triggerRenderStarted(this);
+        this.publicEvents.triggerRenderStarted();
         break;
       }
       case "renderEnded": {
-        this.publicEvents.triggerRenderEnded(this);
+        this.publicEvents.triggerRenderEnded();
 
         break;
       }
@@ -144,15 +169,6 @@ class ScriptProcessorNodeSingleThread {
       this.eventPromises.createStopPromise();
       const stopResult = this.csoundApi.csoundStop(this.csoundInstance);
       await this.eventPromises.waitForStop();
-      if (this.watcherStdOut) {
-        this.watcherStdOut.close();
-        delete this.watcherStdOut;
-      }
-
-      if (this.watcherStdErr) {
-        this.watcherStdErr.close();
-        delete this.watcherStdErr;
-      }
 
       delete this.csoundInputBuffer;
       delete this.csoundOutputBuffer;
@@ -185,7 +201,7 @@ class ScriptProcessorNodeSingleThread {
 
       const outputPointer = this.csoundApi.csoundGetSpout(this.csoundInstance);
       this.csoundOutputBuffer = new Float64Array(
-        this.wasm.wasi.memory.buffer,
+        this.wasi.memory.buffer,
         outputPointer,
         ksmps * this.nchnls,
       );
@@ -229,7 +245,7 @@ class ScriptProcessorNodeSingleThread {
   }
 
   async initialize({ wasmDataURI, withPlugins, autoConnect }) {
-    if (!this.plugins && withPlugins && !isEmpty(withPlugins)) {
+    if (!this.plugins && withPlugins && withPlugins.length > 0) {
       withPlugins = await fetchPlugins(withPlugins);
     }
 

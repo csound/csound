@@ -8,8 +8,9 @@ export async function requestMidi({ onMidiMessage /** function(number,number,num
       const midiDevices = await navigator.requestMIDIAccess();
 
       if (midiDevices.inputs) {
-        /** @type {Iterator}
-         *  @supress {JSC_WRONG_ARGUMENT_COUNT}
+        /**
+         * @type {Iterator}
+         *  @suppress {checkTypes}
          */
         const midiInputs = midiDevices.inputs.values();
         for (let input = midiInputs.next(); input && !input.done; input = midiInputs.next()) {

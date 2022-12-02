@@ -1,7 +1,9 @@
 (async () => {
   const isCI = ["8081", "8082"].includes(location.port) && location.search.includes("ci=true");
   const url = "/dist/csound.js"; // isCI ? "/csound.esm.js" : "/csound.dev.esm.js";
-  const { Csound } = await import(url);
+  const resp = await import(url);
+  console.log({ resp });
+  const { Csound } = resp;
 
   const helloWorld = `
 <CsoundSynthesizer>

@@ -84,8 +84,6 @@ import {
 } from "./modules/table";
 import * as fs from "./filesystem/worker-fs";
 
-import { assoc, dissoc, keys, mergeAll, reduce } from "rambda/dist/rambda.mjs";
-
 goog.declareModuleId("libcsound");
 
 /*
@@ -94,6 +92,10 @@ goog.declareModuleId("libcsound");
    first argument before they can be called as
    documented.
 */
+/**
+ * @type {WasmExports}
+ * @suppress {checkTypes}
+ */
 export const api = {
   // @module/instantiation
   csoundCreate,
@@ -180,8 +182,18 @@ export const api = {
 };
 
 export default function (wasm) {
-  return mergeAll([
-    reduce((accumulator, k) => assoc(k, api[k](wasm), accumulator), {}, keys(dissoc("fs")(api))),
-    reduce((accumulator, k) => assoc(k, api.fs[k](wasm), accumulator), {}, keys(fs)),
-  ]);
+  const apiFs = api["fs"];
+
+  return {
+    ...Object.keys(api).reduce((accumulator, k) => {
+      console.log("k1", k);
+      accumulator[k] = api[k](wasm);
+      return accumulator;
+    }, {}),
+    ...Object.keys(fs).reduce((accumulator, k) => {
+      console.log("k2", k);
+      accumulator[k] = apiFs[k](wasm);
+      return accumulator;
+    }, {}),
+  };
 }

@@ -16,7 +16,8 @@
           const csound = await Csound({ useWorker: false, useSAB: false });
           const response = await fetch(exampleUrl);
           const testSampleArrayBuffer = await response.arrayBuffer();
-          const testSample = new Uint8Array(testSampleArrayBuffer);
+            const testSample = new Uint8Array(testSampleArrayBuffer);
+            console.log({csound})
           await csound.fs.writeFile(fileName, testSample);
           await csound.setOption("-odac");
           await csound.compileCsdText(`

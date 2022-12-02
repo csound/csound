@@ -1,9 +1,9 @@
-import * as Comlink from "comlink/dist/esm/comlink.mjs";
+import * as Comlink from "comlink/dist/esm/comlink.min.mjs";
 import { instantiateAudioPacket } from "./common.utils";
 import MessagePortState from "../utils/message-port-state";
 import { newAudioContext } from "../utils/new-audio-context";
 import { logOldSpnWorker as log } from "../logger";
-import { range } from "rambda/dist/rambda.mjs";
+import { range } from "../utils.js";
 
 let startPromize;
 
@@ -81,6 +81,10 @@ class CsoundScriptNodeProcessor {
     audioContextIsProvided,
     autoConnect,
   }) {
+    this.requestPort = undefined;
+    this.workerMessagePort = undefined;
+    this.transferInputFrames = undefined;
+
     this.autoConnect = autoConnect;
     this.audioContextIsProvided = audioContextIsProvided;
     this.hardwareBufferSize = hardwareBufferSize;
@@ -95,6 +99,7 @@ class CsoundScriptNodeProcessor {
     this.vanillaInputReadIndex = 0;
     this.vanillaAvailableFrames = 0;
     this.pendingFrames = 0;
+    this.bufferUnderrunCount = 0;
 
     this.vanillaInitialized = false;
     this.vanillaFirstTransferDone = false;

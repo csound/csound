@@ -1,7 +1,6 @@
-import * as Comlink from "comlink/dist/esm/comlink.mjs";
+import * as Comlink from "comlink/dist/esm/comlink.min.mjs";
 import { logVANMain as log } from "../logger";
 import { api as API } from "../libcsound";
-import { isEmpty } from "rambda/dist/rambda.mjs";
 import { csoundApiRename, fetchPlugins, makeProxyCallback, stopableStates } from "../utils";
 import { IPCMessagePorts, messageEventHandler } from "./messages.main";
 import { EventPromises } from "../utils/event-promises";
@@ -38,10 +37,15 @@ class VanillaWorkerMainThread {
       this.outputChannelCount = outputChannelCount;
     }
 
+    /**
+     * @suppress {checkTypes}
+     * @type {CsoundObj} */
     this.exportApi = {};
     this.csoundInstance = undefined;
     this.currentPlayState = undefined;
-    // this.messageCallbacks = [];
+    this.proxyPort = undefined;
+    this.csoundWorker = undefined;
+
     this.midiPortStarted = false;
     this.onPlayStateChange = this.onPlayStateChange.bind(this);
   }
@@ -63,7 +67,6 @@ class VanillaWorkerMainThread {
       this.publicEvents.terminateInstance();
     }
     Object.keys(this.exportApi).forEach((key) => delete this.exportApi[key]);
-    Object.keys(this).forEach((key) => delete this[key]);
   }
 
   get api() {
@@ -117,19 +120,19 @@ class VanillaWorkerMainThread {
         // a noop if the stop promise already exists
         this.eventPromises.createStopPromise();
         this.midiPortStarted = false;
-        this.publicEvents.triggerRealtimePerformanceEnded(this);
+        this.publicEvents.triggerRealtimePerformanceEnded();
         await this.eventPromises.releaseStopPromise();
         break;
       }
 
       case "renderStarted": {
         await this.eventPromises.releaseStartPromise();
-        this.publicEvents.triggerRenderStarted(this);
+        this.publicEvents.triggerRenderStarted();
         break;
       }
       case "renderEnded": {
         log(`event: renderEnded received, beginning cleanup`)();
-        this.publicEvents.triggerRenderEnded(this);
+        this.publicEvents.triggerRenderEnded();
         await this.eventPromises.releaseStopPromise();
         break;
       }
@@ -181,7 +184,7 @@ class VanillaWorkerMainThread {
       await this.audioWorker.initIframe();
     }
 
-    if (withPlugins && !isEmpty(withPlugins)) {
+    if (withPlugins && withPlugins.length > 0) {
       withPlugins = await fetchPlugins(withPlugins);
     }
     log(`vanilla.main: initialize`)();
@@ -190,7 +193,7 @@ class VanillaWorkerMainThread {
     this.ipcMessagePorts.mainMessagePort2.addEventListener("message", messageEventHandler(this));
     this.ipcMessagePorts.mainMessagePort.start();
 
-    const proxyPort = Comlink.wrap(this.csoundWorker);
+    const proxyPort = Comlink.wrap(this.csoundWorker, undefined);
     this.proxyPort = proxyPort;
 
     this.csoundInstance = await proxyPort.initialize(

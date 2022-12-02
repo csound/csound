@@ -24,10 +24,11 @@ unmuteIosAudio();
  * @async
  * @export
  * @expose
+ * @noalias
+ * @param {CsoundExportArguments} argumentz
  * @return {Promise.<CsoundObj|undefined>}
- * @suppress {misplacedTypeAnnotation}
  */
-export const Csound = async function ({
+const Csound = async function ({
   audioContext,
   inputChannelCount,
   outputChannelCount,

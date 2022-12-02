@@ -1,14 +1,22 @@
 /* eslint-disable unicorn/require-post-message-target-origin */
-import { expose } from "comlink/dist/esm/comlink.mjs";
+
 import MessagePortState from "../utils/message-port-state";
 import { AUDIO_STATE, RING_BUFFER_SIZE } from "../constants";
 import { instantiateAudioPacket } from "./common.utils";
 import { logWorkletWorker as log } from "../logger";
+import * as Comlink from "comlink/dist/esm/comlink.min.mjs";
 
 const VANILLA_INPUT_WRITE_BUFFER_LEN = 2048;
 
 const activeNodes = new Map();
 
+/**
+ * @function
+ * @this {{
+ * workerMessagePort: Object,
+ * bufferLength: number,
+ * }}
+ */
 function processSharedArrayBuffer(inputs, outputs) {
   const isPerforming = Atomics.load(this.sharedArrayBuffer, AUDIO_STATE.IS_PERFORMING) === 1;
   const isPaused = Atomics.load(this.sharedArrayBuffer, AUDIO_STATE.IS_PAUSED) === 1;
@@ -113,6 +121,10 @@ function processSharedArrayBuffer(inputs, outputs) {
   return true;
 }
 
+/** @this {{
+ * pendingFrames: number,
+ * }}
+ */
 function processVanillaBuffers(inputs, outputs) {
   if (!this.vanillaInitialized) {
     // this minimizes startup glitches
@@ -229,6 +241,12 @@ class CsoundWorkletProcessor extends AudioWorkletProcessor {
     },
   }) {
     super();
+
+    this.workerMessagePort = undefined;
+    this.startPromiz = undefined;
+    this.audioFramePort = undefined;
+    this.audioInputPort = undefined;
+
     const nodeUid = `${contextUid}Node`;
     activeNodes.set(nodeUid, this);
     this.messagePortsReady = false;
@@ -243,6 +261,7 @@ class CsoundWorkletProcessor extends AudioWorkletProcessor {
     this.inputWriteIndex = 0;
     this.outputReadIndex = 0;
     this.bufferUnderrunCount = 0;
+    this.bufferLength = 0;
 
     // NON-SAB PROCESS
     this.isPerformingLastTime = false;
@@ -284,7 +303,7 @@ class CsoundWorkletProcessor extends AudioWorkletProcessor {
       this.actualProcess = processVanillaBuffers.bind(this);
       this.updateVanillaFrames = this.updateVanillaFrames.bind(this);
     }
-    expose({ initialize, pause: this.pause, resume: this.resume }, this.port);
+    Comlink.expose({ initialize, pause: this.pause, resume: this.resume }, this.port);
     log(`Worker thread was constructed`)();
   }
 

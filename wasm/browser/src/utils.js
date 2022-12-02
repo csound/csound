@@ -74,3 +74,11 @@ export const fetchPlugins = async (withPlugins) => {
     }),
   );
 };
+
+export const range = (start, end) => {
+  const answer = [];
+  for (let index = start; index <= end; index++) {
+    answer.push(index);
+  }
+  return answer;
+};

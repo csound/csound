@@ -21,7 +21,7 @@
     02110-1301 USA
 */
 
-import * as Comlink from "comlink/dist/esm/comlink.mjs";
+import * as Comlink from "../utils/comlink.js";
 import { logSinglethreadWorkletMain as log } from "../logger.js";
 import { csoundApiRename, fetchPlugins, makeProxyCallback } from "../utils.js";
 import { messageEventHandler, IPCMessagePorts } from "./messages.main.js";
@@ -45,6 +45,11 @@ const initializeModule = async (audioContext) => {
 
 class SingleThreadAudioWorkletMainThread {
   constructor({ audioContext, inputChannelCount = 1, outputChannelCount = 2 }) {
+    /** @type {(WorkletSinglethreadProxy | undefined)} */
+    this.workletProxy = undefined;
+    this.node = undefined;
+    this.csoundInstance = undefined;
+
     this.exportApi = {};
     this.ipcMessagePorts = new IPCMessagePorts();
     this.publicEvents = new PublicEventAPI(this);
@@ -57,6 +62,7 @@ class SingleThreadAudioWorkletMainThread {
     this.messageCallbacks = [];
     this.onPlayStateChange = this.onPlayStateChange.bind(this);
     this.currentPlayState = undefined;
+    this.midiPortStarted = false;
   }
 
   async terminateInstance() {
@@ -79,7 +85,6 @@ class SingleThreadAudioWorkletMainThread {
       delete this.publicEvents;
     }
     Object.keys(this.exportApi).forEach((key) => delete this.exportApi[key]);
-    Object.keys(this).forEach((key) => delete this[key]);
   }
 
   async onPlayStateChange(newPlayState) {
@@ -95,14 +100,14 @@ class SingleThreadAudioWorkletMainThread {
           log("Start promise resolved")();
           this.eventPromises.releaseStartPromise();
         }
-        this.publicEvents.triggerRealtimePerformanceStarted(this);
+        this.publicEvents.triggerRealtimePerformanceStarted();
         break;
       }
 
       case "realtimePerformanceEnded": {
         this.midiPortStarted = false;
         this.currentPlayState = undefined;
-        this.publicEvents && this.publicEvents.triggerRealtimePerformanceEnded(this);
+        this.publicEvents && this.publicEvents.triggerRealtimePerformanceEnded();
         this.eventPromises &&
           this.eventPromises.isWaitingToStop() &&
           this.eventPromises.releaseStopPromise();
@@ -111,23 +116,23 @@ class SingleThreadAudioWorkletMainThread {
         break;
       }
       case "realtimePerformancePaused": {
-        this.publicEvents.triggerRealtimePerformancePaused(this);
+        this.publicEvents.triggerRealtimePerformancePaused();
         break;
       }
       case "realtimePerformanceResumed": {
-        this.publicEvents.triggerRealtimePerformanceResumed(this);
+        this.publicEvents.triggerRealtimePerformanceResumed();
         break;
       }
       case "renderStarted": {
         if (this.eventPromises.isWaitingToStart()) {
           log("Start promise resolved")();
-          this.publicEvents.triggerRenderStarted(this);
+          this.publicEvents.triggerRenderStarted();
           this.eventPromises.releaseStartPromise();
         }
         break;
       }
       case "renderEnded": {
-        this.publicEvents.triggerRenderEnded(this);
+        this.publicEvents.triggerRenderEnded();
         this.eventPromises &&
           this.eventPromises.isWaitingToStop() &&
           this.eventPromises.releaseStopPromise();
@@ -177,19 +182,23 @@ class SingleThreadAudioWorkletMainThread {
 
     try {
       log("wrapping Comlink proxy endpoint on the audioWorkletNode.port")();
-      this.workletProxy = Comlink.wrap(this.node.port);
+      this.workletProxy = Comlink.wrap(this.node.port, undefined);
     } catch (error) {
       console.error("COMLINK ERROR", error);
     }
 
+    /** @nocollapse */
+    const initializeMessagePortPayload = {};
+
+    initializeMessagePortPayload["messagePort"] = this.ipcMessagePorts.workerMessagePort;
+    initializeMessagePortPayload["rtmidiPort"] = this.ipcMessagePorts.csoundWorkerRtMidiPort;
+
+    console.log({ initializeMessagePortPayload });
     await this.workletProxy.initializeMessagePort(
-      Comlink.transfer(
-        {
-          messagePort: this.ipcMessagePorts.workerMessagePort,
-          rtmidiPort: this.ipcMessagePorts.csoundWorkerRtMidiPort,
-        },
-        [this.ipcMessagePorts.workerMessagePort, this.ipcMessagePorts.csoundWorkerRtMidiPort],
-      ),
+      Comlink.transfer(initializeMessagePortPayload, [
+        this.ipcMessagePorts.workerMessagePort,
+        this.ipcMessagePorts.csoundWorkerRtMidiPort,
+      ]),
     );
     this.ipcMessagePorts.mainMessagePort.addEventListener("message", messageEventHandler(this));
     this.ipcMessagePorts.mainMessagePort.start();
@@ -209,18 +218,18 @@ class SingleThreadAudioWorkletMainThread {
       this.currentPlayState,
     )(0);
 
-    this.exportApi.pause = this.csoundPause.bind(this);
-    this.exportApi.resume = this.csoundResume.bind(this);
-    this.exportApi.terminateInstance = this.terminateInstance.bind(this);
+    this.exportApi["pause"] = this.csoundPause.bind(this);
+    this.exportApi["resume"] = this.csoundResume.bind(this);
+    this.exportApi["terminateInstance"] = this.terminateInstance.bind(this);
 
-    this.exportApi.getAudioContext = async () => this.audioContext;
-    this.exportApi.getNode = async () => this.node;
-    this.exportApi.enableAudioInput = enableAudioInput.bind(this.exportApi);
+    this.exportApi["getAudioContext"] = async () => this.audioContext;
+    this.exportApi["getNode"] = async () => this.node;
+    this.exportApi["enableAudioInput"] = enableAudioInput.bind(this.exportApi);
 
-    this.exportApi.name = "Csound: Audio Worklet, Single-threaded";
+    this.exportApi["name"] = "Csound: Audio Worklet, Single-threaded";
     this.exportApi = this.publicEvents.decorateAPI(this.exportApi);
     // the default message listener
-    this.exportApi.addListener("message", console.log);
+    this.exportApi["addListener"]("message", console.log);
 
     for (const apiK of Object.keys(API)) {
       const reference = API[apiK];
@@ -243,10 +252,10 @@ class SingleThreadAudioWorkletMainThread {
 
             if (isRequestingRealtimeOutput) {
               if (isRequestingInput) {
-                this.exportApi.enableAudioInput();
+                this.exportApi["enableAudioInput"]();
               }
 
-              const isRequestingMidi = await this.exportApi._isRequestingRtMidiInput(
+              const isRequestingMidi = await this.exportApi["_isRequestingRtMidiInput"](
                 csoundInstance,
               );
 
@@ -270,7 +279,7 @@ class SingleThreadAudioWorkletMainThread {
           };
 
           csoundStart.toString = () => reference.toString();
-          this.exportApi.start = csoundStart.bind(this);
+          this.exportApi["start"] = csoundStart.bind(this);
           break;
         }
         case "csoundStop": {
@@ -291,7 +300,7 @@ class SingleThreadAudioWorkletMainThread {
         }
 
         case "fs": {
-          this.exportApi.fs = {};
+          this.exportApi["fs"] = {};
           Object.keys(reference).forEach((method) => {
             const proxyFsCallback = makeProxyCallback(
               this.workletProxy,
@@ -300,7 +309,7 @@ class SingleThreadAudioWorkletMainThread {
               this.currentPlayState,
             );
             proxyFsCallback.toString = () => reference[method].toString();
-            this.exportApi.fs[method] = proxyFsCallback;
+            this.exportApi["fs"][method] = proxyFsCallback;
           });
           break;
         }

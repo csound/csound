@@ -36,10 +36,30 @@ const monkeyPatches = (code) => {
 const inputFile = path.join(srcDir, "workers/sab.worker.js");
 const tmpOutFileName = path.join(rootDir, "dist", "test.min.js");
 
-if (fs.existsSync(distDir)) {
-  rimraf.sync(distDir);
-}
-fs.mkdirSync(distDir);
+const comlinkJs = fs
+  .readFileSync(path.join(nodeModulesDir, "comlink", "dist", "esm", "comlink.min.mjs"))
+  .toString();
+
+const defaultIncludeVars = [`COMLINK_JS=${comlinkJs}`];
+
+const makeModuleExportsHack = () => {
+  const data = fs.readFileSync(path.join(rootDir, "dist", "csound.js")).toString();
+  const uglifiedVar = data.match(/[A-Za-z]+\.execScript/g)[0].replace(".execScript", "");
+
+  const hackedData = data.replace(
+    "__GOOGLE_CLOSURE_REPLACEME__",
+    DEV
+      ? `const Csound = Csound$$$module$src$index; export { Csound }; export default Csound;`
+      : `const Csound = ${uglifiedVar}["Csound$$$module$src$index"]; export { Csound }; export default Csound;`,
+  );
+
+  fs.writeFileSync(path.join(rootDir, "dist", "csound.js"), hackedData);
+};
+
+// if (fs.existsSync(distDir)) {
+//   rimraf.sync(distDir);
+// }
+// fs.mkdirSync(distDir);
 
 if (process.env.BUILD_STATIC) {
   fs.writeFileSync(
@@ -126,11 +146,9 @@ const compilationSequence = [
     create_source_map: path.join(rootDir, "dist", "csound.js.map"),
     define: DEV ? [] : ["PRODUCTION=1"],
     output_manifest: "output.manifest.txt",
+    postbuild: makeModuleExportsHack,
     output_wrapper: trimString(`%output%
-      const Csound = Csound$$module$src$index;
-      Csound.toString = () => 'async (options) => CsoundObj;';
-      export { Csound }
-      export default Csound
+       __GOOGLE_CLOSURE_REPLACEME__
       //# sourceMappingURL=csound.js.map`),
   },
 ];
@@ -159,12 +177,8 @@ const compile = async (config) => {
       "./node_modules/lines-logger/package.json",
       "./node_modules/lines-logger/lib/browser.js",
       "./node_modules/lines-logger/lib/index.js",
-      "./node_modules/rambda/package.json",
-      "./node_modules/rambda/dist/rambda.mjs",
-      "./node_modules/path-browserify/package.json",
-      "./node_modules/path-browserify/index.js",
       "./node_modules/comlink/package.json",
-      "./node_modules/comlink/dist/esm/comlink.mjs",
+      "./node_modules/comlink/dist/esm/comlink.min.mjs",
       "./node_modules/unmute-ios-audio/package.json",
       "./node_modules/unmute-ios-audio/index.js",
       "./node_modules/eventemitter3/umd/eventemitter3.min.js",
@@ -172,11 +186,13 @@ const compile = async (config) => {
       "./node_modules/google-closure-library/**/*.js",
     ],
     hide_warnings_for: [
-      // "./node_modules/@wasmer/wasi/lib/index.esm.js",
-      // "./node_modules/buffer-es6/index.js",
+      "./node_modules/eventemitter3/umd/eventemitter3.min.js",
+      "./node_modules/comlink/dist/esm/comlink.min.mjs",
+      "./node_modules/lines-logger/lib/index.js",
     ],
+    jscomp_off: ["accessControls"],
     assume_function_wrapper: false,
-    compilation_level: "SIMPLE_OPTIMIZATIONS", //DEV ? "SIMPLE_OPTIMIZATIONS" : "ADVANCED",
+    compilation_level: DEV ? "SIMPLE_OPTIMIZATIONS" : "ADVANCED",
     language_in: "ECMASCRIPT_2021",
     process_common_js_modules: true,
     rewrite_polyfills: false,

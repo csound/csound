@@ -88,11 +88,11 @@
   },
   "dependencies": {
     "comlink": "^4.3.1",
+    "eslint-plugin-n": "^15.5.1",
     "eventemitter3": "^4.0.7",
     "google-closure-compiler": "^20221102.0.1",
     "google-closure-library": "^20221102.0.0",
-    "path-browserify": "^1.0.1",
-    "rambda": "^7.4.0",
+    "ramda": "^0.28.0",
     "rimraf": "^3.0.2",
     "standardized-audio-context": "^25.3.35",
     "text-encoding-shim": "^1.0.5",

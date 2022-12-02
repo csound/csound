@@ -1,4 +1,4 @@
-import * as Comlink from "comlink/dist/esm/comlink.mjs";
+import * as Comlink from "comlink/dist/esm/comlink.min.mjs";
 import { api as API } from "../libcsound";
 import { messageEventHandler, IPCMessagePorts } from "./messages.main";
 import {
@@ -10,7 +10,6 @@ import {
   initialSharedState,
 } from "../constants";
 import { logSABMain as log } from "../logger";
-import { isEmpty } from "rambda/dist/rambda.mjs";
 import { csoundApiRename, fetchPlugins, makeProxyCallback, stopableStates } from "../utils";
 import { EventPromises } from "../utils/event-promises";
 import { PublicEventAPI } from "../events";
@@ -24,6 +23,17 @@ class SharedArrayBufferMainThread {
     inputChannelCount,
     outputChannelCount,
   }) {
+    this.csoundInstance = undefined;
+    this.currentPlayState = undefined;
+    this.wasmTransformerDataURI = undefined;
+    this.wasmTransformerDataURI = undefined;
+    /**
+     * @type {SABMainProxy}
+     * @suppress {checkTypes}
+     */
+    this.proxyPort = undefined;
+    this.csoundWorker = undefined;
+
     this.hasSharedArrayBuffer = true;
     this.ipcMessagePorts = new IPCMessagePorts();
     this.eventPromises = new EventPromises();
@@ -33,8 +43,6 @@ class SharedArrayBufferMainThread {
     this.audioContextIsProvided = audioContextIsProvided;
     this.audioWorker = audioWorker;
     this.audioWorker.onPlayStateChange = this.audioWorker.onPlayStateChange.bind(audioWorker);
-    this.csoundInstance = undefined;
-    this.currentPlayState = undefined;
     this.currentDerivedPlayState = "stop";
     this.exportApi = {};
 
@@ -95,7 +103,6 @@ class SharedArrayBufferMainThread {
       this.publicEvents.terminateInstance();
     }
     Object.keys(this.exportApi).forEach((key) => delete this.exportApi[key]);
-    Object.keys(this).forEach((key) => delete this[key]);
   }
 
   get api() {
@@ -181,13 +188,13 @@ class SharedArrayBufferMainThread {
         break;
       }
       case "renderStarted": {
-        this.publicEvents.triggerRenderStarted(this);
+        this.publicEvents.triggerRenderStarted();
         this.eventPromises.releaseStartPromise();
         break;
       }
       case "renderEnded": {
         log(`event: renderEnded received, beginning cleanup`)();
-        this.publicEvents.triggerRenderEnded(this);
+        this.publicEvents.triggerRenderEnded();
         this.eventPromises && this.eventPromises.releaseStopPromise();
         break;
       }
@@ -228,7 +235,7 @@ class SharedArrayBufferMainThread {
   }
 
   async initialize({ wasmDataURI, withPlugins }) {
-    if (withPlugins && !isEmpty(withPlugins)) {
+    if (withPlugins && withPlugins.length > 0) {
       withPlugins = await fetchPlugins(withPlugins);
     }
 
@@ -274,17 +281,17 @@ class SharedArrayBufferMainThread {
           this.onPlayStateChange(
             this.currentPlayState === "renderStarted" ? "renderEnded" : "realtimePerformanceEnded",
           );
-          this.publicEvents && this.publicEvents.triggerRealtimePerformanceEnded(this);
+          this.publicEvents && this.publicEvents.triggerRealtimePerformanceEnded();
           this.eventPromises && this.eventPromises.releaseStopPromise();
           break;
         }
         case "releasePause": {
-          this.publicEvents.triggerRealtimePerformancePaused(this);
+          this.publicEvents.triggerRealtimePerformancePaused();
           this.eventPromises.releasePausePromise();
           break;
         }
         case "releaseResumed": {
-          this.publicEvents.triggerRealtimePerformanceResumed(this);
+          this.publicEvents.triggerRealtimePerformanceResumed();
           this.eventPromises.releaseResumePromise();
           break;
         }
@@ -298,7 +305,7 @@ class SharedArrayBufferMainThread {
     });
     this.ipcMessagePorts.sabMainCallbackReply.start();
 
-    const proxyPort = Comlink.wrap(csoundWorker);
+    const proxyPort = Comlink.wrap(csoundWorker, undefined);
     const wasmBytes = wasmDataURI();
     this.proxyPort = proxyPort;
     const csoundInstance = await proxyPort.initialize(

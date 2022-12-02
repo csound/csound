@@ -5,27 +5,19 @@
 
 /**
  * Returns the number of samples in Csound's input buffer.
- * @async
  * @function
- * @name getInputBufferSize
- * @memberof CsoundObj
- * @return {Promise.<number>}
  */
 export const csoundGetInputBufferSize = (wasm) => (csound) =>
-  wasm.exports.csoundGetInputBufferSize(csound);
+  wasm["exports"]["csoundGetInputBufferSize"](csound);
 
 csoundGetInputBufferSize.toString = () => "getInputBufferSize = async () => Number;";
 
 /**
  * Returns the number of samples in Csound's output buffer.
- * @async
  * @function
- * @name getOutputBufferSize
- * @memberof CsoundObj
- * @return {Promise.<number>}
  */
 export const csoundGetOutputBufferSize = (wasm) => (csound) =>
-  wasm.exports.csoundGetOutputBufferSize(csound);
+  wasm["exports"]["csoundGetOutputBufferSize"](csound);
 
 csoundGetOutputBufferSize.toString = () => "getOutputBufferSize = async () => Number;";
 
@@ -34,7 +26,7 @@ csoundGetOutputBufferSize.toString = () => "getOutputBufferSize = async () => Nu
  * @function
  */
 export const csoundGetInputBuffer = (wasm /* WasmInst */) => (csound /* CsoundInst */) =>
-  wasm.exports.csoundGetInputBuffer(csound);
+  wasm["exports"]["csoundGetInputBuffer"](csound);
 
 csoundGetInputBuffer.toString = () => "getInputBuffer = async () => Number;";
 
@@ -43,7 +35,7 @@ csoundGetInputBuffer.toString = () => "getInputBuffer = async () => Number;";
  * @function
  */
 export const csoundGetOutputBuffer = (wasm /* WasmInst */) => (csound /* CsoundInst */) =>
-  wasm.exports.csoundGetOutputBuffer(csound);
+  wasm["exports"]["csoundGetOutputBuffer"](csound);
 
 csoundGetOutputBuffer.toString = () => "getOutputBuffer = async () => Number;";
 
@@ -53,7 +45,7 @@ csoundGetOutputBuffer.toString = () => "getOutputBuffer = async () => Number;";
  * @function
  */
 export const csoundGetSpin = (wasm /* WasmInst */) => (csound /* CsoundInst */) =>
-  wasm.exports.csoundGetSpin(csound);
+  wasm["exports"]["csoundGetSpin"](csound);
 
 csoundGetSpin.toString = () => "getSpin = async (csound) => Number;";
 
@@ -63,7 +55,7 @@ csoundGetSpin.toString = () => "getSpin = async (csound) => Number;";
  * @function
  */
 export const csoundGetSpout = (wasm /* WasmInst */) => (csound /* CsoundInst */) =>
-  wasm.exports.csoundGetSpout(csound);
+  wasm["exports"]["csoundGetSpout"](csound);
 
 csoundGetSpout.toString = () => "getSpout = async () => Number;";
 
