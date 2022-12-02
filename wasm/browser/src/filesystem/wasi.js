@@ -73,8 +73,8 @@ export const WASI = function ({ preopens }) {
  */
 WASI.prototype.start = function (instance) {
   this.CPUTIME_START = performanceNowPoly();
-  const exports = instance.exports;
-  exports._start();
+  const exports = instance["exports"];
+  exports["_start"]();
 };
 
 /**

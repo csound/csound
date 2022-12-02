@@ -30,7 +30,7 @@ const s = new Map([
         const { port1: t, port2: n } = new MessageChannel();
         return o(e, t), [n, [n]];
       },
-      deserialize: (e) => (e.start(), c(e)),
+      deserialize: (e) => (e.start(), c(e, undefined)),
     },
   ],
   [
@@ -73,7 +73,7 @@ function o(e, t = self) {
           (t[u.slice(-1)[0]] = E(a.data.value)), (p = !0);
           break;
         case "APPLY":
-          console.log("N.apply", n, t, l);
+          // console.log("N.apply", n, t, l);
           p = n.apply(t, l);
           break;
         case "CONSTRUCT":
@@ -111,7 +111,7 @@ function i(e) {
   })(e) && e.close();
 }
 function c(e, r) {
-  return (function e(r, a = [], s = function () {}) {
+  return /** @suppress {duplicate} */ (function e(r, a = [], s = function () {}) {
     let o = false;
     const c = new Proxy(s, {
       get(t, s) {
@@ -216,7 +216,7 @@ function h(e, t, n) {
     e.start && e.start();
     const message = t;
     message["id"] = a;
-    console.log("message2", message);
+    // console.trace("message2", message);
     e.postMessage(message, n);
   });
 }

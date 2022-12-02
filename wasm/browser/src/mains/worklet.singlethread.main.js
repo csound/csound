@@ -60,6 +60,8 @@ class SingleThreadAudioWorkletMainThread {
     this.outputChannelCount = outputChannelCount;
 
     this.messageCallbacks = [];
+
+    /** @export */
     this.onPlayStateChange = this.onPlayStateChange.bind(this);
     this.currentPlayState = undefined;
     this.midiPortStarted = false;
@@ -149,13 +151,13 @@ class SingleThreadAudioWorkletMainThread {
 
   async csoundPause() {
     if (this.workletProxy !== undefined) {
-      await this.workletProxy.pause();
+      await this.workletProxy["pause"]();
     }
   }
 
   async csoundResume() {
     if (this.workletProxy !== undefined) {
-      await this.workletProxy.resume();
+      await this.workletProxy["resume"]();
     }
   }
 
@@ -193,8 +195,7 @@ class SingleThreadAudioWorkletMainThread {
     initializeMessagePortPayload["messagePort"] = this.ipcMessagePorts.workerMessagePort;
     initializeMessagePortPayload["rtmidiPort"] = this.ipcMessagePorts.csoundWorkerRtMidiPort;
 
-    console.log({ initializeMessagePortPayload });
-    await this.workletProxy.initializeMessagePort(
+    await this.workletProxy["initializeMessagePort"](
       Comlink.transfer(initializeMessagePortPayload, [
         this.ipcMessagePorts.workerMessagePort,
         this.ipcMessagePorts.csoundWorkerRtMidiPort,
@@ -203,7 +204,7 @@ class SingleThreadAudioWorkletMainThread {
     this.ipcMessagePorts.mainMessagePort.addEventListener("message", messageEventHandler(this));
     this.ipcMessagePorts.mainMessagePort.start();
 
-    await this.workletProxy.initialize(wasmDataURI(), withPlugins);
+    await this.workletProxy["initialize"](wasmDataURI(), withPlugins);
     const csoundInstance = await makeProxyCallback(
       this.workletProxy,
       undefined,
@@ -223,9 +224,10 @@ class SingleThreadAudioWorkletMainThread {
     this.exportApi["terminateInstance"] = this.terminateInstance.bind(this);
 
     this.exportApi["getAudioContext"] = async () => this.audioContext;
+    /** @suppress {checkTypes} */
     this.exportApi["getNode"] = async () => this.node;
-    this.exportApi["enableAudioInput"] = enableAudioInput.bind(this.exportApi);
-
+    /** @suppress {checkTypes} */
+    this.exportApi["enableAudioInput"] = enableAudioInput;
     this.exportApi["name"] = "Csound: Audio Worklet, Single-threaded";
     this.exportApi = this.publicEvents.decorateAPI(this.exportApi);
     // the default message listener
@@ -247,8 +249,10 @@ class SingleThreadAudioWorkletMainThread {
         case "csoundStart": {
           const csoundStart = async function () {
             this.eventPromises.createStartPromise();
-            const isRequestingInput = await this.workletProxy.isRequestingInput();
-            const isRequestingRealtimeOutput = await this.workletProxy.isRequestingRealtimeOutput();
+            const isRequestingInput = await this.workletProxy["isRequestingInput"]();
+            const isRequestingRealtimeOutput = await this.workletProxy[
+              "isRequestingRealtimeOutput"
+            ]();
 
             if (isRequestingRealtimeOutput) {
               if (isRequestingInput) {
@@ -278,7 +282,7 @@ class SingleThreadAudioWorkletMainThread {
             }
           };
 
-          csoundStart.toString = () => reference.toString();
+          csoundStart["toString"] = () => reference["toString"]();
           this.exportApi["start"] = csoundStart.bind(this);
           break;
         }
@@ -294,7 +298,7 @@ class SingleThreadAudioWorkletMainThread {
               return stopResult;
             }
           };
-          csoundStop.toString = () => reference.toString();
+          csoundStop["toString"] = () => reference["toString"]();
           this.exportApi.stop = csoundStop.bind(this);
           break;
         }
@@ -308,14 +312,14 @@ class SingleThreadAudioWorkletMainThread {
               method,
               this.currentPlayState,
             );
-            proxyFsCallback.toString = () => reference[method].toString();
+            proxyFsCallback["toString"] = () => reference[method]["toString"]();
             this.exportApi["fs"][method] = proxyFsCallback;
           });
           break;
         }
 
         default: {
-          proxyCallback.toString = () => reference.toString();
+          proxyCallback["toString"] = () => reference["toString"]();
           this.exportApi[csoundApiRename(apiK)] = proxyCallback;
           break;
         }

@@ -6,7 +6,7 @@ import { trimNull } from "./trim-null.js";
  * @param {number} ptr
  */
 export const freeStringPtr = (wasm, ptr) => {
-  wasm.exports.freeStringMem(ptr);
+  wasm["exports"]["freeStringMem"](ptr);
 };
 
 export const ptr2string = (wasm, stringPtr) => {
@@ -23,7 +23,7 @@ export const string2ptr = (wasm, string) => {
   }
 
   const stringBuf = encoder.encode(string);
-  const offset = wasm.exports.allocStringMem(stringBuf.length);
+  const offset = wasm["exports"]["allocStringMem"](stringBuf.length);
   const { buffer } = wasm.wasi.memory;
   const outBuf = new Uint8Array(buffer, offset, stringBuf.length + 1);
   outBuf.set(stringBuf);

@@ -31,8 +31,8 @@ import {
   csoundGetCurrentTimeSamples,
   csoundGetSizeOfMYFLT,
   csoundSetOption,
-  csoundSetParams as csoundSetParameters,
-  csoundGetParams as csoundGetParameters,
+  csoundSetParams,
+  csoundGetParams,
   csoundGetDebug,
   csoundSetDebug,
 } from "./modules/attributes";
@@ -45,7 +45,7 @@ import {
   csoundGetSpout,
 } from "./modules/rtaudio";
 import {
-  csoundGetMIDIDevList as csoundGetMIDIDevelopmentList,
+  csoundGetMIDIDevList,
   csoundSetMidiCallbacks,
   csoundGetRtMidiName,
   csoundGetMidiOutFileName,
@@ -61,7 +61,7 @@ import {
   csoundSetStringChannel,
 } from "./modules/control-events";
 import { csoundGetInputName, csoundGetOutputName } from "./modules/general-io";
-import { csoundAppendEnv as csoundAppendEnvironment, csoundShouldDaemonize } from "./modules/extra";
+import { csoundAppendEnv, csoundShouldDaemonize } from "./modules/extra";
 import {
   csoundIsScorePending,
   csoundSetScorePending,
@@ -78,7 +78,7 @@ import {
   csoundTableCopyIn,
   csoundTableCopyOut,
   csoundGetTable,
-  csoundGetTableArgs as csoundGetTableArguments,
+  csoundGetTableArgs,
   csoundIsNamedGEN,
   csoundGetNamedGEN,
 } from "./modules/table";
@@ -128,8 +128,8 @@ export const api = {
   csoundGetCurrentTimeSamples,
   csoundGetSizeOfMYFLT,
   csoundSetOption,
-  csoundSetParams: csoundSetParameters,
-  csoundGetParams: csoundGetParameters,
+  csoundSetParams,
+  csoundGetParams,
   csoundGetDebug,
   csoundSetDebug,
   // @module/rtaudio
@@ -140,7 +140,7 @@ export const api = {
   csoundGetSpin,
   csoundGetSpout,
   // @module/rtmidi
-  csoundGetMIDIDevList: csoundGetMIDIDevelopmentList,
+  csoundGetMIDIDevList,
   csoundSetMidiCallbacks,
   csoundGetRtMidiName,
   csoundGetMidiOutFileName,
@@ -157,7 +157,7 @@ export const api = {
   csoundGetInputName,
   csoundGetOutputName,
   // @module/extra
-  csoundAppendEnv: csoundAppendEnvironment,
+  csoundAppendEnv,
   csoundShouldDaemonize,
   // @module/score-handling
   csoundIsScorePending,
@@ -174,7 +174,7 @@ export const api = {
   csoundTableCopyIn,
   csoundTableCopyOut,
   csoundGetTable,
-  csoundGetTableArgs: csoundGetTableArguments,
+  csoundGetTableArgs,
   csoundIsNamedGEN,
   csoundGetNamedGEN,
   // filesystem
@@ -182,16 +182,15 @@ export const api = {
 };
 
 export default function (wasm) {
-  const apiFs = api["fs"];
+  const apiFs = { ...api["fs"] };
+  delete api["fs"];
 
   return {
     ...Object.keys(api).reduce((accumulator, k) => {
-      console.log("k1", k);
       accumulator[k] = api[k](wasm);
       return accumulator;
     }, {}),
     ...Object.keys(fs).reduce((accumulator, k) => {
-      console.log("k2", k);
       accumulator[k] = apiFs[k](wasm);
       return accumulator;
     }, {}),

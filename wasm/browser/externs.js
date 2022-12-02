@@ -78,6 +78,16 @@ var process = { cwd: () => "/" };
 var CsoundInst;
 
 /** @typedef {{
+ * writeFile: function(Object),
+ * appendFile: function(Object),
+ * readFile: function(Object),
+ * unlink: function(Object),
+ * readdir: function(Object),
+ * mkdir: function(Object),
+ * }}  */
+var WasiFS;
+
+/** @typedef {{
  * _start: function(): void,
  * __wasm_call_ctors: function(): void,
  * __wasi_js_csoundSetMessageStringCallback: function(): void,
@@ -115,13 +125,44 @@ var CsoundInst;
  * csoundGetParams: function(CsoundInst, number): number,
  * csoundGetDebug: function(CsoundInst): number,
  * csoundSetDebug: function(CsoundInst, number): number,
- * csoundGetSpout: function(CsoundInst): number,
- * csoundGetSpin: function(CsoundInst): number,
+ * csoundGetInputBufferSize: function(CsoundInst, number): number,
+ * csoundGetOutputBufferSize: function(CsoundInst, number): number,
  * csoundGetInputBuffer: function(CsoundInst): number,
  * csoundGetOutputBuffer: function(CsoundInst): number,
- * csoundGetOutputName: function(CsoundInst): string,
-
+ * csoundGetSpout: function(CsoundInst): number,
+ * csoundGetSpin: function(CsoundInst): number,
+ * csoundGetMIDIDevList: function(CsoundInst, Object, number): number,
+ * csoundSetMidiCallbacks: function(CsoundInst): number,
+ * csoundGetRtMidiName: function(CsoundInst): string,
+ * csoundGetMidiOutFileName: function(CsoundInst): string,
  * csoundPushMidiMessage: function(CsoundInst, number, number, number): number,
+ * csoundInputMessage: function(CsoundInst, string): number,
+ * csoundInputMessageAsync: function(CsoundInst, string): number,
+ * csoundGetControlChannel: function(CsoundInst, string): number,
+ * csoundSetControlChannel: function(CsoundInst, string, number): undefined,
+ * csoundGetStringChannel: function(CsoundInst, string): string,
+ * csoundSetStringChannel: function(CsoundInst, string, string): undefined,
+ * csoundGetInputName: function(CsoundInst): string,
+ * csoundGetOutputName: function(CsoundInst): string,
+ * csoundAppendEnv: function(CsoundInst, string, string): number,
+ * csoundShouldDaemonize: function(CsoundInst): number,
+ * csoundIsScorePending: function(CsoundInst): number,
+ * csoundSetScorePending: function(CsoundInst, number): number,
+ * csoundReadScore: function(CsoundInst, string): number,
+ * csoundGetScoreTime: function(CsoundInst): number,
+ * csoundGetScoreOffsetSeconds: function(CsoundInst): number,
+ * csoundSetScoreOffsetSeconds: function(CsoundInst, number): number,
+ * csoundRewindScore: function(CsoundInst): undefined,
+ * csoundTableLength: function(CsoundInst): number,
+ * csoundTableGet: function(CsoundInst, number, number): number,
+ * csoundTableSet: function(CsoundInst, number, number, number): undefined,
+ * csoundTableCopyIn: function(CsoundInst, number, number): undefined,
+ * csoundTableCopyOut: function(CsoundInst, number, number): (Float64Array | undefined),
+ * csoundGetTable: function(CsoundInst, number): (Float64Array | undefined),
+ * csoundGetTableArgs: function(CsoundInst, number): (Float64Array | undefined),
+ * csoundIsNamedGEN: function(CsoundInst, number): number,
+ * csoundGetNamedGEN: function(CsoundInst, number): number,
+ * fs: WasiFS,
  * }}  */
 var WasmExports;
 

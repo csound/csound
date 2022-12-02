@@ -7,7 +7,7 @@ export function writeFile(wasm) {
   };
 }
 
-writeFile.toString = () => "async (path, data) => void";
+writeFile["toString"] = () => "async (path, data) => void";
 
 export function appendFile(wasm) {
   return (_, path, data_) => {
@@ -16,7 +16,7 @@ export function appendFile(wasm) {
   };
 }
 
-appendFile.toString = () => "async (path, data) => void";
+appendFile["toString"] = () => "async (path, data) => void";
 
 export function readFile(wasm) {
   return (_, path) => {
@@ -24,7 +24,7 @@ export function readFile(wasm) {
   };
 }
 
-readFile.toString = () => "async (path) => ?Uint8Array";
+readFile["toString"] = () => "async (path) => ?Uint8Array";
 
 export function unlink(wasm) {
   return (_, path) => {
@@ -32,13 +32,13 @@ export function unlink(wasm) {
   };
 }
 
-unlink.toString = () => "async (path) => void";
+unlink["toString"] = () => "async (path) => void";
 
 export function readdir(wasm) {
   return (_, path) => wasm.wasi.readdir(path);
 }
 
-readdir.toString = () => "async (path) => string[]";
+readdir["toString"] = () => "async (path) => string[]";
 
 export function mkdir(wasm) {
   return (_, path) => {
@@ -46,4 +46,4 @@ export function mkdir(wasm) {
   };
 }
 
-mkdir.toString = () => "async (path) => void";
+mkdir["toString"] = () => "async (path) => void";

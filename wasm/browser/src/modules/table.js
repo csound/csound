@@ -109,7 +109,7 @@ export const csoundGetTableArgs = (wasm) => (csound /* CsoundInst */, tableNumbe
   return jsArray;
 };
 
-csoundGetTableArgs.toString = () => "getTableArgs = async (tableNum) => ?Float64Array;";
+csoundGetTableArgs["toString"] = () => "getTableArgs = async (tableNum) => ?Float64Array;";
 
 /**
  * Checks if a given GEN number num is a named GEN if so,
@@ -119,7 +119,7 @@ csoundGetTableArgs.toString = () => "getTableArgs = async (tableNum) => ?Float64
 export const csoundIsNamedGEN = (wasm) => (csound /* CsoundInst */, tableNumber /* string */) =>
   wasm.exports.csoundIsNamedGEN(csound, tableNumber);
 
-csoundIsNamedGEN.toString = () => "isNamedGEN = async (tableNum) => number;";
+csoundIsNamedGEN["toString"] = () => "isNamedGEN = async (tableNum) => number;";
 
 /**
  * Gets the GEN name from a number num, if this is a named GEN.
@@ -138,4 +138,4 @@ export const csoundGetNamedGEN = (wasm) => (csound /* CsoundInst */, tableNumber
   }
 };
 
-csoundGetNamedGEN.toString = () => "getNamedGEN = async (tableNum) => ?string;";
+csoundGetNamedGEN["toString"] = () => "getNamedGEN = async (tableNum) => ?string;";

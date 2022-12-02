@@ -41,6 +41,7 @@ const callUncloned = async (k, arguments_) => {
   return returnValue;
 };
 
+/** @template T */
 class WorkletSinglethreadWorker extends AudioWorkletProcessor {
   static get parameterDescriptors() {
     return [];
@@ -72,30 +73,43 @@ class WorkletSinglethreadWorker extends AudioWorkletProcessor {
     /** @suppress {checkTypes} */
     this.sampleRate = globalThis.sampleRate;
     this.options = options;
-    /** @export {function(string, (Array<*> | null)): Promise.<undefined>} */
+    /** @export */
     this.initialize = this.initialize.bind(this);
-    /** @export {function(): Promise.<undefined>} */
+    /** @export */
     this.pause = this.pause.bind(this);
+    /** @export */
+    this.stop = this.stop.bind(this);
+    /** @export */
     this.process = this.process.bind(this);
+    /** @export */
     this.resume = this.resume.bind(this);
+    /** @export */
     this.start = this.start.bind(this);
+    /** @export */
+    this.isRequestingInput = this.isRequestingInput.bind(this);
+    /** @export */
+    this.isRequestingRealtimeOutput = this.isRequestingRealtimeOutput.bind(this);
     this.needsStartNotification = false;
     this.isRendering = false;
     this.isPaused = false;
     this.running = false;
     this.started = false;
+    /** @export */
     this.callUncloned = () => console.error("Csound worklet thread is still uninitialized!");
     this.port.start();
     Comlink.expose(this, this.port);
     this.workerMessagePort = new MessagePortState();
 
+    /** @export */
     this.initializeMessagePort = ({ messagePort, rtmidiPort }) => {
       this.workerMessagePort.post = (messageLog) => messagePort.postMessage({ log: messageLog });
       this.workerMessagePort.broadcastPlayState = (playStateChange) => {
         if (this.workerMessagePort.workerState !== playStateChange) {
           this.workerMessagePort.workerState = playStateChange;
         }
-        messagePort.postMessage({ playStateChange });
+        const dispatch = {};
+        dispatch["playStateChange"] = playStateChange;
+        messagePort.postMessage(dispatch);
       };
       this.workerMessagePort.ready = true;
       log(`initRtMidiEventPort`)();
@@ -125,6 +139,7 @@ class WorkletSinglethreadWorker extends AudioWorkletProcessor {
       wasm.wasi = wasi;
 
       libraryCsound = libcsoundFactory(wasm);
+      /** @suppress {checkTypes} */
       this.callUncloned = callUncloned;
       this.csound = libraryCsound.csoundCreate(0);
       this.result = 0;
@@ -168,6 +183,7 @@ class WorkletSinglethreadWorker extends AudioWorkletProcessor {
       return -1;
     }
     if (callReset && this.workerMessagePort.workerState === "realtimePerformanceStarted") {
+      console.log("BROADCAST", this.workerMessagePort.broadcastPlayState);
       this.workerMessagePort.broadcastPlayState("realtimePerformanceEnded");
     }
 
@@ -340,8 +356,8 @@ class WorkletSinglethreadWorker extends AudioWorkletProcessor {
 
   async isRequestingRealtimeOutput() {
     const cs = this.csound;
-    const inputName = libraryCsound.csoundGetInputName(cs) || "";
-    return inputName.includes("adc");
+    const outputName = libraryCsound.csoundGetOutputName(cs) || "";
+    return outputName.includes("dac");
   }
 
   async start() {

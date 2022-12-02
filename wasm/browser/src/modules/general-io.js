@@ -17,7 +17,7 @@ export const csoundGetOutputName = (wasm) => (csound) => {
   return trimNull(uint2String(stringBuffer)) || "";
 };
 
-csoundGetOutputName.toString = () => "getOutputName = async () => String;";
+csoundGetOutputName["toString"] = () => "getOutputName = async () => String;";
 
 /**
  * Returns the audio input name (-i)
@@ -30,7 +30,7 @@ export const csoundGetInputName = (wasm) => (csound) => {
   return trimNull(uint2String(stringBuffer)) || "";
 };
 
-csoundGetInputName.toString = () => "getInputName = async (csound) => String;";
+csoundGetInputName["toString"] = () => "getInputName = async (csound) => String;";
 
 // PUBLIC void 	csoundSetOutput (CSOUND *csound, const char *name, const char *type, const char *format)
 // PUBLIC void 	csoundGetOutputFormat (CSOUND *csound, char *type, char *format)

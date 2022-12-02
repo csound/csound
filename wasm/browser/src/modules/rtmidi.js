@@ -37,7 +37,7 @@ export const csoundGetMIDIDevList = (wasm) => (csound /* CsoundInst */, isOutput
   return out;
 };
 
-csoundGetMIDIDevList.toString = () => "getMIDIDevList = async (isOutput) => Object;";
+csoundGetMIDIDevList["toString"] = () => "getMIDIDevList = async (isOutput) => Object;";
 
 /**
  * This function can be called to obtain a list of available input or output midi devices.
@@ -52,7 +52,7 @@ export const csoundGetRtMidiName = (wasm) => (csound /* CsoundInst */) => {
   return trimNull(uint2String(stringBuffer)) || "";
 };
 
-csoundGetRtMidiName.toString = () => "getRtMidiName = async () => String;";
+csoundGetRtMidiName["toString"] = () => "getRtMidiName = async () => String;";
 
 export const csoundGetMidiOutFileName = (wasm) => (csound /* CsoundInst */) => {
   const { buffer } = wasm.wasi.memory;
@@ -77,7 +77,8 @@ export const csoundPushMidiMessage =
     wasm["exports"]["pushMidiMessage"](csound, status, data1, data2);
   };
 
-csoundPushMidiMessage.toString = () => "midiMessage = async (status, data1, data2) => undefined;";
+csoundPushMidiMessage["toString"] = () =>
+  "midiMessage = async (status, data1, data2) => undefined;";
 
 // PUBLIC void 	csoundSetMIDIModule (CSOUND *csound, const char *module)
 // PUBLIC void 	csoundSetHostImplementedMIDIIO (CSOUND *csound, int state)

@@ -278,7 +278,7 @@ class VanillaWorkerMainThread {
             }
           };
 
-          csoundStart.toString = () => reference.toString();
+          csoundStart["toString"] = () => reference["toString"]();
           this.exportApi.start = csoundStart.bind(this);
           break;
         }
@@ -301,7 +301,7 @@ class VanillaWorkerMainThread {
             }
           };
           this.exportApi.stop = csoundStop.bind(this);
-          csoundStop.toString = reference.toString;
+          csoundStop["toString"] = reference["toString"];
           break;
         }
 
@@ -329,7 +329,7 @@ class VanillaWorkerMainThread {
             }
           };
           this.exportApi.reset = csoundReset.bind(this);
-          csoundReset.toString = reference.toString;
+          csoundReset["toString"] = reference["toString"];
           break;
         }
 
@@ -342,14 +342,14 @@ class VanillaWorkerMainThread {
               method,
               this.currentPlayState,
             );
-            proxyFsCallback.toString = reference[method].toString;
+            proxyFsCallback["toString"] = reference[method]["toString"];
             this.exportApi.fs[method] = proxyFsCallback;
           });
           break;
         }
 
         default: {
-          proxyCallback.toString = reference.toString;
+          proxyCallback["toString"] = reference["toString"];
           this.exportApi[csoundApiRename(apiK)] = proxyCallback;
           break;
         }

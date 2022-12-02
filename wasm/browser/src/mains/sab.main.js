@@ -401,7 +401,7 @@ class SharedArrayBufferMainThread {
             }
           };
 
-          csoundStart.toString = () => reference.toString();
+          csoundStart["toString"] = () => reference["toString"]();
           this.exportApi.start = csoundStart.bind(this);
           break;
         }
@@ -443,7 +443,7 @@ class SharedArrayBufferMainThread {
             }
           };
           this.exportApi.stop = csoundStop.bind(this);
-          csoundStop.toString = () => reference.toString();
+          csoundStop["toString"] = () => reference["toString"]();
           break;
         }
 
@@ -470,7 +470,7 @@ class SharedArrayBufferMainThread {
             }
           };
           this.exportApi.reset = csoundReset.bind(this);
-          csoundReset.toString = () => reference.toString();
+          csoundReset["toString"] = () => reference["toString"]();
           break;
         }
         case "csoundPushMidiMessage": {
@@ -478,7 +478,7 @@ class SharedArrayBufferMainThread {
             this.handleMidiInput({ data: [status, data1, data2] });
           };
           this.exportApi.midiMessage = midiMessage.bind(this);
-          midiMessage.toString = () => reference.toString();
+          midiMessage["toString"] = () => reference["toString"]();
           break;
         }
 
@@ -491,7 +491,7 @@ class SharedArrayBufferMainThread {
               method,
               this.currentPlayState,
             );
-            proxyFsCallback.toString = () => reference[method].toString();
+            proxyFsCallback["toString"] = () => reference[method]["toString"]();
             this.exportApi.fs[method] = proxyFsCallback;
           });
           break;
@@ -534,7 +534,7 @@ class SharedArrayBufferMainThread {
               return await proxyCallback.apply(undefined, arguments_);
             }
           };
-          bufferWrappedCallback.toString = () => reference.toString();
+          bufferWrappedCallback["toString"] = () => reference["toString"]();
           this.exportApi[csoundApiRename(apiKey)] = bufferWrappedCallback;
           break;
         }

@@ -12,7 +12,7 @@ import { freeStringPtr, string2ptr } from "../utils/string-pointers.js";
 export const csoundIsScorePending = (wasm) => (csound /* CsoundInst */) =>
   wasm.exports.csoundIsScorePending(csound);
 
-csoundIsScorePending.toString = () => "isScorePending = async () => Number;";
+csoundIsScorePending["toString"] = () => "isScorePending = async () => Number;";
 
 /**
  * Sets whether Csound score events are performed or not
@@ -26,7 +26,7 @@ csoundIsScorePending.toString = () => "isScorePending = async () => Number;";
 export const csoundSetScorePending = (wasm) => (csound /* CsoundInst */, pending /* number */) =>
   wasm.exports.csoundSetScorePending(csound, pending);
 
-csoundSetScorePending.toString = () => "setScorePending = async (pending) => Number;";
+csoundSetScorePending["toString"] = () => "setScorePending = async (pending) => Number;";
 
 /**
  * Read, preprocess, and load a score from an ASCII string It can be called repeatedly,
@@ -40,7 +40,7 @@ export const csoundReadScore = (wasm) => (csound /* CsoundInst */, score /* stri
   return result;
 };
 
-csoundReadScore.toString = () => "readScore = async (score) => Number;";
+csoundReadScore["toString"] = () => "readScore = async (score) => Number;";
 
 /**
  * Returns the current score time in seconds since the beginning of performance.
@@ -49,7 +49,7 @@ csoundReadScore.toString = () => "readScore = async (score) => Number;";
 export const csoundGetScoreTime = (wasm) => (csound /* CsoundInst */) =>
   wasm.exports.csoundGetScoreTime(csound);
 
-csoundGetScoreTime.toString = () => "getScoreTime = async () => Number;";
+csoundGetScoreTime["toString"] = () => "getScoreTime = async () => Number;";
 
 /**
  * Returns the score time beginning at which score events will actually immediately be performed
@@ -58,7 +58,7 @@ csoundGetScoreTime.toString = () => "getScoreTime = async () => Number;";
 export const csoundGetScoreOffsetSeconds = (wasm) => (csound /* CsoundInst */) =>
   wasm.exports.csoundGetScoreOffsetSeconds(csound);
 
-csoundGetScoreOffsetSeconds.toString = () => "getScoreOffsetSeconds = async () => Number;";
+csoundGetScoreOffsetSeconds["toString"] = () => "getScoreOffsetSeconds = async () => Number;";
 
 /**
  * Csound score events prior to the specified time are not performed,
@@ -73,7 +73,7 @@ csoundGetScoreOffsetSeconds.toString = () => "getScoreOffsetSeconds = async () =
 export const csoundSetScoreOffsetSeconds = (wasm) => (csound /* CsoundInst */, time /* string */) =>
   wasm.exports.csoundSetScoreOffsetSeconds(csound, time);
 
-csoundSetScoreOffsetSeconds.toString = () => "setScoreOffsetSeconds = async () => Number;";
+csoundSetScoreOffsetSeconds["toString"] = () => "setScoreOffsetSeconds = async () => Number;";
 
 /**
  * Rewinds a compiled Csound score to the time specified with csoundObj.setScoreOffsetSeconds().
@@ -82,7 +82,7 @@ csoundSetScoreOffsetSeconds.toString = () => "setScoreOffsetSeconds = async () =
 export const csoundRewindScore = (wasm) => (csound) =>
   wasm.exports.csoundRewindScore(csound /* CsoundInst */);
 
-csoundRewindScore.toString = () => "rewindScore = async () => undefined;";
+csoundRewindScore["toString"] = () => "rewindScore = async () => undefined;";
 
 // PUBLIC void 	csoundSetCscoreCallback (CSOUND *, void(*cscoreCallback_)(CSOUND *))
 // PUBLIC int 	csoundScoreSort (CSOUND *, FILE *inFile, FILE *outFile)

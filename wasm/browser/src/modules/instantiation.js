@@ -9,7 +9,7 @@
  */
 export const csoundCreate = (wasm) => () => wasm["exports"]["csoundCreateWasi"]();
 
-csoundCreate.toString = () => "create = async () => undefined;";
+csoundCreate["toString"] = () => "create = async () => undefined;";
 
 /**
  * Destroys an instance of Csound and frees memory
@@ -17,7 +17,7 @@ csoundCreate.toString = () => "create = async () => undefined;";
  */
 export const csoundDestroy = (wasm) => (csound) => wasm["exports"]["csoundDestroy"](csound);
 
-csoundDestroy.toString = () => "destroy = async () => undefined;";
+csoundDestroy["toString"] = () => "destroy = async () => undefined;";
 
 /**
  * Returns the API version as int
@@ -25,7 +25,7 @@ csoundDestroy.toString = () => "destroy = async () => undefined;";
  */
 export const csoundGetAPIVersion = (wasm) => () => wasm["exports"]["csoundGetAPIVersion"]();
 
-csoundGetAPIVersion.toString = () => "getAPIVersion = async () => Number;";
+csoundGetAPIVersion["toString"] = () => "getAPIVersion = async () => Number;";
 
 /**
  * Returns the Csound version as int
@@ -33,7 +33,7 @@ csoundGetAPIVersion.toString = () => "getAPIVersion = async () => Number;";
  */
 export const csoundGetVersion = (wasm) => () => wasm["exports"]["csoundGetVersion"]();
 
-csoundGetVersion.toString = () => "getVersion = async () => Number;";
+csoundGetVersion["toString"] = () => "getVersion = async () => Number;";
 
 /**
  * Initialise Csound with specific flags.
@@ -45,4 +45,4 @@ csoundGetVersion.toString = () => "getVersion = async () => Number;";
  */
 export const csoundInitialize = (wasm) => (_, flags) => wasm["exports"]["csoundInitialize"](flags);
 
-csoundInitialize.toString = () => "initialize = async () => Number;";
+csoundInitialize["toString"] = () => "initialize = async () => Number;";

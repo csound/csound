@@ -17,7 +17,7 @@ export const csoundInputMessage = (wasm) => (csound, scoEvent) => {
   return result;
 };
 
-csoundInputMessage.toString = () => "inputMessage = async (scoreEvent) => Number;";
+csoundInputMessage["toString"] = () => "inputMessage = async (scoreEvent) => Number;";
 
 /**
  * Inputs an immediate score event
@@ -31,7 +31,7 @@ export const csoundInputMessageAsync = (wasm) => (csound, scoEvent) => {
   return result;
 };
 
-csoundInputMessageAsync.toString = () => "inputMessageAsync = async (scoreEvent) => Number;";
+csoundInputMessageAsync["toString"] = () => "inputMessageAsync = async (scoreEvent) => Number;";
 
 /**
  * Retrieves the value of control channel identified by channelName.
@@ -46,7 +46,7 @@ export const csoundGetControlChannel = (wasm) => (csound, channelName) => {
   return result;
 };
 
-csoundGetControlChannel.toString = () => "getControlChannel = async (channelName) => Number;";
+csoundGetControlChannel["toString"] = () => "getControlChannel = async (channelName) => Number;";
 
 /**
  * Sets the value of control channel identified by channelName
@@ -58,7 +58,8 @@ export const csoundSetControlChannel = (wasm) => (csound, channelName, value) =>
   freeStringPtr(wasm, stringPtr);
 };
 
-csoundSetControlChannel.toString = () => "setControlChannel = async (channelName, value) => void;";
+csoundSetControlChannel["toString"] = () =>
+  "setControlChannel = async (channelName, value) => void;";
 
 /**
  * Retrieves the string channel identified by channelName
@@ -74,7 +75,7 @@ export const csoundGetStringChannel = (wasm) => (csound, channelName) => {
   return result;
 };
 
-csoundGetStringChannel.toString = () => "getStringChannel = async (channelName) => String;";
+csoundGetStringChannel["toString"] = () => "getStringChannel = async (channelName) => String;";
 
 /**
  * Sets the string channel value identified by channelName
@@ -88,7 +89,7 @@ export const csoundSetStringChannel = (wasm) => (csound, channelName, value) => 
   freeStringPtr(wasm, stringPtr2);
 };
 
-csoundSetStringChannel.toString = () => "setStringChannel = async (channelName, value) => void;";
+csoundSetStringChannel["toString"] = () => "setStringChannel = async (channelName, value) => void;";
 
 // csoundGetChannelPtr (CSOUND *, MYFLT **p, const char *name, int type)
 // csoundListChannels (CSOUND *, controlChannelInfo_t **lst)

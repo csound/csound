@@ -302,7 +302,7 @@ export default async function ({ wasmDataURI, withPlugins = [], messagePort }) {
   moduleExports["memory"] = memory;
 
   /** @suppress {checkTypes} */
-  instance_.exports = moduleExports;
+  instance_["exports"] = moduleExports;
 
   withPlugins_ = await withPlugins.reduce(async (accumulator, { headerData, wasmPluginBytes }) => {
     accumulator = await accumulator;
@@ -324,14 +324,14 @@ export default async function ({ wasmDataURI, withPlugins = [], messagePort }) {
 
       table.grow(pluginTableSize);
 
-      pluginOptions.env = Object.assign({}, pluginOptions.env);
-      pluginOptions.env.memory = memory;
-      pluginOptions.env.__indirect_function_table = table;
-      pluginOptions.env.__memory_base = pluginMemoryBase;
-      pluginOptions.env.__stack_pointer = stackPointer;
-      pluginOptions.env.__table_base = tableBase;
-      pluginOptions.env.csoundLoadModules = __dummy;
-      delete pluginOptions.env.csoundWasiJsMessageCallback;
+      pluginOptions["env"] = Object.assign({}, pluginOptions["env"]);
+      pluginOptions["env"]["memory"] = memory;
+      pluginOptions["env"]["__indirect_function_table"] = table;
+      pluginOptions["env"]["__memory_base"] = pluginMemoryBase;
+      pluginOptions["env"]["__stack_pointer"] = stackPointer;
+      pluginOptions["env"]["__table_base"] = tableBase;
+      pluginOptions["env"]["csoundLoadModules"] = __dummy;
+      delete pluginOptions["env"]["csoundWasiJsMessageCallback"];
 
       currentMemorySegment += Math.ceil((pluginMemorySize + pluginMemoryAlign) / PAGE_SIZE);
 
@@ -352,6 +352,6 @@ export default async function ({ wasmDataURI, withPlugins = [], messagePort }) {
 
   wasi.start(instance_);
 
-  instance_.exports.__wasi_js_csoundSetMessageStringCallback();
+  instance_["exports"]["__wasi_js_csoundSetMessageStringCallback"]();
   return [instance_, wasi];
 }
