@@ -311,8 +311,8 @@ class WorkletSinglethreadWorker extends AudioWorkletProcessor {
 
   async isRequestingRealtimeOutput() {
     const cs = this.csound;
-    const inputName = libraryCsound.csoundGetInputName(cs) || "";
-    return inputName.includes("adc");
+    const outputName = libraryCsound.csoundGetOutputName(cs) || "";
+    return outputName.includes("dac");
   }
 
   async start() {

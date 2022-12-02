@@ -240,6 +240,7 @@ class SingleThreadAudioWorkletMainThread {
             this.eventPromises.createStartPromise();
             const isRequestingInput = await this.workletProxy.isRequestingInput();
             const isRequestingRealtimeOutput = await this.workletProxy.isRequestingRealtimeOutput();
+            console.log({ isRequestingRealtimeOutput });
 
             if (isRequestingRealtimeOutput) {
               if (isRequestingInput) {

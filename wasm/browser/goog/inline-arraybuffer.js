@@ -31,6 +31,7 @@ export function inlineArraybuffer(inputFile, modulename) {
             }
           }
 
+          /** @noinline */
           function __toArrayBuffer(base64Data) {
             var binary = bufferFromBrowser(base64Data);
             var bytes = new Uint8Array(binary.length);
@@ -40,6 +41,6 @@ export function inlineArraybuffer(inputFile, modulename) {
             return bytes.buffer;
           }
 
-        export default () => __toArrayBuffer("${readFileSync(inputFile).toString("base64")}");
+         export default () => __toArrayBuffer("${readFileSync(inputFile).toString("base64")}");
             `;
 }
