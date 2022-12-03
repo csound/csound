@@ -253,7 +253,6 @@ e
         const compileReturn = await cs.compileCsdText(shortTone);
         assert.equal(compileReturn, 0);
         const startReturn = await cs.start();
-        console.log("getCtrol", cs.getControlChannel, await cs.getControlChannel("test1"), cs);
         assert.equal(startReturn, 0);
         assert.equal(1, await cs.getControlChannel("test1"));
         assert.equal(2, await cs.getControlChannel("test2"));
