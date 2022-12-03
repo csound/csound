@@ -185,7 +185,10 @@ class CsoundScriptNodeProcessor {
   }
 
   // try to do the same here as in Vanilla+Worklet
-  process({ inputBuffer, outputBuffer }) {
+  process(payload) {
+    const inputBuffer = payload["inputBuffer"];
+    const outputBuffer = payload["outputBuffer"];
+
     if (this.workerMessagePort.vanillaWorkerState === "realtimePerformanceEnded") {
       setPlayState({ contextUid: this.contextUid, newPlayState: "realtimePerformanceEnded" });
       return true;
@@ -194,11 +197,10 @@ class CsoundScriptNodeProcessor {
     if (!this.vanillaInitialized) {
       // this minimizes startup glitches
       const firstTransferSize = this.softwareBufferSize * PERIODS;
-
-      this.requestPort.postMessage({
-        readIndex: 0,
-        numFrames: firstTransferSize,
-      });
+      const requestFramesPayload = {};
+      requestFramesPayload["readIndex"] = 0;
+      requestFramesPayload["numFrames"] = firstTransferSize;
+      this.requestPort.postMessage(requestFramesPayload);
 
       this.pendingFrames += firstTransferSize;
       this.vanillaInitialized = true;
@@ -209,12 +211,12 @@ class CsoundScriptNodeProcessor {
       return true;
     }
 
-    const writeableInputChannels = range(0, this.inputsCount).map((index) =>
-      inputBuffer.getChannelData(index),
-    );
-    const writeableOutputChannels = range(0, this.outputsCount).map((index) =>
-      outputBuffer.getChannelData(index),
-    );
+    const writeableInputChannels = inputBuffer
+      ? range(0, this.inputsCount).map((index) => inputBuffer.getChannelData(index))
+      : [];
+    const writeableOutputChannels = outputBuffer
+      ? range(0, this.outputsCount).map((index) => outputBuffer.getChannelData(index))
+      : [];
 
     const hasWriteableInputChannels = writeableInputChannels.length > 0;
 
@@ -296,10 +298,10 @@ class CsoundScriptNodeProcessor {
         (this.vanillaAvailableFrames + nextOutputReadIndex + this.pendingFrames) %
         this.hardwareBufferSize;
 
-      this.requestPort.postMessage({
-        readIndex: futureOutputReadIndex,
-        numFrames: this.softwareBufferSize * PERIODS,
-      });
+      const requestFramesPayload = {};
+      requestFramesPayload["readIndex"] = futureOutputReadIndex;
+      requestFramesPayload["numFrames"] = this.softwareBufferSize * PERIODS;
+      this.requestPort.postMessage(requestFramesPayload);
       this.pendingFrames += this.softwareBufferSize * PERIODS;
     }
 
@@ -308,8 +310,9 @@ class CsoundScriptNodeProcessor {
 }
 const initAudioInputPort =
   ({ audioInputPort }) =>
-  (frames) =>
+  (frames) => {
     audioInputPort.postMessage(frames);
+  };
 
 const initMessagePort = ({ port }) => {
   const workerMessagePort = new MessagePortState();
@@ -321,7 +324,9 @@ const initMessagePort = ({ port }) => {
     ) {
       return;
     }
-    port.postMessage({ playStateChange });
+    const playStatePayload = {};
+    playStatePayload["playStateChange"] = playStateChange;
+    port.postMessage(playStatePayload);
   };
   workerMessagePort.ready = true;
   return workerMessagePort;
@@ -329,14 +334,20 @@ const initMessagePort = ({ port }) => {
 
 const initRequestPort = ({ requestPort, spnClassInstance }) => {
   requestPort.addEventListener("message", (requestPortEvent) => {
-    const { audioPacket, readIndex, numFrames } = requestPortEvent.data;
+    const audioPacket = requestPortEvent.data["audioPacket"];
+    const readIndex = requestPortEvent.data["readIndex"];
+    const numFrames = requestPortEvent.data["numFrames"];
     spnClassInstance.updateVanillaFrames({ audioPacket, numFrames, readIndex });
   });
   requestPort.start();
   return requestPort;
 };
 
-const setPlayState = async ({ contextUid, newPlayState }) => {
+/** @export */
+const setPlayState = async (payload) => {
+  const contextUid = payload["contextUid"];
+  const newPlayState = payload["newPlayState"];
+
   const spnClassInstance = spnInstances.get(contextUid);
   if (!spnClassInstance) {
     return;
@@ -377,20 +388,21 @@ const setPlayState = async ({ contextUid, newPlayState }) => {
   spnClassInstance.workerMessagePort.vanillaWorkerState = newPlayState;
 };
 
-const initialize = async ({
-  contextUid,
-  hardwareBufferSize,
-  softwareBufferSize,
-  inputsCount,
-  outputsCount,
-  sampleRate,
-  audioInputPort,
-  messagePort,
-  requestPort,
-  audioContextIsProvided,
-  autoConnect,
-  initialPlayState,
-}) => {
+/** @export */
+const initialize = async (payload) => {
+  const contextUid = payload["contextUid"];
+  const hardwareBufferSize = payload["hardwareBufferSize"];
+  const softwareBufferSize = payload["softwareBufferSize"];
+  const inputsCount = payload["inputsCount"];
+  const outputsCount = payload["outputsCount"];
+  const sampleRate = payload["sampleRate"];
+  const audioInputPort = payload["audioInputPort"];
+  const messagePort = payload["messagePort"];
+  const requestPort = payload["requestPort"];
+  const audioContextIsProvided = payload["audioContextIsProvided"];
+  const autoConnect = payload["autoConnect"];
+  const initialPlayState = payload["initialPlayState"];
+
   log("initializing old-spn worker in iframe")();
   startPromize = undefined;
   const audioContext = getAudioContext(contextUid);
@@ -430,4 +442,8 @@ const initialize = async ({
   }
 };
 
-Comlink.expose({ initialize, setPlayState }, Comlink.windowEndpoint(window.parent));
+const exposeObject = {};
+exposeObject["initialize"] = initialize;
+exposeObject["setPlayState"] = setPlayState;
+
+Comlink.expose(exposeObject, Comlink.windowEndpoint(window.parent));

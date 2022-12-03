@@ -1,3 +1,4 @@
+/** eslint-disable */
 // Copyright 2017 Google Inc.
 
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -18,7 +19,7 @@
 
 const e = Symbol("Comlink.proxy");
 const t = Symbol("Comlink.endpoint");
-let n = Symbol("Comlink.releaseProxy");
+const n = Symbol("Comlink.releaseProxy");
 const r = Symbol("Comlink.thrown");
 const a = (e) => ("object" == typeof e && null !== e) || "function" == typeof e;
 const s = new Map([
@@ -169,7 +170,11 @@ function u(e) {
 }
 function l(e) {
   const t = e.map(g);
-  return [t.map((e) => e[0]), ((n = t.map((e) => e[1])), Array.prototype.concat.apply([], n))];
+  /** @suppress {checkVars} */
+  const el2 = ((n = t.map((e) => e[1])), Array.prototype.concat.apply([], n));
+  return [t.map((e) => e[0]), el2];
+  /** @suppress {uselessCode} */
+  var n;
 }
 const p = new WeakMap();
 

@@ -135,10 +135,11 @@ class ScriptProcessorNodeMainThread {
       proxyPort &&
       (newPlayState !== "realtimePerformanceStarted" || newPlayState !== "renderStarted")
     ) {
-      await proxyPort.setPlayState({
-        contextUid: this.contextUid,
-        newPlayState,
-      });
+      const setPlayStatePayload = {};
+      setPlayStatePayload["contextUid"] = this.contextUid;
+      setPlayStatePayload["newPlayState"] = newPlayState;
+
+      await proxyPort["setPlayState"](setPlayStatePayload);
     }
   }
 
@@ -245,28 +246,27 @@ class ScriptProcessorNodeMainThread {
 
     log("initializing proxyPort")();
 
-    await proxyPort.initialize(
-      Comlink.transfer(
-        {
-          contextUid,
-          hardwareBufferSize: 32768,
-          softwareBufferSize: 2048,
-          inputsCount: this.inputsCount,
-          outputsCount: this.outputsCount,
-          sampleRate: this.sampleRate,
-          audioInputPort: this.ipcMessagePorts.audioWorkerAudioInputPort,
-          messagePort: this.ipcMessagePorts.workerMessagePort2,
-          requestPort: this.ipcMessagePorts.audioWorkerFrameRequestPort,
-          audioContextIsProvided: this.audioContextIsProvided,
-          autoConnect: this.autoConnect,
-          initialPlayState: this.currentPlayState,
-        },
-        [
-          this.ipcMessagePorts.audioWorkerAudioInputPort,
-          this.ipcMessagePorts.workerMessagePort2,
-          this.ipcMessagePorts.audioWorkerFrameRequestPort,
-        ],
-      ),
+    const initializePayload = {};
+
+    initializePayload["contextUid"] = contextUid;
+    initializePayload["hardwareBufferSize"] = 32768;
+    initializePayload["softwareBufferSize"] = 2048;
+    initializePayload["inputsCount"] = this.inputsCount;
+    initializePayload["outputsCount"] = this.outputsCount;
+    initializePayload["sampleRate"] = this.sampleRate;
+    initializePayload["audioInputPort"] = this.ipcMessagePorts.audioWorkerAudioInputPort;
+    initializePayload["messagePort"] = this.ipcMessagePorts.workerMessagePort2;
+    initializePayload["requestPort"] = this.ipcMessagePorts.audioWorkerFrameRequestPort;
+    initializePayload["audioContextIsProvided"] = this.audioContextIsProvided;
+    initializePayload["autoConnect"] = this.autoConnect;
+    initializePayload["initialPlayState"] = this.currentPlayState;
+
+    await proxyPort["initialize"](
+      Comlink.transfer(initializePayload, [
+        this.ipcMessagePorts.audioWorkerAudioInputPort,
+        this.ipcMessagePorts.workerMessagePort2,
+        this.ipcMessagePorts.audioWorkerFrameRequestPort,
+      ]),
     );
     log("done initializing proxyPort")();
 
