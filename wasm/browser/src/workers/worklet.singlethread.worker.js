@@ -30,6 +30,7 @@ import { clearArray } from "../utils/clear-array";
 import { logSinglethreadWorkletWorker as log } from "../logger";
 import { renderFunction } from "./common.utils";
 
+let rennderSleep;
 let libraryCsound;
 let combined;
 const rtmidiQueue = [];
@@ -39,6 +40,30 @@ const callUncloned = async (k, arguments_) => {
   const returnValue = caller && caller.apply({}, arguments_ || []);
   return returnValue;
 };
+
+const singlethreadWorkerRender =
+  ({ libraryCsound, workerMessagePort, wasi }) =>
+  async (payload) => {
+    const csound = payload["csound"];
+    const kr = libraryCsound.csoundGetKr(csound);
+    let lastResult = 0;
+    let cnt = 0;
+
+    while (workerMessagePort.workerState === "renderStarted" && lastResult === 0) {
+      lastResult = libraryCsound.csoundPerformKsmps(csound);
+      cnt += 1;
+
+      if (lastResult === 0 && cnt % (kr * 2) === 0) {
+        // this is immediately executed, but allows events to be picked up
+        // we use the process loop instead of setTimeout(0)
+        await new Promise((resolve) => {
+          rennderSleep = resolve;
+        });
+      }
+    }
+
+    workerMessagePort.broadcastPlayState("renderEnded");
+  };
 
 /** @template T */
 class WorkletSinglethreadWorker extends AudioWorkletProcessor {
@@ -182,7 +207,6 @@ class WorkletSinglethreadWorker extends AudioWorkletProcessor {
       return -1;
     }
     if (callReset && this.workerMessagePort.workerState === "realtimePerformanceStarted") {
-      console.log("BROADCAST", this.workerMessagePort.broadcastPlayState);
       this.workerMessagePort.broadcastPlayState("realtimePerformanceEnded");
     }
 
@@ -225,6 +249,10 @@ class WorkletSinglethreadWorker extends AudioWorkletProcessor {
   }
 
   process(inputs, outputs) {
+    if (typeof renderSleep === "function") {
+      renderSleep();
+    }
+
     if (!this.isRendering && (this.isPaused || !this.csoundOutputBuffer || !this.running)) {
       const output = outputs[0];
       const bufferLength = output[0].length;
@@ -399,6 +427,7 @@ class WorkletSinglethreadWorker extends AudioWorkletProcessor {
       } else {
         this.workerMessagePort.broadcastPlayState("renderStarted");
         this.isRendering = true;
+
         renderFunction({
           libraryCsound,
           workerMessagePort: this.workerMessagePort,

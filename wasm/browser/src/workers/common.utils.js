@@ -62,11 +62,7 @@ export const renderFunction =
     let lastResult = 0;
     let cnt = 0;
 
-    while (
-      (workerMessagePort.vanillaWorkerState === "renderStarted" ||
-        workerMessagePort.workerState === "renderStarted") &&
-      lastResult === 0
-    ) {
+    while (workerMessagePort.vanillaWorkerState === "renderStarted" && lastResult === 0) {
       lastResult = libraryCsound.csoundPerformKsmps(csound);
       cnt += 1;
 

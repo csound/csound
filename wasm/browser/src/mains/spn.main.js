@@ -35,7 +35,6 @@ const fsMethods = Object.keys(fs);
 
 class ScriptProcessorNodeSingleThread {
   constructor({ audioContext, inputChannelCount = 1, outputChannelCount = 2 }) {
-    console.log("libcsoundFactory", libcsoundFactory);
     // just initializers for google-closure to detect the types faster
     this.result = 0;
     this.zerodBFS = 0;

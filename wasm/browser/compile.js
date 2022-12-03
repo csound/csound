@@ -38,18 +38,24 @@ const tmpOutFileName = path.join(rootDir, "dist", "test.min.js");
 
 const makeModuleExportsHack = () => {
   const data = fs.readFileSync(path.join(rootDir, "dist", "csound.js")).toString();
-  const matchResults = data.matchAll(/(\("__Csound__",)([A-Za-z]+)\)/g);
-  const matchResultsArr = Array.from(matchResults);
-  const obfuscatedVariableName = matchResultsArr[0][2];
 
-  const hackedData = data.replace(
-    "__GOOGLE_CLOSURE_REPLACEME__",
-    DEV
-      ? `const Csound = Csound$$$module$src$index; export { Csound }; export default Csound;`
-      : `const Csound = ${obfuscatedVariableName}; export { Csound }; export default Csound;`,
-  );
+  if (DEV) {
+    const hackedData = data.replace(
+      "__GOOGLE_CLOSURE_REPLACEME__",
+      `const Csound = Csound$$$module$src$index; export { Csound }; export default Csound;`,
+    );
+    fs.writeFileSync(path.join(rootDir, "dist", "csound.js"), hackedData);
+  } else {
+    const matchResults = data.matchAll(/(\("__Csound__",)([A-Za-z]+)\)/g);
+    const matchResultsArr = Array.from(matchResults);
+    const obfuscatedVariableName = matchResultsArr[0][2];
 
-  fs.writeFileSync(path.join(rootDir, "dist", "csound.js"), hackedData);
+    const hackedData = data.replace(
+      "__GOOGLE_CLOSURE_REPLACEME__",
+      `const Csound = ${obfuscatedVariableName}; export { Csound }; export default Csound;`,
+    );
+    fs.writeFileSync(path.join(rootDir, "dist", "csound.js"), hackedData);
+  }
 };
 
 if (fs.existsSync(distDir)) {
