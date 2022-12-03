@@ -62,16 +62,16 @@ const assertPluginExports = (pluginInstance) => {
   ) {
     console.error("Error instantiating a csound plugin, instance and/or export is missing!");
     return false;
-  } else if (!pluginInstance.exports.__wasm_call_ctors) {
+  } else if (!pluginInstance.exports["__wasm_call_ctors"]) {
     console.error(
       "A csound plugin didn't export __wasm_call_ctors.\n" +
         "Please re-run wasm-ld with either --export-all or include --export=__wasm_call_ctors",
     );
     return false;
   } else if (
-    !pluginInstance.exports.csoundModuleCreate &&
-    !pluginInstance.exports.csound_opcode_init &&
-    !pluginInstance.exports.csound_fgen_init
+    !pluginInstance.exports["csoundModuleCreate"] &&
+    !pluginInstance.exports["csound_opcode_init"] &&
+    !pluginInstance.exports["csound_fgen_init"]
   ) {
     console.error(
       pluginInstance.exports,

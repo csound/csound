@@ -9,7 +9,7 @@ import { freeStringPtr, string2ptr } from "../utils/string-pointers.js";
 export const csoundAppendEnv = (wasm) => (csound, variable, value) => {
   const varStringPtr = string2ptr(wasm, variable);
   const valueStringPtr = string2ptr(wasm, value);
-  const res = wasm.exports.csoundAppendEnv(csound, varStringPtr, valueStringPtr);
+  const res = wasm.exports["csoundAppendEnv"](csound, varStringPtr, valueStringPtr);
   freeStringPtr(wasm, varStringPtr);
   freeStringPtr(wasm, valueStringPtr);
   return res;
@@ -19,4 +19,4 @@ csoundAppendEnv["toString"] = () => "appendEnv = async (csound, variable, value)
 
 // deliberately no jsdocs because this is internal only
 export const csoundShouldDaemonize = (wasm) => (csound) =>
-  wasm.exports.csoundShouldDaemonize(csound);
+  wasm.exports["csoundShouldDaemonize"](csound);

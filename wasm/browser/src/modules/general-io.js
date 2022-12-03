@@ -12,7 +12,7 @@ import { trimNull } from "../utils/trim-null.js";
  */
 export const csoundGetOutputName = (wasm) => (csound) => {
   const { buffer } = wasm.wasi.memory;
-  const ptr = wasm.exports.csoundGetOutputName(csound);
+  const ptr = wasm.exports["csoundGetOutputName"](csound);
   const stringBuffer = new Uint8Array(buffer, ptr, 64);
   return trimNull(uint2String(stringBuffer)) || "";
 };
@@ -25,7 +25,7 @@ csoundGetOutputName["toString"] = () => "getOutputName = async () => String;";
  */
 export const csoundGetInputName = (wasm) => (csound) => {
   const { buffer } = wasm.wasi.memory;
-  const ptr = wasm.exports.csoundGetInputName(csound);
+  const ptr = wasm.exports["csoundGetInputName"](csound);
   const stringBuffer = new Uint8Array(buffer, ptr, 64);
   return trimNull(uint2String(stringBuffer)) || "";
 };

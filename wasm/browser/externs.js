@@ -163,6 +163,14 @@ var WasiFS;
  * csoundIsNamedGEN: function(CsoundInst, number): number,
  * csoundGetNamedGEN: function(CsoundInst, number): number,
  * fs: WasiFS,
+ * eventNames: function(): Array<string>,
+ * listenerCount: function(): number,
+ * listeners: function(string): Array,
+ * on: function(string, function()): undefined,
+ * once: function(string, function()): undefined,
+ * off: function(function()): undefined,
+ * removeAllListeners: function(string): undefined,
+ * removeListener: function(string, function()): undefined,
  * }}  */
 var WasmExports;
 

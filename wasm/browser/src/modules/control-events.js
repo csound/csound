@@ -11,9 +11,8 @@ import { freeStringPtr, ptr2string, string2ptr } from "../utils/string-pointers.
  * @function
  */
 export const csoundInputMessage = (wasm) => (csound, scoEvent) => {
-  console.log("wasm", wasm, "csound", csound, "scoEvent", scoEvent);
   const stringPtr = string2ptr(wasm, scoEvent);
-  const result = wasm.exports.csoundInputMessage(csound, stringPtr);
+  const result = wasm.exports["csoundInputMessage"](csound, stringPtr);
   freeStringPtr(wasm, stringPtr);
   return result;
 };
@@ -27,7 +26,7 @@ csoundInputMessage["toString"] = () => "inputMessage = async (scoreEvent) => Num
  */
 export const csoundInputMessageAsync = (wasm) => (csound, scoEvent) => {
   const stringPtr = string2ptr(wasm, scoEvent);
-  const result = wasm.exports.csoundInputMessageAsync(csound, stringPtr);
+  const result = wasm.exports["csoundInputMessageAsync"](csound, stringPtr);
   freeStringPtr(wasm, stringPtr);
   return result;
 };
@@ -42,7 +41,7 @@ csoundInputMessageAsync["toString"] = () => "inputMessageAsync = async (scoreEve
  */
 export const csoundGetControlChannel = (wasm) => (csound, channelName) => {
   const stringPtr = string2ptr(wasm, channelName);
-  const result = wasm.exports.csoundGetControlChannelWasi(csound, stringPtr);
+  const result = wasm.exports["csoundGetControlChannelWasi"](csound, stringPtr);
   freeStringPtr(wasm, stringPtr);
   return result;
 };
@@ -55,7 +54,7 @@ csoundGetControlChannel["toString"] = () => "getControlChannel = async (channelN
  */
 export const csoundSetControlChannel = (wasm) => (csound, channelName, value) => {
   const stringPtr = string2ptr(wasm, channelName);
-  wasm.exports.csoundSetControlChannel(csound, stringPtr, value);
+  wasm.exports["csoundSetControlChannel"](csound, stringPtr, value);
   freeStringPtr(wasm, stringPtr);
 };
 
@@ -68,7 +67,7 @@ csoundSetControlChannel["toString"] = () =>
  */
 export const csoundGetStringChannel = (wasm) => (csound, channelName) => {
   const stringPtr = string2ptr(wasm, channelName);
-  const pointerToResult = wasm.exports.csoundGetStringChannelWasi(csound, stringPtr);
+  const pointerToResult = wasm.exports["csoundGetStringChannelWasi"](csound, stringPtr);
   const result = ptr2string(wasm, pointerToResult);
 
   freeStringPtr(wasm, stringPtr);
@@ -85,7 +84,7 @@ csoundGetStringChannel["toString"] = () => "getStringChannel = async (channelNam
 export const csoundSetStringChannel = (wasm) => (csound, channelName, value) => {
   const stringPtr = string2ptr(wasm, channelName);
   const stringPtr2 = string2ptr(wasm, value);
-  wasm.exports.csoundSetStringChannel(csound, stringPtr, stringPtr2);
+  wasm.exports["csoundSetStringChannel"](csound, stringPtr, stringPtr2);
   freeStringPtr(wasm, stringPtr);
   freeStringPtr(wasm, stringPtr2);
 };

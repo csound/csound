@@ -674,6 +674,11 @@ WASI.prototype.path_filestat_get = function (fd, flags, pathPtr, pathLength, buf
   }
   return constants.WASI_ESUCCESS;
 };
+
+/**
+ * @export
+ * @return {number}
+ */
 WASI.prototype.path_filestat_set_times = function (
   fd,
   dirflags,

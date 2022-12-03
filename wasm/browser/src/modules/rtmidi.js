@@ -56,14 +56,14 @@ csoundGetRtMidiName["toString"] = () => "getRtMidiName = async () => String;";
 
 export const csoundGetMidiOutFileName = (wasm) => (csound /* CsoundInst */) => {
   const { buffer } = wasm.wasi.memory;
-  const ptr = wasm["exports"]["getMidiOutFileName"](csound);
+  const ptr = wasm.exports["getMidiOutFileName"](csound);
   const stringBuffer = new Uint8Array(buffer, ptr, 128);
   ptr && ptr.length > 0 && freeStringPtr(wasm, ptr);
   return trimNull(uint2String(stringBuffer)) || "";
 };
 
 export const _isRequestingRtMidiInput = (wasm) => (csound /* CsoundInst */) => {
-  return wasm["exports"]["isRequestingRtMidiInput"](csound);
+  return wasm.exports["isRequestingRtMidiInput"](csound);
 };
 
 /**
@@ -74,7 +74,7 @@ export const _isRequestingRtMidiInput = (wasm) => (csound /* CsoundInst */) => {
 export const csoundPushMidiMessage =
   (wasm) =>
   (csound /* CsoundInst */, status /* number */, data1 /* number */, data2 /* number */) => {
-    wasm["exports"]["pushMidiMessage"](csound, status, data1, data2);
+    wasm.exports["pushMidiMessage"](csound, status, data1, data2);
   };
 
 csoundPushMidiMessage["toString"] = () =>

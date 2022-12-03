@@ -13,7 +13,7 @@
 
         const runIt = async () => {
           const { Csound } = await import(url);
-          const csound = await Csound({ useWorker: true, useSAB: false, useSPN: true });
+          const csound = await Csound({ useWorker: false, useSAB: false, useSPN: true });
           const response = await fetch(exampleUrl);
           const testSampleArrayBuffer = await response.arrayBuffer();
             const testSample = new Uint8Array(testSampleArrayBuffer);

@@ -182,7 +182,6 @@ const initMessagePort = ({ port }) => {
 const initRequestPort = (csoundWorkerFrameRequestPort, workerMessagePort) => {
   log(`initRequestPort`)();
   csoundWorkerFrameRequestPort.addEventListener("message", (requestEvent) => {
-    console.log("framesRequest", requestEvent);
     const { framesLeft = 0, audioPacket } =
       generateAudioFrames(requestEvent.data, workerMessagePort) || {};
 

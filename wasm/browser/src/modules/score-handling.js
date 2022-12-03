@@ -10,7 +10,7 @@ import { freeStringPtr, string2ptr } from "../utils/string-pointers.js";
  * @function
  */
 export const csoundIsScorePending = (wasm) => (csound /* CsoundInst */) =>
-  wasm.exports.csoundIsScorePending(csound);
+  wasm.exports["csoundIsScorePending"](csound);
 
 csoundIsScorePending["toString"] = () => "isScorePending = async () => Number;";
 
@@ -24,7 +24,7 @@ csoundIsScorePending["toString"] = () => "isScorePending = async () => Number;";
  * @function
  */
 export const csoundSetScorePending = (wasm) => (csound /* CsoundInst */, pending /* number */) =>
-  wasm.exports.csoundSetScorePending(csound, pending);
+  wasm.exports["csoundSetScorePending"](csound, pending);
 
 csoundSetScorePending["toString"] = () => "setScorePending = async (pending) => Number;";
 
@@ -35,7 +35,7 @@ csoundSetScorePending["toString"] = () => "setScorePending = async (pending) => 
  */
 export const csoundReadScore = (wasm) => (csound /* CsoundInst */, score /* string */) => {
   const stringPtr = string2ptr(wasm, score);
-  const result = wasm.exports.csoundReadScore(csound, stringPtr);
+  const result = wasm.exports["csoundReadScore"](csound, stringPtr);
   freeStringPtr(wasm, stringPtr);
   return result;
 };
@@ -47,7 +47,7 @@ csoundReadScore["toString"] = () => "readScore = async (score) => Number;";
  * @function
  */
 export const csoundGetScoreTime = (wasm) => (csound /* CsoundInst */) =>
-  wasm.exports.csoundGetScoreTime(csound);
+  wasm.exports["csoundGetScoreTime"](csound);
 
 csoundGetScoreTime["toString"] = () => "getScoreTime = async () => Number;";
 
@@ -56,7 +56,7 @@ csoundGetScoreTime["toString"] = () => "getScoreTime = async () => Number;";
  * @function
  */
 export const csoundGetScoreOffsetSeconds = (wasm) => (csound /* CsoundInst */) =>
-  wasm.exports.csoundGetScoreOffsetSeconds(csound);
+  wasm.exports["csoundGetScoreOffsetSeconds"](csound);
 
 csoundGetScoreOffsetSeconds["toString"] = () => "getScoreOffsetSeconds = async () => Number;";
 
@@ -71,7 +71,7 @@ csoundGetScoreOffsetSeconds["toString"] = () => "getScoreOffsetSeconds = async (
  * @function
  */
 export const csoundSetScoreOffsetSeconds = (wasm) => (csound /* CsoundInst */, time /* string */) =>
-  wasm.exports.csoundSetScoreOffsetSeconds(csound, time);
+  wasm.exports["csoundSetScoreOffsetSeconds"](csound, time);
 
 csoundSetScoreOffsetSeconds["toString"] = () => "setScoreOffsetSeconds = async () => Number;";
 
@@ -80,7 +80,7 @@ csoundSetScoreOffsetSeconds["toString"] = () => "setScoreOffsetSeconds = async (
  * @function
  */
 export const csoundRewindScore = (wasm) => (csound) =>
-  wasm.exports.csoundRewindScore(csound /* CsoundInst */);
+  wasm.exports["csoundRewindScore"](csound /* CsoundInst */);
 
 csoundRewindScore["toString"] = () => "rewindScore = async () => undefined;";
 

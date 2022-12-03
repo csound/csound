@@ -7,7 +7,7 @@
  * creates Csound instance
  * (inferred in @csound/wasm/browser)
  */
-export const csoundCreate = (wasm) => () => wasm["exports"]["csoundCreateWasi"]();
+export const csoundCreate = (wasm) => () => wasm.exports["csoundCreateWasi"]();
 
 csoundCreate["toString"] = () => "create = async () => undefined;";
 
@@ -15,7 +15,7 @@ csoundCreate["toString"] = () => "create = async () => undefined;";
  * Destroys an instance of Csound and frees memory
  * @function
  */
-export const csoundDestroy = (wasm) => (csound) => wasm["exports"]["csoundDestroy"](csound);
+export const csoundDestroy = (wasm) => (csound) => wasm.exports["csoundDestroy"](csound);
 
 csoundDestroy["toString"] = () => "destroy = async () => undefined;";
 
@@ -23,7 +23,7 @@ csoundDestroy["toString"] = () => "destroy = async () => undefined;";
  * Returns the API version as int
  * @function
  */
-export const csoundGetAPIVersion = (wasm) => () => wasm["exports"]["csoundGetAPIVersion"]();
+export const csoundGetAPIVersion = (wasm) => () => wasm.exports["csoundGetAPIVersion"]();
 
 csoundGetAPIVersion["toString"] = () => "getAPIVersion = async () => Number;";
 
@@ -31,7 +31,7 @@ csoundGetAPIVersion["toString"] = () => "getAPIVersion = async () => Number;";
  * Returns the Csound version as int
  * @function
  */
-export const csoundGetVersion = (wasm) => () => wasm["exports"]["csoundGetVersion"]();
+export const csoundGetVersion = (wasm) => () => wasm.exports["csoundGetVersion"]();
 
 csoundGetVersion["toString"] = () => "getVersion = async () => Number;";
 
@@ -43,6 +43,6 @@ csoundGetVersion["toString"] = () => "getVersion = async () => Number;";
  * sets signal handlers and atexit() callbacks.
  * @function
  */
-export const csoundInitialize = (wasm) => (_, flags) => wasm["exports"]["csoundInitialize"](flags);
+export const csoundInitialize = (wasm) => (_, flags) => wasm.exports["csoundInitialize"](flags);
 
 csoundInitialize["toString"] = () => "initialize = async () => Number;";

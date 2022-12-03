@@ -12,7 +12,7 @@ import { uint2String } from "../utils/text-encoders.js";
  * @function
  */
 export const csoundTableLength = (wasm) => (csound /* CsoundInst */, tableNumber /* string */) =>
-  wasm.exports.csoundTableLength(csound, tableNumber);
+  wasm.exports["csoundTableLength"](csound, tableNumber);
 
 csoundTableLength.toString = () => "tableLength = async (tableNum) => Number;";
 
@@ -23,7 +23,7 @@ csoundTableLength.toString = () => "tableLength = async (tableNum) => Number;";
  */
 export const csoundTableGet =
   (wasm) => (csound /* CsoundInst */, tableNumber /* string */, tableIndex /* string */) =>
-    wasm.exports.csoundTableGet(csound, tableNumber, tableIndex);
+    wasm.exports["csoundTableGet"](csound, tableNumber, tableIndex);
 
 csoundTableGet.toString = () => "tableGet = async (tableNum, tableIndex) => Number;";
 
@@ -40,7 +40,7 @@ export const csoundTableSet =
     tableIndex /* string */,
     value /* string */,
   ) =>
-    wasm.exports.csoundTableSet(csound, tableNumber, tableIndex, value);
+    wasm.exports["csoundTableSet"](csound, tableNumber, tableIndex, value);
 
 csoundTableSet.toString = () => "tableSet = async (tableNum, tableIndex, value) => undefined;";
 
@@ -52,11 +52,11 @@ csoundTableSet.toString = () => "tableSet = async (tableNum, tableIndex, value) 
  */
 export const csoundTableCopyIn =
   (wasm) => (csound /* CsoundInst */, tableNumber /* string */, array /* ArrayLike<number> */) => {
-    const arrayPtr = wasm.exports.allocFloatArray(array.length);
+    const arrayPtr = wasm.exports["allocFloatArray"](array.length);
     const buffer = new Float64Array(wasm.wasi.memory.buffer, arrayPtr, array.length);
     buffer.set(array);
-    wasm.exports.csoundTableCopyIn(csound, tableNumber, arrayPtr);
-    wasm.exports.freeFloatArrayMem(arrayPtr);
+    wasm.exports["csoundTableCopyIn"](csound, tableNumber, arrayPtr);
+    wasm.exports["freeFloatArrayMem"](arrayPtr);
   };
 
 csoundTableCopyIn.toString = () => "tableCopyIn = async (tableNum, float64Array) => undefined;";
@@ -68,10 +68,10 @@ csoundTableCopyIn.toString = () => "tableCopyIn = async (tableNum, float64Array)
  * @function
  */
 export const csoundTableCopyOut = (wasm) => (csound /* CsoundInst */, tableNumber /* string */) => {
-  const tableLength = wasm.exports.csoundTableLength(csound, tableNumber);
+  const tableLength = wasm.exports["csoundTableLength"](csound, tableNumber);
   if (tableLength > 0) {
-    const arrayPtr = wasm.exports.allocFloatArray(tableLength);
-    wasm.exports.csoundTableCopyOut(csound, tableNumber, arrayPtr);
+    const arrayPtr = wasm.exports["allocFloatArray"](tableLength);
+    wasm.exports["csoundTableCopyOut"](csound, tableNumber, arrayPtr);
     const { buffer } = wasm.wasi.memory;
     const freeableArray = new Float64Array(buffer, arrayPtr, tableLength);
     const clonedArray = new Float64Array(freeableArray.length);
@@ -79,7 +79,7 @@ export const csoundTableCopyOut = (wasm) => (csound /* CsoundInst */, tableNumbe
     for (let i = 0; i < freeableArray.length; i++) {
       clonedArray[i] = freeableArray[i];
     }
-    wasm.exports.freeFloatArrayMem(arrayPtr);
+    wasm.exports["freeFloatArrayMem"](arrayPtr);
     return clonedArray;
   }
 };
@@ -101,11 +101,11 @@ csoundGetTable.toString = csoundTableCopyOut.toString;
  * it returns undefined.
  */
 export const csoundGetTableArgs = (wasm) => (csound /* CsoundInst */, tableNumber /* string */) => {
-  const arrayPtr = wasm.exports.allocFloatArray(1024);
-  wasm.exports.csoundGetTableArgs(csound, arrayPtr, tableNumber);
+  const arrayPtr = wasm.exports["allocFloatArray"](1024);
+  wasm.exports["csoundGetTableArgs"](csound, arrayPtr, tableNumber);
   const { buffer } = wasm.wasi.memory;
   const jsArray = new Float64Array(buffer, arrayPtr, 1024);
-  wasm.exports.freeFloatArrayMem(arrayPtr);
+  wasm.exports["freeFloatArrayMem"](arrayPtr);
   return jsArray;
 };
 
@@ -117,7 +117,7 @@ csoundGetTableArgs["toString"] = () => "getTableArgs = async (tableNum) => ?Floa
  * Otherwise it returns 0.
  */
 export const csoundIsNamedGEN = (wasm) => (csound /* CsoundInst */, tableNumber /* string */) =>
-  wasm.exports.csoundIsNamedGEN(csound, tableNumber);
+  wasm.exports["csoundIsNamedGEN"](csound, tableNumber);
 
 csoundIsNamedGEN["toString"] = () => "isNamedGEN = async (tableNum) => number;";
 
@@ -127,10 +127,10 @@ csoundIsNamedGEN["toString"] = () => "isNamedGEN = async (tableNum) => number;";
  * return undefined.
  */
 export const csoundGetNamedGEN = (wasm) => (csound /* CsoundInst */, tableNumber /* string */) => {
-  const stringLength = wasm.exports.csoundIsNamedGEN(csound, tableNumber);
+  const stringLength = wasm.exports["csoundIsNamedGEN"](csound, tableNumber);
   if (stringLength > 0) {
-    const offset = wasm.exports.allocStringMem(stringLength);
-    wasm.exports.csoundGetNamedGEN(csound, offset, tableNumber, stringLength);
+    const offset = wasm.exports["allocStringMem"](stringLength);
+    wasm.exports["csoundGetNamedGEN"](csound, offset, tableNumber, stringLength);
     const { buffer } = wasm.wasi.memory;
     const stringBuffer = new Uint8Array(buffer, offset, stringLength);
     const result = uint2String(stringBuffer);
