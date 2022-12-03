@@ -29,9 +29,13 @@ import { messageEventHandler } from "./messages.main";
 import { PublicEventAPI } from "../events";
 import { EventPromises } from "../utils/event-promises";
 import { requestMidi } from "../utils/request-midi";
+import fs from "../filesystem/worker-fs";
+
+const fsMethods = Object.keys(fs);
 
 class ScriptProcessorNodeSingleThread {
   constructor({ audioContext, inputChannelCount = 1, outputChannelCount = 2 }) {
+    console.log("libcsoundFactory", libcsoundFactory);
     // just initializers for google-closure to detect the types faster
     this.result = 0;
     this.zerodBFS = 0;
@@ -79,7 +83,7 @@ class ScriptProcessorNodeSingleThread {
     this.spn.outputChannelCount = outputChannelCount;
     this.spn.onaudioprocess = this.onaudioprocess;
     this.node = this.spn;
-    this.exportApi.getNode = async () => this.spn;
+    this.exportApi["getNode"] = async () => this.spn;
     this.sampleRate = audioContext.sampleRate;
     // this is the only actual single-thread usecase
     // so we get away with just forwarding it as if it's form
@@ -94,6 +98,8 @@ class ScriptProcessorNodeSingleThread {
   }
 
   async terminateInstance() {
+    this.running = false;
+    this.started = false;
     if (this.spn) {
       this.spn.disconnect();
       delete this.spn;
@@ -108,7 +114,6 @@ class ScriptProcessorNodeSingleThread {
       this.publicEvents.terminateInstance();
       delete this.publicEvents;
     }
-    Object.keys(this.exportApi).forEach((key) => delete this.exportApi[key]);
   }
 
   async onPlayStateChange(newPlayState) {
@@ -123,6 +128,7 @@ class ScriptProcessorNodeSingleThread {
       }
 
       case "realtimePerformanceEnded": {
+        this.started = false;
         this.publicEvents.triggerRealtimePerformanceEnded();
         break;
       }
@@ -135,10 +141,13 @@ class ScriptProcessorNodeSingleThread {
         break;
       }
       case "renderStarted": {
+        this.started = true;
         this.publicEvents.triggerRenderStarted();
         break;
       }
       case "renderEnded": {
+        this.started = false;
+        this.eventPromises && this.eventPromises.releaseStopPromise();
         this.publicEvents.triggerRenderEnded();
 
         break;
@@ -167,7 +176,7 @@ class ScriptProcessorNodeSingleThread {
   async stop() {
     if (this.started) {
       this.eventPromises.createStopPromise();
-      const stopResult = this.csoundApi.csoundStop(this.csoundInstance);
+      const stopResult = this.csoundApi["csoundStop"](this.csoundInstance);
       await this.eventPromises.waitForStop();
 
       delete this.csoundInputBuffer;
@@ -274,13 +283,13 @@ class ScriptProcessorNodeSingleThread {
 
     // csoundObj
     Object.keys(csoundApi).reduce((accumulator, apiName) => {
-      if (["mkdir", "readdir", "writeFile"].includes(apiName)) {
-        accumulator.fs = accumulator.fs || {};
+      if (fsMethods.includes(apiName)) {
+        accumulator["fs"] = accumulator["fs"] || {};
         const reference = csoundApi[apiName];
         const callback = async (...arguments_) =>
           makeSingleThreadCallback(this.wasm, csoundApi[apiName]).apply({}, arguments_);
         callback.toString = reference.toString;
-        accumulator.fs[apiName] = callback;
+        accumulator["fs"][apiName] = callback;
       } else {
         const renamedApiName = csoundApiRename(apiName);
         accumulator[renamedApiName] = (...arguments_) => {
@@ -292,20 +301,19 @@ class ScriptProcessorNodeSingleThread {
       return accumulator;
     }, this.exportApi);
 
-    this.exportApi.pause = this.pause.bind(this);
-    this.exportApi.resume = this.resume.bind(this);
-    this.exportApi.start = this.start.bind(this);
-    this.exportApi.stop = this.stop.bind(this);
-    this.exportApi.terminateInstance = this.terminateInstance.bind(this);
-    this.exportApi.getAudioContext = async () => this.audioContext;
-    this.exportApi.name = "Csound: ScriptProcessor Node, Single-threaded";
-    // this.exportApi.fs = persistentFilesystem;
-
+    this.exportApi["pause"] = this.pause.bind(this);
+    this.exportApi["resume"] = this.resume.bind(this);
+    this.exportApi["start"] = this.start.bind(this);
+    this.exportApi["stop"] = this.stop.bind(this);
+    this.exportApi["terminateInstance"] = this.terminateInstance.bind(this);
+    this.exportApi["getAudioContext"] = async () => this.audioContext;
+    this.exportApi["name"] = "Csound: ScriptProcessor Node, Single-threaded";
     this.exportApi = this.publicEvents.decorateAPI(this.exportApi);
 
-    this.exportApi.reset = () => this.resetCsound(true);
+    this.exportApi["reset"] = () => this.resetCsound(true);
     // the default message listener
-    this.exportApi.addListener("message", console.log);
+    this.exportApi["addListener"]("message", console.log);
+
     return this.exportApi;
   }
 

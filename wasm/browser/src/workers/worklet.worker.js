@@ -250,7 +250,9 @@ class CsoundWorkletProcessor extends AudioWorkletProcessor {
     activeNodes.set(nodeUid, this);
     this.messagePortsReady = false;
     this.currentPlayState = undefined;
+    /** @export */
     this.pause = this.pause.bind(this);
+    /** @export */
     this.resume = this.resume.bind(this);
     this.isPaused = false;
     // this.sampleRate = sampleRate;
@@ -374,8 +376,16 @@ function initMessagePort(payload) {
   const port = payload["port"];
   log(`initMessagePort in worker`)();
   const workerMessagePort = new MessagePortState();
-  workerMessagePort.post = (logMessage) => port.postMessage({ log: logMessage });
-  workerMessagePort.broadcastPlayState = (playStateChange) => port.postMessage({ playStateChange });
+  workerMessagePort.post = (logMessage) => {
+    const payload = {};
+    payload["log"] = logMessage;
+    port.postMessage(payload);
+  };
+  workerMessagePort.broadcastPlayState = (playStateChange) => {
+    const payload = {};
+    payload["playStateChange"] = playStateChange;
+    port.postMessage(payload);
+  };
 
   workerMessagePort.ready = true;
   return workerMessagePort;

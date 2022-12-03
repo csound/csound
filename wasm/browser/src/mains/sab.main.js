@@ -102,7 +102,6 @@ class SharedArrayBufferMainThread {
     if (this.publicEvents) {
       this.publicEvents.terminateInstance();
     }
-    Object.keys(this.exportApi).forEach((key) => delete this.exportApi[key]);
   }
 
   get api() {
@@ -176,9 +175,11 @@ class SharedArrayBufferMainThread {
         this.eventPromises.createStopPromise();
 
         // flush out events sent during the time which the worker was stopping
-        Object.values(this.callbackBuffer).forEach(({ argumentz, apiKey, resolveCallback }) =>
-          this.proxyPort["callUncloned"](apiKey, argumentz).then(resolveCallback),
-        );
+        Object.values(this.callbackBuffer).forEach((payload) => {
+          this.proxyPort["callUncloned"](payload["apiKey"], payload["argumentz"]).then(
+            payload["resolveCallback"],
+          );
+        });
         this.callbackBuffer = {};
         log(`event: realtimePerformanceEnded received, beginning cleanup`)();
         // re-initialize SAB
@@ -267,14 +268,18 @@ class SharedArrayBufferMainThread {
     this.ipcMessagePorts.sabMainCallbackReply.addEventListener("message", (event) => {
       switch (event.data) {
         case "poll": {
-          this.ipcMessagePorts &&
+          if (this.ipcMessagePorts && this.ipcMessagePorts.sabMainCallbackReply) {
             this.ipcMessagePorts.sabMainCallbackReply.postMessage(
-              Object.keys(this.callbackBuffer).map((id) => ({
-                id,
-                apiKey: this.callbackBuffer[id].apiKey,
-                argumentz: this.callbackBuffer[id].argumentz,
-              })),
+              Object.keys(this.callbackBuffer).map((id) => {
+                const callbackReplyPayload = {};
+                callbackReplyPayload["id"] = id;
+                callbackReplyPayload["apiKey"] = this.callbackBuffer[id]["apiKey"];
+                callbackReplyPayload["argumentz"] = this.callbackBuffer[id]["argumentz"];
+                return callbackReplyPayload;
+              }),
             );
+          }
+
           break;
         }
         case "releaseStop": {
@@ -296,9 +301,9 @@ class SharedArrayBufferMainThread {
           break;
         }
         default: {
-          event.data.forEach(({ id, answer }) => {
-            this.callbackBuffer[id].resolveCallback(answer);
-            delete this.callbackBuffer[id];
+          event.data.forEach((payload) => {
+            this.callbackBuffer[payload["id"]]["resolveCallback"](payload["answer"]);
+            delete this.callbackBuffer[payload["id"]];
           });
         }
       }
@@ -334,14 +339,12 @@ class SharedArrayBufferMainThread {
     this.exportApi["pause"] = this.csoundPause.bind(this);
     this.exportApi["resume"] = this.csoundResume.bind(this);
     this.exportApi["terminateInstance"] = this.terminateInstance.bind(this);
-    // this.exportApi.fs = this.fs;
-
-    this.exportApi.enableAudioInput = () =>
+    this.exportApi["enableAudioInput"] = () =>
       console.warn(
         `enableAudioInput was ignored: please use -iadc option before calling start with useWorker=true`,
       );
 
-    this.exportApi.getNode = async () => {
+    this.exportApi["getNode"] = async () => {
       const maybeNode = this.audioWorker.audioWorkletNode;
       if (maybeNode) {
         return maybeNode;
@@ -353,7 +356,7 @@ class SharedArrayBufferMainThread {
       }
     };
 
-    this.exportApi.getAudioContext = async () => this.audioWorker.audioContext;
+    this.exportApi["getAudioContext"] = async () => this.audioWorker.audioContext;
 
     this.exportApi = this.publicEvents.decorateAPI(this.exportApi);
 
@@ -484,7 +487,7 @@ class SharedArrayBufferMainThread {
         }
 
         case "fs": {
-          this.exportApi.fs = {};
+          this.exportApi["fs"] = {};
           Object.keys(reference).forEach((method) => {
             const proxyFsCallback = makeProxyCallback(
               proxyPort,
@@ -493,7 +496,7 @@ class SharedArrayBufferMainThread {
               this.currentPlayState,
             );
             proxyFsCallback["toString"] = () => reference[method]["toString"]();
-            this.exportApi.fs[method] = proxyFsCallback;
+            this.exportApi["fs"][method] = proxyFsCallback;
           });
           break;
         }
@@ -523,11 +526,14 @@ class SharedArrayBufferMainThread {
                   clearTimeout(timeout);
                   resolve(answer);
                 };
-                this.callbackBuffer[callbackId] = {
-                  resolveCallback,
-                  apiKey,
-                  argumentz: [csoundInstance, ...arguments_],
-                };
+
+                const callbackBufferDispatch = {};
+
+                callbackBufferDispatch["resolveCallback"] = resolveCallback;
+                callbackBufferDispatch["apiKey"] = apiKey;
+                callbackBufferDispatch["argumentz"] = [csoundInstance, ...arguments_];
+
+                this.callbackBuffer[callbackId] = callbackBufferDispatch;
               });
               Atomics.compareExchange(audioStatePointer, AUDIO_STATE.HAS_PENDING_CALLBACKS, 0, 1);
               return await returnPromise;

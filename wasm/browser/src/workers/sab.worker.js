@@ -305,11 +305,17 @@ const initCallbackReplyPort = (response) => {
       unlockPromise_ && unlockPromise_();
     } else {
       const callbacks = event.data;
-      const answers = callbacks.reduce((accumulator, { id, argumentz, apiKey }) => {
+      const answers = callbacks.reduce((accumulator, callerPayload) => {
+        const id = callerPayload["id"];
+        const argumentz = callerPayload["argumentz"];
+        const apiKey = callerPayload["apiKey"];
         try {
           const caller = combined.get(apiKey);
           const answer = caller && caller.apply({}, argumentz || []);
-          accumulator.push({ id, answer });
+          const answerPayload = {};
+          answerPayload["id"] = id;
+          answerPayload["answer"] = answer;
+          accumulator.push(answerPayload);
         } catch (error) {
           throw new Error(error);
         }

@@ -1,4 +1,3 @@
-/* eslint-disable unicorn/prevent-abbreviations */
 import { freeStringPtr, string2ptr } from "../utils/string-pointers.js";
 import { structBufferToObject } from "../utils/structure-buffer-to-object.js";
 import { sizeOfStruct } from "../utils/native-sizes.js";

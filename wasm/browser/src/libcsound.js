@@ -82,7 +82,7 @@ import {
   csoundIsNamedGEN,
   csoundGetNamedGEN,
 } from "./modules/table";
-import * as fs from "./filesystem/worker-fs";
+import fs from "./filesystem/worker-fs";
 
 goog.declareModuleId("libcsound");
 
@@ -182,15 +182,14 @@ export const api = {
 };
 
 export default function (wasm) {
-  const apiFs = { ...api["fs"] };
-  delete api["fs"];
+  const { fs: apiFs, ...apiRest } = api;
 
   return {
-    ...Object.keys(api).reduce((accumulator, k) => {
-      accumulator[k] = api[k](wasm);
+    ...Object.keys(apiRest).reduce((accumulator, k) => {
+      accumulator[k] = apiRest[k](wasm);
       return accumulator;
     }, {}),
-    ...Object.keys(fs).reduce((accumulator, k) => {
+    ...Object.keys(apiFs).reduce((accumulator, k) => {
       accumulator[k] = apiFs[k](wasm);
       return accumulator;
     }, {}),

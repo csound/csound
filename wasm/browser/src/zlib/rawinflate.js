@@ -1,4 +1,4 @@
-/* eslint-disable unicorn/numeric-separators-style,camelcase,no-unused-expressions,unicorn/prevent-abbreviations */
+/* eslint-disable unicorn/numeric-separators-style,camelcase,no-unused-expressions */
 
 import { Huffman } from "./huffman";
 

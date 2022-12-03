@@ -66,7 +66,6 @@ class VanillaWorkerMainThread {
     if (this.publicEvents) {
       this.publicEvents.terminateInstance();
     }
-    Object.keys(this.exportApi).forEach((key) => delete this.exportApi[key]);
   }
 
   get api() {
@@ -156,7 +155,7 @@ class VanillaWorkerMainThread {
       this.eventPromises.createPausePromise();
 
       this.audioWorker && this.audioWorker.workletProxy !== undefined
-        ? await this.audioWorker.workletProxy.pause()
+        ? await this.audioWorker.workletProxy["pause"]()
         : await this.audioWorker.onPlayStateChange("realtimePerformancePaused");
 
       await this.eventPromises.waitForPause();
@@ -170,7 +169,7 @@ class VanillaWorkerMainThread {
     } else {
       this.eventPromises.createResumePromise();
       this.audioWorker && this.audioWorker.workletProxy !== undefined
-        ? await this.audioWorker.workletProxy.resume()
+        ? await this.audioWorker.workletProxy["resume"]()
         : await this.audioWorker.onPlayStateChange("realtimePerformanceResumed");
 
       await this.eventPromises.waitForResume();
@@ -341,7 +340,7 @@ class VanillaWorkerMainThread {
               this.currentPlayState,
             );
             proxyFsCallback["toString"] = reference[method]["toString"];
-            this.exportApi.fs[method] = proxyFsCallback;
+            this.exportApi["fs"][method] = proxyFsCallback;
           });
           break;
         }

@@ -16,7 +16,6 @@ export const csoundSetMidiCallbacks = (wasm) => (csound /* CsoundInst */) => {
  * (isOutput=1 for out devices, 0 for in devices).
  * @function
  */
-// eslint-disable-next-line unicorn/prevent-abbreviations
 export const csoundGetMIDIDevList = (wasm) => (csound /* CsoundInst */, isOutput /* number */) => {
   const { buffer } = wasm.wasi.memory;
   const numberOfDevices = wasm["exports"]["csoundGetMIDIDevList"](

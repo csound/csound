@@ -86,7 +86,6 @@ class SingleThreadAudioWorkletMainThread {
       this.publicEvents.terminateInstance();
       delete this.publicEvents;
     }
-    Object.keys(this.exportApi).forEach((key) => delete this.exportApi[key]);
   }
 
   async onPlayStateChange(newPlayState) {

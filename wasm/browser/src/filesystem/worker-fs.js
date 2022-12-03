@@ -1,6 +1,7 @@
 import { encoder } from "../utils/text-encoders.js";
 
-export function writeFile(wasm) {
+/** @export */
+function writeFile(wasm) {
   return (_, path, data_) => {
     const data = typeof data_ === "string" ? encoder.encode(data_) : data_;
     wasm.wasi.writeFile(path, data);
@@ -9,7 +10,8 @@ export function writeFile(wasm) {
 
 writeFile["toString"] = () => "async (path, data) => void";
 
-export function appendFile(wasm) {
+/** @export */
+function appendFile(wasm) {
   return (_, path, data_) => {
     const data = typeof data_ === "string" ? encoder.encode(data_) : data_;
     wasm.wasi.appendFile(path, data);
@@ -18,7 +20,8 @@ export function appendFile(wasm) {
 
 appendFile["toString"] = () => "async (path, data) => void";
 
-export function readFile(wasm) {
+/** @export */
+function readFile(wasm) {
   return (_, path) => {
     return wasm.wasi.readFile(path);
   };
@@ -26,7 +29,8 @@ export function readFile(wasm) {
 
 readFile["toString"] = () => "async (path) => ?Uint8Array";
 
-export function unlink(wasm) {
+/** @export */
+function unlink(wasm) {
   return (_, path) => {
     return wasm.wasi.unlink(path);
   };
@@ -34,16 +38,29 @@ export function unlink(wasm) {
 
 unlink["toString"] = () => "async (path) => void";
 
-export function readdir(wasm) {
+/** @export */
+function readdir(wasm) {
   return (_, path) => wasm.wasi.readdir(path);
 }
 
 readdir["toString"] = () => "async (path) => string[]";
 
-export function mkdir(wasm) {
+/** @export */
+function mkdir(wasm) {
   return (_, path) => {
     return wasm.wasi.mkdir(path);
   };
 }
 
 mkdir["toString"] = () => "async (path) => void";
+
+export const fs = {};
+
+fs["writeFile"] = writeFile;
+fs["appendFile"] = appendFile;
+fs["readFile"] = readFile;
+fs["unlink"] = unlink;
+fs["readdir"] = readdir;
+fs["mkdir"] = mkdir;
+
+export default fs;

@@ -151,7 +151,6 @@ class ScriptProcessorNodeMainThread {
     }
 
     const parentScope = window.document;
-    // eslint-disable-next-line unicorn/prevent-abbreviations
     const iFrameHtml = [
       `<!doctype html>`,
       `<html lang="en">`,
@@ -163,7 +162,6 @@ class ScriptProcessorNodeMainThread {
       `</body>`,
     ].join("\n");
 
-    // eslint-disable-next-line unicorn/prevent-abbreviations
     const iFrameBlob = new Blob([iFrameHtml], { type: "text/html" });
     this.iFrameElement = document.createElement("iframe");
 
@@ -173,7 +171,6 @@ class ScriptProcessorNodeMainThread {
     this.iFrameElement.style.cssText = "position:absolute;left:0;top:-999px;width:1px;height:1px;";
 
     // appending early to have access to contentWindow
-    // eslint-disable-next-line unicorn/prevent-abbreviations
     const iFrameOnLoad = new Promise((resolve) => {
       // eslint-disable-next-line unicorn/prefer-add-event-listener
       this.iFrameElement.onload = () => {

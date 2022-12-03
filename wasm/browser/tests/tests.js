@@ -2,7 +2,7 @@
   const isCI = ["8081", "8082"].includes(location.port) && location.search.includes("ci=true");
   const url = "/dist/csound.js"; // isCI ? "/csound.esm.js" : "/csound.dev.esm.js";
   const resp = await import(url);
-  console.log({ resp });
+  // console.log("RESP", resp);
   const { Csound } = resp;
 
   const helloWorld = `
@@ -253,7 +253,7 @@ e
         const compileReturn = await cs.compileCsdText(shortTone);
         assert.equal(compileReturn, 0);
         const startReturn = await cs.start();
-
+        console.log("getCtrol", cs.getControlChannel, await cs.getControlChannel("test1"), cs);
         assert.equal(startReturn, 0);
         assert.equal(1, await cs.getControlChannel("test1"));
         assert.equal(2, await cs.getControlChannel("test2"));

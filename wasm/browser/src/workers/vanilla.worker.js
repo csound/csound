@@ -237,7 +237,6 @@ const initialize = async (payload) => {
   const outputChannelCount = payload["outputChannelCount"];
   const requestPort = payload["requestPort"];
   const rtmidiPort = payload["rtmidiPort"];
-  const sampleRate = payload["sampleRate"];
   const wasmDataURI = payload["wasmDataURI"];
   const wasmTransformerDataURI = payload["wasmTransformerDataURI"];
   const withPlugins = payload["withPlugins"] || [];
@@ -290,8 +289,8 @@ const initialize = async (payload) => {
   const csoundInstance = libraryCsound.csoundCreate();
 
   workerMessagePort.port.addEventListener("message", (event) => {
-    if (event.data && event.data.newPlayState) {
-      if (event.data.newPlayState === "realtimePerformanceEnded") {
+    if (event.data && event.data["newPlayState"]) {
+      if (event.data["newPlayState"] === "realtimePerformanceEnded") {
         libraryCsound.csoundStop(csoundInstance);
         if (workerMessagePort.vanillaWorkerState !== "realtimePerformanceEnded") {
           libraryCsound.csoundPerformKsmps(csoundInstance);
@@ -301,7 +300,7 @@ const initialize = async (payload) => {
         // until it arrived back
         workerMessagePort.broadcastPlayState("realtimePerformanceEnded");
       }
-      workerMessagePort.vanillaWorkerState = event.data.newPlayState;
+      workerMessagePort.vanillaWorkerState = event.data["newPlayState"];
     }
   });
 

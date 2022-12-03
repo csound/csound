@@ -140,5 +140,7 @@ const Csound = async function ({
     return;
   }
 
-  return csoundWasmApi;
+  return Object.freeze(csoundWasmApi);
 };
+
+goog.exportSymbol("__Csound__", Csound);

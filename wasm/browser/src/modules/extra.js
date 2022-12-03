@@ -1,4 +1,3 @@
-/* eslint-disable unicorn/prevent-abbreviations */
 import { freeStringPtr, string2ptr } from "../utils/string-pointers.js";
 
 /**

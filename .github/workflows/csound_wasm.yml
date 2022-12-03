@@ -65,7 +65,6 @@ jobs:
       - name: Build the production js module bundle
         run: |
           cd $wasm_browser_dir
-          yarn add @csound/wasm-bin@link:../
           yarn
           yarn build:prod
       - name: Install test dependencies
