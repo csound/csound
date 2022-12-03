@@ -145,6 +145,10 @@ void __wasi_js_csoundSetMessageStringCallback() {
   return csoundSetDefaultMessageCallback(&csoundWasiCMessageCallback);
 }
 
+int csoundLoadExternals(CSOUND *csound) {
+  return 0;
+}
+
 // copy/paste from upstream csound-emscripten
 // https://github.com/csound/csound/blob/develop/Emscripten/src/CsoundObj.c
 

@@ -28,9 +28,8 @@ import libcsoundFactory from "../libcsound";
 import loadWasm from "../module";
 import { clearArray } from "../utils/clear-array";
 import { logSinglethreadWorkletWorker as log } from "../logger";
-import { renderFunction } from "./common.utils";
 
-let rennderSleep;
+let renderSleep;
 let libraryCsound;
 let combined;
 const rtmidiQueue = [];
@@ -57,7 +56,7 @@ const singlethreadWorkerRender =
         // this is immediately executed, but allows events to be picked up
         // we use the process loop instead of setTimeout(0)
         await new Promise((resolve) => {
-          rennderSleep = resolve;
+          renderSleep = resolve;
         });
       }
     }
@@ -428,7 +427,7 @@ class WorkletSinglethreadWorker extends AudioWorkletProcessor {
         this.workerMessagePort.broadcastPlayState("renderStarted");
         this.isRendering = true;
 
-        renderFunction({
+        singlethreadWorkerRender({
           libraryCsound,
           workerMessagePort: this.workerMessagePort,
           wasi: this.wasi,
