@@ -14,7 +14,7 @@ import { inlineArraybuffer } from "./goog/inline-arraybuffer.js";
 const DEV = process.env.NODE_ENV === "development";
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
-const rootDir = __dirname; //path.resolve(__dirname, ".");
+const rootDir = __dirname;
 const nodeModulesDir = path.join(rootDir, "node_modules");
 const externsDir = path.join(rootDir, "externs");
 const srcDir = path.join(rootDir, "src");

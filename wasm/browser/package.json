@@ -49,6 +49,7 @@
     "build:prod": "cross-env NODE_ENV=production node compile.js",
     "build:static": "cross-env BUILD_STATIC=1 yarn run build",
     "build:readme": "node --experimental-modules script/generate-readme.mjs > README.md",
+    "build:tools": "node compile-tools.js",
     "test:ci": "node tests/selenium_runner.js",
     "test:ci:firefox": "node tests/selenium_runner_firefox.js",
     "test:open": "node tests/server.cjs"
@@ -91,6 +92,7 @@
     "eventemitter3": "^4.0.7",
     "google-closure-compiler": "^20221102.0.1",
     "google-closure-library": "^20221102.0.0",
+    "pako": "^2.1.0",
     "ramda": "^0.28.0",
     "rimraf": "^3.0.2",
     "standardized-audio-context": "^25.3.35",

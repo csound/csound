@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html>
+  <head></head>
+  <body>
+      <script type="module">
+       const helloWorld = `
+<CsoundSynthesizer>
+<CsOptions>
+</CsOptions>
+<CsInstruments>
+    chnset(1, "test1")
+    chnset(2, "test2")
+    instr 1
+    prints "Hello World!\\n"
+    endin
+</CsInstruments>
+<CsScore>
+    i 1 0 0
+</CsScore>
+</CsoundSynthesizer>
+       `;
+
+       const url = "/dist/csound-no-audio.js";
+       import(url).then(async (module) => {
+           const { Csound } = await import(url);
+           const csoundObj = await Csound();
+           console.log({ csoundObj });
+           const compileResult = await csoundObj.compileCsdText(helloWorld);
+           const startResult = await csoundObj.start();
+           const channelValue = await csoundObj.getControlChannel("test2")
+           console.log({ compileResult, channelValue });
+
+       });
+      </script>
+  </body>
+</html>
