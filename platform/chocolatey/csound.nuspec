@@ -5,9 +5,9 @@
   <metadata>
     <id>csound</id>
     <version>6.17.0</version>
-    <packageSourceUrl>https://github.com/csound/csound</packageSourceUrl>
+    <packageSourceUrl>https://github.com/csound/csound/platform/chocolatey/</packageSourceUrl>
     <owners>Stephen Kyne</owners>
-    <title>csound (Install)</title>
+    <title>Csound</title>
     <authors>Csound Org.</authors>
     <projectUrl>https://github.com/csound/csound</projectUrl>
     <licenseUrl>https://github.com/csound/csound/blob/master/COPYING</licenseUrl>
