@@ -234,3 +234,5 @@ html
 manual.zip
 dist
 xcode
+*.nupkg
+*.exe

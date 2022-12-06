@@ -1,0 +1,14 @@
+﻿VERIFICATION
+Verification is intended to assist the Chocolatey moderators and community
+in verifying that this package's contents are trustworthy.
+
+The installer should be downloaded from the official Github releases: <https://github.com/csound/csound/releases>
+
+1. Download installer for this package version and unzip:
+ - https://github.com/csound/csound/releases/download/6.17.0/csound-6.17.0-windows-x64-installer.zip
+
+2. Verify the installer (not the zip) checksum matches
+ - powershell: Get-Filehash
+ - chocolately utility: checksum
+
+check sum of installer: 68FF3629A20FE91385C6BB8660EB95F8DF5ECB6619D1D0BECFA6BF4C9748435B
