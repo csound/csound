@@ -24,7 +24,7 @@ indx = 0
 xout 0
 endop
 
-instr 1	
+instr 1
 
 var0:MyType[] init 4
 
@@ -37,9 +37,8 @@ while (indx < 4) do
   temp.real = (indx + 1) * 2
   var0[indx] = temp
 
-  /* FIXME */
-  /*var0[indx].imaginary = (indx * 2) * 2*/
-  /*var0[indx].real = ((indx + 1) * 2) * 2*/
+  var0[indx].imaginary = (indx * 2) * 2
+  var0[indx].real = ((indx + 1) * 2) * 2
 
   indx += 1
 
@@ -59,4 +58,3 @@ i1 0 0.5
 
 </CsScore>
 </CsoundSynthesizer>
-
