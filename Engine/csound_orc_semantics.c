@@ -119,7 +119,7 @@ char* get_expression_opcode_type(CSOUND* csound, TREE* tree) {
   case S_UMINUS:
     return "##mul";
   case S_UPLUS:
-    return "##mul";  
+    return "##mul";
   case '|':
     return "##or";
   case '&':
@@ -283,7 +283,6 @@ char* get_arg_type2(CSOUND* csound, TREE* tree, TYPE_TABLE* typeTable)
 
     if (tree->type == T_ARRAY) {
       varBaseName = tree->left->value->lexeme;
-
       var = find_var_from_pools(csound, varBaseName, varBaseName, typeTable);
 
       if (var == NULL) {
@@ -509,6 +508,8 @@ char* get_arg_type2(CSOUND* csound, TREE* tree, TYPE_TABLE* typeTable)
     }
   }
 
+  int isStructArray = 0;
+
   switch(tree->type) {
   case NUMBER_TOKEN:
   case INTEGER_TOKEN:
@@ -596,7 +597,14 @@ char* get_arg_type2(CSOUND* csound, TREE* tree, TYPE_TABLE* typeTable)
   case T_TYPED_IDENT:
     return cs_strdup(csound, tree->value->optype);
   case STRUCT_EXPR:
-    s = tree->left->value->lexeme;
+
+    if (tree->left != NULL && tree->left->type == T_ARRAY) {
+      isStructArray = 1;
+      s = tree->left->left->value->lexeme;
+    } else {
+      s = tree->left->value->lexeme;
+    }
+
     var = find_var_from_pools(csound, s, s, typeTable);
 
     if (UNLIKELY(var == NULL)) {
@@ -606,9 +614,10 @@ char* get_arg_type2(CSOUND* csound, TREE* tree, TYPE_TABLE* typeTable)
     }
 
     tree = tree->right;
+
     while (tree != NULL) {
       s = tree->value->lexeme;
-      CONS_CELL* cell = var->varType->members;
+      CONS_CELL* cell = isStructArray ? var->subType->members : var->varType->members;
       CS_VARIABLE* nextVar = NULL;
       while (cell != NULL) {
         CS_VARIABLE* member = (CS_VARIABLE*)cell->value;
@@ -1111,7 +1120,7 @@ char* resolve_opcode_get_outarg(CSOUND* csound, OENTRIES* entries,
 char* convert_internal_to_external(CSOUND* csound, char* arg) {
   int i, dimensions;
   char *start = arg;
-  char *retVal, *current;;
+  char *retVal, *current;
   int nameLen, len = strlen(arg);
 
   if (arg == NULL || len == 1) {
@@ -1220,7 +1229,6 @@ char* get_arg_string_from_tree(CSOUND* csound, TREE* tree,
 
   argString = csound->Malloc(csound, (argsLen + 1) * sizeof(char));
   char* temp = argString;
-
   for (i = 0; i < len; i++) {
     int size = strlen(argTypes[i]);
     memcpy(temp, argTypes[i], size);
@@ -1229,7 +1237,6 @@ char* get_arg_string_from_tree(CSOUND* csound, TREE* tree,
   }
 
   argString[argsLen] = '\0';
-
   csound->Free(csound, argTypes);
   return argString;
 }
@@ -2948,7 +2955,7 @@ void print_tree_i(CSOUND *csound, TREE *l, int n)
                     l->line, csound->filedir[(l->locn)&0xff]); break;
   case S_UPLUS:
     csound->Message(csound,"S_UPLUS:(%d:%s)\n",
-                    l->line, csound->filedir[(l->locn)&0xff]); break;  
+                    l->line, csound->filedir[(l->locn)&0xff]); break;
   case '[':
     csound->Message(csound,"[:(%d:%s)\n",
                     l->line, csound->filedir[(l->locn)&0xff]); break;
@@ -3096,7 +3103,7 @@ static void print_tree_xml(CSOUND *csound, TREE *l, int n, int which)
     csound->Message(csound,"name=\"S_UMINUS\""); break;
   case S_UPLUS:
     csound->Message(csound,"name=\"S_UPLUS\""); break;
-    
+
   case UDO_TOKEN:
     csound->Message(csound,"name=\"UDO_TOKEN\""); break;
   case UDO_ANS_TOKEN:

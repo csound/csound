@@ -175,9 +175,9 @@
 
 /* TODO
 
- - add csp_orc_sa_instr_add calls in later csp analyze phase 
+ - add csp_orc_sa_instr_add calls in later csp analyze phase
    => these seem to be done now below, in the instr_definition rules
- - add csp_orc_sa_global_read_write_add_list etc 
+ - add csp_orc_sa_global_read_write_add_list etc
    => not sure where exactly?
 */
 
@@ -236,12 +236,12 @@ instr_definition : INSTR_TOKEN instr_id_list NEWLINE
 
 instr_id_list : instr_id_list ',' instr_id
                   { $$ = appendToTree(csound, $1, $3); }
-              | instr_id  { csp_orc_sa_instr_add_tree(csound, $1); }             
+              | instr_id  { csp_orc_sa_instr_add_tree(csound, $1); }
               ;
 
 instr_id : integer
-          | identifier 
-          | plus_identifier 
+          | identifier
+          | plus_identifier
           ;
 
 
@@ -538,6 +538,8 @@ array_expr :  array_expr '[' expr ']'
 struct_expr : struct_expr '.' identifier
             {  $$ = $1;
                appendToTree(csound, $1->right, $3); }
+            | array_expr '.' identifier
+            {  $$ = make_node(csound, LINE, LOCN, STRUCT_EXPR, $1, $3); }
             | identifier '.' identifier
             {  $$ = make_node(csound, LINE, LOCN, STRUCT_EXPR, $1, $3); }
             ;
@@ -568,16 +570,16 @@ unary_expr : '~' expr %prec S_UMINUS
           /*     /\*$2->next = make_leaf(csound, LINE, LOCN, '+', (ORCTOKEN *) $1); *\/ */
           /*     $2->markup = &UNARY_PLUS; */
           /* } */
-        
+
           /* VL 14 Sep 21: the only way I could find to make this rule correctly
-              parse a statement such as 
+              parse a statement such as
                  out a1 + (a1 * 2)
-             was to abandon the code above and invent and implement a S_UPLUS type 
+             was to abandon the code above and invent and implement a S_UPLUS type
              (here and in the semantics, expression and optimize code)
              otherwise the rule did not create an expression at all and was
              parsed as if the variable following 'out' was an OPCALL
              This comment can be removed once the rule has been reviewed and
-             accepted.  
+             accepted.
           */
           {
               $$ = make_node(csound,LINE,LOCN, S_UPLUS, NULL, $2);
@@ -717,7 +719,7 @@ integer : INTEGER_TOKEN
    so we have to construct it as the concatentation of two tokens
 */
 plus_identifier : '+' T_IDENT
-        { 
+        {
 	  $$ = make_leaf(csound, LINE, LOCN, T_PLUS_IDENT, (ORCTOKEN *)$2);
 	}
         ;

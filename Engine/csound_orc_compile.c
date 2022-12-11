@@ -310,20 +310,28 @@ OENTRY* find_opcode(CSOUND*, char*);
 char* get_struct_expr_string(CSOUND* csound, TREE* structTree) {
   char temp[512];
   int index = 0;
-  char* name = (char*)structTree->markup;
+  char* name;
+  char* arrayExpr;
   int len;
+  int arrExprLen;
   TREE* current;
 
-  if (name != NULL) {
-    return cs_strdup(csound, name);
+  if (structTree->markup != NULL) {
+    return cs_strdup(csound, (char*)structTree->markup);
   }
 
   current = structTree->right;
   memset(temp, 0, 512);
 
-  name = structTree->left->value->lexeme;
+  if (structTree->left->type == T_ARRAY) {
+    name = structTree->left->left->value->lexeme;
+  } else {
+    name = structTree->left->value->lexeme;
+  }
+
   len = strlen(name);
   memcpy(temp, name, len);
+
   index += len;
 
   while(current != NULL) {
@@ -337,7 +345,6 @@ char* get_struct_expr_string(CSOUND* csound, TREE* structTree) {
 
   name = cs_strdup(csound, temp);
   structTree->markup = name;
-
   return name;
 }
 
@@ -2011,7 +2018,7 @@ int csoundCompileOrcInternal(CSOUND *csound, const char *str, int async) {
     memcpy((void *)&csound->exitjmp, (void *)&tmpExitJmp, sizeof(jmp_buf));
     return CSOUND_ERROR;
   }
-  
+
   if (UNLIKELY(csound->oparms->odebug))
     debugPrintCsound(csound);
   memcpy((void *)&csound->exitjmp, (void *)&tmpExitJmp, sizeof(jmp_buf));
