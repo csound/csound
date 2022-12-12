@@ -515,8 +515,6 @@ char* get_arg_type2(CSOUND* csound, TREE* tree, TYPE_TABLE* typeTable)
     }
   }
 
-  int isStructArray = 0;
-
   switch(tree->type) {
   case NUMBER_TOKEN:
   case INTEGER_TOKEN:
@@ -591,6 +589,7 @@ char* get_arg_type2(CSOUND* csound, TREE* tree, TYPE_TABLE* typeTable)
 
      if (var->varType == &CS_VAR_TYPE_ARRAY) {
         char *res = create_array_arg_type(csound, var);
+        printf("res %s dimensions %d \n", res, var->dimensions);
         if (res==NULL) {        /* **REVIEW** this double syntax error */
           synterr(csound, Str("Array of unknown type\n"));
           csoundMessage(csound, Str("Line: %d\n"), tree->line-1);
@@ -603,19 +602,20 @@ char* get_arg_type2(CSOUND* csound, TREE* tree, TYPE_TABLE* typeTable)
 
   case T_TYPED_IDENT:
     return cs_strdup(csound, tree->value->optype);
-  case STRUCT_EXPR:
-
+  case STRUCT_EXPR: {
+    char* leftStr;
+    int subtype = 0;
     if (tree->left != NULL && tree->left->type == T_ARRAY) {
-      isStructArray = 1;
-      s = tree->left->left->value->lexeme;
+      leftStr = tree->left->left->value->lexeme;
+      subtype = 1;
     } else {
-      s = tree->left->value->lexeme;
+      leftStr = tree->left->value->lexeme;
     }
 
-    var = find_var_from_pools(csound, s, s, typeTable);
+    var = find_var_from_pools(csound, leftStr, leftStr, typeTable);
 
     if (UNLIKELY(var == NULL)) {
-      synterr(csound, Str("Variable '%s' used before defined\n"), s);
+      synterr(csound, Str("Variable '%s' used before defined\n"), leftStr);
       do_baktrace(csound, tree->locn);
       return NULL;
     }
@@ -624,7 +624,7 @@ char* get_arg_type2(CSOUND* csound, TREE* tree, TYPE_TABLE* typeTable)
 
     while (tree != NULL) {
       s = tree->value->lexeme;
-      CONS_CELL* cell = isStructArray ? var->subType->members : var->varType->members;
+      CONS_CELL* cell = subtype ? var->subType->members : var->varType->members;
       CS_VARIABLE* nextVar = NULL;
       while (cell != NULL) {
         CS_VARIABLE* member = (CS_VARIABLE*)cell->value;
@@ -635,15 +635,16 @@ char* get_arg_type2(CSOUND* csound, TREE* tree, TYPE_TABLE* typeTable)
         cell = cell->next;
       }
       if (nextVar == NULL) {
-        synterr(csound, Str("No member '%s' found for variable 'xxx'\n"), s);
+        synterr(csound, Str("No member '%s' found for variable '%s'\n"), s, leftStr);
         do_baktrace(csound, tree->locn);
         return NULL;
       }
       var = nextVar;
       tree = tree->next;
     }
-
     return cs_strdup(csound, var->varType->varTypeName);
+
+  }
 
   case T_ARRAY:
 
@@ -3022,7 +3023,6 @@ static void print_tree_xml(CSOUND *csound, TREE *l, int n, int which)
   case '^':
   case '(':
   case ')':
-  case T_ASSIGNMENT:
   case '|':
   case '&':
   case '#':
@@ -3137,6 +3137,10 @@ static void print_tree_xml(CSOUND *csound, TREE *l, int n, int which)
     csound->Message(csound,"name=\"S_ELIPSIS\""); break;
   case S_ADDIN:
     csound->Message(csound,"name=\"##addin\""); break;
+  case STRUCT_EXPR:
+    csound->Message(csound,"name=\"STRUCT_EXPR\""); break;
+  case T_ASSIGNMENT:
+    csound->Message(csound,"name=\"T_ASSIGNMENT\""); break;
     //    case T_MAPI:
     //      csound->Message(csound,"name=\"T_MAPI\""); break;
     //    case T_MAPK:
