@@ -334,7 +334,7 @@ static int32_t array_get(CSOUND* csound, ARRAY_GET *p)
     int32_t end;
     int32_t index;
     int32_t indefArgCount = p->INOCOUNT - 1;
-
+    printf("dat %p array_get dim %d \n", dat, dat->dimensions);
     if (UNLIKELY(indefArgCount == 0))
       return csound->PerfError(csound, &(p->h),
                                Str("Error: no indexes set for array get"));
@@ -2579,7 +2579,7 @@ static int32_t tabclear(CSOUND *csound, TABCLEAR *p)
     int32_t i;
     int32_t nsmps = CS_KSMPS;
     int32_t size = 1;
-    
+
     if (UNLIKELY(t->data == NULL))
       return csound->PerfError(csound, &(p->h),
                                Str("array-variable not initialised"));
@@ -2589,7 +2589,7 @@ static int32_t tabclear(CSOUND *csound, TABCLEAR *p)
 
     for(i = 0; i < t->dimensions; i++) size *= t->sizes[i];
     memset(t->data, 0, sizeof(MYFLT)*nsmps*size);
-    
+
     return OK;
 }
 
@@ -2599,7 +2599,7 @@ static int32_t tabcleark(CSOUND *csound, TABCLEAR *p)
     ARRAYDAT *t = p->tab;
     int32_t i;
     int32_t size = 1;
-    
+
     if (UNLIKELY(t->data == NULL))
       return csound->PerfError(csound, &(p->h),
                                Str("array-variable not initialised"));
@@ -2609,7 +2609,7 @@ static int32_t tabcleark(CSOUND *csound, TABCLEAR *p)
 
     for(i = 0; i < t->dimensions; i++) size *= t->sizes[i];
     memset(t->data, 0, sizeof(MYFLT)*size);
-    
+
     return OK;
 }
 
