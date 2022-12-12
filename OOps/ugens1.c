@@ -211,7 +211,7 @@ int32_t klnseg(CSOUND *csound, LINSEG *p)
     if (UNLIKELY(p->segsrem)) {                   /* done if no more segs */
       if (--p->curcnt <= 0) {           /* if done cur segment  */
         SEG *segp = p->cursegp;
-        if (UNLIKELY(!(--p->segsrem)))  {
+        if (UNLIKELY(!(--p->segsrem)))  {     
           p->curval = segp->nxtpt;      /* advance the cur val  */
           return OK;
         }
@@ -227,9 +227,10 @@ int32_t klnseg(CSOUND *csound, LINSEG *p)
           return OK;
         }
       }
-      if (p->curcnt<10)         /* This is a fiddle to get rounding right!  */
-        p->curinc = (p->cursegp->nxtpt - p->curval) / p->curcnt; /* recalc */
+     if (p->curcnt<10)         /* This is a fiddle to get rounding right!  */
+       p->curinc = (p->cursegp->nxtpt - p->curval) / p->curcnt; /* recalc */
       p->curval += p->curinc;           /* advance the cur val  */
+      //printf("%d %f \n", p->curcnt, p->curval);
     }
     return OK;
  err1:
@@ -397,12 +398,14 @@ int32_t lsgrset(CSOUND *csound, LINSEG *p)
     int32_t relestim;
     if (lsgset(csound,p) == OK){
     relestim = (p->cursegp + p->segsrem - 1)->cnt;
-    p->xtra = relestim;
     /* VL 4-1-2011 was -1, making all linsegr
                             releases in an instr => xtratim
                             set to relestim seems to fix this */
+    p->xtra = relestim;
     if (relestim > p->h.insdshead->xtratim)
-      p->h.insdshead->xtratim = (int32_t)relestim;
+      /* VL: 12.12.22 add extra kcycle to allow envelope 
+         to reach target */
+      p->h.insdshead->xtratim = (int32_t) relestim + 1;
     return OK;
     }
     else return NOTOK;
@@ -423,16 +426,21 @@ int32_t klnsegr(CSOUND *csound, LINSEG *p)
         goto newi;                         /*   and set new curinc */
       }
       if (--p->curcnt <= 0) {              /* if done cur seg      */
-      chk2:
+        chk2:
         if (p->segsrem == 2) return OK;    /*   seg Y rpts lastval */
-        if (!(--p->segsrem)) return OK;    /*   seg Z now done all */
+        if (!(--p->segsrem)) {
+          *p->rslt = p->cursegp->nxtpt;  /* VL: 12.12.22 set out to target */
+          return OK;    /*   seg Z now done all */
+        }
         segp = ++p->cursegp;               /*   else find nextseg  */
       newi:
-        if (!(p->curcnt = segp->cnt)) {    /*   nonlen = discontin */
+       if (!(p->curcnt = segp->cnt)) {    /*   nonlen = discontin */
           p->curval = segp->nxtpt;         /*     reload & rechk   */
           goto chk2;
-        }                                  /*   else get new slope */
-        p->curinc = (segp->nxtpt - p->curval) / segp->cnt;
+        }
+       //if(p->segsrem == 1) p->curcnt -= 2;
+       /*   else get new slope */
+       p->curinc = (segp->nxtpt - p->curval) / (segp->cnt);
       }
       p->curval += p->curinc;              /* advance the cur val  */
     }
@@ -467,7 +475,10 @@ int32_t linsegr(CSOUND *csound, LINSEG *p)
         if (--p->curcnt <= 0) {               /* if done cur seg      */
         chk2:
           if (p->segsrem == 2) goto putk;     /*   seg Y rpts lastval */
-          if (!(--p->segsrem)) goto putk;     /*   seg Z now done all */
+          if (!(--p->segsrem)) {
+            val  = p->cursegp->nxtpt;  /* VL: 12.12.22 set out to target */
+            goto putk;     /*   seg Z now done all */
+          }
           segp = ++p->cursegp;                /*   else find nextseg  */
         newi:
           if (!(p->curcnt = segp->acnt)) {    /*   nonlen = discontin */
