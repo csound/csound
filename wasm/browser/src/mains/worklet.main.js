@@ -3,8 +3,7 @@ import { logWorkletMain as log } from "../logger";
 import { WebkitAudioContext } from "../utils";
 import { requestMidi } from "../utils/request-midi";
 import { messageEventHandler } from "./messages.main";
-
-const WorkletWorker = goog.require("worker.worklet");
+import WorkletWorker from "../../dist/__compiled.worklet.worker.inline.js";
 
 let UID = 0;
 
@@ -212,9 +211,9 @@ class AudioWorkletMainThread {
         resolveMicrophonePromise = resolve;
       });
       const getUserMedia =
-        typeof navigator.mediaDevices !== "undefined"
-          ? navigator.mediaDevices.getUserMedia
-          : navigator.getUserMedia || navigator.webkitGetUserMedia || navigator.mozGetUserMedia;
+        navigator.mediaDevices === undefined
+          ? navigator.getUserMedia || navigator.webkitGetUserMedia || navigator.mozGetUserMedia
+          : navigator.mediaDevices.getUserMedia;
 
       const microphoneCallback = (stream) => {
         if (stream) {
@@ -242,14 +241,8 @@ class AudioWorkletMainThread {
       };
 
       log("requesting microphone access")();
-      typeof navigator.mediaDevices !== "undefined"
-        ? getUserMedia
-            .call(navigator.mediaDevices, {
-              audio: { echoCancellation: false, sampleSize: 32 },
-            })
-            .then(microphoneCallback)
-            .catch(console.error)
-        : getUserMedia.call(
+      navigator.mediaDevices === undefined
+        ? getUserMedia.call(
             navigator,
             {
               audio: {
@@ -258,7 +251,13 @@ class AudioWorkletMainThread {
             },
             microphoneCallback,
             console.error,
-          );
+          )
+        : getUserMedia
+            .call(navigator.mediaDevices, {
+              audio: { echoCancellation: false, sampleSize: 32 },
+            })
+            .then(microphoneCallback)
+            .catch(console.error);
     } else {
       const newNode = this.createWorkletNode(this.audioContext, 0, contextUid);
       this.audioWorkletNode = newNode;

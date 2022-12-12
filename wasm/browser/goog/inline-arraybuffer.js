@@ -2,9 +2,7 @@ import { readFileSync, writeFileSync } from "fs";
 import { basename, resolve } from "path";
 
 export function inlineArraybuffer(inputFile, modulename) {
-  return `goog.provide("${modulename}");
-     goog.scope(function () {
-          function atobPolyfill(input) {
+  return `function atobPolyfill(input) {
             var chars =
               "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/=";
             var str = String(input).replace(/[=]+$/, "");
@@ -33,6 +31,7 @@ export function inlineArraybuffer(inputFile, modulename) {
             }
           }
 
+          /** @noinline */
           function __toArrayBuffer(base64Data) {
             var binary = bufferFromBrowser(base64Data);
             var bytes = new Uint8Array(binary.length);
@@ -42,8 +41,6 @@ export function inlineArraybuffer(inputFile, modulename) {
             return bytes.buffer;
           }
 
-
-        ${modulename} = () => __toArrayBuffer("${readFileSync(inputFile).toString("base64")}");
-          })
+         export default () => __toArrayBuffer("${readFileSync(inputFile).toString("base64")}");
             `;
 }

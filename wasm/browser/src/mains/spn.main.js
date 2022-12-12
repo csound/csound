@@ -24,7 +24,7 @@
 import libcsoundFactory from "../libcsound";
 import loadWasm from "../module";
 import MessagePortState from "../utils/message-port-state";
-import { isEmpty } from "rambda/dist/rambda.esm.js";
+import { isEmpty } from "rambda/dist/rambda.mjs";
 import { csoundApiRename, fetchPlugins, makeSingleThreadCallback } from "../utils";
 import { messageEventHandler } from "./messages.main";
 import { PublicEventAPI } from "../events";
@@ -87,7 +87,7 @@ class ScriptProcessorNodeSingleThread {
   }
 
   async onPlayStateChange(newPlayState) {
-    if (this.currentPlayState === newPlayState) {
+    if (!this.publicEvents || this.currentPlayState === newPlayState) {
       return;
     }
     this.currentPlayState = newPlayState;
@@ -167,10 +167,11 @@ class ScriptProcessorNodeSingleThread {
       return;
     }
 
-    if (this.currentPlayState !== "realtimePerformanceStarted") {
+    const outputName = this.csoundApi.csoundGetOutputName(this.csoundInstance) || "test.wav";
+    const isExpectingRealtimeOutput = outputName.includes("dac");
+
+    if (isExpectingRealtimeOutput && this.currentPlayState !== "realtimePerformanceStarted") {
       this.result = 0;
-      this.csoundApi.csoundSetOption(this.csoundInstance, "-odac");
-      this.csoundApi.csoundSetOption(this.csoundInstance, "-iadc");
       this.csoundApi.csoundSetOption(this.csoundInstance, "--sample-rate=" + this.sampleRate);
       this.nchnls = -1;
       this.nchnls_i = -1;
@@ -209,6 +210,20 @@ class ScriptProcessorNodeSingleThread {
       }
       this.running = true;
       await this.eventPromises.waitForStart();
+      return startResult;
+    } else if (!isExpectingRealtimeOutput && this.currentPlayState !== "renderStarted") {
+      const startResult = this.csoundApi.csoundStart(this.csoundInstance);
+      this.onPlayStateChange("renderStarted");
+
+      setTimeout(() => {
+        let lastResult = 0;
+        while (lastResult === 0 && this.csoundApi && this.csoundInstance) {
+          lastResult = this.csoundApi.csoundPerformKsmps(this.csoundInstance);
+        }
+
+        this.onPlayStateChange && this.onPlayStateChange("renderEnded");
+      }, 0);
+
       return startResult;
     }
   }
@@ -302,11 +317,6 @@ class ScriptProcessorNodeSingleThread {
       libraryCsound.csoundReset(cs);
     }
 
-    // FIXME:
-    // libraryCsound.csoundSetMidiCallbacks(cs);
-
-    libraryCsound.csoundSetOption(cs, "-odac");
-    libraryCsound.csoundSetOption(cs, "-iadc");
     libraryCsound.csoundSetOption(cs, "--sample-rate=" + this.sampleRate);
     this.nchnls = -1;
     this.nchnls_i = -1;
@@ -315,6 +325,9 @@ class ScriptProcessorNodeSingleThread {
   }
 
   onaudioprocess(event) {
+    if (!this.csoundApi || ["renderStarted", "renderEnded"].includes(this.currentPlayState)) {
+      return;
+    }
     if (this.csoundOutputBuffer === null || this.running === false) {
       const output = event.outputBuffer;
       const channelData = output.getChannelData(0);
@@ -399,8 +412,7 @@ class ScriptProcessorNodeSingleThread {
       if (this.nchnls === output.numberOfChannels) {
         for (let channel = 0; channel < output.numberOfChannels; channel++) {
           const outputChannel = output.getChannelData(channel);
-          if (result === 0) outputChannel[index] = csOut[cnt * nchnls + channel] / zerodBFS;
-          else outputChannel[index] = 0;
+          outputChannel[index] = result === 0 ? csOut[cnt * nchnls + channel] / zerodBFS : 0;
         }
       } else if (this.nchnls === 2 && output.numberOfChannels === 1) {
         const outputChannel = output.getChannelData(0);

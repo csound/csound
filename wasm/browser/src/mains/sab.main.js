@@ -10,12 +10,11 @@ import {
   initialSharedState,
 } from "../constants";
 import { logSABMain as log } from "../logger";
-import { isEmpty } from "rambda/dist/rambda.esm.js";
+import { isEmpty } from "rambda/dist/rambda.mjs";
 import { csoundApiRename, fetchPlugins, makeProxyCallback, stopableStates } from "../utils";
 import { EventPromises } from "../utils/event-promises";
 import { PublicEventAPI } from "../events";
-
-const SABWorker = goog.require("worker.sab");
+import SABWorker from "../../dist/__compiled.sab.worker.inline.js";
 
 class SharedArrayBufferMainThread {
   constructor({
@@ -144,7 +143,7 @@ class SharedArrayBufferMainThread {
   }
 
   async onPlayStateChange(newPlayState) {
-    if (typeof this === "undefined") {
+    if (this === undefined) {
       console.log("Failed to announce playstatechange", newPlayState);
       return;
     }

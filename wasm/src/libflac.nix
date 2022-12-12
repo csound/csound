@@ -13,7 +13,7 @@ in pkgs.stdenvNoCC.mkDerivation rec {
     unpackPhase = "tar -xf $src --strip 1";
 
    patchPhase = ''
-     rm ./src/libFLAC/windows_unicode_filenames.c
+     rm ./src/libFLAC/windows_unicode_filenames.c || true
      mv ./include/share/win_utf8_io.h ./include/io.h
    '';
 

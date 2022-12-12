@@ -26,12 +26,12 @@ FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
 IN THE SOFTWARE.
 */
 
-if (typeof goog.global === "undefined") {
+if (goog.global !== undefined) {
   goog.global = {};
 }
 
-if (typeof goog.global.BigInt === "undefined") {
-  goog.global.BigInt = typeof BigInt !== "undefined" ? BigInt : Number;
+if (!goog.global.BigInt) {
+  goog.global.BigInt = BigInt === undefined ? Number : BigInt;
 }
 
 export const WASI_ESUCCESS = 0;

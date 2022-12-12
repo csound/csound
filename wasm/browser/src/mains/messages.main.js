@@ -6,7 +6,11 @@ export const messageEventHandler = (worker) => (event) => {
     } else {
       // in case of errors, this can happen
       // in which case, it's good to see the log
-      console.log(event.data.log);
+      console.log(
+        typeof event.data.log === "object" && typeof event.data.log.log === "string"
+          ? event.data.log.log
+          : event.data.log,
+      );
     }
   } else if (event.data.playStateChange && worker && worker.onPlayStateChange) {
     worker.onPlayStateChange(event.data.playStateChange);
@@ -19,13 +23,13 @@ const iterableMessageChannel = () => {
 };
 
 const safelyClosePorts = ([p1, p2]) => {
-  if (typeof p1.close !== "undefined") {
+  if (p1.close !== undefined) {
     try {
       p1.close();
       // eslint-disable unicorn/prefer-optional-catch-binding
     } catch (_) {}
   }
-  if (typeof p2.close !== "undefined") {
+  if (p2.close !== undefined) {
     try {
       p2.close();
       // eslint-disable unicorn/prefer-optional-catch-binding

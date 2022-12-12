@@ -30,8 +30,7 @@ import { PublicEventAPI } from "../events.js";
 import { enableAudioInput } from "./io.utils.js";
 import { requestMidi } from "../utils/request-midi.js";
 import { EventPromises } from "../utils/event-promises.js";
-
-const WorkletWorker = goog.require("worklet.singlethread.worker");
+import WorkletWorker from "../../dist/__compiled.worklet.singlethread.worker.inline.js";
 
 const initializeModule = async (audioContext) => {
   log("Initialize Module")();
@@ -122,13 +121,18 @@ class SingleThreadAudioWorkletMainThread {
       case "renderStarted": {
         if (this.eventPromises.isWaitingToStart()) {
           log("Start promise resolved")();
+          this.publicEvents.triggerRenderStarted(this);
           this.eventPromises.releaseStartPromise();
         }
-        this.publicEvents.triggerRenderStarted(this);
         break;
       }
       case "renderEnded": {
         this.publicEvents.triggerRenderEnded(this);
+        this.eventPromises &&
+          this.eventPromises.isWaitingToStop() &&
+          this.eventPromises.releaseStopPromise();
+        // just to be double sure that there's no hanging promise
+        this.eventPromises && this.eventPromises.releaseStartPromise();
         break;
       }
 
@@ -139,13 +143,13 @@ class SingleThreadAudioWorkletMainThread {
   }
 
   async csoundPause() {
-    if (typeof this.workletProxy !== "undefined") {
+    if (this.workletProxy !== undefined) {
       await this.workletProxy.pause();
     }
   }
 
   async csoundResume() {
-    if (typeof this.workletProxy !== "undefined") {
+    if (this.workletProxy !== undefined) {
       await this.workletProxy.resume();
     }
   }
@@ -235,20 +239,35 @@ class SingleThreadAudioWorkletMainThread {
           const csoundStart = async function () {
             this.eventPromises.createStartPromise();
             const isRequestingInput = await this.workletProxy.isRequestingInput();
-            if (isRequestingInput) {
-              this.exportApi.enableAudioInput();
-            }
+            const isRequestingRealtimeOutput = await this.workletProxy.isRequestingRealtimeOutput();
+            console.log({ isRequestingRealtimeOutput });
 
-            const startResult = await proxyCallback({ csound: csoundInstance });
-            const isRequestingMidi = await this.exportApi._isRequestingRtMidiInput(csoundInstance);
-            if (isRequestingMidi) {
-              requestMidi({
-                onMidiMessage: this.handleMidiInput.bind(this),
-              });
+            if (isRequestingRealtimeOutput) {
+              if (isRequestingInput) {
+                this.exportApi.enableAudioInput();
+              }
+
+              const isRequestingMidi = await this.exportApi._isRequestingRtMidiInput(
+                csoundInstance,
+              );
+
+              if (isRequestingMidi) {
+                requestMidi({
+                  onMidiMessage: this.handleMidiInput.bind(this),
+                });
+              }
+
+              const startResult = await proxyCallback({ csound: csoundInstance });
+              this.publicEvents.triggerOnAudioNodeCreated(this.node);
+              await this.eventPromises.waitForStart();
+              return startResult;
+            } else {
+              // because worklet worker can't return while rendering
+              proxyCallback({ csound: csoundInstance });
+              this.publicEvents.triggerOnAudioNodeCreated(this.node);
+              await this.eventPromises.waitForStart();
+              return 0;
             }
-            this.publicEvents.triggerOnAudioNodeCreated(this.node);
-            await this.eventPromises.waitForStart();
-            return startResult;
           };
 
           csoundStart.toString = () => reference.toString();

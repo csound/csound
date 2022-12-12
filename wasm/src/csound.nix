@@ -170,7 +170,7 @@ in pkgs.stdenvNoCC.mkDerivation rec {
     substituteInPlace include/version.h \
       --replace "\''${CS_VERSION}" "6" \
       --replace "\''${CS_SUBVER}" "18" \
-      --replace "\''${CS_PATCHLEVEL}" "0"
+      --replace "\''${CS_PATCHLEVEL}" "1"
 
     touch include/float-version.h
     substituteInPlace Top/csmodule.c \
