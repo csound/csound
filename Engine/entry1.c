@@ -1093,6 +1093,8 @@ OENTRY opcodlst_1[] = {
      (SUBR) strrindex_opcode, (SUBR) strrindex_opcode, NULL       },
   {  "print_type", S(PRINT_TYPE_OP),0, 1, "",   ".",
      (SUBR) print_type_opcode, NULL, NULL       },
+  {  "assert", S(ASSERT_OP),0, 1, "", "i",
+     (SUBR) assert_opcode, NULL, NULL },
 #ifdef HAVE_CURL
   {  "strfromurl", S(STRCPY_OP), 0, 1, "S", "S", (SUBR) str_from_url     },
 #endif

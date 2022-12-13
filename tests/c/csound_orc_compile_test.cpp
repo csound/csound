@@ -156,6 +156,31 @@ TEST_F (OrcCompileTests, testReuse)
     csoundPerform(csound);
 }
 
+TEST_F (OrcCompileTests, testAssert)
+{
+    int result;
+    char* instrument =
+        "instr 1 \n"
+        "assert(0) \n"
+        "assert(0) \n"
+        "assert(0) \n"
+        "assert(0) \n"
+        "assert(0) \n"
+        "assert(0) \n"
+        "assert(1) \n"
+        "endin \n";
+
+    result = csoundCompileOrc(csound, instrument);
+    ASSERT_TRUE(result == 0);
+    result = csoundReadScore(csound,  "i 1 0 0\n");
+    ASSERT_TRUE(result == 0);
+    result = csoundStart(csound);
+    ASSERT_TRUE(result == 0);
+    csoundPerform(csound);
+    csoundStop(csound);
+    ASSERT_EQ (6, csoundErrCnt(csound));
+}
+
 TEST_F (OrcCompileTests, testLineNumber)
 {
     char* instrument =

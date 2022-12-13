@@ -767,6 +767,7 @@ set(libcsound_SRCS
     OOps/schedule.c
     OOps/sndinfUG.c
     OOps/str_ops.c
+    OOps/test_ops.c
     OOps/ugens1.c
     OOps/ugens2.c
     OOps/ugens3.c

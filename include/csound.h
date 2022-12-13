@@ -1052,6 +1052,11 @@ extern "C" {
   PUBLIC void csoundSetHostData(CSOUND *, void *hostData);
 
   /**
+   * Returns the total error count of the current performance.
+   */
+  PUBLIC int csoundErrCnt(CSOUND *csound);
+
+  /**
    * Set a single csound option (flag). Returns CSOUND_SUCCESS on success.
    * NB: blank spaces are not allowed
    */
