@@ -1440,7 +1440,7 @@ set (CPACK_PACKAGE_VERSION_PATCH "0")
 include (CPack)
 
 # Documentation
-if(BUILD_DOCS) 
+if(BUILD_DOCS)
 find_package(Doxygen)
 if(DOXYGEN_FOUND)
     configure_file(${CMAKE_CURRENT_SOURCE_DIR}/config.doxygen
@@ -1470,3 +1470,4 @@ else()
           DESTINATION ${CMAKE_INSTALL_PREFIX}/share)
 endif()
 
+include(cmake/ClangTidy.cmake)
