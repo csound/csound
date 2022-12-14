@@ -46,8 +46,8 @@ endif()
 # Project definitions
 set(APIVERSION "6.0")
 set(CS_VERSION "6")
-set(CS_SUBVER "18")
-set(CS_PATCHLEVEL "1")
+set(CS_SUBVER "19")
+set(CS_PATCHLEVEL "0")
 
 message(STATUS "Csound version: ${CS_VERSION}.${CS_SUBVER}.${CS_PATCHLEVEL}")
 
