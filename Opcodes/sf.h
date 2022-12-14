@@ -97,7 +97,7 @@ typedef struct _presetType presetType;
 struct _CHUNK {
   BYTE  ckID[4]; /* A chunk ID identifies the type of data within the chunk. */
   DWORD ckSize;  /* The size of the chunk data in bytes, excluding any pad byte. */
-  BYTE  *ckDATA; /* The actual data plus a pad byte if req’d to word align. */
+  BYTE  *ckDATA; /* The actual data plus a pad byte if reqÂ’d to word align. */
 } PACKED;
 typedef struct _CHUNK CHUNK;
 

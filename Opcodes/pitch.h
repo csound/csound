@@ -3,7 +3,7 @@
 /*
     pitch.h:
 
-    Copyright (C) 1999 John ffitch, Istvan Varga, Peter Neub‰cker,
+    Copyright (C) 1999 John ffitch, Istvan Varga, Peter Neub√§cker,
                        rasmus ekman, Phil Burk
 
     This file is part of Csound.
