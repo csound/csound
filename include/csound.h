@@ -622,11 +622,11 @@ extern "C" {
    * Constants used by the bus interface (csoundGetChannelPtr() etc.).
    */
   typedef enum {
-    CSOUND_CONTROL_CHANNEL =     1,
-    CSOUND_AUDIO_CHANNEL  =      2,
-    CSOUND_STRING_CHANNEL =      3,
-    CSOUND_PVS_CHANNEL =      4,
-    CSOUND_VAR_CHANNEL =      5,
+    CSOUND_CONTROL_CHANNEL = 1,
+    CSOUND_AUDIO_CHANNEL   = 2,
+    CSOUND_STRING_CHANNEL  = 3,
+    CSOUND_PVS_CHANNEL     = 4,
+    CSOUND_STRUCT_CHANNEL  = 5,
 
     CSOUND_CHANNEL_TYPE_MASK =    15,
 
@@ -669,6 +669,26 @@ extern "C" {
                                     const char *channelName,
                                     void *channelValuePtr,
                                     const void *channelType);
+
+  typedef enum {
+    CSOUND_TYPE_PRIMITIVE = 0,
+    CSOUND_TYPE_STRUCT    = 1,
+    CSOUND_TYPE_ARRAY     = 2,
+    CSOUND_TYPE_STRING    = 3
+  } CSOUND_TYPE;
+
+  typedef struct CSOUND_MEMBER {
+    char*                name;
+    CSOUND_TYPE          type;
+    void*                value;
+    struct CSOUND_MEMBER *next;
+  } CSOUND_MEMBER;
+
+  typedef struct CSOUND_STRUCT {
+    char*                name;
+    uint64_t             length;
+    struct CSOUND_MEMBER *next;
+  } CSOUND_STRUCT;
 
 #ifndef CSOUND_CSDL_H
 
@@ -1675,6 +1695,8 @@ extern "C" {
    *     string data (MYFLT values with enough space to store
    *     csoundGetChannelDatasize() characters, including the
    *     NULL character at the end of the string)
+   *   CSOUND_STRUCT_CHANNEL
+   *     user-defined structured data channel
    * and at least one of these:
    *   CSOUND_INPUT_CHANNEL
    *   CSOUND_OUTPUT_CHANNEL
@@ -1683,7 +1705,6 @@ extern "C" {
    * OR'd with the new value. Note that audio and string channels
    * can only be created after calling csoundCompile(), because the
    * storage size is not known until then.
-
    * Return value is zero on success, or a negative error code,
    *   CSOUND_MEMORY  there is not enough memory for allocating the channel
    *   CSOUND_ERROR   the specified name or type is invalid
@@ -1708,8 +1729,12 @@ extern "C" {
    * examples.  Optionally, use the channel get/set functions
    * provided below, which are threadsafe by default.
    */
-  PUBLIC int csoundGetChannelPtr(CSOUND *,
-                                 MYFLT **p, const char *name, int type);
+  PUBLIC int csoundGetChannelPtr(
+    CSOUND *       csound,
+    void **        p,
+    const char*    name,
+    int            type
+  );
 
   /**
    * Returns a list of allocated channels in *lst. A controlChannelInfo_t

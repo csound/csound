@@ -131,11 +131,11 @@ static inline int same_type(char *var, char ty)
     else return var[0]==ty;
 }
 */
-static inline int same_type(char *var, char ty)
-{
-    if (var[0]=='g') return var[1]==ty;
-    else return var[0]==ty;
-}
+// static inline int same_type(char *var, char ty)
+// {
+//     if (var[0]=='g') return var[1]==ty;
+//     else return var[0]==ty;
+// }
 
 #define PARSER_DEBUG1 (0)  
 //static TREE* remove_excess_assigns(CSOUND *csound, TREE* root)

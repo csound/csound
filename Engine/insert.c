@@ -1035,7 +1035,7 @@ void free_instr_var_memory(CSOUND* csound, INSDS* ip) {
       return;
   }
 
-  
+
   while (current != NULL) {
     CS_TYPE* varType = current->varType;
     if (varType->freeVariableMemory != NULL) {
@@ -1454,7 +1454,7 @@ int useropcdset(CSOUND *csound, UOPCODE *p)
       return csound->InitError(csound, Str("Cannot find instr %d (UDO %s)\n"),
                                instno, inm->name);
     /* set local ksmps if defined by user */
-    /* VL: 9.2.22 we are disabling this unused and confusing feature of 
+    /* VL: 9.2.22 we are disabling this unused and confusing feature of
        a hidden local sampling rate parameter on 7.x */
     /*
     n = p->OUTOCOUNT + p->INCOUNT - 1;
@@ -1466,10 +1466,10 @@ int useropcdset(CSOUND *csound, UOPCODE *p)
                                inm->name, i);
       }
       local_ksmps = i;
-      } 
+      }
     */
     n = p->OUTOCOUNT + p->INCOUNT - 1;
-  
+
 
     if (!p->ip) {
 

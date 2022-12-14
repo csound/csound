@@ -119,7 +119,7 @@ char* get_expression_opcode_type(CSOUND* csound, TREE* tree) {
   case S_UMINUS:
     return "##mul";
   case S_UPLUS:
-    return "##mul";  
+    return "##mul";
   case '|':
     return "##or";
   case '&':
@@ -2100,7 +2100,7 @@ void initializeStructVar(CSOUND* csound, CS_VARIABLE* var, MYFLT* mem) {
   CONS_CELL* members = type->members;
   int len = cs_cons_length(members);
   int i;
-
+  printf("var type0 %p \n", type);
   structVar->members = csound->Calloc(csound, len * sizeof(CS_VAR_MEM*));
 
   //    csound->Message(csound, "Initializing Struct...\n");
@@ -2948,7 +2948,7 @@ void print_tree_i(CSOUND *csound, TREE *l, int n)
                     l->line, csound->filedir[(l->locn)&0xff]); break;
   case S_UPLUS:
     csound->Message(csound,"S_UPLUS:(%d:%s)\n",
-                    l->line, csound->filedir[(l->locn)&0xff]); break;  
+                    l->line, csound->filedir[(l->locn)&0xff]); break;
   case '[':
     csound->Message(csound,"[:(%d:%s)\n",
                     l->line, csound->filedir[(l->locn)&0xff]); break;
@@ -3096,7 +3096,7 @@ static void print_tree_xml(CSOUND *csound, TREE *l, int n, int which)
     csound->Message(csound,"name=\"S_UMINUS\""); break;
   case S_UPLUS:
     csound->Message(csound,"name=\"S_UPLUS\""); break;
-    
+
   case UDO_TOKEN:
     csound->Message(csound,"name=\"UDO_TOKEN\""); break;
   case UDO_ANS_TOKEN:
