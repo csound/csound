@@ -804,15 +804,14 @@ int32_t chnget_opcode_init_struct (CSOUND *csound, CHNGETSTRUCT *p) {
     while (cell != NULL) {
         if (nextMember == NULL) {
             nextMember = csound->Calloc(csound, sizeof(CSOUND_MEMBER));
-        }
+            CS_VARIABLE* member = (CS_VARIABLE*)cell->value;
 
-        CS_VARIABLE* member = (CS_VARIABLE*)cell->value;
-
-        nextMember->name = member->varName;
-        // fixme: CS_VAR_MEM doesn't support more types than MYFLT
-        nextMember->type = CSOUND_TYPE_PRIMITIVE;
-        if (member->memBlock != NULL) {
-            nextMember->value = &member->memBlock->value;
+             nextMember->name = member->varName;
+            // fixme: CS_VAR_MEM doesn't support more types than MYFLT
+            nextMember->type = CSOUND_TYPE_PRIMITIVE;
+            if (member->memBlock != NULL) {
+                nextMember->value = &member->memBlock->value;
+            }
         }
 
         cell = cell->next;
