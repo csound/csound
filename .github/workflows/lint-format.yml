@@ -10,6 +10,8 @@ jobs:
   clang-format:
     runs-on: ubuntu-latest
     steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-python@v4
       - run: |
           python3 scripts/run-clang-format.py -r \
             Engine \
