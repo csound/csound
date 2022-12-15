@@ -2098,6 +2098,21 @@ void initializeStructVar(CSOUND* csound, CS_VARIABLE* var, MYFLT* mem) {
   CS_STRUCT_VAR* structVar = (CS_STRUCT_VAR*)mem;
   CS_TYPE* type = var->varType;
   CONS_CELL* members = type->members;
+
+  // if it's an assignment from one user defined object to another
+  // we create a reference to it instead of initializing new struct
+  if (var->varType->userDefinedType && var->next != NULL &&
+      strcmp(var->varType->varTypeName, var->next->varType->varTypeName) == 0) {
+        var->next->refCount += 1;
+        var->varType = var->next->varType;
+        var->memBlock = var->next->memBlock;
+        var->memBlockSize = var->next->memBlockSize;
+        var->memBlockIndex = var->next->memBlockIndex;
+        var->dimensions = var->next->dimensions;
+        var->subType = var->next->subType;
+        var->updateMemBlockSize = var->next->updateMemBlockSize;
+    }
+
   int len = cs_cons_length(members);
   int i;
 
