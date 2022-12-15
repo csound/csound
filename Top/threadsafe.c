@@ -507,7 +507,7 @@ int csoundKillInstanceAsync(CSOUND *csound, MYFLT instr, char *instrName,
 
 MYFLT csoundGetControlChannel(CSOUND *csound, const char *name, int *err)
 {
-  MYFLT *pval;
+  void *pval;
   int err_;
   union {
     MYFLT d;
@@ -523,7 +523,7 @@ MYFLT csoundGetControlChannel(CSOUND *csound, const char *name, int *err)
 #elif defined(HAVE_ATOMIC_BUILTIN)
     x.i = __atomic_load_n((MYFLT_INT_TYPE *)pval, __ATOMIC_SEQ_CST);
 #else
-    x.d = *pval;
+    x.d = *(double *) &pval;
 #endif
   }
   if (err) {
@@ -533,7 +533,7 @@ MYFLT csoundGetControlChannel(CSOUND *csound, const char *name, int *err)
 }
 
 void csoundSetControlChannel(CSOUND *csound, const char *name, MYFLT val){
-  MYFLT *pval;
+  void *pval;
 #if defined(MSVC) || defined(HAVE_ATOMIC_BUILTIN)
   union {
     MYFLT d;
@@ -554,7 +554,7 @@ void csoundSetControlChannel(CSOUND *csound, const char *name, MYFLT val){
     spin_lock_t *lock = (spin_lock_t *)
       csoundGetChannelLock(csound, (char*) name);
     csoundSpinLock(lock);
-    *pval  = val;
+    pval  = (void *) &val;
     csoundSpinUnLock(lock);
   }
 #endif
@@ -563,7 +563,7 @@ void csoundSetControlChannel(CSOUND *csound, const char *name, MYFLT val){
 void csoundGetAudioChannel(CSOUND *csound, const char *name, MYFLT *samples)
 {
 
-  MYFLT  *psamples;
+  void  *psamples;
   if (strlen(name) == 0) return;
   if (csoundGetChannelPtr(csound, &psamples, name,
                           CSOUND_AUDIO_CHANNEL | CSOUND_OUTPUT_CHANNEL)
@@ -577,7 +577,7 @@ void csoundGetAudioChannel(CSOUND *csound, const char *name, MYFLT *samples)
 
 void csoundSetAudioChannel(CSOUND *csound, const char *name, MYFLT *samples)
 {
-  MYFLT  *psamples;
+  void  *psamples;
   if (csoundGetChannelPtr(csound, &psamples, name,
                           CSOUND_AUDIO_CHANNEL | CSOUND_INPUT_CHANNEL)
       == CSOUND_SUCCESS){
@@ -590,7 +590,7 @@ void csoundSetAudioChannel(CSOUND *csound, const char *name, MYFLT *samples)
 
 void csoundSetStringChannel(CSOUND *csound, const char *name, char *string)
 {
-  MYFLT  *pstring;
+  void  *pstring;
 
   if (csoundGetChannelPtr(csound, &pstring, name,
                           CSOUND_STRING_CHANNEL | CSOUND_INPUT_CHANNEL)
@@ -621,7 +621,7 @@ void csoundSetStringChannel(CSOUND *csound, const char *name, char *string)
 
 void csoundGetStringChannel(CSOUND *csound, const char *name, char *string)
 {
-  MYFLT  *pstring;
+  void  *pstring;
   char *chstring;
   int n2;
   if (strlen(name) == 0) return;
@@ -645,7 +645,7 @@ void csoundGetStringChannel(CSOUND *csound, const char *name, char *string)
 PUBLIC int csoundSetPvsChannel(CSOUND *csound, const PVSDATEXT *fin,
                                const char *name)
 {
-  MYFLT *pp;
+  void *pp;
   PVSDATEXT *f;
   if (LIKELY(csoundGetChannelPtr(csound, &pp, name,
                                  CSOUND_PVS_CHANNEL | CSOUND_INPUT_CHANNEL)
@@ -675,7 +675,7 @@ PUBLIC int csoundSetPvsChannel(CSOUND *csound, const PVSDATEXT *fin,
 PUBLIC int csoundGetPvsChannel(CSOUND *csound, PVSDATEXT *fout,
                                const char *name)
 {
-  MYFLT *pp;
+  void *pp;
   PVSDATEXT *f;
   if (UNLIKELY(csoundGetChannelPtr(csound, &pp, name,
                                    CSOUND_PVS_CHANNEL | CSOUND_OUTPUT_CHANNEL)
