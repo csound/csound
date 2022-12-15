@@ -131,13 +131,8 @@ static inline int same_type(char *var, char ty)
     else return var[0]==ty;
 }
 */
-// static inline int same_type(char *var, char ty)
-// {
-//     if (var[0]=='g') return var[1]==ty;
-//     else return var[0]==ty;
-// }
 
-#define PARSER_DEBUG1 (0)  
+#define PARSER_DEBUG1 (0)
 //static TREE* remove_excess_assigns(CSOUND *csound, TREE* root)
 //{
 //    TREE* current = root;
@@ -389,7 +384,7 @@ TREE* constant_fold(CSOUND *csound, TREE* root)
             }
         break;
       case S_UMINUS:
-      case S_UPLUS:  
+      case S_UPLUS:
       case '~':
         //print_tree(csound, "Folding case?\n", current);
         current->right = constant_fold(csound, current->right);
@@ -409,7 +404,7 @@ TREE* constant_fold(CSOUND *csound, TREE* root)
             lval = (MYFLT)(~(int)lval);
             break;
           case S_UPLUS:
-            break;  
+            break;
           }
           current->value = current->right->value;
           current->type = NUMBER_TOKEN;
@@ -447,4 +442,3 @@ TREE * csound_orc_optimize(CSOUND *csound, TREE *root)
     return original;
     // return remove_excess_assigns(csound,original);
 }
-
