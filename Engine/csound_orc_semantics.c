@@ -298,7 +298,9 @@ char* get_arg_type2(CSOUND* csound, TREE* tree, TYPE_TABLE* typeTable)
           return NULL;
         }
       } else {
-        if (var->varType == &CS_VAR_TYPE_ARRAY) {
+        if (var->varType->userDefinedType == 1) {
+          return cs_strdup(csound, var->varType->varTypeName);
+        } else if (var->varType == &CS_VAR_TYPE_ARRAY) {
           return cs_strdup(csound, var->subType->varTypeName);
         } else if (var->varType == &CS_VAR_TYPE_A) {
           return cs_strdup(csound, "k");
@@ -624,7 +626,7 @@ char* get_arg_type2(CSOUND* csound, TREE* tree, TYPE_TABLE* typeTable)
 
     while (tree != NULL) {
       s = tree->value->lexeme;
-      CONS_CELL* cell = subtype ? var->subType->members : var->varType->members;
+      CONS_CELL* cell = var->varType->members;
       CS_VARIABLE* nextVar = NULL;
       while (cell != NULL) {
         CS_VARIABLE* member = (CS_VARIABLE*)cell->value;

@@ -278,7 +278,7 @@ int is_expression_node(TREE *node)
   case '^':
   case T_FUNCTION:
   case S_UMINUS:
-  case S_UPLUS:  
+  case S_UPLUS:
   case '|':
   case '&':
   case S_BITSHIFT_RIGHT:
@@ -692,7 +692,7 @@ static TREE *create_expression(CSOUND *csound, TREE *root, int line, int locn,
                                            root->right, typeTable);
 
     break;
-    
+
   case '|':
     strNcpy(op, "##or", 80);
     outarg = create_out_arg_for_expression(csound, op, root->left,
@@ -767,11 +767,15 @@ static TREE *create_expression(CSOUND *csound, TREE *root, int line, int locn,
                 Str("unable to find array sub-type for var %s line %d\n"), varBaseName, current->line);
         return NULL;
       } else {
-        if (var->varType == &CS_VAR_TYPE_ARRAY) {
+        if (var->varType->userDefinedType == 1) {
+          outype = strdup(var->varType->varTypeName);
+          outarg = create_out_arg(csound, outype, typeTable->localPool->synthArgCount++, typeTable);
+          break;
+        } else if (var->varType == &CS_VAR_TYPE_ARRAY) {
           outype = strdup(var->subType->varTypeName);
 	  /* VL: 9.2.22 pulled code from 6.x to check for array index type
              to provide the correct outype. Works with explicity types
-	  */ 
+	  */
          if (outype[0]== 'i') {
           TREE* inds = root->right;
           while (inds) {
@@ -1192,7 +1196,9 @@ TREE* expand_statement(CSOUND* csound, TREE* current, TYPE_TABLE* typeTable)
                 Str("unable to find array sub-type for var %s line %d\n"), varBaseName, current->line);
         return NULL;
       } else {
-        if (var->varType == &CS_VAR_TYPE_ARRAY) {
+        if (var->varType->userDefinedType == 1) {
+          outType = strdup(var->varType->varTypeName);
+        } else if (var->varType == &CS_VAR_TYPE_ARRAY) {
           outType = strdup(var->subType->varTypeName);
         } else if (var->varType == &CS_VAR_TYPE_A) {
           outType = "k";
@@ -1434,7 +1440,7 @@ TREE* expand_until_statement(CSOUND* csound, TREE* current,
   gotoType =
     last->left->value->lexeme[1] == 'B'; // checking for #B... var name
 
-  // printf("%s\n", last->left->value->lexeme); 
+  // printf("%s\n", last->left->value->lexeme);
   //printf("gottype = %d ; dowhile = %d\n", gotoType, dowhile);
   gotoToken =
     create_goto_token(csound,
