@@ -179,6 +179,7 @@ def runTest():
         ["arrays/arrays_a_global.csd", "global a[]"],
         ["arrays/arrays_S_local.csd", "local S[]"],
         ["arrays/arrays_S_global.csd", "global S[]"],
+        ["arrays/array_get_inline.csd", "tests parsing and eval of inline array[getters]"],
     ]
 
 

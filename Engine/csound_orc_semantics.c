@@ -119,7 +119,7 @@ char* get_expression_opcode_type(CSOUND* csound, TREE* tree) {
   case S_UMINUS:
     return "##mul";
   case S_UPLUS:
-    return "##mul";  
+    return "##mul";
   case '|':
     return "##or";
   case '&':
@@ -287,10 +287,17 @@ char* get_arg_type2(CSOUND* csound, TREE* tree, TYPE_TABLE* typeTable)
       var = find_var_from_pools(csound, varBaseName, varBaseName, typeTable);
 
       if (var == NULL) {
-        synterr(csound,
-                Str("unable to find array operator for var %s line %d\n"), varBaseName, tree->line);
-        do_baktrace(csound, tree->locn);
-        return NULL;
+        char *fnReturn;
+        if (tree->left->type == T_FUNCTION &&
+            (fnReturn = get_arg_type2(csound, tree->left, typeTable)) &&
+            *fnReturn == '[') {
+          return cs_strdup(csound, &fnReturn[1]);
+        } else {
+          synterr(csound,
+                  Str("unable to find array operator for var %s line %d\n"), varBaseName, tree->line);
+          do_baktrace(csound, tree->locn);
+          return NULL;
+        }
       } else {
         if (var->varType == &CS_VAR_TYPE_ARRAY) {
           return cs_strdup(csound, var->subType->varTypeName);
@@ -1249,43 +1256,57 @@ char* get_in_types_from_tree(CSOUND* csound, TREE* tree, TYPE_TABLE* typeTable) 
 char* get_out_types_from_tree(CSOUND* csound, TREE* tree) {
 
   int len = tree_arg_list_count(tree);
+  char* argTypes = csound->Malloc(csound, len * 256 * sizeof(char));
   int i;
 
   if (len == 0 || (len == 1 && !strcmp(tree->value->lexeme, "0"))) {
     return cs_strdup(csound, "0");
   }
 
-  char** argTypes = csound->Malloc(csound, len * sizeof(char*));
-  char* argString = NULL;
-  TREE* current = tree;
   int argsLen = 0;
   i = 0;
+
+  TREE* current = tree;
 
   while (current != NULL) {
     char* argType = current->value->lexeme;
     int len = strlen(argType);
-    argsLen += (len > 1) ? len + 2 : 1;
+    int offset = i * 256;
+    argsLen += len;
+
+    // relying on the fact that built-in array types have
+    // arrays in different tree nodes from user defined structs
+    if (current->right != NULL && *current->right->value->lexeme == '[') {
+      strcpy(&argTypes[offset], argType);
+      argTypes[offset + len] = '[';
+      argTypes[offset + len + 1] = ']';
+      argTypes[offset + len + 2] = '\0';
+      argsLen += 2;
+    } else if (len > 1) {
+      argTypes[offset] = ':';
+      memcpy(argTypes + offset + 1, argType, len);
+      argTypes[offset + len + 1] = ';';
+      argTypes[offset + len + 2] = '\0';
+      argsLen += 2;
+    } else {
+      strcpy(&argTypes[offset], argType);
+    }
+
     current = current->next;
-    argTypes[i] = argType;
+    i += 1;
   }
 
-  argString = csound->Malloc(csound, (argsLen + 1) * sizeof(char));
-  char* temp = argString;
+  char* argString = csound->Malloc(csound, (argsLen + 1) * sizeof(char));
+  char* curLoc = argString;
 
   for (i = 0; i < len; i++) {
-    int size = strlen(argTypes[i]);
-    if (size > 1) {
-      *temp = ':';
-      memcpy(temp + 1, argTypes[i], size);
-      *(temp + 1 + size) = ';';
-      temp += 2 + size;
-    } else {
-      memcpy(temp, argTypes[i], size);
-      temp += size;
-    }
+    unsigned long argLen = strlen(&argTypes[i * 256]);
+    memcpy(curLoc, &argTypes[i * 256], argLen);
+    curLoc += argLen;
   }
 
   argString[argsLen] = '\0';
+  csound->Free(csound, argTypes);
   return argString;
 }
 
@@ -2948,7 +2969,7 @@ void print_tree_i(CSOUND *csound, TREE *l, int n)
                     l->line, csound->filedir[(l->locn)&0xff]); break;
   case S_UPLUS:
     csound->Message(csound,"S_UPLUS:(%d:%s)\n",
-                    l->line, csound->filedir[(l->locn)&0xff]); break;  
+                    l->line, csound->filedir[(l->locn)&0xff]); break;
   case '[':
     csound->Message(csound,"[:(%d:%s)\n",
                     l->line, csound->filedir[(l->locn)&0xff]); break;
@@ -3096,7 +3117,7 @@ static void print_tree_xml(CSOUND *csound, TREE *l, int n, int which)
     csound->Message(csound,"name=\"S_UMINUS\""); break;
   case S_UPLUS:
     csound->Message(csound,"name=\"S_UPLUS\""); break;
-    
+
   case UDO_TOKEN:
     csound->Message(csound,"name=\"UDO_TOKEN\""); break;
   case UDO_ANS_TOKEN:
