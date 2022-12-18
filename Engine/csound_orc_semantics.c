@@ -1297,10 +1297,12 @@ char* get_out_types_from_tree(CSOUND* csound, TREE* tree) {
   }
 
   char* argString = csound->Malloc(csound, (argsLen + 1) * sizeof(char));
-
+  char* curLoc = argString;
 
   for (i = 0; i < len; i++) {
-    memcpy(argString, &argTypes[i * 256], strlen(&argTypes[i * 256]));
+    unsigned long argLen = strlen(&argTypes[i * 256]);
+    memcpy(curLoc, &argTypes[i * 256], argLen);
+    curLoc += argLen;
   }
 
   argString[argsLen] = '\0';
