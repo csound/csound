@@ -18,6 +18,11 @@ opcode toInitArray, i[], i
   xout iNumArrayOut
 endop
 
+opcode explicitReturn():i[]
+  xout([1,2,3])
+endop
+
+
 instr 1
   String = toStrArray("Inline string-array get")[0]
   prints "%s\n", String
@@ -29,10 +34,15 @@ instr 2
   prints "%d\n", itestVal
 endin
 
+instr 3
+  print(explicitReturn()[2])
+endin
+
 </CsInstruments>
 <CsScore>
 i 1 0 .1
 i 2 + .
+i 3 + .
 </CsScore>
 </CsoundSynthesizer>
 Prints:
