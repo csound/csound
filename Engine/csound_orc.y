@@ -522,6 +522,8 @@ static_array : '[' expr_list ']' {
             $$->right = $2;
           }
 
+/* TODO: Investigate whether this should allow for expressions as base before brackets to make more generic
+*/
 array_expr :  array_expr '[' expr ']'
           {
             appendToTree(csound, $1->right, $3);
