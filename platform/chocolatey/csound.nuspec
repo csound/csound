@@ -5,7 +5,7 @@
   <metadata>
     <id>csound</id>
     <version>6.17.0</version>
-    <packageSourceUrl>https://github.com/csound/csound/platform/chocolatey/</packageSourceUrl>
+    <packageSourceUrl>https://github.com/csound/csound/tree/develop/platform/chocolatey</packageSourceUrl>
     <owners>Stephen Kyne</owners>
     <title>Csound</title>
     <authors>Csound Org.</authors>
