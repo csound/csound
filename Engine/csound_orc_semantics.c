@@ -626,7 +626,7 @@ char* get_arg_type2(CSOUND* csound, TREE* tree, TYPE_TABLE* typeTable)
 
     while (tree != NULL) {
       s = tree->value->lexeme;
-      CONS_CELL* cell = var->varType->members;
+      CONS_CELL* cell = subtype == 1 ? var->subType->members : var->varType->members;
       CS_VARIABLE* nextVar = NULL;
       while (cell != NULL) {
         CS_VARIABLE* member = (CS_VARIABLE*)cell->value;
