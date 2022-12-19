@@ -745,6 +745,7 @@ set(libcsound_SRCS
     InOut/winEPS.c
     InOut/circularbuffer.c
     OOps/aops.c
+    OOps/assert_ops.c
     OOps/bus.c
     OOps/cmath.c
     OOps/diskin2.c
@@ -767,7 +768,6 @@ set(libcsound_SRCS
     OOps/schedule.c
     OOps/sndinfUG.c
     OOps/str_ops.c
-    OOps/test_ops.c
     OOps/ugens1.c
     OOps/ugens2.c
     OOps/ugens3.c
@@ -1441,7 +1441,7 @@ set (CPACK_PACKAGE_VERSION_PATCH "0")
 include (CPack)
 
 # Documentation
-if(BUILD_DOCS) 
+if(BUILD_DOCS)
 find_package(Doxygen)
 if(DOXYGEN_FOUND)
     configure_file(${CMAKE_CURRENT_SOURCE_DIR}/config.doxygen

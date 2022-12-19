@@ -1,5 +1,5 @@
  /*
-  test_ops.c:
+  assert_ops.c:
 
   This file is part of Csound.
 
@@ -20,14 +20,34 @@
 */
 
 #include "csoundCore.h"
-#include "test_ops.h"
+#include "assert_ops.h"
 
-/* increments csound->perferrcnt for false (0) */
-int32_t assert_opcode(CSOUND *csound, ASSERT_OP *p)             
+int32_t assert_true_opcode(CSOUND *csound, ASSERT_OP *p)
 {
-    if (*p->boolean == ((MYFLT) 0.0)) {
-        csound->perferrcnt += 1;
-    }
-
+  if (!csound->oparms->enableAssertOpcodes) {
     return OK;
+  }
+
+  int32_t value = (int32_t) *p->boolean;
+  if (value == 0) {
+    csound->perferrcnt += 1;
+    return NOTOK;
+  }
+
+  return OK;
+}
+
+int32_t assert_false_opcode(CSOUND *csound, ASSERT_OP *p)
+{
+  if (!csound->oparms->enableAssertOpcodes) {
+    return OK;
+  }
+
+  int32_t value = (int32_t) *p->boolean;
+  if (value == 1) {
+    csound->perferrcnt += 1;
+    return NOTOK;
+  }
+
+  return OK;
 }

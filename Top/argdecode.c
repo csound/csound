@@ -318,6 +318,9 @@ static const char *longUsageList[] = {
   Str_noop("--aft-zero              set aftertouch to zero, not 127 (default)"),
   Str_noop("--limiter[=num]         include clipping in audio output"),
   Str_noop("--vbr                   set MPEG encoding to variable bitrate"),
+  Str_noop("--enable-assert         run csound with assertion opcodes enabled"),
+  Str_noop("                          and print out a report of failed assertions at the end,"),
+  Str_noop("                          by default the assert opcodes are ignored."),
   " ",
   Str_noop("--help                  long help"),
   NULL
@@ -1256,11 +1259,14 @@ static int decode_long(CSOUND *csound, char *s, int argc, char **argv)
       return 1;
     }
      else if (!(strcmp(s, "vbr"))) {
-  #ifdef SNDFILE_MP3    
+  #ifdef SNDFILE_MP3
       O->mp3_mode = SF_BITRATE_MODE_VARIABLE;
-  #endif    
+  #endif
       return 1;
-    }
+    } else if (!(strncmp(s, "enable-assert", 13))) {
+       O->enableAssertOpcodes = 1;
+       return 1;
+     }
     csoundErrorMsg(csound, Str("unknown long option: '--%s'"), s);
     return 0;
 }

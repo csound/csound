@@ -1,5 +1,5 @@
  /*
-  test_ops.h:
+  assert_ops.h:
 
   This file is part of Csound.
 
@@ -29,7 +29,7 @@ extern "C" {
 
 typedef struct {
     OPDS    h;
-    MYFLT   *boolean;
+    int32_t *boolean;
 } ASSERT_OP;
 
 
