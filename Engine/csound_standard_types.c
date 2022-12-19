@@ -154,8 +154,6 @@ void arrayInitMemory(CSOUND *csound, CS_VARIABLE* var, MYFLT* memblock) {
     IGN(csound);
     ARRAYDAT* dat = (ARRAYDAT*)memblock;
     dat->arrayType = var->subType;
-    dat->dimensions = var->dimensions;
-    printf("dat %p dim %d \n", dat, dat->dimensions);
 }
 
 void varInitMemoryString(CSOUND *csound, CS_VARIABLE* var, MYFLT* memblock) {

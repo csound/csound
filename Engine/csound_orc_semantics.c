@@ -591,7 +591,6 @@ char* get_arg_type2(CSOUND* csound, TREE* tree, TYPE_TABLE* typeTable)
 
      if (var->varType == &CS_VAR_TYPE_ARRAY) {
         char *res = create_array_arg_type(csound, var);
-        printf("res %s dimensions %d \n", res, var->dimensions);
         if (res==NULL) {        /* **REVIEW** this double syntax error */
           synterr(csound, Str("Array of unknown type\n"));
           csoundMessage(csound, Str("Line: %d\n"), tree->line-1);
