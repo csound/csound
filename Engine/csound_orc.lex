@@ -29,7 +29,7 @@
 #include <stdlib.h>
 #include <ctype.h>
 #include "csoundCore.h"
-// to shut up the lexer writing to stdout   
+// to shut up the lexer writing to stdout
 #define ECHO if(csound->oparms->odebug) { csoundErrorMsg(csound, "%s", "--lexer echo:"); \
              fwrite(yytext, (size_t) yyleng, 1, stderr); \
              csoundErrorMsg(csound, "%s", "--\n");}
@@ -73,7 +73,7 @@ int get_next_char(char *, int, struct yyguts_t*);
 %option outfile="Engine/csound_orclex.c"
 %option stdout
 %option 8bit
-   /* to avoid unused function errors */  
+   /* to avoid unused function errors */
 %option nounput
 
 IDENT           [a-zA-Z_][a-zA-Z0-9_]*
@@ -130,7 +130,7 @@ SYMBOL          [\[\]+\-*/%\^\?:.,!]
 "|"             { return '|'; }
 "&"             { return '&'; }
 "#"             { return '#'; }
-"¬"             { return '~'; } /* \xC2?\xAC */
+"Â¬"             { return '~'; } /* \xC2?\xAC */
 "~"             { return '~'; }
 
 "@@"{OPTWHITE}{INTGR}     { *lvalp = do_at(csound, 1, yyg); return INTEGER_TOKEN; }
@@ -177,6 +177,12 @@ SYMBOL          [\[\]+\-*/%\^\?:.,!]
 "enduntil"      { *lvalp = make_token(csound, yytext);
                   (*lvalp)->type = OD_TOKEN;
                   return OD_TOKEN; }
+"for"           { *lvalp = make_token(csound, yytext);
+                  (*lvalp)->type = FOR_TOKEN;
+                  return FOR_TOKEN; }
+"of"            { *lvalp = make_token(csound, yytext);
+                  (*lvalp)->type = OF_TOKEN;
+                  return OF_TOKEN; }
 
 "goto"          { *lvalp = make_token(csound, yytext);
                   (*lvalp)->type = GOTO_TOKEN;

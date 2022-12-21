@@ -1806,6 +1806,7 @@ int kperf_nodebug(CSOUND *csound)
             if (ip->ksmps == csound->ksmps) {
               csound->mode = 2;
               while (error == 0 &&
+                      opstart != NULL &&
                      (opstart = opstart->nxtp) != NULL &&
                      ip->actflg) {
                 opstart->insdshead->pds = opstart;

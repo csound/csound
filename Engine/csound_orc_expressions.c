@@ -278,7 +278,7 @@ int is_expression_node(TREE *node)
   case '^':
   case T_FUNCTION:
   case S_UMINUS:
-  case S_UPLUS:  
+  case S_UPLUS:
   case '|':
   case '&':
   case S_BITSHIFT_RIGHT:
@@ -692,7 +692,7 @@ static TREE *create_expression(CSOUND *csound, TREE *root, int line, int locn,
                                            root->right, typeTable);
 
     break;
-    
+
   case '|':
     strNcpy(op, "##or", 80);
     outarg = create_out_arg_for_expression(csound, op, root->left,
@@ -771,7 +771,7 @@ static TREE *create_expression(CSOUND *csound, TREE *root, int line, int locn,
           outype = strdup(var->subType->varTypeName);
 	  /* VL: 9.2.22 pulled code from 6.x to check for array index type
              to provide the correct outype. Works with explicity types
-	  */ 
+	  */
          if (outype[0]== 'i') {
           TREE* inds = root->right;
           while (inds) {
@@ -998,12 +998,24 @@ static TREE *create_boolean_expression(CSOUND *csound, TREE *root,
   return anchor;
 }
 
+static char* create_synthetic_var_name(CSOUND* csound, int32 count, int prefix)
+{
+  char *name = (char *)csound->Calloc(csound, 36);
+  snprintf(name, 36, "%c__synthetic_%"PRIi32, prefix, count);
+  return name;
+}
+
+static char* create_synthetic_array_var_name(CSOUND* csound, int32 count, int prefix)
+{
+  char *name = (char *)csound->Calloc(csound, 36);
+  snprintf(name, 36, "%c__synthetic_%"PRIi32"[]", prefix, count);
+  return name;
+}
 
 static TREE *create_synthetic_ident(CSOUND *csound, int32 count)
 {
   char *label = (char *)csound->Calloc(csound, 32);
   ORCTOKEN *token;
-
   snprintf(label, 32, "__synthetic_%"PRIi32, count);
   if (UNLIKELY(PARSER_DEBUG))
     csound->Message(csound, "Creating Synthetic T_IDENT: %s\n", label);
@@ -1434,7 +1446,7 @@ TREE* expand_until_statement(CSOUND* csound, TREE* current,
   gotoType =
     last->left->value->lexeme[1] == 'B'; // checking for #B... var name
 
-  // printf("%s\n", last->left->value->lexeme); 
+  // printf("%s\n", last->left->value->lexeme);
   //printf("gottype = %d ; dowhile = %d\n", gotoType, dowhile);
   gotoToken =
     create_goto_token(csound,
@@ -1462,6 +1474,140 @@ TREE* expand_until_statement(CSOUND* csound, TREE* current,
 
   labelEnd->next = current->next;
   return anchor;
+}
+
+TREE* expand_for_statement(
+  CSOUND* csound,
+  TREE* current,
+  TYPE_TABLE* typeTable,
+  char* arrayArgType
+) {
+  CS_TYPE *iType = (CS_TYPE *)&CS_VAR_TYPE_I;
+  CS_TYPE *kType = (CS_TYPE *)&CS_VAR_TYPE_K;
+
+  int isPerfRate = arrayArgType[1] == 'k';
+  char* op = (char *)csound->Malloc(csound, 10);
+  // create index counter
+  TREE *indexAssign = create_empty_token(csound);
+  indexAssign->value = make_token(csound, "=");
+  indexAssign->type = T_ASSIGNMENT;
+  indexAssign->value->type = T_ASSIGNMENT;
+  char *indexName = create_synthetic_var_name(
+    csound,
+    genlabs++,
+    isPerfRate ? 'k' : 'i'
+  );
+  TREE *indexIdent = create_empty_token(csound);
+  indexIdent->value = make_token(csound, indexName);
+  indexIdent->type = T_IDENT;
+  indexIdent->value->type = T_IDENT;
+  TREE *zeroToken = create_empty_token(csound);
+  zeroToken->value = make_token(csound, "0");
+  zeroToken->value->value = 0;
+  zeroToken->type = INTEGER_TOKEN;
+  zeroToken->value->type = INTEGER_TOKEN;
+  indexAssign->left = indexIdent;
+  indexAssign->right = zeroToken;
+
+  TREE *arrayAssign = create_empty_token(csound);
+  arrayAssign->value = make_token(csound, "=");
+  arrayAssign->type = T_ASSIGNMENT;
+  arrayAssign->value->type = T_ASSIGNMENT;
+  char *arrayName = create_synthetic_array_var_name(
+    csound,
+    genlabs++,
+    isPerfRate ? 'k' : 'i'
+  );
+  TREE *arrayIdent = create_empty_token(csound);
+  arrayIdent->value = make_token(csound, arrayName);
+  arrayIdent->type = T_ARRAY_IDENT;
+  arrayIdent->value->type = T_ARRAY_IDENT;
+  add_array_arg(csound, arrayName, NULL, 1, typeTable);
+
+  arrayAssign->left = arrayIdent;
+  arrayAssign->right = current->right->left;
+  indexAssign->next = arrayAssign;
+
+  TREE *arrayLength = create_empty_token(csound);
+  arrayLength->value = make_token(csound, "=");
+  arrayLength->type = T_ASSIGNMENT;
+  arrayLength->value->type = T_ASSIGNMENT;
+  char *arrayLengthName = create_synthetic_var_name(
+    csound,
+    genlabs++,
+    isPerfRate ? 'k' : 'i'
+  );
+  TREE *arrayLengthIdent = create_empty_token(csound);
+  arrayLengthIdent->value = make_token(csound, arrayLengthName);
+  arrayLengthIdent->type = T_IDENT;
+  arrayLengthIdent->value->type = T_IDENT;
+  arrayLength->left = arrayLengthIdent;
+  TREE *arrayLengthFn = create_empty_token(csound);
+  arrayLengthFn->value = make_token(csound, "lenarray");
+  arrayLengthFn->type = T_FUNCTION;
+  arrayLengthFn->value->type = T_FUNCTION;
+  TREE *arrayLengthArrayIdent = copy_node(csound, arrayIdent);
+  arrayLengthFn->right = arrayLengthArrayIdent;
+  arrayLength->right = arrayLengthFn;
+  arrayAssign->next = arrayLength;
+
+
+  TREE* loopLabel = create_synthetic_label(csound, genlabs++);
+  loopLabel->type = LABEL_TOKEN;
+  loopLabel->value->type = LABEL_TOKEN;
+  CS_VARIABLE *loopLabelVar = csoundCreateVariable(
+      csound, csound->typePool, isPerfRate ? kType : iType, loopLabel->value->lexeme, NULL);
+  csoundAddVariable(csound, typeTable->localPool, loopLabelVar);
+  typeTable->labelList = cs_cons(csound,
+                                 cs_strdup(csound, loopLabel->value->lexeme),
+                                 typeTable->labelList);
+
+  arrayLength->next = loopLabel;
+
+  TREE* arrayGetStatement = create_opcode_token(csound, "##array_get");
+
+  arrayGetStatement->left = current->left;
+  arrayGetStatement->right = copy_node(csound, arrayIdent);
+  arrayGetStatement->right->next = copy_node(csound, indexIdent);
+  loopLabel->next = arrayGetStatement;
+  arrayGetStatement->next = current->right->right;
+
+  strNcpy(op, isPerfRate ? "loop_lt.k" : "loop_lt.i", 10);
+
+  TREE* loopLtStatement = create_opcode_token(csound, op);
+  TREE* tail = tree_tail(current->right->right);
+  tail->next = loopLtStatement;
+
+  TREE* indexArgToken = copy_node(csound, indexIdent);
+  loopLtStatement->right = indexArgToken;
+
+  // loop less-than arg1: increment by 1
+  TREE *oneToken = create_empty_token(csound);
+  oneToken->value = make_token(csound, "1");
+  oneToken->value->value = 1;
+  oneToken->type = INTEGER_TOKEN;
+  oneToken->value->type = INTEGER_TOKEN;
+  indexArgToken->next = oneToken;
+
+  // loop less-than arg2: max iterations (length of the array)
+  TREE* arrayLengthArgToken = copy_node(csound, arrayLengthIdent);
+
+  oneToken->next = arrayLengthArgToken;
+
+  // loop less-than arg3: goto label
+  TREE *labelGotoIdent = create_empty_token(csound);
+  labelGotoIdent->value = make_token(csound, loopLabel->value->lexeme);
+  labelGotoIdent->type = T_IDENT;
+  labelGotoIdent->value->type = T_IDENT;
+  arrayLengthArgToken->next = labelGotoIdent;
+
+
+  csound->Free(csound, indexName);
+  csound->Free(csound, arrayName);
+  csound->Free(csound, arrayLengthName);
+  csound->Free(csound, op);
+
+  return indexAssign;
 }
 
 int is_statement_expansion_required(TREE* root) {
