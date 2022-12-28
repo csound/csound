@@ -278,7 +278,7 @@ int is_expression_node(TREE *node)
   case '^':
   case T_FUNCTION:
   case S_UMINUS:
-  case S_UPLUS:  
+  case S_UPLUS:
   case '|':
   case '&':
   case S_BITSHIFT_RIGHT:
@@ -692,7 +692,7 @@ static TREE *create_expression(CSOUND *csound, TREE *root, int line, int locn,
                                            root->right, typeTable);
 
     break;
-    
+
   case '|':
     strNcpy(op, "##or", 80);
     outarg = create_out_arg_for_expression(csound, op, root->left,
@@ -771,7 +771,7 @@ static TREE *create_expression(CSOUND *csound, TREE *root, int line, int locn,
           outype = strdup(var->subType->varTypeName);
 	  /* VL: 9.2.22 pulled code from 6.x to check for array index type
              to provide the correct outype. Works with explicity types
-	  */ 
+	  */
          if (outype[0]== 'i') {
           TREE* inds = root->right;
           while (inds) {
@@ -924,6 +924,10 @@ static TREE *create_boolean_expression(CSOUND *csound, TREE *root,
     root->locn = locn;
   }
 
+  if (root->type == T_IDENT) {
+    return root;
+  }
+
   op = csound->Calloc(csound, 80);
   switch(root->type) {
   case S_UNOT:
@@ -964,23 +968,25 @@ static TREE *create_boolean_expression(CSOUND *csound, TREE *root,
                       argtyp2( root->left->value->lexeme),
                       argtyp2( root->right->value->lexeme));
   }
+
   if (root->type == S_UNOT) {
     outarg = get_boolean_arg(csound,
                              typeTable,
                              argtyp2( root->left->value->lexeme) =='k' ||
                              argtyp2( root->left->value->lexeme) =='B');
-  }
-  else
+  } else {
     outarg = get_boolean_arg(csound,
                              typeTable,
                              argtyp2( root->left->value->lexeme) =='k' ||
                              argtyp2( root->right->value->lexeme)=='k' ||
                              argtyp2( root->left->value->lexeme) =='B' ||
                              argtyp2( root->right->value->lexeme)=='B');
+  }
+
 
   add_arg(csound, outarg, NULL, typeTable);
   opTree = create_opcode_token(csound, op);
-  opTree->right = root->left;
+  opTree->right = root->type == T_IDENT ? root : root->left;
   opTree->right->next = root->right;
   opTree->left = create_ans_token(csound, outarg);
   if (anchor == NULL) {
@@ -1330,15 +1336,25 @@ TREE* expand_if_statement(CSOUND* csound,
                   cs_strdup(csound,
                             labelEnd->value->lexeme),
                   typeTable->labelList);
-        //printf("allocate label %s\n", typeTable->labelList->value );
 
-        gotoType = // checking for #B... var name
-          (last->left->value->lexeme[1] == 'B');
-        gotoToken =
-          create_goto_token(csound,
-                            last->left->value->lexeme,
-                            tempRight,
-                            gotoType);
+        // checking for #B... var name
+        if (last->type == T_IDENT) {
+          gotoType = (last->value->lexeme[1] == 'B');
+          gotoToken = create_goto_token(csound,
+            last->value->lexeme,
+            tempRight,
+            gotoType
+          );
+        } else {
+          gotoType = (last->left->value->lexeme[1] == 'B');
+          gotoToken = create_goto_token(csound,
+            last->left->value->lexeme,
+            tempRight,
+            gotoType
+          );
+        }
+
+
         gotoToken->next = statements;
         anchor = appendToTree(csound, anchor, gotoToken);
 
@@ -1389,7 +1405,7 @@ TREE* expand_if_statement(CSOUND* csound,
                     right->line);
   }
 
-  return anchor;
+  return anchor->type == T_IDENT ? anchor->next : anchor;
 }
 
 /* 1. create top label to loop back to
@@ -1418,27 +1434,37 @@ TREE* expand_until_statement(CSOUND* csound, TREE* current,
                                  cs_strdup(csound, anchor->value->lexeme),
                                  typeTable->labelList);
 
-  expressionNodes = create_boolean_expression(csound,
-                                              current->left,
-                                              current->line,
-                                              current->locn,
-                                              typeTable);
-  anchor = appendToTree(csound, anchor, expressionNodes);
-  last = tree_tail(anchor);
+  if (current->left->type == T_IDENT) {
+    last = tree_tail(anchor);
+  } else {
+    expressionNodes = create_boolean_expression(
+      csound,
+      current->left,
+      current->line,
+      current->locn,
+      typeTable
+    );
+    anchor = appendToTree(csound, anchor, expressionNodes);
+    last = tree_tail(anchor);
+  }
+
+  // checking for #B... var name
+  if (current->left->type == T_IDENT) {
+    gotoType = current->left->value->lexeme[1] == 'B';
+  } else {
+    gotoType = last->left->value->lexeme[1] == 'B';
+  }
 
   labelEnd = create_synthetic_label(csound, endLabelCounter);
   typeTable->labelList = cs_cons(csound,
                                  cs_strdup(csound, labelEnd->value->lexeme),
                                  typeTable->labelList);
 
-  gotoType =
-    last->left->value->lexeme[1] == 'B'; // checking for #B... var name
-
-  // printf("%s\n", last->left->value->lexeme); 
-  //printf("gottype = %d ; dowhile = %d\n", gotoType, dowhile);
   gotoToken =
     create_goto_token(csound,
-                      last->left->value->lexeme,
+                      current->left->type == T_IDENT ?
+                        current->left->value->lexeme :
+                        last->left->value->lexeme,
                       labelEnd,
                       gotoType+0x8000*dowhile);
   gotoToken->next = tempRight;

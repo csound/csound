@@ -1698,7 +1698,7 @@ TREE* convert_statement_to_opcall(CSOUND* csound, TREE* root, TYPE_TABLE* typeTa
     return root;
   }
 
-  //    print_tree(csound, "TEST\n", root);
+  // print_tree(csound, "TEST\n", root);
   if (root->type != T_OPCALL) {
     synterr(csound,
             Str("Internal Error: convert_statement_to_opcall received a non T_OPCALL TREE\n"));
