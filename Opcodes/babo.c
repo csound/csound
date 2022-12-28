@@ -123,8 +123,8 @@ input  |    |------>|
                     Move static fn declarations out of function
  */
 
-//#include "csdl.h"
-#include "csoundCore.h"
+#include "csdl.h"
+//#include "csoundCore.h"
 #include "babo.h"
 #include <math.h>
 #include "interlocks.h"
@@ -833,8 +833,10 @@ babo(CSOUND *csound, void *entry)
 
 #define S(x)    sizeof(x)
 
-static OENTRY babo_localops[] = {
+//static OENTRY babo_localops[] = {
+static OENTRY localops[] = {
   { "babo",   S(BABO), TR, 3, "aa", "akkkiiijj",(SUBR)baboset, (SUBR)babo   },
 };
 
-LINKAGE_BUILTIN(babo_localops)
+//LINKAGE_BUILTIN(babo_localops)
+LINKAGE(babo)

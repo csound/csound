@@ -1140,14 +1140,14 @@ void print_opcodedir_warning(CSOUND *p)
  - add the macro LINKAGE_BUILTIN(<name>) to the end of the file.
  - append the init function prototype below
    extern int64_t <name>_init(CSOUND *, void *);
- - append the init function name <name>_init to the
+ - append the init function nam <name>_init to the
    staticmodules[] array initialisation.
  - insert source code to libcsound_SRCS in../CMakeLists.txt
 */
 
 typedef int32_t (*INITFN)(CSOUND *, void *);
 
-extern int32_t babo_localops_init(CSOUND *, void *);
+//extern int32_t babo_localops_init(CSOUND *, void *);
 extern int32_t bilbar_localops_init(CSOUND *, void *);
 extern int32_t compress_localops_init(CSOUND *, void *);
 extern int32_t pvsbuffer_localops_init(CSOUND *, void *);
@@ -1221,7 +1221,7 @@ extern int32_t sfont_ModuleInit(CSOUND *csound);
 extern int32_t sfont_ModuleCreate(CSOUND *csound);
 extern int32_t newgabopc_ModuleInit(CSOUND *csound);
 
-const INITFN staticmodules[] = { hrtfopcodes_localops_init, babo_localops_init,
+const INITFN staticmodules[] = { hrtfopcodes_localops_init, /*babo_localops_init,*/
                                  bilbar_localops_init, vosim_localops_init,
                                  compress_localops_init, pvsbuffer_localops_init,
                                  eqfil_localops_init, modal4_localops_init,

@@ -30,6 +30,7 @@ make_plugin(signalflowgraph signalflowgraph.cpp)
 make_plugin(ampmidid ampmidid.cpp)
 
 make_plugin(pan2 pan2.c)
+make_plugin(babo babo.c)
 
 if(APPLE)
    make_plugin(arrayops arrayops.cpp)
