@@ -18,15 +18,13 @@ if (HAS_CXX_FAST_MATH AND NOT MINGW)
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -ffast-math")
 endif()
 
-
-
 if(NOT "${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
 check_c_compiler_flag(-mfpmath=sse HAS_FPMATH_SSE)
 check_cxx_compiler_flag(-mfpmath=sse HAS_CXX_FPMATH_SSE)
-  if (HAS_FPMATH_SSE)
+  if (HAS_FPMATH_SSE AND NOT APPLE_SILICON)
     set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -mfpmath=sse")
 endif()
-if (HAS_CXX_FPMATH_SSE)
+if (HAS_CXX_FPMATH_SSE AND NOT APPLE_SILICON)
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -mfpmath=sse")
 endif()
 
