@@ -1,6 +1,6 @@
 ﻿$ErrorActionPreference = 'Stop';
 $toolsDir   = "$(Split-Path -parent $MyInvocation.MyCommand.Definition)"
-$fileLocation = Join-Path $toolsDir 'csound_installer.exe'
+$fileLocation = Join-Path $toolsDir 'csound-windows_x86_64-6.17.0-916.exe'
 
 $packageArgs = @{
   packageName   = $env:ChocolateyPackageName
@@ -11,7 +11,7 @@ $packageArgs = @{
   softwareName  = 'csound*'
 
   validExitCodes= @(0)
-  silentArgs = '/sp- /silent /norestart'
+  silentArgs = '/sp- /verysilent /norestart'
 }
 
 Install-ChocolateyInstallPackage @packageArgs
