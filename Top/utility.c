@@ -114,10 +114,10 @@ PUBLIC int csoundRunUtility(CSOUND *csound, const char *name,
  notFound:
     if (name != NULL && name[0] != '\0') {
       print_opcodedir_warning(csound);
-      csound->ErrorMsg(csound, Str("Error: utility '%s' not found"), name);
+      csound->ErrorMsg(csound, Str("Error: utility '%s' was not found\n"), name);
     }
     else
-      csound->ErrorMsg(csound, Str("Error: utility not found"));
+      csound->ErrorMsg(csound, Str("Error: utility not found\n"));
     lst = csound->ListUtilities(csound);
     if (lst != NULL && lst[0] != NULL) {
       int i;

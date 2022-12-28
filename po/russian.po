@@ -12205,11 +12205,11 @@ msgstr ""
 
 #: Top/utility.c:117
 #, c-format
-msgid "Error: utility '%s' not found"
+msgid "Error: utility '%s' was not found\n"
 msgstr ""
 
 #: Top/utility.c:120
-msgid "Error: utility not found"
+msgid "Error: utility not found\n"
 msgstr ""
 
 #: Top/utility.c:124
