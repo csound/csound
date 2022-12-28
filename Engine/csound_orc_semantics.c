@@ -2517,9 +2517,7 @@ TREE* verify_tree(CSOUND * csound, TREE *root, TYPE_TABLE* typeTable)
       continue;
     case SWITCH_TOKEN: {
       char* switchArgType = get_arg_type2(csound, current->left, typeTable);
-      print_tree(csound, "verify_tree0", current);
       current = expand_switch_statement(csound, current, typeTable, switchArgType);
-      print_tree(csound, "verify_tree1", current);
 
       if (previous != NULL) {
         previous->next = current;

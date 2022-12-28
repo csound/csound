@@ -130,7 +130,7 @@ SYMBOL          [\[\]+\-*/%\^\?:.,!]
 "|"             { return '|'; }
 "&"             { return '&'; }
 "#"             { return '#'; }
-"�"             { return '~'; } /* \xC2?\xAC */
+"¬"             { return '~'; } /* \xC2?\xAC */
 "~"             { return '~'; }
 
 "@@"{OPTWHITE}{INTGR}     { *lvalp = do_at(csound, 1, yyg); return INTEGER_TOKEN; }
