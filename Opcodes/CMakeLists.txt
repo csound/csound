@@ -29,6 +29,8 @@ make_plugin(mixer mixer.cpp)
 make_plugin(signalflowgraph signalflowgraph.cpp)
 make_plugin(ampmidid ampmidid.cpp)
 
+make_plugin(pan2 pan2.c)
+
 if(APPLE)
    make_plugin(arrayops arrayops.cpp)
    make_plugin(pvsops pvsops.cpp)
@@ -115,6 +117,7 @@ find_package(LIBLO)
 if(BUILD_OSC_OPCODES AND LIBLO_FOUND)
     make_plugin(osc OSC.c)
     if(WIN32)
+
       target_link_libraries(osc ${LIBLO_LIBRARIES})
 	  # FIXME how to build a static version of this?
       if(BUILD_STATIC_LIBRARY AND NOT MSVC)

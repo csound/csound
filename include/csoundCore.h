@@ -117,8 +117,8 @@ typedef struct {
 //#define OUTOCOUNT   ORTXT.outoffs->count
 #define INOCOUNT    ORTXT.inArgCount
 #define OUTOCOUNT   ORTXT.outArgCount
-#define IS_ASIG_ARG(x) (csoundGetTypeForArg(x) == &CS_VAR_TYPE_A)
-#define IS_STR_ARG(x) (csoundGetTypeForArg(x) == &CS_VAR_TYPE_S)
+#define IS_ASIG_ARG(x) (csound->GetTypeForArg(x) == &CS_VAR_TYPE_A)
+#define IS_STR_ARG(x) (csound->GetTypeForArg(x) == &CS_VAR_TYPE_S)
 
 #define CURTIME (((double)csound->icurTime)/((double)csound->esr))
 #define CURTIME_inc (((double)csound->ksmps)/((double)csound->esr))
