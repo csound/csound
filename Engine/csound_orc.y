@@ -487,10 +487,19 @@ while : WHILE_TOKEN expr DO_TOKEN statement_list OD_TOKEN
       ;
 
 for_in : FOR_TOKEN identifier in expr DO_TOKEN statement_list OD_TOKEN
-              { $3->left = $4;
-                $3->right = $6;
-                $$ = make_node(csound,LINE,LOCN, FOR_TOKEN, $2, $3); }
-              ;
+        {
+          $3->left = $4;
+          $3->right = $6;
+          $$ = make_node(csound,LINE,LOCN, FOR_TOKEN, $2, $3);
+        }
+        | FOR_TOKEN identifier ',' identifier in expr DO_TOKEN statement_list OD_TOKEN
+        {
+          $2->next = $4;
+          $5->left = $6;
+          $5->right = $8;
+          $$ = make_node(csound,LINE,LOCN, FOR_TOKEN, $2, $5);
+        }
+        ;
 
 declare_definition : DECLARE_TOKEN identifier udo_arg_list ':' udo_out_arg_list NEWLINE
  {

@@ -39,11 +39,19 @@ instr 3
   od
 endin
 
+;; you can get the index of the iterator
+instr 4
+  for ival, indx in genz() do
+    print indx
+  od
+endin
+
 </CsInstruments>
 <CsScore>
 i1 0 0.1
 i2 + .
 i3 + .
+i4 + .
 e
 </CsScore>
 </CsoundSynthesizer>

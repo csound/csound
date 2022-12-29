@@ -1482,6 +1482,7 @@ TREE* expand_for_statement(
   TYPE_TABLE* typeTable,
   char* arrayArgType
 ) {
+
   CS_TYPE *iType = (CS_TYPE *)&CS_VAR_TYPE_I;
   CS_TYPE *kType = (CS_TYPE *)&CS_VAR_TYPE_K;
 
@@ -1564,12 +1565,29 @@ TREE* expand_for_statement(
 
   arrayLength->next = loopLabel;
 
-  TREE* arrayGetStatement = create_opcode_token(csound, "##array_get");
+  // handle case where user provided an index identifier
+  int hasOptionalIndex = 0;
+  if (current->left->next != NULL) {
+    hasOptionalIndex = 1;
+    TREE *optionalUserIndexAssign = create_empty_token(csound);
+    optionalUserIndexAssign->value = make_token(csound, "=");
+    optionalUserIndexAssign->type = T_ASSIGNMENT;
+    optionalUserIndexAssign->value->type = T_ASSIGNMENT;
+    optionalUserIndexAssign->left = current->left->next;
+    optionalUserIndexAssign->right = copy_node(csound, indexIdent);
+    current->left->next = NULL;
+    loopLabel->next = optionalUserIndexAssign;
+  }
 
+  TREE* arrayGetStatement = create_opcode_token(csound, "##array_get");
   arrayGetStatement->left = current->left;
   arrayGetStatement->right = copy_node(csound, arrayIdent);
   arrayGetStatement->right->next = copy_node(csound, indexIdent);
-  loopLabel->next = arrayGetStatement;
+  if (hasOptionalIndex) {
+    loopLabel->next->next = arrayGetStatement;
+  } else {
+    loopLabel->next = arrayGetStatement;
+  }
   arrayGetStatement->next = current->right->right;
 
   strNcpy(op, isPerfRate ? "loop_lt.k" : "loop_lt.i", 10);
