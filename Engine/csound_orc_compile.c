@@ -555,6 +555,8 @@ INSTRTXT *create_instrument0(CSOUND *csound, TREE *root,
   int krdef = 0; //, ksmpsdef = 0, srdef = 0;
   double A4 = 0.0;
   CS_TYPE *rType = (CS_TYPE *)&CS_VAR_TYPE_R;
+  CS_TYPE *bType = (CS_TYPE *)&CS_VAR_TYPE_b;
+  CS_TYPE *BType = (CS_TYPE *)&CS_VAR_TYPE_B;
   OPARMS *O = csound->oparms;
 
   addGlobalVariable(csound, engineState, rType, "sr", NULL);
@@ -567,6 +569,11 @@ INSTRTXT *create_instrument0(CSOUND *csound, TREE *root,
   addGlobalVariable(csound, engineState, rType, "$sr", NULL);
   addGlobalVariable(csound, engineState, rType, "$kr", NULL);
   addGlobalVariable(csound, engineState, rType, "$ksmps", NULL);
+  addGlobalVariable(csound, engineState, bType, "true", NULL);
+  addGlobalVariable(csound, engineState, bType, "false", NULL);
+  addGlobalVariable(csound, engineState, BType, "true:k", NULL);
+  addGlobalVariable(csound, engineState, BType, "false:k", NULL);
+
 
   find_or_add_constant(csound, engineState->constantsPool, "0", 0.0);
 
@@ -649,7 +656,6 @@ INSTRTXT *create_instrument0(CSOUND *csound, TREE *root,
         else if (strcmp("A4", current->left->value->lexeme) == 0) {
           A4 = val;
         }
-
       } else {
         op->nxtop = create_opcode(csound, current, ip, engineState);
         op = last_optxt(op);
@@ -1968,6 +1974,8 @@ if (engineState != &csound->engineState) {
   var->memBlock->value = csound->e0dbfs;
   var = csoundFindVariableWithName(csound, engineState->varPool, "A4");
   var->memBlock->value = csound->A4;
+  var = csoundFindVariableWithName(csound, engineState->varPool, "true");
+  var->memBlock->value = csound->A4;
  }
 
   return CSOUND_SUCCESS;
@@ -2011,7 +2019,7 @@ int csoundCompileOrcInternal(CSOUND *csound, const char *str, int async) {
     memcpy((void *)&csound->exitjmp, (void *)&tmpExitJmp, sizeof(jmp_buf));
     return CSOUND_ERROR;
   }
-  
+
   if (UNLIKELY(csound->oparms->odebug))
     debugPrintCsound(csound);
   memcpy((void *)&csound->exitjmp, (void *)&tmpExitJmp, sizeof(jmp_buf));
@@ -2309,6 +2317,10 @@ char argtyp2(char *s) { /* find arg type:  d, w, a, k, i, c, p, r, S, B, b, t */
       strcmp(s, "nchnls_i") == 0 || strcmp(s, "ksmps") == 0 ||
       strcmp(s, "nchnls") == 0)
     return ('r'); /* rsvd */
+  if (strcmp(s, "true") == 0 || strcmp(s, "false") == 0)
+    return ('b'); /* bool init-rate */
+  if (strcmp(s, "true:k") == 0 || strcmp(s, "false:k") == 0)
+    return ('B'); /* bool perf-rate */
   if (c == 'w')   /* N.B. w NOT YET #TYPE OR GLOBAL */
     return (c);
   if (c == '#')
