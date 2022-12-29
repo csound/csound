@@ -13,7 +13,7 @@ endop
 ;; works for i-rate
 instr 1
   iarray[] fillarray 1,2,3,4,5
-  for i1 of iarray do
+  for i1 in iarray do
     print i1
   od
 endin
@@ -25,7 +25,7 @@ instr 2
   kdone init 0
   if kdone == 0 then
     kdone = 1
-    for k1 of karray do
+    for k1 in karray do
       printk2 k1
     od
   endif
@@ -34,7 +34,7 @@ endin
 
 ;; works with inline expression call
 instr 3
-  for ix of genz() do
+  for ix in genz() do
     print ix
   od
 endin

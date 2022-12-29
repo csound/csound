@@ -87,7 +87,7 @@
 %token DO_TOKEN
 %token OD_TOKEN
 %token FOR_TOKEN
-%token OF_TOKEN
+%token IN_TOKEN
 
 %token S_ELIPSIS
 %token T_ARRAY
@@ -413,7 +413,7 @@ statement : out_arg_list assignment expr NEWLINE
           | if_then
           | until
           | while
-          | for_of
+          | for_in
           | LABEL_TOKEN
             { $$ = make_leaf(csound, LINE, LOCN, LABEL_TOKEN, (ORCTOKEN *)$1); }
           | NEWLINE
@@ -486,7 +486,7 @@ while : WHILE_TOKEN expr DO_TOKEN statement_list OD_TOKEN
                 $$->right = $4; }
       ;
 
-for_of : FOR_TOKEN identifier of expr DO_TOKEN statement_list OD_TOKEN
+for_in : FOR_TOKEN identifier in expr DO_TOKEN statement_list OD_TOKEN
               { $3->left = $4;
                 $3->right = $6;
                 $$ = make_node(csound,LINE,LOCN, FOR_TOKEN, $2, $3); }
@@ -698,8 +698,8 @@ assignment : '='
                 }
               ;
 
-of        : OF_TOKEN
-            { $$ = make_leaf(csound,LINE,LOCN, OF_TOKEN, (ORCTOKEN *)$1); }
+in        : IN_TOKEN
+            { $$ = make_leaf(csound,LINE,LOCN, IN_TOKEN, (ORCTOKEN *)$1); }
 
 then      : THEN_TOKEN
             { $$ = make_leaf(csound,LINE,LOCN, THEN_TOKEN, (ORCTOKEN *)$1); }

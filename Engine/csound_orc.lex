@@ -180,9 +180,9 @@ SYMBOL          [\[\]+\-*/%\^\?:.,!]
 "for"           { *lvalp = make_token(csound, yytext);
                   (*lvalp)->type = FOR_TOKEN;
                   return FOR_TOKEN; }
-"of"            { *lvalp = make_token(csound, yytext);
-                  (*lvalp)->type = OF_TOKEN;
-                  return OF_TOKEN; }
+"in"            { *lvalp = make_token(csound, yytext);
+                  (*lvalp)->type = IN_TOKEN;
+                  return IN_TOKEN; }
 
 "goto"          { *lvalp = make_token(csound, yytext);
                   (*lvalp)->type = GOTO_TOKEN;
