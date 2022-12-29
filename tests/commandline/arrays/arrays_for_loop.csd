@@ -48,10 +48,10 @@ endin
 
 </CsInstruments>
 <CsScore>
-i1 0 0.1
-i2 + .
-i3 + .
-i4 + .
+i1  0 .1
+i2 .1 .1
+i3 .1 .1
+i4 .1 .1
 e
 </CsScore>
 </CsoundSynthesizer>
