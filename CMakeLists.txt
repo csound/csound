@@ -83,6 +83,8 @@ include(CMakePushCheckState)
 list(APPEND CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/cmake/Modules/)
 message(STATUS "CMake module path: ${CMAKE_MODULE_PATH}")
 
+include("${CMAKE_MODULE_PATH}/FindLIBSAMPLERATE.cmake")
+
 # Utility to munge with items in a list.
 #
 macro(LIST_REPLACE LIST INDEX NEWVALUE)
@@ -203,6 +205,11 @@ if(CUSTOM_CMAKE)
     include(${CUSTOM_CMAKE})
 else()
     message(STATUS "Not using Custom.cmake file.")
+endif()
+
+if(LIBSAMPLERATE_LIBRARY AND LIBSAMPLERATE_INCLUDE_DIRECTORY)
+  set(LIBSAMPLERATE_FOUND TRUE)
+  include_directories(${LIBSAMPLERATE_INCLUDE_DIRECTORY})
 endif()
 
 # in Release configuration, set NDEBUG
@@ -1440,7 +1447,7 @@ set (CPACK_PACKAGE_VERSION_PATCH "0")
 include (CPack)
 
 # Documentation
-if(BUILD_DOCS) 
+if(BUILD_DOCS)
 find_package(Doxygen)
 if(DOXYGEN_FOUND)
     configure_file(${CMAKE_CURRENT_SOURCE_DIR}/config.doxygen
@@ -1469,4 +1476,3 @@ else()
  install(DIRECTORY ${CMAKE_SOURCE_DIR}/samples
           DESTINATION ${CMAKE_INSTALL_PREFIX}/share)
 endif()
-

@@ -1,0 +1,11 @@
+if(NOT LIBSAMPLERATE_LIBRARY)
+  if(LIBSAMPLERATE_LIBRARY_DIRECTORY)
+    find_library(LIBSAMPLERATE_LIBRARY NAMES samplerate libsamplerate-0 HINTS "${LIBSAMPLERATE_LIBRARY_DIRECTORY}")
+  else()
+    find_library(LIBSAMPLERATE_LIBRARY NAMES samplerate libsamplerate-0)
+  endif()
+endif()
+
+if(NOT LIBSAMPLERATE_INCLUDE_DIRECTORY)
+  find_path(LIBSAMPLERATE_INCLUDE_DIRECTORY NAMES "samplerate.h")
+endif()
