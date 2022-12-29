@@ -1725,6 +1725,24 @@ TREE* convert_statement_to_opcall(CSOUND* csound, TREE* root, TYPE_TABLE* typeTa
     return root;
   }
 
+  // fix ambiguity in scenarios like: opcode opin(1), opin(2)
+  // in those cases, the tree from the opcall is in incorrect order
+  if (root->left != NULL &&
+      root->type == T_OPCALL &&
+      root->left->type == T_OPCALL &&
+      root->left->left != NULL) {
+        print_tree(csound, "TEST\n", root);
+        TREE* top = root->left;
+        ORCTOKEN* badValue = root->left->value;
+        TREE* firstInner = root->left->right;
+        top->right = root;
+        top->right->type = T_FUNCTION;
+        top->right->left = firstInner;
+        top->right->value = badValue;
+        top->value = NULL;
+        return top;
+      }
+
   if (root->left == NULL) {
     synterr(csound,
             Str("Internal Error: convert_statement_to_opcall received an empty OPCALL\n"));
