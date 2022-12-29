@@ -1730,15 +1730,20 @@ TREE* convert_statement_to_opcall(CSOUND* csound, TREE* root, TYPE_TABLE* typeTa
   if (root->left != NULL &&
       root->type == T_OPCALL &&
       root->left->type == T_OPCALL &&
-      root->left->left != NULL) {
-        print_tree(csound, "TEST\n", root);
+      root->left->left != NULL &&
+      find_opcode(csound, root->left->left->value->lexeme) != NULL &&
+      find_opcode(csound, root->left->value->lexeme) != NULL) {
         TREE* top = root->left;
         ORCTOKEN* badValue = root->left->value;
         TREE* firstInner = root->left->right;
+        TREE* firstInnerNext = root->left->right->next;
+        firstInner->next = NULL;
         top->right = root;
         top->right->type = T_FUNCTION;
-        top->right->left = firstInner;
+        top->right->left = NULL;
+        top->right->right = firstInner;
         top->right->value = badValue;
+        top->right->next = firstInnerNext;
         top->value = NULL;
         return top;
       }
