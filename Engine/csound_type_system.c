@@ -149,9 +149,13 @@ CS_VARIABLE* csoundCreateVariable(CSOUND* csound, TYPE_POOL* pool,
         }
         current = current->next;
       }
-    else ((CSOUND *)csound)->ErrorMsg(csound,
-                                      Str("cannot create variable %s: NULL type"),
-                                      name);
+    else if(name && name[0] != '#') {
+      ((CSOUND *)csound)->ErrorMsg(
+        csound,
+        Str("cannot create variable %s: NULL type\n"),
+        name
+      );
+    }
     return NULL;
 }
 
@@ -313,14 +317,14 @@ int copyVarGeneric(CSOUND *csound, void *p) {
     ASSIGN* assign = (ASSIGN*)p;
     CS_TYPE* typeR = csoundGetTypeForArg(assign->r);
     CS_TYPE* typeA = csoundGetTypeForArg(assign->a);
-    
+
     if(typeR != typeA) {
         csound->Warning(csound,
                         Str("error: = opcode given variables with two different types: %s : %s\n"),
                         typeR->varTypeName, typeA->varTypeName);
         return NOTOK;
     }
-    
+
     typeR->copyValue(csound, typeR, assign->r, assign->a);
     return OK;
 }

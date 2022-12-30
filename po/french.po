@@ -820,7 +820,7 @@ msgstr "EOF inattendu !!\n"
 
 #: Engine/csound_type_system.c:165
 #, c-format
-msgid "cannot create variable %s: NULL type"
+msgid "cannot create variable %s: NULL type\n"
 msgstr "impossible de créer la variable %s : type NULL"
 
 #: Engine/envvar.c:223

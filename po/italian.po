@@ -823,7 +823,7 @@ msgstr "inatteso EOF!!\n"
 
 #: Engine/csound_type_system.c:165
 #, c-format
-msgid "cannot create variable %s: NULL type"
+msgid "cannot create variable %s: NULL type\n"
 msgstr "non posso creare la variabile %s: tipo NULL"
 
 #: Engine/envvar.c:223
