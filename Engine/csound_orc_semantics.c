@@ -2274,25 +2274,31 @@ int add_struct_definition(CSOUND* csound, TREE* structDefTree) {
       var->subType = arraySubtype;
     }
 
-      int len = strlen(typedIdentArg);
+    char* effectiveTypedIdentArg = isArrayNode ? \
+      current->value->optype : typedIdentArg;
 
-      if (var->varType->userDefinedType == 1) {
-        temp[index++] = ':';
-      }
-      memcpy(
-        temp + index,
-        isArrayNode ? current->value->optype : typedIdentArg,
-        len
-      );
-      index += len;
-      if (isArrayNode) {
-        temp[index++] = '[';
-        temp[index++] = ']';
-      }
+    int len = strlen(effectiveTypedIdentArg);
 
-      if (var->varType->userDefinedType == 1) {
-        temp[index++] = ';';
-      }
+    if ((isArrayNode && var->subType != NULL && var->subType->userDefinedType) ||
+        (var->varType->userDefinedType == 1)) {
+      temp[index++] = ':';
+    }
+
+    memcpy(
+      temp + index,
+      effectiveTypedIdentArg,
+      len
+    );
+    index += len;
+    if (isArrayNode) {
+      temp[index++] = '[';
+      temp[index++] = ']';
+    }
+
+    if ((isArrayNode && var->subType != NULL && var->subType->userDefinedType) ||
+        (var->varType->userDefinedType == 1)) {
+      temp[index++] = ';';
+    }
 
     CONS_CELL* member = csound->Calloc(csound, sizeof(CONS_CELL));
     member->value = var;
