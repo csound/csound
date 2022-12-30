@@ -32,7 +32,7 @@ project(Csound)
 
 ENABLE_TESTING()
 
-if (${CMAKE_CXX_COMPILER_ID} STREQUAL "Clang")
+if (${CMAKE_CXX_COMPILER_ID} MATCHES "Clang")
   set(CMAKE_COMPILER_IS_CLANG 1)
 endif()
 
