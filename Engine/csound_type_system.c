@@ -46,7 +46,7 @@ static int32_t type_exists_with_same_name(TYPE_POOL* pool, CS_TYPE* typeInstance
 
 const CS_TYPE* csoundGetTypeWithVarTypeName(const TYPE_POOL* pool, const char* typeName) {
 
-    CS_TYPE_ITEM* current = pool->head;    
+    CS_TYPE_ITEM* current = pool->head;
     while (current != NULL) {
       if (strcmp(typeName, current->cstype->varTypeName) == 0) {
         return current->cstype;
@@ -55,7 +55,7 @@ const CS_TYPE* csoundGetTypeWithVarTypeName(const TYPE_POOL* pool, const char* t
     }
     if(UNLIKELY(typeName[strlen(typeName)-1] != ']')) return NULL;
     // now check again with braces
-    char type[64]; 
+    char type[64];
     current = pool->head;
     while (current != NULL) {
       snprintf(type, 64, "%s[]", current->cstype->varTypeName);
@@ -167,9 +167,13 @@ CS_VARIABLE* csoundCreateVariable(CSOUND* csound, TYPE_POOL* pool,
         }
         current = current->next;
       }
-    else ((CSOUND *)csound)->ErrorMsg(csound,
-                                      Str("cannot create variable %s: NULL type\n"),
-                                      name);
+    else if(name && name[0] != '#') {
+      ((CSOUND *)csound)->ErrorMsg(
+        csound,
+        Str("cannot create variable %s: NULL type\n"),
+        name
+      );
+    }
     return NULL;
 }
 
@@ -324,14 +328,13 @@ int32_t copy_var_generic(CSOUND *csound, void *p) {
       if(assign->h.perf != copy_var_no_op)
         return csound->PerfError(csound,&(assign->h),
         Str("Opcode given variables "
-            "with two different types: %s : %s"), 
+            "with two different types: %s : %s"),
         typeR->varTypeName, typeA->varTypeName);
        else return csound->InitError(csound,
         Str("Opcode given variables "
             "with two different types: %s : %s"),
         typeR->varTypeName, typeA->varTypeName);
     }
-
     typeR->copyValue(csound, typeR, assign->r, assign->a, assign->h.insdshead);
     return OK;
 }
@@ -345,15 +348,15 @@ int32_t copy_var_generic_init(CSOUND *csound, void *p) {
       ARRAYDAT* rdat = (ARRAYDAT*) assign->r;
       if(csoundGetTypeForArg(rdat) == &CS_VAR_TYPE_ARRAY) {
         tabinit_like(csound, rdat, (ARRAYDAT *) adat);
-      } 
+      }
       if(adat->arrayType == &CS_VAR_TYPE_I ||
          adat->arrayType == &CS_VAR_TYPE_INSTR) flag = 1;
-      // complex arrays need to be copied at i-time  
+      // complex arrays need to be copied at i-time
       if(adat->arrayType == &CS_VAR_TYPE_COMPLEX)
         copy_var_generic(csound, p);
     } else if(type == &CS_VAR_TYPE_I ||
               type == &CS_VAR_TYPE_b ||
-              type == &CS_VAR_TYPE_INSTR 
+              type == &CS_VAR_TYPE_INSTR
               ) flag = 1;
     if (flag) {
       assign->h.perf = copy_var_no_op;
