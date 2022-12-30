@@ -1159,7 +1159,6 @@ char* convert_internal_to_external(CSOUND* csound, char* arg) {
     *current++ = ':';
     strncpy(current, arg, nameLen - 2);
     current += (nameLen - 2);
-    *current++ = ';';
   } else {
     *current++ = *arg;
   }
@@ -1168,6 +1167,11 @@ char* convert_internal_to_external(CSOUND* csound, char* arg) {
     *current++ = '[';
     *current++ = ']';
   }
+
+  if (nameLen > 1) {
+    *current++ = ';';
+  }
+
   *current = '\0';
   //csound->Free(csound, arg);
   return retVal;
@@ -1864,7 +1868,6 @@ int verify_opcode(CSOUND* csound, TREE* root, TYPE_TABLE* typeTable) {
   add_args(csound, root->left, typeTable);
 
   opcodeName = root->value->lexeme;
-  //printf("%p %p (%s)\n", root, root->value, opcodeName);
   leftArgString = get_arg_string_from_tree(csound, left, typeTable);
   rightArgString = get_arg_string_from_tree(csound, right, typeTable);
 
@@ -2109,7 +2112,6 @@ int initStructVar(CSOUND* csound, void* p) {
 
   //    csound->Message(csound, "Initializing Struct...\n");
   //    csound->Message(csound, "Struct Type: %s\n", type->varTypeName);
-
   for (i = 0; i < len; i++) {
     CS_VAR_MEM* mem = structVar->members[i];
     mem->varType->copyValue(csound, mem->varType, &mem->value, init->inArgs[i]);
@@ -2176,9 +2178,9 @@ void copyStructVar(CSOUND* csound, CS_TYPE* structType, void* dest, void* src) {
   }
 }
 
-
 int add_struct_definition(CSOUND* csound, TREE* structDefTree) {
   CS_TYPE* type = csound->Calloc(csound, sizeof(CS_TYPE));
+  CS_TYPE* arrayType = csound->Calloc(csound, sizeof(CS_TYPE));
   TREE* current = structDefTree->right;
   char temp[256];
 
@@ -2188,6 +2190,17 @@ int add_struct_definition(CSOUND* csound, TREE* structDefTree) {
   type->createVariable = createStructVar;
   type->copyValue = copyStructVar;
   type->userDefinedType = 1;
+
+  // create the array variant type-name
+  memset(temp, '\0', 256);
+  cs_sprintf(temp, "%s[]", structDefTree->left->value->lexeme);
+  arrayType->varTypeName = cs_strdup(csound, temp);
+  arrayType->varDescription = "user-defined struct-array";
+  arrayType->argtype = CS_ARG_TYPE_BOTH;
+  arrayType->createVariable = createArray;
+  arrayType->copyValue = array_copy_value;
+  arrayType->freeVariableMemory = array_free_var_mem;
+  arrayType->userDefinedType = 1;
 
   OENTRY oentry;
   memset(temp, '\0', 256);
@@ -2205,7 +2218,30 @@ int add_struct_definition(CSOUND* csound, TREE* structDefTree) {
   oentry.outypes = cs_strdup(csound, temp);
   memset(temp, '\0', 256);
 
-  int index = strlen(temp);
+
+  OENTRY oentryArray;
+  memset(temp, '\0', 256);
+  cs_sprintf(temp, "init.%s", arrayType->varTypeName);
+  oentryArray.opname = cs_strdup(csound, temp);
+  oentryArray.dsblksiz = sizeof(INIT_STRUCT_VAR);
+  oentryArray.flags = 0;
+  oentryArray.thread = 1;
+  // hlöðver: this works but I don't know why
+  oentryArray.iopadr = initStructVar;
+  oentryArray.kopadr = NULL;
+  oentryArray.aopadr = NULL;
+  oentryArray.useropinfo = NULL;
+
+  memset(temp, '\0', 256);
+  cs_sprintf(temp, ":%s;", type->varTypeName);
+  oentry.outypes = cs_strdup(csound, temp);
+  memset(temp, '\0', 256);
+
+  cs_sprintf(temp, ":%s;", arrayType->varTypeName);
+  oentryArray.outypes = cs_strdup(csound, temp);
+  memset(temp, '\0', 256);
+
+  int index = 0;
   while (current != NULL) {
     char* memberName = current->value->lexeme;
     char* typedIdentArg = current->value->optype;
@@ -2214,26 +2250,12 @@ int add_struct_definition(CSOUND* csound, TREE* structDefTree) {
       typedIdentArg = cs_strndup(csound, memberName, 1);
     }
 
-    // constructing the oentry.intypes string
-    // differing from array types and other
-    // standard defined types
-    if (typedIdentArg != NULL &&
-        current->type == T_ARRAY_IDENT &&
-        current->right != NULL &&
-        *current->right->value->lexeme == '[') {
+    int isArrayNode = current->type == T_ARRAY_IDENT &&
+      current->right != NULL &&
+      *current->right->value->lexeme == '[';
+
+    if (isArrayNode) {
       typedIdentArg = current->right->value->lexeme;
-      int len = strlen(current->value->optype);
-      memcpy(temp + index, current->value->optype, len);
-      index += len;
-      temp[index++] = '[';
-      temp[index++] = ']';
-      temp[index++] = '\0';
-    } else {
-      int len = strlen(typedIdentArg);
-      temp[index++] = ':';
-      memcpy(temp + index, typedIdentArg, len);
-      index += len;
-      temp[index++] = ';';
     }
 
     memberName = cs_strdup(csound, memberName);
@@ -2241,6 +2263,36 @@ int add_struct_definition(CSOUND* csound, TREE* structDefTree) {
     CS_VARIABLE* var = memberType->createVariable(csound, type);
     var->varName = cs_strdup(csound, memberName);
     var->varType = memberType;
+
+    if (isArrayNode && current->value->optype != NULL) {
+
+      char* typedSubtypeIdentArg = current->value->optype;
+      CS_TYPE* arraySubtype = csoundGetTypeWithVarTypeName(
+        csound->typePool,
+        typedSubtypeIdentArg
+      );
+      var->subType = arraySubtype;
+    }
+
+      int len = strlen(typedIdentArg);
+
+      if (var->varType->userDefinedType == 1) {
+        temp[index++] = ':';
+      }
+      memcpy(
+        temp + index,
+        isArrayNode ? current->value->optype : typedIdentArg,
+        len
+      );
+      index += len;
+      if (isArrayNode) {
+        temp[index++] = '[';
+        temp[index++] = ']';
+      }
+
+      if (var->varType->userDefinedType == 1) {
+        temp[index++] = ';';
+      }
 
     CONS_CELL* member = csound->Calloc(csound, sizeof(CONS_CELL));
     member->value = var;
@@ -2253,10 +2305,15 @@ int add_struct_definition(CSOUND* csound, TREE* structDefTree) {
   // since already defined variables can happen when
   // 2 or more files include another file
   csoundAddVariableType(csound, csound->typePool, type);
+  csoundAddVariableType(csound, csound->typePool, arrayType);
 
-  temp[index] = 0;
+  temp[index] = '\0';
   oentry.intypes = cs_strdup(csound, temp);
   csoundAppendOpcodes(csound, &oentry, 1);
+  // intypes for array is simpler
+  oentryArray.intypes = cs_strdup(csound, "m");
+  csoundAppendOpcodes(csound, &oentryArray, 1);
+
   return 1;
 }
 
@@ -2315,7 +2372,6 @@ int verify_xin_xout(CSOUND *csound, TREE *udoTree, TYPE_TABLE *typeTable) {
 
   char* inArgsFound = get_arg_string_from_tree(csound, xinArgs, typeTable);
   char* outArgsFound = get_arg_string_from_tree(csound, xoutArgs, typeTable);
-
 
   if (!check_in_args(csound, inArgsFound, inArgs)) {
     if (UNLIKELY(!(strcmp("0", inArgs) == 0 && xinArgs == NULL))) {

@@ -61,7 +61,10 @@ extern "C" {
     extern const char* POLY_OUT_TYPES[];
     extern const char* VAR_ARG_OUT_TYPES[];
 
-
+    // needed for pre-defining struct-arrays in csound_orc_semantics.c
+    void array_free_var_mem(void*, void*);
+    CS_VARIABLE* createArray(void*, void*);
+    void array_copy_value(CSOUND*, CS_TYPE*, void*, void*);
 
 #ifdef  __cplusplus
 }
