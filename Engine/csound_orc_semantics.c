@@ -377,7 +377,7 @@ char* get_arg_type2(CSOUND* csound, TREE* tree, TYPE_TABLE* typeTable)
 
 
       if (UNLIKELY(out == 0)) {
-        synterr(csound, Str("error: opcode '%s' for expression with arg "
+        synterr(csound, Str("opcode '%s' for expression with arg "
                             "types %s not found, line %d\n"),
                 opname, argTypeRight, tree->line);
         do_baktrace(csound, tree->locn);
@@ -394,7 +394,7 @@ char* get_arg_type2(CSOUND* csound, TREE* tree, TYPE_TABLE* typeTable)
         return ret;
       }
 
-      synterr(csound, Str("error: opcode '%s' for expression with arg "
+      synterr(csound, Str("opcode '%s' for expression with arg "
                           "types %s returns out-args != 1, line %d\n"),
               opname, argTypeRight, tree->line);
       do_baktrace(csound, tree->locn);
@@ -581,9 +581,12 @@ char* get_arg_type2(CSOUND* csound, TREE* tree, TYPE_TABLE* typeTable)
                                        tree->value->lexeme);
 
     if (UNLIKELY(var == NULL)) {
-      synterr(csound, Str("Variable '%s' used before defined\n"
+      // alarming user about missing synthetic vars is confusing
+      if (tree->value->lexeme[0] != '#') {
+        synterr(csound, Str("Variable '%s' used before defined\n"
                           "Line %d\n"),
               tree->value->lexeme, tree->line - 1);
+      }
       do_baktrace(csound, tree->locn);
       return NULL;
     }
@@ -2246,9 +2249,10 @@ int add_struct_definition(CSOUND* csound, TREE* structDefTree) {
     current = current->next;
   }
 
-  if(!csoundAddVariableType(csound, csound->typePool, type)) {
-    return 0;
-  }
+  // we don't worry about non-zero returns here
+  // since already defined variables can happen when
+  // 2 or more files include another file
+  csoundAddVariableType(csound, csound->typePool, type);
 
   temp[index] = 0;
   oentry.intypes = cs_strdup(csound, temp);

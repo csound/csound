@@ -278,7 +278,7 @@ int is_expression_node(TREE *node)
   case '^':
   case T_FUNCTION:
   case S_UMINUS:
-  case S_UPLUS:  
+  case S_UPLUS:
   case '|':
   case '&':
   case S_BITSHIFT_RIGHT:
@@ -637,6 +637,7 @@ static TREE *create_expression(CSOUND *csound, TREE *root, int line, int locn,
         csound->Message(csound, "Found OP: %s\n", op);
 
       opentries = find_opcode2(csound, root->value->lexeme);
+
       if (UNLIKELY(opentries->count == 0)) {
         csound->Warning(csound,
                         Str("error: function %s not found, "
@@ -659,10 +660,19 @@ static TREE *create_expression(CSOUND *csound, TREE *root, int line, int locn,
       csound->Free(csound, opentries);
 
       if (UNLIKELY(outtype == NULL)) {
-        csound->Warning(csound,
-                        Str("error: opcode %s with output type %s not found, "
-                            "line %d"),
-                        root->value->lexeme, root->value->optype, line);
+        if (root->value->optype != NULL) {
+          // when there isn't any outtype defined,
+          // instead of confusing the user with (NULL) outtype
+          // when it's for example `xout fn()`, we will instead
+          // rely on better error messages which are printed later
+          csound->Warning(
+            csound,
+            Str("error: opcode %s with output type %s not found, line %d"),
+            root->value->lexeme,
+            root->value->optype,
+            line
+          );
+        }
         outtype = "i";
       }
 
@@ -692,7 +702,7 @@ static TREE *create_expression(CSOUND *csound, TREE *root, int line, int locn,
                                            root->right, typeTable);
 
     break;
-    
+
   case '|':
     strNcpy(op, "##or", 80);
     outarg = create_out_arg_for_expression(csound, op, root->left,
@@ -771,7 +781,7 @@ static TREE *create_expression(CSOUND *csound, TREE *root, int line, int locn,
           outype = strdup(var->subType->varTypeName);
 	  /* VL: 9.2.22 pulled code from 6.x to check for array index type
              to provide the correct outype. Works with explicity types
-	  */ 
+	  */
          if (outype[0]== 'i') {
           TREE* inds = root->right;
           while (inds) {
@@ -1434,7 +1444,7 @@ TREE* expand_until_statement(CSOUND* csound, TREE* current,
   gotoType =
     last->left->value->lexeme[1] == 'B'; // checking for #B... var name
 
-  // printf("%s\n", last->left->value->lexeme); 
+  // printf("%s\n", last->left->value->lexeme);
   //printf("gottype = %d ; dowhile = %d\n", gotoType, dowhile);
   gotoToken =
     create_goto_token(csound,
