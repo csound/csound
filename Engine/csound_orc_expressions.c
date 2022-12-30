@@ -837,6 +837,24 @@ static TREE *create_expression(CSOUND *csound, TREE *root, int line, int locn,
   return anchor;
 }
 
+static int is_boolean_node_perf_rate(
+  CSOUND* csound,
+  TREE* node,
+  TYPE_TABLE* typeTable
+) {
+  if (node == NULL) {
+    return 0;
+  }
+
+  if (node->type == STRUCT_EXPR) {
+    char* argtypStr = get_arg_type2(csound, node, typeTable);
+    return strlen(argtypStr) > 0 ? argtypStr[0] == 'k' || argtypStr[0] == 'B' : 0;
+  } else {
+    int argtypVal = argtyp2(node->value->lexeme);
+    return argtypVal == 'k' || argtypVal == 'B';
+  }
+}
+
 /**
  * Create a chain of Opcode (OPTXT) text from the AST node given. Called from
  * create_opcode when an expression node has been found as an argument
@@ -967,24 +985,12 @@ static TREE *create_boolean_expression(CSOUND *csound, TREE *root,
   if (root->type == S_UNOT) {
     outarg = get_boolean_arg(csound,
                              typeTable,
-                             argtyp2( root->left->value->lexeme) =='k' ||
-                             argtyp2( root->left->value->lexeme) =='B');
-  } else if (root->left->type == STRUCT_EXPR) {
-    char* structArgType = get_arg_type2(csound, root->left, typeTable);
-    if (strlen(structArgType) > 1) {
-      synterr(csound,
-                  Str("invalid use of struct in boolean expression %s line %d\n"),
-                  structArgType, root->left->line);
-          return NULL;
-    }
-    outarg = get_boolean_arg(csound, typeTable, *structArgType);
+                             is_boolean_node_perf_rate(csound, root->left, typeTable));
   } else {
     outarg = get_boolean_arg(csound,
                              typeTable,
-                             argtyp2( root->left->value->lexeme) =='k' ||
-                             argtyp2( root->right->value->lexeme)=='k' ||
-                             argtyp2( root->left->value->lexeme) =='B' ||
-                             argtyp2( root->right->value->lexeme)=='B');
+                             is_boolean_node_perf_rate(csound, root->left, typeTable) ||
+                             is_boolean_node_perf_rate(csound, root->right, typeTable));
   }
 
 
