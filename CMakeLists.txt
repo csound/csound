@@ -207,11 +207,6 @@ else()
     message(STATUS "Not using Custom.cmake file.")
 endif()
 
-if(LIBSAMPLERATE_LIBRARY AND LIBSAMPLERATE_INCLUDE_DIRECTORY)
-  set(LIBSAMPLERATE_FOUND TRUE)
-  include_directories(${LIBSAMPLERATE_INCLUDE_DIRECTORY})
-endif()
-
 # in Release configuration, set NDEBUG
 if(${CMAKE_BUILD_TYPE} MATCHES "Release")
     message(STATUS "Building for release")

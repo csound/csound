@@ -37,8 +37,10 @@ if(BUILD_UTILITIES)
     make_utility(srconv      srconv_main.c)
 
 
-    if(LIBSNDFILE_LIBRARY AND LIBSAMPLERATE_FOUND)
+    if(LIBSNDFILE_LIBRARY AND LIBSAMPLERATE_LIBRARY AND LIBSAMPLERATE_INCLUDE_DIRECTORY)
         make_executable(src_conv new_srconv.c "${LIBSNDFILE_LIBRARY};${LIBSAMPLERATE_LIBRARY}")
+        target_include_directories(src_conv PRIVATE ${LIBSAMPLERATE_INCLUDE_DIRECTORY})
+        target_link_libraries(src_conv ${LIBSAMPLERATE_LIBRARY})
         if(MSVC)
             target_link_libraries(src_conv ${LIBSNDFILE_SUPPORT_LIBS})
         endif()
