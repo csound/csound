@@ -655,9 +655,12 @@ char* get_arg_type2(CSOUND* csound, TREE* tree, TYPE_TABLE* typeTable)
 
 
     if (UNLIKELY(var == NULL)) {
-      synterr(csound, Str("get_arg_type2: Variable '%s' used before defined\n"
-                          "Line %d"),
+      // alarming user about missing synthetic vars is confusing
+      if (tree->value->lexeme[0] != '#') {
+        synterr(csound, Str("Variable '%s' used before defined\n"
+                          "Line %d\n"),
               tree->value->lexeme, tree->line - 1);
+      }
       do_baktrace(csound, tree->locn);
       return NULL;
     }
@@ -2398,9 +2401,10 @@ int32_t add_struct_definition(CSOUND* csound, TREE* structDefTree) {
     current = current->next;
   }
 
-  if(!csoundAddVariableType(csound, csound->typePool, type)) {
-    return 0;
-  }
+  // we don't worry about non-zero returns here
+  // since already defined variables can happen when
+  // 2 or more files include another file
+  csoundAddVariableType(csound, csound->typePool, type);
 
   temp[index] = 0;
   oentry.intypes = cs_strdup(csound, temp);
