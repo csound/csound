@@ -169,6 +169,7 @@ def runTest():
 
     ["test_declare.csd", "test declare keyword (CS7)"],
     ["test_plusname.csd", "test +Name for instr name"],
+    ["tests/commandline/test_unary_expressions.csd", "various unary operators in various expressions"],
     ]
 
     arrayTests = [["arrays/arrays_i_local.csd", "local i[]"],
