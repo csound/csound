@@ -72,15 +72,15 @@ static void string_copy_value(CSOUND* csound, const CS_TYPE* cstype, void* dest,
     STRINGDAT* sDest = (STRINGDAT*)dest;
     STRINGDAT* sSrc = (STRINGDAT*)src;
     CSOUND* cs = (CSOUND*)csound;
-    
+
     if (UNLIKELY(src == NULL)) return;
     if (UNLIKELY(dest == NULL)) return;
 
     int64_t kcnt = csound->kcounter;
     if (sSrc->size > sDest->size) {
       cs->Free(cs, sDest->data);
-      sDest->data = csound->Calloc(csound, sSrc->size); 
-      memcpy(sDest->data, sSrc->data, sSrc->size); 
+      sDest->data = csound->Calloc(csound, sSrc->size);
+      memcpy(sDest->data, sSrc->data, sSrc->size);
       sDest->size = sSrc->size;
     } else {
         strncpy(sDest->data, sSrc->data, sDest->size-1);
