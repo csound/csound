@@ -2177,7 +2177,6 @@ void copyStructVar(CSOUND* csound, CS_TYPE* structType, void* dest, void* src) {
 int add_struct_definition(CSOUND* csound, TREE* structDefTree) {
   CS_TYPE* type = csound->Calloc(csound, sizeof(CS_TYPE));
   TREE* current = structDefTree->right;
-  int index = 0;
   char temp[256];
 
   type->varTypeName = cs_strdup(csound, structDefTree->left->value->lexeme);
@@ -2187,35 +2186,8 @@ int add_struct_definition(CSOUND* csound, TREE* structDefTree) {
   type->copyValue = copyStructVar;
   type->userDefinedType = 1;
 
-  // FIXME: Values are appended in reverse order of definition
-  while (current != NULL) {
-    char* memberName = current->value->lexeme;
-    char* typedIdentArg = current->value->optype;
-
-    if (typedIdentArg == NULL) {
-      typedIdentArg = cs_strndup(csound, memberName, 1);
-    }
-
-    memberName = cs_strdup(csound, memberName);
-    CS_TYPE* memberType = csoundGetTypeWithVarTypeName(csound->typePool, typedIdentArg);
-    CS_VARIABLE* var = memberType->createVariable(csound, type);
-    var->varName = cs_strdup(csound, memberName);
-    var->varType = memberType;
-
-    //        csound->Message(csound, "Member Found: %s : %s\n", memBase, typedIdentArg);
-
-    CONS_CELL* member = csound->Calloc(csound, sizeof(CONS_CELL));
-    member->value = var;
-    type->members = cs_cons_append(type->members, member);
-    current = current->next;
-  }
-
-  if(!csoundAddVariableType(csound, csound->typePool, type)) {
-    return 0;
-  }
-
   OENTRY oentry;
-  memset(temp, 0, 256);
+  memset(temp, '\0', 256);
   cs_sprintf(temp, "init.%s", type->varTypeName);
   oentry.opname = cs_strdup(csound, temp);
   oentry.dsblksiz = sizeof(INIT_STRUCT_VAR);
@@ -2225,31 +2197,61 @@ int add_struct_definition(CSOUND* csound, TREE* structDefTree) {
   oentry.kopadr = NULL;
   oentry.aopadr = NULL;
   oentry.useropinfo = NULL;
-
-  /* FIXME - this is not yet implemented */
-  memset(temp, 0, 256);
+  memset(temp, '\0', 256);
   cs_sprintf(temp, ":%s;", type->varTypeName);
   oentry.outypes = cs_strdup(csound, temp);
+  memset(temp, '\0', 256);
 
-  CONS_CELL* member = type->members;
-  while (member != NULL) {
-    char* memberTypeName = ((CS_VARIABLE*)member->value)->varType->varTypeName;
-    int len = strlen(memberTypeName);
+  int index = strlen(temp);
+  while (current != NULL) {
+    char* memberName = current->value->lexeme;
+    char* typedIdentArg = current->value->optype;
 
-    if (len == 1) {
-      temp[index++] = *memberTypeName;
+    if (typedIdentArg == NULL) {
+      typedIdentArg = cs_strndup(csound, memberName, 1);
+    }
+
+    // constructing the oentry.intypes string
+    // differing from array types and other
+    // standard defined types
+    if (typedIdentArg != NULL &&
+        current->type == T_ARRAY_IDENT &&
+        current->right != NULL &&
+        *current->right->value->lexeme == '[') {
+      typedIdentArg = current->right->value->lexeme;
+      int len = strlen(current->value->optype);
+      memcpy(temp + index, current->value->optype, len);
+      index += len;
+      temp[index++] = '[';
+      temp[index++] = ']';
+      temp[index++] = '\0';
     } else {
+      int len = strlen(typedIdentArg);
       temp[index++] = ':';
-      memcpy(temp + index, memberTypeName, len);
+      memcpy(temp + index, typedIdentArg, len);
       index += len;
       temp[index++] = ';';
     }
 
+    memberName = cs_strdup(csound, memberName);
+    CS_TYPE* memberType = csoundGetTypeWithVarTypeName(csound->typePool, typedIdentArg);
+    CS_VARIABLE* var = memberType->createVariable(csound, type);
+    var->varName = cs_strdup(csound, memberName);
+    var->varType = memberType;
+
+    CONS_CELL* member = csound->Calloc(csound, sizeof(CONS_CELL));
+    member->value = var;
+    type->members = cs_cons_append(type->members, member);
     member = member->next;
+    current = current->next;
   }
+
+  if(!csoundAddVariableType(csound, csound->typePool, type)) {
+    return 0;
+  }
+
   temp[index] = 0;
   oentry.intypes = cs_strdup(csound, temp);
-
   csoundAppendOpcodes(csound, &oentry, 1);
   return 1;
 }
