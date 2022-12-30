@@ -29,8 +29,10 @@ make_plugin(mixer mixer.cpp)
 make_plugin(signalflowgraph signalflowgraph.cpp)
 make_plugin(ampmidid ampmidid.cpp)
 
+#Plugin to make a smaller base system
 make_plugin(pan2 pan2.c)
 make_plugin(babo babo.c)
+make_plugin(arrays arrays.c)
 
 if(APPLE)
    make_plugin(arrayops arrayops.cpp)

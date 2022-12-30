@@ -792,7 +792,6 @@ set(libcsound_SRCS
     Opcodes/hrtferX.c
     Opcodes/loscilx.c
     Opcodes/minmax.c
-    Opcodes/arrays.c
     Opcodes/phisem.c
     Opcodes/hrtfopcodes.c
     Opcodes/vbap.c

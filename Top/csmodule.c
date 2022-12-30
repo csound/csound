@@ -1163,7 +1163,7 @@ extern int32_t grain4_localops_init(CSOUND *, void *);
 extern int32_t hrtferX_localops_init(CSOUND *, void *);
 extern int32_t loscilx_localops_init(CSOUND *, void *);
 //extern int32_t pan2_localops_init(CSOUND *, void *);
-extern int32_t arrayvars_localops_init(CSOUND *, void *);
+//extern int32_t arrayvars_localops_init(CSOUND *, void *);
 extern int32_t phisem_localops_init(CSOUND *, void *);
 extern int32_t pvoc_localops_init(CSOUND *, void *);
 extern int32_t hrtfopcodes_localops_init(CSOUND *, void *);
@@ -1229,7 +1229,7 @@ const INITFN staticmodules[] = { hrtfopcodes_localops_init, /*babo_localops_init
                                  modmatrix_localops_init, spectra_localops_init,
                                  ambicode1_localops_init, grain4_localops_init,
                                  hrtferX_localops_init, loscilx_localops_init,
-                                 /* pan2_localops_init,*/ arrayvars_localops_init,
+                                 /* pan2_localops_init, arrayvars_localops_init, */
                                  phisem_localops_init, pvoc_localops_init,
                                  vbap_localops_init,
                                  ugakbari_localops_init, harmon_localops_init,

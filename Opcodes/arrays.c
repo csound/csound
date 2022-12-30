@@ -20,8 +20,8 @@
   02110-1301 USA
 */
 
-// #include "csdl.h"
-#include "csoundCore.h"
+#include "csdl.h"
+//#include "csoundCore.h"
 #include "interlocks.h"
 #include "aops.h"
 #include "find_opcode.h"
@@ -3248,7 +3248,7 @@ static int32_t outa(CSOUND *csound, OUTA *p)
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = nsmps - p->h.insdshead->ksmps_no_end;
     MYFLT       *data = p->tabin->data;
-    MYFLT       *sp= csound->spraw;
+    MYFLT       *sp= csound->saw;
     if (!csound->spoutactive) {
       memset(sp, '\0', nsmps*nchns*sizeof(MYFLT));
       for (l=0; l<pl; l++) {
@@ -4413,7 +4413,7 @@ static int32 taninv2_Aa(CSOUND* csound, TABARITH* p)
     k = 0;
     for (i=0; i<ans->dimensions; i++) {
       for (j=0; j<aa->sizes[i]; j++)
-        for (m=0; m<csound->ksmps; m++) {
+        for (m=0; m<csound->GetKsmps(csound); m++) {
           ans->data[k] = ATAN2(aa->data[k], bb->data[k]);
           k++;
         }
@@ -4426,7 +4426,8 @@ static int32 taninv2_Aa(CSOUND* csound, TABARITH* p)
 // jpff: stutter is an interesting one (very musical). It basically
 //          randomly repeats (holds) values based on a probability parameter
 
-static OENTRY arrayvars_localops[] =
+//static OENTRY arrayvars_localops[] =
+static OENTRY localops[] =
   {
     { "nxtpow2", sizeof(INOUT), 0, 1, "i", "i", (SUBR)nxtpow2},
     { "init.i", sizeof(ARRAYINIT), 0, 1, "i[]", "m", (SUBR)array_init },
@@ -4833,4 +4834,6 @@ static OENTRY arrayvars_localops[] =
     { "clear", sizeof(TABCLEAR), 0, 3, "", "k[]", (SUBR)tabclearset, (SUBR)tabcleark  }
   };
 
-LINKAGE_BUILTIN(arrayvars_localops)
+//LINKAGE_BUILTIN(arrayvars_localops)
+
+LINKAGE
