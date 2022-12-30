@@ -174,4 +174,5 @@ static OENTRY localops[] =
 };
 
 LINKAGE
+
 //LINKAGE_BUILTIN(pan2_localops)

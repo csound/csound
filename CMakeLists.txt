@@ -777,7 +777,6 @@ set(libcsound_SRCS
     OOps/ugrw1.c
     OOps/vdelay.c
     OOps/compile_ops.c
-//    Opcodes/babo.c
     Opcodes/bilbar.c
     Opcodes/compress.c
     Opcodes/eqfil.c
@@ -793,7 +792,6 @@ set(libcsound_SRCS
     Opcodes/hrtferX.c
     Opcodes/loscilx.c
     Opcodes/minmax.c
-    Opcodes/pan2.c
     Opcodes/arrays.c
     Opcodes/phisem.c
     Opcodes/hrtfopcodes.c

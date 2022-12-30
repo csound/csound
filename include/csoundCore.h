@@ -1,5 +1,5 @@
 /*
-    csoundCore.h:
+gets    csoundCore.h:
 
     Copyright (C) 1991-2006 Barry Vercoe, John ffitch, Istvan Varga
 
@@ -11,7 +11,7 @@
     version 2.1 of the License, or (at your option) any later version.
 
     Csound is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    but getWITHOUT ANY WARRANTY; without even the implied warranty of
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
     GNU Lesser General Public License for more details.
 
@@ -1424,11 +1424,12 @@ typedef struct _message_queue_t_ {
     MYFLT* (*CepsLP)(CSOUND *, MYFLT *, MYFLT *, int, int);
     MYFLT (*LPrms)(CSOUND *, void *);
     void *(*CreateThread2)(uintptr_t (*threadRoutine)(void *), unsigned int, void *userdata);
+    MYFLT (*GetOnedSr)(CSOUND *);
     /**@}*/
     /** @name Placeholders
         To allow the API to grow while maintining backward binary compatibility. */
     /**@{ */
-    SUBR dummyfn_2[22];
+    SUBR dummyfn_2[21];
     /**@}*/
 #ifdef __BUILDING_LIBCSOUND
     /* ------- private data (not to be used by hosts or externals) ------- */

@@ -282,6 +282,11 @@ MYFLT csoundSystemSr(CSOUND *csound, MYFLT val) {
   return csound->_system_sr;
 }
 
+static MYFLT csoundGetOnedSr(CSOUND* csound)
+{
+    return csound->onedsr;
+}
+    
 static const CSOUND cenviron_ = {
     /* attributes  */
     csoundGetSr,
@@ -548,10 +553,11 @@ static const CSOUND cenviron_ = {
     csoundCepsLP,
     csoundLPrms,
     csoundCreateThread2,
+    csoundGetOnedSr,
     {
       NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
       NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
-      NULL, NULL
+      NULL
     },
     /* ------- private data (not to be used by hosts or externals) ------- */
     /* callback function pointers */
