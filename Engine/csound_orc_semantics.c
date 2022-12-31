@@ -639,7 +639,9 @@ char* get_arg_type2(CSOUND* csound, TREE* tree, TYPE_TABLE* typeTable)
       tree = tree->next;
     }
 
-    return cs_strdup(csound, var->varType->varTypeName);
+    return var->subType != NULL ? \
+      create_array_arg_type(csound, var) : \
+      cs_strdup(csound, var->varType->varTypeName);
 
   case T_ARRAY:
 
@@ -2321,6 +2323,17 @@ int add_struct_definition(CSOUND* csound, TREE* structDefTree) {
         csound->typePool,
         typedSubtypeIdentArg
       );
+      TREE* currentDimension = current->right;
+      int dimensions = 0;
+      while(
+        currentDimension != NULL && \
+        *currentDimension->value->lexeme == '['
+      ) {
+        dimensions += 1;
+        currentDimension = currentDimension->next;
+      }
+
+      var->dimensions = dimensions;
       var->subType = arraySubtype;
     }
 
