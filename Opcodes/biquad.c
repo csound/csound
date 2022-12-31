@@ -30,7 +30,7 @@
 /* Nested allpass and Lorenz added                             */
 /* October 1998 by Hans Mikelson                               */
 /***************************************************************/
-//#include "csdl.h"
+#include "csdl.h"
 #include <math.h>
 #include "biquad.h"
 #include "csound_standard_types.h"
@@ -128,7 +128,7 @@ static int32_t moogvcfset(CSOUND *csound, MOOGVCF *p)
     }
     p->fcocod = IS_ASIG_ARG(p->fco) ? 1 : 0;
     p->rezcod = IS_ASIG_ARG(p->res) ? 1 : 0;
-    if ((p->maxint = *p->max)==FL(0.0)) p->maxint = csound->e0dbfs;
+    if ((p->maxint = *p->max)==FL(0.0)) p->maxint = csound->Get0dBFS(csound);
 
     return OK;
 }
@@ -147,7 +147,7 @@ static int32_t moogvcf(CSOUND *csound, MOOGVCF *p)
     double dmax = 1.0/max;
     double xnm1 = p->xnm1, y1nm1 = p->y1nm1, y2nm1 = p->y2nm1, y3nm1 = p->y3nm1;
     double y1n  = p->y1n, y2n = p->y2n, y3n = p->y3n, y4n = p->y4n;
-    MYFLT zerodb = csound->e0dbfs;
+    MYFLT zerodb = csound->et0dBFS(csound);
 
     in      = p->in;
     out     = p->out;
@@ -159,7 +159,7 @@ static int32_t moogvcf(CSOUND *csound, MOOGVCF *p)
   /* Only need to calculate once */
     if (UNLIKELY((p->rezcod==0) && (p->fcocod==0))) {
       double fcon;
-      fcon  = 2.0*fco*(double)csound->onedsr; /* normalised freq. 0 to Nyquist */
+      fcon  = 2.0*fco*(double)csound->GetOnedSr(csound); /* normalised freq. 0 to Nyquist */
       kp    = 3.6*fcon-1.6*fcon*fcon-1.0;     /* Emperical tuning   */
       pp1d2 = (kp+1.0)*0.5;                   /* Timesaver          */
       scale = exp((1.0-pp1d2)*1.386249);      /* Scaling factor     */
@@ -180,7 +180,28 @@ static int32_t moogvcf(CSOUND *csound, MOOGVCF *p)
       }
       if ((p->rezcod!=0) || (p->fcocod!=0)) {
         double fcon;
-        fcon  = 2.0*fco*(double)csound->onedsr; /* normalised frq. 0 to Nyquist */
+        fcon  = 2.0*fco*(double)csound->GetOnedSr(csound); /* normalised freq. 0 to Nyquist */
+      kp    = 3.6*fcon-1.6*fcon*fcon-1.0;     /* Emperical tuning   */
+      pp1d2 = (kp+1.0)*0.5;                   /* Timesaver          */
+      scale = exp((1.0-pp1d2)*1.386249);      /* Scaling factor     */
+      k     = res*scale;
+    }
+    if (UNLIKELY(offset)) memset(out, '\0', offset*sizeof(MYFLT));
+    if (UNLIKELY(early)) {
+      nsmps -= early;
+      memset(&out[nsmps], '\0', early*sizeof(MYFLT));
+    }
+    for (n=offset; n<nsmps; n++) {
+      /* Handle a-rate modulation of fco & res. */
+      if (p->fcocod) {
+        fco = (double)fcoptr[n];
+      }
+      if (p->rezcod) {
+        res = (double)resptr[n];
+      }
+      if ((p->rezcod!=0) || (p->fcocod!=0)) {
+        double fcon;
+        fcon  = 2.0*fco*(double)csound->GetOnedSr(csound); /* normalised frq. 0 to Nyquist */
         kp    = 3.6*fcon-1.6*fcon*fcon-1.0;     /* Emperical tuning */
         pp1d2 = (kp+1.0)*0.5;                   /* Timesaver */
         scale = exp((1.0-pp1d2)*1.386249);      /* Scaling factor */
@@ -515,7 +536,7 @@ static int32_t distort(CSOUND *csound, DISTORT *p)
     }
     else if (*p->imode < FL(1.5)) {     /* mode 1: same with 0dBFS support */
       pregain   *=  (FL(6.5536) * csound->dbfs_to_float);
-      postgain  *=  (FL(0.61035156) * csound->e0dbfs);
+      postgain  *=  (FL(0.61035156) * csound->Get0dBFS(csound));
       shape1    *=  (FL(4.096) * csound->dbfs_to_float);
       shape2    *=  (FL(4.096) * csound->dbfs_to_float);
     }
@@ -1699,9 +1720,11 @@ static OENTRY localops[] = {
                                   (SUBR) mvmfilterset, (SUBR) mvmfilter },
 };
 
-int32_t biquad_init_(CSOUND *csound)
-{
-    return csound->AppendOpcodes(csound, &(localops[0]),
-                                 (int32_t
-                                  ) (sizeof(localops) / sizeof(OENTRY)));
-}
+/* int32_t biquad_init_(CSOUND *csound) */
+/* { */
+/*     return csound->AppendOpcodes(csound, &(localops[0]), */
+/*                                  (int32_t */
+/*                                   ) (sizeof(localops) / sizeof(OENTRY))); */
+/* } */
+
+LINKAGE

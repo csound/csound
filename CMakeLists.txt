@@ -883,7 +883,6 @@ endif()
 set(stdopcod_SRCS
     Opcodes/ambicode.c
     Opcodes/bbcut.c
-    Opcodes/biquad.c
     Opcodes/butter.c
     Opcodes/clfilt.c
     Opcodes/cross2.c

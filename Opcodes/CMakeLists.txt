@@ -33,6 +33,7 @@ make_plugin(ampmidid ampmidid.cpp)
 make_plugin(pan2 pan2.c)
 make_plugin(babo babo.c)
 make_plugin(arrays arrays.c)
+make_plugin(biquad biquad.c)
 
 if(APPLE)
    make_plugin(arrayops arrayops.cpp)
