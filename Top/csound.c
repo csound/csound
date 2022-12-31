@@ -287,6 +287,16 @@ static MYFLT csoundGetOnedSr(CSOUND* csound)
     return csound->onedsr;
 }
     
+static int csoundGetMode(CSOUND* csound)
+{
+    return csound->mode;
+}
+    
+static MYFLT *csoundGetSpraw(CSOUND* csound)
+{
+    return csound->spraw;
+}
+    
 static const CSOUND cenviron_ = {
     /* attributes  */
     csoundGetSr,
@@ -554,10 +564,12 @@ static const CSOUND cenviron_ = {
     csoundLPrms,
     csoundCreateThread2,
     csoundGetOnedSr,
+    csoundGetMode,
+    csoundGetSpraw,
+    0,              /*  spoutactive         */
     {
       NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
-      NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
-      NULL
+      NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL
     },
     /* ------- private data (not to be used by hosts or externals) ------- */
     /* callback function pointers */
@@ -635,7 +647,6 @@ static const CSOUND cenviron_ = {
     DFLT_KSMPS,     /*  ksmps               */
     DFLT_NCHNLS,    /*  nchnls              */
     -1,             /*  inchns              */
-     0,              /*  spoutactive         */
     0L,             /*  kcounter            */
     0L,             /*  global_kcounter     */
     DFLT_SR,        /*  esr                 */
@@ -2408,9 +2419,7 @@ PUBLIC uint32_t csoundGetNchnls(CSOUND *csound)
 
 PUBLIC uint32_t csoundGetNchnlsInput(CSOUND *csound)
 {
-  if (csound->inchnls >= 0)
-    return (uint32_t) csound->inchnls;
-  else return csound->nchnls;
+    return csound->inchnls;
 }
 
 PUBLIC MYFLT csoundGet0dBFS(CSOUND *csound)

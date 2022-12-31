@@ -1,5 +1,5 @@
 /*
-gets    csoundCore.h:
+    csoundCore.h:
 
     Copyright (C) 1991-2006 Barry Vercoe, John ffitch, Istvan Varga
 
@@ -1425,11 +1425,16 @@ typedef struct _message_queue_t_ {
     MYFLT (*LPrms)(CSOUND *, void *);
     void *(*CreateThread2)(uintptr_t (*threadRoutine)(void *), unsigned int, void *userdata);
     MYFLT (*GetOnedSr)(CSOUND *);
+    int (*GetMode)(CSOUND *);
+    MYFLT *(*GetSpraw)(CSOUND*);
+
+    int           spoutactive;
+
     /**@}*/
     /** @name Placeholders
         To allow the API to grow while maintining backward binary compatibility. */
     /**@{ */
-    SUBR dummyfn_2[21];
+    SUBR dummyfn_2[18];
     /**@}*/
 #ifdef __BUILDING_LIBCSOUND
     /* ------- private data (not to be used by hosts or externals) ------- */
@@ -1504,7 +1509,6 @@ typedef struct _message_queue_t_ {
     unsigned int  ksmps;
     uint32_t      nchnls;
     int           inchnls;
-    int           spoutactive;
     uint64_t      kcounter, global_kcounter;
     MYFLT         esr;
     MYFLT         ekr;

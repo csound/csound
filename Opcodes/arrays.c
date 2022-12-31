@@ -294,7 +294,7 @@ static int32_t array_set(CSOUND* csound, ARRAY_SET *p)
     //       (int)(*p->indexes[0]), (int)(*p->indexes[1]), (int)(*p->indexes[2]));
 
     if (UNLIKELY(indefArgCount == 0)) {
-      csoundErrorMsg(csound, Str("Error: no indexes set for array set\n"));
+      csound->ErrorMsg(csound, Str("Error: no indexes set for array set\n"));
       return CSOUND_ERROR;
     }
     if (UNLIKELY(indefArgCount!=dat->dimensions)) {
@@ -3233,7 +3233,7 @@ typedef struct {
 static int32_t outa_set(CSOUND *csound, OUTA *p)
 {
     int32_t len = (p->tabin->dimensions==1?p->tabin->sizes[0]:-1);
-    if (len>(int32_t)csound->nchnls) len = csound->nchnls;
+    if (len>(int32_t)csound->GetNchnls(csound)) len = csound->GetNchnls(csound);
     if (UNLIKELY(len<=0)) return NOTOK;
     p->len = len;
     if (p->tabin->arrayMemberSize != (int32_t)(CS_KSMPS*sizeof(MYFLT)))
@@ -3248,7 +3248,7 @@ static int32_t outa(CSOUND *csound, OUTA *p)
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = nsmps - p->h.insdshead->ksmps_no_end;
     MYFLT       *data = p->tabin->data;
-    MYFLT       *sp= csound->saw;
+    MYFLT       *sp= csound->GetSpraw(csound);
     if (!csound->spoutactive) {
       memset(sp, '\0', nsmps*nchns*sizeof(MYFLT));
       for (l=0; l<pl; l++) {
@@ -3274,7 +3274,7 @@ static int32_t ina_set(CSOUND *csound, OUTA *p)
     if (aa->sizes) csound->Free(csound, aa->sizes);
     if (aa->data) csound->Free(csound, aa->data);
     aa->sizes = (int32_t*)csound->Malloc(csound, sizeof(int32_t));
-    aa->sizes[0] = p->len = csound->inchnls;
+    aa->sizes[0] = p->len = csound->GetNchnls_i(csound);
     aa->data = (MYFLT*)
       csound->Malloc(csound, CS_KSMPS*sizeof(MYFLT)*p->len);
     aa->arrayMemberSize = CS_KSMPS*sizeof(MYFLT);
@@ -3349,7 +3349,7 @@ static int32_t monitora_init(CSOUND *csound, OUTA *p)
     if (aa->sizes) csound->Free(csound, aa->sizes);
     if (aa->data) csound->Free(csound, aa->data);
     aa->sizes = (int32_t*)csound->Malloc(csound, sizeof(int32_t));
-    aa->sizes[0] = p->len = csound->nchnls;
+    aa->sizes[0] = p->len = csound->GetNchnls(csound);
     aa->data = (MYFLT*)
       csound->Malloc(csound, CS_KSMPS*sizeof(MYFLT)*p->len);
     aa->arrayMemberSize = CS_KSMPS*sizeof(MYFLT);
@@ -4391,7 +4391,8 @@ static int32 taninv2_A(CSOUND* csound, TABARITH* p)
     ARRAYDAT* aa = p->left;
     ARRAYDAT* bb = p->right;
     int i, j, k;
-    if (csound->mode == 1 && tabarithset(csound, p)!=OK)
+    if (csound->GetMode(csound) == 1 && tabarithset(csound, p)!=OK)
+      
                              return NOTOK;
     k = 0;
     for (i=0; i<ans->dimensions; i++) {
