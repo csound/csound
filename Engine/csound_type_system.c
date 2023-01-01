@@ -294,6 +294,17 @@ void initializeVarPool(CSOUND* csound, MYFLT* memBlock, CS_VAR_POOL* pool) {
       if (current->initializeVariableMemory != NULL) {
         current->initializeVariableMemory(csound, current,
                                           memBlock + current->memBlockIndex);
+        CS_TYPE* type = current->subType != NULL ? current->subType : current->varType;
+        if (type != NULL && type->members != NULL) {
+
+          CONS_CELL* members = type->members;
+          while (members != NULL) {
+            CS_VARIABLE* member = members->value;
+            member->initializeVariableMemory(csound, member, memBlock + pool->poolSize);
+            members = members->next;
+          }
+
+        }
       }
       varNum++;
       current = current->next;

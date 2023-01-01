@@ -610,10 +610,10 @@ char* get_arg_type2(CSOUND* csound, TREE* tree, TYPE_TABLE* typeTable)
     return cs_strdup(csound, tree->value->optype);
   case STRUCT_EXPR: {
     char* leftStr;
-    int subtype = 0;
+    int beginsWithArray = 0;
     if (tree->left != NULL && tree->left->type == T_ARRAY) {
       leftStr = tree->left->left->value->lexeme;
-      subtype = 1;
+      beginsWithArray = 1;
     } else {
       leftStr = tree->left->value->lexeme;
     }
@@ -626,11 +626,22 @@ char* get_arg_type2(CSOUND* csound, TREE* tree, TYPE_TABLE* typeTable)
       return NULL;
     }
 
+    CONS_CELL* members = beginsWithArray ? \
+      var->subType->members : \
+      var->varType->members;
+    int isLookingAtArrayExpr = 0;
     tree = tree->right;
 
+    // iterate over indefinite chain of . and [...]
+    // and find the type of the tail
     while (tree != NULL) {
-      s = tree->value->lexeme;
-      CONS_CELL* cell = subtype == 1 ? var->subType->members : var->varType->members;
+      if (tree->type == T_ARRAY) {
+        isLookingAtArrayExpr = 1;
+      } else {
+        isLookingAtArrayExpr = 0;
+      }
+      s = isLookingAtArrayExpr ? tree->left->value->lexeme : tree->value->lexeme;
+      CONS_CELL* cell = members;
       CS_VARIABLE* nextVar = NULL;
       while (cell != NULL) {
         CS_VARIABLE* member = (CS_VARIABLE*)cell->value;
@@ -649,9 +660,13 @@ char* get_arg_type2(CSOUND* csound, TREE* tree, TYPE_TABLE* typeTable)
       tree = tree->next;
     }
 
-    return var->subType != NULL ? \
-      create_array_arg_type(csound, var) : \
-      cs_strdup(csound, var->varType->varTypeName);
+    char* ret = isLookingAtArrayExpr == 1 ? \
+      cs_strdup(csound, var->subType->varTypeName) : \
+      var->subType != NULL ? \
+        create_array_arg_type(csound, var) : \
+        cs_strdup(csound, var->varType->varTypeName);
+
+    return ret;
 
   }
 
@@ -2333,7 +2348,13 @@ int add_struct_definition(CSOUND* csound, TREE* structDefTree) {
         csound->typePool,
         typedSubtypeIdentArg
       );
+      CS_VARIABLE* arraySubtypeVariable = \
+        arraySubtype->createVariable(csound, (void*) arraySubtype);
+      CONS_CELL* arraySubtypeCell = csound->Calloc(csound, sizeof(CONS_CELL));
+      arraySubtypeCell->value = arraySubtypeVariable;
       TREE* currentDimension = current->right;
+      arraySubtype->members = \
+        cs_cons_append(arraySubtype->members, arraySubtypeCell);
       int dimensions = 0;
       while(
         currentDimension != NULL && \

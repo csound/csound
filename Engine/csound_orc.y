@@ -544,6 +544,10 @@ array_expr :  array_expr '[' expr ']'
 struct_expr : struct_expr '.' identifier
             {  $$ = $1;
                appendToTree(csound, $1->right, $3); }
+            | identifier '.' array_expr
+            {  $$ = make_node(csound, LINE, LOCN, STRUCT_EXPR, $1, $3); }
+            | struct_expr '.' array_expr
+            {  $$ = make_node(csound, LINE, LOCN, STRUCT_EXPR, $1, $3); }
             | array_expr '.' identifier
             {  $$ = make_node(csound, LINE, LOCN, STRUCT_EXPR, $1, $3); }
             | identifier '.' identifier

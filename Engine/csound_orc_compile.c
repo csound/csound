@@ -341,12 +341,24 @@ char* get_struct_expr_string(CSOUND* csound, TREE* structTree) {
 
   index += len;
 
+  int isLastArray = 0;
   while(current != NULL) {
+    if (current->type == T_ARRAY) {
+      current = current->left;
+      isLastArray = 1;
+      continue;
+    }
     temp[index++] = '.';
     name = current->value->lexeme;
     len = strlen(name);
     memcpy(temp + index, name, len);
     index += len;
+    if (isLastArray) {
+      temp[index++] = '[';
+      temp[index++] = ']';
+      temp[index++] = '\0';
+      index += 2;
+    }
     current = current->next;
   }
 
@@ -2215,50 +2227,21 @@ static void lgbuild(CSOUND *csound, INSTRTXT *ip, char *s, int inarg,
 
 static void setupArgForVarName(CSOUND* csound, ARG* arg, CS_VAR_POOL* varPool, char* varName) {
   char* delimitStruct = strchr(varName, '.');
-  if(delimitStruct != NULL) {
-    int isArrayStruct = 0;
-    char* delimitArr = strchr(varName, '[');
-    char* delimit;
-    if (delimitArr != NULL && delimitArr < delimitStruct) {
-      delimit = delimitArr;
-      isArrayStruct = 1;
-    } else {
-      delimit = delimitStruct;
-    }
-    char *baseName = cs_strndup(csound, varName, delimit - varName);
-    // TODO: recursive structPaths with nested memebers
-    char *structPath = cs_strdup(csound, delimitStruct + 1);
-    arg->argPtr = csoundFindVariableWithName(csound, varPool, baseName);
-    arg->structPath = structPath;
-    // struct-arrays: the arg pointer should point to the member
-    // with given 'structPath'
-    if (arg->argPtr != NULL && isArrayStruct) {
-      CS_VARIABLE* baseVar = (CS_VARIABLE* )arg->argPtr;
-      CONS_CELL* members = baseVar->subType->members;
-      CS_VARIABLE* member;
-      int found = 0;
-      while (found == 0 && members) {
-        member = (CS_VARIABLE*) members->value;
-        if (strcmp(member->varName, structPath) == 0) {
-          found = 1;
-        }
-        members = members->next;
-      }
-      if (found) {
-        arg->argPtr = member;
-        arg->structPath = NULL;
-      } else {
-        arg->argPtr = NULL;
-        csound->Message(csound, Str("No member %s found in struct: %s\n"),
-          structPath,
-          baseVar->subType->varTypeName);
-      }
-    }
-  } else {
+  // not a struct variable
+  if (delimitStruct == NULL) {
     arg->argPtr = csoundFindVariableWithName(csound, varPool, varName);
     arg->structPath = NULL;
+    return;
   }
+
+
+    char* baseName = cs_strndup(csound, varName, delimitStruct - varName);
+    arg->argPtr = csoundFindVariableWithName(csound, varPool, baseName);
+    char *structPath = cs_strdup(csound, delimitStruct + 1);
+    arg->structPath = structPath;
 }
+
+
 
 /* get storage ndx of const, pnum, lcl or gbl */
 /* argument const/gbl indexes are positiv+1, */
