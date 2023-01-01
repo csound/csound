@@ -278,7 +278,7 @@ int is_expression_node(TREE *node)
   case '^':
   case T_FUNCTION:
   case S_UMINUS:
-  case S_UPLUS:  
+  case S_UPLUS:
   case '|':
   case '&':
   case S_BITSHIFT_RIGHT:
@@ -692,7 +692,7 @@ static TREE *create_expression(CSOUND *csound, TREE *root, int line, int locn,
                                            root->right, typeTable);
 
     break;
-    
+
   case '|':
     strNcpy(op, "##or", 80);
     outarg = create_out_arg_for_expression(csound, op, root->left,
@@ -771,7 +771,7 @@ static TREE *create_expression(CSOUND *csound, TREE *root, int line, int locn,
           outype = strdup(var->subType->varTypeName);
 	  /* VL: 9.2.22 pulled code from 6.x to check for array index type
              to provide the correct outype. Works with explicity types
-	  */ 
+	  */
          if (outype[0]== 'i') {
           TREE* inds = root->right;
           while (inds) {
@@ -1392,6 +1392,188 @@ TREE* expand_if_statement(CSOUND* csound,
   return anchor;
 }
 
+TREE* create_equality_statement(
+  CSOUND* csound,
+  TREE* left,
+  TREE* right
+) {
+  TREE *equalityNode = create_empty_token(csound);
+  equalityNode->value = make_token(csound, "==");
+  equalityNode->type = S_EQ;
+  equalityNode->value->type = S_EQ;
+  equalityNode->left = left;
+  equalityNode->right = right;
+  return equalityNode;
+}
+
+static TREE* create_goto_node(
+  CSOUND* csound,
+  int isPerfRate
+) {
+  TREE* gotoOperator = create_opcode_token(csound, isPerfRate ? "kgoto" : "igoto");
+  gotoOperator->type = isPerfRate ? KGOTO_TOKEN : IGOTO_TOKEN;
+  gotoOperator->value->type = isPerfRate ? KGOTO_TOKEN : IGOTO_TOKEN;
+  return gotoOperator;
+}
+
+static TREE* create_cgoto_node(
+  CSOUND* csound,
+  int isPerfRate
+) {
+  TREE* cgotoOperator = create_opcode_token(csound, isPerfRate ? "ckgoto" : "cigoto");
+  cgotoOperator->type = T_OPCALL;
+  cgotoOperator->value->type = T_OPCALL;
+  return cgotoOperator;
+}
+
+
+TREE* expand_switch_statement(
+  CSOUND* csound,
+  TREE* current,
+  TYPE_TABLE* typeTable,
+  char* switchArgType
+) {
+  int isPerfRate = switchArgType[0] == 'k';
+  // TODO: assign to synthetic variable
+  TREE* switchExpression = current->left;
+
+  TREE* endGoto = create_goto_node(csound, isPerfRate);
+  TREE* endLabel = create_synthetic_label(csound, genlabs++);
+  typeTable->labelList = cs_cons(
+    csound,
+    cs_strdup(csound, endLabel->value->lexeme),
+    typeTable->labelList
+  );
+  endGoto->right = endLabel;
+
+  TREE* tempNext = NULL;
+  TREE* defaultCaseLabel;
+  TREE* defaultCaseBody;
+  TREE* gotoChainHead = NULL;
+  TREE* gotoChainHeadAnchor = NULL;
+  TREE* gotoChainHeadDefaultCase = NULL;
+  TREE* gotoChainTail = NULL;
+  TREE* gotoChainTailAnchor;
+
+  TREE* caseNode = current->right;
+  TREE* caseLabel;
+
+  tempNext = caseNode->right != NULL ? caseNode->right->next : NULL;
+
+  while (caseNode) {
+    if (caseNode->type == CASE_TOKEN) {
+        caseLabel = create_synthetic_label(csound, genlabs++);
+        typeTable->labelList = cs_cons(
+          csound,
+          cs_strdup(csound, caseLabel->value->lexeme),
+          typeTable->labelList
+        );
+
+        gotoChainTailAnchor = copy_node(csound, caseLabel);
+
+
+        if (gotoChainTail == NULL) {
+          gotoChainTail = gotoChainTailAnchor;
+        } else {
+          appendToTree(csound, gotoChainTail, gotoChainTailAnchor);
+        }
+
+        TREE* caseArg = caseNode->left;
+        while (caseArg != NULL) {
+          if (gotoChainHeadAnchor == NULL) {
+            gotoChainHeadAnchor = create_cgoto_node(csound, isPerfRate);
+            if (gotoChainHead == NULL) {
+              gotoChainHead = gotoChainHeadAnchor;
+            }
+          } else {
+            gotoChainHeadAnchor = create_cgoto_node(csound, isPerfRate);
+            appendToTree(csound, gotoChainHead, gotoChainHeadAnchor);
+          }
+
+          gotoChainHeadAnchor->right = create_equality_statement(
+            csound,
+            copy_node(csound, switchExpression),
+            copy_node_shallow(csound, caseArg)
+          );
+
+          gotoChainHeadAnchor->right->next = copy_node(csound, caseLabel);
+          caseArg = caseArg->next;
+        }
+
+        if (caseNode->right != NULL) {
+          tempNext = caseNode->right->next;
+          gotoChainTailAnchor = appendToTree(csound, gotoChainTailAnchor, caseNode->right);
+          gotoChainTailAnchor->next->next = NULL;
+          gotoChainTailAnchor = appendToTree(
+            csound,
+            gotoChainTailAnchor,
+            copy_node(csound, endGoto)
+          );
+        } else {
+          tempNext = NULL;
+        }
+    } else if (caseNode->type == DEFAULT_TOKEN && gotoChainHeadDefaultCase == NULL) {
+      gotoChainHeadDefaultCase = create_goto_node(csound, isPerfRate);
+      defaultCaseLabel = create_synthetic_label(csound, genlabs++);
+      typeTable->labelList = cs_cons(
+        csound,
+        cs_strdup(csound, defaultCaseLabel->value->lexeme),
+        typeTable->labelList
+      );
+      gotoChainHeadDefaultCase->right = defaultCaseLabel;
+      defaultCaseBody = caseNode->right;
+      defaultCaseBody->next = copy_node(csound, endGoto);
+    } else {
+      if (caseNode->right != NULL) {
+        tempNext = caseNode->right->next;
+      } else {
+        tempNext = NULL;
+      }
+    }
+
+    caseNode = tempNext;
+  }
+
+  if (gotoChainHeadDefaultCase != NULL) {
+    gotoChainHeadAnchor = appendToTree(
+      csound,
+      gotoChainHeadAnchor,
+      gotoChainHeadDefaultCase
+    );
+    gotoChainTailAnchor = appendToTree(
+      csound,
+      gotoChainTailAnchor,
+      copy_node(csound, defaultCaseLabel)
+    );
+    gotoChainTailAnchor = appendToTree(
+      csound,
+      gotoChainTailAnchor,
+      defaultCaseBody
+    );
+  }
+
+  if (gotoChainHeadDefaultCase == NULL) {
+    gotoChainHeadAnchor = appendToTree(
+      csound,
+      gotoChainHeadAnchor,
+      endGoto
+    );
+  }
+
+  gotoChainHeadAnchor = appendToTree(
+    csound,
+    gotoChainHeadAnchor,
+    gotoChainTail
+  );
+  appendToTree(
+    csound,
+    gotoChainHeadAnchor,
+    copy_node(csound, endLabel)
+  );
+
+  return gotoChainHead;
+}
+
 /* 1. create top label to loop back to
    2. do boolean expression
    3. do goto token that checks boolean and goes to end label
@@ -1434,7 +1616,7 @@ TREE* expand_until_statement(CSOUND* csound, TREE* current,
   gotoType =
     last->left->value->lexeme[1] == 'B'; // checking for #B... var name
 
-  // printf("%s\n", last->left->value->lexeme); 
+  // printf("%s\n", last->left->value->lexeme);
   //printf("gottype = %d ; dowhile = %d\n", gotoType, dowhile);
   gotoToken =
     create_goto_token(csound,

@@ -2515,6 +2515,15 @@ TREE* verify_tree(CSOUND * csound, TREE *root, TYPE_TABLE* typeTable)
       }
 
       continue;
+    case SWITCH_TOKEN: {
+      char* switchArgType = get_arg_type2(csound, current->left, typeTable);
+      current = expand_switch_statement(csound, current, typeTable, switchArgType);
+
+      if (previous != NULL) {
+        previous->next = current;
+      }
+    }
+    continue;
 
     case LABEL_TOKEN:
       break;
@@ -2732,6 +2741,37 @@ TREE* copy_node(CSOUND* csound, TREE* tree) {
     }
 
     ans->next = (tree->next == NULL) ? NULL : copy_node(csound, tree->next);
+    ans->len = tree->len;
+    ans->rate = tree->rate;
+    ans->line = tree->line;
+    ans->locn  = tree->locn;
+    ans->markup = NULL;
+  }
+  return ans;
+}
+
+/* Copy only left and right branches (skips next) */
+TREE* copy_node_shallow(CSOUND* csound, TREE* tree) {
+  TREE *ans = NULL;
+
+  if(tree != NULL) {
+    ans = (TREE*)csound->Malloc(csound, sizeof(TREE));
+    if (UNLIKELY(ans==NULL)) {
+      /* fprintf(stderr, "Out of memory\n"); */
+      exit(1);
+    }
+    ans->type = tree->type;
+    ans->left = tree->left;
+    ans->right = tree->right;
+
+    if (tree->value != NULL) {
+      ans->value = make_token(csound, tree->value->lexeme);
+      ans->value->optype = cs_strdup(csound, tree->value->optype);
+    } else {
+      ans->value = NULL;
+    }
+
+    ans->next = NULL;
     ans->len = tree->len;
     ans->rate = tree->rate;
     ans->line = tree->line;

@@ -39,4 +39,6 @@ typedef struct csstructvar {
   CS_VAR_MEM** members;
 } CS_STRUCT_VAR;
 
+TREE* copy_node_shallow(CSOUND* csound, TREE* tree);
+
 #endif
