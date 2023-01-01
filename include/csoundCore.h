@@ -36,6 +36,7 @@
 #if !defined(EMSCRIPTEN) && !defined(CABBAGE)
 #if defined(HAVE_PTHREAD)
 #include <pthread.h>
+
 #endif
 #endif
 #include "cs_par_structs.h"
@@ -1427,14 +1428,16 @@ typedef struct _message_queue_t_ {
     MYFLT (*GetOnedSr)(CSOUND *);
     int (*GetMode)(CSOUND *);
     MYFLT *(*GetSpraw)(CSOUND*);
-
+    MYFLT (*GetOned0dbfs)(CSOUND*);
+    MYFLT (*GetSiCvt)(CSOUND*);
+    
     int           spoutactive;
 
     /**@}*/
     /** @name Placeholders
         To allow the API to grow while maintining backward binary compatibility. */
     /**@{ */
-    SUBR dummyfn_2[18];
+    SUBR dummyfn_2[16];
     /**@}*/
 #ifdef __BUILDING_LIBCSOUND
     /* ------- private data (not to be used by hosts or externals) ------- */

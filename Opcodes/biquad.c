@@ -147,7 +147,7 @@ static int32_t moogvcf(CSOUND *csound, MOOGVCF *p)
     double dmax = 1.0/max;
     double xnm1 = p->xnm1, y1nm1 = p->y1nm1, y2nm1 = p->y2nm1, y3nm1 = p->y3nm1;
     double y1n  = p->y1n, y2n = p->y2n, y3n = p->y3n, y4n = p->y4n;
-    MYFLT zerodb = csound->et0dBFS(csound);
+    MYFLT zerodb = csound->Get0dBFS(csound);
 
     in      = p->in;
     out     = p->out;
@@ -171,28 +171,7 @@ static int32_t moogvcf(CSOUND *csound, MOOGVCF *p)
       memset(&out[nsmps], '\0', early*sizeof(MYFLT));
     }
     for (n=offset; n<nsmps; n++) {
-      /* Handle a-rate modulation of fco & res. */
-      if (p->fcocod) {
-        fco = (double)fcoptr[n];
-      }
-      if (p->rezcod) {
-        res = (double)resptr[n];
-      }
-      if ((p->rezcod!=0) || (p->fcocod!=0)) {
-        double fcon;
-        fcon  = 2.0*fco*(double)csound->GetOnedSr(csound); /* normalised freq. 0 to Nyquist */
-      kp    = 3.6*fcon-1.6*fcon*fcon-1.0;     /* Emperical tuning   */
-      pp1d2 = (kp+1.0)*0.5;                   /* Timesaver          */
-      scale = exp((1.0-pp1d2)*1.386249);      /* Scaling factor     */
-      k     = res*scale;
-    }
-    if (UNLIKELY(offset)) memset(out, '\0', offset*sizeof(MYFLT));
-    if (UNLIKELY(early)) {
-      nsmps -= early;
-      memset(&out[nsmps], '\0', early*sizeof(MYFLT));
-    }
-    for (n=offset; n<nsmps; n++) {
-      /* Handle a-rate modulation of fco & res. */
+      /* Hadle a-rate modulation of fco & res. */
       if (p->fcocod) {
         fco = (double)fcoptr[n];
       }
@@ -539,7 +518,7 @@ static int32_t distort(CSOUND *csound, DISTORT *p)
       postgain  *=  (FL(0.61035156) * csound->Get0dBFS(csound));
       shape1    *=  (FL(4.096) * csound->dbfs_to_float);
       shape2    *=  (FL(4.096) * csound->dbfs_to_float);
-    }
+bbbbbbb    }
     else {                              /* mode 2: "raw" mode (+/- 1 amp.) */
       shape1 *= pregain;
       shape2 *= -pregain;
@@ -654,7 +633,7 @@ static int32_t vco(CSOUND *csound, VCO *p)
     /* End of VDelay insert */
 
     ftbl = ftp->ftable;
-    sicvt2 = csound->sicvt * FL(0.5);  /* for theta/2 */
+    sicvt2 = csound->GetSiCvt(csound) * FL(0.5);  /* for theta/2 */
     lobits = ftp->lobits;
     lenmask = ftp->lenmask;
     ampp = p->xamp;
@@ -1344,7 +1323,7 @@ static int32_t tbvcf(CSOUND *csound, TBVCF *p)
       q1   = res/(1.0 + sqrt(dist));
       fco1 = pow(fco*260.0/(1.0+q1*0.5),0.58);
       q    = q1*fco1*fco1*0.0005;
-      fc   = fco1*(double)csound->onedsr*(44100.0/8.0);
+      fc   = fco1*(double)csound->GetOnedSr(csound)*(44100.0/8.0);
     }
     if (UNLIKELY(offset)) memset(out, '\0', offset*sizeof(MYFLT));
     if (UNLIKELY(early)) {
@@ -1363,7 +1342,7 @@ static int32_t tbvcf(CSOUND *csound, TBVCF *p)
         q1  = res/(1.0 + sqrt(dist));
         fco1 = pow(fco*260.0/(1.0+q1*0.5),0.58);
         q  = q1*fco1*fco1*0.0005;
-        fc  = fco1*(double)csound->onedsr*(44100.0/8.0);
+        fc  = fco1*(double)csound->GetOnedSr)csound)*(44100.0/8.0);
       }
       x  = (double)in[n];
       fdbk = q*y/(1.0 + exp(-3.0*y)*asym);
@@ -1549,7 +1528,6 @@ static int32_t bqrez(CSOUND *csound, REZZY *p)
     //printf("*** limit = %lf\n", p->limit);
     return OK;
 }
-
 
 static int32_t mode(CSOUND *csound, MODE *p)
 {

@@ -163,11 +163,11 @@ void print_sndfile_version(CSOUND* csound) {
 }
 
 void print_engine_parameters(CSOUND *csound) {
-      csoundErrorMsg(csound, Str("sr = %.1f,"), csound->esr);
-      csoundErrorMsg(csound, Str(" kr = %.3f,"), csound->ekr);
-      csoundErrorMsg(csound, Str(" ksmps = %d\n"), csound->ksmps);
-      csoundErrorMsg(csound, Str("0dBFS level = %.1f,"), csound->e0dbfs);
-      csoundErrorMsg(csound, Str(" A4 tuning = %.1f\n"), csound->A4);
+    csoundErrorMsg(csound, Str("sr = %.1f,"), csound->GetSr(csound));
+    csoundErrorMsg(csound, Str(" kr = %.3f,"), csound->GetKr(csound));
+    csoundErrorMsg(csound, Str(" ksmps = %d\n"), csound->GetKsmps(csound));
+    csoundErrorMsg(csound, Str("0dBFS level = %.1f,"), csound->Get0dBFS(csound));
+    csoundErrorMsg(csound, Str(" A4 tuning = %.1f\n"), csound->A4);
 }
 
 
@@ -566,11 +566,12 @@ static const CSOUND cenviron_ = {
     csoundGetOnedSr,
     csoundGetMode,
     csoundGetSpraw,
+    csoundGetOned0dbfs,
+    csoundGetSiCvt,
     0,              /*  spoutactive         */
     {
       NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
-      NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL
-    },
+      NULL, NULL, NULL, NULL, NULL, NULL },
     /* ------- private data (not to be used by hosts or externals) ------- */
     /* callback function pointers */
     (SUBR) NULL,    /*  first_callback_     */
@@ -1152,7 +1153,7 @@ static char *signal_to_string(int sig)
 #endif
 #ifdef SIGTERM
     case SIGTERM:
-      return "Termination";
+      return "Termination<";
 #endif
 #ifdef SIGSTKFLT
     case SIGSTKFLT:
@@ -2427,6 +2428,16 @@ PUBLIC MYFLT csoundGet0dBFS(CSOUND *csound)
     return csound->e0dbfs;
 }
 
+PUBLIC MYFLT csoundGetOned0dBFS(CSOUND *csound)
+{
+    return csound->dbfs_to_float;
+}
+
+PUBLIC MYFLT csoundGetSiCvt(CSOUND *csound)
+{
+    return csound->sicvt;
+}
+
 PUBLIC long csoundGetInputBufferSize(CSOUND *csound)
 {
     return csound->oparms_.inbufsamps;
@@ -2537,7 +2548,7 @@ PUBLIC void csoundSetScoreOffsetSeconds(CSOUND *csound, MYFLT offset)
     /* if csoundCompile() was not called yet, just store the offset */
     if (!(csound->engineStatus & CS_STATE_COMP))
       return;
-    /* otherwise seek to the requested time now */
+    /* otherwise seek to ,the requested time now */
     aTime = (double) offset - (csound->icurTime/csound->esr);
     if (aTime < 0.0 || offset < prv) {
       csoundRewindScore(csound);    /* will call csoundSetScoreOffsetSeconds */
