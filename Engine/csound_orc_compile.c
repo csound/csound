@@ -302,6 +302,7 @@ char** splitArgs(CSOUND* csound, char* argString)
   //    for (int k = 0; k < argCount; k++) {
   //        printf("%d - %s\n", k, args[k]);
   //    }
+
   return args;
 }
 
@@ -310,20 +311,34 @@ OENTRY* find_opcode(CSOUND*, char*);
 char* get_struct_expr_string(CSOUND* csound, TREE* structTree) {
   char temp[512];
   int index = 0;
-  char* name = (char*)structTree->markup;
+  char* name;
   int len;
   TREE* current;
 
-  if (name != NULL) {
-    return cs_strdup(csound, name);
+  if (structTree->markup != NULL) {
+    return cs_strdup(csound, (char*)structTree->markup);
   }
 
   current = structTree->right;
   memset(temp, 0, 512);
+  len = 0;
 
-  name = structTree->left->value->lexeme;
-  len = strlen(name);
-  memcpy(temp, name, len);
+  if (structTree->left->type == T_ARRAY) {
+    name = structTree->left->left->value->lexeme;
+    len = strlen(name);
+    memcpy(temp, name, len);
+    temp[len] = '[';
+    temp[len + 1] = ']';
+    temp[len + 2] = '\0';
+    len += 2;
+  } else {
+    name = structTree->left->value->lexeme;
+    len = strlen(name);
+    memcpy(temp, name, len);
+  }
+
+
+
   index += len;
 
   while(current != NULL) {
@@ -337,7 +352,6 @@ char* get_struct_expr_string(CSOUND* csound, TREE* structTree) {
 
   name = cs_strdup(csound, temp);
   structTree->markup = name;
-
   return name;
 }
 
@@ -2011,7 +2025,7 @@ int csoundCompileOrcInternal(CSOUND *csound, const char *str, int async) {
     memcpy((void *)&csound->exitjmp, (void *)&tmpExitJmp, sizeof(jmp_buf));
     return CSOUND_ERROR;
   }
-  
+
   if (UNLIKELY(csound->oparms->odebug))
     debugPrintCsound(csound);
   memcpy((void *)&csound->exitjmp, (void *)&tmpExitJmp, sizeof(jmp_buf));
@@ -2200,14 +2214,46 @@ static void lgbuild(CSOUND *csound, INSTRTXT *ip, char *s, int inarg,
 }
 
 static void setupArgForVarName(CSOUND* csound, ARG* arg, CS_VAR_POOL* varPool, char* varName) {
-  char* delimit = strchr(varName, '.');
-  if(delimit != NULL) {
+  char* delimitStruct = strchr(varName, '.');
+  if(delimitStruct != NULL) {
+    int isArrayStruct = 0;
+    char* delimitArr = strchr(varName, '[');
+    char* delimit;
+    if (delimitArr != NULL && delimitArr < delimitStruct) {
+      delimit = delimitArr;
+      isArrayStruct = 1;
+    } else {
+      delimit = delimitStruct;
+    }
     char *baseName = cs_strndup(csound, varName, delimit - varName);
-    char *structPath = cs_strdup(csound, delimit + 1);
-    //        printf("B %s P %s\n", baseName, structPath);
-
+    // TODO: recursive structPaths with nested memebers
+    char *structPath = cs_strdup(csound, delimitStruct + 1);
     arg->argPtr = csoundFindVariableWithName(csound, varPool, baseName);
     arg->structPath = structPath;
+    // struct-arrays: the arg pointer should point to the member
+    // with given 'structPath'
+    if (arg->argPtr != NULL && isArrayStruct) {
+      CS_VARIABLE* baseVar = (CS_VARIABLE* )arg->argPtr;
+      CONS_CELL* members = baseVar->subType->members;
+      CS_VARIABLE* member;
+      int found = 0;
+      while (found == 0 && members) {
+        member = (CS_VARIABLE*) members->value;
+        if (strcmp(member->varName, structPath) == 0) {
+          found = 1;
+        }
+        members = members->next;
+      }
+      if (found) {
+        arg->argPtr = member;
+        arg->structPath = NULL;
+      } else {
+        arg->argPtr = NULL;
+        csound->Message(csound, Str("No member %s found in struct: %s\n"),
+          structPath,
+          baseVar->subType->varTypeName);
+      }
+    }
   } else {
     arg->argPtr = csoundFindVariableWithName(csound, varPool, varName);
     arg->structPath = NULL;

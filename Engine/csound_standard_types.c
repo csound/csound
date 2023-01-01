@@ -150,7 +150,6 @@ void varInitMemory(CSOUND *csound, CS_VARIABLE* var, MYFLT* memblock) {
     memset(memblock, 0, var->memBlockSize);
 }
 
-
 void arrayInitMemory(CSOUND *csound, CS_VARIABLE* var, MYFLT* memblock) {
     IGN(csound);
     ARRAYDAT* dat = (ARRAYDAT*)memblock;

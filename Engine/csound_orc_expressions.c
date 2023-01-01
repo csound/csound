@@ -777,7 +777,11 @@ static TREE *create_expression(CSOUND *csound, TREE *root, int line, int locn,
                 Str("unable to find array sub-type for var %s line %d\n"), varBaseName, current->line);
         return NULL;
       } else {
-        if (var->varType == &CS_VAR_TYPE_ARRAY) {
+        if (var->varType->userDefinedType == 1) {
+          outype = strdup(var->varType->varTypeName);
+          outarg = create_out_arg(csound, outype, typeTable->localPool->synthArgCount++, typeTable);
+          break;
+        } else if (var->varType == &CS_VAR_TYPE_ARRAY) {
           outype = strdup(var->subType->varTypeName);
 	  /* VL: 9.2.22 pulled code from 6.x to check for array index type
              to provide the correct outype. Works with explicity types
@@ -1202,7 +1206,9 @@ TREE* expand_statement(CSOUND* csound, TREE* current, TYPE_TABLE* typeTable)
                 Str("unable to find array sub-type for var %s line %d\n"), varBaseName, current->line);
         return NULL;
       } else {
-        if (var->varType == &CS_VAR_TYPE_ARRAY) {
+        if (var->varType->userDefinedType == 1) {
+          outType = strdup(var->varType->varTypeName);
+        } else if (var->varType == &CS_VAR_TYPE_ARRAY) {
           outType = strdup(var->subType->varTypeName);
         } else if (var->varType == &CS_VAR_TYPE_A) {
           outType = "k";

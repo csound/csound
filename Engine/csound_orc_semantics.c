@@ -285,7 +285,6 @@ char* get_arg_type2(CSOUND* csound, TREE* tree, TYPE_TABLE* typeTable)
 
     if (tree->type == T_ARRAY) {
       varBaseName = tree->left->value->lexeme;
-
       var = find_var_from_pools(csound, varBaseName, varBaseName, typeTable);
 
       if (var == NULL) {
@@ -301,7 +300,9 @@ char* get_arg_type2(CSOUND* csound, TREE* tree, TYPE_TABLE* typeTable)
           return NULL;
         }
       } else {
-        if (var->varType == &CS_VAR_TYPE_ARRAY) {
+        if (var->varType->userDefinedType == 1) {
+          return cs_strdup(csound, var->varType->varTypeName);
+        } else if (var->varType == &CS_VAR_TYPE_ARRAY) {
           return cs_strdup(csound, var->subType->varTypeName);
         } else if (var->varType == &CS_VAR_TYPE_A) {
           return cs_strdup(csound, "k");
@@ -607,20 +608,29 @@ char* get_arg_type2(CSOUND* csound, TREE* tree, TYPE_TABLE* typeTable)
 
   case T_TYPED_IDENT:
     return cs_strdup(csound, tree->value->optype);
-  case STRUCT_EXPR:
-    s = tree->left->value->lexeme;
-    var = find_var_from_pools(csound, s, s, typeTable);
+  case STRUCT_EXPR: {
+    char* leftStr;
+    int subtype = 0;
+    if (tree->left != NULL && tree->left->type == T_ARRAY) {
+      leftStr = tree->left->left->value->lexeme;
+      subtype = 1;
+    } else {
+      leftStr = tree->left->value->lexeme;
+    }
+
+    var = find_var_from_pools(csound, leftStr, leftStr, typeTable);
 
     if (UNLIKELY(var == NULL)) {
-      synterr(csound, Str("Variable '%s' used before defined\n"), s);
+      synterr(csound, Str("Variable '%s' used before defined\n"), leftStr);
       do_baktrace(csound, tree->locn);
       return NULL;
     }
 
     tree = tree->right;
+
     while (tree != NULL) {
       s = tree->value->lexeme;
-      CONS_CELL* cell = var->varType->members;
+      CONS_CELL* cell = subtype == 1 ? var->subType->members : var->varType->members;
       CS_VARIABLE* nextVar = NULL;
       while (cell != NULL) {
         CS_VARIABLE* member = (CS_VARIABLE*)cell->value;
@@ -631,7 +641,7 @@ char* get_arg_type2(CSOUND* csound, TREE* tree, TYPE_TABLE* typeTable)
         cell = cell->next;
       }
       if (nextVar == NULL) {
-        synterr(csound, Str("No member '%s' found for variable 'xxx'\n"), s);
+        synterr(csound, Str("No member '%s' found for variable '%s'\n"), s, leftStr);
         do_baktrace(csound, tree->locn);
         return NULL;
       }
@@ -642,6 +652,8 @@ char* get_arg_type2(CSOUND* csound, TREE* tree, TYPE_TABLE* typeTable)
     return var->subType != NULL ? \
       create_array_arg_type(csound, var) : \
       cs_strdup(csound, var->varType->varTypeName);
+
+  }
 
   case T_ARRAY:
 
@@ -1125,7 +1137,7 @@ char* resolve_opcode_get_outarg(CSOUND* csound, OENTRIES* entries,
 char* convert_internal_to_external(CSOUND* csound, char* arg) {
   int i, dimensions;
   char *start = arg;
-  char *retVal, *current;;
+  char *retVal, *current;
   int nameLen, len = strlen(arg);
 
   if (arg == NULL || len == 1) {
@@ -1238,7 +1250,6 @@ char* get_arg_string_from_tree(CSOUND* csound, TREE* tree,
 
   argString = csound->Malloc(csound, (argsLen + 1) * sizeof(char));
   char* temp = argString;
-
   for (i = 0; i < len; i++) {
     int size = strlen(argTypes[i]);
     memcpy(temp, argTypes[i], size);
@@ -1247,7 +1258,6 @@ char* get_arg_string_from_tree(CSOUND* csound, TREE* tree,
   }
 
   argString[argsLen] = '\0';
-
   csound->Free(csound, argTypes);
   return argString;
 }
@@ -3146,7 +3156,6 @@ static void print_tree_xml(CSOUND *csound, TREE *l, int n, int which)
   case '^':
   case '(':
   case ')':
-  case T_ASSIGNMENT:
   case '|':
   case '&':
   case '#':
@@ -3261,6 +3270,10 @@ static void print_tree_xml(CSOUND *csound, TREE *l, int n, int which)
     csound->Message(csound,"name=\"S_ELIPSIS\""); break;
   case S_ADDIN:
     csound->Message(csound,"name=\"##addin\""); break;
+  case STRUCT_EXPR:
+    csound->Message(csound,"name=\"STRUCT_EXPR\""); break;
+  case T_ASSIGNMENT:
+    csound->Message(csound,"name=\"T_ASSIGNMENT\""); break;
     //    case T_MAPI:
     //      csound->Message(csound,"name=\"T_MAPI\""); break;
     //    case T_MAPK:
