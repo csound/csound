@@ -69,7 +69,7 @@ int32_t tabler_init(CSOUND *csound, TABL *p) {
 }
 #endif
 
-#if defined(INC_TABLE_K)||defined(INC_TABLE_A)||defined(INC_TABLE3_K)||defined(INC_TABLE3_A)||defined(INC_TABLEW_KK)||defined(INC_TABLEW_KK)
+#if defined(INC_TABLE_K)||defined(INC_TABLE_A)||defined(INC_TABLE3_K)||defined(INC_TABLE3_A)||defined(INC_TABLEW_KK)||defined(INC_TABLEW_KK)||defined(INC_TABLEI_A)
 int32_t tabl_setup(CSOUND *csound, TABL *p) {
     if(p->ftp == NULL) {
       /* check for this only on first allocation */

@@ -2686,6 +2686,7 @@ static const OENTRY localops[] =
 
 int32_t oscbnk_init_(CSOUND *csound)
 {
+    if (sizeof(localops==0)) return OK;
     return csound->AppendOpcodes(csound, &(localops[0]),
                                  (int32_t
                                   ) (sizeof(localops) / sizeof(OENTRY)));

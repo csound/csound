@@ -1209,7 +1209,7 @@ int32_t oscsetA(CSOUND *csound, OSC *p)
 }
 #endif
 
-#if defined(INC_OSCILa)||defined(INC_OSCILkkk)||defined(OSCILkka)||defined(INC_OSCILka)||defined(INC_OSCILak)||defined(INC_OSCILaa)
+#if defined(INC_OSCILa)||defined(INC_OSCILkkk)||defined(OSCILkka)||defined(INC_OSCILka)||defined(INC_OSCILak)||defined(INC_OSCILaa)||defined(INC_OSCILIak)
 
 int32_t oscset(CSOUND *csound, OSC *p)
 {
@@ -1393,7 +1393,7 @@ int32_t oscaa(CSOUND *csound, OSC *p)
 }
 #endif
 
-#if defined(INC_OSCILIkkA)||defined(INC_OSCILIkA)
+#if defined(INC_OSCILIkkA)||defined(INC_OSCILIkA)||defined(INC_OSCILIkk)
 int32_t koscli(CSOUND *csound, OSC   *p)
 {
     FUNC    *ftp;

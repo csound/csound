@@ -773,7 +773,7 @@ OENTRY opcodlst_1[] = {
   { "signum.i", S(ASSIGN), 0, 1,     "i",   "i", signum, NULL, NULL       },
   { "signum.k", S(ASSIGN), 0, 3,     "k",   "k", signum, signum, NULL     },
   #endif
-  #ifdef IC_SIGNU_A
+  #ifdef IC_SIGNUM_A
   { "signum.a", S(ASSIGN), 0, 2,     "a",   "a", NULL, asignum      },
 #endif
   #ifdef INC_TABLE_I
