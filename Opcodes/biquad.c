@@ -514,11 +514,11 @@ static int32_t distort(CSOUND *csound, DISTORT *p)
       shape2    *=  FL(0.000125);
     }
     else if (*p->imode < FL(1.5)) {     /* mode 1: same with 0dBFS support */
-      pregain   *=  (FL(6.5536) * csound->dbfs_to_float);
+      pregain   *=  (FL(6.5536) * csound->Get0ned0dBFS(csound));
       postgain  *=  (FL(0.61035156) * csound->Get0dBFS(csound));
-      shape1    *=  (FL(4.096) * csound->dbfs_to_float);
-      shape2    *=  (FL(4.096) * csound->dbfs_to_float);
-bbbbbbb    }
+      shape1    *=  (FL(4.096) * csound->Get0ned0dBFS(csound));
+      shape2    *=  (FL(4.096) * csound->Get0ned0dBFS(csound));
+    }
     else {                              /* mode 2: "raw" mode (+/- 1 amp.) */
       shape1 *= pregain;
       shape2 *= -pregain;

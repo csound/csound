@@ -296,7 +296,8 @@ static MYFLT *csoundGetSpraw(CSOUND* csound)
 {
     return csound->spraw;
 }
-    
+
+
 static const CSOUND cenviron_ = {
     /* attributes  */
     csoundGetSr,
@@ -566,7 +567,7 @@ static const CSOUND cenviron_ = {
     csoundGetOnedSr,
     csoundGetMode,
     csoundGetSpraw,
-    csoundGetOned0dbfs,
+    csoundGetOned0dBFS,
     csoundGetSiCvt,
     0,              /*  spoutactive         */
     {
