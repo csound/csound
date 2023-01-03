@@ -1438,6 +1438,7 @@ typedef struct _message_queue_t_ {
     MYFLT (*GetOned0dbfs)(CSOUND*);
     MYFLT (*GetSiCvt)(CSOUND*);
     int (*IsAsigArg)(CSOUND *, MYFLT *);
+    int (*IsStringArg)(CSOUND *, MYFLT *);
     int (*GetSpoutactive)(CSOUND *);
     void (*SetSpoutactive)(CSOUND *, int);
     

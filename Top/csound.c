@@ -174,6 +174,12 @@ static int isAsigArg(CSOUND *csound, MYFLT *x) {
   return IS_ASIG_ARG(x);
 }
 
+static int isStringArg(CSOUND *csound, MYFLT *x) {
+  return IS_STR_ARG(x);
+}
+
+
+
 
 static void free_opcode_table(CSOUND* csound) {
     int i;
@@ -584,6 +590,7 @@ static const CSOUND cenviron_ = {
     csoundGetOned0dBFS,
     csoundGetSiCvt,
     isAsigArg,
+    isStringArg,
     csoundGetSpoutactive,
     csoundSetSpoutactive,
     {
