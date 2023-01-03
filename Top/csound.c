@@ -170,6 +170,9 @@ void print_engine_parameters(CSOUND *csound) {
       csoundErrorMsg(csound, Str(" A4 tuning = %.1f\n"), csound->A4);
 }
 
+static int isAsigArg(CSOUND *csound, MYFLT *x) {
+  return IS_ASIG_ARG(x);
+}
 
 
 static void free_opcode_table(CSOUND* csound) {
@@ -392,6 +395,10 @@ static const CSOUND cenviron_ = {
     csoundRealFFTMult,
     csoundRealFFTnp2,
     csoundInverseRealFFTnp2,
+    csoundComplexFFTnp2,
+    csoundInverseComplexFFTnp2,
+    csoundDCTSetup,
+    csoundDCT,
     /* PVOC-EX system */
     pvoc_createfile,
     pvoc_openfile,
@@ -566,6 +573,7 @@ static const CSOUND cenviron_ = {
     csoundGetOnedSr,
     csoundGetMode,
     csoundGetSpraw,
+    isAsigArg,
     0,              /*  spoutactive         */
     {
       NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,

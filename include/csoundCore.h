@@ -1167,6 +1167,13 @@ typedef struct _message_queue_t_ {
                                   int FFTsize, MYFLT scaleFac);
     void (*RealFFTnp2)(CSOUND *, MYFLT *buf, int FFTsize);
     void (*InverseRealFFTnp2)(CSOUND *, MYFLT *buf, int FFTsize);
+    void (*ComplexFFTnp2)(CSOUND *, MYFLT *buf, int FFTsize);
+    void (*InverseComplexFFTnp2)(CSOUND *, MYFLT *buf, int FFTsize);
+    void *(*DCTSetup)(CSOUND *csound,
+                     int32_t FFTsize, int32_t d);
+    void (*DCT)(CSOUND *csound,
+               void *p, MYFLT *sig);
+    
 
     /**@}*/
     /** @name PVOC-EX system */
@@ -1427,7 +1434,7 @@ typedef struct _message_queue_t_ {
     MYFLT (*GetOnedSr)(CSOUND *);
     int (*GetMode)(CSOUND *);
     MYFLT *(*GetSpraw)(CSOUND*);
-
+    int (*IsAsigArg)(CSOUND *, MYFLT *);
     int           spoutactive;
 
     /**@}*/
