@@ -3264,12 +3264,12 @@ static int32_t outa(CSOUND *csound, OUTA *p)
     uint32_t early  = nsmps - p->h.insdshead->ksmps_no_end;
     MYFLT       *data = p->tabin->data;
     MYFLT       *sp= csound->GetSpraw(csound);
-    if (!csound->spoutactive) {
+    if (!csound->GetSpoutactive(csound)) {
       memset(sp, '\0', nsmps*nchns*sizeof(MYFLT));
       for (l=0; l<pl; l++) {
         memcpy(&sp[offset], &data[l*nsmps+offset], (early-offset)*sizeof(MYFLT));
       }
-      csound->spoutactive = 1;
+      csound->SetSpoutactive(csound, 1);
     }
     else {
       for (l=0; l<p->len; l++) {
@@ -3333,7 +3333,7 @@ static int32_t monitora_perf(CSOUND *csound, OUTA *p)
     MYFLT       *sp= CS_SPOUT;
     uint32_t len = (uint32_t)p->len;
 
-    if (csound->spoutactive) {
+    if (csound->GetSpoutactive(csound)) {
       for (l=0; l<len; l++) {
         sp = CS_SPOUT;
         memset(data, '\0', nsmps*sizeof(MYFLT));

@@ -299,6 +299,15 @@ static MYFLT *csoundGetSpraw(CSOUND* csound)
 {
     return csound->spraw;
 }
+
+static int csoundGetSpoutactive(CSOUND *csound) {
+  return csound->spoutactive;
+}
+
+static void csoundSetSpoutactive(CSOUND *csound, int x) {
+  csound->spoutactive = x;
+}
+
     
 static const CSOUND cenviron_ = {
     /* attributes  */
@@ -574,7 +583,8 @@ static const CSOUND cenviron_ = {
     csoundGetMode,
     csoundGetSpraw,
     isAsigArg,
-    0,              /*  spoutactive         */
+    csoundGetSpoutactive,
+    csoundSetSpoutactive,
     {
       NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
       NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL
@@ -1055,8 +1065,11 @@ static const CSOUND cenviron_ = {
     NULL,           /* op */
     0,              /* mode */
     NULL,           /* opcodedir */
-    NULL           /* score_srt */
+    NULL,           /* score_srt */
+    0,              /*  spoutactive         */
 };
+
+
 
 void csound_aops_init_tables(CSOUND *cs);
 

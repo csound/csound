@@ -1435,8 +1435,9 @@ typedef struct _message_queue_t_ {
     int (*GetMode)(CSOUND *);
     MYFLT *(*GetSpraw)(CSOUND*);
     int (*IsAsigArg)(CSOUND *, MYFLT *);
-    int           spoutactive;
-
+    int (*GetSpoutactive)(CSOUND *);
+    void (*SetSpoutactive)(CSOUND *, int);
+    
     /**@}*/
     /** @name Placeholders
         To allow the API to grow while maintining backward binary compatibility. */
@@ -1862,6 +1863,7 @@ typedef struct _message_queue_t_ {
     int  mode;
     char *opcodedir;
     char *score_srt;
+    int spoutactive;
     /*struct CSOUND_ **self;*/
     /**@}*/
 #endif  /* __BUILDING_LIBCSOUND */
