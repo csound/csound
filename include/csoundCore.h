@@ -1435,18 +1435,18 @@ typedef struct _message_queue_t_ {
     MYFLT (*GetOnedSr)(CSOUND *);
     int (*GetMode)(CSOUND *);
     MYFLT *(*GetSpraw)(CSOUND*);
-    MYFLT (*GetOned0dbfs)(CSOUND*);
+    MYFLT (*GetOned0dBFS)(CSOUND*);
     MYFLT (*GetSiCvt)(CSOUND*);
     int (*IsAsigArg)(CSOUND *, MYFLT *);
     int (*IsStringArg)(CSOUND *, MYFLT *);
     int (*GetSpoutactive)(CSOUND *);
     void (*SetSpoutactive)(CSOUND *, int);
-    
+    MYFLT (*GetTpidsr)(CSOUND *);
     /**@}*/
     /** @name Placeholders
         To allow the API to grow while maintining backward binary compatibility. */
     /**@{ */
-    SUBR dummyfn_2[13];
+    SUBR dummyfn_2[12];
     /**@}*/
 #ifdef __BUILDING_LIBCSOUND
     /* ------- private data (not to be used by hosts or externals) ------- */

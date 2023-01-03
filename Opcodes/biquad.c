@@ -514,10 +514,10 @@ static int32_t distort(CSOUND *csound, DISTORT *p)
       shape2    *=  FL(0.000125);
     }
     else if (*p->imode < FL(1.5)) {     /* mode 1: same with 0dBFS support */
-      pregain   *=  (FL(6.5536) * csound->Get0ned0dBFS(csound));
+      pregain   *=  (FL(6.5536) * csound->GetOned0dBFS(csound));
       postgain  *=  (FL(0.61035156) * csound->Get0dBFS(csound));
-      shape1    *=  (FL(4.096) * csound->Get0ned0dBFS(csound));
-      shape2    *=  (FL(4.096) * csound->Get0ned0dBFS(csound));
+      shape1    *=  (FL(4.096) * csound->GetOned0dBFS(csound));
+      shape2    *=  (FL(4.096) * csound->GetOned0dBFS(csound));
     }
     else {                              /* mode 2: "raw" mode (+/- 1 amp.) */
       shape1 *= pregain;
@@ -923,7 +923,7 @@ static int32_t pareq(CSOUND *csound, PAREQ *p)
     uint32_t n, nsmps = CS_KSMPS;
 
     if (*p->fc != p->prv_fc || *p->v != p->prv_v || *p->q != p->prv_q) {
-      double omega = (double)(csound->tpidsr * *p->fc), k, kk, vkk, vk, vkdq, a0;
+      double omega = (double)(csound->GetTpidsr(csound) * *p->fc), k, kk, vkk, vk, vkdq, a0;
       p->prv_fc = *p->fc; p->prv_v = *p->v; p->prv_q = *p->q;
       switch (p->imode) {
         /* Low Shelf */
@@ -1342,7 +1342,7 @@ static int32_t tbvcf(CSOUND *csound, TBVCF *p)
         q1  = res/(1.0 + sqrt(dist));
         fco1 = pow(fco*260.0/(1.0+q1*0.5),0.58);
         q  = q1*fco1*fco1*0.0005;
-        fc  = fco1*(double)csound->GetOnedSr)csound)*(44100.0/8.0);
+        fc  = fco1*(double)csound->GetOnedSr(csound)*(44100.0/8.0);
       }
       x  = (double)in[n];
       fdbk = q*y/(1.0 + exp(-3.0*y)*asym);
@@ -1360,7 +1360,7 @@ static int32_t tbvcf(CSOUND *csound, TBVCF *p)
 /* bqrez by Matt Gerassimoff */
 static int32_t bqrezset(CSOUND *csound, REZZY *p)
 {
-     IGN(csound);
+    IGN(csound);
     if (*p->iskip==FL(0.0)) {
       p->xnm1 = p->xnm2 = p->ynm1 = p->ynm2 = 0.0;  /* Initialise to zero */
     }
@@ -1390,7 +1390,7 @@ static int32_t bqrez(CSOUND *csound, REZZY *p)
     rez    = (double)*rezptr;
 
     if ((p->rezcod == 0) && (p->fcocod == 0)) {
-      theta = fco * (double)csound->tpidsr;
+      theta = fco * (double)csound->GetTpidsr(csound);
       sin2 = sin(theta) * 0.5;
       cos2 = cos(theta);
       beta = (rez - sin2) / (rez + sin2);
@@ -1430,7 +1430,7 @@ static int32_t bqrez(CSOUND *csound, REZZY *p)
           rez = (double)rezptr[n];
         }
         if ((p->rezcod == 1) || (p->fcocod == 1)) {
-          theta = fco * (double) csound->tpidsr;
+          theta = fco * (double) csound->GetTpidsr(csound);
           sin2 = sin(theta) * 0.5;
           cos2 = cos(theta);
           beta = (rez - sin2) / (rez + sin2);
@@ -1459,7 +1459,7 @@ static int32_t bqrez(CSOUND *csound, REZZY *p)
           rez = (double)rezptr[n];
         }
         if ((p->rezcod == 1) || (p->fcocod == 1)) {
-          theta = fco * (double) csound->tpidsr;
+          theta = fco * (double) csound->GetTpidsr(csound);
           sin2  = sin(theta) * 0.5;
           cos2  = cos(theta);
           beta  = (rez - sin2) / (rez + sin2);
@@ -1487,7 +1487,7 @@ static int32_t bqrez(CSOUND *csound, REZZY *p)
           rez = (double)rezptr[n];
         }
         if ((p->rezcod == 1) || (p->fcocod == 1)) {
-          theta = fco * (double) csound->tpidsr;
+          theta = fco * (double) csound->GetTpidsr(csound);
           sin2 = sin(theta) * 0.5;
           cos2 = cos(theta);
           beta = (rez - sin2) / (rez + sin2);

@@ -51,7 +51,7 @@ int32_t stdopc_ModuleInit(CSOUND *csound)
     p->atsbufreadaddr = NULL;
     err |= ambicode_init_(csound);
     err |= bbcut_init_(csound);
-    err |= biquad_init_(csound);
+    //    err |= biquad_init_(csound);
     err |= butter_init_(csound);
     err |= clfilt_init_(csound);
     err |= cross2_init_(csound);

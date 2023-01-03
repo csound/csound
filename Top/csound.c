@@ -314,6 +314,22 @@ static void csoundSetSpoutactive(CSOUND *csound, int x) {
   csound->spoutactive = x;
 }
 
+PUBLIC MYFLT csoundGetOned0dBFS(CSOUND *csound)
+{
+    return csound->dbfs_to_float;
+}
+
+PUBLIC MYFLT csoundGetSiCvt(CSOUND *csound)
+{
+    return csound->sicvt;
+}
+
+PUBLIC MYFLT csoundGetTpidsr(CSOUND *csound)
+{
+    return csound->tpidsr;
+}
+
+
 static const CSOUND cenviron_ = {
     /* attributes  */
     csoundGetSr,
@@ -593,9 +609,10 @@ static const CSOUND cenviron_ = {
     isStringArg,
     csoundGetSpoutactive,
     csoundSetSpoutactive,
-    {
-      NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
-      NULL, NULL, NULL },
+    csoundGetTpidsr,
+    {      NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
+           NULL, NULL
+    },
     /* ------- private data (not to be used by hosts or externals) ------- */
     /* callback function pointers */
     (SUBR) NULL,    /*  first_callback_     */
@@ -2453,16 +2470,6 @@ PUBLIC uint32_t csoundGetNchnlsInput(CSOUND *csound)
 PUBLIC MYFLT csoundGet0dBFS(CSOUND *csound)
 {
     return csound->e0dbfs;
-}
-
-PUBLIC MYFLT csoundGetOned0dBFS(CSOUND *csound)
-{
-    return csound->dbfs_to_float;
-}
-
-PUBLIC MYFLT csoundGetSiCvt(CSOUND *csound)
-{
-    return csound->sicvt;
 }
 
 PUBLIC long csoundGetInputBufferSize(CSOUND *csound)
