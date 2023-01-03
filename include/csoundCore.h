@@ -1435,6 +1435,7 @@ typedef struct _message_queue_t_ {
     int (*GetMode)(CSOUND *);
     MYFLT *(*GetSpraw)(CSOUND*);
     int (*IsAsigArg)(CSOUND *, MYFLT *);
+    int (*IsStringArg)(CSOUND *, MYFLT *);
     int (*GetSpoutactive)(CSOUND *);
     void (*SetSpoutactive)(CSOUND *, int);
     
