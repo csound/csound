@@ -170,6 +170,9 @@ void print_engine_parameters(CSOUND *csound) {
     csoundErrorMsg(csound, Str(" A4 tuning = %.1f\n"), csound->A4);
 }
 
+static int isAsigArg(CSOUND *csound, MYFLT *x) {
+  return IS_ASIG_ARG(x);
+}
 
 
 static void free_opcode_table(CSOUND* csound) {
@@ -297,6 +300,13 @@ static MYFLT *csoundGetSpraw(CSOUND* csound)
     return csound->spraw;
 }
 
+static int csoundGetSpoutactive(CSOUND *csound) {
+  return csound->spoutactive;
+}
+
+static void csoundSetSpoutactive(CSOUND *csound, int x) {
+  csound->spoutactive = x;
+}
 
 static const CSOUND cenviron_ = {
     /* attributes  */
@@ -393,6 +403,10 @@ static const CSOUND cenviron_ = {
     csoundRealFFTMult,
     csoundRealFFTnp2,
     csoundInverseRealFFTnp2,
+    csoundComplexFFTnp2,
+    csoundInverseComplexFFTnp2,
+    csoundDCTSetup,
+    csoundDCT,
     /* PVOC-EX system */
     pvoc_createfile,
     pvoc_openfile,
@@ -569,10 +583,12 @@ static const CSOUND cenviron_ = {
     csoundGetSpraw,
     csoundGetOned0dBFS,
     csoundGetSiCvt,
-    0,              /*  spoutactive         */
+    isAsigArg,
+    csoundGetSpoutactive,
+    csoundSetSpoutactive,
     {
       NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
-      NULL, NULL, NULL, NULL, NULL, NULL },
+      NULL, NULL, NULL },
     /* ------- private data (not to be used by hosts or externals) ------- */
     /* callback function pointers */
     (SUBR) NULL,    /*  first_callback_     */
@@ -1049,8 +1065,11 @@ static const CSOUND cenviron_ = {
     NULL,           /* op */
     0,              /* mode */
     NULL,           /* opcodedir */
-    NULL           /* score_srt */
+    NULL,           /* score_srt */
+    0,              /*  spoutactive         */
 };
+
+
 
 void csound_aops_init_tables(CSOUND *cs);
 

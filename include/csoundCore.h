@@ -1168,6 +1168,13 @@ typedef struct _message_queue_t_ {
                                   int FFTsize, MYFLT scaleFac);
     void (*RealFFTnp2)(CSOUND *, MYFLT *buf, int FFTsize);
     void (*InverseRealFFTnp2)(CSOUND *, MYFLT *buf, int FFTsize);
+    void (*ComplexFFTnp2)(CSOUND *, MYFLT *buf, int FFTsize);
+    void (*InverseComplexFFTnp2)(CSOUND *, MYFLT *buf, int FFTsize);
+    void *(*DCTSetup)(CSOUND *csound,
+                     int32_t FFTsize, int32_t d);
+    void (*DCT)(CSOUND *csound,
+               void *p, MYFLT *sig);
+    
 
     /**@}*/
     /** @name PVOC-EX system */
@@ -1430,14 +1437,15 @@ typedef struct _message_queue_t_ {
     MYFLT *(*GetSpraw)(CSOUND*);
     MYFLT (*GetOned0dbfs)(CSOUND*);
     MYFLT (*GetSiCvt)(CSOUND*);
+    int (*IsAsigArg)(CSOUND *, MYFLT *);
+    int (*GetSpoutactive)(CSOUND *);
+    void (*SetSpoutactive)(CSOUND *, int);
     
-    int           spoutactive;
-
     /**@}*/
     /** @name Placeholders
         To allow the API to grow while maintining backward binary compatibility. */
     /**@{ */
-    SUBR dummyfn_2[16];
+    SUBR dummyfn_2[13];
     /**@}*/
 #ifdef __BUILDING_LIBCSOUND
     /* ------- private data (not to be used by hosts or externals) ------- */
@@ -1858,6 +1866,7 @@ typedef struct _message_queue_t_ {
     int  mode;
     char *opcodedir;
     char *score_srt;
+    int spoutactive;
     /*struct CSOUND_ **self;*/
     /**@}*/
 #endif  /* __BUILDING_LIBCSOUND */

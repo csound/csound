@@ -52,6 +52,8 @@ extern "C" {
    */
   void csoundComplexFFT(CSOUND *csound, MYFLT *buf, int FFTsize);
 
+  void csoundComplexFFTnp2(CSOUND *csound, MYFLT *buf, int FFTsize);
+
   /**
    * Compute in-place inverse complex FFT
    * FFTsize: FFT length in samples
@@ -61,6 +63,7 @@ extern "C" {
    * csoundGetInverseComplexFFTScale(csound, FFTsize).
    */
   void csoundInverseComplexFFT(CSOUND *csound, MYFLT *buf, int FFTsize);
+  void csoundInverseComplexFFTnp2(CSOUND *csound, MYFLT *buf, int FFTsize);
 
   /**
    * Compute in-place real FFT
@@ -140,6 +143,11 @@ extern "C" {
    * setup:   an FFT setup created with csoundRealFFT2Setup()
    */
   void csoundRealFFT2(CSOUND *csound, void *setup, MYFLT *sig);
+
+  void *csoundDCTSetup(CSOUND *csound,
+                     int32_t FFTsize, int32_t d);
+  void csoundDCT(CSOUND *csound,
+               void *p, MYFLT *sig);
 
 #ifdef __cplusplus
 }
