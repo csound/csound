@@ -86,6 +86,8 @@
 %token WHILE_TOKEN
 %token DO_TOKEN
 %token OD_TOKEN
+%token FOR_TOKEN
+%token IN_TOKEN
 
 %token S_ELIPSIS
 %token T_ARRAY
@@ -175,9 +177,9 @@
 
 /* TODO
 
- - add csp_orc_sa_instr_add calls in later csp analyze phase 
+ - add csp_orc_sa_instr_add calls in later csp analyze phase
    => these seem to be done now below, in the instr_definition rules
- - add csp_orc_sa_global_read_write_add_list etc 
+ - add csp_orc_sa_global_read_write_add_list etc
    => not sure where exactly?
 */
 
@@ -236,12 +238,12 @@ instr_definition : INSTR_TOKEN instr_id_list NEWLINE
 
 instr_id_list : instr_id_list ',' instr_id
                   { $$ = appendToTree(csound, $1, $3); }
-              | instr_id  { csp_orc_sa_instr_add_tree(csound, $1); }             
+              | instr_id  { csp_orc_sa_instr_add_tree(csound, $1); }
               ;
 
 instr_id : integer
-          | identifier 
-          | plus_identifier 
+          | identifier
+          | plus_identifier
           ;
 
 
@@ -411,6 +413,7 @@ statement : out_arg_list assignment expr NEWLINE
           | if_then
           | until
           | while
+          | for_in
           | LABEL_TOKEN
             { $$ = make_leaf(csound, LINE, LOCN, LABEL_TOKEN, (ORCTOKEN *)$1); }
           | NEWLINE
@@ -482,6 +485,21 @@ while : WHILE_TOKEN expr DO_TOKEN statement_list OD_TOKEN
                 $$->left = $2;
                 $$->right = $4; }
       ;
+
+for_in : FOR_TOKEN identifier in expr DO_TOKEN statement_list OD_TOKEN
+        {
+          $3->left = $4;
+          $3->right = $6;
+          $$ = make_node(csound,LINE,LOCN, FOR_TOKEN, $2, $3);
+        }
+        | FOR_TOKEN identifier ',' identifier in expr DO_TOKEN statement_list OD_TOKEN
+        {
+          $2->next = $4;
+          $5->left = $6;
+          $5->right = $8;
+          $$ = make_node(csound,LINE,LOCN, FOR_TOKEN, $2, $5);
+        }
+        ;
 
 declare_definition : DECLARE_TOKEN identifier udo_arg_list ':' udo_out_arg_list NEWLINE
  {
@@ -574,16 +592,16 @@ unary_expr : '~' expr %prec S_UMINUS
           /*     /\*$2->next = make_leaf(csound, LINE, LOCN, '+', (ORCTOKEN *) $1); *\/ */
           /*     $2->markup = &UNARY_PLUS; */
           /* } */
-        
+
           /* VL 14 Sep 21: the only way I could find to make this rule correctly
-              parse a statement such as 
+              parse a statement such as
                  out a1 + (a1 * 2)
-             was to abandon the code above and invent and implement a S_UPLUS type 
+             was to abandon the code above and invent and implement a S_UPLUS type
              (here and in the semantics, expression and optimize code)
              otherwise the rule did not create an expression at all and was
              parsed as if the variable following 'out' was an OPCALL
              This comment can be removed once the rule has been reviewed and
-             accepted.  
+             accepted.
           */
           {
               $$ = make_node(csound,LINE,LOCN, S_UPLUS, NULL, $2);
@@ -689,6 +707,9 @@ assignment : '='
                 }
               ;
 
+in        : IN_TOKEN
+            { $$ = make_leaf(csound,LINE,LOCN, IN_TOKEN, (ORCTOKEN *)$1); }
+
 then      : THEN_TOKEN
             { $$ = make_leaf(csound,LINE,LOCN, THEN_TOKEN, (ORCTOKEN *)$1); }
           | KTHEN_TOKEN
@@ -723,7 +744,7 @@ integer : INTEGER_TOKEN
    so we have to construct it as the concatentation of two tokens
 */
 plus_identifier : '+' T_IDENT
-        { 
+        {
 	  $$ = make_leaf(csound, LINE, LOCN, T_PLUS_IDENT, (ORCTOKEN *)$2);
 	}
         ;

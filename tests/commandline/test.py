@@ -138,6 +138,8 @@ def runTest():
 	["test_arrays_negative_dimension_fail.csd",
              "test expected failure with negative dimension size and array", 1],
 
+	["test_audio_in.csd", "test the parsing of the 'in' operator as opcode"],
+
 	["test_empty_conditional_branches.csd", "tests that empty branches do not cause compiler issues"],
 	["test_empty_instr.csd", "tests that empty instruments do not cause compiler issues"],
 	["test_empty_udo.csd", "tests that empty UDOs do not cause compiler issues"],
@@ -180,6 +182,7 @@ def runTest():
         ["arrays/arrays_S_local.csd", "local S[]"],
         ["arrays/arrays_S_global.csd", "global S[]"],
         ["arrays/array_get_inline.csd", "tests parsing and eval of inline array[getters]"],
+        ["arrays/arrays_for_loop.csd", "tests for loops over array types"]
     ]
 
 
