@@ -329,7 +329,6 @@ PUBLIC MYFLT csoundGetTpidsr(CSOUND *csound)
     return csound->tpidsr;
 }
 
-
 static const CSOUND cenviron_ = {
     /* attributes  */
     csoundGetSr,

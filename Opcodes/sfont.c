@@ -29,7 +29,7 @@
    documentation of your C compiler to choose the appropriate compiler
    directive switch.  */
 
-// #include "csdl.h"
+#include "csdl.h"
 #include "csoundCore.h"
 #include "interlocks.h"
 #include <stdio.h>
@@ -174,7 +174,7 @@ static int32_t SfLoad_(CSOUND *csound, SFLOAD *p, int32_t istring)
     if (istring) fname = csound->Strdup(csound, ((STRINGDAT *)p->fname)->data);
     else {
       if (csound->ISSTRCOD(*p->fname))
-        fname = csound->Strdup(csound, get_arg_string(csound,*p->fname));
+        fname = csound->Strdup(csound, csound->GetString(csound,*p->fname));
       else fname = csound->strarg2name(csound,
                                 NULL, p->fname, "sfont.",
                                 0);
@@ -416,12 +416,12 @@ static int32_t SfPlay_set(CSOUND *csound, SFPLAY *p)
             if (flag) {
               freq = orgfreq * pow(2.0, ONETWELTH * tuneCorrection);
               p->si[spltNum]= (freq/(orgfreq*orgfreq))*
-                               sample->dwSampleRate*csound->onedsr;
+                               sample->dwSampleRate*csound->GetOnedSr(csound);
             }
             else {
               freq = orgfreq * pow(2.0, ONETWELTH * tuneCorrection) *
                 pow(2.0, ONETWELTH * (split->scaleTuning*0.01) * (notnum-orgkey));
-              p->si[spltNum]= (freq/orgfreq) * sample->dwSampleRate*csound->onedsr;
+              p->si[spltNum]= (freq/orgfreq) * sample->dwSampleRate*csound->GetOnedSr(csound);
             }
             attenuation = (MYFLT) (layer->initialAttenuation +
                                    split->initialAttenuation);
@@ -753,12 +753,12 @@ static int32_t SfPlayMono_set(CSOUND *csound, SFPLAYMONO *p)
             if (flag) {
               freq = orgfreq * pow(2.0, ONETWELTH * tuneCorrection);
               p->si[spltNum]= (freq/(orgfreq*orgfreq))*
-                               sample->dwSampleRate*csound->onedsr;
+                               sample->dwSampleRate*csound->GetOnedSr(csound);
             }
             else {
               freq = orgfreq * pow(2.0, ONETWELTH * tuneCorrection) *
                 pow( 2.0, ONETWELTH* (split->scaleTuning*0.01) * (notnum-orgkey));
-              p->si[spltNum]= (freq/orgfreq) * sample->dwSampleRate*csound->onedsr;
+              p->si[spltNum]= (freq/orgfreq) * sample->dwSampleRate*csound->GetOnedSr(csound);
             }
             p->attenuation[spltNum] =
               POWER(FL(2.0), (-FL(1.0)/FL(60.0)) * (layer->initialAttenuation +
@@ -1014,12 +1014,12 @@ static int32_t SfInstrPlay_set(CSOUND *csound, SFIPLAY *p)
           if (flag) {
             freq = orgfreq * pow(2.0, ONETWELTH * tuneCorrection);
             p->si[spltNum] = (freq/(orgfreq*orgfreq))*
-                              sample->dwSampleRate*csound->onedsr;
+                              sample->dwSampleRate*csound->GetOnedSr(csound);
           }
           else {
             freq = orgfreq * pow(2.0, ONETWELTH * tuneCorrection)
               * pow( 2.0, ONETWELTH* (split->scaleTuning*0.01)*(notnum - orgkey));
-            p->si[spltNum] = (freq/orgfreq)*(sample->dwSampleRate*csound->onedsr);
+            p->si[spltNum] = (freq/orgfreq)*(sample->dwSampleRate*csound->GetOnedSr(csound));
           }
           attenuation = (MYFLT) (split->initialAttenuation);
           attenuation = POWER(FL(2.0), (-FL(1.0)/FL(60.0)) * attenuation) *
@@ -1286,12 +1286,12 @@ static int32_t SfInstrPlayMono_set(CSOUND *csound, SFIPLAYMONO *p)
           if (flag) {
             freq = orgfreq * pow(2.0, ONETWELTH * tuneCorrection);
             p->si[spltNum] = (freq/(orgfreq*orgfreq))*
-                              sample->dwSampleRate*csound->onedsr;
+                              sample->dwSampleRate*csound->GetOnedSr(csound);
           }
           else {
             freq = orgfreq * pow(2.0, ONETWELTH * tuneCorrection)
               * pow( 2.0, ONETWELTH* (split->scaleTuning*0.01) * (notnum-orgkey));
-            p->si[spltNum] = (freq/orgfreq)*(sample->dwSampleRate*csound->onedsr);
+            p->si[spltNum] = (freq/orgfreq)*(sample->dwSampleRate*csound->GetOnedSr(csound));
           }
           p->attenuation[spltNum] = (MYFLT) pow(2.0, (-1.0/60.0)*
                                                 split->initialAttenuation)
@@ -2363,12 +2363,12 @@ static int32_t sflooper_init(CSOUND *csound, sflooper *p)
             if (*p->iflag) {
               freq = orgfreq * pow(2.0, ONETWELTH * tuneCorrection);
               p->freq[spltNum]= (freq/(orgfreq*orgfreq))*
-                               sample->dwSampleRate*csound->onedsr;
+                               sample->dwSampleRate*csound->GetOnedSr(csound);
             }
             else {
               freq = orgfreq * pow(2.0, ONETWELTH * tuneCorrection) *
                 pow(2.0, ONETWELTH * (split->scaleTuning*0.01) * (notnum-orgkey));
-              p->freq[spltNum]= (freq/orgfreq) * sample->dwSampleRate*csound->onedsr;
+              p->freq[spltNum]= (freq/orgfreq) * sample->dwSampleRate*csound->GetOnedSr(csound);
             }
 
             attenuation = (MYFLT) (layer->initialAttenuation +
@@ -2748,26 +2748,27 @@ int32_t sfont_ModuleCreate(CSOUND *csound)
     globals->currSFndx = 0;
     globals->maxSFndx = MAX_SFONT;
     for (j=0; j<128; j++) {
-      globals->pitches[j] = (MYFLT) (csound->A4 * pow(2.0, (double)(j- 69)/12.0));
+      globals->pitches[j] = (MYFLT) (csound->GetA4(csound) * pow(2.0, (double)(j- 69)/12.0));
     }
-
    return OK;
 }
 
-int32_t sfont_ModuleInit(CSOUND *csound)
-{
-    OENTRY  *ep = (OENTRY*) &(localops[0]);
-    int32_t     err = 0;
+/* int32_t sfont_ModuleInit(CSOUND *csound) */
+/* { */
+/*     OENTRY  *ep = (OENTRY*) &(localops[0]); */
+/*     int32_t     err = 0; */
 
-    while (ep->opname != NULL) {
-      err |= csound->AppendOpcode(csound,
-                                  ep->opname, ep->dsblksiz, ep->flags,
-                                  ep->thread, ep->outypes, ep->intypes,
-                                  (int32_t (*)(CSOUND *, void*)) ep->iopadr,
-                                  (int32_t (*)(CSOUND *, void*)) ep->kopadr,
-                                  (int32_t
-                                   (*)(CSOUND *, void*)) ep->aopadr);
-      ep++;
-    }
-    return err;
-}
+/*     while (ep->opname != NULL) { */
+/*       err |= csound->AppendOpcode(csound, */
+/*                                   ep->opname, ep->dsblksiz, ep->flags, */
+/*                                   ep->thread, ep->outypes, ep->intypes, */
+/*                                   (int32_t (*)(CSOUND *, void*)) ep->iopadr, */
+/*                                   (int32_t (*)(CSOUND *, void*)) ep->kopadr, */
+/*                                   (int32_t */
+/*                                    (*)(CSOUND *, void*)) ep->aopadr); */
+/*       ep++; */
+/*     } */
+/*     return err; */
+/* } */
+
+LINKAGE

@@ -1217,7 +1217,7 @@ extern int32_t emugens_localops_init(CSOUND *, void *);
 
 extern int32_t stdopc_ModuleInit(CSOUND *csound);
 extern int32_t pvsopc_ModuleInit(CSOUND *csound);
-extern int32_t sfont_ModuleInit(CSOUND *csound);
+//extern int32_t sfont_ModuleInit(CSOUND *csound);
 extern int32_t sfont_ModuleCreate(CSOUND *csound);
 extern int32_t newgabopc_ModuleInit(CSOUND *csound);
 
@@ -1307,8 +1307,8 @@ CS_NOINLINE int csoundInitStaticModules(CSOUND *csound)
     if (UNLIKELY(pvsopc_ModuleInit(csound))) return CSOUND_ERROR;
 
     /* sfont module */
-    sfont_ModuleCreate(csound);
-    if (UNLIKELY(sfont_ModuleInit(csound))) return CSOUND_ERROR;
+    /* sfont_ModuleCreate(csound); */
+    /* if (UNLIKELY(sfont_ModuleInit(csound))) return CSOUND_ERROR; */
 
     /* newgabopc */
     if (UNLIKELY(newgabopc_ModuleInit(csound))) return CSOUND_ERROR;

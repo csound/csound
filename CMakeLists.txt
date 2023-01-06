@@ -787,7 +787,7 @@ set(libcsound_SRCS
     Opcodes/pitch0.c
     Opcodes/spectra.c
     Opcodes/ambicode1.c
-    Opcodes/sfont.c
+//    Opcodes/sfont.c
     Opcodes/grain4.c
     Opcodes/hrtferX.c
     Opcodes/loscilx.c
