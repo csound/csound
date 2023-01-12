@@ -314,6 +314,9 @@ int insert_event(CSOUND *csound, int insno, EVTBLK *newevtp)
   int tie=0, i;
   int  n, error = 0;
   MYFLT  *flp, *fep;
+  //MYFLT  p1copy = newevtp->p[1];
+
+   
 
   if (UNLIKELY(csound->advanceCnt))
     return 0;
@@ -354,9 +357,11 @@ int insert_event(CSOUND *csound, int insno, EVTBLK *newevtp)
     return(0);
   }
   /* If named ensure we have the fraction */
+  MYFLT newp1 = 0.;
   if (csound->engineState.instrtxtp[insno]->insname && newevtp->strarg)
-    newevtp->p[1] = named_instr_find(csound, newevtp->strarg);
+    newp1 = named_instr_find(csound, newevtp->strarg);
 
+  newevtp->p[1] = newp1 != 0 ? newp1 : newevtp->p[1];
   /* if find this insno, active, with indef (tie) & matching p1 */
   for (ip = tp->instance; ip != NULL; ip = ip->nxtinstance) {
     if (ip->actflg && ip->offtim < 0.0 && ip->p1.value == newevtp->p[1]) {
@@ -417,6 +422,8 @@ int insert_event(CSOUND *csound, int insno, EVTBLK *newevtp)
 
   /* init: */
   pfields = (CS_VAR_MEM*)&ip->p0;
+  
+  
   if (tp->psetdata) {
     int i;
     CS_VAR_MEM* pfields = (CS_VAR_MEM*) &ip->p0;
@@ -428,6 +435,7 @@ int insert_event(CSOUND *csound, int insno, EVTBLK *newevtp)
       pfield->value = *(pdat + i);
     }
   }
+  
   n = tp->pmax;
   if (UNLIKELY((tp->nocheckpcnt == 0) &&
                n != newevtp->pcnt &&
@@ -448,6 +456,8 @@ int insert_event(CSOUND *csound, int insno, EVTBLK *newevtp)
   flp = &ip->p1.value;
   fep = &newevtp->p[0];
 
+   
+
   if (UNLIKELY(O->odebug))
     csound->Message(csound, "psave beg at %p\n", (void*) flp);
   if (n > newevtp->pcnt) n = newevtp->pcnt; /* IV - Oct 20 2002 */
@@ -466,6 +476,7 @@ int insert_event(CSOUND *csound, int insno, EVTBLK *newevtp)
   if (UNLIKELY(O->odebug))
     csound->Message(csound, "   ending at %p\n", (void*) flp);
 
+  
   if (O->Beatmode)
     ip->p2.value     = (MYFLT) (csound->icurTime/csound->esr - csound->timeOffs);
   ip->offtim       = (double) ip->p3.value;         /* & duplicate p3 for now */
