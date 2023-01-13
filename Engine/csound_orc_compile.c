@@ -369,6 +369,39 @@ char* get_struct_expr_string(CSOUND* csound, TREE* structTree) {
   return name;
 }
 
+// // recursively walks all SubExpressions
+// void lgbuildFromOrcArgs(
+//   CSOUND* csound,
+//   CSOUND_ORC_ARGUMENT* orcArg,
+//   INSTRTXT *ip,
+//   ENGINE_STATE *engineState
+// ) {
+//   if (orcArg->cstype != (CS_TYPE*) &CS_VAR_TYPE_P) {
+//     lgbuild(
+//       csound,
+//       ip,
+//       orcArg->isExpression ? orcArg->exprIdent : orcArg->text,
+//       1,
+//       engineState
+//     );
+//   }
+
+//   if (orcArg->isExpression) {
+//     CONS_CELL* cdr = orcArg->SubExpression->list;
+//     while (cdr != NULL) {
+//       CSOUND_ORC_ARGUMENT* orcArg2 = cdr->value;
+//       lgbuildFromOrcArgs(
+//         csound,
+//         orcArg2,
+//         ip,
+//         engineState
+//       );
+//       cdr = cdr->next;
+//     }
+//   }
+// }
+
+
 /**
  * Create an Opcode (OPTXT) from the AST node given for a given engineState
  */
@@ -426,10 +459,21 @@ OPTXT *create_opcode(CSOUND *csound, TREE *root, INSTRTXT *ip,
     tp->opcod = strsav_string(csound, engineState, tp->oentry->opname);
     tp->inlist = root->inlist;
     tp->outlist = root->outlist;
-    if (tp->inlist->length > 0) {
-      CSOUND_ORC_ARGUMENT* ax = tp->inlist->list->value;
-    }
     ip->opdstot += tp->oentry->dsblksiz;
+    CONS_CELL* cdr = tp->inlist->list;
+    while (cdr != NULL) {
+      CSOUND_ORC_ARGUMENT* orcArg = cdr->value;
+      if (orcArg->cstype != (CS_TYPE*) &CS_VAR_TYPE_P) {
+        lgbuild(
+          csound,
+          ip,
+          orcArg->isExpression ? orcArg->exprIdent : orcArg->text,
+          1,
+          engineState
+        );
+      }
+      cdr = cdr->next;
+    }
     break;
   default:
     csound->Message(csound, Str("create_opcode: No rule to handle statement of "
@@ -2132,7 +2176,10 @@ static ARG *createArg(
   CS_VAR_POOL* pool = NULL;
   char* ident = parsedArg->isExpression == 1 ? parsedArg->exprIdent : parsedArg->text;
 
-  if (parsedArg->cstype == &CS_VAR_TYPE_C) {
+  if (
+    parsedArg->cstype == &CS_VAR_TYPE_C ||
+    parsedArg->cstype == &CS_VAR_TYPE_R
+  ) {
     arg->type = ARG_CONSTANT;
     arg->argPtr = find_or_add_constant(
       csound,

@@ -2615,15 +2615,16 @@ TREE* verify_tree(CSOUND * csound, TREE *root, TYPE_TABLE* typeTable)
       //   return 0;
       // }
       //print_tree(csound, "verify_tree", current);
-      // if (is_statement_expansion_required(current)) {
-      //   current = expand_statement(csound, current, typeTable);
+      if (is_statement_expansion_required(current)) {
+        current = expand_statement(csound, current, typeTable);
 
-      //   if (previous != NULL) {
-      //     previous->next = current;
-      //   }
+        if (previous != NULL) {
+          previous->next = current;
+        }
 
-      //   continue;
-      // } else {
+        continue;
+      }
+      // else {
       //   handle_optional_args(csound, current);
       // }
     }

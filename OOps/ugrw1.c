@@ -187,7 +187,7 @@ int32_t printkset(CSOUND *csound, PRINTK *p)
     /* Set up the number of spaces.
        Limit to 120 for people with big screens or printers.
      */
-    p->pspace = (int32_t) *p->space;
+    p->pspace = p->space == NULL ? 0L : ((int32_t) *p->space);
     if (UNLIKELY(p->pspace < 0L))
       p->pspace = 0L;
     else if (UNLIKELY(p->pspace > 120L))
@@ -230,7 +230,7 @@ int32_t printk(CSOUND *csound, PRINTK *p)
         s[p->pspace] = '\0';
         csound->MessageS(csound, CSOUNDMSG_ORCH, "%s", s);
       }
-      if (*p->named) {
+      if (p->named != NULL && *p->named) {
         args = p->h.optext->t.inlist;
         arg = args->nth(args, 1);
         csound->MessageS(csound, CSOUNDMSG_ORCH, "%s = %11.5f\n",

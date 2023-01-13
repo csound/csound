@@ -37,8 +37,7 @@ typedef struct csorcarg {
     int      isExpression;
     int      dimensions;  // 0 scalar, 1 or more means n-dimenional array
     int      linenum;
-    struct csorcargs* SubExpressionLeft; // when the argument itself is an expr
-    struct csorcargs* SubExpressionRight; // when the argument itself is an expr
+    struct csorcargs* SubExpression; // when the argument itself is an expr
 } CSOUND_ORC_ARGUMENT;
 
 typedef struct csorcargs {

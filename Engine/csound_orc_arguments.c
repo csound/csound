@@ -32,6 +32,7 @@ extern OENTRIES* find_opcode2(CSOUND*, char*);
 extern int is_in_optional_arg(char*);
 extern int is_in_var_arg(char*);
 extern char* get_expression_opcode_type(CSOUND*, TREE*);
+// extern char *strsav_string(CSOUND*, ENGINE_STATE*, char*);
 
 static int exprIdentCnt = 100;
 
@@ -49,6 +50,27 @@ static CSOUND_ORC_ARGUMENTS* get_arguments_from_tree(
     TYPE_TABLE* typeTable,
     int shouldAddArgs
 );
+
+static void printOrcArgs(
+    CSOUND_ORC_ARGUMENTS* args
+) {
+    if (args->length == 0) {
+        printf("== ARGUMENT LIST EMPTY ==\n");
+        return;
+    }
+    CONS_CELL* car = args->list;
+    CSOUND_ORC_ARGUMENT* arg;
+    int n = 0;
+    while(car != NULL) {
+        arg = (CSOUND_ORC_ARGUMENT*) car->value;
+        printf("== ARGUMENT LIST INDEX %d ==\n", n);
+        printf("\t text: %s \n", arg->text);
+        printf("\t exprIdent: %s \n", arg->exprIdent);
+        printf("\t type: %s \n", arg->cstype->varTypeName);
+        car = car->next;
+        n += 1;
+    }
+}
 
 void printNode(TREE* tree) {
     printf("== BEG ==\n");
@@ -98,8 +120,11 @@ static int check_satisfies_expected_input(
         return strchr("aXMyx", *typeIdent) != NULL;
     } else if (arg->cstype == ((CS_TYPE*) &CS_VAR_TYPE_K)) {
         return strchr("kXUOJVP", *typeIdent) != NULL;
-    } else if (arg->cstype == ((CS_TYPE*) &CS_VAR_TYPE_I)) {
-        return strchr("icmI", *typeIdent) != NULL;
+    } else if (
+        arg->cstype == ((CS_TYPE*) &CS_VAR_TYPE_I) ||
+        arg->cstype == ((CS_TYPE*) &CS_VAR_TYPE_R)
+    ) {
+        return strchr("kXUOJVPicmI", *typeIdent) != NULL;
     }
 
     return 0;
@@ -121,6 +146,11 @@ static int check_satisfies_expected_output(
         return strchr("amXN", *typeIdent) != NULL;
     } else if (arg->cstype == ((CS_TYPE*) &CS_VAR_TYPE_K)) {
         return strchr("kzXN", *typeIdent) != NULL;
+    } else if (
+        arg->cstype == ((CS_TYPE*) &CS_VAR_TYPE_I) ||
+        arg->cstype == ((CS_TYPE*) &CS_VAR_TYPE_R)
+    ) {
+        return strchr("kzXNicmI", *typeIdent) != NULL;
     }
 
     return 0;
@@ -134,56 +164,36 @@ static int check_satisfies_expected_output(
 OENTRY* resolve_opcode_from_subexpression(
     CSOUND* csound,
     OENTRIES* entries,
-    CSOUND_ORC_ARGUMENTS* leftlist,
-    CSOUND_ORC_ARGUMENTS* rightlist
+    CSOUND_ORC_ARGUMENTS* subexpression
 ) {
     for (int i = 0; i < entries->count; i++) {
         OENTRY* temp = entries->entries[i];
-        int leftlistMatches = 1;
-        int rightlistMatches = 1;
+        int matches = 0;
 
         int expectsInputs = temp->intypes != NULL && strlen(temp->intypes) != 0;
-        if (!expectsInputs && leftlist->length == 0 && rightlist->length == 0) {
+        if (!expectsInputs && subexpression->length == 0 && subexpression->length == 0) {
             return temp;
         }
 
-        if (expectsInputs && (leftlist->length > 0 || rightlist->length > 0)) {
+        if (expectsInputs && subexpression->length > 0) {
             char* current = temp->intypes;
-            if (leftlist->length > 0) {
-                CONS_CELL* cdr = leftlist->list;
-                CSOUND_ORC_ARGUMENT* currentLeftArg = cdr->value;
-                leftlistMatches = 0;
-                while (currentLeftArg != NULL && *current != '\0') {
-                    if (check_satisfies_expected_input(currentLeftArg, current)) {
-                        leftlistMatches = 1;
-                    } else {
-                        leftlistMatches = 0;
-                        break;
-                    }
-                    currentLeftArg = (CSOUND_ORC_ARGUMENT*) cdr->next;
-                    current++;
+            CONS_CELL* cdr = subexpression->list;
+            CSOUND_ORC_ARGUMENT* currentArg = cdr->value;
+            while (cdr != NULL && *current != '\0') {
+                if (check_satisfies_expected_input(currentArg, current)) {
+                    matches = 1;
+                } else {
+                    matches = 0;
+                    break;
                 }
+                cdr = cdr->next;
+                currentArg = cdr == NULL ? NULL : cdr->value;
+                current++;
             }
+        }
 
-            if (rightlist->length > 0 && leftlistMatches) {
-                CONS_CELL* cdr = rightlist->list;
-                CSOUND_ORC_ARGUMENT* currentRightArg = cdr->value;
-                while (currentRightArg != NULL && *current != '\0' ) {
-                    if (check_satisfies_expected_input(currentRightArg, current)) {
-                        rightlistMatches = 1;
-                        break;
-                    } else {
-                        rightlistMatches = 0;
-                        break;
-                    }
-                    currentRightArg = (CSOUND_ORC_ARGUMENT*) cdr->next;
-                    current++;
-                }
-            }
-
-            if (leftlistMatches && rightlistMatches) {
-                return temp;
-            }
+        if (matches) {
+            return temp;
         }
     }
     return NULL;
@@ -221,7 +231,8 @@ OENTRY* resolve_opcode_with_orc_args(
                     inArgsMatch = 0;
                     break;
                 }
-                currentArg = (CSOUND_ORC_ARGUMENT*) cdr->next;
+                cdr = cdr->next;
+                currentArg = cdr == NULL ? NULL : (CSOUND_ORC_ARGUMENT*) cdr->value;
                 current++;
             }
         }
@@ -237,7 +248,8 @@ OENTRY* resolve_opcode_with_orc_args(
                     outArgsMatch = 0;
                     break;
                 }
-                currentArg = (CSOUND_ORC_ARGUMENT*) cdr->next;
+                cdr = cdr->next;
+                currentArg = cdr == NULL ? NULL : (CSOUND_ORC_ARGUMENT*) cdr->value;
                 current++;
             }
         }
@@ -264,7 +276,7 @@ static CSOUND_ORC_ARGUMENT* new_csound_orc_argument(
         sizeof(CSOUND_ORC_ARGUMENT)
     );
     if (tree != NULL && tree->value != NULL) {
-        arg->text = tree->value->lexeme;
+        arg->text = csound->Strdup(csound, tree->value->lexeme);
     }
     if (tree != NULL) {
         arg->type = tree->type;
@@ -275,8 +287,7 @@ static CSOUND_ORC_ARGUMENT* new_csound_orc_argument(
     arg->isGlobal = 0;
     arg->isPfield = 0;
     arg->isExpression = 0;
-    arg->SubExpressionLeft = NULL;
-    arg->SubExpressionRight = NULL;
+    arg->SubExpression = NULL;
     arg->exprIdent = NULL;
     return arg;
 }
@@ -341,11 +352,45 @@ static CS_VARIABLE* add_arg_to_pool(
 
 }
 
-// static CS_TYPE* get_output_type_from_binary_expression(
+// void *add_to_constants_pool(
+//     CSOUND *csound,
+//     CS_HASH_TABLE *constantsPool,
+//     const char *name,
+//     MYFLT value
+// ) {
+//   void *retVal = cs_hash_table_get(csound, constantsPool, (char *)name);
+//   if (retVal == NULL) {
+//     CS_VAR_MEM *memValue = csound->Calloc(csound, sizeof(CS_VAR_MEM));
+//     memValue->varType = (CS_TYPE *)&CS_VAR_TYPE_C;
+//     memValue->value = value;
+//     cs_hash_table_put(csound, constantsPool, (char *)name, memValue);
+//     retVal = cs_hash_table_get(csound, constantsPool, (char *)name);
+//   }
+//   return retVal;
+// }
+
+
+// static CSOUND_ORC_ARGUMENTS* concat_orc_arguments(
 //     CSOUND* csound,
-//     CSOUND_ORC_ARGUMENTS* args
+//     CSOUND_ORC_ARGUMENTS* args1,
+//     CSOUND_ORC_ARGUMENTS* args2
 // ) {
 
+//     if (args1->length > 0) {
+//         int pos = args1->length;
+//         CONS_CELL* car = args1->list;
+//         while(pos--) {
+//             if (car->next != NULL) {
+//                 car = car->next;
+//             }
+//         }
+//         if (args2->length > 0) {
+//             args1->length += args2->length;
+//             car->next = args2->list;
+//         }
+//     }
+
+//     return args1;
 // }
 
 static CSOUND_ORC_ARGUMENT* resolve_single_argument_from_tree(
@@ -367,69 +412,68 @@ static CSOUND_ORC_ARGUMENT* resolve_single_argument_from_tree(
     args->append(csound, args, arg);
 
     if (is_expression_node(tree)) {
+        int isPreparedTree = tree->left->value->lexeme[0] == '#';
         arg->isExpression = 1;
-        arg->exprIdent = generateUniqueIdent(csound);
+        arg->exprIdent = tree->left->value->lexeme;
         CONS_CELL* argList = csound->Malloc(csound, sizeof(CONS_CELL));
-        CSOUND_ORC_ARGUMENTS* subExprLeft = new_csound_orc_arguments(csound);
-        CSOUND_ORC_ARGUMENTS* subExprRight = new_csound_orc_arguments(csound);
+        CSOUND_ORC_ARGUMENTS* subExpr = new_csound_orc_arguments(csound);
 
-        if (tree->left != NULL) {
-            subExprLeft = get_arguments_from_tree(
-                csound,
-                subExprLeft,
-                tree->left,
-                typeTable,
-                shouldAddArgs
-            );
-        }
-        subExprRight = get_arguments_from_tree(
+        arg->SubExpression = get_arguments_from_tree(
             csound,
-            subExprRight,
+            subExpr,
             tree->right,
             typeTable,
             shouldAddArgs
         );
 
-        arg->SubExpressionLeft = subExprLeft;
-        arg->SubExpressionRight = subExprRight;
+        //printOrcArgs(arg->SubExpression);
 
         char* opname = get_expression_opcode_type(csound, tree);
         OENTRIES* entries = find_opcode2(csound, opname);
         OENTRY* oentry = resolve_opcode_from_subexpression(
             csound,
             entries,
-            subExprLeft,
-            subExprRight
+            arg->SubExpression
         );
         // TODO: handle no match
         if (oentry == NULL) {
             printf("NO matching oentry in expr %s\n", opname);
             return 0;
         }
+
         tree->markup = oentry;
-        arg->text = opname;
+        tree->inlist = arg->SubExpression;
+        tree->outlist = arg;
+        arg->text = opname; // FIXME: human readable
+        if (!isPreparedTree) {
+            arg->exprIdent = opname;
+        }
         arg->cstype = csoundFindStandardTypeWithChar(*oentry->outypes);
 
-        char* annotation = NULL;
-        if (tree->value != NULL && tree->value->optype != NULL) {
-            annotation = tree->value->optype;
+        if (isPreparedTree) {
+            char* annotation = NULL;
+            if (tree->value != NULL && tree->value->optype != NULL) {
+                annotation = tree->value->optype;
+            }
+            var = csoundCreateVariable(
+                csound,
+                csound->typePool,
+                arg->cstype,
+                arg->exprIdent,
+                0,
+                annotation
+            );
+            // TODO handle global vars
+            csoundAddVariable(csound, typeTable->localPool, var);
         }
-        var = csoundCreateVariable(
-            csound,
-            csound->typePool,
-            arg->cstype,
-            arg->exprIdent,
-            0,
-            annotation
-        );
-        // TODO handle global vars
-        csoundAddVariable(csound, typeTable->localPool, var);
+
         return arg;
     }
 
     switch(tree->type) {
         case NUMBER_TOKEN:
         case INTEGER_TOKEN: {
+            // ident = csound->Strdup(csound, tree->value->lexeme);
             arg->cstype = (CS_TYPE*) &CS_VAR_TYPE_C;
             break;
         }
@@ -469,7 +513,7 @@ static CSOUND_ORC_ARGUMENT* resolve_single_argument_from_tree(
                 arg->isPfield;
                 break;
             }
-            if (shouldAddArgs) {
+            if (shouldAddArgs && ident[0] != '#') {
                 char* annotation = NULL;
                 if (tree->value->optype != NULL) {
                     annotation = tree->value->optype;
@@ -570,10 +614,14 @@ static CSOUND_ORC_ARGUMENT* arglist_nth(
         return NULL;
     }
     CONS_CELL* car = args->list;
-    while(args->length) {
+    while(nth > 0 && nth--) {
         car = car->next;
     }
-    return (CSOUND_ORC_ARGUMENT*) car->value;
+    if (car == NULL) {
+        return NULL;
+    } else {
+        return (CSOUND_ORC_ARGUMENT*) car->value;
+    }
 }
 
 // CSOUND_ORC_ARGUMENTS helper function
@@ -653,6 +701,8 @@ int verify_opcode_2(
         typeTable,
         0
     );
+    //printOrcArgs(leftSideArgs);
+    //printOrcArgs(rightSideArgs);
 
     oentry = resolve_opcode_with_orc_args(
         csound,

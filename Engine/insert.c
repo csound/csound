@@ -116,10 +116,6 @@ static int init_pass(CSOUND *csound, INSDS *ip) {
     csound->op = csound->ids->optext->t.oentry->opname;
       csound->Message(csound, "init %s:\n", csound->op);
     }
-    // DEBUG DELETEME
-    if (csound->ids->optext->t.inlist->length > 0) {
-      CSOUND_ORC_ARGUMENT* currentArg = csound->ids->optext->t.inlist->list->value;
-    }
 
     error = (*csound->ids->iopadr)(csound, csound->ids);
   }
@@ -2560,8 +2556,6 @@ static void instance(CSOUND *csound, int insno)
       CS_VARIABLE* var = (CS_VARIABLE*)arg->argPtr;
       if (arg->type == ARG_GLOBAL) {
         fltp = &(var->memBlock->value); /* gbloffbas + var->memBlockIndex; */
-      } else if (arg->type == ARG_CONSTANT) {
-        fltp = lclbas + var->memBlockIndex;
       } else if (arg->type == ARG_LOCAL) {
         fltp = lclbas + var->memBlockIndex;
 

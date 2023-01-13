@@ -43,6 +43,7 @@ int32_t printv(CSOUND *csound, PRINTV *p)
     while (arglist != NULL && (currentArg = arglist->value)) {
       csound->MessageS(csound, CSOUNDMSG_ORCH,
                        "  %s = %5.3f", currentArg->text, **valp++);
+      arglist = arglist->next;
     }
     csound->MessageS(csound, CSOUNDMSG_ORCH, "\n");
     return OK;
