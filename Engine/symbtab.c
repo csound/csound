@@ -137,7 +137,7 @@ static void map_args(char* args) {
  Original code - IV Oct 12 2002
  modified by VL for Csound 6
 
-    VL: 9.2.22 we are disabling the unused and confusing feature of 
+    VL: 9.2.22 we are disabling the unused and confusing feature of
     a hidden local sampling rate parameter on 7.x
 
 */
@@ -159,14 +159,14 @@ static int parse_opcode_args(CSOUND *csound, OENTRY *opc)
     // The following handles adding of extra 'o' type for optional
     // ksmps arg for all UDO's
     // this feature is removed from 7.0
-    /* 
+    /*
        char intypes[256];
       if (*inm->intypes == '0') {
         intypes[0] = 'o';
         intypes[1] = '\0';
     } else {
         snprintf(intypes, 256, "%so", inm->intypes);
-	} 
+	}
 	in_args = splitArgs(csound, intypes);*/
     in_args = splitArgs(csound, inm->intypes);
     out_args = splitArgs(csound, inm->outtypes);
@@ -191,12 +191,12 @@ static int parse_opcode_args(CSOUND *csound, OENTRY *opc)
 
     if (*in_args[0] != '0') {
       while (in_args[i] != NULL) {
+        int dimensions = 0;
         char* in_arg = in_args[i];
         char* end;
         snprintf(tempName, 20, "in%d", i);
 
         if (*in_arg == '[') {
-          int dimensions = 0;
           while (*in_arg == '[') {
             dimensions += 1;
             in_arg += 1;
@@ -222,9 +222,14 @@ static int parse_opcode_args(CSOUND *csound, OENTRY *opc)
 
           varInit.dimensions = dimensions;
           varInit.type = type;
-          CS_VARIABLE* var = csoundCreateVariable(csound, csound->typePool,
-                                                  (CS_TYPE*)&CS_VAR_TYPE_ARRAY,
-                                                  tempName, &varInit);
+          CS_VARIABLE* var = csoundCreateVariable(
+            csound,
+            csound->typePool,
+            type,
+            tempName,
+            dimensions,
+            &varInit
+          );
           var->dimensions = dimensions;
           csoundAddVariable(csound, inm->in_arg_pool, var);
         } else {
@@ -242,13 +247,14 @@ static int parse_opcode_args(CSOUND *csound, OENTRY *opc)
           }
 
           CS_VARIABLE* var = csoundCreateVariable(csound, csound->typePool,
-                                                  type, tempName, type);
+                                                  type, tempName, dimensions,
+                                                  type);
           csoundAddVariable(csound, inm->in_arg_pool, var);
         }
         i++;
       }
     }
-    
+
 //    inm->inchns = i + 1; /* Add one for optional local ksmps */
 //    inm->inchns = i - 1;
     inm->inchns = i;     // this feature is removed from 7.0
@@ -256,12 +262,12 @@ static int parse_opcode_args(CSOUND *csound, OENTRY *opc)
     i = 0;
     if (*out_args[0] != '0') {
       while(out_args[i] != NULL) {
+        int dimensions = 0;
         char* out_arg = out_args[i];
         char* end;
         snprintf(tempName, 20, "out%d", i);
 
         if (*out_arg == '[') {
-          int dimensions = 0;
           while (*out_arg == '[') {
             dimensions += 1;
             out_arg += 1;
@@ -287,9 +293,13 @@ static int parse_opcode_args(CSOUND *csound, OENTRY *opc)
 
           varInit.dimensions = dimensions;
           varInit.type = type;
-          CS_VARIABLE* var = csoundCreateVariable(csound, csound->typePool,
-                                                  (CS_TYPE*)&CS_VAR_TYPE_ARRAY,
-                                                  tempName, &varInit);
+          CS_VARIABLE* var = csoundCreateVariable(
+            csound, csound->typePool,
+            type,
+            tempName,
+            dimensions,
+            &varInit
+          );
           var->dimensions = dimensions;
           csoundAddVariable(csound, inm->out_arg_pool, var);
         } else {
@@ -306,7 +316,7 @@ static int parse_opcode_args(CSOUND *csound, OENTRY *opc)
           }
 
           CS_VARIABLE* var = csoundCreateVariable(csound, csound->typePool, type,
-                                                  tempName, type);
+                                                  tempName, dimensions, type);
           csoundAddVariable(csound, inm->out_arg_pool, var);
         }
         i++;

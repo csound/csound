@@ -33,21 +33,24 @@
 
 int32_t printv(CSOUND *csound, PRINTV *p)
 {
-    int32_t    nargs = p->INOCOUNT;
-    char   **txtp = p->h.optext->t.inlist->arg;
+    int32_t    nargs   = p->INOCOUNT;
+    CONS_CELL* arglist = p->h.optext->t.inlist->list;
     MYFLT  **valp = p->iargs;
 
     csound->MessageS(csound, CSOUNDMSG_ORCH,
                      "instr %d:", (int32_t) p->h.insdshead->p1.value);
-    while (nargs--) {
+    CSOUND_ORC_ARGUMENT* currentArg = NULL;
+    while (arglist != NULL && (currentArg = arglist->value)) {
       csound->MessageS(csound, CSOUNDMSG_ORCH,
-                       "  %s = %5.3f", *txtp++, **valp++);
+                       "  %s = %5.3f", currentArg->text, **valp++);
     }
     csound->MessageS(csound, CSOUNDMSG_ORCH, "\n");
     return OK;
 }
 
 int32_t fdspset(CSOUND *csound, FSIGDISP *p){
+    CSOUND_ORC_ARGUMENTS* args;
+    CSOUND_ORC_ARGUMENT*  arg;
     char strmsg[256];
     p->size = p->fin->N/2 + 1;
     if ((*p->points != (MYFLT) 0) && (p->size > (int32_t) *p->points)) {
@@ -57,8 +60,10 @@ int32_t fdspset(CSOUND *csound, FSIGDISP *p){
         (p->fdata.size < (uint32_t) (p->size*sizeof(MYFLT)))) {
       csound->AuxAlloc(csound, p->size*sizeof(MYFLT), &p->fdata);
     }
+    args = p->h.optext->t.inlist;
+    arg = args->nth(args, 0);
     snprintf(strmsg, 256, Str("instr %d, pvs-signal %s:"),
-            (int32_t) p->h.insdshead->p1.value, p->h.optext->t.inlist->arg[0]);
+            (int32_t) p->h.insdshead->p1.value, arg->text);
     dispset(csound, &p->dwindow, (MYFLT*) p->fdata.auxp, p->size, strmsg,
                     (int32_t) *p->flag, Str("display"));
     p->lastframe = 0;
@@ -82,6 +87,8 @@ int32_t fdsplay(CSOUND *csound, FSIGDISP *p)
 
 int32_t dspset(CSOUND *csound, DSPLAY *p)
 {
+    CSOUND_ORC_ARGUMENTS* args;
+    CSOUND_ORC_ARGUMENT*  arg;
     int32_t  npts, nprds, bufpts, totpts;
     char   *auxp;
     char   strmsg[256];
@@ -114,8 +121,10 @@ int32_t dspset(CSOUND *csound, DSPLAY *p)
     }
     p->nxtp = (MYFLT *) auxp;
     p->pntcnt = npts;
+    args = p->h.optext->t.inlist;
+    arg = args->nth(args, 0);
     snprintf(strmsg, 256, Str("instr %d, signal %s:"),
-             (int32_t) p->h.insdshead->p1.value, p->h.optext->t.inlist->arg[0]);
+             (int32_t) p->h.insdshead->p1.value, arg->text);
     dispset(csound, &p->dwindow, (MYFLT*) auxp, bufpts, strmsg,
             (int32_t) *p->iwtflg, Str("display"));
     return OK;
@@ -289,8 +298,9 @@ int32_t fftset(CSOUND *csound, DSPFFT *p) /* fftset, dspfft -- calc Fast Fourier
         csound->disprep_fftcoefs = (MYFLT*) csound->Malloc(csound, WINDMAX * 2
                                                             * sizeof(MYFLT));
       }
-      snprintf(strmsg, 256, Str("instr %d, signal %s, fft (%s):"),
-               (int32_t) p->h.insdshead->p1.value, p->h.optext->t.inlist->arg[0],
+      CSOUND_ORC_ARGUMENT* arg = p->h.optext->t.inlist->list->value;
+      snprintf(strmsg, 256, Str("instr %s, signal %s, fft (%s):"),
+               (int32_t) p->h.insdshead->p1.value, arg,
                p->dbout ? Str("db") : Str("mag"));
       if (maxbin == 0) maxbin = p->ncoefs;
       if (minbin > maxbin) minbin = 0;

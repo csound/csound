@@ -44,6 +44,7 @@
 #include "csound_type_system.h"
 #include "csound.h"
 #include "cscore.h"
+#include "csound_orc_arguments.h"
 #include "csound_data_structures.h"
 #include "csound_standard_types.h"
 #include "pools.h"
@@ -111,12 +112,10 @@ typedef struct {
 #define NOT_AN_INSTRUMENT INT32_MAX
 
 #define ORTXT       h.optext->t
-#define INCOUNT     ORTXT.inlist->count
-#define OUTCOUNT    ORTXT.outlist->count   /* Not used */
-//#define INOCOUNT    ORTXT.inoffs->count
-//#define OUTOCOUNT   ORTXT.outoffs->count
-#define INOCOUNT    ORTXT.inArgCount
-#define OUTOCOUNT   ORTXT.outArgCount
+#define INCOUNT    ORTXT.inlist->length
+#define OUTCOUNT   ORTXT.outlist->length
+#define INOCOUNT    ORTXT.inlist->length
+#define OUTOCOUNT   ORTXT.outlist->length
 #define IS_ASIG_ARG(x) (csoundGetTypeForArg(x) == &CS_VAR_TYPE_A)
 #define IS_STR_ARG(x) (csoundGetTypeForArg(x) == &CS_VAR_TYPE_S)
 
@@ -310,18 +309,14 @@ typedef struct CORFIL {
    * Storage for parsed orchestra code, for each opcode in an INSTRTXT.
    */
   typedef struct text {
-    uint16_t        linenum;        /* Line num in orch file (currently buggy!)  */
-    uint64_t        locn;           /* and location */
-    OENTRY          *oentry;
-    char            *opcod;         /* Pointer to opcode name in global pool */
-    ARGLST          *inlist;        /* Input args (pointer to item in name list) */
-    ARGLST          *outlist;
-    ARG             *inArgs;        /* Input args (index into list of values) */
-    unsigned int    inArgCount;
-    ARG             *outArgs;
-    unsigned        int outArgCount;
-//    char            intype;         /* Type of first input argument (g,k,a,w etc) */
-    char            pftype;         /* Type of output argument (k,a etc) */
+    uint16_t          linenum;        /* Line num of opcode token in orch file  */
+    uint64_t          locn;           /* and location */
+    OENTRY*           oentry;
+    ARG*              inArgs;         /* Input args (index into list of values) */
+    ARG*              outArgs;
+    char*             opcod;          /* Pointer to opcode name in global pool */
+    struct csorcargs* inlist;         /* Pointer to struct containing arg metadata */
+    struct csorcargs* outlist;
   } TEXT;
 
 
@@ -423,7 +418,7 @@ typedef struct CORFIL {
    } TABDAT;
 
   #define MAX_STRINGDAT_SIZE 0xFFFFFFFF
-  
+
   typedef struct {
     char *data;
     size_t size;
@@ -893,10 +888,10 @@ typedef struct CORFIL {
   int kperf_debug(CSOUND *csound);
 
   /*
-    check if code is running at init time. 
+    check if code is running at init time.
     result may not be valid in realtime mode
-   */  
-int csoundIsInitThread(CSOUND *csound);  
+   */
+int csoundIsInitThread(CSOUND *csound);
 
 #endif  /* __BUILDING_LIBCSOUND */
 

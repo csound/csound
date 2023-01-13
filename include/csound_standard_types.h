@@ -44,7 +44,9 @@ extern "C" {
     PUBLIC_DATA extern const CS_TYPE CS_VAR_TYPE_F;
     PUBLIC_DATA extern const CS_TYPE CS_VAR_TYPE_B;
     PUBLIC_DATA extern const CS_TYPE CS_VAR_TYPE_b;
-    PUBLIC_DATA extern const CS_TYPE CS_VAR_TYPE_ARRAY;
+    PUBLIC_DATA extern const CS_TYPE CS_VAR_TYPE_L;
+
+    CS_TYPE* csoundFindStandardTypeWithChar(char);
 
     typedef struct arrayVarInit {
         int dimensions;
@@ -63,8 +65,9 @@ extern "C" {
 
     // needed for pre-defining struct-arrays in csound_orc_semantics.c
     void array_free_var_mem(void*, void*);
-    CS_VARIABLE* createArray(void*, void*);
+    CS_VARIABLE* createArray(void*, void*, int);
     void array_copy_value(CSOUND*, CS_TYPE*, void*, void*);
+    void arrayInitMemory(CSOUND*, CS_VARIABLE*, MYFLT*);
 
 #ifdef  __cplusplus
 }

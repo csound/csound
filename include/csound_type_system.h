@@ -38,12 +38,12 @@ extern "C" {
 
     struct csvariable;
     struct cstype;
-    
+
     typedef struct cstype {
         char* varTypeName;
         char* varDescription;
         int argtype; // used to denote if allowed as in-arg, out-arg, or both
-        struct csvariable* (*createVariable)(void*, void*);
+        struct csvariable* (*createVariable)(void*, void*, int);
         void (*copyValue)(CSOUND* csound, struct cstype* cstype, void* dest, void* src);
         void (*freeVariableMemory)(void* csound, void* varMem);
         CONS_CELL* members;
@@ -68,10 +68,11 @@ extern "C" {
                              Csound uses MYFLT* and pointer arithmetic
                              to assign var locations */
         int memBlockIndex;
-        int dimensions;  // used by arrays
+        int dimension;  // each dimension has a variable
+        int dimensions; // used by arrays
         int refCount;
         struct csvariable* next;
-        CS_TYPE* subType;
+        struct csvariable* nextDimension;
         void (*updateMemBlockSize)(CSOUND*, struct csvariable*);
         void (*initializeVariableMemory)(CSOUND*, struct csvariable*, MYFLT*);
         CS_VAR_MEM *memBlock;
@@ -92,6 +93,7 @@ extern "C" {
                                      CS_TYPE* typeInstance);
     PUBLIC CS_VARIABLE* csoundCreateVariable(CSOUND* csound, TYPE_POOL* pool,
                                              CS_TYPE* type, char* name,
+                                             int dimensions,
                                              void* typeArg);
     PUBLIC CS_TYPE* csoundGetTypeWithVarTypeName(TYPE_POOL* pool, char* typeName);
 

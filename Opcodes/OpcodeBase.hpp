@@ -209,11 +209,11 @@ public:
     }
     uint32_t output_arg_count()
     {
-        return (uint32_t)opds.optext->t.outArgCount;
+        return (uint32_t)opds.optext->t.outlist->length;
     }
     uint32_t input_arg_count()
     {
-        return (uint32_t)opds.optext->t.inArgCount;
+        return (uint32_t)opds.optext->t.inlist->length;
     }
     void log(CSOUND *csound, const char *format,...)
     {
@@ -329,11 +329,11 @@ public:
     }
     uint32_t output_arg_count()
     {
-        return (uint32_t)opds.optext->t.outArgCount;
+        return (uint32_t)opds.optext->t.outlist->length;
     }
     uint32_t input_arg_count()
     {
-        return (uint32_t)opds.optext->t.inArgCount;
+        return (uint32_t)opds.optext->t.inlist->length;
     }
     void log(CSOUND *csound, const char *format,...)
     {

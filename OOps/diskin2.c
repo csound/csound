@@ -1626,7 +1626,7 @@ static int32_t diskin2_init_array(CSOUND *csound, DISKIN2_ARRAY *p,
       t->dimensions = 1;
       t->sizes = csound->Calloc(csound, sizeof(int32_t));
       t->sizes[0] = p->nChannels;
-      var  = t->arrayType->createVariable(csound, NULL);
+      var  = t->arrayType->createVariable(csound, NULL, 1);
       t->arrayMemberSize = var->memBlockSize;
       memSize = var->memBlockSize*(t->sizes[0]);
       t->data = csound->Calloc(csound, memSize);
@@ -2151,7 +2151,7 @@ static int32_t sndinset_(CSOUND *csound, SOUNDIN_ *p, int32_t stringname)
     /* check for user specified sample format */
     n = MYFLT2LONG(*p->iSampleFormat);
     if (n == 1) {
-      sfinfo.format = TYPE2SF(TYP_RAW) 
+      sfinfo.format = TYPE2SF(TYP_RAW)
         | (int32_t) FORMAT2SF(csound->oparms_.outformat);
     }
     else {

@@ -113,7 +113,7 @@ static int32_t array_init(CSOUND *csound, ARRAYINIT *p)
     }
 
     {
-      CS_VARIABLE* var = arrayDat->arrayType->createVariable(csound,arrayDat->arrayType);
+      CS_VARIABLE* var = arrayDat->arrayType->createVariable(csound,arrayDat->arrayType, inArgCount);
       char *mem;
       arrayDat->arrayMemberSize = var->memBlockSize;
       arrayDat->data = csound->Calloc(csound,
@@ -2579,7 +2579,7 @@ static int32_t tabclear(CSOUND *csound, TABCLEAR *p)
     int32_t i;
     int32_t nsmps = CS_KSMPS;
     int32_t size = 1;
-    
+
     if (UNLIKELY(t->data == NULL))
       return csound->PerfError(csound, &(p->h),
                                Str("array-variable not initialised"));
@@ -2589,7 +2589,7 @@ static int32_t tabclear(CSOUND *csound, TABCLEAR *p)
 
     for(i = 0; i < t->dimensions; i++) size *= t->sizes[i];
     memset(t->data, 0, sizeof(MYFLT)*nsmps*size);
-    
+
     return OK;
 }
 
@@ -2599,7 +2599,7 @@ static int32_t tabcleark(CSOUND *csound, TABCLEAR *p)
     ARRAYDAT *t = p->tab;
     int32_t i;
     int32_t size = 1;
-    
+
     if (UNLIKELY(t->data == NULL))
       return csound->PerfError(csound, &(p->h),
                                Str("array-variable not initialised"));
@@ -2609,7 +2609,7 @@ static int32_t tabcleark(CSOUND *csound, TABCLEAR *p)
 
     for(i = 0; i < t->dimensions; i++) size *= t->sizes[i];
     memset(t->data, 0, sizeof(MYFLT)*size);
-    
+
     return OK;
 }
 
@@ -3949,7 +3949,7 @@ static inline void tabensure2D(CSOUND *csound, ARRAYDAT *p,
         (p->dimensions==2 && (p->sizes[0] < rows || p->sizes[1] < columns))) {
       size_t ss;
       if (p->data == NULL) {
-        CS_VARIABLE* var = p->arrayType->createVariable(csound, NULL);
+        CS_VARIABLE* var = p->arrayType->createVariable(csound, NULL, 2);
         p->arrayMemberSize = var->memBlockSize;
       }
       ss = p->arrayMemberSize*rows*columns;

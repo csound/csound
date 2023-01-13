@@ -2825,7 +2825,7 @@ sprintf_opcode_(CSOUND *csound,
             return PERFERR(Str("a-rate argument not allowed"));
     }
 
-    if (UNLIKELY((int32_t) ((OPDS*) p)->optext->t.inArgCount > 31)){
+    if (UNLIKELY((int32_t) ((OPDS*) p)->optext->t.inlist->length > 31)){
         return PERFERR(Str("too many arguments"));
     }
     if (numVals==0) {

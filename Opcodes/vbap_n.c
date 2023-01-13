@@ -636,14 +636,14 @@ int32_t vbap_moving_init(CSOUND *csound, VBAP_MOVING *p)
     int32_t     i, j;
     MYFLT   *ls_table, *ptr;
     LS_SET  *ls_set_ptr;
-    int32_t cnt = (int32_t)p->h.optext->t.outArgCount;
+    int32_t cnt = (int32_t)p->h.optext->t.outlist->length;
     if ((!strncmp(p->h.optext->t.opcod, "vbapmove", 8)) == 0) {
       p->audio = p->out_array[cnt];
       p->dur = p->out_array[cnt+1];
       p->spread = p->out_array[cnt+2];
       p->field_am = p->out_array[cnt+3];
       memcpy(p->fld, &(p->out_array[cnt+4]),
-             sizeof(MYFLT *)*(p->h.optext->t.inArgCount-4));
+             sizeof(MYFLT *)*(p->h.optext->t.inlist->length - 4));
     }
 
     ls_table = (MYFLT*) (csound->QueryGlobalVariableNoCheck(csound,

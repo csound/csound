@@ -135,14 +135,20 @@ char* getVarSimpleName(CSOUND* csound, const char* varName) {
     return retVal;
 }
 
-CS_VARIABLE* csoundCreateVariable(CSOUND* csound, TYPE_POOL* pool,
-                                  CS_TYPE* type, char* name, void* typeArg)
-{
+CS_VARIABLE* csoundCreateVariable(
+  CSOUND* csound,
+  TYPE_POOL* pool,
+  CS_TYPE* type,
+  char* name,
+  int dimensions,
+  void* typeArg
+) {
     CS_TYPE_ITEM* current = pool->head;
     if (LIKELY(type != NULL))
       while (current != NULL) {
         if (strcmp(type->varTypeName, current->cstype->varTypeName) == 0) {
-          CS_VARIABLE* var = current->cstype->createVariable(csound, typeArg);
+          CS_VARIABLE* var = current->cstype->createVariable(
+            csound, typeArg, dimensions);
           var->varType = type;
           var->varName = cs_strdup(csound, name);
           return var;
@@ -162,6 +168,22 @@ CS_VARIABLE* csoundCreateVariable(CSOUND* csound, TYPE_POOL* pool,
 CS_VARIABLE* csoundFindVariableWithName(CSOUND* csound, CS_VAR_POOL* pool,
                                         const char* name)
 {
+
+    CS_VARIABLE* returnValue = cs_hash_table_get(csound, pool->table, (char*)name);
+
+    if (returnValue == NULL && pool->parent != NULL) {
+      returnValue = csoundFindVariableWithName(csound, pool->parent, name);
+    }
+
+    return returnValue;
+}
+
+CS_VARIABLE* csoundFindVariableWithNameAndDimension(
+  CSOUND* csound,
+  CS_VAR_POOL* pool,
+  const char* name,
+  int dimension
+) {
 
     CS_VARIABLE* returnValue = cs_hash_table_get(csound, pool->table, (char*)name);
 
@@ -274,7 +296,7 @@ void deleteVarPoolMemory(CSOUND* csound, CS_VAR_POOL* pool) {
     CS_TYPE* type;
     while (current != NULL) {
       tmp = current;
-      type = current->subType;
+      type = current->varType;
       if (type->freeVariableMemory != NULL) {
         type->freeVariableMemory(csound, current->memBlock);
       }
@@ -294,7 +316,7 @@ void initializeVarPool(CSOUND* csound, MYFLT* memBlock, CS_VAR_POOL* pool) {
       if (current->initializeVariableMemory != NULL) {
         current->initializeVariableMemory(csound, current,
                                           memBlock + current->memBlockIndex);
-        CS_TYPE* type = current->subType != NULL ? current->subType : current->varType;
+        CS_TYPE* type = current->varType;
         if (type != NULL && type->members != NULL) {
 
           CONS_CELL* members = type->members;

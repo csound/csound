@@ -126,7 +126,7 @@ void array_copy_value(CSOUND* csound, CS_TYPE* cstype, void* dest, void* src) {
         aDest->data = cs->Calloc(cs, aSrc->arrayMemberSize * arrayNumMembers);
     }
 
-    var = aDest->arrayType->createVariable(cs, aDest->arrayType);
+    var = aDest->arrayType->createVariable(cs, aDest->arrayType, aDest->dimensions);
     for (j = 0; j < arrayNumMembers; j++) {
         int index = j * memMyfltSize;
         if(var->initializeVariableMemory != NULL) {
@@ -153,7 +153,7 @@ void varInitMemory(CSOUND *csound, CS_VARIABLE* var, MYFLT* memblock) {
 void arrayInitMemory(CSOUND *csound, CS_VARIABLE* var, MYFLT* memblock) {
     IGN(csound);
     ARRAYDAT* dat = (ARRAYDAT*)memblock;
-    dat->arrayType = var->subType;
+    dat->arrayType = var->varType;
 }
 
 void varInitMemoryString(CSOUND *csound, CS_VARIABLE* var, MYFLT* memblock) {
@@ -172,7 +172,7 @@ void varInitMemoryFsig(CSOUND *csound, CS_VARIABLE* var, MYFLT* memblock) {
 
 /* CREATE VAR FUNCTIONS */
 
-CS_VARIABLE* createAsig(void* cs, void* p) {
+CS_VARIABLE* createAsig(void* cs, void* p, int _) {
     int ksmps;
     CSOUND* csound = (CSOUND*)cs;
     IGN(p);
@@ -193,7 +193,7 @@ CS_VARIABLE* createAsig(void* cs, void* p) {
     return var;
 }
 
-CS_VARIABLE* createMyflt(void* cs, void* p) {
+CS_VARIABLE* createMyflt(void* cs, void* p, int _) {
     CSOUND* csound = (CSOUND*)cs;
     CS_VARIABLE* var = csound->Calloc(csound, sizeof (CS_VARIABLE));
     IGN(p);
@@ -202,7 +202,7 @@ CS_VARIABLE* createMyflt(void* cs, void* p) {
     return var;
 }
 
-CS_VARIABLE* createBool(void* cs, void* p) {
+CS_VARIABLE* createBool(void* cs, void* p, int _) {
     CSOUND* csound = (CSOUND*)cs;
     CS_VARIABLE* var = csound->Calloc(csound, sizeof (CS_VARIABLE));
     IGN(p);
@@ -211,7 +211,7 @@ CS_VARIABLE* createBool(void* cs, void* p) {
     return var;
 }
 
-CS_VARIABLE* createWsig(void* cs, void* p) {
+CS_VARIABLE* createWsig(void* cs, void* p, int _) {
     CSOUND* csound = (CSOUND*)cs;
     CS_VARIABLE* var = csound->Calloc(csound, sizeof (CS_VARIABLE));
     IGN(p);
@@ -220,7 +220,7 @@ CS_VARIABLE* createWsig(void* cs, void* p) {
     return var;
 }
 
-CS_VARIABLE* createFsig(void* cs, void* p) {
+CS_VARIABLE* createFsig(void* cs, void* p, int _) {
     CSOUND* csound = (CSOUND*)cs;
     CS_VARIABLE* var = csound->Calloc(csound, sizeof (CS_VARIABLE));
     IGN(p);
@@ -230,7 +230,7 @@ CS_VARIABLE* createFsig(void* cs, void* p) {
 }
 
 
-CS_VARIABLE* createString(void* cs, void* p) {
+CS_VARIABLE* createString(void* cs, void* p, int _) {
     CSOUND* csound = (CSOUND*)cs;
     CS_VARIABLE* var = csound->Calloc(csound, sizeof (CS_VARIABLE));
     IGN(p);
@@ -239,7 +239,7 @@ CS_VARIABLE* createString(void* cs, void* p) {
     return var;
 }
 
-CS_VARIABLE* createArray(void* csnd, void* p) {
+CS_VARIABLE* createArray(void* csnd, void* p, int dimensions) {
     CSOUND* csound = (CSOUND*)csnd;
     ARRAY_VAR_INIT* state = (ARRAY_VAR_INIT*)p;
 
@@ -250,8 +250,8 @@ CS_VARIABLE* createArray(void* csnd, void* p) {
 
     if (state) { // NB: this function is being called with p=NULL
       CS_TYPE* type = state->type;
-      var->subType = type;
-      var->dimensions = state->dimensions;
+      var->varType = type;
+      var->dimensions = dimensions;
     }
     return var;
 }
@@ -307,23 +307,23 @@ const CS_TYPE CS_VAR_TYPE_K = {
 };
 
 const CS_TYPE CS_VAR_TYPE_I = {
-  "i", "init time var", CS_ARG_TYPE_BOTH, createMyflt, myflt_copy_value, NULL, NULL, 0
+  "i", "init time var", CS_ARG_TYPE_BOTH, createMyflt, myflt_copy_value, NULL, NULL
 };
 
 const CS_TYPE CS_VAR_TYPE_S = {
-    "S", "String var", CS_ARG_TYPE_BOTH, createString, string_copy_value, string_free_var_mem, NULL, 0
+  "S", "String var", CS_ARG_TYPE_BOTH, createString, string_copy_value, string_free_var_mem, NULL
 };
 
 const CS_TYPE CS_VAR_TYPE_P = {
-  "p", "p-field", CS_ARG_TYPE_BOTH, createMyflt, myflt_copy_value, NULL, NULL, 0
+  "p", "p-field", CS_ARG_TYPE_BOTH, createMyflt, myflt_copy_value, NULL, NULL
 };
 
 const CS_TYPE CS_VAR_TYPE_R = {
-  "r", "reserved symbol", CS_ARG_TYPE_BOTH, createMyflt, myflt_copy_value, NULL, NULL, 0
+  "r", "reserved symbol", CS_ARG_TYPE_BOTH, createMyflt, myflt_copy_value, NULL, NULL
 };
 
 const CS_TYPE CS_VAR_TYPE_C = {
-  "c", "constant", CS_ARG_TYPE_IN, createMyflt, myflt_copy_value, NULL, NULL, 0
+  "c", "constant", CS_ARG_TYPE_IN, createMyflt, myflt_copy_value, NULL, NULL
 };
 
 const CS_TYPE CS_VAR_TYPE_W = {
@@ -342,11 +342,53 @@ const CS_TYPE CS_VAR_TYPE_b = {
   "b", "boolean", CS_ARG_TYPE_BOTH, createBool, myflt_copy_value, NULL, NULL, 0
 };
 
-const CS_TYPE CS_VAR_TYPE_ARRAY = {
-  "[", "array", CS_ARG_TYPE_BOTH, createArray, array_copy_value,
-  array_free_var_mem, NULL, 0
+const CS_TYPE CS_VAR_TYPE_L = {
+  "l", "label", CS_ARG_TYPE_BOTH, NULL, NULL, NULL, NULL, 0
 };
 
+CS_TYPE* csoundFindStandardTypeWithChar(char rateChar) {
+    switch (rateChar) {
+        case 'a': {
+            return (CS_TYPE*)&CS_VAR_TYPE_A;
+        }
+        case 'k':
+        case 't': {
+            return (CS_TYPE*)&CS_VAR_TYPE_K;
+        }
+        case 'i': {
+            return (CS_TYPE*)&CS_VAR_TYPE_I;
+        }
+        case 'S': {
+            return (CS_TYPE*)&CS_VAR_TYPE_S;
+        }
+        case 'p': {
+            return (CS_TYPE*)&CS_VAR_TYPE_P;
+        }
+        case 'r': {
+            return (CS_TYPE*)&CS_VAR_TYPE_R;
+        }
+        case 'c': {
+            return (CS_TYPE*)&CS_VAR_TYPE_C;
+        }
+        case 'w': {
+            return (CS_TYPE*)&CS_VAR_TYPE_W;
+        }
+        case 'f': {
+            return (CS_TYPE*)&CS_VAR_TYPE_F;
+        }
+        case 'b': {
+            return (CS_TYPE*)&CS_VAR_TYPE_b;
+        }
+        case 'B': {
+            return (CS_TYPE*)&CS_VAR_TYPE_B;
+        }
+        case 'l': {
+            return (CS_TYPE*)&CS_VAR_TYPE_L;
+        }
+    }
+
+    return NULL;
+}
 
 
 void csoundAddStandardTypes(CSOUND* csound, TYPE_POOL* pool) {
@@ -362,8 +404,7 @@ void csoundAddStandardTypes(CSOUND* csound, TYPE_POOL* pool) {
     csoundAddVariableType(csound, pool, (CS_TYPE*)&CS_VAR_TYPE_F);
     csoundAddVariableType(csound, pool, (CS_TYPE*)&CS_VAR_TYPE_B);
     csoundAddVariableType(csound, pool, (CS_TYPE*)&CS_VAR_TYPE_b);
-    csoundAddVariableType(csound, pool, (CS_TYPE*)&CS_VAR_TYPE_ARRAY);
-
+    csoundAddVariableType(csound, pool, (CS_TYPE*)&CS_VAR_TYPE_L);
 }
 
 
