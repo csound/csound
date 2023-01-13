@@ -1033,6 +1033,7 @@ add_custom_command(
 
 list(APPEND libcsound_SRCS
     ${LEX_OUT} ${YACC_OUT} ${PRELEX_OUT}
+    Engine/csound_orc_arguments.c
     Engine/csound_orc_semantics.c
     Engine/csound_orc_expressions.c
     Engine/csound_orc_optimize.c
@@ -1440,7 +1441,7 @@ set (CPACK_PACKAGE_VERSION_PATCH "0")
 include (CPack)
 
 # Documentation
-if(BUILD_DOCS) 
+if(BUILD_DOCS)
 find_package(Doxygen)
 if(DOXYGEN_FOUND)
     configure_file(${CMAKE_CURRENT_SOURCE_DIR}/config.doxygen
@@ -1469,4 +1470,3 @@ else()
  install(DIRECTORY ${CMAKE_SOURCE_DIR}/samples
           DESTINATION ${CMAKE_INSTALL_PREFIX}/share)
 endif()
-
