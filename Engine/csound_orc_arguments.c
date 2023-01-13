@@ -562,7 +562,9 @@ static CSOUND_ORC_ARGUMENT* resolve_single_argument_from_tree(
 
         CSOUND_ORC_ARGUMENTS* subExpr = new_csound_orc_arguments(csound);
 
-        if (!isPreparedTree && tree->left != NULL) {
+        // unary expression
+        int isUnary = tree->left == NULL;
+        if (!isPreparedTree && !isUnary) {
             subExpr = get_arguments_from_tree(
                 csound,
                 subExpr,
@@ -571,7 +573,12 @@ static CSOUND_ORC_ARGUMENT* resolve_single_argument_from_tree(
                 shouldAddArgs
             );
         }
-
+        // in case of unary in unexpanded trees
+        // we stop validating here the syntax and do it
+        // on second pass
+        if (!isPreparedTree && isUnary) {
+            return arg;
+        }
         arg->SubExpression = get_arguments_from_tree(
             csound,
             subExpr,
@@ -579,8 +586,6 @@ static CSOUND_ORC_ARGUMENT* resolve_single_argument_from_tree(
             typeTable,
             shouldAddArgs
         );
-
-        //printOrcArgs(arg->SubExpression);
 
         char* opname = isBool ? \
             get_boolean_expression_opcode_type(csound, tree) : \
