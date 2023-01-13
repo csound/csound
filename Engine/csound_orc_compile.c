@@ -463,7 +463,12 @@ OPTXT *create_opcode(CSOUND *csound, TREE *root, INSTRTXT *ip,
     CONS_CELL* cdr = tp->inlist->list;
     while (cdr != NULL) {
       CSOUND_ORC_ARGUMENT* orcArg = cdr->value;
-      if (orcArg->cstype != (CS_TYPE*) &CS_VAR_TYPE_P) {
+      if (orcArg->cstype == (CS_TYPE*) &CS_VAR_TYPE_P) {
+        int pn = pnum(orcArg->text);
+        if (pn > ip->pmax) {
+          ip->pmax = pn;
+        }
+      } else {
         lgbuild(
           csound,
           ip,
@@ -2176,10 +2181,7 @@ static ARG *createArg(
   CS_VAR_POOL* pool = NULL;
   char* ident = parsedArg->isExpression == 1 ? parsedArg->exprIdent : parsedArg->text;
 
-  if (
-    parsedArg->cstype == &CS_VAR_TYPE_C ||
-    parsedArg->cstype == &CS_VAR_TYPE_R
-  ) {
+  if (parsedArg->cstype == &CS_VAR_TYPE_C) {
     arg->type = ARG_CONSTANT;
     arg->argPtr = find_or_add_constant(
       csound,
@@ -2196,7 +2198,8 @@ static ARG *createArg(
   } else if (parsedArg->cstype == &CS_VAR_TYPE_P) {
     arg->type = ARG_PFIELD;
     arg->index = pnum(ident);
-  } else if (parsedArg->isGlobal) {
+    return arg;
+  } else if (parsedArg->cstype == &CS_VAR_TYPE_R || parsedArg->isGlobal) {
     arg->type = ARG_GLOBAL;
     pool = csound->engineState.varPool;
   } else {

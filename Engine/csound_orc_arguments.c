@@ -32,16 +32,17 @@ extern OENTRIES* find_opcode2(CSOUND*, char*);
 extern int is_in_optional_arg(char*);
 extern int is_in_var_arg(char*);
 extern char* get_expression_opcode_type(CSOUND*, TREE*);
+extern char* get_boolean_expression_opcode_type(CSOUND*, TREE*);
 // extern char *strsav_string(CSOUND*, ENGINE_STATE*, char*);
 
-static int exprIdentCnt = 100;
+// static int exprIdentCnt = 100;
 
-static char* generateUniqueIdent(CSOUND* csound) {
-    char *ident = (char *)csound->Calloc(csound, 32);
-    snprintf(ident, 32, "__internal__%d", exprIdentCnt);
-    exprIdentCnt += 1;
-    return ident;
-}
+// static char* generateUniqueIdent(CSOUND* csound) {
+//     char *ident = (char *)csound->Calloc(csound, 32);
+//     snprintf(ident, 32, "__internal__%d", exprIdentCnt);
+//     exprIdentCnt += 1;
+//     return ident;
+// }
 
 static CSOUND_ORC_ARGUMENTS* get_arguments_from_tree(
     CSOUND* csound,
@@ -119,12 +120,19 @@ static int check_satisfies_expected_input(
     } else if (arg->cstype == ((CS_TYPE*) &CS_VAR_TYPE_A)) {
         return strchr("aXMyx", *typeIdent) != NULL;
     } else if (arg->cstype == ((CS_TYPE*) &CS_VAR_TYPE_K)) {
-        return strchr("kXUOJVP", *typeIdent) != NULL;
+        return strchr("kxXUOJVP", *typeIdent) != NULL;
+    } else if (arg->cstype == ((CS_TYPE*) &CS_VAR_TYPE_B)) {
+        return strchr("B", *typeIdent) != NULL;
+    } else if (arg->cstype == ((CS_TYPE*) &CS_VAR_TYPE_b)) {
+        return strchr("Bb", *typeIdent) != NULL;
+    } else if (arg->cstype == ((CS_TYPE*) &CS_VAR_TYPE_L)) {
+        return strchr("l", *typeIdent) != NULL;
     } else if (
         arg->cstype == ((CS_TYPE*) &CS_VAR_TYPE_I) ||
-        arg->cstype == ((CS_TYPE*) &CS_VAR_TYPE_R)
+        arg->cstype == ((CS_TYPE*) &CS_VAR_TYPE_R) ||
+        arg->cstype == ((CS_TYPE*) &CS_VAR_TYPE_P)
     ) {
-        return strchr("kXUOJVPicmI", *typeIdent) != NULL;
+        return strchr("koXUOJVPicmI", *typeIdent) != NULL;
     }
 
     return 0;
@@ -146,9 +154,16 @@ static int check_satisfies_expected_output(
         return strchr("amXN", *typeIdent) != NULL;
     } else if (arg->cstype == ((CS_TYPE*) &CS_VAR_TYPE_K)) {
         return strchr("kzXN", *typeIdent) != NULL;
+    } else if (arg->cstype == ((CS_TYPE*) &CS_VAR_TYPE_B)) {
+        return strchr("B", *typeIdent) != NULL;
+    } else if (arg->cstype == ((CS_TYPE*) &CS_VAR_TYPE_b)) {
+        return strchr("Bb", *typeIdent) != NULL;
+    } else if (arg->cstype == ((CS_TYPE*) &CS_VAR_TYPE_L)) {
+        return strchr("l", *typeIdent) != NULL;
     } else if (
         arg->cstype == ((CS_TYPE*) &CS_VAR_TYPE_I) ||
-        arg->cstype == ((CS_TYPE*) &CS_VAR_TYPE_R)
+        arg->cstype == ((CS_TYPE*) &CS_VAR_TYPE_R) ||
+        arg->cstype == ((CS_TYPE*) &CS_VAR_TYPE_P)
     ) {
         return strchr("kzXNicmI", *typeIdent) != NULL;
     }
@@ -411,11 +426,15 @@ static CSOUND_ORC_ARGUMENT* resolve_single_argument_from_tree(
 
     args->append(csound, args, arg);
 
-    if (is_expression_node(tree)) {
-        int isPreparedTree = tree->left->value->lexeme[0] == '#';
+    if (is_expression_node(tree) || is_boolean_expression_node(tree)) {
+        int isBool = is_boolean_expression_node(tree);
+        int isPreparedTree = 0;
+        if (tree->left != NULL && tree->left->value != NULL) {
+            isPreparedTree = tree->left->value->lexeme[0] == '#';
+            arg->exprIdent = tree->left->value->lexeme;
+        }
         arg->isExpression = 1;
-        arg->exprIdent = tree->left->value->lexeme;
-        CONS_CELL* argList = csound->Malloc(csound, sizeof(CONS_CELL));
+
         CSOUND_ORC_ARGUMENTS* subExpr = new_csound_orc_arguments(csound);
 
         arg->SubExpression = get_arguments_from_tree(
@@ -428,7 +447,10 @@ static CSOUND_ORC_ARGUMENT* resolve_single_argument_from_tree(
 
         //printOrcArgs(arg->SubExpression);
 
-        char* opname = get_expression_opcode_type(csound, tree);
+        char* opname = isBool ? \
+            get_boolean_expression_opcode_type(csound, tree) : \
+            get_expression_opcode_type(csound, tree);
+
         OENTRIES* entries = find_opcode2(csound, opname);
         OENTRY* oentry = resolve_opcode_from_subexpression(
             csound,
@@ -473,7 +495,6 @@ static CSOUND_ORC_ARGUMENT* resolve_single_argument_from_tree(
     switch(tree->type) {
         case NUMBER_TOKEN:
         case INTEGER_TOKEN: {
-            // ident = csound->Strdup(csound, tree->value->lexeme);
             arg->cstype = (CS_TYPE*) &CS_VAR_TYPE_C;
             break;
         }
@@ -510,7 +531,20 @@ static CSOUND_ORC_ARGUMENT* resolve_single_argument_from_tree(
             }
             if (pnum(ident) >= 0) {
                 arg->cstype = (CS_TYPE*) &CS_VAR_TYPE_P;
-                arg->isPfield;
+                arg->isPfield = 1;
+
+                csoundAddVariable(
+                    csound,
+                    typeTable->localPool,
+                    csoundCreateVariable(
+                        csound,
+                        csound->typePool,
+                        arg->cstype,
+                        ident,
+                        0,
+                        NULL
+                    )
+                );
                 break;
             }
             if (shouldAddArgs && ident[0] != '#') {
@@ -701,8 +735,8 @@ int verify_opcode_2(
         typeTable,
         0
     );
-    //printOrcArgs(leftSideArgs);
-    //printOrcArgs(rightSideArgs);
+    // printOrcArgs(leftSideArgs);
+    // printOrcArgs(rightSideArgs);
 
     oentry = resolve_opcode_with_orc_args(
         csound,
