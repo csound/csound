@@ -33,7 +33,21 @@ extern int is_in_optional_arg(char*);
 extern int is_in_var_arg(char*);
 extern char* get_expression_opcode_type(CSOUND*, TREE*);
 extern char* get_boolean_expression_opcode_type(CSOUND*, TREE*);
-// extern char *strsav_string(CSOUND*, ENGINE_STATE*, char*);
+
+static CSOUND_ORC_ARGUMENT* new_csound_orc_argument(
+    CSOUND*,
+    CSOUND_ORC_ARGUMENTS*,
+    TREE*,
+    TYPE_TABLE*
+);
+
+static CS_VARIABLE* add_arg_to_pool(
+    CSOUND*,
+    TYPE_TABLE*,
+    char*,
+    char*,
+    int
+);
 
 // static int exprIdentCnt = 100;
 
@@ -68,6 +82,7 @@ static void printOrcArgs(
         printf("\t text: %s \n", arg->text);
         printf("\t exprIdent: %s \n", arg->exprIdent);
         printf("\t type: %s \n", arg->cstype->varTypeName);
+        printf("\t isGlobal: %d \n", arg->isGlobal);
         car = car->next;
         n += 1;
     }
@@ -104,6 +119,93 @@ void printNode(TREE* tree) {
 
 static int is_wildcard_type(char* typeIdent) {
   return strchr("?.*", *typeIdent) != NULL;
+}
+
+static int is_vararg_input_type(char* typeIdent) {
+  return strchr("MNmW", *typeIdent) != NULL;
+}
+
+static int fill_optional_inargs(
+    CSOUND* csound,
+    CSOUND_ORC_ARGUMENTS* args,
+    TYPE_TABLE* typeTable,
+    OENTRY* candidate
+) {
+    char temp[6];
+    char* current = candidate->intypes;
+    CONS_CELL* cdr = args->list;
+    CSOUND_ORC_ARGUMENT* currentArg = cdr->value;
+
+
+    // fast forward to the end
+    while (cdr != NULL && *current != '\0') {
+        cdr = cdr->next;
+        currentArg = cdr == NULL ? NULL : cdr->value;
+        current++;
+    }
+
+    while (cdr == NULL && *current != '\0') {
+        // end of explicit input
+        // handle optional args
+        CSOUND_ORC_ARGUMENT* optArg;
+        memset(temp, '\0', 6);
+        MYFLT optargValue = 0.0;
+
+        switch(*current) {
+            case 'O':
+            case 'o': {
+                optargValue = 0.0;
+                break;
+            }
+            case 'P':
+            case 'p': {
+                optargValue = 1.0;
+                break;
+            }
+            case 'q': {
+                optargValue = 10.0;
+                break;
+            }
+            case 'V':
+            case 'v': {
+                optargValue = 0.5;
+                break;
+            }
+            case 'h': {
+                optargValue = 127.0;
+                break;
+            }
+            case 'J':
+            case 'j': {
+                optargValue = -1.0;
+                break;
+            }
+            default: {
+                // not a mismatch if it's a vararg at the end
+                if (is_vararg_input_type(current)) {
+                    return 1;
+                } else {
+                    return 0;
+                }
+            }
+        }
+
+        cs_sprintf(temp, "%f", optargValue);
+        optArg = new_csound_orc_argument(
+            csound,
+            args,
+            NULL,
+            typeTable
+        );
+
+        optArg->text = csound->Strdup(csound, temp);
+        optArg->cstype = (CS_TYPE*) &CS_VAR_TYPE_C;
+        args->append(csound, args, optArg);
+        // add_arg_to_pool(csound, typeTable, optArg->text, NULL, 0);
+        current += 1;
+    }
+
+    return 1;
 }
 
 static int check_satisfies_expected_input(
@@ -179,7 +281,8 @@ static int check_satisfies_expected_output(
 OENTRY* resolve_opcode_from_subexpression(
     CSOUND* csound,
     OENTRIES* entries,
-    CSOUND_ORC_ARGUMENTS* subexpression
+    CSOUND_ORC_ARGUMENTS* subexpression,
+    TYPE_TABLE* typeTable
 ) {
     for (int i = 0; i < entries->count; i++) {
         OENTRY* temp = entries->entries[i];
@@ -207,7 +310,15 @@ OENTRY* resolve_opcode_from_subexpression(
             }
         }
 
-        if (matches) {
+        if (
+            matches &&
+            fill_optional_inargs(
+                csound,
+                subexpression,
+                typeTable,
+                temp
+            )
+        ) {
             return temp;
         }
     }
@@ -218,7 +329,8 @@ OENTRY* resolve_opcode_with_orc_args(
     CSOUND* csound,
     OENTRIES* entries,
     CSOUND_ORC_ARGUMENTS* inlist,
-    CSOUND_ORC_ARGUMENTS* outlist
+    CSOUND_ORC_ARGUMENTS* outlist,
+    TYPE_TABLE* typeTable
 ) {
     for (int i = 0; i < entries->count; i++) {
         OENTRY* temp = entries->entries[i];
@@ -239,16 +351,18 @@ OENTRY* resolve_opcode_with_orc_args(
             char* current = temp->intypes;
             CONS_CELL* cdr = inlist->list;
             CSOUND_ORC_ARGUMENT* currentArg = cdr->value;
-            while (currentArg != NULL && *current != '\0' ) {
+            while (currentArg != NULL && *current != '\0') {
                 if (check_satisfies_expected_input(currentArg, current)) {
                     inArgsMatch = 1;
                 } else {
                     inArgsMatch = 0;
                     break;
                 }
-                cdr = cdr->next;
+                cdr = cdr == NULL ? NULL : cdr->next;
                 currentArg = cdr == NULL ? NULL : (CSOUND_ORC_ARGUMENT*) cdr->value;
-                current++;
+                if (!is_vararg_input_type(current)) {
+                    current++;
+                }
             }
         }
 
@@ -269,7 +383,16 @@ OENTRY* resolve_opcode_with_orc_args(
             }
         }
 
-        if (inArgsMatch && outArgsMatch) {
+        if (
+            inArgsMatch &&
+            outArgsMatch &&
+            fill_optional_inargs(
+                csound,
+                inlist,
+                typeTable,
+                temp
+            )
+        ) {
             return temp;
         }
         // printf("entry doesn't match in: %s out: %s\n", temp->intypes, temp->outypes);
@@ -429,6 +552,8 @@ static CSOUND_ORC_ARGUMENT* resolve_single_argument_from_tree(
     if (is_expression_node(tree) || is_boolean_expression_node(tree)) {
         int isBool = is_boolean_expression_node(tree);
         int isPreparedTree = 0;
+        int isGlobal = 0;
+
         if (tree->left != NULL && tree->left->value != NULL) {
             isPreparedTree = tree->left->value->lexeme[0] == '#';
             arg->exprIdent = tree->left->value->lexeme;
@@ -436,6 +561,16 @@ static CSOUND_ORC_ARGUMENT* resolve_single_argument_from_tree(
         arg->isExpression = 1;
 
         CSOUND_ORC_ARGUMENTS* subExpr = new_csound_orc_arguments(csound);
+
+        if (!isPreparedTree && tree->left != NULL) {
+            subExpr = get_arguments_from_tree(
+                csound,
+                subExpr,
+                tree->left,
+                typeTable,
+                shouldAddArgs
+            );
+        }
 
         arg->SubExpression = get_arguments_from_tree(
             csound,
@@ -452,14 +587,34 @@ static CSOUND_ORC_ARGUMENT* resolve_single_argument_from_tree(
             get_expression_opcode_type(csound, tree);
 
         OENTRIES* entries = find_opcode2(csound, opname);
+
+        if (UNLIKELY(entries == NULL || entries->count == 0)) {
+            synterr(
+                csound,
+                Str("Line %d unable to find opcode '%s'"),
+                tree->line - 1,
+                opname
+            );
+            if (entries != NULL) {
+                csound->Free(csound, entries);
+            }
+            return NULL;
+        }
+
         OENTRY* oentry = resolve_opcode_from_subexpression(
             csound,
             entries,
-            arg->SubExpression
+            arg->SubExpression,
+            typeTable
         );
-        // TODO: handle no match
+
         if (oentry == NULL) {
-            printf("NO matching oentry in expr %s\n", opname);
+            synterr(
+                csound,
+                Str("Line %d no arguments match opcode '%s'"),
+                tree->line - 1,
+                opname
+            );
             return 0;
         }
 
@@ -515,7 +670,7 @@ static CSOUND_ORC_ARGUMENT* resolve_single_argument_from_tree(
             }
             if (is_label(ident, typeTable->labelList)) {
                 arg->cstype = (CS_TYPE*) &CS_VAR_TYPE_L;
-                break;
+                return arg;
             }
             if (
                 (*ident >= '1' && *ident <= '9') ||
@@ -547,6 +702,9 @@ static CSOUND_ORC_ARGUMENT* resolve_single_argument_from_tree(
                 );
                 break;
             }
+            if (*ident == 'g' || is_reserved(ident)) {
+                arg->isGlobal = 1;
+            }
             if (shouldAddArgs && ident[0] != '#') {
                 char* annotation = NULL;
                 if (tree->value->optype != NULL) {
@@ -565,7 +723,7 @@ static CSOUND_ORC_ARGUMENT* resolve_single_argument_from_tree(
 
             var = csoundFindVariableWithName(
                 csound,
-                typeTable->localPool,
+                arg->isGlobal ? typeTable->globalPool : typeTable->localPool,
                 ident
             );
 
@@ -574,7 +732,7 @@ static CSOUND_ORC_ARGUMENT* resolve_single_argument_from_tree(
                 break;
             }
 
-            if (*ident == 'g' || is_reserved(ident)) {
+            if (arg->isGlobal) {
                 var = csoundFindVariableWithName(
                     csound,
                     csound->engineState.varPool,
@@ -587,9 +745,6 @@ static CSOUND_ORC_ARGUMENT* resolve_single_argument_from_tree(
                         typeTable->globalPool,
                         ident
                     );
-                    if (var != NULL) {
-                        arg->isGlobal = 1;
-                    }
                 }
             } else {
                 var = csoundFindVariableWithName(
@@ -601,13 +756,15 @@ static CSOUND_ORC_ARGUMENT* resolve_single_argument_from_tree(
             if (UNLIKELY(var == NULL)) {
                 synterr(
                     csound,
-                    Str("Variable '%s' used before defined\n"
-                        "Line %d\n"
-                    ),
-                    tree->value->lexeme,
-                    tree->line - 1
+                    Str("\nLine %d variable '%s' used before defined\n"),
+                    tree->line - 1,
+                    tree->value->lexeme
                 );
                 return NULL;
+            }
+
+            if (arg->cstype == NULL) {
+                arg->cstype = var->varType;
             }
         }
     }
@@ -704,16 +861,22 @@ int verify_opcode_2(
 ) {
     if (root->value == NULL) return 0;
     OENTRIES* entries = find_opcode2(csound, root->value->lexeme);
-    OENTRY* oentry = entries->entries[0];
 
     if (UNLIKELY(entries == NULL || entries->count == 0)) {
-        synterr(csound, Str("Unable to find opcode with name: %s\n"),
-                root->value->lexeme);
+        synterr(
+            csound,
+            Str("Line %d unable to find opcode '%s'"),
+            root->line,
+            root->value->lexeme
+        );
+
         if (entries != NULL) {
             csound->Free(csound, entries);
         }
         return 0;
     }
+
+    OENTRY* oentry = entries->entries[0];
 
     CSOUND_ORC_ARGUMENTS* argsLeft = new_csound_orc_arguments(csound);
     CSOUND_ORC_ARGUMENTS* argsRight = new_csound_orc_arguments(csound);
@@ -742,11 +905,11 @@ int verify_opcode_2(
         csound,
         entries,
         rightSideArgs,
-        leftSideArgs
+        leftSideArgs,
+        typeTable
     );
 
-    if (oentry == NULL) {
-        printf("NO matching oentry %s\n", root->value->lexeme);
+    if (UNLIKELY(oentry == NULL)) {
         return 0;
     }
 

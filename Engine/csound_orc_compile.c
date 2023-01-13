@@ -433,9 +433,6 @@ OPTXT *create_opcode(CSOUND *csound, TREE *root, INSTRTXT *ip,
     tp->oentry = labelOpcode;
     tp->opcod = strsav_string(csound, engineState, root->value->lexeme);
 
-    tp->outlist = root->outlist;
-    tp->inlist = root->inlist;
-
     // ip->mdepends |= labelOpcode->flags;
     ip->opdstot += labelOpcode->dsblksiz;
 
@@ -1976,7 +1973,6 @@ static void insprep(CSOUND *csound, INSTRTXT *tp, ENGINE_STATE *engineState)
   OPARMS *O = csound->oparms;
   OPTXT *optxt;
   OENTRY *ep;
-  char **argp;
 
   int n, inreqd;
   CSOUND_ORC_ARGUMENTS *outlist, *inlist;
@@ -2028,12 +2024,11 @@ static void insprep(CSOUND *csound, INSTRTXT *tp, ENGINE_STATE *engineState)
         if (orcArg->cstype == (CS_TYPE*) &CS_VAR_TYPE_L) {
           arg = csound->Calloc(csound, sizeof(ARG));
           arg->type = ARG_LABEL;
-          arg->argPtr = csound->Malloc(csound, strlen(*argp) + 1);
-          strcpy(arg->argPtr, *argp);
+          arg->argPtr = csound->Malloc(csound, strlen(orcArg->text) + 1);
+          strcpy(arg->argPtr, orcArg->text);
           if (UNLIKELY(O->odebug))
-            csound->Message(csound, "\t%s:", *argp); /* if arg is label,  */
+            csound->Message(csound, "\t%s:", orcArg->text); /* if arg is label,  */
         } else {
-          char *s = *argp;
           arg = createArg(csound, tp, orcArg, engineState);
         }
 

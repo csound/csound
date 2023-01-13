@@ -2605,11 +2605,11 @@ TREE* verify_tree(CSOUND * csound, TREE *root, TYPE_TABLE* typeTable)
       if (current == NULL) {
         return 0;
       }
-      verify_opcode_2(csound, current, typeTable);
+      // verify_opcode_2(csound, current, typeTable);
       // return 0;
-      // if(!verify_opcode_2(csound, current, typeTable)) {
-      //   return 0;
-      // }
+      if(!verify_opcode_2(csound, current, typeTable)) {
+        return 0;
+      }
 
       // if(!verify_opcode(csound, current, typeTable)) {
       //   return 0;
@@ -2624,9 +2624,6 @@ TREE* verify_tree(CSOUND * csound, TREE *root, TYPE_TABLE* typeTable)
 
         continue;
       }
-      // else {
-      //   handle_optional_args(csound, current);
-      // }
     }
 
     if (anchor == NULL) {
