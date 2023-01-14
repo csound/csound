@@ -36,6 +36,7 @@ typedef struct csorcarg {
     int      isPfield;
     int      isExpression;
     int      dimensions;  // 0 scalar, 1 or more means n-dimenional array
+    int      dimension;  // ex. ix[0] is dimension 1 of 1 dimensional array
     int      linenum;
     struct csorcargs* SubExpression; // when the argument itself is an expr
 } CSOUND_ORC_ARGUMENT;

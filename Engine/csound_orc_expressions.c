@@ -781,11 +781,19 @@ static TREE *create_expression(CSOUND *csound, TREE *root, int line, int locn,
         if (var->varType->userDefinedType == 1) {
           outarg = create_out_arg(csound, outype, typeTable->localPool->synthArgCount++, typeTable);
           break;
-        } else if (var->varType == &CS_VAR_TYPE_A && var->dimension == 0) {
+        } else if (var->varType == &CS_VAR_TYPE_A || var->varType == &CS_VAR_TYPE_K) {
           outype = "k";
+        } else if (var->varType == &CS_VAR_TYPE_I) {
+          outype = "i";
+        } else if (var->varType == &CS_VAR_TYPE_K) {
+          outype = "k";
+        } else if (var->varType == &CS_VAR_TYPE_S) {
+          outype = "S";
+        } else if (var->varType == &CS_VAR_TYPE_F) {
+          outype = "f";
         } else {
           synterr(csound,
-                  Str("invalid array type %s line %d\n"), var->varType->varTypeName, current->line);
+                  Str("invalid array type %s line %d\n"), var->varType->varTypeName, root->line);
           return NULL;
         }
       }

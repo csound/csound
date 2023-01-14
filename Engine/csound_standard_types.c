@@ -172,7 +172,10 @@ void varInitMemoryFsig(CSOUND *csound, CS_VARIABLE* var, MYFLT* memblock) {
 
 /* CREATE VAR FUNCTIONS */
 
-CS_VARIABLE* createAsig(void* cs, void* p, int _) {
+CS_VARIABLE* createAsig(void* cs, void* p, int dimensions) {
+    if (dimensions > 0) {
+        return createArray(cs, p, dimensions);
+    }
     int ksmps;
     CSOUND* csound = (CSOUND*)cs;
     IGN(p);
@@ -193,7 +196,10 @@ CS_VARIABLE* createAsig(void* cs, void* p, int _) {
     return var;
 }
 
-CS_VARIABLE* createMyflt(void* cs, void* p, int _) {
+CS_VARIABLE* createMyflt(void* cs, void* p, int dimensions) {
+    if (dimensions > 0) {
+        return createArray(cs, p, dimensions);
+    }
     CSOUND* csound = (CSOUND*)cs;
     CS_VARIABLE* var = csound->Calloc(csound, sizeof (CS_VARIABLE));
     IGN(p);
@@ -202,7 +208,10 @@ CS_VARIABLE* createMyflt(void* cs, void* p, int _) {
     return var;
 }
 
-CS_VARIABLE* createBool(void* cs, void* p, int _) {
+CS_VARIABLE* createBool(void* cs, void* p, int dimensions) {
+    if (dimensions > 0) {
+        return createArray(cs, p, dimensions);
+    }
     CSOUND* csound = (CSOUND*)cs;
     CS_VARIABLE* var = csound->Calloc(csound, sizeof (CS_VARIABLE));
     IGN(p);
@@ -211,7 +220,10 @@ CS_VARIABLE* createBool(void* cs, void* p, int _) {
     return var;
 }
 
-CS_VARIABLE* createWsig(void* cs, void* p, int _) {
+CS_VARIABLE* createWsig(void* cs, void* p, int dimensions) {
+    if (dimensions > 0) {
+        return createArray(cs, p, dimensions);
+    }
     CSOUND* csound = (CSOUND*)cs;
     CS_VARIABLE* var = csound->Calloc(csound, sizeof (CS_VARIABLE));
     IGN(p);
@@ -220,7 +232,10 @@ CS_VARIABLE* createWsig(void* cs, void* p, int _) {
     return var;
 }
 
-CS_VARIABLE* createFsig(void* cs, void* p, int _) {
+CS_VARIABLE* createFsig(void* cs, void* p, int dimensions) {
+    if (dimensions > 0) {
+        return createArray(cs, p, dimensions);
+    }
     CSOUND* csound = (CSOUND*)cs;
     CS_VARIABLE* var = csound->Calloc(csound, sizeof (CS_VARIABLE));
     IGN(p);
@@ -230,7 +245,10 @@ CS_VARIABLE* createFsig(void* cs, void* p, int _) {
 }
 
 
-CS_VARIABLE* createString(void* cs, void* p, int _) {
+CS_VARIABLE* createString(void* cs, void* p, int dimensions) {
+    if (dimensions > 0) {
+        return createArray(cs, p, dimensions);
+    }
     CSOUND* csound = (CSOUND*)cs;
     CS_VARIABLE* var = csound->Calloc(csound, sizeof (CS_VARIABLE));
     IGN(p);
@@ -247,11 +265,11 @@ CS_VARIABLE* createArray(void* csnd, void* p, int dimensions) {
     CS_VARIABLE* var = csound->Calloc(csound, sizeof (CS_VARIABLE));
     var->memBlockSize = CS_FLOAT_ALIGN(sizeof(ARRAYDAT));
     var->initializeVariableMemory = &arrayInitMemory;
+    var->dimensions = dimensions;
 
     if (state) { // NB: this function is being called with p=NULL
       CS_TYPE* type = state->type;
       var->varType = type;
-      var->dimensions = dimensions;
     }
     return var;
 }

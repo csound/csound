@@ -1044,8 +1044,15 @@ void free_instr_var_memory(CSOUND* csound, INSDS* ip) {
   while (current != NULL) {
     CS_TYPE* varType = current->varType;
     if (varType->freeVariableMemory != NULL) {
-      varType->freeVariableMemory(csound,
-                                  ip->lclbas + current->memBlockIndex);
+      if (current->dimensions == 0) {
+        varType->freeVariableMemory(
+          csound,
+          ip->lclbas + current->memBlockIndex
+        );
+      } else {
+        array_free_var_mem(csound, ip->lclbas + current->memBlockIndex);
+      }
+
     }
     current = current->next;
   }

@@ -2184,12 +2184,24 @@ static ARG *createArg(
       ident,
       cs_strtod(ident, NULL)
     );
-  } else if (parsedArg->cstype == &CS_VAR_TYPE_S) {
+  } else if (parsedArg->type == STRING_TOKEN) {
+    size_t memSize = CS_VAR_TYPE_OFFSET + sizeof(STRINGDAT);
+    CS_VAR_MEM *varMem = csound->Calloc(csound, memSize);
+    STRINGDAT *str = (STRINGDAT *)&varMem->value;
+    // printf("create string %p: %s\n", arg, str->data);
+    varMem->varType = (CS_TYPE *)&CS_VAR_TYPE_S;
     arg->type = ARG_STRING;
-    // FIME: HLOLLI
-    // size_t memSize = CS_VAR_TYPE_OFFSET + sizeof(STRINGDAT);
-    // CS_VAR_MEM *varMem = csound->Calloc(csound, memSize);
-    // STRINGDAT *str = (STRINGDAT *)&varMem->value;
+    temp = csound->Calloc(csound, strlen(parsedArg->text) + 1);
+    unquote_string(temp, parsedArg->text);
+    str->data =
+      cs_hash_table_get_key(csound, csound->engineState.stringPool, temp);
+    str->size = strlen(temp) + 1;
+    csound->Free(csound, temp);
+    arg->argPtr = str;
+    if (str->data == NULL) {
+      str->data = cs_hash_table_put_key(csound, engineState->stringPool, temp);
+    }
+    return arg;
   } else if (parsedArg->cstype == &CS_VAR_TYPE_P) {
     arg->type = ARG_PFIELD;
     arg->index = pnum(ident);
