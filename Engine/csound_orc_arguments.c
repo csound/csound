@@ -137,7 +137,7 @@ static int fill_optional_inargs(
     char temp[6];
     char* current = candidate->intypes;
     CONS_CELL* cdr = args->list;
-    CSOUND_ORC_ARGUMENT* currentArg = cdr->value;
+    CSOUND_ORC_ARGUMENT* currentArg = cdr != NULL ? cdr->value : NULL;
 
 
     // fast forward to the end
@@ -229,9 +229,9 @@ static int check_satisfies_expected_input(
     ) {
         return 1;
     } else if (arg->cstype == ((CS_TYPE*) &CS_VAR_TYPE_A)) {
-        return strchr("aXMyx", *typeIdent) != NULL;
+        return strchr("aXMNyx", *typeIdent) != NULL;
     } else if (arg->cstype == ((CS_TYPE*) &CS_VAR_TYPE_K)) {
-        return strchr("kmxXUOJVP", *typeIdent) != NULL;
+        return strchr("kmxzXUOJVPN", *typeIdent) != NULL;
     } else if (arg->cstype == ((CS_TYPE*) &CS_VAR_TYPE_B)) {
         return strchr("B", *typeIdent) != NULL;
     } else if (arg->cstype == ((CS_TYPE*) &CS_VAR_TYPE_b)) {
@@ -239,13 +239,13 @@ static int check_satisfies_expected_input(
     } else if (arg->cstype == ((CS_TYPE*) &CS_VAR_TYPE_L)) {
         return strchr("l", *typeIdent) != NULL;
     } else if (arg->cstype == ((CS_TYPE*) &CS_VAR_TYPE_S)) {
-        return strchr("S", *typeIdent) != NULL;
+        return strchr("SN", *typeIdent) != NULL;
     } else if (
         arg->cstype == ((CS_TYPE*) &CS_VAR_TYPE_I) ||
         arg->cstype == ((CS_TYPE*) &CS_VAR_TYPE_R) ||
         arg->cstype == ((CS_TYPE*) &CS_VAR_TYPE_P)
     ) {
-        return strchr("koXUOJVPicmIz", *typeIdent) != NULL;
+        return strchr("koXUOJVPNicmIz", *typeIdent) != NULL;
     }
 
     return 0;
@@ -368,14 +368,14 @@ OENTRY* resolve_opcode_with_orc_args(
             char* current = temp->intypes;
             CONS_CELL* cdr = inlist->list;
             CSOUND_ORC_ARGUMENT* currentArg = cdr->value;
-            while (currentArg->isExpression) {
-                // the last statement is the returned
-                currentArg = currentArg->SubExpression->nth(
-                    currentArg->SubExpression,
-                    currentArg->SubExpression->length - 1
-                );
-            }
             while (currentArg != NULL && *current != '\0') {
+                while (currentArg->isExpression) {
+                    // the last statement is the returned
+                    currentArg = currentArg->SubExpression->nth(
+                        currentArg->SubExpression,
+                        currentArg->SubExpression->length - 1
+                    );
+                }
                 int dimensionsNeeded = currentArg->dimensions - currentArg->dimension;
                 int dimensionsFound = 0;
                 if (check_satisfies_expected_input(currentArg, current)) {
@@ -1024,6 +1024,7 @@ int verify_opcode_2(
     );
 
     if (UNLIKELY(oentry == NULL)) {
+        // TODO: create nicer left/right strings with all args
         int i;
         synterr(
             csound,
