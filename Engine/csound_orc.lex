@@ -29,7 +29,7 @@
 #include <stdlib.h>
 #include <ctype.h>
 #include "csoundCore.h"
-// to shut up the lexer writing to stdout   
+// to shut up the lexer writing to stdout
 #define ECHO if(csound->oparms->odebug) { csoundErrorMsg(csound, "%s", "--lexer echo:"); \
              fwrite(yytext, (size_t) yyleng, 1, stderr); \
              csoundErrorMsg(csound, "%s", "--\n");}
@@ -73,7 +73,7 @@ int get_next_char(char *, int, struct yyguts_t*);
 %option outfile="Engine/csound_orclex.c"
 %option stdout
 %option 8bit
-   /* to avoid unused function errors */  
+   /* to avoid unused function errors */
 %option nounput
 
 IDENT           [a-zA-Z_][a-zA-Z0-9_]*
@@ -101,6 +101,7 @@ SYMBOL          [\[\]+\-*/%\^\?:.,!]
 %x xstr
 %x udodef
 %x udoarg
+%x forloop
 
 %%
 <*>"\r"            { } /* EATUP THIS PART OF WINDOWS NEWLINE */
@@ -130,7 +131,7 @@ SYMBOL          [\[\]+\-*/%\^\?:.,!]
 "|"             { return '|'; }
 "&"             { return '&'; }
 "#"             { return '#'; }
-"¬"             { return '~'; } /* \xC2?\xAC */
+"Â¬"            { return '~'; } /* \xC2?\xAC */
 "~"             { return '~'; }
 
 "@@"{OPTWHITE}{INTGR}     { *lvalp = do_at(csound, 1, yyg); return INTEGER_TOKEN; }
@@ -208,6 +209,27 @@ SYMBOL          [\[\]+\-*/%\^\?:.,!]
                   PARM->xstrbuff[PARM->xstrptr] = '\0';
                   BEGIN(xstr);
                 }
+
+"for"           {  *lvalp = make_token(csound, yytext);
+                   (*lvalp)->type = FOR_TOKEN;
+                   BEGIN(forloop);
+                   return FOR_TOKEN; }
+
+<forloop>{
+
+  [ \t]*          /* eat the whitespace */
+  {IDENT}/[ \t]   { char *pp = yytext;
+                    while (*pp==' ' || *pp=='\t') pp++;
+                    *lvalp = make_token(csound, pp);
+                    if (strcmp(pp, "in") == 0) {
+                      BEGIN(INITIAL);
+                      return IN_TOKEN;
+                    } else {
+                      return T_IDENT;
+                    }
+                  }
+
+}
 
 <xstr>{
 

@@ -321,6 +321,7 @@ int insert_event(CSOUND *csound, int insno, EVTBLK *newevtp)
   int tie=0, i;
   int  n, error = 0;
   MYFLT  *flp, *fep;
+  MYFLT newp1 = 0;
 
   if (UNLIKELY(csound->advanceCnt))
     return 0;
@@ -362,8 +363,9 @@ int insert_event(CSOUND *csound, int insno, EVTBLK *newevtp)
   }
   /* If named ensure we have the fraction */
   if (csound->engineState.instrtxtp[insno]->insname && newevtp->strarg)
-    newevtp->p[1] = named_instr_find(csound, newevtp->strarg);
+    newp1 = named_instr_find(csound, newevtp->strarg);
 
+  newevtp->p[1] = newp1 != 0 ? newp1 : newevtp->p[1] ;
   /* if find this insno, active, with indef (tie) & matching p1 */
   for (ip = tp->instance; ip != NULL; ip = ip->nxtinstance) {
     if (ip->actflg && ip->offtim < 0.0 && ip->p1.value == newevtp->p[1]) {

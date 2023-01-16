@@ -59,7 +59,8 @@ struct TrigLinseg : csnd::Plugin<1, 64>
 
     int kperf()
     {
-        outargs[0] = envGenerator (nsmps);
+       for (uint32_t i = offset; i < nsmps; i++)
+            outargs[0] = envGenerator (1);
         return OK;
     }
 
@@ -153,7 +154,8 @@ struct TrigExpseg : csnd::Plugin<1, 64>
 
     int kperf()
     {
-        outargs[0] = envGenerator (nsmps);
+        for (uint32_t i = offset; i < nsmps; i++)
+            outargs[0] = envGenerator (1);
         return OK;
     }
 
