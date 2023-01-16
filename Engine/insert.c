@@ -314,6 +314,7 @@ int insert_event(CSOUND *csound, int insno, EVTBLK *newevtp)
   int tie=0, i;
   int  n, error = 0;
   MYFLT  *flp, *fep;
+  MYFLT newp1 = 0.;
   //MYFLT  p1copy = newevtp->p[1];
 
    
@@ -357,7 +358,6 @@ int insert_event(CSOUND *csound, int insno, EVTBLK *newevtp)
     return(0);
   }
   /* If named ensure we have the fraction */
-  MYFLT newp1 = 0.;
   if (csound->engineState.instrtxtp[insno]->insname && newevtp->strarg)
     newp1 = named_instr_find(csound, newevtp->strarg);
 
