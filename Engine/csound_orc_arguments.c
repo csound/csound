@@ -59,6 +59,7 @@ static CSOUND_ORC_ARGUMENTS* get_arguments_from_tree(
     int isAssignee
 );
 
+/*
 static void printOrcArgs(
     CSOUND_ORC_ARGUMENTS* args
 ) {
@@ -83,6 +84,7 @@ static void printOrcArgs(
         n += 1;
     }
 }
+*/
 
 void printNode(TREE* tree) {
     printf("== BEG ==\n");
@@ -129,7 +131,7 @@ static int is_unary_token_type(int tokenType) {
 
 static int is_legacy_t_rate_ident(char* ident) {
   char* token = ident;
-  int isTrate = 0;
+
   if (*token == '#') {
     token += 1;
   }
@@ -148,13 +150,10 @@ static int fill_optional_inargs(
     char temp[6];
     char* current = candidate->intypes;
     CONS_CELL* cdr = args->list;
-    CSOUND_ORC_ARGUMENT* currentArg = cdr != NULL ? cdr->value : NULL;
-
 
     // fast forward to the end
     while (cdr != NULL && *current != '\0') {
         cdr = cdr->next;
-        currentArg = cdr == NULL ? NULL : cdr->value;
         current++;
         while (*current == '[' || *current == ']') {
             current += 1;
@@ -287,7 +286,7 @@ static int check_satisfies_expected_output(
     } else if (arg->cstype == ((CS_TYPE*) &CS_VAR_TYPE_L)) {
         return strchr("l", *typeIdent) != NULL;
     } else if (arg->cstype == ((CS_TYPE*) &CS_VAR_TYPE_S)) {
-        return strchr("SN", *typeIdent) != NULL;
+        return strchr("SNI", *typeIdent) != NULL;
     } else if (
         arg->cstype == ((CS_TYPE*) &CS_VAR_TYPE_I) ||
         arg->cstype == ((CS_TYPE*) &CS_VAR_TYPE_R) ||
@@ -573,7 +572,6 @@ static CSOUND_ORC_ARGUMENT* resolve_single_argument_from_tree(
     if (is_expression_node(tree) || is_boolean_expression_node(tree)) {
         int isBool = is_boolean_expression_node(tree);
         int isPreparedTree = 0;
-        int isGlobal = 0;
         int isFunCall = tree->type == T_FUNCTION;
 
         if (tree->left != NULL && tree->left->value != NULL) {
@@ -837,9 +835,6 @@ static CSOUND_ORC_ARGUMENT* resolve_single_argument_from_tree(
                     annotation = tree->value->optype;
                 }
 
-                CS_VAR_POOL* pool = arg->isGlobal ? \
-                    typeTable->globalPool : typeTable->localPool;
-
                 if (is_legacy_t_rate_ident(ident)) {
                     arg->cstype = (CS_TYPE*)&CS_VAR_TYPE_K;
                     arg->dimensions = 1;
@@ -1040,9 +1035,6 @@ OENTRY* maybe_fix_opcode_resolution(
     TYPE_TABLE* typeTable,
     char* opcodeString
 ) {
-    OENTRIES* entries;
-    OENTRY* oentry;
-    char tmp[24];
 
     if (
         *opcodeString == '=' &&

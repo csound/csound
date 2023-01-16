@@ -263,7 +263,7 @@ int init0(CSOUND *csound)
 
 static void putop(CSOUND *csound, TEXT *tp)
 {
-  int n, nn;
+  int n;
 
   if ((n = tp->outlist->length) != 0) {
     CONS_CELL* cdr = tp->outlist->list;

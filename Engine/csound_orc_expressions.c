@@ -1609,7 +1609,8 @@ TREE* expand_for_statement(
   loopLabel->type = LABEL_TOKEN;
   loopLabel->value->type = LABEL_TOKEN;
   CS_VARIABLE *loopLabelVar = csoundCreateVariable(
-      csound, csound->typePool, isPerfRate ? kType : iType, loopLabel->value->lexeme, NULL);
+      csound, csound->typePool, isPerfRate ? kType : iType,
+      loopLabel->value->lexeme, 0, NULL);
   csoundAddVariable(csound, typeTable->localPool, loopLabelVar);
   typeTable->labelList = cs_cons(csound,
                                  cs_strdup(csound, loopLabel->value->lexeme),

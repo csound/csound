@@ -33,7 +33,6 @@
 
 int32_t printv(CSOUND *csound, PRINTV *p)
 {
-    int32_t    nargs   = p->INOCOUNT;
     CONS_CELL* arglist = p->h.optext->t.inlist->list;
     MYFLT  **valp = p->iargs;
 
@@ -301,7 +300,7 @@ int32_t fftset(CSOUND *csound, DSPFFT *p) /* fftset, dspfft -- calc Fast Fourier
       }
       CSOUND_ORC_ARGUMENT* arg = p->h.optext->t.inlist->list->value;
       snprintf(strmsg, 256, Str("instr %s, signal %s, fft (%s):"),
-               (int32_t) p->h.insdshead->p1.value, arg,
+               (char*) &p->h.insdshead->p1.value, arg->text,
                p->dbout ? Str("db") : Str("mag"));
       if (maxbin == 0) maxbin = p->ncoefs;
       if (minbin > maxbin) minbin = 0;

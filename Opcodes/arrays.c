@@ -319,9 +319,6 @@ static int32_t array_get(CSOUND* csound, ARRAY_GET *p)
     int32_t index;
     int32_t indefArgCount = p->INOCOUNT - 1;
 
-    ARG* arg = p->h.optext->t.outArgs;
-    CS_VARIABLE* var = (CS_VARIABLE*) arg->argPtr;
-
     if (UNLIKELY(indefArgCount == 0))
       return csound->PerfError(csound, &(p->h),
                                Str("Error: no indexes set for array get"));
@@ -475,11 +472,8 @@ static int32_t tabadd(CSOUND *csound, TABARITH *p)
     ARRAYDAT *r   = p->right;
     int32_t sizel    = l->sizes[0];
     int32_t sizer    = r->sizes[0];
-    int32_t i, incr, offset;
+    int32_t i;
 
-    for (i=0; i<sizel; i++) {
-      MYFLT* ansData = &ans->data[i];
-    }
     if (UNLIKELY(ans->data == NULL || l->data==NULL || r->data==NULL))
       return csound->PerfError(csound, &(p->h),
                                Str("array-variable not initialised"));

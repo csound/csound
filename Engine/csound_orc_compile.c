@@ -408,10 +408,8 @@ char* get_struct_expr_string(CSOUND* csound, TREE* structTree) {
 OPTXT *create_opcode(CSOUND *csound, TREE *root, INSTRTXT *ip,
                      ENGINE_STATE *engineState) {
   TEXT *tp;
-  TREE *inargs, *outargs;
   OPTXT *optxt;
-  char *arg;
-  int n; // nreqd;
+
   optxt = (OPTXT *)csound->Calloc(csound, (int32)sizeof(OPTXT));
   tp = &(optxt->t);
   tp->linenum = root->line; tp->locn = root->locn;
@@ -829,18 +827,11 @@ INSTRTXT *create_instrument0(CSOUND *csound, TREE *root,
 INSTRTXT *create_global_instrument(CSOUND *csound, TREE *root,
                                    ENGINE_STATE *engineState,
                                    CS_VAR_POOL *varPool) {
-  INSTRTXT *ip;
-  OPTXT *op;
-  TREE *current;
-
   //csound->inZero = 1;
   find_or_add_constant(csound, engineState->constantsPool, "0", 0);
 
-  ip = (INSTRTXT *)csound->Calloc(csound, sizeof(INSTRTXT));
+  INSTRTXT *ip = (INSTRTXT *)csound->Calloc(csound, sizeof(INSTRTXT));
   ip->varPool = varPool;
-  op = (OPTXT *)ip;
-
-  current = root;
 
   /* initialize */
   // ip->mdepends = 0;
@@ -1973,8 +1964,6 @@ static void insprep(CSOUND *csound, INSTRTXT *tp, ENGINE_STATE *engineState)
   OPARMS *O = csound->oparms;
   OPTXT *optxt;
   OENTRY *ep;
-
-  int n, inreqd;
   CSOUND_ORC_ARGUMENTS *outlist, *inlist;
   CONS_CELL* cdr;
 
@@ -2168,9 +2157,7 @@ static ARG *createArg(
   CSOUND_ORC_ARGUMENT* parsedArg,
   ENGINE_STATE *engineState
 ) {
-  char c;
   char *temp;
-  int n;
 
   ARG *arg = csound->Calloc(csound, sizeof(ARG));
   CS_VAR_POOL* pool = NULL;
@@ -2217,7 +2204,6 @@ static ARG *createArg(
   if (pool != NULL) {
     arg->argPtr = csoundFindVariableWithName(csound, pool, ident);
   }
-  CS_VARIABLE* var = arg->argPtr;
 
   if (arg->argPtr == NULL) {
     csound->Message(csound, Str("Missing local arg: %s\n"), ident);
