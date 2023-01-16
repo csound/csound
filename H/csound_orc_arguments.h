@@ -29,7 +29,7 @@
 
 typedef struct csorcarg {
     char*    text;        // human readable text
-    char*    exprIdent;   // name with which to find the expression result in pools
+    char*    uid;         // string with which to find the expression result in pools
     CS_TYPE* cstype;
     int      type;        // token-type
     int      isGlobal;

@@ -469,7 +469,7 @@ OPTXT *create_opcode(CSOUND *csound, TREE *root, INSTRTXT *ip,
         lgbuild(
           csound,
           ip,
-          orcArg->isExpression ? orcArg->exprIdent : orcArg->text,
+          orcArg->text,
           1,
           engineState
         );
@@ -2174,7 +2174,7 @@ static ARG *createArg(
 
   ARG *arg = csound->Calloc(csound, sizeof(ARG));
   CS_VAR_POOL* pool = NULL;
-  char* ident = parsedArg->isExpression == 1 ? parsedArg->exprIdent : parsedArg->text;
+  char* ident = parsedArg->text;
 
   if (parsedArg->cstype == &CS_VAR_TYPE_C) {
     arg->type = ARG_CONSTANT;
@@ -2217,6 +2217,7 @@ static ARG *createArg(
   if (pool != NULL) {
     arg->argPtr = csoundFindVariableWithName(csound, pool, ident);
   }
+  CS_VARIABLE* var = arg->argPtr;
 
   if (arg->argPtr == NULL) {
     csound->Message(csound, Str("Missing local arg: %s\n"), ident);

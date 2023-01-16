@@ -178,22 +178,6 @@ CS_VARIABLE* csoundFindVariableWithName(CSOUND* csound, CS_VAR_POOL* pool,
     return returnValue;
 }
 
-CS_VARIABLE* csoundFindVariableWithNameAndDimension(
-  CSOUND* csound,
-  CS_VAR_POOL* pool,
-  const char* name,
-  int dimension
-) {
-
-    CS_VARIABLE* returnValue = cs_hash_table_get(csound, pool->table, (char*)name);
-
-    if (returnValue == NULL && pool->parent != NULL) {
-      returnValue = csoundFindVariableWithName(csound, pool->parent, name);
-    }
-
-    return returnValue;
-}
-
 CS_VARIABLE* csoundGetVariable(CS_VAR_POOL* pool, int index) {
 
     CS_VARIABLE* current = pool->head;

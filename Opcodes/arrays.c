@@ -113,7 +113,9 @@ static int32_t array_init(CSOUND *csound, ARRAYINIT *p)
     }
 
     {
-      CS_VARIABLE* var = arrayDat->arrayType->createVariable(csound,arrayDat->arrayType, inArgCount);
+      CS_VARIABLE* var = arrayDat->arrayType->createVariable(
+        csound,arrayDat->arrayType, inArgCount
+      );
       char *mem;
       arrayDat->arrayMemberSize = var->memBlockSize;
       arrayDat->data = csound->Calloc(csound,
@@ -134,12 +136,6 @@ static int32_t tabfill(CSOUND *csound, TABFILL *p)
     size_t memMyfltSize;
     MYFLT  **valp = p->iargs;
     tabinit(csound, p->ans, nargs);
-/*     if (UNLIKELY(p->ans->dimensions > 2)) { */
-/*       return */
-/*         csound->InitError(csound, "%s", */
-/*                           Str("fillarrray: arrays with dim > 2 not " */
-/*                               "currently supported\n")); */
-/*     } */
     size = p->ans->sizes[0];
     for (i=1; i<p->ans->dimensions; i++) size *= p->ans->sizes[i];
     if (size<nargs) nargs = size;
@@ -284,14 +280,10 @@ static int32_t array_err(CSOUND* csound, ARRAY_SET *p)
 static int32_t array_set(CSOUND* csound, ARRAY_SET *p)
 {
     ARRAYDAT* dat = p->arrayDat;
-    MYFLT* mem = dat->data;
+    MYFLT* mem;
     int32_t i;
-    int32_t end, index, incr;
-
+    int32_t end, index;
     int32_t indefArgCount = p->INOCOUNT - 2;
-
-    //printf("*** value=%f, index = [%d][%d][%d]\n", *(double*)p->value,
-    //       (int)(*p->indexes[0]), (int)(*p->indexes[1]), (int)(*p->indexes[2]));
 
     if (UNLIKELY(indefArgCount == 0)) {
       csoundErrorMsg(csound, Str("Error: no indexes set for array set\n"));
@@ -306,34 +298,29 @@ static int32_t array_set(CSOUND* csound, ARRAY_SET *p)
     index = 0;
     for (i=0;i<indefArgCount; i++) {
       end = (int)(*p->indexes[i]);
-      //printf("** dimemnsion %d end = %d\n", i, end);
       if (UNLIKELY(end>=dat->sizes[i]))
         return csound->PerfError(csound, &(p->h),
                       Str("Array index %d out of range (0,%d) "
                           "for dimension %d"),
                                end, dat->sizes[i], i+1);
-      // printf("*** index %d -> ", index);
       index = (index * dat->sizes[i]) + end;
-      // printf("%d : %d\n", index, dat->sizes[i]);
     }
-    incr = (index * (dat->arrayMemberSize / sizeof(MYFLT)));
-    mem += incr;
-    //memcpy(mem, p->value, dat->arrayMemberSize);
+    mem = &dat->data[index];
     dat->arrayType->copyValue(csound, dat->arrayType, mem, p->value);
-    /* printf("array_set: mem = %p, incr = %d, value = %f\n", */
-    /*         mem, incr, *((MYFLT*)p->value)); */
     return OK;
 }
 
 static int32_t array_get(CSOUND* csound, ARRAY_GET *p)
 {
     ARRAYDAT* dat = p->arrayDat;
-    MYFLT* mem = dat->data;
+    MYFLT* mem;
     int32_t i;
-    int32_t incr;
     int32_t end;
     int32_t index;
     int32_t indefArgCount = p->INOCOUNT - 1;
+
+    ARG* arg = p->h.optext->t.outArgs;
+    CS_VARIABLE* var = (CS_VARIABLE*) arg->argPtr;
 
     if (UNLIKELY(indefArgCount == 0))
       return csound->PerfError(csound, &(p->h),
@@ -347,21 +334,16 @@ static int32_t array_get(CSOUND* csound, ARRAY_GET *p)
     index = 0;
     for (i=0;i<indefArgCount; i++) {
       end = (int)(*p->indexes[i]);
-      //printf("** dimemnsion %d end = %d\n", i, end);
       if (UNLIKELY(end>=dat->sizes[i]))
         return csound->PerfError(csound, &(p->h),
                       Str("Array index %d out of range (0,%d) "
                           "for dimension %d"),
                                end, dat->sizes[i], i+1);
-      // printf("*** index %d -> ", index);
       index = (index * dat->sizes[i]) + end;
-      // printf("%d : %d\n", index, dat->sizes[i]);
     }
 
-    incr = (index * (dat->arrayMemberSize / sizeof(MYFLT)));
-    mem += incr;
-    //    memcpy(p->out, &mem[incr], dat->arrayMemberSize);
-    dat->arrayType->copyValue(csound, dat->arrayType, (void*)p->out, (void*)mem);
+    mem = &dat->data[index];
+    *p->out = *mem;
     return OK;
 }
 
@@ -493,8 +475,11 @@ static int32_t tabadd(CSOUND *csound, TABARITH *p)
     ARRAYDAT *r   = p->right;
     int32_t sizel    = l->sizes[0];
     int32_t sizer    = r->sizes[0];
-    int32_t i;
+    int32_t i, incr, offset;
 
+    for (i=0; i<sizel; i++) {
+      MYFLT* ansData = &ans->data[i];
+    }
     if (UNLIKELY(ans->data == NULL || l->data==NULL || r->data==NULL))
       return csound->PerfError(csound, &(p->h),
                                Str("array-variable not initialised"));
@@ -504,8 +489,10 @@ static int32_t tabadd(CSOUND *csound, TABARITH *p)
       sizer*=r->sizes[i];
     }
     if (sizer<sizel) sizel= sizer;
-    for (i=0; i<sizel; i++)
+    for (i=0; i<sizel; i++) {
       ans->data[i] = l->data[i] + r->data[i];
+    }
+
     return OK;
 }
 
@@ -2696,13 +2683,6 @@ static int32_t tabscale1(CSOUND *csound, TABSCALE *p)
     else return NOTOK;
 }
 
-typedef struct {
-  OPDS     h;
-  ARRAYDAT *dst;
-  ARRAYDAT *src;
-  int32_t      len;
-} TABCPY;
-
 static int32_t get_array_total_size(ARRAYDAT* dat)
 {
     int32_t i;
@@ -2719,10 +2699,21 @@ static int32_t get_array_total_size(ARRAYDAT* dat)
     return size;
 }
 
+typedef struct {
+  OPDS     h;
+  ARRAYDAT *dst;
+  ARRAYDAT *src;
+  int32_t      len;
+} TABCPY;
+
+static int32_t array_assign(CSOUND* csound, TABCPY *p) {
+  *p->dst->data = *p->src->data;
+  return OK;
+}
+
 static int32_t tabcopy(CSOUND *csound, TABCPY *p)
 {
     int32_t i, arrayTotalSize, memMyfltSize;
-
     if (UNLIKELY(p->src->data==NULL) || p->src->dimensions <= 0 )
       return csound->InitError(csound, "%s", Str("array-variable not initialised"));
     if (UNLIKELY(p->dst->dimensions > 0 &&
@@ -4452,6 +4443,7 @@ static OENTRY arrayvars_localops[] =
     { "##array_set.i", sizeof(ARRAY_SET), 0, 1, "", ".[].m", (SUBR)array_set },
     { "##array_set.e", sizeof(ARRAY_SET), 0, 1, "", "i[].z", (SUBR)array_err },
     { "##array_set.x", sizeof(ARRAY_SET), 0, 2, "", ".[].z", NULL, (SUBR)array_set},
+    { "##array_assign",sizeof(TABCPY),0, 3, ".[]", ".[]", (SUBR)array_assign, (SUBR)array_assign },
     { "##array_get.k", sizeof(ARRAY_GET), 0, 2, "k", "k[]m", NULL,(SUBR)array_get },
     { "##array_get.a", sizeof(ARRAY_GET), 0, 2, "a", "a[]m",NULL, (SUBR)array_get },
     { "##array_get.x", sizeof(ARRAY_GET), 0, 1, ".", ".[]m",(SUBR)array_get },

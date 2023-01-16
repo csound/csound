@@ -27,8 +27,10 @@
 static inline void tabinit(CSOUND *csound, ARRAYDAT *p, int size)
 {
     size_t ss;
-    p->sizes = (int32_t*)csound->Calloc(csound, sizeof(int32_t) * p->dimensions);
-
+    if (p->dimensions==0) {
+        p->dimensions = 1;
+        p->sizes = (int32_t*)csound->Calloc(csound, sizeof(int32_t));
+    }
     if (p->data == NULL) {
         CS_VARIABLE* var = p->arrayType->createVariable(csound, NULL, p->dimensions);
         p->arrayMemberSize = var->memBlockSize;
@@ -51,7 +53,7 @@ static inline void tabinit_like(CSOUND *csound, ARRAYDAT *p, ARRAYDAT *tp)
         return;
     }
     if (p->dimensions != tp->dimensions) {
-      p->sizes = (int32_t*)csound->ReAlloc(csound, p->sizes,
+      p->sizes = (int32_t*)csound->ReAlloc(csound, tp->sizes,
                                            sizeof(int32_t)*tp->dimensions);
       p->dimensions = tp->dimensions;
     }
