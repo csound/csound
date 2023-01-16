@@ -122,9 +122,21 @@ static int is_vararg_input_type(char* typeIdent) {
 }
 
 static int is_unary_token_type(int tokenType) {
-  return (tokenType == S_UNOT) || \
-    (tokenType == S_UMINUS) || \
+  return (tokenType == S_UNOT) ||
+    (tokenType == S_UMINUS) ||
     (tokenType == S_UPLUS);
+}
+
+static int is_legacy_t_rate_ident(char* ident) {
+  char* token = ident;
+  int isTrate = 0;
+  if (*token == '#') {
+    token += 1;
+  }
+  if (*token == 'g') {
+    token += 1;
+  }
+  return *token == 't';
 }
 
 static int fill_optional_inargs(
@@ -594,7 +606,7 @@ static CSOUND_ORC_ARGUMENT* resolve_single_argument_from_tree(
                 synterr(
                     csound,
                     Str("Line %d array-identifier '%s' used "
-                        "before it was defined."),
+                        "before defined."),
                     tree->line,
                     tree->left->value->lexeme
                 );
@@ -620,6 +632,10 @@ static CSOUND_ORC_ARGUMENT* resolve_single_argument_from_tree(
                 typeTable,
                 isAssignee
             );
+
+            if (subExpr == NULL) {
+                return NULL;
+            }
         }
 
         if (!isPreparedTree) {
@@ -630,6 +646,10 @@ static CSOUND_ORC_ARGUMENT* resolve_single_argument_from_tree(
                 typeTable,
                 isAssignee
             );
+
+            if (arg->SubExpression == NULL) {
+                return NULL;
+            }
         }
 
         if (!isPreparedTree && isArray) {
@@ -820,7 +840,17 @@ static CSOUND_ORC_ARGUMENT* resolve_single_argument_from_tree(
                 CS_VAR_POOL* pool = arg->isGlobal ? \
                     typeTable->globalPool : typeTable->localPool;
 
-                arg->cstype = csoundFindStandardTypeWithChar(ident[0]);
+                if (is_legacy_t_rate_ident(ident)) {
+                    arg->cstype = (CS_TYPE*)&CS_VAR_TYPE_K;
+                    arg->dimensions = 1;
+                    csound->Warning(
+                        csound,
+                        Str("Using t-rate variables is deprecated; use k[] instead\n")
+                    );
+                } else {
+                    arg->cstype = csoundFindStandardTypeWithChar(ident[0]);
+                }
+
                 var = add_arg_to_pool(
                     csound,
                     typeTable,
@@ -877,9 +907,17 @@ static CSOUND_ORC_ARGUMENT* resolve_single_argument_from_tree(
             }
 
             count_dim:
-            if (tree->value != NULL && strcmp(tree->value->lexeme, "kans") == 0) {
-                printf("kans  %p!\n", &var);
+
+            if (UNLIKELY(var == NULL)) {
+                synterr(
+                    csound,
+                    Str("\nLine %d variable '%s' used before defined\n"),
+                    tree->line - 1,
+                    tree->value->lexeme
+                );
+                return NULL;
             }
+
             // a variable can be initialized from a pre-defined
             // array at a different dimension, so we start counting
             // from where the variable left off
@@ -891,16 +929,6 @@ static CSOUND_ORC_ARGUMENT* resolve_single_argument_from_tree(
                     arg->dimension += 1;
                     arrayIndexGetLeaf = arrayIndexGetLeaf->next;
                 }
-            }
-
-            if (UNLIKELY(var == NULL)) {
-                synterr(
-                    csound,
-                    Str("\nLine %d variable '%s' used before defined\n"),
-                    tree->line - 1,
-                    tree->value->lexeme
-                );
-                return NULL;
             }
 
             if (arg->cstype == NULL) {
