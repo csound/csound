@@ -59,32 +59,31 @@ static CSOUND_ORC_ARGUMENTS* get_arguments_from_tree(
     int isAssignee
 );
 
-/*
-static void printOrcArgs(
-    CSOUND_ORC_ARGUMENTS* args
-) {
-    if (args->length == 0) {
-        printf("== ARGUMENT LIST EMPTY ==\n");
-        return;
-    }
-    CONS_CELL* car = args->list;
-    CSOUND_ORC_ARGUMENT* arg;
-    int n = 0;
-    while(car != NULL) {
-        arg = (CSOUND_ORC_ARGUMENT*) car->value;
-        printf("== ARGUMENT LIST INDEX %d ==\n", n);
-        printf("\t text: %s \n", arg->text);
-        printf("\t uid: %s \n", arg->uid);
-        printf("\t type: %s \n", arg->cstype == NULL ? arg->text :
-         arg->cstype->varTypeName);
-        printf("\t isGlobal: %d \n", arg->isGlobal);
-        printf("\t dimensions: %d \n", arg->dimensions);
-        printf("\t isExpression: %d \n", arg->isExpression);
-        car = car->next;
-        n += 1;
-    }
-}
-*/
+
+// static void printOrcArgs(
+//     CSOUND_ORC_ARGUMENTS* args
+// ) {
+//     if (args->length == 0) {
+//         printf("== ARGUMENT LIST EMPTY ==\n");
+//         return;
+//     }
+//     CONS_CELL* car = args->list;
+//     CSOUND_ORC_ARGUMENT* arg;
+//     int n = 0;
+//     while(car != NULL) {
+//         arg = (CSOUND_ORC_ARGUMENT*) car->value;
+//         printf("== ARGUMENT LIST INDEX %d ==\n", n);
+//         printf("\t text: %s \n", arg->text);
+//         printf("\t uid: %s \n", arg->uid);
+//         printf("\t type: %s \n", arg->cstype == NULL ? arg->text :
+//          arg->cstype->varTypeName);
+//         printf("\t isGlobal: %d \n", arg->isGlobal);
+//         printf("\t dimensions: %d \n", arg->dimensions);
+//         printf("\t isExpression: %d \n", arg->isExpression);
+//         car = car->next;
+//         n += 1;
+//     }
+// }
 
 void printNode(TREE* tree) {
     printf("== BEG ==\n");
@@ -121,6 +120,10 @@ static int is_wildcard_type(char* typeIdent) {
 
 static int is_vararg_input_type(char* typeIdent) {
   return strchr("MNmW", *typeIdent) != NULL;
+}
+
+static int is_optarg_input_type(char* typeIdent) {
+  return strchr("?IOoPpVvhJj", *typeIdent) != NULL;
 }
 
 static int is_unary_token_type(int tokenType) {
@@ -320,6 +323,15 @@ OENTRY* resolve_opcode_with_orc_args(
         int expectsOutputs = temp->outypes != NULL && strlen(temp->outypes) != 0;
 
         if (inlist->length == 0 && !expectsInputs) {
+            inArgsMatch = 1;
+        }
+
+        // handle cases where inlist begins with optarg
+        if (
+            inlist->length == 0 &&
+            expectsInputs &&
+            is_optarg_input_type(temp->intypes)
+        ) {
             inArgsMatch = 1;
         }
 
@@ -569,7 +581,100 @@ static CSOUND_ORC_ARGUMENT* resolve_single_argument_from_tree(
 
     args->append(csound, args, arg);
 
-    if (is_expression_node(tree) || is_boolean_expression_node(tree)) {
+    if (tree->type == '?') {
+        CSOUND_ORC_ARGUMENTS* subExpr = new_csound_orc_arguments(csound);
+        // ternary expression
+        // starting with boolean
+        subExpr = get_arguments_from_tree(
+            csound,
+            subExpr,
+            tree->left,
+            typeTable,
+            0
+        );
+
+        if (subExpr == NULL) {
+            return NULL;
+        }
+
+        CSOUND_ORC_ARGUMENT* booleanExpr = \
+            subExpr->length == 0 ? NULL : subExpr->list->value;
+
+        if (
+            UNLIKELY(
+                booleanExpr == NULL ||
+                (booleanExpr->cstype != (CS_TYPE*) &CS_VAR_TYPE_B &&
+                 booleanExpr->cstype != (CS_TYPE*) &CS_VAR_TYPE_b)
+            )
+        ) {
+            synterr(csound,
+                    Str("non-boolean expression found for ternary operator,"
+                        " line %d\n"), tree->line);
+            do_baktrace(csound, tree->locn);
+            return NULL;
+        }
+
+        // then true (left side)
+        subExpr = get_arguments_from_tree(
+            csound,
+            subExpr,
+            tree->right->left,
+            typeTable,
+            0
+        );
+
+        if (subExpr == NULL) {
+            return NULL;
+        }
+
+        // then false (right side)
+        subExpr = get_arguments_from_tree(
+            csound,
+            subExpr,
+            tree->right->right,
+            typeTable,
+            0
+        );
+
+        if (subExpr == NULL) {
+            return NULL;
+        }
+
+        char* opname = csound->Strdup(csound, ":cond");
+        OENTRIES* entries = find_opcode2(csound, opname);
+        OENTRY* oentry = resolve_opcode_with_orc_args(
+            csound,
+            entries,
+            subExpr,
+            NULL,
+            typeTable,
+            0,
+            1
+        );
+
+        if (oentry == NULL) {
+            CSOUND_ORC_ARGUMENT* leftExpr = subExpr->nth(subExpr, 1);
+            CSOUND_ORC_ARGUMENT* rightExpr = subExpr->nth(subExpr, 2);
+            synterr(
+                csound,
+                Str("Line %d\n"
+                    "\tillegal combination of cases"
+                    " in ternary statement with\n"
+                    "\t'%s' on left side and '%s' on right side\n"),
+                tree->line,
+                leftExpr->cstype->varDescription,
+                rightExpr->cstype->varDescription
+            );
+            return NULL;
+        }
+
+        tree->markup = oentry;
+        tree->inlist = args;
+        tree->outlist = NULL;
+        arg->text = opname;
+        arg->cstype = csoundFindStandardTypeWithChar('b');
+        arg->SubExpression = subExpr;
+    } else if (is_expression_node(tree) || is_boolean_expression_node(tree)) {
         int isBool = is_boolean_expression_node(tree);
         int isPreparedTree = 0;
         int isFunCall = tree->type == T_FUNCTION;
@@ -584,7 +689,6 @@ static CSOUND_ORC_ARGUMENT* resolve_single_argument_from_tree(
         // unary expressions in unexpanded trees need to account
         // for the fact that it only has one node present out of actual two
         int isUnary = is_unary_token_type(tree->type);
-
         // T_ARRAY as expression
         int isArray = tree->type == T_ARRAY;
 
@@ -715,15 +819,6 @@ static CSOUND_ORC_ARGUMENT* resolve_single_argument_from_tree(
                 tree->line - 1,
                 opname
             );
-            oentry = resolve_opcode_with_orc_args(
-            csound,
-            entries,
-            arg->SubExpression,
-            NULL,
-            typeTable,
-            !isPreparedTree && (isUnary),
-            1
-        );
             return NULL;
         }
 
