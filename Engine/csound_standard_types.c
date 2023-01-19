@@ -64,6 +64,14 @@ void string_copy_value(CSOUND* csound, CS_TYPE* cstype, void* dest, void* src) {
 
     if (UNLIKELY(src == NULL)) return;
     if (UNLIKELY(dest == NULL)) return;
+    printf("aSrc %p aSrc->data %p\n", sSrc, sSrc->data);
+    printf("aDest %p aDest->data %p\n", sDest, sDest->data);
+    // printf("GARBAGE %s\n", (char**) sDest);
+    // if (sDest->data == NULL) {
+    //     sDest->data = (char *) csound->Calloc(csound, DEFAULT_STRING_SIZE);
+    //     sDest->size = DEFAULT_STRING_SIZE;
+    //     sDest->timestamp = 0;
+    // }
 
     int64_t kcnt = csound->GetKcounter(csound);
     if (sSrc->size > sDest->size) {
@@ -150,19 +158,20 @@ void varInitMemory(CSOUND *csound, CS_VARIABLE* var, MYFLT* memblock) {
     memset(memblock, 0, var->memBlockSize);
 }
 
-// note that this is usually called in array_init
 void arrayInitMemory(CSOUND *csound, CS_VARIABLE* var, MYFLT* memblock) {
     IGN(csound);
     ARRAYDAT* dat = (ARRAYDAT*)memblock;
+    printf("arrayInitMemory memblock %p \n", memblock);
     dat->arrayType = var->varType;
 }
 
 void varInitMemoryString(CSOUND *csound, CS_VARIABLE* var, MYFLT* memblock) {
     STRINGDAT *str = (STRINGDAT *)memblock;
     str->data = (char *) csound->Calloc(csound, DEFAULT_STRING_SIZE);
+    printf("varInitMemoryString memblock %p data %p \n", memblock, str->data);
     str->size = DEFAULT_STRING_SIZE;
     str->timestamp = 0;
-    //printf("initialised %s %p %s %d\n", var->varName, str,  str->data, str->size);
+    // printf("initialised %s %p %s %zu\n", var->varName, str,  str->data, str->size);
 }
 
 void varInitMemoryFsig(CSOUND *csound, CS_VARIABLE* var, MYFLT* memblock) {
@@ -261,7 +270,6 @@ CS_VARIABLE* createString(void* cs, void* p, int dimensions) {
 CS_VARIABLE* createArray(void* csnd, void* p, int dimensions) {
     CSOUND* csound = (CSOUND*)csnd;
     ARRAY_VAR_INIT* state = (ARRAY_VAR_INIT*)p;
-
 
     CS_VARIABLE* var = csound->Calloc(csound, sizeof (CS_VARIABLE));
     var->memBlockSize = CS_FLOAT_ALIGN(sizeof(ARRAYDAT));

@@ -170,6 +170,7 @@ static int parse_opcode_args(CSOUND *csound, OENTRY *opc)
 	in_args = splitArgs(csound, intypes);*/
     in_args = splitArgs(csound, inm->intypes);
     out_args = splitArgs(csound, inm->outtypes);
+    printf("in_args %s\n", in_args[0]);
 
     if (UNLIKELY(in_args == NULL)) {
       /* synterr(csound,

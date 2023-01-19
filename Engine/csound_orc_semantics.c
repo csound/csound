@@ -555,7 +555,26 @@ char* get_arg_type2(CSOUND* csound, TREE* tree, TYPE_TABLE* typeTable)
       return NULL;
     }
 
-    return cs_strdup(csound, var->varType->varTypeName);
+    if (var->dimensions == 0) {
+      return cs_strdup(csound, var->varType->varTypeName);
+    } else {
+      int varTypeNameLen = strlen(var->varType->varTypeName);
+      char* varTypeName = csound->Malloc(
+        csound,
+        varTypeNameLen + 2 * var->dimensions + 1
+      );
+      memcpy(varTypeName, var->varType->varTypeName, varTypeNameLen);
+      int dimension = var->dimensions;
+      char* p = &varTypeName[varTypeNameLen];
+      while (dimension) {
+        p += sprintf(p, "[]");
+        dimension -= 1;
+      }
+      varTypeName[varTypeNameLen + 2 * var->dimensions] = '\0';
+      return varTypeName;
+    }
+
+
 
   case T_TYPED_IDENT:
     return cs_strdup(csound, tree->value->optype);
@@ -1211,7 +1230,7 @@ char* get_arg_string_from_tree(CSOUND* csound, TREE* tree,
       argsLen += 1;
       argTypes[index++] = cs_strdup(csound, "@");
     } else {
-      argType = convert_internal_to_external(csound, argType);
+      // argType = convert_internal_to_external(csound, argType);
       argsLen += strlen(argType);
       argTypes[index++] = argType;
     }
@@ -2531,10 +2550,7 @@ TREE* verify_tree(CSOUND * csound, TREE *root, TYPE_TABLE* typeTable)
 
     case UNTIL_TOKEN:
     case WHILE_TOKEN:
-      if (!verify_until_statement(csound, current, typeTable)) {
-        return 0;
-      }
-
+      // while/until should have been verified in orc_args
       current = expand_until_statement(csound, current,
                                        typeTable, current->type==WHILE_TOKEN);
 
@@ -2650,7 +2666,8 @@ TREE* verify_tree(CSOUND * csound, TREE *root, TYPE_TABLE* typeTable)
       // if(!verify_opcode(csound, current, typeTable)) {
       //   return 0;
       // }
-      //print_tree(csound, "verify_tree", current);
+      // printf("localPool %p\n", typeTable->localPool);
+      //  print_tree(csound, "verify_tree", current);
       if (is_statement_expansion_required(current)) {
         current = expand_statement(csound, current, typeTable);
 

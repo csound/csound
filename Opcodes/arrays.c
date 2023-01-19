@@ -81,6 +81,8 @@ static int32_t array_del(CSOUND *csound, void *p)
 static int32_t array_init(CSOUND *csound, ARRAYINIT *p)
 {
     ARRAYDAT* arrayDat = p->arrayDat;
+    printf("arrayDat %p arrayDat->data %p \n", arrayDat, arrayDat->data);
+
     int32_t i, size;
 
     int32_t inArgCount = p->INOCOUNT;
@@ -114,7 +116,7 @@ static int32_t array_init(CSOUND *csound, ARRAYINIT *p)
 
     {
       CS_VARIABLE* var = arrayDat->arrayType->createVariable(
-        csound,arrayDat->arrayType, inArgCount
+        csound,arrayDat->arrayType, inArgCount - 1
       );
       char *mem;
       arrayDat->arrayMemberSize = var->memBlockSize;
@@ -284,6 +286,7 @@ static int32_t array_set(CSOUND* csound, ARRAY_SET *p)
     int32_t i;
     int32_t end, index;
     int32_t indefArgCount = p->INOCOUNT - 2;
+    printf("array_set %p dat %p dat->data %p\n", p, dat, dat->data);
 
     if (UNLIKELY(indefArgCount == 0)) {
       csoundErrorMsg(csound, Str("Error: no indexes set for array set\n"));
@@ -305,7 +308,8 @@ static int32_t array_set(CSOUND* csound, ARRAY_SET *p)
                                end, dat->sizes[i], i+1);
       index = (index * dat->sizes[i]) + end;
     }
-    mem = &dat->data[index];
+    mem = (MYFLT*) dat->data + (index * dat->arrayMemberSize) / sizeof(MYFLT);
+    printf("mem %p dat->data %p index %d \n", mem, dat->data, index);
     dat->arrayType->copyValue(csound, dat->arrayType, mem, p->value);
     return OK;
 }
@@ -318,11 +322,14 @@ static int32_t array_get(CSOUND* csound, ARRAY_GET *p)
     int32_t end;
     int32_t index;
     int32_t indefArgCount = p->INOCOUNT - 1;
+    printf("p(thearg) %p dat %p dat->data %p\n", p, dat, dat->data);
+
 
     if (UNLIKELY(indefArgCount == 0))
       return csound->PerfError(csound, &(p->h),
                                Str("Error: no indexes set for array get"));
     if (UNLIKELY(indefArgCount!=dat->dimensions)) {
+      // printf("p(thearg) %p dat %p dat->data %p\n", p, dat, dat->data);
       return csound->PerfError(csound, &(p->h),
                                Str("Array dimension %d out of range "
                                    "for dimensions %d"),
@@ -338,9 +345,8 @@ static int32_t array_get(CSOUND* csound, ARRAY_GET *p)
                                end, dat->sizes[i], i+1);
       index = (index * dat->sizes[i]) + end;
     }
-
-    mem = &dat->data[index];
-    *p->out = *mem;
+    mem = (MYFLT*) dat->data + (index * dat->arrayMemberSize) / sizeof(MYFLT);
+    dat->arrayType->copyValue(csound, dat->arrayType, (void*)p->out, (void*)mem);
     return OK;
 }
 
@@ -3201,6 +3207,7 @@ int32_t tablength(CSOUND *csound, TABQUERY1 *p)
 {
     IGN(csound);
     int32_t opt = (int32_t)*p->opt;
+    //printf("p->tab %p p->tab->data %p\n", p->tab, p->tab->data);
     if (UNLIKELY(p->tab==NULL || opt>p->tab->dimensions))
       *p->ans = -FL(1.0);
     else if (UNLIKELY(opt<=0)) *p->ans = p->tab->dimensions;

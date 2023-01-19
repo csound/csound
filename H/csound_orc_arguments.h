@@ -45,8 +45,8 @@ typedef struct csorcargs {
     CONS_CELL* list;
     int        length;
     struct csorcarg* (*nth)(struct csorcargs*, int);
-    // struct csorcarg* (*next)(struct csorcargs*);
     void             (*append)(CSOUND*, struct csorcargs*, struct csorcarg*);
+    void             (*remove_nth)(CSOUND*, struct csorcargs*, int);
 } CSOUND_ORC_ARGUMENTS;
 
 CSOUND_ORC_ARGUMENTS* new_csound_orc_arguments(CSOUND*);

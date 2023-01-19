@@ -826,33 +826,30 @@ static TREE *create_expression(
                 Str("unable to find array sub-type for var %s line %d\n"), varBaseName, current->line);
         return NULL;
       } else {
-        outype = strdup(var->varType->varTypeName);
-        if (outarg != NULL) break;
         if (var->varType->userDefinedType == 1) {
           outarg = create_out_arg(csound, outype, typeTable->localPool->synthArgCount++, typeTable);
           break;
-        } else if (var->varType == &CS_VAR_TYPE_A || var->varType == &CS_VAR_TYPE_K) {
-          outype = "k";
-        } else if (var->varType == &CS_VAR_TYPE_I) {
-          outype = "i";
-        } else if (var->varType == &CS_VAR_TYPE_K) {
-          outype = "k";
-        } else if (var->varType == &CS_VAR_TYPE_S) {
-          outype = "S";
-        } else if (var->varType == &CS_VAR_TYPE_F) {
-          outype = "f";
         } else {
-          synterr(csound,
-                  Str("invalid array type %s line %d\n"), var->varType->varTypeName, root->line);
-          return NULL;
+          if (var->varType == (CS_TYPE*) &CS_VAR_TYPE_A &&
+              var->dimensions == 0
+          ) {
+            // array_get fix for vaops
+            outype = strdup("k");
+          } else {
+            outype = strdup(var->varType->varTypeName);
+          }
         }
       }
+
       if (outype == NULL) {
         return NULL;
       }
-      if (outarg != NULL) break;
       outarg = create_out_arg(csound, outype,
                               typeTable->localPool->synthArgCount++, typeTable);
+      // csound->Strdup(csound, var->varName);
+      // if (outarg != NULL) break;
+      // outarg = create_out_arg(csound, outype,
+      //                         typeTable->localPool->synthArgCount++, typeTable);
     }
 
     break;
@@ -1260,11 +1257,15 @@ TREE* expand_statement(CSOUND* csound, TREE* current, TYPE_TABLE* typeTable)
                 Str("unable to find array sub-type for var %s line %d\n"), varBaseName, current->line);
         return NULL;
       } else {
-        if (var->varType == &CS_VAR_TYPE_A) {
-          outType = "k";
-        } else {
-          outType = strdup(var->varType->varTypeName);
-        }
+        // if (var->varType == (CS_TYPE*) &CS_VAR_TYPE_A) {
+        //   // asig init 0
+        //   // asig[x] = ksig
+        //   outType[0] = 'k';
+        //   outType[1] = '\0';
+        // } else {
+        //   outType = strdup(var->varType->varTypeName);
+        // }
+        outType = strdup(var->varType->varTypeName);
       }
 
       temp =

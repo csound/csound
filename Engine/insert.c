@@ -116,7 +116,7 @@ static int init_pass(CSOUND *csound, INSDS *ip) {
     csound->op = csound->ids->optext->t.oentry->opname;
       csound->Message(csound, "init %s:\n", csound->op);
     }
-
+  OPDS * ip = csound->ids;
     error = (*csound->ids->iopadr)(csound, csound->ids);
   }
   csound->mode = 0;
@@ -277,7 +277,7 @@ static void putop(CSOUND *csound, TEXT *tp)
   csound->Message(csound, "%s\t", tp->opcod);
   if ((n = tp->inlist->length) != 0) {
     CONS_CELL* cdr = tp->outlist->list;
-    while ((cdr = cdr->next)) {
+    while (cdr != NULL && (cdr = cdr->next)) {
       CSOUND_ORC_ARGUMENT* arg = cdr->value;
       csound->Message(csound, "%s\t", arg->text);
     }
@@ -1447,6 +1447,7 @@ int useropcd1(CSOUND *, UOPCODE*), useropcd2(CSOUND *, UOPCODE*);
 
 int useropcdset(CSOUND *csound, UOPCODE *p)
 {
+    printf("useropcdset %p\n", p);
     OPDS         *saved_ids = csound->ids;
     INSDS        *parent_ip = csound->curip, *lcurip;
     INSTRTXT     *tp;
@@ -1522,6 +1523,7 @@ int useropcdset(CSOUND *csound, UOPCODE *p)
       buf->iobufp_ptrs[10] = buf->iobufp_ptrs[11] = NULL;
       /* store parameters of input and output channels, and parent ip */
       buf->uopcode_struct = (void*) p;
+      printf("uopcode_struct %p\n", p);
       buf->parent_ip = p->parent_ip = parent_ip;
     }
 
@@ -1600,6 +1602,8 @@ int useropcdset(CSOUND *csound, UOPCODE *p)
     csound->mode = 1;
     while (csound->ids != NULL) {
       csound->op = csound->ids->optext->t.oentry->opname;
+      OPDS * id = csound->ids;
+      printf("theID %p\n", id);
       (*csound->ids->iopadr)(csound, csound->ids);
       csound->ids = csound->ids->nxti;
     }
@@ -1653,11 +1657,13 @@ int xinset(CSOUND *csound, XIN *p)
   MYFLT **bufs, **tmp;
   int i;
   CS_VARIABLE* current;
+  UOPCODE* uopc;
 
   (void) csound;
   buf = (OPCOD_IOBUFS*) p->h.insdshead->opcod_iobufs;
   inm = buf->opcode_info;
-  bufs = ((UOPCODE*) buf->uopcode_struct)->ar + inm->outchns;
+  uopc = buf->uopcode_struct;
+  bufs = uopc->ar + inm->outchns;
   tmp = buf->iobufp_ptrs; // this is used to record the UDO's internal vars
   // for copying at perf-time
   current = inm->in_arg_pool->head;
@@ -1665,7 +1671,12 @@ int xinset(CSOUND *csound, XIN *p)
     void* in = (void*)bufs[i];
     void* out = (void*)p->args[i];
     tmp[i + inm->outchns] = out;
-    current->varType->copyValue(csound, current->varType, out, in);
+    if (current->dimensions > 0) {
+      memcpy(out, in, sizeof(ARRAYDAT));
+    } else {
+      current->varType->copyValue(csound, current->varType, out, in);
+    }
+
     current = current->next;
   }
 
@@ -1692,12 +1703,25 @@ int xoutset(CSOUND *csound, XOUT *p)
     void* in = (void*)p->args[i];
     void* out = (void*)bufs[i];
     tmp[i] = in;
+
+    if (
+        current->dimensions > 0 &&
+        ((ARRAYDAT*) out)->allocated == 0
+    ) {
+      memcpy(out, in, sizeof(ARRAYDAT));
+    }
     // DO NOT COPY K or A vars
     // Fsigs need to be copied for initialization purposes.
-    if (csoundGetTypeForArg(in) != &CS_VAR_TYPE_K &&
+    else if (csoundGetTypeForArg(in) != &CS_VAR_TYPE_K &&
         /*csoundGetTypeForArg(in) != &CS_VAR_TYPE_F &&*/
-        csoundGetTypeForArg(in) != &CS_VAR_TYPE_A)
-      current->varType->copyValue(csound, current->varType, out, in);
+        csoundGetTypeForArg(in) != &CS_VAR_TYPE_A) {
+          if (current->dimensions > 0) {
+            memcpy(out, in, sizeof(ARRAYDAT));
+          } else {
+            current->varType->copyValue(csound, current->varType, out, in);
+          }
+        }
+
     current = current->next;
   }
   return OK;
@@ -2032,12 +2056,16 @@ int useropcd1(CSOUND *csound, UOPCODE *p)
           // This one checks if an array has a subtype of 'i'
           void* in = (void*)external_ptrs[i + inm->outchns];
           void* out = (void*)internal_ptrs[i + inm->outchns];
-          current->varType->copyValue(csound, current->varType, out, in);
+          if (current->dimensions > 0) {
+            memcpy(out, in, sizeof(ARRAYDAT));
+          } else {
+            current->varType->copyValue(csound, current->varType, out, in);
+          }
         } else if (current->varType == &CS_VAR_TYPE_A) {
           MYFLT* in = (void*)external_ptrs[i + inm->outchns];
           MYFLT* out = (void*)internal_ptrs[i + inm->outchns];
           *out = *(in + ofs);
-        } else if (current->dimension > 0 &&
+        } else if (current->dimensions > 0 &&
                    current->varType == &CS_VAR_TYPE_A) {
           ARRAYDAT* src = (ARRAYDAT*)external_ptrs[i + inm->outchns];
           ARRAYDAT* target = (ARRAYDAT*)internal_ptrs[i + inm->outchns];
@@ -2081,7 +2109,7 @@ int useropcd1(CSOUND *csound, UOPCODE *p)
           MYFLT* in = (void*)internal_ptrs[i];
           MYFLT* out = (void*)external_ptrs[i];
           *(out + ofs) = *in;
-        } else if (current->dimension > 0 &&
+        } else if (current->dimensions > 0 &&
                    current->varType == &CS_VAR_TYPE_A) {
           ARRAYDAT* src = (ARRAYDAT*)internal_ptrs[i];
           ARRAYDAT* target = (ARRAYDAT*)external_ptrs[i];
@@ -2138,13 +2166,18 @@ int useropcd1(CSOUND *csound, UOPCODE *p)
           // This one checks if an array has a subtype of 'i'
           void* in = (void*)external_ptrs[i + inm->outchns];
           void* out = (void*)internal_ptrs[i + inm->outchns];
-          current->varType->copyValue(csound, current->varType, out, in);
-        } else if (current->dimension == 0 &&
+
+          if (current->dimensions > 0) {
+            memcpy(out, in, sizeof(ARRAYDAT));
+          } else {
+            current->varType->copyValue(csound, current->varType, out, in);
+          }
+        } else if (current->dimensions == 0 &&
                    current->varType == &CS_VAR_TYPE_A) {
           MYFLT* in = (void*)external_ptrs[i + inm->outchns];
           MYFLT* out = (void*)internal_ptrs[i + inm->outchns];
           memcpy(out, in + ofs, asigSize);
-        } else if (current->dimension > 0 &&
+        } else if (current->dimensions > 0 &&
                    current->varType == &CS_VAR_TYPE_A) {
           ARRAYDAT* src = (ARRAYDAT*)external_ptrs[i + inm->outchns];
           ARRAYDAT* target = (ARRAYDAT*)internal_ptrs[i + inm->outchns];
@@ -2239,7 +2272,7 @@ int useropcd1(CSOUND *csound, UOPCODE *p)
         if (early) {
           memset((char*)out + g_ksmps, '\0', sizeof(MYFLT) * early);
         }
-      } else if (current->dimension > 0 &&
+      } else if (current->dimensions > 0 &&
                  current->varType == &CS_VAR_TYPE_A) {
         if (offset || early) {
           ARRAYDAT* outDat = (ARRAYDAT*)out;
@@ -2268,7 +2301,11 @@ int useropcd1(CSOUND *csound, UOPCODE *p)
           }
         }
       } else {
-        current->varType->copyValue(csound, current->varType, out, in);
+        if (current->dimensions > 0) {
+          memcpy(out, in, sizeof(ARRAYDAT));
+        } else {
+          current->varType->copyValue(csound, current->varType, out, in);
+        }
       }
     }
     current = current->next;
@@ -2325,8 +2362,12 @@ int useropcd2(CSOUND *csound, UOPCODE *p)
       } else {
         void* in = (void*)external_ptrs[i + inm->outchns];
         void* out = (void*)internal_ptrs[i + inm->outchns];
-        current->varType->copyValue(csound, current->varType, out, in);
-        //                memcpy(out, in, p->buf->in_arg_sizes[i]);
+        printf("in %p out %p \n", in, out);
+        if (current->dimensions > 0) {
+          memcpy(out, in, sizeof(ARRAYDAT));
+        } else {
+          current->varType->copyValue(csound, current->varType, out, in);
+        }
       }
     }
     current = current->next;
@@ -2361,8 +2402,11 @@ int useropcd2(CSOUND *csound, UOPCODE *p)
       } else {
         void* in = (void*)internal_ptrs[i];
         void* out = (void*)external_ptrs[i];
-        //            memcpy(out, in, p->buf->out_arg_sizes[i]);
-        current->varType->copyValue(csound, current->varType, out, in);
+        if (current->dimensions > 0) {
+          memcpy(out, in, sizeof(ARRAYDAT));
+        } else {
+          current->varType->copyValue(csound, current->varType, out, in);
+        }
       }
     }
     current = current->next;
@@ -2634,6 +2678,7 @@ static void instance(CSOUND *csound, int insno)
         argpp[n] =  &(var->memBlock->value); /*gbloffbas + var->memBlockIndex; */
       }
       else if (arg->type == ARG_LOCAL){
+        // printf("next to crash: arg %p arg->argPtr %p\n", arg, arg->argPtr);
         argpp[n] = lclbas + var->memBlockIndex;
         if (arg->structPath != NULL) {
           char* path = cs_strdup(csound, arg->structPath);

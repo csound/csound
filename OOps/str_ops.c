@@ -194,6 +194,7 @@ int32_t strassign_k(CSOUND *csound, STRCPY_OP *p) {
 int32_t strcpy_opcode_S(CSOUND *csound, STRCPY_OP *p) {
   if(p->r != p->str) {
   CS_TYPE *strType = csound->GetTypeForArg(p->str);
+  printf("strcpy_opcode_S p %p\n", p);
   strType->copyValue(csound, strType, p->r, p->str);
   }
   return  OK;
@@ -259,6 +260,9 @@ int32_t str_changed_k(CSOUND *csound, STRCHGD *p)
 int32_t strcat_opcode(CSOUND *csound, STRCAT_OP *p)
 {
   int64_t kcnt = csound->GetKcounter(csound);
+  printf("strcat_opcode p->str1 %p p->str1->data %p\n", p->str1, p->str1->data);
+    printf("strcat_opcode p->str2 %p p->str2->data %p\n", p->str2, p->str2->data);
+
   size_t size = strlen(p->str1->data) + strlen(p->str2->data);
   if(size >= MAX_STRINGDAT_SIZE) {
      if(is_perf_thread(&p->h))
