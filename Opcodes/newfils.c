@@ -2403,7 +2403,7 @@ int vcf_init(CSOUND *csound, VCF *p) {
 int vcf_perfk(CSOUND *csound, VCF *p) {
   double *G = p->G, A = p->A, *s = p->s, ss;
   MYFLT *y = p->y, *x = p->x;
-  double w, u;
+  double w, u, o;
   MYFLT k = *p->r <=  1 ? (*p->r >= 0 ? *p->r*4 : 0)  : 4;
   uint32_t offset = p->h.insdshead->ksmps_offset;
   uint32_t early  = p->h.insdshead->ksmps_no_end;
@@ -2426,18 +2426,19 @@ int vcf_perfk(CSOUND *csound, VCF *p) {
     nsmps -= early;
     memset(&y[nsmps], '\0', early*sizeof(MYFLT));
   }
-
+ 
   for (i=offset; i<nsmps; i++) {
     ss = s[3];
     for(j = 0; j < 3; j++) ss += s[j]*G[2-j];
-    y[i] = (G[3]*x[i] + ss)/(1 + k*G[3]);
-    u = G[0]*(x[i] - k*y[i]);
+    o = (G[3]*x[i] + ss)/(1 + k*G[3]);
+    u = G[0]*(x[i] - k*o);
     for(j = 0; j < 3; j++) {
       w = u + s[j];
       s[j] = u - A*w;
       u = G[0]*w;
     }
-    s[3] = G[0]*w - A*y[i];
+    s[3] = G[0]*w - A*o;
+    y[i] = o;
   }
   return OK;
 }
@@ -2445,7 +2446,7 @@ int vcf_perfk(CSOUND *csound, VCF *p) {
 int vcf_perfak(CSOUND *csound, VCF *p) {
   double *G = p->G, A, *s = p->s, ss, g;
   MYFLT *y = p->y, *x = p->x;
-  double w, u;
+  double w, u, o;
   MYFLT k = *p->r <=  1 ? (*p->r >= 0 ? *p->r*4 : 0)  : 4;
   uint32_t offset = p->h.insdshead->ksmps_offset;
   uint32_t early  = p->h.insdshead->ksmps_no_end;
@@ -2469,14 +2470,15 @@ int vcf_perfak(CSOUND *csound, VCF *p) {
     G[3] = G[0]*G[2];
     ss = s[3];
     for(j = 0; j < 3; j++) ss += s[j]*G[2-j];
-    y[i] = (G[3]*x[i] + ss)/(1 + k*G[3]);
-    u = G[0]*(x[i] - k*y[i]);
+    o = (G[3]*x[i] + ss)/(1 + k*G[3]);
+    u = G[0]*(x[i] - k*o);
     for(j = 0; j < 3; j++) {
       w = u + s[j];
       s[j] = u - A*w;
       u = G[0]*w;
     }
-    s[3] = G[0]*w - A*y[i];
+    s[3] = G[0]*w - A*o;
+    y[i] = o;
   }
   return OK;
 }
@@ -2484,7 +2486,7 @@ int vcf_perfak(CSOUND *csound, VCF *p) {
 int vcf_perfka(CSOUND *csound, VCF *p) {
   double *G = p->G, A = p->A, *s = p->s, ss;
   MYFLT *y = p->y, *x = p->x;
-  double w, u;
+  double w, u, o;
   MYFLT *r = p->r, k;
   uint32_t offset = p->h.insdshead->ksmps_offset;
   uint32_t early  = p->h.insdshead->ksmps_no_end;
@@ -2512,14 +2514,15 @@ int vcf_perfka(CSOUND *csound, VCF *p) {
     k = r[i] <=  1 ? (r[i] >= 0 ? r[i]*4 : 0)  : 4;
     ss = s[3];
     for(j = 0; j < 3; j++) ss += s[j]*G[2-j];
-    y[i] = (G[3]*x[i] + ss)/(1 + k*G[3]);
-    u = G[0]*(x[i] - k*y[i]);
+    o = (G[3]*x[i] + ss)/(1 + k*G[3]);
+    u = G[0]*(x[i] - k*o);
     for(j = 0; j < 3; j++) {
       w = u + s[j];
       s[j] = u - A*w;
       u = G[0]*w;
     }
-    s[3] = G[0]*w - A*y[i];
+    s[3] = G[0]*w - A*o;
+    y[i] = o;
   }
   return OK;
 }
@@ -2527,7 +2530,7 @@ int vcf_perfka(CSOUND *csound, VCF *p) {
 int vcf_perfaa(CSOUND *csound, VCF *p) {
   double *G = p->G, A, *s = p->s, ss, g;
   MYFLT *y = p->y, *x = p->x;
-  double w, u;
+  double w, u, o;
   MYFLT *r = p->r, k;
   uint32_t offset = p->h.insdshead->ksmps_offset;
   uint32_t early  = p->h.insdshead->ksmps_no_end;
@@ -2552,14 +2555,15 @@ int vcf_perfaa(CSOUND *csound, VCF *p) {
     G[3] = G[0]*G[2];
     ss = s[3];
     for(j = 0; j < 3; j++) ss += s[j]*G[2-j];
-    y[i] = (G[3]*x[i] + ss)/(1 + k*G[3]);
-    u = G[0]*(x[i] - k*y[i]);
+    o = (G[3]*x[i] + ss)/(1 + k*G[3]);
+    u = G[0]*(x[i] - k*o);
     for(j = 0; j < 3; j++) {
       w = u + s[j];
       s[j] = u - A*w;
       u = G[0]*w;
     }
-    s[3] = G[0]*w - A*y[i];
+    s[3] = G[0]*w - A*o;
+    y[i] = o;
   }
   return OK;
 }
