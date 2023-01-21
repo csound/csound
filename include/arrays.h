@@ -24,6 +24,13 @@
 #ifndef __ARRAY_H__
 #define __ARRAY_H__
 
+typedef struct {
+  OPDS     h;
+  ARRAYDAT *dst;
+  ARRAYDAT *src;
+  int32_t      len;
+} TABCPY;
+
 static inline void tabinit(CSOUND *csound, ARRAYDAT *p, int size)
 {
     size_t ss;

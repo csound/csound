@@ -2709,18 +2709,6 @@ static int32_t get_array_total_size(ARRAYDAT* dat)
     return size;
 }
 
-typedef struct {
-  OPDS     h;
-  ARRAYDAT *dst;
-  ARRAYDAT *src;
-  int32_t      len;
-} TABCPY;
-
-static int32_t array_assign(CSOUND* csound, TABCPY *p) {
-  *p->dst->data = *p->src->data;
-  return OK;
-}
-
 static int32_t tabcopy(CSOUND *csound, TABCPY *p)
 {
     int32_t i, arrayTotalSize, memMyfltSize;
@@ -4454,7 +4442,6 @@ static OENTRY arrayvars_localops[] =
     { "##array_set.i", sizeof(ARRAY_SET), 0, 1, "", ".[].m", (SUBR)array_set },
     { "##array_set.e", sizeof(ARRAY_SET), 0, 1, "", "i[].z", (SUBR)array_err },
     { "##array_set.x", sizeof(ARRAY_SET), 0, 2, "", ".[].z", NULL, (SUBR)array_set},
-    { "##array_assign",sizeof(TABCPY),0, 3, ".[]", ".[]", (SUBR)array_assign, (SUBR)array_assign },
     { "##array_get.k", sizeof(ARRAY_GET), 0, 2, "k", "k[]m", NULL,(SUBR)array_get },
     { "##array_get.a", sizeof(ARRAY_GET), 0, 2, "a", "a[]m",NULL, (SUBR)array_get },
     { "##array_get.x", sizeof(ARRAY_GET), 0, 1, ".", ".[]m",(SUBR)array_get },

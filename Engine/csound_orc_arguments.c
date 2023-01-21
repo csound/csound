@@ -376,7 +376,7 @@ int check_satisfies_expected_input(
     } else if (cstype == ((CS_TYPE*) &CS_VAR_TYPE_L)) {
         return strchr("l", *typeIdent) != NULL;
     } else if (cstype == ((CS_TYPE*) &CS_VAR_TYPE_S)) {
-        return strchr("SNTW", *typeIdent) != NULL;
+        return strchr("SUNTW", *typeIdent) != NULL;
     } else if (
         cstype == ((CS_TYPE*) &CS_VAR_TYPE_I) ||
         cstype == ((CS_TYPE*) &CS_VAR_TYPE_R) ||
@@ -384,7 +384,7 @@ int check_satisfies_expected_input(
     ) {
         return isArray ?
             strchr("icoXUNcmI", *typeIdent) != NULL :
-            strchr("ickoXUOJVPNTmIz", *typeIdent) != NULL;
+            strchr("ickoXUOJjVPNTmIz", *typeIdent) != NULL;
     } else if (cstype == ((CS_TYPE*) &CS_VAR_TYPE_F)) {
         return strchr("f", *typeIdent) != NULL;
     }
@@ -454,7 +454,7 @@ OENTRY* resolve_opcode_with_orc_args(
 ) {
     for (int i = 0; i < entries->count; i++) {
         OENTRY* temp = entries->entries[i];
-        if (strncmp(temp->opname, ":MyType", 5) == 0) {
+        if (strncmp(temp->opname, "fillarra", 5) == 0) {
             printf("yo\n");
 
         }
@@ -621,35 +621,31 @@ OENTRY* resolve_opcode_with_orc_args(
                     }
                     current += 1;
                 }
-                if (dimensionsNeeded != dimensionsFound) {
-
-                    if (isSyntheticVar && dimensionsNeeded < dimensionsFound) {
-                        // mismatch in dimensions from synthetic vars
-                        // is due to the fact that just walking the tree
-                        // it's unable to determine and assign correct
-                        // dimensions value. Given the rate resolved fully
-                        // thus far, we are safe to fix this here.
-                        // ex. `ians = iS + iT where iS and iT are arrays
-                        // sadly there's no way around this.
-                        currentArg->dimensions = dimensionsFound;
-                        CS_VARIABLE* var = csoundFindVariableWithName(
+                if (
+                    dimensionsNeeded > dimensionsFound &&
+                    dimensionsFound > 0
+                ) {
+                    // some opcodes like fillarray allow operating
+                    // a pointer-like reference on the array
+                    // therfore we allow each opcode to decide what
+                    // they want to do with non specific dimensions
+                    // this can only happen if the array already exists
+                    // in memory
+                    if (
+                        csoundFindVariableWithName(
                             csound,
                             typeTable->localPool,
                             currentArg->text
-                        );
-
-                        if (var != NULL) {
-                            var->dimensions = currentArg->dimensions;
-                        } else {
-                            printf(Str("error: couldn't find synthetic arg"
-                                        " while resolving input args\n"));
-                        }
+                        ) != NULL
+                    ) {
                         outArgsMatch = 1;
                     } else {
                         outArgsMatch = 0;
                         break;
                     }
-
+                } else if (dimensionsNeeded != dimensionsFound) {
+                    outArgsMatch = 0;
+                    break;
                 }
                 car = car->next;
                 currentArg = car == NULL ? NULL : (CSOUND_ORC_ARGUMENT*) car->value;
@@ -668,7 +664,6 @@ OENTRY* resolve_opcode_with_orc_args(
         ) {
             return temp;
         }
-        // printf("entry doesn't match in: %s out: %s\n", temp->intypes, temp->outypes);
     }
 
     return NULL;
@@ -1070,17 +1065,6 @@ static CSOUND_ORC_ARGUMENT* resolve_single_argument_from_tree(
 
         arg->SubExpression = subExpr;
         OENTRY* oentry = NULL;
-
-        // if (isStructExpr) {
-        //     // for member setters and getters there's
-        //     // only 1 oentry for each, we save the trouble
-        //     // of creating a temporary fake argument like
-        //     // we do with arrays
-        //     oentry = isAssignee ?
-        //         find_opcode(csound, "##member_set") :
-        //         find_opcode(csound, "##member_get");
-        //     goto expression_end;
-        // }
 
         char* opname = NULL;
 
@@ -1543,32 +1527,6 @@ CSOUND_ORC_ARGUMENTS* new_csound_orc_arguments(CSOUND* csound) {
     return args;
 }
 
-
-// for exception cases where the opcode search
-// will find wrong onetry, ex. when lexeme
-// str not giving all the required hints for
-// correct resolution.
-OENTRY* maybe_fix_opcode_resolution(
-    CSOUND* csound,
-    CSOUND_ORC_ARGUMENTS* argsLeft,
-    CSOUND_ORC_ARGUMENTS* argsRight,
-    TYPE_TABLE* typeTable,
-    char* opcodeString
-) {
-
-    if (
-        *opcodeString == '=' &&
-        argsLeft->length == 1
-    ) {
-        CSOUND_ORC_ARGUMENT* outarg = argsLeft->list->value;
-        if (outarg->dimensions > 0) {
-            return find_opcode(csound, "##array_assign");
-        }
-    }
-
-    return NULL;
-}
-
 static OENTRY* resolve_opcode_with_unknown_output(
     CSOUND* csound,
     OENTRIES* entries,
@@ -1759,28 +1717,14 @@ int verify_opcode_2(
         goto validate_oentry;
     }
 
-    // printOrcArgs(leftSideArgs);
-    // printOrcArgs(rightSideArgs);
-    if (oentry == NULL) {
-        oentry = maybe_fix_opcode_resolution(
-            csound,
-            leftSideArgs,
-            rightSideArgs,
-            typeTable,
-            root->value->lexeme
-        );
-    }
-
-    if (oentry == NULL) {
-        oentry = resolve_opcode_with_orc_args(
-            csound,
-            entries,
-            rightSideArgs,
-            leftSideArgs,
-            typeTable,
-            0
-        );
-    }
+    oentry = resolve_opcode_with_orc_args(
+        csound,
+        entries,
+        rightSideArgs,
+        leftSideArgs,
+        typeTable,
+        0
+    );
 
     validate_oentry:
     if (UNLIKELY(oentry == NULL)) {
