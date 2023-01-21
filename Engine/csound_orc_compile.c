@@ -310,65 +310,6 @@ char** splitArgs(CSOUND* csound, char* argString)
 
 OENTRY* find_opcode(CSOUND*, char*);
 
-char* get_struct_expr_string(CSOUND* csound, TREE* structTree) {
-  char temp[512];
-  int index = 0;
-  char* name;
-  int len;
-  TREE* current;
-
-  if (structTree->markup != NULL) {
-    return cs_strdup(csound, (char*)structTree->markup);
-  }
-
-  current = structTree->right;
-  memset(temp, 0, 512);
-  len = 0;
-
-  if (structTree->left->type == T_ARRAY) {
-    name = structTree->left->left->value->lexeme;
-    len = strlen(name);
-    memcpy(temp, name, len);
-    temp[len] = '[';
-    temp[len + 1] = ']';
-    temp[len + 2] = '\0';
-    len += 2;
-  } else {
-    name = structTree->left->value->lexeme;
-    len = strlen(name);
-    memcpy(temp, name, len);
-  }
-
-
-
-  index += len;
-
-  int isLastArray = 0;
-  while(current != NULL) {
-    if (current->type == T_ARRAY) {
-      current = current->left;
-      isLastArray = 1;
-      continue;
-    }
-    temp[index++] = '.';
-    name = current->value->lexeme;
-    len = strlen(name);
-    memcpy(temp + index, name, len);
-    index += len;
-    if (isLastArray) {
-      temp[index++] = '[';
-      temp[index++] = ']';
-      temp[index++] = '\0';
-      index += 2;
-    }
-    current = current->next;
-  }
-
-  name = cs_strdup(csound, temp);
-  structTree->markup = name;
-  return name;
-}
-
 // // recursively walks all SubExpressions
 // void lgbuildFromOrcArgs(
 //   CSOUND* csound,
@@ -1693,7 +1634,7 @@ PUBLIC int csoundCompileTreeInternal(CSOUND *csound, TREE *root, int async)
   while(var != NULL) {
     size_t memSize = CS_VAR_TYPE_OFFSET + var->memBlockSize;
     CS_VAR_MEM* varMem = (CS_VAR_MEM*) csound->Calloc(csound, memSize);
-    //printf("alloc %p -- %s\n", varMem, var->varName);
+    printf("alloc %p -- %s\n", varMem, var->varName);
     varMem->varType = var->varType;
     var->memBlock = varMem;
     if (var->initializeVariableMemory != NULL) {
@@ -2166,7 +2107,6 @@ static ARG *createArg(
   ARG *arg = csound->Calloc(csound, sizeof(ARG));
   CS_VAR_POOL* pool = NULL;
   char* ident = parsedArg->text;
-
   if (parsedArg->cstype == &CS_VAR_TYPE_C) {
     arg->type = ARG_CONSTANT;
     arg->argPtr = find_or_add_constant(
@@ -2202,12 +2142,12 @@ static ARG *createArg(
     pool = csound->engineState.varPool;
   } else {
     pool = ip->varPool;
-    printf("localArg %p localArg->argPtr %p\n", arg, arg->argPtr);
     arg->type = ARG_LOCAL;
   }
 
   if (pool != NULL) {
     arg->argPtr = csoundFindVariableWithName(csound, pool, ident);
+    printf("ident %s type %d Arg %p Arg->argPtr %p\n", ident,arg->type, arg, arg->argPtr);
   }
 
   if (arg->argPtr == NULL) {

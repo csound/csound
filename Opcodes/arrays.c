@@ -138,6 +138,12 @@ static int32_t tabfill(CSOUND *csound, TABFILL *p)
     size_t memMyfltSize;
     MYFLT  **valp = p->iargs;
     tabinit(csound, p->ans, nargs);
+/*     if (UNLIKELY(p->ans->dimensions > 2)) { */
+/*       return */
+/*         csound->InitError(csound, "%s", */
+/*                           Str("fillarrray: arrays with dim > 2 not " */
+/*                               "currently supported\n")); */
+/*     } */
     size = p->ans->sizes[0];
     for (i=1; i<p->ans->dimensions; i++) size *= p->ans->sizes[i];
     if (size<nargs) nargs = size;
@@ -317,19 +323,17 @@ static int32_t array_set(CSOUND* csound, ARRAY_SET *p)
 static int32_t array_get(CSOUND* csound, ARRAY_GET *p)
 {
     ARRAYDAT* dat = p->arrayDat;
-    MYFLT* mem;
+    MYFLT* mem = dat->data;
     int32_t i;
+    int32_t incr;
     int32_t end;
     int32_t index;
     int32_t indefArgCount = p->INOCOUNT - 1;
-    printf("p(thearg) %p dat %p dat->data %p\n", p, dat, dat->data);
-
 
     if (UNLIKELY(indefArgCount == 0))
       return csound->PerfError(csound, &(p->h),
                                Str("Error: no indexes set for array get"));
     if (UNLIKELY(indefArgCount!=dat->dimensions)) {
-      // printf("p(thearg) %p dat %p dat->data %p\n", p, dat, dat->data);
       return csound->PerfError(csound, &(p->h),
                                Str("Array dimension %d out of range "
                                    "for dimensions %d"),
@@ -338,14 +342,20 @@ static int32_t array_get(CSOUND* csound, ARRAY_GET *p)
     index = 0;
     for (i=0;i<indefArgCount; i++) {
       end = (int)(*p->indexes[i]);
+      //printf("** dimemnsion %d end = %d\n", i, end);
       if (UNLIKELY(end>=dat->sizes[i]))
         return csound->PerfError(csound, &(p->h),
                       Str("Array index %d out of range (0,%d) "
                           "for dimension %d"),
                                end, dat->sizes[i], i+1);
+      // printf("*** index %d -> ", index);
       index = (index * dat->sizes[i]) + end;
+      // printf("%d : %d\n", index, dat->sizes[i]);
     }
-    mem = (MYFLT*) dat->data + (index * dat->arrayMemberSize) / sizeof(MYFLT);
+
+    incr = (index * (dat->arrayMemberSize / sizeof(MYFLT)));
+    mem += incr;
+    //    memcpy(p->out, &mem[incr], dat->arrayMemberSize);
     dat->arrayType->copyValue(csound, dat->arrayType, (void*)p->out, (void*)mem);
     return OK;
 }

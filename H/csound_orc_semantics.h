@@ -36,8 +36,4 @@
 char* get_arg_type2(CSOUND*, TREE*, TYPE_TABLE*);
 int is_label(char*, CONS_CELL*);
 int is_reserved(char*);
-typedef struct csstructvar {
-  CS_VAR_MEM** members;
-} CS_STRUCT_VAR;
-
 #endif

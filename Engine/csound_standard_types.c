@@ -32,6 +32,7 @@
 void myflt_copy_value(CSOUND* csound, CS_TYPE* cstype, void* dest, void* src) {
   MYFLT* f1 = (MYFLT*)dest;
   MYFLT* f2 = (MYFLT*)src;
+  printf("myflt_copy_value dest %p src %p\n", dest, src);
   *f1 = *f2;
 }
 
@@ -161,7 +162,7 @@ void varInitMemory(CSOUND *csound, CS_VARIABLE* var, MYFLT* memblock) {
 void arrayInitMemory(CSOUND *csound, CS_VARIABLE* var, MYFLT* memblock) {
     IGN(csound);
     ARRAYDAT* dat = (ARRAYDAT*)memblock;
-    printf("arrayInitMemory memblock %p \n", memblock);
+    printf("arrayInitMemory memblock %p dat->data %p\n", memblock, dat->data);
     dat->arrayType = var->varType;
 }
 

@@ -218,6 +218,7 @@ extern int ISSTRCOD(MYFLT);
 #define ARG_LOCAL 4
 #define ARG_LABEL 5
 
+
 #define ASYNC_GLOBAL 1
 #define ASYNC_LOCAL  2
 
@@ -284,7 +285,7 @@ typedef struct CORFIL {
     int type;
     void* argPtr;
     int index;
-    char* structPath;
+    // int isStruct;
     struct arg* next;
   } ARG;
 //  typedef struct argoffs {

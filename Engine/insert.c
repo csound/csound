@@ -34,6 +34,7 @@
 #include "csound_type_system.h"
 #include "csound_standard_types.h"
 #include "csound_orc_semantics.h"
+#include "csound_orc_structs.h"
 #include <inttypes.h>
 
 static  void    showallocs(CSOUND *);
@@ -116,7 +117,8 @@ static int init_pass(CSOUND *csound, INSDS *ip) {
     csound->op = csound->ids->optext->t.oentry->opname;
       csound->Message(csound, "init %s:\n", csound->op);
     }
-  OPDS * ip = csound->ids;
+    printf("csound->ids->iopadr %p \n", csound->ids->iopadr);
+    OPDS * ip = csound->ids;
     error = (*csound->ids->iopadr)(csound, csound->ids);
   }
   csound->mode = 0;
@@ -2611,35 +2613,6 @@ static void instance(CSOUND *csound, int insno)
         fltp = &(var->memBlock->value); /* gbloffbas + var->memBlockIndex; */
       } else if (arg->type == ARG_LOCAL) {
         fltp = lclbas + var->memBlockIndex;
-
-        if (arg->structPath != NULL) {
-          char* path = cs_strdup(csound, arg->structPath);
-          char *next, *th, *thh;
-
-          next = cs_strtok_r(path, ".", &th);
-          while (next != NULL) {
-            CS_TYPE* type = csoundGetTypeForArg(fltp);
-            CS_STRUCT_VAR* structVar = (CS_STRUCT_VAR*)fltp;
-            CONS_CELL* members = type->members;
-            int i = 0;
-            while(members != NULL) {
-              CS_VARIABLE* member = (CS_VARIABLE*)members->value;
-              thh = th;
-              if (member->dimensions > 0) {
-                // remove the ending '[' tokens
-                next = cs_strtok_r(path, "[", &thh);
-              }
-              if (!strcmp(member->varName, next)) {
-                fltp = &(structVar->members[i]->value);
-                break;
-              }
-
-              i++;
-              members = members->next;
-            }
-            next = cs_strtok_r(NULL, ".", &th);
-          }
-        }
       }
       else if (arg->type == ARG_PFIELD) {
         CS_VAR_MEM* pfield = lcloffbas + arg->index;
@@ -2663,8 +2636,10 @@ static void instance(CSOUND *csound, int insno)
     ip->lclbas = lclbas;
     for (; arg != NULL; n++, arg = arg->next) {
       CS_VARIABLE* var = (CS_VARIABLE*)(arg->argPtr);
+      printf(" NN %d ttp->inArgs args %p arg->argPtr %p\n", n, arg,arg->argPtr );
       if (arg->type == ARG_CONSTANT) {
         CS_VAR_MEM *varMem = (CS_VAR_MEM*)arg->argPtr;
+        printf("varMem ttp->inArgs args %p arg->argPtr %p argpp[n] %p argpp %p val %d\n", arg,arg->argPtr, &argpp[n], argpp, (int) varMem->value );
         argpp[n] = &varMem->value;
       }
       else if (arg->type == ARG_STRING) {
@@ -2677,38 +2652,14 @@ static void instance(CSOUND *csound, int insno)
       else if (arg->type == ARG_GLOBAL) {
         argpp[n] =  &(var->memBlock->value); /*gbloffbas + var->memBlockIndex; */
       }
-      else if (arg->type == ARG_LOCAL){
-        // printf("next to crash: arg %p arg->argPtr %p\n", arg, arg->argPtr);
+      else if (arg->type == ARG_LOCAL) {
+        printf("next to crash: arg %p arg->argPtr %p\n", arg, arg->argPtr);
         argpp[n] = lclbas + var->memBlockIndex;
-        if (arg->structPath != NULL) {
-          char* path = cs_strdup(csound, arg->structPath);
-          char *next, *th, *thh;
-
-          next = cs_strtok_r(path, ".", &th);
-            while (next != NULL) {
-              CS_STRUCT_VAR* structVar = (CS_STRUCT_VAR*)argpp[n];
-              CS_TYPE* type = csoundGetTypeForArg(argpp[n]);
-              CONS_CELL* members = type->members;
-              int i = 0;
-              while(members != NULL) {
-                CS_VARIABLE* member = (CS_VARIABLE*)members->value;
-                thh = th;
-                if (member->dimensions > 0) {
-                  // remove the ending '[' tokens
-                  next = cs_strtok_r(path, "[", &thh);
-                }
-                if (!strcmp(member->varName, next)) {
-                  argpp[n] = &(structVar->members[i]->value);
-                  break;
-                }
-
-                i++;
-                members = members->next;
-              }
-              next = cs_strtok_r(NULL, ".", &th);
-            }
-        }
       }
+      // else if (arg->type == ARG_STRUCT) {
+      //   argpp[n] = lclbas + var->memBlockIndex;
+      //   CS_STRUCT_VAR* member = (CS_STRUCT_VAR*)(arg->argPtr);
+      // }
       else if (arg->type == ARG_LABEL) {
         argpp[n] = (MYFLT*)(opMemStart +
                             findLabelMemOffset(csound, tp, (char*)arg->argPtr));

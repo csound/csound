@@ -382,6 +382,7 @@
 ./Opcodes/stdopcod.c
 ./Opcodes/stdopcod.h
 ./Opcodes/sterrain.c
+./Opcodes/structs.c
 ./Opcodes/syncgrain.c
 ./Opcodes/syncgrain.h
 ./Opcodes/system_call.c

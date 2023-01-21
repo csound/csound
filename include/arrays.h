@@ -32,7 +32,9 @@ static inline void tabinit(CSOUND *csound, ARRAYDAT *p, int size)
         p->sizes = (int32_t*)csound->Calloc(csound, sizeof(int32_t));
     }
     if (p->data == NULL) {
-        CS_VARIABLE* var = p->arrayType->createVariable(csound, NULL, p->dimensions);
+        CS_VARIABLE* var = p->arrayType->createVariable(
+          csound, NULL, p->dimensions - 1
+        );
         p->arrayMemberSize = var->memBlockSize;
         ss = p->arrayMemberSize*size;
         p->data = (MYFLT*)csound->Calloc(csound, ss);

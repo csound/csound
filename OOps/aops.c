@@ -243,7 +243,17 @@ LOGCLX(or,||)
   int32_t OPNAME(CSOUND *csound, AOP *p)                        \
   { IGN(csound); *p->r = *p->a OP *p->b; return OK; }
 
-KK(addkk,+)
+int32_t addkk(CSOUND *csound, AOP *p)
+  {
+    IGN(csound);
+    printf("addkk *p->a %f p->a %p\n",*p->a, p->a );
+    printf("addkk *p->b %f p->b %p\n",*p->b, p->b);
+    printf("return p->r %p\n", p->r);
+    *p->r = *p->a + *p->b;
+    return OK;
+  }
+
+// KK(addkk,+)
 KK(subkk,-)
 KK(mulkk,*)
 //KK(divkk,/)
@@ -824,10 +834,18 @@ int32_t birnd1(CSOUND *csound, EVAL *p)             /* returns bipolar rand(x) *
     return OK;
 }
 
+int32_t exp01(CSOUND *csound, EVAL *p)
+  {
+    IGN(csound);
+    printf("EXP01 p->r %p p->a %p %f\n", p->r, p->a, p->a);
+    *p->r = exp(*p->a);
+    return OK;
+    }
+
 #define LIB1(OPNAME,LIBNAME)  int32_t OPNAME(CSOUND *csound, EVAL *p)       \
   {  IGN(csound); *p->r = LIBNAME(*p->a); return OK; }
 LIB1(abs1,FABS)
-LIB1(exp01,EXP)
+//LIB1(exp01,EXP)
 LIB1(log01,LOG)
 LIB1(sqrt1,SQRT)
 LIB1(sin1,SIN)
@@ -2223,14 +2241,14 @@ int32_t subinak(CSOUND *csound, ASSIGN *p)
 
 /**
  * Identifies both signaling NaN (sNaN) and quiet NaN (qNaN).
- * 
- * According to the IEEE 754 standard, all NaN have the sign bit set to 0 and 
+ *
+ * According to the IEEE 754 standard, all NaN have the sign bit set to 0 and
  * all exponent bits set to 1. qNaN has the most significant bit of the
- * fractional set to 1, while sNaN has most the significant bit of the 
- * fraction set to 0 -- but the NEXT most significant bit of the fraction must 
- * be set to 1! This is necessary in order to distinguish sNaN from positive 
- * infinity. Hence, there are 2 bit masks to test. Doubles have the most 
- * significant bit of the fraction in (0-based) bit 52, floats have the most 
+ * fractional set to 1, while sNaN has most the significant bit of the
+ * fraction set to 0 -- but the NEXT most significant bit of the fraction must
+ * be set to 1! This is necessary in order to distinguish sNaN from positive
+ * infinity. Hence, there are 2 bit masks to test. Doubles have the most
+ * significant bit of the fraction in (0-based) bit 52, floats have the most
  * significant bit of the fraction in bit 22.
  * double qNaN:
  * 0111111111110000000000000000000000000000000000000000000000000000
@@ -2239,12 +2257,12 @@ int32_t subinak(CSOUND *csound, ASSIGN *p)
  * 0111111111101000000000000000000000000000000000000000000000000000
  * 0x7FE8000000000000ULL
  * float qNaN:
- * 01111111110000000000000000000000  
+ * 01111111110000000000000000000000
  * 0x7FC00000
  * float sNaN:
- * 01111111101000000000000000000000  
+ * 01111111101000000000000000000000
  * 0x7FA00000
- * NOTE: Not all compilers permit type casting a type-punned pointer. So, we 
+ * NOTE: Not all compilers permit type casting a type-punned pointer. So, we
  * must explicitly copy rather than assign the data to test.
  */
 static inline int _isnan(MYFLT x) {
@@ -2253,20 +2271,20 @@ static inline int _isnan(MYFLT x) {
         memcpy(&bits, &x, sizeof(MYFLT));
         if ((bits & 0x7FF0000000000000ULL) == 0x7FF0000000000000ULL) {
             return 1;
-        } 
+        }
         if ((bits & 0x7FE8000000000000ULL) == 0x7FE8000000000000ULL) {
             return 1;
-        } 
+        }
         return 0;
     #else
         uint32_t bits;
         memcpy(&bits, &x, sizeof(MYFLT));
         if ((bits & 0x7FC00000) == 0x7FC00000) {
             return 1;
-        } 
+        }
         if ((bits & 0x7FA00000) == 0x7FA00000) {
             return 1;
-        } 
+        }
         return 0;
     #endif
  }

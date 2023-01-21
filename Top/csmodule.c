@@ -638,7 +638,7 @@ int csoundLoadModules(CSOUND *csound)
       } else if(userplugindirlen + prefixlen + 1 >= buflen) {
         csound->ErrorMsg(csound, Str("User plugin dir too long\n"));
       } else {
-      
+
         snprintf(buf, buflen, "%s/%s", prefix, userplugindir);
         if(_dir_exists(buf)) {
           snprintf(searchpath_buf, searchpath_buflen, "%s%c%s", dname, sep, buf);
@@ -647,7 +647,7 @@ int csoundLoadModules(CSOUND *csound)
       }
 #endif
     }
- 
+
     if(UNLIKELY(csound->oparms->odebug))
       csound->Message(csound, Str("Plugins search path: %s\n"), dname);
 
@@ -1177,6 +1177,7 @@ extern int32_t ugakbari_localops_init(CSOUND *, void *);
 extern int32_t harmon_localops_init(CSOUND *, void *);
 extern int32_t pitchtrack_localops_init(CSOUND *, void *);
 extern int32_t squinewave_localops_init(CSOUND *, void *);
+extern int32_t structops_localops_init(CSOUND *, void *);
 
 extern int32_t partikkel_localops_init(CSOUND *, void *);
 extern int32_t shape_localops_init(CSOUND *, void *);
@@ -1231,7 +1232,7 @@ const INITFN staticmodules[] = { hrtfopcodes_localops_init, babo_localops_init,
                                  hrtferX_localops_init, loscilx_localops_init,
                                  pan2_localops_init, arrayvars_localops_init,
                                  phisem_localops_init, pvoc_localops_init,
-                                 vbap_localops_init,
+                                 vbap_localops_init, structops_localops_init,
                                  ugakbari_localops_init, harmon_localops_init,
                                  pitchtrack_localops_init, partikkel_localops_init,
                                  shape_localops_init, tabsum_localops_init,

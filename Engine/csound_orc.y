@@ -72,6 +72,8 @@
 %token STRING_TOKEN
 %token T_IDENT
 %token T_TYPED_IDENT
+%token T_MEMBER_IDENT
+%token T_UNKNOWN_IDENT
 %token T_PLUS_IDENT
 
 %token INTEGER_TOKEN
@@ -563,14 +565,46 @@ struct_expr : struct_expr '.' identifier
             {  $$ = $1;
                appendToTree(csound, $1->right, $3); }
             | identifier '.' array_expr
-            {  $$ = make_node(csound, LINE, LOCN, STRUCT_EXPR, $1, $3); }
+            {
+              char* structName = $1->value->lexeme;
+              $$ = make_node(csound, LINE, LOCN, STRUCT_EXPR,
+                     make_leaf(csound, LINE, LOCN, T_IDENT, make_token(csound, structName)), $3);
+            }
             | struct_expr '.' array_expr
-            {  $$ = make_node(csound, LINE, LOCN, STRUCT_EXPR, $1, $3); }
+            {
+              char* structName = $1->value->lexeme;
+              $$ = make_node(csound, LINE, LOCN, STRUCT_EXPR,
+                     make_leaf(csound, LINE, LOCN, T_IDENT, make_token(csound, structName)), $3);
+            }
             | array_expr '.' identifier
-            {  $$ = make_node(csound, LINE, LOCN, STRUCT_EXPR, $1, $3); }
+            {
+              char* structName = $1->value->lexeme;
+              $$ = make_node(csound, LINE, LOCN, STRUCT_EXPR,
+                     make_leaf(csound, LINE, LOCN, T_IDENT, make_token(csound, structName)), $3);
+            }
             | identifier '.' identifier
-            {  $$ = make_node(csound, LINE, LOCN, STRUCT_EXPR, $1, $3); }
+            {
+              char* structName = $1->value->lexeme;
+              char* memberName = $3->value->lexeme;
+              $$ = make_node(csound, LINE, LOCN, STRUCT_EXPR,
+                     make_leaf(csound, LINE, LOCN, T_IDENT, make_token(csound, structName)),
+                     make_leaf(csound, LINE, LOCN, T_MEMBER_IDENT, make_token(csound, memberName))
+                   );
+              $$->right->value->optype = structName;
+              /* $$ = make_leaf(csound,LINE, LOCN, T_OPCALL, STRUCT_EXPR); */
+              /* $$->right = $1; */
+              /* $$->right->next = $3; */
+              /* $$->right->next->type = T_MEMBER_IDENT; */
+              /* $$->right->next->value->optype = $1->value->lexeme; */
+            }
             ;
+            /* | struct_expr '.' array_expr */
+            /* {  $$ = make_node(csound, LINE, LOCN, STRUCT_EXPR, $1, $3); } */
+            /* | array_expr '.' identifier */
+            /* {  $$ = make_node(csound, LINE, LOCN, STRUCT_EXPR, $1, $3); } */
+            /* | identifier '.' identifier */
+            /* {  $$ = make_node(csound, LINE, LOCN, STRUCT_EXPR, $1, $3); } */
+            /* ; */
 
 ternary_expr : expr '?' expr ':' expr %prec '?'
             { $$ = make_node(csound,LINE,LOCN, '?', $1,
