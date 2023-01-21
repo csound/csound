@@ -37,8 +37,7 @@ extern ORCTOKEN *make_label(CSOUND *, char *);
 extern OENTRIES* find_opcode2(CSOUND *, char*);
 extern char* resolve_opcode_get_outarg(CSOUND* , OENTRIES* , char*);
 extern TREE* appendToTree(CSOUND * csound, TREE *first, TREE *newlast);
-extern  char* get_arg_string_from_tree(CSOUND* csound, TREE* tree,
-                                       TYPE_TABLE* typeTable);
+extern  char* get_arg_string_from_tree(CSOUND*, TREE*, TYPE_TABLE*);
 extern void add_arg(CSOUND* csound, char* varName, char* annotation, TYPE_TABLE* typeTable);
 extern void add_array_arg(CSOUND* csound, char* varName, char* annotation, int dimensions,
                           TYPE_TABLE* typeTable);

@@ -54,8 +54,7 @@ OENTRIES* find_opcode2(CSOUND*, char*);
 char* resolve_opcode_get_outarg(CSOUND* csound,
                                 OENTRIES* entries, char* inArgTypes);
 int check_out_args(CSOUND* csound, char* outArgsFound, char* opOutArgs);
-char* get_arg_string_from_tree(CSOUND* csound, TREE* tree,
-                               TYPE_TABLE* typeTable);
+char* get_arg_string_from_tree(CSOUND*, TREE*, TYPE_TABLE*);
 char* convert_internal_to_external(CSOUND* csound, char* arg);
 char* convert_external_to_internal(CSOUND* csound, char* arg);
 void do_baktrace(CSOUND *csound, uint64_t files);
@@ -334,8 +333,9 @@ char* get_arg_type2(CSOUND* csound, TREE* tree, TYPE_TABLE* typeTable)
     }
 
     if (tree->type == T_FUNCTION) {
-      char* argTypeRight = get_arg_string_from_tree(csound,
-                                                    tree->right, typeTable);
+      char* argTypeRight = get_arg_string_from_tree(
+        csound, tree->right, typeTable
+      );
       char* opname = tree->value->lexeme;
       OENTRIES* entries = find_opcode2(csound, opname);
       char * out;
@@ -1223,65 +1223,69 @@ char* convert_external_to_internal(CSOUND* csound, char* arg) {
 }
 
 
-char* get_arg_string_from_tree(CSOUND* csound, TREE* tree,
-                               TYPE_TABLE* typeTable) {
+// char* get_arg_string_from_tree(CSOUND* csound, TREE* tree,
+//                                TYPE_TABLE* typeTable) {
 
-  int len = tree_arg_list_count(tree);
-  int i;
+//   int len = tree_arg_list_count(tree);
+//   int i;
 
-  if (len == 0) {
-    return NULL;
-  }
+//   if (len == 0) {
+//     return NULL;
+//   }
 
-  char** argTypes = csound->Malloc(csound, len * sizeof(char*));
-  char* argString = NULL;
-  TREE* current = tree;
-  int index = 0;
-  int argsLen = 0;
+//   char** argTypes = csound->Malloc(csound, len * sizeof(char*));
+//   char* argString = NULL;
+//   TREE* current = tree;
+//   int index = 0;
+//   int argsLen = 0;
 
-  while (current != NULL) {
-    char* argType = get_arg_type2(csound, current, typeTable);
-    //FIXME - fix if argType is NULL and remove the below hack
-    if (argType == NULL) {
-      argsLen += 1;
-      argTypes[index++] = cs_strdup(csound, "@");
-    } else {
-      // argType = convert_internal_to_external(csound, argType);
-      argsLen += strlen(argType);
-      argTypes[index++] = argType;
-    }
+//   while (current != NULL) {
+//     char* argType = get_arg_type2(csound, current, typeTable);
+//     //FIXME - fix if argType is NULL and remove the below hack
+//     if (argType == NULL) {
+//       argsLen += 1;
+//       argTypes[index++] = cs_strdup(csound, "@");
+//     } else {
+//       // argType = convert_internal_to_external(csound, argType);
+//       argsLen += strlen(argType);
+//       argTypes[index++] = argType;
+//     }
 
-    current = current->next;
-  }
+//     current = current->next;
+//   }
 
-  argString = csound->Malloc(csound, (argsLen + 1) * sizeof(char));
-  char* temp = argString;
-  for (i = 0; i < len; i++) {
-    int size = strlen(argTypes[i]);
-    memcpy(temp, argTypes[i], size);
-    temp += size;
-    csound->Free(csound, argTypes[i]);
-  }
+//   argString = csound->Malloc(csound, (argsLen + 1) * sizeof(char));
+//   char* temp = argString;
+//   for (i = 0; i < len; i++) {
+//     int size = strlen(argTypes[i]);
+//     memcpy(temp, argTypes[i], size);
+//     temp += size;
+//     csound->Free(csound, argTypes[i]);
+//   }
 
-  argString[argsLen] = '\0';
-  csound->Free(csound, argTypes);
-  return argString;
-}
+//   argString[argsLen] = '\0';
+//   csound->Free(csound, argTypes);
+//   return argString;
+// }
 
+
+// /* Used by new UDO syntax, expects tree's with value->lexeme as type names */
+// char* get_in_types_from_tree(CSOUND* csound, TREE* tree, TYPE_TABLE* typeTable) {
+//   int len = tree_arg_list_count(tree);
+
+//   if (len == 0 || (len == 1 && !strcmp(tree->value->lexeme, "0"))) {
+//     return cs_strdup(csound, "0");
+//   }
+//   return get_arg_string_from_tree(csound, tree, typeTable);
+// }
 
 /* Used by new UDO syntax, expects tree's with value->lexeme as type names */
-char* get_in_types_from_tree(CSOUND* csound, TREE* tree, TYPE_TABLE* typeTable) {
-  int len = tree_arg_list_count(tree);
-
-  if (len == 0 || (len == 1 && !strcmp(tree->value->lexeme, "0"))) {
-    return cs_strdup(csound, "0");
-  }
-  return get_arg_string_from_tree(csound, tree, typeTable);
-}
-
-/* Used by new UDO syntax, expects tree's with value->lexeme as type names */
-char* get_out_types_from_tree(CSOUND* csound, TREE* tree) {
-
+char* get_arg_string_from_tree(
+  CSOUND* csound,
+  TREE* tree,
+  TYPE_TABLE* typeTable
+) {
+  IGN(typeTable);
   int len = tree_arg_list_count(tree);
   char* argTypes = csound->Malloc(csound, len * MAX_STRUCT_ARG_SIZE * sizeof(char));
   int i;
@@ -1296,7 +1300,29 @@ char* get_out_types_from_tree(CSOUND* csound, TREE* tree) {
   TREE* current = tree;
 
   while (current != NULL) {
-    char* argType = current->value->lexeme;
+    char* argType = NULL;
+    if (
+        current->value->optype != NULL
+    ) {
+      argType = current->value->optype;
+    } else if (
+      csoundGetTypeWithVarTypeName(
+          csound->typePool,
+          current->value->lexeme
+        ) != NULL
+    ) {
+      argType = current->value->lexeme;
+    } else if (
+      current->value->lexeme != NULL &&
+      strlen(current->value->lexeme) > 0
+    ) {
+      argType = csound->Malloc(csound, 2 * sizeof(char));
+      argType[0] = current->value->lexeme[0];
+      argType[1] = '\0';
+    } else {
+      argType = cs_strdup(csound, ".");
+    }
+
     int len = strlen(argType);
     int offset = i * 256;
     argsLen += len;
@@ -2273,8 +2299,12 @@ TREE* verify_tree(CSOUND * csound, TREE *root, TYPE_TABLE* typeTable)
         if(current->left->right != NULL && *current->left->right->value->lexeme != '0') {
           add_args(csound, current->left->right, typeTable);
         }
-        char* outArgString = get_out_types_from_tree(csound, current->left->left);
-        char* inArgString = get_in_types_from_tree(csound, current->left->right, typeTable);
+        char* outArgString = get_arg_string_from_tree(
+          csound, current->left->left, typeTable
+        );
+        char* inArgString = get_arg_string_from_tree(
+          csound, current->left->right, typeTable
+        );
         if (*inArgString != '0') {
           TREE* statements = current->right;
           TREE* xin = create_opcode_token(csound, "xin");
@@ -2323,8 +2353,21 @@ TREE* verify_tree(CSOUND * csound, TREE *root, TYPE_TABLE* typeTable)
       break;
 
     case T_DECLARE: {
-      char* outArgStringDecl = get_out_types_from_tree(csound, current->left->left);
-      char* inArgStringDecl = get_in_types_from_tree(csound, current->left->right, typeTable);
+      if (current->left->left->value->optype == NULL) {
+        current->left->left->value->optype =
+          csound->Strdup(csound, current->left->left->value->lexeme);
+      }
+      if (current->left->right->value->optype == NULL) {
+        current->left->right->value->optype =
+          csound->Strdup(csound, current->left->right->value->lexeme);
+      }
+
+      char* outArgStringDecl = get_arg_string_from_tree(
+        csound, current->left->left, typeTable
+      );
+      char* inArgStringDecl = get_arg_string_from_tree(
+        csound, current->left->right, typeTable
+      );
       add_udo_definition(csound, current->value->lexeme, inArgStringDecl, outArgStringDecl, UNDEFINED);
       csound->inZero = 0;
       if (UNLIKELY(PARSER_DEBUG)) csound->Message(csound, "UDO found\n");
@@ -2444,7 +2487,7 @@ TREE* verify_tree(CSOUND * csound, TREE *root, TYPE_TABLE* typeTable)
         return 0;
       }
 
-      print_tree(csound, "expand pre", current);
+      // print_tree(csound, "expand pre", current);
       // current = expand_structs(csound, current, typeTable);
       if (is_statement_expansion_required(current)) {
         current = expand_statement(csound, current, typeTable);
@@ -2458,7 +2501,7 @@ TREE* verify_tree(CSOUND * csound, TREE *root, TYPE_TABLE* typeTable)
 
       }
 
-      print_tree(csound, " XX expand post", current);
+      // print_tree(csound, " XX expand post", current);
       if(!verify_opcode_2(csound, current, typeTable)) {
         return 0;
       }
