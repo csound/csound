@@ -1285,7 +1285,6 @@ char* get_arg_string_from_tree(
   TREE* tree,
   TYPE_TABLE* typeTable
 ) {
-  IGN(typeTable);
   int len = tree_arg_list_count(tree);
   char* argTypes = csound->Malloc(csound, len * MAX_STRUCT_ARG_SIZE * sizeof(char));
   int i;
@@ -1299,7 +1298,9 @@ char* get_arg_string_from_tree(
 
   TREE* current = tree;
 
+
   while (current != NULL) {
+    CS_VARIABLE* maybeVar = NULL;
     char* argType = NULL;
     if (
         current->value->optype != NULL
@@ -1316,9 +1317,54 @@ char* get_arg_string_from_tree(
       current->value->lexeme != NULL &&
       strlen(current->value->lexeme) > 0
     ) {
-      argType = csound->Malloc(csound, 2 * sizeof(char));
-      argType[0] = current->value->lexeme[0];
-      argType[1] = '\0';
+      maybeVar = csoundFindVariableWithName(
+        csound,
+        typeTable->localPool,
+        current->value->lexeme
+      );
+
+      if (maybeVar != NULL) {
+        // special case since it's not from walking the tree
+        int len = strlen(maybeVar->varType->varTypeName);
+        argsLen += len;
+        int isCustomType = maybeVar->varType->userDefinedType;
+        int offset = i * 256;
+
+        if (isCustomType) {
+          argTypes[offset++] = ':';
+          argsLen += 1;
+        }
+        strcpy(&argTypes[offset++], maybeVar->varType->varTypeName);
+
+        int dimension = maybeVar->dimensions;
+        while (dimension-- != 0) {
+          argTypes[offset++] = '[';
+          argTypes[offset++] = ']';
+          argsLen += 2;
+        }
+        if (isCustomType) {
+          argTypes[offset++] = ';';
+          argsLen += 1;
+        }
+        argTypes[offset++] = '\0';
+        current = current->next;
+        i += 1;
+        continue;
+      } else if (
+        strlen(current->value->lexeme) >= 1 &&
+        current->value->lexeme[1] == '['
+      ) {
+        argType = csound->Malloc(csound, 4 * sizeof(char));
+        argType[0] = current->value->lexeme[0];
+        argType[1] = '[';
+        argType[2] = ']';
+        argType[3] = '\0';
+      } else {
+        argType = csound->Malloc(csound, 2 * sizeof(char));
+        argType[0] = current->value->lexeme[0];
+        argType[1] = '\0';
+      }
+
     } else {
       argType = cs_strdup(csound, ".");
     }
@@ -1333,7 +1379,9 @@ char* get_arg_string_from_tree(
     }
     // relying on the fact that built-in array types have
     // arrays in different tree nodes from user defined structs
-    if (current->right != NULL && *current->right->value->lexeme == '[') {
+    if (
+        current->right != NULL &&
+        *current->right->value->lexeme == '[') {
       strcpy(&argTypes[offset], argType);
       offset += len;
       argTypes[offset++] = '[';
