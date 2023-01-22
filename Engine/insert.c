@@ -2659,10 +2659,6 @@ static void instance(CSOUND *csound, int insno)
         printf("next to crash: arg %p arg->argPtr %p\n", arg, arg->argPtr);
         argpp[n] = lclbas + var->memBlockIndex;
       }
-      // else if (arg->type == ARG_STRUCT) {
-      //   argpp[n] = lclbas + var->memBlockIndex;
-      //   CS_STRUCT_VAR* member = (CS_STRUCT_VAR*)(arg->argPtr);
-      // }
       else if (arg->type == ARG_LABEL) {
         argpp[n] = (MYFLT*)(opMemStart +
                             findLabelMemOffset(csound, tp, (char*)arg->argPtr));

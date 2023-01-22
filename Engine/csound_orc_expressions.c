@@ -673,7 +673,7 @@ static TREE *create_expression(
   newArgList = NULL;
   while (current != NULL) {
     if (current->type == STRUCT_EXPR) {
-      TREE* opcodeCallNode = create_opcode_token(csound, "##member_set");
+      TREE* opcodeCallNode = create_opcode_token(csound, "##member_get");
       TREE* syntheticIdent = create_synthetic_ident(csound, genlabs++);
       opcodeCallNode->right = current->left;
       opcodeCallNode->right->next = current->right;

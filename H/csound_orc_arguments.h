@@ -31,6 +31,7 @@ typedef struct csorcarg {
     char*    text;        // human readable text
     char*    uid;         // string with which to find the expression result in pools
     CS_TYPE* cstype;
+    CS_TYPE* memberType;
     int      type;        // token-type
     int      isGlobal;
     int      isPfield;

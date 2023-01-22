@@ -31,15 +31,6 @@ typedef struct {
     MYFLT*        nths[1];
 } STRUCT_GET;
 
-typedef struct {
-    OPDS          h;
-    MYFLT*        out;
-    CS_VAR_MEM*** members; // CS_STRUCT_VAR
-    MYFLT*        nths[1];
-} STRUCT_SET;
-
-
-
 static int32_t struct_member_get(CSOUND *csound, STRUCT_GET *p)
 {
     // this nth-index will have been verified to exist
@@ -51,19 +42,9 @@ static int32_t struct_member_get(CSOUND *csound, STRUCT_GET *p)
     return OK;
 }
 
-static int32_t struct_member_set(CSOUND *csound, STRUCT_SET *p)
-{
-    int nthInt = (int) *p->nths[0];
-    CS_VAR_MEM** members = *p->members;
-    CS_VAR_MEM* member = members[nthInt];
-        printf("p %p p->out %p\n", p, p->out);
-    member->varType->copyValue(csound, member->varType, p->out, &member->value);
-    return OK;
-}
 
 static OENTRY structops_localops[] = {
-  { "##member_get", sizeof(STRUCT_GET),    0, 1, ".", ".c",  (SUBR)struct_member_get },
-  { "##member_set", sizeof(STRUCT_SET),    0, 1, ".",  ".c", (SUBR)struct_member_set }
+  { "##member_get", sizeof(STRUCT_GET),    0, 1, ".", ".c",  (SUBR)struct_member_get }
 };
 
 

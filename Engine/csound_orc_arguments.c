@@ -123,7 +123,8 @@ void printNode(TREE* tree) {
 static char* make_comma_sep_arglist(
     CSOUND* csound,
     CSOUND_ORC_ARGUMENTS* args,
-    int displaySubExpr
+    int displaySubExpr,
+    int displayType
 ) {
     char pretty[256];
     CONS_CELL* carSub;
@@ -156,7 +157,9 @@ static char* make_comma_sep_arglist(
                 p += sprintf(
                     p,
                     hasNextSub ? "%s, " : "%s",
-                    argSub->text
+                    displayType ?
+                        argSub->cstype->varTypeName :
+                        argSub->text
                 );
                 if (index == 0) {
                     isArray = argSub->dimensions > 0;
@@ -178,7 +181,7 @@ static char* make_comma_sep_arglist(
             p += sprintf(
                 p,
                 hasNext ? "%s, " : "%s",
-                arg->text
+                displayType ? arg->cstype->varTypeName : arg->text
             );
         }
 
@@ -199,17 +202,17 @@ static void debugPrintArglist(
     if (tree->value == NULL && parent->isExpression) {
         printf("<expr %d> arglist: %s\n",
           tree->type,
-          make_comma_sep_arglist(csound, expr, 0));
+          make_comma_sep_arglist(csound, expr, 0, 0));
     } else if (tree->value == NULL) {
         printf("%s = opchar: %c arglist: %s\n",
           parent->text,
           tree->type,
-          make_comma_sep_arglist(csound, expr, 0));
+          make_comma_sep_arglist(csound, expr, 0, 0));
     } else {
         printf("%s = opname: %s arglist: %s\n",
           parent->text,
           tree->value->lexeme,
-          make_comma_sep_arglist(csound, expr, 0));
+          make_comma_sep_arglist(csound, expr, 0, 0));
     }
 
 }
@@ -316,7 +319,7 @@ OENTRY* resolve_opcode_with_orc_args(
 ) {
     for (int i = 0; i < entries->count; i++) {
         OENTRY* temp = entries->entries[i];
-        if (strncmp(temp->opname, "fillarra", 5) == 0) {
+        if (strncmp(temp->opname, "print", 3) == 0) {
             printf("yo\n");
 
         }
@@ -560,6 +563,7 @@ static CSOUND_ORC_ARGUMENT* new_csound_orc_argument(
 
     arg->dimensions = 0;
     arg->dimension = 0;
+    arg->memberType = NULL;
     arg->isGlobal = 0;
     arg->isPfield = 0;
     arg->isExpression = 0;
@@ -588,6 +592,7 @@ static CSOUND_ORC_ARGUMENT* copy_csound_orc_argument(
     ans->isExpression = arg->isExpression;
     ans->dimensions = arg->dimensions;
     ans->dimension = arg->dimension;
+    ans->memberType = arg->memberType;
     ans->linenum = arg->linenum;
     return ans;
 }
@@ -1017,6 +1022,14 @@ static CSOUND_ORC_ARGUMENT* resolve_single_argument_from_tree(
                 csound->Free(csound, tree->value->lexeme);
                 tree->value->lexeme = numStr;
                 tree->value->value = memberIndex;
+                int index = 0;
+                CONS_CELL* memCar = structVar->varType->members;
+                while (index < memberIndex) {
+                    memCar = memCar->next;
+                    index += 1;
+                }
+                CS_VARIABLE* memberVar = memCar->value;
+                arg->memberType = memberVar->varType;
             } else {
                 synterr(
                     csound,
@@ -1035,7 +1048,26 @@ static CSOUND_ORC_ARGUMENT* resolve_single_argument_from_tree(
             break;
         }
         case T_ARRAY_IDENT: {
-            if (
+            // check if the dimensions are known from
+            // the xin arguments of an opcode
+            CS_VARIABLE* tmpVar = csoundFindVariableWithName(
+                csound,
+                typeTable->instr0LocalPool,
+                tree->value->lexeme
+            );
+            if (tmpVar != NULL) {
+                arg->dimensions = tmpVar->dimensions;
+                arg->cstype = tmpVar->varType;
+                add_arg_to_pool(
+                    csound,
+                    typeTable,
+                    csound->Strdup(csound, tree->value->lexeme),
+                    NULL,
+                    arg->dimensions,
+                    arg->cstype
+                );
+                break;
+            } else if (
                 tree->right != NULL &&
                 tree->right->value != NULL &&
                 *tree->right->value->lexeme == '['
@@ -1155,8 +1187,14 @@ static CSOUND_ORC_ARGUMENT* resolve_single_argument_from_tree(
                         );
                         return NULL;
                     }
+                    if (arg->dimensions == 0) {
+                        // if it's already set (ex. array-idents)
+                        // it's probably correct already
+                        arg->dimensions = count_dimensions_from_string(
+                            annotation
+                        );
+                    }
 
-                    arg->dimensions = count_dimensions_from_string(annotation);
 
                 } else {
                     arg->cstype = csoundFindStandardTypeWithChar(
@@ -1357,6 +1395,8 @@ static void arglist_remove_nth(
             args->length -= 1;
             if (lastCar != NULL) {
                 lastCar->next = car->next;
+            } else {
+                args->list = car->next;
             }
             csound->Free(csound, car);
             return;
@@ -1414,6 +1454,7 @@ static void initialize_inferred_variables(
     CSOUND_ORC_ARGUMENT* firstRightArg =
       rightSideArgs->length > 0 ?
         rightSideArgs->list->value : NULL;
+    CSOUND_ORC_ARGUMENT* secondRightArg;
     char** outtypeList = splitArgs(csound, oentryOutypes);
     int index = 0;
 
@@ -1423,8 +1464,16 @@ static void initialize_inferred_variables(
                 csound, outtypeList[index]
             );
             if (*currentOutArg == '.') {
-                // array_get/set
-                currentArg->cstype = firstRightArg->cstype;
+                if (firstRightArg->cstype->userDefinedType) {
+                    // member_get/set
+                    secondRightArg = rightSideArgs->list->next->value;
+                    currentArg->cstype = secondRightArg->memberType;
+
+                } else {
+                    // array_get/set
+                    currentArg->cstype = firstRightArg->cstype;
+                }
+
             } else {
                 currentArg->cstype = resolve_cstype_from_string(
                     csound,
@@ -1561,8 +1610,8 @@ int verify_opcode_2(
             root->value->lexeme
         );
 
-        char* leftArglist = make_comma_sep_arglist(csound, leftSideArgs, 1);
-        char* rightArglist = make_comma_sep_arglist(csound, rightSideArgs, 1);
+        char* leftArglist = make_comma_sep_arglist(csound, leftSideArgs, 1, 1);
+        char* rightArglist = make_comma_sep_arglist(csound, rightSideArgs, 1, 1);
 
         csoundMessage(
             csound,

@@ -1931,7 +1931,8 @@ static void insprep(CSOUND *csound, INSTRTXT *tp, ENGINE_STATE *engineState)
       while (cdr != NULL) {
         CSOUND_ORC_ARGUMENT* orcArg = cdr->value;
         ARG *arg = createArg(csound, tp, orcArg, engineState);
-        printf("xxx: arg %p arg->argPtr %p\n", arg, arg->argPtr);
+        printf("xxx: arg %p arg->argPtr %p argType %d\n",
+         arg, arg->argPtr, arg->type);
         if (ttp->outArgs == NULL) {
           ttp->outArgs = arg;
         } else {
