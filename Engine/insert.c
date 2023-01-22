@@ -1704,6 +1704,9 @@ int xoutset(CSOUND *csound, XOUT *p)
   for (i = 0; i < inm->outchns; i++) {
     void* in = (void*)p->args[i];
     void* out = (void*)bufs[i];
+    if (out == NULL) {
+      break;
+    }
     tmp[i] = in;
 
     if (

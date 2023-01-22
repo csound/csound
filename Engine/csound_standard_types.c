@@ -32,7 +32,6 @@
 void myflt_copy_value(CSOUND* csound, CS_TYPE* cstype, void* dest, void* src) {
   MYFLT* f1 = (MYFLT*)dest;
   MYFLT* f2 = (MYFLT*)src;
-  printf("myflt_copy_value dest %p src %p\n", dest, src);
   *f1 = *f2;
 }
 
@@ -65,14 +64,6 @@ void string_copy_value(CSOUND* csound, CS_TYPE* cstype, void* dest, void* src) {
 
     if (UNLIKELY(src == NULL)) return;
     if (UNLIKELY(dest == NULL)) return;
-    printf("aSrc %p aSrc->data %p\n", sSrc, sSrc->data);
-    printf("aDest %p aDest->data %p\n", sDest, sDest->data);
-    // printf("GARBAGE %s\n", (char**) sDest);
-    // if (sDest->data == NULL) {
-    //     sDest->data = (char *) csound->Calloc(csound, DEFAULT_STRING_SIZE);
-    //     sDest->size = DEFAULT_STRING_SIZE;
-    //     sDest->timestamp = 0;
-    // }
 
     int64_t kcnt = csound->GetKcounter(csound);
     if (sSrc->size > sDest->size) {

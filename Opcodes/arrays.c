@@ -292,7 +292,6 @@ static int32_t array_set(CSOUND* csound, ARRAY_SET *p)
     int32_t i;
     int32_t end, index;
     int32_t indefArgCount = p->INOCOUNT - 2;
-    printf("array_set %p dat %p dat->data %p\n", p, dat, dat->data);
 
     if (UNLIKELY(indefArgCount == 0)) {
       csoundErrorMsg(csound, Str("Error: no indexes set for array set\n"));
@@ -315,7 +314,6 @@ static int32_t array_set(CSOUND* csound, ARRAY_SET *p)
       index = (index * dat->sizes[i]) + end;
     }
     mem = (MYFLT*) dat->data + (index * dat->arrayMemberSize) / sizeof(MYFLT);
-    printf("mem %p dat->data %p index %d \n", mem, dat->data, index);
     dat->arrayType->copyValue(csound, dat->arrayType, mem, p->value);
     return OK;
 }

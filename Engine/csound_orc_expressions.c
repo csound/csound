@@ -54,6 +54,8 @@ char *check_annotated_type(CSOUND* csound, OENTRIES* entries,
 static TREE *create_synthetic_label(CSOUND *csound, int32 count);
 static TREE *create_synthetic_ident(CSOUND*, int32);
 extern void do_baktrace(CSOUND *csound, uint64_t files);
+extern CS_TYPE* csoundGetTypeWithVarTypeName(TYPE_POOL*, char*);
+
 
 
 
@@ -681,7 +683,7 @@ static TREE *create_expression(
       } else {
         appendToTree(csound, newArgList, copy_node(csound, syntheticIdent));
       }
-      syntheticIdent->type = T_UNKNOWN_IDENT;
+      // syntheticIdent->type = T_UNKNOWN_IDENT;
       anchor = appendToTree(csound, anchor, opcodeCallNode);
       previous = current;
       // anchor = appendToTree(
@@ -846,24 +848,42 @@ static TREE *create_expression(
       strNcpy(op, "##array_get", 80);
       if (outarg != NULL) break;
       char *varBaseName = root->left->value->lexeme;
-
-      if (*varBaseName == 'g') {
-        var = csoundFindVariableWithName(csound, csound->engineState.varPool,
-                                         varBaseName);
-        if(var == NULL)
-          var = csoundFindVariableWithName(csound, typeTable->globalPool,
-                                           varBaseName);
-      } else
-        var = csoundFindVariableWithName(csound, typeTable->localPool,
-                                         varBaseName);
-
+      var = csoundFindVariableWithName(
+        csound,
+        typeTable->localPool,
+        varBaseName
+      );
       if (var == NULL) {
-        synterr(csound,
-                Str("unable to find array sub-type for var %s line %d\n"), varBaseName, current->line);
-        return NULL;
+        // if this is expanded statement, we can get hint
+        if (parent != NULL && parent->type == T_ASSIGNMENT) {
+          char* annotation = get_arg_string_from_tree(
+            csound,
+            parent->left,
+            typeTable
+          );
+          CS_TYPE* type = csoundGetTypeWithVarTypeName(
+            csound->typePool,
+            annotation
+          );
+          if (type != NULL) {
+            var = csoundCreateVariable(
+              csound,
+              csound->typePool,
+              type, varBaseName, 0, NULL
+            );
+            csoundAddVariable(csound, typeTable->localPool, var);
+          }
+          break;
+        }
+
+      // root->left->type = T_UNKNOWN_IDENT;
+      outype = strdup(".");
+      break;
+
       } else {
         if (var->varType->userDefinedType == 1) {
           outarg = create_out_arg(csound, outype, typeTable->localPool->synthArgCount++, typeTable);
+          outype = strdup(".");
           break;
         } else {
           if (var->varType == (CS_TYPE*) &CS_VAR_TYPE_A &&
@@ -880,12 +900,6 @@ static TREE *create_expression(
       if (outype == NULL) {
         return NULL;
       }
-      // outarg = create_out_arg(csound, outype,
-      //                         typeTable->localPool->synthArgCount++, typeTable);
-      // csound->Strdup(csound, var->varName);
-      // if (outarg != NULL) break;
-      // outarg = create_out_arg(csound, outype,
-      //                         typeTable->localPool->synthArgCount++, typeTable);
     }
 
     break;
@@ -900,7 +914,6 @@ static TREE *create_expression(
     opTree->right = root->left;
     opTree->right->next = root->right;
     opTree->left = create_synthetic_ident(csound, genlabs++);
-    opTree->left->type = T_UNKNOWN_IDENT;
     opTree->line = line;
     opTree->locn = locn;
     //print_tree(csound, "making expression", opTree);
@@ -908,9 +921,16 @@ static TREE *create_expression(
   else {
     opTree->right = root->right;
     opTree->left = create_synthetic_ident(csound, genlabs++);
-    opTree->left->type = T_UNKNOWN_IDENT;
     opTree->line = line;
     opTree->locn = locn;
+    if (
+      opTree->value != NULL &&
+      opTree->value->optype != NULL
+    ) {
+      opTree->left->value->optype = csound->Strdup(
+        csound, opTree->value->optype
+      );
+    }
 
   }
   if (anchor == NULL) {
@@ -1106,10 +1126,24 @@ static TREE *create_synthetic_ident(CSOUND *csound, int32 count)
 {
   char *label = (char *)csound->Calloc(csound, 32);
   ORCTOKEN *token;
-  snprintf(label, 32, "__synthetic_%"PRIi32, count);
+  snprintf(label, 32, "#_%"PRIi32, count);
   if (UNLIKELY(PARSER_DEBUG))
     csound->Message(csound, "Creating Synthetic T_IDENT: %s\n", label);
   token = make_token(csound, label);
+  token->type = T_IDENT;
+  csound->Free(csound, label);
+  return make_leaf(csound, -1, 0, T_IDENT, token);
+}
+
+static TREE *create_synthetic_label_ident(CSOUND *csound, int32 count)
+{
+  char *label = (char *)csound->Calloc(csound, 32);
+  ORCTOKEN *token;
+  snprintf(label, 32, "__synthetic_%"PRIi32, count);
+  if (UNLIKELY(PARSER_DEBUG))
+    csound->Message(csound, "Creating Synthetic label T_IDENT: %s\n", label);
+  token = make_token(csound, label);
+  token->optype = csound->Strdup(csound, "l");
   token->type = T_IDENT;
   csound->Free(csound, label);
   return make_leaf(csound, -1, 0, T_IDENT, token);
@@ -1214,7 +1248,6 @@ TREE* expand_statement(CSOUND* csound, TREE* current, TYPE_TABLE* typeTable)
         opcodeCallNode->right = currentArg->left;
         opcodeCallNode->right->next = currentArg->right;
         opcodeCallNode->left = copy_node(csound, syntheticIdent);
-        opcodeCallNode->left->type = T_UNKNOWN_IDENT;
         if (previousArg == NULL) {
           current->right = syntheticIdent;
           opcodeCallNode->next = current;
@@ -1329,7 +1362,7 @@ TREE* expand_statement(CSOUND* csound, TREE* current, TYPE_TABLE* typeTable)
         opcodeCallNode->right = structExpr->left;
         opcodeCallNode->right->next = structExpr->right;
         opcodeCallNode->left = syntheticIdent;
-        syntheticIdent->type = T_UNKNOWN_IDENT;
+        // syntheticIdent->type = T_UNKNOWN_IDENT;
         structExpr->left = NULL;
         structExpr->right = NULL;
         //csound->Free(csound, structExpr);
@@ -1479,7 +1512,7 @@ TREE* expand_if_statement(CSOUND* csound,
         int gotoType;
 
         statements = tempRight->right;
-        label = create_synthetic_ident(csound, genlabs);
+        label = create_synthetic_label_ident(csound, genlabs);
         labelEnd = create_synthetic_label(csound, genlabs++);
         tempRight->right = label;
 
@@ -1504,8 +1537,10 @@ TREE* expand_if_statement(CSOUND* csound,
         last = tree_tail(last);
 
         if (endLabelCounter > 0) {
-          TREE *endLabel = create_synthetic_ident(csound,
-                                                  endLabelCounter);
+          TREE *endLabel = create_synthetic_label_ident(
+            csound,
+            endLabelCounter
+          );
           int type = (gotoType == 1) ? 0 : 2;
           /* csound->DebugMsg(csound, "%s(%d): type = %d %d\n", */
           /*        __FILE__, __LINE__, type, gotoType); */
@@ -1608,8 +1643,10 @@ TREE* expand_until_statement(CSOUND* csound, TREE* current,
 
 
   labelEnd = create_synthetic_label(csound, endLabelCounter);
-  TREE *topLabel = create_synthetic_ident(csound,
-                                          topLabelCounter);
+  TREE *topLabel = create_synthetic_label_ident(
+    csound,
+    topLabelCounter
+  );
   TREE *gotoTopLabelToken = create_simple_goto_token(csound,
                                                      topLabel,
                                                      (gotoType==1 ? 0 : 1));

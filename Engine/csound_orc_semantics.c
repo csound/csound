@@ -2331,7 +2331,8 @@ TREE* verify_tree(CSOUND * csound, TREE *root, TYPE_TABLE* typeTable)
       break;
     case UDO_TOKEN:
       if (PARSER_DEBUG) csound->Message(csound, "UDO found\n");
-
+      char* outArgString = NULL;
+      char* inArgString = NULL;
       top = current->left;
       if (top->left != NULL && top->left->type == UDO_ANS_TOKEN) {
         top->left->markup = cs_strdup(csound, top->left->value->lexeme);
@@ -2347,10 +2348,10 @@ TREE* verify_tree(CSOUND * csound, TREE *root, TYPE_TABLE* typeTable)
         if(current->left->right != NULL && *current->left->right->value->lexeme != '0') {
           add_args(csound, current->left->right, typeTable);
         }
-        char* outArgString = get_arg_string_from_tree(
+        outArgString = get_arg_string_from_tree(
           csound, current->left->left, typeTable
         );
-        char* inArgString = get_arg_string_from_tree(
+        inArgString = get_arg_string_from_tree(
           csound, current->left->right, typeTable
         );
         if (*inArgString != '0') {
@@ -2375,6 +2376,26 @@ TREE* verify_tree(CSOUND * csound, TREE *root, TYPE_TABLE* typeTable)
       current->markup = typeTable->localPool;
 
       if (current->right != NULL) {
+
+        // annotate xout if needed
+        if (outArgString != NULL && current->right->right != NULL) {
+          char** outArgList = splitArgs(csound, outArgString);
+          TREE* currentOutArg = current->right->right;
+          int argIndex = 0;
+          while (currentOutArg) {
+            if (
+              currentOutArg->value != NULL &&
+              currentOutArg->value->optype == NULL
+            ) {
+              currentOutArg->value->optype = convert_internal_to_external(
+                csound, outArgList[argIndex]
+              );
+            }
+            argIndex += 1;
+            currentOutArg = currentOutArg->next;
+          }
+        }
+
 
         newRight = verify_tree(csound, current->right, typeTable);
 
@@ -3061,9 +3082,9 @@ static void print_tree_xml(CSOUND *csound, TREE *l, int n, int which)
   case T_IDENT:
     csound->Message(csound,"name=\"T_IDENT\" varname=\"%s\"",
                     l->value->lexeme); break;
-  case T_UNKNOWN_IDENT:
-    csound->Message(csound,"name=\"T_UNKNOWN_IDENT\" varname=\"%s\"",
-                    l->value->lexeme); break;
+  // case T_UNKNOWN_IDENT:
+  //   csound->Message(csound,"name=\"T_UNKNOWN_IDENT\" varname=\"%s\"",
+  //                   l->value->lexeme); break;
   case T_OPCALL:
     if (l->value) {
       csound->Message(csound,"name=\"T_OPCALL\" op=\"%s\"",

@@ -27,6 +27,7 @@
 #include "csound_orc_expressions.h"
 #include "csound_orc_semantics.h"
 #include "csound_orc_structs.h"
+#include "csound_orc_verify.h"
 
 extern int pnum(char*);
 void print_tree(CSOUND *, char *, TREE *);
@@ -36,6 +37,8 @@ extern int is_in_optional_arg(char*);
 extern int is_in_var_arg(char*);
 extern char* get_expression_opcode_type(CSOUND*, TREE*);
 extern char* get_boolean_expression_opcode_type(CSOUND*, TREE*);
+extern char** splitArgs(CSOUND*, char*);
+extern char* convert_internal_to_external(CSOUND*, char*);
 
 static CSOUND_ORC_ARGUMENT* new_csound_orc_argument(
     CSOUND*,
@@ -212,45 +215,6 @@ static void debugPrintArglist(
 }
 
 
-static int is_wildcard_type(char* typeIdent) {
-  return strchr("?.*", *typeIdent) != NULL;
-}
-
-static int is_vararg_input_type(char* typeIdent) {
-  return strlen(typeIdent) == 1 &&
-    strchr("MNmWyzZ", *typeIdent) != NULL;
-}
-
-static int is_optarg_input_type(char* typeIdent) {
-  return strchr("?IOoPpVvhJj", *typeIdent) != NULL;
-}
-
-static int is_init_opcode(char* opname) {
-    return strncmp(opname, "init", 4) == 0;
-}
-
-static int is_internal_array_opcode(char* opname) {
-    return strncmp(opname, "##array_", 8) == 0;
-}
-
-static int is_unary_token_type(int tokenType) {
-  return (tokenType == S_UNOT) ||
-    (tokenType == S_UMINUS) ||
-    (tokenType == S_UPLUS);
-}
-
-static int is_legacy_t_rate_ident(char* ident) {
-  char* token = ident;
-
-  if (*token == '#') {
-    token += 1;
-  }
-  if (*token == 'g') {
-    token += 1;
-  }
-  return *token == 't';
-}
-
 static int fill_optional_inargs(
     CSOUND* csound,
     CSOUND_ORC_ARGUMENTS* args,
@@ -336,108 +300,6 @@ static int fill_optional_inargs(
     }
 
     return 1;
-}
-
-int check_satisfies_arate_input(
-    char* typeIdent
-) {
-    return strchr("aXMNyx", *typeIdent) != NULL;
-}
-
-int check_satisfies_krate_input(
-    char* typeIdent
-) {
-    return strchr("ckmxzXUOJVPN", *typeIdent) != NULL;
-}
-
-int check_satisfies_expected_input(
-    CS_TYPE* cstype,
-    char* typeIdent,
-    int isArray
-) {
-    if (is_wildcard_type(typeIdent)) {
-        return 1;
-    }
-
-    // printf("input: checking %c against %s\n", *typeIdent, arg->text);
-    if (
-        cstype == ((CS_TYPE*) &CS_VAR_TYPE_C) &&
-        strchr("Sf", *typeIdent) == NULL // fewer letters to rule out than include
-    ) {
-        return 1;
-    } else if (cstype == ((CS_TYPE*) &CS_VAR_TYPE_A)) {
-        return check_satisfies_arate_input(typeIdent);
-    } else if (cstype == ((CS_TYPE*) &CS_VAR_TYPE_K)) {
-        return check_satisfies_krate_input(typeIdent);
-    } else if (cstype == ((CS_TYPE*) &CS_VAR_TYPE_B)) {
-        return strchr("B", *typeIdent) != NULL;
-    } else if (cstype == ((CS_TYPE*) &CS_VAR_TYPE_b)) {
-        return strchr("Bb", *typeIdent) != NULL;
-    } else if (cstype == ((CS_TYPE*) &CS_VAR_TYPE_L)) {
-        return strchr("l", *typeIdent) != NULL;
-    } else if (cstype == ((CS_TYPE*) &CS_VAR_TYPE_S)) {
-        return strchr("SUNTW", *typeIdent) != NULL;
-    } else if (
-        cstype == ((CS_TYPE*) &CS_VAR_TYPE_I) ||
-        cstype == ((CS_TYPE*) &CS_VAR_TYPE_R) ||
-        cstype == ((CS_TYPE*) &CS_VAR_TYPE_P)
-    ) {
-        return isArray ?
-            strchr("icoXUNcmI", *typeIdent) != NULL :
-            strchr("ickoXUOJjVPNTmIz", *typeIdent) != NULL;
-    } else if (cstype == ((CS_TYPE*) &CS_VAR_TYPE_F)) {
-        return strchr("f", *typeIdent) != NULL;
-    }
-
-    return 0;
-}
-
-int check_satisfies_alternating_z_input(
-    char* typeIdent,
-    int argIndex
-) {
-    if (argIndex % 2 == 0) {
-        return check_satisfies_krate_input(typeIdent);
-    } else {
-        return check_satisfies_arate_input(typeIdent);
-    }
-}
-
-static int check_satisfies_expected_output(
-    CS_TYPE* cstype,
-    char* typeIdent
-) {
-    if (is_wildcard_type(typeIdent)) {
-        return 1;
-    }
-
-    // printf("input: checking %c against %s\n", *typeIdent, arg->text);
-    if (cstype == ((CS_TYPE*) &CS_VAR_TYPE_C)) {
-        return 1;
-    } else if (cstype == ((CS_TYPE*) &CS_VAR_TYPE_A)) {
-        return strchr("amXN", *typeIdent) != NULL;
-    } else if (cstype == ((CS_TYPE*) &CS_VAR_TYPE_K)) {
-        return strchr("kzXN", *typeIdent) != NULL;
-    } else if (cstype == ((CS_TYPE*) &CS_VAR_TYPE_B)) {
-        return strchr("B", *typeIdent) != NULL;
-    } else if (cstype == ((CS_TYPE*) &CS_VAR_TYPE_b)) {
-        return strchr("Bb", *typeIdent) != NULL;
-    } else if (cstype == ((CS_TYPE*) &CS_VAR_TYPE_L)) {
-        return strchr("l", *typeIdent) != NULL;
-    } else if (cstype == ((CS_TYPE*) &CS_VAR_TYPE_S)) {
-        return strchr("SNI", *typeIdent) != NULL;
-    } else if (
-        cstype == ((CS_TYPE*) &CS_VAR_TYPE_I) ||
-        cstype == ((CS_TYPE*) &CS_VAR_TYPE_R) ||
-        cstype == ((CS_TYPE*) &CS_VAR_TYPE_P)
-    ) {
-        return strchr("zXNicmI", *typeIdent) != NULL;
-    } else if (cstype == ((CS_TYPE*) &CS_VAR_TYPE_F)) {
-        return strchr("f", *typeIdent) != NULL;
-    }
-
-    return 0;
-
 }
 
 // as with 'resolve_opcode_get_outarg', it returns the first match
@@ -737,9 +599,10 @@ static CS_VARIABLE* add_arg_to_pool(
     TYPE_TABLE* typeTable,
     char* varName,
     char* annotation,
-    int dimensions
+    int dimensions,
+    CS_TYPE* maybeType
 ) {
-    CS_TYPE* type;
+    CS_TYPE* type = maybeType;
     CS_VAR_POOL* pool;
     void* typeArg = NULL;
 
@@ -759,7 +622,7 @@ static CS_VARIABLE* add_arg_to_pool(
 
     if (var != NULL) {
         var->refCount += 1;
-    } else {
+    } else if (type == NULL) {
         if (annotation != NULL) {
             type = csoundGetTypeWithVarTypeName(
                 csound->typePool,
@@ -771,11 +634,23 @@ static CS_VARIABLE* add_arg_to_pool(
                 varName_ += 1;
             }
             type = csoundFindStandardTypeWithChar(varName_[0]);
-
-            if (type == NULL) {
-                type = (CS_TYPE*) &CS_VAR_TYPE_L;
-            }
         }
+
+        if (type == NULL) {
+            return NULL;
+        }
+
+        var = csoundCreateVariable(
+            csound,
+            csound->typePool,
+            type,
+            varName,
+            dimensions,
+            typeArg
+        );
+
+        csoundAddVariable(csound, pool, var);
+    } else {
         var = csoundCreateVariable(
             csound,
             csound->typePool,
@@ -831,6 +706,49 @@ static CSOUND_ORC_ARGUMENTS* concat_orc_arguments(
     return args1;
 }
 
+static CS_TYPE* resolve_cstype_from_string(
+    CSOUND* csound,
+    char* argString
+) {
+    char* arrayPos = strchr(argString, '[');
+    char* tmp = NULL;
+    CS_TYPE* cstype = NULL;
+    if (arrayPos != NULL) {
+        int len = arrayPos - argString;
+        tmp = csound->Calloc(
+            csound,  len + 1
+        );
+        memcpy(tmp, argString, len);
+    }
+    char* s = tmp == NULL ? argString : tmp;
+    if (strlen(s) == 1) {
+        cstype = csoundFindStandardTypeWithChar(
+            argString[0]
+        );
+    } else {
+        cstype = csoundGetTypeWithVarTypeName(
+            csound->typePool, s);
+    }
+
+    if (tmp != NULL) {
+        csound->Free(csound, tmp);
+    }
+
+    return cstype;
+}
+
+static int count_dimensions_from_string(char* str) {
+    char* pos = str;
+    int dimensions = 0;
+    while (*pos != '\0') {
+        if (*pos == '[') {
+            dimensions += 1;
+        }
+        pos += 1;
+    }
+    return dimensions;
+}
+
 static CSOUND_ORC_ARGUMENT* resolve_single_argument_from_tree(
     CSOUND* csound,
     CSOUND_ORC_ARGUMENTS* args,
@@ -854,99 +772,6 @@ static CSOUND_ORC_ARGUMENT* resolve_single_argument_from_tree(
 
     args->append(csound, args, arg);
 
-    // if (tree->type == '?') {
-    //     CSOUND_ORC_ARGUMENTS* subExpr = new_csound_orc_arguments(csound);
-    //     // ternary expression
-    //     // starting with boolean
-    //     subExpr = get_arguments_from_tree(
-    //         csound,
-    //         subExpr,
-    //         tree->left,
-    //         typeTable,
-    //         0
-    //     );
-
-    //     if (subExpr == NULL) {
-    //         return NULL;
-    //     }
-
-    //     CSOUND_ORC_ARGUMENT* booleanExpr =
-    //         subExpr->length == 0 ? NULL : subExpr->list->value;
-
-    //     if (
-    //         UNLIKELY(
-    //             booleanExpr == NULL ||
-    //             (booleanExpr->cstype != (CS_TYPE*) &CS_VAR_TYPE_B &&
-    //              booleanExpr->cstype != (CS_TYPE*) &CS_VAR_TYPE_b)
-    //         )
-    //     ) {
-    //         synterr(csound,
-    //                 Str("non-boolean expression found for ternary operator,"
-    //                     " line %d\n"), tree->line);
-    //         do_baktrace(csound, tree->locn);
-    //         return NULL;
-    //     }
-
-    //     // then true (left side)
-    //     subExpr = get_arguments_from_tree(
-    //         csound,
-    //         subExpr,
-    //         tree->right->left,
-    //         typeTable,
-    //         0
-    //     );
-
-    //     if (subExpr == NULL) {
-    //         return NULL;
-    //     }
-
-    //     // then false (right side)
-    //     subExpr = get_arguments_from_tree(
-    //         csound,
-    //         subExpr,
-    //         tree->right->right,
-    //         typeTable,
-    //         0
-    //     );
-
-    //     if (subExpr == NULL) {
-    //         return NULL;
-    //     }
-
-    //     char* opname = csound->Strdup(csound, ":cond");
-    //     OENTRIES* entries = find_opcode2(csound, opname);
-    //     OENTRY* oentry = resolve_opcode_with_orc_args(
-    //         csound,
-    //         entries,
-    //         subExpr,
-    //         NULL,
-    //         typeTable,
-    //         1
-    //     );
-
-    //     if (oentry == NULL) {
-    //         CSOUND_ORC_ARGUMENT* leftExpr = subExpr->nth(subExpr, 1);
-    //         CSOUND_ORC_ARGUMENT* rightExpr = subExpr->nth(subExpr, 2);
-    //         synterr(
-    //             csound,
-    //             Str("Line %d\n"
-    //                 "\tillegal combination of cases"
-    //                 " in ternary statement with\n"
-    //                 "\t'%s' on left side and '%s' on right side\n"),
-    //             tree->line,
-    //             leftExpr->cstype->varDescription,
-    //             rightExpr->cstype->varDescription
-    //         );
-    //         return NULL;
-    //     }
-
-    //     tree->markup = oentry;
-    //     tree->inlist = args;
-    //     tree->outlist = NULL;
-    //     arg->text = opname;
-    //     arg->cstype = csoundFindStandardTypeWithChar('b');
-    //     arg->SubExpression = subExpr;
-    // } else
     if (
         is_expression_node(tree) ||
         is_boolean_expression_node(tree) ||
@@ -1259,6 +1084,16 @@ static CSOUND_ORC_ARGUMENT* resolve_single_argument_from_tree(
                 return arg;
             }
             if (
+                annotation != NULL &&
+                strlen(annotation) == 1 &&
+                *annotation == 'l')
+            {
+                // label that needs to be added
+                arg->cstype = (CS_TYPE*) &CS_VAR_TYPE_L;
+                isAssignee = 1;
+            }
+
+            if (
                 (*ident >= '1' && *ident <= '9') ||
                 *ident == '.' || *ident == '-' || *ident == '+' ||
                 (*ident == '0' && strcmp(ident, "0dbfs") != 0)
@@ -1292,7 +1127,7 @@ static CSOUND_ORC_ARGUMENT* resolve_single_argument_from_tree(
                 arg->isGlobal = 1;
             }
 
-            if (isAssignee && ident[0] != '#') {
+            if (isAssignee) {
                 if (
                     annotation == NULL &&
                     arg->cstype == NULL &&
@@ -1304,15 +1139,29 @@ static CSOUND_ORC_ARGUMENT* resolve_single_argument_from_tree(
                         csound,
                         Str("Using t-rate variables is deprecated; use k[] instead\n")
                     );
+                } else if (annotation != NULL) {
+                    arg->cstype = resolve_cstype_from_string(
+                        csound, annotation
+                    );
+                    if (UNLIKELY(arg->cstype == NULL)) {
+                        synterr(
+                            csound,
+                            Str(
+                                "\nLine %d type '%s' "
+                                "doesn't exist!\n"
+                            ),
+                            tree->line,
+                            annotation
+                        );
+                        return NULL;
+                    }
+
+                    arg->dimensions = count_dimensions_from_string(annotation);
+
                 } else {
                     arg->cstype = csoundFindStandardTypeWithChar(
                         *ident == 'g' ? ident[1] : ident[0]
                     );
-                }
-
-                if (annotation == NULL && arg->cstype == NULL) {
-                    tree->type = T_UNKNOWN_IDENT;
-                    return arg;
                 }
 
                 var = add_arg_to_pool(
@@ -1320,8 +1169,14 @@ static CSOUND_ORC_ARGUMENT* resolve_single_argument_from_tree(
                     typeTable,
                     ident,
                     annotation,
-                    arg->dimensions
+                    arg->dimensions,
+                    arg->cstype
                 );
+
+                if (var == NULL) {
+                    // iference
+                    return arg;
+                }
                 arg->cstype = var->varType;
                 arg->dimensions = var->dimensions;
 
@@ -1527,114 +1382,78 @@ CSOUND_ORC_ARGUMENTS* new_csound_orc_arguments(CSOUND* csound) {
     return args;
 }
 
-static OENTRY* resolve_opcode_with_unknown_output(
+
+
+// checks if the output type needs to be inferred
+static int has_unknown_output_type(
+    CSOUND_ORC_ARGUMENTS* leftSideArgs
+) {
+    CONS_CELL* car = leftSideArgs->list;
+    CSOUND_ORC_ARGUMENT* currentArg = car->value;
+
+    while(currentArg != NULL) {
+        if (currentArg->cstype == NULL) {
+            return 1;
+        }
+        car = car->next;
+        currentArg = car == NULL ? NULL : car->value;
+    }
+
+    return 0;
+}
+
+static void initialize_inferred_variables(
     CSOUND* csound,
-    OENTRIES* entries,
+    TYPE_TABLE* typeTable,
     CSOUND_ORC_ARGUMENTS* leftSideArgs,
     CSOUND_ORC_ARGUMENTS* rightSideArgs,
-    TREE* left,
-    TREE* right,
-    TYPE_TABLE* typeTable
+    char* oentryOutypes
 ) {
-    CSOUND_ORC_ARGUMENT* outputArg = new_csound_orc_argument(
-        csound,
-        leftSideArgs,
-        left,
-        typeTable
-    );
-    CSOUND_ORC_ARGUMENT* firstRightArg = rightSideArgs->list->value;
-    // we can safely resolve struct outtype now
-    if (firstRightArg->cstype->userDefinedType) {
-        int memberIndex = right->next->value->value;
-        CONS_CELL* car = firstRightArg->cstype->members;
-        while (memberIndex) {
-            car = car->next;
-            memberIndex -= 1;
-        }
-        CS_VARIABLE* memberVar = (CS_VARIABLE*) car->value;
-        CS_VARIABLE* pointerVar = csoundCreateVariable(
-            csound,
-            csound->typePool,
-            memberVar->varType,
-            left->value->lexeme,
-            memberVar->dimensions,
-            NULL
-        );
-        memberVar->refCount += 1;
-        csoundAddVariable(
-            csound,
-            typeTable->localPool,
-            pointerVar
-        );
-        left->type = T_IDENT;
-        outputArg->cstype = pointerVar->varType;
-        leftSideArgs->append(csound, leftSideArgs, outputArg);
+    CONS_CELL* car = leftSideArgs->list;
+    CSOUND_ORC_ARGUMENT* currentArg = car->value;
+    CSOUND_ORC_ARGUMENT* firstRightArg =
+      rightSideArgs->length > 0 ?
+        rightSideArgs->list->value : NULL;
+    char** outtypeList = splitArgs(csound, oentryOutypes);
+    int index = 0;
 
-    }
-
-    // if the outargs match, we know will know
-    // the actual type of uknown, given the opcode
-    // has non-empty outlist
-    OENTRY* oentry = resolve_opcode_with_orc_args(
-        csound,
-        entries,
-        rightSideArgs,
-        leftSideArgs,
-        typeTable,
-        1
-    );
-
-    if (oentry && firstRightArg->cstype->userDefinedType) {
-        return oentry;
-    }
-    if (oentry && strlen(oentry->outypes) > 0) {
-        CS_TYPE* standardType = csoundFindStandardTypeWithChar(
-            *oentry->outypes
-        );
-
-        if (standardType == NULL) {
-            if (is_internal_array_opcode(oentry->opname)) {
-                standardType = firstRightArg->cstype;
+    while(currentArg != NULL) {
+        if (currentArg->cstype == NULL) {
+            char* currentOutArg = convert_internal_to_external(
+                csound, outtypeList[index]
+            );
+            if (*currentOutArg == '.') {
+                // array_get/set
+                currentArg->cstype = firstRightArg->cstype;
+            } else {
+                currentArg->cstype = resolve_cstype_from_string(
+                    csound,
+                    currentOutArg
+                );
+                if (currentArg->cstype == NULL) {
+                    csound->Warning(
+                        csound,
+                        "Internal: couldn't find type from oentry\n"
+                    );
+                    csound->Free(csound, currentOutArg);
+                    return;
+                }
             }
 
-        }
-
-        if (standardType == NULL) {
-            printf(
-                "Internal error: standardType wasn't found for '%c'\n",
-                *oentry->outypes);
-        }
-
-        int dimensions = 0;
-        if (strlen(oentry->outypes) > 1 && oentry->outypes[1] == '[') {
-            // FIXME multi-dimensions
-            dimensions = 1;
-        }
-
-        outputArg->cstype = standardType;
-        outputArg->dimensions = dimensions;
-
-        csoundAddVariable(
-            csound,
-            typeTable->localPool,
-            csoundCreateVariable(
+            add_arg_to_pool(
                 csound,
-                csound->typePool,
-                standardType,
-                left->value->lexeme,
-                dimensions,
-                NULL
-            )
-        );
-        left->type = T_IDENT;
-        leftSideArgs->append(csound, leftSideArgs, outputArg);
-
-        return oentry;
+                typeTable,
+                currentArg->text,
+                NULL,
+                count_dimensions_from_string(currentOutArg),
+                currentArg->cstype
+            );
+            csound->Free(csound, currentOutArg);
+        }
+        car = car->next;
+        currentArg = car == NULL ? NULL : car->value;
+        index += 1;
     }
-
-    printf("Internal error: FIXME (no opcode resolved)\n");
-
-    return NULL;
 }
 
 int verify_opcode_2(
@@ -1661,10 +1480,9 @@ int verify_opcode_2(
     CSOUND_ORC_ARGUMENTS* leftSideArgs = new_csound_orc_arguments(csound);
     CSOUND_ORC_ARGUMENTS* rightSideArgs = new_csound_orc_arguments(csound);
 
-    OENTRY* oentry = NULL;
     TREE* left = root->left;
     TREE* right = root->right;
-
+    print_tree(csound, "before", root);
     rightSideArgs = get_arguments_from_tree(
         csound,
         rightSideArgs,
@@ -1677,18 +1495,18 @@ int verify_opcode_2(
         return 0;
     }
 
-    if (left != NULL && left->type == T_UNKNOWN_IDENT) {
-        oentry = resolve_opcode_with_unknown_output(
-            csound,
-            entries,
-            leftSideArgs,
-            rightSideArgs,
-            left,
-            right,
-            typeTable
-        );
-        goto validate_oentry;
-    }
+    // if (left != NULL && left->type == T_UNKNOWN_IDENT) {
+    //     oentry = resolve_opcode_with_unknown_output(
+    //         csound,
+    //         entries,
+    //         leftSideArgs,
+    //         rightSideArgs,
+    //         left,
+    //         right,
+    //         typeTable
+    //     );
+    //     goto validate_oentry;
+    // }
 
     leftSideArgs = get_arguments_from_tree(
         csound,
@@ -1702,31 +1520,39 @@ int verify_opcode_2(
         return 0;
     }
 
-    // check if the inargs lookup had to declare
-    // the tree node unknown type
-    if (left != NULL && left->type == T_UNKNOWN_IDENT) {
-        oentry = resolve_opcode_with_unknown_output(
-            csound,
-            entries,
-            leftSideArgs,
-            rightSideArgs,
-            left,
-            right,
-            typeTable
-        );
-        goto validate_oentry;
+    int needsInference = 0;
+
+    if (
+        leftSideArgs->length > 0 &&
+        has_unknown_output_type(leftSideArgs)
+    ) {
+        needsInference = 1;
     }
 
-    oentry = resolve_opcode_with_orc_args(
+    // check if the inargs lookup had to declare
+    // the tree node unknown type
+    // if (left != NULL && left->type == T_UNKNOWN_IDENT) {
+    //     oentry = resolve_opcode_with_unknown_output(
+    //         csound,
+    //         entries,
+    //         leftSideArgs,
+    //         rightSideArgs,
+    //         left,
+    //         right,
+    //         typeTable
+    //     );
+    //     goto validate_oentry;
+    // }
+
+    OENTRY* oentry = resolve_opcode_with_orc_args(
         csound,
         entries,
         rightSideArgs,
         leftSideArgs,
         typeTable,
-        0
+        needsInference
     );
 
-    validate_oentry:
     if (UNLIKELY(oentry == NULL)) {
         synterr(
             csound,
@@ -1771,6 +1597,16 @@ int verify_opcode_2(
         do_baktrace(csound, root->locn);
 
         return 0;
+    }
+
+    if (needsInference) {
+        initialize_inferred_variables(
+            csound,
+            typeTable,
+            leftSideArgs,
+            rightSideArgs,
+            oentry->outypes
+        );
     }
 
     root->markup = oentry;

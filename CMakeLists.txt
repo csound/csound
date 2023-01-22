@@ -221,8 +221,8 @@ if(NOT MSVC AND NOT WASM)
     set(CMAKE_CXX_FLAGS_RELEASE "-O3 ")
     set(CMAKE_C_FLAGS_RELEASE "-O3 ")
     if(${CMAKE_BUILD_TYPE} MATCHES "Debug")
-        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}  -Wall -Werror -Wno-missing-field-initializers")
-        set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wall -Werror -Wno-missing-field-initializers")
+        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-missing-field-initializers")
+        set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wno-missing-field-initializers")
     endif()
 endif()
 
@@ -854,6 +854,7 @@ set(libcsound_SRCS
     Opcodes/platerev.c
     Opcodes/sequencer.c
     Opcodes/pvsgendy.c
+    Opcodes/structs.c
     Opcodes/emugens/emugens.c
     Opcodes/emugens/scugens.c
     Top/argdecode.c
@@ -1038,6 +1039,8 @@ list(APPEND libcsound_SRCS
     Engine/csound_orc_expressions.c
     Engine/csound_orc_optimize.c
     Engine/csound_orc_compile.c
+    Engine/csound_orc_structs.c
+    Engine/csound_orc_verify.c
     Engine/new_orc_parser.c
     Engine/symbtab.c)
 

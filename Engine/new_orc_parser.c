@@ -269,7 +269,7 @@ TREE *csoundParseOrc(CSOUND *csound, const char *str)
 //      csound->Free(csound, typeTable->instr0LocalPool);
 //      csound->Free(csound, typeTable->globalPool);
 //      csound->Free(csound, typeTable);
-      // print_tree(csound, "AST - FOLDED\n", astTree);
+      print_tree(csound, "AST - FOLDED\n", astTree);
 
       if (UNLIKELY(astTree == NULL || csound->synterrcnt)) {
         err = 3;

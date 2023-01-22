@@ -73,7 +73,6 @@
 %token T_IDENT
 %token T_TYPED_IDENT
 %token T_MEMBER_IDENT
-%token T_UNKNOWN_IDENT
 %token T_PLUS_IDENT
 
 %token INTEGER_TOKEN
