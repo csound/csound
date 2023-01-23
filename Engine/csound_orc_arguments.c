@@ -319,7 +319,7 @@ OENTRY* resolve_opcode_with_orc_args(
 ) {
     for (int i = 0; i < entries->count; i++) {
         OENTRY* temp = entries->entries[i];
-        if (strncmp(temp->opname, "print", 3) == 0) {
+        if (strncmp(temp->opname, "##member", 4) == 0) {
             printf("yo\n");
 
         }
@@ -1531,7 +1531,7 @@ int verify_opcode_2(
 
     TREE* left = root->left;
     TREE* right = root->right;
-    print_tree(csound, "before", root);
+    // print_tree(csound, "before", root);
     rightSideArgs = get_arguments_from_tree(
         csound,
         rightSideArgs,

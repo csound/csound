@@ -344,7 +344,10 @@ char* get_arg_type2(CSOUND* csound, TREE* tree, TYPE_TABLE* typeTable)
         out = check_annotated_type(csound, entries, tree->value->optype);
       else  out = resolve_opcode_get_outarg(csound, entries, argTypeRight);
 
-
+      if (entries->count > 0) {
+        // if there's a matching opcode, verify it in verify_opcode_2
+        out = ((OENTRY*)entries->entries[0])->outypes;
+      }
       if (UNLIKELY(out == 0)) {
         synterr(csound, Str("opcode '%s' for expression with arg "
                             "types %s not found, line %d\n"),
@@ -2489,29 +2492,6 @@ TREE* verify_tree(CSOUND * csound, TREE *root, TYPE_TABLE* typeTable)
       continue;
     case FOR_TOKEN: {
       char* arrayArgType = get_arg_type2(csound, current->right->left, typeTable);
-      char* assignmentSymbol = current->left->value->lexeme;
-
-      if (*arrayArgType != '[') {
-        synterr(
-          csound,
-          Str("Line: %d invalid array argument in for-of statement: found '%s'\n"),
-          current->line,
-          current->right->left->value->lexeme
-        );
-        return 0;
-      }
-
-      if (arrayArgType[1] != *assignmentSymbol) {
-        synterr(
-          csound,
-          Str("Line: %d mismatching argument types in for-of statement!\n"
-              "'%s' runs on different rate from '%s'\n"),
-          current->line,
-          assignmentSymbol,
-          current->right->left->value->lexeme
-        );
-        return 0;
-      }
 
       current = expand_for_statement(
         csound,
@@ -2570,7 +2550,7 @@ TREE* verify_tree(CSOUND * csound, TREE *root, TYPE_TABLE* typeTable)
 
       }
 
-      // print_tree(csound, " XX expand post", current);
+      print_tree(csound, " XX expand post", current);
       if(!verify_opcode_2(csound, current, typeTable)) {
         return 0;
       }
