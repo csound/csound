@@ -45,8 +45,5 @@ int add_struct_definition(CSOUND*, TREE*);
 int findStructMemberIndex(CONS_CELL*, char*);
 CS_VARIABLE* getStructMember(CONS_CELL*, char*);
 char* getStructPathFromTree(CSOUND*, TREE*);
-// MYFLT* getDataPointerFromStructPath(
-//   CSOUND*, CS_VAR_POOL*,MYFLT*, char*
-// );
 
 #endif

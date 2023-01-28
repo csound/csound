@@ -102,7 +102,7 @@ static OENTRY vaops_localops[] = {
   { "vaget", S(VA_GET),    0, 2,      "k", "ka",  NULL, (SUBR)vaget },
   { "vaset", S(VA_SET),    WI, 2,      "",  "kka", NULL, (SUBR)vaset },
   { "##array_get", S(VASIG_GET),    0, 2,      "k", "ak",  NULL, (SUBR)vasigget },
-  { "##array_set", S(VASIG_SET),    0, 2,      "",  "aak", NULL, (SUBR)vasigset }
+  { "##array_set", S(VASIG_SET),    0, 2,      "",  "akk", NULL, (SUBR)vasigset }
 };
 
 

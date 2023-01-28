@@ -86,7 +86,6 @@ int check_satisfies_expected_input(
         return 1;
     }
 
-    // printf("input: checking %c against %s\n", *typeIdent, arg->text);
     if (
         cstype == ((CS_TYPE*) &CS_VAR_TYPE_C) &&
         strchr("Sf", *typeIdent) == NULL // fewer letters to rule out than include
@@ -138,7 +137,6 @@ int check_satisfies_expected_output(
         return 1;
     }
 
-    // printf("input: checking %c against %s\n", *typeIdent, arg->text);
     if (cstype == ((CS_TYPE*) &CS_VAR_TYPE_C)) {
         return 1;
     } else if (cstype == ((CS_TYPE*) &CS_VAR_TYPE_A)) {

@@ -1177,23 +1177,14 @@ TREE* expand_statement(CSOUND* csound, TREE* current, TYPE_TABLE* typeTable)
         // error
         return NULL;
       }
-      // last = tree_tail(expressionNodes);
-      // TREE* oldLeft = current->left;
-      // current = replace_tree_head(csound, current, expressionNodes, anchor);
-      // // if (last->left != oldLeft) {
-      // //   csound->Free(csound, last->left);
-      // // }
-      // last->left = oldLeft;
-
 
       nextArg = currentArg->next;
       csound->Free(csound, currentArg);
 
-      // /* Set as anchor if necessary */
-
+      /* Set as anchor if necessary */
       anchor = appendToTree(csound, anchor, expressionNodes);
 
-      // /* reconnect into chain */
+      /* reconnect into chain */
       last = tree_tail(expressionNodes);
       newArg = last->left->value->lexeme;
 
@@ -1222,7 +1213,6 @@ TREE* expand_statement(CSOUND* csound, TREE* current, TYPE_TABLE* typeTable)
 
   anchor = appendToTree(csound, anchor, current);
 
-
   // handle LHS expressions (i.e. array-set's)
   previousArg = NULL;
   currentArg = current->left;
@@ -1237,7 +1227,6 @@ TREE* expand_statement(CSOUND* csound, TREE* current, TYPE_TABLE* typeTable)
   while (currentArg != NULL) {
 
     if (currentArg->type == STRUCT_EXPR) {
-        // TREE* syntheticIdent = create_synthetic_ident(csound, genlabs++);
         TREE* opcodeCallNode = create_opcode_token(csound, "##member_set");
         TREE* currentMember = currentArg->right;
         TREE* chainedMember;

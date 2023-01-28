@@ -704,22 +704,6 @@ static CSOUND_ORC_ARGUMENTS* concat_orc_arguments(
         if (args2->length > 0) {
             args1->length += args2->length;
             car->next = args2->list;
-            // car->next = csound->Malloc(csound, sizeof(CONS_CELL));
-            // car->next->value = args2->list;
-            // CONS_CELL* car2 = args2->list;
-            // int index = 0;
-            // while (car2 != NULL) {
-            //     printf("index %d\n", index);
-            //     CONS_CELL* next = csound->Malloc(csound, sizeof(CONS_CELL));
-            //     next->value = copy_csound_orc_argument(
-            //         csound,
-            //         car2->value
-            //     );
-            //     car2 = car2->next;
-            //     car = next;
-            //     car = car->next;
-            //     index += 1;
-            // }
         }
     }
 
@@ -814,82 +798,6 @@ static CSOUND_ORC_ARGUMENT* resolve_single_argument_from_tree(
             arg->cstype = (CS_TYPE*) &CS_VAR_TYPE_L;
             break;
         }
-        // case STRUCT_VALUE: {
-        //     char* structPath = getStructPathFromTree(
-        //         csound,
-        //         tree
-        //     );
-
-        //     CS_VARIABLE* var = csoundFindVariableWithName(
-        //         csound,
-        //         typeTable->localPool,
-        //         structPath
-        //     );
-
-        //     if (var != NULL) {
-        //         // already existing
-        //         if (arg->text != NULL) {
-        //             csound->Free(csound, arg->text);
-        //         }
-        //         arg->text = structPath;
-        //         arg->cstype = var->varType;
-        //         arg->dimension = var->dimension;
-        //         arg->dimensions = var->dimensions;
-        //         break;
-        //     }
-
-        //     var = csoundFindVariableWithName(
-        //         csound,
-        //         typeTable->localPool,
-        //         tree->left->value->lexeme
-        //     );
-
-        //     if (var == NULL) {
-        //         synterr(
-        //             csound,
-        //             Str("Line %d struct '%s' used before defined"),
-        //             tree->line,
-        //             structPath
-        //         );
-        //         csound->Free(csound, structPath);
-        //         return NULL;
-        //     }
-
-        //     CS_VARIABLE* memberVar = getStructMember(
-        //         var->varType->members,
-        //         tree->right->value->lexeme
-        //     );
-
-        //     if (memberVar == NULL) {
-        //         synterr(
-        //             csound,
-        //             Str("Line %d failed to find member '%s' of "
-        //                 "non existing struct variable '%s'"),
-        //             tree->line,
-        //             tree->value->lexeme,
-        //             tree->value->optype
-        //         );
-        //         return NULL;
-        //     } else {
-        //         CS_VARIABLE* alias = memberVar->varType->createVariable(
-        //             csound,
-        //             memberVar->varType,
-        //             memberVar->dimensions
-        //         );
-        //         memberVar->refCount += 1;
-        //         alias->memBlockIndex = memberVar->memBlockIndex;
-        //         alias->varType = memberVar->varType;
-        //         alias->varName = structPath;
-        //         alias->isRef = 1;
-        //         arg->text = csound->Strdup(csound, structPath);
-        //         arg->cstype = memberVar->varType;
-        //         arg->dimensions = memberVar->dimensions;
-        //         csoundAddVariable(
-        //             csound, typeTable->localPool, alias
-        //         );
-        //         break;
-        //     }
-        // }
         case T_MEMBER_IDENT: {
             arg->cstype = (CS_TYPE*) &CS_VAR_TYPE_C;
             tree->type = INTEGER_TOKEN;
@@ -1505,6 +1413,8 @@ int verify_opcode_2(
 
     OENTRY* oentry = NULL;
 
+
+
     if (strcmp(root->value->lexeme, "##array_set") == 0) {
         CSOUND_ORC_ARGUMENT* firstRightArg =
             rightSideArgs->nth(rightSideArgs, 0);
@@ -1514,7 +1424,7 @@ int verify_opcode_2(
         ) {
             for (int i = 0; i < entries->count; i++) {
                 oentry = entries->entries[i];
-                if (strcmp(root->value->lexeme, "##array_set.k") == 0) {
+                if (strcmp(oentry->opname, "##array_set") == 0) {
                     break;
                 }
             }
@@ -1573,7 +1483,7 @@ int verify_opcode_2(
             Str("\nLine: %d\n"),
             root->line
         );
-        printOrcArgs(rightSideArgs );
+        // printOrcArgs(rightSideArgs );
         do_baktrace(csound, root->locn);
 
         return 0;

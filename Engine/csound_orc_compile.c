@@ -304,44 +304,10 @@ char** splitArgs(CSOUND* csound, char* argString)
   //    for (int k = 0; k < argCount; k++) {
   //        printf("%d - %s\n", k, args[k]);
   //    }
-
   return args;
 }
 
 OENTRY* find_opcode(CSOUND*, char*);
-
-// // recursively walks all SubExpressions
-// void lgbuildFromOrcArgs(
-//   CSOUND* csound,
-//   CSOUND_ORC_ARGUMENT* orcArg,
-//   INSTRTXT *ip,
-//   ENGINE_STATE *engineState
-// ) {
-//   if (orcArg->cstype != (CS_TYPE*) &CS_VAR_TYPE_P) {
-//     lgbuild(
-//       csound,
-//       ip,
-//       orcArg->isExpression ? orcArg->exprIdent : orcArg->text,
-//       1,
-//       engineState
-//     );
-//   }
-
-//   if (orcArg->isExpression) {
-//     CONS_CELL* cdr = orcArg->SubExpression->list;
-//     while (cdr != NULL) {
-//       CSOUND_ORC_ARGUMENT* orcArg2 = cdr->value;
-//       lgbuildFromOrcArgs(
-//         csound,
-//         orcArg2,
-//         ip,
-//         engineState
-//       );
-//       cdr = cdr->next;
-//     }
-//   }
-// }
-
 
 /**
  * Create an Opcode (OPTXT) from the AST node given for a given engineState

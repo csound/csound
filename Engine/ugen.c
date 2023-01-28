@@ -267,9 +267,6 @@ PUBLIC UGEN* ugen_new(UGEN_FACTORY* factory, char* opName, char* outargTypes, ch
     ugen->inPoolCount = cs_cons_length(inTypes);
     ugen->outPoolCount = cs_cons_length(outTypes);
 
-    // optxt->t.outArgCount = ugen->outPoolCount;
-    // optxt->t.inArgCount = ugen->inPoolCount;
-
     /*for(int i = 0; i < outTypes.size(); i++) {*/
         /*sprintf(name, "out%d", i);*/
         /*CS_VARIABLE* var = csoundCreateVariable(csound, csound->typePool, (CS_TYPE*)outTypes[i], name, NULL);*/

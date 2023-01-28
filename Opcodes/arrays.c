@@ -3209,7 +3209,6 @@ int32_t tablength(CSOUND *csound, TABQUERY1 *p)
 {
     IGN(csound);
     int32_t opt = (int32_t)*p->opt;
-    //printf("p->tab %p p->tab->data %p\n", p->tab, p->tab->data);
     if (UNLIKELY(p->tab==NULL || opt>p->tab->dimensions))
       *p->ans = -FL(1.0);
     else if (UNLIKELY(opt<=0)) *p->ans = p->tab->dimensions;

@@ -562,9 +562,6 @@ array_expr :  array_expr '[' expr ']'
 
 struct_expr : struct_expr '.' identifier
             {
-              // $$ = $1;
-              //  appendToTree(csound, $1->right, $3);
-              // char* structName = $1->value->lexeme;
               char* memberName = $3->value->lexeme;
               $$ = make_node(
                 csound, LINE, LOCN, STRUCT_EXPR,
@@ -573,7 +570,6 @@ struct_expr : struct_expr '.' identifier
                   csound, LINE, LOCN, T_MEMBER_IDENT, make_token(csound, memberName)
                 )
               );
-              // $$->right->value->optype = structName;
             }
             | struct_expr '.' array_expr
             {
@@ -599,7 +595,6 @@ struct_expr : struct_expr '.' identifier
                 make_leaf(csound, LINE, LOCN, T_IDENT, make_token(csound, structName)),
                 make_leaf(csound, LINE, LOCN, T_MEMBER_IDENT, make_token(csound, memberName))
               );
-              //$$->right->next = $3->right;
               $$->right->value->optype = structName;
               $3->left = $$;
               $$ = $3;
@@ -619,13 +614,6 @@ struct_expr : struct_expr '.' identifier
               $$->right->value->optype = structName;
             }
             ;
-            /* | struct_expr '.' array_expr */
-            /* {  $$ = make_node(csound, LINE, LOCN, STRUCT_EXPR, $1, $3); } */
-            /* | array_expr '.' identifier */
-            /* {  $$ = make_node(csound, LINE, LOCN, STRUCT_EXPR, $1, $3); } */
-            /* | identifier '.' identifier */
-            /* {  $$ = make_node(csound, LINE, LOCN, STRUCT_EXPR, $1, $3); } */
-            /* ; */
 
 ternary_expr : expr '?' expr ':' expr %prec '?'
             { $$ = make_node(csound,LINE,LOCN, '?', $1,
