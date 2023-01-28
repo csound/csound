@@ -115,7 +115,7 @@ static int struct_array_get(
     ARRAYDAT* arrayDat = dat->arrayDat;
     int memMyfltSize = arrayDat->arrayMemberSize;
     int index = ((int) *dat->indicies[0]) * memMyfltSize;
-    MYFLT* srcData = (void*) arrayDat->data + index;
+    MYFLT* srcData = (MYFLT*) arrayDat->data + index;
     STRUCT_VAR* srcVar = (STRUCT_VAR*) srcData;
     STRUCT_VAR* dstVar = (STRUCT_VAR*) dat->out;
     dstVar->members = srcVar->members;

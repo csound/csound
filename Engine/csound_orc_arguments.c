@@ -291,7 +291,7 @@ static int fill_optional_inargs(
             }
         }
 
-        snprintf(temp, 8, "%f", optargValue);
+        snprintf(temp, 8, "%d", (int) optargValue);
         optArg = new_csound_orc_argument(
             csound,
             args,
