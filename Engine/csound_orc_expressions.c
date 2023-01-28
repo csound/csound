@@ -566,83 +566,6 @@ static char* create_out_arg_for_expression(CSOUND* csound, char* op, TREE* left,
                         typeTable->localPool->synthArgCount++, typeTable);
 }
 
-// TREE* create_struct_expression_rhs(
-//   CSOUND* csound,
-//   TREE* currentArg,
-//   TYPE_TABLE* typeTable
-// ) {
-//   TREE* opcodeCallNode = create_opcode_token(csound, "##member_get");
-//   TREE* syntheticIdent = create_synthetic_ident(csound, genlabs++);
-//   TREE* anchor = NULL;
-//   opcodeCallNode->right = currentArg->left;
-//   opcodeCallNode->right->next = currentArg->right;
-//   opcodeCallNode->left = syntheticIdent;
-//   anchor = appendToTree(csound, anchor, opcodeCallNode);
-//   return anchor;
-// }
-
-// static TREE* create_struct_expression_lhs(
-//   CSOUND* csound,
-//   TREE* currentArg,
-//   TREE* newArgList,
-//   TYPE_TABLE* typeTable
-// ) {
-//   TREE* opcodeCallNode = create_opcode_token(csound, "##member_set");
-//   TREE* syntheticIdent = create_synthetic_ident(csound, genlabs++);
-
-//   opcodeCallNode->right = currentArg->left;
-//   opcodeCallNode->left = syntheticIdent;
-//   if (newArgList == NULL) {
-//     newArgList = copy_node(csound, syntheticIdent);
-//   } else {
-//     appendToTree(csound, newArgList, copy_node(csound, syntheticIdent));
-//   }
-
-//   syntheticIdent->type = T_UNKNOWN_IDENT;
-
-
-//   return opcodeCallNode;
-// }
-
-    // case '+':
-    // case '-':
-    // case '*':
-    // case '/':
-    //   //printf("Folding case?\n");
-    //   current->left = verify_tree(csound, current->left, typeTable);
-    //   current->right = verify_tree(csound, current->right, typeTable);
-    //   if ((current->left->type == INTEGER_TOKEN ||
-    //        current->left->type == NUMBER_TOKEN) &&
-    //       (current->right->type == INTEGER_TOKEN ||
-    //        current->right->type == NUMBER_TOKEN)) {
-    //     MYFLT lval, rval;
-    //     lval = (current->left->type == INTEGER_TOKEN ?
-    //             (double)current->left->value->value :
-    //             current->left->value->fvalue);
-    //     rval = (current->right->type == INTEGER_TOKEN ?
-    //             (double)current->right->value->value :
-    //             current->right->value->fvalue);
-    //     switch (current->type) {
-    //     case '+':
-    //       lval = lval + rval;
-    //       break;
-    //     case '-':
-    //       lval = lval - rval;
-    //       break;
-    //     case '*':
-    //       lval = lval * rval;
-    //       break;
-    //     case '/':
-    //       lval = lval / rval;
-    //       break;
-
-    //     }
-    //     current->type = NUMBER_TOKEN;
-    //     current->value->fvalue = lval;
-    //     csound->Free(csound, current->left); csound->Free(csound, current->right);
-    //   }
-    //   break;
-
 /**
  * Create a chain of Opcode (OPTXT) text from the AST node given. Called from
  * create_opcode when an expression node has been found as an argument
@@ -675,8 +598,31 @@ static TREE *create_expression(
     if (current->type == STRUCT_EXPR) {
       TREE* opcodeCallNode = create_opcode_token(csound, "##member_get");
       TREE* syntheticIdent = create_synthetic_ident(csound, genlabs++);
-      opcodeCallNode->right = current->left;
-      opcodeCallNode->right->next = current->right;
+      if (current->left->type == STRUCT_EXPR) {
+        anchor = appendToTree(csound, anchor,
+                            create_expression(
+                              csound, current->left,
+                              previous, line, locn,
+                              typeTable
+                            ));
+        last = tree_tail(anchor);
+        opcodeCallNode->right = copy_node(csound, last->left);
+        opcodeCallNode->right->next = current->right;
+      } else if (current->left->type == T_ARRAY) {
+        anchor = appendToTree(csound, anchor,
+                            create_expression(
+                              csound, current->left,
+                              previous, line, locn,
+                              typeTable
+                            ));
+        last = tree_tail(anchor);
+        opcodeCallNode->right = copy_node(csound, last->left);
+        opcodeCallNode->right->next = current->right;
+      } else {
+        opcodeCallNode->right = current->left;
+        opcodeCallNode->right->next = current->right;
+      }
+
       current->right = NULL;
       opcodeCallNode->left = syntheticIdent;
       if (newArgList == NULL) {
@@ -684,19 +630,13 @@ static TREE *create_expression(
       } else {
         appendToTree(csound, newArgList, copy_node(csound, syntheticIdent));
       }
-      // syntheticIdent->type = T_UNKNOWN_IDENT;
       anchor = appendToTree(csound, anchor, opcodeCallNode);
       previous = current;
-      // anchor = appendToTree(
-      //   csound,
-      //   anchor,
-      //   create_struct_expression_lhs(csound, current, newArgList, typeTable)
-      // );
 
       print_tree(csound, "NEW", current);
       print_tree(csound, "CURRENT ANCHOR", anchor);
-
       current = current->next;
+
     }
     else
     if (is_expression_node(current)) {
@@ -753,30 +693,6 @@ static TREE *create_expression(
   }
   root->right = newArgList;
 
-  // Hlöðver 16/01/2023
-  // with verify_opcode_2, many variables have already been
-  // created, and more accurately so than here below.
-  // Eventually we want more unified way of resolving args,
-  // but with this lookup we rely less on creating args while
-  // expanding statements.
-  // if (
-  //   parent != NULL &&
-  //   parent->type == T_ASSIGNMENT &&
-  //   parent->left != NULL &&
-  //   parent->left->type == T_IDENT
-  // ) {
-  //   CS_VARIABLE* existingVar = \
-  //     csoundFindVariableWithName(
-  //       csound, typeTable->localPool, parent->left->value->lexeme
-  //     );
-  //   existingVar = existingVar == NULL ?
-  //     csoundFindVariableWithName(
-  //       csound, typeTable->globalPool, parent->left->value->lexeme
-  //     ) : existingVar;
-  //   if (existingVar != NULL) {
-  //     outarg = csound->Strdup(csound, existingVar->varName);
-  //   }
-  // }
   switch(root->type) {
   case STRUCT_EXPR: {
     strNcpy(op, "##member_get", 80);
@@ -838,62 +754,19 @@ static TREE *create_expression(
     break;
   case T_ARRAY:
     {
-      char* outype;
-      strNcpy(op, "##array_get", 80);
+      int isStructArray = parent != NULL &&
+        (parent->type == STRUCT_EXPR ||
+          (parent->left != NULL && parent->left->type == STRUCT_EXPR));
+      strNcpy(
+        op,
+        isStructArray ? "##array_get_struct" : "##array_get",
+        80);
       if (outarg != NULL) break;
-      char *varBaseName = root->left->value->lexeme;
-      var = csoundFindVariableWithName(
-        csound,
-        typeTable->localPool,
-        varBaseName
+      char* outype = strdup(".");
+      outarg = create_out_arg(
+        csound, outype, typeTable->localPool->synthArgCount++, typeTable
       );
-      if (var == NULL) {
-        // if this is expanded statement, we can get hint
-        if (parent != NULL && parent->type == T_ASSIGNMENT) {
-          char* annotation = get_arg_string_from_tree(
-            csound,
-            parent->left,
-            typeTable
-          );
-          CS_TYPE* type = csoundGetTypeWithVarTypeName(
-            csound->typePool,
-            annotation
-          );
-          if (type != NULL) {
-            var = csoundCreateVariable(
-              csound,
-              csound->typePool,
-              type, varBaseName, 1, NULL
-            );
-            csoundAddVariable(csound, typeTable->localPool, var);
-          }
-          break;
-        }
-
-      // root->left->type = T_UNKNOWN_IDENT;
-      outype = strdup(".");
       break;
-
-      } else {
-        if (var->varType->userDefinedType == 1) {
-          outarg = create_out_arg(csound, outype, typeTable->localPool->synthArgCount++, typeTable);
-          outype = strdup(".");
-          break;
-        } else {
-          if (var->varType == (CS_TYPE*) &CS_VAR_TYPE_A &&
-              var->dimensions == 0
-          ) {
-            // array_get fix for vaops
-            outype = strdup("k");
-          } else {
-            outype = strdup(var->varType->varTypeName);
-          }
-        }
-      }
-
-      if (outype == NULL) {
-        return NULL;
-      }
     }
 
     break;
@@ -1239,7 +1112,38 @@ TREE* expand_statement(CSOUND* csound, TREE* current, TYPE_TABLE* typeTable)
     if (currentArg->type == STRUCT_EXPR) {
         TREE* syntheticIdent = create_synthetic_ident(csound, genlabs++);
         TREE* opcodeCallNode = create_opcode_token(csound, "##member_get");
-        opcodeCallNode->right = currentArg->left;
+        if (currentArg->left->type == STRUCT_EXPR) {
+          TREE* structSubExpr = create_expression(
+            csound,
+            currentArg->left,
+            currentArg,
+            currentArg->line,
+            currentArg->locn,
+            typeTable
+          );
+          currentArg->left = NULL;
+          opcodeCallNode->right = copy_node(
+            csound, structSubExpr->left
+          );
+          anchor = appendToTree(csound, anchor, structSubExpr);
+        } else if (currentArg->left->type == T_ARRAY) {
+          TREE* arraySubExpr = create_expression(
+            csound,
+            currentArg->left,
+            currentArg,
+            currentArg->line,
+            currentArg->locn,
+            typeTable
+          );
+          currentArg->left = NULL;
+          opcodeCallNode->right = copy_node(
+            csound, arraySubExpr->left
+          );
+          anchor = appendToTree(csound, anchor, arraySubExpr);
+        } else {
+          opcodeCallNode->right = currentArg->left;
+        }
+
         opcodeCallNode->right->next = currentArg->right;
         opcodeCallNode->left = copy_node(csound, syntheticIdent);
         if (previousArg == NULL) {
@@ -1273,14 +1177,23 @@ TREE* expand_statement(CSOUND* csound, TREE* current, TYPE_TABLE* typeTable)
         // error
         return NULL;
       }
+      // last = tree_tail(expressionNodes);
+      // TREE* oldLeft = current->left;
+      // current = replace_tree_head(csound, current, expressionNodes, anchor);
+      // // if (last->left != oldLeft) {
+      // //   csound->Free(csound, last->left);
+      // // }
+      // last->left = oldLeft;
+
+
       nextArg = currentArg->next;
       csound->Free(csound, currentArg);
 
-      /* Set as anchor if necessary */
+      // /* Set as anchor if necessary */
 
       anchor = appendToTree(csound, anchor, expressionNodes);
 
-      /* reconnect into chain */
+      // /* reconnect into chain */
       last = tree_tail(expressionNodes);
       newArg = last->left->value->lexeme;
 
@@ -1289,7 +1202,7 @@ TREE* expand_statement(CSOUND* csound, TREE* current, TYPE_TABLE* typeTable)
 
       /* handle arg replacement of currentArg here */
       /* **** was a bug as currentArg could be freed above **** */
-      //nextArg = currentArg->next;
+      nextArg = currentArg->next;
       newArgTree = create_ans_token(csound, newArg);
 
       if (previousArg == NULL) {
@@ -1301,7 +1214,6 @@ TREE* expand_statement(CSOUND* csound, TREE* current, TYPE_TABLE* typeTable)
 
       newArgTree->next = nextArg;
       currentArg = newArgTree;
-      /* TODO - Delete the expression nodes here */
     }
 
     previousArg = currentArg;
@@ -1319,84 +1231,158 @@ TREE* expand_statement(CSOUND* csound, TREE* current, TYPE_TABLE* typeTable)
     //print_tree(csound, "init",current);
     init = 1;
   }
-  while (currentArg != NULL) {
-    TREE* temp;
-    if (currentArg->type == STRUCT_EXPR) {
-        TREE* syntheticIdent = create_synthetic_ident(csound, genlabs++);
-        TREE* opcodeCallNode = create_opcode_token(csound, "##member_get");
-        opcodeCallNode->right = currentArg->left;
-        opcodeCallNode->right->next = currentArg->right;
-        opcodeCallNode->left = syntheticIdent;
 
-        anchor = appendToTree(csound, opcodeCallNode, anchor);
-        if (previousArg == NULL) {
-          current->left = copy_node(csound, syntheticIdent);
+  TREE* nextAnchor = NULL;
+  TREE* nextLeft = NULL;
+  while (currentArg != NULL) {
+
+    if (currentArg->type == STRUCT_EXPR) {
+        // TREE* syntheticIdent = create_synthetic_ident(csound, genlabs++);
+        TREE* opcodeCallNode = create_opcode_token(csound, "##member_set");
+        TREE* currentMember = currentArg->right;
+        TREE* chainedMember;
+        TREE* chainedMemberId;
+        nextAnchor = appendToTree(csound, nextAnchor, opcodeCallNode);
+
+        if (currentArg->left->type == STRUCT_EXPR) {
+          TREE* structSubExpr = create_expression(
+            csound,
+            currentArg->left,
+            currentArg,
+            currentArg->line,
+            currentArg->locn,
+            typeTable
+          );
+          currentArg->left = NULL;
+          opcodeCallNode->right = copy_node(
+            csound, structSubExpr->left
+          );
+          structSubExpr->next = nextAnchor;
+          nextAnchor = structSubExpr;
+        } else if (currentArg->left->type == T_ARRAY) {
+          TREE* arraySubExpr = create_expression(
+            csound,
+            currentArg->left,
+            currentArg,
+            currentArg->line,
+            currentArg->locn,
+            typeTable
+          );
+          currentArg->left = NULL;
+          opcodeCallNode->right = copy_node(
+            csound, arraySubExpr->left
+          );
+          arraySubExpr->next = nextAnchor;
+          nextAnchor = arraySubExpr;
+        } else if (nextLeft != NULL) {
+          opcodeCallNode->right = nextLeft;
         } else {
-          previousArg->next = copy_node(csound, syntheticIdent);
+          opcodeCallNode->right = currentArg->left;
         }
+
+        opcodeCallNode->right->next = currentMember;
+        opcodeCallNode->right->next->next = current->right;
+
+        // replacing T_ASSIGN '=' for member_set
+        TREE* oldCurrent = current;
+        current = opcodeCallNode;
+        opcodeCallNode->next = oldCurrent->next;
+        oldCurrent->left = NULL;
+        oldCurrent->right = NULL;
+        oldCurrent->next = NULL;
+        if (anchor != NULL) {
+          TREE* nextTail = anchor;
+          while (nextTail != NULL && nextTail->next != oldCurrent) {
+            nextTail = nextTail->next;
+          }
+          if (nextTail == NULL) {
+            anchor = anchor->next;
+          } else {
+            nextTail->next = NULL;
+          }
+        }
+        csound->Free(csound, oldCurrent);
     } else if (currentArg->type == T_ARRAY) {
       char *outType;
       CS_VARIABLE* var;
+      int isStructArray = currentArg->next != NULL &&
+        currentArg->next->type == STRUCT_EXPR;
+      int isArrayInStruct = currentArg->left->type == STRUCT_EXPR;
 
-      char *varBaseName = currentArg->left->value->lexeme;
+      if (isStructArray) {
+        TREE* arrayIdent = create_synthetic_ident(csound, genlabs++);
+        TREE* arrayGet = create_opcode_token(csound, "##array_get_struct");
+        arrayIdent->value->optype = outType;
+        arrayGet->right = currentArg->left;
+        arrayGet->right->next = currentArg->right;
+        arrayGet->left = copy_node(csound, arrayIdent);
 
-      if (*varBaseName == 'g') {
-        var = csoundFindVariableWithName(csound, csound->engineState.varPool,
-                                         varBaseName);
-        if(var == NULL)
-          var = csoundFindVariableWithName(csound, typeTable->globalPool,
-                                           varBaseName);
-      } else
-        var = csoundFindVariableWithName(csound, typeTable->localPool,
-                                         varBaseName);
+        nextLeft = arrayIdent;
+        if (nextAnchor != NULL) {
+          arrayGet->next = nextAnchor;
+        }
 
-      if (var == NULL) {
-        synterr(csound,
-                Str("unable to find array sub-type for var %s line %d\n"), varBaseName, current->line);
-        return NULL;
+        nextAnchor = arrayGet;
+
       } else {
-        outType = strdup(var->varType->varTypeName);
+        if (isArrayInStruct) {
+          TREE* structSubExpr = create_expression(
+            csound,
+            currentArg->left,
+            currentArg,
+            currentArg->left->line,
+            currentArg->left->locn,
+            typeTable
+          );
+          structSubExpr->next = appendToTree(csound, structSubExpr->next, nextAnchor);
+          nextAnchor = structSubExpr;
+          currentArg->left = copy_node(csound, structSubExpr->left);
+        }
+
+
+        TREE* arraySet = create_opcode_token(
+          csound, init ? "##array_init" : "##array_set"
+        );
+        arraySet->right = nextAnchor != NULL ?
+          copy_node(csound, tree_tail(nextAnchor)->left) : currentArg->left;
+        arraySet->right->next = current->right;
+        arraySet->right->next->next = currentArg->right;
+
+        nextAnchor = appendToTree(csound, nextAnchor, arraySet);
+        // replacing T_ASSIGN '=/init' for array_set/init
+        TREE* oldCurrent = current;
+        current = arraySet;
+        arraySet->next = oldCurrent->next;
+        oldCurrent->left = NULL;
+        oldCurrent->right = NULL;
+        oldCurrent->next = NULL;
+        if (anchor != NULL) {
+          TREE* nextTail = anchor;
+          while (nextTail != NULL && nextTail->next != oldCurrent) {
+            nextTail = nextTail->next;
+          }
+          if (nextTail == NULL) {
+            anchor = anchor->next;
+          } else {
+            nextTail->next = NULL;
+          }
+        }
+        csound->Free(csound, oldCurrent);
       }
 
-      temp = create_synthetic_ident(csound, genlabs++);
-      temp->value->optype = outType;
-        // create_ans_token(csound,
-        //                  create_out_arg(csound, outType,
-        //                                 typeTable->localPool->synthArgCount++,
-        //                                 typeTable));
-
-      if (previousArg == NULL) {
-        current->left = temp;
-      }
-      else {
-        previousArg->next = temp;
-      }
-      temp->next = currentArg->next;
-
-      TREE* arraySet = create_opcode_token(
-        csound,
-        init ? "##array_init" : "##array_set"
-      );
-      arraySet->right = currentArg->left;
-      arraySet->right->next =
-        make_leaf(csound, temp->line, temp->locn,
-                  T_IDENT, make_token(csound,
-                                      temp->value->lexeme));
-      arraySet->right->next->next =
-        currentArg->right; // TODO - check if this handles expressions
-
-      anchor = appendToTree(csound, anchor, arraySet);
-      //print_tree(csound, "anchor", anchor);
-      currentArg = temp;
     }
     previousArg = currentArg;
     currentArg = currentArg->next;
   }
 
-  // handle_optional_args(csound, current);
+  if (nextLeft != NULL) {
+    current->left = nextLeft;
+  }
 
-  // collapse_last_assigment(csound, anchor, typeTable);
 
+  if (nextAnchor != NULL) {
+    anchor = appendToTree(csound, anchor, nextAnchor);
+  }
   appendToTree(csound, anchor, originalNext);
 
   return anchor;

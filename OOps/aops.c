@@ -243,17 +243,7 @@ LOGCLX(or,||)
   int32_t OPNAME(CSOUND *csound, AOP *p)                        \
   { IGN(csound); *p->r = *p->a OP *p->b; return OK; }
 
-int32_t addkk(CSOUND *csound, AOP *p)
-  {
-    IGN(csound);
-    printf("addkk *p->a %f p->a %p\n",*p->a, p->a );
-    printf("addkk *p->b %f p->b %p\n",*p->b, p->b);
-    printf("return p->r %p\n", p->r);
-    *p->r = *p->a + *p->b;
-    return OK;
-  }
-
-// KK(addkk,+)
+KK(addkk,+)
 KK(subkk,-)
 KK(mulkk,*)
 //KK(divkk,/)
@@ -834,18 +824,10 @@ int32_t birnd1(CSOUND *csound, EVAL *p)             /* returns bipolar rand(x) *
     return OK;
 }
 
-int32_t exp01(CSOUND *csound, EVAL *p)
-  {
-    IGN(csound);
-    printf("EXP01 p->r %p p->a %p %f\n", p->r, p->a, p->a);
-    *p->r = exp(*p->a);
-    return OK;
-    }
-
 #define LIB1(OPNAME,LIBNAME)  int32_t OPNAME(CSOUND *csound, EVAL *p)       \
   {  IGN(csound); *p->r = LIBNAME(*p->a); return OK; }
 LIB1(abs1,FABS)
-//LIB1(exp01,EXP)
+LIB1(exp01,EXP)
 LIB1(log01,LOG)
 LIB1(sqrt1,SQRT)
 LIB1(sin1,SIN)

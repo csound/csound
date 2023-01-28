@@ -194,7 +194,6 @@ int32_t strassign_k(CSOUND *csound, STRCPY_OP *p) {
 int32_t strcpy_opcode_S(CSOUND *csound, STRCPY_OP *p) {
   if(p->r != p->str) {
   CS_TYPE *strType = csound->GetTypeForArg(p->str);
-  printf("strcpy_opcode_S p %p\n", p);
   strType->copyValue(csound, strType, p->r, p->str);
   }
   return  OK;

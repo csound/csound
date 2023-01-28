@@ -117,8 +117,6 @@ static int init_pass(CSOUND *csound, INSDS *ip) {
     csound->op = csound->ids->optext->t.oentry->opname;
       csound->Message(csound, "init %s:\n", csound->op);
     }
-    printf("csound->ids->iopadr %p \n", csound->ids->iopadr);
-    OPDS * ip = csound->ids;
     error = (*csound->ids->iopadr)(csound, csound->ids);
   }
   csound->mode = 0;
@@ -1449,7 +1447,6 @@ int useropcd1(CSOUND *, UOPCODE*), useropcd2(CSOUND *, UOPCODE*);
 
 int useropcdset(CSOUND *csound, UOPCODE *p)
 {
-    printf("useropcdset %p\n", p);
     OPDS         *saved_ids = csound->ids;
     INSDS        *parent_ip = csound->curip, *lcurip;
     INSTRTXT     *tp;
@@ -1525,7 +1522,6 @@ int useropcdset(CSOUND *csound, UOPCODE *p)
       buf->iobufp_ptrs[10] = buf->iobufp_ptrs[11] = NULL;
       /* store parameters of input and output channels, and parent ip */
       buf->uopcode_struct = (void*) p;
-      printf("uopcode_struct %p\n", p);
       buf->parent_ip = p->parent_ip = parent_ip;
     }
 
@@ -1604,8 +1600,6 @@ int useropcdset(CSOUND *csound, UOPCODE *p)
     csound->mode = 1;
     while (csound->ids != NULL) {
       csound->op = csound->ids->optext->t.oentry->opname;
-      OPDS * id = csound->ids;
-      printf("theID %p\n", id);
       (*csound->ids->iopadr)(csound, csound->ids);
       csound->ids = csound->ids->nxti;
     }
@@ -2367,7 +2361,7 @@ int useropcd2(CSOUND *csound, UOPCODE *p)
       } else {
         void* in = (void*)external_ptrs[i + inm->outchns];
         void* out = (void*)internal_ptrs[i + inm->outchns];
-        printf("in %p out %p \n", in, out);
+        // printf("in %p out %p \n", in, out);
         if (current->dimensions > 0) {
           memcpy(out, in, sizeof(ARRAYDAT));
         } else {
@@ -2639,10 +2633,8 @@ static void instance(CSOUND *csound, int insno)
     ip->lclbas = lclbas;
     for (; arg != NULL; n++, arg = arg->next) {
       CS_VARIABLE* var = (CS_VARIABLE*)(arg->argPtr);
-      printf(" NN %d ttp->inArgs args %p arg->argPtr %p\n", n, arg,arg->argPtr );
       if (arg->type == ARG_CONSTANT) {
         CS_VAR_MEM *varMem = (CS_VAR_MEM*)arg->argPtr;
-        printf("varMem ttp->inArgs args %p arg->argPtr %p argpp[n] %p argpp %p val %d\n", arg,arg->argPtr, &argpp[n], argpp, (int) varMem->value );
         argpp[n] = &varMem->value;
       }
       else if (arg->type == ARG_STRING) {
@@ -2656,7 +2648,7 @@ static void instance(CSOUND *csound, int insno)
         argpp[n] =  &(var->memBlock->value); /*gbloffbas + var->memBlockIndex; */
       }
       else if (arg->type == ARG_LOCAL) {
-        printf("next to crash: arg %p arg->argPtr %p\n", arg, arg->argPtr);
+        CS_VAR_MEM *varMem = (CS_VAR_MEM*)arg->argPtr;
         argpp[n] = lclbas + var->memBlockIndex;
       }
       else if (arg->type == ARG_LABEL) {

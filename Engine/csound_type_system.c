@@ -21,6 +21,7 @@
  02110-1301 USA
  */
 
+#include "csound_orc_structs.h"
 #include "csound_type_system.h"
 #include <string.h>
 #include <stdio.h>
@@ -191,22 +192,6 @@ CS_VARIABLE* csoundGetVariable(CS_VAR_POOL* pool, int index) {
     return current;
 }
 
-//int csoundGetVariableIndex(CS_VAR_POOL* pool, CS_VARIABLE* var) {
-//    CS_VARIABLE* current = pool->head;
-//    int index = 0;
-//
-//    if (current == NULL) {
-//        return -1;
-//    }
-//
-//    for (index = 0; current != NULL; index++) {
-//        if (current == var) {
-//            return index;
-//        }
-//    }
-//    return -1;
-//}
-
 int csoundAddVariable(CSOUND* csound, CS_VAR_POOL* pool, CS_VARIABLE* var) {
   if(var != NULL) {
     if(pool->head == NULL) {
@@ -297,20 +282,13 @@ void initializeVarPool(CSOUND* csound, MYFLT* memBlock, CS_VAR_POOL* pool) {
     int varNum = 1;
 
     while (current != NULL) {
+
       if (current->initializeVariableMemory != NULL) {
-        current->initializeVariableMemory(csound, current,
-                                          memBlock + current->memBlockIndex);
         CS_TYPE* type = current->varType;
-        if (type != NULL && type->members != NULL) {
-
-          CONS_CELL* members = type->members;
-          while (members != NULL) {
-            CS_VARIABLE* member = members->value;
-            member->initializeVariableMemory(csound, member, memBlock + pool->poolSize);
-            members = members->next;
-          }
-
-        }
+        current->initializeVariableMemory(
+          csound, current,
+          memBlock + current->memBlockIndex
+        );
       }
       varNum++;
       current = current->next;
@@ -334,6 +312,11 @@ int copyVarGeneric(CSOUND *csound, void *p) {
     ASSIGN* assign = (ASSIGN*)p;
     CS_TYPE* typeR = csoundGetTypeForArg(assign->r);
     CS_TYPE* typeA = csoundGetTypeForArg(assign->a);
+
+    if (typeA->userDefinedType) {
+      *assign->r = *assign->a;
+      return OK;
+    }
 
     if(typeR != typeA) {
         csound->Warning(csound,

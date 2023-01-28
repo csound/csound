@@ -194,18 +194,29 @@ static int parse_opcode_args(CSOUND *csound, OENTRY *opc)
       while (in_args[i] != NULL) {
         int dimensions = 0;
         char* in_arg = in_args[i];
-        char* end;
         snprintf(tempName, 20, "in%d", i);
+        char* end = strchr(in_arg, '[');
+        char* tmp;
 
-        if (*in_arg == '[') {
-          while (*in_arg == '[') {
-            dimensions += 1;
-            in_arg += 1;
-          }
+        if (end != NULL) {
+          if (*in_arg == '[') {
+            while (*in_arg == '[') {
+              dimensions += 1;
+              in_arg += 1;
+            }
 
-          end = in_arg;
-          while(*end != ']') {
-            end++;
+            end = in_arg;
+            while(*end != ']') {
+              end++;
+            }
+          } else {
+            tmp = end;
+            while (*tmp != '\0') {
+              if (*tmp == '[') {
+                dimensions += 1;
+              }
+              tmp += 1;
+            }
           }
           memcpy(typeSpecifier, in_arg, end - in_arg);
 
@@ -236,9 +247,15 @@ static int parse_opcode_args(CSOUND *csound, OENTRY *opc)
         } else {
           char *c = map_udo_in_arg_type(in_arg);
           //                printf("found arg type %s -> %c\n", in_arg, c);
-
+          char* arrayDelim;
+          char* tok = c;
+          if (strlen(c) > 1 &&
+            (arrayDelim = strchr(c, '[')) != NULL
+          ) {
+            tok = strtok(c, arrayDelim);
+          }
           CS_TYPE* type =
-            csoundGetTypeWithVarTypeName(csound->typePool, c);
+            csoundGetTypeWithVarTypeName(csound->typePool, tok);
 
           if (UNLIKELY(type == NULL)) {
             synterr(csound, Str("invalid input type for opcode %s\n"), in_args[i]);

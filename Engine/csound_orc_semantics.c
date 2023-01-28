@@ -1225,63 +1225,6 @@ char* convert_external_to_internal(CSOUND* csound, char* arg) {
   return retVal;
 }
 
-
-// char* get_arg_string_from_tree(CSOUND* csound, TREE* tree,
-//                                TYPE_TABLE* typeTable) {
-
-//   int len = tree_arg_list_count(tree);
-//   int i;
-
-//   if (len == 0) {
-//     return NULL;
-//   }
-
-//   char** argTypes = csound->Malloc(csound, len * sizeof(char*));
-//   char* argString = NULL;
-//   TREE* current = tree;
-//   int index = 0;
-//   int argsLen = 0;
-
-//   while (current != NULL) {
-//     char* argType = get_arg_type2(csound, current, typeTable);
-//     //FIXME - fix if argType is NULL and remove the below hack
-//     if (argType == NULL) {
-//       argsLen += 1;
-//       argTypes[index++] = cs_strdup(csound, "@");
-//     } else {
-//       // argType = convert_internal_to_external(csound, argType);
-//       argsLen += strlen(argType);
-//       argTypes[index++] = argType;
-//     }
-
-//     current = current->next;
-//   }
-
-//   argString = csound->Malloc(csound, (argsLen + 1) * sizeof(char));
-//   char* temp = argString;
-//   for (i = 0; i < len; i++) {
-//     int size = strlen(argTypes[i]);
-//     memcpy(temp, argTypes[i], size);
-//     temp += size;
-//     csound->Free(csound, argTypes[i]);
-//   }
-
-//   argString[argsLen] = '\0';
-//   csound->Free(csound, argTypes);
-//   return argString;
-// }
-
-
-// /* Used by new UDO syntax, expects tree's with value->lexeme as type names */
-// char* get_in_types_from_tree(CSOUND* csound, TREE* tree, TYPE_TABLE* typeTable) {
-//   int len = tree_arg_list_count(tree);
-
-//   if (len == 0 || (len == 1 && !strcmp(tree->value->lexeme, "0"))) {
-//     return cs_strdup(csound, "0");
-//   }
-//   return get_arg_string_from_tree(csound, tree, typeTable);
-// }
-
 /* Used by new UDO syntax, expects tree's with value->lexeme as type names */
 char* get_arg_string_from_tree(
   CSOUND* csound,
@@ -1305,7 +1248,9 @@ char* get_arg_string_from_tree(
   while (current != NULL) {
     CS_VARIABLE* maybeVar = NULL;
     char* argType = NULL;
-    if (
+    if (tree->type == NUMBER_TOKEN) {
+      argType = "c";
+    } else if (
         current->value->optype != NULL
     ) {
       argType = current->value->optype;
@@ -2514,12 +2459,6 @@ TREE* verify_tree(CSOUND * csound, TREE *root, TYPE_TABLE* typeTable)
       /* fall through */
     default:
 
-      // pre-verify expansion
-
-      // if (is_pre_expansion_required(current)) {
-      //   print_tree(csound, "EXPANDED", current);
-      // }
-
       transformed = convert_statement_to_opcall(csound, current, typeTable);
 
       if (transformed != current) {
@@ -2536,38 +2475,20 @@ TREE* verify_tree(CSOUND * csound, TREE *root, TYPE_TABLE* typeTable)
         return 0;
       }
 
-      // print_tree(csound, "expand pre", current);
-      // current = expand_structs(csound, current, typeTable);
       if (is_statement_expansion_required(current)) {
         current = expand_statement(csound, current, typeTable);
         if (current == NULL) {
-          // error;
           return 0;
         }
         if (previous != NULL) {
           previous->next = current;
         }
-
       }
 
-      print_tree(csound, " XX expand post", current);
       if(!verify_opcode_2(csound, current, typeTable)) {
         return 0;
       }
 
-      // if(!verify_opcode(csound, current, typeTable)) {
-      //   return 0;
-      // }
-      // printf("localPool %p\n", typeTable->localPool);
-      // if (is_statement_expansion_required(current)) {
-      //   current = expand_statement(csound, current, typeTable);
-
-      //   if (previous != NULL) {
-      //     previous->next = current;
-      //   }
-
-      //   continue;
-      // }
     }
 
     if (anchor == NULL) {
@@ -3070,8 +2991,9 @@ static void print_tree_xml(CSOUND *csound, TREE *l, int n, int which)
       csound->Message(csound,"name=\"T_OPCALL\" op=\"%s\"",
                       l->value->lexeme);
     } else if (l->left)
-      csound->Message(csound,"name=\"T_OPCALL\" varname=\"%s\" op=\"%s\"",
-                      l->left->value->lexeme, "xxx");
+      csound->Message(csound,"name=\"T_OPCALL\" varname=\"%s\"",
+                      l->left->value == NULL ? "(null)" :
+                      l->left->value->lexeme );
     else
        csound->Message(csound,"name=\"T_OPCALL\" varname=\"%s\"",
                        l->value->lexeme);

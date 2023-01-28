@@ -153,17 +153,14 @@ void varInitMemory(CSOUND *csound, CS_VARIABLE* var, MYFLT* memblock) {
 void arrayInitMemory(CSOUND *csound, CS_VARIABLE* var, MYFLT* memblock) {
     IGN(csound);
     ARRAYDAT* dat = (ARRAYDAT*)memblock;
-    printf("arrayInitMemory memblock %p dat->data %p\n", memblock, dat->data);
     dat->arrayType = var->varType;
 }
 
 void varInitMemoryString(CSOUND *csound, CS_VARIABLE* var, MYFLT* memblock) {
     STRINGDAT *str = (STRINGDAT *)memblock;
     str->data = (char *) csound->Calloc(csound, DEFAULT_STRING_SIZE);
-    printf("varInitMemoryString memblock %p data %p \n", memblock, str->data);
     str->size = DEFAULT_STRING_SIZE;
     str->timestamp = 0;
-    // printf("initialised %s %p %s %zu\n", var->varName, str,  str->data, str->size);
 }
 
 void varInitMemoryFsig(CSOUND *csound, CS_VARIABLE* var, MYFLT* memblock) {
@@ -283,6 +280,7 @@ void string_free_var_mem(void* csnd, void* p ) {
 
     if(dat->data != NULL) {
         csound->Free(csound, dat->data);
+        dat->data = NULL;
     }
 }
 
@@ -290,7 +288,7 @@ void array_free_var_mem(void* csnd, void* p) {
     CSOUND* csound = (CSOUND*)csnd;
     ARRAYDAT* dat = (ARRAYDAT*)p;
 
-    if(dat->data != NULL) {
+    if(dat->data != NULL && *dat->data > 0.0) {
         CS_TYPE* arrayType = dat->arrayType;
 
         if (arrayType->freeVariableMemory != NULL) {
@@ -308,10 +306,10 @@ void array_free_var_mem(void* csnd, void* p) {
         }
 
         csound->Free(csound, dat->data);
-    }
 
-    if (dat->sizes != NULL) {
-        csound->Free(csound, dat->sizes);
+        if (dat->sizes != NULL) {
+            csound->Free(csound, dat->sizes);
+        }
     }
 }
 

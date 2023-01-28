@@ -1634,7 +1634,7 @@ PUBLIC int csoundCompileTreeInternal(CSOUND *csound, TREE *root, int async)
   while(var != NULL) {
     size_t memSize = CS_VAR_TYPE_OFFSET + var->memBlockSize;
     CS_VAR_MEM* varMem = (CS_VAR_MEM*) csound->Calloc(csound, memSize);
-    printf("alloc %p -- %s\n", varMem, var->varName);
+    // printf("alloc %p -- %s\n", varMem, var->varName);
     varMem->varType = var->varType;
     var->memBlock = varMem;
     if (var->initializeVariableMemory != NULL) {
@@ -1931,16 +1931,12 @@ static void insprep(CSOUND *csound, INSTRTXT *tp, ENGINE_STATE *engineState)
       while (cdr != NULL) {
         CSOUND_ORC_ARGUMENT* orcArg = cdr->value;
         ARG *arg = createArg(csound, tp, orcArg, engineState);
-        printf("xxx: arg %p arg->argPtr %p argType %d\n",
-         arg, arg->argPtr, arg->type);
         if (ttp->outArgs == NULL) {
           ttp->outArgs = arg;
         } else {
           ARG *current = ttp->outArgs;
-          printf("yyy: current0 %p\n", current);
           while (current->next != NULL) {
             current = current->next;
-            printf("yyy: current %p\n", current);
           }
           current->next = arg;
           arg->next = NULL;
@@ -1964,17 +1960,13 @@ static void insprep(CSOUND *csound, INSTRTXT *tp, ENGINE_STATE *engineState)
             csound->Message(csound, "\t%s:", orcArg->text); /* if arg is label,  */
         } else {
           arg = createArg(csound, tp, orcArg, engineState);
-          printf("arg %p arg->argPtr %p\n", arg, arg->argPtr);
         }
 
         if (ttp->inArgs == NULL) {
           ttp->inArgs = arg;
-          printf("yinarg %p -- opcode %s\n", arg, ttp->opcod);
         } else {
           ARG *current = ttp->inArgs;
-          printf("xinarg %p %p -- opcode %s\n", current, arg, ttp->opcod);
           while (current->next != NULL) {
-            printf("inarg %p %p -- opcode %s\n", current, arg, ttp->opcod);
             current = current->next;
           }
           current->next = arg;
@@ -2075,23 +2067,6 @@ static void lgbuild(CSOUND *csound, INSTRTXT *ip, char *s, int inarg,
   }
 }
 
-// static void setupArgForVarName(CSOUND* csound, ARG* arg, CS_VAR_POOL* varPool, char* varName) {
-//   char* delimitStruct = strchr(varName, '.');
-//   // not a struct variable
-//   if (delimitStruct == NULL) {
-//     arg->argPtr = csoundFindVariableWithName(csound, varPool, varName);
-//     arg->structPath = NULL;
-//     return;
-//   }
-
-
-//     char* baseName = cs_strndup(csound, varName, delimitStruct - varName);
-//     arg->argPtr = csoundFindVariableWithName(csound, varPool, baseName);
-//     char *structPath = cs_strdup(csound, delimitStruct + 1);
-//     arg->structPath = structPath;
-// }
-
-
 
 /* get storage ndx of const, pnum, lcl or gbl */
 /* argument const/gbl indexes are positiv+1, */
@@ -2120,7 +2095,6 @@ static ARG *createArg(
     size_t memSize = CS_VAR_TYPE_OFFSET + sizeof(STRINGDAT);
     CS_VAR_MEM *varMem = csound->Calloc(csound, memSize);
     STRINGDAT *str = (STRINGDAT *)&varMem->value;
-    printf("create string %p: %s\n", arg, str->data);
     varMem->varType = (CS_TYPE *)&CS_VAR_TYPE_S;
     arg->type = ARG_STRING;
     temp = csound->Calloc(csound, strlen(parsedArg->text) + 1);
@@ -2148,7 +2122,6 @@ static ARG *createArg(
 
   if (pool != NULL) {
     arg->argPtr = csoundFindVariableWithName(csound, pool, ident);
-    printf("ident %s type %d Arg %p Arg->argPtr %p\n", ident,arg->type, arg, arg->argPtr);
   }
 
   if (arg->argPtr == NULL) {

@@ -81,10 +81,7 @@ static int32_t array_del(CSOUND *csound, void *p)
 static int32_t array_init(CSOUND *csound, ARRAYINIT *p)
 {
     ARRAYDAT* arrayDat = p->arrayDat;
-    printf("arrayDat %p arrayDat->data %p \n", arrayDat, arrayDat->data);
-
     int32_t i, size;
-
     int32_t inArgCount = p->INOCOUNT;
 
     if (UNLIKELY(inArgCount == 0))
@@ -293,10 +290,18 @@ static int32_t array_set(CSOUND* csound, ARRAY_SET *p)
     int32_t end, index;
     int32_t indefArgCount = p->INOCOUNT - 2;
 
+    if (UNLIKELY(!dat->allocated)) {
+      csoundErrorMsg(csound, Str(
+        "\nError: cannot assign to an array that hasn't been initialised yet\n\n"
+      ));
+      return CSOUND_ERROR;
+    }
+
     if (UNLIKELY(indefArgCount == 0)) {
       csoundErrorMsg(csound, Str("Error: no indexes set for array set\n"));
       return CSOUND_ERROR;
     }
+    // printf("array_set p->arrayDat %p indexes %p\n", p->arrayDat, p->indexes);
     if (UNLIKELY(indefArgCount!=dat->dimensions)) {
       return csound->PerfError(csound, &(p->h),
                                Str("Array dimension %d does not match "
@@ -314,6 +319,7 @@ static int32_t array_set(CSOUND* csound, ARRAY_SET *p)
       index = (index * dat->sizes[i]) + end;
     }
     mem = (MYFLT*) dat->data + (index * dat->arrayMemberSize) / sizeof(MYFLT);
+    // printf("array_set out %p in %p\n", mem, p->value);
     dat->arrayType->copyValue(csound, dat->arrayType, mem, p->value);
     return OK;
 }

@@ -72,7 +72,6 @@ extern "C" {
         int dimensions; // used by arrays
         int refCount;
         struct csvariable* next;
-        struct csvariable* nextDimension;
         void (*updateMemBlockSize)(CSOUND*, struct csvariable*);
         void (*initializeVariableMemory)(CSOUND*, struct csvariable*, MYFLT*);
         CS_VAR_MEM *memBlock;
