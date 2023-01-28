@@ -227,7 +227,7 @@ static int fill_optional_inargs(
     TYPE_TABLE* typeTable,
     OENTRY* candidate
 ) {
-    char temp[6];
+    char temp[8];
     char* current = candidate->intypes;
     CONS_CELL* car = args->list;
 
@@ -249,7 +249,7 @@ static int fill_optional_inargs(
         // end of explicit input
         // handle optional args
         CSOUND_ORC_ARGUMENT* optArg;
-        memset(temp, '\0', 6);
+        memset(temp, '\0', 8);
         MYFLT optargValue = 0.0;
 
         switch(*current) {
@@ -291,7 +291,7 @@ static int fill_optional_inargs(
             }
         }
 
-        cs_sprintf(temp, "%f", optargValue);
+        snprintf(temp, 8, "%f", optargValue);
         optArg = new_csound_orc_argument(
             csound,
             args,
@@ -558,6 +558,8 @@ static CSOUND_ORC_ARGUMENT* new_csound_orc_argument(
         csound,
         sizeof(CSOUND_ORC_ARGUMENT)
     );
+    arg->text = NULL;
+
     if (tree != NULL && tree->value != NULL) {
         arg->text = csound->Strdup(csound, tree->value->lexeme);
     }
@@ -717,7 +719,7 @@ static CSOUND_ORC_ARGUMENT* resolve_single_argument_from_tree(
     TYPE_TABLE* typeTable,
     int isAssignee
 ) {
-    char* ident;
+    char* ident = NULL;
     char* annotation = NULL;
     CS_VARIABLE* var = NULL;
     CSOUND_ORC_ARGUMENT* arg = new_csound_orc_argument(
@@ -1126,7 +1128,7 @@ static void arglist_append(
     CSOUND_ORC_ARGUMENTS* args,
     CSOUND_ORC_ARGUMENT* arg
 ) {
-    CONS_CELL* tail = csound->Malloc(csound, sizeof(CONS_CELL));
+    CONS_CELL* tail = csound->Calloc(csound, sizeof(CONS_CELL));
     tail->value = arg;
     tail->next = NULL;
 
@@ -1176,7 +1178,7 @@ static void arglist_remove_nth(
 
 // generic
 CSOUND_ORC_ARGUMENTS* new_csound_orc_arguments(CSOUND* csound) {
-    CSOUND_ORC_ARGUMENTS* args = csound->Malloc(
+    CSOUND_ORC_ARGUMENTS* args = csound->Calloc(
         csound,
         sizeof(CSOUND_ORC_ARGUMENTS)
     );
