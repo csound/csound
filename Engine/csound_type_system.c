@@ -284,7 +284,6 @@ void initializeVarPool(CSOUND* csound, MYFLT* memBlock, CS_VAR_POOL* pool) {
     while (current != NULL) {
 
       if (current->initializeVariableMemory != NULL) {
-        CS_TYPE* type = current->varType;
         current->initializeVariableMemory(
           csound, current,
           memBlock + current->memBlockIndex

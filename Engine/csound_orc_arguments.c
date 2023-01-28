@@ -65,30 +65,30 @@ static CSOUND_ORC_ARGUMENTS* get_arguments_from_tree(
 );
 
 
-static void printOrcArgs(
-    CSOUND_ORC_ARGUMENTS* args
-) {
-    if (args->length == 0) {
-        printf("== ARGUMENT LIST EMPTY ==\n");
-        return;
-    }
-    CONS_CELL* car = args->list;
-    CSOUND_ORC_ARGUMENT* arg;
-    int n = 0;
-    while(car != NULL) {
-        arg = (CSOUND_ORC_ARGUMENT*) car->value;
-        printf("== ARGUMENT LIST INDEX %d ==\n", n);
-        printf("\t text: %s \n", arg->text);
-        printf("\t uid: %s \n", arg->uid);
-        printf("\t type: %s \n", arg->cstype == NULL ? arg->text :
-         arg->cstype->varTypeName);
-        printf("\t isGlobal: %d \n", arg->isGlobal);
-        printf("\t dimensions: %d \n", arg->dimensions);
-        printf("\t isExpression: %d \n", arg->isExpression);
-        car = car->next;
-        n += 1;
-    }
-}
+// static void printOrcArgs(
+//     CSOUND_ORC_ARGUMENTS* args
+// ) {
+//     if (args->length == 0) {
+//         printf("== ARGUMENT LIST EMPTY ==\n");
+//         return;
+//     }
+//     CONS_CELL* car = args->list;
+//     CSOUND_ORC_ARGUMENT* arg;
+//     int n = 0;
+//     while(car != NULL) {
+//         arg = (CSOUND_ORC_ARGUMENT*) car->value;
+//         printf("== ARGUMENT LIST INDEX %d ==\n", n);
+//         printf("\t text: %s \n", arg->text);
+//         printf("\t uid: %s \n", arg->uid);
+//         printf("\t type: %s \n", arg->cstype == NULL ? arg->text :
+//          arg->cstype->varTypeName);
+//         printf("\t isGlobal: %d \n", arg->isGlobal);
+//         printf("\t dimensions: %d \n", arg->dimensions);
+//         printf("\t isExpression: %d \n", arg->isExpression);
+//         car = car->next;
+//         n += 1;
+//     }
+// }
 
 void printNode(TREE* tree) {
     printf("== BEG ==\n");
@@ -197,29 +197,28 @@ static char* make_comma_sep_arglist(
     return csound->Strdup(csound, pretty);
 }
 
-static void debugPrintArglist(
-    CSOUND* csound,
-    CSOUND_ORC_ARGUMENTS* expr,
-    CSOUND_ORC_ARGUMENT* parent,
-    TREE* tree
-) {
-    if (tree->value == NULL && parent->isExpression) {
-        printf("<expr %d> arglist: %s\n",
-          tree->type,
-          make_comma_sep_arglist(csound, expr, 0, 0));
-    } else if (tree->value == NULL) {
-        printf("%s = opchar: %c arglist: %s\n",
-          parent->text,
-          tree->type,
-          make_comma_sep_arglist(csound, expr, 0, 0));
-    } else {
-        printf("%s = opname: %s arglist: %s\n",
-          parent->text,
-          tree->value->lexeme,
-          make_comma_sep_arglist(csound, expr, 0, 0));
-    }
-
-}
+// static void debugPrintArglist(
+//     CSOUND* csound,
+//     CSOUND_ORC_ARGUMENTS* expr,
+//     CSOUND_ORC_ARGUMENT* parent,
+//     TREE* tree
+// ) {
+//     if (tree->value == NULL && parent->isExpression) {
+//         printf("<expr %d> arglist: %s\n",
+//           tree->type,
+//           make_comma_sep_arglist(csound, expr, 0, 0));
+//     } else if (tree->value == NULL) {
+//         printf("%s = opchar: %c arglist: %s\n",
+//           parent->text,
+//           tree->type,
+//           make_comma_sep_arglist(csound, expr, 0, 0));
+//     } else {
+//         printf("%s = opname: %s arglist: %s\n",
+//           parent->text,
+//           tree->value->lexeme,
+//           make_comma_sep_arglist(csound, expr, 0, 0));
+//     }
+// }
 
 
 static int fill_optional_inargs(
@@ -335,7 +334,7 @@ OENTRY* resolve_opcode_with_orc_args(
         int isInitOpcode = is_init_opcode(temp->opname);
         int alternatingInputListCount = 0; // needs to be even number
 
-        if (inlist->length == 0 && !expectsInputs ||
+        if ((inlist->length == 0 && !expectsInputs) ||
             (expectsInputs && *temp->intypes == '*')) {
             inArgsMatch = 1;
         }
@@ -360,7 +359,6 @@ OENTRY* resolve_opcode_with_orc_args(
             char* current = temp->intypes;
             CONS_CELL* car = inlist->list;
             CSOUND_ORC_ARGUMENT* currentArg = car->value;
-            int index = 0;
 
             while (currentArg != NULL && *current != '\0') {
                 int isUserDefinedType = currentArg->cstype != NULL &&
@@ -442,7 +440,6 @@ OENTRY* resolve_opcode_with_orc_args(
                 next_in:
                 car = car == NULL ? NULL : car->next;
                 currentArg = car == NULL ? NULL : (CSOUND_ORC_ARGUMENT*) car->value;
-                index += 1;
             }
         }
 
@@ -460,7 +457,6 @@ OENTRY* resolve_opcode_with_orc_args(
 
             while (currentArg != NULL && *current != '\0' ) {
                 int currentArgTextLength = 1;
-                int isSyntheticVar = *currentArg->text == '#';
                 int isUserDefinedType = currentArg->cstype != NULL ?
                     currentArg->cstype->userDefinedType :
                     0;
@@ -595,30 +591,6 @@ static CSOUND_ORC_ARGUMENT* new_csound_orc_argument(
     return arg;
 }
 
-static CSOUND_ORC_ARGUMENT* copy_csound_orc_argument(
-    CSOUND* csound,
-    CSOUND_ORC_ARGUMENT* arg
-) {
-    CSOUND_ORC_ARGUMENT* ans = (CSOUND_ORC_ARGUMENT*)csound->Malloc(
-        csound, sizeof(CSOUND_ORC_ARGUMENT)
-    );
-    ans->text = arg->text != NULL ? csound->Strdup(csound, arg->text) : NULL;
-    ans->uid = csound->Strdup(csound, arg->uid);
-    ans->cstype = arg->cstype;
-    ans->type = arg->type;
-    ans->isGlobal = arg->isGlobal;
-    ans->isPfield = arg->isPfield;
-    ans->isExpression = arg->isExpression;
-    ans->dimensions = arg->dimensions;
-    ans->dimension = arg->dimension;
-    ans->memberType = arg->memberType;
-    ans->memberTypeDimensions = arg->memberTypeDimensions;
-    ans->linenum = arg->linenum;
-    return ans;
-}
-
-
-
 static CS_VARIABLE* add_arg_to_pool(
     CSOUND* csound,
     TYPE_TABLE* typeTable,
@@ -685,29 +657,6 @@ static CS_VARIABLE* add_arg_to_pool(
 
     return var;
 
-}
-
-static CSOUND_ORC_ARGUMENTS* concat_orc_arguments(
-    CSOUND* csound,
-    CSOUND_ORC_ARGUMENTS* args1,
-    CSOUND_ORC_ARGUMENTS* args2
-) {
-
-    if (args1->length > 0) {
-        int pos = args1->length;
-        CONS_CELL* car = args1->list;
-        while(pos--) {
-            if (car->next != NULL) {
-                car = car->next;
-            }
-        }
-        if (args2->length > 0) {
-            args1->length += args2->length;
-            car->next = args2->list;
-        }
-    }
-
-    return args1;
 }
 
 static CS_TYPE* resolve_cstype_from_string(
@@ -799,13 +748,15 @@ static CSOUND_ORC_ARGUMENT* resolve_single_argument_from_tree(
             break;
         }
         case T_MEMBER_IDENT: {
+
             arg->cstype = (CS_TYPE*) &CS_VAR_TYPE_C;
             tree->type = INTEGER_TOKEN;
+
             CS_VARIABLE* structVar = csoundFindVariableWithName(
                 csound,
                 typeTable->localPool,
                 tree->value->optype == NULL ?
-                    ident : tree->value->optype
+                    tree->value->lexeme : tree->value->optype
             );
             if (structVar == NULL) {
                 structVar = csoundFindVariableWithName(

@@ -2648,7 +2648,6 @@ static void instance(CSOUND *csound, int insno)
         argpp[n] =  &(var->memBlock->value); /*gbloffbas + var->memBlockIndex; */
       }
       else if (arg->type == ARG_LOCAL) {
-        CS_VAR_MEM *varMem = (CS_VAR_MEM*)arg->argPtr;
         argpp[n] = lclbas + var->memBlockIndex;
       }
       else if (arg->type == ARG_LABEL) {

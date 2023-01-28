@@ -228,74 +228,6 @@ typedef struct {
   MYFLT*    indicies[VARGMAX];
 } STRUCT_ARRAY_GET;
 
-static int structArrayGet(CSOUND *csound, void *init) {
-    STRUCT_ARRAY_GET* dat = init;
-    // CS_STRUCT_VAR* structVar = (CS_STRUCT_VAR*) dat->structVar;
-    ARRAYDAT* arrayDat = dat->arrayDat;
-    int memMyfltSize = arrayDat->arrayMemberSize;
-    int index = ((int) *dat->indicies[0]) * memMyfltSize;
-    // arrayDat->data = (MYFLT*) structVar->members;
-    MYFLT* srcData = (void*) arrayDat->data + index;
-    printf("structArrayGet dat->out %p init %p arrayDat %p index %d\n", dat->out, init, arrayDat, index);
-
-    // printf("structArrayGet destData %p arrayDat->data %p\n", destData, arrayDat->data);
-    CS_STRUCT_VAR* structVar = (CS_STRUCT_VAR*) srcData;
-    // CS_STRUCT_VAR* structVarIn = (CS_STRUCT_VAR*) arrayDat->data;
-    printf("structArrayGet structVar %p structVar->members %p\n", structVar, structVar->members);
-
-    // *destData->members = *structVar->members;
-    // destData->data = structVar;
-    // MYFLT* ptr =
-    *dat->out = *arrayDat->data;
-    // printf("structArrayGet structVar %p destData %p arrayDat %p arrayDat->data %p \n", structVar, destData, arrayDat, arrayDat->data);
-    return OK;
-    // int32_t i, size;
-
-    // int32_t inArgCount = p->INOCOUNT;
-
-    // if (UNLIKELY(inArgCount == 0))
-    //   return
-    //     csound->InitError(csound, "%s",
-    //                       Str("Error: no sizes set for array initialization"));
-
-    // for (i = 0; i < inArgCount; i++) {
-    //   if (UNLIKELY(MYFLT2LRND(*p->isizes[i]) <= 0)) {
-    //     return
-    //       csound->InitError(csound, "%s",
-    //                   Str("Error: sizes must be > 0 for array initialization"));
-    //   }
-    // }
-
-    // arrayDat->dimensions = inArgCount;
-    // arrayDat->sizes = csound->Calloc(csound, sizeof(int32_t) * inArgCount);
-    // for (i = 0; i < inArgCount; i++) {
-    //   arrayDat->sizes[i] = MYFLT2LRND(*p->isizes[i]);
-    // }
-
-    // size = arrayDat->sizes[0];
-    // if (inArgCount > 1) {
-    //   for (i = 1; i < inArgCount; i++) {
-    //     size *= arrayDat->sizes[i];
-    //   }
-    //   //size = MYFLT2LRND(size); // size is an int32_t not float
-    // }
-
-    // {
-    //   CS_VARIABLE* var = arrayDat->arrayType->createVariable(
-    //     csound,arrayDat->arrayType, inArgCount - 1
-    //   );
-    //   char *mem;
-    //   arrayDat->arrayMemberSize = var->memBlockSize;
-    //   arrayDat->data = csound->Calloc(csound,
-    //                                   arrayDat->allocated=var->memBlockSize*size);
-    //   mem = (char *) arrayDat->data;
-    //   for (i=0; i < size; i++) {
-    //     var->initializeVariableMemory(csound, var,
-    //                                   (MYFLT*)(mem+i*var->memBlockSize));
-    //   }
-    // }
-    return OK;
-}
 
 static CS_TYPE* new_struct_cs_type(
   CSOUND* csound,
@@ -333,30 +265,6 @@ OENTRY* new_struct_init_oentry(
   return oentry;
 }
 
-// OENTRY* new_struct_array_get_oentry(
-//   CSOUND* csound,
-//   CS_TYPE* type
-// ) {
-//   OENTRY* oentry = csound->Calloc(csound, sizeof(OENTRY));
-//   char temp[MAX_STRUCT_ARG_SIZE];
-//   memset(temp, '\0', MAX_STRUCT_ARG_SIZE);
-//   cs_sprintf(temp, "##array_get.%s", type->varTypeName);
-//   oentry->opname = cs_strdup(csound, temp);
-//   oentry->dsblksiz = sizeof(STRUCT_ARRAY_GET);
-//   oentry->flags = 0;
-//   oentry->thread = 1;
-//   oentry->iopadr = structArrayGet;
-//   oentry->kopadr = NULL;
-//   oentry->aopadr = NULL;
-//   oentry->useropinfo = NULL;
-//   memset(temp, '\0', MAX_STRUCT_ARG_SIZE);
-//   cs_sprintf(temp, ":%s;", type->varTypeName);
-//   oentry->outypes = cs_strdup(csound, temp);
-//   cs_sprintf(temp, ":%s[];m", type->varTypeName);
-//   oentry->intypes = cs_strdup(csound, temp);
-//   return oentry;
-// }
-
 int add_struct_definition(CSOUND* csound, TREE* structDefTree) {
   char temp[MAX_STRUCT_ARG_SIZE];
   TREE* current = structDefTree->right;
@@ -369,12 +277,7 @@ int add_struct_definition(CSOUND* csound, TREE* structDefTree) {
     csound,
     type
   );
-  // OENTRY* structArrayGetOentry = new_struct_array_get_oentry(
-  //   csound,
-  //   type
-  // );
 
-  int memberCount = 0;
   int index = 0;
   while (current != NULL) {
     char* memberName = current->value->lexeme;
@@ -433,7 +336,6 @@ int add_struct_definition(CSOUND* csound, TREE* structDefTree) {
     type->members = cs_cons_append(type->members, member);
     member = member->next;
     current = current->next;
-    memberCount += 1;
   }
 
   // we don't worry about non-zero returns here
@@ -441,20 +343,9 @@ int add_struct_definition(CSOUND* csound, TREE* structDefTree) {
   // 2 or more files include another file
   csoundAddVariableType(csound, csound->typePool, type);
 
-  // int userDefinedMemberDimensions =
-  //     csound->Calloc(csound, memberCount);
-
-  // memcpy(
-  //   userDefinedMemberDimensions,
-  //   tmpDimensions,
-  //   memberCount
-  // );
-
   temp[index] = '\0';
   oentry->intypes = cs_strdup(csound, temp);
-  // oentry->userDefinedMemberDimensions =
-  //   userDefinedMemberDimensions;
+
   csoundAppendOpcodes(csound, oentry, 1);
-  // csoundAppendOpcodes(csound, structArrayGetOentry, 1);
   return 1;
 }
