@@ -156,7 +156,7 @@ int check_satisfies_expected_output(
         cstype == ((CS_TYPE*) &CS_VAR_TYPE_R) ||
         cstype == ((CS_TYPE*) &CS_VAR_TYPE_P)
     ) {
-        return strchr("zXNicmI", *typeIdent) != NULL;
+        return strchr("zXNicmIr", *typeIdent) != NULL;
     } else if (cstype == ((CS_TYPE*) &CS_VAR_TYPE_F)) {
         return strchr("f", *typeIdent) != NULL;
     }
