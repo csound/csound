@@ -2707,6 +2707,24 @@ TREE* make_opcall_from_func_start(CSOUND *csound, int line, int locn, int type,
   return left;
 }
 
+void delete_orc_args(
+  CSOUND* csound, CSOUND_ORC_ARGUMENTS* args
+) {
+
+  CONS_CELL* car = args->list;
+  CONS_CELL* cdr;
+  CSOUND_ORC_ARGUMENT* arg;
+  while (car != NULL) {
+    cdr = car->next;
+    arg = car->value;
+    csound->Free(csound, arg->uid);
+    csound->Free(csound, arg->text);
+    csound->Free(csound, car);
+    car = cdr;
+  }
+  csound->Free(csound, args);
+}
+
 void delete_tree(CSOUND *csound, TREE *l)
 {
   while (1) {
@@ -2725,6 +2743,12 @@ void delete_tree(CSOUND *csound, TREE *l)
       //printf("Free val %p\n", l->value);
       csound->Free(csound, l->value);
       //l->value = NULL;
+    }
+    if (l->inlist != NULL) {
+      delete_orc_args(csound, l->inlist);
+    }
+    if (l->outlist != NULL) {
+      delete_orc_args(csound, l->outlist);
     }
     // printf("left %p right %p\n", l->left, l->right);
     delete_tree(csound, l->left);

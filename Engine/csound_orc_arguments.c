@@ -123,14 +123,12 @@ void printNode(TREE* tree) {
 static char* make_comma_sep_arglist(
     CSOUND* csound,
     CSOUND_ORC_ARGUMENTS* args,
-    int displaySubExpr,
     int displayType
 ) {
     char pretty[256];
-    CONS_CELL* carSub;
     CONS_CELL* car = args->list;
     CSOUND_ORC_ARGUMENT* arg;
-    CSOUND_ORC_ARGUMENT* argSub;
+
     char* p = pretty;
     int hasNext = car == NULL ? 0 : car->next != NULL;
 
@@ -141,54 +139,15 @@ static char* make_comma_sep_arglist(
         }
         arg = car->value;
 
-        if (
-            displaySubExpr &&
-            arg->isExpression &&
-            arg->SubExpression->length > 0
-        ) {
-            carSub = arg->SubExpression->list;
-            argSub = carSub->value;
-            int isArray = 0;
-            int index = 0;
-            int hasNextSub = carSub != NULL ? carSub->next != NULL : 0;
-
-            while(carSub != NULL) {
-                argSub = carSub->value;
-                p += sprintf(
-                    p,
-                    hasNextSub ? "%s, " : "%s",
-                    displayType ?
-                        argSub->cstype->varTypeName :
-                        argSub->text
-                );
-                if (index == 0) {
-                    isArray = argSub->dimensions > 0;
-                    if (isArray) {
-                        p += sprintf(p, "[");
-                    }
-                }
-                carSub = carSub->next;
-                hasNextSub = carSub != NULL ? carSub->next != NULL : 0;
-                index += 1;
-            }
-            if (isArray) {
-                p += sprintf(p, "]");
-            }
-            if (hasNext) {
-                p += sprintf(p, ", ");
-            }
-        } else {
-            p += sprintf(
-                p,
-                hasNext ? "%s, " : "%s",
-                displayType ?
-                    arg->cstype != NULL ?
-                        arg->cstype->varTypeName :
-                        "@" :
+        p += sprintf(
+            p,
+            hasNext ? "%s, " : "%s",
+            displayType ?
+                arg->cstype != NULL ?
+                    arg->cstype->varTypeName :
+                    "@" :
                     arg->text
             );
-        }
-
         car = car->next;
         hasNext = car != NULL && car->next != NULL;
 
@@ -364,7 +323,7 @@ OENTRY* resolve_opcode_with_orc_args(
                 int isUserDefinedType = currentArg->cstype != NULL &&
                     currentArg->cstype->userDefinedType;
                 int currentArgTextLength = 1;
-                int dimensionsNeeded = currentArg->dimensions - currentArg->dimension;
+                int dimensionsNeeded = currentArg->dimensions;
                 int dimensionsFound = 0;
 
                 if (
@@ -578,13 +537,11 @@ static CSOUND_ORC_ARGUMENT* new_csound_orc_argument(
     }
 
     arg->dimensions = 0;
-    arg->dimension = 0;
     arg->memberType = NULL;
     arg->memberTypeDimensions = 0;
     arg->isGlobal = 0;
     arg->isPfield = 0;
     arg->isExpression = 0;
-    arg->SubExpression = NULL;
     arg->uid = generateUniqueIdent(csound);
 
     if (arg->text == NULL) {
@@ -869,7 +826,6 @@ static CSOUND_ORC_ARGUMENT* resolve_single_argument_from_tree(
             if (var != NULL) {
                 // already defined
                 arg->cstype = var->varType;
-                arg->dimension = var->dimension;
                 arg->dimensions = var->dimensions;
                 break;
             }
@@ -981,22 +937,13 @@ static CSOUND_ORC_ARGUMENT* resolve_single_argument_from_tree(
                 );
 
                 if (var == NULL) {
-                    // iference
+                    // inference
                     return arg;
                 }
                 arg->cstype = var->varType;
                 arg->dimensions = var->dimensions;
 
                 if (arg->type == T_ARRAY_IDENT) break;
-
-                // count the dimension nesting
-                if (arg->dimensions > 0) {
-                    TREE* arrayIndexGetLeaf = tree->right;
-                    while (arrayIndexGetLeaf != NULL) {
-                        arg->dimension += 1;
-                        arrayIndexGetLeaf = arrayIndexGetLeaf->next;
-                    }
-                }
                 goto count_dim;
             }
 
@@ -1048,19 +995,6 @@ static CSOUND_ORC_ARGUMENT* resolve_single_argument_from_tree(
                     tree->value->lexeme
                 );
                 return NULL;
-            }
-
-            // a variable can be initialized from a pre-defined
-            // array at a different dimension, so we start counting
-            // from where the variable left off
-            arg->dimension = var->dimension;
-            // count the dimension nesting
-            if (arg->dimensions > 0 && !isAssignee) {
-                TREE* arrayIndexGetLeaf = tree->right;
-                while (arrayIndexGetLeaf != NULL) {
-                    arg->dimension += 1;
-                    arrayIndexGetLeaf = arrayIndexGetLeaf->next;
-                }
             }
 
             if (arg->cstype == NULL) {
@@ -1404,8 +1338,8 @@ int verify_opcode_2(
             root->value->lexeme
         );
 
-        char* leftArglist = make_comma_sep_arglist(csound, leftSideArgs, 1, 1);
-        char* rightArglist = make_comma_sep_arglist(csound, rightSideArgs, 1, 1);
+        char* leftArglist = make_comma_sep_arglist(csound, leftSideArgs, 1);
+        char* rightArglist = make_comma_sep_arglist(csound, rightSideArgs, 1);
 
         csoundMessage(
             csound,

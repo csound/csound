@@ -2221,7 +2221,7 @@ int useropcd1(CSOUND *csound, UOPCODE *p)
           MYFLT* in = (void*)internal_ptrs[i];
           MYFLT* out = (void*)external_ptrs[i];
           memcpy(out + ofs, in, asigSize);
-        } else if (current->dimension > 0 &&
+        } else if (current->dimensions > 0 &&
                    current->varType == &CS_VAR_TYPE_A) {
           ARRAYDAT* src = (ARRAYDAT*)internal_ptrs[i];
           ARRAYDAT* target = (ARRAYDAT*)external_ptrs[i];

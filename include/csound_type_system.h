@@ -68,7 +68,6 @@ extern "C" {
                              Csound uses MYFLT* and pointer arithmetic
                              to assign var locations */
         int memBlockIndex;
-        int dimension;  // each dimension has a variable
         int dimensions; // used by arrays
         int refCount;
         struct csvariable* next;
