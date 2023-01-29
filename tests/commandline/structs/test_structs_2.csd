@@ -31,11 +31,13 @@ instr 2
   SUsers[] fillarray "a", "b", "c"
   users:Users init SUsers
   user:User = mkUser(users)
+  prints "should be \"a\": %s\n", user.name
+  prints "should be \"c\": %s\n", users.names[2]
 endin
 
 </CsInstruments>
 <CsScore>
-i1 0 0
+;; i1 0 0
 i2 0 0
 </CsScore>
 </CsoundSynthesizer>
