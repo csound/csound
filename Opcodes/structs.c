@@ -113,13 +113,14 @@ static int struct_array_get(
     CSOUND *csound, STRUCT_ARRAY_GET* dat
 ) {
     ARRAYDAT* arrayDat = dat->arrayDat;
-    int memMyfltSize = arrayDat->arrayMemberSize;
-    int index = ((int) *dat->indicies[0]) * memMyfltSize;
-    MYFLT* srcData = (MYFLT*) arrayDat->data + index;
+    int index = ((int) *dat->indicies[0]);
+    char* mem = (char *) arrayDat->data;
+    MYFLT* srcData = (MYFLT*)(mem+index*arrayDat->arrayMemberSize);
+
     STRUCT_VAR* srcVar = (STRUCT_VAR*) srcData;
     STRUCT_VAR* dstVar = (STRUCT_VAR*) dat->out;
-    dstVar->members = srcVar->members;
 
+    dstVar->members = srcVar->members;
     *dstVar->dimensions = *srcVar->dimensions;
     return OK;
 }

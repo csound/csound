@@ -312,11 +312,6 @@ int copyVarGeneric(CSOUND *csound, void *p) {
     CS_TYPE* typeR = csoundGetTypeForArg(assign->r);
     CS_TYPE* typeA = csoundGetTypeForArg(assign->a);
 
-    if (typeA->userDefinedType) {
-      *assign->r = *assign->a;
-      return OK;
-    }
-
     if(typeR != typeA) {
         csound->Warning(csound,
                         Str("error: = opcode given variables with two different types: %s : %s\n"),
