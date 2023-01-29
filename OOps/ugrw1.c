@@ -206,8 +206,7 @@ int32_t printkset(CSOUND *csound, PRINTK *p)
  */
 int32_t printk(CSOUND *csound, PRINTK *p)
 {
-    CSOUND_ORC_ARGUMENTS* args;
-    CSOUND_ORC_ARGUMENT*  arg;
+    ARGLIST*  arg;
     if (UNLIKELY(p->initialised != -1))
       csound->PerfError(csound, &(p->h), Str("printk not initialised"));
 
@@ -231,10 +230,9 @@ int32_t printk(CSOUND *csound, PRINTK *p)
         csound->MessageS(csound, CSOUNDMSG_ORCH, "%s", s);
       }
       if (p->named != NULL && *p->named) {
-        args = p->h.optext->t.inlist;
-        arg = args->nth(args, 1);
+        arg = p->h.optext->t.inlist;
         csound->MessageS(csound, CSOUNDMSG_ORCH, "%s = %11.5f\n",
-                         arg->text, *p->val);
+                         arg->argText, *p->val);
       }
       else
         csound->MessageS(csound, CSOUNDMSG_ORCH, "%11.5f\n", *p->val);
@@ -722,9 +720,9 @@ int32_t printk2(CSOUND *csound, PRINTK2 *p)
         csound->MessageS(csound, CSOUNDMSG_ORCH, "%s", s);
       }
       if (*p->named) {
-        CSOUND_ORC_ARGUMENT* arg = p->h.optext->t.inlist->list->value;
+        ARGLIST* arg = p->h.optext->t.inlist;
         csound->MessageS(csound, CSOUNDMSG_ORCH, "%s = %11.5f\n",
-                         arg->text, *p->val);
+                         arg->argText, *p->val);
       } else {
         csound->MessageS(csound, CSOUNDMSG_ORCH, "%11.5f\n", *p->val);
         p->oldvalue = value;

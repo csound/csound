@@ -44,7 +44,6 @@
 #include "csound_type_system.h"
 #include "csound.h"
 #include "cscore.h"
-#include "csound_orc_arguments.h"
 #include "csound_data_structures.h"
 #include "csound_standard_types.h"
 #include "pools.h"
@@ -112,10 +111,10 @@ typedef struct {
 #define NOT_AN_INSTRUMENT INT32_MAX
 
 #define ORTXT       h.optext->t
-#define INCOUNT    ORTXT.inlist->length
-#define OUTCOUNT   ORTXT.outlist->length
-#define INOCOUNT    ORTXT.inlist->length
-#define OUTOCOUNT   ORTXT.outlist->length
+#define INCOUNT    ORTXT.inArgCount
+#define OUTCOUNT   ORTXT.outArgCount
+#define INOCOUNT    ORTXT.inArgCount
+#define OUTOCOUNT   ORTXT.outArgCount
 #define IS_ASIG_ARG(x) (csoundGetTypeForArg(x) == &CS_VAR_TYPE_A)
 #define IS_STR_ARG(x) (csoundGetTypeForArg(x) == &CS_VAR_TYPE_S)
 
@@ -277,15 +276,18 @@ typedef struct CORFIL {
   } OPARMS;
 
   typedef struct arglst {
-    int     count;
-    char    *arg[1];
-  } ARGLST;
+    char*     argText;
+    CS_TYPE*  cstype;
+    int       index;
+    int       isGlobal;
+    int       isStringToken;
+    struct arglst* next;
+  } ARGLIST;
 
   typedef struct arg {
-    int type;
-    void* argPtr;
-    int index;
-    // int isStruct;
+    int         type;
+    void*       argPtr;
+    int         index;
     struct arg* next;
   } ARG;
 //  typedef struct argoffs {
@@ -315,9 +317,11 @@ typedef struct CORFIL {
     OENTRY*           oentry;
     ARG*              inArgs;         /* Input args (index into list of values) */
     ARG*              outArgs;
+    ARGLIST*          inlist;
+    ARGLIST*          outlist;
     char*             opcod;          /* Pointer to opcode name in global pool */
-    struct csorcargs* inlist;         /* Pointer to struct containing arg metadata */
-    struct csorcargs* outlist;
+    unsigned int      inArgCount;
+    unsigned int      outArgCount;
   } TEXT;
 
 

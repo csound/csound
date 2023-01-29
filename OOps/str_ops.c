@@ -366,7 +366,7 @@ sprintf_opcode_(CSOUND *csound,
     }
   }
 
-  if (UNLIKELY((int32_t) ((OPDS*) p)->optext->t.inlist->length > 31)){
+  if (UNLIKELY((int32_t) ((OPDS*) p)->optext->t.inArgCount > 31)){
     StrOp_ErrMsg(p, Str("too many arguments"));
     return NOTOK;
   }

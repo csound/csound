@@ -932,12 +932,12 @@ template <std::size_t N> struct InPlug : OPDS {
   /** returns the number of output arguments
       used in the case of variable output count
   */
-  uint32_t out_count() { return (uint32_t)optext->t.outlist->length; }
+  uint32_t out_count() { return (uint32_t)optext->t.outArgCount; }
 
   /** returns the number of input arguments
       used in the case of variable input count
   */
-  uint32_t in_count() { return (uint32_t)optext->t.inlist->length; }
+  uint32_t in_count() { return (uint32_t)optext->t.inArgCount; }
 
   /** local control rate
    */
@@ -1064,12 +1064,12 @@ template <std::size_t N, std::size_t M> struct Plugin : OPDS {
   /** returns the number of output arguments
       used in the case of variable output count
   */
-  uint32_t out_count() { return (uint32_t)optext->t.outlist->length; }
+  uint32_t out_count() { return (uint32_t)optext->t.outArgCount; }
 
   /** returns the number of input arguments
       used in the case of variable input count
   */
-  uint32_t in_count() { return (uint32_t)optext->t.inlist->length; }
+  uint32_t in_count() { return (uint32_t)optext->t.inArgCount; }
 
   /** local control rate
    */

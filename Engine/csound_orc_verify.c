@@ -151,12 +151,14 @@ int check_satisfies_expected_output(
         return strchr("l", *typeIdent) != NULL;
     } else if (cstype == ((CS_TYPE*) &CS_VAR_TYPE_S)) {
         return strchr("SNI", *typeIdent) != NULL;
+    } else if (cstype == ((CS_TYPE*) &CS_VAR_TYPE_R)) {
+        return strchr("zXNicmIr", *typeIdent) != NULL;
     } else if (
         cstype == ((CS_TYPE*) &CS_VAR_TYPE_I) ||
         cstype == ((CS_TYPE*) &CS_VAR_TYPE_R) ||
         cstype == ((CS_TYPE*) &CS_VAR_TYPE_P)
     ) {
-        return strchr("zXNicmIr", *typeIdent) != NULL;
+        return strchr("zXNicmI", *typeIdent) != NULL;
     } else if (cstype == ((CS_TYPE*) &CS_VAR_TYPE_F)) {
         return strchr("f", *typeIdent) != NULL;
     }

@@ -596,7 +596,7 @@ static const CSOUND cenviron_ = {
       { NULL,
         {
           0, 0, NULL, NULL, NULL, NULL,
-          NULL, NULL
+          0, 0
         },
         0,0,0,
         //0,
@@ -4175,7 +4175,7 @@ CS_TYPE* csoundGetTypeForArg(void* argPtr) {
  */
 int csoundGetInputArgCnt(void *p)
 {
-    return (int) ((OPDS*) p)->optext->t.inlist->length;
+    return (int) ((OPDS*) p)->optext->t.inArgCount;
 }
 
 
@@ -4184,13 +4184,19 @@ int csoundGetInputArgCnt(void *p)
  */
 char *csoundGetInputArgName(void *p, int n)
 {
-    if ((unsigned int) n >=
-        (unsigned int) ((OPDS*) p)->optext->t.inlist->length)
-      return (char*) NULL;
+  // returns null if index isn't found
+  TEXT text = ((OPDS*) p)->optext->t;
+  if (text.inArgCount <= n) {
+    return NULL;
+  }
+  ARGLIST* inArg = text.inlist;
+  int index = 0;
+  while (index < n) {
+    inArg = inArg->next;
+    index += 1;
+  }
 
-    CSOUND_ORC_ARGUMENTS* args = ((OPDS*) p)->optext->t.inlist;
-    CSOUND_ORC_ARGUMENT* arg = args->nth(args, n);
-    return (char*) arg->text;
+  return inArg->argText;
 }
 
 /**
@@ -4198,7 +4204,7 @@ char *csoundGetInputArgName(void *p, int n)
  */
 int csoundGetOutputArgCnt(void *p)
 {
-    return (int) ((OPDS*) p)->optext->t.outlist->length;
+    return (int) ((OPDS*) p)->optext->t.outArgCount;
 }
 
 /**
@@ -4207,12 +4213,18 @@ int csoundGetOutputArgCnt(void *p)
 char *csoundGetOutputArgName(void *p, int n)
 {
     // returns null if index isn't found
-    CSOUND_ORC_ARGUMENTS* args = ((OPDS*) p)->optext->t.outlist;
-    CSOUND_ORC_ARGUMENT* arg = args->nth(args, n);
-    if (arg != NULL) {
-      return arg->text;
+    TEXT text = ((OPDS*) p)->optext->t;
+    if (text.outArgCount <= n) {
+      return NULL;
     }
-    return NULL;
+    ARGLIST* outArg = text.outlist;
+    int index = 0;
+    while (index < n) {
+      outArg = outArg->next;
+      index += 1;
+    }
+
+    return outArg->argText;
 }
 
 /**

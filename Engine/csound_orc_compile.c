@@ -43,7 +43,7 @@ MYFLT csoundInitialiseIO(CSOUND *csound);
 void    iotranset(CSOUND *), sfclosein(CSOUND*), sfcloseout(CSOUND*);
 static const char *INSTR_NAME_FIRST = "::^inm_first^::";
 static ARG *createArg(CSOUND *csound, INSTRTXT *ip,
-                      CSOUND_ORC_ARGUMENT* parsedArg,
+                      ARGLIST* arglist,
                       ENGINE_STATE *engineState);
 static void insprep(CSOUND *, INSTRTXT *, ENGINE_STATE *engineState);
 static void lgbuild(CSOUND *, INSTRTXT *, char *, int inarg,
@@ -307,6 +307,44 @@ char** splitArgs(CSOUND* csound, char* argString)
   return args;
 }
 
+// moves over pointers from orcargs
+// to arglist in order to free the orcargs
+// along with the AST
+static ARGLIST* arglist_from_orcargs(
+  CSOUND* csound,
+  CSOUND_ORC_ARGUMENTS* args
+) {
+
+  if (args == NULL || args->length == 0) {
+    return NULL;
+  }
+  CSOUND_ORC_ARGUMENT* arg;
+  CONS_CELL* car = args->list;
+  ARGLIST* head = (ARGLIST *)csound->Calloc(csound, sizeof(ARGLIST));
+  ARGLIST* tail = NULL;
+  int index = 0;
+
+  while (car != NULL) {
+    if (tail == NULL) {
+      tail = head;
+    } else {
+      tail->next = (ARGLIST *)csound->Calloc(csound, sizeof(ARGLIST));
+      tail = tail->next;
+    }
+    arg = car->value;
+    tail->argText = csound->Strdup(csound, arg->text);
+    tail->cstype = arg->cstype;
+    tail->index = index;
+    tail->isGlobal = arg->isGlobal;
+    tail->isStringToken = arg->type == STRING_TOKEN;
+    car = car->next;
+    index += 1;
+  }
+
+  return head;
+}
+
+
 OENTRY* find_opcode(CSOUND*, char*);
 
 /**
@@ -359,14 +397,18 @@ OPTXT *create_opcode(CSOUND *csound, TREE *root, INSTRTXT *ip,
     /* INITIAL SETUP */
     tp->oentry = (OENTRY *)root->markup;
     tp->opcod = strsav_string(csound, engineState, tp->oentry->opname);
-    tp->inlist = root->inlist;
-    tp->outlist = root->outlist;
+    tp->inlist = arglist_from_orcargs(csound, root->inlist);
+    tp->outlist = arglist_from_orcargs(csound, root->outlist);
+    tp->inArgCount = root->inlist == NULL ? 0 :
+      ((CSOUND_ORC_ARGUMENTS*) root->inlist)->length;
+    tp->outArgCount = root->outlist == NULL ? 0 :
+      ((CSOUND_ORC_ARGUMENTS*) root->outlist)->length;
+
     ip->opdstot += tp->oentry->dsblksiz;
-    CONS_CELL* cdr = tp->inlist->list;
-    while (cdr != NULL) {
-      CSOUND_ORC_ARGUMENT* orcArg = cdr->value;
-      if (orcArg->cstype == (CS_TYPE*) &CS_VAR_TYPE_P) {
-        int pn = pnum(orcArg->text);
+    ARGLIST* arg = tp->inlist;
+    while (arg != NULL) {
+      if (arg->cstype == (CS_TYPE*) &CS_VAR_TYPE_P) {
+        int pn = pnum(arg->argText);
         if (pn > ip->pmax) {
           ip->pmax = pn;
         }
@@ -374,12 +416,12 @@ OPTXT *create_opcode(CSOUND *csound, TREE *root, INSTRTXT *ip,
         lgbuild(
           csound,
           ip,
-          orcArg->text,
+          arg->argText,
           1,
           engineState
         );
       }
-      cdr = cdr->next;
+      arg = arg->next;
     }
     break;
   default:
@@ -480,8 +522,12 @@ INSTRTXT *create_instrument0(CSOUND *csound, TREE *root,
    * nulllist to point to for empty lists, while this is creating a new list
    * regardless
    */
-  ip->t.outlist = root->outlist;
-  ip->t.inlist = root->inlist;
+  ip->t.outlist = arglist_from_orcargs(csound, root->outlist);
+  ip->t.inlist = arglist_from_orcargs(csound, root->inlist);
+  ip->t.outArgCount = root->outlist == NULL ? 0 :
+    ((CSOUND_ORC_ARGUMENTS*) root->outlist)->length;
+  ip->t.inArgCount = root->inlist == NULL ? 0 :
+    ((CSOUND_ORC_ARGUMENTS*) root->inlist)->length;
 
   while (current != NULL) {
     unsigned int uval;
@@ -754,8 +800,13 @@ INSTRTXT *create_global_instrument(CSOUND *csound, TREE *root,
    * nulllist to point to for empty lists, while this is creating a new list
    * regardless
    */
-  ip->t.outlist = root->outlist;
-  ip->t.inlist = root->inlist;
+  ip->t.outlist = arglist_from_orcargs(csound, root->outlist);
+  ip->t.inlist = arglist_from_orcargs(csound, root->inlist);
+
+  ip->t.inArgCount = root->inlist == NULL ? 0 :
+    ((CSOUND_ORC_ARGUMENTS*) root->inlist)->length;
+  ip->t.outArgCount = root->outlist == NULL ? 0 :
+    ((CSOUND_ORC_ARGUMENTS*) root->outlist)->length;
   close_instrument(csound, engineState, ip);
   //csound->inZero = 0;
   return ip;
@@ -799,9 +850,8 @@ INSTRTXT *create_instrument(CSOUND *csound, TREE *root,
   ip->t.oentry = find_opcode(csound, "instr");
   /*  to hold global assigns */
   ip->t.opcod = strsav_string(csound, engineState, "instr");
-
-  ip->t.outlist = root->outlist;
-  ip->t.inlist = root->inlist;
+  ip->t.outlist = arglist_from_orcargs(csound, root->outlist);
+  ip->t.inlist = arglist_from_orcargs(csound, root->inlist);
 
   /* create local ksmps variable */
   CS_TYPE *rType = (CS_TYPE *)&CS_VAR_TYPE_R;
@@ -1871,9 +1921,7 @@ static void insprep(CSOUND *csound, INSTRTXT *tp, ENGINE_STATE *engineState)
   OPARMS *O = csound->oparms;
   OPTXT *optxt;
   OENTRY *ep;
-  CSOUND_ORC_ARGUMENTS *outlist, *inlist;
-  CONS_CELL* cdr;
-
+  ARGLIST *outlist, *inlist;
   OENTRY *pset = find_opcode(csound, "pset");
 
   optxt = (OPTXT *)tp;
@@ -1890,13 +1938,11 @@ static void insprep(CSOUND *csound, INSTRTXT *tp, ENGINE_STATE *engineState)
 
     if (UNLIKELY(O->odebug))
       csound->Message(csound, "%s args:", ep->opname);
-    if ((outlist = ttp->outlist) == NULL || !outlist->length)
+    if ((outlist = ttp->outlist) == NULL || !ttp->outArgCount)
       ttp->outArgs = NULL;
     else {
-      cdr = outlist->list;
-      while (cdr != NULL) {
-        CSOUND_ORC_ARGUMENT* orcArg = cdr->value;
-        ARG *arg = createArg(csound, tp, orcArg, engineState);
+      while (outlist != NULL) {
+        ARG *arg = createArg(csound, tp, outlist, engineState);
         if (ttp->outArgs == NULL) {
           ttp->outArgs = arg;
         } else {
@@ -1907,25 +1953,24 @@ static void insprep(CSOUND *csound, INSTRTXT *tp, ENGINE_STATE *engineState)
           current->next = arg;
           arg->next = NULL;
         }
-        cdr = cdr->next;
+        outlist = outlist->next;
       }
     }
-    if ((inlist = ttp->inlist) == NULL || !inlist->length)
+    if (!ttp->inArgCount)
       ttp->inArgs = NULL;
     else {
-      cdr = inlist->list;
-      while (cdr != NULL) {
+      inlist = ttp->inlist;
+      while (inlist != NULL) {
         ARG *arg = NULL;
-        CSOUND_ORC_ARGUMENT* orcArg = cdr->value;
-        if (orcArg->cstype == (CS_TYPE*) &CS_VAR_TYPE_L) {
+        if (inlist->cstype == (CS_TYPE*) &CS_VAR_TYPE_L) {
           arg = csound->Calloc(csound, sizeof(ARG));
           arg->type = ARG_LABEL;
-          arg->argPtr = csound->Malloc(csound, strlen(orcArg->text) + 1);
-          strcpy(arg->argPtr, orcArg->text);
+          arg->argPtr = csound->Malloc(csound, strlen(inlist->argText) + 1);
+          strcpy(arg->argPtr, inlist->argText);
           if (UNLIKELY(O->odebug))
-            csound->Message(csound, "\t%s:", orcArg->text); /* if arg is label,  */
+            csound->Message(csound, "\t%s:", inlist->argText); /* if arg is label,  */
         } else {
-          arg = createArg(csound, tp, orcArg, engineState);
+          arg = createArg(csound, tp, inlist, engineState);
         }
 
         if (ttp->inArgs == NULL) {
@@ -1939,7 +1984,7 @@ static void insprep(CSOUND *csound, INSTRTXT *tp, ENGINE_STATE *engineState)
 
           arg->next = NULL;
         }
-        cdr = cdr->next;
+        inlist = inlist->next;
       }
 
       if (ttp->oentry == pset) {
@@ -1956,7 +2001,7 @@ static void insprep(CSOUND *csound, INSTRTXT *tp, ENGINE_STATE *engineState)
           if(csound->oparms_.msglevel || csound->oparms_.odebug)
             csound->Message(csound, "PSET: isno=??, pmax=%d\n", tp->pmax);
         }
-        if (UNLIKELY((n = ttp->inlist->length) != tp->pmax)) {
+        if (UNLIKELY((n = ttp->inArgCount) != tp->pmax)) {
           // csound->Warning(csound, Str("i%d pset args != pmax"), (int) insno);
           csound->Warning(csound, Str("i[fixme] pset args != pmax"));
           if (n < tp->pmax)
@@ -1964,7 +2009,7 @@ static void insprep(CSOUND *csound, INSTRTXT *tp, ENGINE_STATE *engineState)
         }
         tp->psetdata = (MYFLT *)csound->Calloc(csound, n * sizeof(MYFLT));
 
-        for (n = 0, fp1 = tp->psetdata; n < (int)ttp->inlist->length;
+        for (n = 0, fp1 = tp->psetdata; n < (int)ttp->inArgCount;
              n++, inArgs = inArgs->next) {
           switch (inArgs->type) {
           case ARG_CONSTANT:
@@ -2041,15 +2086,15 @@ static void lgbuild(CSOUND *csound, INSTRTXT *ip, char *s, int inarg,
 static ARG *createArg(
   CSOUND *csound,
   INSTRTXT *ip,
-  CSOUND_ORC_ARGUMENT* parsedArg,
+  ARGLIST* arglist,
   ENGINE_STATE *engineState
 ) {
   char *temp;
 
   ARG *arg = csound->Calloc(csound, sizeof(ARG));
   CS_VAR_POOL* pool = NULL;
-  char* ident = parsedArg->text;
-  if (parsedArg->cstype == &CS_VAR_TYPE_C) {
+  char* ident = arglist->argText;
+  if (arglist->cstype == &CS_VAR_TYPE_C) {
     arg->type = ARG_CONSTANT;
     arg->argPtr = find_or_add_constant(
       csound,
@@ -2057,14 +2102,14 @@ static ARG *createArg(
       ident,
       cs_strtod(ident, NULL)
     );
-  } else if (parsedArg->type == STRING_TOKEN) {
+  } else if (arglist->isStringToken) {
     size_t memSize = CS_VAR_TYPE_OFFSET + sizeof(STRINGDAT);
     CS_VAR_MEM *varMem = csound->Calloc(csound, memSize);
     STRINGDAT *str = (STRINGDAT *)&varMem->value;
     varMem->varType = (CS_TYPE *)&CS_VAR_TYPE_S;
     arg->type = ARG_STRING;
-    temp = csound->Calloc(csound, strlen(parsedArg->text) + 1);
-    unquote_string(temp, parsedArg->text);
+    temp = csound->Calloc(csound, strlen(arglist->argText) + 1);
+    unquote_string(temp, arglist->argText);
     str->data =
       cs_hash_table_get_key(csound, csound->engineState.stringPool, temp);
     str->size = strlen(temp) + 1;
@@ -2074,11 +2119,11 @@ static ARG *createArg(
       str->data = cs_hash_table_put_key(csound, engineState->stringPool, temp);
     }
     return arg;
-  } else if (parsedArg->cstype == &CS_VAR_TYPE_P) {
+  } else if (arglist->cstype == &CS_VAR_TYPE_P) {
     arg->type = ARG_PFIELD;
     arg->index = pnum(ident);
     return arg;
-  } else if (parsedArg->cstype == &CS_VAR_TYPE_R || parsedArg->isGlobal) {
+  } else if (arglist->cstype == &CS_VAR_TYPE_R || arglist->isGlobal) {
     arg->type = ARG_GLOBAL;
     pool = csound->engineState.varPool;
   } else {

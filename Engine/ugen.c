@@ -341,7 +341,7 @@ PUBLIC bool ugen_set_input(UGEN* ugen, int index, void* arg) {
 PUBLIC int ugen_init(UGEN* ugen) {
   OPDS* opds = (OPDS*)ugen->opcodeMem;
   OENTRY* oentry = ugen->oentry;
-  opds->optext->t.inlist->length = ugen->inocount;
+  opds->optext->t.inArgCount = ugen->inocount;
   if (oentry->iopadr != NULL) {
       return (*oentry->iopadr)(ugen->csound, ugen->opcodeMem);
   }
@@ -376,6 +376,3 @@ PUBLIC bool ugen_delete(UGEN* ugen) {
   csound->Free(csound, ugen);
   return true;
 }
-
-
-

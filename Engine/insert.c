@@ -265,21 +265,21 @@ static void putop(CSOUND *csound, TEXT *tp)
 {
   int n;
 
-  if ((n = tp->outlist->length) != 0) {
-    CONS_CELL* cdr = tp->outlist->list;
-    while ((cdr = cdr->next)) {
-      CSOUND_ORC_ARGUMENT* arg = cdr->value;
-      csound->Message(csound, "%s\t", arg->text);
+  if ((n = tp->outArgCount) != 0) {
+    ARGLIST* arg = tp->inlist;
+    while (n--) {
+      csound->Message(csound, "%s\t", arg->argText);
+      arg = arg->next;
     }
   }
   else
     csound->Message(csound, "\t");
   csound->Message(csound, "%s\t", tp->opcod);
-  if ((n = tp->inlist->length) != 0) {
-    CONS_CELL* cdr = tp->outlist->list;
-    while (cdr != NULL && (cdr = cdr->next)) {
-      CSOUND_ORC_ARGUMENT* arg = cdr->value;
-      csound->Message(csound, "%s\t", arg->text);
+  if ((n = tp->inArgCount) != 0) {
+    ARGLIST* arg = tp->inlist;
+    while (n--) {
+      csound->Message(csound, "%s\t", arg->argText);
+      arg = arg->next;
     }
   }
   csound->Message(csound, "\n");
@@ -2563,11 +2563,8 @@ static void instance(CSOUND *csound, int insno)
     // ******** This needs revisipn with no distinction between k- and a- rate ****
     if ((ep->thread & 03) == 0) {             /* thread 1 OR 2:  */
       int isBoolOutput = 0;
-      if (ttp->outlist != NULL &&
-          ttp->outlist->list != NULL
-      ) {
-        CSOUND_ORC_ARGUMENT* arg = ttp->outlist->list->value;
-        isBoolOutput = arg->cstype == &CS_VAR_TYPE_b;
+      if (ttp->outArgCount > 0) {
+        isBoolOutput = ttp->outlist->cstype == &CS_VAR_TYPE_b;
       }
       if (isBoolOutput) {
         prvids = prvids->nxti = opds;
