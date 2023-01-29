@@ -50,42 +50,6 @@ char* getStructPathFromTree(
     return result;
 }
 
-// MYFLT* getDataPointerFromStructPath(
-//   CSOUND* csound,
-//   CS_VAR_POOL* pool,
-//   MYFLT* lclbas,
-//   char* structPath
-// ) {
-//     char *next, *th;
-//     next = cs_strtok_r(structPath, ".", &th);
-//     CS_VARIABLE* rootVar = ((CS_VARIABLE*)
-//       csoundFindVariableWithName(
-//         csound, pool, next
-//       ));
-//     MYFLT* fltp = lclbas + rootVar->memBlockIndex;
-//     while (next != NULL) {
-//       CS_STRUCT_VAR* structVar = (CS_STRUCT_VAR*)fltp;
-//       printf("structVar %p rootVar %p\n", structVar, rootVar);
-//       // CS_TYPE* type = csoundGetTypeForArg(fltp);
-//       CS_TYPE* type = *(CS_TYPE**)(fltp - CS_VAR_TYPE_OFFSET);
-
-//       CONS_CELL* members = type->members;
-//       int i = 0;
-//       while(members != NULL) {
-//         CS_VARIABLE* member = (CS_VARIABLE*)members->value;
-//         if (!strcmp(member->varName, next)) {
-//           fltp = &(structVar->members[i]->value);
-//           break;
-//         }
-
-//         i++;
-//         members = members->next;
-//       }
-//       next = cs_strtok_r(NULL, ".", &th);
-//     }
-//     return fltp;
-// }
-
 int findStructMemberIndex(CONS_CELL* members, char* memberName) {
     int i = 0;
     while(members != NULL) {
