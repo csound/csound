@@ -120,7 +120,7 @@ void printNode(TREE* tree) {
 }
 
 // for pretty printing the given arguments
-static char* make_comma_sep_arglist(
+static char* make_arglist_string(
     CSOUND* csound,
     CSOUND_ORC_ARGUMENTS* args,
     int displayType
@@ -130,8 +130,6 @@ static char* make_comma_sep_arglist(
     CSOUND_ORC_ARGUMENT* arg;
 
     char* p = pretty;
-    int hasNext = car == NULL ? 0 : car->next != NULL;
-
     while (car != NULL) {
         if (car->value == NULL) {
             p += sprintf(p, "%s", "NULL");
@@ -141,16 +139,25 @@ static char* make_comma_sep_arglist(
 
         p += sprintf(
             p,
-            hasNext ? "%s, " : "%s",
+            arg->cstype != NULL &&
+                arg->cstype->userDefinedType ?
+                 ":%s" : "%s",
             displayType ?
                 arg->cstype != NULL ?
                     arg->cstype->varTypeName :
                     "@" :
                     arg->text
             );
-        car = car->next;
-        hasNext = car != NULL && car->next != NULL;
+        int dimensions = arg->dimensions;
+        while (dimensions > 0) {
+            p += sprintf(p, "%s", "[]");
+            dimensions -= 1;
+        }
+        if (arg->cstype != NULL && arg->cstype->userDefinedType) {
+            p += sprintf(p, "%s", ";");
+        }
 
+        car = car->next;
     }
     *p = '\0';
     return csound->Strdup(csound, pretty);
@@ -350,36 +357,36 @@ OENTRY* resolve_opcode_with_orc_args(
                         ) == 0;
                         if (inArgsMatch) {
                             char* delimitStruct = strchr(current, ';');
-                            int extraCharLen = delimitStruct > 0 ? delimitStruct - current : 2;
+                            int extraCharLen = delimitStruct > 0 ? 1 + delimitStruct - current : 2;
                             currentArgTextLength += extraCharLen;
                             current += currentArgTextLength;
                         } else {
                             break;
                         }
-                        goto next_in;
                     }
-                }
-                if (*current == 'Z') {
-                    inArgsMatch = check_satisfies_alternating_z_input(
-                        currentArg->cstype->varTypeName,
-                        alternatingInputListCount
-                    );
-                    alternatingInputListCount += 1;
-                    if (!inArgsMatch) {
-                        // at this point we dont compare if it's even
-                        alternatingInputListCount = 0;
+                } else {
+                    if (*current == 'Z') {
+                        inArgsMatch = check_satisfies_alternating_z_input(
+                            currentArg->cstype->varTypeName,
+                            alternatingInputListCount
+                        );
+                        alternatingInputListCount += 1;
+                        if (!inArgsMatch) {
+                            // at this point we dont compare if it's even
+                            alternatingInputListCount = 0;
+                            break;
+                        }
+                    } else if (check_satisfies_expected_input(
+                        currentArg->cstype,
+                        current,
+                        dimensionsNeeded > 0)
+                    ) {
+                        inArgsMatch = 1;
+                        if (isInitOpcode) break;
+                    } else {
+                        inArgsMatch = 0;
                         break;
                     }
-                } else if (check_satisfies_expected_input(
-                    currentArg->cstype,
-                    current,
-                    dimensionsNeeded > 0)
-                ) {
-                    inArgsMatch = 1;
-                    if (isInitOpcode) break;
-                } else {
-                    inArgsMatch = 0;
-                    break;
                 }
 
                 if (!is_vararg_input_type(current)) {
@@ -391,12 +398,12 @@ OENTRY* resolve_opcode_with_orc_args(
                         current += 1;
                     }
 
-                    if (!isUserDefinedType && dimensionsNeeded != dimensionsFound) {
+                    if (dimensionsNeeded != dimensionsFound) {
                         inArgsMatch = 0;
                         break;
                     }
                 }
-                next_in:
+
                 car = car == NULL ? NULL : car->next;
                 currentArg = car == NULL ? NULL : (CSOUND_ORC_ARGUMENT*) car->value;
             }
@@ -1338,8 +1345,8 @@ int verify_opcode_2(
             root->value->lexeme
         );
 
-        char* leftArglist = make_comma_sep_arglist(csound, leftSideArgs, 1);
-        char* rightArglist = make_comma_sep_arglist(csound, rightSideArgs, 1);
+        char* leftArglist = make_arglist_string(csound, leftSideArgs, 1);
+        char* rightArglist = make_arglist_string(csound, rightSideArgs, 1);
 
         csoundMessage(
             csound,
