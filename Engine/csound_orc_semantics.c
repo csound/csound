@@ -1251,10 +1251,12 @@ char* get_arg_string_from_tree(
     if (tree->type == NUMBER_TOKEN) {
       argType = "c";
     } else if (
+        current->value != NULL &&
         current->value->optype != NULL
     ) {
       argType = current->value->optype;
     } else if (
+      current->value != NULL &&
       csoundGetTypeWithVarTypeName(
           csound->typePool,
           current->value->lexeme
@@ -1262,6 +1264,7 @@ char* get_arg_string_from_tree(
     ) {
       argType = current->value->lexeme;
     } else if (
+      current->value != NULL &&
       current->value->lexeme != NULL &&
       strlen(current->value->lexeme) > 0
     ) {
@@ -2119,7 +2122,6 @@ int verify_if_statement(CSOUND* csound, TREE* root, TYPE_TABLE* typeTable) {
       csound->Free(csound, outArg);
       current = (current->right == NULL) ? NULL : current->right->next;
     }
-
   }
 
   return 1;
@@ -2412,9 +2414,6 @@ TREE* verify_tree(CSOUND * csound, TREE *root, TYPE_TABLE* typeTable)
     }
 
     case IF_TOKEN:
-      if (!verify_if_statement(csound, current, typeTable)) {
-        return 0;
-      }
 
       current = expand_if_statement(csound, current, typeTable);
 

@@ -264,6 +264,23 @@ int add_struct_definition(CSOUND* csound, TREE* structDefTree) {
         csound->typePool, typedIdentArg
     );
 
+    // check if it's recursive type
+    if (
+      memberType == NULL &&
+      strcmp(typedIdentArg, type->varTypeName) == 0
+    ) {
+      memberType = type;
+    }
+
+    if (memberType == NULL) {
+      csound->Message(csound, Str(
+        "ERROR: type %s used before defined\n"
+        ),
+        typedIdentArg
+      );
+      return 0;
+    }
+
     CS_VARIABLE* var = memberType->createVariable(
       csound, type, dimensions
     );
