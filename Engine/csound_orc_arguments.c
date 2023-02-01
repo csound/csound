@@ -290,7 +290,7 @@ OENTRY* resolve_opcode_with_orc_args(
     for (int i = 0; i < entries->count; i++) {
         OENTRY* temp = entries->entries[i];
 
-        // if (strncmp(temp->opname, "##array_get", 10) == 0) {
+        // if (strncmp(temp->opname, "processMyType", 12) == 0) {
         //     printf("yo\n");
         // }
         int inArgsMatch = 0;
@@ -357,9 +357,16 @@ OENTRY* resolve_opcode_with_orc_args(
                         ) == 0;
                         if (inArgsMatch) {
                             char* delimitStruct = strchr(current, ';');
-                            int extraCharLen = delimitStruct > 0 ? 1 + delimitStruct - current : 2;
-                            currentArgTextLength += extraCharLen;
+                            char* delimitArray = strchr(current, '[');
+                            if (delimitArray > 0) {
+                                currentArgTextLength = delimitArray - current;
+                            } else if (delimitStruct) {
+                                currentArgTextLength = delimitStruct - current;
+                            } else {
+                                currentArgTextLength = 2;
+                            }
                             current += currentArgTextLength;
+                            currentArgTextLength = 0;
                         } else {
                             break;
                         }
@@ -395,6 +402,10 @@ OENTRY* resolve_opcode_with_orc_args(
                         if (*current == '[') {
                             dimensionsFound += 1;
                         }
+                        current += 1;
+                    }
+
+                    if (*current == ';') {
                         current += 1;
                     }
 
@@ -464,6 +475,9 @@ OENTRY* resolve_opcode_with_orc_args(
                     if (*current == '[') {
                         dimensionsFound += 1;
                     }
+                    current += 1;
+                }
+                if (*current == ';') {
                     current += 1;
                 }
                 if (
