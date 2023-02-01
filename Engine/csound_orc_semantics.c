@@ -2743,10 +2743,10 @@ void delete_tree(CSOUND *csound, TREE *l)
       csound->Free(csound, l->value);
       //l->value = NULL;
     }
-    if (l->inlist != NULL) {
+    if (l->right != NULL && l->inlist != NULL) {
       delete_orc_args(csound, l->inlist);
     }
-    if (l->outlist != NULL) {
+    if (l->left != NULL && l->outlist != NULL) {
       delete_orc_args(csound, l->outlist);
     }
     // printf("left %p right %p\n", l->left, l->right);

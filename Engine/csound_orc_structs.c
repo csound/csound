@@ -163,6 +163,12 @@ void copyStructVar(CSOUND* csound, CS_TYPE* structType, void* dest, void* src) {
   CS_STRUCT_VAR* varSrc = (CS_STRUCT_VAR*)src;
   int i, count, dimensions;
 
+  if (varDest->members == NULL) {
+    varDest->members = varSrc->members;
+    *varDest->dimensions = *varSrc->dimensions;
+    return;
+  }
+
   count = cs_cons_length(structType->members);
   for (i = 0; i < count; i++) {
     dimensions = *varSrc->dimensions[i];
