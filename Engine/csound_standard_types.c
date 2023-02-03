@@ -161,6 +161,7 @@ void varInitMemoryString(CSOUND *csound, CS_VARIABLE* var, MYFLT* memblock) {
     str->data = (char *) csound->Calloc(csound, DEFAULT_STRING_SIZE);
     str->size = DEFAULT_STRING_SIZE;
     str->timestamp = 0;
+    str->refCount = 0;
 }
 
 void varInitMemoryFsig(CSOUND *csound, CS_VARIABLE* var, MYFLT* memblock) {
@@ -278,10 +279,10 @@ void string_free_var_mem(void* csnd, void* p ) {
     CSOUND* csound = (CSOUND*)csnd;
     STRINGDAT* dat = (STRINGDAT*)p;
 
-    if(dat->data != NULL) {
+    if(dat->refCount == 0) {
         csound->Free(csound, dat->data);
-        dat->data = NULL;
     }
+    dat->refCount -= 1;
 }
 
 void array_free_var_mem(void* csnd, void* p) {

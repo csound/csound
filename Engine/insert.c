@@ -1047,12 +1047,18 @@ void free_instr_var_memory(CSOUND* csound, INSDS* ip) {
     CS_TYPE* varType = current->varType;
     if (varType->freeVariableMemory != NULL) {
       if (current->dimensions == 0) {
-        varType->freeVariableMemory(
-          csound,
-          ip->lclbas + current->memBlockIndex
-        );
+        if (current->refCount == 0) {
+          varType->freeVariableMemory(
+            csound,
+            ip->lclbas + current->memBlockIndex
+          );
+        }
+        current->refCount -= 1;
       } else {
-        array_free_var_mem(csound, ip->lclbas + current->memBlockIndex);
+        if (current->refCount == 0) {
+          array_free_var_mem(csound, ip->lclbas + current->memBlockIndex);
+        }
+        current->refCount -= 1;
       }
 
     }

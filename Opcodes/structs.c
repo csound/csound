@@ -57,6 +57,29 @@ typedef struct {
   MYFLT*    indicies[VARGMAX];
 } STRUCT_ARRAY_GET;
 
+static void struct_array_member_assign(
+    ARRAYDAT* arraySrc,
+    ARRAYDAT* arrayDst,
+    CS_TYPE*  memberVarType
+) {
+    arrayDst->allocated = arraySrc->allocated;
+    arrayDst->arrayMemberSize = arraySrc->arrayMemberSize;
+    arrayDst->data = arraySrc->data;
+    arrayDst->dimensions = arraySrc->dimensions;
+    arrayDst->sizes = arraySrc->sizes;
+    arrayDst->arrayType = arraySrc->arrayType;
+
+    int i;
+    char* mem = (char *) arrayDst->data;
+    if (memberVarType == ((CS_TYPE*) &CS_VAR_TYPE_S)) {
+        STRINGDAT* strDat;
+        for (i=0; i < *arrayDst->sizes - 1; i++) {
+            strDat = (STRINGDAT*) mem+i*(arrayDst->arrayMemberSize / sizeof(MYFLT));
+            strDat->refCount += 1;
+        }
+    }
+}
+
 static int32_t struct_member_get(CSOUND *csound, STRUCT_GET *p)
 {
     // this nth-index will have been verified to exist
@@ -66,15 +89,16 @@ static int32_t struct_member_get(CSOUND *csound, STRUCT_GET *p)
     int memberDimensions = *var->dimensions[nthInt];
 
     if (memberDimensions > 0) {
-        ARRAYDAT* arraySrc = (ARRAYDAT*) &member->value;
-        ARRAYDAT* arrayDst = (ARRAYDAT*) p->out;
-        arrayDst->allocated = arraySrc->allocated;
-        arrayDst->arrayMemberSize = arraySrc->arrayMemberSize;
-        arrayDst->data = arraySrc->data;
-        arrayDst->dimensions = arraySrc->dimensions;
-        arrayDst->sizes = arraySrc->sizes;
-        arrayDst->arrayType = arraySrc->arrayType;
+        struct_array_member_assign(
+            (ARRAYDAT*) &member->value,
+            (ARRAYDAT*) p->out,
+            member->varType
+        );
     } else {
+        if (member->varType == ((CS_TYPE*) &CS_VAR_TYPE_S)) {
+            STRINGDAT* strDat = (STRINGDAT*) &member->value;
+            strDat->refCount += 1;
+        }
         *p->out = member->value;
     }
 
@@ -96,16 +120,11 @@ static int32_t struct_member_array_assign(
     int nthInt = (int) *p->nths[0];
     STRUCT_VAR* var = p->var;
     CS_VAR_MEM* member = var->members[nthInt];
-    ARRAYDAT* dstArr = (ARRAYDAT*) &member->value;
-    ARRAYDAT* srcArr = p->in;
-
-    dstArr->dimensions = srcArr->dimensions;
-    dstArr->sizes = srcArr->sizes;
-    dstArr->arrayMemberSize = srcArr->arrayMemberSize;
-    dstArr->data = srcArr->data;
-    dstArr->allocated = srcArr->allocated;
-    dstArr->arrayType = srcArr->arrayType;
-
+    struct_array_member_assign(
+        (ARRAYDAT*) &member->value,
+        p->in,
+        member->varType
+    );
     return OK;
 }
 

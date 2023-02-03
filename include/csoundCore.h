@@ -428,6 +428,7 @@ typedef struct CORFIL {
     char *data;
     size_t size;
     int64_t timestamp;    /*  VL: Feb 22 starting in 7.0 we have a timestamp */
+    int refCount;
   } STRINGDAT;
 
   typedef struct monblk {
