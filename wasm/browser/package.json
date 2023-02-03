@@ -1,6 +1,6 @@
 {
   "name": "@csound/browser",
-  "version": "6.18.5",
+  "version": "6.18.6",
   "module": "./dist/csound.js",
   "typings": "index.d.ts",
   "type": "module",
