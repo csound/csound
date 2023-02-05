@@ -1067,7 +1067,6 @@ TREE* expand_statement(CSOUND* csound, TREE* current, TYPE_TABLE* typeTable)
 
       /* handle arg replacement of currentArg here */
       /* **** was a bug as currentArg could be freed above **** */
-      nextArg = currentArg->next;
       newArgTree = create_ans_token(csound, newArg);
 
       if (previousArg == NULL) {
@@ -1078,11 +1077,11 @@ TREE* expand_statement(CSOUND* csound, TREE* current, TYPE_TABLE* typeTable)
       }
 
       newArgTree->next = nextArg;
-      currentArg = newArgTree;
+      currentArg = nextArg;
     }
 
     previousArg = currentArg;
-    currentArg = currentArg->next;
+    currentArg = currentArg != NULL ? currentArg->next : NULL;
   }
 
   anchor = appendToTree(csound, anchor, current);

@@ -63,6 +63,29 @@ int findStructMemberIndex(CONS_CELL* members, char* memberName) {
     return -1;
 }
 
+static void struct_array_member_assign(
+    ARRAYDAT* arraySrc,
+    ARRAYDAT* arrayDst,
+    CS_TYPE*  memberVarType
+) {
+    arrayDst->allocated = arraySrc->allocated;
+    arrayDst->arrayMemberSize = arraySrc->arrayMemberSize;
+    arrayDst->data = arraySrc->data;
+    arrayDst->dimensions = arraySrc->dimensions;
+    arrayDst->sizes = arraySrc->sizes;
+    arrayDst->arrayType = arraySrc->arrayType;
+
+    int i;
+    char* mem = (char *) arrayDst->data;
+    if (memberVarType == ((CS_TYPE*) &CS_VAR_TYPE_S)) {
+        STRINGDAT* strDat;
+        for (i=0; i < *arrayDst->sizes - 1; i++) {
+            strDat = (STRINGDAT*) mem+i*arrayDst->arrayMemberSize;
+            strDat->refCount += 1;
+        }
+    }
+}
+
 CS_VARIABLE* getStructMember(CONS_CELL* members, char* memberName) {
     int i = 0;
     while(members != NULL) {
@@ -86,17 +109,13 @@ int initStructVar(CSOUND* csound, void* p) {
   //    csound->Message(csound, "Struct Type: %s\n", type->varTypeName);
   for (i = 0; i < len; i++) {
     CS_VAR_MEM* mem = structVar->members[i];
-    int memberDimensions = *structVar->dimensions[i];
+    int memberDimensions = structVar->dimensions[i];
 
     if (memberDimensions > 0) {
 
       ARRAYDAT* arraySrc = (ARRAYDAT*) init->inArgs[i];
       ARRAYDAT* arrayDst = (ARRAYDAT*) &mem->value;
-      arrayDst->allocated = arraySrc->allocated;
-      arrayDst->arrayMemberSize = arraySrc->arrayMemberSize;
-      arrayDst->dimensions = arraySrc->dimensions;
-      arrayDst->sizes = arraySrc->sizes;
-      arrayDst->data = arraySrc->data;
+      struct_array_member_assign(arraySrc, arrayDst, mem->varType);
     } else {
       mem->varType->copyValue(csound, mem->varType, &mem->value, init->inArgs[i]);
     }
@@ -113,7 +132,7 @@ void initializeStructVar(CSOUND* csound, CS_VARIABLE* var, MYFLT* mem) {
   int i;
 
   structVar->members = csound->Calloc(csound, len * sizeof(CS_VAR_MEM*));
-  *structVar->dimensions = csound->Calloc(csound, VARGMAX * sizeof(int));
+  structVar->dimensions = csound->Calloc(csound, len * sizeof(int));
 
   //    csound->Message(csound, "Initializing Struct...\n");
   //    csound->Message(csound, "Struct Type: %s\n", type->varTypeName);
@@ -128,7 +147,7 @@ void initializeStructVar(CSOUND* csound, CS_VARIABLE* var, MYFLT* mem) {
     }
     mem->varType = memberVar->varType;
     structVar->members[i] = mem;
-    structVar->dimensions[i] = &memberVar->dimensions;
+    structVar->dimensions[i] = memberVar->dimensions;
     members = members->next;
   }
 }
@@ -150,7 +169,7 @@ CS_VARIABLE* createStructVar(void* cs, void* p, int dimensions) {
 
   CS_VARIABLE* var = csound->Calloc(csound, sizeof (CS_VARIABLE));
   IGN(p);
-  var->memBlockSize = sizeof(CS_STRUCT_VAR);
+  var->memBlockSize = CS_FLOAT_ALIGN(sizeof(CS_STRUCT_VAR));
   var->initializeVariableMemory = initializeStructVar;
   var->varType = type;
 
@@ -163,29 +182,29 @@ void copyStructVar(CSOUND* csound, CS_TYPE* structType, void* dest, void* src) {
   CS_STRUCT_VAR* varSrc = (CS_STRUCT_VAR*)src;
   int i, count, dimensions;
 
+  count = cs_cons_length(structType->members);
+
   if (varDest->members == NULL) {
-    varDest->members = varSrc->members;
-    *varDest->dimensions = *varSrc->dimensions;
-    return;
+    varDest->members = csound->Calloc(csound, count * sizeof(CS_VAR_MEM*));
+    varDest->dimensions = csound->Calloc(csound, count * sizeof(int));
+    for (i = 0; i < count; i++) {
+      varDest->members[i] = varSrc->members[i];
+      varDest->dimensions[i] = varSrc->dimensions[i];
+    }
   }
 
-  count = cs_cons_length(structType->members);
   for (i = 0; i < count; i++) {
-    dimensions = *varSrc->dimensions[i];
+    dimensions = varSrc->dimensions[i];
+    varDest->dimensions[i] = dimensions;
     CS_VAR_MEM* d = varDest->members[i];
     CS_VAR_MEM* s = varSrc->members[i];
 
     if (dimensions > 0) {
         ARRAYDAT* arraySrc = (ARRAYDAT*) &s->value;
         ARRAYDAT* arrayDst = (ARRAYDAT*) &d->value;
-        arrayDst->allocated = arraySrc->allocated;
-        arrayDst->arrayMemberSize = arraySrc->arrayMemberSize;
-        arrayDst->data = arraySrc->data;
-        arrayDst->dimensions = arraySrc->dimensions;
-        arrayDst->sizes = arraySrc->sizes;
-        arrayDst->arrayType = arraySrc->arrayType;
+        struct_array_member_assign(arraySrc, arrayDst, arraySrc->arrayType);
     } else {
-      d->varType->copyValue(csound, d->varType, &d->value, &s->value);
+      s->varType->copyValue(csound, s->varType, &d->value, &s->value);
     }
 
   }

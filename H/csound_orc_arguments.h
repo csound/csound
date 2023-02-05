@@ -35,7 +35,6 @@ typedef struct csorcarg {
     int      type;        // token-type
     int      isGlobal;
     int      isPfield;
-    int      isExpression;
     int      memberTypeDimensions; // ex. struct People firstNames:S[]
                                    // must be initialized correctly
     int      dimensions;  // 0 scalar, 1 or more means n-dimenional array

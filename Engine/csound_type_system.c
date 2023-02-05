@@ -318,7 +318,11 @@ int copyVarGeneric(CSOUND *csound, void *p) {
                         typeR->varTypeName, typeA->varTypeName);
         return NOTOK;
     }
+    if (typeA->userDefinedType) {
+      *assign->r = *assign->a;
+    } else {
+      typeR->copyValue(csound, typeR, assign->r, assign->a);
+    }
 
-    typeR->copyValue(csound, typeR, assign->r, assign->a);
     return OK;
 }

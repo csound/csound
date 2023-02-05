@@ -26,7 +26,7 @@
 
 typedef struct structvar {
   CS_VAR_MEM** members;
-  int* dimensions[VARGMAX];
+  int* dimensions;
 } STRUCT_VAR;
 
 typedef struct {
@@ -74,7 +74,7 @@ static void struct_array_member_assign(
     if (memberVarType == ((CS_TYPE*) &CS_VAR_TYPE_S)) {
         STRINGDAT* strDat;
         for (i=0; i < *arrayDst->sizes - 1; i++) {
-            strDat = (STRINGDAT*) mem+i*(arrayDst->arrayMemberSize / sizeof(MYFLT));
+            strDat = (STRINGDAT*) mem+i*arrayDst->arrayMemberSize;
             strDat->refCount += 1;
         }
     }
@@ -86,7 +86,7 @@ static int32_t struct_member_get(CSOUND *csound, STRUCT_GET *p)
     STRUCT_VAR* var = p->var;
     int nthInt = (int) *p->nths[0];
     CS_VAR_MEM* member = var->members[nthInt];
-    int memberDimensions = *var->dimensions[nthInt];
+    int memberDimensions = var->dimensions[nthInt];
 
     if (memberDimensions > 0) {
         struct_array_member_assign(
@@ -134,13 +134,10 @@ static int struct_array_get(
     ARRAYDAT* arrayDat = dat->arrayDat;
     int index = ((int) *dat->indicies[0]);
     char* mem = (char *) arrayDat->data;
-    MYFLT* srcData = (MYFLT*)(mem+index*arrayDat->arrayMemberSize);
-
-    STRUCT_VAR* srcVar = (STRUCT_VAR*) srcData;
+    STRUCT_VAR* srcVar = (STRUCT_VAR*)(mem+index*arrayDat->arrayMemberSize);
     STRUCT_VAR* dstVar = (STRUCT_VAR*) dat->out;
-
     dstVar->members = srcVar->members;
-    *dstVar->dimensions = *srcVar->dimensions;
+    dstVar->dimensions = srcVar->dimensions;
     return OK;
 }
 

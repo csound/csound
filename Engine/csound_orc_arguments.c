@@ -562,7 +562,6 @@ static CSOUND_ORC_ARGUMENT* new_csound_orc_argument(
     arg->memberTypeDimensions = 0;
     arg->isGlobal = 0;
     arg->isPfield = 0;
-    arg->isExpression = 0;
     arg->uid = generateUniqueIdent(csound);
 
     if (arg->text == NULL) {

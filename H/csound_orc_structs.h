@@ -32,7 +32,7 @@
 
 typedef struct csstructvar {
   CS_VAR_MEM** members;
-  int* dimensions[VARGMAX];
+  int* dimensions;
 } CS_STRUCT_VAR;
 
 typedef struct initstructvar {

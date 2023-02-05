@@ -1675,6 +1675,8 @@ int xinset(CSOUND *csound, XIN *p)
     tmp[i + inm->outchns] = out;
     if (current->dimensions > 0) {
       memcpy(out, in, sizeof(ARRAYDAT));
+    } else if (current->varType->userDefinedType) {
+      memcpy(out, in, sizeof(CS_STRUCT_VAR));
     } else {
       current->varType->copyValue(csound, current->varType, out, in);
     }
@@ -1722,6 +1724,8 @@ int xoutset(CSOUND *csound, XOUT *p)
         csoundGetTypeForArg(in) != &CS_VAR_TYPE_A) {
           if (current->dimensions > 0) {
             memcpy(out, in, sizeof(ARRAYDAT));
+          } else if (current->varType->userDefinedType) {
+            memcpy(out, in, sizeof(CS_STRUCT_VAR));
           } else {
             current->varType->copyValue(csound, current->varType, out, in);
           }

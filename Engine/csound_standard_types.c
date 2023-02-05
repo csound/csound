@@ -66,13 +66,16 @@ void string_copy_value(CSOUND* csound, CS_TYPE* cstype, void* dest, void* src) {
     if (UNLIKELY(dest == NULL)) return;
 
     int64_t kcnt = csound->GetKcounter(csound);
-    if (sSrc->size > sDest->size) {
+
+    if (sSrc->size > sDest->size || sDest->data == NULL) {
       cs->Free(cs, sDest->data);
       sDest->data = csound->Calloc(csound, sSrc->size);
       memcpy(sDest->data, sSrc->data, sSrc->size);
       sDest->size = sSrc->size;
+    } else if (strlen(sDest->data) == 0 && strlen(sSrc->data) == 0) {
+        return;
     } else {
-        strncpy(sDest->data, sSrc->data, sDest->size-1);
+      strncpy(sDest->data, sSrc->data, sDest->size-1);
     }
     /* VL Feb 22 - update count for 7.0 */
    sDest->timestamp = kcnt;

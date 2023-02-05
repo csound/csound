@@ -3006,9 +3006,9 @@ static void print_tree_xml(CSOUND *csound, TREE *l, int n, int which)
   case T_IDENT:
     csound->Message(csound,"name=\"T_IDENT\" varname=\"%s\"",
                     l->value->lexeme); break;
-  // case T_UNKNOWN_IDENT:
-  //   csound->Message(csound,"name=\"T_UNKNOWN_IDENT\" varname=\"%s\"",
-  //                   l->value->lexeme); break;
+case T_TYPED_IDENT:
+    csound->Message(csound,"name=\"T_TYPED_IDENT\" varname=\"%s\"\n",
+                    l->value->lexeme); break;
   case T_OPCALL:
     if (l->value) {
       csound->Message(csound,"name=\"T_OPCALL\" op=\"%s\"",
@@ -3032,11 +3032,11 @@ static void print_tree_xml(CSOUND *csound, TREE *l, int n, int which)
                     l->value->lexeme); break;
 
   case INTEGER_TOKEN:
-    csound->Message(csound,"name=\"INTEGER_TOKEN\" value=\"%d\"",
-                    l->value->value); break;
+    csound->Message(csound,"name=\"INTEGER_TOKEN\" value=\"%s\"",
+                    l->value->lexeme); break;
   case NUMBER_TOKEN:
-    csound->Message(csound,"name=\"NUMBER_TOKEN\" value=\"%f\"",
-                    l->value->fvalue); break;
+    csound->Message(csound,"name=\"NUMBER_TOKEN\" value=\"%s\"",
+                    l->value->lexeme); break;
   case S_ANDTHEN:
     csound->Message(csound,"name=\"S_ANDTHEN\""); break;
   case S_APPLY:
