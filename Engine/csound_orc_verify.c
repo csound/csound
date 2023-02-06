@@ -110,7 +110,7 @@ int check_satisfies_expected_input(
     ) {
         return isArray ?
             strchr("icoXUNcmI", *typeIdent) != NULL :
-            strchr("ickoxXUOJjVPNTmIz", *typeIdent) != NULL;
+            strchr("ickoxXUOJjVpPNTmIz", *typeIdent) != NULL;
     } else if (cstype == ((CS_TYPE*) &CS_VAR_TYPE_F)) {
         return strchr("f", *typeIdent) != NULL;
     }
