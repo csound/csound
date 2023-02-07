@@ -1060,7 +1060,7 @@ TREE* expand_statement(CSOUND* csound, TREE* current, TYPE_TABLE* typeTable)
 
       /* reconnect into chain */
       last = tree_tail(expressionNodes);
-      newArg = last->left->value->lexeme;
+      newArg = csound->Strdup(csound, last->left->value->lexeme);
 
       if (UNLIKELY(PARSER_DEBUG))
         csound->Message(csound, "New Arg: %s\n", newArg);
@@ -1098,7 +1098,6 @@ TREE* expand_statement(CSOUND* csound, TREE* current, TYPE_TABLE* typeTable)
   TREE* nextAnchor = NULL;
   TREE* nextLeft = NULL;
   while (currentArg != NULL) {
-
     if (currentArg->type == STRUCT_EXPR) {
         TREE* opcodeCallNode = create_opcode_token(csound, "##member_set");
         TREE* currentMember = currentArg->right;
@@ -1209,31 +1208,39 @@ TREE* expand_statement(CSOUND* csound, TREE* current, TYPE_TABLE* typeTable)
         );
         arraySet->right = nextAnchor != NULL ?
           copy_node(csound, tree_tail(nextAnchor)->left) : currentArg->left;
-        arraySet->right->next = current->right;
-        arraySet->right->next->next = currentArg->right;
 
-        nextAnchor = appendToTree(csound, nextAnchor, arraySet);
-        // replacing T_ASSIGN '=/init' for array_set/init
-        TREE* oldCurrent = current;
-        current = arraySet;
-        arraySet->next = oldCurrent->next;
-        oldCurrent->left = NULL;
-        oldCurrent->right = NULL;
-        oldCurrent->next = NULL;
-        if (anchor != NULL) {
-          TREE* nextTail = anchor;
-          while (nextTail != NULL && nextTail->next != oldCurrent) {
-            nextTail = nextTail->next;
+        if (current->type == T_OPCALL && current->value->type == T_IDENT) {
+          // handling non-assignment opcall
+          TREE* opcallIdent = create_synthetic_ident(csound, genlabs++);
+          current->left = opcallIdent;
+          arraySet->right->next = copy_node(csound, opcallIdent);
+          arraySet->right->next->next = currentArg->right;
+          current->next = arraySet;
+        } else {
+          // replacing T_ASSIGN '=/init' for array_set/init
+          arraySet->right->next = current->right;
+          arraySet->right->next->next = currentArg->right;
+          nextAnchor = appendToTree(csound, nextAnchor, arraySet);
+          TREE* oldCurrent = current;
+          current = arraySet;
+          arraySet->next = oldCurrent->next;
+          oldCurrent->left = NULL;
+          oldCurrent->right = NULL;
+          oldCurrent->next = NULL;
+          if (anchor != NULL) {
+            TREE* nextTail = anchor;
+            while (nextTail != NULL && nextTail->next != oldCurrent) {
+              nextTail = nextTail->next;
+            }
+            if (nextTail == NULL) {
+              anchor = anchor->next;
+            } else {
+              nextTail->next = NULL;
+            }
           }
-          if (nextTail == NULL) {
-            anchor = anchor->next;
-          } else {
-            nextTail->next = NULL;
-          }
+          csound->Free(csound, oldCurrent);
         }
-        csound->Free(csound, oldCurrent);
       }
-
     }
     previousArg = currentArg;
     currentArg = currentArg->next;
