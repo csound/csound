@@ -1077,11 +1077,11 @@ TREE* expand_statement(CSOUND* csound, TREE* current, TYPE_TABLE* typeTable)
       }
 
       newArgTree->next = nextArg;
-      currentArg = nextArg;
+      currentArg = newArgTree;
     }
 
     previousArg = currentArg;
-    currentArg = currentArg != NULL ? currentArg->next : NULL;
+    currentArg = currentArg->next;
   }
 
   anchor = appendToTree(csound, anchor, current);
