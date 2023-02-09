@@ -34,7 +34,6 @@
 #include "csound_type_system.h"
 #include "csound_standard_types.h"
 #include "csound_orc_semantics.h"
-#include "csound_orc_structs.h"
 #include <inttypes.h>
 
 static  void    showallocs(CSOUND *);
@@ -1675,10 +1674,9 @@ int xinset(CSOUND *csound, XIN *p)
     tmp[i + inm->outchns] = out;
     if (current->dimensions > 0) {
       memcpy(out, in, sizeof(ARRAYDAT));
-    } else if (current->varType->userDefinedType) {
-      memcpy(out, in, sizeof(CS_STRUCT_VAR));
     } else {
       current->varType->copyValue(csound, current->varType, out, in);
+      current->refCount += 1;
     }
 
     current = current->next;

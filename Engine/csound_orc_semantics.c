@@ -78,7 +78,7 @@ char* cs_strdup(CSOUND* csound, char* str) {
   retVal = csound->Malloc(csound, len + 1);
 
   if (len > 0) {
-    memcpy(retVal, str, len);
+    strncpy(retVal, str, len);
   }
   retVal[len] = '\0';
 

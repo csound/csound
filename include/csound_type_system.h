@@ -55,6 +55,11 @@ extern "C" {
         MYFLT value;
     } CS_VAR_MEM;
 
+    typedef struct structvar {
+        CS_VAR_MEM** members;
+        int* dimensions;
+    } CS_STRUCT_VAR;
+
 #if defined(UINTPTR_MAX) && defined(UINT64_MAX) && (UINTPTR_MAX == UINT64_MAX)
 #define CS_VAR_TYPE_OFFSET (sizeof(CS_VAR_MEM) - sizeof(double))
 #else

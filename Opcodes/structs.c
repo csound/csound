@@ -24,28 +24,23 @@
 #include "csoundCore.h"
 #include "interlocks.h"
 
-typedef struct structvar {
-  CS_VAR_MEM** members;
-  int* dimensions;
-} STRUCT_VAR;
-
 typedef struct {
     OPDS          h;
     MYFLT*        out;
-    STRUCT_VAR*   var;
+    CS_STRUCT_VAR*   var;
     MYFLT*        nths[1];
 } STRUCT_GET;
 
 typedef struct {
     OPDS          h;
-    STRUCT_VAR*   var;
+    CS_STRUCT_VAR*   var;
     MYFLT*        nths[1];
     MYFLT*        in;
 } STRUCT_SET;
 
 typedef struct {
     OPDS          h;
-    STRUCT_VAR*   var;
+    CS_STRUCT_VAR*   var;
     MYFLT*        nths[1];
     ARRAYDAT*     in;
 } STRUCT_MEMBER_ARRAY_ASSIGN;
@@ -68,26 +63,15 @@ static void struct_array_member_assign(
     arrayDst->dimensions = arraySrc->dimensions;
     arrayDst->sizes = arraySrc->sizes;
     arrayDst->arrayType = arraySrc->arrayType;
-
-    int i;
-    char* mem = (char *) arrayDst->data;
-    if (memberVarType == ((CS_TYPE*) &CS_VAR_TYPE_S)) {
-        STRINGDAT* strDat;
-        for (i=0; i < *arrayDst->sizes - 1; i++) {
-            strDat = (STRINGDAT*) mem+i*arrayDst->arrayMemberSize;
-            strDat->refCount += 1;
-        }
-    }
 }
 
 static int32_t struct_member_get(CSOUND *csound, STRUCT_GET *p)
 {
     // this nth-index will have been verified to exist
-    STRUCT_VAR* var = p->var;
+    CS_STRUCT_VAR* varIn = p->var;
     int nthInt = (int) *p->nths[0];
-    CS_VAR_MEM* member = var->members[nthInt];
-    int memberDimensions = var->dimensions[nthInt];
-
+    CS_VAR_MEM* member = varIn->members[nthInt];
+    int memberDimensions = varIn->dimensions[nthInt];
     if (memberDimensions > 0) {
         struct_array_member_assign(
             (ARRAYDAT*) &member->value,
@@ -105,10 +89,11 @@ static int32_t struct_member_get(CSOUND *csound, STRUCT_GET *p)
     return OK;
 }
 
+
 static int32_t struct_member_set(CSOUND *csound, STRUCT_SET *p)
 {
     int nthInt = (int) *p->nths[0];
-    STRUCT_VAR* var = p->var;
+    CS_STRUCT_VAR* var = p->var;
     CS_VAR_MEM* member = var->members[nthInt];
     member->value = *p->in;
     return OK;
@@ -118,7 +103,7 @@ static int32_t struct_member_array_assign(
     CSOUND *csound, STRUCT_MEMBER_ARRAY_ASSIGN *p
 ) {
     int nthInt = (int) *p->nths[0];
-    STRUCT_VAR* var = p->var;
+    CS_STRUCT_VAR* var = p->var;
     CS_VAR_MEM* member = var->members[nthInt];
     struct_array_member_assign(
         (ARRAYDAT*) &member->value,
@@ -134,8 +119,8 @@ static int struct_array_get(
     ARRAYDAT* arrayDat = dat->arrayDat;
     int index = ((int) *dat->indicies[0]);
     char* mem = (char *) arrayDat->data;
-    STRUCT_VAR* srcVar = (STRUCT_VAR*)(mem+index*arrayDat->arrayMemberSize);
-    STRUCT_VAR* dstVar = (STRUCT_VAR*) dat->out;
+    CS_STRUCT_VAR* srcVar = (CS_STRUCT_VAR*)(mem+index*arrayDat->arrayMemberSize);
+    CS_STRUCT_VAR* dstVar = (CS_STRUCT_VAR*) dat->out;
     dstVar->members = srcVar->members;
     dstVar->dimensions = srcVar->dimensions;
     return OK;

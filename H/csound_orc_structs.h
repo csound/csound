@@ -30,11 +30,6 @@
 
 #include "csoundCore.h"
 
-typedef struct csstructvar {
-  CS_VAR_MEM** members;
-  int* dimensions;
-} CS_STRUCT_VAR;
-
 typedef struct initstructvar {
   OPDS h;
   MYFLT* out;

@@ -668,7 +668,9 @@ static TREE *create_expression(
         isStructArray ? "##array_get_struct" : "##array_get",
         80);
       if (outarg != NULL) break;
-      char* outype = strdup(".");
+      char* outype = csound->Calloc(csound, 2 * sizeof(char));
+      outype[0] = '.';
+      outype[1] = '\0';
       outarg = create_out_arg(
         csound, outype, typeTable->localPool->synthArgCount++, typeTable
       );
@@ -1031,7 +1033,7 @@ TREE* expand_statement(CSOUND* csound, TREE* current, TYPE_TABLE* typeTable)
         anchor = appendToTree(csound, anchor, opcodeCallNode);
     } else if (is_expression_node(currentArg) ||
         (is_bool = is_boolean_expression_node(currentArg))) {
-      char * newArg;
+
       if (UNLIKELY(PARSER_DEBUG))
         csound->Message(csound, "Found Expression.\n");
       if (is_bool == 0) {
@@ -1060,14 +1062,13 @@ TREE* expand_statement(CSOUND* csound, TREE* current, TYPE_TABLE* typeTable)
 
       /* reconnect into chain */
       last = tree_tail(expressionNodes);
-      newArg = csound->Strdup(csound, last->left->value->lexeme);
-
-      if (UNLIKELY(PARSER_DEBUG))
-        csound->Message(csound, "New Arg: %s\n", newArg);
 
       /* handle arg replacement of currentArg here */
       /* **** was a bug as currentArg could be freed above **** */
-      newArgTree = create_ans_token(csound, newArg);
+      newArgTree = copy_node(csound, last->left);
+
+      if (UNLIKELY(PARSER_DEBUG))
+        csound->Message(csound, "New Arg: %s\n", newArgTree->value->lexeme);
 
       if (previousArg == NULL) {
         current->right = newArgTree;

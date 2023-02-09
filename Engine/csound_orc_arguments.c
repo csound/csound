@@ -534,7 +534,7 @@ static CSOUND_ORC_ARGUMENT* new_csound_orc_argument(
     TREE* tree,
     TYPE_TABLE* typeTable
 ) {
-    CSOUND_ORC_ARGUMENT* arg = csound->Malloc(
+    CSOUND_ORC_ARGUMENT* arg = csound->Calloc(
         csound,
         sizeof(CSOUND_ORC_ARGUMENT)
     );
@@ -907,6 +907,7 @@ static CSOUND_ORC_ARGUMENT* resolve_single_argument_from_tree(
                 if (
                     annotation == NULL &&
                     arg->cstype == NULL &&
+                    ident != NULL &&
                     is_legacy_t_rate_ident(ident)
                 ) {
                     arg->cstype = (CS_TYPE*)&CS_VAR_TYPE_K;

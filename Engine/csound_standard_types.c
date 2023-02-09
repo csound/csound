@@ -69,8 +69,9 @@ void string_copy_value(CSOUND* csound, CS_TYPE* cstype, void* dest, void* src) {
 
     if (sSrc->size > sDest->size || sDest->data == NULL) {
       cs->Free(cs, sDest->data);
-      sDest->data = csound->Calloc(csound, sSrc->size);
+      sDest->data = csound->Calloc(csound, sSrc->size + 1);
       memcpy(sDest->data, sSrc->data, sSrc->size);
+      sDest->data[sSrc->size] = '\0';
       sDest->size = sSrc->size;
     } else if (strlen(sDest->data) == 0 && strlen(sSrc->data) == 0) {
         return;
