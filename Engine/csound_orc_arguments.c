@@ -145,7 +145,7 @@ static char* make_arglist_string(
             displayType ?
                 arg->cstype != NULL ?
                     arg->cstype->varTypeName :
-                    "@" :
+                    "." :
                     arg->text
             );
         int dimensions = arg->dimensions;
@@ -730,34 +730,11 @@ static CSOUND_ORC_ARGUMENT* resolve_single_argument_from_tree(
 
             arg->cstype = (CS_TYPE*) &CS_VAR_TYPE_C;
             tree->type = INTEGER_TOKEN;
-
-            CS_VARIABLE* structVar = csoundFindVariableWithName(
-                csound,
-                typeTable->localPool,
-                tree->value->optype == NULL ?
-                    tree->value->lexeme : tree->value->optype
-            );
-            if (structVar == NULL) {
-                structVar = csoundFindVariableWithName(
-                    csound,
-                    csound->engineState.varPool,
-                    tree->value->optype
-                );
-            }
-            if (structVar == NULL) {
-                synterr(
-                    csound,
-                    Str("Line %d failed to find member '%s' of "
-                        "non existing struct variable '%s'"),
-                    tree->line,
-                    tree->value->lexeme,
-                    tree->value->optype
-                );
-                return NULL;
-            }
+            CSOUND_ORC_ARGUMENT* previousStructArg =
+                args->list->value;
 
             int memberIndex = findStructMemberIndex(
-                structVar->varType->members,
+                previousStructArg->cstype->members,
                 tree->value->lexeme
             );
 
@@ -770,7 +747,7 @@ static CSOUND_ORC_ARGUMENT* resolve_single_argument_from_tree(
                 tree->value->lexeme = numStr;
                 tree->value->value = memberIndex;
                 int index = 0;
-                CONS_CELL* memCar = structVar->varType->members;
+                CONS_CELL* memCar = previousStructArg->cstype->members;
                 while (index < memberIndex) {
                     memCar = memCar->next;
                     index += 1;
@@ -784,7 +761,7 @@ static CSOUND_ORC_ARGUMENT* resolve_single_argument_from_tree(
                     Str("Line %d member '%s' doesn't exist in struct '%s'"),
                     tree->line,
                     tree->value->lexeme,
-                    structVar->varType->varTypeName
+                    previousStructArg->cstype->varTypeName
                 );
                 return NULL;
             }

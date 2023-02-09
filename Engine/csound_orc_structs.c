@@ -289,7 +289,7 @@ int add_struct_definition(CSOUND* csound, TREE* structDefTree) {
     // check if it's recursive type
     if (
       memberType == NULL &&
-      strcmp(typedIdentArg, type->varTypeName) == 0
+      (typedIdentArg == NULL || strcmp(typedIdentArg, type->varTypeName) == 0)
     ) {
       memberType = type;
     }

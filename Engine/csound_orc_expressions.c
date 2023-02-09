@@ -481,7 +481,7 @@ static TREE *create_expression(
   int line, int locn,
   TYPE_TABLE* typeTable
 ) {
-  char op[80], *outarg = NULL;
+  char op[80];
   TREE *anchor = NULL, *last;
   TREE * opTree, *current, *newArgList, *previous;
 
@@ -667,13 +667,9 @@ static TREE *create_expression(
         op,
         isStructArray ? "##array_get_struct" : "##array_get",
         80);
-      if (outarg != NULL) break;
       char* outype = csound->Calloc(csound, 2 * sizeof(char));
       outype[0] = '.';
       outype[1] = '\0';
-      outarg = create_out_arg(
-        csound, outype, typeTable->localPool->synthArgCount++, typeTable
-      );
       break;
     }
 
@@ -718,7 +714,7 @@ static TREE *create_expression(
     }
     last->next = opTree;
   }
-  csound->Free(csound, outarg);
+
   return anchor;
 }
 
@@ -1008,8 +1004,9 @@ TREE* expand_statement(CSOUND* csound, TREE* current, TYPE_TABLE* typeTable)
             typeTable
           );
           currentArg->left = NULL;
+          TREE* subExprTail = tree_tail(subExpr);
           opcodeCallNode->right = copy_node(
-            csound, subExpr->left
+            csound, subExprTail->left
           );
           anchor = appendToTree(csound, anchor, subExpr);
         } else {
