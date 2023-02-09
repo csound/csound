@@ -969,12 +969,6 @@ static CSOUND_ORC_ARGUMENT* resolve_single_argument_from_tree(
                 goto count_dim;
             }
 
-            if (var != NULL) {
-                arg->cstype = var->varType;
-                arg->dimensions = var->dimensions;
-                goto count_dim;
-            }
-
             if (arg->isGlobal) {
                 var = csoundFindVariableWithName(
                     csound,
@@ -1005,6 +999,10 @@ static CSOUND_ORC_ARGUMENT* resolve_single_argument_from_tree(
                     typeTable->instr0LocalPool,
                     tree->value->lexeme
                 );
+            }
+
+            if (var != NULL) {
+                var->refCount += 1;
             }
 
             count_dim:

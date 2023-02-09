@@ -130,7 +130,6 @@ void initializeStructVar(CSOUND* csound, CS_VARIABLE* var, MYFLT* mem) {
 
   structVar->members = csound->Calloc(csound, len * sizeof(CS_VAR_MEM));
   structVar->dimensions = csound->Calloc(csound, len * sizeof(int));
-  printf("initializeStructVar %p members %p\n", structVar, structVar->members);
 
   //    csound->Message(csound, "Initializing Struct...\n");
   //    csound->Message(csound, "Struct Type: %s\n", type->varTypeName);
@@ -186,7 +185,7 @@ void copyStructVar(CSOUND* csound, CS_TYPE* structType, void* dest, void* src) {
     varDest->members = csound->Calloc(csound, count * sizeof(CS_VAR_MEM));
     varDest->dimensions = csound->Calloc(csound, count * sizeof(int));
     for (i = 0; i < count; i++) {
-      *varDest->members[i] = *varSrc->members[i];
+      varDest->members[i] = varSrc->members[i];
       varDest->dimensions[i] = varSrc->dimensions[i];
     }
   }

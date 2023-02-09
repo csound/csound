@@ -73,7 +73,11 @@ void string_copy_value(CSOUND* csound, CS_TYPE* cstype, void* dest, void* src) {
       memcpy(sDest->data, sSrc->data, sSrc->size);
       sDest->data[sSrc->size] = '\0';
       sDest->size = sSrc->size;
-    } else if (strlen(sDest->data) == 0 && strlen(sSrc->data) == 0) {
+    } else if (
+        (strlen(sDest->data) == 0 && strlen(sSrc->data) == 0) ||
+        sDest->data == sSrc->data
+    ) {
+        sSrc->refCount += 1;
         return;
     } else {
       strncpy(sDest->data, sSrc->data, sDest->size-1);
@@ -283,7 +287,8 @@ void string_free_var_mem(void* csnd, void* p ) {
     CSOUND* csound = (CSOUND*)csnd;
     STRINGDAT* dat = (STRINGDAT*)p;
 
-    if(dat->refCount == 0) {
+    // timestamp of 0 assumes the String was never allocated
+    if(dat->refCount == 0 && dat->timestamp > 0) {
         csound->Free(csound, dat->data);
     }
     dat->refCount -= 1;
