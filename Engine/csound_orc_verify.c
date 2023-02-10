@@ -142,7 +142,7 @@ int check_satisfies_expected_output(
     } else if (cstype == ((CS_TYPE*) &CS_VAR_TYPE_A)) {
         return strchr("amXN", *typeIdent) != NULL;
     } else if (cstype == ((CS_TYPE*) &CS_VAR_TYPE_K)) {
-        return strchr("kzXN", *typeIdent) != NULL;
+        return strchr("ikzXN", *typeIdent) != NULL;
     } else if (cstype == ((CS_TYPE*) &CS_VAR_TYPE_B)) {
         return strchr("B", *typeIdent) != NULL;
     } else if (cstype == ((CS_TYPE*) &CS_VAR_TYPE_b)) {

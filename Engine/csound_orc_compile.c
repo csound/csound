@@ -307,6 +307,30 @@ char** splitArgs(CSOUND* csound, char* argString)
   return args;
 }
 
+static int count_provided_args_from_orcargs(
+CSOUND_ORC_ARGUMENTS* args
+) {
+
+  if (args == NULL || args->length == 0) {
+    return 0;
+  }
+
+  int count = 0;
+  CSOUND_ORC_ARGUMENT* arg;
+  CONS_CELL* car = args->list;
+
+  while (car != NULL) {
+    arg = car->value;
+    if (!arg->isOptarg) {
+      count += 1;
+    }
+    car = car->next;
+  }
+
+  return count;
+
+}
+
 // moves over pointers from orcargs
 // to arglist in order to free the orcargs
 // along with the AST
@@ -403,6 +427,8 @@ OPTXT *create_opcode(CSOUND *csound, TREE *root, INSTRTXT *ip,
       ((CSOUND_ORC_ARGUMENTS*) root->inlist)->length;
     tp->outArgCount = root->outlist == NULL ? 0 :
       ((CSOUND_ORC_ARGUMENTS*) root->outlist)->length;
+    tp->providedInArgCount = count_provided_args_from_orcargs(root->inlist);
+    tp->providedOutArgCount = count_provided_args_from_orcargs(root->outlist);
 
     ip->opdstot += tp->oentry->dsblksiz;
     ARGLIST* arg = tp->inlist;
@@ -524,6 +550,8 @@ INSTRTXT *create_instrument0(CSOUND *csound, TREE *root,
    */
   ip->t.outlist = arglist_from_orcargs(csound, root->outlist);
   ip->t.inlist = arglist_from_orcargs(csound, root->inlist);
+  ip->t.providedInArgCount = count_provided_args_from_orcargs(root->inlist);
+  ip->t.providedOutArgCount = count_provided_args_from_orcargs(root->outlist);
   ip->t.outArgCount = root->outlist == NULL ? 0 :
     ((CSOUND_ORC_ARGUMENTS*) root->outlist)->length;
   ip->t.inArgCount = root->inlist == NULL ? 0 :
@@ -802,7 +830,8 @@ INSTRTXT *create_global_instrument(CSOUND *csound, TREE *root,
    */
   ip->t.outlist = arglist_from_orcargs(csound, root->outlist);
   ip->t.inlist = arglist_from_orcargs(csound, root->inlist);
-
+  ip->t.providedInArgCount = count_provided_args_from_orcargs(root->inlist);
+  ip->t.providedOutArgCount = count_provided_args_from_orcargs(root->outlist);
   ip->t.inArgCount = root->inlist == NULL ? 0 :
     ((CSOUND_ORC_ARGUMENTS*) root->inlist)->length;
   ip->t.outArgCount = root->outlist == NULL ? 0 :
@@ -852,6 +881,12 @@ INSTRTXT *create_instrument(CSOUND *csound, TREE *root,
   ip->t.opcod = strsav_string(csound, engineState, "instr");
   ip->t.outlist = arglist_from_orcargs(csound, root->outlist);
   ip->t.inlist = arglist_from_orcargs(csound, root->inlist);
+  ip->t.inArgCount = root->inlist == NULL ? 0 :
+    ((CSOUND_ORC_ARGUMENTS*) root->inlist)->length;
+  ip->t.outArgCount = root->outlist == NULL ? 0 :
+    ((CSOUND_ORC_ARGUMENTS*) root->outlist)->length;
+  ip->t.providedInArgCount = count_provided_args_from_orcargs(root->inlist);
+  ip->t.providedOutArgCount = count_provided_args_from_orcargs(root->outlist);
 
   /* create local ksmps variable */
   CS_TYPE *rType = (CS_TYPE *)&CS_VAR_TYPE_R;

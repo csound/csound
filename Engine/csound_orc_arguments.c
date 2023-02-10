@@ -257,7 +257,7 @@ static int fill_optional_inargs(
             }
         }
 
-        snprintf(temp, 8, "%d", (int) optargValue);
+        snprintf(temp, 8, "%g", optargValue);
         optArg = new_csound_orc_argument(
             csound,
             args,
@@ -267,6 +267,7 @@ static int fill_optional_inargs(
 
         optArg->text = csound->Strdup(csound, temp);
         optArg->cstype = (CS_TYPE*) &CS_VAR_TYPE_C;
+        optArg->isOptarg = 1;
         args->append(csound, args, optArg);
         current += 1;
     }
@@ -562,6 +563,7 @@ static CSOUND_ORC_ARGUMENT* new_csound_orc_argument(
     arg->memberTypeDimensions = 0;
     arg->isGlobal = 0;
     arg->isPfield = 0;
+    arg->isOptarg = 0;
     arg->uid = generateUniqueIdent(csound);
 
     if (arg->text == NULL) {

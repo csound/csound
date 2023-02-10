@@ -359,25 +359,10 @@ static TREE *create_ternay_expression(
     last = last->next;
   }
 
-  //p{rintf("type = %s , %s\n", left, right);
-  if (left[0]=='S' || right[0]=='S') {
-    type = (last->left->value->lexeme[1]=='B') ? 2 : 1;
-    eq = (last->left->value->lexeme[1]=='B') ?"#=.S" : "=.S";
-  }
-  else if (left[0] == 'a' && right[0] == 'a') {
-    type = 0;
-    eq = "=";
-  }
-  else if (left[0]=='a' || right[0]=='a') {
-    csound->Warning(csound, Str("Unbalanced rates in conditional expression"));
-    return NULL;
-  }
-  else {
-    type =
-      (left[0]=='k' || right[0]=='k' || last->left->value->lexeme[1]=='B') ?2 : 1;
-    if (type==2) left[0] = right[0] = 'k';
-    eq = "=";
-  }
+  type =
+    (left[0]=='k' || right[0]=='k' || last->left->value->lexeme[1]=='B') ?2 : 1;
+  if (type==2) left[0] = right[0] = 'k';
+  eq = "=";
   //printf("***boolvalr = %s, type=%d\n", last->left->value->lexeme, type);
   //print_tree(csound, "***\nL1\n", L1);
 

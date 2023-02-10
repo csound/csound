@@ -1235,7 +1235,7 @@ char* get_arg_string_from_tree(
   char* argTypes = csound->Malloc(csound, len * MAX_STRUCT_ARG_SIZE * sizeof(char));
   int i;
 
-  if (len == 0 || (len == 1 && !strcmp(tree->value->lexeme, "0"))) {
+  if (len == 0 || (len == 1 && tree->value != NULL && !strcmp(tree->value->lexeme, "0"))) {
     return cs_strdup(csound, "0");
   }
 
@@ -1332,6 +1332,7 @@ char* get_arg_string_from_tree(
     // arrays in different tree nodes from user defined structs
     if (
         current->right != NULL &&
+        current->right->value != NULL &&
         *current->right->value->lexeme == '[') {
       strcpy(&argTypes[offset], argType);
       offset += len;

@@ -111,10 +111,12 @@ typedef struct {
 #define NOT_AN_INSTRUMENT INT32_MAX
 
 #define ORTXT       h.optext->t
+/* total arg-count including opt-args */
 #define INCOUNT    ORTXT.inArgCount
 #define OUTCOUNT   ORTXT.outArgCount
-#define INOCOUNT    ORTXT.inArgCount
-#define OUTOCOUNT   ORTXT.outArgCount
+/* user provided arg-count excluding opt-args */
+#define INOCOUNT    ORTXT.providedInArgCount
+#define OUTOCOUNT   ORTXT.providedOutArgCount
 #define IS_ASIG_ARG(x) (csoundGetTypeForArg(x) == &CS_VAR_TYPE_A)
 #define IS_STR_ARG(x) (csoundGetTypeForArg(x) == &CS_VAR_TYPE_S)
 
@@ -322,6 +324,8 @@ typedef struct CORFIL {
     char*             opcod;          /* Pointer to opcode name in global pool */
     unsigned int      inArgCount;
     unsigned int      outArgCount;
+    unsigned int      providedInArgCount;
+    unsigned int      providedOutArgCount;
   } TEXT;
 
 
