@@ -88,7 +88,7 @@ int check_satisfies_expected_input(
 
     if (
         cstype == ((CS_TYPE*) &CS_VAR_TYPE_C) &&
-        strchr("Sf", *typeIdent) == NULL // fewer letters to rule out than include
+        strchr("Sfawy", *typeIdent) == NULL // fewer letters to rule out than include
     ) {
         return 1;
     } else if (cstype == ((CS_TYPE*) &CS_VAR_TYPE_A)) {
@@ -136,8 +136,10 @@ int check_satisfies_expected_output(
     if (is_wildcard_type(typeIdent)) {
         return 1;
     }
-
-    if (cstype == ((CS_TYPE*) &CS_VAR_TYPE_C)) {
+    if (
+        cstype == ((CS_TYPE*) &CS_VAR_TYPE_C) &&
+        strchr("SFIfam", *typeIdent) == NULL
+    ) {
         return 1;
     } else if (cstype == ((CS_TYPE*) &CS_VAR_TYPE_A)) {
         return strchr("amXN", *typeIdent) != NULL;
