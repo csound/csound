@@ -62,8 +62,7 @@ static inline void tabinit_like(CSOUND *csound, ARRAYDAT *p, ARRAYDAT *tp)
         return;
     }
     if (p->dimensions != tp->dimensions) {
-      p->sizes = (int32_t*)csound->ReAlloc(csound, tp->sizes,
-                                           sizeof(int32_t)*tp->dimensions);
+      p->sizes = (int32_t*)csound->Calloc(csound, sizeof(int32_t));
       p->dimensions = tp->dimensions;
     }
 

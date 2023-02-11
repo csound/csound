@@ -2778,7 +2778,10 @@ static int32_t tabcopy1(CSOUND *csound, TABCPY *p)
     memMyfltSize = p->src->arrayMemberSize / sizeof(MYFLT);
     p->dst->arrayMemberSize = p->src->arrayMemberSize;
 
-    if (arrayTotalSize != get_array_total_size(p->dst)) {
+    if (
+      arrayTotalSize != get_array_total_size(p->dst) ||
+      p->dst->allocated != p->src->allocated
+    ) {
       p->dst->dimensions = p->src->dimensions;
 
       p->dst->sizes = csound->Malloc(csound, sizeof(int32_t) * p->src->dimensions);
@@ -2792,6 +2795,7 @@ static int32_t tabcopy1(CSOUND *csound, TABCPY *p)
         p->dst->data = csound->ReAlloc(csound, p->dst->data,
                         p->src->arrayMemberSize * arrayTotalSize);
         memset(p->dst->data, 0, p->src->arrayMemberSize * arrayTotalSize);
+        p->dst->allocated = p->src->arrayMemberSize * arrayTotalSize;
       }
     }
 
