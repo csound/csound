@@ -1317,7 +1317,27 @@ int verify_opcode_2(
         }
     }
 
-    if (oentry == NULL) {
+    if (root->value->optype != NULL) {
+        // filter out early the impossible entries
+        char* optype = root->value->optype;
+        OENTRIES* entriesFiltered = csound->Calloc(csound, sizeof(OENTRIES));
+        int filtIdx = 0;
+
+        for (int i = 0; i < entries->count; i++) {
+          OENTRY* temp = entries->entries[i];
+          if (temp->outypes != NULL) {
+            char* outtype = temp->outypes;
+            if (*outtype == ';') outtype++;
+            if (strncmp(outtype, optype, strlen(optype)) == 0) {
+                entriesFiltered->entries[filtIdx++] = temp;
+                entriesFiltered->count += 1;
+            }
+          }
+        }
+        entries = entriesFiltered;
+    }
+
+    if (entries->count > 0 && oentry == NULL) {
         oentry = resolve_opcode_with_orc_args(
             csound,
             entries,
@@ -1327,7 +1347,6 @@ int verify_opcode_2(
             needsInference
         );
     }
-
 
     if (UNLIKELY(oentry == NULL)) {
         synterr(
@@ -1371,9 +1390,11 @@ int verify_opcode_2(
         );
         // printOrcArgs(rightSideArgs );
         do_baktrace(csound, root->locn);
-
+        csound->Free(csound, entries);
         return 0;
     }
+
+    csound->Free(csound, entries);
 
     if (needsInference) {
         initialize_inferred_variables(
