@@ -112,9 +112,11 @@ static int32_t array_init(CSOUND *csound, ARRAYINIT *p)
     }
 
     {
+      // create the var just for getting the initializeVariableMemory we need
       CS_VARIABLE* var = arrayDat->arrayType->createVariable(
-        csound,arrayDat->arrayType, inArgCount - 1
+        csound,arrayDat->arrayType, 0
       );
+
       char *mem;
       arrayDat->arrayMemberSize = var->memBlockSize;
       arrayDat->data = csound->Calloc(csound,
@@ -124,6 +126,7 @@ static int32_t array_init(CSOUND *csound, ARRAYINIT *p)
         var->initializeVariableMemory(csound, var,
                                       (MYFLT*)(mem+i*var->memBlockSize));
       }
+      csound->Free(csound, var);
     }
     return OK;
 }
