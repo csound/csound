@@ -27,13 +27,13 @@
 
 
 const char *sflib_strerror(void *p){
-  return sf_strerror((SNDFILE *)p); 
+  return sf_strerror((SNDFILE *)p);
 }
 
 int  sflib_set_string(void *sndfile, int str_type, const char* str){
   return sf_set_string((SNDFILE *)sndfile, str_type, str) ;
 }
-  
+
 int sflib_command (void *handle, int cmd, void *data, int datasize)  {
   return sf_command((SNDFILE*) handle, cmd, data, datasize) ;
 }
@@ -75,7 +75,11 @@ void *sflib_open(const char *path, int mode, SFLIB_INFO *sfinfo){
 }
 
 int sflib_close(void *handle) {
-    return sf_close((SNDFILE *) handle);
+    #ifdef __wasi__
+      return 0;
+    #else
+      return sf_close((SNDFILE *) handle);
+    #endif
 }
 
 long sflib_seek(void *handle, long frames, int whence) {
@@ -114,7 +118,7 @@ long sflib_writef_double(void *handle, double *ptr, long items) {
     return sf_writef_double((SNDFILE *) handle, ptr, items);
 }
 
-#else 
+#else
 int sflib_command (void *handle, int cmd, void *data, int datasize)  {
       return 0;
 }

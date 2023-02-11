@@ -1344,6 +1344,7 @@ int csoundFileClose(CSOUND *csound, void *fd)
       if (p->nxt != NULL)
         p->nxt->prv = p->prv;
     }
+
     /* free allocated memory */
     csound->Free(csound, fd);
 
