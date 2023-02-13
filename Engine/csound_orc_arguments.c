@@ -1769,13 +1769,26 @@ int verify_opcode_2(
         while (car != NULL) {
             if (
                 strlen(argtype) == 1 &&
-                *argtype == 'k' &&
-                arg->cstype == (CS_TYPE*) &CS_VAR_TYPE_I
+                *argtype == 'i' &&
+                arg->cstype == (CS_TYPE*) &CS_VAR_TYPE_K
             ) {
-                TREE* assignmentStatement = create_assignment_statement(
+                TREE* assignmentStatement = create_output_assignment_statement(
                     csound,
                     typeTable,
                     arg->text
+                );
+
+                arg->cstype = (CS_TYPE*) &CS_VAR_TYPE_I;
+                arg->text = csound->Strdup(
+                    csound, assignmentStatement->right->value->lexeme
+                );
+                add_arg_to_pool(
+                    csound,
+                    typeTable,
+                    arg->text,
+                    NULL,
+                    arg->dimensions,
+                    arg->cstype
                 );
                 TREE* oldNext = root->next;
                 root->next = assignmentStatement;

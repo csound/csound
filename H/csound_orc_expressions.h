@@ -37,8 +37,8 @@ int is_statement_expansion_required(TREE* root);
 
 void handle_optional_args(CSOUND *csound, TREE *l);
 
-TREE* create_assignment_statement(
-  CSOUND* csound, TYPE_TABLE* typeTable, char* inputVarName
+TREE* create_output_assignment_statement(
+  CSOUND* csound, TYPE_TABLE* typeTable, char* outputVarName
 );
 TREE* expand_if_statement(CSOUND* csound, TREE* current, TYPE_TABLE* typeTable);
 TREE* expand_until_statement(CSOUND* csound, TREE* current,

@@ -800,25 +800,24 @@ void handle_negative_number(CSOUND* csound, TREE* root)
   }
 }
 
-/* create new assignment statement,
-   it creates new unique synthetic ident
-   and assigns it to a given var-name,
-   assumes inputVarName to be T_IDENT */
-TREE* create_assignment_statement(
+/* create new assignment statement
+   1:1 assignment where the output name is given
+   but the input is a new synthetic ident */
+TREE* create_output_assignment_statement(
   CSOUND* csound,
   TYPE_TABLE* typeTable,
-  char* inputVarName
+  char* outputVarName
 ) {
   TREE *statement = create_empty_token(csound);
   statement->value = make_token(csound, "=");
   statement->type = T_ASSIGNMENT;
   statement->value->type = T_ASSIGNMENT;
-  TREE *assigneeNode = create_synthetic_ident(csound, genlabs++);
-  TREE *inputVarNode = create_empty_token(csound);
-  inputVarNode->value = make_token(csound, inputVarName);
-  inputVarNode->type = T_IDENT;
-  inputVarNode->value->type = T_IDENT;
-  statement->left = assigneeNode;
+  TREE *outputVarNode = create_empty_token(csound);
+  outputVarNode->value = make_token(csound, outputVarName);
+  outputVarNode->type = T_IDENT;
+  outputVarNode->value->type = T_IDENT;
+  TREE *inputVarNode = create_synthetic_ident(csound, genlabs++);
+  statement->left = outputVarNode;
   statement->right = inputVarNode;
   return statement;
 }
