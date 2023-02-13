@@ -193,7 +193,7 @@ static int fill_optional_inargs(
     TYPE_TABLE* typeTable,
     OENTRY* candidate
 ) {
-    char temp[8];
+    char temp[16];
     char* current = candidate->intypes;
     CONS_CELL* car = args->list;
 
@@ -215,7 +215,7 @@ static int fill_optional_inargs(
         // end of explicit input
         // handle optional args
         CSOUND_ORC_ARGUMENT* optArg;
-        memset(temp, '\0', 8);
+        memset(temp, '\0', 16);
         MYFLT optargValue = 0.0;
 
         switch(*current) {
@@ -257,7 +257,7 @@ static int fill_optional_inargs(
             }
         }
 
-        snprintf(temp, 8, "%g", optargValue);
+        snprintf(temp, 16, "%g", optargValue);
         optArg = new_csound_orc_argument(
             csound,
             args,
@@ -287,6 +287,10 @@ OENTRY* resolve_opcode_with_orc_args(
     TYPE_TABLE* typeTable,
     int skipOutargs // for subexpressions
 ) {
+    // sometimes like in the case of
+    // matching 'k op' with i arg, we want
+    // to search further but fallback to this
+    OENTRY* fallbackMatch = NULL;
 
     for (int i = 0; i < entries->count; i++) {
         OENTRY* temp = entries->entries[i];
@@ -296,6 +300,7 @@ OENTRY* resolve_opcode_with_orc_args(
         // }
         int inArgsMatch = 0;
         int outArgsMatch = 0;
+        int treatAsFallback = 0;
         int expectsInputs = temp->intypes != NULL && strlen(temp->intypes) != 0;
         int expectsOutputs = temp->outypes != NULL && strlen(temp->outypes) != 0;
         int isInitOpcode = is_init_opcode(temp->opname);
@@ -327,7 +332,14 @@ OENTRY* resolve_opcode_with_orc_args(
             CONS_CELL* car = inlist->list;
             CSOUND_ORC_ARGUMENT* currentArg = car->value;
 
-            while (currentArg != NULL && *current != '\0') {
+            while (currentArg != NULL) {
+                if (*current == '\0') {
+                    current -= 1;
+                    if (!isInitOpcode) {
+                        inArgsMatch = is_vararg_input_type(current);
+                    }
+                    break;
+                }
                 int isUserDefinedType = currentArg->cstype != NULL &&
                     currentArg->cstype->userDefinedType;
                 int currentArgTextLength = 1;
@@ -389,6 +401,13 @@ OENTRY* resolve_opcode_with_orc_args(
                         current,
                         dimensionsNeeded > 0)
                     ) {
+                        if (
+                            skipOutargs &&
+                            *current == 'i' &&
+                            currentArg->cstype == ((CS_TYPE*) &CS_VAR_TYPE_K)
+                        ) {
+                            treatAsFallback = 1;
+                        }
                         inArgsMatch = 1;
                         if (isInitOpcode) break;
                     } else {
@@ -434,12 +453,18 @@ OENTRY* resolve_opcode_with_orc_args(
             CSOUND_ORC_ARGUMENT* currentArg = car->value;
 
             while (currentArg != NULL && *current != '\0' ) {
+                 if (*current == '\0') {
+                    current -= 1;
+                    if (!isInitOpcode) {
+                        outArgsMatch = is_vararg_output_type(current);
+                    }
+                    break;
+                }
                 int currentArgTextLength = 1;
                 int isUserDefinedType = currentArg->cstype != NULL ?
                     currentArg->cstype->userDefinedType :
                     0;
                 int dimensionsNeeded = currentArg->dimensions;
-                int isInitOpcode = is_init_opcode(temp->opname);
 
                 if (dimensionsNeeded > 0 && isInitOpcode) {
                     // init family of opcodes intypes are non-specific
@@ -464,6 +489,9 @@ OENTRY* resolve_opcode_with_orc_args(
                 } else if (
                     check_satisfies_expected_output(currentArg->cstype, current)
                 ) {
+                    if (*current == 'i' && currentArg->cstype == ((CS_TYPE*) &CS_VAR_TYPE_K)) {
+                        treatAsFallback = 1;
+                    }
                     outArgsMatch = 1;
                     if (isInitOpcode && isUserDefinedType) break;
                 } else {
@@ -522,11 +550,16 @@ OENTRY* resolve_opcode_with_orc_args(
                 temp
             ))
         ) {
-            return temp;
+            if (treatAsFallback) {
+                fallbackMatch = temp;
+            } else {
+                return temp;
+            }
+
         }
     }
 
-    return NULL;
+    return fallbackMatch;
 }
 
 static CSOUND_ORC_ARGUMENT* new_csound_orc_argument(
@@ -1227,21 +1260,100 @@ static void initialize_inferred_variables(
     }
 }
 
+int arglist_includes_krate(
+    CSOUND_ORC_ARGUMENTS* args
+) {
+    CONS_CELL* car = args->list;
+    if (car == NULL) {
+        return 0;
+    }
+    CSOUND_ORC_ARGUMENT* arg = car->value;
+    while (car != NULL) {
+        if (arg->cstype == ((CS_TYPE*) &CS_VAR_TYPE_K) ||
+            arg->cstype == ((CS_TYPE*) &CS_VAR_TYPE_B)) {
+            return 1;
+        }
+        car = car->next;
+        arg = car == NULL ? NULL : car->value;
+    }
+    return 0;
+}
+
+enum ExpandedTreeType {
+    NO_EXPANSION = 0,
+    IF_EXPANSION = 1,
+    ENDIF_EXPANSION = 2,
+    UNTIL_EXPANSION = 3,
+    ENDUNTIL_EXPANSION = 4,
+    WHILE_EXPANSION = 5,
+    ENDWHILE_EXPANSION = 6,
+    TERNARY_EXPANSION = 7,
+    TERNARY_ASSIGN_EXPANSION = 8,
+    ENDTERNARY_EXPANSION = 9,
+    FOR_IN_EXPANSION = 10,
+    FOR_IN_LENARR_EXPANSION = 11
+};
+
+enum ExpandedTreeType determine_expansion(
+    char* opcodeToken
+) {
+    if (*opcodeToken != '#') {
+        // early exit
+        return NO_EXPANSION;
+    }
+
+    if (strncmp("##if", opcodeToken, 4) == 0) {
+        return IF_EXPANSION;
+    } else if (strncmp("##endif", opcodeToken, 7) == 0) {
+        return ENDIF_EXPANSION;
+    } else if (strncmp("##until", opcodeToken, 7) == 0) {
+        return UNTIL_EXPANSION;
+    } else if (strncmp("##enduntil", opcodeToken, 10) == 0) {
+        return ENDUNTIL_EXPANSION;
+    } else if (strncmp("##while", opcodeToken, 7) == 0) {
+        return WHILE_EXPANSION;
+    } else if (strncmp("##endwhile", opcodeToken, 10) == 0) {
+        return ENDWHILE_EXPANSION;
+    } else if (strncmp("##ternary-assign", opcodeToken, 16) == 0) {
+        return TERNARY_ASSIGN_EXPANSION;
+    } else if (strncmp("##ternary", opcodeToken, 10) == 0) {
+        return TERNARY_EXPANSION;
+    } else if (strncmp("##endternary", opcodeToken, 10) == 0) {
+        return ENDTERNARY_EXPANSION;
+    } else if (strncmp("##for-in-lenarray", opcodeToken, 10) == 0) {
+        return FOR_IN_LENARR_EXPANSION;
+    } else if (strncmp("##for-in", opcodeToken, 10) == 0) {
+        return FOR_IN_EXPANSION;
+    }
+
+    return NO_EXPANSION;
+
+}
+
 int verify_opcode_2(
     CSOUND* csound,
     TREE* root,
     TYPE_TABLE* typeTable
 ) {
+    enum ExpandedTreeType expansionType = determine_expansion(
+        root->value->lexeme
+    );
 
-    OENTRIES* entries = find_opcode2(csound, root->value->lexeme);
+    int isExpandedTree = expansionType != NO_EXPANSION;
 
-    if (UNLIKELY(entries == NULL || entries->count == 0)) {
+    OENTRIES* entries = isExpandedTree ? NULL :
+        find_opcode2(csound, root->value->lexeme);
+
+    if (UNLIKELY(!isExpandedTree &&
+            (entries == NULL || entries->count == 0))
+    ) {
         synterr(
             csound,
             Str("Line %d unable to find opcode '%s'"),
             root->line,
             root->value->lexeme
         );
+        do_baktrace(csound, root->locn);
 
         if (entries != NULL) {
             csound->Free(csound, entries);
@@ -1279,7 +1391,189 @@ int verify_opcode_2(
         return 0;
     }
 
+    OENTRY* oentry = NULL;
     int needsInference = 0;
+    int inArgsIncludeKrate = arglist_includes_krate(rightSideArgs);
+
+    if (
+        is_boolean_tree_type(root->value->type) &&
+        inArgsIncludeKrate
+    ) {
+        // change b->B type if applicable
+        CSOUND_ORC_ARGUMENT* returnArg = leftSideArgs->list->value;
+        returnArg->cstype = (CS_TYPE*) &CS_VAR_TYPE_B;
+        CS_VARIABLE* boolVar = csoundFindVariableWithName(
+            csound,
+            typeTable->localPool,
+            returnArg->text
+        );
+        boolVar->varType = (CS_TYPE*) &CS_VAR_TYPE_B;
+    }
+
+    if (
+        expansionType == IF_EXPANSION ||
+        expansionType == WHILE_EXPANSION
+    ) {
+        csound->Free(csound, root->value->lexeme);
+        if (inArgsIncludeKrate) {
+            root->value->lexeme = csound->Strdup(csound, "cngoto");
+        } else {
+            root->value->lexeme = csound->Strdup(csound, "cngoto");
+        }
+        csound->Free(csound, entries);
+        entries = find_opcode2(csound, root->value->lexeme);
+    } else if (
+        expansionType == ENDIF_EXPANSION ||
+        expansionType == ENDTERNARY_EXPANSION ||
+        expansionType == ENDUNTIL_EXPANSION ||
+        expansionType == ENDWHILE_EXPANSION
+    ) {
+        CS_VARIABLE* boolVar = csoundFindVariableWithName(
+            csound,
+            typeTable->localPool,
+            root->value->optype
+        );
+
+        csound->Free(csound, root->value->lexeme);
+        csound->Free(csound, root->value->optype);
+        root->value->optype = NULL;
+
+         if (boolVar->varType == (CS_TYPE*) &CS_VAR_TYPE_B) {
+            root->value->lexeme = csound->Strdup(csound, "kgoto");
+        } else {
+            root->value->lexeme = csound->Strdup(csound, "goto");
+        }
+        csound->Free(csound, entries);
+        entries = find_opcode2(csound, root->value->lexeme);
+    } else if (
+        expansionType == TERNARY_EXPANSION ||
+        expansionType == UNTIL_EXPANSION
+    ) {
+        csound->Free(csound, root->value->lexeme);
+
+        if (inArgsIncludeKrate) {
+            root->value->lexeme = csound->Strdup(csound, "ckgoto");
+        } else {
+            root->value->lexeme = csound->Strdup(csound, "cggoto");
+        }
+
+        entries = find_opcode2(csound, root->value->lexeme);
+     } else if (expansionType == TERNARY_ASSIGN_EXPANSION) {
+        // this is the second assignment of the ternary expansion
+        // which we use to validate if the expression as whole is valid
+        CSOUND_ORC_ARGUMENT* assignee = leftSideArgs->list->value;
+        CSOUND_ORC_ARGUMENT* inputValue = rightSideArgs->list->value;
+        if (
+            assignee->cstype == inputValue->cstype ||
+            check_satisfies_expected_input(
+                assignee->cstype,
+                inputValue->cstype->varTypeName,
+                assignee->dimensions > 0
+            )
+        ) {
+            csound->Free(csound, root->value->lexeme);
+            root->value->lexeme = csound->Strdup(csound, "=");
+            csound->Free(csound, entries);
+            entries = find_opcode2(csound, root->value->lexeme);
+        } else {
+            synterr(
+                csound,
+                Str("Line %d: Incompatible types used in ternary expression "
+                    "'%s = %s'\n"),
+                root->right->line,
+                assignee->cstype->varTypeName,
+                inputValue->cstype->varTypeName
+            );
+            csound->Free(csound, leftSideArgs);
+            csound->Free(csound, rightSideArgs);
+            do_baktrace(csound, root->right->locn);
+            csound->Free(csound, entries);
+            return 0;
+        }
+
+     } else if (expansionType == FOR_IN_EXPANSION) {
+        CS_VARIABLE* assignedForVar = csoundFindVariableWithName(
+            csound,
+            typeTable->localPool,
+            root->value->optype
+        );
+        csound->Free(csound, root->value->lexeme);
+        csound->Free(csound, root->value->optype);
+        csound->Free(csound, entries);
+
+        if (assignedForVar->varType == (CS_TYPE*) &CS_VAR_TYPE_C ||
+            assignedForVar->varType == (CS_TYPE*) &CS_VAR_TYPE_I) {
+            root->value->lexeme = csound->Strdup(csound, "loop_lt.i");
+        } else {
+            root->value->lexeme = csound->Strdup(csound, "loop_lt.k");
+        }
+        root->value->optype = NULL;
+        entries = find_opcode2(csound, root->value->lexeme);
+        for (int i = 0; i < entries->count; i++) {
+            oentry = entries->entries[i];
+            if (strncmp(
+                oentry->opname,
+                root->value->lexeme,
+                strlen(root->value->lexeme)
+            ) == 0)  {
+                break;
+            }
+        }
+     } else if (expansionType == FOR_IN_LENARR_EXPANSION) {
+        int isPerfRate = 0;
+        CSOUND_ORC_ARGUMENT* assignee = leftSideArgs->list->value;
+        CS_VARIABLE* assignedForVar = csoundFindVariableWithName(
+            csound,
+            typeTable->localPool,
+            root->value->optype
+        );
+        CSOUND_ORC_ARGUMENT* optarg = new_csound_orc_argument(
+            csound,
+            rightSideArgs,
+            NULL,
+            typeTable
+        );
+        optarg->cstype = (CS_TYPE*) &CS_VAR_TYPE_C;
+        optarg->text = csound->Strdup(csound, "1");
+        optarg->isOptarg = 1;
+        rightSideArgs->append(csound, rightSideArgs, optarg);
+
+        csound->Free(csound, root->value->lexeme);
+        csound->Free(csound, root->value->optype);
+        root->value->optype = NULL;
+        root->value->lexeme = csound->Strdup(csound, "lenarray");
+        entries = find_opcode2(csound, root->value->lexeme);
+
+         if (
+            assignedForVar->varType == (CS_TYPE*) &CS_VAR_TYPE_C ||
+            assignedForVar->varType == (CS_TYPE*) &CS_VAR_TYPE_I
+        ) {
+            for (int i = 0; i < entries->count; i++) {
+                oentry = entries->entries[i];
+                if (*oentry->outypes == 'i') {
+                    break;
+                }
+            }
+        } else {
+            isPerfRate = 1;
+            for (int i = 0; i < entries->count; i++) {
+                oentry = entries->entries[i];
+                if (*oentry->outypes == 'k') {
+                    break;
+                }
+            }
+        }
+        add_arg_to_pool(
+            csound,
+            typeTable,
+            assignee->text,
+            NULL,
+            0,
+            isPerfRate ?
+                (CS_TYPE*) &CS_VAR_TYPE_K :
+                (CS_TYPE*) &CS_VAR_TYPE_I
+        );
+     }
 
     if (
         leftSideArgs->length > 0 &&
@@ -1289,28 +1583,44 @@ int verify_opcode_2(
     }
 
     if (
-        strcmp(root->value->lexeme, "##array_get") == 0 &&
-        rightSideArgs->nth(rightSideArgs, 0)->cstype->userDefinedType
+        strcmp(root->value->lexeme, "##array_get") == 0
     ) {
-        csound->Free(csound, root->value->lexeme);
-        root->value->lexeme = csound->Strdup(csound, "##array_get_struct");
-        entries = find_opcode2(csound, root->value->lexeme);
+        CSOUND_ORC_ARGUMENT* arrayArg = rightSideArgs->list->value;
+        if (rightSideArgs->nth(rightSideArgs, 0)->cstype->userDefinedType) {
+            csound->Free(csound, root->value->lexeme);
+            root->value->lexeme = csound->Strdup(csound, "##array_get_struct");
+            entries = find_opcode2(csound, root->value->lexeme);
+        } else if (
+            inArgsIncludeKrate &&
+            (arrayArg->cstype == (CS_TYPE*) &CS_VAR_TYPE_I ||
+             arrayArg->cstype == (CS_TYPE*) &CS_VAR_TYPE_K)
+        ) {
+            // lookup exception: explicly set k-rate array
+            for (int i = 0; i < entries->count; i++) {
+                oentry = entries->entries[i];
+                if (strcmp(oentry->opname, "##array_get.k") == 0) {
+                    break;
+                }
+            }
+        }
+
     }
-
-    OENTRY* oentry = NULL;
-
-
 
     if (strcmp(root->value->lexeme, "##array_set") == 0) {
         CSOUND_ORC_ARGUMENT* firstRightArg =
             rightSideArgs->nth(rightSideArgs, 0);
         if (
-            firstRightArg->cstype == (CS_TYPE*) &CS_VAR_TYPE_A &&
-            firstRightArg->dimensions == 0
+            firstRightArg->cstype == (CS_TYPE*) &CS_VAR_TYPE_A
         ) {
             for (int i = 0; i < entries->count; i++) {
                 oentry = entries->entries[i];
-                if (strcmp(oentry->opname, "##array_set") == 0) {
+                if (
+                    firstRightArg->dimensions == 0 &&
+                    strcmp(oentry->opname, "##array_set") == 0
+                ) {
+                    // vaops has nothing after array_set oentry name
+                    break;
+                } else if (strcmp(oentry->opname, "##array_set.a") == 0) {
                     break;
                 }
             }
@@ -1320,7 +1630,9 @@ int verify_opcode_2(
     if (root->value->optype != NULL) {
         // filter out early the impossible entries
         char* optype = root->value->optype;
-        OENTRIES* entriesFiltered = csound->Calloc(csound, sizeof(OENTRIES));
+        OENTRIES* entriesFiltered = csound->Calloc(
+            csound, sizeof(OENTRIES*)+sizeof(OENTRY*)*entries->count
+        );
         int filtIdx = 0;
 
         for (int i = 0; i < entries->count; i++) {
@@ -1335,6 +1647,40 @@ int verify_opcode_2(
           }
         }
         entries = entriesFiltered;
+    }
+
+    if (needsInference && strcmp("=", root->value->lexeme) == 0) {
+        CSOUND_ORC_ARGUMENT* assignee = leftSideArgs->list->value;
+        CSOUND_ORC_ARGUMENT* inputValue = rightSideArgs->list->value;
+        if (inputValue->cstype != NULL) {
+            assignee->dimensions = inputValue->dimensions;
+            if (inputValue->cstype == (CS_TYPE*) &CS_VAR_TYPE_C) {
+                assignee->cstype = (CS_TYPE*) &CS_VAR_TYPE_I;
+            } else {
+                assignee->cstype = inputValue->cstype;
+            }
+            CS_VARIABLE* inputVar = csoundFindVariableWithName(
+                csound,
+                typeTable->localPool,
+                inputValue->text
+            );
+            CS_VARIABLE* assigneeVar = add_arg_to_pool(
+                csound,
+                typeTable,
+                assignee->text,
+                NULL,
+                inputValue->dimensions,
+                assignee->cstype
+            );
+
+            if (inputVar != NULL) {
+                assigneeVar->varType = inputValue->cstype;
+                assigneeVar->memBlock = inputVar->memBlock;
+                assigneeVar->memBlockIndex = inputVar->memBlockIndex;
+                assigneeVar->memBlockSize = inputVar->memBlockSize;
+            }
+            needsInference = 0;
+        }
     }
 
     if (entries->count > 0 && oentry == NULL) {

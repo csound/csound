@@ -38,6 +38,11 @@ int is_optarg_input_type(char* typeIdent) {
   return strchr("?IOoPpVvhJj", *typeIdent) != NULL;
 }
 
+int is_vararg_output_type(char* typeIdent) {
+  return strlen(typeIdent) == 1 &&
+    strchr("*mzIXNF", *typeIdent) != NULL;
+}
+
 int is_init_opcode(char* opname) {
     return strncmp(opname, "init", 4) == 0;
 }
@@ -74,7 +79,7 @@ int check_satisfies_arate_input(
 int check_satisfies_krate_input(
     char* typeIdent
 ) {
-    return strchr("ckmxzpXUOJVPN", *typeIdent) != NULL;
+    return strchr("ckmxzpTXUoOJVPN", *typeIdent) != NULL;
 }
 
 int check_satisfies_expected_input(
@@ -138,7 +143,7 @@ int check_satisfies_expected_output(
     }
     if (
         cstype == ((CS_TYPE*) &CS_VAR_TYPE_C) &&
-        strchr("SFIfam", *typeIdent) == NULL
+        strchr("SFIfkram", *typeIdent) == NULL
     ) {
         return 1;
     } else if (cstype == ((CS_TYPE*) &CS_VAR_TYPE_A)) {
@@ -154,10 +159,9 @@ int check_satisfies_expected_output(
     } else if (cstype == ((CS_TYPE*) &CS_VAR_TYPE_S)) {
         return strchr("SNI", *typeIdent) != NULL;
     } else if (cstype == ((CS_TYPE*) &CS_VAR_TYPE_R)) {
-        return strchr("zXNicmIr", *typeIdent) != NULL;
+        return strchr("r", *typeIdent) != NULL;
     } else if (
         cstype == ((CS_TYPE*) &CS_VAR_TYPE_I) ||
-        cstype == ((CS_TYPE*) &CS_VAR_TYPE_R) ||
         cstype == ((CS_TYPE*) &CS_VAR_TYPE_P)
     ) {
         return strchr("zXNicmI", *typeIdent) != NULL;

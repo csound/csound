@@ -27,6 +27,7 @@
 #define CSOUND_ORC_VERIFY_H 1
 
 int is_wildcard_type(char*);
+int is_vararg_output_type(char*);
 int is_vararg_input_type(char*);
 int is_optarg_input_type(char*);
 int is_init_opcode(char*);

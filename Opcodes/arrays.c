@@ -322,8 +322,18 @@ static int32_t array_set(CSOUND* csound, ARRAY_SET *p)
       index = (index * dat->sizes[i]) + end;
     }
     mem = (MYFLT*) dat->data + (index * dat->arrayMemberSize) / sizeof(MYFLT);
-    // printf("array_set out %p in %p\n", mem, p->value);
-    dat->arrayType->copyValue(csound, dat->arrayType, mem, p->value);
+    CS_TYPE* inputType = p->h.optext->t.inlist->next->cstype;
+    if (
+      dat->arrayType == (CS_TYPE*) &CS_VAR_TYPE_A &&
+      dat->arrayType != inputType
+    ) {
+      int ksmps = ((CSOUND*)csound)->ksmps;
+      for (int n = 0; n < ksmps; n++)
+        mem[n] = *((MYFLT*) p->value);
+    } else {
+      dat->arrayType->copyValue(csound, dat->arrayType, mem, p->value);
+    }
+
     return OK;
 }
 

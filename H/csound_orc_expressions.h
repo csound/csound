@@ -31,6 +31,7 @@ CONS_CELL* cs_cons(CSOUND* csound, void* val, CONS_CELL* cons);
 CONS_CELL* cs_cons_append(CONS_CELL* cons1, CONS_CELL* cons2);
 
 int is_expression_node(TREE *node);
+int is_boolean_tree_type(int);
 int is_boolean_expression_node(TREE *node);
 int is_statement_expansion_required(TREE* root);
 
