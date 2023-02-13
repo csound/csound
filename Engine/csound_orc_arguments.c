@@ -1752,6 +1752,42 @@ int verify_opcode_2(
         );
     }
 
+    // check for i-rate opcodes assigning
+    // to k-rate variables, and add fix
+    if (
+        *root->value->lexeme != '#' &&
+        strcmp("=", root->value->lexeme) != 0 &&
+        leftSideArgs->list != NULL &&
+        oentry->outypes != NULL
+    ) {
+        int index = 0;
+        char** args = splitArgs(csound, oentry->outypes);
+        char* argtype = args[index];
+        CONS_CELL* car = leftSideArgs->list;
+        CSOUND_ORC_ARGUMENT* arg = car->value;
+
+        while (car != NULL) {
+            if (
+                strlen(argtype) == 1 &&
+                *argtype == 'k' &&
+                arg->cstype == (CS_TYPE*) &CS_VAR_TYPE_I
+            ) {
+                TREE* assignmentStatement = create_assignment_statement(
+                    csound,
+                    typeTable,
+                    arg->text
+                );
+                TREE* oldNext = root->next;
+                root->next = assignmentStatement;
+                assignmentStatement->next = oldNext;
+            }
+            argtype = args[index];
+            car = car->next;
+            arg = car == NULL ? NULL : car->value;
+        }
+    }
+    // create_assignment_statement
+
     root->markup = oentry;
     root->inlist = rightSideArgs;
     root->outlist = leftSideArgs;
