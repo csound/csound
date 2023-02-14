@@ -163,7 +163,7 @@ static CS_NOINLINE int32_t fout_open_file(CSOUND *csound, FOUT_FILE *p, void *fp
       if ((strcmp(filemode, "rb") == 0 || (strcmp(filemode, "wb") == 0)))
             csFileType = CSFTYPE_OTHER_BINARY;
       else  csFileType = CSFTYPE_OTHER_TEXT;
-      fd = csound->FileOpen2(csound, &f, fileType, name, fileParams, "",
+      fd = csound->FileOpen2(csound, &f, fileType, name, fileParams, NULL,
                                csFileType, 0);
       if (UNLIKELY(fd == NULL)) {
         csound->InitError(csound, Str("error opening file '%s'"), name);
@@ -266,10 +266,7 @@ static CS_NOINLINE int32_t fout_open_file(CSOUND *csound, FOUT_FILE *p, void *fp
       if (need_deinit) {
         p->h.insdshead = csound->ids->insdshead;
         /* FIXME: should check for error here */
-        /* also research why the deinit callback ptr is null in wasi env */
-        #ifndef __wasi__
         csound->RegisterDeinitCallback(csound, p, fout_deinit_callback);
-        #endif
       }
     }
     return idx;
