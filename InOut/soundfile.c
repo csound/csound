@@ -75,11 +75,7 @@ void *sflib_open(const char *path, int mode, SFLIB_INFO *sfinfo){
 }
 
 int sflib_close(void *handle) {
-    #ifdef __wasi__
-      return 0;
-    #else
-      return sf_close((SNDFILE *) handle);
-    #endif
+    return sf_close((SNDFILE *) handle);
 }
 
 long sflib_seek(void *handle, long frames, int whence) {
