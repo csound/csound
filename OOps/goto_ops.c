@@ -34,10 +34,15 @@ int32_t igoto(CSOUND *csound, GOTO *p)
   return OK;
 }
 
+
 int32_t kgoto(CSOUND *csound, GOTO *p)
 {
   IGN(csound);
   CS_PDS = p->lblblk->prvp;
+  /* VL 16.2.23 fix for UDOs where the
+     label gets confused */
+  if(CS_PDS->insdshead == NULL) 
+    CS_PDS->insdshead =  p->h.insdshead;
   return OK;
 }
 
