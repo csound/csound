@@ -53,10 +53,28 @@ function concatUint8Arrays(arrays) {
 export const WASI = function ({ preopens }) {
   this.fd = Array.from({ length: 4 });
 
-  this.fd[0] = { fd: 0, path: "/dev/stdin", seekPos: goog.global.BigInt(0), buffers: [] };
-  this.fd[1] = { fd: 1, path: "/dev/stdout", seekPos: goog.global.BigInt(0), buffers: [] };
-  this.fd[2] = { fd: 2, path: "/dev/stderr", seekPos: goog.global.BigInt(0), buffers: [] };
-  this.fd[3] = { fd: 3, path: "/", seekPos: goog.global.BigInt(0), buffers: [] };
+  this.fd[0] = {
+    fd: 0,
+    path: "/dev/stdin",
+    seekPos: goog.global.BigInt(0),
+    buffers: [],
+    open: false,
+  };
+  this.fd[1] = {
+    fd: 1,
+    path: "/dev/stdout",
+    seekPos: goog.global.BigInt(0),
+    buffers: [],
+    open: false,
+  };
+  this.fd[2] = {
+    fd: 2,
+    path: "/dev/stderr",
+    seekPos: goog.global.BigInt(0),
+    buffers: [],
+    open: false,
+  };
+  this.fd[3] = { fd: 3, path: "/", seekPos: goog.global.BigInt(0), buffers: [], open: false };
 
   this.getMemory = this.getMemory.bind(this);
   this.CPUTIME_START = 0;
@@ -190,6 +208,9 @@ WASI.prototype.fd_allocate = function (fd, offset, length_) {
 WASI.prototype.fd_close = function (fd) {
   if (DEBUG_WASI) {
     console.log("fd_close", fd, arguments);
+  }
+  if (this.fd[fd]) {
+    this.fd[fd].open = false;
   }
 
   return constants.WASI_ESUCCESS;
@@ -495,14 +516,11 @@ WASI.prototype.fd_write = function (fd, iovs, iovsLength, nwritten) {
     console.log("fd_write", { fd, iovs, iovsLength, nwritten });
   }
 
-  let append = false;
   const memory = this.getMemory();
   this.fd[fd].buffers = this.fd[fd].buffers || [];
+  this.fd[fd].buffers =
+    this.fd[fd].buffers.length > 0 ? [concatUint8Arrays(this.fd[fd].buffers)] : this.fd[fd].buffers;
 
-  // append-only, if starting new write from beginning
-  if (this.fd[fd].seekPos === goog.global.BigInt(0) && this.fd[fd].buffers.length > 0) {
-    append = true;
-  }
   let written = 0;
 
   for (let index = 0; index < iovsLength; index++) {
@@ -511,8 +529,11 @@ WASI.prototype.fd_write = function (fd, iovs, iovsLength, nwritten) {
     const bufLength = memory.getUint32(ptr + 4, true);
     written += bufLength;
     const chunk = new Uint8Array(memory.buffer, buf, bufLength);
-    if (append) {
-      this.fd[fd].buffers.unshift(chunk.slice(0, bufLength));
+    if (this.fd[fd].buffers[0] && this.fd[fd].seekPos < this.fd[fd].buffers[0].length) {
+      const seekPosInt = Number(this.fd[fd].seekPos);
+      chunk.slice(0, bufLength).forEach((b, i) => {
+        this.fd[fd].buffers[0][seekPosInt + i] = b;
+      });
     } else {
       this.fd[fd].buffers.push(chunk.slice(0, bufLength));
     }
@@ -653,6 +674,7 @@ WASI.prototype.path_open = function (
     type: fileType,
     seekPos: goog.global.BigInt(0),
     buffers: alreadyExists ? this.fd[actualFd].buffers : [],
+    open: true,
   };
 
   if ((oflags & constants.WASI_O_DIRECTORY) !== 0) {
@@ -771,7 +793,7 @@ WASI.prototype.sock_shutdown = function () {
 
 WASI.prototype.findBuffers = function (filePath /* string */) {
   const maybeFd = Object.values(this.fd).find(({ path }) => path === filePath);
-  return maybeFd && maybeFd.buffers;
+  return [maybeFd && maybeFd.buffers, maybeFd.fd];
 };
 
 // fs api
@@ -812,7 +834,7 @@ WASI.prototype.writeFile = function (fname /* string */, data /* Uint8Array */) 
 WASI.prototype.appendFile = function (fname /* string */, data /* Uint8Array */) {
   const filePath = assertLeadingSlash(normalizePath(fname));
 
-  const buffers = this.findBuffers(filePath);
+  const [buffers] = this.findBuffers(filePath);
 
   if (buffers) {
     buffers.push(data);
@@ -824,7 +846,10 @@ WASI.prototype.appendFile = function (fname /* string */, data /* Uint8Array */)
 WASI.prototype.readFile = function (fname /* string */) {
   const filePath = assertLeadingSlash(normalizePath(fname));
 
-  const buffers = this.findBuffers(filePath);
+  const [buffers, fd] = this.findBuffers(filePath);
+  if (this.fd[fd] && this.fd[fd].open) {
+    console.warn(`readFile: file ${fname} hasn't been closed yet!`);
+  }
 
   if (buffers) {
     return concatUint8Arrays(buffers);
