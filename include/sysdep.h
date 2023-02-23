@@ -365,6 +365,12 @@ typedef unsigned long       uintptr_t;
                            (int32) lrint((double) (x)) : 0)
 #    define MYFLT2LRND(x) (x > LONG_MIN && x < LONG_MAX ? \
                            (int32) lrint((double) (x)) : 0)
+#    define MYFLT2LONG64(x) (x > LONG_MIN && x < LONG_MAX ? \
+                           (int64_t) lrintl((double) (x)) : 0)
+#    define MYFLT2LRND64(x) (x > LONG_MIN && x < LONG_MAX ? \
+                           (int64_t) lrintl((double) (x)) : 0)
+
+
 #  endif
 #elif defined(MSVC)
 #include <emmintrin.h>
