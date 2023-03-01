@@ -250,7 +250,7 @@ static void csp_orc_sa_interlocksf(CSOUND *csound, int code, char *name)
       if (code&ZW) csp_set_add(csound, ww, "##zak");
       if (code&TR) csp_set_add(csound, rr, "##tab");
       if (code&TW) csp_set_add(csound, ww, "##tab");
-      if (code&_CR) csp_set_add(csound, rr, "##chn");
+      if (code&_CS_CR) csp_set_add(csound, rr, "##chn");
       if (code&_CW) csp_set_add(csound, ww, "##chn");
       if (code&WR) csp_set_add(csound, ww, "##wri");
       if (code&IR) csp_set_add(csound, rr, "##int");
