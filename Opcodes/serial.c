@@ -672,7 +672,7 @@ int32_t arduinoRead(CSOUND* csound, ARD_READ* p)
     csound->LockMutex(q->lock);
     val = (MYFLT)q->values[ind];
     csound->UnlockMutex(q->lock);
-    if (DEUG) printf("ind %d val %d\n", ind, q->values[ind]);
+    if (DEBUG) printf("ind %d val %d\n", ind, q->values[ind]);
     p->yt1 = p->c1 * val + p->c2 * p->yt1;
     *p->val = p->yt1;
     return OK;
