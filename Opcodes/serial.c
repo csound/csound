@@ -555,7 +555,8 @@ unsigned char arduino_get_byte(HANDLE port)
 }
 #endif
 
-#define DEBUG 0
+
+#define DEBUG 1
 uintptr_t arduino_listen(void *p)
 {
 #define SYN (0xf8)
@@ -563,7 +564,7 @@ uintptr_t arduino_listen(void *p)
     uint16_t c, val;
     ARDUINO_GLOBALS *q = (ARDUINO_GLOBALS*)p;
     CSOUND *csound = q->csound;
-    //printf("Q=%p\n", q);
+    if (DEBUG) printf("Q=%p\n", q);
     // Read until we see a header word
     while((c = arduino_get_byte(q->port))!=SYN) {
       if (DEBUG) printf("ignore low %.2x\n", c);
@@ -672,7 +673,7 @@ int32_t arduinoRead(CSOUND* csound, ARD_READ* p)
     csound->LockMutex(q->lock);
     val = (MYFLT)q->values[ind];
     csound->UnlockMutex(q->lock);
-    //printf("ind %d val %d\n", ind, q->values[ind]);
+    if (DEBUG) printf("ind %d val %d\n", ind, q->values[ind]);
     p->yt1 = p->c1 * val + p->c2 * p->yt1;
     *p->val = p->yt1;
     return OK;
