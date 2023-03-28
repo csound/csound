@@ -390,10 +390,10 @@ int32_t serialWrite_S(CSOUND *csound, SERIALWRITE *p)
     if (UNLIKELY(port==NULL)) return NOTOK;
 #endif
 #ifndef WIN32
-    if (UNLIKELY(((size_t)write((int32_t)*p->port,
+    if (UNLIKELY(write((int32_t)*p->port,
                        ((STRINGDAT*)p->toWrite)->data,
                        ((STRINGDAT*)p->toWrite)->size))!=
-                 ((STRINGDAT*)p->toWrite)->size)) /* Does Windows write behave correctly? */
+        ((STRINGDAT*)p->toWrite)->size) /* Does Windows write behave correctly? */
         return NOTOK;
 #else
       int32_t nbytes;
@@ -555,7 +555,7 @@ unsigned char arduino_get_byte(HANDLE port)
 }
 #endif
 
-#define DEBUG 1
+#define DEBUG 0
 uintptr_t arduino_listen(void *p)
 {
 #define SYN (0xf8)
@@ -579,7 +579,7 @@ uintptr_t arduino_listen(void *p)
       if (q->stop)
         //#ifndef WIN32
         //pthread_exit(NULL);
-        //#else
+        //#elsex
         return 0;
       //#endif
       low = arduino_get_byte(q->port);
@@ -589,6 +589,8 @@ uintptr_t arduino_listen(void *p)
       if (DEBUG) printf("low hi = %.2x %.2x\n", low, hi);
       val = ((hi&0x7)<<7) | (low&0x7f);
       c = (hi>>3)&0x1f;
+      if (DEBUG) printf("In bits: va1=%.2x va2= %.2x; c1=%.2x\n",
+                        (hi&0x7)<<7,  low&0x7f, (hi>>3)&0x1f); 
       if (DEBUG) printf("Sensor %d value %d(%.2x)\n", c, val, val);
       q->buffer[c] = val;
     }
