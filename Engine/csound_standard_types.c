@@ -369,6 +369,11 @@ const CS_TYPE CS_VAR_TYPE_b = {
   "b", "boolean", CS_ARG_TYPE_BOTH, createBool, myflt_copy_value, NULL, NULL, 0
 };
 
+const CS_TYPE CS_VAR_TYPE_ARRAY = {
+  "[", "array", CS_ARG_TYPE_BOTH, createArray, array_copy_value,
+  array_free_var_mem, NULL, 0
+};
+
 const CS_TYPE CS_VAR_TYPE_L = {
   "l", "label", CS_ARG_TYPE_BOTH, NULL, NULL, NULL, NULL, 0
 };

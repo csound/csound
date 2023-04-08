@@ -148,7 +148,7 @@ static char* make_arglist_string(
                     "." :
                     arg->text
             );
-        int dimensions = arg->dimensions;
+        int dimensions = arg->subType == NULL ? 1 : 0;
         while (dimensions > 0) {
             p += sprintf(p, "%s", "[]");
             dimensions -= 1;
@@ -343,7 +343,8 @@ OENTRY* resolve_opcode_with_orc_args(
                 int isUserDefinedType = currentArg->cstype != NULL &&
                     currentArg->cstype->userDefinedType;
                 int currentArgTextLength = 1;
-                int dimensionsNeeded = currentArg->dimensions;
+                // FIXME: count dimensions
+                int dimensionsNeeded = currentArg->subType == NULL ? 0 : 1;
                 int dimensionsFound = 0;
 
                 if (
@@ -464,7 +465,8 @@ OENTRY* resolve_opcode_with_orc_args(
                 int isUserDefinedType = currentArg->cstype != NULL ?
                     currentArg->cstype->userDefinedType :
                     0;
-                int dimensionsNeeded = currentArg->dimensions;
+                // FIXME: count dimensions
+                int dimensionsNeeded = currentArg->subType == NULL ? 0 : 1;
 
                 if (dimensionsNeeded > 0 && isInitOpcode) {
                     // init family of opcodes intypes are non-specific
@@ -591,9 +593,7 @@ static CSOUND_ORC_ARGUMENT* new_csound_orc_argument(
         arg->linenum = tree->line;
     }
 
-    arg->dimensions = 0;
-    arg->memberType = NULL;
-    arg->memberTypeDimensions = 0;
+    arg->subType = NULL;
     arg->isGlobal = 0;
     arg->isPfield = 0;
     arg->isOptarg = 0;
@@ -610,7 +610,6 @@ static CS_VARIABLE* add_arg_to_pool(
     TYPE_TABLE* typeTable,
     char* varName,
     char* annotation,
-    int dimensions,
     CS_TYPE* maybeType
 ) {
     CS_TYPE* type = maybeType;
@@ -651,7 +650,6 @@ static CS_VARIABLE* add_arg_to_pool(
             csound->typePool,
             type,
             varName,
-            dimensions,
             typeArg
         );
 
@@ -662,7 +660,6 @@ static CS_VARIABLE* add_arg_to_pool(
             csound->typePool,
             type,
             varName,
-            dimensions,
             typeArg
         );
 
@@ -788,8 +785,7 @@ static CSOUND_ORC_ARGUMENT* resolve_single_argument_from_tree(
                     index += 1;
                 }
                 CS_VARIABLE* memberVar = memCar->value;
-                arg->memberType = memberVar->varType;
-                arg->memberTypeDimensions = memberVar->dimensions;
+                arg->subType = memberVar->varType;
             } else {
                 synterr(
                     csound,
@@ -812,14 +808,13 @@ static CSOUND_ORC_ARGUMENT* resolve_single_argument_from_tree(
                 tree->value->lexeme
             );
             if (tmpVar != NULL) {
-                arg->dimensions = tmpVar->dimensions;
                 arg->cstype = tmpVar->varType;
+                arg->subType = tmpVar->subType;
                 add_arg_to_pool(
                     csound,
                     typeTable,
                     csound->Strdup(csound, tree->value->lexeme),
                     NULL,
-                    arg->dimensions,
                     arg->cstype
                 );
                 break;
@@ -829,11 +824,7 @@ static CSOUND_ORC_ARGUMENT* resolve_single_argument_from_tree(
                 *tree->right->value->lexeme == '['
             ) {
                 TREE* currentBracketNode = tree->right;
-
-                while (currentBracketNode != NULL) {
-                    arg->dimensions += 1;
-                    currentBracketNode = currentBracketNode->next;
-                }
+                arg->cstype = (CS_TYPE*) &CS_VAR_TYPE_ARRAY;
             }
             // lack of break is intended
         }
@@ -858,7 +849,6 @@ static CSOUND_ORC_ARGUMENT* resolve_single_argument_from_tree(
             if (var != NULL) {
                 // already defined
                 arg->cstype = var->varType;
-                arg->dimensions = var->dimensions;
                 var->refCount += 1;
                 break;
             }
@@ -905,7 +895,6 @@ static CSOUND_ORC_ARGUMENT* resolve_single_argument_from_tree(
                         csound->typePool,
                         arg->cstype,
                         ident,
-                        arg->dimensions,
                         NULL
                     )
                 );
@@ -922,8 +911,8 @@ static CSOUND_ORC_ARGUMENT* resolve_single_argument_from_tree(
                     ident != NULL &&
                     is_legacy_t_rate_ident(ident)
                 ) {
-                    arg->cstype = (CS_TYPE*)&CS_VAR_TYPE_K;
-                    arg->dimensions = 1;
+                    arg->cstype = (CS_TYPE*) &CS_VAR_TYPE_ARRAY;
+                    arg->subType = (CS_TYPE*) &CS_VAR_TYPE_K;
                     csound->Warning(
                         csound,
                         Str("Using t-rate variables is deprecated; use k[] instead\n")
@@ -946,14 +935,6 @@ static CSOUND_ORC_ARGUMENT* resolve_single_argument_from_tree(
                         );
                         return NULL;
                     }
-                    if (arg->dimensions == 0) {
-                        // if it's already set (ex. array-idents)
-                        // it's probably correct already
-                        arg->dimensions = count_dimensions_from_string(
-                            annotation
-                        );
-                    }
-
 
                 } else {
                     arg->cstype = csoundFindStandardTypeWithChar(
@@ -966,7 +947,6 @@ static CSOUND_ORC_ARGUMENT* resolve_single_argument_from_tree(
                     typeTable,
                     ident,
                     annotation,
-                    arg->dimensions,
                     arg->cstype
                 );
 
@@ -975,7 +955,6 @@ static CSOUND_ORC_ARGUMENT* resolve_single_argument_from_tree(
                     return arg;
                 }
                 arg->cstype = var->varType;
-                arg->dimensions = var->dimensions;
 
                 if (arg->type == T_ARRAY_IDENT) break;
                 goto count_dim;
@@ -1169,7 +1148,7 @@ static int has_unknown_output_type(
     while(currentArg != NULL) {
         if (
             currentArg->cstype == NULL &&
-            currentArg->memberType == NULL
+            currentArg->subType == NULL
         ) {
             return 1;
         }
@@ -1210,21 +1189,11 @@ static void initialize_inferred_variables(
                 ) {
                     // array_get/set
                     currentArg->cstype = firstRightArg->cstype;
-                    if (strncmp(oentry->opname, "##array_get", 10) == 0) {
-                        // array get output is always 1 dimension less
-                        currentArg->dimensions = firstRightArg->dimensions - 1;
-                    } else {
-                        currentArg->dimensions = firstRightArg->dimensions;
-                    }
-
-
                 } else {
                     // member_get/set
                     secondRightArg = rightSideArgs->list->next->value;
-                    currentArg->cstype = secondRightArg->memberType;
-                    currentArg->dimensions = secondRightArg->memberTypeDimensions;
+                    currentArg->cstype = secondRightArg->subType;
                 }
-                dimensions = currentArg->dimensions;
             } else {
                 currentArg->cstype = resolve_cstype_from_string(
                     csound,
@@ -1249,7 +1218,6 @@ static void initialize_inferred_variables(
                 typeTable,
                 currentArg->text,
                 NULL,
-                dimensions,
                 currentArg->cstype
             );
             csound->Free(csound, currentOutArg);
@@ -1467,8 +1435,7 @@ int verify_opcode_2(
             assignee->cstype == inputValue->cstype ||
             check_satisfies_expected_input(
                 assignee->cstype,
-                inputValue->cstype->varTypeName,
-                assignee->dimensions > 0
+                inputValue->cstype->varTypeName
             )
         ) {
             csound->Free(csound, root->value->lexeme);
@@ -1568,7 +1535,6 @@ int verify_opcode_2(
             typeTable,
             assignee->text,
             NULL,
-            0,
             isPerfRate ?
                 (CS_TYPE*) &CS_VAR_TYPE_K :
                 (CS_TYPE*) &CS_VAR_TYPE_I
@@ -1653,7 +1619,6 @@ int verify_opcode_2(
         CSOUND_ORC_ARGUMENT* assignee = leftSideArgs->list->value;
         CSOUND_ORC_ARGUMENT* inputValue = rightSideArgs->list->value;
         if (inputValue->cstype != NULL) {
-            assignee->dimensions = inputValue->dimensions;
             if (inputValue->cstype == (CS_TYPE*) &CS_VAR_TYPE_C) {
                 assignee->cstype = (CS_TYPE*) &CS_VAR_TYPE_I;
             } else {
@@ -1669,7 +1634,6 @@ int verify_opcode_2(
                 typeTable,
                 assignee->text,
                 NULL,
-                inputValue->dimensions,
                 assignee->cstype
             );
 
@@ -1787,7 +1751,6 @@ int verify_opcode_2(
                     typeTable,
                     arg->text,
                     NULL,
-                    arg->dimensions,
                     arg->cstype
                 );
                 TREE* oldNext = root->next;

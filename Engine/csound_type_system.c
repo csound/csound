@@ -141,7 +141,6 @@ CS_VARIABLE* csoundCreateVariable(
   TYPE_POOL* pool,
   CS_TYPE* type,
   char* name,
-  int dimensions,
   void* typeArg
 ) {
     CS_TYPE_ITEM* current = pool->head;
@@ -149,7 +148,7 @@ CS_VARIABLE* csoundCreateVariable(
       while (current != NULL) {
         if (strcmp(type->varTypeName, current->cstype->varTypeName) == 0) {
           CS_VARIABLE* var = current->cstype->createVariable(
-            csound, typeArg == NULL ? type : typeArg, dimensions);
+            csound, typeArg == NULL ? type : typeArg);
           var->varType = type;
           var->varName = cs_strdup(csound, name);
           return var;

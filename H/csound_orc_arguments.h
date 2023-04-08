@@ -31,17 +31,12 @@ typedef struct csorcarg {
     char*    text;        // human readable text
     char*    uid;         // string with which to find the expression result in pools
     CS_TYPE* cstype;
-    CS_TYPE* memberType;
+    CS_TYPE* subType;
     int      type;        // token-type
     int      isGlobal;
     int      isPfield;
     int      isOptarg;    // 1 when the optarg is inferred and not user explicit
-    int      memberTypeDimensions; // ex. struct People firstNames:S[]
-                                   // must be initialized correctly
-    int      dimensions;  // 0 scalar, 1 or more means n-dimenional array
-    // int      dimension;  // ex. ix[0] is dimension 1 of 1 dimensional array
     int      linenum;
-    // struct csorcargs* SubExpression; // when the argument itself is an expr
 } CSOUND_ORC_ARGUMENT;
 
 typedef struct csorcargs {

@@ -45,6 +45,7 @@ extern "C" {
     PUBLIC_DATA extern const CS_TYPE CS_VAR_TYPE_B;
     PUBLIC_DATA extern const CS_TYPE CS_VAR_TYPE_b;
     PUBLIC_DATA extern const CS_TYPE CS_VAR_TYPE_L;
+    PUBLIC_DATA extern const CS_TYPE CS_VAR_TYPE_ARRAY;
 
     CS_TYPE* csoundFindStandardTypeWithChar(char);
 

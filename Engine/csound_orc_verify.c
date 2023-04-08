@@ -87,6 +87,7 @@ int check_satisfies_expected_input(
     char* typeIdent,
     int isArray
 ) {
+    int isArray = cstype == (CS_TYPE*) &CS_VAR_TYPE_ARRAY;
     if (is_wildcard_type(typeIdent)) {
         return 1;
     }

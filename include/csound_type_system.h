@@ -57,7 +57,6 @@ extern "C" {
 
     typedef struct structvar {
         CS_VAR_MEM** members;
-        int* dimensions;
     } CS_STRUCT_VAR;
 
 #if defined(UINTPTR_MAX) && defined(UINT64_MAX) && (UINTPTR_MAX == UINT64_MAX)
@@ -69,6 +68,7 @@ extern "C" {
     typedef struct csvariable {
         char* varName;
         CS_TYPE* varType;
+        CS_TYPE* subType;
         int memBlockSize; /* Must be a multiple of sizeof(MYFLT), as
                              Csound uses MYFLT* and pointer arithmetic
                              to assign var locations */
@@ -96,7 +96,6 @@ extern "C" {
                                      CS_TYPE* typeInstance);
     PUBLIC CS_VARIABLE* csoundCreateVariable(CSOUND* csound, TYPE_POOL* pool,
                                              CS_TYPE* type, char* name,
-                                             int dimensions,
                                              void* typeArg);
     PUBLIC CS_TYPE* csoundGetTypeWithVarTypeName(TYPE_POOL* pool, char* typeName);
 
