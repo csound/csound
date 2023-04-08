@@ -231,8 +231,8 @@ static int parse_opcode_args(CSOUND *csound, OENTRY *opc)
             csound,
             csound->typePool,
             type,
-            tempName,
-            &varInit
+            NULL,
+            tempName
           );
           csoundAddVariable(csound, inm->in_arg_pool, var);
         } else {
@@ -256,7 +256,7 @@ static int parse_opcode_args(CSOUND *csound, OENTRY *opc)
           }
 
           CS_VARIABLE* var = csoundCreateVariable(csound, csound->typePool,
-                                                  type, tempName, type);
+                                                  type, NULL, tempName);
           csoundAddVariable(csound, inm->in_arg_pool, var);
         }
         i++;
@@ -303,8 +303,8 @@ static int parse_opcode_args(CSOUND *csound, OENTRY *opc)
           CS_VARIABLE* var = csoundCreateVariable(
             csound, csound->typePool,
             type,
-            tempName,
-            &varInit
+            NULL,
+            tempName
           );
           var->dimensions = dimensions;
           csoundAddVariable(csound, inm->out_arg_pool, var);
@@ -322,7 +322,7 @@ static int parse_opcode_args(CSOUND *csound, OENTRY *opc)
           }
 
           CS_VARIABLE* var = csoundCreateVariable(csound, csound->typePool, type,
-                                                  tempName, type);
+                                                  NULL, tempName);
           csoundAddVariable(csound, inm->out_arg_pool, var);
         }
         i++;

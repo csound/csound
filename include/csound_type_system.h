@@ -95,8 +95,7 @@ extern "C" {
     PUBLIC int csoundAddVariableType(CSOUND* csound, TYPE_POOL* pool,
                                      CS_TYPE* typeInstance);
     PUBLIC CS_VARIABLE* csoundCreateVariable(CSOUND* csound, TYPE_POOL* pool,
-                                             CS_TYPE* type, char* name,
-                                             void* typeArg);
+                                             CS_TYPE* varType, CS_TYPE* subType, char* name);
     PUBLIC CS_TYPE* csoundGetTypeWithVarTypeName(TYPE_POOL* pool, char* typeName);
 
     /* Csound Variable Pool - essentially a map<string,csvar>

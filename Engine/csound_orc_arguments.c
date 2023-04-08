@@ -609,11 +609,10 @@ static CS_VARIABLE* add_arg_to_pool(
     TYPE_TABLE* typeTable,
     char* varName,
     char* annotation,
-    CS_TYPE* maybeType
+    CS_TYPE* cstype,
+    CS_TYPE* subType
 ) {
-    CS_TYPE* type = maybeType;
     CS_VAR_POOL* pool;
-    void* typeArg = NULL;
     char* varName_ = varName;
     int isGlobal = varName[0] == 'g';
     pool = isGlobal ? typeTable->globalPool : typeTable->localPool;
@@ -626,30 +625,29 @@ static CS_VARIABLE* add_arg_to_pool(
 
     if (var != NULL) {
         var->refCount += 1;
-    } else if (type == NULL) {
+    } else if (cstype == NULL) {
         if (annotation != NULL) {
-            type = csoundGetTypeWithVarTypeName(
+            cstype = csoundGetTypeWithVarTypeName(
                 csound->typePool,
                 annotation
             );
-            typeArg = type;
         } else {
             if (*varName_ == 'g') {
                 varName_ += 1;
             }
-            type = csoundFindStandardTypeWithChar(varName_[0]);
+            cstype = csoundFindStandardTypeWithChar(varName_[0]);
         }
 
-        if (type == NULL) {
+        if (cstype == NULL) {
             return NULL;
         }
 
         var = csoundCreateVariable(
             csound,
             csound->typePool,
-            type,
-            varName,
-            typeArg
+            cstype,
+            subType,
+            varName
         );
 
         csoundAddVariable(csound, pool, var);
@@ -657,9 +655,9 @@ static CS_VARIABLE* add_arg_to_pool(
         var = csoundCreateVariable(
             csound,
             csound->typePool,
-            type,
-            varName,
-            typeArg
+            cstype,
+            subType,
+            varName
         );
 
         csoundAddVariable(csound, pool, var);
@@ -814,7 +812,8 @@ static CSOUND_ORC_ARGUMENT* resolve_single_argument_from_tree(
                     typeTable,
                     csound->Strdup(csound, tree->value->lexeme),
                     NULL,
-                    arg->cstype
+                    arg->cstype,
+                    arg->subType
                 );
                 break;
             } else if (
@@ -893,8 +892,8 @@ static CSOUND_ORC_ARGUMENT* resolve_single_argument_from_tree(
                         csound,
                         csound->typePool,
                         arg->cstype,
-                        ident,
-                        NULL
+                        arg->subType,
+                        ident
                     )
                 );
                 break;
@@ -946,7 +945,8 @@ static CSOUND_ORC_ARGUMENT* resolve_single_argument_from_tree(
                     typeTable,
                     ident,
                     annotation,
-                    arg->cstype
+                    arg->cstype,
+                    arg->subType
                 );
 
                 if (var == NULL) {
@@ -1217,7 +1217,8 @@ static void initialize_inferred_variables(
                 typeTable,
                 currentArg->text,
                 NULL,
-                currentArg->cstype
+                currentArg->cstype,
+                currentArg->subType
             );
             csound->Free(csound, currentOutArg);
         }
@@ -1308,9 +1309,11 @@ int verify_opcode_2(
 
     int isExpandedTree = expansionType != NO_EXPANSION;
 
+    // Find opcode2 if the tree is not expanded
     OENTRIES* entries = isExpandedTree ? NULL :
         find_opcode2(csound, root->value->lexeme);
 
+    // Handle the case when opcode2 is not found
     if (UNLIKELY(!isExpandedTree &&
             (entries == NULL || entries->count == 0))
     ) {
@@ -1328,12 +1331,14 @@ int verify_opcode_2(
         return 0;
     }
 
+    // Create left and right side argument lists
     CSOUND_ORC_ARGUMENTS* leftSideArgs = new_csound_orc_arguments(csound);
     CSOUND_ORC_ARGUMENTS* rightSideArgs = new_csound_orc_arguments(csound);
 
     TREE* left = root->left;
     TREE* right = root->right;
-    // print_tree(csound, "before", root);
+
+    // Get arguments from the tree
     rightSideArgs = get_arguments_from_tree(
         csound,
         rightSideArgs,
@@ -1362,11 +1367,12 @@ int verify_opcode_2(
     int needsInference = 0;
     int inArgsIncludeKrate = arglist_includes_krate(rightSideArgs);
 
+    // Handle boolean tree types
     if (
         is_boolean_tree_type(root->value->type) &&
         inArgsIncludeKrate
     ) {
-        // change b->B type if applicable
+        // Change b->B type if applicable
         CSOUND_ORC_ARGUMENT* returnArg = leftSideArgs->list->value;
         returnArg->cstype = (CS_TYPE*) &CS_VAR_TYPE_B;
         CS_VARIABLE* boolVar = csoundFindVariableWithName(
@@ -1377,6 +1383,7 @@ int verify_opcode_2(
         boolVar->varType = (CS_TYPE*) &CS_VAR_TYPE_B;
     }
 
+    // Handle different expansion types
     if (
         expansionType == IF_EXPANSION ||
         expansionType == WHILE_EXPANSION
@@ -1536,7 +1543,8 @@ int verify_opcode_2(
             NULL,
             isPerfRate ?
                 (CS_TYPE*) &CS_VAR_TYPE_K :
-                (CS_TYPE*) &CS_VAR_TYPE_I
+                (CS_TYPE*) &CS_VAR_TYPE_I,
+            NULL
         );
      }
 
@@ -1633,7 +1641,8 @@ int verify_opcode_2(
                 typeTable,
                 assignee->text,
                 NULL,
-                assignee->cstype
+                assignee->cstype,
+                assignee->subType
             );
 
             if (inputVar != NULL) {
@@ -1750,7 +1759,8 @@ int verify_opcode_2(
                     typeTable,
                     arg->text,
                     NULL,
-                    arg->cstype
+                    arg->cstype,
+                    arg->subType
                 );
                 TREE* oldNext = root->next;
                 root->next = assignmentStatement;

@@ -467,9 +467,9 @@ OPTXT *create_opcode(CSOUND *csound, TREE *root, INSTRTXT *ip,
  * in separate blocks, pointed by var->memBlock
  */
 void addGlobalVariable(CSOUND *csound, ENGINE_STATE *engineState, CS_TYPE *type,
-                       char *name, void *typeArg) {
+                       CS_TYPE *subType, char *name) {
   CS_VARIABLE *var =
-    csoundCreateVariable(csound, csound->typePool, type, name, typeArg);
+    csoundCreateVariable(csound, csound->typePool, type, subType, name);
   size_t memSize = CS_VAR_TYPE_OFFSET + var->memBlockSize;
   CS_VAR_MEM *varMem = csound->Malloc(csound, memSize);
   csoundAddVariable(csound, engineState->varPool, var);
@@ -512,16 +512,16 @@ INSTRTXT *create_instrument0(CSOUND *csound, TREE *root,
   CS_TYPE *rType = (CS_TYPE *)&CS_VAR_TYPE_R;
   OPARMS *O = csound->oparms;
 
-  addGlobalVariable(csound, engineState, rType, "sr", NULL);
-  addGlobalVariable(csound, engineState, rType, "kr", NULL);
-  addGlobalVariable(csound, engineState, rType, "ksmps", NULL);
-  addGlobalVariable(csound, engineState, rType, "nchnls", NULL);
-  addGlobalVariable(csound, engineState, rType, "nchnls_i", NULL);
-  addGlobalVariable(csound, engineState, rType, "0dbfs", NULL);
-  addGlobalVariable(csound, engineState, rType, "A4", NULL);
-  addGlobalVariable(csound, engineState, rType, "$sr", NULL);
-  addGlobalVariable(csound, engineState, rType, "$kr", NULL);
-  addGlobalVariable(csound, engineState, rType, "$ksmps", NULL);
+  addGlobalVariable(csound, engineState, rType, NULL, "sr");
+  addGlobalVariable(csound, engineState, rType, NULL, "kr");
+  addGlobalVariable(csound, engineState, rType, NULL, "ksmps");
+  addGlobalVariable(csound, engineState, rType, NULL, "nchnls");
+  addGlobalVariable(csound, engineState, rType, NULL, "nchnls_i");
+  addGlobalVariable(csound, engineState, rType, NULL, "0dbfs");
+  addGlobalVariable(csound, engineState, rType, NULL, "A4");
+  addGlobalVariable(csound, engineState, rType, NULL, "$sr");
+  addGlobalVariable(csound, engineState, rType, NULL, "$kr");
+  addGlobalVariable(csound, engineState, rType, NULL, "$ksmps");
 
   find_or_add_constant(csound, engineState->constantsPool, "0", 0.0);
 
@@ -891,10 +891,10 @@ INSTRTXT *create_instrument(CSOUND *csound, TREE *root,
   /* create local ksmps variable */
   CS_TYPE *rType = (CS_TYPE *)&CS_VAR_TYPE_R;
   CS_VARIABLE *var =
-    csoundCreateVariable(csound, csound->typePool, rType, "ksmps", NULL);
+    csoundCreateVariable(csound, csound->typePool, rType, NULL, "ksmps");
   csoundAddVariable(csound, ip->varPool, var);
   /* same for kr */
-  var = csoundCreateVariable(csound, csound->typePool, rType, "kr", NULL);
+  var = csoundCreateVariable(csound, csound->typePool, rType, NULL, "kr");
   csoundAddVariable(csound, ip->varPool, var);
 
   /* Maybe should do this assignment at end when instr is setup?
@@ -1448,8 +1448,9 @@ int engineState_merge(CSOUND *csound, ENGINE_STATE *engineState) {
       ARRAY_VAR_INIT varInit;
       varInit.dimensions = gVar->dimensions;
       varInit.type = gVar->varType;
-      var = csoundCreateVariable(csound, csound->typePool, gVar->varType,
-                                 gVar->varName, &varInit);
+      var = csoundCreateVariable(csound, csound->typePool,
+        (CS_TYPE*) &CS_VAR_TYPE_ARRAY,
+        gVar->varType, gVar->varName);
       csoundAddVariable(csound, current_state->varPool, var);
       /* memory has already been allocated, so we just point to it */
       /* when disposing of the engineState global vars, we do not

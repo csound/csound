@@ -139,17 +139,18 @@ char* getVarSimpleName(CSOUND* csound, const char* varName) {
 CS_VARIABLE* csoundCreateVariable(
   CSOUND* csound,
   TYPE_POOL* pool,
-  CS_TYPE* type,
-  char* name,
-  void* typeArg
+  CS_TYPE* varType,
+  CS_TYPE* subType,
+  char* name
 ) {
     CS_TYPE_ITEM* current = pool->head;
-    if (LIKELY(type != NULL))
+    if (LIKELY(varType != NULL))
       while (current != NULL) {
-        if (strcmp(type->varTypeName, current->cstype->varTypeName) == 0) {
+        if (strcmp(varType->varTypeName, current->cstype->varTypeName) == 0) {
           CS_VARIABLE* var = current->cstype->createVariable(
-            csound, typeArg == NULL ? type : typeArg);
-          var->varType = type;
+            csound, subType
+          );
+          var->varType = varType;
           var->varName = cs_strdup(csound, name);
           return var;
         }

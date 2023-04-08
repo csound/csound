@@ -240,17 +240,12 @@ CS_VARIABLE* createString(void* cs, void* p) {
 
 CS_VARIABLE* createArray(void* csnd, void* p) {
     CSOUND* csound = (CSOUND*)csnd;
-    ARRAY_VAR_INIT* state = (ARRAY_VAR_INIT*)p;
+    CS_TYPE* subType = (CS_TYPE*)p;
 
     CS_VARIABLE* var = csound->Calloc(csound, sizeof (CS_VARIABLE));
     var->memBlockSize = CS_FLOAT_ALIGN(sizeof(ARRAYDAT));
     var->initializeVariableMemory = &arrayInitMemory;
-    // var->subType = dimensions;
-
-    if (state) { // NB: this function is being called with p=NULL
-      CS_TYPE* type = state->type;
-      var->varType = type;
-    }
+    var->subType = subType;
     return var;
 }
 

@@ -1515,12 +1515,13 @@ int check_args_exist(CSOUND* csound, TREE* tree, TYPE_TABLE* typeTable) {
 void add_arg(CSOUND* csound, char* varName, char* annotation, TYPE_TABLE* typeTable) {
 
   CS_TYPE* type;
+  CS_TYPE* subType = NULL;
   CS_VARIABLE* var;
   char *t;
   CS_VAR_POOL* pool;
   char argLetter[2];
   ARRAY_VAR_INIT varInit;
-  void* typeArg = NULL;
+  int dimensions = 0;
 
   t = varName;
   if (*t == '#') t++;
@@ -1530,7 +1531,6 @@ void add_arg(CSOUND* csound, char* varName, char* annotation, TYPE_TABLE* typeTa
   if (var == NULL) {
     if (annotation != NULL) {
       type = csoundGetTypeWithVarTypeName(csound->typePool, annotation);
-      typeArg = type;
     } else {
       t = varName;
       argLetter[1] = 0;
@@ -1539,7 +1539,7 @@ void add_arg(CSOUND* csound, char* varName, char* annotation, TYPE_TABLE* typeTa
       if (*t == 'g') t++;
 
       if (*t == '[' || *t == 't') { /* Support legacy t-vars */
-        int dimensions = 1;
+        dimensions = 1;
         CS_TYPE* varType;
         char* b = t + 1;
 
@@ -1553,16 +1553,19 @@ void add_arg(CSOUND* csound, char* varName, char* annotation, TYPE_TABLE* typeTa
 
         varInit.dimensions = dimensions;
         varInit.type = varType;
-        typeArg = &varInit;
       }
 
       argLetter[0] = (*t == 't') ? '[' : *t; /* Support legacy t-vars */
-
-      type = csoundGetTypeWithVarTypeName(csound->typePool, argLetter);
+      if (dimensions > 0) {
+        type = (CS_TYPE*) &CS_VAR_TYPE_ARRAY;
+        subType = csoundGetTypeWithVarTypeName(csound->typePool, argLetter);
+      } else {
+        type = csoundGetTypeWithVarTypeName(csound->typePool, argLetter);
+      }
     }
 
     var = csoundCreateVariable(csound, csound->typePool,
-                               type, varName, typeArg);
+                               type, subType, varName);
     csoundAddVariable(csound, pool, var);
   } else {
     //TODO - implement reference count increment
@@ -1603,9 +1606,12 @@ void add_array_arg(CSOUND* csound, char* varName, char* annotation,
     }
     varInit.type = varType;
     typeArg = &varInit;
-
-    var = csoundCreateVariable(csound, csound->typePool, varType,
-                               varName, typeArg);
+    CS_TYPE* subType = csoundGetTypeWithVarTypeName(
+      csound->typePool,
+      typeArg
+    );
+    var = csoundCreateVariable(csound, csound->typePool,
+      (CS_TYPE*) &CS_VAR_TYPE_ARRAY, subType, varName);
     csoundAddVariable(csound, pool, var);
   } else {
     //TODO - implement reference count increment
