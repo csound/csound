@@ -390,10 +390,10 @@ int32_t serialWrite_S(CSOUND *csound, SERIALWRITE *p)
     if (UNLIKELY(port==NULL)) return NOTOK;
 #endif
 #ifndef WIN32
-    if (UNLIKELY(((size_t)write((int32_t)*p->port,
+    if (UNLIKELY(write((int32_t)*p->port,
                        ((STRINGDAT*)p->toWrite)->data,
                        ((STRINGDAT*)p->toWrite)->size))!=
-                 ((STRINGDAT*)p->toWrite)->size)) /* Does Windows write behave correctly? */
+        ((STRINGDAT*)p->toWrite)->size) /* Does Windows write behave correctly? */
         return NOTOK;
 #else
       int32_t nbytes;
@@ -563,7 +563,7 @@ uintptr_t arduino_listen(void *p)
     uint16_t c, val;
     ARDUINO_GLOBALS *q = (ARDUINO_GLOBALS*)p;
     CSOUND *csound = q->csound;
-    //printf("Q=%p\n", q);
+    if (DEBUG) printf("Q=%p\n", q);
     // Read until we see a header word
     while((c = arduino_get_byte(q->port))!=SYN) {
       if (DEBUG) printf("ignore low %.2x\n", c);
@@ -579,7 +579,7 @@ uintptr_t arduino_listen(void *p)
       if (q->stop)
         //#ifndef WIN32
         //pthread_exit(NULL);
-        //#else
+        //#elsex
         return 0;
       //#endif
       low = arduino_get_byte(q->port);
@@ -589,6 +589,8 @@ uintptr_t arduino_listen(void *p)
       if (DEBUG) printf("low hi = %.2x %.2x\n", low, hi);
       val = ((hi&0x7)<<7) | (low&0x7f);
       c = (hi>>3)&0x1f;
+      if (DEBUG) printf("In bits: va1=%.2x va2= %.2x; c1=%.2x\n",
+                        (hi&0x7)<<7,  low&0x7f, (hi>>3)&0x1f); 
       if (DEBUG) printf("Sensor %d value %d(%.2x)\n", c, val, val);
       q->buffer[c] = val;
     }
@@ -672,7 +674,7 @@ int32_t arduinoRead(CSOUND* csound, ARD_READ* p)
     csound->LockMutex(q->lock);
     val = (MYFLT)q->values[ind];
     csound->UnlockMutex(q->lock);
-    //printf("ind %d val %d\n", ind, q->values[ind]);
+    if (DEBUG) printf("ind %d val %d\n", ind, q->values[ind]);
     p->yt1 = p->c1 * val + p->c2 * p->yt1;
     *p->val = p->yt1;
     return OK;

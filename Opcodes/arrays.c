@@ -2772,6 +2772,58 @@ static int32_t tabcopy(CSOUND *csound, TABCPY *p)
     return OK;
 }
 
+static int32_t tabcopyk_init(CSOUND *csound, TABCPY *p) {
+    tabinit(csound, p->dst, get_array_total_size(p->src));
+    return OK;
+}
+static int32_t tabcopyk(CSOUND *csound, TABCPY *p)
+{
+    int32_t i, arrayTotalSize, memMyfltSize;
+
+    if (UNLIKELY(p->src->data==NULL) || p->src->dimensions <= 0 )
+      return csound->PerfError(csound, &(p->h), "%s", Str("array-variable not initialised"));
+    if (UNLIKELY(p->dst->dimensions > 0 &&
+                 p->src->dimensions != p->dst->dimensions))
+      return csound->PerfError(csound,&(p->h), "%s",
+                               Str("array-variable dimensions do not match"));
+    if (UNLIKELY(p->src->arrayType != p->dst->arrayType))
+      return csound->PerfError(csound, &(p->h), "%s",
+                               Str("array-variable types do not match"));
+
+    if (p->src == p->dst) return OK;
+
+    arrayTotalSize = get_array_total_size(p->src);
+    memMyfltSize = p->src->arrayMemberSize / sizeof(MYFLT);
+    p->dst->arrayMemberSize = p->src->arrayMemberSize;
+
+    if (arrayTotalSize != get_array_total_size(p->dst)) {
+      p->dst->dimensions = p->src->dimensions;
+
+      p->dst->sizes = csound->Malloc(csound, sizeof(int32_t) * p->src->dimensions);
+      memcpy(p->dst->sizes, p->src->sizes, sizeof(int32_t) * p->src->dimensions);
+
+      if (p->dst->data == NULL) {
+        p->dst->data = csound->Calloc(csound,
+                                      p->src->arrayMemberSize * arrayTotalSize);
+        p->dst->allocated = p->src->arrayMemberSize * arrayTotalSize;
+      } else {
+        p->dst->data = csound->ReAlloc(csound, p->dst->data,
+                        p->src->arrayMemberSize * arrayTotalSize);
+        memset(p->dst->data, 0, p->src->arrayMemberSize * arrayTotalSize);
+      }
+    }
+ 
+    for (i = 0; i < arrayTotalSize; i++) {
+      int32_t index = (i * memMyfltSize);
+      p->dst->arrayType->copyValue(csound, p->dst->arrayType,
+                                   (void*)(p->dst->data + index),
+                                   (void*)(p->src->data + index));
+    }
+
+    return OK;
+}
+
+
 static int32_t tabcopy1(CSOUND *csound, TABCPY *p)
 {
     int32_t i, arrayTotalSize, memMyfltSize;
@@ -4680,7 +4732,8 @@ static OENTRY arrayvars_localops[] =
     { "=.I", sizeof(TABCPY), 0, 1, "i[]", "i[]", (SUBR)tabcopy1, NULL },
     { "fillarray", sizeof(TABCPY), 0, 1, "k[]", "i[]", (SUBR)tabcopy1, NULL },
     { "=.J", sizeof(TABCPY), 0, 1, "i[]", "k[]", (SUBR)tabcopy1, NULL },
-    { "=.K", sizeof(TABCPY), 0, 3, "k[]", "i[]", (SUBR)tabcopy1, (SUBR)tabcopy1 },
+    { "=.IK", sizeof(TABCPY), 0, 3, "k[]", "i[]", (SUBR)tabcopy1, (SUBR)tabcopy1 },
+    { "=.K", sizeof(TABCPY), 0, 3, "k[]", "k[]", (SUBR)tabcopyk_init, (SUBR)tabcopyk },
     { "=._", sizeof(TABCPY), 0, 3, ".[]", ".[]", (SUBR)tabcopy, (SUBR)tabcopy },
     { "=.L", sizeof(TABCPY), 0, 3, ".[]", ".[]", (SUBR)tabcopy2, (SUBR)tabcopy2 },
     { "tabgen", sizeof(TABGEN), _QQ, 1, "k[]", "iip", (SUBR) tabgen, NULL    },
