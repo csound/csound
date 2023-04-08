@@ -191,7 +191,6 @@ static int parse_opcode_args(CSOUND *csound, OENTRY *opc)
 
     if (*in_args[0] != '0') {
       while (in_args[i] != NULL) {
-        int dimensions = 0;
         char* in_arg = in_args[i];
         snprintf(tempName, 20, "in%d", i);
         char* end = strchr(in_arg, '[');
@@ -200,7 +199,6 @@ static int parse_opcode_args(CSOUND *csound, OENTRY *opc)
         if (end != NULL) {
           if (*in_arg == '[') {
             while (*in_arg == '[') {
-              dimensions += 1;
               in_arg += 1;
             }
 
@@ -211,9 +209,6 @@ static int parse_opcode_args(CSOUND *csound, OENTRY *opc)
           } else {
             tmp = end;
             while (*tmp != '\0') {
-              if (*tmp == '[') {
-                dimensions += 1;
-              }
               tmp += 1;
             }
           }
@@ -231,17 +226,14 @@ static int parse_opcode_args(CSOUND *csound, OENTRY *opc)
             continue;
           }
 
-          varInit.dimensions = dimensions;
           varInit.type = type;
           CS_VARIABLE* var = csoundCreateVariable(
             csound,
             csound->typePool,
             type,
             tempName,
-            dimensions,
             &varInit
           );
-          var->dimensions = dimensions;
           csoundAddVariable(csound, inm->in_arg_pool, var);
         } else {
           char *c = map_udo_in_arg_type(in_arg);
@@ -264,8 +256,7 @@ static int parse_opcode_args(CSOUND *csound, OENTRY *opc)
           }
 
           CS_VARIABLE* var = csoundCreateVariable(csound, csound->typePool,
-                                                  type, tempName, dimensions,
-                                                  type);
+                                                  type, tempName, type);
           csoundAddVariable(csound, inm->in_arg_pool, var);
         }
         i++;
@@ -308,13 +299,11 @@ static int parse_opcode_args(CSOUND *csound, OENTRY *opc)
             continue;
           }
 
-          varInit.dimensions = dimensions;
           varInit.type = type;
           CS_VARIABLE* var = csoundCreateVariable(
             csound, csound->typePool,
             type,
             tempName,
-            dimensions,
             &varInit
           );
           var->dimensions = dimensions;
@@ -333,7 +322,7 @@ static int parse_opcode_args(CSOUND *csound, OENTRY *opc)
           }
 
           CS_VARIABLE* var = csoundCreateVariable(csound, csound->typePool, type,
-                                                  tempName, dimensions, type);
+                                                  tempName, type);
           csoundAddVariable(csound, inm->out_arg_pool, var);
         }
         i++;

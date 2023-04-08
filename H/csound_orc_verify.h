@@ -36,7 +36,7 @@ int is_unary_token_type(int);
 int is_legacy_t_rate_ident(char*);
 int check_satisfies_arate_input(char*);
 int check_satisfies_krate_input(char*);
-int check_satisfies_expected_input(CS_TYPE*, char*, int);
+int check_satisfies_expected_input(CS_TYPE*, char*);
 int check_satisfies_alternating_z_input(char*, int);
 int check_satisfies_expected_output(CS_TYPE*, char*);
 

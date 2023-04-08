@@ -1626,7 +1626,7 @@ static int32_t diskin2_init_array(CSOUND *csound, DISKIN2_ARRAY *p,
       t->dimensions = 1;
       t->sizes = csound->Calloc(csound, sizeof(int32_t));
       t->sizes[0] = p->nChannels;
-      var  = t->arrayType->createVariable(csound, NULL, 0);
+      var  = t->arrayType->createVariable(csound, NULL);
       t->arrayMemberSize = var->memBlockSize;
       memSize = var->memBlockSize*(t->sizes[0]);
       t->data = csound->Calloc(csound, memSize);

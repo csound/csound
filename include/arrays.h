@@ -40,7 +40,7 @@ static inline void tabinit(CSOUND *csound, ARRAYDAT *p, int size)
     }
     if (p->data == NULL) {
         CS_VARIABLE* var = p->arrayType->createVariable(
-          csound, NULL, 0
+          csound, NULL
         );
         p->arrayMemberSize = var->memBlockSize;
         ss = p->arrayMemberSize*size;
@@ -72,7 +72,7 @@ static inline void tabinit_like(CSOUND *csound, ARRAYDAT *p, ARRAYDAT *tp)
     }
 
     if (p->data == NULL) {
-        CS_VARIABLE* var = p->arrayType->createVariable(csound, NULL, 0);
+        CS_VARIABLE* var = p->arrayType->createVariable(csound, NULL);
         p->arrayMemberSize = var->memBlockSize;
         ss = p->arrayMemberSize*ss;
         p->data = (MYFLT*)csound->Calloc(csound, ss);

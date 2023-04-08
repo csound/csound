@@ -469,7 +469,7 @@ OPTXT *create_opcode(CSOUND *csound, TREE *root, INSTRTXT *ip,
 void addGlobalVariable(CSOUND *csound, ENGINE_STATE *engineState, CS_TYPE *type,
                        char *name, void *typeArg) {
   CS_VARIABLE *var =
-    csoundCreateVariable(csound, csound->typePool, type, name, 0, typeArg);
+    csoundCreateVariable(csound, csound->typePool, type, name, typeArg);
   size_t memSize = CS_VAR_TYPE_OFFSET + var->memBlockSize;
   CS_VAR_MEM *varMem = csound->Malloc(csound, memSize);
   csoundAddVariable(csound, engineState->varPool, var);
@@ -891,10 +891,10 @@ INSTRTXT *create_instrument(CSOUND *csound, TREE *root,
   /* create local ksmps variable */
   CS_TYPE *rType = (CS_TYPE *)&CS_VAR_TYPE_R;
   CS_VARIABLE *var =
-    csoundCreateVariable(csound, csound->typePool, rType, "ksmps", 0, NULL);
+    csoundCreateVariable(csound, csound->typePool, rType, "ksmps", NULL);
   csoundAddVariable(csound, ip->varPool, var);
   /* same for kr */
-  var = csoundCreateVariable(csound, csound->typePool, rType, "kr", 0, NULL);
+  var = csoundCreateVariable(csound, csound->typePool, rType, "kr", NULL);
   csoundAddVariable(csound, ip->varPool, var);
 
   /* Maybe should do this assignment at end when instr is setup?
@@ -1449,7 +1449,7 @@ int engineState_merge(CSOUND *csound, ENGINE_STATE *engineState) {
       varInit.dimensions = gVar->dimensions;
       varInit.type = gVar->varType;
       var = csoundCreateVariable(csound, csound->typePool, gVar->varType,
-                                 gVar->varName, gVar->dimensions, &varInit);
+                                 gVar->varName, &varInit);
       csoundAddVariable(csound, current_state->varPool, var);
       /* memory has already been allocated, so we just point to it */
       /* when disposing of the engineState global vars, we do not

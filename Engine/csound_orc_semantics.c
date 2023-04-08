@@ -1562,7 +1562,7 @@ void add_arg(CSOUND* csound, char* varName, char* annotation, TYPE_TABLE* typeTa
     }
 
     var = csoundCreateVariable(csound, csound->typePool,
-                               type, varName, 0, typeArg);
+                               type, varName, typeArg);
     csoundAddVariable(csound, pool, var);
   } else {
     //TODO - implement reference count increment
@@ -1570,7 +1570,7 @@ void add_arg(CSOUND* csound, char* varName, char* annotation, TYPE_TABLE* typeTa
 
 }
 
-void add_array_arg(CSOUND* csound, char* varName, char* annotation, int dimensions,
+void add_array_arg(CSOUND* csound, char* varName, char* annotation,
                    TYPE_TABLE* typeTable) {
   CS_VARIABLE* var;
   char *t;
@@ -1601,12 +1601,11 @@ void add_array_arg(CSOUND* csound, char* varName, char* annotation, int dimensio
     if (varType == NULL) {
       varType = csoundGetTypeWithVarTypeName(csound->typePool, varName);
     }
-    varInit.dimensions = dimensions;
     varInit.type = varType;
     typeArg = &varInit;
 
     var = csoundCreateVariable(csound, csound->typePool, varType,
-                               varName, dimensions, typeArg);
+                               varName, typeArg);
     csoundAddVariable(csound, pool, var);
   } else {
     //TODO - implement reference count increment
@@ -1630,9 +1629,7 @@ int add_args(CSOUND* csound, TREE* tree, TYPE_TABLE* typeTable)
     switch (current->type) {
     case T_ARRAY_IDENT:
       varName = current->value->lexeme;
-      add_array_arg(csound, varName, current->value->optype,
-                    tree_arg_list_count(current->right), typeTable);
-
+      add_array_arg(csound, varName, current->value->optype, typeTable);
       break;
 
     case LABEL_TOKEN:
@@ -1647,7 +1644,7 @@ int add_args(CSOUND* csound, TREE* tree, TYPE_TABLE* typeTable)
       }
 
       if (*varName == 't' && current->value->optype == NULL) { /* Support legacy t-vars */
-        add_array_arg(csound, varName, "k", 1, typeTable);
+        add_array_arg(csound, varName, "k", typeTable);
       } else {
         add_arg(csound, varName, current->value->optype, typeTable);
       }

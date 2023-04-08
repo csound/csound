@@ -134,7 +134,7 @@ void array_copy_value(CSOUND* csound, CS_TYPE* cstype, void* dest, void* src) {
         aDest->data = cs->Calloc(cs, aSrc->arrayMemberSize * arrayNumMembers);
     }
 
-    var = aDest->arrayType->createVariable(cs, aDest->arrayType, aDest->dimensions);
+    var = aDest->arrayType->createVariable(cs, aDest->arrayType);
     for (j = 0; j < arrayNumMembers; j++) {
         int index = j * memMyfltSize;
         if(var->initializeVariableMemory != NULL) {
@@ -180,22 +180,10 @@ void varInitMemoryFsig(CSOUND *csound, CS_VARIABLE* var, MYFLT* memblock) {
 
 /* CREATE VAR FUNCTIONS */
 
-CS_VARIABLE* createAsig(void* cs, void* p, int dimensions) {
-    if (dimensions > 0) {
-        return createArray(cs, p, dimensions);
-    }
-    int ksmps;
-    CSOUND* csound = (CSOUND*)cs;
+CS_VARIABLE* createAsig(void* cs, void* p) {
     IGN(p);
-
-   //FIXME - this needs to take into account local ksmps, once
-    //context work is complete
-//    if (instr != NULL) {
-//      OPDS* p = (OPDS*)instr;
-//      ksmps = CS_KSMPS;
-//    } else {
-    ksmps = csound->ksmps;
-//    }
+    CSOUND* csound = (CSOUND*)cs;
+    int ksmps = csound->ksmps;
 
     CS_VARIABLE* var = csound->Calloc(csound, sizeof (CS_VARIABLE));
     var->memBlockSize = CS_FLOAT_ALIGN(ksmps * sizeof (MYFLT));
@@ -204,10 +192,7 @@ CS_VARIABLE* createAsig(void* cs, void* p, int dimensions) {
     return var;
 }
 
-CS_VARIABLE* createMyflt(void* cs, void* p, int dimensions) {
-    if (dimensions > 0) {
-        return createArray(cs, p, dimensions);
-    }
+CS_VARIABLE* createMyflt(void* cs, void* p) {
     CSOUND* csound = (CSOUND*)cs;
     CS_VARIABLE* var = csound->Calloc(csound, sizeof (CS_VARIABLE));
     IGN(p);
@@ -216,10 +201,7 @@ CS_VARIABLE* createMyflt(void* cs, void* p, int dimensions) {
     return var;
 }
 
-CS_VARIABLE* createBool(void* cs, void* p, int dimensions) {
-    if (dimensions > 0) {
-        return createArray(cs, p, dimensions);
-    }
+CS_VARIABLE* createBool(void* cs, void* p) {
     CSOUND* csound = (CSOUND*)cs;
     CS_VARIABLE* var = csound->Calloc(csound, sizeof (CS_VARIABLE));
     IGN(p);
@@ -228,10 +210,7 @@ CS_VARIABLE* createBool(void* cs, void* p, int dimensions) {
     return var;
 }
 
-CS_VARIABLE* createWsig(void* cs, void* p, int dimensions) {
-    if (dimensions > 0) {
-        return createArray(cs, p, dimensions);
-    }
+CS_VARIABLE* createWsig(void* cs, void* p) {
     CSOUND* csound = (CSOUND*)cs;
     CS_VARIABLE* var = csound->Calloc(csound, sizeof (CS_VARIABLE));
     IGN(p);
@@ -240,10 +219,7 @@ CS_VARIABLE* createWsig(void* cs, void* p, int dimensions) {
     return var;
 }
 
-CS_VARIABLE* createFsig(void* cs, void* p, int dimensions) {
-    if (dimensions > 0) {
-        return createArray(cs, p, dimensions);
-    }
+CS_VARIABLE* createFsig(void* cs, void* p) {
     CSOUND* csound = (CSOUND*)cs;
     CS_VARIABLE* var = csound->Calloc(csound, sizeof (CS_VARIABLE));
     IGN(p);
@@ -253,10 +229,7 @@ CS_VARIABLE* createFsig(void* cs, void* p, int dimensions) {
 }
 
 
-CS_VARIABLE* createString(void* cs, void* p, int dimensions) {
-    if (dimensions > 0) {
-        return createArray(cs, p, dimensions);
-    }
+CS_VARIABLE* createString(void* cs, void* p) {
     CSOUND* csound = (CSOUND*)cs;
     CS_VARIABLE* var = csound->Calloc(csound, sizeof (CS_VARIABLE));
     IGN(p);
@@ -265,14 +238,14 @@ CS_VARIABLE* createString(void* cs, void* p, int dimensions) {
     return var;
 }
 
-CS_VARIABLE* createArray(void* csnd, void* p, int dimensions) {
+CS_VARIABLE* createArray(void* csnd, void* p) {
     CSOUND* csound = (CSOUND*)csnd;
     ARRAY_VAR_INIT* state = (ARRAY_VAR_INIT*)p;
 
     CS_VARIABLE* var = csound->Calloc(csound, sizeof (CS_VARIABLE));
     var->memBlockSize = CS_FLOAT_ALIGN(sizeof(ARRAYDAT));
     var->initializeVariableMemory = &arrayInitMemory;
-    var->dimensions = dimensions;
+    // var->subType = dimensions;
 
     if (state) { // NB: this function is being called with p=NULL
       CS_TYPE* type = state->type;
@@ -326,11 +299,11 @@ void array_free_var_mem(void* csnd, void* p) {
 /* STANDARD TYPE DEFINITIONS */
 const CS_TYPE CS_VAR_TYPE_A = {
     "a", "audio rate vector", CS_ARG_TYPE_BOTH, createAsig, asig_copy_value,
-    NULL, NULL, 0
+    NULL, NULL
 };
 
 const CS_TYPE CS_VAR_TYPE_K = {
-  "k", "control rate var", CS_ARG_TYPE_BOTH, createMyflt, myflt_copy_value, NULL, NULL, 0
+  "k", "control rate var", CS_ARG_TYPE_BOTH, createMyflt, myflt_copy_value, NULL, NULL
 };
 
 const CS_TYPE CS_VAR_TYPE_I = {
@@ -354,28 +327,28 @@ const CS_TYPE CS_VAR_TYPE_C = {
 };
 
 const CS_TYPE CS_VAR_TYPE_W = {
-  "w", "spectral", CS_ARG_TYPE_BOTH, createWsig, wsig_copy_value, NULL, NULL, 0
+  "w", "spectral", CS_ARG_TYPE_BOTH, createWsig, wsig_copy_value, NULL, NULL
 };
 
 const CS_TYPE CS_VAR_TYPE_F = {
-  "f", "f-sig", CS_ARG_TYPE_BOTH, createFsig, fsig_copy_value, NULL, NULL, 0
+  "f", "f-sig", CS_ARG_TYPE_BOTH, createFsig, fsig_copy_value, NULL, NULL
 };
 
 const CS_TYPE CS_VAR_TYPE_B = {
-  "B", "boolean", CS_ARG_TYPE_BOTH, createBool, myflt_copy_value, NULL, NULL, 0
+  "B", "boolean", CS_ARG_TYPE_BOTH, createBool, myflt_copy_value, NULL, NULL
 };
 
 const CS_TYPE CS_VAR_TYPE_b = {
-  "b", "boolean", CS_ARG_TYPE_BOTH, createBool, myflt_copy_value, NULL, NULL, 0
+  "b", "boolean", CS_ARG_TYPE_BOTH, createBool, myflt_copy_value, NULL, NULL
 };
 
 const CS_TYPE CS_VAR_TYPE_ARRAY = {
   "[", "array", CS_ARG_TYPE_BOTH, createArray, array_copy_value,
-  array_free_var_mem, NULL, 0
+  array_free_var_mem, NULL
 };
 
 const CS_TYPE CS_VAR_TYPE_L = {
-  "l", "label", CS_ARG_TYPE_BOTH, NULL, NULL, NULL, NULL, 0
+  "l", "label", CS_ARG_TYPE_BOTH, NULL, NULL, NULL, NULL
 };
 
 CS_TYPE* csoundFindStandardTypeWithChar(char rateChar) {

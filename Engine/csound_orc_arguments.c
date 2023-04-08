@@ -399,8 +399,7 @@ OENTRY* resolve_opcode_with_orc_args(
                         }
                     } else if (check_satisfies_expected_input(
                         currentArg->cstype,
-                        current,
-                        dimensionsNeeded > 0)
+                        current)
                     ) {
                         if (
                             skipOutargs &&
@@ -823,7 +822,7 @@ static CSOUND_ORC_ARGUMENT* resolve_single_argument_from_tree(
                 tree->right->value != NULL &&
                 *tree->right->value->lexeme == '['
             ) {
-                TREE* currentBracketNode = tree->right;
+                // TREE* currentBracketNode = tree->right;
                 arg->cstype = (CS_TYPE*) &CS_VAR_TYPE_ARRAY;
             }
             // lack of break is intended
@@ -1581,7 +1580,7 @@ int verify_opcode_2(
             for (int i = 0; i < entries->count; i++) {
                 oentry = entries->entries[i];
                 if (
-                    firstRightArg->dimensions == 0 &&
+                    firstRightArg->cstype == (CS_TYPE*) &CS_VAR_TYPE_ARRAY &&
                     strcmp(oentry->opname, "##array_set") == 0
                 ) {
                     // vaops has nothing after array_set oentry name

@@ -114,7 +114,7 @@ static int32_t array_init(CSOUND *csound, ARRAYINIT *p)
     {
       // create the var just for getting the initializeVariableMemory we need
       CS_VARIABLE* var = arrayDat->arrayType->createVariable(
-        csound,arrayDat->arrayType, 0
+        csound,arrayDat->arrayType
       );
 
       char *mem;
@@ -2812,7 +2812,7 @@ static int32_t tabcopyk(CSOUND *csound, TABCPY *p)
         memset(p->dst->data, 0, p->src->arrayMemberSize * arrayTotalSize);
       }
     }
- 
+
     for (i = 0; i < arrayTotalSize; i++) {
       int32_t index = (i * memMyfltSize);
       p->dst->arrayType->copyValue(csound, p->dst->arrayType,
@@ -4011,7 +4011,7 @@ static inline void tabensure2D(CSOUND *csound, ARRAYDAT *p,
         (p->dimensions==2 && (p->sizes[0] < rows || p->sizes[1] < columns))) {
       size_t ss;
       if (p->data == NULL) {
-        CS_VARIABLE* var = p->arrayType->createVariable(csound, NULL, 2);
+        CS_VARIABLE* var = p->arrayType->createVariable(csound, NULL);
         p->arrayMemberSize = var->memBlockSize;
       }
       ss = p->arrayMemberSize*rows*columns;

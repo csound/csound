@@ -43,7 +43,7 @@ extern "C" {
         char* varTypeName;
         char* varDescription;
         int argtype; // used to denote if allowed as in-arg, out-arg, or both
-        struct csvariable* (*createVariable)(void*, void*, int);
+        struct csvariable* (*createVariable)(void*, void*);
         void (*copyValue)(CSOUND* csound, struct cstype* cstype, void* dest, void* src);
         void (*freeVariableMemory)(void* csound, void* varMem);
         CONS_CELL* members;

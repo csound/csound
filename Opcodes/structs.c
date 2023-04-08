@@ -71,7 +71,8 @@ static int32_t struct_member_get(CSOUND *csound, STRUCT_GET *p)
     CS_STRUCT_VAR* varIn = p->var;
     int nthInt = (int) *p->nths[0];
     CS_VAR_MEM* member = varIn->members[nthInt];
-    int memberDimensions = varIn->dimensions[nthInt];
+    // FIXME: This is a hack to get around the fact that we don't have
+    int memberDimensions = 0; //varIn->dimensions[nthInt];
     if (memberDimensions > 0) {
         struct_array_member_assign(
             (ARRAYDAT*) &member->value,
@@ -122,7 +123,6 @@ static int struct_array_get(
     CS_STRUCT_VAR* srcVar = (CS_STRUCT_VAR*)(mem+index*arrayDat->arrayMemberSize);
     CS_STRUCT_VAR* dstVar = (CS_STRUCT_VAR*) dat->out;
     dstVar->members = srcVar->members;
-    dstVar->dimensions = srcVar->dimensions;
     return OK;
 }
 

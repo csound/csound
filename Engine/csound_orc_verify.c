@@ -84,8 +84,7 @@ int check_satisfies_krate_input(
 
 int check_satisfies_expected_input(
     CS_TYPE* cstype,
-    char* typeIdent,
-    int isArray
+    char* typeIdent
 ) {
     int isArray = cstype == (CS_TYPE*) &CS_VAR_TYPE_ARRAY;
     if (is_wildcard_type(typeIdent)) {
