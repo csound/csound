@@ -2487,7 +2487,9 @@ TREE* verify_tree(CSOUND * csound, TREE *root, TYPE_TABLE* typeTable)
           previous->next = current;
         }
       }
-
+      TREE* current2 = copy_node(csound, current);
+      current2->next = NULL;
+      print_tree(csound, "TREE\n", current2);
       if(!verify_opcode_2(csound, current, typeTable)) {
         return 0;
       }

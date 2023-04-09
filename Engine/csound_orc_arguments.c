@@ -343,19 +343,8 @@ OENTRY* resolve_opcode_with_orc_args(
                 int isUserDefinedType = currentArg->cstype != NULL &&
                     currentArg->cstype->userDefinedType;
                 int currentArgTextLength = 1;
-                // FIXME: count dimensions
-                int dimensionsNeeded = currentArg->subType == NULL ? 0 : 1;
-                int dimensionsFound = 0;
-
-                if (
-                    dimensionsNeeded > 0 &&
-                    is_internal_array_opcode(temp->opname)
-                ) {
-                    // ##array_get and ##array_set can work
-                    // on any dimension and its
-                    // intypes are non-specifc about it
-                    dimensionsNeeded = 1;
-                }
+                int isArrayArg = currentArg->cstype == (CS_TYPE*) &CS_VAR_TYPE_ARRAY;
+                int isArrayParameter = 0;
 
                 if (isUserDefinedType) {
                     if (*current == '.') {
@@ -420,7 +409,7 @@ OENTRY* resolve_opcode_with_orc_args(
                     current += currentArgTextLength;
                     while (*current == '[' || *current == ']') {
                         if (*current == '[') {
-                            dimensionsFound += 1;
+                            isArrayParameter = 1;
                         }
                         current += 1;
                     }
@@ -429,7 +418,7 @@ OENTRY* resolve_opcode_with_orc_args(
                         current += 1;
                     }
 
-                    if (dimensionsNeeded != dimensionsFound) {
+                    if (isArrayParameter != isArrayArg) {
                         inArgsMatch = 0;
                         break;
                     }
@@ -464,16 +453,9 @@ OENTRY* resolve_opcode_with_orc_args(
                 int isUserDefinedType = currentArg->cstype != NULL ?
                     currentArg->cstype->userDefinedType :
                     0;
-                // FIXME: count dimensions
-                int dimensionsNeeded = currentArg->subType == NULL ? 0 : 1;
+                int isArrayArg = currentArg->cstype == (CS_TYPE*) &CS_VAR_TYPE_ARRAY;
+                int isArrayParameter = 0;
 
-                if (dimensionsNeeded > 0 && isInitOpcode) {
-                    // init family of opcodes intypes are non-specific
-                    // about the level of dimensions
-                    dimensionsNeeded = 1;
-                }
-
-                int dimensionsFound = 0;
                 if (isUserDefinedType && *current == '.') {
                     outArgsMatch = 1;
                 } else if (isUserDefinedType) {
@@ -503,7 +485,7 @@ OENTRY* resolve_opcode_with_orc_args(
                 current += currentArgTextLength;
                 while (*current == '[' || *current == ']') {
                     if (*current == '[') {
-                        dimensionsFound += 1;
+                        isArrayParameter = 1;
                     }
                     current += 1;
                 }
@@ -511,8 +493,7 @@ OENTRY* resolve_opcode_with_orc_args(
                     current += 1;
                 }
                 if (
-                    (dimensionsNeeded > dimensionsFound &&
-                    dimensionsFound > 0)
+                    isArrayParameter && !isArrayArg
                 ) {
                     // some opcodes like fillarray allow operating
                     // a pointer-like reference on the array
@@ -532,7 +513,7 @@ OENTRY* resolve_opcode_with_orc_args(
                         outArgsMatch = 0;
                         break;
                     }
-                } else if (dimensionsNeeded != dimensionsFound) {
+                } else if (isArrayArg != isArrayParameter) {
                     outArgsMatch = 0;
                     break;
                 }
@@ -847,6 +828,7 @@ static CSOUND_ORC_ARGUMENT* resolve_single_argument_from_tree(
             if (var != NULL) {
                 // already defined
                 arg->cstype = var->varType;
+                arg->subType = var->subType;
                 var->refCount += 1;
                 break;
             }
@@ -1565,8 +1547,8 @@ int verify_opcode_2(
             entries = find_opcode2(csound, root->value->lexeme);
         } else if (
             inArgsIncludeKrate &&
-            (arrayArg->cstype == (CS_TYPE*) &CS_VAR_TYPE_I ||
-             arrayArg->cstype == (CS_TYPE*) &CS_VAR_TYPE_K)
+            (arrayArg->subType == (CS_TYPE*) &CS_VAR_TYPE_I ||
+             arrayArg->subType == (CS_TYPE*) &CS_VAR_TYPE_K)
         ) {
             // lookup exception: explicly set k-rate array
             for (int i = 0; i < entries->count; i++) {
