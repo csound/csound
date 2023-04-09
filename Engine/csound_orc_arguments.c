@@ -148,7 +148,7 @@ static char* make_arglist_string(
                     "." :
                     arg->text
             );
-        int dimensions = arg->subType == NULL ? 1 : 0;
+        int dimensions = arg->subType == NULL ? 0 : 1;
         while (dimensions > 0) {
             p += sprintf(p, "%s", "[]");
             dimensions -= 1;
@@ -917,9 +917,15 @@ static CSOUND_ORC_ARGUMENT* resolve_single_argument_from_tree(
                     }
 
                 } else {
-                    arg->cstype = csoundFindStandardTypeWithChar(
+                    CS_TYPE* tmptype = csoundFindStandardTypeWithChar(
                         *ident == 'g' ? ident[1] : ident[0]
                     );
+                    if (arg->cstype == NULL) {
+                        arg->cstype = tmptype;
+                    } else {
+                        arg->subType = tmptype;
+                    }
+
                 }
 
                 var = add_arg_to_pool(
@@ -1169,7 +1175,7 @@ static void initialize_inferred_variables(
                     !firstRightArg->cstype->userDefinedType
                 ) {
                     // array_get/set
-                    currentArg->cstype = firstRightArg->cstype;
+                    currentArg->cstype = firstRightArg->subType;
                 } else {
                     // member_get/set
                     secondRightArg = rightSideArgs->list->next->value;
@@ -1541,6 +1547,8 @@ int verify_opcode_2(
         strcmp(root->value->lexeme, "##array_get") == 0
     ) {
         CSOUND_ORC_ARGUMENT* arrayArg = rightSideArgs->list->value;
+        // CSOUND_ORC_ARGUMENT* arrayOutArg = leftSideArgs->list->value;
+
         if (rightSideArgs->nth(rightSideArgs, 0)->cstype->userDefinedType) {
             csound->Free(csound, root->value->lexeme);
             root->value->lexeme = csound->Strdup(csound, "##array_get_struct");
@@ -1558,6 +1566,17 @@ int verify_opcode_2(
                 }
             }
         }
+
+        // if (arrayOutArg->cstype == NULL) {
+        //     arrayOutArg->cstype = arrayArg->subType;
+        //     leftSideArgs = get_arguments_from_tree(
+        //         csound,
+        //         leftSideArgs,
+        //         left,
+        //         typeTable,
+        //         1
+        //     );
+        // }
 
     }
 
