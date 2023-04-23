@@ -1436,7 +1436,7 @@ typedef struct _message_queue_t_ {
     /** @name Placeholders
         To allow the API to grow while maintining backward binary compatibility. */
     /**@{ */
-    SUBR dummyfn_2[22];
+    SUBR dummyfn_2[14];
     /**@}*/
 #ifdef __BUILDING_LIBCSOUND
     /* ------- private data (not to be used by hosts or externals) ------- */
