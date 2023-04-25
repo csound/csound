@@ -1631,9 +1631,12 @@ int xoutset(CSOUND *csound, XOUT *p)
   CS_VARIABLE* current;
   int i;
 
+
+
   (void) csound;
   buf = (OPCOD_IOBUFS*) p->h.insdshead->opcod_iobufs;
   inm = buf->opcode_info;
+
   bufs = ((UOPCODE*) buf->uopcode_struct)->ar;
   tmp = buf->iobufp_ptrs; // this is used to record the UDO's internal vars
   // for copying at perf-time
@@ -1645,9 +1648,9 @@ int xoutset(CSOUND *csound, XOUT *p)
     tmp[i] = in;
     // DO NOT COPY K or A vars
     // Fsigs need to be copied for initialization purposes.
-    if (csoundGetTypeForArg(in) != &CS_VAR_TYPE_K &&
+    if ((csoundGetTypeForArg(in) != &CS_VAR_TYPE_K  &&
         /*csoundGetTypeForArg(in) != &CS_VAR_TYPE_F &&*/
-        csoundGetTypeForArg(in) != &CS_VAR_TYPE_A)
+         csoundGetTypeForArg(in) != &CS_VAR_TYPE_A) || inm->outtypes[i] == 'K')
       current->varType->copyValue(csound, out, in);
     current = current->next;
   }
