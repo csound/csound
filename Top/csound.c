@@ -552,7 +552,7 @@ static const CSOUND cenviron_ = {
     cs_hash_table_get,
     cs_hash_table_put,
     cs_hash_table_remove,
-    cs_hash_table_mfree_complete,
+    cs_hash_table_free,
     cs_hash_table_get_key,
     cs_hash_table_keys,
     cs_hash_table_values,
