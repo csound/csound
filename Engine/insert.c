@@ -1643,15 +1643,14 @@ int xoutset(CSOUND *csound, XOUT *p)
   current = inm->out_arg_pool->head;
 
   for (i = 0; i < inm->outchns; i++) {
-    void* in = (void*)p->args[i];
+    void* in = (void*) p->args[i];
     void* out = (void*)bufs[i];
     tmp[i] = in;
     // DO NOT COPY K or A vars
     // Fsigs need to be copied for initialization purposes.
-    if ((csoundGetTypeForArg(in) != &CS_VAR_TYPE_K  &&
-        /*csoundGetTypeForArg(in) != &CS_VAR_TYPE_F &&*/
-         csoundGetTypeForArg(in) != &CS_VAR_TYPE_A) || inm->outtypes[i] == 'K')
+    if (inm->outtypes_cpy[i] != 'k' && csoundGetTypeForArg(in) != &CS_VAR_TYPE_A)
       current->varType->copyValue(csound, out, in);
+    // printf("%c \n",   inm->outtypes_cpy[i]);
     current = current->next;
   }
 
