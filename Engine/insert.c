@@ -1650,7 +1650,7 @@ int xoutset(CSOUND *csound, XOUT *p)
     // Fsigs need to be copied for initialization purposes.
     if (inm->outtypes_cpy[i] != 'k' && csoundGetTypeForArg(in) != &CS_VAR_TYPE_A)
       current->varType->copyValue(csound, out, in);
-    printf("%c \n",   inm->outtypes_cpy[i]);
+    //printf("%c \n",   inm->outtypes_cpy[i]);
     current = current->next;
   }
 
