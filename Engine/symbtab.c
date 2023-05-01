@@ -578,8 +578,8 @@ int add_udo_definition(CSOUND *csound, char *opname,
     /* store the name in a linked list (note: must use csound->Calloc) */
     inm = (OPCODINFO *) csound->Calloc(csound, sizeof(OPCODINFO));
     inm->name = cs_strdup(csound, opname);
-    inm->intypes = intypes;
-    inm->outtypes = outtypes;
+    inm->intypes = cs_strdup(csound, intypes);
+    inm->outtypes = cs_strdup(csound, outtypes);
     
     inm->in_arg_pool = csoundCreateVarPool(csound);
     inm->out_arg_pool = csoundCreateVarPool(csound);
