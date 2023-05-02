@@ -317,8 +317,6 @@ static int parse_opcode_args(CSOUND *csound, OENTRY *opc)
     }
     in_args = splitArgs(csound, intypes);
     out_args = splitArgs(csound, inm->outtypes);
-    inm->outtypes_cpy = cs_strdup(csound, inm->outtypes);
-    
 
     if (UNLIKELY(in_args == NULL)) {
       synterr(csound,

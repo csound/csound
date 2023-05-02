@@ -944,7 +944,6 @@ typedef struct NAME__ {
     CS_VAR_POOL* in_arg_pool;
     INSTRTXT *ip;
     struct opcodinfo *prv;
-    char *outtypes_cpy;
   } OPCODINFO;
 
   /**

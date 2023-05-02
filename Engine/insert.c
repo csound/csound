@@ -1648,9 +1648,9 @@ int xoutset(CSOUND *csound, XOUT *p)
     tmp[i] = in;
     // DO NOT COPY K or A vars
     // Fsigs need to be copied for initialization purposes.
-    if (inm->outtypes_cpy[i] != 'k' && csoundGetTypeForArg(in) != &CS_VAR_TYPE_A)
+    if (inm->outtypes[i] != 'k' && csoundGetTypeForArg(in) != &CS_VAR_TYPE_A)
       current->varType->copyValue(csound, out, in);
-    //printf("%c \n",   inm->outtypes_cpy[i]);
+    //printf("%c \n",   inm->outtypes[i]);
     current = current->next;
   }
 
