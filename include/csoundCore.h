@@ -1432,11 +1432,12 @@ typedef struct _message_queue_t_ {
     char *(*GetHashTableKey)(CSOUND *, CS_HASH_TABLE *, char *);
     CONS_CELL *(*GetHashTableKeys)(CSOUND *, CS_HASH_TABLE *);
     CONS_CELL *(*GetHashTableValues)(CSOUND *, CS_HASH_TABLE *);
+    int (*PeekCircularBuffer)(CSOUND *csound, void *p, void *out, int items);
     /**@}*/
     /** @name Placeholders
         To allow the API to grow while maintining backward binary compatibility. */
     /**@{ */
-    SUBR dummyfn_2[14];
+    SUBR dummyfn_2[13];
     /**@}*/
 #ifdef __BUILDING_LIBCSOUND
     /* ------- private data (not to be used by hosts or externals) ------- */
