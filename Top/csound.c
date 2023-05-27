@@ -544,9 +544,10 @@ static const CSOUND cenviron_ = {
     cs_hash_table_get_key,
     cs_hash_table_keys,
     cs_hash_table_values,
+    csoundPeekCircularBuffer,
     {
       NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
-      NULL, NULL, NULL, NULL
+      NULL, NULL, NULL
     },
     /* ------- private data (not to be used by hosts or externals) ------- */
     /* callback function pointers */
