@@ -477,20 +477,7 @@ int CsoundPerformanceThread::Perform()
     status = retval;
     csoundCleanup(csound);
     // delete any pending messages
-    csoundLockMutex(queueLock);
-    {
-      CsoundPerformanceThreadMessage *msg;
-      msg = (CsoundPerformanceThreadMessage*) firstMessage;
-      firstMessage = (CsoundPerformanceThreadMessage*) 0;
-      lastMessage = (CsoundPerformanceThreadMessage*) 0;
-      while (msg) {
-        CsoundPerformanceThreadMessage *nxt = msg->nxt;
-        delete msg;
-        msg = nxt;
-      }
-    }
-    csoundNotifyThreadLock(flushLock);
-    csoundUnlockMutex(queueLock);
+    ClearEvents();
     //running = 0;
     return retval;
 }
@@ -511,6 +498,23 @@ class CsPerfThread_PerformScore {
     {
     }
 };
+
+void CsoundPerformanceThread::ClearEvents() {
+    csoundLockMutex(queueLock);
+    {
+      CsoundPerformanceThreadMessage *msg;
+      msg = (CsoundPerformanceThreadMessage*) firstMessage;
+      firstMessage = (CsoundPerformanceThreadMessage*) 0;
+      lastMessage = (CsoundPerformanceThreadMessage*) 0;
+      while (msg) {
+        CsoundPerformanceThreadMessage *nxt = msg->nxt;
+        delete msg;
+        msg = nxt;
+      }
+    }
+    csoundNotifyThreadLock(flushLock);
+    csoundUnlockMutex(queueLock);
+}
 
 extern "C" {
   static uintptr_t csoundPerformanceThread_(void *userData)
