@@ -211,6 +211,10 @@ class PUBLIC CsoundPerformanceThread {
      */
     void InputMessage(const char *s);
     /**
+     * Clear previous score events. To start fresh, first, SetScoreOffsetSeconds(0), and then, ClearEvents().
+     */
+    void ClearEvents();
+    /**
      * Sets the playback time pointer to the specified value (in seconds).
      */
     void SetScoreOffsetSeconds(double timeVal);
