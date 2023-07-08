@@ -29,18 +29,17 @@ jobs:
 
       - name: Setup NuGet credentials
         shell: bash
-        run: >
-          mono `./vcpkg/vcpkg fetch nuget | tail -n 1`
-          sources add
-          -source "https://nuget.pkg.github.com/csound/index.json"
-          -storepasswordincleartext
-          -name "GitHub"
-          -username "csound"
+        run: |
+          mono `./vcpkg/vcpkg fetch nuget | tail -n 1` \
+          sources add \
+          -source "https://nuget.pkg.github.com/csound/index.json" \
+          -storepasswordincleartext \
+          -name "GitHub" \
+          -username "csound" \
           -password "${{ secrets.GITHUB_TOKEN }}"
-
-          mono `./vcpkg/vcpkg fetch nuget | tail -n 1`
-          setapikey "${{ secrets.GITHUB_TOKEN }}"
-          -source "https://nuget.pkg.github.com/csound/index.json"
+          mono `./vcpkg/vcpkg fetch nuget | tail -n 1` \
+            setapikey "${{ secrets.GITHUB_TOKEN }}" \
+            -source "https://nuget.pkg.github.com/csound/index.json"
 
       - name: Install dependencies
         run: |
@@ -71,18 +70,17 @@ jobs:
 
       - name: Setup NuGet credentials
         shell: bash
-        run: >
-          mono `./vcpkg/vcpkg fetch nuget | tail -n 1`
-          sources add
-          -source "https://nuget.pkg.github.com/csound/index.json"
-          -storepasswordincleartext
-          -name "GitHub"
-          -username "csound"
+        run: |
+          mono `./vcpkg/vcpkg fetch nuget | tail -n 1` \
+          sources add \
+          -source "https://nuget.pkg.github.com/csound/index.json" \
+          -storepasswordincleartext \
+          -name "GitHub" \
+          -username "csound" \
           -password "${{ secrets.GITHUB_TOKEN }}"
-
-          mono `./vcpkg/vcpkg fetch nuget | tail -n 1`
-          setapikey "${{ secrets.GITHUB_TOKEN }}"
-          -source "https://nuget.pkg.github.com/csound/index.json"
+          mono `./vcpkg/vcpkg fetch nuget | tail -n 1` \
+            setapikey "${{ secrets.GITHUB_TOKEN }}" \
+            -source "https://nuget.pkg.github.com/csound/index.json"
 
       - name: Install dependencies
         run: brew install bison@2.7 flex asio jack
@@ -115,14 +113,17 @@ jobs:
 
       - name: Setup NuGet Credentials
         shell: bash
-        run: >
-          `./vcpkg/vcpkg fetch nuget | tail -n 1`
-          sources add
-          -source "https://nuget.pkg.github.com/csound/index.json"
-          -storepasswordincleartext
-          -name "GitHub"
-          -username "csound"
+        run: |
+          ./vcpkg/vcpkg fetch nuget | tail -n 1 \
+          sources add \
+          -source "https://nuget.pkg.github.com/csound/index.json" \
+          -storepasswordincleartext \
+          -name "GitHub" \
+          -username "csound" \
           -password "${{ secrets.GITHUB_TOKEN }}"
+          ./vcpkg/vcpkg fetch nuget | tail -n 1 \
+            setapikey "${{ secrets.GITHUB_TOKEN }}" \
+            -source "https://nuget.pkg.github.com/csound/index.json"
 
       - name: Configure build
         run: cmake -B build -S . -DUSE_VCPKG=1 -DCUSTOM_CMAKE="./platform/windows/Custom-vs.cmake"
