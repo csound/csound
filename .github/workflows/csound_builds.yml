@@ -114,7 +114,7 @@ jobs:
       - name: Setup NuGet Credentials
         shell: bash
         run: |
-          ./vcpkg/vcpkg fetch nuget | tail -n 1 \
+          `./vcpkg/vcpkg fetch nuget | tail -n 1` \
           sources add \
           -source "https://nuget.pkg.github.com/csound/index.json" \
           -storepasswordincleartext \
