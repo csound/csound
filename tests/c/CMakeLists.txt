@@ -29,6 +29,8 @@ if(BUILD_TESTS AND BUILD_STATIC_LIBRARY AND GTest_FOUND)
     if(USE_VCPKG)
         find_package(GTest CONFIG REQUIRED)
 
+        set_property(TARGET unittests PROPERTY CXX_STANDARD 14)
+
         target_link_libraries(unittests PRIVATE
             GTest::gtest_main ${CSOUNDLIB_STATIC} SndFile::sndfile)
     else ()
