@@ -17,10 +17,6 @@ list(APPEND CMAKE_REQUIRED_INCLUDES "/usr/local/include")
 
 # FIND LIBRARIES AND HEADERS
 
-if(USE_ALSA AND LINUX)
-    find_library(ALSA_LIBRARY asound)
-    check_include_file(alsa/asoundlib.h ALSA_HEADER)
-endif()
 if(USE_PORTAUDIO)
     # FIXME the msvc branch should use the VCPKG config file for portaudio but it's currently broken
     # if(MSVC)
@@ -108,11 +104,18 @@ if(APPLE)
         target_link_libraries(rtauhal ${AUDIOUNIT_LIBRARY} ${COREFOUNDATION_LIBRARY} ${COREAUDIO_LIBRARY})
 endif()
 
-check_deps(USE_ALSA ALSA_HEADER ALSA_LIBRARY PTHREAD_LIBRARY)
 if(USE_ALSA)
-    set(rtalsa_LIBS
-        ${ALSA_LIBRARY} ${PTHREAD_LIBRARY} ${MATH_LIBRARY})
-    make_plugin(rtalsa rtalsa.c ${rtalsa_LIBS})
+    if (USE_VCPKG)
+        find_package(ALSA MODULE REQUIRED)
+        make_plugin(rtalsa rtalsa.c ALSA::ALSA)
+    else()
+        find_library(ALSA_LIBRARY asound)
+        check_deps(ALSA_HEADER ALSA_LIBRARY PTHREAD_LIBRARY)
+        check_include_file(alsa/asoundlib.h ALSA_HEADER)
+        set(rtalsa_LIBS
+            ${ALSA_LIBRARY} ${PTHREAD_LIBRARY} ${MATH_LIBRARY})
+        make_plugin(rtalsa rtalsa.c ${rtalsa_LIBS})
+    endif()
 endif()
 
 if(WIN32)
