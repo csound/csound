@@ -121,7 +121,7 @@ jobs:
           -name "GitHub" \
           -username "csound" \
           -password "${{ secrets.GITHUB_TOKEN }}"
-          ./vcpkg/vcpkg fetch nuget | tail -n 1 \
+          `./vcpkg/vcpkg fetch nuget | tail -n 1` \
             setapikey "${{ secrets.GITHUB_TOKEN }}" \
             -source "https://nuget.pkg.github.com/csound/index.json"
 
