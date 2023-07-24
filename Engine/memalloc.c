@@ -207,13 +207,13 @@ void *mrealloc(CSOUND *csound, void *oldp, size_t size)
     /* allocate memory */
     p = realloc((void*) pp, ALLOC_BYTES(size));
     if (UNLIKELY(p == NULL)) {
-#ifdef MEMDEBUG
-      CSOUND_MEM_SPINLOCK
-      /* alloc failed, restore original header */
-      pp->magic = MEMALLOC_MAGIC;
-      pp->ptr = oldp;
-      CSOUND_MEM_SPINUNLOCK
-#endif
+// #ifdef MEMDEBUG
+//       CSOUND_MEM_SPINLOCK
+//       /* alloc failed, restore original header */
+//       pp->magic = MEMALLOC_MAGIC;
+//       pp->ptr = oldp;
+//       CSOUND_MEM_SPINUNLOCK
+// #endif
       memdie(csound, size);
       return NULL;
     }

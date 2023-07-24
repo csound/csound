@@ -63,9 +63,9 @@ void print_csound_version(CSOUND*);
 
 #ifdef HAVE_PTHREAD_SPIN_LOCK
 #define RT_SPIN_UNLOCK \
-if(csound->oparms->realtime) \
+if(csound->oparms->realtime) { \
   csoundSpinUnLock(&csound->alloc_spinlock); \
-  trylock = CSOUND_SUCCESS; } }
+  trylock = CSOUND_SUCCESS; } } }
 #else
 #define RT_SPIN_UNLOCK csoundSpinUnLock(&csound->alloc_spinlock);
 #endif
