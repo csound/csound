@@ -206,6 +206,7 @@ void *mrealloc(CSOUND *csound, void *oldp, size_t size)
 #endif
     /* allocate memory */
     p = realloc((void*) pp, ALLOC_BYTES(size));
+    pp = p;
     if (UNLIKELY(p == NULL)) {
 #ifdef MEMDEBUG
       CSOUND_MEM_SPINLOCK
