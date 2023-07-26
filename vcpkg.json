@@ -10,10 +10,7 @@
         "liblo",
         "gtest",
         {
-            "name": "portaudio",
-            "features": [
-                "asio"
-            ]
+            "name": "portaudio"
         },
         {
             "name": "dirent",
