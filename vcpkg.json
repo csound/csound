@@ -1,14 +1,20 @@
 {
     "$schema": "https://raw.githubusercontent.com/microsoft/vcpkg-tool/main/docs/vcpkg.schema.json",
     "name": "csound",
-    "version-string": "7.0.0",
-    "builtin-baseline": "dafef74af53669ef1cc9015f55e0ce809ead62aa",
+    "version-string": "6.18.1",
+    "builtin-baseline": "5b081066f0740e54bdcbe4d0772d85dbb1d8e266",
     "dependencies": [
         "zlib",
         "libsamplerate",
         "portmidi",
-        "portaudio",
         "liblo",
+        "gtest",
+        {
+            "name": "portaudio",
+            "features": [
+                "asio"
+            ]
+        },
         {
             "name": "dirent",
             "platform": "windows"
@@ -23,7 +29,6 @@
             "name": "gettext",
             "platform": "linux"
         },
-        "gtest",
         {
             "name": "gettext",
             "platform": "osx"
