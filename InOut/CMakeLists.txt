@@ -18,32 +18,11 @@ list(APPEND CMAKE_REQUIRED_INCLUDES "/usr/local/include")
 # FIND LIBRARIES AND HEADERS
 
 if(USE_PORTAUDIO)
-    # FIXME the msvc branch should use the VCPKG config file for portaudio but it's currently broken
-    # if(MSVC)
-        # find_package(PORTAUDIO CONFIG REQUIRED)
-    # else()
     if (USE_VCPKG)
         find_package(portaudio CONFIG REQUIRED)
     else()
         find_package(portaudio REQUIRED)
     endif()
-    # endif()
-
-    # find_path(PORTAUDIO_INCLUDE_PATH portaudio.h)
-    # find_library(PORTAUDIO_LIBRARY NAMES portaudio portaudio_x64)
-
-    # if(PORTAUDIO_INCLUDE_PATH AND PORTAUDIO_LIBRARY)
-    #     try_run(PORTAUDIO_V19 PORTAUDIO_TEST_COMPILED
-    #         ${CMAKE_BINARY_DIR} ${CMAKE_CURRENT_SOURCE_DIR}/../cmake/portaudio_test.c
-    #         CMAKE_FLAGS -DLINK_LIBRARIES:STRING=${PORTAUDIO_LIBRARY}
-    #         COMPILE_DEFINITIONS "-I${PORTAUDIO_INCLUDE_PATH}"
-    #         COMPILE_OUTPUT_VARIABLE OUTPUT)
-    #     if(NOT PORTAUDIO_TEST_COMPILED AND NOT WIN32)
-    #         set(PORTAUDIO_V19 false)
-    #     endif()
-    # else()
-    #     set(PORTAUDIO_V19 false)
-    # endif()
 endif()
 if(USE_PORTMIDI)
     if(USE_VCPKG)
