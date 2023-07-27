@@ -15,7 +15,37 @@ on:
 
 jobs:
   linux_build:
-    name: Linux/Ubuntu build
+    name: Linux/Ubuntu build (apt-get)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Source Code
+        uses: actions/checkout@v1
+        with:
+          fetch-depth: 1
+
+      - name: Install Dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install cmake libsndfile1-dev libasound2-dev libjack-dev portaudio19-dev libportmidi-dev libpulse-dev swig liblua5.1-0-dev default-jdk libfltk1.1-dev libfluidsynth-dev liblo-dev fluid ladspa-sdk libpng-dev dssi-dev libstk0-dev libgmm++-dev bison flex libportsmf-dev libeigen3-dev libcunit1-dev
+
+      - name: Configure build
+        run: |
+          mkdir build
+          cd build
+          cmake .. -DUSE_MP3=0
+
+      - name: Build Csound
+        run: |
+          cd build
+          make
+
+      - name: Run tests
+        run: |
+          cd build
+          make test csdtests
+
+  linux_build_vcpkg:
+    name: Linux/Ubuntu build (vcpkg)
     runs-on: ubuntu-latest
     steps:
       - name: Checkout source code
