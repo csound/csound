@@ -1,8 +1,10 @@
 cmake_minimum_required(VERSION 3.5)
+cmake_policy(SET CMP0077 NEW)
 
 # silence RPATH cmake warning
 set(CMAKE_MACOSX_RPATH 1)
 set(CMAKE_EXPORT_COMPILE_COMMANDS 1)
+set(CMAKE_OSX_DEPLOYMENT_TARGET 11)
 
 
 option(USE_VCPKG "Use VCPKG to download and manage dependencies" OFF)
@@ -14,7 +16,7 @@ if (USE_VCPKG)
     elseif(APPLE)
         set(VCPKG_TARGET_TRIPLET "x64-osx")
     elseif (UNIX)
-        set(VCPKG_TARGET_TRIPLET "x64-linux")
+        set(VCPKG_TARGET_TRIPLET "x64-linux-csound")
     endif()
 
     set(VCPKG_FEATURE_FLAGS versions)
@@ -412,8 +414,6 @@ else()
     set(LINUX NO)
 endif()
 
-
-
 if(LINUX)
     set(DEFAULT_OPCODEDIR "${PLUGIN_INSTALL_DIR}")
     add_definitions("-DCS_DEFAULT_PLUGINDIR=\"${DEFAULT_OPCODEDIR}\"")
@@ -467,7 +467,8 @@ SET(BUILD_SHARED_LIBS ON)
 if(USE_LIBSNDFILE)
  set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -DUSE_LIBSNDFILE")
  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DUSE_LIBSNDFILE")
- if(MSVC)
+
+ if(USE_VCPKG)
     find_package(SndFile CONFIG REQUIRED)
  else()
     find_library(LIBSNDFILE_LIBRARY NAMES sndfile libsndfile-1 libsndfile)
@@ -510,27 +511,8 @@ endif()
 
 
 find_package(CURL)
-#set(FLTK_SKIP_OPENGL true)
-#find_package(FLTK)
 find_package(Java)
 find_package(JNI)
-#find_package(MUSICXML)
-#find_package(Python)
-#find_package(VSTSDK2X)
-
-# TODO should this work for MSVC also?
-if(WIN32)
-  find_library(FLAC_LIB NAMES FLAC flac)
-  find_library(OGG_LIB ogg)
-  find_library(SPEEX_LIB speex)
-  find_library(VORBIS_LIB vorbis)
-  find_library(VORBISENC_LIB vorbisenc)
-  set(LIBSNDFILE_SUPPORT_LIBS ${VORBIS_LIB} ${VORBISENC_LIB} ${FLAC_LIB} ${OGG_LIB})
-  if(SPEEX_LIB)
-    list(APPEND LIBSNDFILE_SUPPORT_LIBS ${SPEEX_LIB} )
-  endif()
-  #message(STATUS "${LIBSNDFILE_SUPPORT_LIBS}")
-endif()
 
 
 if(NOT MSVC AND REQUIRE_PTHREADS)
@@ -1215,7 +1197,6 @@ endif()
 
 if(WIN32)
     list(APPEND libcsound_LIBS "${CSOUND_WINDOWS_LIBRARIES}")
-    list(APPEND libcsound_LIBS "${LIBSNDFILE_SUPPORT_LIBS}")
 endif()
 
 if(USE_CURL AND CURL_FOUND)
@@ -1361,9 +1342,13 @@ endif()
 
 target_compile_options(${CSOUNDLIB} PRIVATE ${libcsound_CFLAGS})
 if(MSVC)
-    target_link_libraries(${CSOUNDLIB} PRIVATE SndFile::sndfile ws2_32)
+    target_link_libraries(${CSOUNDLIB} PRIVATE ws2_32)
 else()
     target_link_libraries(${CSOUNDLIB} PRIVATE ${libcsound_LIBS})
+endif()
+
+if(USE_VCPKG)
+    target_link_libraries(${CSOUNDLIB} PRIVATE SndFile::sndfile)
 endif()
 
 set_target_properties(${CSOUNDLIB} PROPERTIES
@@ -1382,7 +1367,7 @@ if(BUILD_STATIC_LIBRARY)
     endif()
 
     if(MSVC)
-        target_link_libraries(${CSOUNDLIB_STATIC} PRIVATE SndFile::sndfile ${CSOUND_WINDOWS_LIBRARIES})
+        target_link_libraries(${CSOUNDLIB_STATIC} PRIVATE ${CSOUND_WINDOWS_LIBRARIES})
     else()
         target_link_libraries(${CSOUNDLIB_STATIC} ${libcsound_LIBS})
     endif()
@@ -1440,7 +1425,7 @@ set (CPACK_PACKAGE_VERSION_PATCH "0")
 include (CPack)
 
 # Documentation
-if(BUILD_DOCS) 
+if(BUILD_DOCS)
 find_package(Doxygen)
 if(DOXYGEN_FOUND)
     configure_file(${CMAKE_CURRENT_SOURCE_DIR}/config.doxygen
