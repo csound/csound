@@ -155,6 +155,8 @@ struct Connect;
 struct AlwaysOn;
 struct FtGenOnce;
 
+static const int MAX_STRING = 256;
+
 static int (*isstrcod)(MYFLT) = nullptr;
 
 std::ostream &operator<<(std::ostream &stream, const EVTBLK &a) {
@@ -284,7 +286,7 @@ struct Outleta : public OpcodeNoteoffBase<Outleta> {
   /**
    * State.
    */
-  char sourceOutletId[0x100];
+  char sourceOutletId[MAX_STRING];
   SignalFlowGraphState *sfg_globals;
   int init(CSOUND *csound) {
     // warn(csound, "BEGAN Outleta::init()...\n");
@@ -294,9 +296,9 @@ struct Outleta : public OpcodeNoteoffBase<Outleta> {
     const char *insname =
         csound->GetInstrumentList(csound)[opds.insdshead->insno]->insname;
     if (insname) {
-      std::sprintf(sourceOutletId, "%s:%s", insname, (char *)Sname->data);
+      std::snprintf(sourceOutletId, MAX_STRING, "%s:%s", insname, (char *)Sname->data);
     } else {
-      std::sprintf(sourceOutletId, "%d:%s", opds.insdshead->insno,
+      std::snprintf(sourceOutletId, MAX_STRING, "%d:%s", opds.insdshead->insno,
                    (char *)Sname->data);
     }
     std::vector<Outleta *> &aoutlets =
@@ -334,7 +336,7 @@ struct Inleta : public OpcodeBase<Inleta> {
   /**
    * State.
    */
-  char sinkInletId[0x100];
+  char sinkInletId[MAX_STRING];
   std::vector<std::vector<Outleta *> *> *sourceOutlets;
   int sampleN;
   SignalFlowGraphState *sfg_globals;
@@ -359,9 +361,9 @@ struct Inleta : public OpcodeBase<Inleta> {
     const char *insname =
         csound->GetInstrumentList(csound)[opds.insdshead->insno]->insname;
     if (insname) {
-      std::sprintf(sinkInletId, "%s:%s", insname, (char *)Sname->data);
+      std::snprintf(sinkInletId, MAX_STRING, "%s:%s", insname, (char *)Sname->data);
     } else {
-      std::sprintf(sinkInletId, "%d:%s", opds.insdshead->insno,
+      std::snprintf(sinkInletId, MAX_STRING, "%d:%s", opds.insdshead->insno,
                    (char *)Sname->data);
     }
     std::vector<Inleta *> &ainlets =
@@ -431,7 +433,7 @@ struct Outletk : public OpcodeNoteoffBase<Outletk> {
   /**
    * State.
    */
-  char sourceOutletId[0x100];
+  char sourceOutletId[MAX_STRING];
   SignalFlowGraphState *sfg_globals;
   int init(CSOUND *csound) {
     QueryGlobalPointer(csound, "sfg_globals", sfg_globals);
@@ -439,9 +441,9 @@ struct Outletk : public OpcodeNoteoffBase<Outletk> {
     const char *insname =
         csound->GetInstrumentList(csound)[opds.insdshead->insno]->insname;
     if (insname) {
-      std::sprintf(sourceOutletId, "%s:%s", insname, (char *)Sname->data);
+      std::snprintf(sourceOutletId, MAX_STRING, "%s:%s", insname, (char *)Sname->data);
     } else {
-      std::sprintf(sourceOutletId, "%d:%s", opds.insdshead->insno,
+      std::snprintf(sourceOutletId, MAX_STRING, "%d:%s", opds.insdshead->insno,
                    (char *)Sname->data);
     }
     std::vector<Outletk *> &koutlets =
@@ -478,7 +480,7 @@ struct Inletk : public OpcodeBase<Inletk> {
   /**
    * State.
    */
-  char sinkInletId[0x100];
+  char sinkInletId[MAX_STRING];
   std::vector<std::vector<Outletk *> *> *sourceOutlets;
   int ksmps;
   SignalFlowGraphState *sfg_globals;
@@ -498,9 +500,9 @@ struct Inletk : public OpcodeBase<Inletk> {
     const char *insname =
         csound->GetInstrumentList(csound)[opds.insdshead->insno]->insname;
     if (insname) {
-      std::sprintf(sinkInletId, "%s:%s", insname, (char *)Sname->data);
+      std::snprintf(sinkInletId, MAX_STRING, "%s:%s", insname, (char *)Sname->data);
     } else {
-      std::sprintf(sinkInletId, "%d:%s", opds.insdshead->insno,
+      std::snprintf(sinkInletId, MAX_STRING, "%d:%s", opds.insdshead->insno,
                    (char *)Sname->data);
     }
     std::vector<Inletk *> &kinlets =
@@ -562,7 +564,7 @@ struct Outletf : public OpcodeNoteoffBase<Outletf> {
   /**
    * State.
    */
-  char sourceOutletId[0x100];
+  char sourceOutletId[MAX_STRING];
   SignalFlowGraphState *sfg_globals;
   int init(CSOUND *csound) {
     QueryGlobalPointer(csound, "sfg_globals", sfg_globals);
@@ -570,9 +572,9 @@ struct Outletf : public OpcodeNoteoffBase<Outletf> {
     const char *insname =
         csound->GetInstrumentList(csound)[opds.insdshead->insno]->insname;
     if (insname) {
-      std::sprintf(sourceOutletId, "%s:%s", insname, (char *)Sname->data);
+      std::snprintf(sourceOutletId, MAX_STRING, "%s:%s", insname, (char *)Sname->data);
     } else {
-      std::sprintf(sourceOutletId, "%d:%s", opds.insdshead->insno,
+      std::snprintf(sourceOutletId, MAX_STRING, "%d:%s", opds.insdshead->insno,
                    (char *)Sname->data);
     }
     std::vector<Outletf *> &foutlets =
@@ -608,7 +610,7 @@ struct Inletf : public OpcodeBase<Inletf> {
   /**
    * State.
    */
-  char sinkInletId[0x100];
+  char sinkInletId[MAX_STRING];
   std::vector<std::vector<Outletf *> *> *sourceOutlets;
   int ksmps;
   int lastframe;
@@ -632,9 +634,9 @@ struct Inletf : public OpcodeBase<Inletf> {
     const char *insname =
         csound->GetInstrumentList(csound)[opds.insdshead->insno]->insname;
     if (insname) {
-      std::sprintf(sinkInletId, "%s:%s", insname, (char *)Sname->data);
+      std::snprintf(sinkInletId, MAX_STRING, "%s:%s", insname, (char *)Sname->data);
     } else {
-      std::sprintf(sinkInletId, "%d:%s", opds.insdshead->insno,
+      std::snprintf(sinkInletId, MAX_STRING, "%d:%s", opds.insdshead->insno,
                    (char *)Sname->data);
     }
     std::vector<Inletf *> &finlets =
@@ -758,7 +760,7 @@ struct Outletv : public OpcodeNoteoffBase<Outletv> {
   /**
    * State.
    */
-  char sourceOutletId[0x100];
+  char sourceOutletId[MAX_STRING];
   SignalFlowGraphState *sfg_globals;
   int init(CSOUND *csound) {
     warn(csound, "BEGAN Outletv::init()...\n");
@@ -768,9 +770,9 @@ struct Outletv : public OpcodeNoteoffBase<Outletv> {
     const char *insname =
         csound->GetInstrumentList(csound)[opds.insdshead->insno]->insname;
     if (insname) {
-      std::sprintf(sourceOutletId, "%s:%s", insname, (char *)Sname->data);
+      std::snprintf(sourceOutletId, MAX_STRING, "%s:%s", insname, (char *)Sname->data);
     } else {
-      std::sprintf(sourceOutletId, "%d:%s", opds.insdshead->insno,
+      std::snprintf(sourceOutletId, MAX_STRING, "%d:%s", opds.insdshead->insno,
                    (char *)Sname->data);
     }
     std::vector<Outletv *> &voutlets =
@@ -812,7 +814,7 @@ struct Inletv : public OpcodeBase<Inletv> {
   /**
    * State.
    */
-  char sinkInletId[0x100];
+  char sinkInletId[MAX_STRING];
   std::vector<std::vector<Outletv *> *> *sourceOutlets;
   size_t arraySize;
   size_t myFltsPerArrayElement;
@@ -846,9 +848,9 @@ struct Inletv : public OpcodeBase<Inletv> {
     const char *insname =
         csound->GetInstrumentList(csound)[opds.insdshead->insno]->insname;
     if (insname) {
-      std::sprintf(sinkInletId, "%s:%s", insname, (char *)Sname->data);
+      std::snprintf(sinkInletId, MAX_STRING, "%s:%s", insname, (char *)Sname->data);
     } else {
-      std::sprintf(sinkInletId, "%d:%s", opds.insdshead->insno,
+      std::snprintf(sinkInletId, MAX_STRING, "%d:%s", opds.insdshead->insno,
                    (char *)Sname->data);
     }
     std::vector<Inletv *> &vinlets =
@@ -924,7 +926,7 @@ struct Outletkid : public OpcodeNoteoffBase<Outletkid> {
   /**
    * State.
    */
-  char sourceOutletId[0x100];
+  char sourceOutletId[MAX_STRING];
   char *instanceId;
   SignalFlowGraphState *sfg_globals;
   int init(CSOUND *csound) {
@@ -935,15 +937,15 @@ struct Outletkid : public OpcodeNoteoffBase<Outletkid> {
     instanceId = csound->strarg2name(csound, (char *)0, SinstanceId->data,
                                      (char *)"", 1);
     if (insname && instanceId) {
-      std::sprintf(sourceOutletId, "%s:%s", insname, (char *)Sname->data);
+      std::snprintf(sourceOutletId, MAX_STRING, "%s:%s", insname, (char *)Sname->data);
     } else {
-      std::sprintf(sourceOutletId, "%d:%s", opds.insdshead->insno,
+      std::snprintf(sourceOutletId, MAX_STRING, "%d:%s", opds.insdshead->insno,
                    (char *)Sname->data);
     }
     if (insname) {
-      std::sprintf(sourceOutletId, "%s:%s", insname, (char *)Sname->data);
+      std::snprintf(sourceOutletId, MAX_STRING, "%s:%s", insname, (char *)Sname->data);
     } else {
-      std::sprintf(sourceOutletId, "%d:%s", opds.insdshead->insno,
+      std::snprintf(sourceOutletId, MAX_STRING, "%d:%s", opds.insdshead->insno,
                    (char *)Sname->data);
     }
     std::vector<Outletkid *> &koutlets =
@@ -981,7 +983,7 @@ struct Inletkid : public OpcodeBase<Inletkid> {
   /**
    * State.
    */
-  char sinkInletId[0x100];
+  char sinkInletId[MAX_STRING];
   char *instanceId;
   std::vector<std::vector<Outletkid *> *> *sourceOutlets;
   int ksmps;
@@ -1004,9 +1006,9 @@ struct Inletkid : public OpcodeBase<Inletkid> {
     const char *insname =
         csound->GetInstrumentList(csound)[opds.insdshead->insno]->insname;
     if (insname) {
-      std::sprintf(sinkInletId, "%s:%s", insname, (char *)Sname->data);
+      std::snprintf(sinkInletId, MAX_STRING, "%s:%s", insname, (char *)Sname->data);
     } else {
-      std::sprintf(sinkInletId, "%d:%s", opds.insdshead->insno,
+      std::snprintf(sinkInletId, MAX_STRING, "%d:%s", opds.insdshead->insno,
                    (char *)Sname->data);
     }
     std::vector<Inletkid *> &kinlets =

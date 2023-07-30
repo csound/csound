@@ -654,7 +654,7 @@ extern "C" {
       else if (n >= 2048) {
         char  *bufp = (char*) malloc((size_t) n + (size_t) 1);
         if (bufp) {
-          vsprintf(bufp, fmt, args);
+          vsnprintf(bufp, 2048, fmt, args);
           p->MessageCallback(attr, bufp);
           free((void*) bufp);
         }
