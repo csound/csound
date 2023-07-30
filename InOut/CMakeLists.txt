@@ -83,18 +83,14 @@ if(APPLE)
         target_link_libraries(rtauhal ${AUDIOUNIT_LIBRARY} ${COREFOUNDATION_LIBRARY} ${COREAUDIO_LIBRARY})
 endif()
 
-if(USE_ALSA)
+if(USE_ALSA AND LINUX)
     if (USE_VCPKG)
         find_package(ALSA MODULE REQUIRED)
-        make_plugin(rtalsa rtalsa.c ALSA::ALSA)
     else()
-        find_library(ALSA_LIBRARY asound)
-        check_deps(ALSA_HEADER ALSA_LIBRARY PTHREAD_LIBRARY)
-        check_include_file(alsa/asoundlib.h ALSA_HEADER)
-        set(rtalsa_LIBS
-            ${ALSA_LIBRARY} ${PTHREAD_LIBRARY} ${MATH_LIBRARY})
-        make_plugin(rtalsa rtalsa.c ${rtalsa_LIBS})
+        find_package(ALSA REQUIRED)
     endif()
+
+    make_plugin(rtalsa rtalsa.c ALSA::ALSA)
 endif()
 
 if(WIN32)
