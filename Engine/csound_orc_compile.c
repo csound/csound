@@ -987,15 +987,15 @@ INSTRTXT *create_instrument(CSOUND *csound, TREE *root,
              !(root->left->left != NULL &&
                root->left->left->type ==
                UDO_ANS_TOKEN)) { /* named instrument */
-    int32 insno_priority = -1L;
+    //int32 insno_priority = -1L;
     c = root->left->value->lexeme;
 
     if (PARSER_DEBUG)
       csound->Message(csound, "create_instrument: instr name %s\n", c);
 
-    if (UNLIKELY(root->left->rate == (int)'+')) {
+    /*if (UNLIKELY(root->left->rate == (int)'+')) {
       insno_priority--;
-    }
+      }*/
 
     ip->insname = csound->Malloc(csound, strlen(c) + 1);
     strcpy(ip->insname, c);
@@ -1785,13 +1785,13 @@ PUBLIC int csoundCompileTreeInternal(CSOUND *csound, TREE *root, int async)
             insert_instrtxt(csound, instrtxt, instrNum, engineState,0);
           }
           else if (p->left->type == T_IDENT || p->left->type == T_PLUS_IDENT) {
-            int32  insno_priority = -1L;
+            //int32  insno_priority = -1L;
             char *c;
             c = p->left->value->lexeme;
 	    printf("%s \n", c);
-            if (UNLIKELY(p->left->type == T_PLUS_IDENT)) {
+            /*if (UNLIKELY(p->left->type == T_PLUS_IDENT)) {
               insno_priority--;
-            }
+              }*/
             if (UNLIKELY(!check_instr_name(c))) {
               synterr(csound, Str("invalid name for instrument"));
             }
