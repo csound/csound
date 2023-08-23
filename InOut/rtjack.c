@@ -1153,7 +1153,7 @@ PUBLIC int csoundModuleCreate(CSOUND *csound)
                                                             "_rtjackGlobals");
     p->csound = csound;
     p->jackState = -1;
-    strcpy(&(p->clientName[0]), "csound6");
+    strcpy(&(p->clientName[0]), "csound7");
     strcpy(&(p->inputPortName[0]), "input");
     strcpy(&(p->outputPortName[0]), "output");
     p->sleepTime = 1000;        /* this is not actually used */
@@ -1173,7 +1173,7 @@ PUBLIC int csoundModuleCreate(CSOUND *csound)
     csound->CreateConfigurationVariable(csound, "jack_client",
                                         (void*) &(p->clientName[0]),
                                         CSOUNDCFG_STRING, 0, NULL, &i,
-                                        Str("JACK client name (default: csound6)"),
+                                        Str("JACK client name (default: csound7"),
                                         NULL);
     /*   input port name */
     i = jack_port_name_size() - 3;
@@ -1215,7 +1215,7 @@ PUBLIC int csoundModuleCreate(CSOUND *csound)
     pm = (RtJackMIDIGlobals*)
       csound->QueryGlobalVariableNoCheck(csound, "_rtjackMIDIGlobals");
 
-    strcpy(&(pm->clientName[0]), "csound6-midi");
+    strcpy(&(pm->clientName[0]), "csound7-midi");
     strcpy(&(pm->inputPortName[0]), "port");
     strcpy(&(pm->outputPortName[0]), "port");
     /*   client name */
@@ -1226,7 +1226,7 @@ PUBLIC int csoundModuleCreate(CSOUND *csound)
                                         (void*) &(pm->clientName[0]),
                                         CSOUNDCFG_STRING, 0, NULL, &i,
                                         Str("JACK MIDI client name prefix"
-                                            " (default: csound6-midi)"),
+                                            " (default: csound7-midi)"),
                                         NULL);
 
     /*   input port name */
