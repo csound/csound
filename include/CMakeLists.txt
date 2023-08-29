@@ -19,7 +19,7 @@ list(APPEND csheaders
     ../interfaces/csPerfThread.hpp)
 
 
-if(NOT APPLE)
+if(NOT (APPLE AND APPLE_FRAMEWORK))
     INSTALL(FILES ${csheaders} DESTINATION ${HEADER_INSTALL_DIR})
     INSTALL(FILES ${CMAKE_CURRENT_BINARY_DIR}/float-version.h
      DESTINATION ${HEADER_INSTALL_DIR})
