@@ -108,6 +108,7 @@ function(make_executable name srcs libs)
             OUTPUT_NAME ${ARGV3})
     endif()
     install(TARGETS ${name}
+    EXPORT CSoundExports
 	RUNTIME DESTINATION "${EXECUTABLE_INSTALL_DIR}" )
 endfunction(make_executable)
 
@@ -1168,6 +1169,7 @@ function(make_plugin libname srcs)
         ARCHIVE_OUTPUT_DIRECTORY ${BUILD_PLUGINS_DIR})
 
     install(TARGETS ${libname}
+        EXPORT CSoundExports
         LIBRARY DESTINATION "${PLUGIN_INSTALL_DIR}"
         ARCHIVE DESTINATION "${PLUGIN_INSTALL_DIR}" )
 
@@ -1176,11 +1178,13 @@ endfunction(make_plugin)
 # Add the install target
 if(WIN32)
   install(TARGETS ${CSOUNDLIB}
+    EXPORT CSoundExports
     RUNTIME DESTINATION "${EXECUTABLE_INSTALL_DIR}"
     ARCHIVE DESTINATION "${LIBRARY_INSTALL_DIR}"
     FRAMEWORK DESTINATION "${CS_FRAMEWORK_DEST}")
 else()
   install(TARGETS ${CSOUNDLIB}
+    EXPORT CSoundExports
     LIBRARY DESTINATION "${LIBRARY_INSTALL_DIR}"
     ARCHIVE DESTINATION "${LIBRARY_INSTALL_DIR}"
     FRAMEWORK DESTINATION "${CS_FRAMEWORK_DEST}")
@@ -1378,6 +1382,7 @@ if(BUILD_STATIC_LIBRARY)
 
     # Add the install target
     install(TARGETS ${CSOUNDLIB_STATIC}
+        EXPORT CSoundExports
         LIBRARY DESTINATION "${LIBRARY_INSTALL_DIR}"
         ARCHIVE DESTINATION "${LIBRARY_INSTALL_DIR}")
 endif()
@@ -1385,6 +1390,7 @@ endif()
 # VL -- this seems to be a duplicate instruction
 # and it's breaking the build. See lines 1088-95
 #install(TARGETS ${CSOUNDLIB}
+#    EXPORT CSoundExports
 #    LIBRARY DESTINATION "${LIBRARY_INSTALL_DIR}"
 #   ARCHIVE DESTINATION "${LIBRARY_INSTALL_DIR}")
 
@@ -1450,8 +1456,11 @@ if(DOXYGEN_FOUND)
 endif(DOXYGEN_FOUND)
 
 # install CMake module
-install(FILES ${CMAKE_SOURCE_DIR}/cmake/Modules/FindCsound.cmake
-        DESTINATION "${CMAKE_INSTALL_PREFIX}/share/cmake/Csound")
+install(EXPORT CSoundExports
+    FILE "CSoundConfig.cmake"
+    NAMESPACE "CSound::"
+    DESTINATION "${CMAKE_INSTALL_PREFIX}/share/csound"
+)
 
 # install samples
 if(APPLE AND APPLE_FRAMEWORK)

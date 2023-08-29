@@ -60,6 +60,7 @@ if(BUILD_CXX_INTERFACE)
 
 
     install(TARGETS libcsnd6
+        EXPORT CSoundExports
         LIBRARY DESTINATION "${LIBRARY_INSTALL_DIR}"
         ARCHIVE DESTINATION "${LIBRARY_INSTALL_DIR}")
 
@@ -80,6 +81,7 @@ if(BUILD_STATIC_LIBRARY)
 
     # Add the install target
     install(TARGETS libcsnd6-static
+        EXPORT CSoundExports
         LIBRARY DESTINATION "${LIBRARY_INSTALL_DIR}"
         ARCHIVE DESTINATION "${LIBRARY_INSTALL_DIR}")
 endif()
@@ -209,6 +211,7 @@ if(BUILD_JAVA_INTERFACE OR BUILD_LUA_INTERFACE)
          endif()
 
         install(TARGETS _jcsound6
+            EXPORT CSoundExports
             LIBRARY DESTINATION "${JAVA_MODULE_INSTALL_DIR}"
             ARCHIVE DESTINATION "${JAVA_MODULE_INSTALL_DIR}")
         install(FILES ${BUILD_LIB_DIR}/csnd6.jar
@@ -255,6 +258,7 @@ if(BUILD_JAVA_INTERFACE OR BUILD_LUA_INTERFACE)
         endif()
 
         install(TARGETS luaCsnd6
+            EXPORT CSoundExports
             LIBRARY DESTINATION "${LUA_MODULE_INSTALL_DIR}"
             ARCHIVE DESTINATION "${LUA_MODULE_INSTALL_DIR}")
 
