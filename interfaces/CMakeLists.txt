@@ -40,7 +40,10 @@ if(BUILD_CXX_INTERFACE)
 
     target_link_libraries(libcsnd6 ${libcsnd6_LIBS})
     # users of this lib will need this dir included
-    target_include_directories(libcsnd6 INTERFACE ${CMAKE_CURRENT_SOURCE_DIR})
+    target_include_directories(libcsnd6 INTERFACE
+        "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>"
+        "$<INSTALL_INTERFACE:include>"
+    )
     set_target_properties(libcsnd6 PROPERTIES
         SOVERSION ${APIVERSION}
         OUTPUT_NAME csnd6
