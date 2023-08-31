@@ -1181,9 +1181,15 @@ function(make_plugin libname srcs)
 
     set(i 2)
     while( ${i} LESS ${ARGC} )
-        target_link_libraries(${libname} ${ARGV${i}})
+        target_link_libraries(${libname} PRIVATE ${ARGV${i}})
         math(EXPR i "${i}+1")
     endwhile()
+
+    if (BUILD_STATIC_LIBRARY)
+        target_link_libraries(${libname} PRIVATE ${CSOUNDLIB_STATIC})
+    else()
+        target_link_libraries(${libname} PRIVATE ${CSOUNDLIB})
+    endif()
 
     set_target_properties(${libname} PROPERTIES
         RUNTIME_OUTPUT_DIRECTORY ${BUILD_PLUGINS_DIR}
