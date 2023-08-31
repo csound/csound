@@ -12,7 +12,12 @@ if(MSVC)
     set(LIBSNDFILE_LIBRARY SndFile::sndfile)
 endif()
 
-make_plugin(stdutil "${stdutil_SRCS}" ${MATH_LIBRARY} ${LIBSNDFILE_LIBRARY} ${LIBSNDFILE_SUPPORT_LIBS})
+if (USE_VCPKG_DEPENDENCIES)
+    make_plugin(stdutil "${stdutil_SRCS}")
+    target_link_libraries(stdutil PRIVATE ${MATH_LIBRARY} SndFile::sndfile)
+else()
+    make_plugin(stdutil "${stdutil_SRCS}" ${MATH_LIBRARY} ${LIBSNDFILE_LIBRARY} ${LIBSNDFILE_SUPPORT_LIBS})
+endif()
 
 if(BUILD_UTILITIES)
     make_utility(atsa        atsa_main.c)

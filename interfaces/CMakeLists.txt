@@ -38,7 +38,12 @@ if(BUILD_CXX_INTERFACE)
     set(libcsnd6_CFLAGS "")
     list(APPEND libcsnd6_LIBS ${CSOUNDLIB})
 
-    target_link_libraries(libcsnd6 ${libcsnd6_LIBS})
+    if (USE_VCPKG_DEPENDENCIES)
+        target_link_libraries(libcsnd6 PUBLIC ${CSOUNDLIB} SndFile::sndfile)
+    else()
+        target_link_libraries(libcsnd6 ${libcsnd6_LIBS})
+    endif()
+
     # users of this lib will need this dir included
     target_include_directories(libcsnd6 INTERFACE
         "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>"
