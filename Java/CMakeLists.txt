@@ -87,6 +87,7 @@ if(BUILD_JAVA_INTERFACE)
          endif()
 
         install(TARGETS _jcsound7
+            EXPORT CSoundExports
             LIBRARY DESTINATION "${JAVA_MODULE_INSTALL_DIR}"
             ARCHIVE DESTINATION "${JAVA_MODULE_INSTALL_DIR}")
         install(FILES ${BUILD_LIB_DIR}/csnd7.jar
