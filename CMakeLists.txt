@@ -1066,6 +1066,12 @@ else()
         FRAMEWORK DESTINATION "${CS_FRAMEWORK_DEST}")
 endif()
 
+if (LINUX)
+    set_target_properties(${CSOUNDLIB} PROPERTIES
+        INSTALL_RPATH "$ORIGIN"
+    )
+endif()
+
 # TODO include target rather than libs to also bring in transitive dependencies
 set(libcsound_LIBS ${LIBSNDFILE_LIBRARY})
 
@@ -1246,6 +1252,12 @@ if(BUILD_STATIC_LIBRARY)
         RUNTIME_OUTPUT_DIRECTORY ${BUILD_BIN_DIR}
         LIBRARY_OUTPUT_DIRECTORY ${BUILD_LIB_DIR}
         ARCHIVE_OUTPUT_DIRECTORY ${BUILD_LIB_DIR})
+
+    if (LINUX)
+        set_target_properties(${CSOUNDLIB_STATIC} PROPERTIES
+            INSTALL_RPATH "$ORIGIN"
+        )
+    endif()
 
     # Add the install target
     install(TARGETS ${CSOUNDLIB_STATIC}
