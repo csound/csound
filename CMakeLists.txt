@@ -254,12 +254,19 @@ elseif(NOT DEFINED LIBRARY_INSTALL_DIR)
 endif()
 message(STATUS "LIBRARY INSTALL DIR: ${LIBRARY_INSTALL_DIR}")
 
+# on windows, plugins are dll executables
+if (WIN32)
+    set(PLUGINS_BASE_FOLDER "${EXECUTABLE_INSTALL_DIR}")
+else()
+    set(PLUGINS_BASE_FOLDER "${LIBRARY_INSTALL_DIR}")
+endif()
+
 if(USE_DOUBLE)
     message(STATUS "Building with 64-bit floats")
-    set(PLUGIN_INSTALL_DIR "${LIBRARY_INSTALL_DIR}/csound/plugins64-${APIVERSION}")
+    set(PLUGIN_INSTALL_DIR "${PLUGINS_BASE_FOLDER}/csound/plugins64-${APIVERSION}")
 else()
     message(STATUS "Building with 32-bit floats")
-    set(PLUGIN_INSTALL_DIR "${LIBRARY_INSTALL_DIR}/csound/plugins-${APIVERSION}")
+    set(PLUGIN_INSTALL_DIR "${PLUGINS_BASE_FOLDER}/csound/plugins-${APIVERSION}")
 endif()
 
 if(WIN32 AND NOT MSVC)
