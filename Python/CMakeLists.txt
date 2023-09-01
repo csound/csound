@@ -1,6 +1,8 @@
 ## Python module ##
 
-if(NOT APPLE)
+option(BUILD_PYTHON_INTERFACE "Build the Python interface" ON)
+
+if(BUILD_PYTHON_INTERFACE AND NOT APPLE)
       execute_process (
            COMMAND python3 -c
            "import site, sys; sys.stdout.write(site.getsitepackages()[0])"
