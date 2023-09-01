@@ -4,6 +4,10 @@ cmake_minimum_required(VERSION 3.5)
 set(CMAKE_MACOSX_RPATH 1)
 set(CMAKE_EXPORT_COMPILE_COMMANDS 1)
 
+if (UNIX)
+    set(CMAKE_INSTALL_RPATH "$ORIGIN")
+endif()
+
 
 option(USE_VCPKG "Use VCPKG to download and manage dependencies" OFF)
 
@@ -105,6 +109,13 @@ function(make_executable name srcs libs)
     target_link_libraries (${name} ${libs})
     set_target_properties(${name} PROPERTIES
         RUNTIME_OUTPUT_DIRECTORY ${BUILD_BIN_DIR})
+    
+    if(UNIX)
+        # out of bin
+        set_target_properties(${name} PROPERTIES
+            INSTALL_RPATH "$ORIGIN/../lib"
+        )
+    endif()
 
     if(${ARGC} EQUAL 4)
         set_target_properties(${name} PROPERTIES
@@ -1182,6 +1193,12 @@ function(make_plugin libname srcs)
         add_library(${libname} SHARED ${srcs})
     else()
         add_library(${libname} MODULE ${srcs})
+    endif()
+
+    if (UNIX)
+        set_target_properties(${libname} PROPERTIES
+            INSTALL_RPATH "$ORIGIN/../../../lib"
+        )
     endif()
 
     set(i 2)
