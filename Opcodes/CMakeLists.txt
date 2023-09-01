@@ -23,11 +23,16 @@ message(STATUS "## Building Plugin Opcodes ##")
 make_plugin(doppler doppler.cpp)
 make_plugin(fractalnoise tl/fractalnoise.cpp)
 make_plugin(ftsamplebank ftsamplebank.cpp)
+find_path(DIRENT_INCLUDE_DIRS "dirent.h" REQUIRED)
+target_include_directories(ftsamplebank PRIVATE ${DIRENT_INCLUDE_DIRS})
+
 make_plugin(lfsr lfsr.cpp)
 make_plugin(bformdec2 bformdec2.cpp)
 make_plugin(mixer mixer.cpp)
 make_plugin(signalflowgraph signalflowgraph.cpp)
 make_plugin(ampmidid ampmidid.cpp)
+
+
 
 if(APPLE)
    make_plugin(arrayops arrayops.cpp)
