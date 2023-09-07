@@ -193,6 +193,7 @@ option(LEXER_DEBUG "Build lexer with debug option" OFF)
 option(USE_GIT_COMMIT "Show the git commit in version information" ON)
 option(REQUIRE_PTHREADS "For non-Windows systems, set whether Csound will use threads or not" ON)
 option(BUILD_DOCS "Build documentation (requires doxygen)" OFF)
+option(APPLE_FRAMEWORK "Build framework on Apple" ON)
 option(DEBUG_ERROR_ON_WARNING "For a debug build, error on a compiler warning" OFF)
 
 
@@ -373,14 +374,14 @@ endif()
 
 # Set plugins install directory
 if(USE_DOUBLE)
-    if(APPLE)
+    if(APPLE AND APPLE_FRAMEWORK)
         set(CSOUNDLIB "CsoundLib64")
         set(PLUGIN_INSTALL_DIR "${CS_FRAMEWORK_DEST}/${CSOUNDLIB}.framework/Versions/${APIVERSION}/Resources/Opcodes64")
     else()
         set(CSOUNDLIB "csound64")
     endif()
 else()
-    if(APPLE)
+    if(APPLE AND APPLE_FRAMEWORK)
         set(CSOUNDLIB "CsoundLib")
         set(PLUGIN_INSTALL_DIR "${CS_FRAMEWORK_DEST}/${CSOUNDLIB}.framework/Versions/${APIVERSION}/Resources/Opcodes")
     else()
@@ -396,8 +397,12 @@ if(APPLE)
         get_filename_component(CS_FRAMEWORK_FULL_PATH ${PLUGIN_INSTALL_DIR} ABSOLUTE)
     endif()
 
-    add_definitions("-DCS_DEFAULT_PLUGINDIR=\"${CS_FRAMEWORK_FULL_PATH}\"")
-    set(DEFAULT_OPCODEDIR ${CS_FRAMEWORK_FULL_PATH})
+    if (APPLE_FRAMEWORK)
+        set(DEFAULT_OPCODEDIR ${CS_FRAMEWORK_FULL_PATH})
+    else()
+        set(DEFAULT_OPCODEDIR ${PLUGIN_INSTALL_DIR})
+    endif()
+    add_definitions("-DCS_DEFAULT_PLUGINDIR=\"${DEFAULT_OPCODEDIR}\"")
 
     # dir relative to $HOME
     if(USE_DOUBLE)
@@ -1132,7 +1137,7 @@ if(INIT_STATIC_MODULES)
     set_target_properties(${CSOUNDLIB} PROPERTIES COMPILE_FLAGS "-DINIT_STATIC_MODULES")
 endif()
 
-if(APPLE)
+if(APPLE AND APPLE_FRAMEWORK)
     set_target_properties(${CSOUNDLIB} PROPERTIES FRAMEWORK YES)
     set_target_properties(${CSOUNDLIB} PROPERTIES FRAMEWORK_VERSION "${APIVERSION}")
     set_target_properties(${CSOUNDLIB} PROPERTIES PUBLIC_HEADER
@@ -1452,7 +1457,7 @@ install(FILES ${CMAKE_SOURCE_DIR}/cmake/Modules/FindCsound.cmake
         DESTINATION "${CMAKE_INSTALL_PREFIX}/share/cmake/Csound")
 
 # install samples
-if(APPLE)
+if(APPLE AND APPLE_FRAMEWORK)
  install(DIRECTORY ${CMAKE_SOURCE_DIR}/samples
           DESTINATION  ${CS_FRAMEWORK_DEST}/${CSOUNDLIB}.framework/Versions/${APIVERSION})
 else()
