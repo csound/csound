@@ -193,6 +193,7 @@ option(LEXER_DEBUG "Build lexer with debug option" OFF)
 option(USE_GIT_COMMIT "Show the git commit in version information" ON)
 option(REQUIRE_PTHREADS "For non-Windows systems, set whether Csound will use threads or not" ON)
 option(BUILD_DOCS "Build documentation (requires doxygen)" OFF)
+option(DEBUG_ERROR_ON_WARNING "For a debug build, error on a compiler warning" OFF)
 
 
 
@@ -223,8 +224,12 @@ if(NOT MSVC AND NOT WASM)
     set(CMAKE_CXX_FLAGS_RELEASE "-O3 ")
     set(CMAKE_C_FLAGS_RELEASE "-O3 ")
     if(${CMAKE_BUILD_TYPE} MATCHES "Debug")
-        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}  -Wall -Werror -Wno-missing-field-initializers")
-        set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wall -Werror -Wno-missing-field-initializers")
+        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}  -Wall -Wno-missing-field-initializers")
+        set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wall -Wno-missing-field-initializers")
+        if (DEBUG_ERROR_ON_WARNING)
+            set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Werror")
+            set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Werror")
+        endif()
     endif()
 endif()
 
