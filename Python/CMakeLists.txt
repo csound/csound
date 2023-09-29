@@ -2,9 +2,11 @@
 
 option(BUILD_PYTHON_INTERFACE "Build the Python interface" ON)
 
-if(BUILD_PYTHON_INTERFACE AND NOT APPLE)
+find_program(PYTHON3_EXECUTABLE python3)
+
+if(BUILD_PYTHON_INTERFACE AND NOT APPLE AND PYTHON3_EXECUTABLE)
       execute_process (
-           COMMAND python3 -c
+           COMMAND ${PYTHON3_EXECUTABLE} -c
            "import site, sys; sys.stdout.write(site.getsitepackages()[0])"
            OUTPUT_VARIABLE PYTHON3_SITE_PACKAGES
          )
