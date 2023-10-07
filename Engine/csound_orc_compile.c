@@ -246,13 +246,13 @@ char **splitArgs(CSOUND *csound, char *argString) {
 
       if (*(t + 1) == '[') {
         char *start = t;
-        int len = 1;
+        //int len = 1;
         int j;
         t++;
 
         while (*t == '[') {
           t++;
-          len++;
+          //len++;
 
           if (UNLIKELY(*t != ']')) {
             // FIXME: needs more precise error information
@@ -263,7 +263,7 @@ char **splitArgs(CSOUND *csound, char *argString) {
           }
 
           t++;
-          len++;
+          //len++;
           dimensions++;
         }
         part = csound->Malloc(csound, sizeof(char) * (dimensions + 3));
@@ -907,15 +907,15 @@ INSTRTXT *create_instrument(CSOUND *csound, TREE *root,
              !(root->left->left != NULL &&
                root->left->left->type ==
                    UDO_ANS_TOKEN)) { /* named instrument */
-    int32 insno_priority = -1L;
+    //int32 insno_priority = -1L;
     c = root->left->value->lexeme;
 
     if (PARSER_DEBUG)
       csound->Message(csound, "create_instrument: instr name %s\n", c);
 
-    if (UNLIKELY(root->left->rate == (int)'+')) {
+    /*    if (UNLIKELY(root->left->rate == (int)'+')) {
       insno_priority--;
-    }
+      } */
 
     ip->insname = csound->Malloc(csound, strlen(c) + 1);
     strcpy(ip->insname, c);
@@ -1377,6 +1377,20 @@ void insert_opcodes(CSOUND *csound, OPCODINFO *opcodeInfo,
   }
 }
 
+static int inargs_check(CSOUND *csound, char *inargs) {
+  OPCODINFO *opinfo = csound->opcodeInfo;
+  char *c = opinfo->intypes;
+  int i;
+  for(i = 0; c[i] != 0; i++) {
+    if(c[i] != inargs[i]) {
+      if(c[i] == 'K' && inargs[i] == 'k') continue;
+       else return NOTOK;                                              
+  }
+  }
+  return OK;
+}
+
+
 OPCODINFO *find_opcode_info(CSOUND *csound, char *opname, char *outargs,
                             char *inargs) {
   OPCODINFO *opinfo = csound->opcodeInfo;
@@ -1386,11 +1400,15 @@ OPCODINFO *find_opcode_info(CSOUND *csound, char *opname, char *outargs,
   }
 
   while (opinfo != NULL) {
+    
     if (UNLIKELY(strcmp(opinfo->name, opname) == 0 &&
-                 strcmp(opinfo->intypes, inargs) == 0 &&
+                 /*strcmp(opinfo->intypes, inargs) == 0 && */
+                 inargs_check(csound, inargs) == 0 &&
                  strcmp(opinfo->outtypes, outargs) == 0)) {
+
       return opinfo;
     }
+      
     opinfo = opinfo->prv; /* Move on: JPff suggestion */
   }
 
