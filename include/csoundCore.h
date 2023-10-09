@@ -423,7 +423,7 @@ typedef struct CORFIL {
    } TABDAT;
 
   #define MAX_STRINGDAT_SIZE 0xFFFFFFFF
-  
+
   typedef struct {
     char *data;
     size_t size;
@@ -893,10 +893,10 @@ typedef struct CORFIL {
   int kperf_debug(CSOUND *csound);
 
   /*
-    check if code is running at init time. 
+    check if code is running at init time.
     result may not be valid in realtime mode
-   */  
-int csoundIsInitThread(CSOUND *csound);  
+   */
+int csoundIsInitThread(CSOUND *csound);
 
 #endif  /* __BUILDING_LIBCSOUND */
 
@@ -1411,7 +1411,7 @@ typedef struct _message_queue_t_ {
                                char* , char*);
     OENTRY* (*find_opcode_exact)(CSOUND*, char*,
                                char* , char*);
-    int (*GetChannelPtr)(CSOUND *,MYFLT **, const char *, int);
+    int (*GetChannelPtr)(CSOUND *,void **, const char *, int);
     int (*ListChannels)(CSOUND *, controlChannelInfo_t **);
     int (*GetErrorCnt)(CSOUND *);
     FUNC* (*FTnp2Finde)(CSOUND*, MYFLT *);

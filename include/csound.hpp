@@ -723,11 +723,11 @@ public:
   }
   virtual int GetChannelPtr(MYFLT* &p, const char *name, int type)
   {
-    MYFLT *tmp;
+    void *tmp;
     int   retval;
     if(strlen(name) == 0) return CSOUND_ERROR;
     retval = csoundGetChannelPtr(csound, &tmp, name, type);
-    p = tmp;
+    p = (MYFLT*) tmp;
     return retval;
   }
   virtual int ListChannels(controlChannelInfo_t* &lst)

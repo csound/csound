@@ -2121,7 +2121,7 @@ void initializeStructVar(CSOUND* csound, CS_VARIABLE* var, MYFLT* mem) {
   CONS_CELL* members = type->members;
   int len = cs_cons_length(members);
   int i;
-
+  printf("var type0 %p \n", type);
   structVar->members = csound->Calloc(csound, len * sizeof(CS_VAR_MEM*));
 
   //    csound->Message(csound, "Initializing Struct...\n");

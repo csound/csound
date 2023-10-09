@@ -91,6 +91,16 @@ typedef struct {
 } CHNGETARRAY;
 
 typedef struct {
+    OPDS          h;
+    CSOUND_STRUCT *s;
+    STRINGDAT     *iname;
+    MYFLT         *fp;
+    spin_lock_t   *lock;
+    int32_t       pos;
+    char          chname[MAX_CHAN_NAME+1];
+} CHNGETSTRUCT;
+
+typedef struct {
     OPDS    h;
     STRINGDAT   *iname[MAX_CHAN_NAME+1];
     MYFLT   *fp[MAX_CHAN_NAME+1];
@@ -182,11 +192,13 @@ int32_t     chnset_array_opcode_perf_a(CSOUND *csound, CHNGETARRAY *p);
 int32_t     chnset_array_opcode_perf_S(CSOUND *csound, CHNGETARRAY *p);
 
 int32_t     notinit_opcode_stub(CSOUND *, void *);
+int32_t     chnget_opcode_init_struct (CSOUND *, CHNGETSTRUCT *);
 int32_t     chnget_opcode_init_i(CSOUND *, CHNGET *);
 int32_t     chnget_opcode_init_k(CSOUND *, CHNGET *);
 int32_t     chnget_opcode_init_a(CSOUND *, CHNGET *);
 int32_t     chnget_opcode_init_S(CSOUND *, CHNGET *);
 int32_t     chnget_opcode_perf_S(CSOUND *, CHNGET *);
+int32_t     chnset_opcode_init_struct(CSOUND *, CHNGETSTRUCT *);
 int32_t     chnset_opcode_init_i(CSOUND *, CHNGET *);
 int32_t     chnset_opcode_init_k(CSOUND *, CHNGET *);
 int32_t     chnset_opcode_init_a(CSOUND *, CHNGET *);
