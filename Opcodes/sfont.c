@@ -249,7 +249,6 @@ static int32_t Sfplist(CSOUND *csound, SFPLIST *p)
     csound->Message(csound, "\n");
     return OK;
 }
-
 static int32_t SfAssignAllPresets(CSOUND *csound, SFPASSIGN *p)
 {
     sfontg *globals;
@@ -384,7 +383,7 @@ static int32_t SfPlay_set(CSOUND *csound, SFPLAY *p)
     preset = globals->presetp[index];
     sBase = globals->sampleBase[index];
 
-    if (*p->iskip) return OK;
+    if (*p->iskip && p->spltNum) return OK;
 
     if (!UNLIKELY(preset!=NULL)) {
       return csound->InitError(csound, Str("sfplay: invalid or "
@@ -544,7 +543,7 @@ static int32_t SfPlay(CSOUND *csound, SFPLAY *p)
     double *sampinc = p->si, *phs = p->phs;
     MYFLT *left= p->leftlevel, *right= p->rightlevel, *attack = p->attack,
       *decr = p->decr, *decay = p->decay, *sustain= p->sustain,
-      /* *release = p->release */ *attr = p->attr; /* VL release is never used */
+      /* *Srelease = p->release */ *attr = p->attr; /* VL release is never used */
 
 
     memset(out1, 0, nsmps*sizeof(MYFLT));
@@ -722,7 +721,7 @@ static int32_t SfPlayMono_set(CSOUND *csound, SFPLAYMONO *p)
     if (UNLIKELY(index>=MAX_SFPRESET))
       return csound->InitError(csound, Str("invalid soundfont"));
 
-    if (*p->iskip) return OK;
+    if (*p->iskip && p->spltNum) return OK;
 
     preset = globals->presetp[index];
     sBase = globals->sampleBase[index];
@@ -991,7 +990,7 @@ static int32_t SfInstrPlay_set(CSOUND *csound, SFIPLAY *p)
     if (UNLIKELY(index>=MAX_SFPRESET))
       return csound->InitError(csound, Str("invalid soundfont"));
     sf = &globals->sfArray[index];
-    if (*p->iskip) return OK;
+    if (*p->iskip && p->spltNum)  return OK;
     if (UNLIKELY(*p->instrNum >  sf->instrs_num)) {
       return csound->InitError(csound, Str("sfinstr: instrument out of range"));
     }
@@ -1269,14 +1268,13 @@ static int32_t SfInstrPlayMono_set(CSOUND *csound, SFIPLAYMONO *p)
       return csound->InitError(csound, Str("sfinstr: instrument out of range"));
     }
     else {
-      if (*p->iskip) return OK;
       instrType *layer = &sf->instr[(int32_t) *p->instrNum];
       SHORT *sBase = sf->sampleData;
       int32_t spltNum = 0, flag=(int32_t) *p->iflag;
       int32_t vel= (int32_t) *p->ivel, notnum= (int32_t) *p->inotnum;
       int32_t splitsNum = layer->splits_num, k;
 
-      if (*p->iskip) return OK;
+      if (*p->iskip && p->spltNum) return OK;
       
       for (k = 0; k < splitsNum; k++) {
         splitType *split = &layer->split[k];
@@ -2710,7 +2708,7 @@ static int32_t sflooper_process(CSOUND *csound, sflooper *p)
 
 static OENTRY localops[] = {
   { "sfload",S(SFLOAD),     0, 1,    "i",    "S",      (SUBR)SfLoad_S, NULL, NULL },
-   { "sfload.i",S(SFLOAD),     0, 1,    "i",    "i",   (SUBR)SfLoad, NULL, NULL },
+  { "sfload.i",S(SFLOAD),   0, 1,    "i",    "i",      (SUBR)SfLoad, NULL, NULL },
   { "sfpreset",S(SFPRESET), 0, 1,    "i",    "iiii",   (SUBR)SfPreset         },
   { "sfplay", S(SFPLAY), 0, 3, "aa", "iixxiooo",
     (SUBR)SfPlay_set, (SUBR)SfPlay     },
@@ -2718,7 +2716,7 @@ static OENTRY localops[] = {
     (SUBR)SfPlayMono_set, (SUBR)SfPlayMono },
   { "sfplist",S(SFPLIST),   0, 1,    "",     "i",      (SUBR)Sfplist          },
   { "sfilist",S(SFPLIST),   0, 1,    "",     "i",      (SUBR)Sfilist          },
-  { "sfilist.prefix",S(SFPLIST),   0, 1,    "",     "iS",      (SUBR)Sfilist_prefix},
+  { "sfilist.prefix",S(SFPLIST), 0, 1, "",   "iS",     (SUBR)Sfilist_prefix   },
 
   { "sfpassign",S(SFPASSIGN), 0, 1,  "",     "iip",    (SUBR)SfAssignAllPresets },
   { "sfinstrm", S(SFIPLAYMONO),0, 3, "a", "iixxiiooo",
