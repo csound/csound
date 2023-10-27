@@ -94,6 +94,7 @@ typedef unsigned __int16 uint16;
  #include <SupportDefs.h>
 #else
 typedef int_least32_t int32;
+typedef int_least64_t int64;
 typedef int_least16_t int16;
 typedef uint_least32_t uint32;
 typedef uint_least16_t uint16;
@@ -369,8 +370,6 @@ typedef unsigned long       uintptr_t;
                            (int64_t) lrintl((double) (x)) : 0)
 #    define MYFLT2LRND64(x) (x > LONG_MIN && x < LONG_MAX ? \
                            (int64_t) lrintl((double) (x)) : 0)
-
-
 #  endif
 #elif defined(MSVC)
 #include <emmintrin.h>
@@ -409,10 +408,17 @@ static inline int32 MYFLT2LRND(float fval)
 #    if defined(HAVE_GCC3) && defined(__i386__) && !defined(__ICC)
 #      define MYFLT2LRND(x) ((int32) lrint((double) (x)))
 #    else
+
 static inline int32 MYFLT2LRND(double fval)
 {
     return ((int32) (fval + (fval < 0.0 ? -0.5 : 0.5)));
 }
+
+static inline int64 MYFLT2LRND64(double fval)
+{
+    return ((int64) (fval + (fval < 0.0 ? -0.5 : 0.5)));
+}
+
 #    endif
 #  endif
 #endif

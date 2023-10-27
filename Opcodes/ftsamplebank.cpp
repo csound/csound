@@ -284,7 +284,7 @@ std::vector<std::string> searchDir(CSOUND *csound, char *directory,
   if (directory) {
     DIR *dir = opendir(directory);
     std::string fileExtension(extension);
-    int noOfFiles = 0;
+    //    int noOfFiles = 0;
 
     // check for valid path first
     if (dir) {
@@ -306,7 +306,7 @@ std::vector<std::string> searchDir(CSOUND *csound, char *directory,
           } else
             fullFileName << ent->d_name;
 
-          noOfFiles++;
+          //noOfFiles++;
           fileNames.push_back(fullFileName.str());
         }
       }

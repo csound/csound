@@ -249,7 +249,6 @@ static int32_t Sfplist(CSOUND *csound, SFPLIST *p)
     csound->Message(csound, "\n");
     return OK;
 }
-
 static int32_t SfAssignAllPresets(CSOUND *csound, SFPASSIGN *p)
 {
     sfontg *globals;
@@ -383,6 +382,8 @@ static int32_t SfPlay_set(CSOUND *csound, SFPLAY *p)
       return csound->InitError(csound, Str("invalid soundfont"));
     preset = globals->presetp[index];
     sBase = globals->sampleBase[index];
+
+    if (*p->iskip && p->spltNum) return OK;
 
     if (!UNLIKELY(preset!=NULL)) {
       return csound->InitError(csound, Str("sfplay: invalid or "
@@ -542,7 +543,7 @@ static int32_t SfPlay(CSOUND *csound, SFPLAY *p)
     double *sampinc = p->si, *phs = p->phs;
     MYFLT *left= p->leftlevel, *right= p->rightlevel, *attack = p->attack,
       *decr = p->decr, *decay = p->decay, *sustain= p->sustain,
-      *release = p->release, *attr = p->attr;
+      /* *Srelease = p->release */ *attr = p->attr; /* VL release is never used */
 
 
     memset(out1, 0, nsmps*sizeof(MYFLT));
@@ -573,7 +574,7 @@ static int32_t SfPlay(CSOUND *csound, SFPLAY *p)
         }
         phs++; base++; sampinc++; endloop++; startloop++;
         left++; right++, mode++, end++; attack++; decay++; sustain++;
-        release++; tinc++; env++; attr++; decr++;
+        tinc++; env++; attr++; decr++;
       }
     }
     else {
@@ -598,7 +599,7 @@ static int32_t SfPlay(CSOUND *csound, SFPLAY *p)
         }
         phs++; base++; sampinc++; endloop++; startloop++;
         left++; right++, mode++, end++; attack++; decay++; sustain++;
-        release++; tinc++; env++; attr++; decr++;
+        tinc++; env++; attr++; decr++;
       }
     }
     if (IS_ASIG_ARG(p->xamp)) {
@@ -633,7 +634,7 @@ static int32_t SfPlay3(CSOUND *csound, SFPLAY *p)
     double *sampinc = p->si, *phs = p->phs;
     MYFLT *left= p->leftlevel, *right= p->rightlevel, *attack = p->attack,
           *decr = p->decr, *decay = p->decay, *sustain= p->sustain,
-          *release = p->release, *attr = p->attr;
+      /* *release = p->release */ *attr = p->attr;
 
     memset(out1, 0, nsmps*sizeof(MYFLT));
     memset(out2, 0, nsmps*sizeof(MYFLT));
@@ -663,7 +664,7 @@ static int32_t SfPlay3(CSOUND *csound, SFPLAY *p)
         }
         phs++; base++; sampinc++; endloop++; startloop++;
         left++; right++, mode++, end++; attack++; decay++; sustain++;
-        release++; tinc++; env++; attr++; decr++;
+        tinc++; env++; attr++; decr++;
       }
     }
     else {
@@ -687,7 +688,7 @@ static int32_t SfPlay3(CSOUND *csound, SFPLAY *p)
         }
         phs++; base++; sampinc++; endloop++; startloop++;
         left++; right++, mode++, end++; attack++; decay++; sustain++;
-        release++; tinc++; env++; attr++; decr++;
+        tinc++; env++; attr++; decr++;
       }
     }
 
@@ -719,6 +720,8 @@ static int32_t SfPlayMono_set(CSOUND *csound, SFPLAYMONO *p)
     //printf("*** index= %d  maximum = %d\n", index, globals->currSFndx);
     if (UNLIKELY(index>=MAX_SFPRESET))
       return csound->InitError(csound, Str("invalid soundfont"));
+
+    if (*p->iskip && p->spltNum) return OK;
 
     preset = globals->presetp[index];
     sBase = globals->sampleBase[index];
@@ -818,7 +821,7 @@ static int32_t SfPlayMono(CSOUND *csound, SFPLAYMONO *p)
     SHORT *mode = p->mode;
     double *sampinc = p->si, *phs = p->phs;
     MYFLT *attenuation = p->attenuation, *attack = p->attack, *decr = p->decr,
-          *decay = p->decay, *sustain= p->sustain, *release = p->release,
+      *decay = p->decay, *sustain= p->sustain, /* *release = p->release, */
           *attr = p->attr;
 
     memset(out1, 0, nsmps*sizeof(MYFLT));
@@ -848,7 +851,7 @@ static int32_t SfPlayMono(CSOUND *csound, SFPLAYMONO *p)
         }
         phs++; base++; sampinc++; endloop++; startloop++;
         attenuation++, mode++, end++; attack++; decay++; sustain++;
-        release++; tinc++; env++; attr++; decr++;
+         tinc++; env++; attr++; decr++;
       }
     }
     else {
@@ -873,7 +876,7 @@ static int32_t SfPlayMono(CSOUND *csound, SFPLAYMONO *p)
         }
         phs++; base++; sampinc++; endloop++; startloop++;
         attenuation++, mode++, end++; attack++; decay++; sustain++;
-        release++; tinc++; env++; attr++; decr++;
+        tinc++; env++; attr++; decr++;
       }
     }
     if (IS_ASIG_ARG(p->xamp)) {
@@ -905,7 +908,7 @@ static int32_t SfPlayMono3(CSOUND *csound, SFPLAYMONO *p)
     SHORT   *mode = p->mode;
     double *sampinc = p->si, *phs = p->phs;
     MYFLT *attenuation = p->attenuation,*attack = p->attack, *decr = p->decr,
-          *decay = p->decay, *sustain= p->sustain, *release = p->release,
+      *decay = p->decay, *sustain= p->sustain, /* *release = p->release, */
           *attr = p->attr;
 
     memset(out1, 0, nsmps*sizeof(MYFLT));
@@ -934,7 +937,7 @@ static int32_t SfPlayMono3(CSOUND *csound, SFPLAYMONO *p)
         }
         phs++; base++; sampinc++; endloop++; startloop++;
         attenuation++, mode++, end++; attack++; decay++; sustain++;
-        release++; tinc++; env++; attr++; decr++;
+        tinc++; env++; attr++; decr++;
       }
     }
     else {
@@ -959,7 +962,7 @@ static int32_t SfPlayMono3(CSOUND *csound, SFPLAYMONO *p)
         }
         phs++; base++; sampinc++; endloop++; startloop++;
         attenuation++, mode++, end++; attack++; decay++; sustain++;
-        release++; tinc++; env++; attr++; decr++;
+         tinc++; env++; attr++; decr++;
       }
     }
     if (IS_ASIG_ARG(p->xamp)) {
@@ -987,7 +990,7 @@ static int32_t SfInstrPlay_set(CSOUND *csound, SFIPLAY *p)
     if (UNLIKELY(index>=MAX_SFPRESET))
       return csound->InitError(csound, Str("invalid soundfont"));
     sf = &globals->sfArray[index];
-
+    if (*p->iskip && p->spltNum)  return OK;
     if (UNLIKELY(*p->instrNum >  sf->instrs_num)) {
       return csound->InitError(csound, Str("sfinstr: instrument out of range"));
     }
@@ -1082,8 +1085,8 @@ static int32_t SfInstrPlay(CSOUND *csound, SFIPLAY *p)
     SHORT *mode = p->mode;
     double *sampinc = p->si, *phs = p->phs;
     MYFLT *left= p->leftlevel, *right= p->rightlevel, *attack = p->attack,
-          *decr = p->decr, *decay = p->decay, *sustain= p->sustain,
-          *release = p->release, *attr = p->attr;
+      *decr = p->decr, *decay = p->decay, *sustain= p->sustain,
+      /* *release = p->release, */ *attr = p->attr;
 
     memset(out1, 0, nsmps*sizeof(MYFLT));
     memset(out2, 0, nsmps*sizeof(MYFLT));
@@ -1113,7 +1116,7 @@ static int32_t SfInstrPlay(CSOUND *csound, SFIPLAY *p)
         }
         phs++; base++; sampinc++; endloop++; startloop++;
         left++; right++, mode++, end++; attack++; decay++; sustain++;
-        release++; tinc++; env++; attr++; decr++;
+         tinc++; env++; attr++; decr++;
       }
     }
     else {
@@ -1138,7 +1141,7 @@ static int32_t SfInstrPlay(CSOUND *csound, SFIPLAY *p)
         }
         phs++; base++; sampinc++; endloop++; startloop++;
         left++; right++, mode++, end++; attack++; decay++; sustain++;
-        release++; tinc++; env++; attr++; decr++;
+         tinc++; env++; attr++; decr++;
       }
     }
 
@@ -1174,7 +1177,7 @@ static int32_t SfInstrPlay3(CSOUND *csound, SFIPLAY *p)
     double *sampinc = p->si, *phs = p->phs;
     MYFLT *left= p->leftlevel, *right= p->rightlevel,
       *attack = p->attack, *decr = p->decr,
-      *decay = p->decay, *sustain= p->sustain, *release = p->release,
+      *decay = p->decay, *sustain= p->sustain, /* *release = p->release, */
       *attr = p->attr;
 
     memset(out1, 0, nsmps*sizeof(MYFLT));
@@ -1205,7 +1208,7 @@ static int32_t SfInstrPlay3(CSOUND *csound, SFIPLAY *p)
         }
         phs++; base++; sampinc++; endloop++; startloop++;
         left++; right++, mode++, end++; attack++; decay++; sustain++;
-        release++; tinc++; env++; attr++; decr++;
+         tinc++; env++; attr++; decr++;
       }
     }
     else {
@@ -1230,7 +1233,7 @@ static int32_t SfInstrPlay3(CSOUND *csound, SFIPLAY *p)
         }
         phs++; base++; sampinc++; endloop++; startloop++;
         left++; right++, mode++, end++; attack++; decay++; sustain++;
-        release++; tinc++; env++; attr++; decr++;
+         tinc++; env++; attr++; decr++;
       }
     }
 
@@ -1270,6 +1273,9 @@ static int32_t SfInstrPlayMono_set(CSOUND *csound, SFIPLAYMONO *p)
       int32_t spltNum = 0, flag=(int32_t) *p->iflag;
       int32_t vel= (int32_t) *p->ivel, notnum= (int32_t) *p->inotnum;
       int32_t splitsNum = layer->splits_num, k;
+
+      if (*p->iskip && p->spltNum) return OK;
+      
       for (k = 0; k < splitsNum; k++) {
         splitType *split = &layer->split[k];
         if (notnum >= split->minNoteRange &&
@@ -1350,9 +1356,9 @@ static int32_t SfInstrPlayMono(CSOUND *csound, SFIPLAYMONO *p)
 
     double *sampinc = p->si, *phs = p->phs;
     MYFLT *attenuation = p->attenuation, *attack = p->attack, *decr = p->decr,
-      *decay = p->decay, *sustain= p->sustain, *release = p->release,
+      *decay = p->decay, *sustain= p->sustain, /* *release = p->release, */
       *attr = p->attr;
-
+    if (*p->iskip) return OK;
     memset(out1, 0, nsmps*sizeof(MYFLT));
     if (UNLIKELY(early)) nsmps -= early;
 
@@ -1380,7 +1386,7 @@ static int32_t SfInstrPlayMono(CSOUND *csound, SFIPLAYMONO *p)
         }
         phs++; base++; sampinc++; endloop++; startloop++;
         attenuation++, mode++, end++; attack++; decay++; sustain++;
-        release++; tinc++; env++; attr++; decr++;
+        tinc++; env++; attr++; decr++;
       }
     }
     else {
@@ -1405,7 +1411,7 @@ static int32_t SfInstrPlayMono(CSOUND *csound, SFIPLAYMONO *p)
         }
         phs++; base++; sampinc++; endloop++; startloop++;
         attenuation++, mode++, end++; attack++; decay++; sustain++;
-        release++; tinc++; env++; attr++; decr++;
+        tinc++; env++; attr++; decr++;
       }
     }
     if (IS_ASIG_ARG(p->xamp)) {
@@ -1437,8 +1443,9 @@ static int32_t SfInstrPlayMono3(CSOUND *csound, SFIPLAYMONO *p)
     SHORT *mode = p->mode;
     double *sampinc = p->si, *phs = p->phs;
     MYFLT *attenuation = p->attenuation,*attack = p->attack, *decr = p->decr,
-      *decay = p->decay, *sustain= p->sustain, *release = p->release,
+      *decay = p->decay, *sustain= p->sustain, /* *release = p->release, */
       *attr = p->attr;
+    if (*p->iskip) return OK;
 
     memset(out1, 0, nsmps*sizeof(MYFLT));
     if (UNLIKELY(early)) nsmps -= early;
@@ -1467,7 +1474,7 @@ static int32_t SfInstrPlayMono3(CSOUND *csound, SFIPLAYMONO *p)
         }
         phs++; base++; sampinc++; endloop++; startloop++;
         attenuation++, mode++, end++; attack++; decay++; sustain++;
-        release++; tinc++; env++; attr++; decr++;
+        tinc++; env++; attr++; decr++;
       }
     }
     else {
@@ -1492,7 +1499,7 @@ static int32_t SfInstrPlayMono3(CSOUND *csound, SFIPLAYMONO *p)
         }
         phs++; base++; sampinc++; endloop++; startloop++;
         attenuation++, mode++, end++; attack++; decay++; sustain++;
-        release++; tinc++; env++; attr++; decr++;
+       tinc++; env++; attr++; decr++;
       }
     }
     if (IS_ASIG_ARG(p->xamp)) {
@@ -2701,7 +2708,7 @@ static int32_t sflooper_process(CSOUND *csound, sflooper *p)
 
 static OENTRY localops[] = {
   { "sfload",S(SFLOAD),     0, 1,    "i",    "S",      (SUBR)SfLoad_S, NULL, NULL },
-   { "sfload.i",S(SFLOAD),     0, 1,    "i",    "i",   (SUBR)SfLoad, NULL, NULL },
+  { "sfload.i",S(SFLOAD),   0, 1,    "i",    "i",      (SUBR)SfLoad, NULL, NULL },
   { "sfpreset",S(SFPRESET), 0, 1,    "i",    "iiii",   (SUBR)SfPreset         },
   { "sfplay", S(SFPLAY), 0, 3, "aa", "iixxiooo",
     (SUBR)SfPlay_set, (SUBR)SfPlay     },
@@ -2709,20 +2716,20 @@ static OENTRY localops[] = {
     (SUBR)SfPlayMono_set, (SUBR)SfPlayMono },
   { "sfplist",S(SFPLIST),   0, 1,    "",     "i",      (SUBR)Sfplist          },
   { "sfilist",S(SFPLIST),   0, 1,    "",     "i",      (SUBR)Sfilist          },
-  { "sfilist.prefix",S(SFPLIST),   0, 1,    "",     "iS",      (SUBR)Sfilist_prefix},
+  { "sfilist.prefix",S(SFPLIST), 0, 1, "",   "iS",     (SUBR)Sfilist_prefix   },
 
   { "sfpassign",S(SFPASSIGN), 0, 1,  "",     "iip",    (SUBR)SfAssignAllPresets },
   { "sfinstrm", S(SFIPLAYMONO),0, 3, "a", "iixxiiooo",
     (SUBR)SfInstrPlayMono_set, (SUBR)SfInstrPlayMono },
-  { "sfinstr", S(SFIPLAY),  0, 3,    "aa", "iixxiiooo",
+  { "sfinstr", S(SFIPLAY),  0, 3,    "aa", "iixxiioooo",
     (SUBR)SfInstrPlay_set,(SUBR)SfInstrPlay },
-  { "sfplay3", S(SFPLAY),   0, 3,    "aa", "iixxiooo",
+  { "sfplay3", S(SFPLAY),   0, 3,    "aa", "iixxioooo",
     (SUBR)SfPlay_set, (SUBR)SfPlay3  },
-  { "sfplay3m", S(SFPLAYMONO), 0, 3, "a", "iixxiooo",
+  { "sfplay3m", S(SFPLAYMONO), 0, 3, "a", "iixxioooo",
     (SUBR)SfPlayMono_set,(SUBR)SfPlayMono3 },
-  { "sfinstr3", S(SFIPLAY), 0, 3,    "aa", "iixxiiooo",
+  { "sfinstr3", S(SFIPLAY), 0, 3,    "aa", "iixxiioooo",
     (SUBR)SfInstrPlay_set, (SUBR)SfInstrPlay3 },
-  { "sfinstr3m", S(SFIPLAYMONO), 0, 3, "a", "iixxiiooo",
+  { "sfinstr3m", S(SFIPLAYMONO), 0, 3, "a", "iixxiioooo",
     (SUBR)SfInstrPlayMono_set, (SUBR)SfInstrPlayMono3 },
   { "sflooper", S(sflooper), 0, 3, "aa", "iikkikkkooooo",
     (SUBR)sflooper_init, (SUBR)sflooper_process },

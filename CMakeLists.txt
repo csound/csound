@@ -1,8 +1,10 @@
 cmake_minimum_required(VERSION 3.5)
+cmake_policy(SET CMP0077 NEW)
 
 # silence RPATH cmake warning
 set(CMAKE_MACOSX_RPATH 1)
 set(CMAKE_EXPORT_COMPILE_COMMANDS 1)
+set(CMAKE_OSX_DEPLOYMENT_TARGET 11)
 
 
 option(USE_VCPKG "Use VCPKG to download and manage dependencies" OFF)
@@ -14,7 +16,7 @@ if (USE_VCPKG)
     elseif(APPLE)
         set(VCPKG_TARGET_TRIPLET "x64-osx")
     elseif (UNIX)
-        set(VCPKG_TARGET_TRIPLET "x64-linux")
+        set(VCPKG_TARGET_TRIPLET "x64-linux-csound")
     endif()
 
     set(VCPKG_FEATURE_FLAGS versions)
@@ -191,6 +193,7 @@ option(LEXER_DEBUG "Build lexer with debug option" OFF)
 option(USE_GIT_COMMIT "Show the git commit in version information" ON)
 option(REQUIRE_PTHREADS "For non-Windows systems, set whether Csound will use threads or not" ON)
 option(BUILD_DOCS "Build documentation (requires doxygen)" OFF)
+option(DEBUG_ERROR_ON_WARNING "For a debug build, error on a compiler warning" OFF)
 
 
 
@@ -221,8 +224,12 @@ if(NOT MSVC AND NOT WASM)
     set(CMAKE_CXX_FLAGS_RELEASE "-O3 ")
     set(CMAKE_C_FLAGS_RELEASE "-O3 ")
     if(${CMAKE_BUILD_TYPE} MATCHES "Debug")
-        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}  -Wall -Werror -Wno-missing-field-initializers")
-        set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wall -Werror -Wno-missing-field-initializers")
+        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}  -Wall -Wno-missing-field-initializers")
+        set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wall -Wno-missing-field-initializers")
+        if (DEBUG_ERROR_ON_WARNING)
+            set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Werror")
+            set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Werror")
+        endif()
     endif()
 endif()
 
@@ -412,8 +419,6 @@ else()
     set(LINUX NO)
 endif()
 
-
-
 if(LINUX)
     set(DEFAULT_OPCODEDIR "${PLUGIN_INSTALL_DIR}")
     add_definitions("-DCS_DEFAULT_PLUGINDIR=\"${DEFAULT_OPCODEDIR}\"")
@@ -467,7 +472,8 @@ SET(BUILD_SHARED_LIBS ON)
 if(USE_LIBSNDFILE)
  set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -DUSE_LIBSNDFILE")
  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DUSE_LIBSNDFILE")
- if(MSVC)
+
+ if(USE_VCPKG)
     find_package(SndFile CONFIG REQUIRED)
  else()
     find_library(LIBSNDFILE_LIBRARY NAMES sndfile libsndfile-1 libsndfile)
@@ -510,27 +516,8 @@ endif()
 
 
 find_package(CURL)
-#set(FLTK_SKIP_OPENGL true)
-#find_package(FLTK)
 find_package(Java)
 find_package(JNI)
-#find_package(MUSICXML)
-#find_package(Python)
-#find_package(VSTSDK2X)
-
-# TODO should this work for MSVC also?
-if(WIN32)
-  find_library(FLAC_LIB NAMES FLAC flac)
-  find_library(OGG_LIB ogg)
-  find_library(SPEEX_LIB speex)
-  find_library(VORBIS_LIB vorbis)
-  find_library(VORBISENC_LIB vorbisenc)
-  set(LIBSNDFILE_SUPPORT_LIBS ${VORBIS_LIB} ${VORBISENC_LIB} ${FLAC_LIB} ${OGG_LIB})
-  if(SPEEX_LIB)
-    list(APPEND LIBSNDFILE_SUPPORT_LIBS ${SPEEX_LIB} )
-  endif()
-  #message(STATUS "${LIBSNDFILE_SUPPORT_LIBS}")
-endif()
 
 
 if(NOT MSVC AND REQUIRE_PTHREADS)
@@ -572,9 +559,7 @@ else()
   message(STATUS "Not using atomic builtins - user disabled")
 endif()
 
-find_library(VORBISFILE_LIBRARY vorbisfile)
-#check_include_file(libintl.h LIBINTL_HEADER)
-find_library(LIBINTL_LIBRARY intl HINTS /usr/local/lib)
+find_package(Intl)
 find_package(Gettext)
 find_library(MATH_LIBRARY m)
 if (NOT MATH_LIBRARY)
@@ -1177,7 +1162,7 @@ function(make_plugin libname srcs)
 
     set(i 2)
     while( ${i} LESS ${ARGC} )
-        target_link_libraries(${libname} ${ARGV${i}})
+        target_link_libraries(${libname} PRIVATE ${ARGV${i}})
         math(EXPR i "${i}+1")
     endwhile()
 
@@ -1219,7 +1204,6 @@ endif()
 
 if(WIN32)
     list(APPEND libcsound_LIBS "${CSOUND_WINDOWS_LIBRARIES}")
-    list(APPEND libcsound_LIBS "${LIBSNDFILE_SUPPORT_LIBS}")
 endif()
 
 if(USE_CURL AND CURL_FOUND)
@@ -1234,14 +1218,10 @@ if(USE_CURL AND CURL_FOUND)
 
 endif()
 
-# Linux platforms may or may not have a separate libintl (may be a part of of libc)
-set(LIBINTL_AVAIL (LIBINTL_LIBRARY OR LINUX))
-check_deps(USE_GETTEXT LIBINTL_AVAIL GETTEXT_MSGFMT_EXECUTABLE)
+check_deps(USE_GETTEXT Intl_FOUND GETTEXT_FOUND)
 if(USE_GETTEXT)
     message(STATUS "Using GNU gettext.")
-    if(LIBINTL_LIBRARY)
-        list(APPEND libcsound_LIBS ${LIBINTL_LIBRARY})
-    endif()
+    list(APPEND libcsound_LIBS Intl::Intl)
     list(APPEND libcsound_CFLAGS -DGNU_GETTEXT)
     if(NOT DEFINED CSOUND_TEXTDOMAIN AND BUILD_RELEASE AND (LINUX))
         file(TO_NATIVE_PATH "${CMAKE_INSTALL_PREFIX}/${LOCALE_INSTALL_DIR}" CSOUND_TEXTDOMAIN)
@@ -1365,9 +1345,13 @@ endif()
 
 target_compile_options(${CSOUNDLIB} PRIVATE ${libcsound_CFLAGS})
 if(MSVC)
-    target_link_libraries(${CSOUNDLIB} PRIVATE SndFile::sndfile ws2_32)
+    target_link_libraries(${CSOUNDLIB} PRIVATE ws2_32)
 else()
     target_link_libraries(${CSOUNDLIB} PRIVATE ${libcsound_LIBS})
+endif()
+
+if(USE_VCPKG)
+    target_link_libraries(${CSOUNDLIB} PRIVATE SndFile::sndfile)
 endif()
 
 set_target_properties(${CSOUNDLIB} PROPERTIES
@@ -1386,7 +1370,7 @@ if(BUILD_STATIC_LIBRARY)
     endif()
 
     if(MSVC)
-        target_link_libraries(${CSOUNDLIB_STATIC} PRIVATE SndFile::sndfile ${CSOUND_WINDOWS_LIBRARIES})
+        target_link_libraries(${CSOUNDLIB_STATIC} PRIVATE ${CSOUND_WINDOWS_LIBRARIES})
     else()
         target_link_libraries(${CSOUNDLIB_STATIC} ${libcsound_LIBS})
     endif()

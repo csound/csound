@@ -279,7 +279,7 @@ void deleteVarPoolMemory(CSOUND* csound, CS_VAR_POOL* pool) {
 
 void initializeVarPool(CSOUND* csound, MYFLT* memBlock, CS_VAR_POOL* pool) {
     CS_VARIABLE* current = pool->head;
-    int varNum = 1;
+    //int varNum = 1;
 
     while (current != NULL) {
 
@@ -289,7 +289,7 @@ void initializeVarPool(CSOUND* csound, MYFLT* memBlock, CS_VAR_POOL* pool) {
           memBlock + current->memBlockIndex
         );
       }
-      varNum++;
+      //varNum++;
       current = current->next;
     }
 }

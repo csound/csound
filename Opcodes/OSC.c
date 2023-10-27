@@ -482,8 +482,9 @@ static int32_t OSCcounter(CSOUND *csound, OSCcount *p)
     return OK;
 }
 
+
 static int32_t OSC_handler(const char *path, const char *types,
-                       lo_arg **argv, int32_t argc, void *data, void *p)
+                       lo_arg **argv, int32_t argc, lo_message data, void *p)
 {
     IGN(argc);  IGN(data);
     OSC_PORT  *pp = (OSC_PORT*) p;
@@ -548,7 +549,7 @@ static int32_t OSC_handler(const char *path, const char *types,
             case 'b':
               {
                 int32_t len =
-                  lo_blobsize((lo_blob*)argv[i]);
+                  lo_blobsize((lo_blob)argv[i]);
                 m->args[i].blob =
                   csound->Malloc(csound,len);
                 memcpy(m->args[i].blob, argv[i], len);

@@ -8,62 +8,125 @@ on:
   push:
     branches:
       - master
-      - develop 
+      - develop
   pull_request:
     branches:
       - develop
 
 jobs:
   linux_build:
-    name: Linux/Ubuntu build
+    name: Linux/Ubuntu build (apt-get)
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Source Code
         uses: actions/checkout@v1
         with:
           fetch-depth: 1
-      - name: Install Dependencies
-        run: sudo apt-get update && sudo apt-get install cmake libsndfile1-dev libasound2-dev libjack-dev portaudio19-dev libportmidi-dev libpulse-dev swig liblua5.1-0-dev default-jdk libfltk1.1-dev libfluidsynth-dev liblo-dev fluid ladspa-sdk libpng-dev dssi-dev libstk0-dev libgmm++-dev bison flex libportsmf-dev libeigen3-dev libgtest-dev
-      - name: Configure build
-        run: mkdir build && cd build && cmake .. -DBUILD_STATIC_LIBRARY=1 -DUSE_MP3=0
-      - name: Build Csound
-        run: cd build && make
-      - name: Run tests
-        run: cd build && make test csdtests
 
-  macos_build:
-    name: MacOS build
-    runs-on: macos-latest
+      - name: Install Dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install cmake libsndfile1-dev libasound2-dev libjack-dev portaudio19-dev libportmidi-dev libpulse-dev swig liblua5.1-0-dev default-jdk libfltk1.1-dev libfluidsynth-dev liblo-dev fluid ladspa-sdk libpng-dev dssi-dev libstk0-dev libgmm++-dev bison flex libportsmf-dev libeigen3-dev libcunit1-dev gettext
+
+      - name: Configure build
+        run: |
+          mkdir build
+          cd build
+          cmake .. -DUSE_MP3=0
+
+      - name: Build Csound
+        run: |
+          cd build
+          make
+
+      - name: Run tests
+        run: |
+          cd build
+          make test csdtests
+
+  linux_build_vcpkg:
+    name: Linux/Ubuntu build (vcpkg)
+    runs-on: ubuntu-latest
     steps:
-      - name: Checkout Source Code
+      - name: Checkout source code
         uses: actions/checkout@v1
         with:
           fetch-depth: 1
-      - name: Install Dependencies
-        run: brew install cmake bison flex swig asio libsndfile portaudio portmidi libsamplerate liblo jack openjdk gettext googletest
-      - name: Configure build
-        run: export PATH="/usr/local/opt/bison/bin:$PATH" && export PATH="/usr/local/opt/flex/bin:$PATH" && bison --version && mkdir build && cd build && cmake .. -DCMAKE_VERBOSE_MAKEFILE=1 -DBUILD_STATIC_LIBRARY=1
-      - name: Build Csound
-        run: cd build && make
-      - name: Run tests
-        run: cd build && make test csdtests
+          submodules: true
 
-  #  android_build:
-  #    name: Android build
-  #    runs-on: ubuntu-latest
-  #    steps:
-  #      - name: run the Docker image
-  #        run: docker run --name csound_test_run -i sjamble/csound_android
-  #      - name: copying build out of container
-  #        run: docker cp csound_test_run:/csound/Android/csound-android-7.0.0.zip .
-  #      - uses: actions/upload-artifact@v2
-  #        with:
-  #         name: csound-android-7.0.0.zip
-  #          path: .
+      - name: Bootstrap VCPKG
+        run: ./vcpkg/bootstrap-vcpkg.sh
+
+      - name: Setup NuGet credentials
+        shell: bash
+        run: |
+          mono `./vcpkg/vcpkg fetch nuget | tail -n 1` \
+          sources add \
+          -source "https://nuget.pkg.github.com/csound/index.json" \
+          -storepasswordincleartext \
+          -name "GitHub" \
+          -username "csound" \
+          -password "${{ secrets.GITHUB_TOKEN }}"
+          mono `./vcpkg/vcpkg fetch nuget | tail -n 1` \
+            setapikey "${{ secrets.GITHUB_TOKEN }}" \
+            -source "https://nuget.pkg.github.com/csound/index.json"
+
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install cmake libjack-dev libpulse-dev ladspa-sdk dssi-dev autoconf libtool
+
+      - name: Configure Build
+        run: cmake -B build -S . -DUSE_VCPKG=1 -DCUSTOM_CMAKE="./platform/linux/custom.cmake"
+
+      - name: Build Csound
+        run: cmake --build build --config Release
+
+      - name: Run integration and unit tests
+        run: cmake --build build --target test csdtests
+
+  # macos_build:
+  #   name: MacOS build
+  #   runs-on: macos-latest
+  #   steps:
+  #     - name: Checkout source code
+  #       uses: actions/checkout@v1
+  #       with:
+  #         fetch-depth: 1
+  #         submodules: true
+
+  #     - name: Bootstrap VCPKG
+  #       run: ./vcpkg/bootstrap-vcpkg.sh
+
+  #     - name: Setup NuGet credentials
+  #       shell: bash
+  #       run: |
+  #         mono `./vcpkg/vcpkg fetch nuget | tail -n 1` \
+  #         sources add \
+  #         -source "https://nuget.pkg.github.com/csound/index.json" \
+  #         -storepasswordincleartext \
+  #         -name "GitHub" \
+  #         -username "csound" \
+  #         -password "${{ secrets.GITHUB_TOKEN }}"
+  #         mono `./vcpkg/vcpkg fetch nuget | tail -n 1` \
+  #           setapikey "${{ secrets.GITHUB_TOKEN }}" \
+  #           -source "https://nuget.pkg.github.com/csound/index.json"
+
+  #     - name: Install dependencies
+  #       run: brew install bison@2.7 flex asio jack
+
+  #     - name: Configure build
+  #       run: cmake -B build -S . -DUSE_VCPKG=1 -DCUSTOM_CMAKE="./platform/osx/custom-osx.cmake"
+
+  #     - name: Build Csound
+  #       run: cmake --build build --config Release
+
+  #     - name: Run integration and unit tests
+  #       run: cmake --build build --target test csdtests
 
   windows_build:
     name: Windows build
-    runs-on: windows-2022
+    runs-on: windows-latest
     steps:
       - name: Checkout Source Code
         uses: actions/checkout@v1
@@ -80,14 +143,17 @@ jobs:
 
       - name: Setup NuGet Credentials
         shell: bash
-        run: >
-          `./vcpkg/vcpkg fetch nuget | tail -n 1`
-          sources add
-          -source "https://nuget.pkg.github.com/csound/index.json"
-          -storepasswordincleartext
-          -name "GitHub"
-          -username "csound"
+        run: |
+          `./vcpkg/vcpkg fetch nuget | tail -n 1` \
+          sources add \
+          -source "https://nuget.pkg.github.com/csound/index.json" \
+          -storepasswordincleartext \
+          -name "GitHub" \
+          -username "csound" \
           -password "${{ secrets.GITHUB_TOKEN }}"
+          `./vcpkg/vcpkg fetch nuget | tail -n 1` \
+            setapikey "${{ secrets.GITHUB_TOKEN }}" \
+            -source "https://nuget.pkg.github.com/csound/index.json"
 
       - name: Configure build
         run: cmake -B build -S . -DUSE_VCPKG=1 -DCUSTOM_CMAKE="./platform/windows/Custom-vs.cmake"
@@ -136,3 +202,16 @@ jobs:
             ./build/*.py
             ./include/
           if-no-files-found: error
+
+  #android_build:
+  #  name: Android build
+  # runs-on: ubuntu-latest
+  # steps:
+  #    - name: run the Docker image
+  #     run: docker run --name csound_test_run -i sjamble/csound_android
+  #   - name: copying build out of container
+  #    run: docker cp csound_test_run:/csound/Android/csound-android-6.18.0.zip .
+  #  - uses: actions/upload-artifact@v2
+  #    with:
+  #       name: csound-android-6.18.0.zip
+  #      path: .
