@@ -39,6 +39,8 @@ struct TrigLinseg : csnd::Plugin<1, 64>
         outargs[0] = inargs[1];
         segment = 0;
         outValue = 0;
+        values.clear();
+        durations.clear();
 
         while (argCnt < in_count())
         {
@@ -128,6 +130,8 @@ struct TrigExpseg : csnd::Plugin<1, 64>
         outargs[0] = inargs[1];
         segment = 0;
         outValue = inargs[1];
+        values.clear();
+        durations.clear();
 
         while (argCnt < in_count())
         {

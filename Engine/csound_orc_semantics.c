@@ -694,12 +694,18 @@ int check_array_arg(char* found, char* required) {
     return (*f == *r);
 }
 
-int check_in_arg(char* found, char* required) {
+int check_in_arg(char* found, char* req) {
     char* t;
     int i;
-    if (UNLIKELY(found == NULL || required == NULL)) {
+    char required[64];
+
+    if (UNLIKELY(found == NULL || req == NULL)) {
       return 0;
     }
+
+    if(*req != 'K')
+      strcpy(required,req);
+    else strcpy(required, "k");
 
     if (strcmp(found, required) == 0) {
       return 1;
@@ -851,6 +857,13 @@ int check_out_arg(char* found, char* required) {
       return 0;
     }
 
+
+    if(required[0] == 'K' && found[0] == 'k'){
+    return 1;
+    }
+
+
+
     // constants not allowed in out args
     if (strcmp(found, "c") == 0) {
       return 0;
@@ -998,7 +1011,6 @@ OENTRY* resolve_opcode(CSOUND* csound, OENTRIES* entries,
                       Str("Found %d inputs for %s which is more than "
                           "the %d allowed\n"),
                       argsRequired(inArgTypes), temp->opname, VARGMAX);
-
             return temp;
         }
     }
@@ -1491,7 +1503,7 @@ int verify_opcode(CSOUND* csound, TREE* root, TYPE_TABLE* typeTable) {
 
     if (UNLIKELY(oentry == NULL)) {
       synterr(csound, Str("Unable to find opcode entry for \'%s\' "
-                          "with matching argument types:\n"),
+                          "with matching argument types: \n"),
               opcodeName);
       csoundMessage(csound, Str("Found: %s %s %s\n"),
                     leftArgString, root->value->lexeme, rightArgString);
@@ -1706,7 +1718,7 @@ int verify_xin_xout(CSOUND *csound, TREE *udoTree, TYPE_TABLE *typeTable) {
 
     for (i = 0; i < strlen(outArgs);i++) {
       if (outArgs[i] == 'K') {
-        outArgs[i] = 'k';
+        outArgs[i] = 'K';
       }
     }
 

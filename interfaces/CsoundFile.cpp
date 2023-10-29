@@ -846,7 +846,7 @@ bool CsoundFile::getInstrument(int number, std::string &definition_) const
 {
   int beginDefinition = 0;
   int endDefinition = 0;
-  for(int index = 0; true; index++)
+  for(; true;)
     {
       beginDefinition = findToken(orchestra, "instr", beginDefinition);
       if(beginDefinition == -1)
@@ -921,7 +921,7 @@ std::map<int, std::string> CsoundFile::getInstrumentNames() const
   std::map<int, std::string> instrumentNames;
   int beginDefinition = 0;
   int endDefinition = 0;
-  for(int index = 0; true; index++)
+  while(true)
     {
       beginDefinition = findToken(orchestra, "instr", beginDefinition);
       if(beginDefinition == -1)

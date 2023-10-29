@@ -1801,7 +1801,7 @@ static void compute_residual(CSOUND *csound, mus_sample_t **fil,
                              ATS_SOUND *sound, int *win_samps,
                              int file_sampling_rate)
 {
-    int     i, frm, frm_1, frm_2, par, frames, partials, frm_samps, out_smp = 0;
+    int     i, frm, frm_1, frm_2, par, frames, partials, frm_samps;
     double  *in_buff, *synth_buff, mag, a1, a2, f1, f2, p1, p2, diff, synth;
     mus_sample_t **obuf;
     SF_INFO sfinfo;
@@ -1885,7 +1885,6 @@ static void compute_residual(CSOUND *csound, mus_sample_t **fil,
         diff = in_buff[i] - synth;
         obuf[0][i] = (mus_sample_t) diff;
         obuf[1][i] = (mus_sample_t) synth;
-        out_smp++;
       }
       atsa_sound_write_noninterleaved(sf, obuf, 2, frm_samps);
     }

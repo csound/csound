@@ -536,10 +536,18 @@ static const CSOUND cenviron_ = {
     csoundCepsLP,
     csoundLPrms,
     csoundCreateThread2,
+    cs_hash_table_create,
+    cs_hash_table_get,
+    cs_hash_table_put,
+    cs_hash_table_remove,
+    cs_hash_table_free,
+    cs_hash_table_get_key,
+    cs_hash_table_keys,
+    cs_hash_table_values,
+    csoundPeekCircularBuffer,
     {
       NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
-      NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
-      NULL, NULL
+      NULL, NULL, NULL
     },
     /* ------- private data (not to be used by hosts or externals) ------- */
     /* callback function pointers */

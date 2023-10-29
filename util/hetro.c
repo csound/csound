@@ -677,7 +677,7 @@ static int32_t filedump(HET *t, CSOUND *csound)
     for (h = 0; h < t->hmax; h++) {
       int16 *mp = magout, *fp = frqout;
       int16 *lastmag, *lastfrq, pkamp = 0;
-      int32_t mpoints, fpoints, contig = 0;
+      int32_t mpoints, fpoints/*, contig = 0*/;
       *mp++ = -1;                      /* set brkpoint type codes  */
       *fp++ = -2;
       lastmag = mp;
@@ -710,7 +710,7 @@ static int32_t filedump(HET *t, CSOUND *csound)
           *fp++ = frq;
           lastmag = mp;         /* record last significant seg  */
           lastfrq = fp;
-          contig++;
+          //contig++;
         }
         else {
           if (mp > lastmag) {   /* for non-significant segments */
@@ -721,7 +721,7 @@ static int32_t filedump(HET *t, CSOUND *csound)
           *mp++ = 0;
           *fp++ = tim;
           *fp++ = frq;
-          contig = 0;
+          //contig = 0;
         }
       }
       if (lastmag < mp) {          /* if last signif not last point */

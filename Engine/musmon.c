@@ -56,7 +56,7 @@ void print_csound_version(CSOUND*);
 #define RT_SPIN_TRYLOCK { int trylock = CSOUND_SUCCESS; \
   if(csound->oparms->realtime)             \
   trylock = csoundSpinTryLock(&csound->alloc_spinlock);      \
-  if(trylock == CSOUND_SUCCESS) {
+if(trylock == CSOUND_SUCCESS) {
 #else
 #define RT_SPIN_TRYLOCK csoundSpinLock(&csound->alloc_spinlock);
 #endif
@@ -822,11 +822,10 @@ static int process_score_event(CSOUND *csound, EVTBLK *evt, int rtEvt)
           break;                       /* RM: and quit */
         }
       }
-      evt->p[1] = (MYFLT) insno;     
+      evt->p[1] = (MYFLT) insno;
       if (csound->oparms->Beatmode && !rtEvt && evt->p3orig > FL(0.0))
         evt->p[3] = evt->p3orig * (MYFLT) csound->ibeatTime/csound->esr;
       /* else alloc, init, activate */
-    
       if (UNLIKELY((n = insert(csound, insno, evt)))) {
         printScoreError(csound, rtEvt,
                         Str(" - note deleted.  i%d (%s) had %d init errors"),

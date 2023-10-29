@@ -209,6 +209,7 @@ void *mrealloc(CSOUND *csound, void *oldp, size_t size)
     if (UNLIKELY(p == NULL)) {
 #ifdef MEMDEBUG
       CSOUND_MEM_SPINLOCK
+      pp = p;
       /* alloc failed, restore original header */
       pp->magic = MEMALLOC_MAGIC;
       pp->ptr = oldp;
