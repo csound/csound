@@ -706,8 +706,10 @@ static const CSOUND cenviron_ = {
     NULL,           /*  rtPlay_userdata     */
 #if defined(MSVC) ||defined(__POWERPC__) || defined(MACOSX)
     {0},
-#else
+#elif defined(LINUX)
    {{{0}}},        /*  exitjmp of type jmp_buf */
+#else
+   {0},  
 #endif
     NULL,           /*  frstbp              */
     0,              /*  sectcnt             */
@@ -1217,7 +1219,7 @@ static void psignal_(int sig, char *str)
 }
 #else
 # if !defined(__CYGWIN__)
-static void psignal(int sig, const char *str)
+void psignal(int sig, const char *str)
 {
     fprintf(stderr, "%s: %s\n", str, signal_to_string(sig));
 }
