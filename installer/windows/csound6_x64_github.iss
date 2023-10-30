@@ -169,7 +169,7 @@ Source: "{#ReleaseDir}\sdif2ad.exe"; DestDir: "{#APP_BIN}"; Flags: ignoreversion
 Source: "{#ReleaseDir}\signalflowgraph.dll"; DestDir: "{#APP_PLUGINS64}"; Flags: ignoreversion; Components: core;
 Source: "{#ReleaseDir}\sndinfo.exe"; DestDir: "{#APP_BIN}"; Flags: ignoreversion; Components: core;
 Source: "{#ReleaseDir}\srconv.exe"; DestDir: "{#APP_BIN}"; Flags: ignoreversion; Components: core;
-;Source: "{#ReleaseDir}\src_conv.exe"; DestDir: "{#APP_BIN}"; Flags: ignoreversion; Components: core;
+Source: "{#ReleaseDir}\src_conv.exe"; DestDir: "{#APP_BIN}"; Flags: ignoreversion; Components: core;
 Source: "{#ReleaseDir}\deprecated.dll"; DestDir: "{#APP_PLUGINS64}"; Flags: ignoreversion; Components: core;
 Source: "{#ReleaseDir}\stdutil.dll"; DestDir: "{#APP_PLUGINS64}"; Flags: ignoreversion; Components: core;
 
