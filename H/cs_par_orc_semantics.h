@@ -24,6 +24,7 @@
 #ifndef __CSOUND_ORC_SEMANTIC_ANALYSIS_H__
 #define __CSOUND_ORC_SEMANTIC_ANALYSIS_H__
 
+#ifdef PARCS
 /*
  * This module maintains a list of instruments that have been parsed
  * When parsing an instrument:
@@ -88,5 +89,5 @@ struct instr_semantics_t
 void csp_orc_sa_interlocks(CSOUND *, ORCTOKEN *);
 
 void csp_orc_analyze_tree(CSOUND *, TREE*);
-
+#endif
 #endif /* end of include guard: __CSOUND_ORC_SEMANTIC_ANALYSIS_H__ */

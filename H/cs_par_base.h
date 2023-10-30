@@ -24,6 +24,7 @@
 #ifndef __CS_PAR_BASE_H__
 #define __CS_PAR_BASE_H__
 
+#ifdef PARCS
 // Semaphone.h only exists when using pthreads, doesn't apply to Windows
 #ifndef WIN32
   #include <semaphore.h>
@@ -201,5 +202,7 @@ void csp_semaphore_release(CSOUND *csound, sem_t *sem);
 void csp_semaphore_release_end(CSOUND *csound, sem_t *sem);
 /* print semaphore info */
 void csp_semaphore_release_print(CSOUND *csound, sem_t *sem);
+
+#endif
 
 #endif /* end of include guard: __CS_PAR_BASE_H__ */
