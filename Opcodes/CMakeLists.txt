@@ -117,7 +117,7 @@ if(BUILD_DSSI_OPCODES)
 endif()
 
 ## OPCODES WITH EXTERNAL DEPENDENCIES ##
-find_package(LIBLO)
+find_package(LIBLO MODULE)
 if(BUILD_OSC_OPCODES AND LIBLO_FOUND)
     make_plugin(osc OSC.c)
     if(WIN32)
