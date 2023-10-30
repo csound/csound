@@ -696,7 +696,7 @@ static const CSOUND cenviron_ = {
     FL(-1.0),       /*  mtpdsr              */
     FL(0.0),        /*  onedksmps           */
     FL(0.0),        /*  onedkr              */
-    FL(0.0),        /*  kicvt               */
+    FL(0.0),        /*  kicvt               */ 
     0,              /*  reinitflag          */
     0,              /*  tieflag             */
     DFLT_DBFS,      /*  e0dbfs              */
@@ -708,9 +708,9 @@ static const CSOUND cenviron_ = {
     {0},
 #elif defined(LINUX)
    {{{0}}},        /*  exitjmp of type jmp_buf */
-#else
+#else 
    {0},  
-#endif
+#endif 
     NULL,           /*  frstbp              */
     0,              /*  sectcnt             */
     0, 0, 0,        /*  inerrcnt, synterrcnt, perferrcnt */
