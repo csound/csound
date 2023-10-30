@@ -420,7 +420,7 @@ static CS_NOINLINE int32_t create_new_channel(CSOUND *csound, const char *name,
 }
 
 
-PUBLIC int32 csoundGetChannelPtr(CSOUND *csound,
+PUBLIC int csoundGetChannelPtr(CSOUND *csound,
                                    MYFLT **p, const char *name, int32_t type)
 {
     CHNENTRY  *pp;
