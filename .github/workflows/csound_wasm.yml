@@ -1,12 +1,12 @@
-name: csound_wasm
-env:
-  nix_path: nixpkgs=https://github.com/NixOS/nixpkgs/archive/cb474e6c995aca315dd728d7c8f288cf8de8e2ae.tar.gz
-on:
-  pull_request:
-    branches: ["**"]
-  push:
-    branches: ["develop"]
-jobs:
+#name: csound_wasm
+#env:
+#  nix_path: nixpkgs=https://github.com/NixOS/nixpkgs/archive/cb474e6c995aca315dd728d7c8f288cf8de8e2ae.tar.gz
+#on:
+#  pull_request:
+#    branches: ["**"]
+#  push:
+#    branches: ["develop"]
+#jobs:
   # csound-wasm:
   #   env:
   #     wasm_bin_dir: ./wasm
