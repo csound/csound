@@ -1,10 +1,11 @@
-cmake_minimum_required(VERSION 3.5)
+cmake_minimum_required(VERSION 3.15)
 cmake_policy(SET CMP0077 NEW)
 
 # silence RPATH cmake warning
 set(CMAKE_MACOSX_RPATH 1)
 set(CMAKE_EXPORT_COMPILE_COMMANDS 1)
 set(CMAKE_OSX_DEPLOYMENT_TARGET 11)
+set(CMAKE_FIND_PACKAGE_PREFER_CONFIG ON)
 
 
 option(USE_VCPKG "Use VCPKG to download and manage dependencies" OFF)
