@@ -420,7 +420,7 @@ static CS_NOINLINE int32_t create_new_channel(CSOUND *csound, const char *name,
 }
 
 
-PUBLIC int32_t csoundGetChannelPtr(CSOUND *csound,
+PUBLIC int32 csoundGetChannelPtr(CSOUND *csound,
                                    MYFLT **p, const char *name, int32_t type)
 {
     CHNENTRY  *pp;
@@ -444,7 +444,7 @@ PUBLIC int32_t csoundGetChannelPtr(CSOUND *csound,
     return CSOUND_ERROR;
 }
 
-PUBLIC int32_t csoundGetChannelDatasize(CSOUND *csound, const char *name){
+PUBLIC int csoundGetChannelDatasize(CSOUND *csound, const char *name){
 
     CHNENTRY  *pp;
     pp = find_channel(csound, name);
@@ -460,7 +460,7 @@ PUBLIC int32_t csoundGetChannelDatasize(CSOUND *csound, const char *name){
 }
 
 
-PUBLIC int32_t *csoundGetChannelLock(CSOUND *csound,
+PUBLIC int *csoundGetChannelLock(CSOUND *csound,
                                      const char *name)
 {
     CHNENTRY  *pp;
@@ -480,7 +480,7 @@ static int32_t cmp_func(const void *p1, const void *p2)
                   ((controlChannelInfo_t*) p2)->name);
 }
 
-PUBLIC int32_t csoundListChannels(CSOUND *csound, controlChannelInfo_t **lst)
+PUBLIC int csoundListChannels(CSOUND *csound, controlChannelInfo_t **lst)
 {
     CHNENTRY  *pp;
     size_t     n;
@@ -526,7 +526,7 @@ PUBLIC void csoundDeleteChannelList(CSOUND *csound, controlChannelInfo_t *lst)
     if (lst != NULL) csound->Free(csound, lst);
 }
 
-PUBLIC int32_t csoundSetControlChannelHints(CSOUND *csound, const char *name,
+PUBLIC int csoundSetControlChannelHints(CSOUND *csound, const char *name,
                                             controlChannelHints_t hints)
 {
     CHNENTRY  *pp;
@@ -577,7 +577,7 @@ PUBLIC int32_t csoundSetControlChannelHints(CSOUND *csound, const char *name,
 * special parameters set; otherwise, a negative error code is returned.
 */
 
-PUBLIC int32_t csoundGetControlChannelHints(CSOUND *csound, const char *name,
+PUBLIC int csoundGetControlChannelHints(CSOUND *csound, const char *name,
                                             controlChannelHints_t *hints)
 {
     CHNENTRY  *pp;
