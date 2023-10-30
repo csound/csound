@@ -59,6 +59,10 @@ static void sensLine(CSOUND *csound, void *userData);
 #define STA(x)   (csound->lineventStatics.x)
 #define MAXSTR 1048576 /* 1MB */
 
+#ifndef O_NDELAY
+#define O_NDELAY 0
+#endif
+
 void RTLineset(CSOUND *csound)      /* set up Linebuf & ready the input files */
 {                                   /*     callable once from musmon.c        */
     OPARMS  *O = csound->oparms;
