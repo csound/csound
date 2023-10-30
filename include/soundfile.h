@@ -131,6 +131,7 @@
 #define AE_DPCM_8       210
 #define AE_DPCM_16      220
 #define AE_VORBIS       230
+#define AE_MPEG         240
 
 #define AE_LAST   SF_FORMAT_DPCM_16     /* current last audio encoding value */
 
@@ -160,6 +161,7 @@
 #define TYP_OGG   (22)
 #define TYP_MPC2K (23)
 #define TYP_RF64  (24)
+#define TYP_MPEG  (25)
 
 #define FORMAT2SF(x) ((int) (x))
 #define SF2FORMAT(x) ((int) (x))

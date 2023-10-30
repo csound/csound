@@ -43,7 +43,7 @@ if(BUILD_UTILITIES)
         find_library(LIBSAMPLERATE_LIBRARY NAMES samplerate libsamplerate-0)
     endif()
 
-    if(LIBSNDFILE_LIBRARY AND LIBSAMPLERATE_LIBRARY)
+    if(USE_SNDFILE AND LIBSAMPLERATE_LIBRARY)
         make_executable(src_conv new_srconv.c "${LIBSNDFILE_LIBRARY};${LIBSAMPLERATE_LIBRARY}")
         if(MSVC)
             target_link_libraries(src_conv ${LIBSNDFILE_SUPPORT_LIBS})

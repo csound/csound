@@ -468,21 +468,23 @@ TEST_BIG_ENDIAN(BIG_ENDIAN)
 SET(BUILD_SHARED_LIBS ON)
 
 ## HEADER/LIBRARY/OTHER CHECKS ##
-# First, required stuff
+# Check if libsndfile is available, if not, disable build
 if(USE_LIBSNDFILE)
- set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -DUSE_LIBSNDFILE")
- set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DUSE_LIBSNDFILE")
-
  if(USE_VCPKG)
     find_package(SndFile CONFIG REQUIRED)
  else()
     find_library(LIBSNDFILE_LIBRARY NAMES sndfile libsndfile-1 libsndfile)
-
   if(NOT LIBSNDFILE_LIBRARY)
-        message(FATAL_ERROR "Csound requires the sndfile library")
+       message(STATUS "libsndfile not found")
+       et(USE_LIBSNDFILE 0)
    endif()
  endif()
 endif()
+
+# carry on setting up libsndifle if so
+if(USE_LIBSNDFILE)
+ set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -DUSE_LIBSNDFILE")
+ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DUSE_LIBSNDFILE")
 
 if(EMSCRIPTEN)
   include_directories(emscripten/deps/libsndfile-1.0.25/src/)
@@ -512,6 +514,11 @@ if (USE_MP3)
 else()
   message(STATUS  "NOT Using libsndfile MP3 support")
 endif()
+
+else()
+message(STATUS  "NOT Using libsndfile")
+endif()
+
 
 
 
