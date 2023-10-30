@@ -347,15 +347,15 @@ static int32_t array_get(CSOUND* csound, ARRAY_GET *p)
     index = 0;
     for (i=0;i<indefArgCount; i++) {
       end = (int)(*p->indexes[i]);
-      //printf("** dimemnsion %d end = %d\n", i, end);
+      //printf("++++ ** dimemnsion %d end = %d\n", i, end);
       if (UNLIKELY(end>=dat->sizes[i]))
         return csound->PerfError(csound, &(p->h),
                       Str("Array index %d out of range (0,%d) "
                           "for dimension %d"),
-                               end, dat->sizes[i], i+1);
-      // printf("*** index %d -> ", index);
+                               end, dat->sizes[i]-1, i+1);
+      //printf("*** index %d -> ", index);
       index = (index * dat->sizes[i]) + end;
-      // printf("%d : %d\n", index, dat->sizes[i]);
+      //printf("%d : %d\n", index, dat->sizes[i]);
     }
 
     incr = (index * (dat->arrayMemberSize / sizeof(MYFLT)));

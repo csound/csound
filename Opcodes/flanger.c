@@ -28,12 +28,14 @@
 
 static int32_t flanger_set (CSOUND *csound, FLANGER *p)
 {
-        /*---------------- delay  -----------------------*/
+    /*---------------- delay  -----------------------*/
     p->maxdelay = (uint32)(*p->maxd  * CS_ESR);
-    csound->AuxAlloc(csound, p->maxdelay * sizeof(MYFLT), &p->aux);
-    p->left = 0;
-    p->yt1 = FL(0.0);
-    p->fmaxd = (MYFLT) p->maxdelay;
+    if ((*p->iskip != 0) || (p->aux.auxp==NULL)) {
+      csound->AuxAlloc(csound, p->maxdelay * sizeof(MYFLT), &p->aux);
+      p->left = 0;
+      p->yt1 = FL(0.0);
+      p->fmaxd = (MYFLT) p->maxdelay;
+    }
     return OK;
 }
 
@@ -332,7 +334,7 @@ static int32_t wguide2(CSOUND *csound, WGUIDE2 *p)
 #define S(x)    sizeof(x)
 
 static OENTRY localops[] = {
-{ "flanger", S(FLANGER), 0, 3, "a", "aakv", (SUBR)flanger_set, (SUBR)flanger },
+{ "flanger", S(FLANGER), 0, 3, "a", "aakvo", (SUBR)flanger_set, (SUBR)flanger },
 { "wguide1", S(WGUIDE1), 0, 3, "a", "axkk",(SUBR) wguide1set, (SUBR)wguide1  },
 { "wguide2", S(WGUIDE2), 0, 3, "a", "axxkkkk",(SUBR)wguide2set, (SUBR)wguide2 }
 };
