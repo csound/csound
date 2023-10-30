@@ -22,9 +22,12 @@ message(STATUS "## Building Plugin Opcodes ##")
 ## CPP OPCODE LIBS WITH NO EXTERNAL DEPENDENCIES ##
 make_plugin(doppler doppler.cpp)
 make_plugin(fractalnoise tl/fractalnoise.cpp)
+
+if(DIRENT_H) 
 make_plugin(ftsamplebank ftsamplebank.cpp)
-find_path(DIRENT_INCLUDE_DIR "dirent.h" REQUIRED)
+get_filename_component(DIRENT_INCLUDE_DIR ${DIRENT_H} DIRECTORY)
 target_include_directories(ftsamplebank PRIVATE ${DIRENT_INCLUDE_DIR})
+endif()
 
 make_plugin(lfsr lfsr.cpp)
 make_plugin(bformdec2 bformdec2.cpp)
