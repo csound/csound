@@ -19,7 +19,8 @@
         {
             "name": "libsndfile",
             "features": [
-                "external-libs"
+                "external-libs",
+                "mpeg"
             ]
         },
         {
