@@ -1,9 +1,9 @@
 cmake_minimum_required(VERSION 3.5)
 
 find_package(GTest)
-
+check_deps(BUILD_TESTS BUILD_STATIC_LIBRARY GTest_FOUND)
 # FIXME currently requires static lib, this should include build static csound condition
-if(BUILD_TESTS AND BUILD_STATIC_LIBRARY AND GTest_FOUND)
+if(BUILD_TESTS)
     add_executable(unittests
         channel_tests.cpp
         cscore_tests.cpp
@@ -24,28 +24,16 @@ if(BUILD_TESTS AND BUILD_STATIC_LIBRARY AND GTest_FOUND)
         ${CMAKE_SOURCE_DIR}/interfaces)
 
     # Required because we're compiling the tests written in C as C++
-    set(CMAKE_CXX_FLAGS "-fpermissive -Wwrite-strings -std=c++0x")
+    if (APPLE)
+        set(CMAKE_CXX_FLAGS "-stdlib=libc++")
+    else()
+        set(CMAKE_CXX_FLAGS "-fpermissive -Wwrite-strings -std=c++0x")
+    endif()
+
+    target_link_libraries(unittests PRIVATE ${CSOUNDLIB_STATIC} GTest::gtest GTest::gtest_main)
 
     if(USE_VCPKG)
-        find_package(GTest CONFIG REQUIRED)
-
         set_property(TARGET unittests PROPERTY CXX_STANDARD 14)
-
-        target_link_libraries(unittests PRIVATE
-            GTest::gtest_main ${CSOUNDLIB_STATIC} SndFile::sndfile)
-    else ()
-        set(CMAKE_CXX_FLAGS "-fpermissive -Wwrite-strings -std=c++0x")
-        find_package(GTest REQUIRED)
-
-        if (APPLE)
-            set(CMAKE_CXX_FLAGS "-stdlib=libc++")
-        endif()
-
-        target_include_directories(unittests PRIVATE
-            ${GTEST_INCLUDE_DIRS})
-
-        target_link_libraries(unittests PRIVATE
-            ${GTEST_BOTH_LIBRARIES} ${CSOUNDLIB_STATIC})
     endif()
 
     include(GoogleTest)
