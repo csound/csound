@@ -468,6 +468,8 @@ TEST_BIG_ENDIAN(BIG_ENDIAN)
 ## CONFIGURATION ##
 SET(BUILD_SHARED_LIBS ON)
 
+set(libcsound_PUBLIC_LIBS "")
+
 ## HEADER/LIBRARY/OTHER CHECKS ##
 # Check if libsndfile is available, if not, disable build
 if(USE_LIBSNDFILE)
@@ -485,6 +487,7 @@ endif()
 
 # carry on setting up libsndifle if so
 if(USE_LIBSNDFILE)
+ list(APPEND libcsound_PUBLIC_LIBS ${LIBSNDFILE_LIBRARY})
  add_compile_definitions("USE_LIBSNDFILE")
 
 if(EMSCRIPTEN)
@@ -497,7 +500,7 @@ else()
     message(FATAL_ERROR "Could not find sndfile.h")
 endif()
 
-SET(CMAKE_REQUIRED_LIBRARIES ${LIBSNDFILE_LIBRARY})
+SET(CMAKE_REQUIRED_LIBRARIES ${libcsound_PUBLIC_LIBS})
 SET(CMAKE_REQUIRED_INCLUDES ${SNDFILE_H_PATH})
 
 check_c_source_compiles("#include <sndfile.h>
@@ -1198,7 +1201,7 @@ endif()
 
 
 # TODO include target rather than libs to also bring in transitive dependencies
-set(libcsound_LIBS ${LIBSNDFILE_LIBRARY})
+set(libcsound_LIBS "")
 
 if(REQUIRE_PTHREADS AND PTHREAD_LIBRARY)
   list(APPEND libcsound_LIBS ${PTHREAD_LIBRARY})
@@ -1355,10 +1358,8 @@ if(MSVC)
 else()
     target_link_libraries(${CSOUNDLIB} PRIVATE ${libcsound_LIBS})
 endif()
+target_link_libraries(${CSOUNDLIB} PUBLIC ${libcsound_PUBLIC_LIBS})
 
-if(USE_VCPKG)
-    target_link_libraries(${CSOUNDLIB} PRIVATE SndFile::sndfile)
-endif()
 
 set_target_properties(${CSOUNDLIB} PROPERTIES
     RUNTIME_OUTPUT_DIRECTORY ${BUILD_BIN_DIR}
@@ -1380,6 +1381,7 @@ if(BUILD_STATIC_LIBRARY)
     else()
         target_link_libraries(${CSOUNDLIB_STATIC} PRIVATE ${libcsound_LIBS})
     endif()
+    target_link_libraries(${CSOUNDLIB_STATIC} PUBLIC ${libcsound_PUBLIC_LIBS})
 
     set_target_properties(${CSOUNDLIB_STATIC} PROPERTIES
         RUNTIME_OUTPUT_DIRECTORY ${BUILD_BIN_DIR}
