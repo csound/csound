@@ -106,6 +106,7 @@ endmacro(LIST_REPLACE)
 function(make_executable name srcs libs)
     add_executable(${name} ${srcs})
     target_link_libraries(${name} PRIVATE ${libs})
+    target_include_directories(${name} PRIVATE ${libcsound_INTERNAL_INCLUDE_DIRS})
     set_target_properties(${name} PROPERTIES
         RUNTIME_OUTPUT_DIRECTORY ${BUILD_BIN_DIR})
 
@@ -638,14 +639,15 @@ endif()
 
 set(libcsound_CFLAGS -D__BUILDING_LIBCSOUND)
 
-include_directories(./H)
-include_directories(./include)
-include_directories(./Engine)
-
-#adding this for files that #include SDIF/sdif*
-include_directories(./util)
-#adding this for files that #include files in local dirs
-include_directories(./)
+set(libcsound_INTERNAL_INCLUDE_DIRS "${Csound_SOURCE_DIR}/H")
+set(libcsound_PUBLIC_INCLUDE_DIRS "${Csound_SOURCE_DIR}/include")
+set(libcsound_PRIVATE_INCLUDE_DIRS
+    "${Csound_SOURCE_DIR}/Engine"
+    #adding this for files that #include SDIF/sdif*
+    "${Csound_SOURCE_DIR}/util"
+    #adding this for files that #include files in local dirs
+    "${Csound_SOURCE_DIR}"
+)
 
 #checking pthread functions
 if(REQUIRE_PTHREADS AND (PTHREAD_LIBRARY OR HAIKU))
@@ -1079,8 +1081,8 @@ if(MSVC)
     COMPILE_FLAGS -DYY_NO_UNISTD_H)
 endif()
 
-include_directories(${CMAKE_CURRENT_BINARY_DIR})
-include_directories(${CMAKE_CURRENT_BINARY_DIR}/include)
+list(APPEND libcsound_PRIVATE_INCLUDE_DIRS "${CMAKE_CURRENT_BINARY_DIR}")
+list(APPEND libcsound_PUBLIC_INCLUDE_DIRS "${CMAKE_CURRENT_BINARY_DIR}/include")
 
 if(NEW_PARSER_DEBUG)
     message(STATUS "Building with new parser debugging.")
@@ -1149,6 +1151,8 @@ function(make_plugin libname srcs)
     else()
         add_library(${libname} MODULE ${srcs})
     endif()
+
+    target_include_directories(${libname} PRIVATE ${libcsound_INTERNAL_INCLUDE_DIRS})
 
     set(i 2)
     while( ${i} LESS ${ARGC} )
@@ -1334,6 +1338,18 @@ if(BIG_ENDIAN)
     list(APPEND libcsound_CFLAGS -DWORDS_BIGENDIAN)
 endif()
 
+target_include_directories(
+    ${CSOUNDLIB} PRIVATE
+    ${libcsound_PRIVATE_INCLUDE_DIRS}
+    ${libcsound_INTERNAL_INCLUDE_DIRS}
+)
+
+target_include_directories(
+    ${CSOUNDLIB} PUBLIC
+    "$<BUILD_INTERFACE:${libcsound_PUBLIC_INCLUDE_DIRS}>"
+    "$<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>"
+)
+
 
 target_compile_options(${CSOUNDLIB} PRIVATE ${libcsound_CFLAGS})
 if(MSVC)
@@ -1365,6 +1381,16 @@ if(BUILD_STATIC_LIBRARY)
         target_link_libraries(${CSOUNDLIB_STATIC} PRIVATE ${libcsound_LIBS})
     endif()
     target_link_libraries(${CSOUNDLIB_STATIC} PUBLIC ${libcsound_PUBLIC_LIBS})
+
+    target_include_directories(${CSOUNDLIB_STATIC} PRIVATE 
+        ${libcsound_PRIVATE_INCLUDE_DIRS}
+        ${libcsound_INTERNAL_INCLUDE_DIRS}
+    )
+
+    target_include_directories(${CSOUNDLIB_STATIC} PUBLIC
+        "$<BUILD_INTERFACE:${libcsound_PUBLIC_INCLUDE_DIRS}>"
+        "$<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>"
+    )
 
     set_target_properties(${CSOUNDLIB_STATIC} PROPERTIES
         RUNTIME_OUTPUT_DIRECTORY ${BUILD_BIN_DIR}

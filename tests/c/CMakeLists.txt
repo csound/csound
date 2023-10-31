@@ -31,6 +31,10 @@ if(BUILD_TESTS)
     endif()
 
     target_link_libraries(unittests PRIVATE ${CSOUNDLIB_STATIC} GTest::gtest GTest::gtest_main)
+    target_include_directories(unittests PRIVATE
+        ${libcsound_PRIVATE_INCLUDE_DIRS}
+        ${libcsound_INTERNAL_INCLUDE_DIRS}
+    )
 
     if(USE_VCPKG)
         set_property(TARGET unittests PROPERTY CXX_STANDARD 14)

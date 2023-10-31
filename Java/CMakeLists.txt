@@ -55,6 +55,9 @@ if(BUILD_JAVA_INTERFACE)
         if (JNI_JVM_FOUND)
             target_link_libraries(_jcsound7 PRIVATE JNI::JVM)
         endif()
+
+        set_target_properties(_jcsound7 PROPERTIES SWIG_USE_TARGET_INCLUDE_DIRECTORIES ON)
+        target_include_directories(_jcsound7 PRIVATE ${libcsound_INTERNAL_INCLUDE_DIRS})
         
         if(LINUX)
         set_target_properties(${SWIG_MODULE__jcsound7_REAL_NAME}
