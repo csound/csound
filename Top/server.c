@@ -410,6 +410,7 @@ void csoundStopUDPConsole(CSOUND *csound) {
 }
 
 #else // STUBS
+#include "csoundCore.h"
 void csoundStopUDPConsole(CSOUND *csound) { };
 int csoundUDPConsole(CSOUND *csound, const char *addr, int port, int
                      mirror) { return CSOUND_ERROR; }
