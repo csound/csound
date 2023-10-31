@@ -964,7 +964,7 @@ static int32_t OSC_list(CSOUND *csound, OSCLISTEN *p)
 /* ******** ARRAY VERSION **** EXPERIMENTAL *** */
 
 static int32_t OSC_ahandler(const char *path, const char *types,
-                       lo_arg **argv, int32_t argc, void *data, void *p)
+                       lo_arg **argv, int32_t argc, lo_message data, void *p)
 {
     IGN(argc);  IGN(data);
     OSC_PORT  *pp = (OSC_PORT*) p;
