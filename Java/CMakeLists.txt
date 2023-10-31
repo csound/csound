@@ -32,14 +32,6 @@ if(BUILD_JAVA_INTERFACE)
          message(STATUS "JAVA_MODULE_INSTALL_DIR: ${JAVA_MODULE_INSTALL_DIR}")
          message(STATUS "JNI INCLUDE set to ${JNI_INCLUDE_DIRS}.")
 
-        if(WIN32)
-             set(swigjava_LIBS ${JNI_LIBRARIES} ${CSOUNDLIB} ${LIBSNDFILE_LIBRARY})
-        elseif(APPLE)
-             set(swigjava_LIBS  ${JAVA_VM_LIBRARY} ${CSOUNDLIB})
-        else()
-             set(swigjava_LIBS ${CSOUNDLIB} ${LIBSNDFILE_LIBRARY})
-        endif()
-
         list(APPEND javaSwigOptions -package csnd7 -includeall)
         SET_SOURCE_FILES_PROPERTIES(java_interface.i PROPERTIES CPLUSPLUS ON)
         SET_SOURCE_FILES_PROPERTIES(java_interface.i PROPERTIES SWIG_FLAGS "${javaSwigOptions}")
@@ -55,9 +47,15 @@ if(BUILD_JAVA_INTERFACE)
  	    else()
 	        SWIG_ADD_MODULE(_jcsound7 java java_interface.i)
 	    endif()
-        SWIG_LINK_LIBRARIES(_jcsound7 ${swigjava_LIBS})
-        target_include_directories(${SWIG_MODULE__jcsound7_REAL_NAME}
-        PRIVATE ${JNI_INCLUDE_DIRS})
+
+        target_link_libraries(_jcsound7 PUBLIC ${CSOUNDLIB} JNI::JNI)
+        if (JNI_AWT_FOUND)
+            target_link_libraries(_jcsound7 PRIVATE JNI::AWT)
+        endif()
+        if (JNI_JVM_FOUND)
+            target_link_libraries(_jcsound7 PRIVATE JNI::JVM)
+        endif()
+        
         if(LINUX)
         set_target_properties(${SWIG_MODULE__jcsound7_REAL_NAME}
             PROPERTIES COMPILE_FLAGS "-Wno-unused-function"
