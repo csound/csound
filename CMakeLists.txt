@@ -1169,6 +1169,8 @@ function(make_plugin libname srcs)
         math(EXPR i "${i}+1")
     endwhile()
 
+    target_link_libraries(${libname} PUBLIC ${CSOUNDLIB})
+
     set_target_properties(${libname} PROPERTIES
         RUNTIME_OUTPUT_DIRECTORY ${BUILD_PLUGINS_DIR}
         LIBRARY_OUTPUT_DIRECTORY ${BUILD_PLUGINS_DIR}
