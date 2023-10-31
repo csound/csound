@@ -472,32 +472,16 @@ set(libcsound_PUBLIC_LIBS "")
 
 ## HEADER/LIBRARY/OTHER CHECKS ##
 # Check if libsndfile is available, if not, disable build
-if(USE_LIBSNDFILE)
- if(USE_VCPKG)
-    find_package(SndFile CONFIG REQUIRED)
-    set(LIBSNDFILE_LIBRARY SndFile::sndfile)
- else()
-    find_library(LIBSNDFILE_LIBRARY NAMES sndfile libsndfile-1 libsndfile)
-  if(NOT LIBSNDFILE_LIBRARY)
-       message(STATUS "libsndfile not found")
-       et(USE_LIBSNDFILE 0)
-   endif()
- endif()
-endif()
+find_package(SndFile)
+check_deps(USE_LIBSNDFILE SNDFILE_FOUND)
 
 # carry on setting up libsndifle if so
 if(USE_LIBSNDFILE)
- list(APPEND libcsound_PUBLIC_LIBS ${LIBSNDFILE_LIBRARY})
+ list(APPEND libcsound_PUBLIC_LIBS SndFile::sndfile)
  add_compile_definitions("USE_LIBSNDFILE")
 
 if(EMSCRIPTEN)
   include_directories(emscripten/deps/libsndfile-1.0.25/src/)
-endif()
-find_path(SNDFILE_H_PATH sndfile.h)
-if(SNDFILE_H_PATH)
-    include_directories(${SNDFILE_H_PATH})
-else()
-    message(FATAL_ERROR "Could not find sndfile.h")
 endif()
 
 SET(CMAKE_REQUIRED_LIBRARIES ${libcsound_PUBLIC_LIBS})
@@ -681,7 +665,6 @@ if(REQUIRE_PTHREADS AND (PTHREAD_LIBRARY OR HAIKU))
   endif()
 endif()
 
-include_directories(${LIBSNDFILE_INCLUDE_DIRECTORY})
 # get the git hash and pass it to csound
 SET(git_hash_values "none")
 if(USE_GIT_COMMIT)
