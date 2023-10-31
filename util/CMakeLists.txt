@@ -8,7 +8,7 @@ set(stdutil_SRCS
     sndinfo.c       srconv.c        std_util.c  xtrct.c
     SDIF/sdif.c   ../InOut/soundfile.c)
 
-make_plugin(stdutil "${stdutil_SRCS}" ${MATH_LIBRARY} ${LIBSNDFILE_LIBRARY} ${LIBSNDFILE_SUPPORT_LIBS})
+make_plugin(stdutil "${stdutil_SRCS}" ${MATH_LIBRARY} ${LIBSNDFILE_LIBRARY})
 
 if(BUILD_UTILITIES)
     make_utility(atsa        atsa_main.c)
@@ -41,9 +41,6 @@ if(BUILD_UTILITIES)
 
     if(USE_LIBSNDFILE AND LIBSAMPLERATE_LIBRARY)
         make_executable(src_conv new_srconv.c "${LIBSNDFILE_LIBRARY};${LIBSAMPLERATE_LIBRARY}")
-        if(MSVC)
-            target_link_libraries(src_conv ${LIBSNDFILE_SUPPORT_LIBS})
-        endif()
     else()
         message(STATUS "Not building src_conv (libsndfile or libsamplerate not found).")
     endif()
