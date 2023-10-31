@@ -19,7 +19,7 @@
   License along with Csound; if not, write to the Free Software
   Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
   02110-1301 USA
-*/
+*/ 
 
 #ifdef  HAVE_SOCKETS 
 /* Haiku 'int32' etc definitions in net headers conflict with sysdep.h */

@@ -3,6 +3,7 @@ option(BUILD_OSC_OPCODES "Build the OSC Opcodes" ON)
 option(BUILD_PADSYNTH_OPCODES "Build the Padsynth opcode" ON)
 option(BUILD_SCANSYN_OPCODES "Build the scansyn opcodes" ON)
 option(BUILD_DEPRECATED_OPCODES "Build deprecated opcodes" ON)
+option(BUILD_CPP_OPCODES "Build CPP plugins" ON)
 
 ##########################################
 ## Plugin opcodes are in the following categories ##
@@ -18,6 +19,7 @@ option(BUILD_DEPRECATED_OPCODES "Build deprecated opcodes" ON)
 #  See instructions in ../Top/csmodule.c
 ##########################################
 
+if(BUILD_CPP_OPCODES)
 message(STATUS "## Building Plugin Opcodes ##")
 ## CPP OPCODE LIBS WITH NO EXTERNAL DEPENDENCIES ##
 make_plugin(doppler doppler.cpp)
@@ -62,6 +64,7 @@ else()
       set_target_properties(pvsops PROPERTIES COMPILE_FLAGS "-std=gnu++11")
       set_target_properties(trigenvsegs PROPERTIES COMPILE_FLAGS "-std=gnu++11")
       endif()
+endif()
 endif()
 
 if(BUILD_PADSYNTH_OPCODES)
