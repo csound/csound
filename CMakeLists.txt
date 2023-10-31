@@ -105,7 +105,7 @@ endmacro(LIST_REPLACE)
 #
 function(make_executable name srcs libs)
     add_executable(${name} ${srcs})
-    target_link_libraries (${name} ${libs})
+    target_link_libraries(${name} PRIVATE ${libs})
     set_target_properties(${name} PROPERTIES
         RUNTIME_OUTPUT_DIRECTORY ${BUILD_BIN_DIR})
 
@@ -125,11 +125,11 @@ endfunction(make_executable)
 # libraries - OPTIONAL extra libraries to link
 #
 function(make_utility name srcs)
-    make_executable(${name} "${srcs}" "${CSOUNDLIB}")
-    add_dependencies(${name} ${CSOUNDLIB})
+    make_executable(${name} "${srcs}" "")
+    target_link_libraries(${name} PUBLIC ${CSOUNDLIB})
     set(i 2)
     while( ${i} LESS ${ARGC} )
-        target_link_libraries(${name} ${ARGV${i}})
+        target_link_libraries(${name} PRIVATE ${ARGV${i}})
         math(EXPR i "${i}+1")
     endwhile()
 endfunction()
@@ -1377,7 +1377,7 @@ if(BUILD_STATIC_LIBRARY)
     if(MSVC)
         target_link_libraries(${CSOUNDLIB_STATIC} PRIVATE ${CSOUND_WINDOWS_LIBRARIES})
     else()
-        target_link_libraries(${CSOUNDLIB_STATIC} ${libcsound_LIBS})
+        target_link_libraries(${CSOUNDLIB_STATIC} PRIVATE ${libcsound_LIBS})
     endif()
 
     set_target_properties(${CSOUNDLIB_STATIC} PROPERTIES
