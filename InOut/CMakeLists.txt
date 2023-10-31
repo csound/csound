@@ -78,13 +78,11 @@ if(APPLE)
         target_link_libraries(rtauhal PRIVATE ${AUDIOUNIT_LIBRARY} ${COREFOUNDATION_LIBRARY} ${COREAUDIO_LIBRARY})
 endif()
 
-if(USE_ALSA AND LINUX)
-    if (USE_VCPKG)
-        find_package(ALSA MODULE REQUIRED)
-    else()
-        find_package(ALSA REQUIRED)
-    endif()
-
+if (NOT ALSA_FOUND)
+    find_package(ALSA)
+endif()
+check_deps(USE_ALSA ALSA_FOUND)
+if(USE_ALSA)
     make_plugin(rtalsa rtalsa.c ALSA::ALSA)
 endif()
 

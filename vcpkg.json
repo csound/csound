@@ -29,6 +29,10 @@
         {
             "name": "gettext",
             "platform": "osx"
+        },
+        {
+            "name": "alsa",
+            "platform": "linux"
         }
     ]
 }
