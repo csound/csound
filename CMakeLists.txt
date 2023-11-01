@@ -740,6 +740,7 @@ set(libcsound_SRCS
     InOut/winEPS.c
     InOut/circularbuffer.c
     OOps/aops.c
+    OOps/assert_ops.c
     OOps/bus.c
     OOps/cmath.c
     OOps/diskin2.c

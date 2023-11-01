@@ -50,6 +50,7 @@
 #include "midiinterop.h"
 #include "linevent.h"
 #include "str_ops.h"
+#include "assert_ops.h"
 #include "bus.h"
 #include "pstream.h"
 #include "remote.h"
@@ -502,4 +503,5 @@ int32_t coef2parm(CSOUND *csound, void *p);
 int32_t resonbnk_init(CSOUND *csound, void *p);
 int32_t resonbnk(CSOUND *csound, void *p);
 int32_t schedule_array(CSOUND *csound, void *p);
-
+int32_t assert_true_opcode(CSOUND *csound, ASSERT_OP *p);
+int32_t assert_false_opcode(CSOUND *csound, ASSERT_OP *p);

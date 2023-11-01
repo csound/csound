@@ -947,15 +947,16 @@ static const CSOUND cenviron_ = {
       (char*) NULL, (char*) NULL, NULL,
       (char*) NULL, (char*) NULL, (char*) NULL,
       (char*) NULL, (char*) NULL,
-      0,            /*    midiKey           */
-      0,            /*    midiKeyCps        */
-      0,            /*    midiKeyOct        */
-      0,            /*    midiKeyPch        */
-      0,            /*    midiVelocity      */
-      0,            /*    midiVelocityAmp   */
-      0,            /*    noDefaultPaths    */
-      1,            /*    numThreads        */
-      0,            /*    syntaxCheckOnly   */
+      0,            /*    midiKey             */
+      0,            /*    midiKeyCps          */
+      0,            /*    midiKeyOct          */
+      0,            /*    midiKeyPch          */
+      0,            /*    midiVelocity        */
+      0,            /*    midiVelocityAmp     */
+      0,            /*    noDefaultPaths      */
+      1,            /*    numThreads          */
+      0,            /*    syntaxCheckOnly     */
+      0,            /*    enableAssertOpcodes */
       1,            /*    useCsdLineCounts  */
       0,            /*    samp acc   */
       0,            /*    realtime  */

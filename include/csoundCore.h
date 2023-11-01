@@ -262,6 +262,7 @@ typedef struct CORFIL {
                                 from files */
     int     numThreads;
     int     syntaxCheckOnly;
+    int     enableAssertOpcodes;
     int     useCsdLineCounts;
     int     sampleAccurate;  /* switch for score events sample accuracy */
     int     realtime; /* realtime priority mode  */
@@ -423,7 +424,7 @@ typedef struct CORFIL {
    } TABDAT;
 
   #define MAX_STRINGDAT_SIZE 0xFFFFFFFF
-  
+
   typedef struct {
     char *data;
     size_t size;
@@ -893,10 +894,10 @@ typedef struct CORFIL {
   int kperf_debug(CSOUND *csound);
 
   /*
-    check if code is running at init time. 
+    check if code is running at init time.
     result may not be valid in realtime mode
-   */  
-int csoundIsInitThread(CSOUND *csound);  
+   */
+int csoundIsInitThread(CSOUND *csound);
 
 #endif  /* __BUILDING_LIBCSOUND */
 
