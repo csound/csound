@@ -1464,3 +1464,4 @@ else()
           DESTINATION ${CMAKE_INSTALL_PREFIX}/share)
 endif()
 
+include(cmake/ClangTidy.cmake)
