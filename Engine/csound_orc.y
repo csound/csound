@@ -102,14 +102,14 @@
 /* Precedence Rules */
 %right '?'
 %left S_AND S_OR
-%left '|'
-%left '&'
+%left BITWISE_OR
+%left BITWISE_AND
 %left S_LT S_GT S_LE S_GE S_EQ S_NEQ
 %left S_BITSHIFT_LEFT S_BITSHIFT_RIGHT
-%left '+' '-'
-%left '*' '/' '%'
-%left '^'
-%left '#'
+%left PLUS MINUS
+%left MULTIPLY DIVIDE MODULO
+%left EXPONENT
+%left BITWISE_NON_EQUIVALENCE
 %right S_UNOT
 %right S_UMINUS
 %right S_UPLUS
@@ -610,49 +610,50 @@ unary_expr : '~' expr %prec S_UMINUS
         | '+' error           { $$ = NULL; }
         ;
 
-binary_expr : expr '+' expr   { $$ = make_node(csound, LINE,LOCN, '+', $1, $3); }
-          | expr '+' error
-          | expr '-' expr  { $$ = make_node(csound ,LINE,LOCN, '-', $1, $3); }
-          | expr '-' error
-          | expr S_LE expr      { $$ = make_node(csound, LINE,LOCN, S_LE, $1, $3); }
-          | expr S_LE error
-          | expr S_GE expr      { $$ = make_node(csound, LINE,LOCN, S_GE, $1, $3); }
-          | expr S_GE error     { $$ = NULL; }
-          | expr S_NEQ expr     { $$ = make_node(csound, LINE,LOCN, S_NEQ, $1, $3); }
+binary_expr : expr '+' expr %prec PLUS { $$ = make_node(csound, LINE,LOCN, '+', $1, $3); }
+          | expr '+' error %prec PLUS
+          | expr '-' expr  %prec MINUS { $$ = make_node(csound ,LINE,LOCN, '-', $1, $3); }
+          | expr '-' error %prec MINUS
+          | expr S_LE expr %prec S_LE { $$ = make_node(csound, LINE,LOCN, S_LE, $1, $3); }
+          | expr S_LE error %prec S_LE
+          | expr S_GE expr %prec S_GE { $$ = make_node(csound, LINE,LOCN, S_GE, $1, $3); }
+          | expr S_GE error %prec S_GE { $$ = NULL; }
+          | expr S_NEQ expr %prec S_NEQ { $$ = make_node(csound, LINE,LOCN, S_NEQ, $1, $3); }
            /* VL: 18.09.21 added the rule for if x = y for backwards compatibility */
           | expr '=' expr       { $$ = make_node(csound, LINE,LOCN, S_EQ, $1, $3); }
           | expr '=' error
-          | expr S_NEQ error    { $$ = NULL; }
-          | expr S_EQ expr      { $$ = make_node(csound, LINE,LOCN, S_EQ, $1, $3); }
-          | expr S_EQ error
-          | expr S_GT expr      { $$ = make_node(csound, LINE,LOCN, S_GT, $1, $3); }
-          | expr S_GT error
-          | expr S_LT expr      { $$ = make_node(csound, LINE,LOCN, S_LT, $1, $3); }
-          | expr S_LT error
-          | expr S_AND expr   { $$ = make_node(csound, LINE,LOCN, S_AND, $1, $3); }
-          | expr S_AND error
-          | expr S_OR expr    { $$ = make_node(csound, LINE,LOCN, S_OR, $1, $3); }
-          | expr S_OR error
-          | expr '*' expr    { $$ = make_node(csound, LINE,LOCN, '*', $1, $3); }
-          | expr '*' error
-          | expr '/' expr    { $$ = make_node(csound, LINE,LOCN, '/', $1, $3); }
-          | expr '/' error
-          | expr '^' expr    { $$ = make_node(csound, LINE,LOCN, '^', $1, $3); }
-          | expr '^' error
-          | expr '%' expr    { $$ = make_node(csound, LINE,LOCN, '%', $1, $3); }
-          | expr '%' error
-          | expr '|' expr        { $$ = make_node(csound, LINE,LOCN, '|', $1, $3); }
-          | expr '|' error
-          | expr '&' expr        { $$ = make_node(csound, LINE,LOCN, '&', $1, $3); }
-          | expr '&' error
-          | expr '#' expr        { $$ = make_node(csound, LINE,LOCN, '#', $1, $3); }
-          | expr '#' error
-          | expr S_BITSHIFT_LEFT expr
+          | expr S_NEQ error %prec S_NEQ { $$ = NULL; }
+          | expr S_EQ expr %prec S_EQ { $$ = make_node(csound, LINE,LOCN, S_EQ, $1, $3); }
+          | expr S_EQ error %prec S_EQ
+          | expr S_GT expr %prec S_GT { $$ = make_node(csound, LINE,LOCN, S_GT, $1, $3); }
+          | expr S_GT error %prec S_GT
+          | expr S_LT expr %prec S_LT { $$ = make_node(csound, LINE,LOCN, S_LT, $1, $3); }
+          | expr S_LT error %prec S_LT
+          | expr S_AND expr %prec S_AND { $$ = make_node(csound, LINE,LOCN, S_AND, $1, $3); }
+          | expr S_AND error %prec S_AND
+          | expr S_OR expr %prec S_OR { $$ = make_node(csound, LINE,LOCN, S_OR, $1, $3); }
+          | expr S_OR error %prec S_OR
+          | expr '*' expr  %prec MULTIPLY { $$ = make_node(csound, LINE,LOCN, '*', $1, $3); }
+          | expr '*' error %prec MULTIPLY
+          | expr '/' expr %prec DIVIDE { $$ = make_node(csound, LINE,LOCN, '/', $1, $3); }
+          | expr '/' error %prec DIVIDE
+          | expr '^' expr %prec EXPONENT { $$ = make_node(csound, LINE,LOCN, '^', $1, $3); }
+          | expr '^' error %prec EXPONENT
+          | expr '%' expr %prec MODULO { $$ = make_node(csound, LINE,LOCN, '%', $1, $3); }
+          | expr '%' error %prec MODULO
+          | expr '|' expr %prec BITWISE_OR { $$ = make_node(csound, LINE,LOCN, '|', $1, $3); }
+          | expr '|' error %prec BITWISE_OR
+          | expr '&' expr %prec BITWISE_AND { $$ = make_node(csound, LINE,LOCN, '&', $1, $3); }
+          | expr '&' error %prec BITWISE_AND
+          | expr '#' expr %prec BITWISE_NON_EQUIVALENCE
+            { $$ = make_node(csound, LINE,LOCN, '#', $1, $3); }
+          | expr '#' error %prec BITWISE_NON_EQUIVALENCE
+          | expr S_BITSHIFT_LEFT expr %prec S_BITSHIFT_LEFT
                  { $$ = make_node(csound, LINE,LOCN, S_BITSHIFT_LEFT, $1, $3); }
-          | expr S_BITSHIFT_LEFT error
-          | expr S_BITSHIFT_RIGHT expr
+          | expr S_BITSHIFT_LEFT error %prec S_BITSHIFT_LEFT
+          | expr S_BITSHIFT_RIGHT expr %prec S_BITSHIFT_RIGHT
                  { $$ = make_node(csound, LINE,LOCN, S_BITSHIFT_RIGHT, $1, $3); }
-          | expr S_BITSHIFT_RIGHT error
+          | expr S_BITSHIFT_RIGHT error %prec S_BITSHIFT_RIGHT
           ;
 
 
