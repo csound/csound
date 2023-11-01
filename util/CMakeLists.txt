@@ -12,9 +12,8 @@ if(USE_VCPKG)
     set(LIBSNDFILE_LIBRARY SndFile::sndfile)
 endif()
 
-make_plugin(stdutil "${stdutil_SRCS}" ${MATH_LIBRARY} ${LIBSNDFILE_LIBRARY} ${LIBSNDFILE_SUPPORT_LIBS})
-
 if(BUILD_UTILITIES)
+   make_plugin(stdutil "${stdutil_SRCS}" ${MATH_LIBRARY} ${LIBSNDFILE_LIBRARY} ${LIBSNDFILE_SUPPORT_LIBS})
     make_utility(atsa        atsa_main.c)
     make_utility(csanalyze   csanalyze.c)
     make_utility(cvanal      cvl_main.c)

@@ -1,5 +1,6 @@
 #extra utilities
 
+if(BUILD_UTILITIES)
 make_utility(scsort      sortex/smain.c)
 make_utility(extract     sortex/xmain.c)
 
@@ -21,4 +22,4 @@ if(CMAKE_COMPILER_IS_GNUCC OR CMAKE_COMPILER_IS_CLANG OR MSVC)
         scot/scot_main.c scot/scot.c)
     make_utility(scot "${scot_SRCS}")
 endif()
-
+endif()
