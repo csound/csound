@@ -48,7 +48,7 @@ TEST_F (TypeSystemTests, testTypeSystem)
   TYPE_POOL* pool = csound->typePool;
   CS_VAR_POOL* varPool = csound->engineState.varPool;
 
-  CS_VARIABLE* var = csoundCreateVariable(csound, pool, (CS_TYPE*)&CS_VAR_TYPE_A, "a1", 0, NULL);
+  CS_VARIABLE* var = csoundCreateVariable(csound, pool, (CS_TYPE*)&CS_VAR_TYPE_A, NULL, "a1");
   ASSERT_TRUE (var != NULL);
 
   csoundAddVariable(csound, varPool, var);

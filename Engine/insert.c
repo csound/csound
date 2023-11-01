@@ -2063,7 +2063,7 @@ int useropcd1(CSOUND *csound, UOPCODE *p)
           // This one checks if an array has a subtype of 'i'
           void* in = (void*)external_ptrs[i + inm->outchns];
           void* out = (void*)internal_ptrs[i + inm->outchns];
-          if (current->dimensions > 0) {
+          if (current->varType == &CS_VAR_TYPE_ARRAY) {
             memcpy(out, in, sizeof(ARRAYDAT));
           } else {
             current->varType->copyValue(csound, current->varType, out, in);
@@ -2072,8 +2072,8 @@ int useropcd1(CSOUND *csound, UOPCODE *p)
           MYFLT* in = (void*)external_ptrs[i + inm->outchns];
           MYFLT* out = (void*)internal_ptrs[i + inm->outchns];
           *out = *(in + ofs);
-        } else if (current->dimensions > 0 &&
-                   current->varType == &CS_VAR_TYPE_A) {
+        } else if (current->varType == &CS_VAR_TYPE_ARRAY &&
+                   current->subType == &CS_VAR_TYPE_A) {
           ARRAYDAT* src = (ARRAYDAT*)external_ptrs[i + inm->outchns];
           ARRAYDAT* target = (ARRAYDAT*)internal_ptrs[i + inm->outchns];
           int count = src->sizes[0];
@@ -2116,8 +2116,8 @@ int useropcd1(CSOUND *csound, UOPCODE *p)
           MYFLT* in = (void*)internal_ptrs[i];
           MYFLT* out = (void*)external_ptrs[i];
           *(out + ofs) = *in;
-        } else if (current->dimensions > 0 &&
-                   current->varType == &CS_VAR_TYPE_A) {
+        } else if (current->varType == &CS_VAR_TYPE_ARRAY &&
+                   current->subType == &CS_VAR_TYPE_A) {
           ARRAYDAT* src = (ARRAYDAT*)internal_ptrs[i];
           ARRAYDAT* target = (ARRAYDAT*)external_ptrs[i];
           int count = src->sizes[0];
@@ -2174,18 +2174,17 @@ int useropcd1(CSOUND *csound, UOPCODE *p)
           void* in = (void*)external_ptrs[i + inm->outchns];
           void* out = (void*)internal_ptrs[i + inm->outchns];
 
-          if (current->dimensions > 0) {
+          if (current->varType == &CS_VAR_TYPE_ARRAY) {
             memcpy(out, in, sizeof(ARRAYDAT));
           } else {
             current->varType->copyValue(csound, current->varType, out, in);
           }
-        } else if (current->dimensions == 0 &&
-                   current->varType == &CS_VAR_TYPE_A) {
+        } else if (current->varType == &CS_VAR_TYPE_A) {
           MYFLT* in = (void*)external_ptrs[i + inm->outchns];
           MYFLT* out = (void*)internal_ptrs[i + inm->outchns];
           memcpy(out, in + ofs, asigSize);
-        } else if (current->dimensions > 0 &&
-                   current->varType == &CS_VAR_TYPE_A) {
+        } else if (current->varType == &CS_VAR_TYPE_ARRAY &&
+                   current->subType == &CS_VAR_TYPE_A) {
           ARRAYDAT* src = (ARRAYDAT*)external_ptrs[i + inm->outchns];
           ARRAYDAT* target = (ARRAYDAT*)internal_ptrs[i + inm->outchns];
           int count = src->sizes[0];
@@ -2229,8 +2228,8 @@ int useropcd1(CSOUND *csound, UOPCODE *p)
           MYFLT* in = (void*)internal_ptrs[i];
           MYFLT* out = (void*)external_ptrs[i];
           memcpy(out + ofs, in, asigSize);
-        } else if (current->dimensions > 0 &&
-                   current->varType == &CS_VAR_TYPE_A) {
+        } else if (current->varType == &CS_VAR_TYPE_ARRAY &&
+                   current->subType == &CS_VAR_TYPE_A) {
           ARRAYDAT* src = (ARRAYDAT*)internal_ptrs[i];
           ARRAYDAT* target = (ARRAYDAT*)external_ptrs[i];
           int count = src->sizes[0];
@@ -2279,8 +2278,8 @@ int useropcd1(CSOUND *csound, UOPCODE *p)
         if (early) {
           memset((char*)out + g_ksmps, '\0', sizeof(MYFLT) * early);
         }
-      } else if (current->dimensions > 0 &&
-                 current->varType == &CS_VAR_TYPE_A) {
+      } else if (current->varType == &CS_VAR_TYPE_ARRAY &&
+                 current->subType == &CS_VAR_TYPE_A) {
         if (offset || early) {
           ARRAYDAT* outDat = (ARRAYDAT*)out;
           int count = outDat->sizes[0];
@@ -2308,7 +2307,7 @@ int useropcd1(CSOUND *csound, UOPCODE *p)
           }
         }
       } else {
-        if (current->dimensions > 0) {
+        if (current->varType == &CS_VAR_TYPE_ARRAY) {
           memcpy(out, in, sizeof(ARRAYDAT));
         } else {
           current->varType->copyValue(csound, current->varType, out, in);
@@ -2370,7 +2369,7 @@ int useropcd2(CSOUND *csound, UOPCODE *p)
         void* in = (void*)external_ptrs[i + inm->outchns];
         void* out = (void*)internal_ptrs[i + inm->outchns];
         // printf("in %p out %p \n", in, out);
-        if (current->dimensions > 0) {
+        if (current->varType == &CS_VAR_TYPE_ARRAY) {
           memcpy(out, in, sizeof(ARRAYDAT));
         } else {
           current->varType->copyValue(csound, current->varType, out, in);
@@ -2409,7 +2408,7 @@ int useropcd2(CSOUND *csound, UOPCODE *p)
       } else {
         void* in = (void*)internal_ptrs[i];
         void* out = (void*)external_ptrs[i];
-        if (current->dimensions > 0) {
+        if (current->varType == &CS_VAR_TYPE_ARRAY) {
           memcpy(out, in, sizeof(ARRAYDAT));
         } else {
           current->varType->copyValue(csound, current->varType, out, in);

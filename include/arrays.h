@@ -53,6 +53,8 @@ static inline void tabinit(CSOUND *csound, ARRAYDAT *p, int size)
     }
     if (p->dimensions==1) p->sizes[0] = size;
     //p->dimensions = 1;
+    printf("tabinit: %p\n", p);
+    printf("tabinit sizez: %p\n", p->sizes);
 }
 
 static inline void tabinit_like(CSOUND *csound, ARRAYDAT *p, ARRAYDAT *tp)

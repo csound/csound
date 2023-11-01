@@ -109,7 +109,8 @@ void array_copy_value(CSOUND* csound, CS_TYPE* cstype, void* dest, void* src) {
     size_t j;
     int memMyfltSize;
     size_t arrayNumMembers;
-
+    printf("aDesc ptr: %p\n", aDest);
+    printf("aSrc ptr: %p\n", aSrc);
     arrayNumMembers = array_get_num_members(aSrc);
     memMyfltSize = aSrc->arrayMemberSize / sizeof(MYFLT);
 
@@ -121,9 +122,10 @@ void array_copy_value(CSOUND* csound, CS_TYPE* cstype, void* dest, void* src) {
 
         aDest->arrayMemberSize = aSrc->arrayMemberSize;
         aDest->dimensions = aSrc->dimensions;
-        if(aDest->sizes != NULL) {
-            cs->Free(cs, aDest->sizes);
-        }
+        // aDest->sizes = aSrc->sizes;
+        // if(aDest->sizes != NULL) {
+        //     cs->Free(cs, aDest->sizes);
+        // }
         aDest->sizes = cs->Malloc(cs, sizeof(int) * aSrc->dimensions);
         memcpy(aDest->sizes, aSrc->sizes, sizeof(int) * aSrc->dimensions);
         aDest->arrayType = aSrc->arrayType;
@@ -241,10 +243,10 @@ CS_VARIABLE* createString(void* cs, void* p) {
 CS_VARIABLE* createArray(void* csnd, void* p) {
     CSOUND* csound = (CSOUND*)csnd;
     CS_TYPE* subType = (CS_TYPE*)p;
-
     CS_VARIABLE* var = csound->Calloc(csound, sizeof (CS_VARIABLE));
     var->memBlockSize = CS_FLOAT_ALIGN(sizeof(ARRAYDAT));
     var->initializeVariableMemory = &arrayInitMemory;
+    var->varType = ((CS_TYPE*)&CS_VAR_TYPE_ARRAY);
     var->subType = subType;
     return var;
 }

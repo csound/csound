@@ -136,7 +136,7 @@ static char* make_arglist_string(
             break;
         }
         arg = car->value;
-
+        int isArray = arg->cstype == (CS_TYPE*) &CS_VAR_TYPE_ARRAY;
         p += sprintf(
             p,
             arg->cstype != NULL &&
@@ -144,7 +144,7 @@ static char* make_arglist_string(
                  ":%s" : "%s",
             displayType ?
                 arg->cstype != NULL ?
-                    arg->cstype->varTypeName :
+                    (isArray ? arg->subType->varTypeName : arg->cstype->varTypeName) :
                     "." :
                     arg->text
             );
@@ -345,17 +345,18 @@ OENTRY* resolve_opcode_with_orc_args(
                 int currentArgTextLength = 1;
                 int isArrayArg = currentArg->cstype == (CS_TYPE*) &CS_VAR_TYPE_ARRAY;
                 int isArrayParameter = 0;
+                CS_TYPE* currentType = isArrayArg ? currentArg->subType : currentArg->cstype;
 
                 if (isUserDefinedType) {
                     if (*current == '.') {
                         inArgsMatch = 1;
                     } else {
                         currentArgTextLength = strlen(
-                            currentArg->cstype->varTypeName
+                            currentType->varTypeName
                         );
                         inArgsMatch = strncmp(
                             current + 1,
-                            currentArg->cstype->varTypeName,
+                            currentType->varTypeName,
                             currentArgTextLength
                         ) == 0;
                         if (inArgsMatch) {
@@ -377,7 +378,7 @@ OENTRY* resolve_opcode_with_orc_args(
                 } else {
                     if (*current == 'Z') {
                         inArgsMatch = check_satisfies_alternating_z_input(
-                            currentArg->cstype->varTypeName,
+                            currentType->varTypeName,
                             alternatingInputListCount
                         );
                         alternatingInputListCount += 1;
@@ -387,18 +388,18 @@ OENTRY* resolve_opcode_with_orc_args(
                             break;
                         }
                     } else if (check_satisfies_expected_input(
-                        currentArg->cstype,
+                        currentType,
                         current)
                     ) {
                         if (
                             skipOutargs &&
                             *current == 'i' &&
-                            currentArg->cstype == ((CS_TYPE*) &CS_VAR_TYPE_K)
+                            currentType == ((CS_TYPE*) &CS_VAR_TYPE_K)
                         ) {
                             treatAsFallback = 1;
                         }
                         inArgsMatch = 1;
-                        if (isInitOpcode) break;
+                        // if (isInitOpcode) break;
                     } else {
                         inArgsMatch = 0;
                         break;
@@ -455,24 +456,24 @@ OENTRY* resolve_opcode_with_orc_args(
                     0;
                 int isArrayArg = currentArg->cstype == (CS_TYPE*) &CS_VAR_TYPE_ARRAY;
                 int isArrayParameter = 0;
+                CS_TYPE* currentType = isArrayArg ? currentArg->subType : currentArg->cstype;
 
-                if (isUserDefinedType && *current == '.') {
-                    outArgsMatch = 1;
-                } else if (isUserDefinedType) {
+                if (isUserDefinedType) {
                     // compare MyVar with :MyVar;
                     currentArgTextLength = strlen(
-                        currentArg->cstype->varTypeName
+                        currentType->varTypeName
                     );
                     outArgsMatch = strncmp(
                         current + 1,
-                        currentArg->cstype->varTypeName,
+                        currentType->varTypeName,
                         currentArgTextLength
                     ) == 0;
                     currentArgTextLength += 2;
                 } else if (
-                    check_satisfies_expected_output(currentArg->cstype, current)
+                    check_satisfies_expected_output(currentType, current)
                 ) {
-                    if (*current == 'i' && currentArg->cstype == ((CS_TYPE*) &CS_VAR_TYPE_K)) {
+                    if (*current == 'i' && (currentType == ((CS_TYPE*) &CS_VAR_TYPE_K))
+                    ) {
                         treatAsFallback = 1;
                     }
                     outArgsMatch = 1;
@@ -708,6 +709,7 @@ static CSOUND_ORC_ARGUMENT* resolve_single_argument_from_tree(
 ) {
     char* ident = NULL;
     char* annotation = NULL;
+    int isArray = 0;
     CS_VARIABLE* var = NULL;
     CSOUND_ORC_ARGUMENT* arg = new_csound_orc_argument(
         csound,
@@ -737,7 +739,6 @@ static CSOUND_ORC_ARGUMENT* resolve_single_argument_from_tree(
             break;
         }
         case T_MEMBER_IDENT: {
-
             arg->cstype = (CS_TYPE*) &CS_VAR_TYPE_C;
             tree->type = INTEGER_TOKEN;
             CSOUND_ORC_ARGUMENT* previousStructArg =
@@ -764,6 +765,7 @@ static CSOUND_ORC_ARGUMENT* resolve_single_argument_from_tree(
                 }
                 CS_VARIABLE* memberVar = memCar->value;
                 arg->subType = memberVar->varType;
+                arg->tmpHint = memberVar->subType;
             } else {
                 synterr(
                     csound,
@@ -804,6 +806,7 @@ static CSOUND_ORC_ARGUMENT* resolve_single_argument_from_tree(
             ) {
                 // TREE* currentBracketNode = tree->right;
                 arg->cstype = (CS_TYPE*) &CS_VAR_TYPE_ARRAY;
+                isArray = 1;
             }
             // lack of break is intended
         }
@@ -856,15 +859,27 @@ static CSOUND_ORC_ARGUMENT* resolve_single_argument_from_tree(
                 *ident == '.' || *ident == '-' || *ident == '+' ||
                 (*ident == '0' && strcmp(ident, "0dbfs") != 0)
             ) {
-                arg->cstype = (CS_TYPE*) &CS_VAR_TYPE_C;
+                if (isArray) {
+                    arg->subType = (CS_TYPE*) &CS_VAR_TYPE_C;
+                } else {
+                    arg->cstype = (CS_TYPE*) &CS_VAR_TYPE_C;
+                }
                 break;
             }
             if (*ident == '"') {
-                arg->cstype = (CS_TYPE*) &CS_VAR_TYPE_S;
+                if (isArray) {
+                    arg->subType = (CS_TYPE*) &CS_VAR_TYPE_S;
+                } else {
+                    arg->cstype = (CS_TYPE*) &CS_VAR_TYPE_S;
+                }
                 break;
             }
             if (pnum(ident) >= 0) {
-                arg->cstype = (CS_TYPE*) &CS_VAR_TYPE_P;
+                if (isArray) {
+                    arg->subType = (CS_TYPE*) &CS_VAR_TYPE_P;
+                } else {
+                    arg->cstype = (CS_TYPE*) &CS_VAR_TYPE_P;
+                }
                 arg->isPfield = 1;
 
                 csoundAddVariable(
@@ -900,9 +915,17 @@ static CSOUND_ORC_ARGUMENT* resolve_single_argument_from_tree(
                 } else if (
                     annotation != NULL
                 ) {
-                    arg->cstype = resolve_cstype_from_string(
-                        csound, annotation
-                    );
+                    int annotatedDimensions = count_dimensions_from_string(annotation);
+                    if (isArray || annotatedDimensions > 0) {
+                        arg->cstype = (CS_TYPE*) &CS_VAR_TYPE_ARRAY;
+                        arg->subType = resolve_cstype_from_string(
+                            csound, annotation
+                        );
+                    } else {
+                        arg->cstype = resolve_cstype_from_string(
+                            csound, annotation
+                        );
+                    }
                     if (UNLIKELY(arg->cstype == NULL)) {
                         synterr(
                             csound,
@@ -920,12 +943,14 @@ static CSOUND_ORC_ARGUMENT* resolve_single_argument_from_tree(
                     CS_TYPE* tmptype = csoundFindStandardTypeWithChar(
                         *ident == 'g' ? ident[1] : ident[0]
                     );
-                    if (arg->cstype == NULL) {
-                        arg->cstype = tmptype;
-                    } else {
-                        arg->subType = tmptype;
-                    }
 
+                    if (tmptype != NULL) {
+                        if (isArray) {
+                            arg->subType = tmptype;
+                        } else {
+                            arg->cstype = tmptype;
+                        }
+                    }
                 }
 
                 var = add_arg_to_pool(
@@ -1180,6 +1205,7 @@ static void initialize_inferred_variables(
                     // member_get/set
                     secondRightArg = rightSideArgs->list->next->value;
                     currentArg->cstype = secondRightArg->subType;
+                    currentArg->subType = secondRightArg->tmpHint;
                 }
             } else {
                 currentArg->cstype = resolve_cstype_from_string(
@@ -1205,8 +1231,8 @@ static void initialize_inferred_variables(
                 typeTable,
                 currentArg->text,
                 NULL,
-                currentArg->cstype,
-                currentArg->subType
+                dimensions > 0 ? ((CS_TYPE*) & CS_VAR_TYPE_ARRAY) : currentArg->cstype,
+                dimensions > 0 ? currentArg->cstype : currentArg->subType
             );
             csound->Free(csound, currentOutArg);
         }
@@ -1631,6 +1657,7 @@ int verify_opcode_2(
                 assignee->cstype = (CS_TYPE*) &CS_VAR_TYPE_I;
             } else {
                 assignee->cstype = inputValue->cstype;
+                assignee->subType = inputValue->subType;
             }
             CS_VARIABLE* inputVar = csoundFindVariableWithName(
                 csound,

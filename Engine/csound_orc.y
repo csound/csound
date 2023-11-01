@@ -21,8 +21,8 @@
     Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
     02110-1301 USA
 */
-%pure-parser
-//define api.pure full
+//%pure-parser
+%define api.pure full
 %parse-param {PARSE_PARM *parm}
 %parse-param {void *scanner}
 %lex-param { CSOUND * csound }

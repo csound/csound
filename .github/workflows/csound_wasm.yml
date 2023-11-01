@@ -15,10 +15,10 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@master
-      - uses: cachix/install-nix-action@v16
+      - uses: cachix/install-nix-action@v22
         with:
           nix_path: ${{ env.nix_path }}
-      - uses: cachix/cachix-action@v10
+      - uses: cachix/cachix-action@v12
         with:
           name: csound
           authToken: ${{ secrets.CACHIX_TOKEN }}
@@ -45,10 +45,10 @@ jobs:
     steps:
       - name: Checkout Repo
         uses: actions/checkout@master
-      - uses: cachix/install-nix-action@v16
+      - uses: cachix/install-nix-action@v22
         with:
           nix_path: ${{ env.nix_path }}
-      - uses: cachix/cachix-action@v10
+      - uses: cachix/cachix-action@v12
         with:
           name: csound
           authToken: "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJjJDIzMTgiLCJqdGkiOiJhNDQzZmMwMi1mMDBjLTQzNDUtYjA3YS1jYzJjYjIzYjE2OTAiLCJzY29wZXMiOiJjYWNoZSJ9.UOQEV1Hd1ZEQdNF1STxbt0wcCrIrihsv4KThD_wHk3E"

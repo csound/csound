@@ -32,6 +32,7 @@ typedef struct csorcarg {
     char*    uid;         // string with which to find the expression result in pools
     CS_TYPE* cstype;
     CS_TYPE* subType;
+    CS_TYPE* tmpHint;     // used to validate return value of struct members
     int      type;        // token-type
     int      isGlobal;
     int      isPfield;

@@ -191,6 +191,7 @@ static int parse_opcode_args(CSOUND *csound, OENTRY *opc)
 
     if (*in_args[0] != '0') {
       while (in_args[i] != NULL) {
+        int dimensions = 0;
         char* in_arg = in_args[i];
         snprintf(tempName, 20, "in%d", i);
         char* end = strchr(in_arg, '[');
@@ -200,6 +201,7 @@ static int parse_opcode_args(CSOUND *csound, OENTRY *opc)
           if (*in_arg == '[') {
             while (*in_arg == '[') {
               in_arg += 1;
+              dimensions += 1;
             }
 
             end = in_arg;
@@ -214,7 +216,7 @@ static int parse_opcode_args(CSOUND *csound, OENTRY *opc)
           }
           memcpy(typeSpecifier, in_arg, end - in_arg);
 
-          typeSpecifier[(end - in_arg)] = 0;
+          typeSpecifier[(end - in_arg)] = '\0';
 // printf("Dimensions: %d SubArgType: %s\n", dimensions, typeSpecifier);
           CS_TYPE* type =
             csoundGetTypeWithVarTypeName(csound->typePool, typeSpecifier);
@@ -227,11 +229,12 @@ static int parse_opcode_args(CSOUND *csound, OENTRY *opc)
           }
 
           varInit.type = type;
+
           CS_VARIABLE* var = csoundCreateVariable(
             csound,
             csound->typePool,
+            ((CS_TYPE*) &CS_VAR_TYPE_ARRAY),
             type,
-            NULL,
             tempName
           );
           csoundAddVariable(csound, inm->in_arg_pool, var);

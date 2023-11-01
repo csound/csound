@@ -1623,6 +1623,7 @@ static int32_t diskin2_init_array(CSOUND *csound, DISKIN2_ARRAY *p,
         csound->Free(csound, t->data);
         csound->Free(csound, t->sizes);
       }
+      t->arrayType = ((CS_TYPE*) &CS_VAR_TYPE_A);
       t->dimensions = 1;
       t->sizes = csound->Calloc(csound, sizeof(int32_t));
       t->sizes[0] = p->nChannels;

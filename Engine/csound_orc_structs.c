@@ -106,7 +106,13 @@ int initStructVar(CSOUND* csound, void* p) {
       STRINGDAT* strAssign = (STRINGDAT*) init->inArgs[i];
       strAssign->refCount += 1;
     } else {
-      mem->varType->copyValue(csound, mem->varType, &mem->value, init->inArgs[i]);
+      ARRAYDAT* dest = (ARRAYDAT*) &mem->value;
+      ARRAYDAT* src = (ARRAYDAT*) init->inArgs[i];
+      dest = (ARRAYDAT*)csound->Calloc(csound, sizeof(ARRAYDAT));
+      mem->varType->copyValue(csound, mem->varType, dest, src);
+      printf("dest ptr: %p\n", dest);
+      printf("dest->sizes ptr: %p\n", dest->sizes);
+      // mem->varType->copyValue(csound, mem->varType, &mem->value, init->inArgs[i]);
     }
 
     // if (memberDimensions > 0) {
@@ -137,8 +143,8 @@ void initializeStructVar(CSOUND* csound, CS_VARIABLE* var, MYFLT* mem) {
   int i;
 
   structVar->members = csound->Calloc(csound, len * sizeof(CS_VAR_MEM));
-  //    csound->Message(csound, "Initializing Struct...\n");
-  //    csound->Message(csound, "Struct Type: %s\n", type->varTypeName);
+     csound->Message(csound, "Initializing Struct...\n");
+     csound->Message(csound, "Struct Type: %s\n", type->varTypeName);
 
   for (i = 0; i < len; i++) {
     CS_VARIABLE* memberVar = members->value;
@@ -148,6 +154,7 @@ void initializeStructVar(CSOUND* csound, CS_VARIABLE* var, MYFLT* mem) {
     if (memberVar->initializeVariableMemory != NULL) {
       memberVar->initializeVariableMemory(csound, memberVar, &memberMem->value);
     }
+    csound->Message(csound, "Struct member ptr: %p\n", &memberMem->value);
     memberMem->varType = memberVar->varType;
     structVar->members[i] = memberMem;
     members = members->next;
@@ -275,6 +282,7 @@ int add_struct_definition(CSOUND* csound, TREE* structDefTree) {
       currentDimension = currentDimension->next;
     }
 
+    CS_TYPE* arrayType = ((CS_TYPE*) &CS_VAR_TYPE_ARRAY);
     CS_TYPE* memberType = typedIdentArg == NULL ?
       csoundFindStandardTypeWithChar(memberName[0]) :
       csoundGetTypeWithVarTypeName(
@@ -298,7 +306,7 @@ int add_struct_definition(CSOUND* csound, TREE* structDefTree) {
       return 0;
     }
 
-    CS_VARIABLE* var = memberType->createVariable(
+    CS_VARIABLE* var = (dimensions > 0 ? arrayType : memberType)->createVariable(
       csound, type
     );
     var->varName = cs_strdup(csound, memberName);
@@ -317,6 +325,8 @@ int add_struct_definition(CSOUND* csound, TREE* structDefTree) {
     index += len;
 
     if (dimensions > 0) {
+      var->subType = var->varType;
+      var->varType = arrayType;
       for (int idx = 0; idx < dimensions; idx++) {
         temp[index++] = '[';
         temp[index++] = ']';

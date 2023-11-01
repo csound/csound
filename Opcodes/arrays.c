@@ -2729,6 +2729,7 @@ static int32_t get_array_total_size(ARRAYDAT* dat)
 static int32_t tabcopy(CSOUND *csound, TABCPY *p)
 {
     int32_t i, arrayTotalSize, memMyfltSize;
+    printf("tabcopy p->dst ptr: %p p->src ptr: %p \n", p->dst, p->src);
     if (UNLIKELY(p->src->data==NULL) || p->src->dimensions <= 0 )
       return csound->InitError(csound, "%s", Str("array-variable not initialised"));
     if (UNLIKELY(p->dst->dimensions > 0 &&
@@ -3151,7 +3152,9 @@ static int32_t tabslice(CSOUND *csound, TABSLICE *p) {
     int32_t size = (end - start)/inc + 1;
     int32_t i, destIndex;
     int32_t memMyfltSize = p->tabin->arrayMemberSize / sizeof(MYFLT);
-
+    printf("tabslice: %p\n", p);
+    printf("p->tabin ptr: %p\n", p->tabin);
+    printf("p->tanin->sies ptr: %p\n", p->tabin->sizes);
     if (UNLIKELY(size < 0))
       return csound->InitError(csound, "%s",
                                Str("inconsistent start, end parameters"));

@@ -1276,18 +1276,25 @@ char* get_arg_string_from_tree(
 
       if (maybeVar != NULL) {
         // special case since it's not from walking the tree
-        int len = strlen(maybeVar->varType->varTypeName);
+        int isArray = maybeVar->varType == ((CS_TYPE*) &CS_VAR_TYPE_ARRAY);
+        CS_TYPE* currentVarType = isArray ? maybeVar->subType : maybeVar->varType;
+        int len = strlen(currentVarType->varTypeName);
         argsLen += len;
-        int isCustomType = maybeVar->varType->userDefinedType;
+        int isCustomType = currentVarType->userDefinedType;
         int offset = i * 256;
 
         if (isCustomType) {
           argTypes[offset++] = ':';
           argsLen += 1;
         }
-        strcpy(&argTypes[offset++], maybeVar->varType->varTypeName);
+        strcpy(&argTypes[offset++], currentVarType->varTypeName);
 
         int dimension = maybeVar->dimensions;
+
+        if (isArray) {
+          dimension = dimension < 1 ? 1 : dimension;
+        }
+
         while (dimension-- != 0) {
           argTypes[offset++] = '[';
           argTypes[offset++] = ']';
@@ -1611,7 +1618,7 @@ void add_array_arg(CSOUND* csound, char* varName, char* annotation,
       typeArg
     );
     var = csoundCreateVariable(csound, csound->typePool,
-      (CS_TYPE*) &CS_VAR_TYPE_ARRAY, subType, varName);
+      (CS_TYPE*) &CS_VAR_TYPE_ARRAY, subType != NULL ? subType : varType, varName);
     csoundAddVariable(csound, pool, var);
   } else {
     //TODO - implement reference count increment
@@ -2489,7 +2496,7 @@ TREE* verify_tree(CSOUND * csound, TREE *root, TYPE_TABLE* typeTable)
       }
       TREE* current2 = copy_node(csound, current);
       current2->next = NULL;
-      print_tree(csound, "TREE\n", current2);
+       print_tree(csound, "TREE\n", current2);
       if(!verify_opcode_2(csound, current, typeTable)) {
         return 0;
       }

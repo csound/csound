@@ -148,7 +148,7 @@ CS_VARIABLE* csoundCreateVariable(
       while (current != NULL) {
         if (strcmp(varType->varTypeName, current->cstype->varTypeName) == 0) {
           CS_VARIABLE* var = current->cstype->createVariable(
-            csound, subType
+            csound, subType != NULL ? subType : varType
           );
           var->varType = varType;
           var->varName = cs_strdup(csound, name);
