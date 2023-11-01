@@ -10,7 +10,7 @@ find_path(PD_HEADER_PATH m_pd.h)
 find_library(PD_LIBRARY pd.dll)
 
 ## Csound Commandline Executable ##
-if(BUILD_CSOUND_COMAND) 
+if(BUILD_CSOUND_COMMAND) 
 set(CS_MAIN_SRCS csound/csound_main.c)
 if(CMAKE_SYSTEM_NAME MATCHES "Linux")
     list(APPEND CS_MAIN_SRCS csound/sched.c)
