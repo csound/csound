@@ -8,10 +8,6 @@ set(stdutil_SRCS
     sndinfo.c       srconv.c        std_util.c  xtrct.c
     SDIF/sdif.c   ../InOut/soundfile.c)
 
-if(USE_VCPKG)
-    set(LIBSNDFILE_LIBRARY SndFile::sndfile)
-endif()
-
 if(BUILD_UTILITIES)
    make_plugin(stdutil "${stdutil_SRCS}" ${MATH_LIBRARY} ${LIBSNDFILE_LIBRARY} ${LIBSNDFILE_SUPPORT_LIBS})
     make_utility(atsa        atsa_main.c)
