@@ -5,6 +5,8 @@ cmake_policy(SET CMP0077 NEW)
 set(CMAKE_MACOSX_RPATH 1)
 set(CMAKE_EXPORT_COMPILE_COMMANDS 1)
 set(CMAKE_OSX_DEPLOYMENT_TARGET 11)
+cmake_policy(SET CMP0078 NEW)
+cmake_policy(SET CMP0086 NEW)
 
 
 option(USE_VCPKG "Use VCPKG to download and manage dependencies" OFF)
