@@ -1128,6 +1128,7 @@ int read_unified_file4(CSOUND *csound, CORFIL *cf)
           strstr(p, "<CsoundSynthesiser>") == p) {
         if(csound->oparms->odebug)
           csoundMessage(csound, Str("STARTING FILE\n"));
+        printf("****csd starts on line %d\n", STA(csdlinecount));
         started = TRUE;
       }
       else if (strstr(p, "</CsoundSynthesizer>") == p ||

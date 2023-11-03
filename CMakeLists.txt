@@ -491,8 +491,7 @@ endif()
 
 # carry on setting up libsndifle if so
 if(USE_LIBSNDFILE)
- set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -DUSE_LIBSNDFILE")
- set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DUSE_LIBSNDFILE")
+ add_compile_definitions("USE_LIBSNDFILE")
 
 if(EMSCRIPTEN)
   include_directories(emscripten/deps/libsndfile-1.0.25/src/)
@@ -518,7 +517,7 @@ check_deps(USE_MP3 HAVE_SF_FORMAT_MPEG)
 
 if (USE_MP3)
   message(STATUS  "Using libsndfile MP3 support")
-  set(CMAKE_C_FLAGS  "${CMAKE_C_FLAGS} -DSNDFILE_MP3")
+  add_compile_definitions("SNDFILE_MP3")
 else()
   message(STATUS  "NOT Using libsndfile MP3 support")
 endif()
