@@ -118,9 +118,7 @@ Source: "{#VCREDIST_CXXAMP_DIR}\*"; DestDir: "{#APP_BIN}"; Flags: recursesubdirs
 Source: "{#VCREDIST_OPENMP_DIR}\*"; DestDir: "{#APP_BIN}"; Flags: recursesubdirs; Components: core;
 
 Source: "Python\ctcsound.py"; DestDir: "{#APP_BIN}"; Flags: ignoreversion; Components: core;
-Source: "{#BuildRoot}\csnd7.jar"; DestDir: "{#APP_BIN}"; Flags: ignoreversion; Components: core;
 
-Source: "{#ReleaseDir}\_jcsound7.dll"; DestDir: "{#APP_BIN}"; Flags: ignoreversion; Components: core;
 Source: "{#ReleaseDir}\ampmidid.dll"; DestDir: "{#APP_PLUGINS64}"; Flags: ignoreversion; Components: core;
 Source: "{#ReleaseDir}\arrayops.dll"; DestDir: "{#APP_PLUGINS64}"; Flags: ignoreversion; Components: core;
 Source: "{#ReleaseDir}\atsa.exe"; DestDir: "{#APP_BIN}"; Flags: ignoreversion; Components: core;
