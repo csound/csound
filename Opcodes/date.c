@@ -120,7 +120,7 @@ static int32_t getcurdir(CSOUND *csound, GETCWD *p)
       p->Scd->size = 1024;
       p->Scd->data = csound->Calloc(csound, p->Scd->size);
     }
-
+#ifndef BARE_METAL   
 #if defined(__MACH__) || defined(LINUX) || defined(__HAIKU__) || defined(__CYGWIN__) || defined(__GNUC__)
     if (UNLIKELY(getcwd(p->Scd->data, p->Scd->size-1)==NULL))
 #else
@@ -136,6 +136,7 @@ static int32_t getcurdir(CSOUND *csound, GETCWD *p)
         return -1;
         #endif
       }
+#endif 
     return OK;
 }
 

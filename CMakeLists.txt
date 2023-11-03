@@ -193,12 +193,17 @@ option(LEXER_DEBUG "Build lexer with debug option" OFF)
 option(USE_GIT_COMMIT "Show the git commit in version information" ON)
 option(REQUIRE_PTHREADS "For non-Windows systems, set whether Csound will use threads or not" ON)
 option(BUILD_DOCS "Build documentation (requires doxygen)" OFF)
-option(DEBUG_ERROR_ON_WARNING "For a debug build, error on a compiler warning" OFF)
+option(DEBUG_ERROR_ON_WARNING "For a debug build, error on a compiler
+# warning" OFF)
+option(BARE_METAL "To configure for bare metal build" OFF)
 
 if(NO_CS_SERVER)
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS}  -DNO_CSOUND_SERVER")
 endif()
 
+if(BARE_METAL)
+set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS}  -DBARE_METAL")
+endif()
 
 # Include this after the install path definitions so we can override them here.
 # Also after function definitions so we can use them there
