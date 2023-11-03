@@ -193,12 +193,17 @@ option(LEXER_DEBUG "Build lexer with debug option" OFF)
 option(USE_GIT_COMMIT "Show the git commit in version information" ON)
 option(REQUIRE_PTHREADS "For non-Windows systems, set whether Csound will use threads or not" ON)
 option(BUILD_DOCS "Build documentation (requires doxygen)" OFF)
-option(DEBUG_ERROR_ON_WARNING "For a debug build, error on a compiler warning" OFF)
+option(DEBUG_ERROR_ON_WARNING "For a debug build, error on a compiler
+# warning" OFF)
+option(BARE_METAL "To configure for bare metal build" OFF)
 
 if(NO_CS_SERVER)
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS}  -DNO_CSOUND_SERVER")
 endif()
 
+if(BARE_METAL)
+set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS}  -DBARE_METAL")
+endif()
 
 # Include this after the install path definitions so we can override them here.
 # Also after function definitions so we can use them there
@@ -486,8 +491,7 @@ endif()
 
 # carry on setting up libsndifle if so
 if(USE_LIBSNDFILE)
- set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -DUSE_LIBSNDFILE")
- set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DUSE_LIBSNDFILE")
+ add_compile_definitions("USE_LIBSNDFILE")
 
 if(EMSCRIPTEN)
   include_directories(emscripten/deps/libsndfile-1.0.25/src/)
@@ -513,7 +517,7 @@ check_deps(USE_MP3 HAVE_SF_FORMAT_MPEG)
 
 if (USE_MP3)
   message(STATUS  "Using libsndfile MP3 support")
-  set(CMAKE_C_FLAGS  "${CMAKE_C_FLAGS} -DSNDFILE_MP3")
+  add_compile_definitions("SNDFILE_MP3")
 else()
   message(STATUS  "NOT Using libsndfile MP3 support")
 endif()
@@ -522,13 +526,7 @@ else()
 message(STATUS  "NOT Using libsndfile")
 endif()
 
-
-
-
 find_package(CURL)
-find_package(Java)
-find_package(JNI)
-
 
 if(NOT MSVC AND REQUIRE_PTHREADS)
   # Use ladder of if's to support older CMake versions (i.e., travis)
@@ -1396,7 +1394,6 @@ endif()
 add_subdirectory(Opcodes)
 add_subdirectory(InOut)
 add_subdirectory(Frontends)
-add_subdirectory(Java)
 add_subdirectory(Python)
 add_subdirectory(Bela)
 add_subdirectory(util)

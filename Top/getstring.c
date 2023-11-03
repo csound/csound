@@ -242,7 +242,11 @@ PUBLIC int cs_sprintf(char *str, const char *format, ...)
     va_list args;
     int retVal;
     va_start(args, format);
+#ifndef BARE_METAL   
     retVal = vsprintf_l(str,csound_c_locale,format,args);
+#else
+    retVal = 0;
+#endif    
     va_end(args);
     return retVal;
 }
@@ -253,7 +257,11 @@ PUBLIC int cs_sscanf(char *str, const char *format, ...)
     va_list args;
     int retVal;
     va_start(args, format);
+#ifndef BARE_METAL       
     retVal = vsscanf_l(str,csound_c_locale,format,args);
+#else
+    retVal = 0;
+#endif        
     va_end(args);
     return retVal;
 }
