@@ -1,3 +1,6 @@
+cmake_policy(SET CMP0078 NEW)
+cmake_policy(SET CMP0086 NEW)
+
 ## Java bindings ##
 option(BUILD_JAVA_INTERFACE "Build the Java interface" ON)
 

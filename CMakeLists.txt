@@ -5,8 +5,6 @@ cmake_policy(SET CMP0077 NEW)
 set(CMAKE_MACOSX_RPATH 1)
 set(CMAKE_EXPORT_COMPILE_COMMANDS 1)
 set(CMAKE_OSX_DEPLOYMENT_TARGET 11)
-cmake_policy(SET CMP0078 NEW)
-cmake_policy(SET CMP0086 NEW)
 
 
 option(USE_VCPKG "Use VCPKG to download and manage dependencies" OFF)
@@ -528,13 +526,7 @@ else()
 message(STATUS  "NOT Using libsndfile")
 endif()
 
-
-
-
 find_package(CURL)
-find_package(Java)
-find_package(JNI)
-
 
 if(NOT MSVC AND REQUIRE_PTHREADS)
   # Use ladder of if's to support older CMake versions (i.e., travis)
@@ -1402,7 +1394,6 @@ endif()
 add_subdirectory(Opcodes)
 add_subdirectory(InOut)
 add_subdirectory(Frontends)
-add_subdirectory(Java)
 add_subdirectory(Python)
 add_subdirectory(Bela)
 add_subdirectory(util)
