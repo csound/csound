@@ -249,11 +249,7 @@ void csnd::on_load(Csound *csound) {
   csnd::plugin<ArrayOp<std::log>>(csound, "log", "i[]", "i[]", csnd::thread::i);
   csnd::plugin<ArrayOp<std::log>>(csound, "log", "k[]", "k[]",
                                   csnd::thread::ik);
-
   csnd::plugin<ArrayOp3<logb>>(csound, "log", "i[]", "i[]i", csnd::thread::i);
-  csnd::plugin<ArrayOp3<logb>>(csound, "log", "k[]", "k[]k",
-                                  csnd::thread::ik);
-  
   csnd::plugin<ArrayOp<std::exp>>(csound, "exp", "i[]", "i[]", csnd::thread::i);
   csnd::plugin<ArrayOp<std::exp>>(csound, "exp", "k[]", "k[]",
                                   csnd::thread::ik);
