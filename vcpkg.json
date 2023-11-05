@@ -25,11 +25,7 @@
         },
         {
             "name": "gettext",
-            "platform": "linux"
-        },
-        {
-            "name": "gettext",
-            "platform": "osx"
+            "platform": "linux|osx"
         }
     ]
 }
