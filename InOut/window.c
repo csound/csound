@@ -21,9 +21,14 @@
     02110-1301 USA
 */
 
+#include <stddef.h>
+
 #include "csoundCore.h"                         /*      WINDOW.C        */
 #include "cwindow.h"                            /*  graph window mgr    */
 #include "winEPS.h"                             /* PostSCript routines  */
+#include "csound.h"
+#include "prototyp.h"
+#include "sysdep.h"
                                                 /*  dpwe 16may90        */
 
 extern OENTRY* find_opcode_new(CSOUND*, char*, char*, char*);

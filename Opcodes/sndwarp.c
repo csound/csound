@@ -29,8 +29,12 @@
 /*from soundfiles.                                            */
 /**************************************************************/
 
+#include <string.h>
+
 #include "stdopcod.h"
 #include "sndwarp.h"
+#include "csound.h"
+#include "interlocks.h"
 
 #define unirand(x) ((MYFLT) (x->Rand31(&(x->randSeed1)) - 1) / FL(2147483645.0))
 

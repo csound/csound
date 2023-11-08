@@ -22,6 +22,9 @@
  */
 #include <cmath>
 #include "OpcodeBase.hpp"
+#include "csdl.h"
+#include "csound.h"
+#include "sysdep.h"
 
 using namespace csound;
 

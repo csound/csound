@@ -21,11 +21,15 @@
     02110-1301 USA
 */
 
+#include <string.h>
+
                                                         /* ugmoss.c */
 #include "stdopcod.h"
 #include "ugmoss.h"
 #include "aops.h"
-#include <math.h>
+#include "csound.h"
+#include "float-version.h"
+#include "interlocks.h"
 
 /******************************************************************************
   all this code was written by william 'pete' moss. <petemoss@petemoss.org>

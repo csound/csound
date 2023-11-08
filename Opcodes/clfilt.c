@@ -34,8 +34,11 @@
 /***************************************************************/
 
 #include <math.h>
+#include <string.h>
+
 #include "stdopcod.h"
 #include "clfilt.h"
+#include "csound.h"
 
 static int32_t clfiltset(CSOUND *csound, CLFILT *p)
 {

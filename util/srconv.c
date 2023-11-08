@@ -44,10 +44,11 @@
  *    MODIFIED:  John ffitch December 2000; changes to Csound context
  */
 
+#include <stddef.h>
+
 #include "std_util.h"
-#include "soundio.h"
-#include <math.h>
-#include <ctype.h>
+#include "csdl.h"
+#include "csound.h"
 
 #define IBUF    (4096)
 #define IBUF2   (IBUF/2)

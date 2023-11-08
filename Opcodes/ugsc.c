@@ -23,8 +23,12 @@
 
 /* ugsc.c -- Opcodes from Sean Costello <costello@seanet.com> */
 
+#include <math.h>
+#include <string.h>
+
 #include "stdopcod.h"
 #include "ugsc.h"
+#include "csound.h"
 
 /* svfilter.c
  *

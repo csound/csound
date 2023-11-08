@@ -28,15 +28,17 @@
 /* John ffitch 1995 Jun 25                                           */
 /* ***************************************************************** */
 
+#include <math.h>
+#include <stdint.h>
 #include "std_util.h"
 #include <stdio.h>
-#include <stdarg.h>
-#include <stdlib.h>
+#include "csdl.h"
+#include "csound.h"
+#include "sysdep.h"
 #ifndef MYFLT
 #include "sysdep.h"
 #endif
 #include "lpc.h"
-#include "text.h"
 
 void lpc_export_usage(CSOUND *csound)
 {

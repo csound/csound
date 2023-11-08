@@ -22,15 +22,17 @@
 */
 
 #include "csoundCore.h"                 /*             SNDLIB.C         */
-#include "soundio.h"
-#include <stdlib.h>
 #include <time.h>
 #include <inttypes.h>
-
-#ifdef HAVE_SYS_TYPES_H
-# include <sys/types.h>
-#endif
-
+#include <sndfile.h>
+#include <stdio.h>
+#include <string.h>
+#include "csound.h"
+#include "envvar.h"
+#include "msg_attr.h"
+#include "prototyp.h"
+#include "soundfile.h"
+#include "sysdep.h"
 #ifdef PIPES
 # if defined(SGI) || defined(LINUX) || defined(__BEOS__) || defined(NeXT) ||  \
      defined(__MACH__)

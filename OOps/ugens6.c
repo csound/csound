@@ -22,9 +22,15 @@
     02110-1301 USA
 */
 
+#include <stdint.h>
+#include <string.h>
+
 #include "csoundCore.h" /*                              UGENS6.C        */
 #include "ugens6.h"
 #include <math.h>
+#include "csound.h"
+#include "prototyp.h"
+#include "sysdep.h"
 
 #define log001 (-FL(6.9078))    /* log(.001) */
 

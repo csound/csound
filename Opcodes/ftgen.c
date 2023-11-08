@@ -17,11 +17,17 @@
     02110-1301 USA
 */
 
+#include <stdint.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
 #include "stdopcod.h"
-#include <ctype.h>
-#include <stdarg.h>
-#include "soundio.h"
-#include <math.h>
+#include "csound.h"
+#include "csoundCore.h"
+#include "interlocks.h"
+#include "prototyp.h"
+#include "sysdep.h"
 
 typedef struct {
     OPDS    h;

@@ -65,8 +65,17 @@ kamp            ATSinterpread   kfreq
 #define OUT_OF_FRAMES (frIndx >= p->maxFr+1)
 
 #include "ugnorman.h"
+
 #include <ctype.h>
+#include <math.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
 #include "interlocks.h"
+#include "Opcodes/stdopcod.h"
+#include "csound.h"
+#include "prototyp.h"
 
 #define ATSA_NOISE_VARIANCE 0.04
 

@@ -21,6 +21,8 @@
     02110-1301 USA
 */
 
+#include <stddef.h>
+
 #include "pvs_ops.h"
 #include "pvsdemix.h"
 

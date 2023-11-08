@@ -22,16 +22,16 @@
 */
 
 #include <stdio.h>
-#include <stdlib.h>
+#include <string.h>
 
 #include "csoundCore.h"
 #include "csound_orc.h"
-#include "tok.h"
-
 #include "cs_par_base.h"
 #include "cs_par_orc_semantics.h"
-
 #include "interlocks.h"
+#include "csound.h"
+#include "prototyp.h"
+#include "sysdep.h"
 
 OENTRY* find_opcode(CSOUND *, char *);
 /***********************************************************************

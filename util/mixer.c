@@ -34,10 +34,22 @@
  *     Needs to take much more care
  */
 
+#include <sndfile.h>
+#include <stdarg.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
 #include "std_util.h"
 #include "soundio.h"
 #include <ctype.h>
 #include <inttypes.h>
+#include "csdl.h"
+#include "csound.h"
+#include "float-version.h"
+#include "msg_attr.h"
+#include "soundfile.h"
+#include "sysdep.h"
 
 /* Constants */
 

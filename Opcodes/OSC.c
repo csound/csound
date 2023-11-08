@@ -28,6 +28,13 @@
 #include "csdl.h"
 #include <stdio.h>
 #include <stdlib.h>
+#include <stdint.h>
+#include <string.h>
+
+#include "csound.h"
+#include "csound_type_system.h"
+#include "sysdep.h"
+#include "version.h"
 #ifdef HAVE_UNISTD_H
     #include <unistd.h>
 #endif

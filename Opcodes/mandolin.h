@@ -35,8 +35,13 @@
 
 #if !defined(__Mandolin_h)
 #define __Mandolin_h
+#include <stdint.h>
+
 #include "clarinet.h"
 #include "brass.h"
+#include "Opcodes/physutil.h"
+#include "csoundCore.h"
+#include "sysdep.h"
 
 typedef struct Mandolin {
     OPDS        h;

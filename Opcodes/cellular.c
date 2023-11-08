@@ -22,8 +22,13 @@
     02110-1301 USA
 */
 
+#include <stdint.h>
+#include <string.h>
+
 #include "csoundCore.h"
 #include "interlocks.h"
+#include "csound.h"
+#include "sysdep.h"
 
 // classical 1-D Cellular Automaton by Gleb Rogozinsky.
 // It is the modified version of vcella opcode by Gabriel Maldonado

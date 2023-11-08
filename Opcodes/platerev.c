@@ -22,8 +22,13 @@
     02110-1301 USA
 */
 
+#include <stdint.h>
+#include <string.h>
+
 #include "csoundCore.h"
 #include <math.h>
+#include "csound.h"
+#include "sysdep.h"
 
 /* #undef CS_KSMPS */
 /* #define CS_KSMPS     (csound->GetKsmps(csound)) */

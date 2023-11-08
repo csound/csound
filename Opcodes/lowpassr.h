@@ -23,6 +23,11 @@
 
 #pragma once
 
+#include <stdint.h>
+
+#include "csoundCore.h"
+#include "sysdep.h"
+
 typedef struct {
         OPDS    h;
         MYFLT   *ar, *asig, *kfco, *kres, *istor;

@@ -24,10 +24,13 @@
 /* ----- spat3d, spat3di, and spat3dt -- written by Istvan Varga, 2001 ----- */
 
 #include "stdopcod.h"
-#include <stdlib.h>
 #include <stdio.h>
 #include <math.h>
-#include <time.h>
+
+
+#include "csoundCore.h"
+#include "csdl.h"
+#include "csound.h"
 
 #define CSOUND_SPAT3D_C 1
 

@@ -22,7 +22,8 @@
 */
 #pragma once
 
-#include "csdl.h"
+#include "csoundCore.h"
+#include "sysdep.h"
 
 #define POWER_BUFSIZE 1000
 

@@ -21,8 +21,10 @@
     02110-1301 USA
 */
 
+#include <stdio.h>
+
 #include "csound.h"
-#include <stdarg.h>
+#include "msg_attr.h"
 
 static void messageCallback_(CSOUND *csound, int attr,
                              const char *fmt, va_list args)

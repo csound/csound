@@ -21,9 +21,13 @@
     02110-1301 USA
 */
 
+#include <stdint.h>
+
 #include "csoundCore.h"
 #include "midiinterop.h"
-#include "math.h"
+#include <math.h>
+#include "csound.h"
+#include "sysdep.h"
 
 #define dv127   (FL(1.0)/FL(127.0))
 

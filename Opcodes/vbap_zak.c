@@ -34,7 +34,12 @@
 #include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include "zak.h"
+#include <stdint.h>
+#include <string.h>
+
+
+#include "csound.h"
+#include "sysdep.h"
 
 int32_t vbap_zak_moving_control(CSOUND *, VBAP_ZAK_MOVING *);
 int32_t vbap_zak_control(CSOUND *,VBAP_ZAK *);

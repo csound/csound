@@ -21,9 +21,17 @@
     02110-1301 USA
 */
 
+#include <limits.h>
+#include <stdint.h>
+#include <string.h>
+
 #include "csoundCore.h"         /*                      UGENS1.C        */
 #include "ugens1.h"
 #include <math.h>
+#include "csound.h"
+#include "csound_type_system.h"
+#include "prototyp.h"
+#include "sysdep.h"
 
 #define FHUND (FL(100.0))
 

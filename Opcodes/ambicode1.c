@@ -29,9 +29,14 @@
 */
 
 #include "csoundCore.h"
-#include "interlocks.h"
 #include <assert.h>
 #include <math.h>
+#include <stdint.h>
+#include <string.h>
+
+
+#include "csound.h"
+#include "sysdep.h"
 
 /* ------------------------------------------------------------------------- */
 

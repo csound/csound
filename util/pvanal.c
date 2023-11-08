@@ -34,12 +34,21 @@
 /************************************************************************/
 /************************************************************************/
 
+#include <inttypes.h>
+#include <sndfile.h>
+#include <stdio.h>
+#include <string.h>
+
 #include "std_util.h"
 #include "cwindow.h"
 #include "soundio.h"
 #include "pvfileio.h"
 #include <math.h>
-#include <ctype.h>
+#include "csdl.h"
+#include "csound.h"
+#include "float-version.h"
+#include "soundfile.h"
+#include "sysdep.h"
 
 
 typedef struct pvocex_ch {

@@ -38,6 +38,11 @@
 #if !defined(__babo_h__)
 #   define  __babo_h__
 
+#include <stddef.h>
+
+#include "csoundCore.h"
+#include "sysdep.h"
+
 #define BABO_NODES     (15) /* Number of nodes of feedback delay network    */
 #define BABO_TAPS       (6) /* Number of taps in the early reflections line */
 

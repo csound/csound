@@ -21,7 +21,14 @@
     02110-1301 USA
 */
 
+#include <fcntl.h>
+#include <stdint.h>
+#include <string.h>
+#include <unistd.h>
+
 #include "csdl.h"
+#include "csound.h"
+#include "sysdep.h"
 //#include <ieee754.h>
 
 #ifdef __HAIKU__

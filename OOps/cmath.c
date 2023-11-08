@@ -24,9 +24,14 @@
 /*      Math functions for Csound coded by Paris Smaragdis 1994         */
 /*      Berklee College of Music Csound development team                */
 
+#include <stdint.h>
+#include <string.h>
+
 #include "csoundCore.h"
 #include "cmath.h"
 #include <math.h>
+#include "csound.h"
+#include "sysdep.h"
 
 int32_t ipow(CSOUND *csound, POW *p)        /*      Power for i-rate */
 {

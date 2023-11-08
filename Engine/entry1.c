@@ -22,7 +22,40 @@
 */
 
 #include "entry1.h"             /*                      ENTRY1.C        */
+
+#include <stddef.h>
+
 #include "interlocks.h"
+#include "aops.h"
+#include "bus.h"
+#include "cmath.h"
+#include "compile_ops.h"
+#include "csoundCore.h"
+#include "disprep.h"
+#include "dumpf.h"
+#include "insert.h"
+#include "linevent.h"
+#include "lpred.h"
+#include "midifile.h"
+#include "midiinterop.h"
+#include "midiops.h"
+#include "midiout.h"
+#include "oload.h"
+#include "oscils.h"
+#include "remote.h"
+#include "resize.h"
+#include "schedule.h"
+#include "sndinfUG.h"
+#include "str_ops.h"
+#include "ugens1.h"
+#include "ugens2.h"
+#include "ugens3.h"
+#include "ugens4.h"
+#include "ugens5.h"
+#include "ugens6.h"
+#include "ugrw1.h"
+#include "vdelay.h"
+#include "windin.h"
 
 /* thread vals, where isub=1, ksub=2:
    0 =     1  OR   2  (B out only)

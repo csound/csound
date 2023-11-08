@@ -38,6 +38,11 @@
 #if !defined(__bbcut_h__)
 #   define  __bbcut_h__
 
+#include <stdint.h>
+
+#include "csoundCore.h"
+#include "sysdep.h"
+
 /* Csound ugen struct- can't use same struct for Mono and Stereo version */
 typedef struct {
       OPDS  h;                              /* defined in cs.h */

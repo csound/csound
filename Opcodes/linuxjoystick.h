@@ -22,8 +22,11 @@
 #pragma once
 
 #include <unistd.h>
+#include <stdint.h>
+
 #include "csdl.h"
 #include "linux/joystick.h"
+#include "sysdep.h"
 
 typedef struct
 {

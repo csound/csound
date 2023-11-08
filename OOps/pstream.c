@@ -26,9 +26,14 @@
    pvsops.c for everythng else, under ????
 */
 
+#include <stdint.h>
+#include <string.h>
+
 #include "csoundCore.h"
 #include "pstream.h"
-#include "pvfileio.h"
+#include "csound.h"
+#include "prototyp.h"
+#include "sysdep.h"
 
 #ifdef _DEBUG
 #include <assert.h>

@@ -21,10 +21,17 @@
     02110-1301 USA
 */
 
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
 #include "csoundCore.h"
 #include "namedins.h"
-#include "csound_orc_semantics.h"
 #include <ctype.h>
+#include "csound.h"
+#include "csound_data_structures.h"
+#include "prototyp.h"
+#include "sysdep.h"
 
 /* check if the string s is a valid instrument or opcode name */
 /* return value is zero if the string is not a valid name */

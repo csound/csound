@@ -29,10 +29,13 @@
 /* ***************************************************************** */
 
 #include <stdio.h>
-#include <stdarg.h>
-#include <stdlib.h>
+#include <stdint.h>
+
 #include "std_util.h"
 #include "lpc.h"
+#include "csdl.h"
+#include "csound.h"
+#include "sysdep.h"
 
 void lpc_import_usage(CSOUND *csound)
 {

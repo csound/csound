@@ -21,10 +21,16 @@
  02110-1301 USA
  */
 
+#include <stdint.h>
+#include <string.h>
+
 #include "csoundCore.h"
 #include "csound_standard_types.h"
 #include "pstream.h"
 #include <stdlib.h>
+#include "csound.h"
+#include "csound_type_system.h"
+#include "sysdep.h"
 
 
 /* MEMORY COPYING FUNCTIONS */

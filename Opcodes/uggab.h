@@ -1,5 +1,10 @@
 #ifndef UGGAB_H
 #define UGGAB_H
+#include <stdint.h>
+
+#include "csound.h"
+#include "csoundCore.h"
+#include "sysdep.h"
 /*
     uggab.h:
 

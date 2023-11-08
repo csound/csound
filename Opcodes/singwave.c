@@ -33,10 +33,16 @@
 /*  excitation source for other instruments*/
 /*******************************************/
 
+#include <math.h>
+#include <string.h>
+
 // #include "csdl.h"
 #include "csoundCore.h"
 #include "singwave.h"
 #include "moog1.h"
+#include "Opcodes/clarinet.h"
+#include "Opcodes/physutil.h"
+#include "csound.h"
 
 void OneZero_setCoeff(OneZero*, MYFLT);
 MYFLT Wave_tick(MYFLT *, int32_t len, MYFLT *, MYFLT, MYFLT);

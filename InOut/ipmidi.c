@@ -26,7 +26,6 @@
 /* Haiku 'int32' etc definitions in net headers conflict with sysdep.h */
 #define __HAIKU_CONFLICT
 
-#include <sys/types.h>
 #ifdef WIN32
 #include <winsock2.h>
 #include <ws2tcpip.h>
@@ -38,10 +37,13 @@
 #include <arpa/inet.h>
 #endif
 #include <errno.h>
+#include <stdio.h>
+#include <string.h>
 
 #include "csdl.h"                               /*      IPMIDI.C         */
-#include "midiops.h"
-#include "oload.h"
+#include "csound.h"
+#include "sysdep.h"
+#include "version.h"
 
 static int OpenMidiInDevice_(CSOUND *csound, void **userData, const char *dev)
 {

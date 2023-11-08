@@ -43,6 +43,9 @@ Csound C versions by Steven Yi
 
 #include "wpfilters.h"
 
+#include <math.h>
+#include <string.h>
+
 static int32_t zdf_1pole_mode_init(CSOUND* csound, ZDF_1POLE_MODE* p) {
      IGN(csound);
     if (*p->skip == 0) {

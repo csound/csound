@@ -31,6 +31,15 @@
 #include <limits.h>
 #include <stdarg.h>
 #include <inttypes.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
+
+#include "csdl.h"
+#include "csound.h"
+#include "msg_attr.h"
+#include "sysdep.h"
 
 typedef struct PVLOOK_ {
     CSOUND  *csound;

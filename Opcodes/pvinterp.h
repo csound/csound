@@ -24,6 +24,9 @@
 /*                                                              PVINTERP.H  */
 #pragma once
 
+#include "csoundCore.h"
+#include "sysdep.h"
+
 typedef struct {
     OPDS    h;
     MYFLT   *ktimpnt, *ifilno;

@@ -22,8 +22,14 @@
     02110-1301 USA
 */
 
+#include <stdint.h>
+#include <stdlib.h>
+#include <string.h>
+
 #include "csoundCore.h"
 #include "pstream.h"
+#include "csound.h"
+#include "sysdep.h"
 
 typedef struct {
     OPDS h;

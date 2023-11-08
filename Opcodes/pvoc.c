@@ -23,6 +23,15 @@
 
 #include "pvoc.h"
 
+#include <stdint.h>
+
+#include "Opcodes/pvadd.h"
+#include "Opcodes/pvinterp.h"
+#include "Opcodes/pvread.h"
+#include "Opcodes/ugens8.h"
+#include "Opcodes/vpvoc.h"
+#include "interlocks.h"
+
 int32_t     pvset(CSOUND *, void *), pvset_S(CSOUND *, void *);
 int32_t     pvoc(CSOUND *, void *);
 int32_t     pvaddset(CSOUND *, void *), pvadd(CSOUND *, void *);

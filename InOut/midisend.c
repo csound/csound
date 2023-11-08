@@ -22,8 +22,15 @@
     02110-1301 USA
 */
 
+#include <math.h>
+#include <stdio.h>
+#include <fcntl.h>
+
 #include "csoundCore.h"                                 /*    MIDISEND.C    */
 #include "midioops.h"
+#include "csound.h"
+#include "prototyp.h"
+#include "sysdep.h"
 
 typedef struct midiOutFile_s {
     FILE            *f;

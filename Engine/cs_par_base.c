@@ -23,10 +23,16 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <pthread.h>
+#include <string.h>
 
 #include "csoundCore.h"
 
 #include "cs_par_base.h"
+#include "csound.h"
+#include "prototyp.h"
+#include "sysdep.h"
+
 static int csp_set_exists(struct set_t *set, void *data);
 
 int csp_thread_index_get(CSOUND *csound)

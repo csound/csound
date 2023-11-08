@@ -29,10 +29,12 @@
 //#ifdef __cplusplus
 //extern "C" {
 //#endif
-
-#if defined(HAVE_UNISTD_H) || defined (__unix) || defined(__unix__)
-#include <unistd.h>
-#endif
+#include <emmintrin.h>
+#include <setjmp.h>
+#include <sndfile.h>
+#include <stdint.h>
+#include <stdlib.h>
+#include <string.h>
 
 #include "csoundCore.h"
 #include "csmodule.h"
@@ -42,25 +44,28 @@
 #include <stdarg.h>
 #include <signal.h>
 #include <time.h>
-#include <ctype.h>
 #include <limits.h>
-#ifdef HAVE_SYS_TYPES_H
-# include <sys/types.h>
-#endif
+#include "csound.h"
+#include "csound_data_structures.h"
+#include "csound_type_system.h"
+#include "cwindow.h"
+#include "envvar.h"
+#include "float-version.h"
+#include "msg_attr.h"
+#include "prototyp.h"
+#include "soundfile.h"
+#include "sysdep.h"
+#include "version.h"
+
 #if defined(WIN32) && !defined(__CYGWIN__)
 # include <winsock2.h>
 # include <windows.h>
 #endif
-#include <math.h>
-#include "oload.h"
 #include "fgens.h"
 #include "namedins.h"
 #include "pvfileio.h"
 #include "fftlib.h"
 #include "lpred.h"
-#include "cs_par_base.h"
-#include "cs_par_orc_semantics.h"
-#include "namedins.h"
 //#include "cs_par_dispatch.h"
 #include "find_opcode.h"
 
@@ -71,7 +76,6 @@
 #include "csound_standard_types.h"
 
 #include "csdebug.h"
-#include <time.h>
 
 extern void allocate_message_queue(CSOUND *csound);
 static void SetInternalYieldCallback(CSOUND *, int (*yieldCallback)(CSOUND *));
@@ -247,6 +251,9 @@ static int csoundGetDitherMode(CSOUND *csound){
 }
 
 #include "Opcodes/zak.h"
+
+struct CsoundCallbackEntry_s;
+
 static int csoundGetZakBounds(CSOUND *csound, MYFLT **zkstart){
     ZAK_GLOBALS *zz;
     zz = (ZAK_GLOBALS*) csound->QueryGlobalVariable(csound, "_zak_globals");

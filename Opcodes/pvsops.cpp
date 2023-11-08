@@ -22,6 +22,14 @@
 */
 #include <algorithm>
 #include <plugin.h>
+#include <complex>
+#include <math.h>
+#include <stddef.h>
+#include <stdint.h>
+#include <utility>
+
+#include "csdl.h"
+#include "sysdep.h"
 
 struct PVTrace : csnd::FPlugin<1, 2> {
   csnd::AuxMem<float> amps;
@@ -466,6 +474,7 @@ struct TPrint : csnd::Plugin<0, 1> {
 */
 
 #include <modload.h>
+
 void csnd::on_load(Csound *csound) {
   csnd::plugin<PVTrace>(csound, "pvstrace",  csnd::thread::ik);
   csnd::plugin<PVTrace2>(csound, "pvstrace", csnd::thread::ik);

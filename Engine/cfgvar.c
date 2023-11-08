@@ -25,11 +25,12 @@
 #include <stdlib.h>
 #include <string.h>
 #include <ctype.h>
-#include <math.h>
 
 #include "csoundCore.h"
-#include "cfgvar.h"
-#include "namedins.h"
+#include "csound.h"
+#include "csound_data_structures.h"
+#include "prototyp.h"
+#include "sysdep.h"
 
 /* the global database */
 

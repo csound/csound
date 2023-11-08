@@ -63,8 +63,15 @@ PLUS a number of track processing opcodes.
 
 */
 
+#include <stdint.h>
+#include <string.h>
+
 #include "pvs_ops.h"
 #include "pstream.h"
+#include "csound.h"
+#include "csoundCore.h"
+#include "interlocks.h"
+#include "sysdep.h"
 
 typedef struct _psyn {
     OPDS    h;

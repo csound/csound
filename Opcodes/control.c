@@ -21,11 +21,13 @@
     02110-1301 USA
 */
 
+#include <stdlib.h>
+#include <sys/select.h>
+#include <unistd.h>
+
 #include "csdl.h"
 #include "control.h"
 
-#include <sys/time.h>
-#include <sys/types.h>
 #include <signal.h>
 
 #if defined(__MACH__)

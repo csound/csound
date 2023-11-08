@@ -21,10 +21,13 @@
     02110-1301 USA
 */
 
+#include <stdint.h>
+#include <string.h>
+
 #include "csoundCore.h"
 #include "interlocks.h"
 #include "crossfm.h"
-#include <math.h>
+#include "csound.h"
 
 int32_t xfmset(CSOUND *csound, CROSSFM *p)
 {

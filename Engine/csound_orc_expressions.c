@@ -22,12 +22,20 @@
   02110-1301 USA
 */
 
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
 #include "csoundCore.h"
 #include "csound_orc.h"
 #include "csound_orc_expressions.h"
 #include "csound_type_system.h"
 #include "csound_orc_semantics.h"
 #include <inttypes.h>
+#include "csound.h"
+#include "csound_standard_types.h"
+#include "prototyp.h"
+#include "sysdep.h"
 
 extern char argtyp2(char *);
 extern void print_tree(CSOUND *, char *, TREE *);

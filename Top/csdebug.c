@@ -22,8 +22,13 @@
 */
 
 #include <assert.h>
+#include <string.h>
 
 #include "csdebug.h"
+#include "csound.h"
+#include "csoundCore.h"
+#include "csound_type_system.h"
+#include "sysdep.h"
 
 debug_instr_t *csoundDebugGetCurrentInstrInstance(CSOUND *csound);
 debug_opcode_t *csoundDebugGetCurrentOpcodeList(CSOUND *csound);

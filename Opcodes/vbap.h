@@ -22,6 +22,12 @@
 */
 #pragma once
 
+#include <stdint.h>
+
+#include "csound.h"
+#include "csoundCore.h"
+#include "sysdep.h"
+
 #define LOWEST_ACCEPTABLE_WT FL(0.0)
 #define CHANNELS 128
 #define MIN_VOL_P_SIDE_LGTH FL(0.01)

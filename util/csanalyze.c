@@ -21,6 +21,8 @@
  02110-1301 USA
  */
 
+#include <stdio.h>
+
 #include "csound.h"
 
 extern void     print_tree(CSOUND *, char *, TREE *);

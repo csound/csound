@@ -19,11 +19,15 @@
     02110-1301 USA
 */
 
+#include <stdint.h>
+#include <stdio.h>
+#include <string.h>
+
 // #include "csdl.h"
 #include "csoundCore.h"
-#include "interlocks.h"
-
 #include "pstream.h"
+#include "csound.h"
+#include "sysdep.h"
 
 typedef struct {
   PVSDAT  header;

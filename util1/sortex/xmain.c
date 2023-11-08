@@ -21,6 +21,8 @@
     02110-1301 USA
 */
 
+#include <stdio.h>
+
 #include "csound.h"                                /*   XMAIN.C  */
 
 #if defined(LINUX) || defined(SGI) || defined(sol) || \

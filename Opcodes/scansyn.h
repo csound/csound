@@ -21,7 +21,12 @@
 */
 #pragma once
 
+#include <stddef.h>
+#include <stdint.h>
+
 #include "csdl.h"
+#include "csound.h"
+#include "sysdep.h"
 
 typedef struct SCANSYN_GLOBALS_ SCANSYN_GLOBALS;
 

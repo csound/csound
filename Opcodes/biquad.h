@@ -26,7 +26,10 @@
                                                         /* biquad.h */
 #pragma once
 
-#include "stdopcod.h"
+#include <stdint.h>
+
+#include "csoundCore.h"
+#include "sysdep.h"
 
                                 /* Structure for biquadratic filter */
 typedef struct {

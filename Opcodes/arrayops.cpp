@@ -25,6 +25,10 @@
 #include <numeric>
 #include <plugin.h>
 
+#include "csdl.h"
+#include "csound.h"
+#include "sysdep.h"
+
 
 inline MYFLT logb(MYFLT a, MYFLT b) {
   return log(a)/log(b);
@@ -209,6 +213,7 @@ template <typename T, int I> struct Accum : csnd::Plugin<1, 1> {
 
 
 #include <modload.h>
+
 void csnd::on_load(Csound *csound) {
   csnd::plugin<ArrayOp<lim1>>(csound, "limit1", "i[]", "i[]", csnd::thread::i);
   csnd::plugin<ArrayOp<lim1>>(csound, "limit1", "k[]", "k[]", csnd::thread::ik);

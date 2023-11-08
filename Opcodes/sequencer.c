@@ -22,8 +22,15 @@
     02110-1301 USA
 */
 
+#include <stdint.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
 #include "csoundCore.h"
-#include <math.h>
+#include "csound.h"
+#include "sysdep.h"
+
 typedef struct {
     OPDS        h;
     MYFLT       *res;           /*  state */

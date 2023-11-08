@@ -21,10 +21,12 @@
     02110-1301 USA
 */
 
-#include "csoundCore.h"
-#include "interlocks.h"
+#include <stdint.h>
+#include <string.h>
 
-#include <math.h>
+#include "csoundCore.h"
+#include "csound.h"
+#include "sysdep.h"
 
 typedef struct {
         MYFLT   *srcp;

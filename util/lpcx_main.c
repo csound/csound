@@ -30,8 +30,9 @@
 /* ***************************************************************** */
 
 #include <stdio.h>
-#include <stdarg.h>
 #include <stdlib.h>
+#include <math.h>
+#include <stdint.h>
 #ifndef MYFLT
 #include "sysdep.h"
 #endif

@@ -20,12 +20,24 @@
     Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
     02110-1301 USA
 */
+#include <sndfile.h>
+#include <stdarg.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
 #include "csoundCore.h"         /*                      ARGDECODE.C     */
 #include "soundio.h"
 #include "new_opts.h"
 #include "csmodule.h"
 #include "corfile.h"
 #include <ctype.h>
+#include "csound.h"
+#include "envvar.h"
+#include "msg_attr.h"
+#include "prototyp.h"
+#include "soundfile.h"
+#include "sysdep.h"
 
 static void list_audio_devices(CSOUND *csound, int output);
 static void list_midi_devices(CSOUND *csound, int output);

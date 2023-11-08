@@ -21,12 +21,16 @@
     02110-1301 USA
 */
 
+#include <sndfile.h>
+#include <string.h>
+
 #include "stdopcod.h"   /*                                      UGENS9.C        */
-#include <math.h>
 #include "convolve.h"
 #include "ugens9.h"
 #include "soundio.h"
 #include <inttypes.h>
+#include "csound.h"
+#include "prototyp.h"
 
 static int32_t cvset_(CSOUND *csound, CONVOLVE *p, int32_t stringname)
 {

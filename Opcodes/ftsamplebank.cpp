@@ -19,15 +19,19 @@
     02110-1301 USA
  */
 
+#include <string.h>
 #include <algorithm>
-#include <cmath>
-#include <iostream>
 #include <sstream>
 #include <string>
 #include <vector>
+#include <memory>
+
 #include "OpcodeBase.hpp"
 #include <dirent.h>
-#include <sys/types.h>
+#include "csdl.h"
+#include "csound.h"
+#include "csound_type_system.h"
+#include "sysdep.h"
 
 using namespace std;
 using namespace csound;

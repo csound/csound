@@ -22,9 +22,13 @@
     02110-1301 USA
 */
 
+#include <stddef.h>
+#include <stdint.h>
+
 //#include "csdl.h"
 #include "csoundCore.h"
-#include <math.h>
+#include "csound.h"
+#include "sysdep.h"
 
 static int32_t tanhtable(FGDATA *ff, FUNC *ftp)
 {

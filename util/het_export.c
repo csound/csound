@@ -30,7 +30,11 @@
 
 #include "std_util.h"
 #include <stdio.h>
-#include <stdarg.h>
+#include <stdint.h>
+
+#include "csdl.h"
+#include "csound.h"
+#include "sysdep.h"
 
 #define END  32767
 

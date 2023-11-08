@@ -25,10 +25,17 @@
 
 /* pvsmix */
 
+#include <emmintrin.h>
+#include <stdlib.h>
+#include <string.h>
+
 #include "pvs_ops.h"
 #include "pvsbasic.h"
 #include "pvfileio.h"
 #include <math.h>
+#include "interlocks.h"
+#include "prototyp.h"
+
 #define MAXOUTS 16
 
 static int32_t fsigs_equal(const PVSDAT *f1, const PVSDAT *f2);

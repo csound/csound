@@ -26,10 +26,16 @@
     by Robin Whittle, see source OOps/ugrw1.c
 */
 
+#include <stdint.h>
+#include <stdlib.h>
+#include <string.h>
+
 #include "csoundCore.h"
 #include "interlocks.h"
 #include <math.h>
 #include <time.h>
+#include "csound.h"
+#include "sysdep.h"
 
 #define MAX_PFACTOR 16
 const int32_t MAX_PRIMES = 1229;

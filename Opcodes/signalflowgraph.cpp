@@ -122,25 +122,30 @@
  * causes the creation of a new function table.
  */
 
+#define SIGNAL_FLOW_GRAPH_H
+
+#include <stdarg.h>
+#include <stdint.h>
 #include <algorithm>
-#include <cmath>
 #include <cstdio>
 #include <cstring>
-#include <functional>
 #include <iostream>
 #include <map>
 #include <string>
 #include <vector>
+
 #include "OpcodeBase.hpp"
-#include "sysdep.h"
-#include "text.h"
 #include <pstream.h>
+#include "csdl.h"
+#include "csound.h"
+#include "interlocks.h"
+#include "msg_attr.h"
+#include "sysdep.h"
 
 #define SIGNALFLOWGRAPH_DEBUG 0
 
 namespace csound {
 
-struct SignalFlowGraph;
 struct Outleta;
 struct Outletk;
 struct Outletf;
@@ -151,9 +156,6 @@ struct Inletk;
 struct Inletf;
 struct Inletkid;
 struct Inletv;
-struct Connect;
-struct AlwaysOn;
-struct FtGenOnce;
 
 static const int MAX_STRING = 256;
 
@@ -323,6 +325,10 @@ struct Outleta : public OpcodeNoteoffBase<Outleta> {
     return OK;
   }
 };
+
+#ifndef FL
+#define FL(x) ((MYFLT) (x))
+#endif
 
 struct Inleta : public OpcodeBase<Inleta> {
   /**
@@ -1436,6 +1442,10 @@ static int ftgenonce_SS(CSOUND *csound, FTGEN *p) {
   return ftgenonce_(csound, p, true, true);
 }
 
+#ifndef _CR
+#define _CR (0x0020)
+#endif
+
 extern "C" {
 static OENTRY oentries[] = {
     {(char *)"outleta", sizeof(Outleta), _CW, 3, (char *)"", (char *)"Sa",
@@ -1548,3 +1558,5 @@ PUBLIC int csoundModuleDestroy(CSOUND *csound) {
 #endif
 }
 }
+
+#undef SIGNAL_FLOW_GRAPH_H

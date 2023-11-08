@@ -29,11 +29,13 @@
 */
 
 #include <stdlib.h>
-#include <math.h>
+#include <stdint.h>
+
 #include "csoundCore.h"
 #include "csound.h"
 #include "fftlib.h"
 #include "pffft.h"
+#include "sysdep.h"
 
 
 

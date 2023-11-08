@@ -22,6 +22,9 @@
 */
 #pragma once
 
+#include "csoundCore.h"
+#include "sysdep.h"
+
 typedef struct {
     MYFLT *ictlno, *imin, *imax, *initvalue, *ifn;
 } SLD;

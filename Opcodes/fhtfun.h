@@ -23,6 +23,8 @@
 
 #pragma once
 
+#include "csoundCore.h"
+
 typedef struct{
     OPDS          h;
     MYFLT         *out, *as, *af, *len, *ovlp, *iwin, *bias;

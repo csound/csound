@@ -23,8 +23,11 @@
 */
 #pragma once
 
+#include <stdint.h>
+
 #include "sftype.h"
-#include "sf.h"
+#include "csoundCore.h"
+#include "sysdep.h"
 
 typedef struct {
         OPDS    h;

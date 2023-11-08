@@ -37,11 +37,15 @@
  * a new pulse should start, and that pulseinc can be negative.
  */
 
+#include <stdint.h>
+#include <string.h>
+
 //#include "csdl.h"
 #include "csoundCore.h"
 #include "interlocks.h"
-#include <math.h>
 #include <limits.h>
+#include "csound.h"
+#include "sysdep.h"
 
 typedef struct {
         OPDS h;

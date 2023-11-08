@@ -21,8 +21,12 @@
     02110-1301 USA
 */
 
+#include <stdint.h>
+#include <string.h>
+
 #include "csoundCore.h"
-#include <math.h>
+#include "csound.h"
+#include "sysdep.h"
 
 #define MAX_PFACTOR 16
 static const int32_t MAX_PRIMES = 168; /* 168 primes < 1000 */

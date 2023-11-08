@@ -21,6 +21,8 @@
     02110-1301 USA
 */
 
+#include <string.h>
+
 /********************************************************/
 /*    Maracha SImulation by Perry R. Cook, 1996         */
 /********************************************************/
@@ -53,6 +55,8 @@ But we're smarter than that!!!  See below
 // #include "csdl.h"
 #include "csoundCore.h"
 #include "shaker.h"
+#include "Opcodes/physutil.h"
+#include "csound.h"
 
 int32_t shakerset(CSOUND *csound, SHAKER *p)
 {

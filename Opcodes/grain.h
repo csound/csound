@@ -27,6 +27,9 @@
 
 #pragma once
 
+#include "csoundCore.h"
+#include "sysdep.h"
+
 typedef struct {
     OPDS        h;
     MYFLT       *sr, *xamp, *xlfr, *xdns, *kabnd, *kbnd, *kglen;

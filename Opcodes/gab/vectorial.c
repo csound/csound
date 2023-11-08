@@ -21,11 +21,14 @@
     and Istvan Varga.
 */
 //#include "stdopcod.h"
+#include <inttypes.h>
+#include <string.h>
+
 #include "csoundCore.h"
 #include "interlocks.h"
 #include "vectorial.h"
 #include <math.h>
-#include <inttypes.h>
+#include "csound.h"
 
 static int32_t mtable_i(CSOUND *csound,MTABLEI *p)
 {

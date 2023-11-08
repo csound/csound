@@ -26,11 +26,12 @@
 
 #include "csdl.h"
 #include "scansyn.h"
-#include <stdio.h>
 #include <stdlib.h>
-#include <math.h>
+#include <string.h>
 #include "cwindow.h"
 #include "arrays.h"
+#include "interlocks.h"
+#include "version.h"
 
 /* #undef CS_KSMPS */
 /* #define CS_KSMPS     (csound->GetKsmps(csound)) */
@@ -298,14 +299,6 @@ static int32_t scsnu_init(CSOUND *csound, PSCSNU *p)
     p->v = p->ext + len;
 #if PHASE_INTERP == 3
     p->x3 = p->v + len;
-#endif
-
-    /* Initialize them ... */
-    /* This relies on contiguous allocation of these vectors
-       but as they are allocated via AuxAlloc they are zeroed anyway!  */
-    //memset(p->x0, '\0', 4*len+sizeof(MYFlT));
-#if PHASE_INTERP == 3
-    //memset(p->x3, '\0', len+sizeof(MYFlT));
 #endif
     /* Setup display window */
     if (*p->i_disp) {

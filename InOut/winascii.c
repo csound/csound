@@ -21,8 +21,13 @@
     02110-1301 USA
 */
 
+#include <stdint.h>
+#include <string.h>
+
 #include "csoundCore.h"                         /*      winascii.c           */
 #include "cwindow.h"                            /*  teletype csound graphs   */
+#include "csound.h"
+#include "sysdep.h"
 
 #define HOR     80
 #define VER     20

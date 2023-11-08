@@ -39,9 +39,14 @@
 /*  Technology Licensing, Stanford U.       */
 /********************************************/
 
+#include <string.h>
+
 // #include "csdl.h"
 #include "csoundCore.h"
 #include "mandolin.h"
+#include "Opcodes/brass.h"
+#include "Opcodes/clarinet.h"
+#include "csound.h"
 
 static inline int32_t infoTick(MANDOL *p)
 {

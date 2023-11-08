@@ -28,8 +28,11 @@
 *   3 March 1996 John ffitch                                   *
 \***************************************************************/
 
+#include <string.h>
+
 #include "stdopcod.h"
 #include "repluck.h"
+#include "csound.h"
 
 static int32_t wgpsetin(CSOUND *, WGPLUCK2 *);
 

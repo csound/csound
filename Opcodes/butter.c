@@ -26,6 +26,9 @@
 /*              Copyright (c) May 1994.  All rights reserved            */
 
 #include "stdopcod.h"
+#include "csound.h"
+#include "csoundCore.h"
+#include "sysdep.h"
 
 typedef struct  {
         OPDS    h;
@@ -42,6 +45,8 @@ typedef struct  {
 } BBFIL;
 
 #include <math.h>
+#include <stdint.h>
+#include <string.h>
 //#define ROOT2 (1.4142135623730950488)
 
 static void butter_filter(uint32_t, uint32_t, MYFLT *, MYFLT *, double *);

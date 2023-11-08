@@ -20,7 +20,12 @@
 
 /* $Id: layer3.c,v 1.3 2009/03/01 15:27:05 jpff Exp $ */
 
+#include <stdint.h>
+#include <string.h>
+
 #include "mpadec_internal.h"
+#include "mpadec.h"
+#include "sysdep.h"
 
 extern const uint32_t bitmask[17];
 extern bandinfo_t band_info[];

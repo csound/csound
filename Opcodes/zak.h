@@ -24,6 +24,12 @@
                                                         /*      ZAK.H */
 #pragma once
 
+#include <stdint.h>
+
+#include "csound.h"
+#include "csoundCore.h"
+#include "sysdep.h"
+
 typedef struct {
     MYFLT         *zkstart;
     int64_t       zklast;

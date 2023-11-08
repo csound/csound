@@ -21,6 +21,8 @@
     02110-1301 USA
 */
 
+#include <string.h>
+
 /*********************************************/
 /*  Bowed Bar model                          */
 /*  by Georg Essl, 1999                      */
@@ -32,6 +34,9 @@
 // #include "csdl.h"
 #include "csoundCore.h"
 #include "bowedbar.h"
+#include "Opcodes/bowed.h"
+#include "Opcodes/physutil.h"
+#include "csound.h"
 
 /* Number of banded waveguide modes */
 

@@ -21,9 +21,14 @@
     02110-1301 USA
 */
 
+#include <stddef.h>
+
 #include "csoundCore.h"                                  /*   SCSORT.C  */
 #include "corfile.h"
 #include <ctype.h>
+#include "csound.h"
+#include "prototyp.h"
+#include "sort.h"
 
 extern void sort(CSOUND*);
 extern void twarp(CSOUND*);

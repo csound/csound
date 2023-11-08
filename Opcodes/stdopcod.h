@@ -24,11 +24,12 @@
 #ifndef CSOUND_STDOPCOD_H
 #define CSOUND_STDOPCOD_H
 
+#include <stdint.h>
+#include <stdio.h>
+
 //#include "csdl.h"
-#include "csoundCore.h"
-
-
-#include "interlocks.h"
+#include "csound.h"
+#include "sysdep.h"
 
 /* file structure for fout opcodes */
 

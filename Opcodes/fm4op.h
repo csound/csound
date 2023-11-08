@@ -40,6 +40,8 @@
 #define __FM4OP_h
 
 #include "physutil.h"
+#include "csoundCore.h"
+#include "sysdep.h"
 
 /*******************************************/
 /*  Two Zero Filter Class,                 */

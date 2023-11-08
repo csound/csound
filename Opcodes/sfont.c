@@ -31,11 +31,20 @@
 
 // #include "csdl.h"
 #include "csoundCore.h"
-#include "interlocks.h"
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
 #include <ctype.h>
+#include <string.h>
+
+
+
+#include "Opcodes/sf.h"
+#include "Opcodes/sftype.h"
+#include "csound.h"
+#include "prototyp.h"
+
 #ifndef __wasi__
 #include <errno.h>
 #endif

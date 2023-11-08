@@ -31,9 +31,13 @@
  * Some modifications John ffitch, 2000, simplifying code
  */
 
+#include <stdint.h>
+#include <string.h>
+
 #include "stdopcod.h"
 #include "wavegde.h"
 #include "pluck.h"
+#include "csound.h"
 
 /* external prototypes */
 static void pluckSetFilters(CSOUND*, WGPLUCK*, MYFLT, MYFLT);

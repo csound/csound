@@ -123,11 +123,15 @@ input  |    |------>|
                     Move static fn declarations out of function
  */
 
+#include <stdint.h>
+#include <string.h>
+
 //#include "csdl.h"
 #include "csoundCore.h"
 #include "babo.h"
 #include <math.h>
 #include "interlocks.h"
+#include "csound.h"
 
 #if !defined(FLT_MAX)
 #define FLT_MAX         (1.0e38)

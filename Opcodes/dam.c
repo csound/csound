@@ -21,9 +21,12 @@
     02110-1301 USA
 */
 
+#include <stdint.h>
+#include <string.h>
+
 #include "stdopcod.h"
 #include "dam.h"
-#include <math.h>
+#include "csound.h"
 
 
 /*

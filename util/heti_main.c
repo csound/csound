@@ -29,7 +29,6 @@
 /* ***************************************************************** */
 
 #include <stdio.h>
-#include <stdarg.h>
 #include <stdlib.h>
 #define END  32767
 

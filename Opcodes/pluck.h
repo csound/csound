@@ -35,6 +35,8 @@
 #define _pluck_h
 
 #include "wavegde.h"
+#include "csoundCore.h"
+#include "sysdep.h"
 
 /* pluck -- derived class to implement simple plucked string algorithm */
 typedef struct {

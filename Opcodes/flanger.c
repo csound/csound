@@ -23,7 +23,11 @@
 
 #include "stdopcod.h"               /* Flanger by Maldonado, with coding
                                    enhancements by JPff -- July 1998 */
+#include "csound.h"
 #include <math.h>
+#include <stdint.h>
+#include <string.h>
+
 #include "flanger.h"
 
 static int32_t flanger_set (CSOUND *csound, FLANGER *p)

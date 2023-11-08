@@ -24,19 +24,18 @@
 #ifndef CSOUND_PVOC_H
 #define CSOUND_PVOC_H
 
+#include <stddef.h>
+
 // #include "csdl.h"
 #include "csoundCore.h"
-#include "interlocks.h"
+#include "csound.h"
+#include "sysdep.h"
 
 typedef struct PVOC_GLOBALS_ PVOC_GLOBALS;
 
-#include "dsputil.h"
-#include "ugens8.h"
-#include "pvread.h"
 #include "pvinterp.h"
 #include "vpvoc.h"
-#include "pvadd.h"
-#include "pvocext.h"
+
 
 struct PVOC_GLOBALS_ {
     CSOUND    *csound;

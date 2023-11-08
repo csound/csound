@@ -131,10 +131,12 @@
  * Main changes are to work in double precision internally */
 
 #include <stdlib.h>
+#include <string.h>
 
 #include "stdopcod.h"
 #include "filter.h"
 #include <math.h>
+#include "csound.h"
 
 typedef struct FCOMPLEX {double r,i;} fcomplex;
 

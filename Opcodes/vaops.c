@@ -21,8 +21,13 @@
     02110-1301 USA
 */
 
+#include <stddef.h>
+#include <stdint.h>
+
 #include "csoundCore.h"
 #include "interlocks.h"
+#include "csound.h"
+#include "sysdep.h"
 
 #define MYFLOOR(x) (x >= FL(0.0) ? (int32)x : (int32)((double)x - 0.99999999))
 

@@ -23,6 +23,11 @@
 
 #pragma once
 
+#include <stdint.h>
+
+#include "csoundCore.h"
+#include "sysdep.h"
+
 #define MAXVOICE 128
 
 typedef struct {

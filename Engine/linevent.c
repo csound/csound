@@ -21,8 +21,17 @@
     02110-1301 USA
 */
 
+#include <fcntl.h>
+#include <setjmp.h>
+#include <stdio.h>
+#include <string.h>
+#include <unistd.h>
+
 #include "csoundCore.h"     /*                              LINEVENT.C      */
 #include <ctype.h>
+#include "csound.h"
+#include "prototyp.h"
+#include "sysdep.h"
 
 #ifdef MSVC
 #include <fcntl.h>
@@ -36,6 +45,7 @@
 #  define _pclose pclose
 # elif defined(__BEOS__) ||  defined(__HAIKU__) || defined(__MACH__)
 #  include <stdio.h>
+
 #  define _popen popen
 #  define _pclose pclose
 # else

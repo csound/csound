@@ -27,19 +27,22 @@
 #define __HAIKU_CONFLICT
 
 #include "csoundCore.h"
-#include <sys/types.h>
+#include "csound.h"
+#include "sysdep.h"
 #if defined(WIN32) && !defined(__CYGWIN__)
 #include <winsock2.h>
 #else
 #include <sys/socket.h>
 #include <netinet/in.h>
-#include <arpa/inet.h>
 #include <unistd.h>
+
 #define SOCKET_ERROR (-1)
 #endif
-#include <stdlib.h>
 #include <string.h>
 #include <errno.h>
+#include <math.h>
+#include <stdint.h>
+#include <stdio.h>
 
 extern  int32_t     inet_aton(const char *cp, struct in_addr *inp);
 

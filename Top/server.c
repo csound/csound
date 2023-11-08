@@ -27,7 +27,19 @@
 /* Haiku 'int32' etc definitions in net headers conflict with sysdep.h */
 #define __HAIKU_CONFLICT
 
+#include <fcntl.h>
+#include <math.h>
+#include <stdarg.h>
+#include <stdint.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <unistd.h>
+
 #include "csoundCore.h"
+#include "csound.h"
+#include "prototyp.h"
+#include "sysdep.h"
 #if defined(WIN32) && !defined(__CYGWIN__)
 #include <winsock2.h>
 #include <ws2tcpip.h>
@@ -410,7 +422,6 @@ void csoundStopUDPConsole(CSOUND *csound) {
 }
 
 #else // STUBS
-#include "csoundCore.h"
 void csoundStopUDPConsole(CSOUND *csound) { };
 int csoundUDPConsole(CSOUND *csound, const char *addr, int port, int
                      mirror) { return CSOUND_ERROR; }

@@ -3,7 +3,7 @@
 /*
     pitch.h:
 
-    Copyright (C) 1999 John ffitch, Istvan Varga, Peter Neub�cker,
+    Copyright (C) 1999 John ffitch, Istvan Varga, Peter Neubäcker,
                        rasmus ekman, Phil Burk
 
     This file is part of Csound.
@@ -27,8 +27,14 @@
                         /*                                      PITCH.H */
 #pragma once
 
+#include <stdint.h>
+
 #include "spectra.h"
 #include "uggab.h"
+#include "csound.h"
+#include "csoundCore.h"
+#include "cwindow.h"
+#include "sysdep.h"
 
 typedef struct {
         OPDS    h;

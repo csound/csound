@@ -24,6 +24,7 @@
 #ifndef CSOUND_SOUNDIO_H
 #define CSOUND_SOUNDIO_H
 
+#include "csound.h"
 #include "soundfile.h"
 
 

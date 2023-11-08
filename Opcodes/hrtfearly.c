@@ -21,9 +21,15 @@
   02110-1301 USA
 */
 
+#include <math.h>
+#include <stdint.h>
+#include <stdlib.h>
+#include <string.h>
+
 /* #include "csdl.h" */
 #include "csoundCore.h"
-#include "interlocks.h"
+#include "csound.h"
+#include "sysdep.h"
 
 #ifdef __FAST_MATH__
 #undef __FAST_MATH__

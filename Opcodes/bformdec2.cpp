@@ -22,12 +22,15 @@
  */
 
 #include <stdlib.h>
+#include <stdint.h>
+#include <new>
+#include <cmath>
+
 //#include <unistd.h>
 #include "csdl.h"
-#include <math.h>
-#include "csoundCore.h"
 #include <string.h>
-#include <new>
+#include "csound.h"
+#include "sysdep.h"
 
 
 /* Band-splitting constants */

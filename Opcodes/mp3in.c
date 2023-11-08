@@ -21,10 +21,20 @@
   02110-1301 USA
 */
 
+#include <math.h>
+#include <stdint.h>
+#include <stdio.h>
+#include <string.h>
+#include <unistd.h>
+
 /* mp3in.c */
 /* #include "csdl.h" */
 #include "csoundCore.h"
 #include "mp3dec.h"
+#include "csound.h"
+#include "mpadec.h"
+#include "prototyp.h"
+#include "sysdep.h"
 
 typedef struct {
   OPDS    h;
@@ -1316,6 +1326,7 @@ static int32_t player_init(CSOUND *csound, PLAYER *p){
 #include <stdbool.h>
 #ifdef HAVE_NEON
 #include <arm_neon.h>
+
 static
 inline
 void

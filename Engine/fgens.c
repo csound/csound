@@ -24,15 +24,26 @@
     02110-1301 USA
 */
 
+#include <math.h>
+#include <sndfile.h>
+#include <stdarg.h>
+#include <stdint.h>
+#include <stdio.h>
+#include <string.h>
+
 #include "csoundCore.h"         /*                      FGENS.C         */
 #include <ctype.h>
 #include "soundio.h"
 #include "cwindow.h"
 #include "cmath.h"
 #include "fgens.h"
-#include "pstream.h"
-#include "pvfileio.h"
 #include <stdlib.h>
+#include "csound.h"
+#include "float-version.h"
+#include "mpadec.h"
+#include "prototyp.h"
+#include "soundfile.h"
+#include "sysdep.h"
 /* #undef ISSTRCOD */
 
 static inline int32_t byte_order(void)

@@ -34,8 +34,13 @@
 /*                                                       */
 /*********************************************************/
 
+#include <stdint.h>
+#include <string.h>
+
 #include "csoundCore.h"
 #include "fm4op.h"
+#include "Opcodes/physutil.h"
+#include "csound.h"
 
 /***********************************************************/
 /*  Two Zero Filter Class,                                 */

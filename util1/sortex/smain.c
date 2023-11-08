@@ -21,7 +21,10 @@
     02110-1301 USA
 */
 
+#include <stdio.h>
+
 #include "csound.h"                                    /*   SMAIN.C  */
+#include "msg_attr.h"
 
 #if defined(LINUX) || defined(SGI) || defined(sol) || \
     defined(__MACH__) || defined(__EMX__)

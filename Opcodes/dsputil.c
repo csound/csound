@@ -28,8 +28,14 @@
 /* 20apr90 dpwe                                                   */
 /******************************************************************/
 
+#include <stddef.h>
+#include <stdint.h>
+
 #include "pvoc.h"
-#include <math.h>
+#include "csound.h"
+#include "csoundCore.h"
+#include "sysdep.h"
+#include "dsputil.h"
 
 /* Do we do the whole buffer, or just indep vals? */
 #define someof(s)       (s)

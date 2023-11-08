@@ -21,8 +21,14 @@
     02110-1301 USA
 */
 
+#include <stdint.h>
+#include <string.h>
+
 #include "stdopcod.h"
 #include <math.h>
+#include "csound.h"
+#include "csoundCore.h"
+#include "sysdep.h"
 
 #define DEFAULT_SRATE   44100.0
 #define STEREO_SPREAD   23.0

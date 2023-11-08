@@ -31,13 +31,11 @@ extern "C" {
 #include "csound.h"
 #include "csound_data_structures.h"
 #include <stdint.h>
+#include "sysdep.h"
 
 #define CS_ARG_TYPE_BOTH 0
 #define CS_ARG_TYPE_IN 1
 #define CS_ARG_TYPE_OUT 2
-
-    struct csvariable;
-    struct cstype;
     
     typedef struct cstype {
         char* varTypeName;

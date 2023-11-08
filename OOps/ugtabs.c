@@ -21,10 +21,13 @@
     02110-1301 USA
 */
 
+#include <stdint.h>
+#include <string.h>
+
 #include "csoundCore.h"
 #include "ugtabs.h"
-#include "ugens2.h"
-#include <math.h>
+#include "csound.h"
+#include "sysdep.h"
 
 //(x >= FL(0.0) ? (int32_t)x : (int32_t)((double)x - 0.99999999))
 #define MYFLOOR(x) FLOOR(x)

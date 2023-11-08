@@ -24,6 +24,11 @@
                                                         /* clfilt.h */
 #pragma once
 
+#include <stdint.h>
+
+#include "csoundCore.h"
+#include "sysdep.h"
+
 #define CL_LIM 40  /* The limit on the number of biquadratic sections */
 
                                 /* Structure for biquadratic filter */

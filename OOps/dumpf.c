@@ -21,10 +21,17 @@
   02110-1301 USA
 */
 
+#include <stdio.h>
+#include <string.h>
+
 #include "csoundCore.h"                              /*  DUMPF.C  */
 #include "dumpf.h"
 #include <ctype.h>
 #include <inttypes.h>
+#include "csound.h"
+#include "float-version.h"
+#include "prototyp.h"
+#include "sysdep.h"
 
 static const int32_t dumpf_format_table[9] = {
   0,

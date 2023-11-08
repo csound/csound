@@ -27,6 +27,10 @@
 #include <ctype.h>
 #include <stdlib.h>
 
+#include "csound.h"
+#include "prototyp.h"
+#include "sysdep.h"
+
 
 extern int csoundFileClose(CSOUND*, void*);
 CORFIL *copy_url_corefile(CSOUND *, const char *, int);

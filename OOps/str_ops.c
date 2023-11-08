@@ -24,7 +24,16 @@
 */
 
 #include "csoundCore.h"
+#include "csound.h"
+#include "csound_type_system.h"
+#include "msg_attr.h"
+#include "prototyp.h"
+#include "sysdep.h"
+
 #define CSOUND_STR_OPS_C    1
+#include <stdint.h>
+#include <stdio.h>
+#include <string.h>
 #include "str_ops.h"
 #include <ctype.h>
 #ifdef HAVE_CURL

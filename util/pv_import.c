@@ -32,8 +32,13 @@
 #include "std_util.h"
 #include <stdio.h>
 #include <stdlib.h>
-#include <stdarg.h>
+#include <stdint.h>
+
+
 #include "pvfileio.h"
+#include "csdl.h"
+#include "csound.h"
+#include "sysdep.h"
 
 static void pv_import_usage(CSOUND *csound)
 {

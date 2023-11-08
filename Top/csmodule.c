@@ -72,6 +72,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <stdint.h>
+#include <sys/stat.h>
 
 #if !(defined (__wasi__))
 #include <setjmp.h>
@@ -80,6 +82,11 @@
 
 #include "csoundCore.h"
 #include "csmodule.h"
+#include "csound.h"
+#include "msg_attr.h"
+#include "prototyp.h"
+#include "sysdep.h"
+#include "version.h"
 
 #if defined(__MACH__)
 #include <TargetConditionals.h>

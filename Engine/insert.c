@@ -23,18 +23,25 @@
   02110-1301 USA
 */
 
+#include <math.h>
+#include <stdarg.h>
+#include <stdio.h>
+#include <string.h>
+
 #include "csoundCore.h" /*  INSERT.C */
-#include "oload.h"
 #include "insert.h"     /* for goto's */
 #include "aops.h"       /* for cond's */
-#include "midiops.h"
 #include "namedins.h"   /* IV - Oct 31 2002 */
-#include "pstream.h"
-#include "interlocks.h"
 #include "csound_type_system.h"
 #include "csound_standard_types.h"
 #include "csound_orc_semantics.h"
 #include <inttypes.h>
+#include "csound.h"
+#include "csound_data_structures.h"
+#include "float-version.h"
+#include "msg_attr.h"
+#include "prototyp.h"
+#include "sysdep.h"
 
 static  void    showallocs(CSOUND *);
 static  void    deact(CSOUND *, INSDS *);
@@ -1699,7 +1706,6 @@ int xoutset(CSOUND *csound, XOUT *p)
   of a mechanism to perform at local ksmps (in kperf etc)
 */
 //#include "typetabl.h"
-#include "csound_standard_types.h"
 int setksmpsset(CSOUND *csound, SETKSMPS *p)
 {
 

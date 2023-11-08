@@ -25,9 +25,12 @@
 #include "csound.h"
 #include <stdio.h>
 #include <signal.h>
-#include <stdarg.h>
 #include <string.h>
 #include <errno.h>
+#include <stdlib.h>
+#include <unistd.h>
+
+#include "msg_attr.h"
 #if defined(HAVE_UNISTD_H) || defined(MACOSX)
 #include <unistd.h>
 #endif

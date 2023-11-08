@@ -21,6 +21,12 @@
 
 #include "std_util.h"
 
+#include <stddef.h>
+
+#include "csdl.h"
+#include "sysdep.h"
+#include "version.h"
+
 /* Modified from BSD sources for strlcpy */
 /*
  * Copyright (c) 1998 Todd C. Miller <Todd.Miller@courtesan.com>

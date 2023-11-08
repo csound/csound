@@ -78,6 +78,17 @@
 #include <math.h>
 #include <ctype.h>
 #include <inttypes.h>
+#include <sndfile.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
+#include "csdl.h"
+#include "csound.h"
+#include "float-version.h"
+#include "msg_attr.h"
+#include "soundfile.h"
+#include "sysdep.h"
 
 
 #define ERR(x)                          \

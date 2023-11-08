@@ -21,9 +21,14 @@
     02110-1301 USA
 */
 
+#include <stdio.h>
+#include <fcntl.h>
+
 #include "csoundCore.h"                            /*  SCXTRACT.C  */
 #include "corfile.h"
 #include "extract.h"
+#include "csound.h"
+#include "prototyp.h"
 
 extern void sfree(CSOUND *csound);
 extern int  sread(CSOUND *csound);

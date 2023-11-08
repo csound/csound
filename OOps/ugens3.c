@@ -21,9 +21,15 @@
     02110-1301 USA
 */
 
+#include <stdint.h>
+#include <string.h>
+
 #include "csoundCore.h"         /*                              UGENS3.C    */
 #include "ugens3.h"
 #include <math.h>
+#include "csound.h"
+#include "prototyp.h"
+#include "sysdep.h"
 
 int32_t foscset(CSOUND *csound, FOSC *p)
 {

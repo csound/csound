@@ -22,28 +22,34 @@
          02110-1301 USA
 */
 
+#include <math.h>
+#include <stdint.h>
+#include <stdlib.h>
+#include <sys/select.h>
+#include <unistd.h>
+
 /*                      BUS.C           */
 #include "csoundCore.h"
-#include <setjmp.h>
-#include <ctype.h>
 #include <string.h>
 #include <stdio.h>
+#include "arrays.h"
+#include "csound.h"
+#include "csound_data_structures.h"
+#include "csound_standard_types.h"
+#include "csound_type_system.h"
+#include "float-version.h"
+#include "prototyp.h"
+#include "pstream.h"
+#include "sysdep.h"
 
 #if defined(NACL) || defined(__wasi__)
 #include <sys/select.h>
 #endif
 
 #include "bus.h"
-#include "namedins.h"
 
 /* For sensing opcodes */
 #if defined(__unix) || defined(__unix__) || defined(__MACH__)
-#  ifdef HAVE_SYS_TIME_H
-#    include <sys/time.h>
-#  endif
-#  ifdef HAVE_SYS_TYPES_H
-#    include <sys/types.h>
-#  endif
 #  ifdef HAVE_TERMIOS_H
 #    include <termios.h>
 #  endif

@@ -20,9 +20,13 @@
     02110-1301 USA
 */
 
+#include <stdio.h>
+
 #include "csoundCore.h"         /*                      WINEPS.C        */
 #include "cwindow.h"
 #include <math.h>
+#include "csound.h"
+#include "sysdep.h"
 
 /*--------------------------------------  winEPS.c ---------------------------
  *

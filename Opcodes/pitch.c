@@ -23,15 +23,17 @@
     02110-1301 USA
 */
 
+#include <string.h>
+
 // #include "csdl.h"
 #include "csoundCore.h"       /*                              PITCH.C         */
 #include <math.h>
 #include <limits.h>
-#include "cwindow.h"
 #include "spectra.h"
 #include "pitch.h"
 #include "uggab.h"
 #include <inttypes.h>
+#include "csound_type_system.h"
 
 #define STARTING  1
 #define PLAYING   2
@@ -2131,7 +2133,6 @@ int32_t varicol(CSOUND *csound, VARI *p)
 /* ***** Josep Comajuncosas' 18dB/oct resonant 3-pole LPF with tanh dist ** */
 /* ***** Coded in C by John ffitch, 2000 Dec 17 *************************** */
 /* ************************************************************************ */
-#include <math.h>
 
 /* This code is transcribed from a Csound macro, so no real comments */
 

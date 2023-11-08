@@ -20,10 +20,16 @@
   02110-1301 USA
 */
 
+#include <limits.h>
+#include <stdint.h>
+#include <string.h>
+
 #include "csoundCore.h" /*                                      AOPS.C  */
 #include "aops.h"
 #include <math.h>
-#include <time.h>
+#include "csound.h"
+#include "float-version.h"
+#include "sysdep.h"
 
 #define POW2TABSIZI 4096
 #if ULONG_MAX == 18446744073709551615UL
@@ -446,6 +452,7 @@ int32_t modak(CSOUND *csound, AOP *p)
 */
 #ifdef USE_SSE
 #include "emmintrin.h"
+
 #define AA_VEC(OPNAME,OP)                   \
 int32_t OPNAME(CSOUND *csound, AOP *p){     \
   MYFLT   *r, *a, *b;                       \

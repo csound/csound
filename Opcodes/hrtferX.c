@@ -50,13 +50,18 @@
  * the old and new HRTFs (probably a project in itself).
  ***************************************************************/
 
+#include <stdint.h>
+#include <string.h>
+
 // #include "csdl.h"
 #include "csoundCore.h"
 #include "interlocks.h"
 #include <stdio.h>
 #include <math.h>
-#include <stdlib.h>
 #include "hrtferx.h"
+#include "Opcodes/3Dug.h"
+#include "csound.h"
+#include "sysdep.h"
 
 /* This array transferred here so as to be declared once.  Belongs to
    the structure of the HRTF data really in 3Dug.h */

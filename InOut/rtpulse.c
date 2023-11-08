@@ -25,6 +25,12 @@
 #include <pulse/simple.h>
 #include <pulse/error.h>
 #include <string.h>
+#include <pulse/def.h>
+#include <pulse/sample.h>
+
+#include "csound.h"
+#include "sysdep.h"
+#include "version.h"
 
 typedef struct _pulse_params {
   pa_simple *ps;

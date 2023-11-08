@@ -30,13 +30,18 @@
 
 #include "std_util.h"
 #include <stdio.h>
-#include <stdarg.h>
 #include <stdlib.h>
+#include <stdint.h>
+#include <string.h>
+
+
+#include "csdl.h"
+#include "csound.h"
+#include "sysdep.h"
 #ifndef MYFLT
 #include "sysdep.h"
 #endif
 /*#include "hetro.h"*/
-#include "text.h"
 
 #define END  32767
 

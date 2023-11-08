@@ -51,6 +51,8 @@ Music and Audio Technologies, University of California, Berkeley.
 #ifndef CSOUND_SDIF_H
 #define CSOUND_SDIF_H
 
+#include <stdint.h>
+
 #include "sysdep.h"
 #include <stdio.h>
 /****************************************************/

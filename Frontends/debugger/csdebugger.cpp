@@ -34,10 +34,14 @@ ksmps offset] = number of k-cycle before breakpoint is hit
 */
 
 #include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
 #include "csound.hpp"
 #include "csdebug.h"
 #include <iostream>
-#include <iomanip>
+#include "csound.h"
+#include "sysdep.h"
 
 using namespace std;
 

@@ -16,8 +16,13 @@
   02110-1301 USA
 */
 
+#include <stdint.h>
+#include <string.h>
+
 #include "csoundCore.h"
 #include "interlocks.h"
+#include "csound.h"
+#include "sysdep.h"
 
 /* (Shouldn't there be global decl's for these?) */
 #define INCR (0.001f)
@@ -299,8 +304,6 @@ static int32_t lposca_stereo_no_trasp(CSOUND *csound, LPOSC_ST *p)
 
 
 /* -------------------------------------------------------------------- */
-
-#include "vectorial.h"
 
 typedef struct  {       /* gab d5*/
         OPDS    h;

@@ -22,7 +22,13 @@
     02110-1301 USA
 */
 
+#include <stdio.h>
+#include <stdlib.h>
+
 #include "csoundCore.h"                 /*              MEMALLOC.C      */
+#include "csound.h"
+#include "prototyp.h"
+#include "sysdep.h"
 
 /* This code wraps malloc etc with maintaining a list of allocated memory
    so it can be freed on a reset.  It would not be necessary with a zoned

@@ -25,6 +25,10 @@
 #include "interlocks.h"
 #include "aops.h"
 #include "find_opcode.h"
+#include "csound.h"
+#include "csound_type_system.h"
+#include "prototyp.h"
+#include "sysdep.h"
 
 extern MYFLT MOD(MYFLT a, MYFLT bb);
 
@@ -154,6 +158,11 @@ static int32_t tabfill(CSOUND *csound, TABFILL *p)
 }
 
 #include <ctype.h>
+#include <math.h>
+#include <stdint.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 
 static MYFLT nextval(FILE *f)
 {

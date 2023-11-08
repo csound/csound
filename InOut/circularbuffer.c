@@ -22,6 +22,9 @@
 */
 
 #include <csoundCore.h>
+#include <string.h>
+
+#include "csound.h"
 
 typedef struct _circular_buffer {
   char *buffer;

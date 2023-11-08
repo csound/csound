@@ -24,6 +24,9 @@
 /*                                                              PVREAD.H    */
 #pragma once
 
+#include "csoundCore.h"
+#include "sysdep.h"
+
 typedef struct {
     OPDS    h;
     MYFLT   *kfreq, *kamp, *ktimpnt,  *ifilno, *ibin;

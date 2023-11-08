@@ -24,7 +24,11 @@
 #ifndef FOUT_H
 #define FOUT_H
 
-#include "stdopcod.h"
+#include <stdint.h>
+#include <stdio.h>
+
+#include "csoundCore.h"
+#include "sysdep.h"
 
 typedef struct FOUT_FILE_ {
     OPDS    h;

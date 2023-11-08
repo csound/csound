@@ -37,11 +37,6 @@
 #define _BSD_SOURCE 1
 #endif
 
-#include "csdl.h"
-
-#include <sys/types.h>
-#include <sys/stat.h>
-#include <sys/time.h>
 #include <unistd.h>
 #include <fcntl.h>
 #include <sys/select.h>
@@ -50,13 +45,19 @@
 #include <stdio.h>
 #include <alsa/asoundlib.h>
 #include <sched.h>
-#include <unistd.h>
-#include <signal.h>
-#include <sys/mman.h>
 #include <sys/resource.h>
+#include <math.h>
+#include <stdint.h>
+#include <stdlib.h>
+#include <string.h>
 
-
-#include "soundio.h"
+#include "csdl.h"
+#include "csound.h"
+#include "float-version.h"
+#include "msg_attr.h"
+#include "soundfile.h"
+#include "sysdep.h"
+#include "version.h"
 
 /* Modified from BSD sources for strlcpy */
 /*

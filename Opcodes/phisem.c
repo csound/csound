@@ -45,11 +45,12 @@
 /*  Sandpapr (sandpaper)                                  */
 /**********************************************************/
 
+#include <string.h>
+
 // #include "csdl.h"
 #include "csoundCore.h"
-#include "interlocks.h"
 #include "phisem.h"
-#include <math.h>
+#include "csound.h"
 
 /* To do
    "10: Wrench", "12: CokeCan"};

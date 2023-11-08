@@ -55,8 +55,15 @@
    as only 32bit floats supported at present.
  */
 
+#include <stdint.h>
+#include <stdio.h>
+#include <string.h>
+#include <fcntl.h>
+
 #include "csoundCore.h"
 #include "pvfileio.h"
+#include "csound.h"
+#include "sysdep.h"
 
 #if !defined(WAVE_FORMAT_EXTENSIBLE)
 #define WAVE_FORMAT_EXTENSIBLE  (0xFFFE)

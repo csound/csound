@@ -23,9 +23,14 @@
 
 #include "csoundCore.h"                                  /*    SWRITESTR.C  */
 #include <math.h>
-#include <stdlib.h>
 #include <ctype.h>
+#include <stdio.h>
+
+                                /*    SWRITESTR.C  */
 #include "corfile.h"
+#include "csound.h"
+#include "sort.h"
+#include "sysdep.h"
 
 static SRTBLK *nxtins(SRTBLK *), *prvins(SRTBLK *);
 static char   *pfout(CSOUND *,SRTBLK *, char *, int, int, CORFIL *sco);

@@ -22,19 +22,21 @@
 */
 
 #include "csound.h"
-
 #include <stdio.h>
 #include <stdarg.h>
 #include <unistd.h>
 #include <errno.h>
 #include <time.h>
-#include <sys/types.h>
 #include <signal.h>
 #include <pthread.h>
 #include <sched.h>
 #include <sys/mman.h>
-#include <sys/time.h>
 #include <sys/resource.h>
+#include <stdint.h>
+#include <stdlib.h>
+#include <string.h>
+
+#include "sysdep.h"
 
 static  int     cpuMax = 0;
 static  int     secs = 0;

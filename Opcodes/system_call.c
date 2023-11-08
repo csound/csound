@@ -22,7 +22,12 @@
 */
 
 
+#include <stdint.h>
+#include <stdlib.h>
+
 #include "csoundCore.h"
+#include "csound.h"
+#include "sysdep.h"
 
 typedef struct {
   OPDS  h;

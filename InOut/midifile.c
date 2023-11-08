@@ -21,9 +21,14 @@
     02110-1301 USA
 */
 
+#include <stdio.h>
+#include <string.h>
+
 #include "csoundCore.h"
 #include "midifile.h"
 #include <errno.h>
+#include "csound.h"
+#include "sysdep.h"
 
 static const char *midiFile_ID = "MThd";
 static const char *midiTrack_ID = "MTrk";

@@ -25,6 +25,9 @@
                                 /* OPCODE.C */
                                 /* Print opcodes in system */
 
+#include <stdlib.h>
+#include <string.h>
+
                                 /* John ffitch -- 26 Jan 97 */
                                 /*  4 april 02 -- ma++ */
                                 /*  restructure to retrieve externally  */
@@ -32,6 +35,10 @@
 #include "csoundCore.h"
 #include <ctype.h>
 #include "interlocks.h"
+#include "csound.h"
+#include "csound_data_structures.h"
+#include "prototyp.h"
+#include "sysdep.h"
 
 static int opcode_cmp_func(const void *a, const void *b)
 {

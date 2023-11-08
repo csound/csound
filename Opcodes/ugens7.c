@@ -22,9 +22,17 @@
     02110-1301 USA
 */
 
+#include <stdint.h>
+#include <stdio.h>
+#include <string.h>
+
 #include "stdopcod.h"               /*                      UGENS7.C        */
+#include "csoundCore.h"
 #include "ugens7.h"
 #include <math.h>
+#include "csound.h"
+#include "interlocks.h"
+#include "sysdep.h"
 
 /* loosely based on code of Michael Clarke, University of Huddersfield */
 

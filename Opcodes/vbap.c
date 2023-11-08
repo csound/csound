@@ -34,7 +34,9 @@ Re-written to take flexible number of outputs by JPff 2012 */
 #include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include "interlocks.h"
+#include <string.h>
+
+
 
 #define MATSIZE (4)
 #define ATORAD  (TWOPI_F / FL(360.0))

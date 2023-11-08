@@ -21,8 +21,16 @@
     02110-1301 USA
 */
 
+#include <stdint.h>
+#include <stdio.h>
+#include <string.h>
+#include <unistd.h>
+
 #include "csoundCore.h"
 #include <time.h>
+#include "csound.h"
+#include "float-version.h"
+#include "sysdep.h"
 
 #ifndef __wasi__
 #include <errno.h>

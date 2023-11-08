@@ -22,8 +22,21 @@
     02110-1301 USA
 */
 
+#include <arpa/inet.h>
+#include <linux/if.h>
+#include <netinet/in.h>
+#include <stdint.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <sys/ioctl.h>
+#include <sys/socket.h>
+#include <unistd.h>
+
 #include "csoundCore.h"
 #include "remote.h"
+#include "csound.h"
+#include "sysdep.h"
 
 /* Somewhat revised from the original.  Pete G. Nov 2012
    More correct, I think, but I could be wrong... (:-/)
@@ -63,9 +76,6 @@ void remoteRESET(CSOUND *csound)
 }
 
 #if defined(HAVE_SOCKETS)
-#if !defined(WIN32) || defined(__CYGWIN__)
-#include <netdb.h>
-#endif
 #if 0
 static int32_t foo(char *ipaddr)
 {

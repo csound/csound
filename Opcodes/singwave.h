@@ -49,9 +49,13 @@ extern char phonemes[32][4];
 /*  natural human modulation function.     */
 /*******************************************/
 
+#include <stdint.h>
+
 #include "physutil.h"
 #include "clarinet.h"
 #include "moog1.h"
+#include "csoundCore.h"
+#include "sysdep.h"
 
 typedef struct SubNoise {
      Noise      lastOutput;

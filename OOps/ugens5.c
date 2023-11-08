@@ -21,10 +21,17 @@
     02110-1301 USA
 */
 
+#include <stdio.h>
+#include <string.h>
+
 #include "csoundCore.h"         /*                      UGENS5.C        */
 #include "ugens5.h"
 #include <math.h>
 #include <inttypes.h>
+#include "csound.h"
+#include "lpc.h"
+#include "prototyp.h"
+#include "sysdep.h"
 
 /*
  * LPC storage slots

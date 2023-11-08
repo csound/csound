@@ -20,8 +20,12 @@
 /* $Id: tables.c,v 1.1.1.1 2004/07/27 02:58:48 metal_man Exp $ */
 
 #include <math.h>
-#include "csoundCore.h"
+#include <stddef.h>
+#include <stdint.h>
+
 #include "mpadec_internal.h"
+#include "mpadec.h"
+#include "sysdep.h"
 
 const uint16_t crc_table[256] = {
   0x0000, 0x8005, 0x800F, 0x000A, 0x801B, 0x001E, 0x0014, 0x8011,

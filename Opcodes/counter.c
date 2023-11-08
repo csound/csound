@@ -21,8 +21,13 @@
     02110-1301 USA
 */
 
+#include <stddef.h>
+#include <stdint.h>
+
 #include "csoundCore.h"       /*                              COUNTER.C         */
 #include "interlocks.h"
+#include "csound.h"
+#include "sysdep.h"
 
 /* Structure of a counter */
 typedef struct {

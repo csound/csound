@@ -21,9 +21,14 @@
     02110-1301 USA
 */
 
+#include <string.h>
+
 #include "stdopcod.h"
 #include "oscbnk.h"
 #include <math.h>
+#include "csound.h"
+#include "float-version.h"
+#include "interlocks.h"
 
 static inline STDOPCOD_GLOBALS *get_oscbnk_globals(CSOUND *csound)
 {

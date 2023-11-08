@@ -26,17 +26,24 @@
 #include "csoundCore.h"
 #include "csound_orc.h"
 #include "parse_param.h"
-#include <ctype.h>
 #include <inttypes.h>
 #include <math.h>
 #include <string.h>
+#include <setjmp.h>
+#include <stdio.h>
 
-#include "insert.h"
-#include "oload.h"
-#include "pstream.h"
 //#include "typetabl.h"
-#include "csound_orc_semantics.h"
+
+
+
 #include "csound_standard_types.h"
+#include "csound.h"
+#include "csound_data_structures.h"
+#include "csound_type_system.h"
+#include "float-version.h"
+#include "prototyp.h"
+#include "score_param.h"
+#include "sysdep.h"
 
 MYFLT csoundInitialiseIO(CSOUND *csound);
 void    iotranset(CSOUND *), sfclosein(CSOUND*), sfcloseout(CSOUND*);
@@ -2410,6 +2417,7 @@ void debugPrintCsound(CSOUND *csound) {
 }
 
 #include "interlocks.h"
+
 void query_deprecated_opcode(CSOUND *csound, ORCTOKEN *o) {
   char *name = o->lexeme;
   OENTRY *ep = find_opcode(csound, name);

@@ -48,6 +48,9 @@
 /*********************************************************************/
 #pragma once
 
+#include "csoundCore.h"
+#include "sysdep.h"
+
 typedef struct {
   OPDS h;                                     /* common to all opcodes */
 

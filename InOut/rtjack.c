@@ -27,15 +27,20 @@
 #include <ctype.h>
 #include <sys/time.h>
 #include "alphanumcmp.h"
-
 /* no #ifdef, should always have these on systems where JACK is available */
-#include <unistd.h>
-#include <stdint.h>
+#include <jack/types.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
+#include "csound.h"
+#include "sysdep.h"
+#include "version.h"
+
 #ifdef LINUX
 #include <pthread.h>
 #endif
 #include "csdl.h"
-#include "soundio.h"
 #ifdef LINUX
 #include <sched.h>
 #endif

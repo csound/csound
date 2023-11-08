@@ -21,9 +21,15 @@
 */
 
 #include <plugin.h>
+#include <math.h>
+#include <stdint.h>
 #include <vector>
 #include <numeric>
 #include <modload.h>
+#include <algorithm>
+
+#include "csdl.h"
+#include "sysdep.h"
 
 
 // linseg type opcode with trigger mechanism

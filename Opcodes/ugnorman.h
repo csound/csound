@@ -27,11 +27,10 @@
  */
 #pragma once
 
-#include "stdopcod.h"
-#include <stdlib.h>
-#include <stdio.h>
-#include <string.h>
-#include <math.h>
+#include <stdint.h>
+
+#include "csoundCore.h"
+#include "sysdep.h"
 
 typedef struct atsdataloc {
     double  amp;

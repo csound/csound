@@ -28,10 +28,19 @@
 *   mainly lifted from scale and Csound itself          *
 \*******************************************************/
 
+#include <inttypes.h>
+#include <sndfile.h>
+#include <stdarg.h>
+#include <string.h>
+
 #include "std_util.h"
 #include "soundio.h"
 #include <stdio.h>
 #include <stdlib.h>
+#include "csdl.h"
+#include "csound.h"
+#include "soundfile.h"
+#include "sysdep.h"
 
 /* Constants */
 

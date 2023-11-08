@@ -23,7 +23,7 @@
 #ifndef CSOUNDCORE_H
 #define CSOUNDCORE_H
 
-#if !defined(__BUILDING_LIBCSOUND) && !defined(CSOUND_CSDL_H)
+#if !defined(__BUILDING_LIBCSOUND) && !defined(CSOUND_CSDL_H)  && !defined(SIGNAL_FLOW_GRAPH_H)
 #  error "Csound plugins and host applications should not include csoundCore.h"
 #endif
 

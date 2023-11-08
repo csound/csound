@@ -46,12 +46,11 @@
  * clearly indicated as such.
  */
 
+#include <string.h>
+
 #include "csoundCore.h"
 //#include "csdl.h"
 #include "interlocks.h"
-#include <math.h>
-#include <ctype.h>
-
 #include "zak.h"
 
 /*****************************************************************************/

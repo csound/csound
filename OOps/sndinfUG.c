@@ -25,11 +25,20 @@
 /* sndinfUG.c         -matt 7/25/99
              ugens to retrieve info about a sound file */
 
+#include <sndfile.h>
+#include <stdint.h>
+#include <stdio.h>
+#include <string.h>
+
 #include "csoundCore.h"
-#include "soundio.h"
 #include "sndinfUG.h"
 #include "pvfileio.h"
 #include "convolve.h"
+#include "csound.h"
+#include "envvar.h"
+#include "prototyp.h"
+#include "soundfile.h"
+#include "sysdep.h"
 
 static int32_t getsndinfo(CSOUND *csound, SNDINFO *p, SFLIB_INFO *hdr, int32_t strin)
 {

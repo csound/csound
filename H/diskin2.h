@@ -24,6 +24,7 @@
 #ifndef CSOUND_DISKIN2_H
 #define CSOUND_DISKIN2_H
 
+#include "csoundCore.h"
 #include "soundio.h"
 
 #define DISKIN2_MAXCHN  40              /* for consistency with soundin   */

@@ -21,12 +21,23 @@
     02110-1301 USA
 */
 
+#include <emmintrin.h>
+#include <fcntl.h>
+#include <sndfile.h>
+#include <stdint.h>
+#include <stdlib.h>
+#include <string.h>
+#include <unistd.h>
+
 #include "csoundCore.h"
-#include "soundio.h"
 #include "envvar.h"
 #include <stdio.h>
 #include <ctype.h>
-#include <math.h>
+#include "csound.h"
+#include "csound_data_structures.h"
+#include "prototyp.h"
+#include "soundfile.h"
+#include "sysdep.h"
 
 #if defined(MSVC) || defined(__wasi__)
 #include <fcntl.h>

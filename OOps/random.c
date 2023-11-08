@@ -40,7 +40,12 @@
    email: m-mat @ math.sci.hiroshima-u.ac.jp (remove space)
 */
 
+#include <stddef.h>
+#include <stdint.h>
+
 #include "csoundCore.h"
+#include "csound.h"
+#include "sysdep.h"
 
 /* simple linear congruential generator */
 

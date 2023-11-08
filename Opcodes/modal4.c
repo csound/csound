@@ -21,6 +21,9 @@
     02110-1301 USA
 */
 
+#include <math.h>
+#include <string.h>
+
 /*******************************************/
 /*  4 Resonance Modal Synthesis Instrument */
 /*  by Perry R. Cook, 1995-96              */
@@ -33,8 +36,9 @@
 #include "modal4.h"
 #include "marimba.h"
 #include "vibraphn.h"
-#include <math.h>
 #include "interlocks.h"
+#include "Opcodes/physutil.h"
+
 static int32_t make_Modal4(CSOUND *csound,
                        Modal4 *m, MYFLT *ifn, MYFLT vgain, MYFLT vrate)
 {

@@ -22,6 +22,12 @@
   02110-1301 USA
 */
 
+#include <stdarg.h>
+#include <stdint.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
 #include "csoundCore.h"         /*                         MUSMON.C     */
 #include "midiops.h"
 #include "soundio.h"
@@ -32,6 +38,13 @@
 #include "corfile.h"
 
 #include "csdebug.h"
+#include "cscore.h"
+#include "csound.h"
+#include "cwindow.h"
+#include "msg_attr.h"
+#include "prototyp.h"
+#include "soundfile.h"
+#include "sysdep.h"
 
 #define SEGAMPS CS_AMPLMSG
 #define SORMSG  CS_RNGEMSG

@@ -21,11 +21,20 @@
     02110-1301 USA
 */
 
+#include <stdint.h>
+#include <string.h>
+
 #include "pvoc.h"         /*      UGENS8.C        */
-#include <math.h>
+#include "Opcodes/dsputil.h"
+#include "Opcodes/pvocext.h"
+#include "csound.h"
+#include "csoundCore.h"
+#include "float-version.h"
+#include "prototyp.h"
+#include "sysdep.h"
+#include "ugens8.h"
 
 /* RWD 10:9:2000 read pvocex file format */
-#include "pvfileio.h"
 static int32_t pvx_loadfile(CSOUND *, const char *, PVOC *);
 
 /********************************************/

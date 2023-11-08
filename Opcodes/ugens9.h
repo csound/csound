@@ -24,6 +24,11 @@
 /*                                                              UGENS9.H    */
 #pragma once
 
+#include <stdint.h>
+
+#include "csoundCore.h"
+#include "sysdep.h"
+
 typedef struct {
     OPDS    h;
     MYFLT   *ar1,*ar2,*ar3,*ar4,*ain,*ifilno,*channel;

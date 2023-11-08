@@ -22,6 +22,7 @@
 */
 
 #include <soundfile.h>
+#include <sndfile.h>
 
 #if USE_LIBSNDFILE
 

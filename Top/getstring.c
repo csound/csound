@@ -24,6 +24,8 @@
 */
 
 #include "csoundCore.h"
+#include "csound.h"
+
 #ifdef HAVE_STRTOD_L
 static locale_t csound_c_locale = NULL;
 #else
@@ -31,8 +33,6 @@ static char *csound_c_locale = NULL;
 #endif
 
 #ifdef HAVE_DIRENT_H
-#  include <sys/types.h>
-#  include <dirent.h>
 #  if 0 && defined(__MACH__)
 typedef void* DIR;
 DIR opendir(const char *);
@@ -41,10 +41,12 @@ int closedir(DIR*);
 #  endif
 #endif
 
-#include "namedins.h"
-
 #define CSSTRNGS_VERSION 0x2000
 #include <locale.h>
+#include <stdarg.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 #ifdef GNU_GETTEXT
 #include <libintl.h>
 #endif

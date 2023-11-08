@@ -30,12 +30,12 @@
  */
 
 #include <stdio.h>
-#include <stdlib.h>
 #include <string.h>
 
 #include "csoundCore.h"
 #include "csound.h"
 #include "new_opts.h"
+#include "sysdep.h"
 
 /* list command line usage of all registered configuration variables */
 

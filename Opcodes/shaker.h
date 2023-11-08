@@ -33,7 +33,11 @@
 #if !defined(__Shaker_h)
 #define __Shaker_h
 
+#include <stdint.h>
+
 #include "physutil.h"
+#include "csoundCore.h"
+#include "sysdep.h"
 
 typedef struct Shaker {
     OPDS        h;

@@ -22,8 +22,8 @@
 */
 
 #include "csoundCore.h"         /*                           WINDIN.C   */
-#include "cwindow.h"
 #include "windin.h"             /* real-time input control units        */
+#include "csound.h"
                                 /* 26aug90 dpwe                         */
 
 int xyinset(CSOUND *csound, XYIN *p)

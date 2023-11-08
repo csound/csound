@@ -21,15 +21,21 @@
     02110-1301 USA
 */
 
+#include <math.h>
+#include <stdio.h>
+#include <string.h>
+
 // #include "csdl.h"
 #include "csoundCore.h"
 #include "interlocks.h"
-#include <math.h>
 #include "cwindow.h"
 #include "spectra.h"
 #include "pitch.h"
 #include "uggab.h"
 #include <inttypes.h>
+#include "csound_standard_types.h"
+#include "csound_type_system.h"
+#include "prototyp.h"
 
 #define LOGTWO  (0.69314718056)
 

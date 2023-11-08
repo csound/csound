@@ -7,5 +7,8 @@
   { include: ["<bits/termios-c_oflag.h>", "private", "<termios.h>", "public"] },
   { include: ["<bits/termios-struct.h>", "private", "<termios.h>", "public"] },
   { include: ["<bits/termios-tcflow.h>", "private", "<termios.h>", "public"] },
-  { include: ["<bits/types/struct_sched_param.h>", "private", "<sched.h>", "public"] }
+  { include: ["<bits/types/locale_t.h>", "private", "<locale.h>", "public"] },
+  { include: ["<bits/types/struct_sched_param.h>", "private", "<sched.h>", "public"] },
+  { include: ["<bits/types/struct_tm.h>", "private", "<time.h>", "public"] },
+  { include: ["<ext/alloc_traits.h>", "private", "<memory>", "public"] }
 ]

@@ -24,8 +24,14 @@
  02110-1301 USA
  */
 
+#include <math.h>
+#include <stdint.h>
+#include <string.h>
+
 #include "csoundCore.h"
-#include "interlocks.h"
+#include "csound.h"
+#include "csound_type_system.h"
+#include "sysdep.h"
 
     typedef struct OLABuffer {
 

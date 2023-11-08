@@ -22,8 +22,16 @@
     02110-1301 USA
 */
 
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
 #include "csoundCore.h"
 #include "csound_orc.h"
+#include "csound.h"
+#include "prototyp.h"
+#include "sysdep.h"
+
 extern void print_tree(CSOUND *csound, char*, TREE *l);
 extern void delete_tree(CSOUND *csound, TREE *l);
 

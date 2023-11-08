@@ -21,9 +21,18 @@
     02110-1301 USA
 */
 
+#include <stdint.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
 #include "csoundCore.h"         /*                  RDSCORSTR.C */
 #include "corfile.h"
 #include "insert.h"
+#include "csound.h"
+#include "float-version.h"
+#include "prototyp.h"
+#include "sysdep.h"
 
 static inline int32_t byte_order(void)
 {

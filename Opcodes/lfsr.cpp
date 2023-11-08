@@ -84,6 +84,8 @@
 
 #include <time.h>
 #include <plugin.h>
+#include <stdint.h>
+#include <stdlib.h>
 
 struct LFSR : csnd::Plugin<1, 3> {
     static constexpr char const *otypes = "k";
@@ -134,6 +136,9 @@ struct LFSR : csnd::Plugin<1, 3> {
 };
 
 #include <modload.h>
+
+#include "csdl.h"
+
 void csnd::on_load(Csound *csound) {
   csnd::plugin<LFSR>(csound, "lfsr", "k", "iij", csnd::thread::ik);
 }

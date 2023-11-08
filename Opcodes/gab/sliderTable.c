@@ -16,10 +16,15 @@
   02110-1301 USA
 */
 
+#include <stdint.h>
+#include <stdio.h>
+#include <string.h>
+
 //#include "csdl.h"
 #include "csoundCore.h"
-#include "interlocks.h"
 #include <math.h>
+#include "csound.h"
+#include "sysdep.h"
 
 #define f7bit       (FL(127.0))
 #define oneTOf7bit  (MYFLT)(1.0/127.0)

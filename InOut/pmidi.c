@@ -25,11 +25,18 @@
 
 /* Realtime MIDI using Portmidi library */
 
+#include <stdarg.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
 #include "csdl.h"                               /*      PMIDI.C         */
 #include "csGblMtx.h"
-#include "midiops.h"
 #include <portmidi.h>
 #include <porttime.h>
+#include "csound.h"
+#include "sysdep.h"
+#include "version.h"
 
 /* Stub for compiling this file with MinGW and linking
    with portmidi.lib built with MSVC AND with Windows

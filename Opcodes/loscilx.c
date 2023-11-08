@@ -21,10 +21,18 @@
     02110-1301 USA
 */
 
+#include <math.h>
+#include <stdint.h>
+#include <string.h>
+
 // #include "csdl.h"
 #include "csoundCore.h"
 #include "interlocks.h"
-#include "soundio.h"
+#include "csound.h"
+#include "float-version.h"
+#include "prototyp.h"
+#include "soundfile.h"
+#include "sysdep.h"
 
 typedef struct SNDLOAD_OPCODE_ {
     OPDS    h;

@@ -31,7 +31,8 @@
 
 #pragma once
 
-#include "stdopcod.h"
+#include "csoundCore.h"
+#include "sysdep.h"
 
 typedef struct {
     OPDS    h;

@@ -21,10 +21,15 @@
     02110-1301 USA
 */
 
+#include <sndfile.h>
+#include <stdio.h>
+#include <string.h>
+#include <fcntl.h>
+
 #include "stdopcod.h"
 #include "syncgrain.h"
-#include "soundio.h"
 #include "interlocks.h"
+#include "soundfile.h"
 
 /*
 #ifdef HAVE_VALUES_H

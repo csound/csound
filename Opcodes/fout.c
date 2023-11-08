@@ -26,10 +26,21 @@
 /* Code modified by JPff to remove fixed size arrays, allow
    AIFF and WAV, and close files neatly.  Also bugs fixed */
 
+#include <sndfile.h>
+#include <stdlib.h>
+#include <string.h>
+#include <fcntl.h>
+
 #include "stdopcod.h"
 #include "fout.h"
-#include "soundio.h"
 #include <ctype.h>
+#include "csound.h"
+#include "csound_type_system.h"
+#include "envvar.h"
+#include "float-version.h"
+#include "interlocks.h"
+#include "prototyp.h"
+#include "soundfile.h"
 
 /* remove a file reference, optionally closing the file */
 

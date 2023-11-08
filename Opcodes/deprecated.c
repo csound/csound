@@ -19,9 +19,17 @@
     02110-1301 USA
 */
 
+#include <stdint.h>
+#include <string.h>
+
 #include "csdl.h"
 #include "interlocks.h"
 #include "pstream.h"
+#include "csound.h"
+#include "csound_type_system.h"
+#include "sysdep.h"
+
+struct CsoundArgStack_s;
 
 /**    
  stackops: copyright (C) 2006 Istvan Varga

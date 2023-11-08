@@ -21,8 +21,13 @@
     02110-1301 USA
 */
 
+#include <stdint.h>
+#include <string.h>
+
 #include "csoundCore.h"       /*                    EXCITER.C         */
 #include <math.h>
+#include "csound.h"
+#include "sysdep.h"
 
 /**********************************************************************
  * EXCITER by Markus Schmidt

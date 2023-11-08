@@ -35,6 +35,12 @@ Ville Pulkki heavily modified by John ffitch 2012
 #include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <stdint.h>
+#include <string.h>
+
+
+#include "csound.h"
+#include "sysdep.h"
 
 static int32_t vbap1_moving_control(CSOUND *, VBAP1_MOVE_DATA *, OPDS *, MYFLT,
                                 MYFLT, MYFLT, MYFLT**);

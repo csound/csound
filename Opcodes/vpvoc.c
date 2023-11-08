@@ -26,8 +26,17 @@
 /*** By Richard Karpen - July-October 1992************/
 /************************************************************/
 
+#include <stdint.h>
+#include <string.h>
+
 #include "pvoc.h"
-#include <math.h>
+#include "Opcodes/dsputil.h"
+#include "Opcodes/ugens8.h"
+#include "csound.h"
+#include "csoundCore.h"
+#include "prototyp.h"
+#include "sysdep.h"
+#include "vpvoc.h"
 
 int32_t tblesegset(CSOUND *csound, TABLESEG *p)
 {

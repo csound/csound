@@ -32,8 +32,13 @@
 /***************************************************************/
 //#include "csdl.h"
 #include <math.h>
+#include <stdio.h>
+#include <string.h>
+
 #include "biquad.h"
-#include "csound_standard_types.h"
+#include "Opcodes/stdopcod.h"
+#include "csound.h"
+#include "interlocks.h"
 
 /***************************************************************************/
 /* The biquadratic filter computes the digital filter two x components and */

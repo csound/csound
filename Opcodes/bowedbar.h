@@ -34,8 +34,12 @@
 #define __BowedBar_h
 #define NR_MODES (4)
 
+#include <stdint.h>
+
 #include "physutil.h"
 #include "bowed.h"
+#include "csoundCore.h"
+#include "sysdep.h"
 
 /*******************************************/
 /*  Non-Interpolating Delay Line           */

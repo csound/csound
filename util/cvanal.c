@@ -30,9 +30,18 @@
 /*  Greg Sullivan                                                       */
 /************************************************************************/
 
+#include <sndfile.h>
+#include <stdint.h>
+#include <stdio.h>
+#include <string.h>
+
 #include "std_util.h"
 #include "soundio.h"
 #include "convolve.h"
+#include "csdl.h"
+#include "csound.h"
+#include "float-version.h"
+#include "sysdep.h"
 
 static int32_t takeFFT(CSOUND *csound, SOUNDIN *inputSound, CVSTRUCT *outputCVH,
                        int64_t Hlenpadded, SNDFILE *infd, FILE *ofd, int32_t nf);

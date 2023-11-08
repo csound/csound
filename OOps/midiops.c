@@ -22,12 +22,18 @@
   02110-1301 USA
 */
 
+#include <stdint.h>
+#include <stdio.h>
+#include <stdlib.h>
+
 #include "csoundCore.h"                                 /*      MIDIOPS.C   */
 #include "midiops.h"
 #include <math.h>
 #include <time.h>
 #include "namedins.h"           /* IV - Oct 31 2002 */
 #include "arrays.h"
+#include "csound.h"
+#include "sysdep.h"
 
 #define dv127   (FL(1.0)/FL(127.0))
 

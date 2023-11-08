@@ -22,6 +22,8 @@
   02110-1301 USA
 */
 
+#include <string.h>
+
 #include "stdopcod.h"
 
 #include "newfils.h"

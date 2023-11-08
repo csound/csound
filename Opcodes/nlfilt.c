@@ -30,8 +30,12 @@
 *       See paper by Dobson and ffitch, ICMC'96                 *
 \***************************************************************/
 
+#include <string.h>
+
 #include "stdopcod.h"
 #include "nlfilt.h"
+#include "csound.h"
+#include "prototyp.h"
 
 typedef struct {
         OPDS    h;
@@ -287,6 +291,7 @@ int32_t pinit(CSOUND *csound, PINIT *p)
 }
 
 #include "arrays.h"
+
 int32_t painit(CSOUND *csound, PAINIT *p)
 {
     int32_t n;

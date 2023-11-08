@@ -21,10 +21,14 @@
     02110-1301 USA
 */
 
+#include <string.h>
+
 #include "csoundCore.h"         /*                      UGENS4.C        */
 #include "ugens4.h"
-#include <math.h>
 #include <inttypes.h>
+#include "csound.h"
+#include "prototyp.h"
+#include "sysdep.h"
 
 /* The branch prediction slows it down!! */
 

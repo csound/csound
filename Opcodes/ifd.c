@@ -38,8 +38,15 @@
 
 */
 
+#include <math.h>
+#include <stdint.h>
+#include <string.h>
+
 #include "pvs_ops.h"
 #include "pstream.h"
+#include "csound.h"
+#include "csoundCore.h"
+#include "sysdep.h"
 
 typedef struct _ifd {
   OPDS    h;

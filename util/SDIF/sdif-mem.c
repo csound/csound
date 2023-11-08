@@ -38,10 +38,10 @@ Technologies, University of California, Berkeley.
 
 */
 
-#include "sysdep.h"
 #include <assert.h>
-#include <errno.h>
+
 #include "sdif-mem.h"
+#include "SDIF/sdif.h"
 
 /* Global variables local to this file */
 static void *(*my_malloc)(int32_t numBytes);

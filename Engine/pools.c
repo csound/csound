@@ -21,9 +21,14 @@
     02110-1301 USA
 */
 
+#include <stddef.h>
+
 #include "csoundCore.h"
 #include "pools.h"
 #include "csound_standard_types.h"
+#include "csound.h"
+#include "csound_type_system.h"
+#include "sysdep.h"
 
 /* MYFLT POOL */
 

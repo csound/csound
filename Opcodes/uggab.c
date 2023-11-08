@@ -27,9 +27,12 @@
 /* Code adapted by JPff 1998 Sep 19         */
 /********************************************/
 
+#include <string.h>
+
 #include "stdopcod.h"
 #include "uggab.h"
 #include <math.h>
+#include "interlocks.h"
 
 static int32_t wrap(CSOUND *csound, WRAP *p)
 {

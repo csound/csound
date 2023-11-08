@@ -22,7 +22,9 @@
 */
 #pragma once
 
-#include "csdl.h"
+#include "csoundCore.h"
+#include "sysdep.h"
+
 typedef struct {
 
   OPDS h;

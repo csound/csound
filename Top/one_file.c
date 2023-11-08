@@ -21,18 +21,24 @@
     02110-1301 USA
 */
 
+#include <stdint.h>
+#include <stdio.h>
+#include <string.h>
+#include <unistd.h>
+
 #include "csoundCore.h"
 #include <stdlib.h>
+#include "csound.h"
+#include "envvar.h"
+#include "prototyp.h"
+#include "sysdep.h"
+
 int mkstemp(char *);
 #include <ctype.h>
-#ifndef __wasi__
-#include <errno.h>
-#endif
-#include <stdlib.h>
+
 #include "corfile.h"
 
 #if defined(LINUX) || defined(__MACH__) || defined(WIN32)
-#  include <sys/types.h>
 #  include <sys/stat.h>
 #endif
 
@@ -1113,9 +1119,6 @@ int read_unified_file4(CSOUND *csound, CORFIL *cf)
     int started = FALSE;
     int notrunning = csound->engineStatus & CS_STATE_COMP;
     char    buffer[CSD_MAX_LINE_LEN];
-#ifdef _DEBUG
-    //csoundMessage(csound, "Calling unified file system4\n");
-#endif
     if (notrunning==0) {
       alloc_globals(csound);
       STA(orcname) = STA(sconame) = STA(midname) = NULL;

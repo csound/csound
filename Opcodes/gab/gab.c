@@ -29,10 +29,13 @@
 /*Check other opcodes commented out in Oentry */
 
 
+#include <string.h>
+
 #include "stdopcod.h"
 #include "gab.h"
 #include <math.h>
 #include "interlocks.h"
+#include "csound.h"
 
 #define FLT_MAX ((MYFLT)0x7fffffff)
 

@@ -26,6 +26,10 @@
 
 #include "scot.h"
 
+#include <ctype.h>
+#include <stdlib.h>
+#include <string.h>
+
 #define Str(x)  (x)
 #if defined(HAVE_GCC3)
 #  define UNLIKELY(x)   __builtin_expect(!!(x),0)

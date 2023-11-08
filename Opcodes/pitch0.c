@@ -21,13 +21,15 @@
     02110-1301 USA
 */
 
+#include <stddef.h>
+#include <stdint.h>
+
 // #include "csdl.h"
 #include "csoundCore.h"       /*                                  PITCH.C       */
-#include "cwindow.h"
-#include <limits.h>
-#include "spectra.h"
 #include "pitch.h"
-#include "uggab.h"
+#include "csound.h"
+#include "prototyp.h"
+#include "sysdep.h"
 
 int32_t mute_inst(CSOUND *csound, MUTE *p)
 {

@@ -75,8 +75,6 @@ Music and Audio Technologies, University of California, Berkeley.
 #define assert(x) /* Do nothing */
 #endif
 
-#include "sysdep.h"
-#include <errno.h>
 #include "sdif.h"
 
 /* prototypes for functions used only in this file. */

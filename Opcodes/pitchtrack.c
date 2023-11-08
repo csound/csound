@@ -25,9 +25,13 @@
   02110-1301 USA
 */
 
+#include <stdint.h>
+#include <string.h>
+
 #include "csoundCore.h"
-#include "interlocks.h"
 #include <math.h>
+#include "csound.h"
+#include "sysdep.h"
 
 #define MINFREQINBINS 5
 #define MAXHIST 3

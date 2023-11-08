@@ -22,10 +22,16 @@
 */
 extern "C" {
 #include "csdl.h"
+#include "csound.h"
+#include "msg_attr.h"
+#include "sysdep.h"
 }
+#include <stdarg.h>
+#include <stdio.h>
 #include <cmath>
 #include <complex>
 #include <random>
+#include <vector>
 
 /**
 

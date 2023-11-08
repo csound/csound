@@ -20,9 +20,17 @@
     Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
     02110-1301 USA
 */
+#include <stddef.h>
 #include <map>
 #include <vector>
+#include <memory>
+#include <utility>
+
 #include "OpcodeBase.hpp"
+#include "csdl.h"
+#include "csound.h"
+#include "interlocks.h"
+#include "sysdep.h"
 
 using namespace csound;
 
@@ -295,6 +303,10 @@ struct MixerClear : public OpcodeBase<MixerClear> {
         return OK;
   }
 };
+
+#ifndef _CR
+#define _CR (0x0020)
+#endif
 
 extern "C" {
 

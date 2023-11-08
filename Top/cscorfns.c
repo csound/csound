@@ -21,9 +21,18 @@
     02110-1301 USA
 */
 
+#include <stdio.h>
+#include <stdlib.h>
+#include <fcntl.h>
+
 #include "csoundCore.h"     /*                      CSCORFNS.C      */
 #include "cscore.h"
 #include "corfile.h"
+#include "csound.h"
+#include "envvar.h"
+#include "float-version.h"
+#include "prototyp.h"
+#include "sysdep.h"
 
 #define TYP_FREE   0
 #define TYP_EVENT  1

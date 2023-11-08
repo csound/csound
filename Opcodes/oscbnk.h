@@ -24,7 +24,11 @@
 #ifndef CSOUND_OSCBNK_H
 #define CSOUND_OSCBNK_H
 
+#include <stdint.h>
+
 #include "stdopcod.h"
+#include "csoundCore.h"
+#include "sysdep.h"
 
 /*
 #ifdef  B64BIT

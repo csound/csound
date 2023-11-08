@@ -21,10 +21,18 @@
     02110-1301 USA
 */
 
+#include <sndfile.h>
+#include <stdio.h>
+#include <string.h>
+
 #include "std_util.h"                                   /*  HETRO.C   */
 #include "soundio.h"
 #include <math.h>
 #include <inttypes.h>
+#include "csdl.h"
+#include "csound.h"
+#include "float-version.h"
+#include "sysdep.h"
 
 //#define DEBUG 1
 
@@ -38,7 +46,7 @@
 #define _WINDOWS_
 /* CNMAT sdif library, subject to change..... */
 #include "SDIF/sdif.h"
-#include "SDIF/sdif-mem.h"
+
 typedef struct {
     sdif_float32 index, freq, amp, phase;
 } SDIF_RowOf1TRC;

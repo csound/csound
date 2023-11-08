@@ -32,7 +32,12 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <errno.h>
+#include <sndfile.h>
+
+#include "csdl.h"
+#include "csound.h"
+#include "soundfile.h"
+#include "sysdep.h"
 
 #if defined(__GNUC__) && defined(__STRICT_ANSI__)
 #  ifndef inline

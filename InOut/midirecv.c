@@ -100,9 +100,15 @@
                     const char *(*func)(int));
 */
 
+#include <stdio.h>
+
 #include "csoundCore.h"
 #include "midiops.h"
 #include "midifile.h"
+#include "csound.h"
+#include "prototyp.h"
+#include "remote.h"
+#include "sysdep.h"
 
 #define MGLOB(x) (csound->midiGlobals->x)
 
