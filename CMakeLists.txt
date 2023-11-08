@@ -110,6 +110,22 @@ option(REQUIRE_PTHREADS "For non-Windows systems, set whether Csound will use th
 option(BUILD_DOCS "Build documentation (requires doxygen)" OFF)
 option(DEBUG_ERROR_ON_WARNING "For a debug build, error on a compiler# warning" OFF)
 option(BARE_METAL "To configure for bare metal build" OFF)
+option(INCLUDE_WHAT_YOU_USE "Run include-what-you-use" ON)
+
+find_program(include_what_you_use_executable NAMES include-what-you-use)
+
+if (INCLUDE_WHAT_YOU_USE AND include_what_you_use_executable)
+    set(CMAKE_C_INCLUDE_WHAT_YOU_USE 
+        ${include_what_you_use_executable}
+        -Xiwyu
+        --mapping_file=${Csound_SOURCE_DIR}/map.imp
+    )
+    set(CMAKE_CXX_INCLUDE_WHAT_YOU_USE 
+        ${include_what_you_use_executable}
+        -Xiwyu
+        --mapping_file=${Csound_SOURCE_DIR}/map.imp
+    )
+endif()
 
 if(NO_CS_SERVER)
     set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS}  -DNO_CSOUND_SERVER")
