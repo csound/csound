@@ -29,6 +29,8 @@
 /* University of Washington, Seattle 1998 */
 /******************************************/
 
+#pragma once
+
 #include "stdopcod.h"
 
 typedef struct {

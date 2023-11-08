@@ -22,6 +22,8 @@
 */
 
                                                         /*      ZAK.H */
+#pragma once
+
 typedef struct {
     MYFLT         *zkstart;
     int64_t       zklast;

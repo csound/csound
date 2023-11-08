@@ -21,9 +21,13 @@
   02110-1301 USA
 */
 
+#include <errno.h>
+
 #if defined(__linux) || defined(__linux__)
 /* for pthread_mutex_timedlock() */
+#ifndef _XOPEN_SOURCE
 #define _XOPEN_SOURCE 600
+#endif
 #endif
 
 #ifndef HAVE_GETTIMEOFDAY

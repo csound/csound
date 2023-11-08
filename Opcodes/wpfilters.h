@@ -37,6 +37,7 @@ downloads/pdf/VAFilterDesign_1.1.1.pdf)
 
 Csound C versions by Steven Yi
 */
+#pragma once
 
 #include "csoundCore.h"
 

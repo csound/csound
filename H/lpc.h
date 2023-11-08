@@ -22,7 +22,7 @@
 */
 
 /*                                                                      LPC.H   */
-
+#pragma once
 #define LP_MAGIC    999
 #define LP_MAGIC2   2399           /* pole file type */
 #define LPBUFSIZ    4096           /* in lpanal */

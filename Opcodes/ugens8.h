@@ -24,6 +24,9 @@
 /*                                                              UGENS8.H    */
 #ifndef _UGENS8_H_
 #define _UGENS8_H_
+
+#include "pvoc.h"
+
 #define     PVFRAMSIZE      8192                /* i.e. max FFT point size */
 #define     PVFFTSIZE       (2*PVFRAMSIZE)      /* 2x for real + imag */
 #define     PVDATASIZE      (1+PVFRAMSIZE/2)    /* Need 1/2 channels + mid */

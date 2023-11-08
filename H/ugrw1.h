@@ -42,6 +42,7 @@
  * any alterations to the source code, including comments, are
  * clearly indicated as such.
  */
+#pragma once
 
 #include "csoundCore.h"
 

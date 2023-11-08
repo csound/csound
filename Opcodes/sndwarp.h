@@ -20,6 +20,7 @@
     Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
     02110-1301 USA
 */
+#pragma once
 
 typedef struct {
   int32_t    cnt, wsize, flag; /* , section; */

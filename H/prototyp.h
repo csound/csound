@@ -21,6 +21,8 @@
     02110-1301 USA
 */
 /*  PROTOTYP.H  */
+#pragma once
+
 #if defined(__BUILDING_LIBCSOUND) && !defined(_CSOUND_PROTO_H)
 #define _CSOUND_PROTO_H
 #include <sysdep.h>

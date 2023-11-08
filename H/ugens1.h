@@ -22,6 +22,7 @@
 */
 
 /*                                                         UGENS1.H        */
+#pragma once
 
 typedef struct {
         OPDS    h;

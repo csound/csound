@@ -24,6 +24,8 @@
 */
 
                                                         /* biquad.h */
+#pragma once
+
 #include "stdopcod.h"
 
                                 /* Structure for biquadratic filter */

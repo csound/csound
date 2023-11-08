@@ -46,6 +46,7 @@
 /* iphs2 - optional, initial phase of waveform in table #2           */
 /*                                                                   */
 /*********************************************************************/
+#pragma once
 
 typedef struct {
   OPDS h;                                     /* common to all opcodes */

@@ -24,6 +24,7 @@
 /*      vdelay, multitap, reverb2 coded by Paris Smaragdis              */
 /*      Berklee College of Music Csound development team                */
 /*      Copyright (c) December 1994.  All rights reserved               */
+#pragma once
 
 typedef struct {
         OPDS    h;

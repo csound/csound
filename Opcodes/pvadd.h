@@ -22,6 +22,7 @@
 */
 
 /*                                                      PVADD.H    */
+#pragma once
 
 #define     MAXBINS         4096
 #ifndef PVFRAMSIZE

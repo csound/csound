@@ -25,6 +25,7 @@
  * Mon May 10 19:44:46 PDT 2004
  * header file for all of the ATScsound functions by Alex Norman
  */
+#pragma once
 
 #include "stdopcod.h"
 #include <stdlib.h>

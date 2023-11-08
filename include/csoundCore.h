@@ -20,13 +20,12 @@
     Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
     02110-1301 USA
 */
+#ifndef CSOUNDCORE_H
+#define CSOUNDCORE_H
 
 #if !defined(__BUILDING_LIBCSOUND) && !defined(CSOUND_CSDL_H)
 #  error "Csound plugins and host applications should not include csoundCore.h"
 #endif
-
-#ifndef CSOUNDCORE_H
-#define CSOUNDCORE_H
 
 #if defined(__EMSCRIPTEN__) && !defined(EMSCRIPTEN)
 #define EMSCRIPTEN

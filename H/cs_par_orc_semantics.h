@@ -24,6 +24,8 @@
 #ifndef __CSOUND_ORC_SEMANTIC_ANALYSIS_H__
 #define __CSOUND_ORC_SEMANTIC_ANALYSIS_H__
 
+#include "cs_par_base.h"
+
 #ifdef PARCS
 /*
  * This module maintains a list of instruments that have been parsed

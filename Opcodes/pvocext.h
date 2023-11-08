@@ -26,7 +26,7 @@
 /* Based on ideas from Tom Erbe's SoundHack  */
 
 /* Predeclare Functions */
-
+#pragma once
 
 
 void    SpectralExtract(float *, float *, int32_t, int32, int32_t, MYFLT);

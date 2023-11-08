@@ -22,6 +22,7 @@
 */
 
                                                         /*  DUMPF.H  */
+#pragma once
 typedef struct {
         OPDS   h;
         MYFLT  *ksig, *ifilcod, *iformat, *iprd;

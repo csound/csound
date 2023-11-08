@@ -27,7 +27,7 @@
 /* **********************************************************************
  * Defines etc for the basic MIDI output codes
  * **********************************************************************/
-
+#pragma once
 #define MD_NOTEOFF      (0x80)
 #define MD_NOTEON       (0x90)
 #define MD_POLYAFTER    (0xa0)

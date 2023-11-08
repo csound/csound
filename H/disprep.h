@@ -22,6 +22,7 @@
 */
 
                         /*                                      DISPREP.H       */
+#pragma once
 #include "pstream.h"
 
 typedef struct {

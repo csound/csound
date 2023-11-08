@@ -22,6 +22,8 @@
 */
 
 // ZAK
+#pragma once
+
 #define ZR (0x0001)
 #define ZW (0x0002)
 #define ZB (0x0003)

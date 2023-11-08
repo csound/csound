@@ -3,7 +3,7 @@
 /*
     pitch.h:
 
-    Copyright (C) 1999 John ffitch, Istvan Varga, Peter Neubäcker,
+    Copyright (C) 1999 John ffitch, Istvan Varga, Peter Neubï¿½cker,
                        rasmus ekman, Phil Burk
 
     This file is part of Csound.
@@ -25,6 +25,8 @@
 */
 
                         /*                                      PITCH.H */
+#pragma once
+
 #include "spectra.h"
 #include "uggab.h"
 

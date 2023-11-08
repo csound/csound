@@ -22,6 +22,7 @@
 */
 
 /*                                                      WINDIN.H        */
+#pragma once
 
 typedef struct
     {

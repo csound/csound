@@ -23,6 +23,7 @@
 
 /*                                                      SCOT.H       */
 /* aldel Jul 91 */
+#pragma once
 
 #include <stdio.h>
 #include <string.h>

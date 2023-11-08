@@ -22,6 +22,7 @@
 */
 
 /*                                                              PVREAD.H    */
+#pragma once
 
 typedef struct {
     OPDS    h;

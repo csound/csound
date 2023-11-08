@@ -24,6 +24,7 @@
 /****************************************/
 /** midiout UGs by Gabriel Maldonado   **/
 /****************************************/
+#pragma once
 
 typedef int BOOL;
 #ifndef TRUE

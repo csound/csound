@@ -32,6 +32,7 @@
  * outputs.
  *
  */
+#pragma once
 
 typedef struct {
         OPDS h;

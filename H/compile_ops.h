@@ -21,6 +21,8 @@
     02110-1301 USA
 */
 
+#pragma once
+
 #include <csoundCore.h>
 
 typedef struct _compile {

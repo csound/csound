@@ -21,6 +21,8 @@
     02110-1301 USA
 */
                         /*                              SPECTRA.H       */
+#pragma once
+
 #ifndef __SPECTRA_H
 #define __SPECTRA_H
 
