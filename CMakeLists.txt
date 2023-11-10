@@ -13,7 +13,7 @@ option(USE_VCPKG "Use VCPKG to download and manage dependencies" OFF)
 if (USE_VCPKG)
     # Detect correct triplet based on CMake env
     if (WIN32)
-        set(VCPKG_TARGET_TRIPLET "x64-windows")
+        set(VCPKG_TARGET_TRIPLET "x64-windows-static")
     elseif(APPLE)
         set(VCPKG_TARGET_TRIPLET "x64-osx")
     elseif (UNIX)
@@ -1237,7 +1237,7 @@ if(BUILD_STATIC_LIBRARY)
     if(MSVC)
         target_link_libraries(${CSOUNDLIB_STATIC} PRIVATE ${CSOUND_WINDOWS_LIBRARIES})
     else()
-        target_link_libraries(${CSOUNDLIB_STATIC} ${libcsound_LIBS})
+        target_link_libraries(${CSOUNDLIB_STATIC} PRIVATE ${libcsound_LIBS})
     endif()
 
     set_target_properties(${CSOUNDLIB_STATIC} PROPERTIES
