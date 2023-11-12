@@ -1237,7 +1237,7 @@ if(BUILD_STATIC_LIBRARY)
     if(MSVC)
         target_link_libraries(${CSOUNDLIB_STATIC} PRIVATE ${CSOUND_WINDOWS_LIBRARIES})
     else()
-        target_link_libraries(${CSOUNDLIB_STATIC} ${libcsound_LIBS})
+        target_link_libraries(${CSOUNDLIB_STATIC} PRIVATE ${libcsound_LIBS})
     endif()
 
     set_target_properties(${CSOUNDLIB_STATIC} PROPERTIES
