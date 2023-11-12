@@ -391,6 +391,20 @@ BaboTapline_output(CSOUND *csound, const BaboTapline *this,
     return output;
 }
 
+static MYFLT
+BaboTapline_output2(CSOUND *csound, const BaboTapline *this,
+                    const BaboTaplineParameters *pars, MYFLT dir)
+{
+    IGN(csound);
+    int32_t     i;
+    MYFLT   output = BaboTapline_single_output(this, &pars->direct)*dir;
+
+    for (i = 0; i < BABO_TAPS; ++i)
+      output  += BaboTapline_single_output(this, &pars->tap[i]);
+
+    return output;
+}
+
 /*
  * Babo lowpass filter object methods
  */
@@ -831,10 +845,74 @@ babo(CSOUND *csound, void *entry)
     return OK;
 }
 
+static int32_t
+babo2(CSOUND *csound, void *entry)
+{
+    BABO    *p          = (BABO *) entry;
+    uint32_t offset = p->h.insdshead->ksmps_offset;
+    uint32_t early  = p->h.insdshead->ksmps_no_end;
+    uint32_t n, nsmps = CS_KSMPS;
+    MYFLT   *outleft    = p->outleft,
+            *outright   = p->outright,
+            *input      = p->input;
+
+    BaboTaplineParameters left = { {FL(0.0)}, {{FL(0.0)}} },
+                          right = { {FL(0.0)}, {{FL(0.0)}} };
+
+    BaboTapline_precalculate_parameters(csound, &left,
+                                        p->receiver_x - p->inter_receiver_distance,
+                                        p->receiver_y, p->receiver_z,
+                                        *(p->ksource_x), *(p->ksource_y),
+                                        *(p->ksource_z),
+                                        *(p->lx), *(p->ly), *(p->lz));
+
+    BaboTapline_precalculate_parameters(csound, &right,
+        p->receiver_x + p->inter_receiver_distance,
+        p->receiver_y, p->receiver_z,
+        *(p->ksource_x), *(p->ksource_y), *(p->ksource_z),
+        *(p->lx), *(p->ly), *(p->lz));
+
+    if (UNLIKELY(offset)) {
+      memset(outleft,  '\0', offset*sizeof(MYFLT));
+      memset(outright, '\0', offset*sizeof(MYFLT));
+    } if (UNLIKELY(early)) {
+      nsmps -= early;
+      memset(&outleft[nsmps], '\0', early*sizeof(MYFLT));
+      memset(&outright[nsmps], '\0', early*sizeof(MYFLT));
+    }
+    for (n=offset; n<nsmps; n++) {         /* k-time cycle                */
+      MYFLT  left_tapline_out        = FL(0.0),
+             right_tapline_out       = FL(0.0),
+             delayed_matrix_input    = FL(0.0);
+      MYFLT  matrix_outputs[2]       = { FL(0.0) };
+
+      BaboTapline_input(&p->tapline, input[n]);
+      BaboDelay_input(&p->matrix_delay, input[n]);
+
+      left_tapline_out  = BaboTapline_output2(csound, &p->tapline, &left, p->direct) *
+        p->early_diffuse;
+
+      right_tapline_out  = BaboTapline_output2(csound, &p->tapline, &right, p->direct) *
+        p->early_diffuse;
+
+      delayed_matrix_input = BaboDelay_output(&p->matrix_delay);
+
+      BaboMatrix_output(&p->matrix, matrix_outputs, delayed_matrix_input,
+                        p->diffusion_coeff);
+
+      outleft[n]  = left_tapline_out  + matrix_outputs[0];
+      outright[n] = right_tapline_out + matrix_outputs[1];
+    }
+    return OK;
+}
+
+
+
 #define S(x)    sizeof(x)
 
 static OENTRY babo_localops[] = {
   { "babo",   S(BABO), TR, 3, "aa", "akkkiiijj",(SUBR)baboset, (SUBR)babo   },
+  { "babo2",  S(BABO), TR, 3, "aa", "akkkiiijj",(SUBR)baboset, (SUBR)babo2 }  
 };
 
 LINKAGE_BUILTIN(babo_localops)
