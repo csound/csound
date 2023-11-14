@@ -4087,6 +4087,30 @@ int32_t cols_i(CSOUND *csound, FFT *p) {
   else return NOTOK;
 }
 
+int32_t cols_perf_S(CSOUND *csound, FFT *p) {
+    ARRAYDAT* dat = p->in;      /* The data in e 2_D array */
+    STRINGDAT* mem = (STRINGDAT*)dat->data;
+    STRINGDAT* dest = (STRINGDAT*)p->out->data;
+    int32_t i;
+    int32_t index = (int32_t)(*((MYFLT *)p->in2));
+    if (LIKELY(index < p->in->sizes[0])) {
+      //index = (index * dat->sizes[1]);
+      //printf("%d : %d\n", index, dat->sizes[1]);
+      mem += index;
+      //dest += index;
+      //incr = (index * (dat->arrayMemberSize / sizeof(MYFLT)));
+      //printf("*** mem = %p dst = %p\n", mem, dest);
+      for (i = 0; i<p->in->sizes[0]; i++) {
+        dat->arrayType->copyValue(csound, dat->arrayType, (void*)dest, (void*)mem);
+        //printf("*** copies i=%d: %s -> %s\n", i,(char*)(dest->data),(char*)(mem->data));
+        dest+= 1;
+        mem += p->in->sizes[1];
+      }
+      return OK;
+    }
+    else return csound->PerfError(csound,  &(p->h),
+                                  Str("requested col is out of range\n"));
+}
 
 int32_t set_rows_perf(CSOUND *csound, FFT *p) {
     int32_t start = *((MYFLT *)p->in2);
@@ -4150,6 +4174,42 @@ int32_t set_cols_i(CSOUND *csound, FFT *p) {
     for (j=0,i=start; j < col; i+=row, j++)
         p->out->data[i] = p->in->data[j];
     return OK;
+}
+
+int32_t set_cols_perf_S(CSOUND *csound, FFT *p) {
+    ARRAYDAT* dat = p->in;      /* The data in 2_D array */
+    STRINGDAT* mem = (STRINGDAT*)dat->data;
+    STRINGDAT* dest = (STRINGDAT*)p->out->data;
+    int32_t i;
+    int32_t index = (int32_t)(*((MYFLT *)p->in2));
+    if (LIKELY(index < p->in->sizes[0])) {
+      index = (index * dat->sizes[1]);
+      //printf("%d : %d\n", index, dat->sizes[1]);
+      mem += index;
+      //incr = (index * (dat->arrayMemberSize / sizeof(MYFLT)));
+      //printf("*** mem = %p dst = %p\n", mem, dest);
+      for (i = 0; i<p->in->sizes[0]; i++) {
+        dat->arrayType->copyValue(csound, dat->arrayType, (void*)mem, (void*)dest );
+        //printf("*** copies i=%d: %s -> %s\n", i,(char*)(mem->data),(char*)(dest->data));
+        dest += p->in->sizes[1];
+        mem  += 1;
+      }
+      return OK;
+    }
+    else return csound->PerfError(csound,  &(p->h),
+                                  Str("requested col is out of range\n"));    
+}
+
+int32_t set_cols_init_S(CSOUND *csound, FFT *p) {
+    if (set_cols_i(csound,p)==0)
+      return set_cols_perf_S(csound, p);
+    return NOTOK;
+}
+
+int32_t cols_init_S(CSOUND *csound, FFT *p) {
+    if (cols_init(csound,p)==0)
+      return cols_perf_S(csound, p);
+    return NOTOK;
 }
 
 int32_t shiftin_init(CSOUND *csound, FFT *p) {
@@ -4895,7 +4955,7 @@ static OENTRY arrayvars_localops[] =
      (SUBR) init_iceps, (SUBR) perf_iceps, NULL},
     {"ceps", sizeof(FFT), 0, 3, "k[]","k[]k",
      (SUBR) init_ceps, (SUBR) perf_ceps, NULL},
-    {"getrow", sizeof(FFT), 0, 1, "iinit[]","i[]i",
+    {"getrow", sizeof(FFT), 0, 1, "i[]","i[]i",
      (SUBR) rows_i, NULL, NULL},
     {"getrow.S", sizeof(FFT), 0, 3, "S[]","S[]k",
      (SUBR) rows_init_S, (SUBR) rows_perf_S, NULL},
@@ -4905,6 +4965,8 @@ static OENTRY arrayvars_localops[] =
      (SUBR) cols_i, NULL, NULL},
     {"getcol", sizeof(FFT), 0, 3, "k[]","k[]k",
      (SUBR) cols_init, (SUBR) cols_perf, NULL},
+    {"getcol", sizeof(FFT), 0, 3, "S[]","S[]k",
+     (SUBR) cols_init_S, (SUBR) cols_perf_S, NULL},
     {"setrow", sizeof(FFT), 0, 1, "i[]","i[]i",
      (SUBR) set_rows_i, NULL, NULL},
     {"setrow", sizeof(FFT), 0, 3, "k[]","k[]k",
@@ -4915,6 +4977,8 @@ static OENTRY arrayvars_localops[] =
      (SUBR) set_cols_i, NULL, NULL},
     {"setcol", sizeof(FFT), 0, 3, "k[]","k[]k",
      (SUBR) set_cols_init, (SUBR) set_cols_perf, NULL},
+    {"setcol", sizeof(FFT), 0, 3, "S[]","S[]k",
+     (SUBR) set_cols_init_S, (SUBR) set_cols_perf_S, NULL},
     {"shiftin", sizeof(FFT), 0, 3, "k[]","a",
      (SUBR) shiftin_init, (SUBR) shiftin_perf},
     {"shiftout", sizeof(FFT), 0, 3, "a","k[]o",
