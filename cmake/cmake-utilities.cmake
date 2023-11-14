@@ -18,6 +18,7 @@ function(make_executable name srcs libs)
             OUTPUT_NAME ${ARGV3})
     endif()
     install(TARGETS ${name}
+    EXPORT CsoundExports
 	RUNTIME DESTINATION "${EXECUTABLE_INSTALL_DIR}" )
 endfunction()
 
@@ -100,6 +101,7 @@ function(make_plugin libname srcs)
         ARCHIVE_OUTPUT_DIRECTORY ${BUILD_PLUGINS_DIR})
 
     install(TARGETS ${libname}
+        EXPORT CsoundExports
         LIBRARY DESTINATION "${PLUGIN_INSTALL_DIR}"
         ARCHIVE DESTINATION "${PLUGIN_INSTALL_DIR}" )
 endfunction()
