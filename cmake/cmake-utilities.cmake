@@ -105,3 +105,11 @@ function(make_plugin libname srcs)
         LIBRARY DESTINATION "${PLUGIN_INSTALL_DIR}"
         ARCHIVE DESTINATION "${PLUGIN_INSTALL_DIR}" )
 endfunction()
+
+macro(assign_bool variable)
+     if(${ARGN})
+         set(${variable} ON)
+     else()
+         set(${variable} OFF)
+     endif()
+endmacro()
