@@ -13,6 +13,13 @@ function(make_executable name srcs libs)
     set_target_properties(${name} PROPERTIES
         RUNTIME_OUTPUT_DIRECTORY ${BUILD_BIN_DIR})
 
+    if(LINUX)
+        set_target_properties(${name} PROPERTIES
+            # back to install prefix from bin, then into lib
+            INSTALL_RPATH "$ORIGIN/../lib"
+        )
+    endif()
+
     if(${ARGC} EQUAL 4)
         set_target_properties(${name} PROPERTIES
             OUTPUT_NAME ${ARGV3})
@@ -94,6 +101,13 @@ function(make_plugin libname srcs)
         target_link_libraries(${libname} PRIVATE ${ARGV${i}})
         math(EXPR i "${i}+1")
     endwhile()
+
+    if (LINUX)
+        set_target_properties(${libname} PROPERTIES
+            # back to install prefix from plugins folder, then into lib
+            INSTALL_RPATH "$ORIGIN/../../../lib"
+        )
+    endif()
 
     set_target_properties(${libname} PROPERTIES
         RUNTIME_OUTPUT_DIRECTORY ${BUILD_PLUGINS_DIR}
