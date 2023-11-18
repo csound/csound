@@ -13,11 +13,19 @@ function(make_executable name srcs libs)
     set_target_properties(${name} PROPERTIES
         RUNTIME_OUTPUT_DIRECTORY ${BUILD_BIN_DIR})
 
+    if(LINUX)
+        set_target_properties(${name} PROPERTIES
+            # back to install prefix from bin, then into lib
+            INSTALL_RPATH "$ORIGIN/../lib"
+        )
+    endif()
+
     if(${ARGC} EQUAL 4)
         set_target_properties(${name} PROPERTIES
             OUTPUT_NAME ${ARGV3})
     endif()
     install(TARGETS ${name}
+    EXPORT CsoundExports
 	RUNTIME DESTINATION "${EXECUTABLE_INSTALL_DIR}" )
 endfunction()
 
@@ -94,12 +102,28 @@ function(make_plugin libname srcs)
         math(EXPR i "${i}+1")
     endwhile()
 
+    if (LINUX)
+        set_target_properties(${libname} PROPERTIES
+            # back to install prefix from plugins folder, then into lib
+            INSTALL_RPATH "$ORIGIN/../../../lib"
+        )
+    endif()
+
     set_target_properties(${libname} PROPERTIES
         RUNTIME_OUTPUT_DIRECTORY ${BUILD_PLUGINS_DIR}
         LIBRARY_OUTPUT_DIRECTORY ${BUILD_PLUGINS_DIR}
         ARCHIVE_OUTPUT_DIRECTORY ${BUILD_PLUGINS_DIR})
 
     install(TARGETS ${libname}
+        EXPORT CsoundExports
         LIBRARY DESTINATION "${PLUGIN_INSTALL_DIR}"
         ARCHIVE DESTINATION "${PLUGIN_INSTALL_DIR}" )
 endfunction()
+
+macro(assign_bool variable)
+     if(${ARGN})
+         set(${variable} ON)
+     else()
+         set(${variable} OFF)
+     endif()
+endmacro()

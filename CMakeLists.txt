@@ -1056,14 +1056,22 @@ endif()
 # Add the install target
 if(WIN32)
     install(TARGETS ${CSOUNDLIB}
+        EXPORT CsoundExports
         RUNTIME DESTINATION "${EXECUTABLE_INSTALL_DIR}"
         ARCHIVE DESTINATION "${LIBRARY_INSTALL_DIR}"
         FRAMEWORK DESTINATION "${CS_FRAMEWORK_DEST}")
 else()
     install(TARGETS ${CSOUNDLIB}
+        EXPORT CsoundExports
         LIBRARY DESTINATION "${LIBRARY_INSTALL_DIR}"
         ARCHIVE DESTINATION "${LIBRARY_INSTALL_DIR}"
         FRAMEWORK DESTINATION "${CS_FRAMEWORK_DEST}")
+endif()
+
+if (LINUX)
+    set_target_properties(${CSOUNDLIB} PROPERTIES
+        INSTALL_RPATH "$ORIGIN"
+    )
 endif()
 
 # TODO include target rather than libs to also bring in transitive dependencies
@@ -1247,8 +1255,15 @@ if(BUILD_STATIC_LIBRARY)
         LIBRARY_OUTPUT_DIRECTORY ${BUILD_LIB_DIR}
         ARCHIVE_OUTPUT_DIRECTORY ${BUILD_LIB_DIR})
 
+    if (LINUX)
+        set_target_properties(${CSOUNDLIB_STATIC} PROPERTIES
+            INSTALL_RPATH "$ORIGIN"
+        )
+    endif()
+
     # Add the install target
     install(TARGETS ${CSOUNDLIB_STATIC}
+        EXPORT CsoundExports
         LIBRARY DESTINATION "${LIBRARY_INSTALL_DIR}"
         ARCHIVE DESTINATION "${LIBRARY_INSTALL_DIR}")
 endif()
@@ -1313,8 +1328,11 @@ else()
 endif()
 
 # install CMake module
-install(FILES ${CMAKE_SOURCE_DIR}/cmake/Modules/FindCsound.cmake
-        DESTINATION "${CMAKE_INSTALL_PREFIX}/share/cmake/Csound")
+install(EXPORT CsoundExports
+    FILE "CsoundConfig.cmake"
+    NAMESPACE "Csound::"
+    DESTINATION "${CMAKE_INSTALL_PREFIX}/share/csound"
+)
 
 # install samples
 if(APPLE)
