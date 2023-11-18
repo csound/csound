@@ -3536,7 +3536,7 @@ PUBLIC void csoundReset(CSOUND *csound)
     /* now load and pre-initialise external modules for this instance */
     /* this function returns an error value that may be worth checking */
     {
-#ifndef BARE_METAL
+ #ifndef BARE_METAL
       int err = csoundInitStaticModules(csound);
 
       if (csound->delayederrormessages &&
@@ -3613,18 +3613,19 @@ PUBLIC void csoundReset(CSOUND *csound)
     csoundCreateConfigurationVariable(csound, "rtaudio", s, CSOUNDCFG_STRING,
                                       0, NULL, &max_len,
                                       Str("Real time audio module name"), NULL);
-
+#endif
     /* initialise real time MIDI */
     csound->midiGlobals = (MGLOBAL*) csound->Calloc(csound, sizeof(MGLOBAL));
     csound->midiGlobals->bufp = &(csound->midiGlobals->mbuf[0]);
     csound->midiGlobals->endatp = csound->midiGlobals->bufp;
+#ifndef BARE_METAL    
     csoundCreateGlobalVariable(csound, "_RTMIDI", (size_t) max_len);
     csound->SetMIDIDeviceListCallback(csound, midi_dev_list_dummy);
     csound->SetExternalMidiInOpenCallback(csound, DummyMidiInOpen);
     csound->SetExternalMidiReadCallback(csound,  DummyMidiRead);
     csound->SetExternalMidiOutOpenCallback(csound,  DummyMidiOutOpen);
     csound->SetExternalMidiWriteCallback(csound, DummyMidiWrite);
-
+  
     s = csoundQueryGlobalVariable(csound, "_RTMIDI");
     strcpy(s, "null");
     if (csound->enableHostImplementedMIDIIO == 0)
@@ -3638,7 +3639,7 @@ PUBLIC void csoundReset(CSOUND *csound)
     strcpy(s, "alsa");
 #endif
     else strcpy(s, "hostbased");
-
+ 
     csoundCreateConfigurationVariable(csound, "rtmidi", s, CSOUNDCFG_STRING,
                                       0, NULL, &max_len,
                                       Str("Real time MIDI module name"), NULL);
@@ -3654,6 +3655,7 @@ PUBLIC void csoundReset(CSOUND *csound)
                                       CSOUNDCFG_BOOLEAN, 0, NULL, NULL,
                                       Str("Do not handle special MIDI controllers"
                                           " (sustain pedal etc.)"), NULL);
+ 
     /* sound file tag options */
     max_len = 201;
     i = (max_len + 7) & (~7);

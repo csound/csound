@@ -146,8 +146,8 @@ endif()
 
 # set -Werror if in Debug configuration
 if(NOT MSVC AND NOT WASM)
-    set(CMAKE_CXX_FLAGS_RELEASE "-O3")
-    set(CMAKE_C_FLAGS_RELEASE "-O3")
+    set(CMAKE_CXX_FLAGS_RELEASE "-Oz")
+    set(CMAKE_C_FLAGS_RELEASE "-Oz")
     if(${CMAKE_BUILD_TYPE} MATCHES "Debug")
         set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}  -Wall -Wno-missing-field-initializers")
         set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wall -Wno-missing-field-initializers")
