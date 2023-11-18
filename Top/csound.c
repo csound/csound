@@ -3536,7 +3536,7 @@ PUBLIC void csoundReset(CSOUND *csound)
     /* now load and pre-initialise external modules for this instance */
     /* this function returns an error value that may be worth checking */
     {
-
+#ifndef BARE_METAL
       int err = csoundInitStaticModules(csound);
 
       if (csound->delayederrormessages &&
@@ -3573,7 +3573,7 @@ PUBLIC void csoundReset(CSOUND *csound)
       if (csoundInitModules(csound) != 0)
             csound->LongJmp(csound, 1);
 
-
+#endif // BARE_METAL
       init_pvsys(csound);
       /* utilities depend on this as well as orchs; may get changed by an orch */
       dbfs_init(csound, DFLT_DBFS);
@@ -3596,7 +3596,7 @@ PUBLIC void csoundReset(CSOUND *csound)
       csoundAddStandardTypes(csound, csound->typePool);
       /* csoundLoadExternals(csound); */
     }
-
+#ifndef BARE_METAL
     /* allow selecting real time audio module */
     max_len = 21;
     csoundCreateGlobalVariable(csound, "_RTAUDIO", (size_t) max_len);
@@ -3719,6 +3719,7 @@ PUBLIC void csoundReset(CSOUND *csound)
                                       CSOUNDCFG_BOOLEAN, 0, NULL, NULL,
                                       Str("Ignore <CsOptions> in CSD files"
                                           " (default: no)"), NULL);
+#endif    
 }
 
 PUBLIC int csoundGetDebug(CSOUND *csound)
