@@ -111,14 +111,9 @@ option(BUILD_DOCS "Build documentation (requires doxygen)" OFF)
 option(DEBUG_ERROR_ON_WARNING "For a debug build, error on a compiler# warning" OFF)
 option(BARE_METAL "To configure for bare metal build" OFF)
 
-
-
-if(NO_CS_SERVER)
-    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS}  -DNO_CSOUND_SERVER")
-endif()
-
 if(BARE_METAL)
     set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS}  -DBARE_METAL")
+    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS}  -DNO_CSOUND_SERVER")
 endif()
 
 # Include this after the install path definitions so we can override them here.
@@ -146,8 +141,13 @@ endif()
 
 # set -Werror if in Debug configuration
 if(NOT MSVC AND NOT WASM)
-    set(CMAKE_CXX_FLAGS_RELEASE "-Oz")
-    set(CMAKE_C_FLAGS_RELEASE "-Oz")
+#ifdef BARE_METAL
+    set(CMAKE_CXX_FLAGS_RELEASE "-Os")
+    set(CMAKE_C_FLAGS_RELEASE "-Os")
+#else
+    set(CMAKE_CXX_FLAGS_RELEASE "-O3")
+    set(CMAKE_C_FLAGS_RELEASE "-O3")
+#endif
     if(${CMAKE_BUILD_TYPE} MATCHES "Debug")
         set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}  -Wall -Wno-missing-field-initializers")
         set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wall -Wno-missing-field-initializers")
