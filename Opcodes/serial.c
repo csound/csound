@@ -32,6 +32,8 @@
     02110-1301 USA
 */
 
+#ifndef NO_SERIAL_OPCODES
+
 #include <stdlib.h>
 #include <stdint.h>   /* Standard types */
 #include <string.h>   /* String function definitions */
@@ -771,3 +773,4 @@ static OENTRY serial_localops[] = {
 };
 
 LINKAGE_BUILTIN(serial_localops)
+#endif // ifndef NO_SERIAL_OPCODES

@@ -22,6 +22,7 @@
   02110-1301 USA
 */
 
+#ifdef  HAVE_SOCKETS 
 /* Haiku 'int32' etc definitions in net headers conflict with sysdep.h */
 #define __HAIKU_CONFLICT
 
@@ -1044,3 +1045,4 @@ static OENTRY socksend_localops[] =
 };
 
 LINKAGE_BUILTIN(socksend_localops)
+#endif

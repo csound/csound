@@ -79,7 +79,9 @@ CS_NOINLINE char *csoundTmpFileName(CSOUND *csound, const char *ext)
         snprintf(lbuf, nBytes, "%s/csound-XXXXXX", tmpdir);
       else
         strcpy(lbuf, "/tmp/csond-XXXXXX");
+#ifndef BARE_METAL      
       umask(0077);
+#endif      
         /* ensure exclusive access on buggy implementations of mkstemp */
       if (UNLIKELY((fd = mkstemp(lbuf)) < 0))
         csound->Die(csound, Str(" *** cannot create temporary file"));
@@ -1126,6 +1128,7 @@ int read_unified_file4(CSOUND *csound, CORFIL *cf)
           strstr(p, "<CsoundSynthesiser>") == p) {
         if(csound->oparms->odebug)
           csoundMessage(csound, Str("STARTING FILE\n"));
+        //printf("****csd starts on line %d\n", STA(csdlinecount));
         started = TRUE;
       }
       else if (strstr(p, "</CsoundSynthesizer>") == p ||

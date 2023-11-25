@@ -914,6 +914,7 @@ typedef struct MACRON {
   unsigned int    line;
   struct MACRO    *s;
   char            *path;
+  int             included;
 } MACRON;
 
 typedef struct MACRO {          /* To store active macros */

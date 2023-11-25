@@ -1188,9 +1188,9 @@ extern int32_t pvlock_localops_init(CSOUND *, void *);
 extern int32_t fareyseq_localops_init(CSOUND *, void *);
 extern int32_t cpumeter_localops_init(CSOUND *, void *);
 extern int32_t scnoise_localops_init(CSOUND *, void *);
-extern int32_t socksend_localops_init(CSOUND *, void *);
+
 extern int32_t mp3in_localops_init(CSOUND *, void *);
-extern int32_t sockrecv_localops_init(CSOUND *, void *);
+
 extern int32_t afilts_localops_init(CSOUND *, void *);
 extern int32_t pinker_localops_init(CSOUND *, void *);
 extern int32_t paulstretch_localops_init(CSOUND *, void *);
@@ -1208,7 +1208,7 @@ extern int32_t cell_localops_init(CSOUND *, void *);
 extern int32_t exciter_localops_init(CSOUND *, void *);
 extern int32_t buchla_localops_init(CSOUND *, void *);
 extern int32_t select_localops_init(CSOUND *, void *);
-extern int32_t serial_localops_init(CSOUND *, void *);
+
 extern int32_t counter_localops_init(CSOUND *, void *);
 extern int32_t platerev_localops_init(CSOUND *, void *);
 extern int32_t sequencer_localops_init(CSOUND *, void *);
@@ -1221,6 +1221,17 @@ extern int32_t pvsopc_ModuleInit(CSOUND *csound);
 extern int32_t sfont_ModuleInit(CSOUND *csound);
 extern int32_t sfont_ModuleCreate(CSOUND *csound);
 extern int32_t newgabopc_ModuleInit(CSOUND *csound);
+
+#ifdef HAVE_SOCKETS
+extern int32_t socksend_localops_init(CSOUND *, void *);
+extern int32_t sockrecv_localops_init(CSOUND *, void *);
+#endif
+
+
+#ifndef NO_SERIAL_OPCODES
+extern int32_t serial_localops_init(CSOUND *, void *);
+#endif
+
 
 const INITFN staticmodules[] = { hrtfopcodes_localops_init, babo_localops_init,
                                  bilbar_localops_init, vosim_localops_init,
@@ -1247,10 +1258,14 @@ const INITFN staticmodules[] = { hrtfopcodes_localops_init, babo_localops_init,
 
 #if !(defined(NACL)) && !(defined(__wasi__))
                                  counter_localops_init,
+#ifdef HAVE_SOCKETS
                                  sockrecv_localops_init,
                                  socksend_localops_init,
+#endif
                                  system_localops_init,
+#ifndef NO_SERIAL_OPCODES                                 
                                  serial_localops_init,
+#endif                                 
                                  mp3in_localops_init,
 #endif
                                  scnoise_localops_init, afilts_localops_init,

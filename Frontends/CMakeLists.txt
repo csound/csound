@@ -1,4 +1,5 @@
 option(BUILD_CSBEATS "Build the beats score frontend" ON)
+option(BUILD_CSOUND_COMMAND "Build the Csound command" ON)
 
 if (NOT MSVC)
     find_package(FLEX)
@@ -9,6 +10,7 @@ find_path(PD_HEADER_PATH m_pd.h)
 find_library(PD_LIBRARY pd.dll)
 
 ## Csound Commandline Executable ##
+if(BUILD_CSOUND_COMMAND) 
 set(CS_MAIN_SRCS csound/csound_main.c)
 if(CMAKE_SYSTEM_NAME MATCHES "Linux")
     list(APPEND CS_MAIN_SRCS csound/sched.c)
@@ -17,6 +19,9 @@ endif()
 
 # We need a different name to avoid clashes with float libcsound
 make_executable(csound-bin "${CS_MAIN_SRCS}" "${CSOUNDLIB};${MATH_LIBRARY}" csound)
+# debugger command line app
+make_executable(csdebugger debugger/csdebugger.cpp "${CSOUNDLIB}")
+endif()
 
 # CsBeats
 check_deps(BUILD_CSBEATS FLEX_EXECUTABLE BISON_EXECUTABLE)
@@ -43,7 +48,6 @@ if(BUILD_CSBEATS)
     target_include_directories(csbeats PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/beats)
 endif()
 
-# debugger command line app
-make_executable(csdebugger debugger/csdebugger.cpp "${CSOUNDLIB}")
+
 
 

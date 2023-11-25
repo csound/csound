@@ -222,7 +222,7 @@ static int32_t scsnu_init(CSOUND *csound, PSCSNU *p)
     SCANSYN_GLOBALS *pp;
     FUNC    *f;
     uint32_t len;
-    printf("**** p, i_f i_m = %p %g %g %g\n", p, p->i_f, p->i_m, p->i_c);
+    //printf("**** p, i_f i_m = %p %g %g %g\n", p, p->i_f, p->i_m, p->i_c);
     
     /* Mass */
     if (UNLIKELY((f = csound->FTnp2Find(csound, p->i_m)) == NULL)) {
@@ -231,7 +231,7 @@ static int32_t scsnu_init(CSOUND *csound, PSCSNU *p)
     }
     len = p->len = f->flen;
     p->m = f->ftable;
-    printf("**** p, i_f i_m = %p %g %g %g\n", p, p->i_f, p->i_m, p->i_c);
+    // printf("**** p, i_f i_m = %p %g %g %g\n", p, p->i_f, p->i_m, p->i_c);
 
     /* Centering */
     if (UNLIKELY((f = csound->FTnp2Find(csound, p->i_c)) == NULL)) {
@@ -243,7 +243,7 @@ static int32_t scsnu_init(CSOUND *csound, PSCSNU *p)
                                Str("scanu: Parameter tables should all "
                                    "have the same length"));
     p->c = f->ftable;
-    printf("**** p, i_f i_m = %p %g %g %g\n", p, p->i_f, p->i_m, p->i_c);
+    //printf("**** p, i_f i_m = %p %g %g %g\n", p, p->i_f, p->i_m, p->i_c);
 
     /* Damping */
     if (UNLIKELY((f = csound->FTnp2Find(csound, p->i_d)) == NULL)) {
@@ -255,23 +255,23 @@ static int32_t scsnu_init(CSOUND *csound, PSCSNU *p)
                                Str("scanu: Parameter tables should all "
                                    "have the same length"));
     p->d = f->ftable;
-    printf("**** p, i_f i_m = %p %g %g %g\n", p, p->i_f, p->i_m, p->i_c);
+    // printf("**** p, i_f i_m = %p %g %g %g\n", p, p->i_f, p->i_m, p->i_c);
 
     /* Spring stiffness */
     {
       uint32_t i, j;
 
-      printf("**** p, i_f i_m = %p %g %g %g\n", p, p->i_f, p->i_m, p->i_c);
+      // printf("**** p, i_f i_m = %p %g %g %g\n", p, p->i_f, p->i_m, p->i_c);
       /* Get the table */
       if (UNLIKELY((f = csound->FTnp2Find(csound, p->i_f)) == NULL)) {
         return csound->InitError(csound,
-                                 "%s %d", Str("scanu: Could not find ifndisplace table"), p->i_f);
+                                 "%s %p", Str("scanu: Could not find ifndisplace table"), p->i_f);
       }
-      printf("**** p->i_f i_m = %p %g %g %g\n",p, p->i_f, p->i_m, p->i_c);
+      //printf("**** p->i_f i_m = %p %g %g %g\n",p, p->i_f, p->i_m, p->i_c);
 
      /* Check that the size is good */
       if (UNLIKELY(f->flen < len*len)) {
-        printf("len = %d len*len = %d flen = %d\n", len, len*len, f->flen);
+        // printf("len = %d len*len = %d flen = %d\n", len, len*len, f->flen);
         return csound->InitError(csound, "%s",
                                  Str("scanu: Spring matrix is too small"));
       }

@@ -20,9 +20,9 @@
   Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
   02110-1301 USA
 */
-#ifdef NACL
-typedef unsigned int u_int32_t;
-#endif
+
+
+#ifdef HAVE_SOCKETS
 
 /* Haiku 'int32' etc definitions in net headers conflict with sysdep.h */
 #define __HAIKU_CONFLICT
@@ -408,3 +408,14 @@ void csoundStopUDPConsole(CSOUND *csound) {
   p = (UDPCONS *) csound->QueryGlobalVariable(csound, "::UDPCONS");
   udp_console_stop(csound, p);
 }
+
+#else // STUBS
+#include "csoundCore.h"
+void csoundStopUDPConsole(CSOUND *csound) { };
+int csoundUDPConsole(CSOUND *csound, const char *addr, int port, int
+                     mirror) { return CSOUND_ERROR; }
+
+int csoundUDPServerStatus(CSOUND *csound) { return CSOUND_ERROR; }
+int csoundUDPServerStart(CSOUND *csound, unsigned int port) { return CSOUND_ERROR; };
+int csoundUDPServerClose(CSOUND *csound) { return CSOUND_ERROR; }
+#endif

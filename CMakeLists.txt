@@ -1,22 +1,23 @@
 cmake_minimum_required(VERSION 3.5)
 cmake_policy(SET CMP0077 NEW)
 
+include(cmake/cmake-utilities.cmake)
+
 # silence RPATH cmake warning
 set(CMAKE_MACOSX_RPATH 1)
 set(CMAKE_EXPORT_COMPILE_COMMANDS 1)
 set(CMAKE_OSX_DEPLOYMENT_TARGET 11)
-
 
 option(USE_VCPKG "Use VCPKG to download and manage dependencies" OFF)
 
 if (USE_VCPKG)
     # Detect correct triplet based on CMake env
     if (WIN32)
-        set(VCPKG_TARGET_TRIPLET "x64-windows-csound")
+        set(VCPKG_TARGET_TRIPLET "x64-windows-static")
     elseif(APPLE)
         set(VCPKG_TARGET_TRIPLET "x64-osx")
     elseif (UNIX)
-        set(VCPKG_TARGET_TRIPLET "x64-linux-csound")
+        set(VCPKG_TARGET_TRIPLET "x64-linux")
     endif()
 
     set(VCPKG_FEATURE_FLAGS versions)
@@ -32,7 +33,9 @@ message(STATUS "CMAKE_TOOLCHAIN_FILE: ${CMAKE_TOOLCHAIN_FILE}")
 
 project(Csound)
 
-ENABLE_TESTING()
+enable_testing()
+
+SET(BUILD_SHARED_LIBS ON)
 
 if (${CMAKE_CXX_COMPILER_ID} MATCHES "Clang")
   set(CMAKE_COMPILER_IS_CLANG 1)
@@ -51,17 +54,12 @@ set(CS_VERSION "7")
 set(CS_SUBVER "0")
 set(CS_PATCHLEVEL "0")
 
-message(STATUS "Csound version:
-${CS_VERSION}.${CS_SUBVER}.${CS_PATCHLEVEL}")
+message(STATUS "Csound version: ${CS_VERSION}.${CS_SUBVER}.${CS_PATCHLEVEL}")
 
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/README.md.in ${CMAKE_CURRENT_SOURCE_DIR}/README.md)
 
-set(MACOSX_FRAMEWORK_BUNDLE_VERSION
-"${CS_VERSION}.${CS_SUBVER}.${CS_PATCHLEVEL}")
-
-set(MACOSX_FRAMEWORK_SHORT_VERSION_STRING
-"${CS_VERSION}.${CS_SUBVER}.${CS_PATCHLEVEL}")
-
+set(MACOSX_FRAMEWORK_BUNDLE_VERSION "${CS_VERSION}.${CS_SUBVER}.${CS_PATCHLEVEL}")
+set(MACOSX_FRAMEWORK_SHORT_VERSION_STRING "${CS_VERSION}.${CS_SUBVER}.${CS_PATCHLEVEL}")
 set(MACOSX_FRAMEWORK_IDENTIFIER "CSND")
 
 # Relative install paths
@@ -69,8 +67,7 @@ set(EXECUTABLE_INSTALL_DIR "bin")
 set(LOCALE_INSTALL_DIR "share/locale")
 set(HEADER_INSTALL_DIR "include/csound")
 set(SAMPLES_INSTALL_DIR "/samples")
-set(CS_FRAMEWORK_DEST "$ENV{HOME}/Library/Frameworks" CACHE PATH
-"Csound framework path")
+set(CS_FRAMEWORK_DEST "$ENV{HOME}/Library/Frameworks" CACHE PATH "Csound framework path")
 
 include(TestBigEndian)
 include(CheckFunctionExists)
@@ -85,92 +82,10 @@ include(CMakePushCheckState)
 list(APPEND CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/cmake/Modules/)
 message(STATUS "CMake module path: ${CMAKE_MODULE_PATH}")
 
-# Utility to munge with items in a list.
-#
-macro(LIST_REPLACE LIST INDEX NEWVALUE)
-    list(INSERT ${LIST} ${INDEX} ${NEWVALUE})
-    MATH(EXPR __INDEX "${INDEX} + 1")
-    list (REMOVE_AT ${LIST} ${__INDEX})
-endmacro(LIST_REPLACE)
-
-# Utility function to make executables. All plugin targets should use this as it
-# sets up output directory set in top-level CmakeLists.txt
-# and adds an appropriate install target
-#
-# name - name of executable to produce
-# srcs - list of src files
-# libs - list of library files to link to
-# output_name (OPTIONAL) - overide the name of the generated executable
-#
-function(make_executable name srcs libs)
-    add_executable(${name} ${srcs})
-    target_link_libraries (${name} ${libs})
-    set_target_properties(${name} PROPERTIES
-        RUNTIME_OUTPUT_DIRECTORY ${BUILD_BIN_DIR})
-
-    if(${ARGC} EQUAL 4)
-        set_target_properties(${name} PROPERTIES
-            OUTPUT_NAME ${ARGV3})
-    endif()
-    install(TARGETS ${name}
-	RUNTIME DESTINATION "${EXECUTABLE_INSTALL_DIR}" )
-endfunction(make_executable)
-
-
-# Utility function to make a utility executable
-#
-# name - name of executable to produce
-# srcs - list of src files
-# libraries - OPTIONAL extra libraries to link
-#
-function(make_utility name srcs)
-    make_executable(${name} "${srcs}" "${CSOUNDLIB}")
-    add_dependencies(${name} ${CSOUNDLIB})
-    set(i 2)
-    while( ${i} LESS ${ARGC} )
-        target_link_libraries(${name} ${ARGV${i}})
-        math(EXPR i "${i}+1")
-    endwhile()
-endfunction()
-
-# Checks if dependencies for an enabled target are fulfilled.
-# If FAIL_MISSING is true and the dependencies are not fulfilled,
-# it will abort the cmake run.
-# If FAIL_MISSING is false, it will set the option to OFF.
-# If the target is not enabled, it will do nothing.
-# example: check_deps(BUILD_NEW_PARSER FLEX_EXECUTABLE
-# BISON_EXECUTABLE)
-#
-function(check_deps option)
-    if(${option})
-        set(i 1)
-        while( ${i} LESS ${ARGC} )
-            set(dep ${ARGV${i}})
-            if(NOT ${dep})
-                if(FAIL_MISSING)
-                    message(FATAL_ERROR
-                        "${option} is enabled, but ${dep}=\"${${dep}}\"")
-                else()
-                    message(STATUS "${dep}=\"${${dep}}\", so disabling ${option}")
-                    set(${option} OFF PARENT_SCOPE)
-                    # Set it in the local scope too
-                    set(${option} OFF)
-                endif()
-            endif()
-            math(EXPR i "${i}+1")
-        endwhile()
-    endif()
-    if(${option})
-        message(STATUS "${option} is enabled.")
-    else()
-        message(STATUS "${option} is disabled.")
-    endif()
-endfunction(check_deps)
-
 ### COMPILER OPTIMIZATION FLAGS
 option(USE_COMPILER_OPTIMIZATIONS "Use the default Csound compiler optimization flags" ON)
 if(USE_COMPILER_OPTIMIZATIONS)
-include(cmake/CompilerOptimizations.cmake)
+    include(cmake/CompilerOptimizations.cmake)
 endif()
 
 ## USER OPTIONS ##
@@ -193,14 +108,19 @@ option(LEXER_DEBUG "Build lexer with debug option" OFF)
 option(USE_GIT_COMMIT "Show the git commit in version information" ON)
 option(REQUIRE_PTHREADS "For non-Windows systems, set whether Csound will use threads or not" ON)
 option(BUILD_DOCS "Build documentation (requires doxygen)" OFF)
-option(DEBUG_ERROR_ON_WARNING "For a debug build, error on a compiler warning" OFF)
+option(DEBUG_ERROR_ON_WARNING "For a debug build, error on a compiler# warning" OFF)
+option(BARE_METAL "To configure for bare metal build" OFF)
 
-
+if(BARE_METAL)
+    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS}  -DBARE_METAL")
+    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS}  -DNO_CSOUND_SERVER")
+endif()
 
 # Include this after the install path definitions so we can override them here.
 # Also after function definitions so we can use them there
 # Also after user options so that the default values don't overwrite the custom files values
 find_file(CUSTOM_CMAKE "Custom.cmake" HINTS ${CMAKE_HOME_DIRECTORY})
+
 if(CUSTOM_CMAKE)
     message(STATUS "Including Custom.cmake file: ${CUSTOM_CMAKE}")
     include(${CUSTOM_CMAKE})
@@ -221,8 +141,13 @@ endif()
 
 # set -Werror if in Debug configuration
 if(NOT MSVC AND NOT WASM)
-    set(CMAKE_CXX_FLAGS_RELEASE "-O3 ")
-    set(CMAKE_C_FLAGS_RELEASE "-O3 ")
+#ifdef BARE_METAL
+    set(CMAKE_CXX_FLAGS_RELEASE "-Os")
+    set(CMAKE_C_FLAGS_RELEASE "-Os")
+#else
+    set(CMAKE_CXX_FLAGS_RELEASE "-O3")
+    set(CMAKE_C_FLAGS_RELEASE "-O3")
+#endif
     if(${CMAKE_BUILD_TYPE} MATCHES "Debug")
         set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}  -Wall -Wno-missing-field-initializers")
         set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wall -Wno-missing-field-initializers")
@@ -243,8 +168,6 @@ if(APPLE)
         message(STATUS  "clock_gettime() not found")
     endif()
 endif()
-
-
 
 # library installation directories
 option(USE_LIB64 "Set to on to set installation directory for libraries to lib64" OFF)
@@ -344,31 +267,33 @@ if (HAS_CXX_VISIBILITY_HIDDEN)
 endif()
 
 if(APPLE)
-if(IOS)
-message(STATUS "Building for iOS.")
-else()
-message(STATUS "Building for OSX")
-  if(BUILD_INSTALLER)
-    set(CS_FRAMEWORK_DEST "${CMAKE_INSTALL_PREFIX}")
-  endif()
-  set(DEFAULT_OSX_SYSROOT /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.8.sdk/)
- if(NOT CMAKE_OSX_SYSROOT AND EXISTS ${DEFAULT_OSX_SYSROOT})
-    set(CMAKE_OSX_SYSROOT ${DEFAULT_OSX_SYSROOT})
- endif()
+    if(IOS)
+        message(STATUS "Building for iOS.")
+    else()
+        message(STATUS "Building for OSX")
 
-  if(CMAKE_OSX_SYSROOT AND NOT CMAKE_OSX_SYSROOT MATCHES ".*OSX10.6.*"
-     AND (NOT  CMAKE_OSX_DEPLOYMENT_TARGET))
-    set(CMAKE_OSX_DEPLOYMENT_TARGET 10.7)
-    message(STATUS "OSX: Setting Deployment Target to 10.7")
-  else()
-    message(STATUS "OSX: Setting Deployment Target to ${CMAKE_OSX_DEPLOYMENT_TARGET}")
-  endif()
+        if(BUILD_INSTALLER)
+            set(CS_FRAMEWORK_DEST "${CMAKE_INSTALL_PREFIX}")
+        endif()
 
-  set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -DHAVE_VECLIB")
-  if(NOT VECLIB_PATH)
-    set(VECLIB_PATH "/System/Library/Frameworks/")
-  endif()
- endif()
+        set(DEFAULT_OSX_SYSROOT /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.8.sdk/)
+        if(NOT CMAKE_OSX_SYSROOT AND EXISTS ${DEFAULT_OSX_SYSROOT})
+            set(CMAKE_OSX_SYSROOT ${DEFAULT_OSX_SYSROOT})
+        endif()
+
+        if(CMAKE_OSX_SYSROOT AND NOT CMAKE_OSX_SYSROOT MATCHES ".*OSX10.6.*"
+            AND (NOT  CMAKE_OSX_DEPLOYMENT_TARGET))
+            set(CMAKE_OSX_DEPLOYMENT_TARGET 10.7)
+            message(STATUS "OSX: Setting Deployment Target to 10.7")
+        else()
+            message(STATUS "OSX: Setting Deployment Target to ${CMAKE_OSX_DEPLOYMENT_TARGET}")
+        endif()
+
+        set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -DHAVE_VECLIB")
+        if(NOT VECLIB_PATH)
+            set(VECLIB_PATH "/System/Library/Frameworks/")
+        endif()
+    endif()
 endif()
 
 # Set plugins install directory
@@ -401,11 +326,9 @@ if(APPLE)
 
     # dir relative to $HOME
     if(USE_DOUBLE)
-      set(DEFAULT_USER_PLUGINDIR
-    "Library/csound/${APIVERSION}/plugins64")
+      set(DEFAULT_USER_PLUGINDIR "Library/csound/${APIVERSION}/plugins64")
    else()
-      set(DEFAULT_USER_PLUGINDIR
-    "Library/csound/${APIVERSION}/plugins")
+      set(DEFAULT_USER_PLUGINDIR "Library/csound/${APIVERSION}/plugins")
     endif()
 
     add_definitions("-DCS_DEFAULT_USER_PLUGINDIR=\"${DEFAULT_USER_PLUGINDIR}\"")
@@ -424,11 +347,9 @@ if(LINUX)
     add_definitions("-DCS_DEFAULT_PLUGINDIR=\"${DEFAULT_OPCODEDIR}\"")
     # dir relative to $HOME
     if(USE_DOUBLE)
-    set(DEFAULT_USER_PLUGINDIR
-    ".local/lib/csound/${APIVERSION}/plugins64")
+        set(DEFAULT_USER_PLUGINDIR ".local/lib/csound/${APIVERSION}/plugins64")
     else()
-    set(DEFAULT_USER_PLUGINDIR
-    ".local/lib/csound/${APIVERSION}/plugins")
+        set(DEFAULT_USER_PLUGINDIR ".local/lib/csound/${APIVERSION}/plugins")
     endif()
     add_definitions("-DCS_DEFAULT_USER_PLUGINDIR=\"${DEFAULT_USER_PLUGINDIR}\"")
 endif()
@@ -436,9 +357,9 @@ endif()
 if(WIN32)
     # dir relaive to %LOCALAPPDATA%
     if(USE_DOUBLE)
-    set(DEFAULT_USER_PLUGINDIR "csound/${APIVERSION}/plugins64")
+        set(DEFAULT_USER_PLUGINDIR "csound/${APIVERSION}/plugins64")
     else()
-    set(DEFAULT_USER_PLUGINDIR "csound/${APIVERSION}/plugin")
+        set(DEFAULT_USER_PLUGINDIR "csound/${APIVERSION}/plugin")
     endif()
     add_definitions("-DCS_DEFAULT_USER_PLUGINDIR=\"${DEFAULT_USER_PLUGINDIR}\"")
 endif()
@@ -450,7 +371,7 @@ else()
 endif()
 
 if(APPLE OR LINUX)
-message(STATUS "default plugin dir set to ${DEFAULT_OPCODEDIR}")
+    message(STATUS "default plugin dir set to ${DEFAULT_OPCODEDIR}")
 endif()
 
 set(BUILD_PLUGINS_DIR ${BUILD_DIR})
@@ -464,104 +385,103 @@ message(STATUS "BUILD_PLUGINS_DIR set to ${BUILD_PLUGINS_DIR}.")
 # OS specific checks
 TEST_BIG_ENDIAN(BIG_ENDIAN)
 
-## CONFIGURATION ##
-SET(BUILD_SHARED_LIBS ON)
-
 ## HEADER/LIBRARY/OTHER CHECKS ##
-# First, required stuff
+# Check if libsndfile is available, if not, disable build
 if(USE_LIBSNDFILE)
- set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -DUSE_LIBSNDFILE")
- set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DUSE_LIBSNDFILE")
-
- if(USE_VCPKG)
-    find_package(SndFile CONFIG REQUIRED)
- else()
-    find_library(LIBSNDFILE_LIBRARY NAMES sndfile libsndfile-1 libsndfile)
-
-  if(NOT LIBSNDFILE_LIBRARY)
-        message(FATAL_ERROR "Csound requires the sndfile library")
-   endif()
- endif()
+    if(USE_VCPKG)
+        find_package(SndFile CONFIG REQUIRED)
+    else()
+        find_library(LIBSNDFILE_LIBRARY NAMES sndfile libsndfile-1 libsndfile)
+        if(NOT LIBSNDFILE_LIBRARY)
+            message(STATUS "libsndfile not found")
+            set(USE_LIBSNDFILE 0)
+        endif()
+    endif()
 endif()
 
-if(EMSCRIPTEN)
-  include_directories(emscripten/deps/libsndfile-1.0.25/src/)
-endif()
-find_path(SNDFILE_H_PATH sndfile.h)
-if(SNDFILE_H_PATH)
-    include_directories(${SNDFILE_H_PATH})
+# carry on setting up libsndifle if so
+if(USE_LIBSNDFILE)
+    add_compile_definitions("USE_LIBSNDFILE")
+
+    if(EMSCRIPTEN)
+        include_directories(emscripten/deps/libsndfile-1.0.25/src/)
+    endif()
+
+    find_path(SNDFILE_H_PATH sndfile.h)
+    if(SNDFILE_H_PATH)
+        include_directories(${SNDFILE_H_PATH})
+    else()
+        message(FATAL_ERROR "Could not find sndfile.h")
+    endif()
+
+    list(APPEND CMAKE_REQUIRED_LIBRARIES ${LIBSNDFILE_LIBRARY})
+    list(APPEND CMAKE_REQUIRED_INCLUDES ${SNDFILE_H_PATH})
+
+    check_c_source_compiles("#include <sndfile.h>
+    int main(int argc, char** argv) {
+    printf(\"SF_FORMAT_MPEG: %d\", SF_FORMAT_MPEG);
+    return 0;
+    }" HAVE_SF_FORMAT_MPEG)
+
+    option(USE_MP3 "Use MP3 support in libsndfile" ON)
+    check_deps(USE_MP3 HAVE_SF_FORMAT_MPEG)
+
+    if (USE_MP3)
+        message(STATUS  "Using libsndfile MP3 support")
+        add_compile_definitions("SNDFILE_MP3")
+    else()
+        message(STATUS  "NOT Using libsndfile MP3 support")
+    endif()
 else()
-    message(FATAL_ERROR "Could not find sndfile.h")
+    message(STATUS  "NOT Using libsndfile")
 endif()
-
-SET(CMAKE_REQUIRED_LIBRARIES ${LIBSNDFILE_LIBRARY})
-SET(CMAKE_REQUIRED_INCLUDES ${SNDFILE_H_PATH})
-
-check_c_source_compiles("#include <sndfile.h>
-int main(int argc, char** argv) {
-printf(\"SF_FORMAT_MPEG: %d\", SF_FORMAT_MPEG);
-return 0;
-}" HAVE_SF_FORMAT_MPEG)
-
-option(USE_MP3 "Use MP3 support in libsndfile" ON)
-check_deps(USE_MP3 HAVE_SF_FORMAT_MPEG)
-
-if (USE_MP3)
-  message(STATUS  "Using libsndfile MP3 support")
-  set(CMAKE_C_FLAGS  "${CMAKE_C_FLAGS} -DSNDFILE_MP3")
-else()
-  message(STATUS  "NOT Using libsndfile MP3 support")
-endif()
-
-
 
 find_package(CURL)
-find_package(Java)
-find_package(JNI)
-
 
 if(NOT MSVC AND REQUIRE_PTHREADS)
-  # Use ladder of if's to support older CMake versions (i.e., travis)
-  find_library(PTHREAD_LIBRARY winpthread-1)
-  if(NOT PTHREAD_LIBRARY)
-    find_library(PTHREAD_LIBRARY pthread)
-  endif()
-  if(NOT PTHREAD_LIBRARY)
-    find_library(PTHREAD_LIBRARY pthreadGC2)
-  endif()
+    # Use ladder of if's to support older CMake versions (i.e., travis)
+    find_library(PTHREAD_LIBRARY winpthread-1)
 
-  if(NOT (PTHREAD_LIBRARY OR HAIKU))
-      # pthreads are built in to Haiku
-      message(STATUS "Csound requires the pthread library")
-  endif()
+    if(NOT PTHREAD_LIBRARY)
+        find_library(PTHREAD_LIBRARY pthread)
+    endif()
 
-  #FIXME this variable is for required include directories, possible bug
-  list(APPEND CMAKE_REQUIRED_INCLUDES pthread.h)
-  if (NOT HAIKU)
-    list(APPEND CMAKE_REQUIRED_LIBRARIES pthread)
-  endif()
+    if(NOT PTHREAD_LIBRARY)
+        find_library(PTHREAD_LIBRARY pthreadGC2)
+    endif()
+
+    if(NOT (PTHREAD_LIBRARY OR HAIKU))
+        # pthreads are built in to Haiku
+        message(STATUS "Csound requires the pthread library")
+    endif()
+
+    # FIXME this variable is for required include directories, possible bug
+    list(APPEND CMAKE_REQUIRED_INCLUDES pthread.h)
+    if (NOT HAIKU)
+        list(APPEND CMAKE_REQUIRED_LIBRARIES pthread)
+    endif()
 endif()
-
 
 # Now, non required library searches
 option(USE_ATOMIC_BUILTIN "Use Atomic Builtins if supported" ON)
-if(USE_ATOMIC_BUILTIN)
-  include(cmake/CheckAtomic.cmake)
-  if(HAVE_ATOMIC_BUILTIN)
-    message(STATUS "Using atomic builtins.")
-    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -DHAVE_ATOMIC_BUILTIN")
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DHAVE_ATOMIC_BUILTIN")
 
-  else()
-    message(STATUS "Not using atomic builtins - not found")
-  endif()
+if(USE_ATOMIC_BUILTIN)
+    include(cmake/CheckAtomic.cmake)
+    if(HAVE_ATOMIC_BUILTIN)
+        message(STATUS "Using atomic builtins.")
+        set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -DHAVE_ATOMIC_BUILTIN")
+        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DHAVE_ATOMIC_BUILTIN")
+    else()
+        message(STATUS "Not using atomic builtins - not found")
+    endif()
 else()
-  message(STATUS "Not using atomic builtins - user disabled")
+    message(STATUS "Not using atomic builtins - user disabled")
 endif()
 
 find_package(Intl)
 find_package(Gettext)
 find_library(MATH_LIBRARY m)
+
 if (NOT MATH_LIBRARY)
     set(MATH_LIBRARY "")
 endif()
@@ -576,8 +496,8 @@ find_file(DIRENT_H "dirent.h")
 
 if(DIRENT_H)
     if(MSVC)
-      get_filename_component(DIRENT_FOLDER ${DIRENT_H} DIRECTORY)
-      list(APPEND CMAKE_REQUIRED_INCLUDES ${DIRENT_FOLDER})
+        get_filename_component(DIRENT_FOLDER ${DIRENT_H} DIRECTORY)
+        list(APPEND CMAKE_REQUIRED_INCLUDES ${DIRENT_FOLDER})
     endif()
 else()
     if(MSVC)
@@ -616,15 +536,15 @@ endif()
 
 ## Check existence of CURL
 if(USE_CURL)
-  find_package(CURL)
+    find_package(CURL)
 
-  if(CURL_FOUND)
-    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -DHAVE_CURL")
-  else()
-    message(STATUS "Not using CURL for urls - not found.")
-  endif()
+    if(CURL_FOUND)
+        set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -DHAVE_CURL")
+    else()
+        message(STATUS "Not using CURL for urls - not found.")
+    endif()
 else()
-  message(STATUS "Not using CURL for urls - disabled.")
+    message(STATUS "Not using CURL for urls - disabled.")
 endif()
 
 # Flex/Bison for the new parser
@@ -654,8 +574,6 @@ include_directories(./)
 
 #checking pthread functions
 if(REQUIRE_PTHREADS AND (PTHREAD_LIBRARY OR HAIKU))
-
-  #list(APPEND libcsound_CFLAGS -DHAVE_PTHREAD)
   set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -DHAVE_PTHREAD")
 
   check_function_exists(pthread_spin_lock PTHREAD_SPIN_LOCK_EXISTS)
@@ -671,28 +589,31 @@ if(REQUIRE_PTHREADS AND (PTHREAD_LIBRARY OR HAIKU))
 endif()
 
 include_directories(${LIBSNDFILE_INCLUDE_DIRECTORY})
-# get the git hash and pass it to csound
-SET(git_hash_values "none")
-if(USE_GIT_COMMIT)
-  find_package(Git)
-  message(STATUS "GIT: ${GIT_EXECUTABLE}")
-  if(GIT_FOUND)
-    execute_process(COMMAND ${GIT_EXECUTABLE} "rev-parse" "HEAD"
-                              WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
-                              OUTPUT_VARIABLE git_hash_value)
-    if (git_hash_value)
-      string(STRIP ${git_hash_value} git_hash_values)
-      message(STATUS "HASH: ${git_hash_values}")
-    endif()
-  endif()
-endif()
-set_source_files_properties(Top/csound.c PROPERTIES
-  COMPILE_FLAGS  -DGIT_HASH_VALUE=${git_hash_values})
 
+# get the git hash and pass it to csound
+set(git_hash_values "none")
+
+if(USE_GIT_COMMIT)
+    find_package(Git)
+    message(STATUS "GIT: ${GIT_EXECUTABLE}")
+
+    if(GIT_FOUND)
+        execute_process(COMMAND ${GIT_EXECUTABLE} "rev-parse" "HEAD"
+                        WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
+                        OUTPUT_VARIABLE git_hash_value)
+
+        if (git_hash_value)
+            string(STRIP ${git_hash_value} git_hash_values)
+            message(STATUS "HASH: ${git_hash_values}")
+        endif()
+    endif()
+endif()
+
+set_source_files_properties(Top/csound.c PROPERTIES COMPILE_FLAGS -DGIT_HASH_VALUE=${git_hash_values})
 
 # The csound library
 set(libcsound_SRCS
-   Top/csound.c
+    Top/csound.c
     Engine/auxfd.c
     Engine/cfgvar.c
     Engine/corfiles.c
@@ -858,16 +779,14 @@ set(libcsound_SRCS
     Top/server.c)
 
 if(WIN32 AND NOT MSVC)
-set_source_files_properties(Opcodes/sfont.c PROPERTIES
-    COMPILE_FLAGS -mno-ms-bitfields)
+    set_source_files_properties(Opcodes/sfont.c PROPERTIES
+        COMPILE_FLAGS -mno-ms-bitfields)
 endif()
 
 if(NOT MSVC)
-set_source_files_properties(Opcodes/sfont.c PROPERTIES
-  COMPILE_FLAGS -Wno-address-of-packed-member)
+    set_source_files_properties(Opcodes/sfont.c PROPERTIES
+        COMPILE_FLAGS -Wno-address-of-packed-member)
 endif()
-
-
 
 set(stdopcod_SRCS
     Opcodes/ambicode.c
@@ -950,11 +869,10 @@ set(mp3in_SRCS
     InOut/libmpadec/mpadec.c
     InOut/libmpadec/mp3dec.c)
 
-list(APPEND libcsound_SRCS ${stdopcod_SRCS} ${cs_pvs_ops_SRCS}
-${oldpvoc_SRCS} ${mp3in_SRCS})
+list(APPEND libcsound_SRCS ${stdopcod_SRCS} ${cs_pvs_ops_SRCS} ${oldpvoc_SRCS} ${mp3in_SRCS})
 
 if(BUILD_PERFTHREAD_CLASS)
- list(APPEND libcsound_SRCS "Top/csPerfThread.cpp")
+    list(APPEND libcsound_SRCS "Top/csPerfThread.cpp")
 endif()
 
 if(INIT_STATIC_MODULES)
@@ -966,6 +884,7 @@ if(INIT_STATIC_MODULES)
         Opcodes/ftsamplebank.cpp
         Opcodes/mixer.cpp
         Opcodes/signalflowgraph.cpp)
+
     set_source_files_properties(${static_modules_SRCS} PROPERTIES COMPILE_FLAGS -DINIT_STATIC_MODULES)
     list(APPEND libcsound_SRCS ${static_modules_SRCS})
     message(STATUS "Building static modules")
@@ -980,42 +899,41 @@ set(YACC_OUTH ${CMAKE_CURRENT_BINARY_DIR}/csound_orcparse.h)
 set(LEX_SRC ${CMAKE_CURRENT_SOURCE_DIR}/Engine/csound_orc.lex)
 set(LEX_OUT ${CMAKE_CURRENT_BINARY_DIR}/csound_orclex.c)
 set_source_files_properties(${CMAKE_CURRENT_BINARY_DIR}/csound_orclex.c
-PROPERTIES COMPILE_FLAGS "-Wno-implicit-fallthrough")
+    PROPERTIES COMPILE_FLAGS "-Wno-implicit-fallthrough")
+
 set(PRELEX_SRC ${CMAKE_CURRENT_SOURCE_DIR}/Engine/csound_pre.lex)
 set(PRELEX_OUT ${CMAKE_CURRENT_BINARY_DIR}/csound_prelex.c)
 set_source_files_properties(${CMAKE_CURRENT_BINARY_DIR}/csound_prelex.c
-PROPERTIES COMPILE_FLAGS "-Wno-implicit-fallthrough")
+    PROPERTIES COMPILE_FLAGS "-Wno-implicit-fallthrough")
 
 if(LEXER_DEBUG)
-message(STATUS "Building lexer with debug option")
-add_custom_command(
-    OUTPUT ${LEX_OUT}
-    DEPENDS ${LEX_SRC}
-    COMMAND ${FLEX_EXECUTABLE} ARGS -d -B -t ${LEX_SRC} > ${LEX_OUT}
-    )
+    message(STATUS "Building lexer with debug option")
 
+    add_custom_command(
+        OUTPUT ${LEX_OUT}
+        DEPENDS ${LEX_SRC}
+        COMMAND ${FLEX_EXECUTABLE} ARGS -d -B -t ${LEX_SRC} > ${LEX_OUT}
+    )
 else()
-add_custom_command(
-    OUTPUT ${LEX_OUT}
-    DEPENDS ${LEX_SRC}
-    COMMAND ${FLEX_EXECUTABLE} ARGS -B -t  ${LEX_SRC} > ${LEX_OUT}
+    add_custom_command(
+        OUTPUT ${LEX_OUT}
+        DEPENDS ${LEX_SRC}
+        COMMAND ${FLEX_EXECUTABLE} ARGS -B -t  ${LEX_SRC} > ${LEX_OUT}
     )
 endif()
-
-
 
 add_custom_command(
     DEPENDS ${PRELEX_SRC}
     COMMAND ${FLEX_EXECUTABLE} ARGS -B ${PRELEX_SRC} > ${PRELEX_OUT}
     OUTPUT ${PRELEX_OUT}
-    )
+)
 
 add_custom_command(
     OUTPUT ${YACC_OUT} ${YACC_OUTH}
     DEPENDS ${YACC_SRC} ${LEX_OUT}
     COMMAND ${BISON_EXECUTABLE}
     ARGS -pcsound_orc -d --report=itemset -o ${YACC_OUT} ${YACC_SRC}
-    )
+)
 
 list(APPEND libcsound_SRCS
     ${LEX_OUT} ${YACC_OUT} ${PRELEX_OUT}
@@ -1035,10 +953,10 @@ set_source_files_properties(${LEX_OUT} GENERATED)
 set_source_files_properties(${PRELEX_OUT} GENERATED)
 
 if(MSVC)
-  set_source_files_properties(${LEX_OUT} PROPERTIES
-    COMPILE_FLAGS -DYY_NO_UNISTD_H)
-  set_source_files_properties(${PRELEX_OUT} PROPERTIES
-    COMPILE_FLAGS -DYY_NO_UNISTD_H)
+    set_source_files_properties(${LEX_OUT} PROPERTIES
+        COMPILE_FLAGS -DYY_NO_UNISTD_H)
+    set_source_files_properties(${PRELEX_OUT} PROPERTIES
+        COMPILE_FLAGS -DYY_NO_UNISTD_H)
 endif()
 
 # Handling New Score Parser
@@ -1069,7 +987,7 @@ add_custom_command(
     OUTPUT ${PRELEX_SCOOUT}
     DEPENDS ${PRELEX_SCOSRC}
     COMMAND ${FLEX_EXECUTABLE} ARGS -B -t -d ${PRELEX_SCOSRC} > ${PRELEX_SCOOUT}
-    )
+)
 
 #add_custom_command(
 #    OUTPUT ${YACC_SCOOUT} ${YACC_SCOOUTH}
@@ -1085,8 +1003,8 @@ list(APPEND libcsound_SRCS ${PRELEX_SCOOUT})
 #set_source_files_properties(${LEX_SCOOUT} GENERATED)
 set_source_files_properties(${PRELEX_SCOOUT} GENERATED)
 if(MSVC)
-  set_source_files_properties(${PRELEX_SCOOUT} PROPERTIES
-    COMPILE_FLAGS -DYY_NO_UNISTD_H)
+    set_source_files_properties(${PRELEX_SCOOUT} PROPERTIES
+        COMPILE_FLAGS -DYY_NO_UNISTD_H)
 endif()
 
 include_directories(${CMAKE_CURRENT_BINARY_DIR})
@@ -1118,17 +1036,14 @@ set(CSOUNDLIB_STATIC "${CSOUNDLIB}-static")
 # ADDING HERE TO GRAB LIST OF HEADERS IN CASE OF BUILDING OSX FRAMEWORK
 add_subdirectory(include)
 
-
 if(APPLE)
     string(REGEX REPLACE "([^;]+)(;|$)" "include/\\1\\2" csheaders "${csheaders}")
     file(GLOB H_headers "${CMAKE_CURRENT_SOURCE_DIR}/H/*.h")
-    set(libcsound_SRCS
-    "${libcsound_SRCS};${csheaders};${H_headers};${CMAKE_CURRENT_BINARY_DIR}/include/float-version.h;${CMAKE_CURRENT_BINARY_DIR}/include/version.h")
+    set(libcsound_SRCS "${libcsound_SRCS};${csheaders};${H_headers};${CMAKE_CURRENT_BINARY_DIR}/include/float-version.h;${CMAKE_CURRENT_BINARY_DIR}/include/version.h")
 endif()
 
 add_library(${CSOUNDLIB} SHARED ${libcsound_SRCS})
-set_target_properties(${CSOUNDLIB} PROPERTIES
-    SOVERSION ${APIVERSION})
+set_target_properties(${CSOUNDLIB} PROPERTIES SOVERSION ${APIVERSION})
 
 if(INIT_STATIC_MODULES)
     set_target_properties(${CSOUNDLIB} PROPERTIES COMPILE_FLAGS "-DINIT_STATIC_MODULES")
@@ -1138,68 +1053,40 @@ if(APPLE)
     set_target_properties(${CSOUNDLIB} PROPERTIES FRAMEWORK YES)
     set_target_properties(${CSOUNDLIB} PROPERTIES FRAMEWORK_VERSION "${APIVERSION}")
     set_target_properties(${CSOUNDLIB} PROPERTIES PUBLIC_HEADER
-    "${csheaders};${CMAKE_CURRENT_BINARY_DIR}/include/float-version.h;${CMAKE_CURRENT_BINARY_DIR}/include/version.h"
+        "${csheaders};${CMAKE_CURRENT_BINARY_DIR}/include/float-version.h;${CMAKE_CURRENT_BINARY_DIR}/include/version.h"
     )
 endif()
 
-
-# Utility function to make plugins. All plugin targets should use this as it
-# sets up output directory set in top-level CmakeLists.txt
-# and adds the appropriate install target
-#
-# libname - name of library to produce
-# srcs - list of src files (must be quoted if a list)
-# extralibs (OPTIONAL) - extra libraries to link the plugin to
-#
-# NB - this was moved here as it needs some VARS defined above
-# for setting up the framework
-function(make_plugin libname srcs)
-    if(APPLE)
-        add_library(${libname} SHARED ${srcs})
-    else()
-        add_library(${libname} MODULE ${srcs})
-    endif()
-
-    set(i 2)
-    while( ${i} LESS ${ARGC} )
-        target_link_libraries(${libname} PRIVATE ${ARGV${i}})
-        math(EXPR i "${i}+1")
-    endwhile()
-
-    set_target_properties(${libname} PROPERTIES
-        RUNTIME_OUTPUT_DIRECTORY ${BUILD_PLUGINS_DIR}
-        LIBRARY_OUTPUT_DIRECTORY ${BUILD_PLUGINS_DIR}
-        ARCHIVE_OUTPUT_DIRECTORY ${BUILD_PLUGINS_DIR})
-
-    install(TARGETS ${libname}
-        LIBRARY DESTINATION "${PLUGIN_INSTALL_DIR}"
-        ARCHIVE DESTINATION "${PLUGIN_INSTALL_DIR}" )
-
-endfunction(make_plugin)
-
 # Add the install target
 if(WIN32)
-  install(TARGETS ${CSOUNDLIB}
-    RUNTIME DESTINATION "${EXECUTABLE_INSTALL_DIR}"
-    ARCHIVE DESTINATION "${LIBRARY_INSTALL_DIR}"
-    FRAMEWORK DESTINATION "${CS_FRAMEWORK_DEST}")
+    install(TARGETS ${CSOUNDLIB}
+        EXPORT CsoundExports
+        RUNTIME DESTINATION "${EXECUTABLE_INSTALL_DIR}"
+        ARCHIVE DESTINATION "${LIBRARY_INSTALL_DIR}"
+        FRAMEWORK DESTINATION "${CS_FRAMEWORK_DEST}")
 else()
-  install(TARGETS ${CSOUNDLIB}
-    LIBRARY DESTINATION "${LIBRARY_INSTALL_DIR}"
-    ARCHIVE DESTINATION "${LIBRARY_INSTALL_DIR}"
-    FRAMEWORK DESTINATION "${CS_FRAMEWORK_DEST}")
+    install(TARGETS ${CSOUNDLIB}
+        EXPORT CsoundExports
+        LIBRARY DESTINATION "${LIBRARY_INSTALL_DIR}"
+        ARCHIVE DESTINATION "${LIBRARY_INSTALL_DIR}"
+        FRAMEWORK DESTINATION "${CS_FRAMEWORK_DEST}")
 endif()
 
+if (LINUX)
+    set_target_properties(${CSOUNDLIB} PROPERTIES
+        INSTALL_RPATH "$ORIGIN"
+    )
+endif()
 
 # TODO include target rather than libs to also bring in transitive dependencies
 set(libcsound_LIBS ${LIBSNDFILE_LIBRARY})
 
 if(REQUIRE_PTHREADS AND PTHREAD_LIBRARY)
-  list(APPEND libcsound_LIBS ${PTHREAD_LIBRARY})
+    list(APPEND libcsound_LIBS ${PTHREAD_LIBRARY})
 endif()
 
 if (HAVE_ATOMIC_BUILTIN)
-  list(APPEND libcsound_LIBS ${ATOMIC_LIB})
+    list(APPEND libcsound_LIBS ${ATOMIC_LIB})
 endif()
 
 if(WIN32)
@@ -1208,14 +1095,6 @@ endif()
 
 if(USE_CURL AND CURL_FOUND)
   list(APPEND libcsound_LIBS ${CURL_LIBRARIES})
-  if(WIN32 AND NOT MSVC)
-    # not quite working yet with msys2/mingw64
-    #list(APPEND libcsound_CFLAGS -DCURL_STATICLIB -DLIBSSH_STATIC)
-    #list(APPEND libcsound_LIBS crypto ssh2 ssl ws2_32 rtmp)
-    #find_library(GNUTLS_LIB gnutls)
-    #list(APPEND libcsound_LIBS ${GNUTLS_LIB})
-  endif()
-
 endif()
 
 check_deps(USE_GETTEXT Intl_FOUND GETTEXT_FOUND)
@@ -1245,8 +1124,8 @@ if(LINUX)
     find_library(LIBRT_LIBRARY rt)
 
     if(LIBRT_LIBRARY)
-      list(APPEND libcsound_LIBS ${LIBRT_LIBRARY})
-      message(STATUS "  ADDING LIBRT LIBRARY: ${LIBRT_LIBRARY}.")
+        list(APPEND libcsound_LIBS ${LIBRT_LIBRARY})
+        message(STATUS "  ADDING LIBRT LIBRARY: ${LIBRT_LIBRARY}.")
     endif()
 
     find_library(LIBEXECINFO_LIBRARY execinfo)
@@ -1342,8 +1221,8 @@ if(BIG_ENDIAN)
     list(APPEND libcsound_CFLAGS -DWORDS_BIGENDIAN)
 endif()
 
-
 target_compile_options(${CSOUNDLIB} PRIVATE ${libcsound_CFLAGS})
+
 if(MSVC)
     target_link_libraries(${CSOUNDLIB} PRIVATE ws2_32)
 else()
@@ -1372,7 +1251,7 @@ if(BUILD_STATIC_LIBRARY)
     if(MSVC)
         target_link_libraries(${CSOUNDLIB_STATIC} PRIVATE ${CSOUND_WINDOWS_LIBRARIES})
     else()
-        target_link_libraries(${CSOUNDLIB_STATIC} ${libcsound_LIBS})
+        target_link_libraries(${CSOUNDLIB_STATIC} PRIVATE ${libcsound_LIBS})
     endif()
 
     set_target_properties(${CSOUNDLIB_STATIC} PROPERTIES
@@ -1380,17 +1259,22 @@ if(BUILD_STATIC_LIBRARY)
         LIBRARY_OUTPUT_DIRECTORY ${BUILD_LIB_DIR}
         ARCHIVE_OUTPUT_DIRECTORY ${BUILD_LIB_DIR})
 
+    if (LINUX)
+        set_target_properties(${CSOUNDLIB_STATIC} PROPERTIES
+            INSTALL_RPATH "$ORIGIN"
+        )
+    endif()
+
     # Add the install target
     install(TARGETS ${CSOUNDLIB_STATIC}
+        EXPORT CsoundExports
         LIBRARY DESTINATION "${LIBRARY_INSTALL_DIR}"
         ARCHIVE DESTINATION "${LIBRARY_INSTALL_DIR}")
 endif()
 
-
 add_subdirectory(Opcodes)
 add_subdirectory(InOut)
 add_subdirectory(Frontends)
-add_subdirectory(Java)
 add_subdirectory(Python)
 add_subdirectory(Bela)
 add_subdirectory(util)
@@ -1412,8 +1296,8 @@ add_custom_target(uninstall
 
 # target etags/tags
 if(UNIX)
-  add_custom_target(tags COMMAND etags `find ${CMAKE_CURRENT_SOURCE_DIR} -name \\*.cc -or -name \\*.hh -or -name \\*.cpp -or -name \\*.h -or -name \\*.c | grep -v " " `)
-  add_custom_target(etags DEPENDS tags)
+    add_custom_target(tags COMMAND etags `find ${CMAKE_CURRENT_SOURCE_DIR} -name \\*.cc -or -name \\*.hh -or -name \\*.cpp -or -name \\*.h -or -name \\*.c | grep -v " " `)
+    add_custom_target(etags DEPENDS tags)
 endif()
 
 # build a CPack driven installer package
@@ -1429,31 +1313,36 @@ include (CPack)
 
 # Documentation
 if(BUILD_DOCS)
-find_package(Doxygen)
-if(DOXYGEN_FOUND)
-    configure_file(${CMAKE_CURRENT_SOURCE_DIR}/config.doxygen
-          ${CMAKE_CURRENT_BINARY_DIR}/Doxyfile @ONLY)
-    add_custom_target(doc ${DOXYGEN_EXECUTABLE}
+    find_package(Doxygen)
+
+    if(DOXYGEN_FOUND)
+        configure_file(${CMAKE_CURRENT_SOURCE_DIR}/config.doxygen
+            ${CMAKE_CURRENT_BINARY_DIR}/Doxyfile @ONLY
+        )
+
+        add_custom_target(doc ${DOXYGEN_EXECUTABLE}
             ${CMAKE_CURRENT_BINARY_DIR}/Doxyfile
-     WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
-     )
- else()
-   message(STATUS "Not building documentation")
-endif(DOXYGEN_FOUND)
+            WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
+        )
+    else()
+        message(STATUS "Not building documentation")
+    endif()
 else()
-message(STATUS "Not building documentation")
+    message(STATUS "Not building documentation")
 endif()
 
-
 # install CMake module
-install(FILES ${CMAKE_SOURCE_DIR}/cmake/Modules/FindCsound.cmake
-        DESTINATION "${CMAKE_INSTALL_PREFIX}/share/cmake/Csound")
+install(EXPORT CsoundExports
+    FILE "CsoundConfig.cmake"
+    NAMESPACE "Csound::"
+    DESTINATION "${CMAKE_INSTALL_PREFIX}/share/csound"
+)
 
 # install samples
 if(APPLE)
- install(DIRECTORY ${CMAKE_SOURCE_DIR}/samples
-          DESTINATION  ${CS_FRAMEWORK_DEST}/${CSOUNDLIB}.framework/Versions/${APIVERSION})
+    install(DIRECTORY ${CMAKE_SOURCE_DIR}/samples
+            DESTINATION  ${CS_FRAMEWORK_DEST}/${CSOUNDLIB}.framework/Versions/${APIVERSION})
 else()
- install(DIRECTORY ${CMAKE_SOURCE_DIR}/samples
-          DESTINATION ${CMAKE_INSTALL_PREFIX}/share)
+    install(DIRECTORY ${CMAKE_SOURCE_DIR}/samples
+            DESTINATION ${CMAKE_INSTALL_PREFIX}/share)
 endif()

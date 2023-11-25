@@ -695,7 +695,7 @@ static const CSOUND cenviron_ = {
     FL(-1.0),       /*  mtpdsr              */
     FL(0.0),        /*  onedksmps           */
     FL(0.0),        /*  onedkr              */
-    FL(0.0),        /*  kicvt               */
+    FL(0.0),        /*  kicvt               */ 
     0,              /*  reinitflag          */
     0,              /*  tieflag             */
     DFLT_DBFS,      /*  e0dbfs              */
@@ -705,9 +705,11 @@ static const CSOUND cenviron_ = {
     NULL,           /*  rtPlay_userdata     */
 #if defined(MSVC) ||defined(__POWERPC__) || defined(MACOSX)
     {0},
-#else
+#elif defined(LINUX)
    {{{0}}},        /*  exitjmp of type jmp_buf */
-#endif
+#else 
+   {0},  
+#endif 
     NULL,           /*  frstbp              */
     0,              /*  sectcnt             */
     0, 0, 0,        /*  inerrcnt, synterrcnt, perferrcnt */
@@ -1216,7 +1218,7 @@ static void psignal_(int sig, char *str)
 }
 #else
 # if !defined(__CYGWIN__)
-static void psignal(int sig, const char *str)
+void psignal(int sig, const char *str)
 {
     fprintf(stderr, "%s: %s\n", str, signal_to_string(sig));
 }
@@ -3533,7 +3535,7 @@ PUBLIC void csoundReset(CSOUND *csound)
     /* now load and pre-initialise external modules for this instance */
     /* this function returns an error value that may be worth checking */
     {
-
+ #ifndef BARE_METAL
       int err = csoundInitStaticModules(csound);
 
       if (csound->delayederrormessages &&
@@ -3570,7 +3572,7 @@ PUBLIC void csoundReset(CSOUND *csound)
       if (csoundInitModules(csound) != 0)
             csound->LongJmp(csound, 1);
 
-
+#endif // BARE_METAL
       init_pvsys(csound);
       /* utilities depend on this as well as orchs; may get changed by an orch */
       dbfs_init(csound, DFLT_DBFS);
@@ -3593,7 +3595,7 @@ PUBLIC void csoundReset(CSOUND *csound)
       csoundAddStandardTypes(csound, csound->typePool);
       /* csoundLoadExternals(csound); */
     }
-
+#ifndef BARE_METAL
     /* allow selecting real time audio module */
     max_len = 21;
     csoundCreateGlobalVariable(csound, "_RTAUDIO", (size_t) max_len);
@@ -3610,18 +3612,19 @@ PUBLIC void csoundReset(CSOUND *csound)
     csoundCreateConfigurationVariable(csound, "rtaudio", s, CSOUNDCFG_STRING,
                                       0, NULL, &max_len,
                                       Str("Real time audio module name"), NULL);
-
+#endif
     /* initialise real time MIDI */
     csound->midiGlobals = (MGLOBAL*) csound->Calloc(csound, sizeof(MGLOBAL));
     csound->midiGlobals->bufp = &(csound->midiGlobals->mbuf[0]);
     csound->midiGlobals->endatp = csound->midiGlobals->bufp;
+#ifndef BARE_METAL    
     csoundCreateGlobalVariable(csound, "_RTMIDI", (size_t) max_len);
     csound->SetMIDIDeviceListCallback(csound, midi_dev_list_dummy);
     csound->SetExternalMidiInOpenCallback(csound, DummyMidiInOpen);
     csound->SetExternalMidiReadCallback(csound,  DummyMidiRead);
     csound->SetExternalMidiOutOpenCallback(csound,  DummyMidiOutOpen);
     csound->SetExternalMidiWriteCallback(csound, DummyMidiWrite);
-
+  
     s = csoundQueryGlobalVariable(csound, "_RTMIDI");
     strcpy(s, "null");
     if (csound->enableHostImplementedMIDIIO == 0)
@@ -3635,7 +3638,7 @@ PUBLIC void csoundReset(CSOUND *csound)
     strcpy(s, "alsa");
 #endif
     else strcpy(s, "hostbased");
-
+ 
     csoundCreateConfigurationVariable(csound, "rtmidi", s, CSOUNDCFG_STRING,
                                       0, NULL, &max_len,
                                       Str("Real time MIDI module name"), NULL);
@@ -3651,6 +3654,7 @@ PUBLIC void csoundReset(CSOUND *csound)
                                       CSOUNDCFG_BOOLEAN, 0, NULL, NULL,
                                       Str("Do not handle special MIDI controllers"
                                           " (sustain pedal etc.)"), NULL);
+ 
     /* sound file tag options */
     max_len = 201;
     i = (max_len + 7) & (~7);
@@ -3716,6 +3720,7 @@ PUBLIC void csoundReset(CSOUND *csound)
                                       CSOUNDCFG_BOOLEAN, 0, NULL, NULL,
                                       Str("Ignore <CsOptions> in CSD files"
                                           " (default: no)"), NULL);
+#endif    
 }
 
 PUBLIC int csoundGetDebug(CSOUND *csound)

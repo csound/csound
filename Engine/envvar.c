@@ -690,6 +690,11 @@ char *csoundSplitFilenameFromPath(CSOUND* csound, const char * path)
  * Note: does not check if file exists
  */
 char *csoundGetDirectoryForPath(CSOUND* csound, const char * path) {
+#ifdef BARE_METAL
+  (void) csound;
+  (void) path;
+  return NULL;
+#else  
     char *partialPath, *tempPath, *lastIndex;
     char *retval;
     char *cwd;
@@ -767,6 +772,7 @@ char *csoundGetDirectoryForPath(CSOUND* csound, const char * path) {
     csound->Free(csound, tempPath);
 
     return retval;
+#endif  
 }
 
 static FILE *csoundFindFile_Std(CSOUND *csound, char **fullName,
@@ -962,7 +968,7 @@ char *csoundFindOutputFile(CSOUND *csound,
     fd = csoundFindFile_Fd(csound, &name_found, filename, 1, envList);
     if (fd >= 0) {
       close(fd);
-      if (remove(name_found)<0) csound->DebugMsg(csound, Str("Remove failed\n"));
+      csound->Warning(csound, Str("Output file already exists: Will be overwritten.\n"));
     }
     return name_found;
 }
