@@ -24,6 +24,13 @@
 */
 
 #include "csoundCore.h"
+
+#ifdef BARE_METAL
+#ifdef HAVE_STRTOD_L
+#undef HAVE_STRTOD_L
+#endif
+#endif
+
 #ifdef HAVE_STRTOD_L
 static locale_t csound_c_locale = NULL;
 #else
@@ -229,7 +236,7 @@ PUBLIC char* cs_strtok_r(char* str, char* delim, char** nextp) {
 
 PUBLIC double cs_strtod(char* nptr, char** endptr) {
 #ifdef HAVE_STRTOD_L
-    return strtod_l(nptr, endptr, csound_c_locale);
+  return strtod_l(nptr, endptr, csound_c_locale);
 #else
     return strtod(nptr, endptr);
 #endif

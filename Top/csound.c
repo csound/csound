@@ -3536,7 +3536,7 @@ PUBLIC void csoundReset(CSOUND *csound)
     /* now load and pre-initialise external modules for this instance */
     /* this function returns an error value that may be worth checking */
     {
- #ifndef BARE_METAL
+
       int err = csoundInitStaticModules(csound);
 
       if (csound->delayederrormessages &&
@@ -3548,7 +3548,7 @@ PUBLIC void csoundReset(CSOUND *csound)
       if (UNLIKELY(err==CSOUND_ERROR))
         csound->Die(csound, Str("Failed during csoundInitStaticModules"));
 
-
+ #ifndef BARE_METAL
      csoundCreateGlobalVariable(csound, "_MODULES",
                                 (size_t) MAX_MODULES*sizeof(MODULE_INFO *));
      char *modules = (char *) csoundQueryGlobalVariable(csound, "_MODULES");
