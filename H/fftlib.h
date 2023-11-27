@@ -36,13 +36,13 @@ extern "C" {
    * Returns the amplitude scale that should be applied to the result of
    * an inverse complex FFT with a length of 'FFTsize' samples.
    */
-  MYFLT csoundGetInverseComplexFFTScale(CSOUND *csound, int FFTsize);
+  MYFLT csoundGetInverseComplexFFTScale(CSOUND *csound, int32_t FFTsize);
 
   /**
    * Returns the amplitude scale that should be applied to the result of
    * an inverse real FFT with a length of 'FFTsize' samples.
    */
-  MYFLT csoundGetInverseRealFFTScale(CSOUND *csound, int FFTsize);
+  MYFLT csoundGetInverseRealFFTScale(CSOUND *csound, int32_t FFTsize);
 
   /**
    * Compute in-place complex FFT
@@ -50,7 +50,7 @@ extern "C" {
    * buf:     array of FFTsize*2 MYFLT values,
    *          in interleaved real/imaginary format
    */
-  void csoundComplexFFT(CSOUND *csound, MYFLT *buf, int FFTsize);
+  void csoundComplexFFT(CSOUND *csound, MYFLT *buf, int32_t FFTsize);
 
   /**
    * Compute in-place inverse complex FFT
@@ -60,7 +60,7 @@ extern "C" {
    * Output should be scaled by the return value of
    * csoundGetInverseComplexFFTScale(csound, FFTsize).
    */
-  void csoundInverseComplexFFT(CSOUND *csound, MYFLT *buf, int FFTsize);
+  void csoundInverseComplexFFT(CSOUND *csound, MYFLT *buf, int32_t FFTsize);
 
   /**
    * Compute in-place real FFT
@@ -69,7 +69,7 @@ extern "C" {
    *          real/imaginary format, except for buf[1] which is the real
    *          part for the Nyquist frequency
    */
-  void csoundRealFFT(CSOUND *csound, MYFLT *buf, int FFTsize);
+  void csoundRealFFT(CSOUND *csound, MYFLT *buf, int32_t FFTsize);
 
   /**
    * Compute in-place inverse real FFT
@@ -80,7 +80,7 @@ extern "C" {
    * Output should be scaled by the return value of
    * csoundGetInverseRealFFTScale(csound, FFTsize).
    */
-  void csoundInverseRealFFT(CSOUND *csound, MYFLT *buf, int FFTsize);
+  void csoundInverseRealFFT(CSOUND *csound, MYFLT *buf, int32_t FFTsize);
 
   /**
    * Multiply two arrays (buf1 and buf2) of complex data in the format
@@ -91,7 +91,7 @@ extern "C" {
    */
   void csoundRealFFTMult(CSOUND *csound,
                          MYFLT *outbuf, MYFLT *buf1, MYFLT *buf2,
-                         int FFTsize, MYFLT scaleFac);
+                         int32_t FFTsize, MYFLT scaleFac);
 
   /**
    * Compute in-place real FFT, allowing non power of two FFT sizes.
@@ -102,7 +102,7 @@ extern "C" {
    * FFTsize: FFT length in samples; not required to be an integer power of two,
    *          but should be even and not have too many factors.
    */
-  void csoundRealFFTnp2(CSOUND *csound, MYFLT *buf, int FFTsize);
+  void csoundRealFFTnp2(CSOUND *csound, MYFLT *buf, int32_t FFTsize);
 
   /**
    * Compute in-place inverse real FFT, allowing non power of two FFT sizes.
@@ -114,7 +114,7 @@ extern "C" {
    * FFTsize: FFT length in samples; not required to be an integer power of two,
    *          but should be even and not have too many factors.
    */
-  void csoundInverseRealFFTnp2(CSOUND *csound, MYFLT *buf, int FFTsize);
+  void csoundInverseRealFFTnp2(CSOUND *csound, MYFLT *buf, int32_t FFTsize);
 
 
    /**
@@ -128,7 +128,7 @@ extern "C" {
    *
    *  returns: a pointer to the FFT setup.
    */
-  void *csoundRealFFT2Setup(CSOUND *csound, int FFTsize, int d);
+  void *csoundRealFFT2Setup(CSOUND *csound, int32_t FFTsize, int32_t d);
 
    /**
    * New Real FFT interface

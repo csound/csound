@@ -78,7 +78,7 @@ static MYFLT *create_ls_table(CSOUND *csound, size_t cnt, int32_t ind)
     return (MYFLT*) (csound->QueryGlobalVariableNoCheck(csound, name));
 }
 
-void calc_vbap_gns(int32_t ls_set_am, int dim, LS_SET *sets,
+void calc_vbap_gns(int32_t ls_set_am, int32_t dim, LS_SET *sets,
                    MYFLT *gains, int32_t ls_amount,
                    CART_VEC cart_dir)
      /* Selects a vector base of a virtual source.

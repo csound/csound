@@ -133,39 +133,39 @@ typedef struct {                                /* structs for INSTR 0 opcodes *
   MYFLT  *chnum[16];
 } MIDGLOBAL;
 
-int CLsend(CSOUND *csound, int conn, void *data, int length);
-int SVrecv(CSOUND *csound, int conn, void *data, int length);
+int32_t CLsend(CSOUND *csound, int32_t conn, void *data, int32_t length);
+int32_t SVrecv(CSOUND *csound, int32_t conn, void *data, int32_t length);
 
 /* musmon:      divert a score insno event to a remote machine */
-int insSendevt(CSOUND *p, EVTBLK *evt, int rfd);
+int32_t insSendevt(CSOUND *p, EVTBLK *evt, int32_t rfd);
 
 /* musmon:      send an event (funcs, reverbs) to all active remote machines */
-int insGlobevt(CSOUND *p, EVTBLK *evt);
+int32_t insGlobevt(CSOUND *p, EVTBLK *evt);
 
 /* musmon:      divert a MIDI channel event to a remote machine */
-int MIDIsendevt(CSOUND *p, MEVENT *evt, int rfd);
+int32_t MIDIsendevt(CSOUND *p, MEVENT *evt, int32_t rfd);
 
 /* musmon:      send a MIDI channel event (ctrlrs, reverbs) to all
    active remote machines */
-int MIDIGlobevt(CSOUND *p, MEVENT *evt);
+int32_t MIDIGlobevt(CSOUND *p, MEVENT *evt);
 
 /* midirecv:    divert a MIDI channel message to a remote machine */
-int MIDIsend_msg(CSOUND *p, MEVENT *evt, int rfd);
+int32_t MIDIsend_msg(CSOUND *p, MEVENT *evt, int32_t rfd);
 
 /* midirecv:    send a MIDI channel message (ctrlrs, reverbs) to all
    active remote machines */
-int MIDIGlob_msg(CSOUND *p, MEVENT *evt);
+int32_t MIDIGlob_msg(CSOUND *p, MEVENT *evt);
 
 /* musmon: returns the active input sockets # */
-int* getRemoteSocksIn(CSOUND *csound);
+int32_t* getRemoteSocksIn(CSOUND *csound);
 
 /* musmon: determine whether an instrument accepts remove events */
-int getRemoteInsRfd(CSOUND *csound, int insno);
+int32_t getRemoteInsRfd(CSOUND *csound, int32_t insno);
 
 /* musmon: determine how many instruments accept remove events */
-int getRemoteInsRfdCount(CSOUND *csound);
+int32_t getRemoteInsRfdCount(CSOUND *csound);
 
 /* musmon: determine whether MIDI channel accepts remove events */
-int getRemoteChnRfd(CSOUND *csound, int chan);
+int32_t getRemoteChnRfd(CSOUND *csound, int32_t chan);
 
 #endif      /* CSOUND_REMOTE_H */

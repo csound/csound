@@ -78,6 +78,7 @@
 #define PFFFT_H
 
 #include <stddef.h> // for size_t
+#include <stdint.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -100,7 +101,7 @@ extern "C" {
     PFFFT_Setup structure is read-only so it can safely be shared by
     multiple concurrent threads.
   */
-  PFFFT_Setup *pffft_new_setup(int N, pffft_transform_t transform);
+  PFFFT_Setup *pffft_new_setup(int32_t N, pffft_transform_t transform);
   void pffft_destroy_setup(PFFFT_Setup *);
   /*
      Perform a Fourier transform , The z-domain data is stored in the
@@ -174,7 +175,7 @@ extern "C" {
 
   /* return 4 or 1 whether support SSE/Altivec instructions was enable when
      building pffft.c */
-  int pffft_simd_size(void);
+  int32_t pffft_simd_size(void);
 
 #ifdef __cplusplus
 }

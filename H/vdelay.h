@@ -122,24 +122,24 @@ typedef struct {
         MYFLT   prev_time, prev_hdif;
 } NREV2;
 
-int vdelset(CSOUND *, VDEL *p);
-int vdelay(CSOUND *, VDEL *p);
-int vdelay3(CSOUND *, VDEL *p);
-int vdelxset(CSOUND *, VDELX *p);
-int vdelxsset(CSOUND *, VDELXS *p);
-int vdelxqset(CSOUND *, VDELXQ *p);
-int vdelayx(CSOUND *, VDELX *p);
-int vdelayxw(CSOUND *, VDELX *p);
-int vdelayxs(CSOUND *, VDELXS *p);
-int vdelayxws(CSOUND *, VDELXS *p);
-int vdelayxq(CSOUND *, VDELXQ *p);
-int vdelayxwq(CSOUND *, VDELXQ *p);
-int multitap_set(CSOUND *, MDEL *p);
-int multitap_play(CSOUND *, MDEL *p);
+int32_t vdelset(CSOUND *, VDEL *p);
+int32_t vdelay(CSOUND *, VDEL *p);
+int32_t vdelay3(CSOUND *, VDEL *p);
+int32_t vdelxset(CSOUND *, VDELX *p);
+int32_t vdelxsset(CSOUND *, VDELXS *p);
+int32_t vdelxqset(CSOUND *, VDELXQ *p);
+int32_t vdelayx(CSOUND *, VDELX *p);
+int32_t vdelayxw(CSOUND *, VDELX *p);
+int32_t vdelayxs(CSOUND *, VDELXS *p);
+int32_t vdelayxws(CSOUND *, VDELXS *p);
+int32_t vdelayxq(CSOUND *, VDELXQ *p);
+int32_t vdelayxwq(CSOUND *, VDELXQ *p);
+int32_t multitap_set(CSOUND *, MDEL *p);
+int32_t multitap_play(CSOUND *, MDEL *p);
 #if 0
 int nreverb_set(CSOUND *, NREV *p);
 int nreverb(CSOUND *, NREV *p);
 #endif
-int reverbx_set(CSOUND *, NREV2 *p);
-int reverbx(CSOUND *, NREV2 *p);
+int32_t reverbx_set(CSOUND *, NREV2 *p);
+int32_t reverbx(CSOUND *, NREV2 *p);
 

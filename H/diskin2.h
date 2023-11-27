@@ -117,14 +117,14 @@ typedef struct {
   int  async;
 } DISKIN2_ARRAY;
 
-int diskin2_init(CSOUND *csound, DISKIN2 *p);
-int diskin2_init_S(CSOUND *csound, DISKIN2 *p);
-int diskin2_perf(CSOUND *csound, DISKIN2 *p);
-int diskin2_init_array_I(CSOUND *csound, DISKIN2_ARRAY *p);
-int diskin2_init_array_S(CSOUND *csound, DISKIN2_ARRAY *p);
-int diskin_init_array_I(CSOUND *csound, DISKIN2_ARRAY *p);
-int diskin_init_array_S(CSOUND *csound, DISKIN2_ARRAY *p);
-int diskin2_perf_array(CSOUND *csound, DISKIN2_ARRAY *p);
+int32_t diskin2_init(CSOUND *csound, DISKIN2 *p);
+int32_t diskin2_init_S(CSOUND *csound, DISKIN2 *p);
+int32_t diskin2_perf(CSOUND *csound, DISKIN2 *p);
+int32_t diskin2_init_array_I(CSOUND *csound, DISKIN2_ARRAY *p);
+int32_t diskin2_init_array_S(CSOUND *csound, DISKIN2_ARRAY *p);
+int32_t diskin_init_array_I(CSOUND *csound, DISKIN2_ARRAY *p);
+int32_t diskin_init_array_S(CSOUND *csound, DISKIN2_ARRAY *p);
+int32_t diskin2_perf_array(CSOUND *csound, DISKIN2_ARRAY *p);
 
 typedef struct {
     OPDS    h;

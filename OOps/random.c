@@ -44,7 +44,7 @@
 
 /* simple linear congruential generator */
 
-PUBLIC int32_t csoundRand31(int32_t *seedVal)
+PUBLIC int csoundRand31(int *seedVal)
 {
     uint64_t  tmp1;
     uint32_t  tmp2;

@@ -136,10 +136,10 @@ typedef struct {
         MYFLT   *ans, *sig, *min, *max;
 } LIMIT;
 
-int kport(CSOUND*,PORT *p);
-int ktone(CSOUND*,TONE *p);
-int katone(CSOUND*,TONE *p);
-int kreson(CSOUND*,RESON *p);
-int kareson(CSOUND*,RESON *p);
-int klimit(CSOUND*,LIMIT *p);
-int limit(CSOUND*,LIMIT *p);
+int32_t kport(CSOUND*,PORT *p);
+int32_t ktone(CSOUND*,TONE *p);
+int32_t katone(CSOUND*,TONE *p);
+int32_t kreson(CSOUND*,RESON *p);
+int32_t kareson(CSOUND*,RESON *p);
+int32_t klimit(CSOUND*,LIMIT *p);
+int32_t limit(CSOUND*,LIMIT *p);
