@@ -24,6 +24,8 @@
 
 /*                                                      UGENS7.H        */
 
+#pragma once
+
 #define PFRAC1(x)   ((MYFLT)((x) & ftp1->lomask) * ftp1->lodiv)
 
 typedef struct ovrlap {

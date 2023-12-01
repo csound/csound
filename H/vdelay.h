@@ -25,6 +25,8 @@
 /*      Berklee College of Music Csound development team                */
 /*      Copyright (c) December 1994.  All rights reserved               */
 
+#pragma once
+
 typedef struct {
         OPDS    h;
         MYFLT   *sr, *ain, *adel, *imaxd, *istod;

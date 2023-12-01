@@ -21,6 +21,8 @@
     02110-1301 USA
 */
 
+#pragma once
+
 #include <stdio.h>                                 /*      SORT.H */
 #ifndef MYFLT
 #include "sysdep.h"

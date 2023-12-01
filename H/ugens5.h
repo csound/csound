@@ -21,6 +21,8 @@
     02110-1301 USA
 */
 
+#pragma once
+
 #include "lpc.h"        /*                               UGENS5.H        */
 
 typedef struct {

@@ -21,6 +21,8 @@
     02110-1301 USA
 */
 
+#pragma once
+
 #define GOOD_TRIG
 
 #if defined(GOOD_TRIG)

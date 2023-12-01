@@ -22,6 +22,8 @@
 */
 
                                                         /* repluck.h */
+#pragma once
+
 typedef struct _DelayLine {
     MYFLT   *data;
     int32_t length;

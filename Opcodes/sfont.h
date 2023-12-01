@@ -22,6 +22,8 @@
     02110-1301 USA
 */
 
+#pragma once
+
 #include "sftype.h"
 #include "sf.h"
 

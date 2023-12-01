@@ -47,6 +47,8 @@
 /*                                                                   */
 /*********************************************************************/
 
+#pragma once
+
 typedef struct {
   OPDS h;                                     /* common to all opcodes */
 

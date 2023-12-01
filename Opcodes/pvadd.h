@@ -23,6 +23,8 @@
 
 /*                                                      PVADD.H    */
 
+#pragma once
+
 #define     MAXBINS         4096
 #ifndef PVFRAMSIZE
 #define     PVFRAMSIZE      8192                /* i.e. max FFT point size */

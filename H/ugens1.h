@@ -23,6 +23,8 @@
 
 /*                                                         UGENS1.H        */
 
+#pragma once
+
 typedef struct {
         OPDS    h;
         MYFLT   *xr, *ia, *idur, *ib;

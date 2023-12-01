@@ -21,6 +21,7 @@
     02110-1301 USA
 */
 #ifndef CSOUND_CSGBLMTX_H
+#define CSOUND_CSGBLMTX_H
 
 
 #ifdef HAVE_PTHREAD

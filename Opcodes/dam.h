@@ -21,6 +21,8 @@
     02110-1301 USA
 */
 
+#pragma once
+
 #include "csdl.h"
 
 #define POWER_BUFSIZE 1000

@@ -21,6 +21,8 @@
     02110-1301 USA
 */
 
+#pragma once
+
 typedef struct {
   int32_t    cnt, wsize, flag; /* , section; */
         MYFLT  ampincr, ampphs, offset;

@@ -23,6 +23,8 @@
 
 /*                                                              PVREAD.H    */
 
+#pragma once
+
 typedef struct {
     OPDS    h;
     MYFLT   *kfreq, *kamp, *ktimpnt,  *ifilno, *ibin;

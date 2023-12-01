@@ -23,6 +23,8 @@
 
 /****************** hrtferxk.h *******************/
 
+#pragma once
+
 #include "3Dug.h"
 
 typedef struct {

@@ -33,6 +33,8 @@
  *
  */
 
+#pragma once
+
 typedef struct {
         OPDS h;
   MYFLT *low, *high, *band, *in, *kfco, *kq, *iscl, *iskip;
