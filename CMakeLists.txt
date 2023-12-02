@@ -110,10 +110,15 @@ option(REQUIRE_PTHREADS "For non-Windows systems, set whether Csound will use th
 option(BUILD_DOCS "Build documentation (requires doxygen)" OFF)
 option(DEBUG_ERROR_ON_WARNING "For a debug build, error on a compiler# warning" OFF)
 option(BARE_METAL "To configure for bare metal build" OFF)
+option(CUSTOM_MALLOC "Use custom malloc in bare metal builds" OFF)
 
 if(BARE_METAL)
     set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS}  -DBARE_METAL")
     set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS}  -DNO_CSOUND_SERVER")
+    if(CUSTOM_MALLOC)
+     set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS}  -DCUSTOM_MALLOC")
+    # the default is for STM32H7: -DMALLOC_BASE=0xC0000000 
+    endif() 
 endif()
 
 # Include this after the install path definitions so we can override them here.

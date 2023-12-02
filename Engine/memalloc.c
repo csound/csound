@@ -24,6 +24,50 @@
 
 #include "csoundCore.h"                 /*              MEMALLOC.C      */
 
+#ifdef CUSTOM_MALLOC
+#ifndef MALLOC_BASE
+#define MALLOC_BASE 0xC0000000  // STM32H7
+#endif
+
+static unsigned long cur = MALLOC_BASE;
+
+void *my_malloc(unsigned long bytes) {
+  unsigned long tmp = cur;
+  cur += bytes;
+  return (void *) tmp;
+}
+
+void *my_calloc(unsigned long items, unsigned long bytes) {
+  unsigned long tmp = cur;
+  cur += bytes*items;
+  memset((void *) tmp, 0, bytes*items);
+  return (void *) tmp;  
+}
+
+void *my_realloc(void *old, unsigned long bytes) {
+    unsigned long tmp = cur;
+    cur += bytes;
+    memcpy((void *) tmp, old, bytes*items);
+    return (void *) tmp;
+}
+
+void my_free(void *old) {
+  // nothing to do
+  // TODO: implement freeing
+  return;
+}
+
+#define CS_MALLOC mymalloc
+#define CS_CALLOC mycalloc
+#define CS_REALLOC myrealloc
+#define CS_FREE myfree
+#else
+#define CS_MALLOC malloc
+#define CS_CALLOC calloc
+#define CS_REALLOC realloc
+#define CS_FREE free
+#endif
+
 /* This code wraps malloc etc with maintaining a list of allocated memory
    so it can be freed on a reset.  It would not be necessary with a zoned
    allocator.
@@ -72,7 +116,7 @@ void *mmalloc(CSOUND *csound, size_t size)
     }
 #endif
     /* allocate memory */
-    if (UNLIKELY((p = malloc(ALLOC_BYTES(size))) == NULL)) {
+    if (UNLIKELY((p = CS_MALLOC(ALLOC_BYTES(size))) == NULL)) {
         memdie(csound, size);     /* does a long jump */
     }
     /* link into chain */
@@ -110,7 +154,7 @@ void *mcalloc(CSOUND *csound, size_t size)
     }
 #endif
     /* allocate memory */
-    if (UNLIKELY((p = calloc(ALLOC_BYTES(size), (size_t) 1)) == NULL)) {
+    if (UNLIKELY((p = CS_CALLOC(ALLOC_BYTES(size), (size_t) 1)) == NULL)) {
       memdie(csound, size);     /* does longjump */
     }
     /* link into chain */
@@ -170,7 +214,7 @@ void mfree(CSOUND *csound, void *p)
     }
     //csound->Message(csound, "free\n");
     /* free memory */
-    free((void*) pp);
+    CS_FREE((void*) pp);
     CSOUND_MEM_SPINUNLOCK
 }
 
@@ -205,7 +249,7 @@ void *mrealloc(CSOUND *csound, void *oldp, size_t size)
     pp->ptr = NULL;
 #endif
     /* allocate memory */
-    p = realloc((void*) pp, ALLOC_BYTES(size));
+    p = CS_REALLOC((void*) pp, ALLOC_BYTES(size));
     pp = p;
     if (UNLIKELY(p == NULL)) {
 #ifdef MEMDEBUG
@@ -257,7 +301,7 @@ void memRESET(CSOUND *csound)
 #ifdef MEMDEBUG
       pp->magic = 0;
 #endif
-      free((void*) pp);
+      CS_FREE((void*) pp);
       pp = nxtp;
     }
 }

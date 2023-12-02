@@ -109,6 +109,7 @@ void corfile_flush(CSOUND *csound, CORFIL *f)
       exit(7);
     }
     f->body = new;
+    f->body[f->len - 1] = '\0';  // VL: added NULL terminator.
     f->p = 0;
 }
 
