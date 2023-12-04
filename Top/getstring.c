@@ -29,6 +29,15 @@
 #ifdef HAVE_STRTOD_L
 #undef HAVE_STRTOD_L
 #endif
+
+#ifdef HAVE_SPRINTF_L
+#undef HAVE_SPRINTF_L
+#endif
+
+#ifdef HAVE__SPRINT_L
+#undef HAVE__SPRINT_L
+#endif
+
 #endif
 
 #ifdef HAVE_STRTOD_L
@@ -249,11 +258,7 @@ PUBLIC int cs_sprintf(char *str, const char *format, ...)
     va_list args;
     int retVal;
     va_start(args, format);
-#ifndef BARE_METAL   
-    retVal = vsprintf_l(str,csound_c_locale,format,args);
-#else
-    retVal = 0;
-#endif    
+    retVal = vsprintf_l(str,csound_c_locale,format,args);   
     va_end(args);
     return retVal;
 }
@@ -263,12 +268,9 @@ PUBLIC int cs_sscanf(char *str, const char *format, ...)
     // This is not thread-safe but no idea how to fix
     va_list args;
     int retVal;
-    va_start(args, format);
-#ifndef BARE_METAL       
+    va_start(args, format);      
     retVal = vsscanf_l(str,csound_c_locale,format,args);
-#else
-    retVal = 0;
-#endif        
+    retVal = vsscanf(str,format,args);       
     va_end(args);
     return retVal;
 }

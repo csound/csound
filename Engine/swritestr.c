@@ -39,15 +39,11 @@ static char   *fpnum(CSOUND *,char *, int, int, CORFIL *sco);
 
 static void fltout(CSOUND *csound, MYFLT n, CORFIL *sco)
 {
-    char *c, buffer[1024];
-#ifndef BARE_METAL    
+    char *c, buffer[1024]; 
     CS_SPRINTF(buffer, "%a", (double)n);
-#else
-    CS_SPRINTF(buffer, "%.20f", (double)n);
-#endif
     /* corfile_puts(buffer, sco); */
     for (c = buffer; *c != '\0'; c++)
-      corfile_putc(csound, *c, sco);
+      corfile_putc(csound, *c, sco);      
 }
 
 /*
