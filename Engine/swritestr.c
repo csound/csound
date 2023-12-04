@@ -40,7 +40,11 @@ static char   *fpnum(CSOUND *,char *, int, int, CORFIL *sco);
 static void fltout(CSOUND *csound, MYFLT n, CORFIL *sco)
 {
     char *c, buffer[1024];
+#ifndef BARE_METAL    
     CS_SPRINTF(buffer, "%a", (double)n);
+#else
+    CS_SPRINTF(buffer, "%.20f", (double)n);
+#endif
     /* corfile_puts(buffer, sco); */
     for (c = buffer; *c != '\0'; c++)
       corfile_putc(csound, *c, sco);
@@ -51,13 +55,13 @@ static void fltout(CSOUND *csound, MYFLT n, CORFIL *sco)
    copies of p2 and p3 are made only in scores
    loaded before the first compilation before
    performance starts; in this case swritestr()
-   is called with first = 0;
+   is called with first = 1;
    In the case of scores passed in after Csound
    is running, events are scheduled as RT events
    through the linevent mechanism (linevent.c)
    and in that scenario, cannot contain duplicate
    p2 and p3 values. In this case, swritestr() is
-   called with first = 1;
+   called with first = 0;
    VL - new in Csound 6.
 */
 
