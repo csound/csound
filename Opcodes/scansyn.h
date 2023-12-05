@@ -20,6 +20,8 @@
     02110-1301 USA
 */
 
+#pragma once
+
 #include "csdl.h"
 
 typedef struct SCANSYN_GLOBALS_ SCANSYN_GLOBALS;

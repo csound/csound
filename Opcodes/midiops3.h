@@ -21,6 +21,8 @@
     02110-1301 USA
 */
 
+#pragma once
+
 typedef struct {
     MYFLT *ictlno, *imin, *imax, *initvalue, *ifn;
 } SLD;

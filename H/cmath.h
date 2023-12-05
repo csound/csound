@@ -21,6 +21,8 @@
     02110-1301 USA
 */
 
+#pragma once
+
 double besseli(double);
 
 /* returns 0 on success, -1 if there are insufficient arguments, */

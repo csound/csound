@@ -21,6 +21,8 @@
     02110-1301 USA
 */
 
+#pragma once
+
 typedef struct {                        /*       INSERT.H                */
     OPDS    h;
     LBLBLK  *lblblk;

@@ -25,6 +25,8 @@
 
 /*                                                      BUS.H           */
 
+#pragma once
+
 #ifndef CSOUND_BUS_H
 #define CSOUND_BUS_H
 

@@ -43,6 +43,8 @@
  * clearly indicated as such.
  */
 
+#pragma once
+
 #include "csoundCore.h"
 
 /*

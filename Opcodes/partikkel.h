@@ -1,6 +1,6 @@
 /*
 Partikkel - a granular synthesis module for Csound 5
-Copyright (C) 2006-2009 Øyvind Brandtsegg, Torgeir Strand Henriksen,
+Copyright (C) 2006-2009 Ã˜yvind Brandtsegg, Torgeir Strand Henriksen,
 Thom Johansen
 
 This library is free software; you can redistribute it and/or
@@ -17,6 +17,8 @@ You should have received a copy of the GNU Lesser General Public
 License along with this library; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
+
+#pragma once
 
 #include "csoundCore.h"
 #include "interlocks.h"

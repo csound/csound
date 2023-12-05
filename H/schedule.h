@@ -22,6 +22,8 @@
     02110-1301 USA
 */
 
+#pragma once
+
 typedef struct {
         OPDS   h;
         MYFLT  *which, *when, *dur;

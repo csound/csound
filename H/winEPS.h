@@ -26,6 +26,8 @@
    /*                             */
 
   /* Open PS file & write header */
+#pragma once
+
 void PS_MakeGraph(CSOUND *csound, WINDAT *wdptr, const char *name);
   /* Make one plot per page      */
 void PS_DrawGraph(CSOUND *csound, WINDAT *wdptr);

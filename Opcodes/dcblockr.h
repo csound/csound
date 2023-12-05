@@ -21,6 +21,8 @@
     02110-1301 USA
 */
 
+#pragma once
+
 typedef struct DCBlocker {
     OPDS        h;
     MYFLT       *ar, *in, *gg;

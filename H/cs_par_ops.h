@@ -23,6 +23,7 @@
 
 /*                                                      CS_PAR_OPS.H          */
 
+#pragma once
 
 typedef struct {
     OPDS    h;

@@ -25,6 +25,8 @@
 /* Controls                                 */
 /********************************************/
 
+#pragma once
+
 #include "csdl.h"
 
 typedef struct CONTROL_GLOBALS_ {

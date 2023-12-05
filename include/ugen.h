@@ -16,6 +16,8 @@
  * - context: required for things like hold, releasing, etc.
  * */
 
+#pragma once
+
 #include "csoundCore.h"
 #include <stdbool.h>
 
