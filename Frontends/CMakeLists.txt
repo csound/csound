@@ -1,11 +1,6 @@
 option(BUILD_CSBEATS "Build the beats score frontend" ON)
 option(BUILD_CSOUND_COMMAND "Build the Csound command" ON)
 
-if (NOT MSVC)
-    find_package(FLEX)
-    find_package(BISON)
-endif()
-
 find_path(PD_HEADER_PATH m_pd.h)
 find_library(PD_LIBRARY pd.dll)
 

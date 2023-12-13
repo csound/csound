@@ -85,44 +85,44 @@ jobs:
       - name: Run integration and unit tests
         run: cmake --build build --target test csdtests
 
-  # macos_build:
-  #   name: MacOS build
-  #   runs-on: macos-latest
-  #   steps:
-  #     - name: Checkout source code
-  #       uses: actions/checkout@v1
-  #       with:
-  #         fetch-depth: 1
-  #         submodules: true
+  macos_build:
+    name: MacOS build
+    runs-on: macos-latest
+    steps:
+      - name: Checkout source code
+        uses: actions/checkout@v1
+        with:
+          fetch-depth: 1
+          submodules: true
 
-  #     - name: Bootstrap VCPKG
-  #       run: ./vcpkg/bootstrap-vcpkg.sh
+      - name: Bootstrap VCPKG
+        run: ./vcpkg/bootstrap-vcpkg.sh
 
-  #     - name: Setup NuGet credentials
-  #       shell: bash
-  #       run: |
-  #         mono `./vcpkg/vcpkg fetch nuget | tail -n 1` \
-  #         sources add \
-  #         -source "https://nuget.pkg.github.com/csound/index.json" \
-  #         -storepasswordincleartext \
-  #         -name "GitHub" \
-  #         -username "csound" \
-  #         -password "${{ secrets.GITHUB_TOKEN }}"
-  #         mono `./vcpkg/vcpkg fetch nuget | tail -n 1` \
-  #           setapikey "${{ secrets.GITHUB_TOKEN }}" \
-  #           -source "https://nuget.pkg.github.com/csound/index.json"
+      - name: Setup NuGet credentials
+        shell: bash
+        run: |
+          mono `./vcpkg/vcpkg fetch nuget | tail -n 1` \
+          sources add \
+          -source "https://nuget.pkg.github.com/csound/index.json" \
+          -storepasswordincleartext \
+          -name "GitHub" \
+          -username "csound" \
+          -password "${{ secrets.GITHUB_TOKEN }}"
+          mono `./vcpkg/vcpkg fetch nuget | tail -n 1` \
+            setapikey "${{ secrets.GITHUB_TOKEN }}" \
+            -source "https://nuget.pkg.github.com/csound/index.json"
 
-  #     - name: Install dependencies
-  #       run: brew install bison@2.7 flex asio jack
+      - name: Install dependencies
+        run: brew install bison flex asio jack
 
-  #     - name: Configure build
-  #       run: cmake -B build -S . -DUSE_VCPKG=1 -DCUSTOM_CMAKE="./platform/osx/custom-osx.cmake"
+      - name: Configure build
+        run: cmake -B build -S . -DUSE_VCPKG=1 -DCUSTOM_CMAKE="./platform/osx/custom-osx.cmake"
 
-  #     - name: Build Csound
-  #       run: cmake --build build --config Release
+      - name: Build Csound
+        run: cmake --build build --config Release
 
-  #     - name: Run integration and unit tests
-  #       run: cmake --build build --target test csdtests
+      - name: Run integration and unit tests
+        run: cmake --build build --target test csdtests
 
   windows_build:
     name: Windows build
