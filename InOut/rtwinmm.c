@@ -21,7 +21,9 @@
     02110-1301 USA
 */
 
+#define _WINSOCKAPI_
 #include <windows.h>
+#undef _WINSOCKAPI_
 #include "csdl.h"
 #include "soundio.h"
 

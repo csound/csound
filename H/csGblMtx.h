@@ -48,7 +48,9 @@ void csoundUnLock() {
 
 #elif defined(_WIN32) || defined (__WIN32__)
 #define _WIN32_WINNT 0x0600
+#define _WINSOCKAPI_
 #include <windows.h>
+#undef _WINSOCKAPI_
 
 #ifdef __cplusplus
 extern "C" {

@@ -42,7 +42,9 @@
 
 #if defined(_MSC_VER)
 /* For InterlockedCompareExchange */
+#define _WINSOCKAPI_
 #include <windows.h>
+#undef _WINSOCKAPI_
 #endif
 
 /* Used as an error value */

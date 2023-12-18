@@ -95,7 +95,9 @@
 #if defined(LINUX) || defined(NEW_MACH_CODE) || defined(__HAIKU__)
 #include <dlfcn.h>
 #elif defined(WIN32)
+#define _WINSOCKAPI_
 #include <windows.h>
+#undef _WINSOCKAPI_
 #endif
 #endif
 

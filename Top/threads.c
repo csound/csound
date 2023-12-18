@@ -47,7 +47,9 @@ static CS_NOINLINE void notImplementedWarning_(const char *name)
 #if defined(HAVE_PTHREAD)
 
 #if defined(WIN32)
+#define _WINSOCKAPI_
 #include <windows.h>
+#undef _WINSOCKAPI_
 #include <process.h>
 
 void gettimeofday_(struct timeval* p, void* tz /* IGNORED */)
@@ -586,7 +588,9 @@ PUBLIC void csoundDestroyCondVar(void* condVar) {
 /* ------------------------------------------------------------------------ */
 
 #elif defined(WIN32)
+#define _WINSOCKAPI_
 #include <windows.h>
+#undef _WINSOCKAPI_
 #if !defined(_USING_V110_SDK71_)
 #include <synchapi.h>
 #endif

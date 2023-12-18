@@ -65,7 +65,9 @@ typedef double    sdif_float64;
 
 #if defined(_WIN32) || defined(_WINDOWS)
   #ifndef _WINDOWS_
+    #define _WINSOCKAPI_
     #include <windows.h>
+    #undef _WINSOCKAPI_
   #endif
 #endif
 

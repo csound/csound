@@ -31,7 +31,9 @@
 
 #if defined(WIN32) || defined(_WIN32) || defined(_MSC_VER)
 
+#define _WINSOCKAPI_
 #include <windows.h>
+#undef _WINSOCKAPI_
 
 #else
 
