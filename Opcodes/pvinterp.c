@@ -27,6 +27,7 @@
 /*****************************************/
 
 #include "pvoc.h"
+#include "pvoc_forward.h" // for PVOC_GLOBALS
 #include <math.h>
 
 #define WLN   1         /* time window is WLN*2*ksmps long */

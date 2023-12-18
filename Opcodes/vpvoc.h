@@ -23,6 +23,8 @@
 
 #pragma once
 
+#include "pvoc_forward.h" // for PVOC_GLOBALS
+
 typedef struct {
     FUNC    *function, *nxtfunction;
     MYFLT   d;

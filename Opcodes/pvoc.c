@@ -22,6 +22,7 @@
 */
 
 #include "pvoc.h"
+#include "pvoc_forward.h" // for PVOC_GLOBALS
 
 int32_t     pvset(CSOUND *, void *), pvset_S(CSOUND *, void *);
 int32_t     pvoc(CSOUND *, void *);

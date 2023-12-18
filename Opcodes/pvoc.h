@@ -28,7 +28,7 @@
 #include "csoundCore.h"
 #include "interlocks.h"
 
-typedef struct PVOC_GLOBALS_ PVOC_GLOBALS;
+#include "pvoc_forward.h" // for PVOC_GLOBALS
 
 #include "dsputil.h"
 #include "ugens8.h"

@@ -30,6 +30,8 @@
 
 #pragma once
 
+#include "pvoc_forward.h" // for PVOC_GLOBALS
+
 #define     SPTS    (16)    /* SINC TABLE: How many points in each lobe   */
 #define     SPDS    (6)     /*   (was 8)   How many sinc lobes to go out  */
 #define     SBW     0.9     /* To compensate for short sinc, reduce bandw */
