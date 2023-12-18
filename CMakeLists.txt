@@ -547,17 +547,38 @@ else()
 endif()
 
 set(HEADERS_TO_CHECK
-    unistd.h io.h fcntl.h stdint.h
-    sys/time.h sys/types.h termios.h
-    values.h winsock.h sys/socket.h
-    dirent.h inttypes.h execinfo.h)
+    arpa/inet.h
+    dirent.h
+    endian.h
+    execinfo.h
+    fcntl.h
+    features.h
+    io.h
+    inttypes.h
+    net/if.h
+    netinet/in.h
+    stdint.h
+    sys/ioctl.h
+    sys/select.h
+    sys/socket.h
+    sys/time.h
+    sys/types.h
+    termios.h
+    unistd.h
+    values.h
+    winsock.h
+)
 
 foreach(header ${HEADERS_TO_CHECK})
     # Convert to uppercase and replace [./] with _
     string(TOUPPER ${header} tmp)
 
     string(REGEX REPLACE [./] "_" upper_header ${tmp})
-    check_include_file(${header} HAVE_${upper_header})
+    set(header_flag HAVE_${upper_header})
+    check_include_file(${header} ${header_flag})
+    if (${header_flag})
+        add_compile_definitions(${header_flag})
+    endif()
 endforeach()
 
 if (NOT HAVE_INTTYPES_H)
@@ -1232,30 +1253,7 @@ endif()
 if(HAVE_WINSOCK_H OR HAVE_SYS_SOCKETS_H)
     list(APPEND libcsound_CFLAGS -DHAVE_SOCKETS)
 endif()
-if(HAVE_DIRENT_H)
-    list(APPEND libcsound_CFLAGS -DHAVE_DIRENT_H)
-endif()
-if(HAVE_FCNTL_H)
-    list(APPEND libcsound_CFLAGS -DHAVE_FCNTL_H)
-endif()
-if(HAVE_UNISTD_H)
-    list(APPEND libcsound_CFLAGS -DHAVE_UNISTD_H)
-endif()
-if(HAVE_STDINT_H)
-    list(APPEND libcsound_CFLAGS -DHAVE_STDINT_H)
-endif()
-if(HAVE_SYS_TIME_H)
-    list(APPEND libcsound_CFLAGS -DHAVE_SYS_TIME_H)
-endif()
-if(HAVE_SYS_TYPES_H)
-    list(APPEND libcsound_CFLAGS -DHAVE_SYS_TYPES_H)
-endif()
-if(HAVE_TERMIOS_H)
-    list(APPEND libcsound_CFLAGS -DHAVE_TERMIOS_H)
-endif()
-if(HAVE_VALUES_H)
-    list(APPEND libcsound_CFLAGS -DHAVE_VALUES_H)
-endif()
+
 #if(CMAKE_C_COMPILER MATCHES "gcc")
 #    list(APPEND libcsound_CFLAGS -fno-strict-aliasing)
 #endif()
