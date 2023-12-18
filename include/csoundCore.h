@@ -512,6 +512,15 @@ typedef struct CORFIL {
       MYFLT   p[2];
     } c;
   } EVTBLK;
+
+  #define MAXSEND (sizeof(EVTBLK) + 2*sizeof(int))
+
+  typedef struct {                        /* Remote Communication buffer          */
+      int         len;                    /* lentot = len + type + data used      */
+      int         type;
+      char        data[MAXSEND];
+  } REMOT_BUF;
+
   /**
    * This struct holds the info for a concrete instrument event
    * instance in performance.

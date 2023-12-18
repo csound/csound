@@ -60,6 +60,7 @@
 #include <string.h>
 #include <errno.h>
 
+#include "csoundCore.h"
 
 void m_chanmsg(CSOUND *csound, MEVENT *mep);   /* called from midirecv & musmon */
 char remoteID(CSOUND *csound);
@@ -69,14 +70,7 @@ char remoteID(CSOUND *csound);
 #define SCOR_EVT 1
 #define MIDI_EVT 2
 #define MIDI_MSG 3
-#define MAXSEND (sizeof(EVTBLK) + 2*sizeof(int))
 #define GLOBAL_REMOT -99
-
-typedef struct {                        /* Remote Communication buffer          */
-    int         len;                    /* lentot = len + type + data used      */
-    int         type;
-    char        data[MAXSEND];
-} REMOT_BUF;
 
 #ifdef HAVE_SOCKETS
 
