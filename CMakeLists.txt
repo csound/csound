@@ -144,7 +144,21 @@ option(BUILD_DOCS "Build documentation (requires doxygen)" OFF)
 option(DEBUG_ERROR_ON_WARNING "For a debug build, error on a compiler# warning" OFF)
 option(BARE_METAL "To configure for bare metal build" OFF)
 option(CUSTOM_MALLOC "Use custom malloc in bare metal builds" OFF)
+option(RUN_INCLUDE_WHAT_YOU_USE "Run include-what-you-use" OFF)
 
+find_program(iwyu_executable NAMES include-what-you-use)
+assign_bool(iwyu_found NOT (iwyu_executable STREQUAL iwyu_executable-NOTFOUND))
+check_deps(RUN_INCLUDE_WHAT_YOU_USE iwyu_found)
+if (RUN_INCLUDE_WHAT_YOU_USE)
+    set(CMAKE_C_INCLUDE_WHAT_YOU_USE 
+        ${iwyu_executable}
+        -Xiwyu --mapping_file=${Csound_SOURCE_DIR}/map.imp
+    )
+    set(CMAKE_CXX_INCLUDE_WHAT_YOU_USE 
+        ${iwyu_executable}
+        -Xiwyu --mapping_file=${Csound_SOURCE_DIR}/map.imp
+    )
+endif()
 if(BARE_METAL)
     set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS}  -DBARE_METAL")
     set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS}  -DNO_CSOUND_SERVER")
