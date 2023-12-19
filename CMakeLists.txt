@@ -35,6 +35,9 @@ project(Csound)
 
 enable_testing()
 
+set(libcsound_private_include_dirs "")
+set(libcsound_public_include_dirs "")
+
 SET(BUILD_SHARED_LIBS ON)
 
 if (${CMAKE_CXX_COMPILER_ID} MATCHES "Clang")
@@ -194,7 +197,7 @@ endif()
 
 if(WIN32 AND NOT MSVC)
     if(EXISTS "C:/MinGW/include")
-        include_directories(C:/MinGW/include)
+        list(APPEND libcsound_private_include_dirs "C:/MinGW/include")
     else()
         MESSAGE(STATUS "MinGW include dir not found.")
     endif()
@@ -409,12 +412,12 @@ if(USE_LIBSNDFILE)
     add_compile_definitions("USE_LIBSNDFILE")
 
     if(EMSCRIPTEN)
-        include_directories(emscripten/deps/libsndfile-1.0.25/src/)
+        list(APPEND libcsound_private_include_dirs ${Csound_SOURCE_DIR}/emscripten/deps/libsndfile-1.0.25/src/)
     endif()
 
     find_path(SNDFILE_H_PATH sndfile.h)
     if(SNDFILE_H_PATH)
-        include_directories(${SNDFILE_H_PATH})
+        list(APPEND libcsound_private_include_dirs ${SNDFILE_H_PATH})
     else()
         message(FATAL_ERROR "Could not find sndfile.h")
     endif()
@@ -568,14 +571,17 @@ endif()
 
 set(libcsound_CFLAGS -D__BUILDING_LIBCSOUND)
 
-include_directories(./H)
-include_directories(./include)
-include_directories(./Engine)
+list(APPEND libcsound_private_include_dirs ${Csound_SOURCE_DIR}/H)
+list(APPEND libcsound_public_include_dirs 
+    $<BUILD_INTERFACE:${Csound_SOURCE_DIR}/include>
+    $<INSTALL_INTERFACE:include>
+)
+list(APPEND libcsound_private_include_dirs ${Csound_SOURCE_DIR}/Engine)
 
 #adding this for files that #include SDIF/sdif*
-include_directories(./util)
+list(APPEND libcsound_private_include_dirs ${Csound_SOURCE_DIR}/util)
 #adding this for files that #include files in local dirs
-include_directories(./)
+list(APPEND libcsound_private_include_dirs ${Csound_SOURCE_DIR})
 
 #checking pthread functions
 if(REQUIRE_PTHREADS AND (PTHREAD_LIBRARY OR HAIKU))
@@ -593,7 +599,7 @@ if(REQUIRE_PTHREADS AND (PTHREAD_LIBRARY OR HAIKU))
   endif()
 endif()
 
-include_directories(${LIBSNDFILE_INCLUDE_DIRECTORY})
+list(APPEND libcsound_private_include_dirs ${LIBSNDFILE_INCLUDE_DIRECTORY})
 
 # get the git hash and pass it to csound
 set(git_hash_values "none")
@@ -1008,8 +1014,8 @@ if(MSVC)
         COMPILE_FLAGS -DYY_NO_UNISTD_H)
 endif()
 
-include_directories(${CMAKE_CURRENT_BINARY_DIR})
-include_directories(${CMAKE_CURRENT_BINARY_DIR}/include)
+list(APPEND libcsound_private_include_dirs ${CMAKE_CURRENT_BINARY_DIR})
+list(APPEND libcsound_public_include_dirs $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}/include>)
 
 if(NEW_PARSER_DEBUG)
     message(STATUS "Building with new parser debugging.")
@@ -1044,6 +1050,8 @@ if(APPLE)
 endif()
 
 add_library(${CSOUNDLIB} SHARED ${libcsound_SRCS})
+target_include_directories(${CSOUNDLIB} PRIVATE ${libcsound_private_include_dirs})
+target_include_directories(${CSOUNDLIB} PUBLIC ${libcsound_public_include_dirs})
 set_target_properties(${CSOUNDLIB} PROPERTIES SOVERSION ${APIVERSION})
 
 if(INIT_STATIC_MODULES)
@@ -1142,7 +1150,7 @@ if(APPLE AND NOT IOS)
     add_definitions(-DMACOSX -DPIPES -DNO_FLTK_THREADS -DHAVE_SOCKETS)
     find_library(ACCELERATE_LIBRARY Accelerate)
     find_path(VECLIB_PATH "Accelerate/Accelerate.h")
-    include_directories(${VECLIB_PATH})
+    list(APPEND libcsound_private_include_dirs ${VECLIB_PATH})
     list(APPEND libcsound_LIBS ${MATH_LIBRARY} dl ${ACCELERATE_LIBRARY})
 endif()
 
@@ -1241,6 +1249,8 @@ set_target_properties(${CSOUNDLIB} PROPERTIES
 
 if(BUILD_STATIC_LIBRARY)
     add_library(${CSOUNDLIB_STATIC} STATIC ${libcsound_SRCS})
+    target_include_directories(${CSOUNDLIB_STATIC} PRIVATE ${libcsound_private_include_dirs})
+    target_include_directories(${CSOUNDLIB_STATIC} PUBLIC ${libcsound_public_include_dirs})
     SET_TARGET_PROPERTIES(${CSOUNDLIB_STATIC} PROPERTIES OUTPUT_NAME ${CSOUNDLIB})
     SET_TARGET_PROPERTIES(${CSOUNDLIB_STATIC} PROPERTIES PREFIX "lib")
     target_compile_options(${CSOUNDLIB_STATIC} PRIVATE ${libcsound_CFLAGS})
