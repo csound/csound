@@ -24,7 +24,9 @@
 /* mp3in.c */
 /* #include "csdl.h" */
 #include "csoundCore.h"
+#include "interlocks.h"
 #include "mp3dec.h"
+
 
 typedef struct {
   OPDS    h;
@@ -248,6 +250,7 @@ int32_t mp3in(CSOUND *csound, MP3IN *p)
       }
     }
  ending:
+
     p->pos = pos;
     p->r = r;
     if (UNLIKELY(r != MP3DEC_RETCODE_OK)) {
@@ -2439,10 +2442,10 @@ static int32_t player_play2(CSOUND *csound, PLAYER *pp)
 
 static OENTRY mp3in_localops[] =
 {
-  {"mp3in",  S(MP3IN),  0, 3, "mm", "Soooo", (SUBR) mp3ininit_S, (SUBR)mp3in},
-  {"mp3in.i",  S(MP3IN),  0, 3, "mm", "ioooo", (SUBR) mp3ininit, (SUBR)mp3in},
-  {"mp3len", S(MP3LEN), 0, 1, "i",  "S",     (SUBR) mp3len_S,    NULL,  NULL},
-  {"mp3len.i", S(MP3LEN), 0, 1, "i",  "i",     (SUBR) mp3len,    NULL,  NULL},
+  {"mp3in",  S(MP3IN),  _QQ, 3, "mm", "Soooo", (SUBR) mp3ininit_S, (SUBR)mp3in},
+  {"mp3in.i",  S(MP3IN),  _QQ, 3, "mm", "ioooo", (SUBR) mp3ininit, (SUBR)mp3in},
+  {"mp3len", S(MP3LEN), _QQ, 1, "i",  "S",     (SUBR) mp3len_S,    NULL,  NULL},
+  {"mp3len.i", S(MP3LEN), _QQ, 1, "i",  "i",     (SUBR) mp3len,    NULL,  NULL},
   {"mp3sr", S(MP3LEN), 0, 1, "i",  "S",     (SUBR) mp3len_S,    NULL,  NULL},
   {"mp3sr.i", S(MP3LEN), 0, 1, "i",  "i",     (SUBR) mp3len,    NULL,  NULL},
   {"mp3bitrate", S(MP3LEN), 0, 1, "i",  "S",     (SUBR) mp3len_S,    NULL,  NULL},
