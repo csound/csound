@@ -765,6 +765,7 @@ set(libcsound_SRCS
     Opcodes/platerev.c
     Opcodes/sequencer.c
     Opcodes/pvsgendy.c
+    Opcodes/structs.c
     Opcodes/emugens/emugens.c
     Opcodes/emugens/scugens.c
     Top/argdecode.c
@@ -941,10 +942,13 @@ add_custom_command(
 
 list(APPEND libcsound_SRCS
     ${LEX_OUT} ${YACC_OUT} ${PRELEX_OUT}
+    Engine/csound_orc_arguments.c
     Engine/csound_orc_semantics.c
     Engine/csound_orc_expressions.c
     Engine/csound_orc_optimize.c
     Engine/csound_orc_compile.c
+    Engine/csound_orc_structs.c
+    Engine/csound_orc_verify.c
     Engine/new_orc_parser.c
     Engine/symbtab.c)
 

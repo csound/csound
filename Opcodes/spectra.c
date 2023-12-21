@@ -522,6 +522,7 @@ int32_t spectrum(CSOUND *csound, SPECTRUM *p)
 
 int32_t spdspset(CSOUND *csound, SPECDISP *p)
 {
+    ARGLIST*  arg;
     char  strmsg[256];
     /* RWD is this enough? */
     if (UNLIKELY(p->wsig->auxch.auxp==NULL)) {
@@ -533,17 +534,18 @@ int32_t spdspset(CSOUND *csound, SPECDISP *p)
     if (!(p->dwindow.windid)) {
       SPECDAT *specp = p->wsig;
       DOWNDAT *downp = specp->downsrcp;
+      arg = p->h.optext->t.inlist;
       if (downp->lofrq > FL(5.0)) {
         snprintf(strmsg, 256,
                 Str("instr %d %s, dft (%s), %d octaves (%d - %d Hz):"),
-                (int32_t) p->h.insdshead->p1.value, p->h.optext->t.inlist->arg[0],
+                (int32_t) p->h.insdshead->p1.value, arg->argText,
                 outstring[specp->dbout],
                 downp->nocts, (int32_t)downp->lofrq, (int32_t)downp->hifrq);
       }
       else {                            /* more detail if low frequency  */
         snprintf(strmsg, 256,
                 Str("instr %d %s, dft (%s), %d octaves (%3.1f - %3.1f Hz):"),
-                (int32_t) p->h.insdshead->p1.value, p->h.optext->t.inlist->arg[0],
+                (int32_t) p->h.insdshead->p1.value, arg->argText,
                 outstring[specp->dbout],
                 downp->nocts, downp->lofrq, downp->hifrq);
       }

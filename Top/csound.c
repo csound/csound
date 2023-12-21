@@ -68,6 +68,7 @@
 #define PTHREAD_SPINLOCK_INITIALIZER 0
 #endif
 
+#include "csound_orc_arguments.h"
 #include "csound_standard_types.h"
 
 #include "csdebug.h"
@@ -602,11 +603,9 @@ static const CSOUND cenviron_ = {
       (INSTRTXT**)NULL,
       { NULL,
         {
-          0,0,
-          NULL, NULL, NULL, NULL,
-          0,0,
-          NULL,
-          0,0},
+          0, 0, NULL, NULL, NULL, NULL,
+          0, 0
+        },
         0,0,0,
         //0,
         NULL,
@@ -4198,10 +4197,19 @@ int csoundGetInputArgCnt(void *p)
  */
 char *csoundGetInputArgName(void *p, int n)
 {
-    if ((unsigned int) n >=
-        (unsigned int) ((OPDS*) p)->optext->t.inArgCount)
-      return (char*) NULL;
-    return (char*) ((OPDS*) p)->optext->t.inlist->arg[n];
+  // returns null if index isn't found
+  TEXT text = ((OPDS*) p)->optext->t;
+  if (text.inArgCount <= n) {
+    return NULL;
+  }
+  ARGLIST* inArg = text.inlist;
+  int index = 0;
+  while (index < n) {
+    inArg = inArg->next;
+    index += 1;
+  }
+
+  return inArg->argText;
 }
 
 /**
@@ -4217,10 +4225,19 @@ int csoundGetOutputArgCnt(void *p)
  */
 char *csoundGetOutputArgName(void *p, int n)
 {
-    if ((unsigned int) n
-        >= (unsigned int) ((OPDS*) p)->optext->t.outArgCount)
-      return (char*) NULL;
-    return (char*) ((OPDS*) p)->optext->t.outlist->arg[n];
+    // returns null if index isn't found
+    TEXT text = ((OPDS*) p)->optext->t;
+    if (text.outArgCount <= n) {
+      return NULL;
+    }
+    ARGLIST* outArg = text.outlist;
+    int index = 0;
+    while (index < n) {
+      outArg = outArg->next;
+      index += 1;
+    }
+
+    return outArg->argText;
 }
 
 /**

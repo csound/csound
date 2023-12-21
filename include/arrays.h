@@ -24,6 +24,13 @@
 #ifndef __ARRAY_H__
 #define __ARRAY_H__
 
+typedef struct {
+  OPDS     h;
+  ARRAYDAT *dst;
+  ARRAYDAT *src;
+  int32_t      len;
+} TABCPY;
+
 static inline void tabinit(CSOUND *csound, ARRAYDAT *p, int size)
 {
     size_t ss;
@@ -32,7 +39,9 @@ static inline void tabinit(CSOUND *csound, ARRAYDAT *p, int size)
         p->sizes = (int32_t*)csound->Calloc(csound, sizeof(int32_t));
     }
     if (p->data == NULL) {
-        CS_VARIABLE* var = p->arrayType->createVariable(csound, NULL);
+        CS_VARIABLE* var = p->arrayType->createVariable(
+          csound, NULL
+        );
         p->arrayMemberSize = var->memBlockSize;
         ss = p->arrayMemberSize*size;
         p->data = (MYFLT*)csound->Calloc(csound, ss);
@@ -44,6 +53,8 @@ static inline void tabinit(CSOUND *csound, ARRAYDAT *p, int size)
     }
     if (p->dimensions==1) p->sizes[0] = size;
     //p->dimensions = 1;
+    printf("tabinit: %p\n", p);
+    printf("tabinit sizez: %p\n", p->sizes);
 }
 
 static inline void tabinit_like(CSOUND *csound, ARRAYDAT *p, ARRAYDAT *tp)
@@ -53,8 +64,7 @@ static inline void tabinit_like(CSOUND *csound, ARRAYDAT *p, ARRAYDAT *tp)
         return;
     }
     if (p->dimensions != tp->dimensions) {
-      p->sizes = (int32_t*)csound->ReAlloc(csound, p->sizes,
-                                           sizeof(int32_t)*tp->dimensions);
+      p->sizes = (int32_t*)csound->Calloc(csound, sizeof(int32_t));
       p->dimensions = tp->dimensions;
     }
 
@@ -69,7 +79,7 @@ static inline void tabinit_like(CSOUND *csound, ARRAYDAT *p, ARRAYDAT *tp)
         ss = p->arrayMemberSize*ss;
         p->data = (MYFLT*)csound->Calloc(csound, ss);
         p->allocated = ss;
-    } else if( (ss = p->arrayMemberSize*ss) > p->allocated) {
+    } else if ( (ss = p->arrayMemberSize*ss) > p->allocated) {
         p->data = (MYFLT*) csound->ReAlloc(csound, p->data, ss);
         p->allocated = ss;
     }

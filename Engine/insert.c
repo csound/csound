@@ -262,20 +262,24 @@ int init0(CSOUND *csound)
 
 static void putop(CSOUND *csound, TEXT *tp)
 {
-  int n, nn;
+  int n;
 
-  if ((n = tp->outlist->count) != 0) {
-    nn = 0;
-    while (n--)
-      csound->Message(csound, "%s\t", tp->outlist->arg[nn++]);
+  if ((n = tp->outArgCount) != 0) {
+    ARGLIST* arg = tp->inlist;
+    while (n--) {
+      csound->Message(csound, "%s\t", arg->argText);
+      arg = arg->next;
+    }
   }
   else
     csound->Message(csound, "\t");
   csound->Message(csound, "%s\t", tp->opcod);
-  if ((n = tp->inlist->count) != 0) {
-    nn = 0;
-    while (n--)
-      csound->Message(csound, "%s\t", tp->inlist->arg[nn++]);
+  if ((n = tp->inArgCount) != 0) {
+    ARGLIST* arg = tp->inlist;
+    while (n--) {
+      csound->Message(csound, "%s\t", arg->argText);
+      arg = arg->next;
+    }
   }
   csound->Message(csound, "\n");
 }
@@ -1037,12 +1041,25 @@ void free_instr_var_memory(CSOUND* csound, INSDS* ip) {
       return;
   }
 
-  
+
   while (current != NULL) {
     CS_TYPE* varType = current->varType;
     if (varType->freeVariableMemory != NULL) {
-      varType->freeVariableMemory(csound,
-                                  ip->lclbas + current->memBlockIndex);
+      if (current->dimensions == 0) {
+        if (current->refCount == 0) {
+          varType->freeVariableMemory(
+            csound,
+            ip->lclbas + current->memBlockIndex
+          );
+        }
+        current->refCount -= 1;
+      } else {
+        if (current->refCount == 0) {
+          array_free_var_mem(csound, ip->lclbas + current->memBlockIndex);
+        }
+        current->refCount -= 1;
+      }
+
     }
     current = current->next;
   }
@@ -1456,7 +1473,7 @@ int useropcdset(CSOUND *csound, UOPCODE *p)
       return csound->InitError(csound, Str("Cannot find instr %d (UDO %s)\n"),
                                instno, inm->name);
     /* set local ksmps if defined by user */
-    /* VL: 9.2.22 we are disabling this unused and confusing feature of 
+    /* VL: 9.2.22 we are disabling this unused and confusing feature of
        a hidden local sampling rate parameter on 7.x */
     /*
     n = p->OUTOCOUNT + p->INCOUNT - 1;
@@ -1468,10 +1485,10 @@ int useropcdset(CSOUND *csound, UOPCODE *p)
                                inm->name, i);
       }
       local_ksmps = i;
-      } 
+      }
     */
     n = p->OUTOCOUNT + p->INCOUNT - 1;
-  
+
 
     if (!p->ip) {
 
@@ -1641,11 +1658,13 @@ int xinset(CSOUND *csound, XIN *p)
   MYFLT **bufs, **tmp;
   int i;
   CS_VARIABLE* current;
+  UOPCODE* uopc;
 
   (void) csound;
   buf = (OPCOD_IOBUFS*) p->h.insdshead->opcod_iobufs;
   inm = buf->opcode_info;
-  bufs = ((UOPCODE*) buf->uopcode_struct)->ar + inm->outchns;
+  uopc = buf->uopcode_struct;
+  bufs = uopc->ar + inm->outchns;
   tmp = buf->iobufp_ptrs; // this is used to record the UDO's internal vars
   // for copying at perf-time
   current = inm->in_arg_pool->head;
@@ -1653,7 +1672,13 @@ int xinset(CSOUND *csound, XIN *p)
     void* in = (void*)bufs[i];
     void* out = (void*)p->args[i];
     tmp[i + inm->outchns] = out;
-    current->varType->copyValue(csound, current->varType, out, in);
+    if (current->dimensions > 0) {
+      memcpy(out, in, sizeof(ARRAYDAT));
+    } else {
+      current->varType->copyValue(csound, current->varType, out, in);
+      current->refCount += 1;
+    }
+
     current = current->next;
   }
 
@@ -1679,13 +1704,31 @@ int xoutset(CSOUND *csound, XOUT *p)
   for (i = 0; i < inm->outchns; i++) {
     void* in = (void*)p->args[i];
     void* out = (void*)bufs[i];
+    if (out == NULL) {
+      break;
+    }
     tmp[i] = in;
+
+    if (
+        current->dimensions > 0 &&
+        ((ARRAYDAT*) out)->allocated == 0
+    ) {
+      memcpy(out, in, sizeof(ARRAYDAT));
+    }
     // DO NOT COPY K or A vars
     // Fsigs need to be copied for initialization purposes.
-    if (csoundGetTypeForArg(in) != &CS_VAR_TYPE_K &&
+    else if (csoundGetTypeForArg(in) != &CS_VAR_TYPE_K &&
         /*csoundGetTypeForArg(in) != &CS_VAR_TYPE_F &&*/
-        csoundGetTypeForArg(in) != &CS_VAR_TYPE_A)
-      current->varType->copyValue(csound, current->varType, out, in);
+        csoundGetTypeForArg(in) != &CS_VAR_TYPE_A) {
+          if (current->dimensions > 0) {
+            memcpy(out, in, sizeof(ARRAYDAT));
+          } else if (current->varType->userDefinedType) {
+            memcpy(out, in, sizeof(CS_STRUCT_VAR));
+          } else {
+            current->varType->copyValue(csound, current->varType, out, in);
+          }
+        }
+
     current = current->next;
   }
   return OK;
@@ -2016,13 +2059,15 @@ int useropcd1(CSOUND *csound, UOPCODE *p)
         // skip a-vars for now, handle uniquely within performance loop
         if (current->varType != &CS_VAR_TYPE_I &&
             current->varType != &CS_VAR_TYPE_b &&
-            current->varType != &CS_VAR_TYPE_A &&
-            current->subType != &CS_VAR_TYPE_I &&
-            current->subType != &CS_VAR_TYPE_A) {
+            current->varType != &CS_VAR_TYPE_A) {
           // This one checks if an array has a subtype of 'i'
           void* in = (void*)external_ptrs[i + inm->outchns];
           void* out = (void*)internal_ptrs[i + inm->outchns];
-          current->varType->copyValue(csound, current->varType, out, in);
+          if (current->varType == &CS_VAR_TYPE_ARRAY) {
+            memcpy(out, in, sizeof(ARRAYDAT));
+          } else {
+            current->varType->copyValue(csound, current->varType, out, in);
+          }
         } else if (current->varType == &CS_VAR_TYPE_A) {
           MYFLT* in = (void*)external_ptrs[i + inm->outchns];
           MYFLT* out = (void*)internal_ptrs[i + inm->outchns];
@@ -2124,13 +2169,16 @@ int useropcd1(CSOUND *csound, UOPCODE *p)
         // skip a-vars for now, handle uniquely within performance loop
         if (current->varType != &CS_VAR_TYPE_I &&
             current->varType != &CS_VAR_TYPE_b &&
-            current->varType != &CS_VAR_TYPE_A &&
-            current->subType != &CS_VAR_TYPE_I &&
-            current->subType != &CS_VAR_TYPE_A) {
+            current->varType != &CS_VAR_TYPE_A) {
           // This one checks if an array has a subtype of 'i'
           void* in = (void*)external_ptrs[i + inm->outchns];
           void* out = (void*)internal_ptrs[i + inm->outchns];
-          current->varType->copyValue(csound, current->varType, out, in);
+
+          if (current->varType == &CS_VAR_TYPE_ARRAY) {
+            memcpy(out, in, sizeof(ARRAYDAT));
+          } else {
+            current->varType->copyValue(csound, current->varType, out, in);
+          }
         } else if (current->varType == &CS_VAR_TYPE_A) {
           MYFLT* in = (void*)external_ptrs[i + inm->outchns];
           MYFLT* out = (void*)internal_ptrs[i + inm->outchns];
@@ -2216,8 +2264,7 @@ int useropcd1(CSOUND *csound, UOPCODE *p)
     // this hardcoded type check for non-perf time vars needs to change
     // to use generic code...
     if (current->varType != &CS_VAR_TYPE_I &&
-        current->varType != &CS_VAR_TYPE_b &&
-        current->subType != &CS_VAR_TYPE_I) {
+        current->varType != &CS_VAR_TYPE_b) {
       void* in = (void*)internal_ptrs[i];
       void* out = (void*)external_ptrs[i];
 
@@ -2260,7 +2307,11 @@ int useropcd1(CSOUND *csound, UOPCODE *p)
           }
         }
       } else {
-        current->varType->copyValue(csound, current->varType, out, in);
+        if (current->varType == &CS_VAR_TYPE_ARRAY) {
+          memcpy(out, in, sizeof(ARRAYDAT));
+        } else {
+          current->varType->copyValue(csound, current->varType, out, in);
+        }
       }
     }
     current = current->next;
@@ -2311,15 +2362,18 @@ int useropcd2(CSOUND *csound, UOPCODE *p)
     // this hardcoded type check for non-perf time vars needs to
     //change to use generic code...
     if (current->varType != &CS_VAR_TYPE_I &&
-        current->varType != &CS_VAR_TYPE_b &&
-        current->subType != &CS_VAR_TYPE_I) {
+        current->varType != &CS_VAR_TYPE_b) {
       if (current->varType == &CS_VAR_TYPE_A && CS_KSMPS == 1) {
         *internal_ptrs[i + inm->outchns] = *external_ptrs[i + inm->outchns];
       } else {
         void* in = (void*)external_ptrs[i + inm->outchns];
         void* out = (void*)internal_ptrs[i + inm->outchns];
-        current->varType->copyValue(csound, current->varType, out, in);
-        //                memcpy(out, in, p->buf->in_arg_sizes[i]);
+        // printf("in %p out %p \n", in, out);
+        if (current->varType == &CS_VAR_TYPE_ARRAY) {
+          memcpy(out, in, sizeof(ARRAYDAT));
+        } else {
+          current->varType->copyValue(csound, current->varType, out, in);
+        }
       }
     }
     current = current->next;
@@ -2348,15 +2402,17 @@ int useropcd2(CSOUND *csound, UOPCODE *p)
     // this hardcoded type check for non-perf time vars needs to change to
     // use generic code...
     if (current->varType != &CS_VAR_TYPE_I &&
-        current->varType != &CS_VAR_TYPE_b &&
-        current->subType != &CS_VAR_TYPE_I) {
+        current->varType != &CS_VAR_TYPE_b) {
       if (current->varType == &CS_VAR_TYPE_A && CS_KSMPS == 1) {
         *external_ptrs[i] = *internal_ptrs[i];
       } else {
         void* in = (void*)internal_ptrs[i];
         void* out = (void*)external_ptrs[i];
-        //            memcpy(out, in, p->buf->out_arg_sizes[i]);
-        current->varType->copyValue(csound, current->varType, out, in);
+        if (current->varType == &CS_VAR_TYPE_ARRAY) {
+          memcpy(out, in, sizeof(ARRAYDAT));
+        } else {
+          current->varType->copyValue(csound, current->varType, out, in);
+        }
       }
     }
     current = current->next;
@@ -2513,7 +2569,11 @@ static void instance(CSOUND *csound, int insno)
     }
     // ******** This needs revisipn with no distinction between k- and a- rate ****
     if ((ep->thread & 03) == 0) {             /* thread 1 OR 2:  */
-      if (ttp->pftype == 'b') {
+      int isBoolOutput = 0;
+      if (ttp->outArgCount > 0) {
+        isBoolOutput = ttp->outlist->cstype == &CS_VAR_TYPE_b;
+      }
+      if (isBoolOutput) {
         prvids = prvids->nxti = opds;
         opds->iopadr = ep->iopadr;
       }
@@ -2552,33 +2612,8 @@ static void instance(CSOUND *csound, int insno)
       CS_VARIABLE* var = (CS_VARIABLE*)arg->argPtr;
       if (arg->type == ARG_GLOBAL) {
         fltp = &(var->memBlock->value); /* gbloffbas + var->memBlockIndex; */
-      }
-      else if (arg->type == ARG_LOCAL) {
+      } else if (arg->type == ARG_LOCAL) {
         fltp = lclbas + var->memBlockIndex;
-
-        if (arg->structPath != NULL) {
-          char* path = cs_strdup(csound, arg->structPath);
-          char *next, *th;
-
-          next = cs_strtok_r(path, ".", &th);
-          while (next != NULL) {
-            CS_TYPE* type = csoundGetTypeForArg(fltp);
-            CS_STRUCT_VAR* structVar = (CS_STRUCT_VAR*)fltp;
-            CONS_CELL* members = type->members;
-            int i = 0;
-            while(members != NULL) {
-              CS_VARIABLE* member = (CS_VARIABLE*)members->value;
-              if (!strcmp(member->varName, next)) {
-                fltp = &(structVar->members[i]->value);
-                break;
-              }
-
-              i++;
-              members = members->next;
-            }
-            next = cs_strtok_r(NULL, ".", &th);
-          }
-        }
       }
       else if (arg->type == ARG_PFIELD) {
         CS_VAR_MEM* pfield = lcloffbas + arg->index;
@@ -2616,31 +2651,8 @@ static void instance(CSOUND *csound, int insno)
       else if (arg->type == ARG_GLOBAL) {
         argpp[n] =  &(var->memBlock->value); /*gbloffbas + var->memBlockIndex; */
       }
-      else if (arg->type == ARG_LOCAL){
+      else if (arg->type == ARG_LOCAL) {
         argpp[n] = lclbas + var->memBlockIndex;
-        if (arg->structPath != NULL) {
-          char* path = cs_strdup(csound, arg->structPath);
-          char *next, *th;
-
-          next = cs_strtok_r(path, ".", &th);
-            while (next != NULL) {
-              CS_STRUCT_VAR* structVar = (CS_STRUCT_VAR*)argpp[n];
-              CS_TYPE* type = csoundGetTypeForArg(argpp[n]);
-              CONS_CELL* members = type->members;
-              int i = 0;
-              while(members != NULL) {
-                CS_VARIABLE* member = (CS_VARIABLE*)members->value;
-                  if (!strcmp(member->varName, next)) {
-                    argpp[n] = &(structVar->members[i]->value);
-                    break;
-                  }
-
-                  i++;
-                  members = members->next;
-              }
-              next = cs_strtok_r(NULL, ".", &th);
-            }
-        }
       }
       else if (arg->type == ARG_LABEL) {
         argpp[n] = (MYFLT*)(opMemStart +

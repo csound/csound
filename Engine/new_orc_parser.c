@@ -269,7 +269,7 @@ TREE *csoundParseOrc(CSOUND *csound, const char *str)
 //      csound->Free(csound, typeTable->instr0LocalPool);
 //      csound->Free(csound, typeTable->globalPool);
 //      csound->Free(csound, typeTable);
-      //print_tree(csound, "AST - FOLDED\n", astTree);
+      // print_tree(csound, "AST - FOLDED\n", astTree);
 
       if (UNLIKELY(astTree == NULL || csound->synterrcnt)) {
         err = 3;
@@ -312,7 +312,7 @@ TREE *csoundParseOrc(CSOUND *csound, const char *str)
       }
 
       astTree = csound_orc_optimize(csound, astTree);
-      //print_tree(csound, "AST after optmize", astTree);
+      // print_tree(csound, "AST after optmize", astTree);
       // small hack: use an extra node as head of tree list to hold the
       // typeTable, to be used during compilation
       newRoot = make_leaf(csound, 0, 0, 0, NULL);

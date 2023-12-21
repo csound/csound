@@ -33,10 +33,7 @@
  on returned value.  Caller should compare the returned value with the
  passed in opname to see if it is different and thus requires mfree'ing. */
 #include "find_opcode.h"
-char* get_arg_type2(CSOUND* csound, TREE* tree, TYPE_TABLE* typeTable);
-
-typedef struct csstructvar {
-  CS_VAR_MEM** members;
-} CS_STRUCT_VAR;
-
+char* get_arg_type2(CSOUND*, TREE*, TYPE_TABLE*);
+int is_label(char*, CONS_CELL*);
+int is_reserved(char*);
 #endif

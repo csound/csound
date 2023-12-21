@@ -187,7 +187,7 @@ int32_t printkset(CSOUND *csound, PRINTK *p)
     /* Set up the number of spaces.
        Limit to 120 for people with big screens or printers.
      */
-    p->pspace = (int32_t) *p->space;
+    p->pspace = p->space == NULL ? 0L : ((int32_t) *p->space);
     if (UNLIKELY(p->pspace < 0L))
       p->pspace = 0L;
     else if (UNLIKELY(p->pspace > 120L))
@@ -206,6 +206,7 @@ int32_t printkset(CSOUND *csound, PRINTK *p)
  */
 int32_t printk(CSOUND *csound, PRINTK *p)
 {
+    ARGLIST*  arg;
     if (UNLIKELY(p->initialised != -1))
       csound->PerfError(csound, &(p->h), Str("printk not initialised"));
 
@@ -228,9 +229,11 @@ int32_t printk(CSOUND *csound, PRINTK *p)
         s[p->pspace] = '\0';
         csound->MessageS(csound, CSOUNDMSG_ORCH, "%s", s);
       }
-      if (*p->named)
+      if (p->named != NULL && *p->named) {
+        arg = p->h.optext->t.inlist;
         csound->MessageS(csound, CSOUNDMSG_ORCH, "%s = %11.5f\n",
-                         p->h.optext->t.inlist->arg[1], *p->val);
+                         arg->argText, *p->val);
+      }
       else
         csound->MessageS(csound, CSOUNDMSG_ORCH, "%11.5f\n", *p->val);
       p->printat = CS_KCNT + p->ctime - 1;
@@ -716,12 +719,14 @@ int32_t printk2(CSOUND *csound, PRINTK2 *p)
         s[p->pspace] = '\0';
         csound->MessageS(csound, CSOUNDMSG_ORCH, "%s", s);
       }
-      if (*p->named)
+      if (*p->named) {
+        ARGLIST* arg = p->h.optext->t.inlist;
         csound->MessageS(csound, CSOUNDMSG_ORCH, "%s = %11.5f\n",
-                         *p->h.optext->t.inlist->arg, *p->val);
-      else
+                         arg->argText, *p->val);
+      } else {
         csound->MessageS(csound, CSOUNDMSG_ORCH, "%11.5f\n", *p->val);
-      p->oldvalue = value;
+        p->oldvalue = value;
+      }
     }
     return OK;
 }

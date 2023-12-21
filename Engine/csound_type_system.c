@@ -21,6 +21,7 @@
  02110-1301 USA
  */
 
+#include "csound_orc_structs.h"
 #include "csound_type_system.h"
 #include <string.h>
 #include <stdio.h>
@@ -135,23 +136,33 @@ char* getVarSimpleName(CSOUND* csound, const char* varName) {
     return retVal;
 }
 
-CS_VARIABLE* csoundCreateVariable(CSOUND* csound, TYPE_POOL* pool,
-                                  CS_TYPE* type, char* name, void* typeArg)
-{
+CS_VARIABLE* csoundCreateVariable(
+  CSOUND* csound,
+  TYPE_POOL* pool,
+  CS_TYPE* varType,
+  CS_TYPE* subType,
+  char* name
+) {
     CS_TYPE_ITEM* current = pool->head;
-    if (LIKELY(type != NULL))
+    if (LIKELY(varType != NULL))
       while (current != NULL) {
-        if (strcmp(type->varTypeName, current->cstype->varTypeName) == 0) {
-          CS_VARIABLE* var = current->cstype->createVariable(csound, typeArg);
-          var->varType = type;
+        if (strcmp(varType->varTypeName, current->cstype->varTypeName) == 0) {
+          CS_VARIABLE* var = current->cstype->createVariable(
+            csound, subType != NULL ? subType : varType
+          );
+          var->varType = varType;
           var->varName = cs_strdup(csound, name);
           return var;
         }
         current = current->next;
       }
-    else ((CSOUND *)csound)->ErrorMsg(csound,
-                                      Str("cannot create variable %s: NULL type"),
-                                      name);
+    else if(name && name[0] != '#') {
+      ((CSOUND *)csound)->ErrorMsg(
+        csound,
+        Str("cannot create variable %s: NULL type\n"),
+        name
+      );
+    }
     return NULL;
 }
 
@@ -180,22 +191,6 @@ CS_VARIABLE* csoundGetVariable(CS_VAR_POOL* pool, int index) {
 
     return current;
 }
-
-//int csoundGetVariableIndex(CS_VAR_POOL* pool, CS_VARIABLE* var) {
-//    CS_VARIABLE* current = pool->head;
-//    int index = 0;
-//
-//    if (current == NULL) {
-//        return -1;
-//    }
-//
-//    for (index = 0; current != NULL; index++) {
-//        if (current == var) {
-//            return index;
-//        }
-//    }
-//    return -1;
-//}
 
 int csoundAddVariable(CSOUND* csound, CS_VAR_POOL* pool, CS_VARIABLE* var) {
   if(var != NULL) {
@@ -270,7 +265,7 @@ void deleteVarPoolMemory(CSOUND* csound, CS_VAR_POOL* pool) {
     CS_TYPE* type;
     while (current != NULL) {
       tmp = current;
-      type = current->subType;
+      type = current->varType;
       if (type->freeVariableMemory != NULL) {
         type->freeVariableMemory(csound, current->memBlock);
       }
@@ -287,9 +282,12 @@ void initializeVarPool(CSOUND* csound, MYFLT* memBlock, CS_VAR_POOL* pool) {
     //int varNum = 1;
 
     while (current != NULL) {
+
       if (current->initializeVariableMemory != NULL) {
-        current->initializeVariableMemory(csound, current,
-                                          memBlock + current->memBlockIndex);
+        current->initializeVariableMemory(
+          csound, current,
+          memBlock + current->memBlockIndex
+        );
       }
       //varNum++;
       current = current->next;
@@ -313,14 +311,18 @@ int copyVarGeneric(CSOUND *csound, void *p) {
     ASSIGN* assign = (ASSIGN*)p;
     CS_TYPE* typeR = csoundGetTypeForArg(assign->r);
     CS_TYPE* typeA = csoundGetTypeForArg(assign->a);
-    
+
     if(typeR != typeA) {
         csound->Warning(csound,
                         Str("error: = opcode given variables with two different types: %s : %s\n"),
                         typeR->varTypeName, typeA->varTypeName);
         return NOTOK;
     }
-    
-    typeR->copyValue(csound, typeR, assign->r, assign->a);
+    if (typeA->userDefinedType) {
+      *assign->r = *assign->a;
+    } else {
+      typeR->copyValue(csound, typeR, assign->r, assign->a);
+    }
+
     return OK;
 }

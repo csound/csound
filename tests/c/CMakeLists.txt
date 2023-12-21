@@ -35,7 +35,7 @@ if(BUILD_TESTS)
         set(CMAKE_CXX_FLAGS "-fpermissive -Wwrite-strings -std=c++0x")
 
         if (APPLE)
-            set(CMAKE_CXX_FLAGS "-stdlib=libc++")
+            set(CMAKE_CXX_FLAGS "-std=c++11")
         endif()
 
         target_include_directories(unittests PRIVATE

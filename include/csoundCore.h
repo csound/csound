@@ -111,12 +111,12 @@ typedef struct {
 #define NOT_AN_INSTRUMENT INT32_MAX
 
 #define ORTXT       h.optext->t
-#define INCOUNT     ORTXT.inlist->count
-#define OUTCOUNT    ORTXT.outlist->count   /* Not used */
-//#define INOCOUNT    ORTXT.inoffs->count
-//#define OUTOCOUNT   ORTXT.outoffs->count
-#define INOCOUNT    ORTXT.inArgCount
-#define OUTOCOUNT   ORTXT.outArgCount
+/* total arg-count including opt-args */
+#define INCOUNT    ORTXT.inArgCount
+#define OUTCOUNT   ORTXT.outArgCount
+/* user provided arg-count excluding opt-args */
+#define INOCOUNT    ORTXT.providedInArgCount
+#define OUTOCOUNT   ORTXT.providedOutArgCount
 #define IS_ASIG_ARG(x) (csoundGetTypeForArg(x) == &CS_VAR_TYPE_A)
 #define IS_STR_ARG(x) (csoundGetTypeForArg(x) == &CS_VAR_TYPE_S)
 
@@ -219,6 +219,7 @@ extern int ISSTRCOD(MYFLT);
 #define ARG_LOCAL 4
 #define ARG_LABEL 5
 
+
 #define ASYNC_GLOBAL 1
 #define ASYNC_LOCAL  2
 
@@ -277,15 +278,18 @@ typedef struct CORFIL {
   } OPARMS;
 
   typedef struct arglst {
-    int     count;
-    char    *arg[1];
-  } ARGLST;
+    char*     argText;
+    CS_TYPE*  cstype;
+    int       index;
+    int       isGlobal;
+    int       isStringToken;
+    struct arglst* next;
+  } ARGLIST;
 
   typedef struct arg {
-    int type;
-    void* argPtr;
-    int index;
-    char* structPath;
+    int         type;
+    void*       argPtr;
+    int         index;
     struct arg* next;
   } ARG;
 //  typedef struct argoffs {
@@ -310,18 +314,18 @@ typedef struct CORFIL {
    * Storage for parsed orchestra code, for each opcode in an INSTRTXT.
    */
   typedef struct text {
-    uint16_t        linenum;        /* Line num in orch file (currently buggy!)  */
-    uint64_t        locn;           /* and location */
-    OENTRY          *oentry;
-    char            *opcod;         /* Pointer to opcode name in global pool */
-    ARGLST          *inlist;        /* Input args (pointer to item in name list) */
-    ARGLST          *outlist;
-    ARG             *inArgs;        /* Input args (index into list of values) */
-    unsigned int    inArgCount;
-    ARG             *outArgs;
-    unsigned        int outArgCount;
-//    char            intype;         /* Type of first input argument (g,k,a,w etc) */
-    char            pftype;         /* Type of output argument (k,a etc) */
+    uint16_t          linenum;        /* Line num of opcode token in orch file  */
+    uint64_t          locn;           /* and location */
+    OENTRY*           oentry;
+    ARG*              inArgs;         /* Input args (index into list of values) */
+    ARG*              outArgs;
+    ARGLIST*          inlist;
+    ARGLIST*          outlist;
+    char*             opcod;          /* Pointer to opcode name in global pool */
+    unsigned int      inArgCount;
+    unsigned int      outArgCount;
+    unsigned int      providedInArgCount;
+    unsigned int      providedOutArgCount;
   } TEXT;
 
 
@@ -423,11 +427,12 @@ typedef struct CORFIL {
    } TABDAT;
 
   #define MAX_STRINGDAT_SIZE 0xFFFFFFFF
-  
+
   typedef struct {
     char *data;
     size_t size;
     int64_t timestamp;    /*  VL: Feb 22 starting in 7.0 we have a timestamp */
+    int refCount;
   } STRINGDAT;
 
   typedef struct monblk {
@@ -893,10 +898,10 @@ typedef struct CORFIL {
   int kperf_debug(CSOUND *csound);
 
   /*
-    check if code is running at init time. 
+    check if code is running at init time.
     result may not be valid in realtime mode
-   */  
-int csoundIsInitThread(CSOUND *csound);  
+   */
+int csoundIsInitThread(CSOUND *csound);
 
 #endif  /* __BUILDING_LIBCSOUND */
 

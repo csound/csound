@@ -611,6 +611,8 @@ extern "C" {
     struct TREE   *left;
     struct TREE   *right;
     struct TREE   *next;
+    void          *inlist;  // Internal use only - used to optimize
+    void          *outlist; // against re-creating the arglists.
     void          *markup;  // TEMPORARY - used by semantic checker to
     // markup node adds OENTRY or synthetic var
     // names to expression nodes should be moved

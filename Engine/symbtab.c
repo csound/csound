@@ -137,7 +137,7 @@ static void map_args(char* args) {
  Original code - IV Oct 12 2002
  modified by VL for Csound 6
 
-    VL: 9.2.22 we are disabling the unused and confusing feature of 
+    VL: 9.2.22 we are disabling the unused and confusing feature of
     a hidden local sampling rate parameter on 7.x
 
 */
@@ -159,14 +159,14 @@ static int parse_opcode_args(CSOUND *csound, OENTRY *opc)
     // The following handles adding of extra 'o' type for optional
     // ksmps arg for all UDO's
     // this feature is removed from 7.0
-    /* 
+    /*
        char intypes[256];
       if (*inm->intypes == '0') {
         intypes[0] = 'o';
         intypes[1] = '\0';
     } else {
         snprintf(intypes, 256, "%so", inm->intypes);
-	} 
+	}
 	in_args = splitArgs(csound, intypes);*/
     in_args = splitArgs(csound, inm->intypes);
     out_args = splitArgs(csound, inm->outtypes);
@@ -191,24 +191,32 @@ static int parse_opcode_args(CSOUND *csound, OENTRY *opc)
 
     if (*in_args[0] != '0') {
       while (in_args[i] != NULL) {
+        int dimensions = 0;
         char* in_arg = in_args[i];
-        char* end;
         snprintf(tempName, 20, "in%d", i);
+        char* end = strchr(in_arg, '[');
+        char* tmp;
 
-        if (*in_arg == '[') {
-          int dimensions = 0;
-          while (*in_arg == '[') {
-            dimensions += 1;
-            in_arg += 1;
-          }
+        if (end != NULL) {
+          if (*in_arg == '[') {
+            while (*in_arg == '[') {
+              in_arg += 1;
+              dimensions += 1;
+            }
 
-          end = in_arg;
-          while(*end != ']') {
-            end++;
+            end = in_arg;
+            while(*end != ']') {
+              end++;
+            }
+          } else {
+            tmp = end;
+            while (*tmp != '\0') {
+              tmp += 1;
+            }
           }
           memcpy(typeSpecifier, in_arg, end - in_arg);
 
-          typeSpecifier[(end - in_arg)] = 0;
+          typeSpecifier[(end - in_arg)] = '\0';
 // printf("Dimensions: %d SubArgType: %s\n", dimensions, typeSpecifier);
           CS_TYPE* type =
             csoundGetTypeWithVarTypeName(csound->typePool, typeSpecifier);
@@ -220,19 +228,28 @@ static int parse_opcode_args(CSOUND *csound, OENTRY *opc)
             continue;
           }
 
-          varInit.dimensions = dimensions;
           varInit.type = type;
-          CS_VARIABLE* var = csoundCreateVariable(csound, csound->typePool,
-                                                  (CS_TYPE*)&CS_VAR_TYPE_ARRAY,
-                                                  tempName, &varInit);
-          var->dimensions = dimensions;
+
+          CS_VARIABLE* var = csoundCreateVariable(
+            csound,
+            csound->typePool,
+            ((CS_TYPE*) &CS_VAR_TYPE_ARRAY),
+            type,
+            tempName
+          );
           csoundAddVariable(csound, inm->in_arg_pool, var);
         } else {
           char *c = map_udo_in_arg_type(in_arg);
           //                printf("found arg type %s -> %c\n", in_arg, c);
-
+          char* arrayDelim;
+          char* tok = c;
+          if (strlen(c) > 1 &&
+            (arrayDelim = strchr(c, '[')) != NULL
+          ) {
+            tok = strtok(c, arrayDelim);
+          }
           CS_TYPE* type =
-            csoundGetTypeWithVarTypeName(csound->typePool, c);
+            csoundGetTypeWithVarTypeName(csound->typePool, tok);
 
           if (UNLIKELY(type == NULL)) {
             synterr(csound, Str("invalid input type for opcode %s\n"), in_args[i]);
@@ -242,13 +259,13 @@ static int parse_opcode_args(CSOUND *csound, OENTRY *opc)
           }
 
           CS_VARIABLE* var = csoundCreateVariable(csound, csound->typePool,
-                                                  type, tempName, type);
+                                                  type, NULL, tempName);
           csoundAddVariable(csound, inm->in_arg_pool, var);
         }
         i++;
       }
     }
-    
+
 //    inm->inchns = i + 1; /* Add one for optional local ksmps */
 //    inm->inchns = i - 1;
     inm->inchns = i;     // this feature is removed from 7.0
@@ -256,12 +273,12 @@ static int parse_opcode_args(CSOUND *csound, OENTRY *opc)
     i = 0;
     if (*out_args[0] != '0') {
       while(out_args[i] != NULL) {
+        int dimensions = 0;
         char* out_arg = out_args[i];
         char* end;
         snprintf(tempName, 20, "out%d", i);
 
         if (*out_arg == '[') {
-          int dimensions = 0;
           while (*out_arg == '[') {
             dimensions += 1;
             out_arg += 1;
@@ -285,11 +302,13 @@ static int parse_opcode_args(CSOUND *csound, OENTRY *opc)
             continue;
           }
 
-          varInit.dimensions = dimensions;
           varInit.type = type;
-          CS_VARIABLE* var = csoundCreateVariable(csound, csound->typePool,
-                                                  (CS_TYPE*)&CS_VAR_TYPE_ARRAY,
-                                                  tempName, &varInit);
+          CS_VARIABLE* var = csoundCreateVariable(
+            csound, csound->typePool,
+            type,
+            NULL,
+            tempName
+          );
           var->dimensions = dimensions;
           csoundAddVariable(csound, inm->out_arg_pool, var);
         } else {
@@ -306,7 +325,7 @@ static int parse_opcode_args(CSOUND *csound, OENTRY *opc)
           }
 
           CS_VARIABLE* var = csoundCreateVariable(csound, csound->typePool, type,
-                                                  tempName, type);
+                                                  NULL, tempName);
           csoundAddVariable(csound, inm->out_arg_pool, var);
         }
         i++;

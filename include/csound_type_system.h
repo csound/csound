@@ -38,7 +38,7 @@ extern "C" {
 
     struct csvariable;
     struct cstype;
-    
+
     typedef struct cstype {
         char* varTypeName;
         char* varDescription;
@@ -55,6 +55,10 @@ extern "C" {
         MYFLT value;
     } CS_VAR_MEM;
 
+    typedef struct structvar {
+        CS_VAR_MEM** members;
+    } CS_STRUCT_VAR;
+
 #if defined(UINTPTR_MAX) && defined(UINT64_MAX) && (UINTPTR_MAX == UINT64_MAX)
 #define CS_VAR_TYPE_OFFSET (sizeof(CS_VAR_MEM) - sizeof(double))
 #else
@@ -64,14 +68,14 @@ extern "C" {
     typedef struct csvariable {
         char* varName;
         CS_TYPE* varType;
+        CS_TYPE* subType;
         int memBlockSize; /* Must be a multiple of sizeof(MYFLT), as
                              Csound uses MYFLT* and pointer arithmetic
                              to assign var locations */
         int memBlockIndex;
-        int dimensions;  // used by arrays
+        int dimensions; // used by arrays
         int refCount;
         struct csvariable* next;
-        CS_TYPE* subType;
         void (*updateMemBlockSize)(CSOUND*, struct csvariable*);
         void (*initializeVariableMemory)(CSOUND*, struct csvariable*, MYFLT*);
         CS_VAR_MEM *memBlock;
@@ -91,8 +95,7 @@ extern "C" {
     PUBLIC int csoundAddVariableType(CSOUND* csound, TYPE_POOL* pool,
                                      CS_TYPE* typeInstance);
     PUBLIC CS_VARIABLE* csoundCreateVariable(CSOUND* csound, TYPE_POOL* pool,
-                                             CS_TYPE* type, char* name,
-                                             void* typeArg);
+                                             CS_TYPE* varType, CS_TYPE* subType, char* name);
     PUBLIC CS_TYPE* csoundGetTypeWithVarTypeName(TYPE_POOL* pool, char* typeName);
 
     /* Csound Variable Pool - essentially a map<string,csvar>

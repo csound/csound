@@ -82,7 +82,6 @@ static int32_t array_init(CSOUND *csound, ARRAYINIT *p)
 {
     ARRAYDAT* arrayDat = p->arrayDat;
     int32_t i, size;
-
     int32_t inArgCount = p->INOCOUNT;
 
     if (UNLIKELY(inArgCount == 0))
@@ -113,7 +112,11 @@ static int32_t array_init(CSOUND *csound, ARRAYINIT *p)
     }
 
     {
-      CS_VARIABLE* var = arrayDat->arrayType->createVariable(csound,arrayDat->arrayType);
+      // create the var just for getting the initializeVariableMemory we need
+      CS_VARIABLE* var = arrayDat->arrayType->createVariable(
+        csound,arrayDat->arrayType
+      );
+
       char *mem;
       arrayDat->arrayMemberSize = var->memBlockSize;
       arrayDat->data = csound->Calloc(csound,
@@ -123,6 +126,7 @@ static int32_t array_init(CSOUND *csound, ARRAYINIT *p)
         var->initializeVariableMemory(csound, var,
                                       (MYFLT*)(mem+i*var->memBlockSize));
       }
+      csound->Free(csound, var);
     }
     return OK;
 }
@@ -284,19 +288,23 @@ static int32_t array_err(CSOUND* csound, ARRAY_SET *p)
 static int32_t array_set(CSOUND* csound, ARRAY_SET *p)
 {
     ARRAYDAT* dat = p->arrayDat;
-    MYFLT* mem = dat->data;
+    MYFLT* mem;
     int32_t i;
-    int32_t end, index, incr;
-
+    int32_t end, index;
     int32_t indefArgCount = p->INOCOUNT - 2;
 
-    //printf("*** value=%f, index = [%d][%d][%d]\n", *(double*)p->value,
-    //       (int)(*p->indexes[0]), (int)(*p->indexes[1]), (int)(*p->indexes[2]));
+    if (UNLIKELY(!dat->allocated)) {
+      csoundErrorMsg(csound, Str(
+        "\nError: cannot assign to an array that hasn't been initialised yet\n\n"
+      ));
+      return CSOUND_ERROR;
+    }
 
     if (UNLIKELY(indefArgCount == 0)) {
       csoundErrorMsg(csound, Str("Error: no indexes set for array set\n"));
       return CSOUND_ERROR;
     }
+    // printf("array_set p->arrayDat %p indexes %p\n", p->arrayDat, p->indexes);
     if (UNLIKELY(indefArgCount!=dat->dimensions)) {
       return csound->PerfError(csound, &(p->h),
                                Str("Array dimension %d does not match "
@@ -306,22 +314,26 @@ static int32_t array_set(CSOUND* csound, ARRAY_SET *p)
     index = 0;
     for (i=0;i<indefArgCount; i++) {
       end = (int)(*p->indexes[i]);
-      //printf("** dimemnsion %d end = %d\n", i, end);
       if (UNLIKELY(end>=dat->sizes[i]))
         return csound->PerfError(csound, &(p->h),
                       Str("Array index %d out of range (0,%d) "
                           "for dimension %d"),
                                end, dat->sizes[i], i+1);
-      // printf("*** index %d -> ", index);
       index = (index * dat->sizes[i]) + end;
-      // printf("%d : %d\n", index, dat->sizes[i]);
     }
-    incr = (index * (dat->arrayMemberSize / sizeof(MYFLT)));
-    mem += incr;
-    //memcpy(mem, p->value, dat->arrayMemberSize);
-    dat->arrayType->copyValue(csound, dat->arrayType, mem, p->value);
-    /* printf("array_set: mem = %p, incr = %d, value = %f\n", */
-    /*         mem, incr, *((MYFLT*)p->value)); */
+    mem = (MYFLT*) dat->data + (index * dat->arrayMemberSize) / sizeof(MYFLT);
+    CS_TYPE* inputType = p->h.optext->t.inlist->next->cstype;
+    if (
+      dat->arrayType == (CS_TYPE*) &CS_VAR_TYPE_A &&
+      dat->arrayType != inputType
+    ) {
+      int ksmps = ((CSOUND*)csound)->ksmps;
+      for (int n = 0; n < ksmps; n++)
+        mem[n] = *((MYFLT*) p->value);
+    } else {
+      dat->arrayType->copyValue(csound, dat->arrayType, mem, p->value);
+    }
+
     return OK;
 }
 
@@ -504,8 +516,10 @@ static int32_t tabadd(CSOUND *csound, TABARITH *p)
       sizer*=r->sizes[i];
     }
     if (sizer<sizel) sizel= sizer;
-    for (i=0; i<sizel; i++)
+    for (i=0; i<sizel; i++) {
       ans->data[i] = l->data[i] + r->data[i];
+    }
+
     return OK;
 }
 
@@ -2579,7 +2593,7 @@ static int32_t tabclear(CSOUND *csound, TABCLEAR *p)
     int32_t i;
     int32_t nsmps = CS_KSMPS;
     int32_t size = 1;
-    
+
     if (UNLIKELY(t->data == NULL))
       return csound->PerfError(csound, &(p->h),
                                Str("array-variable not initialised"));
@@ -2589,7 +2603,7 @@ static int32_t tabclear(CSOUND *csound, TABCLEAR *p)
 
     for(i = 0; i < t->dimensions; i++) size *= t->sizes[i];
     memset(t->data, 0, sizeof(MYFLT)*nsmps*size);
-    
+
     return OK;
 }
 
@@ -2599,7 +2613,7 @@ static int32_t tabcleark(CSOUND *csound, TABCLEAR *p)
     ARRAYDAT *t = p->tab;
     int32_t i;
     int32_t size = 1;
-    
+
     if (UNLIKELY(t->data == NULL))
       return csound->PerfError(csound, &(p->h),
                                Str("array-variable not initialised"));
@@ -2609,7 +2623,7 @@ static int32_t tabcleark(CSOUND *csound, TABCLEAR *p)
 
     for(i = 0; i < t->dimensions; i++) size *= t->sizes[i];
     memset(t->data, 0, sizeof(MYFLT)*size);
-    
+
     return OK;
 }
 
@@ -2696,13 +2710,6 @@ static int32_t tabscale1(CSOUND *csound, TABSCALE *p)
     else return NOTOK;
 }
 
-typedef struct {
-  OPDS     h;
-  ARRAYDAT *dst;
-  ARRAYDAT *src;
-  int32_t      len;
-} TABCPY;
-
 static int32_t get_array_total_size(ARRAYDAT* dat)
 {
     int32_t i;
@@ -2722,7 +2729,7 @@ static int32_t get_array_total_size(ARRAYDAT* dat)
 static int32_t tabcopy(CSOUND *csound, TABCPY *p)
 {
     int32_t i, arrayTotalSize, memMyfltSize;
-
+    printf("tabcopy p->dst ptr: %p p->src ptr: %p \n", p->dst, p->src);
     if (UNLIKELY(p->src->data==NULL) || p->src->dimensions <= 0 )
       return csound->InitError(csound, "%s", Str("array-variable not initialised"));
     if (UNLIKELY(p->dst->dimensions > 0 &&
@@ -2806,7 +2813,7 @@ static int32_t tabcopyk(CSOUND *csound, TABCPY *p)
         memset(p->dst->data, 0, p->src->arrayMemberSize * arrayTotalSize);
       }
     }
- 
+
     for (i = 0; i < arrayTotalSize; i++) {
       int32_t index = (i * memMyfltSize);
       p->dst->arrayType->copyValue(csound, p->dst->arrayType,
@@ -2837,7 +2844,10 @@ static int32_t tabcopy1(CSOUND *csound, TABCPY *p)
     memMyfltSize = p->src->arrayMemberSize / sizeof(MYFLT);
     p->dst->arrayMemberSize = p->src->arrayMemberSize;
 
-    if (arrayTotalSize != get_array_total_size(p->dst)) {
+    if (
+      arrayTotalSize != get_array_total_size(p->dst) ||
+      p->dst->allocated != p->src->allocated
+    ) {
       p->dst->dimensions = p->src->dimensions;
 
       p->dst->sizes = csound->Malloc(csound, sizeof(int32_t) * p->src->dimensions);
@@ -2851,6 +2861,7 @@ static int32_t tabcopy1(CSOUND *csound, TABCPY *p)
         p->dst->data = csound->ReAlloc(csound, p->dst->data,
                         p->src->arrayMemberSize * arrayTotalSize);
         memset(p->dst->data, 0, p->src->arrayMemberSize * arrayTotalSize);
+        p->dst->allocated = p->src->arrayMemberSize * arrayTotalSize;
       }
     }
 
@@ -3141,7 +3152,9 @@ static int32_t tabslice(CSOUND *csound, TABSLICE *p) {
     int32_t size = (end - start)/inc + 1;
     int32_t i, destIndex;
     int32_t memMyfltSize = p->tabin->arrayMemberSize / sizeof(MYFLT);
-
+    printf("tabslice: %p\n", p);
+    printf("p->tabin ptr: %p\n", p->tabin);
+    printf("p->tanin->sies ptr: %p\n", p->tabin->sizes);
     if (UNLIKELY(size < 0))
       return csound->InitError(csound, "%s",
                                Str("inconsistent start, end parameters"));

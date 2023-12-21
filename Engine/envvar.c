@@ -78,7 +78,7 @@ typedef struct CSFILE_ {
     int             pos;
     MYFLT           *buf;
     int             bufsize;
-    char            fullName[1];
+    char            *fullName;
 } CSFILE;
 
 #if defined(MSVC)
@@ -1106,7 +1106,7 @@ void *csoundFileOpenWithType(CSOUND *csound, void *fd, int type,
     p->fd = tmp_fd;
     p->f = tmp_f;
     p->sf = (SNDFILE*) NULL;
-    strcpy(&(p->fullName[0]), fullName);
+    p->fullName = csound->Strdup(csound, fullName);
     if (env != NULL) {
       csound->Free(csound, fullName);
       env = NULL;
@@ -1357,6 +1357,7 @@ int csoundFileClose(CSOUND *csound, void *fd)
       if (p->nxt != NULL)
         p->nxt->prv = p->prv;
     }
+
     /* free allocated memory */
     csound->Free(csound, fd);
 

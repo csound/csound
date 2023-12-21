@@ -347,8 +347,11 @@ in pkgs.stdenvNoCC.mkDerivation rec {
       ../Engine/csound_data_structures.c \
       ../Engine/csound_orclex.c \
       ../Engine/csound_orc_compile.c \
+      ../Engine/csound_orc_structs.c \
+      ../Engine/csound_orc_verify.c \
       ../Engine/csound_orc_expressions.c \
       ../Engine/csound_orc_optimize.c \
+      ../Engine/csound_orc_arguments.c \
       ../Engine/csound_orc_semantics.c \
       ../Engine/csound_orcparse.c \
       ../Engine/csound_prelex.c \
@@ -526,6 +529,7 @@ in pkgs.stdenvNoCC.mkDerivation rec {
       ../Opcodes/pvscent.c \
       ../Opcodes/pvsdemix.c \
       ../Opcodes/pvsgendy.c \
+      ../Opcodes/structs.c \
       ../Opcodes/quadbezier.c \
       ../Opcodes/repluck.c \
       ../Opcodes/reverbsc.c \

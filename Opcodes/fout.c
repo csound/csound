@@ -163,7 +163,7 @@ static CS_NOINLINE int32_t fout_open_file(CSOUND *csound, FOUT_FILE *p, void *fp
       if ((strcmp(filemode, "rb") == 0 || (strcmp(filemode, "wb") == 0)))
             csFileType = CSFTYPE_OTHER_BINARY;
       else  csFileType = CSFTYPE_OTHER_TEXT;
-      fd = csound->FileOpen2(csound, &f, fileType, name, fileParams, "",
+      fd = csound->FileOpen2(csound, &f, fileType, name, fileParams, NULL,
                                csFileType, 0);
       if (UNLIKELY(fd == NULL)) {
         csound->InitError(csound, Str("error opening file '%s'"), name);

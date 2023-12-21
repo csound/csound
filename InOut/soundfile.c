@@ -21,37 +21,38 @@
     02110-1301 USA
 */
 
+#include <stdlib.h>
 #include <soundfile.h>
 
 #if USE_LIBSNDFILE
 
 
 const char *sflib_strerror(void *p){
-  return sf_strerror((SNDFILE *)p); 
+  return sf_strerror((SNDFILE *)p);
 }
 
 int  sflib_set_string(void *sndfile, int str_type, const char* str){
   return sf_set_string((SNDFILE *)sndfile, str_type, str) ;
 }
-  
+
 int sflib_command (void *handle, int cmd, void *data, int datasize)  {
   return sf_command((SNDFILE*) handle, cmd, data, datasize) ;
 }
 
 void *sflib_open_fd(int fd, int mode, SFLIB_INFO *sfinfo, int close_desc) {
-      SNDFILE *handle;
-      SF_INFO info;
+      SNDFILE* handle;
+      SF_INFO* info = calloc(sizeof(SF_INFO), (size_t) 1);
       if(mode == SFM_WRITE) {
-        info.samplerate = sfinfo->samplerate;
-        info.channels = sfinfo->channels;
-        info.format = sfinfo->format;
+        info->samplerate = sfinfo->samplerate;
+        info->channels = sfinfo->channels;
+        info->format = sfinfo->format;
       }
-      handle = sf_open_fd(fd, mode, &info, close_desc);
+      handle = sf_open_fd(fd, mode, info, close_desc);
       if(mode == SFM_READ) {
-        sfinfo->samplerate = info.samplerate;
-        sfinfo->channels = info.channels;
-        sfinfo->format = info.format;
-        sfinfo->frames  = info.frames;
+        sfinfo->samplerate = info->samplerate;
+        sfinfo->channels = info->channels;
+        sfinfo->format = info->format;
+        sfinfo->frames  = info->frames;
       }
      return handle;
 }
@@ -114,7 +115,7 @@ long sflib_writef_double(void *handle, double *ptr, long items) {
     return sf_writef_double((SNDFILE *) handle, ptr, items);
 }
 
-#else 
+#else
 int sflib_command (void *handle, int cmd, void *data, int datasize)  {
       return 0;
 }
