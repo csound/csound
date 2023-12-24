@@ -9,6 +9,8 @@
 #
 function(make_executable name srcs libs)
     add_executable(${name} ${srcs})
+    target_include_directories(${name} PRIVATE ${libcsound_private_include_dirs})
+    target_include_directories(${name} PUBLIC ${libcsound_public_include_dirs})
     target_link_libraries (${name} PRIVATE ${libs})
     set_target_properties(${name} PROPERTIES
         RUNTIME_OUTPUT_DIRECTORY ${BUILD_BIN_DIR})
@@ -95,6 +97,8 @@ function(make_plugin libname srcs)
     else()
         add_library(${libname} MODULE ${srcs})
     endif()
+    target_include_directories(${libname} PRIVATE ${libcsound_private_include_dirs})
+    target_include_directories(${libname} PUBLIC ${libcsound_public_include_dirs})
 
     set(i 2)
     while( ${i} LESS ${ARGC} )
