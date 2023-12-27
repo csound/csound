@@ -2247,6 +2247,7 @@ int32_t subinak(CSOUND *csound, ASSIGN *p)
  * NOTE: Not all compilers permit type casting a type-punned pointer. So, we 
  * must explicitly copy rather than assign the data to test.
  */
+#ifndef __MINGW32__
 static inline int _isnan(MYFLT x) {
     #ifdef USE_DOUBLE
         uint64_t bits;
@@ -2270,6 +2271,7 @@ static inline int _isnan(MYFLT x) {
         return 0;
     #endif
  }
+#endif
 
 
 int32_t is_NaN(CSOUND *csound, ASSIGN *p)

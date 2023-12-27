@@ -236,3 +236,4 @@ dist
 xcode
 *.nupkg
 *.exe
+bin

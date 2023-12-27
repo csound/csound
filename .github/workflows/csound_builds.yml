@@ -203,6 +203,52 @@ jobs:
             ./include/
           if-no-files-found: error
 
+  windows_build_mingw:
+    name: Windows build (mingw/vcpkg)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout source code
+        uses: actions/checkout@v1
+        with:
+          fetch-depth: 1
+          submodules: true
+
+      - name: Bootstrap VCPKG
+        run: ./vcpkg/bootstrap-vcpkg.sh
+
+      - name: Setup NuGet credentials
+        shell: bash
+        run: |
+          mono `./vcpkg/vcpkg fetch nuget | tail -n 1` \
+          sources add \
+          -source "https://nuget.pkg.github.com/csound/index.json" \
+          -storepasswordincleartext \
+          -name "GitHub" \
+          -username "csound" \
+          -password "${{ secrets.GITHUB_TOKEN }}"
+          mono `./vcpkg/vcpkg fetch nuget | tail -n 1` \
+            setapikey "${{ secrets.GITHUB_TOKEN }}" \
+            -source "https://nuget.pkg.github.com/csound/index.json"
+
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install mingw-w64-x86-64-dev gcc-mingw-w64 g++-mingw-w64 mingw-w64-tools wine
+
+      - name: Use posix mingw
+        run: |
+          sudo update-alternatives --set x86_64-w64-mingw32-gcc /usr/bin/x86_64-w64-mingw32-gcc-posix
+          sudo update-alternatives --set x86_64-w64-mingw32-g++ /usr/bin/x86_64-w64-mingw32-g++-posix
+
+      - name: Configure Build
+        run: cmake -B build -S . -DUSE_VCPKG=1 -DCUSTOM_CMAKE="./platform/mingw64-linux/Custom.cmake" -DCMAKE_SYSTEM_NAME=MinGW
+
+      - name: Build Csound
+        run: cmake --build build --config Release
+
+      - name: Run integration and unit tests
+        run: cmake --build build --target test csdtests
+
   #android_build:
   #  name: Android build
   # runs-on: ubuntu-latest
