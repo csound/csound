@@ -46,11 +46,7 @@ if(USE_JACK)
     # prevents "cannot open include file" errors
     find_path(JACK_INCLUDE_PATH jack/jack.h)
 endif()
-if(USE_PULSEAUDIO)
-    find_library(PULSEAUDIO_LIBRARY pulse)
-    find_library(PULSESIMPLE_LIBRARY pulse-simple)
-    check_include_file(pulse/simple.h PULSEAUDIO_HEADER)
-endif()
+
 # if(USE_COREAUDIO)
 #    find_path(COREAUDIO_INCLUDE_PATH CoreAudio.h)
 #    find_library(COREAUDIO_LIBRARY CoreAudio)
@@ -108,10 +104,10 @@ if(WIN32)
     endif()
 endif()
 
-
-check_deps(USE_PULSEAUDIO PULSEAUDIO_HEADER PULSEAUDIO_LIBRARY PULSESIMPLE_LIBRARY)
+find_package(PulseAudio)
+check_deps(USE_PULSEAUDIO PulseAudio_FOUND)
 if(USE_PULSEAUDIO)
-    make_plugin(rtpulse rtpulse.c ${PULSEAUDIO_LIBRARY} ${PULSESIMPLE_LIBRARY})
+    make_plugin(rtpulse rtpulse.c PulseAudio::PulseAudio)
 endif()
 
 if(PORTAUDIO_FOUND OR USE_VCPKG)
