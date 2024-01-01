@@ -29,7 +29,8 @@
 /* University of Washington, Seattle 1998 */
 /******************************************/
 
-#include "stdopcod.h"
+#include "csoundCore.h"  // for OPDS, AUXCH
+#include "sysdep.h"      // for MYFLT
 
 typedef struct {
     OPDS    h;

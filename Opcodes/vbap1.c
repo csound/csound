@@ -30,11 +30,16 @@ Ville Pulkki heavily modified by John ffitch 2012
 */
 
 
-#include "csoundCore.h"
-#include "vbap.h"
-#include <math.h>
-#include <stdio.h>
-#include <stdlib.h>
+#include <math.h>        // for fabs, sqrt
+#include <stdint.h>      // for int32_t
+#include <stdio.h>       // for NULL, snprintf
+#include <stdlib.h>      // for free, malloc, abs
+#include <string.h>      // for memset, memcpy
+
+#include "csound.h"      // for CSOUND, Str
+#include "csoundCore.h"  // for CSOUND_, OK, AUXCH, ARRAYDAT, CS_EKR, CS_ONEDKR
+#include "sysdep.h"      // for FL, MYFLT, UNLIKELY, int32, LIKELY, SQRT
+#include "vbap.h"        // for VBAP1_MOVE_DATA, CART_VEC, VBAP1_DATA, vec_mean
 
 static int32_t vbap1_moving_control(CSOUND *, VBAP1_MOVE_DATA *, OPDS *, MYFLT,
                                 MYFLT, MYFLT, MYFLT**);

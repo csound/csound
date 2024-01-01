@@ -21,21 +21,26 @@
     02110-1301 USA
 */
 
-#include "csoundCore.h"     /*                              LINEVENT.C      */
-#include <ctype.h>
+#include "linevent.h"    // for LINEVENT, LINEVENT2
 
-#ifdef MSVC
-#include <fcntl.h>
+#include <ctype.h>       // for isblank, isdigit
+#ifdef HAVE_FCNTL_H
+#include <fcntl.h>       // for fcntl, O_NDELAY, open, F_SETFL, F_GETFL, O_R...
+#endif
+#include <setjmp.h>      // for jmp_buf, setjmp
+#include <stdio.h>       // for NULL, fileno, popen, setvbuf, FILE, _IONBF
+#include <string.h>      // for memcpy, memset, strcmp, strlen, strrchr
+#ifdef HAVE_UNISTD_H
+#include <unistd.h>      // for close, read
 #endif
 
-#include "linevent.h"
+#include "csound.h"      // for CSOUND, Str, cs_strtod, csoundCompileOrc
+#include "csoundCore.h"  // for CSOUND_, EVTBLK, lineventStatics__, OPARMS
+#include "prototyp.h"    // for csoundDie, insert_score_event_at_sample, get...
+#include "sysdep.h"      // for UNLIKELY, MYFLT, FL, int32, FABS, CS_NOINLINE
 
 #ifdef PIPES
-# if defined(SGI) || defined(LINUX) || defined(NeXT) || defined(__MACH__)
-#  define _popen popen
-#  define _pclose pclose
-# elif defined(__BEOS__) ||  defined(__HAIKU__) || defined(__MACH__)
-#  include <stdio.h>
+# if defined(SGI) || defined(LINUX) || defined(NeXT) || defined(__MACH__) || defined(__BEOS__) ||  defined(__HAIKU__)
 #  define _popen popen
 #  define _pclose pclose
 # else

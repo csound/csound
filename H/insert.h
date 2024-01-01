@@ -23,6 +23,9 @@
 
 #pragma once
 
+#include "csoundCore.h"  // for OPDS, INSDS, LBLBLK, OPCODENUMOUTS_HIGH, OPC...
+#include "sysdep.h"      // for MYFLT, int32
+
 typedef struct {                        /*       INSERT.H                */
     OPDS    h;
     LBLBLK  *lblblk;

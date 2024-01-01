@@ -20,12 +20,20 @@
  Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
  02110-1301 USA
 */
+
+#include <stdarg.h>    // for va_end, va_list, va_start
+#include <stdio.h>     // for vfprintf, NULL, stderr, stdout
+#include <cmath>       // for exp, fabs, pow, cos, sin, sqrt
+#include <complex>     // for complex
+#include <random>      // for default_random_engine, uniform_real_distribution
+#include <vector>      // for vector
+
 extern "C" {
-#include "csdl.h"
+#include "csdl.h"      // for FGDATA, EVTBLK, CSOUND_, FUNC, CS_WARNMSG, NGFENS
+#include "csound.h"    // for CSOUND, PUBLIC
+#include "msg_attr.h"  // for CSOUNDMSG_WARNING
+#include "sysdep.h"    // for MYFLT, FL
 }
-#include <cmath>
-#include <complex>
-#include <random>
 
 /**
 

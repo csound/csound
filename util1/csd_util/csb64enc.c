@@ -1,10 +1,10 @@
 
 /* Base64 encoder utility - written by Istvan Varga, Jan 2003 */
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <errno.h>
+#include <errno.h>   // for errno
+#include <stdio.h>   // for fprintf, stderr, NULL, FILE, fclose, fflush, fopen
+#include <stdlib.h>  // for exit, atoi, free, realloc
+#include <string.h>  // for strcmp, strerror
 
 static  int     nr_infiles = 0;
 static  int     max_infiles = 0;

@@ -23,6 +23,9 @@
 
 #pragma once
 
+#include "csoundCore.h"  // for OPDS, FUNC
+#include "sysdep.h"      // for MYFLT
+
 typedef struct {
     MYFLT *ictlno, *imin, *imax, *initvalue, *ifn;
 } SLD;

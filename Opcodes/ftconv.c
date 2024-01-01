@@ -21,8 +21,14 @@
     02110-1301 USA
 */
 
-#include "stdopcod.h"
-#include <math.h>
+#include <stdint.h>      // for int32_t, uint32_t
+#include <string.h>      // for memset, NULL
+
+#include "csound.h"      // for CSOUND, Str
+#include "csoundCore.h"  // for CSOUND_, FUNC, AUXCH, OK, OPDS, INSDS, CS_KSMPS
+#include "interlocks.h"  // for TR
+#include "stdopcod.h"    // for ftconv_init_
+#include "sysdep.h"      // for MYFLT, UNLIKELY, FL, MYFLT2LRND, int32
 
 #define FTCONV_MAXCHN   8
 

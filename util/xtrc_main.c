@@ -1,5 +1,5 @@
 
-#include "utilmain.h"
+#include "utilmain.h"  // for UTIL_MAIN
 
 UTIL_MAIN("extractor")
 

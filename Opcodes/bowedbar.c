@@ -29,9 +29,15 @@
 /*    Towards Physical Modelling of Bar      */
 /*    Percussion Instruments", ICMC'99       */
 /*********************************************/
-// #include "csdl.h"
-#include "csoundCore.h"
 #include "bowedbar.h"
+
+#include <string.h>            // for memset
+
+#include "Opcodes/bowed.h"     // for BowTabl, BowTabl_lookup
+#include "Opcodes/physutil.h"  // for BiQuad, make_BiQuad, ADSR, BiQuad_clear
+#include "csound.h"            // for CSOUND, Str
+// #include "csdl.h"
+#include "csoundCore.h"        // for CSOUND_, CS_ESR, INSDS, OPDS, OK, AUXCH
 
 /* Number of banded waveguide modes */
 

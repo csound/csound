@@ -42,7 +42,9 @@
 #include <string>
 #include <vector>
 #include <interlocks.h>
-#include <csdl.h>
+
+#include "csdl.h"
+#include "msg_attr.h"
 
 /**
  * Template base class, or pseudo-virtual base class,

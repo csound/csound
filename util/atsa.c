@@ -26,13 +26,20 @@
 
 #define _FILE_OFFSET_BITS 64
 
-#include "std_util.h"
+#include <math.h>       // for floor, cos, fabs, log10, atan2, hypot, pow
+#include <sndfile.h>    // for SNDFILE, sf_count_t, SF_STR_SOFTWARE
+#include <stdio.h>      // for NULL, fprintf, fwrite, stderr, FILE, fseek
+#include <stdlib.h>     // for atof, qsort, atoi
+#include <string.h>     // for memset
+#ifdef HAVE_FCNTL_H
+#include <fcntl.h>      // for SEEK_SET
+#endif
 
-#include <math.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <errno.h>
+#include "csdl.h"       // for CSOUND_, Str, TWOPI, PI, CSFILE_SND_R, CSFILE...
+#include "csound.h"     // for CSOUND, CSFTYPE_UNKNOWN_AUDIO, CSFTYPE_ATS
+#include "soundfile.h"  // for SFLIB_INFO, sflib_strerror, sflib_readf_double
+#include "std_util.h"   // for atsa_init_
+#include "sysdep.h"     // for UNLIKELY, MYFLT, CS_NOINLINE, CS_NORETURN
 
 #if defined(__GNUC__) && defined(__STRICT_ANSI__)
 #  ifndef inline

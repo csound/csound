@@ -49,13 +49,11 @@
 *
 */
 
-#ifdef __BUILDING_LIBCSOUND
-#include "csoundCore.h"
-#else
-#include "csound.h"
-#endif
+#include <stdint.h>              // for uint64_t
 
-#include "csound_type_system.h"
+#include "csound.h"              // for CSOUND, PUBLIC
+#include "csound_type_system.h"  // for CS_VARIABLE
+#include "sysdep.h"              // for MYFLT
 
 
 /** @defgroup DEBUGGER Debugger

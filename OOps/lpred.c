@@ -17,12 +17,19 @@
   02110-1301 USA
 */
 
-#include <stdlib.h>
-#include <math.h>
-#include "csoundCore.h"
-#include "csound.h"
-#include "fftlib.h"
-#include "lpred.h"
+#include "lpred.h"       // for LPCFIL, RESONB, LPCFIL2, MYCMPLX, LPCPVS
+
+#include <math.h>        // for fabs, sqrt, cos, exp, pow, isnan
+#include <stdint.h>      // for int32_t, uint32_t
+#include <stdlib.h>      // for NULL, qsort
+#include <string.h>      // for memset, memcpy
+
+#include "arrays.h"      // for tabinit
+#include "csound.h"      // for CSOUND, Str
+#include "csoundCore.h"  // for AUXCH, CSOUND_, FUNC, OK, INSDS, OPDS, ARRAYDAT
+#include "fftlib.h"      // for csoundInverseRealFFT, csoundRealFFT
+#include "pstream.h"     // for PVSDAT, PVS_AMP_FREQ, PVS_WIN_HANN
+#include "sysdep.h"      // for MYFLT, UNLIKELY, SQRT, FL, LOG, EXP, ATAN2, COS
 
 static inline MYFLT magc(MYCMPLX c) {
   return HYPOT(c.re, c.im);
@@ -736,7 +743,6 @@ int32_t lpfil2_perf(CSOUND *csound, LPCFIL2 *p) {
 
 /* linear prediction analysis
  */
-#include "arrays.h"
 
 /* function table input */
 int32_t lpred_alloc(CSOUND *csound, LPREDA *p) {

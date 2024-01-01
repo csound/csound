@@ -24,6 +24,11 @@
                                                         /*  DUMPF.H  */
 #pragma once
 
+#include <stdio.h>       // for FILE
+
+#include "csoundCore.h"  // for FDCH, OPDS, STRINGDAT
+#include "sysdep.h"      // for int32, MYFLT
+
 typedef struct {
         OPDS   h;
         MYFLT  *ksig, *ifilcod, *iformat, *iprd;

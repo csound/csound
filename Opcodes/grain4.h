@@ -23,6 +23,11 @@
 
 #pragma once
 
+#include <stdint.h>      // for int32_t
+
+#include "csoundCore.h"  // for FUNC, OPDS
+#include "sysdep.h"      // for MYFLT, int32, int16
+
 #define MAXVOICE 128
 
 typedef struct {

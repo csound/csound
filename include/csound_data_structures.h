@@ -24,6 +24,8 @@
 #ifndef __CSOUND_DATA_STRUCTURES_H
 #define __CSOUND_DATA_STRUCTURES_H
 
+#include "csound.h"  // for PUBLIC, CSOUND
+
 #ifdef __cplusplus
 extern "C" {
 #endif

@@ -30,8 +30,14 @@
 *       See paper by Dobson and ffitch, ICMC'96                 *
 \***************************************************************/
 
-#include "stdopcod.h"
 #include "nlfilt.h"
+
+#include <string.h>    // for NULL, memset, strlen
+
+#include "arrays.h"    // for tabinit
+#include "csound.h"    // for CSOUND, Str
+#include "prototyp.h"  // for cs_strdup, get_arg_string
+#include "stdopcod.h"  // for nlfilt_init_
 
 typedef struct {
         OPDS    h;
@@ -286,7 +292,6 @@ int32_t pinit(CSOUND *csound, PINIT *p)
     return OK;
 }
 
-#include "arrays.h"
 int32_t painit(CSOUND *csound, PAINIT *p)
 {
     int32_t n;

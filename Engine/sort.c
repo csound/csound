@@ -27,7 +27,13 @@ recovered march 2010
 Adapted from Delphi implementation of Dijkstra's algorithm.
 */
 
-#include "csoundCore.h"                         /*   SORT.C  */
+#include "sort.h"  // for SRTBLK
+
+#include <stdio.h>       // for NULL
+
+#include "csound.h"      // for CSOUND, Str
+#include "csoundCore.h"  // for CSOUND_
+#include "sysdep.h"      // for UNLIKELY, LIKELY, MYFLT
 
 /* inline int ordering(SRTBLK *a, SRTBLK *b) */
 /* { */

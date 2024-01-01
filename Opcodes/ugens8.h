@@ -25,7 +25,11 @@
 #ifndef _UGENS8_H_
 #define _UGENS8_H_
 
-#include "pvoc_forward.h" // for PVOC_GLOBALS
+#include <stdint.h>                // for uint32_t
+
+#include "Opcodes/pvoc_forward.h"  // for PVOC_GLOBALS
+#include "csoundCore.h"            // for AUXCH, FUNC, OPDS
+#include "sysdep.h"                // for MYFLT, int32
 
 #define     PVFRAMSIZE      8192                /* i.e. max FFT point size */
 #define     PVFFTSIZE       (2*PVFRAMSIZE)      /* 2x for real + imag */

@@ -26,9 +26,13 @@
         /*      Copyright (c) August 1994.  All rights reserve */
         /*      Improvements 1999 John ffitch */
 
-#include "stdopcod.h"
-#include <math.h>
 #include "follow.h"
+
+#include <stdint.h>    // for uint32_t, int32_t
+#include <string.h>    // for memset
+
+#include "csound.h"    // for CSOUND, Str
+#include "stdopcod.h"  // for follow_init_
 
 static int32_t flwset(CSOUND *csound, FOL *p)
 {

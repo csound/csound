@@ -21,20 +21,22 @@
     02110-1301 USA
 */
 
-#include "csound.h"
+#include <errno.h>         // for errno
+#include <pthread.h>       // for pthread_create, pthread_detach, pthread_se...
+#include <sched.h>         // for sched_get_priority_max, SCHED_RR, sched_se...
+#include <signal.h>        // for kill, SIGKILL, SIGTERM, size_t
+#include <stdarg.h>        // for va_end, va_list, va_start
+#include <stdint.h>        // for uint32_t, int32_t
+#include <stdio.h>         // for fprintf, vfprintf, NULL, stderr
+#include <stdlib.h>        // for exit
+#include <string.h>        // for strncmp, strcmp, strerror, memset
+#include <sys/mman.h>      // for mlockall, MCL_CURRENT, MCL_FUTURE
+#include <sys/resource.h>  // for setpriority, PRIO_PROCESS
+#include <time.h>          // for clock, CLOCKS_PER_SEC
+#include <unistd.h>        // for getpid, getuid, setuid
 
-#include <stdio.h>
-#include <stdarg.h>
-#include <unistd.h>
-#include <errno.h>
-#include <time.h>
-#include <sys/types.h>
-#include <signal.h>
-#include <pthread.h>
-#include <sched.h>
-#include <sys/mman.h>
-#include <sys/time.h>
-#include <sys/resource.h>
+#include "csound.h"        // for csoundSleep
+#include "sysdep.h"        // for CS_NOINLINE
 
 static  int     cpuMax = 0;
 static  int     secs = 0;

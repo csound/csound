@@ -23,7 +23,9 @@
 
 #pragma once
 
-#include "pvoc_forward.h" // for PVOC_GLOBALS
+#include "csoundCore.h"    // for AUXCH, FUNC, OPDS, VARGMAX
+#include "pvoc_forward.h"  // for PVOC_GLOBALS
+#include "sysdep.h"        // for MYFLT, int32
 
 typedef struct {
     FUNC    *function, *nxtfunction;

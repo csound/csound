@@ -22,7 +22,7 @@
  Modified from http://www.davekoelle.com/files/alphanum.hpp
 */
 
-#include <ctype.h>
+#include <ctype.h>  // for toupper
 
 int alphanum_isdigit(const char c) {
     return c>='0' && c<='9';

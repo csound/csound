@@ -21,10 +21,22 @@
     02110-1301 USA
 */
 
-#include "csoundCore.h"         /*                      DISPREP.C       */
-#include <math.h>
-#include "cwindow.h"
-#include "disprep.h"
+#include "disprep.h"                // for TEMPEST, DSPFFT, DSPLAY, FSIGDISP
+
+#include <math.h>                   // for sqrt
+#include <stdint.h>                 // for int32_t, uint32_t
+#include <stdio.h>                  // for snprintf, NULL
+#include <string.h>                 // for memcpy
+
+#include "csound.h"                 // for CSOUND, Str, WINDAT
+#include "csoundCore.h"             // for CSOUND_, AUXCH, OPDS, OK, INSDS
+#include "csound_standard_types.h"  // for CS_VAR_TYPE_K
+#include "csound_type_system.h"     // for CS_VAR_MEM
+#include "cwindow.h"                // for display, dispset, windat_, NEGPOL
+#include "msg_attr.h"               // for CSOUNDMSG_ORCH
+#include "prototyp.h"               // for csoundGetTypeForArg
+#include "pstream.h"                // for PVSDAT
+#include "sysdep.h"                 // for MYFLT, FL, UNLIKELY, int16, int32
 
 
 #ifdef MSVC                   /* Thanks to Richard Dobson */

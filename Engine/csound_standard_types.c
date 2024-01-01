@@ -21,10 +21,17 @@
  02110-1301 USA
  */
 
-#include "csoundCore.h"
 #include "csound_standard_types.h"
-#include "pstream.h"
-#include <stdlib.h>
+
+#include <stdint.h>              // for int64_t
+#include <stdlib.h>              // for NULL, size_t
+#include <string.h>              // for memcpy, memset, strncpy
+
+#include "csound.h"              // for CSOUND
+#include "csoundCore.h"          // for ARRAYDAT, STRINGDAT, CSOUND_, IGN
+#include "csound_type_system.h"  // for CS_VARIABLE, CS_TYPE, csoundAddVaria...
+#include "pstream.h"             // for PVSDAT
+#include "sysdep.h"              // for MYFLT, CS_FLOAT_ALIGN, UNLIKELY
 
 
 /* MEMORY COPYING FUNCTIONS */

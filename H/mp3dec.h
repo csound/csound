@@ -22,8 +22,9 @@
 #ifndef __MP3DEC_H
 #define __MP3DEC_H
 
-#include <stdint.h>
-#include "mpadec.h"
+#include <stdint.h>  // for int64_t, uint32_t, uint8_t
+
+#include "mpadec.h"  // for mpadec_config_t
 
 #define MP3DEC_RETCODE_OK                 0
 #define MP3DEC_RETCODE_INVALID_HANDLE     1

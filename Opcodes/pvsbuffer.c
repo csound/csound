@@ -19,11 +19,15 @@
     02110-1301 USA
 */
 
-// #include "csdl.h"
-#include "csoundCore.h"
-#include "interlocks.h"
+#include <stdint.h>      // for int32_t, uint32_t
+#include <stdio.h>       // for NULL, snprintf
+#include <string.h>      // for memset
 
-#include "pstream.h"
+#include "csound.h"      // for CSOUND, Str
+// #include "csdl.h"
+#include "csoundCore.h"  // for SUBR, CSOUND_, AUXCH, FUNC, OK, CS_ESR, CS_K...
+#include "pstream.h"     // for PVSDAT, PVS_AMP_FREQ
+#include "sysdep.h"      // for MYFLT, UNLIKELY, uint32, int32, FL
 
 typedef struct {
   PVSDAT  header;

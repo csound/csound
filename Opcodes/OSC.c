@@ -25,18 +25,28 @@
 /* Haiku 'int32' etc definitions in net headers conflict with sysdep.h */
 #define __HAIKU_CONFLICT
 
-#include "csdl.h"
-#include <stdio.h>
-#include <stdlib.h>
-#ifdef HAVE_UNISTD_H
-    #include <unistd.h>
-#endif
-#include <lo/lo.h>
-#include <ctype.h>
+#include <ctype.h>               // for isdigit
+#include <lo/lo.h>               // for lo_arg, lo_blob_free, lo_blob_new
+#include <stdint.h>              // for int32_t, uint32_t, int64_t, uintptr_t
+#include <stdio.h>               // for NULL, snprintf, fprintf, size_t, stderr
+#include <stdlib.h>              // for atoi
+#include <string.h>              // for memcpy, strlen, strcmp, strcpy
 #ifndef WIN32
-  #include <sys/types.h>
-  #include <sys/socket.h>
+#include <sys/socket.h>          // for setsockopt
+#include <sys/types.h>           // for u_char
+#ifdef HAVE_NETINET_IN_H
+#include <netinet/in.h>          // for IPPROTO_IP, IP_MULTICAST_TTL
 #endif
+#endif
+
+#define BUILDING_PLUGIN
+#include "arrays.h"              // for tabinit
+#include "csdl.h"                // for CSOUND_, SUBR, STRINGDAT, ARRAYDAT, Str
+#include "csound.h"              // for CSOUND, PUBLIC
+#include "csound_type_system.h"  // for CS_TYPE
+#include "sysdep.h"              // for MYFLT, UNLIKELY, FL, MYFLT2LRND, LIKELY
+#include "version.h"             // for CS_APISUBVER, CS_APIVERSION
+
 //#define OSC_DEBUG
 
 /* structure for real time event */
@@ -1027,8 +1037,6 @@ static int32_t OSC_ahandler(const char *path, const char *types,
     pp->csound->UnlockMutex(pp->mutex_);
     return retval;
 }
-
-#include "arrays.h"
 
 static int32_t OSC_alist_init(CSOUND *csound, OSCLISTENA *p)
 {

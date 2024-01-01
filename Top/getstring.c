@@ -23,7 +23,8 @@
     02110-1301 USA
 */
 
-#include "csoundCore.h"
+#include "csound.h"      // for PUBLIC, CSLANGUAGE_DEFAULT, cs_sprintf, cs_s...
+#include "csoundCore.h"  // for IGN
 
 #ifdef BARE_METAL
 #ifdef HAVE_STRTOD_L
@@ -47,8 +48,6 @@ static char *csound_c_locale = NULL;
 #endif
 
 #ifdef HAVE_DIRENT_H
-#  include <sys/types.h>
-#  include <dirent.h>
 #  if 0 && defined(__MACH__)
 typedef void* DIR;
 DIR opendir(const char *);
@@ -57,12 +56,14 @@ int closedir(DIR*);
 #  endif
 #endif
 
-#include "namedins.h"
-
 #define CSSTRNGS_VERSION 0x2000
-#include <locale.h>
+#include <locale.h>      // for setlocale, LC_NUMERIC, NULL, newlocale, LC_M...
+#include <stdarg.h>      // for va_end, va_list, va_start
+#include <stdio.h>       // for fprintf, vsprintf, vsscanf, stderr
+#include <stdlib.h>      // for strtod_l
+#include <string.h>      // for strtok_r
 #ifdef GNU_GETTEXT
-#include <libintl.h>
+#include <libintl.h>     // for bindtextdomain, dgettext
 #endif
 
 #ifndef GNU_GETTEXT

@@ -16,8 +16,13 @@
   02110-1301 USA
 */
 //#include "csdl.h"
-#include "csoundCore.h"
-#include "interlocks.h"
+#include <stdint.h>      // for int32_t, uint32_t, int64_t
+#include <string.h>      // for memset, NULL
+
+#include "csound.h"      // for CSOUND, Str
+#include "csoundCore.h"  // for SUBR, FUNC, OK, OPDS, CSOUND_, IGN, INSDS
+#include "interlocks.h"  // for TR
+#include "sysdep.h"      // for MYFLT, UNLIKELY
 
 typedef struct {
         OPDS    h;

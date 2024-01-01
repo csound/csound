@@ -21,8 +21,12 @@
     02110-1301 USA
 */
 
-#include "csoundCore.h"
-#include "interlocks.h"
+#include <stddef.h>      // for NULL
+#include <stdint.h>      // for int32_t
+
+#include "csound.h"      // for CSOUND, Str
+#include "csoundCore.h"  // for SUBR, FUNC, CSOUND_, OK, LINKAGE_BUILTIN
+#include "sysdep.h"      // for MYFLT, UNLIKELY, MYFLT2LRND, FL
 
 typedef struct {
     OPDS    h;

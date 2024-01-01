@@ -26,7 +26,11 @@
 #ifndef CSOUND_SPAT3D_H
 #define CSOUND_SPAT3D_H
 
-#include "csdl.h"
+#include <math.h>        // for sqrt
+#include <stdint.h>      // for int32_t
+
+#include "csoundCore.h"  // for AUXCH, OPDS
+#include "sysdep.h"      // for FL, MYFLT, int32
 
 #ifdef CSOUND_SPAT3D_C  /* define these only when included from spat3d.c */
 

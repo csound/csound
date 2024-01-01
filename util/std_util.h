@@ -22,8 +22,10 @@
 #ifndef CSOUND_STD_UTIL_H
 #define CSOUND_STD_UTIL_H
 
-#include "csdl.h"
-#include <inttypes.h>
+#include <inttypes.h>  // for int32_t
+
+#include "csdl.h" // IWYU pragma: keep
+#include "csound.h"    // for CSOUND
 
 extern int32_t atsa_init_(CSOUND *);
 extern int32_t cvanal_init_(CSOUND *);

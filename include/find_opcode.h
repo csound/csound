@@ -23,6 +23,12 @@
 #ifndef _FIND_OPCODE_H_
 #define _FIND_OPCODE_H_
 
+#if defined(__BUILDING_LIBCSOUND)
+#include "csoundCore.h"
+#else
+#include "csdl.h"
+#endif
+
 char* get_opcode_short_name(CSOUND* csound, char* opname);
 
 PUBLIC OENTRY* find_opcode_new(CSOUND* csound, char* opname,

@@ -26,6 +26,9 @@
 #ifndef CSOUND_OSCILS_H
 #define CSOUND_OSCILS_H
 
+#include "csoundCore.h"  // for OPDS
+#include "sysdep.h"      // for MYFLT
+
 /* oscils opcode struct */
 
 typedef struct {

@@ -26,6 +26,10 @@
 
 #include "scot.h"
 
+#include <ctype.h>   // for isalpha, isdigit
+#include <stdlib.h>  // for malloc, free, exit, atoi
+#include <string.h>  // for strcmp, strchr, strcpy, strncmp, strlen, strcat
+
 #define Str(x)  (x)
 #if defined(HAVE_GCC3)
 #  define UNLIKELY(x)   __builtin_expect(!!(x),0)

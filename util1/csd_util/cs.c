@@ -1,15 +1,16 @@
 
 /* Csound launcher utility - written by Istvan Varga, Jan 2003 */
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <errno.h>
-#include <sys/types.h>
-#include <dirent.h>
-#include <ctype.h>
+#include <errno.h>   // for errno
+#include <stdio.h>   // for fprintf, NULL, stderr, sprintf
+#include <stdlib.h>  // for exit, free, malloc, getenv, realloc
+#include <string.h>  // for strlen, strcpy, strcat, strncpy, strstr, strchr
+#ifdef HAVE_DIRENT_H
+#include <dirent.h>  // for closedir, opendir, readdir, DIR, dirent
+#endif
+#include <ctype.h>   // for isblank, isupper, tolower, isalpha, islower, tou...
 #ifdef HAVE_UNISTD_H
-#include <unistd.h>
+#include <unistd.h>  // for execvp
 #endif
 #if defined(WIN32)
 #include <process.h>

@@ -23,17 +23,23 @@
     02110-1301 USA
 */
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include "csoundCore.h"
-#include "tok.h"
-#include "csound_orc.h"
-#include "insert.h"
-#include "namedins.h"
-#include "interlocks.h"
-#include "csound_orc_semantics.h"
-#include "csound_standard_types.h"
+#include <stdarg.h>                  // for va_end, va_list, va_start
+#include <stdio.h>                   // for NULL, snprintf
+#include <string.h>                  // for strcmp, strlen, memcpy, strchr
+
+#include "csound.h"                  // for CSOUND, Str, ORCTOKEN
+#include "csoundCore.h"              // for OENTRY, OPCODINFO, CSOUND_, IGN
+#include "csound_data_structures.h"  // for CONS_CELL, cs_hash_table_get
+#include "csound_orc.h"              // for PARSER_DEBUG, T_IDENT, T_TYPED_I...
+#include "csound_standard_types.h"   // for ARRAY_VAR_INIT, CS_VAR_TYPE_ARRAY
+#include "csound_type_system.h"      // for csoundAddVariable, csoundCreateV...
+#include "find_opcode.h"             // for find_opcode_exact, find_opcode
+#include "insert.h"                  // for UOPCODE
+#include "interlocks.h"              // for UNDEFINED
+#include "namedins.h"                // for check_instr_name
+#include "prototyp.h"                // for cs_strdup, csoundErrMsgV, synterr
+#include "sysdep.h"                  // for UNLIKELY, uint16, MYFLT
+#include "tok.h"                     // for new_token
 
 #ifndef PARSER_DEBUG
 #define PARSER_DEBUG (0)

@@ -26,6 +26,7 @@
 #pragma once
 
 #include "3Dug.h"
+#include "csoundCore.h"
 
 typedef struct {
   OPDS  h;

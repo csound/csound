@@ -41,8 +41,12 @@
  * */
 
 #include "ugen.h"
-#include "csound_standard_types.h"
-#include "csound_orc.h"
+
+#include <string.h>                  // for NULL, strchr, strcmp
+
+#include "csound_data_structures.h"  // for cs_cons, CONS_CELL, cs_cons_length
+#include "csound_orc.h"              // for OENTRIES
+#include "csound_standard_types.h"   // for CS_VAR_TYPE_A, CS_VAR_TYPE_K
 
 extern OENTRIES* find_opcode2(CSOUND* csound, char* opname);
 extern char** splitArgs(CSOUND* csound, char* argString);

@@ -26,6 +26,8 @@
 
 #pragma once
 
+#include "csoundCore.h"
+
 #define PFRAC1(x)   ((MYFLT)((x) & ftp1->lomask) * ftp1->lodiv)
 
 typedef struct ovrlap {

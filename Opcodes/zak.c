@@ -46,13 +46,13 @@
  * clearly indicated as such.
  */
 
-#include "csoundCore.h"
-//#include "csdl.h"
-#include "interlocks.h"
-#include <math.h>
-#include <ctype.h>
-
 #include "zak.h"
+
+#include <string.h>      // for memset, NULL, memcpy
+
+#include "csoundCore.h"  // for SUBR, CSOUND_, OK, CS_KSMPS, INSDS, OPDS, IGN
+//#include "csdl.h"
+#include "interlocks.h"  // for ZB, ZW, ZR
 
 /*****************************************************************************/
 /*****************************************************************************/

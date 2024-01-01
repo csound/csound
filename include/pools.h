@@ -24,6 +24,13 @@
 #ifndef POOLS_H
 #define POOLS_H
 
+#ifndef __BUILDING_LIBCSOUND
+#include "csdl.h"
+#endif
+#include "csound.h"              // for CSOUND
+#include "csound_type_system.h"  // for CS_VAR_MEM
+#include "sysdep.h"              // for MYFLT
+
 #define POOL_SIZE 256
 
 typedef struct myflt_pool {

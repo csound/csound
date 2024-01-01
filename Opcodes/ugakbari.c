@@ -24,9 +24,12 @@
 /* scale modified and scale2 written as a replacement by JPff Dec 2020 */
 
 
-#include "csoundCore.h"
-#include "interlocks.h"
-#include <math.h>
+#include <stddef.h>      // for NULL
+#include <stdint.h>      // for int32_t
+
+#include "csound.h"      // for CSOUND
+#include "csoundCore.h"  // for SUBR, OK, IGN, OPDS, CS_ONEDKR, LINKAGE_BUILTIN
+#include "sysdep.h"      // for MYFLT, FL, LOG, EXP, POWER
 
 #define LOGCURVE(x,y) ((LOG(x * (y-FL(1.0))+FL(1.0)))/(LOG(y)))
 #define EXPCURVE(x,y) ((EXP(x * LOG(y))-FL(1.0))/(y-FL(1.0)))

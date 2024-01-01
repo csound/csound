@@ -25,11 +25,18 @@
 
 /* Realtime MIDI using Portmidi library */
 
-#include "csdl.h"                               /*      PMIDI.C         */
-#include "csGblMtx.h"
-#include "midiops.h"
-#include <portmidi.h>
-#include <porttime.h>
+#include <portmidi.h>  // for PmDeviceInfo, Pm_GetDeviceInfo, PmEvent, Pm_Co...
+#include <porttime.h>  // for Pt_Start, Pt_Stop, ptNoError
+#include <stdarg.h>    // for va_end, va_list, va_start
+#include <stdio.h>     // for NULL, snprintf
+#include <stdlib.h>    // for atoi
+#include <string.h>    // for strcmp, strncpy, strcpy
+
+#include "csGblMtx.h"  // for csoundLock, csoundUnLock
+#include "csdl.h"      // for CSOUND_, Str, IGN, csoundModuleCreate, csoundM...
+#include "csound.h"    // for CSOUND, CS_MIDIDEVICE, PUBLIC
+#include "sysdep.h"    // for UNLIKELY
+#include "version.h"   // for CS_APISUBVER, CS_APIVERSION
 
 /* Stub for compiling this file with MinGW and linking
    with portmidi.lib built with MSVC AND with Windows

@@ -27,8 +27,14 @@
 
 /* Some speed hacks added by John Fitch */
 
-#include "stdopcod.h"
 #include "grain.h"
+
+#include <stdint.h>      // for uint32_t, int32_t
+#include <string.h>      // for memset, NULL, memcpy, size_t
+
+#include "csound.h"      // for CSOUND, Str
+#include "interlocks.h"  // for TR
+#include "stdopcod.h"    // for grain_init_
 
 static inline MYFLT Unirand(CSOUND *csound, MYFLT a)
 {

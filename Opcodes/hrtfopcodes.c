@@ -21,10 +21,13 @@
     02110-1301 USA
 */
 
-#include "csoundCore.h"
-#include "interlocks.h"
+#include <stdint.h>      // for int32_t, uint32_t
+#include <string.h>      // for memset, NULL
 
-#include <math.h>
+#include "csound.h"      // for CSOUND, Str, CSFTYPE_FLOATS_BINARY
+#include "csoundCore.h"  // for AUXCH, CSOUND_, SUBR, MEMFIL, MAXNAME, STRIN...
+#include "sysdep.h"      // for MYFLT, FL, FABS, strNcpy, UNLIKELY, COS, SIN
+
 /* definitions */
 /* from mit */
 #define minelev (-40)

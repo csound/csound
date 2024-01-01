@@ -22,7 +22,16 @@
 */
 
 #include "pvoc.h"
-#include "pvoc_forward.h" // for PVOC_GLOBALS
+
+#include <stdint.h>                // for int32_t
+
+#include "Opcodes/pvadd.h"         // for PVADD
+#include "Opcodes/pvinterp.h"      // for PVBUFREAD, PVCROSS, PVINTERP
+#include "Opcodes/pvoc_forward.h"  // for PVOC_GLOBALS
+#include "Opcodes/pvread.h"        // for PVREAD
+#include "Opcodes/ugens8.h"        // for PVOC
+#include "Opcodes/vpvoc.h"         // for TABLESEG, VPVOC
+#include "interlocks.h"            // for TR, TW, _QQ
 
 int32_t     pvset(CSOUND *, void *), pvset_S(CSOUND *, void *);
 int32_t     pvoc(CSOUND *, void *);

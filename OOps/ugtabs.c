@@ -21,10 +21,14 @@
     02110-1301 USA
 */
 
-#include "csoundCore.h"
 #include "ugtabs.h"
-#include "ugens2.h"
-#include <math.h>
+
+#include <stdint.h>      // for int32_t, uint32_t
+#include <string.h>      // for memset, NULL
+
+#include "csound.h"      // for CSOUND, Str
+#include "csoundCore.h"  // for FUNC, CSOUND_, OK, INSDS, OPDS, IGN, CS_KSMPS
+#include "sysdep.h"      // for UNLIKELY, MYFLT, int32, FL, FLOOR
 
 //(x >= FL(0.0) ? (int32_t)x : (int32_t)((double)x - 0.99999999))
 #define MYFLOOR(x) FLOOR(x)

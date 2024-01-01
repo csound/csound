@@ -23,14 +23,25 @@
     02110-1301 USA
 */
 
-#include "std_util.h"                                   /*  LPANAL.C    */
-#include "soundio.h"
-#include "lpc.h"
-#include "cwindow.h"
+#include <math.h>           // for fabs, atan2, sqrt, cos, hypot, pow, sin
+#include <sndfile.h>        // for SNDFILE
+#include <stdint.h>         // for int32_t, int64_t, uint32_t
+#include <stdlib.h>         // for rand, RAND_MAX
+#include <string.h>         // for memcpy, strlen, strncat
 #ifndef WIN32
-#include <unistd.h>
+#ifdef HAVE_UNISTD_H
+#include <unistd.h>         // for write
 #endif
-#include <math.h>
+#endif
+
+#include "csdl.h"           // for CSOUND_, Str, CSFILE_FD_W, CSFILE_STD
+#include "csound.h"         // for CSOUND, Str_noop, CSFTYPE_LPC, WINDAT
+#include "cwindow.h"        // for windat_
+#include "float-version.h"  // for USE_DOUBLE
+#include "lpc.h"            // for LPHEADER, MAXPOLES, LPBUFSIZ, NDATA, LP_M...
+#include "soundio.h"        // for SOUNDIN
+#include "std_util.h"       // for lpanal_init_
+#include "sysdep.h"         // for MYFLT, FL, UNLIKELY, SQRT
 
 /* LPC analysis, modified by BV 8'92 for linkage to audio files via soundin.c.
  * Currently set for maximum of 50 poles, & max anal segment of 1000 samples,
@@ -95,8 +106,7 @@ static  MYFLT   getpch(CSOUND *, MYFLT *, LPANAL_GLOBALS*);
     if (UNLIKELY(!(--argc) || (((s = *++argv)!=0) && *s == '-')))       \
       lpdieu(csound, MSG);
 
-#include <math.h>
-#include <stdio.h>
+#include <stdio.h>          // for sscanf, NULL, fprintf, snprintf, FILE
 #ifndef TRUE
 #define TRUE (1)
 #endif

@@ -19,9 +19,10 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 #pragma once
 
-//#include "csdl.h"
-#include "interlocks.h"
-#include "csoundCore.h"
+#include <stdint.h>      // for int32_t
+
+#include "csoundCore.h"  // for FUNC, AUXCH, OPDS
+#include "sysdep.h"      // for MYFLT
 
 typedef struct {
     OPDS h;

@@ -25,6 +25,11 @@
 
 #pragma once
 
+#include <stdint.h>      // for int32_t
+
+#include "csoundCore.h"  // for AUXCH, OPDS, MEMFIL
+#include "sysdep.h"      // for int32, MYFLT
+
 typedef struct {
     OPDS    h;
     MYFLT   *ar1,*ar2,*ar3,*ar4,*ain,*ifilno,*channel;

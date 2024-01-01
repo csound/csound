@@ -23,6 +23,11 @@
 
 #pragma once
 
+#include <stdint.h>      // for int32_t
+
+#include "csoundCore.h"  // for OPDS, FGDATA, FUNC
+#include "sysdep.h"      // for MYFLT
+
 double besseli(double);
 
 /* returns 0 on success, -1 if there are insufficient arguments, */

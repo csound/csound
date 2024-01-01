@@ -21,10 +21,15 @@
     02110-1301 USA
 */
 
-#include "stdopcod.h"               /* Flanger by Maldonado, with coding
-                                   enhancements by JPff -- July 1998 */
-#include <math.h>
 #include "flanger.h"
+
+// enhancements by JPff -- July 1998
+#include <math.h>      // for cos, sqrt
+#include <stdint.h>    // for uint32_t, int32_t
+#include <string.h>    // for memset, NULL
+
+#include "csound.h"    // for CSOUND, Str
+#include "stdopcod.h"  // for flanger_init_
 
 static int32_t flanger_set (CSOUND *csound, FLANGER *p)
 {

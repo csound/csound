@@ -21,7 +21,10 @@
     02110-1301 USA
 */
 
-#include "cscore.h"                              /*  CSCORE_DEFAULT.C   */
+#include <stddef.h>  // for NULL
+
+#include "cscore.h"  // for cscoreListFreeEvents, cscoreListAppendStringEvent
+#include "csound.h"  // for CSOUND
 
 void cscore_(CSOUND *cs)  /* callable from Csound or standalone cscore  */
                           /* csound -C will run Csound scores as normal */

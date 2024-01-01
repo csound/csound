@@ -37,11 +37,15 @@
  * a new pulse should start, and that pulseinc can be negative.
  */
 
+#include <limits.h>      // for INT_MAX
+#include <stdint.h>      // for uint32_t, int32_t
+#include <string.h>      // for memset, NULL
+
+#include "csound.h"      // for CSOUND, Str
 //#include "csdl.h"
-#include "csoundCore.h"
-#include "interlocks.h"
-#include <math.h>
-#include <limits.h>
+#include "csoundCore.h"  // for SUBR, CSOUND_, FUNC, OK, OPDS, CS_KSMPS, INSDS
+#include "interlocks.h"  // for TR
+#include "sysdep.h"      // for int32, MYFLT, UNLIKELY, FL, FABS
 
 typedef struct {
         OPDS h;

@@ -3,10 +3,14 @@
  * Author: mantaraya36
  */
 
-#include <stdio.h>
-#include "gtest/gtest.h"
-#include "csound.h"
-#include "csdebug.h"
+#include <stdio.h>        // for NULL, fclose, fopen, fprintf, FILE
+#include <string.h>       // for strcmp
+#include <string>         // for string
+
+#include "gtest/gtest.h"  // for Message, TestPartResult, ASSERT_EQ, TEST_F
+#include "csound.h"       // for csoundPerformKsmps, csoundInputMessage, cso...
+#include "csdebug.h"      // for csoundDebugContinue, csoundDebuggerClean
+#include "sysdep.h"       // for MYFLT
 
 class DebuggerTests : public ::testing::Test {
 public:

@@ -24,6 +24,9 @@
 #ifndef CSOUND_FGENS_H
 #define CSOUND_FGENS_H
 
+#include "csound.h"      // for CSOUND
+#include "csoundCore.h"  // for EVTBLK, FUNC
+
 #define MAXFNUM 100
 #define GENMAX  60
 

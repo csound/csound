@@ -25,6 +25,9 @@
 #ifndef CSOUND_STR_OPS_H
 #define CSOUND_STR_OPS_H
 
+#include "csoundCore.h"  // for STRINGDAT, OPDS
+#include "sysdep.h"      // for MYFLT
+
 #ifdef __cplusplus
 extern "C" {
 #endif

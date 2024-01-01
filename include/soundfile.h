@@ -25,7 +25,7 @@
 #define _SOUNDFILE_H_
 
 #ifdef USE_LIBSNDFILE
-#include <sndfile.h>
+#include <sndfile.h> // IWYU pragma: keep
 
 #define SFLIB_FALSE SF_FALSE
 #define SFLIB_TRUE SF_TRUE

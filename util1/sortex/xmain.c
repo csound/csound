@@ -21,11 +21,13 @@
     02110-1301 USA
 */
 
-#include "csound.h"                                /*   XMAIN.C  */
+#include <stdio.h>   // for fprintf, fclose, fopen, NULL, stderr, FILE, stdin
+
+#include "csound.h"  // for csoundCreate, csoundDestroy, csoundScoreExtract
 
 #if defined(LINUX) || defined(SGI) || defined(sol) || \
     defined(__MACH__) || defined(__EMX__)
-#include <signal.h>
+#include <signal.h>  // for signal, SIGPIPE, SIG_DFL
 #endif
 
 int main(int ac, char **av)         /* stdio stub for standalone extract */

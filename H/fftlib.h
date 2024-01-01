@@ -24,6 +24,10 @@
 #ifndef CSOUND_FFTLIB_H
 #define CSOUND_FFTLIB_H
 
+#include <stdint.h>  // for int32_t
+
+#include "csound.h"  // for CSOUND
+#include "sysdep.h"  // for MYFLT
 #if !defined(__BUILDING_LIBCSOUND)
 #  error "Csound plugins and host applications should not include fftlib.h"
 #endif

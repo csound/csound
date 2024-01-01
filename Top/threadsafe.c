@@ -19,9 +19,17 @@
  * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
  */
 
-#include "csoundCore.h"
-#include "csound_orc.h"
-#include <stdlib.h>
+#include <math.h>           // for NAN
+#include <stdint.h>         // for int64_t, int32_t
+#include <stdlib.h>         // for NULL
+#include <string.h>         // for memcpy, strlen, strcpy
+
+#include "csound.h"         // for CSOUND, PVSDATEXT, csoundGetChannelPtr
+#include "csoundCore.h"     // for CSOUND_, STRINGDAT, ENGINE_STATE, INSDS
+#include "csound_orc.h"     // for TYPE_TABLE
+#include "float-version.h"  // for USE_DOUBLE
+#include "prototyp.h"       // for cs_strdup
+#include "sysdep.h"         // for MYFLT, spin_lock_t, UNLIKELY, strNcpy, FL
 
 #ifdef USE_DOUBLE
 #  define MYFLT_INT_TYPE int64_t

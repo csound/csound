@@ -27,6 +27,12 @@
 /* wrap and mirror UGs by Gabriel Maldonado */
 /********************************************/
 
+#include <stdint.h>      // for int32_t
+
+#include "csound.h"      // for CSOUND
+#include "csoundCore.h"  // for CSOUND_, OPDS, FUNC, VARGMAX, AUXCH
+#include "sysdep.h"      // for MYFLT, int32, int16
+
 typedef struct {
     OPDS  h;
     MYFLT *xdest, *xsig, *xlow, *xhigh;

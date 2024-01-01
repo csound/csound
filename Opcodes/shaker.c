@@ -50,9 +50,14 @@ This code would implement individual grain envelopes
 
 But we're smarter than that!!!  See below
 */
-// #include "csdl.h"
-#include "csoundCore.h"
 #include "shaker.h"
+
+#include <string.h>            // for memset
+
+#include "Opcodes/physutil.h"  // for ADSR_keyOn, ADSR_setAll, ADSR_tick
+#include "csound.h"            // for CSOUND
+// #include "csdl.h"
+#include "csoundCore.h"        // for CSOUND_, INSDS, OPDS, CS_EKR, OK, CS_K...
 
 int32_t shakerset(CSOUND *csound, SHAKER *p)
 {

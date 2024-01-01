@@ -24,9 +24,15 @@
 /*      Math functions for Csound coded by Paris Smaragdis 1994         */
 /*      Berklee College of Music Csound development team                */
 
-#include "csoundCore.h"
-#include "cmath.h"
-#include <math.h>
+#include "cmath.h"       // for PRANDI, PRAND, POW, GAUSS, GETSEED, gen21_rand
+
+#include <math.h>        // for pow, log, cos, sin
+#include <stdint.h>      // for uint32_t, int32_t, int64_t, uint64_t
+#include <string.h>      // for memset, NULL
+
+#include "csound.h"      // for CSOUND, csoundRandMT, Str
+#include "csoundCore.h"  // for OK, CSOUND_, INSDS, OPDS, CS_KSMPS, FGDATA
+#include "sysdep.h"      // for MYFLT, UNLIKELY, FL, LOG, POWER, SQRT, TAN, EXP
 
 int32_t ipow(CSOUND *csound, POW *p)        /*      Power for i-rate */
 {

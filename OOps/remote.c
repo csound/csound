@@ -22,8 +22,35 @@
     02110-1301 USA
 */
 
-#include "csoundCore.h"
 #include "remote.h"
+
+#include "csoundCore.h"  // for CSOUND_, NOTOK, REMOT_BUF, EVTBLK, OK, MEVENT
+
+#ifdef HAVE_ARPA_INET_H
+#include <arpa/inet.h>   // for inet_aton, inet_ntoa
+#endif   // for inet_aton, inet_ntoa
+#ifdef HAVE_NET_IF_H
+#include <net/if.h>    // for ifreq, ifr_name, IFNAMSIZ, ifr_addr
+#endif    // for ifreq, ifr_name, IFNAMSIZ, ifr_addr
+#ifdef HAVE_NETINET_IN_H
+#include <netinet/in.h>  // for sockaddr_in, htons
+#endif
+#include <stdint.h>      // for int32_t
+#include <stdio.h>       // for NULL, size_t, printf
+#include <stdlib.h>      // for getenv
+#include <string.h>      // for strcmp, memset, strcpy, strlen
+#ifdef HAVE_SYS_IOCTL_H
+#include <sys/ioctl.h>   // for ioctl, SIOCGIFADDR
+#endif   // for ioctl, SIOCGIFADDR
+#ifdef HAVE_SYS_SOCKET_H
+#include <sys/socket.h>  // for shutdown, socket, AF_INET, SHUT_RD, accept
+#endif
+#ifdef HAVE_UNISTD_H
+#include <unistd.h>      // for close, write
+#endif
+
+#include "csound.h"      // for CSOUND, Str
+#include "sysdep.h"      // for UNLIKELY, int16, strNcpy, MYFLT, FL
 
 /* Somewhat revised from the original.  Pete G. Nov 2012
    More correct, I think, but I could be wrong... (:-/)
@@ -63,9 +90,6 @@ void remoteRESET(CSOUND *csound)
 }
 
 #if defined(HAVE_SOCKETS)
-#if !defined(WIN32) || defined(__CYGWIN__)
-#include <netdb.h>
-#endif
 #if 0
 static int32_t foo(char *ipaddr)
 {

@@ -21,8 +21,15 @@
     02110-1301 USA
 */
 
-#include "stdopcod.h"
-#include <math.h>
+#include <math.h>        // for fabs
+#include <stddef.h>      // for NULL
+#include <stdint.h>      // for int32_t, uint32_t
+
+#include "csound.h"      // for CSOUND, Str
+#include "csoundCore.h"  // for SUBR, OK, CSOUND_, CS_ONEDKR, FUNC, IGN, OPDS
+#include "interlocks.h"  // for TR
+#include "stdopcod.h"    // for metro_init_
+#include "sysdep.h"      // for MYFLT, FL, UNLIKELY, int32
 
 typedef struct {
         OPDS    h;

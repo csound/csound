@@ -27,9 +27,13 @@
 /* Code adapted by JPff 1998 Sep 19         */
 /********************************************/
 
-#include "stdopcod.h"
 #include "uggab.h"
-#include <math.h>
+
+#include <math.h>        // for cos, pow
+#include <string.h>      // for memset, NULL, memcpy, size_t
+
+#include "interlocks.h"  // for TR
+#include "stdopcod.h"    // for uggab_init_
 
 static int32_t wrap(CSOUND *csound, WRAP *p)
 {

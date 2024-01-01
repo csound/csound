@@ -23,20 +23,24 @@
   02110-1301 USA
 */
 
-#include "csoundCore.h"
-#include "csound_orc.h"
-#include "parse_param.h"
-#include <ctype.h>
-#include <inttypes.h>
-#include <math.h>
-#include <string.h>
+#include <inttypes.h>                // for PRIi32, uint8_t
+#include <math.h>                    // for fabs, floor
+#include <setjmp.h>                  // for jmp_buf, setjmp
+#include <stdio.h>                   // for NULL, size_t, printf, snprintf
+#include <string.h>                  // for strcmp, strlen, memcpy, strcpy
 
-#include "insert.h"
-#include "oload.h"
-#include "pstream.h"
-//#include "typetabl.h"
-#include "csound_orc_semantics.h"
-#include "csound_standard_types.h"
+#include "csound.h"                  // for CSOUND, TREE, Str, ORCTOKEN, cs_...
+#include "csoundCore.h"              // for CSOUND_, INSTRTXT, ENGINE_STATE
+#include "csound_data_structures.h"  // for cs_hash_table_get, cs_hash_table...
+#include "csound_orc.h"              // for TYPE_TABLE, PARSER_DEBUG, STRUCT...
+#include "csound_standard_types.h"   // for ARRAY_VAR_INIT, CS_VAR_TYPE_R
+#include "csound_type_system.h"      // for CS_VARIABLE, csoundFindVariableW...
+#include "float-version.h"           // for USE_DOUBLE
+#include "interlocks.h"              // for WI, _QQ
+#include "parse_param.h"             // for file_to_int
+#include "prototyp.h"                // for synterr, cs_strdup, csoundDie
+#include "score_param.h"             // for file_to_int
+#include "sysdep.h"                  // for UNLIKELY, FL, MYFLT, int32, strNcpy
 
 MYFLT csoundInitialiseIO(CSOUND *csound);
 void    iotranset(CSOUND *), sfclosein(CSOUND*), sfcloseout(CSOUND*);
@@ -2409,7 +2413,6 @@ void debugPrintCsound(CSOUND *csound) {
   }
 }
 
-#include "interlocks.h"
 void query_deprecated_opcode(CSOUND *csound, ORCTOKEN *o) {
   char *name = o->lexeme;
   OENTRY *ep = find_opcode(csound, name);

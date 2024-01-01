@@ -22,12 +22,21 @@
   02110-1301 USA
 */
 
-#include "csoundCore.h"
-#include "csound_orc.h"
-#include "csound_orc_expressions.h"
-#include "csound_type_system.h"
-#include "csound_orc_semantics.h"
-#include <inttypes.h>
+#include "csound_orc_expressions.h"  // for cs_cons, expand_for_statement
+
+#include <inttypes.h>               // for PRIi32, uint64_t
+#include <stdio.h>                  // for NULL, snprintf, printf
+#include <stdlib.h>                 // for exit
+#include <string.h>                 // for strcmp, strlen, strdup, memset
+
+#include "csound.h"                 // for TREE, CSOUND, ORCTOKEN, Str
+#include "csoundCore.h"             // for CSOUND_, ENGINE_STATE
+#include "csound_orc.h"             // for TYPE_TABLE, copy_node, PARSER_DEBUG
+#include "csound_orc_semantics.h"   // for get_arg_type2
+#include "csound_standard_types.h"  // for CS_VAR_TYPE_A, CS_VAR_TYPE_ARRAY
+#include "csound_type_system.h"     // for csoundFindVariableWithName, CS_VA...
+#include "prototyp.h"               // for cs_strdup, synterr
+#include "sysdep.h"                 // for strNcpy, UNLIKELY, int32, LIKELY
 
 extern char argtyp2(char *);
 extern void print_tree(CSOUND *, char *, TREE *);

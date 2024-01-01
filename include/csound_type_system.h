@@ -28,17 +28,16 @@
 extern "C" {
 #endif
 
-#include "csound.h"
-#include "csound_data_structures.h"
-#include <stdint.h>
+#include <stdint.h>                  // for UINT64_MAX, UINTPTR_MAX
+
+#include "csound.h"                  // for CSOUND, PUBLIC
+#include "csound_data_structures.h"  // for CONS_CELL, CS_HASH_TABLE
+#include "sysdep.h"                  // for MYFLT
 
 #define CS_ARG_TYPE_BOTH 0
 #define CS_ARG_TYPE_IN 1
 #define CS_ARG_TYPE_OUT 2
 
-    struct csvariable;
-    struct cstype;
-    
     typedef struct cstype {
         char* varTypeName;
         char* varDescription;

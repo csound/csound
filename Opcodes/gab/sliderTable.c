@@ -16,10 +16,15 @@
   02110-1301 USA
 */
 
+#include <math.h>        // for pow, log, cos, sqrt
+#include <stdint.h>      // for int32_t, int64_t, uint32_t
+#include <stdio.h>       // for snprintf, NULL
+#include <string.h>      // for memset
+
+#include "csound.h"      // for CSOUND, Str
 //#include "csdl.h"
-#include "csoundCore.h"
-#include "interlocks.h"
-#include <math.h>
+#include "csoundCore.h"  // for SUBR, CSOUND_, FUNC, MCHNBLK, OK, OPDS, CS_K...
+#include "sysdep.h"      // for MYFLT, FL, UNLIKELY, COS, SQRT
 
 #define f7bit       (FL(127.0))
 #define oneTOf7bit  (MYFLT)(1.0/127.0)

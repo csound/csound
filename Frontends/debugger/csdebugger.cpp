@@ -33,11 +33,15 @@ instrument number = instrument to debug
 ksmps offset] = number of k-cycle before breakpoint is hit
 */
 
-#include <stdio.h>
-#include "csound.hpp"
-#include "csdebug.h"
-#include <iostream>
-#include <iomanip>
+#include <stdio.h>     // for NULL
+#include <stdlib.h>    // for atof, atoi
+#include <string.h>    // for strcmp
+#include <iostream>    // for operator<<, basic_ostream, cout, ostream, char...
+
+#include "csdebug.h"   // for debug_variable_t, debug_bkpt_info_t, csoundDeb...
+#include "csound.h"    // for CSOUND
+#include "csound.hpp"  // for Csound
+#include "sysdep.h"    // for MYFLT
 
 using namespace std;
 

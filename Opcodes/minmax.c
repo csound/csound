@@ -30,10 +30,14 @@
     02110-1301 USA
 */
 
+#include <stdint.h>      // for int32_t, uint32_t
+#include <string.h>      // for memset, NULL
+
+#include "csound.h"      // for CSOUND
 // #include "csdl.h"
-#include "csoundCore.h"
-#include "interlocks.h"
-#include <math.h>
+#include "csoundCore.h"  // for SUBR, OPDS, INSDS, IGN, OK, CS_KSMPS, INOCOUNT
+#include "interlocks.h"  // for WI
+#include "sysdep.h"      // for MYFLT, UNLIKELY, FABS
 
 typedef struct {
     OPDS    h;

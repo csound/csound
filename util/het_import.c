@@ -28,15 +28,18 @@
 /* John ffitch 1995 Jul 14                                           */
 /* ***************************************************************** */
 
-#include "std_util.h"
-#include <stdio.h>
-#include <stdarg.h>
-#include <stdlib.h>
+#include <stdint.h>    // for int32_t
+#include <stdio.h>     // for fclose, getc, fopen, fprintf, fwrite, FILE
+#include <stdlib.h>    // for atoi
+#include <string.h>    // for strncmp
+
+#include "csdl.h"      // for CSOUND_, Str
+#include "csound.h"    // for CSOUND
+#include "std_util.h"  // for het_import_init_
+#include "sysdep.h"    // for UNLIKELY, int16, MYFLT
 #ifndef MYFLT
-#include "sysdep.h"
+#include "sysdep.h"    // for UNLIKELY, int16, MYFLT
 #endif
-/*#include "hetro.h"*/
-#include "text.h"
 
 #define END  32767
 

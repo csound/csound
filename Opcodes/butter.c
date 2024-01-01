@@ -25,7 +25,10 @@
 /*              Berklee College of Music Csound development team        */
 /*              Copyright (c) May 1994.  All rights reserved            */
 
-#include "stdopcod.h"
+#include "csound.h"      // for CSOUND
+#include "csoundCore.h"  // for SUBR, OPDS, OK, INSDS, ROOT2, CSOUND_, OENTRY
+#include "stdopcod.h"    // for butter_init_
+#include "sysdep.h"      // for MYFLT, FL, UNLIKELY, csoundUndenormalizeDouble
 
 typedef struct  {
         OPDS    h;
@@ -41,7 +44,9 @@ typedef struct  {
         double  a[8];
 } BBFIL;
 
-#include <math.h>
+#include <math.h>        // for tan
+#include <stdint.h>      // for uint32_t, int32_t
+#include <string.h>      // for memset, memcpy
 //#define ROOT2 (1.4142135623730950488)
 
 static void butter_filter(uint32_t, uint32_t, MYFLT *, MYFLT *, double *);

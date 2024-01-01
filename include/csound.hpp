@@ -31,6 +31,8 @@
 #ifndef __CSOUND_HPP__
 #define __CSOUND_HPP__
 
+#include <stdarg.h>
+
 #ifdef SWIG
 %module csnd6
 %{

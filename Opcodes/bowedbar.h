@@ -34,8 +34,12 @@
 #define __BowedBar_h
 #define NR_MODES (4)
 
-#include "physutil.h"
-#include "bowed.h"
+#include <stdint.h>      // for int32_t
+
+#include "bowed.h"       // for BowTabl
+#include "csoundCore.h"  // for AUXCH, OPDS
+#include "physutil.h"    // for ADSR, BiQuad
+#include "sysdep.h"      // for MYFLT, int32
 
 /*******************************************/
 /*  Non-Interpolating Delay Line           */

@@ -21,12 +21,21 @@
     02110-1301 USA
 */
 
-#include <iostream>
-#include <exception>
+#include "csPerfThread.hpp"  // for CsoundPerformanceThread, recordData_t
 
-#include "csound.hpp"
-#include "csPerfThread.hpp"
-#include "soundio.h"
+#include <emmintrin.h>      // for _MM_DENORMALS_ZERO_ON, _MM_SET_DENORMALS_...
+#include <sndfile.h>        // for SNDFILE, SFC_SET_CLIPPING, SFM_WRITE
+#include <stdint.h>         // for uintptr_t
+#include <string.h>         // for NULL, strcpy, strlen, size_t
+#include <new>              // for bad_alloc
+#include <string>           // for string
+
+#include "csound.h"         // for csoundNotifyThreadLock, csoundDestroyMutex
+#include "csound.hpp"       // for Csound
+#include "float-version.h"  // for USE_DOUBLE
+#include "msg_attr.h"       // for CSOUNDMSG_WARNING
+#include "soundfile.h"      // for SFLIB_INFO, sflib_close, sflib_command
+#include "sysdep.h"         // for MYFLT
 
 // ----------------------------------------------------------------------------
 

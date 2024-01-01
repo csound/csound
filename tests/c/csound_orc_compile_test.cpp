@@ -8,10 +8,12 @@
 #define __BUILDING_LIBCSOUND
 
 
-#include <stdio.h>
-#include <stdlib.h>
-#include "csoundCore.h"
-#include "gtest/gtest.h"
+#include <stdio.h>        // for NULL
+#include <string>         // for string
+
+#include "csoundCore.h"   // for CSOUND_
+#include "gtest/gtest.h"  // for AssertionResult, Message, TestPartResult
+#include "csound.h"       // for csoundCompileOrc, csoundReadScore, csoundPe...
 
 class OrcCompileTests : public ::testing::Test {
 public:

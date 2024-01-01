@@ -30,9 +30,18 @@
 /*  Greg Sullivan                                                       */
 /************************************************************************/
 
-#include "std_util.h"
-#include "soundio.h"
-#include "convolve.h"
+#include <sndfile.h>        // for SNDFILE
+#include <stdint.h>         // for int32_t, int64_t
+#include <stdio.h>          // for fprintf, fwrite, NULL, FILE, snprintf
+#include <string.h>         // for memset
+
+#include "convolve.h"       // for CVSTRUCT, CVDFLTBYTS, CVE_MALLOC, CVE_OK
+#include "csdl.h"           // for CSOUND_, Str, ALLCHNLS, CSFILE_STD
+#include "csound.h"         // for CSOUND, CSFTYPE_CVANAL
+#include "float-version.h"  // for USE_DOUBLE
+#include "soundio.h"        // for SOUNDIN
+#include "std_util.h"       // for cvanal_init_
+#include "sysdep.h"         // for UNLIKELY, MYFLT, FL, int32
 
 static int32_t takeFFT(CSOUND *csound, SOUNDIN *inputSound, CVSTRUCT *outputCVH,
                        int64_t Hlenpadded, SNDFILE *infd, FILE *ofd, int32_t nf);

@@ -20,8 +20,14 @@
  Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
  02110-1301 USA
  */
-#include "csoundCore.h"
-#include "csound_data_structures.h"
+#include "csound_data_structures.h"  // for CS_HASH_TABLE_ITEM, CS_HASH_TABLE
+
+#include <stdlib.h>      // for NULL, free
+#include <string.h>      // for strcmp
+
+#include "csound.h"      // for CSOUND, PUBLIC
+#include "csoundCore.h"  // for CSOUND_, IGN
+#include "prototyp.h"    // for cs_strdup
 
 #define HASH_LOAD_FACTOR 0.75
 

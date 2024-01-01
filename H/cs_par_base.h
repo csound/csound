@@ -24,10 +24,20 @@
 #ifndef __CS_PAR_BASE_H__
 #define __CS_PAR_BASE_H__
 
+#if HAVE_PTHREAD
+#include <pthread.h>    // for PTHREAD_PROCESS_PRIVATE
+#endif
+
+#include "csound.h"     // for CSOUND
+
 #ifdef PARCS
 // Semaphone.h only exists when using pthreads, doesn't apply to Windows
 #ifndef WIN32
-  #include <semaphore.h>
+#include <semaphore.h>  // for sem_t
+#else
+#define _WINSOCKAPI_
+#include <windows.h>
+#undef _WINSOCKAPI_
 #endif
 
 /* #define TAKE_LOCK(x) pthread_spin_lock(x)

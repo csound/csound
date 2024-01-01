@@ -19,9 +19,13 @@
 
 /* $Id: tables.c,v 1.1.1.1 2004/07/27 02:58:48 metal_man Exp $ */
 
-#include <math.h>
-#include "csoundCore.h"
-#include "mpadec_internal.h"
+#include <math.h>             // for cos, pow, sin, M_PI, M_SQRT2, tan
+#include <stddef.h>           // for NULL
+#include <stdint.h>           // for int32_t, uint8_t, int16_t, uint16_t
+
+#include "mpadec.h"           // for mpadec_t
+#include "mpadec_internal.h"  // for mpadec_t, mpadec_tables_t, bandinfo_t
+#include "sysdep.h"           // for MYFLT
 
 const uint16_t crc_table[256] = {
   0x0000, 0x8005, 0x800F, 0x000A, 0x801B, 0x001E, 0x0014, 0x8011,

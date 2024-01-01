@@ -21,8 +21,44 @@
   02110-1301 USA
 */
 
-#include "entry1.h"             /*                      ENTRY1.C        */
-#include "interlocks.h"
+#include "entry1.h"
+
+#include <stddef.h>       // for NULL
+
+#include "aops.h"         // for EVAL, AOP, ASSIGN, RELAT, OUTX, OUTM, LOGCL
+#include "bus.h"          // for notinit_opcode_stub, CHNGET, chnexport_opco...
+#include "cmath.h"        // for PRAND, PRANDI, POW, GAUSS, GETSEED
+#include "compile_ops.h"  // for COMPILE, compile_csd_i, compile_orc_i, comp...
+#include "csoundCore.h"   // for SUBR, LBLBLK, TEMPO, OENTRY
+#include "diskin2.h"      // for diskin2_perf, diskin2_perf_array, DISKIN2
+#include "disprep.h"      // for DSPFFT, DSPLAY, FSIGDISP, PRINTV, TEMPEST
+#include "dumpf.h"        // for KDUMP, KDUMP2, KDUMP3, KDUMP4, KREAD, KREAD2
+#include "insert.h"       // for TURNOFF2, LOOP_OPS, CGOTO, GOTO, SUBINST, LINK
+#include "interlocks.h"   // for TR, _CW, IR, _CR, _QQ, TB, TW, WR, IB, ZR, ZW
+#include "linevent.h"     // for LINEVENT, LINEVENT2
+#include "lpred.h"        // for LPREDA, CF2P, LPCFIL, LPCFIL2, LPCFIL3, LPCPVS
+#include "midifile.h"     // for midiTempoOpcode, MIDITEMPO, midiFileStatus
+#include "midiinterop.h"  // for MIDINOTEON, MIDICHANNELAFTERTOUCH, MIDICONT...
+#include "midiops.h"      // for MIDIKMB, MIDICTL, CHANCTL, MIDIKMAP, MIDIMAP
+#include "midiout.h"      // for MIDIOUT, OUT_ATOUCH, OUT_CONTR, OUT_CONTR14
+#include "oload.h"        // for TURNON, PVSET
+#include "oscils.h"       // for lphasor, lphasor_set, oscils, oscils_set
+#include "pstream.h"      // for FASSIGN, PVSFREAD, PVADS, PVSANAL, PVSCROSS
+#include "remote.h"       // for INSGLOBAL, INSREMOT, MIDGLOBAL, MIDREMOT
+#include "resize.h"       // for RESIZE
+#include "schedule.h"     // for SCHED, TRIGINSTR, LFO, WSCHED, TRIGSEQ
+#include "sndinfUG.h"     // for SNDINFO, FILEVALID, SNDINFOPEAK
+#include "str_ops.h"      // for strcpy_opcode_S, strcpy_opcode_p, STRCPY_OP
+#include "ugens1.h"       // for LINSEG, COSSEG, EXXPSEG, EXPSEG, ENVLPR
+#include "ugens2.h"       // for OSC, TABLE, OSCIL1, OSCILN, PHSOR, EPHSOR
+#include "ugens3.h"       // for ADSYN, FOSC, LOSC, LOSCPHS
+#include "ugens4.h"       // for RAND, RANDC, RANDH, RANDI, BUZZ, GBUZZ, PLUCK
+#include "ugens5.h"       // for RESON, TONE, klimit, kreson, LIMIT, BALANCE
+#include "ugens6.h"       // for indfset, tapset, cmbset, downsamp, downset
+#include "ugrw1.h"        // for RDTIME, instimset, elapsedcycles, elapsedtime
+#include "ugtabs.h"       // for TABL, TGP, TABLMIX, TLEN, TABLRA, TABLWA
+#include "vdelay.h"       // for reverbx, reverbx_set, vdelset, vdelxqset
+#include "windin.h"       // for XYIN
 
 /* thread vals, where isub=1, ksub=2:
    0 =     1  OR   2  (B out only)

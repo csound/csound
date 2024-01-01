@@ -28,9 +28,13 @@
 /* John ffitch 1995 Jun 19                                           */
 /* ***************************************************************** */
 
-#include "std_util.h"
-#include <stdio.h>
-#include <stdarg.h>
+#include <stdint.h>    // for int32_t
+#include <stdio.h>     // for fprintf, NULL, fclose, fopen, fputc, FILE
+
+#include "csdl.h"      // for CSOUND_, Str, MEMFIL
+#include "csound.h"    // for CSOUND, CSFTYPE_HETRO
+#include "std_util.h"  // for het_export_init_
+#include "sysdep.h"    // for int16, UNLIKELY
 
 #define END  32767
 

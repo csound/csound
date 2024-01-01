@@ -21,9 +21,15 @@
     02110-1301 USA
 */
 
+#include <math.h>        // for exp, pow, cos, log, sqrt
+#include <stdint.h>      // for uint32_t, int32_t
+#include <string.h>      // for memset, NULL
+
+#include "csound.h"      // for CSOUND
 //#include "csdl.h"
-#include "csoundCore.h"
-#include "interlocks.h"
+#include "csoundCore.h"  // for SUBR, CSOUND_, FUNC, MAXPOS, OPDS, INSDS
+#include "interlocks.h"  // for TR
+#include "sysdep.h"      // for MYFLT, FL, UNLIKELY, int32, FABS, MYFLT2LONG
 
 typedef struct {
         OPDS    h;

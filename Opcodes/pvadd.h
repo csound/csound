@@ -25,6 +25,12 @@
 
 #pragma once
 
+#include <stdint.h>          // for int32_t
+
+#include "Opcodes/ugens8.h"  // for PVFRAMSIZE
+#include "csoundCore.h"      // for FUNC, AUXCH, OPDS
+#include "sysdep.h"          // for MYFLT, int32
+
 #define     MAXBINS         4096
 #ifndef PVFRAMSIZE
 #define     PVFRAMSIZE      8192                /* i.e. max FFT point size */

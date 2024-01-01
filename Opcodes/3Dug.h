@@ -24,6 +24,8 @@
 #ifndef _3DUG_H_
 #define _3DUG_H_
 
+#include "csoundCore.h"
+
 #define SAMP_RATE 44100  /* sampling rate of HRTFs */
 
 #define FILT_LEN 128L

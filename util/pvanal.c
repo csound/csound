@@ -34,12 +34,21 @@
 /************************************************************************/
 /************************************************************************/
 
-#include "std_util.h"
-#include "cwindow.h"
-#include "soundio.h"
-#include "pvfileio.h"
-#include <math.h>
-#include <ctype.h>
+#include <inttypes.h>       // for int32_t, int64_t, PRId64
+#include <math.h>           // for cos, sqrt, sin, atan2, exp, fabs, hypot
+#include <sndfile.h>        // for SNDFILE
+#include <stdio.h>          // for NULL, sscanf, snprintf, FILE, stdout
+#include <string.h>         // for memset
+
+#include "csdl.h"           // for CSOUND_, Str, PI, ALLCHNLS, HALFPI, TWOPI
+#include "csound.h"         // for CSOUND, Str_noop, WINDAT, CSFTYPE_OTHER_TEXT
+#include "cwindow.h"        // for windat_, CAPSIZE
+#include "float-version.h"  // for USE_DOUBLE
+#include "pvfileio.h"       // for pv_wtype, PVOC_AMP_FREQ, PVOC_HAMMING
+#include "soundfile.h"      // for AE_24INT, AE_FLOAT, AE_LONG, AE_SHORT
+#include "soundio.h"        // for SOUNDIN
+#include "std_util.h"       // for pvanal_init_
+#include "sysdep.h"         // for MYFLT, UNLIKELY, FL
 
 
 typedef struct pvocex_ch {

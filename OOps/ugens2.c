@@ -21,9 +21,15 @@
     02110-1301 USA
 */
 
-#include "csoundCore.h" /*                              UGENS2.C        */
-#include "ugens2.h"
-#include <math.h>
+#include "ugens2.h"      // for OSC, OSCIL1, OSCILN, EPHSOR, PHSOR
+
+#include <math.h>        // for pow
+#include <stdint.h>      // for int32_t, uint32_t
+#include <string.h>      // for memset, NULL
+
+#include "csound.h"      // for CSOUND, Str
+#include "csoundCore.h"  // for FUNC, CSOUND_, INSDS, OPDS, OK, PHMASK, CS_K...
+#include "sysdep.h"      // for MYFLT, UNLIKELY, FL, MYFLT2LONG, LIKELY
 
 /* Macro form of Istvan's speedup ; constant should be 3fefffffffffffff */
 /* #define FLOOR(x) (x >= FL(0.0) ? (int64_t)x                          */

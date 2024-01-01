@@ -21,9 +21,16 @@
     02110-1301 USA
 */
 
-#include "csoundCore.h"
-#include "sysdep.h"                                 /*    EXTRACT.C   */
-#include "extract.h"
+#include "extract.h"  // for EXTRACT_STATICS, INSMAX, extract, readxfil
+
+#include <stdio.h>          // for NULL, fscanf, sscanf, FILE
+#include <string.h>         // for memcpy
+
+#include "csound.h"         // for CSOUND, Str
+#include "csoundCore.h"     // for CSOUND_
+#include "float-version.h"  // for USE_DOUBLE
+#include "sort.h"           // for SRTBLK, SP
+#include "sysdep.h"         // for FL, MYFLT, CS_SSCANF, LIKELY
 
 extern  int     realtset(CSOUND *, SRTBLK *);
 extern  MYFLT   realt(CSOUND *, MYFLT);

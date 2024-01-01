@@ -81,7 +81,9 @@ extern "C" {
 #endif
 
 #if (defined(__MACH__) || defined(ANDROID) || defined(NACL) || defined(__CYGWIN__) || defined(__HAIKU__))
+#ifdef HAVE_PTHREAD
 #include <pthread.h>
+#endif
 #define BARRIER_SERIAL_THREAD (-1)
 typedef struct {
   pthread_mutex_t mut;
@@ -513,13 +515,13 @@ typedef struct CORFIL {
     } c;
   } EVTBLK;
 
-  #define MAXSEND (sizeof(EVTBLK) + 2*sizeof(int))
+#define MAXSEND (sizeof(EVTBLK) + 2*sizeof(int))
 
-  typedef struct {                        /* Remote Communication buffer          */
-      int         len;                    /* lentot = len + type + data used      */
-      int         type;
-      char        data[MAXSEND];
-  } REMOT_BUF;
+typedef struct {                        /* Remote Communication buffer          */
+    int         len;                    /* lentot = len + type + data used      */
+    int         type;
+    char        data[MAXSEND];
+} REMOT_BUF;
 
   /**
    * This struct holds the info for a concrete instrument event
@@ -879,7 +881,6 @@ typedef struct CORFIL {
 #include "prototyp.h"
 #include "cwindow.h"
 #include "envvar.h"
-#include "remote.h"
 
 #define CS_STATE_PRE    (1)
 #define CS_STATE_COMP   (2)
@@ -1024,7 +1025,6 @@ typedef struct _message_queue_t_ {
     int attr;
     char str[MAX_MESSAGE_STR];
 } message_string_queue_t;
-
 
 #include "find_opcode.h"
 

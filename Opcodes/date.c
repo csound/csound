@@ -21,11 +21,21 @@
     02110-1301 USA
 */
 
-#include "csoundCore.h"
-#include <time.h>
+#include <stdint.h>         // for int32_t
+#include <stdio.h>          // for fclose, feof, fgets, fopen, FILE
+#include <string.h>         // for strncpy, strerror, strlen
+#include <time.h>           // for NULL, timespec, clock_gettime, ctime, time
+#ifdef HAVE_UNISTD_H
+#include <unistd.h>         // for getcwd
+#endif
+
+#include "csound.h"         // for CSOUND, Str
+#include "csoundCore.h"     // for SUBR, STRINGDAT, CSOUND_, OK, OPDS, IGN
+#include "float-version.h"  // for USE_DOUBLE
+#include "sysdep.h"         // for MYFLT, UNLIKELY, FL
 
 #ifndef __wasi__
-#include <errno.h>
+#include <errno.h>          // for errno
 #endif
 
 #if defined(WIN32)
@@ -33,7 +43,9 @@
 #endif
 
 #if defined(__MACH__)
-#include <unistd.h>
+#ifdef HAVE_UNISTD_H
+#include <unistd.h>         // for getcwd
+#endif
 #endif
 
 typedef struct {

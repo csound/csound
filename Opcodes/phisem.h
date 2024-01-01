@@ -47,6 +47,11 @@
 #if !defined(__Phisem_h)
 #define __Phisem_h
 
+#include <stdint.h>      // for int32_t
+
+#include "csoundCore.h"  // for OPDS
+#include "sysdep.h"      // for MYFLT, int32
+
 typedef struct Cabasa {
     OPDS        h;
     MYFLT       *ar;            /* Output */

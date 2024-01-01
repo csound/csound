@@ -22,12 +22,19 @@
   02110-1301 USA
 */
 
-#include "csoundCore.h"                                 /*      MIDIOPS.C   */
-#include "midiops.h"
-#include <math.h>
-#include <time.h>
-#include "namedins.h"           /* IV - Oct 31 2002 */
-#include "arrays.h"
+#include "midiops.h"     // for MIDIARP, PRESET_GLOB, MIDIKMB, MIDICTL, CHANCTL
+
+#include <math.h>        // for modf
+#include <stdint.h>      // for int32_t
+#include <stdio.h>       // for NULL, fprintf, fflush, fopen, printf, stdout
+#include <stdlib.h>      // for rand, srand
+#include <time.h>        // for time
+
+#include "arrays.h"      // for tabcheck, tabinit
+#include "csound.h"      // for CSOUND, Str
+#include "csoundCore.h"  // for CSOUND_, OK, MCHNBLK, INSDS, OPDS, MGLOBAL, IGN
+#include "namedins.h"    // for strarg2insno
+#include "sysdep.h"      // for FL, MYFLT, int16, UNLIKELY, POWER
 
 #define dv127   (FL(1.0)/FL(127.0))
 

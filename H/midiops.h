@@ -25,6 +25,11 @@
 #ifndef MIDIOPS_H
 #define MIDIOPS_H
 
+#include <stdio.h>       // for FILE
+
+#include "csoundCore.h"  // for OPDS, STRINGDAT, ARRAYDAT
+#include "sysdep.h"      // for MYFLT, int32, int16
+
 #define NOTEOFF_TYPE  0x80
 #define NOTEON_TYPE   0x90
 #define POLYAFT_TYPE  0xA0

@@ -30,10 +30,16 @@
 /* Nested allpass and Lorenz added                             */
 /* October 1998 by Hans Mikelson                               */
 /***************************************************************/
-//#include "csdl.h"
-#include <math.h>
 #include "biquad.h"
-#include "csound_standard_types.h"
+
+#include <math.h>              // for sqrt, cos, exp, sin, atan2, tan, pow
+#include <stdio.h>             // for NULL, printf, size_t
+#include <string.h>            // for memset
+
+//#include "csdl.h"
+#include "Opcodes/stdopcod.h"  // for biquad_init_
+#include "csound.h"            // for CSOUND, Str
+#include "interlocks.h"        // for TR
 
 /***************************************************************************/
 /* The biquadratic filter computes the digital filter two x components and */

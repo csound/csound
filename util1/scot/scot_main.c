@@ -1,7 +1,5 @@
 
-#include <stdio.h>
-#include <stdarg.h>
-#include <stdlib.h>
+#include <stdio.h>  // for fprintf, fclose, fopen, FILE, NULL, stderr, stdin
 
 extern int scot(FILE *inf, FILE *outf, char *fil);
 

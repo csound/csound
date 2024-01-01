@@ -21,11 +21,13 @@
     02110-1301 USA
 */
 
-// #include "csdl.h"
-#include "csoundCore.h"
-#include "interlocks.h"
+#include <stdint.h>      // for int32_t, uint32_t
+#include <string.h>      // for memset
 
-#include <math.h>
+#include "csound.h"      // for CSOUND, Str
+// #include "csdl.h"
+#include "csoundCore.h"  // for SUBR, HALFPI, ROOT2, OPDS, HALFPI_F, INSDS, OK
+#include "sysdep.h"      // for MYFLT, COS, FL, SIN, SQRT, UNLIKELY, MYFLT2LRND
 
 typedef struct {
     OPDS h;

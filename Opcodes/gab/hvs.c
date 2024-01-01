@@ -16,9 +16,14 @@
   02110-1301 USA
 */
 
+#include <stdint.h>      // for int32_t, int64_t
+#include <string.h>      // for NULL, memset
+
+#include "csound.h"      // for CSOUND, Str
 //#include "csdl.h"
-#include "csoundCore.h"
-#include "interlocks.h"
+#include "csoundCore.h"  // for SUBR, CSOUND_, FUNC, OK, IGN, OPDS, AUXCH
+#include "interlocks.h"  // for TB
+#include "sysdep.h"      // for MYFLT, UNLIKELY, LIKELY
 
 
 /* -------------------------------------------------------------------- */

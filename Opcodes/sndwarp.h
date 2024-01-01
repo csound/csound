@@ -23,6 +23,11 @@
 
 #pragma once
 
+#include <stdint.h>      // for int32_t
+
+#include "csoundCore.h"  // for FUNC, AUXCH, OPDS
+#include "sysdep.h"      // for int32, int16, MYFLT
+
 typedef struct {
   int32_t    cnt, wsize, flag; /* , section; */
         MYFLT  ampincr, ampphs, offset;

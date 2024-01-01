@@ -19,7 +19,12 @@
 
 /* $Id: layer1.c,v 1.1.1.1 2004/07/27 02:57:18 metal_man Exp $ */
 
-#include "mpadec_internal.h"
+#include <stdint.h>           // for uint8_t, uint16_t, uint32_t
+
+#include "mpadec.h"           // for mpadec_t, mpadec_config_t, MPADEC_CONFI...
+#include "mpadec_config.h"    // IWYU pragma: keep
+#include "mpadec_internal.h"  // for mpadec_t, SBLIMIT, frameinfo_t, GETBITS
+#include "sysdep.h"           // for MYFLT
 
 extern const uint32_t bitmask[17];
 extern alloc_table_t *alloc_tables[5];

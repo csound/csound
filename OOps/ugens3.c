@@ -21,9 +21,16 @@
     02110-1301 USA
 */
 
-#include "csoundCore.h"         /*                              UGENS3.C    */
-#include "ugens3.h"
-#include <math.h>
+#include "ugens3.h"      // for LOSCPHS, LOSC, FOSC, PTLPTR, ADSYN, DUPLE
+
+#include <math.h>        // for sin
+#include <stdint.h>      // for int32_t, uint32_t
+#include <string.h>      // for memset, NULL, strcmp
+
+#include "csound.h"      // for CSOUND, Str, CSFTYPE_HETRO
+#include "csoundCore.h"  // for FUNC, CSOUND_, OK, INSDS, OPDS, PHMASK, CS_K...
+#include "prototyp.h"    // for get_arg_string, ldmemfile2withCB
+#include "sysdep.h"      // for MYFLT, UNLIKELY, FL, int16, LIKELY, strNcpy
 
 int32_t foscset(CSOUND *csound, FOSC *p)
 {

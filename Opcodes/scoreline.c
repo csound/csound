@@ -21,8 +21,13 @@
     02110-1301 USA
 */
 
+#include <stddef.h>      // for NULL
+#include <stdint.h>      // for int32_t
+
+#include "csound.h"      // for CSOUND
 //#include "csdl.h"
-#include "csoundCore.h"
+#include "csoundCore.h"  // for SUBR, CSOUND_, OK, STRINGDAT, OPDS, IGN, LIN...
+#include "sysdep.h"      // for MYFLT
 //extern void csoundInputMessageInternal(CSOUND *, const char *);
 
 typedef struct _inmess {

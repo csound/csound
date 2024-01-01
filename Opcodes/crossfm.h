@@ -49,6 +49,9 @@
 
 #pragma once
 
+#include "csoundCore.h"  // for FUNC, OPDS
+#include "sysdep.h"      // for MYFLT
+
 typedef struct {
   OPDS h;                                     /* common to all opcodes */
 

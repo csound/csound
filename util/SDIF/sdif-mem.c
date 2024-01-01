@@ -38,10 +38,11 @@ Technologies, University of California, Berkeley.
 
 */
 
-#include "sysdep.h"
-#include <assert.h>
-#include <errno.h>
 #include "sdif-mem.h"
+
+#include <assert.h>     // for assert
+
+#include "SDIF/sdif.h"  // for SDIF_FrameHeader, ESDIF_SUCCESS, SDIF_GetMatr...
 
 /* Global variables local to this file */
 static void *(*my_malloc)(int32_t numBytes);

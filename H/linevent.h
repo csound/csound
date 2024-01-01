@@ -28,6 +28,10 @@
 /* linevent                                                      */
 /* Dec 2001 by matt ingalls                                      */
 /*****************************************************************/
+
+#include "csoundCore.h"  // for OPDS, VARGMAX
+#include "sysdep.h"      // for MYFLT
+
 typedef struct {
     OPDS   h;
     MYFLT  *args[VARGMAX];

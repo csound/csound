@@ -21,6 +21,12 @@
 
 #include "std_util.h"
 
+#include <stddef.h>   // for size_t
+
+#include "csdl.h"     // for csoundModuleCreate, csoundModuleInfo
+#include "sysdep.h"   // for MYFLT, strNcpy
+#include "version.h"  // for CS_APISUBVER, CS_APIVERSION
+
 /* Modified from BSD sources for strlcpy */
 /*
  * Copyright (c) 1998 Todd C. Miller <Todd.Miller@courtesan.com>

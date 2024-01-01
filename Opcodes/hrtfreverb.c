@@ -21,8 +21,13 @@
     02110-1301 USA
 */
 
-#include "csoundCore.h"
-#include "interlocks.h"
+#include <stdint.h>      // for int32_t, uint32_t
+#include <stdlib.h>      // for NULL, abs
+#include <string.h>      // for memset
+
+#include "csound.h"      // for CSOUND, Str, CSFTYPE_FLOATS_BINARY
+#include "csoundCore.h"  // for AUXCH, CSOUND_, SUBR, MEMFIL, MAXNAME, STRIN...
+#include "sysdep.h"      // for FL, MYFLT, SQRT, strNcpy, UNLIKELY, COS, FABS
 
 #define SQUARE(X) ((X)*(X))
 

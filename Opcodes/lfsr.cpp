@@ -82,8 +82,13 @@
  *      knum -- Integer output.
  */
 
-#include <time.h>
-#include <plugin.h>
+#include <modload.h>  // for on_load
+#include <stdint.h>   // for uint32_t, uint8_t
+#include <stdlib.h>   // for rand, srand, NULL
+#include <time.h>     // for time
+
+#include "csdl.h"     // for OK
+#include "plugin.h"   // for Param, plugin, Csound (ptr only), Plugin, ik
 
 struct LFSR : csnd::Plugin<1, 3> {
     static constexpr char const *otypes = "k";
@@ -133,7 +138,6 @@ struct LFSR : csnd::Plugin<1, 3> {
     }
 };
 
-#include <modload.h>
 void csnd::on_load(Csound *csound) {
   csnd::plugin<LFSR>(csound, "lfsr", "k", "iij", csnd::thread::ik);
 }

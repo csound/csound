@@ -22,15 +22,28 @@
     02110-1301 USA
 */
 
-#include "csoundCore.h"     /*                              MEMFILES.C      */
-#include "soundio.h"
-#include "pvfileio.h"
-#include "convolve.h"
-#include "lpc.h"
-#include "pstream.h"
-#include "namedins.h"
-#include <string.h>
-#include <inttypes.h>
+#ifdef HAVE_FCNTL_H
+#include <fcntl.h>                   // IWYU pragma: keep
+#endif
+#include <inttypes.h>                // for uintptr_t, PRId64, PRIi32, int64_t
+#include <math.h>                    // for pow
+#include <sndfile.h>                 // for (anonymous struct)::(anonymous)
+#include <stdarg.h>                  // for va_end, va_list, va_start
+#include <stdio.h>                   // for fgets, NULL, fclose, size_t, fopen
+#include <stdlib.h>                  // for strtol, atoi
+#include <string.h>                  // for memcpy, memset, strcmp, strcpy
+
+#include "convolve.h"                // for CVSTRUCT, CVMAGIC
+#include "csound.h"                  // for CSOUND, Str, cs_strtod, csoundMe...
+#include "csoundCore.h"              // for CSOUND_, SNDMEMFILE, PVOCEX_MEMFILE
+#include "csound_data_structures.h"  // for cs_hash_table_create, cs_hash_ta...
+#include "envvar.h"                  // for csoundFindInputFile
+#include "lpc.h"                     // for LPHEADER
+#include "prototyp.h"                // for csoundNotifyFileOpened, csoundIn...
+#include "pstream.h"                 // for PVS_WIN_HAMMING, PVS_AMP_FREQ
+#include "pvfileio.h"                // for PVOCDATA, WAVEFORMATEX, PVOC_AMP...
+#include "soundfile.h"               // for SFLIB_INFO, sflib_command, sflib...
+#include "sysdep.h"                  // for UNLIKELY, MYFLT, int32, ignore_v...
 
 static int Load_Het_File_(CSOUND *csound, const char *filnam,
                           char **allocp, int32 *len)

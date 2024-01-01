@@ -22,16 +22,25 @@
     02110-1301 USA
 */
 
-#include <math.h>
-#include "csoundCore.h"
-#include "namedins.h"
-#include "linevent.h"
 /* Keep Microsoft's schedule.h from being used instead of our schedule.h. */
 #ifdef _MSC_VER
 #include "H/schedule.h"
 #else
-#include "schedule.h"
+#include "schedule.h"  // for TRIGINSTR, LFO, SCHED, TRIGSEQ
 #endif
+
+#include <stdint.h>                 // for int32_t, uint32_t, int64_t
+#include <stdio.h>                  // for sprintf, NULL
+#include <string.h>                 // for strlen, memset, strncat
+
+#include "csound.h"                 // for CSOUND, Str
+#include "csoundCore.h"             // for CSOUND_, OK, EVTBLK, STRINGDAT
+#include "csound_standard_types.h"  // for CS_VAR_TYPE_S
+#include "csound_type_system.h"     // for CS_VAR_MEM
+#include "linevent.h"               // for LINEVENT
+#include "namedins.h"               // for strarg2insno_p
+#include "prototyp.h"               // for csoundGetTypeForArg, get_arg_string
+#include "sysdep.h"                 // for MYFLT, FL, UNLIKELY, strNcpy, FABS
 
 extern void csoundInputMessageInternal(CSOUND *, const char *);
 int32_t eventOpcodeI_(CSOUND *csound, LINEVENT *p, int32_t s, char p1);

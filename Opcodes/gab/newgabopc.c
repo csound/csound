@@ -16,8 +16,13 @@
   02110-1301 USA
 */
 
-#include "csoundCore.h"
-#include "interlocks.h"
+#include <stdint.h>         // for int32_t, int64_t, uint32_t
+#include <string.h>         // for memset, NULL
+
+#include "csound.h"         // for CSOUND, Str, CSOUND_ERROR, CSOUND_SUCCESS
+#include "csoundCore.h"     // for SUBR, CSOUND_, FUNC, OPDS, OK, INSDS, CS_ESR
+#include "interlocks.h"     // for TR, WI
+#include "sysdep.h"         // for MYFLT, UNLIKELY, int32, FL
 
 /* (Shouldn't there be global decl's for these?) */
 #define INCR (0.001f)
@@ -113,7 +118,7 @@ static int32_t inRange(CSOUND *csound, INRANGE *p)
 
 }
 
-#include "Opcodes/uggab.h"
+#include "Opcodes/uggab.h"  // for LPOSC, randGab
 
 static int32_t lposc_set(CSOUND *csound, LPOSC *p)
 {
@@ -299,8 +304,6 @@ static int32_t lposca_stereo_no_trasp(CSOUND *csound, LPOSC_ST *p)
 
 
 /* -------------------------------------------------------------------- */
-
-#include "vectorial.h"
 
 typedef struct  {       /* gab d5*/
         OPDS    h;

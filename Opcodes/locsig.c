@@ -29,9 +29,13 @@
 /* University of Washington, Seattle 1998 */
 /******************************************/
 
-#include "stdopcod.h"
 #include "locsig.h"
-#include <math.h>
+
+#include <stdint.h>    // for uint32_t, int32_t
+#include <string.h>    // for memset, memcpy, NULL, size_t
+
+#include "csound.h"    // for CSOUND, Str
+#include "stdopcod.h"  // for STDOPCOD_GLOBALS, locsig_init_
 
 static int32_t locsigset(CSOUND *csound, LOCSIG *p)
 {

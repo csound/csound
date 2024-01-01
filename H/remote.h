@@ -33,34 +33,23 @@
       #define SHUT_RDWR 0x02
     #endif
   #else
-    #include <sys/ioctl.h>
     #ifdef __HAIKU__
       #include <sys/sockio.h>
     #endif
-    #include <sys/socket.h>
-    #include <netinet/in.h>
+    #ifdef HAVE_NETINET_IN_H
+      #include <netinet/in.h>  // for sockaddr_in
+    #endif
     #ifdef MACOSX
       #include <net/if.h>
-    #endif
-    #ifdef LINUX
-      #include <linux/if.h>
-    #endif
-    #include <arpa/inet.h>
-    #ifdef HAVE_UNISTD_H
-    #  include <unistd.h>
     #endif
   #endif
 #endif /* HAVE_SOCKETS */
 
-#include <stdlib.h>
-#include <stdio.h>
-#ifdef HAVE_SYS_TYPES_H
-#  include <sys/types.h>
-#endif
-#include <string.h>
-#include <errno.h>
+#include <stdint.h>      // for int32_t
 
-#include "csoundCore.h"
+#include "csound.h"      // for CSOUND
+#include "csoundCore.h"  // for STRINGDAT, MEVENT, OPDS, EVTBLK, REMOT_BUF
+#include "sysdep.h"      // for MYFLT
 
 void m_chanmsg(CSOUND *csound, MEVENT *mep);   /* called from midirecv & musmon */
 char remoteID(CSOUND *csound);
@@ -70,6 +59,7 @@ char remoteID(CSOUND *csound);
 #define SCOR_EVT 1
 #define MIDI_EVT 2
 #define MIDI_MSG 3
+
 #define GLOBAL_REMOT -99
 
 #ifdef HAVE_SOCKETS

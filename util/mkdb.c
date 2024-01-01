@@ -30,7 +30,9 @@
 #include <stdlib.h>
 #include <string.h>
 #include <stdint.h>
+#ifdef HAVE_SYS_TYPES_H
 #include <sys/types.h>
+#endif
 #include <dlfcn.h>
 #include <setjmp.h>
 #include <signal.h>

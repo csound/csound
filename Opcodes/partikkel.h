@@ -20,8 +20,11 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 #pragma once
 
-#include "csoundCore.h"
-#include "interlocks.h"
+#include <stdint.h>      // for uint32_t, int32_t
+
+#include "csound.h"      // for CsoundRandMTState
+#include "csoundCore.h"  // for FUNC, OPDS, AUXCH
+#include "sysdep.h"      // for MYFLT
 
 typedef struct {
     FUNC *table;
@@ -58,8 +61,6 @@ typedef struct {
     char *mempool;
     uint32_t free_nodes;
 } GRAINPOOL;
-
-struct PARTIKKEL;
 
 typedef struct PARTIKKEL_GLOBALS_ENTRY {
     MYFLT id;

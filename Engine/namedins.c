@@ -21,10 +21,18 @@
     02110-1301 USA
 */
 
-#include "csoundCore.h"
 #include "namedins.h"
-#include "csound_orc_semantics.h"
-#include <ctype.h>
+
+#include <ctype.h>                   // for isalnum, isalpha
+#include <stdio.h>                   // for NULL, size_t, snprintf, sprintf
+#include <stdlib.h>                  // for atof
+#include <string.h>                  // for strlen, strcpy, strchr, strncpy
+
+#include "csound.h"                  // for CSOUND, CSOUND_ERROR, Str, PUBLIC
+#include "csoundCore.h"              // for CSOUND_, ENGINE_STATE, INSTRNAME
+#include "csound_data_structures.h"  // for cs_hash_table_get, cs_hash_table...
+#include "prototyp.h"                // for get_arg_string
+#include "sysdep.h"                  // for UNLIKELY, MYFLT, int32, FL
 
 /* check if the string s is a valid instrument or opcode name */
 /* return value is zero if the string is not a valid name */

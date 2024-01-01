@@ -23,14 +23,21 @@
 
 /* Collection of physical modelled instruments */
 
+#include <math.h>              // for cos, pow
+#include <stdint.h>            // for int32_t, uint32_t
+#include <string.h>            // for memset, NULL
+
+#include "Opcodes/moog1.h"     // for MOOG1
+#include "Opcodes/physutil.h"  // for DLineL_setDelay, ADSR, DLineL_tick
+#include "bowed.h"             // for BOWED, BowTabl, BowTabl_lookup
+#include "brass.h"             // for BRASS, DLineA, LipFilt, DLineA_setDelay
+#include "clarinet.h"          // for CLARIN, OneZero, ReedTabl, OneZero_set...
+#include "csound.h"            // for CSOUND, Str
 //#include "csdl.h"
-#include "csoundCore.h"
-#include "clarinet.h"
-#include "flute.h"
-#include "bowed.h"
-#include "brass.h"
-#include <math.h>
-#include "interlocks.h"
+#include "csoundCore.h"        // for SUBR, CSOUND_, CS_ESR, INSDS, OPDS, FUNC
+#include "flute.h"             // for FLUTE
+#include "interlocks.h"        // for TR
+#include "sysdep.h"            // for FL, MYFLT, UNLIKELY, int32, LIKELY, FABS
 /* ************************************** */
 /*  Waveguide Clarinet model ala Smith    */
 /*  after McIntyre, Schumacher, Woodhouse */
@@ -946,11 +953,11 @@ int32_t brass(CSOUND *csound, BRASS *p)
 }
 
 #define S       sizeof
-#include "mandolin.h"
-#include "singwave.h"
-#include "shaker.h"
-#include "fm4op.h"
-#include "bowedbar.h"
+#include "bowedbar.h"          // for BOWEDBAR
+#include "fm4op.h"             // for FM4OP, FM4OPV
+#include "mandolin.h"          // for MANDOL
+#include "shaker.h"            // for SHAKER
+#include "singwave.h"          // for VOICF
 
 int32_t tubebellset(void*,void*);
 int32_t tubebell(void*,void*);

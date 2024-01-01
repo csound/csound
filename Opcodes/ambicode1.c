@@ -28,10 +28,14 @@
     02110-1301 USA
 */
 
-#include "csoundCore.h"
-#include "interlocks.h"
-#include <assert.h>
-#include <math.h>
+#include <assert.h>      // for assert
+#include <math.h>        // for cos, sin
+#include <stdint.h>      // for uint32_t, int32_t
+#include <string.h>      // for memset, NULL
+
+#include "csound.h"      // for CSOUND, Str
+#include "csoundCore.h"  // for SUBR, ARRAYDAT, OK, TEXT, OPDS, CSOUND_, INSDS
+#include "sysdep.h"      // for FL, MYFLT, UNLIKELY, SQRT
 
 /* ------------------------------------------------------------------------- */
 

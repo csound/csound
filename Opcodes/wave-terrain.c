@@ -21,9 +21,14 @@
     02110-1301 USA
 */
 
-#include "stdopcod.h"
 #include "wave-terrain.h"
-#include <math.h>
+
+#include <stdint.h>      // for int32_t, uint32_t
+#include <string.h>      // for memset, NULL, memcpy
+
+#include "csound.h"      // for CSOUND, Str
+#include "interlocks.h"  // for TR, TB
+#include "stdopcod.h"    // for wave_terrain_init_
 
 /*  Wave-terrain synthesis opcode
  *

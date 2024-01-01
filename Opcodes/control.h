@@ -27,7 +27,12 @@
 
 #pragma once
 
-#include "csdl.h"
+#include <stdint.h>  // for int32_t
+#include <stdio.h>   // for FILE
+
+#include "csdl.h"    // for OPDS
+#include "csound.h"  // for CSOUND
+#include "sysdep.h"  // for MYFLT
 
 typedef struct CONTROL_GLOBALS_ {
     CSOUND  *csound;

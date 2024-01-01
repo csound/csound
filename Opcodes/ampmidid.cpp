@@ -20,8 +20,12 @@
     Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
     02110-1301 USA
  */
-#include <cmath>
-#include "OpcodeBase.hpp"
+#include <cmath>           // for pow, sqrt
+
+#include "OpcodeBase.hpp"  // for OpcodeBase, csound
+#include "csdl.h"          // for CSOUND_, OK, IGN, csoundModuleCreate, csou...
+#include "csound.h"        // for CSOUND, PUBLIC
+#include "sysdep.h"        // for MYFLT, FL
 
 using namespace csound;
 

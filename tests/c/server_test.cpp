@@ -1,22 +1,29 @@
-#include <stdio.h>
-#include "gtest/gtest.h"
+#include <string.h>          // for strlen
+
+#include "gtest/gtest.h"     // for TEST_F, Test
+#include "csound.h"          // for csoundCleanup, csoundCreate, csoundCreat...
+#include "sysdep.h"          // for UNLIKELY
 #if defined(WIN32) && !defined(__CYGWIN__)
 # include <winsock2.h>
 # include <ws2tcpip.h>
 #else
-# include <fcntl.h>
-# include <sys/socket.h>
-# include <netinet/in.h>
-# include <arpa/inet.h>
+#include <fcntl.h>           // for fcntl, F_SETFL, O_NONBLOCK
+#include <sys/socket.h>      // for sendto, socket, AF_INET, SOCK_DGRAM
+#ifdef HAVE_NETINET_IN_H
+#include <netinet/in.h>
+#endif
+#ifdef HAVE_ARPA_INET_H
+#include <arpa/inet.h>
+#endif       // for inet_aton
 #endif
 #if defined (WIN32)
 # include <Windows.h>
 #else
-# include "unistd.h"
+#include "unistd.h"          // for close
 #endif
 
-#include "csound.hpp"
-#include "csPerfThread.hpp"
+#include "csound.hpp"        // for Csound
+#include "csPerfThread.hpp"  // for CsoundPerformanceThread
 
 void udp_send(const char* msg) {
     struct sockaddr_in server_addr;

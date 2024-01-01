@@ -122,38 +122,38 @@
  * causes the creation of a new function table.
  */
 
-#include <algorithm>
-#include <cmath>
-#include <cstdio>
-#include <cstring>
-#include <functional>
-#include <iostream>
-#include <map>
-#include <string>
-#include <vector>
-#include "OpcodeBase.hpp"
-#include "sysdep.h"
-#include "text.h"
-#include <pstream.h>
+#include <stdarg.h>        // for va_end, va_list, va_start
+#include <stdint.h>        // for uint32_t
+#include <algorithm>       // for find, copy, max
+#include <cstdio>          // for snprintf, size_t, vfprintf, stderr
+#include <cstring>         // for strcmp, memset
+#include <iostream>        // for operator<<, ostream, basic_ostream
+#include <map>             // for map, operator!=, map<>::iterator, operator==
+#include <string>          // for string, basic_string, operator<
+#include <vector>          // for vector, vector<>::iterator
+
+#include "OpcodeBase.hpp"  // for QueryGlobalPointer, LockGuard, OpcodeBase
+#include "csdl.h"          // for SUBR, CSOUND_, STRINGDAT, EVTBLK, OPDS, INSDS
+#include "csound.h"        // for CSOUND, PUBLIC
+#include "interlocks.h"    // for _CR, _CW, TW
+#include "msg_attr.h"      // for CSOUNDMSG_WARNING
+#include "pstream.h"       // for PVSDAT, CMPLX, PVS_AMP_FREQ, PVS_AMP_PHASE
+#include "sysdep.h"        // for MYFLT, FL, UNLIKELY, int16, int32
 
 #define SIGNALFLOWGRAPH_DEBUG 0
 
 namespace csound {
 
-struct SignalFlowGraph;
-struct Outleta;
-struct Outletk;
-struct Outletf;
-struct Outletkid;
-struct Outletv;
 struct Inleta;
-struct Inletk;
 struct Inletf;
+struct Inletk;
 struct Inletkid;
 struct Inletv;
-struct Connect;
-struct AlwaysOn;
-struct FtGenOnce;
+struct Outleta;
+struct Outletf;
+struct Outletk;
+struct Outletkid;
+struct Outletv;
 
 static const int MAX_STRING = 256;
 

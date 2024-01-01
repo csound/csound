@@ -22,7 +22,14 @@
 
 #pragma once
 
-#include "csdl.h"
+#include <stddef.h>  // for NULL
+#include <stdint.h>  // for int32_t, uint32_t
+
+#include "csdl.h"    // for OPDS, AUXCH, CSOUND_, ARRAYDAT, FUNC
+#include "csound.h"  // for CSOUND
+#include "sysdep.h"  // for MYFLT, int32, CS_NOINLINE, uint32
+
+struct SCANSYN_GLOBALS_;
 
 typedef struct SCANSYN_GLOBALS_ SCANSYN_GLOBALS;
 

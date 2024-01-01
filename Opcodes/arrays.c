@@ -20,11 +20,18 @@
   02110-1301 USA
 */
 
+#include "arrays.h"
+
+#include "aops.h"                // for EVAL
+#include "csound.h"              // for CSOUND, Str, CSFTYPE_FLOATS_TEXT
 // #include "csdl.h"
-#include "csoundCore.h"
-#include "interlocks.h"
-#include "aops.h"
-#include "find_opcode.h"
+#include "csoundCore.h"          // for SUBR, ARRAYDAT, CSOUND_, OK, OPDS
+#include "csound_type_system.h"  // for CS_TYPE, CS_VARIABLE
+#include "find_opcode.h"         // for find_opcode_new
+#include "interlocks.h"          // for _QQ, WI, TR, TW, IB, IR
+#include "prototyp.h"            // for csoundErrorMsg
+#include "pstream.h"             // for PVSDAT
+#include "sysdep.h"              // for MYFLT, UNLIKELY, LIKELY, FL, POWER, COS
 
 extern MYFLT MOD(MYFLT a, MYFLT bb);
 
@@ -75,8 +82,6 @@ static int32_t array_del(CSOUND *csound, void *p)
     return OK;
 }
 #endif
-
-#include "arrays.h"
 
 static int32_t array_init(CSOUND *csound, ARRAYINIT *p)
 {
@@ -153,7 +158,12 @@ static int32_t tabfill(CSOUND *csound, TABFILL *p)
     return OK;
 }
 
-#include <ctype.h>
+#include <ctype.h>               // for isdigit, isspace
+#include <math.h>                // for log, cos, exp, NAN, atan2
+#include <stdint.h>              // for int32_t, uint32_t
+#include <stdio.h>               // for getc, feof, rewind, FILE
+#include <stdlib.h>              // for atof
+#include <string.h>              // for NULL, memset, memcpy, size_t
 
 static MYFLT nextval(FILE *f)
 {
@@ -3801,8 +3811,6 @@ int32_t perf_window(CSOUND *csound, FFT *p) {
     return OK;
 
 }
-
-#include "pstream.h"
 
 typedef struct _pvsceps {
   OPDS    h;

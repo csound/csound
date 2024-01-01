@@ -32,7 +32,12 @@
 #if !defined(__Modal4_h)
 #define __Modal4_h
 
-#include "physutil.h"
+#include <stdint.h>      // for int32_t
+
+#include "csound.h"      // for CSOUND
+#include "csoundCore.h"  // for FUNC
+#include "physutil.h"    // for BiQuad_setGain, BiQuad, Envelope, OnePole
+#include "sysdep.h"      // for MYFLT
 
 typedef struct Modal4 {
     Envelope envelope;

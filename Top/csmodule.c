@@ -69,17 +69,24 @@
  *                                                                            *
  ******************************************************************************/
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
+#include <stdint.h>      // for int32_t, int64_t
+#include <stdio.h>       // for NULL, snprintf, size_t
+#include <stdlib.h>      // for getenv, qsort
+#include <string.h>      // for strlen, memcpy, strcmp, strcpy, strcat, strchr
+#include <sys/stat.h>    // for stat, S_ISDIR
 
 #if !(defined (__wasi__))
-#include <setjmp.h>
-#include <errno.h>
+#include <errno.h>       // for errno
+#include <setjmp.h>      // for jmp_buf, setjmp
 #endif
 
-#include "csoundCore.h"
-#include "csmodule.h"
+#include "csmodule.h"    // for csoundDestroyModules, csoundInitModules, cso...
+#include "csound.h"      // for CSOUND, Str, CSOUND_ERROR, csoundMessage
+#include "csoundCore.h"  // for CSOUND_, NGFENS, OENTRY, OPARMS, FGDATA, FUNC
+#include "msg_attr.h"    // for CSOUNDMSG_ERROR
+#include "prototyp.h"    // for cs_strdup, csoundWarning, csoundAppendOpcodes
+#include "sysdep.h"      // for UNLIKELY, CS_NOINLINE, DIRSEP, MYFLT, strNcpy
+#include "version.h"     // for CS_APISUBVER, CS_APIVERSION
 
 #if defined(__MACH__)
 #include <TargetConditionals.h>
@@ -93,17 +100,18 @@
 
 #if !(defined (NACL)) && !(defined (__wasi__))
 #if defined(LINUX) || defined(NEW_MACH_CODE) || defined(__HAIKU__)
-#include <dlfcn.h>
+#include <dlfcn.h>       // for dlclose, dlerror, dlopen, dlsym, RTLD_GLOBAL
 #elif defined(WIN32)
 #define _WINSOCKAPI_
 #include <windows.h>
+
 #undef _WINSOCKAPI_
 #endif
 #endif
 
 
 #if defined(HAVE_DIRENT_H)
-#  include <dirent.h>
+#include <dirent.h>      // for closedir, opendir, readdir, DIR, dirent
 #  if 0 && defined(__MACH__)
 typedef void*   DIR;
 DIR             opendir(const char *);
@@ -113,8 +121,8 @@ int             closedir(DIR*);
 #endif
 
 #if defined(WIN32) && !defined(__CYGWIN__)
-#  include <io.h>
 #  include <direct.h>
+#  include <io.h>
 #endif
 
 extern  int     allocgen(CSOUND *, char *, int (*)(FGDATA *, FUNC *));

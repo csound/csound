@@ -22,8 +22,15 @@
     02110-1301 USA
 */
 
-#include "csoundCore.h"
-#include <math.h>
+#include <stdint.h>      // for int32_t
+#include <stdio.h>       // for printf, snprintf, NULL, sprintf
+#include <stdlib.h>      // for rand
+#include <string.h>      // for strlen
+
+#include "csound.h"      // for CSOUND, Str, csoundReadScore
+#include "csoundCore.h"  // for ARRAYDAT, SUBR, CSOUND_, OK, OPDS, LINKAGE_B...
+#include "sysdep.h"      // for MYFLT, FL
+
 typedef struct {
     OPDS        h;
     MYFLT       *res;           /*  state */

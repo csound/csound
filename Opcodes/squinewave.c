@@ -24,9 +24,13 @@
     02110-1301 USA
 */
 
-#include <math.h>
+#include <math.h>        // for fmax, fmin, cos, fmod
+#include <stdint.h>      // for int32_t, uint32_t
+#include <string.h>      // for memset
 
-#include "csoundCore.h"
+#include "csound.h"      // for CSOUND, Str
+#include "csoundCore.h"  // for SUBR, PI, OPDS, INSDS, CSOUND_, OK, CS_KSMPS
+#include "sysdep.h"      // for MYFLT, UNLIKELY
 
 
 /* ================================================================== */

@@ -23,7 +23,8 @@
 
 #pragma once
 
-#include "csdl.h"
+#include "csoundCore.h"  // for OPDS
+#include "sysdep.h"      // for MYFLT
 
 #define POWER_BUFSIZE 1000
 

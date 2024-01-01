@@ -27,6 +27,9 @@
 #ifndef MIDIOPS2_H
 #define MIDIOPS2_H
 
+#include "csoundCore.h"  // for OPDS, FUNC
+#include "sysdep.h"      // for int32, MYFLT, int16
+
 typedef struct {
     OPDS   h;
     MYFLT  *r, *ictlno, *imin, *imax, *ifn;

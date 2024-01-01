@@ -28,13 +28,18 @@
 /*  wavetable, an envelope, and four reso- */
 /*  nances (Non-Sweeping BiQuad Filters).  */
 /*******************************************/
-// #include "csdl.h"
-#include "csoundCore.h"
 #include "modal4.h"
-#include "marimba.h"
-#include "vibraphn.h"
-#include <math.h>
-#include "interlocks.h"
+
+#include <math.h>              // for pow
+#include <string.h>            // for memset, NULL
+
+#include "Opcodes/physutil.h"  // for BiQuad, BiQuad_clear, BiQuad_tick, mak...
+// #include "csdl.h"
+#include "csoundCore.h"        // for SUBR, CSOUND_, FUNC, INSDS, OPDS, NOTOK
+#include "interlocks.h"        // for TR
+#include "marimba.h"           // for MARIMBA
+#include "vibraphn.h"          // for VIBRAPHN
+
 static int32_t make_Modal4(CSOUND *csound,
                        Modal4 *m, MYFLT *ifn, MYFLT vgain, MYFLT vrate)
 {

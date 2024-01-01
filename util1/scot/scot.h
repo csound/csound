@@ -26,9 +26,7 @@
 
 #pragma once
 
-#include <stdio.h>
-#include <string.h>
-#include <ctype.h>
+#include <stdio.h>  // for FILE
 
 #ifndef TRUE
 #define TRUE 1
@@ -94,8 +92,6 @@ typedef struct tempo
   Rat time;
   int val;
 } Tempo;
-
-#include <stdlib.h>
 
 static void readinstsec(Inst *,Nextp **,
                         Rat *,Rat *,Rat *,Rat *,Rat *,

@@ -34,8 +34,14 @@
     02110-1301 USA
 */
 
-#include "stdopcod.h"
-#include <math.h>
+#include <math.h>        // for cos, sqrt
+#include <stdint.h>      // for int32_t, uint32_t
+#include <string.h>      // for memset, NULL, size_t
+
+#include "csound.h"      // for CSOUND, Str
+#include "csoundCore.h"  // for CSOUND_, AUXCH, OK, OPDS, INSDS, CS_ESR, CS_...
+#include "stdopcod.h"    // for reverbsc_init_
+#include "sysdep.h"      // for MYFLT, UNLIKELY, FL, LIKELY
 
 #define DEFAULT_SRATE   44100.0
 #define MIN_SRATE       5000.0

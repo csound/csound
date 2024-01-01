@@ -19,9 +19,16 @@
 
 /* $Id: mpadec.c,v 1.3 2009/03/01 15:27:05 jpff Exp $ */
 
-#include <stdlib.h>
-#include "csoundCore.h"
-#include "mpadec_internal.h"
+#include "mpadec.h"           // for mpadec_config_t, mp3tag_info_t, mpadec_...
+
+#include <math.h>                           // for pow
+#include <stdint.h>                         // for uint8_t, uint32_t, int32_t
+#include <stdlib.h>                         // for free, malloc, NULL
+#include <string.h>                         // for memset, memcpy, memmove
+
+#include "InOut/libmpadec/mpadec_config.h"  // for FALSE, TRUE
+#include "mpadec_internal.h"                // for mpadec_t, frameinfo_t
+#include "sysdep.h"                         // for MYFLT
 
 extern const uint16_t crc_table[256];
 extern void *synth_table[2][2][4][4];

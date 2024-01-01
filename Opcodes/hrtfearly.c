@@ -21,9 +21,15 @@
   02110-1301 USA
 */
 
+#include <math.h>        // for pow, acos
+#include <stdint.h>      // for int32_t, uint32_t
+#include <stdlib.h>      // for abs, NULL
+#include <string.h>      // for memset
+
+#include "csound.h"      // for CSOUND, Str, CSFTYPE_FLOATS_BINARY
 /* #include "csdl.h" */
-#include "csoundCore.h"
-#include "interlocks.h"
+#include "csoundCore.h"  // for AUXCH, CSOUND_, SUBR, MEMFIL, MAXNAME, STRIN...
+#include "sysdep.h"      // for MYFLT, FL, FABS, LOG, SQRT, strNcpy, UNLIKELY
 
 #ifdef __FAST_MATH__
 #undef __FAST_MATH__

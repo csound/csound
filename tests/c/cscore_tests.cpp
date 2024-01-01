@@ -1,9 +1,11 @@
-#include <stdio.h>
-#include <stdlib.h>
-#include "gtest/gtest.h"
-#include "csound.h"
+#include <stdio.h>        // for fopen, FILE
+#include <string>         // for string
+
+#include "gtest/gtest.h"  // for Test, AssertionResult, ASSERT_TRUE, Message
+#include "csound.h"       // for csoundCleanup, csoundCreate, csoundDestroy
+
 extern "C" {
-  #include "cscore.h"
+#include "cscore.h"       // for cscoreListPut, cscorePutEvent, cscorePutString
 }
 
 void cscore(CSOUND *cs)

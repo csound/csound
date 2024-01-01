@@ -25,21 +25,34 @@
 /* Haiku 'int32' etc definitions in net headers conflict with sysdep.h */
 #define __HAIKU_CONFLICT
 
-#include "csoundCore.h"
-#include <stdlib.h>
-#include <sys/types.h>
+#ifdef HAVE_FCNTL_H
+#include <fcntl.h>       // for fcntl, F_SETFL, O_NONBLOCK
+#endif
+#include <math.h>        // for ceil
+#include <stdint.h>      // for int32_t, uint32_t, uintptr_t, uint64_t, int64_t
+#include <stdio.h>       // for NULL, snprintf, size_t
+
+#include "csound.h"      // for CSOUND, Str
+#include "csoundCore.h"  // for STRINGDAT, CSOUND_, SUBR, AUXCH, OK, ARRAYDAT
+#include "sysdep.h"      // for MYFLT, UNLIKELY, strNcpy, FL
 #if defined(WIN32) && !defined(__CYGWIN__)
 #include <winsock2.h>
 #include <ws2tcpip.h>
 #else
-#include <unistd.h>
-#include <sys/socket.h>
-#include <netinet/in.h>
-#include <arpa/inet.h>
+#ifdef HAVE_UNISTD_H
+#include <unistd.h>      // for close
+#endif
+#ifdef HAVE_SYS_SOCKET_H
+#include <sys/socket.h>  // for bind, socket, AF_INET, recvfrom, sockaddr
+#endif
+#ifdef HAVE_NETINET_IN_H
+#include <netinet/in.h>  // for sockaddr_in, htons, INADDR_ANY, htonl, in_addr
+#endif
+
 #define SOCKET_ERROR (-1)
 #endif
-#include <string.h>
-#include <errno.h>
+#include <errno.h>       // for errno
+#include <string.h>      // for memset, strlen, strncmp
 
 #define MAXBUFS 32
 #define MTU (1456)
@@ -561,7 +574,7 @@ typedef struct _rawosc {
   struct sockaddr_in server_addr;
 } RAWOSC;
 
-#include "arrays.h"
+#include "arrays.h"      // for tabinit
 
 static int32_t destroy_raw_osc(CSOUND *csound, void *pp) {
     RAWOSC *p = (RAWOSC *) pp;

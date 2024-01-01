@@ -21,9 +21,18 @@
     02110-1301 USA
 */
 
-#include "csoundCore.h"         /*                  RDSCORSTR.C */
-#include "corfile.h"
-#include "insert.h"
+#include <stdint.h>         // for int32_t
+#include <stdio.h>          // for NULL, fprintf, stderr, EOF
+#include <stdlib.h>         // for exit
+#include <string.h>         // for strlen
+
+#include "corfile.h"        // for corfile_getc, corfile_get_flt, corfile_rm
+#include "csound.h"         // for CSOUND, Str
+#include "csoundCore.h"     // for CSOUND_, EVTBLK, event::(anonymous), PMAX
+#include "float-version.h"  // for USE_DOUBLE
+#include "insert.h"         // for OPCOD_IOBUFS
+#include "prototyp.h"       // for get_arg_string, rdscor
+#include "sysdep.h"         // for MYFLT, int32, UNLIKELY, FL
 
 static inline int32_t byte_order(void)
 {

@@ -22,8 +22,13 @@
     02110-1301 USA
 */
 
-#include "csoundCore.h"
-#include <math.h>
+#include <math.h>        // for floor, cos, sin, hypot, sqrt
+#include <stdint.h>      // for uint32_t, int32_t
+#include <string.h>      // for memset, NULL
+
+#include "csound.h"      // for CSOUND, Str
+#include "csoundCore.h"  // for CSOUND_, SUBR, FUNC, OPDS, AUXCH, INSDS, OK
+#include "sysdep.h"      // for MYFLT, UNLIKELY, FL, MYFLT2LONG, POWER
 
 /* #undef CS_KSMPS */
 /* #define CS_KSMPS     (csound->GetKsmps(csound)) */

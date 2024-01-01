@@ -26,7 +26,7 @@
 #ifndef __MODLOAD__H
 #define __MODLOAD__H
 
-#include <plugin.h>
+#include "plugin.h"
 
 #if defined(__wasi__)
   #undef PUBLIC

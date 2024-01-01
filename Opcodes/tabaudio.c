@@ -21,9 +21,17 @@
     02110-1301 USA
 */
 
-#include "csoundCore.h"
-#include "interlocks.h"
-#include "soundio.h"
+#include <sndfile.h>     // for SNDFILE, SFM_WRITE
+#include <stdint.h>      // for int32_t, uint32_t, uintptr_t
+#include <stdio.h>       // for NULL, printf
+#include <stdlib.h>      // for free
+#include <string.h>      // for memset
+
+#include "csound.h"      // for CSOUND, Str
+#include "csoundCore.h"  // for CSOUND_, FUNC, OPARMS, SUBR, STRINGDAT, OPDS
+#include "interlocks.h"  // for TR
+#include "soundfile.h"   // for TYP2SF, SFLIB_INFO, sflib_close, TYP_RAW
+#include "sysdep.h"      // for MYFLT, FL, MYFLT2LRND, UNLIKELY
 
 typedef struct {
     OPDS    h;

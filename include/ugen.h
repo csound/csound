@@ -18,8 +18,12 @@
 
 #pragma once
 
-#include "csoundCore.h"
-#include <stdbool.h>
+#include <stdbool.h>             // for bool
+
+#include "csound.h"              // for PUBLIC, CSOUND
+#include "csoundCore.h"          // for INSDS, OENTRY, OPDS
+#include "csound_type_system.h"  // for CS_VAR_POOL
+#include "sysdep.h"              // for MYFLT
 
 typedef struct {
   CSOUND* csound;

@@ -21,19 +21,27 @@
     02110-1301 USA
 */
 
-#include "csoundCore.h"
-#include <stdlib.h>
-int mkstemp(char *);
-#include <ctype.h>
-#ifndef __wasi__
-#include <errno.h>
+#include <stdint.h>      // for uint32_t
+#include <stdio.h>       // for NULL, remove, sscanf, fclose, fopen, snprintf
+#include <stdlib.h>      // for free, atoi, getenv, system
+#include <string.h>      // for strstr, strchr, strlen, strcpy, strlcat, str...
+#ifdef HAVE_UNISTD_H
+#include <unistd.h>      // for close
 #endif
-#include <stdlib.h>
-#include "corfile.h"
+
+#include "csound.h"      // for CSOUND, Str, csoundMessage, csoundGetVersion
+#include "csoundCore.h"  // for CSOUND_, onefileStatics__, CORFIL, NAMELST
+#include "envvar.h"      // for csoundFileClose, csoundFileOpenWithType
+#include "prototyp.h"    // for csoundErrorMsg, csoundDie, argdecode, cs_strdup
+#include "sysdep.h"      // for UNLIKELY, strNcpy, CS_NOINLINE
+
+int mkstemp(char *);
+#include <ctype.h>       // for isblank, isspace, isdigit, islower, isupper
+
+#include "corfile.h"     // for corfile_putc, corfile_getc, corfile_puts
 
 #if defined(LINUX) || defined(__MACH__) || defined(WIN32)
-#  include <sys/types.h>
-#  include <sys/stat.h>
+#include <sys/stat.h>    // for stat, umask
 #endif
 
 #define CSD_MAX_LINE_LEN    4096
@@ -1113,9 +1121,6 @@ int read_unified_file4(CSOUND *csound, CORFIL *cf)
     int started = FALSE;
     int notrunning = csound->engineStatus & CS_STATE_COMP;
     char    buffer[CSD_MAX_LINE_LEN];
-#ifdef _DEBUG
-    //csoundMessage(csound, "Calling unified file system4\n");
-#endif
     if (notrunning==0) {
       alloc_globals(csound);
       STA(orcname) = STA(sconame) = STA(midname) = NULL;

@@ -36,7 +36,7 @@
 #if !defined(__SingWave_h)
 #define __SingWave_h
 
-
+#include "sysdep.h"      // for MYFLT
 
 extern MYFLT phonGains[32][2];
 extern MYFLT phonParams[32][4][3];
@@ -49,9 +49,12 @@ extern char phonemes[32][4];
 /*  natural human modulation function.     */
 /*******************************************/
 
-#include "physutil.h"
-#include "clarinet.h"
-#include "moog1.h"
+#include <stdint.h>      // for int32_t
+
+#include "clarinet.h"    // for OneZero
+#include "csoundCore.h"  // for FUNC, OPDS
+#include "moog1.h"       // for FormSwep
+#include "physutil.h"    // for Envelope, Noise, OnePole
 
 typedef struct SubNoise {
      Noise      lastOutput;

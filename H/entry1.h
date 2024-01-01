@@ -23,43 +23,12 @@
 
 #pragma once
 
-#include "csoundCore.h"         /*                      ENTRY1.H        */
-#include "insert.h"
-#include "aops.h"
-#include "midiops.h"
-#include "ugens1.h"
-#include "ugens2.h"
-#include "ugens3.h"
-#include "ugens4.h"
-#include "ugens5.h"
-#include "ugens6.h"
-#include "cwindow.h"
-#include "windin.h"
-#include "disprep.h"
-#include "soundio.h"
-#include "dumpf.h"
-#include "cmath.h"
-#include "diskin2.h"
-#include "oload.h"
-#include "midiout.h"
-#include "sndinfUG.h"
-#include "ugrw1.h"
-#include "schedule.h"
-#include "vdelay.h"
-#include "pstream.h"
-#include "oscils.h"
-#include "midifile.h"
-#include "midiinterop.h"
-#include "linevent.h"
-#include "str_ops.h"
-#include "bus.h"
-#include "pstream.h"
-#include "remote.h"
-#include "resize.h"
-#include "cs_par_ops.h"
-#include "ugtabs.h"
-#include "compile_ops.h"
-#include "lpred.h"
+#include <stdint.h>   // for int32_t
+
+#include "csound.h"   // for CSOUND
+#include "diskin2.h"  // for DISKIN2
+#include "pstream.h"  // for FASSIGN
+#include "ugtabs.h"   // for TABL, TABLRA, TABLWA, TGP, TABLMIX, TLEN
 
 #define S(x)    sizeof(x)
 

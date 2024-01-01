@@ -21,16 +21,29 @@
     02110-1301 USA
 */
 
-#include "csoundCore.h"
-#include "soundio.h"
-#include "envvar.h"
-#include <stdio.h>
-#include <ctype.h>
-#include <math.h>
+#include "envvar.h"                  // for csoundAppendEnv, csoundConcatena...
 
-#if defined(MSVC) || defined(__wasi__)
-#include <fcntl.h>
+#include <ctype.h>                   // for isalpha, tolower, isdigit
+#include <emmintrin.h>               // for _MM_DENORMALS_ZERO_ON, _MM_SET_D...
+#ifdef HAVE_FCNTL_H
+#include <fcntl.h>                   // for open, O_CREAT, O_TRUNC, O_WRONLY
 #endif
+#include <sndfile.h>                 // for SNDFILE, SFC_SET_VBR_ENCODING_QU...
+#include <stdint.h>                  // for uintptr_t
+#include <stdio.h>                   // for NULL, size_t, fopen, FILE, fclose
+#include <stdlib.h>                  // for getenv
+#include <string.h>                  // for strlen, strcpy, strcat, strchr
+#ifdef HAVE_UNISTD_H
+#include <unistd.h>                  // for close, getcwd
+#endif
+
+#include "csound.h"                  // for CSOUND, csoundMessage, Str, CSOU...
+#include "csoundCore.h"              // for CSOUND_, CSFILE_STD, CSFILE_SND_R
+#include "csound_data_structures.h"  // for cs_hash_table_get, cs_hash_table...
+#include "namedins.h"                // for sCmp
+#include "prototyp.h"                // for csoundErrorMsg, cs_strdup, csoun...
+#include "soundfile.h"               // for sflib_command, SFLIB_INFO, sflib...
+#include "sysdep.h"                  // for UNLIKELY, strNcpy, DIRSEP, MYFLT
 
 #if defined(WIN32) && !defined(__CYGWIN__)
 #  include <direct.h>
@@ -38,11 +51,8 @@
 #endif
 
 #if defined(__wasi__)
-#  include <unistd.h>
 #  define getcwd(x,y) "/"
 #endif
-
-#include "namedins.h"
 
 /* list of environment variables used by Csound */
 

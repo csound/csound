@@ -25,6 +25,8 @@
 
 #define __corfil
 
+#include "csoundCore.h"
+
 CORFIL *corfile_create_w(CSOUND*);
 CORFIL *corfile_create_r(CSOUND*,const char *text);
 void corfile_putc(CSOUND*,int32_t c, CORFIL *f);

@@ -32,13 +32,9 @@
 ** NOTE marks notes
 */
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <limits.h>
-#include "csoundCore.h"
-#include "cs_par_base.h"
-#include "cs_par_orc_semantics.h"
-#include <stdbool.h>
+#include <stdbool.h>               // for true
+#include <stdio.h>                 // for printf, NULL
+#include <string.h>                // for memset
 
 #if defined(_MSC_VER)
 /* For InterlockedCompareExchange */
@@ -46,6 +42,13 @@
 #include <windows.h>
 #undef _WINSOCKAPI_
 #endif
+
+#include "cs_par_base.h"           // for csp_set_intersection, set_t, set_e...
+#include "cs_par_orc_semantics.h"  // for INSTR_SEMANTICS, csp_orc_sa_instr_...
+#include "cs_par_structs.h"        // for watchList, stateWithPadding, taskID
+#include "csound.h"                // for CSOUND, Str
+#include "csoundCore.h"            // for CSOUND_, INSDS, OPARMS, IGN, INSTRTXT
+#include "sysdep.h"                // for UNLIKELY
 
 /* Used as an error value */
 //typedef int taskID;

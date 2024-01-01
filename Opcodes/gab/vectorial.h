@@ -21,6 +21,11 @@
 #ifndef GAB_VECTORIAL_H
 #define GAB_VECTORIAL_H
 
+#include <stdint.h>      // for int32_t, int64_t
+
+#include "csoundCore.h"  // for OPDS, VARGMAX, AUXCH, FUNC
+#include "sysdep.h"      // for MYFLT, int32
+
 /* The follwoing from CsoundAV/newopcodes.h */
 typedef struct {
     OPDS    h;

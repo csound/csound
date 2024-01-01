@@ -24,11 +24,15 @@
 
 /*                                              RTPA.C for PortAudio    */
 
-#include "csdl.h"
-#if !defined(WIN32)
-#include "soundio.h"
-#endif
-#include <portaudio.h>
+#include <portaudio.h>  // for PaStreamParameters, PaDeviceInfo, Pa_CloseStream
+#include <stdarg.h>     // for va_end, va_list, va_start
+#include <stdio.h>      // for NULL, snprintf, size_t
+#include <string.h>     // for memset, strcmp, memcpy, strncpy
+
+#include "csdl.h"       // for CSOUND_, Str, IGN, csoundModuleCreate, csound...
+#include "csound.h"     // for CSOUND, csRtAudioParams, CS_AUDIODEVICE, PUBLIC
+#include "sysdep.h"     // for UNLIKELY, MYFLT, CS_NOINLINE
+#include "version.h"    // for CS_APISUBVER, CS_APIVERSION
 
 #define NO_FULLDUPLEX_PA_LOCK   0
 

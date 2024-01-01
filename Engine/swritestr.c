@@ -21,11 +21,15 @@
     02110-1301 USA
 */
 
-#include "csoundCore.h"                                  /*    SWRITESTR.C  */
-#include <math.h>
-#include <stdlib.h>
-#include <ctype.h>
-#include "corfile.h"
+#include <ctype.h>       // for isdigit, isspace
+#include <math.h>        // for pow
+#include <stdio.h>       // for NULL, snprintf, printf
+
+#include "corfile.h"     // for corfile_putc, corfile_puts
+#include "csound.h"      // for CSOUND, Str
+#include "csoundCore.h"  // for CSOUND_, CORFIL
+#include "sort.h"        // for SRTBLK, SP, LF
+#include "sysdep.h"      // for UNLIKELY, MYFLT, LIKELY, CS_SPRINTF, int32
 
 static SRTBLK *nxtins(SRTBLK *), *prvins(SRTBLK *);
 static char   *pfout(CSOUND *,SRTBLK *, char *, int, int, CORFIL *sco);

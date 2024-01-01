@@ -21,7 +21,8 @@
     02110-1301 USA
 */
 
-#include <soundfile.h>
+#include <sndfile.h>    // for SF_INFO, SNDFILE, sf_close, sf_command, sf_open
+#include <soundfile.h>  // for SFLIB_INFO, sflib_close, sflib_command, sflib...
 
 #if USE_LIBSNDFILE
 

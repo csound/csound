@@ -21,9 +21,15 @@
     02110-1301 USA
 */
 
-#include "stdopcod.h"
 #include "oscbnk.h"
-#include <math.h>
+
+#include <math.h>           // for sqrt, fabs, tan, cos, pow
+#include <string.h>         // for NULL, memset, strcmp
+
+#include "csound.h"         // for CSOUND, Str, csoundGetTable
+#include "float-version.h"  // for USE_DOUBLE
+#include "interlocks.h"     // for TR, TW, WI
+#include "stdopcod.h"       // for VCO2_TABLE_ARRAY, STDOPCOD_GLOBALS, oscbn...
 
 static inline STDOPCOD_GLOBALS *get_oscbnk_globals(CSOUND *csound)
 {

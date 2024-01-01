@@ -1,10 +1,10 @@
 
 /* Base64 encoder utility - written by Istvan Varga, Jan 2003 */
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <errno.h>
+#include <errno.h>   // for errno
+#include <stdio.h>   // for fprintf, putc, FILE, NULL, fclose, fopen, getc
+#include <stdlib.h>  // for exit
+#include <string.h>  // for strlen, strerror
 
 static const char *encode_table =
         "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";

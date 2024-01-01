@@ -20,9 +20,17 @@
     Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
     02110-1301 USA
 */
-#include <map>
-#include <vector>
-#include "OpcodeBase.hpp"
+#include <stddef.h>        // for size_t, NULL
+#include <map>             // for map, map<>::mapped_type, operator!=, map<>...
+#include <memory>          // for allocator_traits<>::value_type
+#include <utility>         // for pair
+#include <vector>          // for vector, vector<>::iterator
+
+#include "OpcodeBase.hpp"  // for QueryGlobalPointer, CreateGlobalPointer
+#include "csdl.h"          // for SUBR, OK, OENTRY, CSOUND_, INSDS, OPDS, IGN
+#include "csound.h"        // for CSOUND, PUBLIC
+#include "interlocks.h"    // for _CW, _CR
+#include "sysdep.h"        // for MYFLT
 
 using namespace csound;
 

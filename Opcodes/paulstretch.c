@@ -24,17 +24,21 @@
     Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
     02110-1301 USA
 */
-#include <stdlib.h>
-#include <complex.h>
+#include <complex.h>     // for cimagf, crealf, I, complex
+#include <stdint.h>      // for uint32_t, int32_t
+#include <stdlib.h>      // for rand, size_t, NULL, RAND_MAX
+#include <string.h>      // for memset
 
 #ifdef _MSC_VER
 #define _USE_MATH_DEFINES
 #endif
-#include <math.h>
-#include <math.h>
-#include "csoundCore.h"
-#include "interlocks.h"
-#include "H/fftlib.h"
+#include <math.h>        // for cos, floor, sin
+
+#include "H/fftlib.h"    // for csoundInverseRealFFTnp2, csoundRealFFTnp2
+#include "csound.h"      // for CSOUND, Str
+#include "csoundCore.h"  // for AUXCH, CSOUND_, FUNC, OPDS, INSDS, OK, TWOPI_F
+#include "interlocks.h"  // for TR
+#include "sysdep.h"      // for MYFLT, FL, COS, UNLIKELY, FLOOR, HYPOT, LIKELY
 
 #ifdef ANDROID
 float crealf(_Complex float);

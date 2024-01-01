@@ -27,7 +27,10 @@
 
 #pragma once
 
-#include "stdopcod.h"
+#include <stdint.h>      // for int32_t
+
+#include "csoundCore.h"  // for OPDS, AUXCH, FUNC
+#include "sysdep.h"      // for MYFLT, int16, int32
 
                                 /* Structure for biquadratic filter */
 typedef struct {

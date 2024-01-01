@@ -26,10 +26,24 @@
 /* Code modified by JPff to remove fixed size arrays, allow
    AIFF and WAV, and close files neatly.  Also bugs fixed */
 
-#include "stdopcod.h"
 #include "fout.h"
-#include "soundio.h"
-#include <ctype.h>
+
+#include <ctype.h>               // for isdigit, isspace, isalpha
+#include <sndfile.h>             // for SNDFILE, SFC_SET_NORM_DOUBLE
+#include <stdlib.h>              // for atof
+#include <string.h>              // for memset, strcmp, strlen
+#ifdef HAVE_FCNTL_H
+#include <fcntl.h>               // for SEEK_SET
+#endif
+
+#include "csound.h"              // for CSOUND, Str, CSFTYPE_UNKNOWN_AUDIO
+#include "csound_type_system.h"  // for CS_VAR_MEM
+#include "envvar.h"              // for csoundReadAsync
+#include "float-version.h"       // for USE_DOUBLE
+#include "interlocks.h"          // for WI, WR, _QQ
+#include "prototyp.h"            // for cs_strdup, get_arg_string
+#include "soundfile.h"           // for SFLIB_INFO, TYP2SF, TYP_RAW, AE_SHORT
+#include "stdopcod.h"            // for fileinTag, STDOPCOD_GLOBALS, fout_init_
 
 /* remove a file reference, optionally closing the file */
 
@@ -907,7 +921,7 @@ static int32_t infile_set_S(CSOUND *csound, INFILE *p){
     return infile_set_(csound,p,1);
 }
 
-#include "arrays.h"
+#include "arrays.h"              // for tabinit
 
 static int32_t infile_set_A(CSOUND *csound, INFILEA *p)
 {

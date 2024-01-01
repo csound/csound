@@ -24,7 +24,11 @@
                         /*                                      DISPREP.H       */
 #pragma once
 
-#include "pstream.h"
+#include "csound.h"      // for WINDAT
+#include "csoundCore.h"  // for AUXCH, OPDS, VARGMAX
+#include "cwindow.h"     // for windat_
+#include "pstream.h"     // for PVSDAT
+#include "sysdep.h"      // for MYFLT, int32, int16, uint32
 
 typedef struct {
         OPDS    h;

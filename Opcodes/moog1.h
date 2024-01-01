@@ -35,7 +35,13 @@
 #if !defined(__Moog1_h)
 #define __Moog1_h
 
-#include "fm4op.h"
+#include <stdint.h>            // for int32_t
+
+#include "Opcodes/physutil.h"  // for ADSR, OnePole
+#include "csound.h"            // for CSOUND
+#include "csoundCore.h"        // for FUNC, OPDS
+#include "fm4op.h"             // for TwoZero
+#include "sysdep.h"            // for MYFLT, FL
 
 /*******************************************/
 /*  Sweepable Formant (2-pole)             */

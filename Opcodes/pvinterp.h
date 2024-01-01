@@ -25,7 +25,9 @@
 
 #pragma once
 
-#include "pvoc_forward.h" // for PVOC_GLOBALS
+#include "csoundCore.h"    // for AUXCH, OPDS
+#include "pvoc_forward.h"  // for PVOC_GLOBALS
+#include "sysdep.h"        // for MYFLT, int32
 
 typedef struct {
     OPDS    h;

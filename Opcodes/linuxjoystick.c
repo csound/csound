@@ -36,7 +36,22 @@
 */
 
 #include "linuxjoystick.h"
-#include <errno.h>
+
+#include <errno.h>           // for errno, EAGAIN
+#ifdef HAVE_FCNTL_H
+#include <fcntl.h>           // for fcntl, open, O_NONBLOCK, O_RDONLY, F_GETFL
+#endif
+#include <linux/joystick.h>  // for js_event, JSIOCGAXES, JSIOCGBUTTONS, JS_...
+#include <stdio.h>           // for snprintf, NULL
+#include <string.h>          // for strerror
+#ifdef HAVE_SYS_IOCTL_H
+#include <sys/ioctl.h>       // for ioctl
+#endif
+#ifdef HAVE_UNISTD_H
+#include <unistd.h>          // for close, read
+#endif
+
+#include "csound.h"          // for CSOUND
 
 static int32_t linuxjoystick (CSOUND *csound, LINUXJOYSTICK *stick)
 {

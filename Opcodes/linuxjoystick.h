@@ -20,9 +20,10 @@
 */
 #pragma once
 
-#include <unistd.h>
-#include "csdl.h"
-#include "linux/joystick.h"
+#include <stdint.h>  // for int32_t, uint32_t
+
+#include "csdl.h"    // for FUNC, OPDS
+#include "sysdep.h"  // for MYFLT
 
 typedef struct
 {

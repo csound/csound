@@ -16,16 +16,20 @@
     02110-1301 USA
 */
 
-#include <ctype.h>
-#include "csoundCore.h"         /*                      MAIN.C          */
-#include "soundio.h"
-#include "csmodule.h"
-#include "corfile.h"
+#include <errno.h>       // for errno
+#include <setjmp.h>      // for setjmp
+#include <stdint.h>      // for uintptr_t
+#include <stdio.h>       // for NULL, fputc, fprintf, sscanf, fclose, fopen
+#include <string.h>      // for strcmp, strcpy, strerror, strlen, strncmp
 
-#include "csound_orc.h"
-
-#include "cs_par_base.h"
-#include "cs_par_orc_semantics.h"
+#include "corfile.h"     // for copy_to_corefile, corfile_rm, corfile_create_r
+#include "csmodule.h"    // for csoundInitModules
+#include "csound.h"      // for CSOUND, Str, csoundQueryGlobalVariable, csou...
+#include "csoundCore.h"  // for CSOUND_, OPARMS, CORFIL, THREADINFO, CS_STAT...
+#include "envvar.h"      // for csoundAppendEnv, csoundGetDirectoryForPath
+#include "prototyp.h"    // for csoundDie, scsortstr, csoundLoadExternals
+#include "soundfile.h"   // for TYP_RAW, TYP_WAV, AE_SHORT, FORMAT2SF, TYP_AIFF
+#include "sysdep.h"      // for UNLIKELY, LIKELY, MYFLT, CS_NORETURN
 //#include "cs_par_dispatch.h"
 
 extern void allocate_message_queue(CSOUND *csound);

@@ -20,11 +20,11 @@
     Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
     02110-1301 USA
 */
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <time.h>
-#include "beats.h"
+#include <stdio.h>   // for fprintf, fopen, stderr, NULL, FILE, stdout, stdin
+#include <stdlib.h>  // for calloc, exit
+#include <time.h>    // for localtime_r, strftime, time, time_t, tm
+
+#include "beats.h"   // for INSTR, yyparse, yydebug, bpm, find_instr, permea...
 
 FILE *myout;
 extern FILE *yyin;

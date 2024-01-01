@@ -24,7 +24,13 @@
 #ifndef EXTRACT_H
 #define EXTRACT_H
 
-#define INSMAX  4096
+#include <stdio.h>   // for FILE
+
+#include "csound.h"  // for CSOUND
+#include "sort.h"    // for SRTBLK
+#include "sysdep.h"  // for MYFLT
+
+#define INSMAX 4096
 
 typedef struct extractStatics__ {
     char    inslst[INSMAX];         /*   values set by readxfil         */

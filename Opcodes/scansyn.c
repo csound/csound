@@ -24,13 +24,16 @@
 /*               Made interpolation selectable April 2000 */
 /* Minor code optimisations April 2021 by JPff */
 
-#include "csdl.h"
 #include "scansyn.h"
-#include <stdio.h>
-#include <stdlib.h>
-#include <math.h>
-#include "cwindow.h"
-#include "arrays.h"
+
+#include <stdlib.h>      // for rand, RAND_MAX
+#include <string.h>      // for memcpy, memset
+
+#include "arrays.h"      // for tabinit
+#include "csdl.h"        // for SUBR, CSOUND_, FUNC, Str, OK, IGN, INSDS, OPDS
+#include "cwindow.h"     // for windat_
+#include "interlocks.h"  // for TR
+#include "version.h"     // for CS_APISUBVER, CS_APIVERSION
 
 /* #undef CS_KSMPS */
 /* #define CS_KSMPS     (csound->GetKsmps(csound)) */
@@ -298,14 +301,6 @@ static int32_t scsnu_init(CSOUND *csound, PSCSNU *p)
     p->v = p->ext + len;
 #if PHASE_INTERP == 3
     p->x3 = p->v + len;
-#endif
-
-    /* Initialize them ... */
-    /* This relies on contiguous allocation of these vectors
-       but as they are allocated via AuxAlloc they are zeroed anyway!  */
-    //memset(p->x0, '\0', 4*len+sizeof(MYFlT));
-#if PHASE_INTERP == 3
-    //memset(p->x3, '\0', len+sizeof(MYFlT));
 #endif
     /* Setup display window */
     if (*p->i_disp) {

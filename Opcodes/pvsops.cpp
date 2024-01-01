@@ -1,4 +1,3 @@
-
 /*
   pvsops.c: pvs and other spectral-based opcodes
 
@@ -20,8 +19,16 @@
   Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
   02110-1301 USA
 */
-#include <algorithm>
-#include <plugin.h>
+#include <math.h>     // for pow
+#include <stddef.h>   // for NULL
+#include <stdint.h>   // for uint32_t, uint64_t
+#include <algorithm>  // for transform, copy, fill, nth_element, sort
+#include <complex>    // for operator*, complex
+#include <utility>    // for swap
+
+#include "csdl.h"     // for OK, FFT_FWD, FFT_INV
+#include "plugin.h"   // for AuxMem<>::iterator, AuxMem, Param, pv_frame
+#include "sysdep.h"   // for MYFLT, FL
 
 struct PVTrace : csnd::FPlugin<1, 2> {
   csnd::AuxMem<float> amps;
@@ -465,7 +472,8 @@ struct TPrint : csnd::Plugin<0, 1> {
 };
 */
 
-#include <modload.h>
+#include <modload.h>  // for on_load
+
 void csnd::on_load(Csound *csound) {
   csnd::plugin<PVTrace>(csound, "pvstrace",  csnd::thread::ik);
   csnd::plugin<PVTrace2>(csound, "pvstrace", csnd::thread::ik);

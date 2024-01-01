@@ -25,6 +25,12 @@
 
 #pragma once
 
+#include <stdint.h>      // for int32_t
+
+#include "csound.h"      // for csoundSpinLock, csoundSpinUnLock, CSOUND
+#include "csoundCore.h"  // for CSOUND_, OPDS, VARGMAX, TABDAT, ARRAYDAT
+#include "sysdep.h"      // for MYFLT
+
 #define CSOUND_SPIN_SPINLOCK csoundSpinLock(&csound->spinlock);
 #define CSOUND_SPIN_SPINUNLOCK csoundSpinUnLock(&csound->spinlock);
 #define CSOUND_SPOUT_SPINLOCK csoundSpinLock(&csound->spoutlock);

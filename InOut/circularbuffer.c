@@ -21,7 +21,10 @@
   02110-1301 USA
 */
 
-#include <csoundCore.h>
+#include <string.h>      // for NULL, memcpy, memset
+
+#include "csound.h"      // for CSOUND, csoundCreateCircularBuffer, csoundDe...
+#include "csoundCore.h"  // for CSOUND_, IGN
 
 typedef struct _circular_buffer {
   char *buffer;

@@ -23,10 +23,16 @@
 
 /* ------ oscils, lphasor, and tablexkt by Istvan Varga (Jan 5 2002) ------ */
 
-#include "csoundCore.h"
-#include <math.h>
 #define CSOUND_OSCILS_C 1
 #include "oscils.h"
+
+#include <math.h>        // for sin, cos
+#include <stdint.h>      // for int32_t, uint32_t
+#include <string.h>      // for memset, NULL
+
+#include "csound.h"      // for CSOUND, Str
+#include "csoundCore.h"  // for OK, INSDS, OPDS, IGN, CSOUND_, CS_KSMPS, FUNC
+#include "sysdep.h"      // for MYFLT, FL, UNLIKELY, POWER, SIN
 
 /* ------------- set up fast sine generator ------------- */
 /* Input args:                                            */

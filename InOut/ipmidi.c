@@ -26,22 +26,34 @@
 /* Haiku 'int32' etc definitions in net headers conflict with sysdep.h */
 #define __HAIKU_CONFLICT
 
-#include <sys/types.h>
 #ifdef WIN32
 #include <winsock2.h>
 #include <ws2tcpip.h>
 #else
-#include <unistd.h>
-#include <sys/socket.h>
-#include <sys/select.h>
-#include <netinet/in.h>
-#include <arpa/inet.h>
+#ifdef HAVE_UNISTD_H
+#include <unistd.h>      // for close, read
 #endif
-#include <errno.h>
+#ifdef HAVE_SYS_SOCKET_H
+#include <sys/socket.h>  // for bind, setsockopt, socket, AF_INET, PF_INET
+#endif
+#ifdef HAVE_SYS_SELECT_H
+#include <sys/select.h>  // for select, timeval, FD_SET, FD_ZERO, fd_set
+#endif
+#ifdef HAVE_NETINET_IN_H
+#include <netinet/in.h>  // for sockaddr_in, ip_mreq, in_addr, INADDR_ANY
+#endif
+#ifdef HAVE_ARPA_INET_H
+#include <arpa/inet.h>   // for inet_addr
+#endif
+#endif
+#include <errno.h>       // for errno
+#include <stdio.h>       // for printf, NULL, perror
+#include <string.h>      // for strerror_r, memset, strcmp
 
-#include "csdl.h"                               /*      IPMIDI.C         */
-#include "midiops.h"
-#include "oload.h"
+#include "csdl.h"        // for CSOUND_, Str, OPARMS, IGN, NOTOK, csoundModu...
+#include "csound.h"      // for CSOUND, PUBLIC
+#include "sysdep.h"      // for ignore_value
+#include "version.h"     // for CS_APISUBVER, CS_APIVERSION
 
 static int OpenMidiInDevice_(CSOUND *csound, void **userData, const char *dev)
 {

@@ -23,13 +23,23 @@
     02110-1301 USA
 */
 
-#include "csoundCore.h"
-#include "csound_orc.h"
-#include "corfile.h"
-#include "score_param.h"
+#include <stdint.h>              // for uint64_t, uint16_t
+#include <stdio.h>               // for NULL, snprintf, printf, FILE, size_t
+#include <stdlib.h>              // for getenv
+#include <string.h>              // for strlcat, memset, strlen, strcmp, strcpy
+
+#include "corfile.h"             // for corfile_puts, corfile_create_w, corf...
+#include "csound.h"              // for CSOUND, TREE, Str, csoundDeleteTree
+#include "csoundCore.h"          // for CSOUND_, CORFIL, OPARMS
+#include "csound_orc.h"          // for TYPE_TABLE, make_leaf, PARSER_DEBUG
+#include "csound_type_system.h"  // for csoundFreeVarPool, csoundCreateVarPool
+#include "parse_param.h"         // for PRE_PARM, PARSE_PARM, cs_init_math_c...
+#include "prototyp.h"            // for csoundErrorMsg
+#include "score_param.h"         // for file_to_int, PRS_PARM, make_slocation
+#include "sysdep.h"              // for UNLIKELY, LIKELY
 
 #if defined(HAVE_DIRENT_H)
-#  include <dirent.h>
+#include <dirent.h>              // for closedir, opendir, readdir, DIR, dirent
 #  if 0 && defined(__MACH__)
 typedef void*   DIR;
 DIR             opendir(const char *);
@@ -39,8 +49,8 @@ int             closedir(DIR*);
 #endif
 
 #if defined(WIN32) && !defined(__CYGWIN__)
-#  include <io.h>
 #  include <direct.h>
+#  include <io.h>
 #endif
 
 extern void csound_orcrestart(FILE*, void *);

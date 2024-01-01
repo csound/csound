@@ -23,8 +23,13 @@
 
 /* ugsc.c -- Opcodes from Sean Costello <costello@seanet.com> */
 
-#include "stdopcod.h"
 #include "ugsc.h"
+
+#include <math.h>      // for exp, cos, sqrt, sin
+#include <string.h>    // for memset, memcpy, size_t, NULL
+
+#include "csound.h"    // for CSOUND, Str
+#include "stdopcod.h"  // for ugsc_init_
 
 /* svfilter.c
  *

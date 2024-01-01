@@ -22,9 +22,16 @@
     02110-1301 USA
 */
 
-#include "csoundCore.h" /*                              UGENS6.C        */
-#include "ugens6.h"
-#include <math.h>
+#include "ugens6.h"      // for DELAYR, REVERB, COMB, DELTAP, DELTAPX, PAN
+
+#include <math.h>        // for exp, sin, INFINITY, pow
+#include <stdint.h>      // for int32_t, uint32_t
+#include <string.h>      // for memset, NULL, memmove
+
+#include "csound.h"      // for CSOUND, Str
+#include "csoundCore.h"  // for CSOUND_, AUXCH, INSDS, OK, OPDS, CS_KSMPS, IGN
+#include "prototyp.h"    // for reverbinit
+#include "sysdep.h"      // for MYFLT, UNLIKELY, FL, MYFLT2LRND, EXP, int32
 
 #define log001 (-FL(6.9078))    /* log(.001) */
 

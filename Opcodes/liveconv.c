@@ -23,9 +23,13 @@
 
 /* The implementation is indebted to the ftconv opcode by Istvan Varga 2005 */
 
-#include "csoundCore.h"
-#include "interlocks.h"
-#include <math.h>
+#include <stdint.h>      // for int32_t, uint32_t
+#include <string.h>      // for memset, NULL
+
+#include "csound.h"      // for CSOUND, Str
+#include "csoundCore.h"  // for CSOUND_, SUBR, FUNC, AUXCH, OPDS, INSDS, OK
+#include "interlocks.h"  // for TR
+#include "sysdep.h"      // for MYFLT, UNLIKELY, FL, MYFLT2LRND, int32
 
 /*
 ** Data structures holding the load/unload information

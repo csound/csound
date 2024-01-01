@@ -24,6 +24,13 @@
 #ifndef __PSTREAM_H_INCLUDED
 #define __PSTREAM_H_INCLUDED
 
+#include "sysdep.h"      // for int32, MYFLT, uint32
+#if defined(__BUILDING_LIBCSOUND)
+#include "csoundCore.h"  // for AUXCH, OPDS, FUNC
+#else
+#include "csdl.h"
+#endif
+
 /* pstream.h.  Implementation of PVOCEX streaming opcodes.
    (c) Richard Dobson August 2001
    NB pvoc routines based on CARL distribution (Mark Dolson).

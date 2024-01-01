@@ -30,9 +30,13 @@
 #ifndef CSOUND_BUS_H
 #define CSOUND_BUS_H
 
-#include "pstream.h"
-#include "arrays.h"
-#include "csound_standard_types.h"
+#include <stdint.h>              // for int32_t
+
+#include "csound.h"              // for CSOUND, controlChannelHints_t
+#include "csoundCore.h"          // for OPDS, STRINGDAT, AUXCH, ARRAYDAT
+#include "csound_type_system.h"  // for CS_TYPE
+#include "pstream.h"             // for PVSDAT
+#include "sysdep.h"              // for MYFLT, spin_lock_t
 
 #define MAX_CHAN_NAME 1024
 

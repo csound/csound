@@ -28,12 +28,12 @@
 /* This is the version that does not need all of csound as well      */
 /* ***************************************************************** */
 
-#include <stdio.h>
-#include <stdarg.h>
-#include <stdlib.h>
+#include <stdio.h>   // for fclose, printf, fopen, fwrite, FILE, getc, NULL
+#include <stdlib.h>  // for exit, atoi
+
 #define END  32767
 
-#include <stdint.h>
+#include <stdint.h>  // for int_least16_t, uint_least16_t
 #if defined(HAVE_GCC3)
 #  define UNLIKELY(x)   __builtin_expect(!!(x),0)
 #else

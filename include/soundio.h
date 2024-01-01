@@ -24,6 +24,11 @@
 #ifndef CSOUND_SOUNDIO_H
 #define CSOUND_SOUNDIO_H
 
+#if defined(__BUILDING_LIBCSOUND)
+#include "csoundCore.h"  // for AUXCH, OPDS, FUNC
+#else
+#include "csdl.h"
+#endif
 #include "soundfile.h"
 
 

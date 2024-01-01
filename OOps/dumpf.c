@@ -21,10 +21,18 @@
   02110-1301 USA
 */
 
-#include "csoundCore.h"                              /*  DUMPF.C  */
-#include "dumpf.h"
-#include <ctype.h>
-#include <inttypes.h>
+#include "dumpf.h"  // for KREAD4, KREAD3, KREAD2, KREAD, KDUMP, KDUMP4
+
+#include <ctype.h>          // for isspace, isdigit
+#include <inttypes.h>       // for int32_t, int16_t, int8_t, PRId64, int64_t
+#include <stdio.h>          // for NULL, fread, getc, snprintf, ungetc, EOF
+#include <string.h>         // for strlcat, strlen
+
+#include "csound.h"         // for CSOUND, Str, CSFTYPE_INTEGER_BINARY, CSFT...
+#include "csoundCore.h"     // for CSOUND_, FDCH, OK, STRINGDAT, CSFILE_STD
+#include "float-version.h"  // for USE_DOUBLE
+#include "prototyp.h"       // for csound_fd_close, fdrecord, get_arg_string
+#include "sysdep.h"         // for strNcpy, UNLIKELY, MYFLT, FL, CS_SPRINTF
 
 static const int32_t dumpf_format_table[9] = {
   0,

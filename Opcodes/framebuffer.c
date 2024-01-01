@@ -24,8 +24,14 @@
  02110-1301 USA
  */
 
-#include "csoundCore.h"
-#include "interlocks.h"
+#include <math.h>                // for floor
+#include <stdint.h>              // for int32_t, uint32_t
+#include <string.h>              // for memcpy, strcmp, NULL
+
+#include "csound.h"              // for CSOUND, Str
+#include "csoundCore.h"          // for ARRAYDAT, CSOUND_, SUBR, AUXCH, OK, IGN
+#include "csound_type_system.h"  // for CS_TYPE, CS_VARIABLE
+#include "sysdep.h"              // for MYFLT, UNLIKELY, LIKELY
 
     typedef struct OLABuffer {
 

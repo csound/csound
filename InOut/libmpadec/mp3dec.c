@@ -19,8 +19,22 @@
 
 /* $Id: mp3dec.c,v 1.6 2009/03/01 15:27:05 jpff Exp $ */
 
-#include "csoundCore.h"
-#include "mp3dec_internal.h"
+#include "mp3dec.h"           // for mp3dec_t, MP3DEC_RETCODE_INVALID_HANDLE
+
+#ifdef HAVE_FCNTL_H
+#include <fcntl.h>            // IWYU pragma: keep
+#endif
+#include <stdint.h>           // for int32_t, uint8_t, uint32_t, int64_t
+#include <stdio.h>            // for NULL, SEEK_SET, fprintf, SEEK_CUR, SEEK...
+#include <stdlib.h>           // for free, malloc
+#include <string.h>           // for memcpy, memset, memmove
+#ifdef HAVE_UNISTD_H
+#include <unistd.h>           // for lseek, read, close
+#endif
+
+#include "mp3dec_internal.h"  // for mp3dec_t, MP3DEC_FLAG_INITIALIZED, MP3D...
+#include "mpadec.h"           // for mpadec_info_t, mpadec_decode, mp3tag_in...
+#include "sysdep.h"           // for MYFLT
 
 mp3dec_t mp3dec_init(void)
 {

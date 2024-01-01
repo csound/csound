@@ -27,6 +27,9 @@
 
 #pragma once
 
+#include "csoundCore.h"  // for OPDS
+#include "sysdep.h"      // for MYFLT, int32
+
 typedef struct  {
         OPDS            h;
         MYFLT           *out, *in, *len;

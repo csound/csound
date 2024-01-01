@@ -24,6 +24,11 @@
                                                         /* repluck.h */
 #pragma once
 
+#include <stdint.h>      // for int32_t
+
+#include "csoundCore.h"  // for AUXCH, OPDS
+#include "sysdep.h"      // for MYFLT
+
 typedef struct _DelayLine {
     MYFLT   *data;
     int32_t length;

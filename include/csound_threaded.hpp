@@ -31,6 +31,8 @@
 #ifndef __CSOUND_THREADED_HPP__
 #define __CSOUND_THREADED_HPP__
 
+#include <string>
+
 #if defined(__GNUC__)
 #if __cplusplus <= 199711L
   #error To use csound_threaded.hpp you need at least a C++11 compliant compiler.

@@ -23,6 +23,8 @@
 
 #pragma once
 
+#include "csdl.h"
+
 typedef struct{
     OPDS          h;
     MYFLT         *out, *as, *af, *len, *ovlp, *iwin, *bias;

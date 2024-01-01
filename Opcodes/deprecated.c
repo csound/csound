@@ -19,9 +19,17 @@
     02110-1301 USA
 */
 
-#include "csdl.h"
-#include "interlocks.h"
-#include "pstream.h"
+#include <stdint.h>              // for int32_t, uint32_t, int64_t
+#include <string.h>              // for NULL, memset, memcpy, strcmp, strlen
+
+#include "csdl.h"                // for SUBR, STRINGDAT, CSOUND_, OPDS, OK
+#include "csound.h"              // for CSOUND
+#include "csound_type_system.h"  // for CS_TYPE
+#include "interlocks.h"          // for SK, _QQ
+#include "pstream.h"             // for PVSDAT
+#include "sysdep.h"              // for UNLIKELY, MYFLT, CS_NOINLINE
+
+struct CsoundArgStack_s;
 
 /**    
  stackops: copyright (C) 2006 Istvan Varga

@@ -34,8 +34,14 @@
 /*                                                       */
 /*********************************************************/
 
-#include "csoundCore.h"
 #include "fm4op.h"
+
+#include <stdint.h>            // for int32_t, uint32_t
+#include <string.h>            // for memset, NULL
+
+#include "Opcodes/physutil.h"  // for ADSR, ADSR_keyOn, ADSR_setAllTimes
+#include "csound.h"            // for CSOUND, Str
+#include "csoundCore.h"        // for FUNC, CSOUND_, OK, NOTOK, INSDS, OPDS
 
 /***********************************************************/
 /*  Two Zero Filter Class,                                 */

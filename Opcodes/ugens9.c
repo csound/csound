@@ -21,12 +21,17 @@
     02110-1301 USA
 */
 
-#include "stdopcod.h"   /*                                      UGENS9.C        */
-#include <math.h>
-#include "convolve.h"
 #include "ugens9.h"
-#include "soundio.h"
-#include <inttypes.h>
+
+#include <inttypes.h>  // for PRIi32
+#include <sndfile.h>   // for SNDFILE
+#include <string.h>    // for NULL, memset, memcpy, strcmp, size_t
+
+#include "convolve.h"  // for CVSTRUCT, CONVOLVE_VERSION_STRING, CVMAGIC
+#include "csound.h"    // for CSOUND, Str, CSFTYPE_CVANAL
+#include "prototyp.h"  // for get_arg_string
+#include "soundio.h"   // for SOUNDIN
+#include "stdopcod.h"  // for ugens9_init_
 
 static int32_t cvset_(CSOUND *csound, CONVOLVE *p, int32_t stringname)
 {

@@ -103,6 +103,12 @@ istart - start position (in secs), defaults to 0.
 #ifndef _SYNCGRAIN_H
 #define _SYNCGRAIN_H
 
+#include <stdint.h>      // for int32_t
+
+#include "csound.h"      // for CSOUND
+#include "csoundCore.h"  // for AUXCH, FUNC, OPDS
+#include "sysdep.h"      // for MYFLT
+
 typedef struct _syncgrain {
     OPDS h;
     MYFLT *output;

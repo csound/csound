@@ -21,13 +21,15 @@
     02110-1301 USA
 */
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <math.h>
-#include <string.h>
+#include <stdio.h>   // for fprintf, printf, fwrite, stderr, NULL, puts, fclose
+#include <stdlib.h>  // for exit, free, malloc, atof, atoi
+#include <string.h>  // for strncmp
+#ifdef HAVE_ENDIAN_H
+#include <endian.h>  // for LITTLE_ENDIAN
+#endif
+#include <stdint.h>  // for int32_t, int64_t
 
-#include "sdif.h"
-#include "sdif-mem.h"
+#include "sdif.h"    // for sdif_float32, SDIF_CloseRead, SDIF_FrameHeader
 
 #ifndef max
 #define max(x,y) ((x)>(y) ? (x) : (y))
@@ -269,9 +271,6 @@ int main(int argc, char **argv)
         fprintf(stderr,"\nWARNING: multiple stream IDs found - skipping");
         continue;
       }
-#ifdef _DEBUG
-      /*printf("\nReading SDIF Frame %d, time = %.4f",framecount,fh.time); */
-#endif
       thistime = (float) fh.time;
       /* Csound adsyn counts time in msecs, in shorts, so can only have
          32.767 seconds! */
@@ -294,9 +293,6 @@ int main(int argc, char **argv)
         }
 
         n_partials = mh.rowCount;
-#ifdef _DEBUG
-        /*printf("\nReading Matrix %d: %d rows",i+1,n_partials); */
-#endif
 
         for (j=0;j < n_partials; j++) {
 

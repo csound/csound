@@ -21,8 +21,12 @@
     02110-1301 USA
 */
 
-#include "csoundCore.h"
-#include <math.h>
+#include <stddef.h>      // for NULL
+#include <stdint.h>      // for int32_t
+
+#include "csound.h"      // for CSOUND, Str
+#include "csoundCore.h"  // for FGDATA, EVTBLK, FUNC, CSOUND_, FLINKAGE_BUILTIN
+#include "sysdep.h"      // for MYFLT, FL, SQRT, UNLIKELY
 
 static MYFLT SolveQuadratic(MYFLT a, MYFLT b, MYFLT c);
 static MYFLT FindTforX(MYFLT x1, MYFLT x2, MYFLT x3, int32_t x);

@@ -21,15 +21,19 @@
     02110-1301 USA
 */
 
-#include "csoundCore.h"                 /*             SNDLIB.C         */
-#include "soundio.h"
-#include <stdlib.h>
-#include <time.h>
-#include <inttypes.h>
+#include <inttypes.h>    // for PRIi32, uint32_t
+#include <sndfile.h>     // for SFM_READ, SFM_WRITE, sf_command, SFC_SET_VBR...
+#include <stdio.h>       // for NULL, fileno, FILE
+#include <string.h>      // for memset, strcpy, strcmp, strncmp, strncat
+#include <time.h>        // for gmtime, strftime, time, time_t
 
-#ifdef HAVE_SYS_TYPES_H
-# include <sys/types.h>
-#endif
+#include "csound.h"      // for CSOUND, Str, csRtAudioParams, PUBLIC, csound...
+#include "csoundCore.h"  // for CSOUND_, libsndStatics__, OPARMS
+#include "envvar.h"      // for csoundFindInputFile, csoundFindOutputFile
+#include "msg_attr.h"    // for CSOUNDMSG_REALTIME
+#include "prototyp.h"    // for csoundDie, rewriteheader, getstrformat, type...
+#include "soundfile.h"   // for sflib_set_string, SFLIB_INFO, sflib_strerror
+#include "sysdep.h"      // for MYFLT, UNLIKELY, FL, uint32, CS_SPRINTF, MYF...
 
 #ifdef PIPES
 # if defined(SGI) || defined(LINUX) || defined(__BEOS__) || defined(NeXT) ||  \

@@ -24,7 +24,11 @@
 #ifndef CSOUND_OSCBNK_H
 #define CSOUND_OSCBNK_H
 
-#include "stdopcod.h"
+#include <stdint.h>      // for int32_t
+
+#include "csoundCore.h"  // for OPDS, AUXCH
+#include "stdopcod.h"    // for VCO2_TABLE_ARRAY
+#include "sysdep.h"      // for MYFLT, uint32, MYFLT2LRND, int32
 
 /*
 #ifdef  B64BIT

@@ -21,15 +21,16 @@
     02110-1301 USA
 */
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <ctype.h>
-#include <math.h>
+#include <ctype.h>                   // for isalpha, isdigit
+#include <stdio.h>                   // for NULL, size_t
+#include <stdlib.h>                  // for atof, atoi, qsort
+#include <string.h>                  // for strcmp, strcpy, strlen
 
-#include "csoundCore.h"
-#include "cfgvar.h"
-#include "namedins.h"
+#include "csound.h"                  // for csCfgVariable_t, CSOUND, CSOUNDC...
+#include "csoundCore.h"              // for CSOUND_
+#include "csound_data_structures.h"  // for CONS_CELL, cs_hash_table_get
+#include "prototyp.h"                // for csoundDeleteAllConfigurationVari...
+#include "sysdep.h"                  // for UNLIKELY, MYFLT
 
 /* the global database */
 

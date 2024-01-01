@@ -121,6 +121,11 @@
 %parse-param { CSOUND * csound }
 %parse-param { TREE ** astTree }
 
+%code requires {
+#include "csound.h"       // for CSOUND, TREE
+#include "parse_param.h"  // for PARSE_PARM
+}
+
 
 /* NOTE: Perhaps should use %union feature of bison */
 
@@ -132,16 +137,19 @@
 #ifndef NULL
 #define NULL 0L
 #endif
-#include "csoundCore.h"
-#include <ctype.h>
-#include <string.h>
-#include "namedins.h"
 
-#include "csound_orc.h"
-#include "parse_param.h"
+#ifdef HAVE_FEATURES_H
+#include <features.h>              // for __GLIBC__
+#endif
+#include <stdint.h>                // for uint64_t
+#include <stdlib.h>                // for free, malloc, EXIT_SUCCESS
+#include <string.h>                // for strlen, stpcpy, _STRING_H
+
+#include "csoundCore.h"            // for CSOUND_, OPARMS
+#include "csound_orc.h"            // for make_leaf, make_node, make_token
+#include "sysdep.h"                // for UNLIKELY
 
 #ifdef PARCS
-#include "cs_par_base.h"
 #include "cs_par_orc_semantics.h"
 #else
 #define csp_orc_sa_instr_add(a,b)

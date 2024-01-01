@@ -23,7 +23,11 @@
 
 #pragma once
 
-#include "lpc.h"        /*                               UGENS5.H        */
+#include <stdint.h>      // for int32_t
+
+#include "csound.h"      // for CSOUND
+#include "csoundCore.h"  // for OPDS, AUXCH, MEMFIL
+#include "sysdep.h"      // for MYFLT, int32
 
 typedef struct {
         OPDS    h;

@@ -7,12 +7,14 @@
 
 #define __BUILDING_LIBCSOUND
 
-#include <stdio.h>
-#include <stdlib.h>
-#include "csound_type_system.h"
-#include "csound_standard_types.h"
-#include "csoundCore.h"
-#include "gtest/gtest.h"
+#include <stdio.h>                  // for NULL
+#include <string>                   // for string
+
+#include "csound_type_system.h"     // for getVarSimpleName, csoundFindVaria...
+#include "csound_standard_types.h"  // for CS_VAR_TYPE_A
+#include "csoundCore.h"             // for CSOUND_, ENGINE_STATE
+#include "gtest/gtest.h"            // for AssertionResult, Message, TestPar...
+#include "csound.h"                 // for CSOUND, csoundCleanup, csoundCreate
 
 class TypeSystemTests : public ::testing::Test {
 public:

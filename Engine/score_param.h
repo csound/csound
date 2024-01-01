@@ -24,6 +24,7 @@
 #ifndef __SCORE_PARAM_H
 #define __SCORE_PARAM_H
 
+#include "csoundCore.h"
 
 typedef struct ListItem {
   double           val;

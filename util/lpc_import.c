@@ -28,11 +28,14 @@
 /* John ffitch 1998 Nov 15                                           */
 /* ***************************************************************** */
 
-#include <stdio.h>
-#include <stdarg.h>
-#include <stdlib.h>
-#include "std_util.h"
-#include "lpc.h"
+#include <stdint.h>    // for int32_t, uint32_t
+#include <stdio.h>     // for fclose, fprintf, fread, fopen, putc, NULL, FILE
+
+#include "csdl.h"      // for CSOUND_, Str
+#include "csound.h"    // for CSOUND
+#include "lpc.h"       // for LPHEADER, LP_MAGIC, LP_MAGIC2
+#include "std_util.h"  // for lpc_import_init_
+#include "sysdep.h"    // for UNLIKELY, MYFLT
 
 void lpc_import_usage(CSOUND *csound)
 {

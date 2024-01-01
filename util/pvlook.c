@@ -26,11 +26,19 @@
 /* PVLOOK.C by Richard Karpen 1993 */
 /*******************************************************************/
 
-#include "std_util.h"
-#include "pvfileio.h"
-#include <limits.h>
-#include <stdarg.h>
-#include <inttypes.h>
+#include <inttypes.h>  // for int32_t, uint32_t
+#include <limits.h>    // for UINT_MAX
+#include <stdarg.h>    // for va_end, va_list, va_start
+#include <stdio.h>     // for NULL, fclose, vsnprintf, FILE, stdout
+#include <stdlib.h>    // for atoi
+#include <string.h>    // for strcmp, strrchr
+
+#include "csdl.h"      // for CSOUND_, Str
+#include "csound.h"    // for CSOUND, Str_noop
+#include "msg_attr.h"  // for CSOUNDMSG_ORCH
+#include "pvfileio.h"  // for PVOCDATA, WAVEFORMATEX, PVOC_KAISER, PVOC_AMP_...
+#include "std_util.h"  // for pvlook_init_
+#include "sysdep.h"    // for CS_NOINLINE, UNLIKELY, CS_PRINTF2
 
 typedef struct PVLOOK_ {
     CSOUND  *csound;

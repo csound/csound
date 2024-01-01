@@ -21,13 +21,20 @@
     02110-1301 USA
 */
 
-#include "csoundCore.h"                             /*   SREAD.C     */
-#include <math.h>      /* for fabs() */
-#include <ctype.h>
-#include <inttypes.h>
-#include "namedins.h"           /* IV - Oct 31 2002 */
-#include "corfile.h"
-#include "Engine/score_param.h"
+#include <ctype.h>               // for isdigit, isblank, isspace, isalpha
+#include <inttypes.h>            // for uintptr_t, intptr_t, uint32_t, PRIi32
+#include <stdarg.h>              // for va_end, va_list, va_start
+#include <stdio.h>               // for NULL, EOF, printf, size_t, snprintf
+#include <string.h>              // for strcmp, memset, strchr
+
+#include "Engine/score_param.h"  // for PRS_PARM
+#include "corfile.h"             // for corfile_rm, corfile_create_w, corfil...
+#include "csound.h"              // for CSOUND, Str, csoundMessage, cs_strtod
+#include "csoundCore.h"          // for CSOUND_, sread__, IN_STACK, MARKED_S...
+#include "namedins.h"            // for named_instr_find
+#include "prototyp.h"            // for cs_strdup, csoundDie, csoundErrorMsg
+#include "sort.h"                // for SRTBLK, LF, SP
+#include "sysdep.h"              // for MYFLT, UNLIKELY, FL, MYFLT2LRND, int16
 
 #define MEMSIZ  16384           /* size of memory requests from system  */
 #define MARGIN  4096            /* minimum remaining before new request */

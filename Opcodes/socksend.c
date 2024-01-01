@@ -26,20 +26,29 @@
 /* Haiku 'int32' etc definitions in net headers conflict with sysdep.h */
 #define __HAIKU_CONFLICT
 
-#include "csoundCore.h"
-#include <sys/types.h>
+#include "csound.h"      // for CSOUND, Str
+#include "csoundCore.h"  // for AUXCH, STRINGDAT, SUBR, CSOUND_, ARRAYDAT, OK
+#include "sysdep.h"      // for MYFLT, int16, UNLIKELY, FL, MYFLT2LRND
 #if defined(WIN32) && !defined(__CYGWIN__)
 #include <winsock2.h>
 #else
-#include <sys/socket.h>
-#include <netinet/in.h>
-#include <arpa/inet.h>
-#include <unistd.h>
+#ifdef HAVE_SYS_SOCKET_H
+#include <sys/socket.h>  // for sendto, socket, AF_INET, SOCK_DGRAM, connect
+#endif
+#ifdef HAVE_NETINET_IN_H
+#include <netinet/in.h>  // for sockaddr_in, htons, in_addr (ptr only)
+#endif
+#ifdef HAVE_UNISTD_H
+#include <unistd.h>      // for close
+#endif
+
 #define SOCKET_ERROR (-1)
 #endif
-#include <stdlib.h>
-#include <string.h>
-#include <errno.h>
+#include <errno.h>       // for ECONNREFUSED, errno
+#include <math.h>        // for ceil
+#include <stdint.h>      // for int32_t, uint32_t, uint64_t, int64_t
+#include <stdio.h>       // for NULL, printf, size_t
+#include <string.h>      // for memcpy, memset, strlen, strcpy, strncpy
 
 extern  int32_t     inet_aton(const char *cp, struct in_addr *inp);
 

@@ -24,6 +24,18 @@
 #ifndef __ARRAY_H__
 #define __ARRAY_H__
 
+#include <stdint.h>              // for int32_t, uint32_t
+#include <string.h>              // for NULL, memset, size_t
+
+#include "csound.h"              // for CSOUND, Str
+#if defined(__BUILDING_LIBCSOUND)
+#include "csoundCore.h"          // for ARRAYDAT, CSOUND_, NOTOK, OK, OPDS
+#else
+#include "csdl.h"
+#endif
+#include "csound_type_system.h"  // for CS_VARIABLE, CS_TYPE
+#include "sysdep.h"              // for MYFLT
+
 static inline void tabinit(CSOUND *csound, ARRAYDAT *p, int size)
 {
     size_t ss;

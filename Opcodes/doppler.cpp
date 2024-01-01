@@ -21,10 +21,17 @@
     02110-1301 USA
  */
 
-#include "OpcodeBase.hpp"
-#include <cmath>
-#include <list>
-#include <vector>
+#include <stddef.h>        // for size_t, NULL
+#include <stdint.h>        // for int32_t, uint32_t
+#include <algorithm>       // for max
+#include <cmath>           // for ceil, fabs, M_PI
+#include <list>            // for list
+#include <vector>          // for vector
+
+#include "OpcodeBase.hpp"  // for OpcodeNoteoffBase, csound
+#include "csdl.h"          // for OENTRY, SUBR, IGN, OK, CSOUND_, INSDS, OPDS
+#include "csound.h"        // for CSOUND, PUBLIC
+#include "sysdep.h"        // for MYFLT
 
 
 #ifndef M_PI

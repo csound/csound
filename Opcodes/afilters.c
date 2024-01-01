@@ -21,9 +21,14 @@
     02110-1301 USA
 */
 
-#include "csoundCore.h"         /*                      AFILTERS.C        */
-#include "ugens5.h"
-#include <math.h>
+#include <math.h>        // for sqrt, cos, exp, tan
+#include <stdint.h>      // for uint32_t, int32_t
+#include <string.h>      // for memset, memcpy, memmove
+
+#include "csound.h"      // for CSOUND
+#include "csoundCore.h"  // for SUBR, OPDS, INSDS, CSOUND_, OK, CS_KSMPS
+#include "sysdep.h"      // for MYFLT, UNLIKELY, FL, csoundUndenormalizeDouble
+#include "ugens5.h"      // for RESON, TONEX, TONE
 
 extern int32_t rsnset(CSOUND *csound, RESON *p);
 

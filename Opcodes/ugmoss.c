@@ -22,10 +22,16 @@
 */
 
                                                         /* ugmoss.c */
-#include "stdopcod.h"
 #include "ugmoss.h"
-#include "aops.h"
-#include <math.h>
+
+#include <string.h>         // for memset, NULL, size_t
+
+                                                        /* ugmoss.c */
+#include "aops.h"           // for AOP
+#include "csound.h"         // for CSOUND, Str
+#include "float-version.h"  // for USE_DOUBLE
+#include "interlocks.h"     // for TR
+#include "stdopcod.h"       // for ugmoss_init_
 
 /******************************************************************************
   all this code was written by william 'pete' moss. <petemoss@petemoss.org>

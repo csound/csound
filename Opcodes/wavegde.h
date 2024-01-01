@@ -34,6 +34,9 @@
 #define _waveguide_h
 
 #include <math.h>
+
+#include "csoundCore.h"
+
 #ifndef sinf
 #define sinf(a) (MYFLT)sin((double)(a))
 #define cosf(a) (MYFLT)cos((double)(a))

@@ -27,9 +27,15 @@
 /* University of Washington, Seattle 1998 */
 /******************************************/
 
-#include "stdopcod.h"
 #include "space.h"
-#include <math.h>
+
+#include <math.h>        // for floor
+#include <stdint.h>      // for int32_t, uint32_t
+#include <string.h>      // for memset, memmove, NULL, size_t
+
+#include "csound.h"      // for CSOUND, Str
+#include "interlocks.h"  // for TR
+#include "stdopcod.h"    // for STDOPCOD_GLOBALS, space_init_
 
 #define RESOLUTION 100
 

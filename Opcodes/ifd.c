@@ -38,8 +38,15 @@
 
 */
 
-#include "pvs_ops.h"
-#include "pstream.h"
+#include <math.h>        // for cos, atan2, sqrt
+#include <stdint.h>      // for int32_t, uint32_t
+#include <string.h>      // for memset, NULL
+
+#include "csound.h"      // for CSOUND, Str
+#include "csoundCore.h"  // for AUXCH, CSOUND_, SUBR, CS_ESR, OK, FUNC, OENTRY
+#include "pstream.h"     // for PVSDAT, PVS_AMP_FREQ, PVS_AMP_PHASE, PVS_WIN...
+#include "pvs_ops.h"     // for ifd_init_
+#include "sysdep.h"      // for MYFLT, UNLIKELY, FL
 
 typedef struct _ifd {
   OPDS    h;

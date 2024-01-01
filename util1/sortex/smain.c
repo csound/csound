@@ -21,11 +21,14 @@
     02110-1301 USA
 */
 
-#include "csound.h"                                    /*   SMAIN.C  */
+#include <stdio.h>     // for vfprintf, NULL, stderr, stdin, stdout, va_list
+
+#include "csound.h"    // for csoundCreate, csoundDestroy, csoundScoreSort
+#include "msg_attr.h"  // for CSOUNDMSG_TYPE_MASK
 
 #if defined(LINUX) || defined(SGI) || defined(sol) || \
     defined(__MACH__) || defined(__EMX__)
-#include <signal.h>
+#include <signal.h>    // for signal, SIGPIPE, SIG_DFL
 #endif
 
 static void msg_callback(CSOUND *csound,

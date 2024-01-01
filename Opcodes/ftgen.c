@@ -17,11 +17,17 @@
     02110-1301 USA
 */
 
-#include "stdopcod.h"
-#include <ctype.h>
-#include <stdarg.h>
-#include "soundio.h"
-#include <math.h>
+#include <stdint.h>      // for int32_t, uint32_t, uint64_t
+#include <stdio.h>       // for NULL, fgets, fprintf, fread, fwrite, snprintf
+#include <stdlib.h>      // for strtol
+#include <string.h>      // for strchr, memcpy, memset, strcmp, strncmp
+
+#include "csound.h"      // for CSOUND, cs_strtod, Str, CSFTYPE_FTABLES_BINARY
+#include "csoundCore.h"  // for SUBR, FUNC, CSOUND_, OK, EVTBLK, STRINGDAT
+#include "interlocks.h"  // for TW, TR
+#include "prototyp.h"    // for get_arg_string
+#include "stdopcod.h"    // for ftgen_init_
+#include "sysdep.h"      // for UNLIKELY, MYFLT, FL, strNcpy, MYFLT2LRND, int32
 
 typedef struct {
     OPDS    h;

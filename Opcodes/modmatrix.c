@@ -19,10 +19,16 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 #include "modmatrix.h"
 
+#include <string.h>         // for NULL, memcpy, memset
+
+#include "csound.h"         // for CSOUND, Str
+#include "float-version.h"  // for USE_DOUBLE
+#include "interlocks.h"     // for TB
+
 #define INITERROR(x) csound->InitError(csound, Str("modmatrix: " x))
 
 #if defined(__SSE2__)
-#include <emmintrin.h>
+#include <emmintrin.h>      // for _mm_add_pd, _mm_loadu_pd, __m128d, _mm_mu...
 #elif defined(__SSE__)
 #include <xmmintrin.h>
 #endif

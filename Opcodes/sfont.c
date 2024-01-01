@@ -29,17 +29,22 @@
    documentation of your C compiler to choose the appropriate compiler
    directive switch.  */
 
+#include <ctype.h>           // for isprint
+#include <math.h>            // for pow, sqrt
+#include <stdio.h>           // for NULL, fread, FILE
+#include <stdlib.h>          // for qsort
+#include <string.h>          // for memset, strcmp, strerror
+
+#include "Opcodes/sftype.h"  // for SHORT, sfInstGenList, DWORD, genAmountType
+#include "csound.h"          // for CSOUND, Str, CSFTYPE_SOUNDFONT
 // #include "csdl.h"
-#include "csoundCore.h"
-#include "interlocks.h"
-#include <stdio.h>
-#include <stdlib.h>
-#include <math.h>
-#include <ctype.h>
+#include "csoundCore.h"      // for SUBR, CSOUND_, CS_EKR, OK, OPDS, INSDS
+#include "prototyp.h"        // for get_arg_string
+#include "sf.h"              // for splitType, SFBANK, CHUNK, layerType, pre...
 #ifndef __wasi__
-#include <errno.h>
+#include <errno.h>           // for errno
 #endif
-#include "sfenum.h"
+#include "sfenum.h"          // for sampleID, coarseTune, fineTune, initialA...
 #include "sfont.h"
 
 #define s2d(x)  *((DWORD *) (x))

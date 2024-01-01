@@ -33,11 +33,15 @@
 /*        envelop rise and decade curve                 */
 /* Minor changes by John Fitch Dec 1995                 */
 
-// #include "csdl.h"
-#include "csoundCore.h"
-#include "interlocks.h"
 #include "grain4.h"
-#include <math.h>
+
+#include <math.h>        // for fabs
+#include <string.h>      // for memset, NULL
+
+#include "csound.h"      // for CSOUND, Str
+// #include "csdl.h"
+#include "csoundCore.h"  // for CSOUND_, FUNC, CS_ESR, SUBR, INSDS, OK, OPDS
+#include "interlocks.h"  // for TR
 
 #define        RNDMUL  15625L
 

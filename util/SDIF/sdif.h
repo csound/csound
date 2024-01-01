@@ -51,8 +51,11 @@ Music and Audio Technologies, University of California, Berkeley.
 #ifndef CSOUND_SDIF_H
 #define CSOUND_SDIF_H
 
-#include "sysdep.h"
-#include <stdio.h>
+#ifdef HAVE_ENDIAN_H
+#include <endian.h>  // for LITTLE_ENDIAN
+#endif
+#include <stdint.h>  // for int32_t, uint16_t, uint32_t
+#include <stdio.h>   // for FILE, size_t
 /****************************************************/
 /* Create 32-bit and 64-bit int and float typedefs. */
 /****************************************************/
@@ -64,11 +67,12 @@ typedef float     sdif_float32;
 typedef double    sdif_float64;
 
 #if defined(_WIN32) || defined(_WINDOWS)
-  #ifndef _WINDOWS_
-    #define _WINSOCKAPI_
-    #include <windows.h>
-    #undef _WINSOCKAPI_
-  #endif
+   #ifndef _WINDOWS_
+      #define _WINSOCKAPI_
+      #include <windows.h>
+
+      #undef _WINSOCKAPI_
+   #endif
 #endif
 
 #ifdef __cplusplus

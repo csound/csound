@@ -21,15 +21,26 @@
     02110-1301 USA
 */
 
-#include "csdl.h"
+#ifdef HAVE_FCNTL_H
+#include <fcntl.h>   // for open, O_RDONLY
+#endif
+#include <stdint.h>  // for int32_t, int64_t, uint32_t, INT64_MAX
+#include <string.h>  // for memset
+#include <unistd.h>  // for read, close
+
+#include "csdl.h"    // for SUBR, OK, NOTOK, IGN, OPDS, INSDS, CSOUND_, CS_K...
+#include "csound.h"  // for CSOUND
+#include "sysdep.h"  // for MYFLT, UNLIKELY, FL, LIKELY
 //#include <ieee754.h>
 
 #ifdef __HAIKU__
-#include <fcntl.h>
+#include <fcntl.h>   // for open, O_RDONLY
 #endif
 
 #ifdef MACOSX
-#include <unistd.h>
+#ifdef HAVE_UNISTD_H
+#include <unistd.h>  // for read, close
+#endif
 #endif
 
 typedef struct {

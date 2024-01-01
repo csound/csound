@@ -28,12 +28,15 @@
   02110-1301 USA
 */
 
-#include <stdlib.h>
-#include <math.h>
-#include "csoundCore.h"
-#include "csound.h"
-#include "fftlib.h"
-#include "pffft.h"
+#include "fftlib.h"      // for csoundComplexFFT, csoundGetInverseComplexFFT...
+
+#include <stdint.h>      // for int32_t, uint32_t
+#include <stdlib.h>      // for NULL, size_t
+
+#include "csound.h"      // for CSOUND, Str
+#include "csoundCore.h"  // for CSOUND_FFT_SETUP, CSOUND_, ROOT2, IGN, PFFT_LIB
+#include "pffft.h"       // for pffft_transform_ordered, PFFFT_Setup, PFFFT_...
+#include "sysdep.h"      // for MYFLT, uint32, FL, int16, COS
 
 
 
@@ -3375,6 +3378,7 @@ void pffft_execute(CSOUND_FFT_SETUP *setup,
 #if defined(__MACH__)
 /* vDSP FFT implementation */
 #include <Accelerate/Accelerate.h>
+
 static
 void vDSP_execute(CSOUND_FFT_SETUP *setup,
                    MYFLT *sig){

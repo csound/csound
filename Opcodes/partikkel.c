@@ -20,8 +20,12 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
 #include "partikkel.h"
-#include <limits.h>
-#include <math.h>
+
+#include <limits.h>      // for CHAR_BIT, UINT_MAX
+#include <math.h>        // for fabs, log, pow
+#include <string.h>      // for NULL, memset, memcpy, size_t
+
+#include "interlocks.h"  // for TR
 
 #define INITERROR(x) csound->InitError(csound, Str("partikkel: " x))
 #define PERFERROR(x) csound->PerfError(csound, &(p->h),Str("partikkel: " x))

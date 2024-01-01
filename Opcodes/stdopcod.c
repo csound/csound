@@ -23,6 +23,8 @@
 
 #include "stdopcod.h"
 
+#include "csoundCore.h"  // for CSOUND_
+
 /* PUBLIC int32_t csoundModuleCreate(CSOUND *csound)
 {
     (void) csound;

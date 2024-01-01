@@ -21,11 +21,18 @@
     02110-1301 USA
 */
 
-#include "csoundCore.h"     /*                              CORFILES.C      */
-#include <string.h>
-#include <stdio.h>
-#include <ctype.h>
-#include <stdlib.h>
+#include <ctype.h>       // for isspace
+#ifdef HAVE_FCNTL_H
+#include <fcntl.h>       // IWYU pragma: keep
+#endif
+#include <stdio.h>       // for fprintf, NULL, stderr, fread, printf, FILE, EOF
+#include <stdlib.h>      // for exit, atof
+#include <string.h>      // for strlen, memset, memcpy, strcat, strchr, strcpy
+
+#include "csound.h"      // for CSOUND, Str
+#include "csoundCore.h"  // for CORFIL, CSOUND_
+#include "prototyp.h"    // for cs_strdup
+#include "sysdep.h"      // for UNLIKELY, MYFLT, LIKELY
 
 
 extern int csoundFileClose(CSOUND*, void*);

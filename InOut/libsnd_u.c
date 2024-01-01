@@ -20,9 +20,20 @@
     Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
     02110-1301 USA
 */
+#ifdef HAVE_FCNTL_H
+#include <fcntl.h>       // IWYU pragma: keep
+#endif
+#include <sndfile.h>     // for SNDFILE, SFC_UPDATE_HEADER_NOW, sf_count_t
+#include <stdint.h>      // for int64_t
+#include <stdio.h>       // for NULL, SEEK_SET
+#include <string.h>      // for memset
 
-#include "csoundCore.h"
-#include "soundio.h"
+#include "csound.h"      // for CSOUND, Str, CSFTYPE_UNKNOWN_AUDIO, CSFTYPE_...
+#include "csoundCore.h"  // for CSOUND_, ALLCHNLS, CSFILE_SND_R, DFLT_SR
+#include "prototyp.h"    // for SAsndgetset, dbfs_init, getsndin, getstrformat
+#include "soundfile.h"   // for SFLIB_INFO, AE_24INT, AE_DOUBLE, AE_FLOAT
+#include "soundio.h"     // for SOUNDIN, SNDINBUFSIZ
+#include "sysdep.h"      // for FL, MYFLT, UNLIKELY, strNcpy, LIKELY
 
 void rewriteheader(void *ofd)
 {

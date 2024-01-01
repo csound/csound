@@ -27,12 +27,18 @@
 #ifndef __PVFILEIO_H_INCLUDED
 #define __PVFILEIO_H_INCLUDED
 
-#include "sysdep.h"
+#include <stdint.h>  // for int32_t, uint16_t, uint32_t
+
+#include "csound.h"  // for CSOUND
+#include "sysdep.h"  // for uint32, int32
 
 #if defined(WIN32) || defined(_WIN32) || defined(_MSC_VER)
 
 #define _WINSOCKAPI_
 #include <windows.h>
+
+#undef _WINSOCKAPI_
+
 #undef _WINSOCKAPI_
 
 #else

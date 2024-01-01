@@ -21,15 +21,25 @@
     02110-1301 USA
 */
 
-#include "std_util.h"                                   /*  HETRO.C   */
-#include "soundio.h"
-#include <math.h>
-#include <inttypes.h>
+#include <inttypes.h>       // for int32_t, PRId64, int64_t
+#include <math.h>           // for exp, cos, hypot, sin, atan, fabs
+#include <sndfile.h>        // for SNDFILE
+#include <stdio.h>          // for fprintf, sscanf, NULL, snprintf, fclose
+#include <string.h>         // for strcmp, strlen, strrchr
+
+#include "csdl.h"           // for CSOUND_, Str, TWOPI, PI, CSFILE_FD_W, CSF...
+#include "csound.h"         // for CSOUND, CSFTYPE_HETRO, CSFTYPE_HETROT
+#include "float-version.h"  // for USE_DOUBLE
+#include "soundio.h"        // for SOUNDIN
+#include "std_util.h"       // for hetro_init_
+#include "sysdep.h"         // for int16, MYFLT, UNLIKELY, int32, FL
 
 //#define DEBUG 1
 
 #ifndef WIN32
-#include <unistd.h>
+#ifdef HAVE_UNISTD_H
+#include <unistd.h>         // for write
+#endif
 #endif
 #define INCSDIF 1
 
@@ -37,8 +47,8 @@
 /*RWD need to set this to prevent sdif.h including windows.h */
 #define _WINDOWS_
 /* CNMAT sdif library, subject to change..... */
-#include "SDIF/sdif.h"
-#include "SDIF/sdif-mem.h"
+#include "SDIF/sdif.h"      // for sdif_float32, SDIF_Write4, ESDIF_SUCCESS
+
 typedef struct {
     sdif_float32 index, freq, amp, phase;
 } SDIF_RowOf1TRC;

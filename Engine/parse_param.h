@@ -23,6 +23,10 @@
 #ifndef __PARSE_PARAM_H
 #define __PARSE_PARAM_H
 
+#include <stdint.h>
+
+#include "csoundCore.h"
+
 typedef struct IFDEFSTACK_ {
     struct IFDEFSTACK_  *prv;
     unsigned char   isDef;      /* non-zero if #ifdef is true, or #ifndef   */

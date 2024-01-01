@@ -21,8 +21,13 @@
     02110-1301 USA
 */
 
-#include "csoundCore.h"       /*                    EXCITER.C         */
-#include <math.h>
+#include <math.h>        // for cos, fabs, sin, sqrt
+#include <stdint.h>      // for int32_t, uint32_t
+#include <string.h>      // for memcpy, memset
+
+#include "csound.h"      // for CSOUND
+#include "csoundCore.h"  // for SUBR, CSOUND_, OPDS, INSDS, OK, TWOPI, CS_KSMPS
+#include "sysdep.h"      // for MYFLT, UNLIKELY, FL
 
 /**********************************************************************
  * EXCITER by Markus Schmidt

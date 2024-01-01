@@ -8,8 +8,17 @@
 
 /*****************************************************************************/
 
-#include "utils.h"
-#include <dlfcn.h>
+#include <dlfcn.h>                       // for dlerror, dlopen, dlclose, dlsym
+#include <stdint.h>                      // for int32_t, uint64_t
+#include <stdio.h>                       // for snprintf
+#include <stdlib.h>                      // for free, getenv, malloc
+#include <string.h>                      // for strdup, strlen, NULL, strcmp
+
+#include "csdl.h"                        // for CSOUND_, Str, IGN
+#include "csound.h"                      // for CSOUND
+#include "ladspa.h"                      // for LADSPA_Descriptor, LADSPA_De..
+#include "sysdep.h"                      // for strNcpy
+#include "utils.h"                       // for dlopenLADSPA, findLADSPAPlug...
 
 /*****************************************************************************/
 

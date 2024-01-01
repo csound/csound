@@ -21,12 +21,20 @@
     02110-1301 USA
 */
 
-#include <stdio.h>
-#include <stdlib.h>
+#include "cs_par_base.h"  // for set_t, set_element_t, HDR_LEN, SET_ELEMENT_HDR
 
-#include "csoundCore.h"
+#ifdef HAVE_PTHREAD
+#include <pthread.h>     // for pthread_equal, pthread_t
+#endif
+#include <stdio.h>       // for NULL
+#include <stdlib.h>      // for free
+#include <string.h>      // for memcpy, memset, strcmp
 
-#include "cs_par_base.h"
+#include "csound.h"      // for CSOUND, Str
+#include "csoundCore.h"  // for CSOUND_, THREADINFO
+#include "prototyp.h"    // for cs_strdup
+#include "sysdep.h"      // for UNLIKELY
+
 static int csp_set_exists(struct set_t *set, void *data);
 
 int csp_thread_index_get(CSOUND *csound)

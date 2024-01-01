@@ -20,10 +20,16 @@
   02110-1301 USA
 */
 
-#include <plugin.h>
-#include <vector>
-#include <numeric>
-#include <modload.h>
+#include <math.h>     // for pow
+#include <modload.h>  // for on_load
+#include <stdint.h>   // for uint32_t
+#include <algorithm>  // for copy, max
+#include <numeric>    // for accumulate
+#include <vector>     // for vector
+
+#include "csdl.h"     // for OK, NOTOK
+#include "plugin.h"   // for Param, plugin, thread, ia, ik, Csound, Plugin
+#include "sysdep.h"   // for MYFLT
 
 
 // linseg type opcode with trigger mechanism

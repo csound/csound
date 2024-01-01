@@ -63,8 +63,15 @@ PLUS a number of track processing opcodes.
 
 */
 
-#include "pvs_ops.h"
-#include "pstream.h"
+#include <stdint.h>      // for int32_t, uint32_t
+#include <string.h>      // for memset, NULL
+
+#include "csound.h"      // for CSOUND, Str
+#include "csoundCore.h"  // for AUXCH, SUBR, CSOUND_, OK, OPDS, TWOPI_F, FUNC
+#include "interlocks.h"  // for TR
+#include "pstream.h"     // for PVSDAT, PVS_TRACKS, PVS_AMP_FREQ
+#include "pvs_ops.h"     // for psynth_init_
+#include "sysdep.h"      // for MYFLT, FL, UNLIKELY, FABS
 
 typedef struct _psyn {
     OPDS    h;

@@ -1,7 +1,10 @@
-#include <stdio.h>
-#include "gtest/gtest.h"
+#include <stdio.h>        // for NULL, printf
+#include <stdlib.h>       // for free, malloc
+#include <string.h>       // for strcmp
+#include <string>         // for string
 
-#include "csound.h"
+#include "gtest/gtest.h"  // for AssertionResult, Message, TestPartResult
+#include "csound.h"       // for CS_AUDIODEVICE, CS_MIDIDEVICE, csoundCompil...
 
 class IOTests : public ::testing::Test {
 public:

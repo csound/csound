@@ -25,9 +25,13 @@
   02110-1301 USA
 */
 
-#include "csoundCore.h"
-#include "interlocks.h"
-#include <math.h>
+#include <math.h>        // for tan, cos, sin, sqrt
+#include <stdint.h>      // for int32_t
+#include <string.h>      // for memset, NULL
+
+#include "csound.h"      // for CSOUND, Str
+#include "csoundCore.h"  // for AUXCH, SUBR, CSOUND_, OK, CS_ESR, ROOT2, CS_...
+#include "sysdep.h"      // for MYFLT, FL, SQRT, LOG, FABS, UNLIKELY, COS, EXP
 
 #define MINFREQINBINS 5
 #define MAXHIST 3

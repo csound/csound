@@ -22,6 +22,8 @@
 #ifndef __MPADEC_H
 #define __MPADEC_H
 
+#include <stdint.h>  // for uint8_t, int32_t, uint32_t
+
 #undef FALSE
 #undef TRUE
 #define FALSE 0

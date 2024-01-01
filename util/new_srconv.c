@@ -44,13 +44,12 @@
  *                    Q = quality factor (1 to 5: default = 3)
  */
 
-#include <stdio.h>
-#include <string.h>
-#include <stdlib.h>
-#include <limits.h>
-#include <ctype.h>
-#include <sndfile.h>
-#include <samplerate.h>
+#include <ctype.h>       // for isdigit
+#include <samplerate.h>  // for SRC_DATA, src_strerror, src_delete, src_new
+#include <sndfile.h>     // for sf_close, sf_command, SF_INFO, sf_open, sf_r...
+#include <stdio.h>       // for fprintf, NULL, stderr, printf, sscanf, fclose
+#include <stdlib.h>      // for free, exit, calloc, getenv
+#include <string.h>      // for strncpy, strcmp
 
 #define IBUF    (8192)
 #define OBUF    (8192)

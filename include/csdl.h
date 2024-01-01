@@ -109,6 +109,7 @@ LINKAGE(localops)
 #endif
 #include "interlocks.h"
 #include "csoundCore.h"
+#include "version.h"
 
 
 #ifdef __cplusplus

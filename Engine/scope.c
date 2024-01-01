@@ -1,5 +1,5 @@
-#include "csoundCore.h"
 #include "corfile.h"
+#include "csoundCore.h"
 #include "score_param.h"
 
 extern uint8_t file_to_int(CSOUND*, const char*);

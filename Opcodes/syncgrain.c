@@ -21,10 +21,18 @@
     02110-1301 USA
 */
 
-#include "stdopcod.h"
 #include "syncgrain.h"
-#include "soundio.h"
-#include "interlocks.h"
+
+#ifdef HAVE_FCNTL_H
+#include <fcntl.h>       // IWYU pragma: keep
+#endif
+#include <sndfile.h>     // for SNDFILE
+#include <stdio.h>       // for NULL
+#include <string.h>      // for memset
+
+#include "interlocks.h"  // for TR
+#include "soundfile.h"   // for sflib_seek, sflib_read_MYFLT, SFLIB_INFO
+#include "stdopcod.h"    // for syncgrain_init_
 
 /*
 #ifdef HAVE_VALUES_H

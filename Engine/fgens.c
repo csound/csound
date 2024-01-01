@@ -24,15 +24,28 @@
     02110-1301 USA
 */
 
-#include "csoundCore.h"         /*                      FGENS.C         */
-#include <ctype.h>
-#include "soundio.h"
-#include "cwindow.h"
-#include "cmath.h"
-#include "fgens.h"
-#include "pstream.h"
-#include "pvfileio.h"
-#include <stdlib.h>
+#include "fgens.h"          // for GENMAX, MAXFNUM, csoundFTAlloc, csoundFTD...
+
+#include <ctype.h>          // for isdigit, isspace
+#include <math.h>           // for sin, cos, pow, sqrt, fabs, modf, log, NAN
+#include <sndfile.h>        // for (anonymous struct)::(anonymous), SF_INSTR...
+#include <stdarg.h>         // for va_end, va_list, va_start
+#include <stdint.h>         // for int64_t, uint32_t, int32_t, uint8_t
+#include <stdio.h>          // for NULL, getc, feof, snprintf, size_t, fgets
+#include <stdlib.h>         // for abs, realloc, atof, exit
+#include <string.h>         // for memcpy, memset, strcpy, strlen, strcat
+
+#include "cmath.h"          // for gen21_rand
+#include "csound.h"         // for CSOUND, Str, csoundMessage, CSFTYPE_FLOAT...
+#include "csoundCore.h"     // for FGDATA, FUNC, EVTBLK, CSOUND_, PMAX, even...
+#include "cwindow.h"        // for display, dispset, windat_
+#include "float-version.h"  // for USE_DOUBLE
+#include "mpadec.h"         // for mpadec_info_t, mpadec_config_t, TRUE, MPA...
+#include "prototyp.h"       // for csoundInitError, PVOCEX_LoadFile, csoundE...
+#include "resize.h"         // for RESIZE
+#include "soundfile.h"      // for sflib_command, SFLIB_INSTRUMENT, AE_24INT
+#include "soundio.h"        // for SOUNDIN
+#include "sysdep.h"         // for MYFLT, UNLIKELY, FL, int32, strNcpy, MYFL...
 /* #undef ISSTRCOD */
 
 static inline int32_t byte_order(void)
@@ -2964,7 +2977,7 @@ static int gen44(FGDATA *ff, FUNC *ftp)
 }
 
 #ifndef NACL
-#include "mp3dec.h"
+#include "mp3dec.h"         // for mp3dec_uninit, mp3dec_decode, mp3dec_error
 
 static int gen49raw(FGDATA *ff, FUNC *ftp)
 {
@@ -3469,9 +3482,6 @@ void csoundGetNamedGEN(CSOUND *csound, int num, char *name, int len) {
       n = n->next;
     }
 }
-
-
-#include "resize.h"
 
 static int warned = 0;          /* Thread Safe */
 int resize_table(CSOUND *csound, RESIZE *p)

@@ -1,7 +1,10 @@
-#include <stdio.h>
-#include <string.h>
-#include "gtest/gtest.h"
-#include "csound.h"
+#include <stdio.h>        // for NULL
+#include <string.h>       // for strcmp, memset, strcpy
+#include <string>         // for string
+
+#include "gtest/gtest.h"  // for AssertionResult, Message, TestPartResult
+#include "csound.h"       // for csoundCompileOrc, csoundGetControlChannel
+#include "sysdep.h"       // for MYFLT
 
 const char orc1 [] = "chn_k \"testing\", 3\n  instr 1\n  endin\n";
 

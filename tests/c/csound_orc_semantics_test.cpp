@@ -7,12 +7,13 @@
 
 #define __BUILDING_LIBCSOUND
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <stdbool.h>
-#include "csoundCore.h"
-#include "csound_orc.h"
-#include "gtest/gtest.h"
+#include <stdio.h>        // for NULL
+#include <string>         // for string
+
+#include "csoundCore.h"   // for CSOUND_, OENTRY
+#include "csound_orc.h"   // for OENTRIES
+#include "gtest/gtest.h"  // for AssertionResult, Message, TestPartResult
+#include "csound.h"       // for CSOUND, csoundCleanup, csoundCreate, csound...
 
 extern "C" {
     extern OENTRIES* find_opcode2 (CSOUND* csound, char* opname);

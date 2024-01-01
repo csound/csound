@@ -28,8 +28,18 @@
 /******************************************/
 /*    PVADD.C        */
 
-#include "pvoc.h"
-#include <math.h>
+#include "pvadd.h"
+
+#include <stdint.h>           // for int32_t, uint32_t
+#include <string.h>           // for NULL, memset
+
+#include "Opcodes/pvocext.h"  // for PvAmpGate, PvocMaxAmp, SpectralExtract
+#include "Opcodes/ugens8.h"   // for PVFRAMSIZE
+#include "csound.h"           // for CSOUND, Str
+#include "csoundCore.h"       // for CSOUND_, PVOCEX_MEMFILE, FUNC, OK, AUXCH
+#include "float-version.h"    // for USE_DOUBLE
+#include "prototyp.h"         // for get_arg_string
+#include "sysdep.h"           // for int32, MYFLT, UNLIKELY, FL, strNcpy
 
 static int32_t pvx_loadfile(CSOUND *csound, const char *fname, PVADD *p);
 

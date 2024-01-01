@@ -21,9 +21,9 @@
     02110-1301 USA
 */
 
-#include "csoundCore.h"         /*                           WINDIN.C   */
-#include "cwindow.h"
-#include "windin.h"             /* real-time input control units        */
+#include "csound.h"      // for CSOUND, Str
+#include "csoundCore.h"  // for CSOUND_, IGN
+#include "windin.h"      // for XYIN
                                 /* 26aug90 dpwe                         */
 
 int xyinset(CSOUND *csound, XYIN *p)

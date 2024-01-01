@@ -21,9 +21,13 @@
     02110-1301 USA
 */
 
-// #include "csdl.h"
-#include "csoundCore.h"
 #include "moog1.h"
+
+#include <string.h>         // for memset, NULL
+
+#include "Opcodes/fm4op.h"  // for TwoZero
+// #include "csdl.h"
+#include "csoundCore.h"     // for FUNC, CSOUND_, NOTOK, INSDS, OK, OPDS
 
 extern void make_TwoZero(TwoZero *);
 extern void TwoZero_setZeroCoeffs(TwoZero *, MYFLT*);

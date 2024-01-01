@@ -21,8 +21,14 @@
     02110-1301 USA
 */
 
-#include "stdopcod.h"
-#include <math.h>
+#include <math.h>        // for pow
+#include <stdint.h>      // for int32_t, uint32_t
+#include <string.h>      // for memset, NULL
+
+#include "csound.h"      // for CSOUND, Str
+#include "csoundCore.h"  // for AUXCH, CSOUND_, CS_KSMPS, OK, OPDS, INSDS
+#include "stdopcod.h"    // for freeverb_init_
+#include "sysdep.h"      // for MYFLT, UNLIKELY, FL, int32
 
 #define DEFAULT_SRATE   44100.0
 #define STEREO_SPREAD   23.0

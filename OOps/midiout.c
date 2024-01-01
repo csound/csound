@@ -27,9 +27,15 @@
 
 /* Some modifications by JPff for general use */
 
-#include <math.h>
-#include "csoundCore.h"
-#include "midiout.h"
+#include "midiout.h"     // for MOSCIL, OUT_ON_DUR, KOUT_ON, MDELAY, KON2
+
+#include <stdint.h>      // for int32_t, uint32_t
+#include <stdlib.h>      // for abs
+#include <string.h>      // for memset
+
+#include "csound.h"      // for CSOUND, Str
+#include "csoundCore.h"  // for OK, INSDS, OPDS, CS_ONEDKR, CS_KCNT, IGN
+#include "sysdep.h"      // for MYFLT, FL, UNLIKELY
 
 #define MGLOB(x) (((CSOUND*)csound)->midiGlobals->x)
 

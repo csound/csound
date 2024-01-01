@@ -24,7 +24,11 @@
 #ifndef FOUT_H
 #define FOUT_H
 
-#include "stdopcod.h"
+#include <stdint.h>      // for int32_t, uint32_t
+#include <stdio.h>       // for FILE
+
+#include "csoundCore.h"  // for OPDS, VARGMAX, AUXCH, ARRAYDAT, STRINGDAT
+#include "sysdep.h"      // for MYFLT, int32
 
 typedef struct FOUT_FILE_ {
     OPDS    h;

@@ -18,22 +18,14 @@
 
 #ifndef WIN32
 
-#include "csoundCore.h"
-#include <time.h>
-#include <sys/resource.h>
-#include <sys/time.h>
-#include <sys/types.h>
-#include <sys/stat.h>
-#include <ctype.h>
-#include <errno.h>
-#include <stdarg.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
+#include <errno.h>       // for errno
+#include <stdint.h>      // for int32_t, uint32_t
+#include <stdio.h>       // for fgets, sscanf, printf, fclose, fflush, fopen
+#include <string.h>      // for strerror
 
-#include <unistd.h>
-#include <limits.h>
-#include <float.h>
+#include "csound.h"      // for CSOUND, Str
+#include "csoundCore.h"  // for SUBR, CSOUND_, OK, AUXCH, OPDS, CS_KSMPS, IGN
+#include "sysdep.h"      // for MYFLT, FL
 
 // only available on Linux (no /proc/stat on OSX)
 #if defined(LINUX)

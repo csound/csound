@@ -26,7 +26,12 @@
     02110-1301 USA
 */
 
-#include "csoundCore.h"
+#include <stdint.h>      // for int32_t, uint32_t
+#include <string.h>      // for memset, NULL
+
+#include "csound.h"      // for csoundRand31, CSOUND
+#include "csoundCore.h"  // for SUBR, AUXCH, CSOUND_, OK, OPDS, INSDS, CS_KSMPS
+#include "sysdep.h"      // for FL, MYFLT, int32, FMOD, UNLIKELY, LOG, TAN
 
 typedef struct {
         OPDS    h;

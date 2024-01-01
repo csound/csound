@@ -21,15 +21,22 @@
     02110-1301 USA
 */
 
-// #include "csdl.h"
-#include "csoundCore.h"
-#include "interlocks.h"
-#include <math.h>
-#include "cwindow.h"
 #include "spectra.h"
-#include "pitch.h"
-#include "uggab.h"
-#include <inttypes.h>
+
+#include <inttypes.h>               // for PRIi32
+#include <math.h>                   // for pow, sqrt, cos, log, exp, log10, sin
+#include <stdio.h>                  // for NULL, snprintf, size_t
+#include <string.h>                 // for memset
+
+// #include "csdl.h"
+#include "csoundCore.h"             // for SUBR, SPECDAT, CSOUND_, AUXCH
+#include "csound_standard_types.h"  // for CS_VAR_TYPE_K
+#include "csound_type_system.h"     // for CS_VAR_MEM
+#include "cwindow.h"                // for windat_
+#include "interlocks.h"             // for _QQ, TR
+#include "pitch.h"                  // for TRANSEG, CPU_PERC, INSTCNT, clockset
+#include "prototyp.h"               // for csoundGetTypeForArg
+#include "uggab.h"                  // for SUM
 
 #define LOGTWO  (0.69314718056)
 

@@ -68,16 +68,14 @@ Music and Audio Technologies, University of California, Berkeley.
  4:8:2000 RWD: made all func calls test explicitly against ESDIF_SUCCESS
 */
 
+#include "sdif.h"
+
 #define REALASSERT
 #ifdef REALASSERT
-#include <assert.h>
+#include <assert.h>  // for assert
 #else
 #define assert(x) /* Do nothing */
 #endif
-
-#include "sysdep.h"
-#include <errno.h>
-#include "sdif.h"
 
 /* prototypes for functions used only in this file. */
 static int32_t SizeofSanityCheck(void);

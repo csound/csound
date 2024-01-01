@@ -21,10 +21,17 @@
   02110-1301 USA
 */
 
-#include "csoundCore.h"
-#include "interlocks.h"
-#include "pstream.h"
-#include "soundio.h"
+#include <sndfile.h>     // for SNDFILE, sf_count_t
+#include <stdint.h>      // for int32_t, uint32_t, int64_t
+#include <string.h>      // for memset, NULL, memcpy
+
+#include "csound.h"      // for CSOUND, Str, CSFTYPE_UNKNOWN_AUDIO
+#include "csoundCore.h"  // for AUXCH, CSOUND_, SUBR, FUNC, OPDS, OK, INSDS
+#include "prototyp.h"    // for fdrecord
+#include "pstream.h"     // for PVSDAT, PVS_AMP_FREQ
+#include "soundfile.h"   // for SFLIB_INFO, sflib_read_MYFLT
+#include "sysdep.h"      // for MYFLT, FL, UNLIKELY, HYPOT, FABS, int32, COS
+
 #define MAXOUTS 2
 
 typedef struct dats {

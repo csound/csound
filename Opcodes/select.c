@@ -21,7 +21,12 @@
     02110-1301 USA
 */
 
-#include "csoundCore.h"
+#include <stdint.h>      // for uint32_t, int32_t
+#include <string.h>      // for memset, NULL
+
+#include "csound.h"      // for CSOUND
+#include "csoundCore.h"  // for SUBR, OPDS, INSDS, CS_KSMPS, IGN, LINKAGE_BU...
+#include "sysdep.h"      // for MYFLT, UNLIKELY
 
 typedef struct Select {
   OPDS        h;

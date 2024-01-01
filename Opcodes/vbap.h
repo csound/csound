@@ -23,6 +23,12 @@
 
 #pragma once
 
+#include <stdint.h>      // for int32_t
+
+#include "csound.h"      // for CSOUND
+#include "csoundCore.h"  // for OPDS, AUXCH, ARRAYDAT, VARGMAX
+#include "sysdep.h"      // for MYFLT, FL
+
 #define LOWEST_ACCEPTABLE_WT FL(0.0)
 #define CHANNELS 128
 #define MIN_VOL_P_SIDE_LGTH FL(0.01)

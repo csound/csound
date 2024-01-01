@@ -20,7 +20,13 @@
 
 /* $Id: layer3.c,v 1.3 2009/03/01 15:27:05 jpff Exp $ */
 
-#include "mpadec_internal.h"
+#include <stdint.h>           // for int32_t, uint8_t, int16_t, uint32_t
+#include <string.h>           // for memcpy, memset, memmove, NULL
+
+#include "mpadec.h"           // for mpadec_t, mpadec_config_t, MPADEC_CONFI...
+#include "mpadec_config.h"    // IWYU pragma: keep
+#include "mpadec_internal.h"  // for mpadec_t, grinfo_t, SBLIMIT, GETBITS
+#include "sysdep.h"           // for MYFLT
 
 extern const uint32_t bitmask[17];
 extern bandinfo_t band_info[];

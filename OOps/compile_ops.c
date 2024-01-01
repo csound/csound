@@ -21,7 +21,14 @@
 */
 
 #include "compile_ops.h"
-#include <stdio.h>
+
+#ifdef HAVE_FCNTL_H
+#include <fcntl.h>       // IWYU pragma: keep
+#endif
+#include <stdio.h>       // for fclose, fread, feof, fopen, fseek, FILE, NULL
+
+#include "csoundCore.h"  // for STRINGDAT, OK, CSOUND_, INSDS, NOTOK, IGN, OPDS
+
 int32_t csoundCompileOrcInternal(CSOUND *csound, const char *str, int32_t async);
 int32_t csoundReadScoreInternal(CSOUND *csound, const char *str);
 

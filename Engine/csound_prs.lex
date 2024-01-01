@@ -23,12 +23,17 @@
     02110-1301 USA
 */
 
-#include <stdio.h>
-#include <string.h>
-#include <stdlib.h>
-#include <ctype.h>
-#include "csoundCore.h"
-#include "corfile.h"
+#include <ctype.h>        // for isblank, isdigit, isspace, isalpha, isalnum
+
+#include "corfile.h"      // for corfile_putc, corfile_puts, copy_to_corefile
+#include "csound.h"       // for CSOUND, Str
+#include "csoundCore.h"   // for CSOUND_, MACRO, MACRON, CORFIL, OPARMS, MARGS
+#include "prototyp.h"     // for mfree, cs_strdup
+#include "score_param.h"  // for PRS_PARM, IFDEFSTACK, file_to_int, make_slo...
+#include "sysdep.h"       // for UNLIKELY, DIRSEP, LIKELY, int32
+
+struct yyguts_t;
+
 #define YY_DECL int yylex (CSOUND *csound, yyscan_t yyscanner)
 static void comment(yyscan_t);
 static void do_comment(yyscan_t);
@@ -53,8 +58,6 @@ static inline int isNameChar(int cc, int pos)
     unsigned char c = ((unsigned char) cc);
     return (isalpha(c) || (pos && (c == '_' || isdigit(c))));
 }
-
-#include "score_param.h"
 
 static void expand_macro(CSOUND*, MACRO*, yyscan_t);
 static void expand_macroa(CSOUND*, MACRO*, yyscan_t);

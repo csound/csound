@@ -52,10 +52,16 @@
 /* Code fixes by John ffitch, March 2000 */
 /*               Made interpolation selectable April 2000 */
 
-#include "csdl.h"
-#include "scansyn.h"
-#include <math.h>
-#include "cwindow.h"
+#include <stdint.h>      // for int32_t, uint32_t
+#include <stdio.h>       // for NULL, sscanf
+#include <string.h>      // for memset, strncmp, memcpy, strncpy
+
+#include "csdl.h"        // for CSOUND_, SUBR, FUNC, Str, OK, AUXCH, IGN, INSDS
+#include "csound.h"      // for CSOUND, WINDAT, CSFTYPE_XSCANU_MATRIX
+#include "cwindow.h"     // for windat_
+#include "interlocks.h"  // for TR, _QQ
+#include "scansyn.h"     // for PSCSNUX, PSCSNSX, PSCSNMAPX, SCANSYN_GLOBALS
+#include "sysdep.h"      // for int32, FL, MYFLT, UNLIKELY, uint32, CS_NOINLINE
 
 /* Order of interpolation of scanning */
 /* Either 1, 2 (linear), 3 (cubic) or 4 (quadratic) */

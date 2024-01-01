@@ -29,11 +29,15 @@
 /* John ffitch 1995 Jun 17                                           */
 /* ***************************************************************** */
 
-#include "std_util.h"
-#include <stdio.h>
-#include <stdlib.h>
-#include <stdarg.h>
-#include "pvfileio.h"
+#include <stdint.h>    // for int32_t, uint32_t
+#include <stdio.h>     // for fscanf, fclose, printf, EOF, NULL, feof, fopen
+#include <stdlib.h>    // for exit, atof
+
+#include "csdl.h"      // for CSOUND_, Str
+#include "csound.h"    // for CSOUND
+#include "pvfileio.h"  // for PVOCDATA, WAVEFORMATEX, STYPE_16, STYPE_24
+#include "std_util.h"  // for pv_import_init_
+#include "sysdep.h"    // for UNLIKELY
 
 static void pv_import_usage(CSOUND *csound)
 {

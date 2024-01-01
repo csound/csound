@@ -19,15 +19,22 @@
     02110-1301 USA
  */
 
-#include <algorithm>
-#include <cmath>
-#include <iostream>
-#include <sstream>
-#include <string>
-#include <vector>
-#include "OpcodeBase.hpp"
-#include <dirent.h>
-#include <sys/types.h>
+#ifdef HAVE_DIRENT_H
+#include <dirent.h>              // for closedir, dirent, opendir, readdir, DIR
+#endif
+#include <string.h>              // for strlen, NULL, size_t, strcmp
+#include <algorithm>             // for max, sort
+#include <memory>                // for __alloc_traits<>::value_type
+#include <sstream>               // for operator<<, basic_ostream, basic_ost...
+#include <string>                // for string, basic_string, char_traits
+#include <vector>                // for vector
+
+#include "OpcodeBase.hpp"        // for OpcodeBase, csound
+#include "arrays.h"              // for tabinit
+#include "csdl.h"                // for STRINGDAT, CSOUND_, OK, Str, IGN
+#include "csound.h"              // for CSOUND, PUBLIC
+#include "csound_type_system.h"  // for CS_TYPE
+#include "sysdep.h"              // for MYFLT
 
 using namespace std;
 using namespace csound;
@@ -207,7 +214,6 @@ typedef struct {
 std::vector<std::string> searchDir(CSOUND *csound, char *directory,
                                    char *extension);
 
-#include "arrays.h"
 #if 0
 /* from Opcodes/arrays.c */
 static inline void tabensure(CSOUND *csound, ARRAYDAT *p, int size) {

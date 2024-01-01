@@ -7,10 +7,13 @@
 
 #define __BUILDING_LIBCSOUND
 
-#include <stdio.h>
-#include <stdlib.h>
+#include <stdio.h>                   // for NULL
+#include <string>                    // for string
+
 #include "csoundCore.h"
-#include "gtest/gtest.h"
+#include "gtest/gtest.h"             // for Message, TestPartResult, ASSERT_...
+#include "csound.h"                  // for csoundCleanup, csoundCreate, cso...
+#include "csound_data_structures.h"  // for cs_hash_table_get, cs_hash_table...
 
 class CsoundDataStructuresTests : public ::testing::Test {
 public:

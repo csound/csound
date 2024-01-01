@@ -21,9 +21,20 @@
     02110-1301 USA
 */
 
-#include "csoundCore.h"     /*                      CSCORFNS.C      */
-#include "cscore.h"
-#include "corfile.h"
+#include <stdio.h>          // for NULL, fprintf, FILE, getc, putc, fclose
+#include <stdlib.h>         // for exit
+#ifdef HAVE_FCNTL_H
+#include <fcntl.h>          // for SEEK_SET
+#endif
+
+#include "corfile.h"        // for corfile_create_w, corfile_putc, corfile_rm
+#include "cscore.h"         // for EVENT, EVLIST, CSHDR, cshdr, cscoreCopyEvent
+#include "csound.h"         // for CSOUND, PUBLIC, Str, CSFTYPE_SCORE, CSOUN...
+#include "csoundCore.h"     // for CSOUND_, CORFIL, IGN, EVTBLK, PMAX
+#include "envvar.h"         // for csoundFindInputFile
+#include "float-version.h"  // for USE_DOUBLE
+#include "prototyp.h"       // for rdscor, csoundNotifyFileOpened
+#include "sysdep.h"         // for MYFLT, FL, UNLIKELY, CS_SSCANF
 
 #define TYP_FREE   0
 #define TYP_EVENT  1

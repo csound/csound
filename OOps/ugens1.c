@@ -21,9 +21,18 @@
     02110-1301 USA
 */
 
-#include "csoundCore.h"         /*                      UGENS1.C        */
-#include "ugens1.h"
-#include <math.h>
+#include "ugens1.h"              // for SEG, COSSEG, XSEG, LINSEG, ENVLPR
+
+#include <limits.h>              // for INT_MAX
+#include <math.h>                // for pow, cos
+#include <stdint.h>              // for int32_t, uint32_t, int64_t
+#include <string.h>              // for memset, NULL, size_t
+
+#include "csound.h"              // for CSOUND, Str
+#include "csoundCore.h"          // for CSOUND_, INSDS, OK, OPDS, FUNC, AUXCH
+#include "csound_type_system.h"  // for CS_VAR_MEM
+#include "prototyp.h"            // for csoundAuxAlloc
+#include "sysdep.h"              // for FL, MYFLT, UNLIKELY, POWER, FABS
 
 #define FHUND (FL(100.0))
 

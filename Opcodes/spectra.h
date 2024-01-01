@@ -24,6 +24,13 @@
 #ifndef __SPECTRA_H
 #define __SPECTRA_H
 
+#include <stdint.h>      // for int32_t, uint32_t
+
+#include "csound.h"      // for WINDAT, CSOUND
+#include "csoundCore.h"  // for SPECDAT, OPDS, AUXCH, DOWNDAT
+#include "cwindow.h"     // for windat_
+#include "sysdep.h"      // for MYFLT, int32
+
 #define MAXFRQS 120
 
 typedef struct {

@@ -20,10 +20,6 @@
     02110-1301 USA
 */
 
-#include "csoundCore.h"         /*                      WINEPS.C        */
-#include "cwindow.h"
-#include <math.h>
-
 /*--------------------------------------  winEPS.c ---------------------------
  *
  *  Write Csound's graphics in PostScript format into a file for later viewing.
@@ -65,8 +61,15 @@
  *
   --------------------------------------------------------------------------*/
 
-#include <string.h>
-#include <time.h>
+#include <math.h>        // for fabs
+#include <stdio.h>       // for fprintf, NULL, snprintf, FILE
+#include <string.h>      // for strlen, memset, strlcat, strrchr
+#include <time.h>        // for asctime_r, localtime_r, time, tm, time_t
+
+#include "csound.h"      // for CSOUND, WINDAT, Str, CSFTYPE_POSTSCRIPT
+#include "csoundCore.h"  // for CSOUND_, IGN, OPARMS, CSFILE_STD
+#include "cwindow.h"     // for windat_
+#include "sysdep.h"      // for FL, MYFLT, strNcpy, CS_SPRINTF, FABS, UNLIKELY
 
 #ifdef __MACH__
 /* No idea why these are not declared */

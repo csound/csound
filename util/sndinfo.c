@@ -22,8 +22,17 @@
     02110-1301 USA
 */
 
-#include "std_util.h"                               /*  SNDINFO.C  */
-#include "soundio.h"
+#include <sndfile.h>    // for SF_BROADCAST_INFO, SF_INSTRUMENT, (anonymous ...
+#include <stdint.h>     // for int32_t
+#include <stdio.h>      // for snprintf, NULL
+#include <stdlib.h>     // for atoi
+#include <string.h>     // for strncpy, strncmp, strcmp, memset
+
+#include "csdl.h"       // for CSOUND_, Str
+#include "csound.h"     // for CSOUND
+#include "soundfile.h"  // for SFLIB_INFO, sflib_command, sflib_close, sflib...
+#include "std_util.h"   // for sndinfo_init_
+#include "sysdep.h"     // for UNLIKELY, MYFLT
 
 /* Some of the information is borrowed from libsndfile's sndfile-info code */
 

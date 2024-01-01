@@ -21,9 +21,14 @@
     02110-1301 USA
 */
 
-#include "csoundCore.h"                         /*      WINDOW.C        */
-#include "cwindow.h"                            /*  graph window mgr    */
-#include "winEPS.h"                             /* PostSCript routines  */
+#include <stddef.h>      // for NULL
+
+#include "csound.h"      // for CSOUND, WINDAT, Str
+#include "csoundCore.h"  // for CSOUND_, OPARMS, IGN, OENTRY
+#include "cwindow.h"     // for windat_, BIPOL, NEGPOL, NOPOL, POSPOL, CAPSIZE
+#include "prototyp.h"    // for dispinit
+#include "sysdep.h"      // for FL, int16, MYFLT, int32
+#include "winEPS.h"      // for PS_DrawGraph, PS_ExitGraph, PS_MakeGraph
                                                 /*  dpwe 16may90        */
 
 extern OENTRY* find_opcode_new(CSOUND*, char*, char*, char*);

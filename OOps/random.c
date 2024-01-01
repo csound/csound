@@ -40,7 +40,12 @@
    email: m-mat @ math.sci.hiroshima-u.ac.jp (remove space)
 */
 
-#include "csoundCore.h"
+#include <stddef.h>      // for NULL
+#include <stdint.h>      // for uint32_t, int32_t, uint64_t, int64_t
+
+#include "csound.h"      // for CsoundRandMTState, CSOUND, PUBLIC, csoundRand31
+#include "csoundCore.h"  // for CSOUND_
+#include "sysdep.h"      // for CS_NOINLINE
 
 /* simple linear congruential generator */
 

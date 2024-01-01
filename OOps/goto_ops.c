@@ -23,9 +23,18 @@
   02110-1301 USA
 */
 
-#include "csoundCore.h" /*                            GOTO_OPS.C        */
-#include "insert.h"     /* for goto's */
-#include "aops.h"       /* for cond's */
+#include <stddef.h>                 // for NULL
+#include <stdint.h>                 // for int32_t, uint64_t
+
+#include "aops.h"                   // for EVAL
+#include "csound.h"                 // for CSOUND, Str
+#include "csoundCore.h"             // for CSOUND_, INSDS, OK, OPDS, LBLBLK
+#include "csound_standard_types.h"  // for CS_VAR_TYPE_b
+#include "csound_type_system.h"     // for CS_VAR_MEM
+#include "insert.h"                 // for LOOP_OPS, TURNOFF2, GOTO, CGOTO
+#include "prototyp.h"               // for csoundInitError, csoundPerfError
+#include "sysdep.h"                 // for MYFLT, FL, UNLIKELY, ATOMIC_INCR
+
 extern int32_t strarg2insno(CSOUND *, void *p, int32_t is_string);
 
 int32_t igoto(CSOUND *csound, GOTO *p)

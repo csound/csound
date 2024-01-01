@@ -100,9 +100,15 @@
                     const char *(*func)(int));
 */
 
-#include "csoundCore.h"
-#include "midiops.h"
-#include "midifile.h"
+#include <stdio.h>       // for NULL, printf
+
+#include "csound.h"      // for CSOUND, Str
+#include "csoundCore.h"  // for MCHNBLK, MGLOBAL, CSOUND_, MEVENT, OPARMS
+#include "midifile.h"    // for csoundMIDIFileClose, csoundMIDIFileOpen, cso...
+#include "midiops.h"     // for SYSTEM_TYPE, PROGRAM_TYPE, AFTOUCH_TYPE, CON...
+#include "prototyp.h"    // for csoundExternalMidiErrorString, csoundErrorMsg
+#include "remote.h"      // for m_chanmsg
+#include "sysdep.h"      // for FL, int16, MYFLT
 
 #define MGLOB(x) (csound->midiGlobals->x)
 

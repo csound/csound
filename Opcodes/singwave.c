@@ -33,10 +33,17 @@
 /*  excitation source for other instruments*/
 /*******************************************/
 
+#include "singwave.h" // TODO: figure out why need to include csoundCore first
+
+#include <math.h>              // for pow
+#include <string.h>            // for memset, NULL
+
+#include "Opcodes/clarinet.h"  // for OneZero_tick, make_OneZero, OneZero
+#include "Opcodes/physutil.h"  // for Envelope_setTarget, Envelope_setRate
+#include "csound.h"            // for CSOUND, Str
+#include "csoundCore.h"        // for FUNC, CSOUND_, OK, CS_ESR, INSDS, NOTOK
 // #include "csdl.h"
-#include "csoundCore.h"
-#include "singwave.h"
-#include "moog1.h"
+#include "moog1.h"             // for FormSwep, FormSwep_setTargets, FormSwe...
 
 void OneZero_setCoeff(OneZero*, MYFLT);
 MYFLT Wave_tick(MYFLT *, int32_t len, MYFLT *, MYFLT, MYFLT);

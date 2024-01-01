@@ -28,11 +28,8 @@
 //#define ARCH_IA64
 
 #ifdef WIN32
-#define HAVE_IO_H
 #define HAVE_CONIO_H
 #undef OSS
-#else
-#define HAVE_INTTYPES_H
 #endif
 
 #define FLOAT MYFLT
@@ -77,7 +74,9 @@ typedef uint32_t uintptr_t;
 #include <string.h>
 #include <memory.h>
 #include <math.h>
+#ifdef HAVE_FCNTL_H
 #include <fcntl.h>
+#endif
 #include <stdio.h>
 #include <stdlib.h>
 #ifdef HAVE_IO_H

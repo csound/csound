@@ -118,8 +118,16 @@ kgain - signal gain
 
 */
 
-#include "stdopcod.h"
-#include "pstream.h"
+#include <math.h>        // for exp, log
+#include <stdint.h>      // for int32_t, uint32_t
+#include <string.h>      // for memset, NULL
+
+#include "csound.h"      // for CSOUND, Str
+#include "csoundCore.h"  // for SUBR, AUXCH, CSOUND_, FUNC, OPDS, OK, GEN01ARGS
+#include "interlocks.h"  // for TR
+#include "pstream.h"     // for PVSDAT, PVS_AMP_FREQ, PVS_AMP_PHASE
+#include "stdopcod.h"    // for sndloop_init_
+#include "sysdep.h"      // for MYFLT, int32, UNLIKELY, FL, uint32
 
 typedef struct _sndloop {
   OPDS h;

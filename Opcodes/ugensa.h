@@ -25,6 +25,9 @@
 
 #pragma once
 
+#include "csoundCore.h"  // for FUNC, AUXCH, OPDS
+#include "sysdep.h"      // for int32, int16, MYFLT, uint32
+
 #define PFRAC1(x)   ((MYFLT)((x) & ftp1->lomask) * ftp1->lodiv)
 
 typedef struct overlap {

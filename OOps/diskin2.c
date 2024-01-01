@@ -21,11 +21,25 @@
   02110-1301 USA
 */
 
-#include "csoundCore.h"
-#include "soundio.h"
-#include "diskin2.h"
-#include <math.h>
-#include <inttypes.h>
+#include "diskin2.h"             // for DISKIN2, DISKIN2_ARRAY, SNDCOM, POS_...
+
+#ifdef HAVE_FCNTL_H
+#include <fcntl.h>               // IWYU pragma: keep
+#endif
+#include <emmintrin.h>           // for _MM_DENORMALS_ZERO_ON, _MM_SET_DENOR...
+#include <inttypes.h>            // for PRId64
+#include <math.h>                // for sin, cos, llrint
+#include <sndfile.h>             // for sf_count_t, SFC_SET_CLIPPING, SFC_SE...
+#include <stdio.h>               // for NULL
+#include <string.h>              // for memset, strcmp
+
+#include "csound.h"              // for CSOUND, Str, csoundSleep, CSFTYPE_UN...
+#include "csoundCore.h"          // for CSOUND_, OK, ARRAYDAT, PI, CS_KSMPS
+#include "csound_type_system.h"  // for CS_VARIABLE, CS_TYPE
+#include "float-version.h"       // for USE_DOUBLE
+#include "prototyp.h"            // for get_arg_string, csound_fd_close, fdr...
+#include "soundfile.h"           // for SFLIB_INFO, TYPE2SF, TYP_RAW, sflib_...
+#include "sysdep.h"              // for MYFLT, FL, UNLIKELY, strNcpy, MYFLT2...
 
 typedef struct DISKIN_INST_ {
   CSOUND *csound;

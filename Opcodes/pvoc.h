@@ -24,19 +24,15 @@
 #ifndef CSOUND_PVOC_H
 #define CSOUND_PVOC_H
 
+#include <stddef.h>        // for NULL
+
+#include "csound.h"        // for CSOUND
 // #include "csdl.h"
-#include "csoundCore.h"
-#include "interlocks.h"
-
-#include "pvoc_forward.h" // for PVOC_GLOBALS
-
-#include "dsputil.h"
-#include "ugens8.h"
-#include "pvread.h"
-#include "pvinterp.h"
-#include "vpvoc.h"
-#include "pvadd.h"
-#include "pvocext.h"
+#include "csoundCore.h"    // for CSOUND_
+#include "pvinterp.h"      // for PVBUFREAD
+#include "pvoc_forward.h"  // for PVOC_GLOBALS
+#include "sysdep.h"        // for MYFLT
+#include "vpvoc.h"         // for TABLESEG
 
 struct PVOC_GLOBALS_ {
     CSOUND    *csound;

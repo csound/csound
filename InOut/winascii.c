@@ -21,8 +21,13 @@
     02110-1301 USA
 */
 
-#include "csoundCore.h"                         /*      winascii.c           */
-#include "cwindow.h"                            /*  teletype csound graphs   */
+#include <stdint.h>      // for uintptr_t
+#include <string.h>      // for memset
+
+#include "csound.h"      // for WINDAT, csoundMessage, CSOUND, Str
+#include "csoundCore.h"  // for IGN
+#include "cwindow.h"     // for windat_
+#include "sysdep.h"      // for MYFLT, CS_NOINLINE
 
 #define HOR     80
 #define VER     20

@@ -24,11 +24,11 @@
 #ifndef CSOUND_STDOPCOD_H
 #define CSOUND_STDOPCOD_H
 
-//#include "csdl.h"
-#include "csoundCore.h"
+#include <stdint.h>  // for int32_t
+#include <stdio.h>   // for FILE
 
-
-#include "interlocks.h"
+#include "csound.h"  // for CSOUND
+#include "sysdep.h"  // for int32, MYFLT, uint32
 
 /* file structure for fout opcodes */
 

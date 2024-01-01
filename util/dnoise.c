@@ -73,11 +73,22 @@
         higher sample rate than 16KHz might indicate a higher N.
 */
 
-#include "std_util.h"
-#include "soundio.h"
-#include <math.h>
-#include <ctype.h>
-#include <inttypes.h>
+#include <ctype.h>          // for isdigit
+#include <inttypes.h>       // for int32_t, int64_t, PRId64, SCNd64, uint32_t
+#include <math.h>           // for sin, cos, pow
+#include <sndfile.h>        // for SNDFILE, SFM_WRITE, SFC_SET_CLIPPING
+#include <stdio.h>          // for NULL, sscanf
+#include <stdlib.h>         // for exit
+#include <string.h>         // for memset, strcmp
+
+#include "csdl.h"           // for CSOUND_, Str, OPARMS, PI, HALFPI, ALLCHNLS
+#include "csound.h"         // for CSOUND, Str_noop
+#include "float-version.h"  // for USE_DOUBLE
+#include "msg_attr.h"       // for CSOUNDMSG_REALTIME
+#include "soundfile.h"      // for SFLIB_INFO, TYP_AIFF, TYP_WAV, sflib_close
+#include "soundio.h"        // for SOUNDIN
+#include "std_util.h"       // for dnoise_init_
+#include "sysdep.h"         // for UNLIKELY, MYFLT, FL
 
 
 #define ERR(x)                          \

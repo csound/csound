@@ -24,7 +24,8 @@
 #ifndef MIDIINTEROP_H
 #define MIDIINTEROP_H
 
-#include "csoundCore.h"
+#include "csoundCore.h"  // for OPDS
+#include "sysdep.h"      // for MYFLT
 
 /*
 

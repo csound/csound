@@ -34,21 +34,30 @@
 
 #ifndef NO_SERIAL_OPCODES
 
-#include <stdlib.h>
-#include <stdint.h>   /* Standard types */
-#include <string.h>   /* String function definitions */
+#ifdef HAVE_TERMIOS_H
+#include <termios.h>     // for termios, cfsetispeed, cfsetospeed, tcflush
+#endif
+#include <math.h>        // for pow
+#include <stdint.h>      // for int32_t, uint16_t, uintptr_t
+#include <stdio.h>       // for NULL, printf, perror, fprintf, ssize_t, stderr
+#include <string.h>      // for memcpy
 
 #ifndef WIN32
-#include <unistd.h>   /* UNIX standard function definitions */
-#include <fcntl.h>    /* File control definitions */
-#include <termios.h>  /* POSIX terminal control definitions */
-#include <sys/ioctl.h>
+#ifdef HAVE_FCNTL_H
+#include <fcntl.h>       // for open, O_NDELAY, O_NOCTTY, O_RDWR
+#endif
+#ifdef HAVE_UNISTD_H
+#include <unistd.h>      // for close, read, write
+#endif
 #else
 #include "winsock2.h"
 #endif
 
-#include "csoundCore.h"
-#include "interlocks.h"
+#include "csound.h"      // for CSOUND, Str
+#include "csoundCore.h"  // for SUBR, CSOUND_, OK, OPDS, IGN, STRINGDAT, NOTOK
+#include "interlocks.h"  // for WR
+#include "msg_attr.h"    // for CSOUNDMSG_ORCH
+#include "sysdep.h"      // for MYFLT, UNLIKELY, FL
 
 /* **************************************************
    As far as I can tell his should work on Windows

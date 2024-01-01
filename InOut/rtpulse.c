@@ -21,10 +21,16 @@
   02110-1301 USA
 */
 
-#include <csdl.h>
-#include <pulse/simple.h>
-#include <pulse/error.h>
-#include <string.h>
+#include <csdl.h>          // for CSOUND_, Str, OPARMS, csoundModuleCreate
+#include <pulse/def.h>     // for PA_STREAM_PLAYBACK, PA_STREAM_RECORD
+#include <pulse/error.h>   // for pa_strerror
+#include <pulse/sample.h>  // for pa_sample_spec, pa_sample_spec_valid, PA_S...
+#include <pulse/simple.h>  // for pa_simple_free, pa_simple_new, pa_simple_d...
+#include <string.h>        // for NULL, strcmp, strcpy
+
+#include "csound.h"        // for CSOUND, csRtAudioParams, CSOUNDCFG_STRING
+#include "sysdep.h"        // for MYFLT, UNLIKELY, LIKELY
+#include "version.h"       // for CS_APISUBVER, CS_APIVERSION
 
 typedef struct _pulse_params {
   pa_simple *ps;

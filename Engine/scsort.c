@@ -21,9 +21,14 @@
     02110-1301 USA
 */
 
-#include "csoundCore.h"                                  /*   SCSORT.C  */
-#include "corfile.h"
-#include <ctype.h>
+#include <ctype.h>       // for isspace
+#include <stddef.h>      // for NULL
+
+#include "corfile.h"     // for corfile_create_w, corfile_puts, corfile_flush
+#include "csound.h"      // for CSOUND
+#include "csoundCore.h"  // for CORFIL, CSOUND_, CS_STATE_COMP
+#include "prototyp.h"    // for cs_strdup, scsortstr
+#include "sort.h"        // for SRTBLK
 
 extern void sort(CSOUND*);
 extern void twarp(CSOUND*);

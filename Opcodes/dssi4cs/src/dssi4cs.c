@@ -19,10 +19,21 @@
  * Uses code by Richard W.E. Furse from the ladspa sdk
  */
 
-#include "utils.h"
 #include "dssi4cs.h"
-#include <dlfcn.h>
-#include <dirent.h>
+
+#ifdef HAVE_DIRENT_H
+#include <dirent.h>                    // for closedir, opendir, readdir
+#endif
+#include <dlfcn.h>                     // for dlclose, dlerror, dlsym, dlopen
+#include <stdio.h>                     // for snprintf
+#include <stdlib.h>                    // for getenv, free, malloc
+#include <string.h>                    // for NULL, strlen, strcat, strlcat
+
+#include "Opcodes/dssi4cs/src/ladspa.h"  // for LADSPA_Descriptor, LADSPA_Data
+#include "csound.h"                    // for CSOUND
+#include "csound_type_system.h"        // for CS_TYPE
+#include "dssi.h"                      // for DSSI_Descriptor, DSSI_Descript...
+#include "utils.h"                     // for unloadLADSPAPluginLibrary, dlo...
 
 #undef CS_KSMPS
 #define CS_KSMPS     (csound->GetKsmps(csound))

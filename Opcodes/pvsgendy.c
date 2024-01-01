@@ -22,8 +22,14 @@
     02110-1301 USA
 */
 
-#include "csoundCore.h"
-#include "pstream.h"
+#include <stdint.h>      // for int32_t, uint32_t
+#include <stdlib.h>      // for rand, RAND_MAX, NULL
+#include <string.h>      // for memset
+
+#include "csound.h"      // for CSOUND, Str
+#include "csoundCore.h"  // for SUBR, AUXCH, CSOUND_, CS_KSMPS, OK, OPDS, INSDS
+#include "pstream.h"     // for PVSDAT, CMPLX
+#include "sysdep.h"      // for MYFLT, UNLIKELY, FL
 
 typedef struct {
     OPDS h;

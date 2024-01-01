@@ -22,10 +22,20 @@
     02110-1301 USA
 */
 
-#include "emugens_common.h"
-#include "interlocks.h"
-#include "arrays.h"
-#include <ctype.h>
+#include <ctype.h>               // for isspace, isalpha
+#include <math.h>                // for ceil, floor, round
+#include <stdint.h>              // for int32_t, uint32_t, int64_t
+#include <stdio.h>               // for NULL, sprintf, size_t, fflush, printf
+#include <string.h>              // for strlen, memset, memcpy, strstr, strcpy
+
+#include "arrays.h"              // for tabinit
+#include "csound.h"              // for CSOUND, Str
+#include "csoundCore.h"          // for SUBR, ARRAYDAT, STRINGDAT, OK, CSOUND_
+#include "csound_type_system.h"  // for CS_TYPE, CS_VAR_MEM
+#include "emugens_common.h"      // for INITERR, PERFERR, INITERRF, ARRAY_EN...
+#include "interlocks.h"          // for TR, TB, TW
+#include "msg_attr.h"            // for CSOUNDMSG_ORCH
+#include "sysdep.h"              // for MYFLT, UNLIKELY, FL, COS, MYFLT2LRND
 
 #define SAMPLE_ACCURATE \
     uint32_t n, nsmps = CS_KSMPS;                                    \

@@ -21,6 +21,24 @@
   02110-1301 USA
 */
 
+#include <errno.h>     // for ECHILD, ETIMEDOUT
+#ifdef HAVE_PTHREAD
+#include <pthread.h>   // for pthread_mutex_lock, pthread_mutex_unlock, pthr...
+#endif
+#include <stdint.h>    // for uintptr_t, intptr_t
+#include <stdio.h>     // for NULL, size_t, fprintf, stderr
+#include <stdlib.h>    // for free, malloc, exit, WEXITSTATUS, WIFEXITED
+#include <string.h>    // for memset
+#ifdef HAVE_SYS_TIME_H
+#include <sys/time.h>  // for gettimeofday, timeval
+#endif
+#include <time.h>      // for timespec, nanosleep, time_t
+#ifdef HAVE_UNISTD_H
+#include <unistd.h>    // for execvp, fork
+#endif
+
+#include "csound.h"    // for PUBLIC, csoundCondSignal, csoundCondWait, csou...
+#include "sysdep.h"    // for spin_lock_t
 #if defined(__linux) || defined(__linux__)
 /* for pthread_mutex_timedlock() */
 #define _XOPEN_SOURCE 600
@@ -32,8 +50,6 @@
 #define HAVE_GETTIMEOFDAY 1
 #endif
 #endif
-
-#include "csoundCore.h"
 
 #if 0
 static CS_NOINLINE void notImplementedWarning_(const char *name)
@@ -47,10 +63,12 @@ static CS_NOINLINE void notImplementedWarning_(const char *name)
 #if defined(HAVE_PTHREAD)
 
 #if defined(WIN32)
+#include <process.h>
+
 #define _WINSOCKAPI_
 #include <windows.h>
+
 #undef _WINSOCKAPI_
-#include <process.h>
 
 void gettimeofday_(struct timeval* p, void* tz /* IGNORED */)
    {
@@ -97,7 +115,7 @@ PUBLIC void csoundSleep(size_t milliseconds)
 
 #else
 
-#include <sys/wait.h>
+#include <sys/wait.h>  // for waitpid, pid_t
 /**
  * Runs an external command with the arguments specified in 'argv'.
  * argv[0] is the name of the program to execute (if not a full path
@@ -157,15 +175,6 @@ PUBLIC void csoundSleep(size_t milliseconds)
 }
 
 #endif
-
-#ifndef __wasi__
-#include <errno.h>
-#endif
-
-#include <pthread.h>
-#include <time.h>
-#include <unistd.h>
-#include <sys/time.h>
 
 #define BARRIER_SERIAL_THREAD (-1)
 
@@ -590,6 +599,7 @@ PUBLIC void csoundDestroyCondVar(void* condVar) {
 #elif defined(WIN32)
 #define _WINSOCKAPI_
 #include <windows.h>
+
 #undef _WINSOCKAPI_
 #if !defined(_USING_V110_SDK71_)
 #include <synchapi.h>

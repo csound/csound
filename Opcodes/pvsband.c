@@ -22,8 +22,15 @@
     02110-1301 USA
 */
 
-#include "pvs_ops.h"
-#include "pstream.h"
+#include <math.h>        // for expf
+#include <stdint.h>      // for int32_t, uint32_t
+#include <string.h>      // for NULL, memset
+
+#include "csound.h"      // for CSOUND, Str
+#include "csoundCore.h"  // for SUBR, AUXCH, IS_ASIG_ARG, CSOUND_, CS_KSMPS, OK
+#include "pstream.h"     // for CMPLX, PVSDAT
+#include "pvs_ops.h"     // for pvsband_init_
+#include "sysdep.h"      // for FL, MYFLT, EXP, UNLIKELY
 
 typedef struct {
     OPDS h;

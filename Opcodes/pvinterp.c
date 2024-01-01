@@ -26,9 +26,21 @@
 /******** By Richard Karpen 1996 *********/
 /*****************************************/
 
-#include "pvoc.h"
-#include "pvoc_forward.h" // for PVOC_GLOBALS
-#include <math.h>
+#include "pvinterp.h"
+
+#include <math.h>                  // for cos
+#include <stdint.h>                // for int32_t, uint32_t
+#include <string.h>                // for memset, NULL, memcpy
+
+#include "Opcodes/dsputil.h"       // for addToCircBuf, FetchIn, ApplyHalfWin
+#include "Opcodes/pvadd.h"         // for PVFFTSIZE, pvfrsiz
+#include "Opcodes/pvoc_forward.h"  // for PVOC_GLOBALS
+#include "Opcodes/ugens8.h"        // for PVWINLEN, PVDATASIZE, pvdasiz, PVF...
+#include "csound.h"                // for CSOUND, Str
+#include "csoundCore.h"            // for CSOUND_, CS_KSMPS, PVOCEX_MEMFILE
+#include "prototyp.h"              // for get_arg_string
+#include "pvoc.h"                  // for PVOC_GetGlobals, PVOC_GLOBALS_
+#include "sysdep.h"                // for MYFLT, UNLIKELY, strNcpy, FL, int32
 
 #define WLN   1         /* time window is WLN*2*ksmps long */
 #define OPWLEN (2*WLN*CS_KSMPS)    /* manifest used for final time wdw */

@@ -21,7 +21,14 @@
   02110-1301 USA
 */
 
-#include "csoundCore.h"                         /*      AUXFD.C         */
+#include <stdint.h>      // for uintptr_t
+#include <string.h>      // for NULL, memset, size_t
+
+#include "csound.h"      // for CSOUND, csoundMessage, Str, csoundCreateThread
+#include "csoundCore.h"  // for AUXCH, INSDS, CSOUND_, AUXASYNC, FDCH, OPARMS
+#include "envvar.h"      // for csoundFileClose
+#include "prototyp.h"    // for auxchfree, csoundAuxAlloc, csoundAuxAllocAsync
+#include "sysdep.h"      // for UNLIKELY, CS_NOINLINE, LIKELY
 
 static CS_NOINLINE void auxchprint(CSOUND *, INSDS *);
 static CS_NOINLINE void fdchprint(CSOUND *, INSDS *);

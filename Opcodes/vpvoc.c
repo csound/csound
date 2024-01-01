@@ -26,9 +26,20 @@
 /*** By Richard Karpen - July-October 1992************/
 /************************************************************/
 
-#include "pvoc.h"
-#include "pvoc_forward.h" // for PVOC_GLOBALS
-#include <math.h>
+#include "vpvoc.h"
+
+#include <stdint.h>                // for int32_t, uint32_t
+#include <string.h>                // for NULL, memset, memcpy, size_t
+
+#include "Opcodes/dsputil.h"       // for addToCircBuf, ApplyHalfWin, FetchIn
+#include "Opcodes/pvadd.h"         // for PVFFTSIZE, pvfrsiz
+#include "Opcodes/pvoc_forward.h"  // for PVOC_GLOBALS
+#include "Opcodes/ugens8.h"        // for pvdasiz, PVWINLEN, PVDATASIZE, PVF...
+#include "csound.h"                // for CSOUND, Str
+#include "csoundCore.h"            // for CSOUND_, FUNC, CS_KSMPS, AUXCH
+#include "prototyp.h"              // for get_arg_string
+#include "pvoc.h"                  // for PVOC_GetGlobals, PVOC_GLOBALS_
+#include "sysdep.h"                // for MYFLT, UNLIKELY, FL, int32, strNcpy
 
 int32_t tblesegset(CSOUND *csound, TABLESEG *p)
 {

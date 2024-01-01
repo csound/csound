@@ -24,8 +24,8 @@
 #ifndef CSOUND_STANDARD_TYPES_H
 #define CSOUND_STANDARD_TYPES_H
 
-#include "csound_type_system.h"
-#include "csound.h"
+#include "csound.h"              // for PUBLIC_DATA, CSOUND, PUBLIC
+#include "csound_type_system.h"  // for CS_TYPE, TYPE_POOL
 
 #ifdef  __cplusplus
 extern "C" {

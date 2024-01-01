@@ -26,52 +26,67 @@
  *
  */
 
+#include "csound.h"
+
 //#ifdef __cplusplus
 //extern "C" {
 //#endif
 
-#if defined(HAVE_UNISTD_H) || defined (__unix) || defined(__unix__)
-#include <unistd.h>
+#include <emmintrin.h>               // for _MM_DENORMALS_ZERO_ON, _MM_SET_D...
+#ifdef HAVE_EXECINFO_H
+#include <execinfo.h>                // for backtrace, backtrace_symbols
+#endif              
+#include <limits.h>                  // for ULONG_MAX
+#ifdef HAVE_PTHREAD
+#include <pthread.h>                 // for pthread_equal, pthread_t
+#endif
+#include <setjmp.h>                  // for setjmp, longjmp, jmp_buf
+#include <signal.h>                  // for psignal, SIGPIPE, signal, SIGINT
+#include <sndfile.h>                 // for SFC_GET_LIB_VERSION
+#include <stdarg.h>                  // for va_end, va_start, va_copy
+#include <stdint.h>                  // for uint32_t, uintptr_t, int_least64_t
+#include <stdio.h>                   // for NULL, va_list, fprintf, vsnprintf
+#include <stdlib.h>                  // for free, malloc, exit, atexit, EXIT...
+#include <string.h>                  // for strcmp, memset, memcpy, strcpy
+#include <time.h>                    // for clock
+#if defined(WIN32) && !defined(__CYGWIN__)
+#define _WINSOCKAPI_
+#include <windows.h>
+
+#undef _WINSOCKAPI_
+#include <winsock2.h>
 #endif
 
-#include "csoundCore.h"
-#include "csmodule.h"
-#include "corfile.h"
-#include "csGblMtx.h"
-#include <stdio.h>
-#include <stdarg.h>
-#include <signal.h>
-#include <time.h>
-#include <ctype.h>
-#include <limits.h>
-#ifdef HAVE_SYS_TYPES_H
-# include <sys/types.h>
-#endif
-#if defined(WIN32) && !defined(__CYGWIN__)
-# include <winsock2.h>
-# include <windows.h>
-#endif
-#include <math.h>
-#include "oload.h"
-#include "fgens.h"
-#include "namedins.h"
-#include "pvfileio.h"
-#include "fftlib.h"
-#include "lpred.h"
-#include "cs_par_base.h"
-#include "cs_par_orc_semantics.h"
-#include "namedins.h"
-//#include "cs_par_dispatch.h"
-#include "find_opcode.h"
+#include "Opcodes/zak.h"             // for ZAK_GLOBALS
+#include "cfgvar.h"                  // for csoundCreateConfigurationVariable
+#include "corfile.h"                 // for corfile_puts, corfile_create_w
+#include "csGblMtx.h"                // for csoundUnLock, csoundLock
+#include "csdebug.h"                 // for csdebug_data_t, bkpt_node_t, CSD...
+#include "csmodule.h"                // for csoundInitModules, csoundDestroy...
+#include "csoundCore.h"              // for CSOUND_, INSDS, OPDS, OPARMS
+#include "csound_data_structures.h"  // for cs_hash_table_create, CS_HASH_TABLE
+#include "csound_standard_types.h"   // for csoundAddStandardTypes
+#include "csound_type_system.h"      // for CS_VAR_POOL, CS_TYPE, CS_VAR_MEM
+#include "cwindow.h"                 // for dispexit, display, dispset
+#include "envvar.h"                  // for csoundCreateFileHandle, csoundFS...
+#include "fftlib.h"                  // for csoundComplexFFT, csoundGetInver...
+#include "fgens.h"                   // for csoundFTAlloc, csoundFTDelete
+#include "find_opcode.h"             // for find_opcode_exact, find_opcode_new
+#include "float-version.h"           // for USE_DOUBLE
+#include "lpred.h"                   // for csoundAutoCorrelation, csoundCepsLP
+#include "msg_attr.h"                // for CSOUNDMSG_ERROR, CSOUNDMSG_WARNING
+#include "namedins.h"                // for strarg2insno, strarg2name, named...
+#include "prototyp.h"                // for insert_score_event_at_sample
+#include "pvfileio.h"                // for pvoc_closefile, pvoc_createfile
+#include "soundfile.h"               // for sflib_command
+#include "sysdep.h"                  // for MYFLT, UNLIKELY, FL, strNcpy
+#include "version.h"                 // for CS_APISUBVER, CS_APIVERSION, CS_...
+
+struct CsoundCallbackEntry_s;
 
 #if defined(linux)||defined(__HAIKU__)|| defined(__EMSCRIPTEN__)||defined(__CYGWIN__)
 #define PTHREAD_SPINLOCK_INITIALIZER 0
 #endif
-
-#include "csound_standard_types.h"
-
-#include "csdebug.h"
-#include <time.h>
 
 extern void allocate_message_queue(CSOUND *csound);
 static void SetInternalYieldCallback(CSOUND *, int (*yieldCallback)(CSOUND *));
@@ -246,7 +261,6 @@ static int csoundGetDitherMode(CSOUND *csound){
     return  csound->dither_output;
 }
 
-#include "Opcodes/zak.h"
 static int csoundGetZakBounds(CSOUND *csound, MYFLT **zkstart){
     ZAK_GLOBALS *zz;
     zz = (ZAK_GLOBALS*) csound->QueryGlobalVariable(csound, "_zak_globals");
@@ -1235,7 +1249,9 @@ static void psignal_(int sig, char *str)
 static void signal_handler(int sig)
 {
 #if defined(HAVE_EXECINFO) && !defined(ANDROID) && !defined(NACL)
-    #include <execinfo.h>
+#ifdef HAVE_EXECINFO_H
+#include <execinfo.h> // IWYU pragma: keep
+#endif
 
     {
       int j, nptrs;
@@ -3913,7 +3929,9 @@ void csoundNotifyFileOpened(CSOUND* csound, const char* pathname,
 #endif
 #if defined(LINUX) || defined(__unix) || defined(__unix__) || defined(__MACH__)
 #define HAVE_GETTIMEOFDAY 1
-#include <sys/time.h>
+#ifdef HAVE_SYS_TIME_H
+#include <sys/time.h>                // for gettimeofday, timeval, CLOCKS_PE...
+#endif
 #endif
 
 /* enable use of high resolution timer (Linux/i586/GCC only) */

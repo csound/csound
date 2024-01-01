@@ -34,10 +34,22 @@
  *     Needs to take much more care
  */
 
-#include "std_util.h"
-#include "soundio.h"
-#include <ctype.h>
-#include <inttypes.h>
+#include <ctype.h>          // for isdigit
+#include <inttypes.h>       // for int32_t, PRId64, uint32_t
+#include <sndfile.h>        // for SNDFILE, SFC_SET_UPDATE_HEADER_AUTO, SFM_...
+#include <stdarg.h>         // for va_end, va_list, va_start
+#include <stdio.h>          // for NULL, fscanf, snprintf, sscanf, FILE
+#include <stdlib.h>         // for atoi, atof
+#include <string.h>         // for strcmp, memset, strcpy, strlen
+
+#include "csdl.h"           // for CSOUND_, OPARMS, Str, DFLT_DBFS, ALLCHNLS
+#include "csound.h"         // for CSOUND, Str_noop, CSFTYPE_FLOATS_TEXT
+#include "float-version.h"  // for USE_DOUBLE
+#include "msg_attr.h"       // for CSOUNDMSG_REALTIME
+#include "soundfile.h"      // for SFLIB_INFO, TYP_AIFF, TYP_WAV, sflib_close
+#include "soundio.h"        // for SOUNDIN, MAXSNDNAME
+#include "std_util.h"       // for mixer_init_
+#include "sysdep.h"         // for MYFLT, UNLIKELY, FL, int16, strNcpy, LIKELY
 
 /* Constants */
 

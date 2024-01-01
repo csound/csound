@@ -27,14 +27,36 @@
 /* Haiku 'int32' etc definitions in net headers conflict with sysdep.h */
 #define __HAIKU_CONFLICT
 
-#include "csoundCore.h"
+#ifdef HAVE_FCNTL_H
+#include <fcntl.h>       // for fcntl, F_SETFL, O_NONBLOCK
+#endif
+#include <math.h>        // for lround
+#include <stdarg.h>      // for va_list, va_copy, va_end
+#include <stdint.h>      // for uintptr_t
+#include <stdio.h>       // for sscanf, NULL, sprintf, vsnprintf, size_t
+#include <stdlib.h>      // for atof, atoi
+#include <string.h>      // for strlen, strncmp, memset, strrchr
+#ifdef HAVE_UNISTD_H
+#include <unistd.h>      // for close
+#endif
+
+#include "csound.h"      // for CSOUND, Str, CSOUND_ERROR, CSOUND_SUCCESS
+#include "csoundCore.h"  // for CSOUND_, STRINGDAT, OPARMS
+#include "prototyp.h"    // for cs_strdup
+#include "sysdep.h"      // for UNLIKELY, MYFLT, spin_lock_t
 #if defined(WIN32) && !defined(__CYGWIN__)
 #include <winsock2.h>
 #include <ws2tcpip.h>
 #else
-#include <sys/socket.h>
-#include <netinet/in.h>
-#include <arpa/inet.h>
+#ifdef HAVE_ARPA_INET_H
+#include <arpa/inet.h>   // for inet_aton
+#endif   // for inet_aton
+#ifdef HAVE_NETINET_IN_H
+#include <netinet/in.h>  // for sockaddr_in, htons, INADDR_ANY, htonl, in_addr
+#endif
+#ifdef HAVE_SYS_SOCKET_H
+#include <sys/socket.h>  // for socket, AF_INET, bind, recvfrom, sendto, SOC...
+#endif
 #endif
 
 typedef struct {
@@ -410,7 +432,6 @@ void csoundStopUDPConsole(CSOUND *csound) {
 }
 
 #else // STUBS
-#include "csoundCore.h"
 void csoundStopUDPConsole(CSOUND *csound) { };
 int csoundUDPConsole(CSOUND *csound, const char *addr, int port, int
                      mirror) { return CSOUND_ERROR; }

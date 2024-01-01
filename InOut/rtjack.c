@@ -22,22 +22,29 @@
   02110-1301 USA
 */
 
-#include <jack/jack.h>
-#include <jack/midiport.h>
-#include <ctype.h>
-#include <sys/time.h>
-#include "alphanumcmp.h"
-
-/* no #ifdef, should always have these on systems where JACK is available */
-#include <unistd.h>
-#include <stdint.h>
-#ifdef LINUX
-#include <pthread.h>
+#include <ctype.h>          // for isalpha
+#include <jack/jack.h>      // for jack_client_close, jack_connect, jack_get...
+#include <jack/midiport.h>  // for jack_midi_event_t, jack_midi_clear_buffer
+#ifdef HAVE_SYS_TIME_H
+#include <sys/time.h>       // for gettimeofday, timeval
 #endif
-#include "csdl.h"
-#include "soundio.h"
+#include <jack/types.h>     // for jack_default_audio_sample_t, jack_port_t
+#include <stdio.h>          // for NULL, size_t, snprintf, sprintf
+#include <stdlib.h>         // for qsort
+#include <string.h>         // for strcmp, strcpy, memset, strlen, strchr
+
+#include "alphanumcmp.h"    // for alphanum_cmp
+#include "csound.h"         // for CSOUND, csRtAudioParams, CS_AUDIODEVICE
+#include "sysdep.h"         // for UNLIKELY, MYFLT, CS_NOINLINE, CS_NORETURN
+#include "version.h"        // for CS_APISUBVER, CS_APIVERSION
 #ifdef LINUX
-#include <sched.h>
+#ifdef HAVE_PTHREAD
+#include <pthread.h>        // for pthread_mutex_t, pthread_mutex_trylock
+#endif
+#endif
+#include "csdl.h"           // for CSOUND_, Str, OPARMS, NOTOK, OK, IGN, cso...
+#ifdef LINUX
+#include <sched.h>          // for sched_getscheduler, sched_param, sched_se...
 #endif
 
 
@@ -76,7 +83,8 @@ strNcpy(char *dst, const char *src, size_t siz)
 }
 
 
-#include "cs_jack.h"
+#include "cs_jack.h"        // for RtJackGlobals, RtJackBuffer, MAX_NAME_LEN
+
 static int listDevices(CSOUND *csound,
                        CS_AUDIODEVICE *list,
                        int isOutput);

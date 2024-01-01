@@ -1,7 +1,8 @@
-#include <stdio.h>
-#include <string.h>
-#include "csound.h"
-#include "gtest/gtest.h"
+#include <stdio.h>        // for printf, NULL
+#include <string>         // for string
+
+#include "csound.h"       // for csoundGetMessageCnt, csoundGetFirstMessage
+#include "gtest/gtest.h"  // for AssertionResult, Message, TestPartResult
 
 class MessageBufferTests : public ::testing::Test {
 public:

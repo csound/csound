@@ -24,6 +24,9 @@
 #ifndef CSOUND_ENVVAR_H
 #define CSOUND_ENVVAR_H
 
+#include "csound.h"  // for CSOUND
+#include "sysdep.h"  // for MYFLT
+
 #if !defined(__BUILDING_LIBCSOUND)
 #  error "Csound plugins and host applications should not include envvar.h"
 #endif

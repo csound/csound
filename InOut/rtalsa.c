@@ -37,26 +37,35 @@
 #define _BSD_SOURCE 1
 #endif
 
-#include "csdl.h"
+#include <alsa/asoundlib.h>  // for snd_strerror, snd_seq_close, snd_pcm_close
+#include <errno.h>           // for EAGAIN, EPIPE, ESTRPIPE, ENOENT, errno
+#ifdef HAVE_FCNTL_H
+#include <fcntl.h>           // for fcntl, open, O_NDELAY, F_GETFL, F_SETFL
+#endif
+#include <math.h>            // for lrint, llrint
+#include <sched.h>           // for sched_get_priority_max, SCHED_RR, sched_...
+#include <stdint.h>          // for int16_t, int64_t, int32_t, uintptr_t
+#include <stdio.h>           // for NULL, snprintf, fclose, size_t, fgets
+#include <stdlib.h>          // for atoi, exit, strtol
+#include <string.h>          // for memset, strcmp, strcpy, memcpy, strncpy
+#include <sys/resource.h>    // for setpriority, timeval, PRIO_PROCESS
+#ifdef HAVE_SYS_SELECT_H
+#include <sys/select.h>      // for select, FD_SET, FD_ZERO, fd_set
+#endif
+#ifdef HAVE_TERMIOS_H
+#include <termios.h>         // for cfmakeraw, cfsetispeed, tcgetattr, tcset...
+#endif
+#ifdef HAVE_UNISTD_H
+#include <unistd.h>          // for close, sleep, isatty, read, write
+#endif
 
-#include <sys/types.h>
-#include <sys/stat.h>
-#include <sys/time.h>
-#include <unistd.h>
-#include <fcntl.h>
-#include <sys/select.h>
-#include <termios.h>
-#include <errno.h>
-#include <stdio.h>
-#include <alsa/asoundlib.h>
-#include <sched.h>
-#include <unistd.h>
-#include <signal.h>
-#include <sys/mman.h>
-#include <sys/resource.h>
-
-
-#include "soundio.h"
+#include "csdl.h"            // for CSOUND_, Str, IGN, OPARMS, OK, csoundMod...
+#include "csound.h"          // for CSOUND, CS_MIDIDEVICE, CS_AUDIODEVICE
+#include "float-version.h"   // for USE_DOUBLE
+#include "msg_attr.h"        // for CSOUNDMSG_ERROR, CSOUNDMSG_WARNING
+#include "soundfile.h"       // for AE_FLOAT, AE_SHORT, AE_LONG
+#include "sysdep.h"          // for MYFLT, UNLIKELY, FL, LIKELY, int16, strNcpy
+#include "version.h"         // for CS_APISUBVER, CS_APIVERSION
 
 /* Modified from BSD sources for strlcpy */
 /*

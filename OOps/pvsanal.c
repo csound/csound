@@ -26,9 +26,14 @@
    The CARL software distribution is due to be released under the GNU LPGL.
 */
 
-#include <math.h>
-#include "csoundCore.h"
-#include "pstream.h"
+#include <math.h>        // for sin, cos, atan2, fmod, sqrt, exp, fabs, hypot
+#include <stdint.h>      // for int32_t, uint32_t, int64_t
+#include <string.h>      // for memset, NULL, memcpy
+
+#include "csound.h"      // for CSOUND, Str, csoundGetTable
+#include "csoundCore.h"  // for CSOUND_, AUXCH, OK, TWOPI, PI, CS_KSMPS, HALFPI
+#include "pstream.h"     // for CMPLX, PVSANAL, PVSYNTH, PVSDAT, PVS_AMP_FREQ
+#include "sysdep.h"      // for FL, MYFLT, UNLIKELY, MYFLT2LRND, CS_NOINLINE
 
         double  besseli(double x);
 static  void    hamming(MYFLT *win, int32_t winLen, int32_t even);

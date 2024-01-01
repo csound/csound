@@ -34,7 +34,12 @@
 
 */
 
-#include "csoundCore.h"
+#include <stdint.h>      // for int32_t, uint32_t
+#include <string.h>      // for memset, NULL
+
+#include "csound.h"      // for csoundRand31, CSOUND
+#include "csoundCore.h"  // for SUBR, CSOUND_, OK, OPDS, INSDS, TWOPI_F, CS_...
+#include "sysdep.h"      // for FL, MYFLT, UNLIKELY, LOG, SIN, SQRT, int32
 
 typedef struct {
         OPDS    h;

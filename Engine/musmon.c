@@ -22,16 +22,28 @@
   02110-1301 USA
 */
 
-#include "csoundCore.h"         /*                         MUSMON.C     */
-#include "midiops.h"
-#include "soundio.h"
-#include "namedins.h"
-#include "oload.h"
-#include "remote.h"
-#include <math.h>
-#include "corfile.h"
+#include <math.h>        // for fabs, llrint, log10
+#include <stdarg.h>      // for va_end, va_list, va_start
+#include <stdint.h>      // for int64_t, uint64_t, INT32_MAX, uint32_t, uint...
+#include <stdio.h>       // for NULL, fclose, fopen, fputs, getc, EOF, size_t
+#include <stdlib.h>      // for abs
+#include <string.h>      // for memcpy, memset, strlen
 
-#include "csdebug.h"
+#include "corfile.h"     // for corfile_rm, corfile_create_w, corfile_flush
+#include "cscore.h"      // for EVENT, EVLIST
+#include "csdebug.h"     // for csdebug_data_t, CSDEBUG_STATUS_STOPPED
+#include "csound.h"      // for CSOUND, Str, csoundMessageS, CSOUND_SUCCESS
+#include "csoundCore.h"  // for CSOUND_, EVTBLK, OPARMS, EVTNODE, musmonStat...
+#include "cwindow.h"     // for dispexit
+#include "midiops.h"     // for GTEMPO, NOTEON_TYPE
+#include "msg_attr.h"    // for CSOUNDMSG_FG_BOLD, CSOUNDMSG_FG_BLUE, CSOUND...
+#include "namedins.h"    // for named_instr_find
+#include "oload.h"       // for TURNON
+#include "prototyp.h"    // for csoundDie, csoundErrorMsg, csoundNotifyFileO...
+#include "remote.h"      // for insGlobevt, getRemoteInsRfd, insSendevt, get...
+#include "soundfile.h"   // for AE_FLOAT
+#include "soundio.h"     // for IOBUFSAMPS, IODACSAMPS
+#include "sysdep.h"      // for UNLIKELY, MYFLT, FL, uint32, int32, int16
 
 #define SEGAMPS CS_AMPLMSG
 #define SORMSG  CS_RNGEMSG

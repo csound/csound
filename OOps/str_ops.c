@@ -23,12 +23,24 @@
   02110-1301 USA
 */
 
-#include "csoundCore.h"
 #define CSOUND_STR_OPS_C    1
-#include "str_ops.h"
-#include <ctype.h>
+#include "str_ops.h"             // for STRCAT_OP, STRGET_OP, STRUPPER_OP
+
+#include <ctype.h>               // for isdigit, isblank, isalpha, islower
+#include <stdint.h>              // for int32_t, int64_t, uint32_t, uint64_t
+#include <stdio.h>               // for NULL, snprintf, size_t
+#include <string.h>              // for strlen, strcpy, strcat, strcmp, memcpy
+
+#include "csound.h"              // for CSOUND, Str, cs_strtod
+#include "csoundCore.h"          // for STRINGDAT, CSOUND_, OK, OPDS, OPARMS
+#include "csound_type_system.h"  // for CS_TYPE, CS_VAR_TYPE_OFFSET
+#include "msg_attr.h"            // for CSOUNDMSG_ORCH
+#include "prototyp.h"            // for cs_strdup, get_arg_string, check_rta...
+#include "sysdep.h"              // for UNLIKELY, FL, MYFLT, MYFLT2LRND, CS_...
+
 #ifdef HAVE_CURL
 #include <curl/curl.h>
+
 #include "corfile.h"
 #endif
 

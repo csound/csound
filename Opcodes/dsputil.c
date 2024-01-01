@@ -27,9 +27,15 @@
 /* DSP utility functions for Csound - dispfft, pvoc, and convolve */
 /* 20apr90 dpwe                                                   */
 /******************************************************************/
+#include "dsputil.h"
 
-#include "pvoc.h"
-#include <math.h>
+#include <stddef.h>      // for NULL
+#include <stdint.h>      // for int32_t
+
+#include "csound.h"      // for CSOUND
+#include "csoundCore.h"  // for PI_F, CSOUND_, TWOPI_F, PI
+#include "pvoc.h"        // for PVOC_GLOBALS_
+#include "sysdep.h"      // for MYFLT, int32, FL, COS, SIN
 
 /* Do we do the whole buffer, or just indep vals? */
 #define someof(s)       (s)

@@ -21,11 +21,17 @@
     02110-1301 USA
 */
 
+#include <math.h>        // for pow, tanh
+#include <stdint.h>      // for uint32_t, int32_t
+#include <string.h>      // for memset
+
+#include "csound.h"      // for CSOUND
                                                         /* buchla.c */
-#include "csoundCore.h"
+#include "csoundCore.h"  // for SUBR, CSOUND_, OPDS, INSDS, OK, CS_KSMPS
+#include "sysdep.h"      // for MYFLT, FL, UNLIKELY
 #ifdef MSVC
 #define _USE_MATH_DEFINES
-#include <math.h>
+#include <math.h>        // for pow, tanh
 #endif
 
 #define clip(a,b,c) (a<b ? b : a>c ? c : a)

@@ -23,6 +23,9 @@
 
 #if !defined(_SFTYPE_H)
 #define _SFTYPE_H
+
+#include "csoundCore.h"
+
 #ifdef          __GNUC__
 #  ifndef       PACKED
 #    define     PACKED  __attribute__((packed))

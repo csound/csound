@@ -22,8 +22,12 @@
     Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
     02110-1301 USA
 */
+#include <stdint.h>  // for int32_t, uint32_t
+#include <string.h>  // for memset, NULL
 
-#include "../OpcodeBase.hpp"
+#include "csdl.h"    // for IGN, OENTRY, SUBR, OK, OPDS, CSOUND_, INSDS, cso...
+#include "csound.h"  // for CSOUND, PUBLIC
+#include "sysdep.h"  // for MYFLT, EXP, FL, UNLIKELY, POWER
 
 #define max(x, y) (((x) > (y)) ? (x) : (y))
 #define min(x, y) (((x) < (y)) ? (x) : (y))

@@ -25,6 +25,11 @@
 
 #pragma once
 
+#include <stdint.h>      // for int32_t
+
+#include "csoundCore.h"  // for OPDS
+#include "sysdep.h"      // for MYFLT
+
 #define CL_LIM 40  /* The limit on the number of biquadratic sections */
 
                                 /* Structure for biquadratic filter */

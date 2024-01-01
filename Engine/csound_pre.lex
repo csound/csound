@@ -23,13 +23,18 @@
     02110-1301 USA
 */
 
-#include <stdio.h>
-#include <string.h>
-#include <stdlib.h>
-#include <ctype.h>
-#include "csoundCore.h"
-#include "corfile.h"
-#include <inttypes.h>
+#include <ctype.h>        // for isspace, isalpha, isblank, isdigit, islower
+#include <inttypes.h>     // IWYU pragma: keep
+#include <sys/stat.h>     // for stat, S_ISDIR
+
+#include "corfile.h"      // for corfile_puts, corfile_putc, copy_to_corefile
+#include "csound.h"       // for CSOUND, Str
+#include "csoundCore.h"   // for CSOUND_, MACRO, MACRON, CORFIL, MARGS, NAMES
+#include "prototyp.h"     // for mfree
+#include "sysdep.h"       // for UNLIKELY, DIRSEP, LIKELY
+
+struct yyguts_t;
+
 #define YY_DECL int yylex (CSOUND *csound, yyscan_t yyscanner)
 static void comment(yyscan_t);
 static void do_comment(yyscan_t);

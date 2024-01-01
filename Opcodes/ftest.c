@@ -22,9 +22,13 @@
     02110-1301 USA
 */
 
+#include <stddef.h>      // for NULL
+#include <stdint.h>      // for int32_t, uint32_t
+
+#include "csound.h"      // for CSOUND, Str
 //#include "csdl.h"
-#include "csoundCore.h"
-#include <math.h>
+#include "csoundCore.h"  // for FUNC, FGDATA, EVTBLK, CSOUND_, OK, FLINKAGE_...
+#include "sysdep.h"      // for MYFLT, FL, POWER, EXP, LOG2, TANH, UNLIKELY
 
 static int32_t tanhtable(FGDATA *ff, FUNC *ftp)
 {

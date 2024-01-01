@@ -24,8 +24,13 @@
     02110-1301 USA
 */
 
-#include <csdl.h>
-#include <math.h>
+#include <csdl.h>        // for SUBR, FUNC, CSOUND_, OENTRY, OPDS, INSDS, NOTOK
+#include <stdint.h>      // for int32_t, uint32_t
+#include <string.h>      // for NULL, memset
+
+#include "csound.h"      // for CSOUND
+#include "interlocks.h"  // for TR
+#include "sysdep.h"      // for MYFLT, SIN, COS, UNLIKELY, FLOOR
 
 /*  Wave-terrain synthesis opcode
  *

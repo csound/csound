@@ -21,9 +21,13 @@
     02110-1301 USA
 */
 
-#include "stdopcod.h"
 #include "dam.h"
-#include <math.h>
+
+#include <stdint.h>    // for int32_t, uint32_t
+#include <string.h>    // for memset
+
+#include "csound.h"    // for CSOUND
+#include "stdopcod.h"  // for dam_init_
 
 
 /*

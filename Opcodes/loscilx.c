@@ -21,10 +21,19 @@
     02110-1301 USA
 */
 
+#include <math.h>           // for sin, llrint, cos
+#include <stdint.h>         // for int32_t, int_least64_t, uint32_t, int64_t
+#include <string.h>         // for NULL, memset
+
+#include "arrays.h"         // for tabinit
+#include "csound.h"         // for CSOUND, Str
 // #include "csdl.h"
-#include "csoundCore.h"
-#include "interlocks.h"
-#include "soundio.h"
+#include "csoundCore.h"     // for SNDMEMFILE, SUBR, CSOUND_, FUNC, CS_ESR
+#include "float-version.h"  // for USE_DOUBLE
+#include "interlocks.h"     // for TR, _QQ
+#include "prototyp.h"       // for get_arg_string
+#include "soundfile.h"      // for SFLIB_INFO, FORMAT2SF, AE_24INT, AE_ALAW
+#include "sysdep.h"         // for MYFLT, FL, int32, UNLIKELY, MYFLT2LRND
 
 typedef struct SNDLOAD_OPCODE_ {
     OPDS    h;
@@ -352,8 +361,6 @@ static int32_t loscilx_opcode_init(CSOUND *csound, LOSCILX_OPCODE *p)
 
     return OK;
 }
-
-#include "arrays.h"
 
 static int32_t loscilxa_opcode_init(CSOUND *csound, LOSCILXA_OPCODE *p)
 {

@@ -25,6 +25,8 @@
 #ifndef CSOUND_CSMODULE_H
 #define CSOUND_CSMODULE_H
 
+#include "csoundCore.h"
+
 /******************************************************************************
  * NEW PLUGIN INTERFACE                                                       *
  * ====================                                                       *
@@ -71,6 +73,8 @@
  *   (int) sizeof(MYFLT)                                MYFLT type            *
  *                                                                            *
  ******************************************************************************/
+
+#include "csoundCore.h"
 
 #ifdef __cplusplus
 extern "C" {

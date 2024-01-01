@@ -23,30 +23,44 @@
 */
 
 /*                      BUS.C           */
-#include "csoundCore.h"
-#include <setjmp.h>
-#include <ctype.h>
-#include <string.h>
-#include <stdio.h>
+#include "bus.h"                     // for CHNGET, CHNGETARRAY, CHNENTRY
 
-#if defined(NACL) || defined(__wasi__)
-#include <sys/select.h>
+#include <math.h>                    // for lrint
+#include <stdint.h>                  // for int32_t, uint32_t, int64_t
+#include <stdio.h>                   // for NULL, snprintf, perror, size_t
+#include <stdlib.h>                  // for qsort
+#include <string.h>                  // for memset, memcpy, strlen, strcmp
+#ifdef HAVE_SYS_SELECT_H
+#ifdef HAVE_SYS_SELECT_H
+#include <sys/select.h>              // for select, timeval, FD_SET, FD_ZERO
+#endif
+#endif              // for select, timeval, FD_SET, FD_ZERO
+#ifdef HAVE_TERMIOS_H
+#include <termios.h>                 // for tcgetattr, tcsetattr, termios
+#endif
+#ifdef HAVE_UNISTD_H
+#include <unistd.h>                  // for read
 #endif
 
-#include "bus.h"
-#include "namedins.h"
+#include "arrays.h"                  // for tabinit
+#include "csound.h"                  // for CSOUND, controlChannelHints_t
+#include "csoundCore.h"              // for STRINGDAT, CSOUND_, OK, ARRAYDAT
+#include "csound_data_structures.h"  // for CONS_CELL, cs_hash_table_values
+#include "csound_standard_types.h"   // for CS_VAR_TYPE_K, CS_VAR_TYPE_S
+#include "csound_type_system.h"      // for CS_TYPE
+#include "float-version.h"           // for USE_DOUBLE
+#include "prototyp.h"                // for cs_strdup
+#include "pstream.h"                 // for PVSDAT
+#include "sysdep.h"                  // for MYFLT, UNLIKELY, spin_lock_t
+
+#if defined(NACL) || defined(__wasi__)
+#ifdef HAVE_SYS_SELECT_H
+#include <sys/select.h>              // for select, timeval, FD_SET, FD_ZERO
+#endif              // for select, timeval, FD_SET, FD_ZERO
+#endif
 
 /* For sensing opcodes */
 #if defined(__unix) || defined(__unix__) || defined(__MACH__)
-#  ifdef HAVE_SYS_TIME_H
-#    include <sys/time.h>
-#  endif
-#  ifdef HAVE_SYS_TYPES_H
-#    include <sys/types.h>
-#  endif
-#  ifdef HAVE_TERMIOS_H
-#    include <termios.h>
-#  endif
 #elif defined(WIN32)
 #  include <conio.h>
 #endif

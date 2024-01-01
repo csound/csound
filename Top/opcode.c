@@ -29,9 +29,16 @@
                                 /*  4 april 02 -- ma++ */
                                 /*  restructure to retrieve externally  */
                                 /* And suppressing deprecated Oct 2015 -- JPff */
-#include "csoundCore.h"
-#include <ctype.h>
-#include "interlocks.h"
+#include <ctype.h>                   // for isalpha
+#include <stdlib.h>                  // for NULL, size_t, qsort
+#include <string.h>                  // for strlen, strcmp, strcpy
+
+#include "csound.h"                  // for opcodeListEntry, CSOUND, PUBLIC
+#include "csoundCore.h"              // for OENTRY, CSOUND_
+#include "csound_data_structures.h"  // for CONS_CELL, cs_cons_free, cs_hash...
+#include "interlocks.h"              // for _QQ
+#include "prototyp.h"                // for list_opcodes
+#include "sysdep.h"                  // for UNLIKELY
 
 static int opcode_cmp_func(const void *a, const void *b)
 {

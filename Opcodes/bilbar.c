@@ -21,9 +21,14 @@
     02110-1301 USA
 */
 
+#include <math.h>        // for cos, sin, fabs, pow, hypot, sqrt
+#include <stdint.h>      // for int32_t, uint32_t
+#include <string.h>      // for memset, NULL, size_t
+
+#include "csound.h"      // for CSOUND, Str
 //#include "csdl.h"
-#include "csoundCore.h"
-#include <math.h>
+#include "csoundCore.h"  // for TWOPI, SUBR, CSOUND_, AUXCH, CS_ESR, OPDS, FUNC
+#include "sysdep.h"      // for MYFLT, FL, UNLIKELY, MYFLT2LONG, FABS
 
 /* %% bar sound synthesis translated from Mathlab and much changed */
 

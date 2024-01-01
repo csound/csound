@@ -19,11 +19,16 @@
   Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
   02110-1301 USA
 */
-#include <algorithm>
-#include <cmath>
-#include <functional>
-#include <numeric>
-#include <plugin.h>
+#include <modload.h>   // for on_load
+#include <algorithm>   // for copy, transform, sort
+#include <cmath>       // for fmax, fmin, fmod, log, log10, pow, acos, asin
+#include <functional>  // for greater, less, multiplies, plus
+#include <numeric>     // for inner_product, accumulate
+
+#include "csdl.h"      // for OK
+#include "csound.h"    // for Str_noop
+#include "plugin.h"    // for plugin, Param, thread, myfltvec, i, ik, Plugin, k
+#include "sysdep.h"    // for MYFLT, FL, UNLIKELY
 
 
 inline MYFLT logb(MYFLT a, MYFLT b) {
@@ -207,8 +212,6 @@ template <typename T, int I> struct Accum : csnd::Plugin<1, 1> {
   }
 };
 
-
-#include <modload.h>
 void csnd::on_load(Csound *csound) {
   csnd::plugin<ArrayOp<lim1>>(csound, "limit1", "i[]", "i[]", csnd::thread::i);
   csnd::plugin<ArrayOp<lim1>>(csound, "limit1", "k[]", "k[]", csnd::thread::ik);

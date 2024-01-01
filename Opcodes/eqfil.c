@@ -21,9 +21,14 @@
     02110-1301 USA
 */
 
+#include <math.h>        // for cos, tan
+#include <stdint.h>      // for int32_t, uint32_t
+#include <string.h>      // for memset
+
+#include "csound.h"      // for CSOUND
 // #include "csdl.h"
-#include "csoundCore.h"
-#include "interlocks.h"
+#include "csoundCore.h"  // for SUBR, PI, OPDS, CS_ESR, INSDS, OK, CS_KSMPS
+#include "sysdep.h"      // for MYFLT, UNLIKELY
 
 typedef struct _equ {
   OPDS h;

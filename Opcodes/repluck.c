@@ -28,8 +28,12 @@
 *   3 March 1996 John ffitch                                   *
 \***************************************************************/
 
-#include "stdopcod.h"
 #include "repluck.h"
+
+#include <string.h>    // for memset, NULL
+
+#include "csound.h"    // for CSOUND, Str
+#include "stdopcod.h"  // for repluck_init_
 
 static int32_t wgpsetin(CSOUND *, WGPLUCK2 *);
 

@@ -21,11 +21,23 @@
   02110-1301 USA
 */
 
+#include <math.h>        // for pow
+#include <stdint.h>      // for int32_t, uint32_t, uint8_t, int64_t
+#include <stdio.h>       // for NULL, printf
+#include <string.h>      // for memset, memcpy, strcmp, strcat, strcpy
+#ifdef HAVE_UNISTD_H
+#include <unistd.h>      // for close
+#endif
+
 /* mp3in.c */
 /* #include "csdl.h" */
-#include "csoundCore.h"
-#include "interlocks.h"
-#include "mp3dec.h"
+#include "csound.h"      // for CSOUND, Str, CSFTYPE_OTHER_BINARY
+#include "csoundCore.h"  // for AUXCH, SUBR, CSOUND_, OK, OPDS, CS_ESR, STRI...
+#include "interlocks.h"  // for _QQ
+#include "mp3dec.h"      // for mp3dec_uninit, mp3dec_error, MP3DEC_RETCODE_OK
+#include "mpadec.h"      // for mpadec_info_t, TRUE, mpadec_config_t, FALSE
+#include "prototyp.h"    // for get_arg_string
+#include "sysdep.h"      // for MYFLT, UNLIKELY, FL, strNcpy, HYPOT, COS
 
 
 typedef struct {

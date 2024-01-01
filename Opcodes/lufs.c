@@ -22,8 +22,13 @@
     02110-1301 USA
 */
 
-#include "csoundCore.h"
-#include <math.h>
+#include <math.h>        // for log10
+#include <stdint.h>      // for int32_t, uint32_t
+#include <string.h>      // for memset
+
+#include "csound.h"      // for CSOUND
+#include "csoundCore.h"  // for SUBR, CSOUND_, OK, OPDS, PI, CS_KSMPS, INSDS
+#include "sysdep.h"      // for MYFLT, LOG10, POWER, TAN, FLOOR
 
 typedef struct filter_ {
         MYFLT x1, x2;

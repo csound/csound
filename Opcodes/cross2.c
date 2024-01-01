@@ -21,11 +21,16 @@
     02110-1301 USA
 */
 
-#include "stdopcod.h"
-#include "ptrigtbl.h"
-#include "fhtfun.h"
-#include "interlocks.h"
-#include <math.h>
+#include <stdint.h>      // for int32_t, uint32_t
+#include <string.h>      // for memset, NULL, size_t
+
+#include "csdl.h"        // for SUBR, AUXCH, CSOUND_, ROOT2, FUNC, OENTRY
+#include "csound.h"      // for CSOUND
+#include "fhtfun.h"      // for CON, do_fht, do_ifht, getmag, lineaprox, mult
+#include "interlocks.h"  // for TR
+#include "ptrigtbl.h"    // for TRIG_INIT, TRIG_NEXT, TRIG_VARS
+#include "stdopcod.h"    // for cross2_init_
+#include "sysdep.h"      // for MYFLT, int32, FL, UNLIKELY, FABS, HYPOT, LIKELY
 
 #define CH_THRESH       1.19209e-7
 #define CHOP(a) (a < CH_THRESH ? CH_THRESH : a)

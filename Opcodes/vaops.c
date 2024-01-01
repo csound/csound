@@ -21,8 +21,13 @@
     02110-1301 USA
 */
 
-#include "csoundCore.h"
-#include "interlocks.h"
+#include <stddef.h>      // for NULL
+#include <stdint.h>      // for uint32_t, int32_t
+
+#include "csound.h"      // for CSOUND, Str
+#include "csoundCore.h"  // for SUBR, OPDS, INSDS, CSOUND_, CS_KSMPS, OK
+#include "interlocks.h"  // for WI
+#include "sysdep.h"      // for int32, FL, MYFLT, UNLIKELY
 
 #define MYFLOOR(x) (x >= FL(0.0) ? (int32)x : (int32)((double)x - 0.99999999))
 

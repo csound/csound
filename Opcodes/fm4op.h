@@ -39,7 +39,9 @@
 #if !defined(__FM4OP_h)
 #define __FM4OP_h
 
-#include "physutil.h"
+#include "csoundCore.h"  // for FUNC, OPDS
+#include "physutil.h"    // for ADSR
+#include "sysdep.h"      // for MYFLT
 
 /*******************************************/
 /*  Two Zero Filter Class,                 */

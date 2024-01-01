@@ -24,6 +24,12 @@
 #ifndef _CONVOLVE_H_
 #define _CONVOLVE_H_
 
+#ifdef __BUILDING_LIBCSOUND
+#include "csoundCore.h"
+#else
+#include "csdl.h"
+#endif
+
 #define CONVOLVE_VERSION_STRING "CONVOLVE VERSION: V1.1\n"
 
 #ifndef NULL

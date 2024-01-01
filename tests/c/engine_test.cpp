@@ -1,7 +1,7 @@
-#include "csound.h"
-#include <stdio.h>
-#include "gtest/gtest.h"
-#include "time.h"
+#include <unistd.h>       // for sleep
+
+#include "csound.h"       // for csoundSetOption, csoundCleanup, csoundCreate
+#include "gtest/gtest.h"  // for TEST_F, Test
 
 class EngineTests : public ::testing::Test {
 public:

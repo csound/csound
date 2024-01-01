@@ -21,13 +21,15 @@
     02110-1301 USA
  */
 
-#include <stdlib.h>
-//#include <unistd.h>
-#include "csdl.h"
-#include <math.h>
-#include "csoundCore.h"
-#include <string.h>
-#include <new>
+#include <stdint.h>  // for int32_t, uint32_t
+#include <stdlib.h>  // for NULL
+#include <string.h>  // for memset, strncpy
+#include <cmath>     // for sqrt, tan
+#include <new>       // for operator new
+
+#include "csdl.h"    // for AUXCH, CSOUND_, Str, ARRAYDAT, STRINGDAT, SUBR
+#include "csound.h"  // for CSOUND, CSFTYPE_FLOATS_BINARY
+#include "sysdep.h"  // for MYFLT, FL, FABS, UNLIKELY, COS, SIN, SQRT
 
 
 /* Band-splitting constants */

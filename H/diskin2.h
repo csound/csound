@@ -24,7 +24,11 @@
 #ifndef CSOUND_DISKIN2_H
 #define CSOUND_DISKIN2_H
 
-#include "soundio.h"
+#include <stdint.h>      // for int32_t, int64_t, int_least64_t
+
+#include "csound.h"      // for CSOUND
+#include "csoundCore.h"  // for AUXCH, OPDS, FDCH, ARRAYDAT
+#include "sysdep.h"      // for MYFLT, int32
 
 #define DISKIN2_MAXCHN  40              /* for consistency with soundin   */
 #define POS_FRAC_SHIFT  28              /* allows pitch accuracy of 2^-28 */

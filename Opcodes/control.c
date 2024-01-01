@@ -21,15 +21,23 @@
     02110-1301 USA
 */
 
-#include "csdl.h"
 #include "control.h"
 
-#include <sys/time.h>
-#include <sys/types.h>
-#include <signal.h>
+#include <signal.h>      // for kill, signal, SIGINT, SIG_IGN
+#include <stdlib.h>      // for exit
+#ifdef HAVE_SYS_SELECT_H
+#include <sys/select.h>  // for timeval, select, FD_SET, FD_ZERO, fd_set
+#endif
+#ifdef HAVE_UNISTD_H
+#include <unistd.h>      // for close, dup2, pipe, execvp, fork
+#endif
+
+#include "csdl.h"        // for SUBR, CSOUND_, OK, STRINGDAT, Str, LINKAGE_B...
 
 #if defined(__MACH__)
-#include <unistd.h>
+#ifdef HAVE_UNISTD_H
+#include <unistd.h>      // for close, dup2, pipe, execvp, fork
+#endif
 #endif
 
 static CS_NOINLINE CONTROL_GLOBALS *get_globals_(CSOUND *csound)

@@ -27,14 +27,15 @@ assisting functions for VBAP
 functions for loudspeaker table initialization
 Re-written to take flexible number of outputs by JPff 2012 */
 
-
-#include "csoundCore.h"
-#include "interlocks.h"
 #include "vbap.h"
-#include <math.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include "interlocks.h"
+
+#include <math.h>        // for cos, round, sin, sqrt
+#include <stdio.h>       // for NULL, snprintf, size_t
+#include <stdlib.h>      // for free, malloc, calloc
+#include <string.h>      // for memset
+
+#include "csoundCore.h"  // for SUBR, CSOUND_, PI_F, TWOPI_F, ARRAYDAT, IGN
+#include "interlocks.h"  // for TR, _QQ, ZW
 
 #define MATSIZE (4)
 #define ATORAD  (TWOPI_F / FL(360.0))

@@ -23,9 +23,8 @@
 
 #pragma once
 
-#include <stdio.h>                                 /*      SORT.H */
 #ifndef MYFLT
-#include "sysdep.h"
+#include "sysdep.h"  // for MYFLT, int16
 #endif
 #define SP ' '
 #define LF '\n'

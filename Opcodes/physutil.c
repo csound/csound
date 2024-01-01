@@ -25,10 +25,10 @@
    opcodes, in no particular order
 */
 
-// #include "csdl.h"
-#include "csoundCore.h"
-#include <stdlib.h>
 #include "physutil.h"
+
+// #include "csdl.h"
+#include "csoundCore.h"  // for CSOUND_, CS_ESR, AUXCH
 
 /*******************************************/
 /*  Noise Generator Class,                 */

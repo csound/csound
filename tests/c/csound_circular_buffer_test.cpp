@@ -5,8 +5,10 @@
  * Created on June 7, 2012, 4:03 PM
  */
 
-#include "csound.h"
-#include "gtest/gtest.h"
+#include <string>         // for string
+
+#include "csound.h"       // for csoundWriteCircularBuffer, csoundReadCircul...
+#include "gtest/gtest.h"  // for Message, TestPartResult, ASSERT_EQ, Asserti...
 
 class CircularBufferTests : public ::testing::Test {
 public:

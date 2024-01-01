@@ -24,8 +24,11 @@
 
 #pragma once
 
-#include "sftype.h"
-#include "sf.h"
+#include <stdint.h>      // for int32_t
+
+#include "csoundCore.h"  // for OPDS, STRINGDAT
+#include "sftype.h"      // for DWORD, SHORT
+#include "sysdep.h"      // for MYFLT
 
 typedef struct {
         OPDS    h;

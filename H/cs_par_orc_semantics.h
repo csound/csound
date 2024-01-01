@@ -24,6 +24,13 @@
 #ifndef __CSOUND_ORC_SEMANTIC_ANALYSIS_H__
 #define __CSOUND_ORC_SEMANTIC_ANALYSIS_H__
 
+#include <stddef.h>       // for NULL
+#include <stdint.h>       // for uint32_t
+
+#include "cs_par_base.h"  // for set_t (ptr only), HDR_LEN
+#include "csound.h"       // for CSOUND, TREE, ORCTOKEN
+#include "sysdep.h"       // for int32, int16
+
 #ifdef PARCS
 /*
  * This module maintains a list of instruments that have been parsed

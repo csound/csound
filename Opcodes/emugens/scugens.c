@@ -22,8 +22,14 @@
     02110-1301 USA
 */
 
-#include <math.h>
-#include "emugens_common.h"
+#include <math.h>            // for exp, fabs
+#include <stdint.h>          // for uint32_t, int32_t, int64_t, uint64_t
+#include <string.h>          // for memset
+
+#include "csound.h"          // for CSOUND
+#include "csoundCore.h"      // for SUBR, OK, OPDS, IGN, INSDS, CSOUND_, CS_...
+#include "emugens_common.h"  // for em_isinfornan, em_isnan, PERFERRF, PERFERR
+#include "sysdep.h"          // for MYFLT, FL, UNLIKELY, LIKELY, FLOOR
 
 #define LOG001 FL(-6.907755278982137)
 #define CALCSLOPE(next,prev,nsmps) ((next - prev)/nsmps)

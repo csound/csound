@@ -20,12 +20,24 @@
     Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
     02110-1301 USA
 */
-#include "csoundCore.h"         /*                      ARGDECODE.C     */
-#include "soundio.h"
-#include "new_opts.h"
-#include "csmodule.h"
-#include "corfile.h"
-#include <ctype.h>
+#include <ctype.h>       // for isdigit
+#include <sndfile.h>     // for SF_BITRATE_MODE_VARIABLE
+#include <stdarg.h>      // for va_end, va_list, va_start
+#include <stdio.h>       // for NULL, sscanf, snprintf, size_t, FILE
+#include <stdlib.h>      // for atoi, atof
+#include <string.h>      // for strcmp, strncmp, strlen, strcpy, strchr, strcat
+
+#include "corfile.h"     // for copy_to_corefile, corfile_rm
+#include "csmodule.h"    // for csoundInitModules
+#include "csound.h"      // for Str_noop, CSOUND, CSOUND_PARAMS, Str, CS_AUD...
+#include "csoundCore.h"  // for OPARMS, CSOUND_, NAMES, CS_STATE_COMP, CS_AM...
+#include "envvar.h"      // for csoundParseEnv
+#include "msg_attr.h"    // for CSOUNDMSG_STDOUT
+#include "new_opts.h"    // for dump_cfg_variables, parse_option_as_cfgvar
+#include "prototyp.h"    // for csoundLoadExternals, cs_strdup, csoundDie
+#include "soundfile.h"   // for AE_FLOAT, AE_VORBIS, TYP_AIFF, TYP_IRCAM
+#include "soundio.h"     // for IOBUFSAMPS, IODACSAMPS
+#include "sysdep.h"      // for UNLIKELY, FL, CS_NORETURN, LIKELY
 
 static void list_audio_devices(CSOUND *csound, int output);
 static void list_midi_devices(CSOUND *csound, int output);

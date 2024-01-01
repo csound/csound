@@ -22,7 +22,12 @@
 */
 
 
-#include "csoundCore.h"
+#include <stdint.h>      // for int32_t
+#include <stdlib.h>      // for exit, system
+
+#include "csound.h"      // for CSOUND
+#include "csoundCore.h"  // for SUBR, OK, STRINGDAT, IGN, LINKAGE_BUILTIN
+#include "sysdep.h"      // for MYFLT, FL, UNLIKELY
 
 typedef struct {
   OPDS  h;
@@ -61,7 +66,9 @@ static int32_t call_system(CSOUND *csound, SYSTEM *p)
 }
 
 #else
-#include <unistd.h>
+#ifdef HAVE_UNISTD_H
+#include <unistd.h>      // for fork
+#endif
 
 #ifdef __APPLE__  
 #include <TargetConditionals.h>

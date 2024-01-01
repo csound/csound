@@ -25,11 +25,21 @@
 /* sndinfUG.c         -matt 7/25/99
              ugens to retrieve info about a sound file */
 
-#include "csoundCore.h"
-#include "soundio.h"
-#include "sndinfUG.h"
-#include "pvfileio.h"
-#include "convolve.h"
+#include "sndinfUG.h"    // for SNDINFO, FILEVALID, SNDINFOPEAK
+
+#include <sndfile.h>     // for sf_count_t, SFM_READ, SNDFILE, SFC_CALC_NORM...
+#include <stdint.h>      // for int32_t
+#include <stdio.h>       // for NULL, fclose, fopen, fread, FILE, size_t
+#include <string.h>      // for memset, strcmp, memcpy
+
+#include "convolve.h"    // for CVSTRUCT, CVMAGIC, CVMYFLT, CVRECT
+#include "csound.h"      // for CSOUND, Str, CSFTYPE_UNKNOWN, CSFTYPE_PVCEX
+#include "csoundCore.h"  // for CSOUND_, OK, OPARMS, STRINGDAT, ALLCHNLS
+#include "envvar.h"      // for csoundFindInputFile
+#include "prototyp.h"    // for get_arg_string, csoundNotifyFileOpened, sfty...
+#include "pvfileio.h"    // for WAVEFORMATEX, PVOCDATA
+#include "soundfile.h"   // for SFLIB_INFO, sflib_command, sflib_open, TYPE2ENC
+#include "sysdep.h"      // for strNcpy, MYFLT, UNLIKELY, FL, LIKELY
 
 static int32_t getsndinfo(CSOUND *csound, SNDINFO *p, SFLIB_INFO *hdr, int32_t strin)
 {

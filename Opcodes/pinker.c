@@ -29,7 +29,11 @@
     02110-1301 USA
 */
 
-#include "csoundCore.h"       /*                              PINKER.C         */
+#include <stdint.h>      // for uint32_t
+
+#include "csound.h"      // for CSOUND
+#include "csoundCore.h"  // for SUBR, OPDS, CSOUND_, INSDS, OK, IGN, LINKAGE...
+#include "sysdep.h"      // for FL, int32, MYFLT, UNLIKELY
 
 typedef struct {
   OPDS h;

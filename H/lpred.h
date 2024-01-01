@@ -34,7 +34,12 @@
 extern "C" {
 #endif
 
-#include "pstream.h"
+#include <stdint.h>      // for int32_t, uint32_t
+
+#include "csound.h"      // for CSOUND
+#include "csoundCore.h"  // for AUXCH, OPDS, ARRAYDAT, FUNC
+#include "pstream.h"     // for PVSDAT
+#include "sysdep.h"      // for MYFLT
 
   typedef struct _mycmplx {
     MYFLT re; MYFLT im;

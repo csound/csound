@@ -21,8 +21,13 @@
     02110-1301 USA
 */
 
-#include "csoundCore.h"       /*                              COUNTER.C         */
-#include "interlocks.h"
+#include <stddef.h>      // for NULL
+#include <stdint.h>      // for int32_t
+
+#include "csound.h"      // for CSOUND, Str
+#include "csoundCore.h"  // for SUBR, OK, CSOUND_, NOTOK, OPDS, LINKAGE_BUILTIN
+#include "interlocks.h"  // for SK
+#include "sysdep.h"      // for MYFLT, UNLIKELY, FL
 
 /* Structure of a counter */
 typedef struct {

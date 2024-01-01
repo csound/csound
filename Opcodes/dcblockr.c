@@ -31,8 +31,13 @@
 /*  structures.                            */
 /*******************************************/
 
-#include "stdopcod.h"
 #include "dcblockr.h"
+
+#include <stdint.h>    // for int32_t, uint32_t
+#include <string.h>    // for memset, NULL
+
+#include "csound.h"    // for CSOUND
+#include "stdopcod.h"  // for dcblockr_init_
 
 static int32_t dcblockrset(CSOUND *csound, DCBlocker* p)
 {

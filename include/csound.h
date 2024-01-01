@@ -311,16 +311,19 @@
 #endif
   %module csnd6
   %{
-#  include "sysdep.h"
-#  include "text.h"
 #  include <stdarg.h>
-#  include <stdio.h>
+#  include <stdio.h>   // for FILE, size_t, va_list
+
+#  include "sysdep.h"  // for MYFLT, int32, spin_lock_t, CS_PRINTF2, CS_PRINTF3
+#  include "text.h"    // for cslanguage_t
+
       %}
 #else
-#  include "sysdep.h"
-#  include "text.h"
-#  include <stdarg.h>
-#  include <stdio.h>
+#  include <stdint.h>  // for uint32_t, uintptr_t, int_least64_t, int64_t, uin...
+#  include <stdio.h>   // for FILE, size_t, va_list
+
+#  include "sysdep.h"  // for MYFLT, int32, spin_lock_t, CS_PRINTF2, CS_PRINTF3
+#  include "text.h"    // for cslanguage_t
 #endif
 
 #ifdef __cplusplus
@@ -2495,10 +2498,6 @@ extern "C" {
 
   /* typedefs, macros, and interface functions for configuration variables */
 #include "cfgvar.h"
-  /* message attribute definitions for csoundMessageS() and csoundMessageV() */
-#include "msg_attr.h"
-  /* macro definitions for Csound release, and API version */
-#include "version.h"
 
   /**
    * Create circular buffer with numelem number of elements. The

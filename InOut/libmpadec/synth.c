@@ -19,7 +19,12 @@
 
 /* $Id: synth.c,v 1.3 2004/08/03 05:22:22 metal_man Exp $ */
 
-#include "mpadec_internal.h"
+#include <math.h>             // for floor
+#include <stdint.h>           // for uint8_t, int8_t, int32_t, int16_t, int64_t
+
+#include "mpadec.h"           // for mpadec_t
+#include "mpadec_internal.h"  // for SBLIMIT, mpadec_t, mpadec_tables_t
+#include "sysdep.h"           // for MYFLT, int32
 
 #define ROUND(x) (floor((x) + 0.5))
 #define LROUND(x) ((int32_t)(ROUND(x)))

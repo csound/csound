@@ -37,8 +37,17 @@ imaxtracks - max number of tracks (<= number of analysis bins)
 
 */
 
-#include "pvs_ops.h"
-#include "pstream.h"
+#include <math.h>        // for atan2, exp, log, logf
+#include <stdint.h>      // for int32_t, uint32_t, uint64_t
+#include <stdio.h>       // for NULL, fprintf, FILE
+#include <string.h>      // for memset
+
+#include "csound.h"      // for CSOUND, Str, CSFTYPE_FLOATS_TEXT
+#include "csoundCore.h"  // for AUXCH, CSOUND_, SUBR, FDCH, OK, OENTRY, STRI...
+#include "prototyp.h"    // for csound_fd_close
+#include "pstream.h"     // for PVSDAT, PVS_AMP_FREQ, PVS_AMP_PHASE, PVS_TRACKS
+#include "pvs_ops.h"     // for partials_init_
+#include "sysdep.h"      // for uint32, MYFLT, UNLIKELY, COS, SIN, FL, LOG10
 
 typedef struct _parts {
     OPDS    h;

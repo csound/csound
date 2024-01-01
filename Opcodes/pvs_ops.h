@@ -24,10 +24,10 @@
 #ifndef CSOUND_PVS_OPS_H
 #define CSOUND_PVS_OPS_H
 
-/* #include "csdl.h" */
-#include "csoundCore.h"
+#include <stdint.h>  // for int32_t
 
-#include "interlocks.h"
+/* #include "csdl.h" */
+#include "csound.h"  // for CSOUND
 
 
 extern int32_t ifd_init_(CSOUND *);

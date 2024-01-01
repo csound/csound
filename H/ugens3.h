@@ -25,6 +25,9 @@
 
 #pragma once
 
+#include "csoundCore.h"  // for OPDS, FUNC, AUXCH, MEMFIL
+#include "sysdep.h"      // for int16, MYFLT, int32
+
 typedef struct {
         OPDS    h;
         MYFLT   *rslt, *xamp, *kcps, *xcar, *xmod, *kndx, *ifn, *iphs;

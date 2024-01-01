@@ -29,12 +29,16 @@
 */
 
 
-#include "csoundCore.h"
-#include "vbap.h"
-#include <math.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include "zak.h"
+#include <math.h>        // for fabs, sqrt
+#include <stdint.h>      // for int32_t, uint32_t
+#include <stdio.h>       // for NULL, snprintf
+#include <stdlib.h>      // for abs
+#include <string.h>      // for memset, strcpy
+
+#include "csound.h"      // for CSOUND, Str
+#include "csoundCore.h"  // for CSOUND_, AUXCH, OK, CS_KSMPS, INSDS, OPDS
+#include "sysdep.h"      // for FL, MYFLT, UNLIKELY, int32, MYFLT2LONG, SQRT
+#include "vbap.h"        // for VBAP_ZAK_MOVING, VBAP_ZAK, CART_VEC, vec_mean
 
 int32_t vbap_zak_moving_control(CSOUND *, VBAP_ZAK_MOVING *);
 int32_t vbap_zak_control(CSOUND *,VBAP_ZAK *);

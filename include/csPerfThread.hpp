@@ -24,13 +24,18 @@
 #ifndef CSOUND_CSPERFTHREAD_HPP
 #define CSOUND_CSPERFTHREAD_HPP
 
+#include <emmintrin.h>  // for _MM_DENORMALS_ZERO_ON
+
+#include "csound.h"     // for CSOUND, PUBLIC
+#include "sysdep.h"     // for MYFLT
+
+class Csound;
 class CsoundPerformanceThreadMessage;
-class CsPerfThread_PerformScore;
 
 #ifdef SWIG
 %include <std_string.i>
 #else
-#include <string>
+#include <string>       // for string
 #endif
 
 /**
@@ -80,7 +85,6 @@ int main(int argc, char *argv[])
 */
 
 #ifdef __SSE__
-  #include <xmmintrin.h>
 #ifndef _MM_DENORMALS_ZERO_ON
   #define _MM_DENORMALS_ZERO_MASK   0x0040
   #define _MM_DENORMALS_ZERO_ON     0x0040

@@ -28,15 +28,18 @@
 /* John ffitch 1995 Jun 25                                           */
 /* ***************************************************************** */
 
-#include "std_util.h"
-#include <stdio.h>
-#include <stdarg.h>
-#include <stdlib.h>
+#include <math.h>      // for floor
+#include <stdint.h>    // for int32_t, uint32_t
+#include <stdio.h>     // for fclose, fread, fopen, fprintf, putc, NULL, FILE
+
+#include "csdl.h"      // for CSOUND_, Str
+#include "csound.h"    // for CSOUND
+#include "std_util.h"  // for lpc_export_init_
+#include "sysdep.h"    // for UNLIKELY, MYFLT
 #ifndef MYFLT
-#include "sysdep.h"
+#include "sysdep.h"    // for UNLIKELY, MYFLT
 #endif
-#include "lpc.h"
-#include "text.h"
+#include "lpc.h"       // for LPHEADER, LP_MAGIC, LP_MAGIC2
 
 void lpc_export_usage(CSOUND *csound)
 {

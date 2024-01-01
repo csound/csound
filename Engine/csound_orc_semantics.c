@@ -22,19 +22,26 @@
   02110-1301 USA
 */
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <ctype.h>
-//#include <stdbool.h>
-#include "csoundCore.h"
-#include "csound_orc.h"
-#include "interlocks.h"
-#include "namedins.h"
-#include "parse_param.h"
-#include "csound_type_system.h"
-#include "csound_standard_types.h"
-#include "csound_orc_expressions.h"
-#include "csound_orc_semantics.h"
+#include "csound_orc_semantics.h"    // for CS_STRUCT_VAR, get_arg_type2
+
+#include <ctype.h>                   // for isdigit
+#include <stdint.h>                  // for uint64_t
+#include <stdio.h>                   // for NULL, size_t, snprintf
+#include <stdlib.h>                  // for exit
+#include <string.h>                  // for strcmp, strlen, memcpy, strchr
+
+#include "csound.h"                  // for TREE, CSOUND, ORCTOKEN, Str, cso...
+#include "csoundCore.h"              // for CSOUND_, OENTRY, IGN, ENGINE_STATE
+#include "csound_data_structures.h"  // for CONS_CELL, cs_cons_free, cs_cons...
+#include "csound_orc.h"              // for TYPE_TABLE, OENTRIES, make_int
+#include "csound_orc_expressions.h"  // for cs_cons_append, is_expression_node
+#include "csound_standard_types.h"   // for ARRAY_VAR_INIT, CS_VAR_TYPE_ARRAY
+#include "csound_type_system.h"      // for CS_VARIABLE, CS_TYPE, csoundFind...
+#include "find_opcode.h"             // for find_opcode, find_opcode_exact
+#include "interlocks.h"              // for UNDEFINED
+#include "parse_param.h"             // for PARSE_PARM
+#include "prototyp.h"                // for synterr, csoundAppendOpcodes
+#include "sysdep.h"                  // for UNLIKELY, MYFLT, strNcpy
 
 extern char *csound_orcget_text ( void *scanner );
 static int is_label(char* ident, CONS_CELL* labelList);

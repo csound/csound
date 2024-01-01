@@ -22,8 +22,16 @@
     02110-1301 USA
 */
 
-#include "csoundCore.h"
-#include "csound_orc.h"
+#include <stdio.h>       // for NULL, snprintf
+#include <stdlib.h>      // for exit
+#include <string.h>      // for strcmp
+
+#include "csound.h"      // for TREE, ORCTOKEN, CSOUND
+#include "csoundCore.h"  // for CSOUND_
+#include "csound_orc.h"  // for INTEGER_TOKEN, NUMBER_TOKEN, T_FUNCTION, S_B...
+#include "prototyp.h"    // for cs_strdup
+#include "sysdep.h"      // for MYFLT, FL, LIKELY, POWER, UNLIKELY
+
 extern void print_tree(CSOUND *csound, char*, TREE *l);
 extern void delete_tree(CSOUND *csound, TREE *l);
 

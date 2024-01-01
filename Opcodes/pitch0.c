@@ -21,13 +21,15 @@
     02110-1301 USA
 */
 
+#include <stddef.h>      // for NULL
+#include <stdint.h>      // for int32_t
+
+#include "csound.h"      // for CSOUND, Str
 // #include "csdl.h"
-#include "csoundCore.h"       /*                                  PITCH.C       */
-#include "cwindow.h"
-#include <limits.h>
-#include "spectra.h"
-#include "pitch.h"
-#include "uggab.h"
+#include "csoundCore.h"  // for CSOUND_, INSTRTXT, ENGINE_STATE, OK, EVTBLK
+#include "pitch.h"       // for INSTCNT, CPU_PERC, PFUNK, MUTE, PFUN, cpuperc
+#include "prototyp.h"    // for get_arg_string
+#include "sysdep.h"      // for MYFLT, FL, MYFLT2LONG, UNLIKELY
 
 int32_t mute_inst(CSOUND *csound, MUTE *p)
 {

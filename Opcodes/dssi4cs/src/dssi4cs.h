@@ -19,8 +19,13 @@
 #ifndef DSSI4CS_H
 #define DSSI4CS_H
 
-#include "csdl.h"
-#include "dssi.h"
+#include <stdint.h>                      // for int32_t, uint64_t
+
+#include "csdl.h"                        // for OPDS
+#include "dssi.h"                        // for DSSI_Descriptor
+#include "ladspa.h"  // for LADSPA_Data, LADSPA_Descriptor
+#include <alsa/asoundlib.h>              // for snd_seq_event_t
+#include "sysdep.h"                      // for MYFLT
 
 /* When changing these remember to change dssiaudio function */
 #define DSSI4CS_MAX_IN_CHANNELS 9

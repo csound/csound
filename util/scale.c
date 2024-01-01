@@ -29,9 +29,20 @@
 *   and a certain amount of lifting from Csound itself  *
 \*******************************************************/
 
-#include "std_util.h"
-#include "soundio.h"
-#include <ctype.h>
+#include <ctype.h>      // for isdigit
+#include <inttypes.h>   // for int32_t, PRId64
+#include <sndfile.h>    // for SNDFILE, SFM_WRITE
+#include <stdio.h>      // for NULL, fscanf, snprintf, sscanf, FILE
+#include <stdlib.h>     // for atof
+#include <string.h>     // for strcmp, memset
+
+#include "csdl.h"       // for OPARMS, CSOUND_, Str, CSFILE_SND_W, ALLCHNLS
+#include "csound.h"     // for CSOUND, Str_noop, CSFTYPE_FLOATS_TEXT
+#include "msg_attr.h"   // for CSOUNDMSG_REALTIME
+#include "soundfile.h"  // for SFLIB_INFO, sflib_close, sflib_open_fd, sflib...
+#include "soundio.h"    // for SOUNDIN, MAXSNDNAME
+#include "std_util.h"   // for scale_init_
+#include "sysdep.h"     // for UNLIKELY, MYFLT, strNcpy, FL
 
 /* Constants */
 

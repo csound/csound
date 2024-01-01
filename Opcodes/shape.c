@@ -30,10 +30,12 @@
     02110-1301 USA
  */
 
-#include "csoundCore.h"
-#include "interlocks.h"
+#include <stdint.h>      // for uint32_t, int32_t
+#include <string.h>      // for memset, NULL
 
-#include <math.h>
+#include "csound.h"      // for CSOUND, Str
+#include "csoundCore.h"  // for SUBR, OPDS, INSDS, OK, CSOUND_, CS_KSMPS, IGN
+#include "sysdep.h"      // for FL, MYFLT, UNLIKELY, POWER, int32
 
 
 typedef struct {

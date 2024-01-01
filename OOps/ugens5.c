@@ -21,10 +21,18 @@
     02110-1301 USA
 */
 
-#include "csoundCore.h"         /*                      UGENS5.C        */
-#include "ugens5.h"
-#include <math.h>
-#include <inttypes.h>
+#include "ugens5.h"  // for RESON, LPREAD, TONE, RESONX, TONEX, LPINTERPOL
+
+#include <inttypes.h>    // for PRIi32
+#include <math.h>        // for sqrt, cos, exp, pow, fabs, sin, isnan
+#include <stdio.h>       // for NULL, printf
+#include <string.h>      // for memset, memmove, memcpy, strcmp
+
+#include "csound.h"      // for CSOUND, Str, CSFTYPE_LPC
+#include "csoundCore.h"  // for CSOUND_, OK, INSDS, OPDS, IGN, CS_KSMPS, AUXCH
+#include "lpc.h"         // for LPHEADER, MAXPOLES, LP_MAGIC, LP_MAGIC2
+#include "prototyp.h"    // for get_arg_string, ldmemfile2withCB
+#include "sysdep.h"      // for MYFLT, UNLIKELY, FL, LIKELY, FABS, strNcpy
 
 /*
  * LPC storage slots

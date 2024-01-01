@@ -28,11 +28,10 @@
 
 #pragma once
 
-#include "stdopcod.h"
-#include <stdlib.h>
-#include <stdio.h>
-#include <string.h>
-#include <math.h>
+#include <stdint.h>      // for int32_t
+
+#include "csoundCore.h"  // for OPDS, MEMFIL, AUXCH, FUNC
+#include "sysdep.h"      // for MYFLT, int32
 
 typedef struct atsdataloc {
     double  amp;

@@ -21,9 +21,14 @@
     Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
     02110-1301 USA
 */
-#include "csoundCore.h"
-#include "interlocks.h"
-#include <math.h>
+#include <math.h>        // for cos, sin
+#include <stdint.h>      // for int32_t, uint32_t
+#include <string.h>      // for memset
+
+#include "csound.h"      // for CSOUND, Str
+#include "csoundCore.h"  // for TEXT, SUBR, OUTOCOUNT, CSOUND_, INOCOUNT, OPDS
+#include "interlocks.h"  // for _QQ
+#include "sysdep.h"      // for MYFLT, UNLIKELY
 
 typedef struct {
     OPDS    h;                                      /* required header */

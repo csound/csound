@@ -21,10 +21,12 @@
     02110-1301 USA
 */
 
-#include "csoundCore.h"
-#include "interlocks.h"
+#include <stdint.h>      // for int32_t, uint32_t
+#include <string.h>      // for memset, NULL, memcpy
 
-#include <math.h>
+#include "csound.h"      // for CSOUND, Str
+#include "csoundCore.h"  // for SUBR, CSOUND_, OPDS, AUXCH, CS_KSMPS, INSDS, OK
+#include "sysdep.h"      // for MYFLT, FL, int16, UNLIKELY, int32, POWER, COS
 
 typedef struct {
         MYFLT   *srcp;

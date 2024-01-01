@@ -22,7 +22,13 @@
     02110-1301 USA
 */
 
-#include "csoundCore.h"                 /*              MEMALLOC.C      */
+#include <stdio.h>       // for NULL, size_t, printf
+#include <stdlib.h>      // for free, calloc, malloc, realloc
+
+#include "csound.h"      // for CSOUND, csoundSpinLock, csoundSpinUnLock
+#include "csoundCore.h"  // for CSOUND_
+#include "prototyp.h"    // for mcalloc, mcallocDebug, mfree, mfreeDebug
+#include "sysdep.h"      // for UNLIKELY
 
 #ifdef CUSTOM_MALLOC
 #ifndef MALLOC_BASE

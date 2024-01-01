@@ -25,7 +25,9 @@
 #ifndef CSOUND_ORC_EXPRESSION_H
 #define CSOUND_ORC_EXPRESSION_H 1
 
-#include "csound_orc.h"
+#include "csound.h"                  // for TREE, CSOUND
+#include "csound_data_structures.h"  // for CONS_CELL
+#include "csound_orc.h"              // for TYPE_TABLE
 
 CONS_CELL* cs_cons(CSOUND* csound, void* val, CONS_CELL* cons);
 CONS_CELL* cs_cons_append(CONS_CELL* cons1, CONS_CELL* cons2);

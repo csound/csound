@@ -21,9 +21,16 @@
     02110-1301 USA
 */
 
-#include "csoundCore.h"
-#include <setjmp.h>
-#include "corfile.h"
+#include <setjmp.h>      // for jmp_buf, setjmp
+#include <stdio.h>       // for NULL, getc, putc, FILE, EOF
+#include <stdlib.h>      // for qsort
+#include <string.h>      // for strcmp, memcpy, strcpy, strlen
+
+#include "corfile.h"     // for corfile_create_w, corfile_getc, corfile_putc
+#include "csound.h"      // for CSOUND, CSOUND_EXITJMP_SUCCESS, PUBLIC, Str
+#include "csoundCore.h"  // for CSOUND_, CORFIL, OPARMS, CS_STATE_UTIL
+#include "prototyp.h"    // for print_opcodedir_warning, scsortstr, scxtract
+#include "sysdep.h"      // for UNLIKELY, LIKELY
 
 typedef struct csUtility_s {
     char                *name;

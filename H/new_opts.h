@@ -24,6 +24,7 @@
 #ifndef CSOUND_NEW_OPTS_H
 #define CSOUND_NEW_OPTS_H
 
+#include "csound.h"  // for CSOUND
 #ifdef __cplusplus
 extern "C" {
 #endif

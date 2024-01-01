@@ -21,17 +21,17 @@
     02111-1307 USA
 */
 
+#include "cs_par_dispatch.h"
+
 #include <stdio.h>
 #include <stdlib.h>
 
+#include "cs_par_base.h"
+#include "cs_par_ops.h"
+#include "cs_par_orc_semantics.h"
+#include "cs_par_structs.h"
 #include "csoundCore.h"
 #include "csound_orc.h"
-#include "cs_par_base.h"
-#include "cs_par_orc_semantics.h"
-#include "cs_par_dispatch.h"
-
-#include "cs_par_ops.h"
-#include "cs_par_structs.h"
 
 /***********************************************************************
  * external prototypes not in headers

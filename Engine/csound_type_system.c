@@ -22,10 +22,16 @@
  */
 
 #include "csound_type_system.h"
-#include <string.h>
-#include <stdio.h>
-#include "csoundCore.h"
-#include "aops.h"
+
+#include <stdio.h>                   // for NULL, size_t
+#include <string.h>                  // for strcmp, strlen, strncpy, strcpy
+
+#include "aops.h"                    // for ASSIGN
+#include "csound.h"                  // for CSOUND, Str
+#include "csoundCore.h"              // for CSOUND_, NOTOK, OK
+#include "csound_data_structures.h"  // for cs_hash_table_create, cs_hash_ta...
+#include "prototyp.h"                // for csoundGetTypeForArg, cs_strdup
+#include "sysdep.h"                  // for MYFLT, CS_FLOAT_ALIGN, LIKELY
 
 int csTypeExistsWithSameName(TYPE_POOL* pool, CS_TYPE* typeInstance) {
     CS_TYPE_ITEM* current = pool->head;

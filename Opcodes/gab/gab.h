@@ -21,9 +21,10 @@
 #ifndef GAB_H
 #define GAB_H
 
-#include "../stdopcod.h"
-#include "H/ugrw1.h"    /* for zread function */
-#include "ugens6.h"     /* for a_k_set function */
+#include <stdint.h>      // for int32_t, int64_t
+
+#include "csoundCore.h"  // for OPDS, AUXCH, VARGMAX, FUNC, ARRAYDAT
+#include "sysdep.h"      // for MYFLT
 
 typedef struct {
     OPDS    h;

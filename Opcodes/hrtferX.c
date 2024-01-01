@@ -50,13 +50,19 @@
  * the old and new HRTFs (probably a project in itself).
  ***************************************************************/
 
+#include "hrtferx.h"       // for HRTFER
+
+#include <math.h>          // for floor, fmod
+#include <stdint.h>        // for int32_t, uint32_t
+#include <stdio.h>         // for NULL
+#include <string.h>        // for memset, strcmp
+
+#include "Opcodes/3Dug.h"  // for BUF_LEN, FILT_LEN, HRTF_DATUM, FILT_LENm1
+#include "csound.h"        // for CSOUND, Str, CSFTYPE_HRTF
 // #include "csdl.h"
-#include "csoundCore.h"
-#include "interlocks.h"
-#include <stdio.h>
-#include <math.h>
-#include <stdlib.h>
-#include "hrtferx.h"
+#include "csoundCore.h"    // for CSOUND_, SUBR, MAXNAME, MEMFIL, INSDS, OK
+#include "interlocks.h"    // for _QQ
+#include "sysdep.h"        // for FL, int16, MYFLT, strNcpy, UNLIKELY, uint32
 
 /* This array transferred here so as to be declared once.  Belongs to
    the structure of the HRTF data really in 3Dug.h */

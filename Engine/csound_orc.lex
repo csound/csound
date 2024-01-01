@@ -24,11 +24,12 @@
     02110-1301 USA
 */
 
-#include <stdio.h>
-#include <string.h>
-#include <stdlib.h>
-#include <ctype.h>
-#include "csoundCore.h"
+#include "csound.h"       // for ORCTOKEN, CSOUND, TREE, Str
+#include "csoundCore.h"   // for CSOUND_, OPARMS
+#include "prototyp.h"     // for csoundErrorMsg, cs_strdup
+#include "sysdep.h"       // for strNcpy, UNLIKELY
+#include "tok.h"          // for new_token
+
 // to shut up the lexer writing to stdout
 #define ECHO if(csound->oparms->odebug) { csoundErrorMsg(csound, "%s", "--lexer echo:"); \
              fwrite(yytext, (size_t) yyleng, 1, stderr); \
@@ -37,7 +38,6 @@
 #define YYLTYPE ORCTOKEN*
 #define YY_DECL int yylex (YYLTYPE *lvalp, CSOUND *csound, yyscan_t yyscanner)
 #include "csound_orc.h"
-#include "corfile.h"
 YYSTYPE *yylval_param;
 YYLTYPE *yylloc_param;
 ORCTOKEN *make_string(CSOUND *, char *);
