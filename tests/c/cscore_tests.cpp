@@ -16,10 +16,10 @@ void cscore(CSOUND *cs)
     b = cscoreListSeparateF(cs, a);          /* separate f statements */
     cscoreListPut(cs, b);                    /* write f statements out to score */
     cscoreListFreeEvents(cs, b);             /* and release the spaces used */
-    e = cscoreDefineEvent(cs, "t 0 120");    /* define event for tempo statement */
+    e = cscoreDefineEvent(cs, (char *) "t 0 120");    /* define event for tempo statement */
     cscorePutEvent(cs, e);                   /* write tempo statement to score */
     cscoreListPut(cs, a);                    /* write the notes */
-    cscorePutString(cs, "s");                /* section end */
+    cscorePutString(cs, (char *) "s");                /* section end */
     cscorePutEvent(cs, e);                   /* write tempo statement again */
     b = cscoreListCopyEvents(cs, a);         /* make a copy of the notes in "a" */
 
@@ -31,7 +31,7 @@ void cscore(CSOUND *cs)
 
     a = cscoreListAppendList(cs, a, b);      /* now add these notes to original pitches */
     cscoreListPut(cs, a);
-    cscorePutString(cs, "e");
+    cscorePutString(cs, (char *) "e");
     cscoreListGetUntil(cs, 100);
 }
 

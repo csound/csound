@@ -282,15 +282,15 @@ TEST_F (ChannelTests, StringChannel)
     int err = csoundStart(csound);
     ASSERT_TRUE(err == CSOUND_SUCCESS);
 
-    csoundSetStringChannel(csound, "testing", "ttt");
+    csoundSetStringChannel(csound, "testing", (char *) "ttt");
     int len = csoundGetChannelDatasize(csound, "testing");
     char* string = new char[len];
     csoundGetStringChannel(csound, "testing", string);
     ASSERT_STREQ(string, "ttt");
 
-    csoundSetStringChannel(csound, "strchan1", "strchan1_val");
-    csoundSetStringChannel(csound, "strchan2", "strchan2_val");
-    csoundSetStringChannel(csound, "strchan3", "strchan3_val");
+    csoundSetStringChannel(csound, "strchan1", (char *) "strchan1_val");
+    csoundSetStringChannel(csound, "strchan2", (char *) "strchan2_val");
+    csoundSetStringChannel(csound, "strchan3", (char *) "strchan3_val");
 
     csoundGetStringChannel(csound, "strchan1", string);
     ASSERT_STREQ(string, "strchan1_val");
