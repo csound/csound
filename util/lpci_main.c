@@ -37,7 +37,7 @@
 #endif
 #include "lpc.h"
 
-#define Str(x) x
+#define SimpleStr(x) x
 
 void lpc_import_usage(void)
 {
@@ -82,13 +82,13 @@ int main(int argc, char **argv)
       return 1;
     str = (char *)malloc(hdr.headersize-sizeof(LPHEADER)+4);
     if (str==NULL) {
-      printf(Str("memory allocation failure\n"));
+      printf(SimpleStr("memory allocation failure\n"));
       exit(1);
     }
 
     if (hdr.headersize-sizeof(LPHEADER)+4 !=
         fread(&str, sizeof(char), hdr.headersize-sizeof(LPHEADER)+4, inf)) {
-      printf(Str("Ill formed data\n"));
+      printf(SimpleStr("Ill formed data\n"));
       exit(1);
     }
     for (i=0; i<hdr.headersize-sizeof(LPHEADER)+4; i++)
