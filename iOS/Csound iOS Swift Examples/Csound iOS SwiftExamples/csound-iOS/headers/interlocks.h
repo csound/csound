@@ -35,7 +35,7 @@
 #define TB (0x0018)
 
 //Channels
-#define _CR (0x0020)
+#define _CS_CR (0x0020)
 #define _CW (0x0040)
 #define _CB (0x0060)
 
