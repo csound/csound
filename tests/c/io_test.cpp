@@ -94,6 +94,7 @@ TEST_F (IOTests, testDeviceList)
 
 int key_callback_evt(void *userData, void *p, unsigned int type)
 {
+    (void)(type);
     int *prev = (int *) userData;
     *((int *) p) = *prev;
     *prev += 1;
@@ -102,6 +103,7 @@ int key_callback_evt(void *userData, void *p, unsigned int type)
 
 int key_callback_txt(void *userData, void *p, unsigned int type)
 {
+    (void)(type);
     int *prev = (int *) userData;
     *((int *) p) =  *prev;
     *prev += 1;

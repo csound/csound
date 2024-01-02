@@ -149,6 +149,7 @@ static int32_t lufs_init(CSOUND *csound, LUFS *p)
 
 static int32_t lufs_perf(CSOUND *csound, LUFS *p)
 {
+    (void)(csound);
     MYFLT tempval, mloudness, mmpower, Gamma, ampower;
     int nsmps = CS_KSMPS, i,z;
     int numsmps = 4 * p->q; //  400ms block length;
@@ -299,6 +300,7 @@ static int32_t lufs_init2(CSOUND *csound, LUFS2 *p)
 
 static int32_t lufs_perf2(CSOUND *csound, LUFS2 *p)
 {
+    (void)(csound);
         MYFLT tempval1,tempval2, mloudness, mmpower, Gamma, ampower;
     int nsmps = CS_KSMPS, i,z;
     int numsmps = 4 * p->q; //  400ms block length;

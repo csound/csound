@@ -1666,6 +1666,7 @@ TREE* convert_unary_op_to_binary(CSOUND* csound, TREE* new_left, TREE* unary_op)
  * For further reference, please see the rule for statement and opcall in Engine/csound_orc.y.
  */
 TREE* convert_statement_to_opcall(CSOUND* csound, TREE* root, TYPE_TABLE* typeTable) {
+  (void)(typeTable);
   int leftCount, rightCount;
 
   if (root->type == T_ASSIGNMENT) {

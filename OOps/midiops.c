@@ -837,6 +837,7 @@ int savectrl_perf(CSOUND *csound, SAVECTRL *p)
 
 int printctrl_init(CSOUND *csound, PRINTCTRL *p)
 {
+    (void)(csound);
     p->fout = stdout;
     if (p->fout==NULL) return NOTOK;
     return OK;
@@ -844,6 +845,7 @@ int printctrl_init(CSOUND *csound, PRINTCTRL *p)
 
 int printctrl_init1(CSOUND *csound, PRINTCTRL *p)
 {
+    (void)(csound);
     p->fout = fopen(p->file->data, "a");
     if (p->fout==NULL) return NOTOK;
     return OK;
@@ -852,6 +854,7 @@ int printctrl_init1(CSOUND *csound, PRINTCTRL *p)
 
 int printctrl(CSOUND *csound, PRINTCTRL *p)
 {
+    (void)(csound);
     MYFLT *d = p->arr->data;
     int n = (int)d[0], i;
     fprintf(p->fout, "\n ctrlinit\t%d", (int)d[1]);
@@ -1035,6 +1038,7 @@ int printpresets_perf(CSOUND *csound, PRINTPRESETS *p)
 
 int printpresets_init(CSOUND *csound, PRINTPRESETS *p)
 {
+    (void)(csound);
     p->fout = stdout;
     if (p->fout==NULL) return NOTOK;
     return OK;
@@ -1042,6 +1046,7 @@ int printpresets_init(CSOUND *csound, PRINTPRESETS *p)
 
 int printpresets_init1(CSOUND *csound, PRINTPRESETS *p)
 {
+    (void)(csound);
     p->fout = fopen(p->file->data, "a");
     if (p->fout==NULL) return NOTOK;
     return OK;

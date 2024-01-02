@@ -2238,6 +2238,7 @@ int32_t mvchpf24_perf_a(CSOUND *csound, mvchpf24 *p){
 static int32_t calc_derivatives(CSOUND *csound, BOB *p, double *dstate,
                                 double *state, MYFLT in)
 {
+  (void)(csound);
   MYFLT  freq = *p->freq;
   MYFLT  res = *p->res;
   double k = TWOPI * freq;
@@ -2346,6 +2347,7 @@ typedef struct vps {
 } VPS;
 
 int vps_process(CSOUND *csound, VPS *p) {
+  (void)(csound);
   uint32_t offset = p->h.insdshead->ksmps_offset;
   uint32_t early  = p->h.insdshead->ksmps_no_end;
   uint32_t i, nsmps = CS_KSMPS;
@@ -2401,6 +2403,7 @@ int vcf_init(CSOUND *csound, VCF *p) {
 }
 
 int vcf_perfk(CSOUND *csound, VCF *p) {
+  (void)(csound);
   double *G = p->G, A = p->A, *s = p->s, ss;
   MYFLT *y = p->y, *x = p->x;
   double w, u, o;
@@ -2444,6 +2447,7 @@ int vcf_perfk(CSOUND *csound, VCF *p) {
 }
 
 int vcf_perfak(CSOUND *csound, VCF *p) {
+  (void)(csound);
   double *G = p->G, A, *s = p->s, ss, g;
   MYFLT *y = p->y, *x = p->x;
   double w, u, o;
@@ -2484,6 +2488,7 @@ int vcf_perfak(CSOUND *csound, VCF *p) {
 }
 
 int vcf_perfka(CSOUND *csound, VCF *p) {
+  (void)(csound);
   double *G = p->G, A = p->A, *s = p->s, ss;
   MYFLT *y = p->y, *x = p->x;
   double w, u, o;
@@ -2528,6 +2533,7 @@ int vcf_perfka(CSOUND *csound, VCF *p) {
 }
 
 int vcf_perfaa(CSOUND *csound, VCF *p) {
+  (void)(csound);
   double *G = p->G, A, *s = p->s, ss, g;
   MYFLT *y = p->y, *x = p->x;
   double w, u, o;
@@ -2600,6 +2606,7 @@ int spf_init(CSOUND *csound, SPF *p) {
 }
 
 int spf_perfkk(CSOUND *csound, SPF *p) {
+  (void)(csound);
   uint32_t offset = p->h.insdshead->ksmps_offset;
   uint32_t early  = p->h.insdshead->ksmps_no_end;
   uint32_t i, nsmps = CS_KSMPS;
@@ -2654,6 +2661,7 @@ int spf_perfkk(CSOUND *csound, SPF *p) {
 
 
 int spf_perfak(CSOUND *csound, SPF *p) {
+  (void)(csound);
   uint32_t offset = p->h.insdshead->ksmps_offset;
   uint32_t early  = p->h.insdshead->ksmps_no_end;
   uint32_t i, nsmps = CS_KSMPS;
@@ -2702,6 +2710,7 @@ int spf_perfak(CSOUND *csound, SPF *p) {
 }
 
 int spf_perfaa(CSOUND *csound, SPF *p) {
+  (void)(csound);
   uint32_t offset = p->h.insdshead->ksmps_offset;
   uint32_t early  = p->h.insdshead->ksmps_no_end;
   uint32_t i, nsmps = CS_KSMPS;
@@ -2749,6 +2758,7 @@ int spf_perfaa(CSOUND *csound, SPF *p) {
 }
 
 int spf_perfka(CSOUND *csound, SPF *p) {
+  (void)(csound);
   uint32_t offset = p->h.insdshead->ksmps_offset;
   uint32_t early  = p->h.insdshead->ksmps_no_end;
   uint32_t i, nsmps = CS_KSMPS;
@@ -2831,6 +2841,7 @@ int skf_init(CSOUND *csound, SKF *p) {
 }
 
 int skf_perfkk(CSOUND *csound, SKF *p) {
+  (void)(csound);
   uint32_t offset = p->h.insdshead->ksmps_offset;
   uint32_t early  = p->h.insdshead->ksmps_no_end;
   uint32_t i, nsmps = CS_KSMPS;
@@ -2877,6 +2888,7 @@ int skf_perfkk(CSOUND *csound, SKF *p) {
 }
 
 int skf_perfak(CSOUND *csound, SKF *p) {
+  (void)(csound);
   uint32_t offset = p->h.insdshead->ksmps_offset;
   uint32_t early  = p->h.insdshead->ksmps_no_end;
   uint32_t i, nsmps = CS_KSMPS;
@@ -2917,6 +2929,7 @@ int skf_perfak(CSOUND *csound, SKF *p) {
 }
 
 int skf_perfaa(CSOUND *csound, SKF *p) {
+  (void)(csound);
   uint32_t offset = p->h.insdshead->ksmps_offset;
   uint32_t early  = p->h.insdshead->ksmps_no_end;
   uint32_t i, nsmps = CS_KSMPS;
@@ -2958,6 +2971,7 @@ int skf_perfaa(CSOUND *csound, SKF *p) {
 }
 
 int skf_perfka(CSOUND *csound, SKF *p) {
+  (void)(csound);
   uint32_t offset = p->h.insdshead->ksmps_offset;
   uint32_t early  = p->h.insdshead->ksmps_no_end;
   uint32_t i, nsmps = CS_KSMPS;
@@ -3375,6 +3389,7 @@ typedef struct midsid {
 } MIDSID;
 
 int ms_encod(CSOUND *csound, MIDSID *p) {
+  (void)(csound);
   uint32_t offset = p->h.insdshead->ksmps_offset;
   uint32_t early  = p->h.insdshead->ksmps_no_end;
   uint32_t i, nsmps = CS_KSMPS;
@@ -3398,6 +3413,7 @@ int ms_encod(CSOUND *csound, MIDSID *p) {
 }
 
 int ms_decod(CSOUND *csound, MIDSID *p) {
+  (void)(csound);
   uint32_t offset = p->h.insdshead->ksmps_offset;
   uint32_t early  = p->h.insdshead->ksmps_no_end;
   uint32_t i, nsmps = CS_KSMPS;

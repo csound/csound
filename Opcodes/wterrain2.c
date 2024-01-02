@@ -151,6 +151,7 @@ static void (*ifuncs[8])(MYFLT,MYFLT,MYFLT,MYFLT,MYFLT,MYFLT,MYFLT*,MYFLT*) = { 
 
 static int32_t wtinit(CSOUND *csound, WAVETER *p)
 {
+    (void)(csound);
     p->xarr = NULL;
     p->yarr = NULL;
 

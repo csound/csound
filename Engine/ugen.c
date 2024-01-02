@@ -334,10 +334,16 @@ PUBLIC UGEN* ugen_new(UGEN_FACTORY* factory, char* opName, char* outargTypes, ch
 
 
 PUBLIC bool ugen_set_output(UGEN* ugen, int index, void* arg) {
+  (void)(ugen);
+  (void)(index);
+  (void)(arg);
   return false;
 }
 
 PUBLIC bool ugen_set_input(UGEN* ugen, int index, void* arg) {
+  (void)(ugen);
+  (void)(index);
+  (void)(arg);
   return false;
 }
 

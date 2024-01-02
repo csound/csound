@@ -353,6 +353,7 @@ sprintf_opcode_(CSOUND *csound,
 		int32_t numVals,      /* number of arguments             */
 		int32_t strCode)      /* bit mask for string arguments   */
 {
+  (void)(strCode);
   int32_t     len = 0;
   char    *strseg, *outstring = str->data;
   MYFLT   *parm = NULL;

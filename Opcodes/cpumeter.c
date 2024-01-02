@@ -69,6 +69,7 @@ typedef struct {
 
 static int32_t deinit_cpupercent(CSOUND *csound, void *pdata)
 {
+    (void)(csound);
     CPUMETER *p = (CPUMETER *) pdata;
     fclose(p->fp);
     return OK;

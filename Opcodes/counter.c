@@ -137,6 +137,7 @@ static int32_t count_init0(CSOUND *csound, COUNTER *p)
 
 static int32_t count_perf(CSOUND *csound, COUNTER *p)
 {
+    (void)(csound);
     COUNT *q = p->cnt;
     if (q->val > q->max) {
       q->val = q->min;
@@ -159,18 +160,21 @@ static int32_t count_init_perf(CSOUND *csound, COUNTER *p)
 
 static int32_t count_cycles(CSOUND *csound, COUNTER* p)
 {
+    (void)(csound);
     *p->res = p->cnt->cycles;
     return OK;
 }
 
 static int32_t count_read(CSOUND *csound, COUNTER* p)
 {
+    (void)(csound);
     *p->res = p->cnt->val;
     return OK;
 }
 
 static int32_t count_reset(CSOUND *csound, COUNTER* p)
 {
+    (void)(csound);
     p->cnt->val = p->cnt->min;
     return OK;
 }
@@ -185,6 +189,7 @@ static int32_t count_init3(CSOUND *csound, CNTSTATE *p)
 
 static int32_t count_state(CSOUND *csound, CNTSTATE *p)
 {
+    (void)(csound);
     *p->max = p->cnt->max;
     *p->min = p->cnt->min;
     *p->inc = p->cnt->inc;

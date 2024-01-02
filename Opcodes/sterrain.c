@@ -117,6 +117,7 @@ static void superformula(MYFLT t, MYFLT kx, MYFLT ky, MYFLT krx, MYFLT kry,
 
 static int32_t wtinit(CSOUND *csound, SUPERTER *p)
 {
+    (void)(csound);
     p->xarr = NULL;
     p->yarr = NULL;
 
