@@ -21,11 +21,6 @@
   02110-1301 USA
 */
 
-#if defined(__linux) || defined(__linux__)
-/* for pthread_mutex_timedlock() */
-#define _XOPEN_SOURCE 600
-#endif
-
 #ifndef HAVE_GETTIMEOFDAY
 #if defined(LINUX)    || defined(__unix)   || defined(__unix__) || \
     defined(__MACH__) || defined(__HAIKU__)
