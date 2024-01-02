@@ -153,7 +153,7 @@ static int32_t dam(CSOUND *csound, DAM *p)
 #define S(x)    sizeof(x)
 
 static OENTRY localops[] = {
-{ "dam",     S(DAM),  0, 3,     "a",    "akiiii",(SUBR)daminit, (SUBR)dam },
+{ "dam",     S(DAM),  0, 3,     "a",    "akiiii",(SUBR)daminit, (SUBR)dam, NULL, NULL},
 };
 
 int32_t dam_init_(CSOUND *csound)

@@ -253,7 +253,7 @@ static OENTRY modmatrix_localops[] = {
       "iiiiiik",
       (SUBR)modmatrix_init,
       (SUBR)modmatrix,
-      (SUBR)NULL
+      (SUBR)NULL, NULL
     }
 };
 

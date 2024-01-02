@@ -575,9 +575,9 @@ int32_t play_pp(CSOUND *csound, CSPP *p)
 
 static OENTRY bilbar_localops[] = {
   { "barmodel", S(BAR), 0, 3, "a", "kkiikiiii", (SUBR) bar_init,
-                                               (SUBR) bar_run},
+                                               (SUBR) bar_run, NULL, NULL},
   { "prepiano", S(CSPP), 0, 3, "mm", "iiiiiikkiiiiiiioo",
-                                (SUBR)init_pp, (SUBR)play_pp },
+                                (SUBR)init_pp, (SUBR)play_pp, NULL, NULL},
 };
 
 LINKAGE_BUILTIN(bilbar_localops)

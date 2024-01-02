@@ -466,40 +466,40 @@ static int32_t islider32bit14(CSOUND *csound, ISLIDER32BIT14 *p)
 #define S(x)    sizeof(x)
 
 static OENTRY localops[] = {
-{ "s16b14", 0xffff,                                                     },
-{ "s32b14", 0xffff,                                                     },
-{ "slider16", 0xffff,                                                   },
-{ "slider32", 0xffff,                                                   },
-{ "slider64", 0xffff,                                                   },
-{ "slider8", 0xffff,                                                    },
+{ "s16b14", 0xffff, 0, 0, "", "", NULL, NULL, NULL, NULL},
+{ "s32b14", 0xffff, 0, 0, "", "", NULL, NULL, NULL, NULL},
+{ "slider16", 0xffff, 0, 0, "", "", NULL, NULL, NULL, NULL},
+{ "slider32", 0xffff, 0, 0, "", "", NULL, NULL, NULL, NULL},
+{ "slider64", 0xffff, 0, 0, "", "", NULL, NULL, NULL, NULL},
+{ "slider8", 0xffff, 0, 0, "", "", NULL, NULL, NULL, NULL},
 { "slider8.k", S(SLIDER8), 0, 3, "kkkkkkkk",  "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii"
-                              "iiiiiiii", (SUBR)slider_i8, (SUBR)slider8, NULL },
+                              "iiiiiiii", (SUBR)slider_i8, (SUBR)slider8, NULL, NULL},
 { "slider8f", S(SLIDER8f), 0, 3, "kkkkkkkk","iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii"
                                         "iiiiiiiiiiii",
-                                        (SUBR)slider_i8f, (SUBR)slider8f, NULL },
+                                        (SUBR)slider_i8f, (SUBR)slider8f, NULL, NULL},
 { "slider8.i", S(SLIDER8), 0, 1, "iiiiiiii", "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii",
-                                          (SUBR)islider8, NULL, NULL },
+                                          (SUBR)islider8, NULL, NULL, NULL},
 { "slider16.k", S(SLIDER16), 0, 3, "kkkkkkkkkkkkkkkk",
                                         "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii"
                                         "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii"
                                         "iiiiiiiiiii",
-                                        (SUBR)slider_i16, (SUBR)slider16, NULL },
+                                        (SUBR)slider_i16, (SUBR)slider16, NULL, NULL},
 { "slider16f", S(SLIDER16f), 0, 3, "kkkkkkkkkkkkkkkk",
                                         "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii"
                                         "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii"
                                         "iiiiiiiiiiiiiiiiiiiiiiiiiii",
-                                        (SUBR)slider_i16f, (SUBR)slider16f, NULL },
+                                        (SUBR)slider_i16f, (SUBR)slider16f, NULL, NULL},
 { "slider16.i", S(SLIDER16), 0, 1, "iiiiiiiiiiiiiiii",
                                         "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii"
                                         "iiiiiiiiiiiiiiiiiiiiiiiiiiiiii",
-                                        (SUBR)islider16, NULL, NULL       },
+                                        (SUBR)islider16, NULL, NULL, NULL},
 { "slider32.k", S(SLIDER32),  0, 3, "kkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkk",
                                         "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii"
                                         "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii"
                                         "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii"
                                         "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii"
                                         "iiiiiiiiiiiiiiiiiiiii",
-                                        (SUBR)slider_i32, (SUBR)slider32, NULL  },
+                                        (SUBR)slider_i32, (SUBR)slider32, NULL, NULL},
 { "slider32f", S(SLIDER32f), 0, 3, "kkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkk",
                                         "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii"
                                         "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii"
@@ -507,13 +507,13 @@ static OENTRY localops[] = {
                                         "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii"
                                         "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii"
                                         "iiiiiiiiiiiiiiiiii",
-                                        (SUBR)slider_i32f, (SUBR)slider32f, NULL },
+                                        (SUBR)slider_i32f, (SUBR)slider32f, NULL, NULL},
 { "slider32.i", S(SLIDER32), 0, 1, "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii",
                                         "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii"
                                         "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii"
                                         "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii"
                                         "iiiiiiiiiiiiiiiiiiiiiiii",
-                                        (SUBR)islider32, NULL, NULL  },
+                                        (SUBR)islider32, NULL, NULL, NULL},
 { "slider64.k", S(SLIDER64), 0, 3, "kkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkk"
                               "kkkkkkkkkkkkkkkkkkk",
                                         "iiiiiiiiiiiiiiiiiiiiiiiii"
@@ -529,7 +529,7 @@ static OENTRY localops[] = {
                                         "iiiiiiiiiiiiiiiiiiiiiiiii"
                                         "iiiiiiiiiiiiiiiiiiiiiiiii"
                                         "iiiiiiiiiiiiiiiiiiiii",
-                                        (SUBR)slider_i64, (SUBR)slider64, NULL  },
+                                        (SUBR)slider_i64, (SUBR)slider64, NULL, NULL},
 { "slider64f", S(SLIDER64f), 0, 3, "kkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkk"
                                 "kkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkk",
                                         "iiiiiiiiiiiiiiiiiiiiiiiii"
@@ -548,7 +548,7 @@ static OENTRY localops[] = {
                                         "iiiiiiiiiiiiiiiiiiiiiiii"
                                         "iiiiiiiiiiiiiiiiiiiiiiii"
                                         "iiiiiiiiiiiiiiiiiiiiiiii",
-                                        (SUBR)slider_i64f, (SUBR)slider64f, NULL },
+                                        (SUBR)slider_i64f, (SUBR)slider64f, NULL, NULL},
 { "slider64.i", S(SLIDER64), 0, 1, "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii"
                                 "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii",
                                         "iiiiiiiiiiiiiiiiiiiiiiii"
@@ -562,12 +562,12 @@ static OENTRY localops[] = {
                                         "iiiiiiiiiiiiiiiiiiiiiiii"
                                         "iiiiiiiiiiiiiiiiiiiiiiii"
                                         "iiiiiiiiiiiiiiiii",
-                                        (SUBR)islider64, NULL, NULL  },
+                                        (SUBR)islider64, NULL, NULL, NULL},
 { "s16b14.k", S(SLIDER16BIT14), 0, 3, "kkkkkkkkkkkkkkkk",
                                    "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii"
                                    "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii"
                                    "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii",
-                                 (SUBR)slider_i16bit14, (SUBR)slider16bit14, NULL},
+                                 (SUBR)slider_i16bit14, (SUBR)slider16bit14, NULL, NULL},
 { "s32b14.k", S(SLIDER32BIT14), 0, 3, "kkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkk",
                                         "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii"
                                         "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii"
@@ -575,21 +575,21 @@ static OENTRY localops[] = {
                                         "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii"
                                         "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii"
                                         "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii",
-                                 (SUBR)slider_i32bit14, (SUBR)slider32bit14, NULL},
+                                 (SUBR)slider_i32bit14, (SUBR)slider32bit14, NULL, NULL},
 { "s16b14.i", S(ISLIDER16BIT14), 0, 1, "iiiiiiiiiiiiiiii",
                                         "iiiiiiiiiiiiiiiii"
                                         "iiiiiiiiiiiiiiii"
                                         "iiiiiiiiiiiiiiii"
                                         "iiiiiiiiiiiiiiii"
                                         "iiiiiiiiiiiiiiii",
-                                        (SUBR)islider16bit14, NULL, NULL  },
+                                        (SUBR)islider16bit14, NULL, NULL, NULL},
 { "s32b14.i", S(ISLIDER32BIT14), 0, 1, "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii",
                                         "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii"
                                         "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii"
                                         "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii"
                                         "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii"
                                         "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii",
-                                        (SUBR)islider32bit14, NULL, NULL  }
+                                        (SUBR)islider32bit14, NULL, NULL, NULL}
 };
 
 int32_t midiops3_init_(CSOUND *csound)

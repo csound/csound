@@ -795,8 +795,8 @@ babo(CSOUND *csound, void *entry)
             *outright   = p->outright,
             *input      = p->input;
 
-    BaboTaplineParameters left = { {FL(0.0)}, {{FL(0.0)}} },
-                          right = { {FL(0.0)}, {{FL(0.0)}} };
+    BaboTaplineParameters left = { {FL(0.0), 0.0}, {{FL(0.0), 0.0}} },
+                          right = { {FL(0.0), 0.0}, {{FL(0.0), 0.0}} };
 
     BaboTapline_precalculate_parameters(csound, &left,
                                         p->receiver_x - p->inter_receiver_distance,
@@ -856,8 +856,8 @@ babo2(CSOUND *csound, void *entry)
             *outright   = p->outright,
             *input      = p->input;
 
-    BaboTaplineParameters left = { {FL(0.0)}, {{FL(0.0)}} },
-                          right = { {FL(0.0)}, {{FL(0.0)}} };
+    BaboTaplineParameters left = { {FL(0.0), 0.0}, {{FL(0.0), 0.0}} },
+                          right = { {FL(0.0), 0.0}, {{FL(0.0), 0.0}} };
 
     BaboTapline_precalculate_parameters(csound, &left,
                                         p->receiver_x - p->inter_receiver_distance,
@@ -911,8 +911,8 @@ babo2(CSOUND *csound, void *entry)
 #define S(x)    sizeof(x)
 
 static OENTRY babo_localops[] = {
-  { "babo",   S(BABO), TR, 3, "aa", "akkkiiijj",(SUBR)baboset, (SUBR)babo   },
-  { "babo2",  S(BABO), TR, 3, "aa", "akkkiiijj",(SUBR)baboset, (SUBR)babo2 }  
+  { "babo",   S(BABO), TR, 3, "aa", "akkkiiijj",(SUBR)baboset, (SUBR)babo, NULL, NULL},
+  { "babo2",  S(BABO), TR, 3, "aa", "akkkiiijj",(SUBR)baboset, (SUBR)babo2, NULL, NULL}  
 };
 
 LINKAGE_BUILTIN(babo_localops)

@@ -1244,40 +1244,40 @@ static int32_t binit_process(CSOUND *csound, _PSBIN *p)
 static OENTRY localops[] =
   {
    {"tradsyn", sizeof(_PSYN),0,  3, "a", "fkkkij", (SUBR) psynth_init,
-     (SUBR) psynth_process}
+     (SUBR) psynth_process, NULL, NULL}
     ,
    {"sinsyn", sizeof(_PSYN2), TR, 3, "a", "fkkij", (SUBR) psynth2_init,
-     (SUBR) psynth2_process}
+     (SUBR) psynth2_process, NULL, NULL}
     ,
    {"resyn", sizeof(_PSYN), TR, 3, "a", "fkkkij", (SUBR) psynth_init,
-     (SUBR) psynth3_process}
+     (SUBR) psynth3_process, NULL, NULL}
     ,
     {"trscale", sizeof(_PTRANS),0,  3, "f", "fz", (SUBR) trans_init,
-     (SUBR) trscale_process}
+     (SUBR) trscale_process, NULL, NULL}
     ,
     {"trshift", sizeof(_PTRANS),0,  3, "f", "fz", (SUBR) trans_init,
-     (SUBR) trshift_process}
+     (SUBR) trshift_process, NULL, NULL}
     ,
     {"trsplit", sizeof(_PSPLIT),0,  3, "ff", "fz", (SUBR) trsplit_init,
-     (SUBR) trsplit_process}
+     (SUBR) trsplit_process, NULL, NULL}
     ,
     {"trmix", sizeof(_PSMIX),0,  3, "f", "ff", (SUBR) trmix_init,
-     (SUBR) trmix_process}
+     (SUBR) trmix_process, NULL, NULL}
     ,
     {"trlowest", sizeof(_PLOW),0,  3, "fkk", "fk", (SUBR) trlowest_init,
-     (SUBR) trlowest_process}
+     (SUBR) trlowest_process, NULL, NULL}
     ,
     {"trhighest", sizeof(_PLOW),0,  3, "fkk", "fk", (SUBR) trlowest_init,
-     (SUBR) trhighest_process}
+     (SUBR) trhighest_process, NULL, NULL}
     ,
     {"trfilter", sizeof(_PSFIL),0,  3, "f", "fki", (SUBR) trfil_init,
-     (SUBR) trfil_process}
+     (SUBR) trfil_process, NULL, NULL}
     ,
     {"trcross", sizeof(_PSCROSS),0,  3, "f", "ffkz", (SUBR) trcross_init,
-     (SUBR) trcross_process}
+     (SUBR) trcross_process, NULL, NULL}
     ,
     {"binit", sizeof(_PSBIN),0,  3, "f", "fi", (SUBR) binit_init,
-     (SUBR) binit_process}
+     (SUBR) binit_process, NULL, NULL}
   };
 
 int32_t psynth_init_(CSOUND *csound)

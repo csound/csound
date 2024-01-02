@@ -125,8 +125,8 @@ call_system_k(CSOUND *csound, SYSTEM *p)
 
 static OENTRY system_localops[] = {
   { "system", S(SYSTEM), 0, 3, "k", "kSO",
-                       (SUBR)call_system_set,(SUBR)call_system_k},
-  { "system_i", S(SYSTEM), 0, 1, "i", "iSo", (SUBR)call_system_i}
+                       (SUBR)call_system_set,(SUBR)call_system_k, NULL, NULL},
+  { "system_i", S(SYSTEM), 0, 1, "i", "iSo", (SUBR)call_system_i, NULL, NULL, NULL}
 };
 
 LINKAGE_BUILTIN(system_localops)

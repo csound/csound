@@ -262,7 +262,7 @@ extern "C" {
 OENTRY oentries[] = {{
                          (char *)"doppler", sizeof(Doppler), 0, 3, (char *)"a",
                          (char *)"akkjj", (SUBR)Doppler::init_,
-                         (SUBR)Doppler::kontrol_,
+                         (SUBR)Doppler::kontrol_, NULL, NULL
                      },
                      {
                          0, 0, 0, 0, 0, 0, 0, 0, 0, 0,

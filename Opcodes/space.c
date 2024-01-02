@@ -268,9 +268,9 @@ static int32_t spdist(CSOUND *csound, SPDIST *p)
 
 static OENTRY localops[] =
   {
-   { "space",  S(SPACE), TR,3, "aaaa", "aikkkk",(SUBR)spaceset, (SUBR)space },
-   { "spsend", S(SPSEND), 0,3, "aaaa", "",     (SUBR)spsendset, (SUBR)spsend },
-   { "spdist", S(SPDIST), 0,3,    "k", "ikkk", (SUBR)spdistset, (SUBR)spdist }
+   { "space",  S(SPACE), TR,3, "aaaa", "aikkkk",(SUBR)spaceset, (SUBR)space, NULL, NULL},
+   { "spsend", S(SPSEND), 0,3, "aaaa", "",     (SUBR)spsendset, (SUBR)spsend, NULL, NULL},
+   { "spdist", S(SPDIST), 0,3,    "k", "ikkk", (SUBR)spdistset, (SUBR)spdist, NULL, NULL}
 };
 
 int32_t space_init_(CSOUND *csound)

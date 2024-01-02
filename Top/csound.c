@@ -706,7 +706,7 @@ static const CSOUND cenviron_ = {
 #if defined(MSVC) ||defined(__POWERPC__) || defined(MACOSX)
     {0},
 #elif defined(LINUX)
-   {{{0}}},        /*  exitjmp of type jmp_buf */
+   {{{0}, 0, {0}}},        /*  exitjmp of type jmp_buf */
 #else 
    {0},  
 #endif 
@@ -3446,7 +3446,7 @@ PUBLIC int csoundLoadPlugins(CSOUND *csound, const char *dir){
   if (dir != NULL) {
    csound->Message(csound, "loading plugins from %s\n", dir);
    int err = csoundLoadAndInitModules(csound, dir);
-   if(!err) {
+  if(!err) {
      return CSOUND_SUCCESS;
   }
   else return err;

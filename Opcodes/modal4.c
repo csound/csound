@@ -518,11 +518,11 @@ int32_t agogobel(CSOUND *csound, VIBRAPHN *p)
 static OENTRY modal4_localops[] =
   {
    { "marimba", S(MARIMBA), TR, 3, "a", "kkiiikkiijj",
-     (SUBR)marimbaset, (SUBR)marimba},
+     (SUBR)marimbaset, (SUBR)marimba, NULL, NULL},
    { "vibes", S(VIBRAPHN),  TR, 3, "a", "kkiiikkii",
-     (SUBR)vibraphnset,(SUBR)vibraphn},
+     (SUBR)vibraphnset,(SUBR)vibraphn, NULL, NULL},
    { "gogobel",S(VIBRAPHN), TR, 3, "a", "kkiiikki",
-     (SUBR)agogobelset, (SUBR)agogobel},
+     (SUBR)agogobelset, (SUBR)agogobel, NULL, NULL},
 };
 
 LINKAGE_BUILTIN(modal4_localops)

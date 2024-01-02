@@ -115,7 +115,7 @@ static int32_t pvsgendy(CSOUND *csound, PVSGENDY *p)
 
 static OENTRY pvsgendy_localops[] = {
   { "pvsgendy", sizeof(PVSGENDY), 0, 3, "f", "fkk",
-                (SUBR) pvsgendyinit, (SUBR) pvsgendy, (SUBR) NULL }
+                (SUBR) pvsgendyinit, (SUBR) pvsgendy, (SUBR) NULL, NULL}
 };
 
 LINKAGE_BUILTIN(pvsgendy_localops)

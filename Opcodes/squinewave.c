@@ -388,9 +388,9 @@ int32_t squinewave_gen(CSOUND* csound, SQUINEWAVE *p)
 static OENTRY squinewave_localops[] =
   {
    { "squinewave", sizeof(SQUINEWAVE), 0, 3, "am", "aaaaoj",
-     (SUBR)squinewave_init, (SUBR)squinewave_gen },
+     (SUBR)squinewave_init, (SUBR)squinewave_gen, NULL, NULL},
    { "squinewave", sizeof(SQUINEWAVE), 0, 3, "am", "aaaOoj",
-     (SUBR)squinewave_init, (SUBR)squinewave_gen },
+     (SUBR)squinewave_init, (SUBR)squinewave_gen, NULL, NULL},
 };
 
 LINKAGE_BUILTIN(squinewave_localops)

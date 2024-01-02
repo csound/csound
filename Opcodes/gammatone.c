@@ -123,7 +123,7 @@ static int32_t gammatone_perf(CSOUND *csound, GAMMA *p)
 #define S(x) sizeof(x)
 
 static OENTRY gamma_localops[] = {
-{ "gtf", S(GAMMA), 0, 3, "a", "akioo", (SUBR)gammatone_init, (SUBR)gammatone_perf }
+{ "gtf", S(GAMMA), 0, 3, "a", "akioo", (SUBR)gammatone_init, (SUBR)gammatone_perf, NULL, NULL}
 };
 
 LINKAGE_BUILTIN(gamma_localops)

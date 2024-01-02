@@ -1336,19 +1336,19 @@ static int32_t pvsmorph_process(CSOUND *csound, pvsmorph *p)
 static OENTRY localops[] =
   {
    {"sndloop", sizeof(sndloop),0, 3,
-    "ak", "akkii", (SUBR)sndloop_init, (SUBR)sndloop_process},
+    "ak", "akkii", (SUBR)sndloop_init, (SUBR)sndloop_process, NULL, NULL},
    {"flooper", sizeof(flooper), TR, 3,
-    "mm", "kkiiii", (SUBR)flooper_init, (SUBR)flooper_process},
+    "mm", "kkiiii", (SUBR)flooper_init, (SUBR)flooper_process, NULL, NULL},
    {"pvsarp", sizeof(pvsarp), 0,3,
-    "f", "fkkk", (SUBR)pvsarp_init, (SUBR)pvsarp_process},
+    "f", "fkkk", (SUBR)pvsarp_init, (SUBR)pvsarp_process, NULL, NULL},
    {"pvsvoc", sizeof(pvsvoc), 0,3,
-    "f", "ffkkO", (SUBR)pvsvoc_init, (SUBR)pvsvoc_process},
+    "f", "ffkkO", (SUBR)pvsvoc_init, (SUBR)pvsvoc_process, NULL, NULL},
    {"flooper2", sizeof(flooper2), TR, 3,
-    "mm", "kkkkkiooooO", (SUBR)flooper2_init, (SUBR)flooper2_process},
+    "mm", "kkkkkiooooO", (SUBR)flooper2_init, (SUBR)flooper2_process, NULL, NULL},
   /* {"flooper3", sizeof(flooper3), TR, 3,
      "a", "kkkkkioooo", (SUBR)flooper3_init, (SUBR)flooper3_process},*/
    {"pvsmorph", sizeof(pvsvoc), 0,3,
-    "f", "ffkk", (SUBR)pvsmorph_init, (SUBR)pvsmorph_process}
+    "f", "ffkk", (SUBR)pvsmorph_init, (SUBR)pvsmorph_process, NULL, NULL}
 };
 
 int32_t sndloop_init_(CSOUND *csound)

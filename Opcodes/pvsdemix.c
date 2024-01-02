@@ -190,7 +190,7 @@ static int32_t pvsdemix_process(CSOUND *csound, PVSDEMIX *p)
 static OENTRY localops[] =
   {
     {"pvsdemix", sizeof(PVSDEMIX), 0, 3, "f", "ffkki",
-                 (SUBR) pvsdemix_init, (SUBR) pvsdemix_process, (SUBR) NULL }
+                 (SUBR) pvsdemix_init, (SUBR) pvsdemix_process, (SUBR) NULL, NULL}
   };
 
 int32_t pvsdemix_init_(CSOUND *csound)

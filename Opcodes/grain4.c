@@ -448,7 +448,7 @@ static MYFLT grand( GRAINV4 *p)
 
 static OENTRY grain4_localops[] = {
   { "granule", S(GRAINV4), TR, 3, "a", "xiiiiiiiiikikiiivppppo",
-             (SUBR)grainsetv4, (SUBR)graingenv4},
+             (SUBR)grainsetv4, (SUBR)graingenv4, NULL, NULL},
 };
 
 LINKAGE_BUILTIN(grain4_localops)

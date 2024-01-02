@@ -568,15 +568,15 @@ static OENTRY shape_localops[] =
   /* { "phasine", S(PHASINE), 0, 3, "a", "akp",
      (SUBR)PhasineInit, (SUBR)Phasine }, */
    { "powershape", S(POWER_SHAPE), 0, 3, "a", "akp",
-     (SUBR)PowerShapeInit, (SUBR)PowerShape },
-   { "polynomial", S(POLYNOMIAL), 0, 2, "a", "az", NULL, (SUBR)Polynomial },
+     (SUBR)PowerShapeInit, (SUBR)PowerShape, NULL, NULL},
+   { "polynomial", S(POLYNOMIAL), 0, 2, "a", "az", NULL, (SUBR)Polynomial, NULL, NULL},
    { "chebyshevpoly", S(CHEBPOLY), 0, 3, "a", "az",
-     (SUBR)ChebyshevPolyInit, (SUBR)ChebyshevPolynomial },
-   { "pdclip", S(PD_CLIP), 0, 2, "a", "akkop", NULL, (SUBR)PDClip },
-   { "pdhalf", S(PD_HALF), 0, 2, "a", "akop", NULL, (SUBR)PDHalfX },
-   { "pdhalfy", S(PD_HALF), 0, 2, "a", "akop", NULL, (SUBR)PDHalfY },
+     (SUBR)ChebyshevPolyInit, (SUBR)ChebyshevPolynomial, NULL, NULL},
+   { "pdclip", S(PD_CLIP), 0, 2, "a", "akkop", NULL, (SUBR)PDClip, NULL, NULL},
+   { "pdhalf", S(PD_HALF), 0, 2, "a", "akop", NULL, (SUBR)PDHalfX, NULL, NULL},
+   { "pdhalfy", S(PD_HALF), 0, 2, "a", "akop", NULL, (SUBR)PDHalfY, NULL, NULL},
    { "syncphasor", S(SYNCPHASOR), 0, 3, "aa", "xao",
-     (SUBR)SyncPhasorInit, (SUBR)SyncPhasor },
+     (SUBR)SyncPhasorInit, (SUBR)SyncPhasor, NULL, NULL},
 };
 
 LINKAGE_BUILTIN(shape_localops)

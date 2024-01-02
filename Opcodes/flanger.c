@@ -334,9 +334,9 @@ static int32_t wguide2(CSOUND *csound, WGUIDE2 *p)
 #define S(x)    sizeof(x)
 
 static OENTRY localops[] = {
-{ "flanger", S(FLANGER), 0, 3, "a", "aakvo", (SUBR)flanger_set, (SUBR)flanger },
-{ "wguide1", S(WGUIDE1), 0, 3, "a", "axkk",(SUBR) wguide1set, (SUBR)wguide1  },
-{ "wguide2", S(WGUIDE2), 0, 3, "a", "axxkkkk",(SUBR)wguide2set, (SUBR)wguide2 }
+{ "flanger", S(FLANGER), 0, 3, "a", "aakvo", (SUBR)flanger_set, (SUBR)flanger, NULL, NULL},
+{ "wguide1", S(WGUIDE1), 0, 3, "a", "axkk",(SUBR) wguide1set, (SUBR)wguide1, NULL, NULL},
+{ "wguide2", S(WGUIDE2), 0, 3, "a", "axxkkkk",(SUBR)wguide2set, (SUBR)wguide2, NULL, NULL}
 };
 
 int32_t flanger_init_(CSOUND *csound)

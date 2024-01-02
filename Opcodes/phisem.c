@@ -1295,19 +1295,19 @@ static int32_t sleighbells(CSOUND *csound, SLEIGHBELLS *p)
 
 static OENTRY phisem_localops[] =
   {
-   { "cabasa",  S(CABASA),  0, 3, "a", "iiooo",  (SUBR)cabasaset, (SUBR)cabasa},
-   { "crunch",  S(CABASA),  0, 3, "a", "iiooo",  (SUBR)crunchset, (SUBR)cabasa},
-   { "sekere",  S(SEKERE),  0, 3, "a", "iiooo",  (SUBR)sekereset, (SUBR)sekere},
-   { "sandpaper", S(SEKERE),0, 3, "a", "iiooo",  (SUBR)sandset,   (SUBR)sekere},
-   { "stix", S(SEKERE),     0, 3, "a", "iiooo",  (SUBR)stixset,   (SUBR)sekere},
-   { "guiro", S(GUIRO),     0, 3, "a", "kiooooo",(SUBR)guiroset,  (SUBR)guiro },
+   { "cabasa",  S(CABASA),  0, 3, "a", "iiooo",  (SUBR)cabasaset, (SUBR)cabasa, NULL, NULL},
+   { "crunch",  S(CABASA),  0, 3, "a", "iiooo",  (SUBR)crunchset, (SUBR)cabasa, NULL, NULL},
+   { "sekere",  S(SEKERE),  0, 3, "a", "iiooo",  (SUBR)sekereset, (SUBR)sekere, NULL, NULL},
+   { "sandpaper", S(SEKERE),0, 3, "a", "iiooo",  (SUBR)sandset,   (SUBR)sekere, NULL, NULL},
+   { "stix", S(SEKERE),     0, 3, "a", "iiooo",  (SUBR)stixset,   (SUBR)sekere, NULL, NULL},
+   { "guiro", S(GUIRO),     0, 3, "a", "kiooooo",(SUBR)guiroset,  (SUBR)guiro, NULL, NULL},
    { "tambourine", S(TAMBOURINE),0, 3,"a", "kioooooo",
-                                        (SUBR)tambourset, (SUBR)tambourine},
+                                        (SUBR)tambourset, (SUBR)tambourine, NULL, NULL},
    { "bamboo", S(BAMBOO),   0, 3, "a", "kioooooo",
-                                        (SUBR)bambooset, (SUBR)bamboo },
-   { "dripwater", S(WUTER), 0, 3, "a", "kioooooo", (SUBR)wuterset, (SUBR)wuter },
+                                        (SUBR)bambooset, (SUBR)bamboo, NULL, NULL},
+   { "dripwater", S(WUTER), 0, 3, "a", "kioooooo", (SUBR)wuterset, (SUBR)wuter, NULL, NULL},
    { "sleighbells", S(SLEIGHBELLS), 0, 3, "a","kioooooo",
-                                       (SUBR)sleighset, (SUBR)sleighbells }
+                                       (SUBR)sleighset, (SUBR)sleighbells, NULL, NULL}
 };
 
 LINKAGE_BUILTIN(phisem_localops)

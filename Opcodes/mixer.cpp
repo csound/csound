@@ -301,19 +301,19 @@ extern "C" {
 static OENTRY localops[] = {
     {(char *)"MixerSetLevel", sizeof(MixerSetLevel), _CW, 3, (char *)"",
      (char *)"iik", (SUBR)&MixerSetLevel::init_, (SUBR)&MixerSetLevel::kontrol_,
-     0},
+     0, NULL},
     {(char *)"MixerSetLevel_i", sizeof(MixerSetLevel), _CW, 1, (char *)"",
-     (char *)"iii", (SUBR)&MixerSetLevel::init_, 0, 0},
+     (char *)"iii", (SUBR)&MixerSetLevel::init_, 0, 0, NULL},
     {(char *)"MixerGetLevel", sizeof(MixerGetLevel), _CR, 3, (char *)"k",
      (char *)"ii", (SUBR)&MixerGetLevel::init_, (SUBR)&MixerGetLevel::kontrol_,
-     0},
+     0, NULL},
     {(char *)"MixerSend", sizeof(MixerSend), _CW, 3, (char *)"", (char *)"aiii",
-     (SUBR)&MixerSend::init_, (SUBR)&MixerSend::audio_},
+     (SUBR)&MixerSend::init_, (SUBR)&MixerSend::audio_, NULL, NULL},
     {(char *)"MixerReceive", sizeof(MixerReceive), _CR, 3, (char *)"a",
-     (char *)"ii", (SUBR)&MixerReceive::init_, (SUBR)&MixerReceive::audio_},
+     (char *)"ii", (SUBR)&MixerReceive::init_, (SUBR)&MixerReceive::audio_, NULL, NULL},
     {(char *)"MixerClear", sizeof(MixerClear), 0, 3, (char *)"", (char *)"",
-     (SUBR)&MixerClear::init_, (SUBR)&MixerClear::audio_},
-    {NULL, 0, 0, 0, NULL, NULL, (SUBR)NULL, (SUBR)NULL, (SUBR)NULL}};
+     (SUBR)&MixerClear::init_, (SUBR)&MixerClear::audio_, NULL, NULL},
+    {NULL, 0, 0, 0, NULL, NULL, (SUBR)NULL, (SUBR)NULL, (SUBR)NULL, NULL}};
 
 PUBLIC int csoundModuleCreate_mixer(CSOUND *csound) {
   std::map<CSOUND *, std::map<size_t, std::vector<std::vector<MYFLT>>>>

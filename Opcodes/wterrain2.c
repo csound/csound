@@ -226,7 +226,7 @@ static int32_t wtPerf(CSOUND *csound, WAVETER *p)
 
 static OENTRY wter_localops[] = {
   { "wterrain2", S(WAVETER), TR, 3,  "a", "kkkkkkkkkkk",
-    (SUBR)wtinit, (SUBR)wtPerf },
+    (SUBR)wtinit, (SUBR)wtPerf, NULL, NULL},
 };
 
 //LINKAGE

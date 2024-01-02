@@ -869,10 +869,10 @@ static fcomplex RCmul(double x, fcomplex a)
 #define S(x)    sizeof(x)
 
 static OENTRY localops[] = {
-{ "filter2",0xffff,                                                     },
-{ "filter2.a",  S(FILTER), 0, 3, "a", "aiim", (SUBR)ifilter, (SUBR)afilter},
-{ "filter2.k", S(FILTER), 0, 3,  "k", "kiim", (SUBR)ifilter, (SUBR)kfilter,NULL },
-{ "zfilter2", S(ZFILTER), 0, 3,  "a", "akkiim", (SUBR)izfilter, (SUBR)azfilter}
+{ "filter2",0xffff, 0, 0, "", "", NULL, NULL, NULL, NULL},
+{ "filter2.a",  S(FILTER), 0, 3, "a", "aiim", (SUBR)ifilter, (SUBR)afilter, NULL, NULL},
+{ "filter2.k", S(FILTER), 0, 3,  "k", "kiim", (SUBR)ifilter, (SUBR)kfilter,NULL, NULL},
+{ "zfilter2", S(ZFILTER), 0, 3,  "a", "akkiim", (SUBR)izfilter, (SUBR)azfilter, NULL, NULL}
 };
 
 int32_t filter_init_(CSOUND *csound)

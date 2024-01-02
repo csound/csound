@@ -353,16 +353,16 @@ static int32_t dashow(CSOUND *csound, DSH *p)
 
 static OENTRY localops[] = {
   { "vtable1k",       S(MTABLE1),         TR, 3,  "",  "kz",
-                  (SUBR)mtable1_set,      (SUBR)mtable1_k,        (SUBR) NULL },
+                  (SUBR)mtable1_set,      (SUBR)mtable1_k,        (SUBR) NULL, NULL},
   { "trandom",        S(TRANGERAND),          0,    2,  "k", "kkk",
-                    NULL,                                   (SUBR)trRangeRand },
+                    NULL,                                   (SUBR)trRangeRand, NULL, NULL},
   { "lposcila", S(LPOSC),      TR, 3, "a", "akkkio",
-                                           (SUBR)lposc_set, (SUBR)lposca},
+                                           (SUBR)lposc_set, (SUBR)lposca, NULL, NULL},
   { "lposcilsa", S(LPOSC_ST),  TR, 3, "aa","akkkio",
-                             (SUBR)lposc_stereo_set, (SUBR)lposca_stereo},
+                             (SUBR)lposc_stereo_set, (SUBR)lposca_stereo, NULL, NULL},
   { "lposcilsa2", S(LPOSC_ST), TR, 3, "aa","akkkio",
-                    (SUBR)lposc_stereo_set, (SUBR)lposca_stereo_no_trasp},
-  { "inrg", S(INRANGE), WI,3, "", "ky", (SUBR)inRange_i, (SUBR)inRange }
+                    (SUBR)lposc_stereo_set, (SUBR)lposca_stereo_no_trasp, NULL, NULL},
+  { "inrg", S(INRANGE), WI,3, "", "ky", (SUBR)inRange_i, (SUBR)inRange, NULL, NULL}
 
 
 };

@@ -292,10 +292,10 @@ static int32_t scantPerf(CSOUND *csound, SCANTABLE *p)
 
 static OENTRY localops[] = {
   { "wterrain", S(WAVETER), TR, 3,  "a", "kkkkkkii",
-    (SUBR)wtinit, (SUBR)wtPerf },
+    (SUBR)wtinit, (SUBR)wtPerf, NULL, NULL},
   { "scantable", S(SCANTABLE),TR, 3,"a", "kkiiiii",
-    (SUBR)scantinit,(SUBR)scantPerf},
-  { "scanhammer",S(SCANHAMMER),TB, 1,"", "iiii", (SUBR)scanhinit, NULL, NULL    }
+    (SUBR)scantinit,(SUBR)scantPerf, NULL, NULL},
+  { "scanhammer",S(SCANHAMMER),TB, 1,"", "iiii", (SUBR)scanhinit, NULL, NULL, NULL}
 };
 
 int32_t wave_terrain_init_(CSOUND *csound)

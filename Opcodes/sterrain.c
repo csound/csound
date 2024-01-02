@@ -201,7 +201,7 @@ static int32_t wtPerf(CSOUND *csound, SUPERTER *p)
 
 static OENTRY sterrain_localops[] = {
   { "sterrain", S(SUPERTER), TR, 3,  "a", "kkkkkkkkkkkkkkkkk",
-    (SUBR)wtinit, (SUBR)wtPerf },
+    (SUBR)wtinit, (SUBR)wtPerf, NULL, NULL},
 };
 
 LINKAGE_BUILTIN(sterrain_localops)

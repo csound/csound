@@ -450,14 +450,14 @@ int32_t pvspitch_process(CSOUND *csound, PVSPITCH *p)
 
 static OENTRY localops[] = {
   { "pvscent", sizeof(PVSCENT), 0, 3, "k", "f",
-                             (SUBR)pvscentset, (SUBR)pvscent },
+                             (SUBR)pvscentset, (SUBR)pvscent, NULL, NULL},
   { "pvsbandwidth", sizeof(PVSCENT), 0, 3, "k", "f",
-                             (SUBR)pvscentset, (SUBR)pvsbandw },
+                             (SUBR)pvscentset, (SUBR)pvsbandw, NULL, NULL},
   { "pvscent", sizeof(PVSCENT), 0, 3, "a", "f",
-                             (SUBR)pvscentset, (SUBR)pvsscent },
-  { "centroid", sizeof(CENT), 0, 3, "k", "aki", (SUBR)cent_i, (SUBR)cent_k, NULL},
+                             (SUBR)pvscentset, (SUBR)pvsscent, NULL, NULL},
+  { "centroid", sizeof(CENT), 0, 3, "k", "aki", (SUBR)cent_i, (SUBR)cent_k, NULL, NULL},
   { "pvspitch", sizeof(PVSPITCH), 0, 3, "kk", "fk",
-                            (SUBR)pvspitch_init, (SUBR)pvspitch_process, NULL}
+                            (SUBR)pvspitch_init, (SUBR)pvspitch_process, NULL, NULL}
 };
 
 int32_t pvscent_init_(CSOUND *csound)
