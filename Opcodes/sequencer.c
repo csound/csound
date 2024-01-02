@@ -262,6 +262,7 @@ static int sequStateInit(CSOUND *csound, SEQSTATE* p)
 
 static int sequState(CSOUND *csound, SEQSTATE* p)
 {
+    (void)(csound);
     SEQ* q = p->q;
     int i;
     int len = (int)*q->klen;

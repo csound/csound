@@ -533,6 +533,7 @@ static inline int32_t bpfx_find(MYFLT **data, MYFLT x, int32_t datalen, int32_t 
 }
 
 static int32_t bpfx_k(CSOUND *csound, BPFX *p) {
+    (void)(csound);
     MYFLT x = *p->x;
     MYFLT **data = p->data;
     int32_t datalen = p->INOCOUNT - 1;
@@ -567,6 +568,7 @@ static int32_t bpfx_k(CSOUND *csound, BPFX *p) {
 }
 
 static int32_t bpfxcos_k(CSOUND *csound, BPFX *p) {
+    (void)(csound);
     MYFLT x = *p->x;
     MYFLT **data = p->data;
     int32_t datalen = p->INOCOUNT - 1;
@@ -2807,6 +2809,7 @@ sprintf_opcode_(CSOUND *csound,
                 int32_t numVals,      /* number of arguments             */
                 int32_t strCode)      /* bit mask for string arguments   */
 {
+    (void)(strCode);
     if(p->initDone == 0)
         return PERFERRF(Str("Opcode %s not initialised"), p->h.optext->t.opcod);
     int32_t     len = 0;

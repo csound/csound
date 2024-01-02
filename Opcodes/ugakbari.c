@@ -92,6 +92,7 @@ static int32_t scale_process(CSOUND *csound, scale *p)
 
 static int32_t scale2_init(CSOUND *csound, SCALE2 *p)
 {
+    (void)(csound);
     if (*p->ihtim != FL(0.0)) {
       p->c2 = POWER(FL(0.5), CS_ONEDKR / *p->ihtim);
       p->c1 = FL(1.0) - p->c2;

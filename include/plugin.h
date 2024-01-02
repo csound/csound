@@ -67,6 +67,7 @@ class Csound : CSOUND {
     opcode function template (deinit-time)
    */
   template <typename T> static int deinit(CSOUND *csound, void *p) {
+    (void)(csound);
     return ((T *)p)->deinit();
   }
 

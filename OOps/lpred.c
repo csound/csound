@@ -177,6 +177,7 @@ MYFLT *csoundLPred(CSOUND *csound, void *parm, MYFLT *x){
 */
 MYFLT *csoundLPCeps(CSOUND *csound, MYFLT *c, MYFLT *b,
                     int N, int M){
+  (void)(csound);
   int n,m;
   MYFLT s;
   c[0] = -LOG(b[0]);
@@ -204,6 +205,8 @@ MYFLT *csoundLPCeps(CSOUND *csound, MYFLT *c, MYFLT *b,
 
 MYFLT *csoundCepsLP(CSOUND *csound, MYFLT *b, MYFLT *c,
                     int M, int N){
+  (void)(csound);
+  (void)(N);
   int n,m;
   MYFLT s;
   b[0]  = 1;
@@ -314,12 +317,14 @@ MYFLT csoundLPcps(CSOUND *csound, void *parm){
 }
 
 MYFLT csoundLPrms(CSOUND *csound, void *parm){
+  (void)(csound);
   LPCparam *p = (LPCparam *) parm;
   return p->rms;
 }
 
 
 MYFLT *csoundLPcoefs(CSOUND *csound, void *parm) {
+  (void)(csound);
   LPCparam *p = (LPCparam *) parm;
   return &(p->b[p->M*(p->M+1)]);
 }
@@ -485,6 +490,7 @@ static MYFLT *zero2coef(int32_t M, MYCMPLX *zr, MYFLT *c, MYFLT *tmp)
 
 #define MAX_ITER 2000
 MYCMPLX *csoundCoef2Pole(CSOUND *csound, void *parm, MYFLT *c){
+  (void)(csound);
   LPCparam *p = (LPCparam *) parm;
   MYCMPLX *pl = p->pl;
   MYFLT *buf = p->tmpmem, *cf = p->cf;
@@ -501,6 +507,7 @@ MYCMPLX *csoundCoef2Pole(CSOUND *csound, void *parm, MYFLT *c){
 }
 
 MYFLT *csoundPole2Coef(CSOUND *csound, void *parm, MYCMPLX *pl) {
+  (void)(csound);
   LPCparam *p = (LPCparam *) parm;
   pl = invertfilter(p->M, pl);
   return zero2coef(p->M, pl, p->cf, p->tmpmem);
@@ -873,6 +880,7 @@ int32_t lpfil3_init(CSOUND *csound, LPCFIL3 *p) {
 
 
 int32_t lpfil3_perf(CSOUND *csound, LPCFIL3 *p) {
+  (void)(csound);
   MYFLT *cfs = (MYFLT *) p->coefs->data;
   double *yn = (double *) p->del.auxp, y;
   MYFLT *out = p->out;

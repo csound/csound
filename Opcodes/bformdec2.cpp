@@ -718,6 +718,7 @@ public:
 
   virtual int32_t hrtfstat_process(CSOUND *csound, MYFLT *in, MYFLT *outsigl, MYFLT *outsigr, uint32_t offset, uint32_t early, uint32_t nsmps)
   {
+      (void)(early);
       /* local pointers to p */
       /*MYFLT *in = p->in->data;
         MYFLT *outsigl  = p->outsigl;

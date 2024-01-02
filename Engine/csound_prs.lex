@@ -1543,6 +1543,7 @@ static int powintint(int x, int n)
 
 static int operate(CSOUND *csound, int a, int b, char c)
 {
+    (void)(csound);
     int ans;
 
     switch (c) {

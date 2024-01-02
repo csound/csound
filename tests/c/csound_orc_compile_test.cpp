@@ -168,4 +168,5 @@ TEST_F (OrcCompileTests, testLineNumber)
     TREE *tree = csoundParseOrc(csound, instrument);
     // TODO this test doesn't return the expected value, 1 instead of 0
     // ASSERT_EQ (tree->next->line, 0);
+    (void)(tree);
 }
