@@ -1803,7 +1803,7 @@ static OENTRY hrtfearly_localops[] =
     {
      "hrtfearly",   sizeof(early), 0,3, "aaiii",
                                          "axxxxxxSSioopoOoooooooooooooooooo",
-      (SUBR)early_init, (SUBR)early_process
+      (SUBR)early_init, (SUBR)early_process, NULL, NULL
     }
   };
 

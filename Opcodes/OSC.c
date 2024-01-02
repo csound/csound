@@ -1128,7 +1128,7 @@ static OENTRY localops[] = {
   { "OSClisten", S(OSCLISTENA),0, 3, "kk[]", "iSS",
     (SUBR)OSC_alist_init, (SUBR)OSC_alist, NULL, NULL },
   { "OSCcount", S(OSCcount), 0, 3, "k", "",
-    (SUBR)OSCcounter, (SUBR)OSCcounter, NULL }
+    (SUBR)OSCcounter, (SUBR)OSCcounter, NULL, NULL}
 };
 
 PUBLIC int64_t csound_opcode_init(CSOUND *csound, OENTRY **ep)

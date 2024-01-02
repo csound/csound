@@ -2150,7 +2150,7 @@ static void process_nfc(CSOUND *csound, HOAMBDEC* p, int signal_order, int n, in
 
 static OENTRY localops[] = {
   { (char*) "bformdec2.A", S(HOAMBDEC), 0, 3, (char*) "a[]", (char*) "ia[]ooooNN",
-    (SUBR)ihoambdec, (SUBR)ahoambdec },
+    (SUBR)ihoambdec, (SUBR)ahoambdec, NULL, NULL},
 };
 
 LINKAGE_BUILTIN(localops)

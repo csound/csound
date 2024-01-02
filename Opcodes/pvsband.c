@@ -287,9 +287,9 @@ static int32_t pvsbrej(CSOUND *csound, PVSBAND *p)
 
 static OENTRY localops[] = {
   {"pvsbandp", sizeof(PVSBAND), 0, 3, "f", "fxxxxO",
-                    (SUBR) pvsbandinit, (SUBR) pvsband, (SUBR) NULL },
+                    (SUBR) pvsbandinit, (SUBR) pvsband, (SUBR) NULL, NULL},
   {"pvsbandr", sizeof(PVSBAND), 0, 3, "f", "fxxxxO",
-                    (SUBR) pvsbandinit, (SUBR) pvsbrej, (SUBR) NULL }
+                    (SUBR) pvsbandinit, (SUBR) pvsbrej, (SUBR) NULL, NULL}
 };
 
 int32_t pvsband_init_(CSOUND *csound)

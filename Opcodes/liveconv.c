@@ -515,7 +515,7 @@ static OENTRY liveconv_localops[] = {
     "a",                    // output arguments
     "aiikk",                // input arguments
     (SUBR) liveconv_init,   // init function
-    (SUBR) liveconv_perf    // a-rate function
+    (SUBR) liveconv_perf, NULL, NULL    // a-rate function
   }
 };
 

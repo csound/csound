@@ -740,15 +740,15 @@ void float_to_cfrac (CSOUND *csound, double r, int32_t n,
 #define S sizeof
 
 static OENTRY fareyseq_localops[] = {
-    {"tablefilteri", S(TABFILT),TB, 1, "i", "iiii", (SUBR) tableifilter,NULL,NULL},
+    {"tablefilteri", S(TABFILT),TB, 1, "i", "iiii", (SUBR) tableifilter,NULL,NULL, NULL},
     {"tablefilter", S(TABFILT), TB, 3, "k", "kkkk",
-                                (SUBR) tablefilterset, (SUBR) tablefilter, NULL},
-    {"fareyleni", S(FAREYLEN), TR, 1, "i", "i", (SUBR) fareylen, NULL, NULL},
-    {"fareylen", S(FAREYLEN), TR, 2, "k", "k", NULL, (SUBR) fareylen, NULL},
+                                (SUBR) tablefilterset, (SUBR) tablefilter, NULL, NULL},
+    {"fareyleni", S(FAREYLEN), TR, 1, "i", "i", (SUBR) fareylen, NULL, NULL, NULL},
+    {"fareylen", S(FAREYLEN), TR, 2, "k", "k", NULL, (SUBR) fareylen, NULL, NULL},
     {"tableshufflei", S(TABSHUFFLE), TB, 1, "", "i",
-                                      (SUBR) tableishuffle, NULL, NULL},
+                                      (SUBR) tableishuffle, NULL, NULL, NULL},
     {"tableshuffle", S(TABSHUFFLE), TB, 3, "", "k",
-                      (SUBR) tableshuffleset, (SUBR) tableshuffle, NULL},
+                      (SUBR) tableshuffleset, (SUBR) tableshuffle, NULL, NULL},
 };
 
 LINKAGE_BUILTIN(fareyseq_localops)

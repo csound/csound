@@ -283,13 +283,13 @@ static int32_t atabmorphi(CSOUND *csound, TABMORPH *p)
 OENTRY tabmoroph_localops[] = {
 
 { "tabmorph",  S(TABMORPH), TR, 3,  "k", "kkkkm",
-               (SUBR) tabmorph_set, (SUBR) tabmorph, NULL},
+               (SUBR) tabmorph_set, (SUBR) tabmorph, NULL, NULL},
 { "tabmorphi", S(TABMORPH), TR, 3,  "k", "kkkkm",
-               (SUBR) tabmorph_set, (SUBR) tabmorphi, NULL},
+               (SUBR) tabmorph_set, (SUBR) tabmorphi, NULL, NULL},
 { "tabmorpha", S(TABMORPH), TR, 3,  "a", "aaaam",
-               (SUBR) tabmorph_set, (SUBR) atabmorphia},
+               (SUBR) tabmorph_set, (SUBR) atabmorphia, NULL, NULL},
 { "tabmorphak",S(TABMORPH), TR, 3,  "a", "akkkm",
-               (SUBR) tabmorph_set, (SUBR) atabmorphi }
+               (SUBR) tabmorph_set, (SUBR) atabmorphi, NULL, NULL}
 
 };
 

@@ -725,16 +725,16 @@ static int32_t lp2ak(CSOUND *csound, LP2 *p)
 
 static OENTRY localops[] =
   {
-   { "svfilter", S(SVF),    0, 3, "aaa", "axxoo",(SUBR)svfset, (SUBR)svf    },
-   { "hilbert", S(HILBERT), 0,3, "aa", "a",      (SUBR)hilbertset, (SUBR)hilbert },
-   { "resonr", S(RESONZ),   0,3, "a", "axxoo",   (SUBR)resonzset, (SUBR)resonr},
-   { "resonz", S(RESONZ),   0,3, "a", "axxoo",   (SUBR)resonzset, (SUBR)resonz},
-   { "lowpass2.kk", S(LP2), 0,3, "a", "akko",    (SUBR)lp2_set, (SUBR)lp2     },
-   { "lowpass2.aa", S(LP2), 0,3, "a", "aaao",    (SUBR)lp2_set, (SUBR)lp2aa   },
-   { "lowpass2.ak", S(LP2), 0,3, "a", "aakao",   (SUBR)lp2_set, (SUBR)lp2ak   },
-   { "lowpass2.ka", S(LP2), 0,3, "a", "akao",    (SUBR)lp2_set, (SUBR)lp2ka   },
-   { "phaser2", S(PHASER2), 0,3, "a", "akkkkkko",(SUBR)phaser2set,(SUBR)phaser2},
-   { "phaser1", S(PHASER1), 0,3, "a", "akkko", (SUBR)phaser1set,(SUBR)phaser1}
+   { "svfilter", S(SVF),    0, 3, "aaa", "axxoo",(SUBR)svfset, (SUBR)svf, NULL, NULL},
+   { "hilbert", S(HILBERT), 0,3, "aa", "a",      (SUBR)hilbertset, (SUBR)hilbert, NULL, NULL},
+   { "resonr", S(RESONZ),   0,3, "a", "axxoo",   (SUBR)resonzset, (SUBR)resonr, NULL, NULL},
+   { "resonz", S(RESONZ),   0,3, "a", "axxoo",   (SUBR)resonzset, (SUBR)resonz, NULL, NULL},
+   { "lowpass2.kk", S(LP2), 0,3, "a", "akko",    (SUBR)lp2_set, (SUBR)lp2, NULL, NULL},
+   { "lowpass2.aa", S(LP2), 0,3, "a", "aaao",    (SUBR)lp2_set, (SUBR)lp2aa, NULL, NULL},
+   { "lowpass2.ak", S(LP2), 0,3, "a", "aakao",   (SUBR)lp2_set, (SUBR)lp2ak, NULL, NULL},
+   { "lowpass2.ka", S(LP2), 0,3, "a", "akao",    (SUBR)lp2_set, (SUBR)lp2ka, NULL, NULL},
+   { "phaser2", S(PHASER2), 0,3, "a", "akkkkkko",(SUBR)phaser2set,(SUBR)phaser2, NULL, NULL},
+   { "phaser1", S(PHASER1), 0,3, "a", "akkko", (SUBR)phaser1set,(SUBR)phaser1, NULL, NULL}
 };
 
 int32_t ugsc_init_(CSOUND *csound)

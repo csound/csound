@@ -99,10 +99,10 @@ static int32_t vasigset(CSOUND *csound, VASIG_SET *p)
 #define S(x)    sizeof(x)
 
 static OENTRY vaops_localops[] = {
-  { "vaget", S(VA_GET),    0, 2,      "k", "ka",  NULL, (SUBR)vaget },
-  { "vaset", S(VA_SET),    WI, 2,      "",  "kka", NULL, (SUBR)vaset },
-  { "##array_get", S(VASIG_GET),    0, 2,      "k", "ak",  NULL, (SUBR)vasigget },
-  { "##array_set", S(VASIG_SET),    0, 2,      "",  "akk", NULL, (SUBR)vasigset }
+  { "vaget", S(VA_GET),    0, 2,      "k", "ka",  NULL, (SUBR)vaget, NULL, NULL},
+  { "vaset", S(VA_SET),    WI, 2,      "",  "kka", NULL, (SUBR)vaset, NULL, NULL},
+  { "##array_get", S(VASIG_GET),    0, 2,      "k", "ak",  NULL, (SUBR)vasigget, NULL, NULL},
+  { "##array_set", S(VASIG_SET),    0, 2,      "",  "akk", NULL, (SUBR)vasigset, NULL, NULL}
 };
 
 

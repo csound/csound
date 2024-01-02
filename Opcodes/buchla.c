@@ -324,7 +324,7 @@ static OENTRY buchla_localops[] = {
                             (SUBR)poly_LPG_init, (SUBR)poly_LPG_perf },
   #endif
   { "vactrol", S(VACTROL), 0, 3, "a", "ajj",
-                                 (SUBR)vactrol_init, (SUBR)vactrol_perf }
+                                 (SUBR)vactrol_init, (SUBR)vactrol_perf, NULL, NULL}
 };
 
 LINKAGE_BUILTIN(buchla_localops)

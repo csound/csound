@@ -306,15 +306,15 @@ int32_t painit(CSOUND *csound, PAINIT *p)
 #define S(x)    sizeof(x)
 
 static OENTRY localops[] = {
-{ "pcount", S(PFIELD),  0, 1, "i", "",       (SUBR)pcount,    NULL, NULL },
-{ "pindex", S(PFIELD),  0, 1, "i", "i",      (SUBR)pvalue,    NULL, NULL },
-{ "pindex.S", S(PFIELDSTR), 0, 1, "S", "i",  (SUBR)pvaluestr, NULL, NULL },
+{ "pcount", S(PFIELD),  0, 1, "i", "",       (SUBR)pcount,    NULL, NULL, NULL},
+{ "pindex", S(PFIELD),  0, 1, "i", "i",      (SUBR)pvalue,    NULL, NULL, NULL},
+{ "pindex.S", S(PFIELDSTR), 0, 1, "S", "i",  (SUBR)pvaluestr, NULL, NULL, NULL},
 { "passign", S(PINIT),  0, 1, "IIIIIIIIIIIIIIIIIIIIIIII", "po",
-                                             (SUBR)pinit,     NULL, NULL },
-{ "passign.i", S(PAINIT), 0, 1, "i[]", "po",  (SUBR)painit,    NULL, NULL },
-{ "passign.k", S(PAINIT), 0, 1, "k[]", "po",  (SUBR)painit,    NULL, NULL },
-{ "nlfilt",  S(NLFILT), 0, 3, "a", "akkkkk", (SUBR)nlfiltset, (SUBR)nlfilt },
-{ "nlfilt2",  S(NLFILT), 0, 3, "a", "akkkkk", (SUBR)nlfiltset, (SUBR)nlfilt2 }
+                                             (SUBR)pinit,     NULL, NULL, NULL},
+{ "passign.i", S(PAINIT), 0, 1, "i[]", "po",  (SUBR)painit,    NULL, NULL, NULL},
+{ "passign.k", S(PAINIT), 0, 1, "k[]", "po",  (SUBR)painit,    NULL, NULL, NULL},
+{ "nlfilt",  S(NLFILT), 0, 3, "a", "akkkkk", (SUBR)nlfiltset, (SUBR)nlfilt, NULL, NULL},
+{ "nlfilt2",  S(NLFILT), 0, 3, "a", "akkkkk", (SUBR)nlfiltset, (SUBR)nlfilt2, NULL, NULL}
 };
 
 int32_t nlfilt_init_(CSOUND *csound)

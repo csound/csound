@@ -619,72 +619,72 @@ phasor_k_kk(CSOUND *csound, Phasor *p) {
 
 static OENTRY scugens_localops[] = {
     {"sc_lag",    S(LAG0),   0, 3, "k", "kk",
-     (SUBR)lag0_init_no_initial_value, (SUBR)lag0k_next},
+     (SUBR)lag0_init_no_initial_value, (SUBR)lag0k_next, NULL, NULL},
     {"lag",    S(LAG0),   0, 3, "k", "kk",
-     (SUBR)lag0_init_no_initial_value, (SUBR)lag0k_next},
+     (SUBR)lag0_init_no_initial_value, (SUBR)lag0k_next, NULL, NULL},
 
     {"sc_lag",    S(LAG0),   0, 3, "k", "kki",
-     (SUBR)lag0_init_initial_value, (SUBR)lag0k_next},
+     (SUBR)lag0_init_initial_value, (SUBR)lag0k_next, NULL, NULL},
     {"lag",    S(LAG0),   0, 3, "k", "kki",
-     (SUBR)lag0_init_initial_value, (SUBR)lag0k_next},
+     (SUBR)lag0_init_initial_value, (SUBR)lag0k_next, NULL, NULL},
 
     {"sc_lag",    S(LAG0),    0, 3, "a", "aki",
-     (SUBR)laga_init_initial_value, (SUBR)laga_next},
+     (SUBR)laga_init_initial_value, (SUBR)laga_next, NULL, NULL},
     {"lag",    S(LAG0),    0, 3, "a", "aki",
-     (SUBR)laga_init_initial_value, (SUBR)laga_next},
+     (SUBR)laga_init_initial_value, (SUBR)laga_next, NULL, NULL},
 
     {"sc_lag",    S(LAG0),    0, 3, "a", "ak",
-     (SUBR)laga_init_no_initial_value, (SUBR)laga_next},
+     (SUBR)laga_init_no_initial_value, (SUBR)laga_next, NULL, NULL},
     {"lag",    S(LAG0),    0, 3, "a", "ak",
-     (SUBR)laga_init_no_initial_value, (SUBR)laga_next},
+     (SUBR)laga_init_no_initial_value, (SUBR)laga_next, NULL, NULL},
 
     {"sc_lagud",  S(LagUD),  0, 3, "k", "kkki",
-     (SUBR)lagud_init_initial_value, (SUBR)lagud_k },
+     (SUBR)lagud_init_initial_value, (SUBR)lagud_k, NULL, NULL},
     {"lagud",  S(LagUD),  0, 3, "k", "kkki",
-     (SUBR)lagud_init_initial_value, (SUBR)lagud_k },
+     (SUBR)lagud_init_initial_value, (SUBR)lagud_k, NULL, NULL},
 
     {"sc_lagud",  S(LagUD),  0, 3, "a", "akki",
-     (SUBR)lagud_init_initial_value, (SUBR)lagud_a },
+     (SUBR)lagud_init_initial_value, (SUBR)lagud_a, NULL, NULL},
     {"lagud",  S(LagUD),  0, 3, "a", "akki",
-     (SUBR)lagud_init_initial_value, (SUBR)lagud_a },
+     (SUBR)lagud_init_initial_value, (SUBR)lagud_a, NULL, NULL},
 
     {"sc_lagud",  S(LagUD),  0, 3, "k", "kkk",
-     (SUBR)lagud_init_no_initial_value, (SUBR)lagud_k },
+     (SUBR)lagud_init_no_initial_value, (SUBR)lagud_k, NULL, NULL},
     {"lagud",  S(LagUD),  0, 3, "k", "kkk",
-     (SUBR)lagud_init_no_initial_value, (SUBR)lagud_k },
+     (SUBR)lagud_init_no_initial_value, (SUBR)lagud_k, NULL, NULL},
 
     {"sc_lagud",  S(LagUD),  0, 3, "a", "akk",
-     (SUBR)lagud_init_no_initial_value, (SUBR)lagud_a },
+     (SUBR)lagud_init_no_initial_value, (SUBR)lagud_a, NULL, NULL},
     {"lagud",  S(LagUD),  0, 3, "a", "akk",
-     (SUBR)lagud_init_no_initial_value, (SUBR)lagud_a },
+     (SUBR)lagud_init_no_initial_value, (SUBR)lagud_a, NULL, NULL},
 
 
-    {"sc_trig",   S(Trig),   0, 3, "k", "kk",    (SUBR)trig_init, (SUBR)trig_k },
-    {"trighold",   S(Trig),   0, 3, "k", "kk",    (SUBR)trig_init, (SUBR)trig_k },
+    {"sc_trig",   S(Trig),   0, 3, "k", "kk",    (SUBR)trig_init, (SUBR)trig_k, NULL, NULL},
+    {"trighold",   S(Trig),   0, 3, "k", "kk",    (SUBR)trig_init, (SUBR)trig_k, NULL, NULL},
 
-    {"sc_trig",   S(Trig),   0, 3, "a", "ak",    (SUBR)trig_init, (SUBR)trig_a },
-    {"trighold",   S(Trig),   0, 3, "a", "ak",    (SUBR)trig_init, (SUBR)trig_a },
+    {"sc_trig",   S(Trig),   0, 3, "a", "ak",    (SUBR)trig_init, (SUBR)trig_a, NULL, NULL},
+    {"trighold",   S(Trig),   0, 3, "a", "ak",    (SUBR)trig_init, (SUBR)trig_a, NULL, NULL},
 
     {"sc_phasor", S(Phasor), 0, 3, "k", "kkkkO",
-     (SUBR)phasor_init, (SUBR)phasor_k_kk },
+     (SUBR)phasor_init, (SUBR)phasor_k_kk, NULL, NULL},
     {"trigphasor", S(Phasor), 0, 3, "k", "kkkkO",
-     (SUBR)phasor_init, (SUBR)phasor_k_kk },
+     (SUBR)phasor_init, (SUBR)phasor_k_kk, NULL, NULL},
 
     {"sc_phasor", S(Phasor), 0, 3, "a", "akkkO",
-     (SUBR)phasor_init, (SUBR)phasor_a_ak },
+     (SUBR)phasor_init, (SUBR)phasor_a_ak, NULL, NULL},
     {"trigphasor", S(Phasor), 0, 3, "a", "akkkO",
-     (SUBR)phasor_init, (SUBR)phasor_a_ak },
+     (SUBR)phasor_init, (SUBR)phasor_a_ak, NULL, NULL},
 
     {"sc_phasor", S(Phasor), 0, 3, "a", "aakkO",
-     (SUBR)phasor_init, (SUBR)phasor_a_aa },
+     (SUBR)phasor_init, (SUBR)phasor_a_aa, NULL, NULL},
     {"trigphasor", S(Phasor), 0, 3, "a", "aakkO",
-     (SUBR)phasor_init, (SUBR)phasor_a_aa },
+     (SUBR)phasor_init, (SUBR)phasor_a_aa, NULL, NULL},
 
     {"sc_phasor", S(Phasor), 0, 3, "a", "kkkkO",
-     (SUBR)phasor_init, (SUBR)phasor_a_kk },
+     (SUBR)phasor_init, (SUBR)phasor_a_kk, NULL, NULL},
 
     {"trigphasor", S(Phasor), 0, 3, "a", "kkkkO",
-     (SUBR)phasor_init, (SUBR)phasor_a_kk }
+     (SUBR)phasor_init, (SUBR)phasor_a_kk, NULL, NULL}
 };
 
 LINKAGE_BUILTIN(scugens_localops)

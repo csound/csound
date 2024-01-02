@@ -2665,11 +2665,11 @@ static int32_t hrtfmove2_process(CSOUND *csound, hrtfmove2 *p)
 static OENTRY hrtfopcodes_localops[] =
 {
  { "hrtfmove", sizeof(hrtfmove),0, 3, "aa", "akkSSooo",
-    (SUBR)hrtfmove_init, (SUBR)hrtfmove_process },
+    (SUBR)hrtfmove_init, (SUBR)hrtfmove_process, NULL, NULL},
  { "hrtfstat", sizeof(hrtfstat),0, 3, "aa", "aiiSSoo",
-    (SUBR)hrtfstat_init, (SUBR)hrtfstat_process },
+    (SUBR)hrtfstat_init, (SUBR)hrtfstat_process, NULL, NULL},
  { "hrtfmove2",  sizeof(hrtfmove2),0, 3, "aa", "akkSSooo",
-    (SUBR)hrtfmove2_init, (SUBR)hrtfmove2_process }
+    (SUBR)hrtfmove2_init, (SUBR)hrtfmove2_process, NULL, NULL}
 };
 
 LINKAGE_BUILTIN(hrtfopcodes_localops)

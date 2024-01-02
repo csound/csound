@@ -679,21 +679,21 @@ static int32_t bpcutxx(CSOUND *csound, BBFIL *p)      /*      Band reject filter
 
 static OENTRY afilts_localops[] =
 {
-  { "areson.aa", sizeof(RESON), 0,3,"a","aaaoo",(SUBR)rsnset,(SUBR)aresonaa},
-  { "areson.ak", sizeof(RESON), 0,3,"a","aakoo",(SUBR)rsnset,(SUBR)aresonak},
-  { "areson.ka", sizeof(RESON), 0,3,"a","akaoo",(SUBR)rsnset,(SUBR)aresonka},
-  { "atone.a",  sizeof(TONE),   0,3,"a","ako",  (SUBR)tonset,(SUBR)atonea  },
-  { "atonex.a", sizeof(TONEX),  0,3, "a","aaoo",(SUBR)tonsetx,(SUBR)atonexa},
-  { "tone.a",  sizeof(TONE),    0,3,"a","aao",  (SUBR)tonset,(SUBR)tonea   },
-  { "tonex.a", sizeof(TONEX),   0,3,"a","aaoo", (SUBR)tonsetx,(SUBR)tonexa },
-  { "butterhp.a", sizeof(BFIL), 0,3,"a","aao",  (SUBR)butset,(SUBR)hibuta  },
-  { "butterlp.a", sizeof(BFIL), 0,3,"a","aao",  (SUBR)butset,(SUBR)lobuta  },
-  { "buthp.a",    sizeof(BFIL), 0,3,"a","aao",  (SUBR)butset,(SUBR)hibuta  },
-  { "butlp.a",    sizeof(BFIL), 0,3,"a","aao",  (SUBR)butset,(SUBR)lobuta  },
-  { "butterbp",   sizeof(BBFIL),0,3,"a","axxo", (SUBR)bbutset,(SUBR)bppasxx},
-  { "butbp",      sizeof(BBFIL),0,3,"a","axxo", (SUBR)bbutset,(SUBR)bppasxx},
-  { "butterbr",   sizeof(BBFIL),0,3,"a","axxo", (SUBR)bbutset,(SUBR)bpcutxx},
-  { "butbr",      sizeof(BBFIL),0,3,"a","axxo", (SUBR)bbutset,(SUBR)bpcutxx},
+  { "areson.aa", sizeof(RESON), 0,3,"a","aaaoo",(SUBR)rsnset,(SUBR)aresonaa, NULL, NULL},
+  { "areson.ak", sizeof(RESON), 0,3,"a","aakoo",(SUBR)rsnset,(SUBR)aresonak, NULL, NULL},
+  { "areson.ka", sizeof(RESON), 0,3,"a","akaoo",(SUBR)rsnset,(SUBR)aresonka, NULL, NULL},
+  { "atone.a",  sizeof(TONE),   0,3,"a","ako",  (SUBR)tonset,(SUBR)atonea, NULL, NULL},
+  { "atonex.a", sizeof(TONEX),  0,3, "a","aaoo",(SUBR)tonsetx,(SUBR)atonexa, NULL, NULL},
+  { "tone.a",  sizeof(TONE),    0,3,"a","aao",  (SUBR)tonset,(SUBR)tonea, NULL, NULL},
+  { "tonex.a", sizeof(TONEX),   0,3,"a","aaoo", (SUBR)tonsetx,(SUBR)tonexa, NULL, NULL},
+  { "butterhp.a", sizeof(BFIL), 0,3,"a","aao",  (SUBR)butset,(SUBR)hibuta, NULL, NULL},
+  { "butterlp.a", sizeof(BFIL), 0,3,"a","aao",  (SUBR)butset,(SUBR)lobuta, NULL, NULL},
+  { "buthp.a",    sizeof(BFIL), 0,3,"a","aao",  (SUBR)butset,(SUBR)hibuta, NULL, NULL},
+  { "butlp.a",    sizeof(BFIL), 0,3,"a","aao",  (SUBR)butset,(SUBR)lobuta, NULL, NULL},
+  { "butterbp",   sizeof(BBFIL),0,3,"a","axxo", (SUBR)bbutset,(SUBR)bppasxx, NULL, NULL},
+  { "butbp",      sizeof(BBFIL),0,3,"a","axxo", (SUBR)bbutset,(SUBR)bppasxx, NULL, NULL},
+  { "butterbr",   sizeof(BBFIL),0,3,"a","axxo", (SUBR)bbutset,(SUBR)bpcutxx, NULL, NULL},
+  { "butbr",      sizeof(BBFIL),0,3,"a","axxo", (SUBR)bbutset,(SUBR)bpcutxx, NULL, NULL},
 };
 
 LINKAGE_BUILTIN(afilts_localops)

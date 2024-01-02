@@ -1135,13 +1135,13 @@ static int32_t loscilxa_opcode_perf(CSOUND *csound, LOSCILXA_OPCODE *p)
 
 static OENTRY loscilx_localops[] = {
   { "sndload",  sizeof(SNDLOAD_OPCODE), _QQ, 1,  "",                 "iooooojjoo",
-    (SUBR) sndload_opcode_init, (SUBR) NULL, (SUBR) NULL                      },
+    (SUBR) sndload_opcode_init, (SUBR) NULL, (SUBR) NULL, NULL},
  { "sndload.S",  sizeof(SNDLOAD_OPCODE), _QQ, 1,  "",                 "Sooooojjoo",
-    (SUBR) sndload_opcode_init_S, (SUBR) NULL, (SUBR) NULL                      },
+    (SUBR) sndload_opcode_init_S, (SUBR) NULL, (SUBR) NULL, NULL},
   { "loscilx",  sizeof(LOSCILX_OPCODE), TR, 3,  "mmmmmmmmmmmmmmmm", "xkioojjoo",
-    (SUBR) loscilx_opcode_init, (SUBR) loscilx_opcode_perf       },
+    (SUBR) loscilx_opcode_init, (SUBR) loscilx_opcode_perf, NULL, NULL},
   { "loscilx",  sizeof(LOSCILXA_OPCODE), TR, 3,  "a[]", "xkioojjoo",
-    (SUBR) loscilxa_opcode_init, (SUBR) loscilxa_opcode_perf     }
+    (SUBR) loscilxa_opcode_init, (SUBR) loscilxa_opcode_perf, NULL, NULL}
 };
 
 LINKAGE_BUILTIN(loscilx_localops)

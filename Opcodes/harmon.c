@@ -457,9 +457,9 @@ int32_t harm4set(CSOUND *csound, HARM234 *p)
 
 static OENTRY harmon_localops[] =
   {
-   { "harmon2",S(HARM234),0,3,"a","akkkiip",  (SUBR)harm2set, (SUBR)harmon234 },
-   { "harmon3",S(HARM234),0,3,"a","akkkkiip", (SUBR)harm3set, (SUBR)harmon234 },
-   { "harmon4",S(HARM234),0,3,"a","akkkkkiip",(SUBR)harm4set, (SUBR)harmon234 },
+   { "harmon2",S(HARM234),0,3,"a","akkkiip",  (SUBR)harm2set, (SUBR)harmon234, NULL, NULL},
+   { "harmon3",S(HARM234),0,3,"a","akkkkiip", (SUBR)harm3set, (SUBR)harmon234, NULL, NULL},
+   { "harmon4",S(HARM234),0,3,"a","akkkkkiip",(SUBR)harm4set, (SUBR)harmon234, NULL, NULL},
 };
 
 LINKAGE_BUILTIN(harmon_localops)

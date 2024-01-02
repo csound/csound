@@ -810,16 +810,16 @@ static int32_t scsnmapV(CSOUND *csound, PSCSNMAPV *p)
 static OENTRY localops[] =
   {
     { "scanu", S(PSCSNU),TR, 3, "", "iiiiiiikkkkiikkaii",
-     (SUBR)scsnu_init1, (SUBR)scsnu_play},
+     (SUBR)scsnu_init1, (SUBR)scsnu_play, NULL, NULL},
    { "scanu2", S(PSCSNU),TR, 3, "", "iiiiiiikkkkiikkaii",
-     (SUBR)scsnu_init2, (SUBR)scsnu_play },
-   { "scans", S(PSCSNS),TR, 3, "a","kkiio", (SUBR)scsns_init, (SUBR)scsns_play},
+     (SUBR)scsnu_init2, (SUBR)scsnu_play, NULL, NULL},
+   { "scans", S(PSCSNS),TR, 3, "a","kkiio", (SUBR)scsns_init, (SUBR)scsns_play, NULL, NULL},
    { "scanmap", S(PSCSNMAP),TR, 3, "kk", "ikko",        (SUBR)scsnmap_init,
-     (SUBR)scsnmap,NULL },
+     (SUBR)scsnmap,NULL, NULL},
    { "scanmap.A", S(PSCSNMAPV),0, 3, "k[]k[]", "iPP",        (SUBR)scsnmapV_init,
-     (SUBR)scsnmapV,NULL },
+     (SUBR)scsnmapV,NULL, NULL},
    { "scansmap", S(PSCSNMAP),TR, 3,"",   "kkikko",      (SUBR)scsnmap_init,
-     (SUBR)scsnsmap,NULL }
+     (SUBR)scsnsmap,NULL, NULL}
 
 };
 

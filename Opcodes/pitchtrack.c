@@ -754,11 +754,11 @@ int32_t plltrack_perf(CSOUND *csound, PLLTRACK *p)
 static OENTRY pitchtrack_localops[] =
   {
    {"ptrack", S(PITCHTRACK), 0, 3, "kk", "aio",
-    (SUBR)pitchtrackinit, (SUBR)pitchtrackprocess},
+    (SUBR)pitchtrackinit, (SUBR)pitchtrackprocess, NULL, NULL},
    {"pitchac", S(PITCHTRACK), 0, 3, "k", "akki",
-    (SUBR)pitchafset, (SUBR)pitchafproc},
+    (SUBR)pitchafset, (SUBR)pitchafproc, NULL, NULL},
    {"plltrack", S(PLLTRACK), 0, 3, "aa", "akOOOOO",
-    (SUBR)plltrack_set, (SUBR)plltrack_perf}
+    (SUBR)plltrack_set, (SUBR)plltrack_perf, NULL, NULL}
 
 };
 

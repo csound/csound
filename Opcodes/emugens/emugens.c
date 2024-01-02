@@ -2990,166 +2990,166 @@ int32_t printsk_perf(CSOUND *csound, PRINTLN *p) {
 #define S(x) sizeof(x)
 
 static OENTRY emugens_localops[] = {
-    { "linlin", S(LINLIN1), 0, 2, "k", "kkkkk", NULL, (SUBR)linlin1_perf },
-    { "linlin", S(LINLIN1), 0, 2, "k", "kkkop", NULL, (SUBR)linlin1_perf },
-    { "linlin", S(LINLIN1), 0, 1, "i", "iiiop", (SUBR)linlin1_perf},
+    { "linlin", S(LINLIN1), 0, 2, "k", "kkkkk", NULL, (SUBR)linlin1_perf, NULL, NULL},
+    { "linlin", S(LINLIN1), 0, 2, "k", "kkkop", NULL, (SUBR)linlin1_perf, NULL, NULL},
+    { "linlin", S(LINLIN1), 0, 1, "i", "iiiop", (SUBR)linlin1_perf, NULL, NULL, NULL},
     { "linlin", S(LINLINARR1), 0, 3, "k[]", "k[]kkOP", (SUBR)linlinarr1_init,
-      (SUBR)linlinarr1_perf},
-    { "linlin", S(LINLINARR1), 0, 1, "i[]", "i[]iiop", (SUBR)linlinarr1_i},
+      (SUBR)linlinarr1_perf, NULL, NULL},
+    { "linlin", S(LINLINARR1), 0, 1, "i[]", "i[]iiop", (SUBR)linlinarr1_i, NULL, NULL, NULL},
     { "linlin", S(BLENDARRAY), 0, 3, "k[]", "kk[]k[]OP",
-      (SUBR)blendarray_init, (SUBR)blendarray_perf},
-    { "linlin", S(BLENDARRAY), 0, 1, "i[]", "ii[]i[]op", (SUBR)blendarray_i},
-    { "lincos", S(LINLIN1), 0, 2, "k", "kkkOP", NULL, (SUBR)lincos_perf },
-    { "lincos", S(LINLIN1), 0, 1, "i", "iiiop", (SUBR)lincos_perf },
+      (SUBR)blendarray_init, (SUBR)blendarray_perf, NULL, NULL},
+    { "linlin", S(BLENDARRAY), 0, 1, "i[]", "ii[]i[]op", (SUBR)blendarray_i, NULL, NULL, NULL},
+    { "lincos", S(LINLIN1), 0, 2, "k", "kkkOP", NULL, (SUBR)lincos_perf, NULL, NULL},
+    { "lincos", S(LINLIN1), 0, 1, "i", "iiiop", (SUBR)lincos_perf, NULL, NULL, NULL},
 
-    { "xyscale", S(XYSCALE), 0, 2, "k", "kkkkkk", NULL, (SUBR)xyscale },
+    { "xyscale", S(XYSCALE), 0, 2, "k", "kkkkkk", NULL, (SUBR)xyscale, NULL, NULL},
     { "xyscale", S(XYSCALE), 0, 3, "k", "kkiiii", (SUBR)xyscalei_init,
-        (SUBR)xyscalei },
+        (SUBR)xyscalei, NULL, NULL},
 
-    { "mtof", S(PITCHCONV), 0, 3, "k", "k", (SUBR)mtof_init, (SUBR)mtof },
-    { "mtof", S(PITCHCONV), 0, 1, "i", "i", (SUBR)mtof_init },
+    { "mtof", S(PITCHCONV), 0, 3, "k", "k", (SUBR)mtof_init, (SUBR)mtof, NULL, NULL},
+    { "mtof", S(PITCHCONV), 0, 1, "i", "i", (SUBR)mtof_init, NULL, NULL, NULL},
     { "mtof", S(PITCHCONV_ARR), 0, 3, "k[]", "k[]",
-      (SUBR)mtof_arr_init, (SUBR)mtof_arr },
-    { "mtof", S(PITCHCONV_ARR), 0, 1, "i[]", "i[]", (SUBR)mtof_arr_init },
+      (SUBR)mtof_arr_init, (SUBR)mtof_arr, NULL, NULL},
+    { "mtof", S(PITCHCONV_ARR), 0, 1, "i[]", "i[]", (SUBR)mtof_arr_init, NULL, NULL, NULL},
 
-    { "ftom", S(PITCHCONV), 0, 3,  "k", "ko", (SUBR)ftom_init, (SUBR)ftom},
-    { "ftom", S(PITCHCONV), 0, 1,  "i", "io", (SUBR)ftom_init},
+    { "ftom", S(PITCHCONV), 0, 3,  "k", "ko", (SUBR)ftom_init, (SUBR)ftom, NULL, NULL},
+    { "ftom", S(PITCHCONV), 0, 1,  "i", "io", (SUBR)ftom_init, NULL, NULL, NULL},
     { "ftom", S(PITCHCONV_ARR), 0, 3,  "k[]", "k[]o",
-      (SUBR)ftom_arr_init, (SUBR)ftom_arr},
+      (SUBR)ftom_arr_init, (SUBR)ftom_arr, NULL, NULL},
     { "ftom", S(PITCHCONV_ARR), 0, 1,  "i[]", "i[]o",
-      (SUBR)ftom_arr_init, (SUBR)ftom_arr},
+      (SUBR)ftom_arr_init, (SUBR)ftom_arr, NULL, NULL},
 
 
-    { "pchtom", S(PITCHCONV), 0, 1, "i", "i", (SUBR)pchtom },
-    { "pchtom", S(PITCHCONV), 0, 2, "k", "k", NULL, (SUBR)pchtom },
+    { "pchtom", S(PITCHCONV), 0, 1, "i", "i", (SUBR)pchtom, NULL, NULL, NULL},
+    { "pchtom", S(PITCHCONV), 0, 2, "k", "k", NULL, (SUBR)pchtom, NULL, NULL},
 
-    { "bpf.k_kM", S(BPFX), 0, 3, "k", "kM", (SUBR)bpfx_init, (SUBR)bpfx_k },
-    { "bpfcos.k_kM", S(BPFX), 0, 3, "k", "kM", (SUBR)bpfx_init, (SUBR)bpfxcos_k },
+    { "bpf.k_kM", S(BPFX), 0, 3, "k", "kM", (SUBR)bpfx_init, (SUBR)bpfx_k, NULL, NULL},
+    { "bpfcos.k_kM", S(BPFX), 0, 3, "k", "kM", (SUBR)bpfx_init, (SUBR)bpfxcos_k, NULL, NULL},
 
-    { "bpf.i_im", S(BPFX), 0, 1, "i", "im", (SUBR)bpfx_i },
-    { "bpfcos.i_im", S(BPFX), 0, 1, "i", "im", (SUBR)bpfxcos_i },
+    { "bpf.i_im", S(BPFX), 0, 1, "i", "im", (SUBR)bpfx_i, NULL, NULL, NULL},
+    { "bpfcos.i_im", S(BPFX), 0, 1, "i", "im", (SUBR)bpfxcos_i, NULL, NULL, NULL},
 
-    { "bpf.K_KM", S(BPF_K_Km), 0, 3, "k[]", "k[]M", (SUBR)bpf_K_Km_init, (SUBR)bpf_K_Km_kr },
-    { "bpfcos.K_KM", S(BPF_K_Km), 0, 3, "k[]", "k[]M", (SUBR)bpf_K_Km_init, (SUBR)bpfcos_K_Km_kr },
+    { "bpf.K_KM", S(BPF_K_Km), 0, 3, "k[]", "k[]M", (SUBR)bpf_K_Km_init, (SUBR)bpf_K_Km_kr, NULL, NULL},
+    { "bpfcos.K_KM", S(BPF_K_Km), 0, 3, "k[]", "k[]M", (SUBR)bpf_K_Km_init, (SUBR)bpfcos_K_Km_kr, NULL, NULL},
 
-    { "bpf.a_aM", S(BPF_a_am), 0, 3, "a", "aM", (SUBR)bpf_a_am_init, (SUBR)bpf_a_am_kr },
-    { "bpfcos.a_aM", S(BPF_a_am), 0, 3, "a", "aM", (SUBR)bpf_a_am_init, (SUBR)bpfcos_a_am_kr },
+    { "bpf.a_aM", S(BPF_a_am), 0, 3, "a", "aM", (SUBR)bpf_a_am_init, (SUBR)bpf_a_am_kr, NULL, NULL},
+    { "bpfcos.a_aM", S(BPF_a_am), 0, 3, "a", "aM", (SUBR)bpf_a_am_init, (SUBR)bpfcos_a_am_kr, NULL, NULL},
 
-    { "bpf.k_kKK", S(BPF_k_kKK), 0, 3, "k", "kk[]k[]", (SUBR)bpf_k_kKK_init, (SUBR)bpf_k_kKK_kr },
-    { "bpfcos.k_kKK", S(BPF_k_kKK), 0, 3, "k", "kk[]k[]", (SUBR)bpf_k_kKK_init, (SUBR)bpfcos_k_kKK_kr },
+    { "bpf.k_kKK", S(BPF_k_kKK), 0, 3, "k", "kk[]k[]", (SUBR)bpf_k_kKK_init, (SUBR)bpf_k_kKK_kr, NULL, NULL},
+    { "bpfcos.k_kKK", S(BPF_k_kKK), 0, 3, "k", "kk[]k[]", (SUBR)bpf_k_kKK_init, (SUBR)bpfcos_k_kKK_kr, NULL, NULL},
 
-    { "bpf.k_kII", S(BPF_k_kKK), 0, 3, "k", "ki[]i[]", (SUBR)bpf_k_kKK_init, (SUBR)bpf_k_kKK_kr },
-    { "bpfcos.k_kII", S(BPF_k_kKK), 0, 3, "k", "ki[]i[]", (SUBR)bpf_k_kKK_init, (SUBR)bpfcos_k_kKK_kr },
+    { "bpf.k_kII", S(BPF_k_kKK), 0, 3, "k", "ki[]i[]", (SUBR)bpf_k_kKK_init, (SUBR)bpf_k_kKK_kr, NULL, NULL},
+    { "bpfcos.k_kII", S(BPF_k_kKK), 0, 3, "k", "ki[]i[]", (SUBR)bpf_k_kKK_init, (SUBR)bpfcos_k_kKK_kr, NULL, NULL},
 
-    { "bpf.a_aKK", S(BPF_k_kKK), 0, 3, "a", "ak[]k[]", (SUBR)bpf_k_kKK_init, (SUBR)bpf_a_aKK_kr },
-    { "bpfcos.a_aKK", S(BPF_k_kKK), 0, 3, "a", "ak[]k[]", (SUBR)bpf_k_kKK_init, (SUBR)bpfcos_a_aKK_kr },
+    { "bpf.a_aKK", S(BPF_k_kKK), 0, 3, "a", "ak[]k[]", (SUBR)bpf_k_kKK_init, (SUBR)bpf_a_aKK_kr, NULL, NULL},
+    { "bpfcos.a_aKK", S(BPF_k_kKK), 0, 3, "a", "ak[]k[]", (SUBR)bpf_k_kKK_init, (SUBR)bpfcos_a_aKK_kr, NULL, NULL},
 
-    { "bpf.a_aII", S(BPF_k_kKK), 0, 3, "a", "ai[]i[]", (SUBR)bpf_k_kKK_init, (SUBR)bpf_a_aKK_kr },
-    { "bpfcos.a_aII", S(BPF_k_kKK), 0, 3, "a", "ai[]i[]", (SUBR)bpf_k_kKK_init, (SUBR)bpfcos_a_aKK_kr },
+    { "bpf.a_aII", S(BPF_k_kKK), 0, 3, "a", "ai[]i[]", (SUBR)bpf_k_kKK_init, (SUBR)bpf_a_aKK_kr, NULL, NULL},
+    { "bpfcos.a_aII", S(BPF_k_kKK), 0, 3, "a", "ai[]i[]", (SUBR)bpf_k_kKK_init, (SUBR)bpfcos_a_aKK_kr, NULL, NULL},
 
-    { "bpf.i_iII", S(BPF_k_kKK), 0, 1, "i", "ii[]i[]", (SUBR)bpf_k_kKK_ir },
-    { "bpfcos.i_iII", S(BPF_k_kKK), 0, 1, "i", "ii[]i[]", (SUBR)bpfcos_k_kKK_ir },
+    { "bpf.i_iII", S(BPF_k_kKK), 0, 1, "i", "ii[]i[]", (SUBR)bpf_k_kKK_ir, NULL, NULL, NULL},
+    { "bpfcos.i_iII", S(BPF_k_kKK), 0, 1, "i", "ii[]i[]", (SUBR)bpfcos_k_kKK_ir, NULL, NULL, NULL},
 
-    { "bpf.kk_kKKK", S(BPF_kk_kKKK), 0, 3, "kk", "kk[]k[]k[]", (SUBR)bpf_kk_kKKK_init, (SUBR)bpf_kk_kKKK_kr },
+    { "bpf.kk_kKKK", S(BPF_kk_kKKK), 0, 3, "kk", "kk[]k[]k[]", (SUBR)bpf_kk_kKKK_init, (SUBR)bpf_kk_kKKK_kr, NULL, NULL},
     // TODO
 
-    { "bpf.kk_kIII", S(BPF_kk_kKKK), 0, 3, "kk", "ki[]i[]i[]", (SUBR)bpf_kk_kKKK_init, (SUBR)bpf_kk_kKKK_kr },
+    { "bpf.kk_kIII", S(BPF_kk_kKKK), 0, 3, "kk", "ki[]i[]i[]", (SUBR)bpf_kk_kKKK_init, (SUBR)bpf_kk_kKKK_kr, NULL, NULL},
     // TODO
 
-    { "bpf.ii_iIII", S(BPF_kk_kKKK), 0, 1, "ii", "ii[]i[]i[]", (SUBR)bpf_kk_kKKK_ir },
+    { "bpf.ii_iIII", S(BPF_kk_kKKK), 0, 1, "ii", "ii[]i[]i[]", (SUBR)bpf_kk_kKKK_ir, NULL, NULL, NULL},
     // TODO
 
 
-    { "ntom.i", S(NTOM), 0, 1, "i", "S", (SUBR)ntom },
-    { "ntom.k", S(NTOM), 0, 3, "k", "S", (SUBR)ntom, (SUBR)ntom },
+    { "ntom.i", S(NTOM), 0, 1, "i", "S", (SUBR)ntom, NULL, NULL, NULL},
+    { "ntom.k", S(NTOM), 0, 3, "k", "S", (SUBR)ntom, (SUBR)ntom, NULL, NULL},
 
-    { "mton.i", S(MTON), 0, 1, "S", "i", (SUBR)mton },
-    { "mton.k", S(MTON), 0, 3, "S", "k", (SUBR)mton, (SUBR)mton },
+    { "mton.i", S(MTON), 0, 1, "S", "i", (SUBR)mton, NULL, NULL, NULL},
+    { "mton.k", S(MTON), 0, 3, "S", "k", (SUBR)mton, (SUBR)mton, NULL, NULL},
 
-    { "ntof.i", S(NTOM), 0, 1, "i", "S", (SUBR)ntof },
-    { "ntof.k", S(NTOM), 0, 3, "k", "S", (SUBR)ntof, (SUBR)ntof },
+    { "ntof.i", S(NTOM), 0, 1, "i", "S", (SUBR)ntof, NULL, NULL, NULL},
+    { "ntof.k", S(NTOM), 0, 3, "k", "S", (SUBR)ntof, (SUBR)ntof, NULL, NULL},
 
-    { "cmp", S(Cmp), 0, 3, "a", "aSa", (SUBR)cmp_init, (SUBR)cmp_aa,},
-    { "cmp", S(Cmp), 0, 3, "a", "aSk", (SUBR)cmp_init, (SUBR)cmp_ak },
+    { "cmp", S(Cmp), 0, 3, "a", "aSa", (SUBR)cmp_init, (SUBR)cmp_aa, NULL, NULL},
+    { "cmp", S(Cmp), 0, 3, "a", "aSk", (SUBR)cmp_init, (SUBR)cmp_ak, NULL, NULL},
     { "cmp", S(Cmp_array1), 0, 3, "k[]", "k[]Sk",
-      (SUBR)cmparray1_init, (SUBR)cmparray1_k },
-    { "cmp", S(Cmp_array1), 0, 1, "i[]", "i[]Si", (SUBR)cmparray1_i },
+      (SUBR)cmparray1_init, (SUBR)cmparray1_k, NULL, NULL},
+    { "cmp", S(Cmp_array1), 0, 1, "i[]", "i[]Si", (SUBR)cmparray1_i, NULL, NULL, NULL},
 
     { "cmp", S(Cmp_array2), 0, 3, "k[]", "k[]Sk[]",
-      (SUBR)cmparray2_init, (SUBR)cmparray2_k },
+      (SUBR)cmparray2_init, (SUBR)cmparray2_k, NULL, NULL},
     { "cmp", S(Cmp_array2), 0, 1, "i[]", "i[]Si[]",
-      (SUBR)cmparray2_i },
+      (SUBR)cmparray2_i, NULL, NULL, NULL},
     { "cmp", S(Cmp2_array1), 0, 3, "k[]", "kSk[]Sk",
-      (SUBR)cmp2array1_init, (SUBR)cmp2array1_k },
-    { "cmp", S(Cmp2_array1), 0, 1, "i[]", "iSi[]Si", (SUBR)cmp2array1_i},
+      (SUBR)cmp2array1_init, (SUBR)cmp2array1_k, NULL, NULL},
+    { "cmp", S(Cmp2_array1), 0, 1, "i[]", "iSi[]Si", (SUBR)cmp2array1_i, NULL, NULL, NULL},
 
 
     { "##or",  S(BINOP_AAA), 0, 3, "k[]", "k[]k[]",
-      (SUBR)array_binop_init, (SUBR)array_or},
+      (SUBR)array_binop_init, (SUBR)array_or, NULL, NULL},
     { "##and", S(BINOP_AAA), 0, 3, "k[]", "k[]k[]",
-      (SUBR)array_binop_init, (SUBR)array_and},
-    { "reshapearray", S(ARRAYRESHAPE), 0, 1, "", ".[]io", (SUBR)arrayreshape},
+      (SUBR)array_binop_init, (SUBR)array_and, NULL, NULL},
+    { "reshapearray", S(ARRAYRESHAPE), 0, 1, "", ".[]io", (SUBR)arrayreshape, NULL, NULL, NULL},
 
-    { "ftslicei", S(TABSLICE), TB, 1, "", "iioop", (SUBR)tabslice_i },
+    { "ftslicei", S(TABSLICE), TB, 1, "", "iioop", (SUBR)tabslice_i, NULL, NULL, NULL},
 
     { "ftslice.perf", S(TABSLICE),  TB, 3, "", "iiOOP",
-      (SUBR)tabslice_init, (SUBR)tabslice_k},
+      (SUBR)tabslice_init, (SUBR)tabslice_k, NULL, NULL},
 
     { "ftslice.onlyperf", S(TABSLICE),  TB, 2, "", "kkOOP",
-      NULL, (SUBR)tabslice_allk},
+      NULL, (SUBR)tabslice_allk, NULL, NULL},
 
-    { "ftset.i", S(FTSET), TW, 1, "", "iioop", (SUBR)ftset_i },
-    { "ftset.k", S(FTSET), TW, 3, "", "kkOOP", (SUBR)ftset_init, (SUBR)ftset_k },
+    { "ftset.i", S(FTSET), TW, 1, "", "iioop", (SUBR)ftset_i, NULL, NULL, NULL},
+    { "ftset.k", S(FTSET), TW, 3, "", "kkOOP", (SUBR)ftset_init, (SUBR)ftset_k, NULL, NULL},
 
     { "tab2array", S(TAB2ARRAY), TR, 3, "k[]", "iOOP",
-      (SUBR)tab2array_init, (SUBR)tab2array_k},
-    { "tab2array", S(TAB2ARRAY), TR, 1, "i[]", "ioop", (SUBR)tab2array_i},
+      (SUBR)tab2array_init, (SUBR)tab2array_k, NULL, NULL},
+    { "tab2array", S(TAB2ARRAY), TR, 1, "i[]", "ioop", (SUBR)tab2array_i, NULL, NULL, NULL},
 
     { "printarray", S(ARRAYPRINTK), 0, 3, "", "k[]J",
-      (SUBR)arrayprint_init, (SUBR)arrayprint_perf},
+      (SUBR)arrayprint_init, (SUBR)arrayprint_perf, NULL, NULL},
     { "printarray", S(ARRAYPRINTK), 0, 3, "", "k[]kS",
-      (SUBR)arrayprint_init, (SUBR)arrayprint_perf},
+      (SUBR)arrayprint_init, (SUBR)arrayprint_perf, NULL, NULL},
     { "printarray.k_notrig", S(ARRAYPRINT), 0, 3, "", "k[]S",
-      (SUBR)arrayprint_init_notrig, (SUBR)arrayprint_perf_notrig},
+      (SUBR)arrayprint_init_notrig, (SUBR)arrayprint_perf_notrig, NULL, NULL},
 
     { "printarray", S(ARRAYPRINTK), 0, 3, "", "k[]kSS",
-      (SUBR)arrayprint_init, (SUBR)arrayprint_perf},
+      (SUBR)arrayprint_init, (SUBR)arrayprint_perf, NULL, NULL},
 
     { "printarray.k_notrig", S(ARRAYPRINT), 0, 3, "", "k[]SS",
-      (SUBR)arrayprint_init_notrig, (SUBR)arrayprint_perf_notrig},
+      (SUBR)arrayprint_init_notrig, (SUBR)arrayprint_perf_notrig, NULL, NULL},
 
 
-    { "printarray.i", S(ARRAYPRINT), 0, 1, "", "i[]", (SUBR)arrayprint_i},
-    { "printarray.fmt_i", S(ARRAYPRINT), 0, 1, "", "i[]S", (SUBR)arrayprintf_i},
+    { "printarray.i", S(ARRAYPRINT), 0, 1, "", "i[]", (SUBR)arrayprint_i, NULL, NULL, NULL},
+    { "printarray.fmt_i", S(ARRAYPRINT), 0, 1, "", "i[]S", (SUBR)arrayprintf_i, NULL, NULL, NULL},
     { "printarray.fmt_label_i", S(ARRAYPRINT), 0, 1, "", "i[]SS",
-      (SUBR)arrayprintf_i},
+      (SUBR)arrayprintf_i, NULL, NULL, NULL},
 
     { "printarray", S(ARRAYPRINTK), 0, 3, "", "S[]J",
-      (SUBR)arrayprint_init, (SUBR)arrayprint_perf},
+      (SUBR)arrayprint_init, (SUBR)arrayprint_perf, NULL, NULL},
     { "printarray", S(ARRAYPRINTK), 0, 3, "", "S[]kS",
-      (SUBR)arrayprint_init, (SUBR)arrayprint_perf},
+      (SUBR)arrayprint_init, (SUBR)arrayprint_perf, NULL, NULL},
 
     { "printarray", S(ARRAYPRINT), 0, 3, "", "S[]S",
-      (SUBR)arrayprint_init_notrig, (SUBR)arrayprint_perf_notrig},
+      (SUBR)arrayprint_init_notrig, (SUBR)arrayprint_perf_notrig, NULL, NULL},
 
     { "printarray", S(ARRAYPRINT), 0, 3, "", "S[]SS",
-      (SUBR)arrayprint_init_notrig, (SUBR)arrayprint_perf_notrig},
+      (SUBR)arrayprint_init_notrig, (SUBR)arrayprint_perf_notrig, NULL, NULL},
 
     { "ftprint", S(FTPRINT), TR, 3, "", "iPOOPo",
-      (SUBR)ftprint_init, (SUBR)ftprint_perf },
+      (SUBR)ftprint_init, (SUBR)ftprint_perf, NULL, NULL},
 
     { "ftexists", S(FTEXISTS), TR, 1, "i", "i",
-      (SUBR)ftexists_init},
+      (SUBR)ftexists_init, NULL, NULL, NULL},
     { "ftexists", S(FTEXISTS), TR, 3, "k", "k",
-      (SUBR)ftexists_init, (SUBR)ftexists_init},
+      (SUBR)ftexists_init, (SUBR)ftexists_init, NULL, NULL},
     { "lastcycle", S(LASTCYCLE), 0, 3, "k", "",
-      (SUBR)lastcycle_init, (SUBR)lastcycle},
-    { "strstrip.i_side", S(STR1_1), 0, 1, "S", "SS", (SUBR)stripside},
-    { "strstrip.i", S(STR1_1), 0, 1, "S", "S", (SUBR)strstrip},
+      (SUBR)lastcycle_init, (SUBR)lastcycle, NULL, NULL},
+    { "strstrip.i_side", S(STR1_1), 0, 1, "S", "SS", (SUBR)stripside, NULL, NULL, NULL},
+    { "strstrip.i", S(STR1_1), 0, 1, "S", "S", (SUBR)strstrip, NULL, NULL, NULL},
     { "println", S(PRINTLN), 0, 3, "", "SN",
-      (SUBR)println_init, (SUBR)println_perf},
+      (SUBR)println_init, (SUBR)println_perf, NULL, NULL},
     { "printsk", S(PRINTLN), 0, 3, "", "SN",
-      (SUBR)printsk_init, (SUBR)printsk_perf}
+      (SUBR)printsk_init, (SUBR)printsk_perf, NULL, NULL}
 };
 
 LINKAGE_BUILTIN(emugens_localops)

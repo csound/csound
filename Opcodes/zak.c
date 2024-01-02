@@ -717,21 +717,21 @@ int32_t zacl(CSOUND *csound, ZACL *p)
 #define S(x)    sizeof(x)
 
 static OENTRY zak_localops[] = {
-  { "zakinit", S(ZAKINIT), ZB, 1,  "",   "ii",   (SUBR)zakinit, NULL,  NULL      },
-  { "zir",    S(ZKR),ZR,  1,   "i",  "i",    (SUBR)zir,     NULL,  NULL      },
-  { "zkr",    S(ZKR),ZR,  3,   "k",  "k",    (SUBR)zkset,   (SUBR)zkr,   NULL},
-  { "ziw",    S(ZKW),ZW, 1,   "",   "ii",   (SUBR)ziw,     NULL,  NULL      },
-  { "zkw",    S(ZKW),     ZW, 3,   "",   "kk",   (SUBR)zkset,   (SUBR)zkw,   NULL},
-  { "ziwm",   S(ZKWM),    ZB, 1,   "",   "iip",  (SUBR)ziwm,    NULL,  NULL      },
-  { "zkwm",   S(ZKWM),    ZB, 3,   "",   "kkp",  (SUBR)zkset,   (SUBR)zkwm,  NULL},
-  { "zkmod",  S(ZKMOD),   ZB, 3,   "k",  "kk",   (SUBR)zkset,   (SUBR)zkmod, NULL},
-  { "zkcl",   S(ZKCL),    ZW, 3,   "",  "kk",   (SUBR)zkset,   (SUBR)zkcl,  NULL },
-  { "zar",    S(ZAR),ZR,  3,   "a", "k",    (SUBR)zaset,  (SUBR)zar  },
-  { "zarg",   S(ZARG),   ZB, 3,   "a", "kk",   (SUBR)zaset,  (SUBR)zarg },
-  { "zaw",    S(ZAW),    ZW, 3,   "",  "ak",   (SUBR)zaset,  (SUBR)zaw  },
-  { "zawm",   S(ZAWM),   ZB, 3,   "",  "akp",  (SUBR)zaset,  (SUBR)zawm },
-  { "zamod",  S(ZAMOD),  ZB, 3,   "a", "ak",   (SUBR)zaset,  (SUBR)zamod},
-  { "zacl",   S(ZACL),   ZW, 3,   "",  "kJ",   (SUBR)zaset,  (SUBR)zacl}
+  { "zakinit", S(ZAKINIT), ZB, 1,  "",   "ii",   (SUBR)zakinit, NULL,  NULL, NULL},
+  { "zir",    S(ZKR),ZR,  1,   "i",  "i",    (SUBR)zir,     NULL,  NULL, NULL},
+  { "zkr",    S(ZKR),ZR,  3,   "k",  "k",    (SUBR)zkset,   (SUBR)zkr,   NULL, NULL},
+  { "ziw",    S(ZKW),ZW, 1,   "",   "ii",   (SUBR)ziw,     NULL,  NULL, NULL},
+  { "zkw",    S(ZKW),     ZW, 3,   "",   "kk",   (SUBR)zkset,   (SUBR)zkw,   NULL, NULL},
+  { "ziwm",   S(ZKWM),    ZB, 1,   "",   "iip",  (SUBR)ziwm,    NULL,  NULL, NULL},
+  { "zkwm",   S(ZKWM),    ZB, 3,   "",   "kkp",  (SUBR)zkset,   (SUBR)zkwm,  NULL, NULL},
+  { "zkmod",  S(ZKMOD),   ZB, 3,   "k",  "kk",   (SUBR)zkset,   (SUBR)zkmod, NULL, NULL},
+  { "zkcl",   S(ZKCL),    ZW, 3,   "",  "kk",   (SUBR)zkset,   (SUBR)zkcl,  NULL, NULL},
+  { "zar",    S(ZAR),ZR,  3,   "a", "k",    (SUBR)zaset,  (SUBR)zar, NULL, NULL},
+  { "zarg",   S(ZARG),   ZB, 3,   "a", "kk",   (SUBR)zaset,  (SUBR)zarg, NULL, NULL},
+  { "zaw",    S(ZAW),    ZW, 3,   "",  "ak",   (SUBR)zaset,  (SUBR)zaw, NULL, NULL},
+  { "zawm",   S(ZAWM),   ZB, 3,   "",  "akp",  (SUBR)zaset,  (SUBR)zawm, NULL, NULL},
+  { "zamod",  S(ZAMOD),  ZB, 3,   "a", "ak",   (SUBR)zaset,  (SUBR)zamod, NULL, NULL},
+  { "zacl",   S(ZACL),   ZW, 3,   "",  "kJ",   (SUBR)zaset,  (SUBR)zacl, NULL, NULL}
 };
 
 LINKAGE_BUILTIN(zak_localops)

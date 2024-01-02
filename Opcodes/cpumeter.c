@@ -260,9 +260,9 @@ systime(CSOUND *csound, SYST *p){
 
 static OENTRY cpumeter_localops[] = {
   { "cpumeter",   S(CPUMETER),   0,3, "kzzzzzzzz", "i",
-    (SUBR)cpupercent_init, (SUBR)cpupercent   },
-{ "systime", S(SYST),0, 3, "k",    "", (SUBR)systime, (SUBR)systime},
-{ "systime", S(SYST),0, 1, "i",    "", (SUBR)systime}
+    (SUBR)cpupercent_init, (SUBR)cpupercent, NULL, NULL},
+{ "systime", S(SYST),0, 3, "k",    "", (SUBR)systime, (SUBR)systime, NULL, NULL},
+{ "systime", S(SYST),0, 1, "i",    "", (SUBR)systime, NULL, NULL, NULL}
 };
 
 LINKAGE_BUILTIN(cpumeter_localops)

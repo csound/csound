@@ -1669,21 +1669,21 @@ int32_t am_fm(CSOUND *csound, AMFM *p) {
 static OENTRY pvlock_localops[] =
   {
    {"mincer", sizeof(DATASPACEM), 0, 3, "a", "akkkkoo",
-    (SUBR)sinit1m,(SUBR)sprocess1m },
+    (SUBR)sinit1m,(SUBR)sprocess1m, NULL, NULL},
    {"mincer", sizeof(DATASPACE), 0, 3, "mm", "akkkkoo",
-    (SUBR)sinit1,(SUBR)sprocess1 },
+    (SUBR)sinit1,(SUBR)sprocess1, NULL, NULL},
    {"temposcal", sizeof(DATASPACEM), 0, 3, "a", "kkkkkooPOP",
-    (SUBR)sinit2m,(SUBR)sprocess2m },
+    (SUBR)sinit2m,(SUBR)sprocess2m, NULL, NULL},
    {"temposcal", sizeof(DATASPACE), 0, 3, "mm", "kkkkkooPOP",
-    (SUBR)sinit2,(SUBR)sprocess2 },
+    (SUBR)sinit2,(SUBR)sprocess2, NULL, NULL},
    {"filescal", sizeof(DATASPACE), 0, 3, "mm", "kkkSkooPOP",
-    (SUBR)sinit3,(SUBR)sprocess3 },
+    (SUBR)sinit3,(SUBR)sprocess3, NULL, NULL},
    {"hilbert2", sizeof(HILB), 0, 3, "aa", "aii", (SUBR) hilbert_init,
-    (SUBR) hilbert_proc},
+    (SUBR) hilbert_proc, NULL, NULL},
    {"fmanal", sizeof(AMFM), 0, 3, "aa", "aa", (SUBR) am_fm_init,
-    (SUBR) am_fm},
+    (SUBR) am_fm, NULL, NULL},
    {"pvslock", sizeof(PVSLOCK), 0, 3, "f", "fk", (SUBR) pvslockset,
-    (SUBR) pvslockproc},
+    (SUBR) pvslockproc, NULL, NULL},
 };
 
 LINKAGE_BUILTIN(pvlock_localops)
