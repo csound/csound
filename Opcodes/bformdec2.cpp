@@ -1046,7 +1046,8 @@ static int32_t ihoambdec(CSOUND *csound, HOAMBDEC* p)
       }
 
 
-      double gW, gXYZ;
+      double gW = 1.0;
+      double gXYZ = 1.0;
 
       switch (type_mix) {
       case 0: // "energy"
@@ -1103,7 +1104,8 @@ static int32_t ihoambdec(CSOUND *csound, HOAMBDEC* p)
           }
         }
 
-        double gW, gXYZ;
+        double gW = 1.0;
+        double gXYZ = 1.0;
 
         switch (type_mix) {
         case 0: // "energy"
@@ -1162,7 +1164,9 @@ static int32_t ihoambdec(CSOUND *csound, HOAMBDEC* p)
           }
         }
 
-        double g0, g1, g2;
+        double g0 = 1.0;
+        double g1 = 1.0;
+        double g2 = 1.0;
 
         switch (type_mix) {
         case 0: // "energy"
@@ -1225,7 +1229,10 @@ static int32_t ihoambdec(CSOUND *csound, HOAMBDEC* p)
       }
 
 
-      double g0, g1, g2, g3;
+      double g0 = 1.0;
+      double g1 = 1.0;
+      double g2 = 1.0;
+      double g3 = 1.0;
 
       if (p->order == 1) { //order 1
 
@@ -1352,7 +1359,8 @@ static int32_t ihoambdec(CSOUND *csound, HOAMBDEC* p)
         }
       }
 
-      double gW, gXYZ;
+      double gW = 1.0;
+      double gXYZ = 1.0;
 
       switch (type_mix) {
       case 0: // "energy"
@@ -1408,7 +1416,9 @@ static int32_t ihoambdec(CSOUND *csound, HOAMBDEC* p)
       }
 
 
-      double g0, g1, g2;
+      double g0 = 0.0;
+      double g1 = 0.0;
+      double g2 = 0.0;
 
       if (p->order == 1) { //order 1
 
@@ -1549,7 +1559,11 @@ static int32_t ihoambdec(CSOUND *csound, HOAMBDEC* p)
         }
       }
 
-      double g0, g1, g2, g3;
+      double g0 = 1.0;
+      double g1 = 1.0;
+      double g2 = 1.0;
+      double g3 = 1.0;
+
       if (p->order == 1) { //order 1
 
         switch (type_mix) {
