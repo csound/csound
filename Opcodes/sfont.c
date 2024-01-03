@@ -1737,10 +1737,10 @@ static int32_t fill_SfStruct(CSOUND *csound)
                       split->overridingRootKey = (BYTE) igen[m].genAmount.wAmount;
                       break;
                     case coarseTune:
-                      split->coarseTune = (char) igen[m].genAmount.shAmount;
+                      split->coarseTune = (/*char*/ SBYTE) igen[m].genAmount.shAmount;
                       break;
                     case fineTune:
-                      split->fineTune = (char) igen[m].genAmount.shAmount;
+                      split->fineTune = (/*char*/ SBYTE) igen[m].genAmount.shAmount;
                       break;
                     case scaleTuning:
                       split->scaleTuning = igen[m].genAmount.shAmount;
@@ -1829,10 +1829,10 @@ static int32_t fill_SfStruct(CSOUND *csound)
             }
             break;
           case coarseTune:
-            layer->coarseTune = (char) pgen[i].genAmount.shAmount;
+            layer->coarseTune = (/*char*/ SBYTE) pgen[i].genAmount.shAmount;
             break;
           case fineTune:
-            layer->fineTune = (char) pgen[i].genAmount.shAmount;
+            layer->fineTune = (/*char*/ SBYTE) pgen[i].genAmount.shAmount;
             break;
           case scaleTuning:
             layer->scaleTuning = pgen[i].genAmount.shAmount;
@@ -1976,10 +1976,10 @@ static int32_t fill_SfStruct(CSOUND *csound)
                 split->overridingRootKey = (BYTE) igen[m].genAmount.wAmount;
                 break;
               case coarseTune:
-                split->coarseTune = (char) igen[m].genAmount.shAmount;
+                split->coarseTune = (/*char*/ SBYTE) igen[m].genAmount.shAmount;
                 break;
               case fineTune:
-                split->fineTune = (char) igen[m].genAmount.shAmount;
+                split->fineTune = (/*char*/ SBYTE) igen[m].genAmount.shAmount;
                 break;
               case scaleTuning:
                 split->scaleTuning = igen[m].genAmount.shAmount;
