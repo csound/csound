@@ -1,10 +1,8 @@
-vcpkg_fail_port_install(ON_TARGET "uwp")
-
 vcpkg_download_distfile(
     ASIO_SDK
     URLS "https://www.steinberg.net/asiosdk"
     FILENAME asiosdk.zip
-    SHA512 eac6c1a57829b7f722a681c54b2f6469d54695523f08f727d0dd6744dcd7fce4f3249c57689bb15ed7a8bcb912833b226439d800913e122e0ef9ab73672f6542
+    SHA512 d74c0bc09162640a377aaab2f2ce716f9ee7a6ef8d1aa1aa6bc223a4748c60fa900cc77b1cf6db66f8a4064a074b31a71d75cccc7de3634347865238d9c039af
 )
 
 vcpkg_extract_source_archive_ex(

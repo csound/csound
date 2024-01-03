@@ -46,9 +46,9 @@ struct _splitType {
         int64_t endOffset;
         int64_t startLoopOffset;
         int64_t endLoopOffset;
-        char overridingRootKey;
-        char coarseTune;
-        char fineTune;
+        /*char*/ SBYTE overridingRootKey;
+        /*char*/ SBYTE coarseTune;
+        /*char*/ SBYTE fineTune;
         SHORT scaleTuning;
         SHORT initialAttenuation;
         SHORT pan;
@@ -76,8 +76,8 @@ struct _layerType {
         BYTE maxNoteRange;
         BYTE minVelRange;
         BYTE maxVelRange;
-        char coarseTune;
-        char fineTune;
+        /*char*/ SBYTE coarseTune;
+        /*char*/ SBYTE fineTune;
         SHORT scaleTuning;
         SHORT initialAttenuation;
         SHORT pan;

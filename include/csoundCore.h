@@ -891,10 +891,11 @@ typedef struct CORFIL {
 struct MACRO;
 
 typedef struct MACRON {
-  int             n;
-  unsigned int    line;
-  struct MACRO    *s;
-  char            *path;
+ int             n;
+ unsigned int    line;
+ struct MACRO    *s;
+ char            *path;
+ int             included;
 } MACRON;
 
 typedef struct MACRO {          /* To store active macros */
