@@ -20,7 +20,7 @@
     Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
     02110-1301 USA
 */
-
+ 
 #if !defined(_SF_H)
 #include "sftype.h"
 #ifdef          __GNUC__
