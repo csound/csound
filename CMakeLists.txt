@@ -476,28 +476,15 @@ endif()
 
 find_package(CURL)
 
-if(NOT MSVC AND REQUIRE_PTHREADS)
-    # Use ladder of if's to support older CMake versions (i.e., travis)
-    find_library(PTHREAD_LIBRARY winpthread-1)
+set(THREADS_PREFER_PTHREAD_FLAG ON)
 
-    if(NOT PTHREAD_LIBRARY)
-        find_library(PTHREAD_LIBRARY pthread)
-    endif()
+find_package(Threads)
+# windows threads aren't supported
+assign_bool(NOT_WINDOWS_THREADS NOT CMAKE_USE_WIN32_THREADS_INIT)
+check_deps(REQUIRE_PTHREADS Threads_FOUND NOT_WINDOWS_THREADS)
 
-    if(NOT PTHREAD_LIBRARY)
-        find_library(PTHREAD_LIBRARY pthreadGC2)
-    endif()
-
-    if(NOT (PTHREAD_LIBRARY OR HAIKU))
-        # pthreads are built in to Haiku
-        message(STATUS "Csound requires the pthread library")
-    endif()
-
-    # FIXME this variable is for required include directories, possible bug
-    list(APPEND CMAKE_REQUIRED_INCLUDES pthread.h)
-    if (NOT HAIKU)
-        list(APPEND CMAKE_REQUIRED_LIBRARIES pthread)
-    endif()
+if(REQUIRE_PTHREADS)
+    list(APPEND CMAKE_REQUIRED_LIBRARIES Threads::Threads)
 endif()
 
 # Now, non required library searches
@@ -614,7 +601,7 @@ list(APPEND libcsound_private_include_dirs ${Csound_SOURCE_DIR}/util)
 list(APPEND libcsound_private_include_dirs ${Csound_SOURCE_DIR})
 
 #checking pthread functions
-if(REQUIRE_PTHREADS AND (PTHREAD_LIBRARY OR HAIKU))
+if(REQUIRE_PTHREADS)
   set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -DHAVE_PTHREAD")
 
   if (NOT VCPKG_TARGET_TRIPLET STREQUAL "x64-mingw-static")
@@ -1123,8 +1110,8 @@ endif()
 # TODO include target rather than libs to also bring in transitive dependencies
 set(libcsound_LIBS ${LIBSNDFILE_LIBRARY})
 
-if(REQUIRE_PTHREADS AND PTHREAD_LIBRARY)
-    list(APPEND libcsound_LIBS ${PTHREAD_LIBRARY})
+if(REQUIRE_PTHREADS)
+    list(APPEND libcsound_LIBS Threads::Threads)
 endif()
 
 if (HAVE_ATOMIC_BUILTIN)
