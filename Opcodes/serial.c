@@ -41,7 +41,9 @@
 #ifndef WIN32
 #include <unistd.h>   /* UNIX standard function definitions */
 #include <fcntl.h>    /* File control definitions */
+#ifndef __wasm__
 #include <termios.h>  /* POSIX terminal control definitions */
+#endif
 #include <sys/ioctl.h>
 #else
 #include "winsock2.h"
@@ -186,9 +188,11 @@ int32_t serialPeekByte(CSOUND *csound, SERIALPEEK *p);
 int32_t serialport_init(CSOUND *csound, const char* serialport, int32_t baud)
 {
     IGN(csound);
+#ifndef __wasm__
     struct termios toptions;
-    int32_t fd;
     speed_t brate;
+#endif
+    int32_t fd;
 
     //csound = NULL;              /* Not used */
     fprintf(stderr,"init_serialport: opening port %s @ %d bps\n",
@@ -200,6 +204,7 @@ int32_t serialport_init(CSOUND *csound, const char* serialport, int32_t baud)
       return -1;
     }
 
+#ifndef __wasm__
     if (UNLIKELY(tcgetattr(fd, &toptions) < 0)) {
       perror("init_serialport: Couldn't get term attributes");
       close(fd);
@@ -246,6 +251,7 @@ int32_t serialport_init(CSOUND *csound, const char* serialport, int32_t baud)
       perror("init_serialport: Couldn't set term attributes");
       return -1;
     }
+#endif
 
     return fd;
 }
@@ -453,7 +459,7 @@ int32_t serialPrint(CSOUND *csound, SERIALPRINT *p)
 int32_t serialFlush(CSOUND *csound, SERIALFLUSH *p)
 {
      IGN(csound);
-#ifndef WIN32
+#if !defined(WIN32) && !defined(__wasm__)
     tcflush(*p->port, TCIFLUSH); // who knows if this works...
 #endif
     return OK;

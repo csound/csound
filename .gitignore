@@ -236,4 +236,9 @@ dist
 xcode
 *.nupkg
 *.exe
+
+#vcpkg
+vcpkg_installed
+
+#install dir
 bin

@@ -219,11 +219,15 @@ static void signal_handler(int sig)
 {
 #if defined(SIGPIPE)
     if (sig == (int) SIGPIPE) {
+#ifndef __wasm__
       psignal(sig, "Csound ignoring SIGPIPE");
+#endif
       return;
     }
 #endif
+#ifndef __wasm__
     psignal(sig, "\ncsound command");
+#endif
     if ((sig == (int) SIGINT || sig == (int) SIGTERM)) {
       if (_csound) {
         csoundDestroy(_csound);

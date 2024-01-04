@@ -1,0 +1,152 @@
+diff --git a/CMakeLists.txt b/CMakeLists.txt
+index 316a8210..6220a5ae 100644
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -151,7 +151,7 @@ elseif(NOT MSVC)
+ endif()
+ 
+ if(WITH_STACK_PROTECTOR)
+-  if(NOT MSVC)
++  if(NOT MSVC AND NOT EMSCRIPTEN)
+     check_c_compiler_flag("-fstack-protector-strong" HAVE_STACK_PROTECTOR_FLAG)
+   endif()
+ endif()
+diff --git a/include/share/compat.h b/include/share/compat.h
+index 7a865153..db0d7d84 100644
+--- a/include/share/compat.h
++++ b/include/share/compat.h
+@@ -187,7 +187,9 @@
+ #define flac_vfprintf vfprintf
+ 
+ #define flac_fopen fopen
++#ifndef __wasm__
+ #define flac_chmod chmod
++#endif
+ #define flac_unlink unlink
+ #define flac_rename rename
+ #define flac_stat stat
+diff --git a/microbench/CMakeLists.txt b/microbench/CMakeLists.txt
+index 639915b6..3ca6a308 100644
+--- a/microbench/CMakeLists.txt
++++ b/microbench/CMakeLists.txt
+@@ -2,6 +2,10 @@ if(MSVC)
+     return()
+ endif()
+ 
++if(EMSCRIPTEN)
++    return()
++endif()
++
+ set(CMAKE_REQUIRED_LIBRARIES rt)
+ check_function_exists(clock_gettime HAVE_CLOCK_GETTIME)
+ 
+diff --git a/microbench/util.c b/microbench/util.c
+index 31859f6d..e167de3b 100644
+--- a/microbench/util.c
++++ b/microbench/util.c
+@@ -123,12 +123,20 @@ benchmark_function (void (*testfunc) (void), unsigned count)
+ {	struct timespec start, end;
+ 	unsigned k ;
+ 
++#ifdef __wasm__
++	clock_gettime (CLOCK_MONOTONIC, &start) ;
++#else
+ 	clock_gettime (CLOCK_PROCESS_CPUTIME_ID, &start) ;
++#endif
+ 
+ 	for (k = 0 ; k < count ; k++)
+ 		testfunc () ;
+ 
++#ifdef __wasm__
++	clock_gettime (CLOCK_MONOTONIC, &end) ;
++#else
+ 	clock_gettime (CLOCK_PROCESS_CPUTIME_ID, &end) ;
++#endif
+ 
+ 	return timespec_diff (&start, &end) / count ;
+ } /* benchmark_function */
+diff --git a/src/libFLAC/metadata_iterators.c b/src/libFLAC/metadata_iterators.c
+index 168a3fbc..57208cfe 100644
+--- a/src/libFLAC/metadata_iterators.c
++++ b/src/libFLAC/metadata_iterators.c
+@@ -3473,9 +3473,11 @@ void set_file_stats_(const char *filename, struct flac_stat_s *stats)
+ 	FLAC__ASSERT(0 != filename);
+ 	FLAC__ASSERT(0 != stats);
+ 
++#ifndef __wasm__
+ 	(void)flac_chmod(filename, stats->st_mode);
++#endif
+ 	(void)flac_utime(filename, &srctime);
+-#if !defined _MSC_VER && !defined __BORLANDC__ && !defined __MINGW32__
++#if !defined _MSC_VER && !defined __BORLANDC__ && !defined __MINGW32__ && !defined __wasm__
+ 	FLAC_CHECK_RETURN(chown(filename, stats->st_uid, -1));
+ 	FLAC_CHECK_RETURN(chown(filename, -1, stats->st_gid));
+ #endif
+diff --git a/src/share/grabbag/file.c b/src/share/grabbag/file.c
+index 1a781526..c5480741 100644
+--- a/src/share/grabbag/file.c
++++ b/src/share/grabbag/file.c
+@@ -63,7 +63,9 @@ void grabbag__file_copy_metadata(const char *srcpath, const char *destpath)
+ 		srctime.actime = srcstat.st_atime;
+ 		srctime.modtime = srcstat.st_mtime;
+ #endif
++#ifndef __wasm__
+ 		(void)flac_chmod(destpath, srcstat.st_mode);
++#endif
+ 		(void)flac_utime(destpath, &srctime);
+ 	}
+ }
+@@ -113,8 +115,10 @@ FLAC__bool grabbag__file_change_stats(const char *filename, FLAC__bool read_only
+ 		else
+ 			stats.st_mode |= S_IWRITE;
+ #endif
++#ifndef __wasm__
+ 		if(0 != flac_chmod(filename, stats.st_mode))
+ 			return false;
++#endif
+ 	}
+ 	else
+ 		return false;
+diff --git a/src/share/grabbag/replaygain.c b/src/share/grabbag/replaygain.c
+index 7d81e0fe..b74be5e8 100644
+--- a/src/share/grabbag/replaygain.c
++++ b/src/share/grabbag/replaygain.c
+@@ -87,7 +87,9 @@ static void set_file_stats_(const char *filename, struct flac_stat_s *stats)
+ 	FLAC__ASSERT(0 != filename);
+ 	FLAC__ASSERT(0 != stats);
+ 
++#ifndef __wasm__
+ 	(void)flac_chmod(filename, stats->st_mode);
++#endif
+ }
+ 
+ static FLAC__bool append_tag_(FLAC__StreamMetadata *block, const char *format, const FLAC__byte *name, float value)
+diff --git a/src/test_libFLAC++/metadata_manip.cpp b/src/test_libFLAC++/metadata_manip.cpp
+index 7fbc21c5..425f0411 100644
+--- a/src/test_libFLAC++/metadata_manip.cpp
++++ b/src/test_libFLAC++/metadata_manip.cpp
+@@ -281,7 +281,9 @@ void set_file_stats_(const char *filename, struct flac_stat_s *stats)
+ 	srctime.actime = stats->st_atime;
+ 	srctime.modtime = stats->st_mtime;
+ #endif
++#ifndef __wasm__
+ 	(void)flac_chmod(filename, stats->st_mode);
++#endif
+ 	(void)flac_utime(filename, &srctime);
+ #if !defined _MSC_VER && !defined __MINGW32__ && !defined __EMX__
+ 	FLAC_CHECK_RETURN(chown(filename, stats->st_uid, (gid_t)(-1)));
+diff --git a/src/test_libFLAC/metadata_manip.c b/src/test_libFLAC/metadata_manip.c
+index 089e62ad..eaec55e8 100644
+--- a/src/test_libFLAC/metadata_manip.c
++++ b/src/test_libFLAC/metadata_manip.c
+@@ -266,8 +266,9 @@ static void set_file_stats_(const char *filename, struct flac_stat_s *stats)
+ #endif
+ 	FLAC__ASSERT(0 != filename);
+ 	FLAC__ASSERT(0 != stats);
+-
++#ifndef __wasm__
+ 	(void)flac_chmod(filename, stats->st_mode);
++#endif
+ 	(void)flac_utime(filename, &srctime);
+ #if !defined _MSC_VER && !defined __MINGW32__
+ 	FLAC_CHECK_RETURN(chown(filename, stats->st_uid, -1));
