@@ -2277,6 +2277,12 @@ arrayprint_i(CSOUND *csound, ARRAYPRINT *p) {
 }
 
 static int32_t
+arrayprint_string_init(CSOUND *csound, ARRAYPRINT *p) {
+    return arrprint_str(csound, p->in, default_printfmt_str, "");
+}
+
+
+static int32_t
 arrayprintf_i(CSOUND *csound, ARRAYPRINT *p) {
     char tmpfmt[256];
     const char *fmt;
@@ -3124,7 +3130,10 @@ static OENTRY emugens_localops[] = {
     { "printarray.fmt_label_i", S(ARRAYPRINT), 0, 1, "", "i[]SS",
       (SUBR)arrayprintf_i},
 
-    { "printarray", S(ARRAYPRINTK), 0, 3, "", "S[]J",
+    { "printarray.s", S(ARRAYPRINTK), 0, 1, "", "S[]",
+      (SUBR)arrayprint_string_init},
+
+    { "printarray.s", S(ARRAYPRINTK), 0, 3, "", "S[]k",
       (SUBR)arrayprint_init, (SUBR)arrayprint_perf},
     { "printarray", S(ARRAYPRINTK), 0, 3, "", "S[]kS",
       (SUBR)arrayprint_init, (SUBR)arrayprint_perf},
