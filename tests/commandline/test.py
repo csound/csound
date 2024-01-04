@@ -28,6 +28,7 @@ parserType = ""
 ##csoundExecutable = r"C:/Users/new/csound-csound6-git/csound.exe "
 csoundExecutable = ""
 sourceDirectory = "."
+useWine = False
 
 class Test:
     def __init__(self, fileName, description, expected=True):
@@ -218,7 +219,12 @@ def runTest():
         desc = t[1]
         expectedResult = (len(t) == 3) and 1 or 0
 
-        if(os.sep == '\\' or os.name == 'nt'):
+        if useWine:
+            executable = (csoundExecutable == "") and "csound" or csoundExecutable
+            command = "wine %s %s %s %s/%s 2> %s"%(executable, parserType, runArgs, sourceDirectory, filename, tempfile)
+            print(command)
+            retVal = os.system(command)
+        elif(os.sep == '\\' or os.name == 'nt'):
             executable = (csoundExecutable == "") and "..\csound.exe" or csoundExecutable
             command = "%s %s %s %s/%s 2> %s"%(executable, parserType, runArgs, sourceDirectory, filename, tempfile)
             print(command)
@@ -298,6 +304,9 @@ if __name__ == "__main__":
                 print(os.environ['OPCODE6DIR64'])
             elif arg.startswith("--source-dir="):
                 sourceDirectory = arg[13:]
+            elif arg.startswith("--use-wine="):
+                useWine = arg[11:] == 'true'
+                
     results = runTest()
     # if (showUIatClose):
     #     showUI(results)

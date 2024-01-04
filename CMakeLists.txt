@@ -12,7 +12,13 @@ option(USE_VCPKG "Use VCPKG to download and manage dependencies" OFF)
 
 if (USE_VCPKG)
     # Detect correct triplet based on CMake env
-    if (WIN32)
+    if (CMAKE_SYSTEM_NAME STREQUAL "MinGW" AND UNIX)
+        set(VCPKG_TARGET_TRIPLET "x64-mingw-static")
+        set(VCPKG_INSTALL_OPTIONS "--allow-unsupported")
+        set(VCPKG_CHAINLOAD_TOOLCHAIN_FILE ${CMAKE_CURRENT_SOURCE_DIR}/vcpkg/scripts/toolchains/mingw.cmake)
+        set(VCPKG_CMAKE_SYSTEM_NAME MinGW)
+        set(VCPKG_TARGET_ARCHITECTURE x64)
+    elseif (WIN32)
         set(VCPKG_TARGET_TRIPLET "x64-windows-static")
     elseif(APPLE)
         set(VCPKG_TARGET_TRIPLET "x64-osx")
@@ -611,7 +617,10 @@ list(APPEND libcsound_private_include_dirs ${Csound_SOURCE_DIR})
 if(REQUIRE_PTHREADS AND (PTHREAD_LIBRARY OR HAIKU))
   set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -DHAVE_PTHREAD")
 
-  check_function_exists(pthread_spin_lock PTHREAD_SPIN_LOCK_EXISTS)
+  if (NOT VCPKG_TARGET_TRIPLET STREQUAL "x64-mingw-static")
+    check_function_exists(pthread_spin_lock PTHREAD_SPIN_LOCK_EXISTS)
+  endif()
+
   check_function_exists(pthread_barrier_init PTHREAD_BARRIER_INIT_EXISTS)
 
   if(PTHREAD_SPIN_LOCK_EXISTS)
@@ -1380,4 +1389,11 @@ if(APPLE)
 else()
     install(DIRECTORY ${CMAKE_SOURCE_DIR}/samples
             DESTINATION ${CMAKE_INSTALL_PREFIX}/share)
+endif()
+
+# install mingw libraries
+if(MINGW)
+    file(COPY /usr/lib/gcc/x86_64-w64-mingw32/10-posix/libstdc++-6.dll DESTINATION "${BUILD_DIR}")
+    file(COPY /usr/lib/gcc/x86_64-w64-mingw32/10-posix/libgcc_s_seh-1.dll DESTINATION "${BUILD_DIR}")
+    file(COPY /usr/x86_64-w64-mingw32/lib/libwinpthread-1.dll DESTINATION "${BUILD_DIR}")
 endif()

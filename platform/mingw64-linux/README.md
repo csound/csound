@@ -2,7 +2,9 @@ Cross-compiling Windows 64-bit (x86\_64) from Linux
 ==================================================
 
 This directory contains scripts for cross-compiling a Windows 64-bit version 
-of Csound from Linux.  These scripts were developed using Debian.
+of Csound from Linux.  These scripts were developed using Debian / Ubuntu.
+
+# Compiling using Debian
 
 ## Instructions
 
@@ -33,3 +35,25 @@ not yet been updated for building.
 
 * wiiuse - I tried v0.12 binary release of wiiuse from sf.net/projects/wiiuse, 
 but found it was compiled for win32 and not w64.  Not including as of now.
+
+# Compiling using Ubuntu with vcpkg
+
+## Instructions
+
+1. Install docker using apt:
+
+    sudo apt install docker.io
+
+2. Add user to docker group:
+
+    sudo usermod -a -G docker $USER
+
+3. Build docker image from csound dir:
+
+    cd csound
+    docker build -t csound-mingw ./platform/mingw64-linux
+
+4. Build csound:
+
+    docker run -it --rm -v .:/tmp/workdir --user ${UID}:${1000} -w /tmp/workdir csound-mingw './platform/mingw64-linux/build_release.sh'
+    docker run -it --rm -v .:/tmp/workdir --user ${UID}:${1000} -w /tmp/workdir csound-mingw './platform/mingw64-linux/build_debug.sh'

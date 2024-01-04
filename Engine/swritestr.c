@@ -40,7 +40,15 @@ static char   *fpnum(CSOUND *,char *, int, int, CORFIL *sco);
 static void fltout(CSOUND *csound, MYFLT n, CORFIL *sco)
 {
     char *c, buffer[1024]; 
+#if defined(__MINGW32__)
+#ifdef USE_DOUBLE
+    CS_SPRINTF(buffer, "%.17lg", n);
+#else
+    CS_SPRINTF(buffer, "%.9g", n);
+#endif
+#else
     CS_SPRINTF(buffer, "%a", (double)n);
+#endif
     /* corfile_puts(buffer, sco); */
     for (c = buffer; *c != '\0'; c++)
       corfile_putc(csound, *c, sco);      
