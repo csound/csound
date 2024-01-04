@@ -548,11 +548,13 @@ int main(int argc, char **argv)
     if (midname != NULL) free(midname);
     if (csdname != NULL) free(csdname);
     /* execute command */
+#ifndef __wasm__
     if (execvp(tmp, cs_argv)) {
       fprintf(stderr, "cs: error executing Csound command: %s\n",
                       strerror(errno));
       exit(-1);
     }
+#endif
 
     return 0;
 }
