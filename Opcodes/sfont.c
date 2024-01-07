@@ -1973,7 +1973,7 @@ static int32_t fill_SfStruct(CSOUND *csound)
                 }
                 break;
               case overridingRootKey:
-                split->overridingRootKey = (BYTE) igen[m].genAmount.wAmount;
+                split->overridingRootKey = (/*char*/ SBYTE) igen[m].genAmount.shAmount;
                 break;
               case coarseTune:
                 split->coarseTune = (/*char*/ SBYTE) igen[m].genAmount.shAmount;
