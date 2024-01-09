@@ -100,9 +100,9 @@
 //#define PFFFT_SIMD_DISABLE
 
 /*
-   Altivec support macros
+   Altivec support macros. (The code below is broken for Darwin, so disable it explicitly.)
 */
-#if !defined(PFFFT_SIMD_DISABLE) && (defined(__ppc__) || defined(__ppc64__))
+#if !defined(PFFFT_SIMD_DISABLE) && (defined(__ppc__) || defined(__ppc64__)) && !defined(__APPLE__)
 typedef vector float v4sf;
 #  define SIMD_SZ 4
 #  define VZERO() ((vector float) vec_splat_u8(0))
