@@ -286,6 +286,7 @@ int32_t pinit(CSOUND *csound, PINIT *p)
 }
 
 #include "arrays.h"
+/*
 int32_t painit(CSOUND *csound, PAINIT *p)
 {
     int32_t n;
@@ -298,6 +299,35 @@ int32_t painit(CSOUND *csound, PAINIT *p)
     tabinit(csound, p->inits, pargs-start+1);
     for (n=0; n<=pargs-start; n++) {
       ((MYFLT*)p->inits->data)[n] = csound->init_event->p[n+start];
+    }
+    return OK;
+}
+*/
+
+int32_t painit(CSOUND *csound, PAINIT *p) {
+    int32_t n;
+    EVTBLK *evt = csound->init_event;
+    int32_t pcnt = evt->pcnt;
+    int32_t start = (int32_t)(*p->start);
+    int32_t end = (int32_t)(*p->end);
+    if (end == FL(0.0)) {
+      end = pcnt;
+    }
+    int32_t numfields = end - start + 1;
+    tabinit(csound, p->inits, numfields);
+    int32_t pargsend = end < PMAX - 1 ? end : PMAX - 1;
+    int32_t numpargs = pargsend - start + 1;
+    for (n=0; n < numpargs; n++) {
+      ((MYFLT*)p->inits->data)[n] = evt->p[n+start];
+    }
+    if (end > PMAX && evt->c.extra != NULL) {
+      int32_t rest = end - PMAX + 1;
+      int32_t numextra = (int32_t)evt->c.extra[0];
+      if (rest > numextra)
+        rest = numextra;
+      for (n=0; n < rest; n++) {
+        ((MYFLT*)p->inits->data)[n+numpargs] = evt->c.extra[1+n];
+      }
     }
     return OK;
 }

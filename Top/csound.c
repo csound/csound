@@ -2802,13 +2802,31 @@ int csoundScoreEventInternal(CSOUND *csound, char type,
     int     i;
     int ret;
     memset(&evt, 0, sizeof(EVTBLK));
-
+    int lowpfields = numFields < (PMAX-1) ? numFields : (PMAX-1);
     evt.strarg = NULL; evt.scnt = 0;
     evt.opcod = type;
-    evt.pcnt = (int16) numFields;
-    for (i = 0; i < (int) numFields; i++)
+    // evt.pcnt = (int16) numFields;
+    evt.pcnt = (int16) lowpfields;
+
+    for (i = 0; i < (int) lowpfields; i++)
       evt.p[i + 1] = pfields[i];
+
+    if (numFields > lowpfields) {
+      int rest = numFields - lowpfields;
+      evt.c.extra = csound->Malloc(csound, sizeof(MYFLT)*(rest+2));
+      if (UNLIKELY(evt.c.extra == NULL)) {
+        csound->ErrorMsg(csound, Str("Out of Memory for extra block, "
+                                     "event p1=%f, p2=%f"), evt.p[0], evt.p[1]);
+        return CSOUND_MEMORY;
+      }
+      memcpy(evt.c.extra, &(pfields[lowpfields]), sizeof(MYFLT)*rest+2);
+      evt.c.extra[0] = rest;
+    }
     ret = insert_score_event_at_sample(csound, &evt, csound->icurTime);
+    // This seems like a waste, there should be a way to communicate
+    // to insert_score_event... that it can own the extra block
+    if (evt.c.extra != NULL)
+      csound->Free(csound, evt.c.extra);
     return ret;
 }
 
