@@ -237,3 +237,6 @@ xcode
 *.nupkg
 *.exe
 bin
+
+#vcpkg
+vcpkg_installed
