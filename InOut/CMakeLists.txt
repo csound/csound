@@ -33,20 +33,6 @@ if(USE_PORTMIDI)
     endif()
 endif()
 
-
-if(USE_JACK)
-    find_library(JACK_LIBRARY jack)
-    check_include_file(jack/jack.h JACK_HEADER)
-    if(APPLE)
-    # VL: could not find a way to make check_include_file() work so
-    # I am hardcoding it for MacOS
-    set(JACK_HEADER  "jack/jack.h")
-    endif()
-    # HLO: including the jack2 common source dir
-    # prevents "cannot open include file" errors
-    find_path(JACK_INCLUDE_PATH jack/jack.h)
-endif()
-
 # if(USE_COREAUDIO)
 #    find_path(COREAUDIO_INCLUDE_PATH CoreAudio.h)
 #    find_library(COREAUDIO_LIBRARY CoreAudio)
@@ -151,14 +137,12 @@ if(USE_IPMIDI)
     make_plugin(ipmidi ipmidi.c "${ipmidi_LIBS}")
 endif()
 
-check_deps(USE_JACK JACK_HEADER JACK_LIBRARY JACK_INCLUDE_PATH Threads_FOUND)
+find_package(Jack MODULE)
+check_deps(USE_JACK Jack_FOUND)
 if(USE_JACK)
-    set(rtjack_LIBS ${JACK_LIBRARY} Threads::Threads)
-    # set(rtjack_SRCS rtjack.c natsort.c)
     set(rtjack_SRCS rtjack.c alphanumcmp.c)
-    make_plugin(rtjack "${rtjack_SRCS}" "${rtjack_LIBS}")
-    # make_plugin(rtjack rtjack.c "${rtjack_LIBS}")
-    target_include_directories(rtjack PRIVATE "${JACK_INCLUDE_PATH}")
+    make_plugin(rtjack "${rtjack_SRCS}")
+    target_link_libraries(rtjack PRIVATE Jack::jack)
 endif()
 
 if(HAIKU)

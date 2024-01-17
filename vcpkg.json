@@ -9,6 +9,7 @@
         "portmidi",
         "liblo",
         "gtest",
+        "jack2",
         {
             "name": "portaudio"
         },
