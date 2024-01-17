@@ -423,37 +423,28 @@ message(STATUS "BUILD_PLUGINS_DIR set to ${BUILD_PLUGINS_DIR}.")
 # OS specific checks
 TEST_BIG_ENDIAN(BIG_ENDIAN)
 
+set(libcsound_PUBLIC_LIBS "")
+
 ## HEADER/LIBRARY/OTHER CHECKS ##
 # Check if libsndfile is available, if not, disable build
-if(USE_LIBSNDFILE)
-    if(USE_VCPKG)
-        find_package(SndFile CONFIG REQUIRED)
-    else()
-        find_library(LIBSNDFILE_LIBRARY NAMES sndfile libsndfile-1 libsndfile FLAC ogg vorbis opus mp3lame mpg123)
-        if(NOT LIBSNDFILE_LIBRARY)
-            message(STATUS "libsndfile not found")
-            set(USE_LIBSNDFILE 0)
-        endif()
-    endif()
+if (USE_VCPKG)
+    find_package(SndFile CONFIG)
+else()
+    find_package(SndFile MODULE)
 endif()
+check_deps(USE_LIBSNDFILE SndFile_FOUND)
 
 # carry on setting up libsndifle if so
 if(USE_LIBSNDFILE)
     add_compile_definitions("USE_LIBSNDFILE")
+    list(APPEND libcsound_PUBLIC_LIBS SndFile::sndfile)
+ 
 
     if(EMSCRIPTEN)
         list(APPEND libcsound_private_include_dirs ${Csound_SOURCE_DIR}/emscripten/deps/libsndfile-1.0.25/src/)
     endif()
 
-    find_path(SNDFILE_H_PATH sndfile.h)
-    if(SNDFILE_H_PATH)
-        list(APPEND libcsound_private_include_dirs ${SNDFILE_H_PATH})
-    else()
-        message(FATAL_ERROR "Could not find sndfile.h")
-    endif()
-
-    list(APPEND CMAKE_REQUIRED_LIBRARIES ${LIBSNDFILE_LIBRARY})
-    list(APPEND CMAKE_REQUIRED_INCLUDES ${SNDFILE_H_PATH})
+    list(APPEND CMAKE_REQUIRED_LIBRARIES SndFile::sndfile)
 
     check_c_source_compiles("#include <sndfile.h>
     int main(int argc, char** argv) {
@@ -637,8 +628,6 @@ if(REQUIRE_PTHREADS)
      list(APPEND libcsound_CFLAGS -DHAVE_PTHREAD_BARRIER_INIT)
   endif()
 endif()
-
-list(APPEND libcsound_private_include_dirs ${LIBSNDFILE_INCLUDE_DIRECTORY})
 
 # get the git hash and pass it to csound
 set(git_hash_values "none")
@@ -1127,7 +1116,7 @@ if (LINUX)
 endif()
 
 # TODO include target rather than libs to also bring in transitive dependencies
-set(libcsound_LIBS ${LIBSNDFILE_LIBRARY})
+set(libcsound_LIBS "")
 
 if(REQUIRE_PTHREADS)
  if(APPLE)
@@ -1288,9 +1277,8 @@ else()
     target_link_libraries(${CSOUNDLIB} PRIVATE ${libcsound_LIBS})
 endif()
 
-if(USE_VCPKG)
-    target_link_libraries(${CSOUNDLIB} PRIVATE SndFile::sndfile)
-endif()
+target_link_libraries(${CSOUNDLIB} PUBLIC ${libcsound_PUBLIC_LIBS})
+
 
 set_target_properties(${CSOUNDLIB} PROPERTIES
     RUNTIME_OUTPUT_DIRECTORY ${BUILD_BIN_DIR}
@@ -1314,6 +1302,7 @@ if(BUILD_STATIC_LIBRARY)
     else()
         target_link_libraries(${CSOUNDLIB_STATIC} PRIVATE ${libcsound_LIBS})
     endif()
+    target_link_libraries(${CSOUNDLIB_STATIC} PUBLIC ${libcsound_PUBLIC_LIBS})
 
     set_target_properties(${CSOUNDLIB_STATIC} PROPERTIES
         RUNTIME_OUTPUT_DIRECTORY ${BUILD_BIN_DIR}
