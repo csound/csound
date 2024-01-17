@@ -9,9 +9,8 @@ option(USE_PORTMIDI "Build the PortMIDI I/O module" ON)
 option(USE_IPMIDI "Build the IPMIDI I/O module" ON)
 option(USE_JACK "Build the jack I/O module and opcodes" ON)
 option(USE_ALSA "Build the ALSA I/O module" ON)
-# option(USE_COREAUDIO "Build the CoreAudio I/O module" ON)
-# option(USE_COREMIDI "Build the CoreMIDI I/O Module" ON)
-# option(USE_AUDIOUNIT "Build the CoreAudio AudioUnit I/O module (requires CoreAudio)" ON)
+option(USE_COREMIDI "Build the CoreMIDI I/O Module" ON)
+option(USE_AUDIOUNIT "Build the CoreAudio AudioUnit I/O module (requires CoreAudio)" ON)
 
 list(APPEND CMAKE_REQUIRED_INCLUDES "/usr/local/include")
 
@@ -47,37 +46,39 @@ if(USE_JACK)
     find_path(JACK_INCLUDE_PATH jack/jack.h)
 endif()
 
-# if(USE_COREAUDIO)
-#    find_path(COREAUDIO_INCLUDE_PATH CoreAudio.h)
-#    find_library(COREAUDIO_LIBRARY CoreAudio)
-# endif()
-if(APPLE)
-    find_path(COREMIDI_INCLUDE_PATH CoreMIDI.h)
-    find_library(COREMIDI_LIBRARY CoreMIDI)
-    find_library(AUDIOUNIT_LIBRARY AudioUnit)
-    find_library(COREFOUNDATION_LIBRARY CoreFoundation)
-    find_path(COREAUDIO_INCLUDE_PATH CoreAudio.h)
-    find_library(COREAUDIO_LIBRARY CoreAudio)
-endif()
+find_package(AudioUnit)
+find_package(CoreAudio)
+find_package(CoreFoundation)
+find_package(CoreMIDI)
 
 # BUILD TARGETS
 
-# check_deps(USE_COREAUDIO APPLE COREAUDIO_INCLUDE_PATH COREAUDIO_LIBRARY)
-# if(USE_COREAUDIO)
-#    make_plugin(rtcoreaudio rtcoreaudio.c)
-#    target_include_directories(rtcoreaudio PRIVATE ${COREAUDIO_INCLUDE_PATH})
-#    target_link_libraries(rtcoreaudio ${COREAUDIO_LIBRARY})
-# endif()
+check_deps(USE_COREMIDI
+    CoreAudio_FOUND
+    CoreMIDI_FOUND
+    CoreFoundation_FOUND
+)
+if(USE_COREMIDI)
+    make_plugin(cmidi cmidi.c)
+    target_link_libraries(cmidi PUBLIC
+        CoreAudio::coreaudio
+        CoreFoundation::corefoundation
+        CoreMIDI::coremidi
+    )
+endif()
 
-if(APPLE)
-#    check_deps(USE_COREMIDI APPLE COREMIDI_INCLUDE_PATH COREMIDI_LIBRARY COREFOUNDATION_LIBRARY)
-#   check_deps(USE_AUDIOUNIT APPLE COREAUDIO_INCLUDE_PATH COREAUDIO_LIBRARY AUDIOUNIT_INCLUDE_PATH AUDIOUNIT_LIBRARY COREFOUNDATION_LIBRARY)
-        make_plugin(cmidi cmidi.c)
-        target_include_directories(cmidi PRIVATE ${COREMIDI_INCLUDE_PATH})
-        target_link_libraries(cmidi PRIVATE ${COREMIDI_LIBRARY} ${COREFOUNDATION_LIBRARY})
-        make_plugin(rtauhal rtauhal.c)
-        target_include_directories(rtauhal PRIVATE ${AUDIOUNIT_INCLUDE_PATH})
-        target_link_libraries(rtauhal PRIVATE ${AUDIOUNIT_LIBRARY} ${COREFOUNDATION_LIBRARY} ${COREAUDIO_LIBRARY})
+check_deps(USE_AUDIOUNIT
+    AudioUnit_FOUND
+    CoreAudio_FOUND
+    CoreFoundation_FOUND
+)
+if (USE_AUDIOUNIT)
+    make_plugin(rtauhal rtauhal.c)
+    target_link_libraries(rtauhal PUBLIC
+        AudioUnit::audiounit
+        CoreAudio::coreaudio
+        CoreFoundation::corefoundation
+    )
 endif()
 
 if(USE_ALSA AND LINUX)
