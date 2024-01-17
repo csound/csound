@@ -1,4 +1,5 @@
 # UTILITY PLUGIN AND PROGRAMS
+option(BUILD_SRC_CONV "Build src_conv utility" ON)
 
 set(stdutil_SRCS
     atsa.c          cvanal.c        dnoise.c    envext.c
@@ -34,19 +35,18 @@ if(BUILD_UTILITIES)
     make_utility(scale       scale_main.c)
     make_utility(sndinfo     sndinfo_main.c)
     make_utility(srconv      srconv_main.c)
-
-    if (USE_VCPKG)
-        find_package(SampleRate REQUIRED)
-        set(LIBSAMPLERATE_LIBRARY SampleRate::samplerate)
-    else ()
-        find_library(LIBSAMPLERATE_LIBRARY NAMES samplerate libsamplerate-0)
-    endif()
-
-    if(USE_LIBSNDFILE AND LIBSAMPLERATE_LIBRARY)
-        make_executable(src_conv new_srconv.c "${LIBSNDFILE_LIBRARY};${LIBSAMPLERATE_LIBRARY}")
-    else()
-        message(STATUS "Not building src_conv (libsndfile or libsamplerate not found).")
-    endif()
-
 endif()
+
+if (USE_VCPKG)
+    find_package(SampleRate CONFIG)
+    assign_bool(SampleRate_FOUND TARGET SampleRate::samplerate)
+else()
+    find_package(SampleRate MODULE)
+endif()
+
+check_deps(BUILD_SRC_CONV BUILD_UTILITIES USE_LIBSNDFILE SampleRate_FOUND)
+if (BUILD_SRC_CONV)
+    make_executable(src_conv new_srconv.c "${LIBSNDFILE_LIBRARY};SampleRate::samplerate")
+endif()
+
 add_subdirectory(SDIF)
