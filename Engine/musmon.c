@@ -1320,6 +1320,20 @@ int insert_score_event_at_sample(CSOUND *csound, EVTBLK *evt, int64_t time_ofs)
   e->evt.pinstance = evt->pinstance;
   e->evt.opcod = evt->opcod;
   e->evt.pcnt = evt->pcnt;
+  if(evt->c.extra != NULL && evt->c.extra[0] > 0) {
+    int numextra = evt->c.extra[0];
+    if (e->evt.c.extra == NULL) {
+      e->evt.c.extra = (MYFLT*) csound->Malloc(csound, sizeof(MYFLT)*(numextra+2));
+    }
+    else if (e->evt.c.extra[0] < numextra) {
+      e->evt.c.extra = (MYFLT*) csound->ReAlloc(csound, e->evt.c.extra, sizeof(MYFLT)*(numextra+2));
+    }
+    memcpy(e->evt.c.extra, evt->c.extra, sizeof(MYFLT)*(numextra+2));
+    e->evt.c.extra[0] = numextra;
+  }
+  else if(e->evt.c.extra != NULL) {
+    e->evt.c.extra[0] = 0;
+  }
   p = &(e->evt.p[0]);
   i = 0;
   while (++i <= evt->pcnt)    /* copy p-field list */
