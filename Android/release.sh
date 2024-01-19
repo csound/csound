@@ -1,6 +1,6 @@
 #!/bin/sh
 set -x
-export RELEASE_DIR=csound-android-6.18.0
+export RELEASE_DIR=csound-android-6.19.0-beta
 
 #remove backup files ending with ~
 find . -name "*~" -exec rm {} \;
