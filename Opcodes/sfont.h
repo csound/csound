@@ -22,8 +22,6 @@
     02110-1301 USA
 */
 
-#pragma once
-
 #include "sftype.h"
 #include "sf.h"
 
@@ -53,7 +51,7 @@ typedef struct {
 typedef struct {
         OPDS    h;
         MYFLT   *out1, *out2, *ivel, *inotnum,*xamp, *xfreq;
-        MYFLT   *ipresethandle, *iflag, *ioffset, *ienv, *iskip;
+        MYFLT   *ipresethandle, *iflag, *ioffset, *ienv;
         int32_t     spltNum;
         SHORT   *base[MAXSPLT], mode[MAXSPLT];
         DWORD   end[MAXSPLT], startloop[MAXSPLT], endloop[MAXSPLT], ti[MAXSPLT];
@@ -67,7 +65,7 @@ typedef struct {
 typedef struct {
         OPDS    h;
         MYFLT   *out1, *ivel, *inotnum,*xamp, *xfreq, *ipresethandle,
-                *iflag, *ioffset, *ienv, *iskip;
+                *iflag, *ioffset, *ienv;
         int32_t     spltNum;
         SHORT   *base[MAXSPLT], mode[MAXSPLT];
         DWORD   end[MAXSPLT], startloop[MAXSPLT], endloop[MAXSPLT], ti[MAXSPLT];
@@ -81,7 +79,7 @@ typedef struct {
 typedef struct {
         OPDS    h;
         MYFLT   *out1, *ivel, *inotnum, *xamp, *xfreq, *instrNum;
-        MYFLT   *sfBank, *iflag, *ioffset, *ienv, *iskip;
+        MYFLT   *sfBank, *iflag, *ioffset, *ienv;
         int32_t     spltNum;
         SHORT   *base[MAXSPLT], mode[MAXSPLT];
         DWORD   end[MAXSPLT], startloop[MAXSPLT], endloop[MAXSPLT], ti[MAXSPLT];
@@ -95,8 +93,9 @@ typedef struct {
 typedef struct {
         OPDS    h;
         MYFLT   *out1, *out2, *ivel, *inotnum, *xamp, *xfreq;
-        MYFLT   *instrNum, *sfBank, *iflag, *ioffset, *ienv, *iskip;
-        int32_t spltNum;
+        MYFLT   *instrNum, *sfBank, *iflag, *ioffset, *ienv;
+        int32_t
+        spltNum;
         SHORT   *base[MAXSPLT], mode[MAXSPLT];
         DWORD   end[MAXSPLT], startloop[MAXSPLT], endloop[MAXSPLT], ti[MAXSPLT];
         double  si[MAXSPLT],phs[MAXSPLT];
