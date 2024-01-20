@@ -9,7 +9,7 @@ msgstr ""
 "Project-Id-Version: CSOUND 6.xx\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2008-07-30 08:53+0100\n"
-"PO-Revision-Date: 2021-02-07 17:25+0000\n"
+"PO-Revision-Date: 2024-01-18 14:35+0000\n"
 "Last-Translator: John ffitch <jpff@sourceforge.net>\n"
 "Language-Team: English (US)\n"
 "Language: en-GB\n"
@@ -1165,14 +1165,13 @@ msgid "ftable size too small"
 msgstr ""
 
 #: Engine/fgens.c:2926
-#, fuzzy, c-format
+#, c-format
 msgid "GEN44: Failed to open file %s\n"
-msgstr "Can't open input file %s"
+msgstr "GEN44: Failed to open file %s\n"
 
 #: Engine/fgens.c:2928
-#, fuzzy
 msgid "GEN44; Failed to read matrix file\n"
-msgstr "sfont: failed to read file\n"
+msgstr "GEN44; Failed to read matrix file\n"
 
 #: Engine/fgens.c:2930
 msgid "GEN44: No header in matrix file\n"
@@ -1529,9 +1528,9 @@ msgid "event: string name is allowed only for \"i\", \"d\", and \"q\" events"
 msgstr ""
 
 #: Engine/linevent.c:491 Engine/linevent.c:574
-#, fuzzy, c-format
+#, c-format
 msgid "WARNING: Cannot Find Instrument %d. No action."
-msgstr "WARNING: Can't Find Instrument %d\n"
+msgstr "WARNING: Can't Find Instrument %d. Mo action."
 
 #: Engine/linevent.c:509
 #, c-format
