@@ -156,7 +156,15 @@ jobs:
           sudo apt-get update
           sudo apt-get install build-essential liblzma-dev libxml2-dev libz-dev libbz2-dev cpio ninja-build
 
+      - name: Cache osxcross
+        id: osxcross
+        uses: actions/cache@v4
+        with:
+          path: /home/runner/work/csound/csound/osxcross
+          key: ${{ runner.os }}-osxcross
+  
       - name: Build osxcross
+        if: steps.osxcross.outputs.cache-hit != 'true'
         run: |
           git clone https://github.com/tpoechtrager/osxcross.git
           sudo /home/runner/work/csound/csound/osxcross/tools/get_dependencies.sh
@@ -184,13 +192,14 @@ jobs:
           for ARCH in x86_64 arm64; do
             cmake --build build/$ARCH --config Release
           done
-          zip -r build-$GITHUB_SHA.zip build
+          mkdir artifact
+          zip -r artifact/build-$GITHUB_SHA.zip build
 
       - name: Temporarily save osxcross build
         uses: actions/upload-artifact@v2
         with:
           name: osxcross-artifact
-          path: build-$GITHUB_SHA.zip
+          path: artifact
           retention-days: 1
 
   macos_test_osxcross:
@@ -208,11 +217,11 @@ jobs:
         uses: actions/download-artifact@v2
         with:
           name: osxcross-artifact
-          path: build-$GITHUB_SHA.zip
+          path: artifact
 
       - name: Run integration and unit tests
         run: |
-          unzip build-$GITHUB_SHA.zip
+          unzip artifact/build-$GITHUB_SHA.zip
 
           for ARCH in x86_64 arm64; do
             cmake --build build/$ARCH --target test csdtests
