@@ -384,6 +384,7 @@ static int32_t SfPlay_set(CSOUND *csound, SFPLAY *p)
     preset = globals->presetp[index];
     sBase = globals->sampleBase[index];
 
+    if (*p->iskip && p->spltNum) return OK;
     if (!UNLIKELY(preset!=NULL)) {
       return csound->InitError(csound, Str("sfplay: invalid or "
                                            "out-of-range preset number"));
@@ -421,7 +422,7 @@ static int32_t SfPlay_set(CSOUND *csound, SFPLAY *p)
             double freq, orgfreq;
             double tuneCorrection = split->coarseTune + layer->coarseTune +
               (split->fineTune + layer->fineTune)*0.01;
-            int32_t orgkey = split->overridingRootKey, notenum = notnum;
+            int32_t orgkey = split->overridingRootKey, nm = notnum;
             if (orgkey == -1) orgkey = sample->byOriginalKey;
             orgfreq = globals->pitches[orgkey];
             if (flag) {
@@ -432,7 +433,7 @@ static int32_t SfPlay_set(CSOUND *csound, SFPLAY *p)
             else {
               freq = orgfreq*
                 pow(2.0, ONETWELTH * tuneCorrection)*
-                pow(2.0, ONETWELTH * (split->scaleTuning*0.01) * (notenum-orgkey));
+                pow(2.0, ONETWELTH * (split->scaleTuning*0.01) * (nm-orgkey));
               p->si[spltNum]= (freq/orgfreq) * sample->dwSampleRate*csound->onedsr;
             }
               ;
@@ -591,7 +592,7 @@ static int32_t SfPlay(CSOUND *csound, SFPLAY *p)
         }
         phs++; base++; sampinc++; endloop++; startloop++;
         left++; right++, mode++, end++; attack++; decay++; sustain++;
-        /*release++;*/ tinc++; env++; attr++; decr++;
+        tinc++; env++; attr++; decr++;
       }
     }
     else {
@@ -616,7 +617,7 @@ static int32_t SfPlay(CSOUND *csound, SFPLAY *p)
         }
         phs++; base++; sampinc++; endloop++; startloop++;
         left++; right++, mode++, end++; attack++; decay++; sustain++;
-        /*release++;*/ tinc++; env++; attr++; decr++;
+        tinc++; env++; attr++; decr++;
       }
     }
     if (IS_ASIG_ARG(p->xamp)) {
@@ -682,7 +683,7 @@ static int32_t SfPlay3(CSOUND *csound, SFPLAY *p)
         }
         phs++; base++; sampinc++; endloop++; startloop++;
         left++; right++, mode++, end++; attack++; decay++; sustain++;
-        /*release++;*/ tinc++; env++; attr++; decr++;
+        tinc++; env++; attr++; decr++;
       }
     }
     else {
@@ -714,7 +715,7 @@ static int32_t SfPlay3(CSOUND *csound, SFPLAY *p)
         }
         phs++; base++; sampinc++; endloop++; startloop++;
         left++; right++, mode++, end++; attack++; decay++; sustain++;
-        /*release++;*/ tinc++; env++; attr++; decr++;
+        tinc++; env++; attr++; decr++;
       }
     }
         
@@ -747,6 +748,8 @@ static int32_t SfPlayMono_set(CSOUND *csound, SFPLAYMONO *p)
     if (UNLIKELY(index>=MAX_SFPRESET))
       return csound->InitError(csound, Str("invalid soundfont"));
 
+    if (*p->iskip && p->spltNum) return OK;
+    
     preset = globals->presetp[index];
     sBase = globals->sampleBase[index];
 
@@ -775,7 +778,7 @@ static int32_t SfPlayMono_set(CSOUND *csound, SFPLAYMONO *p)
             double freq, orgfreq;
             double tuneCorrection = split->coarseTune + layer->coarseTune +
               (split->fineTune + layer->fineTune)*0.01;
-            int32_t orgkey = split->overridingRootKey, notenum = notnum;
+            int32_t orgkey = split->overridingRootKey, nn = notnum;
             if (orgkey == -1) orgkey = sample->byOriginalKey;
             orgfreq = globals->pitches[orgkey] ;
             if (flag) {
@@ -785,7 +788,7 @@ static int32_t SfPlayMono_set(CSOUND *csound, SFPLAYMONO *p)
             }
             else {
               freq = orgfreq * pow(2.0, ONETWELTH * tuneCorrection) *
-                pow( 2.0, ONETWELTH* (split->scaleTuning*0.01) * (notenum-orgkey));
+                pow( 2.0, ONETWELTH* (split->scaleTuning*0.01) * (nn-orgkey));
               p->si[spltNum]= (freq/orgfreq) * sample->dwSampleRate*csound->onedsr;
             }
             p->attenuation[spltNum] =
@@ -876,7 +879,7 @@ static int32_t SfPlayMono(CSOUND *csound, SFPLAYMONO *p)
         }
         phs++; base++; sampinc++; endloop++; startloop++;
         attenuation++, mode++, end++; attack++; decay++; sustain++;
-        /*release++;*/ tinc++; env++; attr++; decr++;
+        tinc++; env++; attr++; decr++;
       }
     }
     else {
@@ -962,7 +965,7 @@ static int32_t SfPlayMono3(CSOUND *csound, SFPLAYMONO *p)
         }
         phs++; base++; sampinc++; endloop++; startloop++;
         attenuation++, mode++, end++; attack++; decay++; sustain++;
-        /*release++;*/ tinc++; env++; attr++; decr++;
+        tinc++; env++; attr++; decr++;
       }
     }
     else {
@@ -987,7 +990,7 @@ static int32_t SfPlayMono3(CSOUND *csound, SFPLAYMONO *p)
         }
         phs++; base++; sampinc++; endloop++; startloop++;
         attenuation++, mode++, end++; attack++; decay++; sustain++;
-        /*release++;*/ tinc++; env++; attr++; decr++;
+        tinc++; env++; attr++; decr++;
       }
     }
     if (IS_ASIG_ARG(p->xamp)) {
@@ -1015,7 +1018,7 @@ static int32_t SfInstrPlay_set(CSOUND *csound, SFIPLAY *p)
     if (UNLIKELY(index>=MAX_SFPRESET))
       return csound->InitError(csound, Str("invalid soundfont"));
     sf = &globals->sfArray[index];
-
+    if (*p->iskip && p->spltNum)  return OK;
     if (UNLIKELY(*p->instrNum >  sf->instrs_num)) {
       return csound->InitError(csound, Str("sfinstr: instrument out of range"));
     }
@@ -1026,6 +1029,7 @@ static int32_t SfInstrPlay_set(CSOUND *csound, SFIPLAY *p)
       uint32_t vel= (uint32_t) abs((int32_t) *p->ivel),
         notnum= (uint32_t) abs((int32_t)*p->inotnum);
       uint32_t splitsNum = layer->splits_num, k;
+      
       for (k = 0; k < splitsNum; k++) {
         splitType *split = &layer->split[k];
         if (notnum >= split->minNoteRange &&
@@ -1037,7 +1041,7 @@ static int32_t SfInstrPlay_set(CSOUND *csound, SFIPLAY *p)
           MYFLT attenuation, pan;
           double freq, orgfreq;
           double tuneCorrection = split->coarseTune + split->fineTune*0.01;
-          int32_t orgkey = split->overridingRootKey, notenum = notnum;
+          int32_t orgkey = split->overridingRootKey, nn = notnum;
           if (orgkey == -1) orgkey = sample->byOriginalKey;
           orgfreq = globals->pitches[orgkey] ;
           if (flag) {
@@ -1047,7 +1051,7 @@ static int32_t SfInstrPlay_set(CSOUND *csound, SFIPLAY *p)
           }
           else {
             freq = orgfreq * pow(2.0, ONETWELTH * tuneCorrection)
-              * pow( 2.0, ONETWELTH* (split->scaleTuning*0.01)*(notenum - orgkey));
+              * pow( 2.0, ONETWELTH* (split->scaleTuning*0.01)*(nn-orgkey));
             p->si[spltNum] = (freq/orgfreq)*(sample->dwSampleRate*csound->onedsr);
           }
           attenuation = (MYFLT) (split->initialAttenuation);
@@ -1168,7 +1172,7 @@ static int32_t SfInstrPlay(CSOUND *csound, SFIPLAY *p)
         }
         phs++; base++; sampinc++; endloop++; startloop++;
         left++; right++, mode++, end++; attack++; decay++; sustain++;
-        /*release++;*/ tinc++; env++; attr++; decr++;
+        tinc++; env++; attr++; decr++;
       }
     }
 
@@ -1260,7 +1264,7 @@ static int32_t SfInstrPlay3(CSOUND *csound, SFIPLAY *p)
         }
         phs++; base++; sampinc++; endloop++; startloop++;
         left++; right++, mode++, end++; attack++; decay++; sustain++;
-        /*release++;*/ tinc++; env++; attr++; decr++;
+        tinc++; env++; attr++; decr++;
       }
     }
 
@@ -1298,8 +1302,11 @@ static int32_t SfInstrPlayMono_set(CSOUND *csound, SFIPLAYMONO *p)
       instrType *layer = &sf->instr[(int32_t) *p->instrNum];
       SHORT *sBase = sf->sampleData;
       int32_t spltNum = 0, flag=(int32_t) *p->iflag;
-      int32_t vel= (int32_t) *p->ivel, notnum= (int32_t) *p->inotnum;
+      uint32_t vel= (int32_t) *p->ivel, notnum= (int32_t) *p->inotnum;
       int32_t splitsNum = layer->splits_num, k;
+
+      if (*p->iskip && p->spltNum) return OK;
+     
       for (k = 0; k < splitsNum; k++) {
         splitType *split = &layer->split[k];
         if (notnum >= split->minNoteRange &&
@@ -1310,7 +1317,7 @@ static int32_t SfInstrPlayMono_set(CSOUND *csound, SFIPLAYMONO *p)
           DWORD start=sample->dwStart;
           double freq, orgfreq;
           double tuneCorrection = split->coarseTune + split->fineTune/100.0;
-          int32_t orgkey = split->overridingRootKey;
+          int32_t orgkey = split->overridingRootKey, nn = (int32_t) notnum;
           if (orgkey == -1) orgkey = sample->byOriginalKey;
           orgfreq = globals->pitches[orgkey];
           if (flag) {
@@ -1320,7 +1327,7 @@ static int32_t SfInstrPlayMono_set(CSOUND *csound, SFIPLAYMONO *p)
           }
           else {
             freq = orgfreq * pow(2.0, ONETWELTH * tuneCorrection)
-              * pow( 2.0, ONETWELTH* (split->scaleTuning*0.01) * (notnum-orgkey));
+              * pow( 2.0, ONETWELTH* (split->scaleTuning*0.01) * (nn-orgkey));
             p->si[spltNum] = (freq/orgfreq)*(sample->dwSampleRate*csound->onedsr);
           }
           p->attenuation[spltNum] = (MYFLT) pow(2.0, (-1.0/60.0)*
@@ -1497,7 +1504,7 @@ static int32_t SfInstrPlayMono3(CSOUND *csound, SFIPLAYMONO *p)
         }
         phs++; base++; sampinc++; endloop++; startloop++;
         attenuation++, mode++, end++; attack++; decay++; sustain++;
-        /*release++;*/ tinc++; env++; attr++; decr++;
+        tinc++; env++; attr++; decr++;
       }
     }
     else {
@@ -1522,7 +1529,7 @@ static int32_t SfInstrPlayMono3(CSOUND *csound, SFIPLAYMONO *p)
         }
         phs++; base++; sampinc++; endloop++; startloop++;
         attenuation++, mode++, end++; attack++; decay++; sustain++;
-        /*release++;*/ tinc++; env++; attr++; decr++;
+        tinc++; env++; attr++; decr++;
       }
     }
     if (IS_ASIG_ARG(p->xamp)) {

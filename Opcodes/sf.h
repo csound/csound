@@ -76,8 +76,8 @@ struct _layerType {
         BYTE maxNoteRange;
         BYTE minVelRange;
         BYTE maxVelRange;
-        /*char*/ SBYTE coarseTune;
-        /*char*/ SBYTE fineTune;
+        SBYTE coarseTune;
+        SBYTE fineTune;
         SHORT scaleTuning;
         SHORT initialAttenuation;
         SHORT pan;
