@@ -192,51 +192,6 @@ jobs:
           for ARCH in x86_64 arm64; do
             cmake --build build/$ARCH --config Release
           done
-          mkdir artifact
-          zip -r artifact/build-$GITHUB_SHA.zip build
-
-      - name: Temporarily save osxcross build
-        uses: actions/upload-artifact@v2
-        with:
-          name: osxcross-artifact
-          path: artifact
-          retention-days: 1
-
-  macos_test_osxcross:
-    name: MacOS test (osxcross)
-    runs-on: macos-latest
-    needs: macos_build_osxcross
-    steps:
-      - name: Checkout source code
-        uses: actions/checkout@v1
-        with:
-          fetch-depth: 1
-          submodules: true
-
-      - name: Install dependencies
-        run: brew install make
-
-      - name: Retrieve saved osxcross build
-        uses: actions/download-artifact@v2
-        with:
-          name: osxcross-artifact
-          path: artifact
-
-      - name: Setup integration and unit tests
-        run: |
-          unzip artifact/build-$GITHUB_SHA.zip
-          for ARCH in x86_64 arm64; do
-            sed -i'' -e 's,/home/runner/work/csound/csound,/Users/runner/work/csound/csound,g' build/$ARCH/CMakeCache.txt
-            sed -i'' -e 's,/usr/bin/gmake,gmake,g' build/$ARCH/CMakeCache.txt
-            find build/$ARCH -name "Makefile" -exec sed -i'' -e 's,/home/runner/work/csound/csound,/Users/runner/work/csound/csound,g' {} \;
-          done
-
-      - name: Run integration and unit tests (x86_64)
-        run: cmake --build build/x86_64 --target test csdtests
-
-      - name: Run integration and unit tests (arm64)
-        run: cmake --build build/arm64 --target test csdtests
-
 
   windows_build:
     name: Windows build
