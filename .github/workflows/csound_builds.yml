@@ -213,6 +213,9 @@ jobs:
           fetch-depth: 1
           submodules: true
 
+      - name: Install dependencies
+        run: brew install make
+
       - name: Retrieve saved osxcross build
         uses: actions/download-artifact@v2
         with:
@@ -224,6 +227,7 @@ jobs:
           unzip artifact/build-$GITHUB_SHA.zip
           for ARCH in x86_64 arm64; do
             sed -i'' -e 's,/home/runner/work/csound/csound,/Users/runner/work/csound/csound,g' build/$ARCH/CMakeCache.txt
+            sed -i'' -e 's,/usr/bin/gmake,/opt/homebrew/bin/gmake,g' build/$ARCH/CMakeCache.txt
             cmake --build build/$ARCH --target test csdtests
           done
 
