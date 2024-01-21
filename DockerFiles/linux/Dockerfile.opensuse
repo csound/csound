@@ -1,0 +1,9 @@
+# force use of amd64 version of OpenSuse 
+FROM --platform=linux/amd64 opensuse/leap
+
+# Install necessary packages
+RUN zypper --non-interactive update 
+RUN zypper --non-interactive install git gcc gcc-c++ flex bison make cmake libsndfile-devel portaudio-devel portmidi-devel alsa-devel libpulse-devel libjack-devel gettext-tools cunit-devel lua51-devel libcurl-devel 
+
+#Running build commands once container starts
+CMD git clone https://github.com/csound/csound.git && cd csound && git checkout develop && mkdir cs7make && cd cs7make && cmake .. && make -j6 && make install
