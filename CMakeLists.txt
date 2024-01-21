@@ -294,23 +294,7 @@ if(WIN32)
     set(CMAKE_SHARED_LIBRARY_PREFIX "")
     set(CMAKE_SHARED_MODULE_PREFIX "")
 
-    set(CSOUND_WINDOWS_LIBRARIES
-        advapi32
-        comctl32
-        comdlg32
-        glu32
-        kernel32
-        odbc32
-        odbccp32
-        ole32
-        oleaut32
-        shell32
-        user32
-        uuid
-        winmm
-        winspool
-        ws2_32
-        wsock32)
+    set(CSOUND_WINDOWS_LIBRARIES kernel32 ws2_32)
 
     if(MSVC)
         # Experimented with flags but did not make change performance results
