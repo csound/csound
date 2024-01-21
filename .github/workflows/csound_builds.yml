@@ -223,7 +223,7 @@ jobs:
         run: |
           unzip artifact/build-$GITHUB_SHA.zip
           for ARCH in x86_64 arm64; do
-            sed -i 's,/home/runner/work/csound/csound,/Users/runner/work/csound/csound,g' build/$ARCH/CMakeCache.txt
+            sed -i'' -e 's,/home/runner/work/csound/csound,/Users/runner/work/csound/csound,g' build/$ARCH/CMakeCache.txt
             cmake --build build/$ARCH --target test csdtests
           done
 
