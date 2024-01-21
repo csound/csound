@@ -227,7 +227,7 @@ jobs:
           unzip artifact/build-$GITHUB_SHA.zip
           for ARCH in x86_64 arm64; do
             sed -i'' -e 's,/home/runner/work/csound/csound,/Users/runner/work/csound/csound,g' build/$ARCH/CMakeCache.txt
-            sed -i'' -e 's,/usr/bin/gmake,/opt/homebrew/bin/gmake,g' build/$ARCH/CMakeCache.txt
+            sed -i'' -e 's,/usr/bin/gmake,gmake,g' build/$ARCH/CMakeCache.txt
           done
 
       - name: Run integration and unit tests (x86_64)
