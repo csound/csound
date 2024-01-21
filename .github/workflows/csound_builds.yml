@@ -222,14 +222,20 @@ jobs:
           name: osxcross-artifact
           path: artifact
 
-      - name: Run integration and unit tests
+      - name: Setup integration and unit tests
         run: |
           unzip artifact/build-$GITHUB_SHA.zip
           for ARCH in x86_64 arm64; do
             sed -i'' -e 's,/home/runner/work/csound/csound,/Users/runner/work/csound/csound,g' build/$ARCH/CMakeCache.txt
             sed -i'' -e 's,/usr/bin/gmake,/opt/homebrew/bin/gmake,g' build/$ARCH/CMakeCache.txt
-            cmake --build build/$ARCH --target test csdtests
           done
+
+      - name: Run integration and unit tests (x86_64)
+        run: cmake --build build/x86_64 --target test csdtests
+
+      - name: Run integration and unit tests (arm64)
+        run: cmake --build build/arm64 --target test csdtests
+
 
   windows_build:
     name: Windows build
