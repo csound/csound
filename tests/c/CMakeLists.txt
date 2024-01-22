@@ -1,6 +1,7 @@
 cmake_minimum_required(VERSION 3.5)
 
 if(USE_VCPKG)
+    set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
     find_package(GTest CONFIG REQUIRED)
 else()
     find_package(GTest)
@@ -39,10 +40,6 @@ if(BUILD_TESTS)
         target_link_libraries(unittests PRIVATE
             GTest::gtest_main ${CSOUNDLIB_STATIC})
     else()
-        if(APPLE)
-            target_compile_options(unittests PRIVATE "-stdlib=libc++")
-        endif()
-
         target_include_directories(unittests PRIVATE ${GTEST_INCLUDE_DIRS})
         target_link_libraries(unittests PRIVATE ${GTEST_BOTH_LIBRARIES} ${CSOUNDLIB_STATIC})
     endif()
