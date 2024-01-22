@@ -1,7 +1,8 @@
 cmake_minimum_required(VERSION 3.5)
 
+set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
+
 if(USE_VCPKG)
-    set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
     find_package(GTest CONFIG REQUIRED)
 else()
     find_package(GTest)
