@@ -611,17 +611,20 @@ endif()
 
 set(libcsound_CFLAGS -D__BUILDING_LIBCSOUND)
 
-list(APPEND libcsound_private_include_dirs ${Csound_SOURCE_DIR}/H)
 list(APPEND libcsound_public_include_dirs
+    $<BUILD_INTERFACE:${Csound_SOURCE_DIR}>
     $<BUILD_INTERFACE:${Csound_SOURCE_DIR}/include>
+    $<BUILD_INTERFACE:${Csound_SOURCE_DIR}/H>
+    $<BUILD_INTERFACE:${Csound_SOURCE_DIR}/Engine>
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}/include>
     $<INSTALL_INTERFACE:include>
 )
-list(APPEND libcsound_private_include_dirs ${Csound_SOURCE_DIR}/Engine)
 
-#adding this for files that #include SDIF/sdif*
-list(APPEND libcsound_private_include_dirs ${Csound_SOURCE_DIR}/util)
-#adding this for files that #include files in local dirs
-list(APPEND libcsound_private_include_dirs ${Csound_SOURCE_DIR})
+list(APPEND libcsound_private_include_dirs
+    ${Csound_SOURCE_DIR}
+    "${Csound_SOURCE_DIR}/util"
+)
 
 #checking pthread functions
 if(REQUIRE_PTHREADS)
@@ -1127,9 +1130,6 @@ if(MSVC)
     set_source_files_properties(${PRELEX_SCOOUT} PROPERTIES
         COMPILE_FLAGS -DYY_NO_UNISTD_H)
 endif()
-
-list(APPEND libcsound_private_include_dirs ${CMAKE_CURRENT_BINARY_DIR})
-list(APPEND libcsound_public_include_dirs $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}/include>)
 
 if(NEW_PARSER_DEBUG)
     message(STATUS "Building with new parser debugging.")
