@@ -29,7 +29,7 @@ if(BUILD_TESTS)
         set_property(TARGET unittests PROPERTY CXX_STANDARD 14)
 
         target_link_libraries(unittests PRIVATE
-            GTest::gtest_main ${CSOUNDLIB_STATIC} SndFile::sndfile)
+            GTest::gtest_main ${CSOUNDLIB_STATIC})
     else()
         set(CMAKE_CXX_FLAGS "-fpermissive -Wwrite-strings -std=c++0x")
 

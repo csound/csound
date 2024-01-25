@@ -89,6 +89,7 @@ include(CheckCXXCompilerFlag)
 include(CMakePushCheckState)
 
 list(APPEND CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/cmake/Modules/)
+list(APPEND CMAKE_PREFIX_PATH /usr /usr/local /opt/local /sw)
 message(STATUS "CMake module path: ${CMAKE_MODULE_PATH}")
 
 if (CMAKE_HOST_SYSTEM_NAME MATCHES "Darwin")
@@ -428,14 +429,12 @@ TEST_BIG_ENDIAN(BIG_ENDIAN)
 if(USE_LIBSNDFILE)
     if(USE_VCPKG)
         find_package(SndFile CONFIG REQUIRED)
+        assign_bool(SndFile_FOUND TARGET SndFile::sndfile)
     else()
-        find_library(LIBSNDFILE_LIBRARY NAMES sndfile libsndfile-1 libsndfile FLAC ogg vorbis opus mp3lame mpg123)
-        if(NOT LIBSNDFILE_LIBRARY)
-            message(STATUS "libsndfile not found")
-            set(USE_LIBSNDFILE 0)
-        endif()
+        find_package(SndFile MODULE)
     endif()
 endif()
+check_deps(USE_LIBSNDFILE SndFile_FOUND)
 
 # carry on setting up libsndifle if so
 if(USE_LIBSNDFILE)
@@ -445,15 +444,8 @@ if(USE_LIBSNDFILE)
         list(APPEND libcsound_private_include_dirs ${Csound_SOURCE_DIR}/emscripten/deps/libsndfile-1.0.25/src/)
     endif()
 
-    find_path(SNDFILE_H_PATH sndfile.h)
-    if(SNDFILE_H_PATH)
-        list(APPEND libcsound_private_include_dirs ${SNDFILE_H_PATH})
-    else()
-        message(FATAL_ERROR "Could not find sndfile.h")
-    endif()
-
-    list(APPEND CMAKE_REQUIRED_LIBRARIES ${LIBSNDFILE_LIBRARY})
-    list(APPEND CMAKE_REQUIRED_INCLUDES ${SNDFILE_H_PATH})
+    # add to required libraries so we can check for MIDI support
+    list(APPEND CMAKE_REQUIRED_LIBRARIES SndFile::sndfile)
 
     check_c_source_compiles("#include <sndfile.h>
     int main(int argc, char** argv) {
@@ -470,8 +462,6 @@ if(USE_LIBSNDFILE)
     else()
         message(STATUS  "NOT Using libsndfile MP3 support")
     endif()
-else()
-    message(STATUS  "NOT Using libsndfile")
 endif()
 
 find_package(CURL)
@@ -637,8 +627,6 @@ if(REQUIRE_PTHREADS)
      list(APPEND libcsound_CFLAGS -DHAVE_PTHREAD_BARRIER_INIT)
   endif()
 endif()
-
-list(APPEND libcsound_private_include_dirs ${LIBSNDFILE_INCLUDE_DIRECTORY})
 
 # get the git hash and pass it to csound
 set(git_hash_values "none")
@@ -1126,8 +1114,7 @@ if (LINUX)
     )
 endif()
 
-# TODO include target rather than libs to also bring in transitive dependencies
-set(libcsound_LIBS ${LIBSNDFILE_LIBRARY})
+set(libcsound_LIBS "")
 
 if(REQUIRE_PTHREADS)
  if(APPLE)
@@ -1288,8 +1275,8 @@ else()
     target_link_libraries(${CSOUNDLIB} PRIVATE ${libcsound_LIBS})
 endif()
 
-if(USE_VCPKG)
-    target_link_libraries(${CSOUNDLIB} PRIVATE SndFile::sndfile)
+if(USE_LIBSNDFILE)
+    target_link_libraries(${CSOUNDLIB} PUBLIC SndFile::sndfile)
 endif()
 
 set_target_properties(${CSOUNDLIB} PROPERTIES
@@ -1309,6 +1296,9 @@ if(BUILD_STATIC_LIBRARY)
         set_target_properties(${CSOUNDLIB_STATIC} PROPERTIES COMPILE_FLAGS "-DINIT_STATIC_MODULES")
     endif()
 
+    if (USE_LIBSNDFILE)
+        target_link_libraries(${CSOUNDLIB_STATIC} PUBLIC SndFile::sndfile)
+    endif()
     if(MSVC)
         target_link_libraries(${CSOUNDLIB_STATIC} PRIVATE ${CSOUND_WINDOWS_LIBRARIES})
     else()

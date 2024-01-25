@@ -10,6 +10,10 @@
         "liblo",
         "gtest",
         {
+            "name": "jack2",
+            "platform": "linux"
+        },
+        {
             "name": "portaudio"
         },
         {
