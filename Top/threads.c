@@ -38,6 +38,9 @@
 #endif
 
 #include "csound.h"    // for PUBLIC, csoundCondSignal, csoundCondWait, csou...
+#ifndef HAVE_PTHREAD_BARRIER_INIT
+#include "csoundCore.h" // for barrier_t
+#endif
 #include "sysdep.h"    // for spin_lock_t
 #if defined(__linux) || defined(__linux__)
 /* for pthread_mutex_timedlock() */

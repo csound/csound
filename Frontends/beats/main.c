@@ -71,6 +71,9 @@ int main(int argc, char **argv)
 
 #ifndef LINUX
     {
+      #ifdef __MACH__ // why doesn't this work on windows?
+      #include <string.h>
+      #endif
       struct tm *date_ptr = localtime(&timep);
       memcpy(&tm, date_ptr, sizeof(struct tm));
     }
