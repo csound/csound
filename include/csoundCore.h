@@ -582,6 +582,7 @@ typedef struct CORFIL {
                               (used by opcodes) */
     MYFLT   *spin;         /* offset into csound->spin */
     MYFLT   *spout;        /* offset into csound->spout, or local spout */
+    int      spout_flag;
     int      init_done;
     int      tieflag;
     int      reinitflag;
