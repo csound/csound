@@ -2685,6 +2685,7 @@ static void instance(CSOUND *csound, int insno)
   else if(ip->spout == NULL)
     ip->spout = csound->Calloc(csound,sizeof(MYFLT)*
                    csound->ksmps*csound->nchnls);
+   
 
   //printf("alloc spout: %p \n", ip->spout);
   if (UNLIKELY(nxtopds > opdslim))

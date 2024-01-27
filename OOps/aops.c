@@ -1827,13 +1827,14 @@ inline static int32_t outn(CSOUND *csound, uint32_t k,
   }
   // if multiple outs are used
   else {  
-    for (i=0; i<n; i++) {  
+    for (i=0; i<n; i++) {
+      MYFLT *p = asig[i];
       for (j=offset; j < early; j++) {
-        spout[k+j] += asig[k][j];
+        spout[k+j] += p[j];
       }
       k += nsmps;
     }
-  }
+   }
   return OK;
 }
 

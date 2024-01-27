@@ -1558,10 +1558,11 @@ inline static void mix_interleave(MYFLT *spout, MYFLT *spout_ins,
     uint32_t  i, j, k=0;
     for (j=0; j<lksmps; j++) {
         for (i=0; i<nchan; i++) {
-          spout[k + i] = spout_ins[i*lksmps+j];
+          spout[k + i] += spout_ins[i*lksmps+j];
         }
         k += nchan;
       }
+    //memset(spout_ins, 0, lksmps*nchan*sizeof(MYFLT));
 }
 
 int dag_get_task(CSOUND *csound, int index, int numThreads, int next_task);
@@ -1624,10 +1625,10 @@ inline static int nodePerf(CSOUND *csound, int index, int numThreads)
               opstart->insdshead->pds = opstart;
               csound->op = opstart->optext->t.opcod;
               (*opstart->opadr)(csound, opstart); /* run each opcode */
-              mix_out(csound->spraw+which_task,insds->spout,
-                      csound->nspout);
               opstart = opstart->insdshead->pds;
             }
+            mix_out(csound->spraw+which_task,insds->spout,
+                      csound->nspout);
             csound->mode = 0;
           } else {
             int i, n = csound->nspout, start = 0;
@@ -1661,10 +1662,11 @@ inline static int nodePerf(CSOUND *csound, int index, int numThreads)
                 opstart->insdshead->pds = opstart;
                 csound->op = opstart->optext->t.opcod;
                 (*opstart->opadr)(csound, opstart); /* run each opcode */
-                mix_out(csound->spraw+which_task+i,insds->spout,
-                        csound->nspout);
+
                 opstart = opstart->insdshead->pds;
               }
+              mix_out(csound->spraw+which_task+i,insds->spout,
+                        csound->nspout);
               csound->mode = 0;
               insds->kcounter++;
             }
@@ -1827,9 +1829,9 @@ int kperf_nodebug(CSOUND *csound)
                 opstart->insdshead->pds = opstart;
                 csound->op = opstart->optext->t.opcod;
                 error = (*opstart->opadr)(csound, opstart); /* run each opcode */
-                mix_interleave(csound->spout, ip->spout, csound->ksmps, csound->nchnls);
                 opstart = opstart->insdshead->pds;
               }
+              mix_interleave(csound->spout, ip->spout, csound->ksmps, csound->nchnls);
               csound->mode = 0;
             } else {
                 int error = 0;
@@ -1866,12 +1868,10 @@ int kperf_nodebug(CSOUND *csound)
                     csound->op = opstart->optext->t.opcod;
                     //csound->ids->optext->t.oentry->opname;
                     error = (*opstart->opadr)(csound, opstart); /* run each opcode */
-                    mix_interleave(csound->spout+i,ip->spout,lksmps,csound->nchnls);
                     opstart = opstart->insdshead->pds;
-
                   }
+                  mix_interleave(csound->spout+i,ip->spout,lksmps,csound->nchnls);
                   csound->mode = 0;
-
                 }
             }
           }
@@ -1936,10 +1936,10 @@ static inline void opcode_perf_debug(CSOUND *csound,
       opstart->insdshead->pds = opstart;
       csound->mode = 2;
       (*opstart->opadr)(csound, opstart); /* run each opcode */
-      mix_interleave(csound->spout,ip->spout,ip->ksmps,csound->nchnls);
       opstart = opstart->insdshead->pds;
       csound->mode = 0;
     }
+    mix_interleave(csound->spout,ip->spout,ip->ksmps,csound->nchnls);
 }
 
 static inline void process_debug_buffers(CSOUND *csound, csdebug_data_t *data)
