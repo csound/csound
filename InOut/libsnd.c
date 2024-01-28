@@ -52,7 +52,7 @@ static inline void alloc_globals(CSOUND *csound)
 }
 
 /* VL 28.1.24
-   interleave spout into output buffer and
+   interleave spraw into output buffer and
    copy back into spout when done
    uses spraw as temporary buffer
 */
@@ -76,7 +76,7 @@ static inline void spout_interleave(CSOUND *csound, int scal) {
   csound->libsndStatics.outbufrem -= (end-start)*nchnls;
   for(j=start; j<end; j++) {
    for(i=0; i<nchnls;i++) {
-     absamp = spout[i*ksmps+j];
+     absamp = spinter[i*ksmps+j];
       // built inlimiter start ****
       // There is a rather awkward problem in reporting out of range not being
       // confused by the limited value but passing the clipped values to the
@@ -100,7 +100,7 @@ static inline void spout_interleave(CSOUND *csound, int scal) {
                                               absamp;
         }
        }
-      *spinter++ = absamp;
+      *spout++ = absamp;
       if (absamp < FL(0.0)) absamp = -absamp;
       if (absamp > csound->maxamp[i]) {   //  maxamp this seg  
         csound->maxamp[i] = absamp;
@@ -129,7 +129,6 @@ static inline void spout_interleave(CSOUND *csound, int scal) {
       }
     }
     csound->libsndStatics.nframes = nframes;
-    memcpy(spout,spinter,csound->nspout); // make spout interleaved
 }
 
 /* The interface requires 2 functions:

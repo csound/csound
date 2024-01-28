@@ -271,8 +271,9 @@ int musmon(CSOUND *csound)
     csound->nspin = csound->ksmps * csound->inchnls; /* JPff: in preparation */
     csound->spin  = (MYFLT *) csound->Calloc(csound, csound->nspin*sizeof(MYFLT));
     /* VL: 27.1.24 spraw redeployed as thread buffer */
+    printf("threads: %d \n", csound->oparms->numThreads);
     csound->spraw = (MYFLT *)
-      csound->Calloc(csound,csound->oparms->numThreads*csound->nspout*sizeof(MYFLT));
+      csound->Calloc(csound,(csound->oparms->numThreads+1)*csound->nspout*sizeof(MYFLT));
     csound->spout = (MYFLT *) csound->Calloc(csound, csound->nspout*sizeof(MYFLT));
     csound->auxspin = (MYFLT *) csound->Calloc(csound, csound->nspin*sizeof(MYFLT));
     /* memset(csound->maxamp, '\0', sizeof(MYFLT)*MAXCHNLS); */

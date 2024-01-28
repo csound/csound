@@ -1357,12 +1357,10 @@ int subinstrset_(CSOUND *csound, SUBINST *p, int instno)
     else (pfield + n)->value = *p->ar[inarg_ofs + n];
   }
 #endif
-  /* This is not needed anymore 27.1.24 since instance()
-     allocates instrument spout buffers */
+ 
   // allocate memory for a temporary store of spout buffers
-  //if (!init_op && !(pip->reinitflag | pip->tieflag))
-  // csoundAuxAlloc(csound,
-  //                 (int32) csound->nspout * sizeof(MYFLT), &p->saved_spout);
+  if (!init_op && !(pip->reinitflag | pip->tieflag))
+    csoundAuxAlloc(csound, (int32) csound->nspout * sizeof(MYFLT), &p->saved_spout);
 
   /* do init pass for this instr */
   csound->curip = p->ip;        /* **** NEW *** */
@@ -1886,13 +1884,12 @@ int subinstr(CSOUND *csound, SUBINST *p)
   // This not needed since spout buffer is already managed by
   // instrument, instance & out() calls
   /* copy current spout buffer and clear it */
-  //ip->spout = (MYFLT*) p->saved_spout.auxp;
-  // memset(ip->spout, 0, csound->nspout*sizeof(MYFLT));
-  // csound->spoutactive = 0;
+  ip->spout = (MYFLT*) p->saved_spout.auxp;
+  memset(ip->spout, 0, csound->nspout*sizeof(MYFLT));
+  csound->spoutactive = 0;
 
   /* update release flag */
   ip->relesing = p->parent_ip->relesing;   /* IV - Nov 16 2002 */
-  ip->spout_flag = 0; // VL 28.1.24 reset local spout flag
   /*  run each opcode  */
   if (csound->ksmps == ip->ksmps) {
     int error = 0;
@@ -2672,16 +2669,7 @@ static void instance(CSOUND *csound, int insno)
     var->memBlock = (CS_VAR_MEM*)(temp - CS_VAR_TYPE_OFFSET);
     var->memBlock->value = csound->ekr;
   }
-
-  /* VL 27.1.23 alloc memory for local spout */
-  if(ip->spout != NULL && ip->ksmps != csound->ksmps)
-  ip->spout = csound->ReAlloc(csound, ip->spout,
-                    sizeof(MYFLT)*csound->ksmps*csound->nchnls);
-  else if(ip->spout == NULL)
-    ip->spout = csound->Calloc(csound,sizeof(MYFLT)*
-                   csound->ksmps*csound->nchnls);
-   
-
+  
   //printf("alloc spout: %p \n", ip->spout);
   if (UNLIKELY(nxtopds > opdslim))
     csoundDie(csound, Str("inconsistent opds total"));
