@@ -1740,11 +1740,6 @@ int setksmpsset(CSOUND *csound, SETKSMPS *p)
   varmem = p->h.insdshead->lclbas + var->memBlockIndex;
   *varmem = CS_EKR;
 
-    /* VL 27.1.23 alloc memory for local spout */
-  if(CS_KSMPS != csound->ksmps)
-  CS_SPOUT = csound->ReAlloc(csound, CS_SPOUT,
-                    sizeof(MYFLT)*csound->ksmps*csound->nchnls);
-
   return OK;
 }
 

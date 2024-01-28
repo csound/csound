@@ -1553,9 +1553,15 @@ inline void advanceINSDSPointer(INSDS ***start, int num)
 }
 
 
-inline static void mix_out(MYFLT *out, MYFLT *in, uint32_t smps){
+inline static void mix_out(MYFLT *out, MYFLT *in,
+                           uint32_t smps){
   int i;
-  for(i=0; i < smps; i++) out[i] += in[i];
+  if(UNLIKELY(smps & 1)) 
+   for(i=0; i < smps; i+=2){
+    out[i] += in[i];
+    out[i+1] += in[i+1];
+   }
+  else for(i=0; i < smps; i+=1) out[i] += in[i];
 }
 
 int dag_get_task(CSOUND *csound, int index, int numThreads, int next_task);
@@ -1614,8 +1620,6 @@ inline static int nodePerf(CSOUND *csound, int index, int numThreads)
               (*opstart->opadr)(csound, opstart); /* run each opcode */
               opstart = opstart->insdshead->pds;
             }
-            mix_out(csound->spraw+which_task,insds->spout,
-                      csound->nspout);
             csound->mode = 0;
           } else {
             int i, n = csound->nspout, start = 0;
@@ -1641,7 +1645,7 @@ inline static int nodePerf(CSOUND *csound, int index, int numThreads)
               n -= (early*csound->nchnls);
               insds->ksmps_no_end = early % lksmps;
             }
-
+            MYFLT *spoutanchor = insds->spout;
             for (i=start; i < n; i+=incr, insds->spin+=incr, insds->spout+=incr) {
               opstart = (OPDS*) insds;
               csound->mode = 2;
@@ -1652,12 +1656,13 @@ inline static int nodePerf(CSOUND *csound, int index, int numThreads)
 
                 opstart = opstart->insdshead->pds;
               }
-              mix_out(csound->spraw+which_task+i,insds->spout,
-                        csound->nspout);
               csound->mode = 0;
               insds->kcounter++;
             }
+            insds->spout = spoutanchor;
           }
+          mix_out(csound->spraw+which_task,insds->spout,
+                      csound->nspout);
           insds->ksmps_offset = 0; /* reset sample-accuracy offset */
           insds->ksmps_no_end = 0;  /* reset end of loop samples */
           played_count++;
@@ -1818,7 +1823,6 @@ int kperf_nodebug(CSOUND *csound)
                 error = (*opstart->opadr)(csound, opstart); /* run each opcode */
                 opstart = opstart->insdshead->pds;
               }
-              mix_out(csound->spout, ip->spout, csound->nspout);
               csound->mode = 0;
             } else {
                 int error = 0;
@@ -1843,6 +1847,7 @@ int kperf_nodebug(CSOUND *csound)
                   n -= (early*csound->nchnls);
                   ip->ksmps_no_end = early % lksmps;
                 }
+                MYFLT *spoutanchor = ip->spout;
                 for (i=start; i < n; i+=incr, ip->spin+=incr, ip->spout+=incr) {
                   ip->kcounter++;
                   // signal ip spout can be cleared
@@ -1857,11 +1862,11 @@ int kperf_nodebug(CSOUND *csound)
                     error = (*opstart->opadr)(csound, opstart); /* run each opcode */
                     opstart = opstart->insdshead->pds;
                   }
-                  // VL: this is broken
-                  mix_out(csound->spout+i,ip->spout,lksmps*csound->nchnls);
                   csound->mode = 0;
                 }
+                ip->spout = spoutanchor; // re-position local spout
             }
+            mix_out(csound->spout, ip->spout, csound->nspout);
           }
           /*else csound->Message(csound, "time %f\n",
                                  csound->kcounter/csound->ekr);*/

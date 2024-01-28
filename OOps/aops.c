@@ -1811,17 +1811,18 @@ int32_t inall_opcode(CSOUND *csound, INALL *p)
 inline static int32_t outn(CSOUND *csound, uint32_t k,
                              uint32_t n, MYFLT **asig, INSDS *p)
 {
-  uint32_t nsmps = p->ksmps,  i, j;
+  uint32_t nsmps = p->ksmps, ksmps = csound->ksmps,  i, j;
   MYFLT *spout = p->spout; 
   uint32_t offset = p->ksmps_offset;
   uint32_t early  = p->ksmps_no_end;
   early = nsmps - early;
+  k *= ksmps; 
   if(!p->spout_flag) {
     for (i=0; i<n; i++) {
       memcpy(&spout[k+offset],
              asig[i]+offset,
              (early-offset)*sizeof(MYFLT));
-      k += nsmps;
+      k += ksmps; // k jumps by global ksmps as spout is pushed up
     }
     p->spout_flag = 1;
   }
@@ -1832,7 +1833,7 @@ inline static int32_t outn(CSOUND *csound, uint32_t k,
       for (j=offset; j < early; j++) {
         spout[k+j] += p[j];
       }
-      k += nsmps;
+      k += ksmps;
     }
    }
   return OK;
