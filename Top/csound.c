@@ -1551,37 +1551,12 @@ inline void advanceINSDSPointer(INSDS ***start, int num)
     }
     **start = s;
 }
-#ifdef MACOSX
-typedef MYFLT MYFLT2 __attribute__((ext_vector_type(2)));
-inline static void mix_out(MYFLT *out, MYFLT *in,
-                           uint32_t smps){
-  int i;
-  if(UNLIKELY(smps & 1)) 
-   for(i=0; i < smps; i+=2){
-     MYFLT2 o,s;
-     o.x = *out;
-     o.y = *out+1;
-     s.x = *in++;
-     s.y = *in++;
-     o += s;
-     *out++ = o.x;
-     *out++ = o.y;
-   }
-  else for(i=0; i < smps; i+=1) out[i] += in[i];
-}
-#else
-inline static void mix_out(MYFLT *out, MYFLT *in,
-                           uint32_t smps){
-  int i;
-  if(UNLIKELY(smps & 1)) 
-   for(i=0; i < smps; i+=2){
-     *out++ += *in++;
-     *out++ += *in++;
-   }
-  else for(i=0; i < smps; i+=1) *out++ += *in++;
-}
-#endif
 
+inline static void mix_out(MYFLT *out, MYFLT *in,
+                           uint32_t smps){
+  int i;
+  for(i=0; i < smps; i++) out[i] += in[i];
+}
 
 int dag_get_task(CSOUND *csound, int index, int numThreads, int next_task);
 int dag_end_task(CSOUND *csound, int task);
@@ -1628,7 +1603,6 @@ inline static int nodePerf(CSOUND *csound, int index, int numThreads)
           if (insds->ksmps == csound->ksmps) {
             insds->spin = csound->spin;
             insds->spout = csound->spraw+index*csound->nspout;
-            insds->spout_flag = 0;
             insds->kcounter =  csound->kcounter;
             csound->mode = 2;
             while ((opstart = opstart->nxtp) != NULL) {
@@ -1670,7 +1644,6 @@ inline static int nodePerf(CSOUND *csound, int index, int numThreads)
                 opstart->insdshead->pds = opstart;
                 csound->op = opstart->optext->t.opcod;
                 (*opstart->opadr)(csound, opstart); /* run each opcode */
-
                 opstart = opstart->insdshead->pds;
               }
               csound->mode = 0;
@@ -1687,8 +1660,6 @@ inline static int nodePerf(CSOUND *csound, int index, int numThreads)
     return played_count;
 }
 #endif //PARCS
-
-
 
 #ifdef PARCS
 unsigned long kperfThread(void * cs)
@@ -1774,7 +1745,8 @@ int kperf_nodebug(CSOUND *csound)
     csound->spoutactive = 0;            /*   make spout inactive   */
     /* clear spout */
     memset(csound->spout, 0, csound->nspout*sizeof(MYFLT));
-    memset(csound->spraw,0, sizeof(MYFLT)*csound->nspout*csound->oparms->numThreads);
+    memset(csound->spraw,0,
+           sizeof(MYFLT)*csound->nspout*csound->oparms->numThreads);
     // 27.1.24 spraw is not used anymore
     // memset(csound->spraw, 0, csound->nspout*sizeof(MYFLT));
     ip = csound->actanchor.nxtact;
@@ -1798,9 +1770,9 @@ int kperf_nodebug(CSOUND *csound)
       // do the mixing of thread buffers
       {
       int k;
-      for(k = 1; k < csound->oparms->numThreads; k++)
-        mix_out(csound->spraw,csound->spraw+k*csound->nspout,
-                       csound->nspout);
+       for(k = 1; k < csound->oparms->numThreads; k++)
+         mix_out(csound->spraw,csound->spraw+k*csound->nspout,
+                     csound->nspout);
       }
 #endif
         csound->multiThreadedDag = NULL;
