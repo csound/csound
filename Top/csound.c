@@ -1689,13 +1689,6 @@ inline static int nodePerf(CSOUND *csound, int index, int numThreads)
         //printf("******** finished task %d\n", which_task);
         next_task = dag_end_task(csound, which_task);
     }
-    // do the mixing + interleaving of thread buffers  
-    if(index == 0 && numThreads == 1) {
-      int k;
-      for(k = 0; k < csound->oparms->numThreads; k++)
-        mix_out(csound->spout,csound->spraw+k*csound->nspout,
-                       csound->nspout);
-    }
     return played_count;
 }
 #endif //PARCS
@@ -1805,6 +1798,14 @@ int kperf_nodebug(CSOUND *csound)
 
         /* wait until partition is complete */
         csound->WaitBarrier(csound->barrier2);
+
+      // do the mixing of thread buffers
+      {
+      int k;
+      for(k = 0; k < csound->oparms->numThreads; k++)
+        mix_out(csound->spout,csound->spraw+k*csound->nspout,
+                       csound->nspout);
+      }
 #endif
         csound->multiThreadedDag = NULL;
       }
