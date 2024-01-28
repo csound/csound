@@ -52,6 +52,7 @@ typedef uint8_t     BYTE;
 typedef uint16_t    WORD;
 typedef short       SHORT;
 typedef char        CHAR;
+typedef int8_t      SBYTE;
 
 typedef uint16_t SFTransform;
 
