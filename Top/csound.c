@@ -1623,14 +1623,11 @@ inline static int nodePerf(CSOUND *csound, int index, int numThreads)
         done = insds->init_done;
 #endif
 
-        memset(csound->spraw+index*csound->nspout,0,
-               sizeof(MYFLT)*csound->nspout);
-          
         if (done) {
           opstart = (OPDS*)task_map[which_task];
           if (insds->ksmps == csound->ksmps) {
             insds->spin = csound->spin;
-            insds->spout =  csound->spraw+index*csound->nspout;
+            insds->spout = csound->spraw+index*csound->nspout;
             insds->spout_flag = 0;
             insds->kcounter =  csound->kcounter;
             csound->mode = 2;
@@ -1777,7 +1774,7 @@ int kperf_nodebug(CSOUND *csound)
     csound->spoutactive = 0;            /*   make spout inactive   */
     /* clear spout */
     memset(csound->spout, 0, csound->nspout*sizeof(MYFLT));
-    memset(csound->spraw,0, sizeof(MYFLT)*csound->nspout);
+    memset(csound->spraw,0, sizeof(MYFLT)*csound->nspout*csound->oparms->numThreads);
     // 27.1.24 spraw is not used anymore
     // memset(csound->spraw, 0, csound->nspout*sizeof(MYFLT));
     ip = csound->actanchor.nxtact;
