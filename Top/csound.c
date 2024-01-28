@@ -1552,17 +1552,10 @@ inline void advanceINSDSPointer(INSDS ***start, int num)
     **start = s;
 }
 
-/* expects spout to be initialised */
-inline static void mix_interleave(MYFLT *spout, MYFLT *spout_ins,
-                                  uint32_t lksmps, uint32_t nchan) {
-    uint32_t  i, j, k=0;
-    for (j=0; j<lksmps; j++) {
-        for (i=0; i<nchan; i++) {
-          spout[k + i] += spout_ins[i*lksmps+j];
-        }
-        k += nchan;
-      }
-    //memset(spout_ins, 0, lksmps*nchan*sizeof(MYFLT));
+
+inline static void mix_out(MYFLT *out, MYFLT *in, uint32_t smps){
+  int i;
+  for(i=0; i < smps; i++) out[i] += in[i];
 }
 
 int dag_get_task(CSOUND *csound, int index, int numThreads, int next_task);
@@ -1571,12 +1564,6 @@ void dag_build(CSOUND *csound, INSDS *chain);
 void dag_reinit(CSOUND *csound);
 
 #ifdef PARCS
-inline static void mix_out(MYFLT *out, MYFLT *in, uint32_t smps){
-  int i;
-  for(i=0; i < smps; i++) out[i] += in[i];
-}
-
-
 inline static int nodePerf(CSOUND *csound, int index, int numThreads)
 {
     INSDS *insds = NULL;
@@ -1682,8 +1669,8 @@ inline static int nodePerf(CSOUND *csound, int index, int numThreads)
     if(index == 0 && numThreads == 1) {
       int k;
       for(k = 0; k < csound->oparms->numThreads; k++)
-        mix_interleave(csound->spout,csound->spraw+k*csound->nspout,
-                       csound->ksmps,csound->nchnls);
+        mix_out(csound->spout,csound->spraw+k*csound->nspout,
+                       csound->nspout);
     }
     return played_count;
 }
@@ -1831,7 +1818,7 @@ int kperf_nodebug(CSOUND *csound)
                 error = (*opstart->opadr)(csound, opstart); /* run each opcode */
                 opstart = opstart->insdshead->pds;
               }
-              mix_interleave(csound->spout, ip->spout, csound->ksmps, csound->nchnls);
+              mix_out(csound->spout, ip->spout, csound->nspout);
               csound->mode = 0;
             } else {
                 int error = 0;
@@ -1870,12 +1857,12 @@ int kperf_nodebug(CSOUND *csound)
                     error = (*opstart->opadr)(csound, opstart); /* run each opcode */
                     opstart = opstart->insdshead->pds;
                   }
-                  mix_interleave(csound->spout+i,ip->spout,lksmps,csound->nchnls);
+                  // VL: this is broken
+                  mix_out(csound->spout+i,ip->spout,lksmps*csound->nchnls);
                   csound->mode = 0;
                 }
             }
           }
-          memset(ip->spout, 0, csound->nspout * sizeof(MYFLT));
           /*else csound->Message(csound, "time %f\n",
                                  csound->kcounter/csound->ekr);*/
           ip->ksmps_offset = 0; /* reset sample-accuracy offset */
@@ -1939,7 +1926,7 @@ static inline void opcode_perf_debug(CSOUND *csound,
       opstart = opstart->insdshead->pds;
       csound->mode = 0;
     }
-    mix_interleave(csound->spout,ip->spout,ip->ksmps,csound->nchnls);
+    mix_out(csound->spout,ip->spout,ip->ksmps*csound->nchnls);
 }
 
 static inline void process_debug_buffers(CSOUND *csound, csdebug_data_t *data)
