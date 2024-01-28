@@ -1822,9 +1822,9 @@ inline static int32_t outn(CSOUND *csound, uint32_t k,
       memcpy(&spout[k+offset],
              asig[i]+offset,
              (early-offset)*sizeof(MYFLT));
-      k += ksmps; // k jumps by global ksmps as spout is pushed up
+      // k always jumps by global ksmps 
+      k += ksmps; 
     }
-    p->spout_flag = 1;
   }
   // if multiple outs are used
   else {  
@@ -1833,6 +1833,7 @@ inline static int32_t outn(CSOUND *csound, uint32_t k,
       for (j=offset; j < early; j++) {
         spout[k+j] += p[j];
       }
+      // k always jumps by global ksmps 
       k += ksmps;
     }
    }
@@ -1841,13 +1842,18 @@ inline static int32_t outn(CSOUND *csound, uint32_t k,
 
 int32_t outs1(CSOUND *csound, OUTM *p)
 {
-  return outn(csound, 0, 1, &(p->asig),
+  int32_t ret;
+  if(!p->h.insdshead->spout_flag)
+    memset(CS_SPOUT, 0, sizeof(MYFLT)*csound->nspout);
+  ret  = outn(csound, 0, 1, &(p->asig),
               p->h.insdshead);
+  p->h.insdshead->spout_flag = 1;
+  return ret;
 }
 
-#define OUTCN(n)  if (n>csound->nchnls) return                          \
-                                          csound->InitError(csound, "%s", \
-                                                            Str("Channel greater than nchnls")); \
+#define OUTCN(n)  if (n>csound->nchnls) return  \
+ csound->InitError(csound, "%s", \
+ Str("Channel greater than nchnls")); \
   return OK;
 
 int32_t och2(CSOUND *csound, OUTM *p) { IGN(p); OUTCN(2) }
@@ -1856,35 +1862,54 @@ int32_t och4(CSOUND *csound, OUTM *p) { IGN(p); OUTCN(4) }
 
 /* using outn now */
 int32_t outs2(CSOUND *csound, OUTM *p) {
-  return outn(csound, 1, 2, &(p->asig),
+  int32_t ret;
+  if(!p->h.insdshead->spout_flag)
+    memset(CS_SPOUT, 0, sizeof(MYFLT)*csound->nspout);
+  ret = outn(csound, 1, 2, &(p->asig),
               p->h.insdshead);
+  p->h.insdshead->spout_flag = 1;
+  return ret;
 }
 
 int32_t outq3(CSOUND *csound, OUTM *p)
 {
-  return outn(csound, 2, 3, &(p->asig),
+  int32_t ret;
+  if(!p->h.insdshead->spout_flag)
+    memset(CS_SPOUT, 0, sizeof(MYFLT)*csound->nspout);
+  ret = outn(csound, 2, 3, &(p->asig),
               p->h.insdshead);
+  p->h.insdshead->spout_flag = 1;
+  return ret;
 }
 
 int32_t outq4(CSOUND *csound, OUTM *p)
 {
-  return outn(csound, 3, 4, &(p->asig),
+  int32_t ret;
+  if(!p->h.insdshead->spout_flag)
+    memset(CS_SPOUT, 0, sizeof(MYFLT)*csound->nspout);
+  ret = outn(csound, 3, 4, &(p->asig),
               p->h.insdshead);
+  p->h.insdshead->spout_flag = 1;
+  return ret;
 }
 
 int32_t outch(CSOUND *csound, OUTCH *p)
 {
   uint32_t    count = p->INOCOUNT, n, ch, nchnls = csound->nchnls;
+  int32_t ret;
+  if(!p->h.insdshead->spout_flag)
+    memset(CS_SPOUT, 0, sizeof(MYFLT)*csound->nspout);
   if (UNLIKELY((count&1)!=0))
     return csound->PerfError(csound, &(p->h),
                         Str("outch must have an even number of arguments"));
   for(n=0; n < count; n+=2) {
     ch = (int) *p->args[n] - 1;
    if (ch < nchnls)
-    outn(csound, ch, ch+1, &p->args[n+1],
+    ret = outn(csound, ch, ch+1, &p->args[n+1],
               p->h.insdshead);
   }
-  return OK;
+  p->h.insdshead->spout_flag = 1;
+  return ret;
 }
 
        
@@ -1896,11 +1921,14 @@ int32_t ochn(CSOUND *csound, OUTX *p)
   return OK;
 }
 
-int32_t outall(CSOUND *csound, OUTX *p)             /* Output a list of channels */
+int32_t outall(CSOUND *csound, OUTX *p) /* Output a list of channels */
 {
   uint32_t nch = p->INOCOUNT;
-  return outn(csound, 0, (nch <= csound->nchnls ? nch : csound->nchnls), p->asig,
-              p->h.insdshead);
+  int32_t ret = outn(csound, 0,
+                     (nch <= csound->nchnls ? nch : csound->nchnls),
+                     p->asig, p->h.insdshead);
+  p->h.insdshead->spout_flag = 1;
+  return ret;
 }
 
 int32_t outarr_init(CSOUND *csound, OUTARRAY *p)
@@ -1914,6 +1942,9 @@ int32_t outarr(CSOUND *csound, OUTARRAY *p)
 {
   uint32_t n = p->tabin->sizes[0];
   MYFLT *data = p->tabin->data;
+  int32_t ret;
+  if(!p->h.insdshead->spout_flag)
+    memset(CS_SPOUT, 0, sizeof(MYFLT)*csound->nspout);
   if (n>csound->nchnls) {
     if (p->nowarn==0) {
       csound->Warning(csound,
@@ -1923,8 +1954,9 @@ int32_t outarr(CSOUND *csound, OUTARRAY *p)
     n = csound->nchnls;
     p->nowarn = 1;
   }
-   return outn(csound, 0, n, &data,
-              p->h.insdshead);   
+   ret = outn(csound, 0, n, &data, p->h.insdshead);
+   p->h.insdshead->spout_flag = 1;
+  return ret;
 }
 /*
   uint32_t nsmps =CS_KSMPS,  i, j;
@@ -1987,10 +2019,14 @@ int32_t outarr(CSOUND *csound, OUTARRAY *p)
 int32_t outrep(CSOUND *csound, OUTM *p)
 {
   uint32_t n = csound->nchnls, i;
+  int32_t ret;
+  if(!p->h.insdshead->spout_flag)
+    memset(CS_SPOUT, 0, sizeof(MYFLT)*csound->nspout);
   for(i = 0; i < n; i++)
-    outn(csound, i, i+1, &p->asig,
-              p->h.insdshead); 
-  return OK;
+    ret = outn(csound, i, i+1, &p->asig,
+              p->h.insdshead);
+  p->h.insdshead->spout_flag = 1;
+  return ret;
 }
 
 /* For parallel mixin template */

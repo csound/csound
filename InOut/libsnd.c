@@ -102,12 +102,12 @@ static inline void spout_interleave(CSOUND *csound, int scal) {
        }
       *spinter++ = absamp;
       if (absamp < FL(0.0)) absamp = -absamp;
-      if (absamp > csound->maxamp[i]) {   /*  maxamp this seg  */
+      if (absamp > csound->maxamp[i]) {   //  maxamp this seg  
         csound->maxamp[i] = absamp;
         csound->maxpos[i] = nframes;
       }
-      if (absamp > csound->e0dbfs) {        /* out of range?     */
-        csound->rngcnt[i]++;          /*  report it        */
+      if (absamp > csound->e0dbfs) {    // out of range?    
+        csound->rngcnt[i]++;            //  report it       
         csound->rngflg = 1;
       }
       }
@@ -129,7 +129,7 @@ static inline void spout_interleave(CSOUND *csound, int scal) {
       }
     }
     csound->libsndStatics.nframes = nframes;
-    memcpy(spout,spinter,csound->nspout);
+    memcpy(spout,spinter,csound->nspout); // make spout interleaved
 }
 
 /* The interface requires 2 functions:

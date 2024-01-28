@@ -1551,18 +1551,37 @@ inline void advanceINSDSPointer(INSDS ***start, int num)
     }
     **start = s;
 }
-
-
+#ifdef MACOSX
+typedef MYFLT MYFLT2 __attribute__((ext_vector_type(2)));
 inline static void mix_out(MYFLT *out, MYFLT *in,
                            uint32_t smps){
   int i;
   if(UNLIKELY(smps & 1)) 
    for(i=0; i < smps; i+=2){
-    out[i] += in[i];
-    out[i+1] += in[i+1];
+     MYFLT2 o,s;
+     o.x = *out;
+     o.y = *out+1;
+     s.x = *in++;
+     s.y = *in++;
+     o += s;
+     *out++ = o.x;
+     *out++ = o.y;
    }
   else for(i=0; i < smps; i+=1) out[i] += in[i];
 }
+#else
+inline static void mix_out(MYFLT *out, MYFLT *in,
+                           uint32_t smps){
+  int i;
+  if(UNLIKELY(smps & 1)) 
+   for(i=0; i < smps; i+=2){
+     *out++ += *in++;
+     *out++ += *in++;
+   }
+  else for(i=0; i < smps; i+=1) *out++ += *in++;
+}
+#endif
+
 
 int dag_get_task(CSOUND *csound, int index, int numThreads, int next_task);
 int dag_end_task(CSOUND *csound, int task);

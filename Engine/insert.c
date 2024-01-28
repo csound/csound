@@ -1892,7 +1892,7 @@ int subinstr(CSOUND *csound, SUBINST *p)
 
   /* update release flag */
   ip->relesing = p->parent_ip->relesing;   /* IV - Nov 16 2002 */
-
+  ip->spout_flag = 0; // VL 28.1.24 reset local spout flag
   /*  run each opcode  */
   if (csound->ksmps == ip->ksmps) {
     int error = 0;
