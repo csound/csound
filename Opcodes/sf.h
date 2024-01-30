@@ -20,7 +20,7 @@
     Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
     02110-1301 USA
 */
-
+ 
 #if !defined(_SF_H)
 #include "sftype.h"
 #ifdef          __GNUC__
@@ -46,9 +46,9 @@ struct _splitType {
         int64_t endOffset;
         int64_t startLoopOffset;
         int64_t endLoopOffset;
-        char overridingRootKey;
-        char coarseTune;
-        char fineTune;
+        /*char*/ SBYTE overridingRootKey;
+        /*char*/ SBYTE coarseTune;
+        /*char*/ SBYTE fineTune;
         SHORT scaleTuning;
         SHORT initialAttenuation;
         SHORT pan;
@@ -76,8 +76,8 @@ struct _layerType {
         BYTE maxNoteRange;
         BYTE minVelRange;
         BYTE maxVelRange;
-        char coarseTune;
-        char fineTune;
+        SBYTE coarseTune;
+        SBYTE fineTune;
         SHORT scaleTuning;
         SHORT initialAttenuation;
         SHORT pan;
