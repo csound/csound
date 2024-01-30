@@ -38,11 +38,18 @@ if(BUILD_TESTS)
     target_compile_features(unittests PUBLIC cxx_std_17)
 
     if(USE_VCPKG)
-        target_link_libraries(unittests PRIVATE
-            GTest::gtest_main ${CSOUNDLIB_STATIC})
+        target_link_libraries(unittests
+            PRIVATE
+                GTest::gtest_main
+                ${CSOUNDLIB_STATIC}
+        )
     else()
         target_include_directories(unittests PRIVATE ${GTEST_INCLUDE_DIRS})
-        target_link_libraries(unittests PRIVATE ${GTEST_BOTH_LIBRARIES} ${CSOUNDLIB_STATIC})
+        target_link_libraries(unittests
+            PRIVATE
+                ${GTEST_BOTH_LIBRARIES}
+                ${CSOUNDLIB_STATIC}
+        )
     endif()
 
     include(GoogleTest)

@@ -1351,12 +1351,9 @@ if(NOT IOS)
     target_compile_options(${CSOUNDLIB} PRIVATE ${libcsound_CFLAGS})
 endif()
 
-if(MSVC)
-    target_link_libraries(${CSOUNDLIB} PRIVATE ws2_32)
-else()
-    if(NOT IOS)
-        target_link_libraries(${CSOUNDLIB} PRIVATE ${libcsound_LIBS})
-    endif()
+
+if(NOT IOS)
+    target_link_libraries(${CSOUNDLIB} PRIVATE ${libcsound_LIBS})
 endif()
 
 if(USE_LIBSNDFILE)
@@ -1389,15 +1386,11 @@ if(BUILD_STATIC_LIBRARY)
         target_link_libraries(${CSOUNDLIB_STATIC} PUBLIC SndFile::sndfile)
     endif()
 
-   if(SampleRate_FOUND)
+    if(SampleRate_FOUND)
         target_link_libraries(${CSOUNDLIB_STATIC} PUBLIC SampleRate::samplerate)
-   endif()
-
-    if(MSVC)
-        target_link_libraries(${CSOUNDLIB_STATIC} PRIVATE ${CSOUND_WINDOWS_LIBRARIES})
-    else()
-        target_link_libraries(${CSOUNDLIB_STATIC} PRIVATE ${libcsound_LIBS})
     endif()
+
+    target_link_libraries(${CSOUNDLIB_STATIC} PRIVATE ${libcsound_LIBS})
 
     set_target_properties(${CSOUNDLIB_STATIC} PROPERTIES
         RUNTIME_OUTPUT_DIRECTORY ${BUILD_BIN_DIR}
