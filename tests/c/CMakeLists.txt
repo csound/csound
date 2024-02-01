@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.5)
+cmake_minimum_required(VERSION 3.20)
 
 set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
 
@@ -6,9 +6,7 @@ if(USE_VCPKG)
     find_package(GTest CONFIG REQUIRED)
 else()
     find_package(GTest)
-    check_deps(BUILD_TESTS
-        BUILD_STATIC_LIBRARY GTest_FOUND GTEST_BOTH_LIBRARIES GTEST_INCLUDE_DIRS
-    )
+    check_deps(BUILD_TESTS BUILD_STATIC_LIBRARY)
 endif()
 
 if(BUILD_TESTS)
@@ -27,9 +25,6 @@ if(BUILD_TESTS)
         server_test.cpp
     )
 
-    target_include_directories(unittests PRIVATE ${LIBCSOUND_PRIVATE_INCLUDES})
-    target_include_directories(unittests PUBLIC ${LIBCSOUND_PUBLIC_INCLUDES})
-
     # Required because we're compiling the tests written in C as C++
     if(NOT MSVC)
         target_compile_options(unittests PRIVATE "-fpermissive" "-Wwrite-strings")
@@ -37,20 +32,11 @@ if(BUILD_TESTS)
 
     target_compile_features(unittests PUBLIC cxx_std_17)
 
-    if(USE_VCPKG)
-        target_link_libraries(unittests
-            PRIVATE
-                GTest::gtest_main
-                ${CSOUNDLIB_STATIC}
-        )
-    else()
-        target_include_directories(unittests PRIVATE ${GTEST_INCLUDE_DIRS})
-        target_link_libraries(unittests
-            PRIVATE
-                ${GTEST_BOTH_LIBRARIES}
-                ${CSOUNDLIB_STATIC}
-        )
-    endif()
+    target_link_libraries(unittests
+        PRIVATE
+            GTest::gtest_main
+            ${CSOUNDLIB_STATIC}
+    )
 
     include(GoogleTest)
     gtest_discover_tests(unittests)
