@@ -296,6 +296,7 @@ jobs:
 
   windows_build_mingw:
     name: Windows build (mingw/vcpkg)
+    if: github.ref == 'refs/heads/develop'
     runs-on: ubuntu-latest
     steps:
       - name: Checkout source code
