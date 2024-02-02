@@ -414,22 +414,15 @@ jobs:
           fetch-depth: 1
           submodules: true
 
+      - name: Export GitHub Actions cache environment variables
+        uses: actions/github-script@v6
+        with:
+          script: |
+            core.exportVariable('ACTIONS_CACHE_URL', process.env.ACTIONS_CACHE_URL || '');
+            core.exportVariable('ACTIONS_RUNTIME_TOKEN', process.env.ACTIONS_RUNTIME_TOKEN || '');
+
       - name: Bootstrap VCPKG
         run: ./vcpkg/bootstrap-vcpkg.sh
-
-      - name: Setup NuGet credentials
-        shell: bash
-        run: |
-          mono `./vcpkg/vcpkg fetch nuget | tail -n 1` \
-          sources add \
-          -source "https://nuget.pkg.github.com/csound/index.json" \
-          -storepasswordincleartext \
-          -name "GitHub" \
-          -username "csound" \
-          -password "${{ secrets.GITHUB_TOKEN }}"
-          mono `./vcpkg/vcpkg fetch nuget | tail -n 1` \
-            setapikey "${{ secrets.GITHUB_TOKEN }}" \
-            -source "https://nuget.pkg.github.com/csound/index.json"
 
       - name: Install dependencies
         run: |
