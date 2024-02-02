@@ -7,6 +7,18 @@
         "zlib",
         "libsamplerate",
         {
+            "name": "portmidi",
+            "platform": "!emscripten"
+        },
+        {
+            "name": "liblo",
+            "platform": "!emscripten"
+        },
+        {
+            "name": "gtest",
+            "platform": "!emscripten"
+        },
+        {
             "name": "jack2",
             "platform": "linux"
         },
