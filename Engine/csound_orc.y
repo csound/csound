@@ -163,7 +163,6 @@
     extern TREE* constant_fold(CSOUND *, TREE *);
     extern void csound_orcerror(PARSE_PARM *, void *, CSOUND *,
                                 TREE**, const char*);
-    extern int add_udo_definition(CSOUND*, char *, char *, char *, int);
     extern ORCTOKEN *lookup_token(CSOUND*,char*,void*);
 #define LINE csound_orcget_lineno(scanner)
 #define LOCN csound_orcget_locn(scanner)
