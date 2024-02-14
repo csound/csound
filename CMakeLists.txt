@@ -151,8 +151,8 @@ if(BARE_METAL)
     set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS}  -DNO_CSOUND_SERVER")
     if(CUSTOM_MALLOC)
      set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS}  -DCUSTOM_MALLOC")
-    # the default is for STM32H7: -DMALLOC_BASE=0xC0000000 
-    endif() 
+    # the default is for STM32H7: -DMALLOC_BASE=0xC0000000
+    endif()
 endif()
 
 # Include this after the install path definitions so we can override them here.
@@ -585,7 +585,7 @@ endif()
 set(libcsound_CFLAGS -D__BUILDING_LIBCSOUND)
 
 list(APPEND libcsound_private_include_dirs ${Csound_SOURCE_DIR}/H)
-list(APPEND libcsound_public_include_dirs 
+list(APPEND libcsound_public_include_dirs
     $<BUILD_INTERFACE:${Csound_SOURCE_DIR}/include>
     $<INSTALL_INTERFACE:include>
 )
@@ -647,6 +647,7 @@ set(libcsound_SRCS
     Engine/extract.c
     Engine/fgens.c
     Engine/insert.c
+    Engine/udo.c
     Engine/linevent.c
     Engine/memalloc.c
     Engine/memfiles.c
