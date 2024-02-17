@@ -236,7 +236,7 @@ if(WIN32 AND NOT MSVC)
 endif()
 
 
-list(APPEND libcsound_private_include_dirs "/usr/local/include")
+
 
 if(WIN32)
     set(CMAKE_SHARED_LIBRARY_PREFIX "")
@@ -438,6 +438,9 @@ if(USE_LIBSNDFILE)
     endif()
 endif()
 check_deps(USE_LIBSNDFILE SndFile_FOUND)
+
+# this makes sure make_plugin() can find headers
+list(APPEND libcsound_private_include_dirs ${SndFile_INCLUDE_DIR})
 
 # carry on setting up libsndifle if so
 if(USE_LIBSNDFILE)
