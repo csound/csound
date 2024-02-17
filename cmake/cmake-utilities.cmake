@@ -103,8 +103,7 @@ function(make_plugin libname srcs)
         target_link_libraries(${libname} PRIVATE ${ARGV${i}})
         math(EXPR i "${i}+1")
     endwhile()
-    target_link_libraries(${libname} PUBLIC SndFile::sndfile)
-
+  
     if (LINUX)
         set_target_properties(${libname} PROPERTIES
             # back to install prefix from plugins folder, then into lib
