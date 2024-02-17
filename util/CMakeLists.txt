@@ -10,7 +10,7 @@ set(stdutil_SRCS
     SDIF/sdif.c   ../InOut/soundfile.c)
 
 if(BUILD_UTILITIES)
-   make_plugin(stdutil "${stdutil_SRCS}" ${MATH_LIBRARY})
+   make_plugin(stdutil "${stdutil_SRCS}" ${MATH_LIBRARY} SndFile::sndfile)
     make_utility(atsa        atsa_main.c)
     make_utility(csanalyze   csanalyze.c)
     make_utility(cvanal      cvl_main.c)
