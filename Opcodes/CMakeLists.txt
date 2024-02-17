@@ -75,11 +75,12 @@ if(BUILD_DSSI_OPCODES)
     make_plugin(dssi4cs "${dssi_SRC}" dl)
 endif()
 
-## OPCODES WITH EXTERNAL DEPENDENCIES ##
-find_package(LIBLO)
-if(BUILD_OSC_OPCODES AND LIBLO_FOUND AND Threads_FOUND)
+# config file shipped by vcpkg isn't working, so use module
+find_package(LibLO MODULE)
+check_deps(BUILD_OSC_OPCODES LibLO_FOUND)
+if(BUILD_OSC_OPCODES)
     make_plugin(osc OSC.c)
-    target_link_libraries(osc PRIVATE ${LIBLO_LIBRARIES} Threads::Threads)
+    target_link_libraries(osc PRIVATE LibLO::liblo Threads::Threads)
     if(WIN32)
       target_link_libraries(osc PRIVATE wsock32 ws2_32 iphlpapi)
     endif()
