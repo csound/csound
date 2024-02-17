@@ -1809,16 +1809,20 @@ int32_t inall_opcode(CSOUND *csound, INALL *p)
 }
 
 inline static int32_t outn(CSOUND *csound, uint32_t k,
-                             uint32_t n, MYFLT **asig, INSDS *p)
+                             uint32_t n, MYFLT **asig,
+                             INSDS *p, MYFLT *arr)
 {
   uint32_t nsmps = p->ksmps, ksmps = csound->ksmps,  i, j;
   MYFLT *spout = p->spout; 
   uint32_t offset = p->ksmps_offset;
   uint32_t early  = p->ksmps_no_end;
   early = nsmps - early;
+  n -= k;
   k *= ksmps; 
   for (i=0; i<n; i++) {
-      MYFLT *p = asig[i];
+      // input comes from array of asigs
+      // or ksmps-interleaved audio array
+      MYFLT *p = asig ? asig[i] : &arr[k];
       for (j=offset; j < early; j++) {
         spout[k+j] += p[j];
       }
@@ -1832,7 +1836,7 @@ int32_t outs1(CSOUND *csound, OUTM *p)
 {
   int32_t ret;
   ret  = outn(csound, 0, 1, &(p->asig),
-              p->h.insdshead);
+              p->h.insdshead, NULL);
   return ret;
 }
 
@@ -1849,7 +1853,7 @@ int32_t och4(CSOUND *csound, OUTM *p) { IGN(p); OUTCN(4) }
 int32_t outs2(CSOUND *csound, OUTM *p) {
   int32_t ret;
   ret = outn(csound, 1, 2, &(p->asig),
-              p->h.insdshead);
+             p->h.insdshead, NULL);
   return ret;
 }
 
@@ -1857,7 +1861,7 @@ int32_t outq3(CSOUND *csound, OUTM *p)
 {
   int32_t ret;
   ret = outn(csound, 2, 3, &(p->asig),
-              p->h.insdshead);
+             p->h.insdshead, NULL);
   return ret;
 }
 
@@ -1865,7 +1869,7 @@ int32_t outq4(CSOUND *csound, OUTM *p)
 {
   int32_t ret;
   ret = outn(csound, 3, 4, &(p->asig),
-              p->h.insdshead);
+             p->h.insdshead, NULL);
   return ret;
 }
 
@@ -1880,7 +1884,7 @@ int32_t outch(CSOUND *csound, OUTCH *p)
     ch = (int) *p->args[n] - 1;
    if (ch < nchnls)
     ret = outn(csound, ch, ch+1, &p->args[n+1],
-              p->h.insdshead);
+               p->h.insdshead, NULL);
   }
   return ret;
 }
@@ -1899,7 +1903,7 @@ int32_t outall(CSOUND *csound, OUTX *p) /* Output a list of channels */
   uint32_t nch = p->INOCOUNT;
   int32_t ret = outn(csound, 0,
                      (nch <= csound->nchnls ? nch : csound->nchnls),
-                     p->asig, p->h.insdshead);
+                     p->asig, p->h.insdshead, NULL);
   return ret;
 }
 
@@ -1924,66 +1928,10 @@ int32_t outarr(CSOUND *csound, OUTARRAY *p)
     n = csound->nchnls;
     p->nowarn = 1;
   }
-   ret = outn(csound, 0, n, &data, p->h.insdshead);
+  ret = outn(csound, 0, n, NULL, p->h.insdshead, data);
   return ret;
 }
-/*
-  uint32_t nsmps =CS_KSMPS,  i, j;
-  uint32_t ksmps = nsmps;
-  uint32_t n = p->tabin->sizes[0];
-  MYFLT *data = p->tabin->data;
-  MYFLT *spout = CS_SPOUT; //csound->spraw;
-  if (n>csound->nchnls) {
-    if (p->nowarn==0) {
-      csound->Warning(csound,
-                      Str("out: number of channels truncated from %d to %d"),
-                      n, csound->nchnls);
-    }
-    n = csound->nchnls;
-    p->nowarn = 1;
-  }
-  if (csound->oparms->sampleAccurate) {
-    uint32_t offset = p->h.insdshead->ksmps_offset;
-    uint32_t early  = nsmps-p->h.insdshead->ksmps_no_end;
 
-    CSOUND_SPOUT_SPINLOCK
-      if (!csound->spoutactive) {
-        memset(spout, '\0', csound->nspout*sizeof(MYFLT));
-        for (i=0; i<n; i++) {
-          for (j=offset; j<early; j++) {
-            spout[j+i*ksmps] = data[j+i*ksmps];
-          }
-        }
-        csound->spoutactive = 1;
-      }
-      else {
-        // no need to offset data is already offset in the buffer
-        for (i=0; i<n; i++) {
-          for (j=offset; j<early; j++) {
-            spout[j+i*ksmps] += data[j+i*ksmps];
-          }
-        }
-      }
-    CSOUND_SPOUT_SPINUNLOCK
-      }
-  else {
-    CSOUND_SPOUT_SPINLOCK
-      if (!csound->spoutactive) {
-        memcpy(spout, data, n*ksmps*sizeof(MYFLT));
-        if (csound->nchnls>n)
-          memset(&spout[n*ksmps], '\0', (csound->nchnls-n)*ksmps*sizeof(MYFLT));
-        csound->spoutactive = 1;
-      }
-      else {
-        for (i=0; i<n*nsmps; i++) {
-          spout[i] += data[i];
-        }
-      }
-    CSOUND_SPOUT_SPINUNLOCK
-      }
-  return OK;
-}
-*/
 
 int32_t outrep(CSOUND *csound, OUTM *p)
 {
@@ -1991,7 +1939,7 @@ int32_t outrep(CSOUND *csound, OUTM *p)
   int32_t ret;
   for(i = 0; i < n; i++)
     ret = outn(csound, i, i+1, &p->asig,
-              p->h.insdshead);
+               p->h.insdshead, NULL);
   return ret;
 }
 
