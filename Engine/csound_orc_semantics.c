@@ -59,7 +59,7 @@ char* convert_internal_to_external(CSOUND* csound, char* arg);
 char* convert_external_to_internal(CSOUND* csound, char* arg);
 void do_baktrace(CSOUND *csound, uint64_t files);
 
-extern int add_udo_definition(CSOUND *csound, char *opname,
+extern int add_udo_definition(CSOUND *csound, bool newStyle, char *opname,
                               char *outtypes, char *intypes, int flags);
 extern TREE * create_opcode_token(CSOUND *csound, char* op);
 int is_reserved(char*);
@@ -2399,7 +2399,7 @@ TREE* verify_tree(CSOUND * csound, TREE *root, TYPE_TABLE* typeTable)
       if (top->left != NULL && top->left->type == UDO_ANS_TOKEN) {
         top->left->markup = cs_strdup(csound, top->left->value->lexeme);
         top->right->markup = cs_strdup(csound, top->right->value->lexeme);
-        add_udo_definition(csound,
+        add_udo_definition(csound, false,
                            top->value->lexeme,
                            top->left->value->lexeme,
                            top->right->value->lexeme,
@@ -2422,6 +2422,7 @@ TREE* verify_tree(CSOUND * csound, TREE *root, TYPE_TABLE* typeTable)
         top->left->markup = cs_strdup(csound, outArgString);
         top->right->markup = cs_strdup(csound, inArgString);
         add_udo_definition(csound,
+                           true,
                            current->left->value->lexeme,
                            outArgString,
                            inArgString,
@@ -2462,7 +2463,7 @@ TREE* verify_tree(CSOUND * csound, TREE *root, TYPE_TABLE* typeTable)
     case T_DECLARE: {
       char* outArgStringDecl = get_out_types_from_tree(csound, current->left->left);
       char* inArgStringDecl = get_in_types_from_tree(csound, current->left->right, typeTable);
-      add_udo_definition(csound, current->value->lexeme, inArgStringDecl, outArgStringDecl, UNDEFINED);
+      add_udo_definition(csound, false, current->value->lexeme, inArgStringDecl, outArgStringDecl, UNDEFINED);
       csound->inZero = 0;
       if (UNLIKELY(PARSER_DEBUG)) csound->Message(csound, "UDO found\n");
 

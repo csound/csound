@@ -410,7 +410,7 @@ OENTRY* csound_find_internal_oentry(CSOUND* csound, OENTRY* oentry) {
  * used at parse time.  An OENTRY is also added at this time so that at
  * verification time the opcode can be looked up to get its signature.
  */
-int add_udo_definition(CSOUND *csound, char *opname,
+int add_udo_definition(CSOUND *csound, bool newStyle, char *opname,
                        char *outtypes, char *intypes,
                        int flags) {
 
@@ -427,12 +427,7 @@ int add_udo_definition(CSOUND *csound, char *opname,
     if (len == 1 && *intypes == '0') {
       opc = find_opcode_exact(csound, opname, outtypes, "o");
     } else {
-      // this feature is removed from 7.0
-      /*char* adjusted_intypes = csound->Malloc(csound, sizeof(char) * (len + 2));
-      sprintf(adjusted_intypes, "%so", intypes);
-      opc = find_opcode_exact(csound, opname, outtypes, adjusted_intypes); */
       opc = find_opcode_exact(csound, opname, outtypes, intypes);
-      //csound->Free(csound, adjusted_intypes);
     }
 
     /* check if opcode is already defined */
@@ -464,6 +459,7 @@ int add_udo_definition(CSOUND *csound, char *opname,
     /* store the name in a linked list (note: must use csound->Calloc) */
     inm = (OPCODINFO *) csound->Calloc(csound, sizeof(OPCODINFO));
     inm->name = cs_strdup(csound, opname);
+    inm->newStyle = newStyle;
     inm->intypes = intypes;
     inm->outtypes = outtypes;
     inm->in_arg_pool = csoundCreateVarPool(csound);
@@ -480,7 +476,7 @@ int add_udo_definition(CSOUND *csound, char *opname,
     } else {
       /* IV - Oct 31 2002: */
       /* create a fake opcode so we can call it as such */
-      opc = find_opcode(csound, "##userOpcode");
+      opc = find_opcode(csound, newStyle ? "##userOpcode2" : "##userOpcode");
       memcpy(&tmpEntry, opc, sizeof(OENTRY));
       tmpEntry.opname = cs_strdup(csound, opname);
 
