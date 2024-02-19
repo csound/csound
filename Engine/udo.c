@@ -722,8 +722,10 @@ int useropcd2(CSOUND *csound, UOPCODE *p)
 * 1. Iterate through the init chain to find xin/xout opcodes.
 * 2. When found, lookup names of input and output variables for this current UDO instance.
 * 3. Setup a map of input/output variable names to passed in pointers
-* 4. Iterate through the init chain to find the UDO opcode and set the pointers to the input/output variables.
-* 5. Iterate through the perf chain to find the UDO opcode and set the pointers to the input/output variables.
+* 4. Iterate through the init chain to find references to xin/xout vars and set
+* the pointers to the input/out variable argument pointer addresses.
+* 5. Iterate through the perf chain to find references to xin/xout vars and set
+* the pointers to the input/out variable argument pointer addresses.
 */
 int useropcdset_newstyle(CSOUND *csound, UOPCODE *p) {
   OPDS *saved_ids = csound->ids;
