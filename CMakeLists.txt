@@ -7,6 +7,7 @@ endif()
 set (CMAKE_CXX_STANDARD 11)
 
 cmake_policy(SET CMP0077 NEW)
+cmake_policy(SET CMP0075 NEW)
 
 include(cmake/cmake-utilities.cmake)
 
