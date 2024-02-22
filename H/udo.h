@@ -67,5 +67,6 @@ typedef struct {
 
 int useropcd1(CSOUND *, UOPCODE*);
 int useropcd2(CSOUND *, UOPCODE*);
+int useropcd_newstyle(CSOUND *, UOPCODE*);
 
 #endif

@@ -880,7 +880,7 @@ int useropcdset_newstyle(CSOUND *csound, UOPCODE *p) {
       // MAP input args for this UDO to outputs of xin for the UDO
       for (i = 0; i < outlist->count; i++) {
         char *varName = outlist->arg[i];
-        // printf("ar index %d\n", outlist->count + i);
+        // printf("ar index %d\n", p->OUTOCOUNT + i);
         MYFLT *argPtr = p->ar[p->OUTOCOUNT + i];
 
         // printf("Storing arg %s to %p\n", varName, (void*)argPtr);
@@ -989,7 +989,7 @@ int useropcdset_newstyle(CSOUND *csound, UOPCODE *p) {
         }
       }
     }
-    pchain = pchain->nxti;
+    pchain = pchain->nxtp;
   }
 
   cs_hash_table_free(csound, arg_ptr_map);
@@ -1028,8 +1028,60 @@ int useropcdset_newstyle(CSOUND *csound, UOPCODE *p) {
     parent_ip->xtratim = lcurip->xtratim;
     // p->h.opadr = (SUBR)useropcd2;
   }
+
+  p->h.opadr = (SUBR)useropcd_newstyle;
   if (UNLIKELY(csound->oparms->odebug))
     csound->Message(csound, "EXTRATIM=> cur(%p): %d, parent(%p): %d\n", lcurip,
                     lcurip->xtratim, parent_ip, parent_ip->xtratim);
+  return OK;
+}
+
+/** Runs perf-time chain*/
+int useropcd_newstyle(CSOUND *csound, UOPCODE *p)
+{
+  OPDS    *saved_pds = CS_PDS;
+  int done;
+
+  done = ATOMIC_GET(p->ip->init_done);
+
+  if (UNLIKELY(!done)) /* init not done, exit */
+    return OK;
+
+  p->ip->spin = p->parent_ip->spin;
+  p->ip->spout = p->parent_ip->spout;
+  p->ip->kcounter++;  /* kcount should be incremented BEFORE perf */
+
+  if (UNLIKELY(!(CS_PDS = (OPDS*) (p->ip->nxtp))))
+    goto endop; /* no perf code */
+
+  /* IV - Nov 16 2002: update release flag */
+  p->ip->relesing = p->parent_ip->relesing;
+
+  /*  run each opcode  */
+  {
+  int error = 0;
+  CS_PDS->insdshead->pds = NULL;
+  do {
+    if(UNLIKELY(!ATOMIC_GET8(p->ip->actflg))) goto endop;
+    error = (*CS_PDS->opadr)(csound, CS_PDS);
+    if (CS_PDS->insdshead->pds != NULL &&
+        CS_PDS->insdshead->pds->insdshead) {
+      CS_PDS = CS_PDS->insdshead->pds;
+      CS_PDS->insdshead->pds = NULL;
+    }
+  } while (error == 0 && p->ip != NULL
+           && (CS_PDS = CS_PDS->nxtp));
+  }
+
+ endop:
+
+  /* restore globals */
+  CS_PDS = saved_pds;
+  /* check if instrument was deactivated (e.g. by perferror) */
+  if (!p->ip)  {                   /* loop to last opds */
+    while (CS_PDS && CS_PDS->nxtp) {
+      CS_PDS = CS_PDS->nxtp;
+    }
+  }
   return OK;
 }
