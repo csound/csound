@@ -1,4 +1,9 @@
-cmake_minimum_required(VERSION 3.5)
+if (APPLE)
+    cmake_minimum_required(VERSION 3.28)
+else()
+    cmake_minimum_required(VERSION 3.13.4)
+endif()
+
 cmake_policy(SET CMP0077 NEW)
 
 include(cmake/cmake-utilities.cmake)
