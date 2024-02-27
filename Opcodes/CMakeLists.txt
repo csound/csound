@@ -73,6 +73,9 @@ if(BUILD_DSSI_OPCODES)
     check_include_file(ladspa.h LADSPA_H)
     set(dssi_SRC dssi4cs/src/load.c dssi4cs/src/dssi4cs.c)
     make_plugin(dssi4cs "${dssi_SRC}" dl)
+    if(USE_LIB64)
+        target_compile_definitions(dssi4cs PRIVATE "LIB64")
+    endif()
 endif()
 
 # config file shipped by vcpkg isn't working, so use module

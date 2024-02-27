@@ -180,19 +180,15 @@ endif()
 
 # set -Werror if in Debug configuration
 if(NOT MSVC AND NOT WASM)
-#ifdef BARE_METAL
-    set(CMAKE_CXX_FLAGS_RELEASE "-Os")
-    set(CMAKE_C_FLAGS_RELEASE "-Os")
-#else
-    set(CMAKE_CXX_FLAGS_RELEASE "-O3")
-    set(CMAKE_C_FLAGS_RELEASE "-O3")
-#endif
+    if (BARE_METAL)
+        add_compile_options("$<$<CONFIG:Release>:-Os>")
+    else()
+        add_compile_options("$<$<CONFIG:Release>:-O3>")
+    endif()
     if(${CMAKE_BUILD_TYPE} MATCHES "Debug")
-        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}  -Wall -Wno-missing-field-initializers")
-        set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wall -Wno-missing-field-initializers")
+        add_compile_options("-Wall" "-Wno-missing-field-initializers")
         if (DEBUG_ERROR_ON_WARNING)
-            set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Werror")
-            set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Werror")
+            add_compile_options("-Werror")
         endif()
     endif()
 endif()
@@ -212,7 +208,6 @@ endif()
 option(USE_LIB64 "Set to on to set installation directory for libraries to lib64" OFF)
 if(USE_LIB64)
 	set(LIBRARY_INSTALL_DIR "${CMAKE_INSTALL_PREFIX}/lib64")
-    add_definitions("-DLIB64")
 elseif(NOT DEFINED LIBRARY_INSTALL_DIR)
     set(LIBRARY_INSTALL_DIR "${CMAKE_INSTALL_PREFIX}/lib")
 endif()
@@ -259,8 +254,7 @@ if(WIN32)
 
     if(MSVC)
         # Experimented with flags but did not make change performance results
-        #set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} /Oi /fp:fast /arch:AVX2")
-        #set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /Oi /fp:fast /arch:AVX2")
+        #add_compile_options("/Oi" "/fp:fast" "/arch:AVX2")
 
         # Replace the default CRT linkage from dynamic (MD) to static (MT)
         if(STATIC_CRT STREQUAL "ON")
@@ -273,37 +267,15 @@ if(WIN32)
             message(STATUS "Using static CRT linkage /MT")
         endif()
     else()
-        set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -mstackrealign -static-libgcc -static")
-        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -mstackrealign -static-libstdc++ -static-libgcc -static")
-        set_target_properties(${CSOUNDLIB} PROPERTIES LINK_FLAGS "-static-libstdc++ -static-libgcc -static")
-        set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} -static-libstdc++ -static-libgcc -static")
+        add_compile_options("-mstackrealign")
+        add_link_options("-static"
+            "$<$<COMPILE_LANGUAGE:C>:-static-libgcc>"
+            "$<$<COMPILE_LANGUAGE:CXX>:-static-libstdc++>"
+        )
     endif()
 endif()
 
-# MacOS/IOS c++11 flags
-if(APPLE)
-    set(CMAKE_CXX_FLAGS  "${CMAKE_CXX_FLAGS} -stdlib=libc++")
-    set_target_properties(${CSOUNDLIB} PROPERTIES CXX_COMPILE_FLAGS  "-std=c++11")
-endif()
-
 set(BUILD_DIR ${CMAKE_CURRENT_BINARY_DIR})
-
-check_c_compiler_flag(-fvisibility=hidden HAS_VISIBILITY_HIDDEN)
-check_cxx_compiler_flag(-fvisibility=hidden HAS_CXX_VISIBILITY_HIDDEN)
-if (HAS_VISIBILITY_HIDDEN)
-    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fvisibility=hidden")
-endif()
-if (HAS_CXX_VISIBILITY_HIDDEN)
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fvisibility=hidden")
-endif()
-
-check_c_compiler_flag(-std=gnu99 HAS_GNU99)
-if (HAS_GNU99)
-    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -std=gnu99")
-endif()
-if (HAS_CXX_VISIBILITY_HIDDEN)
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fvisibility=hidden")
-endif()
 
 if(APPLE)
     if(IOS)

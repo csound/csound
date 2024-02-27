@@ -23,27 +23,11 @@ if(BUILD_TESTS)
     target_include_directories(unittests PUBLIC ${libcsound_public_include_dirs})
 
     # Required because we're compiling the tests written in C as C++
-    set(CMAKE_CXX_FLAGS "-fpermissive -Wwrite-strings -std=c++0x")
-
-    if(USE_VCPKG)
-        set_property(TARGET unittests PROPERTY CXX_STANDARD 14)
-
-        target_link_libraries(unittests PRIVATE
-            GTest::gtest_main ${CSOUNDLIB_STATIC})
-    else()
-        set(CMAKE_CXX_FLAGS "-fpermissive -Wwrite-strings -std=c++0x")
-
-        if (APPLE)
-            set(CMAKE_CXX_FLAGS "-stdlib=libc++")
-        endif()
-
-        target_include_directories(unittests PRIVATE
-            ${GTEST_INCLUDE_DIRS})
-
-        target_link_libraries(unittests PRIVATE
-            ${GTEST_BOTH_LIBRARIES} ${CSOUNDLIB_STATIC})
-    endif()
-
+    target_compile_options(unittests PRIVATE "-fpermissive" "-Wwrite-strings")
+    # gtest requires C++14
+    target_compile_features(unittests PRIVATE cxx_std_14)
+    target_link_libraries(unittests PRIVATE GTest::gtest_main ${CSOUNDLIB_STATIC})
+ 
     include(GoogleTest)
     gtest_discover_tests(unittests)
     message(STATUS "Building unit tests")
