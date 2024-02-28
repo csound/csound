@@ -213,3 +213,6 @@ xcode
 *.nupkg
 *.exe
 bin
+
+# coverage folder
+/coverage/

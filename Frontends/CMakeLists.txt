@@ -27,8 +27,9 @@ endif()
 check_deps(BUILD_CSBEATS FLEX_EXECUTABLE BISON_EXECUTABLE)
 
 if(BUILD_CSBEATS)
-    BISON_TARGET(csbeats_PARSER beats/beats.y ${CMAKE_CURRENT_BINARY_DIR}/beats.tab.c)
-    FLEX_TARGET(csbeats_SCANNER beats/beats.l ${CMAKE_CURRENT_BINARY_DIR}/beatslex.yy.c)
+    file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/beats)
+    BISON_TARGET(csbeats_PARSER ${CMAKE_CURRENT_SOURCE_DIR}/beats/beats.y ${CMAKE_CURRENT_BINARY_DIR}/beats/beats.tab.c)
+    FLEX_TARGET(csbeats_SCANNER ${CMAKE_CURRENT_SOURCE_DIR}/beats/beats.l ${CMAKE_CURRENT_BINARY_DIR}/beats/beatslex.yy.c)
 
     ADD_FLEX_BISON_DEPENDENCY(csbeats_SCANNER csbeats_PARSER)
 
