@@ -23,7 +23,8 @@ if(BUILD_TESTS)
     target_include_directories(unittests PUBLIC ${libcsound_public_include_dirs})
 
     # Required because we're compiling the tests written in C as C++
-    set(CMAKE_CXX_FLAGS "-fpermissive -Wwrite-strings -std=c++0x")
+    try_add_compile_option("-fpermissive")
+    try_add_compile_option("-Wwrite-strings")
 
     if(USE_VCPKG)
         set_property(TARGET unittests PROPERTY CXX_STANDARD 14)
@@ -31,12 +32,6 @@ if(BUILD_TESTS)
         target_link_libraries(unittests PRIVATE
             GTest::gtest_main ${CSOUNDLIB_STATIC})
     else()
-        set(CMAKE_CXX_FLAGS "-fpermissive -Wwrite-strings -std=c++0x")
-
-        if (APPLE)
-            set(CMAKE_CXX_FLAGS "-stdlib=libc++")
-        endif()
-
         target_include_directories(unittests PRIVATE
             ${GTEST_INCLUDE_DIRS})
 
