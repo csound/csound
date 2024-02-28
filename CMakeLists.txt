@@ -127,6 +127,11 @@ if(USE_COMPILER_OPTIMIZATIONS)
     include(cmake/CompilerOptimizations.cmake)
 endif()
 
+option(TRACK_COVERAGE "Track coverage" OFF)
+if (TRACK_COVERAGE)
+    include(cmake/coverage.cmake)
+endif()
+
 ## USER OPTIONS ##
 # Optional targets, they should all default to ON (check_deps will disable them if not possible to build)
 option(USE_DOUBLE "Set to use double-precision floating point for audio samples." ON)
@@ -192,6 +197,7 @@ if(NOT MSVC AND NOT WASM)
     set(CMAKE_CXX_FLAGS_RELEASE "-O3")
     set(CMAKE_C_FLAGS_RELEASE "-O3")
 #endif
+    add_compile_options("$<$<CONFIG:Debug>:-Og>") # debug optimization for debug builds
     if(${CMAKE_BUILD_TYPE} MATCHES "Debug")
         set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}  -Wall -Wno-missing-field-initializers")
         set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wall -Wno-missing-field-initializers")
@@ -922,17 +928,17 @@ endif()
 # Handling New Parser
 
 set(YACC_SRC ${CMAKE_CURRENT_SOURCE_DIR}/Engine/csound_orc.y)
-set(YACC_OUT ${CMAKE_CURRENT_BINARY_DIR}/csound_orcparse.c)
-set(YACC_OUTH ${CMAKE_CURRENT_BINARY_DIR}/csound_orcparse.h)
+set(YACC_OUT ${CMAKE_CURRENT_BINARY_DIR}/Engine/csound_orcparse.c)
+set(YACC_OUTH ${CMAKE_CURRENT_BINARY_DIR}/Engine/csound_orcparse.h)
 
 set(LEX_SRC ${CMAKE_CURRENT_SOURCE_DIR}/Engine/csound_orc.lex)
-set(LEX_OUT ${CMAKE_CURRENT_BINARY_DIR}/csound_orclex.c)
-set_source_files_properties(${CMAKE_CURRENT_BINARY_DIR}/csound_orclex.c
+set(LEX_OUT ${CMAKE_CURRENT_BINARY_DIR}/Engine/csound_orclex.c)
+set_source_files_properties(${CMAKE_CURRENT_BINARY_DIR}/Engine/csound_orclex.c
     PROPERTIES COMPILE_FLAGS "-Wno-implicit-fallthrough")
 
 set(PRELEX_SRC ${CMAKE_CURRENT_SOURCE_DIR}/Engine/csound_pre.lex)
-set(PRELEX_OUT ${CMAKE_CURRENT_BINARY_DIR}/csound_prelex.c)
-set_source_files_properties(${CMAKE_CURRENT_BINARY_DIR}/csound_prelex.c
+set(PRELEX_OUT ${CMAKE_CURRENT_BINARY_DIR}/Engine/csound_prelex.c)
+set_source_files_properties(${CMAKE_CURRENT_BINARY_DIR}/Engine/csound_prelex.c
     PROPERTIES COMPILE_FLAGS "-Wno-implicit-fallthrough")
 
 if(LEXER_DEBUG)
@@ -987,6 +993,8 @@ endif()
 
 # Handling New Score Parser
 
+file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/Engine)
+
 ##list(APPEND libcsound_CFLAGS -DSCORE_PARSER)
 
 #set(YACC_SCOSRC ${CMAKE_CURRENT_SOURCE_DIR}/Engine/csound_sco.y)
@@ -997,7 +1005,7 @@ endif()
 #set(LEX_SCOOUT ${CMAKE_CURRENT_BINARY_DIR}/csound_scolex.c)
 
 set(PRELEX_SCOSRC ${CMAKE_CURRENT_SOURCE_DIR}/Engine/csound_prs.lex)
-set(PRELEX_SCOOUT ${CMAKE_CURRENT_BINARY_DIR}/csound_prslex.c)
+set(PRELEX_SCOOUT ${CMAKE_CURRENT_BINARY_DIR}/Engine/csound_prslex.c)
 
 ##message("${CMAKE_CURRENT_BINARY_DIR}/csound_prslex.c")
 ##message("${CMAKE_CURRENT_BINARY_DIR}/csound_scolex.c")
@@ -1034,6 +1042,8 @@ if(MSVC)
 endif()
 
 list(APPEND libcsound_private_include_dirs ${CMAKE_CURRENT_BINARY_DIR})
+list(APPEND libcsound_private_include_dirs ${CMAKE_CURRENT_BINARY_DIR}/Engine) # for csound_orcparse.h
+list(APPEND libcsound_private_include_dirs ${CMAKE_CURRENT_BINARY_DIR}/Frontends/beats) # for beats.tab.h
 list(APPEND libcsound_public_include_dirs $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}/include>)
 
 if(NEW_PARSER_DEBUG)
