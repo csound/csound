@@ -31,12 +31,12 @@
 /* no #ifdef, should always have these on systems where JACK is available */
 #include <unistd.h>
 #include <stdint.h>
-#ifdef LINUX
+#ifdef __gnu_linux__
 #include <pthread.h>
 #endif
 #include "csdl.h"
 #include "soundio.h"
-#ifdef LINUX
+#ifdef __gnu_linux__
 #include <sched.h>
 #endif
 
@@ -81,7 +81,7 @@ static int listDevices(CSOUND *csound,
                        CS_AUDIODEVICE *list,
                        int isOutput);
 
-#ifdef LINUX
+#ifdef __gnu_linux__
 
 static inline int rtJack_CreateLock(CSOUND *csound, pthread_mutex_t *p)
 {
@@ -136,7 +136,7 @@ static inline void rtJack_DestroyLock(CSOUND *csound, pthread_mutex_t *p)
     pthread_mutex_destroy(p);
 }
 
-#else   /* LINUX */
+#else   /* __gnu_linux__ */
 
 static inline int rtJack_CreateLock(CSOUND *csound, void **p)
 {
@@ -172,7 +172,7 @@ static inline void rtJack_DestroyLock(CSOUND *csound, void **p)
     *p = NULL;
 }
 
-#endif  /* !LINUX */
+#endif  /* !__gnu_linux__ */
 
 /* print error message, close connection, and terminate performance */
 
@@ -202,7 +202,7 @@ static int bufferSizeCallback(jack_nframes_t nframes, void *arg)
     return 0;
 }
 
-#ifdef LINUX
+#ifdef __gnu_linux__
 static void freeWheelCallback(int starting, void *arg)
 {
     RtJackGlobals *p;
@@ -471,7 +471,7 @@ static void openJackStreams(RtJackGlobals *p)
                                                bufferSizeCallback, (void*) p)
                  != 0))
       rtJack_Error(csound, -1, Str("error setting buffer size callback"));
-#ifdef LINUX
+#ifdef __gnu_linux__
     if (UNLIKELY(jack_set_freewheel_callback(p->client,
                                              freeWheelCallback, (void*) p)
                  != 0))

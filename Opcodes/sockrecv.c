@@ -28,7 +28,7 @@
 #include "csoundCore.h"
 #include <stdlib.h>
 #include <sys/types.h>
-#if defined(WIN32) && !defined(__CYGWIN__)
+#if defined(_WIN32) && !defined(__CYGWIN__)
 #include <winsock2.h>
 #include <ws2tcpip.h>
 #else
@@ -44,7 +44,7 @@
 #define MAXBUFS 32
 #define MTU (1456)
 
-#ifndef WIN32
+#ifndef _WIN32
 extern  int32_t     inet_aton(const char *cp, struct in_addr *inp);
 #endif
 
@@ -141,7 +141,7 @@ static int32_t deinit_udpRecv_S(CSOUND *csound, void *pdata)
     p->threadon = 0;
     csound->JoinThread(p->thrid);
 
-#ifndef WIN32
+#ifndef _WIN32
     close(p->sock);
     csound->Message(csound, Str("OSCraw: Closing socket\n"));
 #else
@@ -175,7 +175,7 @@ static uintptr_t udpRecv_S(void *pdata)
 static int32_t init_recv(CSOUND *csound, SOCKRECV *p)
 {
     MYFLT   *buf;
-#if defined(WIN32) && !defined(__CYGWIN__)
+#if defined(_WIN32) && !defined(__CYGWIN__)
     WSADATA wsaData = {0};
     int32_t err;
     if (UNLIKELY((err=WSAStartup(MAKEWORD(2,2), &wsaData))!= 0))
@@ -183,7 +183,7 @@ static int32_t init_recv(CSOUND *csound, SOCKRECV *p)
 #endif
     p->cs = csound;
     p->sock = socket(AF_INET, SOCK_DGRAM, 0);
-#ifndef WIN32
+#ifndef _WIN32
     if (UNLIKELY(fcntl(p->sock, F_SETFL, O_NONBLOCK)<0))
       return csound->InitError(csound, Str("Cannot set nonblock"));
 #else
@@ -237,7 +237,7 @@ static int32_t init_recv(CSOUND *csound, SOCKRECV *p)
 static int32_t init_recv_S(CSOUND *csound, SOCKRECVSTR *p)
 {
     MYFLT   *buf;
-#if defined(WIN32) && !defined(__CYGWIN__)
+#if defined(_WIN32) && !defined(__CYGWIN__)
     WSADATA wsaData = {0};
     int32_t err;
     if (UNLIKELY((err=WSAStartup(MAKEWORD(2,2), &wsaData))!= 0))
@@ -246,7 +246,7 @@ static int32_t init_recv_S(CSOUND *csound, SOCKRECVSTR *p)
 
     p->cs = csound;
     p->sock = socket(AF_INET, SOCK_DGRAM, 0);
-#ifndef WIN32
+#ifndef _WIN32
     if (UNLIKELY(fcntl(p->sock, F_SETFL, O_NONBLOCK)<0))
       return csound->InitError(csound, Str("Cannot set nonblock"));
 #endif
@@ -352,7 +352,7 @@ static int32_t send_recv(CSOUND *csound, SOCKRECV *p)
 static int32_t init_recvS(CSOUND *csound, SOCKRECV *p)
 {
     MYFLT   *buf;
-#if defined(WIN32) && !defined(__CYGWIN__)
+#if defined(_WIN32) && !defined(__CYGWIN__)
     WSADATA wsaData = {0};
     int32_t err;
     if ((err=WSAStartup(MAKEWORD(2,2), &wsaData))!= 0)
@@ -361,7 +361,7 @@ static int32_t init_recvS(CSOUND *csound, SOCKRECV *p)
 
     p->cs = csound;
     p->sock = socket(AF_INET, SOCK_DGRAM, 0);
-#ifndef WIN32
+#ifndef _WIN32
     if (UNLIKELY(fcntl(p->sock, F_SETFL, O_NONBLOCK)<0))
       return csound->InitError(csound, Str("Cannot set nonblock"));
 #endif
@@ -437,7 +437,7 @@ static int32_t init_srecv(CSOUND *csound, SOCKRECVT *p)
 {
     socklen_t clilen;
     int32_t err;
-#if defined(WIN32) && !defined(__CYGWIN__)
+#if defined(_WIN32) && !defined(__CYGWIN__)
     WSADATA wsaData = {0};
     if ((err=WSAStartup(MAKEWORD(2,2), &wsaData))!= 0)
       return csound->InitError(csound, Str("Winsock2 failed to start: %d"), err);
@@ -445,7 +445,7 @@ static int32_t init_srecv(CSOUND *csound, SOCKRECVT *p)
     /* create a STREAM (TCP) socket in the INET (IP) protocol */
     p->sock = socket(PF_INET, SOCK_STREAM, 0);
 
-#if defined(WIN32) && !defined(__CYGWIN__)
+#if defined(_WIN32) && !defined(__CYGWIN__)
     if (p->sock == SOCKET_ERROR) {
       err = WSAGetLastError();
       csound->InitError(csound, Str("socket failed with error: %ld\n"), err);
@@ -465,7 +465,7 @@ static int32_t init_srecv(CSOUND *csound, SOCKRECVT *p)
     p->server_addr.sin_family = AF_INET;
 
     /* the server IP address, in network byte order */
-#if defined(WIN32) && !defined(__CYGWIN__)
+#if defined(_WIN32) && !defined(__CYGWIN__)
     p->server_addr.sin_addr.S_un.S_addr =
       inet_addr((const char *) p->ipaddress->data);
 #else
@@ -477,7 +477,7 @@ static int32_t init_srecv(CSOUND *csound, SOCKRECVT *p)
     /* associate the socket with the address and port */
     err = bind(p->sock, (struct sockaddr *) &p->server_addr,
                sizeof(p->server_addr));
-#if defined(WIN32) && !defined(__CYGWIN__)
+#if defined(_WIN32) && !defined(__CYGWIN__)
     if (UNLIKELY(err == SOCKET_ERROR)) {
       err = WSAGetLastError();
 #else
@@ -489,7 +489,7 @@ static int32_t init_srecv(CSOUND *csound, SOCKRECVT *p)
 
     /* start the socket listening for new connections -- may wait */
     err = listen(p->sock, 5);
-#if defined(WIN32) && !defined(__CYGWIN__)
+#if defined(_WIN32) && !defined(__CYGWIN__)
     if (UNLIKELY(err == SOCKET_ERROR)) {
       err = WSAGetLastError();
 #else
@@ -500,7 +500,7 @@ static int32_t init_srecv(CSOUND *csound, SOCKRECVT *p)
     }
     clilen = sizeof(p->server_addr);
     p->conn = accept(p->sock, (struct sockaddr *) &p->server_addr, &clilen);
-#if defined(WIN32) && !defined(__CYGWIN__)
+#if defined(_WIN32) && !defined(__CYGWIN__)
     if (UNLIKELY(err == SOCKET_ERROR)) {
       err = WSAGetLastError();
 #else
@@ -565,7 +565,7 @@ typedef struct _rawosc {
 
 static int32_t destroy_raw_osc(CSOUND *csound, void *pp) {
     RAWOSC *p = (RAWOSC *) pp;
-#ifndef WIN32
+#ifndef _WIN32
     close(p->sock);
     csound->Message(csound, Str("OSCraw: Closing socket\n"));
 #else
@@ -580,14 +580,14 @@ static int32_t destroy_raw_osc(CSOUND *csound, void *pp) {
 static int32_t init_raw_osc(CSOUND *csound, RAWOSC *p)
 {
     MYFLT   *buf;
-#if defined(WIN32) && !defined(__CYGWIN__)
+#if defined(_WIN32) && !defined(__CYGWIN__)
     WSADATA wsaData = {0};
     int32_t err;
     if ((err=WSAStartup(MAKEWORD(2,2), &wsaData))!= 0)
       return csound->InitError(csound, Str("Winsock2 failed to start: %d"), err);
 #endif
     p->sock = socket(AF_INET, SOCK_DGRAM, 0);
-#ifndef WIN32
+#ifndef _WIN32
     if (UNLIKELY(fcntl(p->sock, F_SETFL, O_NONBLOCK)<0))
       return csound->InitError(csound, Str("Cannot set nonblock"));
 #else

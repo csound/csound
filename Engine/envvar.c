@@ -32,7 +32,7 @@
 #include <fcntl.h>
 #endif
 
-#if defined(WIN32) && !defined(__CYGWIN__)
+#if defined(_WIN32) && !defined(__CYGWIN__)
 #  include <direct.h>
 #  define getcwd(x,y) _getcwd(x,y)
 #endif
@@ -84,7 +84,7 @@ typedef struct CSFILE_ {
 #if defined(MSVC)
 #define RD_OPTS  _O_RDONLY | _O_BINARY
 #define WR_OPTS  _O_TRUNC | _O_CREAT | _O_WRONLY | _O_BINARY,_S_IWRITE
-#elif defined(WIN32)
+#elif defined(_WIN32)
 #define RD_OPTS  O_RDONLY | O_BINARY
 #define WR_OPTS  O_TRUNC | O_CREAT | O_WRONLY | O_BINARY, 0644
 #elif defined DOSGCC
@@ -545,7 +545,7 @@ char *csoundConvertPathname(CSOUND *csound, const char *filename)
         name[i] = DIRSEP;
     } while (filename[i++] != '\0');
     if (name[i - 2] == DIRSEP
-#ifdef WIN32
+#ifdef _WIN32
         || (isalpha(name[0]) && name[1] == ':' && name[2] == '\0')
 #endif
         ) {
@@ -558,7 +558,7 @@ char *csoundConvertPathname(CSOUND *csound, const char *filename)
 /**  Check if name is a full pathname for the platform we are running on. */
 int csoundIsNameFullpath(const char *name)
 {
-#ifdef WIN32
+#ifdef _WIN32
     if (isalpha(name[0]) && name[1] == ':') return 1;
 #endif
     if (name[0] == DIRSEP) /* ||
@@ -582,7 +582,7 @@ int csoundIsNameRelativePath(const char *name)
 int csoundIsNameJustFilename(const char *name)
 {
     if (strchr(name, DIRSEP) != NULL) return 0;
-#ifdef WIN32
+#ifdef _WIN32
     if (name[2] == ':') return 0;
 #endif
     return 1;
@@ -645,7 +645,7 @@ char *csoundSplitDirectoryFromPath(CSOUND* csound, const char * path)
     lastIndex = strrchr(convPath, DIRSEP);
 
     if (lastIndex == NULL) {  /* no DIRSEP before filename */
-#ifdef WIN32  /* e.g. C:filename */
+#ifdef _WIN32  /* e.g. C:filename */
         if (isalpha(convPath[0]) && convPath[1] == ':') {
             partialPath = (char*) csound->Malloc(csound, (size_t) 3);
             partialPath[0] = convPath[0];
@@ -718,7 +718,7 @@ char *csoundGetDirectoryForPath(CSOUND* csound, const char * path) {
         return partialPath;
       }
 
-#  ifdef WIN32
+#  ifdef _WIN32
       /* check if root directory of Windows drive */
       if ((lastIndex - tempPath) == 2 && tempPath[1] == ':') {
         partialPath = (char *)csound->Malloc(csound, 4);
@@ -1033,7 +1033,7 @@ void *csoundFileOpenWithType(CSOUND *csound, void *fd, int type,
     }
     /* get full name and open file */
     if (env == NULL) {
-#if defined(WIN32)
+#if defined(_WIN32)
       /* To handle Widows errors in file name characters. */
       size_t sz = 2 * MultiByteToWideChar(CP_UTF8, 0, name, -1, NULL, 0);
       wchar_t *wfname = malloc(sz);

@@ -257,7 +257,7 @@ static int srconv(CSOUND *csound, int argc, char **argv)
               csound->ErrorMsg(csound, "%s", Str("-o cannot be stdin"));
               return -1;
             }
-#if defined(WIN32)
+#if defined(_WIN32)
             if (strcmp(O.outfilename, "stdout") == 0) {
               csound->ErrorMsg(csound, "%s", Str("stdout audio not supported"));
               return -1;
@@ -757,7 +757,7 @@ static int srconv(CSOUND *csound, int argc, char **argv)
 }
 #else
 
-#ifndef WIN32
+#ifndef _WIN32
 #include <unistd.h>
 #endif
 

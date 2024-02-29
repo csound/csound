@@ -16,7 +16,7 @@
  *
  */
 
-#ifndef WIN32
+#ifndef _WIN32
 
 #include "csoundCore.h"
 #include <time.h>
@@ -36,7 +36,7 @@
 #include <float.h>
 
 // only available on Linux (no /proc/stat on OSX)
-#if defined(LINUX)
+#if defined(__gnu_linux__)
 /*######  Miscellaneous global stuff  ####################################*/
 #define SMLBUFSIZ (512)
 #define TEST (0)

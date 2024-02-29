@@ -26,7 +26,7 @@
 #define MAX_NAME_LEN    32      /* for client and port name */
 
 typedef struct RtJackBuffer_ {
-#ifdef LINUX
+#ifdef __gnu_linux__
     pthread_mutex_t csndLock;               /* signaled by process callback */
     pthread_mutex_t jackLock;               /* signaled by audio thread     */
 #else

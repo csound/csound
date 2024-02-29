@@ -32,7 +32,7 @@
 #endif
 
 #ifdef PIPES
-# if defined(SGI) || defined(LINUX) || defined(__BEOS__) || defined(NeXT) ||  \
+# if defined(SGI) || defined(__gnu_linux__) || defined(__BEOS__) || defined(NeXT) ||  \
      defined(__MACH__)
 #  define _popen popen
 #  define _pclose pclose

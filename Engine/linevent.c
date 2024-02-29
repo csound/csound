@@ -31,7 +31,7 @@
 #include "linevent.h"
 
 #ifdef PIPES
-# if defined(SGI) || defined(LINUX) || defined(NeXT) || defined(__MACH__)
+# if defined(SGI) || defined(__gnu_linux__) || defined(NeXT) || defined(__MACH__)
 #  define _popen popen
 #  define _pclose pclose
 # elif defined(__BEOS__) ||  defined(__HAIKU__) || defined(__MACH__)
@@ -78,7 +78,7 @@ void RTLineset(CSOUND *csound)      /* set up Linebuf & ready the input files */
     STA(Linebufend) = STA(Linebuf) + STA(linebufsiz);
     STA(Linep) = STA(Linebuf);
     if (strcmp(O->Linename, "stdin") == 0) {
-#if defined(DOSGCC) || defined(WIN32)
+#if defined(DOSGCC) || defined(_WIN32)
       setvbuf(stdin, NULL, _IONBF, 0);
       /* WARNING("-L stdin:  system has no fcntl function to get stdin"); */
 #else
@@ -127,7 +127,7 @@ void RTclose(CSOUND *csound)
       {
         if (strcmp(csound->oparms->Linename, "stdin") != 0)
           close(csound->Linefd);
-#if !defined(DOSGCC) && !defined(WIN32)
+#if !defined(DOSGCC) && !defined(_WIN32)
         else
           if (UNLIKELY(fcntl(csound->Linefd, F_SETFL, STA(stdmode))))
             csoundDie(csound, Str("Failed to set file status\n"));

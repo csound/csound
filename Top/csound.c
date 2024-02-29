@@ -47,7 +47,7 @@
 #ifdef HAVE_SYS_TYPES_H
 # include <sys/types.h>
 #endif
-#if defined(WIN32) && !defined(__CYGWIN__)
+#if defined(_WIN32) && !defined(__CYGWIN__)
 # include <winsock2.h>
 # include <windows.h>
 #endif
@@ -704,9 +704,9 @@ static const CSOUND cenviron_ = {
     440.0,               /* A4 base frequency */
     NULL,           /*  rtRecord_userdata   */
     NULL,           /*  rtPlay_userdata     */
-#if defined(MSVC) ||defined(__POWERPC__) || defined(MACOSX)
+#if defined(MSVC) ||defined(__POWERPC__) || defined(__APPLE__)
     {0},
-#elif defined(LINUX)
+#elif defined(__gnu_linux__)
    {{{0}}},        /*  exitjmp of type jmp_buf */
 #else 
    {0},  
@@ -1059,7 +1059,7 @@ static  volatile  csInstance_t  *instance_list = NULL;
 static  volatile  int exitNow_ = 0;
 
 
-#if !defined(WIN32)
+#if !defined(_WIN32)
 static void destroy_all_instances(void)
 {
     volatile csInstance_t *p;
@@ -1084,7 +1084,7 @@ static void destroy_all_instances(void)
 }
 #endif
 
-#if defined(ANDROID) || (!defined(LINUX) && !defined(SGI) && \
+#if defined(ANDROID) || (!defined(__gnu_linux__) && !defined(SGI) && \
                          !defined(__HAIKU__) && !defined(__BEOS__) && \
                          !defined(__MACH__) && !defined(__EMSCRIPTEN__))
 
@@ -1285,10 +1285,10 @@ static void signal_handler(int sig)
 }
 
 static const int sigs[] = {
-#if defined(LINUX) || defined(SGI) || defined(sol) || defined(__MACH__)
+#if defined(__gnu_linux__) || defined(SGI) || defined(sol) || defined(__MACH__)
   SIGHUP, SIGINT, SIGQUIT, SIGILL, SIGTRAP, SIGABRT, SIGIOT, SIGBUS,
   SIGFPE, SIGSEGV, SIGPIPE, SIGTERM, SIGXCPU, SIGXFSZ,
-#elif defined(WIN32)
+#elif defined(_WIN32)
   SIGINT, SIGILL, SIGABRT, SIGFPE, SIGSEGV, SIGTERM,
 #elif defined(__EMX__)
   SIGHUP, SIGINT, SIGQUIT, SIGILL, SIGTRAP, SIGABRT, SIGBUS, SIGFPE,
@@ -1336,7 +1336,7 @@ PUBLIC int csoundInitialize(int flags)
     if (!(flags & CSOUNDINIT_NO_SIGNAL_HANDLER)) {
       install_signal_handler();
     }
-#if !defined(WIN32)
+#if !defined(_WIN32)
     if (!(flags & CSOUNDINIT_NO_ATEXIT))
       atexit(destroy_all_instances);
 #endif
@@ -1506,7 +1506,7 @@ static int getThreadIndex(CSOUND *csound, void *threadId)
     while (current != NULL) {
 #ifdef HAVE_PTHREAD
       if (pthread_equal(*(pthread_t *)threadId, *(pthread_t *)current->threadId))
-#elif defined(WIN32)
+#elif defined(_WIN32)
       DWORD* d = (DWORD*)threadId;
       if (*d == GetThreadId((HANDLE)current->threadId))
 #else
@@ -2271,7 +2271,7 @@ static int csoundPerformKsmpsInternal(CSOUND *csound)
     }
     /* setup jmp for return after an exit() */
         if (UNLIKELY((returnValue = setjmp(csound->exitjmp)))) {
-#ifndef MACOSX
+#ifndef __APPLE__
       csoundMessage(csound, Str("Early return from csoundPerformKsmps().\n"));
 #endif
       return ((returnValue - CSOUND_EXITJMP_SUCCESS) | CSOUND_EXITJMP_SUCCESS);
@@ -2300,7 +2300,7 @@ PUBLIC int csoundPerformBuffer(CSOUND *csound)
     }
     /* Setup jmp for return after an exit(). */
     if (UNLIKELY((returnValue = setjmp(csound->exitjmp)))) {
-#ifndef MACOSX
+#ifndef __APPLE__
       csoundMessage(csound, Str("Early return from csoundPerformBuffer().\n"));
 #endif
       return ((returnValue - CSOUND_EXITJMP_SUCCESS) | CSOUND_EXITJMP_SUCCESS);
@@ -2343,7 +2343,7 @@ PUBLIC int csoundPerform(CSOUND *csound)
     csound->performState = 0;
     /* setup jmp for return after an exit() */
     if (UNLIKELY((returnValue = setjmp(csound->exitjmp)))) {
-#ifndef MACOSX
+#ifndef __APPLE__
       csoundMessage(csound, Str("Early return from csoundPerform().\n"));
 #endif
       return ((returnValue - CSOUND_EXITJMP_SUCCESS) | CSOUND_EXITJMP_SUCCESS);
@@ -2574,7 +2574,7 @@ PUBLIC void csoundSetCscoreCallback(CSOUND *p,
 static void csoundDefaultMessageCallback(CSOUND *csound, int attr,
                                          const char *format, va_list args)
 {
-#if defined(WIN32)
+#if defined(_WIN32)
     switch (attr & CSOUNDMSG_TYPE_MASK) {
     case CSOUNDMSG_ERROR:
     case CSOUNDMSG_WARNING:
@@ -3601,7 +3601,7 @@ PUBLIC void csoundReset(CSOUND *csound)
     max_len = 21;
     csoundCreateGlobalVariable(csound, "_RTAUDIO", (size_t) max_len);
     s = csoundQueryGlobalVariable(csound, "_RTAUDIO");
-#ifndef LINUX
+#ifndef __gnu_linux__
  #ifdef __HAIKU__
       strcpy(s, "haiku");
  #else
@@ -3629,7 +3629,7 @@ PUBLIC void csoundReset(CSOUND *csound)
     s = csoundQueryGlobalVariable(csound, "_RTMIDI");
     strcpy(s, "null");
     if (csound->enableHostImplementedMIDIIO == 0)
-#ifndef LINUX
+#ifndef __gnu_linux__
  #ifdef __HAIKU__
       strcpy(s, "haiku");
  #else
@@ -3911,7 +3911,7 @@ void csoundNotifyFileOpened(CSOUND* csound, const char* pathname,
 #ifdef HAVE_GETTIMEOFDAY
 #undef HAVE_GETTIMEOFDAY
 #endif
-#if defined(LINUX) || defined(__unix) || defined(__unix__) || defined(__MACH__)
+#if defined(__gnu_linux__) || defined(__unix) || defined(__unix__) || defined(__MACH__)
 #define HAVE_GETTIMEOFDAY 1
 #include <sys/time.h>
 #endif
@@ -3925,7 +3925,7 @@ void csoundNotifyFileOpened(CSOUND* csound, const char* pathname,
 /* ------------------------------------ */
 
 #if defined(HAVE_RDTSC)
-#if !(defined(LINUX) && defined(__GNUC__) && defined(__i386__))
+#if !(defined(__gnu_linux__) && defined(__GNUC__) && defined(__i386__))
 #undef HAVE_RDTSC
 #endif
 #endif
@@ -3980,7 +3980,7 @@ static int getTimeResolution(void)
     }
     /* MHz -> seconds */
     timeResolutionSeconds = 0.000001 / timeResolutionSeconds;
-#elif defined(WIN32)
+#elif defined(_WIN32)
     LARGE_INTEGER tmp1;
     int_least64_t tmp2;
     QueryPerformanceFrequency(&tmp1);
@@ -4011,7 +4011,7 @@ static inline int_least64_t get_real_time(void)
     __asm__ volatile ("rdtsc" : "=a" (l), "=d" (h));
 #endif
     return ((int_least64_t) l + ((int_least64_t) h << 32));
-#elif defined(WIN32)
+#elif defined(_WIN32)
     /* Win32: use QueryPerformanceCounter - resolution depends on system, */
     /* but is expected to be better than 1 us. GetSystemTimeAsFileTime    */
     /* seems to have much worse resolution under Win95.                   */
@@ -4615,7 +4615,7 @@ PUBLIC int csoundPerformKsmpsAbsolute(CSOUND *csound)
     }
     /* setup jmp for return after an exit() */
     if (UNLIKELY((returnValue = setjmp(csound->exitjmp)))) {
-#ifndef MACOSX
+#ifndef __APPLE__
       csoundMessage(csound, Str("Early return from csoundPerformKsmps().\n"));
 #endif
       return ((returnValue - CSOUND_EXITJMP_SUCCESS) | CSOUND_EXITJMP_SUCCESS);

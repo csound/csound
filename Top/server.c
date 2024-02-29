@@ -28,7 +28,7 @@
 #define __HAIKU_CONFLICT
 
 #include "csoundCore.h"
-#if defined(WIN32) && !defined(__CYGWIN__)
+#if defined(_WIN32) && !defined(__CYGWIN__)
 #include <winsock2.h>
 #include <ws2tcpip.h>
 #else
@@ -53,7 +53,7 @@ static void udp_socksend(CSOUND *csound, int *sock, const char *addr,
                          int port, const char *msg) {
   struct sockaddr_in server_addr;
   if(*sock <= 0) {
-#if defined(WIN32) && !defined(__CYGWIN__)
+#if defined(_WIN32) && !defined(__CYGWIN__)
     WSADATA wsaData = {0};
     int err;
     if (UNLIKELY((err=WSAStartup(MAKEWORD(2,2), &wsaData))!= 0))
@@ -65,7 +65,7 @@ static void udp_socksend(CSOUND *csound, int *sock, const char *addr,
       csound->Warning(csound, Str("UDP: error creating socket"));
       return;
     }
-#ifndef WIN32
+#ifndef _WIN32
     if (UNLIKELY(fcntl(*sock, F_SETFL, O_NONBLOCK)<0)) {
       csound->Warning(csound, Str("UDP Server: Cannot set nonblock"));
       if (*sock>=0) close(*sock);
@@ -85,7 +85,7 @@ static void udp_socksend(CSOUND *csound, int *sock, const char *addr,
 
   }
   server_addr.sin_family = AF_INET;    /* it is an INET address */
-#if defined(WIN32) && !defined(__CYGWIN__)
+#if defined(_WIN32) && !defined(__CYGWIN__)
   server_addr.sin_addr.S_un.S_addr = inet_addr(addr);
 #else
   inet_aton(addr, &server_addr.sin_addr);    /* the server IP address */
@@ -218,7 +218,7 @@ static uintptr_t udp_recv(void *pdata){
   csound->Free(csound, start);
   // csound->Message(csound, "orchestra dealloc\n");
   if(sock > 0)
-#ifndef WIN32
+#ifndef _WIN32
     close(sock);
 #else
   closesocket(sock);
@@ -229,7 +229,7 @@ static uintptr_t udp_recv(void *pdata){
 
 static int udp_start(CSOUND *csound, UDPCOM *p)
 {
-#if defined(WIN32) && !defined(__CYGWIN__)
+#if defined(_WIN32) && !defined(__CYGWIN__)
   WSADATA wsaData = {0};
   int err;
   if (UNLIKELY((err=WSAStartup(MAKEWORD(2,2), &wsaData))!= 0)){
@@ -239,7 +239,7 @@ static int udp_start(CSOUND *csound, UDPCOM *p)
 #endif
   p->cs = csound;
   p->sock = socket(AF_INET, SOCK_DGRAM, 0);
-#ifndef WIN32
+#ifndef _WIN32
   if (UNLIKELY(fcntl(p->sock, F_SETFL, O_NONBLOCK)<0)) {
     csound->Warning(csound, Str("UDP Server: Cannot set nonblock"));
     if (p->sock>=0) close(p->sock);
@@ -270,7 +270,7 @@ static int udp_start(CSOUND *csound, UDPCOM *p)
                     sizeof(p->server_addr)) < 0)) {
     csound->Warning(csound, Str("bind failed"));
     p->thrid = NULL;
-#ifndef WIN32
+#ifndef _WIN32
     close(p->sock);
 #else
     closesocket(p->sock);
@@ -293,7 +293,7 @@ int csoundUDPServerClose(CSOUND *csound)
     /* wait for server thread to close */
     csoundJoinThread(p->thrid);
     /* close socket */
-#ifndef WIN32
+#ifndef _WIN32
     close(p->sock);
 #else
     closesocket(p->sock);
@@ -368,7 +368,7 @@ static int udp_console_stop(CSOUND *csound, void *pp) {
   UDPCONS *p = (UDPCONS *) pp;
   if(p) {
     csoundSetMessageCallback(csound, p->cb);
-#ifndef WIN32
+#ifndef _WIN32
     close(p->sock);
 #else
     closesocket(p->sock);

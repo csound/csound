@@ -44,7 +44,7 @@
 #  undef WORDS_BIGENDIAN
 #endif
 
-#if !defined(WIN32) || defined(__CYGWIN__)
+#if !defined(_WIN32) || defined(__CYGWIN__)
 typedef uint32_t    DWORD;
 #endif
 /*  typedef int32_t     BOOL; */

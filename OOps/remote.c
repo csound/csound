@@ -30,9 +30,9 @@
 */
 
 /* #ifdef HAVE_SOCKETS */
-/*   #ifndef WIN32 */
+/*   #ifndef _WIN32 */
 /*     #include <sys/ioctl.h> */
-/*     #ifdef LINUX */
+/*     #ifdef __gnu_linux__ */
 /*       #include <linux/if.h> */
 /*     #endif */
 /*     #ifdef __HAIKU__ */
@@ -45,7 +45,7 @@
 /*     #include <net/if.h> */
 /*   #else */
 /*     #include <winsock2.h> */
-/*   #endif /\* not WIN32 *\/ */
+/*   #endif /\* not _WIN32 *\/ */
 /* #endif /\* HAVE_SOCKETS *\/ */
 
 
@@ -63,7 +63,7 @@ void remoteRESET(CSOUND *csound)
 }
 
 #if defined(HAVE_SOCKETS)
-#if !defined(WIN32) || defined(__CYGWIN__)
+#if !defined(_WIN32) || defined(__CYGWIN__)
 #include <netdb.h>
 #endif
 #if 0
@@ -89,7 +89,7 @@ static int32_t foo(char *ipaddr)
  /* get the IPaddress of this machine */
 static int32_t getIpAddress(char *ipaddr)
 {
-#if defined(WIN32) && !defined(__CYGWIN__)
+#if defined(_WIN32) && !defined(__CYGWIN__)
     /* VL 12/10/06: something needs to go here */
     /* gethostbyname is the real answer; code below is unsafe */
     char hostname[1024];
@@ -113,7 +113,7 @@ static int32_t getIpAddress(char *ipaddr)
       if (dev)
         strNcpy(ifr.ifr_name, dev, IFNAMSIZ-1);
       else {
-#ifdef MACOSX
+#ifdef __APPLE__
         strNcpy(ifr.ifr_name, "en0", IFNAMSIZ-1);
 #else
         strNcpy(ifr.ifr_name, "eth0", IFNAMSIZ-1);
@@ -282,7 +282,7 @@ static int32_t CLopen(CSOUND *csound, char *ipadrs)     /* Client -- open to sen
     memset(&(ST(to_addr)), 0, sizeof(ST(to_addr)));    /* clear sock mem */
     ST(to_addr).sin_family = AF_INET;                  /* set as INET address */
     /* server IP adr, netwk byt order */
-#if defined(WIN32) && !defined(__CYGWIN__)
+#if defined(_WIN32) && !defined(__CYGWIN__)
     ST(to_addr).sin_addr.S_un.S_addr = inet_addr((const char *)ipadrs);
 #else
     inet_aton((const char *)ipadrs, &(ST(to_addr).sin_addr));
@@ -328,7 +328,7 @@ static int32_t SVopen(CSOUND *csound)
     int32_t conn, socklisten,opt;
     char ipadrs[15];
     int32_t *sop = ST(socksin), *sop_end = sop + MAXREMOTES;
-#if defined(WIN32) && !defined(__CYGWIN__)
+#if defined(_WIN32) && !defined(__CYGWIN__)
     int32_t clilen;
 #else
     socklen_t clilen;
@@ -340,7 +340,7 @@ static int32_t SVopen(CSOUND *csound)
     }
     else csound->Message(csound, Str("created socket\n"));
     /* set the addresse to be reusable */
-#if defined(WIN32) && !defined(__CYGWIN__)
+#if defined(_WIN32) && !defined(__CYGWIN__)
     if (UNLIKELY( setsockopt(socklisten, SOL_SOCKET, SO_REUSEADDR,
                              (const char*)&opt, sizeof(opt)) < 0 ))
 #else
@@ -354,7 +354,7 @@ static int32_t SVopen(CSOUND *csound)
     memset(&(ST(to_addr)), 0, sizeof(ST(to_addr)));    /* clear sock mem */
     ST(local_addr).sin_family = AF_INET;               /* set as INET address */
     /* our adrs, netwrk byt order */
-#if defined(WIN32) && !defined(__CYGWIN__)
+#if defined(_WIN32) && !defined(__CYGWIN__)
     ST(to_addr).sin_addr.S_un.S_addr = inet_addr((const char *)ipadrs);
 #else
     inet_aton((const char *)ipadrs, &(ST(local_addr).sin_addr));
@@ -396,7 +396,7 @@ int32_t SVrecv(CSOUND *csound, int32_t conn, void *data, int32_t length)
 {
     struct sockaddr from;
     /* VL, 12/10/06: I'm guessing here. If someone knows better, fix it */
-#if defined(WIN32) && !defined(__CYGWIN__)
+#if defined(_WIN32) && !defined(__CYGWIN__)
 #define MSG_DONTWAIT  0
     int32_t clilen = sizeof(from);
 #else

@@ -11,12 +11,12 @@
 #ifdef HAVE_UNISTD_H
 #include <unistd.h>
 #endif
-#if defined(WIN32)
+#if defined(_WIN32)
 #include <process.h>
 #endif
 
 /* default Csound executable */
-#ifdef WIN32
+#ifdef _WIN32
 char    default_csnd[] = "csound32 -W";
 char    default_csnd_r[] = "csound32 -h";
 #else
@@ -106,7 +106,7 @@ void split_filename(char *fullname, char *dir, char *bas)
            fullname[m] != '/' && fullname[m] != '\\' && fullname[m] != ':');
     /* directory name */
     if (m < 0)
-#ifdef WIN32
+#ifdef _WIN32
       strcpy(dir, ".\\");
 #else
       strcpy(dir, "./");

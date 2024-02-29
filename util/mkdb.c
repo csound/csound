@@ -44,7 +44,7 @@ void handler(int sig)
     siglongjmp(env, 1);
 }
 
-#if defined(WIN32)
+#if defined(_WIN32)
 
 #define DIRSEP '\\'
 
@@ -64,7 +64,7 @@ void *csGetLibrarySymbol(void *library, const char *procedureName)
     return (void*) GetProcAddress((HMODULE) library, procedureName);
 }
 
-#elif !(defined(NACL)) && (defined(LINUX) || defined(NEW_MACH_CODE) || defined(__HAIKU__))
+#elif !(defined(NACL)) && (defined(__gnu_linux__) || defined(NEW_MACH_CODE) || defined(__HAIKU__))
 
 #define DIRSEP '/'
 
@@ -177,7 +177,7 @@ static int csLoadExternal(const char *libraryPath)
     printf("Library '%s'\n", libraryPath);
     err = csOpenLibrary(&h, libraryPath);
     if (err) {
- #if !(defined(NACL)) && (defined(LINUX) || defined(__HAIKU__))
+ #if !(defined(NACL)) && (defined(__gnu_linux__) || defined(__HAIKU__))
       fprintf(stderr, "could not open library '%s' (%s)\n",
                libraryPath, dlerror());
  #else

@@ -48,7 +48,7 @@ static int insert_midi(CSOUND *csound, int insno, MCHNBLK *chn,
 static int insert_event(CSOUND *csound, int insno, EVTBLK *newevtp);
 
 static void print_messages(CSOUND *csound, int attr, const char *str){
-#if defined(WIN32)
+#if defined(_WIN32)
     switch (attr & CSOUNDMSG_TYPE_MASK) {
     case CSOUNDMSG_ERROR:
     case CSOUNDMSG_WARNING:

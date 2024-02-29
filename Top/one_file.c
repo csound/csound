@@ -31,7 +31,7 @@ int mkstemp(char *);
 #include <stdlib.h>
 #include "corfile.h"
 
-#if defined(LINUX) || defined(__MACH__) || defined(WIN32)
+#if defined(__gnu_linux__) || defined(__MACH__) || defined(_WIN32)
 #  include <sys/types.h>
 #  include <sys/stat.h>
 #endif
@@ -66,13 +66,13 @@ CS_NOINLINE char *csoundTmpFileName(CSOUND *csound, const char *ext)
 {
 #define   nBytes (256)
     char lbuf[256];
-#if defined(WIN32) && !defined(__CYGWIN__)
+#if defined(_WIN32) && !defined(__CYGWIN__)
     struct _stat tmp;
 #else
     struct stat tmp;
 #endif
     do {
-#ifndef WIN32
+#ifndef _WIN32
       int fd;
       char *tmpdir = getenv("TMPDIR");
       if (tmpdir != NULL && tmpdir[0] != '\0')
@@ -100,7 +100,7 @@ CS_NOINLINE char *csoundTmpFileName(CSOUND *csound, const char *ext)
       }
 #endif
       if (ext != NULL && ext[0] != (char) 0) {
-#if !defined(LINUX) && !defined(__MACH__) && !defined(WIN32)
+#if !defined(__gnu_linux__) && !defined(__MACH__) && !defined(_WIN32)
         char  *p;
         /* remove original extension (does not work on OS X */
         /* and may be a bad idea) */
@@ -120,7 +120,7 @@ CS_NOINLINE char *csoundTmpFileName(CSOUND *csound, const char *ext)
           } while (lbuf[i] != '\0');
       }
 #endif
-#if defined(WIN32)
+#if defined(_WIN32)
     } while (_stat(lbuf, &tmp) == 0);
 #else
       /* if the file already exists, try again */

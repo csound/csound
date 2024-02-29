@@ -1022,11 +1022,11 @@ int32_t getcfg_opcode(CSOUND *csound, GETCFG_OP *p)
     buf[1] = '\0';
     break;
   case 6:             /* host OS name */
-#ifdef LINUX
+#ifdef __gnu_linux__
     s = "Linux";
-#elif defined(WIN32)
+#elif defined(_WIN32)
     s = "Win32";
-#elif defined(MACOSX)
+#elif defined(__APPLE__)
     s = "MacOSX";
 #else
     s = "unknown";

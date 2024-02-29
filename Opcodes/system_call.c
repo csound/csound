@@ -35,7 +35,7 @@ typedef struct {
   CSOUND *csound;
 } SYSTEM;
 
-#if defined(WIN32)
+#if defined(_WIN32)
 #include <process.h>
 
 static void threadroutine(void *p)

@@ -92,9 +92,9 @@
 #endif
 
 #if !(defined (NACL)) && !(defined (__wasi__))
-#if defined(LINUX) || defined(NEW_MACH_CODE) || defined(__HAIKU__)
+#if defined(__gnu_linux__) || defined(NEW_MACH_CODE) || defined(__HAIKU__)
 #include <dlfcn.h>
-#elif defined(WIN32)
+#elif defined(_WIN32)
 #include <windows.h>
 #endif
 #endif
@@ -110,7 +110,7 @@ int             closedir(DIR*);
 #  endif
 #endif
 
-#if defined(WIN32) && !defined(__CYGWIN__)
+#if defined(_WIN32) && !defined(__CYGWIN__)
 #  include <io.h>
 #  include <direct.h>
 #endif
@@ -152,7 +152,7 @@ static  const   char    *plugindir64_envvar = "OPCODE7DIR64";
         "/boot/home/config/non-packaged/lib/csound7/plugins64";
 # endif
 # define CS_DEFAULT_PLUGINDIR  haikudirs
-#elif !(defined(_CSOUND_RELEASE_) && (defined(LINUX) || defined(__MACH__)))
+#elif !(defined(_CSOUND_RELEASE_) && (defined(__gnu_linux__) || defined(__MACH__)))
 #  define ENABLE_OPCODEDIR_WARNINGS 1
 #  ifdef CS_DEFAULT_PLUGINDIR
 #    undef CS_DEFAULT_PLUGINDIR
@@ -400,13 +400,13 @@ static CS_NOINLINE int csoundLoadExternal(CSOUND *csound,
     if (UNLIKELY(fname[0] == '\0'))
       return CSOUND_ERROR;
     /* load library */
-/*  #if defined(LINUX) */
+/*  #if defined(__gnu_linux__) */
     //printf("About to open library '%s'\n", libraryPath);
 /* #endif */
     err = csoundOpenLibrary(&h, libraryPath);
     if (UNLIKELY(err)) {
       char ERRSTR[256];
- #if !(defined(NACL)) && (defined(LINUX) || defined(__HAIKU__))
+ #if !(defined(NACL)) && (defined(__gnu_linux__) || defined(__HAIKU__))
       snprintf(ERRSTR, 256, Str("could not open library '%s' (%s)"),
                libraryPath, dlerror());
  #else
@@ -572,7 +572,7 @@ int csoundLoadModules(CSOUND *csound)
     int read_directory = 1;
     char searchpath_buf[searchpath_buflen];
     char sep =
-#ifdef WIN32
+#ifdef _WIN32
     ';';
 #else
     ':';
@@ -624,9 +624,9 @@ int csoundLoadModules(CSOUND *csound)
       // to be expanded
       userplugindir = CS_DEFAULT_USER_PLUGINDIR;
 
-#if defined(LINUX) || defined(__MACH__)
+#if defined(__gnu_linux__) || defined(__MACH__)
       char *prefix = getenv("HOME");
-#elif defined(WIN32)
+#elif defined(_WIN32)
       char *prefix = getenv("LOCALAPPDATA");
 #endif
       // VL: need to check so we don't get a segfault with NULL strings
@@ -697,7 +697,7 @@ int csoundLoadModules(CSOUND *csound)
       if (UNLIKELY(fname[0]=='_')) continue;
       n = len = (int) strlen(fname);
       if (UNLIKELY(fname[0]=='_')) continue;
-#if defined(WIN32)
+#if defined(_WIN32)
       strcpy(buf, "dll");
       n -= 4;
 #elif defined(__MACH__)
@@ -864,7 +864,7 @@ int csoundLoadAndInitModules(CSOUND *csound, const char *opdir)
     char            *dname1, *end;
     int             read_directory = 1;
     char sep =
-#ifdef WIN32
+#ifdef _WIN32
     ';';
 #else
     ':';
@@ -949,7 +949,7 @@ int csoundLoadAndInitModules(CSOUND *csound, const char *opdir)
       if (UNLIKELY(fname[0]=='_')) continue;
       n = len = (int) strlen(fname);
       if (UNLIKELY(fname[0]=='_')) continue;
-#if defined(WIN32)
+#if defined(_WIN32)
       strcpy(buf, "dll");
       n -= 4;
 #elif defined(__MACH__)
@@ -1039,7 +1039,7 @@ int csoundDestroyModules(CSOUND *csound)
 
  /* ------------------------------------------------------------------------ */
 
-#if defined(WIN32)
+#if defined(_WIN32)
 
 PUBLIC int csoundOpenLibrary(void **library, const char *libraryPath)
 {
@@ -1057,7 +1057,7 @@ PUBLIC void *csoundGetLibrarySymbol(void *library, const char *procedureName)
     return (void*) GetProcAddress((HMODULE) library, procedureName);
 }
 
-#elif !(defined(NACL)) && !(defined(__wasi__)) && (defined(LINUX) || defined(NEW_MACH_CODE) || defined(__HAIKU__))
+#elif !(defined(NACL)) && !(defined(__wasi__)) && (defined(__gnu_linux__) || defined(NEW_MACH_CODE) || defined(__HAIKU__))
 
 PUBLIC int csoundOpenLibrary(void **library, const char *libraryPath)
 {
@@ -1251,7 +1251,7 @@ const INITFN staticmodules[] = { hrtfopcodes_localops_init, babo_localops_init,
                                  hrtfreverb_localops_init, minmax_localops_init,
                                  vaops_localops_init, paulstretch_localops_init,
                                  squinewave_localops_init, tabaudio_localops_init,
-#ifdef LINUX
+#ifdef __gnu_linux__
                                  cpumeter_localops_init,
 #endif
 

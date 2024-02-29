@@ -38,7 +38,7 @@
 #include <stdint.h>   /* Standard types */
 #include <string.h>   /* String function definitions */
 
-#ifndef WIN32
+#ifndef _WIN32
 #include <unistd.h>   /* UNIX standard function definitions */
 #include <fcntl.h>    /* File control definitions */
 #include <termios.h>  /* POSIX terminal control definitions */
@@ -99,7 +99,7 @@ TODO: (might need some kind of threaded buffer-read?)
 
 *****************************************************/
 
-#ifdef WIN32
+#ifdef _WIN32
 typedef struct SERIAL_GLOBALS_ {
     CSOUND  *csound;
     int32_t     maxind;
@@ -174,7 +174,7 @@ typedef struct {
 int32_t serialPeekByte(CSOUND *csound, SERIALPEEK *p);
 //------------------
 
-#ifndef WIN32
+#ifndef _WIN32
 // takes the string name of the serial port (e.g. "/dev/tty.usbserial","COM1")
 // and a baud rate (bps) and connects to that port at that speed and 8N1.
 // opens the port in fully raw mode so you can send binary data.
@@ -350,7 +350,7 @@ int32_t serialBegin(CSOUND *csound, SERIALBEGIN *p)
 int32_t serialEnd(CSOUND *csound, SERIALEND *p)
 {
     IGN(csound);
-#ifdef WIN32
+#ifdef _WIN32
     SERIAL_GLOBALS *q;
     q = (SERIAL_GLOBALS*) csound->QueryGlobalVariable(csound,
                                                       "serialGlobals_");
@@ -367,13 +367,13 @@ int32_t serialEnd(CSOUND *csound, SERIALEND *p)
 int32_t serialWrite(CSOUND *csound, SERIALWRITE *p)
 {
     IGN(csound);
-#ifdef WIN32
+#ifdef _WIN32
     HANDLE port = get_port(csound, (int32_t)*p->port);
     if (UNLIKELY(port==NULL)) return NOTOK;
 #endif
     {
       unsigned char b = *p->toWrite;
-#ifndef WIN32
+#ifndef _WIN32
       if (UNLIKELY(write((int32_t)*p->port, &b, 1)<0))
         return NOTOK;
 #else
@@ -387,11 +387,11 @@ int32_t serialWrite(CSOUND *csound, SERIALWRITE *p)
 int32_t serialWrite_S(CSOUND *csound, SERIALWRITE *p)
 {
      IGN(csound);
-#ifdef WIN32
+#ifdef _WIN32
     HANDLE port = get_port(csound, (int32_t)*p->port);
     if (UNLIKELY(port==NULL)) return NOTOK;
 #endif
-#ifndef WIN32
+#ifndef _WIN32
     if (UNLIKELY(write((int32_t)*p->port,
                        ((STRINGDAT*)p->toWrite)->data,
                        ((STRINGDAT*)p->toWrite)->size))!=
@@ -410,7 +410,7 @@ int32_t serialRead(CSOUND *csound, SERIALREAD *p)
 {
     IGN(csound);
     unsigned char b = 0;
-#ifdef WIN32
+#ifdef _WIN32
     size_t bytes;
     HANDLE port = get_port(csound, (int32_t)*p->port);
     if (UNLIKELY(port==NULL)) return NOTOK;
@@ -430,7 +430,7 @@ int32_t serialRead(CSOUND *csound, SERIALREAD *p)
 int32_t serialPrint(CSOUND *csound, SERIALPRINT *p)
 {
     char str[32769];
-#ifdef WIN32
+#ifdef _WIN32
     size_t bytes;
     HANDLE port = get_port(csound, (int32_t)*p->port);
     if (UNLIKELY(port==NULL)) return NOTOK;
@@ -449,7 +449,7 @@ int32_t serialPrint(CSOUND *csound, SERIALPRINT *p)
 int32_t serialFlush(CSOUND *csound, SERIALFLUSH *p)
 {
      IGN(csound);
-#ifndef WIN32
+#ifndef _WIN32
     tcflush(*p->port, TCIFLUSH); // who knows if this works...
 #endif
     return OK;
@@ -490,7 +490,7 @@ int32_t serialPeekByte(CSOUND *csound, SERIALPEEK *p)
 typedef struct {
     CSOUND  *csound;
     void *thread;
-#ifdef WIN32
+#ifdef _WIN32
     HANDLE port;
 #else
     int32_t port;
@@ -529,7 +529,7 @@ typedef struct {
     ARDUINO_GLOBALS *q;
 } ARD_READF;
 
-#ifndef WIN32
+#ifndef _WIN32
 /* NOTE we need to remove timeout status VMIN/VTIME maybe */
 unsigned char arduino_get_byte(int32_t port)
 {
@@ -579,7 +579,7 @@ uintptr_t arduino_listen(void *p)
       csound->UnlockMutex(q->lock);
       // end critical region
       if (q->stop)
-        //#ifndef WIN32
+        //#ifndef _WIN32
         //pthread_exit(NULL);
         //#elsex
         return 0;
@@ -633,7 +633,7 @@ int32_t arduinoStart(CSOUND* csound, ARD_START* p)
     p->q = q;
     q->csound = csound;
     q->lock = csound->Create_Mutex(0);
-#ifdef WIN32
+#ifdef _WIN32
     q->port = get_port(csound, xx);
 #else
     q->port = xx;

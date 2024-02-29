@@ -28,7 +28,7 @@
 #include <fcntl.h>
 #endif
 
-#ifdef MACOSX
+#ifdef __APPLE__
 #include <unistd.h>
 #endif
 

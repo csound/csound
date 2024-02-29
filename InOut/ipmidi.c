@@ -27,7 +27,7 @@
 #define __HAIKU_CONFLICT
 
 #include <sys/types.h>
-#ifdef WIN32
+#ifdef _WIN32
 #include <winsock2.h>
 #include <ws2tcpip.h>
 #else
@@ -50,7 +50,7 @@ static int OpenMidiInDevice_(CSOUND *csound, void **userData, const char *dev)
     struct sockaddr_in saddr;
     struct ip_mreq mreq;
 
-#ifdef WIN32
+#ifdef _WIN32
     WSADATA wsaData;
     if (WSAStartup (MAKEWORD(2, 2), &wsaData) != 0) {
       fprintf(stderr, "%s", Str("WSAStartup failed!\n"));
@@ -74,7 +74,7 @@ static int OpenMidiInDevice_(CSOUND *csound, void **userData, const char *dev)
 
     status = bind(sock, (struct sockaddr *) &saddr, sizeof(struct sockaddr_in));
     if ( status < 0 ) {
-#ifdef WIN32
+#ifdef _WIN32
       char *buff = strerror(errno);
       printf("WSAGetLastError() = %d\n", WSAGetLastError());
 #else
@@ -94,7 +94,7 @@ static int OpenMidiInDevice_(CSOUND *csound, void **userData, const char *dev)
                         (const char *)&mreq, sizeof(mreq));
 
     if ( status < 0 ) {
-#ifdef WIN32
+#ifdef _WIN32
         char *buff = strerror(errno);
         csound->ErrorMsg(csound, "WSAGetLastError() = %d\n", WSAGetLastError());
         return -1;
@@ -132,7 +132,7 @@ static int ReadMidiData_(CSOUND *csound, void *userData,
 
     rc = select(sock + 1, &rset, NULL, NULL, &timeout);
     if (rc > 0) {
-#ifdef WIN32
+#ifdef _WIN32
       n = recv(sock, mbuf, nbytes, 0);
 #else
       n = read(sock, mbuf, nbytes);
@@ -150,7 +150,7 @@ static int CloseMidiInDevice_(CSOUND *csound, void *userData)
     int             sock = *((int *) userData);
     //printf("CloseMidiInDevice_\n");
     close(sock);
-#ifdef WIN32
+#ifdef _WIN32
     WSACleanup();
 #endif
     return 0;

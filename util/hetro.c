@@ -28,7 +28,7 @@
 
 //#define DEBUG 1
 
-#ifndef WIN32
+#ifndef _WIN32
 #include <unistd.h>
 #endif
 #define INCSDIF 1

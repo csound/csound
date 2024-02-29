@@ -35,7 +35,7 @@
    with portmidi.lib built with MSVC AND with Windows
    libraries from MinGW (missing __wassert).
 */
-#if defined(WIN32) && !defined(MSVC)
+#if defined(_WIN32) && !defined(MSVC)
 
 void _wassert(wchar_t *condition)
 {
@@ -130,7 +130,7 @@ static int stop_portmidi(CSOUND *csound, void *userData)
 {
     (void) csound;
     (void) userData;
-#if !defined(WIN32)
+#if !defined(_WIN32)
     csoundLock();
 #endif
     if (portmidi_init_cnt) {
@@ -139,7 +139,7 @@ static int stop_portmidi(CSOUND *csound, void *userData)
         Pt_Stop();
       }
     }
-#if !defined(WIN32)
+#if !defined(_WIN32)
     csoundUnLock();
 #endif
     return 0;
@@ -149,7 +149,7 @@ static int start_portmidi(CSOUND *csound)
 {
     const char  *errMsg = NULL;
 
-#if !defined(WIN32)
+#if !defined(_WIN32)
     csoundLock();
 #endif
     if (!portmidi_init_cnt) {
@@ -161,14 +161,14 @@ static int start_portmidi(CSOUND *csound)
 
     if (errMsg == NULL)
       portmidi_init_cnt++;
-#if !defined(WIN32)
+#if !defined(_WIN32)
     csoundUnLock();
 #endif
     if (UNLIKELY(errMsg != NULL)) {
       csound->ErrorMsg(csound, "%s", Str(errMsg));
       return -1;
     }
-    //#if !defined(WIN32)
+    //#if !defined(_WIN32)
     //csound_global_mutex_unlock();
     //#endif
     return csound->RegisterResetCallback(csound, NULL, stop_portmidi);

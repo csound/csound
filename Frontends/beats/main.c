@@ -69,7 +69,7 @@ int main(int argc, char **argv)
     }
     time(&timep);
 
-#ifndef LINUX
+#ifndef __gnu_linux__
     {
       struct tm *date_ptr = localtime(&timep);
       memcpy(&tm, date_ptr, sizeof(struct tm));

@@ -47,7 +47,7 @@
 #  ifdef HAVE_TERMIOS_H
 #    include <termios.h>
 #  endif
-#elif defined(WIN32)
+#elif defined(_WIN32)
 #  include <conio.h>
 #endif
 
@@ -1778,7 +1778,7 @@ int32_t sensekey_perf(CSOUND *csound, KSENSE *p)
         if (!p->evtbuf) {
 #if defined(__unix) || defined(__unix__) || defined(__MACH__)
             if (csound->inChar_ < 0) {
-#  if defined(WIN32)
+#  if defined(_WIN32)
                 setvbuf(stdin, NULL, _IONBF, 0);  /* Does not seem to work */
 #  elif defined(HAVE_TERMIOS_H)
                 struct termios  tty;
@@ -1819,7 +1819,7 @@ int32_t sensekey_perf(CSOUND *csound, KSENSE *p)
             else if (retval<0) perror(Str("sensekey error:"));
 #else
             unsigned char ch = (unsigned char) '\0';
-#  ifdef WIN32
+#  ifdef _WIN32
         if (_kbhit())
           ch = (unsigned char) _getch();
 #  else

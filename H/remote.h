@@ -25,7 +25,7 @@
 #define CSOUND_REMOTE_H
 
 #ifdef HAVE_SOCKETS
-  #if defined(WIN32) && !defined(__CYGWIN__)
+  #if defined(_WIN32) && !defined(__CYGWIN__)
     #include <winsock2.h>
     #ifndef SHUT_RDWR
       #define SHUT_RD   0x00
@@ -39,10 +39,10 @@
     #endif
     #include <sys/socket.h>
     #include <netinet/in.h>
-    #ifdef MACOSX
+    #ifdef __APPLE__
       #include <net/if.h>
     #endif
-    #ifdef LINUX
+    #ifdef __gnu_linux__
       #include <linux/if.h>
     #endif
     #include <arpa/inet.h>

@@ -26,7 +26,7 @@
 
 #ifdef PARCS
 // Semaphone.h only exists when using pthreads, doesn't apply to Windows
-#ifndef WIN32
+#ifndef _WIN32
   #include <semaphore.h>
 #endif
 
@@ -42,7 +42,7 @@
 
 #if !defined(HAVE_PTHREAD_SPIN_LOCK)
 // Windows environment should use native threads
-# if WIN32
+# if _WIN32
  #define TAKE_LOCK(x) csoundLockMutex(x)
  #define RELS_LOCK(x) csoundUnlockMutex(x)
  #define LOCK_TYPE  LPCRITICAL_SECTION
@@ -177,7 +177,7 @@ struct set_t *csp_set_intersection(CSOUND *csound, struct set_t *first,
 // Kludge to allow us to pass in HANDLE objects to be used as semaphore whilst
 // supporting the traditional pthread way for non Windows platforms
 // FIXME, does this even work? API's take ** versions of sem_t
-#ifdef WIN32
+#ifdef _WIN32
 typedef HANDLE sem_t;
 #endif
 

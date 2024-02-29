@@ -25,7 +25,7 @@
 /*                                              RTPA.C for PortAudio    */
 
 #include "csdl.h"
-#if !defined(WIN32)
+#if !defined(_WIN32)
 #include "soundio.h"
 #endif
 #include <portaudio.h>
@@ -62,7 +62,7 @@ typedef struct PA_BLOCKING_STREAM_ {
   csRtAudioParams outParm;
   PaStreamParameters inputPaParameters;
   PaStreamParameters outputPaParameters;
-#ifdef WIN32
+#ifdef _WIN32
   int         paused;                 /* VL: to allow for smooth pausing  */
 #endif
   int         paLockTimeout;
@@ -439,7 +439,7 @@ static int paBlockingReadWriteStreamCallback(const void *input,
   }
   //#endif
 
-#ifdef WIN32
+#ifdef _WIN32
   if (pabs->paStream == NULL
       || pabs->paused
       ) {
@@ -454,7 +454,7 @@ static int paBlockingReadWriteStreamCallback(const void *input,
   if (!pabs->noPaLock)
 #endif
     /*#ifndef __MACH__*/
-    /*#  ifdef WIN32 */
+    /*#  ifdef _WIN32 */
     err = csound->WaitThreadLock(pabs->paLock, (size_t) pabs->paLockTimeout);
   /*#  else
     err = csound->WaitThreadLock(pabs->paLock, (size_t) 500);
@@ -480,7 +480,7 @@ static int paBlockingReadWriteStreamCallback(const void *input,
 } while (++i < n);
 }
   else {
-#ifdef WIN32
+#ifdef _WIN32
   pabs->paused = err;
 #endif
   paClearOutputBuffer(pabs, paOutput);
@@ -542,7 +542,7 @@ static int paBlockingReadWriteStreamCallback(const void *input,
   pabs = (PA_BLOCKING_STREAM*) *(csound->GetRtPlayUserData(csound));
   if (pabs == NULL)
     return;
-#ifdef WIN32
+#ifdef _WIN32
   pabs->paused = 0;
 #endif
 
@@ -680,7 +680,7 @@ static int paBlockingReadWriteStreamCallback(const void *input,
   memset(&streamParams, 0, sizeof(PaStreamParameters));
   streamParams.hostApiSpecificStreamInfo = NULL;
   if (UNLIKELY(parm->devName != NULL && parm->devName[0] != '\0')) {
-#if !defined(LINUX)
+#if !defined(__gnu_linux__)
     listPortAudioDevices_blocking(p, 1, play);
     pa_PrintErrMsg(p, "%s", Str("Must specify a device number, not a name"));
     return -1;
@@ -856,7 +856,7 @@ static void rtclose_blocking(CSOUND *csound)
   }
 }
 
-#ifdef WIN32
+#ifdef _WIN32
 #ifdef __cplusplus
 extern "C"
 {
@@ -876,7 +876,7 @@ static void PaNoOpDebugPrint(const char* msg) {
 PUBLIC int csoundModuleCreate(CSOUND *csound)
 {
   IGN(csound);
-#ifdef WIN32
+#ifdef _WIN32
   PaUtil_SetDebugPrintFunction(PaNoOpDebugPrint);
 #endif
   /* nothing to do, report success */
@@ -904,7 +904,7 @@ PUBLIC int csoundModuleInit(CSOUND *csound)
   }
   csound->ErrorMsg(csound, "%s", Str("rtaudio: PortAudio module enabled ...\n"));
   /* set function pointers */
-#ifdef LINUX
+#ifdef __gnu_linux__
   if (strcmp(drv, "PA_CB") != 0)
 #else
     if (strcmp(drv, "PA_BL") == 0)
