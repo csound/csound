@@ -102,8 +102,11 @@ if (CMAKE_HOST_SYSTEM_NAME MATCHES "Darwin")
     if (BREW_BISON EQUAL 0 AND EXISTS "${BREW_BISON_PREFIX}")
         message(STATUS "Found Bison keg installed by Homebrew at ${BREW_BISON_PREFIX}")
         set(BISON_EXECUTABLE "${BREW_BISON_PREFIX}/bin/bison")
+    elseif(EXISTS "/usr/local/bin/bison")
+        message(STATUS "Bison in /usr/local/bin")
+        set(BISON_EXECUTABLE "/usr/local/bin/bison") 
     endif()
-
+    
     execute_process(
         COMMAND brew --prefix flex
         RESULT_VARIABLE BREW_FLEX
@@ -113,7 +116,11 @@ if (CMAKE_HOST_SYSTEM_NAME MATCHES "Darwin")
     if (BREW_FLEX EQUAL 0 AND EXISTS "${BREW_FLEX_PREFIX}")
         message(STATUS "Found Flex keg installed by Homebrew at ${BREW_FLEX_PREFIX}")
         set(FLEX_EXECUTABLE "${BREW_FLEX_PREFIX}/bin/flex")
+   elseif(EXISTS "/usr/local/bin/flex")
+        message(STATUS "Flex in /usr/local/bin")
+        set(FLEX_EXECUTABLE "/usr/local/bin/flex") 
     endif()
+    
 endif()
 
 ### COMPILER OPTIMIZATION FLAGS
