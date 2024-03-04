@@ -1,5 +1,5 @@
 #!/bin/sh
-export RELEASE_DIR=csound-iOS-6.18.0
+export RELEASE_DIR=csound-iOS-7.0.0
 
 #remove backup files ending with ~
 find . -name "*~" -exec rm {} \;
@@ -21,6 +21,10 @@ cp -R ../Csound\ iOS\ Obj-C\ Examples .
 cp -R ../Csound\ iOS\ Swift\ Examples .
 cp Csound\ iOS\ Obj-C\ Examples/LICENSE.TXT .
 cp ../CHANGELOG .
+
+
+cp -rf ../libsndfile/build/xcframeworks/libSndfileiOS.xcframework .
+cp -rf ../cs7iOS/xcframeworks/CsoundiOS.xcframework .
 
 cd ..
 zip -r ${RELEASE_DIR}.zip ${RELEASE_DIR}
