@@ -78,6 +78,27 @@ jobs:
       - name: Run integration and unit tests
         run: cmake --build build --target test csdtests
 
+  iOS_build:
+    name: iOS build
+    runs-on: macos-latest
+    steps:
+      - name: update bison
+        run: brew install bison && echo 'export PATH="/usr/local/opt/bison/bin:$PATH"' >> /Users/runner/.bash_profile
+      - name: Checkout Source Code
+        uses: actions/checkout@v1
+        with:
+          fetch-depth: 1
+      - name: Build libsndfile xcframework
+        run: cd iOS && chmod +x build_libsndfile.sh && ./build_libsndfile.sh
+      - name: Build Csound iOS xcframework
+        run: cd iOS && ./build.sh
+      - name: Create package zip
+        run: cd iOS && ./release.sh
+      - uses: actions/upload-artifact@v4
+        with:
+          name: iOS-builds
+          path: iOS/csound-iOS-7.0.0 # or path/to/artifact
+
   macos_build_brew:
     name: MacOS build (brew)
     runs-on: macos-latest

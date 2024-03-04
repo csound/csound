@@ -1075,21 +1075,25 @@ if(APPLE)
     set(libcsound_SRCS "${libcsound_SRCS};${csheaders};${H_headers};${CMAKE_CURRENT_BINARY_DIR}/include/float-version.h;${CMAKE_CURRENT_BINARY_DIR}/include/version.h")
 endif()
 
-add_library(${CSOUNDLIB} SHARED ${libcsound_SRCS})
-target_include_directories(${CSOUNDLIB} PRIVATE ${libcsound_private_include_dirs})
-target_include_directories(${CSOUNDLIB} PUBLIC ${libcsound_public_include_dirs})
-set_target_properties(${CSOUNDLIB} PROPERTIES SOVERSION ${APIVERSION})
+if(NOT IOS)
+    add_library(${CSOUNDLIB} SHARED ${libcsound_SRCS})
+    target_include_directories(${CSOUNDLIB} PRIVATE ${libcsound_private_include_dirs})
+    target_include_directories(${CSOUNDLIB} PUBLIC ${libcsound_public_include_dirs})
+    set_target_properties(${CSOUNDLIB} PROPERTIES SOVERSION ${APIVERSION})
+endif()
 
 if(INIT_STATIC_MODULES)
     set_target_properties(${CSOUNDLIB} PROPERTIES COMPILE_FLAGS "-DINIT_STATIC_MODULES")
 endif()
 
 if(APPLE)
-    set_target_properties(${CSOUNDLIB} PROPERTIES FRAMEWORK YES)
-    set_target_properties(${CSOUNDLIB} PROPERTIES FRAMEWORK_VERSION "${APIVERSION}")
-    set_target_properties(${CSOUNDLIB} PROPERTIES PUBLIC_HEADER
-        "${csheaders};${CMAKE_CURRENT_BINARY_DIR}/include/float-version.h;${CMAKE_CURRENT_BINARY_DIR}/include/version.h"
-    )
+    if(NOT IOS)
+        set_target_properties(${CSOUNDLIB} PROPERTIES FRAMEWORK YES)
+        set_target_properties(${CSOUNDLIB} PROPERTIES FRAMEWORK_VERSION "${APIVERSION}")
+        set_target_properties(${CSOUNDLIB} PROPERTIES PUBLIC_HEADER
+            "${csheaders};${CMAKE_CURRENT_BINARY_DIR}/include/float-version.h;${CMAKE_CURRENT_BINARY_DIR}/include/version.h"
+        )
+    endif()
 endif()
 
 # Add the install target
@@ -1100,11 +1104,13 @@ if(WIN32)
         ARCHIVE DESTINATION "${LIBRARY_INSTALL_DIR}"
         FRAMEWORK DESTINATION "${CS_FRAMEWORK_DEST}")
 else()
-    install(TARGETS ${CSOUNDLIB}
-        EXPORT CsoundExports
-        LIBRARY DESTINATION "${LIBRARY_INSTALL_DIR}"
-        ARCHIVE DESTINATION "${LIBRARY_INSTALL_DIR}"
-        FRAMEWORK DESTINATION "${CS_FRAMEWORK_DEST}")
+    if(NOT IOS)
+        install(TARGETS ${CSOUNDLIB}
+            EXPORT CsoundExports
+            LIBRARY DESTINATION "${LIBRARY_INSTALL_DIR}"
+            ARCHIVE DESTINATION "${LIBRARY_INSTALL_DIR}"
+            FRAMEWORK DESTINATION "${CS_FRAMEWORK_DEST}")
+    endif()
 endif()
 
 if (LINUX)
@@ -1255,22 +1261,30 @@ if(BIG_ENDIAN)
     list(APPEND libcsound_CFLAGS -DWORDS_BIGENDIAN)
 endif()
 
-target_compile_options(${CSOUNDLIB} PRIVATE ${libcsound_CFLAGS})
+if(NOT IOS)
+    target_compile_options(${CSOUNDLIB} PRIVATE ${libcsound_CFLAGS})
+endif()
 
 if(MSVC)
     target_link_libraries(${CSOUNDLIB} PRIVATE ws2_32)
 else()
-    target_link_libraries(${CSOUNDLIB} PRIVATE ${libcsound_LIBS})
+    if(NOT IOS)
+        target_link_libraries(${CSOUNDLIB} PRIVATE ${libcsound_LIBS})
+    endif()
 endif()
 
 if(USE_LIBSNDFILE)
-    target_link_libraries(${CSOUNDLIB} PUBLIC SndFile::sndfile)
+    if(NOT IOS)
+        target_link_libraries(${CSOUNDLIB} PUBLIC SndFile::sndfile)
+    endif()
 endif()
 
-set_target_properties(${CSOUNDLIB} PROPERTIES
-    RUNTIME_OUTPUT_DIRECTORY ${BUILD_BIN_DIR}
-    LIBRARY_OUTPUT_DIRECTORY ${BUILD_LIB_DIR}
-    ARCHIVE_OUTPUT_DIRECTORY ${BUILD_LIB_DIR})
+if(NOT IOS)
+    set_target_properties(${CSOUNDLIB} PROPERTIES
+        RUNTIME_OUTPUT_DIRECTORY ${BUILD_BIN_DIR}
+        LIBRARY_OUTPUT_DIRECTORY ${BUILD_LIB_DIR}
+        ARCHIVE_OUTPUT_DIRECTORY ${BUILD_LIB_DIR})
+endif()
 
 if(BUILD_STATIC_LIBRARY)
     add_library(${CSOUNDLIB_STATIC} STATIC ${libcsound_SRCS})
