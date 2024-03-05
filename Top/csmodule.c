@@ -1201,7 +1201,7 @@ extern int32_t date_localops_init(CSOUND *, void *);
 extern int32_t system_localops_init(CSOUND *, void *);
 extern int32_t liveconv_localops_init(CSOUND *, void *);
 extern int32_t gamma_localops_init(CSOUND *, void *);
-extern int32_t quadbezier_localops_init(CSOUND *, void *);
+extern int32_t quadbezier_fgens_init(CSOUND *, void *);
 extern int32_t framebuffer_localops_init(CSOUND *, void *);
 extern int32_t cell_localops_init(CSOUND *, void *);
 extern int32_t exciter_localops_init(CSOUND *, void *);
@@ -1297,7 +1297,7 @@ typedef NGFENS* (*FGINITFN)(CSOUND *);
 NGFENS *ftest_fgens_init(CSOUND *);
 NGFENS *farey_fgens_init(CSOUND *);
 
-const FGINITFN fgentab[] = {  ftest_fgens_init, farey_fgens_init, NULL };
+const FGINITFN fgentab[] = {  ftest_fgens_init, farey_fgens_init, quadbezier_fgens_init, NULL };
 
 CS_NOINLINE int csoundInitStaticModules(CSOUND *csound)
 {
