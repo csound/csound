@@ -1,4 +1,5 @@
 # UTILITY PLUGIN AND PROGRAMS
+option(BUILD_SRC_CONV "Build src_conv utility" ON)
 
 set(stdutil_SRCS
     atsa.c          cvanal.c        dnoise.c    envext.c
@@ -8,12 +9,8 @@ set(stdutil_SRCS
     sndinfo.c       srconv.c        std_util.c  xtrct.c
     SDIF/sdif.c   ../InOut/soundfile.c)
 
-if(USE_VCPKG)
-    set(LIBSNDFILE_LIBRARY SndFile::sndfile)
-endif()
-
 if(BUILD_UTILITIES)
-   make_plugin(stdutil "${stdutil_SRCS}" ${MATH_LIBRARY} ${LIBSNDFILE_LIBRARY} ${LIBSNDFILE_SUPPORT_LIBS})
+   make_plugin(stdutil "${stdutil_SRCS}" ${MATH_LIBRARY} SndFile::sndfile)
     make_utility(atsa        atsa_main.c)
     make_utility(csanalyze   csanalyze.c)
     make_utility(cvanal      cvl_main.c)
@@ -35,17 +32,18 @@ if(BUILD_UTILITIES)
     make_utility(sndinfo     sndinfo_main.c)
     make_utility(srconv      srconv_main.c)
 
-    if (USE_VCPKG)
-        find_package(SampleRate REQUIRED)
-        set(LIBSAMPLERATE_LIBRARY SampleRate::samplerate)
-    else ()
-        find_library(LIBSAMPLERATE_LIBRARY NAMES samplerate libsamplerate-0)
+    if (BUILD_SRC_CONV)
+        if (USE_VCPKG)
+            find_package(SampleRate CONFIG REQUIRED)
+            assign_bool(SampleRate_FOUND TARGET SampleRate::samplerate)
+        else()
+            find_package(SampleRate MODULE)
+        endif()
     endif()
 
-    if(USE_LIBSNDFILE AND LIBSAMPLERATE_LIBRARY)
-        make_executable(src_conv new_srconv.c "${LIBSNDFILE_LIBRARY};${LIBSAMPLERATE_LIBRARY}")
-    else()
-        message(STATUS "Not building src_conv (libsndfile or libsamplerate not found).")
+    check_deps(BUILD_SRC_CONV USE_LIBSNDFILE SampleRate_FOUND)
+    if (BUILD_SRC_CONV)
+        make_executable(src_conv new_srconv.c "SndFile::sndfile;SampleRate::samplerate")
     endif()
 
 endif()

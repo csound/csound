@@ -1019,6 +1019,8 @@ void xturnoff(CSOUND *csound, INSDS *ip)  /* turnoff a particular insalloc  */
 /* Removes alloc from list of active MIDI notes. */
 void xturnoff_now(CSOUND *csound, INSDS *ip)
 {
+  if (ip->xtratim > 0 && ip->relesing)
+    csound->engineState.instrtxtp[ip->insno]->pending_release--;
   ip->xtratim = 0;
   ip->relesing = 0;
   xturnoff(csound, ip);

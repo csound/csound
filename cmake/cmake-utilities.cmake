@@ -9,8 +9,6 @@
 #
 function(make_executable name srcs libs)
     add_executable(${name} ${srcs})
-    target_include_directories(${name} PRIVATE ${libcsound_private_include_dirs})
-    target_include_directories(${name} PUBLIC ${libcsound_public_include_dirs})
     target_link_libraries (${name} PRIVATE ${libs})
     set_target_properties(${name} PROPERTIES
         RUNTIME_OUTPUT_DIRECTORY ${BUILD_BIN_DIR})
@@ -39,7 +37,7 @@ endfunction()
 #
 function(make_utility name srcs)
     make_executable(${name} "${srcs}" "${CSOUNDLIB}")
-    add_dependencies(${name} ${CSOUNDLIB})
+    target_include_directories(${name} PRIVATE ${libcsound_private_include_dirs})
     set(i 2)
     while( ${i} LESS ${ARGC} )
         target_link_libraries(${name} PRIVATE ${ARGV${i}})
@@ -105,7 +103,7 @@ function(make_plugin libname srcs)
         target_link_libraries(${libname} PRIVATE ${ARGV${i}})
         math(EXPR i "${i}+1")
     endwhile()
-
+  
     if (LINUX)
         set_target_properties(${libname} PROPERTIES
             # back to install prefix from plugins folder, then into lib

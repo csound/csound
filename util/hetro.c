@@ -597,9 +597,31 @@ static void output(HET *t, int32 smpl, int32_t hno, int32_t pnt)
     }
 }
 
+static const char *hetro_usage_txt[] = {
+  Str_noop("Usage: hetro [options...] inputSoundfile outputfile"),
+  Str_noop("Options:"),
+  Str_noop("    -s <samplerate>"),
+  Str_noop("    -c <channel>"),
+  Str_noop("    -b <beginTime>"),
+  Str_noop("    -d <duration>"),
+  Str_noop("    -f <fundamental estimate"),
+  Str_noop("    -h <harmonic count>"),
+  Str_noop("    -M <maximum amplitide>"),
+  Str_noop("    -m <minimum amplitide>"),
+  Str_noop("    -n <number of output points>"),
+  Str_noop("    -l <filter cutoff>"),
+  Str_noop("    -X <newformat>"),
+  Str_noop("    -x <oldformat>"),
+  Str_noop("    -- <log file>"),
+    NULL
+};
+
 static int32_t quit(CSOUND *csound, char *msg)
 {
+    int i;
     csound->ErrorMsg(csound, Str("hetro:  %s\n\tanalysis aborted"), msg);
+    for (i = 0; hetro_usage_txt[i] != NULL; i++)
+      csound->Message(csound, "%s\n", Str(hetro_usage_txt[i]));
     return -1;
 }
 

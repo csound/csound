@@ -60,7 +60,7 @@ typedef struct {
 typedef struct {
     OPDS        h;
     MYFLT       *res;           /*  state */
-    ARRAYDAT    *riff;          /* opy intervnal array */
+    ARRAYDAT    *riff;          /* copy intervnal array */
     MYFLT       *id;
     SEQ         *q;
 } SEQSTATE;
@@ -82,8 +82,8 @@ static int32_t sequencer_init(CSOUND *csound, SEQ *p)
     p->direction = 1;            /* forwards */
     for (i = 0; i<p->riff->sizes[0]; i++)
       p->seq[i] = i;
-    /* for (i=0; i<p->riff->sizes[0]; i++) */
-    /*   printf("%d: %d %f\n", i, (int)(p->instr->data[i]), p->riff->data[i]); */
+    for (i=0; i<p->riff->sizes[0]; i++)
+      printf("%d: %d %f\n", i, (int)(p->instr->data[i]), p->riff->data[i]);
     SEQ **q;
 
     if ((int)(*p->id)<0 || (int)(*p->id)>9)
@@ -121,9 +121,11 @@ static int32_t sequencer(CSOUND *csound, SEQ *p)
       if (*p->verbos) printf("RESET!!\n");
       goto minus7;
     }
-    else if (p->time > 0) {         /* Not yet time to act */
+    else if (p->time > csound->ksmps) {         /* Not yet time to act */
+      //printf("**time= %d", p->time);
       p->time -= csound->ksmps;
       *p->res = -FL(1.0);
+      //printf(" -> %d\n", p->time);
       return OK;
     }
     /* Time for an event */
@@ -198,10 +200,10 @@ static int32_t sequencer(CSOUND *csound, SEQ *p)
         char buff[100];
         if (p->data->dimensions==2) {
           int j;
-          snprintf(buff, 99, "i %0.2f 0 %f ",
+          snprintf(buff, 99, "i %0.2f 0 %g ",
                   inst, 60.0/(*p->kbpm)*p->riff->data[p->seq[i]]);
           for (j=0; j< p->data->sizes[0]; j++)
-            snprintf(buff+strlen(buff), 99-strlen(buff), "%f ",
+            snprintf(buff+strlen(buff), 99-strlen(buff), "%g ",
                     p->data->data[(j*p->max_length)+p->seq[i]]);
           snprintf(buff+strlen(buff), 99-strlen(buff), "\n");
         }
@@ -209,13 +211,12 @@ static int32_t sequencer(CSOUND *csound, SEQ *p)
           sprintf(buff, "i %0.2f 0 %f %f\n",
                   inst, 60.0/(*p->kbpm)*p->riff->data[p->seq[i]],
                   p->data->data[p->seq[i]]);
-        //printf("%s", buff);
+        //printf("***Score;ine:%s", buff);
         csoundReadScore(csound, buff); /* schedule instr for event */
       }
       p->time = (p->riff->data[i] * csound->esr * 60.0) / *p->kbpm;
-      if (*p->verbos)
-        printf("Step %d riff %d instr %0.2f len %f\n",
-               i,p->seq[i], p->instr->data[p->seq[i]], p->riff->data[p->seq[i]]);
+            /* printf("Step %d riff %d instr %0.4f len %f\n", */
+            /*    i,p->seq[i], p->instr->data[p->seq[i]], p->riff->data[p->seq[i]]); */
       // Mutate every mode events
       if (mode > 0 && len>1 && p->cnt%mode == 0) {
         int r1, r2;

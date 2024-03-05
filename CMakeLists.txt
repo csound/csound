@@ -1,4 +1,9 @@
-cmake_minimum_required(VERSION 3.5)
+if (APPLE)
+    cmake_minimum_required(VERSION 3.28)
+else()
+    cmake_minimum_required(VERSION 3.13.4)
+endif()
+
 cmake_policy(SET CMP0077 NEW)
 
 include(cmake/cmake-utilities.cmake)
@@ -89,6 +94,7 @@ include(CheckCXXCompilerFlag)
 include(CMakePushCheckState)
 
 list(APPEND CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/cmake/Modules/)
+list(APPEND CMAKE_PREFIX_PATH /usr /usr/local /opt/local /sw)
 message(STATUS "CMake module path: ${CMAKE_MODULE_PATH}")
 
 if (CMAKE_HOST_SYSTEM_NAME MATCHES "Darwin")
@@ -101,8 +107,11 @@ if (CMAKE_HOST_SYSTEM_NAME MATCHES "Darwin")
     if (BREW_BISON EQUAL 0 AND EXISTS "${BREW_BISON_PREFIX}")
         message(STATUS "Found Bison keg installed by Homebrew at ${BREW_BISON_PREFIX}")
         set(BISON_EXECUTABLE "${BREW_BISON_PREFIX}/bin/bison")
+    elseif(EXISTS "/usr/local/bin/bison")
+        message(STATUS "Bison in /usr/local/bin")
+        set(BISON_EXECUTABLE "/usr/local/bin/bison") 
     endif()
-
+    
     execute_process(
         COMMAND brew --prefix flex
         RESULT_VARIABLE BREW_FLEX
@@ -112,7 +121,11 @@ if (CMAKE_HOST_SYSTEM_NAME MATCHES "Darwin")
     if (BREW_FLEX EQUAL 0 AND EXISTS "${BREW_FLEX_PREFIX}")
         message(STATUS "Found Flex keg installed by Homebrew at ${BREW_FLEX_PREFIX}")
         set(FLEX_EXECUTABLE "${BREW_FLEX_PREFIX}/bin/flex")
+   elseif(EXISTS "/usr/local/bin/flex")
+        message(STATUS "Flex in /usr/local/bin")
+        set(FLEX_EXECUTABLE "/usr/local/bin/flex") 
     endif()
+    
 endif()
 
 ### COMPILER OPTIMIZATION FLAGS
@@ -233,6 +246,9 @@ if(WIN32 AND NOT MSVC)
     endif()
     set(CMAKE_MODULE_LINKER_FLAGS "${CMAKE_MODULE_LINKER_FLAGS} -Wl,--add-stdcall-alias")
 endif()
+
+
+
 
 if(WIN32)
     set(CMAKE_SHARED_LIBRARY_PREFIX "")
@@ -428,14 +444,15 @@ TEST_BIG_ENDIAN(BIG_ENDIAN)
 if(USE_LIBSNDFILE)
     if(USE_VCPKG)
         find_package(SndFile CONFIG REQUIRED)
+        assign_bool(SndFile_FOUND TARGET SndFile::sndfile)
     else()
-        find_library(LIBSNDFILE_LIBRARY NAMES sndfile libsndfile-1 libsndfile FLAC ogg vorbis opus mp3lame mpg123)
-        if(NOT LIBSNDFILE_LIBRARY)
-            message(STATUS "libsndfile not found")
-            set(USE_LIBSNDFILE 0)
-        endif()
+        find_package(SndFile MODULE)
     endif()
 endif()
+check_deps(USE_LIBSNDFILE SndFile_FOUND)
+
+# this makes sure make_plugin() can find headers
+list(APPEND libcsound_private_include_dirs ${SndFile_INCLUDE_DIR})
 
 # carry on setting up libsndifle if so
 if(USE_LIBSNDFILE)
@@ -445,15 +462,8 @@ if(USE_LIBSNDFILE)
         list(APPEND libcsound_private_include_dirs ${Csound_SOURCE_DIR}/emscripten/deps/libsndfile-1.0.25/src/)
     endif()
 
-    find_path(SNDFILE_H_PATH sndfile.h)
-    if(SNDFILE_H_PATH)
-        list(APPEND libcsound_private_include_dirs ${SNDFILE_H_PATH})
-    else()
-        message(FATAL_ERROR "Could not find sndfile.h")
-    endif()
-
-    list(APPEND CMAKE_REQUIRED_LIBRARIES ${LIBSNDFILE_LIBRARY})
-    list(APPEND CMAKE_REQUIRED_INCLUDES ${SNDFILE_H_PATH})
+    # add to required libraries so we can check for MIDI support
+    list(APPEND CMAKE_REQUIRED_LIBRARIES SndFile::sndfile)
 
     check_c_source_compiles("#include <sndfile.h>
     int main(int argc, char** argv) {
@@ -470,8 +480,6 @@ if(USE_LIBSNDFILE)
     else()
         message(STATUS  "NOT Using libsndfile MP3 support")
     endif()
-else()
-    message(STATUS  "NOT Using libsndfile")
 endif()
 
 find_package(CURL)
@@ -484,27 +492,8 @@ assign_bool(NOT_WINDOWS_THREADS NOT CMAKE_USE_WIN32_THREADS_INIT)
 check_deps(REQUIRE_PTHREADS Threads_FOUND NOT_WINDOWS_THREADS)
 
 if(REQUIRE_PTHREADS)
- if(APPLE)
-   list(APPEND CMAKE_REQUIRED_LBRARIES Threads::Threads)
- else()
-   find_library(PTHREAD_LIBRARY pthread)
-   message(STATUS, "find library for pthread" ${PTHREAD_LIBRARY})
-   list(APPEND CMAKE_REQUIRED_LBRARIES "/usr/lib64/libpthread.so")
-   if(NOT PTHREAD_LIBRARY)
-    find_library(PTHREAD_LIBRARY pthreadGC2)
-   endif()
- endif()
- if(NOT (PTHREAD_LIBRARY OR HAIKU))
-      # pthreads are built in to Haiku
-      message(STATUS "Csound requires the pthread library")
- endif()
-  list(APPEND CMAKE_REQUIRED_INCLUDES pthread.h)
-  if (NOT HAIKU)
-    list(APPEND CMAKE_REQUIRED_LIBRARIES pthread)
-  endif()
+    list(APPEND CMAKE_REQUIRED_LIBRARIES Threads::Threads)
 endif()
-
-message(STATUS "CMAKE_REQUIRED_LIBRARIES is " ${CMAKE_REQUIRED_LBRARIES})
 
 # Now, non required library searches
 option(USE_ATOMIC_BUILTIN "Use Atomic Builtins if supported" ON)
@@ -637,8 +626,6 @@ if(REQUIRE_PTHREADS)
      list(APPEND libcsound_CFLAGS -DHAVE_PTHREAD_BARRIER_INIT)
   endif()
 endif()
-
-list(APPEND libcsound_private_include_dirs ${LIBSNDFILE_INCLUDE_DIRECTORY})
 
 # get the git hash and pass it to csound
 set(git_hash_values "none")
@@ -1126,18 +1113,11 @@ if (LINUX)
     )
 endif()
 
-# TODO include target rather than libs to also bring in transitive dependencies
-set(libcsound_LIBS ${LIBSNDFILE_LIBRARY})
+set(libcsound_LIBS "")
 
 if(REQUIRE_PTHREADS)
- if(APPLE)
     list(APPEND libcsound_LIBS Threads::Threads)
- else()
-    list(APPEND libcsound_LIBS "pthread")
- endif()
 endif()
-
-message(STATUS "libraries now " ${libcsound_LIBS})
 
 if (HAVE_ATOMIC_BUILTIN)
     list(APPEND libcsound_LIBS ${ATOMIC_LIB})
@@ -1151,14 +1131,10 @@ if(USE_CURL AND CURL_FOUND)
   list(APPEND libcsound_LIBS ${CURL_LIBRARIES})
 endif()
 
-# Linux platforms may or may not have a separate libintl (may be a part of of libc)
-set(LIBINTL_AVAIL (LIBINTL_LIBRARY OR LINUX))
-check_deps(USE_GETTEXT LIBINTL_AVAIL GETTEXT_MSGFMT_EXECUTABLE)
+check_deps(USE_GETTEXT Intl_FOUND GETTEXT_FOUND)
 if(USE_GETTEXT)
     message(STATUS "Using GNU gettext.")
-    if(LIBINTL_LIBRARY)
-        list(APPEND libcsound_LIBS ${LIBINTL_LIBRARY})
-    endif()
+    list(APPEND libcsound_LIBS Intl::Intl)
     list(APPEND libcsound_CFLAGS -DGNU_GETTEXT)
     if(NOT DEFINED CSOUND_TEXTDOMAIN AND BUILD_RELEASE AND (LINUX))
         file(TO_NATIVE_PATH "${CMAKE_INSTALL_PREFIX}/${LOCALE_INSTALL_DIR}" CSOUND_TEXTDOMAIN)
@@ -1173,7 +1149,6 @@ if(USE_GETTEXT)
 else()
     message(STATUS "Not using localization.")
 endif()
-
 
 if(LINUX)
     message(STATUS "Building on Linux.")
@@ -1288,8 +1263,8 @@ else()
     target_link_libraries(${CSOUNDLIB} PRIVATE ${libcsound_LIBS})
 endif()
 
-if(USE_VCPKG)
-    target_link_libraries(${CSOUNDLIB} PRIVATE SndFile::sndfile)
+if(USE_LIBSNDFILE)
+    target_link_libraries(${CSOUNDLIB} PUBLIC SndFile::sndfile)
 endif()
 
 set_target_properties(${CSOUNDLIB} PROPERTIES
@@ -1309,6 +1284,9 @@ if(BUILD_STATIC_LIBRARY)
         set_target_properties(${CSOUNDLIB_STATIC} PROPERTIES COMPILE_FLAGS "-DINIT_STATIC_MODULES")
     endif()
 
+    if (USE_LIBSNDFILE)
+        target_link_libraries(${CSOUNDLIB_STATIC} PUBLIC SndFile::sndfile)
+    endif()
     if(MSVC)
         target_link_libraries(${CSOUNDLIB_STATIC} PRIVATE ${CSOUND_WINDOWS_LIBRARIES})
     else()
