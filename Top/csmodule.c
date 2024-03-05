@@ -1201,7 +1201,6 @@ extern int32_t date_localops_init(CSOUND *, void *);
 extern int32_t system_localops_init(CSOUND *, void *);
 extern int32_t liveconv_localops_init(CSOUND *, void *);
 extern int32_t gamma_localops_init(CSOUND *, void *);
-extern int32_t quadbezier_fgens_init(CSOUND *, void *);
 extern int32_t framebuffer_localops_init(CSOUND *, void *);
 extern int32_t cell_localops_init(CSOUND *, void *);
 extern int32_t exciter_localops_init(CSOUND *, void *);
@@ -1294,6 +1293,7 @@ const INITFN staticmodules[] = { hrtfopcodes_localops_init, babo_localops_init,
 */
 typedef NGFENS* (*FGINITFN)(CSOUND *);
 
+NGFENS *quadbezier_fgens_init(CSOUND *, void *);
 NGFENS *ftest_fgens_init(CSOUND *);
 NGFENS *farey_fgens_init(CSOUND *);
 
