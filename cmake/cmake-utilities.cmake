@@ -129,3 +129,16 @@ macro(assign_bool variable)
          set(${variable} OFF)
      endif()
 endmacro()
+
+function(generate_test test_name)
+    file(GENERATE OUTPUT "$<TARGET_FILE_DIR:csound-bin>/${test_name}.py"
+        INPUT "${test_name}.py.in"
+    )
+
+    add_test(
+        NAME ${test_name}
+        WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+        COMMAND ${Python3_EXECUTABLE}
+            "$<TARGET_FILE_DIR:csound-bin>/${test_name}.py"
+    )
+endfunction()

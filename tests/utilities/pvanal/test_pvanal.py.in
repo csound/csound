@@ -1,0 +1,7 @@
+#!/usr/bin/python3
+
+from test_helpers import check_input, run_command, check_output
+
+check_input("beats_input.wav")
+run_command("$<TARGET_FILE:pvanal>", "beats_input.wav", "beats_output.pvx")
+check_output("beats_output.pvx", "consistent output")

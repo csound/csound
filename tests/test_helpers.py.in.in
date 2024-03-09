@@ -1,0 +1,80 @@
+#!/usr/bin/python3
+
+import hashlib
+import os
+import subprocess
+
+# turn on to regenerate all checksums
+REGENERATE_CHECKSUMS = False
+
+# turn off to keep output
+CLEANUP = True
+
+class NoInput(Exception):
+    pass
+
+class NoFileGenerated(Exception):
+    pass
+
+class UnexpectedFileGenerated(Exception):
+    pass
+
+class ChecksumMismatch(Exception):
+    pass
+
+class UnexpectedResults(Exception):
+    pass
+
+# pass in plugin folder from cmake
+# built plugins should be in the same folder as the csound binary
+os.environ['OPCODE6DIR64'] = "$<TARGET_FILE_DIR:csound-bin>"
+os.environ['CS_USER_PLUGINDIR'] = "$<TARGET_FILE_DIR:csound-bin>"
+
+def check_input(input_file):
+    if not os.path.isfile(input_file):
+        raise NoInput(input_file)
+
+def check_output(output_filename, status):
+
+    output_generated = os.path.isfile(output_filename)
+        
+    if not output_generated:
+        if status == "no output":
+            return
+        raise NoFileGenerated(output_filename)
+    
+    # output was generated
+    if status == "no output":
+        if (CLEANUP):
+            os.remove(output_filename)
+        raise UnexpectedFileGenerated(output_filename)
+
+    with open(output_filename, 'rb') as wav_io:
+        # calculate checksum and turn it into human-readable hex digits
+        new_checksum = hashlib.md5(wav_io.read()).hexdigest()
+    if (CLEANUP):
+        os.remove(output_filename)
+
+    checksum_file = output_filename + ".checksum"
+    old_checksum_exists = os.path.isfile(checksum_file)
+    if old_checksum_exists and not REGENERATE_CHECKSUMS:
+        with open(checksum_file, 'r') as checksum_io:
+            old_checksum = checksum_io.read()
+        if old_checksum != new_checksum and status != "indeterminate output":
+            raise ChecksumMismatch(checksum_file + ": " + new_checksum)
+    else:
+        print("Generating checksum")
+        with open(checksum_file, 'w') as checksum_io:
+            checksum_io.write(new_checksum)
+
+def run_command(*arguments):
+    if ("@TEST_RUNNER@" != ""):
+        result = subprocess.run(["@TEST_RUNNER@", *arguments], capture_output=True)
+    else:
+        result = subprocess.run(arguments, capture_output=True)
+    
+    return (
+        result.stdout.decode("utf-8"),
+        result.stderr.decode("utf-8")
+    )
+    

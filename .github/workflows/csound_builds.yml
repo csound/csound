@@ -43,6 +43,9 @@ jobs:
         run: |
           cd build
           make test csdtests
+      
+      - name: Run ctests
+        run: ctest --output-on-failure --test-dir build --build-config Release
 
   linux_build_vcpkg:
     name: Linux/Ubuntu build (vcpkg)
@@ -77,6 +80,9 @@ jobs:
 
       - name: Run integration and unit tests
         run: cmake --build build --target test csdtests
+
+      - name: Run ctests
+        run: ctest --output-on-failure --test-dir build --build-config Release
 
   iOS_build:
     name: iOS build
@@ -130,6 +136,9 @@ jobs:
       - name: Run integration and unit tests
         run: cmake --build build --target test csdtests
 
+      - name: Run ctests
+        run: ctest --output-on-failure --test-dir build --build-config Release
+
   macos_build_vcpkg:
     name: MacOS build (vcpkg)
     runs-on: macos-latest
@@ -161,6 +170,9 @@ jobs:
 
       - name: Run integration and unit tests
         run: cmake --build build --target test csdtests
+      
+      - name: Run ctests
+        run: ctest --output-on-failure --test-dir build --build-config Release
 
   windows_build:
     name: Windows build
@@ -197,6 +209,9 @@ jobs:
 
       - name: Run unit test framework
         run: cmake --build build --target RUN_TESTS --config Release
+      
+      - name: Run ctests
+        run: ctest --output-on-failure --test-dir build --build-config Release
 
       - name: Acquire Csound manual
         shell: powershell
@@ -265,13 +280,16 @@ jobs:
           sudo update-alternatives --set x86_64-w64-mingw32-g++ /usr/bin/x86_64-w64-mingw32-g++-posix
 
       - name: Configure Build
-        run: cmake -B build -S . -DUSE_VCPKG=1 -DCUSTOM_CMAKE="./platform/mingw64-linux/Custom.cmake" -DCMAKE_SYSTEM_NAME=MinGW
+        run: cmake -B build -S . -DUSE_VCPKG=1 -DCUSTOM_CMAKE="./platform/mingw64-linux/Custom.cmake" -DCMAKE_SYSTEM_NAME=MinGW -DTEST_RUNNER=wine
 
       - name: Build Csound
         run: cmake --build build --config Release
 
       - name: Run integration and unit tests
         run: cmake --build build --target test csdtests
+      
+      - name: Run ctests
+        run: ctest --output-on-failure --test-dir build --build-config Release
 
   #android_build:
   #  name: Android build

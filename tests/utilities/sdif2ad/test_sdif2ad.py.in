@@ -1,0 +1,7 @@
+#!/usr/bin/python3
+
+from test_helpers import check_input, run_command, check_output
+
+check_input("clarinet_input.sdif")
+run_command("$<TARGET_FILE:sdif2ad>", "clarinet_input.sdif", "clarinet_output.het")
+check_output("clarinet_output.het", "consistent output")
