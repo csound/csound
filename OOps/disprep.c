@@ -117,7 +117,7 @@ int32_t dspset(CSOUND *csound, DSPLAY *p)
     snprintf(strmsg, 256, Str("instr %d, signal %s:"),
              (int32_t) p->h.insdshead->p1.value, p->h.optext->t.inlist->arg[0]);
     dispset(csound, &p->dwindow, (MYFLT*) auxp, bufpts, strmsg,
-            (int32_t) *p->iwtflg, Str("display"));
+            (int32_t) *p->iwtflg, Str("pvsdisp"));
     return OK;
 }
 
@@ -298,7 +298,7 @@ int32_t fftset(CSOUND *csound, DSPFFT *p) /* fftset, dspfft -- calc Fast Fourier
       p->start = minbin;
       dispset(csound, &p->dwindow,
               csound->disprep_fftcoefs+p->start, p->npts, strmsg,
-              (int32_t) *p->iwtflg, Str("fft"));
+              (int32_t) *p->iwtflg, Str("dispfft"));
        }
 
     return OK;
