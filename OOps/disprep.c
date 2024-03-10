@@ -60,7 +60,7 @@ int32_t fdspset(CSOUND *csound, FSIGDISP *p){
     snprintf(strmsg, 256, Str("instr %d, pvs-signal %s:"),
             (int32_t) p->h.insdshead->p1.value, p->h.optext->t.inlist->arg[0]);
     dispset(csound, &p->dwindow, (MYFLT*) p->fdata.auxp, p->size, strmsg,
-                    (int32_t) *p->flag, Str("display"));
+                    (int32_t) *p->flag, Str("pvsdisp"));
     p->lastframe = 0;
     return OK;
 
@@ -117,7 +117,7 @@ int32_t dspset(CSOUND *csound, DSPLAY *p)
     snprintf(strmsg, 256, Str("instr %d, signal %s:"),
              (int32_t) p->h.insdshead->p1.value, p->h.optext->t.inlist->arg[0]);
     dispset(csound, &p->dwindow, (MYFLT*) auxp, bufpts, strmsg,
-            (int32_t) *p->iwtflg, Str("pvsdisp"));
+            (int32_t) *p->iwtflg, Str("display"));
     return OK;
 }
 
