@@ -1,0 +1,28 @@
+#!/usr/bin/python3
+
+import sys
+
+from test_helpers import check_input, run_command, check_output
+
+(_, filename, status) = sys.argv
+
+csound_file = filename + ".csd"
+
+check_input(csound_file)
+
+wav_file = filename + "_output.wav"
+
+run_command(
+    # pass in csound binary from cmake
+    "$<TARGET_FILE:csound-bin>",
+    "--nodisplays",
+    "--messagelevel=0",
+    "--format=wav",
+    "-+rtaudio=null",
+    # WARNING: lower tempo to --tempo=60 before listening to generated output
+    "--tempo=10000",
+    csound_file,
+    "--output=" + wav_file
+)
+
+check_output(wav_file, status)

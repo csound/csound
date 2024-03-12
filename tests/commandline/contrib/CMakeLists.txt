@@ -1,0 +1,7 @@
+add_integration_test(commandline multiple_strings_in_scoreline1 "consistent")
+add_integration_test(commandline multiple_strings_in_scoreline1a "consistent")
+add_integration_test(commandline multiple_strings_in_scoreline1b "consistent")
+add_integration_test(commandline multiple_strings_in_scoreline2 "consistent")
+add_integration_test(commandline multiple_strings_in_scoreline2a "consistent")
+add_integration_test(commandline multiple_strings_in_scoreline3 "consistent")
+add_integration_test(commandline multiple_strings_in_scoreline3a "consistent")

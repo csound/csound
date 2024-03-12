@@ -1,0 +1,5 @@
+add_integration_test(commandline crashing_test "none")
+add_integration_test(commandline fail_invalid_xin "none")
+add_integration_test(commandline fail_invalid_xout "none")
+add_integration_test(commandline fail_no_xin "none")
+add_integration_test(commandline fail_no_xout "none")
