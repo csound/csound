@@ -1,0 +1,1 @@
+make_executable(src_conv new_srconv.c "SndFile::sndfile;SampleRate::samplerate")

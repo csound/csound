@@ -601,7 +601,11 @@ list(APPEND libcsound_public_include_dirs
     $<BUILD_INTERFACE:${Csound_SOURCE_DIR}/include>
     $<INSTALL_INTERFACE:include>
 )
-list(APPEND libcsound_private_include_dirs ${Csound_SOURCE_DIR}/Engine)
+list(APPEND libcsound_private_include_dirs 
+    ${Csound_SOURCE_DIR}/Engine
+    ${Csound_SOURCE_DIR}/Opcodes
+    ${Csound_SOURCE_DIR}/util
+)
 
 #adding this for files that #include SDIF/sdif*
 list(APPEND libcsound_private_include_dirs ${Csound_SOURCE_DIR}/util)
@@ -1325,18 +1329,14 @@ if(BUILD_STATIC_LIBRARY)
         ARCHIVE DESTINATION "${LIBRARY_INSTALL_DIR}")
 endif()
 
-add_subdirectory(Opcodes)
-add_subdirectory(InOut)
-add_subdirectory(Frontends)
 add_subdirectory(Python)
-add_subdirectory(Bela)
-add_subdirectory(util)
-add_subdirectory(util1)
 add_subdirectory(po)
 add_subdirectory(tests/c)
 add_subdirectory(tests/commandline)
 add_subdirectory(tests/regression)
 add_subdirectory(tests/soak)
+add_subdirectory(Plugins)
+add_subdirectory(Executables)
 
 # uninstall target
 configure_file(

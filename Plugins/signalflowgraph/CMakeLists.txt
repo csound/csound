@@ -1,0 +1,2 @@
+make_plugin(signalflowgraph signalflowgraph.cpp)
+target_include_directories(signalflowgraph PRIVATE ${libcsound_private_include_dirs})
