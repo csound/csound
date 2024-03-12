@@ -1,0 +1,1 @@
+make_plugin(rtalsa rtalsa.c ALSA::ALSA)
