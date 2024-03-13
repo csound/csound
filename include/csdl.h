@@ -146,21 +146,33 @@ PUBLIC  int     csoundModuleInfo(void);
 
 /** The LINKAGE macro sets up linking of opcode list*/
 
-#define LINKAGE                                                         \
+#define LINKAGE_FOR(localops)                                            \
 PUBLIC int64_t csound_opcode_init(CSOUND *csound, OENTRY **ep)             \
 { (void) csound; *ep = localops; return (int64_t) sizeof(localops);  } \
 PUBLIC int csoundModuleInfo(void)                                       \
 { return ((CS_APIVERSION << 16) + (CS_APISUBVER << 8) + (int) sizeof(MYFLT)); }
 
-/** The LINKAGE_BUILTIN macro sets up linking of opcode list for builtin opcodes
- * which must have unique function names */
+#define LINKAGE LINKAGE_FOR(localops)
 
-#undef LINKAGE_BUILTIN
-#define LINKAGE_BUILTIN(name)                                           \
-PUBLIC int64_t csound_opcode_init(CSOUND *csound, OENTRY **ep)             \
-{   (void) csound; *ep = name; return (int64_t) (sizeof(name));  }         \
-PUBLIC int csoundModuleInfo(void)                                       \
-{ return ((CS_APIVERSION << 16) + (CS_APISUBVER << 8) + (int) sizeof(MYFLT)); }
+/*
+   ADD_INIT_FUNCTION(init_function, localops)
+
+Add a function to initialize the opcodes in `localops`.
+
+If `INIT_STATIC_MODULES` is defined, then `ADD_INIT_FUNCTION` will add an init
+function to be called in "csmodule.c". In "csmodule.c", add
+`EXTERN_INIT_FUNCTION(init_function)`, and add `init_function` to the
+`staticmodules` list (first checking if `INIT_STATIC_MODULES` is defined).
+
+If INIT_STATIC_MODULES is not defined, then ADD_INIT_FUNCTION will add an init
+function and version function for a plugin
+*/
+#ifdef INIT_STATIC_MODULES
+#define ADD_INIT_FUNCTION(init_function, localops)                             \
+  LINKAGE_BUILTIN_FOR(init_function, localops)
+#else
+#define ADD_INIT_FUNCTION(init_function, localops) LINKAGE_FOR(localops)
+#endif
 
 /** LINKAGE for f-table plugins */
 

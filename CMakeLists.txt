@@ -157,6 +157,8 @@ option(BUILD_DOCS "Build documentation (requires doxygen)" OFF)
 option(DEBUG_ERROR_ON_WARNING "For a debug build, error on a compiler# warning" OFF)
 option(BARE_METAL "To configure for bare metal build" OFF)
 option(CUSTOM_MALLOC "Use custom malloc in bare metal builds" OFF)
+option(INIT_STATIC_MODULES "Incorporate plugins into the library" OFF)
+option(NO_SERIAL_OPCODES "No serial opcodes" OFF)
 
 if(BARE_METAL)
     set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS}  -DBARE_METAL")
@@ -730,12 +732,10 @@ set(libcsound_SRCS
     Opcodes/pitch.c
     Opcodes/pitch0.c
     Opcodes/spectra.c
-    Opcodes/ambicode1.c
     Opcodes/sfont.c
     Opcodes/grain4.c
     Opcodes/hrtferX.c
     Opcodes/loscilx.c
-    Opcodes/minmax.c
     Opcodes/pan2.c
     Opcodes/arrays.c
     Opcodes/phisem.c
@@ -744,19 +744,13 @@ set(libcsound_SRCS
     Opcodes/vbap1.c
     Opcodes/vbap_n.c
     Opcodes/vbap_zak.c
-    Opcodes/vaops.c
-    Opcodes/ugakbari.c
     Opcodes/harmon.c
     Opcodes/pitchtrack.c
     Opcodes/partikkel.c
     Opcodes/shape.c
     Opcodes/tabaudio.c
-    Opcodes/tabsum.c
     Opcodes/crossfm.c
     Opcodes/pvlock.c
-    Opcodes/fareyseq.c
-    Opcodes/modmatrix.c
-    Opcodes/scoreline.c
     Opcodes/modal4.c
     Opcodes/physutil.c
     Opcodes/physmod.c
@@ -773,30 +767,14 @@ set(libcsound_SRCS
     Opcodes/ftest.c
     Opcodes/hrtfearly.c
     Opcodes/hrtfreverb.c
-    Opcodes/cpumeter.c
     Opcodes/gendy.c
     Opcodes/tl/sc_noise.c
     Opcodes/afilters.c
     Opcodes/wpfilters.c
     Opcodes/zak.c
-    Opcodes/lufs.c
-    Opcodes/date.c
-    Opcodes/system_call.c
-    Opcodes/liveconv.c
-    Opcodes/sterrain.c
-    Opcodes/gammatone.c
     Opcodes/fareygen.c
     Opcodes/quadbezier.c
-    Opcodes/framebuffer.c
-    Opcodes/cellular.c
-    Opcodes/exciter.c
-    Opcodes/buchla.c
-    Opcodes/select.c
-    Opcodes/serial.c
-    Opcodes/counter.c
-    Opcodes/platerev.c
     Opcodes/sequencer.c
-    Opcodes/pvsgendy.c
     Opcodes/emugens/emugens.c
     Opcodes/emugens/scugens.c
     Top/argdecode.c
@@ -825,27 +803,20 @@ if(NOT MSVC)
 endif()
 
 set(stdopcod_SRCS
-    Opcodes/ambicode.c
     Opcodes/bbcut.c
     Opcodes/biquad.c
     Opcodes/butter.c
     Opcodes/clfilt.c
-    Opcodes/cross2.c
     Opcodes/dam.c
-    Opcodes/dcblockr.c
-    Opcodes/filter.c
     Opcodes/flanger.c
     Opcodes/follow.c
     Opcodes/fout.c
-    Opcodes/freeverb.c
-    Opcodes/ftconv.c
     Opcodes/ftgen.c
     Opcodes/gab/gab.c
     Opcodes/gab/vectorial.c
     Opcodes/grain.c
     Opcodes/locsig.c
     Opcodes/lowpassr.c
-    Opcodes/metro.c
     Opcodes/midiops2.c
     Opcodes/midiops3.c
     Opcodes/newfils.c
@@ -855,7 +826,6 @@ set(stdopcod_SRCS
     Opcodes/paulstretch.c
     Opcodes/repluck.c
     Opcodes/reverbsc.c
-    Opcodes/seqtime.c
     Opcodes/sndloop.c
     Opcodes/sndwarp.c
     Opcodes/space.c
@@ -869,7 +839,6 @@ set(stdopcod_SRCS
     Opcodes/ugnorman.c
     Opcodes/ugsc.c
     Opcodes/wave-terrain.c
-    Opcodes/wterrain2.c
     Opcodes/stdopcod.c
     Opcodes/socksend.c
     Opcodes/sockrecv.c)
@@ -919,10 +888,54 @@ if(INIT_STATIC_MODULES)
         Opcodes/tl/fractalnoise.cpp
         Opcodes/ftsamplebank.cpp
         Opcodes/mixer.cpp
-        Opcodes/signalflowgraph.cpp)
+        Opcodes/signalflowgraph.cpp
+        Plugins/ambicode/ambicode.c
+        Plugins/ambicode1/ambicode1.c
+        Plugins/buchla/buchla.c
+        Plugins/cellular/cellular.c
+        Plugins/counter/counter.c
+        Plugins/cpumeter/cpumeter.c
+        Plugins/cross2/cross2.c
+        Plugins/date/date.c
+        Plugins/dcblockr/dcblockr.c
+        Plugins/exciter/exciter.c
+        Plugins/fareyseq/fareyseq.c
+        Plugins/filter/filter.c
+        Plugins/framebuffer/framebuffer.c
+        Plugins/freeverb/freeverb.c
+        Plugins/ftconv/ftconv.c
+        Plugins/gammatone/gammatone.c
+        Plugins/liveconv/liveconv.c
+        Plugins/lufs/lufs.c
+        Plugins/metro/metro.c
+        Plugins/minmax/minmax.c
+        Plugins/modmatrix/modmatrix.c
+        Plugins/platerev/platerev.c
+        Plugins/pvsgendy/pvsgendy.c
+        Plugins/scoreline/scoreline.c
+        Plugins/select/select.c 
+        Plugins/seqtime/seqtime.c
+        Plugins/sterrain/sterrain.c
+        Plugins/system_call/system_call.c
+        Plugins/tabsum/tabsum.c 
+        Plugins/ugakbari/ugakbari.c 
+        Plugins/vaops/vaops.c 
+        Plugins/wterrain2/wterrain2.c
+    )
+    if (NOT WIN32)
+        list(APPEND static_modules_SRCS Plugins/cpumeter/cpumeter.c)
+    endif()
+    if (NOT NO_SERIAL_OPCODES)
+        list(APPEND static_modules_SRCS Plugins/serial/serial.c )
+    endif()
 
     set_source_files_properties(${static_modules_SRCS} PROPERTIES COMPILE_FLAGS -DINIT_STATIC_MODULES)
     list(APPEND libcsound_SRCS ${static_modules_SRCS})
+    list(APPEND libcsound_private_include_dirs
+        Plugins/cross2
+        Plugins/dcblockr
+        Plugins/modmatrix
+    )
     message(STATUS "Building static modules")
 endif()
 
@@ -1257,6 +1270,10 @@ endif()
 #    list(APPEND libcsound_CFLAGS -fno-strict-aliasing)
 #endif()
 
+if (NO_SERIAL_OPCODES)
+    list(APPEND libcsound_CFLAGS -DNO_SERIAL_OPCODES)
+endif()
+
 if(BIG_ENDIAN)
     list(APPEND libcsound_CFLAGS -DWORDS_BIGENDIAN)
 endif()
@@ -1328,6 +1345,7 @@ endif()
 add_subdirectory(Opcodes)
 add_subdirectory(InOut)
 add_subdirectory(Frontends)
+add_subdirectory(Plugins)
 add_subdirectory(Python)
 add_subdirectory(Bela)
 add_subdirectory(util)

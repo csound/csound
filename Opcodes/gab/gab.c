@@ -29,7 +29,7 @@
 /*Check other opcodes commented out in Oentry */
 
 
-#include "stdopcod.h"
+#include "Opcodes/stdopcod.h"
 #include "gab.h"
 #include <math.h>
 #include "interlocks.h"

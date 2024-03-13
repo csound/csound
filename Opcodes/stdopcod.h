@@ -73,27 +73,20 @@ typedef struct STDOPCOD_GLOBALS_ {
     int32       tb_size[16];   /* gab: added */
 } STDOPCOD_GLOBALS;
 
-extern int32_t ambicode_init_(CSOUND *);
 extern int32_t bbcut_init_(CSOUND *);
 extern int32_t biquad_init_(CSOUND *);
 extern int32_t butter_init_(CSOUND *);
 extern int32_t clfilt_init_(CSOUND *);
-extern int32_t cross2_init_(CSOUND *);
 extern int32_t dam_init_(CSOUND *);
-extern int32_t dcblockr_init_(CSOUND *);
-extern int32_t filter_init_(CSOUND *);
 extern int32_t flanger_init_(CSOUND *);
 extern int32_t follow_init_(CSOUND *);
 extern int32_t fout_init_(CSOUND *);
-extern int32_t freeverb_init_(CSOUND *);
-extern int32_t ftconv_init_(CSOUND *);
 extern int32_t ftgen_init_(CSOUND *);
 extern int32_t gab_gab_init_(CSOUND *);
 extern int32_t gab_vectorial_init_(CSOUND *);
 extern int32_t grain_init_(CSOUND *);
 extern int32_t locsig_init_(CSOUND *);
 extern int32_t lowpassr_init_(CSOUND *);
-extern int32_t metro_init_(CSOUND *);
 extern int32_t midiops2_init_(CSOUND *);
 extern int32_t midiops3_init_(CSOUND *);
 extern int32_t newfils_init_(CSOUND *);
@@ -102,7 +95,6 @@ extern int32_t oscbnk_init_(CSOUND *);
 extern int32_t pluck_init_(CSOUND *);
 extern int32_t repluck_init_(CSOUND *);
 extern int32_t reverbsc_init_(CSOUND *);
-extern int32_t seqtime_init_(CSOUND *);
 extern int32_t sndloop_init_(CSOUND *);
 extern int32_t sndwarp_init_(CSOUND *);
 extern int32_t space_init_(CSOUND *);
@@ -117,8 +109,6 @@ extern int32_t ugnorman_init_(CSOUND *);
 extern int32_t ugsc_init_(CSOUND *);
 extern int32_t
 wave_terrain_init_(CSOUND *);
-extern int32_t
-wter2_init_(CSOUND *);
 
 
 #endif  /* CSOUND_STDOPCOD_H */

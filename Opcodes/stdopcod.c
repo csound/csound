@@ -49,27 +49,20 @@ int32_t stdopc_ModuleInit(CSOUND *csound)
     /*p->buf = (MYFLT*) NULL;*/
     /* ugnorman.c */
     p->atsbufreadaddr = NULL;
-    err |= ambicode_init_(csound);
     err |= bbcut_init_(csound);
     err |= biquad_init_(csound);
     err |= butter_init_(csound);
     err |= clfilt_init_(csound);
-    err |= cross2_init_(csound);
     err |= dam_init_(csound);
-    err |= dcblockr_init_(csound);
-    err |= filter_init_(csound);
     err |= flanger_init_(csound);
     err |= follow_init_(csound);
     err |= fout_init_(csound);
-    err |= freeverb_init_(csound);
-    err |= ftconv_init_(csound);
     err |= ftgen_init_(csound);
     err |= gab_gab_init_(csound);
     err |= gab_vectorial_init_(csound);
     err |= grain_init_(csound);
     err |= locsig_init_(csound);
     err |= lowpassr_init_(csound);
-    err |= metro_init_(csound);
     err |= midiops2_init_(csound);
     err |= midiops3_init_(csound);
     err |= newfils_init_(csound);
@@ -78,7 +71,6 @@ int32_t stdopc_ModuleInit(CSOUND *csound)
     err |= pluck_init_(csound);
     err |= repluck_init_(csound);
     err |= reverbsc_init_(csound);
-    err |= seqtime_init_(csound);
     err |= sndloop_init_(csound);
     err |= sndwarp_init_(csound);
     err |= space_init_(csound);
@@ -92,7 +84,6 @@ int32_t stdopc_ModuleInit(CSOUND *csound)
     err |= ugnorman_init_(csound);
     err |= ugsc_init_(csound);
     err |= wave_terrain_init_(csound);
-    err |= wter2_init_(csound);
     return (err ? CSOUND_ERROR : CSOUND_SUCCESS);
 }
 

@@ -784,6 +784,10 @@ typedef struct CORFIL {
 
 #ifdef __BUILDING_LIBCSOUND
 
+// declare an external function to init opcodes (defined elsewhere)
+#define EXTERN_INIT_FUNCTION(function_name)                                  \
+    extern int32_t function_name(CSOUND *, void *);
+
 #define INSTR   1
 #define ENDIN   2
 #define OPCODE  3
@@ -1870,9 +1874,11 @@ typedef struct _message_queue_t_ {
  * in order to enable C++ to #include this file.
  */
 
-#define LINKAGE_BUILTIN(name)                                         \
-long name##_init(CSOUND *csound, OENTRY **ep)                         \
-{   (void) csound; *ep = name; return (long) (sizeof(name));  }
+#define LINKAGE_BUILTIN_FOR(a_function, opcodes)                                         \
+long a_function(CSOUND *csound, OENTRY **ep)                         \
+{   (void) csound; *ep = opcodes; return (long) (sizeof(opcodes));  }
+
+#define LINKAGE_BUILTIN(name) LINKAGE_BUILTIN_FOR(name##_init, name)
 
 #define FLINKAGE_BUILTIN(name)                                        \
 NGFENS* name##_init(CSOUND *csound)                                   \

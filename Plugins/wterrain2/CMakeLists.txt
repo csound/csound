@@ -1,0 +1,1 @@
+make_plugin(wterrain2 wterrain2.c)

@@ -1,0 +1,1 @@
+make_plugin(ambicode ambicode.c)

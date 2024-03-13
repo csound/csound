@@ -1139,7 +1139,7 @@ void print_opcodedir_warning(CSOUND *p)
  - name the OENTRY array <name>, where <name> is any arbitrary name.
  - add the macro LINKAGE_BUILTIN(<name>) to the end of the file.
  - append the init function prototype below
-   extern int64_t <name>_init(CSOUND *, void *);
+   EXTERN_INIT_FUNCTION(<name>_init);
  - append the init function name <name>_init to the
    staticmodules[] array initialisation.
  - insert source code to libcsound_SRCS in../CMakeLists.txt
@@ -1147,72 +1147,59 @@ void print_opcodedir_warning(CSOUND *p)
 
 typedef int32_t (*INITFN)(CSOUND *, void *);
 
-extern int32_t babo_localops_init(CSOUND *, void *);
-extern int32_t bilbar_localops_init(CSOUND *, void *);
-extern int32_t compress_localops_init(CSOUND *, void *);
-extern int32_t pvsbuffer_localops_init(CSOUND *, void *);
-extern int32_t vosim_localops_init(CSOUND *, void *);
-extern int32_t eqfil_localops_init(CSOUND *, void *);
-extern int32_t modal4_localops_init(CSOUND *, void *);
-extern int32_t scoreline_localops_init(CSOUND *, void *);
-extern int32_t physmod_localops_init(CSOUND *, void *);
-extern int32_t modmatrix_localops_init(CSOUND *, void *);
-extern int32_t spectra_localops_init(CSOUND *, void *);
-extern int32_t ambicode1_localops_init(CSOUND *, void *);
-extern int32_t grain4_localops_init(CSOUND *, void *);
-extern int32_t hrtferX_localops_init(CSOUND *, void *);
-extern int32_t loscilx_localops_init(CSOUND *, void *);
-extern int32_t pan2_localops_init(CSOUND *, void *);
-extern int32_t arrayvars_localops_init(CSOUND *, void *);
-extern int32_t phisem_localops_init(CSOUND *, void *);
-extern int32_t pvoc_localops_init(CSOUND *, void *);
-extern int32_t hrtfopcodes_localops_init(CSOUND *, void *);
-extern int32_t hrtfreverb_localops_init(CSOUND *, void *);
-extern int32_t hrtfearly_localops_init(CSOUND *, void *);
-extern int32_t minmax_localops_init(CSOUND *, void *);
-extern int32_t gendy_localops_init(CSOUND *, void *);
-extern int32_t vbap_localops_init(CSOUND *, void *);
-extern int32_t vaops_localops_init(CSOUND *, void*);
-extern int32_t ugakbari_localops_init(CSOUND *, void *);
-extern int32_t harmon_localops_init(CSOUND *, void *);
-extern int32_t pitchtrack_localops_init(CSOUND *, void *);
-extern int32_t squinewave_localops_init(CSOUND *, void *);
+EXTERN_INIT_FUNCTION(babo_localops_init);
+EXTERN_INIT_FUNCTION(bilbar_localops_init);
+EXTERN_INIT_FUNCTION(compress_localops_init);
+EXTERN_INIT_FUNCTION(pvsbuffer_localops_init);
+EXTERN_INIT_FUNCTION(vosim_localops_init);
+EXTERN_INIT_FUNCTION(eqfil_localops_init);
+EXTERN_INIT_FUNCTION(modal4_localops_init);
+EXTERN_INIT_FUNCTION(physmod_localops_init);
+EXTERN_INIT_FUNCTION(spectra_localops_init);
+EXTERN_INIT_FUNCTION(grain4_localops_init);
+EXTERN_INIT_FUNCTION(hrtferX_localops_init);
+EXTERN_INIT_FUNCTION(loscilx_localops_init);
+EXTERN_INIT_FUNCTION(pan2_localops_init);
+EXTERN_INIT_FUNCTION(arrayvars_localops_init);
+EXTERN_INIT_FUNCTION(phisem_localops_init);
+EXTERN_INIT_FUNCTION(pvoc_localops_init);
+EXTERN_INIT_FUNCTION(hrtfopcodes_localops_init);
+EXTERN_INIT_FUNCTION(hrtfreverb_localops_init);
+EXTERN_INIT_FUNCTION(hrtfearly_localops_init);
+EXTERN_INIT_FUNCTION(gendy_localops_init);
+EXTERN_INIT_FUNCTION(vbap_localops_init);
+EXTERN_INIT_FUNCTION(harmon_localops_init);
+EXTERN_INIT_FUNCTION(pitchtrack_localops_init);
+EXTERN_INIT_FUNCTION(squinewave_localops_init);
 
-extern int32_t partikkel_localops_init(CSOUND *, void *);
-extern int32_t shape_localops_init(CSOUND *, void *);
-extern int32_t tabaudio_localops_init(CSOUND *, void *);
-extern int32_t tabsum_localops_init(CSOUND *, void *);
-extern int32_t crossfm_localops_init(CSOUND *, void *);
-extern int32_t pvlock_localops_init(CSOUND *, void *);
-extern int32_t fareyseq_localops_init(CSOUND *, void *);
-extern int32_t cpumeter_localops_init(CSOUND *, void *);
-extern int32_t scnoise_localops_init(CSOUND *, void *);
+EXTERN_INIT_FUNCTION(partikkel_localops_init);
+EXTERN_INIT_FUNCTION(shape_localops_init);
+EXTERN_INIT_FUNCTION(tabaudio_localops_init);
+EXTERN_INIT_FUNCTION(crossfm_localops_init);
+EXTERN_INIT_FUNCTION(pvlock_localops_init);
+EXTERN_INIT_FUNCTION(scnoise_localops_init);
 
-extern int32_t mp3in_localops_init(CSOUND *, void *);
+EXTERN_INIT_FUNCTION(mp3in_localops_init);
 
-extern int32_t afilts_localops_init(CSOUND *, void *);
-extern int32_t pinker_localops_init(CSOUND *, void *);
-extern int32_t paulstretch_localops_init(CSOUND *, void *);
-extern int32_t wpfilters_localops_init(CSOUND *, void *);
-extern int32_t zak_localops_init(CSOUND *, void *);
-extern int32_t lufs_localops_init(CSOUND *, void *);
-extern int32_t sterrain_localops_init(CSOUND *, void *);
-extern int32_t date_localops_init(CSOUND *, void *);
-extern int32_t system_localops_init(CSOUND *, void *);
-extern int32_t liveconv_localops_init(CSOUND *, void *);
-extern int32_t gamma_localops_init(CSOUND *, void *);
-extern int32_t framebuffer_localops_init(CSOUND *, void *);
-extern int32_t cell_localops_init(CSOUND *, void *);
-extern int32_t exciter_localops_init(CSOUND *, void *);
-extern int32_t buchla_localops_init(CSOUND *, void *);
-extern int32_t select_localops_init(CSOUND *, void *);
+EXTERN_INIT_FUNCTION(afilts_localops_init);
+EXTERN_INIT_FUNCTION(pinker_localops_init);
+EXTERN_INIT_FUNCTION(paulstretch_localops_init);
+EXTERN_INIT_FUNCTION(wpfilters_localops_init);
+EXTERN_INIT_FUNCTION(zak_localops_init);
+EXTERN_INIT_FUNCTION(lufs_localops_init);
+EXTERN_INIT_FUNCTION(sterrain_localops_init);
+EXTERN_INIT_FUNCTION(date_localops_init);
+EXTERN_INIT_FUNCTION(liveconv_localops_init);
+EXTERN_INIT_FUNCTION(gamma_localops_init);
+EXTERN_INIT_FUNCTION(framebuffer_localops_init);
+EXTERN_INIT_FUNCTION(cell_localops_init);
+EXTERN_INIT_FUNCTION(exciter_localops_init);
+EXTERN_INIT_FUNCTION(buchla_localops_init);
+EXTERN_INIT_FUNCTION(select_localops_init);
 
-extern int32_t counter_localops_init(CSOUND *, void *);
-extern int32_t platerev_localops_init(CSOUND *, void *);
-extern int32_t sequencer_localops_init(CSOUND *, void *);
-extern int32_t pvsgendy_localops_init(CSOUND *, void *);
-extern int32_t scugens_localops_init(CSOUND *, void *);
-extern int32_t emugens_localops_init(CSOUND *, void *);
+EXTERN_INIT_FUNCTION(sequencer_localops_init);
+EXTERN_INIT_FUNCTION(scugens_localops_init);
+EXTERN_INIT_FUNCTION(emugens_localops_init);
 
 extern int32_t stdopc_ModuleInit(CSOUND *csound);
 extern int32_t pvsopc_ModuleInit(CSOUND *csound);
@@ -1221,63 +1208,122 @@ extern int32_t sfont_ModuleCreate(CSOUND *csound);
 extern int32_t newgabopc_ModuleInit(CSOUND *csound);
 
 #ifdef HAVE_SOCKETS
-extern int32_t socksend_localops_init(CSOUND *, void *);
-extern int32_t sockrecv_localops_init(CSOUND *, void *);
+EXTERN_INIT_FUNCTION(socksend_localops_init);
+EXTERN_INIT_FUNCTION(sockrecv_localops_init);
 #endif
 
-
-#ifndef NO_SERIAL_OPCODES
-extern int32_t serial_localops_init(CSOUND *, void *);
+#ifdef INIT_STATIC_MODULES
+  EXTERN_INIT_FUNCTION(ambicode_localops_init);
+  EXTERN_INIT_FUNCTION(ambicode1_localops_init);
+  EXTERN_INIT_FUNCTION(buchla_localops_init);
+  EXTERN_INIT_FUNCTION(cellular_localops_init);
+  EXTERN_INIT_FUNCTION(counter_localops_init);
+  #ifndef WIN32
+    EXTERN_INIT_FUNCTION(cpumeter_localops_init);
+  #endif
+  EXTERN_INIT_FUNCTION(cross2_localops_init);
+  EXTERN_INIT_FUNCTION(date_localops_init);
+  EXTERN_INIT_FUNCTION(dcblockr_localops_init);
+  EXTERN_INIT_FUNCTION(exciter_localops_init);
+  EXTERN_INIT_FUNCTION(fareyseq_localops_init);
+  EXTERN_INIT_FUNCTION(filter_localops_init);
+  EXTERN_INIT_FUNCTION(framebuffer_localops_init);
+  EXTERN_INIT_FUNCTION(freeverb_localops_init);
+  EXTERN_INIT_FUNCTION(ftconv_localops_init);
+  EXTERN_INIT_FUNCTION(gammatone_localops_init);
+  EXTERN_INIT_FUNCTION(liveconv_localops_init);
+  EXTERN_INIT_FUNCTION(lufs_localops_init);
+  EXTERN_INIT_FUNCTION(metro_localops_init);
+  EXTERN_INIT_FUNCTION(minmax_localops_init);
+  EXTERN_INIT_FUNCTION(modmatrix_localops_init);
+  EXTERN_INIT_FUNCTION(platerev_localops_init);
+  EXTERN_INIT_FUNCTION(pvsgendy_localops_init);
+  EXTERN_INIT_FUNCTION(scoreline_localops_init);
+  EXTERN_INIT_FUNCTION(select_localops_init);
+  EXTERN_INIT_FUNCTION(seqtime_localops_init);
+  #ifndef NO_SERIAL_OPCODES                                 
+    EXTERN_INIT_FUNCTION(serial_localops_init);
+  #endif
+  EXTERN_INIT_FUNCTION(sterrain_localops_init);
+  EXTERN_INIT_FUNCTION(system_call_localops_init);
+  EXTERN_INIT_FUNCTION(tabsum_localops_init);
+  EXTERN_INIT_FUNCTION(ugakbari_localops_init);
+  EXTERN_INIT_FUNCTION(vaops_localops_init);
+  EXTERN_INIT_FUNCTION(wterrain2_localops_init);
 #endif
-
 
 const INITFN staticmodules[] = { hrtfopcodes_localops_init, babo_localops_init,
                                  bilbar_localops_init, vosim_localops_init,
                                  compress_localops_init, pvsbuffer_localops_init,
                                  eqfil_localops_init, modal4_localops_init,
-                                 scoreline_localops_init, physmod_localops_init,
-                                 modmatrix_localops_init, spectra_localops_init,
-                                 ambicode1_localops_init, grain4_localops_init,
+                                 physmod_localops_init,
+                                 spectra_localops_init,
+                                 grain4_localops_init,
                                  hrtferX_localops_init, loscilx_localops_init,
                                  pan2_localops_init, arrayvars_localops_init,
                                  phisem_localops_init, pvoc_localops_init,
                                  vbap_localops_init,
-                                 ugakbari_localops_init, harmon_localops_init,
+                                 harmon_localops_init,
                                  pitchtrack_localops_init, partikkel_localops_init,
-                                 shape_localops_init, tabsum_localops_init,
+                                 shape_localops_init,
                                  crossfm_localops_init, pvlock_localops_init,
-                                 fareyseq_localops_init, hrtfearly_localops_init,
-                                 hrtfreverb_localops_init, minmax_localops_init,
-                                 vaops_localops_init, paulstretch_localops_init,
+                                 hrtfearly_localops_init,
+                                 hrtfreverb_localops_init,
+                                 paulstretch_localops_init,
                                  squinewave_localops_init, tabaudio_localops_init,
-#ifdef LINUX
-                                 cpumeter_localops_init,
-#endif
 
 #if !(defined(NACL)) && !(defined(__wasi__))
-                                 counter_localops_init,
 #ifdef HAVE_SOCKETS
                                  sockrecv_localops_init,
                                  socksend_localops_init,
 #endif
-                                 system_localops_init,
-#ifndef NO_SERIAL_OPCODES                                 
-                                 serial_localops_init,
-#endif                                 
                                  mp3in_localops_init,
 #endif
                                  scnoise_localops_init, afilts_localops_init,
                                  pinker_localops_init, gendy_localops_init,
                                  wpfilters_localops_init, zak_localops_init,
-                                 lufs_localops_init, sterrain_localops_init,
-                                 date_localops_init,
-                                 liveconv_localops_init, gamma_localops_init,
-                                 framebuffer_localops_init, cell_localops_init,
-                                 exciter_localops_init, buchla_localops_init,
-                                 select_localops_init,
-                                 platerev_localops_init,
-                                 pvsgendy_localops_init, scugens_localops_init,
+                                 scugens_localops_init,
                                  emugens_localops_init, sequencer_localops_init,
+  #ifdef INIT_STATIC_MODULES
+    ambicode_localops_init,
+    ambicode1_localops_init,
+    buchla_localops_init,
+    cellular_localops_init,
+    counter_localops_init,
+    #ifndef WIN32
+    cpumeter_localops_init,
+    #endif
+    cross2_localops_init,
+    date_localops_init,
+    dcblockr_localops_init,
+    exciter_localops_init,
+    fareyseq_localops_init,
+    filter_localops_init,
+    framebuffer_localops_init,
+    freeverb_localops_init,
+    ftconv_localops_init,
+    gammatone_localops_init,
+    liveconv_localops_init,
+    lufs_localops_init,
+    metro_localops_init,
+    minmax_localops_init,
+    modmatrix_localops_init,
+    platerev_localops_init,
+    pvsgendy_localops_init,
+    scoreline_localops_init,
+    select_localops_init,
+    seqtime_localops_init,
+    #ifndef NO_SERIAL_OPCODES                                 
+          serial_localops_init,
+    #endif
+    sterrain_localops_init,
+    system_call_localops_init,
+    tabsum_localops_init,
+    ugakbari_localops_init,
+    system_call_localops_init,
+    vaops_localops_init,
+    wterrain2_localops_init,
+  #endif
                                  NULL };
 
 /**

@@ -1,0 +1,1 @@
+make_plugin(vaops vaops.c)

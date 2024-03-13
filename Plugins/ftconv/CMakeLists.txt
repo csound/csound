@@ -1,0 +1,1 @@
+make_plugin(ftconv ftconv.c)

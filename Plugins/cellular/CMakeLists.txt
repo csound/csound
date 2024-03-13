@@ -1,0 +1,1 @@
+make_plugin(cellular cellular.c)
