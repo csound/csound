@@ -25,7 +25,7 @@ endin
 </CsInstruments>
 <CsScore>
 
-i 1 0 30 "beats.mp3"
+i 1 0 30 "XORNOT_jul-14-05.mp3"    ; long signal
 e
 </CsScore>
 </CsoundSynthesizer>

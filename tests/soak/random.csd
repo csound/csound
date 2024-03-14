@@ -22,11 +22,21 @@ aout oscili 0.8, 440+krnd, 1		; & listen
 
 endin
 
+instr 2	;different values every time
+
+seed 0
+krnd random 100, 1000			; seed from system clock
+     printk .5, krnd			; look 
+aout oscili 0.8, 440+krnd, 1		; & listen
+     outs aout, aout
+
+endin
 </CsInstruments>
 <CsScore>
 f 1 0 16384 10 1	;sine wave.
 
 i 1 0 1
+i 2 2 1
 e
 </CsScore>
 </CsoundSynthesizer>

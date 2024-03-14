@@ -8,28 +8,28 @@
 </CsOptions>
 <CsInstruments>
 
+; by Menno Knevel 2021
+
 sr = 44100
 ksmps = 32
 nchnls = 2
 0dbfs  = 1
 
-gisin	ftgen	1, 0, 2048, 10, 1
-
 instr 1
 
-asig1 diskin2 "fox.wav", 1		;signal in 1
-asig2 oscil   .3, 100, gisin		;signal in 2
-fsig1 pvsanal asig1,1024,256,1024,0	;pvoc analysis 
-fsig2 pvsanal asig2,1024,256,1024,0	;of both signals
+asig1 diskin2 "drumsMlp.wav", .5,0,1		;signal in 1 at half speed
+asig2 diskin2 "drumsMlp.wav", 1,0,1		;signal in 2
+fsig1 pvsanal asig1,1024,256,1024,0	      ;pvoc analysis 
+fsig2 pvsanal asig2,1024,256,1024,0	      ;of both signals
 fsall pvsmix  fsig1, fsig2 
 asig  pvsynth fsall
-      outs asig, asig 
+outs asig, asig 
 
 endin 
 </CsInstruments>
 <CsScore>
 
-i 1 0 3
+i 1 0 8
 e
 </CsScore>
 </CsoundSynthesizer>

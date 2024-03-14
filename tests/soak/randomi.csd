@@ -14,7 +14,7 @@ kr = 4410
 ksmps = 10
 nchnls = 1
 
-     seed 12350
+     seed 0
      
 ; Instrument #1.
 instr 1

@@ -13,7 +13,7 @@ ksmps = 32
 nchnls = 2
 0dbfs  = 1
 
-seed 765
+seed 0
 
 gift1 ftgen 1, 0, 1024, 10, 1				;sine wave
 gift2 ftgen 2, 0, 1024, 10, 1, 1, 1, 1, 1, 1, 1, 1, 1	;pulse

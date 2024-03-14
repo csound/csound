@@ -16,9 +16,9 @@ nchnls = 2
 giSine ftgen 0, 0, 2^10, 10, 1
 
 instr 1 ;writes three control signals to a file
-kfreq     randh     100, 1, 0.2, 1, 500 ;generates one random number between 400 and 600 per second
-kdb       randh     12, 1, 0.2, 1, -12 ;amplitudes in dB between -24 and 0
-kpan      randh     .5, 1, 0.2, 1, .5 ;panning between 0 and 1
+kfreq     randh     100, 1, 2, 1, 500 ;generates one random number between 400 and 600 per second
+kdb       randh     12, 1, 2, 1, -12 ;amplitudes in dB between -24 and 0
+kpan      randh     .5, 1, 2, 1, .5 ;panning between 0 and 1
           dumpk3    kfreq, kdb, kpan, "dumpk3.txt", 8, 1 ;writes the control signals
           prints    "WRITING:\n"
           printks   "kfreq = %f, kdb = %f, kpan = %f\n", 1, kfreq, kdb, kpan  ;prints them

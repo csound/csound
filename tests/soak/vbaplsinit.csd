@@ -17,7 +17,7 @@ vbaplsinit 2, 8, 0, 45, 90, 180, 270, 0, 0, 0		;5 speakers for 5.1 amps
 
 instr 1
 
-asig diskin2 "beats.wav", 1, 0, 1			;loop beats.wav
+asig diskin2 "drumsMlp.wav", 1, 0, 1			;loop drumsMlp.wav
 kazim line 1, p3, 355				
 a1,a2,a3,a4,a5,a6,a7,a8 vbap8  asig, kazim, 0, 1	;change azimuth of soundsource
 ; Speaker mapping

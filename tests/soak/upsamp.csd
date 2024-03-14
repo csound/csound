@@ -14,7 +14,7 @@ ksmps = 32
 nchnls = 2
 0dbfs  = 1
 
-seed      1000
+seed      0
 
   opcode Decimator, a, akk	;UDO Sample rate / Bit depth reducer
   ;see http://www.csounds.com/udo/displayOpcode.php?opcode_id=73

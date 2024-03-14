@@ -13,7 +13,7 @@ ksmps = 32
 nchnls = 2
 0dbfs  = 1
 
-seed 87654
+seed 0				; every run time different values	
 
 instr 1	
 			

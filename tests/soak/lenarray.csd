@@ -10,7 +10,6 @@ nchnls = 1
 0dbfs = 1
 
   instr 1 ;simple example
-        seed 6543
 kArr[]  fillarray 1, 2, 3, 4 ;fill array manually
         printks "Length of kArr = %d\n\n", 0, lenarray(kArr) ;print out its length
         turnoff ;only do this in the first k-cycle

@@ -1,0 +1,37 @@
+<!doctype html>
+<html>
+    <head>
+        <title>WebSocket</title>
+    </head>
+    <body>
+        <div>
+            <h4>Slider Output</h4>
+            <div id="sliderValue">slider value: 50</div>
+            <input type="range" id="slider"></input>
+
+        </div>
+         <div>
+             <h4>Csound Input</h4>
+            <div id="inputValue">input value: ?</div>
+        </div>
+ <script>
+var sliderValue = document.getElementById("sliderValue");
+var inputValue = document.getElementById("inputValue");
+var slider = document.getElementById("slider");
+slider.oninput = function() {
+    sliderValue.innerHTML = "slider value:" + slider.value;
+    websocketOut.send(new Float64Array([slider.value]));
+}
+var websocketIn = new WebSocket("ws://127.0.0.1:8888", "klfo");
+var websocketOut = new WebSocket("ws://127.0.0.1:8888", "kinput");
+websocketIn.binaryType = 'arraybuffer';
+
+websocketIn.onmessage = function(message){
+
+    messageData = new Float64Array(message.data);
+    inputValue.innerHTML = messageData[0];
+
+}
+        </script>
+    </body>
+</html>

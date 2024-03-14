@@ -17,7 +17,7 @@
 
   /******** write file to table ********/
 
-  ain		diskin2		"beats.wav", 1, 0, 1
+  ain		diskin2		"drumsMlp.wav", 1, 0, 1
   aphs		phasor		gicps
   andx		=		aphs * gilen
 		tablew		ain, andx, gitab
@@ -26,7 +26,7 @@
 
   aosc		table		aphs, gitab, 1
 		out		aosc
-		fout		"beats_copy.wav", 6, aosc
+		fout		"drumsMlp_copy.wav", 6, aosc
 
                 endin
 

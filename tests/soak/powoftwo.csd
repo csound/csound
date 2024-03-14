@@ -15,7 +15,7 @@ nchnls = 2
 
 instr 1	; bit reduction for Lo-Fi sound
 
-iBits	  = p5						;bit depth
+iBits	  = p4						;bit depth
 iQuantize = powoftwo(iBits)				;find number of discrete steps for this bit depth
 iQuantize = iQuantize*0.5				;half the number of steps for each side of a bipolar signal
 print	  iQuantize

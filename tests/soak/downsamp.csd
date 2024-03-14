@@ -16,7 +16,7 @@ nchnls = 2
 instr	1
 
 ifrq	= cpspch(p4)
-ain	diskin2 "beats.wav", 1
+ain	diskin2 "drumsMlp.wav", 1
 aenv	follow	ain, .001	;take the amplitude every 1/1000th of a second
 alow	tone	aenv, 25	;lowpass-filter (25 Hz) for a clean signal
 kenv	downsamp alow

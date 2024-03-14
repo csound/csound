@@ -18,7 +18,7 @@ instr 1
 ktrig metro 3				;trigger 3 times a second
 scoreline {{				;so it sounds like an echo
             i 2  0  3  "flute.aiff"
-            i 2  1  3  "beats.wav"
+            i 2  1  3  "drumsMlp.wav"
             }}, ktrig
 ktrig = 0
         

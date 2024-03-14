@@ -27,7 +27,7 @@ endin
 <CsScore>
 ; Its table size is deferred,
 ; and format taken from the soundfile header.
-f 1 0 0 1 "beats.wav" 0 0 0
+f 1 0 0 1 "drumsMlp.wav" 0 0 0
 
 ; Play Instrument #1 for 6 seconds.
 ; This will loop the drum pattern several times.

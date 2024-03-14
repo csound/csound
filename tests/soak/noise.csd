@@ -15,7 +15,7 @@ nchnls = 2
 
 instr 1
 
-kbeta line -1, p3, 1	;change beta value from -1 to 1
+kbeta line -0.9999, p3, 0.9999	;change beta value between -1 to 1
 asig  noise .3, kbeta
 asig  clip asig, 2, .9	;clip signal
       outs asig, asig

@@ -20,7 +20,7 @@ instr 1
 
 kx   = p4
 ky   = p5
-asig diskin2 "beats.wav", 1
+asig diskin2 "drumsMlp.wav", 1
 a1, a2, a3, a4 space asig, 0, 0, .1, kx, ky	;take position values from p4, p5
 ar1, ar2, ar3, ar4 spsend			;send to reverb
 

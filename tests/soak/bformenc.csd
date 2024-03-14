@@ -16,7 +16,7 @@ nchnls = 8
 
 instr 1
         ; generate pink noise
-        anoise oscil3 1000, 440
+        anoise pinkish 1000
         
         ; two full turns
         kalpha line 0, p3, 720

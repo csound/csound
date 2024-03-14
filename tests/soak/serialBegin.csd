@@ -10,7 +10,7 @@
 
 sr  = 44100
 ksmps = 500 ; the default krate can be too fast for the arduino to handle
-nchnls = 2
+nchnls_i = 1
 0dbfs  = 1
 
 instr 1

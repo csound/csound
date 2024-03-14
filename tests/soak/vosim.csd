@@ -2,9 +2,9 @@
 <CsOptions>
 ; Select audio/midi flags here according to platform
 ; Audio out   Audio in
--odac           -iadc    ;;;RT audio I/O
+;-odac           -iadc    ;;;RT audio I/O
 ; For Non-realtime ouput leave only the line below:
-; -o vosim.wav -W ;;; for file output any platform
+ -o vosim.wav -W ;;; for file output any platform
 </CsOptions>
 <CsInstruments>
 sr     = 44100
@@ -31,8 +31,8 @@ endin
 
 ;#################################################
 
-; Main vosim instrument. Sweeps from a fund1/form1 to fund2/form2,
-; trying for narrowest formant bandwidth (still quite wide by the looks of it)
+; vosim instrument. Sweeps kfund and kform between start-end values.
+; Attempts to smooth spectral transitions as pulse count changes
 ; p4:     amp
 ; p5, p6: fund beg-end
 ; p7, p8: form beg-end
@@ -48,15 +48,21 @@ instr 1
     ; formant start, end
     kform  line  p7, p3, p8
 
-	; Try for constant ratio burst/silence, and narrowest formant bandwidth
+	; Get many pulses as we can fit
 	kPulseCount  = (kform / kfund)  ;init p10
-	; Attempt to smooth steps between format bandwidths,
-	; increasing decay before we are forced to a lower pulse count
-	kDecay = kPulseCount/(kform % kfund)  ; init p9
-	if (kDecay * kPulseCount) > kamp then
+
+	; Attempt to smooth steps between formant bandwidth,
+	; matching decay to the current pulse count and remaining silent part
+	kPulseREM = kPulseCount - int(kPulseCount) ; Pulse remainder (empty samples after last pulse)
+	kDroprate = kPulseREM / (kPulseCount-1)   ; Decay per pulse (after the 1st)
+	kDecay = kamp - kDroprate
+	; Guard against kamp going negative (since kDecay is subtracted from each pulse)
+	if (kDecay * (kPulseCount-1)) > kamp then
 		kDecay = kamp / kPulseCount
 	endif
-	kDecay = 0.3 * kDecay
+
+	; Try this to get more bumpy spectral changes when pulse count changes
+	;kDecay = p9
 
 	kPulseFactor init p11
 	
@@ -85,10 +91,10 @@ i10 0 0 17 ; init run only, square table 17
 
 ;      p4=amp  fund     form      decay pulses pulsemod [skip] nofade
 ; tenor a -> e
-i1 0  .5  .5   280 240  650  400   .03   5      1
-i1 .  .   .3   .   .    1080 1700  .03   5      .
-i1 .  .   .2   .   .    2650 2600  .03   5      .
-i1 .  .   .15  .   .    2900 3200  .03   5      .
+i1 0  .5  .5   280 240  650  400   .03   5      1      0      0
+i1 .  .   .3   .   .    1080 1700  .03   5      .      .      .
+i1 .  .   .2   .   .    2650 2600  .03   5      .      .      .
+i1 .  .   .15  .   .    2900 3200  .03   5      .      .      .
 
 ; tenor a -> o
 i1 0.6 .2  .5  300 210  650  400   .03   5      1      0      1
@@ -115,3 +121,4 @@ e
 
 </CsScore>
 </CsoundSynthesizer>
+

@@ -1,30 +1,34 @@
 <CsoundSynthesizer>
 <CsOptions>
--odac
+; Select audio/midi flags here according to platform
+-odac  ;;;realtime audio out
+;-iadc    ;;;uncomment -iadc if realtime audio input is needed too
+; For Non-realtime ouput leave only the line below:
+; -o pvshift.wav -W ;;; for file output any platform
 </CsOptions>
 <CsInstruments>
 
 sr = 44100
-ksmps = 16
-nchnls = 1
-0dbfs = 1
+ksmps = 32
+nchnls = 2
+0dbfs  = 1
 
 ;; example written by joachim heintz 2009
 
 instr 1
-ishift		=		p4; shift amount in Hz
-ilowest	=		p5; lowest frequency to be shifted
-ikeepform	=		p6; 0=no formant keeping, 1=keep by amps, 2=keep by spectral envelope
-ifftsize	=		1024
-ioverlap	=		ifftsize / 4
-iwinsize	=		ifftsize
-iwinshape	=		1; von-Hann window
-Sfile		=		"fox.wav"
-ain		soundin	Sfile
+ishift		= p4    ; shift amount in Hz
+ilowest         = p5    ; lowest frequency to be shifted
+ikeepform	= p6    ; 0=no formant keeping, 1=keep by amps, 2=keep by spectral envelope
+ifftsize	= 1024
+ioverlap	= ifftsize / 4
+iwinsize	= ifftsize
+iwinshape	= 1     ; von-Hann window
+Sfile		= "fox.wav"
+ain		    soundin	Sfile
 fftin		pvsanal	ain, ifftsize, ioverlap, iwinsize, iwinshape; fft-analysis of file
 fshift		pvshift  	fftin, ishift, ilowest, ikeepform; shift frequencies
 aout		pvsynth	fshift; resynthesize
-		out		aout
+		outs	aout, aout
 endin
 
 </CsInstruments>
@@ -40,4 +44,3 @@ i 1 21 2.757 1000 300 0; above 300 Hz
 e
 </CsScore>
 </CsoundSynthesizer>
-

@@ -29,7 +29,7 @@ asig	syncloop 1, ifreq, ipitch, igrsize, ips*istr, .3, .75, 1, 2, iolaps
 endin
 </CsInstruments>
 <CsScore>
-f1 0 0 1 "beats.wav" 0 0 0
+f1 0 0 1 "drumsMlp.wav" 0 0 0
 f2   0   8192   20   2   1
 
 i1 0 6 .5

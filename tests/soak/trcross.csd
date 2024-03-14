@@ -15,7 +15,7 @@ nchnls = 2
 
 instr 1
 
-ain1 diskin2 "beats.wav", 1, 0, 1
+ain1 diskin2 "drumsMlp.wav", 1, 0, 1
 ain2 diskin2 "fox.wav", 1
 
 imode = p4

@@ -14,7 +14,7 @@ nchnls = 8
 
 instr 1 ;without arrays
 ; generate pink noise
-anoise oscil3 1, 440
+anoise pinkish 1
         
 ; two full turns
 kalpha line 0, p3, 720

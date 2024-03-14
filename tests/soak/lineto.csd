@@ -17,8 +17,8 @@ giSine ftgen 0, 0, 2^10, 10, 1
 
 instr 1
 
-kfreq     randh     1000, 20, 0.2, 1, 2000 ;generates ten random number between 100 and 300 per second
-kpan      randh     .5, 1, 0.2, 1, .5   ;panning between 0 and 1
+kfreq     randh     1000, 20, 2, 1, 2000 ;generates ten random number between 100 and 300 per second
+kpan      randh     .5, 1, 2, 1, .5   ;panning between 0 and 1
 kp        lineto    kpan, .5          ;smoothing pan transition
 aout      poscil    .4, kfreq, giSine
 aL, aR    pan2      aout, kp

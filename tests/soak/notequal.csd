@@ -17,9 +17,9 @@ instr 1
 
 ipch   = cpspch(p4)
 iprint = p5
-if (iprint != 1) igoto skipPrint
+if (iprint != 1) goto skipPrint
 print  ipch
-asig   vco2 .7, ipch
+asig   vco .7, ipch, 2, 0.5, 1
        outs asig, asig
 
 skipPrint:
@@ -31,8 +31,8 @@ endin
 f 1 0 65536 10 1	;sine wave
 
 i1 0 .5 8.00 0
-i1 0 .5 8.01 1 ; this note will print it's ipch value and only this one will be played
-i1 0 .5 8.02 2
+i1 + .5 8.01 1 ; this note will print it's ipch value and only this one will be played
+i1 + .5 8.02 2
 
 e
 </CsScore>

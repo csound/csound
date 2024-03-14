@@ -21,7 +21,7 @@ instr 1
   kcps init p5
   ioffset init p6
   ;       table   krange  kcps  ielements   idstoffset  iseed  isize ioffset
-  vrandi  gitab,  krange, kcps,     3,         3,         0.2, 1,    ioffset
+  vrandi  gitab,  krange, kcps,     3,         3,         2,   1,    ioffset
 
   kfreq1 table 3, gitab
   kfreq2 table 4, gitab

@@ -13,6 +13,9 @@ ksmps = 32
 nchnls = 2
 0dbfs  = 1
 
+; analyze sound file, creating a PVOC-EX file
+ires1 system_i 1,{{ pvanal fox.wav fox.pvx }}          ; default settings
+
 instr 1
 
 inbins	=	512
@@ -36,9 +39,7 @@ endin
 
 </CsInstruments>
 <CsScore>
-
-i 1 0 4
+i 1 0 5.5
 e
-
 </CsScore>
 </CsoundSynthesizer>

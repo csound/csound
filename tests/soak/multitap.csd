@@ -17,7 +17,7 @@ ga1 init 0
 
 instr 1
 
-asig diskin2 "beats.wav", 1,0
+asig diskin2 "drumsMlp.wav", 1,0
      outs asig, asig
    
 ga1  = ga1+asig

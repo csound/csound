@@ -1,51 +1,45 @@
 <CsoundSynthesizer>
 <CsOptions>
 ; Select audio/midi flags here according to platform
-; Audio out   Audio in    No messages
--odac           -iadc     -d     ;;;RT audio I/O
+; Audio out   Audio in
+-odac             ;;;RT audio out
 ; For Non-realtime ouput leave only the line below:
 ; -o wguide1.wav -W ;;; for file output any platform
 </CsOptions>
 <CsInstruments>
 
-; Initialize the global variables.
+; by Kevin Conder
+; additions by Menno Knevel 2021
+
 sr = 44100
-kr = 4410
-ksmps = 10
-nchnls = 1
+ksmps = 32
+nchnls = 2
+0dbfs  = 1
 
-; Instrument #1 - a simple noise waveform.
-instr 1
-  ; Generate some noise.
-  asig noise 20000, 0.5
+instr 1     ; Generate some noise.
+  
+asig noise .5, 0.5
+outs asig, asig
 
-  out asig
 endin
 
-; Instrument #2 - a waveguide example.
-instr 2
-  ; Generate some noise.
-  asig noise 20000, 0.5
+instr 2     
+  
+asig noise .5, 0.5                          ; Generate some noise.
+kfreq line p4, p3, 100                      ; Run it through a wave-guide model.
+kcutoff init 3000
+kfeedback init 0.8
+awg1 wguide1 asig, kfreq, kcutoff, kfeedback
+outs awg1, awg1
 
-  ; Run it through a wave-guide model.
-  kfreq init 200
-  kcutoff init 3000
-  kfeedback init 0.8
-  awg1 wguide1 asig, kfreq, kcutoff, kfeedback
-
-  out awg1
 endin
-
 
 </CsInstruments>
 <CsScore>
-
-; Play Instrument #1 for 2 seconds.
 i 1 0 2
-; Play Instrument #2 for 2 seconds.
-i 2 2 2
+;           freq
+i 2 2 5     2000    ; falling frequency
+i 2 8 3     100     ; static
 e
-
-
 </CsScore>
 </CsoundSynthesizer>

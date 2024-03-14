@@ -2,11 +2,11 @@
 <CsOptions>
 ; Select audio/midi flags here according to platform
 ; Audio out   Audio in    Silent
--odac           -iadc     -d    ;;;realtime output
+-odac           -iadc     -n    ;;;realtime output
 </CsOptions>
 <CsInstruments>
 
-sr	=	48000
+sr	=	44100
 ksmps	=	1000
 nchnls	=	2
 

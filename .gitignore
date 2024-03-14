@@ -129,7 +129,6 @@ Opcodes/stk/*/
 ## Others
 TAGS
 po/old_*
-*.wav
 ##Release_Notes/*
 
 .DS_Store
@@ -237,3 +236,6 @@ xcode
 *.nupkg
 *.exe
 bin
+
+# coverage folder
+/coverage/

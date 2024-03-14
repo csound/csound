@@ -16,7 +16,7 @@ nchnls = 2
 instr 1 
 
 kcps    expon p5, p3, p4
-asig	oscil3 0.3, kcps, 1
+asig	oscil3 0.3, kcps
 krvt =  3.5
 ilpt =  0.1
 aleft	combinv asig, krvt, ilpt
@@ -26,7 +26,6 @@ endin
 
 </CsInstruments>
 <CsScore>
-f1 0 4096 10 1
 i 1 0 3 20 2000
 e
 

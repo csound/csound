@@ -8,6 +8,8 @@
 </CsOptions>
 <CsInstruments>
 
+; by Menno Knevel 2022
+
 sr = 44100
 ksmps = 32
 nchnls = 2
@@ -16,7 +18,7 @@ nchnls = 2
 instr 1 ; choose between mono or stereo file
 
 ichn filenchnls  p4	;check number of channels
-print  ichn
+prints  "\nnumber of channels = %d\n\n", ichn
 
 if ichn == 1 then	
 asig   soundin p4	;mono signal
@@ -30,8 +32,8 @@ endin
 </CsInstruments>
 <CsScore>
 
-i 1 0 3 "fox.wav"	;mono signal
-i 1 5 2 "kickroll.wav"	;stereo signal
+i 1 0 2 "drumsMlp.wav"	;mono signal
+i 1 3 2 "drumsSlp.wav"	;stereo signal
 
 e
 </CsScore>

@@ -13,20 +13,23 @@ ksmps = 32
 0dbfs  = 1 
 nchnls = 2
 
+; analyze sound file, creating a PVOC-EX file
+ires1 system_i 1,{{ pvanal stereoJungle.wav stereoJungle.pvx }} ; default settings
+
 instr 1
 ; create a PVOC-EX (*.pvx) file with PVANAL first
-idur  filelen   "kickroll.pvx"		;find duration of (stereo) analysis file
-kpos  line      0,p3,idur		;to ensure we process whole file
-fsigr pvsfread  kpos,"kickroll.pvx", 1	;create fsig from right channel
-aout  pvsynth	fsigr			;resynthesise it
-      outs	aout, aout
+idur  filelen   "stereoJungle.pvx"      ;find duration of (stereo) analysis file
+kpos  line      0,p3,idur               ;to ensure we process whole file
+fsigr pvsfread  kpos,"stereoJungle.pvx", 1  ;create fsig from right channel
+aout  pvsynth   fsigr                   ;resynthesise it
+      outs  aout, aout
 
 endin
 </CsInstruments>
 <CsScore>
 
-i 1 0 10
-i 1 11 1
+i 1 0 20    ; slow down
+i 1 21 1    ; speed up
 e
 </CsScore>
 </CsoundSynthesizer>

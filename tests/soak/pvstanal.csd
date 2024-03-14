@@ -24,8 +24,8 @@ endin
 
 instr 2
 
-kspeed    randi     2, 2, 0.2 ;speed randomly between -2 and 2
-kpitch    randi     2, 2, 0.3 ;pitch between 2 octaves lower or higher
+kspeed    randi     2, 2, 2 ;speed randomly between -2 and 2
+kpitch    randi     2, 2, 2 ;pitch between 2 octaves lower or higher
 fsig      pvstanal  kspeed, 1, octave(kpitch), gifil
 aout      pvsynth   fsig
           outs      aout, aout

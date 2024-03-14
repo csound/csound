@@ -21,12 +21,21 @@ aout	oscili	0.8, 440+kalpha, 1	; & listen
 	outs	aout, aout
 endin
 
+instr 2		; every run time different values
+
+	seed 0
+kalpha	pcauchy	1000
+	printk	.2, kalpha		; look 
+aout	oscili	0.8, 440+kalpha, 1	; & listen
+	outs	aout, aout
+endin
 </CsInstruments>
 <CsScore>
 ; sine wave
 f 1 0 16384 10 1
 
 i 1 0 2
+i 2 3 2
 e
 
 </CsScore>

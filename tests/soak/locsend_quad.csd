@@ -20,8 +20,8 @@ ga3	init	0
 ga4	init	0
 ; Instrument #1
 instr 1
-  ; Use the "beats.wav" audio file.
-aout		diskin2 "beats.wav", 1, 0, 1
+  ; Use the "drumsMlp.wav" audio file.
+aout		diskin2 "drumsMlp.wav", 1, 0, 1
 kdegree	line 0, p3, 360
 kdistance	line 1, p3 , 10
 a1, a2, a3, a4	locsig aout, kdegree, kdistance, .1

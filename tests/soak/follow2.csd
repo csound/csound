@@ -15,16 +15,16 @@ nchnls = 2
 
 instr 1
 
-asig soundin "beats.wav"
+asig soundin "drumsMlp.wav"
      outs asig, asig
 endin
 
 instr 2 ;using follow2
 
-as soundin "beats.wav"
+as soundin "drumsMlp.wav"
 af follow2 as, p4, p5
 ar rand 44100	;noise
-; "beats.wav" provides amplitude for noise
+; "drumsMlp.wav" provides amplitude for noise
 asig balance ar, af
      outs asig, asig
 

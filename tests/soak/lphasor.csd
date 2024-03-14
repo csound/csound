@@ -36,7 +36,7 @@
 </CsInstruments>
 
 <CsScore>
-f 1 0 262144 1 "beats.wav" 0 4 1
+f 1 0 262144 1 "drumsMlp.wav" 0 4 1
 i1 0 60
 e
 </CsScore>

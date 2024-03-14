@@ -13,6 +13,8 @@ ksmps = 32
 nchnls = 2
 0dbfs  = 1
 
+; by Menno Knevel 2022
+
 instr 1	;clean audio
 
 asig soundin p4
@@ -29,11 +31,14 @@ ifrqs = 12
 iconf = 10
 istrt = 8
 
-asig soundin p4
+Sfile = p4              
+asig soundin Sfile
+
 koct, kamp pitch asig, iupdte, ilo, ihi, idbthresh, ifrqs, iconf, istrt
-kamp = kamp*.00005		;lower volume
+kamp = kamp*.00004		;lower volume
 kcps = cpsoct(koct)
 asig poscil kamp, kcps, 1	;re-synthesize with sawtooth
+printf  "now %s is used...\n\n", 1, Sfile
      outs asig, asig
 
 endin
@@ -41,12 +46,12 @@ endin
 <CsScore>
 f1 0 16384 10 1 0.5 0.3 0.25 0.2 0.167 0.14 0.125 .111   ;sawtooth
 
-i 1 0  3 "fox.wav"
-i 2 3  3 "fox.wav"
-i 1 6  3 "mary.wav"
-i 2 9  3 "mary.wav"
-i 1 12 3 "beats.wav"
-i 2 15 3 "beats.wav"
+i 1 0   3 "fox.wav"
+i 2 3   3 "fox.wav"
+i 1 6   4 "singFemale.aif"
+i 2 10  4 "singFemale.aif"
+i 1 15  2 "drumsMlp.wav"
+i 2 17  2 "drumsMlp.wav"
 e
 </CsScore>
 </CsoundSynthesizer>

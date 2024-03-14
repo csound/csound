@@ -32,7 +32,7 @@ endin
 
 ; Table #1: an audio file (using GEN01).
 ; Since our table size is 0, Csound will compute it.
-f 1 0 0 1 "beats.wav" 0 0 0
+f 1 0 0 1 "drumsMlp.wav" 0 0 0
 
 ; Play Instrument #1 for 2 seconds.
 i 1 0 2

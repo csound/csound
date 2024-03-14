@@ -24,10 +24,10 @@ endin
 </CsInstruments> 
 <CsScore> 
 f 1 0 0 1 "fox.wav" 0 0 0 ;Csound computes tablesize
-f 2 0 0 1 "beats.wav" 0 0 0 ;Csound computes tablesize
+f 2 0 0 1 "drumsMlp.wav" 0 0 0 ;Csound computes tablesize
 
 i 1 0 3 1 ;"fox.wav"
-i 1 3 3 2 ;"beats.wav"
+i 1 3 3 2 ;"drumsMlp.wav"
 
 e
 </CsScore>

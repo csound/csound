@@ -21,12 +21,22 @@ aout	oscili 0.8, 440+ktri, 1		; & listen
 	outs	aout, aout
 endin
 
+instr 2		; every run time different values
+
+	seed 0
+ktri	trirand 100
+	printk .2, ktri			; look 
+aout	oscili 0.8, 440+ktri, 1		; & listen
+	outs	aout, aout
+endin
+
 </CsInstruments>
 <CsScore>
 ; sine wave
 f 1 0 16384 10 1
 
 i 1 0 2
+i 2 3 2
 e
 </CsScore>
 </CsoundSynthesizer>

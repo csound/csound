@@ -15,7 +15,7 @@ nchnls = 2
 
 instr	1
 
-aout diskin2 "beats.wav", 1, 0, 1				;in signal
+aout diskin2 "drumsMlp.wav", 1, 0, 1				;in signal
 afreq1 line 100, p3, 2000						
 afreq2 line 1200, p3, p4					;vary second frequency in the score	
 kcutoff1   = 3000

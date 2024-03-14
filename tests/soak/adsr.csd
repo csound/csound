@@ -31,9 +31,9 @@ endin
 </CsInstruments>
 <CsScore>
 
-i 1  0  1  7.00  .0001  1  .01  .001 ; short attack
-i 1  2  1  7.02  1  .5  .01  .001    ; long attack
-i 1  4  2  6.09  .0001  1 .1  .7     ; long release
+i 1  0  2  7.00  .0001  1  .5  .001 ; short attack
+i 1  3  2  7.02  1  .5  .5  .001    ; long attack
+i 1  6  2  6.09  .0001  1 .5  .7     ; long release
 
 e
 

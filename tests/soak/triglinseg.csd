@@ -1,11 +1,16 @@
 <CsoundSynthesizer>
 <CsOptions>
--odac
+; Select audio/midi flags here according to platform
+; Audio out   Audio in    No messages
+-odac 	-d    -m0d     -M0  -+rtmidi=virtual ;;;RT audio I/O with MIDI in
+; For Non-realtime ouput leave only the line below:
+; -o midiin.wav -W ;;; for file output any platform
 </CsOptions>
 <CsInstruments>
-0dbfs = 1
-nchnls = 2
+sr = 44100
 ksmps = 32
+nchnls = 2
+0dbfs = 1
 
 instr 1
 aEnv linseg 0, .2, 1, .2, .5, .2, .7, .2, 0

@@ -22,7 +22,7 @@ endin
 instr 2	;cross-synthesize
 
 icps = p4
-ifn  = p5		; Use the "ahh.aiff" sound and "eee.aiff"
+ifn  = p5		; Use the "ahhc.aiff" sound and "eeec.aiff"
 ain1 oscil 0.6, p4, ifn
 ain2 soundin "fox.wav"	; Use the "fox.wav" as modulator
 
@@ -38,21 +38,21 @@ endin
 </CsInstruments>
 <CsScore>
 ;audio files
-f 1 0 128 1 "ahh.aiff" 0 4 0
-f 2 0 128 1 "eee.aiff" 0 4 0
+f 1 0 128 1 "ahhc.aiff" 0 4 0
+f 2 0 128 1 "eeec.aiff" 0 4 0
 
 f 3 0 2048 20 2	;windowing function
-
+ 
 i 1 0 3
 
-i 2 3 3  50	1 ;"eee.aiff"
-i 2 + 3  50	2 ;"ahh.aiff"
-i 2 + 3  100	1 ;"eee.aiff"
-i 2 + 3  100	2 ;"ahh.aiff"
-i 2 + 3  250	1 ;"eee.aiff"
-i 2 + 3  250	2 ;"ahh.aiff"
-i 2 + 3  20	1 ;"eee.aiff"
-i 2 + 3  20	2 ;"ahh.aiff"
+i 2 3 3  50	1 ;"eeec.aiff"
+i 2 + 3  50	2 ;"ahhc.aiff"
+i 2 + 3  100	1 ;"eeec.aiff"
+i 2 + 3  100	2 ;"ahhc.aiff"
+i 2 + 3  250	1 ;"eeec.aiff"
+i 2 + 3  250	2 ;"ahhc.aiff"
+i 2 + 3  20	1 ;"eeec.aiff"
+i 2 + 3  20	2 ;"ahhc.aiff"
 e
 
 </CsScore>

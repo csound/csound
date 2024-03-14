@@ -27,7 +27,7 @@ instr 1
   kfreq linseg ibegshift, idur, iendshift
  
   ; Use the sound of your choice.
-  ain diskin2 "beats.wav", 1, 0, 1
+  ain diskin2 "drumsMlp.wav", 1, 0, 1
  
   ; Phase quadrature output derived from input signal.
   areal, aimag hilbert ain

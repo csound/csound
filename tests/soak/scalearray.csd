@@ -6,7 +6,7 @@
 <CsInstruments>
 ;example by joachim heintz
 
-           seed       36580
+           seed       0
 
 instr 1
 ;create an array with 10 elements

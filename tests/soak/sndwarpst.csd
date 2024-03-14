@@ -8,6 +8,8 @@
 </CsOptions>
 <CsInstruments>
 
+; by Menno Knevel 2022
+
 sr = 44100
 ksmps = 32
 nchnls = 2
@@ -16,15 +18,16 @@ nchnls = 2
 
 instr 1
 
-ktimewarp line 0, p3, 1		;length of stereo file "kickroll.wav"
+ktimewarp line 0, p3, 1		;length of stereo file "drumsSlp.wav"
 kresample init 1		;playback at the normal speed
 ibeg = 0
 iwsize = 4410
 irandw = 441
 ioverlap = p4
 itimemode = 1			; Use the ktimewarp parameter as a "time" pointer
+prints  "\nnumber of overlaps = %d\n\n", p4
 
-aL, aR sndwarpst .3, ktimewarp, kresample, 1, ibeg, iwsize, irandw, ioverlap, 2, itimemode
+aL, aR sndwarpst .35, ktimewarp, kresample, 1, ibeg, iwsize, irandw, ioverlap, 2, itimemode
 aL dcblock aL			;get rid of DC offsets for left channel &
 aR dcblock aR			;right channel
    outs aL, aR
@@ -32,7 +35,7 @@ aR dcblock aR			;right channel
 endin
 </CsInstruments>
 <CsScore>
-f 1 0 65536 1 "kickroll.wav" 0 0 0
+f 1 0 0 1 "drumsSlp.wav" 0 0 0
 f 2 0 16384 9 0.5 1 0		;half of a sine wave
 
 i 1 0 7 2			;different overlaps

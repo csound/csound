@@ -135,7 +135,7 @@ instr Gesture
         kAmpMin tablei    kndx, iAmpMinTable
         kAmpMax tablei    kndx, iAmpMaxTable
 
-        ; find random values for all our required parametrs and print the i-statement
+        ; find random values for all our required parameters and print the i-statement
         fprintks gScoName, "i%d%t%f%t%f%t%f", kInstMin + rnd(kInstMax-kInstMin), kNextStart, kDurMin + rnd(kDurMax-kDurMin), kAmpMin + rnd(kAmpMax-kAmpMin)
 
         ; now any additional pfields

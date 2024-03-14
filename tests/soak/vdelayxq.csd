@@ -18,7 +18,7 @@ instr 1
 ims   =	.5						;maximum delay time in seconds
 iws   =	1024						;window size
 adl   =	.5
-aout1  diskin2 "beats.wav", 1, 0, 1			;loop beats.wav
+aout1  diskin2 "drumsMlp.wav", 1, 0, 1			;loop drumsMlp.wav
 aout2  diskin2 "fox.wav", 1, 0, 1			;loop fox.wav
 aout3  diskin2 "Church.wav", 1, 0, 1			;loop Church.wav
 aout4  diskin2 "flute.aiff", 1, 0, 1			;loop flute.aiff

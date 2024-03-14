@@ -18,13 +18,15 @@ instr 1
 ktimewarp line 0, p3, 2.7	;length of "fox.wav"
 kresample init 1		;do not change pitch
 ibeg = 0			;start at beginning
+kwsize  line 4410, p3, 2000
 iwsize = 4410			;window size in samples with
 irandw = 882			;bandwidth of a random number generator
 itimemode = 1			;ktimewarp is "time" pointer
 ioverlap = p4
 
-asig sndwarp .5, ktimewarp, kresample, 1, ibeg, iwsize, irandw, ioverlap, 2, itimemode
-     outs asig, asig
+asig  sndwarp  .5, ktimewarp, kresample, 1, ibeg, iwsize, irandw, ioverlap, 2, itimemode
+asig2 sndwarp2 .5, ktimewarp, kresample, 1, ibeg, kwsize, irandw, ioverlap, 2, itimemode
+     outs asig, asig2
 
 endin
 </CsInstruments>

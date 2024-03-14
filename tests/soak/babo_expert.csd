@@ -29,7 +29,7 @@ instr 2
   idiff   = p13  ; diffusion coefficient
   iexpert = p14  ; power user values stored in this function
 
-ainput    soundin "beats.wav"
+ainput    soundin "drumsMlp.wav"
 ksource_x line    ixstart, p3, ixend
 ksource_y line    iystart, p3, iyend
 ksource_z line    izstart, p3, izend

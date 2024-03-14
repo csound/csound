@@ -13,7 +13,7 @@ ksmps = 32
 nchnls = 2
 0dbfs  = 1
 
-seed 5434
+seed 0
 gisine ftgen 0, 0, 2^10, 10, 1
 
 instr 1

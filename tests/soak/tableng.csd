@@ -13,7 +13,7 @@ ksmps = 32
 nchnls = 2
 0dbfs  = 1
 
-gifn1 ftgen 1, 0, 0, 1, "flute.aiff", 0, 4, 0	;deferred-size table
+gifn1 ftgen 1, 0, 0, 1, "flute.aiff", 0, 0, 0	;deferred-size table
 
 instr 1 
 
