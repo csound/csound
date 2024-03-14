@@ -56,11 +56,11 @@ f1 0 8192 10 1
 
 ; Diskin
 ;   Sta  Dur  Soundin
-i5  0    3    "beats.wav"
+i5  0    3    "drumsMlp.wav"
 
 ; Reverb
 ;   St  Dur  Del1 Gn1  Del2  Gn2  Del3  Gn3  Del4  Gn4  Del5  Gn5  Del6  Gn6
-i10 0   4    97   .11  23   .07   43   .09   72    .2   53    .2   119   .3
+i10 0   6    97   .11  23   .07   43   .09   72    .2   53    .2   119   .3
 e
 
 

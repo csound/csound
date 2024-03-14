@@ -17,7 +17,7 @@ giSine ftgen 0, 0, 65536, 10, 1			;sine wave
 
 instr 1
 
-asig diskin2 "beats.wav", 1, 0, 1
+asig diskin2 "drumsMlp.wav", 1, 0, 1
 krvt line 0.01, p3, p3				;reverb time
 adepth = p4					;sine depth 
 krate = 0.3					;sine rate (speed)

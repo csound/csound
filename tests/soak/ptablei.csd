@@ -13,7 +13,7 @@ ksmps = 32
 nchnls = 2
 0dbfs  = 1
 
-seed 59864
+seed 0	;generate new values every time the instr is played
 
 instr 1
 

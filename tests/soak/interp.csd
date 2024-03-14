@@ -1,55 +1,39 @@
 <CsoundSynthesizer>
 <CsOptions>
 ; Select audio/midi flags here according to platform
-; Audio out   Audio in    No messages
--odac           -iadc     -d     ;;;RT audio I/O
+; Audio out   Audio in
+-odac      ;;;RT audio out
 ; For Non-realtime ouput leave only the line below:
 ; -o interp.wav -W ;;; for file output any platform
 </CsOptions>
 <CsInstruments>
 
-; Initialize the global variables.
-sr = 8000
-kr = 8
-ksmps = 1000
-nchnls = 1
+sr     = 44100
+ksmps  = 1024    ; very high, for demonstration purpose
+nchnls = 2
+0dbfs  = 1
 
-; Instrument #1 - a simple instrument.
 instr 1
-  ; Create an amplitude envelope.
-  kamp linseg 0, p3/2, 20000, p3/2, 0
-
-  ; The amplitude envelope will sound rough because it
-  ; jumps every ksmps period, 1000.
-  a1 oscil kamp, 440, 1
-  out a1
+  
+kamp linseg 0, p3/2, .5, p3/2, 0        ; Create an amplitude envelope.
+a1   oscil kamp, 440                    ; The amplitude envelope will sound rough because it
+outs a1, a1                             ; jumps every ksmps period (1024)
 endin
 
-; Instrument #2 - a smoother sounding instrument.
-instr 2
-  ; Create an amplitude envelope.
-  kamp linseg 0, p3/2, 25000, p3/2, 0
-  aamp interp kamp
 
-  ; The amplitude envelope will sound smoother due to
-  ; linear interpolation at the higher a-rate, 8000.
-  a1 oscil aamp, 440, 1
-  out a1
+instr 2     ; a smoother sounding instrument.
+
+kamp linseg 0, p3/2, .5, p3/2, 0        ; Create an amplitude envelope
+aamp interp kamp                        ; The amplitude envelope will sound smoother due to
+a1 oscil aamp, 440                      ; linear interpolation at the higher a-rate
+outs a1, a1
 endin
-
 
 </CsInstruments>
 <CsScore>
+i 1 0 2     ; sounds raw
 
-; Table #1, a sine wave.
-f 1 0 256 10 1
-
-; Play Instrument #1 for two seconds.
-i 1 0 2
-; Play Instrument #2 for two seconds.
-i 2 2 2
+i 2 3 2     ; sounds smooth
 e
-
-
 </CsScore>
 </CsoundSynthesizer>

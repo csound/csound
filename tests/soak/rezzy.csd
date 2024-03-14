@@ -8,16 +8,16 @@
 </CsOptions>
 <CsInstruments>
 
-sr = 44100 
-ksmps = 32 
-0dbfs  = 1 
+sr = 44100
+ksmps = 32
+0dbfs  = 1
 nchnls = 2
 
 instr 1
 
 asaw vco2 .3, 110	;sawtooth
 kcf  line 1760, p3, 220	;vary cut-off frequency from 220 to 1280 Hz
-kres = p4		;vary resonance too		
+kres = p4		;vary resonance too
 ares rezzy asaw, kcf, kres
 asig balance ares, asaw
      outs asig, asig

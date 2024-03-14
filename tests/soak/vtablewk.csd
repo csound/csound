@@ -22,9 +22,10 @@ vtablewk kindex*ilen, 1, 0, knew1, knew2
 out asig,asig
 	endin    
 
+
 </CsInstruments>
 <CsScore>
-f1  0 262144   -1 "beats.wav" 0 4 0
+f1  0 262144   -1 "drumsMlp.wav" 0 4 0
 f2  0 262144   2  0
 f3  0 1024  10 1
 

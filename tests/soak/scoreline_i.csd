@@ -17,7 +17,7 @@ instr 1
 
 scoreline_i {{
             i 2  0  3  "flute.aiff"
-            i 2  1  3  "beats.wav"
+            i 2  1  3  "drumsMlp.wav"
             }}
         
 endin

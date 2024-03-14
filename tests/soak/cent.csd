@@ -46,7 +46,7 @@ endin
 ; sine wave
 f1 0 32768 10 1
 
-i 1 0  2  0	;no change
+i 1 0  2  	;no change
 i 2 2.5 2 300	;note = C above A
 i 2 5  2 1200	;1 octave higher 
 

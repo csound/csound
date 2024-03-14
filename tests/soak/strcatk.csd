@@ -2,7 +2,7 @@
 <CsOptions>
 ; Select audio/midi flags here according to platform
 ; Audio out   Audio in
--odac   ;;;RT audio I/O
+-odac           -iadc    ;;;RT audio I/O
 ; For Non-realtime ouput leave only the line below:
 ; -o strcatk.wav -W ;;; for file output any platform
 </CsOptions>

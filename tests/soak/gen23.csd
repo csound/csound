@@ -21,7 +21,7 @@ loop:
 ifreq tab_i indx, 2				;take odd values of list (= frequency)
 iamp tab_i indx+1, 2				;take even values of list (= amplitude)
 event_i "i", 10, 0, p3, iamp, ifreq   		;use "event_i" to trigger instr. 10 
-    loop_lt indx, 2, 128, loop			;use all 128 frequency and amplitude values
+    loop_lt indx, 2, 126, loop			;use all 126 frequency and amplitude values
 
 endin
 

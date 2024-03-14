@@ -15,7 +15,7 @@ nchnls = 2
 
 instr 1
 
-ab    diskin2  "beats.wav", 1
+ab    diskin2  "drumsMlp.wav", 1
 al,ar platerev 1, 2, p4, 0.73, 1.0, 5.0, 0.001, ab,ab
       outs      al*.25,ar*.25
 

@@ -24,7 +24,7 @@ instr 1
        iysize = p8  ; depth  of the resonator
        izsize = p9  ; height of the resonator
 
-ainput soundin "beats.wav"
+ainput soundin "drumsMlp.wav"
 
 al,ar  babo    ainput*0.7, ix, iy, iz, ixsize, iysize, izsize
 

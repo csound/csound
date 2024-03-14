@@ -2,14 +2,14 @@
 <CsOptions>
 ; Select audio/midi flags here according to platform
 ; Audio out   Audio in    No messages
--odac           -iadc     -d     ;;;RT audio I/O
+-odac      ;     -iadc     -d     ;;;RT audio I/O
 ; For Non-realtime ouput leave only the line below:
 ; -o scans.wav -W ;;; for file output any platform
 </CsOptions>
 <CsInstruments>
 
     sr =   44100
-    ksmps =   128
+    ksmps =   32
     nchnls =   1
 
     instr 1
@@ -32,7 +32,7 @@ f1 0 128 7 0 64 1 64 0
 f2 0 128 -7 1 128 1
    
 ; Spring matrices
-f3 0 16384 -23 "string-128.matrix"
+f3 0 16384 -23 "string-128.matrxB"
    
 ; Centering force
 f4  0 128 -7 0 128 2

@@ -13,7 +13,7 @@ ksmps = 32
 nchnls = 2
 0dbfs = 1
 
-seed     33 ;each time different seed
+seed     0 ;each time different seed
 
 instr 1
 ;;generating a different filename each time csound renders

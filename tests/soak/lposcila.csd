@@ -21,14 +21,14 @@ kend  = 10000					;loop end time in samples
 
 aenv expsega 0.01, 0.1, 1, 0.1, 0.5, 0.5, 0.01	;envelope with fast and short segment
 asig lposcila aenv, kcps, kloop, kend, 1	;use it for amplitude
-     outs asig, asig
+     outs asig*2, asig*2
 
 endin
 </CsInstruments>
 <CsScore>
 ; Its table size is deferred,
 ; and format taken from the soundfile header.
-f 1 0 0 1 "beats.wav" 0 0 0
+f 1 0 0 1 "drumsMlp.wav" 0 0 0
 
 ; Play Instrument #1 for 6 seconds.
 ; This will loop the drum pattern several times.

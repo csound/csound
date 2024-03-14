@@ -4,9 +4,10 @@
 -n 
 </CsOptions>
 <CsInstruments>
+ksmps = 32
 ;example by joachim heintz
 
-           seed       666
+           seed       0
 
 instr 1
 ;create an array with 10 elements

@@ -17,7 +17,7 @@ nchnls = 2
 instr 1	; Plain scanned syntnesis
 
   a0       =           0
-           xscanu      1, .01, 6, 2, "128,8-cylinderX", 4, 5, 2, .1, .1, -.01, .1, .5, 0, 0, a0, 0, 0
+           xscanu      1, .01, 6, 2, "128,8-cylinder.XmatrxT", 4, 5, 2, .1, .1, -.01, .1, .5, 0, 0, a0, 0, 0
   a1       xscans      .7, cpspch(p4), 7, 0, 1
            outs        a1, a1
 endin
@@ -28,7 +28,7 @@ instr 2	; Scan synthesis with audio injection and dual scan paths
 
   a0,aa    ins
   a0       =           a0/.8
-           xscanu      1, .01, 6, 2, "128,8-gridX", 14, 5, 2, .01, .05, -.05, .1, .5, 0, 0, a0, 0, 0
+           xscanu      1, .01, 6, 2, "128,8-grid.XmatrxT", 14, 5, 2, .01, .05, -.05, .1, .5, 0, 0, a0, 0, 0
   a1       xscans      .5, cpspch(7.00), 7, 0, 1
   a2       xscans      .5, cpspch(7.001), 77, 0, 1
            outs        a1+a2,a1+a2
@@ -40,7 +40,7 @@ instr 3	; Vibrating structure with audio injection
 
   a0,aa    ins          
   a0       =          a0/.8
-           xscanu     1, .01, 6, 2, "128-stringcircularX", 14, 5, 2, .01, .05, -.05, .25, .75, 0, 0, a0, 0, 1
+           xscanu     1, .01, 6, 2, "128-stringcircular.XmatrxT", 14, 5, 2, .01, .05, -.05, .25, .75, 0, 0, a0, 0, 1
 endin
 
 
@@ -73,8 +73,8 @@ f5 0 128 -7 1 128 1
 f6 0 128 -7 -.0 128 .0
 ; Trajectories
 f7 0 128 -5 .001 128 128
-f777 0 128 -23 "128-stringcircular"
-f77 0 128 -23 "128-spiral-8,16,128,2,1over2"
+f777 0 128 -23 "128-stringcircular" ;??
+f77 0 128 -23 "128-spiral-8,16,128,2,1over2.traj"
 ; Sine
 f9 0 16384 10 1
 
@@ -93,7 +93,7 @@ f203 0 1024 7 1 1024 0
 ;----------------------------------
 
 ; Note list
-i1 0 10 6.00 1                                 
+i1 0 10 6.00                                 
 s
 i2 1 10
 s

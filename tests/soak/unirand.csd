@@ -23,7 +23,7 @@ endin
 
 instr 2		; every run time different values
 
-	seed 593
+	seed 0
 ktri	unirand 100
 	printk .2, ktri			; look 
 aout	oscili 0.8, 440+ktri, 1		; & listen

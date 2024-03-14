@@ -35,9 +35,9 @@ f 1 0 16384 11 1
 
 ; 3 layers of the loop are played, each at a different speed, 
 ; - with different retriggering rate, and pan location.
-i 1 0 20 0.5   [8/10] 0.5
-i 1 0 20 0.375 [8/11] 0.1
-i 1 0 20 0.25  [8/13] 0.9
+i 1 0 60 0.5   [8/10] 0.5
+i 1 0 60 0.375 [8/11] 0.1
+i 1 0 60 0.25  [8/13] 0.9
 e
 </CsScore>
 </CsoundSynthesizer>

@@ -33,7 +33,7 @@ turnoff
 
 </CsInstruments>
 <CsScore>
-f1  0 262144   -1 "beats.wav" 0 4 0
+f1  0 262144   -1 "drumsMlp.wav" 0 4 0
 f2  0 262144   2  0
 
 f5  0 262144   21  3 30000

@@ -24,10 +24,10 @@ giMaxNumParam	= 128
 giMaxNumMod	= 32
 giParam_In ftgen 0, 0, giMaxNumParam, 2, 0	; input parameters table
 ; output parameters table (parameter values with added modulators)
-giParam_Out ftgen 0, 0, giMaxNumParam, 2, 0
+giParam_Out ftgen 0, 0, giMaxNumParam, 2, 0	
 giModulators ftgen 0, 0, giMaxNumMod, 2, 0	 ; modulators table
 ; modulation scaling and routing (mod matrix) table, start with empty table
-giModScale ftgen 0, 0, giMaxNumParam*giMaxNumMod, -2, 0
+giModScale ftgen 0, 0, giMaxNumParam*giMaxNumMod, -2, 0		
 
 ;********************************************
 ; generate the modulator signals
@@ -58,7 +58,7 @@ kLFO2	= kLFO2+0.5				; offset
 icps1	= p4
 icps2	= p5
 icutoff	= p6
-
+	
 ; write parameters to table
 	tableiw	icps1, 0, giParam_In
 	tableiw	icps2, 1, giParam_In
@@ -86,8 +86,8 @@ iLfo2ToCutoff	= p9
 	tableiw	iLfo2ToCps1, 3, giModScale
 	tableiw	iLfo2ToCps2, 4, giModScale
 	tableiw	iLfo2ToCutoff, 5, giModScale
-
-; and set the update flag for modulator matrix
+	
+; and set the update flag for modulator matrix 
 ; ***(must update to enable changes)
 ktrig	init 1
 	chnset	ktrig, "modulatorUpdateFlag"
@@ -101,13 +101,13 @@ ktrig	= 0
 	instr 4
 
 ; get the update flag
-kupdate	chnget	"modulatorUpdateFlag"
+kupdate	chnget	"modulatorUpdateFlag"		
 
-; run the mod matrix
+; run the mod matrix 
 inum_mod	= 2
 inum_parm	= 3
 	modmatrix giParam_Out, giModulators, giParam_In, \
-        giModScale, inum_mod, inum_parm, kupdate
+	giModScale, inum_mod, inum_parm, kupdate
 
 ; and reset the update flag
 	chnset	0, "modulatorUpdateFlag"  ; reset the update flag
@@ -139,7 +139,7 @@ inum_parm	= 3
 
 	a2	oscili	iamp, kcps2, giSoftSaw
 	a2	lpf18	a2, kCF_freq2, kReso, kDist
-
+	
 		outs 	a1, a2
 
 	endin
@@ -165,7 +165,7 @@ i1 0 $SCORELEN			; start modulators
 i4 0 $SCORELEN			; start mod matrix
 i5 0 $SCORELEN			; start audio oscillator
 
-e
+e	
 
 </CsScore>
 </CsoundSynthesizer>

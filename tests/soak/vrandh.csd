@@ -26,7 +26,7 @@ instr 1
   kcount init 0
 
   ;       table   krange  kcps  ielements   idstoffset  iseed  isize ioffset
-  vrandh  gitab,  krange, kcps,     3,         3,       0.2,   0,   ioffset
+  vrandh  gitab,  krange, kcps,     3,         3,         2,   0,   ioffset
 
   kfreq1 table 3, gitab
   kfreq2 table 4, gitab

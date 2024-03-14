@@ -17,8 +17,8 @@ nchnls = 1
 ; Instrument #1 - Play an audio file.
 instr 1
   ; Generate an audio signal using 
-  ; the audio file "beats.wav".
-  asig soundin "beats.wav"
+  ; the audio file "drumsMlp.wav".
+  asig soundin "drumsMlp.wav"
 
   out asig
 endin

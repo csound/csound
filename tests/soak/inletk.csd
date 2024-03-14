@@ -18,25 +18,26 @@ connect "bend", "bendout", "guitar", "bendin"
 instr bend 
 
 kbend line p4, p3, p5 
+
+printk2 kbend
       outletk "bendout", kbend 
+
 endin 
 
 instr guitar 
 
 kbend inletk "bendin" 
 kpch pow 2, kbend/12
-     printk2 kpch
-asig oscili .4, 440*kpch, 1 
+asig oscili .4, p4*kpch, 1 
      outs asig, asig
 endin 
 
 </CsInstruments> 
 <CsScore> 
-f1 0 1024 10 1
+f1 0 1024 10 1 0 1 0 1 0 1
 
-i"guitar" 0 5 8.00 
-i"bend" 3 .2 -12 12 
-i"bend" 4 .1 -17 40 
+i"guitar" 0  5   440
+i"bend"   2 1.2 -12 12 
+i"bend"   4 .2  -17 40 
 e
 </CsScore> 
-</CsoundSynthesizer> 

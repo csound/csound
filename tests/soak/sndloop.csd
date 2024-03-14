@@ -16,7 +16,7 @@ nchnls = 2
 instr 1
 
 itrig  = p4
-asig   diskin2 "beats.wav", 1, 0, 1		;get the signal in, loop it
+asig   diskin2 "drumsMlp.wav", 1, 0, 1		;get the signal in, loop it
 ktrig  line 0, itrig, 1				;when to trigger signal = p4
 kpitch line 1.2, p3, .5				;vary pitch of recorded signal
 aout,krec sndloop asig, kpitch, ktrig, .4, 0.05	;rec starts at p4 sec, for .4 secs and 0.05 crossfade

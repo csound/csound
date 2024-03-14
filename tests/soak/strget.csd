@@ -14,7 +14,7 @@ nchnls = 2
 0dbfs  = 1
 
 strset 1, "fox.wav"
-strset 2, "beats.wav"
+strset 2, "drumsMlp.wav"
 
 instr 1
 

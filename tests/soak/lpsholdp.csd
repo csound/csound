@@ -1,39 +1,48 @@
 <CsoundSynthesizer>
 <CsOptions>
 ; Select audio/midi flags here according to platform
--odac      ;;;realtime audio out
-;-iadc    ;;;uncomment -iadc if realtime audio input is needed too
+-odac     ;;;realtime audio out
 ; For Non-realtime ouput leave only the line below:
 ; -o lpsholdp.wav -W ;;; for file output any platform
+
+; by Stefano Cucchi 2020
+
 </CsOptions>
 <CsInstruments>
 
 sr = 44100
 ksmps = 32
 nchnls = 2
-0dbfs  = 1
+0dbfs = 1
+
 
 instr 1
-ipan  = p4
-ktrig = 0   ; (no retriggering)
-; kphase - looping pointer - is generated using a random spline
-kphase rspline  0,1,0.5,5
-; a loop sequence of midi note numbers and durations
-;                      val dur val dur etc...
-knote lpsholdp kphase, 60, 1,  59, 0.1, 62, 1, 64, 1, 67, 0.1, 65, 1
-asig  gbuzz   0.2, cpsmidinn(knote), 30, 1, 0.5, 1 
-      outs    asig*ipan, asig*(1-ipan)
+
+kphase1 phasor 3
+
+kmodulation oscil 0.5, 0.01, 2
+kphase2 phasor 3+kmodulation
+
+kamp linseg 0, 0.2, 1, p3-0.4, 1, 0.2, 0
+kfreq1  lpsholdp kphase1, cpspch(p4), 6, cpspch(p5), 10, cpspch(p6), 12
+kfreq2  lpsholdp kphase2, cpspch(p4), 6, cpspch(p5), 10, cpspch(p6), 12
+
+a1 = poscil(kamp, kfreq1, 1)
+a2 = poscil(kamp, kfreq2, 1)
+
+outch 1, a1
+outch 2, a2
 endin
 
-</CsInstruments>
+</CsInstruments> 
 <CsScore>
-; cosine wave.
-f 1 0 16384 11 1
 
-; 2 layers of the loop are played each with a different pan position (p4)
-i 1 0 20 0.25
-i 1 0 20 0.75
+f1 0 8192 10 1 0 1 0 1 0 1 0 1 0 1
+f2 0 4096 10 1 0 1 1 1
+
+i1 0 10 6.09 6.02 7.03
 
 e
+
 </CsScore>
 </CsoundSynthesizer>

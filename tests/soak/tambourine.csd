@@ -16,7 +16,7 @@ nchnls = 2
 instr 1
 
 idamp = p4
-asig  tambourine .8, 0.01, 30, idamp
+asig  tambourine .8, 0.01, 30, idamp, 0.4
       outs asig, asig
 
 endin

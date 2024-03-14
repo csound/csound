@@ -15,7 +15,7 @@ nchnls = 2
 
 instr 1
  
-aout diskin2 "fox.wav", 1
+aout diskin2 "sing.wav", 1
 
 kestfrq = p4	;different estimated frequency
 kmaxvar = 0.1

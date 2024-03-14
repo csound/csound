@@ -19,7 +19,7 @@ gilist  ftgen 1, 0, gilen + 1, -2, 2, 3, 4, 5, 6, 7	;only 6 elements, so 1 is do
 gitmp   ftgen 2, 0, gilen + 1, -2, 0			;empty table
 gkmax   init gilen
 
-seed 8743							;each time different 
+seed 0							;each time different 
 
 instr 1
 

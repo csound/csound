@@ -1,0 +1,65 @@
+
+<refentry id="opcode1">
+  <refmeta>
+    <refentrytitle>opcode1</refentrytitle>
+  </refmeta>
+
+  <refnamediv>
+    <refname>opcode1</refname>
+    <refpurpose>
+      This is an example DocBook XML file for an opcode.
+      <indexterm id="IndexOpcode1"><primary>opcode1</primary></indexterm>
+    </refpurpose>
+  </refnamediv>
+  
+  <refsect1>
+    <title>Description</title>
+    <para>
+      This is an example DocBook XML file for an opcode.
+    </para>
+  </refsect1>
+
+  <refsect1>
+    <title>Syntax</title>
+    <synopsis>ar <command>opcode1</command> insnum</synopsis>
+  </refsect1>
+
+  <refsect1>
+    <title>Initialization</title>
+    <para>
+      <emphasis>insnum</emphasis> -- instrument number. Equivalent to p1 in a score <emphasis>i statement</emphasis>.
+    </para>
+  </refsect1>
+
+  <refsect1>
+    <title>Performance</title>
+    <para>
+      They go beep.
+    </para>
+  </refsect1>
+
+  <refsect1>
+    <title>Examples</title>
+    <para>
+      Here is an example of the opcode1 opcode. It uses the files <ulink url="examples/opcode1.orc"><citetitle>opcode1.orc</citetitle></ulink> and <ulink url="examples/opcode1.sco"><citetitle>opcode1.sco</citetitle></ulink>.
+
+      <example>
+        <title>Example of the opcode1 opcode.</title>
+
+        <programlisting>
+<xi:include href="examples/opcode1.orc" parse="text" xmlns:xi="http://www.w3.org/2001/XInclude"/>
+        </programlisting>
+
+        <programlisting>
+<xi:include href="examples/opcode1.sco" parse="text" xmlns:xi="http://www.w3.org/2001/XInclude"/>
+        </programlisting>
+      </example>
+    </para>
+  </refsect1>
+
+  <refsect1>
+    <title>Credits</title>
+    <para>Author: Opcode Author</para>
+    <para>New in version 5.00</para>
+  </refsect1>
+</refentry>

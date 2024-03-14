@@ -15,7 +15,7 @@ nchnls = 2
 
 instr 1	;normal audio
 
-asig diskin2 "beats.wav", 1, 0, 1
+asig diskin2 "drumsMlp.wav", 1, 0, 1
      outs asig, asig
 
 endin
@@ -28,7 +28,7 @@ icomp1 = 0.8
 icomp2 = 0.2
 irtime = 0.01
 iftime = 0.5
-asig diskin2 "beats.wav", 1, 0, 1
+asig diskin2 "drumsMlp.wav", 1, 0, 1
 asig dam asig, kthreshold, icomp1, icomp2, irtime, iftime
     outs asig, asig
 endin

@@ -6,7 +6,7 @@
 </CsOptions>
 <CsInstruments>
 
-sr	=	22050
+sr	=	44100
 ksmps	=	10
 nchnls	=	2
 

@@ -9,8 +9,8 @@
 <CsInstruments>
 
 sr = 44100
-ksmps = 16
-nchnls = 1
+ksmps = 32
+nchnls = 2
 0dbfs = 1
 
 ;; example written by joachim heintz 2009
@@ -18,20 +18,22 @@ nchnls = 1
 instr 1
 Sfile		=		"fox.wav"
 klowcut = 100
-klowfull = 200
-khighfull = 1900
+klowfull = p4
+khighfull = p5
 khighcut = 2000
 ain		soundin	Sfile
 fftin		pvsanal	ain, 1024, 256, 1024, 1; fft-analysis of the audio-signal
 fftbp		pvsbandr	fftin, klowcut, klowfull, khighfull, khighcut ; band reject
 abp		pvsynth	fftbp; resynthesis
-		out		abp
+		outs		abp, abp
 endin
 
 
 </CsInstruments>
 <CsScore>
-i 1 0 3
+;         lowfull highfull
+i 1 0 3     200     1900     
+i 1 + 3     100     1500
 e
 </CsScore>
 </CsoundSynthesizer>

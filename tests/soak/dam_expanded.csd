@@ -15,7 +15,7 @@ nchnls = 2
 
 instr 1	
 
-asig diskin2 "beats.wav", 1, 0, 1
+asig diskin2 "drumsMlp.wav", 1, 0, 1
      outs asig, asig
 
 endin
@@ -28,7 +28,7 @@ icomp2 = 3
 irtime = 0.01
 iftime = 0.1
 
-asig diskin2 "beats.wav", 1, 0, 1
+asig diskin2 "drumsMlp.wav", 1, 0, 1
 asig dam asig, kthreshold, icomp1, icomp2, irtime, iftime
      outs asig*.2, asig*.2	;adjust volume of expanded beat
 

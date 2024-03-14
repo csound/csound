@@ -16,8 +16,8 @@ nchnls = 1
 
 ; Instrument #1.
 instr 1
-  ; Use the "beats.wav" sound file.
-  asig soundin "beats.wav"
+  ; Use the "drumsMlp.wav" sound file.
+  asig soundin "drumsMlp.wav"
   ; Extract the pitch and the envelope.
   kcps, krms pitchamdf asig, 150, 500, 200
 

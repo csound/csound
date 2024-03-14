@@ -1,7 +1,7 @@
 <CsoundSynthesizer>
 <CsOptions>
 ; Select audio/midi flags here according to platform
--odac    ;;;realtime audio out
+-odac  --limiter=0.95  ;;;realtime audio out & limit loud sounds
 ;-iadc    ;;;uncomment -iadc if realtime audio input is needed too
 ; For Non-realtime ouput leave only the line below:
 ; -o xscanu.wav -W ;;; for file output any platform
@@ -17,7 +17,7 @@ nchnls = 2
 instr 1	; Plain scanned syntnesis
 	; Note Also that I am using quadratic interpolation on these.
   a0	=           0
-	xscanu      1, .01, 6, 2, "128,8-gridX", 4, 5, 2, .1, .1, -.01, .1, .5, 0, 0, a0, 0, 0
+	xscanu      1, .01, 6, 2, "128,8-grid.XmatrxT", 4, 5, 2, .1, .1, -.01, .1, .5, 0, 0, a0, 0, 0
   a1	xscans      .5, cpspch(p4), 333, 0, p6			; NOTE LEFT RIGHT TRAJECTORY (f333) IS CLEAN!
   a1	dcblock a1
 	outs        a1, a1
@@ -29,7 +29,7 @@ instr 2	; Scan synthesis with audio injection and dual scan paths
   a0  diskin2       "fox.wav",1,0,1	
  ; a0,aa	    ins
   a0	=           a0/.8
-	xscanu      1, .01, 6, 2, "128,8-torusX", 14, 5, 2, .01, .05, -.05, .1, .5, 0, 0, a0, 0, 0
+	xscanu      1, .01, 6, 2, "128,8-torus.XmatrxT", 14, 5, 2, .01, .05, -.05, .1, .5, 0, 0, a0, 0, 0
   a1	xscans      .3, cpspch(7.00), 333, 0, 2			; NOTE LEFT RIGHT TRAJECTORY (f333) IS CLEAN!
   a2	xscans      .3, cpspch(6.00), 77, 0, 2
   a1	dcblock a1
@@ -59,16 +59,16 @@ f6 0 128 -7 -.0 128 .0
 
 ; Trajectories
 f7 0 128 -5 .001 128 128
-f77 0 128 -23 "128-spiral-8,16,128,2,1over2"
-f777 0 128 -23 "128,8-torusX"
+f77 0 128 -23 "128-spiral-8,16,128,2,1over2.traj"
+f777 0 128 -23 "128,8-torus.XmatrxT"
 
 ; Spring matrices
-f3 0 128 -23 "128-stringX"
-f33 0 128 -23 "128-stringcircularX"
-f333  0 128 -23 "128-left_rightX"
-f3333 0 128 -23 "128,8-torusX"
-f33333 0 128 -23 "128,8-cylinderX"
-f333333 0 128 -23 "128,8-gridX"
+f3 0 128 -23 "128-string.XmatrxT"
+f33 0 128 -23 "128-stringcircular.XmatrxT"
+f333  0 128 -23 "128-left_right.XmatrxT"
+f3333 0 128 -23 "128,8-torus.XmatrxT"
+f33333 0 128 -23 "128,8-cylinder.XmatrxT"
+f333333 0 128 -23 "128,8-grid.XmatrxT"
 
 ; Sine
 f9 0 1024 10 1

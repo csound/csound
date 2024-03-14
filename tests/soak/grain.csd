@@ -34,7 +34,7 @@ endin
 </CsInstruments> 
 <CsScore> 
 f5  0 512  20 2 ; Hanning window 
-f10 0 16384 1  "beats.wav" 0 0 0 
+f10 0 16384 1  "drumsMlp.wav" 0 0 0 
 
 i1 0 15 
 e 

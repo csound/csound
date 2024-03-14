@@ -28,7 +28,7 @@ kflag	pvsftw	fsrc,ifn		;export amps to table
 ;overwrite the first 10 bins each time the table has been filled new
 if kflag == 1 then
 kndx = 0
-kmaxbin = 10
+kmaxbin = p4
 loop:
 tablew knewamp, kndx, ifn
 loop_le kndx, 1, kmaxbin, loop
@@ -40,7 +40,9 @@ aout	pvsynth	fsrc			;and resynth
 endin
 </CsInstruments>
 <CsScore>
-i 1 0 4
+;           maxbins
+i 1 0 4       10
+i 1 4 4       100
 e
 </CsScore>
 </CsoundSynthesizer>

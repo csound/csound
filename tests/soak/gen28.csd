@@ -23,7 +23,7 @@ instr 1	;uses GEN28 file "move", as found in /manual/examples
 kx    init 0
 ky    init 0
 ktime line  0, 5, 5				;same time as in table 1 (="move")
-asig  diskin2 "beats.wav", 1, 0, 1		;sound source is looped
+asig  diskin2 "drumsMlp.wav", 1, 0, 1		;sound source is looped
 a1, a2, a3, a4 space asig, 1, ktime, .1, kx, ky	;use table 1 = GEN28
 ar1, ar2, ar3, ar4 spsend			;send to reverb
 

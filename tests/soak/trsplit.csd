@@ -15,7 +15,7 @@ nchnls = 2
 
 instr 1
 
-ain	 diskin2 "beats.wav", 1
+ain	 diskin2 "drumsMlp.wav", 1
 fs1,fsi2 pvsifd  ain, 2048, 512, 1		; ifd analysis
 fst	 partials fs1, fsi2, .003, 1, 3, 500	; partial tracking
 fslo,fshi trsplit fst, 1500			; split partial tracks at 1500 Hz

@@ -13,14 +13,15 @@ nchnls = 2
 instr 1
 
   kS[] fillarray 1,7,5
-       printk2 kS[0]
-       printk2 kS[1]
-       printk2 kS[2]
+       printk 0, kS[0]
+       printk 0, kS[1]
+       printk 0, kS[2]
+  turnoff
 endin
 
 </CsInstruments>
 <CsScore>
-i 1 0 0
+i 1 0 1
 e
 </CsScore>
 </CsoundSynthesizer>

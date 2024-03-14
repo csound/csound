@@ -17,7 +17,7 @@ nchnls = 2
 instr 1
 
 idamp = p4
-asig  sleighbells .7, 0.01, 32, idamp
+asig  sleighbells .7, 0.01, 32, idamp, 0.55
       outs asig, asig
 
 endin

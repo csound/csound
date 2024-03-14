@@ -1,5 +1,10 @@
 <CsoundSynthesizer>
 <CsOptions>
+; Select audio/midi flags here according to platform
+; Audio out   Audio in    No messages
+-odac           -iadc     -d     ;;;RT audio I/O
+; For Non-realtime ouput leave only the line below:
+; -o 0dbfs.wav -W ;;; for file output any platform
 </CsOptions>
 <CsInstruments>
 

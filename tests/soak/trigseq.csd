@@ -51,7 +51,7 @@ ktrig	metro	ktime_unit
 instr	2
 
 icps	init	p4
-iamp	init	20000
+iamp	init .2	
 
 kloop	init	p5
 initndx	init	p6

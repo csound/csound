@@ -13,7 +13,7 @@ ksmps = 32
 nchnls = 2
 
 instr 1
-asig  bamboo p4, 0.01
+asig  bamboo p4, 0.01,0, 0, 0, 8000
       outs asig, asig
 
 endin
@@ -22,6 +22,7 @@ endin
 <CsScore>
 
 i1 0 1 20000
+i1 2 1 20000
 e
 
 </CsScore>

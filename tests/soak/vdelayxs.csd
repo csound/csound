@@ -8,6 +8,8 @@
 </CsOptions>
 <CsInstruments>
 
+; by Menno Knevel 2022
+
 sr = 44100
 ksmps = 32
 nchnls = 2
@@ -18,7 +20,7 @@ instr 1
 ims  =	.5						;maximum delay time in seconds
 iws  =	1024						;window size
 adl  =	.5						;delay time
-asig1, asig2 diskin2 "kickroll.wav", 1, 0, 1		;loop stereo file kickroll.wav
+asig1, asig2 diskin2 "drumsSlp.wav", 1, 0, 1		;loop stereo file
 a2   poscil .25, .1, 1					;make an LFO, 1 cycle per 2 seconds
 adl  = a2 + ims/2      					;offset the LFO so that it is positive
 aoutL, aoutR vdelayxs asig1, asig2, adl, ims, iws	;use the LFO to control delay time

@@ -16,13 +16,12 @@ nchnls = 2
 instr 1
 
 aenv expseg .01, p3*0.25, 1, p3*0.75, 0.01
-asig poscil3 .8*aenv, p4, 1
+asig poscil3 .8*aenv, p4
      outs asig, asig
 
 endin
 </CsInstruments>
 <CsScore>
-f1 0 16384 10 1 ;sine wave
 ;two sections
 s
 a 0 0 6		;advance score 6 seconds

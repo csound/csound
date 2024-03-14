@@ -37,11 +37,22 @@ a1      tableikt a1, kft, 1, 0, 1
         outs a1*.5, a1*.5
 endin
         
+instr 2
+
+kcps    expon 20, p3, 16000
+kft     =  int(256.5 + 69 + 12 * log(kcps / 440) / log(2))
+kft     =  (kft > 383 ? 383 : kft)
+kgdur   limit 10 / kcps, 0.1, 1
+a1      grain2 kcps, 0.02, kgdur, 30, kft, 6, -0.5
+        outs a1*.08, a1*.08
+
+endin
 </CsInstruments>
 <CsScore>
 t 0 60
 
 i 1 0 10
+i 2 12 10
 e
 </CsScore>
 </CsoundSynthesizer>

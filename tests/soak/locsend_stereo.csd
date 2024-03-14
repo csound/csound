@@ -19,7 +19,7 @@ ga2 init 0
 instr 1
 
 krevsend  = p4
-aout	  diskin2 "beats.wav", 1, 0, 1
+aout	  diskin2 "drumsMlp.wav", 1, 0, 1
 kdegree	  line 0, p3, 180 ;left to right
 kdistance line 1, p3, 30
 a1, a2	  locsig aout, kdegree, kdistance, p4

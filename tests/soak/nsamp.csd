@@ -7,7 +7,9 @@
 ; -o nsamp.wav -W ;;; for file output any platform
 </CsOptions>
 <CsInstruments>
+
 ; slightly adapted example from Jonathan Murphy Dec 2006
+; by Menno Knevel 2022
 
 sr = 44100
 ksmps = 32
@@ -18,7 +20,7 @@ instr 1
 
 ifn   =  p4	; table number
 ilen  =  nsamp(ifn)
-prints "actual numbers of samples = %d\n", ilen
+prints "\nactual numbers of samples = %d\n\n", ilen
 itrns =  1	; no transposition
 ilps  =  0	; loop starts at index 0
 ilpe  =  ilen	; ends at value returned by nsamp above
@@ -32,12 +34,11 @@ atab  tablei  alphs, ifn
 endin
 </CsInstruments>
 <CsScore>
-f 1 0 262144 1 "kickroll.wav" 0 4 1	;stereo file in table, with lots of zeroes
+f 1 0 262144 1 "drumsSlp.wav" 0 4 1	;stereo file in table, with lots of zeroes
 f 2 0 262144 1 "fox.wav" 0 4 1		;mono file in table, with lots of zeroes
 
 i1 0 10 1
 i1 + 10 2
 e
-
 </CsScore>
 </CsoundSynthesizer>

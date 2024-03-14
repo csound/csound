@@ -2,34 +2,30 @@
 <CsOptions>
 ; Select audio/midi flags here according to platform
 ; Audio out   Audio in
--odac           -iadc    ;;;RT audio I/O
+-n  ; no sound
 ; For Non-realtime ouput leave only the line below:
 ; -o cosinv.wav -W ;;; for file output any platform
 </CsOptions>
 <CsInstruments>
 
-; Initialize the global variables.
+; by Kevin Conder
+
 sr = 44100
-kr = 4410
-ksmps = 10
-nchnls = 1
+ksmps = 32
+nchnls = 2
+0dbfs  = 1
 
-; Instrument #1.
 instr 1
-  irad = 0.5
-  i1 = cosinv(irad)
 
-  print i1
+irad = 0.5
+i1 = cosinv(irad)
+print i1
+
 endin
-
 
 </CsInstruments>
 <CsScore>
-
-; Play Instrument #1 for one second.
 i 1 0 1
 e
-
-
 </CsScore>
 </CsoundSynthesizer>
