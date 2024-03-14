@@ -63,6 +63,8 @@ extern int add_udo_definition(CSOUND *csound, char *opname,
                               char *outtypes, char *intypes, int flags);
 extern TREE * create_opcode_token(CSOUND *csound, char* op);
 int is_reserved(char*);
+int is_boolean_token_init(char*);
+int is_boolean_token_perf(char*);
 
 const char* SYNTHESIZED_ARG = "_synthesized";
 const char* UNARY_PLUS = "_unary_plus";
@@ -540,6 +542,14 @@ char* get_arg_type2(CSOUND* csound, TREE* tree, TYPE_TABLE* typeTable)
 
     if (is_reserved(s)) {
       return cs_strdup(csound, "r");                              /* rsvd */
+    }
+
+    if (is_boolean_token_init(s)) {
+      return cs_strdup(csound, "b");
+    }
+
+    if (is_boolean_token_perf(s)) {
+      return cs_strdup(csound, "B");
     }
 
     if (is_label(s, typeTable->labelList)) {
@@ -1376,7 +1386,9 @@ int check_args_exist(CSOUND* csound, TREE* tree, TYPE_TABLE* typeTable) {
       case T_IDENT:
         varName = current->value->lexeme;
 
-        if (is_label(varName, typeTable->labelList)) {
+        if (is_label(varName, typeTable->labelList) ||
+            is_boolean_token_init(varName) ||
+            is_boolean_token_perf(varName)) {
           break;
         }
 
@@ -2013,6 +2025,16 @@ int is_reserved(char* varname) {
           strcmp("nchnls", varname) == 0 ||
           strcmp("nchnls_i", varname) == 0) ||
           strcmp("A4", varname) == 0;
+}
+
+int is_boolean_token_init(char* varname) {
+  return strcmp("true", varname) == 0 ||
+         strcmp("false", varname) == 0;
+}
+
+int is_boolean_token_perf(char* varname) {
+  return strcmp("true:k", varname) == 0 ||
+         strcmp("false:k", varname) == 0;
 }
 
 int verify_if_statement(CSOUND* csound, TREE* root, TYPE_TABLE* typeTable) {
