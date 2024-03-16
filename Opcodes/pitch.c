@@ -1196,7 +1196,7 @@ int32_t kphsorbnk(CSOUND *csound, PHSORBNK *p)
     }
 
     *p->sr = (MYFLT)(phs = curphs[index]);
-    if (UNLIKELY((phs += *p->xcps * csound->onedkr) >= 1.0))
+    if (UNLIKELY((phs += *p->xcps * CS_ONEDKR) >= 1.0))
       phs -= 1.0;
     else if (UNLIKELY(phs < 0.0)) /* patch from Matthew Scala */
       phs += 1.0;
