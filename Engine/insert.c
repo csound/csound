@@ -244,6 +244,8 @@ int init0(CSOUND *csound)
   csound->ids = (OPDS*) ip;
   tp->active++;
   ip->actflg++;
+  ip->esr = csound->esr;
+  ip->onedsr = csound->onedsr;
   ip->ksmps = csound->ksmps;
   ip->ekr = csound->ekr;
   ip->kcounter = csound->kcounter;
@@ -392,6 +394,8 @@ int insert_event(CSOUND *csound, int insno, EVTBLK *newevtp)
     ATOMIC_SET(ip->init_done, 0);
     tp->act_instance = ip->nxtact;
     ip->insno = (int16) insno;
+    ip->esr = csound->esr;
+    ip->onedsr = csound->onedsr;
     ip->ksmps = csound->ksmps;
     ip->ekr = csound->ekr;
     ip->kcounter = csound->kcounter;
@@ -689,6 +693,8 @@ int insert_midi(CSOUND *csound, int insno, MCHNBLK *chn, MEVENT *mep)
   ip->p1.value     = (MYFLT) insno;     /* set these required p-fields */
   ip->p2.value     = (MYFLT) (csound->icurTime/csound->esr - csound->timeOffs);
   ip->p3.value     = FL(-1.0);
+  ip->esr          = csound->esr;
+  ip->onedsr       = csound->onedsr;
   ip->ksmps        = csound->ksmps;
   ip->ekr          = csound->ekr;
   ip->kcounter     = csound->kcounter;
@@ -1274,6 +1280,8 @@ int subinstrset_(CSOUND *csound, SUBINST *p, int instno)
     p->parent_ip = p->buf.parent_ip = saved_curip;
   }
 
+  p->ip->esr = CS_ESR;
+  p->ip->onedsr = CS_ONEDSR;
   p->ip->ksmps = CS_KSMPS;
   p->ip->kcounter = CS_KCNT;
   p->ip->ekr = CS_EKR;
@@ -1290,7 +1298,6 @@ int subinstrset_(CSOUND *csound, SUBINST *p, int instno)
   p->ip->nxtolap  = NULL;
   p->ip->p2       = saved_curip->p2;
   p->ip->p3       = saved_curip->p3;
-  p->ip->ksmps = CS_KSMPS;
 
   /* IV - Oct 31 2002 */
   p->ip->m_chnbp  = saved_curip->m_chnbp;
@@ -1521,6 +1528,8 @@ int useropcdset(CSOUND *csound, UOPCODE *p)
     /* set the local ksmps values */
     if (local_ksmps != CS_KSMPS) {
       /* this is the case when p->ip->ksmps != p->h.insdshead->ksmps */
+      lcurip->esr = CS_ESR;
+      lcurip->onedsr = CS_ESR;
       lcurip->ksmps = local_ksmps;
       ksmps_scale = CS_KSMPS / local_ksmps;
       lcurip->onedksmps =  FL(1.0) / (MYFLT) local_ksmps;
@@ -1529,6 +1538,8 @@ int useropcdset(CSOUND *csound, UOPCODE *p)
       lcurip->kicvt = (MYFLT) FMAXLEN /lcurip->ekr;
       lcurip->kcounter = (CS_KCNT)*ksmps_scale;
     } else {
+      lcurip->esr = CS_ESR;
+      lcurip->onedsr = CS_ESR;
       lcurip->ksmps = CS_KSMPS;
       lcurip->kcounter = CS_KCNT;
       lcurip->ekr = CS_EKR;

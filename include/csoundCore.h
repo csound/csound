@@ -559,13 +559,14 @@ typedef struct CORFIL {
     double   offbet;
     /* Time to turn off event, in seconds (negative on indef/tie) */
     double   offtim;
-    /* Python namespace for just this instance. */
-    void    *pylocal;
     /* pointer to Csound engine and API for externals */
     CSOUND  *csound;
     uint64_t kcounter;
-    unsigned int     ksmps;     /* Instrument copy of ksmps */
+    MYFLT esr;                  /* local sr */
+    MYFLT    onedsr;
+    unsigned int ksmps;     /* Instrument copy of ksmps */
     MYFLT    ekr;                /* and of rates */
+
     MYFLT    onedksmps, onedkr, kicvt;
     struct opds  *pds;          /* Used for jumping */
     MYFLT    scratchpad[4];      /* Persistent data */
@@ -601,7 +602,8 @@ typedef struct CORFIL {
 #define CS_ONEDKSMPS (p->h.insdshead->onedksmps)
 #define CS_ONEDKR    (p->h.insdshead->onedkr)
 #define CS_KICVT     (p->h.insdshead->kicvt)
-#define CS_ESR       (csound->esr)
+#define CS_ESR       (p->h.insdshead->esr)
+#define CS_ONEDSR    (p->h.insdshead->onedsr)
 #define CS_PDS       (p->h.insdshead->pds)
 #define CS_SPIN      (p->h.insdshead->spin)
 #define CS_SPOUT     (p->h.insdshead->spout)

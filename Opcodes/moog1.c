@@ -154,7 +154,7 @@ int32_t Moog1set(CSOUND *csound, MOOG1 *p)
     FUNC        *ftp;
     MYFLT       tempCoeffs[2] = {FL(0.0),-FL(1.0)};
 
-    make_ADSR(&p->adsr);
+    make_ADSR(&p->adsr, CS_ESR);
     make_OnePole(&p->filter);
     make_TwoZero(&p->twozeroes[0]);
     TwoZero_setZeroCoeffs(&p->twozeroes[0], tempCoeffs);

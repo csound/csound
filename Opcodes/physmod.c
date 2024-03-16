@@ -310,7 +310,7 @@ int32_t fluteset(CSOUND *csound, FLUTE *p)
       make_OnePole(&p->filter);
       make_DCBlock(&p->dcBlock);
       make_Noise(p->noise);
-      make_ADSR(&p->adsr);
+      make_ADSR(&p->adsr, CS_ESR);
                                 /* Clear */
 /*     OnePole_clear(&p->filter); */
 /*     DCBlock_clear(&p->dcBlock); */
@@ -530,7 +530,7 @@ int32_t bowedset(CSOUND *csound, BOWED *p)
       p->bowTabl.slope = FL(3.0);
       make_OnePole(&p->reflFilt);
       make_BiQuad(&p->bodyFilt);
-      make_ADSR(&p->adsr);
+      make_ADSR(&p->adsr, CS_ESR);
 
       DLineL_setDelay(&p->neckDelay, FL(100.0));
       DLineL_setDelay(&p->bridgeDelay, FL(29.0));
@@ -815,7 +815,7 @@ int32_t brassset(CSOUND *csound, BRASS *p)
       make_DLineA(csound, &p->delayLine, p->length);
       make_LipFilt(&p->lipFilter);
       make_DCBlock(&p->dcBlock);
-      make_ADSR(&p->adsr);
+      make_ADSR(&p->adsr, CS_ESR);
       ADSR_setAllTimes(csound, &p->adsr, FL(0.005), FL(0.001), FL(1.0), FL(0.010));
 /*        ADSR_setAll(&p->adsr, 0.02f, 0.05f, FL(1.0), 0.001f); */
 

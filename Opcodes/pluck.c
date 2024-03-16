@@ -116,7 +116,7 @@ static int32_t pluckPluck(CSOUND *csound, WGPLUCK* p)
                        (waveguide*)&p->wg,             /* waveguide       */
                        (MYFLT)*p->freq,                /* f0 frequency    */
                        (MYFLT*)p->upperData.auxp,      /* upper rail data */
-                       (MYFLT*)p->lowerData.auxp);     /* lower rail data */
+                       (MYFLT*)p->lowerData.auxp, CS_ESR);     /* lower rail data */
 #ifdef WG_VERBOSE
     csound->Message(csound, "done.\n");
 #endif
@@ -305,7 +305,7 @@ static void waveguideWaveguide(CSOUND *csound,
                         waveguide* wg,
                         MYFLT  freq,
                         MYFLT* upperData,
-                        MYFLT* lowerData)
+                        MYFLT* lowerData, MYFLT sr)
 {
     MYFLT size, df;
 
@@ -313,6 +313,7 @@ static void waveguideWaveguide(CSOUND *csound,
     wg->p       = FL(0.0); /* tuning filter state variable */
     wg->f0      = freq;
     wg->w0      = csound->tpidsr*freq;
+    wg->sr = sr;
 
 #ifdef WG_VERBOSE
     csound->Message(csound, "f0=%f, w0=%f\n", wg->f0, wg->w0);
@@ -320,7 +321,7 @@ static void waveguideWaveguide(CSOUND *csound,
 
     /* Calculate the size of the delay lines and set them */
     /* Set pointers to appropriate positions in instrument memory */
-    size = CS_ESR / freq - FL(1.0);
+    size = wg->sr / freq - FL(1.0);
 
     /* construct the fractional part of the delay */
     df = (size - (len_t)size); /* fractional delay amount */

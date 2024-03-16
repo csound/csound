@@ -141,10 +141,10 @@ int32_t make_FM4Op(CSOUND *csound, FM4OP *p)
 
     if (!FM_tabs_built) build_FM(); /* Ensure tables exist */
 
-    make_ADSR(&p->adsr[0]);
-    make_ADSR(&p->adsr[1]);
-    make_ADSR(&p->adsr[2]);
-    make_ADSR(&p->adsr[3]);
+    make_ADSR(&p->adsr[0], CS_ESR);
+    make_ADSR(&p->adsr[1], CS_ESR);
+    make_ADSR(&p->adsr[2], CS_ESR);
+    make_ADSR(&p->adsr[3], CS_ESR);
     make_TwoZero(&p->twozero);
     if (UNLIKELY((ftp = csound->FTnp2Finde(csound, p->vifn)) == NULL))
       goto err1;
