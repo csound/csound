@@ -641,7 +641,7 @@ int32_t lprdset_(CSOUND *csound, LPREAD *p, int32_t stringname)
         csound->Warning(csound, Str("lpheader overriding inputs"));
       }
       /* Check orc/analysis sample rate compatibility */
-      if (lph->srate != csound->esr) {
+      if (lph->srate != CS_ESR) {
         csound->Warning(csound, Str("lpfile srate != orch sr"));
       }
       p->npoles = lph->npoles;                /* note npoles, etc. */
@@ -962,7 +962,7 @@ int32_t lpformantset(CSOUND *csound, LPFORM *p)
 int32_t lpformant(CSOUND *csound, LPFORM *p)
 {
     LPREAD  *q = p->lpread;
-    MYFLT   *coefp, sr = csound->esr;
+    MYFLT   *coefp, sr = CS_ESR;
     MYFLT   *cfs = (MYFLT*)p->aux.auxp;
     MYFLT   *bws = cfs+p->lpread->npoles/2;
     int32_t i, j, ndx = *p->kfor;
@@ -1050,7 +1050,7 @@ int32_t lpreson(CSOUND *csound, LPRESON *p)
         pm = *coefp++;
         pp = *coefp++;
         /*       csound->Message(csound, "pole %d, fr=%.2f, BW=%.2f\n", i,
-                        pp*(csound->esr)/6.28, -csound->esr*log(pm)/3.14);
+                        pp*(CS_ESR)/6.28, -CS_ESR*log(pm)/3.14);
         */
         if (fabs(pm)>0.999999)
           pm = 1/pm;

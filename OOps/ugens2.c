@@ -73,7 +73,7 @@ int32_t ephsor(CSOUND *csound, EPHSOR *p)
     uint32_t    offset = p->h.insdshead->ksmps_offset;
     uint32_t    early  = p->h.insdshead->ksmps_no_end;
     uint32_t    n, nsmps = CS_KSMPS;
-    MYFLT       *rs, *aphs, onedsr = csound->onedsr;
+    MYFLT       *rs, *aphs, onedsr = CS_ONEDSR;
     double      b = p->b;
     double      incr, R = *p->kR;
 
@@ -144,7 +144,7 @@ int32_t phsor(CSOUND *csound, PHSOR *p)
     uint32_t    offset = p->h.insdshead->ksmps_offset;
     uint32_t    early  = p->h.insdshead->ksmps_no_end;
     uint32_t    n, nsmps = CS_KSMPS;
-    MYFLT       *rs, onedsr = csound->onedsr;
+    MYFLT       *rs, onedsr = CS_ONEDSR;
     double      incr;
 
     rs = p->sr;
@@ -1090,7 +1090,7 @@ int32_t oscnset(CSOUND *csound, OSCILN *p)
     FUNC        *ftp;
     if (LIKELY((ftp = csound->FTnp2Finde(csound, p->ifn)) != NULL)) {
       p->ftp = ftp;
-      p->inc = ftp->flen * *p->ifrq * csound->onedsr;
+      p->inc = ftp->flen * *p->ifrq * CS_ONEDSR;
       p->index = FL(0.0);
       p->maxndx = ftp->flen - FL(1.0);
       p->ntimes = (int32_t)*p->itimes;

@@ -4423,7 +4423,7 @@ int32_t mfb(CSOUND *csound, MFB *p) {
     MYFLT sum = FL(0.0);
     MYFLT *out = p->out->data;
     MYFLT *in = p->in->data;
-    MYFLT sr = csound->GetSr(csound);
+    MYFLT sr = CS_ESR;
 
     start = f2mel(*p->low);
     end = f2mel(*p->up);
@@ -4478,7 +4478,7 @@ int32_t array_centroid(CSOUND *csound, CENTR *p) {
 
     MYFLT *in = p->in->data,a=FL(0.0),b=FL(0.0);
     int32_t NP1 = p->in->sizes[0];
-    MYFLT f = csound->GetSr(csound)/(2*(NP1 - 1)),cf;
+    MYFLT f = CS_ESR/(2*(NP1 - 1)),cf;
     int32_t i;
     cf = f*FL(0.5);
     for (i=0; i < NP1-1; i++, cf+=f) {
@@ -4590,7 +4590,7 @@ static int32 taninv2_Aa(CSOUND* csound, TABARITH* p)
     k = 0;
     for (i=0; i<ans->dimensions; i++) {
       for (j=0; j<aa->sizes[i]; j++)
-        for (m=0; m<csound->ksmps; m++) {
+        for (m=0; m<CS_KSMPS; m++) {
           ans->data[k] = ATAN2(aa->data[k], bb->data[k]);
           k++;
         }

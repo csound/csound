@@ -138,7 +138,7 @@ static void pluckSetFilters(CSOUND *csound, WGPLUCK* p, MYFLT A_w0, MYFLT A_PI)
     /* Define the required magnitude response of H1 at w0 and PI */
 
     /* Constrain attenuation specification to dB per second */
-    MYFLT NRecip = p->wg.f0 * csound->onedsr;  /*  N=t*CS_ESR/f0  */
+    MYFLT NRecip = p->wg.f0 * CS_ONEDSR;  /*  N=t*CS_ESR/f0  */
     MYFLT H1_w0 = POWER(FL(10.0),-A_w0*FL(0.05)*NRecip);
     MYFLT H1_PI = POWER(FL(10.0),-A_PI*FL(0.05)*NRecip);
     {
@@ -343,7 +343,7 @@ static void waveguideWaveguide(CSOUND *csound,
 /* Set the allpass tuning filter coefficient */
 static void waveguideSetTuning(CSOUND *csound, waveguide* wg, MYFLT df)
 {
-    MYFLT k=csound->onedsr * wg->w0;
+  MYFLT k= (1/wg->sr) * wg->w0;
 
   /*c = (1.0-df)/(1.0+df);*/ /* Solve for coefficient from df */
     wg->c = -sinf((k-k*df)/FL(2.0))/sinf((k+k*df)/FL(2.0));

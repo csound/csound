@@ -210,7 +210,7 @@ static int32_t newpulse(CSOUND *csound,
     /* Init grain rise ftable phase. Negative kform values make
        the kris (ifnb) initial index go negative and crash csound.
        So insert another if-test with compensating code. */
-    if (*p->kris >= csound->onedsr && *form != FL(0.0)) {   /* init fnb ris */
+    if (*p->kris >= CS_ONEDSR && *form != FL(0.0)) {   /* init fnb ris */
       if (*form < FL(0.0) && ovp->formphs != 0)
         ovp->risphs = (int32)((MAXLEN - ovp->formphs) / -*form / *p->kris);
       else
@@ -283,7 +283,7 @@ static int32_t harmset(CSOUND *csound, HARMON *p)
     p->autokcnt = 1;              /* init for immediate autocorr attempt */
     printf("ekr = %f iptrk = %f, autocnt = %d; autotim = %d\n",
            CS_EKR, *p->iptrkprd, p->autokcnt, p->autoktim);
-    p->lsicvt = FL(65536.0) * csound->onedsr;
+    p->lsicvt = FL(65536.0) * CS_ONEDSR;
     p->cpsmode = ((*p->icpsmode != FL(0.0)));
     p->inp1 = p->bufp;
     p->inp2 = p->midp;

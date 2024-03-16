@@ -226,7 +226,7 @@ int plukset(CSOUND *csound, PLUCK *p)
     MYFLT       *ap, *fp;
     MYFLT       phs, phsinc;
 
-    if (UNLIKELY((npts = (int32_t)(csound->esr / *p->icps)) < PLUKMIN)) {
+    if (UNLIKELY((npts = (int32_t)(CS_ESR / *p->icps)) < PLUKMIN)) {
                                         /* npts is wavelen in sampls */
       npts = PLUKMIN;                   /*  (but at least min size)  */
     }
@@ -252,7 +252,7 @@ int plukset(CSOUND *csound, PLUCK *p)
     *ap = *(MYFLT *)auxp;                       /* last = copy of 1st */
     p->npts = npts;
     /* tuned pitch convt */
-    p->sicps = (npts * FL(256.0) + FL(128.0)) * csound->onedsr;
+    p->sicps = (npts * FL(256.0) + FL(128.0)) * CS_ONEDSR;
     p->phs256 = 0;
     p->method = (int16)*p->imeth;
     p->param1 = *p->ipar1;

@@ -535,6 +535,7 @@ void sfopenin(CSOUND *csound)           /* init for continuous soundin */
         parm.nChannels    = csound->inchnls;
         parm.sampleFormat = O->informat;
         parm.sampleRate   = (float) csound->esr;
+        parm.ksmps = csound->ksmps;
         /* open devaudio for input */
         if (UNLIKELY(csound->recopen_callback(csound, &parm) != 0))
           csoundDie(csound, Str("Failed to initialise real time audio input"));
@@ -750,6 +751,7 @@ void sfopenout(CSOUND *csound)                  /* init for sound out       */
         parm.nChannels    = csound->nchnls;
         parm.sampleFormat = O->outformat;
         parm.sampleRate   = (float) csound->esr;
+        parm.ksmps = csound->ksmps;
         csound->spoutran  = spoutsf;
         /* open devaudio for output */
         if (UNLIKELY(csound->playopen_callback(csound, &parm) != 0))

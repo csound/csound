@@ -101,11 +101,11 @@ public:
 
   /** system sampling rate
    */
-  MYFLT sr() { return GetSr(this); }
+  //MYFLT sr() { return GetSr(this); }
 
   /** system control rate
    */
-  MYFLT kr() { return GetKr(this); }
+  //MYFLT kr() { return GetKr(this); }
 
   /** system max amp reference
    */
@@ -129,9 +129,9 @@ public:
 
   /** time count (seconds)
    */
-  double current_time_seconds() {
-    return GetCurrentTimeSamples(this) / GetSr(this);
-  }
+  //double current_time_seconds() {
+  //  return GetCurrentTimeSamples(this) / GetSr(this);
+  //}
 
   /** check for audio signal variable argument
    */
@@ -949,7 +949,7 @@ template <std::size_t N> struct InPlug : OPDS {
 
    /** sampling rate
    */
-  MYFLT sr() { return csound->sr(); }
+  MYFLT sr() { return insdshead->esr; }
 
   /** midi channel number for this instrument
    */
@@ -1081,7 +1081,7 @@ template <std::size_t N, std::size_t M> struct Plugin : OPDS {
 
    /** sampling rate
    */
-  MYFLT sr() { return csound->sr(); }
+  MYFLT sr() { return insdshead->esr; }
 
   /** midi channel number for this instrument
    */

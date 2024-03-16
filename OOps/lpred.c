@@ -298,7 +298,7 @@ static void pkinterp(LPCparam *p){
 MYFLT csoundLPcps(CSOUND *csound, void *parm){
   LPCparam *p = (LPCparam *) parm;
   int i;
-  MYFLT mx = FL(0.0), pmx, sr = csound->GetSr(csound);
+  MYFLT mx = FL(0.0), pmx, sr = csoundGetSr(csound);
   MYFLT *pk = p->pk, *am = p->am;
   pkpick(p);
   pkinterp(p);
@@ -966,7 +966,7 @@ int32_t lpcpvs(CSOUND *csound, LPCPVS *p){
     cbuf[bp] = in[n];
     bp = bp != N - 1 ? bp + 1 : 0;
     if(--cp == 0) {
-      MYFLT k, incr = p->wlen/N, g, sr = csound->GetSr(csound);
+      MYFLT k, incr = p->wlen/N, g, sr = csoundGetSr(csound);
       MYFLT *fftframe =  (MYFLT *) p->fftframe.auxp;
       float *pvframe = (float *)p->fout->frame.auxp;
       int32_t j,i;
@@ -1073,7 +1073,7 @@ static int cmpfunc (const void * a, const void * b) {
 int32_t coef2parm(CSOUND *csound, CF2P *p) {
   MYCMPLX *pl;
   MYFLT *c = p->in->data, pm, pf, sum = 0.0;
-  MYFLT *pp = p->out->data, Nyq = csound->esr/2;
+  MYFLT *pp = p->out->data, Nyq = CS_ESR/2;
   int i,j;
   // simple check for new data
   for(i=0; i< p->M; i++) sum += c[i];

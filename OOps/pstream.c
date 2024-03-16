@@ -64,7 +64,7 @@ int32_t fassign_set(CSOUND *csound, FASSIGN *p)
     /* sliding needs to be checked */
     if (p->fsrc->sliding) {
       p->fout->NB = p->fsrc->NB;
-      csound->AuxAlloc(csound, (N + 2) * sizeof(MYFLT) * csound->ksmps,
+      csound->AuxAlloc(csound, (N + 2) * sizeof(MYFLT) * CS_KSMPS,
                        &p->fout->frame);
       return OK;
     }
@@ -96,7 +96,7 @@ int32_t fassign(CSOUND *csound, FASSIGN *p)
     //                         Str("fsig = : formats are different.\n"));
     if (p->fsrc->sliding) {
       memcpy(p->fout->frame.auxp, p->fsrc->frame.auxp,
-             sizeof(MYFLT)*(p->fsrc->N+2)*csound->ksmps);
+             sizeof(MYFLT)*(p->fsrc->N+2)*CS_KSMPS);
       return OK;
     }
 
@@ -161,7 +161,7 @@ int32_t pvadsynset(CSOUND *csound, PVADS *p)
 
     p->outptr = 0;
     p->lastframe = 0;
-/*  p->one_over_sr = (float) csound->onedsr; */
+/*  p->one_over_sr = (float) CS_ONEDSR; */
 /*  p->pi_over_sr = (float) csound->pidsr; */
     p->one_over_overlap = (float)(FL(1.0) / p->overlap);
     /* alloc for all oscs;
@@ -201,7 +201,7 @@ static void adsyn_frame(CSOUND *csound, PVADS *p)
     MYFLT *a,*x,*y;
     MYFLT *amps,*freqs,*lastamps;
     MYFLT ffac    = *p->kfmod;
-    MYFLT nyquist = csound->esr * FL(0.5);
+    MYFLT nyquist = CS_ESR * FL(0.5);
     /* we add to outbuf, so clear it first*/
     memset(p->outbuf.auxp,0,p->overlap * sizeof(MYFLT));
 
@@ -395,7 +395,7 @@ static int32_t pvsfreadset_(CSOUND *csound, PVSFREAD *p, int32_t stringname)
     p->format  = pp.format;
     p->chans   = pp.chans;
     p->nframes = pp.nframes;
-    p->arate   = csound->esr / (MYFLT) pp.overlap;
+    p->arate   = CS_ESR / (MYFLT) pp.overlap;
     p->membase = (float*) pp.data;
 
     if (UNLIKELY(p->overlap < (int32_t)CS_KSMPS || p->overlap < 10))

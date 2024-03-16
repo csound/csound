@@ -1463,7 +1463,7 @@ int32_t adsyn(CSOUND *csound, ADSYN *p)
     }
     /* IV - Jul 11 2002 */
     ampscale = *p->kamod * csound->e0dbfs;      /* since 15-bit sine table */
-    frqscale = *p->kfmod * ISINSIZ * csound->onedsr;
+    frqscale = *p->kfmod * ISINSIZ * CS_ONEDSR;
     /* 1024 * msecs of analysis */
     memset(p->rslt,0,sizeof(MYFLT)*nsmps);
     if (UNLIKELY(early)) nsmps -= early;

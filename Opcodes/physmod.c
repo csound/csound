@@ -177,7 +177,7 @@ int32_t clarin(CSOUND *csound, CLARIN *p)
     p->outputGain = amp + FL(0.001);
     DLineL_setDelay(&p->delayLine, /* length - approx filter delay */
         (CS_ESR/ *p->frequency) * FL(0.5) - FL(1.5));
-    p->v_rate = *p->vibFreq * p->vibr->flen * csound->onedsr;
+    p->v_rate = *p->vibFreq * p->vibr->flen * CS_ONEDSR;
                                 /* Check to see if into decay yet */
     if (p->kloop>0 && p->h.insdshead->relesing) p->kloop=1;
     if ((--p->kloop) == 0) {
@@ -366,7 +366,7 @@ int32_t flute(CSOUND *csound, FLUTE *p)
       p->outputGain = amp + FL(0.001);
       p->lastamp = amp;
     }
-    p->v_rate = *p->vibFreq * v_len * csound->onedsr;
+    p->v_rate = *p->vibFreq * v_len * CS_ONEDSR;
                                 /* Start SetFreq */
     if (p->lastFreq != *p->frequency) { /* It changed */
       p->lastFreq = *p->frequency;
@@ -596,7 +596,7 @@ int32_t bowed(CSOUND *csound, BOWED *p)
       DLineL_setDelay(&p->neckDelay, /* bow to nut (finger) length */
                       p->baseDelay *(FL(1.0) - p->lastbeta));
     }
-    p->v_rate = *p->vibFreq * p->vibr->flen * csound->onedsr;
+    p->v_rate = *p->vibFreq * p->vibr->flen * CS_ONEDSR;
     if (p->kloop>0 && p->h.insdshead->relesing) p->kloop=1;
     if ((--p->kloop) == 0) {
       ADSR_setDecayRate(csound, &p->adsr, (FL(1.0) - p->adsr.value) * FL(0.005));
@@ -862,7 +862,7 @@ int32_t brass(CSOUND *csound, BRASS *p)
     MYFLT vibGain = *p->vibAmt;
     MYFLT vTime = p->v_time;
 
-    p->v_rate = *p->vibFreq * v_len * csound->onedsr;
+    p->v_rate = *p->vibFreq * v_len * CS_ONEDSR;
     /*   vibr->setFreq(6.137); */
     /* vibrGain = 0.05; */            /* breath periodic vibrato component  */
     if (p->kloop>0 && p->h.insdshead->relesing) p->kloop=1;

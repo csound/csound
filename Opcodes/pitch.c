@@ -1235,7 +1235,7 @@ int32_t phsorbnk(CSOUND *csound, PHSORBNK *p)
     if (IS_ASIG_ARG(p->xcps)) {
       MYFLT *cps = p->xcps;
       for (n=offset; n<nsmps; n++) {
-        incr = (double)(cps[n] * csound->onedsr);
+        incr = (double)(cps[n] * CS_ONEDSR);
         rs[n] = (MYFLT)phase;
         phase += incr;
         if (UNLIKELY(phase >= 1.0))
@@ -1245,7 +1245,7 @@ int32_t phsorbnk(CSOUND *csound, PHSORBNK *p)
       }
     }
     else {
-      incr = (double)(*p->xcps * csound->onedsr);
+      incr = (double)(*p->xcps * CS_ONEDSR);
       for (n=offset; n<nsmps; n++) {
         rs[n] = (MYFLT)phase;
         phase += incr;
@@ -2182,7 +2182,7 @@ int32_t lpf18db(CSOUND *csound, LPF18 *p)
       dist       = (double)(asgd ? p->dist[n] : *p->dist);
       if (fco != lfc || flag) {
         lfc = fco;
-        kfcn = FL(2.0) * fco * csound->onedsr;
+        kfcn = FL(2.0) * fco * CS_ONEDSR;
         kp   = ((-FL(2.7528)*kfcn + FL(3.0429))*kfcn +
                 FL(1.718))*kfcn - FL(0.9984);
         kp1 = kp+FL(1.0);

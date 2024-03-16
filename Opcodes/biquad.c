@@ -159,7 +159,7 @@ static int32_t moogvcf(CSOUND *csound, MOOGVCF *p)
   /* Only need to calculate once */
     if (UNLIKELY((p->rezcod==0) && (p->fcocod==0))) {
       double fcon;
-      fcon  = 2.0*fco*(double)csound->onedsr; /* normalised freq. 0 to Nyquist */
+      fcon  = 2.0*fco*(double)CS_ONEDSR; /* normalised freq. 0 to Nyquist */
       kp    = 3.6*fcon-1.6*fcon*fcon-1.0;     /* Emperical tuning   */
       pp1d2 = (kp+1.0)*0.5;                   /* Timesaver          */
       scale = exp((1.0-pp1d2)*1.386249);      /* Scaling factor     */
@@ -180,7 +180,7 @@ static int32_t moogvcf(CSOUND *csound, MOOGVCF *p)
       }
       if ((p->rezcod!=0) || (p->fcocod!=0)) {
         double fcon;
-        fcon  = 2.0*fco*(double)csound->onedsr; /* normalised frq. 0 to Nyquist */
+        fcon  = 2.0*fco*(double)CS_ONEDSR; /* normalised frq. 0 to Nyquist */
         kp    = 3.6*fcon-1.6*fcon*fcon-1.0;     /* Emperical tuning */
         pp1d2 = (kp+1.0)*0.5;                   /* Timesaver */
         scale = exp((1.0-pp1d2)*1.386249);      /* Scaling factor */
@@ -1323,7 +1323,7 @@ static int32_t tbvcf(CSOUND *csound, TBVCF *p)
       q1   = res/(1.0 + sqrt(dist));
       fco1 = pow(fco*260.0/(1.0+q1*0.5),0.58);
       q    = q1*fco1*fco1*0.0005;
-      fc   = fco1*(double)csound->onedsr*(44100.0/8.0);
+      fc   = fco1*(double)CS_ONEDSR*(44100.0/8.0);
     }
     if (UNLIKELY(offset)) memset(out, '\0', offset*sizeof(MYFLT));
     if (UNLIKELY(early)) {
@@ -1342,7 +1342,7 @@ static int32_t tbvcf(CSOUND *csound, TBVCF *p)
         q1  = res/(1.0 + sqrt(dist));
         fco1 = pow(fco*260.0/(1.0+q1*0.5),0.58);
         q  = q1*fco1*fco1*0.0005;
-        fc  = fco1*(double)csound->onedsr*(44100.0/8.0);
+        fc  = fco1*(double)CS_ONEDSR*(44100.0/8.0);
       }
       x  = (double)in[n];
       fdbk = q*y/(1.0 + exp(-3.0*y)*asym);
@@ -1524,7 +1524,7 @@ static int32_t bqrez(CSOUND *csound, REZZY *p)
     }
     p->lfq = -FL(1.0); p->lq = -FL(1.0);
     /* set a limit below theoretical sr/pi */
-    p->limit = csound->GetSr(csound)*(FL(1.0)/PI_F-FL(1.0)/FL(100.0));
+    p->limit = CS_ESR*(FL(1.0)/PI_F-FL(1.0)/FL(100.0));
     //printf("*** limit = %lf\n", p->limit);
     return OK;
 }
@@ -1603,7 +1603,7 @@ int mvmfilterset(CSOUND *csound, MVMFILT *p)
 int mvmfilter(CSOUND *csound, MVMFILT *p) {
   uint32_t      offset   = p->h.insdshead->ksmps_offset;
   uint32_t      early    = p->h.insdshead->ksmps_no_end;
-  MYFLT fs       = csound->GetSr(csound);
+  MYFLT fs       = CS_ESR;
   uint32_t      n, nsmps = CS_KSMPS;
   int32_t       asigtau, asigf0;
   asigtau = IS_ASIG_ARG(p->tau);
@@ -1618,7 +1618,7 @@ int mvmfilter(CSOUND *csound, MVMFILT *p) {
   MYFLT theta,r1,x1,y1,x,y,limit;
   x  = p->x;
   y  = p->y;
-  limit = csound->GetSr(csound) / FL(2.0);
+  limit = CS_ESR / FL(2.0);
 
   MYFLT f0val=*p->f0;
   f0val = f0val > limit ? limit : f0val;

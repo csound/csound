@@ -63,7 +63,7 @@ static int32_t zdf_1pole_mode_perf(CSOUND* csound, ZDF_1POLE_MODE* p) {
     uint32_t early = p->h.insdshead->ksmps_no_end;
     uint32_t n, nsmps = CS_KSMPS;
 
-    double T = csound->onedsr;
+    double T = CS_ONEDSR;
     double Tdiv2 = T / 2.0;
     double two_div_T = 2.0 / T;
 
@@ -139,7 +139,7 @@ static int32_t zdf_1pole_perf(CSOUND* csound, ZDF_1POLE* p) {
     uint32_t early = p->h.insdshead->ksmps_no_end;
     uint32_t n, nsmps = CS_KSMPS;
 
-    double T = csound->onedsr;
+    double T = CS_ONEDSR;
     double Tdiv2 = T / 2.0;
     double two_div_T = 2.0 / T;
     int32_t mode = MYFLT2LONG(*p->mode);
@@ -235,7 +235,7 @@ static int32_t zdf_2pole_mode_perf(CSOUND* csound, ZDF_2POLE_MODE* p) {
     uint32_t early = p->h.insdshead->ksmps_no_end;
     uint32_t n, nsmps = CS_KSMPS;
 
-    double T = csound->onedsr;
+    double T = CS_ONEDSR;
     double Tdiv2 = T / 2.0;
     double two_div_T = 2.0 / T;
 
@@ -333,7 +333,7 @@ static int32_t zdf_2pole_perf(CSOUND* csound, ZDF_2POLE* p) {
     uint32_t early = p->h.insdshead->ksmps_no_end;
     uint32_t n, nsmps = CS_KSMPS;
 
-    double T = csound->onedsr;
+    double T = CS_ONEDSR;
     double Tdiv2 = T / 2.0;
     double two_div_T = 2.0 / T;
 
@@ -458,7 +458,7 @@ static int32_t zdf_ladder_perf(CSOUND* csound, ZDF_LADDER* p) {
     uint32_t early = p->h.insdshead->ksmps_no_end;
     uint32_t n, nsmps = CS_KSMPS;
 
-    double T = csound->onedsr;
+    double T = CS_ONEDSR;
     double Tdiv2 = T / 2.0;
     double two_div_T = 2.0 / T;
 
@@ -625,7 +625,7 @@ static int32_t diode_ladder_perf(CSOUND* csound,
     uint32_t early = p->h.insdshead->ksmps_no_end;
     uint32_t n, nsmps = CS_KSMPS;
 
-    double T = csound->onedsr;
+    double T = CS_ONEDSR;
     double Tdiv2 = T / 2.0;
     double two_div_T = 2.0 / T;
 
@@ -815,7 +815,7 @@ static int32_t k35_lpf_perf(CSOUND* csound, K35_LPF* p) {
     uint32_t early = p->h.insdshead->ksmps_no_end;
     uint32_t n, nsmps = CS_KSMPS;
 
-    double T = csound->onedsr;
+    double T = CS_ONEDSR;
     double Tdiv2 = T / 2.0;
     double two_div_T = 2.0 / T;
 
@@ -954,7 +954,7 @@ static int32_t k35_hpf_perf(CSOUND* csound, K35_HPF* p) {
     uint32_t early = p->h.insdshead->ksmps_no_end;
     uint32_t n, nsmps = CS_KSMPS;
 
-    double T = csound->onedsr;
+    double T = CS_ONEDSR;
     double Tdiv2 = T / 2.0;
     double two_div_T = 2.0 / T;
 

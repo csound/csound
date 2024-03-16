@@ -1013,7 +1013,7 @@ int32_t mvclpf24_perf1(CSOUND *csound, mvclpf24 *p){
   if (p->fr != *p->freq) {
     MYFLT fr = log2(*p->freq/CBASE);
     p->fr  = *p->freq;
-    w = exp2ap(fr + 10.82)/csound->GetSr(csound);
+    w = exp2ap(fr + 10.82)/CS_ESR;
     if (w < 0.8) w *= 1 - 0.4 * w - 0.125 * w * w;
     else {
       w *= 0.6;
@@ -1076,7 +1076,7 @@ int32_t mvclpf24_perf1_ak(CSOUND *csound, mvclpf24 *p){
     t  = ldexp(1 + t * (0.6930 +
                         t * (0.2416 + t * (0.0517 +
                                            t * 0.0137))), wi);
-    w  = t/csound->GetSr(csound);
+    w  = t/CS_ESR;
     if (w < 0.8)
       w *= 1 - 0.4 * w - 0.125 * w * w;
     else {
@@ -1116,7 +1116,7 @@ int32_t mvclpf24_perf1_ka(CSOUND *csound, mvclpf24 *p){
   if (p->fr != *p->freq) {
     MYFLT fr = log2(*p->freq/CBASE);
     p->fr  = *p->freq;
-    w = exp2ap(fr + 10.82)/csound->GetSr(csound);
+    w = exp2ap(fr + 10.82)/CS_ESR;
     if (w < 0.8) w *= 1 - 0.4 * w - 0.125 * w * w;
     else {
       w *= 0.6;
@@ -1177,7 +1177,7 @@ int32_t mvclpf24_perf1_aa(CSOUND *csound, mvclpf24 *p){
     t = ldexp(1 + t * (0.6930 +
                        t * (0.2416 + t * (0.0517 +
                                           t * 0.0137))), wi);
-    w = t/csound->GetSr(csound);
+    w = t/CS_ESR;
     if (w < 0.8)
       w *= 1 - 0.4 * w - 0.125 * w * w;
     else {
@@ -1218,7 +1218,7 @@ int32_t mvclpf24_perf2(CSOUND *csound, mvclpf24 *p){
   if (p->fr != *p->freq) {
     MYFLT fr = log2(*p->freq/CBASE);
     p->fr  = *p->freq;
-    w = exp2ap(fr + 10.71)/csound->GetSr(csound);
+    w = exp2ap(fr + 10.71)/CS_ESR;
     if (w < 0.8) w *= 1 - 0.4 * w - 0.125 * w * w;
     else {
       w *= 0.6;
@@ -1280,7 +1280,7 @@ int32_t mvclpf24_perf2_ak(CSOUND *csound, mvclpf24 *p){
     t = ldexp(1 + t * (0.6930 +
                        t * (0.2416 + t * (0.0517 +
                                           t * 0.0137))), wi);
-    w = t/csound->GetSr(csound);
+    w = t/CS_ESR;
     if (w < 0.8)
       w *= 1 - 0.4 * w - 0.125 * w * w;
     else {
@@ -1318,7 +1318,7 @@ int32_t mvclpf24_perf2_ka(CSOUND *csound, mvclpf24 *p){
   if (p->fr != *p->freq) {
     MYFLT fr = log2(*p->freq/CBASE);
     p->fr  = *p->freq;
-    w = exp2ap(fr + 10.71)/csound->GetSr(csound);
+    w = exp2ap(fr + 10.71)/CS_ESR;
     if (w < 0.8) w *= 1 - 0.4 * w - 0.125 * w * w;
     else {
       w *= 0.6;
@@ -1377,7 +1377,7 @@ int32_t mvclpf24_perf2_aa(CSOUND *csound, mvclpf24 *p){
     t = ldexp(1 + t * (0.6930 +
                        t * (0.2416 + t * (0.0517 +
                                           t * 0.0137))), wi);
-    w = t/csound->GetSr(csound);
+    w = t/CS_ESR;
     if (w < 0.8)
       w *= 1 - 0.4 * w - 0.125 * w * w;
     else {
@@ -1416,7 +1416,7 @@ int32_t mvclpf24_perf3(CSOUND *csound, mvclpf24 *p){
   if (p->fr != *p->freq) {
     MYFLT fr = log2(*p->freq/CBASE);
     p->fr  = *p->freq;
-    w = exp2ap(fr + 9.70)/csound->GetSr(csound);
+    w = exp2ap(fr + 9.70)/CS_ESR;
     if (w < 0.75) w *= 1.005 - w * (0.624 - w * (0.65 - w * 0.54));
     else {
       w *= 0.6748;
@@ -1501,7 +1501,7 @@ int32_t mvclpf24_perf3_ak(CSOUND *csound, mvclpf24 *p){
     t = ldexp(1 + t * (0.6930 +
                        t * (0.2416 + t * (0.0517 +
                                           t * 0.0137))), wi);
-    w = t/csound->GetSr(csound);
+    w = t/CS_ESR;
     if (w < 0.75)
       w *= 1.005 - w * (0.624 - w * (0.65 - w * 0.54));
     else {
@@ -1565,7 +1565,7 @@ int32_t mvclpf24_perf3_ka(CSOUND *csound, mvclpf24 *p){
   if (p->fr != *p->freq) {
     MYFLT fr = log2(*p->freq/CBASE);
     p->fr  = *p->freq;
-    w = exp2ap(fr + 9.70)/csound->GetSr(csound);
+    w = exp2ap(fr + 9.70)/CS_ESR;
     if (w < 0.75) w *= 1.005 - w * (0.624 - w * (0.65 - w * 0.54));
     else {
       w *= 0.6748;
@@ -1651,7 +1651,7 @@ int32_t mvclpf24_perf3_aa(CSOUND *csound, mvclpf24 *p){
     t = ldexp(1 + t * (0.6930 +
                        t * (0.2416 + t * (0.0517 +
                                           t * 0.0137))), wi);
-    w = t/csound->GetSr(csound);
+    w = t/CS_ESR;
     if (w < 0.75)
       w *= 1.005 - w * (0.624 - w * (0.65 - w * 0.54));
     else {
@@ -1739,7 +1739,7 @@ int32_t mvclpf24_perf4(CSOUND *csound, mvclpf24_4 *p){
   if (p->fr != *p->freq) {
     MYFLT fr = log2(*p->freq/CBASE);
     p->fr  = *p->freq;
-    w = exp2ap(fr + 9.70)/csound->GetSr(csound);
+    w = exp2ap(fr + 9.70)/CS_ESR;
     if (w < 0.75) w *= 1.005 - w * (0.624 - w * (0.65 - w * 0.54));
     else {
       w *= 0.6748;
@@ -1848,7 +1848,7 @@ int32_t mvclpf24_perf4_ak(CSOUND *csound, mvclpf24_4 *p){
     t = ldexp(1 + t * (0.6930 +
                        t * (0.2416 + t * (0.0517 +
                                           t * 0.0137))), wi);
-    w = t/csound->GetSr(csound);
+    w = t/CS_ESR;
     if (w < 0.75)
       w *= 1.005 - w * (0.624 - w * (0.65 - w * 0.54));
     else {
@@ -1914,7 +1914,7 @@ int32_t mvclpf24_perf4_ka(CSOUND *csound, mvclpf24_4 *p){
   if (p->fr != *p->freq) {
     MYFLT fr = log2(*p->freq/CBASE);
     p->fr  = *p->freq;
-    w = exp2ap(fr + 9.70)/csound->GetSr(csound);
+    w = exp2ap(fr + 9.70)/CS_ESR;
     if (w < 0.75) w *= 1.005 - w * (0.624 - w * (0.65 - w * 0.54));
     else {
       w *= 0.6748;
@@ -2020,7 +2020,7 @@ int32_t mvclpf24_perf4_aa(CSOUND *csound, mvclpf24_4 *p){
     t = ldexp(1 + t * (0.6930 +
                        t * (0.2416 + t * (0.0517 +
                                           t * 0.0137))), wi);
-    w = t/csound->GetSr(csound);
+    w = t/CS_ESR;
     if (w < 0.75)
       w *= 1.005 - w * (0.624 - w * (0.65 - w * 0.54));
     else {
@@ -2109,7 +2109,7 @@ int32_t mvchpf24_perf(CSOUND *csound, mvchpf24 *p){
   if (p->fr != *p->freq) {
     MYFLT fr = log2(*p->freq/CBASE);
     p->fr  = *p->freq;
-    w = csound->GetSr(csound)/exp2ap(fr+ 9.2);
+    w = CS_ESR/exp2ap(fr+ 9.2);
     if (w < FL(2.0)) w = FL(2.0);
     p->w = w;
   } else w = p->w;
@@ -2187,7 +2187,7 @@ int32_t mvchpf24_perf_a(CSOUND *csound, mvchpf24 *p){
     t = ldexp(1 + t * (0.6930 +
                        t * (0.2416 + t * (0.0517 +
                                           t * 0.0137))), wi);
-    w = csound->GetSr(csound)/t;
+    w = CS_ESR/t;
     if (w < FL(2.0)) w = FL(2.0);
 
     x = y = in[i]/scal  - 0.3 * x;
@@ -2287,7 +2287,7 @@ static int32_t bob_process(CSOUND *csound,BOB *p)
   MYFLT  *sat  = p->sat;
 
   int32_t ostimes = p->ostimes,j;
-  double stepsize = 1./(ostimes * csound->GetSr(csound));
+  double stepsize = 1./(ostimes * CS_ESR);
   uint32_t offset = p->h.insdshead->ksmps_offset;
   uint32_t early  = p->h.insdshead->ksmps_no_end;
   uint32_t i,l, nsmps = CS_KSMPS;
@@ -2387,7 +2387,7 @@ typedef struct vcf {
 
 int vcf_init(CSOUND *csound, VCF *p) {
   double g, *G = p->G;
-  p->piosr = PI/csound->GetSr(csound);
+  p->piosr = PI/CS_ESR;
   p->ff = *p->f;
   g = TAN(p->ff*p->piosr);
   G[0] = g/(1+g);
@@ -2581,7 +2581,7 @@ typedef struct _spf {
 int spf_init(CSOUND *csound, SPF *p) {
   double w, w2, fac;
   double *sh = p->sh, *sl = p->sl, *sb = p->sb, *s = p->s;
-  p->piosr = PI/csound->GetSr(csound);
+  p->piosr = PI/CS_ESR;
   w = TAN(*p->f*p->piosr);
   w2 = w*w;
   p->R = *p->r >  0 ? (*p->r <= 2. ? *p->r : 2.) : 0.;
@@ -2808,7 +2808,7 @@ typedef struct _skf {
 int skf_init(CSOUND *csound, SKF *p) {
   double w, w2, fac;
   double *s = p->s;
-  p->piosr = PI/csound->GetSr(csound);
+  p->piosr = PI/CS_ESR;
   w = TAN(*p->f*p->piosr);
   w2 = w*w;
   p->KK = (*p->K > 1 ? (*p->K <= 3. ? *p->K : 3.) : 1.);
@@ -3015,7 +3015,7 @@ typedef struct _svn {
 int svn_init(CSOUND *csound, SVN *p) {
   double w2;
   double *s = p->s;
-  p->piosr = PI/csound->GetSr(csound);
+  p->piosr = PI/CS_ESR;
   p->w = TAN(*p->f*p->piosr);
   w2 = p->w*p->w;
   p->Q = *p->q >  0.5 ? *p->q : 0.5;

@@ -195,7 +195,7 @@ static int32_t newpulse(CSOUND *csound, FOGS *p, OVERLAP *ovp, MYFLT   *amp,
       p->expamp = EXP(*p->kband * csound->mpidsr);
       newexp = 1;
     }
-    if (*p->kris >= csound->onedsr && form != 0.0) {  /* init fnb ris */
+    if (*p->kris >= CS_ONEDSR && form != 0.0) {  /* init fnb ris */
       ovp->risphs = (uint32)(ovp->formphs / (fabs(form))
                                     / *p->kris); /* JPff fix */
       ovp->risinc = (int32)(csound->sicvt / *p->kris);

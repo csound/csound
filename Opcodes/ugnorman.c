@@ -1191,7 +1191,7 @@ static int32_t atsaddnzset(CSOUND *csound, ATSADDNZ *p)
     /* p->nfreq[24] = 4500.0; */
 
     {
-      double tmp = TWOPI * csound->onedsr;
+      double tmp = TWOPI * CS_ONEDSR;
 
       /* initialise frequencies to modulate noise by */
       p->phaseinc[0] = 50.0 * tmp;
@@ -1361,7 +1361,7 @@ static int32_t atsaddnzset_S(CSOUND *csound, ATSADDNZ *p)
     /* p->nfreq[24] = 4500.0; */
 
     {
-      double tmp = TWOPI * csound->onedsr;
+      double tmp = TWOPI * CS_ONEDSR;
 
       /* initialise frequencies to modulate noise by */
       p->phaseinc[0] = 50.0 * tmp;
@@ -1669,7 +1669,7 @@ static int32_t atssinnoiset(CSOUND *csound, ATSSINNOI *p)
     p->prFlg = 1;               /* true */
 
     {
-      double tmp = TWOPI * csound->onedsr;
+      double tmp = TWOPI * CS_ONEDSR;
       p->phaseinc[0] = 50.0 * tmp;
       p->phaseinc[1] = 150.0 * tmp;
       p->phaseinc[2] = 250.0 * tmp;
@@ -1858,7 +1858,7 @@ static int32_t atssinnoiset_S(CSOUND *csound, ATSSINNOI *p)
     p->prFlg = 1;               /* true */
 
     {
-      double tmp = TWOPI * csound->onedsr;
+      double tmp = TWOPI * CS_ONEDSR;
       p->phaseinc[0] = 50.0 * tmp;
       p->phaseinc[1] = 150.0 * tmp;
       p->phaseinc[2] = 250.0 * tmp;
@@ -1962,7 +1962,7 @@ static int32_t atssinnoi(CSOUND *csound, ATSSINNOI *p)
         ar = p->aoutput;
         amp = oscbuf[i].amp;
         freq = (MYFLT) oscbuf[i].freq * *p->kfreq;
-        inc = TWOPI * freq * csound->onedsr;
+        inc = TWOPI * freq * CS_ONEDSR;
         nzamp =
             sqrt(*(p->nzbuf + i) / (p->atshead->winsz * ATSA_NOISE_VARIANCE));
         for (n=offset; n<nsmps;n++) {
@@ -1991,7 +1991,7 @@ static int32_t atssinnoi(CSOUND *csound, ATSSINNOI *p)
         ar = p->aoutput;
         amp = oscbuf[i].amp;
         freq = (MYFLT) oscbuf[i].freq * *p->kfreq;
-        inc = TWOPI * freq * csound->onedsr;
+        inc = TWOPI * freq * CS_ONEDSR;
         for (n=offset; n<nsmps;n++) {
           /* calc sine wave */
           sinewave = cos(phase) * amp;

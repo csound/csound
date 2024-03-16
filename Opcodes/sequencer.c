@@ -112,7 +112,7 @@ static int32_t sequencer(CSOUND *csound, SEQ *p)
         p->time = 0;
       }
       else {
-        p->time = csound->ksmps;
+        p->time = CS_KSMPS;
         *p->res = -FL(1.0);
         return OK;
       }
@@ -121,9 +121,9 @@ static int32_t sequencer(CSOUND *csound, SEQ *p)
       if (*p->verbos) printf("RESET!!\n");
       goto minus7;
     }
-    else if (p->time > csound->ksmps) {         /* Not yet time to act */
+    else if (p->time > CS_KSMPS) {         /* Not yet time to act */
       //printf("**time= %d", p->time);
-      p->time -= csound->ksmps;
+      p->time -= CS_KSMPS;
       *p->res = -FL(1.0);
       //printf(" -> %d\n", p->time);
       return OK;
@@ -214,7 +214,7 @@ static int32_t sequencer(CSOUND *csound, SEQ *p)
         //printf("***Score;ine:%s", buff);
         csoundReadScore(csound, buff); /* schedule instr for event */
       }
-      p->time = (p->riff->data[i] * csound->esr * 60.0) / *p->kbpm;
+      p->time = (p->riff->data[i] * CS_ESR * 60.0) / *p->kbpm;
             /* printf("Step %d riff %d instr %0.4f len %f\n", */
             /*    i,p->seq[i], p->instr->data[p->seq[i]], p->riff->data[p->seq[i]]); */
       // Mutate every mode events

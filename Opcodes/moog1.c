@@ -193,8 +193,8 @@ int32_t Moog1(CSOUND *csound, MOOG1 *p)
     MYFLT       vib = *p->vibAmt;
 
     p->baseFreq = *p->frequency;
-    p->attk.rate = p->baseFreq * FL(0.01) * p->attk.wave->flen * csound->onedsr;
-    p->loop.rate = p->baseFreq            * p->loop.wave->flen * csound->onedsr;
+    p->attk.rate = p->baseFreq * FL(0.01) * p->attk.wave->flen * CS_ONEDSR;
+    p->loop.rate = p->baseFreq            * p->loop.wave->flen * CS_ONEDSR;
     p->attackGain = amp * FL(0.5);
     p->loopGain = amp;
     if (*p->filterQ != p->oldfilterQ) {
@@ -215,7 +215,7 @@ int32_t Moog1(CSOUND *csound, MOOG1 *p)
       p->filters[0].sweepRate = p->oldfilterRate * RATE_NORM;
       p->filters[1].sweepRate = p->oldfilterRate * RATE_NORM;
     }
-    p->vibr.rate = *p->vibf * p->vibr.wave->flen * csound->onedsr;
+    p->vibr.rate = *p->vibf * p->vibr.wave->flen * CS_ONEDSR;
 
     if (UNLIKELY(offset)) memset(ar, '\0', offset*sizeof(MYFLT));
     if (UNLIKELY(early)) {
@@ -231,7 +231,7 @@ int32_t Moog1(CSOUND *csound, MOOG1 *p)
       if (vib != FL(0.0)) {
         temp = vib * Samp_tick(&p->vibr);
         p->loop.rate = p->baseFreq * (FL(1.0) + temp) *
-                       (MYFLT)(p->loop.wave->flen) * csound->onedsr;
+                       (MYFLT)(p->loop.wave->flen) * CS_ONEDSR;
       }
 
       p->attk.time += p->attk.rate;           /*  Update current time    */

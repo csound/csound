@@ -100,7 +100,7 @@ int32_t OLABuffer_initialise(CSOUND *csound, OLABuffer *self)
     csound->AuxAlloc(csound, self->framesCount * sizeof(MYFLT *),
                      &self->framePointerMemory);
     self->frames = self->framePointerMemory.auxp;
-    self->ksmps = csound->GetKsmps(csound);
+    self->ksmps = csound->GetKsmps(self->h.insdshead);
 
     int32_t i;
     for (i = 0; i < self->framesCount; ++i) {
@@ -227,7 +227,7 @@ void OLABuffer_checkArgumentSanity(CSOUND *csound, OLABuffer *self)
     }
 
     if (UNLIKELY(frameSampleCount / (int32_t)overlapCount <
-                 (int32_t) csound->GetKsmps(csound))) {
+                 (int32_t) csound->GetKsmps(self->h.insdshead))) {
 
       csound->Die(csound, "%s", Str("olabuffer: Error, k-rate array size divided "
                               "by overlap factor must be larger than or equal "
@@ -240,7 +240,7 @@ int32_t Framebuffer_initialise(CSOUND *csound, Framebuffer *self)
     self->inputType = Framebuffer_getArgumentType(csound, self->inputArgument);
     self->outputType = Framebuffer_getArgumentType(csound, self->outputArgument);
     self->elementCount = *self->sizeArgument;
-    self->ksmps = csound->GetKsmps(csound);
+    self->ksmps = csound->GetKsmps(self->h.insdshead);
 
     Framebuffer_checkArgumentSanity(csound, self);
 
@@ -339,7 +339,7 @@ int32_t Framebuffer_process(CSOUND *csound, Framebuffer *self)
 
 void Framebuffer_checkArgumentSanity(CSOUND *csound, Framebuffer *self)
 {
-    if (UNLIKELY((uint32_t)self->elementCount < csound->GetKsmps(csound))) {
+    if (UNLIKELY((uint32_t)self->elementCount < csound->GetKsmps(self->h.insdshead))) {
 
       csound->Die(csound, "%s", Str("framebuffer: Error, specified element "
                               "count less than ksmps value, Exiting"));

@@ -134,7 +134,7 @@ static int32_t hilbertset(CSOUND *csound, HILBERT *p)
       polefreq = poles[j] * 15.0;
       rc = 1.0 / (2.0 * PI * polefreq);
       alpha = 1.0 / rc;
-      alpha = alpha * 0.5 * (double)csound->onedsr;
+      alpha = alpha * 0.5 * (double)CS_ONEDSR;
       beta = (1.0 - alpha) / (1.0 + alpha);
       p->xnm1[j] = p->ynm1[j] = FL(0.0);
       p->coef[j] = -(MYFLT)beta;

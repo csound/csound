@@ -242,7 +242,7 @@ static int32_t posc_set(CSOUND *csound, POSC *p)
       return csound->InitError(csound, Str("table not found in poscil"));
     p->ftp        = ftp;
     p->tablen     = ftp->flen;
-    p->tablenUPsr = p->tablen * csound->onedsr;
+    p->tablenUPsr = p->tablen * CS_ONEDSR;
     if (*p->iphs>=FL(0.0))
       p->phs      = *p->iphs * p->tablen;
     while (UNLIKELY(p->phs >= p->tablen))
@@ -415,7 +415,7 @@ static int32_t posc3kk(CSOUND *csound, POSC *p)
     MYFLT       *out = p->out, *ftab;
     MYFLT       fract;
     double      phs  = p->phs;
-    double      si   = *p->freq * p->tablen * csound->onedsr;
+    double      si   = *p->freq * p->tablen * CS_ONEDSR;
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t n, nsmps = CS_KSMPS;
@@ -470,7 +470,7 @@ static int32_t posc3ak(CSOUND *csound, POSC *p)
     MYFLT       *out = p->out, *ftab;
     MYFLT       fract;
     double      phs  = p->phs;
-    double      si   = *p->freq * p->tablen * csound->onedsr;
+    double      si   = *p->freq * p->tablen * CS_ONEDSR;
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t n, nsmps = CS_KSMPS;
@@ -525,7 +525,7 @@ static int32_t posc3ka(CSOUND *csound, POSC *p)
     MYFLT       *out = p->out, *ftab;
     MYFLT       fract;
     double      phs  = p->phs;
-    /*double      si   = *p->freq * p->tablen * csound->onedsr;*/
+    /*double      si   = *p->freq * p->tablen * CS_ONEDSR;*/
     MYFLT       *freq = p->freq;
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
@@ -582,7 +582,7 @@ static int32_t posc3aa(CSOUND *csound, POSC *p)
     MYFLT       *out = p->out, *ftab;
     MYFLT       fract;
     double      phs  = p->phs;
-    /*double      si   = *p->freq * p->tablen * csound->onedsr;*/
+    /*double      si   = *p->freq * p->tablen * CS_ONEDSR;*/
     MYFLT       *freq = p->freq;
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
@@ -705,7 +705,7 @@ static int32_t lposc(CSOUND *csound, LPOSC *p)
 {
     MYFLT       *out = p->out, *ft = p->ftp->ftable;
     MYFLT       *curr_samp, fract;
-    double      phs= p->phs, si= *p->freq * (p->fsr*csound->onedsr);
+    double      phs= p->phs, si= *p->freq * (p->fsr*CS_ONEDSR);
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t n, nsmps = CS_KSMPS;
@@ -737,7 +737,7 @@ static int32_t lposc3(CSOUND *csound, LPOSC *p)
 {
     MYFLT       *out = p->out, *ftab = p->ftp->ftable;
     MYFLT       fract;
-    double      phs = p->phs, si= *p->freq * (p->fsr*csound->onedsr);
+    double      phs = p->phs, si= *p->freq * (p->fsr*CS_ONEDSR);
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t n, nsmps = CS_KSMPS;
@@ -1651,7 +1651,7 @@ static int32_t jittersa(CSOUND *csound, JITTERS *p)
       if (phs >= 1.0) {
         MYFLT   slope, resd1, resd0, f2, f1;
       next:
-        si =  (randGab  * (cpsMax - cpsMin) + cpsMin)*csound->onedsr;
+        si =  (randGab  * (cpsMax - cpsMin) + cpsMin)*CS_ONEDSR;
         if (si == 0) si = 1; /* Is this necessary? */
         while (phs > 1.0)
           phs -= 1.0;
@@ -2044,7 +2044,7 @@ static int32_t random3a(CSOUND *csound, RANDOM3 *p)
       if (phs >= 1.0) {
         MYFLT   slope, resd1, resd0, f2, f1;
       next:
-        si =  (randGab  * (cpsMax - cpsMin) + cpsMin)*csound->onedsr;
+        si =  (randGab  * (cpsMax - cpsMin) + cpsMin)*CS_ONEDSR;
         while (phs > 1.0) phs -= 1.0;
         f0     = p->num0 = p->num1;
         f1     = p->num1 = p->num2;

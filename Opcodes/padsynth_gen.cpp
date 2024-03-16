@@ -471,7 +471,7 @@ static int padsynth_gen(FGDATA *ff, FUNC *ftp) {
   int p9_profile_shape = (int)ff->e.p[9];
   // base_function_t base_function = get_base_function(p9_profile_shape);
   MYFLT p10_profile_parameter = ff->e.p[10];
-  MYFLT samplerate = csound->GetSr(csound);
+  MYFLT samplerate = ftp->sr;
   log(csound, "samplerate:                  %12d\n", (int)samplerate);
   log(csound, "p1_function_table_number:            %9.4f\n",
       p1_function_table_number);

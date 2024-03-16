@@ -108,6 +108,7 @@ typedef struct csdata_ {
   int devout;
   void *incb;
   void *outcb;
+  MYFLT sr;
 } csdata;
 
 
@@ -368,7 +369,7 @@ int AuHAL_open(CSOUND *csound, const csRtAudioParams * parm,
     }
     CFRelease(devName);
 
-    srate = csound->GetSr(csound);
+    cdata->sr = srate = parm->sampleRate;
     if(!isInput){
       nchnls =cdata->onchnls = parm->nChannels;
       bufframes = csound->GetOutputBufferSize(csound)/nchnls;
@@ -812,7 +813,7 @@ static void rtclose_(CSOUND *csound)
 
     if (cdata != NULL) {
       usleep(1000*csound->GetOutputBufferSize(csound)/
-             (csound->GetSr(csound)*csound->GetNchnls(csound)));
+             (cdata->sr*csound->GetNchnls(csound)));
 
       if(cdata->inunit != NULL){
         AudioOutputUnitStop(cdata->inunit);

@@ -692,6 +692,8 @@ typedef struct CORFIL {
     int32    nchanls;
     /** table number */
     int32    fno;
+    /** table number */
+    MYFLT   sr;
     /** args  */
     MYFLT args[PMAX - 4];
     /** arg count */
@@ -1036,16 +1038,16 @@ typedef struct _message_queue_t_ {
 
     /** @name Attributes */
     /**@{ */
-    MYFLT (*GetSr)(CSOUND *);
-    MYFLT (*GetKr)(CSOUND *);
-    uint32_t (*GetKsmps)(CSOUND *);
+    MYFLT (*GetSr)(INSDS *);
+    MYFLT (*GetKr)(INSDS *);
+    uint32_t (*GetKsmps)(INSDS *);
      /** Get number of output channels */
     uint32_t (*GetNchnls)(CSOUND *);
     /** Get number of input channels */
     uint32_t (*GetNchnls_i)(CSOUND *);
     MYFLT (*Get0dBFS) (CSOUND *);
     /** Get number of control blocks elapsed */
-    uint64_t (*GetKcounter)(CSOUND *);
+    uint64_t (*GetKcounter)(INSDS *);
     int64_t (*GetCurrentTimeSamples)(CSOUND *);
     long (*GetInputBufferSize)(CSOUND *);
     long (*GetOutputBufferSize)(CSOUND *);

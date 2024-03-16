@@ -59,7 +59,7 @@ static int32_t compset(CSOUND *csound, CMPRS *p)
     p->curatt = (MYFLT) MAXPOS;
     p->currls = (MYFLT) MAXPOS;
     /* round to nearest integer */
-    if (UNLIKELY((delsmps = MYFLT2LONG(*p->ilook * csound->GetSr(csound))) <= 0L))
+    if (UNLIKELY((delsmps = MYFLT2LONG(*p->ilook * CS_ESR)) <= 0L))
       delsmps = 1L;                             /* alloc 2 delay bufs   */
     csound->AuxAlloc(csound, delsmps * 2 * sizeof(MYFLT), &p->auxch);
     p->abuf = (MYFLT *)p->auxch.auxp;
@@ -120,17 +120,17 @@ static int32_t compress(CSOUND *csound, CMPRS *p)
         p->kneemul = FL(1.0);
     }
     if (*p->katt != p->curatt) {
-      if ((p->curatt = *p->katt) < csound->onedsr)
+      if ((p->curatt = *p->katt) < CS_ONEDSR)
         p->c2 = 0.0;
       else
-        p->c2 = pow(0.5, csound->onedsr / p->curatt);
+        p->c2 = pow(0.5, CS_ONEDSR / p->curatt);
       p->c1 = 1.0 - p->c2;
     }
     if (*p->krls != p->currls) {
-      if ((p->currls = *p->krls) < csound->onedsr)
+      if ((p->currls = *p->krls) < CS_ONEDSR)
         p->d2 = 0.0;
       else
-        p->d2 = pow(0.5, csound->onedsr / p->currls);
+        p->d2 = pow(0.5, CS_ONEDSR / p->currls);
       p->d1 = 1.0 - p->d2;
     }
     ar = p->ar;
