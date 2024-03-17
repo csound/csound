@@ -56,6 +56,19 @@ typedef struct {
     MYFLT  *inst;
 } KILLOP;
 
+/* sampling rate conversion functions */
+typedef struct {
+  float *buffer;
+  float   os;
+  int     size;
+  int     cnt;
+  void  *cvt;
+} SR_CONVERTER;
+
+SR_CONVERTER *src_init(CSOUND *, int, float, int);
+void src_deinit(CSOUND *, SR_CONVERTER *);
+int src_convert(CSOUND *, SR_CONVERTER *, MYFLT *, MYFLT *);
+
 /* the number of optional outputs defined in entry.c */
 #define SUBINSTNUMOUTS  8
 
@@ -78,10 +91,8 @@ typedef struct {                /* IV - Sep 8 2002: new structure: UOPCODE */
     OPDS          h;
     INSDS         *ip, *parent_ip;
     OPCOD_IOBUFS  *buf;
-    /*unsigned int  l_ksmps;
-    int           ksmps_scale;
-    MYFLT         l_ekr, l_onedkr, l_onedksmps, l_kicvt;
-    int           mode;*/
+    SR_CONVERTER  *cvt_in[OPCODENUMOUTS_MAX];
+    SR_CONVERTER  *cvt_out[OPCODENUMOUTS_MAX];
     /* special case: the argument list is stored at the end of the */
     /* opcode data structure */
     MYFLT         *ar[1];
@@ -161,3 +172,5 @@ typedef struct {
     MYFLT   *type;
 } OVSMPLE;
 
+
+                

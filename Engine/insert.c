@@ -1652,13 +1652,15 @@ int xinset(CSOUND *csound, XIN *p)
   OPCOD_IOBUFS  *buf;
   OPCODINFO   *inm;
   MYFLT **bufs, **tmp;
-  int i;
+  int i, k = 0;
   CS_VARIABLE* current;
+  UOPCODE  *udo;
 
   (void) csound;
   buf = (OPCOD_IOBUFS*) p->h.insdshead->opcod_iobufs;
   inm = buf->opcode_info;
-  bufs = ((UOPCODE*) buf->uopcode_struct)->ar + inm->outchns;
+  udo = (UOPCODE*) buf->uopcode_struct;
+  bufs = udo->ar + inm->outchns;
   tmp = buf->iobufp_ptrs; // this is used to record the UDO's internal vars
   // for copying at perf-time
   current = inm->in_arg_pool->head;
@@ -1666,6 +1668,15 @@ int xinset(CSOUND *csound, XIN *p)
     void* in = (void*)bufs[i];
     void* out = (void*)p->args[i];
     tmp[i + inm->outchns] = out;
+    if (csoundGetTypeForArg(in) == &CS_VAR_TYPE_A) {
+      // initialise the converter
+      if(CS_ESR != csound->esr) {
+        if((udo->cvt_in[k++] = src_init(csound, p->h.insdshead->overmode,
+                                        CS_ESR/csound->esr, CS_KSMPS)) == NULL)
+          return csound->InitError(csound, "could not initialise sample rate "
+                                "converter:\n possibly SRC is not available\n");
+      } 
+    }
     current->varType->copyValue(csound, current->varType, out, in);
     current = current->next;
   }
@@ -1679,12 +1690,14 @@ int xoutset(CSOUND *csound, XOUT *p)
   OPCODINFO   *inm;
   MYFLT       **bufs, **tmp;
   CS_VARIABLE* current;
-  int i;
+  UOPCODE  *udo;
+  int i, k = 0;
 
   (void) csound;
   buf = (OPCOD_IOBUFS*) p->h.insdshead->opcod_iobufs;
   inm = buf->opcode_info;
-  bufs = ((UOPCODE*) buf->uopcode_struct)->ar;
+  udo = (UOPCODE*) buf->uopcode_struct;
+  bufs = udo->ar;
   tmp = buf->iobufp_ptrs; // this is used to record the UDO's internal vars
   // for copying at perf-time
   current = inm->out_arg_pool->head;
@@ -1699,6 +1712,15 @@ int xoutset(CSOUND *csound, XOUT *p)
         /*csoundGetTypeForArg(in) != &CS_VAR_TYPE_F &&*/
         csoundGetTypeForArg(in) != &CS_VAR_TYPE_A)
       current->varType->copyValue(csound, current->varType, out, in);
+    else if (csoundGetTypeForArg(in) == &CS_VAR_TYPE_A) {
+      // initialise the converter
+      if(CS_ESR != csound->esr) {
+        if((udo->cvt_out[k++] = src_init(csound, p->h.insdshead->overmode,
+                                         csound->esr/CS_ESR, CS_KSMPS)) == 0)
+          return csound->InitError(csound, "could not initialise sample rate "
+                              "converter:\n possibly SRC is not available\n");        
+      }
+    }
     current = current->next;
   }
   return OK;
@@ -2323,7 +2345,6 @@ int useropcd1(CSOUND *csound, UOPCODE *p)
 }
 
 /* IV - Sep 17 2002 -- case 2: simplified routine for no local ksmps */
-
 int useropcd2(CSOUND *csound, UOPCODE *p)
 {
   OPDS    *saved_pds = CS_PDS;
@@ -2331,8 +2352,8 @@ int useropcd2(CSOUND *csound, UOPCODE *p)
   OPCODINFO   *inm;
   CS_VARIABLE* current;
   int i, done;
-
-
+  int os = (int) (p->ip->esr/csound->esr);
+    
   inm = (OPCODINFO*) p->h.optext->t.oentry->useropinfo; /* FIXME value not used */
   done = ATOMIC_GET(p->ip->init_done);
 
@@ -2341,8 +2362,7 @@ int useropcd2(CSOUND *csound, UOPCODE *p)
 
   p->ip->spin = p->parent_ip->spin;
   p->ip->spout = p->parent_ip->spout;
-  p->ip->kcounter++;  /* kcount should be incremented BEFORE perf */
-
+  
   if (UNLIKELY(!(CS_PDS = (OPDS*) (p->ip->nxtp))))
     goto endop; /* no perf code */
 
@@ -2353,52 +2373,62 @@ int useropcd2(CSOUND *csound, UOPCODE *p)
 
   MYFLT** internal_ptrs = tmp;
   MYFLT** external_ptrs = p->ar;
+  int ocnt = 0;
 
+  /*  run each opcode, oversampling if necessary  */
+  for(ocnt = 0; ocnt < os; ocnt++){
+    int error = 0;
+    int cvt;
   /* copy inputs */
   current = inm->in_arg_pool->head;
-  for (i = 0; i < inm->inchns; i++) {
+  for (i = cvt = 0; i < inm->inchns; i++) {
     // this hardcoded type check for non-perf time vars needs to
     //change to use generic code...
     if (current->varType != &CS_VAR_TYPE_I &&
         current->varType != &CS_VAR_TYPE_b &&
         current->subType != &CS_VAR_TYPE_I) {
+     if(os == 1) {
       if (current->varType == &CS_VAR_TYPE_A && CS_KSMPS == 1) {
         *internal_ptrs[i + inm->outchns] = *external_ptrs[i + inm->outchns];
       } else {
         void* in = (void*)external_ptrs[i + inm->outchns];
         void* out = (void*)internal_ptrs[i + inm->outchns];
         current->varType->copyValue(csound, current->varType, out, in);
-        //                memcpy(out, in, p->buf->in_arg_sizes[i]);
+        }
+     } else { // oversampling
+        void* in = (void*)external_ptrs[i + inm->outchns];
+        void* out = (void*)internal_ptrs[i + inm->outchns];
+        if (current->varType == &CS_VAR_TYPE_A) {
+           src_convert(csound, p->cvt_in[cvt++], in, out); 
+       } else
+         current->varType->copyValue(csound, current->varType, out, in);
+       }   
+     }
+      current = current->next;
+    }
+  
+    p->ip->kcounter++;  /* kcount should be incremented BEFORE perf */
+    CS_PDS->insdshead->pds = NULL;
+    do {
+      if(UNLIKELY(!ATOMIC_GET8(p->ip->actflg))) goto endop;
+      error = (*CS_PDS->opadr)(csound, CS_PDS);
+      if (CS_PDS->insdshead->pds != NULL &&
+          CS_PDS->insdshead->pds->insdshead) {
+        CS_PDS = CS_PDS->insdshead->pds;
+        CS_PDS->insdshead->pds = NULL;
       }
-    }
-    current = current->next;
-  }
-
-  /*  run each opcode  */
-  {
-  int error = 0;
-  CS_PDS->insdshead->pds = NULL;
-  do {
-    if(UNLIKELY(!ATOMIC_GET8(p->ip->actflg))) goto endop;
-    error = (*CS_PDS->opadr)(csound, CS_PDS);
-    if (CS_PDS->insdshead->pds != NULL &&
-        CS_PDS->insdshead->pds->insdshead) {
-      CS_PDS = CS_PDS->insdshead->pds;
-      CS_PDS->insdshead->pds = NULL;
-    }
-  } while (error == 0 && p->ip != NULL
-           && (CS_PDS = CS_PDS->nxtp));
-  }
-
+    } while (error == 0 && p->ip != NULL
+             && (CS_PDS = CS_PDS->nxtp));
 
   /* copy outputs */
   current = inm->out_arg_pool->head;
-  for (i = 0; i < inm->outchns; i++) {
+  for (i = cvt = 0; i < inm->outchns; i++) {
     // this hardcoded type check for non-perf time vars needs to change to
     // use generic code...
     if (current->varType != &CS_VAR_TYPE_I &&
         current->varType != &CS_VAR_TYPE_b &&
         current->subType != &CS_VAR_TYPE_I) {
+      if(os == 1) {
       if (current->varType == &CS_VAR_TYPE_A && CS_KSMPS == 1) {
         *external_ptrs[i] = *internal_ptrs[i];
       } else {
@@ -2407,8 +2437,18 @@ int useropcd2(CSOUND *csound, UOPCODE *p)
         //            memcpy(out, in, p->buf->out_arg_sizes[i]);
         current->varType->copyValue(csound, current->varType, out, in);
       }
-    }
+      } 
+      else { // oversampling
+        void* in = (void*)external_ptrs[i + inm->outchns];
+        void* out = (void*)internal_ptrs[i + inm->outchns];
+        if (current->varType == &CS_VAR_TYPE_A) {
+           src_convert(csound, p->cvt_out[cvt++], out, in); 
+       } else
+         current->varType->copyValue(csound, current->varType, out, in);
+       }   
+     }
     current = current->next;
+  }
   }
 
  endop:
@@ -2895,3 +2935,29 @@ int csoundKillInstanceInternal(CSOUND *csound, MYFLT instr, char *instrName,
     killInstance_enqueue(csound, instr, insno, ip, mode, allow_release);
   return CSOUND_SUCCESS;
 }
+
+// sample rate conversion
+#ifdef USE_SRC
+
+
+#else
+SR_CONVERTER *src_init(CSOUND *csound, int mode, float ratio, int size) {
+  IGN(csound);
+  IGN(mode);
+  IGN(ratio);
+  IGN(size);
+  return NULL;
+}
+
+void src_deinit(CSOUND *csound, SR_CONVERTER *cvt) {
+  IGN(csound);
+  IGN(cvt);
+}
+int src_convert(CSOUND *csound, SR_CONVERTER *cvt, MYFLT *in, MYFLT *out){
+  IGN(csound);
+  IGN(cvt);
+  IGN(in);
+  IGN(out);
+  return 0;
+}
+#endif
