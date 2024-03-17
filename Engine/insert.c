@@ -1626,6 +1626,8 @@ int xinset(CSOUND *csound, XIN *p)
     else if (csoundGetTypeForArg(in) == &CS_VAR_TYPE_A) {
       // initialise the converter
       if(CS_ESR != csound->esr) {
+        // free converter if it has already been created (maybe we could reuse?)
+        if(udo->cvt_in[k] != NULL) src_deinit(csound, udo->cvt_in[k]);
         if((udo->cvt_in[k++] = src_init(csound, p->h.insdshead->overmode,
                                         CS_ESR/csound->esr, CS_KSMPS)) == NULL)
           return csound->InitError(csound, "could not initialise sample rate "
@@ -1673,6 +1675,8 @@ int xoutset(CSOUND *csound, XOUT *p)
     else if (csoundGetTypeForArg(in) == &CS_VAR_TYPE_A) {
       // initialise the converter
       if(CS_ESR != csound->esr) {
+        // free converter if it has already been created (maybe we could reuse?)
+        if(udo->cvt_out[k] != NULL) src_deinit(csound, udo->cvt_out[k]);
         if((udo->cvt_out[k++] = src_init(csound, p->h.insdshead->overmode,
                                          csound->esr/CS_ESR, CS_KSMPS)) == 0)
           return csound->InitError(csound, "could not initialise sample rate "
