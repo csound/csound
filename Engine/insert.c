@@ -1632,11 +1632,24 @@ int xinset(CSOUND *csound, XIN *p)
                                         CS_ESR/csound->esr, CS_KSMPS)) == NULL)
           return csound->InitError(csound, "could not initialise sample rate "
                                 "converter:\n possibly SRC is not available\n");
+      }
+    }
+    else if (csoundGetTypeForArg(in) == &CS_VAR_TYPE_K) {
+      // initialise the converter
+      if(CS_ESR != csound->esr) {
+        // free converter if it has already been created (maybe we could reuse?)
+        if(udo->cvt_in[k] != NULL) src_deinit(csound, udo->cvt_in[k]);
+        if((udo->cvt_in[k++] = src_init(csound, p->h.insdshead->overmode,
+                                        CS_ESR/csound->esr, 1)) == NULL)
+          return csound->InitError(csound, "could not initialise sample rate "
+                                "converter:\n possibly SRC is not available\n");
       } 
     }
-    // protect against audio arrays when oversampling
+    // protect against audio/k arrays when oversampling
     if (csoundGetTypeForArg(in) == &CS_VAR_TYPE_ARRAY) {
-      if(current->subType == &CS_VAR_TYPE_A && CS_ESR != csound->esr)
+      if((current->subType == &CS_VAR_TYPE_A ||
+          current->subType == &CS_VAR_TYPE_K)
+         && CS_ESR != csound->esr)
           return csound->InitError(csound, "audio arrays not allowed with oversampling\n");
     }
     current = current->next;
@@ -1683,9 +1696,22 @@ int xoutset(CSOUND *csound, XOUT *p)
                               "converter:\n possibly SRC is not available\n");        
       }
     }
-    // protect against audio arrays when oversampling
+    else if (csoundGetTypeForArg(in) == &CS_VAR_TYPE_K) {
+      // initialise the converter
+      if(CS_ESR != csound->esr) {
+        // free converter if it has already been created (maybe we could reuse?)
+        if(udo->cvt_out[k] != NULL) src_deinit(csound, udo->cvt_out[k]);
+        if((udo->cvt_out[k++] = src_init(csound, p->h.insdshead->overmode,
+                                         csound->esr/CS_ESR, 1)) == 0)
+          return csound->InitError(csound, "could not initialise sample rate "
+                              "converter:\n possibly SRC is not available\n");        
+      }  
+    }
+    // protect against audio/k arrays when oversampling
     if (csoundGetTypeForArg(in) == &CS_VAR_TYPE_ARRAY) {
-        if(current->subType == &CS_VAR_TYPE_A && CS_ESR != csound->esr)
+      if((current->subType == &CS_VAR_TYPE_A ||
+          current->subType == &CS_VAR_TYPE_K)
+           && CS_ESR != csound->esr)
           return csound->InitError(csound, "audio arrays not allowed with oversampling\n");
     }
     current = current->next;
@@ -1746,42 +1772,47 @@ int setksmpsset(CSOUND *csound, SETKSMPS *p)
    if oversampling is used, xin/xout need
    to initialise the converters.
    oversampling is not allowed with local ksmps or
-   with audio array arguments.
+   with audio/control array arguments.
 */
-int oversampleset(CSOUND *csound, OVSMPLE *p) {
-  int os;
-  MYFLT l_sr, onedos;
-  if(p->h.insdshead->opcod_iobufs == NULL) 
+ int oversampleset(CSOUND *csound, OVSMPLE *p) {
+   int os;
+   MYFLT l_sr, onedos;
+   if(p->h.insdshead->opcod_iobufs == NULL) 
      return csound->InitError(csound, "oversampling only allowed in UDOs\n");
   
-  os = MYFLT2LRND(*p->os);
-  onedos = FL(1.0)/os;
-  if(os < 1)
-    return csound->InitError(csound, "illegal oversampling ratio: %d\n", os);
+   os = MYFLT2LRND(*p->os);
+   onedos = FL(1.0)/os;
+   if(os < 1)
+     return csound->InitError(csound, "illegal oversampling ratio: %d\n", os);
   
-  l_sr = CS_ESR*os;
-  CS_ESR = l_sr;
-  CS_ONEDSR = 1./l_sr;
-  /* control rate does not change, neither does ksmps,
-     however, because we are oversampling, we will need
-     to run the code os times in a loop to consume
-     os*ksmps input samples and produce os*ksmps output
-     samples. This means that the kcounter will run fast by a 
-     factor of 1/os, and xtratim also needs to be scaled by
-     that factor
-  */     
-  p->h.insdshead->xtratim *= onedos; 
-  CS_KCNT *= onedos;
-  /* oversampling mode */
-  p->h.insdshead->overmode = MYFLT2LRND(*p->type);
-  /* set local sr variable */
-  INSTRTXT *ip = p->h.insdshead->instr;
-  CS_VARIABLE *var =
-    csoundFindVariableWithName(csound, ip->varPool, "sr");
-  MYFLT *varmem = p->h.insdshead->lclbas + var->memBlockIndex;
-  *varmem = CS_ESR;
-  return OK;
-}
+   l_sr = CS_ESR*os;
+   CS_ESR = l_sr;
+   CS_ONEDSR = 1./l_sr;
+   CS_EKR = CS_ESR/CS_KSMPS;
+   CS_ONEDKR = 1./CS_EKR;
+   /* ksmsp does not change,
+      however, because we are oversampling, we will need
+      to run the code os times in a loop to consume
+      os*ksmps input samples and produce os*ksmps output
+      samples. This means that the kcounter will run fast by a 
+      factor of 1/os, and xtratim also needs to be scaled by
+      that factor
+   */     
+   p->h.insdshead->xtratim *= onedos; 
+   CS_KCNT *= onedos;
+   /* oversampling mode */
+   p->h.insdshead->overmode = MYFLT2LRND(*p->type);
+   /* set local sr variable */
+   INSTRTXT *ip = p->h.insdshead->instr;
+   CS_VARIABLE *var =
+     csoundFindVariableWithName(csound, ip->varPool, "sr");
+   MYFLT *varmem = p->h.insdshead->lclbas + var->memBlockIndex;
+   *varmem = CS_ESR;
+   var = csoundFindVariableWithName(csound, ip->varPool, "kr");
+   varmem = p->h.insdshead->lclbas + var->memBlockIndex;
+   *varmem = CS_EKR;
+   return OK;
+ }
 
 
 
@@ -1918,8 +1949,6 @@ int subinstr(CSOUND *csound, SUBINST *p)
 
   if (UNLIKELY(!done)) /* init not done, exit */
     return OK;
-
-  //printf("%s\n", p->ip->strarg);
 
   if (UNLIKELY(p->ip == NULL)) {                /* IV - Oct 26 2002 */
     return csoundPerfError(csound, &(p->h),
@@ -2369,7 +2398,8 @@ int useropcd2(CSOUND *csound, UOPCODE *p)
      } else { // oversampling
         void* in = (void*)external_ptrs[i + inm->outchns];
         void* out = (void*)internal_ptrs[i + inm->outchns];
-        if (current->varType == &CS_VAR_TYPE_A) {
+        if (current->varType == &CS_VAR_TYPE_A ||
+           current->varType == &CS_VAR_TYPE_K) {
            // sample rate conversion
            src_convert(csound, p->cvt_in[cvt++], in, out); 
         }
@@ -2413,7 +2443,8 @@ int useropcd2(CSOUND *csound, UOPCODE *p)
       else { // oversampling
         void* in = (void*)external_ptrs[i + inm->outchns];
         void* out = (void*)internal_ptrs[i + inm->outchns];
-        if (current->varType == &CS_VAR_TYPE_A) {
+        if (current->varType == &CS_VAR_TYPE_A ||
+           current->varType == &CS_VAR_TYPE_K) {
           // sample rate conversion 
            src_convert(csound, p->cvt_out[cvt++], out, in); 
         } else if(ocnt == 0) // only copy other variables once
