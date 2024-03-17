@@ -58,11 +58,11 @@ typedef struct {
 
 /* sampling rate conversion functions */
 typedef struct {
-  float *buffer;
-  float   os;
+  float *bufferin, *bufferout;
+  float   ratio;
   int     size;
   int     cnt;
-  void  *cvt;
+  void   *data;
 } SR_CONVERTER;
 
 SR_CONVERTER *src_init(CSOUND *, int, float, int);

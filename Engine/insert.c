@@ -2903,17 +2903,93 @@ int csoundKillInstanceInternal(CSOUND *csound, MYFLT instr, char *instrName,
   return CSOUND_SUCCESS;
 }
 
+
 // sample rate conversion
 #ifdef USE_SRC
+#include <samplerate.h>
 
+typedef struct {
+  SRC_STATE* stat;
+  SRC_DATA cvt;
+} SRC;
+
+SR_CONVERTER *src_init(CSOUND *csound, int mode,
+                        float ratio, int size) {
+  SRC *p = (SRC *) csound->Calloc(csound, sizeof(SRC));
+  SR_CONVERTER *pp = (SR_CONVERTER *)
+    csound->Calloc(csound, sizeof(SRC));
+  int err;
+  p->stat = src_new (SRC_SINC_FASTEST, 1, &err);
+  p->cvt.src_ratio = ratio; 
+  if (ratio > 1) {
+    p->cvt.input_frames = size;
+    p->cvt.output_frames = size*ratio;
+  }  else {
+    p->cvt.input_frames = size/ratio;
+    p->cvt.output_frames = size;
+  }
+  pp->bufferin = (float *)
+    csound->Calloc(csound, sizeof(float)*p->cvt.input_frames);
+  p->cvt.data_in = pp->bufferin;
+  pp->bufferout = (float *)
+    csound->Calloc(csound, sizeof(float)*p->cvt.input_frames);
+  p->cvt.data_out = pp->bufferout; 
+  p->cvt.end_of_input = 0;
+  pp->data = (void *) p;
+  pp->size = size;
+  pp->ratio = ratio;
+  pp->cnt = 0;
+  return pp;
+}
+
+/* this routine on upsampling feeds a buffer, converts, then outputs it in blocks;
+   on downsampling, it feeds a buffer, when full converts and outputs
+*/
+int src_convert(CSOUND *csound, SR_CONVERTER *pp, MYFLT *in, MYFLT *out){
+  int i, cnt = pp->cnt, size = pp->size;
+  float ratio = pp->ratio;
+  SRC *p = (SRC *) pp->data;
+  if(ratio > 1) {
+    // upsampling (udo input)
+    if(!cnt) {
+      for(i = 0; i < size; i++)
+        pp->bufferin[i] = in[i];
+      src_process(p->stat, &p->cvt);
+    }
+    for(i = 0; i < size; i++)
+      out[i] = pp->bufferout[i+size*cnt];
+      cnt = cnt < ratio - 1 ? cnt + 1 : 0;
+  } else {
+    // downsampling (udo output)
+    for(i = 0; i < size; i++)
+      pp->bufferin[i+size*cnt] = in[i];
+    cnt = cnt < 1/ratio - 1 ? cnt + 1 : 0;
+    if(!cnt) {
+       src_process(p->stat, &p->cvt);
+    for(i = 0; i < size; i++)
+       out[i] = pp->bufferout[i];
+    }
+  }
+  pp->cnt = cnt;
+  return 0;
+}
+
+void src_deinit(CSOUND *csound, SR_CONVERTER *pp) {
+  SRC *p = (SRC *) pp->data;
+  src_delete(p->stat);
+  csound->Free(csound, p);
+  csound->Free(csound, pp->bufferin);
+  csound->Free(csound, pp->bufferout);
+  csound->Free(csound, pp);
+}
 
 #else
 SR_CONVERTER *src_init(CSOUND *csound, int mode, float ratio, int size) {
-  IGN(csound);
-  IGN(mode);
-  IGN(ratio);
-  IGN(size);
-  return NULL;
+IGN(csound);
+IGN(mode);
+IGN(ratio);
+IGN(size);
+return NULL;
 }
 
 void src_deinit(CSOUND *csound, SR_CONVERTER *cvt) {
