@@ -2917,33 +2917,44 @@ typedef struct {
   SRC_DATA cvt;
 } SRC;
 
+/* modes
+SRC_SINC_BEST_QUALITY       = 0,
+SRC_SINC_MEDIUM_QUALITY     = 1,
+SRC_SINC_FASTEST            = 2,
+SRC_ZERO_ORDER_HOLD         = 3,
+SRC_LINEAR                  = 4
+*/
 SR_CONVERTER *src_init(CSOUND *csound, int mode,
-                        float ratio, int size) {
-  SRC *p = (SRC *) csound->Calloc(csound, sizeof(SRC));
-  SR_CONVERTER *pp = (SR_CONVERTER *)
-    csound->Calloc(csound, sizeof(SRC));
+                       float ratio, int size) {
   int err;
-  p->stat = src_new (SRC_SINC_FASTEST, 1, &err);
-  p->cvt.src_ratio = ratio; 
-  if (ratio > 1) {
-    p->cvt.input_frames = size;
-    p->cvt.output_frames = size*ratio;
-  }  else {
-    p->cvt.input_frames = size/ratio;
-    p->cvt.output_frames = size;
+  SRC_STATE* stat = src_new(mode > 0 ? (mode < 5 ? mode : 4) : 0, 1, &err);
+  if(!err) {
+    SR_CONVERTER *pp = (SR_CONVERTER *)
+      csound->Calloc(csound, sizeof(SRC));
+    SRC *p = (SRC *) csound->Calloc(csound, sizeof(SRC));
+    p->stat = stat;
+    p->cvt.src_ratio = ratio; 
+    if (ratio > 1) {
+      p->cvt.input_frames = size;
+      p->cvt.output_frames = size*ratio;
+    }  else {
+      p->cvt.input_frames = size/ratio;
+      p->cvt.output_frames = size;
+    }
+    pp->bufferin = (float *)
+      csound->Calloc(csound, sizeof(float)*p->cvt.input_frames);
+    p->cvt.data_in = pp->bufferin;
+    pp->bufferout = (float *)
+      csound->Calloc(csound, sizeof(float)*p->cvt.input_frames);
+    p->cvt.data_out = pp->bufferout; 
+    p->cvt.end_of_input = 0;
+    pp->data = (void *) p;
+    pp->size = size;
+    pp->ratio = ratio;
+    pp->cnt = 0;
+    return pp;
   }
-  pp->bufferin = (float *)
-    csound->Calloc(csound, sizeof(float)*p->cvt.input_frames);
-  p->cvt.data_in = pp->bufferin;
-  pp->bufferout = (float *)
-    csound->Calloc(csound, sizeof(float)*p->cvt.input_frames);
-  p->cvt.data_out = pp->bufferout; 
-  p->cvt.end_of_input = 0;
-  pp->data = (void *) p;
-  pp->size = size;
-  pp->ratio = ratio;
-  pp->cnt = 0;
-  return pp;
+  else return NULL;
 }
 
 /* this routine on upsampling feeds a buffer, converts, then outputs it in blocks;
