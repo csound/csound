@@ -564,6 +564,7 @@ typedef struct CORFIL {
     uint64_t kcounter;
     MYFLT esr;                  /* local sr */
     MYFLT    onedsr;
+    int     overmode;
     unsigned int ksmps;     /* Instrument copy of ksmps */
     MYFLT    ekr;                /* and of rates */
 

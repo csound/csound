@@ -1731,7 +1731,7 @@ int setksmpsset(CSOUND *csound, SETKSMPS *p)
   p->h.insdshead->xtratim *= n;
   CS_KSMPS = l_ksmps;
   CS_ONEDKSMPS = FL(1.0) / (MYFLT) CS_KSMPS;
-  CS_EKR = csound->esr / (MYFLT) CS_KSMPS;
+  CS_EKR = CS_ESR / (MYFLT) CS_KSMPS;
   CS_ONEDKR = FL(1.0) / CS_EKR;
   CS_KICVT = (MYFLT) FMAXLEN / CS_EKR;
   CS_KCNT *= n;
@@ -1753,6 +1753,42 @@ int setksmpsset(CSOUND *csound, SETKSMPS *p)
 
   return OK;
 }
+
+/* oversample opcode 
+   oversample ifactor
+   ifactor - oversampling factor (integer)
+
+   if oversampling is used, xin/xout need
+   to initialise the converters.
+*/
+int oversampleset(CSOUND *csound, OVSMPLE *p) {
+  int os;
+  MYFLT l_sr, onedos;
+  os = MYFLT2LRND(*p->os);
+  onedos = FL(1.0)/os;
+  if(os < 1)
+    return csound->InitError(csound, "illegal oversampling ratio: %d\n", os);
+  
+  l_sr = CS_ESR*os;
+  CS_ESR = l_sr;
+  CS_ONEDSR = 1./l_sr;
+  /* control rate does not change, neither does ksmps,
+     however, because we are oversampling, we will need
+     to run the code os times in a loop to consume
+     os*ksmps input samples and produce os*ksmps output
+     samples. This means that the kcounter will run fast by a 
+     factor of 1/os, and xtratim also needs to be scaled by
+     that factor
+  */     
+  p->h.insdshead->xtratim *= onedos; 
+  CS_KCNT *= onedos;
+  /* oversampling mode */
+  p->h.insdshead->overmode = MYFLT2LRND(*p->type);
+  
+  return OK;
+}
+
+
 
 /* IV - Oct 16 2002: nstrnum opcode (returns the instrument number of a */
 /* named instrument) */

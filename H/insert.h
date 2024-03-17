@@ -155,3 +155,9 @@ typedef struct {
     MYFLT   *insno;
 } DELETEIN;
 
+typedef struct {
+    OPDS    h;
+    MYFLT   *os;
+    MYFLT   *type;
+} OVSMPLE;
+
