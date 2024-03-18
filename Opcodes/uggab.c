@@ -1884,7 +1884,7 @@ static int32_t randomi(CSOUND *csound, RANDOMI *p)
     min = *p->min;
     amp =  (*p->max - min);
     ar = p->ar;
-    inc = (int32)(*cpsp++ * csound->sicvt);
+    inc = (int32)(*cpsp++ * CS_SICVT);
     if (UNLIKELY(offset)) memset(ar, '\0', offset*sizeof(MYFLT));
     if (UNLIKELY(early)) {
       nsmps -= early;
@@ -1894,7 +1894,7 @@ static int32_t randomi(CSOUND *csound, RANDOMI *p)
       ar[n] = (p->num1 + (MYFLT)phs * p->dfdmax) * amp + min;
       phs += inc;
       if (p->cpscod)
-        inc = (int32)(*cpsp++ * csound->sicvt);
+        inc = (int32)(*cpsp++ * CS_SICVT);
       if (phs >= MAXLEN) {
         phs &= PHMASK;
         p->num1 = p->num2;
@@ -1951,7 +1951,7 @@ static int32_t randomh(CSOUND *csound, RANDOMH *p)
     min  = *p->min;
     amp  = (*p->max - min);
     ar   = p->ar;
-    inc  = (int32)(*cpsp++ * csound->sicvt);
+    inc  = (int32)(*cpsp++ * CS_SICVT);
     if (UNLIKELY(offset)) memset(ar, '\0', offset*sizeof(MYFLT));
     if (UNLIKELY(early)) {
       nsmps -= early;
@@ -1961,7 +1961,7 @@ static int32_t randomh(CSOUND *csound, RANDOMH *p)
       ar[n]     = p->num1 * amp + min;
       phs      += inc;
       if (p->cpscod)
-        inc     = (int32)(*cpsp++ * csound->sicvt);
+        inc     = (int32)(*cpsp++ * CS_SICVT);
       if (phs >= MAXLEN) {
         phs    &= PHMASK;
         p->num1 = randGab;

@@ -1235,7 +1235,7 @@ int32_t osckk(CSOUND *csound, OSC *p)
     if (UNLIKELY(ftp==NULL)) goto err1;
     ftbl = ftp->ftable;
     phs = p->lphs;
-    inc = MYFLT2LONG(*p->xcps * csound->sicvt);
+    inc = MYFLT2LONG(*p->xcps * CS_SICVT);
     lobits = ftp->lobits;
     amp = *p->xamp;
     ar = p->sr;
@@ -1266,7 +1266,7 @@ int32_t oscka(CSOUND *csound, OSC *p)
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t n, nsmps = CS_KSMPS;
-    MYFLT   sicvt = csound->sicvt;
+    MYFLT   sicvt = CS_SICVT;
 
     ftp = p->ftp;
     if (UNLIKELY(ftp==NULL)) goto err1;
@@ -1308,7 +1308,7 @@ int32_t oscak(CSOUND *csound, OSC *p)
     ftbl = ftp->ftable;
     lobits = ftp->lobits;
     phs = p->lphs;
-    inc = MYFLT2LONG(*p->xcps * csound->sicvt);
+    inc = MYFLT2LONG(*p->xcps * CS_SICVT);
     ampp = p->xamp;
     ar = p->sr;
     if (UNLIKELY(offset)) memset(ar, '\0', offset*sizeof(MYFLT));
@@ -1335,7 +1335,7 @@ int32_t oscaa(CSOUND *csound, OSC *p)
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t n, nsmps = CS_KSMPS;
-    MYFLT   sicvt = csound->sicvt;
+    MYFLT   sicvt = CS_SICVT;
 
     ftp = p->ftp;
     if (UNLIKELY(ftp==NULL)) goto err1;
@@ -1397,7 +1397,7 @@ int32_t osckki(CSOUND *csound, OSC   *p)
     if (UNLIKELY((ftp = p->ftp)==NULL)) goto err1;
     lobits = ftp->lobits;
     phs = p->lphs;
-    inc = MYFLT2LONG(*p->xcps * csound->sicvt);
+    inc = MYFLT2LONG(*p->xcps * CS_SICVT);
     amp = *p->xamp;
     ar = p->sr;
     if (UNLIKELY(offset)) memset(ar, '\0', offset*sizeof(MYFLT));
@@ -1428,7 +1428,7 @@ int32_t osckai(CSOUND *csound, OSC   *p)
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t n, nsmps = CS_KSMPS;
-    MYFLT   sicvt = csound->sicvt;
+    MYFLT   sicvt = CS_SICVT;
 
     ftp = p->ftp;
     if (UNLIKELY(ftp==NULL)) goto err1;
@@ -1473,7 +1473,7 @@ int32_t oscaki(CSOUND *csound, OSC   *p)
     if (UNLIKELY(ftp==NULL)) goto err1;
     lobits = ftp->lobits;
     phs = p->lphs;
-    inc = MYFLT2LONG(*p->xcps * csound->sicvt);
+    inc = MYFLT2LONG(*p->xcps * CS_SICVT);
     ampp = p->xamp;
     ar = p->sr;
     if (UNLIKELY(offset)) memset(ar, '\0', offset*sizeof(MYFLT));
@@ -1504,7 +1504,7 @@ int32_t oscaai(CSOUND *csound, OSC   *p)
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t n, nsmps = CS_KSMPS;
-    MYFLT   sicvt = csound->sicvt;
+    MYFLT   sicvt = CS_SICVT;
 
     ftp = p->ftp;
     if (UNLIKELY(ftp==NULL)) goto err1;
@@ -1592,7 +1592,7 @@ int32_t osckk3(CSOUND *csound, OSC   *p)
     ftab = ftp->ftable;
     lobits = ftp->lobits;
     phs = p->lphs;
-    inc = MYFLT2LONG(*p->xcps * csound->sicvt);
+    inc = MYFLT2LONG(*p->xcps * CS_SICVT);
     amp = *p->xamp;
     ar = p->sr;
     if (UNLIKELY(offset)) memset(ar, '\0', offset*sizeof(MYFLT));
@@ -1645,7 +1645,7 @@ int32_t oscka3(CSOUND *csound, OSC   *p)
     uint32_t n, nsmps = CS_KSMPS;
     int32_t   x0;
     MYFLT   y0, y1, ym1, y2;
-    MYFLT   sicvt = csound->sicvt;
+    MYFLT   sicvt = CS_SICVT;
 
     ftp = p->ftp;
     if (UNLIKELY(ftp==NULL)) goto err1;
@@ -1707,7 +1707,7 @@ int32_t oscak3(CSOUND *csound, OSC   *p)
     ftab = ftp->ftable;
     lobits = ftp->lobits;
     phs = p->lphs;
-    inc = MYFLT2LONG(*p->xcps * csound->sicvt);
+    inc = MYFLT2LONG(*p->xcps * CS_SICVT);
     ampp = p->xamp;
     ar = p->sr;
     if (UNLIKELY(offset)) memset(ar, '\0', offset*sizeof(MYFLT));
@@ -1754,7 +1754,7 @@ int32_t oscaa3(CSOUND *csound, OSC   *p)
     uint32_t n, nsmps = CS_KSMPS;
     int32_t    x0;
     MYFLT    y0, y1, ym1, y2;
-    MYFLT    sicvt = csound->sicvt;
+    MYFLT    sicvt = CS_SICVT;
 
     ftp = p->ftp;
     if (UNLIKELY(ftp==NULL)) goto err1;

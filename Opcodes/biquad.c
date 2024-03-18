@@ -633,7 +633,7 @@ static int32_t vco(CSOUND *csound, VCO *p)
     /* End of VDelay insert */
 
     ftbl = ftp->ftable;
-    sicvt2 = csound->sicvt * FL(0.5);  /* for theta/2 */
+    sicvt2 = CS_SICVT * FL(0.5);  /* for theta/2 */
     lobits = ftp->lobits;
     lenmask = ftp->lenmask;
     ampp = p->xamp;

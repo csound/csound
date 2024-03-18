@@ -180,7 +180,7 @@ int32_t pvadd(CSOUND *csound, PVADD *p)
         amp = FL(0.0);
       }
       else {
-        MYFLT tmp = frq * csound->sicvt;
+        MYFLT tmp = frq * CS_SICVT;
         incr = (int32) MYFLT2LONG(tmp);
         amp = p->buf[i * 2];
       }

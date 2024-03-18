@@ -715,7 +715,7 @@ int32_t adsynt(CSOUND *csound, ADSYNT *p)
     for (c=0; c<count; c++) {
       amp = amptbl[c] * amp0;
       cps = freqtbl[c] * cps0;
-      inc = (int32) (cps * csound->sicvt);
+      inc = (int32) (cps * CS_SICVT);
       phs = lphs[c];
       for (n=offset; n<nsmps; n++) {
         ar[n] += *(ftbl + (phs >> lobits)) * amp;
@@ -814,7 +814,7 @@ int32_t hsboscil(CSOUND *csound, HSBOSC   *p)
       amp = mtab[(int32_t)((octoffs / (MYFLT)octcnt) * mtablen)] * amp0;
       if (UNLIKELY(freq > hesr))
         amp = FL(0.0);
-      inc = (int32)(freq * csound->sicvt);
+      inc = (int32)(freq * CS_SICVT);
       for (n=offset; n<nsmps; n++) {
         fract = PFRAC(phs);
         ftab = ftp->ftable + (phs >> lobits);

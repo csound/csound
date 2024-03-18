@@ -245,6 +245,7 @@ int init0(CSOUND *csound)
   tp->active++;
   ip->actflg++;
   ip->esr = csound->esr;
+  ip->sicvt = csound->sicvt;
   ip->onedsr = csound->onedsr;
   ip->ksmps = csound->ksmps;
   ip->ekr = csound->ekr;
@@ -395,6 +396,7 @@ int insert_event(CSOUND *csound, int insno, EVTBLK *newevtp)
     tp->act_instance = ip->nxtact;
     ip->insno = (int16) insno;
     ip->esr = csound->esr;
+    ip->sicvt = csound->sicvt;
     ip->onedsr = csound->onedsr;
     ip->ksmps = csound->ksmps;
     ip->ekr = csound->ekr;
@@ -694,6 +696,7 @@ int insert_midi(CSOUND *csound, int insno, MCHNBLK *chn, MEVENT *mep)
   ip->p2.value     = (MYFLT) (csound->icurTime/csound->esr - csound->timeOffs);
   ip->p3.value     = FL(-1.0);
   ip->esr          = csound->esr;
+  ip->sicvt        = csound->sicvt;
   ip->onedsr       = csound->onedsr;
   ip->ksmps        = csound->ksmps;
   ip->ekr          = csound->ekr;
@@ -1281,6 +1284,7 @@ int subinstrset_(CSOUND *csound, SUBINST *p, int instno)
   }
 
   p->ip->esr = CS_ESR;
+  p->ip->sicvt = CS_SICVT;
   p->ip->onedsr = CS_ONEDSR;
   p->ip->ksmps = CS_KSMPS;
   p->ip->kcounter = CS_KCNT;
@@ -1500,7 +1504,8 @@ int useropcdset(CSOUND *csound, UOPCODE *p)
     /* copy parameters from the caller instrument into our subinstrument */
     lcurip = p->ip;
     lcurip->esr = CS_ESR;
-    lcurip->onedsr = CS_ESR;
+    lcurip->sicvt = CS_SICVT;
+    lcurip->onedsr = CS_ONEDSR;
     lcurip->ksmps = CS_KSMPS;
     lcurip->kcounter = CS_KCNT;
     lcurip->ekr = CS_EKR;
@@ -1784,12 +1789,15 @@ int setksmpsset(CSOUND *csound, SETKSMPS *p)
    onedos = FL(1.0)/os;
    if(os < 1)
      return csound->InitError(csound, "illegal oversampling ratio: %d\n", os);
-  
+   if(os == 1) return OK; /* no op */
+     
    l_sr = CS_ESR*os;
    CS_ESR = l_sr;
    CS_ONEDSR = 1./l_sr;
+   CS_SICVT = (MYFLT) FMAXLEN / CS_ESR;
    CS_EKR = CS_ESR/CS_KSMPS;
    CS_ONEDKR = 1./CS_EKR;
+   CS_KICVT = (MYFLT) FMAXLEN / CS_EKR;
    /* ksmsp does not change,
       however, because we are oversampling, we will need
       to run the code os times in a loop to consume
@@ -1806,12 +1814,10 @@ int setksmpsset(CSOUND *csound, SETKSMPS *p)
    INSTRTXT *ip = p->h.insdshead->instr;
    CS_VARIABLE *var =
      csoundFindVariableWithName(csound, ip->varPool, "sr");
-   if(var) {
    MYFLT *varmem = p->h.insdshead->lclbas + var->memBlockIndex;
    *varmem = CS_ESR;
-   }
    var = csoundFindVariableWithName(csound, ip->varPool, "kr");
-   MYFLT *varmem = p->h.insdshead->lclbas + var->memBlockIndex;
+   varmem = p->h.insdshead->lclbas + var->memBlockIndex;
    *varmem = CS_EKR;
    return OK;
  }
@@ -2378,7 +2384,7 @@ int useropcd2(CSOUND *csound, UOPCODE *p)
   int ocnt = 0;
   
   /*  run each opcode, oversampling if necessary  */
-  for(ocnt = 0; ocnt < 2; ocnt++){
+  for(ocnt = 0; ocnt < os; ocnt++){
     int error = 0;
     int cvt;
   /* copy inputs */

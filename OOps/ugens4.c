@@ -58,7 +58,7 @@ int32_t buzz(CSOUND *csound, BUZZ *p)
     ftp = p->ftp;
     if (UNLIKELY(ftp==NULL)) goto err1; /* RWD fix */
     ftbl = ftp->ftable;
-    sicvt2 = csound->sicvt * FL(0.5); /* for theta/2  */
+    sicvt2 = CS_SICVT * FL(0.5); /* for theta/2  */
     lobits = ftp->lobits;
     lenmask = ftp->lenmask;
     ampp = p->xamp;
@@ -177,7 +177,7 @@ int32_t gbuzz(CSOUND *csound, GBUZZ *p)
       p->prvn = (int16)nn;
     }
     scal =  *ampp * p->rsumr;
-    inc = (int32_t)(*cpsp * csound->sicvt);
+    inc = (int32_t)(*cpsp * CS_SICVT);
     ar = p->ar;
     if (UNLIKELY(offset)) memset(ar, '\0', offset*sizeof(MYFLT));
     if (UNLIKELY(early)) {
@@ -188,7 +188,7 @@ int32_t gbuzz(CSOUND *csound, GBUZZ *p)
       if (p->ampcod)
         scal =  p->rsumr * ampp[n];
       if (p->cpscod)
-        inc = (int32_t)(cpsp[n] * csound->sicvt);
+        inc = (int32_t)(cpsp[n] * CS_SICVT);
       phs = lphs >>lobits;
       denom = p->rsqp1 - p->twor * ftbl[phs];
       num = ftbl[phs * k & lenmask]
@@ -653,7 +653,7 @@ int32_t randh(CSOUND *csound, RANDH *p)
       nsmps -= early;
       memset(&ar[nsmps], '\0', early*sizeof(MYFLT));
     }
-    inc = (int64_t)(*cpsp++ * csound->sicvt);
+    inc = (int64_t)(*cpsp++ * CS_SICVT);
     for (n=offset;n<nsmps;n++) {
       /* IV - Jul 11 2002 */
       ar[n] = base + p->num1 * *ampp;   /* rslt = num * amp */
@@ -661,7 +661,7 @@ int32_t randh(CSOUND *csound, RANDH *p)
         ampp++;
       phs += inc;                               /* phs += inc       */
       if (p->cpscod)
-        inc = (int64_t)(*cpsp++ * csound->sicvt);
+        inc = (int64_t)(*cpsp++ * CS_SICVT);
       if (phs >= MAXLEN) {                      /* when phs o'flows, */
         phs &= PHMASK;
         if (!p->new) {
@@ -780,7 +780,7 @@ int32_t randi(CSOUND *csound, RANDI *p)
       nsmps -= early;
       memset(&ar[nsmps], '\0', early*sizeof(MYFLT));
     }
-    inc = (int64_t)(*cpsp++ * csound->sicvt);
+    inc = (int64_t)(*cpsp++ * CS_SICVT);
     for (n=offset;n<nsmps;n++) {
       /* IV - Jul 11 2002 */
       ar[n] = base + (p->num1 + (MYFLT)phs * p->dfdmax) * *ampp;
@@ -788,7 +788,7 @@ int32_t randi(CSOUND *csound, RANDI *p)
         ampp++;
       phs += inc;                               /* phs += inc       */
       if (p->cpscod)
-        inc = (int64_t)(*cpsp++ * csound->sicvt);  /*   (nxt inc)      */
+        inc = (int64_t)(*cpsp++ * CS_SICVT);  /*   (nxt inc)      */
       if (phs >= MAXLEN) {                      /* when phs o'flows, */
         phs &= PHMASK;
         if (!p->new) {
@@ -935,7 +935,7 @@ int32_t randc(CSOUND *csound, RANDC *p)
     MYFLT a3         =   p->num2;
     cpsp = p->xcps;
     ampp = p->xamp;
-    inc = (int64_t)(*cpsp++ * csound->sicvt);
+    inc = (int64_t)(*cpsp++ * CS_SICVT);
     ar = p->ar;
     if (UNLIKELY(offset)) memset(ar, '\0', offset*sizeof(MYFLT));
     if (UNLIKELY(early)) {
@@ -954,7 +954,7 @@ int32_t randc(CSOUND *csound, RANDC *p)
       phs += inc;
       //printf("mu = %g  phs, inc, MAXLEN = %ld, %ld, %d\n", mu, phs, inc, MAXLEN);
       if (p->cpscod)
-        inc = (int64_t)(*cpsp++ * csound->sicvt);  /*   (nxt inc)      */
+        inc = (int64_t)(*cpsp++ * CS_SICVT);  /*   (nxt inc)      */
       if (phs >= MAXLEN) {                      /* when phs o'flows, */
         phs &= PHMASK;
         if (!p->new) {

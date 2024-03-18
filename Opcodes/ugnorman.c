@@ -908,7 +908,7 @@ static int32_t atsadd(CSOUND *csound, ATSADD *p)
       inca = (amp-oldamps[i])/nsmps;
       a = oldamps[i];
       /* put in * kfmod */
-      inc = MYFLT2LONG(p->buf[i].freq * csound->sicvt * *p->kfmod);
+      inc = MYFLT2LONG(p->buf[i].freq * CS_SICVT * *p->kfmod);
       for (n=offset; n<nsmps; n++) {
         ftab = ftp->ftable + (phase >> lobits);
         v1 = *ftab++;
@@ -2920,7 +2920,7 @@ static int32_t atscross(CSOUND *csound, ATSCROSS *p)
       ar = p->aoutput;         /* ar is a pointer to the audio output */
       inca = (amp-oldamps[i])/nsmps;
       /* put in * kfmod */
-      inc = MYFLT2LONG(p->buf[i].freq * csound->sicvt * *p->kfmod);
+      inc = MYFLT2LONG(p->buf[i].freq * CS_SICVT * *p->kfmod);
       a =  oldamps[i];
       for (n=offset; n<nsmps; n++) {
         ftab = ftp->ftable + (phase >> lobits);
