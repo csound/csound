@@ -1,0 +1,5 @@
+add_integration_test("metro-2" "consistent" "Opcodes" "metro")
+add_integration_test("metro" "consistent" "Opcodes" "metro")
+add_integration_test("metro2" "consistent" "Opcodes" "metro")
+add_integration_test("splitrig" "consistent" "Opcodes" "metro")
+add_integration_test("timedseq" "consistent" "Opcodes" "metro")

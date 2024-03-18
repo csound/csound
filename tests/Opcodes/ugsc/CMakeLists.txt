@@ -1,0 +1,7 @@
+add_integration_test("hilbert" "consistent" "Opcodes" "ugsc")
+add_integration_test("hilbert_barberpole" "consistent" "Opcodes" "ugsc")
+add_integration_test("lowpass2" "consistent" "Opcodes" "ugsc")
+add_integration_test("phaser1" "consistent" "Opcodes" "ugsc")
+add_integration_test("phaser2" "consistent" "Opcodes" "ugsc")
+add_integration_test("resonr" "consistent" "Opcodes" "ugsc")
+add_integration_test("resonz" "consistent" "Opcodes" "ugsc")

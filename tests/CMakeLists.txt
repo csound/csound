@@ -90,6 +90,7 @@ endfunction()
 
 if (ADD_INTEGRATION_TESTS)
     add_subdirectory(commandline)
+    add_subdirectory(Opcodes)
     add_subdirectory(regression)
     add_subdirectory(soak)
 endif()

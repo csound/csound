@@ -1,0 +1,7 @@
+#!/usr/bin/python3
+
+from test_helpers import integration_test, check_output
+
+integration_test("ftaudio", "consistent")
+check_output("i_ftaudio.wav", "consistent")
+check_output("k_ftaudio.wav", "consistent")
