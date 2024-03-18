@@ -1655,7 +1655,8 @@ int xinset(CSOUND *csound, XIN *p)
       if((current->subType == &CS_VAR_TYPE_A ||
           current->subType == &CS_VAR_TYPE_K)
          && CS_ESR != csound->esr)
-          return csound->InitError(csound, "audio arrays not allowed with oversampling\n");
+           return csound->InitError(csound, "audio/control arrays not allowed\n"
+                                   "as UDO arguments when using oversampling\n");
     }
     current = current->next;
   }
@@ -1717,7 +1718,8 @@ int xoutset(CSOUND *csound, XOUT *p)
       if((current->subType == &CS_VAR_TYPE_A ||
           current->subType == &CS_VAR_TYPE_K)
            && CS_ESR != csound->esr)
-          return csound->InitError(csound, "audio arrays not allowed with oversampling\n");
+           return csound->InitError(csound, "audio/control arrays not allowed\n"
+                                   "as UDO arguments when using oversampling\n");
     }
     current = current->next;
   }
