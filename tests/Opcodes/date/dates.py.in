@@ -1,0 +1,11 @@
+#!/usr/bin/python3
+
+from test_helpers import integration_test, check_output
+import os
+import re
+
+integration_test("dates", "indeterminate")
+for file in os.listdir():
+    # check to see if the file a date
+    if not (re.match("\d+_\w+_\d+_\d+_\d+_\d+.wav", file) is None):     
+        check_output(file, "indeterminate")

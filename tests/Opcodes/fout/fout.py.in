@@ -1,0 +1,8 @@
+#!/usr/bin/python3
+
+from test_helpers import integration_test, check_output
+
+integration_test("fout", "consistent")
+check_output("fout_880.wav", "consistent")
+check_output("fout_aif.aiff", "consistent")
+check_output("fout_all.wav", "consistent")

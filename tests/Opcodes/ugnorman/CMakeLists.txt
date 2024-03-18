@@ -1,0 +1,17 @@
+
+add_integration_test("ATSread-musical" "indeterminate" "Opcodes" "ugnorman")
+add_integration_test("ATSsinnoi-2" "indeterminate" "Opcodes" "ugnorman")
+
+add_integration_test("ATSadd-2" "consistent" "Opcodes" "ugnorman")
+add_integration_test("ATSadd" "consistent" "Opcodes" "ugnorman")
+add_integration_test("ATSaddnz-2" "consistent" "Opcodes" "ugnorman")
+add_integration_test("ATSaddnz" "consistent" "Opcodes" "ugnorman")
+add_integration_test("ATSbufread" "consistent" "Opcodes" "ugnorman")
+add_integration_test("ATScross" "consistent" "Opcodes" "ugnorman")
+add_integration_test("ATSinfo-2" "consistent" "Opcodes" "ugnorman")
+add_integration_test("ATSinfo" "consistent" "Opcodes" "ugnorman")
+add_integration_test("ATSinterpread" "consistent" "Opcodes" "ugnorman")
+add_integration_test("ATSpartialtap" "consistent" "Opcodes" "ugnorman")
+add_integration_test("ATSread" "consistent" "Opcodes" "ugnorman")
+add_integration_test("ATSreadnz" "consistent" "Opcodes" "ugnorman")
+add_integration_test("ATSsinnoi" "consistent" "Opcodes" "ugnorman")

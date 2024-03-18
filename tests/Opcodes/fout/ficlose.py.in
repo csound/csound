@@ -1,0 +1,6 @@
+#!/usr/bin/python3
+
+from test_helpers import integration_test, check_output
+
+integration_test("ficlose", "consistent")
+check_output("test1.txt", "consistent")

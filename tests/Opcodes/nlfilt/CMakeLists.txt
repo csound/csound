@@ -1,0 +1,6 @@
+add_integration_test("nlfilt" "consistent" "Opcodes" "nlfilt")
+add_integration_test("nlfilt2" "consistent" "Opcodes" "nlfilt")
+add_integration_test("passign" "consistent" "Opcodes" "nlfilt")
+add_integration_test("pcount" "consistent" "Opcodes" "nlfilt")
+add_integration_test("pindex-2" "consistent" "Opcodes" "nlfilt")
+add_integration_test("pindex" "consistent" "Opcodes" "nlfilt")
