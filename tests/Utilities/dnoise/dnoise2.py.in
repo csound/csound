@@ -1,0 +1,8 @@
+#!/usr/bin/python3
+
+from test_helpers import check_input, run_command, check_output
+
+check_input("MathewsNoise.wav")
+check_input("MathewsN.wav")
+run_command("$<TARGET_FILE:dnoise>", "-V", "-W", "-N8", "-i", "MathewsNoise.wav", "-o", "outfile02.wav", "MathewsN.wav")
+check_output("outfile02.wav", "consistent")

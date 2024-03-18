@@ -1,0 +1,7 @@
+#!/usr/bin/python3
+
+from test_helpers import check_input, run_command, check_output
+
+check_input("rv_stereo.wav")
+run_command("$<TARGET_FILE:cvanal>", "-d.15", "rv_stereo.wav", "rv_stereo2.con")
+check_output("rv_stereo2.con", "consistent")

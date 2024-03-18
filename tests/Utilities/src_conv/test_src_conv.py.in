@@ -1,0 +1,7 @@
+#!/usr/bin/python3
+
+from test_helpers import check_input, run_command, check_output
+
+check_input("drumsMlp.wav")
+run_command("$<TARGET_FILE:src_conv>", "-r48000", "-Q5", "drumsMlp.wav", "-o", "beats48.wav")
+check_output("beats48.wav", "consistent")

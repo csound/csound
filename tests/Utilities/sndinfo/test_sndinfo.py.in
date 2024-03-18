@@ -1,0 +1,9 @@
+#!/usr/bin/python3
+
+from test_helpers import check_input, run_command, UnexpectedResults
+
+# after the script, require 3 command-line arguments
+check_input("beats.wav")
+(_, stderr) = run_command("$<TARGET_FILE:sndinfo>", "-i", "beats.wav")
+if not("srate 44100, monaural, 16 bit WAV, 2.000 seconds" in stderr):
+    raise UnexpectedResults(stderr)

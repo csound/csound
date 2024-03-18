@@ -1,0 +1,7 @@
+#!/usr/bin/python3
+
+from test_helpers import check_input, run_command, check_output
+
+check_input("fox.wav")
+run_command("$<TARGET_FILE:atsa>", "-h.8", "fox.wav", "fox2.ats")
+check_output("fox2.ats", "consistent")

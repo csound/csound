@@ -1,0 +1,7 @@
+#!/usr/bin/python3
+
+from test_helpers import check_input, run_command, check_output
+
+check_input("beats.wav")
+run_command("$<TARGET_FILE:srconv>", "-r48000", "beats.wav", "-o", "beats_output.wav")
+check_output("beats_output.wav", "consistent")

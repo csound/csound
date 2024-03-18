@@ -1,0 +1,7 @@
+#!/usr/bin/python3
+
+from test_helpers import check_input, run_command, check_output
+
+check_input("beats_pv.csv")
+run_command("$<TARGET_FILE:pv_import>", "beats_pv.csv", "beats_output.pvx")
+check_output("beats_output.pvx", "consistent")

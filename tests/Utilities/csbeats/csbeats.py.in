@@ -1,0 +1,7 @@
+#!/usr/bin/python3
+
+from test_helpers import check_input, run_command, check_output
+
+check_input("test.csbeats")
+run_command("$<TARGET_FILE:csbeats>", "test.csbeats", "test.sco")
+check_output("test.sco", "consistent")

@@ -1,0 +1,7 @@
+#!/usr/bin/python3
+
+from test_helpers import check_input, run_command, check_output
+
+check_input("Mathews.wav")
+run_command("$<TARGET_FILE:envext>", "-w.05", "Mathews.wav", "-o", "newenv.txt")
+check_output("newenv.txt", "consistent")
