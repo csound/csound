@@ -37,7 +37,7 @@ instr 2
   ; lincos can be used to create amplitude or pitch envelopes
   ktrig init 0
   krnd dust 1, 1
-  ktrig = lineto(tirghold(krnd & ~ktrig, 0.5), 1)
+  ktrig = lineto(trighold(krnd & ~ktrig, 0.5), 1)
   kpitch = lincos:k(ktrig, 60, 61)
   a0 oscili 0.7, mtof(kpitch)
 

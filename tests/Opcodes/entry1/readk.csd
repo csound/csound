@@ -19,7 +19,7 @@ nchnls = 1
 
 instr 1
 ; Read a number from the file every 0.5 seconds
-  kfibo readk "fibonacci.txt", 7, 0.5
+  kfibo readk "fibonacci_input.txt", 7, 0.5
   kpitchclass = 8 +  ((kfibo % 12)/100)
   printk2 kpitchclass
   kcps = cpspch( kpitchclass )

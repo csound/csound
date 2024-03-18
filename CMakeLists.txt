@@ -158,6 +158,11 @@ option(DEBUG_ERROR_ON_WARNING "For a debug build, error on a compiler# warning" 
 option(BARE_METAL "To configure for bare metal build" OFF)
 option(CUSTOM_MALLOC "Use custom malloc in bare metal builds" OFF)
 
+if (BUILD_TESTS)
+    # c tests require the static library
+    set(BUILD_STATIC_LIBRARY ON)
+endif()
+
 if(BARE_METAL)
     set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS}  -DBARE_METAL")
     set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS}  -DNO_CSOUND_SERVER")
@@ -1333,10 +1338,7 @@ add_subdirectory(Bela)
 add_subdirectory(util)
 add_subdirectory(util1)
 add_subdirectory(po)
-add_subdirectory(tests/c)
-add_subdirectory(tests/commandline)
-add_subdirectory(tests/regression)
-add_subdirectory(tests/soak)
+add_subdirectory(tests)
 
 # uninstall target
 configure_file(

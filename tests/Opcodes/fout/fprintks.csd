@@ -21,8 +21,8 @@ kstart init 0
 kdur linrand 10
 kpitch linrand 8
 kpitch  *=  100
-; Printing to a file called "my.sco".
-fprintks "my.sco", "i1\\t%2.2f\\t%2.2f\\t%2.2f\\n", kstart, kdur, kpitch
+; Printing to a file called "my_fprintks.sco".
+fprintks "my_fprintks.sco", "i1\\t%2.2f\\t%2.2f\\t%2.2f\\n", kstart, kdur, kpitch
 
 knext linrand 1
 kstart = kstart + knext
