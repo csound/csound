@@ -26,7 +26,7 @@ jobs:
       - name: Install Dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install cmake libsndfile1-dev libasound2-dev libjack-dev portaudio19-dev libportmidi-dev libpulse-dev swig liblua5.1-0-dev default-jdk libfltk1.1-dev libfluidsynth-dev liblo-dev fluid ladspa-sdk libpng-dev dssi-dev libstk0-dev libgmm++-dev bison flex libportsmf-dev libeigen3-dev libcunit1-dev gettext
+          sudo apt-get install cmake libsndfile1-dev libasound2-dev libjack-dev portaudio19-dev libportmidi-dev libpulse-dev swig liblua5.1-0-dev default-jdk libfltk1.1-dev libfluidsynth-dev liblo-dev fluid ladspa-sdk libpng-dev dssi-dev libstk0-dev libgmm++-dev bison flex libportsmf-dev libeigen3-dev libcunit1-dev gettext libgtest-dev
 
       - name: Configure build
         run: |
@@ -40,9 +40,7 @@ jobs:
           make
 
       - name: Run tests
-        run: |
-          cd build
-          make test csdtests
+        run: ctest --output-on-failure --test-dir build --build-config Release
 
   linux_build_vcpkg:
     name: Linux/Ubuntu build (vcpkg)
@@ -75,8 +73,8 @@ jobs:
       - name: Build Csound
         run: cmake --build build --config Release
 
-      - name: Run integration and unit tests
-        run: cmake --build build --target test csdtests
+      - name: Run tests
+        run: ctest --output-on-failure --test-dir build --build-config Release
 
   iOS_build:
     name: iOS build
@@ -127,8 +125,8 @@ jobs:
       - name: Build Csound
         run: cmake --build build --config Release
 
-      - name: Run integration and unit tests
-        run: cmake --build build --target test csdtests
+      - name: Run tests
+        run: ctest --output-on-failure --test-dir build --build-config Release
 
   macos_build_vcpkg:
     name: MacOS build (vcpkg)
@@ -159,8 +157,8 @@ jobs:
       - name: Build Csound
         run: cmake --build build --config Release
 
-      - name: Run integration and unit tests
-        run: cmake --build build --target test csdtests
+      - name: Run tests
+        run: ctest --output-on-failure --test-dir build --build-config Release
 
   windows_build:
     name: Windows build
@@ -193,10 +191,7 @@ jobs:
         run: cmake --build build --config Release
 
       - name: Run tests
-        run: cmake --build build --target csdtests
-
-      - name: Run unit test framework
-        run: cmake --build build --target RUN_TESTS --config Release
+        run: ctest --output-on-failure --test-dir build --build-config Release
 
       - name: Acquire Csound manual
         shell: powershell
@@ -270,8 +265,8 @@ jobs:
       - name: Build Csound
         run: cmake --build build --config Release
 
-      - name: Run integration and unit tests
-        run: cmake --build build --target test csdtests
+      - name: Run tests
+        run: ctest --output-on-failure --test-dir build --build-config Release
 
   #android_build:
   #  name: Android build

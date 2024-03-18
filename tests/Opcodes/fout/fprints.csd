@@ -17,7 +17,7 @@ nchnls = 2
 
 instr 1     ; a score generator
   
-fprints "my.sco", "%!Generated score by ma++\\n \\n"    ; Print to the file "my.sco".
+fprints "my_fprints.sco", "%!Generated score by ma++\\n \\n"    ; Print to the file "my_fprints.sco".
 
 endin
 

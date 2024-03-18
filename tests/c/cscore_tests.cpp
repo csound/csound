@@ -35,18 +35,19 @@ void cscore(CSOUND *cs)
     cscoreListGetUntil(cs, 100);
 }
 
-// TODO: fix on apple
-// TEST (CScoreTests, testCscore)
-// {
-//     csoundSetGlobalEnv("OPCODE6DIR64", "../../");
-//     CSOUND *csound = csoundCreate(0);
+#ifndef __MACH__ // TODO: fix on apple
+TEST (CScoreTests, testCscore)
+{
+    csoundSetGlobalEnv("OPCODE6DIR64", "../../");
+    CSOUND *csound = csoundCreate(0);
 
-//     FILE *in_file = fopen("cscore_score.sco", "r");
-//     FILE *out_file = fopen("cscore_out.sco", "w");
-//     csoundInitializeCscore(csound, in_file, out_file);
-//     cscore(csound);
-//     csoundCleanup(csound);
-//     csoundDestroy(csound);
+    FILE *in_file = fopen("cscore_score.sco", "r");
+    FILE *out_file = fopen("cscore_out.sco", "w");
+    csoundInitializeCscore(csound, in_file, out_file);
+    cscore(csound);
+    csoundCleanup(csound);
+    csoundDestroy(csound);
 
-//     ASSERT_TRUE (true);
-// }
+    ASSERT_TRUE (true);
+}
+#endif

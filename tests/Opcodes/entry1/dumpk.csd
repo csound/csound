@@ -16,7 +16,7 @@ nchnls = 1
 ; By Andres Cabrera 2008
 
 instr 1
-; Write fibonacci numbers to file "fibonacci.txt"
+; Write fibonacci numbers to file "fibonacci_output.txt"
 ; as ascii long integers (mode 7), using the orchestra's
 ; control rate (iprd = 0)
 
@@ -26,7 +26,7 @@ ktrans init 1
 ktrans = knumber
 knumber = knumber + koldnumber
 koldnumber = ktrans
-dumpk  knumber, "fibonacci.txt", 7, 0
+dumpk  knumber, "fibonacci_output.txt", 7, 0
 printk2 knumber
 endin
 
