@@ -1806,10 +1806,12 @@ int setksmpsset(CSOUND *csound, SETKSMPS *p)
    INSTRTXT *ip = p->h.insdshead->instr;
    CS_VARIABLE *var =
      csoundFindVariableWithName(csound, ip->varPool, "sr");
+   if(var) {
    MYFLT *varmem = p->h.insdshead->lclbas + var->memBlockIndex;
    *varmem = CS_ESR;
+   }
    var = csoundFindVariableWithName(csound, ip->varPool, "kr");
-   varmem = p->h.insdshead->lclbas + var->memBlockIndex;
+   MYFLT *varmem = p->h.insdshead->lclbas + var->memBlockIndex;
    *varmem = CS_EKR;
    return OK;
  }
@@ -2374,9 +2376,9 @@ int useropcd2(CSOUND *csound, UOPCODE *p)
   MYFLT** internal_ptrs = tmp;
   MYFLT** external_ptrs = p->ar;
   int ocnt = 0;
-
+  
   /*  run each opcode, oversampling if necessary  */
-  for(ocnt = 0; ocnt < os; ocnt++){
+  for(ocnt = 0; ocnt < 2; ocnt++){
     int error = 0;
     int cvt;
   /* copy inputs */
@@ -2401,7 +2403,8 @@ int useropcd2(CSOUND *csound, UOPCODE *p)
         if (current->varType == &CS_VAR_TYPE_A ||
            current->varType == &CS_VAR_TYPE_K) {
            // sample rate conversion
-           src_convert(csound, p->cvt_in[cvt++], in, out); 
+           src_convert(csound, p->cvt_in[cvt++], in, out);
+           
         }
         else if(ocnt == 0) // only copy other variables once
          current->varType->copyValue(csound, current->varType, out, in);
@@ -2409,9 +2412,10 @@ int useropcd2(CSOUND *csound, UOPCODE *p)
      }
       current = current->next;
     }
-  
-    p->ip->kcounter++;  /* kcount should be incremented BEFORE perf */
+
+   if ((CS_PDS = (OPDS *) (p->ip->nxtp)) != NULL) { 
     CS_PDS->insdshead->pds = NULL;
+    p->ip->kcounter++;  /* kcount should be incremented BEFORE perf */
     do {
       if(UNLIKELY(!ATOMIC_GET8(p->ip->actflg))) goto endop;
       error = (*CS_PDS->opadr)(csound, CS_PDS);
@@ -2422,6 +2426,7 @@ int useropcd2(CSOUND *csound, UOPCODE *p)
       }
     } while (error == 0 && p->ip != NULL
              && (CS_PDS = CS_PDS->nxtp));
+   }
 
   /* copy outputs */
   current = inm->out_arg_pool->head;
@@ -2441,14 +2446,15 @@ int useropcd2(CSOUND *csound, UOPCODE *p)
       }
       } 
       else { // oversampling
-        void* in = (void*)external_ptrs[i + inm->outchns];
-        void* out = (void*)internal_ptrs[i + inm->outchns];
+        void* in = (void*)internal_ptrs[i];
+        void* out = (void*)external_ptrs[i];
         if (current->varType == &CS_VAR_TYPE_A ||
            current->varType == &CS_VAR_TYPE_K) {
-          // sample rate conversion 
-           src_convert(csound, p->cvt_out[cvt++], out, in); 
-        } else if(ocnt == 0) // only copy other variables once
+          // sample rate conversion
+          src_convert(csound, p->cvt_out[cvt++], in, out);
+        } else if(ocnt == 0) {// only copy other variables once
          current->varType->copyValue(csound, current->varType, out, in);
+        }
        }   
      }
     current = current->next;
@@ -2759,6 +2765,12 @@ static void instance(CSOUND *csound, int insno)
     var->memBlock = (CS_VAR_MEM*)(temp - CS_VAR_TYPE_OFFSET);
     var->memBlock->value = csound->ekr;
   }
+  var = csoundFindVariableWithName(csound, ip->instr->varPool, "sr");
+  if (var) {
+    char* temp = (char*)(lclbas + var->memBlockIndex);
+    var->memBlock = (CS_VAR_MEM*)(temp - CS_VAR_TYPE_OFFSET);
+    var->memBlock->value = csound->esr;
+  }
 
   if (UNLIKELY(nxtopds > opdslim))
     csoundDie(csound, Str("inconsistent opds total"));
@@ -2957,7 +2969,7 @@ SRC_LINEAR                  = 4
 */
 SR_CONVERTER *src_init(CSOUND *csound, int mode,
                        float ratio, int size) {
-  int err;
+  int err = 0;
   SRC_STATE* stat = src_new(mode > 0 ? (mode < 5 ? mode : 4) : 0, 1, &err);
   if(!err) {
     SR_CONVERTER *pp = (SR_CONVERTER *)
@@ -2976,7 +2988,7 @@ SR_CONVERTER *src_init(CSOUND *csound, int mode,
       csound->Calloc(csound, sizeof(float)*p->cvt.input_frames);
     p->cvt.data_in = pp->bufferin;
     pp->bufferout = (float *)
-      csound->Calloc(csound, sizeof(float)*p->cvt.input_frames);
+      csound->Calloc(csound, sizeof(float)*p->cvt.output_frames);
     p->cvt.data_out = pp->bufferout; 
     p->cvt.end_of_input = 0;
     pp->data = (void *) p;
@@ -3000,7 +3012,7 @@ int src_convert(CSOUND *csound, SR_CONVERTER *pp, MYFLT *in, MYFLT *out){
     if(!cnt) {
       for(i = 0; i < size; i++)
         pp->bufferin[i] = in[i];
-      src_process(p->stat, &p->cvt);
+        src_process(p->stat, &p->cvt);
     }
     for(i = 0; i < size; i++)
       out[i] = pp->bufferout[i+size*cnt];
