@@ -1,0 +1,1 @@
+generate_python_test("test_sdif2ad" "Utilities" "sdif2ad")

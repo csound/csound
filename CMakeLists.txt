@@ -1330,6 +1330,20 @@ if(BUILD_STATIC_LIBRARY)
         ARCHIVE DESTINATION "${LIBRARY_INSTALL_DIR}")
 endif()
 
+# used in both tests and util
+option(BUILD_SRC_CONV "Build src_conv utility" ON)
+
+if (BUILD_SRC_CONV)
+    if (USE_VCPKG)
+        find_package(SampleRate CONFIG REQUIRED)
+        assign_bool(SampleRate_FOUND TARGET SampleRate::samplerate)
+    else()
+        find_package(SampleRate MODULE)
+    endif()
+endif()
+
+check_deps(BUILD_SRC_CONV USE_LIBSNDFILE SampleRate_FOUND)
+
 add_subdirectory(Opcodes)
 add_subdirectory(InOut)
 add_subdirectory(Frontends)

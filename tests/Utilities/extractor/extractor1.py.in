@@ -1,0 +1,7 @@
+#!/usr/bin/python3
+
+from test_helpers import check_input, run_command, check_output
+
+check_input("Mathews.wav")
+run_command("$<TARGET_FILE:extractor>", "-S", "0", "-Z", "40000", "-v", "Mathews.wav", "-o", "ext1_output.wav")
+check_output("ext1_output.wav", "consistent")
