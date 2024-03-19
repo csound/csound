@@ -3078,6 +3078,7 @@ void src_process(SR_CONVERTER *pp, MYFLT *in, MYFLT *out, int outsamps){
     fac += 1./ratio;
     incnt += fac;
     if(incnt >= 1) start = in[incnt - 1];
+    fac -= MYFLT2LRND(fac); 
   }
   *((MYFLT *) pp->data) = in[incnt - 1];
 }
