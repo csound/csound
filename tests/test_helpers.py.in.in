@@ -1,0 +1,124 @@
+#!/usr/bin/python3
+
+import hashlib
+import os
+import subprocess
+
+# turn on to regenerate all checksums
+REGENERATE_CHECKSUMS = False
+
+# turn off to keep output
+CLEANUP = True
+
+class NoInput(Exception):
+    pass
+
+class NoFileGenerated(Exception):
+    pass
+
+class UnexpectedFileGenerated(Exception):
+    pass
+
+class ChecksumMismatch(Exception):
+    pass
+
+class UnexpectedResults(Exception):
+    pass
+
+# pass in plugin folder from cmake
+# built plugins should be in the same folder as the csound binary
+os.environ['CS_USER_PLUGINDIR'] = "$<TARGET_FILE_DIR:csound-bin>"
+
+# Check whether an input file exists
+def check_input(input_file):
+    if not os.path.isfile(input_file):
+        raise NoInput(input_file)
+
+# Run a command, and return stdout and stderr
+# If `TEST_RUNNER` is defined from cmake, append it to the start of the command
+def run_command(*arguments):
+    if ("@TEST_RUNNER@" != ""):
+        result = subprocess.run(["@TEST_RUNNER@", *arguments], capture_output=True)
+    else:
+        result = subprocess.run(arguments, capture_output=True)
+    
+    return (
+        result.stdout.decode("utf-8"),
+        result.stderr.decode("utf-8")
+    )
+
+# Arguments:
+# - output_file: the output file to check
+# - status: one of 
+#     - "none": generates no output
+#     - "indeterminate": generates an output file that changes from run to run
+#     - "consistent": generates a consistent output
+# - details: extra text to append to error messages
+#
+# There are two steps to checking the output:
+# 1) Calculate the checksum of the output file
+#   Even a very small change in the output file will lead to a different checksum
+# 
+# 2a) If no checksum file exists, store the checksum
+#   Use the same filename as the output, but append ".checksum"
+#
+# 2b) Else, compare the checksum to a stored checksum
+#   If the status is "consistent", compare the new checksum to a previous saved checksum
+#   If the checksums don't match, throw an error
+def check_output(output_file, status, details = ""):
+
+    has_output = os.path.isfile(output_file)
+        
+    if not has_output:
+        if status == "none":
+            return
+        if details == "":
+            raise NoFileGenerated(output_file)
+        else:
+            raise NoFileGenerated(output_file + ":\n" + details)
+    
+    # output was generated
+    if status == "none":
+        if (CLEANUP):
+            os.remove(output_file)
+        raise UnexpectedFileGenerated(output_file)
+
+    with open(output_file, 'rb') as wav_io:
+        # calculate checksum and turn it into human-readable hex digits
+        new_checksum = hashlib.blake2b(wav_io.read()).hexdigest()
+    if (CLEANUP):
+        os.remove(output_file)
+
+    if status != "indeterminate":
+        checksum_file = output_file + ".checksum"
+        old_checksum_exists = os.path.isfile(checksum_file)
+        if old_checksum_exists and not REGENERATE_CHECKSUMS:
+            with open(checksum_file, 'r') as checksum_io:
+                old_checksum = checksum_io.read()
+            if old_checksum != new_checksum:
+                raise ChecksumMismatch(checksum_file + ": " + new_checksum)
+        else:
+            print("Generating checksum")
+            with open(checksum_file, 'w') as checksum_io:
+                checksum_io.write(new_checksum)
+
+def integration_test(filename, status):
+    csound_file = filename + ".csd"
+
+    check_input(csound_file)
+
+    wav_file = filename + "_output.wav"
+
+    (output, errors) = run_command(
+        # pass in csound binary from cmake
+        "$<TARGET_FILE:csound-bin>",
+        "--format=wav",
+        "-+rtaudio=null",
+        # WARNING: lower tempo to --tempo=60 before listening to generated output
+        "--tempo=10000",
+        csound_file,
+        "--output=" + wav_file,
+        "--verbose"
+    )
+
+    check_output(wav_file, status, output + "\n" + errors)
