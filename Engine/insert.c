@@ -2961,7 +2961,7 @@ int csoundKillInstanceInternal(CSOUND *csound, MYFLT instr, char *instrName,
 
 
 // sample rate conversion
-#ifdef SRC
+#ifdef USE_SRC
 #include <samplerate.h>
 
 typedef struct {
@@ -2976,6 +2976,7 @@ SRC_SINC_FASTEST            = 2,
 SRC_ZERO_ORDER_HOLD         = 3,
 SRC_LINEAR                  = 4
 */
+
 SR_CONVERTER *src_init(CSOUND *csound, int mode,
                        float ratio, int size) {
   int err = 0;
@@ -3062,7 +3063,7 @@ SR_CONVERTER *src_init(CSOUND *csound, int mode, float ratio, int size) {
   pp->bufferin = csound->Calloc(csound, size*sizeof(MYFLT)*(ratio > 1 ? ratio : 1./ratio));
   pp->ratio = ratio;
   pp->size = size;
-  return NULL;
+  return pp;
 }
 
 void src_deinit(CSOUND *csound, SR_CONVERTER *pp) {
@@ -3072,31 +3073,40 @@ void src_deinit(CSOUND *csound, SR_CONVERTER *pp) {
 }
 
 void src_process(SR_CONVERTER *pp, MYFLT *in, MYFLT *out, int outsamps){
-  int incnt, outcnt;
-  MYFLT start = *((MYFLT *) pp->data);
-  MYFLT ratio = pp->ratio, fac = 1./ratio;
-  for(incnt = 1, outcnt = 0; outcnt < outsamps; outcnt++) {
+  int outcnt, size = pp->size, incnt;
+  MYFLT start = *((MYFLT *) pp->data), rem;
+  MYFLT ratio = pp->ratio, fac=0.;
+  for(incnt = 0, outcnt = 0; outcnt < outsamps; outcnt++) {
+   if(size > 1){
     out[outcnt] = start + fac*(in[incnt] - start); 
     fac += 1./ratio;
-    incnt += fac;
-    if(incnt >= 1) start = in[incnt - 1];
-    fac -= MYFLT2LRND(fac); 
+    rem = fac - MYFLT2LRND(fac);
+    incnt += lrint (fac - rem);
+    fac = rem;
+    if(incnt >= 1) start = in[incnt-1];
+   
+   } else {
+     // control rate just double samples
+     out[outcnt] = in[0];
+   }
   }
-  *((MYFLT *) pp->data) = in[incnt - 1];
+  *((MYFLT *) pp->data) = in[incnt-1];
 }
 
 int src_convert(CSOUND *csound, SR_CONVERTER *pp, MYFLT *in, MYFLT *out){
   int size = pp->size, cnt = pp->cnt;
   MYFLT ratio = pp->ratio;
- 
+  MYFLT *buff = (MYFLT *)(pp->bufferin);
   if(ratio > 1) {
-   if(!cnt) src_process(pp, in, (MYFLT *) pp->bufferin, size*ratio);
-   memcpy(out,pp->bufferin+cnt*size, sizeof(MYFLT)*size);
+  if(!cnt) {
+      src_process(pp, in, buff, size*ratio);
+    }
+   memcpy(out,buff+cnt*size, sizeof(MYFLT)*size);
    cnt = cnt < ratio - 1 ? cnt + 1 : 0;
   } else {
-    memcpy(pp->bufferin+cnt*size,in,sizeof(MYFLT)*size);
+    memcpy(buff+cnt*size,in,sizeof(MYFLT)*size);
    cnt = cnt < 1/ratio - 1 ? cnt + 1 : 0;
-   if(!cnt) src_process(pp, (MYFLT *) pp->bufferin, out, size);
+   if(!cnt) src_process(pp,buff, out, size);
   }
   pp->cnt = cnt;
   return 0;
