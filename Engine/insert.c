@@ -1420,9 +1420,6 @@ int subinstrset(CSOUND *csound, SUBINST *p){
   return subinstrset_(csound,p,instno);
 }
 
-/* IV - Sep 8 2002: new functions for user defined opcodes (based */
-/* on Matt J. Ingalls' subinstruments, but mostly rewritten) */
-
 /*
   UDOs now use the local ksmps stored in lcurip->ksmps
   all the other dependent parameters are calculated in relation to
@@ -1430,6 +1427,7 @@ int subinstrset(CSOUND *csound, SUBINST *p){
 
   lcurip->ksmps is set to the caller ksmps (CS_KSMPS), unless a new
   local ksmps is used, in which case it is set to that value.
+  Local ksmps can only be set by setksmps.
   If local ksmps differs from CS_KSMPS, we set useropcd1() to
   deal with the perf-time code. Otherwise useropcd2() is used.
 
@@ -1443,6 +1441,10 @@ int subinstrset(CSOUND *csound, SUBINST *p){
   the local kcounter value, obtained from the caller is
   scaled to denote the correct kcount in terms of local
   kcycles.
+
+  Similarly, a local SR is now implemented. This is set by
+  the oversample opcode. It is not allowed with local ksmps
+  or with audio/k-rate array arguments. It uses useropcd2().
 
 */
 int useropcd1(CSOUND *, UOPCODE*), useropcd2(CSOUND *, UOPCODE*);
@@ -1544,8 +1546,6 @@ int useropcdset(CSOUND *csound, UOPCODE *p)
     }
     else
       memcpy(&(lcurip->p1), &(parent_ip->p1), 3 * sizeof(CS_VAR_MEM));
-
-
     /* do init pass for this instr */
     csound->curip = lcurip;
     csound->ids = (OPDS *) (lcurip->nxti);
@@ -1589,8 +1589,6 @@ int useropcdset(CSOUND *csound, UOPCODE *p)
     return OK;
 }
 
-/* IV - Sep 17 2002: dummy user opcode function for not initialised case */
-
 int useropcd(CSOUND *csound, UOPCODE *p)
 {
 
@@ -1600,8 +1598,6 @@ int useropcd(CSOUND *csound, UOPCODE *p)
   else
     return OK;
 }
-
-/* IV - Sep 1 2002: new opcodes: xin, xout */
 
 int xinset(CSOUND *csound, XIN *p)
 {
@@ -1626,10 +1622,12 @@ int xinset(CSOUND *csound, XIN *p)
     tmp[i + inm->outchns] = out;
     // DO NOT COPY K or A vars
     // Fsigs need to be copied for initialization purposes.
-    if (csoundGetTypeForArg(in) != &CS_VAR_TYPE_K &&
-        csoundGetTypeForArg(in) != &CS_VAR_TYPE_A)
+    // check output kvars in case inputs are constants
+    if (csoundGetTypeForArg(out) != &CS_VAR_TYPE_K &&
+        csoundGetTypeForArg(out) != &CS_VAR_TYPE_A) {
       current->varType->copyValue(csound, current->varType, out, in);
-    else if (csoundGetTypeForArg(in) == &CS_VAR_TYPE_A) {
+    }
+    else if (csoundGetTypeForArg(out) == &CS_VAR_TYPE_A) {
       // initialise the converter
       if(CS_ESR != csound->esr) {
         // free converter if it has already been created (maybe we could reuse?)
@@ -1640,7 +1638,7 @@ int xinset(CSOUND *csound, XIN *p)
                                 "converter:\n possibly SRC is not available\n");
       }
     }
-    else if (csoundGetTypeForArg(in) == &CS_VAR_TYPE_K) {
+    else if(csoundGetTypeForArg(out) == &CS_VAR_TYPE_K) { 
       // initialise the converter
       if(CS_ESR != csound->esr) {
         // free converter if it has already been created (maybe we could reuse?)
@@ -1689,10 +1687,11 @@ int xoutset(CSOUND *csound, XOUT *p)
     tmp[i] = in;
     // DO NOT COPY K or A vars
     // Fsigs need to be copied for initialization purposes.
-    if (csoundGetTypeForArg(in) != &CS_VAR_TYPE_K &&
-        csoundGetTypeForArg(in) != &CS_VAR_TYPE_A)
+    // check output types in case of constants
+    if (csoundGetTypeForArg(out) != &CS_VAR_TYPE_K &&
+        csoundGetTypeForArg(out) != &CS_VAR_TYPE_A)
       current->varType->copyValue(csound, current->varType, out, in);
-    else if (csoundGetTypeForArg(in) == &CS_VAR_TYPE_A) {
+    else if (csoundGetTypeForArg(out) == &CS_VAR_TYPE_A) {
       // initialise the converter
       if(CS_ESR != csound->esr) {
         // free converter if it has already been created (maybe we could reuse?)
@@ -1703,7 +1702,7 @@ int xoutset(CSOUND *csound, XOUT *p)
                               "converter:\n possibly SRC is not available\n");        
       }
     }
-    else if (csoundGetTypeForArg(in) == &CS_VAR_TYPE_K) {
+    else if (csoundGetTypeForArg(out) == &CS_VAR_TYPE_K) {
       // initialise the converter
       if(CS_ESR != csound->esr) {
         // free converter if it has already been created (maybe we could reuse?)
@@ -2959,104 +2958,9 @@ int csoundKillInstanceInternal(CSOUND *csound, MYFLT instr, char *instrName,
   return CSOUND_SUCCESS;
 }
 
-
 // sample rate conversion
-#ifdef USE_SRC
-#include <samplerate.h>
-
-typedef struct {
-  SRC_STATE* stat;
-  SRC_DATA cvt;
-} SRC;
-
-/* modes
-SRC_SINC_BEST_QUALITY       = 0,
-SRC_SINC_MEDIUM_QUALITY     = 1,
-SRC_SINC_FASTEST            = 2,
-SRC_ZERO_ORDER_HOLD         = 3,
-SRC_LINEAR                  = 4
-*/
-
-SR_CONVERTER *src_init(CSOUND *csound, int mode,
-                       float ratio, int size) {
-  int err = 0;
-  SRC_STATE* stat = src_new(mode > 0 ? (mode < 5 ? mode : 4) : 0, 1, &err);
-  if(!err) {
-    SR_CONVERTER *pp = (SR_CONVERTER *)
-      csound->Calloc(csound, sizeof(SR_CONVERTER));
-    SRC *p = (SRC *) csound->Calloc(csound, sizeof(SRC));
-    p->stat = stat;
-    p->cvt.src_ratio = ratio; 
-    if (ratio > 1) {
-      p->cvt.input_frames = size;
-      p->cvt.output_frames = size*ratio;
-    }  else {
-      p->cvt.input_frames = size/ratio;
-      p->cvt.output_frames = size;
-    }
-    pp->bufferin = (float *)
-      csound->Calloc(csound, sizeof(float)*p->cvt.input_frames);
-    p->cvt.data_in = pp->bufferin;
-    pp->bufferout = (float *)
-      csound->Calloc(csound, sizeof(float)*p->cvt.output_frames);
-    p->cvt.data_out = pp->bufferout; 
-    p->cvt.end_of_input = 0;
-    pp->data = (void *) p;
-    pp->size = size;
-    pp->ratio = ratio;
-    pp->cnt = 0;
-    return pp;
-  }
-  else return NULL;
-}
-
-/* this routine on upsampling feeds a buffer, converts, then outputs it in blocks;
-   on downsampling, it feeds a buffer, when full converts and outputs
-*/
-int src_convert(CSOUND *csound, SR_CONVERTER *pp, MYFLT *in, MYFLT *out){
-  int i, cnt = pp->cnt, size = pp->size;
-  float ratio = pp->ratio;
-  SRC *p = (SRC *) pp->data;
-  if(ratio > 1) {
-    // upsampling (udo input)
-    if(!cnt) {
-      for(i = 0; i < size; i++)
-        pp->bufferin[i] = in[i];
-      src_process(p->stat, &p->cvt);
-    }
-    for(i = 0; i < size; i++)
-      out[i] = pp->bufferout[i+size*cnt];
-    cnt = cnt < ratio - 1 ? cnt + 1 : 0;
-  } else {
-    // downsampling (udo output)
-    for(i = 0; i < size; i++)
-      pp->bufferin[i+size*cnt] = in[i];
-    cnt = cnt < 1/ratio - 1 ? cnt + 1 : 0;
-    if(!cnt) {
-      src_process(p->stat, &p->cvt);
-      for(i = 0; i < size; i++)
-        out[i] = pp->bufferout[i];
-    }
-  }
-  pp->cnt = cnt;
-  return 0;
-}
-
-void src_deinit(CSOUND *csound, SR_CONVERTER *pp) {
-  SRC *p = (SRC *) pp->data;
-  src_delete(p->stat);
-  csound->Free(csound, p);
-  csound->Free(csound, pp->bufferin);
-  csound->Free(csound, pp->bufferout);
-  csound->Free(csound, pp);
-}
-
-#else
-
-/* 
-   Fallback Basic linear converter 
-*/
-SR_CONVERTER *src_init(CSOUND *csound, int mode, float ratio, int size) {
+// Basic linear converter 
+SR_CONVERTER *src_linear_init(CSOUND *csound, int mode, float ratio, int size) {
   IGN(mode);
   SR_CONVERTER *pp = (SR_CONVERTER *) csound->Calloc(csound, sizeof(SR_CONVERTER));
   pp->data = csound->Calloc(csound, sizeof(MYFLT));
@@ -3066,49 +2970,171 @@ SR_CONVERTER *src_init(CSOUND *csound, int mode, float ratio, int size) {
   return pp;
 }
 
-void src_deinit(CSOUND *csound, SR_CONVERTER *pp) {
+void src_linear_deinit(CSOUND *csound, SR_CONVERTER *pp) {
   csound->Free(csound, pp->bufferin);
   csound->Free(csound, pp->data);
   csound->Free(csound, pp);
 }
 
-void src_process(SR_CONVERTER *pp, MYFLT *in, MYFLT *out, int outsamps){
-  int outcnt, size = pp->size, incnt;
-  MYFLT start = *((MYFLT *) pp->data), rem;
-  MYFLT ratio = pp->ratio, fac=0.;
+static inline double mod1(double x){
+ double r;
+ r = x - MYFLT2LRND(x) ;
+ if (r < 0.0) return r + 1.0 ;
+ return r;
+} 
+
+static
+void src_linear_process(SR_CONVERTER *pp, MYFLT *in, MYFLT *out, int outsamps){
+  int outcnt, incnt;
+  MYFLT start = *((MYFLT *) pp->data), frac;
+  MYFLT ratio = pp->ratio, fac = FL(0.0);
   for(incnt = 0, outcnt = 0; outcnt < outsamps; outcnt++) {
-   if(size > 1){
     out[outcnt] = start + fac*(in[incnt] - start); 
     fac += 1./ratio;
-    rem = fac - MYFLT2LRND(fac);
-    incnt += lrint (fac - rem);
-    fac = rem;
+    frac = mod1(fac);
+    incnt += MYFLT2LRND(fac - frac);
+    fac = frac;
     if(incnt >= 1) start = in[incnt-1];
-   
-   } else {
-     // control rate just double samples
-     out[outcnt] = in[0];
-   }
   }
   *((MYFLT *) pp->data) = in[incnt-1];
 }
 
-int src_convert(CSOUND *csound, SR_CONVERTER *pp, MYFLT *in, MYFLT *out){
+int src_linear_convert(CSOUND *csound, SR_CONVERTER *pp, MYFLT *in, MYFLT *out){
+  IGN(csound);
   int size = pp->size, cnt = pp->cnt;
   MYFLT ratio = pp->ratio;
   MYFLT *buff = (MYFLT *)(pp->bufferin);
   if(ratio > 1) {
   if(!cnt) {
-      src_process(pp, in, buff, size*ratio);
+      src_linear_process(pp, in, buff, size*ratio);
     }
    memcpy(out,buff+cnt*size, sizeof(MYFLT)*size);
    cnt = cnt < ratio - 1 ? cnt + 1 : 0;
   } else {
     memcpy(buff+cnt*size,in,sizeof(MYFLT)*size);
    cnt = cnt < 1/ratio - 1 ? cnt + 1 : 0;
-   if(!cnt) src_process(pp,buff, out, size);
+   if(!cnt) src_linear_process(pp,buff, out, size);
   }
   pp->cnt = cnt;
   return 0;
 }
-#endif
+
+#ifndef USE_SRC
+// fallback to linear conversion
+SR_CONVERTER *src_init(CSOUND *csound, int mode,
+                       float ratio, int size) {
+  return src_linear_init(csound, mode, ratio, size);
+}
+
+int src_convert(CSOUND *csound, SR_CONVERTER *pp, MYFLT *in, MYFLT *out){
+  return src_linear_convert(csound, pp, in, out);
+}
+
+void src_deinit(CSOUND *csound, SR_CONVERTER *pp) {
+  src_linear_deinit(csound, pp);
+}
+
+#else // Use Secret Rabbit Code 
+#include <samplerate.h>
+typedef struct {
+  SRC_STATE* stat;
+  SRC_DATA cvt;
+} SRC;
+
+/*  SRC modes
+SRC_SINC_BEST_QUALITY       = 0,
+SRC_SINC_MEDIUM_QUALITY     = 1,
+SRC_SINC_FASTEST            = 2,
+SRC_ZERO_ORDER_HOLD         = 3,
+SRC_LINEAR                  = 4
+NB - linear uses the code above, avoiding extra copying 
+and implementing ksig conversion correctly 
+(SRC linear converter has a bug for single-sample conversion)
+*/
+SR_CONVERTER *src_init(CSOUND *csound, int mode,
+                       float ratio, int size) {
+  if(mode < 4) {
+    int err = 0;
+    SRC_STATE* stat = src_new(mode > 0 ? mode : 0, 1, &err);
+    if(!err) {
+      SR_CONVERTER *pp = (SR_CONVERTER *)
+        csound->Calloc(csound, sizeof(SR_CONVERTER));
+      SRC *p = (SRC *) csound->Calloc(csound, sizeof(SRC));
+      p->stat = stat;
+      p->cvt.src_ratio = ratio; 
+      if (ratio > 1) {
+        p->cvt.input_frames = size;
+        p->cvt.output_frames = size*ratio;
+      }  else {
+        p->cvt.input_frames = size/ratio;
+        p->cvt.output_frames = size;
+      }
+      pp->bufferin = (float *)
+        csound->Calloc(csound, sizeof(float)*p->cvt.input_frames);
+      p->cvt.data_in = pp->bufferin;
+      pp->bufferout = (float *)
+        csound->Calloc(csound, sizeof(float)*p->cvt.output_frames);
+      p->cvt.data_out = pp->bufferout; 
+      p->cvt.end_of_input = 0;
+      pp->data = (void *) p;
+      pp->size = size;
+      pp->ratio = ratio;
+      pp->cnt = 0;
+      pp->mode = mode;
+      return pp;
+    }
+    else return NULL;
+  } else
+    return src_linear_init(csound, mode, ratio, size); 
+}
+
+/* this routine on upsampling feeds a buffer, converts, then outputs it in blocks;
+   on downsampling, it feeds a buffer, when full converts and outputs
+*/
+int src_convert(CSOUND *csound, SR_CONVERTER *pp, MYFLT *in, MYFLT *out){
+  if(pp->mode < 4){
+    int i, cnt = pp->cnt, size = pp->size;
+    float ratio = pp->ratio;
+    SRC *p = (SRC *) pp->data;
+    if(ratio > 1) {
+      // upsampling (udo input)
+      if(!cnt) {
+        for(i = 0; i < size; i++)
+          pp->bufferin[i] = in[i];
+        src_process(p->stat, &p->cvt);
+      }
+      for(i = 0; i < size; i++)
+        out[i] = pp->bufferout[i+size*cnt];
+      cnt = cnt < ratio - 1 ? cnt + 1 : 0;
+    } else {
+      // downsampling (udo output)
+      for(i = 0; i < size; i++)
+        pp->bufferin[i+size*cnt] = in[i];
+      cnt = cnt < 1/ratio - 1 ? cnt + 1 : 0;
+      if(!cnt) {
+        src_process(p->stat, &p->cvt);
+        for(i = 0; i < size; i++)
+          out[i] = pp->bufferout[i];
+      }
+    }
+    pp->cnt = cnt;
+    return 0;
+  } else 
+    return src_linear_convert(csound, pp, in, out);
+}
+
+void src_deinit(CSOUND *csound, SR_CONVERTER *pp) {
+  if(pp->mode < 4) {
+  SRC *p = (SRC *) pp->data;
+  src_delete(p->stat);
+  csound->Free(csound, p);
+  csound->Free(csound, pp->bufferin);
+  csound->Free(csound, pp->bufferout);
+  csound->Free(csound, pp);
+  }
+  src_linear_deinit(csound, pp);
+}
+#endif  // ifndef USE_SRC
+
+
+

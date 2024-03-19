@@ -62,6 +62,7 @@ typedef struct {
   float   ratio;
   int     size;
   int     cnt;
+  int     mode;
   void   *data;
 } SR_CONVERTER;
 
