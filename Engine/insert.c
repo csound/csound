@@ -1,9 +1,10 @@
 /*
   insert.c:
 
-  Copyright (C) 1991, 1997, 1999, 2002, 2005
+  Copyright (C) 1991, 1997, 1999, 2002, 2005, 2013, 2024
   Barry Vercoe, Istvan Varga, John ffitch,
-  Gabriel Maldonado, matt ingalls
+  Gabriel Maldonado, matt ingalls,
+  Victor Lazzarini, Steven Yi
 
   This file is part of Csound.
 
@@ -3052,7 +3053,7 @@ void src_deinit(CSOUND *csound, SR_CONVERTER *pp) {
 #else
 
 /* 
-   Basic linear converter 
+   Fallback Basic linear converter 
 */
 SR_CONVERTER *src_init(CSOUND *csound, int mode, float ratio, int size) {
   IGN(mode);
@@ -3065,6 +3066,7 @@ SR_CONVERTER *src_init(CSOUND *csound, int mode, float ratio, int size) {
 }
 
 void src_deinit(CSOUND *csound, SR_CONVERTER *pp) {
+  csound->Free(csound, pp->bufferin);
   csound->Free(csound, pp->data);
   csound->Free(csound, pp);
 }
@@ -3088,15 +3090,13 @@ int src_convert(CSOUND *csound, SR_CONVERTER *pp, MYFLT *in, MYFLT *out){
   MYFLT ratio = pp->ratio;
  
   if(ratio > 1) {
-    if(!cnt) src_process(pp, in, (MYFLT *) pp->bufferin, size*ratio);
+   if(!cnt) src_process(pp, in, (MYFLT *) pp->bufferin, size*ratio);
    memcpy(out,pp->bufferin+cnt*size, sizeof(MYFLT)*size);
    cnt = cnt < ratio - 1 ? cnt + 1 : 0;
   } else {
-   cnt = cnt < 1/ratio - 1 ? cnt + 1 : 0; 
-   if(!cnt) {
-     src_process(pp, in, (MYFLT *) pp->bufferin, size*ratio);
-     memcpy(out,pp->bufferin, sizeof(MYFLT)*size);
-   }
+    memcpy(pp->bufferin+cnt*size,in,sizeof(MYFLT)*size);
+   cnt = cnt < 1/ratio - 1 ? cnt + 1 : 0;
+   if(!cnt) src_process(pp, (MYFLT *) pp->bufferin, out, size);
   }
   pp->cnt = cnt;
   return 0;
