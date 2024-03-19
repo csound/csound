@@ -1,0 +1,6 @@
+#!/usr/bin/python3
+
+from test_helpers import integration_test, check_output
+
+integration_test("farey7shuffled-old", "consistent")
+check_output("farey7.mid", "consistent")

@@ -265,8 +265,8 @@ jobs:
       - name: Build Csound
         run: cmake --build build --config Release
 
-      - name: Run tests
-        run: ctest --output-on-failure --test-dir build --build-config Release
+      - name: Run some tests (slow with wine)
+        run: ctest --output-on-failure --test-dir build --build-config Release ctest --output-on-failure --test-dir build --build-config Release --label-exclude "Opcodes|regression|soak|Utilities"
 
   #android_build:
   #  name: Android build
