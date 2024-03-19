@@ -2960,7 +2960,7 @@ int csoundKillInstanceInternal(CSOUND *csound, MYFLT instr, char *instrName,
 
 
 // sample rate conversion
-#ifdef USE_SRC
+#if 0
 #include <samplerate.h>
 
 typedef struct {
@@ -2981,7 +2981,7 @@ SR_CONVERTER *src_init(CSOUND *csound, int mode,
   SRC_STATE* stat = src_new(mode > 0 ? (mode < 5 ? mode : 4) : 0, 1, &err);
   if(!err) {
     SR_CONVERTER *pp = (SR_CONVERTER *)
-      csound->Calloc(csound, sizeof(SRC));
+      csound->Calloc(csound, sizeof(SR_CONVERTER));
     SRC *p = (SRC *) csound->Calloc(csound, sizeof(SRC));
     p->stat = stat;
     p->cvt.src_ratio = ratio; 
@@ -3020,20 +3020,20 @@ int src_convert(CSOUND *csound, SR_CONVERTER *pp, MYFLT *in, MYFLT *out){
     if(!cnt) {
       for(i = 0; i < size; i++)
         pp->bufferin[i] = in[i];
-        src_process(p->stat, &p->cvt);
+      src_process(p->stat, &p->cvt);
     }
     for(i = 0; i < size; i++)
       out[i] = pp->bufferout[i+size*cnt];
-      cnt = cnt < ratio - 1 ? cnt + 1 : 0;
+    cnt = cnt < ratio - 1 ? cnt + 1 : 0;
   } else {
     // downsampling (udo output)
     for(i = 0; i < size; i++)
       pp->bufferin[i+size*cnt] = in[i];
     cnt = cnt < 1/ratio - 1 ? cnt + 1 : 0;
     if(!cnt) {
-       src_process(p->stat, &p->cvt);
-    for(i = 0; i < size; i++)
-       out[i] = pp->bufferout[i];
+      src_process(p->stat, &p->cvt);
+      for(i = 0; i < size; i++)
+        out[i] = pp->bufferout[i];
     }
   }
   pp->cnt = cnt;
@@ -3050,23 +3050,54 @@ void src_deinit(CSOUND *csound, SR_CONVERTER *pp) {
 }
 
 #else
+
+/* 
+   Basic linear converter 
+*/
 SR_CONVERTER *src_init(CSOUND *csound, int mode, float ratio, int size) {
-IGN(csound);
-IGN(mode);
-IGN(ratio);
-IGN(size);
-return NULL;
+  IGN(mode);
+  SR_CONVERTER *pp = (SR_CONVERTER *) csound->Calloc(csound, sizeof(SR_CONVERTER));
+  pp->data = csound->Calloc(csound, sizeof(MYFLT));
+  pp->bufferin = csound->Calloc(csound, size*sizeof(MYFLT)*(ratio > 1 ? ratio : 1./ratio));
+  pp->ratio = ratio;
+  pp->size = size;
+  return NULL;
 }
 
-void src_deinit(CSOUND *csound, SR_CONVERTER *cvt) {
-  IGN(csound);
-  IGN(cvt);
+void src_deinit(CSOUND *csound, SR_CONVERTER *pp) {
+  csound->Free(csound, pp->data);
+  csound->Free(csound, pp);
 }
-int src_convert(CSOUND *csound, SR_CONVERTER *cvt, MYFLT *in, MYFLT *out){
-  IGN(csound);
-  IGN(cvt);
-  IGN(in);
-  IGN(out);
+
+void src_process(SR_CONVERTER *pp, MYFLT *in, MYFLT *out, int outsamps){
+  int incnt, outcnt;
+  MYFLT start = *((MYFLT *) pp->data);
+  MYFLT ratio = pp->ratio, fac = 1./ratio;
+  for(incnt = 1, outcnt = 0; outcnt < outsamps; outcnt++) {
+    out[outcnt] = start + fac*(in[incnt] - start); 
+    fac += 1./ratio;
+    incnt += fac;
+    if(incnt >= 1) start = in[incnt - 1];
+  }
+  *((MYFLT *) pp->data) = in[incnt - 1];
+}
+
+int src_convert(CSOUND *csound, SR_CONVERTER *pp, MYFLT *in, MYFLT *out){
+  int size = pp->size, cnt = pp->cnt;
+  MYFLT ratio = pp->ratio;
+ 
+  if(ratio > 1) {
+    if(!cnt) src_process(pp, in, (MYFLT *) pp->bufferin, size*ratio);
+   memcpy(out,pp->bufferin+cnt*size, sizeof(MYFLT)*size);
+   cnt = cnt < ratio - 1 ? cnt + 1 : 0;
+  } else {
+   cnt = cnt < 1/ratio - 1 ? cnt + 1 : 0; 
+   if(!cnt) {
+     src_process(pp, in, (MYFLT *) pp->bufferin, size*ratio);
+     memcpy(out,pp->bufferin, sizeof(MYFLT)*size);
+   }
+  }
+  pp->cnt = cnt;
   return 0;
 }
 #endif
