@@ -2960,7 +2960,7 @@ int csoundKillInstanceInternal(CSOUND *csound, MYFLT instr, char *instrName,
 
 
 // sample rate conversion
-#if 0
+#ifdef SRC
 #include <samplerate.h>
 
 typedef struct {
