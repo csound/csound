@@ -1297,7 +1297,7 @@ NGFENS *quadbezier_fgens_init(CSOUND *, void *);
 NGFENS *ftest_fgens_init(CSOUND *);
 NGFENS *farey_fgens_init(CSOUND *);
 
-const FGINITFN fgentab[] = {  ftest_fgens_init, farey_fgens_init, quadbezier_fgens_init, NULL };
+const FGINITFN fgentab[] = {  ftest_fgens_init, farey_fgens_init, (void*)quadbezier_fgens_init, NULL };
 
 CS_NOINLINE int csoundInitStaticModules(CSOUND *csound)
 {

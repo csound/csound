@@ -18,7 +18,7 @@ list(APPEND CMAKE_REQUIRED_INCLUDES "/usr/local/include")
 
 if(USE_PORTAUDIO)
     if (USE_VCPKG)
-        find_package(portaudio CONFIG REQUIRED)
+        find_package(portaudio CONFIG)
         # could be the static or dynamic version
         assign_bool(portaudio_FOUND (TARGET portaudio_static) OR (TARGET portaudio))
     else()
@@ -28,7 +28,7 @@ endif()
 
 if(USE_PORTMIDI)
     if(USE_VCPKG)
-        find_package(PortMidi CONFIG REQUIRED)
+        find_package(PortMidi CONFIG)
     else()
         find_package(PortMidi MODULE)
     endif()

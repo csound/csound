@@ -200,7 +200,7 @@ static char *signal_to_string(int sig)
     }
 }
 
-static void psignal(int sig, char *str)
+void psignal(int sig, const char *str)
 {
     fprintf(stderr, "%s: %s\n", str, signal_to_string(sig));
 }
