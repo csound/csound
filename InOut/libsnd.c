@@ -59,7 +59,7 @@ static inline void alloc_globals(CSOUND *csound)
 static inline void spout_interleave(CSOUND *csound, int scal) {
    OPARMS  *O = csound->oparms;
    uint32_t nchnls = csound->nchnls, ksmps=csound->ksmps;
-   int   i,j,n,start=0,end=ksmps;
+   int   i,j,start=0,end=ksmps;
    int spoutrem = csound->nspout;
    MYFLT   *spout = csound->spout, *spinter = csound->spraw;
    MYFLT   x, absamp = FL(0.0);

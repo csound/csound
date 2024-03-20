@@ -2139,7 +2139,6 @@ int32_t monitor_opcode_perf(CSOUND *csound, MONITOR_OPCODE *p)
   uint32_t i, j, nsmps = CS_KSMPS, nchnls = csound->GetNchnls(csound);
   MYFLT *spout = csound->spraw;
 
-  if (csound->spoutactive) {
     for (j = 0; j<nchnls; j++) {
       for (i = 0; i<nsmps; i++) {
         if (i<offset||i>nsmps-early)
@@ -2148,12 +2147,6 @@ int32_t monitor_opcode_perf(CSOUND *csound, MONITOR_OPCODE *p)
           p->ar[j][i] = spout[i+j*nsmps];
       }
     }
-  }
-  else {
-    for (j = 0; j<nchnls; j++) {
-      memset(p->ar[j], '\0', nsmps*sizeof(MYFLT));
-    }
-  }
   return OK;
 }
 
@@ -2185,35 +2178,22 @@ int32_t outRange(CSOUND *csound, OUTRANGE *p)
   MYFLT *ara[VARGMAX];
   int32_t startChan = (int32_t) *p->kstartChan -1;
   MYFLT *sp = csound->spraw + startChan*nsmps;
-  int32_t narg = p->narg;
+  int32_t narg = p->narg,i;
 
   if (UNLIKELY(startChan < 0))
     return csound->PerfError(csound, &(p->h),
                              Str("outrg: channel number cannot be < 1 "
                                  "(1 is the first channel)"));
-
   for (j = 0; j < narg; j++)
     ara[j] = p->argums[j];
 
-  if (!csound->spoutactive) {
-    memset(csound->spraw, '\0', csound->nspout * sizeof(MYFLT));
-    /* no need to offset ?? why ?? */
-    int32_t i;
-    for (i=0; i < narg; i++) {
-      memcpy(sp, ara[i], nsmps*sizeof(MYFLT));
-      sp += nsmps;
-    }
-    csound->spoutactive = 1;
-  }
-  else {
-    int32_t i;
     for (i=0; i < narg; i++) {
       for (n=offset; n<nsmps-early; n++) {
         sp[n] += ara[i][n];
       }
       sp += nsmps;
     }
-  }
+  
   return OK;
 }
 /* -------------------------------------------------------------------- */
