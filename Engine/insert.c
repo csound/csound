@@ -1886,7 +1886,6 @@ int subinstr(CSOUND *csound, SUBINST *p)
   /* copy current spout buffer and clear it */
   ip->spout = (MYFLT*) p->saved_spout.auxp;
   memset(ip->spout, 0, csound->nspout*sizeof(MYFLT));
-  csound->spoutactive = 0;
 
   /* update release flag */
   ip->relesing = p->parent_ip->relesing;   /* IV - Nov 16 2002 */

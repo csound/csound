@@ -637,7 +637,6 @@ static const CSOUND cenviron_ = {
     DFLT_KSMPS,     /*  ksmps               */
     DFLT_NCHNLS,    /*  nchnls              */
     -1,             /*  inchns              */
-     0,              /*  spoutactive         */
     0L,             /*  kcounter            */
     0L,             /*  global_kcounter     */
     DFLT_SR,        /*  esr                 */
@@ -1742,7 +1741,6 @@ int kperf_nodebug(CSOUND *csound)
     /* for one kcnt: */
     if (csound->oparms_.sfread)         /*   if audio_infile open  */
       csound->spinrecv(csound);         /*      fill the spin buf  */
-    csound->spoutactive = 0;            /*   make spout inactive   */
     /* clear spout */
     memset(csound->spout, 0, csound->nspout*sizeof(MYFLT));
     memset(csound->spraw,0,
@@ -1998,7 +1996,6 @@ int kperf_debug(CSOUND *csound)
       /* for one kcnt: */
       if (csound->oparms_.sfread)         /*   if audio_infile open  */
         csound->spinrecv(csound);         /*      fill the spin buf  */
-      csound->spoutactive = 0;            /*   make spout inactive   */
       /* clear spout */
       memset(csound->spout, 0, csound->nspout*sizeof(MYFLT));
       memset(csound->spraw, 0, csound->nspout*sizeof(MYFLT));
