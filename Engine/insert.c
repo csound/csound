@@ -1421,7 +1421,7 @@ int subinstrset(CSOUND *csound, SUBINST *p){
 }
 
 /*
-  UDOs now use the local ksmps stored in lcurip->ksmps
+  UDOs now use the local ksmps/local sr stored in lcurip, and
   all the other dependent parameters are calculated in relation to
   this.
 
@@ -1443,8 +1443,9 @@ int subinstrset(CSOUND *csound, SUBINST *p){
   kcycles.
 
   Similarly, a local SR is now implemented. This is set by
-  the oversample opcode. It is not allowed with local ksmps
-  or with audio/k-rate array arguments. It uses useropcd2().
+  the oversample/undersample opcode. It is not allowed with 
+  local ksmps setting (setksmps) or with audio/k-rate array 
+  arguments. It uses useropcd2().
 
 */
 int useropcd1(CSOUND *, UOPCODE*), useropcd2(CSOUND *, UOPCODE*);
@@ -1571,13 +1572,16 @@ int useropcdset(CSOUND *csound, UOPCODE *p)
     /* ksmps and esr may have changed */
     /* select perf routine and scale xtratim accordingly */
     if (lcurip->ksmps != csound->ksmps) {
-      if(lcurip->esr != csound->esr) // can't have local sr
+      if(lcurip->esr > csound->esr) // can't have local sr > global sr
          return csound->InitError(csound,
             "oversampling requires local ksmps = global ksmps\n");
       else {
       int ksmps_scale = lcurip->ksmps / csound->ksmps;
       parent_ip->xtratim = lcurip->xtratim * ksmps_scale;
-      p->h.opadr = (SUBR) useropcd1;
+      if(lcurip->esr == csound->esr) // if local sr == global sr
+              p->h.opadr = (SUBR) useropcd1;
+      else // local sr < global sr   
+              p->h.opadr = (SUBR) useropcd2;
       if (UNLIKELY(csound->oparms->odebug))
        csound->Message(csound, "EXTRATIM=> cur(%p): %d, parent(%p): %d\n",
                       lcurip, lcurip->xtratim, parent_ip, parent_ip->xtratim);
@@ -1731,11 +1735,15 @@ int xoutset(CSOUND *csound, XOUT *p)
   it can be used on any instrument with the implementation
   of a mechanism to perform at local ksmps (in kperf etc)
 */
-int setksmpsset(CSOUND *csound, SETKSMPS *p)
+int32_t setksmpsset(CSOUND *csound, SETKSMPS *p)
 {
 
   unsigned int  l_ksmps, n;
-
+  if(CS_ESR != csound->esr) 
+    return csoundInitError(csound,
+                           "can't set ksmps value if local sr != global sr\n");
+  if(CS_KSMPS != csound->ksmps) return OK; // no op
+                             
   l_ksmps = (unsigned int) *(p->i_ksmps);
   if (!l_ksmps) return OK;       /* zero: do not change */
   if (UNLIKELY(l_ksmps < 1 || l_ksmps > CS_KSMPS ||
@@ -1781,9 +1789,13 @@ int setksmpsset(CSOUND *csound, SETKSMPS *p)
    oversampling is not allowed with local ksmps or
    with audio/control array arguments.
 */
- int oversampleset(CSOUND *csound, OVSMPLE *p) {
+ int32_t oversampleset(CSOUND *csound, OVSMPLE *p) {
    int os;
    MYFLT l_sr, onedos;
+   if(CS_KSMPS != csound->ksmps) 
+    return csoundInitError(csound,
+                           "can't oversample if local ksmps != global ksmps\n");
+
    if(p->h.insdshead->opcod_iobufs == NULL) 
      return csound->InitError(csound, "oversampling only allowed in UDOs\n");
   
@@ -1791,7 +1803,7 @@ int setksmpsset(CSOUND *csound, SETKSMPS *p)
    onedos = FL(1.0)/os;
    if(os < 1)
      return csound->InitError(csound, "illegal oversampling ratio: %d\n", os);
-   if(os == 1) return OK; /* no op */
+   if(os == 1 || CS_ESR != csound->esr) return OK; /* no op */
      
    l_sr = CS_ESR*os;
    CS_ESR = l_sr;
@@ -1824,11 +1836,76 @@ int setksmpsset(CSOUND *csound, SETKSMPS *p)
    return OK;
  }
 
+/* undersample opcode 
+   undersample ifactor
+   ifactor - undersampling factor (positive integer)
 
+   if ubdersampling is used, xin/xout need
+   to initialise the converters.
+   undersampling is not allowed with
+   with audio/control array arguments.
+   It modifies ksmps according to the resampling factor.
+*/
+ int32_t undersampleset(CSOUND *csound, OVSMPLE *p) {
+   int os, lksmps;
+   MYFLT l_sr, onedos;
+   if(CS_KSMPS != csound->ksmps) 
+    return csoundInitError(csound,
+                   "can't undersample if local ksmps != global ksmps\n");
+
+   if(p->h.insdshead->opcod_iobufs == NULL) 
+     return csound->InitError(csound, "oversampling only allowed in UDOs\n");
+  
+   os = MYFLT2LRND(*p->os);
+   onedos = FL(1.0)/os;
+   if(os < 1)
+     return csound->InitError(csound,
+                              "illegal undersampling ratio: %d\n", os);
+   
+   if(os == 1 || CS_ESR != csound->esr) return OK; /* no op */
+
+   /* round to an integer number of ksmps */
+   lksmps = MYFLT2LRND(CS_KSMPS*onedos);
+   /* and check */
+   if(lksmps < 1)
+       return csound->InitError(csound,
+                                "illegal oversampling ratio: %d\n", os);
+
+   /* set corrected ratio  */  
+   onedos = lksmps/CS_KSMPS;
+   
+   /* and now local ksmps */
+   CS_KSMPS = lksmps;
+   CS_ONEDKSMPS = FL(1.0)/lksmps;
+   l_sr = CS_ESR*onedos;
+   CS_ESR = l_sr;
+   CS_ONEDSR = 1./l_sr;
+   CS_SICVT = (MYFLT) FMAXLEN / CS_ESR;
+   CS_EKR = CS_ESR/CS_KSMPS;
+   CS_ONEDKR = 1./CS_EKR;
+   CS_KICVT = (MYFLT) FMAXLEN / CS_EKR;
+     
+   p->h.insdshead->xtratim *= FL(1.0)/onedos; 
+   CS_KCNT *= FL(1.0)/onedos;
+   /* undersampling mode */
+   p->h.insdshead->overmode = MYFLT2LRND(*p->type);
+   /* set local sr variable */
+   INSTRTXT *ip = p->h.insdshead->instr;
+   CS_VARIABLE *var =
+     csoundFindVariableWithName(csound, ip->varPool, "sr");
+   MYFLT *varmem = p->h.insdshead->lclbas + var->memBlockIndex;
+   *varmem = CS_ESR;
+   var = csoundFindVariableWithName(csound, ip->varPool, "kr");
+   varmem = p->h.insdshead->lclbas + var->memBlockIndex;
+   *varmem = CS_EKR;
+    var = csoundFindVariableWithName(csound, ip->varPool, "ksmps");
+   varmem = p->h.insdshead->lclbas + var->memBlockIndex;
+   *varmem = CS_KSMPS;
+   return OK;
+ }
 
 /* IV - Oct 16 2002: nstrnum opcode (returns the instrument number of a */
 /* named instrument) */
-
 int nstrnumset(CSOUND *csound, NSTRNUM *p)
 {
   /* IV - Oct 31 2002 */
@@ -2967,6 +3044,7 @@ SR_CONVERTER *src_linear_init(CSOUND *csound, int mode, float ratio, int size) {
   pp->bufferin = csound->Calloc(csound, size*sizeof(MYFLT)*(ratio > 1 ? ratio : 1./ratio));
   pp->ratio = ratio;
   pp->size = size;
+  pp->mode = 4;
   return pp;
 }
 
