@@ -61,7 +61,7 @@ static inline void spout_interleave(CSOUND *csound, int scal) {
    uint32_t nchnls = csound->nchnls, ksmps=csound->ksmps;
    int   i,j,start=0,end=ksmps;
    int spoutrem = csound->nspout;
-   MYFLT   *spout = csound->spout, *spinter = csound->spraw;
+   MYFLT   *spout = csound->spout, *spinter = csound->spout_tmp;
    MYFLT   x, absamp = FL(0.0);
    uint32  nframes = csound->libsndStatics.nframes;
    MYFLT lim = O->limiter*csound->e0dbfs;

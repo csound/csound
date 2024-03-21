@@ -796,7 +796,7 @@ int32_t outz(CSOUND *csound, IOZ *p)
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t n, nsmps = CS_KSMPS;
     int32_t     nchns = csound->GetNchnls(csound);
-    MYFLT *spout = csound->spraw;
+    MYFLT *spout = csound->spout_tmp;
 
     /* Check to see this index is within the limits of za space.    */
     MYFLT* zastart;

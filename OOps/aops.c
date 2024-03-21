@@ -2137,7 +2137,7 @@ int32_t monitor_opcode_perf(CSOUND *csound, MONITOR_OPCODE *p)
   uint32_t offset = p->h.insdshead->ksmps_offset;
   uint32_t early  = p->h.insdshead->ksmps_no_end;
   uint32_t i, j, nsmps = CS_KSMPS, nchnls = csound->GetNchnls(csound);
-  MYFLT *spout = csound->spraw;
+  MYFLT *spout = csound->spout_tmp;
 
     for (j = 0; j<nchnls; j++) {
       for (i = 0; i<nsmps; i++) {
@@ -2177,7 +2177,7 @@ int32_t outRange(CSOUND *csound, OUTRANGE *p)
   //int32_t nchnls = csound->GetNchnls(csound);
   MYFLT *ara[VARGMAX];
   int32_t startChan = (int32_t) *p->kstartChan -1;
-  MYFLT *sp = csound->spraw + startChan*nsmps;
+  MYFLT *sp = csound->spout_tmp + startChan*nsmps;
   int32_t narg = p->narg,i;
 
   if (UNLIKELY(startChan < 0))

@@ -1881,8 +1881,7 @@ int subinstr(CSOUND *csound, SUBINST *p)
     return csoundPerfError(csound, &(p->h),
                            Str("subinstr: not initialised"));
   }
-  // This not needed since spout buffer is already managed by
-  // instrument, instance & out() calls
+
   /* copy current spout buffer and clear it */
   ip->spout = (MYFLT*) p->saved_spout.auxp;
   memset(ip->spout, 0, csound->nspout*sizeof(MYFLT));
@@ -2669,7 +2668,6 @@ static void instance(CSOUND *csound, int insno)
     var->memBlock->value = csound->ekr;
   }
   
-  //printf("alloc spout: %p \n", ip->spout);
   if (UNLIKELY(nxtopds > opdslim))
     csoundDie(csound, Str("inconsistent opds total"));
 
