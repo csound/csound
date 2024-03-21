@@ -3281,43 +3281,6 @@ typedef struct {
   uint32_t    len;
 } OUTA;
 
-
-static int32_t outa_set(CSOUND *csound, OUTA *p)
-{
-    int32_t len = (p->tabin->dimensions==1?p->tabin->sizes[0]:-1);
-    if (len>(int32_t)csound->nchnls) len = csound->nchnls;
-    if (UNLIKELY(len<=0)) return NOTOK;
-    p->len = len;
-    if (p->tabin->arrayMemberSize != (int32_t)(CS_KSMPS*sizeof(MYFLT)))
-      return NOTOK;
-    return OK;
-}
-
-static int32_t outa(CSOUND *csound, OUTA *p)
-{
-    uint32_t n, nsmps = CS_KSMPS, nchns = csound->GetNchnls(csound);
-    uint32_t l, pl = p->len;
-    uint32_t offset = p->h.insdshead->ksmps_offset;
-    uint32_t early  = nsmps - p->h.insdshead->ksmps_no_end;
-    MYFLT       *data = p->tabin->data;
-    MYFLT       *sp= csound->spraw;
-    if (!csound->spoutactive) {
-      memset(sp, '\0', nsmps*nchns*sizeof(MYFLT));
-      for (l=0; l<pl; l++) {
-        memcpy(&sp[offset], &data[l*nsmps+offset], (early-offset)*sizeof(MYFLT));
-      }
-      csound->spoutactive = 1;
-    }
-    else {
-      for (l=0; l<p->len; l++) {
-        for (n=offset; n<early; n++) {
-          sp[n+l*nsmps] += data[n+l*nsmps];
-        }
-      }
-    }
-    return OK;
-}
-
 static int32_t ina_set(CSOUND *csound, OUTA *p)
 {
     ARRAYDAT *aa = p->tabin;
@@ -3370,7 +3333,6 @@ static int32_t monitora_perf(CSOUND *csound, OUTA *p)
     MYFLT       *sp= CS_SPOUT;
     uint32_t len = (uint32_t)p->len;
 
-    if (csound->spoutactive) {
       for (l=0; l<len; l++) {
         sp = CS_SPOUT;
         memset(data, '\0', nsmps*sizeof(MYFLT));
@@ -3386,10 +3348,6 @@ static int32_t monitora_perf(CSOUND *csound, OUTA *p)
           }
         }
       }
-    }
-    else {
-      memset(data, '\0', (CS_KSMPS)*csound->GetNchnls(csound)*sizeof(MYFLT));
-    }
     return OK;
 }
 
@@ -4903,7 +4861,6 @@ static OENTRY arrayvars_localops[] =
     { "lentab.k", sizeof(TABQUERY1), _QQ, 1, "k", "k[]p", NULL, (SUBR) tablength },
     { "lenarray.ix", sizeof(TABQUERY1), 0, 1, "i", ".[]p", (SUBR) tablength },
     { "lenarray.kx", sizeof(TABQUERY1), 0, 2, "k", ".[]p", NULL, (SUBR)tablength },
-    { "out.A", sizeof(OUTA), IR, 3,"", "a[]", (SUBR)outa_set, (SUBR)outa},
     { "in.A", sizeof(OUTA), 0, 3, "a[]", "", (SUBR)ina_set, (SUBR)ina},
     { "monitor.A", sizeof(OUTA), IB, 3, "a[]", "",
       (SUBR)monitora_init, (SUBR)monitora_perf},

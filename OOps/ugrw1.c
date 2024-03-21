@@ -796,7 +796,7 @@ int32_t outz(CSOUND *csound, IOZ *p)
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t n, nsmps = CS_KSMPS;
     int32_t     nchns = csound->GetNchnls(csound);
-    MYFLT *spout = csound->spraw;
+    MYFLT *spout = csound->spout_tmp;
 
     /* Check to see this index is within the limits of za space.    */
     MYFLT* zastart;
@@ -809,23 +809,12 @@ int32_t outz(CSOUND *csound, IOZ *p)
       /* Now read from the array in za space and write to the output. */
       readloc = zastart + (indx * nsmps);
       early = nsmps-early;
-      if (!csound->spoutactive) {
-        memset(spout, '\0', nchns*nsmps*sizeof(MYFLT));
-        for (i = 0; i < nchns; i++) {
-          memcpy(&spout[i * nsmps+offset], readloc+offset,
-                 (early-offset)*sizeof(MYFLT));
-          readloc += nsmps;
-        }
-        csound->spoutactive = 1;
-      }
-      else {
-        for (i = 0; i < nchns; i++) {
+      for (i = 0; i < nchns; i++) {
           for (n = offset; n < nsmps-early; n++) {
             spout[n + i*nsmps] += readloc[n];
           }
           readloc += nsmps;
-        }
-      }
+        } 
     }
     return OK;
  err1:

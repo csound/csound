@@ -1519,7 +1519,6 @@ typedef struct _message_queue_t_ {
     unsigned int  ksmps;
     uint32_t      nchnls;
     int           inchnls;
-    int           spoutactive;
     uint64_t      kcounter, global_kcounter;
     MYFLT         esr;
     MYFLT         ekr;
@@ -1565,7 +1564,7 @@ typedef struct _message_queue_t_ {
     char          **strsets;
     MYFLT         *spin;
     MYFLT         *spout;
-    MYFLT         *spraw;
+    MYFLT         *spout_tmp;
     int           nspin;
     int           nspout;
     MYFLT         *auxspin;
