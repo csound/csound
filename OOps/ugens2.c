@@ -327,36 +327,6 @@ int32_t osciln(CSOUND *csound, OSCILN *p)
                            Str("osciln: not initialised"));
 }
 
-static int32_t fill_func_from_array(ARRAYDAT *a, FUNC *f)
-{
-  int32_t     lobits, ltest, flen, i;
-  int32_t     nonpowof2_flag = 0;
-
-  flen = f->flen = a->sizes[0];
-  flen &= -2L;
-  for (ltest = flen, lobits = 0;
-       (ltest & MAXLEN) == 0L;
-       lobits++, ltest <<= 1)
-    ;
-  if (UNLIKELY(ltest != MAXLEN)) {
-    lobits = 0;
-    nonpowof2_flag = 1;
-  }
-  f->ftable   = a->data;
-  f->lenmask  = ((flen & (flen - 1L)) ?
-                 0L : (flen - 1L));      /*  init hdr w powof2 data  */
-  f->lobits   = lobits;
-  i           = (1 << lobits);
-  f->lomask   = (int32_t) (i - 1);
-  f->lodiv    = FL(1.0) / (MYFLT) i;        /*    & other useful vals   */
-  f->nchanls  = 1;                          /*    presume mono for now  */
-  f->flenfrms = flen;
-  if (nonpowof2_flag)
-    f->lenmask = 0xFFFFFFFF;
-  return OK;
-}
-
-
 /* Oscillators */
 static inline unsigned int isPowerOfTwo (unsigned int x) {
   return (x > 0) && !(x & (x - 1)) ? 1 : 0;
@@ -1086,36 +1056,7 @@ int32_t lposc3(CSOUND *csound, LPOSC *p)
   return OK;
 }
 
-
-int32_t oscsetA(CSOUND *csound, OSC *p)
-{
-  FUNC        *ftp = &p->FF;
-  int32_t x;
-
-  if (*p->iphs >= 0)
-    p->lphs = ((int32_t)(*p->iphs * FMAXLEN)) & PHMASK;
-  //check p->ifn is a valid array with power-of-two length
-  x = ((ARRAYDAT*)p->ifn)->sizes[0];
-  if (LIKELY((x != 0) && !(x & (x - 1)))) {
-    p->ftp = ftp;
-    fill_func_from_array((ARRAYDAT*)p->ifn, ftp);
-    return OK;
-  }
-  else return csound->InitError(csound, Str("array size not pow-of-two\n"));
-}
-
-// this may select different opadr if non-pow of two is used.
-int32_t oscset(CSOUND *csound, OSC *p)
-{
-  FUNC *ftp;
-  if (UNLIKELY((ftp = csound->FTnp2Find(csound, p->ifn)) == NULL))  
-    return csound->InitError(csound, Str("table not found"));
-  p->ftp = ftp;
-  if(isPowerOfTwo(ftp->flen)) {
-    if (*p->iphs >= 0)
-      p->lphs = ((int32_t)(*p->iphs * FMAXLEN)) & PHMASK;
-    return OK;
-  }
+static void reassign_opadr(CSOUND *csound, OSC *p) {
   const char* name = p->h.optext->t.opcod;
   // check for arg types and change PDS
   if(!strcmp(name, "oscil")) {
@@ -1156,8 +1097,75 @@ int32_t oscset(CSOUND *csound, OSC *p)
   } else // kosc 
     p->h.opadr = (SUBR) kposc;
   }
+}
+
+// this may select different opadr if non-pow of two is used.
+int32_t oscset(CSOUND *csound, OSC *p)
+{
+  FUNC *ftp;
+  if (UNLIKELY((ftp = csound->FTnp2Find(csound, p->ifn)) == NULL))  
+    return csound->InitError(csound, Str("table not found"));
+  p->ftp = ftp;
+  if(isPowerOfTwo(ftp->flen)) {
+    if (*p->iphs >= 0)
+      p->lphs = ((int32_t)(*p->iphs * FMAXLEN)) & PHMASK;
+    return OK;
+  }
+  reassign_opadr(csound, p);
   return posc_set(csound,p);
 }
+
+
+static int32_t fill_func_from_array(ARRAYDAT *a, FUNC *f)
+{
+  int32_t     lobits, ltest, flen, i;
+  int32_t     nonpowof2_flag = 0;
+
+  flen = f->flen = a->sizes[0];
+  flen &= -2L;
+  for (ltest = flen, lobits = 0;
+       (ltest & MAXLEN) == 0L;
+       lobits++, ltest <<= 1)
+    ;
+  if (UNLIKELY(ltest != MAXLEN)) {
+    lobits = 0;
+    nonpowof2_flag = 1;
+  }
+  f->ftable   = a->data;
+  f->lenmask  = ((flen & (flen - 1L)) ?
+                 0L : (flen - 1L));      /*  init hdr w powof2 data  */
+  f->lobits   = lobits;
+  i           = (1 << lobits);
+  f->lomask   = (int32_t) (i - 1);
+  f->lodiv    = FL(1.0) / (MYFLT) i;        /*    & other useful vals   */
+  f->nchanls  = 1;                          /*    presume mono for now  */
+  f->flenfrms = flen;
+  if (nonpowof2_flag)
+    f->lenmask = 0xFFFFFFFF;
+  return OK;
+}
+
+int32_t oscsetA(CSOUND *csound, OSC *p)
+{
+  FUNC        *ftp = &p->FF;
+  p->ftp = ftp;
+  fill_func_from_array((ARRAYDAT*)p->ifn, ftp);
+  if(isPowerOfTwo(ftp->flen)) {
+  if (*p->iphs >= 0)
+    p->lphs = ((int32_t)(*p->iphs * FMAXLEN)) & PHMASK;
+    return OK;
+  }
+  p->tablen     = ftp->flen;
+  p->tablenUPsr = p->tablen * (FL(1.0)/CS_ESR);
+  if (*p->iphs>=FL(0.0))
+    p->phs      = *p->iphs * p->tablen;
+  while (UNLIKELY(p->phs >= p->tablen))
+    p->phs     -= p->tablen;
+  reassign_opadr(csound, p);  
+  return OK;
+}
+
+
 
 int32_t koscil(CSOUND *csound, OSC *p)
 {
