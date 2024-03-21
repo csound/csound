@@ -52,6 +52,7 @@ typedef struct {
         OPDS    h;
         MYFLT   *rslt, *idel, *kamp, *idur, *ifn;
         int32   kinc, phs;
+        double   fphs, inc;
         int32   dcnt;
         FUNC    *ftp;
 } OSCIL1;
