@@ -44,24 +44,6 @@ typedef struct {
     MYFLT point_factor;
 } INTERPOL;
 
-typedef struct  {
-    OPDS        h;
-    MYFLT       *out, *amp, *freq, *ift, *iphs;
-    FUNC        *ftp;
-    int32       tablen;
-    double      tablenUPsr;
-    double      phs;
-} POSC;
-
-typedef struct  {
-    OPDS        h;
-    MYFLT       *out, *amp, *freq, *kloop, *kend, *ift, *iphs;
-    FUNC        *ftp;
-    int32        tablen;
-    MYFLT       fsr;
-    double      phs, looplength;
-} LPOSC;
-
 typedef struct {
     OPDS        h;
     MYFLT       *ar, *argums[VARGMAX];
