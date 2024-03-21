@@ -637,7 +637,6 @@ static const CSOUND cenviron_ = {
     DFLT_KSMPS,     /*  ksmps               */
     DFLT_NCHNLS,    /*  nchnls              */
     -1,             /*  inchns              */
-     0,              /*  spoutactive         */
     0L,             /*  kcounter            */
     0L,             /*  global_kcounter     */
     DFLT_SR,        /*  esr                 */
@@ -681,7 +680,7 @@ static const CSOUND cenviron_ = {
     (char**) NULL,  /*  strsets             */
     NULL,           /*  spin                */
     NULL,           /*  spout               */
-    NULL,           /*  spraw               */
+    NULL,           /*  spout_tmp               */
     0,              /*  nspin               */
     0,              /*  nspout              */
     NULL,           /*  auxspin             */
@@ -1551,6 +1550,12 @@ inline void advanceINSDSPointer(INSDS ***start, int num)
     **start = s;
 }
 
+inline static void mix_out(MYFLT *out, MYFLT *in,
+                           uint32_t smps){
+  int i;
+  for(i=0; i < smps; i++) out[i] += in[i];
+}
+
 int dag_get_task(CSOUND *csound, int index, int numThreads, int next_task);
 int dag_end_task(CSOUND *csound, int task);
 void dag_build(CSOUND *csound, INSDS *chain);
@@ -1573,7 +1578,7 @@ inline static int nodePerf(CSOUND *csound, int index, int numThreads)
     while (1) {
       int done;
       which_task = dag_get_task(csound, index, numThreads, next_task);
-      //printf("******** Select task %d\n", which_task);
+      //printf("******** Select task %d %d\n", which_task, index);
       if (which_task==WAIT) continue;
       if (which_task==INVALID) return played_count;
          /* VL: the validity of icurTime needs to be checked */
@@ -1590,11 +1595,12 @@ inline static int nodePerf(CSOUND *csound, int index, int numThreads)
 #else
         done = insds->init_done;
 #endif
+
         if (done) {
           opstart = (OPDS*)task_map[which_task];
           if (insds->ksmps == csound->ksmps) {
             insds->spin = csound->spin;
-            insds->spout = csound->spraw;
+            insds->spout = csound->spout_tmp+index*csound->nspout;
             insds->kcounter =  csound->kcounter;
             csound->mode = 2;
             while ((opstart = opstart->nxtp) != NULL) {
@@ -1613,8 +1619,8 @@ inline static int nodePerf(CSOUND *csound, int index, int numThreads)
             int early = insds->ksmps_no_end;
             OPDS  *opstart;
             insds->spin = csound->spin;
-            insds->spout = csound->spraw;
-            insds->kcounter =  csound->kcounter*csound->ksmps;
+            insds->spout = csound->spout_tmp+index*csound->nspout;
+            insds->kcounter = csound->kcounter*csound->ksmps;
 
             /* we have to deal with sample-accurate code
                whole CS_KSMPS blocks are offset here, the
@@ -1629,7 +1635,6 @@ inline static int nodePerf(CSOUND *csound, int index, int numThreads)
               n -= (early*csound->nchnls);
               insds->ksmps_no_end = early % lksmps;
             }
-
             for (i=start; i < n; i+=incr, insds->spin+=incr, insds->spout+=incr) {
               opstart = (OPDS*) insds;
               csound->mode = 2;
@@ -1653,38 +1658,6 @@ inline static int nodePerf(CSOUND *csound, int index, int numThreads)
     return played_count;
 }
 #endif //PARCS
-
-inline static void make_interleave(CSOUND *csound, uint32_t lksmps)
-{
-    uint32_t nsmps = csound->ksmps, nchan = csound->nchnls,i, j, n, k=0;
-    MYFLT *spout = csound->spout;
-
-    if (!csound->spoutactive) {
-      memset(spout, '\0', csound->nspout*sizeof(MYFLT));
-    }
-    else if (lksmps == nsmps|| nchan==1 ) {
-      for (j=0; j<nsmps; j++) {
-        for (i=0; i<nchan; i++) {
-          // Will be copy t ad when complette
-          spout[k + i] = csound->spraw[i*nsmps+j];
-        }
-        k += nchan;
-      }
-    }
-    else {
-      int m = 0;
-      for (n=0; n<nsmps/lksmps; n++) {
-        for (j=0; j<lksmps; j++) {
-          for (i=0; i<nchan; i++) {
-            // Will be copy t ad when complette
-            spout[k + i] = csound->spraw[i*lksmps+j+m];
-          }
-          k += nchan;
-        }
-        m += nchan*lksmps;
-      }
-    }
-}
 
 #ifdef PARCS
 unsigned long kperfThread(void * cs)
@@ -1767,10 +1740,10 @@ int kperf_nodebug(CSOUND *csound)
     /* for one kcnt: */
     if (csound->oparms_.sfread)         /*   if audio_infile open  */
       csound->spinrecv(csound);         /*      fill the spin buf  */
-    csound->spoutactive = 0;            /*   make spout inactive   */
     /* clear spout */
     memset(csound->spout, 0, csound->nspout*sizeof(MYFLT));
-    memset(csound->spraw, 0, csound->nspout*sizeof(MYFLT));
+    memset(csound->spout_tmp,0,
+           sizeof(MYFLT)*csound->nspout*csound->oparms->numThreads);
     ip = csound->actanchor.nxtact;
 
     if (ip != NULL) {
@@ -1788,6 +1761,14 @@ int kperf_nodebug(CSOUND *csound)
 
         /* wait until partition is complete */
         csound->WaitBarrier(csound->barrier2);
+
+      // do the mixing of thread buffers
+      {
+      int k;
+       for(k = 1; k < csound->oparms->numThreads; k++)
+         mix_out(csound->spout_tmp,csound->spout_tmp+k*csound->nspout,
+                     csound->nspout);
+      }
 #endif
         csound->multiThreadedDag = NULL;
       }
@@ -1795,7 +1776,7 @@ int kperf_nodebug(CSOUND *csound)
         int done;
         double time_end = (csound->ksmps+csound->icurTime)/csound->esr;
 
-        while (ip != NULL) {                /* for each instr active:  */
+        while (ip != NULL) {              /* for each instr active:  */
           INSDS *nxt = ip->nxtact;
           if (UNLIKELY(csound->oparms->sampleAccurate &&
                        ip->offtim > 0                 &&
@@ -1811,7 +1792,7 @@ int kperf_nodebug(CSOUND *csound)
             int error = 0;
             OPDS  *opstart = (OPDS*) ip;
             ip->spin = csound->spin;
-            ip->spout = csound->spraw;
+            ip->spout = csound->spout_tmp;
             ip->kcounter =  csound->kcounter;
             if (ip->ksmps == csound->ksmps) {
               csound->mode = 2;
@@ -1833,8 +1814,6 @@ int kperf_nodebug(CSOUND *csound)
                 int offset =  ip->ksmps_offset;
                 int early = ip->ksmps_no_end;
                 OPDS  *opstart;
-                ip->spin = csound->spin;
-                ip->spout = csound->spraw;
                 ip->kcounter = (csound->kcounter-1)*csound->ksmps/lksmps;
 
                 /* we have to deal with sample-accurate code
@@ -1850,7 +1829,6 @@ int kperf_nodebug(CSOUND *csound)
                   n -= (early*csound->nchnls);
                   ip->ksmps_no_end = early % lksmps;
                 }
-
                 for (i=start; i < n; i+=incr, ip->spin+=incr, ip->spout+=incr) {
                   ip->kcounter++;
                   opstart = (OPDS*) ip;
@@ -1862,10 +1840,8 @@ int kperf_nodebug(CSOUND *csound)
                     //csound->ids->optext->t.oentry->opname;
                     error = (*opstart->opadr)(csound, opstart); /* run each opcode */
                     opstart = opstart->insdshead->pds;
-
                   }
                   csound->mode = 0;
-
                 }
             }
           }
@@ -1887,19 +1863,7 @@ int kperf_nodebug(CSOUND *csound)
         }
       }
     }
-
-    if (!csound->spoutactive) { /* results now in spout? */
-      memset(csound->spout, 0, csound->nspout * sizeof(MYFLT));
-      memset(csound->spraw, 0, csound->nspout * sizeof(MYFLT));
-    }
-    make_interleave(csound, lksmps);
     csound->spoutran(csound); /* send to audio_out */
-    //#ifdef ANDROID
-    //struct timespec ts;
-    //clock_gettime(CLOCK_MONOTONIC, &ts);
-    //csound->Message(csound, "kperf kcount, %d,%d.%06d\n",
-    //                csound->kcounter, ts.tv_sec, ts.tv_nsec/1000);
-    //#endif
     return 0;
 }
 
@@ -1944,6 +1908,7 @@ static inline void opcode_perf_debug(CSOUND *csound,
       opstart = opstart->insdshead->pds;
       csound->mode = 0;
     }
+    mix_out(csound->spout,ip->spout,ip->ksmps*csound->nchnls);
 }
 
 static inline void process_debug_buffers(CSOUND *csound, csdebug_data_t *data)
@@ -2024,10 +1989,9 @@ int kperf_debug(CSOUND *csound)
       /* for one kcnt: */
       if (csound->oparms_.sfread)         /*   if audio_infile open  */
         csound->spinrecv(csound);         /*      fill the spin buf  */
-      csound->spoutactive = 0;            /*   make spout inactive   */
       /* clear spout */
       memset(csound->spout, 0, csound->nspout*sizeof(MYFLT));
-      memset(csound->spraw, 0, csound->nspout*sizeof(MYFLT));
+      memset(csound->spout_tmp, 0, csound->nspout*sizeof(MYFLT));
     }
 
     ip = csound->actanchor.nxtact;
@@ -2069,6 +2033,13 @@ int kperf_debug(CSOUND *csound)
 
         /* wait until partition is complete */
         csound->WaitBarrier(csound->barrier2);
+              // do the mixing of thread buffers
+      {
+      int k;
+      for(k = 1; k < csound->oparms->numThreads; k++)
+        mix_out(csound->spout_tmp,csound->spout_tmp+k*csound->nspout,
+                       csound->nspout);
+      }
 #endif
         csound->multiThreadedDag = NULL;
       }
@@ -2123,7 +2094,7 @@ int kperf_debug(CSOUND *csound)
               bp_node = bp_node->next;
             }
             ip->spin = csound->spin;
-            ip->spout = csound->spraw;
+            ip->spout = csound->spout_tmp;
             ip->kcounter =  csound->kcounter;
             if (ip->ksmps == csound->ksmps) {
                 opcode_perf_debug(csound, data, ip);
@@ -2134,7 +2105,6 @@ int kperf_debug(CSOUND *csound)
               int offset =  ip->ksmps_offset;
               int early = ip->ksmps_no_end;
               ip->spin = csound->spin;
-              ip->spout = csound->spraw;
               ip->kcounter =  csound->kcounter*csound->ksmps/lksmps;
 
               /* we have to deal with sample-accurate code
@@ -2175,15 +2145,8 @@ int kperf_debug(CSOUND *csound)
     }
 
     if (!data || data->status != CSDEBUG_STATUS_STOPPED)
-    {
-    if (!csound->spoutactive) {             /*   results now in spout? */
-      memset(csound->spout, 0, csound->nspout * sizeof(MYFLT));
-      memset(csound->spraw, 0, csound->nspout * sizeof(MYFLT));
-    }
-    else
-      make_interleave(csound, lksmps);
-    csound->spoutran(csound);               /*      send to audio_out  */
-    }
+       csound->spoutran(csound);               /*      send to audio_out  */
+    
     return 0;
 }
 
