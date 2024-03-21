@@ -196,7 +196,6 @@ int32_t ko1set(CSOUND *csound, OSCIL1 *p)
     return NOTOK;
   if(isPowerOfTwo(ftp->flen)) { 
   if (UNLIKELY(*p->idur <= FL(0.0))) {
-    /*csound->Warning(csound, Str("duration < zero\n"));*/
     p->phs = MAXLEN-1;
   }
   else p->phs = 0;
@@ -207,7 +206,7 @@ int32_t ko1set(CSOUND *csound, OSCIL1 *p)
       p->fphs = 1. - 1./ftp->flen;
     else p->fphs = FL(0.0);
     p->kinc = 0;
-    p->inc = ftp->flen/(*p->idur*CS_EKR);
+    p->inc = 1./(*p->idur*CS_EKR);
   }
   p->ftp = ftp;
   p->dcnt = (int32_t)(*p->idel * CS_EKR);
@@ -223,36 +222,37 @@ int32_t kosc1(CSOUND *csound, OSCIL1 *p)
   ftp = p->ftp;
   if (UNLIKELY(ftp==NULL)) goto err1;
   if(p->kinc != 0) 
-  *p->rslt = *(ftp->ftable + (phs >> ftp->lobits)) * *p->kamp;
+    *p->rslt = *(ftp->ftable + (phs >> ftp->lobits)) * *p->kamp;
   else
-  *p->rslt = *(ftp->ftable + (size_t) fphs*ftp->flen) * *p->kamp; 
+    *p->rslt = *(ftp->ftable + (size_t) (fphs*ftp->flen)) * *p->kamp;
+  
   if ((dcnt = p->dcnt) > 0)
     dcnt--;
   else if (dcnt == 0) {
     if(p->kinc != 0) {
       phs += p->kinc;
-    if (UNLIKELY(phs >= MAXLEN)){
-      phs = MAXLEN;
-      dcnt--;
-    }
-    else if (UNLIKELY(phs < 0)){
-      phs = 0;
-      dcnt--;
-    }
-    p->phs = phs;
+      if (UNLIKELY(phs >= MAXLEN)){
+        phs = MAXLEN;
+        dcnt--;
+      }
+      else if (UNLIKELY(phs < 0)){
+        phs = 0;
+        dcnt--;
+      }
+      p->phs = phs;
     } else {
-    fphs += p->inc;      
-    if (UNLIKELY(fphs >= 1.)){
-      fphs = 1.;
-      dcnt--;
-    }
+      fphs += p->inc;
+      if (UNLIKELY(fphs >= 1.)){
+        fphs = 1.;
+        dcnt--;
+      }
     else if (UNLIKELY(fphs < 0)){
       fphs = 0.;
       dcnt--;
     }
     p->fphs = fphs;
-    }
   }
+}
   p->dcnt = dcnt;
   return OK;
  err1:
@@ -275,7 +275,7 @@ int32_t kosc1i(CSOUND *csound, OSCIL1   *p)
   v1 = *ftab++;
   *p->rslt = (v1 + (*ftab - v1) * fract) * *p->kamp;
   } else {
-    double fphs = p->fphs;
+    fphs = p->fphs;
     fract = fphs - (int64_t) fphs;
     ftab = ftp->ftable + (size_t) (fphs*ftp->flen);
     v1 = *ftab++;
@@ -287,7 +287,7 @@ int32_t kosc1i(CSOUND *csound, OSCIL1   *p)
   }
   else if (dcnt == 0) {
     if(p->kinc != 0) {
-      phs += p->kinc;
+    phs += p->kinc;
     if (UNLIKELY(phs >= MAXLEN)){
       phs = MAXLEN;
       dcnt--;
