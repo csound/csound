@@ -22,20 +22,21 @@ option(BUILD_CPP_OPCODES "Build CPP plugins" ON)
 if(BUILD_CPP_OPCODES)
 message(STATUS "## Building Plugin Opcodes ##")
 ## CPP OPCODE LIBS WITH NO EXTERNAL DEPENDENCIES ##
-make_plugin(doppler doppler.cpp)
+make_plugin(doppler doppler.cpp libcsound_internals)
+
 make_plugin(fractalnoise tl/fractalnoise.cpp)
 
 if(DIRENT_H) 
-make_plugin(ftsamplebank ftsamplebank.cpp)
+make_plugin(ftsamplebank ftsamplebank.cpp libcsound_internals)
 get_filename_component(DIRENT_INCLUDE_DIR ${DIRENT_H} DIRECTORY)
 target_include_directories(ftsamplebank PRIVATE ${DIRENT_INCLUDE_DIR})
 endif()
 
 make_plugin(lfsr lfsr.cpp)
 make_plugin(bformdec2 bformdec2.cpp)
-make_plugin(mixer mixer.cpp)
-make_plugin(signalflowgraph signalflowgraph.cpp)
-make_plugin(ampmidid ampmidid.cpp)
+make_plugin(mixer mixer.cpp libcsound_internals)
+make_plugin(signalflowgraph signalflowgraph.cpp libcsound_internals)
+make_plugin(ampmidid ampmidid.cpp libcsound_internals)
 
 make_plugin(arrayops arrayops.cpp)
 target_compile_features(arrayops PRIVATE cxx_std_11)

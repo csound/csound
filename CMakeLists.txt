@@ -46,8 +46,11 @@ project(Csound)
 
 enable_testing()
 
-set(libcsound_private_include_dirs "")
-set(libcsound_public_include_dirs "")
+# for libcsound and plugins, utils, and tests that use internals
+add_library(libcsound_internals INTERFACE)
+
+# for users
+add_library(libcsound_public_interface INTERFACE)
 
 SET(BUILD_SHARED_LIBS ON)
 
@@ -451,15 +454,12 @@ if(USE_LIBSNDFILE)
 endif()
 check_deps(USE_LIBSNDFILE SndFile_FOUND)
 
-# this makes sure make_plugin() can find headers
-list(APPEND libcsound_private_include_dirs ${SndFile_INCLUDE_DIR})
-
 # carry on setting up libsndifle if so
 if(USE_LIBSNDFILE)
     add_compile_definitions("USE_LIBSNDFILE")
 
     if(EMSCRIPTEN)
-        list(APPEND libcsound_private_include_dirs ${Csound_SOURCE_DIR}/emscripten/deps/libsndfile-1.0.25/src/)
+        target_include_directories(libcsound_internals INTERFACE ${Csound_SOURCE_DIR}/emscripten/deps/libsndfile-1.0.25/src/)
     endif()
 
     # add to required libraries so we can check for MIDI support
@@ -594,19 +594,21 @@ endif()
 
 ## MAIN TARGETS ##
 
-set(libcsound_CFLAGS -D__BUILDING_LIBCSOUND)
+target_compile_definitions(libcsound_internals INTERFACE "__BUILDING_LIBCSOUND")
 
-list(APPEND libcsound_private_include_dirs ${Csound_SOURCE_DIR}/H)
-list(APPEND libcsound_public_include_dirs 
+target_include_directories(libcsound_internals INTERFACE ${Csound_SOURCE_DIR}/H)
+target_include_directories(libcsound_public_interface INTERFACE
+    # the build interface needs an absolute path for public include dirs
     $<BUILD_INTERFACE:${Csound_SOURCE_DIR}/include>
+     # the install interface needs a relative path
     $<INSTALL_INTERFACE:include>
 )
-list(APPEND libcsound_private_include_dirs ${Csound_SOURCE_DIR}/Engine)
+target_include_directories(libcsound_internals INTERFACE ${Csound_SOURCE_DIR}/Engine)
 
 #adding this for files that #include SDIF/sdif*
-list(APPEND libcsound_private_include_dirs ${Csound_SOURCE_DIR}/util)
+target_include_directories(libcsound_internals INTERFACE ${Csound_SOURCE_DIR}/util)
 #adding this for files that #include files in local dirs
-list(APPEND libcsound_private_include_dirs ${Csound_SOURCE_DIR})
+target_include_directories(libcsound_internals INTERFACE ${Csound_SOURCE_DIR})
 
 #checking pthread functions
 if(REQUIRE_PTHREADS)
@@ -1040,8 +1042,11 @@ if(MSVC)
         COMPILE_FLAGS -DYY_NO_UNISTD_H)
 endif()
 
-list(APPEND libcsound_private_include_dirs ${CMAKE_CURRENT_BINARY_DIR})
-list(APPEND libcsound_public_include_dirs $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}/include>)
+# for generated private headers
+target_include_directories(libcsound_internals INTERFACE ${CMAKE_CURRENT_BINARY_DIR})
+# for generated public headers
+# not needed for install interface because generated headers get copied to the installed include
+target_include_directories(libcsound_public_interface INTERFACE $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}/include>)
 
 if(NEW_PARSER_DEBUG)
     message(STATUS "Building with new parser debugging.")
@@ -1077,8 +1082,8 @@ endif()
 
 if(NOT IOS)
     add_library(${CSOUNDLIB} SHARED ${libcsound_SRCS})
-    target_include_directories(${CSOUNDLIB} PRIVATE ${libcsound_private_include_dirs})
-    target_include_directories(${CSOUNDLIB} PUBLIC ${libcsound_public_include_dirs})
+    target_link_libraries(${CSOUNDLIB} PRIVATE libcsound_internals)
+    target_link_libraries(${CSOUNDLIB} PUBLIC libcsound_public_interface)
     set_target_properties(${CSOUNDLIB} PROPERTIES SOVERSION ${APIVERSION})
 endif()
 
@@ -1097,6 +1102,8 @@ if(APPLE)
 endif()
 
 # Add the install target
+install(TARGETS libcsound_public_interface EXPORT CsoundExports)
+
 if(WIN32)
     install(TARGETS ${CSOUNDLIB}
         EXPORT CsoundExports
@@ -1274,8 +1281,11 @@ else()
 endif()
 
 if(USE_LIBSNDFILE)
-    if(NOT IOS)
-        target_link_libraries(${CSOUNDLIB} PUBLIC SndFile::sndfile)
+    if (IOS)
+        # TODO: figure out how to link the xcframework instead
+        target_include_directories(libcsound_internals INTERFACE ${SndFile_INCLUDE_DIR})
+    else()
+        target_link_libraries(libcsound_public_interface INTERFACE SndFile::sndfile)
     endif()
 endif()
 
@@ -1288,8 +1298,9 @@ endif()
 
 if(BUILD_STATIC_LIBRARY)
     add_library(${CSOUNDLIB_STATIC} STATIC ${libcsound_SRCS})
-    target_include_directories(${CSOUNDLIB_STATIC} PRIVATE ${libcsound_private_include_dirs})
-    target_include_directories(${CSOUNDLIB_STATIC} PUBLIC ${libcsound_public_include_dirs})
+    # BUILD_INTERFACE because to prevent the private interface from being exported
+    target_link_libraries(${CSOUNDLIB_STATIC} PRIVATE $<BUILD_INTERFACE:libcsound_internals>)
+    target_link_libraries(${CSOUNDLIB_STATIC} PUBLIC libcsound_public_interface)
     SET_TARGET_PROPERTIES(${CSOUNDLIB_STATIC} PROPERTIES OUTPUT_NAME ${CSOUNDLIB})
     SET_TARGET_PROPERTIES(${CSOUNDLIB_STATIC} PROPERTIES PREFIX "lib")
     target_compile_options(${CSOUNDLIB_STATIC} PRIVATE ${libcsound_CFLAGS})
@@ -1298,9 +1309,6 @@ if(BUILD_STATIC_LIBRARY)
         set_target_properties(${CSOUNDLIB_STATIC} PROPERTIES COMPILE_FLAGS "-DINIT_STATIC_MODULES")
     endif()
 
-    if (USE_LIBSNDFILE)
-        target_link_libraries(${CSOUNDLIB_STATIC} PUBLIC SndFile::sndfile)
-    endif()
     if(MSVC)
         target_link_libraries(${CSOUNDLIB_STATIC} PRIVATE ${CSOUND_WINDOWS_LIBRARIES})
     else()
