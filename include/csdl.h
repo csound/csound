@@ -104,9 +104,6 @@ LINKAGE(localops)
 * \endcode
 **/
 
-#ifdef __BUILDING_LIBCSOUND
-#undef __BUILDING_LIBCSOUND
-#endif
 #include "interlocks.h"
 #include "csoundCore.h"
 

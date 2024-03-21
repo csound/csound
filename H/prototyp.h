@@ -21,7 +21,7 @@
     02110-1301 USA
 */
 /*  PROTOTYP.H  */
-#if defined(__BUILDING_LIBCSOUND) && !defined(_CSOUND_PROTO_H)
+#if !defined(_CSOUND_PROTO_H)
 #define _CSOUND_PROTO_H
 #include <sysdep.h>
 #ifdef __cplusplus
@@ -298,4 +298,4 @@ int csoundDeleteAllConfigurationVariables(CSOUND *);
 }
 #endif
 
-#endif  /* __BUILDING_LIBCSOUND && !_CSOUND_PROTO_H */
+#endif  /* !_CSOUND_PROTO_H */

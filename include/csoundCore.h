@@ -21,10 +21,6 @@
     02110-1301 USA
 */
 
-#if !defined(__BUILDING_LIBCSOUND) && !defined(CSOUND_CSDL_H)
-#  error "Csound plugins and host applications should not include csoundCore.h"
-#endif
-
 #ifndef CSOUNDCORE_H
 #define CSOUNDCORE_H
 
@@ -49,7 +45,7 @@
 #include "pools.h"
 #include "soundfile.h"
 
-#ifndef CSOUND_CSDL_H
+#ifdef __BUILDING_LIBCSOUND
 /* VL not sure if we need to check for SSE */
 #if defined(__SSE__) && !defined(EMSCRIPTEN)
 #include <xmmintrin.h>

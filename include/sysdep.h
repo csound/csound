@@ -55,14 +55,12 @@ typedef void *locale_t;
 #endif
 #if (defined(__GNUC__) && (__GNUC__ >= 3))
 #  define HAVE_C99 1
-#  if defined(__BUILDING_LIBCSOUND) || defined(CSOUND_CSDL_H)
 #    ifndef _ISOC99_SOURCE
 #      define _ISOC99_SOURCE  1
 #    endif
 #    ifndef _ISOC9X_SOURCE
 #      define _ISOC9X_SOURCE  1
 #    endif
-#  endif
 #  if !(defined(__MACH__) && (__GNUC__ == 3) && (__GNUC_MINOR__ < 2))
 #    define HAVE_GCC3 1
 #  endif
@@ -205,8 +203,6 @@ typedef uint_least16_t uint16;
 /* Aligning to double boundaries, should work with MYFLT as float or double */
 #define CS_FLOAT_ALIGN(x) ((int)(x + sizeof(MYFLT)-1) & (~(sizeof(MYFLT)-1)))
 
-#if defined(__BUILDING_LIBCSOUND) || defined(CSOUND_CSDL_H)
-
 #define FL(x) ((MYFLT) (x))
 
 /* find out operating system if not specified on the command line */
@@ -265,8 +261,6 @@ typedef uint_least16_t uint16;
 #  include <sys/file.h>
 #endif
 #include <sys/stat.h>
-
-#endif  /* __BUILDING_LIBCSOUND || CSOUND_CSDL_H */
 
 #ifdef _WIN32
 #  define ENVSEP ';'
@@ -348,8 +342,6 @@ typedef unsigned long       uintptr_t;
 #  define LIKELY(x)     x
 #  define UNLIKELY(x)   x
 #endif
-
-#if defined(__BUILDING_LIBCSOUND) || defined(CSOUND_CSDL_H)
 
 /* macros for converting floats to integers */
 /* MYFLT2LONG: converts with unspecified rounding */
@@ -447,8 +439,6 @@ static inline double csoundUndenormalizeDouble(double x)
 #else
 #  define csoundUndenormalizeMYFLT      csoundUndenormalizeDouble
 #endif
-
-#endif  /* __BUILDING_LIBCSOUND || CSOUND_CSDL_H */
 
 // This is wrong.....  needs thought
 /* #ifdef HAVE_SPRINTF_L */
