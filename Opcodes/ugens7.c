@@ -30,7 +30,7 @@ static inline unsigned int isPowerOfTwo (unsigned int x) {
   return (x > 0) && !(x & (x - 1)) ? 1 : 0;
 }
 
-#define MOD1(x) fabs(x - (int) x)
+#define MOD1(p) (p < 0 ? -(1. - FLOOR(p)) : p - (uint64_t) p)
 
 /* loosely based on code of Michael Clarke, University of Huddersfield */
 
