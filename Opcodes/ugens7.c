@@ -3,6 +3,7 @@
 
   Copyright (C) 1995 J. Michael Clarke, based on ideas from CHANT (IRCAM),
   Barry Vercoe, John ffitch
+  float phase version: (C) 2024 Victor Lazzarini 
 
   This file is part of Csound.
 
@@ -124,15 +125,21 @@ static int32_t fof(CSOUND *csound, FOFS *p)
   form = p->xform;
   ftp1 = p->ftp1;
   ftp2 = p->ftp2;
-  fund_inc = (int32)(*fund * CS_SICVT);
-  fund_incf = *fund * CS_ONEDSR;
+  
+  
   if (UNLIKELY(offset)) memset(ar, '\0', offset*sizeof(MYFLT));
   if (UNLIKELY(early)) {
     nsmps -= early;
     memset(&ar[nsmps], '\0', early*sizeof(MYFLT));
   }
-  if(floatph) form_incf = *form * CS_ONEDSR;
-  else form_inc = (int32)(*form * CS_SICVT);
+  if(floatph) {
+    form_incf = *form * CS_ONEDSR;
+    fund_incf = *fund * CS_ONEDSR;
+  }
+  else {
+    form_inc = (int32)(*form * CS_SICVT);
+    fund_inc = (int32)(*fund * CS_SICVT);
+  }
   for (n=offset; n<nsmps; n++) {
     if (p->fundphs & MAXLEN ||
         p->fundphsf >= 1.) {
@@ -199,7 +206,7 @@ static int32_t fof(CSOUND *csound, FOFS *p)
         }
         ovp->formphs &= PHMASK;
         if (ovp->risphs < MAXLEN) {             /*  formant ris envlp */
-           result *= *(ftp2->ftable + (ovp->risphs >> ftp2->lobits) );
+          result *= *(ftp2->ftable + (ovp->risphs >> ftp2->lobits) );
           ovp->risphs += ovp->risinc;
         }
         if (ovp->timrem <= ovp->dectim) {       /*  formant dec envlp */
@@ -220,9 +227,11 @@ static int32_t fof(CSOUND *csound, FOFS *p)
     }
     if(floatph) {
       p->fundphsf  += fund_incf;
-      if (p->ampcod)    amp++;
-      if (p->fundcod)   fund_incf = (*++fund * CS_ONEDSR);
-      if (p->formcod)   form_incf = (*++form * CS_ONEDSR);
+      if (p->xincod) {
+        if (p->ampcod)    amp++;
+        if (p->fundcod)   fund_incf = (*++fund * CS_ONEDSR);
+        if (p->formcod)   form_incf = (*++form * CS_ONEDSR);
+      }
     }
     else {
       p->fundphs += fund_inc;
@@ -315,16 +324,17 @@ static int32_t newpulse(CSOUND *csound,
   ovp->curamp = octamp * p->preamp;                /* set startamp  */
   ovp->expamp = p->expamp;
 
-  if ((ovp->dectim = (int32)(*p->kdec * CS_ESR)) > 0) { /*  fnb dec  */
-    if(p->floatph) {
-      ovp->decincf = (CS_ONEDSR / *p->kdec);
-      ovp->decphsf = MOD1(ovp->decphsf);
-    } else {
-      ovp->decinc = (int32)(csound->sicvt / *p->kdec);
-      ovp->decphs = PHMASK;
-    }
-  }
 
+  if(p->floatph) {
+    if ((ovp->dectim = (int32)(*p->kdec * CS_ESR)) > 0) 
+      ovp->decincf = (CS_ONEDSR / *p->kdec);
+    ovp->decphsf = MOD1(ovp->decphsf);
+  } else {
+    if ((ovp->dectim = (int32)(*p->kdec * CS_ESR)) > 0) 
+      ovp->decinc = (int32)(csound->sicvt / *p->kdec);
+    ovp->decphs = PHMASK;
+  }
+ 
   if (!p->foftype) {
     /* Make fof take k-rate phase increment:
        Add current iphs to initial form phase */
