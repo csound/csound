@@ -169,7 +169,7 @@ static int32_t fof(CSOUND *csound, FOFS *p)
           formphsf += (ovp->formincf + ovp->glissbas * ovp->sampct++);
         ovp->formphsf = MOD1(formphsf);
         if (ovp->risphsf < 1.) {             /*  formant ris envlp */
-          result *= *(ftp2->ftable + (size_t) (ovp->risincf * ftp2->flen));
+          result *= *(ftp2->ftable + (size_t) (ovp->risphsf * ftp2->flen));
           ovp->risphsf += ovp->risincf;
         }
         if (ovp->timrem <= ovp->dectim) {       /*  formant dec envlp */
@@ -199,7 +199,7 @@ static int32_t fof(CSOUND *csound, FOFS *p)
         }
         ovp->formphs &= PHMASK;
         if (ovp->risphs < MAXLEN) {             /*  formant ris envlp */
-          result *= *(ftp2->ftable + (ovp->risphs >> ftp2->lobits) );
+           result *= *(ftp2->ftable + (ovp->risphs >> ftp2->lobits) );
           ovp->risphs += ovp->risinc;
         }
         if (ovp->timrem <= ovp->dectim) {       /*  formant dec envlp */
@@ -226,14 +226,13 @@ static int32_t fof(CSOUND *csound, FOFS *p)
     }
     else {
       p->fundphs += fund_inc;
-    if (p->xincod) {
-      if (p->ampcod)    amp++;
-      if (p->fundcod)   fund_inc = (int32)(*++fund * csound->sicvt);
-      if (p->formcod)   form_inc = (int32)(*++form * csound->sicvt);
+      if (p->xincod) {
+        if (p->ampcod)    amp++;
+        if (p->fundcod)   fund_inc = (int32)(*++fund * csound->sicvt);
+        if (p->formcod)   form_inc = (int32)(*++form * csound->sicvt);
+      }
     }
-    }
-    p->durtogo--;
-      
+    p->durtogo--;    
   }
   return OK;
  err1:
@@ -267,86 +266,88 @@ static int32_t newpulse(CSOUND *csound,
     else ovp->formphsf =  MOD1(p->fundphsf * *form / *fund);
     ovp->formincf = (*form * CS_ONEDSR);
   }
-    else{
-      if (*fund == FL(0.0))                               /* formant phs */
-        ovp->formphs = 0;
-      else ovp->formphs = (int32)(p->fundphs * *form / *fund) & PHMASK;
-      ovp->forminc = (int32)(*form * CS_SICVT);
-    }
+  else{
+    if (*fund == FL(0.0))                               /* formant phs */
+      ovp->formphs = 0;
+    else ovp->formphs = (int32)(p->fundphs * *form / *fund) & PHMASK;
+    ovp->forminc = (int32)(*form * CS_SICVT);
+  }
     
     
-    if (*p->kband != p->prvband) {                    /* bw: exp dec */
-      p->prvband = *p->kband;
-      p->expamp =  EXP(*p->kband * csound->mpidsr);
-      newexp = 1;
-    }
-    /* Init grain rise ftable phase. Negative kform values make
-       the kris (ifnb) initial index go negative and crash csound.
-       So insert another if-test with compensating code. */
-    if (*p->kris >= CS_ONEDSR && *form != FL(0.0)) {   /* init fnb ris */
-      if(p->floatph) {
-        if (*form < FL(0.0) && ovp->formphsf != 0.)
-          ovp->risphsf = ((1. - ovp->formphsf) / -*form / *p->kris);
-        else
-          ovp->risphsf = (ovp->formphsf / *form / *p->kris);
-        ovp->risincf = (CS_ONEDSR / *p->kris);
-        rismps = (int32_t) (1. / ovp->risincf);  /* ? */
-      } else {
-        if (*form < FL(0.0) && ovp->formphs != 0)
-          ovp->risphs = (int32)((MAXLEN - ovp->formphs) / -*form / *p->kris);
-        else
-          ovp->risphs = (int32)(ovp->formphs / *form / *p->kris);
-        ovp->risinc = (int32)(csound->sicvt / *p->kris);
-        rismps = MAXLEN / ovp->risinc;
+  if (*p->kband != p->prvband) {                    /* bw: exp dec */
+    p->prvband = *p->kband;
+    p->expamp =  EXP(*p->kband * csound->mpidsr);
+    newexp = 1;
+  }
+  /* Init grain rise ftable phase. Negative kform values make
+     the kris (ifnb) initial index go negative and crash csound.
+     So insert another if-test with compensating code. */
+  if (*p->kris >= CS_ONEDSR && *form != FL(0.0)) {   /* init fnb ris */
+    if(p->floatph) {
+      if (*form < FL(0.0) && ovp->formphsf != 0.)
+        ovp->risphsf = ((1. - ovp->formphsf) / -*form / *p->kris);
+      else {
+        ovp->risphsf = (ovp->formphsf / *form / *p->kris);
+        
       }
+      ovp->risincf = (CS_ONEDSR / *p->kris);
+      rismps = (int32_t) (1. / ovp->risincf);  
+    } else {
+      if (*form < FL(0.0) && ovp->formphs != 0)
+        ovp->risphs = (int32)((MAXLEN - ovp->formphs) / -*form / *p->kris);
+      else
+        ovp->risphs = (int32)(ovp->formphs / *form / *p->kris);
+      ovp->risinc = (int32)(csound->sicvt / *p->kris);
+      rismps = MAXLEN / ovp->risinc;
     }
-    else {
-      if(p->floatph) ovp->risphsf = 1.;
-      else ovp->risphs = MAXLEN;
-      rismps = 0;
-    }
+  }
+  else {
+    if(p->floatph) ovp->risphsf = 1.;
+    else ovp->risphs = MAXLEN;
+    rismps = 0;
+  }
     
-    if (newexp || rismps != p->prvsmps) {            /* if new params */
-      if ((p->prvsmps = rismps))                     /*   redo preamp */
-        p->preamp = csound->intpow(p->expamp, -rismps);
-      else p->preamp = FL(1.0);
-    }
-    ovp->curamp = octamp * p->preamp;                /* set startamp  */
-    ovp->expamp = p->expamp;
+  if (newexp || rismps != p->prvsmps) {            /* if new params */
+    if ((p->prvsmps = rismps))                     /*   redo preamp */
+      p->preamp = csound->intpow(p->expamp, -rismps);
+    else p->preamp = FL(1.0);
+  }
+  ovp->curamp = octamp * p->preamp;                /* set startamp  */
+  ovp->expamp = p->expamp;
 
-    if ((ovp->dectim = (int32)(*p->kdec * CS_ESR)) > 0) { /*  fnb dec  */
-      if(p->floatph) {
-        ovp->decincf = (CS_ONEDSR / *p->kdec);
-        ovp->decphsf = MOD1(ovp->decphsf);
-      } else {
-        ovp->decinc = (int32)(csound->sicvt / *p->kdec);
-        ovp->decphs = PHMASK;
-      }
+  if ((ovp->dectim = (int32)(*p->kdec * CS_ESR)) > 0) { /*  fnb dec  */
+    if(p->floatph) {
+      ovp->decincf = (CS_ONEDSR / *p->kdec);
+      ovp->decphsf = MOD1(ovp->decphsf);
+    } else {
+      ovp->decinc = (int32)(csound->sicvt / *p->kdec);
+      ovp->decphs = PHMASK;
     }
+  }
 
-    if (!p->foftype) {
-      /* Make fof take k-rate phase increment:
-         Add current iphs to initial form phase */
-      if(p->floatph) {
-        ovp->formphsf += *p->iphs;
-        ovp->formphsf = MOD1(ovp->formphsf);
-        ovp->glissbas = ovp->formincf * (MYFLT)pow(2.0, (double)*p->kgliss);
-        ovp->glissbas -= ovp->formincf;
-        ovp->glissbas /= ovp->timrem;
-      } else {
-        ovp->formphs += (int32)(*p->iphs * FMAXLEN);           /*  krate phs */
-        ovp->formphs &= PHMASK;
-        /* Set up grain gliss increment: ovp->glissbas will be added to
-           ovp->forminc at each pass in fof2. Thus glissbas must be
-           equal to kgliss / grain playing time. Also make it harmonic,
-           so integer kgliss can represent octaves (ie pow() call). */
-        ovp->glissbas = ovp->forminc * (MYFLT)pow(2.0, (double)*p->kgliss);
-        /* glissbas should be diff of start & end pitch*/
-        ovp->glissbas -= ovp->forminc;
-        ovp->glissbas /= ovp->timrem;
-        ovp->sampct = 0;   /* Must be reset in case ovp was used before  */
-      }
+  if (!p->foftype) {
+    /* Make fof take k-rate phase increment:
+       Add current iphs to initial form phase */
+    if(p->floatph) {
+      ovp->formphsf += *p->iphs;
+      ovp->formphsf = MOD1(ovp->formphsf);
+      ovp->glissbas = ovp->formincf * (MYFLT)pow(2.0, (double)*p->kgliss);
+      ovp->glissbas -= ovp->formincf;
+      ovp->glissbas /= ovp->timrem;
+    } else {
+      ovp->formphs += (int32)(*p->iphs * FMAXLEN);           /*  krate phs */
+      ovp->formphs &= PHMASK;
+      /* Set up grain gliss increment: ovp->glissbas will be added to
+         ovp->forminc at each pass in fof2. Thus glissbas must be
+         equal to kgliss / grain playing time. Also make it harmonic,
+         so integer kgliss can represent octaves (ie pow() call). */
+      ovp->glissbas = ovp->forminc * (MYFLT)pow(2.0, (double)*p->kgliss);
+      /* glissbas should be diff of start & end pitch*/
+      ovp->glissbas -= ovp->forminc;
+      ovp->glissbas /= ovp->timrem;
+      ovp->sampct = 0;   /* Must be reset in case ovp was used before  */
     }
+  }
   return(1);
 }
 
