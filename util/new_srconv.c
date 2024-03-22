@@ -56,7 +56,7 @@
 #define OBUF    (8192)
 
 #ifdef GNU_GETTEXT
-# define Str(x) LocalizeString(x)
+# include "csound.h" // for Str
 #else
 # define Str(x)  (x)
 #endif
