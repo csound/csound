@@ -3210,6 +3210,9 @@ static inline void getTablePointers(CSOUND *p, MYFLT **ct, int16 **bt,
 }
 
 
+
+
+
 /**
  * Returns the amplitude scale that should be applied to the result of
  * an inverse complex FFT with a length of 'FFTsize' samples.
@@ -3497,7 +3500,7 @@ void *csoundRealFFT2Setup(CSOUND *csound,
                                 setupDispose);
   return (void *) setup;
 }
-
+ 
 void csoundRealFFT2(CSOUND *csound,
                      void *p, MYFLT *sig){
   CSOUND_FFT_SETUP *setup =
@@ -3512,11 +3515,20 @@ void csoundRealFFT2(CSOUND *csound,
     pffft_execute(setup,sig);
     break;
   default:
+    if(setup->p2) { 
     (setup->d == FFT_FWD ?
       csoundRealFFT(csound,
                      sig,setup->N) :
       csoundInverseRealFFT(csound,
                      sig,setup->N));
+    } else {
+     (setup->d == FFT_FWD ?
+      csoundRealFFTnp2(csound,
+                     sig,setup->N) :
+      csoundInverseRealFFTnp2(csound,
+                     sig,setup->N));
+
+    }
     setup->lib = 0;
   }
 }

@@ -195,6 +195,7 @@ static int32_t takeFFT(CSOUND *csound, SOUNDIN *p, CVSTRUCT *cvh,
     MYFLT   *fp1, *fp2;
     int32_t Hlen = (int32_t) cvh->Hlen;
     int32_t nchanls;
+    void *setup;
 
     nchanls = cvh->channel != ALLCHNLS ? 1 : cvh->src_chnls;
     j = (int32_t) (Hlen * nchanls);
@@ -214,6 +215,7 @@ static int32_t takeFFT(CSOUND *csound, SOUNDIN *p, CVSTRUCT *cvh,
     /* for (i = 0; i < (Hlenpadded + 2); i++) */
     /*   outbuf[i] = FL(0.0); */
     memset(outbuf, 0, sizeof(MYFLT)*(Hlenpadded + 2));
+    setup = csound->RealFFT2Setup(csound, Hlenpadded, FFT_FWD);
 
     for (i = 0; i < nchanls; i++) {
       for (j = Hlen; j > 0; j--) {
@@ -221,7 +223,7 @@ static int32_t takeFFT(CSOUND *csound, SOUNDIN *p, CVSTRUCT *cvh,
         fp1 += nchanls;
       }
       fp1 = inbuf + i + 1;
-      csound->RealFFT(csound, outbuf, (int32_t) Hlenpadded);
+      csound->RealFFT2(csound, setup, outbuf);
       outbuf[Hlenpadded] = outbuf[1];
       outbuf[1] = outbuf[Hlenpadded + 1L] = FL(0.0);
       /* write straight out, just the indep vals */

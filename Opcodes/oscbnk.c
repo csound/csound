@@ -1614,7 +1614,8 @@ static void vco2_calculate_table(CSOUND *csound,
     /* inverse FFT */
     fftbuf[1] = fftbuf[table->size];
     fftbuf[table->size] = fftbuf[(int32_t) table->size + 1] = FL(0.0);
-    csound->InverseRealFFT(csound, fftbuf, (int32_t) table->size);
+    
+    csound->RealFFT2(csound,csound->RealFFT2Setup(csound,table->size,FFT_INV),fftbuf);
     /* copy to table */
     for (i = 0; i < table->size; i++)
       table->ftable[i] = fftbuf[i];
@@ -1864,7 +1865,7 @@ static int32_t vco2init(CSOUND *csound, VCO2INIT *p)
         tp.w_fftbuf = (MYFLT*) csound->Malloc(csound, sizeof(MYFLT) * (i + 2));
         for (j = 0; j < ftp->flen; j++)
           tp.w_fftbuf[j] = ftp->ftable[j] / (MYFLT) (ftp->flen >> 1);
-        csound->RealFFT(csound, tp.w_fftbuf, (int32_t) ftp->flen);
+        csound->RealFFT2(csound, csound->RealFFT2Setup(csound, ftp->flen, FFT_FWD), tp.w_fftbuf);
         tp.w_fftbuf[ftp->flen] = tp.w_fftbuf[1];
         tp.w_fftbuf[1] = tp.w_fftbuf[(int32_t) ftp->flen + 1] = FL(0.0);
         /* generate table array */

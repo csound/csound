@@ -193,6 +193,7 @@ extern "C" {
     int32_t M, N, wlen, cp, bp;
     MYFLT *win;
     void *setup;
+    void *fftsetup;
   } LPCPVS;
 
 

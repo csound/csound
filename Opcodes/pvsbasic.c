@@ -1759,15 +1759,9 @@ static int32_t pvsscale(CSOUND *csound, PVSSCALE *p)
           for (i=0; i < N/2; i++) {
             ceps[i] = fenv[i];
           }
-          if (!(N & (N - 1)))
-            csound->RealFFT2(csound, p->fwdsetup, ceps);
-          else
-            csound->RealFFTnp2(csound, ceps, tmp);
+          csound->RealFFT2(csound, p->fwdsetup, ceps);
           for (i=coefs; i < N/2; i++) ceps[i] = 0.0;
-          if (!(N & (N - 1)))
-            csound->RealFFT2(csound, p->invsetup, ceps);
-          else
-            csound->InverseRealFFTnp2(csound, ceps, tmp);
+          csound->RealFFT2(csound, p->invsetup, ceps);
           for (i=j=0; i < N/2; i++, j+=2) {
             if (keepform > 1) {
               if (fenv[i] < ceps[i])

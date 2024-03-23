@@ -107,6 +107,7 @@ typedef struct pvocex_ch {
         int64_t  bin_index;     /* index into oldOutPhase to do fast norm_phase */
         float *synWindow_base;
         MYFLT *analWindow_base;
+  void *setup;
 
 } PVX;
 
@@ -593,6 +594,7 @@ static int32_t init(CSOUND *csound,
     thispvx->M           = M;
     thispvx->Mf          = Mf = 1 - M%2;
     thispvx->ibuflen     = 4 * M;
+    thispvx->setup = csound->RealFFT2Setup(csound,  thispvx->N , FFT_FWD);
 
     D = (int32_t)((D != 0 ? D : M/(8.0))); /* Why floating 8?? */
     if (D == 0) {
@@ -775,7 +777,7 @@ static int64_t generate_frame(CSOUND *csound, PVX *pvx,
         k -= N;
       *(anal + k) += *(pvx->analWindow + i) * *(pvx->input + j);
     }
-    csound->RealFFTnp2(csound, anal, pvx->N);
+    csound->RealFFT2(csound, pvx->setup, anal);
     /* conversion: The real and imaginary values in anal are converted to
        magnitude and angle-difference-per-second (assuming an
        intermediate sampling rate of rIn) and are returned in

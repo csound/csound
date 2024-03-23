@@ -330,14 +330,12 @@ static void generate_frame(CSOUND *csound, PVSANAL *p)
       /* *(anal + k) += *(analWindow + i) * *(input + j); */
       anal[k] += analWindow[i] * input[j];
     }
+     csound->RealFFT2(csound,p->setup,anal);    
     if (!(N & (N - 1))) {
-      /* csound->RealFFT(csound, anal, N);*/
-      csound->RealFFT2(csound,p->setup,anal);
       anal[N] = anal[1];
       anal[1] = anal[N + 1] = FL(0.0);
     }
-    else
-      csound->RealFFTnp2(csound, anal, N);
+
     /* conversion: The real and imaginary values in anal are converted to
        magnitude and angle-difference-per-second (assuming an
        intermediate sampling rate of rIn) and are returned in
@@ -946,8 +944,8 @@ static void process_frame(CSOUND *csound, PVSYNTH *p)
       csound->RealFFT2(csound,p->setup,syn);
       syn[NO] = syn[NO + 1] = FL(0.0);
     }
-    else
-      csound->InverseRealFFTnp2(csound, syn, NO);
+    else // np2
+      csound->RealFFT2(csound,p->setup,syn);
     j = p->nO - synWinLen - 1;
     while (j < 0)
       j += p->buflen;

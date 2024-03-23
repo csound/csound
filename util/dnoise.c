@@ -102,48 +102,6 @@ static  void    hamming(MYFLT *, int32_t, int32_t);
 static int32_t writebuffer(CSOUND *, SNDFILE *, MYFLT *,
                            int32_t, int32_t *, OPARMS *);
 
-#if 0
-static void fast(CSOUND *csound, MYFLT *b, int32_t N)
-{
-  /* The DC term is returned in location b[0] with b[1] set to 0.
-     Thereafter, the i'th harmonic is returned as a complex
-     number stored as b[2*i] + j b[2*i+1].  The N/2 harmonic
-     is returned in b[N] with b[N+1] set to 0.  Hence, b must
-     be dimensioned to size N+2.  The subroutine is called as
-     fast(b,N) where N=2**M and b is the real array described
-     above.
-  */
-
-    csound->RealFFT(csound, b, N);
-    b[N] = b[1];
-    b[1] = b[N + 1] = FL(0.0);
-}
-
-
-static void fsst(CSOUND *csound, MYFLT *b, int32_t N)
-{
-
-  /* This subroutine synthesizes the real vector b[k] for k=0, 1,
-     ..., N-1 from the fourier coefficients stored in the b
-     array of size N+2.  The DC term is in location b[0] with
-     b[1] equal to 0.  The i'th harmonic is a complex number
-     stored as b[2*i] + j b[2*i+1].  The N/2 harmonic is in
-     b[N] with b[N+1] equal to 0. The subroutine is called as
-     fsst(b,N) where N=2**M and b is the real array described
-     above.
-  */
-    MYFLT   scaleVal;
-    int32_t i;
-
-    scaleVal = csound->GetInverseRealFFTScale(csound, N);
-    b[1] = b[N];
-    b[N] = b[N + 1] = FL(0.0);
-    for (i = 0; i < N; i++)
-      b[i] *= scaleVal;
-    csound->InverseRealFFT(csound, b, N);
-}
-#endif
-
 static inline void fast2(CSOUND *csound, void *setup, MYFLT *b)
 {
     csound->RealFFT2(csound, setup, b);

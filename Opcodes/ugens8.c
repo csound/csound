@@ -129,6 +129,7 @@ int32_t pvset_(CSOUND *csound, PVOC *p, int32_t stringname)
     if (p->memenv.auxp == NULL || p->memenv.size < pvdasiz(p)*sizeof(MYFLT))
         csound->AuxAlloc(csound, pvdasiz(p) * sizeof(MYFLT), &p->memenv);
 
+    p->setup = csound->RealFFT2Setup(csound, pvfrsiz(p), FFT_INV);
     return OK;
 }
 
@@ -189,7 +190,7 @@ int32_t pvoc(CSOUND *csound, PVOC *p)
         PreWarpSpec(buf, asize, pex, (MYFLT *)p->memenv.auxp);
      }
 
-    Polar2Real_PVOC(csound, buf, size);
+    Polar2Real_PVOC(csound, buf, p->setup);
 
     if (pex != FL(1.0))
       UDSample(p->pp, buf, (FL(0.5) * ((MYFLT) size - pex * (MYFLT) buf2Size)),

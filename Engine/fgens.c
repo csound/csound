@@ -33,6 +33,7 @@
 #include "pstream.h"
 #include "pvfileio.h"
 #include <stdlib.h>
+#include "fftlib.h"
 /* #undef ISSTRCOD */
 
 static inline int32_t byte_order(void)
@@ -1758,7 +1759,7 @@ static int gen30(FGDATA *ff, FUNC *ftp)
     for (i = 0; i < l2; i++)
       x[i] = xsr * f2[i];
     /* filter */
-    csound->RealFFT(csound, x, l2);
+    csoundRealFFT(csound, x, l2);
     x[l2] = x[1];
     x[1] = x[l2 + 1] = FL(0.0);
     for (i = 0; i < (minh << 1); i++)
@@ -1772,7 +1773,7 @@ static int gen30(FGDATA *ff, FUNC *ftp)
       x[i] = FL(0.0);
     x[1] = x[l1];
     x[l1] = x[l1 + 1] = FL(0.0);
-    csound->InverseRealFFT(csound, x, l1);
+    csoundInverseRealFFT(csound, x, l1);
     /* write dest. table */
     /* memcpy(f1, x, l1*sizeof(MYFLT)); */
     for (i = 0; i < l1; i++)
@@ -1814,7 +1815,7 @@ static int gen31(FGDATA *ff, FUNC *ftp)
     a = csound->GetInverseRealFFTScale(csound, l1) * (MYFLT) l1 / (MYFLT) l2;
     for (i = 0; i < l2; i++)
       x[i] = a * f2[i];
-    csound->RealFFT(csound, x, l2);
+    csoundRealFFT(csound, x, l2);
     x[l2] = x[1];
     x[1] = x[l2 + 1] = FL(0.0);
 
@@ -1850,7 +1851,7 @@ static int gen31(FGDATA *ff, FUNC *ftp)
     /* write dest. table */
     y[1] = y[l1];
     y[l1] = y[l1 + 1] = FL(0.0);
-    csound->InverseRealFFT(csound, y, l1);
+    csoundInverseRealFFT(csound, y, l1);
     /* memcpy(f1, y, l1*sizeof(MYFLT)); */
     for (i = 0; i < l1; i++)
       f1[i] = y[i];
@@ -1950,7 +1951,7 @@ static int gen32(FGDATA *ff, FUNC *ftp)
           /* read and analyze src table */
           for (i = 0; i < l2; i++)
             x[i] = f2[i];
-          csound->RealFFT(csound, x, l2);
+          csoundRealFFT(csound, x, l2);
           x[l2] = x[1];
           x[1] = x[l2 + 1] = FL(0.0);
         }
@@ -1977,7 +1978,7 @@ static int gen32(FGDATA *ff, FUNC *ftp)
     /* write dest. table */
     if (y != NULL) {
       y[1] = y[l1]; y[l1] = y[l1 + 1] = FL(0.0);
-      csound->InverseRealFFT(csound, y, l1);
+      csoundInverseRealFFT(csound, y, l1);
       for (i = 0; i < l1; i++)
         f1[i] += y[i];
       f1[l1] += y[0];           /* write guard point */
@@ -2055,7 +2056,7 @@ static int gen33(FGDATA *ff, FUNC *ftp)
       x[(pnum << 1) + 1] -= amp * COS(phs);
     }
 
-    csound->InverseRealFFT(csound, x, flen);    /* iFFT */
+    csoundInverseRealFFT(csound, x, flen);    /* iFFT */
 
 
     memcpy(ft, x, flen*sizeof(MYFLT));
@@ -3287,7 +3288,7 @@ static void gen53_freq_response_to_ir(CSOUND *csound,
       obuf[i++] = FL(0.0);
     } while (i < npts);
     obuf[1] = ibuf[j] * scaleFac;
-    csound->InverseRealFFT(csound, obuf, npts);
+    csoundInverseRealFFT(csound, obuf, npts);
     obuf[npts] = FL(0.0);               /* clear guard point */
     if (wbuf != NULL && !(mode & 4))    /* apply window if requested */
       gen53_apply_window(obuf, wbuf, npts, wpts, 0);
@@ -3307,7 +3308,7 @@ static void gen53_freq_response_to_ir(CSOUND *csound,
       buf1[j] = obuf[i];
     for ( ; j < npts2; j++)
       buf1[j] = FL(0.0);
-    csound->RealFFT(csound, buf1, npts2);
+    csoundRealFFT(csound, buf1, npts2);
     for (i = j = 0; i < npts; i++, j += 2) {
       tmp = (double) buf1[j];
       tmp = sqrt(tmp * tmp + 1.0e-20);
@@ -3322,7 +3323,7 @@ static void gen53_freq_response_to_ir(CSOUND *csound,
     }
     for (j = i - 2; i < npts2; i++, j--)    /* need full spectrum,     */
       buf1[i] = buf1[j];                    /* not just the lower half */
-    csound->RealFFT(csound, buf1, npts2);
+    csoundRealFFT(csound, buf1, npts2);
     /* and convolve with 1/tan(x) impulse response */
     buf2[0] = FL(0.0);
     buf2[1] = FL(0.0);
@@ -3330,9 +3331,9 @@ static void gen53_freq_response_to_ir(CSOUND *csound,
       buf2[i] = FL(0.0);
       buf2[i + 1] = (MYFLT) (npts2 - i) / (MYFLT) npts2;
     }
-    csound->RealFFTMult(csound, buf1, buf1, buf2, npts2, scaleFac);
+    csoundRealFFTMult(csound, buf1, buf1, buf2, npts2, scaleFac);
     /* store unwrapped phase response in buf1 */
-    csound->InverseRealFFT(csound, buf1, npts2);
+    csoundInverseRealFFT(csound, buf1, npts2);
     /* convert from magnitude/phase format to real/imaginary */
     for (i = 2; i < npts2; i += 2) {
       double  ph;
@@ -3346,7 +3347,7 @@ static void gen53_freq_response_to_ir(CSOUND *csound,
     buf2[0] = scaleFac * obuf[0];
     buf2[1] = scaleFac * obuf[npts];
     /* perform inverse FFT to get impulse response */
-    csound->InverseRealFFT(csound, buf2, npts2);
+    csoundInverseRealFFT(csound, buf2, npts2);
     /* copy output, truncating to table length + guard point */
     for (i = 0; i <= npts; i++)
       obuf[i] = buf2[i];
@@ -3400,7 +3401,7 @@ static int gen53(FGDATA *ff, FUNC *ftp)
       tmpft = (MYFLT*) csound->Calloc(csound, sizeof(MYFLT)
                                               * (size_t) ((dstflen >> 1) + 1));
       memcpy(dstftp, srcftp, sizeof(MYFLT) * (size_t) dstflen);
-      csound->RealFFT(csound, dstftp, dstflen);
+      csoundRealFFT(csound, dstftp, dstflen);
       tmpft[0] = dstftp[0];
       for (i = 2, j = 1; i < dstflen; i += 2, j++)
         tmpft[j] = HYPOT(dstftp[i], dstftp[i + 1]);

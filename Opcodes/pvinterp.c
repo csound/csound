@@ -240,6 +240,7 @@ int32_t pvinterpset_(CSOUND *csound, PVINTERP *p, int32_t stringname)
     /* for (i = 0; i< pvfrsiz(p); ++i) */
     /*   p->outBuf[i] = FL(0.0); */
     MakeSinc(p->pp);                    /* sinctab is same for all instances */
+    p->setup = csound->RealFFT2Setup(csound, pvfrsiz(p), FFT_INV);
 
     return OK;
 }
@@ -304,7 +305,7 @@ int32_t pvinterp(CSOUND *csound, PVINTERP *p)
     /* accumulate phase and wrap to range -PI to PI */
     RewrapPhase(buf, asize, p->lastPhase);
 
-    Polar2Real_PVOC(csound, buf, (int32_t) size);
+    Polar2Real_PVOC(csound, buf, p->setup);
 
     if (pex != FL(1.0))
       UDSample(p->pp, buf,
@@ -431,6 +432,8 @@ int32_t pvcrossset_(CSOUND *csound, PVCROSS *p, int32_t stringname)
     MakeSinc(p->pp);                    /* sinctab is same for all instances */
     if (p->memenv.auxp == NULL || p->memenv.size < pvdasiz(p)*sizeof(MYFLT))
       csound->AuxAlloc(csound, pvdasiz(p) * sizeof(MYFLT), &p->memenv);
+
+    p->setup = csound->RealFFT2Setup(csound, pvfrsiz(p), FFT_INV);
     return OK;
 }
 
@@ -510,7 +513,7 @@ int32_t pvcross(CSOUND *csound, PVCROSS *p)
       if (specwp > 0)
         PreWarpSpec(buf, asize, pex, (MYFLT *)p->memenv.auxp);
 
-      Polar2Real_PVOC(csound, buf, (int32_t) size);
+      Polar2Real_PVOC(csound, buf, p->setup);
 
       if (pex != FL(1.0))
         UDSample(p->pp, buf,

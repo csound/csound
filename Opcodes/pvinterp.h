@@ -57,7 +57,7 @@ typedef struct {
     MYFLT   *window;    /* [PVWINLEN]   Store 1/2 window */
     PVBUFREAD *pvbufread;
     PVOC_GLOBALS  *pp;
-
+  void *setup;
 } PVINTERP;
 
 typedef struct {
@@ -80,5 +80,6 @@ typedef struct {
     PVBUFREAD *pvbufread;
     PVOC_GLOBALS  *pp;
     AUXCH memenv;
+  void *setup;
 } PVCROSS;
 

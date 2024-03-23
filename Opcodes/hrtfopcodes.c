@@ -216,6 +216,8 @@ typedef struct
         /* delay */
         AUXCH delmeml, delmemr;
         int32_t ptl, ptr, mdtl, mdtr;
+
+        void *setup, *setup_pad, *isetup, *isetup_pad;
 }
 hrtfmove;
 
@@ -476,7 +478,10 @@ static int32_t hrtfmove_init(CSOUND *csound, hrtfmove *p)
        start with to ensure first read */
     p->anglev = -1;
     p->elevv = -41;
-
+    p->setup_pad = csound->RealFFT2Setup(csound, p->irlengthpad, FFT_FWD);
+    p->setup = csound->RealFFT2Setup(csound, p->irlength, FFT_FWD);
+    p->isetup_pad = csound->RealFFT2Setup(csound, p->irlengthpad, FFT_INV);
+    p->isetup = csound->RealFFT2Setup(csound, p->irlength, FFT_INV);
     return OK;
 }
 
@@ -989,8 +994,8 @@ static int32_t hrtfmove_process(CSOUND *csound, hrtfmove *p)
                   {
                     /* ifft!...see Oppehneim and Schafer for min phase
                        process...based on real cepstrum method */
-                    csound->InverseRealFFT(csound, logmagl, irlength);
-                    csound->InverseRealFFT(csound, logmagr, irlength);
+                    csound->RealFFT2(csound, p->isetup, logmagl);
+                    csound->RealFFT2(csound,  p->isetup, logmagr);
 
                     /* window, note no need to scale on csound iffts... */
                     for(i = 0; i < irlength; i++)
@@ -1000,8 +1005,8 @@ static int32_t hrtfmove_process(CSOUND *csound, hrtfmove *p)
                       }
 
                     /* fft */
-                    csound->RealFFT(csound, xhatwinl, irlength);
-                    csound->RealFFT(csound, xhatwinr, irlength);
+                    csound->RealFFT2(csound, p->setup, xhatwinl);
+                    csound->RealFFT2(csound, p->setup, xhatwinl);
 
                     /* exponential of result */
                     /* 0 hz and nyq purely real... */
@@ -1020,8 +1025,8 @@ static int32_t hrtfmove_process(CSOUND *csound, hrtfmove *p)
                       }
 
                     /* ifft for output buffers */
-                    csound->InverseRealFFT(csound, expxhatwinl, irlength);
-                    csound->InverseRealFFT(csound, expxhatwinr, irlength);
+                    csound->RealFFT2(csound,  p->isetup, expxhatwinl);
+                    csound->RealFFT2(csound,  p->isetup, expxhatwinr);
 
                     /* output */
                     for(i= 0; i < irlength; i++)
@@ -1035,8 +1040,8 @@ static int32_t hrtfmove_process(CSOUND *csound, hrtfmove *p)
                 if(phasetrunc)
                   {
                     /* ifft */
-                    csound->InverseRealFFT(csound, hrtflfloat, irlength);
-                    csound->InverseRealFFT(csound, hrtfrfloat, irlength);
+                    csound->RealFFT2(csound, p->setup, hrtflfloat);
+                    csound->RealFFT2(csound, p->setup, hrtfrfloat);
 
                     for (i = 0; i < irlength; i++)
                       {
@@ -1054,8 +1059,8 @@ static int32_t hrtfmove_process(CSOUND *csound, hrtfmove *p)
                   }
 
                 /* back to freq domain */
-                csound->RealFFT(csound, hrtflpad, irlengthpad);
-                csound->RealFFT(csound, hrtfrpad, irlengthpad);
+                csound->RealFFT2(csound,  p->setup_pad,hrtflpad);
+                csound->RealFFT2(csound,  p->setup_pad,hrtfrpad);
 
                 if(minphase)
                   {
@@ -1188,7 +1193,7 @@ static int32_t hrtfmove_process(CSOUND *csound, hrtfmove *p)
             for (i = irlength; i < irlengthpad; i++)
               complexinsig[i] = FL(0.0);
 
-            csound->RealFFT(csound, complexinsig, irlengthpad);
+            csound->RealFFT2(csound,p->setup_pad, complexinsig);
 
             /* complex mult function... */
             csound->RealFFTMult(csound, outspecl, hrtflpad, complexinsig,
@@ -1197,8 +1202,8 @@ static int32_t hrtfmove_process(CSOUND *csound, hrtfmove *p)
                                 irlengthpad, FL(1.0));
 
             /* convolution is the inverse FFT of above result */
-            csound->InverseRealFFT(csound, outspecl, irlengthpad);
-            csound->InverseRealFFT(csound, outspecr, irlengthpad);
+            csound->RealFFT2(csound,p->isetup_pad,outspecl);
+            csound->RealFFT2(csound,p->isetup_pad,outspecr);
 
             /* real values, scaled (by a little more than usual to ensure
                no clipping) sr related */
@@ -1220,8 +1225,8 @@ static int32_t hrtfmove_process(CSOUND *csound, hrtfmove *p)
                     csound->RealFFTMult(csound, outspecoldr, oldhrtfrpad,
                                         complexinsig, irlengthpad, FL(1.0));
 
-                    csound->InverseRealFFT(csound, outspecoldl, irlengthpad);
-                    csound->InverseRealFFT(csound, outspecoldr, irlengthpad);
+                    csound->RealFFT2(csound,p->isetup_pad, outspecoldl);
+                    csound->RealFFT2(csound, p->isetup_pad,outspecoldr);
 
                     /* scaled */
                     for(i = 0; i < irlengthpad; i++)
@@ -1383,6 +1388,8 @@ typedef struct
 
         /* buffers for impulse shift */
         AUXCH leftshiftbuffer, rightshiftbuffer;
+
+  void *setup, *isetup, *isetup_pad, *setup_pad;
 }
 hrtfstat;
 
@@ -1834,9 +1841,14 @@ static int32_t hrtfstat_init(CSOUND *csound, hrtfstat *p)
         hrtfrfloat[i+1] = magr * SIN(phaser);
       }
 
+    p->setup_pad = csound->RealFFT2Setup(csound, p->irlengthpad, FFT_FWD);
+    p->setup = csound->RealFFT2Setup(csound, p->irlength, FFT_FWD);
+    p->isetup_pad = csound->RealFFT2Setup(csound, p->irlengthpad, FFT_INV);
+    p->isetup = csound->RealFFT2Setup(csound, p->irlength, FFT_INV);
+
     /* ifft */
-    csound->InverseRealFFT(csound, hrtflfloat, irlength);
-    csound->InverseRealFFT(csound, hrtfrfloat, irlength);
+    csound->RealFFT2(csound,  p->isetup, hrtflfloat);
+    csound->RealFFT2(csound,  p->isetup, hrtfrfloat);
 
     for (i = 0; i < irlength; i++)
       {
@@ -1868,8 +1880,8 @@ static int32_t hrtfstat_init(CSOUND *csound, hrtfstat *p)
       }
 
     /* back to freq domain */
-    csound->RealFFT(csound, hrtflpad, irlengthpad);
-    csound->RealFFT(csound, hrtfrpad, irlengthpad);
+    csound->RealFFT2(csound,  p->setup_pad, hrtflpad);
+    csound->RealFFT2(csound,  p->setup_pad, hrtfrpad);
 
         /* initialize counter */
     p->counter = 0;
@@ -1948,7 +1960,7 @@ static int32_t hrtfstat_process(CSOUND *csound, hrtfstat *p)
             for (i = irlength; i <  irlengthpad; i++)
               complexinsig[i] = FL(0.0);
 
-            csound->RealFFT(csound, complexinsig, irlengthpad);
+            csound->RealFFT2(csound, p->setup_pad, complexinsig);
 
             /* complex multiplication */
             csound->RealFFTMult(csound, outspecl, hrtflpad, complexinsig,
@@ -1957,8 +1969,8 @@ static int32_t hrtfstat_process(CSOUND *csound, hrtfstat *p)
                                 irlengthpad, FL(1.0));
 
             /* convolution is the inverse FFT of above result */
-            csound->InverseRealFFT(csound, outspecl, irlengthpad);
-            csound->InverseRealFFT(csound, outspecr, irlengthpad);
+            csound->RealFFT2(csound,  p->isetup_pad,outspecl);
+            csound->RealFFT2(csound, p->isetup_pad, outspecr);
 
             /* scaled by a factor related to sr...? */
             for(i = 0; i < irlengthpad; i++)
@@ -2046,6 +2058,7 @@ MYFLT *ooverlap, *oradius, *osr;
         AUXCH win;
         /* used for skipping into next stft array on way in and out */
         AUXCH overlapskipin, overlapskipout;
+  void *setup, *isetup, *setup_pad, *isetup_pad;
 
 }
 hrtfmove2;
@@ -2215,6 +2228,9 @@ static int32_t hrtfmove2_init(CSOUND *csound, hrtfmove2 *p)
        start with to ensure first read */
     p->anglev = -1;
     p->elevv = -41;
+
+    p->setup = csound->RealFFT2Setup(csound, p->irlength, FFT_FWD);
+    p->isetup = csound->RealFFT2Setup(csound, p->irlength, FFT_INV);
 
     return OK;
 }
@@ -2596,7 +2612,7 @@ static int32_t hrtfmove2_process(CSOUND *csound, hrtfmove2 *p)
             /* zero the current input sigframe time pointer */
             overlapskipin[t] = 0;
 
-            csound->RealFFT(csound, complexinsig, irlength);
+            csound->RealFFT2(csound, p->setup, complexinsig);
 
             csound->RealFFTMult(csound, outspecl, hrtflfloat,
                                 complexinsig, irlength, FL(1.0));
@@ -2604,8 +2620,8 @@ static int32_t hrtfmove2_process(CSOUND *csound, hrtfmove2 *p)
                                 complexinsig, irlength, FL(1.0));
 
             /* convolution is the inverse FFT of above result */
-            csound->InverseRealFFT(csound, outspecl, irlength);
-            csound->InverseRealFFT(csound, outspecr, irlength);
+            csound->RealFFT2(csound, p->isetup, outspecl);
+            csound->RealFFT2(csound,  p->isetup, outspecr);
 
             /* need scaling based on overlap (more overlaps -> louder) and sr... */
             for(i = 0; i < irlength; i++)

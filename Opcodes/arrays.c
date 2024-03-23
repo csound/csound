@@ -3420,25 +3420,15 @@ int32_t init_rfft(CSOUND *csound, FFT *p) {
   if (UNLIKELY(p->in->dimensions > 1))
     return csound->InitError(csound, "%s",
                              Str("rfft: only one-dimensional arrays allowed"));
-  if (isPowerOfTwo(N)) {
-    tabinit(csound, p->out,N);
-    p->setup = csound->RealFFT2Setup(csound, N, FFT_FWD);
-  }
-  else
-    tabinit(csound, p->out, N+2);
+  tabinit(csound, p->out,N);
+  p->setup = csound->RealFFT2Setup(csound, N, FFT_FWD);
   return OK;
 }
 
 int32_t perf_rfft(CSOUND *csound, FFT *p) {
     int32_t N = p->out->sizes[0];
     memcpy(p->out->data,p->in->data,N*sizeof(MYFLT));
-    if (isPowerOfTwo(N)) {
-      csound->RealFFT2(csound,p->setup,p->out->data);
-    }
-    else{
-      p->out->data[N] = FL(0.0);
-      csound->RealFFTnp2(csound,p->out->data,N);
-    }
+    csound->RealFFT2(csound,p->setup,p->out->data);
     return OK;
 }
 
@@ -3453,24 +3443,15 @@ int32_t init_rifft(CSOUND *csound, FFT *p) {
   if (UNLIKELY(p->in->dimensions > 1))
     return csound->InitError(csound, "%s",
                              Str("rifft: only one-dimensional arrays allowed"));
-  if (isPowerOfTwo(N)) {
     p->setup = csound->RealFFT2Setup(csound, N, FFT_INV);
     tabinit(csound, p->out, N);
-  }
-  else
-    tabinit(csound, p->out, N+2);
   return OK;
 }
 
 int32_t perf_rifft(CSOUND *csound, FFT *p) {
     int32_t N = p->in->sizes[0];
     memcpy(p->out->data,p->in->data,N*sizeof(MYFLT));
-    if (isPowerOfTwo(N))
-      csound->RealFFT2(csound,p->setup,p->out->data);
-    else{
-      p->out->data[N] = FL(0.0);
-      csound->InverseRealFFTnp2(csound,p->out->data,N);
-    }
+    csound->RealFFT2(csound,p->setup,p->out->data);
     return OK;
 }
 

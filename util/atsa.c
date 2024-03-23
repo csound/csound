@@ -1484,7 +1484,7 @@ static void residual_analysis(CSOUND *csound, char *file, ATS_SOUND *sound)
     SFLIB_INFO sfinfo;
     mus_sample_t **bufs;
     SNDFILE *sf;
-    void    *fd;
+    void    *fd, *setup;
 
     memset(&sfinfo, 0, sizeof(SFLIB_INFO));
     fd = csound->FileOpen2(csound, &sf, CSFILE_SND_R, file, &sfinfo,  "SFDIR;SSDIR",
@@ -1502,6 +1502,7 @@ static void residual_analysis(CSOUND *csound, char *file, ATS_SOUND *sound)
     hop = sound->frame_size;
     M = sound->window_size;
     N = residual_get_N(M, ATSA_RES_MIN_FFT_SIZE, ATSA_RES_PAD_FACTOR);
+    setup = csound->RealFFT2Setup(csound, N, FFT_FWD);
     bufs = (mus_sample_t **) csound->Malloc(csound, 2 * sizeof(mus_sample_t *));
     bufs[0] =
         (mus_sample_t *) csound->Malloc(csound, sflen * sizeof(mus_sample_t));
@@ -1538,7 +1539,7 @@ static void residual_analysis(CSOUND *csound, char *file, ATS_SOUND *sound)
       //smp = filptr - M_2 - 1;
       //time_domain_energy = residual_compute_time_domain_energy(&fft);
       /* take the fft */
-      csound->RealFFTnp2(csound, fft.data, N);
+      csound->RealFFT2(csound, setup, fft.data);
       residual_compute_band_energy(&fft, band_limits, ATSA_CRITICAL_BANDS + 1,
                                    band_energy, norm);
       //sum = 0.0;
@@ -2010,7 +2011,7 @@ static ATS_SOUND *tracker(CSOUND *csound, ANARGS *anargs, char *soundfile,
     ATS_FFT fft;
     SFLIB_INFO sfinfo;
     SNDFILE *sf;
-    void    *fd;
+    void    *fd , *setup;
 
     /* open input file
        we get srate and total_samps in file in anargs */
@@ -2240,6 +2241,7 @@ static ATS_SOUND *tracker(CSOUND *csound, ANARGS *anargs, char *soundfile,
 
     /* make our fft-struct */
     fft.size = anargs->fft_size;
+    setup = csound->RealFFT2Setup(csound, fft.size, FFT_FWD);
     fft.rate = anargs->srate;
     fft.data =
         (MYFLT *) csound->Malloc(csound,
@@ -2262,7 +2264,7 @@ static ATS_SOUND *tracker(CSOUND *csound, ANARGS *anargs, char *soundfile,
       /* move file pointer back */
       filptr = filptr - anargs->win_size + anargs->hop_smp;
       /* take the fft */
-      csound->RealFFTnp2(csound, fft.data, fft.size);
+      csound->RealFFT2(csound, setup, fft.data);
       /* peak detection */
       peaks_size = 0;
       peaks =

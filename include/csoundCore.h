@@ -1158,17 +1158,17 @@ typedef struct _message_queue_t_ {
     /**@}*/
     /** @name FFT support */
     /**@{ */
-    MYFLT (*GetInverseComplexFFTScale)(CSOUND *, int FFTsize);
+    void *(*RealFFT2Setup)(CSOUND *csound,
+                           int FFTsize,
+                           int d);
+    void (*RealFFT2)(CSOUND *csound,
+                     void *p, MYFLT *sig);
     MYFLT (*GetInverseRealFFTScale)(CSOUND *, int FFTsize);
     void (*ComplexFFT)(CSOUND *, MYFLT *buf, int FFTsize);
     void (*InverseComplexFFT)(CSOUND *, MYFLT *buf, int FFTsize);
-    void (*RealFFT)(CSOUND *, MYFLT *buf, int FFTsize);
-    void (*InverseRealFFT)(CSOUND *, MYFLT *buf, int FFTsize);
+    MYFLT (*GetInverseComplexFFTScale)(CSOUND *, int FFTsize);
     void (*RealFFTMult)(CSOUND *, MYFLT *outbuf, MYFLT *buf1, MYFLT *buf2,
                                   int FFTsize, MYFLT scaleFac);
-    void (*RealFFTnp2)(CSOUND *, MYFLT *buf, int FFTsize);
-    void (*InverseRealFFTnp2)(CSOUND *, MYFLT *buf, int FFTsize);
-
     /**@}*/
     /** @name PVOC-EX system */
     /**@{ */
@@ -1396,11 +1396,6 @@ typedef struct _message_queue_t_ {
     void (*RewindScore)(CSOUND *);
     void (*InputMessage)(CSOUND *, const char *message__);
     int  (*ISSTRCOD)(MYFLT);
-    void *(*RealFFT2Setup)(CSOUND *csound,
-                           int FFTsize,
-                           int d);
-    void (*RealFFT2)(CSOUND *csound,
-                     void *p, MYFLT *sig);
     int  (*ftError)(const FGDATA *, const char *, ...);
     MYFLT (*GetA4)(CSOUND *csound);
     int (*AuxAllocAsync)(CSOUND *, size_t, AUXCH  *,

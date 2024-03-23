@@ -229,6 +229,7 @@ typedef struct
 
   /* file pointers*/
   float *fpbeginl, *fpbeginr;
+  void *setup, *isetup, *isetup_pad;
 
 } early;
 
@@ -775,7 +776,9 @@ static int32_t early_init(CSOUND *csound, early *p)
     p->lstnrzk = FL(-1.0);
 
     p->rotatev = FL(0.0);
-
+    p->setup = csound->RealFFT2Setup(csound, p->irlengthpad, FFT_FWD);
+    p->isetup = csound->RealFFT2Setup(csound, p->irlength, FFT_INV);
+    p->isetup_pad = csound->RealFFT2Setup(csound, p->irlengthpad, FFT_INV);
     return OK;
 }
 
@@ -1495,10 +1498,8 @@ static int32_t early_process(CSOUND *csound, early *p)
                     hrtfrinterp[i + 1] = magr * SIN(phaser);
                   }
 
-                  csound->InverseRealFFT(csound, hrtflinterp,
-                                         irlength);
-                  csound->InverseRealFFT(csound, hrtfrinterp,
-                                         irlength);
+                  csound->RealFFT2(csound, p->isetup, hrtflinterp);
+                  csound->RealFFT2(csound, p->isetup,hrtfrinterp);
 
                   /* wall filters... */
                   /* all 4 walls are the same! (trivial to
@@ -1635,8 +1636,8 @@ static int32_t early_process(CSOUND *csound, early *p)
                   }
 
                   /* back to freq domain */
-                  csound->RealFFT(csound, hrtflpad, irlengthpad);
-                  csound->RealFFT(csound, hrtfrpad, irlengthpad);
+                  csound->RealFFT2(csound, p->setup, hrtflpad);
+                  csound->RealFFT2(csound, p->setup, hrtfrpad);
 
                   /* store */
                   for (i = 0; i < irlengthpad; i++) {
@@ -1673,7 +1674,7 @@ static int32_t early_process(CSOUND *csound, early *p)
               for (i = irlength; i <  irlengthpad; i++)
                 inbufpad[i] = FL(0.0);
 
-              csound->RealFFT(csound, inbufpad, irlengthpad);
+              csound->RealFFT2(csound, p->setup, inbufpad);
 
               for (i = 0; i < irlengthpad; i ++) {
                 hrtflpad[i] = hrtflpadspec[M * irlengthpad + i];
@@ -1686,8 +1687,8 @@ static int32_t early_process(CSOUND *csound, early *p)
               csound->RealFFTMult(csound, outrspec, hrtfrpad,
                                   inbufpad, irlengthpad, FL(1.0));
 
-              csound->InverseRealFFT(csound, outlspec, irlengthpad);
-              csound->InverseRealFFT(csound, outrspec, irlengthpad);
+              csound->RealFFT2(csound, p->isetup_pad, outlspec);
+              csound->RealFFT2(csound, p->isetup_pad, outrspec);
 
               /* scale */
               for (i = 0; i < irlengthpad; i++) {
@@ -1720,10 +1721,8 @@ static int32_t early_process(CSOUND *csound, early *p)
                                     inbufpad, irlengthpad, FL(1.0));
 
                 /* ifft, back to time domain */
-                csound->InverseRealFFT(csound, outlspecold,
-                                       irlengthpad);
-                csound->InverseRealFFT(csound, outrspecold,
-                                       irlengthpad);
+                csound->RealFFT2(csound, p->isetup_pad, outlspecold);
+                csound->RealFFT2(csound, p->isetup_pad, outrspecold);
 
                 /* scale */
                 for (i = 0; i < irlengthpad; i++) {

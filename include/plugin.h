@@ -221,13 +221,7 @@ public:
       to the transformed data memory.
   */
   std::complex<MYFLT> *rfft(fftp setup, MYFLT *data) {
-    if (!setup->p2) {
-      if (setup->d == FFT_FWD)
-        RealFFTnp2(this, data, setup->N);
-      else
-        InverseRealFFTnp2(this, data, setup->N);
-    } else
-      RealFFT2(this, setup, data);
+    RealFFT2(this, setup, data);
     return reinterpret_cast<std::complex<MYFLT> *>(data);
   }
 
