@@ -819,6 +819,7 @@ set(libcsound_SRCS
     Opcodes/emugens/scugens.c
     Top/argdecode.c
     Top/csdebug.c
+    Top/csdebug_internal.c
     Top/cscore_internal.c
     Top/cscorfns.c
     Top/csmodule.c
