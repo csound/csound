@@ -24,6 +24,7 @@
 #include <assert.h>
 
 #include "csdebug.h"
+#include "csdebug_internal.h"
 
 debug_instr_t *csoundDebugGetCurrentInstrInstance(CSOUND *csound);
 debug_opcode_t *csoundDebugGetCurrentOpcodeList(CSOUND *csound);

@@ -131,12 +131,6 @@ typedef enum {
     CSDEBUG_INIT = 0x02
 } debug_mode_t;
 
-#ifdef __BUILD_LIBCSOUND
-
-void csoundDebuggerBreakpointReached(CSOUND *csound);
-
-#endif
-
 /** @endcond */
 
 #ifdef __cplusplus
