@@ -132,7 +132,7 @@
 #ifndef NULL
 #define NULL 0L
 #endif
-#include "csoundCore.h"
+#include "csoundCore_internal.h"
 #include <ctype.h>
 #include <string.h>
 #include "namedins.h"

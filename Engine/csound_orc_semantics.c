@@ -26,7 +26,7 @@
 #include <stdlib.h>
 #include <ctype.h>
 //#include <stdbool.h>
-#include "csoundCore.h"
+#include "csoundCore_internal.h"
 #include "csound_orc.h"
 #include "interlocks.h"
 #include "namedins.h"

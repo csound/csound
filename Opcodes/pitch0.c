@@ -22,7 +22,7 @@
 */
 
 // #include "csdl.h"
-#include "csoundCore.h"       /*                                  PITCH.C       */
+#include "csoundCore_internal.h"       /*                                  PITCH.C       */
 #include "cwindow.h"
 #include <limits.h>
 #include "spectra.h"

@@ -20,7 +20,7 @@
 */
 
 // #include "csdl.h"
-#include "csoundCore.h"
+#include "csoundCore_internal.h"
 #include "interlocks.h"
 
 #include "pstream.h"

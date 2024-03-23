@@ -21,7 +21,7 @@
     02110-1301 USA
 */
 
-#include "csoundCore.h"                               /*    TWARP.C  */
+#include "csoundCore_internal.h"                               /*    TWARP.C  */
 
 typedef struct {
     MYFLT   betbas;

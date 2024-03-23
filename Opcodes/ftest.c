@@ -23,7 +23,7 @@
 */
 
 //#include "csdl.h"
-#include "csoundCore.h"
+#include "csoundCore_internal.h"
 #include <math.h>
 
 static int32_t tanhtable(FGDATA *ff, FUNC *ftp)

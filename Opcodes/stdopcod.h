@@ -25,7 +25,7 @@
 #define CSOUND_STDOPCOD_H
 
 //#include "csdl.h"
-#include "csoundCore.h"
+#include "csoundCore_internal.h"
 
 
 #include "interlocks.h"

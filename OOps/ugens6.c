@@ -22,7 +22,7 @@
     02110-1301 USA
 */
 
-#include "csoundCore.h" /*                              UGENS6.C        */
+#include "csoundCore_internal.h" /*                              UGENS6.C        */
 #include "ugens6.h"
 #include <math.h>
 

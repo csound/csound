@@ -124,7 +124,7 @@ input  |    |------>|
  */
 
 //#include "csdl.h"
-#include "csoundCore.h"
+#include "csoundCore_internal.h"
 #include "babo.h"
 #include <math.h>
 #include "interlocks.h"

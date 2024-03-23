@@ -24,7 +24,7 @@
 /*      Math functions for Csound coded by Paris Smaragdis 1994         */
 /*      Berklee College of Music Csound development team                */
 
-#include "csoundCore.h"
+#include "csoundCore_internal.h"
 #include "cmath.h"
 #include <math.h>
 

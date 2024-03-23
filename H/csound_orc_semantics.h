@@ -24,7 +24,7 @@
 #ifndef CSOUND_ORC_SEMANTICS_H
 #define CSOUND_ORC_SEMANTICS_H
 
-#include "csoundCore.h"
+#include "csoundCore_internal.h"
 #include "csound_orc.h"
 
 /** Gets short version of opcode name, trimming off anything after '.'.

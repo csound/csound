@@ -24,7 +24,7 @@
 /* Collection of physical modelled instruments */
 
 //#include "csdl.h"
-#include "csoundCore.h"
+#include "csoundCore_internal.h"
 #include "clarinet.h"
 #include "flute.h"
 #include "bowed.h"

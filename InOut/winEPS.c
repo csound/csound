@@ -20,7 +20,7 @@
     02110-1301 USA
 */
 
-#include "csoundCore.h"         /*                      WINEPS.C        */
+#include "csoundCore_internal.h"         /*                      WINEPS.C        */
 #include "cwindow.h"
 #include <math.h>
 

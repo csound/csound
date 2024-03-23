@@ -22,7 +22,7 @@
   02110-1301 USA
 */
 
-#include "csoundCore.h"                                 /*      MIDIOPS.C   */
+#include "csoundCore_internal.h"                                 /*      MIDIOPS.C   */
 #include "midiops.h"
 #include <math.h>
 #include <time.h>

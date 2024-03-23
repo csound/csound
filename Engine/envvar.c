@@ -21,7 +21,7 @@
     02110-1301 USA
 */
 
-#include "csoundCore.h"
+#include "csoundCore_internal.h"
 #include "soundio.h"
 #include "envvar.h"
 #include <stdio.h>

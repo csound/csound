@@ -21,7 +21,7 @@
     02110-1301 USA
 */
 
-#include "csoundCore.h"
+#include "csoundCore_internal.h"
 #include "sysdep.h"                                 /*    EXTRACT.C   */
 #include "extract.h"
 

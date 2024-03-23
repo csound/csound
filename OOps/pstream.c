@@ -26,7 +26,7 @@
    pvsops.c for everythng else, under ????
 */
 
-#include "csoundCore.h"
+#include "csoundCore_internal.h"
 #include "pstream.h"
 #include "pvfileio.h"
 

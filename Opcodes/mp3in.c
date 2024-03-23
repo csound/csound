@@ -23,7 +23,7 @@
 
 /* mp3in.c */
 /* #include "csdl.h" */
-#include "csoundCore.h"
+#include "csoundCore_internal.h"
 #include "interlocks.h"
 #include "mp3dec.h"
 

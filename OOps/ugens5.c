@@ -21,7 +21,7 @@
     02110-1301 USA
 */
 
-#include "csoundCore.h"         /*                      UGENS5.C        */
+#include "csoundCore_internal.h"         /*                      UGENS5.C        */
 #include "ugens5.h"
 #include <math.h>
 #include <inttypes.h>

@@ -21,7 +21,7 @@
     02110-1301 USA
 */
 
-#include "csoundCore.h"
+#include "csoundCore_internal.h"
 #include "csmodule.h"
 
 /* Do not declare these in header files; just define them in the module file

@@ -30,7 +30,7 @@
    directive switch.  */
 
 // #include "csdl.h"
-#include "csoundCore.h"
+#include "csoundCore_internal.h"
 #include "interlocks.h"
 #include <stdio.h>
 #include <stdlib.h>

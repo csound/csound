@@ -28,7 +28,7 @@
 /* Some modifications by JPff for general use */
 
 #include <math.h>
-#include "csoundCore.h"
+#include "csoundCore_internal.h"
 #include "midiout.h"
 
 #define MGLOB(x) (((CSOUND*)csound)->midiGlobals->x)

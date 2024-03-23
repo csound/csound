@@ -22,7 +22,7 @@
   02110-1301 USA
 */
 
-#include "csoundCore.h"
+#include "csoundCore_internal.h"
 #include "csound_orc.h"
 #include "csound_orc_expressions.h"
 #include "csound_type_system.h"

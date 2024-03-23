@@ -22,7 +22,7 @@
 */
 
 //#include "csdl.h"
-#include "csoundCore.h"
+#include "csoundCore_internal.h"
 #include <math.h>
 
 /* %% bar sound synthesis translated from Mathlab and much changed */
