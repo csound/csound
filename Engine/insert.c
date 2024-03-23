@@ -2459,7 +2459,7 @@ int useropcd2(CSOUND *csound, UOPCODE *p)
   OPCODINFO   *inm;
   CS_VARIABLE* current;
   int i, done;
-  int os = (int) (p->ip->esr/csound->esr);
+  int os = (int) (p->ip->esr/p->parent_ip->esr);
     
   inm = (OPCODINFO*) p->h.optext->t.oentry->useropinfo; 
   done = ATOMIC_GET(p->ip->init_done);
