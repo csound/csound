@@ -72,6 +72,7 @@
 #include "csound_standard_types.h"
 
 #include "csdebug.h"
+#include "csdebug_internal.h"
 #include <time.h>
 #include "cwindow_internal.h"
 
@@ -108,7 +109,6 @@ PUBLIC int csoundErrCnt(CSOUND *);
 void (*msgcallback_)(CSOUND *, int, const char *, va_list) = NULL;
 INSTRTXT *csoundGetInstrument(CSOUND *csound, int insno, const char *name);
 
-void csoundDebuggerBreakpointReached(CSOUND *csound);
 void message_dequeue(CSOUND *csound);
 
 extern OENTRY opcodlst_1[];
