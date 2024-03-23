@@ -1569,24 +1569,24 @@ int useropcdset(CSOUND *csound, UOPCODE *p)
     csound->ids = saved_ids;
     csound->curip = parent_ip;
 
-    /* ksmps and esr may have changed */
+    /* ksmps and esr may have changed, check against insdshead */
     /* select perf routine and scale xtratim accordingly */
-    if (lcurip->ksmps != csound->ksmps) {
-      if(lcurip->esr > csound->esr) // can't have local sr > global sr
+    if (lcurip->ksmps != parent_ip->ksmps) {
+      if(lcurip->esr > parent_ip->esr) // can't have local sr > paraent sr
          return csound->InitError(csound,
-            "oversampling requires local ksmps = global ksmps\n");
+            "oversampling requires local ksmps == parent ksmps\n");
       else {
-      int ksmps_scale = lcurip->ksmps / csound->ksmps;
+      int ksmps_scale = lcurip->ksmps / parent_ip->ksmps;
       parent_ip->xtratim = lcurip->xtratim * ksmps_scale;
-      if(lcurip->esr == csound->esr) // if local sr == global sr
+      if(lcurip->esr == parent_ip->esr) // if local sr == parent sr
               p->h.opadr = (SUBR) useropcd1;
-      else // local sr < global sr   
+      else // local sr < parent sr   
               p->h.opadr = (SUBR) useropcd2;
       if (UNLIKELY(csound->oparms->odebug))
        csound->Message(csound, "EXTRATIM=> cur(%p): %d, parent(%p): %d\n",
                       lcurip, lcurip->xtratim, parent_ip, parent_ip->xtratim);
       }
-    } else { // local sr allowed
+    } else { // local sr > parent sr allowed
       parent_ip->xtratim = lcurip->xtratim;
       p->h.opadr = (SUBR) useropcd2;
     }
@@ -1611,9 +1611,11 @@ int xinset(CSOUND *csound, XIN *p)
   int i, k = 0;
   CS_VARIABLE* current;
   UOPCODE  *udo;
+  MYFLT parent_sr;
 
   (void) csound;
   buf = (OPCOD_IOBUFS*) p->h.insdshead->opcod_iobufs;
+  parent_sr = buf->parent_ip->esr;
   inm = buf->opcode_info;
   udo = (UOPCODE*) buf->uopcode_struct;
   bufs = udo->ar + inm->outchns;
@@ -1633,33 +1635,33 @@ int xinset(CSOUND *csound, XIN *p)
     }
     else if (csoundGetTypeForArg(out) == &CS_VAR_TYPE_A) {
       // initialise the converter
-      if(CS_ESR != csound->esr) {
+      if(CS_ESR != parent_sr) {
         // free converter if it has already been created (maybe we could reuse?)
         if(udo->cvt_in[k] != NULL) src_deinit(csound, udo->cvt_in[k]);
         if((udo->cvt_in[k++] = src_init(csound, p->h.insdshead->overmode,
-                                        CS_ESR/csound->esr, CS_KSMPS)) == NULL)
+                                        CS_ESR/parent_sr, CS_KSMPS)) == NULL)
           return csound->InitError(csound, "could not initialise sample rate "
-                                "converter:\n possibly SRC is not available\n");
+                                "converter");
       }
     }
     else if(csoundGetTypeForArg(out) == &CS_VAR_TYPE_K) { 
       // initialise the converter
-      if(CS_ESR != csound->esr) {
+      if(CS_ESR != parent_sr) {
         // free converter if it has already been created (maybe we could reuse?)
         if(udo->cvt_in[k] != NULL) src_deinit(csound, udo->cvt_in[k]);
         if((udo->cvt_in[k++] = src_init(csound, p->h.insdshead->overmode,
-                                        CS_ESR/csound->esr, 1)) == NULL)
+                                        CS_ESR/parent_sr, 1)) == NULL)
           return csound->InitError(csound, "could not initialise sample rate "
-                                "converter:\n possibly SRC is not available\n");
+                                "converter");
       } 
     }
     // protect against audio/k arrays when oversampling
     if (csoundGetTypeForArg(in) == &CS_VAR_TYPE_ARRAY) {
       if((current->subType == &CS_VAR_TYPE_A ||
           current->subType == &CS_VAR_TYPE_K)
-         && CS_ESR != csound->esr)
+         && CS_ESR != parent_sr)
            return csound->InitError(csound, "audio/control arrays not allowed\n"
-                                   "as UDO arguments when using oversampling\n");
+                                   "as UDO arguments when using under/oversampling\n");
     }
     current = current->next;
   }
@@ -1675,9 +1677,11 @@ int xoutset(CSOUND *csound, XOUT *p)
   CS_VARIABLE* current;
   UOPCODE  *udo;
   int i, k = 0;
+  MYFLT parent_sr;
 
   (void) csound;
   buf = (OPCOD_IOBUFS*) p->h.insdshead->opcod_iobufs;
+  parent_sr = buf->parent_ip->esr;
   inm = buf->opcode_info;
   udo = (UOPCODE*) buf->uopcode_struct;
   bufs = udo->ar;
@@ -1697,33 +1701,33 @@ int xoutset(CSOUND *csound, XOUT *p)
       current->varType->copyValue(csound, current->varType, out, in);
     else if (csoundGetTypeForArg(out) == &CS_VAR_TYPE_A) {
       // initialise the converter
-      if(CS_ESR != csound->esr) {
+      if(CS_ESR != parent_sr) {
         // free converter if it has already been created (maybe we could reuse?)
         if(udo->cvt_out[k] != NULL) src_deinit(csound, udo->cvt_out[k]);
         if((udo->cvt_out[k++] = src_init(csound, p->h.insdshead->overmode,
-                                         csound->esr/CS_ESR, CS_KSMPS)) == 0)
+                                         parent_sr/CS_ESR, CS_KSMPS)) == 0)
           return csound->InitError(csound, "could not initialise sample rate "
-                              "converter:\n possibly SRC is not available\n");        
+                              "converter");        
       }
     }
     else if (csoundGetTypeForArg(out) == &CS_VAR_TYPE_K) {
       // initialise the converter
-      if(CS_ESR != csound->esr) {
+      if(CS_ESR != parent_sr) {
         // free converter if it has already been created (maybe we could reuse?)
         if(udo->cvt_out[k] != NULL) src_deinit(csound, udo->cvt_out[k]);
         if((udo->cvt_out[k++] = src_init(csound, p->h.insdshead->overmode,
-                                         csound->esr/CS_ESR, 1)) == 0)
+                                         parent_sr/CS_ESR, 1)) == 0)
           return csound->InitError(csound, "could not initialise sample rate "
-                              "converter:\n possibly SRC is not available\n");        
+                              "converter");        
       }  
     }
     // protect against audio/k arrays when oversampling
     if (csoundGetTypeForArg(in) == &CS_VAR_TYPE_ARRAY) {
       if((current->subType == &CS_VAR_TYPE_A ||
           current->subType == &CS_VAR_TYPE_K)
-           && CS_ESR != csound->esr)
+           && CS_ESR != parent_sr)
            return csound->InitError(csound, "audio/control arrays not allowed\n"
-                                   "as UDO arguments when using oversampling\n");
+                                   "as UDO arguments when using under/oversampling\n");
     }
     current = current->next;
   }
@@ -1739,10 +1743,14 @@ int32_t setksmpsset(CSOUND *csound, SETKSMPS *p)
 {
 
   unsigned int  l_ksmps, n;
-  if(CS_ESR != csound->esr) 
+  OPCOD_IOBUFS *udo = (OPCOD_IOBUFS *) p->h.insdshead->opcod_iobufs;
+  MYFLT parent_sr = udo ? udo->parent_ip->esr : csound->esr;
+  MYFLT parent_ksmps = udo ? udo->parent_ip->ksmps : csound->ksmps;
+  
+  if(CS_ESR != parent_sr) 
     return csoundInitError(csound,
-                           "can't set ksmps value if local sr != global sr\n");
-  if(CS_KSMPS != csound->ksmps) return OK; // no op
+                           "can't set ksmps value if local sr != parent sr\n");
+  if(CS_KSMPS != parent_ksmps) return OK; // no op if this has already changed
                              
   l_ksmps = (unsigned int) *(p->i_ksmps);
   if (!l_ksmps) return OK;       /* zero: do not change */
@@ -1792,18 +1800,24 @@ int32_t setksmpsset(CSOUND *csound, SETKSMPS *p)
  int32_t oversampleset(CSOUND *csound, OVSMPLE *p) {
    int os;
    MYFLT l_sr, onedos;
-   if(CS_KSMPS != csound->ksmps) 
-    return csoundInitError(csound,
-                           "can't oversample if local ksmps != global ksmps\n");
-
-   if(p->h.insdshead->opcod_iobufs == NULL) 
+   OPCOD_IOBUFS *udo = (OPCOD_IOBUFS *) p->h.insdshead->opcod_iobufs;
+   MYFLT parent_sr, parent_ksmps;
+  
+   if(udo == NULL) 
      return csound->InitError(csound, "oversampling only allowed in UDOs\n");
+
+   parent_sr = udo->parent_ip->esr;
+   parent_ksmps = udo->parent_ip->ksmps;
+   
+   if(CS_KSMPS != parent_ksmps) 
+    return csoundInitError(csound,
+                           "can't oversample if local ksmps != parent ksmps\n");
   
    os = MYFLT2LRND(*p->os);
    onedos = FL(1.0)/os;
    if(os < 1)
      return csound->InitError(csound, "illegal oversampling ratio: %d\n", os);
-   if(os == 1 || CS_ESR != csound->esr) return OK; /* no op */
+   if(os == 1 || CS_ESR != parent_sr) return OK; /* no op if changed already */
      
    l_sr = CS_ESR*os;
    CS_ESR = l_sr;
@@ -1849,20 +1863,26 @@ int32_t setksmpsset(CSOUND *csound, SETKSMPS *p)
  int32_t undersampleset(CSOUND *csound, OVSMPLE *p) {
    int os, lksmps;
    MYFLT l_sr, onedos;
-   if(CS_KSMPS != csound->ksmps) 
-    return csoundInitError(csound,
-                   "can't undersample if local ksmps != global ksmps\n");
-
-   if(p->h.insdshead->opcod_iobufs == NULL) 
-     return csound->InitError(csound, "oversampling only allowed in UDOs\n");
+   OPCOD_IOBUFS *udo = (OPCOD_IOBUFS *) p->h.insdshead->opcod_iobufs;
+   MYFLT parent_sr, parent_ksmps;
   
+   if(udo == NULL) 
+     return csound->InitError(csound, "oversampling only allowed in UDOs\n");
+
+   parent_sr = udo->parent_ip->esr;
+   parent_ksmps = udo->parent_ip->ksmps;
+
+   if(CS_KSMPS != parent_ksmps) 
+    return csoundInitError(csound,
+                   "can't undersample if local ksmps != parent ksmps\n");
+
    os = MYFLT2LRND(*p->os);
    onedos = FL(1.0)/os;
    if(os < 1)
      return csound->InitError(csound,
                               "illegal undersampling ratio: %d\n", os);
    
-   if(os == 1 || CS_ESR != csound->esr) return OK; /* no op */
+   if(os == 1 || CS_ESR != parent_sr) return OK; /* no op if already changed */
 
    /* round to an integer number of ksmps */
    lksmps = MYFLT2LRND(CS_KSMPS*onedos);
