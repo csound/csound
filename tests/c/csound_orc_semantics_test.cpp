@@ -8,7 +8,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdbool.h>
-#include "csoundCore.h"
+#include "csoundCore_internal.h"
 #include "csound_orc.h"
 #include "gtest/gtest.h"
 

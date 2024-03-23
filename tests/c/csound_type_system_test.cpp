@@ -9,7 +9,7 @@
 #include <stdlib.h>
 #include "csound_type_system.h"
 #include "csound_standard_types.h"
-#include "csoundCore.h"
+#include "csoundCore_internal.h"
 #include "gtest/gtest.h"
 
 class TypeSystemTests : public ::testing::Test {

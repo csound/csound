@@ -230,9 +230,9 @@ endif()
 
 if (NOT IOS)
     if (BARE_METAL)
-        try_add_config_compile_option("Release" "-0s") # for smaller size
+        try_add_config_compile_option("Release" "-Os") # for smaller size
     else()
-        try_add_config_compile_option("Release" "-03")
+        try_add_config_compile_option("Release" "-O3")
     endif()
 
     try_add_config_compile_option("Debug" "-Wall")
@@ -823,6 +823,7 @@ set(libcsound_SRCS
     Top/cscore_internal.c
     Top/cscorfns.c
     Top/csmodule.c
+    Top/csoundCore_internal.c
     Top/getstring.c
     Top/main.c
     Top/new_opts.c
@@ -1214,7 +1215,7 @@ if(APPLE AND NOT IOS)
 endif()
 
 if(WIN32)
-    add_definitions(-D_WINSOCKAPI) # disable winsock.h so we can use winsock2.h
+    target_compile_definitions(libcsound_internals INTERFACE _WINSOCKAPI_) # disable winsock.h so we can use winsock2.h
 endif()
 
 check_function_exists(strlcat HAVE_STRLCAT)

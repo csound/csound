@@ -32,6 +32,8 @@
 ** NOTE marks notes
 */
 
+#include "cs_new_dispatch.h"
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <limits.h>

@@ -7,7 +7,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
-#include "csoundCore.h"
+#include "csoundCore_internal.h"
 #include "gtest/gtest.h"
 
 class OrcCompileTests : public ::testing::Test {
