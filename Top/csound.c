@@ -72,6 +72,7 @@
 
 #include "csdebug.h"
 #include <time.h>
+#include "cwindow_internal.h"
 
 extern void allocate_message_queue(CSOUND *csound);
 static void SetInternalYieldCallback(CSOUND *, int (*yieldCallback)(CSOUND *));
