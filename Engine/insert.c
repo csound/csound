@@ -3166,15 +3166,15 @@ SR_CONVERTER *src_init(CSOUND *csound, int mode,
       }  else {
         p->cvt.input_frames = size/ratio;
         p->cvt.output_frames = size;
-      }
+        } 
       pp->bufferin = (float *)
-        csound->Calloc(csound, sizeof(float)*p->cvt.input_frames);
+       csound->Calloc(csound, sizeof(float)*p->cvt.input_frames);
       p->cvt.data_in = pp->bufferin;
       pp->bufferout = (float *)
         csound->Calloc(csound, sizeof(float)*p->cvt.output_frames);
       p->cvt.data_out = pp->bufferout; 
       p->cvt.end_of_input = 0;
-      pp->data = (void *) p;
+      pp->data = (void *)  p;
       pp->size = size;
       pp->ratio = ratio;
       pp->cnt = 0;
@@ -3182,7 +3182,7 @@ SR_CONVERTER *src_init(CSOUND *csound, int mode,
       return pp;
     }
     else return NULL;
-  } else
+    } else
     return src_linear_init(csound, mode, ratio, size); 
 }
 
@@ -3218,7 +3218,8 @@ int src_convert(CSOUND *csound, SR_CONVERTER *pp, MYFLT *in, MYFLT *out){
     pp->cnt = cnt;
     return 0;
   } else 
-    return src_linear_convert(csound, pp, in, out);
+  return src_linear_convert(csound, pp, in, out);
+  return 0;
 }
 
 void src_deinit(CSOUND *csound, SR_CONVERTER *pp) {
@@ -3230,7 +3231,7 @@ void src_deinit(CSOUND *csound, SR_CONVERTER *pp) {
   csound->Free(csound, pp->bufferout);
   csound->Free(csound, pp);
   }
-  src_linear_deinit(csound, pp);
+  else src_linear_deinit(csound, pp);
 }
 #endif  // ifndef USE_SRC
 
