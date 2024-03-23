@@ -926,7 +926,13 @@ static void deact(CSOUND *csound, INSDS *ip)
   /* IV - Sep 8 2002: free subinstr instances */
   /* that would otherwise result in a memory leak */
   if (ip->opcod_deact) {
+    int k;
     UOPCODE *p = (UOPCODE*) ip->opcod_deact;          /* IV - Oct 26 2002 */
+    // free converter if it has already been created (maybe we could reuse?)
+    for(k=0; k<OPCODENUMOUTS_MAX; k++) {
+    if(p->cvt_in[k] != NULL) src_deinit(csound, p->cvt_in[k]);
+    if(p->cvt_out[k] != NULL) src_deinit(csound, p->cvt_out[k]);
+    }
     deact(csound, p->ip);     /* deactivate */
     p->ip = NULL;
     /* IV - Oct 26 2002: set perf routine to "not initialised" */
@@ -1639,8 +1645,6 @@ int xinset(CSOUND *csound, XIN *p)
     else if (csoundGetTypeForArg(out) == &CS_VAR_TYPE_A) {
       // initialise the converter
       if(CS_ESR != parent_sr) {
-        // free converter if it has already been created (maybe we could reuse?)
-        if(udo->cvt_in[k] != NULL) src_deinit(csound, udo->cvt_in[k]);
         if((udo->cvt_in[k++] = src_init(csound, p->h.insdshead->overmode,
                                         CS_ESR/parent_sr, CS_KSMPS)) == NULL)
           return csound->InitError(csound, "could not initialise sample rate "
@@ -1650,8 +1654,6 @@ int xinset(CSOUND *csound, XIN *p)
     else if(csoundGetTypeForArg(out) == &CS_VAR_TYPE_K) { 
       // initialise the converter
       if(CS_ESR != parent_sr) {
-        // free converter if it has already been created (maybe we could reuse?)
-        if(udo->cvt_in[k] != NULL) src_deinit(csound, udo->cvt_in[k]);
         if((udo->cvt_in[k++] = src_init(csound, p->h.insdshead->overmode,
                                         CS_ESR/parent_sr, 1)) == NULL)
           return csound->InitError(csound, "could not initialise sample rate "
@@ -1705,8 +1707,6 @@ int xoutset(CSOUND *csound, XOUT *p)
     else if (csoundGetTypeForArg(out) == &CS_VAR_TYPE_A) {
       // initialise the converter
       if(CS_ESR != parent_sr) {
-        // free converter if it has already been created (maybe we could reuse?)
-        if(udo->cvt_out[k] != NULL) src_deinit(csound, udo->cvt_out[k]);
         if((udo->cvt_out[k++] = src_init(csound, p->h.insdshead->overmode,
                                          parent_sr/CS_ESR, CS_KSMPS)) == 0)
           return csound->InitError(csound, "could not initialise sample rate "
@@ -1716,8 +1716,6 @@ int xoutset(CSOUND *csound, XOUT *p)
     else if (csoundGetTypeForArg(out) == &CS_VAR_TYPE_K) {
       // initialise the converter
       if(CS_ESR != parent_sr) {
-        // free converter if it has already been created (maybe we could reuse?)
-        if(udo->cvt_out[k] != NULL) src_deinit(csound, udo->cvt_out[k]);
         if((udo->cvt_out[k++] = src_init(csound, p->h.insdshead->overmode,
                                          parent_sr/CS_ESR, 1)) == 0)
           return csound->InitError(csound, "could not initialise sample rate "
