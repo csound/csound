@@ -32,6 +32,7 @@
 #include "corfile.h"
 
 #include "csdebug.h"
+#include "cwindow_internal.h"
 
 #define SEGAMPS CS_AMPLMSG
 #define SORMSG  CS_RNGEMSG

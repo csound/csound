@@ -702,7 +702,7 @@ set(libcsound_SRCS
     InOut/midisend.c
     InOut/winascii.c
     InOut/windin.c
-    InOut/window.c
+    InOut/cwindow_internal.c
     InOut/winEPS.c
     InOut/circularbuffer.c
     OOps/aops.c

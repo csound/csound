@@ -63,31 +63,5 @@ struct xyindat_ {       /* for 'joystick' input window */
     int     down;
 };
 
- /* ------------------------------------------------------------------------ */
-
-#ifdef __BUILDING_LIBCSOUND
-
-void dispset(CSOUND *, WINDAT *, MYFLT *, int32, char *, int, char *);
-int dispexit(CSOUND *);
-void display(CSOUND *, WINDAT*);
-#if 0
-/* create window for a graph */
-void MakeGraph(CSOUND *, WINDAT *, const char *);
-/* create a mouse input window; init scale */
-void MakeXYin(CSOUND *, XYINDAT *, MYFLT, MYFLT);
-/* update graph in existing window */
-void DrawGraph(CSOUND *, WINDAT *);
-/* fetch latest value from mouse input window */
-void ReadXYin(CSOUND *, XYINDAT *);
-/* remove a graph window */
-void KillGraph(CSOUND *, WINDAT *);
-/* remove a mouse input window */
-void KillXYin(CSOUND *, XYINDAT *);
-/* print click-Exit message in most recently active window */
-int  ExitGraph(CSOUND *);
-#endif
-
-#endif  /*  __BUILDING_LIBCSOUND */
-
 #endif  /*  CWINDOW_H */
 

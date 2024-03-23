@@ -24,6 +24,7 @@
 #include "csoundCore.h"         /*                      DISPREP.C       */
 #include <math.h>
 #include "cwindow.h"
+#include "cwindow_internal.h"
 #include "disprep.h"
 
 

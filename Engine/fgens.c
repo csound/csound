@@ -28,6 +28,7 @@
 #include <ctype.h>
 #include "soundio.h"
 #include "cwindow.h"
+#include "cwindow_internal.h"
 #include "cmath.h"
 #include "fgens.h"
 #include "pstream.h"
