@@ -703,7 +703,7 @@ set(libcsound_SRCS
     OOps/mxfft.c
     OOps/oscils.c
     OOps/pstream.c
-    OOps/pvfileio.c
+    OOps/pvfileio_internal.c
     OOps/pvsanal.c
     OOps/random.c
     OOps/remote.c
@@ -1186,7 +1186,7 @@ if(APPLE AND NOT IOS)
 endif()
 
 if(WIN32)
-    add_definitions(-DWIN32)
+    add_definitions(-DWIN32 -D_WINSOCKAPI) # disable winsock.h so we can use winsock2.h
 endif()
 
 check_function_exists(strlcat HAVE_STRLCAT)

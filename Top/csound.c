@@ -56,6 +56,7 @@
 #include "fgens.h"
 #include "namedins.h"
 #include "pvfileio.h"
+#include "pvfileio_internal.h"
 #include "fftlib.h"
 #include "lpred.h"
 #include "cs_par_base.h"
