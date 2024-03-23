@@ -1065,8 +1065,7 @@ typedef struct _message_queue_t_ {
     int (*GetMessageLevel)(CSOUND *);
     void (*SetMessageLevel)(CSOUND *, int messageLevel);
     void (*SetMessageCallback)(CSOUND *,
-                void (*csoundMessageCallback)(CSOUND *,
-                                              int attr, const char *format,
+    void (*csoundMessageCallback)(CSOUND *,int attr, const char *format,
                                               va_list valist));
     /**@}*/
     /** @name Event and MIDI functionality for opcodes */
@@ -1358,7 +1357,6 @@ typedef struct _message_queue_t_ {
     int (*CheckEvents)(CSOUND *);
     int (*insert_score_event)(CSOUND *, EVTBLK *, double);
     int (*insert_score_event_at_sample)(CSOUND *, EVTBLK *, int64_t);
-    int (*PerformKsmps)(CSOUND *);
     /**@}*/
     /** @name Utilities */
     /**@{ */

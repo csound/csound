@@ -86,7 +86,6 @@ static void csoundDefaultMessageCallback(CSOUND *, int, const char *, va_list);
 static int  defaultCsoundYield(CSOUND *);
 static int  csoundDoCallback_(CSOUND *, void *, unsigned int);
 static void reset(CSOUND *);
-static int  csoundPerformKsmpsInternal(CSOUND *csound);
 void csoundTableSetInternal(CSOUND *csound, int table, int index,
                                    MYFLT value);
 static INSTRTXT **csoundGetInstrumentList(CSOUND *csound);
@@ -498,7 +497,6 @@ static const CSOUND cenviron_ = {
     csoundYield,
     insert_score_event,
     insert_score_event_at_sample,
-    csoundPerformKsmpsInternal,
     /* utilities */
     csoundAddUtility,
     csoundRunUtility,
@@ -2213,35 +2211,6 @@ PUBLIC int csoundPerformKsmps(CSOUND *csound)
     } while (csound->kperf(csound));
     if(!csound->oparms->realtime) // no API lock in realtime mode
        csoundUnlockMutex(csound->API_lock);
-    return 0;
-}
-
-static int csoundPerformKsmpsInternal(CSOUND *csound)
-{
-    int done;
-    int returnValue;
-
-    /* VL: 1.1.13 if not compiled (csoundStart() not called)  */
-    if (UNLIKELY(!(csound->engineStatus & CS_STATE_COMP))) {
-      csound->Warning(csound,
-                      Str("Csound not ready for performance: csoundStart() "
-                          "has not been called\n"));
-      return CSOUND_ERROR;
-    }
-    /* setup jmp for return after an exit() */
-        if (UNLIKELY((returnValue = setjmp(csound->exitjmp)))) {
-#ifndef MACOSX
-      csoundMessage(csound, Str("Early return from csoundPerformKsmps().\n"));
-#endif
-      return ((returnValue - CSOUND_EXITJMP_SUCCESS) | CSOUND_EXITJMP_SUCCESS);
-    }
-   do {
-     if (UNLIKELY((done = sensevents(csound)))) {
-       csoundMessage(csound,
-                     Str("Score finished in csoundPerformKsmpsInternal().\n"));
-        return done;
-      }
-    } while (csound->kperf(csound));
     return 0;
 }
 
