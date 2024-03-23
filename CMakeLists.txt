@@ -805,6 +805,7 @@ set(libcsound_SRCS
     Top/cscore_internal.c
     Top/cscorfns.c
     Top/csmodule.c
+    Top/csoundCore_internal.c
     Top/getstring.c
     Top/main.c
     Top/new_opts.c

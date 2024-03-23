@@ -187,6 +187,10 @@ extern const uint32_t csScoSortMask;
 extern const uint32_t csMidiScoMask;
 extern const uint32_t csPlayScoMask;
 
+#ifdef PARCS
+int nodePerf(CSOUND *csound, int index, int numThreads);
+#endif
+
 /* kperf function protoypes. Used by the debugger to switch between debug
  * and nodebug kperf functions */
 int kperf_nodebug(CSOUND *csound);
