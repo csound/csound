@@ -24,7 +24,7 @@
     02110-1301 USA
 */
 
-#include "csoundCore.h"         /*                      FGENS.C         */
+#include "csoundCore_internal.h"         /*                      FGENS.C         */
 #include <ctype.h>
 #include "soundio.h"
 #include "cwindow.h"

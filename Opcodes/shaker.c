@@ -51,7 +51,7 @@ This code would implement individual grain envelopes
 But we're smarter than that!!!  See below
 */
 // #include "csdl.h"
-#include "csoundCore.h"
+#include "csoundCore_internal.h"
 #include "shaker.h"
 
 int32_t shakerset(CSOUND *csound, SHAKER *p)

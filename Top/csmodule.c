@@ -78,7 +78,7 @@
 #include <errno.h>
 #endif
 
-#include "csoundCore.h"
+#include "csoundCore_internal.h"
 #include "csmodule.h"
 
 #if defined(__MACH__)

@@ -21,7 +21,7 @@
   02110-1301 USA
 */
 
-#include "csoundCore.h"                         /*      AUXFD.C         */
+#include "csoundCore_internal.h"                         /*      AUXFD.C         */
 
 static CS_NOINLINE void auxchprint(CSOUND *, INSDS *);
 static CS_NOINLINE void fdchprint(CSOUND *, INSDS *);

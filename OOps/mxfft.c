@@ -83,7 +83,7 @@ static char *rcsid = "$Id$";
  * Starting with rcs
  *
  */
-#include "csoundCore.h"
+#include "csoundCore_internal.h"
 #include <math.h>
 #include <assert.h>
 

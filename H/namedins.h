@@ -26,7 +26,7 @@
 #ifndef CSOUND_NAMEDINS_H
 #define CSOUND_NAMEDINS_H
 
-#include "csoundCore.h"         /* for INSTRTXT */
+#include "csoundCore_internal.h"         /* for INSTRTXT */
 
 #ifdef __cplusplus
 extern "C" {

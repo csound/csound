@@ -29,7 +29,7 @@
                                 /*  4 april 02 -- ma++ */
                                 /*  restructure to retrieve externally  */
                                 /* And suppressing deprecated Oct 2015 -- JPff */
-#include "csoundCore.h"
+#include "csoundCore_internal.h"
 #include <ctype.h>
 #include "interlocks.h"
 

@@ -26,7 +26,7 @@
 */
 
 // #include "csdl.h"
-#include "csoundCore.h"
+#include "csoundCore_internal.h"
 #include <stdlib.h>
 #include "physutil.h"
 

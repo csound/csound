@@ -22,7 +22,7 @@
     02110-1301 USA
 */
 
-#include "csoundCore.h"                                 /*    MIDISEND.C    */
+#include "csoundCore_internal.h"                                 /*    MIDISEND.C    */
 #include "midioops.h"
 
 typedef struct midiOutFile_s {

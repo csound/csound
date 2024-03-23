@@ -5,7 +5,7 @@
 
 #include "csdebug.h"             // for csdebug_data_t, debug_instr_t, debug...
 #include "csdebug_internal.h"
-#include "csoundCore.h"          // for INSDS, OPDS, CSOUND_, OPTXT, TEXT
+#include "csoundCore_internal.h"          // for INSDS, OPDS, CSOUND_, OPTXT, TEXT
 #include "csound_type_system.h"  // for CS_VAR_MEM, CS_VAR_POOL
 #include "sysdep.h"              // for strNcpy
 

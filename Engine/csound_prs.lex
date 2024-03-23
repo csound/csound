@@ -27,7 +27,7 @@
 #include <string.h>
 #include <stdlib.h>
 #include <ctype.h>
-#include "csoundCore.h"
+#include "csoundCore_internal.h"
 #include "corfile.h"
 #define YY_DECL int yylex (CSOUND *csound, yyscan_t yyscanner)
 static void comment(yyscan_t);

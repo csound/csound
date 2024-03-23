@@ -21,7 +21,7 @@
     02110-1301 USA
 */
 
-#include "csoundCore.h"     /*                              LINEVENT.C      */
+#include "csoundCore_internal.h"     /*                              LINEVENT.C      */
 #include <ctype.h>
 
 #ifdef MSVC

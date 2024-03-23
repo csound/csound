@@ -23,7 +23,7 @@
   02110-1301 USA
 */
 
-#include "csoundCore.h" /*  INSERT.C */
+#include "csoundCore_internal.h" /*  INSERT.C */
 #include "oload.h"
 #include "insert.h"     /* for goto's */
 #include "aops.h"       /* for cond's */

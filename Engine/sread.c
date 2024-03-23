@@ -21,7 +21,7 @@
     02110-1301 USA
 */
 
-#include "csoundCore.h"                             /*   SREAD.C     */
+#include "csoundCore_internal.h"                             /*   SREAD.C     */
 #include <math.h>      /* for fabs() */
 #include <ctype.h>
 #include <inttypes.h>

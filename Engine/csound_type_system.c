@@ -24,7 +24,7 @@
 #include "csound_type_system.h"
 #include <string.h>
 #include <stdio.h>
-#include "csoundCore.h"
+#include "csoundCore_internal.h"
 #include "aops.h"
 
 int csTypeExistsWithSameName(TYPE_POOL* pool, CS_TYPE* typeInstance) {

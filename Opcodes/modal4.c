@@ -29,7 +29,7 @@
 /*  nances (Non-Sweeping BiQuad Filters).  */
 /*******************************************/
 // #include "csdl.h"
-#include "csoundCore.h"
+#include "csoundCore_internal.h"
 #include "modal4.h"
 #include "marimba.h"
 #include "vibraphn.h"

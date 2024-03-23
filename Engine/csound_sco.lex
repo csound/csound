@@ -28,7 +28,7 @@
 #include <string.h>
 #include <stdlib.h>
 #include <ctype.h>
-#include "csoundCore.h"
+#include "csoundCore_internal.h"
 #include "score_param.h"
 #include "csound_scoparse.h"
 

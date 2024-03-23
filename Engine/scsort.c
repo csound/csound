@@ -21,7 +21,7 @@
     02110-1301 USA
 */
 
-#include "csoundCore.h"                                  /*   SCSORT.C  */
+#include "csoundCore_internal.h"                                  /*   SCSORT.C  */
 #include "corfile.h"
 #include <ctype.h>
 

@@ -23,7 +23,7 @@
 
 #include "cwindow_internal.h"
 
-#include "csoundCore.h"                         /*      WINDOW.C        */
+#include "csoundCore_internal.h"                         /*      WINDOW.C        */
 #include "cwindow.h"                            /*  graph window mgr    */
 #include "winEPS.h"                             /* PostSCript routines  */
                                                 /*  dpwe 16may90        */

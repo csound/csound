@@ -21,7 +21,7 @@
     02110-1301 USA
 */
 
-#include "csoundCore.h"     /*                      CSCORFNS.C      */
+#include "csoundCore_internal.h"     /*                      CSCORFNS.C      */
 #include "cscore.h"
 #include "corfile.h"
 

@@ -34,7 +34,7 @@
 /* Minor changes by John Fitch Dec 1995                 */
 
 // #include "csdl.h"
-#include "csoundCore.h"
+#include "csoundCore_internal.h"
 #include "interlocks.h"
 #include "grain4.h"
 #include <math.h>

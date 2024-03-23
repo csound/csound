@@ -26,7 +26,7 @@
 
 #include <math.h>
 
-#include "csoundCore.h"
+#include "csoundCore_internal.h"
 
 
 /* ================================================================== */

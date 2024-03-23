@@ -27,7 +27,7 @@
 #include <ctype.h>
 #include <math.h>
 
-#include "csoundCore.h"
+#include "csoundCore_internal.h"
 #include "cfgvar.h"
 #include "namedins.h"
 

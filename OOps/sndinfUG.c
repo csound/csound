@@ -25,7 +25,7 @@
 /* sndinfUG.c         -matt 7/25/99
              ugens to retrieve info about a sound file */
 
-#include "csoundCore.h"
+#include "csoundCore_internal.h"
 #include "soundio.h"
 #include "sndinfUG.h"
 #include "pvfileio.h"

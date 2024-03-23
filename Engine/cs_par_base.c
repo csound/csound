@@ -24,7 +24,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#include "csoundCore.h"
+#include "csoundCore_internal.h"
 
 #include "cs_par_base.h"
 static int csp_set_exists(struct set_t *set, void *data);

@@ -21,7 +21,7 @@
  02110-1301 USA
  */
 
-#include "csoundCore.h"
+#include "csoundCore_internal.h"
 #include "csound_standard_types.h"
 #include "pstream.h"
 #include <stdlib.h>

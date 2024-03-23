@@ -23,7 +23,7 @@
   02110-1301 USA
 */
 
-#include "csoundCore.h" /*                            GOTO_OPS.C        */
+#include "csoundCore_internal.h" /*                            GOTO_OPS.C        */
 #include "insert.h"     /* for goto's */
 #include "aops.h"       /* for cond's */
 extern int32_t strarg2insno(CSOUND *, void *p, int32_t is_string);
