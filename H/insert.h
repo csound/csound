@@ -77,7 +77,8 @@ typedef struct {
     OPCODINFO *opcode_info;
     void    *uopcode_struct;
     INSDS   *parent_ip;
-    MYFLT   *iobufp_ptrs[12];  /* expandable IV - Oct 26 2002 */ /* was 8 */
+    int32   iflag;
+    MYFLT   *iobufp_ptrs[12];  
 } OPCOD_IOBUFS;
 
 typedef struct {                        /* IV - Oct 16 2002 */
@@ -88,7 +89,7 @@ typedef struct {                        /* IV - Oct 16 2002 */
     OPCOD_IOBUFS    buf;
 } SUBINST;
 
-typedef struct {                /* IV - Sep 8 2002: new structure: UOPCODE */
+typedef struct {                
     OPDS          h;
     INSDS         *ip, *parent_ip;
     OPCOD_IOBUFS  *buf;
