@@ -933,10 +933,20 @@ static void deact(CSOUND *csound, INSDS *ip)
     int k;
     UOPCODE *p = (UOPCODE*) ip->opcod_deact;          /* IV - Oct 26 2002 */
     // free converter if it has already been created (maybe we could reuse?)
-    for(k=0; k<OPCODENUMOUTS_MAX; k++) {
-    if(p->cvt_in[k] != NULL) src_deinit(csound, p->cvt_in[k]);
-    if(p->cvt_out[k] != NULL) src_deinit(csound, p->cvt_out[k]);
-    }
+    for(k=0; k<OPCODENUMOUTS_MAX; k++) 
+      if(p->cvt_in[k] != NULL) {
+        src_deinit(csound, p->cvt_in[k]);
+        p->cvt_in[k] = NULL; // clear pointer
+      }
+      else break; // first null indicates end of cvt list
+
+    for(k=0; k<OPCODENUMOUTS_MAX; k++) 
+      if(p->cvt_out[k] != NULL) {
+        src_deinit(csound, p->cvt_out[k]);
+        p->cvt_out[k] = NULL; // clear pointer
+      }
+      else break; // first null indicates end of cvt list
+           
     deact(csound, p->ip);     /* deactivate */
     p->ip = NULL;
     /* IV - Oct 26 2002: set perf routine to "not initialised" */
