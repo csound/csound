@@ -24,11 +24,6 @@
 #include <dlfcn.h>
 #include <dirent.h>
 
-#undef CS_KSMPS
-#define CS_KSMPS     (csound->GetKsmps(csound))
-
-//#define DEBUG 1
-
 #define DSSI4CS_MAX_NUM_EVENTS 128
 
 #if !defined(HAVE_STRLCAT) && !defined(strlcat)
@@ -102,7 +97,7 @@ strNcpy(char *dst, const char *src, size_t siz)
 *****************************************************************************/
 void info(CSOUND * csound, DSSI4CS_PLUGIN * DSSIPlugin_)
 {
-    int32_t     Ksmps = csound->GetKsmps(csound);
+    int32_t     Ksmps = DSSIPlugin_->ksmps;
     uint64_t PortCount = 0;
     LADSPA_Descriptor *Descriptor;
     uint32 i;
@@ -266,6 +261,7 @@ int32_t dssiinit(CSOUND * csound, DSSIINIT * p)
     DSSI4CS_PLUGIN *DSSIPlugin =
         (DSSI4CS_PLUGIN *) csound->QueryGlobalVariable(csound, "$DSSI4CS");
     CS_TYPE* argType = csound->GetTypeForArg(p->iplugin);
+    DSSIPlugin->ksmps = Ksmps;
 
     if (strcmp("S", argType->varTypeName) == 0)
       strNcpy(dssiFilename,((STRINGDAT *)p->iplugin)->data, MAXNAME);
@@ -813,7 +809,7 @@ int32_t dssiaudio(CSOUND * csound, DSSIAUDIO * p)
     uint32_t i, j;
     uint32_t icnt = csound->GetInputArgCnt(p) - 1;
     uint32_t ocnt = csound->GetOutputArgCnt(p);
-    uint64_t Ksmps = (uint64_t) csound->GetKsmps(csound);
+    uint64_t Ksmps = (uint64_t) CS_KSMPS;
 
     if (p->DSSIPlugin_->Active == 1) {
       for (j = 0; j < icnt; j++) {
