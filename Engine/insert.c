@@ -37,6 +37,10 @@
 #include "csound_orc_semantics.h"
 #include <inttypes.h>
 
+static SR_CONVERTER *src_init(CSOUND *, int, float, int);
+static void src_deinit(CSOUND *, SR_CONVERTER *);
+static int src_convert(CSOUND *, SR_CONVERTER *, MYFLT *, MYFLT *);
+
 static  void    showallocs(CSOUND *);
 static  void    deact(CSOUND *, INSDS *);
 static  void    schedofftim(CSOUND *, INSDS *);
@@ -3067,8 +3071,26 @@ int csoundKillInstanceInternal(CSOUND *csound, MYFLT instr, char *instrName,
 }
 
 // sample rate conversion
+// src_init() - allocate and initialise converters
+// src_convert() - convert
+// src_deinit() - deallocate converters
+// Upwards: integer convertion ratios are used  
+// Input is read on first of N calls to src_convert(), N = ratio.
+// Output is split into N blocks, taking N calls to drain.
+// Downwards: an input of size N is taken and N/ratio
+// samples are output.
+struct _SR_CONVERTER
+{
+  float *bufferin, *bufferout;
+  float   ratio;
+  int     size;
+  int     cnt;
+  int     mode;
+  void   *data;
+};
+
 // Basic linear converter 
-SR_CONVERTER *src_linear_init(CSOUND *csound, int mode, float ratio, int size) {
+static SR_CONVERTER *src_linear_init(CSOUND *csound, int mode, float ratio, int size) {
   IGN(mode);
   SR_CONVERTER *pp = (SR_CONVERTER *) csound->Calloc(csound, sizeof(SR_CONVERTER));
   pp->data = csound->Calloc(csound, sizeof(MYFLT));
@@ -3079,7 +3101,7 @@ SR_CONVERTER *src_linear_init(CSOUND *csound, int mode, float ratio, int size) {
   return pp;
 }
 
-void src_linear_deinit(CSOUND *csound, SR_CONVERTER *pp) {
+static void src_linear_deinit(CSOUND *csound, SR_CONVERTER *pp) {
   csound->Free(csound, pp->bufferin);
   csound->Free(csound, pp->data);
   csound->Free(csound, pp);
@@ -3108,6 +3130,7 @@ void src_linear_process(SR_CONVERTER *pp, MYFLT *in, MYFLT *out, int outsamps){
   *((MYFLT *) pp->data) = in[incnt-1];
 }
 
+static
 int src_linear_convert(CSOUND *csound, SR_CONVERTER *pp, MYFLT *in, MYFLT *out){
   IGN(csound);
   int size = pp->size, cnt = pp->cnt;
@@ -3130,11 +3153,12 @@ int src_linear_convert(CSOUND *csound, SR_CONVERTER *pp, MYFLT *in, MYFLT *out){
 
 #ifndef USE_SRC
 // fallback to linear conversion
+static
 SR_CONVERTER *src_init(CSOUND *csound, int mode,
                        float ratio, int size) {
   return src_linear_init(csound, mode, ratio, size);
 }
-
+static
 int src_convert(CSOUND *csound, SR_CONVERTER *pp, MYFLT *in, MYFLT *out){
   return src_linear_convert(csound, pp, in, out);
 }
@@ -3160,6 +3184,7 @@ typedef struct {
     and implementing ksig conversion correctly 
     (SRC linear converter has a bug for single-sample conversion)
 */
+static
 SR_CONVERTER *src_init(CSOUND *csound, int mode,
                        float ratio, int size) {
   if(mode < 4) {
@@ -3200,6 +3225,7 @@ SR_CONVERTER *src_init(CSOUND *csound, int mode,
 /* this routine on upsampling feeds a buffer, converts, then outputs it in blocks;
    on downsampling, it feeds a buffer, when full converts and outputs
 */
+static
 int src_convert(CSOUND *csound, SR_CONVERTER *pp, MYFLT *in, MYFLT *out){
   if(pp->mode < 4){
     int i, cnt = pp->cnt, size = pp->size;
@@ -3232,7 +3258,7 @@ int src_convert(CSOUND *csound, SR_CONVERTER *pp, MYFLT *in, MYFLT *out){
     return src_linear_convert(csound, pp, in, out);
   return 0;
 }
-
+static 
 void src_deinit(CSOUND *csound, SR_CONVERTER *pp) {
   if(pp->mode < 4) {
     SRC *p = (SRC *) pp->data;

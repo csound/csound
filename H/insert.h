@@ -56,19 +56,8 @@ typedef struct {
     MYFLT  *inst;
 } KILLOP;
 
-/* sampling rate conversion functions */
-typedef struct {
-  float *bufferin, *bufferout;
-  float   ratio;
-  int     size;
-  int     cnt;
-  int     mode;
-  void   *data;
-} SR_CONVERTER;
-
-SR_CONVERTER *src_init(CSOUND *, int, float, int);
-void src_deinit(CSOUND *, SR_CONVERTER *);
-int src_convert(CSOUND *, SR_CONVERTER *, MYFLT *, MYFLT *);
+/* sampling rate conversion */
+typedef struct _SR_CONVERTER SR_CONVERTER;
 
 /* the number of optional outputs defined in entry.c */
 #define SUBINSTNUMOUTS  8
