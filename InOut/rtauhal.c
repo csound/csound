@@ -735,7 +735,6 @@ static int rtrecord_(CSOUND *csound, MYFLT *inbuff_, int nbytes)
     csdata  *cdata;
     int n = nbytes/sizeof(MYFLT);
     int m = 0, l;//, w = n;
-    //MYFLT sr = csound->GetSr(csound);
     cdata = (csdata *) *(csound->GetRtRecordUserData(csound));
     do{
       l = csound->ReadCircularBuffer(csound,cdata->incb,&inbuff_[m],n);
@@ -791,7 +790,6 @@ static void rtplay_(CSOUND *csound, const MYFLT *outbuff_, int nbytes)
     csdata  *cdata;
     int n = nbytes/sizeof(MYFLT);
     int m = 0, l;//, w = n;
-    //MYFLT sr = csound->GetSr(csound);
     cdata = (csdata *) *(csound->GetRtPlayUserData(csound));
     do {
       l = csound->WriteCircularBuffer(csound, cdata->outcb,&outbuff_[m],n);
