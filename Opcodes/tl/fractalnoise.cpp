@@ -437,7 +437,7 @@ int32_t fractalnoise_cleanup(CSOUND *csound, FRACTALNOISE *p) {
 int32_t fractalnoise_init(CSOUND *csound, FRACTALNOISE *p) {
   p->faust = new mydsp;
   p->cs_interface = new csUI;
-  p->faust->init((int32_t)csound->GetSr(p->h.insdshead));
+  p->faust->init((int32_t)CS_ESR);
   p->faust->buildUserInterface(p->cs_interface);
   csound->RegisterDeinitCallback(
       csound, p, (int32_t (*)(CSOUND *, void *))fractalnoise_cleanup);

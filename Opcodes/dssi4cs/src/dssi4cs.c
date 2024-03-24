@@ -248,8 +248,8 @@ int32_t dssiinit(CSOUND * csound, DSSIINIT * p)
 {
     /* TODO check if plugin has already been loaded and use same function */
     csound = p->h.insdshead->csound;
-    int32_t     SampleRate = (int32_t) MYFLT2LRND(csound->GetSr(csound));
-    int32_t     Ksmps = csound->GetKsmps(csound);
+    int32_t     SampleRate = (int32_t) MYFLT2LRND(CS_ESR);
+    int32_t     Ksmps = CS_KSMPS;
     uint64_t     i;
     int32_t     verbose = (int32_t)*p->iverbose;
     LADSPA_Descriptor_Function pfDescriptorFunction;
@@ -868,7 +868,7 @@ int32_t dssictls_init(CSOUND * csound, DSSICTLS * p)
             Crash if audio port selected */
     const LADSPA_Descriptor *Descriptor;
     int32_t     Number = *p->iDSSIhandle;
-    int32_t     Sr = (int32_t) MYFLT2LRND(csound->GetSr(csound));
+    int32_t     Sr = (int32_t) MYFLT2LRND(CS_ESR);
     uint64_t PortIndex = *p->iport;
     uint32_t  i;
     uint64_t ControlPort = 0;
