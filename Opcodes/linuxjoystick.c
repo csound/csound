@@ -142,7 +142,7 @@ static int32_t linuxjoystick (CSOUND *csound, LINUXJOYSTICK *stick)
 
 static OENTRY localops[] = {
   { "joystick", sizeof(LINUXJOYSTICK), 0, 2, "k", "kk",
-    NULL, (SUBR) linuxjoystick, NULL
+    NULL, (SUBR) linuxjoystick, NULL, NULL
   },
 };
 

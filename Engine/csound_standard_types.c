@@ -30,21 +30,27 @@
 /* MEMORY COPYING FUNCTIONS */
 
 void myflt_copy_value(CSOUND* csound, CS_TYPE* cstype, void* dest, void* src) {
+  (void)(csound);
+  (void)(cstype);
   MYFLT* f1 = (MYFLT*)dest;
   MYFLT* f2 = (MYFLT*)src;
   *f1 = *f2;
 }
 
 void asig_copy_value(CSOUND* csound, CS_TYPE* cstype, void* dest, void* src) {
+    (void)(cstype);
     memcpy(dest, src, sizeof(MYFLT) * ((CSOUND*)csound)->ksmps);
 }
 
 void wsig_copy_value(CSOUND* csound, CS_TYPE* cstype, void* dest, void* src) {
+    (void)(csound);
+    (void)(cstype);
     memcpy(dest, src, sizeof(SPECDAT));
     //TODO - check if this needs to copy SPECDAT's DOWNDAT member and AUXCH
 }
 
 void fsig_copy_value(CSOUND* csound, CS_TYPE* cstype, void* dest, void* src) {
+    (void)(cstype);
     PVSDAT *fsigout = (PVSDAT*) dest;
     PVSDAT *fsigin = (PVSDAT*) src;
     int N = fsigin->N;
@@ -58,6 +64,7 @@ void fsig_copy_value(CSOUND* csound, CS_TYPE* cstype, void* dest, void* src) {
 
 
 void string_copy_value(CSOUND* csound, CS_TYPE* cstype, void* dest, void* src) {
+    (void)(cstype);
     STRINGDAT* sDest = (STRINGDAT*)dest;
     STRINGDAT* sSrc = (STRINGDAT*)src;
     CSOUND* cs = (CSOUND*)csound;
@@ -94,6 +101,7 @@ static size_t array_get_num_members(ARRAYDAT* aSrc) {
 }
 
 void array_copy_value(CSOUND* csound, CS_TYPE* cstype, void* dest, void* src) {
+    (void)(cstype);
     ARRAYDAT* aDest = (ARRAYDAT*)dest;
     ARRAYDAT* aSrc = (ARRAYDAT*)src;
     CSOUND* cs = (CSOUND*)csound;
@@ -158,6 +166,7 @@ void arrayInitMemory(CSOUND *csound, CS_VARIABLE* var, MYFLT* memblock) {
 }
 
 void varInitMemoryString(CSOUND *csound, CS_VARIABLE* var, MYFLT* memblock) {
+    (void)(var);
     STRINGDAT *str = (STRINGDAT *)memblock;
     str->data = (char *) csound->Calloc(csound, DEFAULT_STRING_SIZE);
     str->size = DEFAULT_STRING_SIZE;
@@ -166,6 +175,7 @@ void varInitMemoryString(CSOUND *csound, CS_VARIABLE* var, MYFLT* memblock) {
 }
 
 void varInitMemoryFsig(CSOUND *csound, CS_VARIABLE* var, MYFLT* memblock) {
+    (void)(var);
     PVSDAT *fsig = (PVSDAT *)memblock;
     IGN(csound);
     memset(fsig, 0, sizeof(PVSDAT));  /* VL: clear memory for now */

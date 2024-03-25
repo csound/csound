@@ -2442,10 +2442,10 @@ static int32_t player_play2(CSOUND *csound, PLAYER *pp)
 
 static OENTRY mp3in_localops[] =
 {
-  {"mp3in",  S(MP3IN),  _QQ, 3, "mm", "Soooo", (SUBR) mp3ininit_S, (SUBR)mp3in},
-  {"mp3in.i",  S(MP3IN),  _QQ, 3, "mm", "ioooo", (SUBR) mp3ininit, (SUBR)mp3in},
-  {"mp3len", S(MP3LEN), _QQ, 1, "i",  "S",     (SUBR) mp3len_S,    NULL,  NULL},
-  {"mp3len.i", S(MP3LEN), _QQ, 1, "i",  "i",     (SUBR) mp3len,    NULL,  NULL},
+  {"mp3in",  S(MP3IN),  _QQ, 3, "mm", "Soooo", (SUBR) mp3ininit_S, (SUBR)mp3in, NULL, NULL},
+  {"mp3in.i",  S(MP3IN),  _QQ, 3, "mm", "ioooo", (SUBR) mp3ininit, (SUBR)mp3in, NULL, NULL},
+  {"mp3len", S(MP3LEN), _QQ, 1, "i",  "S",     (SUBR) mp3len_S,    NULL,  NULL, NULL},
+  {"mp3len.i", S(MP3LEN), _QQ, 1, "i",  "i",     (SUBR) mp3len,    NULL,  NULL, NULL},
   {"mp3sr", S(MP3LEN), 0, 1, "i",  "S",     (SUBR) mp3len_S,    NULL,  NULL},
   {"mp3sr.i", S(MP3LEN), 0, 1, "i",  "i",     (SUBR) mp3len,    NULL,  NULL},
   {"mp3bitrate", S(MP3LEN), 0, 1, "i",  "S",     (SUBR) mp3len_S,    NULL,  NULL},
@@ -2453,7 +2453,7 @@ static OENTRY mp3in_localops[] =
   {"mp3nchnls", S(MP3LEN), 0, 1, "i",  "S",     (SUBR) mp3len_S,    NULL,  NULL},
   {"mp3nchnls.i", S(MP3LEN), 0, 1, "i",  "i",     (SUBR) mp3len,    NULL,  NULL},
   {"mp3scal", sizeof(DATASPACE), 0, 3, "aak", "SkkkoooPP",
-   (SUBR)sinit3,(SUBR)sprocess3 },
+   (SUBR)sinit3,(SUBR)sprocess3, NULL, NULL},
 #ifdef ANDROID
   {"mp3scal_load", sizeof(LOADER), 0, 1, "i", "Soooo",
    (SUBR)loader_init, NULL,NULL },

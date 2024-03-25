@@ -249,7 +249,7 @@ static OENTRY platerev_localops[] =
   {
    { "platerev", sizeof(PLATE), 0, 3, "mmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmm",
      "iikiiiiy",
-     (SUBR) platerev_init, (SUBR) platerev
+     (SUBR) platerev_init, (SUBR) platerev, NULL, NULL
   },
 };
 

@@ -332,13 +332,13 @@ textflash_S(CSOUND *csound, TXTWIN *p){
 #define S(x)    sizeof(x)
 
 static OENTRY control_localops[] = {
-  { "control",  S(CNTRL), 0, 3, "k", "k", (SUBR) cntrl_set, (SUBR) control, NULL },
-{ "setctrl",  S(SCNTRL), 0, 1, "",  "iii", (SUBR) ocontrol, NULL, NULL           },
-{ "setctrl.S",  S(SCNTRL), 0, 1, "",  "iSi", (SUBR) ocontrol_S, NULL, NULL       },
-{ "button",   S(CNTRL),  0, 3, "k", "k",  (SUBR) button_set, (SUBR) button, NULL },
-{ "checkbox", S(CNTRL),  0, 3, "k", "k",   (SUBR) check_set, (SUBR) check, NULL  },
-{ "flashtxt", S(TXTWIN), 0, 1, "",  "ii",  (SUBR) textflash, NULL, NULL          },
-{ "flashtxt.S", S(TXTWIN), 0, 1, "",  "iS",  (SUBR) textflash_S, NULL, NULL      },
+  { "control",  S(CNTRL), 0, 3, "k", "k", (SUBR) cntrl_set, (SUBR) control, NULL, NULL},
+{ "setctrl",  S(SCNTRL), 0, 1, "",  "iii", (SUBR) ocontrol, NULL, NULL, NULL},
+{ "setctrl.S",  S(SCNTRL), 0, 1, "",  "iSi", (SUBR) ocontrol_S, NULL, NULL, NULL},
+{ "button",   S(CNTRL),  0, 3, "k", "k",  (SUBR) button_set, (SUBR) button, NULL, NULL},
+{ "checkbox", S(CNTRL),  0, 3, "k", "k",   (SUBR) check_set, (SUBR) check, NULL, NULL},
+{ "flashtxt", S(TXTWIN), 0, 1, "",  "ii",  (SUBR) textflash, NULL, NULL, NULL},
+{ "flashtxt.S", S(TXTWIN), 0, 1, "",  "iS",  (SUBR) textflash_S, NULL, NULL, NULL},
 };
 
 LINKAGE_BUILTIN(control_localops)

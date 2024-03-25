@@ -140,10 +140,12 @@ public:
     MYFLT *k_dynamic_range;
     MYFLT *k_exponent;
     int init(CSOUND *csound) {
+        (void)(csound);
         *k_gain = *k_dynamic_range * std::pow(*k_midi_velocity / FL(127.), *k_exponent) + FL(1.) - *k_dynamic_range;
         return OK;
     }
     int kontrol(CSOUND *csound) {
+        (void)(csound);
         *k_gain = *k_dynamic_range * std::pow(*k_midi_velocity / FL(127.), *k_exponent) + FL(1.) - *k_dynamic_range;
         return OK;
     }

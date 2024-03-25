@@ -49,26 +49,26 @@ extern "C" {
 
 TEST_F (OrcCompileTests, testArgsRequired)
 {
-    ASSERT_EQ (1, argsRequired("a"));
-    ASSERT_EQ (2, argsRequired("ka"));
-    ASSERT_EQ (3, argsRequired("kak"));
-    ASSERT_EQ (2, argsRequired("ak"));
-    ASSERT_EQ (3, argsRequired("a[]ka"));
-    ASSERT_EQ (4, argsRequired("a[]k[]ka"));
-    ASSERT_EQ (4, argsRequired("a[][]k[][]ka"));
+    ASSERT_EQ (1, argsRequired((char *) "a"));
+    ASSERT_EQ (2, argsRequired((char *) "ka"));
+    ASSERT_EQ (3, argsRequired((char *) "kak"));
+    ASSERT_EQ (2, argsRequired((char *) "ak"));
+    ASSERT_EQ (3, argsRequired((char *) "a[]ka"));
+    ASSERT_EQ (4, argsRequired((char *) "a[]k[]ka"));
+    ASSERT_EQ (4, argsRequired((char *) "a[][]k[][]ka"));
     ASSERT_EQ (0, argsRequired(NULL));
 }
 
 TEST_F (OrcCompileTests, testSplitArgs)
 {
-    char** results = splitArgs(csound, "kak");
+    char** results = splitArgs(csound, (char *) "kak");
 
     ASSERT_STREQ ("k", results[0]);
     ASSERT_STREQ ("a", results[1]);
     ASSERT_STREQ ("k", results[2]);
     csound->Free(csound, results);
 
-    results = splitArgs(csound, "a[]k[]ka");
+    results = splitArgs(csound, (char *) "a[]k[]ka");
 
     ASSERT_STREQ ("[a]", results[0]);
     ASSERT_STREQ ("[k]", results[1]);
@@ -76,7 +76,7 @@ TEST_F (OrcCompileTests, testSplitArgs)
     ASSERT_STREQ ("a", results[3]);
     csound->Free(csound, results);
 
-    results = splitArgs(csound, "a[][]k[][]ka");
+    results = splitArgs(csound, (char *) "a[][]k[][]ka");
 
     ASSERT_STREQ ("[[a]", results[0]);
     ASSERT_STREQ ("[[k]", results[1]);
@@ -89,14 +89,14 @@ TEST_F (OrcCompileTests, testCompile)
 {
     int result, compile_again = 0;
     char* instrument =
-        "instr 1 \n"
+        (char *) "instr 1 \n"
         "k1 expon p4, p3, p4*0.001 \n"
         "a1 randi  k1, p5   \n"
         "out  a1   \n"
         "endin \n";
 
     char* instrument2 =
-        "instr 2 \n"
+        (char *) "instr 2 \n"
         "k1 expon p4, p3, p4*0.001 \n"
         "a1 vco2  k1, p5   \n"
         "out  a1   \n"
@@ -129,7 +129,7 @@ TEST_F (OrcCompileTests, testReuse)
 {
     int result;
     char* instrument =
-        "instr 1 \n"
+        (char *) "instr 1 \n"
         "k1 expon p4, p3, p4*0.001 \n"
         "a1 randi  k1, p5   \n"
         "out  a1   \n"
@@ -159,7 +159,7 @@ TEST_F (OrcCompileTests, testReuse)
 TEST_F (OrcCompileTests, testLineNumber)
 {
     char* instrument =
-        "instr 1 \n"
+        (char *) "instr 1 \n"
         "k1 expon p4, p3, p4*0.001 \n"
         "a1 randi  k1, p5   \n"
         "out  a1   \n"
@@ -168,4 +168,5 @@ TEST_F (OrcCompileTests, testLineNumber)
     TREE *tree = csoundParseOrc(csound, instrument);
     // TODO this test doesn't return the expected value, 1 instead of 0
     // ASSERT_EQ (tree->next->line, 0);
+    (void)(tree);
 }

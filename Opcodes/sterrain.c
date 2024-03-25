@@ -117,6 +117,7 @@ static void superformula(MYFLT t, MYFLT kx, MYFLT ky, MYFLT krx, MYFLT kry,
 
 static int32_t wtinit(CSOUND *csound, SUPERTER *p)
 {
+    (void)(csound);
     p->xarr = NULL;
     p->yarr = NULL;
 
@@ -201,7 +202,7 @@ static int32_t wtPerf(CSOUND *csound, SUPERTER *p)
 
 static OENTRY sterrain_localops[] = {
   { "sterrain", S(SUPERTER), TR, 3,  "a", "kkkkkkkkkkkkkkkkk",
-    (SUBR)wtinit, (SUBR)wtPerf },
+    (SUBR)wtinit, (SUBR)wtPerf, NULL, NULL},
 };
 
 LINKAGE_BUILTIN(sterrain_localops)

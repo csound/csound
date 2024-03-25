@@ -230,17 +230,17 @@ static int32_t readfi_S(CSOUND *csound, READF *p)
 
 static OENTRY date_localops[] =
 {
-    { "date.i", sizeof(DATEMYFLT),  0, 1, "iI",   "", (SUBR)datemyfltset   },
+    { "date.i", sizeof(DATEMYFLT),  0, 1, "iI",   "", (SUBR)datemyfltset, NULL, NULL, NULL},
     { "date.k", sizeof(DATEMYFLT),  0, 3, "kz",   "", (SUBR)datemyfltset,
-      (SUBR)datemyfltset },
-    { "dates",  sizeof(DATESTRING), 0, 1, "S",    "j", (SUBR)datestringset },
-    { "pwd",    sizeof(GETCWD),     0, 1, "S",    "",  (SUBR)getcurdir     },
-    { "readfi", sizeof(READF),      0, 1, "Si",   "i", (SUBR)readfi,       },
-    { "readfi.S", sizeof(READF),    0, 1, "Si",   "S", (SUBR)readfi_S,     },
+      (SUBR)datemyfltset, NULL, NULL},
+    { "dates",  sizeof(DATESTRING), 0, 1, "S",    "j", (SUBR)datestringset, NULL, NULL, NULL},
+    { "pwd",    sizeof(GETCWD),     0, 1, "S",    "",  (SUBR)getcurdir, NULL, NULL, NULL},
+    { "readfi", sizeof(READF),      0, 1, "Si",   "i", (SUBR)readfi, NULL, NULL, NULL},
+    { "readfi.S", sizeof(READF),    0, 1, "Si",   "S", (SUBR)readfi_S, NULL, NULL, NULL},
     { "readf",  sizeof(READF),      0, 3, "Sk",   "i", (SUBR)readf_init,
-      (SUBR)readf                                                          },
+      (SUBR)readf, NULL, NULL},
     { "readf.S",  sizeof(READF),    0, 3, "Sk",   "S", (SUBR)readf_init_S,
-                                                       (SUBR)readf         }
+                                                       (SUBR)readf, NULL, NULL}
 
 };
 

@@ -886,11 +886,11 @@ static int32_t    spat3dt(CSOUND *csound, SPAT3D *p)
 static OENTRY localops[] =
   {
    { "spat3d", S(SPAT3D), 0, 3, "aaaa", "akkkiiiiio",
-     (SUBR) spat3dset,   (SUBR) spat3d   },
+     (SUBR) spat3dset,   (SUBR) spat3d, NULL, NULL},
    { "spat3di",S(SPAT3D), 0, 3, "aaaa", "aiiiiiio",
-     (SUBR) spat3diset,   (SUBR) spat3di  },
+     (SUBR) spat3diset,   (SUBR) spat3di, NULL, NULL},
    { "spat3dt",S(SPAT3D), 0, 1, "", "iiiiiiiio",
-     (SUBR) spat3dt,     NULL,   NULL            }
+     (SUBR) spat3dt,     NULL,   NULL, NULL}
 };
 
 int32_t spat3d_init_(CSOUND *csound)

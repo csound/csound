@@ -531,9 +531,9 @@ int32_t part2txt_perf(CSOUND *csound, PARTXT *p){
 static OENTRY localops[] =
   {
     { "partials", sizeof(_PARTS), 0, 3, "f", "ffkkki",
-                            (SUBR) partials_init, (SUBR) partials_process },
+                            (SUBR) partials_init, (SUBR) partials_process, NULL, NULL},
     { "part2txt", sizeof(_PARTS), 0, 3, "", "Sf",
-                            (SUBR) part2txt_init, (SUBR) part2txt_perf }
+                            (SUBR) part2txt_init, (SUBR) part2txt_perf, NULL, NULL}
   };
 
 int32_t partials_init_(CSOUND *csound)

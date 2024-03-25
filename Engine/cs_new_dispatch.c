@@ -383,7 +383,7 @@ taskID dag_get_task(CSOUND *csound, int index, int numThreads, taskID next_task)
 }
 
 /* This static is OK as not written */
-static const watchList DoNotRead = { INVALID, NULL};
+static const watchList DoNotRead = { INVALID, NULL, {0}};
 
 inline static int moveWatch(CSOUND *csound, watchList * volatile *w,
                             watchList *t)

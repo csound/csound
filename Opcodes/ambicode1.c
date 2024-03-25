@@ -1085,13 +1085,13 @@ abformdec_a(CSOUND * csound, AMBIDA * p) {
 
 static OENTRY ambicode1_localops[] = {
   { "bformenc1.a", S(AMBIC), 0, 3, "mmmmmmmmmmmmmmmm", "akk",
-                (SUBR)ibformenc,  (SUBR)abformenc },         
+                (SUBR)ibformenc,  (SUBR)abformenc, NULL, NULL},         
   { "bformenc1.A", S(AMBIC), 0, 3, "a[]", "akk",
-                (SUBR)ibformenc_a,  (SUBR)abformenc_a },
+                (SUBR)ibformenc_a,  (SUBR)abformenc_a, NULL, NULL},
   { "bformdec1.a", S(AMBID), 0, 3, "mmmmmmmm", "iy",
-    (SUBR)ibformdec,  (SUBR)abformdec },
+    (SUBR)ibformdec,  (SUBR)abformdec, NULL, NULL},
   { "bformdec1.A", S(AMBIDA), 0, 3, "a[]", "ia[]",
-    (SUBR)ibformdec_a,  (SUBR)abformdec_a },
+    (SUBR)ibformdec_a,  (SUBR)abformdec_a, NULL, NULL},
 };
 
 LINKAGE_BUILTIN(ambicode1_localops)

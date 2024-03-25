@@ -868,6 +868,7 @@ int32_t chnget_array_opcode_init(CSOUND* csound, CHNGETARRAY* p)
 
 int32_t chnget_array_opcode_perf_k(CSOUND* csound, CHNGETARRAY* p)
 {
+    (void)(csound);
     int index = 0;
 
     for (index = 0; index<p->arraySize; index++)

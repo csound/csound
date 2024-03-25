@@ -1058,21 +1058,21 @@ static int32_t k35_hpf_perf(CSOUND* csound, K35_HPF* p) {
 static OENTRY wpfilters_localops[] =
   {
    { "zdf_1pole", sizeof(ZDF_1POLE), 0,3,"a","axOo",
-      (SUBR)zdf_1pole_init,(SUBR)zdf_1pole_perf},
+      (SUBR)zdf_1pole_init,(SUBR)zdf_1pole_perf, NULL, NULL},
    { "zdf_1pole_mode", sizeof(ZDF_1POLE_MODE), 0,3,"aa","axo",
-      (SUBR)zdf_1pole_mode_init,(SUBR)zdf_1pole_mode_perf},
+      (SUBR)zdf_1pole_mode_init,(SUBR)zdf_1pole_mode_perf, NULL, NULL},
    { "zdf_2pole", sizeof(ZDF_2POLE), 0,3,"a","axxOo",
-      (SUBR)zdf_2pole_init,(SUBR)zdf_2pole_perf},
+      (SUBR)zdf_2pole_init,(SUBR)zdf_2pole_perf, NULL, NULL},
    { "zdf_2pole_mode", sizeof(ZDF_2POLE_MODE), 0,3,"aaa","axxo",
-      (SUBR)zdf_2pole_mode_init,(SUBR)zdf_2pole_mode_perf},
+      (SUBR)zdf_2pole_mode_init,(SUBR)zdf_2pole_mode_perf, NULL, NULL},
    { "zdf_ladder", sizeof(ZDF_LADDER), 0,3,"a","axxo",
-      (SUBR)zdf_ladder_init,(SUBR)zdf_ladder_perf},
+      (SUBR)zdf_ladder_init,(SUBR)zdf_ladder_perf, NULL, NULL},
    { "diode_ladder", sizeof(DIODE_LADDER), 0,3,"a","axxOPo",
-      (SUBR)diode_ladder_init,(SUBR)diode_ladder_perf},
+      (SUBR)diode_ladder_init,(SUBR)diode_ladder_perf, NULL, NULL},
    { "K35_lpf", sizeof(K35_LPF), 0,3,"a","axxOPo",
-      (SUBR)k35_lpf_init,(SUBR)k35_lpf_perf},
+      (SUBR)k35_lpf_init,(SUBR)k35_lpf_perf, NULL, NULL},
    { "K35_hpf", sizeof(K35_LPF), 0,3,"a","axxOPo",(SUBR)
-      k35_hpf_init,(SUBR)k35_hpf_perf},
+      k35_hpf_init,(SUBR)k35_hpf_perf, NULL, NULL},
   };
 
 LINKAGE_BUILTIN(wpfilters_localops)

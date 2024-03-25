@@ -56,6 +56,8 @@ TEST_F (DebuggerTests, testAddBreakpoint)
 
 static void brkpt_cb(CSOUND *csound, debug_bkpt_info_t *bkpt_info, void *userdata)
 {
+    (void)(csound);
+    (void)(bkpt_info);
     int *count = (int *) userdata;
     *count = *count + 1;
 }
@@ -126,6 +128,8 @@ TEST_F (DebuggerTests, testBreakpointRemove)
 
 static void brkpt_cb3(CSOUND *csound, debug_bkpt_info_t *bkpt_info, void *userdata)
 {
+    (void)(csound);
+    (void)(userdata);
     debug_variable_t *vars = bkpt_info->instrVarList;
 
     MYFLT data = *((MYFLT *)vars->data);
@@ -152,6 +156,8 @@ TEST_F (DebuggerTests, testVariables)
 
 static void brkpt_cb4(CSOUND *csound, debug_bkpt_info_t *bkpt_info, void *userdata)
 {
+    (void)(csound);
+    (void)(userdata);
     debug_instr_t *debug_instr = bkpt_info->breakpointInstr;
     ASSERT_EQ (debug_instr->p1, 1);
     ASSERT_EQ (debug_instr->p2, 0);
@@ -174,7 +180,9 @@ TEST_F (DebuggerTests, testBreakpointInstrument)
 int count = 0;
 static void brkpt_cb5(CSOUND *csound, debug_bkpt_info_t *bkpt_info, void *userdata)
 {
-    debug_opcode_t *debug_opcode = bkpt_info->currentOpcode;
+    (void)(csound);
+    (void)(bkpt_info);
+    (void)(userdata);
     count++;
 }
 
@@ -211,6 +219,8 @@ TEST_F (DebuggerTests, testLineBreakpointAddRemove)
 
 static void brkpt_cb6(CSOUND *csound, debug_bkpt_info_t *bkpt_info, void *userdata)
 {
+    (void)(csound);
+    (void)(userdata);
     debug_opcode_t *debug_opcode = bkpt_info->currentOpcode;
 
     if (count == 0) {
@@ -279,6 +289,7 @@ TEST_F (DebuggerTests, testLineBreakpoint)
 
 static void brkpt_cb7(CSOUND *csound, debug_bkpt_info_t *bkpt_info, void *line_)
 {
+    (void)(csound);
     debug_opcode_t *debug_opcode = bkpt_info->currentOpcode;
     int *line = (int *) line_;
     ASSERT_EQ (debug_opcode->line, *line);
@@ -357,6 +368,8 @@ TEST_F (DebuggerTests, testNoCallback)
 
 static void brkpt_cb8(CSOUND *csound, debug_bkpt_info_t *bkpt_info, void *line_)
 {
+    (void)(csound);
+    (void)(line_);
     switch (count) {
     case 0:
         ASSERT_EQ (bkpt_info->breakpointInstr->p1, 1.2);
@@ -382,6 +395,8 @@ static void brkpt_cb8(CSOUND *csound, debug_bkpt_info_t *bkpt_info, void *line_)
 
 static void brkpt_cb9(CSOUND *csound, debug_bkpt_info_t *bkpt_info, void *line_)
 {
+    (void)(csound);
+    (void)(line_);
     debug_variable_t *vars = bkpt_info->instrVarList;
     MYFLT val = -1;
     while (vars) {

@@ -56,7 +56,7 @@ static int32_t selecter(CSOUND *csound, Selecter* p)
 #define S(x)    sizeof(x)
 
 static OENTRY select_localops[] = {
-  { "select", S(Selecter), 0, 2, "a", "aaaaa", NULL, (SUBR)selecter}
+  { "select", S(Selecter), 0, 2, "a", "aaaaa", NULL, (SUBR)selecter, NULL, NULL}
 };
 
 LINKAGE_BUILTIN(select_localops)

@@ -138,6 +138,7 @@ class OpcodeBase
 public:
     int init(CSOUND *csound)
     {
+        (void)(csound);
         return NOTOK;
     }
     static int init_(CSOUND *csound, void *opcode)
@@ -146,14 +147,17 @@ public:
     }
     int kontrol(CSOUND *csound)
     {
+        (void)(csound);
         return NOTOK;
     }
     static int kontrol_(CSOUND *csound, void *opcode)
     {
+        (void)(csound);
         return reinterpret_cast<T *>(opcode)->kontrol(csound);
     }
     int audio(CSOUND *csound)
     {
+        (void)(csound);
         return NOTOK;
     }
     static int audio_(CSOUND *csound, void *opcode)
@@ -364,6 +368,7 @@ public:
     }
     int noteoff(CSOUND *csound)
     {
+        (void)(csound);
         return OK;
     }
     static int noteoff_(CSOUND *csound, void *opcode)

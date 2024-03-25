@@ -966,27 +966,27 @@ static OENTRY partikkel_localops[] = {
         "ammmmmmm",
         "xkiakiiikkkkikkiiaikikkkikkkkkiaaaakkkkioj",
         (SUBR)partikkel_init,
-        (SUBR)partikkel
+        (SUBR)partikkel, NULL, NULL
     },
     {
      "partikkelsync", sizeof(PARTIKKEL_SYNC), TR, 3,
         "am", "i",
         (SUBR)partikkelsync_init,
-        (SUBR)partikkelsync
+        (SUBR)partikkelsync, NULL, NULL
     },
     {
         "partikkelget", sizeof(PARTIKKEL_GET), TR, 3,
         "k", "ki",
         (SUBR)partikkelget_init,
         (SUBR)partikkelget,
-        (SUBR)NULL
+        (SUBR)NULL, NULL
     },
     {
         "partikkelset", sizeof(PARTIKKEL_SET), TR, 3,
         "", "kki",
         (SUBR)partikkelset_init,
         (SUBR)partikkelset,
-        (SUBR)NULL
+        (SUBR)NULL, NULL
     }
 };
 

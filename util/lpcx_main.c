@@ -37,11 +37,11 @@
 #endif
 #include "lpc.h"
 
-#define Str(x) x
+#define SimpleStr(x) x
 
 void lpc_export_usage(void)
 {
-    printf(Str("usage: lpc_export lpc_file cstext-file\n"));
+    printf(SimpleStr("usage: lpc_export lpc_file cstext-file\n"));
 }
 
 int main(int argc, char **argv)
@@ -59,18 +59,18 @@ int main(int argc, char **argv)
     }
     inf = fopen(argv[1], "rb");
     if (inf == NULL) {
-      printf(Str("Cannot open input file %s\n"), argv[1]);
+      printf(SimpleStr("Cannot open input file %s\n"), argv[1]);
       return 1;
     }
     outf = fopen(argv[2], "w");
     if (outf == NULL) {
-      printf(Str("Cannot open output file %s\n"), argv[2]);
+      printf(SimpleStr("Cannot open output file %s\n"), argv[2]);
       fclose(inf);
       return 1;
     }
     if (fread(&hdr, sizeof(LPHEADER)-4, 1, inf) != 1 ||
         (hdr.lpmagic != LP_MAGIC && hdr.lpmagic != LP_MAGIC2)) {
-      printf(Str("Failed to read LPC header\n"));
+      printf(SimpleStr("Failed to read LPC header\n"));
       fclose(inf);
       fclose(outf);
       return 1;
@@ -79,7 +79,7 @@ int main(int argc, char **argv)
             hdr.headersize, hdr.lpmagic, hdr.npoles, hdr.nvals,
             hdr.framrate, hdr.srate, hdr.duration);
     if (hdr.headersize>1024 || hdr.headersize<sizeof(LPHEADER)) {
-      fprintf(stderr, Str("corrupt header\n"));
+      fprintf(stderr, SimpleStr("corrupt header\n"));
       exit(1);
     }
     str = (char *)malloc((size_t)(hdr.headersize-sizeof(LPHEADER)+4));
@@ -87,7 +87,7 @@ int main(int argc, char **argv)
     if (UNLIKELY(fread(&str, sizeof(char),
                        hdr.headersize-sizeof(LPHEADER)+4, inf)!=
                  hdr.headersize-sizeof(LPHEADER)+4)){
-      fprintf(stderr, Str("Read failure\n"));
+      fprintf(stderr, SimpleStr("Read failure\n"));
       exit(1);
     }
     if (UNLIKELY(hdr.headersize>100)) hdr.headersize = 101;
@@ -101,7 +101,7 @@ int main(int argc, char **argv)
       coef = (MYFLT *)malloc(((uint64_t)hdr.npoles+hdr.nvals)*sizeof(MYFLT));
       for (i = 0; i<floor(hdr.framrate*hdr.duration); i++) {
         if (UNLIKELY(fread(coef, sizeof(MYFLT), hdr.npoles,inf) != hdr.npoles)) {
-          fprintf(stderr, Str("Read failure\n"));
+          fprintf(stderr, SimpleStr("Read failure\n"));
           exit(1);
         }
         for (j=0; j<hdr.npoles; j++)

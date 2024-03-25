@@ -653,17 +653,17 @@ static int32_t pconvolve(CSOUND *csound, PCONVOLVE *p)
 static OENTRY localops[] =
   {
    { "convolve", sizeof(CONVOLVE),   0, 3, "mmmm", "aSo",
-            (SUBR) cvset_S,    (SUBR) convolve   },
+            (SUBR) cvset_S,    (SUBR) convolve, NULL, NULL},
    { "convle",   sizeof(CONVOLVE),   0, 3, "mmmm", "aSo",
-            (SUBR) cvset_S,    (SUBR) convolve   },
+            (SUBR) cvset_S,    (SUBR) convolve, NULL, NULL},
    { "pconvolve",sizeof(PCONVOLVE),  0, 3, "mmmm", "aSoo",
-      (SUBR) pconvset_S,    (SUBR) pconvolve  },
+      (SUBR) pconvset_S,    (SUBR) pconvolve, NULL, NULL},
    { "convolve.i", sizeof(CONVOLVE),   0, 3, "mmmm", "aio",
-            (SUBR) cvset,    (SUBR) convolve   },
+            (SUBR) cvset,    (SUBR) convolve, NULL, NULL},
    { "convle.i",   sizeof(CONVOLVE),   0, 3, "mmmm", "aio",
-            (SUBR) cvset,    (SUBR) convolve   },
+            (SUBR) cvset,    (SUBR) convolve, NULL, NULL},
    { "pconvolve.i",sizeof(PCONVOLVE),  0, 3, "mmmm", "aioo",
-            (SUBR) pconvset,    (SUBR) pconvolve  }
+            (SUBR) pconvset,    (SUBR) pconvolve, NULL, NULL}
 };
 
 int32_t ugens9_init_(CSOUND *csound)

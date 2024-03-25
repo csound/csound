@@ -94,6 +94,7 @@ TEST_F (IOTests, testDeviceList)
 
 int key_callback_evt(void *userData, void *p, unsigned int type)
 {
+    (void)(type);
     int *prev = (int *) userData;
     *((int *) p) = *prev;
     *prev += 1;
@@ -102,6 +103,7 @@ int key_callback_evt(void *userData, void *p, unsigned int type)
 
 int key_callback_txt(void *userData, void *p, unsigned int type)
 {
+    (void)(type);
     int *prev = (int *) userData;
     *((int *) p) =  *prev;
     *prev += 1;
@@ -110,7 +112,7 @@ int key_callback_txt(void *userData, void *p, unsigned int type)
 
 TEST_F (IOTests, testKeyboardIO)
 {
-    int ret, err, prev = 100;
+    int ret, prev = 100;
 
     ret = csoundRegisterKeyboardCallback(csound, key_callback_evt, &prev, CSOUND_CALLBACK_KBD_EVENT);
     ASSERT_TRUE (ret == CSOUND_SUCCESS);

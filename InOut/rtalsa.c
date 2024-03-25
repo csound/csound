@@ -1839,7 +1839,7 @@ static int check_permission(snd_seq_port_info_t *pinfo, int perm)
 int listAlsaSeq(CSOUND *csound, CS_MIDIDEVICE *list, int isOutput) {
     snd_seq_client_info_t *cinfo;
     snd_seq_port_info_t *pinfo;
-    int numdevs = 0, count = 0;
+    int numdevs = 0;
     snd_seq_t *seq;
 
     IGN(csound);
@@ -1856,7 +1856,6 @@ int listAlsaSeq(CSOUND *csound, CS_MIDIDEVICE *list, int isOutput) {
       /* reset query info */
       snd_seq_port_info_set_client(pinfo, snd_seq_client_info_get_client(cinfo));
       snd_seq_port_info_set_port(pinfo, -1);
-      count = 0;
       while (snd_seq_query_next_port(seq, pinfo) >= 0) {
         if (check_permission(pinfo, isOutput? LIST_OUTPUT : LIST_INPUT)) {
           if (list) {
@@ -1870,7 +1869,6 @@ int listAlsaSeq(CSOUND *csound, CS_MIDIDEVICE *list, int isOutput) {
                     snd_seq_port_info_get_port(pinfo));
           }
           numdevs++;
-          count++;
         }
       }
     }

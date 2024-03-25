@@ -151,6 +151,7 @@ static void (*ifuncs[8])(MYFLT,MYFLT,MYFLT,MYFLT,MYFLT,MYFLT,MYFLT*,MYFLT*) = { 
 
 static int32_t wtinit(CSOUND *csound, WAVETER *p)
 {
+    (void)(csound);
     p->xarr = NULL;
     p->yarr = NULL;
 
@@ -226,7 +227,7 @@ static int32_t wtPerf(CSOUND *csound, WAVETER *p)
 
 static OENTRY wter_localops[] = {
   { "wterrain2", S(WAVETER), TR, 3,  "a", "kkkkkkkkkkk",
-    (SUBR)wtinit, (SUBR)wtPerf },
+    (SUBR)wtinit, (SUBR)wtPerf, NULL, NULL},
 };
 
 //LINKAGE

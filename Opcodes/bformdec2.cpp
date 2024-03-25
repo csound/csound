@@ -718,6 +718,7 @@ public:
 
   virtual int32_t hrtfstat_process(CSOUND *csound, MYFLT *in, MYFLT *outsigl, MYFLT *outsigr, uint32_t offset, uint32_t early, uint32_t nsmps)
   {
+      (void)(early);
       /* local pointers to p */
       /*MYFLT *in = p->in->data;
         MYFLT *outsigl  = p->outsigl;
@@ -1045,7 +1046,8 @@ static int32_t ihoambdec(CSOUND *csound, HOAMBDEC* p)
       }
 
 
-      double gW, gXYZ;
+      double gW = 1.0;
+      double gXYZ = 1.0;
 
       switch (type_mix) {
       case 0: // "energy"
@@ -1102,7 +1104,8 @@ static int32_t ihoambdec(CSOUND *csound, HOAMBDEC* p)
           }
         }
 
-        double gW, gXYZ;
+        double gW = 1.0;
+        double gXYZ = 1.0;
 
         switch (type_mix) {
         case 0: // "energy"
@@ -1161,7 +1164,9 @@ static int32_t ihoambdec(CSOUND *csound, HOAMBDEC* p)
           }
         }
 
-        double g0, g1, g2;
+        double g0 = 1.0;
+        double g1 = 1.0;
+        double g2 = 1.0;
 
         switch (type_mix) {
         case 0: // "energy"
@@ -1224,7 +1229,10 @@ static int32_t ihoambdec(CSOUND *csound, HOAMBDEC* p)
       }
 
 
-      double g0, g1, g2, g3;
+      double g0 = 1.0;
+      double g1 = 1.0;
+      double g2 = 1.0;
+      double g3 = 1.0;
 
       if (p->order == 1) { //order 1
 
@@ -1351,7 +1359,8 @@ static int32_t ihoambdec(CSOUND *csound, HOAMBDEC* p)
         }
       }
 
-      double gW, gXYZ;
+      double gW = 1.0;
+      double gXYZ = 1.0;
 
       switch (type_mix) {
       case 0: // "energy"
@@ -1407,7 +1416,9 @@ static int32_t ihoambdec(CSOUND *csound, HOAMBDEC* p)
       }
 
 
-      double g0, g1, g2;
+      double g0 = 0.0;
+      double g1 = 0.0;
+      double g2 = 0.0;
 
       if (p->order == 1) { //order 1
 
@@ -1548,7 +1559,11 @@ static int32_t ihoambdec(CSOUND *csound, HOAMBDEC* p)
         }
       }
 
-      double g0, g1, g2, g3;
+      double g0 = 1.0;
+      double g1 = 1.0;
+      double g2 = 1.0;
+      double g3 = 1.0;
+
       if (p->order == 1) { //order 1
 
         switch (type_mix) {
@@ -2150,7 +2165,7 @@ static void process_nfc(CSOUND *csound, HOAMBDEC* p, int signal_order, int n, in
 
 static OENTRY localops[] = {
   { (char*) "bformdec2.A", S(HOAMBDEC), 0, 3, (char*) "a[]", (char*) "ia[]ooooNN",
-    (SUBR)ihoambdec, (SUBR)ahoambdec },
+    (SUBR)ihoambdec, (SUBR)ahoambdec, NULL, NULL},
 };
 
 LINKAGE_BUILTIN(localops)

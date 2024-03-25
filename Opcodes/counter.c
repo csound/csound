@@ -137,6 +137,7 @@ static int32_t count_init0(CSOUND *csound, COUNTER *p)
 
 static int32_t count_perf(CSOUND *csound, COUNTER *p)
 {
+    (void)(csound);
     COUNT *q = p->cnt;
     if (q->val > q->max) {
       q->val = q->min;
@@ -159,18 +160,21 @@ static int32_t count_init_perf(CSOUND *csound, COUNTER *p)
 
 static int32_t count_cycles(CSOUND *csound, COUNTER* p)
 {
+    (void)(csound);
     *p->res = p->cnt->cycles;
     return OK;
 }
 
 static int32_t count_read(CSOUND *csound, COUNTER* p)
 {
+    (void)(csound);
     *p->res = p->cnt->val;
     return OK;
 }
 
 static int32_t count_reset(CSOUND *csound, COUNTER* p)
 {
+    (void)(csound);
     p->cnt->val = p->cnt->min;
     return OK;
 }
@@ -185,6 +189,7 @@ static int32_t count_init3(CSOUND *csound, CNTSTATE *p)
 
 static int32_t count_state(CSOUND *csound, CNTSTATE *p)
 {
+    (void)(csound);
     *p->max = p->cnt->max;
     *p->min = p->cnt->min;
     *p->inc = p->cnt->inc;
@@ -210,15 +215,15 @@ static int32_t count_del(CSOUND *csound, COUNTER* p)
 #define S(x)    sizeof(x)
 
 static OENTRY counter_localops[] = {
-  { "cntCreate", S(CNTSET), 0, 1, "i", "pop", (SUBR)setcnt, NULL, NULL   },
-  { "count", S(COUNTER), SK, 3, "k", "o", (SUBR)count_init, (SUBR)count_perf },
-  { "count_i", S(COUNTER), SK, 1, "i", "o", (SUBR)count_init_perf, NULL },
-  { "cntCycles", S(COUNTER), SK, 3, "k", "o", (SUBR)count_init, (SUBR)count_cycles },
-  { "cntRead", S(COUNTER), SK, 3, "k", "o", (SUBR)count_init, (SUBR)count_read },
-  { "cntReset", S(COUNTER), SK, 3, "", "o", (SUBR)count_init0, (SUBR)count_reset },
-  { "cntState", S(CNTSTATE), SK, 3, "kkk", "o", (SUBR)count_init3, (SUBR)count_state },
-  { "cntDelete", S(COUNTER), SK, 2, "k", "k", NULL, (SUBR)count_del, NULL },
-  { "cntDelete_i", S(COUNTER), SK, 1, "i", "i", (SUBR)count_del, NULL, NULL },
+  { "cntCreate", S(CNTSET), 0, 1, "i", "pop", (SUBR)setcnt, NULL, NULL, NULL},
+  { "count", S(COUNTER), SK, 3, "k", "o", (SUBR)count_init, (SUBR)count_perf, NULL, NULL},
+  { "count_i", S(COUNTER), SK, 1, "i", "o", (SUBR)count_init_perf, NULL, NULL, NULL},
+  { "cntCycles", S(COUNTER), SK, 3, "k", "o", (SUBR)count_init, (SUBR)count_cycles, NULL, NULL},
+  { "cntRead", S(COUNTER), SK, 3, "k", "o", (SUBR)count_init, (SUBR)count_read, NULL, NULL},
+  { "cntReset", S(COUNTER), SK, 3, "", "o", (SUBR)count_init0, (SUBR)count_reset, NULL, NULL},
+  { "cntState", S(CNTSTATE), SK, 3, "kkk", "o", (SUBR)count_init3, (SUBR)count_state, NULL, NULL},
+  { "cntDelete", S(COUNTER), SK, 2, "k", "k", NULL, (SUBR)count_del, NULL, NULL},
+  { "cntDelete_i", S(COUNTER), SK, 1, "i", "i", (SUBR)count_del, NULL, NULL, NULL},
  };
 
 LINKAGE_BUILTIN(counter_localops)

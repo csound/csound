@@ -445,7 +445,7 @@ static int32_t hrtferxk(CSOUND *csound, HRTFER *p)
 static OENTRY hrtferX_localops[] =
   {
    { "hrtfer",   sizeof(HRTFER), _QQ, 3, "aa", "akkS",
-     (SUBR)hrtferxkSet, (SUBR)hrtferxk},
+     (SUBR)hrtferxkSet, (SUBR)hrtferxk, NULL, NULL},
 };
 
 LINKAGE_BUILTIN(hrtferX_localops)

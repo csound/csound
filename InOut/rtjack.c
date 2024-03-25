@@ -351,7 +351,10 @@ static void rtJack_RegisterPorts(RtJackGlobals *p)
     if (p->inputEnabled) {
       /* register input ports */
       for (i = 0; i < p->nChannels_i; i++) {
-        snprintf(portName, MAX_NAME_LEN + 4, "%s%d", p->inputPortName, i + 1);
+        int written = snprintf(portName, MAX_NAME_LEN + 4, "%s%d", p->inputPortName, i + 1);
+        if (written > MAX_NAME_LEN + 4) {
+          rtJack_Error(csound, -1, Str("truncated port name"));
+        }
         p->inPorts[i] = jack_port_register(p->client, &(portName[0]),
                                            JACK_DEFAULT_AUDIO_TYPE,
                                            flags | JackPortIsInput, 0UL);
@@ -362,7 +365,10 @@ static void rtJack_RegisterPorts(RtJackGlobals *p)
     if (p->outputEnabled) {
       /* register output ports */
       for (i = 0; i < p->nChannels; i++) {
-        snprintf(portName, MAX_NAME_LEN + 4, "%s%d", p->outputPortName, i + 1);
+        int written = snprintf(portName, MAX_NAME_LEN + 4, "%s%d", p->outputPortName, i + 1);
+        if (written > MAX_NAME_LEN + 4) {
+          rtJack_Error(csound, -1, Str("truncated port name"));
+        }
         p->outPorts[i] = jack_port_register(p->client, &(portName[0]),
                                             JACK_DEFAULT_AUDIO_TYPE,
                                             flags | JackPortIsOutput, 0UL);

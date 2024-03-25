@@ -1206,6 +1206,7 @@ static void do_umacro(CSOUND *csound, char *name0, yyscan_t yyscanner)
 
 static void do_umacroq(CSOUND *csound, char *name0, yyscan_t yyscanner)
 {
+    (void)(yyscanner);
     int i;
     MACRO *mm = csound->orc_macros, *last = NULL;
     while (mm) {

@@ -124,7 +124,7 @@ static int32_t cell(CSOUND *csound,CELL *p)
 #define S sizeof
 
 static OENTRY cell_localops[] = {
-  {"cell",  S(CELL),  TB, 3, "",  "kkiiii",(SUBR)cell_set, (SUBR)cell        }
+  {"cell",  S(CELL),  TB, 3, "",  "kkiiii",(SUBR)cell_set, (SUBR)cell, NULL, NULL}
 };
 
 LINKAGE_BUILTIN(cell_localops)

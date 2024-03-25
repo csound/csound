@@ -531,21 +531,21 @@ static int32_t agendyc(CSOUND *csound, GENDYC *p)
 }
 
 static OENTRY gendy_localops[] = {
-  { "gendy",    0xffff                                   },
-  { "gendyx",   0xffff                                   },
-  { "gendyc",   0xffff                                   },
+  { "gendy",    0xffff, 0, 0, "", "", NULL, NULL, NULL, NULL},
+  { "gendyx",   0xffff, 0, 0, "", "", NULL, NULL, NULL, NULL},
+  { "gendyc",   0xffff, 0, 0, "", "", NULL, NULL, NULL, NULL},
   { "gendy.k",  sizeof(GENDY),  0,3, "k", "kkkkkkkkkoO",
-    (SUBR)gendyset,  (SUBR)kgendy,  (SUBR)NULL           },
+    (SUBR)gendyset,  (SUBR)kgendy,  (SUBR)NULL, NULL},
   { "gendy.a",  sizeof(GENDY),  0,3, "a", "kkkkkkkkkoO",
-    (SUBR)gendyset,    (SUBR)agendy         },
+    (SUBR)gendyset,    (SUBR)agendy, NULL, NULL},
   { "gendyx.k", sizeof(GENDYX), 0,3, "k", "kkkkkkkkkkkoO",
-    (SUBR)gendyxset, (SUBR)kgendyx, (SUBR)NULL           },
+    (SUBR)gendyxset, (SUBR)kgendyx, (SUBR)NULL, NULL},
   { "gendyx.a", sizeof(GENDYX), 0,3, "a", "kkkkkkkkkkkoO",
-    (SUBR)gendyxset,    (SUBR)agendyx        },
+    (SUBR)gendyxset,    (SUBR)agendyx, NULL, NULL},
   { "gendyc.k", sizeof(GENDYC), 0,3, "k", "kkkkkkkkkoO",
-    (SUBR)gendycset, (SUBR)kgendyc, (SUBR)NULL           },
+    (SUBR)gendycset, (SUBR)kgendyc, (SUBR)NULL, NULL},
   { "gendyc.a", sizeof(GENDYC), 0,3, "a", "kkkkkkkkkoO",
-    (SUBR)gendycset,    (SUBR)agendyc        }
+    (SUBR)gendycset,    (SUBR)agendyc, NULL, NULL}
 };
 
 LINKAGE_BUILTIN(gendy_localops)

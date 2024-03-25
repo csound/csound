@@ -736,9 +736,9 @@ static int32_t aambideco(CSOUND *csound, AMBID *p)
 
 static OENTRY localops[] = {
   { "bformenc", S(AMBIC), _QQ, 3, "mmmmmmmmmmmmmmmm", "akkPPPP",
-                            (SUBR)iambicode,  (SUBR)aambicode },
+                            (SUBR)iambicode,  (SUBR)aambicode, NULL, NULL},
   { "bformdec", S(AMBID), _QQ, 3, "mmmmmmmm", "iaaay",
-                            (SUBR)iambideco, (SUBR)aambideco }
+                            (SUBR)iambideco, (SUBR)aambideco, NULL, NULL}
 };
 
 int32_t ambicode_init_(CSOUND *csound)

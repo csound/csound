@@ -92,6 +92,7 @@ static int32_t scale_process(CSOUND *csound, scale *p)
 
 static int32_t scale2_init(CSOUND *csound, SCALE2 *p)
 {
+    (void)(csound);
     if (*p->ihtim != FL(0.0)) {
       p->c2 = POWER(FL(0.5), CS_ONEDKR / *p->ihtim);
       p->c1 = FL(1.0) - p->c2;
@@ -168,14 +169,14 @@ gainslider_perf(CSOUND *csound, gainslider *p)
 /* opcode library entries */
 
 static OENTRY ugakbari_localops[] = {
-  { "scale", sizeof(scale), 0, 2, "k", "kkkPO", NULL, (SUBR)scale_process, NULL },
-  { "scale2", sizeof(SCALE2), 0, 3, "k", "kkkOPo", (SUBR)scale2_init, (SUBR)scale2_process, NULL },
+  { "scale", sizeof(scale), 0, 2, "k", "kkkPO", NULL, (SUBR)scale_process, NULL, NULL},
+  { "scale2", sizeof(SCALE2), 0, 3, "k", "kkkOPo", (SUBR)scale2_init, (SUBR)scale2_process, NULL, NULL},
   { "expcurve", sizeof(expcurve), 0, 2, "k", "kk", NULL,
-    (SUBR)expcurve_perf, NULL },
+    (SUBR)expcurve_perf, NULL, NULL},
   { "logcurve", sizeof(logcurve), 0, 2, "k", "kk", NULL,
-    (SUBR)logcurve_perf, NULL },
+    (SUBR)logcurve_perf, NULL, NULL},
   { "gainslider", sizeof(gainslider), 0, 2, "k", "k", NULL,
-    (SUBR)gainslider_perf, NULL }
+    (SUBR)gainslider_perf, NULL, NULL}
 };
 
 LINKAGE_BUILTIN(ugakbari_localops)

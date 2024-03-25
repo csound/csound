@@ -59,6 +59,7 @@ void csound_aops_init_tables(CSOUND *csound)
 
 MYFLT csoundPow2(CSOUND *csound, MYFLT a)
 {
+  (void)(csound);
   /* int32_t n; */
   if (a > POW2MAX) a = POW2MAX;
   else if (a < -POW2MAX) a = -POW2MAX;
@@ -1304,12 +1305,14 @@ int32_t logbasetwo_set(CSOUND *csound, EVAL *p)
 
 int32_t powoftwo(CSOUND *csound, EVAL *p)
 {
+  (void)(csound);
   *p->r = POWER(FL(2.0), *p->a);
   return OK;
 }
 
 int32_t powoftwoa(CSOUND *csound, EVAL *p)
 {                                   /* by G.Maldonado, liberalised by JPff */
+  (void)(csound);
   MYFLT    *a=p->a, *r=p->r;
   uint32_t offset = p->h.insdshead->ksmps_offset;
   uint32_t early  = p->h.insdshead->ksmps_no_end;
@@ -1329,6 +1332,7 @@ int32_t powoftwoa(CSOUND *csound, EVAL *p)
 
 int32_t semitone(CSOUND *csound, EVAL *p)
 {
+  (void)(csound);
   MYFLT a = *p->a*ONEd12;
   *p->r = POWER(FL(2.0), a);
   return OK;
@@ -1336,6 +1340,7 @@ int32_t semitone(CSOUND *csound, EVAL *p)
 
 int32_t asemitone(CSOUND *csound, EVAL *p)            /* JPff */
 {
+  (void)(csound);
   MYFLT *r, *a;
   uint32_t offset = p->h.insdshead->ksmps_offset;
   uint32_t early  = p->h.insdshead->ksmps_no_end;
@@ -1356,6 +1361,7 @@ int32_t asemitone(CSOUND *csound, EVAL *p)            /* JPff */
 
 int32_t cent(CSOUND *csound, EVAL *p)
 {
+  (void)(csound);
   MYFLT a = *p->a;
   *p->r = POWER(FL(2.0), a/FL(1200.0));
   return OK;
@@ -1363,6 +1369,7 @@ int32_t cent(CSOUND *csound, EVAL *p)
 
 int32_t acent(CSOUND *csound, EVAL *p)        /* JPff */
 {
+  (void)(csound);
   MYFLT *r, *a;
   uint32_t offset = p->h.insdshead->ksmps_offset;
   uint32_t early  = p->h.insdshead->ksmps_no_end;
@@ -1385,12 +1392,14 @@ int32_t acent(CSOUND *csound, EVAL *p)        /* JPff */
 
 int32_t db(CSOUND *csound, EVAL *p)
 {
+  (void)(csound);
   *p->r = POWER(FL(2.0), *p->a*LOG2_10D20);
   return OK;
 }
 
 int32_t dba(CSOUND *csound, EVAL *p)          /* JPff */
 {
+  (void)(csound);
   MYFLT *r, *a;
   uint32_t offset = p->h.insdshead->ksmps_offset;
   uint32_t early  = p->h.insdshead->ksmps_no_end;

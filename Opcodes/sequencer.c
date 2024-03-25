@@ -262,6 +262,7 @@ static int sequStateInit(CSOUND *csound, SEQSTATE* p)
 
 static int sequState(CSOUND *csound, SEQSTATE* p)
 {
+    (void)(csound);
     SEQ* q = p->q;
     int i;
     int len = (int)*q->klen;
@@ -275,11 +276,11 @@ static OENTRY sequencer_localops[] =
   {
    { "sequ", sizeof(SEQ), 0, 3, "k",
      "i[]i[]i[]kkOOOoo",
-     (SUBR) sequencer_init, (SUBR) sequencer },
+     (SUBR) sequencer_init, (SUBR) sequencer, NULL, NULL},
    { "sequstate.i", sizeof(SEQSTATE), 0, 1, "ii[]", "o",
-     (SUBR) sequStateInit },
+     (SUBR) sequStateInit, NULL, NULL, NULL},
    { "sequstate.k", sizeof(SEQSTATE), 0, 3, "kk[]", "o",
-   (SUBR) sequStateInit, (SUBR) sequState
+   (SUBR) sequStateInit, (SUBR) sequState, NULL, NULL
   }
 };
 

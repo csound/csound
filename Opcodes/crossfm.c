@@ -491,12 +491,12 @@ int32_t xfmpmi(CSOUND *csound, CROSSFM *p)
 #define S sizeof
 
 static OENTRY crossfm_localops[] = {
-  { "crossfm", S(CROSSFM), TR, 3, "aa", "xxxxkiioo", (SUBR)xfmset, (SUBR)xfm },
-  { "crossfmi", S(CROSSFM), TR, 3, "aa", "xxxxkiioo",(SUBR)xfmset, (SUBR)xfmi },
-  { "crosspm", S(CROSSFM), TR, 3, "aa", "xxxxkiioo", (SUBR)xfmset, (SUBR)xpm },
-  { "crosspmi", S(CROSSFM), TR, 3, "aa", "xxxxkiioo",(SUBR)xfmset, (SUBR)xpmi },
-  { "crossfmpm", S(CROSSFM), TR, 3, "aa", "xxxxkiioo",(SUBR)xfmset,(SUBR)xfmpm},
-  { "crossfmpmi", S(CROSSFM),TR, 3, "aa", "xxxxkiioo",(SUBR)xfmset, (SUBR)xfmpmi },
+  { "crossfm", S(CROSSFM), TR, 3, "aa", "xxxxkiioo", (SUBR)xfmset, (SUBR)xfm, NULL, NULL},
+  { "crossfmi", S(CROSSFM), TR, 3, "aa", "xxxxkiioo",(SUBR)xfmset, (SUBR)xfmi, NULL, NULL},
+  { "crosspm", S(CROSSFM), TR, 3, "aa", "xxxxkiioo", (SUBR)xfmset, (SUBR)xpm, NULL, NULL},
+  { "crosspmi", S(CROSSFM), TR, 3, "aa", "xxxxkiioo",(SUBR)xfmset, (SUBR)xpmi, NULL, NULL},
+  { "crossfmpm", S(CROSSFM), TR, 3, "aa", "xxxxkiioo",(SUBR)xfmset,(SUBR)xfmpm, NULL, NULL},
+  { "crossfmpmi", S(CROSSFM),TR, 3, "aa", "xxxxkiioo",(SUBR)xfmset, (SUBR)xfmpmi, NULL, NULL},
 };
 
 LINKAGE_BUILTIN(crossfm_localops)

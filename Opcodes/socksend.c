@@ -345,6 +345,7 @@ static int32_t send_sendS(CSOUND *csound, SOCKSENDS *p)
 
 static int32_t stsend_deinit(CSOUND *csound, SOCKSEND *p)
 {
+    (void)(csound);
     printf("closing stream\n");
     int n = close(p->sock);
     if (n<0) printf("close = %d errno=%d\n", n, errno);
@@ -452,6 +453,7 @@ typedef struct {
 
 static int32_t oscsend_deinit(CSOUND *csound, OSCSEND2 *p)
 {
+    (void)(csound);
     p->init_done = 0;
 #if defined(_WIN32)
     closesocket((SOCKET)p->sock);
@@ -1029,19 +1031,19 @@ static int oscbundle_perf(CSOUND *csound, OSCBUNDLE *p){
 static OENTRY socksend_localops[] =
   {
    { "socksend.a", S(SOCKSEND), 0, 3, "", "aSiio", (SUBR) init_send,
-     (SUBR) send_send },
+     (SUBR) send_send, NULL, NULL},
    { "socksend.k", S(SOCKSEND), 0, 3, "", "kSiio", (SUBR) init_send,
-     (SUBR) send_send_k, NULL },
+     (SUBR) send_send_k, NULL, NULL},
    { "socksend.S", S(SOCKSENDT), 0, 3, "", "SSiio", (SUBR) init_send,
-     (SUBR) send_send_Str, NULL },
+     (SUBR) send_send_Str, NULL, NULL},
    { "socksends", S(SOCKSENDS), 0, 3, "", "aaSiio", (SUBR) init_sendS,
-     (SUBR) send_sendS },
+     (SUBR) send_sendS, NULL, NULL},
    { "stsend", S(SOCKSEND), 0, 3, "", "aSi", (SUBR) init_ssend,
-     (SUBR) send_ssend },
+     (SUBR) send_ssend, NULL, NULL},
    { "OSCsend", S(OSCSEND2), 0, 3, "", "kSkSN", (SUBR)osc_send2_init,
-     (SUBR)osc_send2 },
+     (SUBR)osc_send2, NULL, NULL},
    { "OSCbundle", S(OSCBUNDLE), 0, 3, "", "kSkS[]S[]k[][]o", (SUBR)oscbundle_init,
-     (SUBR)oscbundle_perf },
+     (SUBR)oscbundle_perf, NULL, NULL},
 };
 
 LINKAGE_BUILTIN(socksend_localops)
