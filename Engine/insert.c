@@ -2716,7 +2716,7 @@ int delete_instr(CSOUND *csound, DELETEIN *p)
   INSTRTXT  *txtp;
 
   if (IS_STR_ARG(p->insno))
-    n = csound->strarg2insno(csound, ((STRINGDAT *)p->insno)->data, 1);
+    n = csound->StringArg2Insno(csound, ((STRINGDAT *)p->insno)->data, 1);
   else
     n = (int) (*p->insno + FL(0.5));
 

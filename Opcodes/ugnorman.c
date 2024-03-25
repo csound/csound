@@ -111,7 +111,7 @@ static int32_t load_atsfile(CSOUND *csound, void *p, MEMFIL **mfp, char *fname,
     ATSSTRUCT         *atsh;
     int32_t               i;
 
-    strNcpy(opname, csound->GetOpcodeName(p), 63);   /* opcode name */
+    strNcpy(opname, GetOpcodeName(p), 63);   /* opcode name */
     opname[63]='\0';
     for (i = 0; opname[i] != '\0'; i++)
       opname[i] = toupper(opname[i]);           /* converted to upper case */
@@ -121,7 +121,7 @@ static int32_t load_atsfile(CSOUND *csound, void *p, MEMFIL **mfp, char *fname,
     else {
       if (csound->IsStringCode(*((MYFLT*)name_arg)))
         strNcpy(fname,get_arg_string(csound, *((MYFLT*)name_arg)),MAXNAME-1);
-         else csound->strarg2name(csound, fname, name_arg, "ats.",0);
+         else csound->StringArg2Name(csound, fname, name_arg, "ats.",0);
     }
     /* load memfile */
     if (UNLIKELY((*mfp = csound->LoadMemoryFile(csound, fname,

@@ -175,7 +175,7 @@ static int32_t SfLoad_(CSOUND *csound, SFLOAD *p, int32_t istring)
     else {
       if (csound->IsStringCode(*p->fname))
         fname = csound->Strdup(csound, get_arg_string(csound,*p->fname));
-      else fname = csound->strarg2name(csound,
+      else fname = csound->StringArg2Name(csound,
                                 NULL, p->fname, "sfont.",
                                 0);
     }

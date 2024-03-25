@@ -1380,7 +1380,7 @@ static int32_t adset_(CSOUND *csound, ADSYN *p, int32_t stringname)
     if (stringname) strNcpy(filnam, ((STRINGDAT*)p->ifilcod)->data, MAXNAME-1);
     else if (csound->IsStringCode(*p->ifilcod))
       strNcpy(filnam, get_arg_string(csound, *p->ifilcod), MAXNAME-1);
-    else csound->strarg2name(csound, filnam, p->ifilcod, "adsyn.", 0);
+    else csound->StringArg2Name(csound, filnam, p->ifilcod, "adsyn.", 0);
 
 
     if ((mfp = p->mfp) == NULL || strcmp(mfp->filename,filnam) != 0) {

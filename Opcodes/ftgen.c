@@ -254,7 +254,7 @@ static int32_t ftload_(CSOUND *csound, FTLOAD *p, int32_t istring)
     FUNC  *(*ft_func)(CSOUND *, MYFLT *);
     void  *fd;
 
-    if (strncmp(csound->GetOpcodeName(p), "ftloadk", 7) == 0) {
+    if (strncmp(GetOpcodeName(p), "ftloadk", 7) == 0) {
       nargs--;
       ft_func = csound->FTnp2Finde;
       err_func = csound->PerfError;
@@ -269,7 +269,7 @@ static int32_t ftload_(CSOUND *csound, FTLOAD *p, int32_t istring)
 
     if (!istring) {
       if (csound->IsStringCode(*p->ifilno))
-        csound->strarg2name(csound, filename, p->ifilno, "ftsave.", 0);
+        csound->StringArg2Name(csound, filename, p->ifilno, "ftsave.", 0);
       else strNcpy(filename, get_arg_string(csound,*p->ifilno), MAXNAME);
     } else {
       strNcpy(filename, ((STRINGDAT *)p->ifilno)->data, MAXNAME);
@@ -495,7 +495,7 @@ static int32_t ftsave_(CSOUND *csound, FTLOAD *p, int32_t istring)
     FUNC  *(*ft_func)(CSOUND *, MYFLT *);
     void  *fd;
 
-    if (strncmp(csound->GetOpcodeName(p), "ftsave.", 7) != 0) {
+    if (strncmp(GetOpcodeName(p), "ftsave.", 7) != 0) {
       ft_func = csound->FTFindP;
       err_func = csound->PerfError;
     }
@@ -510,7 +510,7 @@ static int32_t ftsave_(CSOUND *csound, FTLOAD *p, int32_t istring)
 
     if (!istring) {
       if (csound->IsStringCode(*p->ifilno))
-        csound->strarg2name(csound, filename, p->ifilno, "ftsave.", 0);
+        csound->StringArg2Name(csound, filename, p->ifilno, "ftsave.", 0);
       else strNcpy(filename, get_arg_string(csound,*p->ifilno), MAXNAME);
     } else {
       strNcpy(filename, ((STRINGDAT *)p->ifilno)->data, MAXNAME);

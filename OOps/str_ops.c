@@ -167,7 +167,7 @@ int32_t strget_init(CSOUND *csound, STRGET_OP *p)
 static CS_NOINLINE int32_t StrOp_ErrMsg(void *p, const char *msg)
 {
   CSOUND      *csound = ((OPDS*) p)->insdshead->csound;
-  const char  *opname = csound->GetOpcodeName(p);
+  const char  *opname = GetOpcodeName(p);
 
   if (UNLIKELY(csound->ids != NULL && csound->ids->insdshead == csound->curip))
     return csound->InitError(csound, "%s: %s", opname, Str(msg));
@@ -228,7 +228,7 @@ int32_t strcpy_opcode_p(CSOUND *csound, STRGET_OP *p)
   }
   else {
     csound->Free(csound, p->r->data);
-    p->r->data = csound->strarg2name(csound, NULL, p->indx, "soundin.", 0);
+    p->r->data = csound->StringArg2Name(csound, NULL, p->indx, "soundin.", 0);
     p->r->size = strlen(p->r->data) + 1;
   }
   return OK;

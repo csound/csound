@@ -108,7 +108,7 @@ int32_t mp3ininit_(CSOUND *csound, MP3IN *p, int32_t stringname)
     if (stringname==0){
       if (csound->IsStringCode(*p->iFileCode))
         strNcpy(name,get_arg_string(csound, *p->iFileCode), 1023);
-      else csound->strarg2name(csound, name, p->iFileCode, "soundin.",0);
+      else csound->StringArg2Name(csound, name, p->iFileCode, "soundin.",0);
     }
     else strNcpy(name, ((STRINGDAT *)p->iFileCode)->data, 1023);
 
@@ -286,7 +286,7 @@ int32_t mp3len_(CSOUND *csound, MP3LEN *p, int32_t stringname)
     if (stringname==0){
       if (csound->IsStringCode(*p->iFileCode))
         strNcpy(name,get_arg_string(csound, *p->iFileCode), 1023);
-      else csound->strarg2name(csound, name, p->iFileCode, "soundin.",0);
+      else csound->StringArg2Name(csound, name, p->iFileCode, "soundin.",0);
     }
     else strNcpy(name, ((STRINGDAT *)p->iFileCode)->data, 1023);
     if (UNLIKELY(csound->FileOpen(csound, &fd, CSFILE_FD_R,
@@ -307,13 +307,13 @@ int32_t mp3len_(CSOUND *csound, MP3LEN *p, int32_t stringname)
       return csound->InitError(csound, "%s", mp3dec_error(r));
     }
     close(fd);
-    if(!strcmp(csound->GetOpcodeName(&p->h), "mp3len.i"))
+    if(!strcmp(GetOpcodeName(&p->h), "mp3len.i"))
       *p->ir = (MYFLT)mpainfo.duration;
-    else if(!strcmp(csound->GetOpcodeName(&p->h), "mp3sr.i"))
+    else if(!strcmp(GetOpcodeName(&p->h), "mp3sr.i"))
       *p->ir = (MYFLT) mpainfo.frequency;
-    else if(!strcmp(csound->GetOpcodeName(&p->h), "mp3bitrate.i"))
+    else if(!strcmp(GetOpcodeName(&p->h), "mp3bitrate.i"))
       *p->ir = (MYFLT) mpainfo.bitrate;
-    else if(!strcmp(csound->GetOpcodeName(&p->h), "mp3nchnls.i"))
+    else if(!strcmp(GetOpcodeName(&p->h), "mp3nchnls.i"))
       *p->ir = (MYFLT) mpainfo.channels;
 
     mp3dec_uninit(mpa);

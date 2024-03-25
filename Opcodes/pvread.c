@@ -75,7 +75,7 @@ int32_t pvreadset_(CSOUND *csound, PVREAD *p, int32_t stringname)
     if (stringname==0){
       if (csound->IsStringCode(*p->ifilno))
         strNcpy(pvfilnam,get_arg_string(csound, *p->ifilno), MAXNAME);
-      else csound->strarg2name(csound, pvfilnam, p->ifilno, "pvoc.",0);
+      else csound->StringArg2Name(csound, pvfilnam, p->ifilno, "pvoc.",0);
     }
     else strNcpy(pvfilnam, ((STRINGDAT *)p->ifilno)->data, MAXNAME);
 

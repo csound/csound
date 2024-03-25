@@ -776,6 +776,13 @@ static inline MYFLT GetLocalKcounter(void *p)
     return (int) ((OPDS*) p)->insdshead->kcounter;
 }
 
+
+static inline char *GetOpcodeName(void *p)
+{
+    return ((OPDS*) p)->optext->t.oentry->opname;
+}
+
+
   typedef struct lblblk {
     OPDS    h;
     OPDS    *prvi;
@@ -1194,19 +1201,18 @@ typedef struct _message_queue_t_ {
     MYFLT (*Get0dBFS) (CSOUND *);
     /** Get number of control blocks elapsed */
     uint64_t (*GetKcounter)(CSOUND *);
+    MYFLT (*GetA4)(CSOUND *csound);
+    void *(*GetHostData)(CSOUND *);
     int64_t (*GetCurrentTimeSamples)(CSOUND *);
     long (*GetInputBufferSize)(CSOUND *);
     long (*GetOutputBufferSize)(CSOUND *);
     MYFLT *(*GetInputBuffer)(CSOUND *);
     MYFLT *(*GetOutputBuffer)(CSOUND *);
-    /** Set internal debug mode */
-    void (*SetDebug)(CSOUND *, int d);
     int (*GetDebug)(CSOUND *);
     int (*GetSizeOfMYFLT)(void);
     void (*GetOParms)(CSOUND *, OPARMS *);
     /** Get environment variable */
     const char *(*GetEnv)(CSOUND *, const char *name);
-
      /**@}*/
     /** @name Software bus */
     /**@{ */
@@ -1225,6 +1231,9 @@ typedef struct _message_queue_t_ {
     void (*csoundMessageCallback)(CSOUND *,int attr, const char *format,
                                   va_list valist));
 
+     /**@}*/
+    /** @name Zak & reinit */
+    /**@{ */   
     int (*GetZakBounds)(CSOUND *, MYFLT **);
     int (*GetZaBounds)(CSOUND *, MYFLT **);
     int (*GetTieFlag)(CSOUND *);
@@ -1237,16 +1246,18 @@ typedef struct _message_queue_t_ {
     MYFLT (*Pow2)(CSOUND *, MYFLT a);
     
     /**@}*/
-    /** @name Arguments to opcodes */
+    /** @name String Arguments */
     /**@{ */
     char *(*GetString)(CSOUND *, MYFLT);
-    int32 (*strarg2insno)(CSOUND *, void *p, int is_string);
-    char *(*strarg2name)(CSOUND *, char *, void *, const char *, int);
+    int32 (*StringArg2Insno)(CSOUND *, void *p, int is_string);
+    char *(*StringArg2Name)(CSOUND *, char *, void *, const char *, int);
 
     /**@}*/
     /** @name Memory allocation */
     /**@{ */
     void (*AuxAlloc)(CSOUND *, size_t nbytes, AUXCH *auxchp);
+    int (*AuxAllocAsync)(CSOUND *, size_t, AUXCH  *,
+                         AUXASYNC *, aux_cb, void *);
     void *(*Malloc)(CSOUND *, size_t nbytes);
     void *(*Calloc)(CSOUND *, size_t nbytes);
     void *(*ReAlloc)(CSOUND *, void *oldp, size_t nbytes);
@@ -1387,8 +1398,10 @@ typedef struct _message_queue_t_ {
     void *(*CreateCircularBuffer)(CSOUND *, int, int);
     int (*ReadCircularBuffer)(CSOUND *, void *, void *, int);
     int (*WriteCircularBuffer)(CSOUND *, void *, const void *, int);
+    int (*PeekCircularBuffer)(CSOUND *, void *, void *, int);
     void (*FlushCircularBuffer)(CSOUND *, void *);
     void (*DestroyCircularBuffer)(CSOUND *, void *);
+    
 
     /**@}*/
     /** @name File access */
@@ -1478,6 +1491,7 @@ typedef struct _message_queue_t_ {
     void (*SetKillGraphCallback)(CSOUND *,
                 void (*killGraphCallback)(CSOUND *, WINDAT *p));
     void (*SetExitGraphCallback)(CSOUND *, int (*exitGraphCallback)(CSOUND *));
+
     /**@}*/
     /** @name Generic callbacks */
     /**@{ */
@@ -1503,7 +1517,8 @@ typedef struct _message_queue_t_ {
                         int (*kopadr)(CSOUND *, void *),
                         int (*aopadr)(CSOUND *, void *));
     int (*AppendOpcodes)(CSOUND *, const OENTRY *opcodeList, int n);
-    char *(*GetOpcodeName)(void *p);
+    OENTRY* (*FindOpcode)(CSOUND*, char*,
+                               char* , char*);
     INSTRTXT **(*GetInstrumentList)(CSOUND *);
     
     /**@}*/
@@ -1516,6 +1531,19 @@ typedef struct _message_queue_t_ {
     void (*RewindScore)(CSOUND *);
     void (*InputMessage)(CSOUND *, const char *message__);
     int  (*IsStringCode)(MYFLT);
+
+    /**@}*/
+    /** @name Hash tables */
+    /**@{ */
+    CS_HASH_TABLE *(*CreateHashTable)(CSOUND *);
+    void *(*GetHashTableValue)(CSOUND *, CS_HASH_TABLE *, char *);
+    void (*SetHashTableValue)(CSOUND *, CS_HASH_TABLE *, char *, void *);
+    void (*RemoveHashTableKey)(CSOUND *, CS_HASH_TABLE *, char *);
+    void (*DestroyHashTable)(CSOUND *, CS_HASH_TABLE *);
+    char *(*GetHashTableKey)(CSOUND *, CS_HASH_TABLE *, char *);
+    CONS_CELL *(*GetHashTableKeys)(CSOUND *, CS_HASH_TABLE *);
+    CONS_CELL *(*GetHashTableValues)(CSOUND *, CS_HASH_TABLE *);
+    
     
     /**@}*/
     /** @name Utilities */
@@ -1543,30 +1571,7 @@ typedef struct _message_queue_t_ {
     char *(*LocalizeString)(const char *) __attribute__ ((format_arg (1)));
 #endif
     MYFLT (*GetSystemSr)(CSOUND *, MYFLT );
-    /**@}*/
-    /** @name Score Event s*/
-    /**@{ */
 
-
-    MYFLT (*GetA4)(CSOUND *csound);
-    int (*AuxAllocAsync)(CSOUND *, size_t, AUXCH  *,
-                         AUXASYNC *, aux_cb, void *);
-    void *(*GetHostData)(CSOUND *);
-
-    OENTRY* (*FindOpcode)(CSOUND*, char*,
-                               char* , char*);
-
-
-
-    CS_HASH_TABLE *(*CreateHashTable)(CSOUND *);
-    void *(*GetHashTableValue)(CSOUND *, CS_HASH_TABLE *, char *);
-    void (*SetHashTableValue)(CSOUND *, CS_HASH_TABLE *, char *, void *);
-    void (*RemoveHashTableKey)(CSOUND *, CS_HASH_TABLE *, char *);
-    void (*DestroyHashTable)(CSOUND *, CS_HASH_TABLE *);
-    char *(*GetHashTableKey)(CSOUND *, CS_HASH_TABLE *, char *);
-    CONS_CELL *(*GetHashTableKeys)(CSOUND *, CS_HASH_TABLE *);
-    CONS_CELL *(*GetHashTableValues)(CSOUND *, CS_HASH_TABLE *);
-    int (*PeekCircularBuffer)(CSOUND *csound, void *p, void *out, int items);
     /**@}*/
     /** @name Placeholders
         To allow the API to grow while maintining backward binary compatibility. */

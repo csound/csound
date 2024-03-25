@@ -611,7 +611,7 @@ int turnon(CSOUND *csound, TURNON *p)
 
   if (csound->IsStringCode(*p->insno)) {
     char *ss = get_arg_string(csound,*p->insno);
-    insno = csound->strarg2insno(csound,ss,1);
+    insno = csound->StringArg2Insno(csound,ss,1);
     if (insno == NOT_AN_INSTRUMENT)
       return NOTOK;
   } else insno = *p->insno;
@@ -633,7 +633,7 @@ int turnon_S(CSOUND *csound, TURNON *p)
   evt.strarg = NULL; evt.scnt = 0;
   evt.opcod = 'i';
   evt.pcnt = 3;
-  insno = csound->strarg2insno(csound, ((STRINGDAT *)p->insno)->data, 1);
+  insno = csound->StringArg2Insno(csound, ((STRINGDAT *)p->insno)->data, 1);
   if (UNLIKELY(insno == NOT_AN_INSTRUMENT))
     return NOTOK;
   evt.p[1] = (MYFLT) insno;

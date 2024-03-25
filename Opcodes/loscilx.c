@@ -48,7 +48,7 @@ static int32_t sndload_opcode_init_(CSOUND *csound, SNDLOAD_OPCODE *p,
       if(csound->IsStringCode(*p->Sfname))
         fname = csound->Strdup(csound, get_arg_string(csound, *p->Sfname));
       else
-        fname = csound->strarg2name(csound, (char*) NULL, p->Sfname, "soundin.", 0);
+        fname = csound->StringArg2Name(csound, (char*) NULL, p->Sfname, "soundin.", 0);
     }
     memset(&sfinfo, 0, sizeof(SFLIB_INFO));
     sampleFormat = (int32_t) MYFLT2LRND(*(p->iFormat));

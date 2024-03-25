@@ -437,7 +437,7 @@ int32_t pgmassign_(CSOUND *csound, PGMASSIGN *p, int32_t instname)
     /* IV - Oct 31 2002: allow named instruments */
     if (instname || csound->IsStringCode(*p->inst)) {
       MYFLT buf[128];
-      csound->strarg2name(csound, (char*) buf, p->inst, "", 1);
+      csound->StringArg2Name(csound, (char*) buf, p->inst, "", 1);
       ins = (int32_t)strarg2insno(csound, buf, 1);
     }
     else

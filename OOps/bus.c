@@ -609,7 +609,7 @@ int32_t notinit_opcode_stub(CSOUND *csound, void *p)
 {
     return csound->PerfError(csound, &(((CHNGET *)p)->h),
                              Str("%s: not initialised"),
-                             csound->GetOpcodeName(p));
+                             GetOpcodeName(p));
 }
 
 /* print error message on failed channel query */

@@ -2863,7 +2863,7 @@ static int gen43(FGDATA *ff, FUNC *ftp)
     if (isstrcod(ff->e.p[5]))
       strNcpy(filename, (char *)(&ff->e.strarg[0]), MAXNAME);
     else
-      csound->strarg2name(csound, filename, filno, "pvoc.", 0);
+      csound->StringArg2Name(csound, filename, filno, "pvoc.", 0);
 
     if (UNLIKELY(PVOCEX_LoadFile(csound, filename, &pp) != 0))
       return fterror(ff, Str("Failed to load PVOC-EX file"));
@@ -2928,7 +2928,7 @@ static int gen44(FGDATA *ff, FUNC *ftp)
     if (isstrcod(ff->e.p[5]))
       strncpy(buff, (char *)(&ff->e.strarg[0]), 79);
     else
-      csound->strarg2name(csound, buff, &(ff->e.p[5]), "stiff.", 0);
+      csound->StringArg2Name(csound, buff, &(ff->e.p[5]), "stiff.", 0);
     fd = csound->FileOpen(csound, &filp, CSFILE_STD, buff, "r",
                            "SFDIR;SSDIR;INCDIR", CSFTYPE_FLOATS_TEXT, 0);
     if (UNLIKELY(fd == NULL))

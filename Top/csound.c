@@ -290,12 +290,13 @@ static const CSOUND cenviron_ = {
     csoundGetNchnlsInput,
     csoundGet0dBFS,
     csoundGetKcounter,
+    csoundGetA4,
+    csoundGetHostData,
     csoundGetCurrentTimeSamples,
     csoundGetInputBufferSize,
     csoundGetOutputBufferSize,
     csoundGetInputBuffer,
     csoundGetOutputBuffer,
-    csoundSetDebug,
     csoundGetDebug,
     csoundGetSizeOfMYFLT,
     csoundGetOParms,
@@ -323,6 +324,7 @@ static const CSOUND cenviron_ = {
     strarg2name,
     /* memory allocation */
     csoundAuxAlloc,
+    csoundAuxAllocAsync,
     mmalloc,
     mcalloc,
     mrealloc,
@@ -420,6 +422,7 @@ static const CSOUND cenviron_ = {
     csoundCreateCircularBuffer,
     csoundReadCircularBuffer,
     csoundWriteCircularBuffer,
+    csoundPeekCircularBuffer,
     csoundFlushCircularBuffer,
     csoundDestroyCircularBuffer,
     /* File access */
@@ -488,7 +491,7 @@ static const CSOUND cenviron_ = {
     /* opcodes and instruments  */
     csoundAppendOpcode,
     csoundAppendOpcodes,
-    csoundGetOpcodeName,
+    find_opcode_exact,
     csoundGetInstrumentList,
     /* events and performance */
     csoundYield,
@@ -498,6 +501,15 @@ static const CSOUND cenviron_ = {
     csoundRewindScore,
     csoundInputMessageInternal,
     isstrcod,
+    /* hash table funcs */
+    cs_hash_table_create,
+    cs_hash_table_get,
+    cs_hash_table_put,
+    cs_hash_table_remove,
+    cs_hash_table_free,
+    cs_hash_table_get_key,
+    cs_hash_table_keys,
+    cs_hash_table_values,
     /* utilities */
     csoundAddUtility,
     csoundRunUtility,
@@ -513,21 +525,6 @@ static const CSOUND cenviron_ = {
     csoundGetLibrarySymbol,
     csoundLocalizeString,
     csoundSystemSr,
-    csoundGetA4,
-    csoundAuxAllocAsync,
-    csoundGetHostData,
-    find_opcode_exact,
-
-
-    cs_hash_table_create,
-    cs_hash_table_get,
-    cs_hash_table_put,
-    cs_hash_table_remove,
-    cs_hash_table_free,
-    cs_hash_table_get_key,
-    cs_hash_table_keys,
-    cs_hash_table_values,
-    csoundPeekCircularBuffer,
     {
       NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
       NULL, NULL, NULL

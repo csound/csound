@@ -95,7 +95,7 @@ static CS_NOINLINE int32_t fout_open_file(CSOUND *csound, FOUT_FILE *p, void *fp
     if (isString) name = cs_strdup(csound, ((STRINGDAT *)iFile)->data);
     else if (csound->IsStringCode(*iFile))
       name = cs_strdup(csound, get_arg_string(csound, *iFile));
-    /* else csound->strarg2name(csound, NULL, iFile, "fout.", 0);*/
+    /* else csound->StringArg2Name(csound, NULL, iFile, "fout.", 0);*/
     else {
       /* or handle to previously opened file */
       idx = (int32_t) MYFLT2LRND(*iFile);

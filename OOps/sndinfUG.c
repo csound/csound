@@ -45,7 +45,7 @@ static int32_t getsndinfo(CSOUND *csound, SNDINFO *p, SFLIB_INFO *hdr, int32_t s
     else if (csound->IsStringCode(*p->ifilno)){
       strNcpy(soundiname, get_arg_string(csound, *p->ifilno), 1023);
     }
-    else csound->strarg2name(csound, soundiname, p->ifilno, "soundin.",0);
+    else csound->StringArg2Name(csound, soundiname, p->ifilno, "soundin.",0);
 
 
     sfname = soundiname;
@@ -323,7 +323,7 @@ int32_t filepeak(CSOUND *csound, SNDINFOPEAK *p){
  if (csound->IsStringCode(*p->ifilno)){
       strNcpy(soundiname, get_arg_string(csound, *p->ifilno), 1023);
     }
-  else csound->strarg2name(csound, soundiname, p->ifilno,
+  else csound->StringArg2Name(csound, soundiname, p->ifilno,
                         "soundin.", 0);
 
  return filepeak_(csound, p, soundiname);
@@ -345,7 +345,7 @@ int32_t filevalid(CSOUND *csound, FILEVALID *p)
     if (csound->IsStringCode(*p->ifilno)){
       strNcpy(soundiname, get_arg_string(csound, *p->ifilno), 1023);
     }
-    else csound->strarg2name(csound, soundiname, p->ifilno,
+    else csound->StringArg2Name(csound, soundiname, p->ifilno,
                         "soundin.", 0);
 
     if (UNLIKELY(strcmp(soundiname, "-i") == 0)) {    /* get info on the -i    */

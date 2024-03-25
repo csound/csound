@@ -127,7 +127,7 @@ static CS_NOINLINE int32_t csoundStack_Error(void *p, const char *msg)
     CSOUND  *csound;
 
     csound = ((OPDS*) p)->insdshead->csound;
-    csound->ErrorMsg(csound, "%s: %s", csound->GetOpcodeName(p), msg);
+    csound->ErrorMsg(csound, "%s: %s", GetOpcodeName(p), msg);
 
     return NOTOK;
 }
@@ -298,7 +298,7 @@ static int32_t notinit_opcode_stub_perf(CSOUND *csound, void *p)
 {
     return csound->PerfError(csound, &(((STACK_OPCODE*)p)->h),
                              Str("%s: not initialised"),
-                             csound->GetOpcodeName(p));
+                             GetOpcodeName(p));
 }
 
 static int32_t push_opcode_perf(CSOUND *csound, PUSH_OPCODE *p)

@@ -490,14 +490,14 @@ static int32_t ktriginstr_(CSOUND *csound, TRIGINSTR *p, int32_t stringname)
 
     /* Create the new event */
     if (stringname) {
-      evt.p[1] = csound->strarg2insno(csound,((STRINGDAT *)p->args[0])->data, 1);
+      evt.p[1] = csound->StringArg2Insno(csound,((STRINGDAT *)p->args[0])->data, 1);
       evt.strarg = NULL; evt.scnt = 0;
       /*evt.strarg = ((STRINGDAT*)p->args[0])->data;
         evt.p[1] = SSTRCOD;*/
     }
     else if (csound->IsStringCode(*p->args[0])) {
       unquote(name, get_arg_string(csound, *p->args[0]), 512);
-      evt.p[1] = csound->strarg2insno(csound,name, 1);
+      evt.p[1] = csound->StringArg2Insno(csound,name, 1);
       evt.strarg = NULL;
       /* evt.strarg = name; */
       evt.scnt = 0;
