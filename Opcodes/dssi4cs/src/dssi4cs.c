@@ -265,15 +265,15 @@ int32_t dssiinit(CSOUND * csound, DSSIINIT * p)
     DSSI4CS_PLUGIN *DSSIPlugin_;
     DSSI4CS_PLUGIN *DSSIPlugin =
         (DSSI4CS_PLUGIN *) csound->QueryGlobalVariable(csound, "$DSSI4CS");
-    CS_TYPE* argType = csound->GetTypeForArg(p->iplugin);
+    CS_TYPE* argType = GetTypeForArg(p->iplugin);
 
     if (strcmp("S", argType->varTypeName) == 0)
       strNcpy(dssiFilename,((STRINGDAT *)p->iplugin)->data, MAXNAME);
     else
-      csound->strarg2name(csound, dssiFilename, csound->ISSTRCOD(*p->iplugin) ?
+      csound->strarg2name(csound, dssiFilename, IsStringCode(*p->iplugin) ?
                           csound->GetString(csound, *p->iplugin) :
                           (char *) p->iplugin, "dssiinit.",
-                          (int32_t) csound->ISSTRCOD(*p->iplugin));
+                          (int32_t) IsStringCode(*p->iplugin));
     PluginIndex = (uint64_t) *p->iindex;
     PluginLibrary = dlopenLADSPA(csound, dssiFilename, RTLD_NOW);
     if (UNLIKELY(!PluginLibrary))
@@ -686,8 +686,8 @@ int32_t dssiaudio_init(CSOUND * csound, DSSIAUDIO * p)
 {
     /* TODO not realtime safe, try to make it so. */
     int32_t     Number = *p->iDSSIhandle;
-    int32_t     icnt = csound->GetInputArgCnt(p) - 1;
-    int32_t     ocnt = csound->GetOutputArgCnt(p);
+    int32_t     icnt = GetInputArgCnt(p) - 1;
+    int32_t     ocnt = GetOutputArgCnt(p);
 
     if (UNLIKELY(icnt > DSSI4CS_MAX_IN_CHANNELS))
       csound->Die(csound,
@@ -704,7 +704,7 @@ int32_t dssiaudio_init(CSOUND * csound, DSSIAUDIO * p)
 #ifdef DEBUG
     csound->Message(csound,
                     "DSSI4CS: dssiaudio- %i input args, %i output args.\n",
-                    csound->GetInputArgCnt(p), csound->GetOutputArgCnt(p));
+                    GetInputArgCnt(p), GetOutputArgCnt(p));
     csound->Message(csound, "DSSI4CS: dssiaudio LocatePlugin # %i\n", Number);
 #endif
 
@@ -811,8 +811,8 @@ int32_t dssiaudio(CSOUND * csound, DSSIAUDIO * p)
       Descriptor =
           (LADSPA_Descriptor *) p->DSSIPlugin_->DSSIDescriptor->LADSPA_Plugin;
     uint32_t i, j;
-    uint32_t icnt = csound->GetInputArgCnt(p) - 1;
-    uint32_t ocnt = csound->GetOutputArgCnt(p);
+    uint32_t icnt = GetInputArgCnt(p) - 1;
+    uint32_t ocnt = GetOutputArgCnt(p);
     uint64_t Ksmps = (uint64_t) csound->GetKsmps(csound);
 
     if (p->DSSIPlugin_->Active == 1) {
