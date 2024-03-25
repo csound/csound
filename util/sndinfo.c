@@ -104,7 +104,7 @@ static int32_t sndinfo(CSOUND *csound, int32_t argc, char **argv)
                         Str("\tsrate %ld, %s, %ld bit %s, %5.3f seconds\n"),
                         (long) sflib_info.samplerate, channame,
                         (long) (csound->SndfileSampleSize(sflib_info.format) * 8),
-                        csound->type2string(SF2TYPE(sflib_info.format)),
+                       csound->Type2String(SF2TYPE(sflib_info.format)),
                         (MYFLT) sflib_info.frames / sflib_info.samplerate);
         csound->Message(csound, Str("\t(%ld sample frames)\n"),
                                 (long) sflib_info.frames);

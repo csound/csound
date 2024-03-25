@@ -175,9 +175,9 @@ static int32_t pvanal(CSOUND *csound, int32_t argc, char **argv)
         switch (*s++) {
         case 's': FIND(Str("no sampling rate"));
 #if defined(USE_DOUBLE)
-          csound->sscanf(s, "%lf", &sr);
+          sscanf(s, "%lf", &sr);
 #else
-          csound->sscanf(s, "%f", &sr);
+          sscanf(s, "%f", &sr);
 #endif
           break;
         case 'c':  FIND(Str("no channel"));
@@ -185,16 +185,16 @@ static int32_t pvanal(CSOUND *csound, int32_t argc, char **argv)
           break;
         case 'b':  FIND(Str("no begin time"));
 #if defined(USE_DOUBLE)
-          csound->sscanf(s, "%lf", &beg_time);
+          sscanf(s, "%lf", &beg_time);
 #else
-          csound->sscanf(s, "%f", &beg_time);
+          sscanf(s, "%f", &beg_time);
 #endif
           break;
         case 'd':  FIND(Str("no duration time"));
 #if defined(USE_DOUBLE)
-          csound->sscanf(s, "%lf", &input_dur);
+          sscanf(s, "%lf", &input_dur);
 #else
-          csound->sscanf(s, "%f", &input_dur);
+          sscanf(s, "%f", &input_dur);
 #endif
           break;
         case 'H':
@@ -205,7 +205,7 @@ static int32_t pvanal(CSOUND *csound, int32_t argc, char **argv)
           break;
         case 'B':
           FIND(Str("no beta given"));
-            csound->sscanf(s, "%lf", &beta);
+            sscanf(s, "%lf", &beta);
             break;
         case 'n':  FIND(Str("no framesize"));
           sscanf(s, "%"PRId64, &frameSize);
@@ -298,7 +298,7 @@ static int32_t pvanal(CSOUND *csound, int32_t argc, char **argv)
     csound->Message(csound, "%s", Str("pvanal: creating pvocex file\n"));
     /* handle all messages in here, for now */
     if (UNLIKELY(displays))
-        csound->dispinit(csound);
+        csound->InitDisplay(csound);
     if (UNLIKELY(pvxanal(csound, p, infd, outfilnam, p->sr,
                         ((!channel || channel == ALLCHNLS) ? p->nchanls : 1),
                         frameSize, frameIncr, frameSize * 2,
@@ -307,7 +307,7 @@ static int32_t pvanal(CSOUND *csound, int32_t argc, char **argv)
       return -1;
     }
     if (displays)
-      csound->dispexit(csound);
+      csound->DeinitDisplay(csound);
 
     return 0;
 }
@@ -392,10 +392,10 @@ static void PVDisplay_Display(PVDISPLAY *p, int32_t frame)
       p->dispBufs[p->dispFrame][i] =
           (MYFLT) sqrt((double) (p->dispBufs[p->dispFrame][i]
                                  / (MYFLT) p->dispCnt));
-    p->csound->dispset(p->csound, &(p->dwindow), p->dispBufs[p->dispFrame],
+    p->csound->SetDisplay(p->csound, &(p->dwindow), p->dispBufs[p->dispFrame],
                        p->npts, "pvanalwin", 0, "PVANAL");
     snprintf(&(p->dwindow.caption[0]), CAPSIZE, "%"PRId64, (int64_t) frame);
-    p->csound->display(p->csound, &(p->dwindow));
+    p->csound->Display(p->csound, &(p->dwindow));
     p->dispCnt = 0;
     p->dispFrame++;
 }

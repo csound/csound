@@ -33,7 +33,7 @@ static int32_t tanhtable(FGDATA *ff, FUNC *ftp)
     MYFLT   start = ff->e.p[5];
     MYFLT   end   = ff->e.p[6];
     MYFLT   resc  = ff->e.p[7];
-    if (ftp->flen <= 0) return csound->ftError(ff, Str("Illegal zero table size"));
+    if (ftp->flen <= 0) return csound->FtError(ff, Str("Illegal zero table size"));
     MYFLT   step  = (end - start) / (MYFLT) ftp->flen;
     MYFLT   x;
     int32_t     i;
@@ -52,7 +52,7 @@ static int32_t exptable(FGDATA *ff, FUNC *ftp)
     MYFLT   start = ff->e.p[5];
     MYFLT   end   = ff->e.p[6];
     MYFLT   resc  = ff->e.p[7];
-    if (ftp->flen <= 0) return csound->ftError(ff, Str("Illegal zero table size"));
+    if (ftp->flen <= 0) return csound->FtError(ff, Str("Illegal zero table size"));
     MYFLT   step  = (end - start) / (MYFLT) ftp->flen;
     MYFLT   x;
     int32_t     i;
@@ -74,7 +74,7 @@ static int32_t sonetable(FGDATA *ff, FUNC *ftp)
     MYFLT   end   = ff->e.p[6];
     MYFLT   eqlp  = ff->e.p[7];
     MYFLT   resc  = ff->e.p[8];
-    if (ftp->flen <= 0) return csound->ftError(ff, Str("Illegal zero table size"));
+    if (ftp->flen <= 0) return csound->FtError(ff, Str("Illegal zero table size"));
     MYFLT   step  = (end - start) / (MYFLT) ftp->flen;
     MYFLT   x;
     int32_t     i;
@@ -132,7 +132,7 @@ static int32_t wavetable(FGDATA *ff, FUNC *ftp)
     WAVELET wave, *pwaveS;
 
     if (ftp->flen <= 0)
-      return csound->ftError(ff, Str("Illegal zero table size %d"));
+      return csound->FtError(ff, Str("Illegal zero table size %d"), (int) ff->e.p[1]);
     if (ffilno >csound->maxfnum || csound->flist[ffilno]==NULL)
       return csound->InitError(csound, Str("ftable number does not exist\n"));
     srcfil = csound->flist[ffilno];

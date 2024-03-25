@@ -27,7 +27,7 @@
  stackops: copyright (C) 2006 Istvan Varga
 */
 static int32_t STR_ARG_P(CSOUND *csound, void* arg) {
-    CS_TYPE *cs_type = csound->GetTypeForArg(arg);
+    CS_TYPE *cs_type = GetTypeForArg(arg);
     if (strcmp("S", cs_type->varTypeName) == 0) {
       return 1;
     } else {
@@ -36,7 +36,7 @@ static int32_t STR_ARG_P(CSOUND *csound, void* arg) {
 }
 
 static int32_t ASIG_ARG_P(CSOUND *csound, void* arg) {
-    CS_TYPE *cs_type = csound->GetTypeForArg(arg);
+    CS_TYPE *cs_type = GetTypeForArg(arg);
     if (strcmp("a", cs_type->varTypeName) == 0) {
       return 1;
     } else {
@@ -204,10 +204,10 @@ static CS_NOINLINE int32_t csoundStack_CreateArgMap(PUSH_OPCODE *p, int32_t *arg
 
     csound = ((OPDS*) p)->insdshead->csound;
     if (!isOutput) {
-      argCnt = csound->GetInputArgCnt(p);
+      argCnt = GetInputArgCnt(p);
     }
     else {
-      argCnt = csound->GetOutputArgCnt(p);
+      argCnt = GetOutputArgCnt(p);
     }
     if (UNLIKELY(argCnt > 31))
       return csoundStack_Error(p, "too many arguments");
@@ -226,9 +226,9 @@ static CS_NOINLINE int32_t csoundStack_CreateArgMap(PUSH_OPCODE *p, int32_t *arg
       else {
         const char  *argName;
         if (!isOutput)
-          argName = csound->GetInputArgName(p, i);
+          argName = GetInputArgName(p, i);
         else
-          argName = csound->GetOutputArgName(p, i);
+          argName = GetOutputArgName(p, i);
         if (argName != (char*) 0 &&
             (argName[0] == (char) 'k' ||
              (argName[0] == (char) 'g' && argName[1] == (char) 'k') ||

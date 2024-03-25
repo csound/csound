@@ -134,7 +134,7 @@ MYFLT csoundInitialiseIO(CSOUND *csound) {
        sfnopenout(csound);
     }
     csound->io_initialised = 1;
-    return csound->system_sr(csound, 0);
+    return csound->GetSystemSr(csound, 0);
  }
 
 
@@ -609,7 +609,7 @@ int turnon(CSOUND *csound, TURNON *p)
   evt.opcod = 'i';
   evt.pcnt = 3;
 
-  if (csound->ISSTRCOD(*p->insno)) {
+  if (csound->IsStringCode(*p->insno)) {
     char *ss = get_arg_string(csound,*p->insno);
     insno = csound->strarg2insno(csound,ss,1);
     if (insno == NOT_AN_INSTRUMENT)
@@ -771,7 +771,7 @@ static int process_score_event(CSOUND *csound, EVTBLK *evt, int rtEvt)
     csound->currevent = saved_currevent;
     return (evt->opcod == 'l' ? 3 : (evt->opcod == 's' ? 1 : 2));
   case 'q':
-    if (csound->ISSTRCOD(evt->p[1]) && evt->strarg) {    /* IV - Oct 31 2002 */
+    if (csound->IsStringCode(evt->p[1]) && evt->strarg) {    /* IV - Oct 31 2002 */
       MYFLT n = named_instr_find(csound, evt->strarg);
       if (UNLIKELY((insno = (int) n) == 0)) {
         printScoreError(csound, rtEvt,
@@ -801,7 +801,7 @@ static int process_score_event(CSOUND *csound, EVTBLK *evt, int rtEvt)
     break;
   case 'i':
   case 'd':
-    if (csound->ISSTRCOD(evt->p[1]) && evt->strarg) {    /* IV - Oct 31 2002 */
+    if (csound->IsStringCode(evt->p[1]) && evt->strarg) {    /* IV - Oct 31 2002 */
       MYFLT n = named_instr_find(csound, evt->strarg);
       if (UNLIKELY((insno = (int)n) == 0)) {
         printScoreError(csound, rtEvt,
@@ -1371,7 +1371,7 @@ int insert_score_event_at_sample(CSOUND *csound, EVTBLK *evt, int64_t time_ofs)
   case 'q':                         /* mute instrument */
     /* check for a valid instrument number or name */
     if (evt->opcod=='d') {
-      if (evt->strarg != NULL && csound->ISSTRCOD(p[1])) {
+      if (evt->strarg != NULL && csound->IsStringCode(p[1])) {
         i = (int) named_instr_find(csound, evt->strarg);
         //printf("d opcode %s -> %d\n", evt->strarg, i);
         p[1] = -i;
@@ -1381,7 +1381,7 @@ int insert_score_event_at_sample(CSOUND *csound, EVTBLK *evt, int64_t time_ofs)
         p[1] = -i;
       }
     }
-    else if (evt->strarg != NULL && csound->ISSTRCOD(p[1])) {
+    else if (evt->strarg != NULL && csound->IsStringCode(p[1])) {
       MYFLT n = named_instr_find(csound, evt->strarg);
       p[1] = n;
       i =(int) n;

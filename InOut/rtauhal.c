@@ -384,7 +384,7 @@ int AuHAL_open(CSOUND *csound, const csRtAudioParams * parm,
     prop.mSelector = kAudioDevicePropertyNominalSampleRate;
     if(!isInput){
       AudioObjectGetPropertyData(dev, &prop, 0, NULL, &psize, &sr);
-      csound->system_sr(csound, sr);
+      csound->GetSystemSr(csound, sr);
     }
 
     psize = sizeof(double);
@@ -392,7 +392,7 @@ int AuHAL_open(CSOUND *csound, const csRtAudioParams * parm,
     AudioObjectGetPropertyData(dev, &prop, 0, NULL, &psize, &sr);
 
     if(srate < 0)
-      srate  =  csound->system_sr(csound, sr);
+      srate  =  csound->GetSystemSr(csound, sr);
     if(UNLIKELY(sr != srate)) {
       if(O.msglevel || O.odebug)
        csound->Warning(csound,

@@ -569,7 +569,7 @@ int32_t printks(CSOUND *csound, PRINTKS *p)
 {
     char        string[8192]; /* matt ingals replacement */
 
-    if (csound->ISSTRCOD(*p->ifilcod) == 0) {
+    if (csound->IsStringCode(*p->ifilcod) == 0) {
       char *sarg;
       sarg = ((STRINGDAT*)p->ifilcod)->data;
       if (sarg == NULL)

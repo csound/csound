@@ -73,9 +73,9 @@ static int32_t cvanal(CSOUND *csound, int32_t argc, char **argv)
         case 's':
           FIND(Str("no sampling rate"))
 #ifdef USE_DOUBLE
-          csound->sscanf(s, "%lf", &sr);
+          sscanf(s, "%lf", &sr);
 #else
-          csound->sscanf(s, "%f", &sr);
+          sscanf(s, "%f", &sr);
 #endif
           break;
         case 'c':
@@ -87,17 +87,17 @@ static int32_t cvanal(CSOUND *csound, int32_t argc, char **argv)
         case 'b':
           FIND(Str("no begin time"))
 #ifdef USE_DOUBLE
-          csound->sscanf(s, "%lf", &beg_time);
+          sscanf(s, "%lf", &beg_time);
 #else
-          csound->sscanf(s, "%f", &beg_time);
+          sscanf(s, "%f", &beg_time);
 #endif
           break;
         case 'd':
           FIND(Str("no duration time"))
 #ifdef USE_DOUBLE
-          csound->sscanf(s, "%lf", &input_dur);
+          sscanf(s, "%lf", &input_dur);
 #else
-          csound->sscanf(s, "%f", &input_dur);
+          sscanf(s, "%f", &input_dur);
 #endif
           break;
         case 'X':

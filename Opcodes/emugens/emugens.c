@@ -2787,11 +2787,11 @@ int32_t println_init(CSOUND *csound, PRINTLN *p) {
 }
 
 
-// #define IS_AUDIO_ARG(x) (csound->GetTypeForArg(x) == &CS_VAR_TYPE_A)
-#define IS_AUDIO_ARG(x) (!strcmp("a", csound->GetTypeForArg(x)->varTypeName))
+// #define IS_AUDIO_ARG(x) (GetTypeForArg(x) == &CS_VAR_TYPE_A)
+#define IS_AUDIO_ARG(x) (!strcmp("a", GetTypeForArg(x)->varTypeName))
 
-// #define IS_STRING_ARG(x) (csound->GetTypeForArg(x) == &CS_VAR_TYPE_S)
-#define IS_STRING_ARG(x) (!strcmp("S", csound->GetTypeForArg(x)->varTypeName))
+// #define IS_STRING_ARG(x) (GetTypeForArg(x) == &CS_VAR_TYPE_S)
+#define IS_STRING_ARG(x) (!strcmp("S", GetTypeForArg(x)->varTypeName))
 
 
 // This is taken from OOps/str_ops.c, with minor modifications to adapt it
@@ -2886,7 +2886,7 @@ sprintf_opcode_(CSOUND *csound,
             case 's':
                 if(!IS_STRING_ARG(parm)) {
                     return PERFERRF(Str("String argument expected, but type is %s"),
-                                    csound->GetTypeForArg(parm)->varTypeName);
+                                    GetTypeForArg(parm)->varTypeName);
                 }
                 if (((STRINGDAT*)parm)->data == str->data) {
                     return PERFERR(Str("output argument may not be "

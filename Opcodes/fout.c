@@ -93,7 +93,7 @@ static CS_NOINLINE int32_t fout_open_file(CSOUND *csound, FOUT_FILE *p, void *fp
     }
     /* get file name, */
     if (isString) name = cs_strdup(csound, ((STRINGDAT *)iFile)->data);
-    else if (csound->ISSTRCOD(*iFile))
+    else if (csound->IsStringCode(*iFile))
       name = cs_strdup(csound, get_arg_string(csound, *iFile));
     /* else csound->strarg2name(csound, NULL, iFile, "fout.", 0);*/
     else {
@@ -652,10 +652,10 @@ static int32_t ficlose_opcode_(CSOUND *csound, FICLOSE *p, int32_t istring)
     STDOPCOD_GLOBALS  *pp = (STDOPCOD_GLOBALS*) csound->stdOp_Env;
     int32_t               idx = -1;
 
-    if (istring || csound->ISSTRCOD(*(p->iFile))) {
+    if (istring || csound->IsStringCode(*(p->iFile))) {
       char    *fname = NULL;
       if (istring) fname = cs_strdup(csound, ((STRINGDAT *)p->iFile)->data);
-      else if (csound->ISSTRCOD(*(p->iFile)))
+      else if (csound->IsStringCode(*(p->iFile)))
         fname = cs_strdup(csound, get_arg_string(csound, *p->iFile));
       if (UNLIKELY(fname == NULL || fname[0] == (char) 0)) {
         if (fname != NULL) csound->Free(csound, fname);

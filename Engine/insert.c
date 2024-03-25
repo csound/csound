@@ -2683,7 +2683,7 @@ int prealloc_(CSOUND *csound, AOP *p, int instname)
       n = (int) strarg2opcno(csound, ((STRINGDAT*)p->r)->data, 1,
                              (*p->b == FL(0.0) ? 0 : 1));
     else {
-      if (csound->ISSTRCOD(*p->r))
+      if (csound->IsStringCode(*p->r))
         n = (int) strarg2opcno(csound, get_arg_string(csound,*p->r), 1,
                                (*p->b == FL(0.0) ? 0 : 1));
       else n = *p->r;

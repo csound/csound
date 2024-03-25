@@ -308,18 +308,18 @@ static int srconv(CSOUND *csound, int argc, char **argv)
           case 'P':
             FIND(Str("No P argument"))
 #if defined(USE_DOUBLE)
-            csound->sscanf(s,"%lf", &P);
+            sscanf(s,"%lf", &P);
 #else
-            csound->sscanf(s,"%f", &P);
+            sscanf(s,"%f", &P);
 #endif
             while (*++s);
             break;
           case 'r':
             FIND(Str("No r argument"))
 #if defined(USE_DOUBLE)
-            csound->sscanf(s,"%lf", &Rout);
+            sscanf(s,"%lf", &Rout);
 #else
-            csound->sscanf(s,"%f", &Rout);
+            sscanf(s,"%f", &Rout);
 #endif
             while (*++s);
             break;
@@ -507,7 +507,7 @@ static int srconv(CSOUND *csound, int argc, char **argv)
     csound->Message(csound, Str("writing %d-byte blks of %s to %s"),
                     outbufsiz, csound->GetStrFormat(O.outformat),
                     O.outfilename);
-    csound->Message(csound, " (%s)\n", csound->type2string(O.filetyp));
+    csound->Message(csound, " (%s)\n",csound->Type2String(O.filetyp));
 
  /* this program performs arbitrary sample-rate conversion
     with high fidelity.  the method is to step through the

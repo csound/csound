@@ -2152,7 +2152,7 @@ int32_t monitor_opcode_perf(CSOUND *csound, MONITOR_OPCODE *p)
 
 int32_t monitor_opcode_init(CSOUND *csound, MONITOR_OPCODE *p)
 {
-  if (UNLIKELY(csound->GetOutputArgCnt(p) != (int32_t)csound->GetNchnls(csound)))
+  if (UNLIKELY(GetOutputArgCnt(p) != (int32_t)csound->GetNchnls(csound)))
     return csound->InitError(csound, Str("number of arguments != nchnls"));
   p->h.opadr = (SUBR) monitor_opcode_perf;
   return OK;

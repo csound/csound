@@ -1378,7 +1378,7 @@ static int32_t adset_(CSOUND *csound, ADSYN *p, int32_t stringname)
         *ip++ = (int16) (sin(TWOPI * n / ISINSIZ) * 32767.0);
     }
     if (stringname) strNcpy(filnam, ((STRINGDAT*)p->ifilcod)->data, MAXNAME-1);
-    else if (csound->ISSTRCOD(*p->ifilcod))
+    else if (csound->IsStringCode(*p->ifilcod))
       strNcpy(filnam, get_arg_string(csound, *p->ifilcod), MAXNAME-1);
     else csound->strarg2name(csound, filnam, p->ifilcod, "adsyn.", 0);
 

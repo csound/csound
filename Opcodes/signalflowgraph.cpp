@@ -1213,7 +1213,7 @@ struct AlwaysOnS : public OpcodeBase<AlwaysOnS> {
     evtblk.p[1] = csound->strarg2insno(csound, Sinstrument->data, 1);
     evtblk.p[2] = evtblk.p2orig = offset;
     evtblk.p[3] = evtblk.p3orig = FL(-1.0);
-    size_t inArgCount = csound->GetInputArgCnt(this);
+    size_t inArgCount = GetInputArgCnt(this);
     // Add 2, for hard-coded p2 and p3.
     evtblk.pcnt = (int16)inArgCount + 2;
     // Subtract 1, for only required inarg p1.
@@ -1222,7 +1222,7 @@ struct AlwaysOnS : public OpcodeBase<AlwaysOnS> {
     for (size_t pfieldI = 4, argumI = 0; argumI < argumN; pfieldI++, argumI++) {
       evtblk.p[pfieldI] = *argums[argumI];
     }
-    csound->insert_score_event_at_sample(csound, &evtblk, 0);
+    csound->InsertScoreEvent(csound, &evtblk, 0);
     return OK;
   }
 };
@@ -1248,7 +1248,7 @@ struct AlwaysOn : public OpcodeBase<AlwaysOn> {
     evtblk.p[2] = evtblk.p2orig = offset;
     evtblk.p[3] = evtblk.p3orig = FL(-1.0);
 
-    size_t inArgCount = csound->GetInputArgCnt(this);
+    size_t inArgCount = GetInputArgCnt(this);
     // Add 2, for hard-coded p2 and p3.
     evtblk.pcnt = (int16)inArgCount + 2;
     // Subtract 1, for only required inarg p1.
@@ -1257,7 +1257,7 @@ struct AlwaysOn : public OpcodeBase<AlwaysOn> {
     for (size_t pfieldI = 4, argumI = 0; argumI < argumN; pfieldI++, argumI++) {
       evtblk.p[pfieldI] = *argums[argumI];
     }
-    csound->insert_score_event_at_sample(csound, &evtblk, 0);
+    csound->InsertScoreEvent(csound, &evtblk, 0);
     return OK;
   }
 };
@@ -1372,7 +1372,7 @@ static int ftgenonce_(CSOUND *csound, FTGEN *p, bool isNamedGenerator,
     ftevt->p[5] = *p->p5;
   }
   // Copy the remaining parameters.
-  ftevt->pcnt = (int16)csound->GetInputArgCnt(p);
+  ftevt->pcnt = (int16)GetInputArgCnt(p);
   int n = ftevt->pcnt - 5;
   if (n > 0) {
     MYFLT **argp = p->argums;
@@ -1485,7 +1485,7 @@ PUBLIC int csoundModuleCreate_signalflowgraph(CSOUND *csound) {
     csound->Message(csound, "signalflowgraph: csoundModuleCreate(%p)\n",
                     csound);
   }
-  isstrcod = csound->ISSTRCOD;
+  isstrcod = csound->IsStringCode;
   SignalFlowGraphState *sfg_globals = new SignalFlowGraphState(csound);
   CreateGlobalPointer(csound, "sfg_globals", sfg_globals);
   return 0;

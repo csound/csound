@@ -300,6 +300,9 @@ static const CSOUND cenviron_ = {
     csoundGetSizeOfMYFLT,
     csoundGetOParms,
     csoundGetEnv,
+    /* channels */
+    csoundGetChannelPtr,
+    csoundListChannels,
     /* message printout */
     csoundMessage,
     csoundMessageS,
@@ -307,31 +310,14 @@ static const CSOUND cenviron_ = {
     csoundGetMessageLevel,
     csoundSetMessageLevel,
     csoundSetMessageCallback,
-    /* Event and MIDI functionality for opcodes */
-    csoundSetReleaseLength,
-    csoundSetReleaseLengthSeconds,
-    csoundGetMidiChannelNumber,
-    csoundGetMidiChannel,
-    csoundGetMidiNoteNumber,
-    csoundGetMidiVelocity,
-    csoundGetReleaseFlag,
-    csoundGetOffTime,
-    csoundGetPFields,
-    csoundGetInstrumentNumber,
     csoundGetZakBounds,
+    csoundGetZaBounds,
     csoundGetTieFlag,
     csoundGetReinitFlag,
     csoundGetStrsmax,
     csoundGetStrsets,
     csoundPow2,
-    intpow,
-    type2string,
     /* arguments to opcodes */
-    csoundGetTypeForArg,
-    csoundGetInputArgCnt,
-    csoundGetInputArgName,
-    csoundGetOutputArgCnt,
-    csoundGetOutputArgName,
     get_arg_string,
     strarg2insno,
     strarg2name,
@@ -349,6 +335,7 @@ static const CSOUND cenviron_ = {
     csoundFTFind,
     csoundFTFindP,
     csoundFTnp2Find,
+    csoundFTnp2Finde,
     csoundGetTable,
     csoundTableLength,
     csoundTableGet,
@@ -374,6 +361,14 @@ static const CSOUND cenviron_ = {
     csoundInverseComplexFFT,
     csoundGetInverseComplexFFTScale,
     csoundRealFFTMult,
+    /* LPC support */
+    csoundAutoCorrelation,
+    csoundLPsetup,
+    csoundLPfree,
+    csoundLPred,
+    csoundLPCeps,
+    csoundCepsLP,
+    csoundLPrms,
     /* PVOC-EX system */
     pvoc_createfile,
     pvoc_openfile,
@@ -388,6 +383,7 @@ static const CSOUND cenviron_ = {
     csoundDie,
     csoundInitError,
     csoundPerfError,
+    fterror,
     csoundWarning,
     csoundDebugMsg,
     csoundLongJmp,
@@ -448,6 +444,7 @@ static const CSOUND cenviron_ = {
     csoundGetFileName,
     type2csfiletype,
     sftype2csfiletype,
+    type2string,
     getstrformat,
     sfsampsize,
     /* RT audio IO and callbacks */
@@ -496,7 +493,11 @@ static const CSOUND cenviron_ = {
     /* events and performance */
     csoundYield,
     insert_score_event,
-    insert_score_event_at_sample,
+    csoundGetScoreOffsetSeconds,
+    csoundSetScoreOffsetSeconds,
+    csoundRewindScore,
+    csoundInputMessageInternal,
+    isstrcod,
     /* utilities */
     csoundAddUtility,
     csoundRunUtility,
@@ -511,37 +512,13 @@ static const CSOUND cenviron_ = {
     csoundCloseLibrary,
     csoundGetLibrarySymbol,
     csoundLocalizeString,
-    cs_strtok_r,
-    cs_strtod,
-    cs_sprintf,
-    cs_sscanf,
     csoundSystemSr,
-    csoundGetScoreOffsetSeconds,
-    csoundSetScoreOffsetSeconds,
-    csoundRewindScore,
-    csoundInputMessageInternal,
-    isstrcod,
-    fterror,
     csoundGetA4,
     csoundAuxAllocAsync,
     csoundGetHostData,
-    strNcpy,
-    csoundGetZaBounds,
-    find_opcode_new,
     find_opcode_exact,
-    csoundGetChannelPtr,
-    csoundListChannels,
-    csoundErrCnt,
-    csoundFTnp2Finde,
-    csoundGetInstrument,
-    csoundAutoCorrelation,
-    csoundLPsetup,
-    csoundLPfree,
-    csoundLPred,
-    csoundLPCeps,
-    csoundCepsLP,
-    csoundLPrms,
-    csoundCreateThread2,
+
+
     cs_hash_table_create,
     cs_hash_table_get,
     cs_hash_table_put,
@@ -4179,94 +4156,7 @@ MYFLT csoundSetReleaseLengthSeconds(void *p, MYFLT n)
             * ((OPDS*) p)->insdshead->csound->onedkr);
 }
 
-/**
- * Returns MIDI channel number (0 to 15) for the instrument instance
- * that called opcode 'p'.
- * In the case of score notes, -1 is returned.
- */
-int csoundGetMidiChannelNumber(void *p)
-{
-    MCHNBLK *chn = ((OPDS*) p)->insdshead->m_chnbp;
-    int     i;
-    if (chn == NULL)
-      return -1;
-    for (i = 0; i < 256; i++) {
-      if (chn == ((OPDS*) p)->insdshead->csound->m_chnbp[i])
-        return i;
-    }
-    return -1;
-}
 
-/**
- * Returns a pointer to the MIDI channel structure for the instrument
- * instance that called opcode 'p'.
- * In the case of score notes, NULL is returned.
- */
-MCHNBLK *csoundGetMidiChannel(void *p)
-{
-    return ((OPDS*) p)->insdshead->m_chnbp;
-}
-
-/**
- * Returns MIDI note number (in the range 0 to 127) for opcode 'p'.
- * If the opcode was not called from a MIDI activated instrument
- * instance, the return value is undefined.
- */
-int csoundGetMidiNoteNumber(void *p)
-{
-    return (int) ((OPDS*) p)->insdshead->m_pitch;
-}
-
-/**
- * Returns MIDI velocity (in the range 0 to 127) for opcode 'p'.
- * If the opcode was not called from a MIDI activated instrument
- * instance, the return value is undefined.
- */
-int csoundGetMidiVelocity(void *p)
-{
-    return (int) ((OPDS*) p)->insdshead->m_veloc;
-}
-
-/**
- * Returns non-zero if the current note (owning opcode 'p') is releasing.
- */
-int csoundGetReleaseFlag(void *p)
-{
-    return (int) ((OPDS*) p)->insdshead->relesing;
-}
-
-/**
- * Returns the note-off time in seconds (measured from the beginning of
- * performance) of the current instrument instance, from which opcode 'p'
- * was called. The return value may be negative if the note has indefinite
- * duration.
- */
-double csoundGetOffTime(void *p)
-{
-    return (double) ((OPDS*) p)->insdshead->offtim;
-}
-
-/**
- * Returns the array of p-fields passed to the instrument instance
- * that owns opcode 'p', starting from p0. Only p1, p2, and p3 are
- * guaranteed to be available. p2 is measured in seconds from the
- * beginning of the current section.
- */
-MYFLT *csoundGetPFields(void *p)
-{
-
-    /* FIXME - this is no longer valid, should return CS_VAR_MEM*
-       and use ->p0_type */
-    return (MYFLT*) &(((OPDS*) p)->insdshead->p0);
-}
-
-/**
- * Returns the instrument number (p1) for opcode 'p'.
- */
-int csoundGetInstrumentNumber(void *p)
-{
-    return (int) ((OPDS*) p)->insdshead->p1.value;
-}
 
 typedef struct csMsgStruct_ {
   struct csMsgStruct_  *nxt;

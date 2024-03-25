@@ -425,7 +425,7 @@ static int32_t get_absinsno(CSOUND *csound, TRIGINSTR *p, int32_t stringname)
     /* IV - Oct 31 2002: allow string argument for named instruments */
     if (stringname)
       insno = (int32_t)strarg2insno_p(csound, ((STRINGDAT*)p->args[0])->data);
-    else if (csound->ISSTRCOD(*p->args[0])) {
+    else if (csound->IsStringCode(*p->args[0])) {
       char *ss = get_arg_string(csound, *p->args[0]);
       insno = (int32_t)strarg2insno_p(csound, ss);
     }
@@ -468,7 +468,7 @@ static int32_t ktriginstr_(CSOUND *csound, TRIGINSTR *p, int32_t stringname)
       p->prvmintim = *p->mintime;
     }
 
-    if (*p->args[0] >= FL(0.0) || csound->ISSTRCOD(*p->args[0])) {
+    if (*p->args[0] >= FL(0.0) || csound->IsStringCode(*p->args[0])) {
       /* Check for rate limit on event generation */
       if (*p->mintime > FL(0.0) && p->timrem > 0)
         return OK;
@@ -495,7 +495,7 @@ static int32_t ktriginstr_(CSOUND *csound, TRIGINSTR *p, int32_t stringname)
       /*evt.strarg = ((STRINGDAT*)p->args[0])->data;
         evt.p[1] = SSTRCOD;*/
     }
-    else if (csound->ISSTRCOD(*p->args[0])) {
+    else if (csound->IsStringCode(*p->args[0])) {
       unquote(name, get_arg_string(csound, *p->args[0]), 512);
       evt.p[1] = csound->strarg2insno(csound,name, 1);
       evt.strarg = NULL;

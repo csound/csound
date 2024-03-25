@@ -161,7 +161,7 @@ static int32_t osc_send_set(CSOUND *csound, OSCSEND *p)
       return csound->InitError(csound, "%s", Str("Too many arguments to OSCsend"));
 /* a-rate arguments are not allowed */
 /* for (i = 0; i < p->INOCOUNT-5; i++) { */
-/*   if (strcmp("a", csound->GetTypeForArg(p->arg[i])->varTypeName) == 0) { */
+/*   if (strcmp("a", GetTypeForArg(p->arg[i])->varTypeName) == 0) { */
 /*     return csound->InitError(csound,"%s", Str("No a-rate arguments allowed")); */
 /*   } */
 /* } */
@@ -210,7 +210,7 @@ static int32_t osc_send(CSOUND *csound, OSCSEND *p)
     int32_t cmpr = 0;
 
     if(p->INOCOUNT > 4) {
-      if(strcmp(csound->GetTypeForArg(p->type)->varTypeName, "S")) 
+      if(strcmp(GetTypeForArg(p->type)->varTypeName, "S")) 
         return csound->InitError(csound,"%s",
                              Str("Message type is not given as a string\n"));
     }
@@ -743,7 +743,7 @@ static int32_t OSC_list_init(CSOUND *csound, OSCLISTEN *p)
                                            strlen((char*) p->dest->data) + 1);
     strcpy(p->c.saved_path, (char*) p->dest->data);
     /* check for a valid argument list */
-    n = csound->GetInputArgCnt(p) - 3;
+    n = GetInputArgCnt(p) - 3;
     if (UNLIKELY(n < 0 || n > ARG_CNT-4))
       return csound->InitError(csound, "%s", Str("invalid number of arguments"));
     if (UNLIKELY((int32_t) strlen((char*) p->type->data) != n))
@@ -753,7 +753,7 @@ static int32_t OSC_list_init(CSOUND *csound, OSCLISTEN *p)
     strcpy(p->c.saved_types, (char*) p->type->data);
     for (i = 0; i < n; i++) {
       const char *s;
-      s = csound->GetInputArgName(p, i + 3);
+      s = GetInputArgName(p, i + 3);
       if (s[0] == 'g')
         s++;
       switch (p->c.saved_types[i]) {

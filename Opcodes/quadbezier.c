@@ -61,7 +61,7 @@ static int32_t quadbeziertable (FGDATA *ff, FUNC *ftp)
     nvals = ff->flen;
     nargs = ff->e.pcnt - 4;
     if (UNLIKELY(nargs < 5)) {
-      return csound->ftError(ff, Str("insufficient arguments"));
+      return csound->FtError(ff, Str("insufficient arguments"));
     }
     ff->e.p[4] *= -1;
 

@@ -421,7 +421,7 @@ static int mixer_main(CSOUND *csound, int argc, char **argv)
     csound->Message(csound, Str("writing %d-byte blks of %s to %s (%s)\n"),
                             pp->outbufsiz,
                             csound->GetStrFormat(O.outformat), O.outfilename,
-                            csound->type2string(O.filetyp));
+                           csound->Type2String(O.filetyp));
     MixSound(pp, n, outfd, &O);
     if (O.ringbell)
       csound->MessageS(csound, CSOUNDMSG_REALTIME, "\007");

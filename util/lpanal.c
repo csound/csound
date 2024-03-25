@@ -416,23 +416,23 @@ static int32_t lpanal(CSOUND *csound, int32_t argc, char **argv)
         switch (*s++) {
         case 's':       FIND(Str("no sampling rate"))
 #if defined(USE_DOUBLE)
-                        csound->sscanf(s,"%lf",&sr); break;
+                        sscanf(s,"%lf",&sr); break;
 #else
-                        csound->sscanf(s,"%f",&sr); break;
+                        sscanf(s,"%f",&sr); break;
 #endif
         case 'c':       FIND(Str("no channel"))
                         sscanf(s,"%d",&channel); break;
         case 'b':       FIND(Str("no begin time"))
 #if defined(USE_DOUBLE)
-                        csound->sscanf(s,"%lf",&beg_time); break;
+                        sscanf(s,"%lf",&beg_time); break;
 #else
-                        csound->sscanf(s,"%f",&beg_time); break;
+                        sscanf(s,"%f",&beg_time); break;
 #endif
         case 'd':       FIND(Str("no duration time"))
 #if defined(USE_DOUBLE)
-                        csound->sscanf(s,"%lf",&input_dur); break;
+                        sscanf(s,"%lf",&input_dur); break;
 #else
-                        csound->sscanf(s,"%f",&input_dur); break;
+                        sscanf(s,"%f",&input_dur); break;
 #endif
         case 'p':       FIND(Str("no poles"))
                         sscanf(s,"%d",&lpc.poleCount);
@@ -455,18 +455,18 @@ static int32_t lpanal(CSOUND *csound, int32_t argc, char **argv)
                         break;
         case 'P':       FIND(Str("no low frequency"))
 #if defined(USE_DOUBLE)
-                        csound->sscanf(s,"%lf",&pchlow);
+                        sscanf(s,"%lf",&pchlow);
 #else
-                        csound->sscanf(s,"%f",&pchlow);
+                        sscanf(s,"%f",&pchlow);
 #endif
                         if (pchlow == 0.0)
                           lpc.doPitch = 0; /* -P0 inhibits ptrack */
                         break;
         case 'Q':       FIND(Str("no high frequency"))
 #if defined(USE_DOUBLE)
-                        csound->sscanf(s,"%lf",&pchhigh); break;
+                        sscanf(s,"%lf",&pchhigh); break;
 #else
-                        csound->sscanf(s,"%f",&pchhigh); break;
+                        sscanf(s,"%f",&pchhigh); break;
 #endif
         case 'v':       FIND(Str("no verbose level"))
                         sscanf(s,"%d",&lpc.verbose);
@@ -613,7 +613,7 @@ static int32_t lpanal(CSOUND *csound, int32_t argc, char **argv)
     /* Some display stuff */
 #if 0
     dispinit(csound);
-    csound->dispset(csound, &lpc.pwindow, coef + 4, lpc.poleCount,
+    csound->SetDisplay(csound, &lpc.pwindow, coef + 4, lpc.poleCount,
                     "pitch: 0000.00   ", 0, "LPC/POLES");
 #endif
     /* Space for a array */

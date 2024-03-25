@@ -108,7 +108,7 @@ static int32_t Polynomial(CSOUND* csound, POLYNOMIAL* p)
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t n, nsmps = CS_KSMPS;
     int32_t   ncoeff =    /* index of the last coefficient */
-                   csound->GetInputArgCnt(p) - 2;
+                   GetInputArgCnt(p) - 2;
     MYFLT *out = p->aout;
     MYFLT *in = p->ain;
     MYFLT **coeff = p->kcoefficients;
@@ -141,7 +141,7 @@ typedef struct {
 
 static int32_t ChebyshevPolyInit(CSOUND* csound, CHEBPOLY* p)
 {
-    int32_t     ncoeff = csound->GetInputArgCnt(p) - 1;
+    int32_t     ncoeff = GetInputArgCnt(p) - 1;
 
     /* Need two MYFLT arrays of length ncoeff: first for the coefficients
        of the sum of polynomials, and the second for the coefficients of
@@ -162,7 +162,7 @@ static int32_t ChebyshevPolynomial(CSOUND* csound, CHEBPOLY* p)
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t n, nsmps = CS_KSMPS;
     int32_t     ncoeff =            /* index of the last coefficient */
-                     csound->GetInputArgCnt(p) - 2;
+                     GetInputArgCnt(p) - 2;
     MYFLT   *out = p->aout;
     MYFLT   *in = p->ain;
     MYFLT   **chebcoeff = p->kcoefficients;

@@ -462,7 +462,7 @@ static int padsynth_gen(FGDATA *ff, FUNC *ftp) {
   MYFLT p1_function_table_number = ff->fno;
   MYFLT p2_score_time = ff->e.p[2];
   int N = ff->flen;
-  if (N <= 0) return csound->ftError(ff, Str("Illegal table size %d"), N);
+  if (N <= 0) return csound->FtError(ff, Str("Illegal table size %d"), N);
 
   MYFLT p5_fundamental_frequency = ff->e.p[5];
   MYFLT p6_partial_bandwidth = ff->e.p[6];

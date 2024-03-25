@@ -310,7 +310,7 @@ static int32_t scsnu_init(CSOUND *csound, PSCSNU *p)
     /* Setup display window */
     if (*p->i_disp) {
       p->win = csound->Calloc(csound, sizeof(WINDAT));
-      csound->dispset(csound, (WINDAT*)p->win, p->x1, len,
+      csound->SetDisplay(csound, (WINDAT*)p->win, p->x1, len,
                       Str("Mass displacement"), 0, Str("Scansynth window"));
     }
 
@@ -377,7 +377,7 @@ static int32_t scsnu_init(CSOUND *csound, PSCSNU *p)
       else if ((res=scsnu_initw(csound, p))!=OK) return res;
     }
     if (*p->i_disp)
-      csound->display(csound, p->win); /* *********************** */
+      csound->Display(csound, p->win); /* *********************** */
 
     /* Velocity gets presidential treatment */
     {
@@ -410,7 +410,7 @@ static int32_t scsnu_init(CSOUND *csound, PSCSNU *p)
     /* External force index */
     p->exti = 0;
 
-    //csound->display(csound, p->win); /* ********************** */
+    //csound->Display(csound, p->win); /* ********************** */
 
     pp = scansyn_getGlobals(csound);
     p->pp = pp;
@@ -496,7 +496,7 @@ static int32_t scsnu_play(CSOUND *csound, PSCSNU *p)
         int32_t i, j;
         scsnu_hammer(csound, p, *p->k_x, *p->k_y);
         if (*p->i_disp)
-          csound->display(csound, p->win); /* *********************** */
+          csound->Display(csound, p->win); /* *********************** */
         for (i = 0 ; i != len ; i++) {
           MYFLT a = FL(0.0);
                                 /* Throw in audio drive */
@@ -507,7 +507,7 @@ static int32_t scsnu_play(CSOUND *csound, PSCSNU *p)
                                 /* And push feedback */
           //scsnu_hammer(csound, p, *p->k_x, *p->k_y);
           //if (*p->i_disp)
-          //  csound->display(csound, p->win); /* *********************** */
+          //  csound->Display(csound, p->win); /* *********************** */
                                 /* Estimate acceleration */
           if (p->revised) {
             MYFLT kf = *p->k_f;
@@ -550,7 +550,7 @@ static int32_t scsnu_play(CSOUND *csound, PSCSNU *p)
         /* Reset index and display the state */
         idx = 0;
         if (*p->i_disp)
-          csound->display(csound, p->win);
+          csound->Display(csound, p->win);
       }
       if (p->id<0) { /* Write to ftable */
         int32_t i;

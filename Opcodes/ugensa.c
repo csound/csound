@@ -26,6 +26,19 @@
 #include "ugens7.h"
 #include <math.h>
 
+static inline double intpow_(MYFLT x, uint32_t n)
+{
+    double ans = 1.0;
+
+    while (n != 0) {
+        if (n & 1)
+            ans *= x;
+        n >>= 1;
+        x *= x;
+    }
+    return ans;
+}
+
 /* FOG generator */
 
 static int32_t newpulse(CSOUND *, FOGS *, OVERLAP *, MYFLT *, MYFLT *, MYFLT *);
@@ -213,7 +226,7 @@ static int32_t newpulse(CSOUND *csound, FOGS *p, OVERLAP *ovp, MYFLT   *amp,
 
     if (newexp || rismps != p->prvsmps) {            /* if new params */
       if ((p->prvsmps = rismps))                     /*   redo preamp */
-        p->preamp = csound->intpow(p->expamp, -rismps);
+        p->preamp = intpow_(p->expamp, -rismps);
       else p->preamp = FL(1.0);
     }
     ovp->curamp = octamp * p->preamp;                /* set startamp  */

@@ -430,7 +430,7 @@ static int32_t scsnux_init_(CSOUND *csound, PSCSNUX *p, int32_t istring)
     /* Setup display window */
     if (*p->i_disp) {
       p->win = csound->Calloc(csound, sizeof(WINDAT));
-      csound->dispset(csound, (WINDAT*) p->win, p->x1, len,
+      csound->SetDisplay(csound, (WINDAT*) p->win, p->x1, len,
                       Str("Mass displacement"), 0, Str("Scansynth window"));
     }
 
@@ -549,7 +549,7 @@ static int32_t scsnux(CSOUND *csound, PSCSNUX *p)
         /* Reset index and display the state */
         idx = 0;
         if (*p->i_disp)
-          csound->display(csound, p->win);
+          csound->Display(csound, p->win);
       }
       if (p->id<0) { /* Write to ftable */
         uint32_t i;

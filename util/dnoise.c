@@ -320,9 +320,9 @@ static int32_t dnoise(CSOUND *csound, int32_t argc, char **argv)
             case 't':
               FIND(Str("no t argument"));
 #if defined(USE_DOUBLE)
-              csound->sscanf(s,"%lf",&th);
+              sscanf(s,"%lf",&th);
 #else
-              csound->sscanf(s,"%f",&th);
+              sscanf(s,"%f",&th);
 #endif
               while (*++s);
               break;
@@ -334,9 +334,9 @@ static int32_t dnoise(CSOUND *csound, int32_t argc, char **argv)
             case 'm':
               FIND("no m arg");
 #if defined(USE_DOUBLE)
-              csound->sscanf(s,"%lf",&g0);
+              sscanf(s,"%lf",&g0);
 #else
-              csound->sscanf(s,"%f",&g0);
+              sscanf(s,"%f",&g0);
 #endif
               while (*++s);
               break;
@@ -348,9 +348,9 @@ static int32_t dnoise(CSOUND *csound, int32_t argc, char **argv)
             case 'b':
               FIND(Str("no b argument"));
 #if defined(USE_DOUBLE)
-              csound->sscanf(s,"%lf",&beg);
+              sscanf(s,"%lf",&beg);
 #else
-              csound->sscanf(s,"%f",&beg);
+              sscanf(s,"%f",&beg);
 #endif
               while (*++s);
               break;
@@ -360,9 +360,9 @@ static int32_t dnoise(CSOUND *csound, int32_t argc, char **argv)
               break;
             case 'e': FIND("no e arg");
 #if defined(USE_DOUBLE)
-              csound->sscanf(s,"%lf",&end);
+              sscanf(s,"%lf",&end);
 #else
-              csound->sscanf(s,"%f",&end);
+              sscanf(s,"%f",&end);
 #endif
               while (*++s);
               break;
@@ -576,7 +576,7 @@ static int32_t dnoise(CSOUND *csound, int32_t argc, char **argv)
     csound->Message(csound, Str("writing %u-byte blks of %s to %s"),
                     outbufsiz, csound->GetStrFormat(O.outformat),
                     O.outfilename);
-    csound->Message(csound, " (%s)\n", csound->type2string(O.filetyp));
+    csound->Message(csound, " (%s)\n",csound->Type2String(O.filetyp));
 /*  spoutran = spoutsf; */
 
     minv = FL(1.0) / (MYFLT)m;

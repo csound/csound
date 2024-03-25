@@ -216,7 +216,7 @@ static int32_t pvsfwriteset_(CSOUND *csound, PVSFWRITE *p, int32_t stringname)
   char fname[MAXNAME];
 
   if (stringname==0) {
-    if (csound->ISSTRCOD(*p->file))
+    if (csound->IsStringCode(*p->file))
       strNcpy(fname,get_arg_string(csound, *p->file), MAXNAME);
     else csound->strarg2name(csound, fname, p->file, "pvoc.",0);
   }
@@ -353,7 +353,7 @@ static int32_t pvsdiskinset_(CSOUND *csound, pvsdiskin *p, int32_t stringname)
   char fname[MAXNAME];
 
   if (stringname==0){
-    if (csound->ISSTRCOD(*p->file))
+    if (csound->IsStringCode(*p->file))
       strNcpy(fname,get_arg_string(csound, *p->file), MAXNAME);
     else csound->strarg2name(csound, fname, p->file, "pvoc.",0);
   }
@@ -502,7 +502,7 @@ int32_t pvstanalset(CSOUND *csound, PVST *p)
   N = (*p->fftsize > 0 ? *p->fftsize : 2048);
   hsize = (*p->hsize > 0 ? *p->hsize : 512);
   p->init = 0;
-  nChannels = csound->GetOutputArgCnt(p);
+  nChannels = GetOutputArgCnt(p);
   if (UNLIKELY(nChannels < 1 || nChannels > MAXOUTS))
     return csound->InitError(csound, Str("invalid number of output arguments"));
   p->nchans = nChannels;
@@ -585,7 +585,7 @@ int32_t pvstanalset1(CSOUND *csound, PVST1 *p)
   N = (*p->fftsize > 0 ? *p->fftsize : 2048);
   hsize = (*p->hsize > 0 ? *p->hsize : 512);
   p->init = 0;
-  nChannels = csound->GetOutputArgCnt(p);
+  nChannels = GetOutputArgCnt(p);
   if (UNLIKELY(nChannels < 1 || nChannels > 1))
     return csound->InitError(csound, Str("invalid number of output arguments"));
   p->nchans = nChannels;

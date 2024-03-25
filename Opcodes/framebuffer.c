@@ -387,7 +387,7 @@ void Framebuffer_checkArgumentSanity(CSOUND *csound, Framebuffer *self)
 
 ArgumentType Framebuffer_getArgumentType(CSOUND *csound, MYFLT *argument)
 {
-    const CS_TYPE *csoundType = csound->GetTypeForArg((void *)argument);
+    const CS_TYPE *csoundType = GetTypeForArg((void *)argument);
     const char *type = csoundType->varTypeName;
     ArgumentType argumentType = UNKNOWN;
 

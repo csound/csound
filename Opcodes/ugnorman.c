@@ -119,7 +119,7 @@ static int32_t load_atsfile(CSOUND *csound, void *p, MEMFIL **mfp, char *fname,
     /* copy in ats file name */
     if (istring) strNcpy(fname, ((STRINGDAT*)name_arg)->data,MAXNAME-1) ;
     else {
-      if (csound->ISSTRCOD(*((MYFLT*)name_arg)))
+      if (csound->IsStringCode(*((MYFLT*)name_arg)))
         strNcpy(fname,get_arg_string(csound, *((MYFLT*)name_arg)),MAXNAME-1);
          else csound->strarg2name(csound, fname, name_arg, "ats.",0);
     }

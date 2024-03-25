@@ -421,7 +421,7 @@ int32_t midiaft(CSOUND *csound, MIDICTL *p)
 
 int32_t midichn(CSOUND *csound, MIDICHN *p)
 {
-    *(p->ichn) = (MYFLT) (csound->GetMidiChannelNumber(p) + 1);
+    *(p->ichn) = (MYFLT) (GetMidiChannelNumber(p) + 1);
     return OK;
 }
 
@@ -435,7 +435,7 @@ int32_t pgmassign_(CSOUND *csound, PGMASSIGN *p, int32_t instname)
     if (UNLIKELY(chn < 0 || chn > 16))
       return csound->InitError(csound, Str("illegal channel number"));
     /* IV - Oct 31 2002: allow named instruments */
-    if (instname || csound->ISSTRCOD(*p->inst)) {
+    if (instname || csound->IsStringCode(*p->inst)) {
       MYFLT buf[128];
       csound->strarg2name(csound, (char*) buf, p->inst, "", 1);
       ins = (int32_t)strarg2insno(csound, buf, 1);

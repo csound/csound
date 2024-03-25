@@ -31,6 +31,20 @@
 #include "brass.h"
 #include <math.h>
 #include "interlocks.h"
+
+static inline double intpow_(MYFLT x, uint32_t n)
+{
+    double ans = 1.0;
+
+    while (n != 0) {
+        if (n & 1)
+            ans *= x;
+        n >>= 1;
+        x *= x;
+    }
+    return ans;
+}
+
 /* ************************************** */
 /*  Waveguide Clarinet model ala Smith    */
 /*  after McIntyre, Schumacher, Woodhouse */
@@ -487,7 +501,7 @@ MYFLT BowTabl_lookup(CSOUND *csound, BowTabl *b, MYFLT sample)
     input = sample /* + b->offSet*/ ;          /*  add bias to sample      */
     input *= b->slope;                         /*  scale it                */
     lastOutput = FABS(input) + FL(0.75); /*  below min delta, frict = 1 */
-    lastOutput = csound->intpow(lastOutput,-4L);
+    lastOutput = intpow_(lastOutput,-4L);
 /* if (lastOutput < FL(0.0) ) lastOutput = FL(0.0); */ /* minimum frict is 0.0 */
     if (lastOutput > FL(1.0)) lastOutput = FL(1.0); /*  maximum friction is 1.0 */
     return lastOutput;

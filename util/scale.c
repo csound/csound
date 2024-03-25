@@ -302,7 +302,7 @@ static int32_t scale(CSOUND *csound, int32_t argc, char **argv)
                               (int32_t) outbufsiz,
                               csound->GetStrFormat(O.outformat),
                               O.outfilename,
-                              csound->type2string(O.filetyp));
+                             csound->Type2String(O.filetyp));
       InitScaleTable(csound, &sc, factor, factorfile);
       ScaleSound(csound, &sc, infile, outfile, &O);
     }
