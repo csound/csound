@@ -8,7 +8,4 @@ if (has_coverage)
 endif()
 
 # absolute paths help coverage tools
-check_cxx_compiler_flag("-fprofile-abs-path" has_coverage_absolute_path)
-if (has_coverage_absolute_path)
-    add_compile_options("-fprofile-abs-path")
-endif()
+try_add_compile_option("-fprofile-abs-path")

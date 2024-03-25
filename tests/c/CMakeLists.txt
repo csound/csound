@@ -20,9 +20,6 @@ if(BUILD_TESTS)
 
     target_link_libraries(unittests PRIVATE libcsound_internals)
 
-    # Required because we're compiling the tests written in C as C++
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fpermissive -Wwrite-strings")
-
     set_property(TARGET unittests PROPERTY CXX_STANDARD 14)
 
     target_link_libraries(unittests PRIVATE GTest::gtest_main ${CSOUNDLIB_STATIC})
