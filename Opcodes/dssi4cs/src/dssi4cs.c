@@ -270,7 +270,7 @@ int32_t dssiinit(CSOUND * csound, DSSIINIT * p)
     if (strcmp("S", argType->varTypeName) == 0)
       strNcpy(dssiFilename,((STRINGDAT *)p->iplugin)->data, MAXNAME);
     else
-      csound->strarg2name(csound, dssiFilename, IsStringCode(*p->iplugin) ?
+      csound->StringArg2Name(csound, dssiFilename, IsStringCode(*p->iplugin) ?
                           csound->GetString(csound, *p->iplugin) :
                           (char *) p->iplugin, "dssiinit.",
                           (int32_t) IsStringCode(*p->iplugin));
