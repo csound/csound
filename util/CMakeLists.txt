@@ -9,7 +9,10 @@ set(stdutil_SRCS
     SDIF/sdif.c   ../InOut/soundfile.c)
 
 if(BUILD_UTILITIES)
-   make_plugin(stdutil "${stdutil_SRCS}" ${MATH_LIBRARY} libcsound_internals)
+    make_plugin(stdutil "${stdutil_SRCS}" ${MATH_LIBRARY} libcsound_internals)
+    if (USE_LIBSNDFILE)
+        target_link_libraries(stdutil PRIVATE SndFile::sndfile)
+    endif()
     make_utility(atsa        atsa_main.c libcsound_internals)
     make_utility(csanalyze   csanalyze.c)
     make_utility(cvanal      cvl_main.c libcsound_internals)

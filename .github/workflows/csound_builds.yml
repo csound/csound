@@ -314,15 +314,43 @@ jobs:
           token: ${{ secrets.CODECOV_TOKEN }}
           verbose: true
 
-  #android_build:
-  #  name: Android build
-  # runs-on: ubuntu-latest
-  # steps:
-  #    - name: run the Docker image
-  #     run: docker run --name csound_test_run -i sjamble/csound_android
-  #   - name: copying build out of container
-  #    run: docker cp csound_test_run:/csound/Android/csound-android-6.18.0.zip .
-  #  - uses: actions/upload-artifact@v2
-  #    with:
-  #       name: csound-android-6.18.0.zip
-  #      path: .
+  android_build:
+    name: Android build
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        ANDROID_ABI: ["armeabi-v7a with NEON", "arm64-v8a", "x86", "x86_64"]
+      fail-fast: false
+    steps:
+      - name: Checkout Source Code
+        uses: actions/checkout@v1
+        with:
+          fetch-depth: 1
+          submodules: true
+
+      - name: Install Dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install cmake
+  
+      - uses: nttld/setup-ndk@v1
+        id: setup-ndk
+        with:
+          ndk-version: r26c
+      
+      - name: Export GitHub Actions cache environment variables
+        uses: actions/github-script@v6
+        with:
+          script: |
+            core.exportVariable('ACTIONS_CACHE_URL', process.env.ACTIONS_CACHE_URL || '');
+            core.exportVariable('ACTIONS_RUNTIME_TOKEN', process.env.ACTIONS_RUNTIME_TOKEN || '');
+      
+      - name: Bootstrap VCPKG
+        run: ./vcpkg/bootstrap-vcpkg.sh
+
+      - name: Configure Build
+        run: cmake -B build -S . -DUSE_VCPKG=ON -DCMAKE_SYSTEM_NAME=Android -DANDROID_ABI="${{matrix.ANDROID_ABI}}" -DBUILD_TESTS=OFF -DCMAKE_ANDROID_NDK=${{steps.setup-ndk.outputs.ndk-path}}
+
+      - name: Build Csound
+        run: cmake --build build --config Release
+
