@@ -21,9 +21,6 @@ if(BUILD_TESTS)
     target_include_directories(unittests PRIVATE ${libcsound_private_include_dirs})
     target_include_directories(unittests PUBLIC ${libcsound_public_include_dirs})
 
-    # Required because we're compiling the tests written in C as C++
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fpermissive -Wwrite-strings")
-
     set_property(TARGET unittests PROPERTY CXX_STANDARD 14)
 
     target_link_libraries(unittests PRIVATE GTest::gtest_main ${CSOUNDLIB_STATIC})
