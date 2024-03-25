@@ -18,8 +18,7 @@ if(BUILD_TESTS)
         server_test.cpp
     )
 
-    target_include_directories(unittests PRIVATE ${libcsound_private_include_dirs})
-    target_include_directories(unittests PUBLIC ${libcsound_public_include_dirs})
+    target_link_libraries(unittests PRIVATE libcsound_internals)
 
     # Required because we're compiling the tests written in C as C++
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fpermissive -Wwrite-strings")
