@@ -27,7 +27,7 @@
 #include "soundio.h"
 #include "lpc.h"
 #include "cwindow.h"
-#ifndef WIN32
+#ifndef _WIN32
 #include <unistd.h>
 #endif
 #include <math.h>

@@ -46,7 +46,7 @@ void csoundUnLock() {
 }
 #endif
 
-#elif defined(_WIN32) || defined (__WIN32__)
+#elif defined(_WIN32)
 #define _WIN32_WINNT 0x0600
 #include <windows.h>
 
@@ -94,7 +94,7 @@ void csoundUnLock() {
 }
 #endif
 
-#else /* END WIN32 */
+#else /* END _WIN32 */
 #ifdef __cplusplus
 extern "C" {
 #endif

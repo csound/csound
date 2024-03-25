@@ -93,7 +93,7 @@ typedef float mus_sample_t;
  */
 #define ATSA_TYPE 4
 /* default residual file */
-#if defined(LINUX) || defined(MACOSX)
+#if defined(__gnu_linux__) || defined(__APPLE__)
 #  define ATSA_RES_FILE "/tmp/atsa_res.wav"
 #else
 #  define ATSA_RES_FILE "/atsa_res.wav"
@@ -719,7 +719,7 @@ static int atsa_main(CSOUND *csound, int argc, char **argv)
         soundfile == NULL || soundfile[0] == '\0' ||
         ats_outfile == NULL || ats_outfile[0] == '\0')
       usage(csound);
-#ifdef WIN32
+#ifdef _WIN32
     {
       char buffer[160];
       char * tmp = getenv("TEMP");
@@ -2385,7 +2385,7 @@ static ATS_SOUND *tracker(CSOUND *csound, ANARGS *anargs, char *soundfile,
     csound->Free(csound, bufs);
     /* analyse residual */
     if (UNLIKELY(anargs->type == 3 || anargs->type == 4)) {
-#ifdef WIN32
+#ifdef _WIN32
       char buffer[160];
       char * tmp = getenv("TEMP");
       strNcpy(buffer, tmp, 160);

@@ -25,7 +25,7 @@
 #define CSOUND_SYSDEP_H
 
 /* check for the presence of a modern compiler (for use of certain features) */
-#if defined(WIN32)
+#if defined(_WIN32)
 #if !defined(locale_t)
 typedef void *locale_t;
 #endif
@@ -33,13 +33,13 @@ typedef void *locale_t;
 
 #include <limits.h>
 /* this checks for 64BIT builds */
-#if defined(__MACH__) || defined(LINUX)
+#if defined(__MACH__) || defined(__gnu_linux__)
 #if ( __WORDSIZE == 64 ) || defined(__x86_64__) || defined(__amd64__)
 #define B64BIT
 #endif
 #endif
 
-#if defined(WIN32)
+#if defined(_WIN32)
 #if _WIN64
 #define B64BIT
 #endif
@@ -211,15 +211,15 @@ typedef uint_least16_t uint16;
 
 /* find out operating system if not specified on the command line */
 
-#if defined(_WIN32) || defined(__WIN32__)
-#  ifndef WIN32
-#    define WIN32 1
+#if defined(__WIN32__)
+#  ifndef _WIN32
+#    define _WIN32 1
 #  endif
-#elif (defined(linux) || defined(__linux)) && !defined(LINUX)
-#  define LINUX 1
+#elif defined(__linux) && !defined(__gnu_linux__)
+#  define __gnu_linux__ 1
 #endif
 
-#if defined(WIN32) && defined(_MSC_VER) && !defined(__GNUC__)
+#if defined(_WIN32) && defined(_MSC_VER) && !defined(__GNUC__)
 #  ifndef MSVC
 #    define MSVC 1
 #  endif
@@ -243,7 +243,7 @@ typedef uint_least16_t uint16;
 #endif
 
 #define DIRSEP '/'
-#ifdef WIN32
+#ifdef _WIN32
 #  undef  DIRSEP
 #  define DIRSEP '\\'
 #  if !defined(O_NDELAY)
@@ -259,7 +259,7 @@ typedef uint_least16_t uint16;
 #  ifdef HAVE_SYS_TYPES_H
 #    include <sys/types.h>
 #  endif
-/*  RWD for WIN32 on VC++ */
+/*  RWD for _WIN32 on VC++ */
 #endif
 #ifndef MSVC
 #  include <sys/file.h>
@@ -268,7 +268,7 @@ typedef uint_least16_t uint16;
 
 #endif  /* __BUILDING_LIBCSOUND || CSOUND_CSDL_H */
 
-#ifdef WIN32
+#ifdef _WIN32
 #  define ENVSEP ';'
 #else
 #  define ENVSEP ':'
@@ -296,7 +296,7 @@ typedef short               int16_t;
 typedef unsigned short      uint16_t;
 typedef int                 int32_t;
 typedef unsigned int        uint32_t;
-#  if defined(__GNUC__) || !defined(WIN32)
+#  if defined(__GNUC__) || !defined(_WIN32)
 typedef long long           int64_t;
 typedef unsigned long long  uint64_t;
 typedef long long           int_least64_t;
@@ -542,11 +542,11 @@ char *strNcpy(char *dst, const char *src, size_t siz);
 #define ATOMIC_CMP_XCH(val, newVal, oldVal) (*val = newVal) != oldVal
 #endif
 
-#if defined(WIN32)
+#if defined(_WIN32)
 typedef int32_t spin_lock_t;
 #define SPINLOCK_INIT 0
 
-#elif defined(MACOSX)
+#elif defined(__APPLE__)
 #if MAC_OS_X_VERSION_MIN_REQUIRED >= MAC_OS_X_VERSION_10_12
 #include <os/lock.h>
 typedef struct os_unfair_lock_s spin_lock_t;

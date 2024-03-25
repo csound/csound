@@ -642,7 +642,7 @@ extern "C" {
   {
     CsoundCallbackWrapper *p;
     p = (CsoundCallbackWrapper*) csoundGetHostData(csound);
-#if defined(HAVE_C99) && !defined(WIN32)
+#if defined(HAVE_C99) && !defined(_WIN32)
     {
       char  buf[2048];
       int   n;

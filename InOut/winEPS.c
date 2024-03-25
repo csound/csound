@@ -144,7 +144,7 @@ void PS_MakeGraph(CSOUND *csound, WINDAT *wdptr, const char *name)
      *  Get the current time and date
      */
     lt = time(NULL);
-#ifndef LINUX
+#ifndef __gnu_linux__
     {
       struct tm *date_ptr;
       char      *date;

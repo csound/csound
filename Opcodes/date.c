@@ -28,7 +28,7 @@
 #include <errno.h>
 #endif
 
-#if defined(WIN32)
+#if defined(_WIN32)
 #include "direct.h"
 #endif
 
@@ -57,7 +57,7 @@ static int32_t datemyfltset(CSOUND *csound, DATEMYFLT *p)
     /*    time_t base = 946684800; */  /* 1 Jan 2000 */
     const time_t base = 1262304000;    /* 1 Jan 2010 */
 #endif
-#ifdef LINUX
+#ifdef __gnu_linux__
     struct timespec tp;
     clock_gettime(CLOCK_REALTIME, &tp);
     *p->time_ = (MYFLT) (tp.tv_sec-base);
@@ -121,7 +121,7 @@ static int32_t getcurdir(CSOUND *csound, GETCWD *p)
       p->Scd->data = csound->Calloc(csound, p->Scd->size);
     }
 #ifndef BARE_METAL   
-#if defined(__MACH__) || defined(LINUX) || defined(__HAIKU__) || defined(__CYGWIN__) || defined(__GNUC__)
+#if defined(__MACH__) || defined(__gnu_linux__) || defined(__HAIKU__) || defined(__CYGWIN__) || defined(__GNUC__)
     if (UNLIKELY(getcwd(p->Scd->data, p->Scd->size-1)==NULL))
 #else
     if (UNLIKELY( _getcwd(p->Scd->data, p->Scd->size-1)==NULL))

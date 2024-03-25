@@ -27,7 +27,7 @@
 #include "soundfile.h"
 
 
-#ifdef WIN32
+#ifdef _WIN32
 #define IOBUFSAMPS   4096   /* default sampframes in audio iobuf, -b settable */
 #define IODACSAMPS   16384  /* default samps in hardware buffer,  -B settable */
 #elif defined(NeXT) || defined(__MACH__)

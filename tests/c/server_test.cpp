@@ -1,6 +1,6 @@
 #include <stdio.h>
 #include "gtest/gtest.h"
-#if defined(WIN32) && !defined(__CYGWIN__)
+#if defined(_WIN32) && !defined(__CYGWIN__)
 # include <winsock2.h>
 # include <ws2tcpip.h>
 #else
@@ -9,7 +9,7 @@
 # include <netinet/in.h>
 # include <arpa/inet.h>
 #endif
-#if defined (WIN32)
+#if defined (_WIN32)
 # include <Windows.h>
 #else
 # include "unistd.h"
@@ -21,7 +21,7 @@
 void udp_send(const char* msg) {
     struct sockaddr_in server_addr;
     int sock;
-#if defined(WIN32) && !defined(__CYGWIN__)
+#if defined(_WIN32) && !defined(__CYGWIN__)
     WSADATA wsaData = { 0 };
     int err;
     if (UNLIKELY((err = WSAStartup(MAKEWORD(2, 2), &wsaData)) != 0))
@@ -31,7 +31,7 @@ void udp_send(const char* msg) {
     if (UNLIKELY(sock < 0)) {
         return;
     }
-#ifndef WIN32
+#ifndef _WIN32
     if (UNLIKELY(fcntl(sock, F_SETFL, O_NONBLOCK) < 0)) {
         close(sock);
         return;
@@ -47,7 +47,7 @@ void udp_send(const char* msg) {
     }
 #endif
     server_addr.sin_family = AF_INET;
-#if defined(WIN32) && !defined(__CYGWIN__)
+#if defined(_WIN32) && !defined(__CYGWIN__)
     server_addr.sin_addr.S_un.S_addr = inet_addr("127.0.0.1");
 #else
     inet_aton("127.0.0.1", &server_addr.sin_addr);

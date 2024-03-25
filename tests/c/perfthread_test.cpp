@@ -1,4 +1,4 @@
-#if defined(WIN32)
+#if defined(_WIN32)
 # include <Windows.h>
 #else
 # include "unistd.h"
@@ -62,7 +62,7 @@ TEST(PerfThreadsTests, Record) {
     performanceThread1.Play();
     //performanceThread1.Record("testrec.wav");
 
-#if !defined(WIN32)
+#if !defined(_WIN32)
     sleep(1);
 #else
     Sleep(1000);

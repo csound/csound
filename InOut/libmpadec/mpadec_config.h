@@ -27,7 +27,7 @@
 //#define ARCH_AMD64
 //#define ARCH_IA64
 
-#ifdef WIN32
+#ifdef _WIN32
 #define HAVE_IO_H
 #define HAVE_CONIO_H
 #undef OSS
@@ -93,7 +93,7 @@ typedef uint32_t uintptr_t;
 #define O_BINARY 0
 #endif
 
-#ifdef WIN32
+#ifdef _WIN32
 #define strcasecmp stricmp
 #endif
 

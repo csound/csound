@@ -176,7 +176,7 @@ static int32_t scale(CSOUND *csound, int32_t argc, char **argv)
             for ( ; *s != '\0'; s++) ;
             if (UNLIKELY(strcmp(O.outfilename, "stdin") == 0))
               csound->Die(csound, "%s", Str("-o cannot be stdin"));
-#if defined(WIN32)
+#if defined(_WIN32)
             if (UNLIKELY(strcmp(O.outfilename, "stdout") == 0)) {
               csound->Die(csound, "%s", Str("stdout audio not supported"));
             }

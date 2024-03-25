@@ -28,7 +28,7 @@
 
 #include "csoundCore.h"
 #include <sys/types.h>
-#if defined(WIN32) && !defined(__CYGWIN__)
+#if defined(_WIN32) && !defined(__CYGWIN__)
 #include <winsock2.h>
 #else
 #include <sys/socket.h>
@@ -89,7 +89,7 @@ static int32_t init_send(CSOUND *csound, SOCKSEND *p)
 {
     int32_t     bsize;
     int32_t     bwidth = sizeof(MYFLT);
-#if defined(WIN32) && !defined(__CYGWIN__)
+#if defined(_WIN32) && !defined(__CYGWIN__)
     WSADATA wsaData = {0};
     int32_t err;
     if (UNLIKELY((err=WSAStartup(MAKEWORD(2,2), &wsaData))!= 0))
@@ -106,7 +106,7 @@ static int32_t init_send(CSOUND *csound, SOCKSEND *p)
     p->wp = 0;
 
     p->sock = socket(AF_INET, SOCK_DGRAM, 0);
-#if defined(WIN32) && !defined(__CYGWIN__)
+#if defined(_WIN32) && !defined(__CYGWIN__)
     if (p->sock == SOCKET_ERROR) {
       err = WSAGetLastError();
       csound->InitError(csound, Str("socket failed with error: %ld\n"), err);
@@ -119,7 +119,7 @@ static int32_t init_send(CSOUND *csound, SOCKSEND *p)
     /* create server address: where we want to send to and clear it out */
     memset(&p->server_addr, 0, sizeof(p->server_addr));
     p->server_addr.sin_family = AF_INET;    /* it is an INET address */
-#if defined(WIN32) && !defined(__CYGWIN__)
+#if defined(_WIN32) && !defined(__CYGWIN__)
     p->server_addr.sin_addr.S_un.S_addr =
       inet_addr((const char *) p->ipaddress->data);
 #else
@@ -245,7 +245,7 @@ static int32_t init_sendS(CSOUND *csound, SOCKSENDS *p)
 {
     int32_t     bsize;
     int32_t     bwidth = sizeof(MYFLT);
-#if defined(WIN32) && !defined(__CYGWIN__)
+#if defined(_WIN32) && !defined(__CYGWIN__)
     WSADATA wsaData = {0};
     int32_t err;
     if (UNLIKELY((err=WSAStartup(MAKEWORD(2,2), &wsaData))!= 0))
@@ -269,7 +269,7 @@ static int32_t init_sendS(CSOUND *csound, SOCKSENDS *p)
     /* create server address: where we want to send to and clear it out */
     memset(&p->server_addr, 0, sizeof(p->server_addr));
     p->server_addr.sin_family = AF_INET;    /* it is an INET address */
-#if defined(WIN32) && !defined(__CYGWIN__)
+#if defined(_WIN32) && !defined(__CYGWIN__)
     p->server_addr.sin_addr.S_un.S_addr =
       inet_addr((const char *) p->ipaddress->data);
 #else
@@ -355,7 +355,7 @@ static int32_t stsend_deinit(CSOUND *csound, SOCKSEND *p)
 static int32_t init_ssend(CSOUND *csound, SOCKSEND *p)
 {
     int32_t err;
-#if defined(WIN32) && !defined(__CYGWIN__)
+#if defined(_WIN32) && !defined(__CYGWIN__)
     WSADATA wsaData = {0};
     if (UNLIKELY((err=WSAStartup(MAKEWORD(2,2), &wsaData))!= 0))
       return csound->InitError(csound, Str("Winsock2 failed to start: %d"), err);
@@ -364,7 +364,7 @@ static int32_t init_ssend(CSOUND *csound, SOCKSEND *p)
     /* create a STREAM (TCP) socket in the INET (IP) protocol */
     p->sock = socket(PF_INET, SOCK_STREAM, 0);
 
-#if defined(WIN32) && !defined(__CYGWIN__)
+#if defined(_WIN32) && !defined(__CYGWIN__)
     if (p->sock == SOCKET_ERROR) {
       err = WSAGetLastError();
       csound->InitError(csound, Str("socket failed with error: %ld\n"), err);
@@ -383,7 +383,7 @@ static int32_t init_ssend(CSOUND *csound, SOCKSEND *p)
     p->server_addr.sin_family = AF_INET;
 
     /* the server IP address, in network byte order */
-#if defined(WIN32) && !defined(__CYGWIN__)
+#if defined(_WIN32) && !defined(__CYGWIN__)
     p->server_addr.sin_addr.S_un.S_addr =
       inet_addr((const char *) p->ipaddress->data);
 #else
@@ -396,7 +396,7 @@ static int32_t init_ssend(CSOUND *csound, SOCKSEND *p)
  again:
     err = connect(p->sock, (struct sockaddr *) &p->server_addr,
                   sizeof(p->server_addr));
-#if defined(WIN32) && !defined(__CYGWIN__)
+#if defined(_WIN32) && !defined(__CYGWIN__)
     if (UNLIKELY(err==SOCKET_ERROR)) {
         err = WSAGetLastError();
         if (err == WSAECONNREFUSED) goto again;
@@ -453,7 +453,7 @@ typedef struct {
 static int32_t oscsend_deinit(CSOUND *csound, OSCSEND2 *p)
 {
     p->init_done = 0;
-#if defined(WIN32)
+#if defined(_WIN32)
     closesocket((SOCKET)p->sock);
     WSACleanup();
 #else
@@ -484,7 +484,7 @@ static int32_t osc_send2_init(CSOUND *csound, OSCSEND2 *p)
                              Str("insufficient number of arguments for "
                                  "OSC message types\n"));
 
-#if defined(WIN32) && !defined(__CYGWIN__)
+#if defined(_WIN32) && !defined(__CYGWIN__)
     WSADATA wsaData = {0};
     int32_t err;
     if (UNLIKELY((err=WSAStartup(MAKEWORD(2,2), &wsaData))!= 0))
@@ -497,7 +497,7 @@ static int32_t osc_send2_init(CSOUND *csound, OSCSEND2 *p)
     /* create server address: where we want to send to and clear it out */
     memset(&p->server_addr, 0, sizeof(p->server_addr));
     p->server_addr.sin_family = AF_INET;    /* it is an INET address */
-#if defined(WIN32) && !defined(__CYGWIN__)
+#if defined(_WIN32) && !defined(__CYGWIN__)
     p->server_addr.sin_addr.S_un.S_addr =
       inet_addr((const char *) p->ipaddress->data);
 #else
@@ -905,7 +905,7 @@ static int oscbundle_init(CSOUND *csound, OSCBUNDLE *p) {
 
     if(*p->imtu) p->mtu = (int) *p->imtu;
     else p->mtu = MAX_PACKET_SIZE;
-#if defined(WIN32) && !defined(__CYGWIN__)
+#if defined(_WIN32) && !defined(__CYGWIN__)
     WSADATA wsaData = {0};
     int32_t err;
     if (UNLIKELY((err=WSAStartup(MAKEWORD(2,2), &wsaData))!= 0))
@@ -918,7 +918,7 @@ static int oscbundle_init(CSOUND *csound, OSCBUNDLE *p) {
     /* create server address: where we want to send to and clear it out */
     memset(&p->server_addr, 0, sizeof(p->server_addr));
     p->server_addr.sin_family = AF_INET;    /* it is an INET address */
-#if defined(WIN32) && !defined(__CYGWIN__)
+#if defined(_WIN32) && !defined(__CYGWIN__)
     p->server_addr.sin_addr.S_un.S_addr =
       inet_addr((const char *) p->ipaddress->data);
 #else

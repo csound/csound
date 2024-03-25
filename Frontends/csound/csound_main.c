@@ -28,14 +28,14 @@
 #include <stdarg.h>
 #include <string.h>
 #include <errno.h>
-#if defined(HAVE_UNISTD_H) || defined(MACOSX)
+#if defined(HAVE_UNISTD_H) || defined(__APPLE__)
 #include <unistd.h>
 #endif
 #ifdef GNU_GETTEXT
 #include <locale.h>
 #endif
 #define IGN(x) (void) x
-#ifdef LINUX
+#ifdef __gnu_linux__
 extern int set_rt_priority(int argc, const char **argv);
 #endif
 
@@ -52,7 +52,7 @@ static void msg_callback(CSOUND *csound,
       fflush(logFile);
       return;
      }
-    #if defined(WIN32) || defined(MAC)
+    #if defined(_WIN32) || defined(__APPLE__)
     switch (attr & CSOUNDMSG_TYPE_MASK) {
         case CSOUNDMSG_ERROR:
         case CSOUNDMSG_WARNING:
@@ -73,7 +73,7 @@ static void nomsg_callback(CSOUND *csound,
 }
 
 
-#if defined(ANDROID) || (!defined(LINUX) && !defined(SGI) && \
+#if defined(ANDROID) || (!defined(__gnu_linux__) && !defined(SGI) && \
                          !defined(__HAIKU__) && !defined(__BEOS__) && \
                          !defined(__MACH__) && !defined(__EMSCRIPTEN__))
 static char *signal_to_string(int sig)
@@ -237,10 +237,10 @@ static void signal_handler(int sig)
 }
 
 static const int sigs[] = {
-#if defined(LINUX) || defined(SGI) || defined(sol) || defined(__MACH__)
+#if defined(__gnu_linux__) || defined(SGI) || defined(sol) || defined(__MACH__)
   SIGHUP, SIGINT, SIGQUIT, SIGILL, SIGTRAP, SIGABRT, SIGIOT, SIGBUS,
   SIGFPE, SIGSEGV, SIGPIPE, SIGTERM, SIGXCPU, SIGXFSZ,
-#elif defined(WIN32)
+#elif defined(_WIN32)
   SIGINT, SIGILL, SIGABRT, SIGFPE, SIGSEGV, SIGTERM,
 #elif defined(__EMX__)
   SIGHUP, SIGINT, SIGQUIT, SIGILL, SIGTRAP, SIGABRT, SIGBUS, SIGFPE,
@@ -269,7 +269,7 @@ int main(int argc, char **argv)
     csoundInitialize(CSOUNDINIT_NO_SIGNAL_HANDLER);
 
     /* set stdout to non buffering if not outputing to console window */
-#if !defined(WIN32)
+#if !defined(_WIN32)
     if (!isatty(fileno(stdout))) {
       setvbuf(stdout, (char*) NULL, _IONBF, 0);
     }
@@ -288,7 +288,7 @@ int main(int argc, char **argv)
 #endif
 
     /* Real-time scheduling on Linux by Istvan Varga (Jan 6 2002) */
-#ifdef LINUX
+#ifdef __gnu_linux__
     if (set_rt_priority(argc, (const char **)argv) != 0)
       return -1;
 

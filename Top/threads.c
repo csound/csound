@@ -27,7 +27,7 @@
 #endif
 
 #ifndef HAVE_GETTIMEOFDAY
-#if defined(LINUX)    || defined(__unix)   || defined(__unix__) || \
+#if defined(__gnu_linux__)    || defined(__unix)   || defined(__unix__) || \
     defined(__MACH__) || defined(__HAIKU__)
 #define HAVE_GETTIMEOFDAY 1
 #endif
@@ -46,7 +46,7 @@ static CS_NOINLINE void notImplementedWarning_(const char *name)
 
 #if defined(HAVE_PTHREAD)
 
-#if defined(WIN32)
+#if defined(_WIN32)
 #include <windows.h>
 #include <process.h>
 
@@ -234,7 +234,7 @@ PUBLIC uintptr_t csoundJoinThread(void *thread)
     }
 }
 
-#if !defined(ANDROID) && (/*defined(LINUX) ||*/ defined(__HAIKU__) || defined(WIN32))
+#if !defined(ANDROID) && (/*defined(__gnu_linux__) ||*/ defined(__HAIKU__) || defined(_WIN32))
 
 PUBLIC void *csoundCreateThreadLock(void)
 {
@@ -300,7 +300,7 @@ PUBLIC void csoundDestroyThreadLock(void *lock)
 }
 
 
-#else   /* LINUX */
+#else   /* __gnu_linux__ */
 
 typedef struct CsoundThreadLock_s {
   pthread_mutex_t m;
@@ -403,7 +403,7 @@ PUBLIC void csoundDestroyThreadLock(void *threadLock)
 
 }
 
-#endif  /* !LINUX */
+#endif  /* !__gnu_linux__ */
 
 
 PUBLIC void *csoundCreateBarrier(unsigned int max)
@@ -585,7 +585,7 @@ PUBLIC void csoundDestroyCondVar(void* condVar) {
 
 /* ------------------------------------------------------------------------ */
 
-#elif defined(WIN32)
+#elif defined(_WIN32)
 #include <windows.h>
 #if !defined(_USING_V110_SDK71_)
 #include <synchapi.h>
@@ -1056,7 +1056,7 @@ int csoundSpinLockInit(spin_lock_t *spinlock) {
     return 0;
 }
 
-#elif defined(MACOSX) // MacOS native locks
+#elif defined(__APPLE__) // MacOS native locks
 
 #if MAC_OS_X_VERSION_MIN_REQUIRED >= MAC_OS_X_VERSION_10_12
 // New spinlock interface

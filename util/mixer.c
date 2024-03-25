@@ -209,7 +209,7 @@ static int mixer_main(CSOUND *csound, int argc, char **argv)
             for ( ; *s != '\0'; s++) ;
             if (UNLIKELY(strcmp(O.outfilename, "stdin") == 0))
               csound->Die(csound, "%s", Str("mixer: -o cannot be stdin"));
-#if defined(WIN32)
+#if defined(_WIN32)
             if (UNLIKELY(strcmp(O.outfilename,"stdout") == 0)) {
               csound->Die(csound, "%s", Str("mixer: stdout audio not supported"));
             }

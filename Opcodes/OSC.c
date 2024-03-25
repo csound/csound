@@ -33,7 +33,7 @@
 #endif
 #include <lo/lo.h>
 #include <ctype.h>
-#ifndef WIN32
+#ifndef _WIN32
   #include <sys/types.h>
   #include <sys/socket.h>
 #endif
@@ -239,7 +239,7 @@ static int32_t osc_send(CSOUND *csound, OSCSEND *p)
         // if (p->multicast) lo_address_set_ttl(p->addr, 2);
         if (UNLIKELY(p->multicast)) {
           u_char ttl = 2;
-#if defined(LINUX)
+#if defined(__gnu_linux__)
           if (UNLIKELY(setsockopt((uintptr_t)p->addr, IPPROTO_IP,
                                   IP_MULTICAST_TTL, &ttl, sizeof(ttl))==-1)) {
             csound->Message(csound, "%s", Str("Failed to set multicast"));

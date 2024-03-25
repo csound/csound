@@ -741,7 +741,7 @@ void do_comment(yyscan_t yyscanner)              /* Skip until * and / chars */
       goto TOP;
     }
 }
-#ifndef WIN32
+#ifndef _WIN32
 int isDir(char *path) {
    struct stat statbuf;
    if (stat(path, &statbuf) != 0)

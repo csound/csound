@@ -764,7 +764,7 @@ void CsoundPerformanceThread::FlushMessageQueue()
 extern "C" {
 
 #ifndef PUBLIK
-#if (defined(WIN32) || defined(_WIN32))
+#if defined(_WIN32)
 #  define PUBLIK        __declspec(dllexport)
 #elif defined(__GNUC__) //&& !defined(__MACH__)
 #  define PUBLIK        __attribute__ ( (visibility("default")) )

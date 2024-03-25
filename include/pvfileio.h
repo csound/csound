@@ -29,7 +29,7 @@
 
 #include "sysdep.h"
 
-#if defined(WIN32) || defined(_WIN32) || defined(_MSC_VER)
+#if defined(_WIN32) || defined(_MSC_VER)
 
 #include <windows.h>
 

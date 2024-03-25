@@ -1173,7 +1173,7 @@ endif()
 
 if(LINUX)
     message(STATUS "Building on Linux.")
-    add_definitions(-DLINUX -DPIPES -DNO_FLTK_THREADS -D_GNU_SOURCE -DHAVE_SOCKETS)
+    add_definitions(-DPIPES -DNO_FLTK_THREADS -D_GNU_SOURCE -DHAVE_SOCKETS)
     list(APPEND libcsound_LIBS ${MATH_LIBRARY} dl)
 
     find_library(LIBRT_LIBRARY rt)
@@ -1193,15 +1193,11 @@ endif()
 
 if(APPLE AND NOT IOS)
     message(STATUS "Building on OSX")
-    add_definitions(-DMACOSX -DPIPES -DNO_FLTK_THREADS -DHAVE_SOCKETS)
+    add_definitions(-DPIPES -DNO_FLTK_THREADS -DHAVE_SOCKETS)
     find_library(ACCELERATE_LIBRARY Accelerate)
     find_path(VECLIB_PATH "Accelerate/Accelerate.h")
     list(APPEND libcsound_private_include_dirs ${VECLIB_PATH})
     list(APPEND libcsound_LIBS ${MATH_LIBRARY} dl ${ACCELERATE_LIBRARY})
-endif()
-
-if(WIN32)
-    add_definitions(-DWIN32)
 endif()
 
 check_function_exists(strlcat HAVE_STRLCAT)

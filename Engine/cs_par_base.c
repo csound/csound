@@ -42,7 +42,7 @@ int csp_thread_index_get(CSOUND *csound)
 
     while (current != NULL) {
     // PTHREAD: this should be a class in threads.c to abstract this away
-#if defined(HAVE_PTHREAD) && !defined(WIN32)
+#if defined(HAVE_PTHREAD) && !defined(_WIN32)
       if (pthread_equal(*(pthread_t *)threadId, *(pthread_t *)current->threadId)) {
 #else
       // FIXME not entirely sure what this should be...

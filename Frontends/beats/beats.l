@@ -26,7 +26,7 @@
 #include <stdlib.h>
 #include "beats.tab.h"
 
-#if defined(_WIN32) || defined(WIN32) 
+#if defined(_WIN32) 
 #include <io.h>
 #define isatty(x) _isatty(x)
 #endif
