@@ -1,0 +1,10 @@
+add_integration_test("vbap8move" "indeterminate" "Opcodes" "vbap")
+
+add_integration_test("vbap" "consistent" "Opcodes" "vbap")
+add_integration_test("vbap4" "consistent" "Opcodes" "vbap")
+add_integration_test("vbap4move" "consistent" "Opcodes" "vbap")
+add_integration_test("vbap8" "consistent" "Opcodes" "vbap")
+add_integration_test("vbapg" "consistent" "Opcodes" "vbap")
+add_integration_test("vbapgmove" "consistent" "Opcodes" "vbap")
+add_integration_test("vbaplsinit" "consistent" "Opcodes" "vbap")
+add_integration_test("vbapmove" "consistent" "Opcodes" "vbap")

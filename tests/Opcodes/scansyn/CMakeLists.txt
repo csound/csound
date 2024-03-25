@@ -1,0 +1,6 @@
+add_integration_test("scanmap" "consistent" "Opcodes" "scansyn")
+add_integration_test("scanmap_matrxT" "consistent" "Opcodes" "scansyn")
+add_integration_test("scans-2" "consistent" "Opcodes" "scansyn")
+add_integration_test("scans" "consistent" "Opcodes" "scansyn")
+add_integration_test("scanu-musical" "consistent" "Opcodes" "scansyn")
+add_integration_test("scanu2" "consistent" "Opcodes" "scansyn")

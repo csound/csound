@@ -1,0 +1,11 @@
+#!/usr/bin/python3
+
+from test_helpers import check_input, run_command, check_output, UnexpectedResults
+
+check_input("beats.pv")
+(stdout, stderr) = run_command("$<TARGET_FILE:pvlook>", "-i", "beats.pv")
+
+with open("pvlook_output.txt", "w") as io:
+    io.write(stdout)
+
+check_output("pvlook_output.txt", "consistent")

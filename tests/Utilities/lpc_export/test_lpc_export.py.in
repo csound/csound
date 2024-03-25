@@ -1,0 +1,7 @@
+#!/usr/bin/python3
+
+from test_helpers import check_input, run_command, check_output
+
+check_input("beats.lpc")
+run_command("$<TARGET_FILE:lpc_export>", "beats.lpc", "beats_lpc_output.csv")
+check_output("beats_lpc_output.csv", "consistent")

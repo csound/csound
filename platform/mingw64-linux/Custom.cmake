@@ -6,3 +6,5 @@ set(BUILD_TESTS OFF)
 set(CMAKE_CXX_COMPILER /usr/bin/x86_64-w64-mingw32-g++)
 set(CMAKE_C_COMPILER /usr/bin/x86_64-w64-mingw32-gcc)
 set(CMAKE_SYSROOT /usr/x86_64-w64-mingw32)
+
+set(TEST_RUNNER wine)

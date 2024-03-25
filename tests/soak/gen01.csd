@@ -33,9 +33,9 @@ asig  tablei aread, isnd				;use table 1
 endin
 </CsInstruments>
 <CsScore>
-f 1 0 131072 1 "beats.wav" 0 0 0			;non-deferred sound
+f 1 0 131072 1 "drumsMlp.wav" 0 0 0			;non-deferred sound
 f 2 0    0   1 "flute.aiff" 0 0 0			;& deferred sounds in 
-f 3 0    0   1 "beats.ogg" 0 0 0			;different formats					
+f 3 0    0   1 "drumsMlp.ogg" 0 0 0			;different formats					
 
 i 1 0 1 1
 i 1 + 1 2

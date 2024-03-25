@@ -1,0 +1,10 @@
+if (ADD_MIDI_TESTS)
+    add_integration_test("ctrl14" "consistent" "Opcodes" "midiops2")
+    add_integration_test("ctrl21" "consistent" "Opcodes" "midiops2")
+    add_integration_test("ctrl7" "consistent" "Opcodes" "midiops2")
+    add_integration_test("initc7" "consistent" "Opcodes" "midiops2")
+    add_integration_test("midic14" "consistent" "Opcodes" "midiops2")
+    add_integration_test("midic21" "consistent" "Opcodes" "midiops2")
+    add_integration_test("midic7" "consistent" "Opcodes" "midiops2")
+endif()
+

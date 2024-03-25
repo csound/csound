@@ -1,5 +1,4 @@
 # UTILITY PLUGIN AND PROGRAMS
-option(BUILD_SRC_CONV "Build src_conv utility" ON)
 
 set(stdutil_SRCS
     atsa.c          cvanal.c        dnoise.c    envext.c
@@ -32,16 +31,6 @@ if(BUILD_UTILITIES)
     make_utility(sndinfo     sndinfo_main.c)
     make_utility(srconv      srconv_main.c)
 
-    if (BUILD_SRC_CONV)
-        if (USE_VCPKG)
-            find_package(SampleRate CONFIG REQUIRED)
-            assign_bool(SampleRate_FOUND TARGET SampleRate::samplerate)
-        else()
-            find_package(SampleRate MODULE)
-        endif()
-    endif()
-
-    check_deps(BUILD_SRC_CONV USE_LIBSNDFILE SampleRate_FOUND)
     if (BUILD_SRC_CONV)
         make_executable(src_conv new_srconv.c "SndFile::sndfile;SampleRate::samplerate")
     endif()

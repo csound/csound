@@ -1,0 +1,7 @@
+#!/usr/bin/python3
+
+from test_helpers import check_input, run_command, check_output
+
+check_input("finneganswake1.flac")
+run_command("$<TARGET_FILE:lpanal>", "-a", "-p50", "-h300", "-P70", "-Q100", "-v1", "finneganswake1.flac", "finneganswake12.lpc")
+check_output("finneganswake12.lpc", "consistent")

@@ -1,0 +1,6 @@
+add_integration_test("space_quad" "consistent" "Opcodes" "space")
+add_integration_test("space_stereo" "consistent" "Opcodes" "space")
+add_integration_test("spdist" "consistent" "Opcodes" "space")
+add_integration_test("spsend" "consistent" "Opcodes" "space")
+add_integration_test("spsend_quad" "consistent" "Opcodes" "space")
+add_integration_test("spsend_stereo" "consistent" "Opcodes" "space")

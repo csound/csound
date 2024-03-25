@@ -1,0 +1,9 @@
+#!/usr/bin/python3
+
+import sys
+
+from test_helpers import integration_test
+
+(_, filename, status) = sys.argv
+
+integration_test(filename, status)

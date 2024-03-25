@@ -1,0 +1,7 @@
+#!/usr/bin/python3
+
+from test_helpers import check_input, run_command, check_output
+
+check_input("beats_het.csv")
+run_command("$<TARGET_FILE:het_import>", "beats_het.csv", "beats_output.het")
+check_output("beats_output.het", "consistent")

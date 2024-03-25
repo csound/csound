@@ -1,0 +1,5 @@
+add_integration_test("gendy-2" "consistent" "Opcodes" "gendy")
+add_integration_test("gendy" "consistent" "Opcodes" "gendy")
+add_integration_test("gendyc" "consistent" "Opcodes" "gendy")
+add_integration_test("gendyx-2" "consistent" "Opcodes" "gendy")
+add_integration_test("gendyx" "consistent" "Opcodes" "gendy")
