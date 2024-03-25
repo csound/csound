@@ -20,35 +20,43 @@ option(BUILD_CPP_OPCODES "Build CPP plugins" ON)
 ##########################################
 
 if(BUILD_CPP_OPCODES)
-message(STATUS "## Building Plugin Opcodes ##")
-## CPP OPCODE LIBS WITH NO EXTERNAL DEPENDENCIES ##
-make_plugin(doppler doppler.cpp)
-make_plugin(fractalnoise tl/fractalnoise.cpp)
+    message(STATUS "## Building Plugin Opcodes ##")
+    ## CPP OPCODE LIBS WITH NO EXTERNAL DEPENDENCIES ##
+    make_plugin(doppler doppler.cpp)
+    make_plugin(fractalnoise tl/fractalnoise.cpp)
 
-if(DIRENT_H) 
-make_plugin(ftsamplebank ftsamplebank.cpp)
-get_filename_component(DIRENT_INCLUDE_DIR ${DIRENT_H} DIRECTORY)
-target_include_directories(ftsamplebank PRIVATE ${DIRENT_INCLUDE_DIR})
-endif()
+    if(DIRENT_H)
+        make_plugin(ftsamplebank ftsamplebank.cpp)
+        get_filename_component(DIRENT_INCLUDE_DIR ${DIRENT_H} DIRECTORY)
+        target_include_directories(ftsamplebank PRIVATE ${DIRENT_INCLUDE_DIR})
+    endif()
 
-make_plugin(lfsr lfsr.cpp)
-make_plugin(bformdec2 bformdec2.cpp)
-make_plugin(mixer mixer.cpp)
-make_plugin(signalflowgraph signalflowgraph.cpp)
-make_plugin(ampmidid ampmidid.cpp)
+    make_plugin(lfsr lfsr.cpp)
+    target_compile_features(lfsr PRIVATE cxx_std_11)
 
-make_plugin(arrayops arrayops.cpp)
-target_compile_features(arrayops PRIVATE cxx_std_11)
+    make_plugin(bformdec2 bformdec2.cpp)
+    target_compile_features(bformdec2 PRIVATE cxx_std_11)
 
-make_plugin(pvsops pvsops.cpp)
-target_compile_features(pvsops PRIVATE cxx_std_11)
+    make_plugin(mixer mixer.cpp)
+    target_compile_features(mixer PRIVATE cxx_std_11)
 
-make_plugin(trigenvsegs trigEnvSegs.cpp)
-target_compile_features(trigenvsegs PRIVATE cxx_std_11)
+    make_plugin(signalflowgraph signalflowgraph.cpp)
+    target_compile_features(signalflowgraph PRIVATE cxx_std_11)
 
-make_plugin(padsynth padsynth_gen.cpp)
-target_compile_features(padsynth PRIVATE cxx_std_11)
+    make_plugin(ampmidid ampmidid.cpp)
+    target_compile_features(ampmidid PRIVATE cxx_std_11)
 
+    make_plugin(arrayops arrayops.cpp)
+    target_compile_features(arrayops PRIVATE cxx_std_11)
+
+    make_plugin(pvsops pvsops.cpp)
+    target_compile_features(pvsops PRIVATE cxx_std_11)
+
+    make_plugin(trigenvsegs trigEnvSegs.cpp)
+    target_compile_features(trigenvsegs PRIVATE cxx_std_11)
+
+    make_plugin(padsynth padsynth_gen.cpp)
+    target_compile_features(padsynth PRIVATE cxx_std_11)
 endif()
 
 ## opcodes with special licence conditions ##

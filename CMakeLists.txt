@@ -5,6 +5,7 @@ else()
 endif()
 
 cmake_policy(SET CMP0077 NEW)
+cmake_policy(SET CMP0075 NEW)
 
 include(cmake/cmake-utilities.cmake)
 
@@ -24,7 +25,7 @@ if (USE_VCPKG)
         set(VCPKG_CMAKE_SYSTEM_NAME MinGW)
         set(VCPKG_TARGET_ARCHITECTURE x64)
     elseif (WIN32)
-        set(VCPKG_TARGET_TRIPLET "x64-windows-static")
+        set(VCPKG_TARGET_TRIPLET "x64-windows-static-md")
     elseif(APPLE)
         set(VCPKG_TARGET_TRIPLET "x64-osx")
     elseif (UNIX)
@@ -57,10 +58,6 @@ endif()
 
 message(STATUS "Csound directory: ${CMAKE_HOME_DIRECTORY}")
 
-# C++11 needed
-if(NOT MSVC)
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
-endif()
 
 # Project definitions
 set(APIVERSION "7.0")
@@ -109,9 +106,9 @@ if (CMAKE_HOST_SYSTEM_NAME MATCHES "Darwin")
         set(BISON_EXECUTABLE "${BREW_BISON_PREFIX}/bin/bison")
     elseif(EXISTS "/usr/local/bin/bison")
         message(STATUS "Bison in /usr/local/bin")
-        set(BISON_EXECUTABLE "/usr/local/bin/bison") 
+        set(BISON_EXECUTABLE "/usr/local/bin/bison")
     endif()
-    
+
     execute_process(
         COMMAND brew --prefix flex
         RESULT_VARIABLE BREW_FLEX
@@ -123,9 +120,9 @@ if (CMAKE_HOST_SYSTEM_NAME MATCHES "Darwin")
         set(FLEX_EXECUTABLE "${BREW_FLEX_PREFIX}/bin/flex")
    elseif(EXISTS "/usr/local/bin/flex")
         message(STATUS "Flex in /usr/local/bin")
-        set(FLEX_EXECUTABLE "/usr/local/bin/flex") 
+        set(FLEX_EXECUTABLE "/usr/local/bin/flex")
     endif()
-    
+
 endif()
 
 ### COMPILER OPTIMIZATION FLAGS
@@ -163,8 +160,8 @@ if(BARE_METAL)
     set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS}  -DNO_CSOUND_SERVER")
     if(CUSTOM_MALLOC)
      set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS}  -DCUSTOM_MALLOC")
-    # the default is for STM32H7: -DMALLOC_BASE=0xC0000000 
-    endif() 
+    # the default is for STM32H7: -DMALLOC_BASE=0xC0000000
+    endif()
 endif()
 
 # Include this after the install path definitions so we can override them here.
@@ -254,39 +251,12 @@ if(WIN32)
     set(CMAKE_SHARED_LIBRARY_PREFIX "")
     set(CMAKE_SHARED_MODULE_PREFIX "")
 
-    set(CSOUND_WINDOWS_LIBRARIES
-        advapi32
-        comctl32
-        comdlg32
-        glu32
-        kernel32
-        odbc32
-        odbccp32
-        ole32
-        oleaut32
-        shell32
-        user32
-        uuid
-        winmm
-        winspool
-        ws2_32
-        wsock32)
+    set(CSOUND_WINDOWS_LIBRARIES kernel32 ws2_32)
 
     if(MSVC)
         # Experimented with flags but did not make change performance results
         #set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} /Oi /fp:fast /arch:AVX2")
         #set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /Oi /fp:fast /arch:AVX2")
-
-        # Replace the default CRT linkage from dynamic (MD) to static (MT)
-        if(STATIC_CRT STREQUAL "ON")
-            foreach(flag_var
-                CMAKE_C_FLAGS CMAKE_C_FLAGS_RELEASE CMAKE_C_FLAGS_DEBUG
-                CMAKE_CXX_FLAGS CMAKE_CXX_FLAGS_DEBUG CMAKE_CXX_FLAGS_RELEASE
-                CMAKE_CXX_FLAGS_MINSIZEREL CMAKE_CXX_FLAGS_RELWITHDEBINFO)
-                string(REPLACE "/MD" "-MT" ${flag_var} "${${flag_var}}")
-            endforeach()
-            message(STATUS "Using static CRT linkage /MT")
-        endif()
     else()
         set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -mstackrealign -static-libgcc -static")
         set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -mstackrealign -static-libstdc++ -static-libgcc -static")
@@ -295,11 +265,6 @@ if(WIN32)
     endif()
 endif()
 
-# MacOS/IOS c++11 flags
-if(APPLE)
-    set(CMAKE_CXX_FLAGS  "${CMAKE_CXX_FLAGS} -stdlib=libc++")
-    set_target_properties(${CSOUNDLIB} PROPERTIES CXX_COMPILE_FLAGS  "-std=c++11")
-endif()
 
 set(BUILD_DIR ${CMAKE_CURRENT_BINARY_DIR})
 
@@ -596,17 +561,20 @@ endif()
 
 set(libcsound_CFLAGS -D__BUILDING_LIBCSOUND)
 
-list(APPEND libcsound_private_include_dirs ${Csound_SOURCE_DIR}/H)
-list(APPEND libcsound_public_include_dirs 
+list(APPEND libcsound_public_include_dirs
+    $<BUILD_INTERFACE:${Csound_SOURCE_DIR}>
     $<BUILD_INTERFACE:${Csound_SOURCE_DIR}/include>
+    $<BUILD_INTERFACE:${Csound_SOURCE_DIR}/H>
+    $<BUILD_INTERFACE:${Csound_SOURCE_DIR}/Engine>
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}/include>
     $<INSTALL_INTERFACE:include>
 )
-list(APPEND libcsound_private_include_dirs ${Csound_SOURCE_DIR}/Engine)
 
-#adding this for files that #include SDIF/sdif*
-list(APPEND libcsound_private_include_dirs ${Csound_SOURCE_DIR}/util)
-#adding this for files that #include files in local dirs
-list(APPEND libcsound_private_include_dirs ${Csound_SOURCE_DIR})
+list(APPEND libcsound_private_include_dirs
+    ${Csound_SOURCE_DIR}
+    "${Csound_SOURCE_DIR}/util"
+)
 
 #checking pthread functions
 if(REQUIRE_PTHREADS)
@@ -1040,9 +1008,6 @@ if(MSVC)
         COMPILE_FLAGS -DYY_NO_UNISTD_H)
 endif()
 
-list(APPEND libcsound_private_include_dirs ${CMAKE_CURRENT_BINARY_DIR})
-list(APPEND libcsound_public_include_dirs $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}/include>)
-
 if(NEW_PARSER_DEBUG)
     message(STATUS "Building with new parser debugging.")
     list(APPEND libcsound_CFLAGS -DPARSER_DEBUG=1)
@@ -1265,12 +1230,9 @@ if(NOT IOS)
     target_compile_options(${CSOUNDLIB} PRIVATE ${libcsound_CFLAGS})
 endif()
 
-if(MSVC)
-    target_link_libraries(${CSOUNDLIB} PRIVATE ws2_32)
-else()
-    if(NOT IOS)
-        target_link_libraries(${CSOUNDLIB} PRIVATE ${libcsound_LIBS})
-    endif()
+
+if(NOT IOS)
+    target_link_libraries(${CSOUNDLIB} PRIVATE ${libcsound_LIBS})
 endif()
 
 if(USE_LIBSNDFILE)
@@ -1301,11 +1263,8 @@ if(BUILD_STATIC_LIBRARY)
     if (USE_LIBSNDFILE)
         target_link_libraries(${CSOUNDLIB_STATIC} PUBLIC SndFile::sndfile)
     endif()
-    if(MSVC)
-        target_link_libraries(${CSOUNDLIB_STATIC} PRIVATE ${CSOUND_WINDOWS_LIBRARIES})
-    else()
-        target_link_libraries(${CSOUNDLIB_STATIC} PRIVATE ${libcsound_LIBS})
-    endif()
+
+    target_link_libraries(${CSOUNDLIB_STATIC} PRIVATE ${libcsound_LIBS})
 
     set_target_properties(${CSOUNDLIB_STATIC} PROPERTIES
         RUNTIME_OUTPUT_DIRECTORY ${BUILD_BIN_DIR}

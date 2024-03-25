@@ -26,7 +26,7 @@ jobs:
       - name: Install Dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install cmake libsndfile1-dev libasound2-dev libjack-dev portaudio19-dev libportmidi-dev libpulse-dev swig liblua5.1-0-dev default-jdk libfltk1.1-dev libfluidsynth-dev liblo-dev fluid ladspa-sdk libpng-dev dssi-dev libstk0-dev libgmm++-dev bison flex libportsmf-dev libeigen3-dev libcunit1-dev gettext
+          sudo apt-get install cmake libsndfile1-dev libasound2-dev libjack-dev portaudio19-dev libportmidi-dev libpulse-dev swig liblua5.1-0-dev default-jdk libfltk1.1-dev libfluidsynth-dev liblo-dev fluid ladspa-sdk libpng-dev dssi-dev libstk0-dev libgmm++-dev bison flex libportsmf-dev libeigen3-dev libcunit1-dev gettext libsamplerate0-dev
 
       - name: Configure build
         run: |
@@ -109,13 +109,6 @@ jobs:
           fetch-depth: 1
           submodules: true
 
-      - name: Export GitHub Actions cache environment variables
-        uses: actions/github-script@v6
-        with:
-          script: |
-            core.exportVariable('ACTIONS_CACHE_URL', process.env.ACTIONS_CACHE_URL || '');
-            core.exportVariable('ACTIONS_RUNTIME_TOKEN', process.env.ACTIONS_RUNTIME_TOKEN || '');
-
       - name: Install dependencies
         run: |
           brew install --only-dependencies csound
@@ -163,7 +156,7 @@ jobs:
         run: cmake --build build --target test csdtests
 
   windows_build:
-    name: Windows build
+    name: Windows build (vcpkg)
     runs-on: windows-latest
     steps:
       - name: Checkout Source Code
@@ -199,12 +192,14 @@ jobs:
         run: cmake --build build --target RUN_TESTS --config Release
 
       - name: Acquire Csound manual
+        if: github.ref == 'refs/heads/develop'
         shell: powershell
         run: |
           Invoke-WebRequest -Uri "https://github.com/csound/manual/releases/download/6.18.0/Csound6.18.0_manual_html.zip" -OutFile "./manual.zip"
           7z x manual.zip
 
       - name: Build installer
+        if: github.ref == 'refs/heads/develop'
         shell: powershell
         run: |
           $Env:RedistVersion=Get-Content "C:\Program Files\Microsoft Visual Studio\2022\Enterprise\VC\Auxiliary\Build\Microsoft.VCRedistVersion.default.txt"
@@ -214,6 +209,7 @@ jobs:
           iscc /o. installer\\windows\\csound6_x64_github.iss
 
       - name: Upload installer
+        if: github.ref == 'refs/heads/develop'
         uses: actions/upload-artifact@v2
         with:
           name: Csound_x64-${{env.CSOUND_VERSION}}.${{github.run_number}}-windows-x64-installer
@@ -221,6 +217,7 @@ jobs:
           if-no-files-found: error
 
       - name: Upload zip
+        if: github.ref == 'refs/heads/develop'
         uses: actions/upload-artifact@v2
         with:
           name: csound-${{env.CSOUND_VERSION}}-${{github.run_number}}-windows-x64-binaries
@@ -236,6 +233,7 @@ jobs:
 
   windows_build_mingw:
     name: Windows build (mingw/vcpkg)
+    if: github.ref == 'refs/heads/develop'
     runs-on: ubuntu-latest
     steps:
       - name: Checkout source code
