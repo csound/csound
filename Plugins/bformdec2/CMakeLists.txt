@@ -1,0 +1,1 @@
+make_plugin(bformdec2 bformdec2.cpp)

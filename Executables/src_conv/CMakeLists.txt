@@ -1,0 +1,5 @@
+make_executable(src_conv new_srconv.c "SndFile::sndfile;SampleRate::samplerate")
+if(USE_GETTEXT)
+    target_compile_definitions(src_conv PRIVATE "GNU_GETTEXT")
+    target_link_libraries(src_conv PRIVATE ${CSOUNDLIB})
+endif()

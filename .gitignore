@@ -26,7 +26,6 @@
 
 # Output executables
 atsa.exe
-cs
 cs.exe
 csb64enc.exe
 csbeats.exe
@@ -39,7 +38,6 @@ cswish.exe
 cvanal.exe
 dnoise.exe
 envext.exe
-extract
 extract.exe
 extractor.exe
 het_export.exe
@@ -57,9 +55,7 @@ pv_import.exe
 pvanal.exe
 pvlook.exe
 scale.exe
-scot
 scot.exe
-scsort
 scsort.exe
 sdif2ad.exe
 sndinfo.exe

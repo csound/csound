@@ -615,7 +615,11 @@ target_include_directories(libcsound_public_interface INTERFACE
      # the install interface needs a relative path
     $<INSTALL_INTERFACE:include>
 )
-target_include_directories(libcsound_internals INTERFACE ${Csound_SOURCE_DIR}/Engine)
+target_include_directories(libcsound_internals INTERFACE 
+    ${Csound_SOURCE_DIR}/Engine
+    ${Csound_SOURCE_DIR}/Opcodes
+    ${Csound_SOURCE_DIR}/util
+)
 
 #adding this for files that #include SDIF/sdif*
 target_include_directories(libcsound_internals INTERFACE ${Csound_SOURCE_DIR}/util)
@@ -1357,13 +1361,9 @@ endif()
 
 check_deps(BUILD_SRC_CONV USE_LIBSNDFILE SampleRate_FOUND)
 
-add_subdirectory(Opcodes)
-add_subdirectory(InOut)
-add_subdirectory(Frontends)
+add_subdirectory(Executables)
+add_subdirectory(Plugins)
 add_subdirectory(Python)
-add_subdirectory(Bela)
-add_subdirectory(util)
-add_subdirectory(util1)
 add_subdirectory(po)
 add_subdirectory(tests)
 

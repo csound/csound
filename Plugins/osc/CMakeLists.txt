@@ -1,0 +1,5 @@
+make_plugin(osc OSC.c)
+target_link_libraries(osc PRIVATE LibLO::liblo Threads::Threads)
+if(WIN32)
+  target_link_libraries(osc PRIVATE wsock32 ws2_32 iphlpapi)
+endif()

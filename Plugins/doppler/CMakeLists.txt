@@ -1,0 +1,1 @@
+make_plugin(doppler doppler.cpp libcsound_internals)

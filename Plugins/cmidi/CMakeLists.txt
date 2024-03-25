@@ -1,0 +1,1 @@
+make_plugin(cmidi cmidi.c CoreMIDI::coremidi CoreFoundation::corefoundation libcsound_internals)

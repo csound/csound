@@ -1,0 +1,1 @@
+make_plugin(signalflowgraph signalflowgraph.cpp libcsound_internals)
