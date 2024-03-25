@@ -213,7 +213,7 @@ public:
       returns a handle to the FFT setup.
    */
   fftp fft_setup(uint32_t size, uint32_t direction) {
-    return (fftp)RealFFT2Setup(this, size, direction);
+    return (fftp)RealFFTSetup(this, size, direction);
   }
 
   /** FFT operation, in-place, but also
@@ -221,7 +221,7 @@ public:
       to the transformed data memory.
   */
   std::complex<MYFLT> *rfft(fftp setup, MYFLT *data) {
-    RealFFT2(this, setup, data);
+    RealFFT(this, setup, data);
     return reinterpret_cast<std::complex<MYFLT> *>(data);
   }
 

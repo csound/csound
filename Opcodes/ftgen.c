@@ -276,7 +276,7 @@ static int32_t ftload_(CSOUND *csound, FTLOAD *p, int32_t istring)
     }
 
     if (*p->iflag <= FL(0.0)) {
-      fd = csound->FileOpen2(csound, &file, CSFILE_STD, filename, "rb",
+      fd = csound->FileOpen(csound, &file, CSFILE_STD, filename, "rb",
                                "", CSFTYPE_FTABLES_BINARY, 0);
       if (UNLIKELY(fd == NULL)) goto err3;
       while (nargs--) {
@@ -305,7 +305,7 @@ static int32_t ftload_(CSOUND *csound, FTLOAD *p, int32_t istring)
       }
     }
     else {
-      fd = csound->FileOpen2(csound, &file, CSFILE_STD, filename, "r",
+      fd = csound->FileOpen(csound, &file, CSFILE_STD, filename, "r",
                                "", CSFTYPE_FTABLES_TEXT, 0);
       if (UNLIKELY(fd == NULL)) goto err3;
       while (nargs--) {
@@ -517,7 +517,7 @@ static int32_t ftsave_(CSOUND *csound, FTLOAD *p, int32_t istring)
     }
 
     if (*p->iflag <= FL(0.0)) {
-      fd = csound->FileOpen2(csound, &file, CSFILE_STD, filename, "wb",
+      fd = csound->FileOpen(csound, &file, CSFILE_STD, filename, "wb",
                                "", CSFTYPE_FTABLES_BINARY, 0);
       if (UNLIKELY(fd == NULL)) goto err3;
       while (nargs--) {
@@ -537,7 +537,7 @@ static int32_t ftsave_(CSOUND *csound, FTLOAD *p, int32_t istring)
       }
     }
     else {
-      fd = csound->FileOpen2(csound, &file, CSFILE_STD, filename, "w",
+      fd = csound->FileOpen(csound, &file, CSFILE_STD, filename, "w",
                                "", CSFTYPE_FTABLES_TEXT, 0);
       if (UNLIKELY(fd == NULL)) goto err3;
       while (nargs--) {

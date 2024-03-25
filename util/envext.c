@@ -121,7 +121,7 @@ SCsndgetset(CSOUND *csound, SOUNDIN **pp, char *inputfile)
     p->channel = ALLCHNLS;
     p->skiptime = FL(0.0);
     strNcpy(p->sfname, inputfile, MAXSNDNAME-1);
-    if ((infd = csound->sndgetset(csound, p)) == 0) /*open sndfil, do skiptime*/
+    if ((infd = csound->SndInputOpen(csound, p)) == 0) /*open sndfil, do skiptime*/
       return(0);
     p->getframes = p->framesrem;
     dur = (double) p->getframes / p->sr;
@@ -149,7 +149,7 @@ FindEnvelope(CSOUND *csound, SNDFILE *infd, SOUNDIN *p,
     buffer = (MYFLT*) malloc(bufferlen*sizeof(MYFLT));
     tpersample = 1.0/(double)p->sr;
     fprintf(outfile, "%.3f\t%.3f\n", 0.0, 0.0);
-    while ((read_in = csound->getsndin(csound,infd,buffer,bufferlen,p)) > 0) {
+    while ((read_in = csound->SndInputRead(csound,infd,buffer,bufferlen,p)) > 0) {
       max = 0.0;        mxpos = 0;
       min = 0.0;        minpos = 0;
       for (i=0; i<read_in; i++) {

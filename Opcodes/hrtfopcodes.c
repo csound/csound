@@ -285,14 +285,14 @@ static int32_t hrtfmove_init(CSOUND *csound, hrtfmove *p)
     strNcpy(filer, (char*) p->ifiler->data, MAXNAME-1); //filel[MAXNAME-1]='\0';
 
     /* reading files, with byte swap */
-    fpl = csound->ldmemfile2withCB(csound, filel, CSFTYPE_FLOATS_BINARY,
+    fpl = csound->LoadMemoryFile(csound, filel, CSFTYPE_FLOATS_BINARY,
                                    swap4bytes);
     if (UNLIKELY(fpl == NULL))
       return
         csound->InitError(csound,
                           Str("\n\n\nCannot load left data file, exiting\n\n"));
 
-    fpr = csound->ldmemfile2withCB(csound, filer, CSFTYPE_FLOATS_BINARY,
+    fpr = csound->LoadMemoryFile(csound, filer, CSFTYPE_FLOATS_BINARY,
                                    swap4bytes);
     if (UNLIKELY(fpr == NULL))
       return
@@ -478,10 +478,10 @@ static int32_t hrtfmove_init(CSOUND *csound, hrtfmove *p)
        start with to ensure first read */
     p->anglev = -1;
     p->elevv = -41;
-    p->setup_pad = csound->RealFFT2Setup(csound, p->irlengthpad, FFT_FWD);
-    p->setup = csound->RealFFT2Setup(csound, p->irlength, FFT_FWD);
-    p->isetup_pad = csound->RealFFT2Setup(csound, p->irlengthpad, FFT_INV);
-    p->isetup = csound->RealFFT2Setup(csound, p->irlength, FFT_INV);
+    p->setup_pad = csound->RealFFTSetup(csound, p->irlengthpad, FFT_FWD);
+    p->setup = csound->RealFFTSetup(csound, p->irlength, FFT_FWD);
+    p->isetup_pad = csound->RealFFTSetup(csound, p->irlengthpad, FFT_INV);
+    p->isetup = csound->RealFFTSetup(csound, p->irlength, FFT_INV);
     return OK;
 }
 
@@ -994,8 +994,8 @@ static int32_t hrtfmove_process(CSOUND *csound, hrtfmove *p)
                   {
                     /* ifft!...see Oppehneim and Schafer for min phase
                        process...based on real cepstrum method */
-                    csound->RealFFT2(csound, p->isetup, logmagl);
-                    csound->RealFFT2(csound,  p->isetup, logmagr);
+                    csound->RealFFT(csound, p->isetup, logmagl);
+                    csound->RealFFT(csound,  p->isetup, logmagr);
 
                     /* window, note no need to scale on csound iffts... */
                     for(i = 0; i < irlength; i++)
@@ -1005,8 +1005,8 @@ static int32_t hrtfmove_process(CSOUND *csound, hrtfmove *p)
                       }
 
                     /* fft */
-                    csound->RealFFT2(csound, p->setup, xhatwinl);
-                    csound->RealFFT2(csound, p->setup, xhatwinl);
+                    csound->RealFFT(csound, p->setup, xhatwinl);
+                    csound->RealFFT(csound, p->setup, xhatwinl);
 
                     /* exponential of result */
                     /* 0 hz and nyq purely real... */
@@ -1025,8 +1025,8 @@ static int32_t hrtfmove_process(CSOUND *csound, hrtfmove *p)
                       }
 
                     /* ifft for output buffers */
-                    csound->RealFFT2(csound,  p->isetup, expxhatwinl);
-                    csound->RealFFT2(csound,  p->isetup, expxhatwinr);
+                    csound->RealFFT(csound,  p->isetup, expxhatwinl);
+                    csound->RealFFT(csound,  p->isetup, expxhatwinr);
 
                     /* output */
                     for(i= 0; i < irlength; i++)
@@ -1040,8 +1040,8 @@ static int32_t hrtfmove_process(CSOUND *csound, hrtfmove *p)
                 if(phasetrunc)
                   {
                     /* ifft */
-                    csound->RealFFT2(csound, p->setup, hrtflfloat);
-                    csound->RealFFT2(csound, p->setup, hrtfrfloat);
+                    csound->RealFFT(csound, p->setup, hrtflfloat);
+                    csound->RealFFT(csound, p->setup, hrtfrfloat);
 
                     for (i = 0; i < irlength; i++)
                       {
@@ -1059,8 +1059,8 @@ static int32_t hrtfmove_process(CSOUND *csound, hrtfmove *p)
                   }
 
                 /* back to freq domain */
-                csound->RealFFT2(csound,  p->setup_pad,hrtflpad);
-                csound->RealFFT2(csound,  p->setup_pad,hrtfrpad);
+                csound->RealFFT(csound,  p->setup_pad,hrtflpad);
+                csound->RealFFT(csound,  p->setup_pad,hrtfrpad);
 
                 if(minphase)
                   {
@@ -1193,7 +1193,7 @@ static int32_t hrtfmove_process(CSOUND *csound, hrtfmove *p)
             for (i = irlength; i < irlengthpad; i++)
               complexinsig[i] = FL(0.0);
 
-            csound->RealFFT2(csound,p->setup_pad, complexinsig);
+            csound->RealFFT(csound,p->setup_pad, complexinsig);
 
             /* complex mult function... */
             csound->RealFFTMult(csound, outspecl, hrtflpad, complexinsig,
@@ -1202,8 +1202,8 @@ static int32_t hrtfmove_process(CSOUND *csound, hrtfmove *p)
                                 irlengthpad, FL(1.0));
 
             /* convolution is the inverse FFT of above result */
-            csound->RealFFT2(csound,p->isetup_pad,outspecl);
-            csound->RealFFT2(csound,p->isetup_pad,outspecr);
+            csound->RealFFT(csound,p->isetup_pad,outspecl);
+            csound->RealFFT(csound,p->isetup_pad,outspecr);
 
             /* real values, scaled (by a little more than usual to ensure
                no clipping) sr related */
@@ -1225,8 +1225,8 @@ static int32_t hrtfmove_process(CSOUND *csound, hrtfmove *p)
                     csound->RealFFTMult(csound, outspecoldr, oldhrtfrpad,
                                         complexinsig, irlengthpad, FL(1.0));
 
-                    csound->RealFFT2(csound,p->isetup_pad, outspecoldl);
-                    csound->RealFFT2(csound, p->isetup_pad,outspecoldr);
+                    csound->RealFFT(csound,p->isetup_pad, outspecoldl);
+                    csound->RealFFT(csound, p->isetup_pad,outspecoldr);
 
                     /* scaled */
                     for(i = 0; i < irlengthpad; i++)
@@ -1478,14 +1478,14 @@ static int32_t hrtfstat_init(CSOUND *csound, hrtfstat *p)
     strNcpy(filer, (char*) p->ifiler->data, MAXNAME-1); //filel[MAXNAME-1]='\0';
 
     /* reading files, with byte swap */
-    fpl = csound->ldmemfile2withCB(csound, filel, CSFTYPE_FLOATS_BINARY,
+    fpl = csound->LoadMemoryFile(csound, filel, CSFTYPE_FLOATS_BINARY,
                                    swap4bytes);
     if (UNLIKELY(fpl == NULL))
       return
         csound->InitError(csound,
                           Str("\n\n\nCannot load left data file, exiting\n\n"));
 
-    fpr = csound->ldmemfile2withCB(csound, filer, CSFTYPE_FLOATS_BINARY,
+    fpr = csound->LoadMemoryFile(csound, filer, CSFTYPE_FLOATS_BINARY,
                                    swap4bytes);
     if (UNLIKELY(fpr == NULL))
       return
@@ -1841,14 +1841,14 @@ static int32_t hrtfstat_init(CSOUND *csound, hrtfstat *p)
         hrtfrfloat[i+1] = magr * SIN(phaser);
       }
 
-    p->setup_pad = csound->RealFFT2Setup(csound, p->irlengthpad, FFT_FWD);
-    p->setup = csound->RealFFT2Setup(csound, p->irlength, FFT_FWD);
-    p->isetup_pad = csound->RealFFT2Setup(csound, p->irlengthpad, FFT_INV);
-    p->isetup = csound->RealFFT2Setup(csound, p->irlength, FFT_INV);
+    p->setup_pad = csound->RealFFTSetup(csound, p->irlengthpad, FFT_FWD);
+    p->setup = csound->RealFFTSetup(csound, p->irlength, FFT_FWD);
+    p->isetup_pad = csound->RealFFTSetup(csound, p->irlengthpad, FFT_INV);
+    p->isetup = csound->RealFFTSetup(csound, p->irlength, FFT_INV);
 
     /* ifft */
-    csound->RealFFT2(csound,  p->isetup, hrtflfloat);
-    csound->RealFFT2(csound,  p->isetup, hrtfrfloat);
+    csound->RealFFT(csound,  p->isetup, hrtflfloat);
+    csound->RealFFT(csound,  p->isetup, hrtfrfloat);
 
     for (i = 0; i < irlength; i++)
       {
@@ -1880,8 +1880,8 @@ static int32_t hrtfstat_init(CSOUND *csound, hrtfstat *p)
       }
 
     /* back to freq domain */
-    csound->RealFFT2(csound,  p->setup_pad, hrtflpad);
-    csound->RealFFT2(csound,  p->setup_pad, hrtfrpad);
+    csound->RealFFT(csound,  p->setup_pad, hrtflpad);
+    csound->RealFFT(csound,  p->setup_pad, hrtfrpad);
 
         /* initialize counter */
     p->counter = 0;
@@ -1960,7 +1960,7 @@ static int32_t hrtfstat_process(CSOUND *csound, hrtfstat *p)
             for (i = irlength; i <  irlengthpad; i++)
               complexinsig[i] = FL(0.0);
 
-            csound->RealFFT2(csound, p->setup_pad, complexinsig);
+            csound->RealFFT(csound, p->setup_pad, complexinsig);
 
             /* complex multiplication */
             csound->RealFFTMult(csound, outspecl, hrtflpad, complexinsig,
@@ -1969,8 +1969,8 @@ static int32_t hrtfstat_process(CSOUND *csound, hrtfstat *p)
                                 irlengthpad, FL(1.0));
 
             /* convolution is the inverse FFT of above result */
-            csound->RealFFT2(csound,  p->isetup_pad,outspecl);
-            csound->RealFFT2(csound, p->isetup_pad, outspecr);
+            csound->RealFFT(csound,  p->isetup_pad,outspecl);
+            csound->RealFFT(csound, p->isetup_pad, outspecr);
 
             /* scaled by a factor related to sr...? */
             for(i = 0; i < irlengthpad; i++)
@@ -2107,14 +2107,14 @@ static int32_t hrtfmove2_init(CSOUND *csound, hrtfmove2 *p)
     strNcpy(filer, (char*) p->ifiler->data, MAXNAME-1); //filer[MAXNAME-1] = '\0';
 
     /* reading files, with byte swap */
-    fpl = csound->ldmemfile2withCB(csound, filel, CSFTYPE_FLOATS_BINARY,
+    fpl = csound->LoadMemoryFile(csound, filel, CSFTYPE_FLOATS_BINARY,
                                    swap4bytes);
     if (UNLIKELY(fpl == NULL))
      return
         csound->InitError(csound,
                           Str("\n\n\nCannot load left data file, exiting\n\n"));
 
-    fpr = csound->ldmemfile2withCB(csound, filer, CSFTYPE_FLOATS_BINARY,
+    fpr = csound->LoadMemoryFile(csound, filer, CSFTYPE_FLOATS_BINARY,
                                    swap4bytes);
     if (UNLIKELY(fpr == NULL))
       return
@@ -2229,8 +2229,8 @@ static int32_t hrtfmove2_init(CSOUND *csound, hrtfmove2 *p)
     p->anglev = -1;
     p->elevv = -41;
 
-    p->setup = csound->RealFFT2Setup(csound, p->irlength, FFT_FWD);
-    p->isetup = csound->RealFFT2Setup(csound, p->irlength, FFT_INV);
+    p->setup = csound->RealFFTSetup(csound, p->irlength, FFT_FWD);
+    p->isetup = csound->RealFFTSetup(csound, p->irlength, FFT_INV);
 
     return OK;
 }
@@ -2612,7 +2612,7 @@ static int32_t hrtfmove2_process(CSOUND *csound, hrtfmove2 *p)
             /* zero the current input sigframe time pointer */
             overlapskipin[t] = 0;
 
-            csound->RealFFT2(csound, p->setup, complexinsig);
+            csound->RealFFT(csound, p->setup, complexinsig);
 
             csound->RealFFTMult(csound, outspecl, hrtflfloat,
                                 complexinsig, irlength, FL(1.0));
@@ -2620,8 +2620,8 @@ static int32_t hrtfmove2_process(CSOUND *csound, hrtfmove2 *p)
                                 complexinsig, irlength, FL(1.0));
 
             /* convolution is the inverse FFT of above result */
-            csound->RealFFT2(csound, p->isetup, outspecl);
-            csound->RealFFT2(csound,  p->isetup, outspecr);
+            csound->RealFFT(csound, p->isetup, outspecl);
+            csound->RealFFT(csound,  p->isetup, outspecr);
 
             /* need scaling based on overlap (more overlaps -> louder) and sr... */
             for(i = 0; i < irlength; i++)

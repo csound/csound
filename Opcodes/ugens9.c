@@ -51,7 +51,7 @@ static int32_t cvset_(CSOUND *csound, CONVOLVE *p, int32_t stringname)
 
     if ((mfp = p->mfp) == NULL || strcmp(mfp->filename, cvfilnam) != 0) {
       /* if file not already readin */
-      if (UNLIKELY((mfp = csound->ldmemfile2withCB(csound, cvfilnam,
+      if (UNLIKELY((mfp = csound->LoadMemoryFile(csound, cvfilnam,
                                                    CSFTYPE_CVANAL,NULL))
                    == NULL)) {
         return csound->InitError(csound,
@@ -139,8 +139,8 @@ static int32_t cvset_(CSOUND *csound, CONVOLVE *p, int32_t stringname)
     p->incount = 0;
     p->obufend = p->outbuf + obufsiz - 1;
     p->outhead = p->outail = p->outbuf;
-    p->fwdsetup = csound->RealFFT2Setup(csound, Hlenpadded, FFT_FWD);
-    p->invsetup = csound->RealFFT2Setup(csound, Hlenpadded, FFT_INV);
+    p->fwdsetup = csound->RealFFTSetup(csound, Hlenpadded, FFT_FWD);
+    p->invsetup = csound->RealFFTSetup(csound, Hlenpadded, FFT_INV);
     return OK;
 }
 
@@ -249,7 +249,7 @@ static int32_t convolve(CSOUND *csound, CONVOLVE *p)
         incount = 0;
         /* FFT the input (to create X) */
         /*csound->Message(csound, "CONVOLVE: ABOUT TO FFT\n"); */
-        csound->RealFFT2(csound, p->fwdsetup, p->fftbuf);
+        csound->RealFFT(csound, p->fwdsetup, p->fftbuf);
         p->fftbuf[Hlenpadded] = p->fftbuf[1];
         p->fftbuf[1] = p->fftbuf[Hlenpadded + 1L] = FL(0.0);
         /* save the result if multi-channel */
@@ -292,7 +292,7 @@ static int32_t convolve(CSOUND *csound, CONVOLVE *p)
 
           p->fftbuf[1] = p->fftbuf[Hlenpadded];
           p->fftbuf[Hlenpadded] = p->fftbuf[Hlenpadded + 1L] = FL(0.0);
-          csound->RealFFT2(csound, p->invsetup, p->fftbuf);
+          csound->RealFFT(csound, p->invsetup, p->fftbuf);
 
           /* Take the first Hlen output samples and output them to
              either the real audio output buffer or the local circular
@@ -406,7 +406,7 @@ static int32_t pconvset_(CSOUND *csound, PCONVOLVE *p, int32_t stringname)
     }
     IRfile.channel = channel;
     IRfile.analonly = 1;
-    if (UNLIKELY((infd = csound->sndgetset(csound, &IRfile)) == NULL)) {
+    if (UNLIKELY((infd = csound->SndInputOpen(csound, &IRfile)) == NULL)) {
       return csound->InitError(csound, Str("pconvolve: error while impulse file"));
     }
 
@@ -456,13 +456,13 @@ static int32_t pconvset_(CSOUND *csound, PCONVOLVE *p, int32_t stringname)
     csound->AuxAlloc(csound, p->numPartitions * (p->Hlenpadded + 2) *
              sizeof(MYFLT) * p->nchanls, &p->H);
     IRblock = (MYFLT *)p->H.auxp;
-    p->fwdsetup = csound->RealFFT2Setup(csound,p->Hlenpadded, FFT_FWD);
-    p->invsetup = csound->RealFFT2Setup(csound,p->Hlenpadded, FFT_INV);
+    p->fwdsetup = csound->RealFFTSetup(csound,p->Hlenpadded, FFT_FWD);
+    p->invsetup = csound->RealFFTSetup(csound,p->Hlenpadded, FFT_INV);
     /* form each partition and take its FFT */
     for (part = 0; part < p->numPartitions; part++) {
       /* get the block of input samples and normalize -- soundin code
          handles finding the right channel */
-      if (UNLIKELY((read_in = csound->getsndin(csound, infd, inbuf,
+      if (UNLIKELY((read_in = csound->SndInputRead(csound, infd, inbuf,
                                                p->Hlen*p->nchanls, &IRfile)) <= 0))
         return csound->InitError(csound,
                                  Str("PCONVOLVE: less sound than expected!"));
@@ -478,7 +478,7 @@ static int32_t pconvset_(CSOUND *csound, PCONVOLVE *p, int32_t stringname)
           fp1 += p->nchanls;
         }
 
-        csound->RealFFT2(csound, p->fwdsetup, IRblock);
+        csound->RealFFT(csound, p->fwdsetup, IRblock);
         IRblock[p->Hlenpadded] = IRblock[1];
         IRblock[1] = IRblock[p->Hlenpadded + 1L] = FL(0.0);
         IRblock += (p->Hlenpadded + 2);
@@ -556,7 +556,7 @@ static int32_t pconvolve(CSOUND *csound, PCONVOLVE *p)
         /* FFT the input (to create X) */
         *workWrite = FL(0.0); /* zero out nyquist bin from last fft result
                            - maybe is ignored for input(?) but just in case.. */
-        csound->RealFFT2(csound, p->fwdsetup, workBuf);
+        csound->RealFFT(csound, p->fwdsetup, workBuf);
         workBuf[p->Hlenpadded] = workBuf[1];
         workBuf[1] = workBuf[p->Hlenpadded + 1L] = FL(0.0);
 
@@ -581,7 +581,7 @@ static int32_t pconvolve(CSOUND *csound, PCONVOLVE *p)
           bufp = buf + i * hlenpaddedplus2;
           bufp[1] = bufp[p->Hlenpadded];
           bufp[p->Hlenpadded] = bufp[p->Hlenpadded + 1L] = FL(0.0);
-          csound->RealFFT2(csound, p->invsetup, bufp);
+          csound->RealFFT(csound, p->invsetup, bufp);
         }
         /* We only take only the last Hlen output samples so we first zero out
            the first half for next time, then we copy the rest to output buffer

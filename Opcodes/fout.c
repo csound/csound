@@ -163,7 +163,7 @@ static CS_NOINLINE int32_t fout_open_file(CSOUND *csound, FOUT_FILE *p, void *fp
       if ((strcmp(filemode, "rb") == 0 || (strcmp(filemode, "wb") == 0)))
             csFileType = CSFTYPE_OTHER_BINARY;
       else  csFileType = CSFTYPE_OTHER_TEXT;
-      fd = csound->FileOpen2(csound, &f, fileType, name, fileParams, "",
+      fd = csound->FileOpen(csound, &f, fileType, name, fileParams, "",
                                csFileType, 0);
       if (UNLIKELY(fd == NULL)) {
         csound->InitError(csound, Str("error opening file '%s'"), name);
@@ -182,9 +182,9 @@ static CS_NOINLINE int32_t fout_open_file(CSOUND *csound, FOUT_FILE *p, void *fp
 
       if (fileType == CSFILE_SND_W) {
         do_scale = ((SFLIB_INFO*) fileParams)->format;
-        csFileType = csound->sftype2csfiletype(do_scale);
+        csFileType = csound->SndfileType2CsfileType(do_scale);
         if (csound->oparms->realtime == 0 || forceSync == 1) {
-          fd = csound->FileOpen2(csound, &sf, fileType, name, fileParams,
+          fd = csound->FileOpen(csound, &sf, fileType, name, fileParams,
                                 "SFDIR", csFileType, 0);
           p->async = 0;
         }
@@ -199,7 +199,7 @@ static CS_NOINLINE int32_t fout_open_file(CSOUND *csound, FOUT_FILE *p, void *fp
       }
       else {
         if (csound->oparms->realtime == 0 || forceSync == 1) {
-          fd = csound->FileOpen2(csound, &sf, fileType, name, fileParams,
+          fd = csound->FileOpen(csound, &sf, fileType, name, fileParams,
                                  "SFDIR;SSDIR", CSFTYPE_UNKNOWN_AUDIO, 0);
           p->async = 0;
 

@@ -551,7 +551,7 @@ int32_t pvstanalset(CSOUND *csound, PVST *p)
   p->pos =  *p->offset*CS_ESR;
   //printf("off: %f\n", *p->offset);
   p->accum = 0.0;
-  p->fwdsetup = csound->RealFFT2Setup(csound,N,FFT_FWD);
+  p->fwdsetup = csound->RealFFTSetup(csound,N,FFT_FWD);
   return OK;
 }
 
@@ -634,7 +634,7 @@ int32_t pvstanalset1(CSOUND *csound, PVST1 *p)
   p->pos =  *p->offset*CS_ESR;
   //printf("off: %f\n", *p->offset);
   p->accum = 0.0;
-  p->fwdsetup = csound->RealFFT2Setup(csound,N,FFT_FWD);
+  p->fwdsetup = csound->RealFFTSetup(csound,N,FFT_FWD);
   return OK;
 }
 
@@ -741,10 +741,10 @@ int32_t pvstanal(CSOUND *csound, PVST *p)
       /* take the FFT of both frames
          re-order Nyquist bin from pos 1 to N
       */
-      csound->RealFFT2(csound, p->fwdsetup, bwin);
-      csound->RealFFT2(csound, p->fwdsetup, fwin);
+      csound->RealFFT(csound, p->fwdsetup, bwin);
+      csound->RealFFT(csound, p->fwdsetup, fwin);
       if (*p->konset){
-        csound->RealFFT2(csound,p->fwdsetup, nwin);
+        csound->RealFFT(csound,p->fwdsetup, nwin);
         tmp_real = tmp_im = 1e-20f;
         for (i=2; i < N; i++) {
           tmp_real += nwin[i]*nwin[i] + nwin[i+1]*nwin[i+1];
@@ -896,10 +896,10 @@ int32_t pvstanal1(CSOUND *csound, PVST1 *p)
       /* take the FFT of both frames
          re-order Nyquist bin from pos 1 to N
       */
-      csound->RealFFT2(csound, p->fwdsetup, bwin);
-      csound->RealFFT2(csound, p->fwdsetup, fwin);
+      csound->RealFFT(csound, p->fwdsetup, bwin);
+      csound->RealFFT(csound, p->fwdsetup, fwin);
       if (*p->konset){
-        csound->RealFFT2(csound,p->fwdsetup, nwin);
+        csound->RealFFT(csound,p->fwdsetup, nwin);
         tmp_real = tmp_im = 1e-20f;
         for (i=2; i < N; i++) {
           tmp_real += nwin[i]*nwin[i] + nwin[i+1]*nwin[i+1];
@@ -1643,8 +1643,8 @@ static int32_t pvsscaleset(CSOUND *csound, PVSSCALE *p)
       p->fenv.size < sizeof(MYFLT) * (N+2))
     csound->AuxAlloc(csound, sizeof(MYFLT) * (N + 2), &p->fenv);
   memset(p->fenv.auxp, 0, sizeof(MYFLT)*(N+2));
-  p->fwdsetup = csound->RealFFT2Setup(csound, N/2, FFT_FWD);
-  p->invsetup = csound->RealFFT2Setup(csound, N/2, FFT_INV);
+  p->fwdsetup = csound->RealFFTSetup(csound, N/2, FFT_FWD);
+  p->invsetup = csound->RealFFTSetup(csound, N/2, FFT_INV);
   return OK;
 }
 
@@ -1759,9 +1759,9 @@ static int32_t pvsscale(CSOUND *csound, PVSSCALE *p)
           for (i=0; i < N/2; i++) {
             ceps[i] = fenv[i];
           }
-          csound->RealFFT2(csound, p->fwdsetup, ceps);
+          csound->RealFFT(csound, p->fwdsetup, ceps);
           for (i=coefs; i < N/2; i++) ceps[i] = 0.0;
-          csound->RealFFT2(csound, p->invsetup, ceps);
+          csound->RealFFT(csound, p->invsetup, ceps);
           for (i=j=0; i < N/2; i++, j+=2) {
             if (keepform > 1) {
               if (fenv[i] < ceps[i])

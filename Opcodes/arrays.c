@@ -192,7 +192,7 @@ static int32_t tabfillf(CSOUND* csound, TABFILLF* p)
     int32_t i = 0, flen = 0, size;
     char *fname = p->fname->data;
     FILE    *infile;
-    void    *fd = csound->FileOpen2(csound, &infile, CSFILE_STD, fname, "r",
+    void    *fd = csound->FileOpen(csound, &infile, CSFILE_STD, fname, "r",
                            "SFDIR;SSDIR;INCDIR", CSFTYPE_FLOATS_TEXT, 0);
     if (UNLIKELY(fd == NULL)) {
       return csound->InitError(csound, Str("error opening ASCII file %s\n"), fname);
@@ -3421,14 +3421,14 @@ int32_t init_rfft(CSOUND *csound, FFT *p) {
     return csound->InitError(csound, "%s",
                              Str("rfft: only one-dimensional arrays allowed"));
   tabinit(csound, p->out,N);
-  p->setup = csound->RealFFT2Setup(csound, N, FFT_FWD);
+  p->setup = csound->RealFFTSetup(csound, N, FFT_FWD);
   return OK;
 }
 
 int32_t perf_rfft(CSOUND *csound, FFT *p) {
     int32_t N = p->out->sizes[0];
     memcpy(p->out->data,p->in->data,N*sizeof(MYFLT));
-    csound->RealFFT2(csound,p->setup,p->out->data);
+    csound->RealFFT(csound,p->setup,p->out->data);
     return OK;
 }
 
@@ -3443,7 +3443,7 @@ int32_t init_rifft(CSOUND *csound, FFT *p) {
   if (UNLIKELY(p->in->dimensions > 1))
     return csound->InitError(csound, "%s",
                              Str("rifft: only one-dimensional arrays allowed"));
-    p->setup = csound->RealFFT2Setup(csound, N, FFT_INV);
+    p->setup = csound->RealFFTSetup(csound, N, FFT_INV);
     tabinit(csound, p->out, N);
   return OK;
 }
@@ -3451,7 +3451,7 @@ int32_t init_rifft(CSOUND *csound, FFT *p) {
 int32_t perf_rifft(CSOUND *csound, FFT *p) {
     int32_t N = p->in->sizes[0];
     memcpy(p->out->data,p->in->data,N*sizeof(MYFLT));
-    csound->RealFFT2(csound,p->setup,p->out->data);
+    csound->RealFFT(csound,p->setup,p->out->data);
     return OK;
 }
 
@@ -3755,7 +3755,7 @@ typedef struct _pvsceps {
 int32_t pvsceps_init(CSOUND *csound, PVSCEPS *p) {
     int32_t N = p->fin->N;
     if (LIKELY(isPowerOfTwo(N))) {
-      p->setup = csound->RealFFT2Setup(csound, N/2, FFT_FWD);
+      p->setup = csound->RealFFTSetup(csound, N/2, FFT_FWD);
       tabinit(csound, p->out, N/2+1);
     }
     else
@@ -3777,7 +3777,7 @@ int32_t pvsceps_perf(CSOUND *csound, PVSCEPS *p) {
         ceps[j] = log(fin[i] > 0.0 ? fin[i] : 1e-20);
       }
       ceps[N/2] = fin[N/2];
-      csound->RealFFT2(csound, p->setup, ceps);
+      csound->RealFFT(csound, p->setup, ceps);
       if (coefs) {
         // lifter coefs
        for (i=coefs*2; i < N/2; i++) ceps[i] = 0.0;
@@ -3795,7 +3795,7 @@ int32_t init_ceps(CSOUND *csound, FFT *p) {
       return csound->InitError(csound, "%s",
                                Str("FFT size too small (min 64 samples)\n"));
     if (LIKELY(isPowerOfTwo(N))) {
-      p->setup = csound->RealFFT2Setup(csound, N, FFT_FWD);
+      p->setup = csound->RealFFTSetup(csound, N, FFT_FWD);
       tabinit(csound, p->out, N+1);
     }
     else
@@ -3815,7 +3815,7 @@ int32_t perf_ceps(CSOUND *csound, FFT *p) {
       ceps[i] = log(mags[i] > 0.0 ? mags[i] : 1e-20);
     }
     ceps[siz] = mags[siz];
-    csound->RealFFT2(csound, p->setup, ceps);
+    csound->RealFFT(csound, p->setup, ceps);
     if (coefs) {
       // lifter coefs
       for (i=coefs*2; i < siz; i++) ceps[i] = 0.0;
@@ -3827,7 +3827,7 @@ int32_t perf_ceps(CSOUND *csound, FFT *p) {
 int32_t init_iceps(CSOUND *csound, FFT *p) {
     int32_t N = p->in->sizes[0]-1;
     if (LIKELY(isPowerOfTwo(N))) {
-      p->setup = csound->RealFFT2Setup(csound, N, FFT_INV);
+      p->setup = csound->RealFFTSetup(csound, N, FFT_INV);
       tabinit(csound, p->out, N+1);
     }
     else
@@ -3844,7 +3844,7 @@ int32_t perf_iceps(CSOUND *csound, FFT *p) {
     MYFLT *spec = (MYFLT *)p->mem.auxp;
     MYFLT *out = p->out->data;
     memcpy(spec, p->in->data, siz*sizeof(MYFLT));
-    csound->RealFFT2(csound,p->setup,spec);
+    csound->RealFFT(csound,p->setup,spec);
     for (i=0; i < siz; i++) {
       out[i] = exp(spec[i]);
     }

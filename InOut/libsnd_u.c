@@ -109,9 +109,8 @@ static int sreadin(CSOUND *csound, SNDFILE *infd, MYFLT *inbuf,
 }
 
 /* core of soundinset     */
-/* called from sndinset, SAsndgetset, & gen01 */
+/* called from SAsndgetset, & gen01 */
 /* Return NULL on failure */
-
 void *sndgetset(CSOUND *csound, void *p_)
 {
     SOUNDIN *p = (SOUNDIN*) p_;
@@ -133,7 +132,7 @@ void *sndgetset(CSOUND *csound, void *p_)
     if (sfinfo.samplerate < 1)
       sfinfo.samplerate = (int) ((double) DFLT_SR + 0.5);
     /* open with full dir paths */
-    p->fd = csound->FileOpen2(csound, &(p->sinfd), CSFILE_SND_R,
+    p->fd = csound->FileOpen(csound, &(p->sinfd), CSFILE_SND_R,
                                      sfname, &sfinfo, "SFDIR;SSDIR",
                                      CSFTYPE_UNKNOWN_AUDIO, 0);
     if (UNLIKELY(p->fd == NULL)) {

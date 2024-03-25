@@ -210,7 +210,7 @@ static int32_t cent_i(CSOUND *csound, CENT *p)
     p->old = 0;
     memset(p->frame.auxp, 0, p->fsize*sizeof(MYFLT));
     memset(p->windowed.auxp, 0, p->fsize*sizeof(MYFLT));
-    p->setup = csound->RealFFT2Setup(csound,p->fsize,FFT_FWD);
+    p->setup = csound->RealFFTSetup(csound,p->fsize,FFT_FWD);
     return OK;
 }
 
@@ -246,7 +246,7 @@ static int32_t cent_k(CSOUND *csound, CENT *p)
         if (k == fsize-1) k=0;
         else k++;
       }
-      csound->RealFFT2(csound, p->setup, windowed);
+      csound->RealFFT(csound, p->setup, windowed);
       cf=FL(0.5)*binsize;
       mag = fabs(windowed[0])/fsize;
       c += mag*cf;

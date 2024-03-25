@@ -144,8 +144,8 @@ static int32_t sinit(CSOUND *csound, DATASPACE *p)
     p->N = N;
     p->decim = decim;
 
-    p->fwdsetup = csound->RealFFT2Setup(csound, N, FFT_FWD);
-    p->invsetup = csound->RealFFT2Setup(csound, N, FFT_INV);
+    p->fwdsetup = csound->RealFFTSetup(csound, N, FFT_FWD);
+    p->invsetup = csound->RealFFTSetup(csound, N, FFT_INV);
 
     return OK;
 }
@@ -213,8 +213,8 @@ static int32_t sinitm(CSOUND *csound, DATASPACEM *p)
     p->N = N;
     p->decim = decim;
 
-    p->fwdsetup = csound->RealFFT2Setup(csound, N, FFT_FWD);
-    p->invsetup = csound->RealFFT2Setup(csound, N, FFT_INV);
+    p->fwdsetup = csound->RealFFTSetup(csound, N, FFT_FWD);
+    p->invsetup = csound->RealFFTSetup(csound, N, FFT_INV);
 
     return OK;
 }
@@ -336,10 +336,10 @@ static int32_t sprocess1(CSOUND *csound, DATASPACE *p)
           /* take the FFT of both frames
              re-order Nyquist bin from pos 1 to N
           */
-          csound->RealFFT2(csound, p->fwdsetup, bwin);
+          csound->RealFFT(csound, p->fwdsetup, bwin);
           bwin[N] = bwin[1];
           bwin[N+1] = 0.0;
-          csound->RealFFT2(csound,  p->fwdsetup, fwin);
+          csound->RealFFT(csound,  p->fwdsetup, fwin);
           fwin[N] = fwin[1];
           fwin[N+1] = 0.0;
 
@@ -399,7 +399,7 @@ static int32_t sprocess1(CSOUND *csound, DATASPACE *p)
           }
           /* re-order bins and take inverse FFT */
           fwin[1] = fwin[N];
-          csound->RealFFT2(csound, p->invsetup, fwin);
+          csound->RealFFT(csound, p->invsetup, fwin);
           /* frame counter */
           framecnt[curframe] = curframe*N;
           /* write to overlapped output frames */
@@ -541,10 +541,10 @@ static int32_t sprocess1m(CSOUND *csound, DATASPACEM *p)
           /* take the FFT of both frames
              re-order Nyquist bin from pos 1 to N
           */
-          csound->RealFFT2(csound, p->fwdsetup, bwin);
+          csound->RealFFT(csound, p->fwdsetup, bwin);
           bwin[N] = bwin[1];
           bwin[N+1] = 0.0;
-          csound->RealFFT2(csound,  p->fwdsetup, fwin);
+          csound->RealFFT(csound,  p->fwdsetup, fwin);
           fwin[N] = fwin[1];
           fwin[N+1] = 0.0;
 
@@ -604,7 +604,7 @@ static int32_t sprocess1m(CSOUND *csound, DATASPACEM *p)
           }
           /* re-order bins and take inverse FFT */
           fwin[1] = fwin[N];
-          csound->RealFFT2(csound, p->invsetup, fwin);
+          csound->RealFFT(csound, p->invsetup, fwin);
           /* frame counter */
           framecnt[curframe] = curframe*N;
           /* write to overlapped output frames */
@@ -789,11 +789,11 @@ static int32_t sprocess2(CSOUND *csound, DATASPACE *p)
             pos += pitch;
           }
 
-          csound->RealFFT2(csound, p->fwdsetup, bwin);
+          csound->RealFFT(csound, p->fwdsetup, bwin);
           bwin[N] = bwin[1];
           bwin[N+1] = FL(0.0);
-          csound->RealFFT2(csound, p->fwdsetup,  fwin);
-          csound->RealFFT2(csound,  p->fwdsetup, nwin);
+          csound->RealFFT(csound, p->fwdsetup,  fwin);
+          csound->RealFFT(csound,  p->fwdsetup, nwin);
 
           tmp_real = tmp_im = (MYFLT) 1e-20;
           for (i=2; i < N; i++) {
@@ -856,7 +856,7 @@ static int32_t sprocess2(CSOUND *csound, DATASPACE *p)
           }
 
           fwin[1] = fwin[N];
-          csound->RealFFT2(csound, p->invsetup, fwin);
+          csound->RealFFT(csound, p->invsetup, fwin);
 
           framecnt[curframe] = curframe*N;
 
@@ -1009,11 +1009,11 @@ static int32_t sprocess2m(CSOUND *csound, DATASPACEM *p)
             pos += pitch;
           }
 
-          csound->RealFFT2(csound, p->fwdsetup, bwin);
+          csound->RealFFT(csound, p->fwdsetup, bwin);
           bwin[N] = bwin[1];
           bwin[N+1] = FL(0.0);
-          csound->RealFFT2(csound, p->fwdsetup,  fwin);
-          csound->RealFFT2(csound,  p->fwdsetup, nwin);
+          csound->RealFFT(csound, p->fwdsetup,  fwin);
+          csound->RealFFT(csound,  p->fwdsetup, nwin);
 
           tmp_real = tmp_im = (MYFLT) 1e-20;
           for (i=2; i < N; i++) {
@@ -1076,7 +1076,7 @@ static int32_t sprocess2m(CSOUND *csound, DATASPACEM *p)
           }
 
           fwin[1] = fwin[N];
-          csound->RealFFT2(csound, p->invsetup, fwin);
+          csound->RealFFT(csound, p->invsetup, fwin);
 
           framecnt[curframe] = curframe*N;
 
@@ -1121,7 +1121,7 @@ static int32_t sinit3(CSOUND *csound, DATASPACE *p)
     // open file
     void *fd;
     name = ((STRINGDAT *)p->knum)->data;
-    fd  = csound->FileOpen2(csound, &(p->sf), CSFILE_SND_R, name, &sfinfo,
+    fd  = csound->FileOpen(csound, &(p->sf), CSFILE_SND_R, name, &sfinfo,
                             "SFDIR;SSDIR", CSFTYPE_UNKNOWN_AUDIO, 0);
     if (p->sf == NULL)
       return csound->InitError(csound,
@@ -1310,11 +1310,11 @@ static int32_t sprocess3(CSOUND *csound, DATASPACE *p)
               pos += pitch;
             }
 
-            csound->RealFFT2(csound,  p->fwdsetup,  bwin);
+            csound->RealFFT(csound,  p->fwdsetup,  bwin);
             bwin[N] = bwin[1];
             bwin[N+1] = FL(0.0);
-            csound->RealFFT2(csound, p->fwdsetup,  fwin);
-            csound->RealFFT2(csound,  p->fwdsetup, nwin);
+            csound->RealFFT(csound, p->fwdsetup,  fwin);
+            csound->RealFFT(csound,  p->fwdsetup, nwin);
 
             tmp_real = tmp_im = (MYFLT) 1e-20;
             for (i=2; i < N; i++) {
@@ -1376,7 +1376,7 @@ static int32_t sprocess3(CSOUND *csound, DATASPACE *p)
             }
 
             fwin[1] = fwin[N];
-            csound->RealFFT2(csound,  p->invsetup,  fwin);
+            csound->RealFFT(csound,  p->invsetup,  fwin);
 
             framecnt[curframe] = curframe*N;
 

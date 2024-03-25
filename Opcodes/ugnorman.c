@@ -124,7 +124,7 @@ static int32_t load_atsfile(CSOUND *csound, void *p, MEMFIL **mfp, char *fname,
          else csound->strarg2name(csound, fname, name_arg, "ats.",0);
     }
     /* load memfile */
-    if (UNLIKELY((*mfp = csound->ldmemfile2withCB(csound, fname,
+    if (UNLIKELY((*mfp = csound->LoadMemoryFile(csound, fname,
                                                   CSFTYPE_ATS, NULL)) == NULL)) {
       (void)csound->InitError(csound,
                                 Str("%s: Ats file %s not read (does it exist?)"),

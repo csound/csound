@@ -432,22 +432,22 @@ static const CSOUND cenviron_ = {
     SAsndgetset,
     sndgetset,
     getsndin,
-    rewriteheader,
-    csoundLoadSoundFile,
-    fdrecord,
-    csound_fd_close,
-    csoundCreateFileHandle,
-    csoundGetFileName,
-    csoundFileClose,
     csoundFileOpenWithType,
-    type2csfiletype,
     csoundNotifyFileOpened,
-    sftype2csfiletype,
-    ldmemfile2withCB,
+    csoundFileClose,
     csoundFileOpenWithType_Async,
     csoundReadAsync,
     csoundWriteAsync,
     csoundFSeekAsync,
+    rewriteheader,
+    csoundLoadSoundFile,
+    ldmemfile2withCB,
+    fdrecord,
+    csound_fd_close,
+    csoundCreateFileHandle,
+    csoundGetFileName,
+    type2csfiletype,
+    sftype2csfiletype,
     getstrformat,
     sfsampsize,
     /* RT audio IO and callbacks */
@@ -3821,7 +3821,7 @@ PUBLIC void csoundSetFileOpenCallback(CSOUND *p,
 
 /* csoundNotifyFileOpened() should be called by plugins via
    csound->NotifyFileOpened() to let Csound know that they opened a file
-   without using one of the standard mechanisms (csound->FileOpen2() or
+   without using one of the standard mechanisms (csound->FileOpen() or
    ldmemfile2withCB()).  The notification is passed on to the host if it
    has set the FileOpen callback. */
 void csoundNotifyFileOpened(CSOUND* csound, const char* pathname,

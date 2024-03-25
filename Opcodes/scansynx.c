@@ -303,7 +303,7 @@ static int32_t scsnux_init_(CSOUND *csound, PSCSNUX *p, int32_t istring)
       strncpy(filnam, ((STRINGDAT *) p->i_f)->data, 255); filnam[255]='\0';
       /* readfile if reqd */
       if (UNLIKELY((mfp =
-                    csound->ldmemfile2withCB(csound, filnam,
+                    csound->LoadMemoryFile(csound, filnam,
                                        CSFTYPE_XSCANU_MATRIX, NULL)) == NULL)) {
         return csound->InitError(csound,  Str("SCANU cannot load %s"), filnam);
       }

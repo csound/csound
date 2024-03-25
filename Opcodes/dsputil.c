@@ -60,7 +60,7 @@ void Polar2Real_PVOC(CSOUND *csound, MYFLT *buf, void *setup)
     /* kill spurious imag at dc & fs/2 */
     buf[1] = buf[i]; buf[i] = buf[i + 1] = FL(0.0);
     /* calculate inverse FFT */
-    csound->RealFFT2(csound, setup, buf);
+    csound->RealFFT(csound, setup, buf);
 }
 
 #define MMmaskPhs(p,q,s) /* p is pha, q is as int32_t, s is 1/PI */ \

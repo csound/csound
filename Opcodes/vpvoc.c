@@ -271,7 +271,7 @@ int32_t vpvset_(CSOUND *csound, VPVOC *p, int32_t stringname)
     if (p->memenv.auxp == NULL || p->memenv.size < pvdasiz(p)*sizeof(MYFLT))
         csound->AuxAlloc(csound, pvdasiz(p) * sizeof(MYFLT), &p->memenv);
 
-    p->setup = csound->RealFFT2Setup(csound, pvfrsiz(p), FFT_INV);
+    p->setup = csound->RealFFTSetup(csound, pvfrsiz(p), FFT_INV);
     return OK;
 }
 

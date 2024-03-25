@@ -938,7 +938,7 @@ int32_t lpcpvs_init(CSOUND *csound, LPCPVS *p) {
   p->fout->wintype = PVS_WIN_HANN;
   p->fout->format = PVS_AMP_FREQ;
 
-  p->fftsetup = csound->RealFFT2Setup(csound,p->N,FFT_FWD);
+  p->fftsetup = csound->RealFFTSetup(csound,p->N,FFT_FWD);
 
   Nbytes = (N+2)*sizeof(float);
   if(p->fout->frame.auxp == NULL || Nbytes > p->fout->frame.size)
@@ -979,7 +979,7 @@ int32_t lpcpvs(CSOUND *csound, LPCPVS *p){
       memset(fftframe,0,sizeof(MYFLT)*N);
       memcpy(&fftframe[1], &c[1], sizeof(MYFLT)*M);
       fftframe[0] = 1;
-      csound->RealFFT2(csound,p->fftsetup,fftframe);
+      csound->RealFFT(csound,p->fftsetup,fftframe);
       g =  SQRT(c[0])*csoundLPrms(csound,p->setup);
       MYFLT cps = csoundLPcps(csound,p->setup);
       int cpsbin = cps*N/sr;

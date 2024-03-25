@@ -231,7 +231,7 @@ static int32_t pvanal(CSOUND *csound, int32_t argc, char **argv)
           break;
         case 'V':  FIND(Str("no output file for trace"));
           {
-            void  *dummy = csound->FileOpen2(csound, &trfil, CSFILE_STD, s,
+            void  *dummy = csound->FileOpen(csound, &trfil, CSFILE_STD, s,
                                              "w", NULL, CSFTYPE_OTHER_TEXT, 0);
             if (UNLIKELY(dummy == NULL))
               return quit(csound, Str("Failed to open text file"));
@@ -252,7 +252,7 @@ static int32_t pvanal(CSOUND *csound, int32_t argc, char **argv)
     if (UNLIKELY(ovlp && frameIncr))
       return quit(csound, Str("pvanal cannot have both -w and -h"));
     /* open sndfil, do skiptime */
-    if (UNLIKELY((infd = csound->SAsndgetset(csound, infilnam, &p, &beg_time,
+    if (UNLIKELY((infd = csound->SndInputFileOpen(csound, infilnam, &p, &beg_time,
                                              &input_dur, &sr, channel)) == NULL)) {
       snprintf(err_msg, 512, Str("error while opening %s"), infilnam);
       return quit(csound, err_msg);
@@ -474,7 +474,7 @@ static int32_t pvxanal(CSOUND *csound, SOUNDIN *p, SNDFILE *fd, const char *fnam
                    (int32_t) (((int64_t) p->getframes * chans / overlap)
                           / DISPFRAMES));
 
-    while ((sampsread = csound->getsndin(csound,
+    while ((sampsread = csound->SndInputRead(csound,
                                          fd, inbuf, buflen_samps, p)) > 0) {
       total_sampsread += sampsread;
       /* zeropad to full buflen */
@@ -594,7 +594,7 @@ static int32_t init(CSOUND *csound,
     thispvx->M           = M;
     thispvx->Mf          = Mf = 1 - M%2;
     thispvx->ibuflen     = 4 * M;
-    thispvx->setup = csound->RealFFT2Setup(csound,  thispvx->N , FFT_FWD);
+    thispvx->setup = csound->RealFFTSetup(csound,  thispvx->N , FFT_FWD);
 
     D = (int32_t)((D != 0 ? D : M/(8.0))); /* Why floating 8?? */
     if (D == 0) {
@@ -777,7 +777,7 @@ static int64_t generate_frame(CSOUND *csound, PVX *pvx,
         k -= N;
       *(anal + k) += *(pvx->analWindow + i) * *(pvx->input + j);
     }
-    csound->RealFFT2(csound, pvx->setup, anal);
+    csound->RealFFT(csound, pvx->setup, anal);
     /* conversion: The real and imaginary values in anal are converted to
        magnitude and angle-difference-per-second (assuming an
        intermediate sampling rate of rIn) and are returned in

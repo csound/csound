@@ -113,7 +113,7 @@ static int32_t cvanal(CSOUND *csound, int32_t argc, char **argv)
     infilnam = *argv++;
     outfilnam = *argv;
 
-    if (UNLIKELY((infd = csound->SAsndgetset(csound, infilnam, &p, &beg_time,
+    if (UNLIKELY((infd = csound->SndInputFileOpen(csound, infilnam, &p, &beg_time,
                                              &input_dur, &sr, channel)) == NULL)) {
       snprintf(err_msg, 512, Str("error while opening %s"), infilnam);
       return quit(csound, err_msg);
@@ -136,7 +136,7 @@ static int32_t cvanal(CSOUND *csound, int32_t argc, char **argv)
     }
     if (new_format) {
 
-      ofd_handle = csound->FileOpen2(csound, &ofd, CSFILE_STD, outfilnam, "w",
+      ofd_handle = csound->FileOpen(csound, &ofd, CSFILE_STD, outfilnam, "w",
                                      "SADIR", CSFTYPE_CVANAL, 0);
       if (UNLIKELY(ofd_handle == NULL)) {         /* open the output CV file */
         return quit(csound, Str("cannot create output file"));
@@ -164,7 +164,7 @@ static int32_t cvanal(CSOUND *csound, int32_t argc, char **argv)
 #endif
     }
     else {
-      ofd_handle = csound->FileOpen2(csound, &ofd, CSFILE_STD, outfilnam, "wb",
+      ofd_handle = csound->FileOpen(csound, &ofd, CSFILE_STD, outfilnam, "wb",
                                      "SFDIR", CSFTYPE_CVANAL, 0);
       if (UNLIKELY(ofd_handle == NULL)) {           /* open the output CV file */
         return quit(csound, Str("cannot create output file"));
@@ -200,7 +200,7 @@ static int32_t takeFFT(CSOUND *csound, SOUNDIN *p, CVSTRUCT *cvh,
     nchanls = cvh->channel != ALLCHNLS ? 1 : cvh->src_chnls;
     j = (int32_t) (Hlen * nchanls);
     inbuf = fp1 = (MYFLT *) csound->Malloc(csound, j * sizeof(MYFLT));
-    if (UNLIKELY((read_in = csound->getsndin(csound, infd, inbuf, j, p)) < j)) {
+    if (UNLIKELY((read_in = csound->SndInputRead(csound, infd, inbuf, j, p)) < j)) {
       csound->Message(csound, "%s", Str("less sound than expected!\n"));
       return -1;
     }
@@ -215,7 +215,7 @@ static int32_t takeFFT(CSOUND *csound, SOUNDIN *p, CVSTRUCT *cvh,
     /* for (i = 0; i < (Hlenpadded + 2); i++) */
     /*   outbuf[i] = FL(0.0); */
     memset(outbuf, 0, sizeof(MYFLT)*(Hlenpadded + 2));
-    setup = csound->RealFFT2Setup(csound, Hlenpadded, FFT_FWD);
+    setup = csound->RealFFTSetup(csound, Hlenpadded, FFT_FWD);
 
     for (i = 0; i < nchanls; i++) {
       for (j = Hlen; j > 0; j--) {
@@ -223,7 +223,7 @@ static int32_t takeFFT(CSOUND *csound, SOUNDIN *p, CVSTRUCT *cvh,
         fp1 += nchanls;
       }
       fp1 = inbuf + i + 1;
-      csound->RealFFT2(csound, setup, outbuf);
+      csound->RealFFT(csound, setup, outbuf);
       outbuf[Hlenpadded] = outbuf[1];
       outbuf[1] = outbuf[Hlenpadded + 1L] = FL(0.0);
       /* write straight out, just the indep vals */

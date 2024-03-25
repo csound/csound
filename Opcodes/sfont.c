@@ -111,7 +111,7 @@ static int SoundFontLoad(CSOUND *csound, char *fname)
     globals = (sfontg *) (csound->QueryGlobalVariable(csound, "::sfontg"));
 
     //soundFont = globals->soundFont;
-    fd = csound->FileOpen2(csound, &fil, CSFILE_STD, fname, "rb",
+    fd = csound->FileOpen(csound, &fil, CSFILE_STD, fname, "rb",
                              "SFDIR;SSDIR", CSFTYPE_SOUNDFONT, 0);
     if (UNLIKELY(fd == NULL)) {
       #ifndef __wasi__

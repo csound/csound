@@ -318,14 +318,14 @@ int32_t hrtfreverb_init(CSOUND *csound, hrtfreverb *p)
     strNcpy(filer, (char*) p->ifiler->data, MAXNAME-1);
 
     /* reading files, with byte swap */
-    fpl = csound->ldmemfile2withCB(csound, filel,
+    fpl = csound->LoadMemoryFile(csound, filel,
                                    CSFTYPE_FLOATS_BINARY, swap4bytes);
     if (UNLIKELY(fpl == NULL))
       return
         csound->InitError(csound,
                           Str("\n\n\nCannot load left data file, exiting\n\n"));
 
-    fpr = csound->ldmemfile2withCB(csound, filer, CSFTYPE_FLOATS_BINARY,swap4bytes);
+    fpr = csound->LoadMemoryFile(csound, filer, CSFTYPE_FLOATS_BINARY,swap4bytes);
     if (UNLIKELY(fpr == NULL))
       return
         csound->InitError(csound,
@@ -798,9 +798,9 @@ int32_t hrtfreverb_init(CSOUND *csound, hrtfreverb *p)
       }
 
     /* no need to go back to rectangular for fft, as phase = 0, so same */
-    csound->RealFFT2(csound, p->isetup, HRTFavep);
-    csound->RealFFT2(csound, p->isetup, coherup);
-    csound->RealFFT2(csound, p->isetup, cohervp);
+    csound->RealFFT(csound, p->isetup, HRTFavep);
+    csound->RealFFT(csound, p->isetup, coherup);
+    csound->RealFFT(csound, p->isetup, cohervp);
 
     filtoutp = (MYFLT *)p->filtout.auxp;
     filtuoutp = (MYFLT *)p->filtuout.auxp;
@@ -830,9 +830,9 @@ int32_t hrtfreverb_init(CSOUND *csound, hrtfreverb *p)
         filtvpadp[i] = FL(0.0);
       }
 
-    csound->RealFFT2(csound, p->setup_pad,filtpadp);
-    csound->RealFFT2(csound, p->setup_pad,filtupadp);
-    csound->RealFFT2(csound, p->setup_pad,filtvpadp);
+    csound->RealFFT(csound, p->setup_pad,filtpadp);
+    csound->RealFFT(csound, p->setup_pad,filtupadp);
+    csound->RealFFT(csound, p->setup_pad,filtvpadp);
 
     T = FL(1.0) / sr;
 
@@ -874,10 +874,10 @@ int32_t hrtfreverb_init(CSOUND *csound, hrtfreverb *p)
     p->inoldl = 0;
     p->inoldr = 0;
     p->M = M;
-    p->setup_pad = csound->RealFFT2Setup(csound, p->irlengthpad, FFT_FWD);
-    p->setup = csound->RealFFT2Setup(csound, p->irlength, FFT_FWD);
-    p->isetup_pad = csound->RealFFT2Setup(csound, p->irlengthpad, FFT_INV);
-    p->isetup = csound->RealFFT2Setup(csound, p->irlength, FFT_INV);
+    p->setup_pad = csound->RealFFTSetup(csound, p->irlengthpad, FFT_FWD);
+    p->setup = csound->RealFFTSetup(csound, p->irlength, FFT_FWD);
+    p->isetup_pad = csound->RealFFTSetup(csound, p->irlengthpad, FFT_INV);
+    p->isetup = csound->RealFFTSetup(csound, p->irlength, FFT_INV);
 
     return OK;
 }
@@ -1218,8 +1218,8 @@ int32_t hrtfreverb_process(CSOUND *csound, hrtfreverb *p)
               }
 
             /* fft result from matrices */
-            csound->RealFFT2(csound, p->setup_pad,matrixlup);
-            csound->RealFFT2(csound, p->setup_pad,matrixrvp);
+            csound->RealFFT(csound, p->setup_pad,matrixlup);
+            csound->RealFFT(csound, p->setup_pad,matrixrvp);
 
             /* convolution: spectral multiplication */
             csound->RealFFTMult(csound, matrixlup, matrixlup,
@@ -1228,8 +1228,8 @@ int32_t hrtfreverb_process(CSOUND *csound, hrtfreverb *p)
                                 filtvpadp, irlengthpad, FL(1.0));
 
             /* ifft result */
-            csound->RealFFT2(csound, p->isetup_pad, matrixlup);
-            csound->RealFFT2(csound, p->isetup_pad, matrixrvp);
+            csound->RealFFT(csound, p->isetup_pad, matrixlup);
+            csound->RealFFT(csound, p->isetup_pad, matrixrvp);
 
             for(j = 0; j < irlength; j++)
               {
@@ -1260,8 +1260,8 @@ int32_t hrtfreverb_process(CSOUND *csound, hrtfreverb *p)
               }
 
             /* fft result from matrices */
-            csound->RealFFT2(csound, p->setup_pad,hrtflp);
-            csound->RealFFT2(csound, p->setup_pad,hrtfrp);
+            csound->RealFFT(csound, p->setup_pad,hrtflp);
+            csound->RealFFT(csound, p->setup_pad,hrtfrp);
 
             /* convolution: spectral multiplication */
             csound->RealFFTMult(csound, hrtflp, hrtflp, filtpadp,
@@ -1270,8 +1270,8 @@ int32_t hrtfreverb_process(CSOUND *csound, hrtfreverb *p)
                                 irlengthpad, FL(1.0));
 
             /* ifft result */
-            csound->RealFFT2(csound, p->isetup_pad,hrtflp);
-            csound->RealFFT2(csound, p->isetup_pad,hrtfrp);
+            csound->RealFFT(csound, p->isetup_pad,hrtflp);
+            csound->RealFFT(csound, p->isetup_pad,hrtfrp);
 
             /* scale */
             for(j = 0; j < irlengthpad; j++)

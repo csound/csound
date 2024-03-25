@@ -263,7 +263,7 @@ static int32_t scale(CSOUND *csound, int32_t argc, char **argv)
       if (!O.outformat)
         O.outformat = sc.p->format;
       O.sfheader = (O.filetyp == TYP_RAW ? 0 : 1);
-      O.sfsampsize = csound->sfsampsize(FORMAT2SF(O.outformat));
+      O.sfsampsize = csound->SndfileSampleSize(FORMAT2SF(O.outformat));
       if (!O.sfheader)
         O.rewrt_hdr = 0;
       if (O.outfilename == NULL)
@@ -291,16 +291,16 @@ static int32_t scale(CSOUND *csound, int32_t argc, char **argv)
         }
       }
       else
-        fd = csound->FileOpen2(csound, &outfile, CSFILE_SND_W,
+        fd = csound->FileOpen(csound, &outfile, CSFILE_SND_W,
                        O.outfilename, &sfinfo, "SFDIR",
-                       csound->type2csfiletype(O.filetyp, O.outformat), 0);
+                       csound->Type2CsfileType(O.filetyp, O.outformat), 0);
       if (UNLIKELY(fd == NULL))
         csound->Die(csound, Str("Failed to open output file %s: %s"),
                     O.outfilename, Str(sflib_strerror(NULL)));
       outbufsiz = 1024 * O.sfsampsize;    /* calc outbuf size  */
       csound->Message(csound, Str("writing %d-byte blks of %s to %s %s\n"),
                               (int32_t) outbufsiz,
-                              csound->getstrformat(O.outformat),
+                              csound->GetStrFormat(O.outformat),
                               O.outfilename,
                               csound->type2string(O.filetyp));
       InitScaleTable(csound, &sc, factor, factorfile);
@@ -326,7 +326,7 @@ static void InitScaleTable(CSOUND *csound, SCALE *thissc,
       FILE    *f;
       double  samplepert = (double)thissc->p->sr;
       double  x, y;
-      if (UNLIKELY(csound->FileOpen2(csound, &f, CSFILE_STD, factorfile, "r", NULL,
+      if (UNLIKELY(csound->FileOpen(csound, &f, CSFILE_STD, factorfile, "r", NULL,
                                      CSFTYPE_FLOATS_TEXT, 0) == NULL))
         csound->Die(csound, Str("Failed to open %s"), factorfile);
       while (fscanf(f, "%lf %lf\n", &x, &y) == 2) {
@@ -400,7 +400,7 @@ SCsndgetset(CSOUND *csound, SCALE *thissc, char *inputfile)
     p->skiptime = FL(0.0);
     p->analonly = 1;
     strNcpy(p->sfname, inputfile, MAXSNDNAME-1);//p->sfname[MAXSNDNAME-1]='\0';
-    if ((infile = csound->sndgetset(csound, p)) == 0) /*open sndfil, do skptim*/
+    if ((infile = csound->SndInputOpen(csound, p)) == 0) /*open sndfil, do skptim*/
       return(0);
     p->getframes = p->framesrem;
     dur = (double) p->getframes / p->sr;
@@ -429,7 +429,7 @@ ScaleSound(CSOUND *csound, SCALE *thissc, SNDFILE *infile,
     tpersample = 1.0 / (double) thissc->p->sr;
     max = 0.0;  mxpos = 0; maxtimes = 0;
     min = 0.0;  minpos = 0; mintimes = 0;
-    while ((read_in = csound->getsndin(csound, infile, buffer,
+    while ((read_in = csound->SndInputRead(csound, infile, buffer,
                                        bufferLenSamples, thissc->p)) > 0) {
       for (i = 0; i < read_in; i++) {
         j = (i / chans) + (bufferLenFrames * block);
@@ -478,7 +478,7 @@ static float FindAndReportMax(CSOUND *csound, SCALE *thissc,
     tpersample = 1.0 / (double) thissc->p->sr;
     max = 0.0;  mxpos = 0; maxtimes = 0;
     min = 0.0;  minpos = 0; mintimes = 0;
-    while ((read_in = csound->getsndin(csound, infile, buffer,
+    while ((read_in = csound->SndInputRead(csound, infile, buffer,
                                        bufferLenSamples, thissc->p)) > 0) {
       for (i = 0; i < read_in; i++) {
         //j = (i / chans) + (bufferLenFrames * block);

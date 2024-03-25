@@ -1157,10 +1157,10 @@ typedef struct _message_queue_t_ {
     /**@}*/
     /** @name FFT support */
     /**@{ */
-    void *(*RealFFT2Setup)(CSOUND *csound,
+    void *(*RealFFTSetup)(CSOUND *csound,
                            int FFTsize,
                            int d);
-    void (*RealFFT2)(CSOUND *csound,
+    void (*RealFFT)(CSOUND *csound,
                      void *p, MYFLT *sig);
     MYFLT (*GetInverseRealFFTScale)(CSOUND *, int FFTsize);
     void (*ComplexFFT)(CSOUND *, MYFLT *buf, int FFTsize);
@@ -1245,31 +1245,31 @@ typedef struct _message_queue_t_ {
     char *(*FindInputFile)(CSOUND *, const char *filename, const char *envList);
     char *(*FindOutputFile)(CSOUND *,
                             const char *filename, const char *envList);
-    void *(*SAsndgetset)(CSOUND *,
+    void *(*SndInputFileOpen)(CSOUND *, 
                          char *, void *, MYFLT *, MYFLT *, MYFLT *, int);
-    void *(*sndgetset)(CSOUND *, void *);
-    int (*getsndin)(CSOUND *, void *, MYFLT *, int, void *);
-    void (*rewriteheader)(void *ofd);
-    SNDMEMFILE *(*LoadSoundFile)(CSOUND *, const char *, void *);
-    void (*FDRecord)(CSOUND *, FDCH *fdchp);
-    void (*FDClose)(CSOUND *, FDCH *fdchp);
-    void *(*CreateFileHandle)(CSOUND *, void *, int, const char *);
-    char *(*GetFileName)(void *);
-    int (*FileClose)(CSOUND *, void *);
-    void *(*FileOpen2)(CSOUND *, void *, int, const char *, void *,
-                      const char *, int, int);
-    int (*type2csfiletype)(int type, int encoding);
+    void *(*SndInputOpen)(CSOUND *, void *);  
+    int (*SndInputRead)(CSOUND *, void *, MYFLT *, int, void *);
+    void *(*FileOpen)(CSOUND *, void *, int, const char *, void *,
+                       const char *, int, int); /* Rename FileOpen */
     void (*NotifyFileOpened)(CSOUND*, const char*, int, int, int);
-    int (*sftype2csfiletype)(int type);
-    MEMFIL *(*ldmemfile2withCB)(CSOUND *, const char *, int,
-                                int (*callback)(CSOUND *, MEMFIL *));
+    int (*FileClose)(CSOUND *, void *);
     void *(*FileOpenAsync)(CSOUND *, void *, int, const char *, void *,
                            const char *, int, int, int);
     unsigned int (*ReadAsync)(CSOUND *, void *, MYFLT *, int);
     unsigned int (*WriteAsync)(CSOUND *, void *, MYFLT *, int);
     int  (*FSeekAsync)(CSOUND *, void *, int, int);
-    char *(*getstrformat)(int format);
-    int (*sfsampsize)(int format);
+    void (*RewriteHeader)(void *ofd);   
+    SNDMEMFILE *(*LoadSoundFile)(CSOUND *, const char *, void *);
+    MEMFIL *(*LoadMemoryFile)(CSOUND *, const char *, int,
+                                int (*callback)(CSOUND *, MEMFIL *));
+    void (*FDRecord)(CSOUND *, FDCH *fdchp);
+    void (*FDClose)(CSOUND *, FDCH *fdchp);
+    void *(*CreateFileHandle)(CSOUND *, void *, int, const char *);
+    char *(*GetFileName)(void *);
+    int (*Type2CsfileType)(int type, int encoding);
+    int (*SndfileType2CsfileType)(int type);
+    char *(*GetStrFormat)(int format);
+    int (*SndfileSampleSize)(int format);
 
     /**@}*/
     /** @name RT audio IO and callbacks */

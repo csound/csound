@@ -133,7 +133,7 @@ static int32_t getsndinfo(CSOUND *csound, SNDINFO *p, SFLIB_INFO *hdr, int32_t s
       sflib_close(sf);
     }
     /* FIXME: PVOC_OpenFile has already notified since it calls
-       FileOpen2(), even if the file was not a PVOC file. */
+       FileOpen(), even if the file was not a PVOC file. */
     if (csFileType != CSFTYPE_PVCEX)
       csoundNotifyFileOpened(csound, sfname, csFileType, 0, 0);
     csound->Free(csound, sfname);
@@ -267,7 +267,7 @@ int32_t filepeak_(CSOUND *csound, SNDINFOPEAK *p, char *soundiname)
                     Str("no infile specified in the commandline"));
     }
     memset(&sfinfo, 0, sizeof(SFLIB_INFO));    /* open with full dir paths */
-    fd = csound->FileOpen2(csound, &sf, CSFILE_SND_R, sfname, &sfinfo,
+    fd = csound->FileOpen(csound, &sf, CSFILE_SND_R, sfname, &sfinfo,
                              "SFDIR;SSDIR", CSFTYPE_UNKNOWN_AUDIO, 0);
     if (UNLIKELY(fd == NULL)) {
       /* RWD 5:2001 better to exit in this situation ! */

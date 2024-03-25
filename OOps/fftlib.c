@@ -3505,6 +3505,17 @@ void csoundRealFFT2(CSOUND *csound,
                      void *p, MYFLT *sig){
   CSOUND_FFT_SETUP *setup =
         (CSOUND_FFT_SETUP *) p;
+  
+  if(!setup->p2) {
+     setup->d == FFT_FWD ?
+      csoundRealFFTnp2(csound,
+                     sig,setup->N) :
+      csoundInverseRealFFTnp2(csound,
+                     sig,setup->N);
+     setup->lib = 0;
+     return;
+  }
+
   switch(setup->lib) {
 #if defined(__MACH__)
   case VDSP_LIB:
@@ -3515,20 +3526,11 @@ void csoundRealFFT2(CSOUND *csound,
     pffft_execute(setup,sig);
     break;
   default:
-    if(setup->p2) { 
-    (setup->d == FFT_FWD ?
+    setup->d == FFT_FWD ?
       csoundRealFFT(csound,
                      sig,setup->N) :
       csoundInverseRealFFT(csound,
-                     sig,setup->N));
-    } else {
-     (setup->d == FFT_FWD ?
-      csoundRealFFTnp2(csound,
-                     sig,setup->N) :
-      csoundInverseRealFFTnp2(csound,
-                     sig,setup->N));
-
-    }
+                     sig,setup->N);
     setup->lib = 0;
   }
 }

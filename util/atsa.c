@@ -529,7 +529,7 @@ static int main_anal(CSOUND *csound, char *soundfile, char *ats_outfile,
     void    *fd;
 
     /* open output file */
-    fd = csound->FileOpen2(csound, &outfile, CSFILE_STD, ats_outfile, "wb",
+    fd = csound->FileOpen(csound, &outfile, CSFILE_STD, ats_outfile, "wb",
                           NULL, CSFTYPE_ATS, 0);
     if (UNLIKELY(fd == NULL)) {
       csound->Die(csound, Str("\nCould not open %s for writing, %s\nbye...\n"),
@@ -1487,7 +1487,7 @@ static void residual_analysis(CSOUND *csound, char *file, ATS_SOUND *sound)
     void    *fd, *setup;
 
     memset(&sfinfo, 0, sizeof(SFLIB_INFO));
-    fd = csound->FileOpen2(csound, &sf, CSFILE_SND_R, file, &sfinfo,  "SFDIR;SSDIR",
+    fd = csound->FileOpen(csound, &sf, CSFILE_SND_R, file, &sfinfo,  "SFDIR;SSDIR",
                            CSFTYPE_UNKNOWN_AUDIO, 0);
     if (UNLIKELY(fd == NULL)) {
       csound->Die(csound, Str("atsa: error opening residual file '%s'"), file);
@@ -1502,7 +1502,7 @@ static void residual_analysis(CSOUND *csound, char *file, ATS_SOUND *sound)
     hop = sound->frame_size;
     M = sound->window_size;
     N = residual_get_N(M, ATSA_RES_MIN_FFT_SIZE, ATSA_RES_PAD_FACTOR);
-    setup = csound->RealFFT2Setup(csound, N, FFT_FWD);
+    setup = csound->RealFFTSetup(csound, N, FFT_FWD);
     bufs = (mus_sample_t **) csound->Malloc(csound, 2 * sizeof(mus_sample_t *));
     bufs[0] =
         (mus_sample_t *) csound->Malloc(csound, sflen * sizeof(mus_sample_t));
@@ -1539,7 +1539,7 @@ static void residual_analysis(CSOUND *csound, char *file, ATS_SOUND *sound)
       //smp = filptr - M_2 - 1;
       //time_domain_energy = residual_compute_time_domain_energy(&fft);
       /* take the fft */
-      csound->RealFFT2(csound, setup, fft.data);
+      csound->RealFFT(csound, setup, fft.data);
       residual_compute_band_energy(&fft, band_limits, ATSA_CRITICAL_BANDS + 1,
                                    band_energy, norm);
       //sum = 0.0;
@@ -1819,7 +1819,7 @@ static void compute_residual(CSOUND *csound, mus_sample_t **fil,
     sfinfo.samplerate = file_sampling_rate;
     sfinfo.channels = 2;
     sfinfo.format = AE_SHORT | TYP2SF(TYP_RAW);
-    fd = csound->FileOpen2(csound, &sf, CSFILE_SND_W, output_file, &sfinfo,
+    fd = csound->FileOpen(csound, &sf, CSFILE_SND_W, output_file, &sfinfo,
                           NULL, CSFTYPE_WAVE, 0);
     if (UNLIKELY(fd == NULL)) {
       csound->Die(csound, Str("\nERROR: cannot open file %s for writing\n"),
@@ -2016,7 +2016,7 @@ static ATS_SOUND *tracker(CSOUND *csound, ANARGS *anargs, char *soundfile,
     /* open input file
        we get srate and total_samps in file in anargs */
     memset(&sfinfo, 0, sizeof(SFLIB_INFO));
-    fd = csound->FileOpen2(csound, &sf, CSFILE_SND_R, soundfile, &sfinfo,
+    fd = csound->FileOpen(csound, &sf, CSFILE_SND_R, soundfile, &sfinfo,
                            "SFDIR;SSDIR", CSFTYPE_UNKNOWN_AUDIO, 0);
     if (UNLIKELY(fd == NULL)) {
       csound->ErrorMsg(csound, Str("atsa: cannot open input file '%s': %s"),
@@ -2241,7 +2241,7 @@ static ATS_SOUND *tracker(CSOUND *csound, ANARGS *anargs, char *soundfile,
 
     /* make our fft-struct */
     fft.size = anargs->fft_size;
-    setup = csound->RealFFT2Setup(csound, fft.size, FFT_FWD);
+    setup = csound->RealFFTSetup(csound, fft.size, FFT_FWD);
     fft.rate = anargs->srate;
     fft.data =
         (MYFLT *) csound->Malloc(csound,
@@ -2264,7 +2264,7 @@ static ATS_SOUND *tracker(CSOUND *csound, ANARGS *anargs, char *soundfile,
       /* move file pointer back */
       filptr = filptr - anargs->win_size + anargs->hop_smp;
       /* take the fft */
-      csound->RealFFT2(csound, setup, fft.data);
+      csound->RealFFT(csound, setup, fft.data);
       /* peak detection */
       peaks_size = 0;
       peaks =

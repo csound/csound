@@ -1403,7 +1403,7 @@ static int gen23(FGDATA *ff, FUNC *ftp)
     int     j;
     MYFLT   tmp;
 
-    fd = csound->FileOpen2(csound, &infile, CSFILE_STD, ff->e.strarg, "r",
+    fd = csound->FileOpen(csound, &infile, CSFILE_STD, ff->e.strarg, "r",
                            "SFDIR;SSDIR;INCDIR", CSFTYPE_FLOATS_TEXT, 0);
     if (UNLIKELY(fd == NULL)) {
       return fterror(ff, Str("error opening ASCII file"));
@@ -1629,7 +1629,7 @@ static int gen28(FGDATA *ff, FUNC *ftp)
 
     if (UNLIKELY(ff->flen))
       return fterror(ff, Str("GEN28 requires zero table length"));
-    fd = csound->FileOpen2(csound, &filp, CSFILE_STD, ff->e.strarg, "r",
+    fd = csound->FileOpen(csound, &filp, CSFILE_STD, ff->e.strarg, "r",
                           "SFDIR;SSDIR;INCDIR", CSFTYPE_FLOATS_TEXT, 0);
     if (UNLIKELY(fd == NULL))
       goto gen28err1;
@@ -2929,7 +2929,7 @@ static int gen44(FGDATA *ff, FUNC *ftp)
       strncpy(buff, (char *)(&ff->e.strarg[0]), 79);
     else
       csound->strarg2name(csound, buff, &(ff->e.p[5]), "stiff.", 0);
-    fd = csound->FileOpen2(csound, &filp, CSFILE_STD, buff, "r",
+    fd = csound->FileOpen(csound, &filp, CSFILE_STD, buff, "r",
                            "SFDIR;SSDIR;INCDIR", CSFTYPE_FLOATS_TEXT, 0);
     if (UNLIKELY(fd == NULL))
       return fterror(ff, Str("GEN44: Failed to open file %s\n"), buff);
@@ -3032,7 +3032,7 @@ static int gen49raw(FGDATA *ff, FUNC *ftp)
       mp3dec_uninit(mpa);
       return fterror(ff, mp3dec_error(r));
     }
-    (void)csound->FileOpen2(csound, &fd, CSFILE_FD_R,
+    (void)csound->FileOpen(csound, &fd, CSFILE_FD_R,
                                      sfname, NULL, "SFDIR;SSDIR",
                                      CSFTYPE_UNKNOWN_AUDIO, 0);
     //    fd = open(sfname, O_RDONLY); /* search paths */

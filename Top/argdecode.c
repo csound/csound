@@ -1525,7 +1525,7 @@ PUBLIC int argdecode(CSOUND *csound, int argc, const char **argv_)
             {
               FILE *ind;
               void *fd;
-              fd = csound->FileOpen2(csound, &ind, CSFILE_STD,
+              fd = csound->FileOpen(csound, &ind, CSFILE_STD,
                                      s, "r", NULL, CSFTYPE_OPTIONS, 0);
               if (UNLIKELY(fd == NULL)) {
                 dieu(csound, Str("Cannot open indirection file %s\n"), s);

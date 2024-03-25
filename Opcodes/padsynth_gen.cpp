@@ -550,7 +550,7 @@ static int padsynth_gen(FGDATA *ff, FUNC *ftp) {
     spectrum[complexI].imag(real * std::sin(random_phase));
   };
   spectrum[0].imag(0);
-  csound->RealFFT2(csound, csound->RealFFT2Setup(csound,N,FFT_INV),ftp->ftable);
+  csound->RealFFT(csound, csound->RealFFTSetup(csound,N,FFT_INV),ftp->ftable);
   // Normalize,
   MYFLT maximum = FL(0.0);
   for (int i = 0; i < N; ++i) {
