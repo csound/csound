@@ -2975,7 +2975,8 @@ static int gen49raw(FGDATA *ff, FUNC *ftp)
                                MPADEC_CONFIG_16BIT, MPADEC_CONFIG_LITTLE_ENDIAN,
                                MPADEC_CONFIG_REPLAYGAIN_NONE, TRUE, TRUE, TRUE,
                                0.0 };
-    int     skip              = 0, chan = 0, r, fd;
+    int     skip              = 0, chan = 0, r;
+    FILE* f;
     int p                     = 0;
     char    sfname[1024];
     mpadec_info_t mpainfo;
@@ -3031,15 +3032,15 @@ static int gen49raw(FGDATA *ff, FUNC *ftp)
       mp3dec_uninit(mpa);
       return fterror(ff, mp3dec_error(r));
     }
-    (void)csound->FileOpen2(csound, &fd, CSFILE_FD_R,
-                                     sfname, NULL, "SFDIR;SSDIR",
+    (void)csound->FileOpen2(csound, &f, CSFILE_STD,
+                                     sfname, "rb", "SFDIR;SSDIR",
                                      CSFTYPE_UNKNOWN_AUDIO, 0);
     //    fd = open(sfname, O_RDONLY); /* search paths */
-    if (UNLIKELY(fd < 0)) {
+    if (UNLIKELY(f == NULL)) {
       mp3dec_uninit(mpa);
       return fterror(ff, "sfname");
     }
-    if (UNLIKELY((r = mp3dec_init_file(mpa, fd, 0, FALSE)) != MP3DEC_RETCODE_OK)) {
+    if (UNLIKELY((r = mp3dec_init_file(mpa, f, 0, FALSE)) != MP3DEC_RETCODE_OK)) {
       mp3dec_uninit(mpa);
       return fterror(ff, mp3dec_error(r));
     }

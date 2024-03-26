@@ -69,7 +69,7 @@ int32_t mp3in_cleanup(CSOUND *csound, MP3IN *p)
 int32_t mp3ininit_(CSOUND *csound, MP3IN *p, int32_t stringname)
 {
     char    name[1024];
-    int32_t fd;
+    FILE *f;
     mp3dec_t mpa           = NULL;
     mpadec_config_t config = { MPADEC_CONFIG_FULL_QUALITY, MPADEC_CONFIG_STEREO,
                                MPADEC_CONFIG_16BIT, MPADEC_CONFIG_LITTLE_ENDIAN,
@@ -112,7 +112,7 @@ int32_t mp3ininit_(CSOUND *csound, MP3IN *p, int32_t stringname)
     }
     else strNcpy(name, ((STRINGDAT *)p->iFileCode)->data, 1023);
 
-    if (UNLIKELY(csound->FileOpen2(csound, &fd, CSFILE_FD_R,
+    if (UNLIKELY(csound->FileOpen2(csound, &f, CSFILE_STD,
                                    name, "rb", "SFDIR;SSDIR",
                                    CSFTYPE_OTHER_BINARY, 0) == NULL)) {
       mp3dec_uninit(mpa);
@@ -123,7 +123,7 @@ int32_t mp3ininit_(CSOUND *csound, MP3IN *p, int32_t stringname)
     /* memset(&(p->fdch), 0, sizeof(FDCH)); */
     /* p->fdch.fd = fd; */
     /* fdrecord(csound, &(p->fdch)); */
-    if (UNLIKELY((r = mp3dec_init_file(mpa, fd, 0, FALSE)) != MP3DEC_RETCODE_OK)) {
+    if (UNLIKELY((r = mp3dec_init_file(mpa, f, 0, FALSE)) != MP3DEC_RETCODE_OK)) {
       mp3dec_uninit(mpa);
       return csound->InitError(csound, "%s", mp3dec_error(r));
     }
@@ -264,7 +264,7 @@ int32_t mp3in(CSOUND *csound, MP3IN *p)
 int32_t mp3len_(CSOUND *csound, MP3LEN *p, int32_t stringname)
 {
     char     name[1024];
-    int32_t  fd;
+    FILE     *f;
     mp3dec_t mpa           = NULL;
     mpadec_config_t config = { MPADEC_CONFIG_FULL_QUALITY, MPADEC_CONFIG_STEREO,
                                MPADEC_CONFIG_16BIT, MPADEC_CONFIG_LITTLE_ENDIAN,
@@ -289,24 +289,24 @@ int32_t mp3len_(CSOUND *csound, MP3LEN *p, int32_t stringname)
       else csound->strarg2name(csound, name, p->iFileCode, "soundin.",0);
     }
     else strNcpy(name, ((STRINGDAT *)p->iFileCode)->data, 1023);
-    if (UNLIKELY(csound->FileOpen2(csound, &fd, CSFILE_FD_R,
+    if (UNLIKELY(csound->FileOpen2(csound, &f, CSFILE_STD,
                                    name, "rb", "SFDIR;SSDIR",
                                    CSFTYPE_OTHER_BINARY, 0) == NULL)) {
       mp3dec_uninit(mpa);
       return
         csound->InitError(csound, Str("mp3in: %s: failed to open file"), name);
     }
-    if (UNLIKELY((r = mp3dec_init_file(mpa, fd, 0, FALSE)) != MP3DEC_RETCODE_OK)) {
+    if (UNLIKELY((r = mp3dec_init_file(mpa, f, 0, FALSE)) != MP3DEC_RETCODE_OK)) {
       mp3dec_uninit(mpa);
       return csound->InitError(csound, "%s", mp3dec_error(r));
     }
     if (UNLIKELY((r = mp3dec_get_info(mpa, &mpainfo, MPADEC_INFO_STREAM)) !=
                  MP3DEC_RETCODE_OK)) {
-      close(fd);
+      fclose(f);
       mp3dec_uninit(mpa);
       return csound->InitError(csound, "%s", mp3dec_error(r));
     }
-    close(fd);
+    fclose(f);
     if(!strcmp(csound->GetOpcodeName(&p->h), "mp3len.i"))
       *p->ir = (MYFLT)mpainfo.duration;
     else if(!strcmp(csound->GetOpcodeName(&p->h), "mp3sr.i"))
@@ -442,7 +442,7 @@ static int32_t sinit3_(CSOUND *csound, DATASPACE *p)
     uint32_t size;
     char *name;
     // open file
-    int32_t  fd;
+    FILE  *f;
     int32_t  r;
     mp3dec_t mpa           = NULL;
     mpadec_config_t config = { MPADEC_CONFIG_FULL_QUALITY, MPADEC_CONFIG_STEREO,
@@ -464,7 +464,7 @@ static int32_t sinit3_(CSOUND *csound, DATASPACE *p)
       p->mpa = NULL;
       return csound->InitError(csound, "%s", mp3dec_error(r));
     }
-    if (UNLIKELY(csound->FileOpen2(csound, &fd, CSFILE_FD_R,
+    if (UNLIKELY(csound->FileOpen2(csound, &f, CSFILE_STD,
                                    name, "rb", "SFDIR;SSDIR",
                                    CSFTYPE_OTHER_BINARY, 0) == NULL)) {
       mp3dec_uninit(mpa);
@@ -472,7 +472,7 @@ static int32_t sinit3_(CSOUND *csound, DATASPACE *p)
         csound->InitError(csound, Str("mp3scale: %s: failed to open file"), name);
     }// else
     // csound->Message(csound, Str("mp3scale: open %s\n"), name);
-    if (UNLIKELY((r = mp3dec_init_file(mpa, fd, 0, FALSE)) != MP3DEC_RETCODE_OK)) {
+    if (UNLIKELY((r = mp3dec_init_file(mpa, f, 0, FALSE)) != MP3DEC_RETCODE_OK)) {
       mp3dec_uninit(mpa);
       return csound->InitError(csound, "%s", mp3dec_error(r));
     } // else
@@ -1034,7 +1034,7 @@ static int32_t filinit(CSOUND *csound, LOADER *pp)
     uint32_t size;
     char *name;
     // open file
-    int32_t  fd;
+    FILE  *f;
     int32_t  r;
     mp3dec_t mpa           = NULL;
     mpadec_config_t config = { MPADEC_CONFIG_FULL_QUALITY, MPADEC_CONFIG_STEREO,
@@ -1060,14 +1060,14 @@ static int32_t filinit(CSOUND *csound, LOADER *pp)
       p->error = r;
       return NOTOK;
     }
-    if (UNLIKELY(csound->FileOpen2(csound, &fd, CSFILE_FD_R,
+    if (UNLIKELY(csound->FileOpen2(csound, &f, CSFILE_STD,
                                    name, "rb", "SFDIR;SSDIR",
                                    CSFTYPE_OTHER_BINARY, 0) == NULL)) {
       mp3dec_uninit(mpa);
       p->error = -1;
       return NOTOK;
     }
-    if (UNLIKELY((r = mp3dec_init_file(mpa, fd, 0, TRUE)) != MP3DEC_RETCODE_OK)) {
+    if (UNLIKELY((r = mp3dec_init_file(mpa, f, 0, TRUE)) != MP3DEC_RETCODE_OK)) {
       mp3dec_uninit(mpa);
       p->error = r;
       return NOTOK;
@@ -1130,9 +1130,9 @@ static int32_t filinit(CSOUND *csound, LOADER *pp)
         int32_t byts, pad, i;
         mp3dec_seek(mpa, 0, MP3DEC_SEEK_SAMPLES);
         for(i=0; i < ftbr; i++){
-          byts = read(fd,dat,4);
+          byts = fread(dat,1,4,f);
           pad = dat[2] & 0x02 ? 1 : 0;
-          lseek(fd,(int32_t)fsize + pad - 4, SEEK_CUR);
+          fseek(f,(int32_t)fsize + pad - 4, SEEK_CUR);
           //printf("skip %d pad %d\n", i, pad);
         }
       } else
@@ -1953,7 +1953,7 @@ static int32_t filinit2(CSOUND *csound, LOADER *pp)
     uint32_t size;
     char *name;
     // open file
-    int32_t fd;
+    FILE *f;
     int32_t r;
     mp3dec_t mpa           = NULL;
     mpadec_config_t config = { MPADEC_CONFIG_FULL_QUALITY, MPADEC_CONFIG_STEREO,
@@ -1977,14 +1977,14 @@ static int32_t filinit2(CSOUND *csound, LOADER *pp)
       p->error = r;
       return NOTOK;
     }
-    if (UNLIKELY(csound->FileOpen2(csound, &fd, CSFILE_FD_R,
+    if (UNLIKELY(csound->FileOpen2(csound, &f, CSFILE_STD,
                                    name, "rb", "SFDIR;SSDIR",
                                    CSFTYPE_OTHER_BINARY, 0) == NULL)) {
       mp3dec_uninit(mpa);
       p->error = -1;
       return NOTOK;
     }
-    if (UNLIKELY((r = mp3dec_init_file(mpa, fd, 0, FALSE)) != MP3DEC_RETCODE_OK)) {
+    if (UNLIKELY((r = mp3dec_init_file(mpa, f, 0, FALSE)) != MP3DEC_RETCODE_OK)) {
       mp3dec_uninit(mpa);
       p->error = r;
       return NOTOK;

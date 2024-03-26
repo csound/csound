@@ -1419,6 +1419,8 @@ typedef struct _message_queue_t_ {
     int           (*csoundExitGraphCallback_)(CSOUND *);
     int           (*csoundYieldCallback_)(CSOUND *);
     void          (*cscoreCallback_)(CSOUND *);
+    void*         (*OpenSoundFileCallback_)(CSOUND*, const char*, int, void*);
+    FILE*         (*OpenFileCallback_)(CSOUND*, const char*, const char*);
     void          (*FileOpenCallback_)(CSOUND*, const char*, int, int, int);
     SUBR          last_callback_;
     /* these are not saved on RESET */
