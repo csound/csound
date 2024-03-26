@@ -42,8 +42,8 @@ int32_t stdopc_ModuleInit(CSOUND *csound)
     }
 
     if(UNLIKELY(csound->CreateGlobalVariable(csound,
-        "STDOPC_GLOBALS", sizeof(STDOPCOD_GLOBALS)
-                            != CSOUND_SUCCESS))){
+                                             "STDOPC_GLOBALS", sizeof(STDOPCOD_GLOBALS))
+                            != CSOUND_SUCCESS)){
       csound->ErrorMsg(csound,
                        Str("stdopcod.c: could not allocate globals"));
       return CSOUND_ERROR;
@@ -51,6 +51,7 @@ int32_t stdopc_ModuleInit(CSOUND *csound)
     
     p = (STDOPCOD_GLOBALS*) csound->QueryGlobalVariable(csound,
                                                         "STDOPC_GLOBALS");
+   
     p->csound = csound;
     /* fout.c */
     p->file_opened = (struct fileinTag*) NULL;
