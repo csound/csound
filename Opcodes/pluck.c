@@ -312,7 +312,7 @@ static void waveguideWaveguide(CSOUND *csound,
     wg->excited = 0;
     wg->p       = FL(0.0); /* tuning filter state variable */
     wg->f0      = freq;
-    wg->w0      = 2*M_PI*freq/sr;
+    wg->w0      = 2*PI*freq/sr;
     wg->sr = sr;
 
 #ifdef WG_VERBOSE
