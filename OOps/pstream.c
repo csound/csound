@@ -162,7 +162,7 @@ int32_t pvadsynset(CSOUND *csound, PVADS *p)
     p->outptr = 0;
     p->lastframe = 0;
 /*  p->one_over_sr = (float) CS_ONEDSR; */
-/*  p->pi_over_sr = (float) csound->pidsr; */
+/*  p->pi_over_sr = (float) CS_PIDSR; */
     p->one_over_overlap = (float)(FL(1.0) / p->overlap);
     /* alloc for all oscs;
        in case we can do something with them dynamically, one day */
@@ -224,7 +224,7 @@ static void adsyn_frame(CSOUND *csound, PVADS *p)
       /* kill stuff over Nyquist. Need to worry about vlf values? */
       if (freqs[i] > nyquist)
         amps[i] = FL(0.0);
-      a[i] = FL(2.0) * SIN(freqs[i] * csound->pidsr);
+      a[i] = FL(2.0) * SIN(freqs[i] * CS_PIDSR);
     }
 
     /* we need to interp amplitude, but seems we can avoid doing freqs too,

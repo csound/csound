@@ -757,14 +757,14 @@ MYFLT DLineA_tick(DLineA *p, MYFLT sample)   /*   Take sample, yield sample */
 
 #define make_LipFilt(p) make_BiQuad(p)
 
-void LipFilt_setFreq(CSOUND *csound, LipFilt *p, MYFLT frequency)
+void LipFilt_setFreq(BRASS *p, LipFilt *pp, MYFLT frequency)
 {
     MYFLT coeffs[2];
     coeffs[0] = FL(2.0) * FL(0.997) *
-      (MYFLT)cos(csound->tpidsr * (double)frequency);   /* damping should  */
+      (MYFLT)cos(CS_TPIDSR * (double)frequency);   /* damping should  */
     coeffs[1] = -FL(0.997) * FL(0.997);                 /* change with lip */
-    BiQuad_setPoleCoeffs(p, coeffs);                    /* parameters, but */
-    BiQuad_setGain(*p, FL(0.03));                       /* not yet.        */
+    BiQuad_setPoleCoeffs(pp, coeffs);                    /* parameters, but */
+    BiQuad_setGain(*pp, FL(0.03));                       /* not yet.        */
 }
 
 /*  NOTE:  Here we should add lip tension                 */
@@ -885,7 +885,7 @@ int32_t brass(CSOUND *csound, BRASS *p)
     } /* End of set frequency */
     if (*p->liptension != p->lipT) {
       p->lipT = *p->liptension;
-      LipFilt_setFreq(csound, &p->lipFilter,
+      LipFilt_setFreq(p, &p->lipFilter,
                       p->lipTarget * (MYFLT)pow(4.0,(2.0* p->lipT) -1.0));
     }
 

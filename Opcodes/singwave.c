@@ -415,13 +415,13 @@ int32_t voicform(CSOUND *csound, VOICF *p)
       //      printf("%d: temp=%f ", n, temp);
       temp  += Envelope_tick(&p->noiseEnv) * Noise_tick(csound, &p->noise);
       //      printf("%f\n", temp);
-      lastOutput  = FormSwep_tick(csound, &p->filters[0], temp);
+      lastOutput  = FormSwep_tick((OPDS *) p, &p->filters[0], temp);
       //      printf("%d: output=%f ", lastOutput);
-      lastOutput  = FormSwep_tick(csound, &p->filters[1], lastOutput);
+      lastOutput  = FormSwep_tick((OPDS *) p, &p->filters[1], lastOutput);
       //      printf("%f ", lastOutput);
-      lastOutput  = FormSwep_tick(csound, &p->filters[2], lastOutput);
+      lastOutput  = FormSwep_tick((OPDS *) p, &p->filters[2], lastOutput);
       //      printf("%f ", lastOutput);
-      lastOutput  = FormSwep_tick(csound, &p->filters[3], lastOutput);
+      lastOutput  = FormSwep_tick((OPDS *) p, &p->filters[3], lastOutput);
       //      printf("%f ", lastOutput);
       lastOutput *= p->lastGain;
       //      printf("%f ", lastOutput);

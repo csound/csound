@@ -923,7 +923,7 @@ static int32_t pareq(CSOUND *csound, PAREQ *p)
     uint32_t n, nsmps = CS_KSMPS;
 
     if (*p->fc != p->prv_fc || *p->v != p->prv_v || *p->q != p->prv_q) {
-      double omega = (double)(csound->tpidsr * *p->fc), k, kk, vkk, vk, vkdq, a0;
+      double omega = (double)(CS_TPIDSR * *p->fc), k, kk, vkk, vk, vkdq, a0;
       p->prv_fc = *p->fc; p->prv_v = *p->v; p->prv_q = *p->q;
       switch (p->imode) {
         /* Low Shelf */
@@ -1390,7 +1390,7 @@ static int32_t bqrez(CSOUND *csound, REZZY *p)
     rez    = (double)*rezptr;
 
     if ((p->rezcod == 0) && (p->fcocod == 0)) {
-      theta = fco * (double)csound->tpidsr;
+      theta = fco * (double)CS_TPIDSR;
       sin2 = sin(theta) * 0.5;
       cos2 = cos(theta);
       beta = (rez - sin2) / (rez + sin2);
@@ -1430,7 +1430,7 @@ static int32_t bqrez(CSOUND *csound, REZZY *p)
           rez = (double)rezptr[n];
         }
         if ((p->rezcod == 1) || (p->fcocod == 1)) {
-          theta = fco * (double) csound->tpidsr;
+          theta = fco * (double) CS_TPIDSR;
           sin2 = sin(theta) * 0.5;
           cos2 = cos(theta);
           beta = (rez - sin2) / (rez + sin2);
@@ -1459,7 +1459,7 @@ static int32_t bqrez(CSOUND *csound, REZZY *p)
           rez = (double)rezptr[n];
         }
         if ((p->rezcod == 1) || (p->fcocod == 1)) {
-          theta = fco * (double) csound->tpidsr;
+          theta = fco * (double) CS_TPIDSR;
           sin2  = sin(theta) * 0.5;
           cos2  = cos(theta);
           beta  = (rez - sin2) / (rez + sin2);
@@ -1487,7 +1487,7 @@ static int32_t bqrez(CSOUND *csound, REZZY *p)
           rez = (double)rezptr[n];
         }
         if ((p->rezcod == 1) || (p->fcocod == 1)) {
-          theta = fco * (double) csound->tpidsr;
+          theta = fco * (double) CS_TPIDSR;
           sin2 = sin(theta) * 0.5;
           cos2 = cos(theta);
           beta = (rez - sin2) / (rez + sin2);

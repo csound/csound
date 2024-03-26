@@ -446,8 +446,8 @@ static int32_t oscbnk(CSOUND *csound, OSCBNK *p)
 
      /* VL: min freq cannot be > max freq */
       fmin = fmin < fmax ? fmin : fmax;
-      p->eqo_scl = (fmax - fmin) * csound->tpidsr;
-      p->eqo_ofs = fmin * csound->tpidsr;   /* EQ omega */
+      p->eqo_scl = (fmax - fmin) * CS_TPIDSR;
+      p->eqo_ofs = fmin * CS_TPIDSR;   /* EQ omega */
       p->eql_scl = *(p->args[15]) - (p->eql_ofs= *(p->args[14]));/* EQ level */
       p->eqq_scl = *(p->args[17]) - (p->eqq_ofs= *(p->args[16]));/* EQ Q     */
     }

@@ -878,7 +878,7 @@ static int32_t statevar_process(CSOUND *csound,statevar *p)
     MYFLT fr = (asgfr ? freq[i] : *freq);
     MYFLT rs = (asgrs ? res[i] : *res);
     if (p->oldfreq != fr|| p->oldres != rs) {
-      f = 2.0*sin(fr*(double)csound->pidsr/ostimes);
+      f = 2.0*sin(fr*(double)CS_PIDSR/ostimes);
       q = 1.0/rs;
       lim = ((2.0 - f) *0.05)/ostimes;
       /* csound->Message(csound, "lim: %f, q: %f \n", lim, q); */
@@ -950,7 +950,7 @@ static int32_t fofilter_process(CSOUND *csound,fofilter *p)
     MYFLT dc = asgdc ? dec[i] : *dec;
     if (frq != lfrq || rs != lrs || dc != ldc) {
       lfrq = frq; lrs = rs; ldc = dc;
-      ang = (double)csound->tpidsr*frq;         /* pole angle */
+      ang = (double)CS_TPIDSR*frq;         /* pole angle */
       fsc = sin(ang) - 3.0;                      /* freq scl   */
       rrad1 =  pow(10.0, fsc/(dc*CS_ESR));  /* filter radii */
       rrad2 =  pow(10.0, fsc/(rs*CS_ESR));

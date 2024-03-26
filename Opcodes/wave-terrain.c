@@ -66,7 +66,7 @@ static int32_t wtPerf(CSOUND *csound, WAVETER *p)
     MYFLT krx = *(p->krx), kry = *(p->kry);
     MYFLT sizx = p->sizx, sizy = p->sizy;
     MYFLT theta = p->theta;
-    MYFLT dtpidsr = csound->tpidsr;
+    MYFLT dtpidsr = CS_TPIDSR;
     MYFLT *aout = p->aout;
 
     if (UNLIKELY(offset)) memset(aout, '\0', offset*sizeof(MYFLT));

@@ -562,7 +562,7 @@ typedef struct CORFIL {
     /* pointer to Csound engine and API for externals */
     CSOUND  *csound;
     uint64_t kcounter;
-    MYFLT    esr, sicvt;                  /* local sr */
+    MYFLT    esr, sicvt, pidsr;                  /* local sr */
     MYFLT    onedsr;
     int     overmode;
     unsigned int ksmps;     /* Instrument copy of ksmps */
@@ -606,6 +606,10 @@ typedef struct CORFIL {
 #define CS_ESR       (p->h.insdshead->esr)
 #define CS_ONEDSR    (p->h.insdshead->onedsr)
 #define CS_SICVT     (p->h.insdshead->sicvt)
+#define CS_TPIDSR    (2*p->h.insdshead->pidsr)
+#define CS_PIDSR     (p->h.insdshead->pidsr)
+#define CS_MPIDSR    (-p->h.insdshead->pidsr)
+#define CS_MTPIDSR   (-2*p->h.insdshead->pidsr)
 #define CS_PDS       (p->h.insdshead->pds)
 #define CS_SPIN      (p->h.insdshead->spin)
 #define CS_SPOUT     (p->h.insdshead->spout)

@@ -250,6 +250,7 @@ int init0(CSOUND *csound)
   tp->active++;
   ip->actflg++;
   ip->esr = csound->esr;
+  ip->pidsr = csound->pidsr;
   ip->sicvt = csound->sicvt;
   ip->onedsr = csound->onedsr;
   ip->ksmps = csound->ksmps;
@@ -401,6 +402,7 @@ int insert_event(CSOUND *csound, int insno, EVTBLK *newevtp)
     tp->act_instance = ip->nxtact;
     ip->insno = (int16) insno;
     ip->esr = csound->esr;
+    ip->pidsr = csound->pidsr;
     ip->sicvt = csound->sicvt;
     ip->onedsr = csound->onedsr;
     ip->ksmps = csound->ksmps;
@@ -701,6 +703,7 @@ int insert_midi(CSOUND *csound, int insno, MCHNBLK *chn, MEVENT *mep)
   ip->p2.value     = (MYFLT) (csound->icurTime/csound->esr - csound->timeOffs);
   ip->p3.value     = FL(-1.0);
   ip->esr          = csound->esr;
+  ip->pidsr        = csound->pidsr;
   ip->sicvt        = csound->sicvt;
   ip->onedsr       = csound->onedsr;
   ip->ksmps        = csound->ksmps;
@@ -1305,6 +1308,7 @@ int subinstrset_(CSOUND *csound, SUBINST *p, int instno)
   }
 
   p->ip->esr = CS_ESR;
+  p->ip->pidsr = CS_PIDSR;
   p->ip->sicvt = CS_SICVT;
   p->ip->onedsr = CS_ONEDSR;
   p->ip->ksmps = CS_KSMPS;
@@ -1478,7 +1482,7 @@ int useropcdset(CSOUND *csound, UOPCODE *p)
   unsigned int instno;
   unsigned int i;
   OPCODINFO    *inm;
-  OPCOD_IOBUFS *buf = NULL;
+  OPCOD_IOBUFS *buf = p->buf;
   /* look up the 'fake' instr number, and opcode name */
   inm = (OPCODINFO*) p->h.optext->t.oentry->useropinfo;
   instno = inm->instno;
@@ -1523,11 +1527,12 @@ int useropcdset(CSOUND *csound, UOPCODE *p)
     /* store parameters of input and output channels, and parent ip */
     buf->uopcode_struct = (void*) p;
     buf->parent_ip = p->parent_ip = parent_ip;
-  }
+  } else
 
   /* copy parameters from the caller instrument into our subinstrument */
   lcurip = p->ip;
   lcurip->esr = CS_ESR;
+  lcurip->pidsr = CS_PIDSR;
   lcurip->sicvt = CS_SICVT;
   lcurip->onedsr = CS_ONEDSR;
   lcurip->ksmps = CS_KSMPS;
@@ -1844,6 +1849,7 @@ int32_t oversampleset(CSOUND *csound, OVSMPLE *p) {
      
   l_sr = CS_ESR*os;
   CS_ESR = l_sr;
+  CS_PIDSR = M_PI/l_sr;
   CS_ONEDSR = 1./l_sr;
   CS_SICVT = (MYFLT) FMAXLEN / CS_ESR;
   CS_EKR = CS_ESR/CS_KSMPS;
@@ -1924,6 +1930,7 @@ int32_t undersampleset(CSOUND *csound, OVSMPLE *p) {
   CS_ONEDKSMPS = FL(1.0)/lksmps;
   l_sr = CS_ESR*onedos;
   CS_ESR = l_sr;
+  CS_PIDSR = M_PI/l_sr;
   CS_ONEDSR = 1./l_sr;
   CS_SICVT = (MYFLT) FMAXLEN / CS_ESR;
   CS_EKR = CS_ESR/CS_KSMPS;

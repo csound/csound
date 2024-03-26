@@ -83,7 +83,7 @@ void FormSwep_setTargets(FormSwep *p, MYFLT aFreq, MYFLT aReson, MYFLT aGain)
     p->sweepState  = FL(0.0);
 }
 
-MYFLT FormSwep_tick(CSOUND *csound,
+MYFLT FormSwep_tick(OPDS *pp,
                     FormSwep *p, MYFLT sample) /* Perform Filter Operation */
 {
     MYFLT temp;
@@ -104,7 +104,7 @@ MYFLT FormSwep_tick(CSOUND *csound,
       }
       p->poleCoeffs[1] = - (p->currentReson * p->currentReson);
       p->poleCoeffs[0] = FL(2.0) * p->currentReson *
-        COS(csound->tpidsr * p->currentFreq);
+        COS(2*pp->insdshead->pidsr * p->currentFreq);
     }
 
     temp = p->currentGain * sample;
@@ -278,7 +278,7 @@ int32_t Moog1(CSOUND *csound, MOOG1 *p)
 #ifdef DEBUG
       csound->Message(csound, "TwoZero0_tick: %f\n", output);
 #endif
-      output = FormSwep_tick(csound, &p->filters[0], output);
+      output = FormSwep_tick((OPDS *)p, &p->filters[0], output);
 #ifdef DEBUG
       csound->Message(csound, "Filters0_tick: %f\n", output);
 #endif
@@ -286,7 +286,7 @@ int32_t Moog1(CSOUND *csound, MOOG1 *p)
 #ifdef DEBUG
       csound->Message(csound, "TwoZero1_tick: %f\n", output);
 #endif
-      output = FormSwep_tick(csound, &p->filters[1], output);
+      output = FormSwep_tick((OPDS *)p, &p->filters[1], output);
 #ifdef DEBUG
       csound->Message(csound, "Filter2_tick: %f\n", output);
 #endif

@@ -213,7 +213,7 @@ static int32_t distset(CSOUND *csound, DIST *p)
     p->midphs = p->maxphs * FL(0.5);
     p->begval = ftp->ftable[0];
     p->endval = ftp->ftable[ftp->flen];
-    b = 2.0 - cos((double) (*p->ihp * csound->tpidsr)); /*  and rms coefs */
+    b = 2.0 - cos((double) (*p->ihp * CS_TPIDSR)); /*  and rms coefs */
     p->c2 = b - sqrt(b * b - 1.0);
     p->c1 = 1.0 - p->c2;
     p->min_rms = csound->e0dbfs * DV32768;

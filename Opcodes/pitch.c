@@ -67,7 +67,7 @@ int32_t pitchset(CSOUND *csound, PITCH *p)  /* pitch - uses spectra technology *
     MYFLT   weight, weightsum, dbthresh, ampthresh;
 
                                 /* RMS of input signal */
-    b = 2.0 - cos(10.0*(double)csound->tpidsr);
+    b = 2.0 - cos(10.0*(double)CS_TPIDSR);
     p->c2 = b - sqrt(b * b - 1.0);
     p->c1 = 1.0 - p->c2;
     if (!*p->istor) p->prvq = 0.0;

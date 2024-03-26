@@ -915,11 +915,11 @@ static int32_t resony(CSOUND *csound, RESONY *p)
       for (j = 0; j < loop; j++) {
         if (flag)                     /* linear separation in hertz */
           cosf = (MYFLT) cos((cf = (double) (*p->kcf * sep * j))
-                             * (double) csound->tpidsr);
+                             * (double) CS_TPIDSR);
         else                          /* logarithmic separation in octaves */
           cosf = (MYFLT) cos((cf = (double) (*p->kcf * pow(2.0, sep * j)))
-                             * (double) csound->tpidsr);
-        c3 = EXP(*p->kbw * (cf / *p->kcf) * csound->mtpdsr);
+                             * (double) CS_TPIDSR);
+        c3 = EXP(*p->kbw * (cf / *p->kcf) * CS_MTPIDSR);
         c3p1 = c3 + FL(1.0);
         c3t4 = c3 * FL(4.0);
         c2 = c3t4 * cosf / c3p1;
