@@ -1974,7 +1974,9 @@ if (engineState != &csound->engineState) {
 }
 
 #ifdef EMSCRIPTEN
-void sanitize(CSOUND *csound) {}
+//TODO: how to handle both emscripten and wasm-sdk builds?
+//void sanitize(CSOUND *csound) {}
+extern void sanitize(CSOUND *csound);
 #else
 extern void sanitize(CSOUND *csound);
 #endif

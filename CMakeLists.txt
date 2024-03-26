@@ -23,6 +23,10 @@ if (USE_VCPKG)
         set(VCPKG_CHAINLOAD_TOOLCHAIN_FILE ${CMAKE_CURRENT_SOURCE_DIR}/vcpkg/scripts/toolchains/mingw.cmake)
         set(VCPKG_CMAKE_SYSTEM_NAME MinGW)
         set(VCPKG_TARGET_ARCHITECTURE x64)
+    elseif (CMAKE_SYSTEM_NAME STREQUAL "Emscripten")
+        set(VCPKG_TARGET_TRIPLET "wasm32-emscripten")
+        set(VCPKG_CHAINLOAD_TOOLCHAIN_FILE ${EMSDK}/upstream/emscripten/cmake/Modules/Platform/Emscripten.cmake)
+        set(VCPKG_CMAKE_SYSTEM_NAME Emscripten)
     elseif (WIN32)
         set(VCPKG_TARGET_TRIPLET "x64-windows-static")
     elseif(APPLE)
@@ -870,9 +874,11 @@ set(stdopcod_SRCS
     Opcodes/ugsc.c
     Opcodes/wave-terrain.c
     Opcodes/wterrain2.c
-    Opcodes/stdopcod.c
-    Opcodes/socksend.c
-    Opcodes/sockrecv.c)
+    Opcodes/stdopcod.c)
+
+if (NOT CMAKE_SYSTEM_NAME STREQUAL "Emscripten")
+    list(APPEND stdopcod_SRCS Opcodes/socksend.c Opcodes/sockrecv.c)
+endif()
 
 set(cs_pvs_ops_SRCS
     Opcodes/ifd.c
