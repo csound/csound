@@ -100,7 +100,7 @@ int32_t cpupercent_init(CSOUND *csound, CPUMETER* p)
     csound->AuxAlloc(csound,k*sizeof(CPU_t), &(p->cpu_a));
     p->cpus = (CPU_t *) p->cpu_a.auxp;
     k = cpupercent_renew(csound, p);
-    p->cnt = (p->trig = (int32_t)(*p->itrig * csound->GetSr(csound)));
+    p->cnt = (p->trig = (int32_t)(*p->itrig * CS_ESR));
     // Would it be better to add a deinit process so the closing happens in perf?
     //csound->CreateFileHandle(csound, &p->fp, CSFILE_STD, "/proc/stat");
     csound->RegisterDeinitCallback(csound, (void *) p, deinit_cpupercent);

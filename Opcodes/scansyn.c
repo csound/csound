@@ -402,7 +402,7 @@ static int32_t scsnu_init(CSOUND *csound, PSCSNU *p)
       p->rate = 0;
     }
     else
-      p->rate = (int32_t)(*p->i_rate * csound->GetSr(csound));
+      p->rate = (int32_t)(*p->i_rate * CS_ESR);
 
       /* Initialize index */
     p->idx = 0;
@@ -637,7 +637,7 @@ static int32_t scsns_init(CSOUND *csound, PSCSNS *p)
     /* Reset oscillator phase */
     p->phs = FL(0.0);
     /* Oscillator ratio */
-    p->fix = (MYFLT)p->tlen*(1.0/csound->GetSr(csound));
+    p->fix = (MYFLT)p->tlen*(1.0/CS_ESR);
     return OK;
 }
 

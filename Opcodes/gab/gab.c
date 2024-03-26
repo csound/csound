@@ -533,7 +533,7 @@ static int32_t adsynt2(CSOUND *csound,ADSYNT2 *p)
       amp2 = prevAmp[c];
       amp = amptbl[c] * amp0;
       cps = freqtbl[c] * cps0;
-      inc = (int32) (cps * csound->sicvt);
+      inc = (int32) (cps * CS_SICVT);
       phs = lphs[c];
       ampIncr = (amp - amp2) * CS_ONEDKSMPS;
       for (n=offset; n<nsmps; n++) {

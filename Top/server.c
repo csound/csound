@@ -110,7 +110,7 @@ static uintptr_t udp_recv(void *pdata){
   int sock = 0;
   int received, cont = 0;
   char *start = orchestra;
-  size_t timout = (size_t) lround(1000/csound->GetKr(csound));
+  size_t timout = (size_t) lround(1000/csoundGetKr(csound));
 
   csound->Message(csound, Str("UDP server started on port %d\n"),port);
   while (p->status) {

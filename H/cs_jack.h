@@ -1,5 +1,5 @@
 /*
-    .h:
+    cs_jack.h:
 
     Copyright (C) 2008 by  Cesare Marilungo
 
@@ -66,4 +66,5 @@ typedef struct RtJackGlobals_ {
     int     xrunFlag;                   /* non-zero if an xrun has occured  */
     jack_client_t   *listclient;
     int outDevNum, inDevNum;            /* select devs by number */
+    MYFLT sr;
 } RtJackGlobals;

@@ -71,7 +71,7 @@ int32_t oscils_set(CSOUND *csound, OSCILS *p)
     iflg = (int32_t) (*(p->iflg) + FL(0.5)) & 0x07; /* check flags */
     if (UNLIKELY(iflg & 1)) return OK;          /* skip init, nothing to do */
     p->use_double = (iflg & 2 ? 1 : 0);         /* use doubles internally */
-    init_sine_gen((double)*(p->iamp), (double)(*(p->icps) * csound->tpidsr),
+    init_sine_gen((double)*(p->iamp), (double)(*(p->icps) * CS_TPIDSR),
                   (double)(*(p->iphs) * TWOPI_F),
                    &(p->xd), &(p->cd), &(p->vd));
     if (!(p->use_double)) {

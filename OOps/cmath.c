@@ -395,7 +395,7 @@ int32_t aexprndi(CSOUND *csound, PRANDI *p)
     cpsp = p->xcps;
     ampp = p->xamp;
     ar = p->ar;
-    inc = (int32_t)(cpsp[0] * csound->sicvt);
+    inc = (int32_t)(cpsp[0] * CS_SICVT);
     if (UNLIKELY(offset)) memset(ar, '\0', offset*sizeof(MYFLT));
     if (UNLIKELY(early)) {
       nsmps -= early;
@@ -409,7 +409,7 @@ int32_t aexprndi(CSOUND *csound, PRANDI *p)
         ar[n] = (p->num1 + (MYFLT)phs * p->dfdmax) * ampp[0];
       phs += inc;                                /* phs += inc       */
       if (p->cpscod)
-        inc = (int32_t)(cpsp[n] * csound->sicvt);  /*   (nxt inc)      */
+        inc = (int32_t)(cpsp[n] * CS_SICVT);  /*   (nxt inc)      */
       if (UNLIKELY(phs >= MAXLEN)) {             /* when phs o'flows */
         phs &= PHMASK;
         p->num1 = p->num2;
@@ -553,7 +553,7 @@ int32_t agaussi(CSOUND *csound, PRANDI *p)
     cpsp = p->xcps;
     ampp = p->xamp;
     ar = p->ar;
-    inc = (int32_t)(*cpsp * csound->sicvt);
+    inc = (int32_t)(*cpsp * CS_SICVT);
     if (UNLIKELY(offset)) memset(ar, '\0', offset*sizeof(MYFLT));
     if (UNLIKELY(early)) {
       nsmps -= early;
@@ -567,7 +567,7 @@ int32_t agaussi(CSOUND *csound, PRANDI *p)
         ar[n] = (p->num1 + (MYFLT)phs * p->dfdmax) * ampp[0];
       phs += inc;                                /* phs += inc       */
       if (p->cpscod)
-        inc = (int32_t)(cpsp[n] * csound->sicvt);  /*   (nxt inc)      */
+        inc = (int32_t)(cpsp[n] * CS_SICVT);  /*   (nxt inc)      */
       if (UNLIKELY(phs >= MAXLEN)) {             /* when phs o'flows */
         phs &= PHMASK;
         p->num1 = p->num2;
@@ -651,7 +651,7 @@ int32_t acauchyi(CSOUND *csound, PRANDI *p)
     cpsp = p->xcps;
     ampp = p->xamp;
     ar = p->ar;
-    inc = (int32_t)(*cpsp * csound->sicvt);
+    inc = (int32_t)(*cpsp * CS_SICVT);
     if (UNLIKELY(offset)) memset(ar, '\0', offset*sizeof(MYFLT));
     if (UNLIKELY(early)) {
       nsmps -= early;
@@ -665,7 +665,7 @@ int32_t acauchyi(CSOUND *csound, PRANDI *p)
         ar[n] = (p->num1 + (MYFLT)phs * p->dfdmax) * ampp[0];
       phs += inc;                                /* phs += inc       */
       if (p->cpscod)
-        inc = (int32_t)(cpsp[n] * csound->sicvt);  /*   (nxt inc)      */
+        inc = (int32_t)(cpsp[n] * CS_SICVT);  /*   (nxt inc)      */
       if (UNLIKELY(phs >= MAXLEN)) {             /* when phs o'flows */
         phs &= PHMASK;
         p->num1 = p->num2;

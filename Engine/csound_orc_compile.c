@@ -962,6 +962,9 @@ INSTRTXT *create_instrument(CSOUND *csound, TREE *root,
   /* same for kr */
   var = csoundCreateVariable(csound, csound->typePool, rType, "kr", NULL);
   csoundAddVariable(csound, ip->varPool, var);
+  /* same for sr */
+  var = csoundCreateVariable(csound, csound->typePool, rType, "sr", NULL);
+  csoundAddVariable(csound, ip->varPool, var);
 
   /* Maybe should do this assignment at end when instr is setup?
    * Note: look into how "instr 4,5,6,8" is handled, i.e. if copies

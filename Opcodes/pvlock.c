@@ -1407,7 +1407,7 @@ static int32_t sprocess3(CSOUND *csound, DATASPACE *p)
     p->cnt = cnt;
     p->curframe = curframe;
     p->pos = spos;
-    //printf("%f s  \n", tstamp/csound->GetSr(csound));
+    //printf("%f s  \n", tstamp/CS_ESR);
     p->tstamp = tstamp + incrt;
     p->incr = incrt;
     return OK;
@@ -1626,7 +1626,7 @@ typedef struct amfm {
 
 int32_t am_fm_init(CSOUND *csound, AMFM *p) {
     p->ph = FL(0.0);
-    p->scal = csound->GetSr(csound)/(2*PI);
+    p->scal = CS_ESR/(2*PI);
     return OK;
 }
 

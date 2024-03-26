@@ -428,13 +428,13 @@ static int32_t SfPlay_set(CSOUND *csound, SFPLAY *p)
             if (flag) {
               freq = orgfreq * pow(2.0, ONETWELTH * tuneCorrection);
               p->si[spltNum]= (freq/(orgfreq*orgfreq))*
-                               sample->dwSampleRate*csound->onedsr;
+                               sample->dwSampleRate*CS_ONEDSR;
             }
             else {
               freq = orgfreq*
                 pow(2.0, ONETWELTH * tuneCorrection)*
                 pow(2.0, ONETWELTH * (split->scaleTuning*0.01) * (nm-orgkey));
-              p->si[spltNum]= (freq/orgfreq) * sample->dwSampleRate*csound->onedsr;
+              p->si[spltNum]= (freq/orgfreq) * sample->dwSampleRate*CS_ONEDSR;
             }
               ;
             attenuation = (MYFLT) (layer->initialAttenuation +
@@ -784,12 +784,12 @@ static int32_t SfPlayMono_set(CSOUND *csound, SFPLAYMONO *p)
             if (flag) {
               freq = orgfreq * pow(2.0, ONETWELTH * tuneCorrection);
               p->si[spltNum]= (freq/(orgfreq*orgfreq))*
-                               sample->dwSampleRate*csound->onedsr;
+                               sample->dwSampleRate*CS_ONEDSR;
             }
             else {
               freq = orgfreq * pow(2.0, ONETWELTH * tuneCorrection) *
                 pow( 2.0, ONETWELTH* (split->scaleTuning*0.01) * (nn-orgkey));
-              p->si[spltNum]= (freq/orgfreq) * sample->dwSampleRate*csound->onedsr;
+              p->si[spltNum]= (freq/orgfreq) * sample->dwSampleRate*CS_ONEDSR;
             }
             p->attenuation[spltNum] =
               POWER(FL(2.0), (-FL(1.0)/FL(60.0)) * (layer->initialAttenuation +
@@ -1047,12 +1047,12 @@ static int32_t SfInstrPlay_set(CSOUND *csound, SFIPLAY *p)
           if (flag) {
             freq = orgfreq * pow(2.0, ONETWELTH * tuneCorrection);
             p->si[spltNum] = (freq/(orgfreq*orgfreq))*
-                              sample->dwSampleRate*csound->onedsr;
+                              sample->dwSampleRate*CS_ONEDSR;
           }
           else {
             freq = orgfreq * pow(2.0, ONETWELTH * tuneCorrection)
               * pow( 2.0, ONETWELTH* (split->scaleTuning*0.01)*(nn-orgkey));
-            p->si[spltNum] = (freq/orgfreq)*(sample->dwSampleRate*csound->onedsr);
+            p->si[spltNum] = (freq/orgfreq)*(sample->dwSampleRate*CS_ONEDSR);
           }
           attenuation = (MYFLT) (split->initialAttenuation);
           attenuation = POWER(FL(2.0), (-FL(1.0)/FL(60.0)) * attenuation) *
@@ -1323,12 +1323,12 @@ static int32_t SfInstrPlayMono_set(CSOUND *csound, SFIPLAYMONO *p)
           if (flag) {
             freq = orgfreq * pow(2.0, ONETWELTH * tuneCorrection);
             p->si[spltNum] = (freq/(orgfreq*orgfreq))*
-                              sample->dwSampleRate*csound->onedsr;
+                              sample->dwSampleRate*CS_ONEDSR;
           }
           else {
             freq = orgfreq * pow(2.0, ONETWELTH * tuneCorrection)
               * pow( 2.0, ONETWELTH* (split->scaleTuning*0.01) * (nn-orgkey));
-            p->si[spltNum] = (freq/orgfreq)*(sample->dwSampleRate*csound->onedsr);
+            p->si[spltNum] = (freq/orgfreq)*(sample->dwSampleRate*CS_ONEDSR);
           }
           p->attenuation[spltNum] = (MYFLT) pow(2.0, (-1.0/60.0)*
                                                 split->initialAttenuation)
@@ -2400,12 +2400,12 @@ static int32_t sflooper_init(CSOUND *csound, sflooper *p)
             if (*p->iflag) {
               freq = orgfreq * pow(2.0, ONETWELTH * tuneCorrection);
               p->freq[spltNum]= (freq/(orgfreq*orgfreq))*
-                               sample->dwSampleRate*csound->onedsr;
+                               sample->dwSampleRate*CS_ONEDSR;
             }
             else {
               freq = orgfreq * pow(2.0, ONETWELTH * tuneCorrection) *
                 pow(2.0, ONETWELTH * (split->scaleTuning*0.01) * (notnum-orgkey));
-              p->freq[spltNum]= (freq/orgfreq) * sample->dwSampleRate*csound->onedsr;
+              p->freq[spltNum]= (freq/orgfreq) * sample->dwSampleRate*CS_ONEDSR;
             }
 
             attenuation = (MYFLT) (layer->initialAttenuation +

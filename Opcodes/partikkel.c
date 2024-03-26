@@ -483,8 +483,8 @@ static int32_t schedule_grain(CSOUND *csound, PARTIKKEL *p, NODE *node, int32 n,
             curwav->gain *= normalize;
         }
 
-        curwav->delta = startfreq*csound->onedsr;
-        enddelta = endfreq*csound->onedsr;
+        curwav->delta = startfreq*CS_ONEDSR;
+        enddelta = endfreq*CS_ONEDSR;
 
         if (i != WAV_TRAINLET) {
             /* set wavphase to samplepos parameter */
@@ -496,7 +496,7 @@ static int32_t schedule_grain(CSOUND *csound, PARTIKKEL *p, NODE *node, int32 n,
         }
         /* place grain between samples. this is especially important to make
          * high frequency synchronous grain streams sounds right */
-        curwav->phase += phase_corr*startfreq*csound->onedsr;
+        curwav->phase += phase_corr*startfreq*CS_ONEDSR;
 
         /* clamp phase in case it's out of bounds */
         curwav->phase = curwav->phase > 1.0 ? 1.0 : curwav->phase;
@@ -652,7 +652,7 @@ static int32_t schedule_grains(CSOUND *csound, PARTIKKEL *p)
 
         if (p->grainfreq_arate)
             grainfreq = fabs(p->grainfreq[n]);
-        p->graininc = grainfreq*csound->onedsr;
+        p->graininc = grainfreq*CS_ONEDSR;
         p->grainphase += p->graininc;
     }
     return OK;

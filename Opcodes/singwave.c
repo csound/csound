@@ -96,7 +96,7 @@ static int32_t make_Modulatr(CSOUND *csound,Modulatr *p, MYFLT *i)
 }
 
 #define Modulatr_setVibFreq(p,vibFreq)  \
-        (p.v_rate = vibFreq * (MYFLT)p.wave->flen*csound->onedsr)
+        (p.v_rate = vibFreq * (MYFLT)p.wave->flen*CS_ONEDSR)
 #define Modulatr_setVibAmt(p,vibAmount) (p.vibAmt = vibAmount)
 
 static MYFLT Modulatr_tick(CSOUND *csound, Modulatr *p)
@@ -152,7 +152,7 @@ static void SingWave_setFreq(CSOUND *csound, SingWave *p, MYFLT aFreq)
 {
     MYFLT temp = p->rate;
 
-    p->rate = (MYFLT)p->wave->flen * aFreq * csound->onedsr;
+    p->rate = (MYFLT)p->wave->flen * aFreq * CS_ONEDSR;
     temp -= p->rate;
     temp = FABS(temp);
     Envelope_setTarget(&p->pitchEnvelope, p->rate);
@@ -331,7 +331,7 @@ int32_t voicformset(CSOUND *csound, VOICF *p)
       return NOTOK;
     Envelope_setRate(csound, &(p->voiced.envelope), FL(0.001));
     Envelope_setTarget(&(p->voiced.envelope), FL(0.0));
-
+    p->voiced.h = p->h;
     make_Noise(p->noise);
 
     for (i=0; i<4; i++) {
@@ -415,13 +415,13 @@ int32_t voicform(CSOUND *csound, VOICF *p)
       //      printf("%d: temp=%f ", n, temp);
       temp  += Envelope_tick(&p->noiseEnv) * Noise_tick(csound, &p->noise);
       //      printf("%f\n", temp);
-      lastOutput  = FormSwep_tick(csound, &p->filters[0], temp);
+      lastOutput  = FormSwep_tick((OPDS *) p, &p->filters[0], temp);
       //      printf("%d: output=%f ", lastOutput);
-      lastOutput  = FormSwep_tick(csound, &p->filters[1], lastOutput);
+      lastOutput  = FormSwep_tick((OPDS *) p, &p->filters[1], lastOutput);
       //      printf("%f ", lastOutput);
-      lastOutput  = FormSwep_tick(csound, &p->filters[2], lastOutput);
+      lastOutput  = FormSwep_tick((OPDS *) p, &p->filters[2], lastOutput);
       //      printf("%f ", lastOutput);
-      lastOutput  = FormSwep_tick(csound, &p->filters[3], lastOutput);
+      lastOutput  = FormSwep_tick((OPDS *) p, &p->filters[3], lastOutput);
       //      printf("%f ", lastOutput);
       lastOutput *= p->lastGain;
       //      printf("%f ", lastOutput);

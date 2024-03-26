@@ -559,6 +559,8 @@ extern "C" {
     int     sampleFormat;
     /** sample rate in Hz */
     float   sampleRate;
+    /** ksmps */
+    int ksmps;
   } csRtAudioParams;
 
   typedef struct RTCLOCK_S {

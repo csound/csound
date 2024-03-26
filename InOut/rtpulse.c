@@ -99,7 +99,7 @@ static int pulse_playopen(CSOUND *csound, const csRtAudioParams *parm)
 
     pulse = (pulse_params *) csound->Malloc(csound, sizeof(pulse_params));
     *(csound->GetRtPlayUserData(csound))  = (void *) pulse;
-    pulse->spec.rate = csound->GetSr(csound);
+    pulse->spec.rate = parm->sampleRate;
     pulse->spec.channels = csound->GetNchnls(csound);
     pulse->spec.format = PA_SAMPLE_FLOAT32;
     pulse->buf =
@@ -201,7 +201,7 @@ static int pulse_recopen(CSOUND *csound, const csRtAudioParams *parm)
     int pulserror;
     pulse = (pulse_params *) csound->Malloc(csound, sizeof(pulse_params));
     *(csound->GetRtRecordUserData(csound))  = (void *) pulse;
-    pulse->spec.rate = csound->GetSr(csound);
+    pulse->spec.rate = parm->sampleRate;
     pulse->spec.channels = csound->GetNchnls_i(csound);
     pulse->spec.format = PA_SAMPLE_FLOAT32;
     pulse->buf =

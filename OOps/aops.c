@@ -1011,15 +1011,15 @@ int32_t ftlptim(CSOUND *csound, EVAL *p)
 {
   FUNC    *ftp;
 
-  if (UNLIKELY((ftp = csound->FTnp2Finde(csound, p->a)) == NULL))
-    return NOTOK;
-  if (LIKELY(ftp->loopmode1))
-    *p->r = ftp->begin1 * csound->onedsr;
-  else {
-    *p->r = FL(0.0);
-    csound->Warning(csound, Str("non-looping sample"));
-  }
-  return OK;
+    if (UNLIKELY((ftp = csound->FTnp2Finde(csound, p->a)) == NULL))
+      return NOTOK;
+    if (LIKELY(ftp->loopmode1))
+      *p->r = ftp->begin1 * CS_ONEDSR;
+    else {
+      *p->r = FL(0.0);
+      csound->Warning(csound, Str("non-looping sample"));
+    }
+    return OK;
 }
 
 int32_t numsamp(CSOUND *csound, EVAL *p)        /***** nsamp by G.Maldonado ****/

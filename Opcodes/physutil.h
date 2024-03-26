@@ -177,9 +177,10 @@ typedef struct ADSR {
     MYFLT       decayRate;
     MYFLT       sustainLevel;
     MYFLT       releaseRate;
+    MYFLT       sr;
 } ADSR;
 
-void make_ADSR(ADSR*);
+void make_ADSR(ADSR*, MYFLT sr);
 void dest_ADSR(ADSR*);
 void ADSR_keyOn(ADSR*);
 void ADSR_keyOff(ADSR*);

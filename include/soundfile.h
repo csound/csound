@@ -275,7 +275,5 @@ extern "C" {
   const char *sflib_strerror(void *);  
 #ifdef __cplusplus
 }
-#endif
-
-  
+#endif  
 #endif /* _SOUNDFILE_H_ */

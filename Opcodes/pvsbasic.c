@@ -155,7 +155,7 @@ static int32_t pvsinit(CSOUND *csound, PVSINI *p)
       for (i = 0; i < N + 2; i += 2) {
         bframe[i+n*NB] = FL(0.0);
         bframe[i+n*NB + 1] =
-          (n<offset || n>nsmps-early ? FL(0.0) :(i >>1) * N * csound->onedsr);
+          (n<offset || n>nsmps-early ? FL(0.0) :(i >>1) * N * CS_ONEDSR);
       }
   }
   else {
@@ -166,7 +166,7 @@ static int32_t pvsinit(CSOUND *csound, PVSINI *p)
     bframe = (float *) p->fout->frame.auxp;
     for (i = 0; i < N + 2; i += 2) {
       //bframe[i] = 0.0f;
-      bframe[i + 1] = (i >>1) * N * csound->onedsr;
+      bframe[i + 1] = (i >>1) * N * CS_ONEDSR;
     }
   }
   p->lastframe = 0;
@@ -1082,7 +1082,7 @@ static int32_t pvsoscset(CSOUND *csound, PVSOSC *p)
     for (n=0; n<nsmps; n++)
       for (i = 0; i < NB; i++) {
         bframe[i+NB*n].re = FL(0.0);
-        bframe[i+NB*n].im = (n<offset ? FL(0.0) : i * N * csound->onedsr);
+        bframe[i+NB*n].im = (n<offset ? FL(0.0) : i * N * CS_ONEDSR);
       }
     return OK;
 #endif
@@ -1097,7 +1097,7 @@ static int32_t pvsoscset(CSOUND *csound, PVSOSC *p)
       bframe = (float *) p->fout->frame.auxp;
       for (i = j = 0; i < N + 2; i += 2, j++) {
         //bframe[i] = 0.0f;
-        bframe[i + 1] = j * N * csound->onedsr;
+        bframe[i + 1] = j * N * CS_ONEDSR;
       }
       p->lastframe = 1;
       p->incr = (MYFLT)CS_KSMPS/p->fout->overlap;
@@ -1897,9 +1897,9 @@ static int32_t pvsshift(CSOUND *csound, PVSSHIFT *p)
 {
   int32_t    i, chan, newchan, N = p->fout->N;
   MYFLT   pshift = (MYFLT) *p->kshift;
-  int32_t     lowest = abs((int32_t) (*p->lowest * N * csound->onedsr));
+  int32_t     lowest = abs((int32_t) (*p->lowest * N * CS_ONEDSR));
   float   max = 0.0f;
-  int32_t     cshift = (int32_t) (pshift * N * csound->onedsr);
+  int32_t     cshift = (int32_t) (pshift * N * CS_ONEDSR);
   int32_t     keepform = (int32_t) *p->keepform;
   float   g = (float) *p->gain;
   float   *fin = (float *) p->fin->frame.auxp;
@@ -2113,7 +2113,7 @@ static int32_t pvswarp(CSOUND *csound, PVSWARP *p)
   float   max = 0.0f;
   MYFLT   pscal = FABS(*p->kscal);
   MYFLT   pshift = (*p->kshift);
-  int32_t     cshift = (int32_t) (pshift * N * csound->onedsr);
+  int32_t     cshift = (int32_t) (pshift * N * CS_ONEDSR);
   int32_t     keepform = (int32_t) *p->keepform;
   float   g = (float) *p->gain;
   float   *fin = (float *) p->fin->frame.auxp;
@@ -2121,7 +2121,7 @@ static int32_t pvswarp(CSOUND *csound, PVSWARP *p)
   MYFLT   *fenv = (MYFLT *) p->fenv.auxp;
   MYFLT   *ceps = (MYFLT *) p->ceps.auxp;
   float sr = CS_ESR, binf;
-  int32_t lowest =  abs((int32_t) (*p->klowest * N * csound->onedsr));;
+  int32_t lowest =  abs((int32_t) (*p->klowest * N * CS_ONEDSR));;
   int32_t coefs = (int32_t) *p->coefs;
 
   lowest = lowest ? (lowest > N / 2 ? N / 2 : lowest << 1) : 2;

@@ -106,7 +106,7 @@ static int32_t lag0_init_no_initial_value(CSOUND *csound, LAG0 *p) {
     p->lag = -1;
     p->started = 0;
     p->b1 = FL(0.0);
-    p->sr = csound->GetKr(csound);
+    p->sr = CS_EKR;
     p->y1 = 0;
     return OK;
 }
@@ -117,7 +117,7 @@ static int32_t lag0_init_initial_value(CSOUND *csound, LAG0 *p) {
     p->started = 1;
     p->y1 = *(p->initial_value);
     p->b1 = FL(0.0);
-    p->sr = csound->GetKr(csound);
+    p->sr = CS_EKR;
     return OK;
 }
 
@@ -163,7 +163,7 @@ static int32_t laga_init_no_initial_value(CSOUND *csound, LAG0 *p) {
     IGN(csound);
     p->lag = -1;
     p->b1 = FL(0.0);
-    p->sr = csound->GetSr(csound);
+    p->sr = CS_ESR;
     p->started = 0;
     p->y1 = -INF;
     return OK;
@@ -173,7 +173,7 @@ static int32_t laga_init_initial_value(CSOUND *csound, LAG0 *p) {
     IGN(csound);
     p->lag = -1;
     p->b1 = FL(1.0);
-    p->sr = csound->GetSr(csound);
+    p->sr = CS_ESR;
     p->started = 1;
     p->y1 = *p->initial_value;
     return OK;
@@ -248,7 +248,7 @@ static int32_t _lagud_init(CSOUND *csound, LagUD *p, int started) {
     p->b1u = started ? FL(1.0) : FL(0.0);
     p->b1d = p->b1u;
     p->started = started;
-    p->sr = csound->GetKr(csound);
+    p->sr = CS_EKR;
     return OK;
 }
 
@@ -342,7 +342,7 @@ lagud_a(CSOUND *csound, LagUD *p) {
             out[n]= y1;
         }
     } else {
-        MYFLT sr = csound->GetSr(csound);
+        MYFLT sr = CS_ESR;
         // faust uses tau2pole = exp(-1 / (lag*sr))
         p->b1u = lagu == FL(0.0) ? FL(0.0) : exp(LOG001 / (lagu * sr));
         MYFLT b1u_slope = CALCSLOPE(p->b1u, b1u, nsmps);
@@ -392,7 +392,7 @@ trig_a(CSOUND *csound, Trig *p) {
 
     MYFLT *in = p->in;
     MYFLT dur = *p->dur;
-    MYFLT sr = csound->GetSr(csound);
+    MYFLT sr = CS_ESR;
     MYFLT prevtrig = p->prevtrig;
     MYFLT level = p->level;
     unsigned long counter = p->counter;
@@ -425,7 +425,7 @@ static int
 trig_k(CSOUND *csound, Trig *p) {
     MYFLT curtrig = *p->in;
     MYFLT dur = *p->dur;
-    MYFLT kr = csound->GetKr(csound);
+    MYFLT kr = CS_EKR;
     MYFLT prevtrig = p->prevtrig;
     MYFLT level = p->level;
     uint64_t counter = p->counter;

@@ -319,7 +319,7 @@ static int32_t diskin2_init_(CSOUND *csound, DISKIN2 *p, int32_t stringname)
     }
     /* set default format parameters */
     memset(&sfinfo, 0, sizeof(SFLIB_INFO));
-    sfinfo.samplerate = MYFLT2LONG(csound->esr);
+    sfinfo.samplerate = MYFLT2LONG(CS_ESR);
     sfinfo.channels = p->nChannels;
     /* check for user specified sample format */
     n = MYFLT2LONG(*p->iSampleFormat);
@@ -379,15 +379,15 @@ static int32_t diskin2_init_(CSOUND *csound, DISKIN2 *p, int32_t stringname)
     /* set file parameters from header info */
     p->fileLength = (int32_t) sfinfo.frames;
     p->warpScale = 1.0;
-    if (MYFLT2LONG(csound->esr) != sfinfo.samplerate) {
+    if (MYFLT2LONG(CS_ESR) != sfinfo.samplerate) {
       if (LIKELY(p->winSize != 1)) {
         /* will automatically convert sample rate if interpolation is enabled */
-        p->warpScale = (double)sfinfo.samplerate / (double)csound->esr;
+        p->warpScale = (double)sfinfo.samplerate / (double)CS_ESR;
       }
       else {
         csound->Warning(csound, Str("diskin2: warning: file sample rate (%d) "
                                     "!= orchestra sr (%d)\n"),
-                        sfinfo.samplerate, MYFLT2LONG(csound->esr));
+                        sfinfo.samplerate, MYFLT2LONG(CS_ESR));
       }
     }
     /* wrap mode */
@@ -395,7 +395,7 @@ static int32_t diskin2_init_(CSOUND *csound, DISKIN2 *p, int32_t stringname)
     if (UNLIKELY(p->fileLength < 1L))
       p->wrapMode = 0;
     /* initialise read position */
-    pos = (double)*(p->iSkipTime) * (double)csound->esr * p->warpScale;
+    pos = (double)*(p->iSkipTime) * (double)CS_ESR * p->warpScale;
     pos *= (double)POS_FRAC_SCALE;
     p->pos_frac = (int64_t)(pos >= 0.0 ? (pos + 0.5) : (pos - 0.5));
     if (p->wrapMode) {
@@ -979,7 +979,7 @@ int32_t diskin2_perf_asynchronous(CSOUND *csound, DISKIN2 *p)
 
 uintptr_t diskin_io_thread(void *p){
     DISKIN_INST *current = (DISKIN_INST *) p;
-    int32_t wakeup = 1000*current->csound->ksmps/current->csound->esr;
+    int32_t wakeup = 1000*current->diskin->h.insdshead->ksmps/current->diskin->h.insdshead->esr;
     int32_t *start =
       current->csound->QueryGlobalVariable(current->csound,"DISKIN_THREAD_START");
     _MM_SET_DENORMALS_ZERO_MODE(_MM_DENORMALS_ZERO_ON);
@@ -1074,7 +1074,7 @@ static int32_t sndo1set_(CSOUND *csound, void *pp, int32_t stringname)
     sfname = name;
     memset(&sfinfo, 0, sizeof(SFLIB_INFO));
     //sfinfo.frames = 0;
-    sfinfo.samplerate = MYFLT2LONG(csound->esr);
+    sfinfo.samplerate = MYFLT2LONG(((SNDOUT*) pp)->h.insdshead->esr);
     sfinfo.channels = nchns;
     switch (MYFLT2LONG(*iformat)) {
     case 1: format = AE_CHAR; break;
@@ -1543,7 +1543,7 @@ int32_t diskin_file_read_array(CSOUND *csound, DISKIN2_ARRAY *p)
 
 uintptr_t diskin_io_thread_array(void *p){
     DISKIN_INST *current = (DISKIN_INST *) p;
-    int32_t wakeup = 1000*current->csound->ksmps/current->csound->esr;
+    int32_t wakeup = 1000*current->diskin->h.insdshead->ksmps/current->diskin->h.insdshead->esr;
     int32_t *start =
       current->csound->QueryGlobalVariable(current->csound,
                                            "DISKIN_THREAD_START_ARRAY");
@@ -1581,7 +1581,7 @@ static int32_t diskin2_init_array(CSOUND *csound, DISKIN2_ARRAY *p,
     if (t->data) p->nChannels = t->sizes[0];
     /* set default format parameters */
     memset(&sfinfo, 0, sizeof(SFLIB_INFO));
-    sfinfo.samplerate = MYFLT2LONG(csound->esr);
+    sfinfo.samplerate = MYFLT2LONG(CS_ESR);
     sfinfo.channels = p->nChannels;
     /* check for user specified sample format */
     n = MYFLT2LONG(*p->iSampleFormat);
@@ -1660,15 +1660,15 @@ static int32_t diskin2_init_array(CSOUND *csound, DISKIN2_ARRAY *p,
     /* set file parameters from header info */
     p->fileLength = (int32_t) sfinfo.frames;
     p->warpScale = 1.0;
-    if (MYFLT2LONG(csound->esr) != sfinfo.samplerate) {
+    if (MYFLT2LONG(CS_ESR) != sfinfo.samplerate) {
       if (LIKELY(p->winSize != 1)) {
         /* will automatically convert sample rate if interpolation is enabled */
-        p->warpScale = (double)sfinfo.samplerate / (double)csound->esr;
+        p->warpScale = (double)sfinfo.samplerate / (double)CS_ESR;
       }
       else {
         csound->Warning(csound, Str("diskin2: warning: file sample rate (%d) "
                                     "!= orchestra sr (%d)\n"),
-                        sfinfo.samplerate, MYFLT2LONG(csound->esr));
+                        sfinfo.samplerate, MYFLT2LONG(CS_ESR));
       }
     }
     /* wrap mode */
@@ -1676,7 +1676,7 @@ static int32_t diskin2_init_array(CSOUND *csound, DISKIN2_ARRAY *p,
     if (UNLIKELY(p->fileLength < 1L))
       p->wrapMode = 0;
     /* initialise read position */
-    pos = (double)*(p->iSkipTime) * (double)csound->esr * p->warpScale;
+    pos = (double)*(p->iSkipTime) * (double)CS_ESR * p->warpScale;
     pos *= (double)POS_FRAC_SCALE;
     p->pos_frac = (int64_t)(pos >= 0.0 ? (pos + 0.5) : (pos - 0.5));
     if (p->wrapMode) {
@@ -2146,7 +2146,7 @@ static int32_t sndinset_(CSOUND *csound, SOUNDIN_ *p, int32_t stringname)
     }
     /* set default format parameters */
     memset(&sfinfo, 0, sizeof(SFLIB_INFO));
-    sfinfo.samplerate = MYFLT2LONG(csound->esr);
+    sfinfo.samplerate = MYFLT2LONG(CS_ESR);
     sfinfo.channels = p->nChannels;
     /* check for user specified sample format */
     n = MYFLT2LONG(*p->iSampleFormat);
@@ -2211,10 +2211,10 @@ static int32_t sndinset_(CSOUND *csound, SOUNDIN_ *p, int32_t stringname)
       return OK;
     /* set file parameters from header info */
     p->fileLength = (int_least64_t) sfinfo.frames;
-    if (MYFLT2LONG(csound->esr) != sfinfo.samplerate)
+    if (MYFLT2LONG(CS_ESR) != sfinfo.samplerate)
       csound->Warning(csound, Str("soundin: file sample rate (%d) "
                                   "!= orchestra sr (%d)\n"),
-                      sfinfo.samplerate, MYFLT2LONG(csound->esr));
+                      sfinfo.samplerate, MYFLT2LONG(CS_ESR));
     fmt = TYPE2ENC(sfinfo.format);
     typ = SF2TYPE(sfinfo.format);
     if ((fmt != AE_FLOAT && fmt != AE_DOUBLE) ||

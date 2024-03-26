@@ -54,7 +54,7 @@ int32_t poly_LPG_init(CSOUND* csound, BUCHLA *p)
     warn++;
 #define C1 (1e-09)
 #define C2 (2.2e-10)
-    p->f = 0.5/csound->GetSr(csound);
+    p->f = 0.5/CS_ESR;
     return OK;
 }
 
@@ -178,7 +178,7 @@ typedef struct {
 int32_t vactrol_init(CSOUND *csound, VACTROL* p)
 {
     p->s1 = 0;
-    p->a_base = 1000.0*PI/(csound->GetSr(csound));
+    p->a_base = 1000.0*PI/(CS_ESR);
     p->t_down = *p->down<FL(0.0) ? 3.0e3 : (double)*p->down;
     p->t_up   = *p->up<FL(0.0) ? 20.0 : (double)*p->up;
     return OK;

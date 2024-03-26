@@ -190,7 +190,7 @@ static int32_t wtPerf(CSOUND *csound, SUPERTER *p)
       aout[i] = p->xarr[xloc] * p->yarr[yloc] * amp;
 
       /* MOVE SCANNING POINT ROUND THE ELLIPSE */
-      theta += pch*((period*TWOPI_F) / csound->GetSr(csound));
+      theta += pch*((period*TWOPI_F) / CS_ESR);
     }
 
     p->theta = theta;

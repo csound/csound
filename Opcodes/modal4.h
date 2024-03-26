@@ -57,6 +57,7 @@ typedef struct Modal4 {
     MYFLT       baseFreq;
     MYFLT       ratios[4];
     MYFLT       resons[4];
+    MYFLT       sr;
 } Modal4;
 
 void Modal4_clear(Modal4 *);

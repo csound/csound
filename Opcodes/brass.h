@@ -91,7 +91,7 @@ typedef BiQuad LipFilt;
 
 void make_LipFilt(LipFilt*);
 void LipFilt_clear(LipFilt*);
-void LipFilt_setFreq(CSOUND*,LipFilt*, MYFLT frequency);
+//void LipFilt_setFreq(CSOUND*,LipFilt*, MYFLT frequency);
 MYFLT LipFilt_tick(LipFilt*, MYFLT mouthSample,MYFLT boreSample);
 MYFLT LipFilt_lastOut(LipFilt*);
 

@@ -53,7 +53,7 @@ static int32_t bar_init(CSOUND *csound, BAR *p)
                                    (keep small) */
 
       /* %%%%%%%%%%%%%%%%%% derived parameters */
-      double  dt = (double)csound->onedsr;
+      double  dt = (double)CS_ONEDSR;
       double  sig = (2.0*(double)CS_ESR)*(pow(10.0,3.0*dt/T30)-1.0);
       double  dxmin = sqrt(dt*(b+hypot(b, K+K)));
       int32_t N = (int32_t) (1.0/dxmin);
@@ -268,7 +268,7 @@ int32_t init_pp(CSOUND *csound, CSPP *p)
                           /* and lowest string in set */
                           /* initialize prepared objects and hammer */
                           /* derived parameters */
-      double dt = (double)csound->onedsr;
+      double dt = (double)CS_ONEDSR;
       double sig = (2.0*(double)CS_ESR)*(pow(10.0,3.0*dt/T30)-1.0);
 
       uint32_t N, n;
@@ -360,7 +360,7 @@ int32_t play_pp(CSOUND *csound, CSPP *p)
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t t, n, nsmps = CS_KSMPS;
-    double dt = csound->onedsr;
+    double dt = CS_ONEDSR;
     MYFLT *w = p->w, *w1 = p->w1, *w2 = p->w2,
           *rub = p->rub, *rub1 = p->rub1, *rub2 = p->rub2,
           *rat = p->rat, *rat1 = p->rat1, *rat2 = p->rat2;

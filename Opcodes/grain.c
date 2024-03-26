@@ -102,14 +102,14 @@ static int32_t ags(CSOUND *csound, PGRA *p) /*  Granular U.G. a-rate main routin
     gtp  = p->gftp;
     gtbl = gtp->ftable;
     glen = gtp->flen;
-    gcvt = glen/csound->GetSr(csound);
+    gcvt = glen/CS_ESR;
 
     pow2tab = ISPOW2(glen);
 
     etp  = p->eftp;
     etbl = etp->ftable;
     elen = etp->flen;
-    ecvt = elen/csound->GetSr(csound);
+    ecvt = elen/CS_ESR;
 
     lb   = gtp->lobits;
     lb2  = etp->lobits;
@@ -122,7 +122,7 @@ static int32_t ags(CSOUND *csound, PGRA *p) /*  Granular U.G. a-rate main routin
     if (kglen > *p->imkglen) kglen = *p->imkglen;
 
     ekglen  = (int32)(CS_ESR * kglen);   /* Useful constant */
-    inc2    = (int32)(csound->sicvt / kglen); /* Constant for each cycle */
+    inc2    = (int32)(CS_SICVT / kglen); /* Constant for each cycle */
     einc =  (1./kglen) * ecvt;
     bufsize = CS_KSMPS + ekglen;
     xdns    = p->xdns;
@@ -146,7 +146,7 @@ static int32_t ags(CSOUND *csound, PGRA *p) /*  Granular U.G. a-rate main routin
         isc2 = 0;
         if(pow2tab) {
           /* VL 21/11/18 original code, fixed-point indexing */
-        inc = (int32) ((*xlfr + Unirand(csound, *p->kbnd)) * csound->sicvt);
+        inc = (int32) ((*xlfr + Unirand(csound, *p->kbnd)) * CS_SICVT);
         do {
           *temp++ += amp  * *(gtbl + (isc >> lb)) *
                      *(etbl + (isc2 >> lb2));
@@ -172,7 +172,7 @@ static int32_t ags(CSOUND *csound, PGRA *p) /*  Granular U.G. a-rate main routin
         }
       }
       xdns += p->dnsadv;
-      gcount += *xdns * csound->onedsr;
+      gcount += *xdns * CS_ONEDSR;
       xamp += p->ampadv;
       xlfr += p->lfradv;
     }

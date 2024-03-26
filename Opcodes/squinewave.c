@@ -101,7 +101,7 @@ static inline MYFLT Clamp(const MYFLT x, const MYFLT minval, const MYFLT maxval)
 
 int32_t squinewave_init(CSOUND* csound, SQUINEWAVE *p)
 {
-    const double sr = csound->GetSr(csound);
+    const double sr = CS_ESR;
 
     // Skip setting phase only if we have been inited at least once
     p->init_phase = (*p->iphase < 0 && p->Min_Sweep > 1.0) ? 0 : 1;
