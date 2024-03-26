@@ -21,7 +21,7 @@
     02110-1301 USA
 */
 
-#include "csoundCore.h"                 /*             SNDLIB.C         */
+#include "csoundCore_internal.h"                 /*             SNDLIB.C         */
 #include "soundio.h"
 #include <stdlib.h>
 #include <time.h>

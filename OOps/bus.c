@@ -23,7 +23,7 @@
 */
 
 /*                      BUS.C           */
-#include "csoundCore.h"
+#include "csoundCore_internal.h"
 #include <setjmp.h>
 #include <ctype.h>
 #include <string.h>

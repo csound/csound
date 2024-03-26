@@ -23,7 +23,7 @@
 
 #pragma once
 
-#include <csoundCore.h>
+#include "csoundCore_internal.h"
 
 typedef struct _compile {
   OPDS h;

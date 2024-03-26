@@ -21,7 +21,7 @@
   02110-1301 USA
 */
 
-#include "csoundCore.h"                              /*  DUMPF.C  */
+#include "csoundCore_internal.h"                              /*  DUMPF.C  */
 #include "dumpf.h"
 #include <ctype.h>
 #include <inttypes.h>

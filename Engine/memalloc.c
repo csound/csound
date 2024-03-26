@@ -22,7 +22,7 @@
     02110-1301 USA
 */
 
-#include "csoundCore.h"                 /*              MEMALLOC.C      */
+#include "csoundCore_internal.h"                 /*              MEMALLOC.C      */
 
 #ifdef CUSTOM_MALLOC
 #ifndef MALLOC_BASE

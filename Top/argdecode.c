@@ -20,7 +20,7 @@
     Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
     02110-1301 USA
 */
-#include "csoundCore.h"         /*                      ARGDECODE.C     */
+#include "csoundCore_internal.h"         /*                      ARGDECODE.C     */
 #include "soundio.h"
 #include "new_opts.h"
 #include "csmodule.h"

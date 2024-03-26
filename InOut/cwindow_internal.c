@@ -21,7 +21,9 @@
     02110-1301 USA
 */
 
-#include "csoundCore.h"                         /*      WINDOW.C        */
+#include "cwindow_internal.h"
+
+#include "csoundCore_internal.h"                         /*      WINDOW.C        */
 #include "cwindow.h"                            /*  graph window mgr    */
 #include "winEPS.h"                             /* PostSCript routines  */
                                                 /*  dpwe 16may90        */

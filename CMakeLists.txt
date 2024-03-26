@@ -230,9 +230,9 @@ endif()
 
 if (NOT IOS)
     if (BARE_METAL)
-        try_add_config_compile_option("Release" "-0s") # for smaller size
+        try_add_config_compile_option("Release" "-Os") # for smaller size
     else()
-        try_add_config_compile_option("Release" "-03")
+        try_add_config_compile_option("Release" "-O3")
     endif()
 
     try_add_config_compile_option("Debug" "-Wall")
@@ -702,7 +702,7 @@ set(libcsound_SRCS
     InOut/midisend.c
     InOut/winascii.c
     InOut/windin.c
-    InOut/window.c
+    InOut/cwindow_internal.c
     InOut/winEPS.c
     InOut/circularbuffer.c
     OOps/aops.c
@@ -721,7 +721,7 @@ set(libcsound_SRCS
     OOps/mxfft.c
     OOps/oscils.c
     OOps/pstream.c
-    OOps/pvfileio.c
+    OOps/pvfileio_internal.c
     OOps/pvsanal.c
     OOps/random.c
     OOps/remote.c
@@ -819,9 +819,11 @@ set(libcsound_SRCS
     Opcodes/emugens/scugens.c
     Top/argdecode.c
     Top/csdebug.c
+    Top/csdebug_internal.c
     Top/cscore_internal.c
     Top/cscorfns.c
     Top/csmodule.c
+    Top/csoundCore_internal.c
     Top/getstring.c
     Top/main.c
     Top/new_opts.c
@@ -1210,6 +1212,10 @@ if(APPLE AND NOT IOS)
     find_path(VECLIB_PATH "Accelerate/Accelerate.h")
     list(APPEND libcsound_private_include_dirs ${VECLIB_PATH})
     list(APPEND libcsound_LIBS ${MATH_LIBRARY} dl ${ACCELERATE_LIBRARY})
+endif()
+
+if(WIN32)
+    target_compile_definitions(libcsound_internals INTERFACE _WINSOCKAPI_) # disable winsock.h so we can use winsock2.h
 endif()
 
 check_function_exists(strlcat HAVE_STRLCAT)

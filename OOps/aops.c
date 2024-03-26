@@ -20,7 +20,7 @@
    02110-1301 USA
 */
 
-#include "csoundCore.h" /*                                      AOPS.C  */
+#include "csoundCore_internal.h" /*                                      AOPS.C  */
 #include "aops.h"
 #include <math.h>
 #include <time.h>

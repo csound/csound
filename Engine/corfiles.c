@@ -21,7 +21,7 @@
     02110-1301 USA
 */
 
-#include "csoundCore.h"     /*                              CORFILES.C      */
+#include "csoundCore_internal.h"     /*                              CORFILES.C      */
 #include <string.h>
 #include <stdio.h>
 #include <ctype.h>

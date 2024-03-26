@@ -21,7 +21,7 @@
     02110-1301 USA
 */
 
-#include "csoundCore.h"                                  /*    SWRITESTR.C  */
+#include "csoundCore_internal.h"                                  /*    SWRITESTR.C  */
 #include <math.h>
 #include <stdlib.h>
 #include <ctype.h>

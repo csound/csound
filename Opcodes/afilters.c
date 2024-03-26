@@ -21,7 +21,7 @@
     02110-1301 USA
 */
 
-#include "csoundCore.h"         /*                      AFILTERS.C        */
+#include "csoundCore_internal.h"         /*                      AFILTERS.C        */
 #include "ugens5.h"
 #include <math.h>
 

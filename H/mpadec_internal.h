@@ -22,7 +22,7 @@
 #ifndef __MPADEC_INTERNAL_H
 #define __MPADEC_INTERNAL_H
 
-#include "csoundCore.h"
+#include "csoundCore_internal.h"
 #include "mpadec.h"
 
 #define MPADEC_STATE_UNDEFINED 0

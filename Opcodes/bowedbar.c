@@ -30,7 +30,7 @@
 /*    Percussion Instruments", ICMC'99       */
 /*********************************************/
 // #include "csdl.h"
-#include "csoundCore.h"
+#include "csoundCore_internal.h"
 #include "bowedbar.h"
 
 /* Number of banded waveguide modes */

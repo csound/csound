@@ -26,7 +26,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include "csoundCore.h"
+#include "csoundCore_internal.h"
 #include "tok.h"
 #include "csound_orc.h"
 #include "insert.h"

@@ -31,7 +31,7 @@
 #include "score_param.h"
 #include "tok.h"
 #include "csound_orcparse.h"
-#include "csoundCore.h"
+#include "csoundCore_internal.h"
 
 enum {
   S_ANDTHEN = T_HIGHEST+1,

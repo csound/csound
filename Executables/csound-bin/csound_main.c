@@ -35,7 +35,7 @@
 #include <locale.h>
 #endif
 #define IGN(x) (void) x
-#ifdef __gnu_linux__
+#if defined(__gnu_linux__) && !(defined(__ANDROID__))
 extern int set_rt_priority(int argc, const char **argv);
 #endif
 
@@ -288,7 +288,7 @@ int main(int argc, char **argv)
 #endif
 
     /* Real-time scheduling on Linux by Istvan Varga (Jan 6 2002) */
-#ifdef __gnu_linux__
+#if defined(__gnu_linux__) && !(defined(__ANDROID__))
     if (set_rt_priority(argc, (const char **)argv) != 0)
       return -1;
 

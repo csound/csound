@@ -23,7 +23,7 @@
     02110-1301 USA
 */
 
-#include "csoundCore.h"
+#include "csoundCore_internal.h"
 
 #ifdef BARE_METAL
 #ifdef HAVE_STRTOD_L

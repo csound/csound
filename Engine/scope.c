@@ -1,4 +1,4 @@
-#include "csoundCore.h"
+#include "csoundCore_internal.h"
 #include "corfile.h"
 #include "score_param.h"
 

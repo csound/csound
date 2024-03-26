@@ -22,7 +22,7 @@
     02110-1301 USA
 */
 
-#include "csoundCore.h"     /*                              MEMFILES.C      */
+#include "csoundCore_internal.h"     /*                              MEMFILES.C      */
 #include "soundio.h"
 #include "pvfileio.h"
 #include "convolve.h"
