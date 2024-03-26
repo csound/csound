@@ -64,55 +64,6 @@ static int32_t  mtable1_k(CSOUND *csound, MTABLE1 *p)
 }
 
 /* -------------------------------------------------------------------- */
-
-typedef struct {
-        OPDS    h;
-        MYFLT   *kstartChan, *argums[VARGMAX];
-        int32_t numChans, narg;
-} INRANGE;
-
-static int32_t inRange_i(CSOUND *csound, INRANGE *p)
-{
-    p->narg = p->INOCOUNT-1;
-    if (UNLIKELY(!csound->oparms->sfread))
-      return csound->InitError(csound, Str("inrg: audio input is not enabled"));
-    p->numChans = csound->GetNchnls(csound);
-    return OK;
-}
-
-static int32_t inRange(CSOUND *csound, INRANGE *p)
-{
-    uint32_t offset = p->h.insdshead->ksmps_offset;
-    uint32_t early  = p->h.insdshead->ksmps_no_end;
-    uint32_t j, nsmps = CS_KSMPS;
-    int32_t i;
-    MYFLT *ara[VARGMAX];
-    int32_t startChan = (int32_t) *p->kstartChan -1;
-    MYFLT *sp = csound->spin + startChan;
-    int32_t narg = p->narg, numchans = p->numChans;
-
-    if (UNLIKELY(startChan < 0))
-      return csound->PerfError(csound, &(p->h),
-                               Str("inrg: channel number cannot be < 1 "
-                                   "(1 is the first channel)"));
-
-    if (UNLIKELY(early)) nsmps -= early;
-    for (i = 0; i < narg; i++) {
-      ara[i] = p->argums[i];
-      if (UNLIKELY(offset)) memset(ara[i], '\0', offset*sizeof(MYFLT));
-      if (UNLIKELY(early)) memset(&ara[i][nsmps], '\0', early*sizeof(MYFLT));
-      ara[i] += offset;
-    }
-    for (j=offset; j<nsmps; j++)  {
-      for (i=0; i<narg; i++) {
-        *ara[i]++ = sp[i];
-      }
-      sp += numchans;
-    }
-    return OK;
-
-}
-
 #include "Opcodes/uggab.h"
 
 static int32_t lposc_set(CSOUND *csound, LPOSC *p)
@@ -361,10 +312,7 @@ static OENTRY localops[] = {
   { "lposcilsa", S(LPOSC_ST),  TR, 3, "aa","akkkio",
                              (SUBR)lposc_stereo_set, (SUBR)lposca_stereo},
   { "lposcilsa2", S(LPOSC_ST), TR, 3, "aa","akkkio",
-                    (SUBR)lposc_stereo_set, (SUBR)lposca_stereo_no_trasp},
-  { "inrg", S(INRANGE), WI,3, "", "ky", (SUBR)inRange_i, (SUBR)inRange }
-
-
+                    (SUBR)lposc_stereo_set, (SUBR)lposca_stereo_no_trasp}
 };
 
 int32_t newgabopc_init_(CSOUND *csound) {

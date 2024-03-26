@@ -96,7 +96,7 @@ static int32_t make_Modulatr(CSOUND *csound,Modulatr *p, MYFLT *i)
 }
 
 #define Modulatr_setVibFreq(p,vibFreq)  \
-        (p.v_rate = vibFreq * (MYFLT)p.wave->flen*csound->onedsr)
+        (p.v_rate = vibFreq * (MYFLT)p.wave->flen*CS_ONEDSR)
 #define Modulatr_setVibAmt(p,vibAmount) (p.vibAmt = vibAmount)
 
 static MYFLT Modulatr_tick(CSOUND *csound, Modulatr *p)
@@ -152,7 +152,7 @@ static void SingWave_setFreq(CSOUND *csound, SingWave *p, MYFLT aFreq)
 {
     MYFLT temp = p->rate;
 
-    p->rate = (MYFLT)p->wave->flen * aFreq * csound->onedsr;
+    p->rate = (MYFLT)p->wave->flen * aFreq * CS_ONEDSR;
     temp -= p->rate;
     temp = FABS(temp);
     Envelope_setTarget(&p->pitchEnvelope, p->rate);

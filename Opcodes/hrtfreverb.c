@@ -1135,7 +1135,7 @@ int32_t hrtfreverb_process(CSOUND *csound, hrtfreverb *p)
               }
           }
 
-        sigin = in[i] * (FL(32767.0) / csound->e0dbfs);
+        sigin = in[i] * (FL(32767.0) / csound->Get0dBFS(csound));
 
         del1p[u] = outmatp[0] + sigin;
         del2p[v] = outmatp[1] + sigin;
@@ -1204,8 +1204,8 @@ int32_t hrtfreverb_process(CSOUND *csound, hrtfreverb *p)
         //                      outl[i] = hrtflp[counter];
         //                      outr[i] = hrtfrp[counter];
 
-        outl[i] = hrtflp[counter] * (csound->e0dbfs / FL(32767.0));
-        outr[i] = hrtfrp[counter] * (csound->e0dbfs / FL(32767.0));
+        outl[i] = hrtflp[counter] * (csound->Get0dBFS(csound) / FL(32767.0));
+        outr[i] = hrtfrp[counter] * (csound->Get0dBFS(csound) / FL(32767.0));
 
         counter++;
 

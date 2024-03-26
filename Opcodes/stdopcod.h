@@ -94,8 +94,6 @@ extern int32_t grain_init_(CSOUND *);
 extern int32_t locsig_init_(CSOUND *);
 extern int32_t lowpassr_init_(CSOUND *);
 extern int32_t metro_init_(CSOUND *);
-extern int32_t midiops2_init_(CSOUND *);
-extern int32_t midiops3_init_(CSOUND *);
 extern int32_t newfils_init_(CSOUND *);
 extern int32_t nlfilt_init_(CSOUND *);
 extern int32_t oscbnk_init_(CSOUND *);

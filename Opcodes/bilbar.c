@@ -53,7 +53,7 @@ static int32_t bar_init(CSOUND *csound, BAR *p)
                                    (keep small) */
 
       /* %%%%%%%%%%%%%%%%%% derived parameters */
-      double  dt = (double)csound->onedsr;
+      double  dt = (double)CS_ONEDSR;
       double  sig = (2.0*(double)CS_ESR)*(pow(10.0,3.0*dt/T30)-1.0);
       double  dxmin = sqrt(dt*(b+hypot(b, K+K)));
       int32_t N = (int32_t) (1.0/dxmin);
@@ -186,7 +186,7 @@ static int32_t bar_run(CSOUND *csound, BAR *p)
 
 /*       csound->Message(csound, "xo = %f (%d %f) w=(%f,%f) ",
                          xo, xoint, xofrac, w[xoint], w[xoint+1]); */
-      ar[n] = (csound->e0dbfs)*((1.0-xofrac)*w[xoint] + xofrac*w[xoint+1]);
+      ar[n] = (csound->Get0dBFS(csound))*((1.0-xofrac)*w[xoint] + xofrac*w[xoint+1]);
       step++;
       {
         double *ww = w2;
@@ -268,7 +268,7 @@ int32_t init_pp(CSOUND *csound, CSPP *p)
                           /* and lowest string in set */
                           /* initialize prepared objects and hammer */
                           /* derived parameters */
-      double dt = (double)csound->onedsr;
+      double dt = (double)CS_ONEDSR;
       double sig = (2.0*(double)CS_ESR)*(pow(10.0,3.0*dt/T30)-1.0);
 
       uint32_t N, n;
@@ -360,7 +360,7 @@ int32_t play_pp(CSOUND *csound, CSPP *p)
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t t, n, nsmps = CS_KSMPS;
-    double dt = csound->onedsr;
+    double dt = CS_ONEDSR;
     MYFLT *w = p->w, *w1 = p->w1, *w2 = p->w2,
           *rub = p->rub, *rub1 = p->rub1, *rub2 = p->rub2,
           *rat = p->rat, *rat1 = p->rat1, *rat2 = p->rat2;
@@ -536,7 +536,7 @@ int32_t play_pp(CSOUND *csound, CSPP *p)
         for (qq=0; qq<NS; qq++) {
           out += (1-xofrac)*w[xoint*NS+qq]+xofrac*w[(xoint+1)*NS+qq];
         }
-        ar[t] = FL(200.0)*out*csound->e0dbfs;
+        ar[t] = FL(200.0)*out*csound->Get0dBFS(csound);
         if (p->stereo) {
           /* Need to deal with stereo version here */
           xx = SINNW2*COS1W2 + COSNW2*SIN1W2;
@@ -548,7 +548,7 @@ int32_t play_pp(CSOUND *csound, CSPP *p)
           for (qq=0; qq<NS; qq++) {
             out += (1-xofrac)*w[xoint*NS+qq]+xofrac*w[(xoint+1)*NS+qq];
           }
-          ar1[t] = FL(200.0)*out*csound->e0dbfs;
+          ar1[t] = FL(200.0)*out*csound->Get0dBFS(csound);
           SINNW2 = xx;
           COSNW2 = yy;
         }

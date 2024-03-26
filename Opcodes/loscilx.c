@@ -53,9 +53,12 @@ static int32_t sndload_opcode_init_(CSOUND *csound, SNDLOAD_OPCODE *p,
     memset(&sfinfo, 0, sizeof(SFLIB_INFO));
     sampleFormat = (int32_t) MYFLT2LRND(*(p->iFormat));
     sfinfo.format = (int32_t) TYPE2SF(TYP_RAW);
+    OPARMS parms;
+    csound->GetOParms(csound, &parms);
+    
     switch (sampleFormat) {
     case -1: sfinfo.format = 0; break;
-    case 0:  sfinfo.format |= (int32_t) FORMAT2SF(csound->oparms->outformat); break;
+    case 0:  sfinfo.format |= (int32_t) FORMAT2SF(parms.outformat); break;
     case 1:  sfinfo.format |= (int32_t) FORMAT2SF(AE_CHAR);   break;
     case 2:  sfinfo.format |= (int32_t) FORMAT2SF(AE_ALAW);   break;
     case 3:  sfinfo.format |= (int32_t) FORMAT2SF(AE_ULAW);   break;
@@ -251,7 +254,7 @@ static int32_t loscilx_opcode_init(CSOUND *csound, LOSCILX_OPCODE *p)
       }
       else
         frqScale = sf->sampleRate / ((double) CS_ESR * sf->baseFreq);
-      p->ampScale = (MYFLT) sf->scaleFac * csound->e0dbfs;
+      p->ampScale = (MYFLT) sf->scaleFac * csound->Get0dBFS(csound);
       p->nFrames = (int32) sf->nFrames;
     }
     else {
@@ -398,7 +401,7 @@ static int32_t loscilxa_opcode_init(CSOUND *csound, LOSCILXA_OPCODE *p)
       }
       else
         frqScale = sf->sampleRate / ((double) CS_ESR * sf->baseFreq);
-      p->ampScale = (MYFLT) sf->scaleFac * csound->e0dbfs;
+      p->ampScale = (MYFLT) sf->scaleFac * csound->Get0dBFS(csound);
       p->nFrames = (int32) sf->nFrames;
     }
     else {

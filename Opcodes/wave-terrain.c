@@ -66,7 +66,7 @@ static int32_t wtPerf(CSOUND *csound, WAVETER *p)
     MYFLT krx = *(p->krx), kry = *(p->kry);
     MYFLT sizx = p->sizx, sizy = p->sizy;
     MYFLT theta = p->theta;
-    MYFLT dtpidsr = csound->tpidsr;
+    MYFLT dtpidsr = CS_TPIDSR;
     MYFLT *aout = p->aout;
 
     if (UNLIKELY(offset)) memset(aout, '\0', offset*sizeof(MYFLT));
@@ -218,7 +218,7 @@ static int32_t scantPerf(CSOUND *csound, SCANTABLE *p)
     FUNC *fstiff = p->fstiff;
     FUNC *fdamp  = p->fdamp;
     FUNC *fvel   = p->fvel;
-    MYFLT inc    = p->size * *(p->kpch) * csound->onedsr;
+    MYFLT inc    = p->size * *(p->kpch) * CS_ONEDSR;
     MYFLT amp    = *(p->kamp);
     MYFLT pos    = p->pos;
     MYFLT *aout  = p->aout;
@@ -272,7 +272,7 @@ static int32_t scantPerf(CSOUND *csound, SCANTABLE *p)
       /* NO INTERPOLATION */
       aout[i] = fpoint->ftable[(int32_t)pos] * amp;
 
-      pos += inc /* p->size * *(p->kpch) * csound->onedsr */;
+      pos += inc /* p->size * *(p->kpch) * CS_ONEDSR */;
       if (UNLIKELY(pos > p->size)) {
         pos -= p->size;
       }

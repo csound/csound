@@ -105,7 +105,7 @@ static int32_t psynth_init(CSOUND *csound, _PSYN *p)
     p->hopsize = p->fin->overlap;
     p->pos = 0;
     p->numbins = numbins;
-    p->factor = p->hopsize * csound->onedsr;
+    p->factor = p->hopsize * CS_ONEDSR;
     p->facsqr = p->factor * p->factor;
     if(*p->thresh == -1) p->min = 0.00002*csound->Get0dBFS(csound);
     else p->min = *p->thresh*csound->Get0dBFS(csound);
@@ -161,7 +161,7 @@ static int32_t psynth_process(CSOUND *csound, _PSYN *p)
     int32_t     *trackID = (int32_t *) p->trackID.auxp;
     int32_t     hopsize = p->hopsize;
     double  min = p->min;
-    ratio = size * csound->onedsr;
+    ratio = size * CS_ONEDSR;
     factor = p->factor;
 
     maxtracks = p->numbins > maxtracks ? maxtracks : p->numbins;
@@ -272,7 +272,7 @@ static int32_t psynth2_init(CSOUND *csound, _PSYN2 *p)
     p->hopsize = p->fin->overlap;
     p->pos = 0;
     p->numbins = numbins;
-    p->factor = p->hopsize * csound->onedsr;
+    p->factor = p->hopsize * CS_ONEDSR;
     p->facsqr = p->factor * p->factor;
     if(*p->thresh == -1) p->min = 0.00002*csound->Get0dBFS(csound);
     else p->min = *p->thresh*csound->Get0dBFS(csound);
@@ -331,7 +331,7 @@ static int32_t psynth2_process(CSOUND *csound, _PSYN2 *p)
     int32_t     hopsize = p->hopsize;
     double  min = p->min;
 
-    incrph = csound->onedsr;
+    incrph = CS_ONEDSR;
     lotwopi = (double)(size) / TWOPI_F;
     factor = p->factor;
     facsqr = p->facsqr;
@@ -475,7 +475,7 @@ static int32_t psynth3_process(CSOUND *csound, _PSYN *p)
     int32_t     hopsize = p->hopsize;
     double  min = p->min;
 
-    incrph = csound->onedsr;
+    incrph = CS_ONEDSR;
     lotwopi = (double) (size) / TWOPI_F;
     factor = p->factor;
     facsqr = p->facsqr;

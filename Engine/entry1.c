@@ -1256,6 +1256,161 @@ OENTRY opcodlst_1[] = {
     (SUBR) coef2parm_init, (SUBR) coef2parm},
    {"resonbnk", S(RESONB), 0, 3, "a", "ak[]kkipoo",
    (SUBR) resonbnk_init, (SUBR) resonbnk},
+  { "midic7.i",S(MIDICTL2),0, 1,  "i", "iiio", (SUBR)imidic7, NULL, NULL  },
+{ "midic7.k", S(MIDICTL2),0, 3, "k", "ikko", (SUBR)midic7set, (SUBR)midic7, NULL },
+{ "midic14.i", S(MIDICTL3), 0, 1,"i", "iiiio",(SUBR)imidic14, NULL, NULL },
+{ "midic14.k", S(MIDICTL3), 0, 3,"k", "iikko",(SUBR)midic14set, (SUBR)midic14,NULL},
+{ "midic21.i", S(MIDICTL4),0, 1,"i", "iiiiio",(SUBR)imidic21, NULL, NULL },
+{ "midic21.k", S(MIDICTL4), 0, 3,"k", "iiikko",(SUBR)midic21set,(SUBR)midic21,NULL},
+{ "ctrl7.i", S(CTRL7), 0, 1,    "i", "iiiio", (SUBR)ictrl7,   NULL, NULL },
+{ "ctrl7.k", S(CTRL7),  0, 3,   "k", "iikko", (SUBR)ctrl7set, (SUBR)ctrl7, NULL },
+{ "ctrl14.i", S(CTRL14),0, 1,   "i", "iiiiio",(SUBR)ictrl14, NULL, NULL },
+{ "ctrl14.k", S(CTRL14), 0, 3,  "k", "iiikko",(SUBR)ctrl14set, (SUBR)ctrl14, NULL },
+{ "ctrl21.i", S(CTRL21),0, 1,   "i", "iiiiiio", (SUBR)ictrl21, NULL, NULL },
+{ "ctrl21.k", S(CTRL21), 0, 3,  "k", "iiiikko", (SUBR)ctrl21set,(SUBR)ctrl21,NULL},
+{ "initc7", S(INITC7), 0, 1,     "",  "iii",  (SUBR)initc7,     NULL,     NULL },
+{ "initc14", S(INITC14), 0, 1,   "",  "iiii", (SUBR)initc14,    NULL,     NULL },
+{ "initc21", S(INITC21), 0, 1,   "",  "iiiii",(SUBR)initc21,    NULL,     NULL },
+{ "midipgm", S(MIDIPGM_OP), 0, 1, "i", "o",   (SUBR)midipgm_opcode, NULL, NULL },
+{ "slider8.k", S(SLIDER8), 0, 3, "kkkkkkkk",  "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii"
+                              "iiiiiiii", (SUBR)slider_i8, (SUBR)slider8, NULL },
+{ "slider8f", S(SLIDER8f), 0, 3, "kkkkkkkk","iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii"
+                                        "iiiiiiiiiiii",
+                                        (SUBR)slider_i8f, (SUBR)slider8f, NULL },
+{ "slider8.i", S(SLIDER8), 0, 1, "iiiiiiii", "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii",
+                                          (SUBR)islider8, NULL, NULL },
+{ "slider16.k", S(SLIDER16), 0, 3, "kkkkkkkkkkkkkkkk",
+                                        "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii"
+                                        "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii"
+                                        "iiiiiiiiiii",
+                                        (SUBR)slider_i16, (SUBR)slider16, NULL },
+{ "slider16f", S(SLIDER16f), 0, 3, "kkkkkkkkkkkkkkkk",
+                                        "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii"
+                                        "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii"
+                                        "iiiiiiiiiiiiiiiiiiiiiiiiiii",
+                                        (SUBR)slider_i16f, (SUBR)slider16f, NULL },
+{ "slider16.i", S(SLIDER16), 0, 1, "iiiiiiiiiiiiiiii",
+                                        "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii"
+                                        "iiiiiiiiiiiiiiiiiiiiiiiiiiiiii",
+                                        (SUBR)islider16, NULL, NULL       },
+{ "slider32.k", S(SLIDER32),  0, 3, "kkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkk",
+                                        "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii"
+                                        "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii"
+                                        "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii"
+                                        "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii"
+                                        "iiiiiiiiiiiiiiiiiiiii",
+                                        (SUBR)slider_i32, (SUBR)slider32, NULL  },
+{ "slider32f", S(SLIDER32f), 0, 3, "kkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkk",
+                                        "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii"
+                                        "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii"
+                                        "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii"
+                                        "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii"
+                                        "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii"
+                                        "iiiiiiiiiiiiiiiiii",
+                                        (SUBR)slider_i32f, (SUBR)slider32f, NULL },
+{ "slider32.i", S(SLIDER32), 0, 1, "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii",
+                                        "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii"
+                                        "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii"
+                                        "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii"
+                                        "iiiiiiiiiiiiiiiiiiiiiiii",
+                                        (SUBR)islider32, NULL, NULL  },
+{ "slider64.k", S(SLIDER64), 0, 3, "kkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkk"
+                              "kkkkkkkkkkkkkkkkkkk",
+                                        "iiiiiiiiiiiiiiiiiiiiiiiii"
+                                        "iiiiiiiiiiiiiiiiiiiiiiiii"
+                                        "iiiiiiiiiiiiiiiiiiiiiiiii"
+                                        "iiiiiiiiiiiiiiiiiiiiiiiii"
+                                        "iiiiiiiiiiiiiiiiiiiiiiiii"
+                                        "iiiiiiiiiiiiiiiiiiiiiiiii"
+                                        "iiiiiiiiiiiiiiiiiiiiiiiii"
+                                        "iiiiiiiiiiiiiiiiiiiiiiiii"
+                                        "iiiiiiiiiiiiiiiiiiiiiiiii"
+                                        "iiiiiiiiiiiiiiiiiiiiiiiii"
+                                        "iiiiiiiiiiiiiiiiiiiiiiiii"
+                                        "iiiiiiiiiiiiiiiiiiiiiiiii"
+                                        "iiiiiiiiiiiiiiiiiiiii",
+                                        (SUBR)slider_i64, (SUBR)slider64, NULL  },
+{ "slider64f", S(SLIDER64f), 0, 3, "kkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkk"
+                                "kkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkk",
+                                        "iiiiiiiiiiiiiiiiiiiiiiiii"
+                                        "iiiiiiiiiiiiiiiiiiiiiiii"
+                                        "iiiiiiiiiiiiiiiiiiiiiiii"
+                                        "iiiiiiiiiiiiiiiiiiiiiiii"
+                                        "iiiiiiiiiiiiiiiiiiiiiiii"
+                                        "iiiiiiiiiiiiiiiiiiiiiiii"
+                                        "iiiiiiiiiiiiiiiiiiiiiiii"
+                                        "iiiiiiiiiiiiiiiiiiiiiiii"
+                                        "iiiiiiiiiiiiiiiiiiiiiiii"
+                                        "iiiiiiiiiiiiiiiiiiiiiiii"
+                                        "iiiiiiiiiiiiiiiiiiiiiiii"
+                                        "iiiiiiiiiiiiiiiiiiiiiiii"
+                                        "iiiiiiiiiiiiiiiiiiiiiiii"
+                                        "iiiiiiiiiiiiiiiiiiiiiiii"
+                                        "iiiiiiiiiiiiiiiiiiiiiiii"
+                                        "iiiiiiiiiiiiiiiiiiiiiiii",
+                                        (SUBR)slider_i64f, (SUBR)slider64f, NULL },
+{ "slider64.i", S(SLIDER64), 0, 1, "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii"
+                                "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii",
+                                        "iiiiiiiiiiiiiiiiiiiiiiii"
+                                        "iiiiiiiiiiiiiiiiiiiiiiii"
+                                        "iiiiiiiiiiiiiiiiiiiiiiii"
+                                        "iiiiiiiiiiiiiiiiiiiiiiii"
+                                        "iiiiiiiiiiiiiiiiiiiiiiii"
+                                        "iiiiiiiiiiiiiiiiiiiiiiii"
+                                        "iiiiiiiiiiiiiiiiiiiiiiii"
+                                        "iiiiiiiiiiiiiiiiiiiiiiii"
+                                        "iiiiiiiiiiiiiiiiiiiiiiii"
+                                        "iiiiiiiiiiiiiiiiiiiiiiii"
+                                        "iiiiiiiiiiiiiiiii",
+                                        (SUBR)islider64, NULL, NULL  },
+{ "s16b14.k", S(SLIDER16BIT14), 0, 3, "kkkkkkkkkkkkkkkk",
+                                   "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii"
+                                   "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii"
+                                   "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii",
+                                 (SUBR)slider_i16bit14, (SUBR)slider16bit14, NULL},
+{ "s32b14.k", S(SLIDER32BIT14), 0, 3, "kkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkk",
+                                        "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii"
+                                        "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii"
+                                        "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii"
+                                        "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii"
+                                        "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii"
+                                        "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii",
+                                 (SUBR)slider_i32bit14, (SUBR)slider32bit14, NULL},
+{ "s16b14.i", S(ISLIDER16BIT14), 0, 1, "iiiiiiiiiiiiiiii",
+                                        "iiiiiiiiiiiiiiiii"
+                                        "iiiiiiiiiiiiiiii"
+                                        "iiiiiiiiiiiiiiii"
+                                        "iiiiiiiiiiiiiiii"
+                                        "iiiiiiiiiiiiiiii",
+                                        (SUBR)islider16bit14, NULL, NULL  },
+{ "s32b14.i", S(ISLIDER32BIT14), 0, 1, "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii",
+                                        "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii"
+                                        "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii"
+                                        "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii"
+                                        "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii"
+                                        "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii",
+  (SUBR)islider32bit14, NULL, NULL  },
+  { "cpuprc", S(CPU_PERC),0, 1,     "",     "Si",   (SUBR)cpuperc_S, NULL, NULL   },
+{ "maxalloc", S(CPU_PERC),0, 1,   "",     "Si",   (SUBR)maxalloc_S, NULL, NULL  },
+{ "cpuprc", S(CPU_PERC),0, 1,     "",     "ii",   (SUBR)cpuperc, NULL, NULL   },
+{ "maxalloc", S(CPU_PERC),0, 1,   "",     "ii",   (SUBR)maxalloc, NULL, NULL  },
+{ "active.iS", S(INSTCNT),0,1,    "i",    "Soo",   (SUBR)instcount_S, NULL, NULL },
+{ "active.kS", S(INSTCNT),0,2,    "k",    "Soo",   NULL, (SUBR)instcount_S, NULL },
+{ "active.i", S(INSTCNT),0,1,     "i",    "ioo",   (SUBR)instcount, NULL, NULL },
+{ "active.k", S(INSTCNT),0,2,     "k",    "koo",   NULL, (SUBR)instcount, NULL },
+{ "p.i", S(PFUN),        0,1,     "i",    "i",     (SUBR)pfun, NULL, NULL     },
+{ "p.k", S(PFUNK),       0,3,     "k",    "k",
+                                          (SUBR)pfunk_init, (SUBR)pfunk, NULL },
+{ "mute", S(MUTE), 0,1,           "",      "So",   (SUBR)mute_inst_S             },
+{ "mute.i", S(MUTE), 0,1,         "",      "io",   (SUBR)mute_inst             },
+{ "pcount", S(PFIELD),  0, 1, "i", "",       (SUBR)pcount,    NULL, NULL },
+{ "pindex", S(PFIELD),  0, 1, "i", "i",      (SUBR)pvalue,    NULL, NULL },
+{ "pindex.S", S(PFIELDSTR), 0, 1, "S", "i",  (SUBR)pvaluestr, NULL, NULL },
+{ "passign", S(PINIT),  0, 1, "IIIIIIIIIIIIIIIIIIIIIIII", "po",
+                                             (SUBR)pinit,     NULL, NULL },
+{ "passign.i", S(PAINIT), 0, 1, "i[]", "po",  (SUBR)painit,    NULL, NULL },
+{ "passign.k", S(PAINIT), 0, 1, "k[]", "po",  (SUBR)painit,    NULL, NULL },
+   { "inrg", S(INRANGE), WI,3, "", "ky", (SUBR)inRange_i, (SUBR)inRange },
   /* terminate list */
   {  NULL, 0, 0, 0, NULL, NULL, NULL, NULL, NULL       }
 };

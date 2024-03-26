@@ -755,7 +755,7 @@ int32_t printk3(CSOUND *csound, PRINTK3 *p)
 }
 
 #include "../Opcodes/zak.h"
-static int csoundGetZaBounds(CSOUND *csound, MYFLT **zastart){
+static int GetZaBounds(CSOUND *csound, MYFLT **zastart){
     ZAK_GLOBALS *zz;
     zz = (ZAK_GLOBALS*) csound->QueryGlobalVariable(csound, "_zak_globals");
     if (zz==NULL) {
@@ -776,7 +776,7 @@ int32_t inz(CSOUND *csound, IOZ *p)
     uint32_t n, nsmps = CS_KSMPS;
     /* Check to see this index is within the limits of za space.     */
     MYFLT* zastart;
-    int zalast = csoundGetZaBounds(csound, &zastart);
+    int zalast = GetZaBounds(csound, &zastart);
     indx = (int32_t) *p->ndx;
     if (UNLIKELY(indx + nchns >= zalast)) goto err1;
     else if (UNLIKELY(indx < 0)) goto err2;
@@ -812,7 +812,7 @@ int32_t outz(CSOUND *csound, IOZ *p)
 
     /* Check to see this index is within the limits of za space.    */
     MYFLT* zastart;
-    int zalast = csoundGetZaBounds(csound, &zastart);
+    int zalast = GetZaBounds(csound, &zastart);
     indx = (int32) *p->ndx;
     if (UNLIKELY((indx + nchns) >= zalast)) goto err1;
     else if (UNLIKELY(indx < 0)) goto err2;

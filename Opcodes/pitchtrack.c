@@ -428,7 +428,7 @@ int32_t pitchtrackinit(CSOUND *csound, PITCHTRACK  *p)
     p->amplo = MINAMPS;
     p->amphi = MAXAMPS;
     p->npartial = 7;
-    p->dbfs = FL(32768.0)/csound->e0dbfs;
+    p->dbfs = FL(32768.0)/csound->Get0dBFS(csound);
     p->prevf = p->cps = 100.0;
     return (OK);
 }
@@ -563,7 +563,7 @@ void update_coefs(CSOUND *csound, double fr, double Q, BIQUAD *biquad, int32_t T
 
     switch(TYPE){
     case LP2:
-      k = tan(fr*csound->pidsr);
+      k = tan(fr*CS_PIDSR);
       ksq = k*k;
       ksqQ = ksq*Q;
       div = ksqQ+k+Q;
@@ -575,7 +575,7 @@ void update_coefs(CSOUND *csound, double fr, double Q, BIQUAD *biquad, int32_t T
       break;
 
     case LP1:
-      k = 1.0/tan(csound->pidsr*fr);
+      k = 1.0/tan(CS_PIDSR*fr);
       ksq = k*k;
       biquad->a0 = 1.0 / ( 1.0 + ROOT2 * k + ksq);
       biquad->a1 = 2.0*biquad->a0;
@@ -585,7 +585,7 @@ void update_coefs(CSOUND *csound, double fr, double Q, BIQUAD *biquad, int32_t T
       break;
 
     case HP:
-      k = tan(csound->pidsr*fr);
+      k = tan(CS_PIDSR*fr);
       ksq = k*k;
       biquad->a0 = 1.0 / ( 1.0 + ROOT2 * k + ksq);
       biquad->a1 = -2.*biquad->a0;
@@ -627,10 +627,10 @@ int32_t plltrack_perf(CSOUND *csound, PLLTRACK *p)
     int32_t
       itest = 0;
 
-    _0dbfs = csound->e0dbfs;
+    _0dbfs = csound->Get0dBFS(csound);
     ksmps = CS_KSMPS;
     esr = CS_ESR;
-    scal = 2.0*csound->pidsr;
+    scal = 2.0*CS_PIDSR;
 
     /* check for muted input & bypass */
     if (ksmps > 1){

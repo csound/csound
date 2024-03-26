@@ -25,9 +25,9 @@
 /****************************************/
 /** midicXX   UGs by Gabriel Maldonado **/
 /****************************************/
-
-#include "stdopcod.h"
+#include "csoundCore.h"
 #include "midiops2.h"
+
 #ifndef TRUE
 #define TRUE (1)
 #endif
@@ -46,7 +46,7 @@
 /*------------------------------------------------------------------------*/
 /* 7 bit midi control UGs */
 
-static int32_t imidic7(CSOUND *csound, MIDICTL2 *p)
+ int32_t imidic7(CSOUND *csound, MIDICTL2 *p)
 {
     MYFLT value;
     FUNC  *ftp;
@@ -71,7 +71,7 @@ static int32_t imidic7(CSOUND *csound, MIDICTL2 *p)
     return OK;
 }
 
-static int32_t midic7set(CSOUND *csound, MIDICTL2 *p)
+ int32_t midic7set(CSOUND *csound, MIDICTL2 *p)
 {
     int32  ctlno;
     if (UNLIKELY((ctlno = (int32)*p->ictlno) < 0 || ctlno > 127)) {
@@ -87,7 +87,7 @@ static int32_t midic7set(CSOUND *csound, MIDICTL2 *p)
     return OK;
 }
 
-static int32_t midic7(CSOUND *csound, MIDICTL2 *p)
+ int32_t midic7(CSOUND *csound, MIDICTL2 *p)
 {
     IGN(csound);
     MYFLT value;
@@ -109,7 +109,7 @@ static int32_t midic7(CSOUND *csound, MIDICTL2 *p)
 /*------------------------------------------------------------------------*/
 /* 14 bit midi control UGs */
 
-static int32_t imidic14(CSOUND *csound, MIDICTL3 *p)
+ int32_t imidic14(CSOUND *csound, MIDICTL3 *p)
 {
     MYFLT value;
     FUNC  *ftp;
@@ -151,7 +151,7 @@ static int32_t imidic14(CSOUND *csound, MIDICTL3 *p)
     return OK;
 }
 
-static int32_t midic14set(CSOUND *csound, MIDICTL3 *p)
+ int32_t midic14set(CSOUND *csound, MIDICTL3 *p)
 {
     int32   ctlno1;
     int32   ctlno2;
@@ -171,7 +171,7 @@ static int32_t midic14set(CSOUND *csound, MIDICTL3 *p)
     return OK;
 }
 
-static int32_t midic14(CSOUND *csound, MIDICTL3 *p)
+ int32_t midic14(CSOUND *csound, MIDICTL3 *p)
 {
      IGN(csound);
     MYFLT value;
@@ -199,7 +199,7 @@ static int32_t midic14(CSOUND *csound, MIDICTL3 *p)
 /*-----------------------------------------------------------------------------*/
 /* 21 bit midi control UGs */
 
-static int32_t imidic21(CSOUND *csound, MIDICTL4 *p)
+ int32_t imidic21(CSOUND *csound, MIDICTL4 *p)
 {
     MYFLT value;
     int32   ctlno1;
@@ -239,7 +239,7 @@ static int32_t imidic21(CSOUND *csound, MIDICTL4 *p)
     return OK;
 }
 
-static int32_t midic21set(CSOUND *csound, MIDICTL4 *p)
+ int32_t midic21set(CSOUND *csound, MIDICTL4 *p)
 {
     int32   ctlno1;
     int32   ctlno2;
@@ -263,7 +263,7 @@ static int32_t midic21set(CSOUND *csound, MIDICTL4 *p)
     return OK;
 }
 
-static int32_t midic21(CSOUND *csound, MIDICTL4 *p)
+ int32_t midic21(CSOUND *csound, MIDICTL4 *p)
 {
      IGN(csound);
     MYFLT value;
@@ -293,7 +293,7 @@ static int32_t midic21(CSOUND *csound, MIDICTL4 *p)
 /* GLOBAL MIDI IN CONTROLS activable by score-oriented instruments*/
 /*-----------------------------------------------------------------*/
 
-static int32_t ictrl7(CSOUND *csound, CTRL7 *p)
+ int32_t ictrl7(CSOUND *csound, CTRL7 *p)
 {
     MYFLT value;
     FUNC *ftp;
@@ -316,7 +316,7 @@ static int32_t ictrl7(CSOUND *csound, CTRL7 *p)
     return OK;
 }
 
-static int32_t ctrl7set(CSOUND *csound, CTRL7 *p)
+ int32_t ctrl7set(CSOUND *csound, CTRL7 *p)
 {
     int32  ctlno;
     int32_t chan;
@@ -338,7 +338,7 @@ static int32_t ctrl7set(CSOUND *csound, CTRL7 *p)
     return OK;
 }
 
-static int32_t ctrl7(CSOUND *csound, CTRL7 *p)
+ int32_t ctrl7(CSOUND *csound, CTRL7 *p)
 {
     MYFLT value = (MYFLT) (csound->m_chnbp[(int32_t) *p->ichan-1]->ctl_val[p->ctlno]
                            * oneTOf7bit);
@@ -353,7 +353,7 @@ static int32_t ctrl7(CSOUND *csound, CTRL7 *p)
 
 /* 14 bit midi control UGs */
 
-static int32_t ictrl14(CSOUND *csound, CTRL14 *p)
+ int32_t ictrl14(CSOUND *csound, CTRL14 *p)
 {
     MYFLT value;
     int32  ctlno1;
@@ -390,7 +390,7 @@ static int32_t ictrl14(CSOUND *csound, CTRL14 *p)
     return OK;
 }
 
-static int32_t ctrl14set(CSOUND *csound, CTRL14 *p)
+ int32_t ctrl14set(CSOUND *csound, CTRL14 *p)
 {
     int32   ctlno1;
     int32   ctlno2;
@@ -414,7 +414,7 @@ static int32_t ctrl14set(CSOUND *csound, CTRL14 *p)
     return OK;
 }
 
-static int32_t ctrl14(CSOUND *csound, CTRL14 *p)
+ int32_t ctrl14(CSOUND *csound, CTRL14 *p)
 {
     MYFLT value;
     int32_t chan=(int32_t) *p->ichan-1;
@@ -441,7 +441,7 @@ static int32_t ctrl14(CSOUND *csound, CTRL14 *p)
 /*-----------------------------------------------------------------------------*/
 /* 21 bit midi control UGs */
 
-static int32_t ictrl21(CSOUND *csound, CTRL21 *p)
+ int32_t ictrl21(CSOUND *csound, CTRL21 *p)
 {
     MYFLT  value;
     int32   ctlno1;
@@ -480,7 +480,7 @@ static int32_t ictrl21(CSOUND *csound, CTRL21 *p)
     return OK;
 }
 
-static int32_t ctrl21set(CSOUND *csound, CTRL21 *p)
+ int32_t ctrl21set(CSOUND *csound, CTRL21 *p)
 {
     int32   ctlno1;
     int32   ctlno2;
@@ -507,7 +507,7 @@ static int32_t ctrl21set(CSOUND *csound, CTRL21 *p)
     return OK;
 }
 
-static int32_t ctrl21(CSOUND *csound, CTRL21 *p)
+ int32_t ctrl21(CSOUND *csound, CTRL21 *p)
 {
     MYFLT value;
     int32_t chan=(int32_t) *p->ichan-1;
@@ -529,7 +529,7 @@ static int32_t ctrl21(CSOUND *csound, CTRL21 *p)
     return OK;
 }
 
-static int32_t initc7(CSOUND *csound, INITC7 *p)
+ int32_t initc7(CSOUND *csound, INITC7 *p)
                    /* for setting a precise value use the following formula:*/
 {                  /* (value - min) / (max - min) */
     MYFLT fvalue;
@@ -545,7 +545,7 @@ static int32_t initc7(CSOUND *csound, INITC7 *p)
     return OK;
 }
 
-static int32_t initc14(CSOUND *csound, INITC14 *p)
+ int32_t initc14(CSOUND *csound, INITC14 *p)
 {
     MYFLT fvalue;
     int32_t value, msb, lsb, chan;
@@ -564,7 +564,7 @@ static int32_t initc14(CSOUND *csound, INITC14 *p)
     return OK;
 }
 
-static int32_t initc21(CSOUND *csound, INITC21 *p)
+ int32_t initc21(CSOUND *csound, INITC21 *p)
 {
     MYFLT fvalue;
     int32_t value, msb, xsb, lsb, chan;
@@ -586,13 +586,7 @@ static int32_t initc21(CSOUND *csound, INITC21 *p)
 }
 
 /* midipgm by Istvan Varga, 2006 */
-
-typedef struct MIDIPGM_OP_ {
-    OPDS    h;
-    MYFLT   *ipgm, *ichn;
-} MIDIPGM_OP;
-
-static int32_t midipgm_opcode(CSOUND *csound, MIDIPGM_OP *p)
+ int32_t midipgm_opcode(CSOUND *csound, MIDIPGM_OP *p)
 {
     MCHNBLK *chnp;
     int32_t     channelNum;
@@ -614,36 +608,5 @@ static int32_t midipgm_opcode(CSOUND *csound, MIDIPGM_OP *p)
     return OK;
 }
 
-#define S(x)    sizeof(x)
 
-static OENTRY localops[] = {
-{ "ctrl14", 0xffff,                                                     },
-{ "ctrl21", 0xffff,                                                     },
-{ "ctrl7", 0xffff,                                                      },
-{ "midic14", 0xffff,                                                    },
-{ "midic21", 0xffff,                                                    },
-{ "midic7", 0xffff,                                                     },
-{ "midic7.i",S(MIDICTL2),0, 1,  "i", "iiio", (SUBR)imidic7, NULL, NULL  },
-{ "midic7.k", S(MIDICTL2),0, 3, "k", "ikko", (SUBR)midic7set, (SUBR)midic7, NULL },
-{ "midic14.i", S(MIDICTL3), 0, 1,"i", "iiiio",(SUBR)imidic14, NULL, NULL },
-{ "midic14.k", S(MIDICTL3), 0, 3,"k", "iikko",(SUBR)midic14set, (SUBR)midic14,NULL},
-{ "midic21.i", S(MIDICTL4),0, 1,"i", "iiiiio",(SUBR)imidic21, NULL, NULL },
-{ "midic21.k", S(MIDICTL4), 0, 3,"k", "iiikko",(SUBR)midic21set,(SUBR)midic21,NULL},
-{ "ctrl7.i", S(CTRL7), 0, 1,    "i", "iiiio", (SUBR)ictrl7,   NULL, NULL },
-{ "ctrl7.k", S(CTRL7),  0, 3,   "k", "iikko", (SUBR)ctrl7set, (SUBR)ctrl7, NULL },
-{ "ctrl14.i", S(CTRL14),0, 1,   "i", "iiiiio",(SUBR)ictrl14, NULL, NULL },
-{ "ctrl14.k", S(CTRL14), 0, 3,  "k", "iiikko",(SUBR)ctrl14set, (SUBR)ctrl14, NULL },
-{ "ctrl21.i", S(CTRL21),0, 1,   "i", "iiiiiio", (SUBR)ictrl21, NULL, NULL },
-{ "ctrl21.k", S(CTRL21), 0, 3,  "k", "iiiikko", (SUBR)ctrl21set,(SUBR)ctrl21,NULL},
-{ "initc7", S(INITC7), 0, 1,     "",  "iii",  (SUBR)initc7,     NULL,     NULL },
-{ "initc14", S(INITC14), 0, 1,   "",  "iiii", (SUBR)initc14,    NULL,     NULL },
-{ "initc21", S(INITC21), 0, 1,   "",  "iiiii",(SUBR)initc21,    NULL,     NULL },
-{ "midipgm", S(MIDIPGM_OP), 0, 1, "i", "o",   (SUBR)midipgm_opcode, NULL, NULL }
-};
 
-int32_t midiops2_init_(CSOUND *csound)
-{
-    return csound->AppendOpcodes(csound, &(localops[0]),
-                                 (int32_t
-                                  ) (sizeof(localops) / sizeof(OENTRY)));
-}

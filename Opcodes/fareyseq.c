@@ -266,7 +266,7 @@ int32_t tablefilter (CSOUND *csound, TABFILT *p)
     /* Destination  */
     if (p->pdft != (int32_t)*p->dft) {
       /* Get pointer to the function table data structure.
-       * csoundFTFindP() for perf time. csoundFTFind() for init time.
+       * csound->FTFindP() for perf time. csound->FTFind() for init time.
        */
       if (UNLIKELY((p->funcd = csound->FTFindP(csound, p->dft)) == NULL)) {
         return
@@ -314,7 +314,7 @@ int32_t tableifilter (CSOUND *csound, TABFILT *p)
     /* Destination */
     if (p->pdft != (int32_t)*p->dft) {
       /* Get pointer to the function table data structure.
-       * csoundFTFindP() for perf time. csoundFTFind() for init time. */
+       * csound->FTFindP() for perf time. csound->FTFind() for init time. */
       if (UNLIKELY((p->funcd = csound->FTnp2Find(csound, p->dft)) == NULL)) {
         return
           csound->InitError(csound,

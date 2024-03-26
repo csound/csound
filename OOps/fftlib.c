@@ -36,6 +36,9 @@
 #include "pffft.h"
 
 
+static int32_t isPowTwo(int32_t N) {
+  return (N != 0) ? !(N & (N - 1)) : 0;
+}
 
 #define POW2(m) ((uint32) (1 << (m)))       /* integer power of 2 for m<32 */
 
@@ -3243,13 +3246,14 @@ MYFLT csoundGetInverseRealFFTScale(CSOUND *csound, int32_t FFTsize)
  */
 void csoundComplexFFT(CSOUND *csound, MYFLT *buf, int32_t FFTsize)
 {
+  if(isPowTwo(FFTsize)) {
   MYFLT *Utbl;
   int16 *BRLow;
   int32_t   M;
-
   M = ConvertFFTSize(csound, FFTsize);
   getTablePointers(csound, &Utbl, &BRLow, M, M / 2);
   ffts1(buf, M, Utbl, BRLow);
+  } else csoundComplexFFTnp2(csound, buf, FFTsize);
 }
 
 /**
@@ -3263,6 +3267,7 @@ void csoundComplexFFT(CSOUND *csound, MYFLT *buf, int32_t FFTsize)
 
 void csoundInverseComplexFFT(CSOUND *csound, MYFLT *buf, int32_t FFTsize)
 {
+ if(isPowTwo(FFTsize)) {
   MYFLT *Utbl;
   int16 *BRLow;
   int32_t   M;
@@ -3270,6 +3275,7 @@ void csoundInverseComplexFFT(CSOUND *csound, MYFLT *buf, int32_t FFTsize)
   M = ConvertFFTSize(csound, FFTsize);
   getTablePointers(csound, &Utbl, &BRLow, M, M / 2);
   iffts1(buf, M, Utbl, BRLow);
+ } else csoundInverseComplexFFTnp2(csound, buf, FFTsize);
 }
 
 /**
@@ -3442,10 +3448,6 @@ int32_t setupDispose(CSOUND *csound, void *pp){
     break;
   }
   return OK;
-}
-
-int32_t isPowTwo(int32_t N) {
-  return (N != 0) ? !(N & (N - 1)) : 0;
 }
 
 void *csoundRealFFT2Setup(CSOUND *csound,

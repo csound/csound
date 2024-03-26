@@ -90,3 +90,29 @@ typedef struct {
   MYFLT *table;
 } SEQTIM;
 
+typedef struct {
+        OPDS    h;
+        MYFLT   *ians;
+        MYFLT   *index;
+} PFIELD;
+
+typedef struct {
+        OPDS    h;
+        STRINGDAT   *ians;
+        MYFLT   *index;
+} PFIELDSTR;
+
+typedef struct {
+        OPDS    h;
+        MYFLT   *inits[24];
+        MYFLT   *start;
+        MYFLT   *end;
+} PINIT;
+
+typedef struct {
+        OPDS    h;
+        ARRAYDAT *inits;
+        MYFLT   *start;
+        MYFLT   *end;
+} PAINIT;
+

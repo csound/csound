@@ -67,7 +67,7 @@ static int32_t dust_process_krate(CSOUND *csound, DUST *p)
     density = *p->kdensity;
 
     if (density != p->density0) {
-      thresh = p->thresh = density * csound->onedsr*csound->ksmps;
+      thresh = p->thresh = density * CS_ONEDSR*csound->ksmps;
       scale  = p->scale  = (thresh > FL(0.0) ? FL(1.0) / thresh : FL(0.0));
       p->density0 = density;
     }
@@ -91,7 +91,7 @@ static int32_t dust_process_arate(CSOUND *csound, DUST *p)
     density = *p->kdensity;
 
     if (density != p->density0) {
-      thresh = p->thresh = density * csound->onedsr;
+      thresh = p->thresh = density * CS_ONEDSR;
       scale  = p->scale  = (thresh > FL(0.0) ? FL(1.0) / thresh : FL(0.0));
       p->density0 = density;
     }
@@ -120,7 +120,7 @@ static int32_t dust2_process_krate(CSOUND *csound, DUST *p)
     density = *p->kdensity;
 
     if (density != p->density0) {
-      thresh = p->thresh = density * csound->onedsr*csound->ksmps;
+      thresh = p->thresh = density * CS_ONEDSR*csound->ksmps;
       scale = p->scale = (thresh > FL(0.0) ? FL(2.0) / thresh : FL(0.0));
       p->density0 = density;
     }
@@ -144,7 +144,7 @@ static int32_t dust2_process_arate(CSOUND *csound, DUST *p)
     density = *p->kdensity;
 
     if (density != p->density0) {
-      thresh = p->thresh = density * csound->onedsr;
+      thresh = p->thresh = density * CS_ONEDSR;
       scale = p->scale = (thresh > FL(0.0) ? FL(2.0) / thresh : FL(0.0));
       p->density0 = density;
     }

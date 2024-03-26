@@ -78,7 +78,7 @@ kamp            ATSinterpread   kfreq
 /* static variables used for atsbufread and atsbufreadnz */
 static inline ATSBUFREAD **get_atsbufreadaddrp(CSOUND *csound)
 {
-    return &(((STDOPCOD_GLOBALS*) csound->stdOp_Env)->atsbufreadaddr);
+    return &(((STDOPCOD_GLOBALS*) csound->QueryGlobalVariable(csound,"STDOPC_GLOBALS"))->atsbufreadaddr);
 }
 
 /* byte swaps a double */
@@ -143,7 +143,7 @@ static int32_t load_atsfile(CSOUND *csound, void *p, MEMFIL **mfp, char *fname,
                                opname, fname);
       return NOTOK;
     }
-    pp = (STDOPCOD_GLOBALS*) csound->stdOp_Env;
+    pp = (STDOPCOD_GLOBALS*) csound->QueryGlobalVariable(csound,"STDOPC_GLOBALS");
     if (pp->swapped_warning)
       return 1;
     csound->Warning(csound,
@@ -902,13 +902,13 @@ static int32_t atsadd(CSOUND *csound, ATSADD *p)
 
     for (i = 0; i < numpartials; i++) {
       lobits = ftp->lobits;
-      amp = csound->e0dbfs * (MYFLT) p->buf[i].amp;
+      amp = csound->Get0dBFS(csound) * (MYFLT) p->buf[i].amp;
       phase = MYFLT2LONG(*oscphase);
       ar = p->aoutput;         /* ar is a pointer to the audio output */
       inca = (amp-oldamps[i])/nsmps;
       a = oldamps[i];
       /* put in * kfmod */
-      inc = MYFLT2LONG(p->buf[i].freq * csound->sicvt * *p->kfmod);
+      inc = MYFLT2LONG(p->buf[i].freq * CS_SICVT * *p->kfmod);
       for (n=offset; n<nsmps; n++) {
         ftab = ftp->ftable + (phase >> lobits);
         v1 = *ftab++;
@@ -1191,7 +1191,7 @@ static int32_t atsaddnzset(CSOUND *csound, ATSADDNZ *p)
     /* p->nfreq[24] = 4500.0; */
 
     {
-      double tmp = TWOPI * csound->onedsr;
+      double tmp = TWOPI * CS_ONEDSR;
 
       /* initialise frequencies to modulate noise by */
       p->phaseinc[0] = 50.0 * tmp;
@@ -1361,7 +1361,7 @@ static int32_t atsaddnzset_S(CSOUND *csound, ATSADDNZ *p)
     /* p->nfreq[24] = 4500.0; */
 
     {
-      double tmp = TWOPI * csound->onedsr;
+      double tmp = TWOPI * CS_ONEDSR;
 
       /* initialise frequencies to modulate noise by */
       p->phaseinc[0] = 50.0 * tmp;
@@ -1477,7 +1477,7 @@ static int32_t atsaddnz(CSOUND *csound, ATSADDNZ *p)
     for (i = 0; i < 25; i++) {
       /* do we even have to synthesize it? */
       if (i == synthme && nsynthed < p->bands) { /* synthesize cosine */
-        amp = csound->e0dbfs*
+        amp = csound->Get0dBFS(csound)*
           SQRT((p->buf[i] / (p->winsize*(MYFLT)ATSA_NOISE_VARIANCE)));
         for (n=offset; n<nsmps; n++) {
           ar[n] += (COS(p->oscphase[i])
@@ -1669,7 +1669,7 @@ static int32_t atssinnoiset(CSOUND *csound, ATSSINNOI *p)
     p->prFlg = 1;               /* true */
 
     {
-      double tmp = TWOPI * csound->onedsr;
+      double tmp = TWOPI * CS_ONEDSR;
       p->phaseinc[0] = 50.0 * tmp;
       p->phaseinc[1] = 150.0 * tmp;
       p->phaseinc[2] = 250.0 * tmp;
@@ -1858,7 +1858,7 @@ static int32_t atssinnoiset_S(CSOUND *csound, ATSSINNOI *p)
     p->prFlg = 1;               /* true */
 
     {
-      double tmp = TWOPI * csound->onedsr;
+      double tmp = TWOPI * CS_ONEDSR;
       p->phaseinc[0] = 50.0 * tmp;
       p->phaseinc[1] = 150.0 * tmp;
       p->phaseinc[2] = 250.0 * tmp;
@@ -1962,7 +1962,7 @@ static int32_t atssinnoi(CSOUND *csound, ATSSINNOI *p)
         ar = p->aoutput;
         amp = oscbuf[i].amp;
         freq = (MYFLT) oscbuf[i].freq * *p->kfreq;
-        inc = TWOPI * freq * csound->onedsr;
+        inc = TWOPI * freq * CS_ONEDSR;
         nzamp =
             sqrt(*(p->nzbuf + i) / (p->atshead->winsz * ATSA_NOISE_VARIANCE));
         for (n=offset; n<nsmps;n++) {
@@ -1978,7 +1978,7 @@ static int32_t atssinnoi(CSOUND *csound, ATSSINNOI *p)
           }
           else noise = FL(0.0);
           /* calc output */
-          ar[n] += csound->e0dbfs *
+          ar[n] += csound->Get0dBFS(csound) *
             (MYFLT)(amp * sinewave * *p->ksinamp + noise **p->knzamp);
         }
         p->oscphase[i] = phase;
@@ -1991,13 +1991,13 @@ static int32_t atssinnoi(CSOUND *csound, ATSSINNOI *p)
         ar = p->aoutput;
         amp = oscbuf[i].amp;
         freq = (MYFLT) oscbuf[i].freq * *p->kfreq;
-        inc = TWOPI * freq * csound->onedsr;
+        inc = TWOPI * freq * CS_ONEDSR;
         for (n=offset; n<nsmps;n++) {
           /* calc sine wave */
           sinewave = cos(phase) * amp;
           phase += inc;
           /* calc output */
-          ar[n] += csound->e0dbfs * (MYFLT)sinewave * *p->ksinamp;
+          ar[n] += csound->Get0dBFS(csound) * (MYFLT)sinewave * *p->ksinamp;
         }
         p->oscphase[i] = phase;
       }
@@ -2915,12 +2915,12 @@ static int32_t atscross(CSOUND *csound, ATSCROSS *p)
 
     for (i = 0; i < numpartials; i++) {
       lobits = ftp->lobits;
-      amp = csound->e0dbfs * (MYFLT) p->buf[i].amp;
+      amp = csound->Get0dBFS(csound) * (MYFLT) p->buf[i].amp;
       phase = MYFLT2LONG (oscphase[i]);
       ar = p->aoutput;         /* ar is a pointer to the audio output */
       inca = (amp-oldamps[i])/nsmps;
       /* put in * kfmod */
-      inc = MYFLT2LONG(p->buf[i].freq * csound->sicvt * *p->kfmod);
+      inc = MYFLT2LONG(p->buf[i].freq * CS_SICVT * *p->kfmod);
       a =  oldamps[i];
       for (n=offset; n<nsmps; n++) {
         ftab = ftp->ftable + (phase >> lobits);

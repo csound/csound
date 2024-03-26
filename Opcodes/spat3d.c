@@ -78,7 +78,7 @@ static int32_t spat3d_init_eq(CSOUND *csound, SPAT3D_WALL *wstruct, MYFLT *ftabl
     /* EQ code taken from biquad.c */
 
     eqmode = (int32_t) ((double) ftable[3] + 0.5);              /* mode      */
-    omega = (double) ftable[0] * (double) csound->tpidsr;       /* frequency */
+    omega = (double) ftable[0] * (double) CS_TPIDSR;       /* frequency */
     sq = sqrt(2.0 * (double) ftable[1]);                        /* level     */
 
     k = tan((eqmode > 1 ? (PI - omega) : omega) * 0.5); kk = k * k;
@@ -320,7 +320,7 @@ static int32_t spat3d_set_opcode_params(CSOUND *csound, SPAT3D *p)
       p->mdist = *(p->args[xidist]);
     if (xift >= 0) {                                /* ftable */
       int32_t fLen;
-      fLen = csoundGetTable(csound, &(p->ftable), (int32_t) *(p->args[xift]));
+      fLen = csound->GetTable(csound, &(p->ftable), (int32_t) *(p->args[xift]));
       if (fLen < 53)
         p->ftable = NULL;
     }
@@ -332,7 +332,7 @@ static int32_t spat3d_set_opcode_params(CSOUND *csound, SPAT3D *p)
       p->irlen = (int32_t) MYFLT2LRND(*(p->args[xirlen]) * CS_ESR);
     if (xioutft >= 0) {                             /* output table */
       int32_t fLen;
-      fLen = csoundGetTable(csound, &(p->outft), (int32_t) *(p->args[xioutft]));
+      fLen = csound->GetTable(csound, &(p->outft), (int32_t) *(p->args[xioutft]));
       if (fLen < 1) {
         p->outft = NULL; p->outftlnth = 0;
       }

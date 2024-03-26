@@ -38,8 +38,10 @@ static int32_t cvset_(CSOUND *csound, CONVOLVE *p, int32_t stringname)
     int32     Hlenpadded = 1, obufsiz, Hlen;
     uint32_t  nchanls;
     uint32_t  nsmps = CS_KSMPS;
+            OPARMS parm;
+       csound->GetOParms(csound, &parm);
 
-    if (UNLIKELY(csound->oparms->odebug))
+    if (UNLIKELY(parm.odebug))
       csound->Message(csound, CONVOLVE_VERSION_STRING);
 
     if (stringname==0){
@@ -387,6 +389,8 @@ static int32_t pconvset_(CSOUND *csound, PCONVOLVE *p, int32_t stringname)
     MYFLT   *IRblock;
     MYFLT   ainput_dur, scaleFac;
     MYFLT   partitionSize;
+            OPARMS parm;
+       csound->GetOParms(csound, &parm);
 
     /* IV - 2005-04-06: fixed bug: was uninitialised */
     memset(&IRfile, 0, sizeof(SOUNDIN));
@@ -437,7 +441,7 @@ static int32_t pconvset_(CSOUND *csound, PCONVOLVE *p, int32_t stringname)
 
     /* make sure the partition size is nonzero and a power of 2  */
     if (*p->partitionSize <= 0)
-      partitionSize = csound->oparms->outbufsamps / csound->GetNchnls(csound);
+      partitionSize = parm.outbufsamps / csound->GetNchnls(csound);
     else
       partitionSize = *p->partitionSize;
 
@@ -468,7 +472,7 @@ static int32_t pconvset_(CSOUND *csound, PCONVOLVE *p, int32_t stringname)
                                  Str("PCONVOLVE: less sound than expected!"));
 
       /* take FFT of each channel */
-      scaleFac = csound->dbfs_to_float
+      scaleFac = CS_DBFS_FLOAT
                  * csound->GetInverseRealFFTScale(csound, (int32_t) p->Hlenpadded);
       for (i = 0; i < p->nchanls; i++) {
         fp1 = inbuf + i;

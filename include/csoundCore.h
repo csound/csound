@@ -604,9 +604,17 @@ typedef struct CORFIL {
 #define CS_ONEDKR    (p->h.insdshead->onedkr)
 #define CS_KICVT     (p->h.insdshead->kicvt)
 #define CS_ESR       (csound->esr)
+#define CS_ONEDSR    (csound->onedsr)
+#define CS_SICVT     (csound->sicvt)
+#define CS_TPIDSR    (csound->tpidsr)
+#define CS_PIDSR     (csound->pidsr)
+#define CS_MPIDSR    (csound->mpidsr)
+#define CS_MTPIDSR    (csound->mtpdsr)   
 #define CS_PDS       (p->h.insdshead->pds)
 #define CS_SPIN      (p->h.insdshead->spin)
 #define CS_SPOUT     (p->h.insdshead->spout)
+#define CS_DBFS_FLOAT (1.0/csound->Get0dBFS(csound))
+    
   typedef int (*SUBR)(CSOUND *, void *);
 
   /**
@@ -1313,9 +1321,7 @@ typedef struct _message_queue_t_ {
     
     /** @name FFT support */
     /**@{ */
-    void *(*RealFFTSetup)(CSOUND *csound,
-                           int FFTsize,
-                           int d);
+    void *(*RealFFTSetup)(CSOUND *csound, int FFTsize, int d);
     void (*RealFFT)(CSOUND *csound,
                      void *p, MYFLT *sig);
     MYFLT (*GetInverseRealFFTScale)(CSOUND *, int FFTsize);
@@ -1323,7 +1329,9 @@ typedef struct _message_queue_t_ {
     void (*InverseComplexFFT)(CSOUND *, MYFLT *buf, int FFTsize);
     MYFLT (*GetInverseComplexFFTScale)(CSOUND *, int FFTsize);
     void (*RealFFTMult)(CSOUND *, MYFLT *outbuf, MYFLT *buf1, MYFLT *buf2,
-                                  int FFTsize, MYFLT scaleFac);   
+                                  int FFTsize, MYFLT scaleFac);
+    void *(*DCTSetup)(CSOUND *csound,int FFTsize, int d);
+    void (*DCT)(CSOUND *csound, void *p, MYFLT *sig);
     /**@}*/
     
     /** @name LPC support */

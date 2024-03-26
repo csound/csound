@@ -336,6 +336,8 @@ static const CSOUND cenviron_ = {
     csoundInverseComplexFFT,
     csoundGetInverseComplexFFTScale,
     csoundRealFFTMult,
+    csoundDCTSetup,
+    csoundDCT,
     /* LPC support */
     csoundAutoCorrelation,
     csoundLPsetup,

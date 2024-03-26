@@ -197,6 +197,12 @@ typedef struct {
         int32_t narg;
 } OUTRANGE;
 
+typedef struct {
+        OPDS    h;
+        MYFLT   *kstartChan, *argums[VARGMAX];
+        int32_t numChans, narg;
+} INRANGE;
+
 int32_t monitor_opcode_perf(CSOUND *csound, MONITOR_OPCODE *p);
 int32_t monitor_opcode_init(CSOUND *csound, MONITOR_OPCODE *p);
 int32_t outRange_i(CSOUND *csound, OUTRANGE *p);

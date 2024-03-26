@@ -103,7 +103,7 @@ static int32_t hm234set(CSOUND *csound, HARM234 *p)
       MYFLT minfrq = POWER(FL(2.0), minoct) * ONEPT;
       int16 nbufs = (int16)(csound->ekr * 3 / minfrq) + 1;/* recalc max pulse prd */
       int16 nbufsmps = nbufs * CS_KSMPS;
-      int16 maxprd = (int16)(csound->esr * 2 / minfrq);   /* incl sigmoid ends */
+      int16 maxprd = (int16)(CS_ESR * 2 / minfrq);   /* incl sigmoid ends */
       int16 cnt;
       int32  totalsiz = nbufsmps * 2 + maxprd * 4 + (SLEN+1);
       MYFLT *pulsbuf, *sigp;                            /*  & realloc buffers */
@@ -124,7 +124,7 @@ static int32_t hm234set(CSOUND *csound, HARM234 *p)
       p->n2bufsmps = nbufsmps * 2;
     }
     //p->minoct = minoct;
-    p->sicvt = FL(65536.0) * csound->onedsr;
+    p->sicvt = FL(65536.0) * CS_ONEDSR;
     //printf("sicvt = %f\n", p->sicvt);
     //    p->polarity = (int16)*p->ipolarity;
     p->poslead = 0;
@@ -137,7 +137,7 @@ static int32_t hm234set(CSOUND *csound, HARM234 *p)
     p->curpuls = NULL;
     p->pbufcnt = 0;
     p->vocamp = FL(0.0);                        /* begin unvoiced */
-    p->ampinc = FL(10.0) * csound->onedsr;      /* .1 sec lin ramp for uv to v */
+    p->ampinc = FL(10.0) * CS_ONEDSR;      /* .1 sec lin ramp for uv to v */
     //printf("ampinc = %f\n", p->ampinc);
     p->switching = 0;
     return OK;
@@ -160,7 +160,7 @@ static int32_t harmon234(CSOUND *csound, HARM234 *p)
         MYFLT cps = POWER(FL(2.0), koct) * ONEPT;     /*   recalc pulse period */
         p->period = (int16) (CS_ESR / cps);
         if (!p->cpsmode)
-          p->sicvt = cps * FL(65536.0) * csound->onedsr; /* k64dsr;*/
+          p->sicvt = cps * FL(65536.0) * CS_ONEDSR; /* k64dsr;*/
       }
       p->prvoct = koct;
     }
@@ -344,7 +344,7 @@ static int32_t harmon234(CSOUND *csound, HARM234 *p)
     for (vdp=p->vocdat; vdp<p->vlim; vdp++)     /* get new frequencies  */
       vdp->phsinc = (int32)(*vdp->kfrq * p->sicvt);
     outp = p->ar;
-    //nsmps = csound->ksmps;
+    //nsmps = CS_KSMPS;
     vocamp = p->vocamp;
     diramp = FL(1.0) - vocamp;
     dirp = p->asig;

@@ -35,13 +35,22 @@ int32_t stdopc_ModuleInit(CSOUND *csound)
     STDOPCOD_GLOBALS  *p;
     int32_t               err = 0;
 
-    if (UNLIKELY(csound->stdOp_Env != NULL)) {
-      csound->ErrorMsg(csound, Str("stdopcod.c: error: globals already allocated"));
+    if (UNLIKELY(csound->QueryGlobalVariable(csound, "STDOPC_GLOBALS") != NULL)) {
+      csound->ErrorMsg(csound,
+                       Str("stdopcod.c: error: globals already allocated"));
       return CSOUND_ERROR;
     }
-    csound->stdOp_Env = csound->Calloc(csound, sizeof(STDOPCOD_GLOBALS));
 
-    p = (STDOPCOD_GLOBALS*) csound->stdOp_Env;
+    if(UNLIKELY(csound->CreateGlobalVariable(csound,
+        "STDOPC_GLOBALS", sizeof(STDOPCOD_GLOBALS)
+                            != CSOUND_SUCCESS))){
+      csound->ErrorMsg(csound,
+                       Str("stdopcod.c: could not allocate globals"));
+      return CSOUND_ERROR;
+    }
+    
+    p = (STDOPCOD_GLOBALS*) csound->QueryGlobalVariable(csound,
+                                                        "STDOPC_GLOBALS");
     p->csound = csound;
     /* fout.c */
     p->file_opened = (struct fileinTag*) NULL;
@@ -70,8 +79,6 @@ int32_t stdopc_ModuleInit(CSOUND *csound)
     err |= locsig_init_(csound);
     err |= lowpassr_init_(csound);
     err |= metro_init_(csound);
-    err |= midiops2_init_(csound);
-    err |= midiops3_init_(csound);
     err |= newfils_init_(csound);
     err |= nlfilt_init_(csound);
     err |= oscbnk_init_(csound);

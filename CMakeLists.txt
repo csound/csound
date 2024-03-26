@@ -699,9 +699,12 @@ set(libcsound_SRCS
     OOps/goto_ops.c
     OOps/midiinterop.c
     OOps/midiops.c
+    OOps/midiops2.c
+       OOps/midiops3.c
     OOps/midiout.c
     OOps/mxfft.c
     OOps/oscils.c
+     OOps/pitch0.c
     OOps/pstream.c
     OOps/pvfileio.c
     OOps/pvsanal.c
@@ -728,7 +731,6 @@ set(libcsound_SRCS
     Opcodes/squinewave.c
     Opcodes/pinker.c
     Opcodes/pitch.c
-    Opcodes/pitch0.c
     Opcodes/spectra.c
     Opcodes/ambicode1.c
     Opcodes/sfont.c
@@ -846,8 +848,6 @@ set(stdopcod_SRCS
     Opcodes/locsig.c
     Opcodes/lowpassr.c
     Opcodes/metro.c
-    Opcodes/midiops2.c
-    Opcodes/midiops3.c
     Opcodes/newfils.c
     Opcodes/nlfilt.c
     Opcodes/oscbnk.c

@@ -33,31 +33,6 @@
 #include "stdopcod.h"
 #include "nlfilt.h"
 
-typedef struct {
-        OPDS    h;
-        MYFLT   *ians;
-        MYFLT   *index;
-} PFIELD;
-
-typedef struct {
-        OPDS    h;
-        STRINGDAT   *ians;
-        MYFLT   *index;
-} PFIELDSTR;
-
-typedef struct {
-        OPDS    h;
-        MYFLT   *inits[24];
-        MYFLT   *start;
-        MYFLT   *end;
-} PINIT;
-
-typedef struct {
-        OPDS    h;
-        ARRAYDAT *inits;
-        MYFLT   *start;
-        MYFLT   *end;
-} PAINIT;
 
 #define MAX_DELAY   (1024)
 #define MAXAMP      (FL(64000.0))
@@ -107,7 +82,7 @@ static int32_t nlfilt(CSOUND *csound, NLFILT *p)
     ynm1 = fp[nm1];                     /* Pick up running values */
     ynm2 = fp[nm2];
     ynmL = fp[nmL];
-    maxamp = csound->e0dbfs * FL(1.953125);     /* 64000 with default 0dBFS */
+    maxamp = csound->Get0dBFS(csound) * FL(1.953125);     /* 64000 with default 0dBFS */
     dvmaxamp = FL(1.0) / maxamp;
     maxampd2 = maxamp * FL(0.5);
     if (UNLIKELY(offset)) memset(ar, '\0', offset*sizeof(MYFLT));
@@ -182,7 +157,7 @@ static int32_t nlfilt2(CSOUND *csound, NLFILT *p)
     ynm2 = fp[nm2];
     ynmL = fp[nmL];
     nsmps = CS_KSMPS;
-    maxamp = csound->e0dbfs * FL(1.953125);     /* 64000 with default 0dBFS */
+    maxamp = csound->Get0dBFS(csound) * FL(1.953125);     /* 64000 with default 0dBFS */
     dvmaxamp = FL(1.0) / maxamp;
     maxampd2 = maxamp * FL(0.5);
     if (UNLIKELY(offset)) memset(ar, '\0', offset*sizeof(MYFLT));
@@ -220,99 +195,10 @@ static int32_t nlfilt2(CSOUND *csound, NLFILT *p)
                              Str("nlfilt2: not initialised"));
 } /* end nlfilt2(p) */
   
-/* ***************************************************************** */
-/* ***************************************************************** */
-/* ***************************************************************** */
-/* ***************************************************************** */
-/*     icnt    pcnt */
-/*     ival    pfld indx */
-int32_t pcount(CSOUND *csound, PFIELD *p)
-{
-    *p->ians = (MYFLT) csound->init_event->pcnt;
-    return OK;
-}
-
-int32_t pvalue(CSOUND *csound, PFIELD *p)
-{
-    int32_t n = (int32_t)(*p->index);
-    if (UNLIKELY(csound->init_event==NULL || n<1 || n>csound->init_event->pcnt)) {
-      return csound->InitError(csound, Str("invalid p field index"));
-    }
-    *p->ians = csound->init_event->p[n];
-    return OK;
-}
-
-int32_t pvaluestr(CSOUND *csound, PFIELDSTR *p)
-{
-    int32_t n = (int32_t)(*p->index);
-    if (UNLIKELY(csound->init_event==NULL || n<1 || n>csound->init_event->pcnt)) {
-      return csound->InitError(csound, Str("invalid p field index"));
-    }
-
-    if (p->ians->data!=NULL) csound->Free(csound, p->ians->data);
-
-    if (LIKELY(csound->IsStringCode(csound->init_event->p[n]))) {
-        p->ians->data = cs_strdup(csound,
-                get_arg_string(csound, csound->init_event->p[n]));
-        p->ians->size = strlen(p->ians->data) + 1;
-    }
-    return OK;
-}
-
-int32_t pinit(CSOUND *csound, PINIT *p)
-{
-    int32_t n;
-    int32_t    nargs = p->OUTOCOUNT;
-    int32_t    pargs = csound->init_event->pcnt;
-    int32_t    start = (int32_t)(*p->start);
-    /* Should check that inits exist> */
-    int32_t    k = (int32_t)(*p->end);
-    if (*p->end!=FL(0.0)) {
-      if (k<pargs) pargs = k;
-    }
-    if (UNLIKELY(nargs>pargs))
-      csound->Warning(csound, Str("More arguments than p fields"));
-    pargs -= (int)*p->end;
-    for (n=0; (n<nargs) && (n<=pargs-start); n++) {
-      //printf("*** p%d %p\n", n+start, &(csound->init_event->p[n+start]));
-      if (csound->IsStringCode(csound->init_event->p[n+start])) {
-        ((STRINGDAT *)p->inits[n])->data =
-          cs_strdup(csound, get_arg_string(csound, csound->init_event->p[n+start]));
-        ((STRINGDAT *)p->inits[n])->size =
-          strlen(((STRINGDAT *)p->inits[n])->data)+1;
-      }
-      else  *p->inits[n] = csound->init_event->p[n+start];
-    }
-    return OK;
-}
-
-#include "arrays.h"
-int32_t painit(CSOUND *csound, PAINIT *p)
-{
-    int32_t n;
-    int32_t    pargs = csound->init_event->pcnt;
-    int32_t    start = (int32_t)(*p->start);
-    int32_t    k = (int32_t)(*p->end);
-    if (*p->end!=FL(0.0)) {
-      if (k<pargs) pargs = k;
-    }
-    tabinit(csound, p->inits, pargs-start+1);
-    for (n=0; n<=pargs-start; n++) {
-      ((MYFLT*)p->inits->data)[n] = csound->init_event->p[n+start];
-    }
-    return OK;
-}
 
 #define S(x)    sizeof(x)
 
 static OENTRY localops[] = {
-{ "pcount", S(PFIELD),  0, 1, "i", "",       (SUBR)pcount,    NULL, NULL },
-{ "pindex", S(PFIELD),  0, 1, "i", "i",      (SUBR)pvalue,    NULL, NULL },
-{ "pindex.S", S(PFIELDSTR), 0, 1, "S", "i",  (SUBR)pvaluestr, NULL, NULL },
-{ "passign", S(PINIT),  0, 1, "IIIIIIIIIIIIIIIIIIIIIIII", "po",
-                                             (SUBR)pinit,     NULL, NULL },
-{ "passign.i", S(PAINIT), 0, 1, "i[]", "po",  (SUBR)painit,    NULL, NULL },
-{ "passign.k", S(PAINIT), 0, 1, "k[]", "po",  (SUBR)painit,    NULL, NULL },
 { "nlfilt",  S(NLFILT), 0, 3, "a", "akkkkk", (SUBR)nlfiltset, (SUBR)nlfilt },
 { "nlfilt2",  S(NLFILT), 0, 3, "a", "akkkkk", (SUBR)nlfiltset, (SUBR)nlfilt2 }
 };

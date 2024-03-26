@@ -107,7 +107,7 @@ int32_t spectset(CSOUND *csound, SPECTRUM *p)
                       Str("spectrum: %s window, %s out, making tables ...\n"),
                       (hanning) ? "hanning":"hamming", outstring[p->dbout]);
 
-      if (csoundGetTypeForArg(p->signal) == &CS_VAR_TYPE_K) {
+      if (GetTypeForArg(p->signal) == &CS_VAR_TYPE_K) {
         dwnp->srate = CS_EKR;            /* define the srate */
         p->nsmps = 1;
       }
@@ -117,7 +117,7 @@ int32_t spectset(CSOUND *csound, SPECTRUM *p)
       }
       hicps = dwnp->srate * 0.375;            /* top freq is 3/4 pi/2 ...   */
       oct = log(hicps / ONEPT) / LOGTWO;      /* octcps()  (see aops.c)     */
-      if (csoundGetTypeForArg(p->signal) != &CS_VAR_TYPE_K) {     /* for sr sampling:           */
+      if (GetTypeForArg(p->signal) != &CS_VAR_TYPE_K) {     /* for sr sampling:           */
         oct = ((int32_t)(oct*12.0 + 0.5)) / 12.0; /*     semitone round to A440 */
         hicps = pow(2.0, oct) * ONEPT;        /*     cpsoct()               */
       }
@@ -1276,20 +1276,6 @@ static OENTRY spectra_localops[] = {
 { "transegr.a", S(TRANSEG),0, 3, "a", "iiim",
                               (SUBR)trnsetr,(SUBR)trnsegr      },
 { "clip", S(CLIP),      0, 3,  "a", "aiiv", (SUBR)clip_set, (SUBR)clip  },
-{ "cpuprc", S(CPU_PERC),0, 1,     "",     "Si",   (SUBR)cpuperc_S, NULL, NULL   },
-{ "maxalloc", S(CPU_PERC),0, 1,   "",     "Si",   (SUBR)maxalloc_S, NULL, NULL  },
-{ "cpuprc", S(CPU_PERC),0, 1,     "",     "ii",   (SUBR)cpuperc, NULL, NULL   },
-{ "maxalloc", S(CPU_PERC),0, 1,   "",     "ii",   (SUBR)maxalloc, NULL, NULL  },
-{ "active", 0xffff                                                          },
-{ "active.iS", S(INSTCNT),0,1,    "i",    "Soo",   (SUBR)instcount_S, NULL, NULL },
-{ "active.kS", S(INSTCNT),0,2,    "k",    "Soo",   NULL, (SUBR)instcount_S, NULL },
-{ "active.i", S(INSTCNT),0,1,     "i",    "ioo",   (SUBR)instcount, NULL, NULL },
-{ "active.k", S(INSTCNT),0,2,     "k",    "koo",   NULL, (SUBR)instcount, NULL },
-{ "p.i", S(PFUN),        0,1,     "i",    "i",     (SUBR)pfun, NULL, NULL     },
-{ "p.k", S(PFUNK),       0,3,     "k",    "k",
-                                          (SUBR)pfunk_init, (SUBR)pfunk, NULL },
-{ "mute", S(MUTE), 0,1,           "",      "So",   (SUBR)mute_inst_S             },
-{ "mute.i", S(MUTE), 0,1,         "",      "io",   (SUBR)mute_inst             },
 { "median", S(MEDFILT), 0, 3,     "a", "akio", (SUBR)medfiltset, (SUBR)medfilt },
 { "mediank", S(MEDFILT), 0,3,     "k", "kkio", (SUBR)medfiltset, (SUBR)kmedfilt},
 };

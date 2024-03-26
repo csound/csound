@@ -139,7 +139,7 @@ int32_t mp3ininit_(CSOUND *csound, MP3IN *p, int32_t stringname)
     /*          *mpainfo.frames; */
     /* csound->Message(csound, "maxsize = %li\n", maxsize); */
     /* print file information */
-    /* if (UNLIKELY(csound->oparms_.msglevel & WARNMSG)) */ {
+    /* if (UNLIKELY(csound->GetOParms_.msglevel & WARNMSG)) */ {
       char temp[80];            /* Could be as low as 20 */
       if (mpainfo.frequency < 16000) strcpy(temp, "MPEG-2.5 ");
       else if (mpainfo.frequency < 32000) strcpy(temp, "MPEG-2 ");
@@ -154,7 +154,7 @@ int32_t mp3ininit_(CSOUND *csound, MP3IN *p, int32_t stringname)
     }
     /* check number of channels in file (must equal the number of outargs) */
     /* if (UNLIKELY(sfinfo.channels != p->nChannels && */
-    /*              (csound->oparms_.msglevel & WARNMSG) != 0)) { */
+    /*              (csound->GetOParms_.msglevel & WARNMSG) != 0)) { */
     /*   mp3dec_uninit(mpa); */
     /*   return csound->InitError(csound, */
     /*                      Str("mp3in: number of output args " */
@@ -243,7 +243,7 @@ int32_t mp3in(CSOUND *csound, MP3IN *p)
           }
           pos = 0;
         }
-        xx = ((MYFLT)bb[pos]/(MYFLT)0x7fff) * csound->e0dbfs;
+        xx = ((MYFLT)bb[pos]/(MYFLT)0x7fff) * csound->Get0dBFS(csound);
         if (i==0) al[n] = xx;
         else      ar[n] = xx;
         pos++;

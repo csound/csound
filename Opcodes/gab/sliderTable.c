@@ -324,7 +324,7 @@ static int32_t sliderTable64(CSOUND *csound, SLIDER64t *p) /* GAB */
         /*----- init filtering coeffs*/                                 \
         *yt1++ = FL(0.0);                                               \
         b = (MYFLT)(2.0 - cos((double)(*(sld)->ihp *                    \
-                              csound->tpidsr * CS_KSMPS)));             \
+                              CS_TPIDSR * CS_KSMPS)));             \
         *c2 = (MYFLT)(b - sqrt((double)(b * b - FL(1.0))));             \
         *c1++ = FL(1.0) - *c2++;                                        \
                                                                         \
@@ -581,7 +581,7 @@ static int32_t ctrl7a_set(CSOUND *csound, CTRL7a *p)
     if (*p->icutoff <= 0) cutoff = 5;
     else cutoff = *p->icutoff;
 
-    b = FL(2.0) - COS(cutoff * csound->tpidsr * CS_KSMPS);
+    b = FL(2.0) - COS(cutoff * CS_TPIDSR * CS_KSMPS);
     p->c2 = b - SQRT(b * b - 1.0);
     p->c1 = FL(1.0) - p->c2;
     p->prev = 0;

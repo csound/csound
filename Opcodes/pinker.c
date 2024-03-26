@@ -93,7 +93,7 @@ static int pink_perf(CSOUND* csound, PINKER *p)
     int32 lfsr   =   p->lfsr;
     int cnt    =   p->cnt;
     int bit;
-    int n, nn, nsmps = csound->ksmps;
+    int n, nn, nsmps = CS_KSMPS;
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     int mask;
@@ -136,7 +136,7 @@ static int pink_perf(CSOUND* csound, PINKER *p)
       //printf("out = %f a,b = %f,%f mask = %.8x dec,inc = %x,%x acc = %x\n",
       //       yy, pfira[lfsr & 0x3F], pfirb[lfsr >>6 & 0x3F],
       //       mask, dec, inc, accu);
-      out[n] = yy*csound->e0dbfs;
+      out[n] = yy*csound->Get0dBFS(csound);
     /* PINK(mask);   PINK(0x0800); PINK(0x0400); PINK(0x0800); */
     /* PINK(0x0200); PINK(0x0800); PINK(0x0400); PINK(0x0800); */
     /* PINK(0x0100); PINK(0x0800); PINK(0x0400); PINK(0x0800); */

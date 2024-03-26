@@ -67,7 +67,7 @@ int32_t pitchset(CSOUND *csound, PITCH *p)  /* pitch - uses spectra technology *
     MYFLT   weight, weightsum, dbthresh, ampthresh;
 
                                 /* RMS of input signal */
-    b = 2.0 - cos(10.0*(double)csound->tpidsr);
+    b = 2.0 - cos(10.0*(double)CS_TPIDSR);
     p->c2 = b - sqrt(b * b - 1.0);
     p->c1 = 1.0 - p->c2;
     if (!*p->istor) p->prvq = 0.0;
@@ -268,7 +268,7 @@ int32_t pitch(CSOUND *csound, PITCH *p)
       memset(&asig[nsmps], '\0', early*sizeof(MYFLT));
     }
     for (n=offset; n<nsmps; n++) {
-      MYFLT as = asig[n]*DFLT_DBFS/csound->e0dbfs; /* Normalise.... */
+      MYFLT as = asig[n]*DFLT_DBFS/csound->Get0dBFS(csound); /* Normalise.... */
       q = c1 * as * as + c2 * q;
       SIG = as;                              /* for each source sample: */
       octp = downp->octdata;                /*   align onto top octave */
@@ -715,7 +715,7 @@ int32_t adsynt(CSOUND *csound, ADSYNT *p)
     for (c=0; c<count; c++) {
       amp = amptbl[c] * amp0;
       cps = freqtbl[c] * cps0;
-      inc = (int32) (cps * csound->sicvt);
+      inc = (int32) (cps * CS_SICVT);
       phs = lphs[c];
       for (n=offset; n<nsmps; n++) {
         ar[n] += *(ftbl + (phs >> lobits)) * amp;
@@ -814,7 +814,7 @@ int32_t hsboscil(CSOUND *csound, HSBOSC   *p)
       amp = mtab[(int32_t)((octoffs / (MYFLT)octcnt) * mtablen)] * amp0;
       if (UNLIKELY(freq > hesr))
         amp = FL(0.0);
-      inc = (int32)(freq * csound->sicvt);
+      inc = (int32)(freq * CS_SICVT);
       for (n=offset; n<nsmps; n++) {
         fract = PFRAC(phs);
         ftab = ftp->ftable + (phs >> lobits);
@@ -1196,7 +1196,7 @@ int32_t kphsorbnk(CSOUND *csound, PHSORBNK *p)
     }
 
     *p->sr = (MYFLT)(phs = curphs[index]);
-    if (UNLIKELY((phs += *p->xcps * csound->onedkr) >= 1.0))
+    if (UNLIKELY((phs += *p->xcps * CS_ONEDKR) >= 1.0))
       phs -= 1.0;
     else if (UNLIKELY(phs < 0.0)) /* patch from Matthew Scala */
       phs += 1.0;
@@ -1235,7 +1235,7 @@ int32_t phsorbnk(CSOUND *csound, PHSORBNK *p)
     if (IS_ASIG_ARG(p->xcps)) {
       MYFLT *cps = p->xcps;
       for (n=offset; n<nsmps; n++) {
-        incr = (double)(cps[n] * csound->onedsr);
+        incr = (double)(cps[n] * CS_ONEDSR);
         rs[n] = (MYFLT)phase;
         phase += incr;
         if (UNLIKELY(phase >= 1.0))
@@ -1245,7 +1245,7 @@ int32_t phsorbnk(CSOUND *csound, PHSORBNK *p)
       }
     }
     else {
-      incr = (double)(*p->xcps * csound->onedsr);
+      incr = (double)(*p->xcps * CS_ONEDSR);
       for (n=offset; n<nsmps; n++) {
         rs[n] = (MYFLT)phase;
         phase += incr;
@@ -2163,7 +2163,7 @@ int32_t lpf18db(CSOUND *csound, LPF18 *p)
     int32_t   flag = 1;
     MYFLT lfc=0, lrs=0, kres=0, kfcn=0, kp=0, kp1=0,  kp1h=0;
     double lds = 0.0;
-    MYFLT zerodb = csound->e0dbfs;
+    MYFLT zerodb = csound->Get0dBFS(csound);
     int32_t   asgf = IS_ASIG_ARG(p->fco), asgr = IS_ASIG_ARG(p->res),
           asgd = IS_ASIG_ARG(p->dist);
 
@@ -2182,7 +2182,7 @@ int32_t lpf18db(CSOUND *csound, LPF18 *p)
       dist       = (double)(asgd ? p->dist[n] : *p->dist);
       if (fco != lfc || flag) {
         lfc = fco;
-        kfcn = FL(2.0) * fco * csound->onedsr;
+        kfcn = FL(2.0) * fco * CS_ONEDSR;
         kp   = ((-FL(2.7528)*kfcn + FL(3.0429))*kfcn +
                 FL(1.718))*kfcn - FL(0.9984);
         kp1 = kp+FL(1.0);
