@@ -1293,7 +1293,7 @@ const INITFN staticmodules[] = { hrtfopcodes_localops_init, babo_localops_init,
 */
 typedef NGFENS* (*FGINITFN)(CSOUND *);
 
-NGFENS *quadbezier_fgens_init(CSOUND *, void *);
+NGFENS *quadbezier_fgens_init(CSOUND *);
 NGFENS *ftest_fgens_init(CSOUND *);
 NGFENS *farey_fgens_init(CSOUND *);
 
