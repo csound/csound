@@ -1040,16 +1040,11 @@ typedef struct _message_queue_t_ {
 
     /** @name Attributes */
     /**@{ */
-    MYFLT (*GetLocalSr)(INSDS *);
-    MYFLT (*GetLocalKr)(INSDS *);
-    uint32_t (*GetLocalKsmps)(INSDS *);
      /** Get number of output channels */
     uint32_t (*GetNchnls)(CSOUND *);
     /** Get number of input channels */
     uint32_t (*GetNchnls_i)(CSOUND *);
     MYFLT (*Get0dBFS) (CSOUND *);
-    /** Get number of control blocks elapsed */
-    uint64_t (*GetKcounter)(INSDS *);
     int64_t (*GetCurrentTimeSamples)(CSOUND *);
     long (*GetInputBufferSize)(CSOUND *);
     long (*GetOutputBufferSize)(CSOUND *);

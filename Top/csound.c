@@ -283,32 +283,11 @@ MYFLT csoundSystemSr(CSOUND *csound, MYFLT val) {
 }
 
 
-static MYFLT csoundGetLocalSr(INSDS *ip){
-  return ip->esr;
-}
-
-static MYFLT csoundGetLocalKr(INSDS *ip){
-  return ip->ekr;
-}
-
-static uint32_t csoundGetLocalKsmps(INSDS *ip){
-  return ip->ksmps;
-}
-
-static uint64_t csoundGetLocalKcounter(INSDS *ip){
-  return ip->kcounter;
-}
-
-
 static const CSOUND cenviron_ = {
     /* attributes  */
-    csoundGetLocalSr,
-    csoundGetLocalKr,
-    csoundGetLocalKsmps,
     csoundGetNchnls,
     csoundGetNchnlsInput,
     csoundGet0dBFS,
-    csoundGetLocalKcounter,
     csoundGetCurrentTimeSamples,
     csoundGetInputBufferSize,
     csoundGetOutputBufferSize,

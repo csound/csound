@@ -56,7 +56,7 @@ int32_t s_opcode(CSOUND *csound, STRGET_OP *p){
 
 int32_t s_opcode_k(CSOUND *csound, STRGET_OP *p){
   snprintf(p->r->data, p->r->size, "%f", *p->indx);
-  p->r->timestamp = csound->GetKcounter(p->h.insdshead);
+  p->r->timestamp = p->h.insdshead->kcounter;
   return OK;
 }
 
@@ -182,7 +182,7 @@ static CS_NOINLINE int32_t StrOp_ErrMsg(void *p, const char *msg)
 
 int32_t strassign_k(CSOUND *csound, STRCPY_OP *p) {
   if(p->r != p->str) {
-  if((uint64_t)p->str->timestamp == csound->GetKcounter(p->h.insdshead)) {
+  if((uint64_t)p->str->timestamp == p->h.insdshead->kcounter) {
   CS_TYPE *strType = csound->GetTypeForArg(p->str);    
   strType->copyValue(csound, strType, p->r, p->str);
   //printf("copy \n");
@@ -258,7 +258,7 @@ int32_t str_changed_k(CSOUND *csound, STRCHGD *p)
 /* rewritten VL Feb 22 */
 int32_t strcat_opcode(CSOUND *csound, STRCAT_OP *p)
 {
-  int64_t kcnt = csound->GetKcounter(p->h.insdshead);
+  int64_t kcnt = p->h.insdshead->kcounter;
   size_t size = strlen(p->str1->data) + strlen(p->str2->data);
   if(size >= MAX_STRINGDAT_SIZE) {
      if(is_perf_thread(&p->h))
@@ -545,7 +545,7 @@ int32_t sprintf_opcode(CSOUND *csound, SPRINTF_OP *p)
     ((char*) p->r->data)[0] = '\0';
     return NOTOK;
   }
-  p->r->timestamp = csound->GetKcounter(p->h.insdshead);
+  p->r->timestamp = p->h.insdshead->kcounter;
   return OK;
 }
 
@@ -784,7 +784,7 @@ int32_t strtol_opcode_p(CSOUND *csound, STRTOD_OP *p)
 
 int32_t strsub_opcode(CSOUND *csound, STRSUB_OP *p)
 {
-  int64_t kcnt = csound->GetKcounter(p->h.insdshead);
+  int64_t kcnt = p->h.insdshead->kcounter;
     const char  *src;
     char        *dst;
     int32_t      strt, end, rev = 0;
@@ -918,7 +918,7 @@ int32_t strlen_opcode(CSOUND *csound, STRLEN_OP *p)
 
 int32_t strupper_opcode(CSOUND *csound, STRUPPER_OP *p)
 {
-  int64_t kcnt = csound->GetKcounter(p->h.insdshead);
+  int64_t kcnt = p->h.insdshead->kcounter;
     const char  *src;
     char        *dst;
     int32_t         i;
@@ -946,7 +946,7 @@ int32_t strupper_opcode(CSOUND *csound, STRUPPER_OP *p)
 int32_t strlower_opcode(CSOUND *csound, STRUPPER_OP *p)
 {
 
-  int64_t kcnt = csound->GetKcounter(p->h.insdshead);
+  int64_t kcnt = p->h.insdshead->kcounter;
     const char  *src;
     char        *dst;
     int32_t         i;
