@@ -228,14 +228,6 @@ static int csoundGetRandSeed(CSOUND *csound, int which){
     else return csound->randSeed2;
 }
 
-static char *csoundGetStrsets(CSOUND *csound, long p){
-    if (csound->strsets == NULL) return NULL;
-    else return csound->strsets[p];
-}
-
-static int csoundGetStrsmax(CSOUND *csound){
-    return csound->strsmax;
-}
 
 static void csoundGetOParms(CSOUND *csound, OPARMS *p){
     memcpy(p, csound->oparms, sizeof(OPARMS));
@@ -243,29 +235,6 @@ static void csoundGetOParms(CSOUND *csound, OPARMS *p){
 
 static int csoundGetDitherMode(CSOUND *csound){
     return  csound->dither_output;
-}
-
-#include "Opcodes/zak.h"
-static int csoundGetZakBounds(CSOUND *csound, MYFLT **zkstart){
-    ZAK_GLOBALS *zz;
-    zz = (ZAK_GLOBALS*) csound->QueryGlobalVariable(csound, "_zak_globals");
-    if (zz==NULL) {
-      *zkstart = NULL;
-      return -1;
-    }
-    *zkstart = zz->zkstart;
-    return zz->zklast;
-}
-
-static int csoundGetZaBounds(CSOUND *csound, MYFLT **zastart){
-    ZAK_GLOBALS *zz;
-    zz = (ZAK_GLOBALS*) csound->QueryGlobalVariable(csound, "_zak_globals");
-    if (zz==NULL) {
-      *zastart = NULL;
-      return -1;
-    }
-    *zastart = zz->zastart;
-    return zz->zalast;
 }
 
 static int csoundGetReinitFlag(CSOUND *csound){
@@ -291,6 +260,9 @@ static const CSOUND cenviron_ = {
     csoundGet0dBFS,
     csoundGetKcounter,
     csoundGetA4,
+    csoundGetTieFlag,
+    csoundGetReinitFlag,
+    csoundGetInstrumentList,
     csoundGetHostData,
     csoundGetCurrentTimeSamples,
     csoundGetInputBufferSize,
@@ -304,6 +276,14 @@ static const CSOUND cenviron_ = {
     /* channels */
     csoundGetChannelPtr,
     csoundListChannels,
+   /* events and performance */
+    csoundYield,
+    insert_score_event,
+    csoundGetScoreOffsetSeconds,
+    csoundSetScoreOffsetSeconds,
+    csoundRewindScore,
+    csoundInputMessageInternal,
+    isstrcod,
     /* message printout */
     csoundMessage,
     csoundMessageS,
@@ -311,13 +291,6 @@ static const CSOUND cenviron_ = {
     csoundGetMessageLevel,
     csoundSetMessageLevel,
     csoundSetMessageCallback,
-    csoundGetZakBounds,
-    csoundGetZaBounds,
-    csoundGetTieFlag,
-    csoundGetReinitFlag,
-    csoundGetStrsmax,
-    csoundGetStrsets,
-    csoundPow2,
     /* arguments to opcodes */
     get_arg_string,
     strarg2insno,
@@ -450,6 +423,27 @@ static const CSOUND cenviron_ = {
     type2string,
     getstrformat,
     sfsampsize,
+    /* generic callbacks */
+    csoundSetYieldCallback,
+    csoundRegisterKeyboardCallback,
+    csoundRemoveKeyboardCallback,
+    csoundRegisterSenseEventCallback,
+    csoundRegisterDeinitCallback,
+    csoundRegisterResetCallback,
+    SetInternalYieldCallback,
+    /* hash table funcs */
+    cs_hash_table_create,
+    cs_hash_table_get,
+    cs_hash_table_put,
+    cs_hash_table_remove,
+    cs_hash_table_free,
+    cs_hash_table_get_key,
+    cs_hash_table_keys,
+    cs_hash_table_values,
+    /* opcodes and instruments  */
+    csoundAppendOpcode,
+    csoundAppendOpcodes,
+    find_opcode_exact,
     /* RT audio IO and callbacks */
     csoundSetPlayopenCallback,
     csoundSetRtplayCallback,
@@ -470,6 +464,14 @@ static const CSOUND cenviron_ = {
     csoundSetExternalMidiErrorStringCallback,
     csoundSetMIDIDeviceListCallback,
     module_list_add,
+    /* utilities */
+    csoundAddUtility,
+    csoundRunUtility,
+    csoundListUtilities,
+    csoundSetUtilityDescription,
+    csoundGetUtilityDescription,
+    set_util_sr,
+    set_util_nchnls,
     /* displays & graphs */
     dispset,
     display,
@@ -480,45 +482,8 @@ static const CSOUND cenviron_ = {
     csoundSetDrawGraphCallback,
     csoundSetKillGraphCallback,
     csoundSetExitGraphCallback,
-    /* generic callbacks */
-    csoundSetYieldCallback,
-    csoundRegisterKeyboardCallback,
-    csoundRemoveKeyboardCallback,
-    csoundRegisterSenseEventCallback,
-    csoundRegisterDeinitCallback,
-    csoundRegisterResetCallback,
-    SetInternalYieldCallback,
-    /* opcodes and instruments  */
-    csoundAppendOpcode,
-    csoundAppendOpcodes,
-    find_opcode_exact,
-    csoundGetInstrumentList,
-    /* events and performance */
-    csoundYield,
-    insert_score_event,
-    csoundGetScoreOffsetSeconds,
-    csoundSetScoreOffsetSeconds,
-    csoundRewindScore,
-    csoundInputMessageInternal,
-    isstrcod,
-    /* hash table funcs */
-    cs_hash_table_create,
-    cs_hash_table_get,
-    cs_hash_table_put,
-    cs_hash_table_remove,
-    cs_hash_table_free,
-    cs_hash_table_get_key,
-    cs_hash_table_keys,
-    cs_hash_table_values,
-    /* utilities */
-    csoundAddUtility,
-    csoundRunUtility,
-    csoundListUtilities,
-    csoundSetUtilityDescription,
-    csoundGetUtilityDescription,
-    set_util_sr,
-    set_util_nchnls,
     /* miscellaneous */
+    csoundPow2,
     csoundRunCommand,
     csoundOpenLibrary,
     csoundCloseLibrary,

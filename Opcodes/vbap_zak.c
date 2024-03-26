@@ -36,6 +36,18 @@
 #include <stdlib.h>
 #include "zak.h"
 
+static int csoundGetZaBounds(CSOUND *csound, MYFLT **zastart){
+    ZAK_GLOBALS *zz;
+    zz = (ZAK_GLOBALS*) csound->QueryGlobalVariable(csound, "_zak_globals");
+    if (zz==NULL) {
+      *zastart = NULL;
+      return -1;
+    }
+    *zastart = zz->zastart;
+    return zz->zalast;
+}
+
+
 int32_t vbap_zak_moving_control(CSOUND *, VBAP_ZAK_MOVING *);
 int32_t vbap_zak_control(CSOUND *,VBAP_ZAK *);
 
@@ -204,7 +216,7 @@ int32_t vbap_zak_init(CSOUND *csound, VBAP_ZAK *p)
     char name[24];
     /* Check to see this index is within the limits of za space.    */
     MYFLT* zastart;
-    int zalast = csound->GetZaBounds(csound, &zastart);
+    int zalast = csoundGetZaBounds(csound, &zastart);
     indx = (int32) *p->ndx;
     if (UNLIKELY(indx > zalast)) {
       return csound->PerfError(csound, &(p->h),
@@ -518,7 +530,7 @@ int32_t vbap_zak_moving_init(CSOUND *csound, VBAP_ZAK_MOVING *p)
     p->n = (int32_t)MYFLT2LONG(*p->numb); /* Set size */
     /* Check to see this index is within the limits of za space.    */
     MYFLT* zastart;
-    int zalast = csound->GetZaBounds(csound, &zastart);
+    int zalast = csoundGetZaBounds(csound, &zastart);
     indx = (int32) *p->ndx;
     if (UNLIKELY(indx > zalast)) {
       return csound->PerfError(csound, &(p->h),
