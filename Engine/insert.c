@@ -1849,7 +1849,7 @@ int32_t oversampleset(CSOUND *csound, OVSMPLE *p) {
      
   l_sr = CS_ESR*os;
   CS_ESR = l_sr;
-  CS_PIDSR = M_PI/l_sr;
+  CS_PIDSR = PI/l_sr;
   CS_ONEDSR = 1./l_sr;
   CS_SICVT = (MYFLT) FMAXLEN / CS_ESR;
   CS_EKR = CS_ESR/CS_KSMPS;
@@ -1930,7 +1930,7 @@ int32_t undersampleset(CSOUND *csound, OVSMPLE *p) {
   CS_ONEDKSMPS = FL(1.0)/lksmps;
   l_sr = CS_ESR*onedos;
   CS_ESR = l_sr;
-  CS_PIDSR = M_PI/l_sr;
+  CS_PIDSR = PI/l_sr;
   CS_ONEDSR = 1./l_sr;
   CS_SICVT = (MYFLT) FMAXLEN / CS_ESR;
   CS_EKR = CS_ESR/CS_KSMPS;
